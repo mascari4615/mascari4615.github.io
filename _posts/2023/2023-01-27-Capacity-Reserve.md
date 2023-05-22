@@ -4,8 +4,7 @@ date: 2023-01-27. 07:37
 categories: ⛏️Memo 🕯️Computer
 ---
 
-{% youtube "https://youtu.be/9er81n6NyuM" %}
-<br>
+{% include embed/youtube.html id = "9er81n6NyuM" %}
 
 Capacity : the maximum amount that something can contain.  
 Reserve : 예약  

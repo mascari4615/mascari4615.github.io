@@ -13,8 +13,7 @@ categories: ⛏️Memo
 ### 💎 v1.0.1
 
 ---
-{% youtube "https://youtu.be/UdpJjhZ6WbI" %}
-<br>
+{% include embed/youtube.html id = "UdpJjhZ6WbI" %}
 
 - 멀티 플레이 진행 시, 자신을 제외한 다른 플레이어의 회전값이 제대로 적용되지 않던 문제 수정
 

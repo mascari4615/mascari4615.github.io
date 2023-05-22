@@ -8,8 +8,7 @@ categories: ⛏️Memo
 
 ---
 
-{% youtube 'https://youtu.be/n-RXnDGE72M' %}
-<br>
+{% include embed/youtube.html id = 'n-RXnDGE72M' %}
 
 [참고](https://forum.unity.com/threads/solved-problem-with-unity-navmesh-and-multiple-agent-sizes-with-a-workaround-solution.178628/)  
 
@@ -40,5 +39,5 @@ NavMesh Building Components는 AI Navigation 패키지의 Experimental 버전에
 
 패키지 설치는 [Unity NavMesh Building Components](https://docs.unity3d.com/2021.3/Documentation/Manual/NavMesh-BuildingComponents.html) 문서를 참고했다.  
 
-사용 방법은, 이 글 맨 위에 링크한 [Unite Europe 2017 - Finding the path](https://youtu.be/n-RXnDGE72M?t=180) 강연을 참고했다.  
+사용 방법은, 이 글 맨 위에 링크한 [Unite Europe 2017 - Finding the path](n-RXnDGE72M?t=180) 강연을 참고했다.  
 3분 부터 해당 기능을 소개한다.  

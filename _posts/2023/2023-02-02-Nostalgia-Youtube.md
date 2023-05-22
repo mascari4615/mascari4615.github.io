@@ -53,8 +53,7 @@ categories: ⛏️Memo
 
 [이 링크](https://youtu.be/Uf0SBEcCV6w) 인데 비공개 된 것 같다.  
 
-{% youtube 'https://youtu.be/KdZ_kbiq9sg' %}
-<br>
+{% include embed/youtube.html id = 'https://youtu.be/KdZ_kbiq9sg' %}
 
 이 영상도 본 기억이 있는 것 같다.  
 
@@ -69,9 +68,8 @@ categories: ⛏️Memo
 
 내 재생목록에 저장되어 있던 영상은  
 
-{% youtube 'https://youtu.be/4xxnXVxHxZs' %}
-{% youtube 'https://youtu.be/3Z5ipto5eE4' %}
-<br>
+{% include embed/youtube.html id = 'https://youtu.be/4xxnXVxHxZs' %}
+{% include embed/youtube.html id = 'https://youtu.be/3Z5ipto5eE4' %}
 
 이렇게 두 개.  
 
@@ -82,13 +80,12 @@ categories: ⛏️Memo
 
 내 재생목록에 저장되어 있던 영상은  
 
-{% youtube 'https://youtu.be/lnF3eWUnYb0' %}
-{% youtube 'https://youtu.be/0QlEGUq7n1M' %}
-{% youtube 'https://youtu.be/Z8IXK3WL7Iw' %}
-{% youtube 'https://youtu.be/WD9tz9wO5HA' %}
-{% youtube 'https://youtu.be/hEN0L4pDKS8' %}
-{% youtube 'https://youtu.be/PF0HOrUbYtI' %}
-<br>
+{% include embed/youtube.html id = 'https://youtu.be/lnF3eWUnYb0' %}
+{% include embed/youtube.html id = 'https://youtu.be/0QlEGUq7n1M' %}
+{% include embed/youtube.html id = 'https://youtu.be/Z8IXK3WL7Iw' %}
+{% include embed/youtube.html id = 'https://youtu.be/WD9tz9wO5HA' %}
+{% include embed/youtube.html id = 'https://youtu.be/hEN0L4pDKS8' %}
+{% include embed/youtube.html id = 'https://youtu.be/PF0HOrUbYtI' %}
 
 이렇게 여섯 개.  
 
@@ -185,8 +182,7 @@ categories: ⛏️Memo
 그중에서도 특히 개리.. 임종호 호 할아버지..  
 특유의 말투와 개그가 너무 취향이었다.  
 
-{% youtube 'https://youtu.be/fZyaqfHW6sU' %}
-<br>
+{% include embed/youtube.html id = 'https://youtu.be/fZyaqfHW6sU' %}
 
 이걸 본 이후,  
 첫 인생 일본 애니메이션으로 니세코이를 보기도 했었다.  
@@ -254,11 +250,10 @@ categories: ⛏️Memo
 
 마인크래프트 노래 많이 들었다.  
 
-{% youtube 'https://youtu.be/7F0qhq7-K08' %}
-{% youtube 'https://youtu.be/MLKFtIC2Idw' %}
-{% youtube 'https://youtu.be/tpLngOd-QfM' %}
-{% youtube 'https://youtu.be/NCMJnTBZfeE' %}
-<br>
+{% include embed/youtube.html id = 'https://youtu.be/7F0qhq7-K08' %}
+{% include embed/youtube.html id = 'https://youtu.be/MLKFtIC2Idw' %}
+{% include embed/youtube.html id = 'https://youtu.be/tpLngOd-QfM' %}
+{% include embed/youtube.html id = 'https://youtu.be/NCMJnTBZfeE' %}
 
 어렸을 때 네이버 블로그에 마인크래프트 노래 글 같은 거 적었던 기억이 있다.  
 마인크래프트 몬스터 도감 같은 것도 적고, 죽음의 왈츠 같은 것도 적고..  
