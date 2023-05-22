@@ -4,6 +4,10 @@ source "https://rubygems.org"
 
 gemspec
 
+group :jekyll_plugins do
+  gem "jekyll-youtube"
+end
+
 group :test do
   gem "html-proofer", "~> 3.18"
 end

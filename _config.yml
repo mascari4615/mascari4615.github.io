@@ -10,39 +10,39 @@ baseurl: ""
 # The language of the webpage › http://www.lingoes.net/en/translator/langcode.htm
 # If it has the same name as one of the files in folder `_data/locales`, the layout language will also be changed,
 # otherwise, the layout language will use the default value of 'en'.
-lang: en
+lang: ko-KR
 
 # Change to your timezone › http://www.timezoneconverter.com/cgi-bin/findzone/findzone
-timezone: Asia/Shanghai
+timezone: Asia/Seoul
 
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Chirpy # the main title
+title: 카모뜨린 아지트 # the main title
 
-tagline: A text-focused Jekyll theme # it will display as the sub-title
+tagline: 메모와 독백 # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  A minimal, responsive and feature-rich Jekyll theme for technical writing.
+  메모와 독백
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
-url: ""
+url: "https://Mascari4615.github.io"
 
 github:
-  username: github_username # change to your github username
+  username: Mascari4615 # change to your github username
 
 twitter:
-  username: twitter_username # change to your twitter username
+  username: Mascari4615 # change to your twitter username
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: your_full_name
-  email: example@domain.com # change to your email address
+  name: 김도윤
+  email: mascari4615@gmail.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/username # change to your twitter homepage
-    - https://github.com/username # change to your github homepage
+    - https://twitter.com/Mascari4615 # change to your twitter homepage
+    - https://github.com/Mascari4615 # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
     # - https://www.linkedin.com/in/username
@@ -53,7 +53,7 @@ google_site_verification: # fill in to your verification string
 # The end of `jekyll-seo-tag` settings
 
 google_analytics:
-  id: # fill in your Google Analytics ID
+  id: G-QRNK1L0YH7 # fill in your Google Analytics ID
   # Google Analytics pageviews report settings
   pv:
     proxy_endpoint: # fill in the Google Analytics superProxy endpoint of Google App Engine
@@ -77,10 +77,10 @@ theme_mode: # [light|dark]
 # will be added to all image (site avatar & posts' images) paths starting with '/'
 #
 # e.g. 'https://cdn.com'
-img_cdn: "https://chirpy-img.netlify.app"
+img_cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@main"
 
 # the avatar on sidebar, support local or CORS resources
-avatar: "/commons/avatar.jpg"
+avatar: "/assets/img/ProfileImage.png"
 
 # boolean type, the global switch for TOC in posts.
 toc: true
@@ -116,7 +116,7 @@ assets:
 pwa:
   enabled: true # the option for PWA feature
 
-paginate: 10
+paginate: 9
 
 # ------------ The following options are not recommended to be modified ------------------
 
