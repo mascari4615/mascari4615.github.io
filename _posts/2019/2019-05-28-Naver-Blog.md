@@ -5,7 +5,7 @@ last_modified_at: 2023-02-03.
 categories: 🗿Stone 🌱DayStone
 ---
 
-{% include old-post.html %}
+{% include custom/old-post.html %}
 
 전에는 블로그를 게임 개발 일지 적는 곳으로 활용하려 했지만,  
 최근 얼마남지 않은 2019 청강 공모전 준비 및 학교 수행평가,  

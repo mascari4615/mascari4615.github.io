@@ -4,7 +4,7 @@ date: 2019-12-10. 20:01:00
 last_modified_at: 2023-05-10 14:15
 categories: 🗿Stone 🌱DayStone
 ---
-{% include old-post.html %}
+{% include custom/old-post.html %}
 
 20191203225712.950590 (대충 끄덕끄덕 짤)  
 

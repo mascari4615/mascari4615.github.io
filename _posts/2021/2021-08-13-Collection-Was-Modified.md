@@ -4,7 +4,7 @@ date: 2021-08-13. 22:45:00
 last_modified_at: 2021-10-07
 categories: ⛏️Memo 🕯️Computer
 ---
-{% include old-post.html %}
+{% include custom/old-post.html %}
 
 foreach로 List를 돌다가, 그 List의 요소가 삭제되거나 추가되어 변경되면 생기는 오류  
 

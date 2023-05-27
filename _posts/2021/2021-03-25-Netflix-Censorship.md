@@ -4,7 +4,7 @@ date: 2021-03-25. 09:13:00
 last_modified_at: 2021-10-05
 categories: 🗿Stone 🌱DayStone
 ---
-{% include old-post.html %}
+{% include custom/old-post.html %}
 
 넷플릭스에서 애니메이션을 보고 있었는데, 정말 뜬금없이 검열이 된 장면이 있었습니다.  
 스토리 게임의 중요한 장면에 몰입하고 있는데, 카톡/디스코드 알림이 오는 것만 같았습니다.  
