@@ -1,7 +1,7 @@
 ---
-title: "⛏️ URL의 프로토콜 식별자 (Protocol Identifier)"
+title: "🌑 URL의 프로토콜 식별자 (Protocol Identifier)"
 date: 2022-11-18. 10:42
-categories: ⛏️Programming 🕯️Programming-Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 ## 💎 프로토콜 식별자 (Protocol Identifier)

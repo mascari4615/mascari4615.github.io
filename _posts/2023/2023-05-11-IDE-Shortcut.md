@@ -1,8 +1,8 @@
 ---
-title: "🌱 IDE 단축키"
+title: "🌒 IDE 단축키"
 date: 2023-05-11. 14:50
 last_modified_at: 2023-05-11. 14:50
-categories: ⛏️Programming 🕯️Programming-Memo
+categories: ⭐Computer 🌒Programming
 ---
 
 2021-03-21 02:16:00  

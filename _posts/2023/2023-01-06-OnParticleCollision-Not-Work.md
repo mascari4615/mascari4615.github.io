@@ -1,7 +1,7 @@
 ---
-title: "🕯️ OnParticleCollision 이 호출되지 않을 때"
+title: "🌔 Unity OnParticleCollision 이 호출되지 않을 때"
 date: 2023-01-06. 23:46
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ### 💎 OnParticleCollision 이 호출되지 않을 때

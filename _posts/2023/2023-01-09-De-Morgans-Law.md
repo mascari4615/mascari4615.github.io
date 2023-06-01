@@ -1,7 +1,7 @@
 ---
-title: "🕯️ 드모르간 법칙, De Morgan's Law"
+title: "🌒 드모르간 법칙, De Morgan's Law"
 date: 2023-01-09. 22:02
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌒Programming
 ---
 
 ### 💎 드모르간 법칙, De Morgan's Law

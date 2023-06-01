@@ -1,8 +1,8 @@
 ---
-title: "⛏️ 메모"
+title: "🥑 메모"
 date: 2022-11-20. 11:56
 last_modified_at: 2023-05-21. 15:19
-categories: ⛏️Memo
+categories: 🌳Memo 🥑Memo-General
 ---
 
 - #pragma

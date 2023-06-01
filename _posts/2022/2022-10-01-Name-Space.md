@@ -1,7 +1,7 @@
 ---
-title: "⛏️ 네임스페이스"
+title: "🌒 네임스페이스"
 date: 2022-10-01. 11:03
-categories: ⛏️Programming 🕯️Programming-Memo
+categories: ⭐Computer 🌒Programming
 ---
 
 

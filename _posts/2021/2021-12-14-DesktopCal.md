@@ -1,7 +1,7 @@
 ---
-title:  "⛏️ 왁굳형 캘린더 달력 프로그램 - DesktopCal"
+title:  "🥑 왁굳형 캘린더 달력 프로그램 - DesktopCal"
 date: 2021-12-14. 17:17
-categories: ⛏️Memo
+categories: 🌳Memo 🥑Memo-General
 ---
 
 ## 💎 왁굳형 캘린더 달력 프로그램 [https://www.desktopcal.com/](https://www.desktopcal.com/)

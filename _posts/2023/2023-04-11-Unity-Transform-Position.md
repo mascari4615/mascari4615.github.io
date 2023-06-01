@@ -1,8 +1,8 @@
 ---
-title: "⛏️ Unity Transform Position"
+title: "🌔 Unity Transform Position"
 date: 2023-04-11. 13:44
 last_modified_at: 2023-04-13. 14:51
-categories: ⛏️Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 - [유니티 Vector3는 스택에 생성된다, 값 형식이다, Struct](https://3dmpengines.tistory.com/1566)  

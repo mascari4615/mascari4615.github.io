@@ -1,7 +1,7 @@
 ---
-title: "⛏️ 글꼴 이름의 '체'"
+title: "🌑 글꼴 이름의 '체'"
 date: 2022-10-05. 11:17
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 ## 💎

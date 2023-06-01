@@ -1,8 +1,8 @@
 ---
-title: "⛏️ SW 공학 과목"
+title: "🌑 SW 공학 과목"
 date: 2023-03-09. 14:59
 last_modified_at: 2023-05-08. 16:07
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 ### Chapter 1 : 서론
@@ -2461,3 +2461,9 @@ Codeline, Baseline, Mainline
 Git 리눅스 토발즈  
 
 시험 6월 7일  과제 6월 12일?  
+
+---
+
+@0531  
+
+29일 올렸던 것까지  

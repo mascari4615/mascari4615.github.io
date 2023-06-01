@@ -1,8 +1,8 @@
 ---
-title: "⛏️ Ping Of Death"
+title: "🌑 Ping Of Death"
 date: 2023-05-10. 09:18
 last_modified_at: 2023-05-10. 09:18
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 [참고 - Ping Of Death](https://run-it.tistory.com/52)  

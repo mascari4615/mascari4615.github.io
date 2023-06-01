@@ -1,7 +1,7 @@
 ---
-title: "⛏️ Unity NavMesh"
+title: "🌔 Unity NavMesh"
 date: 2023-02-15. 08:57
-categories: ⛏️Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ### 💎 Unity NavMesh

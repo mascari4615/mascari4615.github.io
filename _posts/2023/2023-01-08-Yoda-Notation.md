@@ -1,7 +1,7 @@
 ---
-title: "🕯️ Yoda Notation"
+title: "🌒 Yoda Notation"
 date: 2023-01-08. 18:08
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌒Programming
 ---
 
 ### 💎 Yoda Notation(Condition)

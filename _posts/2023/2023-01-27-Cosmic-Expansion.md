@@ -1,7 +1,7 @@
 ---
-title: "⛏️ Cosmic Expansion"
+title: "🥑 Cosmic Expansion"
 date: 2023-01-27. 10:46
-categories: ⛏️Memo
+categories: 🌳Memo 🥑Memo-General
 ---
 
 ### 💎 우주 팽창

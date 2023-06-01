@@ -1,7 +1,7 @@
 ---
-title: "⛏️ PlayFab, Google Play 연동 중 PlayGamesPlatform 를 찾지못하는 경우"
+title: "🌔 PlayFab, Google Play 연동 중 PlayGamesPlatform 를 찾지못하는 경우"
 date: 2022-11-18. 10:32
-categories: ⛏️Unity 🕯️Unity-Normal
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ## 💎 문제

@@ -1,8 +1,10 @@
 ---
-title: "⛏️ 학교 수업 타자"
+title: "🌑 학교 수업 타자"
 date: 2022-10-04. 10:03
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
+
+TODO : 정리, 공부
 
 ## 💎 컴퓨터 네트워크 수업 타자
 

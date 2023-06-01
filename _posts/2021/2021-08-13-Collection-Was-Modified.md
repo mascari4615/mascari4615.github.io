@@ -1,8 +1,8 @@
 ---
-title: "🕯️ InvalidOperationException: Collection was modified; enumeration operation may not execute."
+title: "🌔 C# 'InvalidOperationException: Collection was modified; enumeration operation may not execute.'"
 date: 2021-08-13. 22:45:00
 last_modified_at: 2021-10-07
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 {% include custom/old-post.html %}
 

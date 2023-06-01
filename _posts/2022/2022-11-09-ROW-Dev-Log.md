@@ -1,8 +1,8 @@
 ---
-title: "⛏️ ROW 개발 기록"
+title: "📕 ROW 개발 기록"
 date: 2022-11-09. 08:18
 last_modified_at: 2023-03-27. 16:24
-categories: ⛏️Memo
+categories: 🔖Creative 📕GameDev
 ---
 
 ### 💎 ROW 개발 기록

@@ -1,7 +1,7 @@
 ---
-title: "⛏️ Cannot perform upm operation: EBUSY: resource busy or locked, open"
+title: "🌔 Unity 'Cannot perform upm operation: EBUSY: resource busy or locked, open'"
 date: 2023-02-24. 00:59
-categories: ⛏️Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ### 💎 Problem, Solve

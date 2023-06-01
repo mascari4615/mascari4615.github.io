@@ -1,7 +1,7 @@
 ---
-title: "🕯️ Capacity Reserve"
+title: "🌒 Capacity Reserve"
 date: 2023-01-27. 07:37
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌒Programming
 ---
 
 {% include embed/youtube.html id = "9er81n6NyuM" %}

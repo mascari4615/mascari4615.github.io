@@ -1,7 +1,7 @@
 ---
-title: "🕯️ 매크로 #, ## 연산자"
+title: "🌓 CPP 매크로 #, ## 연산자"
 date: 2023-01-10. 23:01
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌓PS-CPP
 ---
 
 ### 💎 # 연산자

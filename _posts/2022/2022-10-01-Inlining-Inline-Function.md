@@ -1,8 +1,7 @@
 ---
-title: "⛏️ 인라이닝 Inlining, 인라인 함수 Inline Function"
+title: "🌒 인라이닝 Inlining, 인라인 함수 Inline Function"
 date: 2022-10-01. 10:54
-categories: ⛏️Programming 🕯️Programming-Memo
-tags: C CPP
+categories: ⭐Computer 🌒Programming
 ---
 
 

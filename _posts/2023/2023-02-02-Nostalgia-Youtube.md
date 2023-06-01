@@ -1,7 +1,7 @@
 ---
-title: "⛏️ 홍삼 캔디 - 유튜브"
+title: "🏝️ 홍삼 캔디 - 유튜브"
 date: 2023-02-02. 23:02
-categories: ⛏️Memo
+categories: 🪨Stone 🏝️LifeStone
 ---
 
 나의 추억, 그 중에서도 유튜브와 관련된 것들.  

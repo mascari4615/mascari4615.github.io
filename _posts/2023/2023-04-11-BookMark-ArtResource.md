@@ -1,8 +1,8 @@
 ---
-title: "⛏️ 작업 관련 즐겨찾기"
+title: "🌑 게임 개발 리소스 관련 즐겨찾기"
 date: 2023-04-11. 11:01
 last_modified_at: 2023-04-11. 11:01
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 ### 색

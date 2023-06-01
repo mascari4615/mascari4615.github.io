@@ -1,8 +1,8 @@
 ---
-title: "⛏️ 클라우드 컴퓨팅 과목"
+title: "🌑 클라우드 컴퓨팅 과목"
 date: 2023-03-09. 14:55
 last_modified_at: 2023-05-04. 10:55
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 On-Premise VS 클라우드  

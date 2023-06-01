@@ -1,8 +1,8 @@
 ---
-title: "⛏️ Bit Byte Word"
+title: "🌑 Bit Byte Word"
 date: 2023-03-20. 16:53
 last_modified_at: 2023-04-06. 11:16
-categories: ⛏️Memo
+categories: ⭐Computer 🌒Programming
 ---
 
 2020-10-12 03:33:00  

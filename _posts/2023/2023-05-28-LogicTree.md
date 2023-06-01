@@ -1,8 +1,8 @@
 ---
-title: "🏹 LogicTree"
+title: "🥑 LogicTree"
 date: 2023-05-28. 02:51
 last_modified_at: 2023-05-28. 02:51
-categories: 🏅Knowledge 🏹General
+categories: 🌳Memo 🥑Memo-General
 ---
 
 ### 🎯 LogicTree

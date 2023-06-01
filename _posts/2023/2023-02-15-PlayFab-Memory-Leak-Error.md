@@ -1,7 +1,7 @@
 ---
-title: "⛏️ PlayFab, A Native Collection... 에러"
+title: "🌔 Unity PlayFab, A Native Collection... 에러"
 date: 2023-02-15. 10:40
-categories: ⛏️Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ### 💎 Problem, Solve

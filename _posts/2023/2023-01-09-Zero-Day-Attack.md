@@ -1,7 +1,7 @@
 ---
-title: "🕯️ Zero Day Attack(Exploit)"
+title: "🌑 Zero Day Attack(Exploit)"
 date: 2023-01-09. 21:24
-categories: ⛏️Memo 🕯️Computer
+categories: ⭐Computer 🌑Computer-Genera
 ---
 
 ### 💎 Zero Day

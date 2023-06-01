@@ -1,7 +1,7 @@
 ---
-title: "⛏️ GetType() typeof()"
+title: "🌔 C# GetType() typeof()"
 date: 2022-06-29. 13:01
-categories: ⛏️Programming 🕯️Programming-Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ## 💎

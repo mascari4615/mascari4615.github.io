@@ -1,7 +1,7 @@
 ---
-title: "⛏️ VRChat World 로딩 패널"
+title: "🌔 VRChat World 로딩 패널"
 date: 2023-01-25. 10:27
-categories: ⛏️Memo
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 
 ### 💎 머릿말
