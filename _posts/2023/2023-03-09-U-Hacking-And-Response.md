@@ -2,7 +2,7 @@
 title: "🌑 해킹과 대응 기술 과목"
 date: 2023-03-09. 15:01
 last_modified_at: 2023-04-11. 15:02
-categories: ⛏️Memo
+categories: ⭐Computer 🌑Computer-General
 ---
 
 VMWare 환경에서 Kali-1 Kali-2, 두 개 혹은 하나  
