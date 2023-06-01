@@ -296,3 +296,26 @@ categories: 🌳Memo 🥑Memo-General
   - [C# 단항 후위 ! 연산자](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-forgiving)
   - [hping3](https://simpleisit.tistory.com/28)
   - [유용한 게임 기능 코드 모음](https://austinhenley.com/blog/usefulfunctions.html)
+  - 복사생성자 v1 = v2 , v1(v2) , v1 {v2}
+  - 객체 비교 시에도 복사가 일어난다
+  - 지2 태양계 유니티
+  - 퍼멜파티 대포 피하기
+  - 만들었었지
+  - void * ?
+  - malloc 리턴이 포인터인 이유?
+  - Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함
+  - malloc 함수는 어떤 데이터를 할당한 지 모름, 정할 수 없음 , 그래서 void *
+  - current (end)
+  - 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까
+  - 그러면 연결리스트를 왜써 배열 쓰지
+  - 그래서 current 씀 중요
+  - 삭제는 어차피 찾는 거라서
+  - 크게 상관없음
+  - 손 위도 뭐 있다고 한 것 같음
+  - CISC RISC
+  - 명령어가 다르면, 다시말해 여러가지를 쓸 수 있어서 편의성
+  - 복잡해서 느림
+  - RISC는 다 똑같아서 좀 불편해도 빠름
+  - @
+  - 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
+  - Multi Booting
