@@ -1,5 +1,5 @@
 ---
-title: "🌑 불 크기가 1바이트인 이유"
+title: "🌒 불 크기가 1바이트인 이유"
 date: 2023-03-16. 10:51
 last_modified_at: 2023-03-16. 10:51
 categories: ⭐Computer 🌒Programming
