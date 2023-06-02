@@ -1,8 +1,8 @@
 ---
-title: "🌑 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수"
+title: "🌔 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수"
 date: 2019-12-10. 20:01:00
 last_modified_at: 2023-05-10 14:15
-categories: ⭐Computer 🌑Computer-General
+categories: ⭐Computer 🌔Unity-CSharp
 ---
 {% include custom/old-post.html %}
 

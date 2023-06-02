@@ -1,7 +1,11 @@
 ---
-title: "🌱 시스템 프로그래밍"
+title: "🌑 시스템 프로그래밍"
 date: 1999-01-01. 00:00
-categories: 🪨Stone 🌱DayStone
+categories: ⭐Computer 🌑Computer-General
+---
+
+### 💫 1
+
 ---
 
 - 배우는 것
@@ -46,9 +50,124 @@ categories: 🪨Stone 🌱DayStone
     - CPU operations
     - Load - Operate - Store - Jump
   - The process of Loading "hello" Code from KeyBoard... @
-  - The process of Loading Executable File From Disk To MainMemory... @
+  - The process of Loading Executable File from Disk to MainMemory... @
+  - The process of Printing Output Stream from Memory to Monitor
 
+- 1.5 Cache Memory @
 
+- 1.6 Memory Hierarchy @
+  - L0 Regs : CPU Registers hold words retrieved from cache memory
+  - L1 Cache (SRAM) : " Cache Lines "
+  - L2 Cache (SRAM) : " Cache Lines "
+  - L3 Cache (SRAM) : " Cache Lines "
+  - L4 Main Memory (DRAM) : " Disk Blocks "
+  - L5 Local Secondary Storage (Local Disks) : " Files " Disks on remote network servers
+  - L6 Remote Secondary Storage (Distributed File Systems, Web Servers)
+
+- 1.7 OS
+  - OS
+    - Computer System Hierarchy @
+      - SW : App Programs
+      - SW : **Operating System**
+      - HW : Processor, Main Memory, I/O Devices
+    - Abstraction of OS
+      - { Processes
+        - Processor
+        - { Virtual Memory
+          - Main Memory
+          - { Files
+          - I/O Devices
+  - OS - Process
+    - Context Switching @
+  - OS - Thread
+    - [Multi Thread](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)) : ability of a processor to provide multiple threads of execution concurrently
+    - [Thread](https://en.wikipedia.org/wiki/Thread_(computing)) : smallest sequence of programmed instructions
+  - OS - Virtual Memory @
+  - OS - File @
+
+- 1.8 Computer System & Network
+
+- 1.9 Hot Topics : Amdahl's law
+  - 컴퓨터 시스템의 일부를 개선할 때 전체적으로 얼마 만큼의 최대 성능 향상이 있는지 계산하는 데 사용
+  - 어떤 시스템을 개선하여 전체 작업 중 a%의 부분에서 k배의 성능이 향상되었을 때 전체 시스템에서 최대 성능 향상
+  - 동시성 프로세스 : 하나의 프로세서에서 다수의 프로세스 실행
+  - 하이퍼 스레딩
+    - 하나의 프로세서가 두 개의 논리적 프로세스처럼 작동하도록 함
+    - 컴퓨터 처리속도 향상
+    - i7에 적용
+  - Abstraction of Computer System
+    - { Virtual Machine
+      - OS
+      - { Processes
+        - { Instruction Set Architecture
+          - Processor
+        - { Virtual Memory
+          - Main Memory
+          - { Files
+            - I/O Devices
+
+### 💫 2
+
+---
+
+- Two's complement representation (Covered Later)
+- Solaris/SUN, Linux/x86-86, Linux/Alpha, IA32
+- Different Machines Follow Different Conventions
+  - Word Size
+  - Byte Ordering
+  - Representations (Integer, Floating-point)
+- String
+  - C
+    - 문자들을 배열로 표시
+    - 아스키 형식으로 인코드
+      - 문자 집합을 표준 7-bit 인코딩
+      - 문자 "0" = 코드 0x30
+        - 10진수 숫자 n = 코드 0x30 + n
+      - 문자열 String 은 null 값으로 종료
+        - Final Character = 0x00
+  - 호환성 문제
+    - Byte Ordering 은 문제가 안됨
+      - 데이터는 1 Byte 크기
+- ASCII
+- Be Aware Of...
+  - Type Casting & Mixed Signed/Unsigned Expressions
+  - Overflow
+  - Error Propagation
+  - Byte Ordering
+
+- 2.1.5 코드의 표현
+  - 코드 (기계수준)의 표현
+    - 프로그램은 명령 Instruction 들의 순서로 부호화 Encode
+      - 명령의 구성 : 개별적 단순 연산 Operation 으로 구성
+        - 산술연산 Arithmetic Operation
+        - 메모리 읽기 또는 쓰기 Read or Write Memory
+        - 조건 분기 Conditional Branch
+      - Instructions는 Bytes로 Encode
+        - Alpha, Sun, Mac은 4-Byte Instructions를 사용 : RISC, Reduced Instruction Set Computer
+        - PC는 가별 길이 명령들 사용 : CISC, Complex Instruction Set Computer
+      - 서로 다른 컴퓨터들 -> 서로 다른 부호화 방식
+        - 이진코드는 대부분 호환성 없음
+    - 근본 개념
+      - 프로그램 역시 바이트의 연속 Byte Sequences
+  - C Func -> Compile -> ML
+    - Machine Code (Byte Representations)
+      - Linux 32, Windows, Sun, Linux 64, ...
+      - 서로 다른 컴퓨터들은 완전히 서로 다른 명령과 인코딩 방식 사용
+  - 명령의 표현
+    - Sun은 2, 4-Byte Instructions 사용
+    - PC는 길이가 1, 2, 3-Byte들을 갖는 명령들 사용
+      - Windows / Linux는 완전한 바이너리 호환성 Binary Compatibility 을 제공 못함
+
+- 2.1.6 불 대수
+  - Boolean Algebra @
+    - 19세기에 조지 부울 George Boole 이 개발
+    - 논리의 대수적 표현
+      - True = 1, False = 0 으로 부호화
+      - 집합 { 0, 1 } 에 대해서 정의
+    - And, Or, Not, Exclusive-Or/XOR
+  - 
+
+---
 
 gcc -o temp.c 실행 가능 목적 파일 (실행파일, object, 링크까지 끝난)  
 gcc -c temp.c 재배치 가능 목적 파일 (목적파일, 링크는 없는 그냥 목적 파일)  

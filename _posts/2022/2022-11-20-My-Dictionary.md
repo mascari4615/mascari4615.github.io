@@ -319,3 +319,4 @@ categories: 🌳Memo 🥑Memo-General
   - @
   - 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
   - Multi Booting
+  - Solaris/SUN, Linux/x86
