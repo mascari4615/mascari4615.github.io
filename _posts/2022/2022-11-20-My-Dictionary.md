@@ -320,3 +320,27 @@ categories: 🌳Memo 🥑Memo-General
   - 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
   - Multi Booting
   - Solaris/SUN, Linux/x86
+  - 정규분포 활용
+  - [리오레2 팬 모드](https://gall.dcinside.com/mgallery/board/view/?id=riskofrain2&no=20125&exception_mode=recommend&page=1)
+  - [아르마 달리기](https://cafe.naver.com/steamindiegame/10914462)
+  - [읽](https://blog.naver.com/sorkelf)  
+  - [UnityBestPractice](https://unity.com/how#c-programming-unity)  
+  - [UnityLearn](https://learn.unity.com/)  
+  - [기술블로그 딜레이에도 적절히 작동하는 리듬게임 채점 구현](https://mustardy.tistory.com/5)  
+  - [Medium, 인터넷](https://blog.unifiedh.com/%EC%99%9C-%EC%9D%B8%ED%84%B0%EB%84%B7%EC%9D%80-%EA%B7%BC%EB%B3%B8%EB%B6%80%ED%84%B0-%EA%B8%80%EB%9F%AC%EB%A8%B9%EC%97%88%EB%8A%94%EA%B0%80-%EC%BD%94%EB%A1%9C%EB%82%9819%EC%99%80-%ED%95%9C%EA%B5%AD-%EC%9D%B8%ED%84%B0%EB%84%B7%EC%9D%98-%ED%95%B4%EC%99%B8%EC%A0%91%EC%86%8D-%EC%9E%A5%EC%95%A0-%EA%B7%B8%EB%A6%AC%EA%B3%A0-%EB%84%B7%ED%94%8C%EB%A6%AD%EC%8A%A4-%EC%A0%84%EC%9F%81%EC%97%90-%EA%B4%80%ED%95%9C-%EC%9D%B4%EC%95%BC%EA%B8%B0-ae27826e7fc8)
+  - [Parkito님 블로그](https://shoark7.github.io/)
+  - [대마왕님 블로그](https://chulin28ho.tistory.com/)
+  - [wookje님 블로그](http://wookje.dance/)
+  - [이고드님 블로그](https://dogy3045.tistory.com/)
+  - [엘든링 디자인](https://www.gamedeveloper.com/blogs/narrative-design-in-elden-ring)
+  - [메이블 블로그](https://blog.maplestory.nexon.com/)
+  - [로라라라 최적화](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=69564)
+  - [스프라이트 마스크](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=92044&exception_mode=recommend&search_head=30&page=1)
+  - [Lerp, DeltaTime](https://www.construct.net/en/blogs/ashleys-blog-2/using-lerp-delta-time-924)
+  - [토익](https://gall.dcinside.com/board/view/?id=toeic&no=1467156&exception_mode=recommend&page=1)
+  - SceneManager.MoveGameObjectToScene
+  - [SceneLoading](https://doc.photonengine.com/ko-kr/fusion/current/manual/scene-loading)
+  - 컬러 피커
+  - [유니티 스크립트 최적화](https://rito15.github.io/posts/unity-opt-script-optimization/)
+  - [유니티 에디터, bool 값으로 필드 보여주가](https://lefthanddeveloper.tistory.com/21?category=971130)
+  - [휴머노이드 애니 리타겟팅](https://docs.unity3d.com/kr/2021.3/Manual/Retargeting.html)

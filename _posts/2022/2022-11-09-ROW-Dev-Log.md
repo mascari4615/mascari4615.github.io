@@ -178,6 +178,8 @@ categories: 🔖Creative 📕GameDev
 - 이번 마일스톤 : 프로토타입  
   - 테스트용 지상/공중 유닛 하나씩  
     - 공중 유닛의 길찾기 (단순 회전? 그리드/옥트리 A*?)
+    - [참고](https://www.reddit.com/r/Unity3D/comments/5ggi42/ai_and_movement_for_flying_enemies_drones/)
+    - [참고](https://mercuna.com/3d-navigation-background/)
   - 테스트용 보스와 보스 연출 (텔레포터 이벤트)  
   - 테스트용 플레이어 모델(리깅 및 애니메이션)과 스킬들  
   - 아이템 출현, 아이템 정보, 아이템 인터렉트, 아이템 싱크  

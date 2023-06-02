@@ -486,3 +486,5 @@ DNS Spoofing, Pharming
 Genmask  
 Netmask  
 
+[http://www.ktword.co.kr/index.php](http://www.ktword.co.kr/index.php)  
+[https://hipolarbear.tistory.com/36](https://hipolarbear.tistory.com/36)  
