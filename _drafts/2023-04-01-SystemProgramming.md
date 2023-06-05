@@ -160,12 +160,16 @@ categories: ⭐Computer 🌑Computer-General
 
 - 2.1.6 불 대수
   - Boolean Algebra @
-    - 19세기에 조지 부울 George Boole 이 개발
     - 논리의 대수적 표현
       - True = 1, False = 0 으로 부호화
       - 집합 { 0, 1 } 에 대해서 정의
     - And, Or, Not, Exclusive-Or/XOR
-  - 
+    - Bit Operator
+
+- 2.1.7 Bit Wise Operate, C
+  - Bit Operator & | ~ ^
+  - 정수형 Data Type : long, int, short, char
+  - Bit Arguments를 Bit Vector로써 Bit Wise Operate
 
 ---
 
