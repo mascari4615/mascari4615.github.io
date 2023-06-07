@@ -49,7 +49,7 @@ Milestone에서 따옴
 
 🔖Creative : 창작, 프로젝트 관련 기록/메모
 
-🔖Creative 📕GameDev : 게임 개발  
+🔖Creative 📕Dev : 개발  
 🔖Creative 📙Drawing : 그림  
 🔖Creative 📗NewWorld : 세계  
 🔖Creative 📘Blog : 블로그, 공지  

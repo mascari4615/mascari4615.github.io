@@ -2,7 +2,7 @@
 title: "📕 ROW 개발 기록"
 date: 2022-11-09. 08:18
 last_modified_at: 2023-03-27. 16:24
-categories: 🔖Creative 📕GameDev
+categories: 🔖Creative 📕Dev
 ---
 
 ### 💎 ROW 개발 기록
