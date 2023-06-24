@@ -1,11 +1,21 @@
 ---
 title: "🌑 Windows11 글꼴 변경"
 date: 2023-06-07. 07:46
-last_modified_at: 2023-06-07. 07:46
+last_modified_at: 2023-06-25. 06:35
 categories:  ⭐Computer 🌑Computer-General
 ---
 
-### 💫 폰트 변경
+### 💫 No!! Meiryo UI로 폰트 변경
+
+---
+
+[No!! Meiryo UI](http://tatsu.life.coocan.jp/MySoft/WinCust/index.html)
+
+![적용 예시](../../assets/img/2023/230625_0000.png)
+
+[예시 폰트 : 갈무리 9](https://galmuri.quiple.dev/)
+
+### 💫 레지스트리 편집기로 폰트 변경
 
 ---
 
