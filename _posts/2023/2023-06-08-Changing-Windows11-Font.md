@@ -11,7 +11,7 @@ categories:  ⭐Computer 🌑Computer-General
 
 [No!! Meiryo UI](http://tatsu.life.coocan.jp/MySoft/WinCust/index.html)
 
-![적용 예시](../../assets/img/2023/230625_0000.png)
+![적용 예시](/assets/img/2023/230625_0000.png)
 
 [예시 폰트 : 갈무리 9](https://galmuri.quiple.dev/)
 
