@@ -2460,8 +2460,6 @@ Codeline, Baseline, Mainline
 
 Git 리눅스 토발즈  
 
-시험 6월 7일  과제 6월 12일?  
-
 ---
 
 @0531  
