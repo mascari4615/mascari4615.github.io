@@ -1,7 +1,7 @@
 ---
 title: "🌓 유클리드 알고리즘/호제법"
 date: 2022-10-01. 08:42
-categories: ⭐Computer 🌓PS-CPP
+categories: ⭐Computer 🌓PS
 use_math: true
 ---
 

@@ -31,10 +31,10 @@ Milestone에서 따옴
 
 ⭐Computer 🌑Computer-General :  
 ⭐Computer 🌒Programming :  
-⭐Computer 🌓PS-CPP :  
+⭐Computer 🌓PS :  
 ⭐Computer 🌔Unity-CSharp :  
-⭐Computer 🌕Blender-Modeling :  
-⭐Computer 🌖 :  
+⭐Computer 🌕Unreal-CPP :  
+⭐Computer 🌖Blender-Modeling :  
 ⭐Computer 🌗 :  
 ⭐Computer 🌘 :  
 ⭐Computer 🌚 :  
