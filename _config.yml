@@ -41,9 +41,9 @@ social:
   email: mascari4615@gmail.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/Mascari4615 # change to your twitter homepage
+    # - https://twitter.com/Mascari4615 # change to your twitter homepage
     - https://github.com/Mascari4615 # change to your github homepage
-    - https://www.instagram.com/Mascari4615_
+    # - https://www.instagram.com/Mascari4615_
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
     # - https://www.linkedin.com/in/username
