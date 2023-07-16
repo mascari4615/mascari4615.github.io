@@ -44,3 +44,13 @@ categories: 🔖Creative 📙Drawing
 [초보자 채색, 명암 넣기](https://gall.dcinside.com/mgallery/board/view/?id=drawing&no=195382&page=1)  
 
 [도트](https://gall.dcinside.com/mgallery/board/view/?id=pixelart&no=24728&page=1)  
+
+- 추상화 능력 (포인트), 자극 (평소 안그리던),
+- 크로키
+  - 한 선에 그리려고 노력
+  - 전체적인 형태를 도형이나 실루엣으로 이미지화
+  - 틀려도 지우지말고 옆에 이어서
+  - 시간 다르면 그만큼 묘사도 다르게
+  - 시간이 부족할 것 같으면 포인트에 집중
+  - 시간이 부족할 것 같다면 얼굴 후순위로, 얼굴보다 손발 묘사가 도움된다
+  - 그리는 대상은 3차원 세계의 입체
