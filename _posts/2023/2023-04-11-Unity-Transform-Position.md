@@ -54,7 +54,7 @@ C#에서 Struct 생성 시 new 를 사용하는 것은, 단순히 구조체를 �
 
 transform.position.Set() 은 의도대로 작동하지 않는다.  
 근데 또 transform.position = new Vector3(n, n, n); 는 의도대로 작동한다.  
-이건 처음 유니티를 다룰 때 겪게되는 걍험과 사실  
+이건 처음 유니티를 다룰 때 겪게되는 경험과 사실  
 
 transform.position은 프로퍼티인게 아닐까?  
 
