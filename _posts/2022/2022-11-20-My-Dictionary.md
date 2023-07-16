@@ -316,7 +316,6 @@ categories: 🌳Memo 🥑Memo-General
   - 명령어가 다르면, 다시말해 여러가지를 쓸 수 있어서 편의성
   - 복잡해서 느림
   - RISC는 다 똑같아서 좀 불편해도 빠름
-  - @
   - 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
   - Multi Booting
   - Solaris/SUN, Linux/x86
@@ -344,3 +343,30 @@ categories: 🌳Memo 🥑Memo-General
   - [유니티 스크립트 최적화](https://rito15.github.io/posts/unity-opt-script-optimization/)
   - [유니티 에디터, bool 값으로 필드 보여주가](https://lefthanddeveloper.tistory.com/21?category=971130)
   - [휴머노이드 애니 리타겟팅](https://docs.unity3d.com/kr/2021.3/Manual/Retargeting.html)
+  - 갈륨 알루미늄 반응
+  - 태양열, 돋보기
+  - 란마
+  - 오디세이 맹공모드
+  - 샤덴프로이데
+  - Quaternion
+  - 언리얼 Double, 유니티 Float
+  - A*, QuadTree, BSP
+  - OTF TTF
+  - rule of thumb
+  - 디펜던시 인젝션
+  - 멀티쓰레드, 파일입출력
+  - UPROPERTY
+  - c# 참조 스마트포인터
+  - C#의 특징(특히 가비지컬렉터), 배열과 리스트(벡터)의 차이, 본인이 알고있는 게임 최적화 방법
+  - partical 클래스
+  - 가비지 컬렉터
+  - 포폴에 어떤 최적화 기법을 적용했는지
+  - a/b 테스트
+  - 유닛테스트
+  - 특수한 플레이
+  - 웹 어셈블리
+  - 폴리싱
+  - 바이칼젠
+  - 닉시관
+  - 유니티 게임 개발을 위한 절차적 콘텐트 생성
+  - 조합형, 완성형 한글 코드, 가상키코드, [유니티 - 가상키보드](https://github.com/YeongJoo-Kim/UnityHangulKeybord/tree/master/VirtualKeyboard/Assets)
