@@ -76,4 +76,33 @@ Yes Boss
 암굴왕  
 We will right back  
 
+[젤다](https://twitter.com/WonSoRang/status/1658023932820357120?s=20)  
 [포션? 칵테일?](https://twitter.com/i/status/1674689276112687105)  
+[이런거](https://twitter.com/336111/status/1631973583470882816?s=20)  
+
+[모델로 만든다면](https://twitter.com/artofsully/status/1630299422281150465?s=20)  
+[](https://twitter.com/violxiv/status/1621154673238609922?s=20)  
+
+[](https://twitter.com/arsenezenigata/status/1679849745018241025?s=20)
+
+[](https://twitter.com/mischiefanimals/status/1642199905534980100?s=20)  
+[](https://twitter.com/mischiefanimals/status/1627686200096980994?s=20)  
+[](https://twitter.com/mischiefanimals/status/1637202361260167169?s=20)  
+[](https://twitter.com/mischiefanimals/status/1624094025547493381?s=20)  
+[](https://twitter.com/mischiefanimals/status/1634992387947896832?s=20)  
+[](https://twitter.com/mischiefanimals/status/1636740736153444354?s=20)  
+[](https://twitter.com/mischiefanimals/status/1638925789742727169?s=20)  
+[](https://twitter.com/RevitaGame/status/1670904476729856001?s=20)  
+[](https://twitter.com/eiken3kyuboy/status/1679986765959168001?s=20)  
+[](https://twitter.com/grynmoor/status/1641268043228540933?s=20)  
+[](https://twitter.com/NoContextHumans/status/1656723211587813395?s=20)  
+
+[](https://twitter.com/memesbreakcore/status/1554691889307291648?s=20)  
+[](https://twitter.com/memesbreakcore/status/1632520920932704256?s=20)  
+
+[](https://twitter.com/loopixelart/status/1633846358514991105?s=20)  
+[](https://twitter.com/kindanicegames/status/1625041703081058304?s=20)  
+[](https://twitter.com/AlexandreKadri/status/1642439900631793665?s=20)  
+[](https://twitter.com/wombatstuff/status/1659144219976511488?s=20)  
+[](https://twitter.com/aniwarsofficial/status/1622718146942537728?s=20)  
+[](https://twitter.com/andre_mc/status/1641822004520026114?s=20)  

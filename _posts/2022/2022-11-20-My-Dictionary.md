@@ -370,3 +370,15 @@ categories: 🌳Memo 🥑Memo-General
   - 닉시관
   - 유니티 게임 개발을 위한 절차적 콘텐트 생성
   - 조합형, 완성형 한글 코드, 가상키코드, [유니티 - 가상키보드](https://github.com/YeongJoo-Kim/UnityHangulKeybord/tree/master/VirtualKeyboard/Assets)
+  - [유니티 수학 시각화](https://twitter.com/Indiedev_Hub/status/1651707801591484416?s=20)
+  - [커브](https://twitter.com/ymrun_jp/status/1628648845105336320?s=20)
+  - [레이마칭을 이용한 포탈 데칼](https://twitter.com/lateasusual_/status/1633659951607365632?s=20)
+  - 정의 중독
+  - [불쾌함을 주는 지하철 알림 소리 / 불협화음](https://twitter.com/kusobuta5877/status/1654877823243554816?s=20)
+  - [충격적인 장면, 평화로운 배경음악](https://twitter.com/hehejeom/status/1670772613386493954?s=20)
+  - [GPT를 이용한 탄막 패턴 사례](https://twitter.com/alice_diffusion/status/1636000238757625867?s=20)
+  - [VRC, 영화 자막](https://twitter.com/vr_hai/status/1495774702521958407?s=20)
+  - [라이팅/레벨](https://twitter.com/jpcorp72/status/1668992816796532737?s=20)
+  - [스타벅스 가서, "제일 안 팔리는 걸로 주세요" - 남기자의 체헐리즘](https://v.daum.net/v/20230624080003034)
+  - [게임으로 언어 공부하기](https://twitter.com/kinophio/status/1665907410618437633?s=20)
+  - Bart, Bartender
