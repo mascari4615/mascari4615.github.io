@@ -81,7 +81,7 @@ theme_mode: dark # [light|dark]
 img_cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@master"
 
 # the avatar on sidebar, support local or CORS resources
-avatar: "/assets/img/common/ProfileImage.png"
+avatar: "/assets/img/common/Star.png"
 
 # boolean type, the global switch for TOC in posts.
 toc: true
