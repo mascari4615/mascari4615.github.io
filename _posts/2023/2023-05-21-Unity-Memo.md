@@ -5,6 +5,13 @@ last_modified_at: 2023-07-13. 17:48
 categories: ⭐Computer 🌔Unity-CSharp
 ---
 
+### 💫 키워드
+
+---
+
+- [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
+- [UI Toolkit](https://mascari4615.github.io/posts/Unity-UI-Toolkit/)
+
 ### 💫 [Dropdown, 선택지 위쪽으로 나오게 하려면](https://forum.unity.com/threads/solved-how-to-control-which-direction-the-dropdown-shows-the-selections.371162/)
 
 ---
@@ -36,3 +43,9 @@ LayoutRebuilder.ForceRebuildLayoutImmediate(RectTransform)
 Animator.keepAnimatorContrillerStateOnDisable = true;  
 직관적인 이름  
 애니메이터 기능이기에, 비단 UI 뿐만 아니라 일반 작업시에도 사용 가능  
+
+### 💫 [시네머신 에딧 모드에서 바로바로 업데이트가 안됨](https://discussions.unity.com/t/cinemachine-doesnt-continually-update-in-edit-mode/249321)
+
+---
+
+Cinemachine Brain 에서 Update Method 가 Fixed Update 면 바로바로 안바뀜  

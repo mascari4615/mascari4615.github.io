@@ -10,8 +10,8 @@ categories: 🌳Memo 🥑Memo-General
 ---
 
 와이셔츠,  
-Y 모양 옷이랑 Y-Shirts 가 `아니라`,  
-White-Shirts를 일본 발음으로 와이샤쓰라 부르던 걸 우리나라에서도 쓴 것  
+Y 모양 옷이라서 Y-Shirts 가 `아니라`,  
+White-Shirts를 일본 발음으로 와이샤쓰라 부르던 것이 유래  
 
 한편, 티셔츠는  
-T 모양 옷이라 T-Shirts 라 부르는 게 `맞다`  
+T 모양 옷이라서 T-Shirts 라 부르는 게 `맞다`  

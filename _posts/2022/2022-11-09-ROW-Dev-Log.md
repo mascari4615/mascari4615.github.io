@@ -202,4 +202,6 @@ categories: 🔖Creative 📕Dev
 - Bullet 1 을 Client 가 쏘면 RPC가 작동하지 않음  
   - 왜지  
 - 상자, 제단, 텔레포터 위치 싱크  
-  - 현재 Network Transform 으로 땜빵되어 있음  
+  - 현재 Network Transform 으로 땜빵되어 있음
+- 로딩
+- delta 음수값을 가질 수 있을 때 사용한다
