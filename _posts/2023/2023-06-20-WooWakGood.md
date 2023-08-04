@@ -34,6 +34,7 @@ categories: 🪨Stone 🏝️LifeStone
   - [왁그리드](https://youtu.be/79sbqJl0OK8)
   - (관) 주르르 미연시
   - 주니티 OX퀴즈
+  - 주니티 무대맵 기능
 
 - 테스터 / QA
   - 왁이작 : 테스터
@@ -116,5 +117,3 @@ categories: 🪨Stone 🏝️LifeStone
 - 롤파크
 - 단순히 테이블 게임 옮기는 게 아니라, 시각적으로 뭔가 있어야, 현지화가
 - 아삭아삭래터스샌드위치
-
-- 베벨, 시계탑, 커튼 펄럭이게?
