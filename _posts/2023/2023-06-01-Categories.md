@@ -3,6 +3,7 @@ title: "📘 카테고리"
 date: 2023-06-01. 10:27
 last_modified_at: 2023-06-26. 08:14
 categories: 🔖Creative 📘Blog
+pin: true
 ---
 
 ### 🪨Stone, 🌱🪴🌴🏝️

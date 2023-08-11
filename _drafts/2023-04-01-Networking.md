@@ -4,6 +4,18 @@ date: 1999-01-01. 00:00
 categories: 🪨Stone 🌱DayStone
 ---
 
+Lan Topology  
+네트워크 내 통신장치 배치 방식  
+Mesh, Star, Bus, Ring  
+
+OSI 모델에서 물리 주소 지정은 MAC 하위 계층이 담당  
+=> Physical Address 를 MAC 주소 라고도 함  
+
+물리주소  
+유니캐스트 주소 1:1 통신  
+멀티캐스트 주소 1:N 통신  
+브로드캐스트 1:ALL 통신 FF:FF:FF:FF:FF:FF  
+
 목적지 주소를 보고서 전송해줘야하는데
 
 라우터는 패킷을 받으면
