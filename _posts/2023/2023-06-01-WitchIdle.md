@@ -132,3 +132,8 @@ We will right back
 [12:33 PM]Papyrus: 포켓몬 게임 인트로
 [12:33 PM]Papyrus: 진행도에 따른 차이 (등장인물 실루엣 이라던지)
 [12:33 PM]Papyrus: 진행도에 따른 테마 차이  
+
+검은색으로 가려진 못생긴 얼굴  
+예쁨을 원하는 수수한 사람  
+
+[](https://youtu.be/r2tEXjZRLfk)  
