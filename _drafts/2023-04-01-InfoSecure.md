@@ -38,14 +38,6 @@ type3 Sonething You Are 존재
 - 무차별 대입 공격 Brute Force Attack
   - Blind Attack, ...
 
-DB
-DB 접근 제어
-OS 보안
-IPS 
-IDS- 보초병이 없엉ㅅ
-# CCTV 있고 보초병도 있고, CCTV 역할은 계속 기록, 보초병은 잡아가고
-방화벽
-
 신뢰영역 private network
 비신뢰영역 (공중망) public network
 
@@ -130,8 +122,6 @@ Best Effort
 최적 경로를 고려하지는 않는다
 
 IP
-
-
 
 LTE ATM Wifi DSL Ethernet 
 SSL 크게 4가지

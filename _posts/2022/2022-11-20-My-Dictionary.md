@@ -385,3 +385,4 @@ categories: 🌳Memo 🥑Memo-General
   - Dependency Injection == 문어발 콘센트, Like MVC
     - 스탯/스킬트리, 프리셋 비유법
   - 메이드 인 헤븐, Close to you, 유립르럭ㄴ
+  - 콜스택
