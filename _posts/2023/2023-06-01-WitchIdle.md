@@ -144,3 +144,6 @@ Fishing Mini Game
 - 사실과 변수
   - 개념적
   - 골드, 마나 계속 변동하고
+
+[Playables0](https://youtu.be/12bfRIvqLW4)  
+[Playables1](https://youtu.be/nn3SnfNNEmk)  

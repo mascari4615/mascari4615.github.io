@@ -1,7 +1,8 @@
 ---
 title: "🌔 Unity 메모"
 date: 2023-05-21. 15:03
-last_modified_at: 2023-07-13. 17:48
+# last_modified_at: 2023-07-13. 17:48
+last_modified_at: 2023-08-22. 05:50
 categories: ⭐Computer 🌔Unity-CSharp
 ---
 
@@ -49,3 +50,10 @@ Animator.keepAnimatorContrillerStateOnDisable = true;
 ---
 
 Cinemachine Brain 에서 Update Method 가 Fixed Update 면 바로바로 안바뀜  
+
+### 💫 오클루더 Occluder, 오클루디 Occludee
+
+---
+
+오클루더 Occluder : 오클루디를 가리는 오브젝트  
+오클루디 Occludee : 오클루더에 의해 가려지는 오브젝트  
