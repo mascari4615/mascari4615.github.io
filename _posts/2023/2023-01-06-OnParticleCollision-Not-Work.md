@@ -1,10 +1,11 @@
 ---
 title: "🌔 Unity OnParticleCollision 이 호출되지 않을 때"
 date: 2023-01-06. 23:46
+last_modified_at: 2023-08-22. 05:50
 categories: ⭐Computer 🌔Unity-CSharp
 ---
 
-### 💎 OnParticleCollision 이 호출되지 않을 때
+### 💫 OnParticleCollision 이 호출되지 않을 때
 
 ---
 
