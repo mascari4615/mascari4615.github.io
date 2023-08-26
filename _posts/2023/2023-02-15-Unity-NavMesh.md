@@ -1,6 +1,7 @@
 ---
 title: "🌔 Unity NavMesh"
 date: 2023-02-15. 08:57
+last_modified_at: 2023-08-26. 10:54
 categories: ⭐Computer 🌔Unity-CSharp
 ---
 
@@ -8,7 +9,7 @@ categories: ⭐Computer 🌔Unity-CSharp
 
 ---
 
-{% include embed/youtube.html id = 'n-RXnDGE72M' %}
+{% include embed/youtube.html id = "n-RXnDGE72M" %}
 
 [참고](https://forum.unity.com/threads/solved-problem-with-unity-navmesh-and-multiple-agent-sizes-with-a-workaround-solution.178628/)  
 
