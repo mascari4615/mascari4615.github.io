@@ -19,7 +19,7 @@ categories: 🔖Creative 📕Dev
   - 포켓몬 : 전투 UI, 배지 (박박닦는), 도구, 맵?
   - PostKnight
   - OuterPlane
-  - 쿠키런 : 보물, 이벤트
+  - 쿠키런 : 쿠키 강화, 보유 효과, 스테이지, 보물, 이벤트
   - 삼국지 디펜스 2
   - 던전 공주
   - 던전 스쿼드
@@ -147,3 +147,9 @@ Fishing Mini Game
 
 [Playables0](https://youtu.be/12bfRIvqLW4)  
 [Playables1](https://youtu.be/nn3SnfNNEmk)  
+
+일시정지  
+
+플랑도르 스칼렛  
+샤드  
+자연사  
