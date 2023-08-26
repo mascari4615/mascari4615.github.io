@@ -1,7 +1,8 @@
 ---
-title: "🏝️ 왁굳형"
+title: "🏝️ 왁굳형 시참 기록"
 date: 2023-06-20. 10:05
-last_modified_at: 2023-06-20. 10:05
+# last_modified_at: 2023-06-20. 10:05
+last_modified_at: 2023-08-26. 10:28
 categories: 🪨Stone 🏝️LifeStone
 ---
 
@@ -125,4 +126,3 @@ categories: 🪨Stone 🏝️LifeStone
 
 - 롤파크
 - 단순히 테이블 게임 옮기는 게 아니라, 시각적으로 뭔가 있어야, 현지화가
-- 아삭아삭래터스샌드위치
