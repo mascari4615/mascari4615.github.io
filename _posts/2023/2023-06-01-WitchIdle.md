@@ -170,6 +170,43 @@ Exp Orb 숙성
 능력을 기본적으로 가지고 시작,  
 해당 능력을 변화/강화/충전/리필 선택하는 식으로  
 
+각 Artifact가 능력을 강화하는 Mastery 목록을 들고 있고,  
+Combat이 시작되면, 각 Artifact의 Mastery 목록을 합쳐 하나의 리스트로 가지고 있기  
+레벨이 상승하면, 해당 Mastery 목록에서 랜덤으로 몇 개를 뽑아 선택지로 제공  
+
+Mastery를 선택했을 때,  
+어떻게 Mastery 보유 여부를 판단할지?  
+MasteryInventory?  
+
+저장은 뭐..  
+근데 접근할때  
+
+키워드 string,int 딕셔너리?  
+Effect OnEquip OnRemove?  
+
+스탯을 마스터리에서만 쓰지는 않을테니,  
+각 스탯을 스크립터블 오브젝트로 만들어두고  
+
+최종 스탯을 계산하는 스크립터블 오브젝트를 만들고 (MaxHp 라던지)  
+접근할때 계산하는 식으로  
+
+마스터리를 획득하면  
+OnEquip OnRemove 을 통해 Effect 발생  
+최종 스탯을 변경하는 게 아니라, Mastery증감수치 스탯을 변경  
+
+SkillObject에서는 최종 스탯을 가지고 계산  
+
+그럼 만들어야 하는게  
+
+OnEquip OnRemove 가상함수가 있는 Effect?  
+Effect들을 들고 있고, 획득/제거 시 OnEquip OnRemove 가상함수가 호출되는  
+EquitableArtifact? Mastery?  
+
+단순 스탯은 그렇게  
+그렇다면 버프형은? 가동율 50%의 깜빡깜빡 버프?  
+
+시너지?  
+
 포탈 있는 맵 (푸키먼, 메이플 같은)  
 던전 or 필드 몹 (원신, 스타레일, 푸키먼 소드실드 같은)  
 
@@ -207,3 +244,5 @@ Exp Orb 숙성
   - 로봇, 부품, 기계팔? 증강?
   - 토템
   - 저격, 관통, (스나이퍼)
+  - 시너지/원소? 덱 빌딩
+  - 웨폰 마스터? 덱 빌딩
