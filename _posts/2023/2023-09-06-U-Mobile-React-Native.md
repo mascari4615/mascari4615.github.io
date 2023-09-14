@@ -2,7 +2,8 @@
 title: "🌑 모바일 프로그래밍 과목"
 date: 2023-09-06. 13:21
 # last_modified_at: 2023-09-06. 13:21
-last_modified_at: 2023-09-12. 15:09
+# last_modified_at: 2023-09-12. 15:09
+last_modified_at: 2023-09-13. 13:11
 categories: ⭐Computer 🌑Computer-General
 ---
 
@@ -66,3 +67,9 @@ Xcode : Only Mac
 
 @ 테코톡 Virtual DOM  
 Virtual DOM : DOM Node Tree를 복제한 JS 객체  
+
+물리 DOM, 가상 DOM  
+
+### 💫 4차시
+
+---
