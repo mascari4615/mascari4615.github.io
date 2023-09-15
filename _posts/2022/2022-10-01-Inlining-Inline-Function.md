@@ -30,7 +30,7 @@ categories: ⭐Computer 🌒Programming
 ```cpp
 inline void PrintHello()
 {
-    cout << "Hello";
+	cout << "Hello";
 }
 ```
 

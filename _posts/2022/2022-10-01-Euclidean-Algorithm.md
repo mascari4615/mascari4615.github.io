@@ -20,20 +20,20 @@ CPP STL 내장 함수로도 존재 gcd, lcm
 ```cs
 int GCD(int A, int B)
 {
-    int r = 0;
-    while (A % B != 0)
-    {
-        r = A % B;
-        A = B;
-        B = r;
-    }
+	int r = 0;
+	while (A % B != 0)
+	{
+		r = A % B;
+		A = B;
+		B = r;
+	}
 
-    return B;
+	return B;
 }
 
 int LCM(int A, int B)
 {
-    return A * B / GCD(A, B);
+	return A * B / GCD(A, B);
 }
 ```
 
