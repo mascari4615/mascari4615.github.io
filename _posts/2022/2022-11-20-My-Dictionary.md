@@ -413,3 +413,5 @@ categories: 🌳Memo 🥑Memo-General
   - 요철
   - 포터블 모니터
   - EGPU
+  - 선조건 후조건
+  - 프로세스 프로그램
