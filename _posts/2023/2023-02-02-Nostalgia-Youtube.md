@@ -1,7 +1,8 @@
 ---
 title: "🏝️ 홍삼 캔디 - 유튜브"
 date: 2023-02-02. 23:02
-last_modified_at: 2023-08-26. 10:54
+# last_modified_at: 2023-08-26. 10:54
+last_modified_at: 2023-09-27. 06:53
 categories: 🪨Stone 🏝️LifeStone
 ---
 
@@ -277,6 +278,8 @@ Shop Keeper 플러그인으로 상점 꾸렸던 기억도 있다
 {% include embed/youtube.html id = "MLKFtIC2Idw" %}
 {% include embed/youtube.html id = "tpLngOd-QfM" %}
 {% include embed/youtube.html id = "NCMJnTBZfeE" %}
+{% include embed/youtube.html id = "k2rDbRUDkds" %}
+{% include embed/youtube.html id = "UQ4uiB51sEo" %}
 
 어렸을 때 네이버 블로그에 마인크래프트 노래 글 같은 거 적었던 기억이 있다.  
 마인크래프트 몬스터 도감 같은 것도 적고, 죽음의 왈츠 같은 것도 적고..  
@@ -820,3 +823,12 @@ MMD
 
 [https://youtu.be/PA5R7KWzjAk](https://youtu.be/PA5R7KWzjAk)  
 이건 못 찾겠다..  
+
+[스톱 모션](https://youtu.be/dNJdJIwCF_Y?si=AiPluxG-s_5GrnpG)  
+[스톱 모션 레고](https://youtu.be/2fRj_cUjBmc?si=qZpMem6wUQuwIN4K)  
+[밟지말고 밟으세요](https://youtu.be/DNZ-kcuqkDo?si=fW4W3yACFG0heHdR)  
+[스카이그리드](https://www.youtube.com/watch?v=3WLT26jFjog)  
+[몬스터 학교](https://youtu.be/cTR0X1jGpjI?si=wdQPeRknP_3wNwzx)  
+[카트라이더 실사판 학교 버전](https://youtu.be/M17SOSZwdeU?si=Zl8RCLsoiqTRvcJK)  
+[스웨덴식 요리법](https://youtu.be/sKjSvdaBZSU?si=7bzbEpOvdGPOn-kN)  
+[키보드 캣](https://youtu.be/J---aiyznGQ?si=bK8QAoVTfZkZH8G-)  
