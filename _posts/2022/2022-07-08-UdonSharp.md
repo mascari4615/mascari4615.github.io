@@ -1,6 +1,7 @@
 ---
-title: "🌔 VRChat U# 자주 하는 질문 (자문자답)"
+title: "🌔 VRChat USharp"
 date: 2022-07-08. 14:31
+last_modified_at: 2023-10-10. 10:00
 categories: ⭐Computer 🌔Unity-CSharp
 ---
 
@@ -30,3 +31,19 @@ categories: ⭐Computer 🌔Unity-CSharp
 1. 오브젝트 Layer Default
 2. VRC UI Sharp 컴포넌트
 3. Box Collider
+
+### 💫 VRChat World에서 VideoPlayer로 데이터 불러오기
+
+---
+
+- [링크1](https://feralresearch.org/lab/api-calls-from-inside-vrc/)
+- [링크2](https://ask.vrchat.com/t/http-requests/1803)
+- [링크3](https://github.com/Roliga/udon-video-decoder)
+- [링크4](https://gitlab.com/anfaux/pixel-proxy/-/blob/main/server-node/modules/encode.js)
+- [링크5](https://vrchat.com/home/launch?worldId=wrld_7508e408-ba6a-4478-b772-6af430c89286&instanceId=51500~private(usr_74fd4823-008f-4434-969c-c892e7c143e2)~region(eu)~nonce(031b2879-124f-4943-b075-2700f61ee200))
+
+### 💫 메모
+
+---
+
+- [VRC, 영화 자막](https://twitter.com/vr_hai/status/1495774702521958407?s=20)

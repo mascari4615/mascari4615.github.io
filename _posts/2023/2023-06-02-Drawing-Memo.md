@@ -54,3 +54,5 @@ categories: 🔖Creative 📙Drawing
   - 시간이 부족할 것 같으면 포인트에 집중
   - 시간이 부족할 것 같다면 얼굴 후순위로, 얼굴보다 손발 묘사가 도움된다
   - 그리는 대상은 3차원 세계의 입체
+
+Proko, Tutorial  

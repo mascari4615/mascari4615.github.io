@@ -1,9 +1,12 @@
 ---
 title: "🥑 메모"
 date: 2022-11-20. 11:56
-last_modified_at: 2023-05-21. 15:19
+# last_modified_at: 2023-05-21. 15:19
+last_modified_at: 2023-10-06. 13:10
 categories: 🌳Memo 🥑Memo-General
 ---
+
+<div class="tenor-gif-embed" data-postid="26566705" data-share-method="host" data-aspect-ratio="1.77778" data-width="100%"></div> <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
 
 - #pragma
   - 사전적 의미로 만능
@@ -19,7 +22,6 @@ categories: 🌳Memo 🥑Memo-General
 
 - Switch When  
 - 인하우스, 아웃소싱  
-- Leading 0  
 - Bar Cmd Exe 확장자 차이  
 - 로렘 입숨 lorem ipsum;  
 - aa ASCII ART
@@ -31,11 +33,11 @@ categories: 🌳Memo 🥑Memo-General
   - [참고](https://blog.naver.com/PostView.nhn?blogId=fah204&logNo=221573584390)
 
 - 동기 비동기
-  - 병원 들어갔어, 접수처에서 순서기다리세요 부를게요~ 하는거랑  
-  - 들어가자마자 아무것도 안하고 기다리는 것 차이  
-  - 페이지에서 조금씩 조금씩 나오는 거  
+  - 병원 들어갔어, 접수처에서 순서기다리세요 부를게요~ 하는거랑
+  - 들어가자마자 아무것도 안하고 기다리는 것 차이
+  - 페이지에서 조금씩 조금씩 나오는 거
 
-- Setter보단 의미있는 메소드를  
+- Setter보단 의미있는 메소드를
 
 - 이건 할 줄 알아야 한다  
   - <https://en.wikipedia.org/wiki/XOR_swap_algorithm>
@@ -65,353 +67,57 @@ categories: 🌳Memo 🥑Memo-General
   - let : Let
   - const : Constant
 
-- VRChat World에서 VideoPlayer로 데이터 불러오기
-  - [링크1](https://feralresearch.org/lab/api-calls-from-inside-vrc/)
-  - [링크2](https://ask.vrchat.com/t/http-requests/1803)
-  - [링크3](https://github.com/Roliga/udon-video-decoder)
-  - [링크4](https://gitlab.com/anfaux/pixel-proxy/-/blob/main/server-node/modules/encode.js)
-  - [링크5](https://vrchat.com/home/launch?worldId=wrld_7508e408-ba6a-4478-b772-6af430c89286&instanceId=51500~private(usr_74fd4823-008f-4434-969c-c892e7c143e2)~region(eu)~nonce(031b2879-124f-4943-b075-2700f61ee200))
+헤더 파일이 없어도 실행이 되는 이유  
+-> 특정 컴파일러나 다른 헤더가, 해당 헤더를 포함하고 있는 경우  
+-> I.E. iostream -> string.h, C++ 표준 라이브러리 컴파일러 -> string
 
-- 무지성 복사  
-  - [VA-11 HALL-A](http://waifubartending.com/)
-  - [셀레스트의 보이지 않는 구현](https://gall.dcinside.com/mgallery/board/view/?id=celeste&no=1177)  
-  - [특정 구역에서의 랜덤 스폰 알고리즘](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=89582&exception_mode=recommend&page=1)
-  - [게임 시스템 디자인 시작하기](https://www.slideshare.net/ByungChun2/ss-140743429)  
-  - [좋은 git commit 메시지를 위한 영어 사전](https://blog.ull.im/engineering/2019/03/10/logs-on-git.html)  
-  - [메모리구조에서의 자료구조](https://daeun28.github.io/%EC%BB%B4%ED%93%A8%ED%84%B0%EA%B3%B5%ED%95%99-%EC%8A%A4%ED%84%B0%EB%94%94/post17/)  
-  - [지역변수 전역변수 접근/속도차이](https://www.acmicpc.net/board/view/905)  
-  - [Bool 변수 이름 제대로 짓기 위한 최소한의 영어 문법](https://soojin.ro/blog/naming-boolean-variables)  
-  - [C# 메모리 관리](https://blog.naver.com/njuhb/140165599614)  
-  - [C# 프로퍼티는 Ref 로 못전달한다, 프로퍼티 구조](https://dh-0501.tistory.com/138)  
-  - 헤더 파일이 없어도 실행이 되는 이유
-  - [포인터, 사용하는 이유](https://oper6210.tistory.com/m/160)  
-  - [유니티 Vector3 Equals](https://docs.unity3d.com/ScriptReference/Vector3.Equals.html)  
-  - [유니티 메모리 관리의 이해](https://smilejsu.tistory.com/560)  
-  - [float 연산이 정확하지 않다면 컴퓨터 계산기는 어떻게 소수를 계산하는가](https://www.quora.com/If-computers-cannot-compute-floating-numbers-accurately-how-do-calculators-and-scientific-computers-function)  
-  - [누적합](https://book.acmicpc.net/algorithm/prefix-sum)  
-  - [GetInstanceID 와 GetHashCode](https://daebalstudio.tistory.com/entry/GetInstanceID-%EC%99%80-GetHashCode-%EC%A0%95%EB%A6%AC%ED%95%A0-%EA%B2%83)  
-  - [유니티 프리팹 썸네일 안보임](https://forum.unity.com/threads/why-are-my-prefab-and-model-previews-not-showing.709544/)  
-  - [유니티 프리팹 썸네일 안보임](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)  
-  - [유니티 강좌 여러가지](http://www.devkorea.co.kr/bbs/board.php?bo_table=m03_lecture&sca=&sfl=mb_id,1&stx=nodvicdk)  
-  - [쿠키런 사운드, 미들웨어, FMOD](https://v.daum.net/v/5ae023f36a8e510001f88d05)  
-  - [유니티, 프로젝트가 커질 때 코드 설계](https://unity.com/kr/how-to/how-architect-code-your-project-scales)  
-  - [컴공 자료](https://github.com/Prev/CSE-Summary)  
-  - [Untiy Inspector 에서 List Element 이름 바꾸기](https://forum.unity.com/threads/how-to-change-the-name-of-list-elements-in-the-inspector.448910/)  
-  - [Untiy Inspector 에서 List Element 이름 바꾸기](https://dev-youngil.tistory.com/1)  
-  - [Untiy Inspector 에서 List Element 이름 바꾸기](https://liveupdate.tistory.com/347)  
-  - [Pope Kim - 전처리기](https://blogofth-lee.tistory.com/281)  
-  - [Pope Kim - 문자열 해쉬](https://blog.popekim.com/ko/2012/01/11/compile-time-hash-string-generation.html)  
-  - [C# Foreach](https://m.cafe.naver.com/ca-fe/web/cafes/26377973/articles/122961)  
-  - [C# vs CPP](https://moguwai.tistory.com/entry/C%EA%B3%BC-C%EC%9D%98-%EB%AC%B8%EB%B2%95%EC%A0%81%EC%9D%B8-%EC%B0%A8%EC%9D%B4%EC%A0%90)  
-  - [위키독스 - 온라인 책 공유 플랫폼](https://wikidocs.net/)  
-  - [OpenGraph](https://blog.ab180.co/posts/open-graph-as-a-website-preview)  
-  - [URI-URL](https://velog.io/@jch9537/URI-URL)  
-  - [마인크래프트 지형 생성 알고리즘](https://blog.naver.com/kids1412/222686829072)  
-  - [코딩 테스트 및 알고리즘 문제해결 공부 방법](https://www.slideshare.net/SuhyunPark23/kucc-2022-4)  
-  - [알고리즘 공부 방법/순서](https://baactree.tistory.com/14)  
-  - [[알고리즘] 아호 코라식(Aho-Corasick) 알고리즘](https://pangtrue.tistory.com/305)  
-  - [[알고리즘] KMP(Knuth-Morris-Pratt) 알고리즘](https://pangtrue.tistory.com/303?category=724827)  
-  - [[자료구조] Trie(트라이)](https://pangtrue.tistory.com/331?category=724827)  
-  - [동적 계획법](https://namu.wiki/w/%EB%8F%99%EC%A0%81%20%EA%B3%84%ED%9A%8D%EB%B2%95)  
-  - [메모이제이션](https://namu.wiki/w/%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98)  
-  - [DP의 기본에 대해서...](https://stonejjun.tistory.com/23)  
-  - [변수명 짓기](https://www.curioustore.com/#!/)  
-  - [C++ 익명함수 사용법](https://progl.tistory.com/5)  
-  - [함수호출규약](https://blog.kimtae.xyz/7)  
-  - [vscode (visual studio code) tab to space 또는 space to tab 변환](https://moaimoai.tistory.com/311)  
-  - [C#을 다루는 기술](https://thebook.io/080201/)  
-  - [C# - int []와 object []의 차이로 이해하는 제네릭의 필요성](https://www.sysnet.pe.kr/2/0/11805?pageno=0)  
-  - [프로그래밍/C Sharp[C#] 비트연산 처리 모음](https://jeong-f.tistory.com/96)  
-  - [[C#]List 속성별로 정렬](https://developer-talk.tistory.com/220)  
-  - [Convertio](https://convertio.co/kr/)  
-  - [게임제작에 사용되는 영어단어](https://m.blog.naver.com/PostView.nhn?blogId=nicecapj&logNo=130062005836&proxyReferer=https:%2F%2Fwww.google.com%2F)  
-  - [c# parse convert 차이](https://2-nan.tistory.com/43)  
-  - [[C#] Process 클래스 사용 예제](https://kimkitty.net/archives/1638)  
-  - [Run git commands from a C# function](https://stackoverflow.com/questions/26167387/run-git-commands-from-a-c-sharp-function)  
-  - [Unity Tricks — How to hide a UI object that is behind a transparent UI?](https://medium.com/@cuilongchang/unity-tricks-how-to-hide-a-ui-object-behind-a-transparent-ui-2700c12372c1)  
-  - [던그리드 0](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=11872&list_num=30&search_pos=-15520&s_type=search_subject_memo&s_keyword=%EB%8D%98%EA%B7%B8%EB%A6%AC%EB%93%9C&page=2)  
-  - [던그리드 1](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=12015&list_num=30&search_pos=-15520&s_type=search_subject_memo&s_keyword=%EB%8D%98%EA%B7%B8%EB%A6%AC%EB%93%9C&page=2)  
-  - [던그리드 2](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=13690&list_num=30&search_pos=-15520&s_type=search_subject_memo&s_keyword=%EB%8D%98%EA%B7%B8%EB%A6%AC%EB%93%9C&page=2)  
-  - [던그리드 3](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=14783)  
-  - [던그리드 4](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=13710&list_num=30&search_pos=-15520&s_type=search_subject_memo&s_keyword=%EB%8D%98%EA%B7%B8%EB%A6%AC%EB%93%9C&page=2)  
-  - [던그리드 5](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=12155&list_num=30&search_pos=-15520&s_type=search_subject_memo&s_keyword=%EB%8D%98%EA%B7%B8%EB%A6%AC%EB%93%9C&page=2)  
-  - [넥슨 커리어](https://career.nexon.com/common/main)  
-  - [UNITY에서 코딩 시 VISUAL STUDIO 툴 최적화를 위한 팁](  https://unity.com/kr/how-to/tips-optimize-your-visual-studio-tools-when-coding-unity)  
-  - [HITS](https://hits.seeyoufarm.com/)  
-  - [메이플 마켓 원리](https://www.inven.co.kr/board/maple/2299/6421191)  
-  - [C# OCR](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=rhukjin&logNo=222052759608)  
-  - [패킷](https://enlqn1010.tistory.com/9)  
-  - [메이플 패치파일](https://www.inven.co.kr/board/maple/2304/9801)  
-  - [Change line renderer alpha unity](https://stackoverflow.com/questions/63178546/change-line-renderer-alpha-unity)  
-  - [게임잡](https://www.gamejob.co.kr/Recruit/joblist?menucode=duty&duty=1)  
-  - [유니티 최적화](https://helenstudy.tistory.com/51)  
-  - [20200219[C#] GetType메서드와 typeof연산자](https://funfunhanblog.tistory.com/313)  
-  - [우왁굳 트위치 이모티콘](https://twitchemotes.com/channels/49045679)  
-  - [포켓몬스터 블랙/화이트 BGM 레파토리](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=riomedevon&logNo=110106228406)  
-  - [포켓몬스터 블랙/화이트 빌리지 브리지](https://pokemon.fandom.com/ko/wiki/%EB%B9%8C%EB%A6%AC%EC%A7%80_%EB%B8%8C%EB%A6%AC%EC%A7%80)  
-  - [포켓몬스터 블랙/화이트 빌리지 브리지](https://namu.wiki/w/%EB%B9%8C%EB%A6%AC%EC%A7%80%EB%B8%8C%EB%A6%AC%EC%A7%80)  
-  - [OPTIMIZATION TIPS FOR UNITY UI](https://unity.com/how-to/unity-ui-optimization-tips)  
-  - [Coroutine과 Time.timeScale 관계](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=dus531400&logNo=140209199573)  
-  - [당신이 보는 게임 화면은 진짜가 아니다.](https://gall.dcinside.com/mgallery/board/view/?id=aoegame&no=16490887)  
-  - [엔터더건전 3D 트윗](https://twitter.com/DodgeRollGames/status/593625936131653632)  
-  - [2D도트게임의 비밀](https://www.dogdrip.net/195354145)  
-  - [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)  
-  - [메이플스토리 블로그](https://blog.maplestory.nexon.com/)  
-  - [자극에 무뎌지는 감각](https://blog.naver.com/shalacho/222114284512)  
-  - [UI](https://imgur.io/gallery/XOT47)  
-  - ["](https://blog.naver.com/blancleo/220606789517)  
-  - [수학 시각화](https://gall.dcinside.com/mgallery/board/view/?id=singlebungle1472&no=288516&exception_mode=recommend&page=1)  
-  - [목적은 수단이다](https://gall.dcinside.com/mgallery/board/view/?id=aoegame&no=18763369)  
-  - [기술 업계의 독성 말투](https://edykim.com/ko/post/tech-has-a-toxic-tone-problem-lets-fix-it/)  
-  - [IGN 인터뷰, 게임을 만들 때 가장 어려운 것은... 모든 것이다](https://kr.ign.com/control/11198/feature/geimeul-mandeul-ddae-gajang-eoryeoun-geoseun-modeun-geosida)  
-  - [Craftdaily, UI가 이쁘다!](https://thecraftdaily.com/ko-kr/)  
-  - [거리 풍경](https://www.instagram.com/reel/CcShiclj6Gw/?igshid=MDJmNzVkMjY%3D)  
-  - [롤 아트북](https://artbook.na.leagueoflegends.com/en_US/volume-one#)  
-  - [회전하는 아스키코드 도넛](https://donut.surge.sh/)  
-  - [VRChat 공연하시는 아티스트](http://meme-x.jp/)  
-  - [바이트 비트 Beat](https://games.greggman.com/game/html5-bytebeat/)  
-  - [머테리얼 비교](https://answers.unity.com/questions/175695/comparing-materials.html)  
-  - [머테리얼 인스턴싱](https://wergia.tistory.com/328)  
-  - 베이커리 베이크 시 흰색 검은색 빨간색 초록색 파란색 얼룩
-  - Auto-Atlasing . Texels per unit 40 ~ 80
-  - 글로벌 일루미네이션 . samples
-  - 보통 UV 오버랩 문제 > Texels per unit 값 올려주거나, UV 맵 자체 간격  
-  - Force Power-Of-Two Atlas 체크 > 검은 공간 많은 텍스쳐를 크기 줄여줌  
-  - [수학적 Coordinate, Color](https://catlikecoding.com/unity/tutorials/basics/mathematical-surfaces/)  
-  - [텀블벅](https://tumblbug.com/)  
-  - Mesh Colluder 끼리 충돌 안함, Convex 쓰면 댐  
-  - [Scene에서 빛 모두 없애기](https://learnandcreate.tistory.com/m/115)
-  - [오라](https://blog.naver.com/cra2yboy/222219692268)
-  - proko
-  - 영어에서 부정관사(a)를 쓸지 정관사(the)를 쓸지 아직도 헷갈린다는 컴공친구에게 부정관사는 클래스를 말할 때 쓰고 정관사는 인스턴스를 말할 때 쓰면 된다고 했더니 크게 이해했다
-  - [두 문자열을 결합하는 함수를 만들었는데 저 뒤에 췍이 '\0' 이겠죠? 왜 저렇게 나오는거람...?](https://twitter.com/beankong__/status/1465534135858917379?s=20&t=6OrpB8hwWz-erqS0iFftQQ)
-  - 고동 눈
-  - [십수년전.. 게임사가 배포한 정식 게임 클라이언트  없이 MMO서버에 붙는 봇(OOG:OutOfGame bot)들 잡을 때 썼던 방식](https://twitter.com/deimos18770812/status/1507938863754334211?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
-  - [블렌더 에드온](https://twitter.com/h_ram01/status/1545646179488124928?s=20&t=T5ZiW47P8k2CtzxR9_ec_g)
-  - 설단현상  
-  - [0 Padding](https://stackoverflow.com/questions/3122677/add-zero-padding-to-a-string)
-  - string.PadLeft string.PadRight(4, '0') int.ToString("D4")
-  - [Game Jam Theme Generator](https://letsmakeagame.net/game-jam-theme-generator/)
-  - [Level Design](https://www.worldofleveldesign.com/categories/cat-level-design.php)
-  - [유니티 메모리 관리](https://www.inven.co.kr/webzine/news/?news=278863&vtype=pc)
-  - MAUI
-  - [애니메이션의 타이밍](https://spine304.tistory.com/65)  
-  - [플레이팹 마스터](https://playfab-master.com/)  
-  - [컴공 링크들](https://velog.io/@woo0_hooo/%EC%BB%B4%EA%B3%B5-%EC%B7%A8%EC%A4%80%EC%83%9D%EC%97%90%EA%B2%8C-%EC%9C%A0%EC%9A%A9%ED%95%9C-%EB%A7%81%ED%81%AC%EB%93%A4-%EC%A0%95%EB%A6%AC)
-  - [유니티최적화기법](https://nogan.tistory.com/m/7)
-  - [브라우저 확장](https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension?tabs=v3)
-  - [자연어](https://gall.dcinside.com/mgallery/board/view/?id=github&no=42311&exception_mode=recommend&page=1)
-  - [버프](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=113236&page=1)
-  - Quaternion.LookRotation
-  - [VFX 리소스](https://nielsdewitte.be/index.php?page=Pages/VFExtra.php)
-  - [PolyglotGameDev - 게임/게임개발 관련 용어 다국어 번역 시트](https://docs.google.com/spreadsheets/d/17f0dQawb-s_Fd7DHgmVvJoEGDMH_yoSd8EYigrb0zmM/edit#gid=296134756)
-  - [레벨 디자인](https://docs.google.com/document/d/1fAlf2MwEFTwePwzbP3try1H0aYa9kpVBHPBkyIq-caY/edit)
-  - 캐스퍼
-  - 호문클루스
-  - 멜랑꼴리  
-  - Eyecatchers
-  - 미쿠미쿠 - <https://www.inven.co.kr/webzine/news/?news=110890>  
-  - 라이트 모티브 - 극에서 어떤 인물이나 감정 등 특정 주제에 대해 전용 테마곡을 만들고 극의 흐름에 따라 바리에이션을 시키는 것  
-  - il2cpp  
-  - Wuppo 꺼꿀이  
-  - 퀘스트 유니온 - 마을바다 있는 잡 퀘 클리어 수에 따라 스탯 증가?  
-  - 비행기 롤코
-  - 비행기 전파
-  - 유심?
-  - 감정에 대한 공감
-  - 감정과 공감의 우선순위 - 이기적
-  - 비행기 소리 안들림
-  - 보호 필름?
-  - 비행기 배터리? 폭발?
-  - 거사후 반질
-  - 소름?
-  - 관세, 면세
-  - 알배김? 디스크?
-  - participate
-  - plogging
-  - 염소 시뮬? 팬치 시뮬?
-  - 강하다! 튼튼하다! 탱크행거!
-  - 세면대
-  - 거봐라
-  - delay 연기 = 기간 없이 무지성 연기
-  - 인지 혁명
-  - 돌연변이 지능 폭발
-  - 존재하지 않는 것을 믿고 상상
-  - 주사 방식
-  - 키보드 스캔 ㅋ코드
-  - 부전나비
-  - 예전엔 코드 중간에 변수 선언을 하지 않았음 ex C, 프로그램에 메모리 할당을 해줘야하는데 부족할 수 있어서??
-  - 지금 되는 건 CPP 컴파일러로 일기 대문에?
-  - 모터호텔
-  - 함께라면
-  - 골든타임 모래시계
-  - 피그마
-  - 부외자
-  - 구교사
-  - 모브
-  - 우선순위큐
+Leading 0  
+-> [0 Padding](https://stackoverflow.com/questions/3122677/add-zero-padding-to-a-string)
+-> string.PadLeft(4, '0')  
+-> int.ToString("D4")  
+
+malloc 리턴이 void *, 포인터인 이유?  
+-> Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함  
+-> malloc으로 어떤 타입을 할당한 지 모름, 정할 수 없음, 그래서 void  
+
+예전엔 C 변수 전방 선언  
+-> 과거 적은 메모리, 부족할 수 있어서 사용할 변수 미리 선언해두고 유지보수 쉽게??  
+-> 최신 버전에서는 고쳐지기도 했고, 컴파일러 따라 다르기도  
+
+연결리스트 current (end)  
+-> 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까  
+-> 삭제는 어차피 찾는 거라서 크게 상관없음  
+
+모터호텔, 모텔  
+-> 넓은 지역 이동할 때 차 쉬던 곳  
+
+Brachistochrone curve 최단시간곡선  
+-> 배틀그라운드 낙하  
+
+Play By Mail Game  
+
+- 메모
+  - Wuppo 꺼꿀이
+  - [회전하는 아스키코드 도넛](https://donut.surge.sh/)
+  - [거리 풍경](https://www.instagram.com/reel/CcShiclj6Gw/?igshid=MDJmNzVkMjY%3D)
+  - [롤 아트북](https://artbook.na.leagueoflegends.com/en_US/volume-one#)
+  - [VRChat 공연하시는 아티스트](http://meme-x.jp/)
   - 벡터 vector는 '나르다'라는 뜻을 갖는 라틴어 vehere에서 온 것으로 '나르는 것'을 의미한다.
-  - 탄막패턴 <https://github.com/NK-Studio/UnityShotPatterns>
-  - <https://twitter.com/FreyaHolmer/status/1611721163192811527?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ>
-  - <https://twitter.com/cgcookie/status/1607702326315454464?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ>
-  - <https://twitter.com/FreyaHolmer/status/799602767081848832?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ>
-  - <https://twitter.com/icegeo/status/1157840278163640321?ref_src=twsrc%5Etfw>"
-  - <https://twitter.com/bencbartlett/status/1173619891766620162?ref_src=twsrc%5Etfw>
-  - <https://twitter.com/dripping_bik/status/1173613357024382977?ref_src=twsrc%5Etfw>
-  - <https://twitter.com/METALBUTTER/status/1175020978960658432?ref_src=twsrc%5Etfw>
-  - <https://ko.m.wikipedia.org/wiki/%ED%94%8C%EB%A0%88%EC%9D%B4_%EB%B0%94%EC%9D%B4_%EB%A9%94%EC%9D%BC_%EA%B2%8C%EC%9E%84>
-  - <https://twitter.com/JasperRLZ/status/1182510103943094272?ref_src=twsrc%5Etfw>
-  - <https://twitter.com/Icafe14/status/1198543546002726913?ref_src=twsrc%5Etfw>
-  - <https://twitter.com/YsbrydGames/status/1221858116465315840?ref_src=twsrc%5Etfw>
-  - 조령 산불됴심 표석
-  - Ten years ago, I said “One day” - Yesterday, I said “Day One”
-  - <https://twitter.com/matorialize/status/1248648303408852992?ref_src=twsrc%5Etfw>
-  - 웨이터 법칙
-  - <https://twitter.com/lepreagles/status/1263982448532062208?ref_src=twsrc%5Etfw>
-  - <https://boingboing.net/2020/05/22/scientists-saying-fuck-an.html>
-  - <https://youtu.be/bxNvOcyz4MI>
-  - An anomalous cancellation is a kind of arithmetic procedural error that gives a numerically correct answer:
-  - 라이팅 릭 (Leck) 현상 - 모델링
-  - <https://twitter.com/InertialObservr/status/1286500403534639105?ref_src=twsrc%5Etfw>
-  - <https://www.youtube.com/watch?v=H0d6tSqyN1Y>
-  - <https://rauno.me/craft/fractional-slider>
+  - delay 연기 = 기간 없이 무지성 연기
   - 만년필 시필코너엔 '永'(영)자가 예시로 자주 나온다. 획을 긋는 8가지 방법이 이 안에 두루 담겨있기 때문이다. 로마자 폰트 개발자들은 'The quick brown fox jumps over the lazy dog.'으로 작업을 점검한다. 알파벳 26자가 다 들어있다. 한글 폰트 작업엔 '다람쥐 헌 쳇바퀴에 타고파'가 사용된다.
   - [미술작품 직접가서 봐야하는 이유](https://twitter.com/sight_archive/status/1530087872878895104?ref_src=twsrc%5Etfw)
-  - Best Practice
+  - [텀블벅](https://tumblbug.com/)
+  - [Z-Fighting 고치는 방법](https://twitter.com/FreyaHolmer/status/799602767081848832?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ)
+  - [투명한 메쉬로 그림자 표현하기](https://twitter.com/JasperRLZ/status/1182510103943094272?ref_src=tws5Etfwrc%)
+  - [발로란트 리버싱 도중 발견한 구인광고](https://x.com/matorialize/status/1248648303408852992?s=20)
+  - [AI가 팩맨을 모방하여 만들어냄](https://twitter.com/lepreagles/status/1263982448532062208?ref_src=twsrc%5Etfw)
+  - [욕을 하면 고통이 줄어든다?](https://boingboing.net/2020/05/22/scientists-saying-fuck-an.html)
+  - [Windows Media Player Visualizations](https://www.youtube.com/watch?v=H0d6tSqyN1Y)
+  - [Rauno, Web 디자인](https://rauno.me/craft)
+  - [Craftdaily, Web 디자인](https://thecraftdaily.com/ko-kr/)
+  - Anomalous Cancellation 이상한 약분
+  - Plogging = Plockaupp (줍다 in 스페인) + Jogging
+  - 부전, 노리개, 부전나비
+  - Cellular Automata 세포 자동자
   - 낙관주의 ㅡ 염세주의
-  - 파일이름제한
-  - encounter
-  - cellular automata
-  - Flocking algorithm in 1D
   - Hilbert ← Linear (raster)
-  - 암달의 법칙
-  - Amortized 복잡도
-  - <https://medium.com/@satorusasozaki/amortized-time-in-the-time-complexity-of-an-algorithm-6dd9a5d38045#:~:text=Amortized%20time%20is%20the%20way,array%20and%20can%20be%20extended>
-  - Random Access
-  - Unity AnimationCurve curve.Evaluate
-  - three d pose tracker
-  - [TMP 다국어 폰트 교체](https://opchacha.tistory.com/m/11)
-  - Null safety
-  - InverseTransformDirection, InverseTransformPoint
-  - [C# 단항 후위 ! 연산자](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-forgiving)
-  - [hping3](https://simpleisit.tistory.com/28)
-  - [유용한 게임 기능 코드 모음](https://austinhenley.com/blog/usefulfunctions.html)
-  - 복사생성자 v1 = v2 , v1(v2) , v1 {v2}
-  - 객체 비교 시에도 복사가 일어난다
-  - 지2 태양계 유니티
-  - 퍼멜파티 대포 피하기
-  - 만들었었지
-  - void * ?
-  - malloc 리턴이 포인터인 이유?
-  - Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함
-  - malloc 함수는 어떤 데이터를 할당한 지 모름, 정할 수 없음 , 그래서 void *
-  - current (end)
-  - 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까
-  - 그러면 연결리스트를 왜써 배열 쓰지
-  - 그래서 current 씀 중요
-  - 삭제는 어차피 찾는 거라서
-  - 크게 상관없음
-  - 손 위도 뭐 있다고 한 것 같음
-  - CISC RISC
-  - 명령어가 다르면, 다시말해 여러가지를 쓸 수 있어서 편의성
-  - 복잡해서 느림
-  - RISC는 다 똑같아서 좀 불편해도 빠름
-  - 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
-  - Multi Booting
-  - Solaris/SUN, Linux/x86
-  - 정규분포 활용
-  - [리오레2 팬 모드](https://gall.dcinside.com/mgallery/board/view/?id=riskofrain2&no=20125&exception_mode=recommend&page=1)
-  - [아르마 달리기](https://cafe.naver.com/steamindiegame/10914462)
-  - [읽](https://blog.naver.com/sorkelf)  
-  - [UnityBestPractice](https://unity.com/how#c-programming-unity)  
-  - [UnityLearn](https://learn.unity.com/)  
-  - [기술블로그 딜레이에도 적절히 작동하는 리듬게임 채점 구현](https://mustardy.tistory.com/5)  
-  - [Medium, 인터넷](https://blog.unifiedh.com/%EC%99%9C-%EC%9D%B8%ED%84%B0%EB%84%B7%EC%9D%80-%EA%B7%BC%EB%B3%B8%EB%B6%80%ED%84%B0-%EA%B8%80%EB%9F%AC%EB%A8%B9%EC%97%88%EB%8A%94%EA%B0%80-%EC%BD%94%EB%A1%9C%EB%82%9819%EC%99%80-%ED%95%9C%EA%B5%AD-%EC%9D%B8%ED%84%B0%EB%84%B7%EC%9D%98-%ED%95%B4%EC%99%B8%EC%A0%91%EC%86%8D-%EC%9E%A5%EC%95%A0-%EA%B7%B8%EB%A6%AC%EA%B3%A0-%EB%84%B7%ED%94%8C%EB%A6%AD%EC%8A%A4-%EC%A0%84%EC%9F%81%EC%97%90-%EA%B4%80%ED%95%9C-%EC%9D%B4%EC%95%BC%EA%B8%B0-ae27826e7fc8)
-  - [Parkito님 블로그](https://shoark7.github.io/)
-  - [대마왕님 블로그](https://chulin28ho.tistory.com/)
-  - [wookje님 블로그](http://wookje.dance/)
-  - [이고드님 블로그](https://dogy3045.tistory.com/)
-  - [엘든링 디자인](https://www.gamedeveloper.com/blogs/narrative-design-in-elden-ring)
-  - [메이블 블로그](https://blog.maplestory.nexon.com/)
-  - [로라라라 최적화](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=69564)
-  - [스프라이트 마스크](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=92044&exception_mode=recommend&search_head=30&page=1)
-  - [Lerp, DeltaTime](https://www.construct.net/en/blogs/ashleys-blog-2/using-lerp-delta-time-924)
-  - [토익](https://gall.dcinside.com/board/view/?id=toeic&no=1467156&exception_mode=recommend&page=1)
-  - SceneManager.MoveGameObjectToScene
-  - [SceneLoading](https://doc.photonengine.com/ko-kr/fusion/current/manual/scene-loading)
-  - 컬러 피커
-  - [유니티 스크립트 최적화](https://rito15.github.io/posts/unity-opt-script-optimization/)
-  - [유니티 에디터, bool 값으로 필드 보여주가](https://lefthanddeveloper.tistory.com/21?category=971130)
-  - [휴머노이드 애니 리타겟팅](https://docs.unity3d.com/kr/2021.3/Manual/Retargeting.html)
-  - 갈륨 알루미늄 반응
-  - 태양열, 돋보기
-  - 란마
-  - 오디세이 맹공모드
-  - 샤덴프로이데
-  - Quaternion
-  - 언리얼 Double, 유니티 Float
-  - A*, QuadTree, BSP
-  - OTF TTF
-  - rule of thumb
-  - 디펜던시 인젝션
-  - 멀티쓰레드, 파일입출력
-  - UPROPERTY
-  - c# 참조 스마트포인터
-  - C#의 특징(특히 가비지컬렉터), 배열과 리스트(벡터)의 차이, 본인이 알고있는 게임 최적화 방법
-  - partical 클래스
-  - 가비지 컬렉터
-  - 포폴에 어떤 최적화 기법을 적용했는지
-  - a/b 테스트
-  - 유닛테스트
-  - 특수한 플레이
-  - 웹 어셈블리
-  - 폴리싱
-  - 바이칼젠
-  - 닉시관
-  - 유니티 게임 개발을 위한 절차적 콘텐트 생성
-  - 조합형, 완성형 한글 코드, 가상키코드, [유니티 - 가상키보드](https://github.com/YeongJoo-Kim/UnityHangulKeybord/tree/master/VirtualKeyboard/Assets)
-  - [유니티 수학 시각화](https://twitter.com/Indiedev_Hub/status/1651707801591484416?s=20)
-  - [커브](https://twitter.com/ymrun_jp/status/1628648845105336320?s=20)
-  - [레이마칭을 이용한 포탈 데칼](https://twitter.com/lateasusual_/status/1633659951607365632?s=20)
-  - 정의 중독
-  - [불쾌함을 주는 지하철 알림 소리 / 불협화음](https://twitter.com/kusobuta5877/status/1654877823243554816?s=20)
-  - [충격적인 장면, 평화로운 배경음악](https://twitter.com/hehejeom/status/1670772613386493954?s=20)
-  - [GPT를 이용한 탄막 패턴 사례](https://twitter.com/alice_diffusion/status/1636000238757625867?s=20)
-  - [VRC, 영화 자막](https://twitter.com/vr_hai/status/1495774702521958407?s=20)
-  - [라이팅/레벨](https://twitter.com/jpcorp72/status/1668992816796532737?s=20)
-  - [스타벅스 가서, "제일 안 팔리는 걸로 주세요" - 남기자의 체헐리즘](https://v.daum.net/v/20230624080003034)
-  - [게임으로 언어 공부하기](https://twitter.com/kinophio/status/1665907410618437633?s=20)
-  - Bart, Bartender
-  - Dependency Injection == 문어발 콘센트, Like MVC
-    - 스탯/스킬트리, 프리셋 비유법
-  - 메이드 인 헤븐, Close to you, 유립르럭ㄴ
-  - 콜스택
-  - 청동거울 앞면은 다 녻쓸어서, 시대적 특징/차이를 보여주기 힘들어서 뒷면을
-  - 마사토끼
-    - 달력
-      - 은 농사 과정 시기를 측정하기 위한 것
-      - 봄이 1년의 시작, 가을이 1년의 끝 = 현재의 3월 ~ 12월
-      - 라틴어 Septem = 7, Octo = 8, Novem = 9, Decem = 10
-      - 로마 황제 누마 폼필리우스, 역법 체계 재정비, Januarius, Februarius 추가
-      - 율리우스 카이사르, 역법 체계 율리우스력 개편, 12달 체계
-      - 홀수 31일, 짝수 30일, 2월 29일, 윤년
-      - July = Julius Caesar, 자신이 태어난 달
-      - August = 후계자 Augustus, 자신이 태어난 달
-      - 근데 7월 31일, 8월 30일, 가오 안살아서 8월 이후 31/30 체계 반대로
-      - 31일 달이 하나 더 생김, 부족한 하루는 2월에서
-      - 교황 그레고리오 13세, 오차 개선 365.25 -> 365.2425, 그레고리오력
-  - 난 창작가야, 뭘 만드니, 실수
-  - 힘듦은 상대적인것 Like 포켓몬 속성
-  - Too Late To Die Young
-  - 젠가 시
-  - 인지적 비축분 Cognitive Reserve, 낯선 환경 경험, 새로운 신경 세포 연결
-  - 나이가 능률을 보장하지 않는다, 젊음이 혁신을 보장하지 않는다
-  - 아삭아삭래터스샌드위치
-  - 홍살문
-  - 블랙아웃
-  - 러버덕 디버깅
-  - 요철
-  - 포터블 모니터
-  - EGPU
-  - 선조건 후조건
-  - 프로세스 프로그램

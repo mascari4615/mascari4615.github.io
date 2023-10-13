@@ -1,8 +1,9 @@
 ---
-title: "🏝️ 왁굳형 시참 기록"
+title: "🏝️ 우왁굳"
 date: 2023-06-20. 10:05
 # last_modified_at: 2023-06-20. 10:05
-last_modified_at: 2023-08-26. 10:28
+# last_modified_at: 2023-08-26. 10:28
+last_modified_at: 2023-10-11. 17:09
 categories: 🪨Stone 🏝️LifeStone
 ---
 
@@ -104,7 +105,6 @@ categories: 🪨Stone 🏝️LifeStone
   - 우왁굳의 일심동체 : 맵 트리거
   - 앨범 3집 합방 : 맵 트리거
   - SkySix : 맵 제작
-  - 왁타버스 올림픽 : 맵 제작, 맵 트리거
   - 회전소개팅 : 맵 트리거
   - 도둑 게임 : 맵 트리거
   - 왁디아나존스 : 맵 트리거
@@ -115,6 +115,7 @@ categories: 🪨Stone 🏝️LifeStone
   - Waxim
   - 유사 단어 게임
   - 범인 한자와상 고놀 해보고 싶었는데, 스타일 아니라고 하셔서 관
+  - 왁타버스 올림픽 : 맵 제작, 맵 트리거
 - 기획
   - 딕싯
   - Keep Talking and Nobody Explodes
@@ -126,3 +127,14 @@ categories: 🪨Stone 🏝️LifeStone
 
 - 롤파크
 - 단순히 테이블 게임 옮기는 게 아니라, 시각적으로 뭔가 있어야, 현지화가
+
+- 메모
+  - 세면대
+  - 거봐라
+  - 강하다 튼튼하다 탱크행거
+  - 염소 시뮬 같은 팬치 시뮬?
+  - 함께라면
+  - 아삭아삭래터스샌드위치
+  - [우왁굳 트위치 이모티콘](https://twitchemotes.com/channels/49045679)
+  - [아르마 달리기](https://cafe.naver.com/steamindiegame/10914462)
+  - Bart, Bartender

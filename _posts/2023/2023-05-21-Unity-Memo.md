@@ -57,3 +57,20 @@ Cinemachine Brain 에서 Update Method 가 Fixed Update 면 바로바로 안바�
 
 오클루더 Occluder : 오클루디를 가리는 오브젝트  
 오클루디 Occludee : 오클루더에 의해 가려지는 오브젝트  
+
+### 💫 라이트 베이크
+
+---
+
+베이커리 베이크 시 흰색 검은색 빨간색 초록색 파란색 얼룩  
+
+Auto-Atlasing . Texels per unit 40 ~ 80  
+글로벌 일루미네이션 . samples  
+보통 UV 오버랩 문제 > Texels per unit 값 올려주거나, UV 맵 자체 간격  
+Force Power-Of-Two Atlas 체크 > 검은 공간 많은 텍스쳐를 크기 줄여줌, 해 가려지는 오브젝트  
+
+### 💫 Mesh Collider 끼리 충돌 안됨
+
+---
+
+Convex 체크  
