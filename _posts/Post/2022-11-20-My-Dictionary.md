@@ -2,7 +2,8 @@
 title: "🥑 메모"
 date: 2022-11-20. 11:56
 # last_modified_at: 2023-05-21. 15:19
-last_modified_at: 2023-10-06. 13:10
+# last_modified_at: 2023-10-06. 13:10
+last_modified_at: 2023-10-17. 09:51
 categories: 🌳Memo 🥑Memo-General
 ---
 
@@ -11,21 +12,21 @@ categories: 🌳Memo 🥑Memo-General
 - #pragma
   - 사전적 의미로 만능
   - VS C++에서 컴파일러에게 그 뒤에 오는 내용을 따라 어떤 일을 하라는 전처리 명령어로 사용
-  - 컴파일러에게 직접 명령을 내리는 지시자  
+  - 컴파일러에게 직접 명령을 내리는 지시자
 
-- BC : Before Chirst, 기원 전  
-- AD : Anno Domini nostri lesu Christi (라틴어), Anno Domini (라틴어 줄인), In The Year Of Our Load, Jesus Christ (영어), 기원 후  
+- BC : Before Chirst, 기원 전
+- AD : Anno Domini nostri lesu Christi (라틴어), Anno Domini (라틴어 줄인), In The Year Of Our Load, Jesus Christ (영어), 기원 후
 
-- A.M. : Ante Meridiem, 오전  
-- P.M. : Post Meridiem, 오후  
-- B2B : Business to Business  
+- A.M. : Ante Meridiem, 오전
+- P.M. : Post Meridiem, 오후
+- B2B : Business to Business
 
-- Switch When  
-- 인하우스, 아웃소싱  
-- Bar Cmd Exe 확장자 차이  
-- 로렘 입숨 lorem ipsum;  
+- Switch When
+- 인하우스, 아웃소싱
+- Bar Cmd Exe 확장자 차이
+- 로렘 입숨 lorem ipsum;
 - aa ASCII ART
-- Meridiem (라틴어) : midday, 정오  
+- Meridiem (라틴어) : midday, 정오
 
 - 곱셈이 나눗셈보다 빠르다
   - 곱셈은 한 번에 처리
@@ -39,7 +40,7 @@ categories: 🌳Memo 🥑Memo-General
 
 - Setter보단 의미있는 메소드를
 
-- 이건 할 줄 알아야 한다  
+- 이건 할 줄 알아야 한다
   - <https://en.wikipedia.org/wiki/XOR_swap_algorithm>
   - 버블 정렬
   - 퀵 정렬 어떻게 도는구나 정도
@@ -47,21 +48,21 @@ categories: 🌳Memo 🥑Memo-General
   - radix sort
   - 해쉬 맵 링크드 리스트 트리=바이너리 서치=순서대로 출력 이건 할 줄 알아야
 
-- .NET 프레임워크 Old vs .NET Core New  
-  - 코어는 윈도우 리눅수 맥 모두 실행가능  
-  - 거의 똑같음  
+- .NET 프레임워크 Old vs .NET Core New
+  - 코어는 윈도우 리눅수 맥 모두 실행가능
+  - 거의 똑같음
 
-- 코딩 스타일  
-  - 변수 선언 위치라던지..  
+- 코딩 스타일
+  - 변수 선언 위치라던지..
 
-| var | 중복 선언 가능 | |  
-| let | 중복 선언 불가능 | 값 변경 가능 |  
-| const | 중복 선언 불가능 | 값 변경 불가능 |  
+| var | 중복 선언 가능 | |
+| let | 중복 선언 불가능 | 값 변경 가능 |
+| const | 중복 선언 불가능 | 값 변경 불가능 |
 
-- var let const  
-  - JavaScript에 대하여,  
-  - 중복 선언이 가능하다는 var의 특징 때문에, let이 나온 이후로는 변수 선언 시 let과 const를 주로 사용  
-  - 호이스팅, 스코프 관련해서도 다른 점이 있다고는데, 패스  
+- var let const
+  - JavaScript에 대하여,
+  - 중복 선언이 가능하다는 var의 특징 때문에, let이 나온 이후로는 변수 선언 시 let과 const를 주로 사용
+  - 호이스팅,스코프 관련해서도 다른 점이 있다고는데, 패스
 
   - var : Variable
   - let : Let
