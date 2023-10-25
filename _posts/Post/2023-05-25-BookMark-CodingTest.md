@@ -2,7 +2,7 @@
 title: "🌓 코테 관련 즐겨찾기"
 date: 2023-05-25. 04:15
 last_modified_at: 2023-05-25. 04:15
-categories: ⭐Computer 🌓PS-CPP
+categories: ⭐Computer 🌓PS-Algorithm
 ---
 
 [솔브닥](https://solved.ac/profile/mascari4615)  

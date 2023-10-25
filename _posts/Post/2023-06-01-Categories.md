@@ -32,12 +32,12 @@ Milestone에서 따옴
 
 ⭐Computer 🌑Computer-General :  
 ⭐Computer 🌒Programming :  
-⭐Computer 🌓PS :  
+⭐Computer 🌓PS-Algorithm :  
 ⭐Computer 🌔Unity-CSharp :  
 ⭐Computer 🌕Unreal-CPP :  
 ⭐Computer 🌖Blender-Modeling :  
-⭐Computer 🌗 :  
-⭐Computer 🌘 :  
+⭐Computer 🌗AI :  
+⭐Computer 🌘Web-Mobile :  
 ⭐Computer 🌚 :  
 
 💫  

@@ -2,7 +2,8 @@
 title: "🌑 Adaptive Resonance Theory - ART1"
 date: 2023-10-25. 09:59
 last_modified_at: 2023-10-25. 09:59
-categories: ⭐Computer 🌑Computer-General
+categories: ⭐Computer 🌗AI
+tag: AI, Adaptive-Resonance-Theory, ART1
 ---
 
 5, 6차시  

@@ -11,7 +11,7 @@ date: 2023-09-07. 10:29
 # last_modified_at: 2023-10-10. 13:32
 # last_modified_at: 2023-10-17. 13:30 ?
 last_modified_at: 2023-10-19. 10:38
-categories: ⭐Computer 🌑Computer-General
+categories: ⭐Computer 🌓PS-Algorithm
 ---
 
 ### 💫 2차시
