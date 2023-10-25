@@ -1,5 +1,5 @@
 ---
-title: "🌑 Mobile Programming Test"
+title: "🌘 Mobile Programming Test"
 date: 2023-10-24. 06:23
 last_modified_at: 2023-10-24. 06:23
 categories: ⭐Computer 🌘Web-Mobile

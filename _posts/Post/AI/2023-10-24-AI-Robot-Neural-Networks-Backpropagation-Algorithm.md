@@ -1,5 +1,5 @@
 ---
-title: "🌑 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬"
+title: "🌗 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬"
 date: 2023-10-25. 10:07
 last_modified_at: 2023-10-25. 10:07
 categories: ⭐Computer 🌗AI

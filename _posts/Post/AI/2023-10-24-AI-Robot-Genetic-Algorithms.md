@@ -1,5 +1,5 @@
 ---
-title: "🌑 Genetic Algorithms - 유전 알고리듬"
+title: "🌗 Genetic Algorithms - 유전 알고리듬"
 date: 2023-10-25. 10:05
 last_modified_at: 2023-10-25. 10:05
 categories: ⭐Computer 🌗AI
