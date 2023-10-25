@@ -2,7 +2,8 @@
 title: "🌑 마이크로프로세서 과목"
 date: 2023-09-08. 12:51
 # last_modified_at: 2023-09-08. 12:51
-last_modified_at: 2023-09-15. 12:53
+# last_modified_at: 2023-09-15. 12:53
+last_modified_at: 2023-10-20. 13:50
 categories: ⭐Computer 🌑Computer-General
 ---
 
@@ -118,3 +119,5 @@ void uart_putchar(char ch)
 ```
 
 USART, 시리얼통신  
+
+@  제어문자  

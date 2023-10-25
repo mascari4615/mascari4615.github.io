@@ -4,7 +4,8 @@ date: 2023-09-08. 08:59
 # last_modified_at: 2023-09-08. 08:59
 # last_modified_at: 2023-09-15. 09:01
 # last_modified_at: 2023-09-22. 09:37
-last_modified_at: 2023-10-13. 09:15
+# last_modified_at: 2023-10-13. 09:15
+last_modified_at: 2023-10-20. 09:13
 categories: ⭐Computer 🌑Computer-General
 ---
 
@@ -432,7 +433,7 @@ LHS가 RHS의 오른쪽 끝으로 나타나는 경우
 Error 발생 시 Error Handler가 처리  
 
 Lexical Analyzer  
-유한 오토마타로 작성할 수 있지만, 복잡하기 때문에 Lex 이용  
+유한 오토마타로 작성할 수 있지만, 어렵고 복잡하기 때문에 Lex 이용  
 
 실습  
 Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~  
@@ -511,13 +512,16 @@ Top-Down, Bottom-Up Parse
     - 이동(Shift) - 다음번째 입력 토큰을 스택으로 이동
     - 감축(Reduce) - 스택의 꼭대기에 위치한 RHS를 상응하는 LHS로 변경
 
+@ ~ 푸시다운 (아래에서 확인)  
+
 - LR 파서
   - 좌측(L)에서 시작하여 우측(R)유도 방식으로 파싱
-  - 상대적으로 작은 파서코드와 파싱 테이블로 구성
   - 장점
+    - 상대적으로 작은 파서코드와 파싱 테이블로 구성
     - 모든 프로그래밍 언어에 대한 파서를 생성할 수 있다.
     - 왼쪽에서 오른쪽 순서로 검사가 가능하므로 조기에 구문 오류를 감지할 수 있다.
     - LL 파서로 처리 가능하면, LR 파서도 처리 가능
+      - @ LL 단점 (Left Recursion, Stack Overflow) 없음
       - @ LL 상위 호환인데 코드도 작음
   - 단점
     - 파싱 테이블을 수작업으로 구축하기가 어렵다.
@@ -552,7 +556,10 @@ Top-Down, Bottom-Up Parse
 Program과 Process  
 
 Program : Code(Text), Data  
-Process : Code(Text), Data, Stack, Heap  
+Process : Code(Text), Data + Stack, Heap  
+
+메모리에 프로그램 그대로 올라가고,  
+메모리에 동적으로 Stack과 Heap 할당  
 
 Code(Text) : 컴파일된 코드  
 Data : External, Static, 전역변수  
@@ -578,3 +585,36 @@ Stack에 데이터 쌓다가
 
 BRK 넘어가면  
 Segmentation Fault Error  
+
+---
+
+#### 컴파일과 실행 단계  
+
+@ 언어 디자인 단계  
+@ 컴파일러 구현 단계  
+
+- Editor or IDE (Edit Time) : 1. Write Source Codes
+  - Source codes (.c), Headers (.h)
+- Preprocessor (Build)  : 2. Preprocess
+  - Included files, replaced symbols
+- Compiler (Compile Time)(Build) : 3. Compile
+  - Object codes (.obj, .o)
+- Linker (Link Time)(Build) : 4. Link Edit
+  - By Static Libraries (.lib, .a) -> Excutable Code (.exe)
+- Loader (Load Time)(Run) : 5. Load
+  - By Shared Libraries (.dll, .so)
+- CPU (Run Time)(Run) : Execute
+  - By Input -> Output
+
+Linker 전 : Static 정적, 프로그램  
+Linker 후 : !정적, 프로세서  
+
+Preprocess  
+gcc -E -P main.c  
+
+Compile  
+gcc -S main.c  
+gcc -c main.c  
+
+Link  
+gcc main.o -o main  
