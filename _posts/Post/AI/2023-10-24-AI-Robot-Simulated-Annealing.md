@@ -3,7 +3,7 @@ title: "🌗 Simulated Annealing - 모의 담금질"
 date: 2023-10-25. 09:57
 last_modified_at: 2023-10-25. 09:57
 categories: ⭐Computer 🌗AI
-tag: AI, Simulated-Annealing
+tags: AI Simulated-Annealing
 ---
 
 3, 4차시  

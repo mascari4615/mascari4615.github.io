@@ -3,7 +3,7 @@ title: "🌘 React Native 리액트 네이티브"
 date: 2023-10-22. 15:39
 last_modified_at: 2023-10-22. 15:39
 categories: ⭐Computer 🌘Web-Mobile
-tag: Mobile, React-Native
+tags: Mobile React-Native
 ---
 
 목표 : 리액트 네이티브는 무엇인가?  

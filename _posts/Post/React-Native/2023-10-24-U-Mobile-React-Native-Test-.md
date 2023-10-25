@@ -3,7 +3,7 @@ title: "🌘 Mobile Programming Test"
 date: 2023-10-24. 06:23
 last_modified_at: 2023-10-24. 06:23
 categories: ⭐Computer 🌘Web-Mobile
-tag: Mobile, React-Native
+tags: Mobile React-Native
 ---
 
 ### 2장 - 물리DOM과 가상DOM

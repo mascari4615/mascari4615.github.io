@@ -10,7 +10,7 @@ date: 2023-09-06. 13:21
 # last_modified_at: 2023-10-11. 14:15
 last_modified_at: 2023-10-17. 14:51
 categories: ⭐Computer 🌘Web-Mobile
-tag: Mobile, React-Native
+tags: Mobile React-Native
 ---
 
 React VS ReactNative  

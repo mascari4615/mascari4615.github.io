@@ -3,7 +3,7 @@ title: "🌗 Ant Algorithms - 개미 알고리듬"
 date: 2023-10-25. 10:01
 last_modified_at: 2023-10-25. 10:01
 categories: ⭐Computer 🌗AI
-tag: AI, Ant-Algorithms
+tags: AI Ant-Algorithms
 ---
 
 7, 8차시  
