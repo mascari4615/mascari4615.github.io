@@ -12,6 +12,8 @@ tags: AI Neural-Networks Backpropagation-Algorithm
 @ -> 다음 층의 뉴런과 모두 연결된다
 @ -> 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  
 
+@ 주어진 입력과 가중치에 따른 신경망의 최종 출력 계산  
+
 ### 💫 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬
 
 ---

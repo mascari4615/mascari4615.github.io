@@ -8,6 +8,8 @@ tags: AI Ant-Algorithms
 
 7, 8차시  
 
+@ 개미 알고리듬, 서로 다른 행태를 나타낸 그림 3장, 어떤 일이 일어나고 있는지  
+
 ### 💫 Ant Algorithms - 개미 알고리듬
 
 ---
