@@ -128,3 +128,4 @@ Play By Mail Game
   - 낙관주의 ㅡ 염세주의
   - Hilbert ← Linear (raster)
   - Lint, Lint Roller
+  - 크로노스의 시간, 카이로스의 시간?  
