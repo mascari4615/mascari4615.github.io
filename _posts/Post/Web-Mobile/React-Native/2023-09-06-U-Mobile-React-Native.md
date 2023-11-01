@@ -13,64 +13,6 @@ categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
 
-React VS ReactNative  
-
-프레임워크 - 렌더러 패키지  
-React,- React-DOM (DOM 렌더러)  
-ReactNative - React-Native 렌더러 (네이티브 렌더러)
-
-React 패키지 (App 컴포넌트)  
-React, ReactNative 프레임워크 둘 다 사용하는  
-App.tsx -> Virtual DOM 구조  
-
-React-Native 패키지 (네이티브 렌더러)  
-리액트 요소 (Virtual DOM 구조?) -> Android/iOS(UIKit)프레임워크 화면 UI 객체
-
-React, 모든 것이 JS로 동작  
-React.render (DOM 렌더러)의 동작을 확인 가능  
-
-반면 ReactNative,  
-네이티브 렌더러 모습 확인 불가능  
-
-왜 Why, ReactNative 프로젝트의 Android/iOS 디렉터리에 있는 Java/Objective-C NativeModule에서 렌더링 진행  
-
-@ 뭔소리지  
-
-NativeModule 에서는 JavaScriptCore 라는 이름의 JS 엔진이 동작  
-C++로 구현된 이 엔진은 Android-JNI Java Native Interface/iOS-FFI Foreign Function Interface 방식으로 연결되어 동작  
-
-Library == Engine  
-(일반적으로, 코드 많은 Library == Engine)  
-
-ReactNative App을 Mobile 기기에 설치 후 실행하면,  
-ReactNative의 NativeModule이 실행되면서,  
-2개의 스레드가 동시에 동작  
-
-UI Thread : 네이티브 담당 (Android Framework/iOS UIKit Framework 쪽 렌더링)  
-JS Engine Thread : App.tsx와 같은 JS 코드를 실행  
-
-Bridge Framework  
-
-두 스레드는,  
-Message Queue 방식으로 서로 렌더링가 관련된 데이터를 주고 받음  
-
-I.E. 사용자가 화면을 터치하면,  
-UI Thread -> JS Engine Thread (Event - 화면 터치)  
-= Bridge Framework  
-
-@ TODO : Thread  
-
-Single Thread 단일 : JS  
-Multi Thread 다중 : Java, Objective-C, React Native  
-
-ReactNative 전영 패키지  
-항상 UI(Native 쪽) Thread와 JS Thread가 따로 있음  
-둘 다 설치되어 있어야 함  
-
-npx react-native link  
-npx pod-install  
--> UI(Native 쪽) Thread 부분 설치  
-
 React.createElement  
 
 `Hello World!` 출력하기  
@@ -164,3 +106,10 @@ Each child in a list should have a unique "key"
 
 UUID Universally Unique Identifier 범용 고유 식별자  
 -> 네트워크 카드의 MAC, 호출 시각 등으로 조합 = 중복 X  
+
+@ 기말고사 -\> useMemo  
+@ 기말고사 -\> 216p 리액트훅의 구현 원리  
+
+@ TS 함수 괄호 없이 부를 수 있는건가?  
+
+@ High-Order Function - 고차함수 : 다른 함수를 인자로 받거나, 반환하는 함수  

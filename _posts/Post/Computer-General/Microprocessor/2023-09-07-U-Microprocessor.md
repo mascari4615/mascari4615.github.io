@@ -3,10 +3,64 @@ title: "🌑 마이크로프로세서 과목"
 date: 2023-09-08. 12:51
 # last_modified_at: 2023-09-08. 12:51
 # last_modified_at: 2023-09-15. 12:53
-last_modified_at: 2023-10-20. 13:50
+# last_modified_at: 2023-10-20. 13:50
+last_modified_at: 2023-10-27. 12:37
 categories: ⭐Computer 🌑Computer-General
 tags: Microprocessor
 ---
+
+### 💫 마이크로프로세서
+
+---
+
+Micro 작은 Processor 연산장치  
+일반적으로 CPU 중앙처리장치의 기능을 한 개 ~ 몇 개 이내의 칩으로 집약한 처리기  
+
+- 외부 연결을 위한 핀  
+  - 메모리 :  어드레스 버스, 데이터 버스 등
+  - 주변 장치 : 전원 공급, 발진기  
+
+강의에서는 AVR2560을 다룸  
+AVR - Alf-Egil Bogen, Vergard Wollen, RISC  
+
+### 💫 범용 입/출력 포트 레지스터 - General Purpose IO Port Register
+
+---
+
+레지스터는 바이트 단위, 기능은 비트 단위  
+AVR MCU 모든 레지스터는 메모리 앱 읽기/쓰기 방식 접근 가능, 일부는 격리 읽기/쓰기 접근 가능  
+
+DDR : 데이터 방향 지정 레지스터  
+-> 각 핀에 대해, 입력(0)으로 쓸지 출력(1)으로 쓸지 설정  
+-> i.e. DDR == 0x01, 1핀 출력 + 7핀 입력  
+
+PORT : 출력 용으로 설정된 핀에 대해, 데이터를 쓰는/입력하는 레지스터  
+PIN : 입력 용으로 설정된 핀에 대해, 데이터를 읽는/출력하는 레지스터  
+
+- 입/출력 레지스터
+  - A ~ L 11개 (I 제외)
+  - PIN 수 : 11 * 8 = 88
+  - 각각 DDRA, PORTA, PINA 명칭
+    - \<avr/io.h\> 에 정의
+
+- 연산
+  - PORTF = 0xff : 모두 출력으로 설정
+  - PORTF = PORTF | 0x01 : 첫 핀만 출력으로 설정, 나머지 기존 그대로
+  - PORTF = PROTF & 0xfe : 첫 핀만 입력으로 설정, 나머지 기존 그대로
+  - v = PINF & 0x01 : 맨 첫 핀의 입력값만 필터링
+
+### 💫 특수 기능 레지스터 - SFR - Special Function Register
+
+---
+
+범용 레지스터, 범용 입/출력 레지스터 -> 데이터 보관/전달  
+특수 기능 레지스터 -> 설정 : MCU 주요 장치들의 동작 방식, 주요 부우의 구성 요소 형태 조정  
+
+마찬가지로, 레지스터는 바이트 단위, 기능은 비트 단위  
+마찬가지로, AVR MCU 모든 레지스터는 메모리 앱 읽기/쓰기 방식 접근 가능, 일부는 격리 읽기/쓰기 접근 가능  
+
+USART - Universal Synchronous and Asynchronous serial Receiver & transmitter  
+UDRn : USART Data Register  
 
 ### 💫 2차시
 

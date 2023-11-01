@@ -8,12 +8,6 @@ tags: AI Neural-Networks Backpropagation-Algorithm
 
 10, 11차시  
 
-@ 이러한 신경망 구조가 어떻게 되냐?  
-@ -> 다음 층의 뉴런과 모두 연결된다
-@ -> 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  
-
-@ 주어진 입력과 가중치에 따른 신경망의 최종 출력 계산  
-
 ### 💫 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬
 
 ---
@@ -44,8 +38,9 @@ Weight - W - 가중치
 -> Like 시냅스  
 -> Like 수도꼭지, 신호량 통제/조절  
 
-1. 입력들을 각가의 가중치를 곱해 X를 구하고 더함 Weighted Sum
-2. Activation Function 활성 함수를 통해 최종 값 계산 (X가 겁나 크니까 작게 찌그러뜨리기/조절하기)
+1. Weighted Sum (X<sub>n</sub>), 입력들을 각가의 가중치를 곱해 X를 구하고 더함
+2. Activation Function - 활성 함수를 통해 최종 값 y<sub>n</sub> 계산
+   - Weighted Sum (X<sub>n</sub>)가 겁나 크니까 작게 찌그러뜨리기/조절하기
 
 Neural Network - 다층 신경망  
 
@@ -121,3 +116,26 @@ Wij = Wjk + △Wjk
 Sample Project - Game NPC AI  
 Health, Has-Knife, Has-Gun, Enemies 상태에 따른  
 Attack, Hide, Wander, Run 행동 결정 알고리듬  
+
+### 💫 중간고사
+
+---
+
+신경망의 일반화를 설명  
+-\> 신경망의 가장 큰 특징 : 일반화  
+
+-\> @ 일반화에 의해 갈라진  
+-\> @ 기호주의 : 논리/수학적인 방법으로  
+-\> @ 연결주의 : 감각/계산적인 방법으로  
+-\> @ 지금은 서로 잘 섞인  
+
+-\> @ vs 추상화-개체지향  
+-\> @ 책을 많이 읽어라, 같은 생각만해서, 생각이 경직되니까  
+
+주어진 신경망에 대해, 주어진 입력과 가중치에 따른 최종 출력 계산  
+-\> Feed-Forward ~  
+
+이러한 신경망 구조가 어떻게 되냐? (시험 x)  
+-\> @ 이러한 신경망 구조가 어떻게 되냐?  
+-\> @ 다음 층의 뉴런과 모두 연결된다
+-\> @ 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  
