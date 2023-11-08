@@ -1,33 +1,20 @@
 ---
 title: "🌒 상수 이름에 접두사 k, 헝가리안 표기법"
 date: 2023-01-06. 23:46
+last_modified_at: 2023-11-08. 13:46
 categories: ⭐Computer 🌒Programming
+tags: Constant Hungarian-Notation
 ---
 
-### 💎 상수 이름에 접두사 k
+### 💫 헝가리안 표기법
 
 ---
-
-[참고](https://stackoverflow.com/questions/5016622/where-does-the-k-prefix-for-constants-come-from)
-
-> 요약 :  
-> c는 char의 약자로 이미 쓰고 있기 때문에,  
-> 수학에서 상수로 쓰이고, 독일어로 상수의 첫 글자인 (konstant), k 를 쓰게 되었다.  
-> ... 혹은 그저 정말 발음이 유사해서 썼다던지.  
-
----
-
-```cs
-private const int kVariable = 1;
-```
-
-위처럼 상수 이름 앞에 k를 붙이는 경우가 있다.  
 
 과거에 약한 타입 언어(Weak Type Language)가 쓰일 때,  
 지금 같이 자동 타입 검사가 있지 않았던 탓에, 타입을 잘못 오해하고 사용하는 경우가 빈번했다.  
 
 이 문제를 해결하기 위해 헝가리안이었던 마이크로소프트의 찰스 시모니가 제안한 방법이,  
-바로 헝가리안 표기법이다.  
+바로 `헝가리안 표기법`이다.  
 
 ```cs
 private bool bVariable = true;
@@ -51,4 +38,30 @@ private char cVariable = 'A';
 지금은 단순히 변수에 마우스만 올려도 타입을 알려주는 편리한 IDE가 존재하기에,  
 굳이 가독성을 떨궈가며 헝가리안 표기법을 사용할 이유는 없는 것 같다.  
 
-첫 글자가 똑같은 타입에 대해서, 계속해서 상수와 같은 특수한 케이스를 만들수도도 없고 말이다.  
+첫 글자가 똑같은 타입에 대해서, 계속해서 상수와 같은 특수한 케이스를 만들수도 없고 말이다.  
+
+### 💫 상수 이름에 접두사 k
+
+---
+
+[참고](https://stackoverflow.com/questions/5016622/where-does-the-k-prefix-for-constants-come-from)
+
+> 요약 :  
+> c는 char의 약자로 이미 쓰고 있기 때문에,  
+> 수학에서 상수로 쓰이고, 독일어로 상수의 첫 글자인 (konstant), k 를 쓰게 되었다.  
+> ... 혹은 그저 정말 발음이 유사해서 썼다던지.  
+
+---
+
+```cs
+private const int kVariable = 1;
+```
+
+위처럼 상수 이름 앞에 k를 붙이는 경우가 있다.  
+
+왜 헝가리안 표기법에서 상수를 표기할 때 Constant의 앞글자인 c를 쓰지 않느냐? 하고 물어본다면,  
+그건 이미 c가 char의 앞글자로써 쓰이고 있기 때문이라고 할 수 있다.  
+
+그렇다면 왜 c대신 k를 쓰는가? 에 대해서는 두 가지 의견이 있는데,  
+하나는 단순히 c와 k가 비슷한 발음이라 썼다는 것이고,  
+하나는 상수가 독일어로는 Konstant라, 독일쪽에서 쓰던 표기가 퍼진 것이라는 것이다.  
