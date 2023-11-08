@@ -23,6 +23,8 @@ layout: compress
       <div class="container d-flex flex-column px-xxl-5">
         {% include topbar.html lang=lang %}
 
+        {% include_cached search-results.html lang=lang %}
+
         <div class="row flex-grow-1">
           <main aria-label="Main Content" class="col-12 col-lg-11 col-xl-9 px-md-4">
             {% if layout.refactor or layout.layout == 'default' %}
@@ -57,8 +59,6 @@ layout: compress
             {% include_cached footer.html lang=lang %}
           </div>
         </div>
-
-        {% include_cached search-results.html lang=lang %}
       </div>
 
       <aside aria-label="Scroll to Top">
