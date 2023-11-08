@@ -35,7 +35,7 @@ Milestone에서 따옴
 ⭐Computer 🌓PS-Algorithm :  
 ⭐Computer 🌔Unity-CSharp :  
 ⭐Computer 🌕Unreal-CPP :  
-⭐Computer 🌖Blender-Modeling :  
+⭐Computer 🌖Computer-OS :  
 ⭐Computer 🌗AI :  
 ⭐Computer 🌘Web-Mobile :  
 ⭐Computer 🌚 :  
