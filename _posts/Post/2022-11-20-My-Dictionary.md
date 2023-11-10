@@ -70,35 +70,35 @@ categories: 🌳Memo 🥑Memo-General
   - const : Constant
 
 헤더 파일이 없어도 실행이 되는 이유  
--> 특정 컴파일러나 다른 헤더가, 해당 헤더를 포함하고 있는 경우  
--> I.E. iostream -> string.h, C++ 표준 라이브러리 컴파일러 -> string
+→ 특정 컴파일러나 다른 헤더가, 해당 헤더를 포함하고 있는 경우  
+→ I.E. iostream → string.h, C++ 표준 라이브러리 컴파일러 → string
 
 Leading 0  
--> [0 Padding](https://stackoverflow.com/questions/3122677/add-zero-padding-to-a-string)
--> string.PadLeft(4, '0')  
--> int.ToString("D4")  
+→ [0 Padding](https://stackoverflow.com/questions/3122677/add-zero-padding-to-a-string)
+→ string.PadLeft(4, '0')  
+→ int.ToString("D4")  
 
 malloc 리턴이 void *, 포인터인 이유?  
--> Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함  
--> malloc으로 어떤 타입을 할당한 지 모름, 정할 수 없음, 그래서 void  
+→ Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함  
+→ malloc으로 어떤 타입을 할당한 지 모름, 정할 수 없음, 그래서 void  
 
 예전엔 C 변수 전방 선언  
--> 과거 적은 메모리, 부족할 수 있어서 사용할 변수 미리 선언해두고 유지보수 쉽게??  
--> 최신 버전에서는 고쳐지기도 했고, 컴파일러 따라 다르기도  
+→ 과거 적은 메모리, 부족할 수 있어서 사용할 변수 미리 선언해두고 유지보수 쉽게??  
+→ 최신 버전에서는 고쳐지기도 했고, 컴파일러 따라 다르기도  
 
 연결리스트 current (end)  
--> 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까  
--> 삭제는 어차피 찾는 거라서 크게 상관없음  
+→ 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까  
+→ 삭제는 어차피 찾는 거라서 크게 상관없음  
 
 Windows에서 돌아가는 모든 프로그램은 WinAPI 사용  
--> Java가 느린 이유, WinAPI에 직접 접근하지 못함, JVM 한 단계 거쳐서  
--> @ Minecraft Java에서 C++로 바뀐  
+→ Java가 느린 이유, WinAPI에 직접 접근하지 못함, JVM 한 단계 거쳐서  
+→ @ Minecraft Java에서 C++로 바뀐  
 
 모터호텔, 모텔  
--> 넓은 지역 이동할 때 차 쉬던 곳  
+→ 넓은 지역 이동할 때 차 쉬던 곳  
 
 Brachistochrone curve 최단시간곡선  
--> 배틀그라운드 낙하  
+→ 배틀그라운드 낙하  
 
 Play By Mail Game  
 

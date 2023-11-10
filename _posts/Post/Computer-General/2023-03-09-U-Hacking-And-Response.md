@@ -97,13 +97,13 @@ CSS XSS
 
 P1 평문 (n비트 블록1) (64, 128, 256, ...)  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
 C1 암호문 (n비트 블록1)  
 
 C1 암호문 (n비트 블록1)  
 |  
-Key -> Block Cipher Decryption  
+Key → Block Cipher Decryption  
 |  
 P1 평문 (n비트 블록1) (64, 128, 256, ...)  
 
@@ -119,21 +119,21 @@ P1 평문 (n비트 블록1) (64, 128, 256, ...)
 
 P1 평문 (n비트 블록1) (64, 128, 256, ...)  
 |  
-X <- (IV 초기벡터) = ㄱ  
+X ← (IV 초기벡터) = ㄱ  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
-X -> = ㄴ  
+X → = ㄴ  
 |  
 C1 암호문 (n비트 블록1) (#손상될 경우)  
 
 P2 평문 (n비트 블록2) (64, 128, 256, ...)  
 |  
-X<- ㄴ  
+X← ㄴ  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
-X -> = ㄷ  
+X → = ㄷ  
 |  
 C2 암호문 (n비트 블록2)  
 
@@ -156,12 +156,12 @@ C2 암호문 (n비트 블록2)
 IV (초기 벡터) - Random  
 n비트 Shift 레지스터 (64, 128, 256, ...)  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
 n비트 암호문  
 암호문에서 일부 비트만 (r) 선택하여 키 k1로 사용한다. i.e. 8Bit  
 |  
-X<- r비트 평문 P1  
+X← r비트 평문 P1  
 n비트 암호문 좌측에서 r비트를 선택하여 암호키 k1으로 사용한다  
 |  
 r비트 암호문 C1  
@@ -169,12 +169,12 @@ r비트 암호문 C1
 | C1이 r비트 왼쪽으로 Shifting  
 n비트 Shift 레지스터 (64, 128, 256, ...)  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
 n비트 암호문  
 암호문에서 일부 비트만 (r) 선택하여 키 k2로 사용한다. i.e. 8Bit  
 |  
-X<- r비트 평문 P1  
+X← r비트 평문 P1  
 n비트 암호문 좌측에서 r비트를 선택하여 암호키 k2으로 사용한다  
 |  
 r비트 암호문 C2  
@@ -198,12 +198,12 @@ r비트 암호문 C2
 IV (초기 벡터) - Random  
 n비트 Shift 레지스터 (64, 128, 256, ...)  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
 n비트 암호문  
 암호문에서 일부 비트만 (r) 선택하여 키 k1로 사용한다. i.e. 8Bit  
 |  
-X<- r비트 평문 P1  
+X← r비트 평문 P1  
 n비트 암호문 좌측에서 r비트를 선택하여 암호키 k1으로 사용한다  
 |  
 r비트 암호문 C1  
@@ -211,12 +211,12 @@ r비트 암호문 C1
 | C1이 r비트 왼쪽으로 Shifting  
 n비트 Shift 레지스터 (64, 128, 256, ...)  
 |  
-Key -> Block Cipher Encryption (DES, AES, SEED, ...)  
+Key → Block Cipher Encryption (DES, AES, SEED, ...)  
 |  
 n비트 암호문  
 암호문에서 일부 비트만 (r) 선택하여 키 k2로 사용한다. i.e. 8Bit  
 |  
-X<- r비트 평문 P1  
+X← r비트 평문 P1  
 n비트 암호문 좌측에서 r비트를 선택하여 암호키 k2으로 사용한다  
 |  
 r비트 암호문 C2  
@@ -342,12 +342,12 @@ I.E. 키 합의 프로토콜
 - SSL/TLS, IPSec-VPN
 
 - IPSec Internet Protocol Security
-  - Host와 host 사이, 보안 Gateway 사이 (Network <-> Network),보안 Gateway와 host 하이 (Network <-> Host)에 보안 Tunneling 을 형성하여 데이터 흐름을 보호한다
+  - Host와 host 사이, 보안 Gateway 사이 (Network <→ Network),보안 Gateway와 host 하이 (Network <→ Host)에 보안 Tunneling 을 형성하여 데이터 흐름을 보호한다
 
 - VPN Virtual Private Network
   - 개인들이 공동으로 네트워크를 이용하면서 이느와 암호화 Tunneling 기술을 이용한 가상적인 시설 보안 네트워크로서 저비용, 보안성, 익명성이 제공된다
-  - Gateway 위치에 설치되므로 방화벽과 같은 위치에 설치된다 -> Trends 통합장비 (VPN+방화벽)
-  - Anywhere Anytime AnyDevice -> SSL, VPN, IPSec
+  - Gateway 위치에 설치되므로 방화벽과 같은 위치에 설치된다 → Trends 통합장비 (VPN+방화벽)
+  - Anywhere Anytime AnyDevice → SSL, VPN, IPSec
 
 - S-HTTP (Secure-HTTP), SSL/TLS, IPSec
   - Interface는 System Module 간 통신 및 정보 교환을 위한 통로로 사용되므로 보안 기능을 갖춰야 한다
@@ -399,7 +399,7 @@ I.E. 키 합의 프로토콜
     - 네트워크 계층에서 무결성과 인증을 보장하는 인증헤더 AH와 기밀성까지 보장하는 암호화ESP을 이용한 층단간 보안서비스를 제공하는 네트워크 프로토콜
     - IP 패킷 단위의 데이터 변조 방지, 은닉 기능을 제공
     - Router 간 안전한 정보를 교환
-    - 두 장비간 논리전 커넥션 구성 -> H/w S/W 필요
+    - 두 장비간 논리전 커넥션 구성 → H/w S/W 필요
   - ㅁㄴㅇ
     - Network
   - asd

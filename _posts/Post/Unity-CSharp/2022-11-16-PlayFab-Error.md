@@ -32,7 +32,7 @@ V2 에서 **PlayGamesPlatform.Instance.requestServerSideAccess()** 로 바뀌게
 
 때문에 로그인에 계속해서 실패  
 
--> 해결 :  
+→ 해결 :  
 
 23/06/01 기준, 아직 해결 방법을 찾지 못함  
 0.11.1 버전이라면, 어쩔 수 없이 0.10.14 버전으로 다운그레이드하여 사용 (참고 링크 2, PlayFab 답변 참고)  
@@ -54,7 +54,7 @@ Assembly 'Assets/ExternalDependencyManager/Editor/1.2.167/Google.IOSResolver.dll
 
 [참고 링크](https://github.com/googlesamples/unity-jar-resolver/issues/441)
 
--> 해결 :  
+→ 해결 :  
 
 빌드 세팅이 Window 플랫폼으로 설정되어 있었음  
 Android로 바꿔주니 에러 사라짐  
@@ -66,7 +66,7 @@ Android로 바꿔주니 에러 사라짐
 에러 로그가 자꾸만 뜬다.  
 Play Mode 가 멈춘다거나, 게임 플레이에 이상이 생긴다거나 하는 건 아니지만, 신경쓰인다.  
 
--> 해결 :  
+→ 해결 :  
 
 [참고](https://community.playfab.com/questions/65805/a-native-collection-has-not-been-disposed-resultin-1.html)  
 
@@ -82,7 +82,7 @@ Assets\PlayFabEditorExtensions\Editor\Scripts\PlayFabEditorSDK\PlayFabEditorHttp
 
 (PlayFab 관련은 아니지만)  
 
--> 해결 :
+→ 해결 :
 Google Cloud Console - OAuth 동의 화면 - 테스트 사용자 추가  
 
 [참고](https://jeeu147.tistory.com/91)

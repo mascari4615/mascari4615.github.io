@@ -15,9 +15,9 @@ URL 입력을 통해 Web Page를 다운 받고,
 = `원격지` 문서 뷰어  
 
 주소 입력창에 URL Uniform Resource Locator 입력  
--> (일반적으로) [HTTP](https://mascari4615.github.io/posts/HTTP/)S를 통해 `Resource`(문서/Web Page도 Resource)를 Web Server로 부터 [Get-Read/Post](https://mascari4615.github.io/posts/Get-Post/) 하겠다는 것  
--> CMD 명령어 입력하는 거랑 다를 게 없음 (DNS Domain Name System, URL -> IP)  
--> Search Query를 입력하면 설정해둔 Search Engine으로 검색  
+→ (일반적으로) [HTTP](https://mascari4615.github.io/posts/HTTP/)S를 통해 `Resource`(문서/Web Page도 Resource)를 Web Server로 부터 [Get-Read/Post](https://mascari4615.github.io/posts/Get-Post/) 하겠다는 것  
+→ CMD 명령어 입력하는 거랑 다를 게 없음 (DNS Domain Name System, URL → IP)  
+→ Search Query를 입력하면 설정해둔 Search Engine으로 검색  
 
 개발자 도구/네트워크 탭을 통해,  
 Web Browser가 Resource를 어떻게 다운로드하고 있는지 확인 가능  

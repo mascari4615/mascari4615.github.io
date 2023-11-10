@@ -15,7 +15,7 @@ Procedure 프로시저 (Routine 루틴, SubRoutine 서브루틴, Method 메소�
 VS 순차적 프로그래밍, 순차적 명령 수행  
 추상화, 재사용성  
 
-Procedural -> Procedure  
+Procedural → Procedure  
 `절차`에 집중하는 것이 아니라, `프로시저`에 집중하는 프로그래밍 패러다임  
 모든 프로그래밍은 `절차` 를 가짐  
 

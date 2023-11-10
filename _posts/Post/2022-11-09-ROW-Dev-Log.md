@@ -187,7 +187,7 @@ categories: 🔖Creative 📕Dev
 
 - 로딩, 씬 로딩, 트랜지션, 로딩 팁, 로딩 이미지, 룬스톤  
 
-- 움직임 미끄러지는 것 없이 -> 새로 만들어야 할 것 같은? NetworkTransform 으로 바꾸고 직접 계산 하는 느낌으로  
+- 움직임 미끄러지는 것 없이 → 새로 만들어야 할 것 같은? NetworkTransform 으로 바꾸고 직접 계산 하는 느낌으로  
 - 디렉터 구현  
 - 업적 체커  
 - Result Recorder  

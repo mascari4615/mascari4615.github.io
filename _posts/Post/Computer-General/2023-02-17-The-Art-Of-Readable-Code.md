@@ -22,19 +22,19 @@ categories: ⭐Computer 🌒Programming
 ---
 
 1. 이름에 정보를 담아내라  
-   - 구체적인 단어 선택 -> 추상적/중의적/무의미한 단어 피하기, 의도한 정보를 정확히 전달하는  
-     - Get -> Fetch, Download, Compute(Get은 관행적으로 가벼운 접근자)  
-     - Size, Length -> Height, NumNodes, MemoryBytes, Chars, CountSize/CountElements(Size는 관행적으로 일정한 시간을 소비, i.e. O(1))  
-     - Filter -> Select, Exclude  
-     - Clip -> Truncate  
-     - Stop -> Kill, Pause  
+   - 구체적인 단어 선택 → 추상적/중의적/무의미한 단어 피하기, 의도한 정보를 정확히 전달하는  
+     - Get → Fetch, Download, Compute(Get은 관행적으로 가벼운 접근자)  
+     - Size, Length → Height, NumNodes, MemoryBytes, Chars, CountSize/CountElements(Size는 관행적으로 일정한 시간을 소비, i.e. O(1))  
+     - Filter → Select, Exclude  
+     - Clip → Truncate  
+     - Stop → Kill, Pause  
    - Temp 같은 보편적 이름 피하기
      - Temp : 짧게 임시적으로만 존재, 임시적 존재 자체가 변수의 가장 중요한 용도일 때  
      - 루프 반복자 : i j k 보다는, 인덱스로써 쓰인다면 컨테이너 이름과 인덱스 접두문자를 같게 한다던지
    - 세부 정보 붙이기  
      - 단위 : a_chars, a_secs, a_mb, a_kbps, hex_id,  
      - 속성(내용이 중요하다면) : plaintext_password, html_utf8, min/max  
-     - 경계 : Start/Stop -> First/Last(경계포함), Begin/End(경계포함/배제)  
+     - 경계 : Start/Stop → First/Last(경계포함), Begin/End(경계포함/배제)  
      - Boolean : is, has, can, should + 긍정형(부정형은 이해가 느리다)  
    - 변수는 작은 설명문, 이름 길이 알잘딱으로  
      - 좁은 범위에서는 짧은 이름, 넓은 범위에서는 긴 이름이 좋다
@@ -64,4 +64,4 @@ categories: ⭐Computer 🌒Programming
      - 큰 그림 알리기 : 파일/긴 함수에서 크게 설명하고, 각 조각이 어떻게 맞춰지는 지  
      - 어려우면 그냥 생각을 적어내기
        - 아 A 너무 어렵네 그냥 B 써야겠다  
-       - -> 주의 : 이 코드는 A 대신 B 를 사용했기에 @ 부분은 처리하지 않는다. 그렇게 하는 것이 어렵기 때문이다.  
+       - → 주의 : 이 코드는 A 대신 B 를 사용했기에 @ 부분은 처리하지 않는다. 그렇게 하는 것이 어렵기 때문이다.  
