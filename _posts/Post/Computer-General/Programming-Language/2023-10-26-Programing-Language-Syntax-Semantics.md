@@ -14,13 +14,13 @@ tags: ProgrammingLanguage
 ---
 
 Syntax 구문론 (형태, 모양, 문법)  
--> The `form` of expressions, statements, and program units  
+→ The `form` of expressions, statements, and program units  
 
 Semantic 의미론  
--> The `meaning` of expressions, statements, and program units  
+→ The `meaning` of expressions, statements, and program units  
 
 i.e. while (bool) statement  
--> 위 명령어의 `문법` 그리고 `의미`  
+→ 위 명령어의 `문법` 그리고 `의미`  
 
 ### 💫 언어 기술의 문제점 - Programming Language Description
 
@@ -58,14 +58,14 @@ But, 어려움
 - Lexeme - 어휘 항목
   - (형식적 문법으로) 코드 최소 구분 단위 (Syntax 기준)
   - 언어의 형식적(Formal) 기술(Description)에서 Lexeme은 포함되지 않음
-    - -> 언어의 Syntax (혹은 Grammar)의 기술에 포함되지 않음
+    - → 언어의 Syntax (혹은 Grammar)의 기술에 포함되지 않음
 
 - Token
   - 의미적으로 구분되는 최소 단위
   - 어휘 항목에 대한 한 부류
     - i.e. C, 6개의 토큰 (Identifier, Keyword, Constant, String literal, Operator, Separator)
 
-어휘 항목 -> 그룹들 -> 대표(분류) by 토큰  
+어휘 항목 → 그룹들 → 대표(분류) by 토큰  
 
 i.e. x + y = 10
 `Lexeme` - `Token`  
@@ -77,15 +77,15 @@ x, y - Identifier
 @ Parse 트리를 만드는데, 안 만들어지면 문법 오류  
 
 프로그래밍 언어 정의 방법
--> 언어 인식기, 언어 생성기
+→ 언어 인식기, 언어 생성기
 
 언어 인식기
--> 정의된 문법으로부터 언어 L을 정의하고
--> 주어진 문자열이 L에 포함되는지 판단
--> 컴파일러의 어휘 분석기(Lexical Analyzer)와 구문 분석기(parser)에서 사용  
+→ 정의된 문법으로부터 언어 L을 정의하고
+→ 주어진 문자열이 L에 포함되는지 판단
+→ 컴파일러의 어휘 분석기(Lexical Analyzer)와 구문 분석기(parser)에서 사용  
 
 언어 생성기  
--> 정의된 문법으로부터 언어 L을 생성하는 장치  
+→ 정의된 문법으로부터 언어 L을 생성하는 장치  
 
 ### 💫 구문 기술의 형식적 방법
 
@@ -118,10 +118,10 @@ Type-3, Regular Grammar
 @ LHS - Left Hand Side  
 @ RHS - Right Hand Side  
 
-i.e. \<assign\> -> \<var\> = \<expression\>  
+i.e. \<assign\> → \<var\> = \<expression\>  
 
 - Rule 규칙, Production 생성
-  - LHS -> RHS, 연결(유도) 하는 것  
+  - LHS → RHS, 연결(유도) 하는 것  
   - LHS : 정의하려는 추상화
   - RHS : 정의 - Token, 어휘항목, 다른 추상화
 
@@ -131,11 +131,11 @@ Nonterminal Symbol : 추상화된 대상, 여러 정의 가능
 Terminal Symbol : 규칙에 포함된 어휘 항목과 토큰  
 
 i.e.  
-\<if_stmt\> ->  
+\<if_stmt\> →  
 if (\<logic_expr\>) \<stmt\> | if (\<logic_expr\>) \<stmt\> else \<stmt\>  
 
 가변 길이의 리스트를 표현할 때 (BNF에서는) Recursive 재귀 사용  
-i.e. \<ident_list> -> identifier | identifier, <ident_list>  
+i.e. \<ident_list> → identifier | identifier, <ident_list>  
 
 ### 💫 문법과 유도
 
@@ -158,29 +158,29 @@ i.e.
 주어진 배정문 : begin A = B + C; B = C end  
 
 ```BNF
-<program> -> begin <stmt_list> end
-<stmt_list> -> <stmt> | <stmt> ; <stmt_list>
-<stmt> -> <var> = <expression>
-<var> -> A | B | C
-<expression> -> <var> + <var>, <var> | <var> | <var>
+<program> → begin <stmt_list> end
+<stmt_list> → <stmt> | <stmt> ; <stmt_list>
+<stmt> → <var> = <expression>
+<var> → A | B | C
+<expression> → <var> + <var>, <var> | <var> | <var>
 ```
 
 주어진 배정문 : begin A = B * A + C end  
 
 ```BNF
-<assign> -> <id> = <expr>
-<id> -> A | B | C
-<expr> -> <id> + <expr> | <id> * <expr> | (<expr>) | <id>
+<assign> → <id> = <expr>
+<id> → A | B | C
+<expr> → <id> + <expr> | <id> * <expr> | (<expr>) | <id>
 ```
 
 최좌단 유도 - Leftmost Derivation  
--> 왼쪽 논터미널부터 유도(대체)  
+→ 왼쪽 논터미널부터 유도(대체)  
 
 Parse Tree  
--> Subtree는 문장에 포함된 추상화의 사례  
+→ Subtree는 문장에 포함된 추상화의 사례  
 
 문법의 모호성  
--> 문장의 Parse Tree 수 > 1 (어떤 유도든 간에)  
+→ 문장의 Parse Tree 수 > 1 (어떤 유도든 간에)  
 
 컴파일러는 구문 구조로 의미를 파악하기 때문에,  
 문장이 여러 파스 트리로 구축되면 의미를 결정 불가능  
@@ -191,7 +191,7 @@ Parse Tree
   - 연산자 우선 순위 : 낮은 곳에 위치한 항목들로 먼저 계산
   - 연산의 결합 규칙 :
     - 동일 우선 순위 연산자들 중 어떤 연산자가 먼저 계산되는지
-    - i.e. A + B - C, 좌결합 우선 -> \+
+    - i.e. A + B - C, 좌결합 우선 → \+
 
 좌결합 규칙  
 좌순환적 표현은 좌결합 규칙을 기술한다  
@@ -203,22 +203,22 @@ LHS가 RHS 시작 위치에 나타나는 경우
 우순환적 표현은 우결합 규칙을 기술한다  
 LHS가 RHS의 오른쪽 끝으로 나타나는 경우  
 
-\<factor>-> \<exp> ** \<factor> | \<exp>  
-\<exp> -> (\<expr>) | id  
+\<factor>→ \<exp> ** \<factor> | \<exp>  
+\<exp> → (\<expr>) | id  
 
 - is then else를 위한 모호하지 않은 문법
   - Dangling Else
 
 i.e. Ada BNF 규칙  
-\<if_stmt\> ->  
+\<if_stmt\> →  
 if (\<logic_expr\>) \<stmt\> |
 if (\<logic_expr\>) \<stmt\> else \<stmt\>  
 
--> \<stmt\> -\> \<if_stmt\> 시 모호성 발생  
+→ \<stmt\> → \<if_stmt\> 시 모호성 발생  
 if (\<logic_expr\>) if (\<logic_expr\>) \<stmt\> else \<stmt\>  
 
 So, 많은 언어에서, else 문은 이전에 매칭되지 않은 가장 가까운 if/then에 매칭  
--> 문법으로는 matched, unmatched로 나눠서 작성  
+→ 문법으로는 matched, unmatched로 나눠서 작성  
 
 - 확장 BNF (EBNF)
   - 서술 능력 그대로,가독성과 작성력 ↑

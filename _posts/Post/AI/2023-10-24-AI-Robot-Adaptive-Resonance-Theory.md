@@ -20,9 +20,9 @@ Resonance 공명
 진동수 : 1초에 진동하는 수, Hz  
 
 공명 : 같이 운다  
--> 같은 진동수의 물체가 주변에서 진동하면, 함께 진동한다  
--> 진동수가 다르면 공명하지 않는다  
--> 깨구락지의 공명 : 케로케로케로...  
+→ 같은 진동수의 물체가 주변에서 진동하면, 함께 진동한다  
+→ 진동수가 다르면 공명하지 않는다  
+→ 깨구락지의 공명 : 케로케로케로...  
 
 Adaptive 적응형  
 @ LOL 적응형 능력치 : `Adaptive` Force  
@@ -32,12 +32,12 @@ Adaptive 적응형
 ---
 
 적응형 공명  
--> 기준과 공명하는 것들을 찾아 그룹화 (반복)  
--> Recommender System - 추천  
+→ 기준과 공명하는 것들을 찾아 그룹화 (반복)  
+→ Recommender System - 추천  
 
 Adaptive Resonance Theory - ART1  
--> Clustering Algorithms - 군집화 알고리듬  
--> Unsupervised Learning Algorithm - 비지도 학습 알고리즘 (With Biological Motivations)  
+→ Clustering Algorithms - 군집화 알고리듬  
+→ Unsupervised Learning Algorithm - 비지도 학습 알고리즘 (With Biological Motivations)  
 
 Supervise 지도  
 @ Supervised User  
@@ -53,7 +53,7 @@ Supervise 지도
 강화 학습 - 말 그대로  
 
 Clustering Algorithm  
-클러스터(덩어리), 군집화 -> 분류, 클래스화(레이블)  
+클러스터(덩어리), 군집화 → 분류, 클래스화(레이블)  
 유사성에 의해 덩어리를 나눈다  
 @ Like 하얀건 종이요, 검은건 글씨다  
 
@@ -62,8 +62,8 @@ Clustering Algorithm
 에서 모티브를 얻은  
 
 ART1  
--> Feature Vector : 뭐가 어떻다 하는 특징 데이터 (테이블)  
--> Feature Vector의 1, 0의 개수가 비슷해야 비슷한 데이터  
+→ Feature Vector : 뭐가 어떻다 하는 특징 데이터 (테이블)  
+→ Feature Vector의 1, 0의 개수가 비슷해야 비슷한 데이터  
 
 ### 💫 과정
 
@@ -77,21 +77,21 @@ ART1
 4. Place Example in current prototype vector
 
 Create Initial Prototype Vector  
--> 임의의 요소 선택 (첫 번째든 랜덤이든)  
--> P<sub>0</sub> = E<sub>0</sub>  
+→ 임의의 요소 선택 (첫 번째든 랜덤이든)  
+→ P<sub>0</sub> = E<sub>0</sub>  
 
 For each Example Vector  
--> Close to Prototype?  
+→ Close to Prototype?  
 
 β - 그냥 1.0 (일단) 몰라도 된다  
 d - 전체 물건의 개수  
 E - 산 물건  
 
--> Proximity Test - 유사도 테스트  
+→ Proximity Test - 유사도 테스트  
 P∩E (1에 대해서만) / P 전체물건 + β > E 산물건(E 1의수) / E 전체물건 + β  
 @ PDF 8p Eq1 3/4 > 4/8 (오타)  
 
--> Vigilance Test? (덩어리로 묶을 지, 한 번 더 평가)  
+→ Vigilance Test? (덩어리로 묶을 지, 한 번 더 평가)  
 P∩E / E 산물건(E 1의수) \< p (Vigilance Parameter)  
 
 true?  
@@ -103,7 +103,7 @@ Place Example in Current Prototype Vector (마킹? 라벨링? 덩어리?)
 P = P∩E  
 1110110  
 1110010  
--> 1110010  
+→ 1110010  
 
 덩어리에 크게 의미 없는 데이터를 제거  
 (교재 3.4 밑에 Finally 부터 나오는 내용)  
@@ -119,9 +119,9 @@ K-means Algorithm
 덩어리가 K개 있다고 못박아두고 분류  
 
 먼저 K를 정하고
--> (이 데이터에는 K개의 덩어리가 있다고 가정)  
--> (K를 어떻게 정하냐는 다른 논제)  
--> (비지도학습 알고리듬이지만, 답이 정해져 있는 것처럼 - K)  
+→ (이 데이터에는 K개의 덩어리가 있다고 가정)  
+→ (K를 어떻게 정하냐는 다른 논제)  
+→ (비지도학습 알고리듬이지만, 답이 정해져 있는 것처럼 - K)  
 
 - Loop ~
   1. K개의 임의의 점들을 기준으로, 가까운 것들을 모아 K개의 덩어리로 만듦

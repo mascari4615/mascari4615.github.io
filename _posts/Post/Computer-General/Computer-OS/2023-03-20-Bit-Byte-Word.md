@@ -1,8 +1,10 @@
 ---
-title: "🌒 Bit Byte Word"
+title: "🌖 Bit Byte Word"
 date: 2023-03-20. 16:53
-last_modified_at: 2023-04-06. 11:16
-categories: ⭐Computer 🌒Programming
+# last_modified_at: 2023-04-06. 11:16
+last_modified_at: 2023-11-08. 15:03
+categories: ⭐Computer 🌖Computer-OS
+tage: Bit Byte Word
 ---
 
 2020-10-12 03:33:00  
@@ -10,30 +12,23 @@ categories: ⭐Computer 🌒Programming
 
 ---
 
-### 💎 Byte = 8 Bit ?  
+## 💫 Byte = 8 Bit ?  
 
 ---
 
-Byte는 중요하다  
-왜 Why?  
+Byte는 중요하다.  
+Byte는 CPU가 한번에 처리하는 데이터 크기 = Word(TDU)의 기준이 되고,  
+이는 컴퓨터가 데이터를 다루는 기본 단위, 메모리 주소의 크기의 기준이 된다.  
 
-Byte  
-= 컴퓨터가 데이터를 다루는 기본 단위  
-= 메모리 주소, CPU가 한번에 처리하는 데이터 크기 = Word(TDU)의 기준  
+Byte의 크기 역시 중요하다.  
+현대 컴퓨터 아키텍쳐에서, Byte = 8 Bit 가 표준.  
 
-때문에 Byte의 크기 역시 중요하다  
+본래 Byte는 컴퓨터에서 문자 Character 하나를 표현하기 위한 Bit 수였는데,  
+이가 확장되어, '디지털 정보의 가장 작은 단위'가 되었다.  
 
-현대 컴퓨터 아키텍쳐에서, Byte = 8 Bit 가 표준  
-왜 Why?  
+과거 Byte의 크기는 HW에 종속되었고, 명확한 표준이 없어, 곳에 따라 1 ~ 48 Bit 등의 다양한 크기로 사용되었다고 한다.  
 
-본래 Byte는 컴퓨터에서 문자 Character 하나를 표현하기 위한 Bit 수  
-이가 확장되어, '디지털 정보의 가장 작은 단위'  
-
-과거엔 Byte의 크기가 HW에 종속되었고, 명확한 표준이 없었음  
-곳에 따라 1 ~ 48 Bit 등의 다양한 크기로 사용되었다고 함  
-
-그 중에서도, 6-Bit를 사용하는 문자 표현 방식이 주로 사용되었고,  
-1960년대에는 6-Bit, 9-Bit 를 사용하는 컴퓨터가 일반적이었다고 함.  
+그 중에서도, 6-Bit를 사용하는 문자 표현 방식이 주로 사용되었고, 1960년대에는 6-Bit, 9-Bit 를 사용하는 컴퓨터가 일반적이었다고 함.  
 이런 컴퓨터들은 2, 3, 4, 5, 6, 8, 10 6-Bit Byte에 상응하는, 12, 18, 24, 30, 36, 48, 60 Bit의 Memory Word를 주로 사용했음.  
 이 시대엔 이런 Bit Groupings를 Syllables, Slab 등으로 불렀음. (Byte가 일반화되기 전까지)  
 
@@ -53,7 +48,7 @@ IEC International Electrotechnical Organization
 [참고-0](https://softwareengineering.stackexchange.com/questions/120126/what-is-the-history-of-why-bytes-are-eight-bits)  
 [참고-1](https://en.wikipedia.org/wiki/Byte)  
 
-### 💎 32-Bit, 64-Bit ?  
+## 💫 32-Bit, 64-Bit ?  
 
 ---
 
@@ -77,7 +72,7 @@ Program Counter
 [참고-0](https://blog.naver.com/sharpsoul/221777128846)  
 [참고-1](https://eine.tistory.com/entry/64%EB%B9%84%ED%8A%B8-32%EB%B9%84%ED%8A%B8-CPU%EC%99%80-%EC%9A%B4%EC%98%81%EC%B2%B4%EC%A0%9C-%EC%97%90-%EB%8C%80%ED%95%98%EC%97%AC)  
 
-### 💎 x86, x64 (x86-64) ?  
+## 💫 x86, x64 (x86-64) ?  
 
 ---
 
@@ -96,7 +91,7 @@ IA Intel Architecture
 
 [참고-0](https://ko.wikipedia.org/wiki/X86)  
 
-### 💎 워드 WORD ?  
+## 💫 워드 WORD ?  
 
 ---
 
@@ -123,7 +118,7 @@ QWORD = Quad/Quotable Word = 64-Bit
 
 [참고-0](https://bebesoft.tistory.com/12?category=887595)  
 
-### 💎 컴퓨터에서의 1K = 1024 ?  
+## 💫 컴퓨터에서의 1K = 1024 ?  
 
 ---
 
@@ -151,7 +146,7 @@ MB가 아닌 Mb로 팔기 때문에,
 
 [참고-0](https://velog.io/@victor/1kb-1024-bytes-1000-bytes-%EB%AD%90%EA%B0%80-%EB%A7%9E%EC%9D%84%EA%B9%8C-mojurs3pb2)  
 
-### 💎 @여치  
+## 💫 @여치  
 
 ---
 

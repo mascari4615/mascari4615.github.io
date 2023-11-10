@@ -1,7 +1,7 @@
 ---
-title: "🌑 시스템 프로그래밍"
-date: 1999-01-01. 00:00
-categories: ⭐Computer 🌑Computer-General
+title: "🌖 시스템 프로그래밍"
+date: 2023-04-01. 00:00
+categories: ⭐Computer 🌖Computer-OS
 ---
 
 ### 💫 1
@@ -28,8 +28,8 @@ categories: ⭐Computer 🌑Computer-General
 
 - 1.2 Compile System
   - 목적 프로그램
-    - 재배치 가능 목적 프로그램 -> 목적 파일
-    - 실행 가능 목적 파일 -> 실행 파일
+    - 재배치 가능 목적 프로그램 → 목적 파일
+    - 실행 가능 목적 파일 → 실행 파일
   - Unix 컴파일
     - gcc -o hello hello.c
     - @ GNU
@@ -145,11 +145,11 @@ categories: ⭐Computer 🌑Computer-General
       - Instructions는 Bytes로 Encode
         - Alpha, Sun, Mac은 4-Byte Instructions를 사용 : RISC, Reduced Instruction Set Computer
         - PC는 가별 길이 명령들 사용 : CISC, Complex Instruction Set Computer
-      - 서로 다른 컴퓨터들 -> 서로 다른 부호화 방식
+      - 서로 다른 컴퓨터들 → 서로 다른 부호화 방식
         - 이진코드는 대부분 호환성 없음
     - 근본 개념
       - 프로그램 역시 바이트의 연속 Byte Sequences
-  - C Func -> Compile -> ML
+  - C Func → Compile → ML
     - Machine Code (Byte Representations)
       - Linux 32, Windows, Sun, Linux 64, ...
       - 서로 다른 컴퓨터들은 완전히 서로 다른 명령과 인코딩 방식 사용

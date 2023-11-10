@@ -15,12 +15,12 @@ tags: Mobile React-Native
   - 요소 라벨링, 요소 간의 관계를 트리로
 
 왜 Why, 단순 텍스트는 특정 요소를 검색하기 어려움  
--> DOM으로 만들면 JS/TS로 특정 요소를 쉽게 접근/변경할 수 있음  
+→ DOM으로 만들면 JS/TS로 특정 요소를 쉽게 접근/변경할 수 있음  
 
 물리 DOM : Web Browser에서 JS 코드가 생성하는 실제 DOM 구조  
 가상 DOM : 리액트 코드가 생성한 JS 객체 구조  
 
-특정 시점, 리앹그는 가상 DOM 구조를 물리 DOM 구조를 만듦 -> 리액터가 렌더링한다 By 렌더러 (패키지)  
+특정 시점, 리앹그는 가상 DOM 구조를 물리 DOM 구조를 만듦 → 리액터가 렌더링한다 By 렌더러 (패키지)  
 
 ### 2장 - JSX에서 if문을 처리하는 방법
 
@@ -116,7 +116,7 @@ export const createRandomPerson = (): IPerson =>
 { /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */}
 
 import React from 'react'
-{ /* import type : TS->JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */}
+{ /* import type : TS→JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */}
 { /* FC : Function Component */}
 import type {FC} from 'react'
 import * as D from './~'
@@ -179,10 +179,10 @@ import React, {Fragment} from 'react'
 TS, Algebraic Data Type - ADT - 대수 데이터 타입 지원  
 
 합집합 타입  
--> type A_OR_B = A | B  
+→ type A_OR_B = A | B  
 
 교집합 타입  
--> type A_AND_B = A & B  
+→ type A_AND_B = A & B  
 
 ### 3장 - 잔여연산자
 
@@ -216,14 +216,14 @@ React 프레임워크,
 
 Old  
 객체 지향 언어의 상속 개념에 맞춘, 클래스 형태로 제작되었음  
--> 클래스 컴포넌트 기술 \<-- 코드 작성 복잡  
--> 60/1s 빠른 재렌더링 시 정상적인 렌더링이 안되는 버그  
+→ 클래스 컴포넌트 기술 ← 코드 작성 복잡  
+→ 60/1s 빠른 재렌더링 시 정상적인 렌더링이 안되는 버그  
 
 New  
 구현 복잡함을 덜어내고자 컴포넌트를 함수 형태로 만들 수 있도록  
 함수 컴포넌트가 어떤 값을 Persistence - 유지 할 수 있도록, New 데이터 Cache 시스템  
 Cache 시스템 쉽게 사용할 수 있도록 use~ 로 시작하는 여러 `API` 제공  
--> React Hooks - `리액트 훅`  
+→ React Hooks - `리액트 훅`  
 
 I.E.  
 컴포넌트 데이터 관리 - useMemo, useCallback, useState, useReducer  

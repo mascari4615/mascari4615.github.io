@@ -11,20 +11,20 @@ tags: ProgrammingLanguage
 ---
 
 - Compilation
-  - 고급 언어 -> 기계 코드 번역, by Compiler
+  - 고급 언어 → 기계 코드 번역, by Compiler
   - C, C++, Cobol
 - Pure Interpretation
-  - 고급 언어 -> 해석 후 실행, by SW Interpreter 해석기
+  - 고급 언어 → 해석 후 실행, by SW Interpreter 해석기
   - HTML에 포함된 JS
 - Hybrid Implementation
-  - 고급 언어 -> 중간 코드 -> 해석 후 실행
+  - 고급 언어 → 중간 코드 → 해석 후 실행
   - Java, Python, .Net
   - Just In Time - JIS 컴파일러로 성능 향상
 
 모두 어휘 분석기, 구문 분석기 사용  
 
 Parser - 구문 분석기는 형식적 기술에 기반  
-BNF 사용 -> 문맥 자유 문법  
+BNF 사용 → 문맥 자유 문법  
 
 대부분 컴파일러, 어휘/구문 분석을 따로 실행  
 어휘 분석 : Lexeme, Token 분리 - 작은 규모의 언어 구조 처리  
@@ -32,7 +32,7 @@ BNF 사용 -> 문맥 자유 문법
 
 - 왜 Why, 어휘/구문 분석 따로?
   - 단순성
-    - 분리 -> 복잡성 완화
+    - 분리 → 복잡성 완화
     - 어휘가 구문보다 단순
   - 효율성
     - 어휘 분석 오래 걸려서, 따로 최적화
@@ -58,18 +58,18 @@ BNF 사용 -> 문맥 자유 문법
 2. Lexical Analyzer
    - 코드 해석, Token 분해
    - Scanner, Tokenizer
-   - Source Code -> Tokens, By `Lex`
+   - Source Code → Tokens, By `Lex`
 3. Syntax Analyzer
-   - Tokens -> Syntax Tree, By `Yacc`
+   - Tokens → Syntax Tree, By `Yacc`
    - Rule 항목(Like BNF)으로 부터 Parser 생성
    - Parser
      - 구문 분석
-     - 구문 구성 성분의 위계 관계 분석 -> 문장 구조 결정
+     - 구문 구성 성분의 위계 관계 분석 → 문장 구조 결정
 4. Semantic Analyzer
 5. Intermediate Code Generator
 6. Code Optimizer
 7. Code Generator
-   - Syntax Tree -> Generated Code
+   - Syntax Tree → Generated Code
 
 모든 과정에 Symbol-Table Manager가 컴파일러를 도움  
 Error 발생 시 Error Handler가 처리  
@@ -95,12 +95,12 @@ Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~
 토큰화 (Tokenize) : 어휘를 토큰으로 분류  
 
 초기 어휘 분석기,  
-소스 프로그램 Read -> 토큰화 -> 결과 (Lexeme, Token) 파일 Create  
+소스 프로그램 Read → 토큰화 → 결과 (Lexeme, Token) 파일 Create  
 
 오늘날 어휘 분석기,  
 구문 분석기의 부프로그램으로써,  
-구문 분석기가 어휘 분석기 호출 -> 토큰화 결과 받음  
--> 한 번 호출에 하나의 토큰화 결과 받음  
+구문 분석기가 어휘 분석기 호출 → 토큰화 결과 받음  
+→ 한 번 호출에 하나의 토큰화 결과 받음  
 
 - 어휘 분석기 역할
   - 주석 제거
@@ -170,9 +170,9 @@ Top-Down, Bottom-Up Parse
   - L 왼쪽에서 시작하며, L 좌측 유도 방식으로 파싱
   - 약점
     - Left Recursion 좌순환
-      - 직접 좌순환 : A -> A + B
+      - 직접 좌순환 : A → A + B
         - A가 자기 자신 호출, Stack Overflow
-      - 간접 좌순환 : A -> BaA, B -> Ab
+      - 간접 좌순환 : A → BaA, B → Ab
         - 결국 A가 자기 자신을 호출하는 부분 발생
       - 상향식 파싱 알고리듬은 이런 일 없음
   - 하향식 파서는 최좌측 논터미널에 의해 생성되는 첫번째 토큰만을 사용, 파서가 입력의 다음번째 토큰에 기반하여 항상 올바른 RHS를 선택할 수 있는가가 하향식 파서의 구축에서 중요
@@ -263,12 +263,12 @@ Heap : 메모리 할당, new 등
 
 Data  
 Symbol Table에서 구분한 전역변수, Static 변수가 들어감  
-변수 선언 -> Symbol Table에서 구분 -> Data 영역에 저장  
+변수 선언 → Symbol Table에서 구분 → Data 영역에 저장  
 이 때 변수 이름 I.E. x 는 사라지고, 이는 메모리 주소가 대신함  
 
 Stack  
--> 스택(시스템) 위-아래, 스택(자료구조) 아래-위  
--> Main 함수부터 쌓기 시작  
+→ 스택(시스템) 위-아래, 스택(자료구조) 아래-위  
+→ Main 함수부터 쌓기 시작  
 
 Stack에 데이터 쌓다가
 
@@ -289,11 +289,11 @@ Segmentation Fault Error
 - Compiler (Compile Time)(Build) : 3. Compile
   - Object codes (.obj, .o)
 - Linker (Link Time)(Build) : 4. Link Edit
-  - By Static Libraries (.lib, .a) -> Excutable Code (.exe)
+  - By Static Libraries (.lib, .a) → Excutable Code (.exe)
 - Loader (Load Time)(Run) : 5. Load
   - By Shared Libraries (.dll, .so)
 - CPU (Run Time)(Run) : Execute
-  - By Input -> Output
+  - By Input → Output
 
 Linker 전 : Static 정적, 프로그램  
 Linker 후 : !정적, 프로세서  
