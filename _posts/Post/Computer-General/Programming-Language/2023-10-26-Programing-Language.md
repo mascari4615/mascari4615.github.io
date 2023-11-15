@@ -18,6 +18,7 @@ U-Programming-Language, 프로그래밍 언어 과목 글 계승
 
 ---
 
+@ 1110으로부터 2주  
 @ 책 뿐만 아니라, 다른 곳에서도 찾아서  
 @ 299 ~ 311p, 6.11 Pointer와 Reference 타입 정리하라  
 

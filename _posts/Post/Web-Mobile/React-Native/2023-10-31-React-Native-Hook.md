@@ -1,7 +1,7 @@
 ---
 title: "🌘 React Native 리액트 네이티브 - Hook"
 date: 2023-10-31. 15:31
-last_modified_at: 2023-10-31. 15:31
+last_modified_at: 2023-11-14. 15:14
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -9,7 +9,7 @@ tags: Mobile React-Native
 @ 기말고사 → useMemo  
 @ 기말고사 → 216p 리액트훅의 구현 원리  
 
-### 💫 React Hooks
+## 💫 React Hooks
 
 ---
 
@@ -64,7 +64,7 @@ const temp = createOrUse('Temp', () => createTemp)
 */
 ```
 
-### 💫 의존성 - Dependency
+## 💫 의존성 - Dependency
 
 ---
 
@@ -73,7 +73,7 @@ const temp = createOrUse('Temp', () => createTemp)
 `의존성 목록` 중 하나라도 충족되면,  
 자동으로 캐시 갱신 (콜백) → 재렌더링  
 
-### 💫 useMemo
+## 💫 useMemo
 
 ---
 
@@ -87,7 +87,7 @@ const 캐시데이터 = useMemo(초기데이터, [의존성1, 의존성2, ...])
 useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?  
 → useMemo를 쓰면 함수와 그 `결과 값`을 함께 메모이제이션  
 
-### 💫 useCallback
+## 💫 useCallback
 
 ---
 
@@ -97,7 +97,7 @@ const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 
 함수를 [메모이제이션](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
 
-### 💫 useState
+## 💫 useState
 
 ---
 
@@ -107,6 +107,7 @@ function useState<S>(initialState: S | (() => S)): [S, Dispatch<SetStateAction<S
 
 { /* 사용 방법 */ }
 const [값, Setter] = useState(초깃값)
+const [값, Setter] = useState<S>(초깃값)
 ```
 
 상태 저장 (지역변수를 전역변수처럼)  
@@ -117,8 +118,79 @@ Setter 호출 시 값 변경/재렌더링, 때문에 값과 Setter를 Tuple 형�
 
 @ 객체에 적용하는 비구조화 할당 구문  
 
-### 💫 useEffect, useLayoutEffect
+## 💫 컴포넌트의 생명주기
 
 ---
 
+컴포넌트를 생성하여 최초 렌더링 과정을 끝마침 : 컴포넌트를 마운트했다. - Mount  
 
+마운트된 컴포넌트는 구현 로직에 따라 재렌더링을 거듭하다, 어떤 시점에서 구현 로직에 의해 파괴되어 사라짐  
+
+컴포넌트가 파괴되어 더는 렌더링 과정에 참여하지 않음 : 컴포넌트가 언마운트됐다. - Unmount  
+
+마운트 ~ 언마운트 과정을 합하여, 컴포넌트의 생명주기라 표현한다. - Lifecycle  
+
+## 💫 useEffect, useLayoutEffect
+
+---
+
+컴포넌트의 생명주기 LifeCycle과 관련있는 생명주기 훅.  
+
+```JSX
+useState(콜백, 의존성목록)
+useLayoutEffect(콜백, 의존성목록)
+
+콜백 = () => { }
+콜백 = () => { return 반환함수 }
+```
+
+콜백에서 함수를 반환할 수 있는데, 이 반환 함수는 컴포넌트를 언마운트할 때 단 한 번만 실행한다.  
+
+의존성이 변화하면 콜백이 반환한 종료 함수를 호출하여 콜백을 파괴하고, 자신의 매개변수로 입력한 콜백을 다시 호출  
+@ TODO : 이해 못함  
+
+리액트 네이티브 코어 컴포넌트는 onLayout 이벤트 속성을 제공한다, 'react-native' 패키지는 LayoutChangeEvent 타입을 제공한다.  
+
+LayoutChangeEvent는 onLayout 이벤트 속성에 설정하는 이벤트 처리기의 입력 매개변수 타입이다.  
+
+LayoutChangeEvent의 nativeEvent 속성을 통해 특정 타입 layout을 얻을 수 있다.  
+
+```JSX
+const onLayout = (e: LayoutChangeEvent) => { /* e.nativeEvent ~ */}
+
+export interface LayoutChangeEvent
+{
+	nativeEvent:
+	{
+		layout: LayoutRectangle;
+	};
+}
+```
+
+onLayout 이벤트를 호출했다는 것은 컴포넌트의 렌더링이 끝났다는 것을 의미한다.  
+
+마운트 과정  
+컴포넌트 렌더링 시작 → useLayoutEffect → 화면에 나타남 → useEffect → onLayout  
+
+언마운트 과정  
+컴포넌트 언마운트 시작 → useEffect 반환 함수 호출 → useLayoutEffect 반환 함수 호출 → 컴포넌트 파괴  
+
+useLayoutEffect 훅은 동기 Synchronous로 실행하고, useEffect 훅은 비동기 Asynchronous로 실행한다.  
+
+useLayoutEffect 훅은 콜백 함수가 끝날 때까지 프레임워크가 기다리고, useEffect 훅은 콜백 함수를 기다리지 않는다.  
+
+가능하면 useEffect 훅을 사용하는 것이 좋다. (리액트 공식 문서 권장 사항)  
+
+## 💫 커스텀 훅 - Custom Hook
+
+---
+
+Something like Design Pattern  
+
+여러 리액트 훅과 커스텀 훅을 조합하여 재사용할 수 있는 새로운 훅 함수를 만드는 기능이다.  
+
+컴포넌트의 훅 함수 코드 패턴이 비슷하기에, 이런 훅 호출을 조합하여 간결하게 표현할 수 있다.  
+
+리액트 훅과 마찬가지로, 함수 이름은 항상 'use~'로 시작해야 한다.  
+
+[useHooks](https://usehooks.com/), [useHooks-ts](https://usehooks-ts.com/) 같은 사이트에서 다른 사람들이 만든 훅, 훅 라이브러리를 참고할 수 있다.  

@@ -1,8 +1,8 @@
 ---
 title: "🌗 Artificial Life - 인공생명"
 date: 2023-11-07. 10:07
-# last_modified_at: 2023-11-07. 10:07
-last_modified_at: 2023-11-08 16:23
+# last_modified_at: 2023-11-08 16:23
+last_modified_at: 2023-11-14 10:08
 categories: ⭐Computer 🌗AI
 tags: AI Artificial-Life A-Life Boids Game-of-Life
 ---
@@ -109,6 +109,21 @@ Carnivore -(consumes)→ Herbivore -(consumes)→ Plant
 엔티티들 사이에는 Delicate Balance 미묘한 균형이 있는 것이 분명하다.  
 
 Plants의 수가 줄어든다면 어떤 일이 일어날까?  
-~  
+~하면 어떤 일이 일어날까?  
 
 이를 시뮬레이션 해본다.  
+
+@ PPT, 여기서는 어떻게 구현했는지 (꼭 이렇게 구현하라는 게 아님)  
+@ 별표, 지역성, 나는 강의실 안에 있고, 강의실 밖에는 무슨 일이 일어나고 있는지 모른다  
+
+@ i.e. 스타크래프트 유닛 돌아다닐때 어떤 상황에서 어떤 행동을 취하냐 - 오토마타  
+
+@ 수식에서 b - bias 입력 - 모든 요소에게 공통되게 들리는 목소리, 마음의 소리  
+@ 구현할 때 몰라도 되는 값 - 실제 입력이 아니니까  
+
+@ 개미 알고리듬과 다른 것, 에너지가 유지되냐  
+@ 에너지가 0이되면 죽음  
+
+@ Free Lunch  
+
+@ 가중치 계산 기말고사  
