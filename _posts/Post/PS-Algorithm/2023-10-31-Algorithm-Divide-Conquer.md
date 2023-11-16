@@ -3,7 +3,7 @@ title: "🌓 분할정복"
 date: 2023-10-31. 13:37
 last_modified_at: 2023-10-31. 13:37
 categories: ⭐Computer 🌓PS-Algorithm
-tag: Algorithm D
+tags: Algorithm Divide-Conquer
 ---
 
 @ N~차시  

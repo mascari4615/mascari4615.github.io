@@ -19,7 +19,7 @@ tag: Algorithm
 
 @ 2차시
 
-### 💫 Algorithm - 알고리듬
+## 💫 Algorithm - 알고리듬
 
 ---
 
