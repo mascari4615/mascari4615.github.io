@@ -1,6 +1,7 @@
 ---
 title: "🌖 시스템 프로그래밍"
-date: 2023-04-01. 00:00
+date: 2023-04-01. 00:00 # ?
+last_modified_at: 2023-11-17. 09:33
 categories: ⭐Computer 🌖Computer-OS
 ---
 
@@ -71,40 +72,35 @@ categories: ⭐Computer 🌖Computer-OS
       - SW : **Operating System**
       - HW : Processor, Main Memory, I/O Devices
     - Abstraction of OS
-      - { Processes
-        - Processor
-        - { Virtual Memory
-          - Main Memory
-          - { Files
-          - I/O Devices
+      - Processes - Processor
+        - Virtual Memory - Main Memory
+          - Files - I/O Devices
   - OS - Process
-    - Context Switching @
+    - 프로세스 상태 전환 Context Switching @
   - OS - Thread
-    - [Multi Thread](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)) : ability of a processor to provide multiple threads of execution concurrently
-    - [Thread](https://en.wikipedia.org/wiki/Thread_(computing)) : smallest sequence of programmed instructions
+    - [Multi Thread](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)) : 단일 프로세서에서 두 개의 실행 쓰레드를 가진 프로세스
+    - [Thread](https://en.wikipedia.org/wiki/Thread_(computing)) : 실행 단위
   - OS - Virtual Memory @
   - OS - File @
 
 - 1.8 Computer System & Network
 
-- 1.9 Hot Topics : Amdahl's law
-  - 컴퓨터 시스템의 일부를 개선할 때 전체적으로 얼마 만큼의 최대 성능 향상이 있는지 계산하는 데 사용
-  - 어떤 시스템을 개선하여 전체 작업 중 a%의 부분에서 k배의 성능이 향상되었을 때 전체 시스템에서 최대 성능 향상
+- 1.9 Hot Topics
+  - Amdahl's law
+    - 컴퓨터 시스템의 일부를 개선할 때 전체적으로 얼마 만큼의 최대 성능 향상이 있는지 계산하는 데 사용
+    - 어떤 시스템을 개선하여 전체 작업 중 a%의 부분에서 k배의 성능이 향상되었을 때 전체 시스템에서 최대 성능 향상
+    - → 뭘 최적화 시켜야 더 효율적인가?
   - 동시성 프로세스 : 하나의 프로세서에서 다수의 프로세스 실행
   - 하이퍼 스레딩
     - 하나의 프로세서가 두 개의 논리적 프로세스처럼 작동하도록 함
     - 컴퓨터 처리속도 향상
     - i7에 적용
   - Abstraction of Computer System
-    - { Virtual Machine
-      - OS
-      - { Processes
-        - { Instruction Set Architecture
-          - Processor
-        - { Virtual Memory
-          - Main Memory
-          - { Files
-            - I/O Devices
+    - Virtual Machine - OS
+      - Processes
+        - Instruction Set Architecture - Processor
+        - Virtual Memory - Main Memory
+          - Files - I/O Devices
 
 ### 💫 2
 
@@ -135,41 +131,197 @@ categories: ⭐Computer 🌖Computer-OS
   - Error Propagation
   - Byte Ordering
 
-- 2.1.5 코드의 표현
-  - 코드 (기계수준)의 표현
-    - 프로그램은 명령 Instruction 들의 순서로 부호화 Encode
-      - 명령의 구성 : 개별적 단순 연산 Operation 으로 구성
-        - 산술연산 Arithmetic Operation
-        - 메모리 읽기 또는 쓰기 Read or Write Memory
-        - 조건 분기 Conditional Branch
-      - Instructions는 Bytes로 Encode
-        - Alpha, Sun, Mac은 4-Byte Instructions를 사용 : RISC, Reduced Instruction Set Computer
-        - PC는 가별 길이 명령들 사용 : CISC, Complex Instruction Set Computer
-      - 서로 다른 컴퓨터들 → 서로 다른 부호화 방식
-        - 이진코드는 대부분 호환성 없음
-    - 근본 개념
-      - 프로그램 역시 바이트의 연속 Byte Sequences
-  - C Func → Compile → ML
-    - Machine Code (Byte Representations)
-      - Linux 32, Windows, Sun, Linux 64, ...
-      - 서로 다른 컴퓨터들은 완전히 서로 다른 명령과 인코딩 방식 사용
-  - 명령의 표현
-    - Sun은 2, 4-Byte Instructions 사용
-    - PC는 길이가 1, 2, 3-Byte들을 갖는 명령들 사용
-      - Windows / Linux는 완전한 바이너리 호환성 Binary Compatibility 을 제공 못함
+정보의 표현과 처리  
 
-- 2.1.6 불 대수
-  - Boolean Algebra @
-    - 논리의 대수적 표현
-      - True = 1, False = 0 으로 부호화
-      - 집합 { 0, 1 } 에 대해서 정의
-    - And, Or, Not, Exclusive-Or/XOR
-    - Bit Operator
+Bits and Bytes  
 
-- 2.1.7 Bit Wise Operate, C
-  - Bit Operator & | ~ ^
-  - 정수형 Data Type : long, int, short, char
-  - Bit Arguments를 Bit Vector로써 Bit Wise Operate
+### 2.1.5 코드의 표현
+
+프로그램은 명령들을 그 순서에 맞게 부호화한 것이다.  
+
+명령은 산술연산, 메모리 읽기/쓰기, 조건 분기등의 개별적 단순 연산으로 구성된다.  
+
+명령은 바이트들로 부호화된다.  
+→ Alpha, Sun, Mac은 4-Byte 명령들을 사용 : RISC, Reduced Instruction Set Computer  
+→ PC는 가별 길이 명령들 사용 : CISC, Complex Instruction Set Compute  
+
+서로 다른 컴퓨터들 → 서로 다른 부호화 방식
+→ 이진코드는 대부분 호환성 없음
+
+근본 개념 → 프로그램 역시 바이트의 연속 Byte Sequences
+
+- C 함수 → 컴파일 → 기계어
+  - Machine Code (Byte Representations)
+    - Linux 32, Windows, Sun, Linux 64, ...
+    - 서로 다른 컴퓨터들은 완전히 서로 다른 명령과 인코딩 방식 사용
+
+- 명령의 표현
+  - Sun은 2, 4-Byte Instructions 사용
+  - PC는 길이가 1, 2, 3-Byte들을 갖는 명령들 사용
+    - Windows / Linux는 완전한 바이너리 호환성 Binary Compatibility 을 제공 못함
+
+### 2.1.6 불 대수 - Boolean Algebra
+
+- 논리의 대수적 표현
+  - True = 1, False = 0 으로 부호화
+  - 집합 { 0, 1 } 에 대해서 정의
+- And, Or, Not, Exclusive-Or/XOR
+- Bit Operator, Bit Operation & | ~ ^
+- Bit Vector, 길이 w의 0/1로 구성된 데이터
+- 비트 벡터를 이용한 집합의 표현과 운영 (비트 연산)
+
+### 2.1.7 Bit Wise Operate, C
+
+- Bit Operator & | ~ ^
+- 정수형 Data Type : long, int, short, char
+- Bit 인자(피연산자)들을 Bit Vector로써 비트 단위 연산 Bit Wise Operate
+- 마스크 연산
+  - 일종의 비트 패턴으로, 원하는 비트를 추출
+  - 워드 중 일부 선택된 비트 집합
+
+### 2.1.8 C의 논리 연산
+
+- 비트 연산자 vs 논리 연산자
+  - || OR, && AND, ! NOT
+  - 0 = false, !0 = true
+  - 항상 0이나 1 산출
+  - Early termination
+    - Short-Circuit Evaluation
+      - p && *p, avoids null pointer access
+    - 반면 비트 연산자는 모두 연산
+
+### 2.1.9 C의 비트이동 연산
+
+- 좌측 이동 x << k
+  - 왼쪽 초과 비트들은 버림
+  - 우측 0로 채움
+- 우측 이동 x >> k
+  - 오른쪽 초과 비트들은 버림
+  - 논리 쉬프트, 왼쪽 0로 채움
+  - 산술 쉬프트, 오른쪽 최상위 비트 복제
+    - 2의 보수 정수 표현에 유용
+
+---
+
+@ 221015  
+
+show_bytes 실행 예제  
+
+```c
+int a = 15213;
+printf("int a = 15213;\n");
+show_bytes((pointer) &a, sizeof(int));
+```
+
+```Assembly
+int a = 15213;
+0x11ffffcb8 0x6d → 0110 1101
+0x11ffffcb9 0x3b → 0011 1011
+0x11ffffcba 0x00
+0x11ffffcbb 0x00
+```
+
+@ 221021  
+
+2.2 정수의 표현  
+
+### 2.2.1 C 정수 표현
+
+- 여러 정수형 데이터 타입 지원
+- 부호 없는 정수, unsigned 수식어
+- 부호 있는 정우, Signed number representations
+  - 비 대칭 범위를 가짐
+  - 음수 범위가 양수범위보다 1 큼
+  - 2의 보수(부호형) 인코딩
+    - 부호 비트, 0 양수, 1 음수
+  - 부호 여부에 따른 인코딩
+    - 양수는 부호 여부 관계없이 똑같음
+    - 음수는 부호 여부에 따라 다름
+
+### 2.2.2 C 정수 변환, 캐스팅
+
+- 비부호형과 부호형 간의 변환 Castings
+  - T2B → B2U, B2U → T2B
+  - 비트 패턴은 유지됨
+  - 양수는 불변 (부호 여부 관계없이 똑같으니까)
+  - 음수는 큰 양수 값으로 변화, (비부호형의 최대값 + 1 = 2^비트수)만큼의 변화
+  - (int) or (unsigned)
+- 상수 값 뒤에 U 접미사 붙이면 Unsigned
+- 단일 수식(비교 연산 포함)에 부호형 비부호형 혼합시, 묵시적으로 부호형 비부호형으로 변환
+
+### 2.2.3 C 확장, 절삭
+
+- Zero Extension, 비부호 정수에 0 복제하여 확장하기
+- Sign Extension, 부호 정수에 부호비트(MSB) 복제하여 확장하기
+- 작은 정수 데이터 형에서 큰 데이터 형으로 변활할 때 수행
+
+- 숫자 절삭으로 값이 변경될 수 있음 → 오버플로의 형태
+- 비부호 숫자 x에 대하여, x를 k 비트 만큼 절삭 = x mod 2^k
+- 부호 숫자, mod와 유사하게
+
+### 2.3 정수산술연산
+
+- 실제 합 w+1 bits 요구됨
+
+- 비부호형 덧셈
+  - Carry 출력 무시 → Modular
+
+- 부호형 덧셈
+  - MSB 버림, 나머지 비트들은 2의보수로서 정수를 다룸
+  - 양수 음수 오버플로 시 +- 2^(w-1)
+
+- 2의 보수 반전 (보수 & 증가)
+  - ~x + 1 == -x (덧셈의 역원 additive inverse = 0)
+  - ~x + x == 1... == -1
+  - 0
+  - ~0 = 1... == -1
+  - ~0 + 1 = 0... == 0
+
+- 곱셈
+  - 비부호형 : 2w까지 필요
+    - i.e. 111 * 111 = 110001
+  - 부호형
+    - 최솟값(음수) : 2w-1
+      - i.e. 100 * 011 = 001100
+    - 최댓값(양수) : 2w (최솟값)^2 인 경우에만
+      - i.e. 100 * 100 = 010000
+  - 비부호, 실제곱 2*w, 상위 w 비트 무시, 모듈러 연산 적용됨
+  - 부호, 실제곱 2*w, 상위 w 비트 무시, 비부호 결과와 하위 비트들은 동일
+  - 상수를 사용한 곱셈
+    - u << k = u * 2^k
+    - u << 3 = u * 8
+    - u << 5 - u << 3 = u * 24
+    - 대부분 쉬프트와 덧셈이 곱셈보다 빠름
+      - 컴파일러가 곱셈을 쉬프트 연산 코드로 자동 생성
+
+```c
+int mul12(int x)
+{
+	return x * 12;
+
+	// 아래와 같이 컴파일 된다
+	__asm
+	{
+		leal (&eax, %eax, 2), %eax
+		sall $2, %eax
+	}
+
+	// 아래와 같은 의미
+	// t ← x + x * 2
+	// return t << 2
+}
+```
+
+- 2의 거듭제곱 나눗셈
+  - 결과 내림
+    - i.e. 3.14 = 3, -3.14 = -4
+
+- Modular 산술 연산 형태로 수행
+  - 워드의 길이가 유한
+  - 가능한 값의 범위가 제한
+  - 연산 결과과 Overflow일수도 잇음
+- 비부호형과 부호형(2의보수 방식)
+  - 동일한 비트패턴을 가짐
 
 ---
 
