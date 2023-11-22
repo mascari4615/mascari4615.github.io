@@ -2,7 +2,8 @@
 title: "🌗 Artificial Life - 인공생명"
 date: 2023-11-07. 10:07
 # last_modified_at: 2023-11-08 16:23
-last_modified_at: 2023-11-14 10:08
+# last_modified_at: 2023-11-14 10:08
+last_modified_at: 2023-11-21 10:43
 categories: ⭐Computer 🌗AI
 tags: AI Artificial-Life A-Life Boids Game-of-Life
 ---
@@ -127,3 +128,6 @@ Plants의 수가 줄어든다면 어떤 일이 일어날까?
 @ Free Lunch  
 
 @ 가중치 계산 기말고사  
+@ 선이 갖는 의미 (점선, 실선)  
+
+@ 시뮬이 가지는 의미, 100만번 시행한 그래프 (시간, 최고령자 나이)  
