@@ -2192,7 +2192,7 @@ categories: ⭐Computer 🌑Computer-General
 #### 개발 테스팅
 
 - 개발 테스팅의 단계
-  - [Unit Test 단위 테스팅](https://mascari4615.github.io/posts/DayStone-230913/)
+  - [Unit Test 단위 테스팅](https://mascari4615.github.io/posts/Unit-Test/)
   - 컴포넌트 테스팅
     - 여러 개별 단위가 복합 컴포넌트를 생성하기 위해 통합
     - 컴포넌트 인터페이스를 테스트하는 것에 집중
