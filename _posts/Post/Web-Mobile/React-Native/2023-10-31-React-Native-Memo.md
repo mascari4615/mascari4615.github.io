@@ -1,7 +1,8 @@
 ---
 title: "🌘 React Native 리액트 네이티브 - 이것저것 메모"
 date: 2023-10-31. 15:18
-last_modified_at: 2023-11-14. 15:54
+# last_modified_at: 2023-11-14. 15:54
+last_modified_at: 2023-11-22. 14:57
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -21,7 +22,7 @@ tags: Mobile React-Native
 Pick 타입  
 → 제네릭 타입, 대상 타입의 전체 속성 중 필요한 속성만 선택하여 반환  
 
-```JSX
+```js
 type NewType = Pick<SomeType, 'SomePropertyA' | 'SomePropertyB'>
 ```
 
@@ -66,7 +67,7 @@ fetch('RequestInfo Like URL')
 ActivityIndicator 코어 컴포넌트  
 → 회전하는 아이콘, react-native 패키지  
 
-```JSX
+```js
 export default function Timer()
 {
 	const [loading, setLoading] = useState(false)

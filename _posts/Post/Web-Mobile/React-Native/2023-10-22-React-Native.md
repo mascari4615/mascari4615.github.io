@@ -10,7 +10,8 @@ date: 2023-10-22. 15:39
 # last_modified_at: 2023-10-11. 14:15
 # last_modified_at: 2023-10-17. 14:51
 # last_modified_at: 2023-10-22. 15:39
-last_modified_at: 2023-11-07. 15:03
+# last_modified_at: 2023-11-07. 15:03
+last_modified_at: 2023-11-22. 14:57
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -163,7 +164,7 @@ React.createElement
 in HTML  
 
 ```html
-<!-- Web Browser가 Rendering -→
+<!-- Web Browser가 Rendering -->
 <p>Hello World!<p>
 ```
 

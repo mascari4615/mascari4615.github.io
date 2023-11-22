@@ -1,7 +1,9 @@
 ---
 title: "🌘 React Native 리액트 네이티브 - Hook"
 date: 2023-10-31. 15:31
-last_modified_at: 2023-11-14. 15:14
+# last_modified_at: 2023-11-14. 15:14
+# last_modified_at: 2023-11-21. 15:09
+last_modified_at: 2023-11-22. 13:07
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -77,7 +79,7 @@ const temp = createOrUse('Temp', () => createTemp)
 
 ---
 
-```JSX
+```js
 const 캐시데이터 = useMemo(초기데이터, [의존성1, 의존성2, ...])
 ```
 
@@ -91,7 +93,7 @@ useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?
 
 ---
 
-```JSX
+```js
 const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 ```
 
@@ -101,7 +103,7 @@ const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 
 ---
 
-```JSX
+```js
 { /* 타입 정의, S - State Type */ }
 function useState<S>(initialState: S | (() => S)): [S, Dispatch<SetStateAction<S>>]
 
@@ -136,7 +138,7 @@ Setter 호출 시 값 변경/재렌더링, 때문에 값과 Setter를 Tuple 형�
 
 컴포넌트의 생명주기 LifeCycle과 관련있는 생명주기 훅.  
 
-```JSX
+```js
 useState(콜백, 의존성목록)
 useLayoutEffect(콜백, 의존성목록)
 
@@ -155,7 +157,7 @@ LayoutChangeEvent는 onLayout 이벤트 속성에 설정하는 이벤트 처리�
 
 LayoutChangeEvent의 nativeEvent 속성을 통해 특정 타입 layout을 얻을 수 있다.  
 
-```JSX
+```js
 const onLayout = (e: LayoutChangeEvent) => { /* e.nativeEvent ~ */}
 
 export interface LayoutChangeEvent
@@ -189,8 +191,14 @@ Something like Design Pattern
 
 여러 리액트 훅과 커스텀 훅을 조합하여 재사용할 수 있는 새로운 훅 함수를 만드는 기능이다.  
 
-컴포넌트의 훅 함수 코드 패턴이 비슷하기에, 이런 훅 호출을 조합하여 간결하게 표현할 수 있다.  
+컴포넌트의 훅 함수 코드 패턴이 비슷하기에, 이런 훅 호출을 조합하여 간결하게 표현할 수 있다. (추상화)  
 
 리액트 훅과 마찬가지로, 함수 이름은 항상 'use~'로 시작해야 한다.  
 
 [useHooks](https://usehooks.com/), [useHooks-ts](https://usehooks-ts.com/) 같은 사이트에서 다른 사람들이 만든 훅, 훅 라이브러리를 참고할 수 있다.  
+
+## 💫 useRef, useImperativeHandle
+
+---
+
+[Context, Ref](https://mascari4615.github.io/posts/React-Native-Context/)

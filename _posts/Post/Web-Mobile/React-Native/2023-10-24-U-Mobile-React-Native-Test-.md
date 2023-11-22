@@ -1,7 +1,7 @@
 ---
 title: "🌘 Mobile Programming Test"
 date: 2023-10-24. 06:23
-last_modified_at: 2023-10-24. 06:23
+last_modified_at: 2023-11-22. 14:57
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -26,7 +26,7 @@ tags: Mobile React-Native
 
 ---
 
-```JSX
+```js
 export default function App()
 {
 	const isLoading = true
@@ -49,7 +49,7 @@ export default function App()
 }
 ```
 
-```JSX
+```js
 { /* 단축평가 Short Circuit Evaluation */ }
 export default function App()
 {
@@ -63,7 +63,7 @@ export default function App()
 }
 ```
 
-```JSX
+```js
 { /* 단축평가 Short Circuit Evaluation */ }
 export default function App()
 {
@@ -79,7 +79,7 @@ export default function App()
 
 ---
 
-```JSX
+```js
 { /* XML(Markup Language) : Attribute, TS(Programming Language) : Property */}
 <Person name = "Jack" age = {22}/>
 
@@ -152,7 +152,7 @@ export default function App()
 
 ---
 
-```JSX
+```js
 import React, {Fragment} from 'react'
 
 { /* JSX = XML, 다음같이 부모 컴포넌트 없이는 여러 컴포넌트가 올 수 없음 */ }
@@ -190,7 +190,7 @@ TS, Algebraic Data Type - ADT - 대수 데이터 타입 지원
 
 ESNext JS와 TS, Rest Operator - 잔여 연산자 지원  
 
-```JSX
+```js
 let address: any
 {
 	country: 'Korea',
@@ -237,7 +237,7 @@ I.E.
 useState 훅  
 함수 컴포넌트 내부에 클래스의 멤버 속성처럼 값을 유지하고 변경할 수 있는 상태를 만들 수 있게 한다  
 
-```JSX
+```js
 import React, {useState} from 'react'
 
 const [값, 값을 변경하는 함수] = useState(초깃값)
@@ -253,7 +253,7 @@ const [값, 값을 변경하는 함수] = useState(초깃값)
 컴포넌트 마운트, 의존성 목록 조건, 컴포넌트 언마운트  
 시 처리 할 작업  
 
-```JSX
+```js
 { /* React Hook, React가 제공 */}
 import React, {useEffect} from 'react'
 
