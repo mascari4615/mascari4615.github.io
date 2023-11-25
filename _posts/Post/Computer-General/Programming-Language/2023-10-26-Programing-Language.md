@@ -8,7 +8,8 @@ date: 2023-10-26. 13:26
 # last_modified_at: 2023-10-20. 09:13
 # last_modified_at: 2023-10-26. 13:26
 # last_modified_at: 2023-10-27. 08:40
-last_modified_at: 2023-11-10. 08:58
+# last_modified_at: 2023-11-10. 08:58
+last_modified_at: 2023-11-21. 16:42
 categories: ⭐Computer 🌑Computer-General
 tags: ProgrammingLanguage
 ---
@@ -17,10 +18,6 @@ tags: ProgrammingLanguage
 U-Programming-Language, 프로그래밍 언어 과목 글 계승  
 
 ---
-
-@ 1110으로부터 2주  
-@ 책 뿐만 아니라, 다른 곳에서도 찾아서  
-@ 299 ~ 311p, 6.11 Pointer와 Reference 타입 정리하라  
 
 @ 2, 3차시
 
