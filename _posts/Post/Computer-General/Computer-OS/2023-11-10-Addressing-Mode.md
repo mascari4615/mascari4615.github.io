@@ -1,8 +1,13 @@
 ---
 title: "🌖 Addressing Mode"
 date: 2023-11-10. 09:21
-last_modified_at: 2023-11-10. 09:21
+# last_modified_at: 2023-11-10. 09:21
+last_modified_at: 2023-11-26. 01:42
 categories: ⭐Computer 🌖Computer-OS
+---
+
+## 💫 주소 지정 모드
+
 ---
 
 - 주소 지정 모드 Addressing Mode
@@ -28,3 +33,27 @@ categories: ⭐Computer 🌖Computer-OS
 
 - OP Coder 연산 코드, Operand 피연산자  
 - I.E. Add_절대/상대_직접/간접, 상수  
+
+## 💫 TODO
+
+---
+
+간단한 메모리 주소 모드
+
+1. 참고
+   - Reg[R] : 레지스터 R 안의 값
+   - Mem[M] : 메모리 M 안의 값값
+
+2. 표준모드 (R)
+   - Mem[Reg[R]]
+   - 레지스터 R은 메모리의 주소를 나타냄
+   - C의 포인터 역참조 (Dereferencing)
+   - movq (%rcx), %rax
+
+3. 변위모드 D(R)
+   - Mem[Reg[R]+D]
+   - 레지스터 R은 메모리 구역의 시작 주소를 나타냄
+   - 상수 변위 D는 오프셋을 나타냄
+   - movq 8(%rbp), %rdx
+
+오퍼랜드 형태

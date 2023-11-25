@@ -1,87 +1,39 @@
 ---
 title: "🌖 시스템 프로그래밍"
 date: 2023-04-01. 00:00 # ?
-last_modified_at: 2023-11-17. 09:33
+# last_modified_at: 2023-11-17. 09:33
+last_modified_at: 2023-11-26. 01:03
 categories: ⭐Computer 🌖Computer-OS
 ---
 
-### 💫 1
+### 🫧 ㅇ
 
----
-
-- 배우는 것
-  - 컴퓨터 작동 방식과 기본적 구성
-  - 좋은 프로그래밍을 위한 성능 분석 방법
-  - 최신 프로세서 (캐시, 파이프라인)에 영향을 미치는 문제
-
-- 배우는 이유
-  - 컴퓨터 과학자
-  - 성능 좋은 SW
-  - HW 구매 결정, 전문자로서 조언 제공
-
-- 교과 내용
-  - 컴퓨터 시스템의 전반적 개념
-  - 프로그램 구조와 실행
-  - 시스템에서 프로그램 실행 원리
-  - 프로그램의 상호작용 및 통신
-
-- 1.1 Info = Bit + Context
-
-- 1.2 Compile System
+- 1.2 컴파일 시스템
   - 목적 프로그램
     - 재배치 가능 목적 프로그램 → 목적 파일
     - 실행 가능 목적 파일 → 실행 파일
   - Unix 컴파일
     - gcc -o hello hello.c
-    - @ GNU
+    - @ GNU Project
       - @ Free SW : "free" as in "free speech", not "free beer"
 
-- 1.3 Understanding of Compile System
-  - Program Performance Optimization
-    - Understanding of LLL
+- 1.3 컴파일 시스템의 이해
+  - 프로그램 성능 최적화
+    - 기계어 수준 코드 이해
     - switch vs if-else, while vs for
-  - Understanding of Linking Error
+  - 링킹 에러의 이해r
     - Link-Time Error, Compile-Time Error
-  - Avoiding Security Holes
-    - Buffer Overflow Bugs
-    - Security Holes on the Internet and Networks
+  - 보안 약점 회피
+    - 버퍼 오버플로 버그 Buffer Overflow Bugs
+    - 인터넷과 네트워크 상의 보안 약점 - security holes
 
-- 1.4 ComputerSystem-HW Configuration @
+- 1.4 컴퓨터 시스템 - 하드웨어 구성
   - CPU
     - CPU operations
-    - Load - Operate - Store - Jump
+    - 적재Load - 작업Operate - 저장Store - 점프Jump
   - The process of Loading "hello" Code from KeyBoard... @
   - The process of Loading Executable File from Disk to MainMemory... @
   - The process of Printing Output Stream from Memory to Monitor
-
-- 1.5 Cache Memory @
-
-- 1.6 Memory Hierarchy @
-  - L0 Regs : CPU Registers hold words retrieved from cache memory
-  - L1 Cache (SRAM) : " Cache Lines "
-  - L2 Cache (SRAM) : " Cache Lines "
-  - L3 Cache (SRAM) : " Cache Lines "
-  - L4 Main Memory (DRAM) : " Disk Blocks "
-  - L5 Local Secondary Storage (Local Disks) : " Files " Disks on remote network servers
-  - L6 Remote Secondary Storage (Distributed File Systems, Web Servers)
-
-- 1.7 OS
-  - OS
-    - Computer System Hierarchy @
-      - SW : App Programs
-      - SW : **Operating System**
-      - HW : Processor, Main Memory, I/O Devices
-    - Abstraction of OS
-      - Processes - Processor
-        - Virtual Memory - Main Memory
-          - Files - I/O Devices
-  - OS - Process
-    - 프로세스 상태 전환 Context Switching @
-  - OS - Thread
-    - [Multi Thread](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture)) : 단일 프로세서에서 두 개의 실행 쓰레드를 가진 프로세스
-    - [Thread](https://en.wikipedia.org/wiki/Thread_(computing)) : 실행 단위
-  - OS - Virtual Memory @
-  - OS - File @
 
 - 1.8 Computer System & Network
 
@@ -165,41 +117,8 @@ Bits and Bytes
 - 논리의 대수적 표현
   - True = 1, False = 0 으로 부호화
   - 집합 { 0, 1 } 에 대해서 정의
-- And, Or, Not, Exclusive-Or/XOR
-- Bit Operator, Bit Operation & | ~ ^
-- Bit Vector, 길이 w의 0/1로 구성된 데이터
-- 비트 벡터를 이용한 집합의 표현과 운영 (비트 연산)
 
-### 2.1.7 Bit Wise Operate, C
-
-- Bit Operator & | ~ ^
-- 정수형 Data Type : long, int, short, char
-- Bit 인자(피연산자)들을 Bit Vector로써 비트 단위 연산 Bit Wise Operate
-- 마스크 연산
-  - 일종의 비트 패턴으로, 원하는 비트를 추출
-  - 워드 중 일부 선택된 비트 집합
-
-### 2.1.8 C의 논리 연산
-
-- 비트 연산자 vs 논리 연산자
-  - || OR, && AND, ! NOT
-  - 0 = false, !0 = true
-  - 항상 0이나 1 산출
-  - Early termination
-    - Short-Circuit Evaluation
-      - p && *p, avoids null pointer access
-    - 반면 비트 연산자는 모두 연산
-
-### 2.1.9 C의 비트이동 연산
-
-- 좌측 이동 x << k
-  - 왼쪽 초과 비트들은 버림
-  - 우측 0로 채움
-- 우측 이동 x >> k
-  - 오른쪽 초과 비트들은 버림
-  - 논리 쉬프트, 왼쪽 0로 채움
-  - 산술 쉬프트, 오른쪽 최상위 비트 복제
-    - 2의 보수 정수 표현에 유용
+[Bit Wise Operate](https://mascari4615.github.io/posts/Bitwise-Operator/)  
 
 ---
 
@@ -493,118 +412,10 @@ Examine the 14 bytes starting at sumstore
 실행코드로 번역될 수 있는 것  
 역어셈블리는 바이트를 조사하고 어셈블리 소스를 재구성  
 
-드라이브보면 Programs File, Programs File (x86) 두 개  
-64bit 운영체제에서 32bit도 돌아감  호환성  
-
-C 대부분 32bit 컴파일러  
-
-32bit 에서는 %r-- 가 아니라 %e--  
-
 Reverse  engineeering forbidden by MS End User License Agrement  
 
 데이터 형식  
-
-"word" :  
-인텔에서 16비트 데이터 형식 ("word" 의 기원)  
-32bit : double word  
-64bit : quad words  
-
-GAS (GNU 어셈블러)에서 "/"을 붙이는 데 문제 없음  
-FP도 "/"을 붙임  
-왜냐하면, FP(부동소수점)는 정수와 다른 연산과 레지스터를 가짐  *dest = t;  
-movq %rax, (%rbs)  
-0x40059e: 48 89 03  
-
-C Code  
-dest가 지정한 곳에 값 t를 저장  
-
-Assembly Code  
-> 8 바이트 값을 메모리로 이동  
->> x86-64 용어로 Quad words  
-> Operands
->> t: 레지스터 %rax
->> dest: 레지스터 %rbx
->> *dest: 메모리 M[%rbx]
-
-r = register  
-
-Object Code  
-> 3 바이트 명령
-> 주소 0x40059e에 저장됨
-
-(범용 레지스터)  
-64bit 16개  
-32bit 8개  
-
-실행 가능 파일 생성  
-실행파일 생성하려면 링커 필요  
-One object file must contain main  
-Combines with static run-time livraries (e.g., printf)  
-Some libraries are dynamically linked (i.e. at execution)  
-
-Obtain with command C code  
-gcc -Og -o prog main.c sum.c  
-
-목적코드의 역 어셈블  
-Disassembled  
-
-Disassembler  
-objdump -d sum.o  
-목적코드 조사에 유용한 도구  
-일련의 명령들 비트 패턴을 분석  
-어셈블리 코드와 유사한 해석 산출  
-a.out(complete executable) 이나 .o파일을 실행할 수 있음  
-
-역어셈블의 다른 방법  
-Within gdb Debugger  
-gdb sumstore  
-disassemble sumstore  
-Disassemble procedure  
-x/14xb sumstore  
-Examine the 14 bytes starting at sumstore  
-
-역어셈블 할 수 있는 것은?  
-실행코드로 번역될 수 있는 것  
-역어셈블리는 바이트를 조사하고 어셈블리 소스를 재구성  
-
-드라이브보면 Programs File, Programs File (x86) 두 개  
-64bit 운영체제에서 32bit도 돌아감  호환성  
-
-C 대부분 32bit 컴파일러  
-
-32bit 에서는 %r-- 가 아니라 %e--  
-
-Reverse  engineeering forbidden by MS End User License Agrement  
-
-데이터 형식  
-
-"word" :  
-인텔에서 16비트 데이터 형식 ("word" 의 기원)  
-32bit : double word  
-64bit : quad words  
 
 GAS (GNU 어셈블러)에서 "/"을 붙이는 데 문제 없음  
 FP도 "/"을 붙임  
 왜냐하면, FP(부동소수점)는 정수와 다른 연산과 레지스터를 가짐  
-
----
-
-간단한 메모리 주소 모드
-
-1. 참고
-   - Reg[R] : 레지스터 R 안의 값
-   - Mem[M] : 메모리 M 안의 값값
-
-2. 표준모드 (R)
-   - Mem[Reg[R]]
-   - 레지스터 R은 메모리의 주소를 나타냄
-   - C의 포인터 역참조 (Dereferencing)
-   - movq (%rcx), %rax
-
-3. 변위모드 D(R)
-   - Mem[Reg[R]+D]
-   - 레지스터 R은 메모리 구역의 시작 주소를 나타냄
-   - 상수 변위 D는 오프셋을 나타냄
-   - movq 8(%rbp), %rdx
-
-오퍼랜드 형태

@@ -2,7 +2,8 @@
 title: "🌖 Bit Byte Word"
 date: 2023-03-20. 16:53
 # last_modified_at: 2023-04-06. 11:16
-last_modified_at: 2023-11-08. 15:03
+# last_modified_at: 2023-11-08. 15:03
+last_modified_at: 2023-11-26. 01:52
 categories: ⭐Computer 🌖Computer-OS
 tage: Bit Byte Word
 ---
@@ -12,7 +13,39 @@ tage: Bit Byte Word
 
 ---
 
-## 💫 Byte = 8 Bit ?  
+## 💫 왜 2진수?
+
+---
+
+### 🫧 Digit, Decimal - 십진법
+
+고대 라틴어로 Digita는 '손가락'을 뜻했고,  
+여러 언어에서 Digit은 '손가락'과 '발가락'을 뜻한다.  
+
+손가락과 발가락의 수 10개 = 10  
+
+그리스어로 Deci, Deca는 10을 뜻하는 접두어다.  
+Decimal은 '십진법의', '소수의' 라는 뜻을 가진다.  
+
+### 🫧 왜 2진수?
+
+10진수는 전자적 구현에 한계가 있었다.  
+
+1. 저장/전송의 어려움
+   - 최초의 컴퓨터 ENIAC은 10진수를 썼는데, 한 단위의 정보를 표현하기 위해 10개의 배관이 필요했다. (0 ~ 9)
+2. 디지털 논리 함수 구현의 어려움
+   - Addition, Multipplication, ...
+
+최초의 컴퓨터 ENIAC은 10진수를 사용했지만, 폰 노이만에 의해 2진수가 고안됐다.  
+
+1. 저장/전송의 간편화
+   - 2진수를 이용하면, 한 단위의 정보를 표현하기 위해 1개의 배관만 있으면 된다. (0과 1, 배관이 끼워져있냐 마느냐)
+   - 잡음과 부정확한 와이어에도 문제없이 안정적으로 전송이 가능하다.
+2. 간단한 구현
+   - 간단한 산술함수
+   - 여러 방식으로 인코딩/번역 가능
+
+## 💫 Byte = 8 Bit ?
 
 ---
 
@@ -48,7 +81,7 @@ IEC International Electrotechnical Organization
 [참고-0](https://softwareengineering.stackexchange.com/questions/120126/what-is-the-history-of-why-bytes-are-eight-bits)  
 [참고-1](https://en.wikipedia.org/wiki/Byte)  
 
-## 💫 32-Bit, 64-Bit ?  
+## 💫 32-Bit, 64-Bit ?
 
 ---
 
@@ -58,21 +91,20 @@ Program Counter
 32-Bit = 약 4-GB 메모리  
 64-Bit = 약 256-TB 메모리 (48-Bit만 사용)  
 
-왜 48-Bit만 사용?  
-'일반적으로', 256-TB 이상의 주소 공간을 사용하지 않음  
+왜 48-Bit만 사용하냐면, '일반적으로', 256-TB 이상의 주소 공간을 사용하지 않기 때문이다.  
 
-운영체제도 32-Bit, 64-Bit 로 나뉨  
-32-Bit CPU 에는 64-Bit 운영체제가 동작하지 않음 .  
-64-Bit CPU 에는 32-Bit 운영체제가 동작하기는 하지만 하위 호환 Backward Compatibility 됨.  
+운영체제도 32-Bit, 64-Bit 로 나뉜다.  
+32-Bit CPU 에는 64-Bit 운영체제가 동작하지 않는다.  
+64-Bit CPU 에는 32-Bit 운영체제가 동작하기는 하지만, 하위 호환 Backward Compatibility 된다.  
 
-앱 역시 32-Bit, 64-Bit 로 나뉨  
-32-Bit 운영체제에는 64-Bit 앱이 동작하지 않음 .  
-64-Bit 운영체제에는 32-Bit 앱이 동작하기는 하지만 하위 호환 Backward Compatibility 됨.  
+앱 역시 32-Bit, 64-Bit 로 나뉜다.  
+32-Bit 운영체제에는 64-Bit 앱 (Programs File)이 동작하지 않는다.  
+64-Bit 운영체제에는 32-Bit 앱 (Programs File (x86))이 동작하기는 하지만, 하위 호환 Backward Compatibility 된다.  
 
 [참고-0](https://blog.naver.com/sharpsoul/221777128846)  
 [참고-1](https://eine.tistory.com/entry/64%EB%B9%84%ED%8A%B8-32%EB%B9%84%ED%8A%B8-CPU%EC%99%80-%EC%9A%B4%EC%98%81%EC%B2%B4%EC%A0%9C-%EC%97%90-%EB%8C%80%ED%95%98%EC%97%AC)  
 
-## 💫 x86, x64 (x86-64) ?  
+## 💫 x86, x64 (x86-64) ?
 
 ---
 
@@ -87,38 +119,40 @@ x86 (80x86) =
 IA-16, IA-32, IA-64 를 모두 포함하는 단어이지만,  
 일반적으로 x86이라 하면 IA-32을 지칭  
 
-IA Intel Architecture
+IA = Intel Architecture  
 
 [참고-0](https://ko.wikipedia.org/wiki/X86)  
 
-## 💫 워드 WORD ?  
+## 💫 워드 WORD ?
 
 ---
 
 기계어 명령어나 연산을 통해 저장된 장치로부터 레지스터에 옮겨 놓을 수 있는 데이터 단위  
 = CPU가 처리할 수 있는, 버스에 한 번에 지나갈 수 있는 크기의 단위  
-= DTU Data Transport Unit (DTU를 사용하는 용어가 많았기에 WORD로)  
+= DTU Data Transport Unit (DTU를 사용하는 용어가 많았기에 WORD를 사용하기 시작)  
 
-컴퓨터 아키텍쳐에서  
+컴퓨터 아키텍쳐에서,  
 32-Bit = WORD : 32-Bit  
 64-Bit = WORD : 64-Bit  
 
-프로그래밍에서  
-Win32 API의 WORD = 16-Bit  
+반먄 프로그래밍에서,  
+Win32 API의 WORD는 16-Bit다.  
+
 왜 Why  
 
-IA-16 기본 처리 단위 DTU = WORD = 16-Bit  
+IA = Intel Architecture  
+IA-16의 기본 처리 단위 DTU = WORD = 16-Bit  
 추후 32-Bit, 64-Bit 등의 프로세서 (IA-32, IA-64 등) 등장  
 
 호환성의 문제으로 인해, 기존 단위 크기를 바꿀 수는 없고,  
-때문에 기존 16-Bit Word를 기반으로 한 새로운 단위  
+때문에 기존 16-Bit Word를 기반으로 한 새로운 단위를 만들어 썼다.  
 
 DWORD = Double Word = 32-Bit  
 QWORD = Quad/Quotable Word = 64-Bit  
 
 [참고-0](https://bebesoft.tistory.com/12?category=887595)  
 
-## 💫 컴퓨터에서의 1K = 1024 ?  
+## 💫 컴퓨터에서의 1K = 1024 ?
 
 ---
 
@@ -146,7 +180,7 @@ MB가 아닌 Mb로 팔기 때문에,
 
 [참고-0](https://velog.io/@victor/1kb-1024-bytes-1000-bytes-%EB%AD%90%EA%B0%80-%EB%A7%9E%EC%9D%84%EA%B9%8C-mojurs3pb2)  
 
-## 💫 @여치  
+## 💫 @여치
 
 ---
 
