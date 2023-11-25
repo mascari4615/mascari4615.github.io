@@ -1,25 +1,28 @@
 ---
 title: "🌖 마이크로프로세서 과목"
 date: 2023-09-08. 12:51
-# last_modified_at: 2023-09-08. 12:51
 # last_modified_at: 2023-09-15. 12:53
 # last_modified_at: 2023-10-20. 13:50
 # last_modified_at: 2023-10-27. 12:37
-last_modified_at: 2023-11-03. 14:03
+# last_modified_at: 2023-11-03. 14:03
+last_modified_at: 2023-11-24. 12:12
 categories: ⭐Computer 🌖Computer-OS
-tags: Microprocessor
+tags: Computer Microprocessor
 ---
 
 ### 💫 마이크로프로세서
 
 ---
 
-Micro 작은 Processor 연산장치  
-일반적으로 CPU 중앙처리장치의 기능을 한 개 ~ 몇 개 이내의 칩으로 집약한 처리기  
+Micro-Processor (작은-연산장치)  
+프로세서(CPU, GPU, ... 일반적으로 CPU)의 기능을 한 개 ~ 몇 개 이내의 칩으로 집약한 처리기  
 
-- 외부 연결을 위한 핀
-  - 메모리 :  어드레스 버스, 데이터 버스 등
-  - 주변 장치 : 전원 공급, 발진기
+메모리와 주변 장치와의 외부 연결을 위한 핀을 가지고 있다.  
+
+메모리 : 어드레스 버스, 데이터 버스, ...  
+주변 장치 : 전원 공급, 발진기, ...  
+
+데이터 버스 크기, 어드레스 버스 크기, 연산 레지스터 크기, 범용 레지스터 수, 클록 스피드 등으로 성능이나 규모가 분류된다.  
 
 강의에서는 AVR2560을 다룸  
 AVR - Alf-Egil Bogen, Vergard Wollen, RISC  
@@ -177,3 +180,19 @@ void uart_putchar(char ch)
 USART, 시리얼통신  
 
 @  제어문자  
+
+---
+
+함수 선언(연결)은 헤더 파일을 이용함.  
+소스 코드는 가급적 기능(함수) 단위로 작게 나누고, 파일명에 기능의 의미를 부여함.  
+독립된 파일간의 함수 호출 시 함수 선언에 유의해야 함.  
+
+임베디드 프로그램의 실행은 어떤 경우에도 어플리케이션의 범위를 벗어나서는 안됨.  
+
+```c
+int main()
+{
+	while(1) ; // must not return
+	return 0;
+}
+```
