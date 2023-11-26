@@ -1,7 +1,9 @@
 ---
 title: "📘 카테고리"
 date: 2023-06-01. 10:27
-last_modified_at: 2023-06-26. 08:14
+# last_modified_at: 2023-06-26. 08:14
+# last_modified_at: 2023-11-22. 08:07
+last_modified_at: 2023-11-23. 18:42
 categories: 🔖Creative 📘Blog
 pin: true
 ---
@@ -19,12 +21,7 @@ pin: true
 
 Milestone에서 따옴  
 
-- 고민중인 규칙
-  - 단순 기록 수준의 하룻돌 수가 많아지고 있기에, 글의 수준을 보다 높이기 위한 방안
-  1. 응집성을 지니고, 글로 정리할만한 일기/생각/기록들 → 정리하여 하룻돌로 작성
-  2. 글로 정리할 정도는 아니지만, 기억하고 싶은 자잘한 일기/생각/기록 조각들 → 달돌에 작성 후 갱신
-
-### ⭐Computer, 🌑🌒🌓🌔🌕🌖🌗🌘🌚
+### ⭐Computer, 🌑🌒🌓🌔🌕🌖🌗🌘🌚 💫🫧
 
 ---
 
@@ -49,7 +46,7 @@ Milestone에서 따옴
 🌳Memo : 정보/메모  
 
 🌳Memo 🥑Memo-General : 일반  
-🌳Memo 🫐Thinking : 생각  
+🌳Memo 🫐 :  
 🌳Memo 🍋Game : 게임  
 
 ### 🔖Creative
