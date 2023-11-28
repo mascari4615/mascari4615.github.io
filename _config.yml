@@ -93,9 +93,9 @@ comments:
   # Giscus options › https://giscus.app
   giscus:
     repo: Mascari4615/blog-comments # <gh-username>/<repo>
-    repo_id: R_kgDOJl760Q
+    repo_id: MDEwOlJlcG9zaXRvcnk0MDA0Mzg3MjE=
     category: Announcements
-    category_id: DIC_kwDOJl760c4CbVRD
+    category_id: DIC_kwDOF941wc4CbVSv
     mapping: # optional, default to 'pathname'
     input_position: # optional, default to 'bottom'
     lang: # optional, default to the value of `site.lang`
