@@ -4,7 +4,8 @@ date: 2022-11-20. 11:56
 # last_modified_at: 2023-05-21. 15:19
 # last_modified_at: 2023-10-06. 13:10
 # last_modified_at: 2023-10-17. 09:51
-last_modified_at: 2023-10-22. 18:35
+# last_modified_at: 2023-10-22. 18:35
+last_modified_at: 2023-11-26. 05:01
 categories: 🌳Memo 🥑Memo-General
 ---
 
@@ -128,4 +129,5 @@ Play By Mail Game
   - 낙관주의 ㅡ 염세주의
   - Hilbert ← Linear (raster)
   - Lint, Lint Roller
-  - 크로노스의 시간, 카이로스의 시간?  
+  - 크로노스의 시간, 카이로스의 시간?
+  - 정보 = Bit + Context

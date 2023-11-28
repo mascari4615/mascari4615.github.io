@@ -2,7 +2,8 @@
 title: "📕 WitchIdle"
 date: 2023-06-01. 10:25
 # last_modified_at: 2023-06-01. 10:25
-last_modified_at: 2023-10-11. 17:13
+# last_modified_at: 2023-10-11. 17:13
+last_modified_at: 2023-11-22. 08:07
 categories: 🔖Creative 📕Dev
 ---
 
@@ -121,6 +122,8 @@ We will right back
 - [포켓몬스터 블랙/화이트 BGM 레파토리](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=riomedevon&logNo=110106228406)
 - [포켓몬스터 블랙/화이트 빌리지 브리지](https://pokemon.fandom.com/ko/wiki/%EB%B9%8C%EB%A6%AC%EC%A7%80_%EB%B8%8C%EB%A6%AC%EC%A7%80)
 - [포켓몬스터 블랙/화이트 빌리지 브리지](https://namu.wiki/w/%EB%B9%8C%EB%A6%AC%EC%A7%80%EB%B8%8C%EB%A6%AC%EC%A7%80)
+
+이걸 만화로 배워?  
 
 검은색으로 가려진 못생긴 얼굴  
 예쁨을 원하는 수수한 사람  
