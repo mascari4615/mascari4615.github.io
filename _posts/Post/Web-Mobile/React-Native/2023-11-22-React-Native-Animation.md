@@ -1,10 +1,12 @@
 ---
 title: "🌘 React Native 리액트 네이티브 - Animation"
 date: 2023-11-22. 13:09
-# last_modified_at: 2023-11-22. 13:09
+last_modified_at: 2023-11-28. 15:21
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
+
+@ 캐러셀 Carousel  
 
 ## 💫 Animation
 
@@ -31,7 +33,7 @@ import {Animated, Easing, PanResponder, LayoutAnimation} from 'react-native'
 
 useNativeDriver 속성을 통해 어떤 모드로 애니메이션을 동작시킬지 결정할 수 있다.  
 
-따라서 네이티브 모듈 애니메이션을 기반으로 하되, 불가능한 것들은 useNativeDriver 속성을 이용하여 구현한다.  
+따라서 네이티브 모듈 애니메이션을 기반으로 하되, 불가능한 것들은 (fontSize, ...) useNativeDriver 속성을 이용하여 구현한다.  
 
 ## 💫 Animated가 제공하는 애니메이션 기능
 
@@ -72,7 +74,7 @@ useNativeDriver 속성을 통해 어떤 모드로 애니메이션을 동작시�
   - FlatList
   - SectionList
 
-### 💫 Value 클래스
+### 🫧 Value 클래스
 
 ```js
 export class Value
@@ -85,10 +87,39 @@ export class Value
 	addListener(callback: ValueListenderCallback): string;
 	removeListener(id: string): void;
 	removeAllListeners(): void;
+
+	// 입력 보간 값을 새로운 보간값으로 바꿀 수 있다.
+	// i.e. 출력을 0 ~ 100, Red ~ Blue, 0deg ~ 360deg
+	interpolate(config: InterpolationConfigType): AnimatedInterpolation;
+	// animValue.interpolate({inputRange: [0, 1], outputRange: [0, 100]})
+	// animValue.interpolate({inputRange: [0, 1], outputRange: ['red', 'blue']})
+	// animValue.interpolate({inputRange: [0, 1], outputRange: ['0deg', '360deg']})
+	// animValue.interpolate({inputRange: [0, 0.7, 1], outputRange: [Colors.lightBlue900, Colors.lime500, Colors.pink500]})
+
 	// ~
 }
 
 type ValueListenerCallback = (stage: {value: number}) => void;
+
+class AnimatedInterpolation
+{
+	interpolate(config: InterpolationConfigType): AnimatedInterpolation;
+}
+
+// inputRange를 벗어난 값이 발생했을 때 어떤 값으로 outputRange를 만들지 결정하는 속성
+// clamp : 값 무시
+// extend : 범위 내 값을 계산한 공식을 범위 외 값에도 똑같이 적용
+// identity : 어떤 공식도 적용하지 않고 입력값 그대로 출력
+type ExtrapolateType = 'extend' | 'identity' | 'clamp';
+
+type InterpolationConfigType = 
+{
+	inputRange: number[];
+	outputRange: number[] | string[];
+	
+	// Like Animated.timing
+	easing?: (input: number) => number;
+};
 ```
 
 ## 💫 동작 원리
@@ -105,7 +136,7 @@ CSS 애니메이션은, transition이나 animate 스타일 속성에 애니메�
 
 ---
 
-### 💫 Animated.Value 클래스의 인스턴스 생성
+### 🫧 Animated.Value 클래스의 인스턴스 생성
 
 Animated.Value 클래스의 인스턴스 생성으로 시작해도 되지만,  
 
@@ -121,7 +152,7 @@ const animValue = useRef(new Animated.Value(0)).current
 
 useRef을 사용하면, animValue를 단 한 번만 생성하고 재렌더링 시 재사용한다.  
 
-### 💫 Animated.Value 클래스의 인스턴스 적용
+### 🫧 Animated.Value 클래스의 인스턴스 적용
 
 Animated.Value 클래스의 인스턴스를 컴포넌트의 스타일 속성에 적용한다.  
 
@@ -137,7 +168,7 @@ opacity 속성의 타입이 number가 아니라 Animated.Value 타입이므로 V
 <Animated.View style={[styles.someView, someViewAnimStyle]}>
 ```
 
-### 💫 애니메이션 재생
+### 🫧 애니메이션 재생
 
 애니메이션을 재생시키려면 onPress 등에서 코드를 실행해야 한다.  
 
@@ -148,9 +179,7 @@ const onPress = () =>
 }
 ```
 
-## 💫 useRef 훅과 MutableRefObject 타입
-
----
+### 🫧 useRef 훅과 MutableRefObject 타입
 
 useRef 훅은 `RefObject<T>` 또는  `MutableRefObject<T>` 을 반환할 수 있다.  
 
@@ -175,9 +204,7 @@ animValue가 아니라, animValue 내부의 value 속성의 값이 보간에 의
 const animValue = useRef(new Animted.Value(0)).current;
 ```
 
-## 💫 Animated.View와 Animated.createAnimatedComponent 함수
-
----
+### 🫧 Animated.View와 Animated.createAnimatedComponent 함수
 
 Animated.createAnimatedComponent 함수는 다른 컴포넌트를 매개변수로 입력받아 Animated.Value 타입 객체를 처리할 수 있는 기능을 가지는 새로운 컴포넌트를 만든다.  
 
@@ -197,9 +224,7 @@ Animated.Image
 // Animated.createAnimatedComponent(Image)
 ```
 
-## 💫 Animated.timing
-
----
+### 🫧 Animated.timing
 
 Animated.timing은 value와 config를 매개변수로 받아 Animated.CompositeAnimation 타입 객체를 반환하는 함수이다.  
 
@@ -260,4 +285,21 @@ Animated.timing
 	)
 
 // result 매개변수는 항상 {finished: true} 이므로 () => console.log('animation end') 같이 구현해도 좋다
+```
+
+### 🫧 ransform Animation
+
+@ 수업 중 생략  
+
+### 🫧 Animated 연산 관련 함수
+
+```js
+type Value = Animated.Value
+export function add(a: Value, b: Value): Animated.AnimatedInterpolation // +
+export function substract(a: Value, b: Value): Animated.AnimatedInterpolation // -
+export function multiply(a: Value, b: Value): Animated.AnimatedInterpolation // *
+export function divide(a: Value, b: Value): Animated.AnimatedInterpolation // /
+export function modulo(a: Value, b: Value): Animated.AnimatedInterpolation // %
+
+// 매개변수가 number가 아닌 Animated.Value임을 주의
 ```

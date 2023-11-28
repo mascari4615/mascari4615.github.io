@@ -2,7 +2,8 @@
 title: "🌖 Process, Processor"
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-15. 15:29
-last_modified_at: 2023-11-26. 05:59
+# last_modified_at: 2023-11-26. 05:59
+last_modified_at: 2023-11-28. 09:59
 categories: ⭐Computer 🌖Computer-OS
 ---
 
@@ -18,19 +19,6 @@ categories: ⭐Computer 🌖Computer-OS
 처리기로 불리기도 한다.  
 그래픽처리장치(GPU) 도 컴퓨터의 일부이지만 단지 '프로세서' 라는 용어만 사용하였을 때 그래픽 처리 장치를 뜻하는 경우는 아직 많지 않다.  
 기타 DMA와 같이 제한된 기능만을 수행하는 프로세서도 있다.  
-
-- 프로세서(CPU) 관리
-  - 다수의 사용자 프로그램이 있을 때 (멀티프로그래밍), 어느 프로세스를 선택하여 CPU를 보낼 것인가의 문제
-  - CPU 스케쥴링 이라 부르기도함
-  - OS 설계자와 추구하는 바에 따라 ~?
-
-@ TODO  
-
-명령 해독기, 레지스터, 프로그램 카운터  
-ISA로 정의된 명령 실행  
-
-CPU 작업: 주기억장치, 레지스터 파일, ALU  
-적재Load, 저장Store, 수행Operate, 이동Jump  
 
 ## 💫 Process 프로세스
 

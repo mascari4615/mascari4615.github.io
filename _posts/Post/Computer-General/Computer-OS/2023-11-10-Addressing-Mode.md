@@ -56,4 +56,18 @@ categories: ⭐Computer 🌖Computer-OS
    - 상수 변위 D는 오프셋을 나타냄
    - movq 8(%rbp), %rdx
 
+```c
+void Temp(SomeType a, SomeType b) {}
+// a → %rdi, b → %rsi
+```
+
+```Assembly
+Temp:
+	movq (%rdi), %rax
+	movq (%rsi), %rdx
+	movq %rdx, (%rdi)
+	movq %rax, (%rsi)
+ret
+```
+
 오퍼랜드 형태

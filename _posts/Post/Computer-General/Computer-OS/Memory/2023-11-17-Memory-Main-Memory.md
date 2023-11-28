@@ -1,7 +1,7 @@
 ---
 title: "🌖 Main-Memory 주기억장치"
 date: 2023-11-17. 03:58
-# last_modified_at: 2023-11-17. 03:58
+last_modified_at: 2023-11-28. 09:50
 categories: ⭐Computer 🌖Computer-OS
 tags: Computer Memory Main-Memory
 ---
@@ -38,9 +38,35 @@ tags: Computer Memory Main-Memory
     - 2 4 8의 배수가 되도록 요구하는 기계 CPU 가 있음  
     - #1 바이트는 어디서든 되는  
 
+## 💫 구조
+
 ---
 
- 메모리 관리 개념
+### 🫧 Text/Code
+
+실제 실행되는 코드 등이 저장  
+
+### 🫧 Data
+
+전역 변수 등이 저장  
+
+### 🫧 Heap
+
+주로 메모리 동적 할당  
+i.e. malloc, calloc, realloc  
+
+### 🫧 Stack
+
+@@ Assembly  
+
+Assembly가 빈번하게, 저장되는 값 저장, Subroutine, Procedure 등  
+Stack 자료 구조  
+BasePointer 시작 위치를 BP 레지스터, StackPointer 제일 위 위치를 SP 레지스터  
+Glow Down, 다른 메모리 영역과 달리 거꾸로 자란다  
+
+## 💫 관리 개념
+
+---
 
 - 메모리 할당 및 회수가 이루어지는 시기
   - 디스크의 프로그램이 메모리에 적재되어 생성될 때 ← 첫 할당

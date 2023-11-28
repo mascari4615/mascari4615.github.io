@@ -6,7 +6,9 @@ last_modified_at: 2023-11-26. 01:03
 categories: ⭐Computer 🌖Computer-OS
 ---
 
-### 🫧 ㅇ
+## 💫 1
+
+---
 
 - 1.2 컴파일 시스템
   - 목적 프로그램
@@ -54,18 +56,112 @@ categories: ⭐Computer 🌖Computer-OS
         - Virtual Memory - Main Memory
           - Files - I/O Devices
 
-### 💫 2
+## 💫 2 Bits and Bytes
 
 ---
 
+- 정보 표현 : 비트
+- 2진수/16진수
+- 바이트 표현
+- 불 대수
+- C에서의 표기, C의 연산
+  - 비트 단위 연산
+  - 논리연산
+  - 비트이동연산
+
+### 🫧 2.1 정보의 저장
+
+- 바이트 중심의 메모리 궝
+  - 프로그램은 가상주소 Virtual Addresses로 표현됨
+    - 개념상 아주 큰 바이트 배열
+    - 각각의 바이트는 자신의 주소를 가짐
+    - 모든 주소들 - 가상주소공간
+  - 시스템은 특정 "프로세스"에 주소공간 Address Space을 제공
+    - 프로세스-실행중인 프로그램
+    - 프로그램은 자신의 데이터를 운영(다른 프로그램의 데이터는 다루지 않음)
+  - 컴파일러+런타임시스템은 메모리 할당 Allocation
+    - 각각의 프로그램 객체를 어디에 저장할 것인가?
+      - 프로그램 개체: 프로그램 데이터, 명령, 제어정보 등
+    - Multiple Mechanisms: static, stack, and heap
+    - 어떠한 경우에도 단일 가상주소공간 내에 모두 할당
+
+가상주소 = 논리주소  
+
+- 16진수 표현 : 바이트 값의 인코딩
+  - Byte = 8 bits
+    - Binary: 00000000 ~ 111111111
+    - Decimal: 0 ~ 255
+    - 2진수는 너무 길고, 10진수는 비트 패턴 변환이 어려움
+    - 1바이트: Hexadecimal 00 ~ FF
+      - 밑수 16 숫자 표현
+      - Use Characters '0' ~ '9' ~ 'A' ~ 'F'
+      - Write FA1D37B in C as
+        - 0xFA1D37B, 0xfa1d37b
+        - 0xC97B = 1100 1001 0111 1011
+
+- 컴퓨터의 Words
+  - 컴퓨터는 워드크기를 갖는다
+  - 정수 데이터나 주소의 명목상 크기
+  - 현재 대부분의 컴퓨터는 32bits(4 Bytes) 워드
+    - 4GB 바이트로 주소를 한정
+    - 많은 메모리르 사용하는 응용에겐 작을 수 있음
+  - 최신 시스템은 64Bits (8Bytes) Word
+    - 16 Exabytes의 잠재적 주소 공간
+    - x86 - 64 컴퓨터 48bit 주소 지원 : 256 Terabytes
+  - 컴퓨터는 다수의 데이터 형식 지원
+    - Typical 32-bit, Intel IA32, x86-64 별 데이터 크기
+      - 특히 int, pointer
+
+- 주소 지정과 바이트 순서
+  - 다중 바이트 (e.g. intergers)에 표현되는 객체에 대하여, 다음 두 가지 사항 필요
+    - 객체의 주소가 무엇인가?
+    - 메모리 안에 바이트들을 어떤 순서로 배치 하는가:
+  - 다중 바이트 객체
+    - 연속된 바이트로 저장
+    - 시작 주소: 사용된 바이트의 가장 작은 주소
+
+- 워드 중심 메모리 구성
+  - 주소는 바이트 위치 명세
+    - 워드의 첫 바이트 주소
+    - 연속된 워드의 주소는 다름
+      - by 4 (32bit) ot 8 (64bit)
+      - i.e. 32bit : 0000, 0004, 0008, 0012
+      - i.e. 64bit : 0000, 0008
+
+- Byte Ordering
+  - 메모리에 바이트들으 정렬하는 방법
+  - 규칙 Conventions
+    - Big Endian : IBM, Sun
+      - 최하위바이트 LSB가 가장 상위 주소에 배치
+      - Come last
+    - Little Endian : x86
+      - 최하위바이트 LSB가 가장 하위 주소에 배치
+      - Come First
+
+@ 달걀 사진?  
+
+- Byte Ordering Example
+  - Example
+    - 변수 x는 4Byte값 0x1234567
+    - Address given by &x is 0x100
+      - Big Endian : 01 23 45 67
+      - Little Endian : 67 45 23 01
+
+- Reading Byte - Reversed Listings
+  - 역어셈블리 Disassembly
+    - 이진 기계어 코드의 문자 표현
+    - 기계 코드를 읽는 프로그램이 생성
+
+@ 예시  
+
+포인터 값들은 컴퓨터에 따라 다름  
+Different compiler & machines assign different locations to objects  
+
 - Two's complement representation (Covered Later)
 - Solaris/SUN, Linux/x86-86, Linux/Alpha, IA32
-- Different Machines Follow Different Conventions
-  - Word Size
-  - Byte Ordering
-  - Representations (Integer, Floating-point)
-- String
-  - C
+
+- String의 표시
+  - C에서 스트링 String
     - 문자들을 배열로 표시
     - 아스키 형식으로 인코드
       - 문자 집합을 표준 7-bit 인코딩
@@ -76,16 +172,21 @@ categories: ⭐Computer 🌖Computer-OS
   - 호환성 문제
     - Byte Ordering 은 문제가 안됨
       - 데이터는 1 Byte 크기
-- ASCII
-- Be Aware Of...
+
+- ASCII 코드 차트  
+
+- Different Machines Follow Different Conventions
+  - Word Size
+  - Byte Ordering
+  - Representations (Integer, Floating-point)
+
+- Whren Prograaming, Be Aware Of...
   - Type Casting & Mixed Signed/Unsigned Expressions
   - Overflow
   - Error Propagation
   - Byte Ordering
 
 정보의 표현과 처리  
-
-Bits and Bytes  
 
 ### 2.1.5 코드의 표현
 
@@ -242,29 +343,142 @@ int mul12(int x)
 - 비부호형과 부호형(2의보수 방식)
   - 동일한 비트패턴을 가짐
 
+## 💫 3 프로그램의 컴퓨터 수준 표현1 : 기초
+
 ---
 
-gcc -o temp.c 실행 가능 목적 파일 (실행파일, object, 링크까지 끝난)  
-gcc -c temp.c 재배치 가능 목적 파일 (목적파일, 링크는 없는 그냥 목적 파일)  
+- 개요
+- 역사적 관심
+- 프로그램의 인코딩
+- 데이터 형식
+- 정보의 접근
 
-Concurrent Process 병렬 프로세스  
+### 🫧 3.0 개요
 
-어셈블리 특성 : 연산
+- 인텔 x86 프로세서
+  - 랩탑/데스크탑/서버 시장을 완전 장악
+  - 프로세서 설계의 진화
+    - 1978 소개된 8086까지의 역 호환성 제공
+    - 시간의 흐름에 따라 더 많은 특징이 추가됨
+  - CISC 구조 (Complex Instruction Set Computer)
+    - 서로 다른 형식을 갖는 많은 명령들을 가짐
+    - RISC의 성능과 차이 (Reduced Instruction Set Computers)
+      - 인텔은 성능을 높이고 있다, 속도에 의함, 저전력
 
-레지스터나 메모리 데이터로 산술함수 수행  
-ALU에서 연산을 하려면 데이터 필요  
-레지스터에 있으면 레지스터에서
-메모리 데이터에 있으면 메모리 데이터에서 데이터를 읽어 산술함수 수행
+무어의 법칙  
 
-메모리와 레지스터 사이에 데이터 전송 (버스를 통해)
+### 🫧 3.1 역사적 관심
 
-- Memory to CPU, 메모리에서 레지스터로 데이터 전송 (Load)
-- CPU to Memory, 레지스터 데이터를 메모리에 저장 (Store)
+- Name, Date, Transistors, MHz
+  - 8086, 1978, 29K, 5~10
+    - 최초 16비트 프로세서, IBM PC & DOS의 기초
+    - 1MB 주소공간
+  - 386, 1985, 275K, 16-33
+    - 최초 32비트 프로세서 (IA32)
+    - 유닉스 실행 가능한 "Flat Addressing" (선형주소) 모델 추가
+  - Pentium 4E, 2004, 124M, 2800-3800
+    - 최초 64비트 프로세서 (x86-64)
+  - Core2, 2006, 291M, 1060-3500
+    - 최초 다중 코어 인텔 프로세서
+  - Core i7, 2008,, 781M, 1700-3900
+    - 4 코어
 
-전송 제어 (Transfer control)
+인텔의 Hyper-Threading 기법  
 
-- 프로시저까지 또는 프로시저에서 무조건 점프, 무조건 분기 like goto (to/from procedures)
-- 조건 분기 if else (conditional branch)
+Dual-Core Processor, 인텔 x86 프로세서  
+@ 사진
+
+- x86 호환 기종 (Clones) : Advanced Micro Devices (AMD)
+  - 역사적으로
+    - AMD는 인텔의 후발주자, 좀 느리나 저렴
+  - 그 후,
+    - DEC (Digital Equipment Corp.) 에서 정상급 회로 설계자 영입
+    - 다른 회사 (ATI 등)들을 합병
+    - Opteron 구축: Pentium 4에 강한 경쟁자로 부상
+    - 자신들의 64비트 확장인 x86-64를 개발
+
+@ QuadCore Opteron
+
+- Intel의 64 bit
+  - 2001, IA32에서 IA64로 근본적 변화 시도
+    - 전체적으로 과거와 다른 구조 Itanium
+    - IA32는 구형 코들만 실행됨 (상위 호환성 유지)
+    - 성능은 실망적
+  - 2003, AMD는 발전 방안에 참여
+    - x86-64 (Now called "AMD64")
+  - Intel은 IA64에 주안점을 둠
+    - Hard to admit mistake or that AMD is better
+  - 2004, 인텔은 IA32의 확장인 EM64T를 발표
+    - Extended Memory 64-bit Technology
+    - Almost identical to x86-64
+  - All but low-end x86 processors support x86-64
+    - But, lots of code stll runs in 32-bit mode
+
+### 🫧 3.2 프로그램의 인코딩
+
+- 정의
+  - Architecture (Also ISA : Instruction set Architecture)
+    - 어셈블리/기계어 코드 작성 또는 이해에 필요한 프로세서 설계 부분
+    - 예 : 명령어 집합 명세, 레지스터
+  - Microarchitecture : implementation of the architecture
+    - ISA가 프로세스 상에 구현되는 방법
+    - 예 : 캐쉬 크기와 코아 주파수
+  - 코드 형태
+    - 기계코드 : 프로세서가 실행하는 바이트 수준 프로그램
+    - 어셈블리 코드 : 기계코드의 텍스트 버전
+  - Example ISAs (intel)
+    - 인텔 : x86, IA32, Itanium, x86-64
+    - ARM :거의 모든 이동전화에서 사용
+
+- 어셈블리/기계코드 관점
+  - 프로그래머가 볼 수 있느 상태
+    - PC Program Counter 프로그램 카운터
+      - 다음에 실행할 명령의 주소
+      - IEP 라 칭함 (IA32) or RIP (x86-64)
+    - 정수 레지스터 파일
+      - 빈번히 사용되는 프로그램 데이터 저장
+    - 조건코드 레지스터
+      - 최근의 산술연사에 대한 상태정보 저장
+      - 조건 분기를 위하여 사용됨 (진리값)
+    - 메모리
+      - Byte로 주소화된 배열
+      - 코드와 사용자 데이터
+      - 프로시저를 지원하는 스택
+
+- C를 목적코드로 전환
+  - i.e. p1.c p2.c
+  - gcc -Og p1.c p2.c -o p
+  - -o : 출력 파일명을 지정
+  - -Og 기본적인 최적화 옵션 (new to recent ver of GGCC)
+  - 파일 p에 결과 이진 파일 저장
+
+text : C Program (p1.c, p2.c) (-S : ~.s 어셈블리 파일 생성)  
+Compiler (gcc -Og -S)  
+text : Asm program (p1.s,  p2.s)  
+Assembler (gcc or as)  
+binary : Object Program (p1.o, p2.o)  
+Linker (gcc or ld), With Static Livraries (.a, .lib in windows)  
+binary : Executable Progam (p)  
+
+- 어셈블리의 특성 : Data Types
+  - 1,2,4, 8 바이트의 정수형 데이터
+    - 데이터 갑
+    - 주소 (미형식 포인터)
+  - 부동소수점 데이터는 4,8,10 Bytes
+  - 코드
+    - 일련의 명령들을 인코딩하는 바이트 순서들
+  - 집합체 (Aggregate: 배열, 구조체) 형식 없음
+    - 다만 메모리에 연속으로 바이트들을 할당
+
+- 어셈블리 특성 : 연산
+  - ALU에서 연산을 하려면 데이터가 필요
+  - 레지스터 데이터나 메모리 데이터에서 데이터를 읽어 산술 함수 수행
+  - 메모리와 레지스터 사이에 데이터 전송
+    - 메모리에서 레지스터(CPU)로 데이터 이동 - Load (사이에 Bus)
+    - 레지스터(CPU) 데이터를 메모리에 저장 - Store (사이에 Bus)
+  - 전송 제어 Transfer Control
+    - 프로시저까지 또는 프로시저에서 무조건 점프/무조건 분기 - to/from procecures, Like goto
+    - 조건분기 Conditional Branch, Like if else
 
 요즘 프로그래밍 언어
 스트럭쳐드 프로그래밍  
@@ -272,87 +486,67 @@ goto가 없음
 
 근데 어셈블리는 있다
 
----
+gcc -o temp.c 실행 가능 목적 파일 (실행파일, object, 링크까지 끝난)  
+gcc -c temp.c 재배치 가능 목적 파일 (목적파일, 링크는 없는 그냥 목적 파일)  
 
-목적 코드 생성
+- 목적 코드 생성
+  - Linux, gcc -Og -c temp.c
+  - -c 옵션
+    - as에 의한 어셈블까지만 수행
+    - 링크는 미수행
+  - temp.o 파일 산출
+  - n바이트 안에 temp 목적코드 내장 (해보니까 n바이트라는 뜻)
 
-Linux, gcc -Og -c sum.c
+- 목적코드
+  - 어셈블러 (Assembler)
+    - .s를 .o로 번역
+    - 명령어 각각을 이진 인코딩
+    - 거의 완벽한 실행 코드
+    - 다른 파일들과의 코드 연결 (linkages)은 빠짐
+  - 링커 (Linker)
+    - 파일들 사이의 참조를 해결
+    - 정적 런타임 라이브러리와 조합 (i.e. code for malloc, printf)
+    - 일부 라이브러리들은 동적으로 연결 (Dynamically Linked), 프로그램 실행 시 링킹 발생
 
--c 옵션  
+- 목적코드의 역 어셈블
+  - Disassembled
+  - Disassembler
+    - objdump -d temp.o
+    - 목적코드 조사에 유용한 도구
+    - 일련의 명령들 비트 패턴을 분석
+    - 어셈블리 코드와 유사한 해석 산출
+    - a.out(complete executable) 이나 .o파일을 실행할 수 있음  
 
-as에 의한 어셈블까지만 수행  
-링크는 미수행  
+- 역어셈블의 다른 방법
+  - Within gdb Debugger
+  - gdb temp
+  - disassemble temp
+    - Disassemble procedure
+  - x/`n`xb sumstore
+    - Examine the n bytes starting at temp
 
-sum.o 파일 산출  
+- 역어셈블 할 수 있는 것은?
+  - 실행코드로 번역될 수 있는 것
+  - 역어셈블리는 바이트를 조사하고 어셈블리 소스를 재구성
+  - Reverse engineeering forbidden by MS End User License Agrement
 
-14바이트 안에 sum의 목적코드 내장 (해보니까 14바이트라는 뜻)  
+### 🫧 3.3 데이터 형식
 
--Og
-최적화 명령어
+- 데이터 형식
+  - @@ bit byte word, word 기원
+  - GAS (GNU 어셈블러)에서 "/"을 붙이는 데 문제 없음
+    - FP도 "/"을 붙임
+    - 왜냐하면, FP(부동소수점)는 정수와 다른 연산과 레지스터를 가짐
 
----
+x86-64 c 데이터 형식 크기 (C, 인텔데이터 형식, 어셈블리-코드 접미사, 크기)
 
-목적코드
+### 🫧 3.4 정보의 접근
 
-슬라이드 참고 - Code for sumstore, 이전에 봤던 어셈블리 코드를 머신코드로 바꾼 것  
-시작 어드레스부터 1++ 바이트만큼 떨어진 위치에 각각 코드가 위치한다  
+@@ 메모리 주소 모드  
 
-어셈블러 (Assembler)  
-.s를 .o로 번역  
-명령어 각각을 이진 인코딩  
-거의 완벽한 실행 코드  
-다른 파일들과의 코드 연결 (linkages)은 빠짐  
 
-링커 (Linker)  
-파일들 사이의 참조를 해결  
-정적 런타임 라이브러리와 조합 (i.e. code for malloc, printf)  
-일부 라이브러리들은 동적으로 연결 (Dynamically Linked), 프로그램 실행 시 링킹 발생  
 
----
-
-sso
-인증 관련한
-바디 페이로드 차이??
-메시지 타입을 정의할 ㄸ ㅐ바이트 혹은 비트 단위로 필드를 다눠서 할 수도 잇고
-HTTP는 요처아이낳고 헤더부분하고 가 다르게 들어가잖아요?
-문자열 스페이스두고 URL 들어가고 버전 메소드 URL ㅣㅇ런식으로
-무튼 2가지 방법이 있다
-비트/바이트 방법
-텍스트 방법 (http)
-대부분은 http처럼 텍스트 기반으로 만들고 있따
-경랑 디렉터리 접근 프로토롤
-LDAP
-전화번호부 책
-LDAP은 전화번호부라고 보면된다
-네트워크에 자원이 많이 있을텐데 이를 효율적으로 관리하기 위한
-표준으로도 나옴
-전기 통신 (전화와 관련된) 글너 표준을 만든 단체 ITU에서 만든 표준잉 X.500
-X.500 을 기바느올 만들어진프포토콜인 LDAP
-FIND PRINT 여러가지 하드웨어 리소스들이 있을 텐데 어떻게 관리할것인지
-개별적인 자원 식별자 들 (이름 부여)하고 그담에 그런 개별 자원에 접근할 때 어떤 권한을 가지고 접그낳ㄹ ㅜㅅ있는지
-그런 자우너을 관리하는 관리자가 있다면 그러ㅁㄴ 관리자 ~ 까지 할 수 ㅣㅇ씩 헺는
-MS에서도 OpenLDAP 마늠
-윈도우에도 잇으ㅁ
-무튼 파일 식별하려면 이름이 잇어야하잖아요
-DNS처ㄻ 계층적으로 이름 공간을 구성해서 사용
-엔트리가 개별 자원 = 고유 식별 이름
-노드 별로 
-노드에 할당된
-ㄴ드를 연결해서
-고유한 이름을 만들게 되는데
-보게 되ㅣ면
-dc = 도메인 컴포넌트
-ou = 조직 단위
-dn =
-LDAP URL 다음시간에 설명할텐데
-일반적으로 사용할 일은 없다
-구체적인 내용은 기억하지 않아도되지만
-LDAP이 마치 자원을 전화번호부처럼 써서 효율적으로 쓰기위한 프로토콜이다
-라고 생각
-원격 제어
-팀 뷰어 같은
-원격이 떨어져있는 사람의 컴을 제어하기 위한
-원격 제어 그냥 이런 기능이 있따 정도로 기억
+## 💫 _
 
 ---
 
@@ -386,36 +580,3 @@ Object Code
 One object file must contain main  
 Combines with static run-time livraries (e.g., printf)  
 Some libraries are dynamically linked (i.e. at execution)  
-
-Obtain with command C code  
-gcc -Og -o prog main.c sum.c  
-
-목적코드의 역 어셈블  
-Disassembled  
-
-Disassembler  
-objdump -d sum.o  
-목적코드 조사에 유용한 도구  
-일련의 명령들 비트 패턴을 분석  
-어셈블리 코드와 유사한 해석 산출  
-a.out(complete executable) 이나 .o파일을 실행할 수 있음  
-
-역어셈블의 다른 방법  
-Within gdb Debugger  
-gdb sumstore  
-disassemble sumstore  
-Disassemble procedure  
-x/14xb sumstore  
-Examine the 14 bytes starting at sumstore  
-
-역어셈블 할 수 있는 것은?  
-실행코드로 번역될 수 있는 것  
-역어셈블리는 바이트를 조사하고 어셈블리 소스를 재구성  
-
-Reverse  engineeering forbidden by MS End User License Agrement  
-
-데이터 형식  
-
-GAS (GNU 어셈블러)에서 "/"을 붙이는 데 문제 없음  
-FP도 "/"을 붙임  
-왜냐하면, FP(부동소수점)는 정수와 다른 연산과 레지스터를 가짐  
