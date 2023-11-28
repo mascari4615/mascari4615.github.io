@@ -59,15 +59,16 @@ categories: ⭐Computer 🌖Computer-OS
 ```c
 void Temp(SomeType a, SomeType b) {}
 // a → %rdi, b → %rsi
-```
 
-```Assembly
-Temp:
-	movq (%rdi), %rax
-	movq (%rsi), %rdx
-	movq %rdx, (%rdi)
-	movq %rax, (%rsi)
-ret
+__asm
+{
+	Temp:
+		movq (%rdi), %rax
+		movq (%rsi), %rdx
+		movq %rdx, (%rdi)
+		movq %rax, (%rsi)
+	ret
+}
 ```
 
 오퍼랜드 형태

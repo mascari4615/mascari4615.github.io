@@ -233,7 +233,7 @@ printf("int a = 15213;\n");
 show_bytes((pointer) &a, sizeof(int));
 ```
 
-```Assembly
+```c
 int a = 15213;
 0x11ffffcb8 0x6d → 0110 1101
 0x11ffffcb9 0x3b → 0011 1011
