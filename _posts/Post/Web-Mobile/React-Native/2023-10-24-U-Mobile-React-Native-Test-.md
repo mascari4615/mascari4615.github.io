@@ -80,18 +80,18 @@ export default function App()
 ---
 
 ```js
-{ /* XML(Markup Language) : Attribute, TS(Programming Language) : Property */}
+{ /* XML(Markup Language) : Attribute, TS(Programming Language) : Property */ }
 <Person name = "Jack" age = {22}/>
 
-{ /* 안쪽 중괄호 : 객체 생성, 바깥쪽 중괄호 : JSX 구문 */}
+{ /* 안쪽 중괄호 : 객체 생성, 바깥쪽 중괄호 : JSX 구문 */ }
 <Person person = {{name: 'Jack', age: 32}}/>
 
-{ /* @ */}
-{ /* 가상 DOM 객체 = createElement(컴포넌트 이름 or 문자열, `속성 객체`, 자식 컴포넌트) */}
+{ /* @ */ }
+{ /* 가상 DOM 객체 = createElement(컴포넌트 이름 or 문자열, `속성 객체`, 자식 컴포넌트) */ }
 
-{ /* or */}
+{ /* or */ }
 
-{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */}
+{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */ }
 
 export type IPerson
 {
@@ -113,11 +113,11 @@ export const createRandomPerson = (): IPerson =>
 	}
 }
 
-{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */}
+{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */ }
 
 import React from 'react'
-{ /* import type : TS→JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */}
-{ /* FC : Function Component */}
+{ /* import type : TS→JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */ }
+{ /* FC : Function Component */ }
 import type {FC} from 'react'
 import * as D from './~'
 
@@ -128,13 +128,13 @@ export type PersonProps =
 
 const Person: FC<PersonProps> = ({person}) =>
 {
-	{ /* 객체 그대로 출력할 수 없어서, 공백 2개 붙은 문자열로, Like .ToString */}
+	{ /* 객체 그대로 출력할 수 없어서, 공백 2개 붙은 문자열로, Like .ToString */ }
 	return <Text>{JSON.stringify(person, null, 2)}</Text>
 }
 
 export default Person
 
-{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */}
+{ /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */ }
 
 import Person from './~'
 import * as D from './~'
