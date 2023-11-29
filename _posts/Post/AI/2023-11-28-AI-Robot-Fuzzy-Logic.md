@@ -1,12 +1,15 @@
 ---
-title: "🌗 Fuzzy"
+title: "🌗 Fuzzy Logic"
 date: 2023-11-28. 10:08
-# last_modified_at: 2023-11-28. 10:08
+last_modified_at: 2023-11-29. 14:59
 categories: ⭐Computer 🌗AI
-tags: AI Fuzzy
+tags: AI Fuzzy-Logic
 ---
 
-## 💫 퍼지 이론  
+@ PDF, The Fuzzy Axioms 표, MIN MAX 거꾸로  
+@ 교집합이면 작은 값, 합집합이면 큰 값  
+
+## 💫 퍼지 이론
 
 ---
 
@@ -67,3 +70,5 @@ QoS에 Fuzzy를 이용한다는 것은
 
 초매개변수 pDelta 조절/Tuning할 값  
 rate = rate + (m_low(rate) \* pDelta) - (m_high(rate) \* pDelta)  
+
+### 🫧 예시 - 배터리 온도 조절
