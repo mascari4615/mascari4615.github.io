@@ -1,7 +1,7 @@
 ---
 title: "🍋 MapleStory"
 date: 2023-06-09. 19:38
-last_modified_at: 2023-06-09. 19:38
+last_modified_at: 2023-11-29. 08:14
 categories: 🌳Memo 🍋Game
 ---
 
@@ -17,6 +17,7 @@ categories: 🌳Memo 🍋Game
   - 0723 - 255
 
 - 0723 5500 마스터
+- 1129 8080 그랜드 마스터
 
 ### 🍋 확인 목록
 

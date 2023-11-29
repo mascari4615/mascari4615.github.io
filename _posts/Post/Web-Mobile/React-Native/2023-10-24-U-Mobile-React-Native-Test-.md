@@ -84,7 +84,7 @@ export default function App()
 <Person name = "Jack" age = {22}/>
 
 { /* 안쪽 중괄호 : 객체 생성, 바깥쪽 중괄호 : JSX 구문 */ }
-<Person person = {{name: 'Jack', age: 32}}/>
+<Person person ={% raw %}{{name: 'Jack', age: 32}}{% endraw %}/>
 
 { /* @ */ }
 { /* 가상 DOM 객체 = createElement(컴포넌트 이름 or 문자열, `속성 객체`, 자식 컴포넌트) */ }
