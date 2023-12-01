@@ -18,7 +18,7 @@ categories: ⭐Computer 🌑Computer-General
 1. 관리자 권한으로 PowerShell 실행
 2. Set-ExecutionPolicy로 권한 상태를 RemoteSigned로 설정
 
-```Console
+```console
 Set-ExecutionPolicy RemoteSigned
 Get-ExecutionPolicy
 ```
