@@ -11,7 +11,7 @@ tags: Programming-Language Pointer ReferenceType
 ---
 
 교재와 기타 자료들을 참고하여, Pointer와 Reference Type들을 정리하고 이해하라.  
-교재 'Concepts of Programing Languages', 6.11 Pointer와 Reference Type  
+교재 'Concepts of Programming Languages', 6.11 Pointer와 Reference Type  
 
 ## 💫 Pointer
 

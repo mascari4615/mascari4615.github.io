@@ -15,6 +15,8 @@ categories: ⭐Computer 🌑Computer-General
 tags: Programming-Language
 ---
 
+{% include custom/programming-language.html %}
+
 2023-09-08. 08:59  
 U-Programming-Language, 프로그래밍 언어 과목 글 계승  
 
@@ -32,7 +34,7 @@ U-Programming-Language, 프로그래밍 언어 과목 글 계승
 Fortran과 Ada는 소괄호 `()`를 사용하지만,  
 대부분 언어에서 대괄호 `[]`를 사용하고 있기에,  
 
-[배열 설명에](https://mascari4615.github.io/posts/Programing-Language-Data-Type-Array/) `원소 참조를 위해 대괄호 []를 사용` 라고 표현했다.  
+[배열 설명에](https://mascari4615.github.io/posts/Programming-Language-Data-Type-Array/) `원소 참조를 위해 대괄호 []를 사용` 라고 표현했다.  
 
 때문에 특정 언어에는 해당되지 않는 내용이 존재한다.  
 
