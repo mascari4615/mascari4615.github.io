@@ -2,7 +2,8 @@
 title: "🌑 프로그래밍 언어 - 이름, 바인딩, 영역"
 date: 2023-10-20. 10:32
 # last_modified_at: 2023-10-20. 10:32
-last_modified_at: 2023-11-03. 11:06
+# last_modified_at: 2023-11-03. 11:06
+last_modified_at: 2023-12-01. 10:49
 categories: ⭐Computer 🌑Computer-General
 tags: ProgrammingLanguage
 ---
@@ -15,7 +16,7 @@ tags: ProgrammingLanguage
 
 - 명령형 언어
   - (현대 컴퓨터) = 폰 노이만 컴퓨터에 대한 추상화
-  - 메모리에 데이터/Instruction을 넣고, 하나씩 커내고 Decode하고 실행시키는
+  - 메모리에 데이터/Instruction을 넣고, 하나씩 꺼내고 Decode하고 실행시키는
   - 데이터의 저장과 데이터 가공을 위한 연산으로 구성
   - 메모리 셀에 대한 언어적 추상화 → 변수, 배열 등
 
@@ -27,9 +28,9 @@ tags: ProgrammingLanguage
   - 값이 한 번 변수에 배정되면 값의 변경을 허용하지 않음
   - 하지만 많은 함수형 언어에서는 명령형 언어처럼 값의 변경을 허용
 
-### Name(Identifier) 이름(식별자)
+### Name 이름, Identifier 식별자
 
-Name 이름은 변수의 속성 중 하나 → Variable Name 변수명  
+이름은 변수의 속성 중 하나 → Variable Name 변수명  
 이름은 Subprogram 부프로그램, Formal Parameters 형식 인자, 다른 프로그램 구성 요소와도 관련이 있음  
 
 이름 Name = 식별자 Identifier  
@@ -41,9 +42,8 @@ Name 이름은 변수의 속성 중 하나 → Variable Name 변수명
 - 이름
   - 프로그램에서 개체를 식별하기 위해 사용되는 문자열
   - 프로그래밍 언어마다 식별에 참여하는 길이는 다름
-    - Fortran 95+ : 31자
     - C99 : Linker가 External Name의 31자까지만 허용 ← 31자 이후는 비교 안함
-    - Java, C#, Ada : 제한 X
+    - Java, C# : 제한 X
     - C++ : 구현자에 따라 다름
 
 @ 왜 변수명을 숫자로 시작하면 안되나?  
@@ -73,11 +73,8 @@ Reserved Word 예약어
 
 Keyword 키워드  
 → 어떤 문맥에서만 특별하게 사용되는 단어  
-→ Fortran에서 키워드는 예약어가 아님 ← 가독성이 떨어짐  
 
-키워드 = 예약어 (대부분 언어)  
-→ 일부 키워드 != 예약어  
-→ Kotlin : Hard Keyword(Reserved Word), Soft Keyword, Modifiable Keyword  
+키워드와 예약어는 동일  
 
 일정정의 예약어 정의함 (대부분 언어)  
 → C : 44, Java : 46, Python : 35, ...  
@@ -100,10 +97,10 @@ Keyword 키워드
 변수의 주소  
 → 변수와 연관된 기계 메모리 주소  
 → 동일한 변수가 다른 시점에 다른 주소와 연관되는 것이 가능, I.E. 스택 변수 → 저장된 호출 시기에 따라 주소 다름  
-→ L-Value라 불림 : 배정문의 좌측의 위치  
+  → L-Value라 불림 : 배정문의 좌측의 위치  
 → 여러 개의 변수가 동일한 주소를 가지는 것이 가능 → 별칭  
-→ 공용체, 포인터, 참조 변수  
-→ 별칭은 가독성을 떨어뜨리는 요소가 되기도  
+  → 공용체, 포인터, 참조 변수  
+  → 별칭은 가독성을 떨어뜨리는 요소가 되기도  
 
 타입  
 → 변수가 저장할 수 있는 값들의 범위와 연산들의 집합을 결정  
@@ -112,6 +109,9 @@ Keyword 키워드
 값  
 → 값은 그 변수에 연관된 메모리 셀이나 셀들의 내용 → 추상적인 메모리 셀  
 → R-Value라고 불림 : 변수가 배정문의 우측의 위치  
+L-value vs R-value  
+int x = 5;  
+x = x + 1;  
 
 영역  
 → 변수가 사용될(접근될) 수 있는 범위  
@@ -123,6 +123,8 @@ Keyword 키워드
 
 속성과 개체간의 연관  
 → 변수와 타입, 변수와 값, 변수와 주소, 기호와 연산 등  
+
+@ 사진 7_0000  
 
 - 바인딩 시간 (Binding Time)
   - 속성과 개체간의 연관이 일어나는 시점
@@ -138,15 +140,15 @@ Keyword 키워드
   - 실행 시간 (Run time)
     - 지역 변수와 그의 주소
 
-I.E.  
+i.e.  
 int count = 0;
 count = count + 5;  
 
-count Type : Compile TIme  
-count 값의 범위 : Design Time  
-\+의 의미 : Compile Time (피연산자 Type 결정 시)  
-Literal 5의 표현 : Design Time  
-count 값 : Run Time  
+count Type : Compile TIme 바인딩  
+count 값의 범위 : Design Time 설계 시간 바인딩  
+\+의 의미 : Compile Time (에 피연산자의 타입 결정되었을 때 바인딩)  
+Literal 5의 표현 : Design Time 설계 시간 바인딩  
+count 값 : Run Time 실행 시간 바인딩  
 
 실매개변수와 형식매개변수 간의 바인딩이 어떻게 일어나는가를 이해하는 것이 중요  
 
@@ -159,7 +161,7 @@ count 값 : Run Time
 → 실행 시간 중에 바인딩이 일어나거나 실행 과정에서 바인딩이 변경될 수 있는 경우  
 
 HW 바인딩은 고려하지 않음  
-→ Virtual Memory와 (Real?) Memory 사이의 바인딩  
+→ Virtual Memory와 (Real?) 실메모리 사이의 바인딩  
 
 ### 타입 바인딩
 
@@ -171,27 +173,18 @@ HW 바인딩은 고려하지 않음
 - 정적 타입 바인딩
   - 컴파일 시에 변수의 타입이 결정 됨
     - 명시적 선언
-    - 변수 이름들을 나열하고 이들이 어떤 타입인지를 명세하여 바인딩
-    - 컴파일러 방식에서 사용
-      - int count, sum;
+      - 변수 이름들을 나열하고 이들이 어떤 타입인지를 명세하여 바인딩
+      - 컴파일러 방식에서 사용
+        - int count, sum;
   - 묵시적 선언
     - 디폴트 규칙을 통해서 변수에 타입을 바인딩
     - 약간의 편리성을 주나 오류를 탐지하는 것을 방해하여 신뢰성에 유해
     - 컴파일러 방식이나 인터프리터 방식에서 사용
-      - FORTRAN
-        - I,J,K,L,M.N의 대소문자로 시작하면 Integer, 그 외 문자로 시작하면 Real 타입
-        - 묵시적 선언을 막기위해 Implicit none구문 사용
-      - PHP
-        - 특정 특수문자의 사용으로 묵시적 선언이 가져오는 신뢰성 저하를 방지
-          - $로 시작: 스칼라 변수
-          - @로 시작: 배열 변수
-          - %로 시작: 해시 구조 변수
   - 타입 추론
     - 문맥을 이용하여 타입 결정, 프로그램 단위 내에서 타입은 정적 바인딩
     - C#에서의 var
       - var sum = 0; // run-time 에 type이 결정되는 것이 아니라
-      - var str = "Hello world"; // compile-time에 type이 결정됨
-      - // javascript의 var와 다름
+      - var str = "Hello world"; // compile-time에 type이 결정됨, javascript의 var와 다름
 
 - 동적 타입 바인딩
   - 변수의 타입이 실행시간에 변함
@@ -204,7 +197,6 @@ HW 바인딩은 고려하지 않음
       - list = 5
     - C#
       - dynamic any;
-  - @ TOOD : 여기까지 시험범위
   - 순수 객체지향 언어에서 모든 데이터는 객체이며, 임의의 변수는 임의의 객체를 참조할 수 있음 → 모든 변수는 참조 타입
     - Java는 특정 타입의 값을 제한되게 참조하도록 설계
   - 장점
@@ -216,6 +208,8 @@ HW 바인딩은 고려하지 않음
       - 변수와 연관되는 실행시간 서술자(descriptor)를 가져야하고 변수마다 다양한 기억 공간을 요구하므로 이를 실행시간에 관리해야 함
       - 정적 타입 바인딩 언어보다 매우 느리다
         - 정적 타입 언어는 모든 변수의 타입을 컴파일 타임에 알 수 있으므로 그에 최적화된 실행 코드의 생성이 가능 → 동적 타입 언어는 실행시간에 알 수 있음
+
+@ 중간 고사 범위
 
 ## 💫 기억공간 바인딩과 존속기간
 
@@ -243,9 +237,7 @@ Dangling Pointer
 
 - 암묵적 힙-동적 변수
 
-## 💫 ~
-
----
+### 개요
 
 변수의 기억공간 바인딩은 명령형 프로그래밍 언어의 근본적 특징
 
@@ -286,6 +278,8 @@ Dangling Pointer
     - 부프로그램이 과거 데이터의 접근에 제약   @ foo에 제어가 들어가 있을 때, 이전 (main) 요소에 대해서는 접근이 불가능하다
 
 @ C/CPP, auto  
+
+@ 사진 7_0001  
 
 - 명시적 힙-동적 변수
   - 프로그래머가 명시적으로 실행시간 명령어에 의해서 할당되고 회수되는 `이름없는` 메모리 셀
@@ -356,7 +350,7 @@ Garbage Manager - 참조 count
       - 부프로그램(혹은 함수)는 정적 영역을 생성
       - 부프로그램 중첩이 가능한 언어
         - 중첩된 부프로그램을 통해 중첩된 정적 영역의 생성이 가능
-        - Ada, JavaScript, Common LISP, Scheme, Python 등
+        - JavaScript, Python 등
     - 부프로그램 중첩이 가능하지 않은 언어
       - 부프로그램의 중첩은 허용치 않으나 중첩된 클래스 정의나 블록에 의해서 중첩된 정적 영역 생성 가능
       - C기반 언어들
@@ -414,7 +408,7 @@ i.e. Python, Scope Resolution Rule - LEGB Local Enclosed Global Built-in, 다 �
     - JavaScript에서 var로 선언된 변수는 어디에 선언되어 있든 hoisting 됨 (let은 안됨)
       - JavaScript에서 변수의 선언 없이 변수를 사용하는 것이 가능, 이 경우 변수의 값은 undefined가 됨
 
-- C, C++, Java, C#의 제어문 내 초기화 변수는 해당 제어문 내에서만 의미를 가짐 
+- C, C++, Java, C#의 제어문 내 초기화 변수는 해당 제어문 내에서만 의미를 가짐
 
 ### 전역 영역
 
@@ -479,8 +473,6 @@ void Sub2()
 ```
 
 - 부프로그램의 호출 순서에 따라서 변수의 영역이 결정
-  - APL, SNOBOL4, LISP의 초기 버전에서 변수의 영역은 동적
-  - Perl과 Common Lisp의 경우 디폴트 영역 메커니즘은 정적이나 동적 영역을 갖도록 선언 가능
 
 - 문제점
   - 부프로그램 내의 지역 변수가 다른 실행 중인 부프로그램에 가시적이다.
@@ -497,7 +489,6 @@ void Sub2()
 
 - 동적 영역은 정적 영역 만큼 사용되지 않음
   - 장점 보다 문제점이 더 많기 때문
-  - Lisp의 경우 최신버전에서 동적 영역을 정적 영역으로 대치시킴
 
 @ 잘안씀
 
@@ -519,16 +510,17 @@ i.e. 함수 안 static 변수
 
 ## 이름 상수
 
-딱 한 번, 값에 바인딩 되는 변수  
-상수는 가독성과 신뢰성을 향상  
+딱 한 번만 값에 바인딩 되는 변수  
+가독성과 신뢰성을 향상  
 i.e. 3.1415 → PI  
 프로그램을 매개 변수화 하는데 아주 유용  
 
-const(C), #define(Preprocessor)  
-const가 Checking/Debugging 더 유리  
+- C
+  - const (C) or #define (Preprocessor)
+  - const가 타입 Checking/Debugging 시 유리
 
-- C/C++/Ada/Java에서 이름 상수에 대한 동적 바인딩을 허용
+- C/C++/Java에서 이름 상수에 대한 동적 바인딩을 허용
   - 하지만 한번만 허용
 - C#: const 정적 바인딩, readonly 동적 바인딩 허용
 - Python은 이름 상수 허용 문법 없음
-  - 단지 이름 규약으로 해 
+  - 단지 이름 규약으로 해

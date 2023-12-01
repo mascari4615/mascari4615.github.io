@@ -1,7 +1,7 @@
 ---
 title: "🌑 프로그래밍 언어 - Data Type"
 date: 2023-11-24. 09:20
-# last_modified_at: 2023-11-24. 09:20
+last_modified_at: 2023-12-01. 11:52
 categories: ⭐Computer 🌑Computer-General
 tags: ProgrammingLanguage
 ---
@@ -20,15 +20,9 @@ tags: ProgrammingLanguage
 - 프로그래밍 작업을 용이하게 수행할 수 있는 정도를 결정하는 중요한 요소
   - 실세계에 속한 객체들과 잘 매칭되는 데이터 타입들을 많이 제공하는 것이 중요
 - 초창기 아주 적은 수의 데이터 타입만 제공
-  - 초기 Fortran의 경우 연결 리스트와 트리를 배열을 이용하여 구축
+  - 초기 Fortran의 경우, 연결 리스트와 트리를 포인터 없이 배열을 이용하여 구축
 - 시간이 흐름에 따라  데이터 타입에 대한 개념은 계속 발전
-- COBOL
-  - 십진수 데이터 값의 정확도(accuracy)를 명세하는 것을 허용
-  - 레코드 타입 제공
-- PL/I
-  - 정확도 명세 기능을 정수와 부동 소수점 타입으로 확장
-  - 많은 데이터 타입을 소개
-- ALGOL 60
+- i.e. ALGOL 60
   - 사용자 정의 타입 제공
     - 프로그래머가 필요에 따라서 데이터 구조를 설계하는 것을 허용
     - 기본 타입과 유연한 구조 정의 연산자 제공
@@ -50,4 +44,4 @@ tags: ProgrammingLanguage
 - 명령형 언어에서 제공되는 구조화 데이터 타입 -> 배열과 레코드
   - 타입 연산자 혹은 구성자(Constructor)와 함께 사용
     - C의 경우 배열은 {}과 포인터 *, 구조체는 struct 를 사용
-  - 연상 배열(Map, Dictionary)의 경우 함수형 프로그래밍 언어(LISP)에서 소개된 후 Python, Java, JavaScript, C#등에 추가
+  - 연상 배열(Map, Dictionary)의 경우 함수형 프로그래밍 언어(LISP)에서 소개된 후 여러 언어에 추가

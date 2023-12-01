@@ -138,6 +138,7 @@ categories: ⭐Computer 🌖Computer-OS
       - 최하위바이트 LSB가 가장 하위 주소에 배치
       - Come First
 
+@ 네트워크는 Big Endian 쓰기로  
 @ 달걀 사진?  
 
 - Byte Ordering Example

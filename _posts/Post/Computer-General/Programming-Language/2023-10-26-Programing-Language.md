@@ -9,7 +9,8 @@ date: 2023-10-26. 13:26
 # last_modified_at: 2023-10-26. 13:26
 # last_modified_at: 2023-10-27. 08:40
 # last_modified_at: 2023-11-10. 08:58
-last_modified_at: 2023-11-21. 16:42
+# last_modified_at: 2023-11-21. 16:42
+last_modified_at: 2023-12-01. 11:39
 categories: ⭐Computer 🌑Computer-General
 tags: ProgrammingLanguage
 ---
@@ -20,6 +21,26 @@ U-Programming-Language, 프로그래밍 언어 과목 글 계승
 ---
 
 @ 2, 3차시
+
+## 💫 _
+
+---
+
+강의 내용 중, 일부 언어에만 해당되는 특수 케이스는 제외하고, 대부분 언어에서 통용되는 일반적인 내용만 정리했다.  
+
+예를 들어 배열의 원소 참조를 위해,  
+Fortran과 Ada는 소괄호 ()를 사용하지만,  
+대부분 언어에서 대괄호 []를 사용하고 있기에,  
+
+[배열 설명에](https://mascari4615.github.io/posts/Programing-Language-Data-Type-Array/) `원소 참조를 위해 대괄호 []를 사용` 라고 표현했다.  
+
+때문에 특정 언어에는 해당되지 않는 내용이 존재한다.  
+
+또한, 필자가 주관으로, 주된 언어가 아니라고 생각되는 언어에 대한 내용은, 꼭 필요한 것이 아니라면 생략했다.  
+
+## 💫 서론
+
+---
 
 [참고](https://www.geeksforgeeks.org/language-evaluation-criteria/)  
 
