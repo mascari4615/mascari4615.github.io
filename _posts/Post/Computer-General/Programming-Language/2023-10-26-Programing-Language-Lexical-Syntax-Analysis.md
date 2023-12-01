@@ -3,10 +3,10 @@ title: "🌑 프로그래밍 언어 - 어휘 분석, 구문 분석"
 date: 2023-10-26. 13:37
 last_modified_at: 2023-10-26. 13:37
 categories: ⭐Computer 🌑Computer-General
-tags: ProgrammingLanguage
+tags: Programming-Language
 ---
 
-### 💫 언어를 구현하는 세 가지 접근
+## 💫 언어를 구현하는 세 가지 접근
 
 ---
 
@@ -40,7 +40,7 @@ BNF 사용 → 문맥 자유 문법
     - 어휘 분석기 : 플랫폼 종속, 파일 Read 과정에서 입력 버퍼 사용
     - 구문 분석기 : 플랫폼 독립일 수 있음
 
-#### Compilation 과정
+### 🫧 Compilation 과정
 
 1. C Source File (Temp.c)
    - By C Preprocessor ↓
@@ -52,7 +52,7 @@ BNF 사용 → 문맥 자유 문법
    - By Linker ↓
 5. Executable Code File (Temp)
 
-#### Compile 과정 (컴파일러 내부 과정), Lex, Yacc
+### 🫧 Compile 과정 (컴파일러 내부 과정), Lex, Yacc
 
 1. Source Program
 2. Lexical Analyzer
@@ -80,7 +80,7 @@ Lexical Analyzer
 실습  
 Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~  
 
-### 💫 어휘 분석
+## 💫 어휘 분석
 
 ---
 
@@ -127,7 +127,7 @@ Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~
 - 어휘분석기는 심볼테이블을 구축
   - 심볼테이블: 이름(Identifier)들로 구성된 데이터베이스 역할
 
-### 💫 Parse
+## 💫 Parse
 
 ---
 
@@ -141,14 +141,14 @@ Parser
 Parse Tree  
 번역을 위한 기반으로 사용  
 
-#### 구문 분석의 목적 (Parser 역할)
+### 🫧 구문 분석의 목적 (Parser 역할)
 
 - 입력 프로그램을 검사하여 구문적으로 올바른지를 판단
   - 오류가 발견되면 진단 메시지를 생성 및 복구
   - 최대한 많은 Error 발견
 - 구문적 오류가 없는 프로그램에 대해서는 완전한 파스 트리를 구축
 
-#### Parser 분류
+### 🫧 Parser 분류
 
 Top-Down, Bottom-Up Parse
 
@@ -235,7 +235,7 @@ Top-Down, Bottom-Up Parse
   - 프로그래밍 언어에 대한 모든 파서는 푸시다운 오토마타
   - 재귀-하강, 이동-감축 파서도 푸시다운 오토마타에 해당
 
-#### Parse Algorithm 복잡도
+### 🫧 Parse Algorithm 복잡도
 
 임의의 모호하지 않는 문법에 대한 파싱은 O(n^3)  
 다양한 기법을 활용하여 상업적 파서의 복잡도 O(n)으로 줄임  
@@ -277,7 +277,7 @@ Segmentation Fault Error
 
 ---
 
-#### 컴파일과 실행 단계  
+### 🫧 컴파일과 실행 단계  
 
 @ 언어 디자인 단계  
 @ 컴파일러 구현 단계  

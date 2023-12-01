@@ -3,7 +3,7 @@ title: "🌑 프로그래밍 언어 - Primitive Data Type"
 date: 2023-11-24. 09:20
 last_modified_at: 2023-12-01. 10:20
 categories: ⭐Computer 🌑Computer-General
-tags: ProgrammingLanguage
+tags: Programming-Language Data-Type
 ---
 
 ## 💫 기본 데이터 타입 - Primitive Data Type

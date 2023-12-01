@@ -4,7 +4,7 @@ date: 2023-10-26. 13:32
 # last_modified_at: 2023-10-27. 09:17
 last_modified_at: 2023-11-24. 10:51
 categories: ⭐Computer 🌑Computer-General
-tags: ProgrammingLanguage
+tags: Programming-Language
 ---
 
 @ 구문론과 의미론

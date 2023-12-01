@@ -3,7 +3,7 @@ title: "🌑 프로그래밍 언어 - Pointer and Reference Types"
 date: 2023-11-21. 16:42
 # last_modified_at: 2023-11-21. 16:42
 categories: ⭐Computer 🌑Computer-General
-tags: ProgrammingLanguage Pointer ReferenceType
+tags: Programming-Language Pointer ReferenceType
 ---
 
 ## 💫 과제 1

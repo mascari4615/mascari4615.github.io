@@ -3,7 +3,7 @@ title: "🌑 프로그래밍 언어 - Data Type"
 date: 2023-11-24. 09:20
 last_modified_at: 2023-12-01. 11:52
 categories: ⭐Computer 🌑Computer-General
-tags: ProgrammingLanguage
+tags: Programming-Language Data-Type
 ---
 
 ## 💫 데이터 타입 - Data Type
