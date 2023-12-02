@@ -19,6 +19,6 @@ categories: ⭐Computer 🌑Computer-General
 2. Set-ExecutionPolicy로 권한 상태를 RemoteSigned로 설정
 
 ```console
-Set-ExecutionPolicy RemoteSigned
-Get-ExecutionPolicy
+$ Set-ExecutionPolicy RemoteSigned
+$ Get-ExecutionPolicy
 ```
