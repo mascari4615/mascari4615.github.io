@@ -1,7 +1,8 @@
 ---
 title: "🌘 React Native 리액트 네이티브 - Context"
 date: 2023-11-15. 13:16
-last_modified_at: 2023-11-22. 14:54
+# last_modified_at: 2023-11-22. 14:54
+last_modified_at: 2023-12-05. 15:13
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native Context
 ---
@@ -9,6 +10,8 @@ tags: Mobile React-Native Context
 ## 💫 Context
 
 ---
+
+@ U 기말고사 출제 : Context  
 
 컴포넌트의 속성은 부모 컴포넌트가 자식 컴포넌트로 어떤 정보를 전달하려고 할 때 사용하는 메커니즘이다.  
 
@@ -139,6 +142,8 @@ export const useSome = () =>
 ## 💫 useRef, useImperativeHandle
 
 ---
+
+@ U 기말고사 출제 : useRef  
 
 useRef와 useImperativeHandle 훅은 ref 속성에 적용하는 값을 만드는 훅이다.  
 
