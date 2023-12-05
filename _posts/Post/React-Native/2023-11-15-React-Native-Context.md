@@ -11,7 +11,7 @@ tags: Mobile React-Native Context
 
 ---
 
-@ U 기말고사 출제 : Context  
+@ U 기말고사 출제 : Context, 306p, useToggleTheme, useContext  
 
 컴포넌트의 속성은 부모 컴포넌트가 자식 컴포넌트로 어떤 정보를 전달하려고 할 때 사용하는 메커니즘이다.  
 
@@ -143,7 +143,7 @@ export const useSome = () =>
 
 ---
 
-@ U 기말고사 출제 : useRef  
+@ U 기말고사 출제 : useRef, 306p  
 
 useRef와 useImperativeHandle 훅은 ref 속성에 적용하는 값을 만드는 훅이다.  
 
@@ -156,7 +156,7 @@ function useRef<T>(initialValue: T): MutableRefObject<T>;
 function useRef<T>(initialValue: T | null): RefObject<T>;
 ```
 
-### 💫 ref 속성
+### 🫧 ref 속성
 
 리액트나 리액트 네이티브에서 제공하는 코어 컴포넌트 중에는 메소드를 제공하는 것이 있다.  
 TextInput - (focus, blur), ScrollView / FlatList - (scrollToTop, scrollToEnd)  
@@ -165,7 +165,7 @@ TextInput - (focus, blur), ScrollView / FlatList - (scrollToTop, scrollToEnd)
 
 리액트와 리액트 네이티브는 컴포넌트가 제공하는 메소드를 호출할 수 있도록 ref 속성을 제공한다. 컴포넌트의 인스턴스를 얻을 수 있으며 이를 이용하여 ref.메소드() 형태로 호출할 수 있다.  
 
-### 💫 ref 속성의 타입
+### 🫧 ref 속성의 타입
 
 ```js
 // T는 FlatList, ScrollView, TextInput 같은 컴포넌트

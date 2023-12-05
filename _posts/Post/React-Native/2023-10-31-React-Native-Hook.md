@@ -3,13 +3,11 @@ title: "🌘 React Native 리액트 네이티브 - Hook"
 date: 2023-10-31. 15:31
 # last_modified_at: 2023-11-14. 15:14
 # last_modified_at: 2023-11-21. 15:09
-last_modified_at: 2023-11-22. 13:07
+# last_modified_at: 2023-11-22. 13:07
+last_modified_at: 2023-12-05. 15:55
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
-
-@ 기말고사 → useMemo  
-@ 기말고사 → 216p 리액트훅의 구현 원리  
 
 ## 💫 리액트 훅 - React Hooks
 
@@ -99,11 +97,15 @@ const 캐시데이터 = useMemo(초기데이터, [의존성1, 의존성2, ...])
 useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?  
 → useMemo를 쓰면 함수와 그 `결과 값`을 함께 메모이제이션  
 
+@ 222p, `useMemo(() => fibonacci, [])...` 동일한 입력값에 대해 함수가 반복해서 호출되는 것을 방지 (시험 X)  
+
 ## 💫 useCallback
 
 ---
 
 @ U 기말고사 출제 : useCallback  
+@ 224p, 쓰지 않을 때의 비효율성  
+@ vs useMemo는 결과값을 기억, useCallback은 콜백 함수 자체를 기억  
 
 ```js
 const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
@@ -140,10 +142,9 @@ const [값, Setter] = useState<S>(초깃값)
 { /* 재렌더링 때문에 useState 훅은 값과 Setter 함수를 Tuple 형태의 배열로 반환 */}
 ```
 
-함수 컴포넌트 내부에 클래스의 멤버 속성처럼 값을 유지하고 변경할 수 있는 상태를 만들 수 있게 한다  
+`함수 컴포넌트 내부에 클래스의 멤버 속성처럼 값을 유지하고 변경할 수 있는 상태를 만들 수 있게 한다`  
 
 상태 저장 (지역변수를 전역변수처럼)  
-Setter 호출 시 값 변경/재렌더링, 때문에 값과 Setter를 Tuple 형태의 배열로 반환  
 
 @ 배열에 적용하는 비구조화 할당 구문  
 할당 받는 변수 이름을 자유롭게  
@@ -167,7 +168,7 @@ Setter 호출 시 값 변경/재렌더링, 때문에 값과 Setter를 Tuple 형�
 ---
 
 @ U 중간고사 출제 : useEffect  
-@ U 기말고사 출제 : useEffect  
+@ U 기말고사 출제 : useEffect (setInterval?)  
 
 컴포넌트의 생명주기와 관련있는 생명주기 훅.  
 컴포넌트 마운트, 의존 목록 조건, 언마운트 시 처리 할 작업.  
@@ -248,7 +249,5 @@ Something like Design Pattern
 ## 💫 useRef, useImperativeHandle
 
 ---
-
-@ U 기말고사 출제 : useRef  
 
 [Context, Ref](https://mascari4615.github.io/posts/React-Native-Context/)
