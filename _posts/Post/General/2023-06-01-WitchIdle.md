@@ -4,7 +4,9 @@ date: 2023-06-01. 10:25
 # last_modified_at: 2023-06-01. 10:25
 # last_modified_at: 2023-10-11. 17:13
 # last_modified_at: 2023-11-22. 08:07
-last_modified_at: 2023-11-29. 13:12
+# last_modified_at: 2023-11-29. 13:12
+# last_modified_at: 2023-12-02. 15:41
+last_modified_at: 2023-12-05. 08:42
 categories: 🔖Creative 📕Dev
 ---
 
@@ -31,12 +33,24 @@ categories: 🔖Creative 📕Dev
 - [] 마도서
 - [] 플레이어블 캐릭터 n개
 - [] 의뢰
+- 메모
+  - [] 무적 시간
+  - 데미지 텍스트 폰트 및 크기 및 위치
+  - 아이템 획득 팝업 크기
+  - 카메라
+  - 몬스터 스폰 범위
+  - 스킬 슬롯
+  - [] 레벨, 경험치, 체력 초기화
+  - [] 피격 이펙트 (카메라 쉐이킹, 이미지)
+  - [] 경험치 오브젝트 획득 애니메이션
+  - [] 난이도, 난이도 UI
+  - [] 몬스터 스폰 소환진
 
 ## 🎲 기획
 
 ---
 
-PC 로그라이크/뱀서류 (대충 내가 좋아하는 거 다 짬뽕)  
+PC 스타듀밸리 + 로그라이크/뱀서류 (대충 내가 좋아하는 거 다 짬뽕)  
 패키지 게임?  
 
 ### 👾 던전 (기본 플레이 단위)
@@ -165,6 +179,8 @@ SkillObject에서는 최종 스탯을 가지고 계산
 포탈 있는 맵 (푸키먼, 메이플 같은)  
 던전 or 필드 몹 (원신, 스타레일, 푸키먼 소드실드 같은)  
 
+행동 트리  
+
 인게임 재화로 리롤 (제한, 최대 등급 - 1 천장)  
 
 자석 (천사 깃털 → 드링크)  
@@ -173,6 +189,7 @@ SkillObject에서는 최종 스탯을 가지고 계산
 블루 아카이브 스킬 같이?  
 
 퀘스트 유니온 - 마을바다 있는 잡 퀘 클리어 수에 따라 스탯 증가?  
+지역 코인  
 
 - 사실과 변수
   - 개념적
@@ -309,8 +326,6 @@ We will right back
 [모델로 만든다면](https://twitter.com/artofsully/status/1630299422281150465?s=20)  
 [](https://twitter.com/violxiv/status/1621154673238609922?s=20)  
 
-[](https://twitter.com/arsenezenigata/status/1679849745018241025?s=20)
-
 [](https://twitter.com/mischiefanimals/status/1642199905534980100?s=20)  
 [](https://twitter.com/mischiefanimals/status/1627686200096980994?s=20)  
 [](https://twitter.com/mischiefanimals/status/1637202361260167169?s=20)  
@@ -318,25 +333,30 @@ We will right back
 [](https://twitter.com/mischiefanimals/status/1634992387947896832?s=20)  
 [](https://twitter.com/mischiefanimals/status/1636740736153444354?s=20)  
 [](https://twitter.com/mischiefanimals/status/1638925789742727169?s=20)  
+[](https://twitter.com/memesbreakcore/status/1554691889307291648?s=20)  
+[](https://twitter.com/memesbreakcore/status/1632520920932704256?s=20)  
+
 [](https://twitter.com/RevitaGame/status/1670904476729856001?s=20)  
 [](https://twitter.com/eiken3kyuboy/status/1679986765959168001?s=20)  
 [](https://twitter.com/grynmoor/status/1641268043228540933?s=20)  
 [](https://twitter.com/NoContextHumans/status/1656723211587813395?s=20)  
 
-[](https://twitter.com/memesbreakcore/status/1554691889307291648?s=20)  
-[](https://twitter.com/memesbreakcore/status/1632520920932704256?s=20)  
-
-[](https://twitter.com/loopixelart/status/1633846358514991105?s=20)  
+[슬라임](https://twitter.com/loopixelart/status/1633846358514991105?s=20)  
 [](https://twitter.com/kindanicegames/status/1625041703081058304?s=20)  
 [](https://twitter.com/AlexandreKadri/status/1642439900631793665?s=20)  
-[](https://twitter.com/wombatstuff/status/1659144219976511488?s=20)  
+[사망 연출](https://twitter.com/wombatstuff/status/1659144219976511488?s=20)  
 [](https://twitter.com/aniwarsofficial/status/1622718146942537728?s=20)  
 [](https://twitter.com/andre_mc/status/1641822004520026114?s=20)  
+[얼건 그웬](https://x.com/monakan_japan/status/1639639372621574144?s=20)  
+
+[설산](https://x.com/ToolTravle/status/1621794441643319299?s=20)  
 
 :/ ← 귀여움  
 [벽돌깨기 ← 재밌음](https://www.youtube.com/shorts/M3nVHQ3feT4)  
 덱빌딩?  
 페글릿?  
+
+[TimeScale 분리](https://x.com/saewooh/status/1686563906268069888?s=20)  
 
 [](https://youtu.be/gPyC_1Eknmg)  
 [](https://youtu.be/z_4M36LILEA)  
@@ -374,9 +394,3 @@ Exp Orb 숙성
 
 통통 튀면서 움직이게  
 종이 인형처럼  
-
-- 재화
-  - 냥 (골드)
-  - 지역 코인
-  - 아이템
-  - 위상
