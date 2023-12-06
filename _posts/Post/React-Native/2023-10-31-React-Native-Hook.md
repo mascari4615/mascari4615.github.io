@@ -4,7 +4,8 @@ date: 2023-10-31. 15:31
 # last_modified_at: 2023-11-14. 15:14
 # last_modified_at: 2023-11-21. 15:09
 # last_modified_at: 2023-11-22. 13:07
-last_modified_at: 2023-12-05. 15:55
+# last_modified_at: 2023-12-05. 15:55
+last_modified_at: 2023-12-06. 10:33
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native
 ---
@@ -88,7 +89,10 @@ i.e.
 @ U 기말고사 출제 : useMemo  
 
 ```js
-const 캐시데이터 = useMemo(초기데이터, [의존성1, 의존성2, ...])
+const 캐시된_데이터 = useMemo(초기값, [의존성1, 의존성2, ...])
+
+const 캐시된_데이터 = useMemo(콜백, [의존성1, 의존성2, ...])
+콜백 = () => 초기값
 ```
 
 값(, 함수)을 [메모이제이션](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
@@ -97,21 +101,21 @@ const 캐시데이터 = useMemo(초기데이터, [의존성1, 의존성2, ...])
 useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?  
 → useMemo를 쓰면 함수와 그 `결과 값`을 함께 메모이제이션  
 
-@ 222p, `useMemo(() => fibonacci, [])...` 동일한 입력값에 대해 함수가 반복해서 호출되는 것을 방지 (시험 X)  
+@ 222p, `useMemo(() => fibonacci, [])...` 동일한 입력값에 대해 함수가 반복해서 호출되는 것을 방지 (기말고사 X)  
 
 ## 💫 useCallback
 
 ---
 
 @ U 기말고사 출제 : useCallback  
-@ 224p, 쓰지 않을 때의 비효율성  
-@ vs useMemo는 결과값을 기억, useCallback은 콜백 함수 자체를 기억  
 
 ```js
 const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 ```
 
 함수를 [메모이제이션](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
+
+재렌더링마다 지속적으로 만들어질 수 있는 콜백 함수를, useCallback을 통해 저장해서 재사용  
 
 ## 💫 상태
 

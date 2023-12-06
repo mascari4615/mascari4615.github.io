@@ -2,7 +2,8 @@
 title: "🌘 React Native 리액트 네이티브 - Context"
 date: 2023-11-15. 13:16
 # last_modified_at: 2023-11-22. 14:54
-last_modified_at: 2023-12-05. 15:13
+# last_modified_at: 2023-12-05. 15:13
+last_modified_at: 2023-12-06. 10:33
 categories: ⭐Computer 🌘Web-Mobile
 tags: Mobile React-Native Context
 ---
@@ -99,7 +100,7 @@ const Some: FC<SomeProps> = ({theme}) => {}
 원래 같으면 위 같은 코드를 직접 구현하고, 속성을 넘겨 받아 사용해야 했다.  
 
 ```js
-type ContextType = {  /*공유 속성*/ }
+export type ContextType = {  /*공유 속성*/ }
 const defaultContextType: ContextType = { /* 공유 속성 초깃값 */ }
 const SomeContext = createContext<ContextType>(defaultContextType)
 ```
@@ -158,21 +159,30 @@ function useRef<T>(initialValue: T | null): RefObject<T>;
 
 ### 🫧 ref 속성
 
-리액트나 리액트 네이티브에서 제공하는 코어 컴포넌트 중에는 메소드를 제공하는 것이 있다.  
-TextInput - (focus, blur), ScrollView / FlatList - (scrollToTop, scrollToEnd)  
+리액트/리액트 네이티브에서 제공하는 코어 컴포넌트 중에는 메소드를 제공하는 것이 있다.  
+
+- TextInput 컴포넌트 : focus(), blur()
+- ScrollView 컴포넌트 & FlatList 컴포넌트 : scrollToTop(), scrollToEnd()  
 
 컴포넌트의 메소드를 호출하려면 컴포넌트의 리액트 요소 (React Element, 개체 지향 언어에서 클래스의 인스턴스와 같은 개념) 을 얻을 수 있어야, 개체.메소드() 형태로 호출할 수 있다.  
 
 리액트와 리액트 네이티브는 컴포넌트가 제공하는 메소드를 호출할 수 있도록 ref 속성을 제공한다. 컴포넌트의 인스턴스를 얻을 수 있으며 이를 이용하여 ref.메소드() 형태로 호출할 수 있다.  
 
-### 🫧 ref 속성의 타입
+### 🫧 구현
 
 ```js
 // T는 FlatList, ScrollView, TextInput 같은 컴포넌트
+interface RefAttributes<T> extends Attributes
+{ ref? : Ref<T> }
 interface RefObject<T>
-{
-	readonly current: T | null;
-}
-```
+{ readonly current: T | null; }
 
-@ TODO : 331p  
+function useRef<T>(initialValue: T): MutableRefObject<T>;
+function useRef<T>(initialValue: T | null): RefObject<T>;
+
+// i.e.
+const someRef = useRef<Some | null>(null)
+<Some ref={someRef} />
+
+someRef.current?.someMethod()
+```
