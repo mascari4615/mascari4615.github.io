@@ -2,7 +2,8 @@
 title: "🌗 Genetic Algorithms - 유전 알고리듬"
 date: 2023-10-25. 10:05
 # last_modified_at: 2023-10-25. 10:05
-last_modified_at: 2023-10-31. 13:30
+# last_modified_at: 2023-10-31. 13:30
+last_modified_at: 2023-12-07. 10:24
 categories: ⭐Computer 🌗AI
 tags: AI Genetic-Algorithms
 ---
@@ -15,6 +16,9 @@ N차시
 @ Takes Place : 발생하다  
 
 @ 유전자 알고리듬 (X, 잘못된 표현)  
+
+@ 답을 찾아야 하는데, 답을 모름  
+@ 더 좋은 상태들을 섞어서 답을 찾겠다는 것  
 
 ### 💫 Genetic Algorithms - 유전 알고리듬
 
@@ -55,6 +59,8 @@ Natural Selection 자연 선택
 ### 💫 Genetic Algorithm High-Level Flow
 
 ---
+
+@ U 중간고사 출제 : [N-Queen](https://mascari4615.github.io/posts/N-Queen/) 문제에 유전 알고리듬을 적용하는 과정  
 
 1. Initialization
    - 문제 정의
@@ -120,6 +126,8 @@ Recombination - Genetic Operation 유전 연산
 
 ---
 
+@ U 중간고사 출제 : Stack Machine, 주어진 명령어와 스택을 보고, 최종적으로 프로그램이 어떤 문제를 푸는지  
+
 숫자가 아니라 기호를 다루는 문제를 최적화하는 문제를 다뤄보자  
 → 명령어들의 열  
 
@@ -155,26 +163,3 @@ DUP : → x^2 x^2
 MUL : → x^4  
 DUP : → x^4 x^4  
 MUL : → x^8  
-
-### 💫 중간고사
-
----
-
-@ 답을 찾아야 하는데, 답을 모름  
-@ 더 좋은 상태들을 섞어서 답을 찾겠다는 것  
-
-8-Queen 문제에 유전 알고리듬을 적용하는 과정  
-
-1. 인코딩 Encoding, 적합도 함수
-   - 문제를 컴퓨터가 이해하는 방식으로 → 각 여왕의 좌표를 배열로 저장
-   - 적합도 함수 → 각 여왕이 다른 여왕과 가로, 세로, 대각선으로 만나는 지
-2. 모집단 구성
-3. 적합도 평가
-   - 적합도 함수를 바탕으로 계산한 점수
-   - 각 Solution의 점수를 점수 총합으로 나눈 비율을 바탕으로 임의의 Solution 선택
-4. 선택 (- 재생산을 하기 위해)
-   - 재생산 → 교차, 돌연변이
-   - i.e. 다른 Solution과 일정 범위 여왕의 좌표 교체, 특정 여왕 좌표 변화
-5. 답을 찾을 때 까지 반복
-
-@ Stack Machine, 주어진 명령어와 스택을 보고, 최종적으로 프로그램이 어떤 문제를 푸는지  

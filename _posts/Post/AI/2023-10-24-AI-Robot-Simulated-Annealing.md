@@ -2,7 +2,8 @@
 title: "🌗 Simulated Annealing - 모의 담금질"
 date: 2023-10-25. 09:57
 # last_modified_at: 2023-10-25. 09:57
-last_modified_at: 2023-10-31. 13:30
+# last_modified_at: 2023-10-31. 13:30
+last_modified_at: 2023-12-07. 10:24
 categories: ⭐Computer 🌗AI
 tags: AI Simulated-Annealing
 ---
@@ -66,8 +67,7 @@ Local Max, Global Max
 언제 정착 ?  
 → 시간이 지날수록 조건을 까다롭게  
 
-Sample Problem - N Queens :  
-→ N x N 보드에서, 서로 영향을 줄 수 없는 체스 여왕 배치 경우의 수  
+Sample Problem - [N-Queen](https://mascari4615.github.io/posts/N-Queen/)  
 
 초기 soln를 대충 만들어두고, soln를 평가  
 답(최정상)은 모르니까 대강 어느정도 좋다  
@@ -90,7 +90,7 @@ Loss가 낮아야 좋은 것
 → 1이면 무조건 바꾸겠다는 것  
 
 Delta Energy - 평가 결과 = 에너지 E  
-I.E. 0~20, 여왕 경로 겹치는 수  
+I.E. 0~20, N-Queen 겹치는 경로 수  
 
 교체 확률, 평가 결과 그래프에 대해,  
 → 평가 결과가 작을 수록 교체 확률이 크다  
