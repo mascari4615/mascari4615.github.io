@@ -1,9 +1,9 @@
 ---
 title: "🌑 개발 관련 즐겨찾기/북마크"
 date: 2023-04-11. 11:01
-# last_modified_at: 2023-04-11. 11:01
 # last_modified_at: 2023-10-06. 12:49
-last_modified_at: 2023-10-10. 09:45
+# last_modified_at: 2023-10-10. 09:45
+last_modified_at: 2023-12-08. 11:01
 categories: ⭐Computer 🌑Computer-General
 ---
 
@@ -295,3 +295,22 @@ MAUI, WinForm
 - Best Practice
 - [탄막패턴](https://github.com/NK-Studio/UnityShotPatterns)
 - Flocking Algorithm  
+
+- IOCP
+  - 를 포폴로 하고 싶다면
+  - 만든 라이브러리를 사용한 게임 서버
+  - 게임 서버에 어느 정도의 컨텐츠 기능
+  - 더미 테스트
+  - 벤치마크 수치 제시
+  - 개발에 사용된 이론 지식에 대한 충분한 학습
+- 채팅 프로그램, 네트워크 라이브러리를 사용하는 간단한 프로그램
+- C++, 네트워크, Win32 API  
+
+- Tradeoff
+- Swagger
+- 도커라이징
+- 보일러 플레이트
+
+- 컴퓨터 과학에 대한 오해와 진실
+
+- 온라인 이상형 월드컵  
