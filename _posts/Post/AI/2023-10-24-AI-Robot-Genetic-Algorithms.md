@@ -1,9 +1,9 @@
 ---
 title: "🌗 Genetic Algorithms - 유전 알고리듬"
 date: 2023-10-25. 10:05
-# last_modified_at: 2023-10-25. 10:05
 # last_modified_at: 2023-10-31. 13:30
-last_modified_at: 2023-12-07. 10:24
+# last_modified_at: 2023-12-07. 10:24
+last_modified_at: 2023-12-08. 10:41
 categories: ⭐Computer 🌗AI
 tags: AI Genetic-Algorithms
 ---
@@ -60,7 +60,7 @@ Natural Selection 자연 선택
 
 ---
 
-@ U 중간고사 출제 : [N-Queen](https://mascari4615.github.io/posts/N-Queen/) 문제에 유전 알고리듬을 적용하는 과정  
+@ U 중간고사 출제 : [8-Queen](https://mascari4615.github.io/posts/N-Queen/) 문제에 유전 알고리듬을 적용하는 과정  
 
 1. Initialization
    - 문제 정의

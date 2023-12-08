@@ -2,7 +2,8 @@
 title: "🌑 프로그래밍 언어 - 구문론과 의미론"
 date: 2023-10-26. 13:32
 # last_modified_at: 2023-10-27. 09:17
-last_modified_at: 2023-11-24. 10:51
+# last_modified_at: 2023-11-24. 10:51
+last_modified_at: 2023-12-08. 10:08
 categories: ⭐Computer 🌑Computer-General
 tags: Programming-Language
 ---
@@ -139,6 +140,8 @@ i.e. \<ident_list> → identifier | identifier, <ident_list>
 ## 💫 문법과 유도
 
 ---
+
+@ U 중간고사 출제 : 문법이 모호하다는 것은 어떤 의미인지, 주어진 문법과 문장을 가지고 설명하시오.  
 
 문법 : 언어를 정의하기 위한 생성 장치  
 

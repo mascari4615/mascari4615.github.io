@@ -1,7 +1,7 @@
 ---
 title: "🌗 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬"
 date: 2023-10-25. 10:07
-last_modified_at: 2023-10-25. 10:07
+last_modified_at: 2023-12-08. 10:44
 categories: ⭐Computer 🌗AI
 tags: AI Neural-Networks Backpropagation-Algorithm
 ---
@@ -23,6 +23,25 @@ Architectures 구조 : Feed-Forward 전진 전파 / Multi-Layer Neural Network �
 @ Resurgence 부활  
 
 Topologies 이상 = Architectures 구조  
+
+@ U 중간고사 출제 : 신경망의 일반화를 설명하시오.  
+→ 신경망의 가장 큰 특징 : 일반화  
+
+→ @ 일반화에 의해 갈라진  
+→ @ 기호주의 : 논리/수학적인 방법으로  
+→ @ 연결주의 : 감각/계산적인 방법으로  
+→ @ 지금은 서로 잘 섞인  
+
+→ @ vs 추상화-개체지향  
+→ @ 책을 많이 읽어라, 같은 생각만해서, 생각이 경직되니까  
+
+@ U 중간고사 출제 : 주어진 신경망에 대해, 주어진 입력과 가중치에 따른 최종 출력 계산  
+→ Feed-Forward ~  
+
+이러한 신경망 구조가 어떻게 되냐? (시험 x)  
+→ @ 이러한 신경망 구조가 어떻게 되냐?  
+→ @ 다음 층의 뉴런과 모두 연결된다
+→ @ 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  
 
 ### 💫 Neuron, Artificial Neuron, Neural Networks - 뉴런, 인공 뉴런, 신경망
 
@@ -116,26 +135,3 @@ Wij = Wjk + △Wjk
 Sample Project - Game NPC AI  
 Health, Has-Knife, Has-Gun, Enemies 상태에 따른  
 Attack, Hide, Wander, Run 행동 결정 알고리듬  
-
-### 💫 중간고사
-
----
-
-신경망의 일반화를 설명  
-→ 신경망의 가장 큰 특징 : 일반화  
-
-→ @ 일반화에 의해 갈라진  
-→ @ 기호주의 : 논리/수학적인 방법으로  
-→ @ 연결주의 : 감각/계산적인 방법으로  
-→ @ 지금은 서로 잘 섞인  
-
-→ @ vs 추상화-개체지향  
-→ @ 책을 많이 읽어라, 같은 생각만해서, 생각이 경직되니까  
-
-주어진 신경망에 대해, 주어진 입력과 가중치에 따른 최종 출력 계산  
-→ Feed-Forward ~  
-
-이러한 신경망 구조가 어떻게 되냐? (시험 x)  
-→ @ 이러한 신경망 구조가 어떻게 되냐?  
-→ @ 다음 층의 뉴런과 모두 연결된다
-→ @ 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  

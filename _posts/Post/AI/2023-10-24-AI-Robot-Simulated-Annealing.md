@@ -1,15 +1,14 @@
 ---
 title: "🌗 Simulated Annealing - 모의 담금질"
 date: 2023-10-25. 09:57
-# last_modified_at: 2023-10-25. 09:57
 # last_modified_at: 2023-10-31. 13:30
-last_modified_at: 2023-12-07. 10:24
+# last_modified_at: 2023-12-07. 10:24
+last_modified_at: 2023-12-08. 10:28
 categories: ⭐Computer 🌗AI
 tags: AI Simulated-Annealing
 ---
 
 3, 4차시  
-
 @ 강의실 어딘지 너무 헷갈려~  
 
 ### 💫 Simulated Annealing - 모의 담금질
@@ -111,11 +110,7 @@ Temperature 온도 (상수)
 같은 온도에서는 (다시말해 온도 상관없이는)  
 평과 결과가 낮을수록 교체 확률이 높다  
 
-### 💫 중간고사 문제
-
----
-
-두 가지 (조건, 식)을 가지고 모의담글질을 설명 (각각 온도 50, 2 ~)  
+@ U 중간고사 출제 : 두 가지 (조건, 식)을 가지고 모의담글질을 설명하시오. (각각 온도 50, 2 ~)  
 
 욕심쟁이 알고리듬과 그 문제점  
 → 좋은 상태만 찾음, 로컬 Max에 머무를 수 있다  

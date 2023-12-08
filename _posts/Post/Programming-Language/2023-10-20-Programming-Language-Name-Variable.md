@@ -1,9 +1,9 @@
 ---
 title: "🌑 프로그래밍 언어 - 이름, 바인딩, 영역"
 date: 2023-10-20. 10:32
-# last_modified_at: 2023-10-20. 10:32
 # last_modified_at: 2023-11-03. 11:06
-last_modified_at: 2023-12-01. 10:49
+# last_modified_at: 2023-12-01. 10:49
+last_modified_at: 2023-12-08. 10:11
 categories: ⭐Computer 🌑Computer-General
 tags: Programming-Language
 ---
@@ -29,6 +29,8 @@ tags: Programming-Language
   - 하지만 많은 함수형 언어에서는 명령형 언어처럼 값의 변경을 허용
 
 ### 🫧 Name 이름, Identifier 식별자
+
+@ U 중간고사 출제 : 식별자, 예약어, 키워드를 설명하시오. 키워드가 예약어가 아니라면 언어에 어떤 영향을 주는지, 예약어의 수가 많으면 언어에 어떤 영향을 주는지 설명하시오.  
 
 이름은 변수의 속성 중 하나 → Variable Name 변수명  
 이름은 Subprogram 부프로그램, Formal Parameters 형식 인자, 다른 프로그램 구성 요소와도 관련이 있음  

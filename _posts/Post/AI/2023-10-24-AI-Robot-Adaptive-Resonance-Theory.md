@@ -1,8 +1,8 @@
 ---
 title: "🌗 Adaptive Resonance Theory - ART1"
 date: 2023-10-25. 09:59
-# last_modified_at: 2023-10-25. 09:59
-last_modified_at: 2023-10-31. 13:30
+# last_modified_at: 2023-10-31. 13:30
+last_modified_at: 2023-12-08. 10:30
 categories: ⭐Computer 🌗AI
 tags: AI Adaptive-Resonance-Theory ART1
 ---
@@ -64,6 +64,11 @@ Clustering Algorithm
 ART1  
 → Feature Vector : 뭐가 어떻다 하는 특징 데이터 (테이블)  
 → Feature Vector의 1, 0의 개수가 비슷해야 비슷한 데이터  
+
+@ U 중간고사 출제 : 적응형 공명 이론에 대한 클러스터링 결과를 보고, 특정 요소(i.e. 고객)에게 특정 요소(i.e. 물건)를 추천하는 과정을 설명하시오.  
+
+같은 분류의 요소들끼리 데이터 Vector를 합 (Sum Vector)  
+해당 분류의 요소들마다 Sum Vector에서 가장 큰 수 순서대로 없는 요소를 추천  
 
 ### 💫 과정
 
@@ -131,13 +136,3 @@ K-means Algorithm
 실제로는 점이 아니라 테이블  
 3차원 이상으로 넘어가면 이해하기 힘듦  
 못 찾을 수도 있음  
-
-### 💫 중간고사
-
----
-
-적응형 공명 이론에 대한 클러슽터링 결과를 보고,  
-특정 요소(i.e. 고객)에게 특정 요소(i.e. 물건)를 추천하는 과정을 설명  
-
-같은 분류의 요소들끼리 데이터 Vector를 합 (Sum Vector)  
-해당 분류의 요소들마다 Sum Vector에서 가장 큰 수 순서대로 없는 요소를 추천  

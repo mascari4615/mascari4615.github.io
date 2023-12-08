@@ -1,7 +1,7 @@
 ---
 title: "🌑 프로그래밍 언어 - 어휘 분석, 구문 분석"
 date: 2023-10-26. 13:37
-last_modified_at: 2023-10-26. 13:37
+last_modified_at: 2023-12-08. 10:09
 categories: ⭐Computer 🌑Computer-General
 tags: Programming-Language
 ---
@@ -83,6 +83,8 @@ Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~
 ## 💫 어휘 분석
 
 ---
+
+@ U 중간고사 출제 : 주어진 파싱 테이블을 가지고, 'inout state ~' 을 완성하고, LL파서보다 LR파서가 좋은 이유를 설명하시오.  
 
 - 어휘 분석
   - 주어진 문자열(프로그램)에서 특정의 문자 패턴과 일치하는 부분 문자열을 찾는 행위
