@@ -1,15 +1,16 @@
 ---
 title: "🌗 Markov Model"
 date: 2023-12-05. 10:05
-last_modified_at: 2023-12-08. 14:17
+# last_modified_at: 2023-12-08. 14:17
+# last_modified_at: 2023-12-12. 08:43
+last_modified_at: 2023-12-12. 10:50
 categories: ⭐Computer 🌗AI
 tags: AI HMM Morcov-Model Marcov-Chain Bigram-Model
 ---
 
 @ Adjancency List  
 
-@ 내 이전의 상태는 사용하지 않는다  
-@ 지금 상태만을 가지고 다음 상태를 예측한다 (지금 이전 상태는 모두 무시)  
+@ 내 이전의 상태는 사용하지 않는다, 지금 상태만을 가지고 다음 상태를 예측한다 (지금 이전 상태는 모두 무시)  
 
 @ `텍스트 생성을 위한 Markov Chains와 Bigram 모델`. Markov Chains는 철자 검사부터 알려지지 않은 작품의 저자 확인에 이르기까지 다양한 응용 분야에서 사용될 수 있음. 흥미로운 문구를 방출하는 Bigram 텍스트 생성기의 구현. 음성 인식과 텍스트 및 음악 모델링의 응용  
 
@@ -84,12 +85,14 @@ HMC는 음성의 음소를 확률적으로 파싱함으로써 음성 인식 시�
 
 ### 🫧 Modeling Text
 
-@ U 기말고사 출제 : 그림 10.4 그래프  
-→ ~  
-→ 표로 만들어 본다면?  
-→ 나올 수 있는 단어는 7단어  
-→ 행, 열 7개  
+@ U 기말고사 출제 : 주어진 말뭉치에 대하여, 마르코프 행렬을 만들어 그리고, 이를 어떻게 활용할 수 있는지 설명하시오.  
+
+> I have a dream
+> You have the dream
+> We have dream
+
 → 이전 단어 다음에 나오는 단어 빈도 표  
+→ First word, Second word  
 → 이를 바탕으로 문장 생성 (랜덤한 시드/단어를 가지고 다음에 나올 단어 예측)  
 → 확률을 바탕으로 하기 때문에, 같은 질문을 해도 다른 답이 나온다  
 
