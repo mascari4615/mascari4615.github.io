@@ -6,7 +6,8 @@ date: 2023-09-08. 12:51
 # last_modified_at: 2023-10-27. 12:37
 # last_modified_at: 2023-11-03. 14:03
 # last_modified_at: 2023-11-24. 12:12
-last_modified_at: 2023-12-08. 10:51
+# last_modified_at: 2023-12-08. 10:51
+last_modified_at: 2023-12-15. 12:08
 categories: ⭐Computer 🌖Computer-OS
 tags: Computer Microprocessor
 ---
@@ -206,3 +207,14 @@ int main()
 @ U 중간고사 출제 : 'DDRA, PORTA ~' 코드를 보고 아는대로 적으시오.  
 @ U 중간고사 출제 : 'uart_init' 코드를 보고 아는대로 적으시오.  
 @ U 중간고사 출제 : 코드 빈칸을 완성하시오, 프로그램을 완성하시오, Strtok  
+
+@ U 기말고사 예상 : 동적 웹 페이지 Dynamic Web Page, 이미 만들어진 텍스트 파일이 아니라, .exe 형태의 실행 파일을 실행시켜 그 결과를 받아 넘겨주는 경우  
+
+@ U 기말고사 예상 : IIS 등의 웹 서버는 요청된 URL이 지시하는 실행 파일을 실행시켜, 그 출력 결과를 브라우저에게 전달함.  
+@ U 기말고사 예상 : 따라서, 웹 서버와 실행 프로그램은 IPC (Inter-Process Communication) 수단을 사용하여 정보를 주고 받아야 함.  
+@ U 기말고사 예상 : 웹 서버와 실행 프로그램 사이의 IPC 수단은 공통적으로 정의되어야만 웹 환경에서 표준으로 사용될 수 있음 -> CGI (Commong Gateway Interface)  
+@ U 기말고사 예상 : 입력 IPC 수단으로 표준 입력(stdin)과 환경 변수 등 두 가지를 사용  
+@ U 기말고사 예상 : 출력 IPC 수단으로 표준 출력(stout)을 사용함 (printf())  
+
+@ U 기말고사 예상 : GET 쿼리는 CGI에서 'QUERY_STRING' 환경변수로 접근 가능, Windows는 getEnv함수로 환경 변수 접근 가능  
+@ U 기말고사 예상 : C, '\33' 같이 백슬래시 붙이면 8진수, '\33'은 ASCII로 ESC  

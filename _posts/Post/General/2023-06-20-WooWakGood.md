@@ -138,3 +138,4 @@ categories: 🪨Stone 🏝️LifeStone
   - [우왁굳 트위치 이모티콘](https://twitchemotes.com/channels/49045679)
   - [아르마 달리기](https://cafe.naver.com/steamindiegame/10914462)
   - Bart, Bartender
+  - [기획](https://namu.wiki/w/%EB%84%A4%ED%94%84%EB%A6%AC%EA%B7%B8/%EA%B2%8C%EC%9E%84)
