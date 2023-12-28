@@ -1,5 +1,5 @@
 ---
-title: "📕 WitchIdle"
+title: "🫐 WitchIdle"
 date: 2023-06-01. 10:25
 # last_modified_at: 2023-06-01. 10:25
 # last_modified_at: 2023-10-11. 17:13
@@ -7,8 +7,9 @@ date: 2023-06-01. 10:25
 # last_modified_at: 2023-11-29. 13:12
 # last_modified_at: 2023-12-02. 15:41
 # last_modified_at: 2023-12-05. 08:42
-last_modified_at: 2023-12-07. 07:52
-categories: 🔖Creative 📕Dev
+# last_modified_at: 2023-12-07. 07:52
+last_modified_at: 2023-12-25. 03:09
+categories: 🔖Creative 🫐WitchIdle 
 ---
 
 ## 🎲 마일스톤
@@ -42,16 +43,17 @@ categories: 🔖Creative 📕Dev
   - 스킬 슬롯
   - 던전 입장/퇴장 시 레벨, 경험치, 체력 초기화
   - 던전 퇴장 시 드롭 오브젝트 비활성화
-  - [] 무적 시간
+  - 무적 시간
   - [] 피격 이펙트 (카메라 쉐이킹, 이미지)
   - [] 경험치 오브젝트 획득 애니메이션
   - [] 난이도, 난이도 UI
   - [] 몬스터 스폰 소환진 / 스테이지 가장자리에서 나오도록
   - [] 던전 진입, 던전 결과
-  - [] 던전 퇴장 시 스킬 오브젝트 비활성화
-  - [] 몬스터 행동트리
-  - [] 경험치 바 애니메이션
+  - 던전 퇴장 시 스킬 오브젝트 비활성화
+  - 몬스터 행동트리
+  - 경험치 바 애니메이션
   - [] 상점
+- [] 도전과제
 
 ## 🎲 기획
 

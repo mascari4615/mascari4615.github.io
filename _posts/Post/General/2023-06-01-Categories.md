@@ -3,7 +3,8 @@ title: "📘 카테고리"
 date: 2023-06-01. 10:27
 # last_modified_at: 2023-06-26. 08:14
 # last_modified_at: 2023-11-22. 08:07
-last_modified_at: 2023-11-23. 18:42
+# last_modified_at: 2023-11-23. 18:42
+last_modified_at: 2023-12-25. 20:28
 categories: 🔖Creative 📘Blog
 pin: true
 ---
@@ -46,7 +47,6 @@ Milestone에서 따옴
 🌳Memo : 정보/메모  
 
 🌳Memo 🥑Memo-General : 일반  
-🌳Memo 🫐 :  
 🌳Memo 🍋Game : 게임  
 
 ### 🔖Creative
@@ -59,3 +59,4 @@ Milestone에서 따옴
 🔖Creative 📙Drawing : 그림  
 🔖Creative 📗NewWorld : 세계  
 🔖Creative 📘Blog : 블로그, 공지  
+🔖Creative 🫐WitchIdle : 개발 메모  
