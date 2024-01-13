@@ -1,7 +1,8 @@
 ---
-title: "🌔 Photon Fusion"
+title: "🌔 Photon Fusion 2"
 date: 2023-12-26. 18:05
-# last_modified_at: 2023-12-26. 18:05
+# last_modified_at: 2024-01-02. 06:31
+last_modified_at: 2024-01-07. 08:29
 categories: ⭐Computer 🌔Unity-CSharp
 tags: Unity
 ---
@@ -37,10 +38,26 @@ tags: Unity
 ### 🫧 NetworkBehaviour
 
 - FixedUpdateNetwork를 사용할 수 있음
-  - 시뮬레이션 틱, `예측`과 `실제 연산`, 재예측 등 한 프레임에 여러 번 실행 될 수 있음
-  - Update, FixedUpdate 대신 사용
-  - (Update, FixedUpdate는 유니티 이벤트니까 여러 번 실행되면 어색하니까)
+
+### 🫧 FixedUpdateNetwork
+
+- 시뮬레이션 틱, `예측`과 `실제 연산`, 재예측 등 한 프레임에 여러 번 실행 될 수 있음
+- Update, FixedUpdate 대신 사용
+- (Update, FixedUpdate는 유니티 이벤트니까 여러 번 실행되면 어색하니까)
 - GetInput(out 입력 구조체)로 입력을 받아올 수 있음
+
+- Fusion2
+- Proxies 더 이상 기본적으로 FixedUpdateNetwork를 실행하지 않음
+- `Runner.SetIsSimulated(Object, true)`로 설정 가능 (Spawned에서 실행하는 게 베스트)
+
+### 🫧 Runner.Spawn
+
+- `onBeforeSpawned`은 Server/Host에서만 동작하기 때문에, Network 속성을 변경하는 것에 쓸 것
+
+### 🫧 Spawned
+
+- `if (Object.HasStateAuthority == false) return;`와 함께 쓴다면, VRChat에서 Start-IsMaster 같이 마스터(Host)가 딱 한 번 실행하는 명령 가능
+  - 게임 상태, 오브젝트 상태 초기화
 
 ### 🫧 PlayerRef
 
@@ -54,7 +71,7 @@ tags: Unity
 - TickTimer.CreateFromSeonds(Runner, 시간)
 - FixedUpdateNetwork에서 timer.Expired(Runner)로 체크하고 Despawn
 
-- Awake는 네트워크랑 동기화 되기않기 때문에 Awake에서 초기화하면 안됨
+- Awake는 네트워크랑 동기화 되지않기 때문에 Awake에서 초기화하면 안됨
 - 오브젝트 생성 시 콜백 함수로 초기화해야 함 (그래야 처음 생성될 때 동기화)
 
 ### 🫧 물리 연산
@@ -104,10 +121,36 @@ tags: Unity
 ### 🫧 Network 어트리뷰트
 
 - 프로퍼티 동기화
+- StateAuthority 플레이어 기준
 - OnChanged = nameof(함수 이름)
   - FixedUpdateNetwork는 예측, 실제 연산, 재예측 등 여러 번 호출 될 수 있음
   - OnChanged는 프레임 기준으로 변화를 감지
     - 한 프레임 사이에 True, False, True로 변화했다면, 한 프레임 사이에 값이 변화하지 않았음으로 OnChanged가 호출되지 않음
+- VRChat과 마찬가지로, StateAuthority(VRChat에선 Owner)가 아닌 플레이어가 값을 변경하면, 로컬로만 동작하고, 언제든지 StateAuthority(Owner)의 값으로 동기화 될 수 있음
+
+- Fusion 2
+- 프로퍼티의 Get/Set을 커스텀 코드로 대신하기 때문에, Get/Set을 기준으로 변화를 감지하면 안되고, 별도의 Setter 구현도 로컬로만 동작함
+- `Spawned`에서 `ChangeDetector` 변수에 `GetChangeDetector(ChangeDetector.Scoure.SimulationState)`를 할당하고, `Render`에서 아래와 같이 변화를 감지
+
+```cs
+public override void Render()
+{
+	foreach (var change in _changeDetector.DetectChanges(this))
+	{
+		switch (change)
+		{
+			case nameof(변수):
+				// 변화 시 수행할 명령
+				break;
+		}
+	}
+}
+```
+
+- 이러한 동작은 여러 번 실행될 수 있고 (예측 이후 틀린 예측을 고치려고 한 번 더 실행된다던지), 스킵 될 수 있고 (데이터가 도달하기도 채 전에 원래 값으로 돌아온다던지), 누락될 수 있음 (Packet Drop)
+- RPC보다 빠른 시점에 변화를 감지할 수 있음 (값이 변화한 네트워크 Tick 이후 바로)
+
+- Spawned가 실행되는 시점에는 이미 Network 어트리뷰트가 붙은 속성들이 모두 동기화 된 이후
 
 ### 🫧 Render
 
