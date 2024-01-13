@@ -78,6 +78,10 @@ img_cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@master"
 # the avatar on sidebar, support local or CORS resources
 avatar: "/assets/img/common/Star_Transparent.png"
 
+# The URL of the site-wide social preview image used in SEO `og:image` meta tag.
+# It can be overridden by a customized `page.image` in front matter.
+social_preview_image: # string, local or CORS resources
+
 # boolean type, the global switch for TOC in posts.
 toc: true
 
