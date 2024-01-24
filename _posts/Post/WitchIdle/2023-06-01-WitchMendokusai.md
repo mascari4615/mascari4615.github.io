@@ -9,17 +9,14 @@ date: 2023-06-01. 10:25
 # last_modified_at: 2023-12-05. 08:42
 # last_modified_at: 2023-12-07. 07:52
 # last_modified_at: 2023-12-25. 03:09
-last_modified_at: 2024-01-15. 19:53
+# last_modified_at: 2024-01-15. 19:53
+last_modified_at: 2024-01-25. 05:21
 categories: 🔖Creative 🫐WitchIdle
 ---
 
 ## 🎲 마일스톤
 
 ---
-
-### 👾 2403
-
-- [] 일단 베타 출시
 
 ### 👾 2311
 
@@ -56,6 +53,18 @@ categories: 🔖Creative 🫐WitchIdle
   - 경험치 바 애니메이션
   - [] 상점
 - [] 도전과제
+
+### 👾 2401
+
+- SOManager를 만들어 ScriptableObjects들을 관리
+- 확률 새로운 기능 추가
+  - List에 저장된 확률의 총량이 100보다 작을 경우, default 값을 나머지로 100을 채우는 기능
+- 몬스터가 더 이상 아이템을 직접 인벤토리에 넣지 않고, EXP 오브젝트 같이 아이템 오브젝트로 드롭함
+- 배경음/효과음 수정
+- 슬라임
+- 그 외 이것저것
+- [] 행렬 공부
+  - [] 아이템 드롭 애니메이션에 빙글빙글 돌도록
 
 ## 🎲 기획
 
@@ -405,3 +414,5 @@ Like 던그리드
 
 조합 - 제작 - 아이템/위상 - 상점  
 골드 수요 - 세금, 타이쿤류 Like 쿠키런 킹덤  
+
+[](https://www.jdwasabi.com/store/8-bit-16-bit-sound-effects-x25-pack)  
