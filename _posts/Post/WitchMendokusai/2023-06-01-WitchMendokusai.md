@@ -334,6 +334,7 @@ We will right back
 
 [젤다](https://twitter.com/WonSoRang/status/1658023932820357120?s=20)  
 [포션? 칵테일?](https://twitter.com/i/status/1674689276112687105)  
+[](https://x.com/NerkinPixel/status/1690418750237839360?s=20)  
 [이런거](https://twitter.com/336111/status/1631973583470882816?s=20)  
 
 [모델로 만든다면](https://twitter.com/artofsully/status/1630299422281150465?s=20)  
@@ -416,3 +417,5 @@ Like 던그리드
 골드 수요 - 세금, 타이쿤류 Like 쿠키런 킹덤  
 
 [](https://www.jdwasabi.com/store/8-bit-16-bit-sound-effects-x25-pack)  
+
+To be Continue  
