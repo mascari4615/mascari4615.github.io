@@ -16,10 +16,10 @@ timezone: Asia/Seoul
 
 title: Mascari4615 # the main title
 
-tagline: 메모와 독백 # it will display as the sub-title
+tagline: sans # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  메모와 독백
+  sans
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
 url: "https://Mascari4615.github.io"
