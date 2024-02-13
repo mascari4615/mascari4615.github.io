@@ -1,8 +1,8 @@
 ---
-title: "🫐 WitchIdle Run"
+title: "🫐 WitchMendokusai Run"
 date: 2024-01-15. 19:53
-# last_modified_at: 2024-01-15. 19:53
-categories: 🔖Creative 🫐WitchIdle
+last_modified_at: 2024-02-01. 09:34
+categories: 🔖Creative 🫐WitchMendokusai
 ---
 
 ## 🎲 런
