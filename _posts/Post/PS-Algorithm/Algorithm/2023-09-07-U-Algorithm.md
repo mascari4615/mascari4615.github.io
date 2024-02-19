@@ -13,7 +13,9 @@ date: 2023-09-07. 10:29
 # last_modified_at: 2023-10-19. 10:38
 # last_modified_at: 2023-10-26. 10:33
 # last_modified_at: 2023-10-31. 13:31
-last_modified_at: 2024-02-17. 14:18
+# last_modified_at: 2024-02-17. 14:18
+# last_modified_at: 2024-02-19. 18:02
+last_modified_at: 2024-02-19. 19:35
 categories: [⭐Computer, 🌓PS-Algorithm]
 tag: [Algorithm]
 ---
@@ -35,6 +37,13 @@ tag: [Algorithm]
 
 언어에 이미 구현되어 있는 알고리듬도 있지만,  
 그 알고리듬의 내부 동작과 여러 가지 알고리듬 간의 차이점을 이해하고 있어야 의미가 있다.  
+
+책 '알고리즘 도감' 에서...  
+계산이나 작업을 하기 위한 순서 (Like 요리의 레시피, But 레시피와 다르게 순서가 엄격한 수학적 기술)  
+
+vs 프로그램  
+프로그램 : 컴퓨터가 이해하도록  
+알고리듬 : 사람이 이해할 수 있도록  
 
 <br>
 
@@ -86,3 +95,5 @@ t가 뭐일때 가장 빠른지
 @ 학교 알고리듬 과목 강의  
 @ Hello Coding 알고리즘  
 @ 알고리즘 도감  
+
+범용 기술 General Technique  
