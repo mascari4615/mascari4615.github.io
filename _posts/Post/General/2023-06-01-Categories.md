@@ -39,7 +39,18 @@ Milestone에서 따옴
 ⭐Computer 🌘Web-Mobile :  
 ⭐Computer 🌚 :  
 
+⭐Computer 🌑Computer-OS :  
+⭐Computer 🌒Programming : 프로그래밍, 프로그래밍 언어 문법 (C++, C#)  
+⭐Computer 🌓Algorithm : 알고리듬과 자료구조  
+⭐Computer 🌔PS :  
+⭐Computer 🌕Game-Engine :  
+⭐Computer 🌖 :  
+⭐Computer 🌗 :  
+⭐Computer 🌘U : AI, Web-Mobile, ...  
+⭐Computer 🌚Computer-General : 컴퓨터와 관련된 잡다한  
+
 💫  
+🫧  
 
 ### 🌳Memo, 🥑🍋🫐 🧃
 

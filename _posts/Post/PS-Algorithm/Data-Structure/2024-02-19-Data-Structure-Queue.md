@@ -13,6 +13,9 @@ tags: [Data-Stucture, Queue]
 한쪽 끝에서 원소를 넣고, 반대쪽 끝에서 원소를 뺄 수 있는 구조  
 FIFO First in First out  
 
+`Restricted Structure`  
+특정 위치에서만 원소를 넣거나 뺄 수 있는 제한된 자료구조 (스택, 큐, 덱)  
+
 대기 행렬  
 
 - 성질

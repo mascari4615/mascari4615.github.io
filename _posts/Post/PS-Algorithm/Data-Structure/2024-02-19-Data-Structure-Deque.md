@@ -14,6 +14,9 @@ Double Ended Queue
 
 양쪽 끝에서 삽입 삭제가 전부 가능  
 
+`Restricted Structure`  
+특정 위치에서만 원소를 넣거나 뺄 수 있는 제한된 자료구조 (스택, 큐, 덱)  
+
 - 성질
   - 원소 추가 O(1)
   - 원소 제거 O(1)
