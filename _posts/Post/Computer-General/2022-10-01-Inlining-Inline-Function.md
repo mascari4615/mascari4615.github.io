@@ -2,9 +2,10 @@
 title: "🌒 인라이닝 Inlining, 인라인 함수 Inline Function"
 date: 2022-10-01. 10:54
 # last_modified_at: 2024-02-21. 18:30
-last_modified_at: 2024-02-23. 03:50
+# last_modified_at: 2024-02-23. 03:50
+last_modified_at: 2024-02-25. 04:13
 categories: [⭐Computer, 🌒Programming]
-tags: [CPP]
+tags: [CPP, Inlining, Inline]
 ---
 
 ## **💫 왜 Why**
@@ -31,9 +32,10 @@ tags: [CPP]
 
 함수 앞에 붙으면 컴파일러는 함수를 생성하지 않고 함수를 호출한 곳에 코드 넣어줌  
 이를 인라인 함수 `Inline Function`  
+함수를 인라인 함수로 만들면 함수 호출 오버헤드가 사라지므로 프로그램이 더 빠르게 실행될 수 있다.  
 
 ```cpp
-inline void PrintHello()
+inline void printHello()
 {
 	cout << "Hello";
 }

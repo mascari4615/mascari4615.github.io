@@ -1,7 +1,7 @@
 ---
 title: "🌖 Deque"
 date: 2024-02-19. 16:54
-# last_modified_at: 2024-02-19. 16:54
+last_modified_at: 2024-02-25. 02:11
 categories: [⭐Computer, 🌖Computer-OS]
 tags: [Data-Stucture, Deck]
 ---
@@ -107,6 +107,9 @@ BFS
 Flood Fill  
 
 둘 다 단골 문제  
+
+- 운영체제 작업 스케줄링 알고리듬
+- 앱의 undo 리스트
 
 <br>
 
