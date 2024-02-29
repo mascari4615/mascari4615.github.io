@@ -19,3 +19,8 @@ package-lock.json
 
 # Misc
 assets/js/dist
+
+# PS
+.cph/
+temp.cpp
+build/
