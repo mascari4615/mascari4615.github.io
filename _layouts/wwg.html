@@ -3,13 +3,16 @@ layout: default
 refactor: true
 ---
 {% comment %} https://jekyllrb.com/docs/datafiles/ {% endcomment %}
+{% comment %} https://fontawesome.com/v4/icons/ {% endcomment %}
+{% comment %} https://cafe.naver.com/steamindiegame/6259414 {% endcomment %}
+
 {% include lang.html %}
 
 {% assign wwg = site.data.wwg %}
 
 <article class="px-1">
   <h1 class="dynamic-title">Waktaverse Project</h1>
-  <a class="dynamic-title">last_modified_at: 2024-00-00. 00:00</a>
+  <a class="dynamic-title">last_modified_at: 2024-02-19. 00:00</a>
 </article>
 
 <div id="post-list" class="flex-grow-1 px-xl-1">
@@ -19,6 +22,13 @@ refactor: true
         {% assign card_body_col = '12' %}
 
         {% if w.image %}
+          {% assign src = w.image.path | default: w.image %}
+          {% unless src contains '//' %}
+            {% assign src = w.img_path | append: '/' | append: src | replace: '//', '/' %}
+          {% endunless %}
+
+          {% assign alt = w.image.alt | xml_escape | default: 'Preview Image' %}
+
           {% assign lqip = null %}
 
           {% if w.image.lqip %}
@@ -26,7 +36,7 @@ refactor: true
           {% endif %}
 
           <div class="col-md-5">
-            <img src="/assets/img/wwg/{{ w.image }}" {{ lqip }}>
+            <img src="{{ src }}" alt="{{ alt }}" {{ lqip }}>
           </div>
 
           {% assign card_body_col = '7' %}
