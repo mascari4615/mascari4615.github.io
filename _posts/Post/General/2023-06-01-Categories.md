@@ -5,8 +5,9 @@ date: 2023-06-01. 10:27
 # last_modified_at: 2023-11-22. 08:07
 # last_modified_at: 2023-11-23. 18:42
 # last_modified_at: 2023-12-25. 20:28
-last_modified_at: 2024-02-01. 09:34
-categories: 🔖Creative 📘Blog
+# last_modified_at: 2024-02-01. 09:34
+last_modified_at: 2024-03-06. 14:28
+categories: [🔖Creative, 📘Blog]
 pin: true
 ---
 
@@ -29,25 +30,15 @@ Milestone에서 따옴
 
 ⭐Computer :  
 
-⭐Computer 🌑Computer-General :  
-⭐Computer 🌒Programming :  
-⭐Computer 🌓PS-Algorithm :  
-⭐Computer 🌔Unity-CSharp :  
-⭐Computer 🌕Unreal-CPP :  
-⭐Computer 🌖Computer-OS :  
-⭐Computer 🌗AI :  
-⭐Computer 🌘Web-Mobile :  
-⭐Computer 🌚 :  
-
 ⭐Computer 🌑Computer-OS :  
 ⭐Computer 🌒Programming : 프로그래밍, 프로그래밍 언어 문법 (C++, C#)  
-⭐Computer 🌓Algorithm : 알고리듬과 자료구조  
-⭐Computer 🌔PS :  
-⭐Computer 🌕Game-Engine :  
+⭐Computer 🌓PS-Algorithm : 알고리듬과 자료구조  
+⭐Computer 🌔Game-Engine :  
+⭐Computer 🌕 :  
 ⭐Computer 🌖 :  
 ⭐Computer 🌗 :  
-⭐Computer 🌘U : AI, Web-Mobile, ...  
-⭐Computer 🌚Computer-General : 컴퓨터와 관련된 잡다한  
+⭐Computer 🌘 :  
+⭐Computer 🌚Computer-General : 컴퓨터와 관련된 잡다한 것  
 
 💫  
 🫧  

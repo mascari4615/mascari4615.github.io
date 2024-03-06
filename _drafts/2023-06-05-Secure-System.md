@@ -1,8 +1,8 @@
 ---
-title: "🌑 보안 시스템"
+title: "🌚 보안 시스템"
 date: 2023-06-05. 11:15
 last_modified_at: 2023-06-08. 09:59
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 DB  
@@ -49,9 +49,7 @@ F/W - 방화벽
 
 - 설치 위치와 목적에 따라 호스트 기반과 네트워크 기반의 침입탐지시스템으로 나뉨
 
-
-
-* 호스트 기반 ( HIDS : Host-based IDS )
+- 호스트 기반 ( HIDS : Host-based IDS )
 
 - 컴퓨터 시스템의 내부를 감시하고 분석하는 데 중점을 둠
 
@@ -65,9 +63,7 @@ F/W - 방화벽
 
 ( ex) Tripwire )
 
-
-
-* 네트워크 기반 ( NIDS : Network-based IDS )
+- 네트워크 기반 ( NIDS : Network-based IDS )
 
 - 네트워크를 통해 전송되는 패킷 정보 수집 및 분석하여 침입을 탐지하는 시스템
 
@@ -81,9 +77,7 @@ F/W - 방화벽
 
 ( ex) Snort )
 
-
-
-* Snort란?
+- Snort란?
 
 - 무료 오픈 소스 네트워크 침입 탐지 시스템이자, 침입 방지 시스템으로 실시간으로 트래픽 분석 및 패킷을 기록 (  IDS & IPS )
 

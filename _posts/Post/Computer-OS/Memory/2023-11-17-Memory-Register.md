@@ -1,8 +1,8 @@
 ---
-title: "🌖 Register 레지스터"
+title: "🌑 Register 레지스터"
 date: 2023-11-17. 02:50
 last_modified_at: 2023-11-26. 01:45
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 tags: Computer Memory Register
 ---
 

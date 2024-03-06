@@ -1,8 +1,8 @@
 ---
-title: "🌖 Interrupt"
+title: "🌑 Interrupt"
 date: 2023-11-10. 09:21
 last_modified_at: 2023-11-15. 16:06
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 tags: Computer Operating-System OS Interrupt Polling
 ---
 

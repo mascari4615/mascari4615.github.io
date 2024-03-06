@@ -1,8 +1,8 @@
 ---
-title: "🌖 Machine Instruction/Cycle - 기계 명령어, 기계 사이클"
+title: "🌑 Machine Instruction/Cycle - 기계 명령어, 기계 사이클"
 date: 2023-11-03. 14:23
 last_modified_at: 2023-11-03. 14:23
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 ---
 
 ## 💫 Machine Instruction - 기계 명령어

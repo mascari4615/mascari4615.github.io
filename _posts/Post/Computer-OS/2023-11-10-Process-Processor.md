@@ -1,10 +1,10 @@
 ---
-title: "🌖 Process, Processor"
+title: "🌑 Process, Processor"
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-15. 15:29
 # last_modified_at: 2023-11-26. 05:59
 last_modified_at: 2023-11-28. 09:59
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 ---
 
 @ 0406  

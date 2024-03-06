@@ -1,8 +1,8 @@
 ---
-title: "🌖 Boolean 크기가 1바이트인 이유"
+title: "🌑 Boolean 크기가 1바이트인 이유"
 date: 2023-03-16. 10:51
 last_modified_at: 2023-11-08. 14:55
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 tags: Boolean Bit Byte
 ---
 

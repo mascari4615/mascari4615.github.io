@@ -1,8 +1,8 @@
 ---
-title: "🌖 Binary-Search-Tree"
+title: "🌓 Binary-Search-Tree"
 date: 2024-02-19. 20:52
 # last_modified_at: 2024-02-19. 20:52
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Heap]
 ---
 

@@ -1,11 +1,11 @@
 ---
-title: "🌖 Array 배열"
+title: "🌓 Array 배열"
 date: 2024-02-18. 11:34
 # last_modified_at: 2024-02-19. 00:30
 # last_modified_at: 2024-02-20. 00:04
 # last_modified_at: 2024-02-21. 18:19
 last_modified_at: 2024-02-21. 19:32
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Array]
 ---
 

@@ -1,9 +1,9 @@
 ---
-title: "🌖 Addressing Mode"
+title: "🌑 Addressing Mode"
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-10. 09:21
 last_modified_at: 2023-11-26. 01:42
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 ---
 
 ## 💫 주소 지정 모드

@@ -1,8 +1,8 @@
 ---
-title: "🌖 Deque"
+title: "🌓 Deque"
 date: 2024-02-19. 16:54
 last_modified_at: 2024-02-25. 02:11
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Deck]
 ---
 

@@ -1,8 +1,8 @@
 ---
-title: "🌖 Heap"
+title: "🌓 Heap"
 date: 2024-02-19. 20:22
 # last_modified_at: 2024-02-19. 20:22
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Heap]
 ---
 

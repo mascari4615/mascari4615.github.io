@@ -1,9 +1,9 @@
 ---
-title: "🌖 시스템 프로그래밍"
+title: "🌑 시스템 프로그래밍"
 date: 2023-04-01. 00:00 # ?
 # last_modified_at: 2023-11-17. 09:33
 last_modified_at: 2023-11-26. 01:03
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 ---
 
 ## 💫 1

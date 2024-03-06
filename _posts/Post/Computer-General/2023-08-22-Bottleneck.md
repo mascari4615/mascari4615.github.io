@@ -1,8 +1,8 @@
 ---
-title: "🌑 Bottleneck, 병목 현상"
+title: "🌚 Bottleneck, 병목 현상"
 date: 2023-08-22. 16:26
 last_modified_at: 2023-08-22. 16:26
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 ### 💫 Bottleneck, 병목 현상

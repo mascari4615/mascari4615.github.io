@@ -1,8 +1,8 @@
 ---
-title: "🌖 CPU Scheduling"
+title: "🌑 CPU Scheduling"
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-10. 09:21
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 tags: Computer CPU CPU-Scheduling
 ---
 
@@ -83,7 +83,6 @@ tags: Computer CPU CPU-Scheduling
     - 기아 상태 현상
     - CPU 버스트는 어떻게 계산?
       - 예측 하는 방법론이 있다 (수업에서 다루지는 않음)
-
 
 @0413  
 

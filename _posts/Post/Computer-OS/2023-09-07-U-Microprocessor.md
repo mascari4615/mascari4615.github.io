@@ -1,5 +1,5 @@
 ---
-title: "🌖 마이크로프로세서 과목"
+title: "🌑 마이크로프로세서 과목"
 date: 2023-09-08. 12:51
 # last_modified_at: 2023-09-15. 12:53
 # last_modified_at: 2023-10-20. 13:50
@@ -8,7 +8,7 @@ date: 2023-09-08. 12:51
 # last_modified_at: 2023-11-24. 12:12
 # last_modified_at: 2023-12-08. 10:51
 last_modified_at: 2023-12-15. 12:08
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 tags: Computer Microprocessor
 ---
 

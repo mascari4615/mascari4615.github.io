@@ -1,8 +1,8 @@
 ---
-title: "🌑 클라우드 컴퓨팅 과목"
+title: "🌚 클라우드 컴퓨팅 과목"
 date: 2023-03-09. 14:55
 last_modified_at: 2023-05-04. 10:55
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 On-Premise VS 클라우드  
@@ -158,4 +158,3 @@ AI Like 알파고
 SLA  
 
 ---
-

@@ -1,10 +1,10 @@
 ---
-title: "🌖 Linked-List"
+title: "🌓 Linked-List"
 date: 2024-02-19. 00:30
 # last_modified_at: 2024-02-19. 02:30
 # last_modified_at: 2024-02-19. 19:56
 last_modified_at: 2024-02-25. 02:11
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Linked-List]
 ---
 

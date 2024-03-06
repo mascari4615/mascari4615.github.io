@@ -1,15 +1,15 @@
 ---
-title: "🌖 Race Condition"
+title: "🌑 Race Condition"
 date: 2023-11-10. 09:21
 last_modified_at: 2023-11-10. 09:21
-categories: ⭐Computer 🌖Computer-OS
+categories: ⭐Computer 🌑Computer-OS
 ---
 
 ---
 
 @0418  
 
-- 병행처리 Concurrent Processing와 경쟁상황Race Condition 
+- 병행처리 Concurrent Processing와 경쟁상황Race Condition
   - 병행처리
     - 하나의 CPU가 여러 개의 프로세스를 조금씩 번갈아 처리
     - 거시적 관점에서 여러 개의 프로세스를 한꺼번에 처리하는 효과

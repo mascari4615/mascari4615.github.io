@@ -1,8 +1,8 @@
 ---
-title: "🌖 Set 집합"
+title: "🌓 Set 집합"
 date: 2024-02-25. 02:14
 # last_modified_at: 2024-02-25. 02:14
-categories: [⭐Computer, 🌖Computer-OS]
+categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Set]
 ---
 

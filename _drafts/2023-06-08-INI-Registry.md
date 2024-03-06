@@ -1,8 +1,8 @@
 ---
-title: "🌑 Ini, Registry"
+title: "🌚 Ini, Registry"
 date: 2023-06-07. 11:50
 last_modified_at: 2023-06-07. 11:50
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 ### 💫 INI, *.ini

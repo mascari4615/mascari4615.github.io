@@ -1,8 +1,8 @@
 ---
-title: "🌑 이 시스템에서 스크립트를 실행할 수 없으므로 파일을 로드할 수 없습니다."
+title: "🌚 이 시스템에서 스크립트를 실행할 수 없으므로 파일을 로드할 수 없습니다."
 date: 2023-11-30. 18:42
 # last_modified_at: 2023-11-30. 18:42
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 ## 💫 에러
@@ -19,6 +19,6 @@ categories: ⭐Computer 🌑Computer-General
 2. Set-ExecutionPolicy로 권한 상태를 RemoteSigned로 설정
 
 ```console
-$ Set-ExecutionPolicy RemoteSigned
-$ Get-ExecutionPolicy
+Set-ExecutionPolicy RemoteSigned
+Get-ExecutionPolicy
 ```

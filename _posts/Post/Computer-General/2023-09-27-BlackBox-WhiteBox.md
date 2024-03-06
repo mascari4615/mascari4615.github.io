@@ -1,8 +1,8 @@
 ---
-title: "🌑 블랙박스, 화이트박스"
+title: "🌚 블랙박스, 화이트박스"
 date: 2023-09-27. 03:11
 last_modified_at: 2023-09-27. 03:11
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 ### 💫 블랙박스 테스트

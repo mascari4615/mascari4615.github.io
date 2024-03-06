@@ -1,8 +1,8 @@
 ---
-title: "🌑 SW 공학 과목"
+title: "🌚 SW 공학 과목"
 date: 2023-03-09. 14:59
 last_modified_at: 2023-05-08. 16:07
-categories: ⭐Computer 🌑Computer-General
+categories: [⭐Computer, 🌚Computer-General]
 ---
 
 ### Chapter 1 : 서론
@@ -2438,7 +2438,7 @@ COCOMO 2
 
 - 형상 관리
   - SW 시스템은 개발 및 사용중에 지속적으로 변경됨
-  - 형상 관리 CM는변화하는 SW 시스템을 관리하기 위한 정책, 
+  - 형상 관리 CM는변화하는 SW 시스템을 관리하기 위한 정책,
 
 TODO : Version Repository Deploy Releases  
 

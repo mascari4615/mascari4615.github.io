@@ -45,7 +45,9 @@
 		"valarray": "cpp",
 		"cmath": "cpp",
 		"tuple": "cpp",
-		"iosfwd": "cpp"
+		"iosfwd": "cpp",
+		"algorithm": "cpp",
+		"ostream": "cpp"
 	},
 	// Formatter
 	"[html][liquid]": {
