@@ -43,20 +43,28 @@ social:
     - https://www.facebook.com/Mascari4615
     - https://www.linkedin.com/in/Mascari4615
 
-google_site_verification: YyOln-BHzWUdxQlVEf9yXj9ZRXo_3bYOovPEe4x_-yI # fill in to your verification string
+# Site Verification Settings
+webmaster_verifications:
+  google: YyOln-BHzWUdxQlVEf9yXj9ZRXo_3bYOovPEe4x_-yI
+  bing: # fill in your Bing verification code
+  alexa: # fill in your Alexa verification code
+  yandex: # fill in your Yandex verification code
+  baidu: # fill in your Baidu verification code
+  facebook: # fill in your Facebook verification code
 
 # ↑ --------------------------
 # The end of `jekyll-seo-tag` settings
 
-google_analytics:
-  id: G-QRNK1L0YH7 # fill in your Google Analytics ID
-  # Google Analytics pageviews report settings
-  pv:
-    proxy_endpoint: # fill in the Google Analytics superProxy endpoint of Google App Engine
-    cache_path: # the local PV cache data, friendly to visitors from GFW region
+# Web Analytics Settings
+analytics:
+  google:
+    id: G-QRNK1L0YH7
+  goatcounter:
+    id: # fill in your GoatCounter ID
 
-goatcounter:
-  id: # fill in your Goatcounter ID
+# Pageviews settings
+pageviews:
+  provider: # now only supports 'goatcounter'
 
 # Prefer color scheme setting.
 #
@@ -89,8 +97,9 @@ social_preview_image: # string, local or CORS resources
 toc: true
 
 comments:
-  active: giscus # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
-  # The active options are as follows:
+  # Global switch for the post comment system. Keeping it empty means disabled.
+  provider: giscus
+  # The provider options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
   # utterances settings › https://utteranc.es/

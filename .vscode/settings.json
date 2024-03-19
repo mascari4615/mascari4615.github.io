@@ -49,6 +49,9 @@
 		"algorithm": "cpp",
 		"ostream": "cpp"
 	},
+	"[markdown]": {
+		"editor.formatOnSave": false
+	},
 	// Formatter
 	"[html][liquid]": {
 		"editor.defaultFormatter": "Shopify.theme-check-vscode"
