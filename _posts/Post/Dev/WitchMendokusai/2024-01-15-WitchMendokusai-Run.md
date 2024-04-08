@@ -3,7 +3,8 @@ title: "🫐 WitchMendokusai Run"
 date: 2024-01-15. 19:53
 # last_modified_at: 2024-02-01. 09:34
 # last_modified_at: 2024-03-12. 10:03
-last_modified_at: 2024-03-18. 18:37
+# last_modified_at: 2024-03-18. 18:37
+last_modified_at: 2024-04-04. 11:30
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
@@ -45,6 +46,13 @@ categories: [🔖Creative, 🫐WitchMendokusai]
 ### 👾 카드
 
 ~~[카드](https://mascari4615.github.io/posts/WitchIdle-Card/)~~
+
+## 🎲 제약
+
+---
+
+- [명일방주의 위기 협약](https://namu.wiki/w/%EC%9C%84%EA%B8%B0%20%ED%98%91%EC%95%BD)
+- [리스크 오브 레인의 유물](https://namu.wiki/w/Risk%20of%20Rain%202/%EC%9C%A0%EB%AC%BC)
 
 ## 🎲 메모
 

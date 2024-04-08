@@ -4,7 +4,8 @@ date: 2023-05-21. 15:03
 
 # last_modified_at: 2023-07-13. 17:48
 # last_modified_at: 2023-08-22. 05:50
-last_modified_at: 2024-03-05. 13:13
+# last_modified_at: 2024-03-05. 13:13
+last_modified_at: 2024-04-03. 14:15
 
 categories: [⭐Computer, 🌔Game-Engine]
 tags: [Unity]
@@ -16,6 +17,8 @@ tags: [Unity]
 
 - [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
 - [UI Toolkit](https://mascari4615.github.io/posts/Unity-UI-Toolkit/)
+- `Collision.contacts`
+- `AddForce`에서의 Force -> `force * DT / mass`
 
 <br>
 <!-- ---- ---- ---- ----  ---- ---- ---- ----  ---- ---- ---- ----  ---- ---- ---- ---- -->
