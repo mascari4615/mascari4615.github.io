@@ -1,15 +1,16 @@
 ---
-title:  "🥑 왁굳형 캘린더 달력 프로그램 - DesktopCal"
+title: "🥑 왁굳형 캘린더 달력 프로그램 - DesktopCal"
 date: 2021-12-14. 17:17
-last_modified_at: 2023-08-26. 10:54
-categories: 🌳Memo 🥑Memo-General
+# last_modified_at: 2023-08-26. 10:54
+last_modified_at: 2024-04-09. 00:14
+categories: [🌳Memo, 🥑Memo-General]
 ---
 
-## 💎 왁굳형 캘린더 달력 프로그램 [https://www.desktopcal.com/](https://www.desktopcal.com/)
+## **🥑 왁굳형 캘린더 달력 프로그램 [https://www.desktopcal.com/](https://www.desktopcal.com/)**
 
 ---
 
-![바탕화면 달력 스크린샷 내꺼](/assets/img/211214/0000.jpg)
+![바탕화면 달력 스크린샷 내꺼](/assets/img/2021/211214_0000.jpg)
 
 {% include embed/youtube.html id = "S74j0vnvIL8" %}
 
