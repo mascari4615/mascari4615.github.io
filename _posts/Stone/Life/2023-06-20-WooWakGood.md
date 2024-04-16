@@ -444,7 +444,6 @@ tags: [WooWakGood]
 
 ---
 
-- 24_XX_XX - VRChat 맵 제작 : SkySix
 - 24_XX_XX - VRChat 맵 프로그래밍 : 왁디아나존스
 - 24_XX_XX - VRChat 맵 제작 : 단답님 기획의 무언가 (뭔지모름)
 
