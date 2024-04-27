@@ -1,8 +1,8 @@
 ---
-title: "🌚 정규표현식"
+title: "🌒 정규표현식"
 date: 2023-03-20. 14:21
 last_modified_at: 2023-04-03. 14:23
-categories: [⭐Computer, 🌚Computer-General]
+categories: [⭐Computer, 🌒Programming]
 ---
 
 ```Text

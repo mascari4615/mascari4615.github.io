@@ -1,8 +1,8 @@
 ---
-title: "🌚 Design Pattern"
+title: "🌒 Design Pattern"
 date: 2024-04-09. 16:18
 last_modified_at: 2024-04-23. 05:28
-categories: [⭐Computer, 🌚Computer-General]
+categories: [⭐Computer, 🌒Programming]
 tags: [Design-Pattern, Singleton, Observer]
 ---
 

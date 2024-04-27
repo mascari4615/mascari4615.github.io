@@ -1,8 +1,8 @@
 ---
-title: "🌚 Architecture Pattern"
+title: "🌒 Architecture Pattern"
 date: 2024-04-09. 14:21
 # last_modified_at: 2024-04-09. 14:21
-categories: [⭐Computer, 🌚Computer-General]
+categories: [⭐Computer, 🌒Programming]
 
 # MVC 패턴을 이용한 App 아키텍처
 # 계층 아키텍처 패턴 @176p 6.7
