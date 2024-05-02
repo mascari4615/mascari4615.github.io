@@ -1,7 +1,8 @@
 ---
-title: "🫐 MW"
+title: "🫐 MyWaiting"
 date: 2024-04-03. 15:00
-last_modified_at: 2024-04-19. 13:24
+# last_modified_at: 2024-04-19. 13:24
+last_modified_at: 2024-05-02. 01:08
 categories: [🔖Creative, 🫐MyWaiting]
 ---
 
