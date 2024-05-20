@@ -6,7 +6,7 @@ theme: jekyll-theme-chirpy
 # The language of the webpage › http://www.lingoes.net/en/translator/langcode.htm
 # If it has the same name as one of the files in folder `_data/locales`, the layout language will also be changed,
 # otherwise, the layout language will use the default value of 'en'.
-lang: en
+lang: kr
 
 # Change to your timezone › http://www.timezoneconverter.com/cgi-bin/findzone/findzone
 timezone: Asia/Seoul
@@ -16,12 +16,13 @@ timezone: Asia/Seoul
 
 title: Mascari4615 # the main title
 
-tagline: sans # it will display as the sub-title
+tagline: 메모 # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  sans
+  삶을 섞고 술을 바꿀 시간.
 
-# fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
+# Fill in the protocol & hostname for your site.
+# e.g. 'https://username.github.io', note that it does not end with a '/'.
 url: "https://Mascari4615.github.io"
 
 github:
@@ -39,13 +40,13 @@ social:
     # The first element serves as the copyright owner's link
     - https://twitter.com/Mascari4615 # change to your twitter homepage
     - https://github.com/Mascari4615 # change to your github homepage
-    - https://www.instagram.com/Mascari4615_
-    - https://www.facebook.com/Mascari4615
-    - https://www.linkedin.com/in/Mascari4615
+    # Uncomment below to add more social links
+    # - https://www.facebook.com/username
+    # - https://www.linkedin.com/in/username
 
 # Site Verification Settings
 webmaster_verifications:
-  google: YyOln-BHzWUdxQlVEf9yXj9ZRXo_3bYOovPEe4x_-yI
+  google: YyOln-BHzWUdxQlVEf9yXj9ZRXo_3bYOovPEe4x_-yI # fill in your Google verification code
   bing: # fill in your Bing verification code
   alexa: # fill in your Alexa verification code
   yandex: # fill in your Yandex verification code
@@ -58,7 +59,7 @@ webmaster_verifications:
 # Web Analytics Settings
 analytics:
   google:
-    id: G-QRNK1L0YH7
+    id: G-QRNK1L0YH7 # fill in your Google Analytics ID
   goatcounter:
     id: # fill in your GoatCounter ID
   umami:
@@ -92,7 +93,7 @@ theme_mode: # [light | dark]
 # will be added to all media resources (site avatar, posts' images, audio and video files) paths starting with '/'
 #
 # e.g. 'https://cdn.com'
-img_cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@master"
+cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@master"
 
 # the avatar on sidebar, support local or CORS resources
 avatar: "/assets/img/common/Star_Transparent.png"
@@ -106,7 +107,7 @@ toc: true
 
 comments:
   # Global switch for the post comment system. Keeping it empty means disabled.
-  provider: giscus
+  provider: giscus # [disqus | utterances | giscus]
   # The provider options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
