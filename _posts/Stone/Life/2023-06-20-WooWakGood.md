@@ -9,7 +9,8 @@ date: 2023-06-20. 10:05
 # last_modified_at: 2024-03-06. 16:52
 # last_modified_at: 2024-03-25. 19:03
 # last_modified_at: 2024-04-04. 12:46
-last_modified_at: 2024-04-08. 19:17
+# last_modified_at: 2024-04-08. 19:17
+last_modified_at: 2024-05-10. 02:33
 categories: [🪨Stone, 🏝️LifeStone]
 tags: [WooWakGood]
 ---
@@ -441,6 +442,8 @@ tags: [WooWakGood]
 - 24_03_23 - VRChat 맵 프로그래밍 : 버튜버 총회
 - 24_04_03 - VRChat 돚거게임
 - 24_04_07 - 맵 제작 : [육광천 - Everything](https://youtu.be/-CDAA7r2aIs?si=8Ua0lPZksnOZoyme)
+- 24_04_07 - VRChat 맵 프로그래밍 : 해외축구 어필쇼 (고세구)
+- 24_05_10 - VRChat 맵 프로그래밍 : 성결힐링캠프 (고세구)
 
 ---
 

@@ -2,7 +2,8 @@
 title: "🫐 WitchMendokusai DevLog 04"
 date: 2024-04-19. 00:24
 # last_modified_at: 2024-04-25. 21:55
-last_modified_at: 2024-05-02. 05:44
+# last_modified_at: 2024-05-02. 05:44
+last_modified_at: 2024-05-04. 03:40
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
@@ -30,7 +31,7 @@ public class SOManager : ScriptableObject
 }
 ```
 
-![보면 잘 들어가 있는데](/assets/img/2024/240419_02.png)  
+![보면 잘 들어가 있는데](/assets/img/2024/240419_01.png)  
 로그를 찍어보면 잘 들어가있는 걸 확인할 수 있다.  
 
 이 방법은 에디터 상에서는 문제가 없지만,  

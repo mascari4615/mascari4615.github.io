@@ -47,7 +47,8 @@
 		"tuple": "cpp",
 		"iosfwd": "cpp",
 		"algorithm": "cpp",
-		"ostream": "cpp"
+		"ostream": "cpp",
+		"*.tcc": "cpp"
 	},
 	"[markdown]": {
 		"editor.formatOnSave": false
