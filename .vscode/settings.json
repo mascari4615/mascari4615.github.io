@@ -36,19 +36,6 @@
 		"[!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.]": "xml",
 		"[!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.][!.]": "xml",
 		"*.html": "liquid",
-		"iostream": "cpp",
-		"array": "cpp",
-		"string_view": "cpp",
-		"chrono": "cpp",
-		"random": "cpp",
-		"limits": "cpp",
-		"valarray": "cpp",
-		"cmath": "cpp",
-		"tuple": "cpp",
-		"iosfwd": "cpp",
-		"algorithm": "cpp",
-		"ostream": "cpp",
-		"*.tcc": "cpp"
 	},
 	"[markdown]": {
 		"editor.formatOnSave": false
