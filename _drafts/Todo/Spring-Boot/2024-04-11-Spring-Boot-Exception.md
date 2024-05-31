@@ -1,13 +1,12 @@
 ---
-title: "🌚 Exception"
+title: "🌚 Spring Boot Exception"
 date: 2024-04-11. 19:09
 # last_modified_at: 2024-04-11. 19:09
 categories: [⭐Computer, 🌚Computer-General]
 ---
 
-{% include embed/youtube.html id='nyN4o9eXqm0' %}
-
-{% include embed/youtube.html id='5XHhAhN-9po' %}
+{% include embed/youtube.html id='nyN4o9eXqm0' %}  
+{% include embed/youtube.html id='5XHhAhN-9po' %}  
 
 ## **💫 Exception**
 
@@ -20,7 +19,6 @@ categories: [⭐Computer, 🌚Computer-General]
 
 - `@ControllerAdvice` 는 모든 컨트롤러에서 발생할 예외를 정의하고,
 - `@ExceptionHandler` 를 통해 발생하는 예외 마다 처리할 메소드를 정의
-<br>
 
 ### **🫧 예외 클래스**
 
@@ -40,7 +38,6 @@ categories: [⭐Computer, 🌚Computer-General]
   - 대표 예외 : NullPointerException, ArrayIndexOutOfBoundsException, ...
 
 롤백 여부는 설정에 따라 달라질 수 있으며, 기본적으로 `Unchecked Exception`은 롤백이 일어남  
-<br>
 
 ### **🫧 @ControllerAdvice, @RestControllerAdvice**
 
@@ -49,7 +46,6 @@ categories: [⭐Computer, 🌚Computer-General]
 - 설정을 통해 범위 지정이 가능하며, Default 설정은 모든 예외 처리를 관리함
   - `@RestControllerAdvice(basePackages = "com.example.controller")`와 같이 패키지 범위를 지정할 수 있음
 - 예외 발생 시 json 형태로 결과를 반환하기 위해서는 `@RestControllerAdvice` 를 사용
-<br>
 
 ### **🫧 @ExceptionHandler**
 
@@ -59,7 +55,6 @@ categories: [⭐Computer, 🌚Computer-General]
 - `Exception.class`는 최상위 클래스로 하위 세부 예외 처리 클래스로 설정한 핸들러가 존재하면, 그 핸들러가 우선 처리하게 되며, 처리 되지 못하는 예외 처리에 대해 ExceptionClass에서 핸들링함
 - `@ControllerAdvice`로 설정된 클래스 내에서 메소드로 정의할 수 있지만, 각 Controller안에 설정도 가능
 - 전역 설정 (`@ControllerAdvice`)과 지역 설정 (`@ExceptionHandler`)이 동시에 존재할 경우, 지역 설정이 우선순위를 가짐
-<br>
 
 ### **🫧 우선순위**
 
@@ -68,7 +63,6 @@ categories: [⭐Computer, 🌚Computer-General]
 
 - `ControllerAdvice`/`RestControllerAdvice` < `Controller`/`RestController` < `Method`
 - = 전역 설정 < 지역 설정 < 메소드 설정
-<br>
 
 ## **💫 Custom Exception**
 

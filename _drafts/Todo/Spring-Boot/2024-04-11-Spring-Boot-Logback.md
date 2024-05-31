@@ -14,7 +14,6 @@ categories: [⭐Computer, 🌚Computer-General]
 - Log4J를 기반으로 개발된 로깅 (Logging) 라이브러리
 - Log4J에 비해 약 10배 정도 빠른 퍼포먼스, 메모리 효율성 증대
 - 출시 순서 : Log4J -> Logback -> Log4J2
-<br>
 
 ### **🫧 특징**
 
@@ -29,7 +28,6 @@ categories: [⭐Computer, 🌚Computer-General]
 - 설정 파일을 일정 시간마다 스캔하여 어플리케이션 중단 없이 설정 변경 가능
 - 별도의 프로그램 없이 자체적으로 로그 압축을 지원
 - 로그 보관 기간 설정 가능
-<br>
 
 ### **🫧 설정**
 
@@ -37,7 +35,6 @@ categories: [⭐Computer, 🌚Computer-General]
   - Java Legacy, Spring의 경우에는 logback.xml 파일을 참조
   - Spring Boot의 경우에는 logback-spring.xml 파일을 참조
   - 바꿀 수 있음
-<br>
 
 ### **🫧 구조**
 
@@ -51,12 +48,10 @@ Log의 형태 및 어디에 출력할지 설정하기 위한 영역
 - `DailyRollingFileAppender` : 일별로 파일 생성
 - `SMTPAppender` : 이메일로 전송
 - `DBAppender` : DB에 저장
-<br>
 
 #### Encoder
 
 Appender 내에 포함되는 항목, Pattern을 사용하여 원하는 형식으로 로그를 표현할 수 있음  
-<br>
 
 #### Pattern
 
@@ -69,13 +64,11 @@ Appender 내에 포함되는 항목, Pattern을 사용하여 원하는 형식으
 - `%msg` : 로그 메시지 (== `%message`)
 - `%n` : 줄바꿈
 - ...
-<br>
 
 #### Root
 
 설정한 Appender를 참조하여 로그의 레벨을 설정할 수 있음  
 Root는 전역 설정이며, 지역 설정을 하기 위해서는 Logger를 사용  
-<br>
 
 #### Filter
 
@@ -84,4 +77,3 @@ Root는 전역 설정이며, 지역 설정을 하기 위해서는 Logger를 사�
 - `LevelFilter` : 로그 레벨에 따라 출력 여부 결정
 - `ThresholdFilter` : 특정 레벨 이상의 로그만 출력
 - ...
-<br>
