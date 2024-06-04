@@ -3,7 +3,8 @@ title: "🫐 WitchMendokusai DevLog 04"
 date: 2024-04-19. 00:24
 # last_modified_at: 2024-04-25. 21:55
 # last_modified_at: 2024-05-02. 05:44
-last_modified_at: 2024-05-04. 03:40
+# last_modified_at: 2024-05-04. 03:40
+last_modified_at: 2024-05-22. 20:47
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
@@ -26,8 +27,8 @@ categories: [🔖Creative, 🫐WitchMendokusai]
 ```cs
 public class SOManager : ScriptableObject
 {
-	[field: SerializeField] public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new();
-	// ...
+    [field: SerializeField] public Dictionary<Type, Dictionary<int, DataSO>> DataSOs { get; private set; } = new();
+    // ...
 }
 ```
 
@@ -59,7 +60,6 @@ public class SOManager : ScriptableObject
 깃 레포에 코드만 올려서 공개하고 실제 아트적인 에셋들은 어드레서블로 불러오는.. 그런 계획이 있는 것이 이유다.  
 
 ... 그냥 써보는거지 뭐 !  
-<br>
 
 ### **👾 Addressable**
 
@@ -79,75 +79,74 @@ public class SOManager : ScriptableObject
 여러 종속성 문제도 자동으로 해결해준다. (이부분은 좀 더 공부해봐야겠다.)  
 
 [참고 : '어드레서블 에셋 시스템 - 개념: 등장 배경, vs 에셋번들'](https://planek.tistory.com/22)  
-<br>
 
 ### **👾 구현**
 
 ```cs
 public class UILoading : Singleton<UILoading>
 {
-	[SerializeField] private Image progressBar;
-	private readonly List<AsyncOperationHandle> handles = new();
+    [SerializeField] private Image progressBar;
+    private readonly List<AsyncOperationHandle> handles = new();
 
-	public IEnumerator Loading()
-	{
-		gameObject.SetActive(true);
-		progressBar.fillAmount = 0f;
+    public IEnumerator Loading()
+    {
+        gameObject.SetActive(true);
+        progressBar.fillAmount = 0f;
 
-		LoadAssetsAsync();
+        LoadAssetsAsync();
 
-		while (true)
-		{
-			float totalPercent = 0;
-			foreach (var handle in handles)
-				totalPercent += handle.PercentComplete;
-			progressBar.fillAmount = totalPercent / handles.Count;
+        while (true)
+        {
+            float totalPercent = 0;
+            foreach (var handle in handles)
+                totalPercent += handle.PercentComplete;
+            progressBar.fillAmount = totalPercent / handles.Count;
 
-			Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
+            Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
 
-			if (handles.All(handle => handle.IsDone))
-				break;
+            if (handles.All(handle => handle.IsDone))
+                break;
 
-			yield return null;
-		}
-		Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
+            yield return null;
+        }
+        Debug.Log($"Loading... {progressBar.fillAmount * 100}%");
 
-		//foreach (var handle in handles)
-		//	Addressables.Release(handle);
+        //foreach (var handle in handles)
+        //    Addressables.Release(handle);
 
-		progressBar.fillAmount = 1f;
-		gameObject.SetActive(false);
-	}
+        progressBar.fillAmount = 1f;
+        gameObject.SetActive(false);
+    }
 
-	private void LoadAssetsAsync()
-	{
-		SOManager.Instance.DataSOs.Clear();
+    private void LoadAssetsAsync()
+    {
+        SOManager.Instance.DataSOs.Clear();
 
-		LoadAsset<QuestData>("QUEST_DATA");
-		// 각 타입별로 로드.. (생략)
+        LoadAsset<QuestData>("QUEST_DATA");
+        // 각 타입별로 로드.. (생략)
 
-		void LoadAsset<T>(string label) where T : DataSO
-		{
-			var handle = Addressables.LoadAssetsAsync<T>(label, null);
-			handle.Completed += OnAssetsLoaded;
-			handles.Add(handle);
-		}
-	}
+        void LoadAsset<T>(string label) where T : DataSO
+        {
+            var handle = Addressables.LoadAssetsAsync<T>(label, null);
+            handle.Completed += OnAssetsLoaded;
+            handles.Add(handle);
+        }
+    }
 
-	private void OnAssetsLoaded<T>(AsyncOperationHandle<IList<T>> obj) where T : DataSO
-	{
-		if (obj.Status == AsyncOperationStatus.Succeeded)
-		{
-			List<T> assets = obj.Result.ToList();
-			SOManager.Instance.DataSOs[typeof(T)] = new();
+    private void OnAssetsLoaded<T>(AsyncOperationHandle<IList<T>> obj) where T : DataSO
+    {
+        if (obj.Status == AsyncOperationStatus.Succeeded)
+        {
+            List<T> assets = obj.Result.ToList();
+            SOManager.Instance.DataSOs[typeof(T)] = new();
 
-			foreach (T asset in assets)
-			{
-				Debug.Log($"Loaded {asset.name}");
-				SOManager.Instance.DataSOs[typeof(T)].Add(asset.ID, asset);
-			}
-		}
-	}
+            foreach (T asset in assets)
+            {
+                Debug.Log($"Loaded {asset.name}");
+                SOManager.Instance.DataSOs[typeof(T)].Add(asset.ID, asset);
+            }
+        }
+    }
 }
 ```
 
@@ -160,7 +159,6 @@ public class UILoading : Singleton<UILoading>
 당장은 로컬로 에셋을 로드하고 있는데 이렇게 되면 `Addressable`을 사용하는 의미가 없다.  
 
 `Addressable`과 서버를 연결하는 작업을 조만한 진행해야겠다.  
-<br>
 
 ## **🎲 Private 레포지토리 Public로 변환**
 
@@ -233,7 +231,6 @@ git push origin --force --all
 [참고 : 'git에서 잘못 올린 파일의 이전 내역을 전부 제거하는 방법'](https://opendeveloper.tistory.com/entry/git%EC%97%90%EC%84%9C-%EC%9E%98%EB%AA%BB-%EC%98%AC%EB%A6%B0-%ED%8C%8C%EC%9D%BC%EC%9D%98-%EC%9D%B4%EC%A0%84-%EB%82%B4%EC%97%AD%EC%9D%84-%EC%A0%84%EB%B6%80-%EC%A0%9C%EA%B1%B0%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95)  
 [참고 : '경로에 공백(띄어쓰기)이 있을 때 cd, git add 방법'](https://markme-inur.tistory.com/74)  
 [참고 : '.gitignore가 작동하지 않을때 대처법'](https://jojoldu.tistory.com/307)  
-<br>
 
 ### **👾 잔디가 왜 이래 !**
 
@@ -254,7 +251,6 @@ git push origin --force --all
 해당 파일을 지웠더니 다시 커밋 기록이 엄청 늘어났다..  
 
 당장 다시 갱신 요청하기는 좀 미안하고, 다른 파일도 찾아본 다음에 나중에 다시 한 번 문의 넣어야 할 듯 ㅎㅎ..  
-<br>
 
 ### **👾 파일 수정/추가**
 
@@ -274,7 +270,6 @@ git push origin --force --all
 FMOD 라이센스를 지키기 위해,  
 게임 로그인 화면에 FMOD 로고를 추가하고,  
 설정창에 FMOD의 간단한 크레딧을 추가했다.  
-<br>
 
 ### **👾 README.md**
 
@@ -336,6 +331,5 @@ FMOD 빌드 파일을 `.gitignore`로 제외하는 수도 있었지만,
 기능이 제공되면 좋겠다..  
 
 [참고 : 'Github LFS 저장공간 확보'](https://red-tiger.tistory.com/44)  
-<br>
 
 ![To Be Continued..](/assets/img/common/ToBeContinued.png)  

@@ -3,19 +3,20 @@ title: "🌚 Spring-Boot-Memo"
 date: 2024-04-03. 15:00
 # last_modified_at: 2024-04-19. 13:24
 # last_modified_at: 2024-05-02. 01:08
-last_modified_at: 2024-05-31. 08:29
+# last_modified_at: 2024-05-31. 08:29
+last_modified_at: 2024-05-31. 12:07
 categories: [⭐Computer, 🌚Computer-General]
 tags: [Spring-Boot, Memo]
 ---
 
-[참고 : 코딩레시피, '스프링부트 회원프로젝트'](https://www.youtube.com/playlist?list=PLV9zd3otBRt5ANIjawvd-el3QU594wyx7)  
+[참고 : 코딩레시피 - '스프링부트 회원프로젝트'](https://www.youtube.com/playlist?list=PLV9zd3otBRt5ANIjawvd-el3QU594wyx7)  
 [참고 : 어라운드 허브 스튜디오 - Around Hub Studio, '스프링 부트 (Spring Boot) 강의'](https://www.youtube.com/playlist?list=PLlTylS8uB2fBOi6uzvMpojFrNe7sRmlzU)  
 [참고 : 개발자 유미 - Around Hub Studio, '스프링 시큐리티'](https://www.youtube.com/playlist?list=PLJkjrxxiBSFCKD9TRKDYn7IE96K2u3C3U)  
-[참고 : Peony의 기록 창고, '스프링부트와 aws로 혼자 구현하는 웹서비스'](https://myeongju00.tistory.com/55#article-2--rds-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
+[참고 : Peony의 기록 창고 - '스프링부트와 aws로 혼자 구현하는 웹서비스'](https://myeongju00.tistory.com/55#article-2--rds-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
 
 ## **💫 QR**
 
-[참고 : 내가 보려고 만든 개발 (Tech) blog, '[SpringBoot] QR코드 생성 & Test(링크이동) - zxing'](https://lucas-owner.tistory.com/55)  
+[참고 : 내가 보려고 만든 개발 (Tech) blog - '[SpringBoot] QR코드 생성 & Test(링크이동) - zxing'](https://lucas-owner.tistory.com/55)  
 
 ## **💫 Cannot resolve symbol 'log'**
 
@@ -53,7 +54,7 @@ Alt + Enter : 변수 만들어 담기
 <p th:text="${#authentication.authenticated}"></p>
 ```
 
-[참고 : cornarong의 블로그, '타임리프로 화면단에서 사용자 시큐리티 정보 가져오기'](https://cornarong.tistory.com/73)  
+[참고 : cornarong의 블로그 - '타임리프로 화면단에서 사용자 시큐리티 정보 가져오기'](https://cornarong.tistory.com/73)  
 
 ### ***🫧 Thymeleaf 조건문***
 
@@ -75,7 +76,7 @@ Alt + Enter : 변수 만들어 담기
 
 ## **💫 FK 지정**
 
-[참고 : Velog, 'JPA로 엔티티, 테이블 생성하기 / PK, FK 연결하기'](https://velog.io/@seulki412/Spring-Boot-JPA로-엔티티-테이블-생성하기-PK-FK-연결하기)  
+[참고 : Velog - 'JPA로 엔티티, 테이블 생성하기 / PK, FK 연결하기'](https://velog.io/@seulki412/Spring-Boot-JPA로-엔티티-테이블-생성하기-PK-FK-연결하기)  
 
 ```java
 public class B {
@@ -129,13 +130,13 @@ FK로 사용되는 객체가 저장되지 않아서.
 ---
 
 보안 그룹-인바운드 규칙 편집하여 포트번호 8080 열기  
-[참고 : s0nnyday.log, '[AWS EC2] 오류 - EC2, Jar 실행 후 웹 브라우저에 요청 보내도 응답x'](https://velog.io/@s0nnyday/AWS-EC2-배포-SSH프로토콜1-Jar-실행-후-웹-브라우저-테스트)  
+[참고 : s0nnyday.log - '[AWS EC2] 오류 - EC2, Jar 실행 후 웹 브라우저에 요청 보내도 응답x'](https://velog.io/@s0nnyday/AWS-EC2-배포-SSH프로토콜1-Jar-실행-후-웹-브라우저-테스트)  
 
 ## **💫 -Dspring, .yml 환경설정 적용하기**
 
 ---
 
-[참고 : monkeyDugi, 'Spring Boot -Dspring으로 환경설정 파일 적용하기'](https://dev-monkey-dugi.tistory.com/33)
+[참고 : monkeyDugi - 'Spring Boot -Dspring으로 환경설정 파일 적용하기'](https://dev-monkey-dugi.tistory.com/33)
 
 ## **💫 Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [org.hibernate.dialect.Dialect]**
 
@@ -148,7 +149,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
 ```
 
-[참고 : yesue2.log, 'Failed to initialize JPA EntityManagerFactory: Unable to create requested service [...] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [...] 에러'](https://velog.io/@yesue/SpringBoot-Failed-to-initialize-JPA-EntityManagerFactory-Unable-to-create-requested-service-...-due-to-Unable-to-resolve-name-org.hibernate.dialect.MySQL5InnoDBDialect-as-strategy-...-에러)
+[참고 : yesue2.log - 'Failed to initialize JPA EntityManagerFactory: Unable to create requested service [...] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [...] 에러'](https://velog.io/@yesue/SpringBoot-Failed-to-initialize-JPA-EntityManagerFactory-Unable-to-create-requested-service-...-due-to-Unable-to-resolve-name-org.hibernate.dialect.MySQL5InnoDBDialect-as-strategy-...-에러)
 
 ## **💫 Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured.**
 
@@ -175,6 +176,12 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 해당 Column이 Auto Increment가 아닌 경우 발생하는 에러  
 
 [참고 : StackOverflow - 'org.hibernate.HibernateException: The database returned no natively generated identity value'](https://stackoverflow.com/questions/7172657/org-hibernate-hibernateexception-the-database-returned-no-natively-generated-id)  
+
+## **💫 SpringSecurity 로그아웃**
+
+---
+
+[참고 : 돔돔이블로그 - '로그아웃기능 만들기 (+자동로그아웃)'](https://domdom.tistory.com/660)
 
 ## **💫 Linux 명령어**
 
@@ -207,6 +214,11 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 
 - `cp` : 파일 복사
   - `cp 파일명 복사할경로` : 파일 복사
+
+- `tail` : 파일 끝부분 출력
+  - `-f` : 실시간 출력
+  - `-n` : 뒤에서부터 n개 출력
+  - `tail -f 파일명` : 파일 실시간 출력
 
 ## **💫 TODO:**
 
