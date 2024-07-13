@@ -8,7 +8,8 @@ date: 2023-10-31. 14:16
 # last_modified_at: 2023-11-30. 10:30
 # last_modified_at: 2023-12-05. 15:54
 # last_modified_at: 2023-12-19. 01:09
-last_modified_at: 2024-03-22. 00:59
+# last_modified_at: 2024-03-22. 00:59
+last_modified_at: 2024-06-12. 02:57
 
 categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Dynamic-Programming, DP]
@@ -45,7 +46,6 @@ DP는 작정하고 어렵게 하고자 한다면 한도 끝도 없이 어려워�
 - 부문제를 이용한 다른 알고리듬
   - 욕심쟁이 방법: 각 단계에서 해답의 일부를 선택한 후 남은 부문제를 해결
   - 분할정복: 귀납적 정의를 이용하여 부문제로 분할, 정복, 결합
-<br>
 
 ### **🫧 vs Divide-Conquer**
 
@@ -85,8 +85,6 @@ int IterativeFib(int n)
 }
 ```
 
-<br>
-
 ### **🫧 vs Greedy**
 
 - 공통점: 최적 부분 구조를 갖는 최적화 문제를 해결
@@ -100,7 +98,6 @@ int IterativeFib(int n)
 - 동적 계획법
   - 일반적인 문제 + 최적화 문제: 범용성
   - 문제를 해결하기 위한 모든 대안들의 답을 구하고 그 가운데 최적의 해답을 찾음 → 지능적인 무작위 기법, 상향식
-<br>
 
 ### **🫧 동적 계획법의 적용**
 
@@ -108,12 +105,10 @@ int IterativeFib(int n)
 - ➋ 문제를 순환적으로 정의
 - ➌ 중첩된 부문제 특성을 갖는지 조사
 - ➍ 부문제의 해답을 저장하고 이로부터 최적해를 구성하는 알고리즘을 구축
-<br>
 
 ### **🫧 Memoization**
 
 [Memoization](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
-<br>
 
 ## **💫 정리**
 
@@ -131,7 +126,6 @@ int IterativeFib(int n)
   - 데이터의  유사성을  알아내는데  유용한  최장  공통  부분순서 (longest common subsequence) 문제
   - 2장에서 다룬 여행하는 외판원 문제
   - 음성 인식이나 합성에서 사용되는 비터비(Viterbi) 알고리즘
-<br>
 
 ## **💫 이용**
 
@@ -140,4 +134,3 @@ int IterativeFib(int n)
 [0-1-KnapSack-Problem](https://mascari4615.github.io/posts/0-1-KnapSack-Problem/)  
 [Algorithm-Bellman-Ford](https://mascari4615.github.io/posts/Algorithm-Bellman-Ford/)  
 [Algorithm-Floyd-Warchall](https://mascari4615.github.io/posts/Algorithm-Floyd-Warchall/)  
-<br>
