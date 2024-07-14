@@ -2,7 +2,8 @@
 title: "🌓 BFS"
 date: 2024-02-23. 03:30
 # last_modified_at: 2024-02-23. 17:29
-last_modified_at: 2024-03-22. 01:03
+# last_modified_at: 2024-03-22. 01:03
+last_modified_at: 2024-07-15. 06:15
 categories: [⭐Computer, 🌓PS-Algorithm]
 tag: [Algorithm, Search, BFS, Breadth-First-Search]
 ---
@@ -13,41 +14,33 @@ tag: [Algorithm, Search, BFS, Breadth-First-Search]
 
 ---
 
-BFS Breadth First Search  
+DFS에서 `Stack` 대신 `Queue`를 쓰는  
+
+BFS | Breadth First Search | 너비 우선 탐색  
 다차원 배열에서 각 칸을 방문할 때 너비를 우선으로 방문하는 알고리듬  
 
 너비를 우선으로 방문?  
 설명할 방법이 없다  
 
-원래 BFS는 그래프라는 자료구조에서 모든 노드를 방문하기 위한 알고리듬  
-그래프 : 정점과 간선으로 이루어진 자료구조  
-<br>
+원래 BFS는 `Graph`에서 모든 노드를 방문하기 위한 알고리듬  
 
 ## **💫 구현**
 
 ---
 
-다차원 배열에서의 BFS  
+### 다차원 배열에서의 BFS
 
-BFS에는 자료를 담을 큐가 필요하다  
-알고리듬이 시작되면 우선 (0, 0)에 방문했다는 표시를 남기고 해당 칸을 큐에 넣어요  
-이 초기 세팅이 끝난 후에는 큐가 빌 때까지 계숙 큐의 front를 빼고 해당 좌표의 상하좌우를 살펴보면서 방문하지 않는 칸을 큐에 넣어주는 작업을 반복  
-큐가 빈 순간 과정은 종료  
+1. BFS에는 자료를 담을 `Queue`가 필요
+2. 시작 좌표에 방문 표시를 남기고 `Queue`에 넣기
+3. `Queue`가 빌 때까지 원소를 `pop`하고 4번 처리
+4. 해당 좌표와 그 상하좌우에 대해 방문 표시를 남기고 해당 칸을 `Queue`에 삽입 (이미 방문했었다면 pass)
 
-1. 시작하는 칸을 `큐`에 넣고 방문했다는 표시를 남김
-2. `큐`에서 원소를 꺼내어 그 칸에 상하좌우로 인접한 칸에 대해 3번을 진행
-3. 해당 칸을 이전에 방문했다면 아무 것도 하지 않고, 처음으로 방문했다면 방문했다는 표시를 남기고 해당 칸을 `큐`에 삽입
-4. `큐`가 빌 때까지 2번을 반목
-방문 표시를 남기기 때문에 모든 칸이 `큐`에 1번씩 들어가므로 시간복잡도는 칸이 N개일 때 O(N).  
-행이 R개이고 열이 C개이면 O(RC)  
+방문 표시를 남기기 때문에 모든 칸이 `Queue`에 1번씩 들어가므로,  
+시간복잡도는 칸이 N개일 때 O(N), = 행 R개 열 C개일 때 O(RC)  
 
 어느정도 정석적인 구현  
 
 ```cpp
-#include <bits/stdc++.h>
-
-using namespace std;
-
 #define X first
 #define Y second // pair에서 first, second를 줄여서 쓰기 위해서 사용
 
@@ -67,9 +60,6 @@ int dy[4] = { 0, 1, 0, -1 }; // 상하좌우 네 방향을 의미
 
 int main(void)
 {
-	ios::sync_with_stdio(0);
-	cin.tie(0);
-
 	queue<pair<int,int>> Q;
 
 	vis[0][0] = 1; // @ (0, 0)을 방문했다고 명시
@@ -105,7 +95,54 @@ int main(void)
 }
 ```
 
-<br>
+### 트리에서의 BFS
+
+![트리에서의 BFS](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcJXaCd%2FbtrnP6QRW8z%2FrKKUP02Tb95iML46jwdgP1%2Fimg.png)
+
+임의의 시작점을 잡고 BFS를 돌리면, 그 시작점을 루트로 정해서 트리를 재배치했을 때의 높이 순으로 방문.  
+이때, 루트가 아닌 아무 정점이나 잡고 생각을 해보면, 인접한 정점들 중에 자신의 부모를 제외하고는 전부 자신의 자식이라 아직 방문을 하지 않은 상태.  
+
+즉, 트리에서는 BFS 과정 속에서 자신의 자식들을 전부 큐에 넣어주기만 하면 된다.  
+이 말은 곧 자신과 이웃한 정점들에 대해 부모만 빼고 나머지는 전부 큐에 넣으면 된다.  
+
+그렇기 때문에 vis 배열을 들고갈 필요가 없이, 그냥 부모가 누구인지만 저장하고 있으면 된다.  
+부모의 정보는 BFS를 돌리면서 자식 정점을 큐에 집어넣어줄 때 채워줄 수 있다.  
+이렇게 BFS를 돌리면, 각 정점의 부모 정보를 알아낼 수 있다. (필요하다면 활용 가능)  
+
+또한 각 정점의 깊이도 알 수 있다.  
+
+시간 복잡도는 O(V+E), 이때 트리에서 E = V-1 이므로, O(V)  
+
+```cpp
+vector<int> adj[8]; // Adjacency 인접 리스트
+// bool vis[8]; // 방문 여부를 저장 (parent로 대체)
+int parent[8]; // 부모 정점을 저장 (루트의 부모는 자연스럽게 0)
+int depth[8]; // 깊이를 저장 (부가적인 정보)
+
+void bfs(int start)
+{
+	queue<int> q;
+	q.push(start);
+	vis[start] = true;
+	while (q.empty() == false)
+	{
+		int cur = q.front();
+		q.pop();
+		cout << cur << ' ';
+		for (int next : adj[cur])
+		{
+			// if (vis[next])
+			if (parent[cur] == next)
+				continue;
+
+			q.push(next);
+			// vis[next] = true;
+			parent[next] = cur;
+			depth[next] = depth[cur] + 1;
+		}
+	}
+}
+```
 
 ## **💫 메모**
 
@@ -127,5 +164,3 @@ int main(void)
   - 전파가 서로 영향을 준다면 -> 백 트래킹
 - 1차원에서의 BFS
   - 단순히 전파가 좌우로만 이루어지는
-
-<br>
