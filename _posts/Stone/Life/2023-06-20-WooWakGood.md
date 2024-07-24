@@ -10,7 +10,8 @@ date: 2023-06-20. 10:05
 # last_modified_at: 2024-03-25. 19:03
 # last_modified_at: 2024-04-04. 12:46
 # last_modified_at: 2024-04-08. 19:17
-last_modified_at: 2024-05-10. 02:33
+# last_modified_at: 2024-05-10. 02:33
+last_modified_at: 2024-07-22. 08:30
 categories: [🪨Stone, 🏝️LifeStone]
 tags: [WooWakGood]
 ---
@@ -21,7 +22,6 @@ tags: [WooWakGood]
 
 - [VR챗 제작등록소 게시물](https://cafe.naver.com/steamindiegame/6259414)
 - 맵 제작 스터디 2기, 트리거 멘토 (였던것)
-<br>
 
 ## **🗿 프로젝트**
 
@@ -30,23 +30,19 @@ tags: [WooWakGood]
 ### **🪨 왁그리드**
 
 {% include embed/youtube.html id = "79sbqJl0OK8" %}  
-<br>
 
 ### **🪨 루석바**
 
 {% include embed/youtube.html id = "I5bkJ4S9qic" %}  
 ![RusukBar](/assets/img/wwg/RusukBar.png)  
-<br>
 
 ### **🪨 티어게임(관)**
 
 ![TierGame](/assets/img/wwg/TierGame.png)  
-<br>
 
 ### **🪨 CG 따라 만들기**
 
 ![CG](/assets/img/wwg/CG.png)  
-<br>
 
 ### **🪨 왁숲**
 
@@ -54,7 +50,6 @@ tags: [WooWakGood]
 ![WakForest](/assets/img/wwg/WakForest.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/7340376)
-<br>
 
 ### **🪨 우산**
 
@@ -64,7 +59,6 @@ tags: [WooWakGood]
 ![Umbrella](/assets/img/wwg/Umbrella.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/6697504)
-<br>
 
 ### **🪨 트리거 RE:HINE (아이네)**
 
@@ -72,12 +66,10 @@ tags: [WooWakGood]
 ![RE_HINE](/assets/img/wwg/RE_HINE.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/7029174)
-<br>
 
 ### **🪨 세기의 대결, 왁파고 對 고세구**
 
 {% include embed/youtube.html id = "m2oef8JhV9s" %}  
-<br>
 
 ### **🪨 고멤가요제**
 
@@ -101,7 +93,6 @@ tags: [WooWakGood]
 트리거 고멤가요제 드래프트 맵, 공개 맵  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/7675853)
-<br>
 
 ### **🪨 하나원큐 광고**
 
@@ -109,45 +100,38 @@ tags: [WooWakGood]
 ![OneQ](/assets/img/wwg/OneQ.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/7592517)
-<br>
 
 ### **🪨 아무튼이세계**
 
 {% include embed/youtube.html id = "LNMrl_Te1SU" %}  
 
 - 2022/10 상황극 콘테스트
-<br>
 
 ### **🪨 오르막길**
 
 {% include embed/youtube.html id = "sVydSseSOCQ" %}  
 ![UphillRoad1](/assets/img/wwg/UphillRoad1.png)  
 ![UphillRoad2](/assets/img/wwg/UphillRoad2.png)  
-<br>
 
 ### **🪨 오뱅계르크 팝업 스토어**
 
 ![WakgoodPopup](/assets/img/wwg/WakgoodPopup.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/8799312)
-<br>
 
 ### **🪨 크라임 왁 외전**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/8932487)
-<br>
 
 ### **🪨 형! 여기 링크야**
 
 {% include embed/youtube.html id = "DPOxhUpb64o" %}  
 
 - 2022 연말 공모전
-<br>
 
 ### **🪨 주니티: OX퀴즈**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/9470097)
-<br>
 
 ### **🪨 버축대**
 
@@ -156,34 +140,28 @@ tags: [WooWakGood]
 트리거 갈통대전 (버축대 티바로살래나)  
 트리거 라커룸 (버축대 티바로살래나)  
 맵아트 Counting Stars MV (버축대 카오닝스타즈)  
-<br>
 
 ### **🪨 지하돌 티어게임, 팀 드래프트**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/10336591)
-<br>
 
 ### **🪨 라니벨 시즌 2 안전수칙 편**
 
 ![RaniGoldenBell](/assets/img/wwg/RaniGoldenBell.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/10888716)
-<br>
 
 ### **🪨 릴파 택티컬**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/11000576)
-<br>
 
 ### **🪨 우리억결했어요**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/11001427)
-<br>
 
 ### **🪨 붓코월드 (전투메이드 기념관)**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/11175224)
-<br>
 
 ### **🪨 META STUDY**
 
@@ -191,17 +169,14 @@ tags: [WooWakGood]
 
 - 새우튀김 - 스터디 졸업작품
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/11339673)
-<br>
 
 ### **🪨 마법소녀 이세계아이돌 웹툰 쇼케이스 장**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/11694871)
-<br>
 
 ### **🪨 오타쿠 인물퀴즈**
 
 ![OtakuQuiz](/assets/img/wwg/OtakuQuiz.png)
-<br>
 
 ### **🪨 우왁굳의 일심동체**
 
@@ -209,7 +184,6 @@ tags: [WooWakGood]
 
 - VRChat 한글 키보드 에셋
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/12922263)
-<br>
 
 ### **🪨 이세계 홈파티**
 
@@ -217,33 +191,28 @@ tags: [WooWakGood]
 
 - 이세돌 3집 합방
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/12562966)
-<br>
 
 ### **🪨 회전소개팅**
 
 {% include embed/youtube.html id = "OL-I06tZGbc" %}  
-<br>
 
 ### **🪨 르르와 연애중**
 
 ![RuruLove](/assets/img/wwg/RuruLove.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/13644167)
-<br>
 
 ### **🪨 지하돌 학교 생활 엿보기**
 
 ![SeguIdolSchool](/assets/img/wwg/SeguIdolSchool.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/13702998)
-<br>
 
 ### **🪨 이파리골든벨**
 
 ![IfariGoldenBell](/assets/img/wwg/IfariGoldenBell.png)  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/13792779)
-<br>
 
 ### **🪨 컨텐츠 월드컵**
 
@@ -251,36 +220,26 @@ tags: [WooWakGood]
 
 - 이세돌 2주년 합방
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/14065241)
-<br>
 
 ### **🪨 V급 밴드 오디션**
 
-<br>
-
 ### **🪨 챤타버스 워크샵**
-
-<br>
 
 ### **🪨 왁타랜드**
 
 트리거(용병)
-<br>
 
 ### **🪨 버튜버 총회**
-
-<br>
 
 ### **🪨 돚거 게임**
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/15824783)
-<br>
 
 ### **🪨 육광천 - Everything**
 
 {% include embed/youtube.html id = "-CDAA7r2aIs" %}  
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/15881344)
-<br>
 
 ## **🗿 시간대별 기록**
 
@@ -390,7 +349,7 @@ tags: [WooWakGood]
 - 23_06_10 - VRChat 맵 테스터 : 세구괴담
 - 23_06_12 - VRChat 맵 프로그래밍 : 고멤아카데미 학예회 뮤비 공개 맵
 - 23_06_17 - VRChat 루석바 : 닌닌 Promise (고놀)
-- 23_06_18 - VRChat 맵 프로그래밍 : 오타쿠 인물퀴즈
+- 23_06_18 - VRChat 맵 프로그래밍 : 오타쿠 인물퀴즈 (비챤)
 - 23_06_22 - VRChat 맵 프로그래밍 : [마법소녀 이세계아이돌 웹툰 쇼케이스 장](https://cafe.naver.com/steamindiegame/11694871)
 - 23_06_29 - VRChat 맵 프로그래밍 : 밸런스 게임 (고놀)
 - 23_06_30 - VRChat 루석바 : 계절범죄 (주폭소년단 X 지하아이돌)
@@ -439,11 +398,19 @@ tags: [WooWakGood]
 - 24_02_12 - 챤니티 합류
 - 24_02_12 - VRChat 맵 프로그래밍 (도움) : 왁잘알 QUIZ (저세계 아이돌)
 - 24_02_13 - Arizen님 군바
-- 24_03_23 - VRChat 맵 프로그래밍 : 버튜버 총회
+- 24_03_23 - VRChat 맵 프로그래밍 : 버튜버 총회 (고세구)
 - 24_04_03 - VRChat 돚거게임
 - 24_04_07 - 맵 제작 : [육광천 - Everything](https://youtu.be/-CDAA7r2aIs?si=8Ua0lPZksnOZoyme)
 - 24_04_07 - VRChat 맵 프로그래밍 : 해외축구 어필쇼 (고세구)
 - 24_05_10 - VRChat 맵 프로그래밍 : 성결힐링캠프 (고세구)
+- 24_05_10 - 마세돌 굳즈 도착
+- 24_05_11 - 아이네님 콘서트
+- 24_05_25 - VRChat 맵 프로그래밍 : 인간 X 버추얼 소개팅 (리얼소개팅) (고세구)
+- 24_06_23 - VRChat 맵 프로그래밍 : 고멤의 검색기록 (우왁굳, 고교멤)
+- 24_07_03 - VRChat 맵 프로그래밍 : 예절교실 (비챤 X 향아치)
+- 24_07_18 - 세구공화국 게임 디스코드 테스트 테스터로 참여
+- 24_07_20 - VRChat 루석바 : 작곡캠프 해루석 '먼 길을 돌아' 이스터에그
+- 24_07_21 - VRChat 맵 프로그래밍 : 촉각슈트 동아리 (주르르)
 
 ---
 
@@ -451,7 +418,6 @@ tags: [WooWakGood]
 - 24_XX_XX - VRChat 맵 제작 : 단답님 기획의 무언가 (뭔지모름)
 
 </details>
-<br>
 
 ## **🗿 메모**
 
@@ -472,4 +438,3 @@ tags: [WooWakGood]
 - 딕싯
 - Keep Talking and Nobody Explodes
 - 티어카드 올라가는 게임
-<br>
