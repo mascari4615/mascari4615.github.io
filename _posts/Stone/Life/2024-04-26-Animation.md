@@ -3,7 +3,8 @@ title: "🏝️ Animation"
 date: 2024-04-26. 20:55
 # last_modified_at: 2024-05-01. 07:32
 # last_modified_at: 2024-06-04. 20:03
-last_modified_at: 2024-07-13. 04:23
+# last_modified_at: 2024-07-13. 04:23
+last_modified_at: 2024-07-25. 07:37
 categories: [🪨Stone, 🏝️LifeStone]
 tags: [Animation]
 ---
@@ -138,7 +139,7 @@ tags: [Animation]
 - `기생수`
 - `그레이트 프리텐더`
 
-### **🪨 하차, 어쩌다보니**
+### **🪨 하차, 어쩌다보니, TODO**
 
 - `Fate/Zero` : ~7화
 - `감옥학원` : ~2화
@@ -181,6 +182,8 @@ tags: [Animation]
 - `사이키 쿠스오의 재난`
 - `스즈미야 하루히의 우울`
 - `달링 인 더 프랑키스`
+
+- `장송의 프리렌`
 
 - 성녀의 마력은 만능입니다.
   - 6화까지.
