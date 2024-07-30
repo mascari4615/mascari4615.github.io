@@ -1,7 +1,7 @@
 ---
 title: "🌔 Gamma Correction"
 date: 2024-07-25. 20:39
-# last_modified_at: 2024-07-25. 20:39
+last_modified_at: 2024-07-26. 12:22
 categories: [⭐Computer,🌔Game-Engine]
 tags: [Gamma-Correction, Linear-Workflow]
 ---
@@ -19,7 +19,7 @@ tags: [Gamma-Correction, Linear-Workflow]
 `Contrast` : 이미지의 밝기 차이 (대비)  
 `밴딩 현상` (등고선 현상) :  
 
-## **💫 요약**
+## 💫 요약
 
 ---
 
@@ -29,7 +29,7 @@ tags: [Gamma-Correction, Linear-Workflow]
 - 그래서 이미지를 그대로 출력하면 원본보다 어두워진다.
 - 컴퓨터 내부적으로는 각 이미지를 모니터에 출력할 때 어두워져도 괜찮도록 일부러 밝게 만들어서 저장하고 있다. (sRGB) (어두운 부분의 밀도를 올리기 위해)
 
-## **💫 Gamma Correction**
+## 💫 Gamma Correction
 
 ---
 
@@ -39,7 +39,7 @@ tags: [Gamma-Correction, Linear-Workflow]
 때문에 이미지를 그대로 출력하면 원본보다 어두워진다.  
 사실 컴퓨터 내부적으로는 각 이미지를 모니터에 출력할 때 어두워져도 괜찮도록 일부러 밝게 만들어서 저장하고 있다.  
 
-## **💫 Linear Workflow**
+## 💫 Linear Workflow
 
 ---
 
@@ -49,7 +49,7 @@ tags: [Gamma-Correction, Linear-Workflow]
 따라서 이 부분을 계산할 때 잠시 원래처럼 어둡게 조절해주는 내부 과정이 필요하게 되고, 계산이 끝나면 다시 원래의 밝기로 돌려준다.  
 이러한 과정을 리니어 워크플로우 (Linear Workflow) 라고 하며, 쉐이더 연산에서는 매우 중요한 단계라고 할 수 있다.  
 
-## **💫 Why (왜 모니터는 어둡게 출력하는가?)**
+## 💫 Why (왜 모니터는 어둡게 출력하는가?)
 
 ---
 
@@ -95,16 +95,16 @@ tags: [Gamma-Correction, Linear-Workflow]
 
 이미지는 우리 생각보다 밝게 저장된다. (sRGB, 감마 공간에 있다.)  
 
-## **💫 Memo**
+## 💫 Memo
 
 ---
 
-### **왜 '감마' 보정이라고 하는가?**
+### 왜 '감마' 보정이라고 하는가?
 
 비선형 전달 함수의 지수 계수가 감마 (γ) 이기 때문이다.  
 감마는 2.2가 가장 근접한 값으로 알려져 있는데, 2.0을 쓰는 것이 연산 속도가 빠른 관계로 2.0을 쓰는 경우도 있다.  
 
-### **In Unity**
+### In Unity
 
 URP로 넘어오면서 기본적으로 리니어 워크플로우가 적용되어 있다. (2020 영상 기준)  
 -> 감마 보정을 잘 이해하고 있어야 한다.  
