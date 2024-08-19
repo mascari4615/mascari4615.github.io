@@ -18,8 +18,6 @@ tags: [Data-Stucture, Graph]
 
 ---
 
-### Tree
-
 트리  
 무방향이면서 사이클이 없는 연결 그래프 (Undirected Acyclic Connected Graph)  
 
@@ -35,7 +33,7 @@ tags: [Data-Stucture, Graph]
 - 높이/레벨(Height/Level) : 루트에서 해당 노드까지의 거리
   - 노드가 1개만 있을 때의 높이를 1로 두느냐 0으로 두느냐에 따라 높이가 달라질 수 있음
 
-### 다른 말로 (성질)
+### 🫧 다른 말로 (성질)
 
 - 연결 그래프이면서 임의의 간선을 제거하면 연결 그래프가 아니면 되는 그래프
 - ⭐ 임의의 두 점을 연결하는 simple path(정점이 중복해서 나오지 않는 경로)가 유일한 그래프
@@ -43,7 +41,7 @@ tags: [Data-Stucture, Graph]
 - 사이클이 없는 연결 그래프이면서 임의의 간선을 추가하면 사이클이 생기는 그래프
 - V개의 정점을 가지고 V-1개의 간선은 가지는 Anyclic(=사이클이 없는) 그래프
 
-### 임의의 노드를 루트로 만들 수 있다
+### 🫧 임의의 노드를 루트로 만들 수 있다
 
 ![임의의 노드를 루트로 만들 수 있다](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcA1oan%2FbtrnP7oHGaL%2Fgy8pI7h721aCcXHD16Ns0k%2Fimg.png)  
 
@@ -51,3 +49,7 @@ tags: [Data-Stucture, Graph]
 아무 구슬을 잡고 위로 올려도 그 모양은 여전히 트리가 된다.  
 
 단, 루트가 달라지면 각 노드의 부모가 달라진다. (부모-자식 관계가 달라진다.)  
+
+### 🫧 Binary Search Tree
+
+[Binary Search Tree](https://mascari4615.github.io/posts/Data-Structure-Binary-Search-Tree/)  
