@@ -10,7 +10,8 @@ date: 2022-07-08. 14:31
 
 # last_modified_at: 2023-10-10. 10:00
 # last_modified_at: 2024-04-09. 13:44
-last_modified_at: 2024-08-19. 15:24
+# last_modified_at: 2024-08-19. 15:24
+last_modified_at: 2024-08-19. 16:54
 categories: [⭐Computer,🌔Game-Engine]
 tags: [Unity, VRChat, USharp]
 ---
@@ -58,6 +59,13 @@ tags: [Unity, VRChat, USharp]
   - '뭐 잘못 눌렀어요', 제한, 방지, 대책
 - 테스트와 리허설 자주
   - 기능 자체의 버그와, 기획의 의도 확인
+- 조작키
+  - 예를들어 스태프 전용 키를 자주 누르는 키로 설정하지 말기
+  - 혹은 좀 더 복잡하게 만들던지
+- 글꼴
+  - 글꼴 저작권
+  - 한자 필요할 경우 한자 지원하는 글꼴로
+- 프로젝트 후기
 
 ## 💫 팁
 
