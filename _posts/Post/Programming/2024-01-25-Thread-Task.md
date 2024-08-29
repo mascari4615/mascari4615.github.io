@@ -2,7 +2,8 @@
 title: "🌒 C# Thread/Task"
 date: 2024-01-25. 05:42
 # last_modified_at: 2024-04-27. 09:24
-last_modified_at: 2024-08-29. 21:54
+# last_modified_at: 2024-08-29. 21:54
+last_modified_at: 2024-08-30. 00:06
 categories: [⭐Computer, 🌒Programming]
 tags: [CSharp, Thread, Task, Lock]
 ---
@@ -31,28 +32,7 @@ lock (thisLock)
 
 ---
 
-메모리 가상화  
-메모리가 없는데 있는척 하는것  
-디스크를 써서 메모리가 적은데 많은척 하는것  
-
-CPU 가상화  
-CPU가 없는데 있는척 하는것  
-
-윈도우95 이전  
-윈도우 OS에 스레드가 하나밖에 없었음  
-프로그램 하나가 무한루프에빠지만 다른 프로그램도 멈춤  
-CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함  
-한 프로그램이 무한루프를 돌면 다른 프로그램에도 영향  
-
-그래서 CPU 가상화  
-이제 CPU를 쓰지 말고 스레드 써  
-스레드를 CPU처럼 써  
-
-프로세스에게 스레드를 나눠주고  
-그 스레드가 어플리케이션 입장에서는 마치 CPU인것처럼 사용  
-
-이제 여러 개니까, 한 스레드가 무한루프에 빠져도 다른 스레드는 멈추지 않음  
-다른 스레드는 자신에게 주어진 스레드를 사용  
+[스레드](/posts/Process-Processor-Thread/)
 
 ### 🫧 스레드는 가벼운 자원인가?
 
@@ -378,11 +358,44 @@ while (tasks.Count > 0)
 }
 ```
 
+## 💫 CancellationTokenSource, CancellationToken
+
+---
+
+- 비동기 작업을 취소하는 용도
+
+- `CancellationTokenSource` 클래스 (cts)
+  - `CancellationToken` 을 생성하고, Cancel 요청을 `CancellationToken` 에게 보내는 역할
+  - `Cancel()` : 발행한 모든 토큰에 취소 신호
+  - `CancelAfter(TimeSpan delay)` : "
+  - `IsCancellationRequested` : 취소가 요청되었는지 여부
+
+- `CancellationToken` 구조체
+  - 현재 Cancel 상태를 모니터링 하는 구조체
+  - 여러 Listener들에 의해 사용됨
+  - `Register(Action callback)` : 취소가 요청되었을 때 호출될 콜백을 등록
+  - `IsCancellationRequested` : 취소가 요청되었는지 여부
+
+### 🫧 사용
+
+1. `CancellationTokenSource` 필드 선언
+2. `CancellationTokenSource` 객체 생성
+3. 비동기 작업 메서드 안에서 작업이 취소되었는지를 체크하는 코드
+   - `if (cancelTokenSource.Token.IsCancellationRequested) => return null;`
+4. 취소 요청
+   - `cancelTokenSource.Cancel();`
+5. `cts.Dispose()`
+   - `using` 블록을 썼다면, 블록을 벗어날 때 자동으로 호출
+   - 그게 아니라면 임의로 호출
+
 ## 💫 Ref
+
+---
 
 [참고 : 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
 [참고 : 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
 [참고 : 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
+[참고 : 'C# - CancellationToken'](https://bacha.tistory.com/137)  
 
 밑 단계는 똑같지만  
 조금 추상화해보면  

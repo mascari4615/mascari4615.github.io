@@ -1,6 +1,6 @@
 ---
 title: "🌑 Process, Processor, Thread"
-last_modified_at: 2024-04-27. 20:19
+date: 2024-04-27. 20:19
 
 # 🌑 Process, Processor
 # date: 2023-11-10. 09:21
@@ -10,7 +10,8 @@ last_modified_at: 2024-04-27. 20:19
 # last_modified_at: 2024-04-27. 20:15
 
 # last_modified_at: 2024-04-27. 20:19
-last_modified_at: 2024-08-29. 21:47
+# last_modified_at: 2024-08-29. 21:47
+last_modified_at: 2024-08-30. 00:06
 
 categories: [⭐Computer, 🌑Computer-OS]
 tags: [Computer, OS, Process, Processor, Thread]
@@ -106,7 +107,7 @@ tags: [Computer, OS, Process, Processor, Thread]
 
 - CPU가 반드시 여러 개일 필요는 없음
 - CPU가 여러 개일 경우는 스레드들이 병렬처리됨
-- CPU가 하나일 경웅는 스레드들이 병행처리됨
+- CPU가 하나일 경우는 스레드들이 병행처리됨
 
 - LDA | 100
 - 주소 100
@@ -122,7 +123,7 @@ tags: [Computer, OS, Process, Processor, Thread]
     - 새로운 프로세스는 이미 실행 중인 다른 프로세스가 OS에 오청함으로써 탄생
     - 이들은 부모 프로세스 Parent Process의 자식 프로세스 Child Process 관계가 됨
     - 단말기 (키보드) 사용자들은 실행하고자 하는 프로그램의 이름을 쉘 (명령어 해석기)에 전달하여 쉘로 하여금 프로그램 생성을 OS에게 요청하도록 함
-    - 디스크 프로그래믕 메모리로 적재하여 프로세스를 생성하는 OS부분을 로더 Loader 라함
+    - 디스크 프로그래밍 메모리로 적재하여 프로세스를 생성하는 OS부분을 로더 Loader 라함
 
 - 프로세스 제거
   - 정상적인 프로세스 제거는 해당 프로세스 스스로가 운영체제에게 요청함으로써 이루어짐
@@ -138,7 +139,7 @@ tags: [Computer, OS, Process, Processor, Thread]
   - 실행중인 프로세스에 대한 어떤 조치를 취하는일
 
 - 프로세스 통제수단
-  - OS가 제공하는 서비스 (씨스템 콜)을 이용
+  - OS가 제공하는 서비스 (시스템 콜)을 이용
   - 유닉스/리눅스의 경우 kill() 시스템 콜
 
 - 프로세스 통제 유형
@@ -154,3 +155,24 @@ tags: [Computer, OS, Process, Processor, Thread]
   - 우선 순위 변경 :
     - 실행중인 프로그램의 우선순위를 올리거나 내린다.
     - 일반 사용자는 내리기만 가능하고,관리자는 양쪽 모두 가능하다.
+
+## 💫 Thread 스레드
+
+---
+
+스레드는 프로세스 내에서 실행되는 작업의 단위로, CPU 자원을 할당받아 실행됨.  
+
+### 🫧 배경
+
+- Windows 95 이전, Windows OS는 싱글 스레드
+- 프로그램 하나가 무한루프에 빠지면 다른 프로그램도 멈춤
+  - 한 프로그램이 무한루프를 돌면 다른 프로그램에도 영향
+- CPU를 나눠 써야 하는데 하나 밖에 없어서 그러지 못함
+
+- 그래서 CPU [가상화](/posts/Virtualization/)
+- 이제 CPU를 쓰지 말고, 스레드를 CPU처럼 써
+  - 프로세스에게 스레드를 나눠주고
+  - 그 스레드가 어플리케이션 입장에서는 마치 CPU 처럼 사용
+
+- 이제 여러 개니까, 한 스레드가 무한루프에 빠져도 다른 스레드는 멈추지 않음  
+다른 스레드는 자신에게 주어진 스레드를 사용  
