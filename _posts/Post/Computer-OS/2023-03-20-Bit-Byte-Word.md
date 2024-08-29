@@ -3,9 +3,10 @@ title: "🌑 Bit Byte Word"
 date: 2023-03-20. 16:53
 # last_modified_at: 2023-04-06. 11:16
 # last_modified_at: 2023-11-08. 15:03
-last_modified_at: 2023-11-26. 01:52
-categories: ⭐Computer 🌑Computer-OS
-tage: Bit Byte Word
+# last_modified_at: 2023-11-26. 01:52
+last_modified_at: 2024-08-29. 22:10
+categories: [⭐Computer, 🌑Computer-OS]
+tage: [Bit, Byte, Word]
 ---
 
 2020-10-12 03:33:00  

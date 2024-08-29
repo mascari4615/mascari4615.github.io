@@ -9,7 +9,8 @@ last_modified_at: 2024-04-27. 20:19
 # last_modified_at: 2023-11-28. 09:59
 # last_modified_at: 2024-04-27. 20:15
 
-last_modified_at: 2024-04-27. 20:19
+# last_modified_at: 2024-04-27. 20:19
+last_modified_at: 2024-08-29. 21:47
 
 categories: [⭐Computer, 🌑Computer-OS]
 tags: [Computer, OS, Process, Processor, Thread]
@@ -20,15 +21,14 @@ tags: [Computer, OS, Process, Processor, Thread]
 2024-04-27. 20:19  
 '2023-11-10-Process-Processor: 🌑 Process, Processor' 글 계승  
 
-## **💫 Q**
+## 💫 Q
 
 ---
 
 - 프로세스, 프로세서, 스레드에 대해 설명해 주세요.
 - 프로세스와 스레드의 차이점은 무엇인가요?
-<br>
 
-## **💫 Processor 프로세서**
+## 💫 Processor 프로세서
 
 ---
 
@@ -38,9 +38,8 @@ tags: [Computer, OS, Process, Processor, Thread]
 처리기로 불리기도 한다.  
 그래픽처리장치(GPU) 도 컴퓨터의 일부이지만 단지 '프로세서' 라는 용어만 사용하였을 때 그래픽 처리 장치를 뜻하는 경우는 아직 많지 않다.  
 기타 DMA와 같이 제한된 기능만을 수행하는 프로세서도 있다.  
-<br>
 
-## **💫 Process 프로세스**
+## 💫 Process 프로세스
 
 ---
 
@@ -155,4 +154,3 @@ tags: [Computer, OS, Process, Processor, Thread]
   - 우선 순위 변경 :
     - 실행중인 프로그램의 우선순위를 올리거나 내린다.
     - 일반 사용자는 내리기만 가능하고,관리자는 양쪽 모두 가능하다.
-<br>

@@ -3,7 +3,8 @@ title: "🌒 React Native 리액트 네이티브 - Context"
 date: 2023-11-15. 13:16
 # last_modified_at: 2023-11-22. 14:54
 # last_modified_at: 2023-12-05. 15:13
-last_modified_at: 2023-12-06. 10:33
+# last_modified_at: 2023-12-06. 10:33
+last_modified_at: 2024-08-29. 21:26
 categories: [⭐Computer, 🌒Programming]
 tags: [Mobile, React-Native, Context]
 ---
@@ -111,7 +112,7 @@ createContext를 통해 만든 컨텍스트 객체는 Provider와 Consumer 컴�
 
 Provider는 앞서 언급한 Provider들과 같은 역할을 하는 컴포넌트고, Consumer는 Provider가 제공하는 기능을 사용하는 클래스 컴포넌트를 위한 컴포넌트이다.  
 
-[참고 : 클래스 컴포넌트](https://mascari4615.github.io/posts/Web-Browser/)  
+[참고 : 클래스 컴포넌트](/posts/Web-Browser/)  
 
 Provider 컴포넌트는 value와 children 속성이 있는 ProviderProps 속성을 제공한다.  
 

@@ -1,8 +1,9 @@
 ---
 title: "🥑 넷플릭스, 애니메이션 검열"
 date: 2021-03-25. 09:13:00
-last_modified_at: 2021-10-05
-categories: 🌳Memo 🥑Memo-General
+# last_modified_at: 2021-10-05
+last_modified_at: 2024-08-29. 22:15
+categories: [🌳Memo, 🥑Memo-General]
 ---
 {% include custom/old-post.html %}
 

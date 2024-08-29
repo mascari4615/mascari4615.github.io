@@ -5,7 +5,7 @@ date: 2024-02-23. 03:30
 # last_modified_at: 2024-03-22. 01:03
 last_modified_at: 2024-07-15. 06:15
 categories: [⭐Computer, 🌓PS-Algorithm]
-tag: [Algorithm, Search, BFS, Breadth-First-Search]
+tags: [Algorithm, Search, BFS, Breadth-First-Search]
 ---
 
 {% include embed/youtube.html id='ftOmGdm95XI' %}

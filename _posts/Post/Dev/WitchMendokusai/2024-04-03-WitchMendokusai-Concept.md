@@ -5,7 +5,7 @@ date: 2024-04-03. 14:41
 # 📗 슬라임
 # date: 2023-03-14. 12:55
 # last_modified_at: 2023-03-14. 12:55
-# categories: 🔖Creative 📗NewWorld
+# categories: [🔖Creative, 📗NewWorld]
 
 # 🫐 WitchMendokusai Story
 # date: 2024-04-27. 17:55
@@ -23,7 +23,8 @@ date: 2024-04-03. 14:41
 # last_modified_at: 2024-05-13. 01:46
 # last_modified_at: 2024-06-05. 14:07
 # last_modified_at: 2024-06-11. 13:53
-last_modified_at: 2024-06-12. 13:21s
+# last_modified_at: 2024-06-12. 13:21
+last_modified_at: 2024-08-29. 22:14
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 

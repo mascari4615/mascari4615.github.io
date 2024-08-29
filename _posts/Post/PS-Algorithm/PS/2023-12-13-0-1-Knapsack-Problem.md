@@ -2,8 +2,9 @@
 title: "🌓 0-1 배낭 문제"
 date: 2023-12-13. 11:04
 last_modified_at: 2023-12-19. 01:47
-categories: ⭐Computer 🌓PS-Algorithm
-tags: Algorithm 0-1-Knapsack-Problem Dynamic-Programming Back-Tracking
+last_modified_at: 2024-08-29. 21:36
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm, 0-1-Knapsack-Problem, Dynamic-Programming, Back-Tracking]
 math: true
 ---
 
@@ -29,7 +30,7 @@ math: true
 - 배낭의 용량 $ M > 0 $
 - 최적해 $ K(n, M) $ 은 $ \sum_{i = 1}^n p_i x_i $ 의 최댓값. 단. $ \sum_{i = 1}^n w_i x_i \le M $
 
-## 💫 Solve By [Dynamic-Programming](https://mascari4615.github.io/posts/Algorithm-Dynamic-Programming/)
+## 💫 Solve By [Dynamic-Programming](/posts/Algorithm-Dynamic-Programming/)
 
 ---
 
@@ -237,7 +238,7 @@ x나 y 중 하나만 작은 경우에는, A와 B 중 x가 더 큰 쪽에 정렬�
 $ S_0 $, 평행이동 $ SP_0 $,  
 합치고 $ S_1 $, 평행이동 $ SP_1 $,  
 
-## 💫 Solve By [BackTracking](https://mascari4615.github.io/posts/Algorithm-Back-Tracking/)
+## 💫 Solve By [BackTracking](/posts/Algorithm-Back-Tracking/)
 
 ---
 

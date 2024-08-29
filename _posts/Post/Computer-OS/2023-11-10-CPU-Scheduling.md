@@ -1,9 +1,9 @@
 ---
 title: "🌑 CPU Scheduling"
 date: 2023-11-10. 09:21
-# last_modified_at: 2023-11-10. 09:21
-categories: ⭐Computer 🌑Computer-OS
-tags: Computer CPU CPU-Scheduling
+last_modified_at: 2024-08-29. 22:12
+categories: [⭐Computer, 🌑Computer-OS]
+tags: [Computer, CPU, CPU-Scheduling]
 ---
 
 - 단계별 처리 스케줄링

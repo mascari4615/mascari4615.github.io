@@ -2,7 +2,8 @@
 title: "🌚 SW 공학 과목"
 date: 2023-03-09. 14:59
 # last_modified_at: 2023-05-08. 16:07
-last_modified_at: 2024-04-09. 14:25
+# last_modified_at: 2024-04-09. 14:25
+last_modified_at: 2024-08-29. 21:22
 categories: [⭐Computer, 🌚Computer-General]
 ---
 
@@ -1614,7 +1615,7 @@ categories: [⭐Computer, 🌚Computer-General]
 
 ---
 
-[Architecture Pattern](https://mascari4615.github.io/posts/Architecture-Pattern/)  
+[Architecture Pattern](/posts/Architecture-Pattern/)  
 
 - 범용 계층 아키텍처
   - APP
@@ -2111,7 +2112,7 @@ categories: [⭐Computer, 🌚Computer-General]
 
 ---
 
-[Design Pattern](https://mascari4615.github.io/posts/Design-Pattern/)  
+[Design Pattern](/posts/Design-Pattern/)  
 
 - Observer 패턴
   - ~
@@ -2152,7 +2153,7 @@ categories: [⭐Computer, 🌚Computer-General]
 #### 개발 테스팅
 
 - 개발 테스팅의 단계
-  - [Unit Test 단위 테스팅](https://mascari4615.github.io/posts/Unit-Test/)
+  - [Unit Test 단위 테스팅](/posts/Unit-Test/)
   - 컴포넌트 테스팅
     - 여러 개별 단위가 복합 컴포넌트를 생성하기 위해 통합
     - 컴포넌트 인터페이스를 테스트하는 것에 집중

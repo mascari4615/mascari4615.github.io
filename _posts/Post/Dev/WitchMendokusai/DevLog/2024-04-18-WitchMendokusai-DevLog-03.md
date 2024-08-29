@@ -2,20 +2,20 @@
 title: "🫐 WitchMendokusai DevLog 03"
 date: 2024-04-18. 21:34
 # last_modified_at: 2024-04-04. 11:34
-last_modified_at: 2024-04-25. 21:38
+# last_modified_at: 2024-04-25. 21:38
+last_modified_at: 2024-08-29. 21:51
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
 {% include embed/youtube.html id='BnGTGZ-eqCU' %}
 
-## **🎲 _**
+## 🎲 _
 
 ---
 
 일지를 꾸준히 적는게 참 어렵다.  
-<br>
 
-## **🎲 변경점 : 인게임**
+## 🎲 변경점 : 인게임
 
 - 던전 보상 UI
   - 기존 퀘스트 보상 UI를 추상화하여 재사용
@@ -51,11 +51,10 @@ categories: [🔖Creative, 🫐WitchMendokusai]
   - `UISlot`, Select와 Click 이벤트 분리
 
 - UI 디벨롭
-<br>
 
-## **🎲 변경점 : 인게임과 관련없는**
+## 🎲 변경점 : 인게임과 관련없는
 
-### **👾 ScriptableObject 이름 검사 개선**
+### 👾 ScriptableObject 이름 검사 개선
 
 [커밋 : SO 파일 이름 검사 시, ID뿐만 아니라 이름도 확인하고 수정하도록 수정](https://github.com/Mascari4615/Witch-Mendokusai/commit/cf3a8e2e2d01ab90924ee51452527b0329d63509)  
 [커밋 : SO 파일 이름 수정 시, 파일명으로 쓸 수 없는 문자 제거](https://github.com/Mascari4615/Witch-Mendokusai/commit/690807aa858a0336c09d2787ab1c62c087c6d6ce)  
@@ -88,9 +87,8 @@ if (asset.name.Equals(goodName) == false)
 
 [참고 : C# 파일명 유효성 체크](https://findfun.tistory.com/681)  
 [참고 : 파일 명으로 사용할 수 없는 문자 (나무위키)](https://namu.wiki/w/%ED%8C%8C%EC%9D%BC%20%EC%9D%B4%EB%A6%84%EC%9C%BC%EB%A1%9C%20%EC%82%AC%EC%9A%A9%ED%95%A0%20%EC%88%98%20%EC%97%86%EB%8A%94%20%EB%AC%B8%EC%9E%90)  
-<br>
 
-### **👾 원인모를 TextMeshPro 에러 로그**
+### 👾 원인모를 TextMeshPro 에러 로그
 
 [커밋 : 테스트를 위한 폴리싱 + TMP 오류 수정을 위한 패키지 버전업](https://github.com/Mascari4615/Witch-Mendokusai/commit/690807aa858a0336c09d2787ab1c62c087c6d6ce)  
 

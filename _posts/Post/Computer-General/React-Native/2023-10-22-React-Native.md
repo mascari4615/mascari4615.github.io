@@ -11,7 +11,8 @@ date: 2023-10-22. 15:39
 # last_modified_at: 2023-10-17. 14:51
 # last_modified_at: 2023-10-22. 15:39
 # last_modified_at: 2023-11-07. 15:03
-last_modified_at: 2023-11-22. 14:57
+# last_modified_at: 2023-11-22. 14:57
+last_modified_at: 2024-08-29. 21:26
 categories: [⭐Computer, 🌒Programming]
 tags: [Mobile, React-Native]
 ---
@@ -50,7 +51,7 @@ React Native = Native Part + JS Part
 → Native Part : 기본 제공 모듈 그대로 사용  
 → JS Part : 주로 개발하는 파트  
 
-[DHTML](https://mascari4615.github.io/posts/DOM/)이고, Bridge 방식으로 동작  
+[DHTML](/posts/DOM/)이고, Bridge 방식으로 동작  
 
 @ Native 네이티브 (in Mobile App Dev)  
 @ → OS와 같은 언어로 만들어진 ~  

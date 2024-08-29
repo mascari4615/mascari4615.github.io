@@ -1,9 +1,10 @@
 ---
 title: "🌑 Register 레지스터"
 date: 2023-11-17. 02:50
-last_modified_at: 2023-11-26. 01:45
-categories: ⭐Computer 🌑Computer-OS
-tags: Computer Memory Register
+# last_modified_at: 2023-11-26. 01:45
+last_modified_at: 2024-08-29. 22:13
+categories: [⭐Computer, 🌑Computer-OS]
+tags: [Computer, Memory, Register]
 ---
 
 [여치의 프로그래밍 강좌 #6](http://yuchi.duckdns.org/xe/Programming_QA/5950)  

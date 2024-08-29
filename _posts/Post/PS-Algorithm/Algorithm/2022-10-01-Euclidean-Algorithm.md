@@ -1,9 +1,10 @@
 ---
 title: "🌓 Euclidean Algorithm - 유클리드 알고리듬/호제법"
 date: 2022-10-01. 08:42
-last_modified_at: 2023-10-31. 14:57
-categories: ⭐Computer 🌓PS-Algorithm
-tags: Algorithm
+# last_modified_at: 2023-10-31. 14:57
+last_modified_at: 2024-08-29. 22:18
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm]
 use_math: true
 ---
 

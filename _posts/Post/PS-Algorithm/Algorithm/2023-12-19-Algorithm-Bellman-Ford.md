@@ -1,9 +1,9 @@
 ---
 title: "🌓 벨먼-포드 알고리듬"
 date: 2023-12-19. 10:06
-# last_modified_at: 2023-12-19. 10:06
-categories: ⭐Computer 🌓PS-Algorithm
-tags: Algorithm Dynamic-Programming DP Bellman-Ford
+last_modified_at: 2024-08-29. 22:19
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm, Dynamic-Programming, DP, Bellman-Ford]
 ---
 
 단일 시작점 최단경로  

@@ -9,7 +9,8 @@ date: 2023-10-31. 14:16
 # last_modified_at: 2023-12-05. 15:54
 # last_modified_at: 2023-12-19. 01:09
 # last_modified_at: 2024-03-22. 00:59
-last_modified_at: 2024-06-12. 02:57
+# last_modified_at: 2024-06-12. 02:57
+last_modified_at: 2024-08-29. 21:34
 
 categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Dynamic-Programming, DP]
@@ -17,7 +18,7 @@ tags: [Algorithm, Dynamic-Programming, DP]
 
 {% include embed/youtube.html id = "5leTtB3PQu0" %}
 
-## **💫 Dynamic Programming (동적 프로그래밍, 동적 계획법)**
+## 💫 Dynamic Programming (동적 프로그래밍, 동적 계획법)
 
 ---
 
@@ -47,7 +48,7 @@ DP는 작정하고 어렵게 하고자 한다면 한도 끝도 없이 어려워�
   - 욕심쟁이 방법: 각 단계에서 해답의 일부를 선택한 후 남은 부문제를 해결
   - 분할정복: 귀납적 정의를 이용하여 부문제로 분할, 정복, 결합
 
-### **🫧 vs Divide-Conquer**
+### 🫧 vs Divide-Conquer
 
 분할정복은 문제 자체를 나누고 푸는거라, 풀어둔 것들이 나중에 해답을 구할 때 다 쓰인다.  
 중첩된 부문제 스탈이면 동적 계획법, 아니면 분할 정복  
@@ -85,7 +86,7 @@ int IterativeFib(int n)
 }
 ```
 
-### **🫧 vs Greedy**
+### 🫧 vs Greedy
 
 - 공통점: 최적 부분 구조를 갖는 최적화 문제를 해결
 
@@ -99,18 +100,18 @@ int IterativeFib(int n)
   - 일반적인 문제 + 최적화 문제: 범용성
   - 문제를 해결하기 위한 모든 대안들의 답을 구하고 그 가운데 최적의 해답을 찾음 → 지능적인 무작위 기법, 상향식
 
-### **🫧 동적 계획법의 적용**
+### 🫧 동적 계획법의 적용
 
 - ➊ 최적화 문제의 경우 최적 부분구조를 갖는지 검증
 - ➋ 문제를 순환적으로 정의
 - ➌ 중첩된 부문제 특성을 갖는지 조사
 - ➍ 부문제의 해답을 저장하고 이로부터 최적해를 구성하는 알고리즘을 구축
 
-### **🫧 Memoization**
+### 🫧 Memoization
 
-[Memoization](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
+[Memoization](/posts/Algorithm-Memoization/)  
 
-## **💫 정리**
+## 💫 정리
 
 ---
 
@@ -127,10 +128,10 @@ int IterativeFib(int n)
   - 2장에서 다룬 여행하는 외판원 문제
   - 음성 인식이나 합성에서 사용되는 비터비(Viterbi) 알고리즘
 
-## **💫 이용**
+## 💫 이용
 
 ---
 
-[0-1-KnapSack-Problem](https://mascari4615.github.io/posts/0-1-KnapSack-Problem/)  
-[Algorithm-Bellman-Ford](https://mascari4615.github.io/posts/Algorithm-Bellman-Ford/)  
-[Algorithm-Floyd-Warchall](https://mascari4615.github.io/posts/Algorithm-Floyd-Warchall/)  
+[0-1-KnapSack-Problem](/posts/0-1-KnapSack-Problem/)  
+[Algorithm-Bellman-Ford](/posts/Algorithm-Bellman-Ford/)  
+[Algorithm-Floyd-Warchall](/posts/Algorithm-Floyd-Warchall/)  

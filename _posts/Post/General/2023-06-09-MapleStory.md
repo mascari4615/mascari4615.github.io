@@ -1,8 +1,9 @@
 ---
 title: "🍋 MapleStory"
 date: 2023-06-09. 19:38
-last_modified_at: 2023-11-29. 08:14
-categories: 🌳Memo 🍋Game
+# last_modified_at: 2023-11-29. 08:14
+last_modified_at: 2024-08-29. 22:18
+categories: [🌳Memo, 🍋Game]
 ---
 
 ### 🍋 직업

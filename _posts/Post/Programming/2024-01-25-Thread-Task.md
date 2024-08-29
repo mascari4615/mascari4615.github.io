@@ -1,12 +1,13 @@
 ---
 title: "🌒 C# Thread/Task"
 date: 2024-01-25. 05:42
-last_modified_at: 2024-04-27. 09:24
+# last_modified_at: 2024-04-27. 09:24
+last_modified_at: 2024-08-29. 21:54
 categories: [⭐Computer, 🌒Programming]
 tags: [CSharp, Thread, Task, Lock]
 ---
 
-## **💫 [lock](https://learn.microsoft.com/ko-kr/dotnet/csharp/language-reference/statements/lock)**
+## 💫 [lock](https://learn.microsoft.com/ko-kr/dotnet/csharp/language-reference/statements/lock)
 
 ---
 
@@ -25,9 +26,8 @@ lock (thisLock)
 
 @ Key, 전용 개체 인스턴스  
 @ `Critical Section`, 한 번에 한 스레드만 접근할 수 있는 코드 영역  
-<br>
 
-## **💫 스레드**
+## 💫 스레드
 
 ---
 
@@ -53,9 +53,8 @@ CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함
 
 이제 여러 개니까, 한 스레드가 무한루프에 빠져도 다른 스레드는 멈추지 않음  
 다른 스레드는 자신에게 주어진 스레드를 사용  
-<br>
 
-### **🫧 스레드는 가벼운 자원인가?**
+### 🫧 스레드는 가벼운 자원인가?
 
 상대적으로 프로세스보다 가볍지만,  
 절대적으로 무거운 리소스이다.  
@@ -83,14 +82,12 @@ CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함
     - 일정 시간 (Quantum)이 지나면 다시 저장하고
     - 다음 스레드를 로드...
   - -> DLL이 많으면 많을수록, 스레드가 많으면 많을수록
-<br>
 
-### **🫧 이제 그만 해야 할 바보짓**
+### 🫧 이제 그만 해야 할 바보짓
 
 ![작업관리자](/assets/img/2024/240427_00.png)  
-<br>
 
-### **🫧 명시적으로 스레드를 생성하지 말라**
+### 🫧 명시적으로 스레드를 생성하지 말라
 
 - 예외
   - `보통` 단계의 스레드 우선순위가 아닌 스레드가 필요한 경우
@@ -98,9 +95,8 @@ CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함
   - 계산 중심의 작업이 상당히 오랫동안 수행되어야 하는 경우
 
 가능한 Thread class를 이용하여 명시적으로 스레드를 생성하지 말 것  
-<br>
 
-### **🫧 여러 스레드를 사용하는 이유**
+### 🫧 여러 스레드를 사용하는 이유
 
 - 응답성의 개선
   - 클라이언트 측 UI 어플리케이션
@@ -114,9 +110,8 @@ CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함
 - 스레드를 가장 잘 화용하는 방법
   - 스레드 풀을 이용하고 비동기로 작업을 수행하라
   - -> 우리가 TASK 병렬화를 알아야 하는 이유
-<br>
 
-### **🫧 계산 중심 비동기 작업**
+### 🫧 계산 중심 비동기 작업
 
 - CLR 스레드 풀
   - 사실 이미 만들어져 있음
@@ -126,9 +121,8 @@ CPU를 나눠써야 하는데 하나밖에 없어서 그러지 못함
     - 많이 들어오면, 코어 수만큼만 스레드를 만들어서 사용
   - Request Queue에 작업이 일정시간 들어오지 않으면 스레드를 제거
     - 생성/제거 비용 최소화
-<br>
 
-### **🫧 QueueUserWorkItem**
+### 🫧 QueueUserWorkItem
 
 ```cs
 public static bool QueueUserWorkItem(WaitCallback callBack, object state);
@@ -150,9 +144,8 @@ Console.ReadLine();
 - 작업 수행 결과를 얻어 올 수 없음
 - 취소 / 예외 처리 불가능
 - -> 쓰기 쉽지만 이런 한계들 때문에 잘 안씀
-<br>
 
-### **🫧 Task**
+### 🫧 Task
 
 Task 나누면 장접  
 Taks 간의 상관관계가 없다면, 병렬로 수행 가능 -> 빨라진다  
@@ -221,9 +214,8 @@ static void Main(string[] args)
 - 작업 완료 시점을 알 수 있음
 - 작업 수행 결과를 얻어 올 수 있음
 - 취소 / 예외 처리 가능
-<br>
 
-### **🫧 Task 연결1**
+### 🫧 Task 연결1
 
 ```cs
 // 웨이팅 아키텍처
@@ -250,9 +242,7 @@ Task cwt = t.ContinueWith( // 완료되면
 // 연결하고 바로 빠져나옴
 ```
 
-<br>
-
-### **🫧 Task 연결2**
+### 🫧 Task 연결2
 
 ```cs
 // TaskContinuationOptions
@@ -277,9 +267,7 @@ t.ContinueWith((task) => // 취소시
 }, TaskContinuationOptions.OnlyOnCanceled);
 ```
 
-<br>
-
-### **🫧 Task 연결3**
+### 🫧 Task 연결3
 
 ```cs
 // Parent-Child Task로의 연결, TaskCreationOptions.AttachedToParent
@@ -302,13 +290,11 @@ var cwt = parent.ContinueWith((parentTask) => // parentTask가 끝나면 수행�
 parent.Start();
 ```
 
-<br>
+### 🫧 I/O 중심의 비동기 작업
 
-### **🫧 I/O 중심의 비동기 작업**
+### 🫧 동기 I/O 매커니즘
 
-### **🫧 동기 I/O 매커니즘**
-
-### **🫧 비동기 I/O 매커니즘**
+### 🫧 비동기 I/O 매커니즘
 
 - 비동기
   - 작업을 하는 주체와 작업을 요청하는 주체가 다름
@@ -317,7 +303,7 @@ parent.Start();
 
 이를 어떻게 패턴화하느냐?  
 
-### **🫧 Comparing Patterns**
+### 🫧 Comparing Patterns
 
 - Sync
 
@@ -357,7 +343,7 @@ public Task<int> ReadAsync(byte[] buffer, int offset, int count);
 Sync, TAP 간의 메서드 원형이 가장 유사함.  
 -> 가장 직관적이고, Sync 방식과 닮아 있어 사용하기 쉬운 비동기 패턴  
 
-### **🫧 Async/Await**
+### 🫧 Async/Await
 
 내부 동작  
 `async` 메서드는 `Task`를 반환  
@@ -392,12 +378,11 @@ while (tasks.Count > 0)
 }
 ```
 
-## **💫 Ref**
+## 💫 Ref
 
 [참고 : 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
 [참고 : 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
 [참고 : 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
-<br>
 
 밑 단계는 똑같지만  
 조금 추상화해보면  
@@ -419,18 +404,18 @@ async 키워드를 쓰면
 
 상태머신은 함수가 실행되는 동안 상태를 저장하고, 다시 실행될 때 상태를 복원하는 것  
 
-## **💫 동기/비동기**
+## 💫 동기/비동기
 
 ---
 
-### **🫧 동기**
+### 🫧 동기
 
 Synchrounous  
 
 메소드를 호출한 이후, 메소드가 종료될 때까지 코드 실행이 차단됨  
 즉, 작업은 순서대로 실행되므로 하나의 작업이 끝나야 다음 작업을 수행할 수 있음  
 
-### **🫧 비동기**
+### 🫧 비동기
 
 Asynchronous  
 

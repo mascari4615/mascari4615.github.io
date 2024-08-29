@@ -1,12 +1,13 @@
 ---
 title: "🌓 Graph"
 date: 2024-07-14. 23:37
-last_modified_at: 2024-07-15. 06:12
+# last_modified_at: 2024-07-15. 06:12
+last_modified_at: 2024-08-29. 21:35
 categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Graph]
 ---
 
-## **💫 Graph**
+## 💫 Graph
 
 ---
 
@@ -14,7 +15,7 @@ tags: [Data-Stucture, Graph]
 
 각 원소를 정점(Vertex) 또는 노드(Node)라고 부르고, 간선(Edge)은 두 정점을 연결하는 선이다.  
 
-## **💫 Tree**
+## 💫 Tree
 
 ---
 
@@ -52,4 +53,4 @@ tags: [Data-Stucture, Graph]
 
 ### 🫧 Binary Search Tree
 
-[Binary Search Tree](https://mascari4615.github.io/posts/Data-Structure-Binary-Search-Tree/)  
+[Binary Search Tree](/posts/Data-Structure-Binary-Search-Tree/)  

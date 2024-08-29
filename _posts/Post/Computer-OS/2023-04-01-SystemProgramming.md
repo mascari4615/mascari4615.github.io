@@ -2,8 +2,9 @@
 title: "🌑 시스템 프로그래밍"
 date: 2023-04-01. 00:00 # ?
 # last_modified_at: 2023-11-17. 09:33
-last_modified_at: 2023-11-26. 01:03
-categories: ⭐Computer 🌑Computer-OS
+# last_modified_at: 2023-11-26. 01:03
+last_modified_at: 2024-08-29. 21:27
+categories: [⭐Computer, 🌑Computer-OS]
 ---
 
 ## 💫 1
@@ -220,7 +221,7 @@ Different compiler & machines assign different locations to objects
   - True = 1, False = 0 으로 부호화
   - 집합 { 0, 1 } 에 대해서 정의
 
-[Bit Wise Operate](https://mascari4615.github.io/posts/Bitwise-Operator/)  
+[Bit Wise Operate](/posts/Bitwise-Operator/)  
 
 ---
 

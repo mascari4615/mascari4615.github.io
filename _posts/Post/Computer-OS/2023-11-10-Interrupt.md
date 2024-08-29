@@ -1,9 +1,10 @@
 ---
 title: "🌑 Interrupt"
 date: 2023-11-10. 09:21
-last_modified_at: 2023-11-15. 16:06
-categories: ⭐Computer 🌑Computer-OS
-tags: Computer Operating-System OS Interrupt Polling
+# last_modified_at: 2023-11-15. 16:060
+last_modified_at: 2024-08-29. 21:28
+categories: [⭐Computer, 🌑Computer-OS]
+tags: [Computer, Operating-System, OS, Interrupt, Polling]
 ---
 
 ## 💫 Interrupt 인터럽트
@@ -38,7 +39,7 @@ tags: Computer Operating-System OS Interrupt Polling
 
 CPU가 인터렙트 발생 여부를 체크(조사)하는 시기를 말한다.  
 
-4단계의 [기계/명령 사이클](https://mascari4615.github.io/posts/Machine-Instruction-Cycle/)을 마칠 때마다, 다시말해 하나의 기계 명령어에 대한 처리를 마칠 때마다, 인터럽트 발생 여부를 조사한다.  
+4단계의 [기계/명령 사이클](/posts/Machine-Instruction-Cycle/)을 마칠 때마다, 다시말해 하나의 기계 명령어에 대한 처리를 마칠 때마다, 인터럽트 발생 여부를 조사한다.  
 결국 기계/명령 사이클은, 인터럽트 사이클을 포함하여 총 5단계로 이루어져 있다고 볼 수 있다.  
 
 ## 💫인터럽트 유형

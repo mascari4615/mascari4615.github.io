@@ -1,19 +1,17 @@
 ---
 title: "🫐 WitchMendokusai DevLog 02"
 date: 2024-03-29. 01:48
-# last_modified_at: 2024-03-29. 01:48
+last_modified_at: 2024-08-29. 21:50
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
-## **🎲 _**
+## 🎲 _
 
 ---
 
 이번 일지에서는 에셋들을 관리하기 위한 툴 기반을 만들어본다.  
 
-<br>
-
-## **🎲 UI Toolkit, 기본적인 레이아웃**
+## 🎲 UI Toolkit, 기본적인 레이아웃
 
 ---
 
@@ -106,9 +104,7 @@ public void CreateGUI()
 }
 ```
 
-<br>
-
-## **🎲 에셋 정렬**
+## 🎲 에셋 정렬
 
 ---
 
@@ -130,9 +126,7 @@ public void CreateGUI()
 
 어쨌거나, 에셋을 정렬해줘야 한다.  
 
-<br>
-
-### **👾 딕셔너리?**
+### 👾 딕셔너리?
 
 굳이 정렬하지 않고 `Dictionary<int, Artifact>` 모양으로 딕셔너리를 써도 될 것 같긴하다.  
 
@@ -175,9 +169,7 @@ public void CreateGUI()
 
 다음 단계로 넘어간다.  
 
-<br>
-
-## **🎲 에셋 관리**
+## 🎲 에셋 관리
 
 ---
 
@@ -185,9 +177,8 @@ public void CreateGUI()
 
 에셋을 만드는 기능은 별도의 UI가 필요할 것 같아서,  
 당장 버튼 하나만 있으면 되는 에셋 복제와 삭제 기능부터 구현해본다.  
-<br>
 
-### **👾 에셋 복제**
+### 👾 에셋 복제
 
 에셋 복제 기능이다.  
 
@@ -289,9 +280,8 @@ public void DuplicateArtifact(Artifact artifact)
 ![에셋 복제](/assets/img/2024/240329_03.png)  
 
 이렇게 복제 기능을 만들어봤다.  
-<br>
 
-### **👾 에셋 삭제**
+### 👾 에셋 삭제
 
 에셋 삭제 기능을 구현해본다.  
 
@@ -322,9 +312,7 @@ public void DeleteArtifact(Artifact artifact)
 // ...
 ```
 
-<br>
-
-### **👾 에셋 추가**
+### 👾 에셋 추가
 
 이제 에셋 추가 기능을 구현해본다.  
 
@@ -396,7 +384,7 @@ private void SetPropertyValue()
 
 이때, `PropertyField`를 초기화하는 부분에서 많이 애를 먹었다.  
 
-나는 스크립터블 오브젝트에 **모든** 필드를 `[field: SerializeField] public int ID { get; set; }` 같이 자동구현 프로퍼티로 만들었는데,  
+나는 스크립터블 오브젝트에 **모든 필드**를 `[field: SerializeField] public int ID { get; set; }` 같이 자동구현 프로퍼티로 만들었는데,  
 `CurArtifact.GetType().GetFields()`로는 필드가 검색되지 않았고,  
 `serializedObject.FindProperty()`에서도 `PropertyInfo.Name`으로는 필드를 찾을 수 없었다.  
 
@@ -469,9 +457,8 @@ private void UpdateGrid()
 ```
 
 단순히 마지막 버튼으로 추가했다.  
-<br>
 
-## **🎲 여러 에셋**
+## 🎲 여러 에셋
 
 ---
 
@@ -509,6 +496,5 @@ public void CreateGUI()
 ```
 
 ![여러 에셋](/assets/img/2024/240330_00.png)  
-<br>
 
 ![To Be Continued..](/assets/img/common/ToBeContinued.png)  

@@ -2,8 +2,9 @@
 title: "🏝️ 홍삼 캔디 - 유튜브"
 date: 2023-02-02. 23:02
 # last_modified_at: 2023-08-26. 10:54
-last_modified_at: 2023-09-27. 06:53
-categories: 🪨Stone 🏝️LifeStone
+# last_modified_at: 2023-09-27. 06:53
+last_modified_at: 2024-08-29. 22:29
+categories: [🪨Stone, 🏝️LifeStone]
 ---
 
 나의 추억, 그 중에서도 유튜브와 관련된 것들.  

@@ -1,9 +1,10 @@
 ---
 title: "🌓 K-Graph Coloring"
 date: 2023-12-07. 11:02
-last_modified_at: 2023-12-19. 02:57
-categories: ⭐Computer 🌓PS-Algorithm
-tags: Algorithm K-Grapth-Coloring Back-Tracking
+# last_modified_at: 2023-12-19. 02:57
+last_modified_at: 2024-08-29. 21:35
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm, K-Grapth-Coloring, Back-Tracking]
 math: true
 ---
 
@@ -49,7 +50,7 @@ math: true
 - 다양한 스케줄링 문제
   - 각 작업들에 동일한 시간을 할당한다고 가정할 때, 각 작업을 정점으로 하고, 겹쳐서 진행할 수 없는 작업들을 간선으로 연결한 그래프를 생각해보자. 이 그래프를 대상으로 채색수를 구한다면 이로부터 최소 완료 시간을 구할 수 있음
 
-## 💫 Solve By [BackTracking](https://mascari4615.github.io/posts/Algorithm-Back-Tracking/)
+## 💫 Solve By [BackTracking](/posts/Algorithm-Back-Tracking/)
 
 ---
 

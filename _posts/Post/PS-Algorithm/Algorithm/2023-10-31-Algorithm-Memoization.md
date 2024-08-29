@@ -4,7 +4,7 @@ date: 2023-10-31. 14:43
 # last_modified_at: 2023-12-19. 02:16
 last_modified_at: 2024-02-17. 21:38
 categories: [⭐Computer, 🌓PS-Algorithm]
-tag: [Algorithm, Memoization]
+tags: [Algorithm, Memoization]
 --- 
 
 ## **💫 Memoization**

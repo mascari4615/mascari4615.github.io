@@ -1,7 +1,8 @@
 ---
 title: "🌒 연산 순서에 따른 퍼포먼스 차이"
 date: 2022-01-02. 12:07
-last_modified_at: 2023-11-26. 06:53
+# last_modified_at: 2023-11-26. 06:53
+last_modified_at: 2024-08-29. 21:33
 categories: [⭐Computer, 🌒Programming]
 ---
 
@@ -26,7 +27,7 @@ categories: [⭐Computer, 🌒Programming]
 
 연산 순서에 따라 결과 차이가 발생하는 경우. (Overflow)  
 
-## 💫 참고 - [Short-Circuit Evaluation](https://mascari4615.github.io/posts/Short-Circuit-Evaluation/)
+## 💫 참고 - [Short-Circuit Evaluation](/posts/Short-Circuit-Evaluation/)
 
 ---
 

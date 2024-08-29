@@ -3,7 +3,7 @@ title: "🌓 DFS"
 date: 2024-02-23. 17:42
 last_modified_at: 2024-07-15. 06:52
 categories: [⭐Computer, 🌓PS-Algorithm]
-tag: [Algorithm, Search, DFS, Depth-First-Search]
+tags: [Algorithm, Search, DFS, Depth-First-Search]
 ---
 
 {% include embed/youtube.html id='93jy2yUYfVE' %}

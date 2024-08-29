@@ -1,7 +1,8 @@
 ---
 title:  "🥑 마우스 혼자 자동으로 스크롤 될 때"
 date: 2021-12-14. 17:07
-categories: 🌳Memo 🥑Memo-General
+last_modified_at: 2024-08-29. 22:15
+categories: [🌳Memo, 🥑Memo-General]
 ---
 ## 💎
 

@@ -25,7 +25,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-03-05. 13:13
 # last_modified_at: 2024-04-03. 14:15
 # last_modified_at: 2024-04-09. 03:03
-last_modified_at: 2024-08-10. 17:39
+# last_modified_at: 2024-08-10. 17:39
+last_modified_at: 2024-08-29. 21:33
 
 categories: [⭐Computer, 🌔Game-Engine]
 tags: [Unity, OnParticleCollision, NavMesh]
@@ -44,7 +45,7 @@ tags: [Unity, OnParticleCollision, NavMesh]
 ---
 
 - [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
-- [UI Toolkit](https://mascari4615.github.io/posts/Unity-UI-Toolkit/)
+- [UI Toolkit](/posts/Unity-UI-Toolkit/)
 - `Collision.contacts`
 - `AddForce`에서의 Force -> `force * DT / mass`
 

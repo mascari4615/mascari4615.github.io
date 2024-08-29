@@ -1,9 +1,10 @@
 ---
 title: "🌔 Unity Transform Position"
 date: 2023-04-11. 13:44
-last_modified_at: 2023-04-13. 14:51
+# last_modified_at: 2023-04-13. 14:51
+last_modified_at: 2024-08-29. 22:30
 categories: [⭐Computer,🌔Game-Engine]
-tags: Unity Transform Position
+tags: [Unity, Transform, Position]
 ---
 
 - [유니티 Vector3는 스택에 생성된다, 값 형식이다, Struct](https://3dmpengines.tistory.com/1566)  

@@ -1,9 +1,9 @@
 ---
 title: "🌓 알고리듬, 하노이탑"
 date: 2023-10-31. 14:11
-last_modified_at: 2023-10-31. 14:11
-categories: ⭐Computer 🌓PS-Algorithm
-tag: Algorithm
+last_modified_at: 2024-08-29. 22:19
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm]
 ---
 
 ### 💫 하노이탑

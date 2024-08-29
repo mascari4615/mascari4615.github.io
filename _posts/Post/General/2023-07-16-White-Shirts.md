@@ -1,8 +1,8 @@
 ---
 title: "🥑 와이 셔츠 = 화이트 셔츠"
 date: 2023-07-16. 19:40
-last_modified_at: 2023-07-16. 19:40
-categories: 🌳Memo 🥑Memo-General
+last_modified_at: 2024-08-29. 22:17
+categories: [🌳Memo, 🥑Memo-General]
 ---
 
 ### 🥑 [와이 셔츠 = 화이트 셔츠](https://twitter.com/CiceroFlager8/status/1680008696221548545?s=20)

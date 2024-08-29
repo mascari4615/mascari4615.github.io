@@ -3,7 +3,8 @@ title: "🌒 Simulated Annealing - 모의 담금질"
 date: 2023-10-25. 09:57
 # last_modified_at: 2023-10-31. 13:30
 # last_modified_at: 2023-12-07. 10:24
-last_modified_at: 2023-12-08. 10:28
+# last_modified_at: 2023-12-08. 10:28
+last_modified_at: 2023-11-11. 12:41
 categories: [⭐Computer, 🌒Programming]
 tags: [AI, Simulated-Annealing]
 ---
@@ -66,7 +67,7 @@ Local Max, Global Max
 언제 정착 ?  
 → 시간이 지날수록 조건을 까다롭게  
 
-Sample Problem - [N-Queen](https://mascari4615.github.io/posts/N-Queen/)  
+Sample Problem - [N-Queen](/posts/N-Queen/)  
 
 초기 soln를 대충 만들어두고, soln를 평가  
 답(최정상)은 모르니까 대강 어느정도 좋다  

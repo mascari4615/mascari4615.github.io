@@ -1,17 +1,18 @@
 ---
 title: "🌚 Spring Boot"
 date: 2024-04-09. 12:38
-last_modified_at: 2024-04-11. 16:46
+# last_modified_at: 2024-04-11. 16:46
+last_modified_at: 2024-08-29. 21:22
 categories: [⭐Computer, 🌚Computer-General]
 ---
 
 {% include embed/youtube.html id='AalcVuKwBUM' %}
 
-## **💫 스프링**
+## 💫 스프링
 
 ---
 
-### **🫧 스프링 프레임워크**
+### 🫧 스프링 프레임워크
 
 자바에서 가장 많이 사용되는 프레임워크  
 
@@ -27,7 +28,7 @@ categories: [⭐Computer, 🌚Computer-General]
 
 느슨한 결합으로 개발하면 단위 테스트를 쉽게 할 수 있다.  
 
-### **🫧 스프링 프레임워크의 대표적 모듈**
+### 🫧 스프링 프레임워크의 대표적 모듈
 
 - Spring JDBC
 - Spring MVC
@@ -39,16 +40,16 @@ categories: [⭐Computer, 🌚Computer-General]
 
 이하 스프링.  
 
-## **💫 스프링 부트**
+## 💫 스프링 부트
 
 ---
 
-### **🫧 스프링 부트**
+### 🫧 스프링 부트
 
 스프링에서 제공하는 한 프로젝트  
 큰 범주로 스프링이 있고, 이를 편하게 사용할 수 있게 만든 것이 스프링 부트.  
 
-### **🫧 왜 Why**
+### 🫧 왜 Why
 
 스프링도 의존성 주입 등을 편하게 쓰려고 만들어졌는데,  
 그것도 좀 복잡해서 나온게 스프링 부트.  
@@ -59,7 +60,7 @@ categories: [⭐Computer, 🌚Computer-General]
 스프링은 `Hibernate` 관련 설정을 직접 해줘야 하는데,  
 스프링 부트는 `Hibernate` 설정을 자동으로 해준다.  
 
-### **🫧 제공하는 기능**
+### 🫧 제공하는 기능
 
 #### 자동 설정 (Auto Configuration)
 
@@ -73,7 +74,7 @@ categories: [⭐Computer, 🌚Computer-General]
 - 앱을 개발에 쓰는 디펜던시들은 호환되는 버전으로 관리해줘야 함
 - SpringBoot-Starter를 제공하여 자동으로 버전 관리
 
-### **🫧 Starter 디펜던시**
+### 🫧 Starter 디펜던시
 
 - `spring-boot-starter-web` : RESTful 응용 프로그램
 - `spring-boot-starter-test` : 단위 테스트, 통합 테스트
@@ -83,13 +84,13 @@ categories: [⭐Computer, 🌚Computer-General]
 - `spring-boot-starter-cache` : 스프링의 캐시 추상화를 사용한 캐시
 - ...
 
-## **💫 의존성 주입**
+## 💫 의존성 주입
 
 ---
 
 DI (Dependency Injection)  
 
-### **🫧 의존성 주입을 쓰지 않은 코드**
+### 🫧 의존성 주입을 쓰지 않은 코드
 
 ```java
 @RestController
@@ -107,7 +108,7 @@ public class HelloController {
 - 객체의 인스턴스를 얻게 되면 객체 간의 결합이 강해진다.
 - 이런 코드 작성은 단위테스트를 위해 `Mock` 객체를 사용할 수 없다.
 
-### **🫧 의존성 주입을 쓴 코드**
+### 🫧 의존성 주입을 쓴 코드
 
 ```java
 @Service
@@ -137,7 +138,7 @@ public class HelloController {
 - `@Service`, `@Autowired` 어노테이션을 통해 `HelloServiceImpli` 객체를 주입받는다.
 - 위와 같이 코드를 작성하면, 단위 테스트를 위해 `Service` 객체를 `Mock` 객체로 대체하여 쉽게 테스트할 수 있다.
 
-## **💫 관점 지향 프로그래밍 (AOP, Aspect Oriented Programming)**
+## 💫 관점 지향 프로그래밍 (AOP, Aspect Oriented Programming)
 
 ---
 
@@ -156,7 +157,7 @@ AOP를 통해 기존 프로젝트에 다향한 기능을 로직 수정 없이 �
   - 부가적인 관점
   - 흩어진 관심사(Crosscutting Concerns)
 
-## **💫 Hello World**
+## 💫 Hello World
 
 ```java
 @GetMapping({"/hello"})
@@ -166,7 +167,7 @@ public String getHello()
 }
 ```
 
-## **💫 pom.xml, build.gradle**
+## 💫 pom.xml, build.gradle
 
 ---
 
@@ -178,7 +179,7 @@ public String getHello()
   - 빌드 설정 정보 : 소스, 리소스, 라이프 사이클, 실행할 플러그인, ...
   - POM 연관 정보 : 의존 프로젝트(모듈), 상위 프로젝트, 하위 모듈, ...
 
-## **💫 application.properties, application.yml**
+## 💫 application.properties, application.yml
 
 ---
 
@@ -188,7 +189,7 @@ public String getHello()
 `application.yml`이 많이 사용된다.  
 둘 다 사용할 경우, 우선순위는 `application.properties`가 더 높다.  
 
-## **💫 H2 DB 설정**
+## 💫 H2 DB 설정
 
 ---
 
@@ -232,15 +233,15 @@ spring:
 `show tables;`  
 `select * from user;`  
 
-## **💫 구현 구성**
+## 💫 구현 구성
 
 ---
 
-### **🫧 Package**
+### 🫧 Package
 
 특정 `Domain`에 대한 클래스들을 모아놓는다.  
 
-### **🫧 Controller**
+### 🫧 Controller
 
 `Input`을 받아서 `Output`을 내보내는 역할을 한다.  
 
@@ -307,7 +308,7 @@ public class JoinRequest {
   - `@RequestBody`를 통해 `JoinRequest` 객체를 받아서 `MemberService`로 전달한다.
   - `@ResponseBody`를 통해 `MemberService`의 반환값을 HTTP 응답의 body 내용으로 반환한다.
 
-### **🫧 Service**
+### 🫧 Service
 
 `Controller`로부터 요청을 받아서 비즈니스 로직을 처리하는 영역  
 
@@ -337,7 +338,7 @@ public class MemberServiceImpl implements MemberService {
 }
 ```
 
-### **🫧 Repository**
+### 🫧 Repository
 
 `Service`로부터 받은 데이터를 DB에 저장하거나, `Service`로 데이터를 전달하는 영역  
 
@@ -345,7 +346,7 @@ public class MemberServiceImpl implements MemberService {
 public interface MemberRepository extends JpaRepository<Member, Long /*ID Type*/ > { }
 ```
 
-### **🫧 Test**
+### 🫧 Test
 
 `Controller`, `Service`, `Repository`에 대한 테스트를 작성하는 영역  
 
@@ -376,15 +377,15 @@ public class MemberRepositoryTest {
 }
 ```
 
-## **💫 REST API**
+## 💫 REST API
 
 ---
 
-[REST API](https://mascari4615.github.io/posts/REST-API/)  
+[REST API](/posts/REST-API/)  
 
 `Controller`로 요청을 받는다? `REST API` 통신을 한다.  
 
-## **💫 CRUD의 표현**
+## 💫 CRUD의 표현
 
 ---
 
@@ -395,7 +396,7 @@ public class MemberRepositoryTest {
   - 보통 잘 안쓰고, `@PostMapping`을 많이 쓴다.
 - `@DeleteMapping` : Delete, 서버를 통해 리소스를 삭제
 
-## **💫 생각의 흐름**
+## 💫 생각의 흐름
 
 ---
 
@@ -405,11 +406,11 @@ public class MemberRepositoryTest {
    - `Entity`
    - DB와 직접 연결되는
 
-## **💫 메모**
+## 💫 메모
 
 ---
 
-### **🫧 `@Entity`**
+### 🫧 `@Entity`
 
 - `@Entity`를 사용하면 클래스를 데이터베이스 테이블과 매핑할 수 있다.
 - `@Entity`가 붙은 클래스는 JPA가 관리하는 클래스가 된다.
@@ -419,12 +420,12 @@ public class MemberRepositoryTest {
 - `@Entity`가 붙은 클래스는 `@Builder` 어노테이션을 사용하여 빌더 패턴을 사용할 수 있다.
 - `@Entity`가 붙은 클래스는 `@Getter`, `@Setter` 어노테이션을 사용하여 getter, setter 메소드를 만들어준다.
 
-### **🫧 `@Builder`**
+### 🫧 `@Builder`
 
 - `@Builder`를 사용하면 클래스의 필드를 기반으로 데이터 컬럼을 구성을 해준다. (?)
 - 생성자를 통해 객체를 생성할 수 있다.
 
-### **🫧 `@GeneratedValue`**
+### 🫧 `@GeneratedValue`
 
 - Like auto_increment
 
@@ -433,7 +434,7 @@ public class MemberRepositoryTest {
 - `@GeneratedValue(strategy = GenerationType.SEQUENCE)` : 시퀀스
 - ...
 
-### **🫧 _**
+### 🫧 _
 
 - 유효성 검사
   - @valid, @validated

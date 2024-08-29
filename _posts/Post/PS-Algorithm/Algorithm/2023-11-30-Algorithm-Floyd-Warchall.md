@@ -1,9 +1,9 @@
 ---
 title: "🌓 플로이드-웨셜 알고리듬"
 date: 2023-11-30. 11:20
-# last_modified_at: 2023-11-30. 11:20
-categories: ⭐Computer 🌓PS-Algorithm
-tags: Algorithm Dynamic-Programming DP Floyd-Warshall
+last_modified_at: 2024-08-29. 22:18
+categories: [⭐Computer, 🌓PS-Algorithm]
+tags: [Algorithm, Dynamic-Programming, DP, Floyd-Warshall]
 ---
 
 ## 💫 플로이드-웨셜 알고리듬 - Floyd-Warshall Algorithm

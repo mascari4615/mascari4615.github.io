@@ -1,12 +1,13 @@
 ---
 title: "🌔 Unity - UI Toolkit"
 date: 2023-07-24. 22:30
-last_modified_at: 2024-03-27. 15:39
+# last_modified_at: 2024-03-27. 15:39
+last_modified_at: 2024-08-29. 21:50
 categories: [⭐Computer,🌔Game-Engine]
 tags: [Unity, UIToolkit]
 ---
 
-## **💫 UI Toolkit**
+## 💫 UI Toolkit
 
 ---
 
@@ -27,9 +28,8 @@ UI Toolkit에서는 레이아웃 - `UXML`, 스타일- `USS`, 로직 - `C#` 으�
   - 하려고 했는데, 런타임 UI와 에디터 UI는 단지 보여지는 곳의 차이일 뿐, 구현은 똑같은 방식으로 하는 거였음  
   - 그래서 런타임 UI 용으로 만든 레이아웃, 스타일, 로직을 그대로 에디터 UI 에 적용시킬 수 있고, 반대도 마찬가지
   - [이때, 로직의 경우 2023부터 제대로 동작하는듯?](https://youtu.be/J2KNj3bw0Bw?t=2727)
-<br>
 
-### **💫 SerializedObject**
+### 💫 SerializedObject
 
 ---
 
@@ -42,9 +42,8 @@ UnityEngine Object를 Asset으로 만들 때,
 UnityEngine Object는 Serialized Object로 변환된 이후, Serialized Object에서 Asset과 .meta파일 생성  
 
 무튼 Editor에서도 SerializedObject를 다룸  
-<br>
 
-### **💫 SerializedProperty**
+### 💫 SerializedProperty
 
 ---
 
@@ -52,9 +51,8 @@ UnityEngine Object는 Serialized Object로 변환된 이후, Serialized Object�
 
 C#의 리플렉션을 통해,  
 SerializedObject에서 SerializedProperty을 얻을 수 있음  
-<br>
 
-### **💫 VisualElement**
+### 💫 VisualElement
 
 ---
 
@@ -64,9 +62,8 @@ VisualElement 자체는 아무 기능이 없고, 구체화된 VisualElement들�
 C#으로 치면 Object?  
 
 모든 VisualElement는 generateVisualContext 콜백을 가짐  
-<br>
 
-### **💫 [Property Drawer](https://docs.unity3d.com/kr/2022.3/Manual/editor-PropertyDrawers.html)**
+### 💫 [Property Drawer](https://docs.unity3d.com/kr/2022.3/Manual/editor-PropertyDrawers.html)
 
 ---
 
@@ -84,9 +81,7 @@ public class SomethingEditor : PropertyDrawer
 }
 ```
 
-<br>
-
-### **💫 [Custom Editor](https://docs.unity3d.com/kr/2022.3/Manual/editor-CustomEditors.html)**
+### 💫 [Custom Editor](https://docs.unity3d.com/kr/2022.3/Manual/editor-CustomEditors.html)
 
 ---
 
@@ -106,9 +101,7 @@ public class SomethingEditor : Editor
 }
 ```
 
-<br>
-
-### **💫 viewDataKey**
+### 💫 viewDataKey
 
 ---
 
@@ -125,9 +118,7 @@ Foldout은 기본적으로 접혀진 상태
 
 ScrollView의 경우, 마지막으로 스크롤한 위치를 복구한다던지 등  
 
-<br>
-
-### **💫 Foldout**
+### 💫 Foldout
 
 ---
 
@@ -142,9 +133,7 @@ var foldout = new Foldout()
 }
 ```
 
-<br>
-
-### **💫 UXML 연결하기**
+### 💫 UXML 연결하기
 
 ---
 
@@ -162,9 +151,8 @@ public override VisualElement CreateInspectorGUI()
 ```
 
 Project 창에서 해당 Editor 스크립트를 선택하고, UXML 파일 할당  
-<br>
 
-### **💫 [커스텀 UI Shape?](https://youtu.be/J2KNj3bw0Bw?t=1367)**
+### 💫 [커스텀 UI Shape?](https://youtu.be/J2KNj3bw0Bw?t=1367)
 
 ---
 
@@ -175,9 +163,8 @@ UXML 파일에서 불러온 데이터로 Image 인스터싱?
 
 generateVisualContext 콜백에 MeshGenerationContext를 받는 함수를 등록하면 메쉬 그릴 수 있음  
 Unity에서 지원하는 Painter2D API 활용  
-<br>
 
-### **💫 Editor Window**
+### 💫 Editor Window
 
 ---
 
@@ -200,9 +187,7 @@ public class SomethingEditor : EditorWindow
 }
 ```
 
-<br>
-
-### **💫 참고**
+### 💫 참고
 
 ---
 

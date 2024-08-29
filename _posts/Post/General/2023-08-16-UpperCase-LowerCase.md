@@ -1,8 +1,8 @@
 ---
 title: "🥑 UpperCase, LowerCase 어원"
 date: 2023-08-16. 06:42
-last_modified_at: 2023-08-16. 06:42
-categories: 🌳Memo 🥑Memo-General
+last_modified_at: 2024-08-29. 22:17
+categories: [🌳Memo, 🥑Memo-General]
 ---
 
 ### 🥑 UpperCase, LowerCase

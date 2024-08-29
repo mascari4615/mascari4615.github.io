@@ -4,7 +4,8 @@ date: 2024-01-15. 19:53
 # last_modified_at: 2024-02-01. 09:34
 # last_modified_at: 2024-03-12. 10:03
 # last_modified_at: 2024-03-18. 18:37
-last_modified_at: 2024-04-04. 11:30
+# last_modified_at: 2024-04-04. 11:30
+last_modified_at: 2024-08-29. 21:32
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
@@ -45,7 +46,7 @@ categories: [🔖Creative, 🫐WitchMendokusai]
 
 ### 👾 카드
 
-~~[카드](https://mascari4615.github.io/posts/WitchIdle-Card/)~~
+~~[카드](/posts/WitchIdle-Card/)~~
 
 ## 🎲 제약
 

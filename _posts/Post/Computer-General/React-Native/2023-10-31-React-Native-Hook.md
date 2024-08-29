@@ -5,7 +5,8 @@ date: 2023-10-31. 15:31
 # last_modified_at: 2023-11-21. 15:09
 # last_modified_at: 2023-11-22. 13:07
 # last_modified_at: 2023-12-05. 15:55
-last_modified_at: 2023-12-06. 10:33
+# last_modified_at: 2023-12-06. 10:33
+last_modified_at: 2024-08-29. 21:26
 categories: [⭐Computer, 🌒Programming]
 tags: [Mobile, React-Native]
 ---
@@ -95,7 +96,7 @@ const 캐시된_데이터 = useMemo(콜백, [의존성1, 의존성2, ...])
 콜백 = () => 초기값
 ```
 
-값(, 함수)을 [메모이제이션](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
+값(, 함수)을 [메모이제이션](/posts/Algorithm-Memoization/)  
 → 함수 : () => 콜백  
 
 useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?  
@@ -113,7 +114,7 @@ useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?
 const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 ```
 
-함수를 [메모이제이션](https://mascari4615.github.io/posts/Algorithm-Memoization/)  
+함수를 [메모이제이션](/posts/Algorithm-Memoization/)  
 
 재렌더링마다 지속적으로 만들어질 수 있는 콜백 함수를, useCallback을 통해 저장해서 재사용  
 
@@ -254,4 +255,4 @@ Something like Design Pattern
 
 ---
 
-[Context, Ref](https://mascari4615.github.io/posts/React-Native-Context/)
+[Context, Ref](/posts/React-Native-Context/)

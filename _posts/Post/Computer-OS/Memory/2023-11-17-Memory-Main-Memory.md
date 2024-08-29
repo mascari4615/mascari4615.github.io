@@ -1,9 +1,10 @@
 ---
 title: "🌑 Main-Memory 주기억장치"
 date: 2023-11-17. 03:58
-last_modified_at: 2023-11-28. 09:50
-categories: ⭐Computer 🌑Computer-OS
-tags: Computer Memory Main-Memory
+# last_modified_at: 2023-11-28. 09:50
+last_modified_at: 2024-08-29. 22:13
+categories: [⭐Computer, 🌑Computer-OS]
+tags: [Computer, Memory, Main-Memory]
 ---
 
 ## 💫 Main-Memory 주기억장치

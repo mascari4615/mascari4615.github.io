@@ -6,7 +6,7 @@ date: 2023-10-31. 13:37
 # last_modified_at: 2024-02-17. 21:36
 last_modified_at: 2024-07-08. 18:37
 categories: [⭐Computer, 🌓PS-Algorithm]
-tag: [Algorithm, Greedy]
+tags: [Algorithm, Greedy]
 ---
 
 @ 6~N차시  

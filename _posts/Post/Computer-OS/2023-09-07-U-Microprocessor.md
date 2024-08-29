@@ -7,9 +7,10 @@ date: 2023-09-08. 12:51
 # last_modified_at: 2023-11-03. 14:03
 # last_modified_at: 2023-11-24. 12:12
 # last_modified_at: 2023-12-08. 10:51
-last_modified_at: 2023-12-15. 12:08
-categories: ⭐Computer 🌑Computer-OS
-tags: Computer Microprocessor
+# last_modified_at: 2023-12-15. 12:08
+last_modified_at: 2024-08-29. 22:11
+categories: [⭐Computer, 🌑Computer-OS]
+tags: [Computer, Microprocessor]
 ---
 
 ## 💫 마이크로프로세서

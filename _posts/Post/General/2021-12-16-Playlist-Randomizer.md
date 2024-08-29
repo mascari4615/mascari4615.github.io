@@ -1,7 +1,8 @@
 ---
 title:  "🥑 유튜브 재생목록 랜덤재생 사이트"
 date: 2021-12-16. 09:18
-categories: 🌳Memo 🥑Memo-General
+last_modified_at: 2024-08-29. 22:15
+categories: [🌳Memo, 🥑Memo-General]
 ---
 ## 💎
 

@@ -3,11 +3,12 @@ title: "🫐 WitchMendokusai DevLog 01"
 date: 2024-03-28. 15:52
 # last_modified_at: 2024-03-20. 13:26
 # last_modified_at: 2024-03-25. 01:39
-last_modified_at: 2024-03-28. 15:52
+# last_modified_at: 2024-03-28. 15:52
+last_modified_at: 2024-08-29. 21:48
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
-## **🎲 _**
+## 🎲 _
 
 ---
 
@@ -16,9 +17,8 @@ categories: [🔖Creative, 🫐WitchMendokusai]
 
 저번 일지와 마찬가지로,  
 이번 일지에서도 마을 의뢰를 만들기 위해 구현한 기능들을 기록해본다.  
-<br>
 
-## **🎲 데이터 저장**
+## 🎲 데이터 저장
 
 ---
 
@@ -26,9 +26,8 @@ categories: [🔖Creative, 🫐WitchMendokusai]
 이제 퀘스트와 일 정보를 저장하고 불러오는 걸 구현해본다.  
 
 정말 많은 일이 있었다.  
-<br>
 
-### **👾 1. 일단 저장해봐 !**
+### 👾 1. 일단 저장해봐 !
 
 ```cs
 [Serializable]
@@ -57,9 +56,8 @@ public class GameData
 
 단순히 `QuestData`를 새로 정의하고 `GameData`에 추가했다.  
 간단하게 퀘스트 정보와 일 정보를 저장할 수 있게 됐다.  
-<br>
 
-### **👾 2. 조건 정보 저장 (Criteria, RuntimeCriteria)**
+### 👾 2. 조건 정보 저장 (Criteria, RuntimeCriteria)
 
 하지만 문제가 있다.  
 
@@ -175,9 +173,7 @@ public class Quest
 }
 ```
 
-<br>
-
-### **👾 3. 통계와 스탯 저장**
+### 👾 3. 통계와 스탯 저장
 
 조건의 세부 정보는 `Criteria`가 직접 들고 있다.  
 
@@ -315,9 +311,7 @@ public enum StatType
 }
 ```
 
-<br>
-
-### **👾 4. Reward**
+### 👾 4. Reward
 
 조건과 마찬가지로 보상도 저장해야한다. (보상도 랜덤일 수 있고, 크게는 퀘스트를 동적으로 생성하기 위해)  
 이를 위한 구조체, 클래스들을 정의했다.  
@@ -382,9 +376,7 @@ public class Reward
 
 이렇게 구현한 구조체, 클래스들을 `QuestData`와 `Quest`에서 저장하여 사용한다.  
 
-<br>
-
-## **🎲 그 외**
+## 🎲 그 외
 
 ---
 
@@ -396,7 +388,7 @@ public class Reward
 - 데이터를 로컬 JSON 파일로 저장하기 시작했다.
   - 기존에는 PlayFab으로 데이터를 저장했는데, 당장 저장 데이터 구조가 계속 바뀌는 상황에서 PlayFab 페이지까지 들어가 수정하고 지우는 과정이 번거로웠기에..
 
-### **👾 ISavable**
+### 👾 ISavable
 
 ```cs
 public interface ISavable<T>
@@ -408,15 +400,13 @@ public interface ISavable<T>
 
 간단한 인터페이스를 만들었다.
 
-## **🎲 현재까지의 진행 상황**
+## 🎲 현재까지의 진행 상황
 
 ---
 
 {% include embed/youtube.html id = "1ZtAxI-Fu1U" %}
 
-<br>
-
-## **🎲 다음 목표**
+## 🎲 다음 목표
 
 ---
 

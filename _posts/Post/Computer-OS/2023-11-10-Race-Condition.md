@@ -1,10 +1,8 @@
 ---
 title: "🌑 Race Condition"
 date: 2023-11-10. 09:21
-last_modified_at: 2023-11-10. 09:21
-categories: ⭐Computer 🌑Computer-OS
----
-
+last_modified_at: 2024-08-29. 22:12
+categories: [⭐Computer, 🌑Computer-OS]
 ---
 
 @0418  

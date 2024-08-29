@@ -1,8 +1,9 @@
 ---
 title: "🥑 간단 리뷰 - 책"
 date: 2024-01-14. 05:31
-last_modified_at: 2024-01-25. 05:35
-categories: 🌳Memo 🥑Memo-General
+# last_modified_at: 2024-01-25. 05:35
+last_modified_at: 2024-08-29. 22:17
+categories: [🌳Memo, 🥑Memo-General]
 ---
 
 ## 🥑 게임 개발

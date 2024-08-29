@@ -4,13 +4,14 @@ date: 2024-04-19. 00:24
 # last_modified_at: 2024-04-25. 21:55
 # last_modified_at: 2024-05-02. 05:44
 # last_modified_at: 2024-05-04. 03:40
-last_modified_at: 2024-05-22. 20:47
+# last_modified_at: 2024-05-22. 20:47
+last_modified_at: 2024-08-29. 21:51
 categories: [🔖Creative, 🫐WitchMendokusai]
 ---
 
 {% include embed/youtube.html id='BnGTGZ-eqCU' %}
 
-## **🎲 빌드 에러**
+## 🎲 빌드 에러
 
 ---
 
@@ -61,7 +62,7 @@ public class SOManager : ScriptableObject
 
 ... 그냥 써보는거지 뭐 !  
 
-### **👾 Addressable**
+### 👾 Addressable
 
 런타임에 데이터를 로드하기 위한 방법으로 크게 3가지가 있다.  
 
@@ -80,7 +81,7 @@ public class SOManager : ScriptableObject
 
 [참고 : '어드레서블 에셋 시스템 - 개념: 등장 배경, vs 에셋번들'](https://planek.tistory.com/22)  
 
-### **👾 구현**
+### 👾 구현
 
 ```cs
 public class UILoading : Singleton<UILoading>
@@ -160,7 +161,7 @@ public class UILoading : Singleton<UILoading>
 
 `Addressable`과 서버를 연결하는 작업을 조만한 진행해야겠다.  
 
-## **🎲 Private 레포지토리 Public로 변환**
+## 🎲 Private 레포지토리 Public로 변환
 
 ---
 
@@ -179,7 +180,7 @@ public class UILoading : Singleton<UILoading>
 
 그러기 위한 첫 걸음이다.  
 
-### **👾 파일 정리**
+### 👾 파일 정리
 
 먼저 레포지토리에 올라가 있는 파일들을 정리했다.  
 
@@ -232,7 +233,7 @@ git push origin --force --all
 [참고 : '경로에 공백(띄어쓰기)이 있을 때 cd, git add 방법'](https://markme-inur.tistory.com/74)  
 [참고 : '.gitignore가 작동하지 않을때 대처법'](https://jojoldu.tistory.com/307)  
 
-### **👾 잔디가 왜 이래 !**
+### 👾 잔디가 왜 이래 !
 
 ![154 커밋이](/assets/img/2024/240426_00.png)  
 ![912 커밋으로 보여요](/assets/img/2024/240426_01.png)  
@@ -252,7 +253,7 @@ git push origin --force --all
 
 당장 다시 갱신 요청하기는 좀 미안하고, 다른 파일도 찾아본 다음에 나중에 다시 한 번 문의 넣어야 할 듯 ㅎㅎ..  
 
-### **👾 파일 수정/추가**
+### 👾 파일 수정/추가
 
 파일 삭제를 완료하고, 이제 삭제한 파일들을 대체할 에셋들을 추가했다.  
 파일(에셋)들은 모두 라이센스 상 재배포 가능한 것들로 구성했다.  
@@ -271,7 +272,7 @@ FMOD 라이센스를 지키기 위해,
 게임 로그인 화면에 FMOD 로고를 추가하고,  
 설정창에 FMOD의 간단한 크레딧을 추가했다.  
 
-### **👾 README.md**
+### 👾 README.md
 
 크레딧을 적기 위해, `README.md` 파일도 수정했다.  
 
@@ -284,12 +285,11 @@ FMOD 라이센스를 지키기 위해,
 
 당장은 크레딧 밖에 없다.  
 추후에는 게임에 대한 설명, 사용법, 라이센스 등을 추가할 예정이다.  
-<br>
 
 일단 이정도로 레포지토리를 정리하고, 레포지토리를 Public으로 전환했다 !  
 다음 목표는, 개발 문서를 작성하고, 첫 알파 릴리스를 해보는 것이다.  
 
-## **🎲 Git LFS**
+## 🎲 Git LFS
 
 ---
 

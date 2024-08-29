@@ -1,7 +1,8 @@
 ---
 title: "🌱 정보보안"
 date: 1999-01-01. 00:00
-categories: 🪨Stone 🌱DayStone
+last_modified_at: 2024-08-29. 21:22
+categories: [🪨Stone, 🌱DayStone]
 ---
 
 - 보안 전략
@@ -13,7 +14,7 @@ categories: 🪨Stone 🌱DayStone
   1. 공개키 (암호화/복호화) 를 통해 임의의 대칭키 (세션키)를 주고 받는다
   2. 이후 통신에는 대칭키 (세션키) 를 이용해 통신을 한다
 
-[세션, 쿠키](https://mascari4615.github.io/posts/Cookie-Session/)  
+[세션, 쿠키](/posts/Cookie-Session/)  
 
 패스워드 보안의 4가지 인증 방법
 IRIS 홍체?

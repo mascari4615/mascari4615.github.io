@@ -1,8 +1,9 @@
 ---
 title: "🌔 Unity PlayFab 에러"
 date: 2022-11-16. 11:38
+last_modified_at: 2024-08-29. 22:29
 categories: [⭐Computer,🌔Game-Engine]
-tags: Unity Playfab
+tags: [Unity, Playfab]
 ---
 
 2022-11-16-PlayFab-GooglePlay-Error, 🌔 Unity PlayFab, Google Play 연동 에러  
