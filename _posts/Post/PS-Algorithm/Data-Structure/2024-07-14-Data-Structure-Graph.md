@@ -1,33 +1,35 @@
 ---
-title: "🌓 Graph"
+title: "🌓 Graph, Tree | 그래프, 트리"
 date: 2024-07-14. 23:37
 # last_modified_at: 2024-07-15. 06:12
-last_modified_at: 2024-08-29. 21:35
+# last_modified_at: 2024-08-29. 21:35
+last_modified_at: 2024-09-04. 12:58
 categories: [⭐Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Graph]
 ---
 
-## 💫 Graph
+## 💫 Graph | 그래프
 
 ---
 
 그래프 : 정점과 간선으로 이루어진 자료구조  
 
-각 원소를 정점(Vertex) 또는 노드(Node)라고 부르고, 간선(Edge)은 두 정점을 연결하는 선이다.  
+각 원소를 정점(Vertex) 또는 노드(Node : 마디)라고 부르고, 간선(Edge)은 두 정점을 연결하는 선이다.  
 
-## 💫 Tree
+## 💫 Tree | 트리
 
 ---
 
-트리  
 무방향이면서 사이클이 없는 연결 그래프 (Undirected Acyclic Connected Graph)  
 
-- 루트(Root) : 트리의 최상위 노드
-- 리프(Leaf) : 자식이 없는 말단 노드
+각 노드가 서로 부모-자식 관계로 연결된다.  
 
 - 부모-자식 관계
   - 부모(Parent) : 자식을 가지는 노드
   - 자식(Child) : 부모를 가지는 노드
+
+- 루트(Root : 뿌리) 노드 : 트리의 최상위 노드
+- 리프(Leaf : 잎), 단말(Terminal) 노드 : 자식이 없는 말단 노드
 
 - 서브트리(Subtree) : 트리의 일부분, 어떤 한 정점에 대해 그 정점과 그 정점의 자손들로 이루어진 트리
 
