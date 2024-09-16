@@ -1,10 +1,13 @@
 ---
 title: "🏝️ Animation"
 date: 2024-04-26. 20:55
+
 # last_modified_at: 2024-05-01. 07:32
 # last_modified_at: 2024-06-04. 20:03
 # last_modified_at: 2024-07-13. 04:23
-last_modified_at: 2024-07-25. 07:37
+# last_modified_at: 2024-07-25. 07:37
+last_modified_at: 2024-09-15. 22:00
+
 categories: [🪨Stone, 🏝️LifeStone]
 tags: [Animation]
 ---
@@ -170,6 +173,12 @@ tags: [Animation]
 - `스노하라장의 관리인 씨`
 - `케모노 프렌즈` 2기 ~?화
 - `강철의 연금술사`
+  - 언젠가 봤었는데
+  - 2025/09/15
+    - 챤님 방송으로 1화 중간 부터 8화? 12화? 까지
+    - 에릭 형제 동생
+      - Human
+      - 짱구 아빠 극장판도 비슷했던 것 같구
 - `사이키 쿠스오의 재난`
 - `앙상블 스타즈`
 - `코미 양은 커뮤증입니다`

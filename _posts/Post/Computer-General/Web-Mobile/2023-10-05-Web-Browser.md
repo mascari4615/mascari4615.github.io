@@ -1,17 +1,20 @@
 ---
 title: "🌒 Web Browser 웹 브라우저"
 date: 2023-10-05. 07:01
+
 # last_modified_at: 2023-10-05. 07:01
 last_modified_at: 2024-08-29. 21:27
+last_modified_at: 2024-09-16. 16:02
+
 categories: [⭐Computer, 🌒Programming]
 tags: [Web, Browser]
 ---
 
-### 💫 Web Browser 웹 브라우저
+## 💫 Web Browser | 웹 브라우저
 
 ---
 
-URL 입력을 통해 Web Page를 다운 받고,  
+URL 입력을 통해 Web Page (HTML, CSS)를 다운 받고,  
 이를 Rendering 하여 보여주는 GUI 프로그램  
 = `원격지` 문서 뷰어  
 
@@ -37,7 +40,7 @@ So, Web Browser는 다음 과정을 통해 읽기 쉽게 보여줌
 1. Parsing 구문 분석을 통해 DOM (자료구조 - 비선형 트리구조) 생성  
 2. DOM을 기반으로 Rendering (출력)  
 
-### 💫 참고
+## 💫 참고
 
 ---
 
