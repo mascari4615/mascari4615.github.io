@@ -1,7 +1,9 @@
 ---
 title: "🌒 C# Access Modifier"
 date: 2024-01-25. 05:22
-# last_modified_at: 2024-01-25. 05:22
+
+last_modified_at: 2024-09-26. 20:50
+
 categories: [⭐Computer, 🌒Programming]
 tags: [CSharp, AccessModifier]
 ---
@@ -9,7 +11,7 @@ tags: [CSharp, AccessModifier]
 접근제한자, 접근한정자  
 `public`, `protected`, `private`, `internal`, `protected internal`, `private protected` (C# 7.2)  
 
-### 💫 internal
+## 💫 internal
 
 ---
 
