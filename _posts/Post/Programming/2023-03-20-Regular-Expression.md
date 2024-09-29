@@ -1,8 +1,16 @@
 ---
-title: "🌒 정규표현식"
+title: "🌒 Regular-Expression | 정규표현식"
+
 date: 2023-03-20. 14:21
-last_modified_at: 2023-04-03. 14:23
+# last_modified_at: 2023-04-03. 14:23
+last_modified_at: 2024-09-29. 17:49
+
 categories: [⭐Computer, 🌒Programming]
+tags: [Regular-Expression, Regex]
+---
+
+## 💫 Regular-Expression | 정규표현식
+
 ---
 
 ```Text
@@ -22,6 +30,20 @@ categories: [⭐Computer, 🌒Programming]
 검색 기능에 정규표현식을 사용할 수 있다는 것을 알게 되었고,  
 이를 이용해 내가 찾고자 하는 모든 경우의 수에 대해 검색할 수 있었다.  
 
-[참고 0](https://hamait.tistory.com/342)  
-[참고 1](https://regexr.com/)  
-[참고 2](https://stackoverflow.com/questions/41409872/invalid-escape-in-pattern-html-javascript)  
+## 💫 메모/참고
+
+---
+
+### 🫧 참고
+
+- [참고 0](https://hamait.tistory.com/342)
+- [참고 1](https://regexr.com/)
+- [참고 2](https://stackoverflow.com/questions/41409872/invalid-escape-in-pattern-html-javascript)
+
+### 🫧 기록
+
+- [240929](https://github.com/Mascari4615/KarmoPlayground/commit/6357c7bc5790591e05296a259d8c5a45e6810d27)
+  - [Past](/posts/Past/) 글을 정리하면서 정규표현식을 사용했다.
+  - C# 코드를 간단하게 짰다.
+  - 텍스트 파일을 읽어와서 정규표현식을 이용해 특정 문자열을 찾아내고, 이를 원하는 모양으로 바꿨다.
+  - 코파일럿한테 몇 가지 예시 던져주고 정규식 만들어달라고 하니 편하다.
