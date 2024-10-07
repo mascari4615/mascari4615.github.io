@@ -1,12 +1,20 @@
 ---
-title: "🌒 읽기 좋은 코드가 좋은 코드다"
+title: "🌒 Coding Convention | 코딩 컨벤션"
 date: 2023-02-17. 10:38
+last_modified_at: 2024-09-05. 04:47
 categories: [⭐Computer, 🌒Programming]
+tags: [Coding-Convention, Readable-Code]
 ---
 
-### 💎 머릿말
+2024-09-05. 04:47  
+`2023-02-17-The-Art-Of-Readable-Code / 🌒 읽기 좋은 코드가 좋은 코드다`  
+글 추상화  
+
+## 💫 머릿말
 
 ---
+
+### 🫧 _
 
 코드는 이해하기 쉬워야 한다  
 코드는 다른 사람이 그것을 이해하는 데 들이는 시간을 최소화하는 방식으로 작성되어야 한다  
@@ -17,7 +25,7 @@ categories: [⭐Computer, 🌒Programming]
 분량이 적다고 해서 항상 더 좋은 것은 아니다  
 (주석, 설명 변수는 분량을 늘리지만 이해 비용을 줄여준다)  
 
-### 💎 Surface-Level 에서의 개선  
+## 💫 Surface-Level 에서의 개선
 
 ---
 
@@ -65,3 +73,9 @@ categories: [⭐Computer, 🌒Programming]
      - 어려우면 그냥 생각을 적어내기
        - 아 A 너무 어렵네 그냥 B 써야겠다  
        - → 주의 : 이 코드는 A 대신 B 를 사용했기에 @ 부분은 처리하지 않는다. 그렇게 하는 것이 어렵기 때문이다.  
+
+## 💫 메모/참고
+
+---
+
+- '읽기 좋은 코드가 좋은 코드다', '개발자의 글쓰기'
