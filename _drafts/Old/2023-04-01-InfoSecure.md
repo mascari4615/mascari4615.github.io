@@ -1,8 +1,9 @@
 ---
 title: "🌱 정보보안"
+categories: [🪨Stone, 🌱DayStone]
+
 date: 1999-01-01. 00:00
 last_modified_at: 2024-08-29. 21:22
-categories: [🪨Stone, 🌱DayStone]
 ---
 
 - 보안 전략

@@ -1,7 +1,9 @@
 ---
 title: "🌱 네트워크"
-date: 1999-01-01. 00:00
 categories: [🪨Stone, 🌱DayStone]
+
+date: 1999-01-01. 00:00
+# last_modified_at: 1999-01-01. 00:00
 ---
 
 Lan Topology  

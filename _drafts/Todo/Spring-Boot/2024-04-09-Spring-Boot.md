@@ -1,9 +1,10 @@
 ---
 title: "🌚 Spring Boot"
+categories: [💫Computer, 🌚Computer-General]
+
 date: 2024-04-09. 12:38
 # last_modified_at: 2024-04-11. 16:46
 last_modified_at: 2024-08-29. 21:22
-categories: [⭐Computer, 🌚Computer-General]
 ---
 
 {% include embed/youtube.html id='AalcVuKwBUM' %}

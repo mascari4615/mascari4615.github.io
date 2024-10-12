@@ -1,11 +1,13 @@
 ---
 title: "🥑 UpperCase, LowerCase 어원"
+categories: [📀Post, 🥑General]
+tags: [UpperCase, LowerCase]
+
 date: 2023-08-16. 06:42
 last_modified_at: 2024-08-29. 22:17
-categories: [🌳Memo, 🥑Memo-General]
 ---
 
-### 🥑 UpperCase, LowerCase
+## 📀 UpperCase, LowerCase
 
 ---
 

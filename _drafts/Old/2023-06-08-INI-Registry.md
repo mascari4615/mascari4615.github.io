@@ -1,11 +1,12 @@
 ---
 title: "🌚 Ini, Registry"
+categories: [💫Computer, 🌚Computer-General]
+
 date: 2023-06-07. 11:50
 last_modified_at: 2023-06-07. 11:50
-categories: [⭐Computer, 🌚Computer-General]
 ---
 
-### 💫 INI, *.ini
+## 💫 INI, *.ini
 
 ---
 
@@ -32,7 +33,7 @@ key = value
     - GetPrivateProfileString
     - GetPrivateProfileInt
 
-### 💫 Registry, 레지스트리
+## 💫 Registry, 레지스트리
 
 ---
 
@@ -42,7 +43,7 @@ key = value
 
 - `Reg, Registry`
 
-### 💫 참고
+## 💫 참고
 
 --
 

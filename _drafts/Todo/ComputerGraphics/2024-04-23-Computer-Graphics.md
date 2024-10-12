@@ -1,16 +1,17 @@
 ---
 title: "🌔 Computer Graphics"
+categories: [💫Computer,🌔Game-Engine]
+tags: [ComputerGraphics, CG]
+
 date: 2024-04-23. 05:00
 # last_modified_at: 2024-04-23. 05:00
-categories: [⭐Computer,🌔Game-Engine]
-tags: [ComputerGraphics, CG]
 ---
 
-## **💫 Computer Graphics**
+## 💫 Computer Graphics
 
 ---
 
-### **🫧 _**
+### 🫧 _
 
 - 그래픽스
 - 버텍스 셰이더와 픽셀 셰이더

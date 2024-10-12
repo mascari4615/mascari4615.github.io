@@ -1,13 +1,14 @@
 ---
 title: "🌚 Spring Boot RestTemplate"
+categories: [💫Computer, 🌚Computer-General]
+
 date: 2024-04-11. 20:07
 # last_modified_at: 2024-04-11. 20:07
-categories: [⭐Computer, 🌚Computer-General]
 ---
 
 {% include embed/youtube.html id='PfJQnbyAAhY' %}
 
-## **💫 RestTemplate**
+## 💫 RestTemplate
 
 ---
 
@@ -16,7 +17,7 @@ categories: [⭐Computer, 🌚Computer-General]
 - 동기 방식으로 처리되며, 비동기 방식으로는 AsyncRestTemplate이 있음  
 - RestTemplate 클래스는 REST 서비스를 호출하도록 설계되어 HTTP 프로토콜의 메소드에 맞게 여러 메소드를 제공  
 
-### **🫧 RestTemplate 메소드**
+### 🫧 RestTemplate 메소드
 
 - `getForObject` : GET, GET 형식으로 요청하여 객체로 결과를 반환 받음
 - `getForEntity` : GET, GET 형식으로 요청하여 ResponseEntity로 결과를 반환 받음

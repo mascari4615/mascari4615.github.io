@@ -1,11 +1,13 @@
 ---
 title: "🥑 Cosmic Expansion"
+categories: [📀Post, 🥑General]
+tags: [Cosmic-Expansion]
+
 date: 2023-01-27. 10:46
 last_modified_at: 2024-08-29. 22:16
-categories: [🌳Memo, 🥑Memo-General]
 ---
 
-### 💎 우주 팽창
+## 📀 우주 팽창
 
 ---
 
