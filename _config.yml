@@ -14,12 +14,12 @@ timezone: Asia/Seoul
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Mascari4615 # the main title
+title: 카모뜨린・Mascari4615 # the main title
 
-tagline: 메모 # it will display as the sub-title
+tagline: 다람쥐가 잃어버린 도토리들 # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  삶을 섞고 술을 바꿀 시간.
+  삶을 섞고 술을 바꿀 시간
 
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
