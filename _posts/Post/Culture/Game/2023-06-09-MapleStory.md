@@ -1,6 +1,6 @@
 ---
 title: "🍋 MapleStory"
-categories: [📀Post 🍋Culture 🍋Game]
+categories: [📀Post, 🍋Culture, 🍋Game]
 tags: [Culture, Game, MapleStory]
 
 date: 2023-06-09. 19:38
