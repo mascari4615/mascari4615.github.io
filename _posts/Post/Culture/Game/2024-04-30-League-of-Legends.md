@@ -6,7 +6,8 @@ tags: [Culture, Game, League-of-Legends]
 date: 2024-04-30. 05:10
 # last_modified_at: 2024-07-24. 23:57
 # last_modified_at: 2024-09-03. 08:54
-last_modified_at: 2024-10-11. 08:22
+# last_modified_at: 2024-10-11. 08:22
+last_modified_at: 2024-10-14. 00:30
 ---
 
 ## 📀 생각
@@ -109,3 +110,10 @@ last_modified_at: 2024-10-11. 08:22
 - 미스 포츈 + 레오나
   - 궁 콤보
   - 레오나 궁쿨이 짧다
+
+## 📀 해외
+
+---
+
+- 1차 타워 : Tier1
+- 대포 미니언 : Cannon, Siege
