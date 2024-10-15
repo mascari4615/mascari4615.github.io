@@ -40,6 +40,20 @@
   tags: [GameDev, Art, UI, System]
   date:
 
+- title: 버튜버 우리말 대전
+  url: /projects/
+  description:
+  image:
+  tags: [VRChat, System]
+  date:
+
+- title: 고멤의 집 (김치만두번영택사스가, 비밀소녀, 권민)
+  url: /projects/
+  description:
+  image:
+  tags: [VRChat, System]
+  date:
+
 - title: 주파수 게임
   url: /projects/
   description:
@@ -148,28 +162,28 @@
 - title: 컨텐츠 월드컵
   url: /projects/
   description: 이세돌 2주년 합방 (https://cafe.naver.com/steamindiegame/14065241)
-  image: /assets/img/project/ContentWorldcup.png
+  image: /assets/img/post/project/ContentWorldcup.png
   tags: [VRChat, Art, System]
   date:
 
 - title: 이파리 골든벨
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/13792779)
-  image: /assets/img/project/IfariGoldenBell.png
+  image: /assets/img/post/project/IfariGoldenBell.png
   tags: [VRChat, System]
   date:
 
 - title: 지하돌 학교 생활 엿보기
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/13702998)
-  image: /assets/img/project/SeguIdolSchool.png
+  image: /assets/img/post/project/SeguIdolSchool.png
   tags: [VRChat, System]
   date:
 
 - title: 르르와 연애중
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/13644167)
-  image: /assets/img/project/RuruLove.png
+  image: /assets/img/post/project/RuruLove.png
   tags: [VRChat, System]
   date:
 
@@ -183,21 +197,21 @@
 - title: 이세계 홈파티
   url: /projects/
   description: 이세돌 3집 합방 - (https://cafe.naver.com/steamindiegame/12562966)
-  image: /assets/img/project/HomeParty.jpg
+  image: /assets/img/post/project/HomeParty.jpg
   tags: [VRChat, System]
   date:
 
 - title: 우왁굳의 일심동체
   url: /projects/
   description: VRChat 한글 키보드 에셋 - (https://cafe.naver.com/steamindiegame/12922263)
-  image: /assets/img/project/LatterQuiz.png
+  image: /assets/img/post/project/LatterQuiz.png
   tags: [VRChat, System]
   date:
 
 - title: 오타쿠 인물퀴즈
   url: /projects/
   description:
-  image: /assets/img/project/OtakuQuiz.png
+  image: /assets/img/post/project/OtakuQuiz.png
   tags: [VRChat, System]
   date:
 
@@ -211,7 +225,7 @@
 - title: META STUDY
   url: /projects/
   description: 새우튀김 - 스터디 졸업작품- (https://cafe.naver.com/steamindiegame/11339673)
-  image: /assets/img/project/META_STUDY.png
+  image: /assets/img/post/project/META_STUDY.png
   tags: [VRChat, System]
   date:
 
@@ -239,7 +253,7 @@
 - title: 라니벨 시즌 2 안전수칙 편
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/10888716)
-  image: /assets/img/project/RaniGoldenBell.png
+  image: /assets/img/post/project/RaniGoldenBell.png
   tags: [VRChat, System]
   date:
 
@@ -281,14 +295,14 @@
 - title: 오뱅계르크 팝업 스토어
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/8799312)
-  image: /assets/img/project/WakgoodPopup.png
+  image: /assets/img/post/project/WakgoodPopup.png
   tags: [VRChat, System]
   date:
 
 - title: 오르막길
   url: /projects/
   description: sVydSseSOCQ UphillRoad2
-  image: /assets/img/project/UphillRoad1.png
+  image: /assets/img/post/project/UphillRoad1.png
   tags: [VRChat, Art]
   date:
 
@@ -302,14 +316,14 @@
 - title: 하나원큐 광고
   url: /projects/
   description: hkGJP1_cHQA (https://cafe.naver.com/steamindiegame/7592517)
-  image: /assets/img/project/OneQ.png
+  image: /assets/img/post/project/OneQ.png
   tags: [VRChat, Art]
   date:
 
 - title: 고멤가요제
   url: /projects/
   description: IzrIYIqlBnA EjKEburqdjE Finale2.png ForbiddenLady1.png ForbiddenLady2.png 피날레 (고멤가요제 레이디버그) 금단의 레이디 - 연막맵 (고멤가요제 레이디버그)  - (https://cafe.naver.com/steamindiegame/7679495) cDjUyZXu7A4 v67Fs-m_DzI isEg5oCs1u8 트리거 계륵각 (고멤가요제 김피탕 & 짬뽕)  트리거 고멤가요제 드래프트 맵, 공개 맵 - (https://cafe.naver.com/steamindiegame/7675853)
-  image: /assets/img/project/Finale1.png
+  image: /assets/img/post/project/Finale1.png
   tags: [VRChat, Art, System]
   date:
 
@@ -323,28 +337,28 @@
 - title: RE:HINE (아이네)
   url: /projects/
   description: y3u8sOJGL3w (https://cafe.naver.com/steamindiegame/7029174)
-  image: /assets/img/project/RE_HINE.png
+  image: /assets/img/post/project/RE_HINE.png
   tags: [VRChat, System]
   date:
 
 - title: 우산
   url: /projects/
   description: T84CDxlwsXw (https://cafe.naver.com/steamindiegame/6697504)
-  image: /assets/img/project/Umbrella.png
+  image: /assets/img/post/project/Umbrella.png
   tags: [VRChat, Art]
   date:
 
 - title: 왁숲
   url: /projects/
   description: ENKbdP8V2gg (https://cafe.naver.com/steamindiegame/7340376)
-  image: /assets/img/project/WakForest.png
+  image: /assets/img/post/project/WakForest.png
   tags: [VRChat, System]
   date: 2022-04 - 2022-08
 
 - title: 루석바
   url: /projects/
   description: I5bkJ4S9qic
-  image: /assets/img/project/RusukBar.png
+  image: /assets/img/post/project/RusukBar.png
   tags: [VRChat, Art, System]
   date: 2022-01
 
