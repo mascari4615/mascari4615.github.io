@@ -1,7 +1,9 @@
 ---
-title: "🌓 Greedy 그리디"
+title: "Greedy 그리디"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Greedy]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 13:37
 # last_modified_at: 2023-11-14. 10:03

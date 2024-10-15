@@ -1,7 +1,9 @@
 ---
-title: "🌔 Unity Transform Position"
+title: "Unity Transform Position"
+# description: ""
 categories: [💫Computer,🌔Game-Engine]
 tags: [Unity, Transform, Position]
+image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2023-04-11. 13:44
 # last_modified_at: 2023-04-13. 14:51

@@ -1,13 +1,15 @@
 ---
-title: "🌒 Architecture Pattern"
+title: "Architecture Pattern"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Architecture, MVC, Layered-Architecture]
-
-# MVC 패턴을 이용한 App 아키텍처
-# 계층 아키텍처 패턴 @176p 6.7
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-09. 14:21
 last_modified_at: 2024-08-29. 21:55
+
+# MVC 패턴을 이용한 App 아키텍처
+# 계층 아키텍처 패턴 @176p 6.7
 ---
 
 {% include embed/youtube.html id='JMBjqNUFOm8' %}

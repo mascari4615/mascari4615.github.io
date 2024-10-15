@@ -1,7 +1,9 @@
 ---
-title: "🌒 Pipe"
+title: "Pipe"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Pipe]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-08-29. 22:39
 # last_modified_at: 2024-08-29. 22:39

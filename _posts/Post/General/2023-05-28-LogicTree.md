@@ -1,7 +1,9 @@
 ---
-title: "🥑 LogicTree"
+title: "LogicTree"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [LogicTree]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-05-28. 02:51
 last_modified_at: 2024-08-29. 22:16

@@ -1,7 +1,9 @@
 ---
-title: "🫐 WitchMendokusai DevLog 04"
+title: "WitchMendokusai DevLog 04"
+# description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
 tags: [Project, Game-Dev, WitchMendokusai]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-04-19. 00:24
 # last_modified_at: 2024-04-25. 21:55

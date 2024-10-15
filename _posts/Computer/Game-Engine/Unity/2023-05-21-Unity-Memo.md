@@ -1,7 +1,9 @@
 ---
-title: "🌔 Unity 메모"
+title: "Unity 메모"
+# description: ""
 categories: [💫Computer, 🌔Game-Engine]
 tags: [Unity, OnParticleCollision, NavMesh]
+image: "/assets/img/background/20240827_140647.jpg"
 
 # 🌔 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수
 # date: 2019-12-10. 20:01:00

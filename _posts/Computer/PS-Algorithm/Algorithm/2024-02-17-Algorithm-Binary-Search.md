@@ -1,7 +1,9 @@
 ---
-title: "🌓 이진탐색, 이분탐색"
+title: "이진탐색, 이분탐색"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Search, Binary-Search]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-17. 14:44
 last_modified_at: 2024-06-19. 02:25

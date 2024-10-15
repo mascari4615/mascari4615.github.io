@@ -1,6 +1,9 @@
 ---
-title: "🌚 Bottleneck, 병목 현상"
+title: "Bottleneck, 병목 현상"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+tags: []
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-08-22. 16:26
 last_modified_at: 2023-08-22. 16:26

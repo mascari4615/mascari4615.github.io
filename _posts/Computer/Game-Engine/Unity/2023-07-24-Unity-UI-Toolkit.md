@@ -1,7 +1,9 @@
 ---
-title: "🌔 Unity - UI Toolkit"
+title: "Unity - UI Toolkit"
+# description: ""
 categories: [💫Computer,🌔Game-Engine]
 tags: [Unity, UIToolkit]
+image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2023-07-24. 22:30
 # last_modified_at: 2024-03-27. 15:39

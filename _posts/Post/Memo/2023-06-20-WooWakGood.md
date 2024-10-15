@@ -1,7 +1,9 @@
 ---
-title: "🍋‍🟩 우왁굳"
+title: "우왁굳"
+# description: ""
 categories: [📀Post, 🍋‍🟩Memo]
 tags: [Memo, WooWakGood]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-06-20. 10:05
 # last_modified_at: 2023-08-26. 10:28

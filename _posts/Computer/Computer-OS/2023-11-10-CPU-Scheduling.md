@@ -1,7 +1,9 @@
 ---
-title: "🌑 CPU Scheduling"
+title: "CPU Scheduling"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, CPU, CPU-Scheduling]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-10. 09:21
 last_modified_at: 2024-08-29. 22:12

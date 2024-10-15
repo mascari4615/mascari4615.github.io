@@ -1,7 +1,9 @@
 ---
-title: "🌒 세션 & 쿠키"
+title: "세션 & 쿠키"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Web, Cookie, Session]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-06-05. 11:11
 last_modified_at: 2023-06-05. 14:15

@@ -1,7 +1,9 @@
 ---
-title: "🌓 Recursion 재귀"
+title: "Recursion 재귀"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Search, Recursion, Recursive]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-23. 17:52
 last_modified_at: 2024-08-29. 21:59

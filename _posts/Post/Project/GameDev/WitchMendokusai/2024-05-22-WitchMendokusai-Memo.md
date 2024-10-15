@@ -1,7 +1,9 @@
 ---
-title: "🫐 WitchMendokusai Memo"
+title: "WitchMendokusai Memo"
+# description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
 tags: [Project, Game-Dev, WitchMendokusai]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-05-22. 20:50
 # last_modified_at: 2024-05-29. 14:56

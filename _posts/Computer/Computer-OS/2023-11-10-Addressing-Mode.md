@@ -1,7 +1,9 @@
 ---
-title: "🌑 Addressing Mode"
+title: "Addressing Mode"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Addressing-Mode]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-26. 01:42

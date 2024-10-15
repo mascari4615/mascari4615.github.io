@@ -1,7 +1,9 @@
 ---
-title: "🌚 프로그래밍 언어 - 이름, 바인딩, 영역"
+title: "프로그래밍 언어 - 이름, 바인딩, 영역"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Programming-Language]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-20. 10:32
 # last_modified_at: 2023-11-03. 11:06

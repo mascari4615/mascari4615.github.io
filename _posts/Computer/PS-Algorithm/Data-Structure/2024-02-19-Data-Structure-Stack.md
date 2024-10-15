@@ -1,7 +1,9 @@
 ---
-title: "🌓 Stack 스택"
+title: "Stack 스택"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Stack]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:33
 # last_modified_at: 2024-02-19. 17:59

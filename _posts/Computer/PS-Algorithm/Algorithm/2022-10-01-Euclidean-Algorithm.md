@@ -1,8 +1,10 @@
 ---
-title: "🌓 Euclidean Algorithm - 유클리드 알고리듬/호제법"
+title: "Euclidean Algorithm - 유클리드 알고리듬/호제법"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm]
 use_math: true
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-10-01. 08:42
 # last_modified_at: 2023-10-31. 14:57

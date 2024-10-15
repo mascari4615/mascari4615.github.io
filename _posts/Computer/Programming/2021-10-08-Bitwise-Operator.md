@@ -1,7 +1,9 @@
 ---
-title: "🌒 비트 연산, 시프트 연산"
+title: "비트 연산, 시프트 연산"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Bit, Bitwise-Operator, Bitwise-Operation, Shift-Operator, Shift-Operation]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2021-10-08. 19:35:00
 # last_modified_at: 2021-10-10 #?

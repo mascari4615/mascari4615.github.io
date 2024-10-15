@@ -1,7 +1,9 @@
 ---
-title: "🌓 벨먼-포드 알고리듬"
+title: "벨먼-포드 알고리듬"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Dynamic-Programming, DP, Bellman-Ford]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-12-19. 10:06
 last_modified_at: 2024-08-29. 22:19

@@ -1,7 +1,9 @@
 ---
-title: "🌒 연산 순서에 따른 퍼포먼스 차이"
+title: "연산 순서에 따른 퍼포먼스 차이"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Performance]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-01-02. 12:07
 # last_modified_at: 2023-11-26. 06:53

@@ -1,7 +1,9 @@
 ---
-title: "🌔 VRChat World 로딩 패널"
+title: "VRChat World 로딩 패널"
+# description: ""
 categories: [💫Computer,🌔Game-Engine]
 tags: [Unity, VRChat, USharp]
+image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2023-01-25. 10:27
 last_modified_at: 2024-08-29. 22:30

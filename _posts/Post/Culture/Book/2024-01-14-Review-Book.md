@@ -1,7 +1,9 @@
 ---
-title: "🍋 간단 리뷰 - 책"
+title: "간단 리뷰 - 책"
+# description: ""
 categories: [📀Post, 🍋Culture, 🍋Book]
 tags: [Culture, Book, Review]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-01-14. 05:31
 # last_modified_at: 2024-01-25. 05:35

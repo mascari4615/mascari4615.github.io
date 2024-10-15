@@ -1,7 +1,9 @@
 ---
-title: "🌓 분할정복"
+title: "분할정복"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Divide-Conquer]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 13:37
 # last_modified_at: 2023-12-08. 11:17

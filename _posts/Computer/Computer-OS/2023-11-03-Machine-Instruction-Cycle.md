@@ -1,7 +1,9 @@
 ---
-title: "🌑 Machine Instruction/Cycle - 기계 명령어, 기계 사이클"
+title: "Machine Instruction/Cycle - 기계 명령어, 기계 사이클"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Machine-Instruction, Machine-Cycle]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-03. 14:23
 last_modified_at: 2024-08-29. 22:11

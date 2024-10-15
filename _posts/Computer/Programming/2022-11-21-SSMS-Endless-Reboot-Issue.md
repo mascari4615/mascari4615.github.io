@@ -1,7 +1,9 @@
 ---
-title: "🌒 SSMS 설치 시 계속해서 리부트를 요구하는 문제"
+title: "SSMS 설치 시 계속해서 리부트를 요구하는 문제"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-11-21. 16:35
 # last_modified_at: 2022-11-21. 16:35

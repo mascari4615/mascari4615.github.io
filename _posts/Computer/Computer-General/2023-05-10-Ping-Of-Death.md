@@ -1,6 +1,9 @@
 ---
-title: "🌚 Ping Of Death"
+title: "Ping Of Death"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+tags: []
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-05-10. 09:18
 last_modified_at: 2023-05-10. 09:18

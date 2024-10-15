@@ -1,7 +1,9 @@
 ---
-title: "🌒 Short-Circuit Evaluation"
+title: "Short-Circuit Evaluation"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Short-Circuit]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-09. 22:02
 last_modified_at: 2023-01-09. 22:02

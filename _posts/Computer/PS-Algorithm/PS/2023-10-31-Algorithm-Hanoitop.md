@@ -1,7 +1,9 @@
 ---
-title: "🌓 알고리듬, 하노이탑"
+title: "알고리듬, 하노이탑"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 14:11
 last_modified_at: 2024-08-29. 22:19

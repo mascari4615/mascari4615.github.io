@@ -1,5 +1,5 @@
 ---
-title: "🌚 Spring Boot RestTemplate"
+title: "Spring Boot RestTemplate"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2024-04-11. 20:07

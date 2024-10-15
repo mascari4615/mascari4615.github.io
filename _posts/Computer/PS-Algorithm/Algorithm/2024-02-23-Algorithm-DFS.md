@@ -1,7 +1,9 @@
 ---
-title: "🌓 DFS"
+title: "DFS"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Search, DFS, Depth-First-Search]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-23. 17:42
 last_modified_at: 2024-07-15. 06:52

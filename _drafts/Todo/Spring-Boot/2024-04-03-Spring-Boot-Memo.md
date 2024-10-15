@@ -1,5 +1,5 @@
 ---
-title: "🌚 Spring-Boot-Memo"
+title: "Spring-Boot-Memo"
 categories: [💫Computer, 🌚Computer-General]
 tags: [Spring-Boot, Memo]
 

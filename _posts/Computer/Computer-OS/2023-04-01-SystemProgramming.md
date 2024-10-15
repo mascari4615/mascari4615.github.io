@@ -1,7 +1,9 @@
 ---
-title: "🌑 시스템 프로그래밍"
+title: "시스템 프로그래밍"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, SystemProgramming]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-04-01. 00:00 # ?
 # last_modified_at: 2023-11-17. 09:33

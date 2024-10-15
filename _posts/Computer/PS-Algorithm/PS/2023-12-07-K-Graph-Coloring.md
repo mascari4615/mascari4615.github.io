@@ -1,7 +1,9 @@
 ---
-title: "🌓 K-Graph Coloring"
+title: "K-Graph Coloring"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, K-Grapth-Coloring, Back-Tracking]
+image: "/assets/img/background/kururu-lab.jpg"
 math: true
 
 date: 2023-12-07. 11:02

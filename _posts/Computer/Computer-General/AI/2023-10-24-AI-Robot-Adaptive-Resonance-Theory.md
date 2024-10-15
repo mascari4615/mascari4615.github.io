@@ -1,7 +1,9 @@
 ---
-title: "🌒 Adaptive Resonance Theory - ART1"
+title: "Adaptive Resonance Theory - ART1"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [AI, Adaptive-Resonance-Theory, ART1]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-25. 09:59
 # last_modified_at: 2023-10-31. 13:30

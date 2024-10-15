@@ -1,7 +1,9 @@
 ---
-title: "🌒 React Native 리액트 네이티브 - Hook"
+title: "React Native 리액트 네이티브 - Hook"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Mobile, React-Native]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 15:31
 # last_modified_at: 2023-11-14. 15:14

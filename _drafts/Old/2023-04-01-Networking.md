@@ -1,5 +1,5 @@
 ---
-title: "🌱 네트워크"
+title: "네트워크"
 categories: [🪨Stone, 🌱DayStone]
 
 date: 1999-01-01. 00:00

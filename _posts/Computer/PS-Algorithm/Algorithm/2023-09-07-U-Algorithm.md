@@ -1,7 +1,9 @@
 ---
-title: "🌓 알고리듬 과목"
+title: "알고리듬 과목"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-09-07. 10:29
 # last_modified_at: 2023-09-07. 10:29

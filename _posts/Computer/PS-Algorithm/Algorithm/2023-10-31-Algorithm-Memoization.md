@@ -1,7 +1,9 @@
 ---
-title: "🌓 Memoization - 메모이제이션"
+title: "Memoization - 메모이제이션"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Memoization]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 14:43
 # last_modified_at: 2023-12-19. 02:16

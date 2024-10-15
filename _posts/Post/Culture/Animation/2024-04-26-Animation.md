@@ -1,7 +1,9 @@
 ---
-title: "🍋 Animation"
+title: "Animation"
+# description: ""
 categories: [📀Post, 🍋Culture, 🍋Animation]
 tags: [Culture, Animation]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-04-26. 20:55
 # last_modified_at: 2024-05-01. 07:32

@@ -1,7 +1,9 @@
 ---
-title: "🌒 React Native 리액트 네이티브 - 이것저것 메모"
+title: "React Native 리액트 네이티브 - 이것저것 메모"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Mobile, React-Native]
+image: "/assets/img/background/kururu-lab.jpg"
 
 # 🌘 Mobile Programming Test
 # date: 2023-10-24. 06:23

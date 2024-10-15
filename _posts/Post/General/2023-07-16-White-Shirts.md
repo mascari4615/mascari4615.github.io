@@ -1,7 +1,9 @@
 ---
-title: "🥑 와이 셔츠 = 화이트 셔츠"
+title: "와이 셔츠 = 화이트 셔츠"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [White-Shirts]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-07-16. 19:40
 last_modified_at: 2024-08-29. 22:17

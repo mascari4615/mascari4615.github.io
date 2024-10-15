@@ -1,7 +1,9 @@
 ---
-title: "🍇 블로그 정리 및 앞으로"
+title: "블로그 정리 및 앞으로"
+# description: ""
 categories: [📀Post, 🍇Blog]
 tags: [Blog]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2019-05-28. 19:46:00
 # last_modified_at: 2023-02-03.

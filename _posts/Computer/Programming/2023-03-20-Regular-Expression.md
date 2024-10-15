@@ -1,7 +1,9 @@
 ---
-title: "🌒 Regular-Expression | 정규표현식"
+title: "Regular-Expression | 정규표현식"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Regular-Expression, Regex]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-20. 14:21
 # last_modified_at: 2023-04-03. 14:23

@@ -1,7 +1,9 @@
 ---
-title: "🥑 DesktopCal | 왁굳형 캘린더 달력 프로그램"
+title: "DesktopCal | 왁굳형 캘린더 달력 프로그램"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [DesktopCal, Calendar, Program]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-12-14. 17:17
 # last_modified_at: 2023-08-26. 10:54

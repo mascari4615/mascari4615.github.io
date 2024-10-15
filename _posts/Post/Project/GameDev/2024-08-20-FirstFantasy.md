@@ -1,7 +1,9 @@
 ---
-title: "🫐 FirstFantasy"
+title: "FirstFantasy"
+# description: ""
 categories: [📀Post, 🫐Project, 🫐FirstFantasy]
 tags: [Project, Game-Dev, FirstFantasy]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-08-20. 16:22
 # last_modified_at: 2024-08-20. 16:22

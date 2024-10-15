@@ -1,5 +1,5 @@
 ---
-title: "🌚 Spring Boot"
+title: "Spring Boot"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2024-04-09. 12:38

@@ -1,5 +1,5 @@
 ---
-title: "🌔 Computer Graphics"
+title: "Computer Graphics"
 categories: [💫Computer,🌔Game-Engine]
 tags: [ComputerGraphics, CG]
 

@@ -1,7 +1,9 @@
 ---
-title: "🥑 유튜브 재생목록 랜덤재생 사이트"
+title: "유튜브 재생목록 랜덤재생 사이트"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [Youtube, Playlist]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-12-16. 09:18
 last_modified_at: 2024-08-29. 22:15

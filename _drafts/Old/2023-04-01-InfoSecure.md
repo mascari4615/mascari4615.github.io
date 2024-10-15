@@ -1,5 +1,5 @@
 ---
-title: "🌱 정보보안"
+title: "정보보안"
 categories: [🪨Stone, 🌱DayStone]
 
 date: 1999-01-01. 00:00

@@ -1,7 +1,9 @@
 ---
-title: "🌚 안드로이드 버전 이름"
+title: "안드로이드 버전 이름"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Android, Version]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2019-09-05. 21:25:00
 last_modified_at: 2021-10-05

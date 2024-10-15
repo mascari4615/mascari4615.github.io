@@ -1,5 +1,5 @@
 ---
-title: "🌚 Ini, Registry"
+title: "Ini, Registry"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2023-06-07. 11:50

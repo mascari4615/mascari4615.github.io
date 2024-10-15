@@ -1,7 +1,9 @@
 ---
-title: "🌑 Main-Memory 주기억장치"
+title: "Main-Memory 주기억장치"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Memory, Main-Memory]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-17. 03:58
 # last_modified_at: 2023-11-28. 09:50

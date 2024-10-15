@@ -1,7 +1,9 @@
 ---
-title: "🌒 Web Browser 웹 브라우저"
+title: "Web Browser 웹 브라우저"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Web, Browser]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-05. 07:01
 # last_modified_at: 2023-10-05. 07:01

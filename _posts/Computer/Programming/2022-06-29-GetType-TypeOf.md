@@ -1,7 +1,9 @@
 ---
-title: "🌒 C# GetType() typeof()"
+title: "C# GetType() typeof()"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, CSharp, GetType, typeof]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-06-29. 13:01
 last_modified_at: 2023-10-26. 13:08

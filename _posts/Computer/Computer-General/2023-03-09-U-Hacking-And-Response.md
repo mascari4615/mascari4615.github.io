@@ -1,6 +1,9 @@
 ---
-title: "🌚 해킹과 대응 기술 과목"
+title: "해킹과 대응 기술 과목"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+tags: []
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-09. 15:01
 last_modified_at: 2023-04-11. 15:02

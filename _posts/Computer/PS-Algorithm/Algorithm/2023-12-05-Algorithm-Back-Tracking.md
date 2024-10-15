@@ -1,7 +1,9 @@
 ---
-title: "🌓 Back Tracking"
+title: "Back Tracking"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Back-Tracking]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-12-05. 13:36
 # last_modified_at: 2023-12-07. 10:29

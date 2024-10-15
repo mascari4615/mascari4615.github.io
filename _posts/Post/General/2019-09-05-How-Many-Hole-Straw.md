@@ -1,6 +1,9 @@
 ---
-title: "🥑 빨대는 몇 개의 구멍이 있을까"
+title: "빨대는 몇 개의 구멍이 있을까"
+# description: ""
 categories: [📀Post, 🥑General]
+tags: []
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2019-09-05. 21:11:00
 # last_modified_at: 2021-10-05

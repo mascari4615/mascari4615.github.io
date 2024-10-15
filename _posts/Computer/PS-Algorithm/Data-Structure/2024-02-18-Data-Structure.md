@@ -1,7 +1,9 @@
 ---
-title: "🌓 Data Structure"
+title: "Data Structure"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-18. 11:34
 # last_modified_at: 2024-02-19. 17:52

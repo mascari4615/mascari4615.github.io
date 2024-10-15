@@ -1,7 +1,9 @@
 ---
-title: "🌒 상수 이름에 접두사 k, 헝가리안 표기법"
+title: "상수 이름에 접두사 k, 헝가리안 표기법"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Constant, Hungarian-Notation]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-06. 23:46
 last_modified_at: 2023-11-08. 13:46

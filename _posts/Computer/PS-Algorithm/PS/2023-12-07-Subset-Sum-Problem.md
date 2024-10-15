@@ -1,7 +1,9 @@
 ---
-title: "🌓 Subset Sum Problem"
+title: "Subset Sum Problem"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Subset-Sum-Problem, Sum-Of-Subsets-Problem, Back-Tracking]
+image: "/assets/img/background/kururu-lab.jpg"
 math: true
 
 date: 2023-12-07. 11:38

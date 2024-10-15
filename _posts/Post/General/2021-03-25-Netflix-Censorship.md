@@ -1,7 +1,9 @@
 ---
-title: "🥑 넷플릭스, 애니메이션 검열"
+title: "넷플릭스, 애니메이션 검열"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [Netflix, Animation, Censorship]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-03-25. 09:13:00
 # last_modified_at: 2021-10-05

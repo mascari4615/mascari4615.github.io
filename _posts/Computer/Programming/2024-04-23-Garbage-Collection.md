@@ -1,7 +1,9 @@
 ---
-title: "🌒 Garbage-Collection"
+title: "Garbage-Collection"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, GC, Garbage-Collection]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-23. 05:21
 last_modified_at: 2024-08-29. 21:56

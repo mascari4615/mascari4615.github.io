@@ -1,7 +1,9 @@
 ---
-title: "🌓 수식의 괄호 쌍"
+title: "수식의 괄호 쌍"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Stack]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-22. 00:04
 # last_modified_at: 2024-02-22. 22:41

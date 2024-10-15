@@ -1,7 +1,9 @@
 ---
-title: "🥑 UpperCase, LowerCase 어원"
+title: "UpperCase, LowerCase 어원"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [UpperCase, LowerCase]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-08-16. 06:42
 last_modified_at: 2024-08-29. 22:17

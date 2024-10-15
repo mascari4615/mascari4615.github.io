@@ -1,7 +1,9 @@
 ---
-title: "🌚 프로그래밍 언어 - 구문론과 의미론"
+title: "프로그래밍 언어 - 구문론과 의미론"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Programming-Language]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-26. 13:32
 # last_modified_at: 2023-10-27. 09:17

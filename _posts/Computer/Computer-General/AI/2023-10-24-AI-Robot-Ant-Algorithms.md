@@ -1,7 +1,9 @@
 ---
-title: "🌒 Ant Algorithms - 개미 알고리듬"
+title: "Ant Algorithms - 개미 알고리듬"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [AI, Ant-Algorithms]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-25. 10:01
 # last_modified_at: 2023-10-31. 13:30

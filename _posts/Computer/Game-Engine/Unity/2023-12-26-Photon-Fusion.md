@@ -1,7 +1,9 @@
 ---
-title: "🌔 Photon Fusion 2"
+title: "Photon Fusion 2"
+# description: ""
 categories: [💫Computer,🌔Game-Engine]
 tags: [Unity]
+image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2023-12-26. 18:05
 # last_modified_at: 2024-01-02. 06:31

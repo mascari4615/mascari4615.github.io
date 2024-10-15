@@ -1,7 +1,9 @@
 ---
-title: "🌒 인라이닝 Inlining, 인라인 함수 Inline Function"
+title: "인라이닝 Inlining, 인라인 함수 Inline Function"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, CPP, Inlining, Inline]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-10-01. 10:54
 # last_modified_at: 2024-02-21. 18:30

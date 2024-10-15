@@ -1,7 +1,9 @@
 ---
-title: "🌒 C# Thread/Task"
+title: "C# Thread/Task"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, CSharp, Thread, Task, Lock]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-01-25. 05:42
 # last_modified_at: 2024-04-27. 09:24

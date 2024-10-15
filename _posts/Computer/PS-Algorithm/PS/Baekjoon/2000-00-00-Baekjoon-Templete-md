@@ -1,7 +1,9 @@
 ---
-title: "🌓 Baekjoon 번호 - 제목"
+title: "Baekjoon 번호 - 제목"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [PS, Baekjoon]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-00-00. 00:00
 # last_modified_at: 2024-00-00. 00:00

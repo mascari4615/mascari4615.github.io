@@ -1,7 +1,9 @@
 ---
-title: "🥥 게임기획, 재미"
+title: "게임기획, 재미"
+# description: ""
 categories: [📀Post, 🥥NewWorld]
 tags: [NewWorld, Game, Game-Design]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2024-01-14. 18:22
 last_modified_at: 2024-05-22. 23:00

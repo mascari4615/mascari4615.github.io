@@ -1,7 +1,9 @@
 ---
-title: "🫐 WitchMendokusai Concept"
+title: "WitchMendokusai Concept"
+# description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
 tags: [Project, Game-Dev, WitchMendokusai]
+image: "/assets/img/background/20230112_151539.jpg"
 
 # 🍐 슬라임
 # date: 2023-03-14. 12:55

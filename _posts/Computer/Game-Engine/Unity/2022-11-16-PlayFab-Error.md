@@ -1,7 +1,9 @@
 ---
-title: "🌔 Unity PlayFab 에러"
+title: "Unity PlayFab 에러"
+# description: ""
 categories: [💫Computer,🌔Game-Engine]
 tags: [Unity, Playfab]
+image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2022-11-16. 11:38
 last_modified_at: 2024-08-29. 22:29

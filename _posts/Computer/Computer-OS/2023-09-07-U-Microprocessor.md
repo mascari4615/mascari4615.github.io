@@ -1,7 +1,9 @@
 ---
-title: "🌑 마이크로프로세서 과목"
+title: "마이크로프로세서 과목"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Microprocessor]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-09-08. 12:51
 # last_modified_at: 2023-09-15. 12:53

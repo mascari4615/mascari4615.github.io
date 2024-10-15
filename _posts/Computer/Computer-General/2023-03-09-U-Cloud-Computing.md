@@ -1,6 +1,9 @@
 ---
-title: "🌚 클라우드 컴퓨팅 과목"
+title: "클라우드 컴퓨팅 과목"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+tags: []
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-09. 14:55
 last_modified_at: 2023-05-04. 10:55

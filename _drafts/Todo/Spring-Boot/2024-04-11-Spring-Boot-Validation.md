@@ -1,5 +1,5 @@
 ---
-title: "🌚 Spring Boot Validation"
+title: "Spring Boot Validation"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2024-04-11. 18:16

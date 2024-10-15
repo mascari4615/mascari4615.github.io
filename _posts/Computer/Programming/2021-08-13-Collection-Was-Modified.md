@@ -1,7 +1,9 @@
 ---
-title: "🌒 C# 'InvalidOperationException: Collection was modified; enumeration operation may not execute.'"
+title: "C# 'InvalidOperationException: Collection was modified; enumeration operation may not execute.'"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, CSharp]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2021-08-13. 22:45:00
 last_modified_at: 2021-10-07

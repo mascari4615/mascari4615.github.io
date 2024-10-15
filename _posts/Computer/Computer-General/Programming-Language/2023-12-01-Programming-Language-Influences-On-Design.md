@@ -1,7 +1,9 @@
 ---
-title: "🌚 프로그래밍 언어 - 언어 설계에 영향을 주는 요소들"
+title: "프로그래밍 언어 - 언어 설계에 영향을 주는 요소들"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Programming-Language]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-12-01. 12:39
 last_modified_at: 2023-12-08. 10:05

@@ -1,6 +1,9 @@
 ---
-title: "🌚 SW 공학 과목"
+title: "SW 공학 과목"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+tags: []
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-09. 14:59
 # last_modified_at: 2023-05-08. 16:07

@@ -1,7 +1,9 @@
 ---
-title: "🌑 Windows 시작메뉴 Bing 검색 비활성화"
+title: "Windows 시작메뉴 Bing 검색 비활성화"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Computer]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-10-07. 21:17
 last_modified_at: 2024-10-07. 21:30

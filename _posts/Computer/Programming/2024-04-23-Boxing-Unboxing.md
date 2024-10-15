@@ -1,7 +1,9 @@
 ---
-title: "🌒 Boxing, Unboxing"
+title: "Boxing, Unboxing"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Boxing, Unboxing]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-23. 05:25
 # last_modified_at: 2024-04-27. 20:02

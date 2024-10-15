@@ -1,5 +1,5 @@
 ---
-title: "🌚 보안 시스템"
+title: "보안 시스템"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2023-06-05. 11:15

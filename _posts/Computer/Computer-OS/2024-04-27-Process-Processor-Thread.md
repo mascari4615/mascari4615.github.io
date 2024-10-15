@@ -1,7 +1,9 @@
 ---
-title: "🌑 Process, Processor, Thread"
+title: "Process, Processor, Thread"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Process, Processor, Thread]
+image: "/assets/img/background/kururu-lab.jpg"
 
 # 🌑 Process, Processor
 # date: 2023-11-10. 09:21
@@ -10,11 +12,12 @@ tags: [Computer, OS, Process, Processor, Thread]
 # last_modified_at: 2023-11-28. 09:59
 # last_modified_at: 2024-04-27. 20:15
 
-# 0406
 date: 2024-04-27. 20:19
 # last_modified_at: 2024-04-27. 20:19
 # last_modified_at: 2024-08-29. 21:47
 last_modified_at: 2024-08-30. 00:06
+
+# 0406
 ---
 
 2024-04-27. 20:19 : 글 계승.  

@@ -1,7 +1,9 @@
 ---
-title: "🥑 마우스 혼자 자동으로 스크롤 될 때"
+title: "마우스 혼자 자동으로 스크롤 될 때"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [Mouse, Scroll]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-12-14. 17:07
 last_modified_at: 2024-08-29. 22:15

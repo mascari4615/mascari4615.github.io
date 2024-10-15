@@ -1,5 +1,5 @@
 ---
-title: "🌚 Logback"
+title: "Logback"
 categories: [💫Computer, 🌚Computer-General]
 
 date: 2024-04-11. 17:38

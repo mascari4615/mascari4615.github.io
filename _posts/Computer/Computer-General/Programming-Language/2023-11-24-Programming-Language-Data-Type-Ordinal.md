@@ -1,7 +1,9 @@
 ---
-title: "🌚 프로그래밍 언어 - Ordinal Data Type"
+title: "프로그래밍 언어 - Ordinal Data Type"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
 tags: [Programming-Language]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-24. 09:20
 last_modified_at: 2023-12-01. 10:20

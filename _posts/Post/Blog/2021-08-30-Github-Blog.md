@@ -1,7 +1,9 @@
 ---
-title: "🍇 블로그를 새로 만들었습니다."
+title: "블로그를 새로 만들었습니다."
+# description: ""
 categories: [📀Post, 🍇Blog]
 tags: [Blog]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-08-30
 # last_modified_at: 2021-10-05

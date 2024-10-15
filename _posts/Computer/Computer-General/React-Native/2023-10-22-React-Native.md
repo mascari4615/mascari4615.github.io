@@ -1,7 +1,9 @@
 ---
-title: "🌒 React Native 리액트 네이티브"
+title: "React Native 리액트 네이티브"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Mobile, React-Native]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-22. 15:39
 # last_modified_at: 2023-09-06. 13:21

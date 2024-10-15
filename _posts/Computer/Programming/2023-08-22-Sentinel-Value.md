@@ -1,7 +1,9 @@
 ---
-title: "🌒 Sentinel Value"
+title: "Sentinel Value"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, SentinelValue]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-08-22. 16:26
 last_modified_at: 2023-08-22. 16:26

@@ -1,7 +1,9 @@
 ---
-title: "🌒 Programming Paradigm 프로그래밍 패러다임"
+title: "Programming Paradigm 프로그래밍 패러다임"
+# description: ""
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Paradigm, Procedural, OOP, Functional]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-09-27. 03:31
 # last_modified_at: 2024-02-21. 18:37

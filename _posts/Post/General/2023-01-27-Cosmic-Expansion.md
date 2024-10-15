@@ -1,7 +1,9 @@
 ---
-title: "🥑 Cosmic Expansion"
+title: "Cosmic Expansion"
+# description: ""
 categories: [📀Post, 🥑General]
 tags: [Cosmic-Expansion]
+image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-01-27. 10:46
 last_modified_at: 2024-08-29. 22:16

@@ -1,7 +1,9 @@
 ---
-title: "🌓 Graph, Tree | 그래프, 트리"
+title: "Graph, Tree | 그래프, 트리"
+# description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Graph]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-07-14. 23:37
 # last_modified_at: 2024-07-15. 06:12

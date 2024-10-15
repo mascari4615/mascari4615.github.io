@@ -1,7 +1,9 @@
 ---
-title: "🌑 Interrupt"
+title: "Interrupt"
+# description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Interrupt, Polling]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-10. 09:21
 # last_modified_at: 2023-11-15. 16:060
