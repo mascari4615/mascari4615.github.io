@@ -14,7 +14,7 @@ last_modified_at: 2024-08-29. 22:15
 [참고 링크](https://jackfink.blogspot.com/2019/07/window-10.html)
 {: .text-center}
 
-![장치 관리자 스크린샷](/assets/img/2021/211214_0001.png)
+![장치 관리자 스크린샷](/assets/img/post/2021/211214_0001.png)
 
 1. Window 검색 창에서 `'장치 관리자'` 검색
 2. `'마우스 및 기타 포인팅 장치'` 에서 지금 사용하는 마우스가 아닌 마우스 찾기

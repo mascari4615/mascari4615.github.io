@@ -38,23 +38,23 @@ last_modified_at: 2024-08-29. 22:21
 [기존 앱에 App Bundle 적용하기](https://eso0609.tistory.com/)  
 흠.. 완벽히 이해하지는 못했지만, 아무튼 저런거랍니다.  
 
-![KakaoTalk_20190802_172723076](/assets/img/2019/190802_0000.png)
-![KakaoTalk_20190802_172723413](/assets/img/2019/190802_0001.png)
-![KakaoTalk_20190802_172723962](/assets/img/2019/190802_0002.png)
+![KakaoTalk_20190802_172723076](/assets/img/post/2019/190802_0000.png)
+![KakaoTalk_20190802_172723413](/assets/img/post/2019/190802_0001.png)
+![KakaoTalk_20190802_172723962](/assets/img/post/2019/190802_0002.png)
 
 유튜브에서 하라는 대로, 힘들게 따라했습니다.(안드로이드 NDK에서 해맴)  
 
 결국 등록심사 신청에 성공했고, 앱 출시로 이어졌습니다!  
 
-![SE-44778eed-8525-416e-9700-eccff336d00b](/assets/img/2019/190802_0003.png)
-![KakaoTalk_20190802_172724628](/assets/img/2019/190802_0004.png)
-![KakaoTalk_20190802_172722136](/assets/img/2019/190802_0005.png)
+![SE-44778eed-8525-416e-9700-eccff336d00b](/assets/img/post/2019/190802_0003.png)
+![KakaoTalk_20190802_172724628](/assets/img/post/2019/190802_0004.png)
+![KakaoTalk_20190802_172722136](/assets/img/post/2019/190802_0005.png)
 
 덕분에 친구들의 영혼가득 리뷰들을 잔뜩 받았습니다..  
 
-![SE-f3e358b0-1abc-4cd8-af42-7c669763fce9](/assets/img/2019/190802_0006.png)
-![SE-3826f3aa-8155-42e6-bdeb-40821dd936cd](/assets/img/2019/190802_0007.png)
-![KakaoTalk_20190802_172721635](/assets/img/2019/190802_0008.png)
+![SE-f3e358b0-1abc-4cd8-af42-7c669763fce9](/assets/img/post/2019/190802_0006.png)
+![SE-3826f3aa-8155-42e6-bdeb-40821dd936cd](/assets/img/post/2019/190802_0007.png)
+![KakaoTalk_20190802_172721635](/assets/img/post/2019/190802_0008.png)
 
 ... 만 얼마지나지않아 이용약관을 넣지않았다고 삭제됬습니다. ㅜㅜㅜㅜ  
 
@@ -85,9 +85,9 @@ AvoidingDD.Apk는 앱 출시를 시도했던 버전
 아이디어  
 
 학교에서 나름 틈틈히 기획했던 것들  
-![SE-586de145-4ea7-453e-91af-488725559048](/assets/img/2019/190802_0009.jpg)
-![KakaoTalk_20190802_180345284](/assets/img/2019/190802_0010.jpg)
-![KakaoTalk_20190802_180346814](/assets/img/2019/190802_0011.jpg)
+![SE-586de145-4ea7-453e-91af-488725559048](/assets/img/post/2019/190802_0009.jpg)
+![KakaoTalk_20190802_180345284](/assets/img/post/2019/190802_0010.jpg)
+![KakaoTalk_20190802_180346814](/assets/img/post/2019/190802_0011.jpg)
 
 시커먼 노트에 연한 샤프로 끄적끄적한 것을, 화질 안좋은 카메라로 찍으면 나오는 사진.  
 그닥 영양가있는 기획은 아니라 그냥 글로 적겠습니다.  
@@ -116,9 +116,8 @@ AvoidingDD.Apk는 앱 출시를 시도했던 버전
 
 ---
 
-![0017](/assets/img/2019/190802_0012.png)  
-![0017](/assets/img/2019/190802_0013.png)  
-![0017](/assets/img/2019/190802_0014.png)  
-![0017](/assets/img/2019/190802_0015.png)  
-![0017](/assets/img/2019/190802_0016.png)  
-
+![0017](/assets/img/post/2019/190802_0012.png)  
+![0017](/assets/img/post/2019/190802_0013.png)  
+![0017](/assets/img/post/2019/190802_0014.png)  
+![0017](/assets/img/post/2019/190802_0015.png)  
+![0017](/assets/img/post/2019/190802_0016.png)  

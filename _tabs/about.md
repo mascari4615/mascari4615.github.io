@@ -8,7 +8,7 @@ order: 100
 
 ---
 
-![Logo](/assets/img/common/Star_Transparent.png){: width="100" height="100" .normal}
+![Logo](/assets/img/profile/Star_Transparent.png){: width="100" height="100" .normal}
 
 안녕하세요, **김도윤 Kim Doyoon** 입니다.  
 

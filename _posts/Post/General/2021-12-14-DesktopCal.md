@@ -8,7 +8,7 @@ date: 2021-12-14. 17:17
 last_modified_at: 2024-04-09. 00:14
 ---
 
-![바탕화면 달력 스크린샷 내꺼](/assets/img/2021/211214_0000.jpg)
+![바탕화면 달력 스크린샷 내꺼](/assets/img/post/2021/211214_0000.jpg)
 
 {% include embed/youtube.html id = "S74j0vnvIL8" %}
 

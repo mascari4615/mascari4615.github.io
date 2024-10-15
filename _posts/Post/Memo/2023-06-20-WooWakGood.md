@@ -225,5 +225,5 @@ last_modified_at: 2024-08-30. 01:19
 - Keep Talking and Nobody Explodes
 - 티어카드 올라가는 게임
 
-![티어게임(관)](/assets/img/wwg/TierGame.png)  
-![CG 따라 만들기](/assets/img/wwg/CG.png)  
+![티어게임(관)](/assets/img/post/project/TierGame.png)  
+![CG 따라 만들기](/assets/img/post/project/CG.png)  

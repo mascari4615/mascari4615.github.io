@@ -101,4 +101,4 @@ if (asset.name.Equals(goodName) == false)
 
 [참고 : MissingReferenceException: The variable m_AtlasTextures of TMP_FontAsset doesn't exist anymore.](https://forum.unity.com/threads/missingreferenceexception-the-variable-m_atlastextures-of-tmp_fontasset-doesnt-exist-anymore.1048091/)  
 
-![To Be Continued..](/assets/img/common/ToBeContinued.png)  
+![To Be Continued..](/assets/img/post/embed/ToBeContinued.png)  

@@ -14,8 +14,8 @@ last_modified_at: 2024-08-29. 21:48
 
 ---
 
-![커밋](/assets/img/2024/240328_00.png)  
-![너무 많은 일이 잇엇어](/assets/img/common/Tired.jpg)  
+![커밋](/assets/img/post/2024/240328_00.png)  
+![너무 많은 일이 잇엇어](/assets/img/post/embed/Tired.jpg)  
 
 저번 일지와 마찬가지로,  
 이번 일지에서도 마을 의뢰를 만들기 위해 구현한 기능들을 기록해본다.  
@@ -432,4 +432,4 @@ public interface ISavable<T>
 
 이런 문제들을 해결하기 위해, UI ToolKit을 이용한 에셋 관리 툴을 만들어볼 것이다.  
 
-![To Be Continued..](/assets/img/common/ToBeContinued.png)  
+![To Be Continued..](/assets/img/post/embed/ToBeContinued.png)  

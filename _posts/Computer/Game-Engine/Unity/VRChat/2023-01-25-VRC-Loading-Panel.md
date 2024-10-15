@@ -17,10 +17,10 @@ last_modified_at: 2024-08-29. 22:30
 
 ---
 
-![루석바](/assets/img/2023/230125_0002.gif)
+![루석바](/assets/img/post/2023/230125_0002.gif)
 > 루석바 (23-01-25 기준)
 
-![화본역](/assets/img/2023/230125_0003.gif)
+![화본역](/assets/img/post/2023/230125_0003.gif)
 > 화본역 (23-01-25 기준)
 
 위 두 월드처럼,  
@@ -49,23 +49,23 @@ Overlay Canvas는 VR에서는 보이지 않기 때문에,
 
 로딩하는 동안 보여지게 될 Canvas를 만들어줍니다.  
 
-![캔버스 생성 1](/assets/img/2023/230125_0004.png)
+![캔버스 생성 1](/assets/img/post/2023/230125_0004.png)
 
 Hierarchy 창 좌측 상단의 + 버튼을 클릭,  
 혹은 빈 공간을 우클릭하고,  
 
-![캔버스 생성 2](/assets/img/2023/230125_0005.png)
+![캔버스 생성 2](/assets/img/post/2023/230125_0005.png)
 
 이후 열리는 창에서 UI/Canvas를 선택해,  
 새로운 Canvas 오브젝트를 만들어줍니다.  
 
-![캔버스 스케일러 1](/assets/img/2023/230125_0006.png)
+![캔버스 스케일러 1](/assets/img/post/2023/230125_0006.png)
 
 Hierarchy 창에서 새로 만들어진 Canvas 오브젝트를 선택하고,  
 Inspector 창에서 Canvas Scaler 컴포넌트를 찾아,  
 UI Scale Mode를 Scale With Screen Size로 변경해줍니다.  
 
-![캔버스 스케일러 2](/assets/img/2023/230125_0007.png)
+![캔버스 스케일러 2](/assets/img/post/2023/230125_0007.png)
 
 이후 컴포넌트에 새로 보이게 되는 Reference Resolution을,  
 본인이 로딩 패널을 작업할 해상도로 설정해줍니다.  
@@ -86,12 +86,12 @@ Reference Resolution에 대해 가로 기준으로 적절하게 비율을 재설
 
 로딩하는 동안 보여지게될 패널을 만들고 꾸며줍니다.  
 
-![패널 1](/assets/img/2023/230125_0008.png)
+![패널 1](/assets/img/post/2023/230125_0008.png)
 
 Canvas를 우클릭하고 나오는 창에서,  
 UI/Panel을 선택해 새로운 Panel 오브젝트를 만들어줍니다.  
 
-![패널 2](/assets/img/2023/230125_0009.png)
+![패널 2](/assets/img/post/2023/230125_0009.png)
 
 키보드 숫자 2, 혹은 Scene 창 좌측 상단에 위치한 2D 버튼을 눌러,  
 2D 모드로 전환합니다.  
@@ -99,9 +99,9 @@ UI/Panel을 선택해 새로운 Panel 오브젝트를 만들어줍니다.
 이후, 만들어뒀던 Panel 오브젝트를 클릭하여 선택하고,  
 키보드 F를 눌러 화면 중앙에 Panel 오브젝트가 포커스되도록 합니다.  
 
-![패널 3](/assets/img/2023/230125_0010.png)
+![패널 3](/assets/img/post/2023/230125_0010.png)
 
-![패널 4](/assets/img/2023/230125_0011.png)
+![패널 4](/assets/img/post/2023/230125_0011.png)
 
 Game 창 좌측 상단에 위치한 해상도와,  
 우리가 앞에서 설정한 Canvas Scaler의 Reference Resolution 해상도가 일치하는지 확인합니다.  
@@ -109,7 +109,7 @@ Game 창 좌측 상단에 위치한 해상도와,
 만약 불일치 하다면,  
 위 사진들을 참고하여 Reference Resolution과 같은 해상도를 만들어 적용시켜줍니다.  
 
-![패널 5](/assets/img/2023/230125_0012.png)
+![패널 5](/assets/img/post/2023/230125_0012.png)
 
 다시 Panel 오브젝트를 클릭하여 선택하고,  
 Inspector 창에서 Image 컴포넌트를 찾아,  
@@ -124,7 +124,7 @@ Canvas Scaler를 사용하여 비율을 조절해준다고 언급했었는데,
 이때 비율을 조정되면서, 화면 가장자리에 투명한 빈 공간이 생길 수 있기 때문에,  
 이곳을 매꾸기 위한 배경을 만들어주는 것입니다.  
 
-![패널 6](/assets/img/2023/230125_0013.png)
+![패널 6](/assets/img/post/2023/230125_0013.png)
 
 이후, 유니티 UI를 이용하여 로딩 패널을 원하는대로 꾸며줍니다.  
 
@@ -133,26 +133,26 @@ Canvas Scaler를 사용하여 비율을 조절해준다고 언급했었는데,
 맵이 모두 로딩되면, 로딩 패널이 보이지 않아야 할 것입니다.  
 때문에 맵이 로딩된 이후, 로딩 패널 오브젝트를 비활성화시켜주는 기능이 필요합니다.  
 
-![우동 0](/assets/img/2023/230125_0014.png)
+![우동 0](/assets/img/post/2023/230125_0014.png)
 
 Canvas 오브젝트를 선택하고,  
 Inspector 창을 밑으로 내려 Add Component 버튼을 눌러줍니다.  
 
 이후 뜨는 검색창에 `Udon` 을 입력해 `Udon Behaviour` 컴포넌트를 찾고 추가해줍니다.  
 
-![우동 1](/assets/img/2023/230125_0015.png)
+![우동 1](/assets/img/post/2023/230125_0015.png)
 
 Udon Behaviour에서 New Program 버튼 밑에 있는 선택지가  
 `Udon Graph Program Asset` 임을 한 번 확인해주고,  
 
 New Program 버튼을 눌러 새로운 우동 그래프 파일을 만들어줍니다.  
 
-![우동 2](/assets/img/2023/230125_0016.png)
+![우동 2](/assets/img/post/2023/230125_0016.png)
 
 정상적으로 파일이 만들어졌다면,  
 Open Udon Graph 버튼을 눌러, Udon Graph 창을 열어줍니다.  
 
-![우동 3](/assets/img/2023/230125_0017.png)
+![우동 3](/assets/img/post/2023/230125_0017.png)
 
 위와 같이 우동을 만들어줍니다.  
 혹은 아래 텍스트를 복사하여, Udon Graph 창에 붙여넣기 하셔도 됩니다.  
@@ -182,4 +182,4 @@ SetActive 노드로 그렇게 가져온 게임 오브젝트를 비활성화 시�
 Canvas 오브젝트를 반드시 `활성화` 시킨채로 맵을 업로드하고,  
 맵에 접속하여 로딩 패널이 제대로 작동하는지 확인합니다.  
 
-![테스트](/assets/img/2023/230125_0018.gif)
+![테스트](/assets/img/post/2023/230125_0018.gif)

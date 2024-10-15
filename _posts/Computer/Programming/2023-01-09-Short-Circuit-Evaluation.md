@@ -17,7 +17,7 @@ last_modified_at: 2023-01-09. 22:02
 
 대부분의 프로그래밍 언어에서는, 불 연산에 Short-Circuit Evaluation 이 적용된다.  
 
-![그림](/assets/img/2023/230109_0000.jpg)
+![그림](/assets/img/post/2023/230109_0000.jpg)
 
 위 그림처럼,  
 순서대로 연산하는 도중 이미 결과가 결정되는 경우,  
