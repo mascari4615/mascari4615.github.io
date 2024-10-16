@@ -19,10 +19,11 @@ date: 2023-06-20. 10:05
 # last_modified_at: 2024-07-22. 08:30
 # last_modified_at: 2024-08-28. 16:57
 # last_modified_at: 2024-08-29. 11:30
-last_modified_at: 2024-08-30. 01:19
+# last_modified_at: 2024-08-30. 01:19
+last_modified_at: 2024-10-16. 07:39 # 정리
 ---
 
-## 📀 _
+## 📀 말머리
 
 ---
 
@@ -226,6 +227,7 @@ last_modified_at: 2024-08-30. 01:19
 - 딕싯
 - Keep Talking and Nobody Explodes
 - 티어카드 올라가는 게임
+- [닉네임 왜 바꾸셨어요](https://vod.afreecatv.com/player/132082677)
 
 ![티어게임(관)](/assets/img/post/project/TierGame.png)  
 ![CG 따라 만들기](/assets/img/post/project/CG.png)  

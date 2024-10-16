@@ -9,7 +9,8 @@ date: 2024-04-30. 05:10
 # last_modified_at: 2024-07-24. 23:57
 # last_modified_at: 2024-09-03. 08:54
 # last_modified_at: 2024-10-11. 08:22
-last_modified_at: 2024-10-14. 00:30
+# last_modified_at: 2024-10-14. 00:30
+last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
 ---
 
 ## 📀 생각
@@ -119,3 +120,21 @@ last_modified_at: 2024-10-14. 00:30
 
 - 1차 타워 : Tier1
 - 대포 미니언 : Cannon, Siege
+
+## 📀 롤파크 레퍼런스
+
+---
+
+- <https://youtu.be/sA2zSql-GqY?si=Y7QV4UnxJwmaW-iX>
+- <https://youtu.be/uEl1MEQ5xoY?si=P2rmevMMh3I5tIWe>
+- <https://youtu.be/zQujWbIknGI?si=pVzsFDwdhi27c5Qf>
+- <https://youtu.be/6sBcGCZjIpw?si=dpEfve73wUF2o2Cv>
+- <https://youtu.be/71XvjqisOdA?si=y6theQkAMX11v_rQ>
+- <https://youtu.be/l-HwdHpgepk?si=UU1CncNSVK6EiU_c>
+- <https://youtu.be/A9Fb6Mku2MI?si=s1bqG7B4nSXYWCJn>
+- <https://youtu.be/TMID4UNT_es?si=tdtD1pKVK-OpLxSC>
+- <https://youtu.be/qWZpARHPuMM?si=JrK0MvkUQANTqnEg>
+- <https://youtu.be/-eQe9fTqJM8?si=Iqvq8v0akukdB5Cn>
+- <https://youtu.be/YosGB-KygCM?si=fttGyHm70OFYFHiL>
+- <https://youtu.be/fgdcJ4qfTn8?si=zzs1Juybi0tC3ONW>
+- <https://youtu.be/ftWkI3NHZLU?si=DN0RrMAKcpgpRyKU>
