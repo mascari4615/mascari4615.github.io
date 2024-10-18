@@ -4,7 +4,7 @@ icon: fas fa-quote-left
 order: 100
 ---
 
-# 삶을 섞고 술을 바꿀 시간.
+# 삶을 섞고 술을 바꿀 시간
 
 ---
 
@@ -12,7 +12,7 @@ order: 100
 
 안녕하세요, **김도윤 Kim Doyoon** 입니다.  
 
-인터넷에서는 **Mascari4615** 라는 닉네임으로 활동하고 있습니다.  
+인터넷에서는 **카모뜨린**, **Mascari4615** 라는 닉네임으로 활동하고 있습니다.  
 Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으로한 VRChat 월드 컨텐츠' 를 만들고 있습니다.  
 
 2021년 - 좋아하는 게임 스트리머를 위한 팬 게임을 만든 것을 시작으로, 본격적인 게임 개발 활동을 시작하였습니다.  
@@ -24,10 +24,7 @@ Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으
 어릴 때부터 창작해온 판타지 세계관의 구체화/구현, 게임 개발 스킬 향상을 목표로 제작하고 있습니다.  
 Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai)로 공개하고 있습니다. (개인 제작 리소스 \| 재배포 가능한 오픈소스를 사용하고 있습니다.)  
 
-또한 패러블 엔터테인먼트 소속 VRChat 월드 프로그래머로서, [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld) 제작 팀에 참여하고 있습니다.  
-'VWorld - 버츄얼 종합 대회'는 SOOP (前 AfreecaTV) 소속 버츄얼 스트리머를 대상으로 하는 정기 대회 컨텐츠입니다.  
-
-> 그 외에도 어떤 프로젝트에 참여했나요? - [참여 프로젝트 리스트](/projects)
+> 어떤 프로젝트에 참여했나요? - [참여 프로젝트 리스트](/projects)
 
 ## 경험
 
@@ -36,7 +33,7 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
 ### 주요 경력 및 프로젝트
 
 - [패러블 엔터테인먼트](https://parable-asia.com/) (프로젝트 개별 임시직/계약, 총 1년 9개월 ~) - VRChat 월드 프로그래밍
-  - 2024.05 - 진행 중 (3개월) \| [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld)
+  - 2024.05 - 2024.08 (4개월) \| [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld)
     - SOOP (前 AfreecaTV) 버츄얼 스트리머 대상 종합 대회 컨텐츠 제작
   - 2023.01 - 2023.06 (6개월) \| [Journey of Emotions 프로모션](https://youtu.be/VQxPKTFb0es)
     - SM 엔터테이먼트 산하 레이블 - ScreaM 신규 앨범 프로모션
@@ -44,7 +41,7 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
     - 카카오 엔터테이먼트 주관 버츄얼 아이돌 프로젝트
 
 - [MUdons](https://github.com/Mascari4615/MUdons)
-  - VRChat 월드 제작에 있어, 자주 사용되는 프리팹과 기능들을 모아둔 개인 라이브러리 (Unity Custom Package)
+  - VRChat 월드 제작에 있어, 자주 사용되는 프리팹과 기능들을 모아둔 라이브러리 (Unity Custom Package)
 
 - [마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai)
   - HD-2D 마을 경영 x 로그라이크
@@ -70,6 +67,7 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
   - 이메일 (Email) : `Mascari4615@gmail.com`
   - Discord : `Mascari4615` (`391805564616704002`)
   - X (Twitter) : [`@Mascari4615`](https://x.com/Mascari4615)
+  - Bluesky : [`@mascari4615.bsky.social`](https://bsky.app/profile/mascari4615.bsky.social)
   - Instagram : [`mascari4615_`](https://www.instagram.com/mascari4615_/)
 
 - Main
@@ -86,4 +84,4 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
 
 ---
 
-- 과거 `Dan3478`, `도순`, `Ttmdacl`, `카모뜨린` (`까모뜨린`) 닉네임으로 활동했습니다.
+- 과거 `Dan3478`, `도순`, `Ttmdacl`, `까모뜨린` 닉네임으로 활동했습니다.

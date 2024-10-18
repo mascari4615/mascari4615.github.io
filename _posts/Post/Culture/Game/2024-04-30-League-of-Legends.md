@@ -10,7 +10,8 @@ date: 2024-04-30. 05:10
 # last_modified_at: 2024-09-03. 08:54
 # last_modified_at: 2024-10-11. 08:22
 # last_modified_at: 2024-10-14. 00:30
-last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
+# last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
+last_modified_at: 2024-10-17. 23:24 # 롤 메모, ChallengesAreEvil
 ---
 
 ## 📀 생각
@@ -65,12 +66,28 @@ last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
   - vs 이렐리아 : 좋다
     - 맞딜하면 웬만하면 이긴다
     - 확실하게 점화들고 몰왕 전 라인전 단계부터 압박하는 게 좋은 듯
-  - 첫 템
-    - 도란 검 : 평Q평 각 나오면
-    - 도란 반지 : 패시브나 E로 딜 넣어야 하면
+  - vs 아트록스 : 반반?
+    - 집공 점화 도란 반지로 3렙 4렙 킬각보기
+  - vs 그웬 : 반반?
+    - 점화, W선마가 좋을 것 같음
+      - 오래 싸우고, 치감 있어야 함
+    - Q 무빙 생각
+    - 균열 생성기?
+  - vs 말파이트 : 안진다
+    - Q 이속 뺏기는 것 때문에 잡기 힘듦
+    - 말파이트가 Q 3개정도 찍으면 조금 힘들긴 해서
+    - 말파이트가 초반에 마나 부족할 때 확실하게 주도권 잡기
+    - 몰왕 괜찮을 것 같기도 하고
+      - 흡낫으로 라인 지우면서 Q짤 커버하고
+      - 한 번 붙었을 떄 몰왕 3타로 붙는다던지
   - 템
+    - 뚜벅이라 쿨감신 먼저
     - 탱템, 영겁, 균열 생성기
+      - 첫 템
+        - 도란 검 : 평Q평 각 나오면
+        - 도란 반지 : 패시브나 E로 딜 넣어야 하면
   - 패시브 5스택 쌓고 싸우기 (잭스도 마찬가지)
+  - 오래 싸우면 E 대신 W 선마해도 괜찮을 듯
 
 - 쉬바나
   - vs 문도
@@ -81,6 +98,10 @@ last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
 
 - 신짜오
   - vs 제이스, 나르, 요네, 그웬, 아트록스
+  - vs 잭스
+    - W로 딜교한다는 마인드
+    - 미니언 E로 반격 피하거나,
+    - 들어올 떄 W 맞춰두고 스킬 아꼈다가, 반격 기절 끝나면 들어간다던지
 
 - 오공
   - 궁 타수 마다 일반 스킬 쿨타임 줄어드니까, 궁 쓰기 전에 일반 스킬 쓰기 (특히 Q)
@@ -92,6 +113,10 @@ last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
     - 상대 Q E로 피하고, Q W 짤딜 넣기
     - 그라가스 궁 쓸 때 같이 궁 쓴다는 느낌
     - 유지력 맞추게 기발 들고 가는 게 좋은 것 같다
+
+- 잭스
+  - vs 케넨
+    - 길게 딜교 못하니까 착취 뜯기
 
 ### 💿 미드
 
@@ -121,20 +146,23 @@ last_modified_at: 2024-10-16. 06:50 # 롤파크 레퍼런스
 - 1차 타워 : Tier1
 - 대포 미니언 : Cannon, Siege
 
-## 📀 롤파크 레퍼런스
+## 📀 메모
 
 ---
 
-- <https://youtu.be/sA2zSql-GqY?si=Y7QV4UnxJwmaW-iX>
-- <https://youtu.be/uEl1MEQ5xoY?si=P2rmevMMh3I5tIWe>
-- <https://youtu.be/zQujWbIknGI?si=pVzsFDwdhi27c5Qf>
-- <https://youtu.be/6sBcGCZjIpw?si=dpEfve73wUF2o2Cv>
-- <https://youtu.be/71XvjqisOdA?si=y6theQkAMX11v_rQ>
-- <https://youtu.be/l-HwdHpgepk?si=UU1CncNSVK6EiU_c>
-- <https://youtu.be/A9Fb6Mku2MI?si=s1bqG7B4nSXYWCJn>
-- <https://youtu.be/TMID4UNT_es?si=tdtD1pKVK-OpLxSC>
-- <https://youtu.be/qWZpARHPuMM?si=JrK0MvkUQANTqnEg>
-- <https://youtu.be/-eQe9fTqJM8?si=Iqvq8v0akukdB5Cn>
-- <https://youtu.be/YosGB-KygCM?si=fttGyHm70OFYFHiL>
-- <https://youtu.be/fgdcJ4qfTn8?si=zzs1Juybi0tC3ONW>
-- <https://youtu.be/ftWkI3NHZLU?si=DN0RrMAKcpgpRyKU>
+- [ChallengesAreEvil - 프로필 토큰 제거](https://github.com/MaciejGorczyca/ChallengesAreEvil)
+
+- 롤파크 레퍼런스
+  - <https://youtu.be/sA2zSql-GqY?si=Y7QV4UnxJwmaW-iX>
+  - <https://youtu.be/uEl1MEQ5xoY?si=P2rmevMMh3I5tIWe>
+  - <https://youtu.be/zQujWbIknGI?si=pVzsFDwdhi27c5Qf>
+  - <https://youtu.be/6sBcGCZjIpw?si=dpEfve73wUF2o2Cv>
+  - <https://youtu.be/71XvjqisOdA?si=y6theQkAMX11v_rQ>
+  - <https://youtu.be/l-HwdHpgepk?si=UU1CncNSVK6EiU_c>
+  - <https://youtu.be/A9Fb6Mku2MI?si=s1bqG7B4nSXYWCJn>
+  - <https://youtu.be/TMID4UNT_es?si=tdtD1pKVK-OpLxSC>
+  - <https://youtu.be/qWZpARHPuMM?si=JrK0MvkUQANTqnEg>
+  - <https://youtu.be/-eQe9fTqJM8?si=Iqvq8v0akukdB5Cn>
+  - <https://youtu.be/YosGB-KygCM?si=fttGyHm70OFYFHiL>
+  - <https://youtu.be/fgdcJ4qfTn8?si=zzs1Juybi0tC3ONW>
+  - <https://youtu.be/ftWkI3NHZLU?si=DN0RrMAKcpgpRyKU>
