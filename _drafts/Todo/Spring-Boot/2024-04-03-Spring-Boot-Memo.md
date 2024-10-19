@@ -7,7 +7,8 @@ date: 2024-04-03. 15:00
 # last_modified_at: 2024-04-19. 13:24
 # last_modified_at: 2024-05-02. 01:08
 # last_modified_at: 2024-05-31. 08:29
-last_modified_at: 2024-05-31. 12:07
+# last_modified_at: 2024-05-31. 12:07
+last_modified_at: 2024-10-19. 13:20 # 메모
 ---
 
 [참고 : 코딩레시피 - '스프링부트 회원프로젝트'](https://www.youtube.com/playlist?list=PLV9zd3otBRt5ANIjawvd-el3QU594wyx7)  
@@ -251,3 +252,21 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 - <https://growth-coder.tistory.com/235>
 - <https://m.blog.naver.com/jeonsr/221792705148>
 - <https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/putty.html>
+- ssh 키페어
+- <https://thegeekcat.github.io/blogging/tzinfoError/>
+- <https://velog.io/@zedy_dev/%EB%B0%B1%EC%97%94%EB%93%9C-gradlew-permission-denied-%EC%9D%B4%EC%8A%88-%ED%95%B4%EA%B2%B0>
+- nohup: failed to run command 'java': No such file or directory
+- <https://www.clien.net/service/board/cm_nas/15162948>
+- <https://velog.io/@woojjn/nohup-%EC%82%AC%EC%9A%A9%ED%95%A0-%EB%95%8C-%EC%9E%90%EC%A3%BC-%EB%A7%88%EC%A3%BC%ED%95%98%EB%8A%94-%EC%97%90%EB%9F%AC>
+- <https://programming119.tistory.com/203>
+- <https://dev-coco.tistory.com/68>
+- <https://stackoverflow.com/questions/41827262/blank-build-gradle-file>
+- <https://colagom.github.io/posts/kotlindsl-jar/>
+- gradle build 76%에서 멈춤
+  - AWS EC2 인스턴스 중지 후 재시작하고 다시 빌드하면된다.
+  - <https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/Stop_Start.html>
+  - <https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/TroubleshootingInstancesStopping.html>
+  - <https://sundries-in-myidea.tistory.com/102>
+  - <https://seungjjun.tistory.com/299>
+- <https://myeongju00.tistory.com/55>
+- <https://aeliketodo.tistory.com/96>

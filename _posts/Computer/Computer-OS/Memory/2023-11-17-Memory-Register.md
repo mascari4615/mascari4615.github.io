@@ -1,5 +1,5 @@
 ---
-title: "Register 레지스터"
+title: "Register | 레지스터"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
 tags: [Computer, OS, Memory, Register]
@@ -12,11 +12,11 @@ last_modified_at: 2024-08-29. 22:13
 
 [여치의 프로그래밍 강좌 #6](http://yuchi.duckdns.org/xe/Programming_QA/5950)  
 
-## 💫 Register 레지스터
+## 💫 Register | 레지스터
 
 ---
 
-CPU 안에 들어있는 고속 메모리이다.  
+CPU 안에 들어있는 고속 메모리.  
 CPU와 직접적으로 연결되어 있어 빠르다.  
 
 CPU의 상태를 저장하거나, 데이터 이동, 산술 연산 등의 용도로 사용된다.  
@@ -27,25 +27,32 @@ CPU의 상태를 저장하거나, 데이터 이동, 산술 연산 등의 용도�
 레지스터는 CPU 내 번호, 주기억장치 주소의 일부 영역, 입출력 포트 번호 등으로 접근 가능하다.  
 
 컴퓨터 구조에 따라 크기와 종류가 다양하다.  
+
 @ 인텔계 x86 cpu는 메모리 → 메모리 전송도 가능하지만, 그 외 상당수 CPU는 데이터 이동에서도 레지스터를 거쳐야만 한다.  
 
 ## 💫 레지스터의 유형
 
 ---
 
-CPU 레지스터
-→ CPU 내에서 위치하여 CPU 제어  
-→ 연산 (누산기) = A Register  
-→ 값의 임시 저장 용도 = S Register 로 사용
-→ A, PC, MBR, MPN | S, T
+### 🫧 CPU 레지스터
 
-특수 기능 레지스터 - SFR Special Function Register  
-특수 목적 레지스터 - SPR Special Purpose Register  
-특수 레지스터 - SR Special Register  
-→ 컴퓨터 전반에 걸친 상태를 설정하거나 현재 상태 표시  
+CPU 내에서 위치하여 CPU 제어  
 
-입출력 레지스터  
-→ 입출력 장치와 연결되어 입력이나 출력할 때 데이터 전달 통로 역할  
+- 연산 (누산기) = A Register  
+- 값의 임시 저장 용도 = S Register 로 사용
+- A, PC, MBR, MPN \| S, T
+
+### 🫧 특수 레지스터
+
+컴퓨터 전반에 걸친 상태를 설정하거나 현재 상태 표시  
+
+- SFR Special Function Register \| 특수 기능 레지스터
+- SPR Special Purpose Register \| 특수 목적 레지스터
+- SR Special Register \| 특수 레지스터
+
+### 🫧 입출력 레지스터
+
+입출력 장치와 연결되어 입력이나 출력할 때 데이터 전달 통로 역할  
 
 ## 💫 레지스터의 선행자 X, E, R
 
