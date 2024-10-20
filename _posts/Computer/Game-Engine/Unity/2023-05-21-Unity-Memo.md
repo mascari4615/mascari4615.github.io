@@ -30,7 +30,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-04-03. 14:15
 # last_modified_at: 2024-04-09. 03:03
 # last_modified_at: 2024-08-10. 17:39
-last_modified_at: 2024-08-29. 21:33
+# last_modified_at: 2024-08-29. 21:33
+last_modified_at: 2024-10-20. 21:02 # Unity 6
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -205,3 +206,28 @@ Convex 체크
 - `Debug.Break()`
 - Ctrl + Alt + P : 1 프레임 진행
 - Ctrl + Shift + P : 일시정지/재생
+
+## 💫 Unity6
+
+---
+
+### 🫧 변경점
+
+`Object.FindObjectOfType<T>(bool includeInactive)`  
+=>  
+`Object.FindFirstObjectByType<T>(FindObjectsInactive findObjectsInactive)`  
+
+`Object.FindObjectsOfType<T>()`  
+`Object.FindObjectsOfType<T>(bool includeInactive)`
+=>  
+`Object.FindObjectsByType<T>(FindObjectsSortMode sortMode)`  
+`Object.FindObjectsByType<T>(FindObjectsInactive findObjectsInactive, FindObjectsSortMode sortMode)`  
+
+`CinemachineVirtualCamera` => `CinemachineCamera`  
+`CinemachineFramingTransposer` => `CinemachinePositionComposer`  
+
+`CinemachineFramingTransposer.m_ScreenX` 는 범위가 0 ~ 1 이였는데, (0.5가 중심)  
+`CinemachinePositionComposer.Composition.ScreenPosition.x` 는 0이 중심  
+
+`The project currently uses the compatibility mode where the Render Graph API is disabled. Support for this mode will be removed in future Unity versions. Migrate existing ScriptableRenderPasses to the new RenderGraph API. After the migration, disable the compatibility mode in Edit > Projects Settings > Graphics > Render Graph.`  
+`UnityEditor.EditorAssemblies:ProcessInitializeOnLoadMethodAttributes ()`  
