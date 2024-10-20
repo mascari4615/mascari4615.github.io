@@ -770,7 +770,7 @@ $btn-mb: 0.5rem;
       opacity: 0.9;
       width: 100%;
 
-      @include pr-pr(1.5rem);
+      @include pl-pr(1.5rem);
 
       a.nav-link {
         @include pt-pb(0.6rem);
