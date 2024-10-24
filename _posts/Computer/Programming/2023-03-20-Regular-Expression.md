@@ -7,7 +7,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-20. 14:21
 # last_modified_at: 2023-04-03. 14:23
-last_modified_at: 2024-09-29. 17:49
+# last_modified_at: 2024-09-29. 17:49
+last_modified_at: 2024-10-24. 16:24 # Regex101.com 추가
 ---
 
 ## 💫 Regular-Expression | 정규표현식
@@ -34,6 +35,8 @@ last_modified_at: 2024-09-29. 17:49
 ## 💫 메모/참고
 
 ---
+
+- [Regular Expressions](https://regex101.com/)
 
 ### 🫧 참고
 
