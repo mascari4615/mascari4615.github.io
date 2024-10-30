@@ -2,6 +2,7 @@
 title: "WitchMendokusai | Doll"
 # description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
+hidden: true
 tags: [Project, Game-Dev, WitchMendokusai]
 image: "/assets/img/background/20230112_151539.jpg"
 
@@ -15,6 +16,9 @@ last_modified_at: 2024-10-20. 22:48 # Revival
 ## 📀 인형
 
 ---
+
+- 대표적인 위상 몇 개가 있고, 캐릭터들은 그 위상 중 하나는 반드시 가지는
+- 인형 등장인물 위상 조사해서 뭘로 이루어져 있는지
 
 마녀가 거느리는 피조물.  
 힘으로 움직인다.  
