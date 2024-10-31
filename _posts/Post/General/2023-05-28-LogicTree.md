@@ -44,7 +44,7 @@ How Tree 의 경우
 MECE, **M**utually **E**xclusive **C**ollectively **E**xhaustive  
 상호 배타적이고, 전체로서도 빠뜨리는 것이 없다  
 
-{% include custom/fcs.html %}
+{% include custom/embed/fcs.html %}
 
 문제를 세부화, 구체화 할 때,  
 한 단계 요소들을 MECE 하게 작성 할 것  

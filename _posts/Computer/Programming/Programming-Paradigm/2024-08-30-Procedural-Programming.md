@@ -9,9 +9,9 @@ date: 2024-08-30. 00:48
 last_modified_at: 2024-08-30. 00:48
 ---
 
-{% include custom/programming-paradigm.html %}
+{% include custom/computer/programming-paradigm.html %}
 
-## 💫 Procedural Programming
+## 💫 Procedural Programming \| 절차지향 프로그래밍
 
 ---
 

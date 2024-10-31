@@ -7,7 +7,8 @@ image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 
 date: 2024-10-30. 21:00
-last_modified_at: 2024-10-30. 21:00 # Init (from Game-Design)
+last_modified_at: 2024-10-30. 21:00 # INIT (from Game-Design)
+last_modified_at: 2024-10-31. 18:16 # 2024 WASD
 ---
 
 ## 📀 레퍼런스
@@ -193,3 +194,4 @@ last_modified_at: 2024-10-30. 21:00 # Init (from Game-Design)
   - [10년 넘도록 찾아내지 못했던 어떤 게임의 비밀 - 이스터에그, 그리고 믿음에 대한 이야기](https://youtu.be/PuEsWmxXWRI?si=YPBJfTJbTUzyZcAU)
   - [The Art of Splatoon](https://archive.org/details/b03cf9e4-d43a-4969-a484-c1e1d9de94fb/page/n5/mode/2up)
   - [The Art of Splatoon 2](https://archive.org/details/the-art-of-splatoon-2/page/n27/mode/2up)
+  - [2024 WASD](https://store.onstove.com/ko/store/2024wasd_public)

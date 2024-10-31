@@ -9,7 +9,7 @@ date: 2019-09-05. 21:25:00
 last_modified_at: 2021-10-05
 ---
 
-{% include custom/old-post.html %}
+{% include custom/common/old-post.html %}
 
 09:18  
 버전 이름이 디저트란 걸 처음 알았을 때는, 설정에서 안드로이드 버전을 광클하고 젤리빈 게임을 했을 때.. 추억  

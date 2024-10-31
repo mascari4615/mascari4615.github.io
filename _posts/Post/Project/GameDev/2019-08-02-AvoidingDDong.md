@@ -12,7 +12,7 @@ date: 2019-08-02. 18:40:00
 last_modified_at: 2024-08-29. 22:21
 ---
 
-{% include custom/old-post.html %}
+{% include custom/common/old-post.html %}
 
 여담  
 

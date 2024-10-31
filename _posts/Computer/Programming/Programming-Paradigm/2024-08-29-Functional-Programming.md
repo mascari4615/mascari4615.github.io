@@ -9,9 +9,9 @@ date: 2024-08-29. 20:54
 # last_modified_at: 2024-08-29. 20:54
 ---
 
-{% include custom/programming-paradigm.html %}
+{% include custom/computer/programming-paradigm.html %}
 
-## 💫 Functional Programming
+## 💫 Functional Programming \| 함수형 프로그래밍
 
 ---
 

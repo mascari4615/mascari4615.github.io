@@ -11,7 +11,7 @@ date: 2019-09-05. 21:11:00
 last_modified_at: 2024-08-29. 22:21
 ---
 
-{% include custom/old-post.html %}
+{% include custom/common/old-post.html %}
 
 09:11  
 빨때는 몇 개의 구멍을 가지고 있을까요?  

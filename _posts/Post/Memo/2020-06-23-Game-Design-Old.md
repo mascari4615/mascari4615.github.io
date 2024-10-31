@@ -11,7 +11,7 @@ date: 2020-06-23. 23:08:00
 last_modified_at: 2024-08-29. 22:24
 ---
 
-{% include custom/old-post.html %}
+{% include custom/common/old-post.html %}
 
 중학생일 때,  
 친구가 운영하던 게임 커뮤니티에서 썼던 글을 오랜만에 읽어봤다.  

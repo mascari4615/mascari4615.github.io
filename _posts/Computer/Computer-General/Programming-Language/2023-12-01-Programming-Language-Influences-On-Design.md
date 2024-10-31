@@ -9,7 +9,7 @@ date: 2023-12-01. 12:39
 last_modified_at: 2023-12-08. 10:05
 ---
 
-{% include custom/programming-language.html %}
+{% include custom/computer/programming-language.html %}
 
 ## 💫 프로그래밍 언어 설계에 영향을 주는 요소들
 

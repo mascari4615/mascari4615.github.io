@@ -10,7 +10,7 @@ date: 2021-03-25. 09:13:00
 last_modified_at: 2024-08-29. 22:15
 ---
 
-{% include custom/old-post.html %}
+{% include custom/common/old-post.html %}
 
 ## 📀 말머리
 

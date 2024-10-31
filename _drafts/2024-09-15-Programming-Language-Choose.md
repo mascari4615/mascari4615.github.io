@@ -9,7 +9,7 @@ date: 2024-09-15. 09:29
 last_modified_at: 2024-09-15. 09:29
 ---
 
-{% include custom/programming-language.html %}
+{% include custom/computer/programming-language.html %}
 
 ---
 

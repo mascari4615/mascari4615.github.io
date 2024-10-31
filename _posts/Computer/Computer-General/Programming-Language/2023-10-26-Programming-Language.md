@@ -18,7 +18,7 @@ date: 2023-10-26. 13:26
 last_modified_at: 2023-12-01. 11:39
 ---
 
-{% include custom/programming-language.html %}
+{% include custom/computer/programming-language.html %}
 
 2023-09-08. 08:59 : 글 계승.  
 `U-Programming-Language, 프로그래밍 언어 과목`  

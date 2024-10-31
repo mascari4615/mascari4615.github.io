@@ -237,7 +237,7 @@ git push origin --force --all
 [참고 : '경로에 공백(띄어쓰기)이 있을 때 cd, git add 방법'](https://markme-inur.tistory.com/74)  
 [참고 : '.gitignore가 작동하지 않을때 대처법'](https://jojoldu.tistory.com/307)  
 
-### 💿 잔디가 왜 이래 !
+### 💿 잔디가 왜 이래 **!**
 
 ![154 커밋이](/assets/img/post/2024/240426_00.png)  
 ![912 커밋으로 보여요](/assets/img/post/2024/240426_01.png)  
