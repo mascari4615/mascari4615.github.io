@@ -2,9 +2,9 @@
 title: "WitchMendokusai | Story"
 # description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
-hidden: true
 tags: [Project, Game-Dev, WitchMendokusai]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-04-27. 17:55
 # last_modified_at: 2024-05-04. 13:59

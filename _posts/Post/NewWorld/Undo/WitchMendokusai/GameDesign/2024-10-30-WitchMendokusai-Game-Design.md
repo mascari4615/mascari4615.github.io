@@ -2,9 +2,9 @@
 title: "WitchMendokusai | Game-Design"
 # description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
-hidden: true
 tags: [Project, Game-Dev, WitchMendokusai]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 # 2024-04-10. 12:24 : 글 병합.
 # `2023-03-14-Slime : 🍐 슬라임`

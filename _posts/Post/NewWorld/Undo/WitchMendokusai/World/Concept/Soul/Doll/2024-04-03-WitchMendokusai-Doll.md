@@ -2,9 +2,9 @@
 title: "WitchMendokusai | Doll"
 # description: ""
 categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
-hidden: true
 tags: [Project, Game-Dev, WitchMendokusai]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-04-03. 15:00
 # last_modified_at: 2024-04-10. 12:24
