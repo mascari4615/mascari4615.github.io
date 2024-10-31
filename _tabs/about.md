@@ -12,8 +12,8 @@ order: 100
 
 안녕하세요, **김도윤 Kim Doyoon** 입니다.  
 
-인터넷에서는 **카모뜨린**, **Mascari4615** 라는 닉네임으로 활동하고 있습니다.  
-Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으로한 VRChat 월드 컨텐츠' 를 만들고 있습니다.  
+인터넷에서는 **Mascari4615**, **카모뜨린** 이라는 닉네임으로 활동하고 있습니다.  
+Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으로 한 VRChat 월드 컨텐츠' 를 만들고 있습니다.  
 
 2021년 - 좋아하는 게임 스트리머를 위한 팬 게임을 만든 것을 시작으로, 본격적인 게임 개발 활동을 시작하였습니다.  
 
@@ -40,8 +40,8 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
   - 2022.05 - 2023.03 (11개월) \| [소녀:리버스 (피버스)](https://www.youtube.com/@girlsreverse)
     - 카카오 엔터테이먼트 주관 버츄얼 아이돌 프로젝트
 
-- [MUdons](https://github.com/Mascari4615/MUdons)
-  - VRChat 월드 제작에 있어, 자주 사용되는 프리팹과 기능들을 모아둔 라이브러리 (Unity Custom Package)
+- [Woodon](https://github.com/wrchat/Woodon)
+  - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
 
 - [마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai)
   - HD-2D 마을 경영 x 로그라이크
