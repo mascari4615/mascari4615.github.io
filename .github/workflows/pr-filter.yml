@@ -1,8 +1,8 @@
 name: PR Filter
 
-on:
-  pull_request_target:
-    types: [opened, reopened]
+# on:
+#   pull_request_target:
+#     types: [opened, reopened]
 
 jobs:
   check-template:

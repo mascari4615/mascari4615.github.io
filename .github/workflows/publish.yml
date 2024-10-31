@@ -1,16 +1,16 @@
 name: Publish
 
-on:
-  push:
-    branches:
-      - docs
-  workflow_call:
-    secrets:
-      GH_PAT:
-        required: true
-      BUILDER:
-        required: true
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - docs
+#   workflow_call:
+#     secrets:
+#       GH_PAT:
+#         required: true
+#       BUILDER:
+#         required: true
+#   workflow_dispatch:
 
 jobs:
   launch:
