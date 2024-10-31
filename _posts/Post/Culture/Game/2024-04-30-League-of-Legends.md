@@ -4,6 +4,7 @@ title: "League of Legends"
 categories: [📀Post, 🍋Culture, 🍋Game]
 tags: [Culture, Game, League-of-Legends]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-04-30. 05:10
 # last_modified_at: 2024-07-24. 23:57

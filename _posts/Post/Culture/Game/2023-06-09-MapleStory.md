@@ -4,6 +4,7 @@ title: "MapleStory"
 categories: [📀Post, 🍋Culture, 🍋Game]
 tags: [Culture, Game, MapleStory]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2023-06-09. 19:38
 # last_modified_at: 2023-11-29. 08:14

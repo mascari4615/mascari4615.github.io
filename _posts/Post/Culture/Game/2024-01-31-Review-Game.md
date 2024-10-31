@@ -4,6 +4,7 @@ title: "간단 리뷰 - 게임"
 categories: [📀Post, 🍋Culture, 🍋Game]
 tags: [Culture, Game, Review]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-01-31. 10:32
 last_modified_at: 2024-03-05. 06:45

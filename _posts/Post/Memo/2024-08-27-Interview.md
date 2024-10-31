@@ -4,6 +4,7 @@ title: "Interview"
 categories: [📀Post, 🍋‍🟩Memo]
 tags: [Memo, Interview]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-08-27. 22:03
 # last_modified_at: 2024-09-05. 21:41
