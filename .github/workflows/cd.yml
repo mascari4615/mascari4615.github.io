@@ -1,9 +1,9 @@
 name: CD
 
-# on:
-#   push:
-#     branches: [production]
-#     tags-ignore: ["**"]
+on:
+  push:
+    branches: [production]
+    tags-ignore: ["**"]
 
 jobs:
   release:

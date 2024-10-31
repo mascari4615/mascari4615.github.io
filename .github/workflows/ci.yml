@@ -1,25 +1,25 @@
 name: CI
 
-# on:
-#   push:
-#     branches:
-#       - master
-#       - "hotfix/*"
-#     paths-ignore:
-#       - ".github/**"
-#       - "!.github/workflows/ci.yml"
-#       - .gitignore
-#       - "docs/**"
-#       - README.md
-#       - LICENSE
-#   pull_request:
-#     paths-ignore:
-#       - ".github/**"
-#       - "!.github/workflows/ci.yml"
-#       - .gitignore
-#       - "docs/**"
-#       - README.md
-#       - LICENSE
+on:
+  push:
+    branches:
+      - master
+      - "hotfix/*"
+    paths-ignore:
+      - ".github/**"
+      - "!.github/workflows/ci.yml"
+      - .gitignore
+      - "docs/**"
+      - README.md
+      - LICENSE
+  pull_request:
+    paths-ignore:
+      - ".github/**"
+      - "!.github/workflows/ci.yml"
+      - .gitignore
+      - "docs/**"
+      - README.md
+      - LICENSE
 
 jobs:
   build:
