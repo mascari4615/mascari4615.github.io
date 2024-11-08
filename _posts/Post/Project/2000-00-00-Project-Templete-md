@@ -4,6 +4,7 @@ title: "프로젝트이름"
 categories: [📀Post, 🫐Project]
 tags: [Project, 프로젝트이름]
 image: "/assets/img/background/20230112_151539.jpg"
+hidden: true
 
 date: 2024-00-00. 00:00
 # last_modified_at: 2024-00-00. 00:00

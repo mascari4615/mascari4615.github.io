@@ -5,6 +5,20 @@
   tags: [VRChat, Art, System]
   date: 2024-08
 
+- title: Woodon
+  url: https://github.com/WRChat/Woodon
+  description:
+  image:
+  tags: [VRChat, Art, UI, System]
+  date:
+
+- title: "마녀: 귀찮아!"
+  url: https://github.com/Mascari4615/Witch-Mendokusai
+  description:
+  image:
+  tags: [GameDev, Art, UI, System]
+  date:
+
 - title: VWorld - 버츄얼 종합 대회
   url: /projects/
   description:
@@ -24,20 +38,6 @@
   description:
   image:
   tags: [VRChat, System]
-  date:
-
-- title: Woodon
-  url: https://github.com/WRChat/Woodon
-  description:
-  image:
-  tags: [VRChat, Art, UI, System]
-  date:
-
-- title: "마녀: 귀찮아!"
-  url: https://github.com/Mascari4615/Witch-Mendokusai
-  description:
-  image:
-  tags: [GameDev, Art, UI, System]
   date:
 
 - title: 일심동체
