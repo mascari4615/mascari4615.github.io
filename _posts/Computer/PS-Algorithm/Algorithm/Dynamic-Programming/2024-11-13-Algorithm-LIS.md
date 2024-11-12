@@ -1,5 +1,5 @@
 ---
-title: "LIS | Longest Increasing Subsequence | 최장 증가 부분 수열"
+title: "LIS"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Dynamic-Programming, DP, LIS, Longest-Increasing-Subsequence]
@@ -9,9 +9,11 @@ date: 2024-11-13. 01:24
 last_modified_at: 2024-11-13. 01:24 # Init
 ---
 
-## 💫 LIS | 최장 증가 부분 수열
+## 💫 LIS
 
 ---
+
+Longest Increasing Subsequence | 최장 증가 부분 수열  
 
 DP로 풀 수 있는 문제.  
 수열에서 가장 긴 증가 부분 수열을 찾는 문제.  

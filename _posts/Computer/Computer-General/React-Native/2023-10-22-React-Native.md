@@ -128,7 +128,7 @@ I.E. 사용자가 화면을 터치하면,
 UI Thread → JS Engine Thread (Event - 화면 터치)  
 = Bridge Framework  
 
-@ TODO : Thread  
+@ TODO: Thread  
 
 Single Thread 단일 : JS  
 Multi Thread 다중 : Java, Objective-C, React Native  

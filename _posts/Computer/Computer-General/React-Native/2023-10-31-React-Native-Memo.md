@@ -22,7 +22,7 @@ last_modified_at: 2023-12-05. 14:57
 
 ---
 
-@ TODO : 212p  
+@ TODO: 212p  
 
 ## 💫 Javascript, Typescript
 

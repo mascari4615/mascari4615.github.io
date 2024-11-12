@@ -56,7 +56,7 @@ last_modified_at: 2023-12-15. 08:33
 @ Lexical Analysis 단계에서, 숫자로 시작하는 토큰을 만나면, 숫자인지 변수인지 알기 위해, 숫자 뒤에 있는 문자 존재 여부를 확인하는 Backtracking 과정이 필요  
 @ → 컴파일러 구현의 편의성, 퍼포먼스 향상을 위해  
 
-@ TODO : IDE 문법 검사, 인텔리센스 원리?  
+@ TODO: IDE 문법 검사, 인텔리센스 원리?  
 
 - 일반적인 프로그래밍 언어에서의 이름 작성 규칙
   - 구성 : Alphabet, Number, Underbar(Underscore) _

@@ -127,4 +127,4 @@ Cookie처럼 기간 지정하여, 지워지지 않게 설정 가능
 [Cookie와 세션 개념](https://interconnection.tistory.com/74)  
 [데이터를 저장하는 5가지 개념](https://hongong.hanbit.co.kr/%EC%99%84%EB%B2%BD-%EC%A0%95%EB%A6%AC-%EC%BF%A0%ED%82%A4-%EC%84%B8%EC%85%98-%ED%86%A0%ED%81%B0-%EC%BA%90%EC%8B%9C-%EA%B7%B8%EB%A6%AC%EA%B3%A0-cdn/)  
 
-TODO : Token, Cache  
+TODO: Token, Cache  

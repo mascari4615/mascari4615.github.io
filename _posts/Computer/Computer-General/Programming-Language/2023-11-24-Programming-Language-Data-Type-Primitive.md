@@ -213,7 +213,7 @@ printf("%s\n", b); // "d" 출력
   - 개개의 원소들이 동일한 타입이나 크기가 아닌 데이터의 모임을 모델링 할 때 빈번하게 사용
 
 @ ? Java 구조체 따로 없는데?  
-@ TODO : Java 메모리 구조  
+@ TODO: Java 메모리 구조  
   class loading (code + data)  
   stack  
   heap (managed by JVM GC)  
@@ -237,7 +237,7 @@ printf("%s\n", b); // "d" 출력
   - 이질적인 요소를 허용하며 요소에 접근시에는 첨자로 접근
 - 튜플은 함수가 여러개의 값을 반환하는 것을 허용하기 위해
 
-@ TODO : Python 괄호 종류에 따른 컨테이너 종류  
+@ TODO: Python 괄호 종류에 따른 컨테이너 종류  
 
 ## 💫 리스트
 
