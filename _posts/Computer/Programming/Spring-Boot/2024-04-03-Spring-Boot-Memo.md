@@ -1,7 +1,9 @@
 ---
 title: "Spring-Boot-Memo"
-categories: [💫Computer, 🌚Computer-General]
-tags: [Spring-Boot, Memo]
+# description: ""
+categories: [💫Computer, 🌒Programming]
+tags: [Spring-Boot]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-03. 15:00
 # last_modified_at: 2024-04-19. 13:24

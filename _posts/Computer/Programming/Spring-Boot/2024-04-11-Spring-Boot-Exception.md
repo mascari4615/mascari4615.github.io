@@ -1,6 +1,9 @@
 ---
 title: "Spring Boot Exception"
-categories: [💫Computer, 🌚Computer-General]
+# description: ""
+categories: [💫Computer, 🌒Programming]
+tags: [Spring-Boot]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-11. 19:09
 # last_modified_at: 2024-04-11. 19:09

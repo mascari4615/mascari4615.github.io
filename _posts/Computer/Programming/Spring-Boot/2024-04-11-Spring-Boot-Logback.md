@@ -1,6 +1,9 @@
 ---
 title: "Logback"
-categories: [💫Computer, 🌚Computer-General]
+# description: ""
+categories: [💫Computer, 🌒Programming]
+tags: [Spring-Boot]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-11. 17:38
 # last_modified_at: 2024-04-11. 17:38
