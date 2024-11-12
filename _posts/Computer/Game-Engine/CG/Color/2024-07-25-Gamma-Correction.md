@@ -2,7 +2,7 @@
 title: "Gamma Correction"
 # description: ""
 categories: [💫Computer,🌔Game-Engine]
-tags: [Gamma-Correction, Linear-Workflow]
+tags: [Computer-Graphics, CG, Gamma-Correction, Linear-Workflow]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-07-25. 20:39
@@ -10,17 +10,6 @@ last_modified_at: 2024-07-26. 12:22
 ---
 
 {% include embed/youtube.html id='Xwlm5V-bnBc' %}
-
-[대충 살아가는 게임개발자 : 'Gamma Correction : 감마 코렉션'](https://chulin28ho.tistory.com/241)  
-[대충 살아가는 게임개발자 : 'Gamma Correction 감마 코렉션 : 어째서?'](https://chulin28ho.tistory.com/242)  
-[대충 살아가는 게임개발자 : '17.Gamma correction (감마 보정)'](https://chulin28ho.tistory.com/456)  
-[미카이님의 Tistory 블로그 : '감마 코렉션 : 감마 보정 Gamma Correction 에 대한 텍스쳐 옵션 정리'](https://boysboy3.tistory.com/58)  
-[붕대마음님의 Tistory 블로그 : '감마 보정 (gamma correction)'](https://mgun.tistory.com/1166)  
-[위키백과 : '감마보정'](https://ko.wikipedia.org/wiki/감마_보정)  
-[나무위키 : '감마'](https://namu.wiki/w/감마#s-2)  
-
-`Contrast` : 이미지의 밝기 차이 (대비)  
-`밴딩 현상` (등고선 현상) :  
 
 ## 💫 요약
 
@@ -102,12 +91,12 @@ last_modified_at: 2024-07-26. 12:22
 
 ---
 
-### 왜 '감마' 보정이라고 하는가?
+### 🫧 왜 '감마' 보정이라고 하는가?
 
 비선형 전달 함수의 지수 계수가 감마 (γ) 이기 때문이다.  
 감마는 2.2가 가장 근접한 값으로 알려져 있는데, 2.0을 쓰는 것이 연산 속도가 빠른 관계로 2.0을 쓰는 경우도 있다.  
 
-### In Unity
+### 🫧 In Unity
 
 URP로 넘어오면서 기본적으로 리니어 워크플로우가 적용되어 있다. (2020 영상 기준)  
 -> 감마 보정을 잘 이해하고 있어야 한다.  
@@ -128,3 +117,18 @@ URP로 넘어오면서 기본적으로 리니어 워크플로우가 적용되어
 -> 이를 디스플레이로 출력 (다시 어둡게, 감마 보정)  
 
 어디서 계산하냐의 차이  
+
+### 🫧 KeyWord
+
+- `Contrast` : 이미지의 밝기 차이 (대비)
+- `밴딩 현상` (등고선 현상) :
+
+### 🫧 Ref
+
+- [대충 살아가는 게임개발자 : 'Gamma Correction : 감마 코렉션'](https://chulin28ho.tistory.com/241)
+- [대충 살아가는 게임개발자 : 'Gamma Correction 감마 코렉션 : 어째서?'](https://chulin28ho.tistory.com/242)
+- [대충 살아가는 게임개발자 : '17.Gamma correction (감마 보정)'](https://chulin28ho.tistory.com/456)
+- [미카이님의 Tistory 블로그 : '감마 코렉션 : 감마 보정 Gamma Correction 에 대한 텍스쳐 옵션 정리'](https://boysboy3.tistory.com/58)
+- [붕대마음님의 Tistory 블로그 : '감마 보정 (gamma correction)'](https://mgun.tistory.com/1166)
+- [위키백과 : '감마보정'](https://ko.wikipedia.org/wiki/감마_보정)
+- [나무위키 : '감마'](https://namu.wiki/w/감마#s-2)

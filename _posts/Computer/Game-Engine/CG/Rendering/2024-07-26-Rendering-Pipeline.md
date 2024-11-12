@@ -2,12 +2,24 @@
 title: "Rendering Pipeline"
 # description: ""
 categories: [💫Computer,🌔Game-Engine]
-tags: [Rendering-Pipeline]
+tags: [Game-Engine, Computer-Graphics, CG, Rendering-Pipeline]
 image: "/assets/img/background/kururu-lab.jpg"
+hidden: true
 
 date: 2024-07-26. 12:23
 last_modified_at: 2024-10-16. 08:16 # Init
 ---
+
+## 💫 Q
+
+---
+
+- 그래픽스 API 이해: OpenGL, DirectX, Vulkan 등의 그래픽스 API에 대한 깊은 이해.
+- 3D 수학: 벡터, 행렬, 퀘터니언 등을 사용한 3D 변환과 관련된 수학적 이해.
+- 렌더링 기술: 리얼타임 렌더링, 레이 트레이싱, 포스트 프로세싱 등의 기술에 대한 지식.
+- 퍼포먼스 최적화: 그래픽스 성능을 분석하고 최적화하는 능력.
+- 그래픽 api를 쓰는건 ta가 잘 알아야하는 영역이고
+- 클라쪽은 3d물체가 2d좌표로 어떻게 렌더링 되는 과정하고 cpu의 일을 gpu가 어떻게 처리하고 있다 정도 알면 되는거지
 
 ## 💫 Rendering Pipeline
 
