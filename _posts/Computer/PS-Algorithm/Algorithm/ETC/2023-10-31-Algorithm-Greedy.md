@@ -1,5 +1,5 @@
 ---
-title: "Greedy 그리디"
+title: "Greedy | 그리디, 욕심쟁이"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Algorithm, Greedy]
@@ -182,7 +182,7 @@ Find
 
 어떤 정렬 알고리듬을 쓰냐가 시간에 영향을  
 
-@ TODO : 또 졸았다. 다시 공부.  
+@ TODO: 또 졸았다. 다시 공부.  
 
 ```c
 edge_set kruskal_MST(edge_set E, int n)
@@ -418,7 +418,7 @@ TSP 조건
 3. 완전 그래프 : 모든 도시들 간에 반드시 도로가 존재
 
 Brute Force => O(n!) 중 가장 작은  
-동적 계획법 => O(n^2 * 2^n)  
+DP => O(n^2 * 2^n)  
 
 근사 알고리듬  
 Nearest Neighbor Algorithm 최근접 이웃 알고리듬  
