@@ -51,17 +51,17 @@ last_modified_at: 2024-11-11. 02:55 # Init
 
 사실 이때 쯤 `왁타버스 맵 제작 스터디` 2기 모집이 진행되고 있었다. VRChat과 3D CG 공부를 시작함과 동시에, `왁타버스 맵 제작 스터디` 2기에도 지원했다.  
 
-![Wakta-VRChat-Study-Mail-0](/assets/project/Rusuk-Bar/Study/Wakta-VRChat-Study-Mail-0.png)
+![Wakta_VRChat_Study_Mail_0](/assets/project/RusukBar/Study/Wakta_VRChat_Study_Mail_0.png)
 
 지금보면 참 부끄러운 지원서. 다른 건 그렇다치고, '최소한의 미적 감각은 있다고 생각합니다' 의 근거로 제시한 것이 '학교 예술 관련 과목 최고 성적' 이라는 것이 참 부끄럽다. 당시 대학교 1학년이었기 때문에, 결국 초중고 때 수업을 들었던 '미술' 과목 성적이 좋다는 것을 근거로 '난 미적 감각이 있어' 라고 주장한 것이다. 그와중에 보험 들어두겠다고 '최소한의' 를 앞에 붙인 걸 보니, 참 예나 지금이나 사람이 한결 같은 것 같다.  
 
 어쨌든, 스터디에 들어가고 싶었던 마음은 진심이었다. 왁물원 카페 'VRChat 맵 제작소' 게시판에 '여기에 글 자주 쓰면 멘토분들께서 좋게 봐주시지 않을까?' 하는 의도를 가지고 게시글을 여럿 올렸었다. 전략이라면 전략.  
 
-![Wakta-VRChat-Study-Mail-1](/assets/project/Rusuk-Bar/Study/Wakta-VRChat-Study-Mail-1.png)
+![Wakta_VRChat_Study_Mail_1](/assets/project/RusukBar/Study/Wakta_VRChat_Study_Mail_1.png)
 
 그리고 그 전략이 통했는지, 얼마 뒤 1차 서류 전형 합격 메일을 받았다.  
 
-![Wakta-VRChat-Study-Mail-2](/assets/project/Rusuk-Bar/Study/Wakta-VRChat-Study-Mail-2.png)
+![Wakta_VRChat_Study_Mail_2](/assets/project/RusukBar/Study/Wakta_VRChat_Study_Mail_2.png)
 
 이후 2022년 1월 12일, VRChat에서 2차 면접 전형을 보았고, 여기서도 합격을 받아 최종 합격이 되었다. 그렇게 '왁타버스 맵 제작 스터디' 2기에 멘티로 참여하게 되었다.  
 
