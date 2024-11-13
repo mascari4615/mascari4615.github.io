@@ -35,6 +35,8 @@ i.e. `1 2 3 4`, `3 5 7 9` 등
 
 ---
 
+![LIS](/assets/img/post/2024/241113_223106.png)
+
 ### 🫧 O(N^2)
 
 ```cs
@@ -98,7 +100,30 @@ cout << *max_element(d.begin(), d.end());
 
 ### 🫧 O(N log N)
 
-TODO:  
+O(N^2) 방법을 최적화하여 O(N log N)으로 만들 수 있다.  
+순차탐색을 이진탐색으로 대체한다.  
+
+```cpp
+int n;
+cin >> n;
+
+vector<int> a(n);
+for (int i = 0; i < n; i++)
+	cin >> a[i];
+
+vector<int> lis;
+for (int i = 0; i < n; i++)
+{
+	auto it = lower_bound(lis.begin(), lis.end(), a[i]);
+	if (it == lis.end()) {
+		lis.push_back(a[i]);
+	} else {
+		*it = a[i];
+	}
+}
+
+cout << lis.size();
+```
 
 ## 💫 기록
 
@@ -121,7 +146,7 @@ TODO:
   - [ ] [가장 긴 증가하는 부분 수열 k (18838)](https://www.acmicpc.net/problem/18838)
   - [ ] [가장 긴 증가하는 부분 수열 ks (18892)](https://www.acmicpc.net/problem/18892)
   - [X] [가장 큰 증가하는 부분 수열 (11055)](https://www.acmicpc.net/problem/11055)
-  - [ ] [가장 큰 감소 부분 수열 (17216)](https://www.acmicpc.net/problem/17216)
-  - [ ] [가장 긴 바이토닉 부분 수열 (11054)](https://www.acmicpc.net/problem/11054)
+  - [X] [가장 큰 감소 부분 수열 (17216)](https://www.acmicpc.net/problem/17216)
+  - [X] [가장 긴 바이토닉 부분 수열 (11054)](https://www.acmicpc.net/problem/11054)
   - [X] [가장 긴 감소하는 부분 수열 (11722)](https://www.acmicpc.net/problem/11722)
   - [ ] [가장 긴 증가하는 팰린드롬 부분수열 (16161)](https://www.acmicpc.net/problem/16161)
