@@ -1,5 +1,5 @@
 ---
-title: "고멤의 집 - 비밀소녀"
+title: "고멤의 집 - 비밀소녀, 권민, 김치만두번영택사스가"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [VRChat, UdonSharp]

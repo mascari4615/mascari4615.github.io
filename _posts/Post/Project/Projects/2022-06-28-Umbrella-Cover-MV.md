@@ -3,7 +3,7 @@ title: "우산 Cover MV"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, Umbrella]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/ETC/Umbrella.png"
 hidden: true
 
 date: 2022-06-28. 00:00

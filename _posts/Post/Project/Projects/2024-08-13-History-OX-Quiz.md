@@ -3,7 +3,7 @@ title: "역사 OX 퀴즈"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [VRChat, ]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/History_OX_Quiz/240817_152627.png"
 hidden: true
 
 date: 2024-08-13. 00:00

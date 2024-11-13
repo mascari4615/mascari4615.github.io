@@ -3,7 +3,7 @@ title: "고멤의 검색기록"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Gomem_Search_History/240621_000000.png"
 hidden: true
 
 date: 2024-06-23. 00:00

@@ -3,7 +3,7 @@ title: "크라임 왁 외전"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, CrimeWak]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/CrimeWak_Spinoff/221218_022228.png"
 hidden: true
 
 date: 2022-12-18. 00:00

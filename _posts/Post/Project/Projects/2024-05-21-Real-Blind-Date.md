@@ -1,9 +1,9 @@
 ---
-title: "리얼 소개팅"
+title: "인간 X 버추얼 소개팅 (리얼소개팅)"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [VRChat, RealVirtualMeeting]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Real_Meeting/240525_000000.png"
 hidden: true
 
 date: 2024-05-21. 00:00

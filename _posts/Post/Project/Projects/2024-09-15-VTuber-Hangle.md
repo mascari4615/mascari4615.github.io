@@ -1,9 +1,9 @@
 ---
-title: "한글날 버튜버 대전"
+title: "버튜버 우리말 대전"
 # description: ""
 categories: [📀Post, 🫐MUdons]
 tags: [MUdons]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/VTuber_Hangle/241006_054719.png"
 hidden: true
 
 date: 2024-09-15. 22:07

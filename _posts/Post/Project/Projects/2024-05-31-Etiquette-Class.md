@@ -1,9 +1,9 @@
 ---
-title: "예절 교육"
+title: "예절 교실"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Etuiket_Class/240703_161751.png"
 hidden: true
 
 date: 2024-05-31. 00:00
