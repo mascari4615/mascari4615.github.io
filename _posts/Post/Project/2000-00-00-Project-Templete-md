@@ -1,8 +1,8 @@
 ---
-title: "프로젝트이름"
+title: "프로젝트_템플릿"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, 프로젝트이름]
+tags: [Project, 프로젝트_템플릿]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 
@@ -11,14 +11,11 @@ date: 2024-00-00. 00:00
 
 # 완성, 서사, 깊이
 # 도전적, 주도적, 책임감
-
 # 최소한 하나의 적이 있어야 한다
 # 어떤 생각을 가졌었는지?
-
-# 프로젝트 Na
 ---
 
-{% include embed/youtube.html id = "프로젝트영상" %}
+{% include embed/youtube.html id = "프로젝트_영상_ID" %}
 
 ## 📀 말머리
 

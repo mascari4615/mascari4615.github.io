@@ -1,15 +1,16 @@
 ---
 title: "Lost Meida"
 description: "잃어버린 추억을 찾아서"
-categories: [📀Post, 🥑General]
+categories: [💫Computer, 🌚Computer-General]
 tags: [Lost-Media, Youtube]
-image: "/assets/img/background/chuttersnap-JxxhNRpdRaw-unsplash.jpg"
+image: "/assets/img/background/kururu-lab.jpg"
+hidden: true
 
 date: 2024-10-15. 18:18
 last_modified_at: 2024-10-15. 18:18
 ---
 
-## 📀 잃어버린 유튜브 동영상 찾기
+## 💫 잃어버린 유튜브 동영상 찾기
 
 ---
 

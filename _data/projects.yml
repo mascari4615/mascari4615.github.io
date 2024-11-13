@@ -1,377 +1,377 @@
 - title: WIP...
   url: /projects/
   description: 이 페이지는 현재 공사중입니다 !
-  image: /assets/img/common/backtop.gif
-  tags: [VRChat, Art, System]
-  date: 2024-08
+  image: /assets/img/background/backtop.gif
+  tags:
+  date: 24-11
 
 - title: Woodon
   url: https://github.com/WRChat/Woodon
   description:
   image:
-  tags: [VRChat, Art, UI, System]
+  tags: [Unity, Art, UI, Programming]
   date:
 
 - title: "마녀: 귀찮아!"
   url: https://github.com/Mascari4615/Witch-Mendokusai
   description:
   image:
-  tags: [GameDev, Art, UI, System]
-  date:
-
-- title: VWorld - 버츄얼 종합 대회
-  url: /projects/
-  description:
-  image:
-  tags: [VRChat, Art, UI, System]
-  date:
-
-- title: Journey of Emotions 프로모션
-  url: /projects/
-  description:
-  image:
-  tags: [VRChat, Art, System]
+  tags: [GameDev, Art, UI, Programming]
   date:
 
 - title: 소녀:리버스 (피버스)
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
+  date:
+
+- title: 르르와 연애중
+  url: /posts/Love-With-JRR/
+  description: 이세계아이돌 주르르님의 '연애 시뮬레이션 토크' 컨텐츠입니다. Unity World 기능 프로그래밍 및 오퍼레이팅/기능 조작을 담당했습니다.
+  image: /assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png
+  tags: [Unity, Programming, VRChat]
+  date: 23-11, 24-11
+
+- title: VWorld - 버츄얼 종합 대회
+  url: /projects/
+  description:
+  image:
+  tags: [Unity, Art, UI, Programming]
+  date:
+
+- title: Journey of Emotions 프로모션
+  url: /projects/
+  description:
+  image:
+  tags: [Unity, Art, Programming]
   date:
 
 - title: 일심동체
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 버튜버 우리말 대전
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 고멤의 집 (김치만두번영택사스가, 비밀소녀, 권민)
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 주파수 게임
   url: /projects/
   description:
   image:
-  tags: [VRChat, Art, UI, System]
+  tags: [Unity, Art, UI, Programming]
   date:
 
 - title: 향아치 OX 퀴즈
   url: /projects/
   description:
   image:
-  tags: [VRChat, UI, System]
+  tags: [Unity, UI, Programming]
   date:
 
 - title: 촉각슈트 동아리
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 예절교실
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 우왁굳 고멤의 검색기록
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 인간 X 버추얼 소개팅 (리얼소개팅)
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 성결힐링캠프
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 해외축구 어필쇼
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: "육광천 Everything"
   url: /projects/
   description: 육광천링크 (https://cafe.naver.com/steamindiegame/15881344)
   image:
-  tags: [VRChat, Art]
+  tags: [Unity, Art]
   date:
 
 - title: 돚거 게임
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/15824783)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 버튜버 총회
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: "챤니티 개발 : 이세계아이돌 아프리카 데뷔 방송"
   url: /projects/
   description:
   image:
-  tags: [VRChat, Art, System]
+  tags: [Unity, Art, Programming]
   date:
 
 - title: 왁타랜드
   url: /projects/
   description: 트리거(용병)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 챤타버스 워크샵
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: V급 밴드 오디션
   url: /projects/
   description:
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 컨텐츠 월드컵
   url: /projects/
   description: 이세돌 2주년 합방 (https://cafe.naver.com/steamindiegame/14065241)
   image: /assets/img/post/project/ContentWorldcup.png
-  tags: [VRChat, Art, System]
+  tags: [Unity, Art, Programming]
   date:
 
 - title: 이파리 골든벨
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/13792779)
   image: /assets/img/post/project/IfariGoldenBell.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 지하돌 학교 생활 엿보기
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/13702998)
   image: /assets/img/post/project/SeguIdolSchool.png
-  tags: [VRChat, System]
-  date:
-
-- title: 르르와 연애중
-  url: /projects/
-  description: (https://cafe.naver.com/steamindiegame/13644167)
-  image: /assets/img/post/project/RuruLove.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 회전소개팅
   url: /projects/
   description: OL-I06tZGbc
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 이세계 홈파티
   url: /projects/
   description: 이세돌 3집 합방 - (https://cafe.naver.com/steamindiegame/12562966)
   image: /assets/img/post/project/HomeParty.jpg
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 우왁굳의 일심동체
   url: /projects/
-  description: VRChat 한글 키보드 에셋 - (https://cafe.naver.com/steamindiegame/12922263)
+  description: Unity 한글 키보드 에셋 - (https://cafe.naver.com/steamindiegame/12922263)
   image: /assets/img/post/project/LatterQuiz.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 오타쿠 인물퀴즈
   url: /projects/
   description:
   image: /assets/img/post/project/OtakuQuiz.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 마법소녀 이세계아이돌 웹툰 쇼케이스 장
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/11694871)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: META STUDY
   url: /projects/
   description: 새우튀김 - 스터디 졸업작품- (https://cafe.naver.com/steamindiegame/11339673)
   image: /assets/img/post/project/META_STUDY.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 붓코월드 (전투메이드 기념관)
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/11175224)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 우리 억결했어요
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/11001427)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 릴파 택티컬
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/11000576)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 라니벨 시즌 2 안전수칙 편
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/10888716)
   image: /assets/img/post/project/RaniGoldenBell.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 지하돌 티어게임, 팀 드래프트
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/10336591)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 버축대
   url: /projects/
   description: 4di6nanDjiU 트리거 갈통대전 (버축대 티바로살래나) 트리거 라커룸 (버축대 티바로살래나) 맵아트 Counting Stars MV (버축대 카오닝스타즈)
   image:
-  tags: [VRChat, Art]
+  tags: [Unity, Art]
   date:
 
 - title: "주니티: OX퀴즈"
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/9470097)
   image:
-  tags: [GameDev, Art, System]
+  tags: [GameDev, Art, Programming]
   date:
 
 - title: 형! 여기 링크야
   url: /projects/
   description: DPOxhUpb64o - 2022 연말 공모전
   image:
-  tags: [VRChat, Art, System]
+  tags: [Unity, Art, Programming]
   date:
 
 - title: 크라임 왁 외전
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/8932487)
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 오뱅계르크 팝업 스토어
   url: /projects/
   description: (https://cafe.naver.com/steamindiegame/8799312)
   image: /assets/img/post/project/WakgoodPopup.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 오르막길
   url: /projects/
   description: sVydSseSOCQ UphillRoad2
   image: /assets/img/post/project/UphillRoad1.png
-  tags: [VRChat, Art]
+  tags: [Unity, Art]
   date:
 
 - title: 아무튼 이세계
   url: /projects/
   description: LNMrl_Te1SU - 2022/10 상황극 콘테스트
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 하나원큐 광고
   url: /projects/
   description: hkGJP1_cHQA (https://cafe.naver.com/steamindiegame/7592517)
   image: /assets/img/post/project/OneQ.png
-  tags: [VRChat, Art]
+  tags: [Unity, Art]
   date:
 
 - title: 고멤가요제
   url: /projects/
   description: IzrIYIqlBnA EjKEburqdjE Finale2.png ForbiddenLady1.png ForbiddenLady2.png 피날레 (고멤가요제 레이디버그) 금단의 레이디 - 연막맵 (고멤가요제 레이디버그)  - (https://cafe.naver.com/steamindiegame/7679495) cDjUyZXu7A4 v67Fs-m_DzI isEg5oCs1u8 트리거 계륵각 (고멤가요제 김피탕 & 짬뽕)  트리거 고멤가요제 드래프트 맵, 공개 맵 - (https://cafe.naver.com/steamindiegame/7675853)
   image: /assets/img/post/project/Finale1.png
-  tags: [VRChat, Art, System]
+  tags: [Unity, Art, Programming]
   date:
 
 - title: 세기의 대결, 왁파고 對 고세구
   url: /projects/
   description: m2oef8JhV9s
   image:
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: RE:HINE (아이네)
   url: /projects/
   description: y3u8sOJGL3w (https://cafe.naver.com/steamindiegame/7029174)
   image: /assets/img/post/project/RE_HINE.png
-  tags: [VRChat, System]
+  tags: [Unity, Programming]
   date:
 
 - title: 우산
   url: /projects/
   description: T84CDxlwsXw (https://cafe.naver.com/steamindiegame/6697504)
   image: /assets/img/post/project/Umbrella.png
-  tags: [VRChat, Art]
+  tags: [Unity, Art]
   date:
 
 - title: 왁숲
   url: /projects/
   description: ENKbdP8V2gg (https://cafe.naver.com/steamindiegame/7340376)
   image: /assets/img/post/project/WakForest.png
-  tags: [VRChat, System]
-  date: 2022-04 - 2022-08
+  tags: [Unity, Programming]
+  date: 22-04 ~ 22-08
 
 - title: 루석바
   url: /projects/
   description: I5bkJ4S9qic
   image: /assets/img/post/project/RusukBar.png
-  tags: [VRChat, Art, System]
-  date: 2022-01
+  tags: [Unity, Art, Programming]
+  date: 22-01
 
 - title: 왁그리드
   url: /projects/
   description: 79sbqJl0OK8
   image:
-  tags: [GameDev, Art, System]
-  date: 2021-01 - 2022-01
+  tags: [GameDev, Art, Programming]
+  date: 21-01 ~ 22-01

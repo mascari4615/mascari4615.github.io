@@ -4,6 +4,7 @@ title: "Reflection"
 categories: [💫Computer, 🌒Programming]
 tags: [Computer, Programming, Reflection]
 image: "/assets/img/background/kururu-lab.jpg"
+hidden: true
 
 date: 2024-09-02. 13:20
 # last_modified_at: 2024-09-02. 13:20
