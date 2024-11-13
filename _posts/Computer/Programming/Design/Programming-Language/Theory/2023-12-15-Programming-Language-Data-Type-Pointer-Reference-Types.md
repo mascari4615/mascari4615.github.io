@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어 - Pointer and Refernece Types"
 # description: ""
-categories: [💫Computer, 🌚Computer-General]
+categories: [💫Computer, 🌒Programming]
 tags: [Programming-Language, Data-Type, Pointer, ReferenceType]
 image: "/assets/img/background/kururu-lab.jpg"
 

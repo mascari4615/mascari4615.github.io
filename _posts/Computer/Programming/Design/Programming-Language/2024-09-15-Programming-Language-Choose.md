@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어 고르기"
 # description: ""
-categories: [💫Computer, 🌚Computer-General]
+categories: [💫Computer, 🌒Programming]
 tags: [Programming-Language]
 image: "/assets/img/background/kururu-lab.jpg"
 
