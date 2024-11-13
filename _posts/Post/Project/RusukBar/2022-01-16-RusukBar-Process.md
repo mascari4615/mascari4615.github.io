@@ -1,10 +1,9 @@
 ---
-title: "RusukBar | 루석바 - 만들기까지의 과정"
+title: "RusukBar | 루석바 - 제작 과정"
 # description: ""
-categories: [📀Post, 🫐Project]
+categories: [📀Post, 🫐Project, 🫐RusukBar]
 tags: [Project, VRChat, RusukBar]
-image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
+image: "/assets/project/RusukBar/Rusukbar.png"
 
 date: 2022-01-16. 00:00
 # last_modified_at: 2024-11-09. 08:07 # Init

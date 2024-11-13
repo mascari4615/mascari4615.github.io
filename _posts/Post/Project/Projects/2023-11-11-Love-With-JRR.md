@@ -3,13 +3,11 @@ title: "르르와 연애중"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, Date-With-JRR]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png"
 
 date: 2023-11-11. 00:00
 last_modified_at: 2024-11-13. 10:59 # Init
 ---
-
-![Love_With_JRR_1_Banner](/assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png)
 
 르르와 연애중 (1)  
 {% include embed/youtube.html id = "Ghm7AtRXhOg" %}

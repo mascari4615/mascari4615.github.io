@@ -1,13 +1,12 @@
 ---
-title: "승리의 여신 : 니케 2주년 VRChat 합방"
+title: "승리의 여신 : 니케 2주년 업데이트 광고"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, Nikke]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-10-19. 09:55
-# last_modified_at: 2024-10-19. 09:55
+last_modified_at: 2024-11-13. 12:31 # Init
 ---
 
 {% include embed/youtube.html id = "프로젝트영상" %}
@@ -23,6 +22,7 @@ date: 2024-10-19. 09:55
 ---
 
 패러블로부터 연락을 받아 작업을 시작했다.  
+VRChat 이세계아이돌 x 뢴트게늄  
 
 ## 📀 과정
 
