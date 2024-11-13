@@ -1,7 +1,7 @@
 ---
 title: "버튜버 우리말 대전"
 # description: ""
-categories: [📀Post, 🫐MUdons]
+categories: [📀Post, 🫐Project]
 tags: [MUdons]
 image: "/assets/project/VTuber_Hangle/241006_054719.png"
 hidden: true
