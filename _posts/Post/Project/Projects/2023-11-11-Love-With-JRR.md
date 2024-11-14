@@ -6,14 +6,15 @@ tags: [Project, Date-With-JRR]
 image: "/assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png"
 
 date: 2023-11-11. 00:00
-last_modified_at: 2024-11-13. 10:59 # Init
+# last_modified_at: 2024-11-13. 10:59 # Init
+last_modified_at: 2024-11-15. 01:38 # 2 영상 링크 추가
 ---
 
 르르와 연애중 (1)  
 {% include embed/youtube.html id = "Ghm7AtRXhOg" %}
 
 르르와 연애중 2  
-{% include embed/youtube.html id = "" %}
+{% include embed/youtube.html id = "iz0ZXxKFJNo" %}
 
 ## 📀 말머리
 
