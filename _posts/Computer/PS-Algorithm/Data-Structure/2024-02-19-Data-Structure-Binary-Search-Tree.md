@@ -1,5 +1,5 @@
 ---
-title: "Binary-Search-Tree"
+title: "Binary (Search) Tree"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
 tags: [Data-Stucture, Tree, Binary-Tree, Binary-Search-Tree, Self-Balancing-Tree]
@@ -223,9 +223,9 @@ set에는 원소가 정렬되어 있기 때문에 O(lg N)에 가능합니다.
   - end()는 마지막 원소의 한칸 뒤의 iterator를 반환합니다.
   - find  
 
-- lower_bound는 이분탐색 단원에서 나왔던 그 lower_bound랑 기능이 동일한데, 특정 원소가 삽입되어도 오름차순 순서가 그대로 유지되는 가장 왼쪽 위치를 나타냅니다. 
+- lower_bound는 이분탐색 단원에서 나왔던 그 lower_bound랑 기능이 동일한데, 특정 원소가 삽입되어도 오름차순 순서가 그대로 유지되는 가장 왼쪽 위치를 나타냅니다.
 - 순서가 그대로 유지되는 가장 오른쪽 위치를 나타내는 upper_bound랑
-- lower_bound와 upper_bound 쌍을 반환하는 equal_range도 그대로 있습니다.  
+- lower_bound와 upper_bound 쌍을 반환하는 equal_range도 그대로 있습니다.
 
 이 멤버 함수들의 시간복잡도를 보면, set에서는 진짜 그냥 온갖 연산이 다 O(lg N)이라고 생각하면 됩니다. size, end, begin 함수는 그냥 멤버 변수로 가지고 있던 값을 바로 반환할테니 O(1)이지만 insert, erase, find, lower_bound, next, prev 등은 모두 O(lg N)입니다.  
 
