@@ -51,10 +51,11 @@
   {{ seo_tags }}
 
   <title>
-    {%- unless page.layout == 'home' -%}
+	{{ page.title }}
+    {% comment %} {%- unless page.layout == 'home' -%}
       {{ page.title | append: ' | ' }}
     {%- endunless -%}
-    {{ site.title }}
+    {{ site.title }} {% endcomment %}
   </title>
 
   {% include_cached favicons.html %}
