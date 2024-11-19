@@ -2,8 +2,8 @@
 title: "WitchMendokusai | Game-Design"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [Project, Game-Dev, WitchMendokusai]
-image: "/assets/img/background/20230112_151539.jpg"
+tags: [WitchMendokusai, "마녀: 귀찮아"]
+image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
 # 2024-04-10. 12:24 : 글 병합.

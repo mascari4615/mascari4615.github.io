@@ -1,9 +1,9 @@
 ---
 title: "WitchMendokusai DevLog 01"
 # description: ""
-categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
-tags: [Project, Game-Dev, WitchMendokusai]
-image: "/assets/img/background/20230112_151539.jpg"
+categories: [📀Post, 🥥WitchMendokusai]
+tags: [WitchMendokusai, "마녀: 귀찮아"]
+image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
 date: 2024-03-28. 15:52
@@ -32,7 +32,7 @@ last_modified_at: 2024-08-29. 21:48
 
 정말 많은 일이 있었다.  
 
-### 💿 1. 일단 저장해봐 !
+### 💿 1. 일단 저장해봐 **!**
 
 ```cs
 [Serializable]

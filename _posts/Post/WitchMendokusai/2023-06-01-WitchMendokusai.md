@@ -1,9 +1,9 @@
 ---
 title: "WitchMendokusai"
 # description: ""
-categories: [📀Post, 🫐Project, 🫐WitchMendokusai]
-tags: [Project, Game-Dev, WitchMendokusai]
-image: "/assets/img/background/20230112_151539.jpg"
+categories: [📀Post, 🥥WitchMendokusai]
+tags: [WitchMendokusai, "마녀: 귀찮아"]
+image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
 date: 2023-06-01. 10:25
