@@ -2,7 +2,7 @@
 title: "C# Access Modifier"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, CSharp, AccessModifier]
+tags: [Computer, Programming, C#, AccessModifier]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-01-25. 05:22
