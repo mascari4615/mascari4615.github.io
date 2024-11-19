@@ -38,7 +38,14 @@
   description: 이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠. VRChat World 기능 프로그래밍 및 오퍼레이팅/기능 조작.
   image: /assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png
   tags: [Unity, Programming, VRChat]
-  date: '2311, 2411.'
+  date: "2311, 2411."
+
+- title: "승리의 여신 : 니케, 2주년 업데이트 광고"
+  url: /posts/Nikke-2nd-Anniversary/
+  description: "여러 인플루언서 광고 중, 패러블엔터테인먼트 주관 이세계아이돌 x 뢴트게늄님의 컨텐츠. VRChat World 기능 프로그래밍 및 오퍼레이팅/기능 조작."
+  image: /assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png
+  tags: [Unity, Programming, VRChat]
+  date: "241104"
 
 - title: VWorld - 버츄얼 종합 대회
   url: /posts/SOOP-Studio/
@@ -52,13 +59,6 @@
   description:
   image: /assets/project/SCREAM_Promotion/230405_041551.png
   tags: [Unity, Art, Programming]
-  date:
-
-- title: 니케 2주년 업데이트 광고
-  url: /posts/Nikke-2nd-Anniversary/
-  description:
-  image: /assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png
-  tags: [Unity, Programming]
   date:
 
 - title: 구슬요의 버블껌
