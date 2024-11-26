@@ -10,9 +10,7 @@ order: 100
 
 ![Logo](/assets/img/profile/Star_Transparent.png){: width="100" height="100" .normal}
 
-안녕하세요, **김도윤 Kim Doyoon** 입니다.  
-
-인터넷에서는 **Mascari4615**, **카모뜨린** 이라는 닉네임으로 활동하고 있습니다.  
+안녕하세요, **카모뜨린 KarmoDDrine** 입니다.  
 Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으로 한 VRChat 월드 컨텐츠' 를 만들고 있습니다.  
 
 2021년 - 좋아하는 게임 스트리머를 위한 팬 게임을 만든 것을 시작으로, 본격적인 게임 개발 활동을 시작하였습니다.  
@@ -57,7 +55,7 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
 ### 기타 활동
 
 - 2024.03 - 진행 중 \| GW Gaming (교내 게임 개발 동아리) - 부리더, 프로그래머
-- 2022.01 - 진행 중 \| 왁타버스 VRChat 맵 제작 스터디 활동 - 멘티 (前 멘토)
+- 2022.01 - 진행 중 \| 왁타버스 VRChat 맵 제작 스터디 활동 - 멘토
 
 ## 링크
 
