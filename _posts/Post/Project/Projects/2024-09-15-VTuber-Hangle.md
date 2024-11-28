@@ -13,7 +13,11 @@ date: 2024-09-15. 22:07
 last_modified_at: 2024-10-06. 05:31
 ---
 
-<https://youtu.be/lKyHgV8esC8>
+이런 말 방송에서 해도 돼요?  
+{% include embed/youtube.html id = "6g3pFFDUOfo" %}
+
+버튜버들의 우리말 실력은?!!!  
+{% include embed/youtube.html id = "lKyHgV8esC8" %}
 
 ## 🎲 메모/생각
 

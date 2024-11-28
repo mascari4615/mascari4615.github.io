@@ -9,3 +9,9 @@ hidden: true
 date: 2024-06-23. 00:00
 last_modified_at: 2024-11-09. 08:34 # Init
 ---
+
+고멤들은 평소에 어떤 유튜브를 보고 지낼까?  
+{% include embed/youtube.html id = "PKAel6m-2PE" %}
+
+고멤들의 유튜브 검색 기록 풀버전  
+{% include embed/youtube.html id = "O0DPbiyZxXU" %}

@@ -9,3 +9,6 @@ hidden: true
 date: 2023-04-30. 00:00
 last_modified_at: 2024-11-09. 08:24 # Init
 ---
+
+레전드 콜라보 컨텐츠ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ  
+{% include embed/youtube.html id = "4RUDg2JaEBk" %}

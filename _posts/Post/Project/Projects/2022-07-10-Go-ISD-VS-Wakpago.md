@@ -9,3 +9,6 @@ hidden: true
 date: 2022-07-10. 00:00
 last_modified_at: 2024-11-09. 08:16 # Init
 ---
+
+이세돌 vs 왁파고 바둑대결 - 세기의 대결  
+{% include embed/youtube.html id = "m2oef8JhV9s" %}

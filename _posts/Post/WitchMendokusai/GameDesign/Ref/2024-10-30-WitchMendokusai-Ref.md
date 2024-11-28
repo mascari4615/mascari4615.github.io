@@ -155,3 +155,18 @@ last_modified_at: 2024-11-19. 07:28 # -GameRef
   - [The Art of Splatoon](https://archive.org/details/b03cf9e4-d43a-4969-a484-c1e1d9de94fb/page/n5/mode/2up)
   - [The Art of Splatoon 2](https://archive.org/details/the-art-of-splatoon-2/page/n27/mode/2up)
   - [2024 WASD](https://store.onstove.com/ko/store/2024wasd_public)
+
+- Concept
+  - [메이플에서 도끼에 박힌 스텀프가 계속해서 생성되는 이유](https://youtu.be/8kWiOrQoEIc?si=j1IYuUwidYiUanjU)
+  - [메이플 속 흥미로운 TMI 모음](https://youtu.be/HJqJl27AWVU?si=HQzD5LtG7OhJSOmm)
+  - [이제는 보지 못할 오른의 걸작 아이템 이름들...](https://youtu.be/3bDVWwLMSDk?si=8ZYe1mIJ2-v5NquL)
+  - [메이플 헤네시스 마을의 숨겨진 사실들](https://youtu.be/k3xBEOcd6Oc?si=AzjNk8uDPVTakPOz)
+  - [메이플 리스항구 TMI모음](https://youtu.be/Y_tIz0NENP0?si=Fs1-n9EqBqk-FKEp)
+  - [마플도 첨 봄](https://youtu.be/UopYv-ZqcV0?si=ISkN8pkik_uiiT2F)
+  - [낭만있는 옛날 스킬퀘스트](https://youtu.be/l4y3b5NF1zw?si=YTEpYfZaPp0yP6ED)
+  - [Samsung Galaxy AD hits Different *AWWW* 🥹](https://youtu.be/9AJlU4gdKQw?si=mNDXqP8sNpGvEtDj)
+  - [우리 몸을 지켜주는 영웅들의 모습](https://youtu.be/hcXgZctEldY?si=AoLWEllMq1P7LKSw)
+  - [바람이 불지 않는 날의 굴뚝 연기](https://youtu.be/i8jpq6iTcKc?si=5H3T_wQJ5wftB2Ww)
+  - [원피스 잘 알려지지 않은 원작 훼손](https://youtu.be/Xh0km6OLlrw?si=TFcjxZTqfszudctN)
+  - [사람들이 잘 모르는 ‘살아있는 화석’ ㄷㄷ](https://youtu.be/MfbanTGhvsg?si=FfZLD-yJyuP2llpQ)
+  - [Inside Star Citizen: How We Work - Level Design](https://youtu.be/IrGtP8HBwNo?si=RyvVVW6AksdeWpl0)

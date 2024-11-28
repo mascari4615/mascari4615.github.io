@@ -21,7 +21,10 @@ date: 2023-06-20. 10:05
 # last_modified_at: 2024-08-28. 16:57
 # last_modified_at: 2024-08-29. 11:30
 # last_modified_at: 2024-08-30. 01:19
-last_modified_at: 2024-10-16. 07:39 # 정리
+# last_modified_at: 2024-10-16. 07:39 # 정리
+last_modified_at: 2024-11-28. 15:15 # 시참 영상 정리
+
+# nunEtQM82fo
 ---
 
 ## 📀 말머리
@@ -29,7 +32,7 @@ last_modified_at: 2024-10-16. 07:39 # 정리
 ---
 
 - [VR챗 제작등록소 게시물](https://cafe.naver.com/steamindiegame/6259414)
-- 맵 제작 스터디 2기, 트리거 멘토 (였던것)
+- 맵 제작 스터디 2기 멘티, TA 멘토
 
 ## 📀 시간대별 기록
 
@@ -232,3 +235,37 @@ last_modified_at: 2024-10-16. 07:39 # 정리
 
 ![티어게임(관)](/assets/img/post/project/TierGame.png)  
 ![CG 따라 만들기](/assets/img/post/project/CG.png)  
+
+## 📀 시참
+
+---
+
+제 2회 트위치 리그오브레전드 랜덤 챔피언 대전 (2:2 라인전, 롤 랜챔대)  
+{% include embed/youtube.html id = "_2sbslbo2Dg" %}
+
+최소한의 블록으로 원피스 루피 표현한거 소름 - 마인크래프트 건축 콘테스트 '만화' 편  
+{% include embed/youtube.html id = "7VW3DNQAWYE" %}
+
+왁트모르즈비하다 졸려서 아내에게 맡기고 자러 갔습니다 - 마인크래프트 초 대규모 도시 건설 초 장기 프로젝트 왁트모르즈비 16화  
+{% include embed/youtube.html id = "vQfgx8m3o8M" %}
+
+계튜브 7주년 기념 계모임을 하였습니다.  
+{% include embed/youtube.html id = "qk4yG43HFVQ" %}
+
+시청자들과 잔잔 소통  
+{% include embed/youtube.html id = "5IHI784aeNI" %}
+
+VRChat 회전 팬미팅 내 시점  
+{% include embed/youtube.html id = "L545R35syv4" %}
+
+VRChat 주뗌므 내 시점  
+{% include embed/youtube.html id = "Nm576yOrK7k" %}
+
+금칙어 게임 방심하면 훅 간다 ㅋㅋㅋㅋㅋㅋ  
+{% include embed/youtube.html id = "rcK4tS4zD_E" %}
+
+개 웃긴 금칙어 게임  
+{% include embed/youtube.html id = "Jhfn2cxUkss" %}
+
+내가 생각하는 최고의 고멤 5명을 뽑아 보시오  
+{% include embed/youtube.html id = "W2XaI5dqK-c" %}

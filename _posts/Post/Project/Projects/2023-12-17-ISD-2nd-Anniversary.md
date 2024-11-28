@@ -9,3 +9,6 @@ hidden: true
 date: 2023-12-17. 00:00
 last_modified_at: 2024-11-09. 08:26 # Init
 ---
+
+이세돌 2주년 기념 술먹방  
+{% include embed/youtube.html id = "EYyBAa6lhxE" %}

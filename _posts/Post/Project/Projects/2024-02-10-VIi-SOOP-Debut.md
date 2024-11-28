@@ -9,3 +9,6 @@ hidden: true
 date: 2024-02-10. 00:00
 last_modified_at: 2024-11-09. 08:26 # Init
 ---
+
+4만명이 지켜본 첫 방송  
+{% include embed/youtube.html id = "UIHoQ-4ts38" %}

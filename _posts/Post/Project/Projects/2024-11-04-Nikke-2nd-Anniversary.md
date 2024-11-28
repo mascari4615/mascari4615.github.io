@@ -10,11 +10,20 @@ date: 2024-11-04. 00:0
 last_modified_at: 2024-11-18. 06:24 # Init
 ---
 
+역대급 바디수트 신의상 출시...?!ㄷㄷ  
 {% include embed/youtube.html id = "E9C4HeGa2bQ" %}
 
+(진짜 변태같다)  
 {% include embed/youtube.html id = "HczXoXZ0PMs" %}
 
+초특급 섹시 등장  
 {% include embed/youtube.html id = "8R0I0Xa5Gbw" %}
+
+니케 2주년 이벤트! (with. 엔젤님, 이슬 성우님)  
+{% include embed/youtube.html id = "rwP5rQXirUA" %}
+
+니케 2주년을 맞이하여 라푼젤 성우님이 오셨습니다!  
+{% include embed/youtube.html id = "VUseKBVODg0" %}
 
 ## 📀 말머리
 

@@ -53,7 +53,7 @@ last_modified_at: 2024-11-18. 05:15 # 정리
 
 - Unity
   - 르르와 연애중 1 - Unity 2019.4.31f1
-  - 르르와 연애중 2 - Unity 2022.3.22f1  
+  - 르르와 연애중 2 - Unity 2022.3.22f1
 - U# (C# + VRChat SDK)
 
 Unity Package를 통해 팀원과 파일을 공유했습니다. (파일 공유 수가 적었습니다.)  
