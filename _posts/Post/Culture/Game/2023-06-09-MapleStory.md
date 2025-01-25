@@ -9,7 +9,8 @@ hidden: true
 date: 2023-06-09. 19:38
 # last_modified_at: 2023-11-29. 08:14
 # last_modified_at: 2024-08-29. 22:18
-last_modified_at: 2025-01-04. 01:33
+# last_modified_at: 2025-01-04. 01:33 # 기록, 정리
+last_modified_at: 2025-01-04. 14:14 # 기록, 장비제작 명장 루트
 ---
 
 ## 📀 기록
@@ -23,6 +24,8 @@ last_modified_at: 2025-01-04. 01:33
 - 🍋 엔젤릭버스터 : ttmdacl
   - 0723 - 255
   - 241213 - 첫 이지윌
+  - 250104 - 첫 하드 스우
+  - 250104 - 첫 노말 더스크
 
 - 0723 5500 마스터
 - 1129 8080 그랜드 마스터
@@ -32,8 +35,32 @@ last_modified_at: 2025-01-04. 01:33
 ## 📀 링크
 
 - <https://maple.ygh.kr/crystal>
-- [메이플 엔버 극딜순서, 스킬시퀀스 공략!](https://youtu.be/Aq3fDsA8WVc?si=P6SHz8SMQIB_HF_V)
-- [260레벨 이후 가장 효율적으로 육성하는 방법 (하이퍼버닝맥스 260레벨 이후 가이드)](https://youtu.be/GK1Cgas53Gw?si=vXV5guTiqSYjFSFR)
+- [환산 주스탯](https://maplescouter.com/result)
+- [엔버 극딜 순서, 스킬시퀀스](https://youtu.be/Aq3fDsA8WVc?si=P6SHz8SMQIB_HF_V)
+- [장비제작 명장 루트](https://matsu1207.tistory.com/240)
+- [하버맥 260 이후 육성](https://youtu.be/GK1Cgas53Gw?si=vXV5guTiqSYjFSFR)
+
+## 📀 숙제
+
+---
+
+- ttmdacw
+  - 260렙
+  - 장비 잠재 맞추기
+  - 어빌
+
+## 📀 숫자
+
+---
+
+- 매주 목요일
+  - 아티팩트 주간 미션 초기화
+  - 보스 초기화
+    - 월드당 결정석 180개
+    - 캐릭당 주간 보석 12개
+
+- 유니온 상점 초기화
+  - 10일 동안 사용 가능
 
 ## 📀 유니온 메모
 
