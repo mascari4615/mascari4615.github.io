@@ -1,15 +1,4 @@
-@import 'colors/typography-light';
-@import 'colors/typography-dark';
-@import 'addon/variables';
-@import 'variables-hook';
-@import 'addon/module';
-@import 'addon/syntax';
-@import 'addon/commons';
-@import 'layout/home';
-@import 'layout/post';
-@import 'layout/tags';
-@import 'layout/archives';
-@import 'layout/categories';
-@import 'layout/category-tag';
-
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@forward 'base';
+@forward 'components';
+@forward 'layout';
+@forward 'pages';
