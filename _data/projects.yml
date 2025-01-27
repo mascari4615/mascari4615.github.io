@@ -1,20 +1,20 @@
 - title: WIP...
   url: /posts//
-  description: 이 페이지는 현재 공사중입니다 !
+  description: "이 페이지는 현재 공사중입니다 !"
   image: /assets/img/background/backtop.gif
   tags:
-  date: 'Last Update : 241113.'
+  date: 'Last Update : 250127.'
 
 - title: Woodon
   url: https://github.com/WRChat/Woodon
-  description: VRChat World-U# Library
+  description: "VRChat World-U# Library"
   image: /assets/project/WRChat/Woodon/Woodon_Logo.png
   tags: [Unity, Programming]
   date: '2411~'
 
 - title: 루석바
   url: /posts/RusukBar/
-  description: 왁타버스 고정멤버 해루석님을 위한 VRChat World 제작 프로젝트.
+  description: "왁타버스 고정멤버 해루석님을 위한 VRChat World 제작 프로젝트."
   image: /assets/project/RusukBar/RusukBar.png
   tags: [Unity, Art, Programming]
   date: '2201~'
@@ -35,14 +35,14 @@
 
 - title: 르르와 연애중
   url: /posts/Love-With-JRR/
-  description: 이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠. VRChat World 기능 프로그래밍 및 오퍼레이팅/기능 조작.
+  description: 이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠.
   image: /assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png
   tags: [Unity, Programming, VRChat]
   date: "2311, 2411."
 
 - title: "승리의 여신 : 니케, 2주년 업데이트 광고"
   url: /posts/Nikke-2nd-Anniversary/
-  description: "여러 인플루언서 광고 중, 패러블엔터테인먼트 주관 이세계아이돌 x 뢴트게늄님의 컨텐츠. VRChat World 기능 프로그래밍 및 오퍼레이팅/기능 조작."
+  description: "여러 인플루언서 광고 중, 패러블엔터테인먼트 주관 이세계아이돌 x 뢴트게늄님의 컨텐츠."
   image: /assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png
   tags: [Unity, Programming, VRChat]
   date: "241104"
@@ -60,6 +60,13 @@
   image: /assets/project/SCREAM_Promotion/230405_041551.png
   tags: [Unity, Art, Programming]
   date:
+
+- title: 왁타로
+  url: /posts/VRC-Waktarot/
+  description: "우왁굳의 타로 컨텐츠"
+  image: /assets/project/VRC-Waktarot/250124_021512.png
+  tags: [Unity, Programming]
+  date: "250123"
 
 - title: 구슬요의 버블껌
   url: /posts/Bubble-Gum/
