@@ -45,7 +45,7 @@
   description: "여러 인플루언서 광고 중, 패러블엔터테인먼트 주관 이세계아이돌 x 뢴트게늄님의 컨텐츠."
   image: /assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png
   tags: [Unity, Programming, VRChat]
-  date: "241104"
+  date: "2024/11/04"
 
 - title: VWorld - 버츄얼 종합 대회
   url: /posts/SOOP-Studio/
@@ -62,11 +62,11 @@
   date:
 
 - title: 왁타로
-  url: /posts/VRC-Waktarot/
+  url: /posts/VRC-WakTarot/
   description: "우왁굳의 타로 컨텐츠"
-  image: /assets/project/VRC-Waktarot/250124_021512.png
+  image: /assets/project/WakTarot/250124_021512.png
   tags: [Unity, Programming]
-  date: "250123"
+  date: "2025/01/23"
 
 - title: 구슬요의 버블껌
   url: /posts/Bubble-Gum/
