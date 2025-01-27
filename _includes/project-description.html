@@ -3,9 +3,6 @@
 {%- capture description -%}
 {%- if project.description -%}
   {{- project.description -}}
-{%- else -%}
-  {%- include no-linenos.html content=project.content -%}
-  {{- content | markdownify | strip_html -}}
 {%- endif -%}
 {%- endcapture -%}
 
