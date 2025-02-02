@@ -4,6 +4,7 @@ title: "CG"
 categories: [💫Computer,🌔Game-Engine]
 tags: [Game-Engine, Computer-Graphics, CG]
 image: "/assets/img/background/kururu-lab.jpg"
+hidden: true
 
 date: 2024-11-13. 06:35
 last_modified_at: 2024-11-13. 06:35 # Init
