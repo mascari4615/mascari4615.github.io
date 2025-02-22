@@ -1,8 +1,8 @@
 ---
 title: "Rendering"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
-tags: [Game-Engine, Computer-Graphics, CG, Rendering]
+categories: [💫Computer, 🌕Computer-Graphics]
+tags: [Computer-Graphics, CG, Rendering]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

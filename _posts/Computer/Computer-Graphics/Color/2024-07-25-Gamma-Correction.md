@@ -1,7 +1,7 @@
 ---
 title: "Gamma Correction"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
+categories: [💫Computer, 🌕Computer-Graphics]
 tags: [Computer-Graphics, CG, Gamma-Correction, Linear-Workflow]
 image: "/assets/img/background/kururu-lab.jpg"
 

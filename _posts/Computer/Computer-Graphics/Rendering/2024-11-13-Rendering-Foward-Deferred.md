@@ -1,8 +1,8 @@
 ---
 title: "Forward & Deferred Rendering"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
-tags: [Game-Engine, Computer-Graphics, CG, Rendering, Forward-Rendering, Deferred-Rendering]
+categories: [💫Computer, 🌕Computer-Graphics]
+tags: [Computer-Graphics, CG, Rendering, Forward-Rendering, Deferred-Rendering]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

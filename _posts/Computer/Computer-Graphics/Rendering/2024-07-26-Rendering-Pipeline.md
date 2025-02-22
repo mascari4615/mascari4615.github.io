@@ -1,8 +1,8 @@
 ---
 title: "Rendering Pipeline"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
-tags: [Game-Engine, Computer-Graphics, CG, Rendering-Pipeline]
+categories: [💫Computer, 🌕Computer-Graphics]
+tags: [Computer-Graphics, CG, Rendering-Pipeline]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

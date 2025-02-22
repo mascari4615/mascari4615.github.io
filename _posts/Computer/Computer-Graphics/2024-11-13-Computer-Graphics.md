@@ -1,8 +1,8 @@
 ---
 title: "CG"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
-tags: [Game-Engine, Computer-Graphics, CG]
+categories: [💫Computer, 🌕Computer-Graphics]
+tags: [Computer-Graphics, CG]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
