@@ -1,8 +1,8 @@
 ---
 title: "Unity | AssetBundle, Addressable"
 # description: ""
-categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, AssetBundle, Addressable]
+categories: [💫Computer, 🌔Game-Engine]
+tags: [Unity, AssetBundle, Addressable]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

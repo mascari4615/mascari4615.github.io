@@ -1,7 +1,7 @@
 ---
 title: "VRChat 월드 제작 (U# / UdonSharp)"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
+categories: [💫Computer, 🌔Game-Engine]
 tags: [Unity, VRChat, USharp]
 image: "/assets/img/background/20240827_140647.jpg"
 

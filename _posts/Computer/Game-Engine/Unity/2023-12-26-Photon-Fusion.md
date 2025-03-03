@@ -1,7 +1,7 @@
 ---
 title: "Photon Fusion 2"
 # description: ""
-categories: [💫Computer,🌔Game-Engine]
+categories: [💫Computer, 🌔Game-Engine]
 tags: [Unity]
 image: "/assets/img/background/20240827_140647.jpg"
 
