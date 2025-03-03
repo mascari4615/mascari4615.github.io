@@ -1,13 +1,13 @@
 ---
-title: "VRChat - 유콘 24"
+title: "VRChat - 달콤레나 인챈트 퀴즈쇼"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, WakTarot]
+tags: [Project, VRChat, DalcomLena-Enchant-QuizShow]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 
-date: 2025-01-23. 00:00
-last_modified_at: 2025-01-27. 13:01 # Init
+date: 2025-02-25. 00:00
+last_modified_at: 2025-03-03. 21:38 # Init
 ---
 
 _  
@@ -17,18 +17,21 @@ _
 
 ---
 
-유콘님의 '일러스트 전시회' 컨텐츠입니다.  
+달콤레나님의 '인챈트 퀴즈쇼' 컨텐츠입니다.  
 
-유콘님께서 2024년 한 해 동안 그려오신 일러스트를 전시하고, VRChat 인게임 시청자 참여 투표를 통해 가장 인기있었던 일러스트의 순위를 매기는 컨텐츠입니다.  
+달콤레나님께서 인챈트 소속이 되시는 것을 기념으로 준비된, 인챈트 및 인챈트 소속 크리에이터/컨텐츠에 관한 퀴즈쇼입니다.  
 
-25년 01월 11일 방송이 진행됐습니다.  
+25년 02월 25일 방송이 진행됐습니다.  
 
 ### 💿 참여 / 담당
 
 본 컨텐츠는 VRChat 게임 내에서 진행되었습니다.  
 
 해당 컨텐츠에 사용된 VRChat World 내 기능 프로그래밍을 담당했습니다.  
-또한 방송 진행을 위한 기능 조작을 담당했습니다.  
+
+- 카메라 시스템
+  - 에디터 타임에 카메라 구도를 미리 설정
+  - `CinemachineVirtualCamera.Priority`를 조정하여 구도 전환
 
 ### 💿 사용한 툴
 

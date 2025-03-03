@@ -54,29 +54,43 @@
   tags: [Unity, Art, Programming]
   date:
 
+- title: 세구와 연애중
+  url: /posts/Love-With-Gosegu/
+  description: "이세계아이돌 고세구님의 '연애 시뮬레이션 토크' 컨텐츠."
+  image:
+  tags: [Unity, Programming]
+  date: "2025/02/16"
+
+- title: 달콤레나 인챈트 퀴즈쇼
+  url: /posts/DalcomLena-Enchant-QuizShow/
+  description: "달콤레나님의 인챈트 퀴즈쇼"
+  image:
+  tags: [Unity, Programming]
+  date: "2025/02/25"
+
 - title: 고멤 덱 압축
-  url: /posts/VRC-Gomem-Deck-Compression/
+  url: /posts/Gomem-Deck-Compression/
   description: "우왁굳의 고멤유치원 (고멤 하드코어) 결과 발표 컨텐츠"
   image:
   tags: [Unity, Programming]
   date: "2025/02/15"
 
 - title: 챠니와 두근두근
-  url: /posts/VRC-Love-With-VIichan/
-  description: "비챤의 미연시 컨텐츠"
+  url: /posts/Love-With-VIichan/
+  description: "이세계아이돌 비챤님의 '연애 시뮬레이션 토크' 컨텐츠."
   image:
   tags: [Unity, Programming]
   date: "2025/02/14"
 
 - title: 왁타로
-  url: /posts/VRC-WakTarot/
+  url: /posts/WakTarot/
   description: "우왁굳의 타로 컨텐츠"
   image: /assets/project/WakTarot/250124_021512.png
   tags: [Unity, Programming]
   date: "2025/01/23"
 
 - title: 유콘 24전
-  url: /posts/VRC-Ukon-24-Exhibition/
+  url: /posts/Ukon-24-Exhibition/
   description: "유콘의 2024 그림 전시회"
   image:
   tags: [Unity, Programming]
