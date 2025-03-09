@@ -54,3 +54,19 @@ _
 ## 📀 기록
 
 ---
+
+![250110_182201](/assets/project/Ukon_24_Exhibition/250110_182201.png)
+![250111_162508](/assets/project/Ukon_24_Exhibition/250111_162508.png)
+![250111_162637](/assets/project/Ukon_24_Exhibition/250111_162637.png)
+![250111_165336](/assets/project/Ukon_24_Exhibition/250111_165336.png)
+![250111_180152](/assets/project/Ukon_24_Exhibition/250111_180152.png)
+![250111_180220](/assets/project/Ukon_24_Exhibition/250111_180220.png)
+![250111_181513](/assets/project/Ukon_24_Exhibition/250111_181513.png)
+![250111_190929](/assets/project/Ukon_24_Exhibition/250111_190929.png)
+![250111_190942](/assets/project/Ukon_24_Exhibition/250111_190942.png)
+![250111_195350](/assets/project/Ukon_24_Exhibition/250111_195350.png)
+![250111_195815](/assets/project/Ukon_24_Exhibition/250111_195815.png)
+![250111_203528](/assets/project/Ukon_24_Exhibition/250111_203528.png)
+![250111_203801](/assets/project/Ukon_24_Exhibition/250111_203801.png)
+![250111_204035](/assets/project/Ukon_24_Exhibition/250111_204035.png)
+![250111_204054](/assets/project/Ukon_24_Exhibition/250111_204054.png)
