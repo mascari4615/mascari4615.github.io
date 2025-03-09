@@ -30,8 +30,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 # last_modified_at: 2024-02-21. 20:54
 # last_modified_at: 2024-08-29. 22:00
 
-date: 2024-11-13. 05:10
-last_modified_at: 2024-11-13. 05:10 # Init
+date: 2024-11-13. 05:10 # Init
+last_modified_at: 2025-03-04. 23:41 # 읽을 것 하나
 ---
 
 2024-11-13. 05:10 : 글 계승, 병합.  
@@ -95,6 +95,9 @@ last_modified_at: 2024-11-13. 05:10 # Init
   - [메모이제이션](https://namu.wiki/w/%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98)
   - [C++ 익명함수 사용법](https://progl.tistory.com/5)
   - [누적합](https://book.acmicpc.net/algorithm/prefix-sum)
+
+- 읽어볼 것
+  - [1](https://www.acmicpc.net/board/view/34613)
 
 ### 🫧 참고
 

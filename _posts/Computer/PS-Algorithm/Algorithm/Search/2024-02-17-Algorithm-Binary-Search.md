@@ -170,5 +170,4 @@ int upperBound(int arr[], int target, int size)
   - 오버플로우 방지: `int mid = low + (high - low) / 2;`
   - 균등하게 나누기: `mid = (high - low + 1) / 2;`
 
-- TODO:
-  - [좌표 압축 ~](https://blog.encrypted.gg/985)
+- TODO: [좌표 압축 ~](https://blog.encrypted.gg/985)
