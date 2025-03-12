@@ -24,3 +24,30 @@ last_modified_at: 2024-11-09. 08:16 # Init
 
 레이디버그 고멤가요제 MV TEASER  
 {% include embed/youtube.html id = "KjJGhVx036U" %}
+
+## 📀 말머리
+
+---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+## 📀 기록
+
+---
+
+![220711_000000](/assets/project/Gomem_Music_Festival/220711_000000.png)
+![220711_233138](/assets/project/Gomem_Music_Festival/220711_233138.png)
+![220711_233246](/assets/project/Gomem_Music_Festival/220711_233246.png)
+![220711_233356](/assets/project/Gomem_Music_Festival/220711_233356.png)
+![220711_234036](/assets/project/Gomem_Music_Festival/220711_234036.png)
+![220814_220618](/assets/project/Gomem_Music_Festival/220814_220618.png)
+![220814_220833](/assets/project/Gomem_Music_Festival/220814_220833.png)
+![220904_171025](/assets/project/Gomem_Music_Festival/220904_171025.png)
+![230611_175042](/assets/project/Gomem_Music_Festival/230611_175042.png)
+![230611_180419](/assets/project/Gomem_Music_Festival/230611_180419.png)
+![Gomem_Music_Festival_Finale1](/assets/project/Gomem_Music_Festival/Gomem_Music_Festival_Finale1.png)
+![Gomem_Music_Festival_Finale2](/assets/project/Gomem_Music_Festival/Gomem_Music_Festival_Finale2.png)
+![Gomem_Music_Festival_ForbiddenLady1](/assets/project/Gomem_Music_Festival/Gomem_Music_Festival_ForbiddenLady1.png)
+![Gomem_Music_Festival_ForbiddenLady2](/assets/project/Gomem_Music_Festival/Gomem_Music_Festival_ForbiddenLady2.png)
