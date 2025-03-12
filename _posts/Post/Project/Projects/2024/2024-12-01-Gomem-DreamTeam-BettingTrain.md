@@ -48,6 +48,33 @@ last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달
 
 ---
 
+![241116_124901](/assets/project/Gomem_DreamTeam/BettingTrain/241116_124901.png)
+![241125_194949](/assets/project/Gomem_DreamTeam/BettingTrain/241125_194949.png)
+![241128_194431](/assets/project/Gomem_DreamTeam/BettingTrain/241128_194431.png)
+![241128_194440](/assets/project/Gomem_DreamTeam/BettingTrain/241128_194440.png)
+![241128_195131](/assets/project/Gomem_DreamTeam/BettingTrain/241128_195131.png)
+![241128_195524](/assets/project/Gomem_DreamTeam/BettingTrain/241128_195524.png)
+![241128_220018](/assets/project/Gomem_DreamTeam/BettingTrain/241128_220018.png)
+![241128_223757](/assets/project/Gomem_DreamTeam/BettingTrain/241128_223757.png)
+![241130_182914](/assets/project/Gomem_DreamTeam/BettingTrain/241130_182914.png)
+![241130_193118](/assets/project/Gomem_DreamTeam/BettingTrain/241130_193118.png)
+![241130_212211](/assets/project/Gomem_DreamTeam/BettingTrain/241130_212211.png)
+![241130_215108](/assets/project/Gomem_DreamTeam/BettingTrain/241130_215108.png)
+![241130_221320](/assets/project/Gomem_DreamTeam/BettingTrain/241130_221320.png)
+![241130_230638](/assets/project/Gomem_DreamTeam/BettingTrain/241130_230638.png)
+![241130_233130](/assets/project/Gomem_DreamTeam/BettingTrain/241130_233130.png)
+![241130_235335](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235335.png)
+![241130_235336](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235336.png)
+![241130_235339](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235339.png)
+![241130_235343](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235343.png)
+![241130_235401](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235401.png)
+![241130_235419](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235419.png)
+![241130_235926](/assets/project/Gomem_DreamTeam/BettingTrain/241130_235926.png)
+![241201_000236](/assets/project/Gomem_DreamTeam/BettingTrain/241201_000236.png)
+![Gomem_DreamTeam_BettingTrain_Banner](/assets/project/Gomem_DreamTeam/BettingTrain/Gomem_DreamTeam_BettingTrain_Banner.jpg)
+![Gomem_DreamTeam_BettingTrain_Credit](/assets/project/Gomem_DreamTeam/BettingTrain/Gomem_DreamTeam_BettingTrain_Credit.jpg)
+![Gomem_DreamTeam_BettingTrain_TeamList](/assets/project/Gomem_DreamTeam/BettingTrain/Gomem_DreamTeam_BettingTrain_TeamList.png)
+
 241108 2300 2차 회의  
 기획 보완  
 
