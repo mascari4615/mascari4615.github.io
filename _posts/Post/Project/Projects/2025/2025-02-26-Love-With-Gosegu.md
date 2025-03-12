@@ -81,6 +81,9 @@ _
 
 ---
 
+![Love_With_GSG_Credit](/assets/project/Love_With_GSG/Love_With_GSG_Credit.jpg)
+![Love_With_GSG_Logo](/assets/project/Love_With_GSG/Love_With_GSG_Logo.jpg)
+
 1등 주르르 74점
 2등 비챤 63점
 3등 아이네 60점

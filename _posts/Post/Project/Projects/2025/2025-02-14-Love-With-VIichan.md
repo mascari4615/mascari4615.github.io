@@ -84,3 +84,11 @@ Arizen님께서 SOOP 채팅 연동 투표 기능 개발
 ## 📀 기록
 
 ---
+
+![250214_230225](/assets/project/Love_With_VIi/250214_230225.png)
+![250214_230740](/assets/project/Love_With_VIi/250214_230740.png)
+![250214_230748](/assets/project/Love_With_VIi/250214_230748.png)
+![250214_230756](/assets/project/Love_With_VIi/250214_230756.png)
+![250214_230915](/assets/project/Love_With_VIi/250214_230915.png)
+![Love_With_VIi_Banner](/assets/project/Love_With_VIi/Love_With_VIi_Banner.png)
+![Love_With_VIi_Credit](/assets/project/Love_With_VIi/Love_With_VIi_Credit.png)
