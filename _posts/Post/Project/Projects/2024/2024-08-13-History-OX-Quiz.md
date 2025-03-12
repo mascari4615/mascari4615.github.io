@@ -1,5 +1,5 @@
 ---
-title: "역사 OX 퀴즈"
+title: "한국사 OX 퀴즈"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [VRChat, ]
@@ -13,9 +13,56 @@ last_modified_at: 2024-11-09. 08:35 # Init
 빼빼로와 함께한 방송인 한국사 OX퀴즈  
 {% include embed/youtube.html id = "hG9tG25nEO4" %}
 
-## 🎲 요약
+## 📀 말머리
 
 ---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+## 📀 기록
+
+---
+
+![240808_200816](/assets/project/History_OX_Quiz/240808_200816.png)
+![240808_202453](/assets/project/History_OX_Quiz/240808_202453.png)
+![240808_202520](/assets/project/History_OX_Quiz/240808_202520.png)
+![240815_163936](/assets/project/History_OX_Quiz/240815_163936.png)
+![240816_135332](/assets/project/History_OX_Quiz/240816_135332.png)
+![240817_152627](/assets/project/History_OX_Quiz/240817_152627.png)
+![240817_224926](/assets/project/History_OX_Quiz/240817_224926.png)
+![240817_230552](/assets/project/History_OX_Quiz/240817_230552.png)
+![240817_233046](/assets/project/History_OX_Quiz/240817_233046.png)
+![240817_234052](/assets/project/History_OX_Quiz/240817_234052.png)
+![240817_234105](/assets/project/History_OX_Quiz/240817_234105.png)
+![240817_234751](/assets/project/History_OX_Quiz/240817_234751.png)
+![240818_000835](/assets/project/History_OX_Quiz/240818_000835.png)
+![240818_002200](/assets/project/History_OX_Quiz/240818_002200.png)
+![240818_002214](/assets/project/History_OX_Quiz/240818_002214.png)
+![240818_002219](/assets/project/History_OX_Quiz/240818_002219.png)
+![240818_002330](/assets/project/History_OX_Quiz/240818_002330.png)
+![240818_002341](/assets/project/History_OX_Quiz/240818_002341.png)
+![240818_003121](/assets/project/History_OX_Quiz/240818_003121.png)
+![240924_212306](/assets/project/History_OX_Quiz/240924_212306.png)
+![240924_212314](/assets/project/History_OX_Quiz/240924_212314.png)
+![240924_212320](/assets/project/History_OX_Quiz/240924_212320.png)
+![240924_212323](/assets/project/History_OX_Quiz/240924_212323.png)
+![250220_193017](/assets/project/History_OX_Quiz/250220_193017.png)
+![250220_193026](/assets/project/History_OX_Quiz/250220_193026.png)
+![250220_193046](/assets/project/History_OX_Quiz/250220_193046.png)
+![250220_193056](/assets/project/History_OX_Quiz/250220_193056.png)
+![250220_193110](/assets/project/History_OX_Quiz/250220_193110.png)
+![250220_193121](/assets/project/History_OX_Quiz/250220_193121.png)
+![250220_193130](/assets/project/History_OX_Quiz/250220_193130.png)
+![250220_193254](/assets/project/History_OX_Quiz/250220_193254.png)
+![250220_193304](/assets/project/History_OX_Quiz/250220_193304.png)
+![250220_193410](/assets/project/History_OX_Quiz/250220_193410.png)
+![250220_193435](/assets/project/History_OX_Quiz/250220_193435.png)
+![250220_193452](/assets/project/History_OX_Quiz/250220_193452.png)
+![250220_193506](/assets/project/History_OX_Quiz/250220_193506.png)
+![250220_193513](/assets/project/History_OX_Quiz/250220_193513.png)
+![250220_193523](/assets/project/History_OX_Quiz/250220_193523.png)
 
 ### TODO
 
