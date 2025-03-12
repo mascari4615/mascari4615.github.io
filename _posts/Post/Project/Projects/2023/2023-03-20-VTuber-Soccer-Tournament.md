@@ -15,3 +15,33 @@ Counting Stars - 버축대 카오닝스타즈 MV
 
 티바살 갈통대전 맵탐방  
 {% include embed/youtube.html id = "Pt3incWbJek" %}
+
+## 📀 말머리
+
+---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+## 📀 기록
+
+---
+
+![230306_191047](/assets/project/VTuber_Soccer_Tounerment/230306_191047.png)
+![230308_002313](/assets/project/VTuber_Soccer_Tounerment/230308_002313.png)
+![230308_002343](/assets/project/VTuber_Soccer_Tounerment/230308_002343.png)
+![230313_022135](/assets/project/VTuber_Soccer_Tounerment/230313_022135.png)
+![230313_022302](/assets/project/VTuber_Soccer_Tounerment/230313_022302.png)
+![230313_022339](/assets/project/VTuber_Soccer_Tounerment/230313_022339.png)
+![230313_023331](/assets/project/VTuber_Soccer_Tounerment/230313_023331.png)
+![230313_023555](/assets/project/VTuber_Soccer_Tounerment/230313_023555.png)
+![230313_023611](/assets/project/VTuber_Soccer_Tounerment/230313_023611.png)
+![230313_023724](/assets/project/VTuber_Soccer_Tounerment/230313_023724.png)
+![230313_024232](/assets/project/VTuber_Soccer_Tounerment/230313_024232.png)
+![230313_024325](/assets/project/VTuber_Soccer_Tounerment/230313_024325.png)
+![230313_024346](/assets/project/VTuber_Soccer_Tounerment/230313_024346.png)
+![230313_032338](/assets/project/VTuber_Soccer_Tounerment/230313_032338.png)
+![230313_032647](/assets/project/VTuber_Soccer_Tounerment/230313_032647.png)
+![230313_032705](/assets/project/VTuber_Soccer_Tounerment/230313_032705.png)
+![230313_034259](/assets/project/VTuber_Soccer_Tounerment/230313_034259.png)
