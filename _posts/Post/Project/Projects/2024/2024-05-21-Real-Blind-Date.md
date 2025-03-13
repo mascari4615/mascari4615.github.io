@@ -7,13 +7,14 @@ image: "/assets/project/Real_Meeting/240525_000000.png"
 hidden: true
 
 date: 2024-05-21. 00:00
-last_modified_at: 2024-11-09. 08:31 # Init
+# last_modified_at: 2024-11-09. 08:31 # Init
+last_modified_at: 2025-03-13. 19:04
 ---
 
 인간과 버추얼이 소개팅을 한다면? -인간X버추얼 소개팅  
 {% include embed/youtube.html id = "dC1u2VNN7q8" %}
 
-## 🎲 요약
+## 📀 말머리
 
 ---
 
@@ -22,9 +23,7 @@ last_modified_at: 2024-11-09. 08:31 # Init
 
 VRChat SDK를 이용한 Unity C# 프로그래밍을 담당하였습니다.  
 
-## 🎲 기능
-
----
+### 💿 참여 / 담당
 
 작업한 기능은 다음과 같습니다.  
 
@@ -44,9 +43,20 @@ VRChat SDK를 이용한 Unity C# 프로그래밍을 담당하였습니다.
 - CC (Cinemachine을 이용한 카메라 컨트롤)
   - 무대 카메라, 투표 카메라
 
-## 🎲 진행 순서
+### 💿 사용한 툴
+
+## 📀 기록
 
 ---
+
+![240524_000000](/assets/project/Real_Blind_Date/240524_000000.png)
+![240525_000000](/assets/project/Real_Blind_Date/240525_000000.png)
+![250220_194001](/assets/project/Real_Blind_Date/250220_194001.png)
+![250220_194100](/assets/project/Real_Blind_Date/250220_194100.png)
+![250220_194119](/assets/project/Real_Blind_Date/250220_194119.png)
+![250220_194149](/assets/project/Real_Blind_Date/250220_194149.png)
+
+### 💿 진행 순서
 
 1. 소개
    - 무대 문 CC

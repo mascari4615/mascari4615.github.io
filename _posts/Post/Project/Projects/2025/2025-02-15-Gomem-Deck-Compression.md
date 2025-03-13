@@ -97,5 +97,12 @@ _
 
 ---
 
+![250211_222111](/assets/project/Gomem_Deck_Compression/250211_222111.png)
+![250211_222123](/assets/project/Gomem_Deck_Compression/250211_222123.png)
+![250211_223055](/assets/project/Gomem_Deck_Compression/250211_223055.png)
+![250211_224730](/assets/project/Gomem_Deck_Compression/250211_224730.png)
+![250215_000000](/assets/project/Gomem_Deck_Compression/250215_000000.png)
+![250215_050358](/assets/project/Gomem_Deck_Compression/250215_050358.png)
+
 - 무조건 강화
   - 프리미엄 중간계

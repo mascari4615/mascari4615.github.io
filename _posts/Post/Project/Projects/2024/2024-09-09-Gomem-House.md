@@ -65,9 +65,32 @@ Discord를 통해 팀원과 소통했습니다.
 - 돝돝
 - 초옥
 
+![241000_000000](/assets/project/Gomem_House/Scretto/241000_000000.png)
+![241000_000001](/assets/project/Gomem_House/Scretto/241000_000001.png)
+![241001_215717](/assets/project/Gomem_House/Scretto/241001_215717.png)
+![241001_215806](/assets/project/Gomem_House/Scretto/241001_215806.png)
+![241001_220305](/assets/project/Gomem_House/Scretto/241001_220305.png)
+![241001_220934](/assets/project/Gomem_House/Scretto/241001_220934.png)
+![241001_220942](/assets/project/Gomem_House/Scretto/241001_220942.png)
+![241001_221130](/assets/project/Gomem_House/Scretto/241001_221130.png)
+![241001_221152](/assets/project/Gomem_House/Scretto/241001_221152.png)
+![241001_221336](/assets/project/Gomem_House/Scretto/241001_221336.png)
+![241001_221515](/assets/project/Gomem_House/Scretto/241001_221515.png)
+![241001_221558](/assets/project/Gomem_House/Scretto/241001_221558.png)
+![241001_221644](/assets/project/Gomem_House/Scretto/241001_221644.png)
+![241001_221920](/assets/project/Gomem_House/Scretto/241001_221920.png)
+![Gomem_House_Scretto_Credit](/assets/project/Gomem_House/Scretto/Gomem_House_Scretto_Credit.png)
+
 ## 📀 권민
 
 ---
+
+![241001_230756](/assets/project/Gomem_House/Kwon/241001_230756.png)
+![241001_230758](/assets/project/Gomem_House/Kwon/241001_230758.png)
+![241001_233516](/assets/project/Gomem_House/Kwon/241001_233516.png)
+![241001_233526](/assets/project/Gomem_House/Kwon/241001_233526.png)
+![241001_234119](/assets/project/Gomem_House/Kwon/241001_234119.png)
+![241126_211925](/assets/project/Gomem_House/Kwon/241126_211925.png)
 
 - 권민
   - 0912 리스트업
@@ -105,4 +128,7 @@ Discord를 통해 팀원과 소통했습니다.
   - 달조
   - 인턴이기자
   - 카발리에
-  - gabi
+  - gagbi
+
+![240910_212337](/assets/project/Gomem_House/Kimchimandu/240910_212337.png)
+![240910_215905](/assets/project/Gomem_House/Kimchimandu/240910_215905.png)
