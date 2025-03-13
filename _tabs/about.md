@@ -11,16 +11,14 @@ order: 100
 ![Logo](/assets/img/profile/Star_Transparent.png){: width="100" height="100" .normal}
 
 안녕하세요, **카모뜨린 KarmoDDrine** 입니다.  
-Unity / C#을 이용하여 '게임 개발', '버츄얼 스트리머를 대상으로 한 VRChat 월드 컨텐츠' 를 만들고 있습니다.  
 
-2021년 - 좋아하는 게임 스트리머를 위한 팬 게임을 만든 것을 시작으로, 본격적인 게임 개발 활동을 시작하였습니다.  
+게임 스트리머 **우왁굳**님을 위해 2021년 팬 게임 [왁그리드](https://github.com/Mascari4615/Wakgreed)를 만든 것을 계기로,  
+게임 개발과 VRChat 컨텐츠 제작에 시간을 쏟고 있습니다.  
 
-현재 [강릉원주대학교](https://www.gwnu.ac.kr/sites/kr/index.do) [컴퓨터공학과](https://gwnucs.gwnu.ac.kr/sites/gwnucs/index.do)에서 학부과정을 이수하고 있으며 (재학, 7학기 \| 2021.03 - 2025.2),  
-인턴 및 보충역 (산업기능요원) 지원을 계획하고 있습니다. (2024년 말 - 2025년 초)  
+[마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai) 라는 게임 개발 프로젝트를 진행하고 있습니다.  
+어릴 때부터 만들고 싶었던 판타지 세계관를 구체화하고 구현하는 것이 목표입니다.  
 
-최근에는 마을 경영과 로그라이크 장르를 융합한 '마녀: 귀찮아!' 라는 게임 개발 프로젝트를 진행하고 있습니다.  
-어릴 때부터 창작해온 판타지 세계관의 구체화/구현, 게임 개발 스킬 향상을 목표로 제작하고 있습니다.  
-Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai)로 공개하고 있습니다. (개인 제작 리소스 \| 재배포 가능한 오픈소스를 사용하고 있습니다.)  
+현재 IT 산업기능요원 복무를 위해, 게임 회사에서 수습 기간을 진행하고 있습니다. (2025.03 -)  
 
 > 어떤 프로젝트에 참여했나요? - [참여 프로젝트 리스트](/projects)
 
@@ -30,6 +28,12 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
 
 ### 주요 경력 및 프로젝트
 
+- VRChat 컨텐츠 제작 (2022.02 - )
+  - Unity - U# (C# + VRChat SDK)을 이용한 VRChat 플랫폼 기반 컨텐츠 제작
+  - [참여 프로젝트 리스트](/projects) 참고.
+  - [Woodon](https://github.com/wrchat/Woodon)
+    - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
+
 - [패러블 엔터테인먼트](https://parable-asia.com/) (프로젝트 개별 임시직/계약, 총 1년 9개월 ~) - VRChat 월드 프로그래밍
   - 2024.05 - 2024.08 (4개월) \| [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld)
     - SOOP (前 AfreecaTV) 버츄얼 스트리머 대상 종합 대회 컨텐츠 제작
@@ -38,23 +42,26 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
   - 2022.05 - 2023.03 (11개월) \| [소녀:리버스 (피버스)](https://www.youtube.com/@girlsreverse)
     - 카카오 엔터테이먼트 주관 버츄얼 아이돌 프로젝트
 
-- [Woodon](https://github.com/wrchat/Woodon)
-  - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
+- [왁그리드](https://github.com/Mascari4615/Wakgreed)
+  - 게임 스트리머 '우왁굳'님을 위한 팬 게임, 탑뷰 2D 로그라이크
+  - [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
+  - 2021 우왁굳 연말공모전 게임 분야 - 3위
 
 - [마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai)
-  - HD-2D 마을 경영 x 로그라이크
+  - 개인 개발, HD-2D 마을 경영 x 로그라이크
+  - [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
 
-- [왁그리드](https://github.com/Mascari4615/Wakgreed)
-  - 게임 스트리머 '우왁굳'의 팬 게임, 탑뷰 2D 로그라이크
+### 학력
+
+- [강릉원주대학교](https://www.gwnu.ac.kr/sites/kr/index.do) [컴퓨터공학과](https://gwnucs.gwnu.ac.kr/sites/gwnucs/index.do) 학부 졸업 (2021.03 - 2025.03)
 
 ### 수상 및 출전
 
-- 2021 우왁굳 연말공모전 게임 분야 - 3위 '왁그리드'
 - 2020 청강문화산업대학교 공모전 게임 분야 - 입상 'Potion Factory'
 
 ### 기타 활동
 
-- 2024.03 - 진행 중 \| GW Gaming (교내 게임 개발 동아리) - 부리더, 프로그래머
+- 2024.03 - 2025.03 \| GW Gaming (교내 게임 개발 동아리) - 부리더, 프로그래머
 - 2022.01 - 진행 중 \| 왁타버스 VRChat 맵 제작 스터디 활동 - 멘토
 
 ## 링크
@@ -82,4 +89,4 @@ Github에 [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokus
 
 ---
 
-- 과거 `Dan3478`, `도순`, `Ttmdacl`, `까모뜨린` 닉네임으로 활동했습니다.
+- 과거 `Dan3478`, `도순`, `Ttmdacl`, `까모뜨린` 같은 이름으로도 활동했습니다.
