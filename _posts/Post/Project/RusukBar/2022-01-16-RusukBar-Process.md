@@ -60,6 +60,9 @@ last_modified_at: 2024-11-11. 02:55 # Init
 
 그리고 그 전략이 통했는지, 얼마 뒤 1차 서류 전형 합격 메일을 받았다.  
 
+![220112_210207](/assets/project/RusukBar/Study/220112_210207.png)
+![220112_215253](/assets/project/RusukBar/Study/220112_215253.png)
+
 ![Wakta_VRChat_Study_Mail_2](/assets/project/RusukBar/Study/Wakta_VRChat_Study_Mail_2.png)
 
 이후 2022년 1월 12일, VRChat에서 2차 면접 전형을 보았고, 여기서도 합격을 받아 최종 합격이 되었다. 그렇게 '왁타버스 맵 제작 스터디' 2기에 멘티로 참여하게 되었다.  

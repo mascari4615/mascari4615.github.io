@@ -59,6 +59,7 @@ _
 ![240623_224851](/assets/project/SOOP_Studio/240623_224851.png)
 ![240624_122834](/assets/project/SOOP_Studio/240624_122834.png)
 ![240625_073612](/assets/project/SOOP_Studio/240625_073612.png)
+![240625_110117](/assets/project/SOOP_Studio/240625_110117.png)
 ![240701_164459](/assets/project/SOOP_Studio/240701_164459.png)
 ![240701_200810](/assets/project/SOOP_Studio/240701_200810.png)
 ![240702_000000](/assets/project/SOOP_Studio/240702_000000.png)
