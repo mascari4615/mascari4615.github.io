@@ -72,7 +72,7 @@ Discord를 통해 팀원과 소통했습니다.
 
 ### 💿 CatchDrawingManager, CatchDrawingSeat
 
-![241002](/assets/img/post/2024/241023_02.png)  
+![241023_000000](/assets/project/CatchDrawing/241023_000000.png)
 
 5대5 팀 대전이고, 각 플레이어가 각 자리에서 그림을 그릴 수 있어야 한다.  
 
@@ -102,7 +102,7 @@ Discord를 통해 팀원과 소통했습니다.
 
 스크린은 단순히 판때기만 있으면 될 것 같지만, 기획 상 그려진 그림을 텍스쳐로 뽑을 수 있어야 한다. 그림을 각 플레이어에게 할당된 파트로 나누고, 해당 그림을 하나로 합치는 기능을 구현하기 위해서다.  
 
-![241003](/assets/img/post/2024/241023_03.png)  
+![241023_000001](/assets/project/CatchDrawing/241023_000001.png)
 
 이는 Camera.TargetTexture를 이용해 구현했다. 스크린 위에 카메라를 두고, 이 카메라가 렌더링하는 텍스쳐를 이용하는 것이다. 이전에 티바로살래나의 @@게임 컨텐츠를 만들 때 `QvPenSketchBook` 모듈을 만들어둬서, 이를 활용했다. 간단한 기능이지만 MUdons에 포함되어 있으니 참고해도 좋을 것 같다.  
 
@@ -161,6 +161,19 @@ UdonData 사용.
 ## 📀 기록
 
 ---
+
+![241023_123249](/assets/project/CatchDrawing/241023_123249.png)
+![241025_020626](/assets/project/CatchDrawing/241025_020626.png)
+![241026_183507](/assets/project/CatchDrawing/241026_183507.png)
+![241026_183539](/assets/project/CatchDrawing/241026_183539.png)
+![241210_204310](/assets/project/CatchDrawing/241210_204310.png)
+![241210_225724](/assets/project/CatchDrawing/241210_225724.png)
+![241210_225729](/assets/project/CatchDrawing/241210_225729.png)
+![241210_230306](/assets/project/CatchDrawing/241210_230306.png)
+![241210_231935](/assets/project/CatchDrawing/241210_231935.png)
+![CatchDrawning_Credit_0](/assets/project/CatchDrawing/CatchDrawning_Credit_0.jpg)
+![CatchDrawning_Credit_1](/assets/project/CatchDrawing/CatchDrawning_Credit_1.jpg)
+![CatchDrawning_Logo](/assets/project/CatchDrawing/CatchDrawning_Logo.png)
 
 ### 💿 기획
 
