@@ -12,3 +12,21 @@ last_modified_at: 2024-11-09. 08:26 # Init
 
 4만명이 지켜본 첫 방송  
 {% include embed/youtube.html id = "UIHoQ-4ts38" %}
+
+## 📀 말머리
+
+---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+## 📀 기록
+
+---
+
+![240209_230940](/assets/project/AfreecaTV_Debut/240209_230940.png)
+![240210_173823](/assets/project/AfreecaTV_Debut/240210_173823.png)
+![240210_182540](/assets/project/AfreecaTV_Debut/240210_182540.png)
+![240210_201030](/assets/project/AfreecaTV_Debut/240210_201030.png)
+![240210_203004](/assets/project/AfreecaTV_Debut/240210_203004.png)
