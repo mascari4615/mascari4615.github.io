@@ -129,6 +129,24 @@ VRChat에서 아바타 키 조정 가능하긴 하다.
 
 ---
 
+![241025_195616](/assets/project/Bubble_Gum/241025_195616.png)
+![241025_201122](/assets/project/Bubble_Gum/241025_201122.png)
+![241025_201130](/assets/project/Bubble_Gum/241025_201130.png)
+![241025_205623](/assets/project/Bubble_Gum/241025_205623.png)
+![241025_205914](/assets/project/Bubble_Gum/241025_205914.png)
+![241025_210444](/assets/project/Bubble_Gum/241025_210444.png)
+![241026_000000](/assets/project/Bubble_Gum/241026_000000.png)
+![241026_012155](/assets/project/Bubble_Gum/241026_012155.png)
+![241026_014709](/assets/project/Bubble_Gum/241026_014709.png)
+![241026_153321](/assets/project/Bubble_Gum/241026_153321.png)
+![241026_153408](/assets/project/Bubble_Gum/241026_153408.png)
+![241026_153423](/assets/project/Bubble_Gum/241026_153423.png)
+![241026_163604](/assets/project/Bubble_Gum/241026_163604.png)
+![241026_164644](/assets/project/Bubble_Gum/241026_164644.png)
+![241026_165542](/assets/project/Bubble_Gum/241026_165542.png)
+![Bubble_Gum_Art_Feedback_0](/assets/project/Bubble_Gum/Bubble_Gum_Art_Feedback_0.png)
+![Bubble_Gum_Art_Feedback_1](/assets/project/Bubble_Gum/Bubble_Gum_Art_Feedback_1.png)
+
 ### 💿 기획
 
 - 결과 연출 (투표 수, 스포트라이트)
