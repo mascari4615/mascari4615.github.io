@@ -4,7 +4,6 @@ title: "한국사 OX 퀴즈"
 categories: [📀Post, 🫐Project]
 tags: [VRChat, ]
 image: "/assets/project/History_OX_Quiz/240817_152627.png"
-hidden: true
 
 date: 2024-08-13. 00:00
 last_modified_at: 2024-11-09. 08:35 # Init

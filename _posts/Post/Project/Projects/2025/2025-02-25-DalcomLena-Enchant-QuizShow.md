@@ -4,7 +4,6 @@ title: "VRChat - 달콤레나 인챈트 퀴즈쇼"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, DalcomLena-Enchant-QuizShow]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2025-02-25. 00:00
 # last_modified_at: 2025-03-03. 21:38 # Init

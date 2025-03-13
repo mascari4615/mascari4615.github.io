@@ -4,7 +4,6 @@ title: "VRChat - 나는 모솔"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, WakTarot]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-12-23. 00:00
 last_modified_at: 2025-03-10. 00:42 # Init

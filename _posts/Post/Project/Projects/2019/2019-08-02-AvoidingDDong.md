@@ -4,7 +4,6 @@ title: "똥 피하기"
 categories: [📀Post, 🫐Project, 🫐AvoidingDDong]
 tags: [Project, Game-Dev, WIA]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2019-08-02. 18:40:00
 # last_modified_at: 2023-05-10 13:23 : 사진 찾기, 글 마크다운 문법으로 수정

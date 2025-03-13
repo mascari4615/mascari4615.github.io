@@ -4,7 +4,6 @@ title: "구슬요의 버블껌"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
 image: "/assets/project/Bubble_Gum/241026_165542.png"
-hidden: true
 
 date: 2024-10-26. 15:22
 last_modified_at: 2024-10-26. 15:22 # Init

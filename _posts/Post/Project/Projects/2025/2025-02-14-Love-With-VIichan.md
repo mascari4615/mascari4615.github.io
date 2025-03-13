@@ -4,7 +4,6 @@ title: "VRChat - 챠니와 두근두근"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, WakTarot]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2025-02-14. 00:00
 last_modified_at: 2025-02-23. 00:44 # Init

@@ -4,7 +4,6 @@ title: "버종대 아프리카 TV 스튜디오"
 categories: [📀Post, 🫐Project]
 tags: [VRChat, ]
 image: "/assets/project/AfreecaTV_Studio/240816_183313.png"
-hidden: true
 
 date: 2024-08-14. 00:00
 last_modified_at: 2024-11-09. 08:35 # Init

@@ -4,7 +4,6 @@ title: "캐치 드로잉"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-10-19. 09:53
 # last_modified_at: 2024-10-19. 12:16 # 기획 정리

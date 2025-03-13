@@ -4,7 +4,6 @@ title: "VRChat - 세구와 연애중"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, Date-With-Gesegu]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2025-02-26. 00:00
 # last_modified_at: 2025-03-03. 21:35 # Init

@@ -4,7 +4,6 @@ title: "VRChat - 고멤 덱 압축"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, Gomem-Deck-Compression]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2025-02-15. 00:00
 last_modified_at: 2025-03-09. 21:05 # 전

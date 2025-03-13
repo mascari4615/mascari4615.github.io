@@ -4,7 +4,6 @@ title: "VRChat - 고멤 드림팀"
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, GomemDreamTeam]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-01-01. 00:00
 last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달

@@ -4,7 +4,6 @@ title: "버튜버 우리말 대전"
 categories: [📀Post, 🫐Project]
 tags: [MUdons]
 image: "/assets/project/VTuber_Hangle/241006_054719.png"
-hidden: true
 
 date: 2024-10-09. 00:00 # 방송일
 # date: 2024-09-15. 22:07 # Init

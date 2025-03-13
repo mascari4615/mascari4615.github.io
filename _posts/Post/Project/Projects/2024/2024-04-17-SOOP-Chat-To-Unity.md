@@ -4,7 +4,6 @@ title: "유니티 x AfreecaTV 채팅 연동"
 categories: [📀Post, 🫐Project]
 tags: [Project]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-04-25. 21:26
 # last_modified_at: 2024-04-25. 21:26

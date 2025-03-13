@@ -4,7 +4,6 @@ title: "Pwd DelDDa - Discord Bot"
 categories: [📀Post, 🫐Project]
 tags: [HUNCG-VSCode]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-10-16. 07:24
 # last_modified_at: 2024-10-16. 07:24
