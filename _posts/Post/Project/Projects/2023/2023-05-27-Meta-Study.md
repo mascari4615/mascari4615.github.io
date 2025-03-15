@@ -20,10 +20,12 @@ VR챗 맵 제작 스터디 4기 졸업 작품
 
 ### 💿 사용한 툴
 
+- Unity 2019.4.31f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![230505_004454_to_230505_004535](/assets/project/Meta_Study/230505_004454_to_230505_004535.gif)
 ![230505_004545_to_230505_004836](/assets/project/Meta_Study/230505_004545_to_230505_004836.gif)
 ![230505_004716](/assets/project/Meta_Study/230505_004716.png)

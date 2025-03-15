@@ -1,5 +1,5 @@
 ---
-title: "유니티 x AfreecaTV 채팅 연동"
+title: "유니티 x SOOP 채팅 연동"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project]
@@ -10,9 +10,21 @@ date: 2024-04-25. 21:26
 last_modified_at: 2024-08-29. 21:45
 ---
 
-## 🎲 AFTVChat
+## 📀 머리말
 
-### 👾 Thread를 써보자
+---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+- Unity
+
+## 📀 기록
+
+---
+
+### 💿 Thread를 써보자
 
 비동기 프로그래밍을 해볼 수 있는 기회가 생겼다.  
 
@@ -26,7 +38,7 @@ Dispose
 
 [참고 : C# Parallel](https://rito15.github.io/posts/cs-parallel/)  
 
-### 👾 이모티콘을 띄우자
+### 💿 이모티콘을 띄우자
 
 TextMeshPro의 SpriteSheet 기능을 이용해서 이모티콘을 띄워보자.  
 런타임에 이모티콘을 받아서 Sprite에 그려주고, 이를 TextMeshPro에서 띄워주면 된다.  
@@ -44,6 +56,6 @@ TextMeshPro의 SpriteSheet 기능을 이용해서 이모티콘을 띄워보자.
 [참고 : Converting a texture to a sprite](https://stackoverflow.com/questions/49241953/converting-a-texture-to-a-sprite)  
 [참고 : Is possible to insert animated sprites in TextMeshPro?](https://forum.unity.com/threads/is-possible-to-insert-animated-sprites-in-textmeshpro.1014472/)
 
-### 👾 최적화를 하자
+### 💿 최적화를 하자
 
 부끄럽게도 프로파일러를 제대로 사용해본 적이 없다.  

@@ -20,10 +20,12 @@ last_modified_at: 2024-11-09. 08:31 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2022.3.22f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![231130_212639](/assets/project/Thief_Game/231130_212639.png)
 ![231216_222805](/assets/project/Thief_Game/231216_222805.png)
 ![240131_232028](/assets/project/Thief_Game/240131_232028.png)

@@ -35,7 +35,6 @@ last_modified_at: 2025-02-23. 02:03 # Init
 
 - Unity 2019.4.31f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
-- Discord
 
 ## 📀 과정
 

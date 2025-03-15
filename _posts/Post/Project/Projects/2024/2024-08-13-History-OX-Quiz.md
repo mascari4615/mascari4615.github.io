@@ -20,10 +20,12 @@ last_modified_at: 2024-11-09. 08:35 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2022.3.22f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![240808_200816](/assets/project/History_OX_Quiz/240808_200816.png)
 ![240808_202453](/assets/project/History_OX_Quiz/240808_202453.png)
 ![240808_202520](/assets/project/History_OX_Quiz/240808_202520.png)

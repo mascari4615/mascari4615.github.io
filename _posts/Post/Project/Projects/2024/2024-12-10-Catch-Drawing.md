@@ -52,7 +52,8 @@ last_modified_at: 2024-10-24. 01:49 # 작업
 ### 💿 사용한 툴
 
 - Unity 2022.3.22f1
-- U# (C# + VRChat SDK)
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- [Woodon](https://github.com/wrchat/Woodon)
 
 아트 작업자가 작업한 유니티 프로젝트를 먼저 전달받고, 해당 프로젝트에 기능을 구현하였습니다.  
 Discord를 통해 팀원과 소통했습니다.  

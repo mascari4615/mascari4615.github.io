@@ -20,10 +20,12 @@ last_modified_at: 2024-11-09. 08:35 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2022.3.22f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![240718_163522](/assets/project/Haptic_Suit_Club/240718_163522.png)
 ![240721_005814](/assets/project/Haptic_Suit_Club/240721_005814.png)
 ![240721_020430](/assets/project/Haptic_Suit_Club/240721_020430.png)

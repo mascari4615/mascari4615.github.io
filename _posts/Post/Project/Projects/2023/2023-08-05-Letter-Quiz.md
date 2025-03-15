@@ -32,10 +32,12 @@ VR챗 일심동체 고멤 합방 풀버전
 
 ### 💿 사용한 툴
 
+- Unity 2019.4.31f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![230612_150838](/assets/project/Letter_Quiz/230612_150838.png)
 ![230612_150856](/assets/project/Letter_Quiz/230612_150856.png)
 ![230612_151109](/assets/project/Letter_Quiz/230612_151109.png)

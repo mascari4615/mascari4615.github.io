@@ -57,9 +57,9 @@ last_modified_at: 2025-02-22. 23:59
 ### 💿 사용한 툴
 
 - Unity 2022.3.22f1
-- U# (C# + VRChat SDK)
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- [Woodon](https://github.com/wrchat/Woodon)
 - TortoiseSVN
-- Discord
 
 ## 📀 시작
 

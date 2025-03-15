@@ -38,7 +38,8 @@ _
 - Unity 2022.3.22f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
 - [Woodon](https://github.com/wrchat/Woodon)
-- Discord
+
+Discord를 통해 팀원/클라이언트와 소통했습니다.  
 
 ## 📀 시작
 

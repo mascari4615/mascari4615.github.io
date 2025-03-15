@@ -54,7 +54,8 @@ last_modified_at: 2024-11-18. 06:24 # Init
 ### 💿 사용한 툴
 
 - Unity 2022.3.22f1
-- U#(C# + VRChat SDK)
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- [Woodon](https://github.com/wrchat/Woodon)
 
 Unity Package를 통해 팀원과 파일을 공유했습니다. (파일 공유 수가 적었습니다.)  
 Discord를 통해 팀원/클라이언트와 소통했습니다.  

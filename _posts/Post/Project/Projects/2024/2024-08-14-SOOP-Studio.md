@@ -3,7 +3,7 @@ title: "버종대 아프리카 TV 스튜디오"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [VRChat, ]
-image: "/assets/project/AfreecaTV_Studio/240816_183313.png"
+image: "/assets/project/SOOP_Studio/240816_183313.png"
 
 date: 2024-08-14. 00:00
 last_modified_at: 2024-11-09. 08:35 # Init
@@ -29,7 +29,9 @@ _
 - Unity 2022.3.22f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
 - [Woodon](https://github.com/wrchat/Woodon)
-- Discord
+- TortoiseSVN
+
+Discord를 통해 팀원/클라이언트와 소통했습니다.  
 
 ## 📀 시작
 
@@ -48,7 +50,6 @@ _
 ## 📀 기록
 
 ---
-
 ![240521_213027](/assets/project/SOOP_Studio/240521_213027.png)
 ![240620_000000](/assets/project/SOOP_Studio/240620_000000.png)
 ![240620_162010](/assets/project/SOOP_Studio/240620_162010.png)
@@ -108,8 +109,6 @@ _
 - 사진 룰렛 추상화
   - MData 이용해서
 - 단상에 점수 표시하면 좋겠다
-
----
 
 - 파티클 색 여러가지로 (단색 X)
 - 8강 1 VS 1 대결, 상대 공개 시 연출 (UI 쿵 박히는 효과)

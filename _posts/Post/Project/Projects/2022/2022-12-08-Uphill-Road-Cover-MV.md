@@ -20,6 +20,11 @@ last_modified_at: 2024-11-09. 08:22 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2019.4.31f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- Blender
+- VRChat (인 게임 영상 촬영)
+
 ## 📀 기록
 
 ---

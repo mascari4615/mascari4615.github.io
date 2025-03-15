@@ -20,10 +20,13 @@ last_modified_at: 2024-11-09. 08:26 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2019.4.31f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- PhotoShop
+
 ## 📀 기록
 
 ---
-
 ![231211_001653](/assets/project/ISD_2nd_Aniver/231211_001653.png)
 ![231211_001700](/assets/project/ISD_2nd_Aniver/231211_001700.png)
 ![231211_001705](/assets/project/ISD_2nd_Aniver/231211_001705.png)

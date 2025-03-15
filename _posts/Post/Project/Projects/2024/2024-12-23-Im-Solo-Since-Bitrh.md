@@ -34,7 +34,8 @@ _
 - Unity 2022.3.22f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
 - [Woodon](https://github.com/wrchat/Woodon)
-- Discord
+
+Discord를 통해 팀원/클라이언트와 소통했습니다.  
 
 ## 📀 시작
 
@@ -48,7 +49,7 @@ _
   - VR챗 맵 내에서 실시간 채팅 기능
   - 투표 기능
   - 발언권: 직접 말로 컨설팅하는 발언 기회.  
-PC Only 
+PC Only  
 
 ### 💿 _
 

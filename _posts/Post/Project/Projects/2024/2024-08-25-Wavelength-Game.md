@@ -44,7 +44,6 @@ last_modified_at: 2024-11-09. 08:36 # Init
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
 - [Woodon](https://github.com/wrchat/Woodon)
 - Blender
-- Discord
 
 ## 📀 과정
 

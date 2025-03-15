@@ -20,10 +20,12 @@ last_modified_at: 2024-11-09. 08:26 # Init
 
 ### 💿 사용한 툴
 
+- Unity 2019.4.31f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
 ## 📀 기록
 
 ---
-
 ![231117_224028](/assets/project/Ifari_Golden_Bell/231117_224028.png)
 ![231117_224359](/assets/project/Ifari_Golden_Bell/231117_224359.png)
 ![231117_224559](/assets/project/Ifari_Golden_Bell/231117_224559.png)

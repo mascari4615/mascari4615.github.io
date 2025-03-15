@@ -14,3 +14,18 @@ last_modified_at: 2024-11-09. 08:34 # Init
 
 고멤들의 유튜브 검색 기록 풀버전  
 {% include embed/youtube.html id = "O0DPbiyZxXU" %}
+
+## 📀 머리말
+
+---
+
+### 💿 참여 / 담당
+
+### 💿 사용한 툴
+
+- Unity 2022.3.22f1
+- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
+## 📀 기록
+
+---
