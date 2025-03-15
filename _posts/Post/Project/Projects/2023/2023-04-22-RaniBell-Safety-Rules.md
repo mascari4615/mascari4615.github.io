@@ -12,7 +12,7 @@ last_modified_at: 2024-11-09. 08:24 # Init
 도전! 라니벨 시즌2 - 안전수칙 편  
 {% include embed/youtube.html id = "70N6eyl7EJo" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

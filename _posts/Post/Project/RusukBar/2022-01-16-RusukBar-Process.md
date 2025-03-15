@@ -12,7 +12,7 @@ last_modified_at: 2024-11-11. 02:55 # Init
 
 {% include embed/youtube.html id = "I5bkJ4S9qic" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

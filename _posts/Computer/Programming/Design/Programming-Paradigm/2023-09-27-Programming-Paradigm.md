@@ -16,7 +16,7 @@ last_modified_at: 2024-08-30. 00:48
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 말머리
+## 💫 머리말
 
 ---
 

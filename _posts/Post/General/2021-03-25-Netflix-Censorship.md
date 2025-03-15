@@ -12,7 +12,7 @@ last_modified_at: 2024-08-29. 22:15
 
 {% include custom/common/old-post.html %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

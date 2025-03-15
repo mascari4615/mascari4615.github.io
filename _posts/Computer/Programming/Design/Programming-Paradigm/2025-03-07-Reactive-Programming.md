@@ -12,7 +12,7 @@ last_modified_at: 2025-03-15. 09:26 # UniRx 분리: 사실 UniRx가 전부이긴
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 말머리
+## 💫 머리말
 
 ---
 

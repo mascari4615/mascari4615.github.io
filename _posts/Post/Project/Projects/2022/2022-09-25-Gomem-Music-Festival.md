@@ -24,7 +24,7 @@ last_modified_at: 2024-11-09. 08:16 # Init
 레이디버그 고멤가요제 MV TEASER  
 {% include embed/youtube.html id = "KjJGhVx036U" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

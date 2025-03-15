@@ -19,7 +19,7 @@ last_modified_at: 2025-03-13. 01:14 # Youtube Embed, VRC World Link 추가
 세자가 된 망냥냥  
 {% include embed/youtube.html id = "t-eceRG5V4A" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

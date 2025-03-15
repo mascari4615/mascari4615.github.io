@@ -12,7 +12,7 @@ last_modified_at: 2025-03-09. 21:05 # 전
 _  
 {% include embed/youtube.html id = "" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

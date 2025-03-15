@@ -17,7 +17,7 @@ last_modified_at: 2024-11-18. 05:15 # 정리
 르르와 연애중 2  
 {% include embed/youtube.html id = "iz0ZXxKFJNo" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

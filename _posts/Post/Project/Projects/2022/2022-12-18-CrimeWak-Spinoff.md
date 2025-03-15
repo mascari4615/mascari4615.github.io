@@ -15,7 +15,7 @@ last_modified_at: 2024-11-09. 08:23 # Init
 최연장자가 되었습니다  
 {% include embed/youtube.html id = "L7665y9dIdA" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

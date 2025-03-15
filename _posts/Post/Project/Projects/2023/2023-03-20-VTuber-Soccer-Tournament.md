@@ -15,7 +15,7 @@ Counting Stars - 버축대 카오닝스타즈 MV
 티바살 갈통대전 맵탐방  
 {% include embed/youtube.html id = "Pt3incWbJek" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

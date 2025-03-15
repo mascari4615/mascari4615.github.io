@@ -12,7 +12,7 @@ last_modified_at: 2024-11-09. 08:31 # Init
 내가 마피아라고? 쏴 봐 그럼  
 {% include embed/youtube.html id = "3E-3ZvchPjI" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

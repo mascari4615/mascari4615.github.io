@@ -12,7 +12,7 @@ last_modified_at: 2024-11-09. 08:26 # Init
 이세돌 2주년 기념 술먹방  
 {% include embed/youtube.html id = "EYyBAa6lhxE" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

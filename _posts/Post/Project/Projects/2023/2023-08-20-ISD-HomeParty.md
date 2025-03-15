@@ -15,7 +15,7 @@ last_modified_at: 2024-11-09. 08:26 # Init
 20230820 이세계 홈 파티,이세계 뉴스 비하인드 등 - 고세구 다시보기  
 {% include embed/youtube.html id = "gHviI_CxzEs" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

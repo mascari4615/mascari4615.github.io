@@ -21,7 +21,7 @@ last_modified_at: 2024-11-09. 08:36 # Init
 언니들 내 생각 들리지?!!  
 {% include embed/youtube.html id = "maq0IStUtQc" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

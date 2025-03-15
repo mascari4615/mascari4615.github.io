@@ -13,7 +13,7 @@ last_modified_at: 2025-03-15. 00:01 # Twit
 _  
 {% include embed/youtube.html id = "" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

@@ -20,7 +20,7 @@ last_modified_at: 2025-02-22. 23:59
 버튜버들의 우리말 실력은?!!!  
 {% include embed/youtube.html id = "lKyHgV8esC8" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

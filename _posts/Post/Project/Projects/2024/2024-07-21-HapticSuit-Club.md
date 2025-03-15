@@ -12,7 +12,7 @@ last_modified_at: 2024-11-09. 08:35 # Init
 어딘가 이상한 촉각슈트 동아리  
 {% include embed/youtube.html id = "vadV24A1OZk" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 

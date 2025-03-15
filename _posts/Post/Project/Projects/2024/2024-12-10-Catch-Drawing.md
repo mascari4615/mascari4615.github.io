@@ -22,7 +22,7 @@ last_modified_at: 2024-10-24. 01:49 # 작업
 10초 안에 맞혀보세요  
 {% include embed/youtube.html id = "aCh2QThchhI" %}
 
-## 📀 말머리
+## 📀 머리말
 
 ---
 
