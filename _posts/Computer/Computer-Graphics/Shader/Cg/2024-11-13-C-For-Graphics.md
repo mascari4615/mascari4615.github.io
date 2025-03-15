@@ -81,7 +81,7 @@ Shader Lab 스크립트 + Cg 쉐이더 코드.
 
 Surface Shader의 상위 버전, CG를 더 디테일하게 다룸, Surface Shader가 오토 모드라면. Vertax & Fragment Shader는 수동이라는 느낌.  
 
-## 💫 Memo
+## 💫 메모
 
 ---
 

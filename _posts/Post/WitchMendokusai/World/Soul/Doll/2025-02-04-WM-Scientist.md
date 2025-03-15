@@ -2,7 +2,7 @@
 title: "WitchMendokusai | Scientist"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [WitchMendokusai, "마녀: 귀찮아"]
+tags: [WitchMendokusai]
 image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
@@ -54,15 +54,15 @@ last_modified_at: 2025-02-04. 23:45 # Init
 영광스러운 진화 !  
 자신의 몸을 개조한다  
 
-## 📀 Keyword
+## 📀 키워드
 
 ---
 
-## 📀 Ref
+## 📀 참고
 
 ---
 
-### 💿 Ref : _
+### 💿 참고 : _
 
 - 쿠루루
 - 그램그램원정대: 타임

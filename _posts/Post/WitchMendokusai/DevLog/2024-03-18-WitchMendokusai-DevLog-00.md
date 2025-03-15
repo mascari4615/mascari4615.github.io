@@ -2,7 +2,7 @@
 title: "WitchMendokusai DevLog 00"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [WitchMendokusai, "마녀: 귀찮아"]
+tags: [WitchMendokusai]
 image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
@@ -23,7 +23,7 @@ last_modified_at: 2024-08-29. 21:48
 
 ---
 
-### 💿 Ref 1 : 쿠키런 킹덤 - 곰젤리 열차
+### 💿 참고 1 : 쿠키런 킹덤 - 곰젤리 열차
 
 쿠키런 킹덤에는 곰젤리 열차라는 건물이 있다.  
 곰젤리 열차는 아래 기능을 한다.
@@ -37,7 +37,7 @@ last_modified_at: 2024-08-29. 21:48
 납품의 난이도가 어려울수록 더 좋은 보상을 준다.  
 컨텐츠를 진행하면 열차의 수가 늘어난다.  
 
-### 💿 Ref 2 : 시즌 패스
+### 💿 참고 2 : 시즌 패스
 
 최근 몇 년간, 여러 게임에서 사용하기 시작한 시스템이다.  
 
@@ -51,7 +51,7 @@ last_modified_at: 2024-08-29. 21:48
 재화를 주고 티켓을 구매하면, 레벨마다 추가적인 보상을 얻을 수 있다.  
 퀘스트는 일일, 주간, 랜덤 등 다양하게 주어진다.  
 
-### 💿 Ref 3
+### 💿 참고 3
 
 특정 스토리나 주제를 가지고 쭉 이어지는 퀘스트 (Like RPG, 아이러브커피)  
 일퀘, 주간퀘 (Like RPG, 원신)  
@@ -387,6 +387,6 @@ case QuestState.Completed:
 
 To Be Continued..  
 
-### 💿 Memo
+### 💿 메모
 
 메이플스토리 NPC처럼, 퀘스트 상황을 머리 위 아이콘으로 알 수 있으면 좋을 것 같다.  

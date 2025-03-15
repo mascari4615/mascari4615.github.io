@@ -2,7 +2,7 @@
 title: "WitchMendokusai | Concepts"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [WitchMendokusai, "마녀: 귀찮아"]
+tags: [WitchMendokusai]
 image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
@@ -238,13 +238,13 @@ last_modified_at: 2025-03-15. 06:41 # 메모 링크
   - King (13)
   - ♣
 
-## 📀 Ref
+## 📀 참고
 
 ---
 
-### 💿 Ref : _
+### 💿 참고 : _
 
-## 📀 Memo
+## 📀 메모
 
 ---
 

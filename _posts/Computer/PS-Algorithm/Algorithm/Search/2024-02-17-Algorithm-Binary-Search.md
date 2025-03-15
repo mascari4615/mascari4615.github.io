@@ -147,7 +147,7 @@ int upperBound(int arr[], int target, int size)
 }
 ```
 
-## 💫 Memo
+## 💫 메모
 
 ---
 

@@ -2,7 +2,7 @@
 title: "WitchMendokusai | Crafting"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [WitchMendokusai, "마녀: 귀찮아"]
+tags: [WitchMendokusai]
 image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
@@ -29,7 +29,7 @@ last_modified_at: 2024-11-19. 07:50 # 제작대
 
 마법 모듈을 추가하면 제작에 마법을 이용할 수 있다.  
 
-### 💿 제작대 - Ref
+### 💿 제작대 - 참고
 
 - 모동숲 제작대, DIY
 - 마인크래프트 제작대

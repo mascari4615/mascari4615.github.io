@@ -2,7 +2,7 @@
 title: "WitchMendokusai | Ref"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
-tags: [WitchMendokusai, "마녀: 귀찮아"]
+tags: [WitchMendokusai]
 image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
 hidden: true
 
@@ -71,7 +71,7 @@ last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
     - [](https://twitter.com/mischiefanimals/status/1637202361260167169?s=20)
     - [](https://twitter.com/memesbreakcore/status/1554691889307291648?s=20)
     - [](https://twitter.com/memesbreakcore/status/1632520920932704256?s=20)
-  - Game Ref
+  - Game 참고
     - [](https://twitter.com/RevitaGame/status/1670904476729856001?s=20)
     - [](https://twitter.com/kindanicegames/status/1625041703081058304?s=20)
     - [](https://twitter.com/AlexandreKadri/status/1642439900631793665?s=20)
@@ -85,7 +85,7 @@ last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
     - [](https://x.com/zocklabs/status/1766783427808776572)
     - <https://mandlemandle.com/project/38108f/game>
     - <https://mandlemandle.com/project/8ca8ec/game>
-  - Space Ref
+  - Space 참고
     - [설산](https://x.com/ToolTravle/status/1621794441643319299?s=20)
   - _
     - [벽돌깨기 ← 재밌음](https://www.youtube.com/shorts/M3nVHQ3feT4)

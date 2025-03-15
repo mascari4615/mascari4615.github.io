@@ -2,7 +2,7 @@
 title: "승리의 여신 : 니케, 2주년 업데이트 광고"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, 니케]
+tags: [Project, VRChat]
 image: "/assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png"
 
 # date: 2024-10-19. 09:55

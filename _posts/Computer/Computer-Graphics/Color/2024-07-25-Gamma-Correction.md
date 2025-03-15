@@ -87,7 +87,7 @@ last_modified_at: 2024-07-26. 12:22
 
 이미지는 우리 생각보다 밝게 저장된다. (sRGB, 감마 공간에 있다.)  
 
-## 💫 Memo
+## 💫 메모
 
 ---
 
@@ -118,12 +118,12 @@ URP로 넘어오면서 기본적으로 리니어 워크플로우가 적용되어
 
 어디서 계산하냐의 차이  
 
-### 🫧 KeyWord
+### 🫧 키워드
 
 - `Contrast` : 이미지의 밝기 차이 (대비)
 - `밴딩 현상` (등고선 현상) :
 
-### 🫧 Ref
+### 🫧 참고
 
 - [대충 살아가는 게임개발자 : 'Gamma Correction : 감마 코렉션'](https://chulin28ho.tistory.com/241)
 - [대충 살아가는 게임개발자 : 'Gamma Correction 감마 코렉션 : 어째서?'](https://chulin28ho.tistory.com/242)

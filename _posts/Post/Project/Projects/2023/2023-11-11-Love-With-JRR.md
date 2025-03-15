@@ -2,7 +2,7 @@
 title: "르르와 연애중"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, 르르와 연애중, 주연시]
+tags: [Project, VRChat]
 image: "/assets/project/Love_With_JRR/Love_With_JRR_1/Love_With_JRR_1_Banner.png"
 
 date: 2023-11-11. 00:00
