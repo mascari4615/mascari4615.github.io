@@ -238,3 +238,4 @@ last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
     - [i bought a tesseract.](https://x.com/hamptonism/status/1891263459557281802)
     - [](https://x.com/TatsuyaBot/status/1894225734375555257)
     - <https://x.com/Seoran0715/status/1845077714279202891>
+  - 이데올로기
