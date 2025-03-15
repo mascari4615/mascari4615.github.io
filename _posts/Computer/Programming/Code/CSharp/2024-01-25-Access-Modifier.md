@@ -17,7 +17,7 @@ last_modified_at: 2024-09-26. 20:50
 ---
 
 동일한 `Assembly` 내에서 `Public`  
-다른 `Assembly` 에서 `Priavte`  
+다른 `Assembly` 에서 `Private`  
 
 `Helper Class` 만들 때  
 

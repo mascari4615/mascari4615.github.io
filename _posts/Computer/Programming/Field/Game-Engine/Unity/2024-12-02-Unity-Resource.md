@@ -1,13 +1,17 @@
 ---
-title: "Unity | AssetBundle, Addressable"
+title: "Unity | Resource, AssetBundle, Addressable"
 # description: ""
-categories: [💫Computer, 🌔Game-Engine]
+categories: [💫Computer, 🌒Programming]
 tags: [Unity, AssetBundle, Addressable]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
-date: 2024-12-02. 19:03
-# last_modified_at: 2024-12-02. 19:03
+date: 2024-12-02. 19:03 # Init
+last_modified_at: 2025-03-15. 09:33 # Unity-Asset -> Unity-Resource
+---
+
+## 💫 Resources
+
 ---
 
 ## 💫 AssetBundle
@@ -27,3 +31,5 @@ AssetBundle로 씬을 묶어오면, 최상위 오브젝트들의 순서가 뒤�
 ---
 
 ### 🫧 Addressable
+
+- AddressableDownloadRequest

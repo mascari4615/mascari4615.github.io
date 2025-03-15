@@ -6,7 +6,8 @@ tags: [Project, VRChat, WakTarot]
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2025-01-23. 00:00
-last_modified_at: 2025-01-27. 13:01 # Init
+# last_modified_at: 2025-01-27. 13:01 # Init
+last_modified_at: 2025-03-15. 00:01 # Twit
 ---
 
 _  
@@ -75,3 +76,5 @@ _
 ![250111_203801](/assets/project/Ukon_24_Exhibition/250111_203801.png)
 ![250111_204035](/assets/project/Ukon_24_Exhibition/250111_204035.png)
 ![250111_204054](/assets/project/Ukon_24_Exhibition/250111_204054.png)
+
+- [2024년에 작업한 썸네일만 154장! 1월 초에 VR전시회를 준비중인데요! 1년 간 그린 일러스트, 썸네일을 전부 모아 전시할거니까 많이 많이 보러와주세요!!💖](https://x.com/ukon60/status/1874289452547264591)

@@ -1,8 +1,8 @@
 ---
 title: "Unity PlayFab 에러"
 # description: ""
-categories: [💫Computer, 🌔Game-Engine]
-tags: [Unity, Playfab]
+categories: [💫Computer, 🌒Programming]
+tags: [Unity, PlayFab]
 image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2022-11-16. 11:38
@@ -28,7 +28,7 @@ PlayGameServices 0.11.01 버전에 구글 플레이 V2 를 사용하게 되면�
 PlayGameServices ReadMe와 [업그레이딩 문서](https://github.com/playgameservices/play-games-plugin-for-unity/blob/master/UPGRADING.txt)를 참고해 새 버전의 코드를 작성할 수는 있음.  
 
 다만,  
-구글 플레이를 통해 Playfab에 로그인 하고자 하는 경우,  
+구글 플레이를 통해 PlayFab에 로그인 하고자 하는 경우,  
 구글 플레이 서버 인증 토큰을 포함하여 로그인 리퀘스트를 보내야 하는데  
 
 기존 버전에서 토큰을 불러오기위해 사용했던 **PlayGamesPlatform.Instance.GetServerAuthCode();** 가,  

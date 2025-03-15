@@ -53,6 +53,6 @@ date: 2024-08-29. 20:54
 
 ---
 
-- Lambda
+- [Lambda](/posts/Lambda/)
 - [Delegate](/posts/Delegate/)
 - [LINQ](/posts/LINQ/)

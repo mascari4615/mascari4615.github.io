@@ -7,7 +7,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-02-17. 10:38
 # last_modified_at: 2024-09-05. 04:47
-last_modified_at: 2024-10-16. 08:36
+# last_modified_at: 2024-10-16. 08:36
+last_modified_at: 2025-03-15. 09:42 # 메모
 ---
 
 2024-09-05. 04:47 : 글 추상화.  
@@ -88,3 +89,8 @@ last_modified_at: 2024-10-16. 08:36
 ---
 
 - '읽기 좋은 코드가 좋은 코드다', '개발자의 글쓰기'
+- Define partial class
+  - \{ Enum class
+    - \{ Enum What~ \}
+  - \}
+- ~Service (Manager 대신?)

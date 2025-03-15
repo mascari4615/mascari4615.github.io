@@ -6,8 +6,8 @@ tags: [Mindset]
 image: "/assets/img/background/backtop.gif"
 hidden: true
 
-date: 2024-11-15. 02:28
-last_modified_at: 2024-11-15. 02:28 # Init
+date: 2024-11-15. 02:28 # Init
+last_modified_at: 2025-03-15. 08:48 # 이것저것 추가
 ---
 
 ## 🗿 말머리
@@ -127,6 +127,8 @@ last_modified_at: 2024-11-15. 02:28 # Init
 - 빌드 때 마다 영상 녹화 후 공유
   - 자연스럽게 코드, 프로그램의 전체적으로 테스트하게 된다.
 
+- 각 구현에 대해, Test & Debugging 가능한 기능
+
 ### 🪨 코드, 프로그램 검증 - 그래서
 
 어쨌든 그래서, 정말 당연한 말이다.  
@@ -141,6 +143,12 @@ last_modified_at: 2024-11-15. 02:28 # Init
 - 수정이 필요하다면
   - 해당 수정이 다른 부분에 영향을 미치는지
   - 해당 수정이 다른 부분에도 적용이 필요한지
+
+- Description
+  - 주석 Comment
+  - 문서 Doc
+    - 시간이 된다면, 문서 작성하기
+    - 각 폴더 별로 Readme라도 간단하게 적기
 
 ## 🗿 프로젝트
 
