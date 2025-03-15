@@ -26,7 +26,6 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
 
 - 포폴 올릴 때 링크 잘 안들어가니까, 확실하게 다 넣을 것
 - 다른 포폴을 많이 참고할것
-  - TODO: 사실 그냥 모든 것에 있어서
 - [이도현 포트폴리오](https://cdn.rallit.com/attachment/2024-05-27/j-ABCTk3t3ZyfHN1DPOp_/%ED%8F%AC%ED%8A%B8%ED%8F%B4%EB%A6%AC%EC%98%A4%200527%20PDF%20Print-%EC%95%95%EC%B6%95%EB%90%A8.pdf)
 - [게임 클라이언트 프로그래머 - 이도현 프로필](https://www.rallit.com/hub/resumes/277929/%EC%9D%B4%EB%8F%84%ED%98%84)
 - [게임 개발 포트폴리오 | TSEROF - 내일배움캠프 블로그](https://nbcamp.spartacodingclub.kr/blog/%EA%B2%8C%EC%9E%84-%EA%B0%9C%EB%B0%9C-%ED%8F%AC%ED%8A%B8%ED%8F%B4%EB%A6%AC%EC%98%A4-tserof--16755)

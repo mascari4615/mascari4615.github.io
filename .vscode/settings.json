@@ -38,5 +38,6 @@
 				"-i"
 			]
 		}
-	}
+	},
+	"todo-tree.tree.showBadges": false
 }

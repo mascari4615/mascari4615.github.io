@@ -246,7 +246,7 @@ printf("%s\n", b); // "d" 출력
 - C#, Java : 표준라이브러리, List, ArrayList
 
 - Python : 기본 데이터 타입
-  - [ ] 대괄호
+  - \[ \] 대괄호
   - mutable (튜플은 immutable)
   - 요소 삭제 del temp[1]
 
