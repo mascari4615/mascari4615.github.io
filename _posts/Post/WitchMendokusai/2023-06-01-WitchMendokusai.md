@@ -37,3 +37,13 @@ date: 2023-06-01. 10:25
 # last_modified_at: 2024-05-05. 11:04
 last_modified_at: 2024-05-22. 20:49
 ---
+
+- Quest Skill Unit 등 게임 내 기능에 필요한 클래스 구조 설계 및 개발
+- 여러 맥락에서 쓰일 수 있는 Criteria 조건 Effect 효과 구조 설계 및 개발
+- 재사용 / 확장 가능성
+- Scriptable Object와 UI Toolkit으로 제작한 커스텀 툴을 이용한 에디터 타임 게임 데이터 관리
+  - ID 충돌
+  - 정렬
+  - ID 중복/충돌 관리
+  - 데이터 자동 생성
+  - 파일 이름 자동 수정

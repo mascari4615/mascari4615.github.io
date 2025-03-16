@@ -28,7 +28,6 @@ last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
   - 이걸 만화로 배워?
 
 - _
-  - [Game](https://x.com/G_P_Art/status/1782718284724629843)
   - [Game](https://x.com/Wonpuri/status/1782771195827355704)
   - [Game](https://x.com/Gagonfe/status/1782079066046120243)
   - [Game](https://x.com/MadNukin/status/1781669150529581159)
@@ -173,7 +172,6 @@ last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
   - [Inside Star Citizen: How We Work - Level Design](https://youtu.be/IrGtP8HBwNo?si=RyvVVW6AksdeWpl0)
 
 - 도토리
-  - [GamePix, 바닥에 떨궈진 아이템](https://x.com/G_P_Art/status/1859604402295931116)
   - [쓰다듬기](https://x.com/KeinaNight/status/1870671107742896565)
   - [바탕화면 낚시 게임](https://x.com/foolsroom/status/1870976990620070128)
   - [힉의 법칙 \"의사결정에 걸리는 시간은 선택지의 개수와 복잡성에 비례해 늘어난다.\"\n\nUX 개선 실제 사례: 노인용 리모콘](https://x.com/JakeSeo8/status/1871830935437730259)

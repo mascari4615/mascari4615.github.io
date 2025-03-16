@@ -1,9 +1,9 @@
 - title: WIP...
-  url: /posts//
+  url: /projects/
   description: "이 페이지는 현재 공사중입니다 !"
   image: /assets/img/background/backtop.gif
   tags:
-  date: 'Last Update : 250312.'
+  date: 'Last Update : 250315.'
 
 - title: Woodon
   url: https://github.com/WRChat/Woodon
@@ -319,3 +319,10 @@
   image: "http://img.youtube.com/vi/79sbqJl0OK8/0.jpg"
   tags: [GameDev, Art, Programming]
   date: '2101~2201'
+
+- title: 그 외...
+  url: "/posts/Project/"
+  description: "다른 프로젝트도 보고 싶다면"
+  image: /assets/img/background/backtop.gif
+  tags: []
+  date: 'Last Update : 250315.'
