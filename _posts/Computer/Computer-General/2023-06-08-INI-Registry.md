@@ -1,9 +1,15 @@
 ---
 title: "Ini, Registry"
+# description: ""
 categories: [💫Computer, 🌚Computer-General]
+image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-06-07. 11:50
-last_modified_at: 2023-06-07. 11:50
+last_modified_at: 2025-03-18. 01:35 # Registry Code 추가
+---
+
+## 💫 머리말
+
 ---
 
 ## 💫 INI, *.ini
@@ -52,3 +58,33 @@ key = value
 [위키백과 - Window Registry](https://ko.wikipedia.org/wiki/%EC%9C%88%EB%8F%84%EC%9A%B0_%EB%A0%88%EC%A7%80%EC%8A%A4%ED%8A%B8%EB%A6%AC)  
 [설정 파일은 어떤 포맷을 사용할까?](https://www.morenice.kr/222)  
 [생계형 프로그래머 - 레지스트리와 INI 파일](https://blog.naver.com/ljc8808/220404118290?viewType=pc)  
+
+## 💫 메모
+
+---
+
+Disable_StartMenu_BingSearch  
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search]
+"BingSearchEnabled"=dword:0
+```
+
+FontChanger  
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts]
+"Segoe UI (TrueType)"=""
+"Segoe UI Bold (TrueType)"=""
+"Segoe UI Bold Italic (TrueType)"=""
+"Segoe UI Italic (TrueType)"=""
+"Segoe UI Light (TrueType)"=""
+"Segoe UI Semibold (TrueType)"=""
+"Segoe UI Symbol (TrueType)"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\FontSubstitutes]
+
+"Segoe UI"="Pretandard"
+```
