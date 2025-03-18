@@ -14,6 +14,8 @@ last_modified_at: 2025-03-15. 09:33 # Unity-Asset -> Unity-Resource
 
 ---
 
+- <https://blog.naver.com/sorang226/223792661583>
+
 ## 💫 AssetBundle
 
 ---

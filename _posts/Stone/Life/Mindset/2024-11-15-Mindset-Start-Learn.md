@@ -7,7 +7,7 @@ image: "/assets/img/background/backtop.gif"
 hidden: true
 
 date: 2024-11-15. 00:58
-last_modified_at: 2024-11-15. 00:58 # Init
+last_modified_at: 2025-03-19. 01:26 # Theory
 ---
 
 ## 🗿 머리말
@@ -82,16 +82,14 @@ last_modified_at: 2024-11-15. 00:58 # Init
 ### 🪨 How : 계속 하기
 
 - 매일 반복하고 있는 것들이 나를 만든다
-
-- [뇌세포 하나가 연결을 찾는 영상](https://old.reddit.com/r/interestingasfuck/comments/10i0dn3/single_brain_cell_looking_for_a_connection/)
   - 반복
     - 계속하면, 익숙해진다.
-    - 인지적 비축분 Cognitive Reserve, 낯선 환경 경험, 새로운 신경 세포 연결
     - [1](https://x.com/stelo_kim/status/1448778418393284608)
   - 휴식
     - 왜 아이디어는 항상 정리하고 침대에 누웠을 때, 멍 때릴 때, 샤워할 때 샘솟는 걸까?
     - 뇌가 외부에서 얻는 자극이 적을 때는 쉬면서 기억을 정리하는 단계로 들어가는데, 이때 일종의 재충전을 하면서 통찰력이 향상되는 효과가 있다고 한다
     - 뇌근육을 쥐어짤땐 피가 안통하다가 쉬면서 피통하기 때문임, 쉬는 동안에도 무의식 속에서 문제를 푸는 것이기 때문에 어려운 문제를 풀기 위해서는 두뇌에 쉬는 시간을 주어야한다
+  - [이론](/posts/Theory/)
 
 ### 🪨 열심히 하기, 아니 사실 그냥 하기만이라도
 
