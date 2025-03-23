@@ -49,9 +49,11 @@ date: 2024-08-29. 20:54
 - 무엇을 할 것인지에 집중하며, 어떻게 할 것인지는 명시하지 않는다
 - Against 명령형 프로그래밍
 
-## 💫 참고
+## 💫 메모
 
 ---
+
+### 🫧 참고
 
 - [Lambda](/posts/Lambda/)
 - [Delegate](/posts/Delegate/)

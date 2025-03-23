@@ -6,8 +6,8 @@ tags: [Computer-Graphics, CG]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
-date: 2024-11-13. 06:35
-last_modified_at: 2024-11-13. 06:35 # Init
+date: 2024-11-13. 06:35 # Init
+last_modified_at: 2025-03-24. 00:03 # 메모
 ---
 
 ## 💫 CG
@@ -74,6 +74,12 @@ Computer Graphics.
   - [7](https://x.com/ryurud_n5/status/1831341519913255228)
 
 - [하람쥐님 블로그 - Missing](https://blog.naver.com/hram01/221489477514)
+
+- 3D
+  - [World   : Principal Wells' Office - Life is Strange\nAuthor : SoftServeNeo\n\n#VRChat #VRChatPhotography #VRChatワールド紹介\n#VRChat_world #VRChat_world紹介](https://x.com/CupitanVR/status/1865716497563427186)
+  - [i bought a tesseract.](https://x.com/hamptonism/status/1891263459557281802)
+  - [](https://x.com/TatsuyaBot/status/1894225734375555257)
+  - <https://x.com/Seoran0715/status/1845077714279202891>
 
 ### 🫧 무슨 말인지 이해하고 싶다
 

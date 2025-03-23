@@ -1,10 +1,9 @@
 ---
 title: "200623"
 # description: ""
-categories: [📀Post, 🍋‍🟩Memo]
-tags: [Memo, Game, Game-Design]
-image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
+categories: [📀Post, 🥥WitchMendokusai]
+tags: [WitchMendokusai, Game-Design]
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 
 date: 2020-06-23. 23:08:00
 # last_modified_at: 2021-10-05

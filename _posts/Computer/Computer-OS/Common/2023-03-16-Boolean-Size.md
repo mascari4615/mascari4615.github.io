@@ -32,7 +32,7 @@ CPU 구현에 따른 컴퓨터의 최소 단위를 `Word`라고 하는데,
 
 - [Bit, Byte, Word](/posts/Bit-Byte-Word/)
 
-## 💫 참고
+## 💫 메모
 
 ---
 

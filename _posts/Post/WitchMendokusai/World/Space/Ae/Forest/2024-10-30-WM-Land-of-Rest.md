@@ -3,7 +3,7 @@ title: "WitchMendokusai | Land of Rest"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2024-10-30. 21:08
@@ -30,7 +30,7 @@ last_modified_at: 2025-02-04. 16:06 # 진실 호수
 배경 음악을 들으며.  
 아무것도 하지 않고.  
 
-## 📀 참고
+## 📀 메모
 
 ---
 

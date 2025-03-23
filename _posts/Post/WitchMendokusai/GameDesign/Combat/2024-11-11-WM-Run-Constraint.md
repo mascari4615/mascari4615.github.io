@@ -3,7 +3,7 @@ title: "WitchMendokusai | Run-Constraint"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2024-11-11. 07:37

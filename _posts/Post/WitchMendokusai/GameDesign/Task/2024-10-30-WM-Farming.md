@@ -1,21 +1,20 @@
 ---
-title: "WitchMendokusai | Gathering"
+title: "WitchMendokusai | Farming"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2024-10-30. 21:08
-last_modified_at: 2024-10-30. 21:08 # Init
+last_modified_at: 2025-03-23. 18:30 # Init
 ---
 
-## 📀 분류
+## 📀 머리말
 
 ---
 
-### 💿 _
-
+- 자연, 농사, 식물, 동물
 - 채집
   - 연못, 낚시, 꽃잎, 버섯, 채광
 
@@ -25,11 +24,17 @@ last_modified_at: 2024-10-30. 21:08 # Init
 
 ---
 
+## 📀 낚시
+
+---
+
+- Fishing Mini Game
+
 ## 📀 채광
 
 ---
 
-### 💿 메모/참고
+### 💿 메모
 
 - 마인크래프트
 - 뒷산에서 보석캐기
@@ -43,3 +48,16 @@ last_modified_at: 2024-10-30. 21:08 # Init
 - 갓 오브 곡괭이
 
 - 화로
+
+## 📀 메모
+
+---
+
+### 💿 키워드
+
+- 슬라임 농장
+- 700년 된 씨앗
+- 꽃
+  - 동물의 숲 꽃
+  - 검은 장미 : 터키 할페티 에서만 자연적으로 존재
+- 과일 샐러드 나무 : 7개의 다른 종류의 과일들이 동시에 열림

@@ -391,14 +391,11 @@ while (tasks.Count > 0)
    - `using` 블록을 썼다면, 블록을 벗어날 때 자동으로 호출
    - 그게 아니라면 임의로 호출
 
-## 💫 참고
+## 💫 메모
 
 ---
 
-[참고 : 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
-[참고 : 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
-[참고 : 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
-[참고 : 'C# - CancellationToken'](https://bacha.tistory.com/137)  
+### 🫧 메모
 
 밑 단계는 똑같지만  
 조금 추상화해보면  
@@ -419,6 +416,13 @@ async 키워드를 쓰면
 함수가 상태머신으로 변환됨  
 
 상태머신은 함수가 실행되는 동안 상태를 저장하고, 다시 실행될 때 상태를 복원하는 것  
+
+### 🫧 참고
+
+- [참고 : 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
+- [참고 : 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
+- [참고 : 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
+- [참고 : 'C# - CancellationToken'](https://bacha.tistory.com/137)  
 
 ## 💫 동기/비동기
 

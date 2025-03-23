@@ -3,7 +3,7 @@ title: "WitchMendokusai"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2023-06-01. 10:25
@@ -47,3 +47,6 @@ last_modified_at: 2024-05-22. 20:49
   - ID 중복/충돌 관리
   - 데이터 자동 생성
   - 파일 이름 자동 수정
+
+- 마우스 포인터
+- 감정표현/이모티콘

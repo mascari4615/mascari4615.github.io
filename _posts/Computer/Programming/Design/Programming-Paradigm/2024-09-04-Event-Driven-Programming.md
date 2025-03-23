@@ -30,8 +30,10 @@ GUI (Graphical User Interface) 프로그래밍에 특히 유용하다.
 - 파일 복사 \| 다운로드 완료
 - 새로운 외부 장치 연결
 
-## 💫 참고
+## 💫 메모
 
 ---
+
+### 🫧 참고
 
 - [Delegate](/posts/Delegate/)

@@ -190,12 +190,13 @@ public class SomethingEditor : EditorWindow
 }
 ```
 
-## 💫 참고
+## 💫 메모
 
 ---
 
-[Extending the Unity Editor with custom tools using UI Toolkit \| Unite 2022](https://www.youtube.com/watch?v=J2KNj3bw0Bw)  
+### 🫧 참고
 
-[에디터 확장 입문 - 번역 5장 SerializedObject에 대해서](https://blog.naver.com/hammerimpact/220770624015)  
-[참고](https://mechurak.github.io/2023-02-24_unity_ui_toolkit/)  
-[참고](https://smilejsu.tistory.com/2317)  
+- [Extending the Unity Editor with custom tools using UI Toolkit \| Unite 2022](https://www.youtube.com/watch?v=J2KNj3bw0Bw)
+- [에디터 확장 입문 - 번역 5장 SerializedObject에 대해서](https://blog.naver.com/hammerimpact/220770624015)
+- [참고](https://mechurak.github.io/2023-02-24_unity_ui_toolkit/)
+- [참고](https://smilejsu.tistory.com/2317)

@@ -3,7 +3,7 @@ title: "WitchMendokusai | Start Kingdom"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2025-02-05. 00:32
@@ -21,7 +21,7 @@ last_modified_at: 2025-02-05. 00:32 # Init
 
 ---
 
-## 📀 참고
+## 📀 메모
 
 ---
 

@@ -3,7 +3,7 @@ title: "WitchMendokusai | Forest of Witch"
 # description: ""
 categories: [📀Post, 🥥WitchMendokusai]
 tags: [WitchMendokusai]
-image: "/assets/project/WitchMendokusai/ScreenShot/240514_104350.png"
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2025-02-05. 00:19
@@ -25,7 +25,7 @@ last_modified_at: 2025-02-05. 00:19 # Init
 - A성의 묘지가 근처에 있는
 - 마나/힘이 많은 숲 근처에 자리잡았다
 
-## 📀 참고
+## 📀 메모
 
 ---
 

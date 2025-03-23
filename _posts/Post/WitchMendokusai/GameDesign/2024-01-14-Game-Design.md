@@ -1,9 +1,9 @@
 ---
 title: "게임기획, 재미"
 # description: ""
-categories: [📀Post, 🍋‍🟩Memo]
-tags: [Memo, Game, Game-Design]
-image: "/assets/img/background/20230112_151539.jpg"
+categories: [📀Post, 🥥WitchMendokusai]
+tags: [WitchMendokusai, Game-Design]
+image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 
 date: 2024-01-14. 18:22
 last_modified_at: 2024-05-22. 23:00
@@ -168,6 +168,10 @@ last_modified_at: 2024-05-22. 23:00
 ## 📀 메모
 
 ---
+
+### 💿 참고
+
+- [젤다](https://twitter.com/WonSoRang/status/1658023932820357120?s=20)
 
 ### 💿 에콜로지
 

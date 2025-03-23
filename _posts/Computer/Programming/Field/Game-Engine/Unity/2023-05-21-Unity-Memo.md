@@ -41,15 +41,6 @@ last_modified_at: 2024-10-20. 21:02 # Unity 6
 `2023-02-15-Unity-NavMesh : 🌔 Unity NavMesh`,  
 `2023-02-24-Cannot-Perform-Upm-Operation : 🌔 Unity 'Cannot perform upm operation: EBUSY: resource busy or locked, open'`  
 
-## 💫 키워드
-
----
-
-- [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
-- [UI Toolkit](/posts/Unity-UI-Toolkit/)
-- `Collision.contacts`
-- `AddForce`에서의 Force -> `force * DT / mass`
-
 ## 💫 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수
 
 ---
@@ -247,3 +238,10 @@ Convex 체크
   - 펀치홀, 노치 디자인
 - WorldSpace UI에 Particle System
 - I2 Localize
+
+### 🫧 키워드
+
+- [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
+- [UI Toolkit](/posts/Unity-UI-Toolkit/)
+- `Collision.contacts`
+- `AddForce`에서의 Force -> `force * DT / mass`

@@ -120,11 +120,15 @@ Cookie처럼 기간 지정하여, 지워지지 않게 설정 가능
   - 한 번 Cache에 저장되면 Browser를 참고, 때문에 Server에서 변경이 되어도 User(Local)는 변경되지 않게 보일 수 있음
   - → Cache를 지워주거나, Server에서 Client로 응답을 보낼 때 Header에 Cache Expires/Max-Age를 명시하는 방법 등
 
-## 💫 참고
+## 💫 메모
 
 ---
 
-[Cookie와 세션 개념](https://interconnection.tistory.com/74)  
-[데이터를 저장하는 5가지 개념](https://hongong.hanbit.co.kr/%EC%99%84%EB%B2%BD-%EC%A0%95%EB%A6%AC-%EC%BF%A0%ED%82%A4-%EC%84%B8%EC%85%98-%ED%86%A0%ED%81%B0-%EC%BA%90%EC%8B%9C-%EA%B7%B8%EB%A6%AC%EA%B3%A0-cdn/)  
+### 🫧 메모
 
 TODO: Token, Cache  
+
+### 🫧 참고
+
+- [Cookie와 세션 개념](https://interconnection.tistory.com/74)
+- [데이터를 저장하는 5가지 개념](https://hongong.hanbit.co.kr/%EC%99%84%EB%B2%BD-%EC%A0%95%EB%A6%AC-%EC%BF%A0%ED%82%A4-%EC%84%B8%EC%85%98-%ED%86%A0%ED%81%B0-%EC%BA%90%EC%8B%9C-%EA%B7%B8%EB%A6%AC%EA%B3%A0-cdn/)

@@ -31,11 +31,12 @@ last_modified_at: 2024-08-29. 21:33
 
 연산 순서에 따라 결과 차이가 발생하는 경우. (Overflow)  
 
-## 💫 참고 - [Short-Circuit Evaluation](/posts/Short-Circuit-Evaluation/)
+## 💫 메모
 
 ---
 
-@ 230109  
+### 🫧 참고 - [Short-Circuit Evaluation](/posts/Short-Circuit-Evaluation/)
 
+_230109.  
 Short-Circuit Evaluation 에 따른 연산 순서 상의 속도 차이도 존재한다.  
 요약하면 비용이 높은 함수를 뒤쪽에 배치하면 좋다.  

@@ -41,9 +41,11 @@ So, Web Browser는 다음 과정을 통해 읽기 쉽게 보여줌
 1. Parsing 구문 분석을 통해 DOM (자료구조 - 비선형 트리구조) 생성  
 2. DOM을 기반으로 Rendering (출력)  
 
-## 💫 참고
+## 💫 메모
 
 ---
 
-[널널한 개발자 - 초창기 웹 서비스 구조](https://youtu.be/4Sfned8HLzk?si=_gVz3bwTPSAmk2_v)  
-[가장 쉬운 웹개발 with Boaz - 브라우저에 URL을 입력하면 어떤 과정이 진행될까?](https://youtu.be/ipwfEUslfQA?si=PYRBblbYqZD8Bc7u)  
+### 🫧 참고
+
+- [널널한 개발자 - 초창기 웹 서비스 구조](https://youtu.be/4Sfned8HLzk?si=_gVz3bwTPSAmk2_v)
+- [가장 쉬운 웹개발 with Boaz - 브라우저에 URL을 입력하면 어떤 과정이 진행될까?](https://youtu.be/ipwfEUslfQA?si=PYRBblbYqZD8Bc7u)

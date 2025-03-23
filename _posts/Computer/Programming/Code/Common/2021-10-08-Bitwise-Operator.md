@@ -164,14 +164,11 @@ int y = x >> 4;
   - `<<=`
   - `>>=`
 
-## 💫 참고
+## 💫 메모
 
 ---
 
-- [MSDC](https://docs.microsoft.com/ko-kr/cpp/c-language/c-bitwise-operators?view=msvc-160)
-- [Wikipedia - 비트 연산자](https://ko.wikipedia.org/wiki/%EB%B9%84%ED%8A%B8_%EC%97%B0%EC%82%B0)
-- [Wikipedia - 산술 시프트](https://ko.wikipedia.org/wiki/%EC%82%B0%EC%88%A0_%EC%8B%9C%ED%94%84%ED%8A%B8)
-- [Wikipedia - 논리 시프트](https://ko.wikipedia.org/wiki/%EB%85%BC%EB%A6%AC_%EC%8B%9C%ED%94%84%ED%8A%B8)
+### 🫧 메모
 
 비트 마스크
 
@@ -184,3 +181,10 @@ int y = x >> 4;
 (value >> 8) & byte.MaxValue
 (value >> 0) & byte.MaxValue
 ```
+
+### 🫧 참고
+
+- [MSDC](https://docs.microsoft.com/ko-kr/cpp/c-language/c-bitwise-operators?view=msvc-160)
+- [Wikipedia - 비트 연산자](https://ko.wikipedia.org/wiki/%EB%B9%84%ED%8A%B8_%EC%97%B0%EC%82%B0)
+- [Wikipedia - 산술 시프트](https://ko.wikipedia.org/wiki/%EC%82%B0%EC%88%A0_%EC%8B%9C%ED%94%84%ED%8A%B8)
+- [Wikipedia - 논리 시프트](https://ko.wikipedia.org/wiki/%EB%85%BC%EB%A6%AC_%EC%8B%9C%ED%94%84%ED%8A%B8)
