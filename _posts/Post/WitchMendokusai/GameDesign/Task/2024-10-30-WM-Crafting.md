@@ -6,9 +6,22 @@ tags: [WitchMendokusai]
 image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
+# WitchMendokusai | Alchemy
+# date: 2024-10-30. 21:08
+# last_modified_at: 2025-03-23. 18:30 # Init
+
+# WitchMendokusai | Hextech
+# date: 2024-10-30. 21:08
+# last_modified_at: 2024-10-30. 21:08 # Init
+
 date: 2024-10-30. 21:08 # Init
-last_modified_at: 2024-11-19. 07:50 # 제작대
+# last_modified_at: 2024-11-19. 07:50 # 제작대
+last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
 ---
+
+2025-04-06. 15:40 : 글 병합.  
+`2024-10-30-WM-Alchemy : WitchMendokusai | Alchemy`,  
+`2024-10-30-WM-Hextech : WitchMendokusai | Hextech`,  
 
 ## 📀 분류
 
@@ -33,6 +46,32 @@ last_modified_at: 2024-11-19. 07:50 # 제작대
 
 - 모동숲 제작대, DIY
 - 마인크래프트 제작대
+
+### 💿 연금술
+
+- 마녀 : 빗자루, 가마솥, 물약
+
+- 연금술
+  - 새로운 포션
+  - 증류
+  - 단지
+
+- 포션 - 양조, 증류
+- 솥 ㅡ 양조, 증류
+
+가마솥  
+
+- 더 많은 가마솥/도가니
+
+### 💿 마공학
+
+- 마공학
+  - 인퓨전
+  - 마법 조합
+  - 주변 돌로 강화, ~의 돌
+  - 마법 도구, 마법 램프
+  - 지옥불 화로, 풀무, 풀무 속도 증가, 재련
+  - 의식
 
 ## 📀 _
 
