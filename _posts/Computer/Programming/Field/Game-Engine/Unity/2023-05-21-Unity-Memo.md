@@ -2,7 +2,7 @@
 title: "Unity 메모"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, OnParticleCollision, NavMesh]
+tags: [Unity]
 image: "/assets/img/background/20240827_140647.jpg"
 
 # 🌔 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수
@@ -32,7 +32,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-08-10. 17:39
 # last_modified_at: 2024-08-29. 21:33
 # last_modified_at: 2024-10-20. 21:02 # Unity 6
-last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
+# last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
+last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -223,6 +224,8 @@ Convex 체크
 
 `The project currently uses the compatibility mode where the Render Graph API is disabled. Support for this mode will be removed in future Unity versions. Migrate existing ScriptableRenderPasses to the new RenderGraph API. After the migration, disable the compatibility mode in Edit > Projects Settings > Graphics > Render Graph.`  
 `UnityEditor.EditorAssemblies:ProcessInitializeOnLoadMethodAttributes ()`  
+
+- InstantiateAsync
 
 ## 💫 Project 창 검색
 

@@ -7,7 +7,7 @@ image: "/assets/img/background/20240827_140647.jpg"
 hidden: true
 
 date: 2025-04-16. 20:43 # Init
-# last_modified_at: 2025-04-16. 20:43
+last_modified_at: 2025-04-16. 22:12 # Memo: Read/Write, MipMap
 ---
 
 ## 💫 머리말
@@ -388,6 +388,8 @@ CPU 오버헤드가 엄청 걸린다
 
 컬링 레이어를 쓰는 것을 추천  
 Read/Write enabled 화성화 하지 않기?  
+-> 원래 텍스쳐 데이터는 GPU에서 읽을 수 있도록 GPU 메모리에 상주, 유저 스크립트에서 Texture.GetPixel/SetPixel() 하기위해 CPU에도 메모리 올려놓을지 여부 옵션 (기본 비활성화)
+-> Mesh도
 
 텍스쳐 실수들  
 Max Size를 사용하지 않는 것  
@@ -397,6 +399,10 @@ Max Size를 사용하지 않는 것
 ## 💫 메모
 
 ---
+
+MipMap  
+2의 배수로 작아지는 (다 합쳐서 원본의 33% 정도?)  
+카메라 거리마다 다르게  
 
 ### 🫧 참고
 
