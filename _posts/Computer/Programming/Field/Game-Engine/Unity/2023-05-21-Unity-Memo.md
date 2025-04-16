@@ -31,7 +31,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-04-09. 03:03
 # last_modified_at: 2024-08-10. 17:39
 # last_modified_at: 2024-08-29. 21:33
-last_modified_at: 2024-10-20. 21:02 # Unity 6
+# last_modified_at: 2024-10-20. 21:02 # Unity 6
+last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -223,6 +224,12 @@ Convex 체크
 `The project currently uses the compatibility mode where the Render Graph API is disabled. Support for this mode will be removed in future Unity versions. Migrate existing ScriptableRenderPasses to the new RenderGraph API. After the migration, disable the compatibility mode in Edit > Projects Settings > Graphics > Render Graph.`  
 `UnityEditor.EditorAssemblies:ProcessInitializeOnLoadMethodAttributes ()`  
 
+## 💫 Project 창 검색
+
+---
+
+'t:Prefab' (type)  
+
 ## 💫 메모
 
 ---
@@ -237,11 +244,14 @@ Convex 체크
 - Screen.SafeArea
   - 펀치홀, 노치 디자인
 - WorldSpace UI에 Particle System
-- I2 Localize
+
+### 🫧 Asset
+
+- ['Unity AssetStore': 'Odin Inspector and Serializer'](https://assetstore.unity.com/packages/tools/utilities/odin-inspector-and-serializer-89041)
 
 ### 🫧 키워드
 
-- [Rich Text](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
+- ['Unity Document': 'Rich Text'](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
 - [UI Toolkit](/posts/Unity-UI-Toolkit/)
 - `Collision.contacts`
 - `AddForce`에서의 Force -> `force * DT / mass`
