@@ -4,7 +4,6 @@ title: "마음가짐 - 프로젝트"
 categories: [🪨Stone, 🏝️LifeStone]
 tags: [Mindset]
 image: "/assets/img/background/backtop.gif"
-hidden: true
 
 date: 2024-11-15. 02:28 # Init
 last_modified_at: 2025-03-15. 11:30 # 이것저것 추가
