@@ -33,7 +33,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-08-29. 21:33
 # last_modified_at: 2024-10-20. 21:02 # Unity 6
 # last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
-last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
+# last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
+last_modified_at: 2025-04-19. 01:05 # Memo: 단축키, 메모 정리...
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -226,12 +227,23 @@ Convex 체크
 `UnityEditor.EditorAssemblies:ProcessInitializeOnLoadMethodAttributes ()`  
 
 - InstantiateAsync
+- WebView 정식 지원 (?)
 
 ## 💫 Project 창 검색
 
 ---
 
 't:Prefab' (type)  
+
+## 💫 단축키
+
+---
+
+- `Ctrl + P`: Play Mode
+- `Ctrl + Shift + P`: Pause
+- `Ctrl + Alt + P`: Step
+- GameObject 선택 후 `Ctrl + Shift + F`: Focus
+  - GameObject Menu에도 있음.
 
 ## 💫 메모
 
@@ -247,6 +259,28 @@ Convex 체크
 - Screen.SafeArea
   - 펀치홀, 노치 디자인
 - WorldSpace UI에 Particle System
+- `UnityEditor.SceneManagement.EditorSceneManager.playModeStartScene`
+- UI -> Pause하고 움직여보면 안따옴, 각 프레임 Rebuild 필요
+- Profiler
+  - StandAlone
+  - DevelopMonet 켜야 모바일 BuildTest시 Profile 가능
+- 지오메트리
+- Segment
+- Spline
+- DrawCall 줄이기
+  - 같은 리소스 최대한 한 번에 그리기?
+  - `리소스 전환`?
+  - 동일한 텍스쳐/메쉬/쉐이더 한 번에 그리는 것: `Batching`?\
+- BaseMeshEffect
+  - UIBehaviour
+  - IMeshModifier
+- VertexHelper UI
+  - OnPopulateMesh
+  - Text도 가능
+    - i.e. Text Gradient를 Vertex 수정해서
+- `object.ReferenceEqual`를 `==` 연산 비싸서 대신?
+- Animator 움직이지 않아도, 보이지 않아도, 내부적으로 Dirty 처리
+- SelectionGroup
 
 ### 🫧 Asset
 
