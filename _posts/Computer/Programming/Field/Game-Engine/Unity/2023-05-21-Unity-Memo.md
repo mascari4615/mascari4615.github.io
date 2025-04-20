@@ -34,7 +34,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2024-10-20. 21:02 # Unity 6
 # last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
 # last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
-last_modified_at: 2025-04-19. 01:05 # Memo: 단축키, 메모 정리...
+# last_modified_at: 2025-04-19. 01:05 # Memo: 단축키, 메모 정리...
+last_modified_at: 2025-04-19. 20:15 # Button Navigation & Animation
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -228,6 +229,13 @@ Convex 체크
 
 - InstantiateAsync
 - WebView 정식 지원 (?)
+
+## 💫 Button Navigation & Animation
+
+---
+
+Navigation None하면 Button Transition Animation 동작안할 수 있음. (특히 Selected)  
+대신 `EventSystem.current.SetSelectedGameObject(button.gameObject);` 같이 선택해 줄 수도 있음.  
 
 ## 💫 Project 창 검색
 
