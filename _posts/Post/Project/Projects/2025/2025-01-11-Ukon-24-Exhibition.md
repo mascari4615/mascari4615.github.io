@@ -56,12 +56,17 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 
 ---
 
+![241224_173500](/assets/project/Ukon_24_Exhibition/241224_173500.png)
+![250101_000000](/assets/project/Ukon_24_Exhibition/250101_000000.png)
 ![250101_165731](/assets/project/Ukon_24_Exhibition/250101_165731.png)
 ![250101_165747](/assets/project/Ukon_24_Exhibition/250101_165747.png)
 ![250103_194634](/assets/project/Ukon_24_Exhibition/250103_194634.png)
 ![250105_203927](/assets/project/Ukon_24_Exhibition/250105_203927.png)
 ![250110_103625](/assets/project/Ukon_24_Exhibition/250110_103625.png)
 ![250110_182201](/assets/project/Ukon_24_Exhibition/250110_182201.png)
+![250111_000000](/assets/project/Ukon_24_Exhibition/250111_000000.png)
+![250111_000001](/assets/project/Ukon_24_Exhibition/250111_000001.png)
+![250111_000002](/assets/project/Ukon_24_Exhibition/250111_000002.png)
 ![250111_162508](/assets/project/Ukon_24_Exhibition/250111_162508.png)
 ![250111_162637](/assets/project/Ukon_24_Exhibition/250111_162637.png)
 ![250111_165336](/assets/project/Ukon_24_Exhibition/250111_165336.png)
@@ -77,5 +82,6 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 ![250111_203801](/assets/project/Ukon_24_Exhibition/250111_203801.png)
 ![250111_204035](/assets/project/Ukon_24_Exhibition/250111_204035.png)
 ![250111_204054](/assets/project/Ukon_24_Exhibition/250111_204054.png)
+![Ukon_24_Exhibition_World_Thumbnail](/assets/project/Ukon_24_Exhibition/Ukon_24_Exhibition_World_Thumbnail.png)
 
 - [2024년에 작업한 썸네일만 154장! 1월 초에 VR전시회를 준비중인데요! 1년 간 그린 일러스트, 썸네일을 전부 모아 전시할거니까 많이 많이 보러와주세요!!💖](https://x.com/ukon60/status/1874289452547264591)
