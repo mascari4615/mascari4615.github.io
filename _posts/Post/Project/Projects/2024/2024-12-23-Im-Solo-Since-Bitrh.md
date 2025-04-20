@@ -62,6 +62,10 @@ PC Only
 ---
 
 ![241222_133741](/assets/project/Im_Solo_Since_Bitrh/241222_133741.png)
+![241223_000000](/assets/project/Im_Solo_Since_Bitrh/241223_000000.png)
 ![241223_013644](/assets/project/Im_Solo_Since_Bitrh/241223_013644.png)
 ![241223_013749](/assets/project/Im_Solo_Since_Bitrh/241223_013749.png)
 ![241223_222803](/assets/project/Im_Solo_Since_Bitrh/241223_222803.png)
+![250313_201206](/assets/project/Im_Solo_Since_Bitrh/250313_201206.png)
+![Im_Solo_Since_Birth_Banner](/assets/project/Im_Solo_Since_Bitrh/Im_Solo_Since_Bitrh_Banner.png)
+![Im_Solo_Since_Birth_Credit](/assets/project/Im_Solo_Since_Bitrh/Im_Solo_Since_Bitrh_Credit.png)
