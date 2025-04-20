@@ -102,6 +102,7 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 ![250211_224730](/assets/project/Gomem_Deck_Compression/250211_224730.png)
 ![250215_000000](/assets/project/Gomem_Deck_Compression/250215_000000.png)
 ![250215_050358](/assets/project/Gomem_Deck_Compression/250215_050358.png)
+![250215_234434](/assets/project/Gomem_Deck_Compression/250215_234434.png)
 ![250309_201659](/assets/project/Gomem_Deck_Compression/250309_201659.png)
 ![250309_201836](/assets/project/Gomem_Deck_Compression/250309_201836.png)
 ![250309_201850](/assets/project/Gomem_Deck_Compression/250309_201850.png)

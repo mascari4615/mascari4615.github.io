@@ -4,7 +4,6 @@ description: "이 블로그에서 사용하는 글 컨벤션, 작성 규칙"
 categories: [📀Post, 🍇Blog]
 tags: [Blog]
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2024-10-22. 11:27
 # last_modified_at: 2024-10-22. 11:27 # Init (Blog로 부터 분리)
@@ -12,7 +11,9 @@ date: 2024-10-22. 11:27
 # last_modified_at: 2025-03-15. 10:52 # 한글/알파벳, 한국어/영어, 링크
 # last_modified_at: 2025-03-23. 15:46 # 글 모양 정리, 제목 - 메모
 # last_modified_at: 2025-03-23. 16:02 # 키워드
-last_modified_at: 2025-03-23. 16:49 # 도토리
+# last_modified_at: 2025-03-23. 16:49 # 도토리
+# last_modified_at: 2025-04-21. 05:49 # 05: 가로선 줄바꿈
+last_modified_at: 2025-04-21. 05:56 # Snippet
 ---
 
 ## 📀 머리말
@@ -153,8 +154,41 @@ _250315. 10:49
 ---
 
 _250315. 10:52  
-가로선 바로 아래에는 줄바꿈을 하지 않는다.  
-리스트 등이 들어가는 경우는 줄바꿈을 한다.  
+~~가로선 바로 아래에는 줄바꿈을 하지 않는다.~~  
+~~리스트 등이 들어가는 경우는 줄바꿈을 한다.~~  
+
+통일성을 위해 언제나 줄바꿈을 한다.  
+
+## 📀 Snippet
+
+---
+
+```json
+"Blog Time Full": {
+	"prefix": "karmoTimeFull",
+	"body": [
+		"date: $ $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE # Init",
+		"# last_modified_at: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE"
+	],
+	"description": "Insert current time"
+},
+
+"Blog Time": {
+	"prefix": "karmoTime",
+	"body": [
+		"last_modified_at: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE"
+	],
+	"description": "Insert current time"
+},
+
+"Youtube Include": {
+	"prefix": "karmoYoutube",
+	"body": [
+		"{% include embed/youtube.html id = \"_\" %}"
+	],
+	"description": "Insert YouTube embed code"
+},
+```
 
 ## 📀 메모
 

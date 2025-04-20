@@ -29,4 +29,6 @@ last_modified_at: 2024-11-09. 08:26 # Init
 ## 📀 기록
 
 ---
+
+![230820_204249](/assets/project/ISD_HomeParty/230820_204249.png)
 ![ISD_HomeParty_Banner](/assets/project/ISD_HomeParty/ISD_HomeParty_Banner.jpg)

@@ -94,6 +94,8 @@ UI에 사용된 글꼴은 [전주완판본 각체](https://noonnu.cc/font_page/6
 
 ---
 
+![250408_181444](/assets/project/MawangAssemble/250408_181444.png)
+![250413_133559](/assets/project/MawangAssemble/250413_133559.png)
 ![250413_185903](/assets/project/MawangAssemble/250413_185903.png)
 ![250413_203105](/assets/project/MawangAssemble/250413_203105.png)
 ![250413_203123](/assets/project/MawangAssemble/250413_203123.png)

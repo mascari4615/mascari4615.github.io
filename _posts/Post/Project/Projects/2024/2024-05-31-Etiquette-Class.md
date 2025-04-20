@@ -59,6 +59,7 @@ last_modified_at: 2025-03-13. 01:14 # Youtube Embed, VRC World Link 추가
 ![240703_215600](/assets/project/Etiquette_Class/240703_215600.png)
 ![240703_215614](/assets/project/Etiquette_Class/240703_215614.png)
 ![240703_215628](/assets/project/Etiquette_Class/240703_215628.png)
+![250313_201408](/assets/project/Etiquette_Class/250313_201408.png)
 
 24.05.31 금요일 14:00 회의  
 

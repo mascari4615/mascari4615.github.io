@@ -1,5 +1,5 @@
 ---
-title: "VRChat - 고멤 드림팀"
+title: "VRChat - 고멤 드림팀: 베팅트레인"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, GomemDreamTeam]
@@ -9,7 +9,14 @@ date: 2024-01-01. 00:00
 last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달
 ---
 
-{% include embed/youtube.html id = "프로젝트영상" %}
+\[베팅트레인\] 룰영상 보고가세용!  
+{% include embed/youtube.html id = "z4nIChsEnZk" %}
+
+눈 내리는 열차 속에서 펼쳐지는 고멤들의 두뇌싸움 - 베팅 트레인  
+{% include embed/youtube.html id = "gGnBvwrw5-A" %}
+
+베팅트레인 합방 풀버전  
+{% include embed/youtube.html id = "af1kawtyrv0" %}
 
 ## 📀 머리말
 
@@ -66,6 +73,7 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 ![241128_223757](/assets/project/Gomem_DreamTeam/BettingTrain/241128_223757.png)
 ![241130_182914](/assets/project/Gomem_DreamTeam/BettingTrain/241130_182914.png)
 ![241130_193118](/assets/project/Gomem_DreamTeam/BettingTrain/241130_193118.png)
+![241130_211439](/assets/project/Gomem_DreamTeam/BettingTrain/241130_211439.png)
 ![241130_212211](/assets/project/Gomem_DreamTeam/BettingTrain/241130_212211.png)
 ![241130_215108](/assets/project/Gomem_DreamTeam/BettingTrain/241130_215108.png)
 ![241130_221320](/assets/project/Gomem_DreamTeam/BettingTrain/241130_221320.png)
@@ -95,15 +103,15 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 4. 테이블에 베팅된 카드들의 곱만큼이 해당 테이블에 베팅 한 플레이어에게 점수로 지급됩니다.
 5. 총 n라운드 진행되며 라운드가 종료 된 후 가장 높은 점수를 가진 플레이어가 우승합니다.
 6. 총 8명. 7 + 등수 경쟁에 포함되지 않는 차장이 존재합니다. (세용님, 기획 의도에 맞게 게임 밸런스를 조정하는 역할)
-  - 차장도 다른 플레이어와 같은 플레이를 합니다.
+   - 차장도 다른 플레이어와 같은 플레이를 합니다.
 
 그래서  
 
 1. 9종의 카드를 8명에게 분배 (5초)
 2. 서로 소통하면서 각자 전략 짜고 시간 내에 테이블에 배팅 하기 (10분)
-  - 각 테이블에 누가, 어떤 카드를 베팅 했는지
-  - 베팅 결과 계산 -> 스크린으로
-  - 베팅 중간에 바꿀 수 있음
+   - 각 테이블에 누가, 어떤 카드를 베팅 했는지
+   - 베팅 결과 계산 -> 스크린으로
+   - 베팅 중간에 바꿀 수 있음
 3. 테이블 별로 결과 공개 (어떤 테이블 부터 깔지는 스탭 ro 세용님 재량) (2분?)
 
 이게 한 라운드  
