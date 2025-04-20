@@ -79,6 +79,10 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 
 ---
 
+![250225_232713](/assets/project/Love_With_GSG/250225_232713.png)
+![250226_210212](/assets/project/Love_With_GSG/250226_210212.png)
+![250226_212007](/assets/project/Love_With_GSG/250226_212007.png)
+![250226_231251](/assets/project/Love_With_GSG/250226_231251.png)
 ![Love_With_GSG_Credit](/assets/project/Love_With_GSG/Love_With_GSG_Credit.jpg)
 ![Love_With_GSG_Logo](/assets/project/Love_With_GSG/Love_With_GSG_Logo.jpg)
 
