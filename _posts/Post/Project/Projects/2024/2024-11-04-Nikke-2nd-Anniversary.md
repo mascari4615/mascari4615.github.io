@@ -179,6 +179,7 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 ![241118_062254](/assets/project/Nikke_2nd_Aniver/241118_062254.png)
 ![241118_081507](/assets/project/Nikke_2nd_Aniver/241118_081507.png)
 ![241118_081759](/assets/project/Nikke_2nd_Aniver/241118_081759.png)
+![241119_140500](/assets/project/Nikke_2nd_Aniver/241119_140500.png)
 ![Nikke_2nd_Aniver_Game2_Logo](/assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_Game2_Logo.png)
 ![Nikke_2nd_Aniver_PPT_Title](/assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png)
 

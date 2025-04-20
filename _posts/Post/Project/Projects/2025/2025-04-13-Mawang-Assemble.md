@@ -11,8 +11,8 @@ date: 2025-04-13. 00:00
 last_modified_at: 2025-04-17. 22:40
 ---
 
-_  
-{% include embed/youtube.html id = "" %}
+이세계에 마왕들이 모였습니다 - 버튜버 마왕총회  
+{% include embed/youtube.html id = "-yGT9IUrpHU" %}
 
 ## 📀 머리말
 
