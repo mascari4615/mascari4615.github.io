@@ -18,6 +18,8 @@ date: 2025-04-16. 20:49 # Init
 
 ---
 
+{% include embed/youtube.html id = "6vmQ3GxYl-0" %}
+
 ## 💫 메모
 
 ---
