@@ -409,3 +409,12 @@ MipMap
 - UNTIE SEOUL 2025
   - '류태규': 'Unity 프로젝트 개발시 반드시 체크해야 할 최적화 관련 기능 공유'
   - 'Elbert Perez': '부드러운 모바일 게임: 최고의 성능을 위한 그래픽 최적화'
+
+Canvas 직접 움직이는 것은 괜찮지만  
+Canvas 내 Element를 움직이는 것은 Rebuild  
+
+RenderTexture 설정되어 있으면, 카메라 꺼져있어도 렌더링?  
+
+Disclaimer  
+
+CameraStacking URP  

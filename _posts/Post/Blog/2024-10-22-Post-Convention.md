@@ -13,7 +13,8 @@ date: 2024-10-22. 11:27
 # last_modified_at: 2025-03-23. 16:02 # 키워드
 # last_modified_at: 2025-03-23. 16:49 # 도토리
 # last_modified_at: 2025-04-21. 05:49 # 05: 가로선 줄바꿈
-last_modified_at: 2025-04-21. 05:56 # Snippet
+# last_modified_at: 2025-04-21. 05:56 # Snippet
+last_modified_at: 2025-04-21. 18:19 # Snippet 오타 수정
 ---
 
 ## 📀 머리말
@@ -167,7 +168,7 @@ _250315. 10:52
 "Blog Time Full": {
 	"prefix": "karmoTimeFull",
 	"body": [
-		"date: $ $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE # Init",
+		"date: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE # Init",
 		"# last_modified_at: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE"
 	],
 	"description": "Insert current time"
