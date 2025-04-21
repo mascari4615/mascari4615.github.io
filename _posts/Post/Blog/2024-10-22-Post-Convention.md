@@ -184,7 +184,7 @@ _250315. 10:52
 "Youtube Include": {
 	"prefix": "karmoYoutube",
 	"body": [
-		"{% include embed/youtube.html id = \"_\" %}"
+		"Some includes here"
 	],
 	"description": "Insert YouTube embed code"
 },
