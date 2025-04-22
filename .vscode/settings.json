@@ -39,5 +39,8 @@
 			]
 		}
 	},
-	"todo-tree.tree.showBadges": false
+	"todo-tree.tree.showBadges": false,
+	"[snippets]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
 }
