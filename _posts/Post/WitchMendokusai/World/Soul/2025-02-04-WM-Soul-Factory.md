@@ -105,6 +105,8 @@ last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
 - [나라 아버지 인격](https://twitter.com/keroro4792/status/1622267728336920580?s=20)
 - [mix](https://x.com/CandlMix/media)
 - [서부마녀](https://x.com/PT_CROW/status/1783423425756996021)
+- ['X, _': '남캐가 여캐를 더 좋아하는 관계'](https://x.com/Gojomegum/status/1912870190666199398)
+- ['X, _': 어른과 아이](https://x.com/nutella__1231/status/1912891916565533139)
 
 ### 💿 키워드
 

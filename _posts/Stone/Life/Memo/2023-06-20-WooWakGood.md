@@ -1,7 +1,7 @@
 ---
 title: "우왁굳"
 # description: ""
-categories: [📀Post, 🍋‍🟩Memo]
+categories: [🪨Stone, 🏝️LifeStone]
 tags: [Memo, WooWakGood]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
@@ -27,14 +27,14 @@ last_modified_at: 2024-11-28. 15:15 # 시참 영상 정리
 # nunEtQM82fo
 ---
 
-## 📀 머리말
+## 🗿 머리말
 
 ---
 
 - [VR챗 제작등록소 게시물](https://cafe.naver.com/steamindiegame/6259414)
 - 맵 제작 스터디 2기 멘티, TA 멘토
 
-## 📀 시간대별 기록
+## 🗿 시간대별 기록
 
 ---
 
@@ -212,7 +212,7 @@ last_modified_at: 2024-11-28. 15:15 # 시참 영상 정리
 
 </details>
 
-## 📀 메모
+## 🗿 메모
 
 ---
 
@@ -236,7 +236,7 @@ last_modified_at: 2024-11-28. 15:15 # 시참 영상 정리
 ![티어게임(관)](/assets/img/post/project/TierGame.png)  
 ![CG 따라 만들기](/assets/img/post/project/CG.png)  
 
-## 📀 시참
+## 🗿 시참
 
 ---
 

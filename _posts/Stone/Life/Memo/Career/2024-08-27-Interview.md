@@ -1,7 +1,7 @@
 ---
 title: "Interview"
 # description: ""
-categories: [📀Post, 🍋‍🟩Memo]
+categories: [🪨Stone, 🏝️LifeStone]
 tags: [Memo, Interview, Portfolio]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
@@ -11,18 +11,18 @@ date: 2024-08-27. 22:03
 last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
 ---
 
-## 📀 머리말
+## 🗿 머리말
 
 ---
 
 이력서는 전부 본 상태이고, 관심이 있기 때문에 면접을 보는 상황.  
 그래서, 자기소개할 때는 강점, 지원한 회사를 선택한 이유, 이 회사에서 어떤꿈/목표를 가지고 일을 하겠다에 대한 부분들을 솔직하게.  
 
-## 📀 이력서 / 경럭 기술서 / 포트폴리오
+## 🗿 이력서 / 경럭 기술서 / 포트폴리오
 
 ---
 
-### 💿 포트폴리오
+### 🪨 포트폴리오
 
 - 포폴 올릴 때 링크 잘 안들어가니까, 확실하게 다 넣을 것
 - 다른 포폴을 많이 참고할것
@@ -30,7 +30,7 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
 - [게임 클라이언트 프로그래머 - 이도현 프로필](https://www.rallit.com/hub/resumes/277929/%EC%9D%B4%EB%8F%84%ED%98%84)
 - [게임 개발 포트폴리오 | TSEROF - 내일배움캠프 블로그](https://nbcamp.spartacodingclub.kr/blog/%EA%B2%8C%EC%9E%84-%EA%B0%9C%EB%B0%9C-%ED%8F%AC%ED%8A%B8%ED%8F%B4%EB%A6%AC%EC%98%A4-tserof--16755)
 
-### 💿 이력서 / 경럭 기술서
+### 🪨 이력서 / 경럭 기술서
 
 - [주니어 개발자 이력서 쓰는 법](https://velog.io/@yukina1418/주니어-개발자-이력서-쓰는-법)
 
@@ -54,7 +54,7 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
   - 프로젝트 관련된 기술과 의사 결정 경험을 공유
   - 관심 분야와 하고 싶은 롤을 표현
 
-## 📀 일반 질문
+## 🗿 일반 질문
 
 ---
 
@@ -127,7 +127,7 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
   - '면접 준비를 얼마나 했는가'
     - 그런 것들을 종합해서 지원자의 답변에 대한 신뢰도를 체크하기도 하고요. 실제 입사 후 적응 여부를 예상하기도 합니다.
 
-## 📀 메모
+## 🗿 메모
 
 ---
 
@@ -141,11 +141,11 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
 - 화상 면접 환경 테스트
   - 마이크, 캠
 
-## 📀 면접
+## 🗿 면접
 
 ---
 
-### 💿 00
+### 🪨 00
 
 - 자기소개 X
 - 회사 분위기 어떤 것 같아요?
