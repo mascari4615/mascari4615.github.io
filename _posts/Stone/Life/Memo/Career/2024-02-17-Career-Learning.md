@@ -1,7 +1,7 @@
 ---
 title: "Career-Learning"
 # description: ""
-categories: [🪨Stone, �️LifeStone]
+categories: [🪨Stone, 🏝️LifeStone]
 tags: [Memo, Learning]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
