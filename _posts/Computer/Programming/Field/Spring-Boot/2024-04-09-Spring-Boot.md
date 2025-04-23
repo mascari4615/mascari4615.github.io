@@ -566,7 +566,6 @@ public String hello(@RequestBody MemberDTO memberDTO) // @RequestBody를 꼭 사
   - `@Bean` : 개발자가 직접 제어가 불가능한 외부 라이브러리 등을 Bean으로 만들 경우 사용
 
 Bean?  
-TODO: 나중에 다시 볼 것  
 
 - `@PutMapping`
 
