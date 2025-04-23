@@ -2,7 +2,7 @@
 title: "버튜버 우리말 대전"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [MUdons]
+tags: [Project, VRChat]
 image: "/assets/project/VTuber_Hangle/241006_054719.png"
 
 date: 2024-10-09. 00:00 # 방송일

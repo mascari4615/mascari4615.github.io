@@ -2,7 +2,7 @@
 title: "똥 피하기"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, GameDev, AvoidingDDong]
+tags: [Project, VRChat]
 image: "/assets/img/post/2019/190802_0013.png"
 
 date: 2019-08-02. 18:40:00

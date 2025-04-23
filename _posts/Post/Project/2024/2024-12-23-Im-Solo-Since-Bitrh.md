@@ -2,7 +2,7 @@
 title: "VRChat - 나는 모솔"
 description: "이세계아이돌 고세구님의 '연애 컨설팅' 컨텐츠."
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, WakTarot]
+tags: [Project, VRChat]
 image: "/assets/project/Im_Solo_Since_Birth/Im_Solo_Since_Birth_Banner.png"
 
 date: 2024-12-23. 00:00

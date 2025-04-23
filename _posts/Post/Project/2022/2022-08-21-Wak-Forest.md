@@ -2,7 +2,7 @@
 title: "왁숲"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, WakForest]
+tags: [Project, VRChat]
 image: "/assets/project/ETC/WakForest.png"
 
 date: 2022-08-21. 00:00

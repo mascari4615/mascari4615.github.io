@@ -2,7 +2,7 @@
 title: "고멤가요제"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, Gomem]
+tags: [Project, VRChat]
 image: "/assets/project/ETC/Finale1.png"
 
 date: 2022-09-25. 00:00

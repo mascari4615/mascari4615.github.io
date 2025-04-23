@@ -2,7 +2,7 @@
 title: "세기의 대결, 왁파고 VS 이세돌"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, Go]
+tags: [Project, VRChat]
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2022-07-10. 00:00

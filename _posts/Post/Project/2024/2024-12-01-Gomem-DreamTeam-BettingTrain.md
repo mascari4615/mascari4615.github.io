@@ -2,7 +2,7 @@
 title: "VRChat - 고멤 드림팀: 베팅트레인"
 description: "우왁굳님의 '전략 카드 게임' 컨텐츠."
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, GomemDreamTeam]
+tags: [Project, VRChat]
 image: "/assets/project/Gomem_DreamTeam/BettingTrain/241130_230638.png"
 
 date: 2024-01-01. 00:00

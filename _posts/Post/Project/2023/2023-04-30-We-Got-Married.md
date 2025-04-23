@@ -2,7 +2,7 @@
 title: "우리 억결했어요"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [VRChat, WeGotMarried]
+tags: [Project, VRChat]
 image: "/assets/project/We_Got_Married/230429_224703.png"
 
 date: 2023-04-30. 00:00

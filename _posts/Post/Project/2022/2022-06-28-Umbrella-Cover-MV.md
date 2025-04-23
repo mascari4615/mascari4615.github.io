@@ -2,7 +2,7 @@
 title: "우산 Cover MV"
 # description: "우산 Cover MV 촬영에 사용된 일부 VRChat 월드 제작."
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, Umbrella]
+tags: [Project, VRChat]
 image: "/assets/project/Umbrella_Cover_MV/Umbrella_Cover_MV_Banner.png"
 
 date: 2022-06-28. 00:00

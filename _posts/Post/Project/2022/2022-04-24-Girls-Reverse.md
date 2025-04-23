@@ -2,7 +2,7 @@
 title: "소녀리버스"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, GirlsReverse]
+tags: [Project, VRChat]
 image: "/assets/project/Girls_Reverse/230220_064057.png"
 
 date: 2022-04-24. 00:00

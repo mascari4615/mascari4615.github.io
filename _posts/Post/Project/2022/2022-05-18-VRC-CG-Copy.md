@@ -2,7 +2,7 @@
 title: "CG Copy"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, CGCopy]
+tags: [Project, VRChat]
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2022-05-18. 00:00

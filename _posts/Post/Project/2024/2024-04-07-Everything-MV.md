@@ -2,7 +2,7 @@
 title: "Everything MV"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat]
+tags: [Project]
 image: "/assets/project/Everything/230629_222847.png"
 
 date: 2024-04-07. 00:00
