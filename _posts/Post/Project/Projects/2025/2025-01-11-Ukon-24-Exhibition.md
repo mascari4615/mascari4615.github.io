@@ -2,7 +2,7 @@
 title: "VRChat - 유콘 24"
 # description: ""
 categories: [📀Post, 🫐Project]
-tags: [Project, VRChat, WakTarot]
+tags: [Project, VRChat]
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2025-01-23. 00:00

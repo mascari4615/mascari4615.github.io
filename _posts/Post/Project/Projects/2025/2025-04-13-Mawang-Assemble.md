@@ -3,7 +3,7 @@ title: "VRChat - 마왕총회"
 # description: ""
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/MawangAssemble/250413_203153.png"
 
 date: 2025-04-13. 00:00
 # last_modified_at: 2025-04-16. 21:48 # Init
