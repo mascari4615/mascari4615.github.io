@@ -2,7 +2,7 @@
 title: "Binary (Search) Tree"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Tree, Binary-Tree, Binary-Search-Tree, Self-Balancing-Tree]
+tags: [Data-Structure, Tree]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:52

@@ -2,7 +2,7 @@
 title: "플로이드-웨셜 알고리듬"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Dynamic-Programming, DP, Floyd-Warshall]
+tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-30. 11:20

@@ -2,7 +2,7 @@
 title: "Binary-Search"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Search, Binary-Search]
+tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-17. 14:44

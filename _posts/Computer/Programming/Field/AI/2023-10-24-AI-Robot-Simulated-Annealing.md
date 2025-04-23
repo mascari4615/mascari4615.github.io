@@ -2,7 +2,7 @@
 title: "Simulated Annealing - 모의 담금질"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, Simulated-Annealing]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-25. 09:57

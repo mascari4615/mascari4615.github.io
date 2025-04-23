@@ -2,7 +2,7 @@
 title: "Queue"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Queue]
+tags: [Data-Structure, Queue]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:45

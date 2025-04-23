@@ -2,7 +2,7 @@
 title: "Artificial Life - 인공생명"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, Artificial-Life, A-Life Boids, Game-of-Life]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-07. 10:07

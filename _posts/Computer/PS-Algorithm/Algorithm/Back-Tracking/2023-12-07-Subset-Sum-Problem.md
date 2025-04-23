@@ -2,7 +2,7 @@
 title: "Subset Sum Problem"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Subset-Sum-Problem, Sum-Of-Subsets-Problem, Back-Tracking]
+tags: [Algorithm, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
 

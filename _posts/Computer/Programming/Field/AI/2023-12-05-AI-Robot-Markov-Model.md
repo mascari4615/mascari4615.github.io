@@ -2,7 +2,7 @@
 title: "Markov Model"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, HMM, Morcov-Model, Marcov-Chain, Bigram-Model]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-12-05. 10:05

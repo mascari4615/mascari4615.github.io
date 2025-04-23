@@ -2,7 +2,7 @@
 title: "LIS"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Dynamic-Programming, DP, LIS, Longest-Increasing-Subsequence]
+tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-11-13. 01:24

@@ -2,7 +2,7 @@
 title: "Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, Neural-Networks, Backpropagation-Algorithm]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-25. 10:07

@@ -2,7 +2,7 @@
 title: "Linked-List"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Linked-List]
+tags: [Data-Structure, Linked-List]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 00:30

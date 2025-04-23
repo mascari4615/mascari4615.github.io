@@ -2,7 +2,7 @@
 title: "Array 배열"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Array]
+tags: [Data-Structure, Array]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-18. 11:34

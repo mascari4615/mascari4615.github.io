@@ -2,7 +2,7 @@
 title: "전문가 시스템 - Rules-Based System"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, Rules-Based-System]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-21 10:43

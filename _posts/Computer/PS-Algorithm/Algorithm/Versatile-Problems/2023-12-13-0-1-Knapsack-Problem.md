@@ -2,7 +2,7 @@
 title: "0-1 배낭 문제"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, 0-1-Knapsack-Problem, Dynamic-Programming, Back-Tracking]
+tags: [Algorithm, Dynamic-Programming, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
 

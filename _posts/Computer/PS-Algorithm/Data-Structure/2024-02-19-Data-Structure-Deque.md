@@ -2,7 +2,7 @@
 title: "Deque"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Deck]
+tags: [Data-Structure, Deck]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:54

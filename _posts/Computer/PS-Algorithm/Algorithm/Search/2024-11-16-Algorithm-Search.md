@@ -2,7 +2,7 @@
 title: "Search"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Search, Linear-Search, Single-Search]
+tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

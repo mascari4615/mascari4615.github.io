@@ -2,7 +2,7 @@
 title: "Fuzzy Logic"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [AI, Fuzzy-Logic]
+tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-28. 10:08

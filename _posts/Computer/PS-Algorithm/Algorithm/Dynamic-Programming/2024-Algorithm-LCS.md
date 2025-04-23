@@ -2,7 +2,7 @@
 title: "LCS"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Dynamic-Programming, DP, LCS, Longest-Common-Subsequence]
+tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-00-00. 00:00

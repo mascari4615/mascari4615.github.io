@@ -2,7 +2,7 @@
 title: "Heap"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Heap]
+tags: [Data-Structure, Heap]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:22

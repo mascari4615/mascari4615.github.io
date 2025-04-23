@@ -2,7 +2,7 @@
 title: "Hash-Table"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Hash-Table, Hash]
+tags: [Data-Structure, Hash]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:06

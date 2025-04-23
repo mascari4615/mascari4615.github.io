@@ -2,7 +2,7 @@
 title: "Graph, Tree | 그래프, 트리"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Graph]
+tags: [Data-Structure, Graph]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-07-14. 23:37

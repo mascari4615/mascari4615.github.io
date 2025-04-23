@@ -2,7 +2,7 @@
 title: "Set 집합"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Data-Stucture, Set]
+tags: [Data-Structure, Set]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-25. 02:14

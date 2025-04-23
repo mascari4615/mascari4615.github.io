@@ -2,7 +2,7 @@
 title: "알고리듬 성능 평가"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Big-O]
+tags: [Algorithm]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 13:37

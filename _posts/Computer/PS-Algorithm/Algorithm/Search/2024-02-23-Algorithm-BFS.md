@@ -2,7 +2,7 @@
 title: "BFS"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Search, BFS, Breadth-First-Search]
+tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-23. 03:30

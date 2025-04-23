@@ -2,7 +2,7 @@
 title: "K-Graph Coloring"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, K-Grapth-Coloring, Back-Tracking]
+tags: [Algorithm, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
 
