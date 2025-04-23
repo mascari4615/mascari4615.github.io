@@ -1,9 +1,9 @@
 ---
 title: "VRChat - 고멤 덱 압축"
-# description: ""
+description: "우왁굳님의 '고멤 유치원 합격/탈락 발표' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Gomem_Deck_Compression/250215_000000.png"
 
 date: 2025-02-15. 00:00
 last_modified_at: 2025-03-09. 21:05 # 전

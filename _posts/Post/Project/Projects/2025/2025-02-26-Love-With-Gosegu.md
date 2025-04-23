@@ -1,9 +1,9 @@
 ---
 title: "VRChat - 세구와 연애중"
-# description: ""
+description: "이세계아이돌 고세구님의 '미연시 상황극' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Love_With_GSG/Love_With_GSG_Logo.jpg"
 
 date: 2025-02-26. 00:00
 # last_modified_at: 2025-03-03. 21:35 # Init

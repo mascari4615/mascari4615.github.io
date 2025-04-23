@@ -1,6 +1,6 @@
 ---
 title: "승리의 여신 : 니케, 2주년 업데이트 광고"
-# description: ""
+description: "'승리의 여신 : 니케, 2주년 업데이트 광고' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
 image: "/assets/project/Nikke_2nd_Aniver/Nikke_2nd_Aniver_PPT_Title.png"

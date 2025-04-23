@@ -1,9 +1,9 @@
 ---
 title: "VRChat - 나는 모솔"
-# description: ""
+description: "이세계아이돌 고세구님의 '연애 컨설팅' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat, WakTarot]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Im_Solo_Since_Birth/Im_Solo_Since_Birth_Banner.png"
 
 date: 2024-12-23. 00:00
 last_modified_at: 2025-03-10. 00:42 # Init
@@ -61,11 +61,11 @@ PC Only
 
 ---
 
-![241222_133741](/assets/project/Im_Solo_Since_Bitrh/241222_133741.png)
-![241223_000000](/assets/project/Im_Solo_Since_Bitrh/241223_000000.png)
-![241223_013644](/assets/project/Im_Solo_Since_Bitrh/241223_013644.png)
-![241223_013749](/assets/project/Im_Solo_Since_Bitrh/241223_013749.png)
-![241223_222803](/assets/project/Im_Solo_Since_Bitrh/241223_222803.png)
-![250313_201206](/assets/project/Im_Solo_Since_Bitrh/250313_201206.png)
-![Im_Solo_Since_Birth_Banner](/assets/project/Im_Solo_Since_Bitrh/Im_Solo_Since_Bitrh_Banner.png)
-![Im_Solo_Since_Birth_Credit](/assets/project/Im_Solo_Since_Bitrh/Im_Solo_Since_Bitrh_Credit.png)
+![241222_133741](/assets/project/Im_Solo_Since_Birth/241222_133741.png)
+![241223_000000](/assets/project/Im_Solo_Since_Birth/241223_000000.png)
+![241223_013644](/assets/project/Im_Solo_Since_Birth/241223_013644.png)
+![241223_013749](/assets/project/Im_Solo_Since_Birth/241223_013749.png)
+![241223_222803](/assets/project/Im_Solo_Since_Birth/241223_222803.png)
+![250313_201206](/assets/project/Im_Solo_Since_Birth/250313_201206.png)
+![Im_Solo_Since_Birth_Banner](/assets/project/Im_Solo_Since_Birth/Im_Solo_Since_Birth_Banner.png)
+![Im_Solo_Since_Birth_Credit](/assets/project/Im_Solo_Since_Birth/Im_Solo_Since_Birth_Credit.png)

@@ -1,6 +1,6 @@
 ---
 title: "VRChat - 마왕총회"
-# description: ""
+description: "이세계아이돌 비챤님의 '마왕 토크쇼' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
 image: "/assets/project/MawangAssemble/250413_203153.png"

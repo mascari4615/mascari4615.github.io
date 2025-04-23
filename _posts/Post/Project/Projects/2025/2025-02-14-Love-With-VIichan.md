@@ -1,9 +1,9 @@
 ---
 title: "VRChat - 챠니와 두근두근"
-# description: ""
+description: "이세계아이돌 비챤님의 '미연시 상황극' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Love_With_VIi/Love_With_VIi_Banner.png"
 
 date: 2025-02-14. 00:00
 last_modified_at: 2025-02-23. 00:44 # Init

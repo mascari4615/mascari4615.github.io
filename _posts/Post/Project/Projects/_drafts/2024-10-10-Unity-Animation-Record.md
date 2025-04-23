@@ -187,7 +187,7 @@ for (int i = 0; i < recordedCurvesCount; i++)
 `AnimationClip`을 FBX로 변환한다.  
 이를 위해 
 
-## 📀 메모/생각
+## 📀 메모
 
 ---
 

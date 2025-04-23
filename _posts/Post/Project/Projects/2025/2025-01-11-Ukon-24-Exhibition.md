@@ -1,9 +1,9 @@
 ---
 title: "VRChat - 유콘 24"
-# description: ""
+description: "유콘님의 '일러스트 전시회' 컨텐츠."
 categories: [📀Post, 🫐Project]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/project/Ukon_24_Exhibition/Ukon_24_Exhibition_World_Thumbnail.png"
 
 date: 2025-01-23. 00:00
 # last_modified_at: 2025-01-27. 13:01 # Init
