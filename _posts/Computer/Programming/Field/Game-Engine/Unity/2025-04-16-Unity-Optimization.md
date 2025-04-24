@@ -40,7 +40,7 @@ last_modified_at: 2025-04-16. 22:12 # Memo: Read/Write, MipMap
 - AssetBundle 관련련
 - PersistentManager.Remapper
   - Instance ID와 File GUID, Local ID mapping 정보
-    - 늘어나면 즐어들지 않기 떄문에 최대 asset 개수 최소화
+    - 늘어나면 즐어들지 않기 때문에 최대 asset 개수 최소화
 - SerialzedFile
   - Assetbundle metadata
 - 장면에 필요한 asset만 포함된 bundle 구성 (사실상 불가능)
@@ -200,7 +200,7 @@ PixelOVerDraw
 
 훔질이 허용하는 선에서는 병합해서,  
 
-UI, 복잡도가 높기 떄문에  
+UI, 복잡도가 높기 때문에  
 꼭 가려지는 1,2개 정도 있는데  
 꼭 꺼주시고  
 
@@ -313,7 +313,7 @@ Vertex, Fragment SHader를 쓰고
 전부 기억하지는 않아도 되고  
 
 하나하닁 프레임에 
-계속 카피하고 읽어내고 바녹되기 떄문에  
+계속 카피하고 읽어내고 바녹되기 때문에  
 
 나눠서 효율적으로 하는 것이 중요  
 

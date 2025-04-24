@@ -59,3 +59,4 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 
 ---
 
+전 굽기용으로 포커 게임 (Like ProminencePoker, With Scoreboard)  
