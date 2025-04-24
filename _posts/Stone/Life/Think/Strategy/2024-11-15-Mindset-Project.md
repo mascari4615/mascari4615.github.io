@@ -2,7 +2,7 @@
 title: "마음가짐 - 프로젝트"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
-tags: [Mindset]
+tags: [Strategy]
 image: "/assets/img/background/backtop.gif"
 
 date: 2024-11-15. 02:28 # Init

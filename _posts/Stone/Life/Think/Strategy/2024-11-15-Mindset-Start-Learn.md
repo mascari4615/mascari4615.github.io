@@ -2,7 +2,7 @@
 title: "마음가짐 - 시작과 배움"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
-tags: [Mindset]
+tags: [Strategy]
 image: "/assets/img/background/backtop.gif"
 
 date: 2024-11-15. 00:58
@@ -16,8 +16,9 @@ last_modified_at: 2025-04-25. 06:35 # 정리
 ---
 
 - 무엇을 행동한다는 것이 있어서
-- 무언가 시작하고, 지속한다는 것에 있어서
-- 그렇게 무엇을 배운다는 것에 있어서
+  - 무언가 시작하고, 지속한다는 것에 있어서
+  - 그렇게 무엇을 배운다는 것에 있어서
+    - 소화, 도토리 모은 위치를 잊어버린 다람쥐
 
 공부라는 단어를 쓸까 하다가, 너무 딱딱해보여서.  
 
