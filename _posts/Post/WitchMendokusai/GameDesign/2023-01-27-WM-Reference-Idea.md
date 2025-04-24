@@ -44,7 +44,8 @@ date: 2023-01-27. 08:15
 # last_modified_at: 2025-02-05. 01:04 # 정리
 # last_modified_at: 2025-03-14. 23:36 # 메모
 # last_modified_at: 2025-03-23. 18:26 # 관련 문서 병합, WM 카테고리 이관, 각 WM 문서로 정리, Frog 다시 돌려놓기
-last_modified_at: 2025-04-19. 02:53 # 메모
+# last_modified_at: 2025-04-19. 02:53 # 메모
+last_modified_at: 2025-04-25. 05:44 # X
 ---
 
 2025-03-23. 18:26 : 글 병합.  
@@ -192,6 +193,8 @@ last_modified_at: 2025-04-19. 02:53 # 메모
 ### 💿 HD-2D
 
 - [esukevi](https://x.com/esukevi)
+  - [1](https://x.com/esukevi/status/1853404069718896853)
+  - [2](https://x.com/esukevi/status/1911344771941253158)
 - [Game](https://x.com/Maytch/status/1773811174842224933)
 - [Game](https://x.com/KatanaDragon_/status/1781281503361564981)
 - [JRPG](https://x.com/drattzy/status/1842981933007130819)

@@ -7,7 +7,8 @@ image: "/assets/project/_WitchMendokusai/ScreenShot/240618_000000.png"
 hidden: true
 
 date: 2025-02-04. 23:49 # Init
-last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
+# last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
+last_modified_at: 2025-04-25. 05:42 # X
 ---
 
 ## 📀 머리말
@@ -107,6 +108,7 @@ last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
 - [서부마녀](https://x.com/PT_CROW/status/1783423425756996021)
 - ['X, _': '남캐가 여캐를 더 좋아하는 관계'](https://x.com/Gojomegum/status/1912870190666199398)
 - ['X, _': 어른과 아이](https://x.com/nutella__1231/status/1912891916565533139)
+- ['X, _': 상대방에게 온전히 자신을 맡기는 동료](https://x.com/B82W57H81/status/1915265452034679293)
 
 ### 💿 키워드
 
