@@ -216,6 +216,7 @@ exclude:
   - rollup.config.js
   - "package*.json"
   - "**/_drafts/*.md"
+  - "*-DRAFT*.md"
   - "*-TEMPLATE*.md"
 
 jekyll-archives:
