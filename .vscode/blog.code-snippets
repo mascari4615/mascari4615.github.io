@@ -43,4 +43,18 @@
 		],
 		"description": "Insert YouTube embed code"
 	},
+
+	"H2 Stone": {
+		"prefix": "karmoH2Stone",
+		"body": [
+			"## 🗿 "
+		],
+	},
+
+	"H3 Stone": {
+		"prefix": "karmoH3Stone",
+		"body": [
+			"### 🪨 "
+		],
+	},
 }
