@@ -6,10 +6,8 @@ tags: [Lost-Media, Youtube]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
-date: 2024-10-15. 18:18
-last_modified_at: 2024-10-15. 18:18
-
-# TODO:
+date: 2024-10-15. 18:18 # Init
+# last_modified_at: 2024-10-15. 18:18
 ---
 
 ## 💫 잃어버린 유튜브 동영상 찾기

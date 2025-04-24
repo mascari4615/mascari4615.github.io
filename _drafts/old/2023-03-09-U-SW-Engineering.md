@@ -2209,7 +2209,7 @@ COCOMO 2
   - SW 시스템은 개발 및 사용중에 지속적으로 변경됨
   - 형상 관리 CM는변화하는 SW 시스템을 관리하기 위한 정책,
 
-TODO: Version Repository Deploy Releases  
+Version Repository Deploy Releases  
 
 Releases 배포 개념의 릴리스, 버전 보다 작은 개념의 릴리스, 여러 의미  
 버전.릴리스  

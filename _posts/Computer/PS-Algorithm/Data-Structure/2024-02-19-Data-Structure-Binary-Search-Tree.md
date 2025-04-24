@@ -196,8 +196,6 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
 
 ---
 
-TODO:  
-
 - 해쉬 : `unordered_set`, `unordered_multiset`, `unordered_map`
 - 이진 검색 트리 : `set`, `multiset`, `map`
   - 내부적으로 원소가 크기 순으로 저장
