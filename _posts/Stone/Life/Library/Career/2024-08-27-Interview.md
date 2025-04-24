@@ -2,7 +2,7 @@
 title: "Interview"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
-tags: [Memo, Interview, Portfolio]
+tags: [Career]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 
@@ -213,4 +213,4 @@ last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
     - 네, 근데 이제 막 공부를 시작한 정도라서, 뭘 설명하거나 하는 정도는 아니다.
 
 - 연봉
-  - 제일 어려웠다 (그냥 가장 적은 금액을 말함)
+  - 제일 어려웠다

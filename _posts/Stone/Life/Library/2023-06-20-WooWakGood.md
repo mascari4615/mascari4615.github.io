@@ -2,7 +2,7 @@
 title: "우왁굳"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
-tags: [Memo, WooWakGood]
+tags: [WooWakGood]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 
