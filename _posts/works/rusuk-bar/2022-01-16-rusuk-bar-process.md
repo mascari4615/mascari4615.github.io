@@ -3,7 +3,7 @@ title: "RusukBar | 루석바 - 제작 과정"
 # description: ""
 categories: [🍇Works]
 tags: [Project, VRChat, RusukBar]
-image: "/assets/img/post/works/rusuk-bar/rusuk-bar.png"
+image: "{{ site.data.image-paths.works.rusuk-bar.default-image }}"
 
 date: 2022-01-16. 00:00
 # last_modified_at: 2024-11-09. 08:07 # Init

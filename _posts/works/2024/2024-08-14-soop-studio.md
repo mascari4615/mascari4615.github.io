@@ -3,7 +3,7 @@ title: "버종대 아프리카 TV 스튜디오"
 # description: ""
 categories: [🍇Works]
 tags: [Project, VRChat]
-image: "/assets/img/post/works/soop-studio/240816-183313.png"
+image: "/assets/img/post/works/soop-studio/240814-185806.png"
 
 date: 2024-08-14. 00:00
 last_modified_at: 2024-11-09. 08:35 # Init

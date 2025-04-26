@@ -3,7 +3,7 @@ title: "게임기획, 재미"
 # description: ""
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai, Game-Design]
-image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
+image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
 
 date: 2024-01-14. 18:22
 # last_modified_at: 2024-05-22. 23:00

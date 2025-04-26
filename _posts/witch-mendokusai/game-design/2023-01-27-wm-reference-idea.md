@@ -3,7 +3,7 @@ title: "WitchMendokusai - Reference, Idea"
 # description: ""
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai, Concept]
-image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
+image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
 
 # WitchMendokusai | Ref
 # date: 2024-10-30. 21:00

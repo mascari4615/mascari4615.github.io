@@ -3,7 +3,7 @@ title: "WitchMendokusai | 특수시공"
 # description: ""
 categories: [🫐WitchMendokusai, 🥥The-World]
 tags: [WitchMendokusai]
-image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
+image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
 hidden: true
 
 date: 2025-02-05. 01:04

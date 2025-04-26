@@ -1,0 +1,7 @@
+works:
+  witch-mendokusai:
+    default-image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
+  rusuk-bar:
+    default-image: "/assets/img/post/works/rusuk-bar/rusuk-bar-banner.png"
+
+# "{{ site.data.image-paths.works.rusuk-bar.default-image }}"
