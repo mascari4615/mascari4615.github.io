@@ -2,7 +2,7 @@
 title: "CPP 매크로 #, ## 연산자"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, CPP, Macro]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-10. 23:01

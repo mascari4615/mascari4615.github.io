@@ -2,8 +2,10 @@
 title: "Coding Convention | 코딩 컨벤션"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Coding-Convention, Readable-Code]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
+
+# Coding-Convention, Readable-Code
 
 date: 2023-02-17. 10:38
 # last_modified_at: 2024-09-05. 04:47

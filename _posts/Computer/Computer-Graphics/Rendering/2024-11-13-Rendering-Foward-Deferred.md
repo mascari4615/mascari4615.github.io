@@ -2,7 +2,7 @@
 title: "Forward & Deferred Rendering"
 # description: ""
 categories: [💫Computer, 🌕Computer-Graphics]
-tags: [Computer-Graphics, CG, Rendering, Forward-Rendering, Deferred-Rendering]
+tags: [Computer-Graphics, CG, Rendering]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

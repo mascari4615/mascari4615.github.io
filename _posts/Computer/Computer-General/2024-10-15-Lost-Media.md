@@ -2,7 +2,7 @@
 title: "Lost Media"
 description: "잃어버린 추억을 찾아서"
 categories: [💫Computer, 🌚Computer-General]
-tags: [Lost-Media, Youtube]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

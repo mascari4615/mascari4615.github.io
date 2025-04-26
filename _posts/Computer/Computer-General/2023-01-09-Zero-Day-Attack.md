@@ -2,7 +2,7 @@
 title: "Zero Day Attack(Exploit)"
 # description: ""
 categories: [💫Computer, 🌚Computer-General]
-tags: [Security, Attack, Zero-Day]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-09. 21:24

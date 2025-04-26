@@ -2,7 +2,7 @@
 title: "Unity PlayFab 에러"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, PlayFab]
+tags: [Unity]
 image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2022-11-16. 11:38

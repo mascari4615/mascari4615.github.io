@@ -2,7 +2,7 @@
 title: "레딧 이메일 연동 해제, 계정 삭제 오류"
 # description: ""
 categories: [📀Post, 🥑General]
-tags: [Reddit]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-08-26. 08:36

@@ -2,7 +2,7 @@
 title: "HTML에서 Jinja 주석 처리 할 때"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Jinja, HTML]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-06-27. 07:45

@@ -2,7 +2,7 @@
 title: "DesktopCal | 우왁굳 캘린더 달력 프로그램"
 # description: ""
 categories: [📀Post, 🥑General]
-tags: [DesktopCal, Calendar, Program]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-12-14. 17:17

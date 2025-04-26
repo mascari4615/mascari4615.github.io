@@ -2,7 +2,7 @@
 title: "Capacity Reserve"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Capacity-Reserve]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-27. 07:37

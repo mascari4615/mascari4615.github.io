@@ -2,7 +2,7 @@
 title: "Bit Byte Word"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Bit, Byte, Word]
+tags: [Computer, OS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-20. 16:53

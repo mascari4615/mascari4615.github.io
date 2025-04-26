@@ -2,7 +2,7 @@
 title: "MapleStory"
 # description: ""
 categories: [📀Post, 🍋Culture, 🍋Game]
-tags: [Culture, Game, MapleStory]
+tags: [Culture, Game]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 

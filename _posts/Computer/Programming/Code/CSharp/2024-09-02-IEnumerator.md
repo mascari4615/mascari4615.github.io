@@ -2,7 +2,7 @@
 title: "IEnumerator"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, IEnumerator]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

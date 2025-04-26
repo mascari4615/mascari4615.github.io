@@ -2,7 +2,7 @@
 title: "Boolean 크기가 1바이트인 이유"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Boolean, Bit, Byte]
+tags: [Computer, OS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-16. 10:51

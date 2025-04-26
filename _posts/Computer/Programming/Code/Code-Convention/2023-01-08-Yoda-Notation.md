@@ -2,7 +2,7 @@
 title: "Yoda Notation"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Yoda-Notation]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-08. 18:08

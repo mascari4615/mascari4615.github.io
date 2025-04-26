@@ -2,9 +2,8 @@
 title: "Unity | DOTween"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, DOTween]
+tags: [Unity]
 image: "/assets/img/background/kururu-lab.jpg"
-hidden: true
 
 date: 2025-03-15. 08:31 # Init
 last_modified_at: 2025-04-19. 01:08 # toUniTask

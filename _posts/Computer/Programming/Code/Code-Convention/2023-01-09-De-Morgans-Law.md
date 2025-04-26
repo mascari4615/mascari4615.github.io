@@ -2,7 +2,7 @@
 title: "드모르간 법칙, De Morgan's Law"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, DeMorgan-Law]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-09. 22:02

@@ -2,7 +2,7 @@
 title: "Code Block - Board Game"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, C#, Board-Game]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2025-03-15. 10:22 # Init

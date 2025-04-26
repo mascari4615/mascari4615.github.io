@@ -2,7 +2,7 @@
 title: "Web Browser 웹 브라우저"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Web, Browser]
+tags: [Web]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-05. 07:01

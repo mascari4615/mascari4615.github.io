@@ -2,7 +2,7 @@
 title: "Singleton Pattern"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Design-Pattern, Singleton]
+tags: [Computer, Programming, Design-Pattern]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

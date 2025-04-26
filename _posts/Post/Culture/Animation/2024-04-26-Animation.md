@@ -2,7 +2,7 @@
 title: "Animation"
 # description: ""
 categories: [📀Post, 🍋Culture, 🍋Animation]
-tags: [Culture, Animation]
+tags: [Culture]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 

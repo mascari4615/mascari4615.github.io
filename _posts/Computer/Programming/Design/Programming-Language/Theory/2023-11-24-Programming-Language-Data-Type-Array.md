@@ -2,7 +2,7 @@
 title: "프로그래밍 언어 - Array"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Programming-Language]
+tags: [Programming-Language, Data-Type]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-24. 09:20

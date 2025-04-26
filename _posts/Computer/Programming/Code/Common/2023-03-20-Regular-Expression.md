@@ -2,7 +2,7 @@
 title: "Regular-Expression | 정규표현식"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Regular-Expression, Regex]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-03-20. 14:21

@@ -2,7 +2,7 @@
 title: "연산 순서에 따른 퍼포먼스 차이"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Performance]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-01-02. 12:07

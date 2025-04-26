@@ -2,7 +2,7 @@
 title: "GPU Instancing"
 # description: ""
 categories: [💫Computer, 🌕Computer-Graphics]
-tags: [Computer-Graphics, CG, Rendering, GPU-Instancing]
+tags: [Computer-Graphics, CG, Rendering]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

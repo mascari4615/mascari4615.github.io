@@ -2,7 +2,7 @@
 title: "상수 이름에 접두사 k, 헝가리안 표기법"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Constant, Hungarian-Notation]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-06. 23:46

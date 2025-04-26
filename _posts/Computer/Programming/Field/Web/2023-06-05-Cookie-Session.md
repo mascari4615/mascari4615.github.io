@@ -2,7 +2,7 @@
 title: "세션 & 쿠키"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Web, Cookie, Session]
+tags: [Web]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-06-05. 11:11

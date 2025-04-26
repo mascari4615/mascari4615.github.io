@@ -2,7 +2,7 @@
 title: "Template Pattern"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Design-Pattern, Template]
+tags: [Computer, Programming, Design-Pattern]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

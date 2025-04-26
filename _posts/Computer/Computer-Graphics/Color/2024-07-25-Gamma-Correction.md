@@ -2,7 +2,7 @@
 title: "Gamma Correction"
 # description: ""
 categories: [💫Computer, 🌕Computer-Graphics]
-tags: [Computer-Graphics, CG, Gamma-Correction, Linear-Workflow]
+tags: [Computer-Graphics]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-07-25. 20:39

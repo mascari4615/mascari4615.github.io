@@ -2,7 +2,7 @@
 title: "Reactive Programming"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Event, Event-Driven-Programming]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

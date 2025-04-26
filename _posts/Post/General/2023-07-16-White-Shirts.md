@@ -2,7 +2,7 @@
 title: "와이 셔츠 = 화이트 셔츠"
 # description: ""
 categories: [📀Post, 🥑General]
-tags: [White-Shirts]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-07-16. 19:40

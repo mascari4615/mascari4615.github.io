@@ -2,7 +2,7 @@
 title: "Unity | Resource, AssetBundle, Addressable"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, AssetBundle, Addressable]
+tags: [Unity]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

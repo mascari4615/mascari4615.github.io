@@ -2,7 +2,7 @@
 title: "RAM, Main-Memory"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Memory, Main-Memory]
+tags: [Computer, OS, Memory]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-17. 03:58

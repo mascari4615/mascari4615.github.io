@@ -2,7 +2,7 @@
 title: "React Native 리액트 네이티브 - Animation"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Mobile, React-Native, Context]
+tags: [Mobile, React-Native]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-22. 13:09

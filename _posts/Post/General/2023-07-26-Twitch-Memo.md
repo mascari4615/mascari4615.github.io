@@ -2,7 +2,7 @@
 title: "트위치"
 # description: ""
 categories: [📀Post, 🥑General]
-tags: [Twitch]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2023-07-26. 16:02

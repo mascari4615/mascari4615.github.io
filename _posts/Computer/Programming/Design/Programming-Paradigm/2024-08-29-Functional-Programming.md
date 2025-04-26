@@ -2,7 +2,7 @@
 title: "Functional Programming"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Functional]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-08-29. 20:54

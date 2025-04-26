@@ -2,7 +2,7 @@
 title: "The Swap Trick"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Swap-Trick]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-01-07. 23:22

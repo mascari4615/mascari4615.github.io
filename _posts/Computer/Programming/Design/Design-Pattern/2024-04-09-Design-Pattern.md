@@ -2,7 +2,7 @@
 title: "프로그래밍 디자인 패턴"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Design-Pattern, Singleton, Observer]
+tags: [Computer, Programming, Design-Pattern
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-09. 16:18

@@ -2,7 +2,7 @@
 title: "Architecture Pattern"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Architecture, MVC, Layered-Architecture]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-09. 14:21

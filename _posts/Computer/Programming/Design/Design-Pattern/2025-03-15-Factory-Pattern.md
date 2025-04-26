@@ -2,7 +2,7 @@
 title: "Factory Pattern"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Design-Pattern, Factory]
+tags: [Computer, Programming, Design-Pattern]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

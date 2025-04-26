@@ -2,7 +2,7 @@
 title: "Code Block - Image-Zoom"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, C#, Image-Zoom]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2025-03-15. 08:55 # Init

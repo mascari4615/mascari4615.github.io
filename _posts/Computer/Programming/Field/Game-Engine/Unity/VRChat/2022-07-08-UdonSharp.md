@@ -2,7 +2,7 @@
 title: "VRChat 월드 제작 (U# / UdonSharp)"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, VRChat, USharp]
+tags: [Unity, VRChat]
 image: "/assets/img/background/20240827_140647.jpg"
 
 # 🌔 VRChat 안개 (Fog)

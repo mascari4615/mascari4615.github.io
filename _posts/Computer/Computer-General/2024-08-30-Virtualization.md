@@ -2,7 +2,7 @@
 title: "Virtualization"
 # description: ""
 categories: [💫Computer, 🌚Computer-General]
-tags: [Computer, Virtualization]
+tags: [Computer]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-08-30. 00:22

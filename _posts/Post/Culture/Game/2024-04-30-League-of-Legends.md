@@ -2,7 +2,7 @@
 title: "League of Legends"
 # description: ""
 categories: [📀Post, 🍋Culture, 🍋Game]
-tags: [Culture, Game, League-of-Legends]
+tags: [Culture, Game]
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 

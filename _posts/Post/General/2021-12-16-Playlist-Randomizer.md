@@ -1,8 +1,8 @@
 ---
-title: "Playerlist-Randomizer | 유튜브 재생목록 랜덤재생 사이트"
+title: "Playlist-Randomizer | 유튜브 재생목록 랜덤재생 사이트"
 # description: ""
 categories: [📀Post, 🥑General]
-tags: [Youtube, Playlist]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 
 date: 2021-12-16. 09:18

@@ -2,7 +2,7 @@
 title: "Why Binary?"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Boolean, Bit, Byte]
+tags: [Computer, OS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-11-14. 00:26

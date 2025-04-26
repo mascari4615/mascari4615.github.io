@@ -2,7 +2,7 @@
 title: "블랙박스, 화이트박스"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, BlackBox, WhiteBox]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-09-27. 03:11

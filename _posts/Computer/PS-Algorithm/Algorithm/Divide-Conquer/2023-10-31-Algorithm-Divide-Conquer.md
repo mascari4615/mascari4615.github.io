@@ -2,7 +2,7 @@
 title: "DC | Divide-Conquer | 분할 정복"
 # description: ""
 categories: [💫Computer, 🌓PS-Algorithm]
-tags: [Algorithm, Divide-Conquer, DC]
+tags: [Algorithm, Divide-Conque]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 13:37

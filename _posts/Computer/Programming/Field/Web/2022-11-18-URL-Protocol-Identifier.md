@@ -2,7 +2,7 @@
 title: "URL의 프로토콜 식별자 (Protocol Identifier)"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Web, URL, Protocol, ProtocolIdentifier, TopazChat]
+tags: [Web]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-11-18. 10:42

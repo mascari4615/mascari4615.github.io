@@ -2,7 +2,7 @@
 title: "Procedural Programming"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Procedural]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-08-30. 00:48

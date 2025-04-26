@@ -2,7 +2,7 @@
 title: "Ray Tracing"
 # description: ""
 categories: [💫Computer, 🌕Computer-Graphics]
-tags: [Computer-Graphics, CG, Rendering, Ray-Tracing]
+tags: [Computer-Graphics, CG, Rendering]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

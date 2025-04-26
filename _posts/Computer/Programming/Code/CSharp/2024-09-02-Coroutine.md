@@ -2,7 +2,7 @@
 title: "Coroutine"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Coroutine]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

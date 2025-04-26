@@ -2,7 +2,7 @@
 title: "Programming Paradigm 프로그래밍 패러다임"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Paradigm, Procedural, OOP, Functional]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-09-27. 03:31

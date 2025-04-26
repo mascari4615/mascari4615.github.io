@@ -2,7 +2,7 @@
 title: "Unity Transform Position"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Unity, Transform, Position]
+tags: [Unity]
 image: "/assets/img/background/20240827_140647.jpg"
 
 date: 2023-04-11. 13:44

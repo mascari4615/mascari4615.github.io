@@ -2,7 +2,7 @@
 title: "Event Driven Programming"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Event, Event-Driven-Programming]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-09-04. 11:10

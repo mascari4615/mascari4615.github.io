@@ -2,7 +2,7 @@
 title: "네임스페이스"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [Computer, Programming, Namespace]
+tags: [Computer, Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-10-01. 11:03

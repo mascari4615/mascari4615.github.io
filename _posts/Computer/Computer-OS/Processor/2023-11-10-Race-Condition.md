@@ -2,7 +2,7 @@
 title: "Race Condition"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Race-Condition]
+tags: [Computer, OS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-10. 09:21

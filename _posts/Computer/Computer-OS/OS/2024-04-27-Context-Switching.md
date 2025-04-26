@@ -2,7 +2,7 @@
 title: "Context-Switching"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Context-Switching]
+tags: [Computer, OS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-04-27. 09:38

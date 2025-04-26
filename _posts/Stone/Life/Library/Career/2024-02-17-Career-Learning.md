@@ -2,7 +2,7 @@
 title: "Career-Learning"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
-tags: [Career]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
 hidden: true
 

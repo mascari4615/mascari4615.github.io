@@ -2,7 +2,7 @@
 title: "Process, Processor, Thread"
 # description: ""
 categories: [💫Computer, 🌑Computer-OS]
-tags: [Computer, OS, Process, Processor, Thread]
+tags: [Computer, OS
 image: "/assets/img/background/kururu-lab.jpg"
 
 # 🌑 Process, Processor
