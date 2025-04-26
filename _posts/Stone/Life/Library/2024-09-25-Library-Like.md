@@ -3,7 +3,7 @@ title: "좋아요"
 description: "오호홍 좋아용"
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/img/background/20230112-151539.jpg"
 
 # https://publish.twitter.com/#
 

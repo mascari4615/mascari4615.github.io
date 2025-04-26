@@ -3,7 +3,7 @@ title: "Learning"
 description: "내가 배우고 싶은 것들, 내가 배우고 있는 것들"
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2024-03-15. 07:00 # Init
 last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각은 Mindset으로

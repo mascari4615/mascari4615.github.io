@@ -3,7 +3,7 @@ title: "우왁굳"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/img/background/20230112-151539.jpg"
 hidden: true
 
 date: 2023-06-20. 10:05
@@ -233,8 +233,8 @@ last_modified_at: 2024-11-28. 15:15 # 시참 영상 정리
 - 티어카드 올라가는 게임
 - [닉네임 왜 바꾸셨어요](https://vod.afreecatv.com/player/132082677)
 
-![티어게임(관)](/assets/img/post/project/TierGame.png)  
-![CG 따라 만들기](/assets/img/post/project/CG.png)  
+![티어게임(관)](/assets/img/post/stone/project/TierGame.png)  
+![CG 따라 만들기](/assets/img/post/stone/project/CG.png)  
 
 ## 🗿 시참
 

@@ -3,7 +3,7 @@ title: "Interview"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/img/background/20230112-151539.jpg"
 hidden: true
 
 date: 2024-08-27. 22:03

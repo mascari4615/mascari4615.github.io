@@ -1,9 +1,9 @@
 ---
 title: "언젠가"
 description: "언젠가 이런 일이 있었지."
-categories: [📀Post, 🍋‍🟩Memo]
+categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112_151539.jpg"
+image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2025-03-19. 01:28 # Init
 # last_modified_at: 2025-03-19. 01:28 
