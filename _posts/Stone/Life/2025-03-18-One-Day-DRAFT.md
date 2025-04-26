@@ -1,10 +1,9 @@
 ---
-title: "Someday"
+title: "언젠가"
 description: "언젠가 이런 일이 있었지."
 categories: [📀Post, 🍋‍🟩Memo]
-tags: [Memo, Someday]
+tags: []
 image: "/assets/img/background/20230112_151539.jpg"
-hidden: true
 
 date: 2025-03-19. 01:28 # Init
 # last_modified_at: 2025-03-19. 01:28 
@@ -39,3 +38,10 @@ LISTENING SCORE 310 / 495
 
 21.09.06 15:11:05  
 영어
+
+## 📀 메모
+
+---
+
+- One Day: 과거 언젠가
+- SomeDay: 미래 언젠가

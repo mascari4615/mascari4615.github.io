@@ -5,7 +5,7 @@ date: 2024-09-05. 04:42
 last_modified_at: 2024-09-29. 20:10
 
 categories: [🌳Memo, 🥑Memo-General]
-tags: [Writing, Blog]
+tags: []
 ---
 
 ## 🥑 문장과 단락의 구조화

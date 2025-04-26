@@ -2,7 +2,7 @@
 title: "Networking Solution"
 # description: ""
 categories: [💫Computer, 🌚Computer-General]
-tags: [Computer, Networking-Solution]
+tags: [Computer]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-09-25. 01:22
