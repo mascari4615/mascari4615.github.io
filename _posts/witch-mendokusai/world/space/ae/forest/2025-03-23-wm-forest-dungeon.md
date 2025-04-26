@@ -1,7 +1,7 @@
 ---
 title: "WitchMendokusai | Forest Dungeon"
 description: "숲 속에 위치한 지하 던전"
-categories: [🫐WitchMendokusai, 🥥World]
+categories: [🫐WitchMendokusai, 🥥The-World]
 tags: [WitchMendokusai]
 image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
 hidden: true

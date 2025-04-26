@@ -6,7 +6,7 @@ tags: [Blog]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2025-04-26. 14:57 # Init (Blog.md에서 분리)
-# last_modified_at: 2025-04-26. 14:57
+last_modified_at: 2025-04-26. 23:35 # 중복 카테고리 수정
 ---
 
 ## 📀 머리말
@@ -58,7 +58,7 @@ Milestone에서 따옴
 🫐WitchMendokusai, 🍐  
 🫐WitchMendokusai, 🥑Game-Design  
 🫐WitchMendokusai, 🍋‍🟩  
-🫐WitchMendokusai, 🥥World  
+🫐WitchMendokusai, 🥥The-World  
 
 ### 🍇Works | 🫐-📀💿
 
@@ -78,6 +78,11 @@ Milestone에서 따옴
 ## 📀 메모
 
 ---
+
+### 💿 주의사항
+
+- 블로그 빌드 시
+  - 카테고리 이모티콘 빠진채로 설정되는데, 이때 중복된 카테고리 없도록 주의
 
 ### 💿 Regex
 

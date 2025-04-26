@@ -2,7 +2,7 @@
 title: "Register | 레지스터"
 # description: ""
 categories: [💫Computer, 🌘System]
-, Memory]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-17. 02:50

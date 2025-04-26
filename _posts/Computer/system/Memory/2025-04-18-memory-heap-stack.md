@@ -2,7 +2,7 @@
 title: "Memory Heap/Stack"
 # description: ""
 categories: [💫Computer, 🌘System]
-, Memory]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2025-04-18. 18:07 # Init

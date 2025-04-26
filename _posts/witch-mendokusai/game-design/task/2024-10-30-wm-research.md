@@ -1,7 +1,7 @@
 ---
 title: "WitchMendokusai | Research"
 # description: ""
-categories: [📀Post, 🥥WitchMendokusai]
+categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai]
 image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
 hidden: true

@@ -1,7 +1,7 @@
 ---
 title: "WitchMendokusai | Start Town"
 description: "모험가 마을, 모험가 길드"
-categories: [🫐WitchMendokusai, 🥥World]
+categories: [🫐WitchMendokusai, 🥥The-World]
 tags: [WitchMendokusai]
 image: "/assets/img/post/works/_WitchMendokusai/ScreenShot/240618-000000.png"
 hidden: true
