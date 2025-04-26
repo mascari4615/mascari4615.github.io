@@ -3,7 +3,7 @@ title: "WitchMendokusai | Relation"
 # description: ""
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai]
-image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
+image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
 date: 2025-04-19. 01:57 # Init

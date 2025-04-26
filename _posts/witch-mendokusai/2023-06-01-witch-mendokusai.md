@@ -3,7 +3,7 @@ title: "WitchMendokusai"
 # description: ""
 categories: [🫐WitchMendokusai]
 tags: [WitchMendokusai]
-image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
+image: "/assets/img/post/works/_witch-Mendokusai/screenshot/240618-000000.png"
 hidden: true
 
 date: 2023-06-01. 10:25

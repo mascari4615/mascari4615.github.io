@@ -3,7 +3,7 @@ title: "WitchMendokusai | Game-Design"
 # description: ""
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai]
-image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
+image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
 # 2024-04-10. 12:24 : 글 병합.

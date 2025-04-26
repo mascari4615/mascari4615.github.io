@@ -3,7 +3,7 @@ title: "200623"
 # description: ""
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai, Game-Design]
-image: "{{ site.data.image-paths.works._witch-mendokusai.default-image }}"
+image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 
 date: 2020-06-23. 23:08:00
 # last_modified_at: 2021-10-05
