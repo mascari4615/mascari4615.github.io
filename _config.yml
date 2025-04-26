@@ -216,8 +216,10 @@ exclude:
   - rollup.config.js
   - "package*.json"
   - "**/_drafts/*.md"
-  - "*-DRAFT*.md"
-  - "*-TEMPLATE*.md"
+  - "*-draft.md"
+  - "*-DRAFT.md"
+  - "*-template.md"
+  - "*-TEMPLATE.md"
 
 jekyll-archives:
   enabled: [categories, tags]
