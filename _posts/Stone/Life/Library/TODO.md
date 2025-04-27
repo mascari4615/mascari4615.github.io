@@ -7,25 +7,15 @@
 ## 내용
 
 - 우선
-  - Item
+  - 유튜브 정리
   - 구글 드라이브 정리
   - 그림 북마크 정리
 
 - 작업
-  - 인형뽑기
+  - Love With JBG
   - Avalon
+  - Woodon
   - KarmoLab
-    - 문서 정리
-    - 자동으로 특정 경로에 폴더 만들어서 Build (이게 CI/CD인가? 이것도 조사)
-    - 경로 입력 할 때 `"` 쌍따옴표 Trim
-    - 카카오 받은 파일 네이밍 변경
-    - 카카오 포맷팅 할 때 줄바꿈되는 줄에도 `'  - '` 앞에 붙이기
-    - 카카오 바로 Stone에 적용하는 기능
-      - 나에게 지엽적인 기능이겠지만, 내 툴이니까 !
-    - 스크린샷 Prefix `Desktop`
-    - `Like.md` 트위터 링크 굳이 Embed로 안넣어도 될 듯? 이거 하이퍼링크로 바꾸는 기능
-      - 지금 트위터 임베드도 애초에 동작안하고 있네
-    - 진행상황 UI, Async
 
 - 공부
   - UI Toolkit
@@ -33,45 +23,11 @@
 - 블로그
   - 검색 기능 문제
     - Git 부계 블로그 만들어보고, 기존 블로그와 차이점 있는지 확인
-  - Project 글 내용 정리
-    - 수가 많아서, 천천히 부지런히
+  - Project 글 내용 정리: (수가 많아서, 천천히 부지런히)
   - `Word.md` 정리
 
 <https://mansu.tistory.com/45>
 
-- Woodon
-  - Editor
-    - VRChat 지원하는 Unity 2022도 UI Toolkit
-  - _
-    - Vote 쪽
-    - TMP Label도 쓸 수 있게 추상화된 클래스 쓰기?
-    - SeatDataOption에 Min/Max 기능 (그냥 Wint 처럼)
-    - Button Callback 추가하는 기능? Horrible 같은거
-  - _
-    - GetTag를 이용한 static 데이터?
-    - 예를 들어 ContentState같은거
-  - _
-    - ContentCommon (SFXManager, CameraManager, Prototyping - Staff)
-  - _
-    - Template Staff - 이름 바꾸기 (MBool -> WBool)
-    - 참조도 다 빠짐 지금.
-  - _
-    - WSfxManager UI도 WSC Base로 (CanvasGroup)
-  - _
-    - ContentStage를 Wint도 뺄 수 있나? (즉 WJson 데이터에서 WInt를?)
-    - Content Preset? (WJson, SeatDataOption)
-  - _
-    - Tag 쓰는 DB 기반 만들어야겠다 이거
-  - _
-    - 그리고 Seat 뭔가 추상화된 구조 하나 만들어서
-    - Camera 구도 같은거 잡을때나, Prefab Runtime 생성? 혹은 위치 맞추기? 에 쓰여야할듯
-  - _
-    - UseDefault
-  - Core 설명
-    - 핵심 설명
-      - 코드없이/혹은 재사용
-      - 구독자패턴: Event를 비슷하게
-      - 코드그래프처럼, Tree, 블럭코딩
 
 ## 어질러진 도토리
 
