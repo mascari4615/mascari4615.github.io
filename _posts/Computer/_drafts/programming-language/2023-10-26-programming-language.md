@@ -2,7 +2,7 @@
 title: "프로그래밍 언어"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [-Language]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-26. 13:26

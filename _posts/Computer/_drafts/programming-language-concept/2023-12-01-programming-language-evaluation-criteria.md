@@ -2,7 +2,7 @@
 title: "프로그래밍 언어 - 언어 평가 기준"
 # description: ""
 categories: [💫Computer, 🌒Programming]
-tags: [-Language]
+tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-12-01. 12:39

@@ -3,7 +3,7 @@ title: "VRChat - 마왕총회"
 description: "이세계아이돌 비챤님의 '마왕 토크쇼' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
-image: "/assets/img/post/works/MawangAssemble/250413-203153.png"
+image: "/assets/img/post/works/mawang-assemble/250413-203153.png"
 
 date: 2025-04-13. 00:00
 # last_modified_at: 2025-04-16. 21:48 # Init
@@ -94,16 +94,16 @@ UI에 사용된 글꼴은 [전주완판본 각체](https://noonnu.cc/font_page/6
 
 ---
 
-![250408-181444](/assets/img/post/works/MawangAssemble/250408-181444.png)
-![250413-133559](/assets/img/post/works/MawangAssemble/250413-133559.png)
-![250413-185903](/assets/img/post/works/MawangAssemble/250413-185903.png)
-![250413-203105](/assets/img/post/works/MawangAssemble/250413-203105.png)
-![250413-203123](/assets/img/post/works/MawangAssemble/250413-203123.png)
-![250413-203128](/assets/img/post/works/MawangAssemble/250413-203128.png)
-![250413-203142](/assets/img/post/works/MawangAssemble/250413-203142.png)
-![250413-203153](/assets/img/post/works/MawangAssemble/250413-203153.png)
-![250413-203709](/assets/img/post/works/MawangAssemble/250413-203709.png)
-![250413-204234](/assets/img/post/works/MawangAssemble/250413-204234.png)
+![250408-181444](/assets/img/post/works/mawang-assemble/250408-181444.png)
+![250413-133559](/assets/img/post/works/mawang-assemble/250413-133559.png)
+![250413-185903](/assets/img/post/works/mawang-assemble/250413-185903.png)
+![250413-203105](/assets/img/post/works/mawang-assemble/250413-203105.png)
+![250413-203123](/assets/img/post/works/mawang-assemble/250413-203123.png)
+![250413-203128](/assets/img/post/works/mawang-assemble/250413-203128.png)
+![250413-203142](/assets/img/post/works/mawang-assemble/250413-203142.png)
+![250413-203153](/assets/img/post/works/mawang-assemble/250413-203153.png)
+![250413-203709](/assets/img/post/works/mawang-assemble/250413-203709.png)
+![250413-204234](/assets/img/post/works/mawang-assemble/250413-204234.png)
 
 - [VRChat World](https://vrchat.com/home/world/wrld_8b9325e4-cc81-4f2c-b72c-8f105d67d43f/info)
   - Keyboard `~`, `1 ~ 6`, `F1 ~ F10` 까지 카메라가 등록돼있다.
