@@ -6,25 +6,16 @@
 
 ## 내용
 
-- 블로그
-  - 검색 기능 문제
-    - Git 부계 블로그 만들어보고, 기존 블로그와 차이점 있는지 확인
-  - Project 글 정리
-    - 일단 썸네일부터 수정
-    - 그 다음 영상 링크
-    - 그 다음 내용
-    - 수가 많아서, 천천히 부지런히
-  - `Word.md` 정리
-  - 우주 팽창 World로
-
-- 공부
-  - UI Toolkit
+- 우선
+  - Item
+  - 구글 드라이브 정리
+  - 그림 북마크 정리
 
 - 작업
   - 인형뽑기
   - Avalon
   - KarmoLab
-    - 문서 만들기
+    - 문서 정리
     - 자동으로 특정 경로에 폴더 만들어서 Build (이게 CI/CD인가? 이것도 조사)
     - 경로 입력 할 때 `"` 쌍따옴표 Trim
     - 카카오 받은 파일 네이밍 변경
@@ -36,23 +27,22 @@
       - 지금 트위터 임베드도 애초에 동작안하고 있네
     - 진행상황 UI, Async
 
-<https://mansu.tistory.com/45>
+- 공부
+  - UI Toolkit
 
-- 오늘
-  - 트위터 북마크 정리
-  - 디스코드 정리
-  - Item
-  - 프로젝트 정리
-  - 구글 드라이브 정리
-  - 그림 북마크 정리
-  - 5월 계획
-    - WM 계획
+- 블로그
+  - 검색 기능 문제
+    - Git 부계 블로그 만들어보고, 기존 블로그와 차이점 있는지 확인
+  - Project 글 내용 정리
+    - 수가 많아서, 천천히 부지런히
+  - `Word.md` 정리
+
+<https://mansu.tistory.com/45>
 
 - Woodon
   - Editor
     - VRChat 지원하는 Unity 2022도 UI Toolkit
   - _
-    - ObjectAlign MonoBehaviour화
     - Vote 쪽
     - TMP Label도 쓸 수 있게 추상화된 클래스 쓰기?
     - SeatDataOption에 Min/Max 기능 (그냥 Wint 처럼)
@@ -77,6 +67,11 @@
     - Camera 구도 같은거 잡을때나, Prefab Runtime 생성? 혹은 위치 맞추기? 에 쓰여야할듯
   - _
     - UseDefault
+  - Core 설명
+    - 핵심 설명
+      - 코드없이/혹은 재사용
+      - 구독자패턴: Event를 비슷하게
+      - 코드그래프처럼, Tree, 블럭코딩
 
 ## 어질러진 도토리
 
