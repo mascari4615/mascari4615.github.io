@@ -1,36 +1,9 @@
 ---
-title: "WitchMendokusai - Reference, Idea"
-# description: ""
+title: "Reference, Idea"
+description: "내 망상, 설정 놀음. 그리고 그것을 위한 `소재` 조작 모음."
 categories: [🫐WitchMendokusai, 🥑Game-Design]
 tags: [WitchMendokusai, Concept]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
-
-# WitchMendokusai | Ref
-# date: 2024-10-30. 21:00
-# last_modified_at: 2024-10-30. 21:00 # Init (from Game-Design)
-# last_modified_at: 2024-10-31. 18:16 # 2024 WASD
-# last_modified_at: 2024-11-19. 07:28 # -GameRef
-# last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
-# last_modified_at: 2025-03-23. 17:01 # 정리, Game-Ref 병합
-
-# WitchMendokusai | Art
-# date: 2024-10-30. 21:08 # Init
-
-# WitchMendokusai | MDD
-# date: 2024-10-30. 21:08
-# last_modified_at: 2024-11-19. 21:34 # Init
-
-# Game Ref
-# date: 2024-11-11. 07:35
-# last_modified_at: 2024-11-11. 07:35 # Init
-# last_modified_at: 2024-11-19. 07:28 # List
-
-# WitchMendokusai | Concepts
-# date: 2025-03-03. 20:58
-# last_modified_at: 2025-03-15. 06:41 # 메모 링크
-
-# WitchMendokusai | Transition
-# date: 2025-03-15. 09:00 # Init
 
 date: 2023-01-27. 08:15
 # last_modified_at: 2023-08-26. 10:54
@@ -45,30 +18,16 @@ date: 2023-01-27. 08:15
 # last_modified_at: 2025-03-14. 23:36 # 메모
 # last_modified_at: 2025-03-23. 18:26 # 관련 문서 병합, WM 카테고리 이관, 각 WM 문서로 정리, Frog 다시 돌려놓기
 # last_modified_at: 2025-04-19. 02:53 # 메모
-last_modified_at: 2025-04-25. 05:44 # X
+# last_modified_at: 2025-04-25. 05:44 # X
+# last_modified_at: 2025-04-28. 18:26 # 메모
+last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-name: -wm
 ---
-
-2025-03-23. 18:26 : 글 병합.  
-`2024-11-11-Game-Ref : Game Ref`,  
-`2024-10-30-WM-Ref : WitchMendokusai | Ref`,  
-`2024-10-30-WM-Art : WitchMendokusai | Art`,  
-`2024-10-30-WM-MDD : WitchMendokusai | MDD`,  
-`2025-03-03-WM-Concepts : WitchMendokusai | Concepts`,  
-`2025-03-15-WM-Transition : WitchMendokusai | Transition`  
 
 ## 📀 머리말
 
 ---
 
-내 망상과,  
-그런 망상을 하기위한 `소재`를 모아두는 곳  
-
-[설정 놀음](https://namu.wiki/w/%EC%84%A4%EC%A0%95%EB%86%80%EC%9D%8C)이다.  
-
-컨셉.  
-
-2월 5일 개별 문서로 작성하려했지만,  
-블로그 History에 50개의 문서나 한 번에 남는 것이 아름답지 않을 것 같아 하나의 문서로 정리.  
+내 망상, 설정 놀음. 그리고 그것을 위한 `소재` 조작 모음.  
 
 ## 📀 아이디어
 
@@ -100,7 +59,6 @@ last_modified_at: 2025-04-25. 05:44 # X
 ### 💿 이미 존재하는 창작물
 
 - [원풀이 / Wonpuri](https://x.com/Wonpuri)
-- 스타일리쉬리벤지
 - 개천고
 - 이걸 만화로 배워?
 - [A Shipwright](https://www.artstation.com/a_shipwright)
@@ -416,6 +374,9 @@ last_modified_at: 2025-04-25. 05:44 # X
 ## 📀 Number
 
 ---
+
+240205 개별 문서로 작성하려했지만,  
+블로그 History에 50개의 문서나 한 번에 남는 것이 아름답지 않을 것 같아 하나의 문서로 정리.  
 
 - -1
   - Joker (1)
@@ -964,8 +925,11 @@ last_modified_at: 2025-04-25. 05:44 # X
 - 정신집중
 - [뭔가 좋은 레퍼런스들 묶음](https://x.com/AndrieriStefano/status/1902077894782001414)
 - [HD-2D-푸키먼](https://x.com/sinnoh_CEO/status/1902336752750113098)
+- ['X, _': 서브컬쳐 지역](https://x.com/X02___/status/1904744659970383926)
+  - ['X, _': _](https://x.com/klazykonjoe/status/1905121777317200238)
 - UI
   - 상점 UI 같은거 그냥 Overlay로 박아도? Like 젠존제 언더테일
+  - <https://www.letterofsounds.com/artists/muyu/%E3%81%84%E3%81%A4%E3%81%8B%E3%81%AE%E8%87%AA%E5%88%86%E3%81%B8-m3>
     - Game UI 이렇게 해도 이쁠 것 같은데 (웹 페이지를 Game UI로) (UI Toolkit XML이잖아) (ASP?)
 - 마을 외관
   - 심시티5처럼 기다란 큰 넓은 메인 도로가 있고
@@ -1021,3 +985,197 @@ last_modified_at: 2025-04-25. 05:44 # X
 - 충신 증후군
 - 상점 등 UI 전체화면
 - Z9별, 마비노기 같은 게임?
+- 품질, 숙련도
+  - 품질은 재료를 압축
+  - 압축, 재료와 추가적인 촉매가 필요
+    - 촉매를 만들기 위해 제작 숙련도
+    - 좋은 품질의 촉매를 만들려면 제작 숙련도를 올려야겠죠
+
+## 📀 기믹
+
+---
+
+### 💿 소리_
+
+- [사이렌 4개가 겹치는 소리](https://youtu.be/wNrXUeq6Sug?si=zbJn9f51q6CtEW8e)
+
+### 💿 진행도
+
+- 진행도에 따른 차이 (등장인물 실루엣 이라던지)
+- 진행도에 따른 테마 차이
+- [포켓몬스터 블랙/화이트 BGM 레파토리](https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=riomedevon&logNo=110106228406)
+- [포켓몬스터 블랙/화이트 빌리지 브리지](https://pokemon.fandom.com/ko/wiki/%EB%B9%8C%EB%A6%AC%EC%A7%80_%EB%B8%8C%EB%A6%AC%EC%A7%80)
+- [포켓몬스터 블랙/화이트 빌리지 브리지](https://namu.wiki/w/%EB%B9%8C%EB%A6%AC%EC%A7%80%EB%B8%8C%EB%A6%AC%EC%A7%80)
+- [포켓몬스터 BGM 변화 기믹](https://youtu.be/dqBe7vLYp-U?si=p1JW1tmqJv5BVROf)
+- [포켓몬스터 BGM 만들기](https://youtu.be/3DWslI_n4RM?si=UGXUnwEbjHPqQRfP)
+
+### 💿 ETC
+
+- 닉네임에 따른 변화
+  - [플레이어 닉네임에 따른 테마 변화](https://twitter.com/METALBUTTER/status/1175020978960658432?ref_src=twsrc%5Etfw)
+  - 갓오곡 닉네임 능력치 변화
+
+- 시련
+
+- 모바일 연동
+- 클리커
+- 머지
+- 디펜스
+- 주사위
+- 랜덤, 가챠, 등급
+- 카메라와 인형 사이, 디더링?
+- 아이템 드롭 애니메이션에 빙글빙글 돌도록
+  - 행렬 공부
+  - Vertex Shader?
+- 인형 등장인물 위상 조사해서 뭘로 이루어져있는지
+- 마우스 포인터
+- Quest Skill Unit 등 게임 내 기능에 필요한 클래스 구조 설계 및 개발
+- 여러 맥락에서 쓰일 수 있는 Criteria 조건 Effect 효과 구조 설계 및 개발
+- 재사용 / 확장 가능성
+- Scriptable Object와 UI Toolkit으로 제작한 커스텀 툴을 이용한 에디터 타임 게임 데이터 관리
+  - ID 충돌
+  - 정렬
+  - ID 중복/충돌 관리
+  - 데이터 자동 생성
+  - 파일 이름 자동 수정
+- 선택지 (긍정, 중립, 부정) (얼굴 이모티콘)
+- 상자 집 안에는 있어야 소중한 물건이니까
+- 거리비례 탈진 Like 스타듀밸리
+- 한울, 가마 로고
+- 시간의 개념, 밤/낮 개념이 없는 세계에서 어떻게?
+  - 시계의 원리?
+  - 위성?
+  - 인공적인 위성?
+- Pc게임 다마고치처럼 폰에서 키우는? 포켓몬 하트골드그거처럼
+- 아트 캐릭터 파츠 나눠서 둠칫둠칫
+- Va11a 같은 포션 만들어서 주는 씬
+- 천사
+  - 무서운 모습
+  - 악마를 `멸`하기 위치해있다
+    - 파괴
+  - 그 시대가 추구하는 바를 형상화
+- 악마
+  - 이와 반대되는 악마
+  - 선한 모습
+  - 7대악
+  - 무서운것
+    - 나쁜마음? 이기심?
+    - 창조
+    - 새로운 것
+    - 성공을 위한 도전, 노력, 이내
+- _
+  - 신, 영원, 유전 x
+  - 생명체, 필멸, 유전 o
+- 진격거
+  - 야구공, 깃털
+- 시체에서 태어나는 파리
+- 신의 전차
+- 건물 생명
+- 배드 애플
+- 게으름
+  - 아무것이 아니라 해야할 일을 하지 않는
+  - 망각, Like 에르디아
+
+## 📀 역사
+
+---
+
+<details>
+<summary>역사</summary>
+<div markdown="1">
+
+```yml
+# WitchMendokusai | Ref
+# date: 2024-10-30. 21:00
+# last_modified_at: 2024-10-30. 21:00 # Init (from Game-Design)
+# last_modified_at: 2024-10-31. 18:16 # 2024 WASD
+# last_modified_at: 2024-11-19. 07:28 # -GameRef
+# last_modified_at: 2025-03-15. 07:55 # Twitter 도토리 추가
+# last_modified_at: 2025-03-23. 17:01 # 정리, Game-Ref 병합
+
+# WitchMendokusai | Art
+# date: 2024-10-30. 21:08 # Init
+
+# WitchMendokusai | MDD
+# date: 2024-10-30. 21:08
+# last_modified_at: 2024-11-19. 21:34 # Init
+
+# Game Ref
+# date: 2024-11-11. 07:35
+# last_modified_at: 2024-11-11. 07:35 # Init
+# last_modified_at: 2024-11-19. 07:28 # List
+
+# WitchMendokusai | Concepts
+# date: 2025-03-03. 20:58
+# last_modified_at: 2025-03-15. 06:41 # 메모 링크
+
+# WitchMendokusai | Transition
+# date: 2025-03-15. 09:00 # Init
+
+# ---- WitchMendokusai | Game-Design ----
+
+# 2024-04-10. 12:24 : 글 병합.
+# `2023-03-14-Slime : 🍐 슬라임`
+
+# 2024-06-11. 13:53 : 글 병합.
+#`2024-04-27-WitchMendokusai-Story : 🫐 WitchMendokusai Story`,
+#`2024-04-03-WitchMendokusai-Doll : 🫐 WitchMendokusai Doll`
+
+# WitchMendokusai Concept
+# date: 2024-04-03. 14:41
+# last_modified_at: 2024-04-10. 11:15
+# last_modified_at: 2024-05-06. 07:51
+# last_modified_at: 2024-05-13. 01:46
+# last_modified_at: 2024-06-05. 14:07
+# last_modified_at: 2024-06-11. 13:53
+# last_modified_at: 2024-06-12. 13:21
+# last_modified_at: 2024-08-29. 22:14
+# last_modified_at: 2024-10-20. 23:27 # Undo, Story, Doll 분리
+# last_modified_at: 2024-10-29. 21:22 # Slime 분리
+
+# 2024-10-30. 01:52 : 글 병합.
+# `2024-04-03-WitchMendokusai-Concept : WitchMendokusai Concept`
+
+# WitchMendokusai Memo
+# date: 2024-05-22. 20:50
+# last_modified_at: 2024-05-29. 14:56
+# last_modified_at: 2024-06-03. 21:47
+# last_modified_at: 2024-06-05. 14:11
+# last_modified_at: 2024-06-19. 10:43
+# last_modified_at: 2024-10-16. 06:17 # 메모 정리
+# last_modified_at: 2024-10-19. 12:00 # 메모 정리
+# last_modified_at: 2024-10-30. 01:53 # 메모 정리, WitchMendokusai Concept 계승
+
+# WitchMendokusai | Gimmick
+# date: 2024-10-30. 21:08
+
+# 2024-10-30. 15:24 : 글 계승.
+# `2024-05-22-WitchMendokusai-Memo : WitchMendokusai Memo`
+
+# 2025-04-19. 02:10 : 글 병합.
+# `2024-10-30-WM-Gimmick : WitchMendokusai | Gimmick`
+
+# WitchMendokusai | Game-Design
+# date: 2024-10-30. 15:24
+# last_modified_at: 2024-10-30. 15:24 # Init (WitchMendokusai Memo 계승)
+# last_modified_at: 2024-10-30. 21:05 # WitchMendokusai-Ref 분리
+# last_modified_at: 2024-10-30. 21:05 # Log, 241111 Log
+# last_modified_at: 2024-11-13. 08:48 # FirstFantasy 병합
+# last_modified_at: 2025-02-02. 16:05 # 메모
+# last_modified_at: 2025-02-05. 00:39 # 메모
+# last_modified_at: 2025-03-03. 13:52 # 모험가 길드 메모 -> Github Issues
+# last_modified_at: 2025-04-20. 23:17 # 메모 정리
+```
+
+2025-03-23. 18:26 : 글 병합.  
+`2024-11-11-Game-Ref : Game Ref`,  
+`2024-10-30-WM-Ref : WitchMendokusai | Ref`,  
+`2024-10-30-WM-Art : WitchMendokusai | Art`,  
+`2024-10-30-WM-MDD : WitchMendokusai | MDD`,  
+`2025-03-03-WM-Concepts : WitchMendokusai | Concepts`,  
+`2025-03-15-WM-Transition : WitchMendokusai | Transition`  
+
+2025-04-29. 06:45 : 글 병합.  
+`2024-10-30-wm-game-design : WitchMendokusai | Game-Design`  
+
+</details>
