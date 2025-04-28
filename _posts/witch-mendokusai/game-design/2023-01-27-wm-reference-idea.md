@@ -877,7 +877,7 @@ last_modified_at: 2025-04-25. 05:44 # X
 - [현실이 배경이 아닌 작품에서 캐릭터 생일 같은게 나오면](https://x.com/xel04/status/1822192484245537132)
 - [](https://x.com/ha3n4l/status/1827905829947023561)
 - 인류는 열정으로 가득 차 있어 의학, 법률, 경제, 기술 따위는 삶을 유지하는데 필요해
-- 하지만 시와 미, 낭만, 사랑은 삶의 목적인 거야
+  - 하지만 시와 미, 낭만, 사랑은 삶의 목적인 거야
 - [사움크래프트](https://blog.naver.com/2hh8899/221117207618)
 - [POE](https://bbs.ruliweb.com/etcs/board/300780/read/49509489)
 - [다이아몬드링](https://youtu.be/dG9fdmiI_-s?si=m2rNeHLgYwYT_Xr4)
@@ -962,3 +962,62 @@ last_modified_at: 2025-04-25. 05:44 # X
 - 의식체
 - 대량 발생
 - 정신집중
+- [뭔가 좋은 레퍼런스들 묶음](https://x.com/AndrieriStefano/status/1902077894782001414)
+- [HD-2D-푸키먼](https://x.com/sinnoh_CEO/status/1902336752750113098)
+- UI
+  - 상점 UI 같은거 그냥 Overlay로 박아도? Like 젠존제 언더테일
+    - Game UI 이렇게 해도 이쁠 것 같은데 (웹 페이지를 Game UI로) (UI Toolkit XML이잖아) (ASP?)
+- 마을 외관
+  - 심시티5처럼 기다란 큰 넓은 메인 도로가 있고
+  - 그 위에 시청/마을회관
+  - 점점 길 만들고 발전해나가는
+- Building, RuntimeBuildingData
+  - 무지성 딕셔너리?
+  - string int
+  - 기존 솥/화로도 Building이 돼야하나
+    - 근데 NPC도 정보가 있잖아
+    - 추상화해서 RuntimeData? Criteria?
+- 조각보
+- 와일드 카드
+- 돌
+  - 모아이
+  - 얼굴석상
+  - 하와이/ 더 무비
+- 메이플스토리
+  - 매크로 방지몹, 무적, 선공하면 다른 맵으로 팅김, 무적을 풀려면 맵에 있는 묘비에다가 좀비의 어금니를 뿌려야
+  - 주니어부기 석상 부수면, 레이스 불 키면
+  - F6aL7aB-7mg
+  - 83rVd4jEt-E
+  - qCHpFG0KInc
+  - B_PCiHaV4fc
+  - aHAjkIh_zTs
+  - vs0MYi3FXfE
+  - QE8iEfQZVeE
+  - Wpwx9i3joUA
+  - DORmmXfctqM
+  - ATkAkLEmhGE
+  - <https://www.youtube.com/@Pltwo_/videos>
+- 백양리역 강위에 어둠속에 홀로 빛나 보이는 하얀 나무
+- 점점 높아지는 건물
+- 지하철 좀비
+- 하이퍼 잼
+- 마우스 움직이면 화면 살짝 거기로 움직여야 하는데 그게 없네
+- 불릿타임
+- 카르타
+- 드릴 게임? 나선 회전 황금
+  - Like 나무꾼
+- 칫솔 무기, 치약이 탄환이고, 불릿을 거품이나 뭐 그런, 거품 터지면 폭발하고 뭐 그런
+- 식물
+  - 무기, 탄환 등에 녹이다
+  - 포션
+  - 식물 자체가 무기가 될 수도. 검, 화살, 폭탄
+- 스프라이트 앨브스 제트 번개
+- 인간찬가, 그럼에도 불구하고
+- No Silver Bullet -> SF 제작 비용을 급격히 떨어뜨려줄 수 있는 마법의 아이템은 없다.
+- :S <- 귀여움
+- 몰입: 다른 시간/공간
+- 용구의
+- 7개의 대죄
+- 충신 증후군
+- 상점 등 UI 전체화면
+- Z9별, 마비노기 같은 게임?

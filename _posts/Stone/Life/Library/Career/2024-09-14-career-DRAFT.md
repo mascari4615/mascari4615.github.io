@@ -359,3 +359,29 @@ dx나 opengl을 직접 물어보진 않음. 렌더링 파이프라인에 대해 
 
 - CMD 다른 파티션 이동, 다른거 없이 `:D`, `:C`
 - While 대신 옵저버 패턴
+- stateful
+- 백로그 스프린트
+- Localization I2 Localize
+- 동시성 Issue 때문에 Coroutine -> UniTask?
+- MVC MVP MVVP
+- Command Pattern
+- Interlocked.Exchange(ref SceneService.Instance.isLoadingScene, 0);
+- 젠킨스
+- 깃허브 코파일럿, 윈도우즈 코파일럿의 차이
+- 체계적인, 커밋 (1커밋 1주제), 주제와 관련/의미없는 formatting 등 -> 코드 리뷰 시 어떤 부분이 달라진건지 확인 어려움. 문서화, 주석, README
+- MVP, 옵저버, Socket.Subscribe
+- 와일드카드, %appdata%이거는 그냥 appdata 폴더 찾는건가?
+- Application.dataPath (Assets 폴더 경로)
+- Enum을 줄바꿈 없이 한 줄에 몰아 쓰기?
+- Script 수정이랑 이에 따른 Asset 변화 따로 커밋하는게 좋겠다.
+- Asset 변화 많으니까 코드 변경 내용을 보고 싶은데 바로 찾기가 어렵다. (Ctrl F로 찾으면 되긴 하지만 어쨌든)
+- Template <- 변하지 않는 것
+- SpriteAtlas <- 생각보다 간단함
+- ReactiveProperty <- 값 할당할 때, 다른 변수를 new (매개변수)로 넣을 수 있다. 그러면 그 변수를 대상으로 하는듯?
+- Combine Latest (UniRx)
+- PlayerPrefs: 간단한 저장
+- OnApplicationPause
+- Unity Log Format: Color, size, bold, italic -> 확장 메서드
+- ~Class이름 파괴자
+- cts.Cancel, cts.Dispose
+- nameOf 연산자 컴파일 타임에 문자열로 바뀜
