@@ -16,7 +16,8 @@ date: 2023-02-22. 02:35
 # last_modified_at: 2024-04-27. 21:52
 # last_modified_at: 2024-07-12. 22:06
 # last_modified_at: 2024-08-19. 14:07
-last_modified_at: 2024-09-16. 16:35
+# last_modified_at: 2024-09-16. 16:35
+last_modified_at: 2025-04-28. 19:17 # 메모
 ---
 
 ## 💫 Modern C++ (VS Old C++)
@@ -1302,3 +1303,16 @@ int main()
 > [설명](https://ansohxxn.github.io/cpp/chapter5-1/) : case/default 이전 공간에서는 메모리 할당 안됨
 
 포인터 delete 후 어떤 코드가 없더라도 = nullptr 대입  
+
+- c 스타일 형변화
+  - char 형변환
+  - (char)num
+  - char(num)
+  - <https://boycoding.tistory.com/177>
+  - <https://softwareengineering.stackexchange.com/questions/50442/c-style-casts-or-c-style-casts>
+- ccp 소수점 자리수 고정 출력
+  - `cout << fixed; // 아래 함수를 소수점에 대해서만 쓸건지`
+  - `cout.precision(30); // 숫자 최대 길이 출력`
+- stl
+  - map: key정렬
+  - unordered_map: 걍 넣음

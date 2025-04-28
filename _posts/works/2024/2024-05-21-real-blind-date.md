@@ -49,12 +49,15 @@ VRChat SDK를 이용한 Unity C# 프로그래밍을 담당하였습니다.
 ## 📀 기록
 
 ---
+
 ![240524-000000](/assets/img/post/works/real-blind-date/240524-000000.png)
 ![240525-000000](/assets/img/post/works/real-blind-date/240525-000000.png)
 ![250220-194001](/assets/img/post/works/real-blind-date/250220-194001.png)
 ![250220-194100](/assets/img/post/works/real-blind-date/250220-194100.png)
 ![250220-194119](/assets/img/post/works/real-blind-date/250220-194119.png)
 ![250220-194149](/assets/img/post/works/real-blind-date/250220-194149.png)
+
+- 240521-123042: 작업
 
 ### 💿 진행 순서
 

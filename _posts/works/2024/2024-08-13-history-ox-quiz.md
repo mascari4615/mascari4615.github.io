@@ -65,6 +65,8 @@ last_modified_at: 2024-11-09. 08:35 # Init
 ![250220-193513](/assets/img/post/works/history-ox-quiz/250220-193513.png)
 ![250220-193523](/assets/img/post/works/history-ox-quiz/250220-193523.png)
 
+- 240815-213425: 리허설
+
 ### 중간 작업 목록
 
 - 탈락 ! 하면은 탈락자 대기실 이동

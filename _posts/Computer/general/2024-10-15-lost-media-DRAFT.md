@@ -21,5 +21,6 @@ date: 2024-10-15. 18:18 # Init
 - <https://x.com/ye0ng_bb/status/1840740903696339395>
 - <https://www.youtube.com/watch?v=BTmNBLxgPOQ>
 - <https://www.youtube.com/watch?v=j0VSdmzazM8>
+- <https://cafe.naver.com/steamindiegame/18475490>
 
 중학생 때부터 적어온 내 망상 백업본을 실수로 날린 것이, 내 인생에서 제일 한탄스러운 일이다.  

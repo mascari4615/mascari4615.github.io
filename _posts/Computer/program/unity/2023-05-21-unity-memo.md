@@ -35,7 +35,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2025-04-16. 19:50 # Project 창 검색 t:, Odin Inspector and Serializer
 # last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
 # last_modified_at: 2025-04-19. 01:05 # Memo: 단축키, 메모 정리...
-last_modified_at: 2025-04-19. 20:15 # Button Navigation & Animation
+# last_modified_at: 2025-04-19. 20:15 # Button Navigation & Animation
+last_modified_at: 2025-04-28. 17:41 # 메모
 ---
 
 2024-04-09. 03:03 : 글 계승.  
@@ -289,6 +290,18 @@ Navigation None하면 Button Transition Animation 동작안할 수 있음. (특�
 - `object.ReferenceEqual`를 `==` 연산 비싸서 대신?
 - Animator 움직이지 않아도, 보이지 않아도, 내부적으로 Dirty 처리
 - SelectionGroup
+- Time.frameCount
+- ['산적대왕': 'Unity 테스트 자동화'](https://blog.naver.com/raveneer/221040790678)
+- ['_': '\[Unity\] 커스텀 디버그 클래스 사용할 때 더블 클릭 시 외부 파일 연결 올바르게 하기'](https://upbo.tistory.com/164)
+- debug
+  - debug 호출할 때 문자열 만드는 것이 더 오래 걸리는 것 같음
+  - definition 설정하면 호출 코드 자체가 없는 듯
+  - conditional attribute
+  - diagnostics
+- project auditor
+- build automation
+- multiplayer
+- ['원소랑': Unity lossyScale](https://m.blog.naver.com/sorang226/223802482530)
 
 ### 🫧 Asset
 

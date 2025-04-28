@@ -4,7 +4,6 @@ title: "Career-Learning"
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
 image: "/assets/img/background/20230112-151539.jpg"
-hidden: true
 
 date: 2024-02-17. 01:40
 # last_modified_at: 2024-02-21. 05:58
@@ -28,7 +27,8 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2024-10-21. 12:14 # Job, Career, Interview 정리
 # last_modified_at: 2024-11-13. 03:33 # -PS
 # last_modified_at: 2024-11-13. 07:44 # -CG
-last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 내한 내용은 Learning으로
+# last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 내한 내용은 Learning으로
+last_modified_at: 2025-04-28. 17:40 # 메모
 ---
 
 ## 🗿 리마인드
@@ -290,3 +290,45 @@ last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 �
 - Dx
 - 개발 문서화?
 - 리드미 파일, 코드 주석, 릴리스 파일
+
+## 🗿 메모
+
+---
+
+- 공부할 것 찾을 때:
+  - Github Star, 혹은 `개발자`, `프로그래머`, `면접`, `컴공` 같은 키워드로 리포지토리 검색
+  - CookApps Story 등 개발자 블로그 like 넥슨
+  - unity square
+  - <https://velog.io/@suhan0304/posts>
+  - 유니티 설계 경험 기록
+  - unity document
+  - midium
+    - 트라플라
+  - unity 6 graphics
+    - learning resources
+  - MSDC CPU 인사이트
+    - Enum ToString이 Reflection을 쓴다?
+  - visual studio document - cpu insight, 성능 insight, enum.toString()~
+  - 강연 like gdc, unite
+- RectTransform.anchorPosition이 정확함
+- android log cat
+- state, step (flow가 있다면)
+- cors 브라우저 통신 시 강요되는 보안정책
+- 최적화, refactoring 경험
+- 특정 class에서만 쓰이면 const, 두 class 이상에서 쓰이면 define
+- unity web-gl build 시 localhost simple-web-server
+- initialize-on-load, post-process-build-attribute
+- editor-application.application-path: project path
+- 목표 프레임 꽉꽉보다는 여유있게
+- 2022.3 built-in -> 6 urp
+  - standalone.input-system, camera, lighting stuff
+- 전처리기지시문, 전처리상수
+- error: ~google.ios-resolver.dll
+  - -> ios build-support module 설치
+- gpu/cpu bound
+- unity profiling
+- gfx-marker
+- camera.all-camera: scene에 활성화된 모든 camera
+- data-bind: 코드 없이 데이터 런타임에 변화
+- instruments time profiler
+  - unity profiler보다 더 깊게 볼 수 있음

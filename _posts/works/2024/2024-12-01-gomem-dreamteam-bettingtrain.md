@@ -6,7 +6,8 @@ tags: [Project, VRChat]
 image: "/assets/img/post/works/gomem-dreamteam/bettingtrain/241130-230638.png"
 
 date: 2024-01-01. 00:00
-last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달
+# last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달
+last_modified_at: 2025-04-28. 18:12 # 데이터 모양
 ---
 
 \[베팅트레인\] 룰영상 보고가세용!  
@@ -25,7 +26,7 @@ last_modified_at: 2024-11-12. 10:06 # 1112 기획 추가 전달
 왁타버스 고멤 드림팀.  
 왁타버스 고교꼬 멤버들끼리 팀을 구성하여 하나의 합방 컨텐츠를 만들어 경쟁하는 컨텐츠이다.  
 
-미미짱짱세용 팀의 컨텐츠 제작에 참여하였다.  
+미미짱짱세용님 팀의 컨텐츠 제작에 참여하였다.  
 
 ### 💿 참여 / 담당
 
@@ -45,7 +46,7 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 신청 글을 올렸고,  
 
 에 진행된 맵 제작자 두 번째 드래프트에서  
-미미짱짱세용 팀의 두 번째 맵 제작자 멤버로 뽑혔다.  
+미미짱짱세용님 팀의 두 번째 맵 제작자 멤버로 뽑혔다.  
 
 ## 📀 과정
 
@@ -165,3 +166,252 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 - 룰북 SFX
 - 혼자 먹어서 50점일때 SFX 올라가게
 - 대기로 넘어갈 때 공개안된거 있으면 공개하도록
+
+### 💿 데이터 모양
+
+```json
+{
+    "0": {
+        "0": {
+            "Score": 12,
+            "CardType": -4,
+            "TableType": 0,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "1": {
+            "Score": 40,
+            "CardType": 4,
+            "TableType": 3,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "2": {
+            "Score": 12,
+            "CardType": -3,
+            "TableType": 0,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        },
+        "3": {
+            "Score": 18,
+            "CardType": 6,
+            "TableType": 1,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "4": {
+            "Score": 18,
+            "CardType": 3,
+            "TableType": 1,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        },
+        "5": {
+            "Score": 50,
+            "CardType": -1,
+            "TableType": 2,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "6": {
+            "Score": 40,
+            "CardType": -2,
+            "TableType": 3,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        },
+        "7": {
+            "Score": 40,
+            "CardType": -5,
+            "TableType": 3,
+            "TableSeatIndex": 2,
+            "IsBuntang": false
+        }
+    }
+}
+```
+
+```json
+{
+    "0": {
+        "0": {
+            "TableType": 3,
+            "CardType": 3,
+            "Score": -24,
+            "IsBuntang": false,
+            "TableSeatIndex": 0
+        },
+        "1": {
+            "TableType": 1,
+            "CardType": 5,
+            "Score": 50,
+            "IsBuntang": false,
+            "TableSeatIndex": 0
+        },
+        "2": {
+            "TableType": 0,
+            "CardType": -1,
+            "Score": 4,
+            "IsBuntang": false,
+            "TableSeatIndex": 0
+        },
+        "3": {
+            "TableType": 0,
+            "CardType": -4,
+            "Score": 4,
+            "IsBuntang": false,
+            "TableSeatIndex": 1
+        },
+        "4": {
+            "TableType": 3,
+            "CardType": 4,
+            "Score": -24,
+            "IsBuntang": false,
+            "TableSeatIndex": 1
+        },
+        "5": {
+            "TableType": 2,
+            "CardType": -5,
+            "Score": -30,
+            "IsBuntang": false,
+            "TableSeatIndex": 0
+        },
+        "6": {
+            "TableType": 2,
+            "CardType": 6,
+            "Score": -30,
+            "IsBuntang": false,
+            "TableSeatIndex": 1
+        },
+        "7": {
+            "TableType": 3,
+            "CardType": -2,
+            "Score": 24,
+            "IsBuntang": true,
+            "TableSeatIndex": 2
+        }
+    },
+    "1": {
+        "0": {
+            "Score": 30,
+            "CardType": 3,
+            "TableType": 2,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "1": {
+            "Score": 30,
+            "CardType": -2,
+            "TableType": 2,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        },
+        "2": {
+            "Score": 30,
+            "CardType": -5,
+            "TableType": 2,
+            "TableSeatIndex": 2,
+            "IsBuntang": false
+        },
+        "3": {
+            "Score": -4,
+            "CardType": 4,
+            "TableType": 0,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "4": {
+            "Score": 30,
+            "CardType": 6,
+            "TableType": 1,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "5": {
+            "Score": 50,
+            "CardType": -3,
+            "TableType": 3,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "6": {
+            "Score": 30,
+            "CardType": 5,
+            "TableType": 1,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        },
+        "7": {
+            "Score": -4,
+            "CardType": -1,
+            "TableType": 0,
+            "TableSeatIndex": 1,
+            "IsBuntang": false
+        }
+    }
+}
+```
+
+```json
+{
+    "0": {
+        "0": {
+            "Score": 50,
+            "CardType": -5,
+            "TableType": 3,
+            "TableSeatIndex": 0,
+            "IsBuntang": false
+        },
+        "1": {
+            "Score": -5,
+            "CardType": -4,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "2": {
+            "Score": -5,
+            "CardType": 3,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "3": {
+            "Score": -5,
+            "CardType": -1,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "4": {
+            "Score": -5,
+            "CardType": -3,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "5": {
+            "Score": -5,
+            "CardType": -2,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "6": {
+            "Score": -5,
+            "CardType": 5,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        },
+        "7": {
+            "Score": -5,
+            "CardType": 6,
+            "TableType": -1,
+            "TableSeatIndex": -1,
+            "IsBuntang": false
+        }
+    }
+}
+```
