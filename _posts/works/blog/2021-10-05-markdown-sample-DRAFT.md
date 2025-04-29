@@ -1,7 +1,7 @@
 ---
 layout: #_layouts 에 있는 layout
 title: "Test Page"
-excerpt: "excerpt" # 포스트 목록에서 보이는 미리보기 글
+excerpt: "포스트 목록에서 보이는 미리보기 글"
 date: 1999-08-26 00:00:00 +0000
 # category:
 categories: 
@@ -29,7 +29,6 @@ header:
     - label: "Download"
       url: "https://github.com/mmistakes/minimal-mistakes/"
   caption: "Photo credit: [**Unsplash**](https://unsplash.com)"
-excerpt: "Bacon ipsum dolor sit amet salami ham hock ham, hamburger corned beef short ribs kielbasa biltong t-bone drumstick tri-tip tail sirloin pork chop."
 intro: 
   - excerpt: 'Nullam suscipit et nam, tellus velit pellentesque at malesuada, enim eaque. Quis nulla, netus tempor in diam gravida tincidunt, *proin faucibus* voluptate felis id sollicitudin. Centered with `type="center"`'
 ---
