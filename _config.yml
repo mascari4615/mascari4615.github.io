@@ -150,7 +150,7 @@ pwa:
 paginate: 30
 
 # The base URL of your site
-baseurl: "/"
+baseurl: "/" # 이거 ""에서 "/"로 바꾸니까 검색 기능 먹통되던거 고쳐짐. 왜 ????
 
 # ------------ The following options are not recommended to be modified ------------------
 
