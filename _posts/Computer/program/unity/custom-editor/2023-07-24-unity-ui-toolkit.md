@@ -7,7 +7,8 @@ image: "/assets/img/background/20240827-140647.jpg"
 
 date: 2023-07-24. 22:30
 # last_modified_at: 2024-03-27. 15:39
-last_modified_at: 2024-08-29. 21:50
+# last_modified_at: 2024-08-29. 21:50
+last_modified_at: 2025-04-30. 07:00 # 메모
 ---
 
 ## 💫 UI Toolkit
@@ -193,6 +194,11 @@ public class SomethingEditor : EditorWindow
 ## 💫 메모
 
 ---
+
+- ListView
+  - makeItem
+  - bindItem
+- QuizU: Toolkit Sample
 
 ### 🫧 참고
 

@@ -15,14 +15,23 @@
 - 작업
   - Love With JBG
   - Avalon
+  - Ipari
   - Woodon
+    - UI Toolkit
   - KarmoLab
 
 - 공부
   - UI Toolkit
+  - Unity Web: x Github Page
+    - Like 전시회/미술전 ?
 
 - 블로그
   - Project 글 내용 정리: (수가 많아서, 천천히 부지런히)
+  - Project 탭 description 정리
+  - 외출/연휴 전략
+    - 교통 티켓팅
+    - 집안일 (음식 유통기한, 빨래 등)
+    - 일정 (프로젝트 등)
   - `word.md` 정리
   - `unite.md` 정리
 
