@@ -3,7 +3,7 @@ title: "VRChat - 달콤레나 인챈트 퀴즈쇼"
 description: "달콤레나님의 '인챈트 퀴즈쇼' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
-image: "/assets/img/background/20230112-151539.jpg"
+image: "https://img.youtube.com/vi/tt-vGVAu71k/mqdefault.jpg"
 
 date: 2025-02-25. 00:00
 # last_modified_at: 2025-03-03. 21:38 # Init

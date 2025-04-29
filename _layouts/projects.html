@@ -12,13 +12,57 @@ sidebar: false
 
 <div id="post-list" class="flex-grow-1 px-xl-1">
   {% for project in projects %}
+    {% comment %} Initialize with project data first {% endcomment %}
+    {% assign display_image_src = project.image %}
+    {% assign display_description = project.description %}
+    {% assign is_post_url = false %}
+
+    {% comment %} Check if project.url exists and starts with /posts/ {% endcomment %}
+    {% if project.url %}
+      {% assign is_post_url = project.url | startswith: '/posts/' %}
+    {% endif %}
+
+    {% if is_post_url %}
+      {% comment %} URL points to a post, try to find the post {% endcomment %}
+      {% assign corresponding_post = site.posts | where: "url", project.url | first %}
+      {% if corresponding_post %}
+
+        {% comment %} --- Get image from post ONLY if project data is missing --- {% endcomment %}
+        {% unless display_image_src %}
+          {% assign post_image = corresponding_post.image.path | default: corresponding_post.image %}
+          {% if post_image %}
+            {% assign display_image_src = post_image %}
+            {% unless display_image_src contains '//' or display_image_src contains ':' %}
+               {% if corresponding_post.media_subpath %}
+                  {% assign display_image_src = corresponding_post.media_subpath | append: '/' | append: display_image_src | replace: '//', '/' %}
+               {% endif %}
+            {% endunless %}
+          {% endif %}
+        {% endunless %}
+
+        {% comment %} --- Get description from post ONLY if project data is missing --- {% endcomment %}
+        {% unless display_description %}
+          {% if corresponding_post.description %}
+            {% assign display_description = corresponding_post.description %}
+          {% endif %}
+        {% endunless %}
+
+      {% endif %}
+    {% endif %}
+
+    {% comment %} Fallback logic is no longer needed as variables are initialized with project data {% endcomment %}
+
     <article class="card-wrapper card">
       <a href="{{ project.url | relative_url }}" class="post-preview row g-0 flex-md-row-reverse">
         {% assign card_body_col = '12' %}
 
-        {% if project.image %}
+        {% if display_image_src %}
           <div class="col-md-5">
-            <img src="{{ project.image }}">
+            {% if display_image_src contains '//' or display_image_src contains ':' %}
+              <img src="{{ display_image_src }}">
+            {% else %}
+              <img src="{% include media-url.html src=display_image_src %}">
+            {% endif %}
           </div>
           {% assign card_body_col = '7' %}
         {% endif %}
@@ -28,7 +72,8 @@ sidebar: false
             <h1 class="card-title my-2 mt-md-0">{{ project.title }}</h1>
 
             <div class="card-text content mt-0 mb-3">
-              <p>{% include project-description.html %}</p>
+              {% comment %} Use the determined description {% endcomment %}
+              <p>{{ display_description }}</p>
             </div>
 
             <div class="post-meta flex-grow-1 d-flex align-items-end">

@@ -3,7 +3,7 @@ title: "주니티 OX 퀴즈"
 # description: ""
 categories: [🍇Works]
 tags: [Project]
-# image: ""
+image: "https://img.youtube.com/vi/e9_KaSa9w_s/mqdefault.jpg"
 
 date: 2023-01-23. 00:00
 last_modified_at: 2024-11-09. 08:32 # Init

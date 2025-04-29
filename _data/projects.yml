@@ -1,322 +1,262 @@
-- title: WIP...
-  url: /projects/
-  description: "이 페이지는 현재 공사중입니다 !"
-  image: /assets/img/background/backtop.gif
-  tags:
-  date: 'Last Update : 250315.'
-
 - title: Woodon
-  url: https://github.com/WRChat/Woodon
+  url: /posts/woodon/
   description: "VRChat World-U# Library"
-  image: /assets/img/post/works/_wrchat/woodon/woodon-logo.png
   tags: [Programming]
   date: '2411~'
 
 - title: "마녀: 귀찮아!"
-  url: https://github.com/Mascari4615/Witch-Mendokusai
-  description:
-  image:
+  url: /posts/witch-mendokusai/
   tags: [GameDev, Art, UI, Programming]
   date: '2306~'
 
 - title: 소녀:리버스 (피버스)
   url: /posts/girls-reverse/
-  description:
-  image: /assets/img/post/works/girls-reverse/230220-064057.png
   tags: [Programming]
   date:
 
 - title: VWorld - 버츄얼 종합 대회
   url: /posts/soop-studio/
-  description:
-  image: /assets/img/post/works/soop-studio/240814-185806.png
   tags: [Art, UI, Programming]
   date:
 
 - title: 세구와 연애중
   url: /posts/love-with-gosegu/
   description: "이세계아이돌 고세구님의 '연애 시뮬레이션 토크' 컨텐츠."
-  image:
   tags: [Programming]
   date: "2025/02/26"
 
 - title: 달콤레나 인챈트 퀴즈쇼
   url: /posts/dalcomlena-enchant-quizshow/
   description: "달콤레나님의 인챈트 퀴즈쇼"
-  image:
   tags: [Programming]
   date: "2025/02/25"
 
 - title: 고멤 덱 압축
   url: /posts/gomem-deck-compression/
   description: "우왁굳의 고멤유치원 (고멤 하드코어) 결과 발표 컨텐츠"
-  image:
   tags: [Programming]
   date: "2025/02/15"
 
 - title: 챠니와 두근두근
   url: /posts/love-with-viichan/
   description: "이세계아이돌 비챤님의 '연애 시뮬레이션 토크' 컨텐츠."
-  image:
   tags: [Programming]
   date: "2025/02/14"
 
 - title: 왁타로
   url: /posts/waktarot/
   description: "우왁굳의 타로 컨텐츠"
-  image: /assets/img/post/works/waktarot/250124-021512.png
   tags: [Programming]
   date: "2025/01/23"
 
 - title: 유콘 24전
   url: /posts/ukon-24-exhibition/
   description: "유콘의 2024 그림 전시회"
-  image:
   tags: [Programming]
   date: "2025/01/11"
 
 - title: 나는 모솔
   url: /posts/im-solo-since-birth/
   description: "고세구님의 모솔 연애 컨설팅 컨텐츠"
-  image:
   tags: [Programming]
   date: "2024/12/23"
 
 - title: 캐치 드로잉
   url: /posts/catch-drawing/
   description: "징버거의 그림 나눠 그리기 컨텐츠"
-  image:
   tags: [Programming]
   date: "2024/12/10"
 
 - title: 베팅 트레인
   url: /posts/gomem-dreamteam-bettingtrain/
   description: "우왁굳의 고멤드림팀 컨텐츠 - 숫자 카드 게임"
-  image:
   tags: [Programming]
   date: "2024/12/01"
 
 - title: "승리의 여신 : 니케, 2주년 업데이트 광고"
   url: /posts/nikke-2nd-anniversary/
   description: "패러블엔터테인먼트 주관, 이세계아이돌 x 뢴트게늄 니케 광고 컨텐츠"
-  image: /assets/img/post/works/nikke-2nd-anniversary/nikke-2nd-anniversary-ppt-title.png
   tags: [Programming, VRChat]
   date: "2024/11/04"
 
 - title: 버튜버 우리말 대전
   url: /posts/vtuber-hangle/
   description: "이세계아이돌 비챤 주관, 한글날 기념 우리말 미니게임 팀 대전 컨텐츠"
-  image: /assets/img/post/works/vtuber-hangle/241009-212015.png
   tags: [Programming]
   date: "2024/10/09"
 
 - title: 고멤의 집 (김치만두번영택사스가, 비밀소녀, 권민)
   url: /posts/gomem-house/
-  description:
-  image:
   tags: [Programming]
   date: "2024/09/09"
 
 - title: 주파수 게임
   url: /posts/wave-length-game/
-  description:
-  image: /assets/img/post/works/wave-length-game/240726-103018.png
   tags: [Art, UI, Programming]
   date: "2024/08/25"
 
 - title: 한국사 OX 퀴즈
   url: /posts/history-ox-quiz/
-  description:
-  image: /assets/img/post/works/history-ox-quiz/240817-152627.png
   tags: [UI, Programming]
   date: "2024/08/13"
 
 - title: 고멤의 검색기록
   url: /posts/gomem-search-history/
-  description:
-  image: /assets/img/post/works/gomem-search-history/240621-000000.png
   tags: [Programming]
   date: "2024/06/23"
 
 - title: 예절 교실
   url: /posts/etiquette-class/
-  description:
-  image: /assets/img/post/works/etiquette-class/240703-161751.png
   tags: [Programming]
   date: "2024/05/31"
 
 - title: 육광천 everything
   url: /posts/everything-mv/
   description: 육광천링크 (https://cafe.naver.com/steamindiegame/15881344)
-  image: /assets/img/post/works/everything/230629-222847.png
   tags: [Art]
   date: "2024/04/07"
 
 - title: 돚거 게임
   url: /posts/thief-game/
   description: (https://cafe.naver.com/steamindiegame/15824783)
-  image: /assets/img/post/works/thief-game/240131-232028.png
   tags: [Programming]
   date: "2024/04/03"
 
 - title: 버튜버 총회
   url: /posts/vtuber-assemble/
-  description:
-  image:
   tags: [Programming]
   date: "2024/03/23"
 
 - title: 이세돌 2주년 합방, 컨텐츠 월드컵
   url: /posts/isd-2nd-anniversary/
   description: 이세돌 2주년 합방 (https://cafe.naver.com/steamindiegame/14065241)
-  image: /assets/img/post/works/isd-2nd-anniversary/isd-2nd-anniversary-banner.png
   tags: [Art, Programming]
   date: "2023/12/17"
 
 - title: 이파리 골든벨
   url: /posts/ipari-goldenbell/
   description: (https://cafe.naver.com/steamindiegame/13792779)
-  image: /assets/img/post/works/ifari-golden-bell/ifari-golden-bell-banner.png
   tags: [Programming]
   date: "2023/11/25"
 
 - title: 르르와 연애중
   url: /posts/love-with-jrr/
   description: 이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠.
-  image: /assets/img/post/works/love-with-jrr/love-with-jrr-1/love-with-jrr-1-banner.png
   tags: [Programming, VRChat]
   date: "2311, 2411."
 
 - title: 이세계 홈파티
   url: /posts/isd-home-party/
   description: 이세돌 3집 합방 - (https://cafe.naver.com/steamindiegame/12562966)
-  image: /assets/img/post/works/isd-home-party/isd-home-party-banner.jpg
   tags: [Programming]
   date: "2023/08/20"
 
 - title: 우왁굳의 일심동체
   url: /posts/letter-quiz/
   description: Unity 한글 키보드 에셋 - (https://cafe.naver.com/steamindiegame/12922263)
-  image: /assets/img/post/works/letter-quiz/letter-quiz-banner.png
   tags: [Programming]
   date: "2023/08/05"
 
 - title: Journey of Emotions 프로모션
-  url: /posts/scream-promotion/
+  url: https://youtu.be/VQxPKTFb0es?si=kdH8oTsecyn1Cx-U
+  image: https://img.youtube.com/vi/VQxPKTFb0es/mqdefault.jpg
   description:
-  image: /assets/img/post/works/scream-promotion/230405-041551.png
   tags: [Art, Programming]
   date:
 
 - title: META STUDY
   url: /posts/meta-study/
   description: 새우튀김 - 스터디 졸업작품- (https://cafe.naver.com/steamindiegame/11339673)
-  image: /assets/img/post/works/meta-study/meta-study-banner.png
   tags: [Programming]
   date: "2023/05/27"
 
 - title: 우리 억결했어요
   url: /posts/we-got-married/
   description: "이세계아이돌 고세구와 주르르의 '우리 결혼했어요' 컨텐츠."
-  image: /assets/img/post/works/we-got-married/230429-224703.png
   tags: [Programming]
   date: "2023/04/30"
 
 - title: 라니벨 시즌 2 안전수칙 편
   url: /posts/ranibell-safety-rules/
   description: (https://cafe.naver.com/steamindiegame/10888716)
-  image: /assets/img/post/works/ranibell-safety-rules/230425-154148.png
   tags: [Programming]
   date: "2023/04/22"
 
 - title: 버축대
   url: /posts/vtuber-soccer-tournament/
   description: 4di6nanDjiU 트리거 갈통대전 (버축대 티바로살래나) 트리거 라커룸 (버축대 티바로살래나) 맵아트 Counting Stars MV (버축대 카오닝스타즈)
-  image: /assets/img/post/works/vtuber-soccer-tournament/230313-032705.png
   tags: [Art]
   date: "2023/03/20"
 
 - title: "주니티: OX퀴즈"
   url: /posts/junity-ox-quiz/
   description: (https://cafe.naver.com/steamindiegame/9470097)
-  image:
   tags: [GameDev, Art, Programming]
   date: "2023/01/23"
 
 - title: 크라임 왁 외전
   url: /posts/crimewak-spinoff/
   description: (https://cafe.naver.com/steamindiegame/8932487)
-  image: /assets/img/post/works/crime-wak-spinoff/221217-231852.png
   tags: [Programming]
   date: "2022/12/18"
 
 - title: 오르막길
   url: /posts/uphill-road-cover-mv/
   description: sVydSseSOCQ UphillRoad2
-  image: /assets/img/post/works/uphill-road-cover-mv/uphill-road-cover-mv-banner-2.png
   tags: [Art]
   date: "2022/12/08"
 
 - title: 아무튼 이세계
   url: /posts/tonikaku-isekai/
   description: LNMrl_Te1SU - 2022/10 상황극 콘테스트
-  image: /assets/img/post/works/tonikaku-isekai/tonikaku-isekai-banner.png
   tags: [Programming]
   date: "2022/11/05"
 
 - title: 고멤가요제
   url: /posts/gomem-music-festival/
   description: IzrIYIqlBnA EjKEburqdjE Finale2.png ForbiddenLady1.png ForbiddenLady2.png 피날레 (고멤가요제 레이디버그) 금단의 레이디 - 연막맵 (고멤가요제 레이디버그)  - (https://cafe.naver.com/steamindiegame/7679495) cDjUyZXu7A4 v67Fs-m_DzI isEg5oCs1u8 트리거 계륵각 (고멤가요제 김피탕 & 짬뽕)  트리거 고멤가요제 드래프트 맵, 공개 맵 - (https://cafe.naver.com/steamindiegame/7675853)
-  image: /assets/img/post/works/gomem-music-festival/gomem-music-festival-finale1.png
   tags: [Art, Programming]
   date: "2022/09/25"
 
 - title: 하나원큐 광고
-  url: /posts/hana-one-q/
+  url: /posts/hana-oneq/
   description: hkGJP1_cHQA (https://cafe.naver.com/steamindiegame/7592517)
-  image: /assets/img/post/works/hana-one-q/hana-one-q-banner.png
   tags: [Art]
   date: "2022/09/11"
 
 - title: 세기의 대결, 왁파고 對 고세구
   url: /posts/go-isd-vs-wakpago/
   description: m2oef8JhV9s
-  image:
   tags: [Programming]
   date: "2022/07/10"
 
 - title: 왁숲
   url: /posts/wakforest/
   description: ENKbdP8V2gg (https://cafe.naver.com/steamindiegame/7340376)
-  image: /assets/img/post/works/wakforest/wakforest-banner.png
   tags: [Programming]
   date: '2022/08/21'
 
 - title: RE:HINE (아이네)
   url: /posts/re-hine/
   description: y3u8sOJGL3w (https://cafe.naver.com/steamindiegame/7029174)
-  image: /assets/img/post/works/re-hine/re-hine-banner.png
   tags: [Programming]
   date: "2022/07/26"
 
 - title: "우산 Cover MV"
   url: /posts/umbrella-cover-mv/
   description: "우산 Cover MV 촬영에 사용된 일부 VRChat 월드 제작."
-  image: "/assets/img/post/works/umbrella-cover-mv/umbrella-cover-mv-banner.png"
   tags: [Art]
   date: "2022/06/28"
 
 - title: "루석바"
   url: /posts/rusuk-bar/
   description: "왁타버스 고정멤버 해루석님을 위한 VRChat 월드 제작 프로젝트."
-  image: "/assets/img/post/works/rusuk-bar/rusuk-bar-banner.png"
   tags: [Art, Programming]
   date: '2201~'
 
 - title: "왁그리드"
   url: "/posts/wakgreed/"
   description: "우왁굳님을 위한 2D 탑뷰 로그라이크 팬 게임 프로젝트."
-  image: "http://img.youtube.com/vi/79sbqJl0OK8/0.jpg"
   tags: [GameDev, Art, Programming]
   date: '2101~2201'
 
@@ -325,4 +265,4 @@
   description: "다른 프로젝트도 보고 싶다면"
   image: /assets/img/background/backtop.gif
   tags: []
-  date: 'Last Update : 250315.'
+  date: 'Last Update : 250430.'

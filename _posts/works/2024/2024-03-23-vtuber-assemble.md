@@ -3,7 +3,7 @@ title: "버튜버 총회"
 # description: ""
 categories: [🍇Works]
 tags: [Project, VRChat]
-# image: ""
+image: "https://img.youtube.com/vi/BVWi1NPjCBg/mqdefault.jpg"
 
 date: 2024-03-23. 00:00
 last_modified_at: 2024-11-09. 08:31 # Init
