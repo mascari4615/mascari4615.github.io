@@ -3,7 +3,7 @@ title: "Career"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112-151539.jpg"
+image: "/assets/img/background/backtop.gif"
 
 date: 2024-09-05. 04:38
 # last_modified_at: 2024-09-12. 13:09

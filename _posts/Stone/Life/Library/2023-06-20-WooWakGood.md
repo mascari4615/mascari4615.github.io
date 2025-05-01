@@ -3,7 +3,7 @@ title: "우왁굳"
 # description: ""
 categories: [🪨Stone, 🏝️LifeStone]
 tags: []
-image: "/assets/img/background/20230112-151539.jpg"
+image: "/assets/img/background/backtop.gif"
 hidden: true
 
 date: 2023-06-20. 10:05
