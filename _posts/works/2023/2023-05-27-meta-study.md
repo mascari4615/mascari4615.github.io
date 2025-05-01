@@ -1,6 +1,6 @@
 ---
 title: "META STUDY"
-# description: ""
+description: "왁타버스 맵 제작 스터디 졸업작품 - 새우튀김 팀"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/meta-study/meta-study-banner.png"
@@ -26,6 +26,9 @@ VR챗 맵 제작 스터디 4기 졸업 작품
 ## 📀 기록
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/11339673)
+
 ![230505-004454-to-230505-004535](/assets/img/post/works/meta-study/230505-004454-to-230505-004535.gif)
 ![230505-004545-to-230505-004836](/assets/img/post/works/meta-study/230505-004545-to-230505-004836.gif)
 ![230505-004716](/assets/img/post/works/meta-study/230505-004716.png)

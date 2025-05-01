@@ -1,6 +1,6 @@
 ---
 title: "주니티 OX 퀴즈"
-# description: ""
+description: "이세계아이돌 주르르님의 Twitch 채팅 연동 'OX 퀴즈' 컨텐츠"
 categories: [🍇Works]
 tags: [Project]
 image: "https://img.youtube.com/vi/e9_KaSa9w_s/mqdefault.jpg"
@@ -25,3 +25,9 @@ last_modified_at: 2024-11-09. 08:32 # Init
 ## 📀 기록
 
 ---
+
+## 📀 후기
+
+---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/9470097)

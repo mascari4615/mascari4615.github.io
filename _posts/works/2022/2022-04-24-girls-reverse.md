@@ -1,6 +1,6 @@
 ---
 title: "소녀리버스"
-# description: ""
+description: "카카오 엔터테인먼트 주관 '버추얼 아이돌 오디션' 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/girls-reverse/230220-064057.png"

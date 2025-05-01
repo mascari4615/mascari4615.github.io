@@ -1,6 +1,6 @@
 ---
 title: "한국사 OX 퀴즈"
-# description: ""
+description: "향아치님의 '한국사 OX 퀴즈' 컨텐츠. (빼빼로 주관)"
 categories: [🍇Works]
 tags: [VRChat, ]
 image: "/assets/img/post/works/history-ox-quiz/240817-152627.png"
@@ -26,6 +26,7 @@ last_modified_at: 2024-11-09. 08:35 # Init
 ## 📀 기록
 
 ---
+
 ![240808-200816](/assets/img/post/works/history-ox-quiz/240808-200816.png)
 ![240808-202453](/assets/img/post/works/history-ox-quiz/240808-202453.png)
 ![240808-202520](/assets/img/post/works/history-ox-quiz/240808-202520.png)

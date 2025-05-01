@@ -1,6 +1,6 @@
 ---
 title: "크라임 왁 외전"
-# description: ""
+description: "왁타버스 크라임 왁 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/crime-wak-spinoff/221218-022228.png"
@@ -25,6 +25,12 @@ last_modified_at: 2024-11-09. 08:23 # Init
 
 - Unity 2019.4.31f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
+## 📀 후기
+
+---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/8932487)
 
 ## 📀 기록
 

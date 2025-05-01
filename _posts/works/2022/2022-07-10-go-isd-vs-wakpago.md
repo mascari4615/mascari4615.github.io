@@ -1,6 +1,6 @@
 ---
 title: "세기의 대결, 왁파고 VS 이세돌"
-# description: ""
+description: "이세계아이돌 고세구 VS 고정멤버 왁파고의 바둑 대결"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "https://img.youtube.com/vi/m2oef8JhV9s/mqdefault.jpg"

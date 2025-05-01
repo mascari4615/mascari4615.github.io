@@ -1,6 +1,6 @@
 ---
 title: "이파리 골든벨"
-# description: ""
+description: "이파리 골든벨"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/ipari-goldenbell/ipari-goldenbell-banner.png"
@@ -26,6 +26,8 @@ last_modified_at: 2024-11-09. 08:26 # Init
 ## 📀 기록
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/13792779)
 
 ![231117-224028](/assets/img/post/works/ipari-goldenbell/231117-224028.png)
 ![231117-224359](/assets/img/post/works/ipari-goldenbell/231117-224359.png)

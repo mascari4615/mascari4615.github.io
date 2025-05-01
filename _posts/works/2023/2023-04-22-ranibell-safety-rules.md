@@ -1,6 +1,6 @@
 ---
 title: "라니벨 안전수칙 편"
-# description: ""
+description: "이세계아이돌 비챤님의 '안전수칙 골든벨' 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/ranibell-safety-rules/230425-154148.png"
@@ -22,6 +22,12 @@ last_modified_at: 2024-11-09. 08:24 # Init
 
 - Unity 2019.4.31f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
+## 📀 후기
+
+---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/10888716)
 
 ## 📀 기록
 

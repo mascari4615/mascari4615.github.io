@@ -1,6 +1,6 @@
 ---
 title: "VRChat - 세구와 연애중"
-description: "이세계아이돌 고세구님의 '미연시 상황극' 컨텐츠."
+description: "이세계아이돌 고세구님의 '연애 시뮬레이션 토크' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/love-with-gsg/love-with-gsg-logo.jpg"
@@ -17,7 +17,7 @@ last_modified_at: 2025-03-09. 21:05 # 전
 
 ---
 
-이세계아이돌 고세구님의 '미연시 상황극' 컨텐츠입니다.  
+이세계아이돌 고세구님의 '연애 시뮬레이션 토크' 컨텐츠입니다.  
 
 25년 02월 26일 방송이 진행됐습니다.  
 

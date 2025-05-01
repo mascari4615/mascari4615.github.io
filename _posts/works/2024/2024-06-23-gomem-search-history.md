@@ -1,6 +1,6 @@
 ---
 title: "고멤의 검색기록"
-# description: ""
+description: "우왁굳님의 '왁타버스 고정멤버 유튜브 구독 목록 소개' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/gomem-search-history/240621-000000.png"

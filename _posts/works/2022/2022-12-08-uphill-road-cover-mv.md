@@ -1,6 +1,6 @@
 ---
-title: "오르막길 MV"
-# description: ""
+title: "오르막길 커버 MV"
+description: "왁타버스 오르막길 커버 MV"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/uphill-road-cover-mv/uphill-road-cover-mv-banner-0.png"

@@ -1,6 +1,6 @@
 ---
-title: "버종대 아프리카 TV 스튜디오"
-# description: ""
+title: "버종대 - SOOP 스튜디오"
+description: "'버추얼 종합 대회' 컨텐츠를 위한 VRChat 스튜디오"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/soop-studio/240814-185806.png"

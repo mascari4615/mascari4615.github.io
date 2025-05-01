@@ -20,10 +20,11 @@ SKYSIX (육광천) 'Everything' Official MV
 
 ### 💿 사용한 툴
 
-- Unity 2022.3.22f1
-- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- Unity 2022.3.22f1 URP
 - Blender
 
 ## 📀 기록
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/15881344)

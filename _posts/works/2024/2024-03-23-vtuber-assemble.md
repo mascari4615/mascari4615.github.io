@@ -1,6 +1,6 @@
 ---
 title: "버튜버 총회"
-# description: ""
+description: "이세계아이돌 고세구님의 '버튜버 토크쇼' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "https://img.youtube.com/vi/BVWi1NPjCBg/mqdefault.jpg"

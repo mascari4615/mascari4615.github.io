@@ -1,6 +1,6 @@
 ---
 title: "주파수 게임"
-# description: ""
+description: "우왁굳님을 위한 '내 마음의 주파수 보드게임' 조공 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/wave-length-game/240726-103018.png"
@@ -25,7 +25,7 @@ last_modified_at: 2024-11-09. 08:36 # Init
 
 ---
 
-우왁굳님을 위한 조공 컨텐츠입니다.  
+우왁굳님을 위한 '내 마음의 주파수 보드게임' 조공 컨텐츠입니다.  
 
 24년 08월 25일 방송이 진행됐습니다.  
 

@@ -1,6 +1,6 @@
 ---
-title: "이세계아이돌 2주년 합방, 컨텐츠 월드컵"
-# description: ""
+title: "이세계아이돌 2주년 합합"
+description: "이세계아이돌 2주년 기념 합방, 컨텐츠 월드컵"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/isd-2nd-anniversary/isd-2nd-anniversary-banner.png"
@@ -27,6 +27,8 @@ last_modified_at: 2024-11-09. 08:26 # Init
 ## 📀 기록
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/14065241)
 
 ![231211-001653](/assets/img/post/works/isd-2nd-anniversary/231211-001653.png)
 ![231211-001700](/assets/img/post/works/isd-2nd-anniversary/231211-001700.png)

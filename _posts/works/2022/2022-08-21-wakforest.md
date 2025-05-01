@@ -1,6 +1,6 @@
 ---
 title: "왁숲"
-# description: ""
+description: "왁타버스 VR 도서관"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/wakforest/wakforest-banner.png"
@@ -22,6 +22,12 @@ last_modified_at: 2024-11-09. 08:19 # Init
 
 - Unity 2019.4.31f1
 - [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+
+## 📀 후기
+
+---
+
+[왁물원 후기](https://cafe.naver.com/steamindiegame/7340376)
 
 ## 📀 기록
 

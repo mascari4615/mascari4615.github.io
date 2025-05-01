@@ -1,6 +1,6 @@
 ---
 title: "고멤가요제"
-# description: ""
+description: "왁타버스 가요제"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/gomem-music-festival/gomem-music-festival-finale1.png"
@@ -8,6 +8,9 @@ image: "/assets/img/post/works/gomem-music-festival/gomem-music-festival-finale1
 date: 2022-09-25. 00:00
 last_modified_at: 2024-11-09. 08:16 # Init
 ---
+
+하쿠가 된 융터르 - 고멤가요제 26화  
+{% include embed/youtube.html id = "EjKEburqdjE" %}
 
 여기가... 팀 사무실...?? - 고멤가요제 11화  
 {% include embed/youtube.html id = "cDjUyZXu7A4" %}
@@ -29,6 +32,14 @@ last_modified_at: 2024-11-09. 08:16 # Init
 ---
 
 ### 💿 참여 / 담당
+
+피날레 (고멤가요제 레이디버그)  
+금단의 레이디 - 연막맵 (고멤가요제 레이디버그)  
+(https://cafe.naver.com/steamindiegame/7679495)  
+
+트리거 계륵각 (고멤가요제 김피탕 & 짬뽕)  
+트리거 고멤가요제 드래프트 맵, 공개 맵  
+(https://cafe.naver.com/steamindiegame/7675853)  
 
 ### 💿 사용한 툴
 

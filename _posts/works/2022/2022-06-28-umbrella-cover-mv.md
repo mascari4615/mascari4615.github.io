@@ -1,6 +1,6 @@
 ---
-title: "우산 Cover MV"
-# description: "우산 Cover MV 촬영에 사용된 일부 VRChat 월드 제작."
+title: "우산 커버 MV"
+description: "왁타버스 우산 커버 MV 3D Art"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/umbrella-cover-mv/umbrella-cover-mv-banner.png"
@@ -27,10 +27,14 @@ last_modified_at: 2024-11-09. 08:12 # Init
 - Blender
 - VRChat (인 게임 영상 촬영)
 
-## 📀 기록
+## 📀 후기
 
 ---
 
 - [왁물원 후기](https://cafe.naver.com/steamindiegame/6697504)
+
+## 📀 기록
+
+---
 
 ![umbrella-cover-mv-banner](/assets/img/post/works/umbrella-cover-mv/umbrella-cover-mv-banner.png)

@@ -1,6 +1,6 @@
 ---
 title: "돚거 게임"
-# description: ""
+description: "우왁굳님을 위한 '마피아류 숫자 게임' 조공 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/thief-game/240131-232028.png"
@@ -26,6 +26,7 @@ last_modified_at: 2024-11-09. 08:31 # Init
 ## 📀 기록
 
 ---
+
 ![231130-212639](/assets/img/post/works/thief-game/231130-212639.png)
 ![231216-222805](/assets/img/post/works/thief-game/231216-222805.png)
 ![240131-232028](/assets/img/post/works/thief-game/240131-232028.png)
@@ -37,3 +38,5 @@ last_modified_at: 2024-11-09. 08:31 # Init
 ![240403-234504](/assets/img/post/works/thief-game/240403-234504.png)
 ![240403-234506](/assets/img/post/works/thief-game/240403-234506.png)
 ![240403-234510](/assets/img/post/works/thief-game/240403-234510.png)
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/15824783)
