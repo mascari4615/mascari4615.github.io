@@ -147,7 +147,7 @@ pwa:
     deny_paths:
       # - "/example"  # URLs match `<SITE_URL>/example/*` will not be cached by the PWA
 
-paginate: 30
+paginate: 8
 
 # The base URL of your site
 baseurl: "/" # 이거 ""에서 "/"로 바꾸니까 검색 기능 먹통되던거 고쳐짐. 왜 ????
