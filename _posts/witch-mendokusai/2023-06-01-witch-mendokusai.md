@@ -1,6 +1,6 @@
 ---
-title: "WitchMendokusai"
-description: ""
+title: "Witch Mendokusai"
+description: "게임 개발 프로젝트"
 categories: [🫐WitchMendokusai]
 tags: [WitchMendokusai]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"

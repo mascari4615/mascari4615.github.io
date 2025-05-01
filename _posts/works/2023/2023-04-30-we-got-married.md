@@ -1,6 +1,6 @@
 ---
 title: "우리 억결했어요"
-# description: ""
+description: "이세계아이돌 고세구님, 주르르님의 '우리 결혼했어요' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/we-got-married/230429-224703.png"

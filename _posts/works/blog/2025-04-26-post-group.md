@@ -6,7 +6,8 @@ tags: [Blog]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2025-04-26. 14:57 # Init (Blog.md에서 분리)
-last_modified_at: 2025-04-26. 23:35 # 중복 카테고리 수정
+# last_modified_at: 2025-04-26. 23:35 # 중복 카테고리 수정
+last_modified_at: 2025-05-01. 14:23 # Tree
 ---
 
 ## 📀 머리말
@@ -14,6 +15,126 @@ last_modified_at: 2025-04-26. 23:35 # 중복 카테고리 수정
 ---
 
 이 블로그에서 사용하는 글 분류 규칙  
+
+## 📀 Tree
+
+---
+
+```txt
+├─computer
+│  ├─algorithm
+│  │  ├─ai
+│  │  ├─back-tracking
+│  │  ├─common-problems
+│  │  ├─divide-conquer
+│  │  ├─dynamic-programming
+│  │  ├─problem-solving
+│  │  │  ├─baekjoon
+│  │  │  └─programmers
+│  │  ├─search
+│  │  └─sort
+│  ├─coding
+│  │  ├─convention
+│  │  ├─cpp
+│  │  └─csharp
+│  ├─data-structure
+│  ├─general
+│  ├─graphics
+│  │  ├─animation
+│  │  ├─cg-api
+│  │  ├─color
+│  │  ├─effect
+│  │  ├─modeling
+│  │  ├─rendering
+│  │  └─shader
+│  ├─program
+│  │  └─unity
+│  │      ├─custom-editor
+│  │      └─third-party
+│  ├─programming
+│  │  ├─code-block
+│  │  ├─design-pattern
+│  │  ├─programming-paradigm
+│  │  └─workflow
+│  │      ├─diagram
+│  │      └─testing
+│  ├─system
+│  │  ├─Assembly
+│  │  ├─Memory
+│  │  ├─OS
+│  │  └─Processor
+│  ├─web
+│  └─_drafts
+│      ├─programming-language
+│      ├─programming-language-concept
+│      ├─react-native
+│      └─spring-boot
+├─stone
+│  ├─2019
+│  ├─2020
+│  ├─2021
+│  ├─2022
+│  ├─2023
+│  ├─2024
+│  ├─2025
+│  ├─20XX
+│  └─life
+│      ├─item
+│      ├─library
+│      │  └─career
+│      └─think
+│          ├─personal
+│          ├─strategy
+│          └─theory
+├─witch-mendokusai
+│  ├─dev-log
+│  ├─game-design
+│  │  ├─combat
+│  │  ├─features
+│  │  ├─game
+│  │  └─task
+│  └─world
+│      ├─item
+│      │  ├─aspect
+│      │  ├─potion
+│      │  └─weapon
+│      ├─soul
+│      │  ├─belief
+│      │  ├─doll
+│      │  ├─human
+│      │  └─other
+│      │      ├─monster
+│      │      ├─slime
+│      │      └─spirit
+│      ├─space
+│      │  ├─ae
+│      │  │  ├─desert
+│      │  │  └─forest
+│      │  └─some-where
+│      └─story
+│          └─base
+├─works
+│  ├─2019
+│  ├─2021
+│  ├─2022
+│  ├─2023
+│  ├─2024
+│  ├─2025
+│  ├─blog
+│  ├─drawing
+│  ├─rusuk-bar
+│  ├─woodon
+│  │  └─dev-log
+│  └─_drafts
+└─world
+    ├─content
+    │  ├─animation
+    │  ├─book
+    │  ├─game
+    │  ├─internet
+    │  └─music
+    └─world
+```
 
 ## 📀 카테고리
 
@@ -91,9 +212,7 @@ Milestone에서 따옴
 - `(\d{6})_(\d{6})`
 - `$1-$2`
 
-## 📀 역사
-
----
+### 💿 기록
 
 - 250222
   - `Figma` 공부를 시작, 메모 글을 작성하기 위해 새로운 카테고리 `Design`을 만듦.

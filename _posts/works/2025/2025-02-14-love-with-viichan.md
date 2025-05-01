@@ -1,6 +1,6 @@
 ---
 title: "VRChat - 챠니와 두근두근"
-description: "이세계아이돌 비챤님의 '미연시 상황극' 컨텐츠."
+description: "이세계아이돌 비챤님의 '연애 시뮬레이션 토크' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/love-with-vii/love-with-vii-banner.png"
@@ -16,7 +16,7 @@ _
 
 ---
 
-이세계아이돌 비챤님의 '미연시 상황극' 컨텐츠입니다.  
+이세계아이돌 비챤님의 '연애 시뮬레이션 토크' 컨텐츠입니다.  
 
 25년 02월 14일 방송이 진행됐습니다.  
 

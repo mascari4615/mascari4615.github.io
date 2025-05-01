@@ -1,6 +1,6 @@
 ---
 title: "버튜버 우리말 대전"
-# description: ""
+description: "이세계아이돌 비챤님의 '한글날-우리말 팀 대전' 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/vtuber-hangle/241009-212015.png"
@@ -24,7 +24,7 @@ last_modified_at: 2025-02-22. 23:59
 
 ---
 
-이세계아이돌 비챤님의 '한글날 미니게임 팀전' 컨텐츠입니다.  
+이세계아이돌 비챤님의 '한글날-우리말 팀 대전' 컨텐츠입니다.  
 
 십자말풀이, 입으로 말해요, 초성퀴즈 (초성 땅따먹기), 띄어쓰기  
 총 네 가지 미니 게임이 진행됐습니다.  

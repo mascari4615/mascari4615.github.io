@@ -1,6 +1,6 @@
 ---
 title: "이세계 홈파티"
-# description: ""
+description: "이세계아이돌 3집 기념 합방"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/isd-home-party/isd-home-party-banner.jpg"
@@ -29,6 +29,8 @@ last_modified_at: 2024-11-09. 08:26 # Init
 ## 📀 기록
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/12562966)
 
 ![230820-204249](/assets/img/post/works/isd-home-party/230820-204249.png)
 ![isd-home-party-banner](/assets/img/post/works/isd-home-party/isd-home-party-banner.jpg)

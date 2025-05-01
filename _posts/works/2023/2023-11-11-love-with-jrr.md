@@ -1,6 +1,6 @@
 ---
 title: "르르와 연애중"
-# description: ""
+description: "이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠."
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/love-with-jrr/love-with-jrr-1/love-with-jrr-1-banner.png"
@@ -20,6 +20,7 @@ last_modified_at: 2024-11-18. 05:15 # 정리
 ## 📀 머리말
 
 ---
+
 이세계아이돌 주르르님의 '연애 시뮬레이션 토크' 컨텐츠입니다.  
 
 - 방송 중 사전에 촬영/제작한 연애 시뮬레이션 상황극 영상을 시청합니다.

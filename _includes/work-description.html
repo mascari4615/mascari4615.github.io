@@ -1,8 +1,8 @@
 {%- assign max_length = include.max_length | default: 200 -%}
 
 {%- capture description -%}
-{%- if project.description -%}
-  {{- project.description -}}
+{%- if work.description -%}
+  {{- work.description -}}
 {%- endif -%}
 {%- endcapture -%}
 

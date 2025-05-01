@@ -1,6 +1,6 @@
 ---
 title: "일심동체 게임"
-# description: ""
+description: "우왁굳님을 위한 '단어 한 글자씩 맞추기' 조공 컨텐츠"
 categories: [🍇Works]
 tags: [Project, VRChat]
 image: "/assets/img/post/works/letter-quiz/letter-quiz-banner.png"
@@ -38,6 +38,9 @@ VR챗 일심동체 고멤 합방 풀버전
 ## 📀 기록
 
 ---
+
+- [왁물원 후기 - 한글 키보드](https://cafe.naver.com/steamindiegame/12922263)
+
 ![230612-150838](/assets/img/post/works/letter-quiz/230612-150838.png)
 ![230612-150856](/assets/img/post/works/letter-quiz/230612-150856.png)
 ![230612-151109](/assets/img/post/works/letter-quiz/230612-151109.png)

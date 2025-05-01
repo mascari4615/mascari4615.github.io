@@ -1,6 +1,6 @@
 ---
 title: "Everything MV"
-# description: ""
+description: "왁타버스 오리지널 뮤직비디오 Everything 3D Art"
 categories: [🍇Works]
 tags: [Project]
 image: "/assets/img/post/works/everything/230629-222847.png"
@@ -20,10 +20,11 @@ SKYSIX (육광천) 'Everything' Official MV
 
 ### 💿 사용한 툴
 
-- Unity 2022.3.22f1
-- [U# (C# + VRChat SDK)](https://udonsharp.docs.vrchat.com/)
+- Unity 2022.3.22f1 URP
 - Blender
 
-## 📀 기록
+## 📀 후기
 
 ---
+
+- [왁물원 후기](https://cafe.naver.com/steamindiegame/15881344)
