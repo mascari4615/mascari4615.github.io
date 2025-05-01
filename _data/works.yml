@@ -1,0 +1,188 @@
+- url: /posts/woodon/
+  tags: [Programming]
+  date: '2411~'
+
+- url: /posts/witch-mendokusai/
+  tags: [GameDev, Art, UI, Programming]
+  date: '2306~'
+
+- url: /posts/girls-reverse/
+  tags: [Programming]
+  date:
+
+- url: /posts/soop-studio/
+  tags: [Art, UI, Programming]
+  date:
+
+- url: /posts/love-with-gosegu/
+  tags: [Programming]
+  date: "2025/02/26"
+
+- url: /posts/dalcomlena-enchant-quizshow/
+  tags: [Programming]
+  date: "2025/02/25"
+
+- url: /posts/gomem-deck-compression/
+  tags: [Programming]
+  date: "2025/02/15"
+
+- url: /posts/love-with-viichan/
+  tags: [Programming]
+  date: "2025/02/14"
+
+- url: /posts/waktarot/
+  tags: [Programming]
+  date: "2025/01/23"
+
+- url: /posts/ukon-24-exhibition/
+  tags: [Programming]
+  date: "2025/01/11"
+
+- url: /posts/im-solo-since-birth/
+  tags: [Programming]
+  date: "2024/12/23"
+
+- url: /posts/catch-drawing/
+  tags: [Programming]
+  date: "2024/12/10"
+
+- url: /posts/gomem-dreamteam-bettingtrain/
+  tags: [Programming]
+  date: "2024/12/01"
+
+- url: /posts/nikke-2nd-anniversary/
+  tags: [Programming, VRChat]
+  date: "2024/11/04"
+
+- url: /posts/vtuber-hangle/
+  tags: [Programming]
+  date: "2024/10/09"
+
+- url: /posts/gomem-house/
+  tags: [Programming]
+  date: "2024/09/09"
+
+- url: /posts/wave-length-game/
+  tags: [Art, UI, Programming]
+  date: "2024/08/25"
+
+- url: /posts/history-ox-quiz/
+  tags: [UI, Programming]
+  date: "2024/08/13"
+
+- url: /posts/gomem-search-history/
+  tags: [Programming]
+  date: "2024/06/23"
+
+- url: /posts/etiquette-class/
+  tags: [Programming]
+  date: "2024/05/31"
+
+- url: /posts/everything-mv/
+  tags: [Art]
+  date: "2024/04/07"
+
+- url: /posts/thief-game/
+  tags: [Programming]
+  date: "2024/04/03"
+
+- url: /posts/vtuber-assemble/
+  tags: [Programming]
+  date: "2024/03/23"
+
+- url: /posts/isd-2nd-anniversary/
+  tags: [Art, Programming]
+  date: "2023/12/17"
+
+- url: /posts/ipari-goldenbell/
+  tags: [Programming]
+  date: "2023/11/25"
+
+- url: /posts/love-with-jrr/
+  tags: [Programming, VRChat]
+  date: "2311, 2411."
+
+- url: /posts/isd-home-party/
+  tags: [Programming]
+  date: "2023/08/20"
+
+- url: /posts/letter-quiz/
+  tags: [Programming]
+  date: "2023/08/05"
+
+- url: https://youtu.be/VQxPKTFb0es?si=kdH8oTsecyn1Cx-U
+  title: Journey of Emotions 프로모션
+  image: https://img.youtube.com/vi/VQxPKTFb0es/mqdefault.jpg
+  description: SM 엔터테인먼트 산하레코드 ScreaM의 Journey of Emotions 프로모션
+  tags: [Art, Programming]
+  date:
+
+- url: /posts/meta-study/
+  tags: [Programming]
+  date: "2023/05/27"
+
+- url: /posts/we-got-married/
+  tags: [Programming]
+  date: "2023/04/30"
+
+- url: /posts/ranibell-safety-rules/
+  tags: [Programming]
+  date: "2023/04/22"
+
+- url: /posts/vtuber-soccer-tournament/
+  tags: [Art]
+  date: "2023/03/20"
+
+- url: /posts/junity-ox-quiz/
+  tags: [GameDev, Art, Programming]
+  date: "2023/01/23"
+
+- url: /posts/crimewak-spinoff/
+  tags: [Programming]
+  date: "2022/12/18"
+
+- url: /posts/uphill-road-cover-mv/
+  tags: [Art]
+  date: "2022/12/08"
+
+- url: /posts/tonikaku-isekai/
+  tags: [Programming]
+  date: "2022/11/05"
+
+- url: /posts/gomem-music-festival/
+  tags: [Art, Programming]
+  date: "2022/09/25"
+
+- url: /posts/hana-oneq/
+  tags: [Art]
+  date: "2022/09/11"
+
+- url: /posts/go-isd-vs-wakpago/
+  tags: [Programming]
+  date: "2022/07/10"
+
+- url: /posts/wakforest/
+  tags: [Programming]
+  date: '2022/08/21'
+
+- url: /posts/re-hine/
+  tags: [Programming]
+  date: "2022/07/26"
+
+- url: /posts/umbrella-cover-mv/
+  tags: [Art]
+  date: "2022/06/28"
+
+- url: /posts/rusuk-bar/
+  tags: [Art, Programming]
+  date: '2201~'
+
+- url: "/posts/wakgreed/"
+  tags: [GameDev, Art, Programming]
+  date: '2101~2201'
+
+- url: "/posts/project/"
+  description: "다른 프로젝트도 보고 싶다면"
+  image: /assets/img/background/backtop.gif
+  tags: []
+  date: 'Last Update : 250430.'
