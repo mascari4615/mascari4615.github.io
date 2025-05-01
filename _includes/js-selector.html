@@ -51,6 +51,8 @@
 
 {% include jsdelivr-combine.html urls=urls %}
 
+{% comment %} CUSTOM: works 분기 추가 {% endcomment %}
+
 {% case page.layout %}
   {% when 'home', 'categories', 'post', 'page' %}
     {% assign js = page.layout %}

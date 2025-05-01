@@ -1,9 +1,0 @@
-{%- assign max_length = include.max_length | default: 200 -%}
-
-{%- capture description -%}
-{%- if work.description -%}
-  {{- work.description -}}
-{%- endif -%}
-{%- endcapture -%}
-
-{{- description | strip | truncate: max_length | escape -}}
