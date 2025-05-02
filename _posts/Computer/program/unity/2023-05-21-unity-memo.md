@@ -310,6 +310,6 @@ Navigation None하면 Button Transition Animation 동작안할 수 있음. (특�
 ### 🫧 키워드
 
 - ['Unity Document': 'Rich Text'](https://docs.unity3d.com/kr/2022.1/Manual/StyledText.html)
-- [UI Toolkit](/posts/Unity-UI-Toolkit/)
+- [UI Toolkit](/posts/unity-ui-toolkit/)
 - `Collision.contacts`
 - `AddForce`에서의 Force -> `force * DT / mass`

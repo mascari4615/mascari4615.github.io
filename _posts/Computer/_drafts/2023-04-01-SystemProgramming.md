@@ -225,7 +225,7 @@ Different compiler & machines assign different locations to objects
   - True = 1, False = 0 으로 부호화
   - 집합 { 0, 1 } 에 대해서 정의
 
-[Bit Wise Operate](/posts/Bitwise-Operator/)  
+[Bit Wise Operate](/posts/bitwise-operator/)  
 
 ---
 

@@ -36,4 +36,4 @@ GUI (Graphical User Interface) 프로그래밍에 특히 유용하다.
 
 ### 🫧 참고
 
-- [Delegate](/posts/Delegate/)
+- [Delegate](/posts/delegate/)

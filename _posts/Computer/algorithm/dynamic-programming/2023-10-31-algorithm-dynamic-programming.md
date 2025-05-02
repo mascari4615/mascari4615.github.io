@@ -61,15 +61,15 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 
 ---
 
-- [LIS \| 최장 증가 부분 수열](/posts/Algorithm-LIS/)
-- [LCS \| 최장 공통 부분 수열/순서](/posts/Algorithm-LCS/)
+- [LIS \| 최장 증가 부분 수열](/posts/algorithm-lis/)
+- [LCS \| 최장 공통 부분 수열/순서](/posts/algorithm-lcs/)
 
-- [Fibonacci](/posts/Algorithm-Fibonacci/)
-- [0-1-KnapSack-Problem](/posts/0-1-KnapSack-Problem/)
-- [Bellman-Ford](/posts/Algorithm-Bellman-Ford/)
-- [Floyd-Warchall](/posts/Algorithm-Floyd-Warchall/)
+- [Fibonacci](/posts/algorithm-fibonacci/)
+- [0-1-KnapSack-Problem](/posts/0-1-knapsack-problem/)
+- [Bellman-Ford](/posts/algorithm-bellman-ford/)
+- [Floyd-Warchall](/posts/algorithm-floyd-warchall/)
 
-- [Memoization](/posts/Algorithm-Memoization/)
+- [Memoization](/posts/algorithm-memoization/)
 
 - 여행하는 외판원 문제
 - Viterbi \| 비터비 알고리즘: 음성 인식, 합성에서 사용

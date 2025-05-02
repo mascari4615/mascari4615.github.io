@@ -35,7 +35,7 @@ lock (thisLock)
 
 ---
 
-[스레드](/posts/Process-Processor-Thread/)
+[스레드](/posts/process-processor-thread/)
 
 ### 🫧 스레드는 가벼운 자원인가?
 

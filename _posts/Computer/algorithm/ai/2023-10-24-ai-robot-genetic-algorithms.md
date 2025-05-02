@@ -64,7 +64,7 @@ Natural Selection 자연 선택
 
 ---
 
-@ U 중간고사 출제 : [8-Queen](/posts/N-Queen/) 문제에 유전 알고리듬을 적용하는 과정  
+@ U 중간고사 출제 : [8-Queen](/posts/n-queen/) 문제에 유전 알고리듬을 적용하는 과정  
 
 1. Initialization
    - 문제 정의

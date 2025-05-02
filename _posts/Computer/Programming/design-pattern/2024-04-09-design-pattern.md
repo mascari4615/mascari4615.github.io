@@ -94,7 +94,7 @@ last_modified_at: 2024-10-19. 11:55 # 메모 정리
 - `메멘토 | Memento`: 객체가 특정 상태로 다시 되돌아 올 수 있도록 내부 상태를 실체화
 - `상태 | State`: 객체의 상태에 따라 동일한 동작을 다르게 처리
   - <https://velog.io/@jinmin2216/디자인-패턴-스테이트상태-패턴-State-Pattern>
-- [`전략 | Strategy`](/posts/Strategy-Pattern/): 동일 계열의 알고리듬군을 정의하고 캡슐화하여 상호 교환이 가능하게 함
+- [`전략 | Strategy`](/posts/strategy-pattern/): 동일 계열의 알고리듬군을 정의하고 캡슐화하여 상호 교환이 가능하게 함
 - `템플릿 메소드 | Template Method`: 상위 클래스는 알고리듬의 골격만을 작성하고 구체적인 처리는 서브 클래스로 위임
 - `방문자 | Visitor`: 객체의 원소에 대해 수행할 연산을 분리하여 별도의 클래스로 구성
 

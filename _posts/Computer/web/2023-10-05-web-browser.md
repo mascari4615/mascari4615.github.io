@@ -20,7 +20,7 @@ URL 입력을 통해 Web Page (HTML, CSS)를 다운 받고,
 = `원격지` 문서 뷰어  
 
 주소 입력창에 URL Uniform Resource Locator 입력  
-→ (일반적으로) [HTTP](/posts/HTTP/)S를 통해 `Resource`(문서/Web Page도 Resource)를 Web Server로 부터 [Get-Read/Post](/posts/Get-Post/) 하겠다는 것  
+→ (일반적으로) [HTTP](/posts/http/)S를 통해 `Resource`(문서/Web Page도 Resource)를 Web Server로 부터 [Get-Read/Post](/posts/get-post/) 하겠다는 것  
 → CMD 명령어 입력하는 거랑 다를 게 없음 (DNS Domain Name System, URL → IP)  
 → Search Query를 입력하면 설정해둔 Search Engine으로 검색  
 

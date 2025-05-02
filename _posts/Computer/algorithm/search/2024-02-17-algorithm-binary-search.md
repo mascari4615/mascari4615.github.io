@@ -21,7 +21,7 @@ last_modified_at: 2024-11-16. 05:15 # 정리
 
 ---
 
-- [Data-Structure-Binary-Search-Tree](/posts/Data-Structure-Binary-Search-Tree/)
+- [Data-Structure-Binary-Search-Tree](/posts/data-structure-binary-search-tree/)
 
 - 전화번호부에서 이름이 K로 시작하는 사람의 번호 찾기
   - 책 한가운데를 펼치고 찾기 시작하는 방법

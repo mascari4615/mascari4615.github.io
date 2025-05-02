@@ -58,4 +58,4 @@ last_modified_at: 2024-09-04. 12:58
 
 ### 🫧 Binary Search Tree
 
-[Binary Search Tree](/posts/Data-Structure-Binary-Search-Tree/)  
+[Binary Search Tree](/posts/data-structure-binary-search-tree/)  

@@ -33,7 +33,7 @@ last_modified_at: 2024-08-29. 21:36
 - 배낭의 용량 $ M > 0 $
 - 최적해 $ K(n, M) $ 은 $ \sum_{i = 1}^n p_i x_i $ 의 최댓값. 단. $ \sum_{i = 1}^n w_i x_i \le M $
 
-## 💫 Solve By [Dynamic-Programming](/posts/Algorithm-Dynamic-Programming/)
+## 💫 Solve By [Dynamic-Programming](/posts/algorithm-dynamic-programming/)
 
 ---
 
@@ -242,7 +242,7 @@ x나 y 중 하나만 작은 경우에는, A와 B 중 x가 더 큰 쪽에 정렬�
 $ S_0 $, 평행이동 $ SP_0 $,  
 합치고 $ S_1 $, 평행이동 $ SP_1 $,  
 
-## 💫 Solve By [BackTracking](/posts/Algorithm-Back-Tracking/)
+## 💫 Solve By [BackTracking](/posts/algorithm-back-tracking/)
 
 ---
 

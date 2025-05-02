@@ -26,4 +26,4 @@ date: 2025-04-16. 20:49 # Init
 
 ### 🫧 참고
 
-- [Unity Art Asset](/posts/Unity-Art-Asset/)
+- [Unity Art Asset](/posts/unity-art-asset/)

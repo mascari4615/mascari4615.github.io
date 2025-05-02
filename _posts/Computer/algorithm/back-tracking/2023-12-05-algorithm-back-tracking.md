@@ -186,7 +186,7 @@ void Backtracking(Node v)
 
 ### 🫧 최적화 문제 해결을 위한 구조
 
-- 모든 해답을 다 찾아야 하는 문제에 대한 백트래킹: [N-Queen](/posts/N-Queen/)
+- 모든 해답을 다 찾아야 하는 문제에 대한 백트래킹: [N-Queen](/posts/n-queen/)
 - 결정 문제에 대한 백트래킹: 해밀턴 사이클 문제
 - 최적화 문제에 대한 백트래킹
   - 상태 공간 트리를 모두 뒤지는 것이 목표
@@ -224,11 +224,11 @@ i.e. 0-1 배낭 문제에서 노드의 상태 기록
 
 ---
 
-[N-Queen](/posts/N-Queen/)  
+[N-Queen](/posts/n-queen/)  
 해밀턴 사이클  
-[K-Graph-Coloring](/posts/K-Graph-Coloring/)  
-[Subset-Sum-Problem](/posts/Subset-Sum-Problem/)  
-[0-1-KnapSack-Problem](/posts/0-1-KnapSack-Problem/)  
+[K-Graph-Coloring](/posts/k-graph-coloring/)  
+[Subset-Sum-Problem](/posts/subset-sum-problem/)  
+[0-1-KnapSack-Problem](/posts/0-1-knapsack-problem/)  
 
 ## 💫 Branch and Bound
 

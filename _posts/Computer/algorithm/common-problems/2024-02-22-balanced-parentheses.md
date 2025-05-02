@@ -36,7 +36,7 @@ last_modified_at: 2024-08-29. 21:37
 문자열을 앞에서부터 읽어나갈 때,  
 닫는 괄호는 남아있는 괄호 중에서 가장 최근에 들어온 여는 괄호와 짝을 지어 없애버리는 명령이라고 생각해도 된다.  
 
-## 💫 Solve By [Stack](/posts/Data-Structure-Stack/)
+## 💫 Solve By [Stack](/posts/data-structure-stack/)
 
 ---
 
@@ -61,8 +61,8 @@ O(N)
 
 ### 🫧 백준
 
-- [Baekjoon-2504](/posts/Baekjoon-2504/)
-- [Baekjoon-3986](/posts/Baekjoon-3986/)
-- [Baekjoon-4949](/posts/Baekjoon-4949/)
-- [Baekjoon-9012](/posts/Baekjoon-9012/)
-- [Baekjoon-10799](/posts/Baekjoon-10799/)
+- [Baekjoon-2504](/posts/baekjoon-2504/)
+- [Baekjoon-3986](/posts/baekjoon-3986/)
+- [Baekjoon-4949](/posts/baekjoon-4949/)
+- [Baekjoon-9012](/posts/baekjoon-9012/)
+- [Baekjoon-10799](/posts/baekjoon-10799/)

@@ -115,7 +115,7 @@ createContext를 통해 만든 컨텍스트 객체는 Provider와 Consumer 컴�
 
 Provider는 앞서 언급한 Provider들과 같은 역할을 하는 컴포넌트고, Consumer는 Provider가 제공하는 기능을 사용하는 클래스 컴포넌트를 위한 컴포넌트이다.  
 
-[참고 : 클래스 컴포넌트](/posts/Web-Browser/)  
+[참고 : 클래스 컴포넌트](/posts/web-browser/)  
 
 Provider 컴포넌트는 value와 children 속성이 있는 ProviderProps 속성을 제공한다.  
 

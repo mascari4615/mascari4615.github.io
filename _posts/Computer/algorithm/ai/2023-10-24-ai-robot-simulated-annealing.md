@@ -70,7 +70,7 @@ Local Max, Global Max
 언제 정착 ?  
 → 시간이 지날수록 조건을 까다롭게  
 
-Sample Problem - [N-Queen](/posts/N-Queen/)  
+Sample Problem - [N-Queen](/posts/n-queen/)  
 
 초기 soln를 대충 만들어두고, soln를 평가  
 답(최정상)은 모르니까 대강 어느정도 좋다  

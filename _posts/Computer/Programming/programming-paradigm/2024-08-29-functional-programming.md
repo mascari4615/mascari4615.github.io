@@ -55,6 +55,6 @@ date: 2024-08-29. 20:54
 
 ### 🫧 참고
 
-- [Lambda](/posts/Lambda/)
-- [Delegate](/posts/Delegate/)
-- [LINQ](/posts/LINQ/)
+- [Lambda](/posts/lambda/)
+- [Delegate](/posts/delegate/)
+- [LINQ](/posts/linq/)

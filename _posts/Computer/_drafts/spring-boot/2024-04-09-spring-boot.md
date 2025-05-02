@@ -385,7 +385,7 @@ public class MemberRepositoryTest {
 
 ---
 
-[REST API](/posts/REST-API/)  
+[REST API](/posts/rest-api/)  
 
 `Controller`로 요청을 받는다? `REST API` 통신을 한다.  
 

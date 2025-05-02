@@ -35,7 +35,7 @@ last_modified_at: 2024-08-29. 21:33
 
 ---
 
-### 🫧 참고 - [Short-Circuit Evaluation](/posts/Short-Circuit-Evaluation/)
+### 🫧 참고 - [Short-Circuit Evaluation](/posts/short-circuit-evaluation/)
 
 _230109.  
 Short-Circuit Evaluation 에 따른 연산 순서 상의 속도 차이도 존재한다.  

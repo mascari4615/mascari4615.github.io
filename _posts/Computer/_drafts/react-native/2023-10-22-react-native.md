@@ -55,7 +55,7 @@ React Native = Native Part + JS Part
 → Native Part : 기본 제공 모듈 그대로 사용  
 → JS Part : 주로 개발하는 파트  
 
-[DHTML](/posts/DOM/)이고, Bridge 방식으로 동작  
+[DHTML](/posts/dom/)이고, Bridge 방식으로 동작  
 
 @ Native 네이티브 (in Mobile App Dev)  
 @ → OS와 같은 언어로 만들어진 ~  

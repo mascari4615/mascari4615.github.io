@@ -22,7 +22,7 @@ last_modified_at: 2024-08-29. 21:36
 i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0  
 원소 합에 관한 조건을 임의의 정수로 일반화 가능 (합 0 → 합 n)  
 
-물건의 단위 무게당 이익이 동일한 [0-1 배낭 문제](/posts/0-1-KnapSack-Problem/)  
+물건의 단위 무게당 이익이 동일한 [0-1 배낭 문제](/posts/0-1-knapsack-problem/)  
 0-1 배낭 문제에서 최대 이익은 배낭 용량 M을 꽉 채울 경우 = 원소를 양수로 한정하는 부분집합의 합 문제와 동일  
 
 @ 자료 Subset0000  
@@ -35,13 +35,13 @@ i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0
 
 @ SSP_0000  
 
-## 💫 Solve By [BackTracking](/posts/Algorithm-Back-Tracking/)
+## 💫 Solve By [BackTracking](/posts/algorithm-back-tracking/)
 
 ---
 
 ### 🫧 상태 공간 트리
 
-[N-Queen](/posts/N-Queen/), [K-Graph-Coloring](/posts/K-Graph-Coloring/)과 다르게, 노드에 위치 정보가 저장되는 것이 아니고, 각 노드 기준 무게가 저장됨  
+[N-Queen](/posts/n-queen/), [K-Graph-Coloring](/posts/k-graph-coloring/)과 다르게, 노드에 위치 정보가 저장되는 것이 아니고, 각 노드 기준 무게가 저장됨  
 
 ### 🫧 알고리듬
 

@@ -1423,7 +1423,7 @@ UML
 
 ---
 
-[Architecture Pattern](/posts/Architecture-Pattern/)  
+[Architecture Pattern](/posts/architecture-pattern/)  
 
 - 범용 계층 아키텍처
   - APP
@@ -1920,7 +1920,7 @@ UML
 
 ---
 
-[Design Pattern](/posts/Design-Pattern/)  
+[Design Pattern](/posts/design-pattern/)  
 
 - Observer 패턴
   - ~
@@ -1961,7 +1961,7 @@ UML
 ### 🫧 개발 테스팅
 
 - 개발 테스팅의 단계
-  - [Unit Test 단위 테스팅](/posts/Unit-Test/)
+  - [Unit Test 단위 테스팅](/posts/unit-test/)
   - 컴포넌트 테스팅
     - 여러 개별 단위가 복합 컴포넌트를 생성하기 위해 통합
     - 컴포넌트 인터페이스를 테스트하는 것에 집중
