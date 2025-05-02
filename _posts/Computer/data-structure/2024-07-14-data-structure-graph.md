@@ -2,7 +2,7 @@
 title: "Graph, Tree | 그래프, 트리"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Graph]
+tags: [자료구조, Graph]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-07-14. 23:37

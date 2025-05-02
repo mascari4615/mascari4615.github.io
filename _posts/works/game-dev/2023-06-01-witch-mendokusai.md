@@ -1,8 +1,8 @@
 ---
 title: "Witch Mendokusai"
 description: "게임 개발 프로젝트"
-categories: [작업물, 마녀:귀찮아!]
-tags: [작업물, 게임 개발, 마녀:귀찮아!]
+categories: [작업물, 게임 개발]
+tags: [작업물, 게임 개발, 유니티, 마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 
 date: 2023-06-01. 10:25

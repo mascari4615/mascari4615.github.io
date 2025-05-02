@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 챠니와 두근두근"
 description: "이세계아이돌 비챤님의 '연애 시뮬레이션 토크' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/love-with-vii/love-with-vii-banner.png"
 
 date: 2025-02-14. 00:00

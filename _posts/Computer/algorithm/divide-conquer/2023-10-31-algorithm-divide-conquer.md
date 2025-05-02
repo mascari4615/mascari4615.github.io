@@ -2,7 +2,7 @@
 title: "DC | Divide-Conquer | 분할 정복"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Divide-Conquer]
+tags: [알고리듬, Divide-Conquer]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 13:37

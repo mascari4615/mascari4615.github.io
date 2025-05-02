@@ -2,7 +2,7 @@
 title: "유니티 x SOOP 채팅 연동"
 # description: ""
 categories: [작업물]
-tags: [작업물]
+tags: [작업물, 유니티]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2024-04-25. 21:26

@@ -1,8 +1,8 @@
 ---
 title: "META STUDY"
 description: "왁타버스 맵 제작 스터디 졸업작품 - 새우튀김 팀"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/meta-study/meta-study-banner.png"
 
 date: 2023-05-27. 00:00

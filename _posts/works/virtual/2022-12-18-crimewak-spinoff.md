@@ -1,8 +1,8 @@
 ---
 title: "크라임 왁 외전"
 description: "왁타버스 크라임 왁 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/crime-wak-spinoff/221218-022228.png"
 
 date: 2022-12-18. 00:00

@@ -1,8 +1,8 @@
 ---
 title: "아무튼 이세계! 상확극"
 description: "우왁굳님의 2022/10 상황극 콘테스트 출품작"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/tonikaku-isekai/tonikaku-isekai-banner.png"
 
 date: 2022-11-05. 00:00

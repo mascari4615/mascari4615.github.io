@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 달콤레나 인챈트 퀴즈쇼"
 description: "달콤레나님의 '인챈트 퀴즈쇼' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/tt-vGVAu71k/mqdefault.jpg"
 
 date: 2025-02-25. 00:00

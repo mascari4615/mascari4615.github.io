@@ -1,8 +1,8 @@
 ---
 title: "한국사 OX 퀴즈"
 description: "향아치님의 '한국사 OX 퀴즈' 컨텐츠. (빼빼로 주관)"
-categories: [작업물]
-tags: [VRChat, ]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/history-ox-quiz/240817-152627.png"
 
 date: 2024-08-13. 00:00

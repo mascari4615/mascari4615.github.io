@@ -2,7 +2,7 @@
 title: "Subset Sum Problem"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Back-Tracking]
+tags: [알고리듬, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
 

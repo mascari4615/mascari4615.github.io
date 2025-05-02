@@ -1,8 +1,8 @@
 ---
 title: "소녀리버스"
 description: "카카오 엔터테인먼트 주관 '버추얼 아이돌 오디션' 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/girls-reverse/230220-064057.png"
 
 date: 2022-04-24. 00:00

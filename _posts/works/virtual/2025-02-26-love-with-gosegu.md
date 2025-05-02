@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 세구와 연애중"
 description: "이세계아이돌 고세구님의 '연애 시뮬레이션 토크' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/love-with-gsg/love-with-gsg-logo.jpg"
 
 date: 2025-02-26. 00:00

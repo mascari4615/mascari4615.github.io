@@ -1,8 +1,8 @@
 ---
 title: "캐치 드로잉"
 description: "이세계아이돌 징버거님의 '그림 나눠 그려 맞추기' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/catch-drawing/catch-drawing-logo.png"
 
 date: 2024-10-19. 09:53

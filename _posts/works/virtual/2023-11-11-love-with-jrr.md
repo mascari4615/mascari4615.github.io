@@ -1,8 +1,8 @@
 ---
 title: "르르와 연애중"
 description: "이세계아이돌 주르르 '연애 시뮬레이션 토크' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/love-with-jrr/love-with-jrr-1/love-with-jrr-1-banner.png"
 
 date: 2023-11-11. 00:00

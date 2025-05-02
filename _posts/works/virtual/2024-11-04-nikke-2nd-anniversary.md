@@ -1,8 +1,8 @@
 ---
 title: "승리의 여신 : 니케, 2주년 업데이트 광고"
 description: "'승리의 여신 : 니케, 2주년 업데이트 광고' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/nikke-2nd-anniversary/nikke-2nd-anniversary-ppt-title.png"
 
 # date: 2024-10-19. 09:55

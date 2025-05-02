@@ -1,8 +1,8 @@
 ---
 title: "고멤가요제"
 description: "왁타버스 가요제"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/gomem-music-festival/gomem-music-festival-finale1.png"
 
 date: 2022-09-25. 00:00

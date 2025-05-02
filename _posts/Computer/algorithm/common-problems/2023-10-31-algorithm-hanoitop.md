@@ -2,7 +2,7 @@
 title: "알고리듬, 하노이탑"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm]
+tags: [알고리듬]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 14:11

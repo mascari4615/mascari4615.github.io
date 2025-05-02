@@ -1,8 +1,8 @@
 ---
 title: "VRChat 한글 키보드"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, Woodon]
+tags: [작업물, VRChat, 유니티, Woodon]
 # image: ""
 
 date: 2023-08-05. 00:00

@@ -1,8 +1,8 @@
 ---
 title: "비챤 아프리카 티비 데뷔 방송"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, 유니티]
 image: "/assets/img/post/works/vii-soop-debut/240210-203004.png"
 
 date: 2024-02-10. 00:00

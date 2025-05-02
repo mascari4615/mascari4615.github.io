@@ -2,7 +2,7 @@
 title: "Hash-Table"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Hash]
+tags: [자료구조, Hash]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:06

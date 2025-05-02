@@ -1,8 +1,8 @@
 ---
 title: "이세돌 찾기"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/background/20230112-151539.jpg"
 hidden: true
 

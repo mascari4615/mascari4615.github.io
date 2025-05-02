@@ -2,7 +2,7 @@
 title: "Binary (Search) Tree"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Tree]
+tags: [자료구조, Tree]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:52

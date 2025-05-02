@@ -1,8 +1,8 @@
 ---
 title: "CG Copy"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 # image: "/assets/img/post/works/cg-copy/cg-copy.png"
 
 date: 2022-05-18. 00:00

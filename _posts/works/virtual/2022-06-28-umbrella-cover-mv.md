@@ -1,8 +1,8 @@
 ---
 title: "우산 커버 MV"
 description: "왁타버스 우산 커버 MV 3D Art"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/umbrella-cover-mv/umbrella-cover-mv-banner.png"
 
 date: 2022-06-28. 00:00

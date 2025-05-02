@@ -1,8 +1,8 @@
 ---
 title: "버튜버 총회"
 description: "이세계아이돌 고세구님의 '버튜버 토크쇼' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/BVWi1NPjCBg/mqdefault.jpg"
 
 date: 2024-03-23. 00:00

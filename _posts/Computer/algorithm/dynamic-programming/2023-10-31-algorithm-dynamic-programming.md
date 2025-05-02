@@ -2,7 +2,7 @@
 title: "DP | Dynamic Programming | 동적 프로그래밍, 동적 계획법"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Dynamic-Programming]
+tags: [알고리듬, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 14:16

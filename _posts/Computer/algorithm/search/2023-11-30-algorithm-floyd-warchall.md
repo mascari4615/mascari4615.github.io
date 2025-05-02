@@ -2,7 +2,7 @@
 title: "플로이드-웨셜 알고리듬"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Dynamic-Programming]
+tags: [알고리듬, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-11-30. 11:20

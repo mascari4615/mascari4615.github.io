@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 유콘 24"
 description: "유콘님의 '일러스트 전시회' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/ukon-24-exhibition/ukon-24-exhibition-world-thumbnail.png"
 
 date: 2025-01-23. 00:00

@@ -1,8 +1,8 @@
 ---
 title: "주니티 OX 퀴즈"
 description: "이세계아이돌 주르르님의 Twitch 채팅 연동 'OX 퀴즈' 컨텐츠"
-categories: [작업물]
-tags: [작업물]
+categories: [작업물, 버추얼]
+tags: [작업물, 유니티]
 image: "https://img.youtube.com/vi/e9_KaSa9w_s/mqdefault.jpg"
 
 date: 2023-01-23. 00:00

@@ -1,8 +1,8 @@
 ---
 title: "이파리 골든벨"
 description: "이파리 골든벨"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/ipari-goldenbell/ipari-goldenbell-banner.png"
 
 date: 2023-11-25. 00:00

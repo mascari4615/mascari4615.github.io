@@ -2,7 +2,7 @@
 title: "Baekjoon 번호 - 제목"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Problem-Solving]
+tags: [PS]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-00-00. 00:00

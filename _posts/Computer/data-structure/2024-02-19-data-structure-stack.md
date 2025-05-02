@@ -2,7 +2,7 @@
 title: "Stack 스택"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Stack]
+tags: [자료구조, Stack]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:33

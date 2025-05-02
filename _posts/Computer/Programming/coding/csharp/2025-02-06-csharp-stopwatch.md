@@ -2,7 +2,7 @@
 title: "C# Stopwatch"
 description: "타이무 스토푸"
 categories: [컴퓨터, 프로그래밍]
-tags: [C#]
+tags: [CSharp]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2025-02-06. 18:24 # Init

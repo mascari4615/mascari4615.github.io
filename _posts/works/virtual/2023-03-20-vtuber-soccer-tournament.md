@@ -1,8 +1,8 @@
 ---
 title: "버축대"
 description: "우왁굳님의 '버튜버 피파 대회' 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/vtuber-soccer-tournament/230313-032705.png"
 
 date: 2023-03-20. 00:00

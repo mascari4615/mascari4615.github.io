@@ -1,8 +1,8 @@
 ---
 title: "똥 피하기"
 # description: ""
-categories: [작업물]
-tags: [작업물]
+categories: [작업물, 게임 개발]
+tags: [작업물, 게임 개발, 유니티]
 image: "/assets/img/post/works/ddong-avoiding/190802-000013.png"
 
 date: 2019-08-02. 18:40:00

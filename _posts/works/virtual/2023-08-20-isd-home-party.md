@@ -1,8 +1,8 @@
 ---
 title: "이세계 홈파티"
 description: "이세계아이돌 3집 기념 합방"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/isd-home-party/isd-home-party-banner.jpg"
 
 date: 2023-08-20. 00:00

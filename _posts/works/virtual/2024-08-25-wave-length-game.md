@@ -1,8 +1,8 @@
 ---
 title: "주파수 게임"
 description: "우왁굳님을 위한 '내 마음의 주파수 보드게임' 조공 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/wave-length-game/240726-103018.png"
 
 date: 2024-08-25. 00:00

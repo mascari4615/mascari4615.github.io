@@ -1,8 +1,8 @@
 ---
 title: "인간 X 버추얼 소개팅 (리얼소개팅)"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/real-blind-date/240525-000000.png"
 
 date: 2024-05-21. 00:00

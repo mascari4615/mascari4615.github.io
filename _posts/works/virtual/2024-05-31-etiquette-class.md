@@ -1,8 +1,8 @@
 ---
 title: "예절 교실"
 description: "이세계아이돌 비챤님과 향아치님의 '예졀 교육' 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/etiquette-class/240703-161751.png"
 
 date: 2024-05-31. 00:00

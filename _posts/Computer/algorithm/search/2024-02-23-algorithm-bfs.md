@@ -2,7 +2,7 @@
 title: "BFS"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Search]
+tags: [알고리듬, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-23. 03:30

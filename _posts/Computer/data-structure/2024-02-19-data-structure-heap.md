@@ -2,7 +2,7 @@
 title: "Heap"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Heap]
+tags: [자료구조, Heap]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 20:22

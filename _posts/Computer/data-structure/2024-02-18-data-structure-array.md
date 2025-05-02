@@ -2,7 +2,7 @@
 title: "Array 배열"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Array]
+tags: [자료구조, Array]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-18. 11:34

@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 옆자리 부가땅"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 # image: ""
 
 date: 2025-05-00. 00:00

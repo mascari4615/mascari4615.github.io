@@ -2,7 +2,7 @@
 title: "0-1 배낭 문제"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Dynamic-Programming, Back-Tracking]
+tags: [알고리듬, Dynamic-Programming, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
 

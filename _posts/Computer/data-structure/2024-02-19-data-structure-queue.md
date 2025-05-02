@@ -2,7 +2,7 @@
 title: "Queue"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Queue]
+tags: [자료구조, Queue]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:45

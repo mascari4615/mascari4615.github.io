@@ -2,7 +2,7 @@
 title: "Deque"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Deck]
+tags: [자료구조, Deck]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-19. 16:54

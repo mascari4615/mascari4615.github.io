@@ -1,8 +1,8 @@
 ---
 title: "Team Ipari"
 # description: ""
-categories: [작업물]
-tags: [작업물, 게임 개발]
+categories: [작업물, 버추얼]
+tags: [작업물, 게임 개발, 유니티]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2025-03-16. 00:00

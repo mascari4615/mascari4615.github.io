@@ -2,7 +2,7 @@
 title: "Map"
 # description: ""
 categories: [컴퓨터, 자료구조]
-tags: [Data-Structure, Map]
+tags: [자료구조, Map]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-25. 02:17

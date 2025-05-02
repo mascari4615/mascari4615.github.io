@@ -2,7 +2,7 @@
 title: "수식의 괄호 쌍"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Stack]
+tags: [알고리듬, Stack]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-22. 00:04

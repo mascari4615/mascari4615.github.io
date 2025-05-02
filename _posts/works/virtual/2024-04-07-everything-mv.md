@@ -1,8 +1,8 @@
 ---
 title: "Everything MV"
 description: "왁타버스 오리지널 뮤직비디오 Everything 3D Art"
-categories: [작업물]
-tags: [작업물]
+categories: [작업물, 버추얼]
+tags: [작업물, 유니티]
 image: "/assets/img/post/works/everything/230629-222847.png"
 
 date: 2024-04-07. 00:00

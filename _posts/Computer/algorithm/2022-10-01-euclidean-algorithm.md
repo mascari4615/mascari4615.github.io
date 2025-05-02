@@ -2,7 +2,7 @@
 title: "Euclidean Algorithm | 유클리드 알고리듬/호제법"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm]
+tags: [알고리듬]
 use_math: true
 image: "/assets/img/background/kururu-lab.jpg"
 

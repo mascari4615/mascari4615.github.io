@@ -2,7 +2,7 @@
 title: "C# GetType() typeof()"
 # description: ""
 categories: [컴퓨터, 프로그래밍]
-tags: [C#]
+tags: [CSharp]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2022-06-29. 13:01

@@ -1,8 +1,8 @@
 ---
 title: "고멤의 집 - 비밀소녀, 권민, 김치만두번영택사스가"
 description: "왁타버스 고정멤버 집 만들기 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/gomem-house/scretto/241001-221336.png"
 
 date: 2024-09-09. 00:00

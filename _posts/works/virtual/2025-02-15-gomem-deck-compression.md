@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 고멤 덱 압축"
 description: "우왁굳님의 고멤유치원 (고멤 하드코어) 결과 발표 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/gomem-deck-compression/250215-000000.png"
 
 date: 2025-02-15. 00:00

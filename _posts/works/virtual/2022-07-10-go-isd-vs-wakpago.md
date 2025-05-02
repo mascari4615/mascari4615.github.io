@@ -1,8 +1,8 @@
 ---
 title: "세기의 대결, 왁파고 VS 이세돌"
 description: "이세계아이돌 고세구 VS 고정멤버 왁파고의 바둑 대결"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "https://img.youtube.com/vi/m2oef8JhV9s/mqdefault.jpg"
 
 date: 2022-07-10. 00:00

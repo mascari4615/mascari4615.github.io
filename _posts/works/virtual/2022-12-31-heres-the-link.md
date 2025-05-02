@@ -1,8 +1,8 @@
 ---
 title: "형! 여기 링크야"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 # image: ""
 
 date: 2022-12-31. 00:00

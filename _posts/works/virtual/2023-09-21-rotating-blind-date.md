@@ -1,8 +1,8 @@
 ---
 title: "회전소개팅"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/rotating-blind-date/230916-172652.png"
 
 date: 2023-09-21. 00:00

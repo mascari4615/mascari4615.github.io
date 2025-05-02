@@ -2,7 +2,7 @@
 title: "Memoization - 메모이제이션"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Memoization]
+tags: [알고리듬, Memoization]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2023-10-31. 14:43

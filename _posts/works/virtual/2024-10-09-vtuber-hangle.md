@@ -1,8 +1,8 @@
 ---
 title: "버튜버 우리말 대전"
 description: "이세계아이돌 비챤님의 '한글날-우리말 팀 대전' 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/vtuber-hangle/241009-212015.png"
 
 date: 2024-10-09. 00:00 # 방송일

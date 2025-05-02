@@ -2,7 +2,7 @@
 title: "Recursion 재귀"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm]
+tags: [알고리듬]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-02-23. 17:52

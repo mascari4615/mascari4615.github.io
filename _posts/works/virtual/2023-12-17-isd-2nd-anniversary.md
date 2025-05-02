@@ -1,8 +1,8 @@
 ---
 title: "이세계아이돌 2주년 합합"
 description: "이세계아이돌 2주년 기념 합방, 컨텐츠 월드컵"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/isd-2nd-anniversary/isd-2nd-anniversary-banner.png"
 
 date: 2023-12-17. 00:00

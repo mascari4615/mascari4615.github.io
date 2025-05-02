@@ -2,7 +2,7 @@
 title: "블로그 정리 및 앞으로"
 # description: ""
 categories: [블로그]
-tags: [Blog]
+tags: [블로그]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2019-05-28. 19:46:00

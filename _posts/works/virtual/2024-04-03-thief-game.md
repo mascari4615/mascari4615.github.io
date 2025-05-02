@@ -1,8 +1,8 @@
 ---
 title: "돚거 게임"
 description: "우왁굳님을 위한 '마피아류 숫자 게임' 조공 컨텐츠"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/thief-game/240131-232028.png"
 
 date: 2024-04-03. 00:00

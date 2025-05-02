@@ -1,8 +1,8 @@
 ---
 title: "왁숲"
 description: "왁타버스 VR 도서관"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/wakforest/wakforest-banner.png"
 
 date: 2022-08-21. 00:00

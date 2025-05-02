@@ -2,7 +2,7 @@
 title: "Sort | 정렬"
 # description: ""
 categories: [컴퓨터, 알고리즘]
-tags: [Algorithm, Sort]
+tags: [알고리듬, Sort]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 

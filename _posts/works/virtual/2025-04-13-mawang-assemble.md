@@ -1,8 +1,8 @@
 ---
 title: "VRChat - 마왕총회"
 description: "이세계아이돌 비챤님의 '마왕 토크쇼' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/mawang-assemble/250413-203153.png"
 
 date: 2025-04-13. 00:00

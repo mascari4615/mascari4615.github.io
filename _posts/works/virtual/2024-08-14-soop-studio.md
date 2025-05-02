@@ -1,8 +1,8 @@
 ---
 title: "버종대 - SOOP 스튜디오"
 description: "'버추얼 종합 대회' 컨텐츠를 위한 VRChat 스튜디오"
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/soop-studio/240814-185806.png"
 
 date: 2024-08-14. 00:00

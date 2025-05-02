@@ -2,7 +2,7 @@
 title: "Post Convention | 글 모양"
 description: "이 블로그에서 사용하는 글 컨벤션, 작성 규칙."
 categories: [블로그]
-tags: [Blog]
+tags: [블로그]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2024-10-22. 11:27

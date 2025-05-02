@@ -1,8 +1,8 @@
 ---
 title: "구슬요의 버블껌"
 description: "구슬요님의 '노래 대결' 컨텐츠."
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/bubble-gum/241026-165542.png"
 
 date: 2024-10-26. 15:22

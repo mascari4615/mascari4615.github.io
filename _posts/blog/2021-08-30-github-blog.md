@@ -2,7 +2,7 @@
 title: "블로그를 새로 만들었습니다."
 # description: ""
 categories: [블로그]
-tags: [Blog]
+tags: [블로그]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2021-08-30

@@ -1,8 +1,8 @@
 ---
 title: "고선파"
 # description: ""
-categories: [작업물]
-tags: [작업물, VRChat]
+categories: [작업물, 버추얼]
+tags: [작업물, VRChat, 유니티]
 image: "/assets/img/background/20230112-151539.jpg"
 
 date: 2025-04-23. 18:18 # Init

@@ -1,8 +1,8 @@
 ---
 title: "PS-Algorithm | 코딩 테스트를 위한 알고리듬, 자료 구조"
 # description: ""
-categories: [컴퓨터, 알고리즘, Problem-Solving]
-tags: [Problem-Solving, Algorithm, Data-Structure]
+categories: [컴퓨터, 알고리즘, PS]
+tags: [PS, 알고리듬, 자료구조]
 image: "/assets/img/background/kururu-lab.jpg"
 
 # 알고리듬 과목
