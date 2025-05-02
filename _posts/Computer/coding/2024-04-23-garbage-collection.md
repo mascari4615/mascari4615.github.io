@@ -88,7 +88,7 @@ object obj = num;
 int num2 = (int)obj;
 ```
 
-- 참고: ['Boxing, Unboxing'](/posts/Boxing-Unboxing)
+- 참고: ['Boxing, Unboxing'](/posts/boxing-unboxing)
 
 ### 🫧 이중 참조
 

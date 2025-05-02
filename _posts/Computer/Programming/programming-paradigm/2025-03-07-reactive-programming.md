@@ -23,7 +23,7 @@ Concurrency?
 
 Event Driven 개발 방식  
 
-UniRx는 [이쪽](/posts/UniRx)으로.  
+UniRx는 [이쪽](/posts/unirx)으로.  
 
 ## 💫 Reactive Extensions
 

@@ -62,7 +62,7 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 ---
 
 - [LIS \| 최장 증가 부분 수열](/posts/algorithm-lis/)
-- [LCS \| 최장 공통 부분 수열/순서](/posts/algorithm-lcs/)
+- `[LCS \| 최장 공통 부분 수열/순서](/posts/algorithm-lcs/)`
 
 - [Fibonacci](/posts/algorithm-fibonacci/)
 - [0-1-KnapSack-Problem](/posts/0-1-knapsack-problem/)

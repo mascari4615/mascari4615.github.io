@@ -93,4 +93,4 @@ hping3 --rand-source 192.168.0.18 -p 21 -S -flood
 4. 공격자의 IP/MAC 주소를 판단할 수 있는가? With 근거
    - --rand-source를 통해 IP를 무작위로 가리고 보내기 때문에, 공격자의 IP/MAC 주소는 판단하기 어려울 것이다
 5. 공격에 대한 대응방법은 무엇인가?
-   - [Ping Of Death 대응 방안](#ping-of-death-대응-방안)
+   - [Ping Of Death 대응 방안](#Ping-Of-Death-대응-방안)

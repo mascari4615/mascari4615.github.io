@@ -62,7 +62,7 @@ O(N)
 ### 🫧 백준
 
 - [Baekjoon-2504](/posts/baekjoon-2504/)
-- [Baekjoon-3986](/posts/baekjoon-3986/)
+- `[Baekjoon-3986](/posts/baekjoon-3986/)`
 - [Baekjoon-4949](/posts/baekjoon-4949/)
-- [Baekjoon-9012](/posts/baekjoon-9012/)
+- `[Baekjoon-9012](/posts/baekjoon-9012/)`
 - [Baekjoon-10799](/posts/baekjoon-10799/)

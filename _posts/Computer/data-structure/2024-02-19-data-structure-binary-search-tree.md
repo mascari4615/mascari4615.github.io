@@ -37,8 +37,8 @@ int parent[] = {};
 
 ---
 
-- [BFS](/posts/algorithm-bfs/#트리에서의-bfs)
-- [DFS](/posts/algorithm-dfs/#트리에서의-dfs)
+- [BFS](/posts/algorithm-bfs/#트리에서의-BFS)
+- [DFS](/posts/algorithm-dfs/#트리에서의-DFS)
 - 말고도 특별히 이진 트리에 대해 레벨/전위/중위/후위 순회가 있다.
 
 ### 🫧 레벨 순회 (Level-order Traversal)
