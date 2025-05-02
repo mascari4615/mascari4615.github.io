@@ -29,7 +29,7 @@
 	},
 
 	"Blog Time": {
-		"prefix": "karmoTime",
+		"prefix": ["karmoTime", "ㅏㅁ그ㅐ쌰ㅡㄷ"],
 		"body": [
 			"last_modified_at: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE"
 		],
@@ -42,19 +42,5 @@
 			"{% include embed/youtube.html id = \"_\" %}"
 		],
 		"description": "Insert YouTube embed code"
-	},
-
-	"H2 Stone": {
-		"prefix": "karmoH2Stone",
-		"body": [
-			"## 🗿 "
-		],
-	},
-
-	"H3 Stone": {
-		"prefix": "karmoH3Stone",
-		"body": [
-			"### 🪨 "
-		],
 	},
 }

@@ -22,8 +22,6 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 
 ---
 
-### 목표
-
 ## 작업
 
 ---
@@ -371,7 +369,7 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 - [Self Worth Theory: The Key to Understanding & Overcoming Procrastination \| Nic Voge \| TEDxPrincetonU](https://youtu.be/52lZmIafep4?si=OoyY7AoIaqjtuRPa)
 - [粛聖！！ロリ神レクイエム☆　ダンス練習用　反転0.5倍速](https://youtu.be/85xi6nxDB0w?si=NUqLsbS88t6Wnlz7)
 - [A simple procedural animation technique](https://youtu.be/qlfh_rv6khY?si=tBPzv6RmOnsxBmj3)
-- [차세대 메모리 규격 CAMM은 뭘까요?](https://youtu.be/ak5FOgH2574?si=FP7Izy7ft7Gz3S7H)`          
+- [차세대 메모리 규격 CAMM은 뭘까요?](https://youtu.be/ak5FOgH2574?si=FP7Izy7ft7Gz3S7H)`
 - [The Art of Linux CLIs](https://youtu.be/KdoaiGTIBY4?si=NQjA8LVVftnNfbl7)
 - [월드 제작자를 위한 건축개론 및 건축설계기초](https://youtu.be/1UOKwn_FW9k?si=uXU0rEhxbdd_ED34)
 - [C++ 2D Game Engine \| Time Scale](https://youtu.be/aYW5N5N3Ig0?si=_ymSv4eofflGqiqQ)

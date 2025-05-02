@@ -8,7 +8,7 @@ order: 100
 
 ---
 
-![Logo](/assets/img/profile/Star_Transparent.png){: width="100" height="100" .normal}
+![Logo](/assets/img/profile/star_transparent.png){: width="100" height="100" .normal}
 
 안녕하세요, **카모뜨린 KarmoDDrine** 입니다.  
 
