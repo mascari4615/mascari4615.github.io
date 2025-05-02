@@ -1,7 +1,7 @@
 ---
 title: "React Native 리액트 네이티브"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Mobile, React-Native]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -23,14 +23,14 @@ last_modified_at: 2024-08-29. 21:26
 2023-09-06 13:21 : 글 계승.  
 `U-Mobile-React-Native : 모바일 프로그래밍 과목`  
 
-## 💫 머리말
+## 머리말
 
 ---
 
 목표 : 리액트 네이티브는 무엇인가?  
 React Native = React + Native  
 
-## 💫 React 리액트
+## React 리액트
 
 ---
 
@@ -39,7 +39,7 @@ By META (Facebook)
 
 특징 : Virtual DOM, JSX (JavaScript XML)  
 
-## 💫 React Native 리액트 네이티브
+## React Native 리액트 네이티브
 
 ---
 
@@ -68,7 +68,7 @@ React Native = Native Part + JS Part
 실행 속도 : Native \> Cross Platform  
 개발 속도 (생산성) : Native \< Cross Platform  
 
-## 💫 React vs React-Native, Renderer Packages
+## React vs React-Native, Renderer Packages
 
 ---
 
@@ -98,7 +98,7 @@ C++로 구현된 이 엔진은 Android-JNI Java Native Interface/iOS-FFI Foreign
 Library == Engine  
 (일반적으로, 코드 많은 Library == Engine)  
 
-## 💫 Bridge 방식
+## Bridge 방식
 
 ---
 
@@ -141,7 +141,7 @@ npx react-native link
 npx pod-install  
 → UI(Native 쪽) Thread 부분 설치  
 
-## 💫 개발 환경
+## 개발 환경
 
 ---
 
@@ -158,7 +158,7 @@ Xcode : Only Mac
 @ Windows 만으로는 iOS 개발 못함  
 @ → Cross Platform 맞아?  
 
-## 💫 Hello World
+## Hello World
 
 ---
 
@@ -209,7 +209,7 @@ export default function App()
 }
 ```
 
-## 💫 Else
+## Else
 
 ---
 

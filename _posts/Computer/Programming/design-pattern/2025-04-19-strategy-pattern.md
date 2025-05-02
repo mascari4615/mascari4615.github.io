@@ -1,7 +1,7 @@
 ---
 title: "Strategy Pattern"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: [Design-Pattern]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,15 +9,15 @@ date: 2025-04-19. 01:17 # Init
 # last_modified_at: 2025-04-19. 01:17
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
-## 💫 Strategy Pattern
+## Strategy Pattern
 
 ---
 
-## 💫 Code Block
+## Code Block
 
 ---
 

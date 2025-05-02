@@ -1,7 +1,7 @@
 ---
 title: "React Native 리액트 네이티브 - Hook"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Mobile, React-Native]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -14,7 +14,7 @@ date: 2023-10-31. 15:31
 last_modified_at: 2024-08-29. 21:26
 ---
 
-## 💫 리액트 훅 - React Hooks
+## 리액트 훅 - React Hooks
 
 ---
 
@@ -77,7 +77,7 @@ i.e.
 컴포넌트 간의 정보 공유 - useContext  
 컴포넌트 메소드 호출 - useRef, useImperativeHandle  
 
-## 💫 의존성 - Dependency
+## 의존성 - Dependency
 
 ---
 
@@ -86,7 +86,7 @@ i.e.
 `의존성 목록` 중 하나라도 충족되면,  
 자동으로 캐시 갱신 (콜백) → 재렌더링  
 
-## 💫 useMemo
+## useMemo
 
 ---
 
@@ -107,7 +107,7 @@ useCallback이 있는데, useMemo로 함수를 메모이제이션 하는 경우?
 
 @ 222p, `useMemo(() => fibonacci, [])...` 동일한 입력값에 대해 함수가 반복해서 호출되는 것을 방지 (기말고사 X)  
 
-## 💫 useCallback
+## useCallback
 
 ---
 
@@ -121,7 +121,7 @@ const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 
 재렌더링마다 지속적으로 만들어질 수 있는 콜백 함수를, useCallback을 통해 저장해서 재사용  
 
-## 💫 상태
+## 상태
 
 ---
 
@@ -130,7 +130,7 @@ const 캐시콜백 = useCallback(초기콜백, [의존성1, 의존성2, ...])
 시간이 지나도 값이 유지되며, 필요에 따라서는 값을 바꿀 수 있는 어떤 것  
 클래스의 멤버 속성이나 전역 변수 형태로 만들게 되며, 보통 함수 몸통의 지역 변수 형태로는 상태를 만들지 못함  
 
-## 💫 useState
+## useState
 
 ---
 
@@ -159,7 +159,7 @@ const [값, Setter] = useState<S>(초깃값)
 
 @ 객체에 적용하는 비구조화 할당 구문  
 
-## 💫 컴포넌트의 생명주기
+## 컴포넌트의 생명주기
 
 ---
 
@@ -171,7 +171,7 @@ const [값, Setter] = useState<S>(초깃값)
 
 마운트 ~ 언마운트 과정을 합하여, 컴포넌트의 생명주기라 표현한다. - Lifecycle  
 
-## 💫 useEffect, useLayoutEffect
+## useEffect, useLayoutEffect
 
 ---
 
@@ -240,7 +240,7 @@ useLayoutEffect 훅은 콜백 함수가 끝날 때까지 프레임워크가 기�
 
 가능하면 useEffect 훅을 사용하는 것이 좋다. (리액트 공식 문서 권장 사항)  
 
-## 💫 커스텀 훅 - Custom Hook
+## 커스텀 훅 - Custom Hook
 
 ---
 
@@ -254,7 +254,7 @@ Something like Design Pattern
 
 [useHooks](https://usehooks.com/), [useHooks-ts](https://usehooks-ts.com/) 같은 사이트에서 다른 사람들이 만든 훅, 훅 라이브러리를 참고할 수 있다.  
 
-## 💫 useRef, useImperativeHandle
+## useRef, useImperativeHandle
 
 ---
 

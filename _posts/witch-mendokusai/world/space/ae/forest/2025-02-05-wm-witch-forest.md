@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Forest of Witch"
+title: "'마녀:귀찮아!' | Forest of Witch"
 # description: ""
-categories: [🫐WitchMendokusai, 🥥The-World]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 더 월드]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,13 +10,13 @@ date: 2025-02-05. 00:19 # Init
 last_modified_at: 2025-04-19. 02:48 # 마녀의 집
 ---
 
-## 📀 머리말
+## 머리말
 
 ---
 
 마녀의 숲  
 
-## 📀 Concept
+## Concept
 
 ---
 
@@ -25,15 +25,15 @@ last_modified_at: 2025-04-19. 02:48 # 마녀의 집
 - A성의 묘지가 근처에 있는
 - 마나/힘이 많은 숲 근처에 자리잡았다
 
-## 📀 마녀의 집
+## 마녀의 집
 
 ---
 
 나무 집. 나무 뿌리.  
 Ref: 어비스 나무 집, 롤 아이오니아 컨셉아트, 진격거 나무  
 
-## 📀 메모
+## 메모
 
 ---
 
-### 💿 참고 : _
+### 참고 : _

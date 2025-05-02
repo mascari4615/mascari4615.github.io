@@ -1,7 +1,7 @@
 ---
 title: "LIS"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ date: 2024-11-13. 01:24
 last_modified_at: 2024-11-16. 22:05 # N Log N (Why)
 ---
 
-## 💫 LIS
+## LIS
 
 ---
 
@@ -20,7 +20,7 @@ Longest Increasing Subsequence | 최장 증가 부분 수열
 DP로 풀 수 있는 문제.  
 수열에서 가장 긴 증가 부분 수열을 찾는 문제.  
 
-### 🫧 용어 정리
+### 용어 정리
 
 **부분 수열**  
 = 수열의 원소 중 일부를 선택해서(혹은 제거해서) 만든 수열  
@@ -33,13 +33,13 @@ i.e. `1 2 3 4`, `3 5 7 9` 등
 **최장 증가 부분 수열**  
 = 가장 긴 증가 부분 수열  
 
-## 💫 알고리즘
+## 알고리즘
 
 ---
 
 ![LIS](/assets/img/post/stone/2024/241113-223106.png)
 
-### 🫧 O(N^2)
+### O(N^2)
 
 ```cs
 const int MX = 1005;
@@ -100,7 +100,7 @@ for (int i = 0; i < n; i++)
 cout << *max_element(d.begin(), d.end());
 ```
 
-### 🫧 O(N log N)
+### O(N log N)
 
 O(N^2) 방법을 최적화하여 O(N log N)으로 만들 수 있다.  
 
@@ -186,14 +186,14 @@ for (int i = 0; i < n; i++)
 cout << lis.size();
 ```
 
-## 💫 기록
+## 기록
 
 ---
 
 - [참고 : '나무위키 - 최장 증가 부분 수열'](https://namu.wiki/w/최장%20증가%20부분%20수열)
 - [참고 : 'doonghoon - Longest Increasing Subsequence (LIS)를 NlogN에 구하기'](https://blog.hoony.me/2023/10/01/find-lis-in-nlogn/)
 
-## 💫 문제
+## 문제
 
 ---
 

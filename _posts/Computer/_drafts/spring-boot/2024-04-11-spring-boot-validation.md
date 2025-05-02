@@ -1,7 +1,7 @@
 ---
 title: "Spring Boot Validation"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Spring-Boot]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ date: 2024-04-11. 18:16
 
 {% include embed/youtube.html id='J_7xasdHBZI' %}
 
-## 💫 Validation
+## Validation
 
 ---
 
@@ -20,13 +20,13 @@ date: 2024-04-11. 18:16
 - 데이터의 검증은 여러 계층에서 발생하는 흔한 작업
 - Validation은 들어오는 데이터에 대해 의도한 형식의 값이 제대로 들어오는지 체크하는 과정을 뜻함
 
-### 🫧 일반적인 Validation의 문제점
+### 일반적인 Validation의 문제점
 
 - 어플리케이션 전체적으로 분산되어 존재
 - 코드의 중복이 심함 (코드가 복잡해짐)
 - 비즈니스 로직에 섞여 있어 검사 로직 추적이 어려움
 
-### 🫧 Bean Validation / Hibernate Validator
+### Bean Validation / Hibernate Validator
 
 Java  
 

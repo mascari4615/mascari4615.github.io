@@ -1,7 +1,7 @@
 ---
 title: "Process, Processor, Thread"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -23,14 +23,14 @@ last_modified_at: 2024-08-30. 00:06
 2024-04-27. 20:19 : 글 계승.  
 `2023-11-10-Process-Processor: 🌑 Process, Processor`  
 
-## 💫 Q
+## Q
 
 ---
 
 - 프로세스, 프로세서, 스레드에 대해 설명해 주세요.
 - 프로세스와 스레드의 차이점은 무엇인가요?
 
-## 💫 Processor | 프로세서
+## Processor | 프로세서
 
 ---
 
@@ -40,7 +40,7 @@ last_modified_at: 2024-08-30. 00:06
 
 [GPU](/posts/gpu/), DMA와 같이 제한된 기능만을 수행하는 프로세서도 있다.  
 
-## 💫 Process | 프로세스
+## Process | 프로세스
 
 ---
 
@@ -156,13 +156,13 @@ last_modified_at: 2024-08-30. 00:06
     - 실행중인 프로그램의 우선순위를 올리거나 내린다.
     - 일반 사용자는 내리기만 가능하고,관리자는 양쪽 모두 가능하다.
 
-## 💫 Thread | 스레드
+## Thread | 스레드
 
 ---
 
 스레드는 프로세스 내에서 실행되는 작업의 단위로, CPU 자원을 할당받아 실행됨.  
 
-### 🫧 배경
+### 배경
 
 - Windows 95 이전, Windows OS는 싱글 스레드
 - 프로그램 하나가 무한루프에 빠지면 다른 프로그램도 멈춤

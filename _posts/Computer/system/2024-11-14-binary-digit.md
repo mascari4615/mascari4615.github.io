@@ -1,7 +1,7 @@
 ---
 title: "Why Binary?"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-11-14. 00:26
 last_modified_at: 2024-11-14. 00:26 # Init
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
@@ -17,7 +17,7 @@ last_modified_at: 2024-11-14. 00:26 # Init
 
 왜?  
 
-## 💫 Why
+## Why
 
 ---
 
@@ -37,11 +37,11 @@ last_modified_at: 2024-11-14. 00:26 # Init
    - 간단한 산술함수
    - 여러 방식으로 인코딩/번역 가능
 
-## 💫 메모
+## 메모
 
 ---
 
-### 🫧 Digit, Decimal - 십진법
+### Digit, Decimal - 십진법
 
 고대 라틴어로 Digita는 '손가락'을 뜻했고,  
 여러 언어에서 Digit은 '손가락'과 '발가락'을 뜻한다.  

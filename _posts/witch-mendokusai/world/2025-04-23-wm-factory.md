@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Factory"
+title: "'마녀:귀찮아!' | Factory"
 # description: ""
-categories: [🫐WitchMendokusai, 🥥The-World]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 더 월드]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,17 +10,17 @@ date: 2025-04-23. 05:41 # Init
 # last_modified_at: 2025-04-23. 05:41
 ---
 
-## 📀 머리말
+## 머리말
 
 ---
 
 WM 공동의 공장  
 
-## 📀 시작
+## 시작
 
 ---
 
-### 💿 공부의 흐름
+### 공부의 흐름
 
 ['X, mamdok18': '오브젝트 및 디자인 공부 팁...'](https://x.com/mamdok18/status/1913968652350820730)  
 

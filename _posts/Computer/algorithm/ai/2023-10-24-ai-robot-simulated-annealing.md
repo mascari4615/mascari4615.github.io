@@ -1,7 +1,7 @@
 ---
 title: "Simulated Annealing - 모의 담금질"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -15,7 +15,7 @@ last_modified_at: 2023-11-11. 12:41
 3, 4차시  
 @ 강의실 어딘지 너무 헷갈려~  
 
-## 💫 Simulated Annealing - 모의 담금질
+## Simulated Annealing - 모의 담금질
 
 ---
 
@@ -38,7 +38,7 @@ Simulated Annealing - 모의/유사 담금질
 2 - 계속해서 변화만 하면 안됨  
 → 다시 안정한 상태로  
 
-## 💫 과정
+## 과정
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "네트워크"
-categories: [🪨Stone, 🌱DayStone]
+categories: [수필, 일기]
 
 date: 1999-01-01. 00:00
 # last_modified_at: 1999-01-01. 00:00

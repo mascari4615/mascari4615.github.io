@@ -1,7 +1,7 @@
 ---
 title: "Artificial Life - 인공생명"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -29,7 +29,7 @@ last_modified_at: 2023-12-12. 10:50
 @ Discipline 학문 분야  
 @ Concerns
 
-## 💫 Boids
+## Boids
 
 ---
 
@@ -41,7 +41,7 @@ last_modified_at: 2023-12-12. 10:50
 횡단보도 앞 기둥의 역할은, 많은 사람들이 서로 충돌하지 않고 빠르게 지나갈 수 있도록 도와주는 것.
 이를 Boids를 통한 연구를 통해서  
 
-## 💫 Game of Life
+## Game of Life
 
 ---
 
@@ -50,13 +50,13 @@ last_modified_at: 2023-12-12. 10:50
 1. 살아있는 세포 : 주위 2~3개 살아있으면 유지
 2. 죽은 세포 : 주위 3개 살아있으면 반전
 
-## 💫 Artificial Life - 인공 생명
+## Artificial Life - 인공 생명
 
 ---
 
 @ U 기말고사 출제 : Boids, 먹이사슬모델, 개미알고리듬의 공통된 특징이 뭔지 설명하시오.  
 
-### 🫧 Artificial Life_
+### Artificial Life_
 
 담금질/유전 알고리듬 처럼 특정 알고리듬이 아니라 하나의 분야  
 인공지능 조차도 포함된 개념  
@@ -98,7 +98,7 @@ ALife는 다음과 같이 이용된다 (used to model)
 Synthetic ethology - 행동 합성  
 approach to the study of animal behavior  
 
-### 🫧 Artificial Life__
+### Artificial Life__
 
 크리스 랭턴(Chris Langton)은 자연계를 모델링하는 데 사용되는 다양한 계산 메커니즘을 설명하기 위해 인공 생명체(Artificial Life) 또는 Alife라는 용어를 만들었습니다. 인공 생명체는 인공 경제에서 자원을 거래하는 에이전트, 곤충의 생태, 동물의 행동, 그리고 게임 이론의 모델을 연구하기 위해 서로 협상하는 개체를 모델링하는 데 사용되었습니다. 이번 장에서는 인공 생명체에 대해 살펴본 후 먹이 사슬 내의 에이전트가 인공 환경에서 경쟁하는 것을 보여주는 시뮬레이션을 구현할 것입니다.  
 
@@ -108,7 +108,7 @@ approach to the study of animal behavior
 
 `인공 생명체는 생물학적 시스템 모델링과 시뮬레이션을 위한 이론과 실제로서 묘사될 수 있습니다. 인공 생명체와 함께 일하는 연구자들의 한 가지 희망`은 생물학적 시스템을 모델링함으로써, 우리가 왜 그리고 그것들이 어떻게 작동하는지에 대해 더 잘 이해할 수 있다는 것입니다. 그 모델들을 통해, 연구자들은 시스템과 환경이 어떻게 변화에 반응하는지를 이해하기 위해 게임을 하기 위해 그들의 환경을 조작할 수 있습니다.  
 
-## 💫 Simulating Food Chain - 먹이 사슬 모의실험
+## Simulating Food Chain - 먹이 사슬 모의실험
 
 ---
 
@@ -135,7 +135,7 @@ Plants의 수가 줄어든다면 어떤 일이 일어날까?
 
 @ Free Lunch  
 
-## 💫 Food Chain Model
+## Food Chain Model
 
 ---
 
@@ -151,17 +151,17 @@ Plants의 수가 줄어든다면 어떤 일이 일어날까?
 
 단순한 먹이사슬을 모델링하기 위해서는 시뮬레이션의 여러 측면을 정의해야 합니다. 여기에는 환경(에이전트들이 상호 작용하는 물리적 공간), 에이전트 자체(및 환경 내에서의 인식과 작동), 상호 작용이 어떻게 그리고 언제 일어나는지를 설명하는 일련의 법칙이 포함됩니다. 이러한 요소들은 다음 섹션에서 설명될 것입니다.  
 
-### 🫧 Overview
+### Overview
 
-### 🫧 Environment
+### Environment
 
-### 🫧 Anatomy of an Agent
+### Anatomy of an Agent
 
-### 🫧 Sensors
+### Sensors
 
-### 🫧 Actuators
+### Actuators
 
-### 🫧 Agent Brain
+### Agent Brain
 
 에이전트의 두뇌는 다양한 계산 구성 요소 중 하나가 될 수 있습니다. 기존의 인공 생명 시뮬레이션은 유한 오토마타(상태 기계), Classifier 시스템 또는 신경망을 사용했습니다. 이 시뮬레이션의 생물학적 동기에 따라 에이전트의 행동 요소로 단순하고 Fully-Interconnected 완전하게 상호 연결된 Winner-Takes-All 승자독식 신경망(5장에서 사용한 것)을 사용할 것입니다. 그림 7.5는 에이전트의 전체 네트워크를 보여줍니다.  
 
@@ -174,7 +174,7 @@ Plants의 수가 줄어든다면 어떤 일이 일어날까?
 @ 수식에서 b - bias 입력 - 모든 요소에게 공통되게 들리는 목소리, 마음의 소리  
 @ 구현할 때 몰라도 되는 값 - 실제 입력이 아니니까  
 
-## 💫 Sample Iteration
+## Sample Iteration
 
 ---
 

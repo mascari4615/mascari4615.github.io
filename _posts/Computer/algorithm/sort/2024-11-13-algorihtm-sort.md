@@ -1,7 +1,7 @@
 ---
 title: "Sort | 정렬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Sort]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -23,8 +23,8 @@ last_modified_at: 2024-11-13. 05:38 # Init
 # +@ 자기 알고리듬과 언어 제공 알고리듬 성능 비교  
 ---
 
-## 💫 Sort | 정렬
+## Sort | 정렬
 
 ---
 
-### 🫧 _
+### _

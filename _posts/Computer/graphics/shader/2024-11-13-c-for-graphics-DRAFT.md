@@ -1,7 +1,7 @@
 ---
 title: "Cg"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,39 +10,39 @@ date: 2024-11-13. 06:42
 last_modified_at: 2024-11-13. 06:42 # Init
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
 쉐이더 프로그래밍 언어.  
 C for Graphics.  
 
-## 💫 종류
+## 종류
 
 ---
 
 프로그래밍 언어처럼 하나만 잘 배워두면 나머지는 쉽게 터득할 수 있다.  
 
-### 🫧 Cg
+### Cg
 
 CG (C for Graphics) 엔비디아가 마이크로소프트와 협력하여 만든 언어.
 
-### 🫧 HLSL
+### HLSL
 
 HLSL (High Level Shading Language) 가장 유명하고 보편적으로 넓게 쓰임.  
 
-### 🫧 GLSL
+### GLSL
 
 GLSL (OpenGL Shading Language) OpenGL에서 사용하는 언어.  
 
-## 💫 Unity
+## Unity
 
 ---
 
 Unity는 CG 언어를 사용, URP부터는 HLSL 사용. (언리얼도 HLSL).  
 Unity는 추가적으로 ShaderLab 언어를 제작하고 이를 지원.  
 
-### 🫧 Shader Lab
+### Shader Lab
 
 (고정 파이프라인 쉐이더 : fixed function shader)
 
@@ -54,7 +54,7 @@ Unity는 추가적으로 ShaderLab 언어를 제작하고 이를 지원.
 
 호환성은 가장 높지만, 그만큼 할 수 있는 게 제한적
 
-### 🫧 Surface Shader
+### Surface Shader
 
 Shader Lab 스크립트 + Cg 쉐이더 코드.  
 
@@ -73,7 +73,7 @@ Shader Lab 스크립트 + Cg 쉐이더 코드.
 스탠다스 서피스 쉐이더는 유니티 5부터 기본으로 적용된 쉐이더 형태  
 하지만 물리 기반 쉐이더 라이트이기 때문에 모바일과 같은 저사양 기기에서 구동하기에는 다소 무거운 것이 사실
 
-### 🫧 Vertax & Fragment Shader
+### Vertax & Fragment Shader
 
 - ShaderLab 스크립트와 함께 CG 쉐이더 코드를 사용, 좀 더 본격적인 쉐이더 작성 방법
 - 자동적으로 처리되는 부분이 별로 없어서 제대로 된 CG 쉐이더 방식으로 버텍스의 좌표변환부터 제대로 처리해야 작동
@@ -81,8 +81,8 @@ Shader Lab 스크립트 + Cg 쉐이더 코드.
 
 Surface Shader의 상위 버전, CG를 더 디테일하게 다룸, Surface Shader가 오토 모드라면. Vertax & Fragment Shader는 수동이라는 느낌.  
 
-## 💫 메모
+## 메모
 
 ---
 
-### 🫧 Link
+### Link

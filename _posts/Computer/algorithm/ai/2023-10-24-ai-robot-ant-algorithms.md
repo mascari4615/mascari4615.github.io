@@ -1,7 +1,7 @@
 ---
 title: "Ant Algorithms - 개미 알고리듬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -12,7 +12,7 @@ last_modified_at: 2023-12-08. 10:44
 
 7, 8차시  
 
-## 💫 Ant Algorithms - 개미 알고리듬
+## Ant Algorithms - 개미 알고리듬
 
 ---
 
@@ -54,7 +54,7 @@ Traveling Salesman Problem - TSP
 (개미 알고리듬)-이 원리를 어떻게 응용할 수 있는지  
 → 최단 경로를 찾는 ~  
 
-## 💫 식
+## 식
 
 ---
 

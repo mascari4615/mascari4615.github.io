@@ -1,7 +1,7 @@
 ---
 title: "Batching"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,12 +10,12 @@ date: 2024-11-13. 07:54
 last_modified_at: 2024-11-13. 07:54 # Init
 ---
 
-## 💫 Q
+## Q
 
 ---
 
 - 배칭에 대해 설명
 
-## 💫 Bacthing
+## Bacthing
 
 ---

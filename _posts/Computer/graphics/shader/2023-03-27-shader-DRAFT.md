@@ -1,7 +1,7 @@
 ---
 title: "Shader"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -18,7 +18,7 @@ date: 2023-03-27. 13:27
 last_modified_at: 2025-03-14. 23:32 # 메모
 ---
 
-## 💫 Shader
+## Shader
 
 ---
 
@@ -42,7 +42,7 @@ last_modified_at: 2025-03-14. 23:32 # 메모
 - 이 음역과 색상으로 각종 재질을 나타내고 이 방법을 창의적으로 바꾸어 보면 자신만의 예술적인 개성이 넘치는 드로잉 스타일도 가능하게 되는 것입니다. 마치 자기만의 색역필이나 물감을 만드는 것처럼 말입니다.
 - (좀 더 그래픽 아티스트 친화적으로 말하면, '메터리얼(Matetial) 이라는 용어입니다. 언리얼 엔진 : 메터리얼 용어 사용)
 
-## 💫 메모
+## 메모
 
 ---
 

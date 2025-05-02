@@ -1,6 +1,6 @@
 ---
 title: "정보보안"
-categories: [🪨Stone, 🌱DayStone]
+categories: [수필, 일기]
 
 date: 1999-01-01. 00:00
 last_modified_at: 2024-08-29. 21:22

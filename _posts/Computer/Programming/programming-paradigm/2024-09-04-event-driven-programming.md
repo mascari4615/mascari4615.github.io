@@ -1,7 +1,7 @@
 ---
 title: "Event Driven Programming"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ date: 2024-09-04. 11:10
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 Event Driven Programming | 이벤트 기반 프로그래밍
+## Event Driven Programming | 이벤트 기반 프로그래밍
 
 ---
 
@@ -19,7 +19,7 @@ date: 2024-09-04. 11:10
 
 GUI (Graphical User Interface) 프로그래밍에 특히 유용하다.  
 
-## 💫 Event | 이벤트 (사건)
+## Event | 이벤트 (사건)
 
 ---
 
@@ -30,10 +30,10 @@ GUI (Graphical User Interface) 프로그래밍에 특히 유용하다.
 - 파일 복사 \| 다운로드 완료
 - 새로운 외부 장치 연결
 
-## 💫 메모
+## 메모
 
 ---
 
-### 🫧 참고
+### 참고
 
 - [Delegate](/posts/delegate/)

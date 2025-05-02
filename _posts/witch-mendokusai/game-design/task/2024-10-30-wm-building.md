@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Building"
+title: "'마녀:귀찮아!' | Building"
 # description: ""
-categories: [🫐WitchMendokusai, 🥑Game-Design]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 디자인]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -19,15 +19,15 @@ last_modified_at: 2025-04-19. 02:44 # 0204: 기획
 2025-04-06. 15:43 : 글 병합.  
 `2024-10-30-WM-Altar : WitchMendokusai | Altar`,  
 
-## 📀 머리말
+## 머리말
 
 ---
 
-## 📀 분류
+## 분류
 
 ---
 
-### 💿 Altar
+### Altar
 
 제단, 종교, 주술  
 
@@ -39,7 +39,7 @@ last_modified_at: 2025-04-19. 02:44 # 0204: 기획
 - 유적, 템플
 - 장승
 
-### 💿 _
+### _
 
 - 장식
   - 꽃
@@ -50,7 +50,7 @@ last_modified_at: 2025-04-19. 02:44 # 0204: 기획
     - 수련잎
   - 나무집 계단
 
-## 📀 메모
+## 메모
 
 ---
 
@@ -60,4 +60,4 @@ last_modified_at: 2025-04-19. 02:44 # 0204: 기획
 - 건물 직원 붙이기
 - 스타레일 박물관 평가등급
 
-### 💿 키워드
+### 키워드

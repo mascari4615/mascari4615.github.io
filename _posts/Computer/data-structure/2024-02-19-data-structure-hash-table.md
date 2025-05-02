@@ -1,7 +1,7 @@
 ---
 title: "Hash-Table"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Hash]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-02-19. 20:06
 last_modified_at: 2024-08-29. 22:06
 ---
 
-## 💫 @TODO
+## @TODO
 
 ---
 

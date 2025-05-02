@@ -1,7 +1,7 @@
 ---
 title: "Effect"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,11 +10,11 @@ date: 2024-11-13. 06:50
 last_modified_at: 2024-11-13. 06:50 # Init
 ---
 
-## 💫 Effect
+## Effect
 
 ---
 
-### 🫧 참고
+### 참고
 
 - [Effect](https://x.com/MrB_Jensen/status/1792479223866589670)
 - [Effect](https://x.com/GabrielAguiarFX/status/1781339488679075911)

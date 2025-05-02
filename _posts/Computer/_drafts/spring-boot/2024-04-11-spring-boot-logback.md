@@ -1,7 +1,7 @@
 ---
 title: "Logback"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Spring-Boot]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ date: 2024-04-11. 17:38
 
 {% include embed/youtube.html id='fkwb8coxBJM' %}
 
-## 💫 Logback
+## Logback
 
 ---
 
@@ -19,7 +19,7 @@ date: 2024-04-11. 17:38
 - Log4J에 비해 약 10배 정도 빠른 퍼포먼스, 메모리 효율성 증대
 - 출시 순서 : Log4J -> Logback -> Log4J2
 
-### 🫧 특징
+### 특징
 
 - 로그에 특정 레벨을 설정할 수 있음
   - `Trace` : 디버깅보다 더 디테일한 메시지
@@ -33,14 +33,14 @@ date: 2024-04-11. 17:38
 - 별도의 프로그램 없이 자체적으로 로그 압축을 지원
 - 로그 보관 기간 설정 가능
 
-### 🫧 설정
+### 설정
 
 - 일반적으로 Classpath에 logback.xml 파일을 참조
   - Java Legacy, Spring의 경우에는 logback.xml 파일을 참조
   - Spring Boot의 경우에는 logback-spring.xml 파일을 참조
   - 바꿀 수 있음
 
-### 🫧 구조
+### 구조
 
 #### Appender
 

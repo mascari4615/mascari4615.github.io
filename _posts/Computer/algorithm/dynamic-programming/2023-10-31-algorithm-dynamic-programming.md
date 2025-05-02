@@ -1,7 +1,7 @@
 ---
 title: "DP | Dynamic Programming | 동적 프로그래밍, 동적 계획법"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -21,14 +21,14 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 
 {% include embed/youtube.html id = "5leTtB3PQu0" %}
 
-## 💫 기록
+## 기록
 
 ---
 
 - [DP](https://namu.wiki/w/%EB%8F%99%EC%A0%81%20%EA%B3%84%ED%9A%8D%EB%B2%95)
 - [DP의 기본에 대해서...](https://stonejjun.tistory.com/23)
 
-## 💫 Dynamic Programming | 동적 프로그래밍, 동적 계획법
+## Dynamic Programming | 동적 프로그래밍, 동적 계획법
 
 ---
 
@@ -42,7 +42,7 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 
 = 문제를 해결하기 위한 점화식을 찾아낸 후, 점화식의 항을 밑에서부터 차례로 구해나가서, 답을 알아내는 형태의 알고리듬.  
 
-## 💫 How
+## How
 
 ---
 
@@ -50,14 +50,14 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 2. 점화식 찾은 후
 3. 초기 값 설정
 
-### 🫧 DP의 적용
+### DP의 적용
 
 1. 최적화 문제의 경우 최적 부분구조를 갖는지 검증
 2. 문제를 순환적으로 정의
 3. 중첩된 부문제 특성을 갖는지 조사
 4. 부문제의 해답을 저장하고 이로부터 최적해를 구성하는 알고리즘을 구축
 
-## 💫 Use
+## Use
 
 ---
 
@@ -74,7 +74,7 @@ last_modified_at: 2024-11-13. 03:31 # 정리
 - 여행하는 외판원 문제
 - Viterbi \| 비터비 알고리즘: 음성 인식, 합성에서 사용
 
-## 💫 문제
+## 문제
 
 ---
 
@@ -90,11 +90,11 @@ DP 많이 안풀어보면 DP로 푸는 문제인지 알아내는 것도 어렵�
 - [문제집](https://www.acmicpc.net/workbook/view/7319)
   - [1로 만들기](https://www.acmicpc.net/problem/1463)  
 
-## 💫 비교 (부문제를 이용한 알고리듬)
+## 비교 (부문제를 이용한 알고리듬)
 
 ---
 
-### 🫧 vs DC
+### vs DC
 
 - 요약
   - 부문제 중복이 많으면, 미리 다 풀어두고 쓰는 DP
@@ -123,7 +123,7 @@ DP 많이 안풀어보면 DP로 푸는 문제인지 알아내는 것도 어렵�
   - 부문제 중복이 적을 때, 미리 풀어둔 부문제를 안써서 효율이 낮으니까, 오히려 최종 해답에 쓰이지 않을 답을 미리 계산하느라 시간을 낭비하니까
   - i.e.: 합병 정렬, 퀵 정렬
 
-### 🫧 vs Greedy
+### vs Greedy
 
 - 공통점:
   - 최적 부분 구조를 갖는 최적화 문제를 해결
@@ -140,7 +140,7 @@ DP 많이 안풀어보면 DP로 푸는 문제인지 알아내는 것도 어렵�
   - 문제를 해결하기 위한 모든 대안들의 답을 구하고 그 가운데 최적의 해답을 찾음 -> 지능적인 무작위 기법, 상향식
   - 일반적인 문제 + 최적화 문제: 범용성
 
-### 🫧 So
+### So
 
 - 최적 부분구조를 갖는 최적화 문제를 해결하는데 사용
 - 특히 부문제가 중첩되는 정도가 높을수록 유용

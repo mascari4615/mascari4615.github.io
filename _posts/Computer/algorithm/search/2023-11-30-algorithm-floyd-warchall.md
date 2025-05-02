@@ -1,7 +1,7 @@
 ---
 title: "플로이드-웨셜 알고리듬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2023-11-30. 11:20
 last_modified_at: 2024-08-29. 22:18
 ---
 
-## 💫 플로이드-웨셜 알고리듬 - Floyd-Warshall Algorithm
+## 플로이드-웨셜 알고리듬 - Floyd-Warshall Algorithm
 
 ---
 
@@ -119,21 +119,21 @@ void FloydWarshallDP(int d[][MAX], int n)
 }
 ```
 
-## 💫 이행적 폐쇄 문제
+## 이행적 폐쇄 문제
 
 ---
 
 (추이적 폐포)(transitive closure)
 
-### 🫧 이행적 관계
+### 이행적 관계
 
 R이 집합 S에 대한 관계라 할 때 모든 a,b,c ∈ S에 대해 (a,b)∈R이고 (b,c)∈R이면 (a,c)∈R을 만족하는 경우 R을 이행적 또는 이행적 관계라고 한다.  
 
-### 🫧 이행적 폐쇄
+### 이행적 폐쇄
 
 R이 집합 S에 대한 관계라 할 때 관계 R을 포함하는 가장 작은 이행적인 관계를 R의 이행적 폐쇄라고 한다.
 
-### 🫧 _
+### _
 
 - 문제: 그래프의 각 정점 사이에 경로가 존재하는가?
   - 이행적 폐쇄 관계 R을 방향 그래프로 나타낸다면

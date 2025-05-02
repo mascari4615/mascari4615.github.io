@@ -1,7 +1,7 @@
 ---
 title: "LogicTree"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/20230112-151539.jpg"
 
@@ -9,7 +9,7 @@ date: 2023-05-28. 02:51
 last_modified_at: 2024-08-29. 22:16
 ---
 
-## 📀 LogicTree
+## LogicTree
 
 ---
 
@@ -28,7 +28,7 @@ last_modified_at: 2024-08-29. 22:16
 
 문제 분석이 아니라 주제 정리 등을 목적으로 LOGIC TREE 모양의 그래프를 사용하기도 하는 듯함  
 
-## 📀 힌트
+## 힌트
 
 ---
 
@@ -37,7 +37,7 @@ How Tree 의 경우
 최하위 단계에 우선순위를 만들어 실천하기  
 긴급성, 경제성, 파급성, 용이성 등으로 평가  
 
-## 📀 주의
+## 주의
 
 ---
 

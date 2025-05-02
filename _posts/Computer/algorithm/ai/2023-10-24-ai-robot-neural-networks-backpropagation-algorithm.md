@@ -1,7 +1,7 @@
 ---
 title: "Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ last_modified_at: 2023-12-08. 10:44
 
 10, 11차시  
 
-## 💫 Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬
+## Neural Networks & Backpropagation Algorithm - 신경망 & 역전파 알고리듬
 
 ---
 
@@ -46,7 +46,7 @@ Topologies 이상 = Architectures 구조
 → @ 다음 층의 뉴런과 모두 연결된다
 → @ 맨 위, 맨 아래 뉴런 빼고 모두 생략해서 그리기  
 
-## 💫 Neuron, Artificial Neuron, Neural Networks - 뉴런, 인공 뉴런, 신경망
+## Neuron, Artificial Neuron, Neural Networks - 뉴런, 인공 뉴런, 신경망
 
 ---
 
@@ -88,7 +88,7 @@ I.E. 대화 인공지능에 질문을 하면, 뭔가 처리되고, 답변이 옴
 출력 계산 방향 : →  
 학습 방향 : ←  
 
-## 💫 Backpropagation - 역전파
+## Backpropagation - 역전파
 
 ---
 
@@ -119,7 +119,7 @@ Wij = Wjk + △Wjk
 → 중간-출력층 사이 가중치를 먼저 고치고 나온 값을 이용  
 → = 앞에서 계산한 값을 역으로 (뒤로) 전파한다  
 
-## 💫 ~
+## ~
 
 ---
 

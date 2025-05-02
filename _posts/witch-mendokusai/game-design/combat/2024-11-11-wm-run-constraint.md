@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Run-Constraint"
+title: "'마녀:귀찮아!' | Run-Constraint"
 # description: ""
-categories: [🫐WitchMendokusai, 🥑Game-Design]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 디자인]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,11 +10,11 @@ date: 2024-11-11. 07:37
 last_modified_at: 2024-11-11. 07:37 # Init
 ---
 
-## 📀 던전 제약
+## 던전 제약
 
 ---
 
-### 💿 _
+### _
 
 [_](https://namu.wiki/w/%EC%9C%84%EA%B8%B0%20%ED%98%91%EC%95%BD#s-6)  
 

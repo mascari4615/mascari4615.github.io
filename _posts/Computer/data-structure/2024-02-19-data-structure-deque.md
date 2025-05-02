@@ -1,7 +1,7 @@
 ---
 title: "Deque"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Deck]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -10,7 +10,7 @@ date: 2024-02-19. 16:54
 last_modified_at: 2024-08-29. 22:00
 ---
 
-## 💫 @TODO
+## @TODO
 
 ---
 
@@ -80,7 +80,7 @@ int main(void)
 	// stl vector에서 제공되는 기능을 stl deque에서도 다 제공
 
 	// 단, vector와 달리 deque는 모든 원소들이 메모리상에 연속하게 배치되어 있지 않음
-	// 궁금하다면 cpp deque vs vector
+	// 궁금하다면 c++ deque vs vector
 
 	deque<int> DQ;
 	DQ.push_front(10); // 10
@@ -115,4 +115,4 @@ Flood Fill
 - 운영체제 작업 스케줄링 알고리듬
 - 앱의 undo 리스트
 
-### 🫧 _
+### _

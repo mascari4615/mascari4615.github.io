@@ -1,7 +1,7 @@
 ---
 title: "0-1 배낭 문제"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Dynamic-Programming, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
@@ -11,7 +11,7 @@ last_modified_at: 2023-12-19. 01:47
 last_modified_at: 2024-08-29. 21:36
 ---
 
-## 💫 0-1 배낭 문제
+## 0-1 배낭 문제
 
 ---
 
@@ -33,7 +33,7 @@ last_modified_at: 2024-08-29. 21:36
 - 배낭의 용량 $ M > 0 $
 - 최적해 $ K(n, M) $ 은 $ \sum_{i = 1}^n p_i x_i $ 의 최댓값. 단. $ \sum_{i = 1}^n w_i x_i \le M $
 
-## 💫 Solve By [Dynamic-Programming](/posts/algorithm-dynamic-programming/)
+## Solve By [Dynamic-Programming](/posts/algorithm-dynamic-programming/)
 
 ---
 
@@ -111,7 +111,7 @@ int DC_01_ks(int i, int w)
 
 DP로 풀기 : 함수 대신 배열로  
 
-### 🫧 DP 1 - 알고리듬
+### DP 1 - 알고리듬
 
 - 최우선 목표: $ n $ 개의 물건과 배낭 용량이 $ M $ 인 0-1 배낭 문제의 최대 이익 $ K(n, M) $
 - 2차원 배열의 원소 $ K[i][w] $ 에 $ K(i, w) $의 값을 저장하고 필요할 때마다 재사용
@@ -121,7 +121,7 @@ DP로 풀기 : 함수 대신 배열로
 @ KP_D  
 @ 배열 B가 반드시 있어야 하나? 없어도됨 근데 일단 하던데로 계산하려고  
 
-### 🫧 DP 1 - 구현
+### DP 1 - 구현
 
 ```cs
 // W[ ]와 P[ ]는 각 물건의 무게와 이익을 담은 배열
@@ -148,14 +148,14 @@ int _01_ks_DP(int n, int M)
 }
 ```
 
-### 🫧 DP 1 - 분석
+### DP 1 - 분석
 
 - 복잡도: $ Ɵ(nM) $ vs. DC의 복잡도 $ O(2^n) $
   - 어느 쪽의 성능이 더 좋은가? : “알 수 없다”
     - M의 값이 매우 크면 DC의 성능이 더 나을 수도 있음
     - 예) $ M = O(n!) $ 이면 DP 1은 $ O(n!) $
 
-### 🫧 DP 2 - 알고리듬
+### DP 2 - 알고리듬
 
 - DP 1은 M이 n에 비해 큰 경우 재사용되지 않을 계산을 너무 많이 한다. 실제로 꼭 필요한 배열 원소만 계산할 수만 있다면!!
 - $ K[i][w] $ 를 계산하는데 $ K[i - 1][w] $ 와 $ K[i - 1][w - W[i]] $ 라는 이전 행의 두 값만 필요
@@ -163,7 +163,7 @@ int _01_ks_DP(int n, int M)
 
 @ KP_E  
 
-### 🫧 DP 2 - 분석
+### DP 2 - 분석
 
 - 개선된 알고리즘의 복잡도
   - 실제 계산되는 배열 원소의 수에 비례
@@ -175,7 +175,7 @@ int _01_ks_DP(int n, int M)
 
 @ KP_F  
 
-### 🫧 DP 3 - 알고리듬
+### DP 3 - 알고리듬
 
 - 지금까지 살펴본 DP 알고리즘은 물건 무게나 배낭 용량이 실수인 경우에는 사용 불가
   - “원칙에 충실하자”
@@ -242,7 +242,7 @@ x나 y 중 하나만 작은 경우에는, A와 B 중 x가 더 큰 쪽에 정렬�
 $ S_0 $, 평행이동 $ SP_0 $,  
 합치고 $ S_1 $, 평행이동 $ SP_1 $,  
 
-## 💫 Solve By [BackTracking](/posts/algorithm-back-tracking/)
+## Solve By [BackTracking](/posts/algorithm-back-tracking/)
 
 ---
 
@@ -252,7 +252,7 @@ BT에서는 요소 내림차순 정렬 조건이 붙음
 
 Backtracking 최적화 문제 해결을 위한 구조 (링크 참고)  
 
-### 🫧 상태 공간 트리
+### 상태 공간 트리
 
 - 주요 변수
   - `weight` = 현재까지 담은 물건의 무게 합
@@ -267,7 +267,7 @@ Backtracking 최적화 문제 해결을 위한 구조 (링크 참고)
 
 @ TODO: and 기호  
 
-### 🫧 BT - 알고리듬
+### BT - 알고리듬
 
 - 유망하지 않은 노드의 판별(현재 i번째 물건까지 결정된 상태)
   - 규칙 1) 더 이상 물건을 담을 수 없는 경우, $ weight \ge M $
@@ -300,7 +300,7 @@ Back-Tracking, 실제로 트리를 만들지는 않고, 각 레벨에 해당하�
 
 ∴ n 개의 값(true/false)을 저장할 수 있는 1차원 배열이 필요
 
-### 🫧 BT - 구현
+### BT - 구현
 
 `_01_ks_BT(0,0,0)` 을 호출함으로써 시작  
 전역 변수 `max_profit`의 초기값은 0  
@@ -350,7 +350,7 @@ bool Promising(int i, int profit, int weight)
 }
 ```
 
-### 🫧 BT - 분석
+### BT - 분석
 
 #### 상태 공간 트리의 노드 수
 

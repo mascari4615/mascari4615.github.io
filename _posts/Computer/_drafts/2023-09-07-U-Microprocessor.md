@@ -1,7 +1,7 @@
 ---
 title: "마이크로프로세서 과목"
 # description: ""
-categories: [💫Computer, 🌑Computer-OS]
+categories: [컴퓨터, 🌑Computer-OS]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -16,7 +16,7 @@ date: 2023-09-08. 12:51
 last_modified_at: 2024-08-29. 22:11
 ---
 
-## 💫 마이크로프로세서
+## 마이크로프로세서
 
 ---
 
@@ -33,7 +33,7 @@ Micro-Processor (작은-연산장치)
 강의에서는 AVR2560을 다룸  
 AVR - Alf-Egil Bogen, Vergard Wollen, RISC  
 
-## 💫 범용 입/출력 포트 레지스터 - General Purpose IO Port Register
+## 범용 입/출력 포트 레지스터 - General Purpose IO Port Register
 
 ---
 
@@ -59,7 +59,7 @@ PIN : 입력 용으로 설정된 핀에 대해, 데이터를 읽는/출력하는
   - PORTF = PROTF & 0xfe : 첫 핀만 입력으로 설정, 나머지 기존 그대로
   - v = PINF & 0x01 : 맨 첫 핀의 입력값만 필터링
 
-## 💫 특수 기능 레지스터 - SFR - Special Function Register
+## 특수 기능 레지스터 - SFR - Special Function Register
 
 ---
 
@@ -72,7 +72,7 @@ PIN : 입력 용으로 설정된 핀에 대해, 데이터를 읽는/출력하는
 USART - Universal Synchronous and Asynchronous serial Receiver & transmitter  
 UDRn : USART Data Register  
 
-## 💫 2차시
+## 2차시
 
 ---
 
@@ -103,16 +103,16 @@ GPIU?
 
 @ 25p  
 
-## 💫 3차시
+## 3차시
 
 ---
 
-### 🫧 USART
+### USART
 
 Universal Synchronous and Asynchronous serial Receiver and Transmitter  
 Synchronous 보다 주로 Asynchronous를 씀  
 
-### 🫧 UDRn
+### UDRn
 
 USART Data register of the nth device  
 
@@ -125,7 +125,7 @@ I/O 동작을 위해서는 장치(디바이스) 초기화가 필요
 상대방에서 보내온 데이터가 저장되었다가 읽은 순간 소멸  
 보낼 데이터를 쓰는 순간 전송이 시작됨  
 
-### 🫧 UBRRnL, UBRRnH
+### UBRRnL, UBRRnH
 
 USART Baud Rate Registers of the nth device  
 16비트 통신 속도 bps bit per second 조정  
@@ -143,7 +143,7 @@ USART Control and Status Register B of the nth device
 Bit 3 : TXENn(Transmitter Enable of the nth device)  
 송신 기능 활성화 여부  
 
-### 🫧 비트 연산 매크로 (bit on/off)
+### 비트 연산 매크로 (bit on/off)
 
 sbi(byte b, int n) : Set Bit  
 8비트 변수 레지스터 b의 n번 비트를 1로 변경 (on)  
@@ -203,7 +203,7 @@ int main()
 }
 ```
 
-## 💫 _
+## _
 
 ---
 

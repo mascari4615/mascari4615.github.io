@@ -1,8 +1,8 @@
 ---
 title: "Reference, Idea"
 description: "내 망상, 설정 놀음. 그리고 그것을 위한 `소재` 조작 모음."
-categories: [🫐WitchMendokusai, 🥑Game-Design]
-tags: [WitchMendokusai, Concept]
+categories: [마녀:귀찮아!, 디자인]
+tags: [마녀:귀찮아!, Concept]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 
 date: 2023-01-27. 08:15
@@ -23,22 +23,22 @@ date: 2023-01-27. 08:15
 last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-name: -wm
 ---
 
-## 📀 머리말
+## 머리말
 
 ---
 
 내 망상, 설정 놀음. 그리고 그것을 위한 `소재` 조작 모음.  
 
-## 📀 아이디어
+## 아이디어
 
 ---
 
-### 💿 소리
+### 소리
 
 - 경험치 획득 SFX 연속적으로 획득하면 피치 올라가게
 - 레벨업, 아이템 선택창 이펙트 (효과, 사운드)
 
-### 💿 _
+### _
 
 - 아트 캐릭터 파츠 나눠서 둠칫둠칫
 - 스파인
@@ -52,11 +52,11 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 
 - 스테이지 보스는 3D?
 
-## 📀 참고자료: 이미 존재하는 창작물
+## 참고자료: 이미 존재하는 창작물
 
 ---
 
-### 💿 이미 존재하는 창작물
+### 이미 존재하는 창작물
 
 - [원풀이 / Wonpuri](https://x.com/Wonpuri)
 - 개천고
@@ -105,7 +105,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
   - 포켓 로그
   - Wuppo 꺼꿀이
 
-### 💿 20Minutes
+### 20Minutes
 
 <https://namu.wiki/w/20%20Minutes%20Till%20Dawn>
 
@@ -144,11 +144,11 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - 상자는 캐릭터마다 다르게 나옴 (캐릭터 특성 반영)
 - 마법서는 패널티 + 효과
 
-## 📀 외적/미적
+## 외적/미적
 
 ---
 
-### 💿 HD-2D
+### HD-2D
 
 - [esukevi](https://x.com/esukevi)
   - [1](https://x.com/esukevi/status/1853404069718896853)
@@ -182,7 +182,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [二か月ほどMayaを休止してたのでリハビリ…！rig: 256 #流流](https://x.com/vrc512/status/1881012050341900761)
   - 모델, 애니메이션, 소리
 
-### 💿 Pixel Art
+### Pixel Art
 
 - [책](https://x.com/creyynolds/status/1792275971892031730)
 - [동전](https://x.com/freerdan/status/1789452138231505041)
@@ -212,7 +212,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - Minimi
 - [PixelArt](https://x.com/Vryell/status/1787422302516163050)
 
-### 💿 아기자기
+### 아기자기
 
 - [棺-coffinooo](https://x.com/coffinooo)
 - [Tooltip, Slot UI](https://twitter.com/loopixelart/status/1633846358514991105?s=20)
@@ -227,34 +227,34 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [푸키먼](https://x.com/miyaulait/status/1786495846046920709)
 - [푸키먼](https://x.com/7Cube_Ori/status/1786677428313895378)
 
-### 💿 단맛이 쥬시해
+### 단맛이 쥬시해
 
 - [Game](https://x.com/asistersjourney/status/1781009955841036587)
 - [Game](https://x.com/Gagonfe/status/1782079066046120243)
 - [Game](https://x.com/arare_gc/status/1779905436118036841)
 - [Game](https://twitter.com/RevitaGame/status/1670904476729856001?s=20)
 
-### 💿 전체적으로
+### 전체적으로
 
 - [Game](https://x.com/TeamConcode/status/1771688655934857535)
 - [Game](https://x.com/RunaRPG/status/1844410953322111364/video/1)
 
-### 💿 뭔가 멋짐
+### 뭔가 멋짐
 
 - [grid growth](https://x.com/spacefillerart/status/1782610867340910829)
 - [Hilbert ← Linear (raster)](https://x.com/iquilezles/status/1566938395653263360)
 - [연출 - 모양](https://x.com/HoldimProvae/status/1765684627468140627)
 
-### 💿 영감
+### 영감
 
 - 문양
   - [인챈트 테이블 주변 문자 같은 느낌](https://x.com/ruccho_vector/status/1685240752052338688)
 
-### 💿 공간
+### 공간
 
 - [눈, 얼음](https://x.com/ying0yi/status/1819583208520142896)
 
-### 💿 UI
+### UI
 
 - [페르소나 UI](https://x.com/pollomuerto/status/1782682597509755362)
 - [페르소나 UI](https://x.com/atokmakchiev/status/1754150061112528960)
@@ -264,19 +264,19 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [UI](https://x.com/Ninnih_/status/1828859787850797101)
 - [힉의 법칙 \"의사결정에 걸리는 시간은 선택지의 개수와 복잡성에 비례해 늘어난다.\"\n\nUX 개선 실제 사례: 노인용 리모콘](https://x.com/JakeSeo8/status/1871830935437730259)
 
-### 💿 소품
+### 소품
 
 - solar system glass lamp
 
-### 💿 연출
+### 연출
 
 - [주사위 생성 연출](https://x.com/CK21_JH/status/1702173473928532252)
 
-## 📀 기획
+## 기획
 
 ---
 
-### 💿 기획
+### 기획
 
 - Inspire
   - [Paper Mario](https://x.com/zocklabs/status/1766783427808776572)
@@ -304,23 +304,23 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
   - 칩튠, 게임 내 음악? Midi?
 - [바탕화면 낚시 게임](https://x.com/foolsroom/status/1870976990620070128)
 
-## 📀 Catch
+## Catch
 
 ---
 
 - EyeCatcher
 
-### 💿 Catch
+### Catch
 
 - [땅바닥 글씨](https://x.com/psergiomr/status/1782386535263772958)
 
-### 💿 Transition
+### Transition
 
 - 코바야시 트랜지션 [ . . . . . ] \<- 이거
 - [텍스트 모션그래픽](https://x.com/functiontales/status/1750779547719795026)
 - [#aftereffects #motionGraphics #アフターエフェクト #RpBoundaryFill](https://x.com/repiece_/status/1896032712575828007)
 
-### 💿 MDD, Moe-Driven Development
+### MDD, Moe-Driven Development
 
 #### 캐릭터
 
@@ -341,11 +341,11 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - 안경
 - 콧수염
 
-## 📀 Concept
+## Concept
 
 ---
 
-### 💿 Element
+### Element
 
 - 이집트 9영신
 - 음악
@@ -357,7 +357,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [색깔의 연상 및 상징](https://x.com/Ynseong60/status/1808781020109680926)
 - [한국어 감정단어](https://x.com/serious_in_uh/status/1805504899255615911)
 
-### 💿 Number
+### Number
 
 - 계절
 - 시간
@@ -371,7 +371,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - 언어
   - 알파벳
 
-## 📀 Number
+## Number
 
 ---
 
@@ -565,16 +565,16 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
   - King (13)
   - ♣
 
-## 📀 메모
+## 메모
 
 ---
 
-### 💿 메모
+### 메모
 
 - [포켓몬 타입으로 상상하기](https://x.com/Light_88_/status/1781657335754109380)
   - 특정 키워드들을 조합하여 상상하기
 
-### 💿 참고
+### 참고
 
 - [트럼프(카드) - 나무위키](https://namu.wiki/w/%ED%8A%B8%EB%9F%BC%ED%94%84(%EC%B9%B4%EB%93%9C))
 - [스페이드(문양) - 나무위키](https://namu.wiki/w/%EC%8A%A4%ED%8E%98%EC%9D%B4%EB%93%9C(%EB%AC%B8%EC%96%91))
@@ -609,7 +609,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [카발라 - Google 검색](https://www.google.com/search?q=%EC%B9%B4%EB%B0%9C%EB%9D%BC&oq=%EC%B9%B4%EB%B0%9C%EB%9D%BC&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBBzczNmowajGoAgCwAgA&sourceid=chrome&ie=UTF-8)
 - [플레잉 카드 - 위키백과, 우리 모두의 백과사전](https://ko.wikipedia.org/wiki/%ED%94%8C%EB%A0%88%EC%9E%89_%EC%B9%B4%EB%93%9C)
 
-## 📀 소재
+## 소재
 
 ---
 
@@ -629,13 +629,13 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [사람들이 잘 모르는 ‘살아있는 화석’ ㄷㄷ](https://youtu.be/MfbanTGhvsg?si=FfZLD-yJyuP2llpQ)
 - [Inside Star Citizen: How We Work - Level Design](https://youtu.be/IrGtP8HBwNo?si=RyvVVW6AksdeWpl0)
 
-### 💿 소재 찾기
+### 소재 찾기
 
 - 웹 서핑하다 긁어온 것들
 - 뮤직 비디오
 - 트위터, 특히 백업계?
 
-### 💿 단어/주제/요소
+### 단어/주제/요소
 
 - 다윗의 별, 렘판의 별, 이스라엘 국기
 - 인의예지신
@@ -991,15 +991,15 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
     - 촉매를 만들기 위해 제작 숙련도
     - 좋은 품질의 촉매를 만들려면 제작 숙련도를 올려야겠죠
 
-## 📀 기믹
+## 기믹
 
 ---
 
-### 💿 소리_
+### 소리_
 
 - [사이렌 4개가 겹치는 소리](https://youtu.be/wNrXUeq6Sug?si=zbJn9f51q6CtEW8e)
 
-### 💿 진행도
+### 진행도
 
 - 진행도에 따른 차이 (등장인물 실루엣 이라던지)
 - 진행도에 따른 테마 차이
@@ -1009,7 +1009,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
 - [포켓몬스터 BGM 변화 기믹](https://youtu.be/dqBe7vLYp-U?si=p1JW1tmqJv5BVROf)
 - [포켓몬스터 BGM 만들기](https://youtu.be/3DWslI_n4RM?si=UGXUnwEbjHPqQRfP)
 
-### 💿 ETC
+### ETC
 
 - 닉네임에 따른 변화
   - [플레이어 닉네임에 따른 테마 변화](https://twitter.com/METALBUTTER/status/1175020978960658432?ref_src=twsrc%5Etfw)
@@ -1076,7 +1076,7 @@ last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-
   - 아무것이 아니라 해야할 일을 하지 않는
   - 망각, Like 에르디아
 
-## 📀 역사
+## 역사
 
 ---
 

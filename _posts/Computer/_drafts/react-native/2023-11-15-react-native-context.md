@@ -1,7 +1,7 @@
 ---
 title: "React Native 리액트 네이티브 - Context"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Mobile, React-Native]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -12,7 +12,7 @@ date: 2023-11-15. 13:16
 last_modified_at: 2024-08-29. 21:26
 ---
 
-## 💫 Context
+## Context
 
 ---
 
@@ -47,7 +47,7 @@ useContext ~ // 증손자
 
 컨텍스트 기능을 구현한 react-native-paper와 같은 패키지 또한 'Provider' 가 들어간 컴포넌트와 Provider가 제공하는 정보를 사용할 수 있게 하는 useTheme와 같은 커스텀 훅을 제공한다.  
 
-## 💫 Theme
+## Theme
 
 ---
 
@@ -144,7 +144,7 @@ export const useSome = () =>
 
 @ TODO: 322p Switch  
 
-## 💫 useRef, useImperativeHandle
+## useRef, useImperativeHandle
 
 ---
 
@@ -161,7 +161,7 @@ function useRef<T>(initialValue: T): MutableRefObject<T>;
 function useRef<T>(initialValue: T | null): RefObject<T>;
 ```
 
-### 🫧 ref 속성
+### ref 속성
 
 리액트/리액트 네이티브에서 제공하는 코어 컴포넌트 중에는 메소드를 제공하는 것이 있다.  
 
@@ -172,7 +172,7 @@ function useRef<T>(initialValue: T | null): RefObject<T>;
 
 리액트와 리액트 네이티브는 컴포넌트가 제공하는 메소드를 호출할 수 있도록 ref 속성을 제공한다. 컴포넌트의 인스턴스를 얻을 수 있으며 이를 이용하여 ref.메소드() 형태로 호출할 수 있다.  
 
-### 🫧 구현
+### 구현
 
 ```js
 // T는 FlatList, ScrollView, TextInput 같은 컴포넌트

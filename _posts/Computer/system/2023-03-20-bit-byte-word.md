@@ -1,7 +1,7 @@
 ---
 title: "Bit Byte Word"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -16,7 +16,7 @@ last_modified_at: 2024-11-14. 00:32 # -1K=1024, -BinaryDigit
 글 계승.
 `2020-10-12 03:33:00 : 32-Bit, 64-Bit 관련 글 스크랩 (네이버 블로그)`  
 
-## 💫 Byte = 8 Bit ?
+## Byte = 8 Bit ?
 
 ---
 
@@ -52,7 +52,7 @@ IEC International Electrotechnical Organization
 [참고-0](https://softwareengineering.stackexchange.com/questions/120126/what-is-the-history-of-why-bytes-are-eight-bits)  
 [참고-1](https://en.wikipedia.org/wiki/Byte)  
 
-## 💫 32-Bit, 64-Bit ?
+## 32-Bit, 64-Bit ?
 
 ---
 
@@ -75,7 +75,7 @@ Program Counter
 [참고-0](https://blog.naver.com/sharpsoul/221777128846)  
 [참고-1](https://eine.tistory.com/entry/64%EB%B9%84%ED%8A%B8-32%EB%B9%84%ED%8A%B8-CPU%EC%99%80-%EC%9A%B4%EC%98%81%EC%B2%B4%EC%A0%9C-%EC%97%90-%EB%8C%80%ED%95%98%EC%97%AC)  
 
-## 💫 x86, x64 (x86-64) ?
+## x86, x64 (x86-64) ?
 
 ---
 
@@ -94,7 +94,7 @@ IA = Intel Architecture
 
 [참고-0](https://ko.wikipedia.org/wiki/X86)  
 
-## 💫 워드 WORD ?
+## 워드 WORD ?
 
 ---
 

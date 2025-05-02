@@ -1,7 +1,7 @@
 ---
 title: "Normal, NormalMap"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,33 +10,33 @@ date: 2023-04-01. 00:00 # ?
 # last_modified_at: 2024-11-13. 07:02 # Init
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
 Normal과 NormalMap에 대해.  
 
-## 💫 Normal, NormalMap
+## Normal, NormalMap
 
 ---
 
-### 🫧 Normal
+### Normal
 
 법선 벡터.  
 표면/Face의 방향/각도/기울기를 나타내는 벡터.  
 
-### 🫧 NormalMap
+### NormalMap
 
 Normal을 텍스쳐로 만든 것.  
 
-### 🫧 Use
+### Use
 
 굴곡을 만들어주는, 특정 부준을 그림자지게 만들어주는, 그래서 퀄리티가 높아보이게 만들어주는 텍스쳐.  
 실제 메쉬 폴리곤 디테일이 없는 부분을 디테일이 있는 것처럼 보이게하는 맵  
 
 일반적으로는, 로우폴리메시에서 하이폴리메시의 디테일을 살려주는 역할  
 
-### 🫧 Why
+### Why
 
 <https://docs.unity3d.com/kr/2020.3/Manual/StandardShaderMaterialParameterNormalMap.html>  
 
@@ -53,11 +53,11 @@ Normal을 텍스쳐로 만든 것.
 하이폴리 → 폴리곤이 많음 → 노말이 많음  
 로우폴리 → 폴리곤이 적음 → 노말이 적음  
 
-## 💫 NormalMap은 무슨 색일까 (WIP)
+## NormalMap은 무슨 색일까 (WIP)
 
 ---
 
-### 🫧 궁금증
+### 궁금증
 
 일반적으로 Unity Editor의 Project 창에서 NormalMap은 파랗게 보인다.  
 그런데, NormalMap을 Albedo에 넣은 Material을 Mesh에 적용시키면, 이상하게도 빨갛게 나온다  
@@ -65,7 +65,7 @@ Normal을 텍스쳐로 만든 것.
 Project 창에서 파랗게 보이던 NormalMap이 왜 빨간색으로 나오는지 궁금했다.  
 왜 이렇게 나오는지, 그래서 NormalMap은 어떤 색인 것인지에 대해 알아보았다.  
 
-### 🫧 1. NormalMap은 빨간색이 맞다
+### 1. NormalMap은 빨간색이 맞다
 
 결론적으로, NormalMap은 빨간색이 맞다.  
 
@@ -179,7 +179,7 @@ DXT5 = BC3
 
 <https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=hram01&logNo=221489477514>  
 
-## 💫 메모
+## 메모
 
 ---
 

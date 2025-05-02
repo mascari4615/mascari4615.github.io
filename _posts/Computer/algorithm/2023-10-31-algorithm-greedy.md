@@ -1,7 +1,7 @@
 ---
 title: "Greedy | 그리디, 욕심쟁이"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Greedy]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -15,7 +15,7 @@ last_modified_at: 2024-07-08. 18:37
 @ 6~N차시  
 @ Chapter 2  
 
-## 💫 Greedy 그리디 (욕심쟁이)
+## Greedy 그리디 (욕심쟁이)
 
 ---
 
@@ -84,7 +84,7 @@ greedy_method( )
 }
 ```
 
-## 💫 Optimization Problem - 최적화 문제 예시
+## Optimization Problem - 최적화 문제 예시
 
 ---
 
@@ -124,7 +124,7 @@ But, 부문제의 최적해를 모두 알아보고 그 중에 최적해를 찾�
 
 최소신장트리  
 
-## 💫 최소 신장 트리
+## 최소 신장 트리
 
 ---
 
@@ -152,7 +152,7 @@ But, 부문제의 최적해를 모두 알아보고 그 중에 최적해를 찾�
     - 프림(Prim)의 알고리즘
     - 크러스컬(Kruskal)의 알고리즘
 
-## 💫 크러스컬 알고리듬
+## 크러스컬 알고리듬
 
 ---
 
@@ -223,7 +223,7 @@ edge_set kruskal_MST(edge_set E, int n)
   - 결국 A의 정렬이 전체 알고리즘의 복잡도를 좌우: O(eloge)
   - e는 최대 O(n2)이므로 O(eloge)=O(elogn^2)=O(2elogn)=O(elogn)
 
-## 💫 프림 알고리듬
+## 프림 알고리듬
 
 ---
 
@@ -327,7 +327,7 @@ distance:  최소 히프 (즉, select_min 연산: 최소히프의 삭제연산)
 // 디코 사진
 ```
 
-## 💫 최소 신장 트리 비교
+## 최소 신장 트리 비교
 
 ---
 
@@ -342,7 +342,7 @@ distance:  최소 히프 (즉, select_min 연산: 최소히프의 삭제연산)
 
 디코 사진 표  
 
-## 💫 다익스트라 알고리듬
+## 다익스트라 알고리듬
 
 ---
 

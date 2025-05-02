@@ -1,7 +1,7 @@
 ---
 title: "Genetic Algorithms - 유전 알고리듬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -24,7 +24,7 @@ N차시
 @ 답을 찾아야 하는데, 답을 모름  
 @ 더 좋은 상태들을 섞어서 답을 찾겠다는 것  
 
-## 💫 Genetic Algorithms - 유전 알고리듬
+## Genetic Algorithms - 유전 알고리듬
 
 ---
 
@@ -43,7 +43,7 @@ Sequence of Instructions 명령어 열을 진화시키는 진화적인 계산을
 유전 알고리듬의 Use를 Illustrate 보여준다  
 → Stack Machine  
 
-## 💫 Biological Inspiration
+## Biological Inspiration
 
 ---
 
@@ -60,7 +60,7 @@ Species 종은, 복잡한 환경/치열한 경쟁 속에서 생존하기 위해
 Natural Selection 자연 선택  
 ~  
 
-## 💫 Genetic Algorithm High-Level Flow
+## Genetic Algorithm High-Level Flow
 
 ---
 
@@ -100,7 +100,7 @@ Mutation - 돌연변이 : 아주 드물게, 부모에게 없는 성질을 주기
 @ 대부분 나빠지는 경우가 많은데,  
 @ 공학적(수학적)인 문제의 경우, 모집단의 평균 점수는 높아짐  
 
-## 💫 In Example
+## In Example
 
 ---
 
@@ -126,7 +126,7 @@ Recombination - Genetic Operation 유전 연산
 → 교차 : 일반적으로 모두 교차 X, (70%? - 초매개변수)  
 → 돌연변이 : 염색체 단위가 아니라 유전자 단위로, 아주 드물게  
 
-## 💫 Sample Problem - Stack Machine
+## Sample Problem - Stack Machine
 
 ---
 

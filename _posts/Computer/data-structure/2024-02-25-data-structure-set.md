@@ -1,7 +1,7 @@
 ---
 title: "Set 집합"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Set]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-02-25. 02:14
 last_modified_at: 2024-08-29. 22:04
 ---
 
-## 💫 정의
+## 정의
 
 ---
 
@@ -23,16 +23,16 @@ last_modified_at: 2024-08-29. 22:04
 STL set은 템플릿을 사용해서 집합을 정의한 것  
 집합에서는 여러 종류의 객체가 포함될 수 있다  
 
-## 💫 성질
+## 성질
 
 ---
 
-## 💫 구현 및 사용
+## 구현 및 사용
 
 ---
 
-### 🫧 C++ STL set
+### C++ STL set
 
-## 💫 메모
+## 메모
 
 ---

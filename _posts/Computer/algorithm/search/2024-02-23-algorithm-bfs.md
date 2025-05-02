@@ -1,7 +1,7 @@
 ---
 title: "BFS"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,7 +13,7 @@ last_modified_at: 2024-07-15. 06:15
 
 {% include embed/youtube.html id='ftOmGdm95XI' %}
 
-## 💫 정의
+## 정의
 
 ---
 
@@ -27,7 +27,7 @@ BFS | Breadth First Search | 너비 우선 탐색
 
 원래 BFS는 `Graph`에서 모든 노드를 방문하기 위한 알고리듬  
 
-## 💫 구현
+## 구현
 
 ---
 
@@ -147,7 +147,7 @@ void bfs(int start)
 }
 ```
 
-## 💫 메모
+## 메모
 
 ---
 

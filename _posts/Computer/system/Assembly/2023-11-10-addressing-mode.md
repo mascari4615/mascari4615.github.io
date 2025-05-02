@@ -1,7 +1,7 @@
 ---
 title: "Addressing Mode"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -10,7 +10,7 @@ date: 2023-11-10. 09:21
 last_modified_at: 2024-08-29. 22:12
 ---
 
-## 💫 주소 지정 모드
+## 주소 지정 모드
 
 ---
 
@@ -38,7 +38,7 @@ last_modified_at: 2024-08-29. 22:12
 - OP Coder 연산 코드, Operand 피연산자  
 - I.E. Add_절대/상대_직접/간접, 상수  
 
-## 💫 TODO
+## TODO
 
 ---
 

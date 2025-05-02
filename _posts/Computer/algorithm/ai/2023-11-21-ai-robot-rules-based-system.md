@@ -1,7 +1,7 @@
 ---
 title: "전문가 시스템 - Rules-Based System"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,7 +13,7 @@ last_modified_at: 2023-12-12. 10:50
 
 @ GPT의 문제점 : 기업 정보가 OPEN AI로 유출된다, 그래서 못쓰게 한다, 근데 쓰고는 싶어서 직접 만들어 쓴다  
 
-## 💫 전문가 시스템 - Rules-Based System
+## 전문가 시스템 - Rules-Based System
 
 ---
 
@@ -55,7 +55,7 @@ Chat GPT.. 다시 범용적으로 ← 전문가시스템 한계 극복
 딥러닝을 이용한 패턴 인식 시스템이나, GPT같은 거대한 지식  
 이를 인코딩하는 방법, 지식이 저장되어 있는 방식 -> 신경망의 가중치  
 
-## 💫 구조, 처리 단계
+## 구조, 처리 단계
 
 ---
 
@@ -70,7 +70,7 @@ Chat GPT.. 다시 범용적으로 ← 전문가시스템 한계 극복
 추론 엔진 (Executive)  
 → 추론 : inferance, chaning, 연쇄  
 
-### 🫧 Match
+### Match
 
 Fact, i.e. 아픈 사람이 왔다  
 
@@ -81,27 +81,27 @@ Facts 사실과 그 사실을 처리할 수 있는 Rules를 찾는 일
 
 Facts와 매칭되는 Rules가 여러 개라면, Conflict Set이 발생할 수 있다.  
 
-### 🫧 Conflict Resolution (Restrove) - 충돌 해소
+### Conflict Resolution (Restrove) - 충돌 해소
 
 일반적으로 처음 만나는 Rule을  
 
-### 🫧 Single Rule Trigger (Fire) - 규칙 적용/점화
+### Single Rule Trigger (Fire) - 규칙 적용/점화
 
 그렇게 처리 Fire를 하면, 더 이상 아픈사람이 왔다 라는 건 사실이 아님, 대신 새로운 사실 -> 이제 더 안 아픈 사람이 있다 라는 사실  
 
 반복한다.  
 
-### 🫧 알파고의 동작?
+### 알파고의 동작?
 
 수를 두는 것이 Fact가 되고, 이 Fact에 맞는 추론을 딥러닝과 강화학습 등과 같은 추가적인 기술을 붙여 진행한다.  
 
-## 💫 추론
+## 추론
 
 ---
 
 @ U 기말고사 출제 : 전방향추론과 후방향추론이 각각 어떨 때 사용되는지 설명하시오.  
 
-### 🫧 전방향추론 - Forward Chaining
+### 전방향추론 - Forward Chaining
 
 지식, 규칙의 형태, p -> s, s -> r 같은.. (지식 베이스)
 사실 (워킹 메모리)  
@@ -111,7 +111,7 @@ Facts와 매칭되는 Rules가 여러 개라면, Conflict Set이 발생할 수 �
 
 사실이 많이 만들어지면, 쓸데없는 것들도 많겠죠  
 
-### 🫧 후방향추론 - Backward Chaining
+### 후방향추론 - Backward Chaining
 
 근데 우리가 추론할때는  
 증상을 물어보고 추론을 하겠지만, 많은 경우에는 사실 가정을 한다 (감으로)
@@ -123,11 +123,11 @@ Facts와 매칭되는 Rules가 여러 개라면, Conflict Set이 발생할 수 �
 p → q 에서 q를 정해두고, p를 찾는것
 `가설 증명`  
 
-### 🫧 양방향추론 - Bidirectional Chaining
+### 양방향추론 - Bidirectional Chaining
 
 현실세계에서의 추론  
 
-## 💫 결함 포용(/수용/허용) - Fault Tolerance
+## 결함 포용(/수용/허용) - Fault Tolerance
 
 ---
 

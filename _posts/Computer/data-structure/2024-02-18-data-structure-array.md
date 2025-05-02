@@ -1,7 +1,7 @@
 ---
 title: "Array 배열"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Array]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,17 +13,17 @@ date: 2024-02-18. 11:34
 last_modified_at: 2024-08-29. 22:00
 ---
 
-## 💫 정의
+## 정의
 
 ---
 
 메모리 상에 원소를 연속하게 배치한 자료구조
 
-## 💫 성질
+## 성질
 
 ---
 
-### 🫧 메모리에 연속하게 배치
+### 메모리에 연속하게 배치
 
 `임의접근 Random-Access`  
 
@@ -51,18 +51,18 @@ Like 영화관에서 지인들과 나란히 좌석을 예매할 때
 
 - 자료구조로써의 배열, 길이를 마음대로 늘리거나 줄이는게 가능하다고 생각
 
-### 🫧 시간복잡도
+### 시간복잡도
 
 - 임의의 위치에 있는 원소를 확인/변경, O(1)
 - 원소를 끝에 추가, O(1)
 - 마지막 원소를 제거, O(1)
 - 임의의 위치에 원소를 추가/제거, O(N)
 
-## 💫 사용
+## 사용
 
 ---
 
-### 🫧 C++ Array
+### C++ Array
 
 컴파일 시간에 크기가 결정되고 더 이상 크기의 변경이 불가능한 정적 배열  
 
@@ -93,7 +93,7 @@ for (int i = 0; i < 21; i++)
 	fill(b[i], b[i] + 21, 0);
 ```
 
-### 🫧 C++ STL vector
+### C++ STL vector
 
 실행시간에 크기를 변경할 수 있는 동적 배열  
 
@@ -160,7 +160,7 @@ for (int i = 0; i < v1.size(); i++)
 for (int i = 0; i <= v1.size() - 1; i++)
 ```
 
-### 🫧 C++ STL array
+### C++ STL array
 
 일부 함수를 제공하는 정적 배열  
 
@@ -181,9 +181,9 @@ a.front();
 a.back();
 ```
 
-## 💫 메모
+## 메모
 
 ---
 
 - @ TODO
-  - [CPP vector](https://hwan-shell.tistory.com/119)
+  - [C++ vector](https://hwan-shell.tistory.com/119)

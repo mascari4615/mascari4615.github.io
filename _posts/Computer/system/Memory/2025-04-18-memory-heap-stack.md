@@ -1,7 +1,7 @@
 ---
 title: "Memory Heap/Stack"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2025-04-18. 18:07 # Init
 # last_modified_at: 2025-04-18. 18:07
 ---
 
-## 💫 Heap
+## Heap
 
 ---
 
@@ -22,7 +22,7 @@ i.e. malloc, calloc, realloc
   - Because 코드블럭이 끝나도 데이터를 유지하고 싶을 때  
   - So 프로그머가 원한다면 언제까지라도 데이터를 살릴 수 있는 또 다른 메모리 영역 Heap을 CLR이 제공  
 
-## 💫 관계
+## 관계
 
 ---
 
@@ -33,7 +33,7 @@ Stack: 메모리 아래쪽 주소부터 할당.
 
 Heap Overflow, Stack Overflow.  
 
-## 💫 Stack
+## Stack
 
 ---
 

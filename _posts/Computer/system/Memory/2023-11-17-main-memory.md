@@ -1,7 +1,7 @@
 ---
 title: "RAM, Main-Memory"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -10,7 +10,7 @@ date: 2023-11-17. 03:58
 last_modified_at: 2024-08-29. 22:13
 ---
 
-## 💫 RAM, Main-Memory
+## RAM, Main-Memory
 
 ---
 
@@ -18,16 +18,16 @@ last_modified_at: 2024-08-29. 22:13
 - 책상이 크면 그만큼 많은 것들을 올려놓고 작업할 수 있으니 빠르고 편하다. 책상이 손바닥만하다면 뭐 하나 하려고 하면 올렸다 내렸다 손은 바쁘게 움직이되 일 전체는 느려질 것이다.
 - 메모리에 뭔가를 저장하고 다시 꺼내오려면, 주소(Address)가 필요하다. Like 물품 보관소
 
-### 🫧 RAM | Random Access Memory
+### RAM | Random Access Memory
 
 랜덤 액세스 메모리 = 임의의 주소에 접근  
 
-### 🫧 Main Memory
+### Main Memory
 
 주 기억장치.  
 CPU가 직접 참조하기 때문에 '주' 기억장치.  
 
-## 💫 Address
+## Address
 
 ---
 
@@ -42,24 +42,24 @@ CPU가 직접 참조하기 때문에 '주' 기억장치.
   - 2 4 8 등의 바이트 동시 접근 시 목표시작 주소를,
   - 2 4 8의 배수가 되도록 요구하는 기계 CPU가 있음
 
-## 💫 구조
+## 구조
 
 ---
 
-### 🫧 Text/Code
+### Text/Code
 
 실제 실행되는 코드 등이 저장  
 
-### 🫧 Data
+### Data
 
 전역 변수 등이 저장  
 
-### 🫧 Heap
+### Heap
 
 주로 메모리 동적 할당  
 i.e. malloc, calloc, realloc  
 
-### 🫧 Stack
+### Stack
 
 @@ Assembly  
 
@@ -68,7 +68,7 @@ Stack 자료 구조
 BasePointer 시작 위치를 BP 레지스터, StackPointer 제일 위 위치를 SP 레지스터  
 Glow Down, 다른 메모리 영역과 달리 거꾸로 자란다  
 
-## 💫 관리 개념
+## 관리 개념
 
 ---
 

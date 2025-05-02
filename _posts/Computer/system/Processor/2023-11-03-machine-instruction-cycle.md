@@ -1,7 +1,7 @@
 ---
 title: "Machine Instruction/Cycle - 기계 명령어, 기계 사이클"
 # description: ""
-categories: [💫Computer, 🌘System]
+categories: [컴퓨터, 시스템]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2023-11-03. 14:23
 last_modified_at: 2024-08-29. 22:11
 ---
 
-## 💫 Machine Instruction - 기계 명령어
+## Machine Instruction - 기계 명령어
 
 ---
 
@@ -26,7 +26,7 @@ last_modified_at: 2024-08-29. 22:11
     - #전형적인 기계 명령어 포맷 연산코드 4비트+피연산자 12비트  
     - #피연산자 최대 크기에 맞춰서  
 
-## 💫 Machine Cycle - 기계 사이클, (Instruction Cycle - 명령 사이클)
+## Machine Cycle - 기계 사이클, (Instruction Cycle - 명령 사이클)
 
 ---
 
@@ -54,7 +54,7 @@ Instruction : 명령, (사전 = 지침)
   - #더 세부적으로 나눌 수도 있고, 각 단계를 더 나눌 수도 있음 (마이너 사이클 or Micro Operation != 메이저 사이클)
   - #톱니바퀴형 파이? 클럭 (CPU 파형)?
 
-## 💫 Clock - 클럭
+## Clock - 클럭
 
 ---
 

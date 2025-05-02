@@ -1,7 +1,7 @@
 ---
 title: "React Native 리액트 네이티브 - 이것저것 메모"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Mobile, React-Native]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -18,13 +18,13 @@ last_modified_at: 2023-12-05. 14:57
 2023-12-05. 14:57 : 글 계승.  
 `Mobile Programming Test`  
 
-## 💫 중첩된 ScrollView 방향의 제약
+## 중첩된 ScrollView 방향의 제약
 
 ---
 
 @ TODO: 212p  
 
-## 💫 Javascript, Typescript
+## Javascript, Typescript
 
 ---
 
@@ -39,7 +39,7 @@ type NewType = Pick<SomeType, 'SomePropertyA' | 'SomePropertyB'>
 
 객체가 제공하는 속성을 알기위해서, console.log(Objects.keys(개체)) 코드를 이용할 수 있다.  
 
-## 💫 Fetch
+## Fetch
 
 ---
 
@@ -71,7 +71,7 @@ fetch('RequestInfo Like URL')
 	.catch((error: Error) => console.log(error.message))
 ```
 
-## 💫 키워드
+## 키워드
 
 ---
 
@@ -86,7 +86,7 @@ export default function Timer()
 }
 ```
 
-## 💫 JSX에서 if문을 처리하는 방법
+## JSX에서 if문을 처리하는 방법
 
 ---
 
@@ -141,7 +141,7 @@ export default function App()
 }
 ```
 
-## 💫 함수컴포넌트 속성 정의 및 전달 방법
+## 함수컴포넌트 속성 정의 및 전달 방법
 
 ---
 
@@ -216,7 +216,7 @@ export default function App()
 
 ```
 
-## 💫 잔여연산자
+## 잔여연산자
 
 ---
 
@@ -239,13 +239,13 @@ const {country, city, ...detail} = address
 
 ```
 
-## 💫 얕은 복사 & 깊은 복사
+## 얕은 복사 & 깊은 복사
 
 ---
 
 @ U 기말고사 출제 : TODO, 전개 연산자  
 
-## 💫 React.Fragment 컴포넌트
+## React.Fragment 컴포넌트
 
 ---
 
@@ -271,7 +271,7 @@ import React, {Fragment} from 'react'
 </>
 ```
 
-## 💫 타입스크립트의 교집합 타입 구문
+## 타입스크립트의 교집합 타입 구문
 
 ---
 
@@ -285,7 +285,7 @@ TS, Algebraic Data Type - ADT - 대수 데이터 타입 지원
 교집합 타입  
 → type A_AND_B = A & B  
 
-## 💫 useStyle 커스텀 훅 만들기
+## useStyle 커스텀 훅 만들기
 
 ---
 

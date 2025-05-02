@@ -1,6 +1,6 @@
 ---
 title: "보안 시스템"
-categories: [💫Computer, 🌚Computer-General]
+categories: [컴퓨터, 🌚Computer-General]
 
 date: 2023-06-05. 11:15
 last_modified_at: 2023-06-08. 09:59
@@ -13,7 +13,7 @@ IPS - 말하자면, 보초병
 IDS - 말하자면, CCTV  
 F/W - 방화벽  
 
-## 💫 FW, Firewall, 침입차단시스템
+## FW, Firewall, 침입차단시스템
 
 ---
 
@@ -30,7 +30,7 @@ F/W - 방화벽
 - Rule Set
   - 방화벽을 기준으로 보호하고자 하는 네트워크의 외부와 내부에 존재하는 시스템들의 IP와 PORT 단위로 이루어지는 것
 
-## 💫 IDS (Intrusion Detection System) : 침입 탐지 시스템
+## IDS (Intrusion Detection System) : 침입 탐지 시스템
 
 ---
 
@@ -100,7 +100,7 @@ F/W - 방화벽
 
 - 침입방지시스템으로, 패킷 분석, 공격 차단 기능을 제공
 
-## 💫 IPS (Intrusion Prevention System) : 침입 방지 시스템
+## IPS (Intrusion Prevention System) : 침입 방지 시스템
 
 ---
 

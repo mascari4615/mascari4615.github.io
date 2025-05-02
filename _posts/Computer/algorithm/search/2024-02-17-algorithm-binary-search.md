@@ -1,7 +1,7 @@
 ---
 title: "Binary-Search"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -10,14 +10,14 @@ date: 2024-02-17. 14:44
 last_modified_at: 2024-11-16. 05:15 # 정리
 ---
 
-## 💫 Binary-Search
+## Binary-Search
 
 ---
 
 이진탐색, 이분탐색.  
 **정렬된** 리스트에 대해, 특정 원소를 Log N 안에 찾아내는 알고리듬  
 
-## 💫 Use
+## Use
 
 ---
 
@@ -29,7 +29,7 @@ last_modified_at: 2024-11-16. 05:15 # 정리
 - 사전에서 단어 찾기
 - 페이스북에 로그인하기 (페이스북이 내 계정이 실존하는 계정인지 확인하기 위해 데이터베이스에서 아이디 찾기)
 
-## 💫 왜 Why
+## 왜 Why
 
 ---
 
@@ -49,11 +49,11 @@ Updown 게임.
   - 선형탐색: 최악의 경우 1,024
   - 이진탐색: 최악의 경우 log<sub>2</sub>1,024 = 10
 
-## 💫 구현
+## 구현
 
 ---
 
-### 🫧 찾는 값이 하나
+### 찾는 값이 하나
 
 low/high (or start/end).  
 찾고자 하는 값이 포함되어 있을 거라고 예상하는 범위.  
@@ -85,7 +85,7 @@ int binarySearch(int arr[], int target, int size)
 }
 ```
 
-### 🫧 찾는 값이 여러 개
+### 찾는 값이 여러 개
 
 이분 탐색 후 찾은 위치에서 양 옆으로 확장해도 되지만,  
 최악의 경우 O(N)이 될 수 있음. (전부 다 같은 값일 경우)  
@@ -147,7 +147,7 @@ int upperBound(int arr[], int target, int size)
 }
 ```
 
-## 💫 메모
+## 메모
 
 ---
 

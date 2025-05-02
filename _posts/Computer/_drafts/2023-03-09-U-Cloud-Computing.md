@@ -1,7 +1,7 @@
 ---
 title: "클라우드 컴퓨팅 과목"
 # description: ""
-categories: [💫Computer, 🌚Computer-General]
+categories: [컴퓨터, 🌚Computer-General]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 

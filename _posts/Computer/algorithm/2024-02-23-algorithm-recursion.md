@@ -1,7 +1,7 @@
 ---
 title: "Recursion 재귀"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,7 +13,7 @@ last_modified_at: 2024-08-29. 21:59
 
 {% include embed/youtube.html id='fRiuMn6_fBA' %}
 
-## 💫 정의
+## 정의
 
 ---
 
@@ -121,7 +121,7 @@ func1(k+1)은 k+1부터 1까지 차례대로 출력함을 알 수 있겠죠
     2. base condition
     3. 재귀식
 
-### 🫧 _
+### _
 
 재귀  
 반복문과 같은 일을 할 수 있고, 반복문보다 좀 느리고(함수 호출), 더 크지만(호출스택 메모리), 더 명확함  

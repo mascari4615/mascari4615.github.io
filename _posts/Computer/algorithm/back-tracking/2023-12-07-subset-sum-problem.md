@@ -1,7 +1,7 @@
 ---
 title: "Subset Sum Problem"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Back-Tracking]
 image: "/assets/img/background/kururu-lab.jpg"
 math: true
@@ -12,7 +12,7 @@ date: 2023-12-07. 11:38
 last_modified_at: 2024-08-29. 21:36
 ---
 
-## 💫 Subset Sum Problem (Sum of Subsets Problem)
+## Subset Sum Problem (Sum of Subsets Problem)
 
 ---
 
@@ -35,15 +35,15 @@ i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0
 
 @ SSP_0000  
 
-## 💫 Solve By [BackTracking](/posts/algorithm-back-tracking/)
+## Solve By [BackTracking](/posts/algorithm-back-tracking/)
 
 ---
 
-### 🫧 상태 공간 트리
+### 상태 공간 트리
 
 [N-Queen](/posts/n-queen/), [K-Graph-Coloring](/posts/k-graph-coloring/)과 다르게, 노드에 위치 정보가 저장되는 것이 아니고, 각 노드 기준 무게가 저장됨  
 
-### 🫧 알고리듬
+### 알고리듬
 
 - 레벨 `i`의 노드가 유망하지 않음을 판별하는 기준
   - - 현재 `i`번째 물건까지 결정된 상태이고 현재까지 배낭에 넣은 물건들의 무게의 합을 `weight`라 하면 다음 경우에 유망하지 않은 노드
@@ -64,7 +64,7 @@ i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0
     - 해당 노드가 유망하지 않아 부모 노드로 되돌아간다면, 다음 단계에 `i - 1`개 물건 가운데 배낭에 넣은 물건들을 기억
 
 | 인덱스 | 1 | 2 | 3 | 4 |
-| 포함여부 | fales | true | false | true |
+| 포함여부 | false | true | false | true |
 
 단말 노드가 아닌 노드가 해답이라면 해답 노드의 레벨까지 저장된 값만이 유효  
 
@@ -73,7 +73,7 @@ i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0
 
 ∴ n 개의 값(true/false)색을 저장할 수 있는 1차원 배열이 필요  
 
-### 🫧 구현
+### 구현
 
 `SumOfSubsetsBT(0, 0, rest)`를 호출함으로써,  
 시작 변수 `rest`의 초기 값은 모든 물건의 무게 합 = 배열 `W[ ]`의 값을 모두 더한 값  
@@ -115,7 +115,7 @@ bool Promising(int i, int weight, int rest)
 }
 ```
 
-### 🫧 분석
+### 분석
 
 #### 상태 공간 트리의 노드 수
 

@@ -1,7 +1,7 @@
 ---
 title: "Code Block - Step"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2025-04-19. 01:27 # Init
 # last_modified_at: 2025-04-19. 01:27 #
 ---
 
-## 💫 Step
+## Step
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: "Spring-Boot-Memo"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Spring-Boot]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -18,38 +18,38 @@ last_modified_at: 2024-10-19. 13:20 # 메모
 [참고 : 개발자 유미 - Around Hub Studio, '스프링 시큐리티'](https://www.youtube.com/playlist?list=PLJkjrxxiBSFCKD9TRKDYn7IE96K2u3C3U)  
 [참고 : Peony의 기록 창고 - '스프링부트와 aws로 혼자 구현하는 웹서비스'](https://myeongju00.tistory.com/55#article-2--rds-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
 
-## 💫 QR
+## QR
 
 [참고 : 내가 보려고 만든 개발 (Tech) blog - '[SpringBoot] QR코드 생성 & Test(링크이동) - zxing'](https://lucas-owner.tistory.com/55)  
 
-## 💫 Cannot resolve symbol 'log'
+## Cannot resolve symbol 'log'
 
 Class에 `@Slf4j` 달아줘서 해결  
 
-## 💫 Whitelabel Error Page
+## Whitelabel Error Page
 
 `index.html` 만들어서 해결,  
 Class에 `@RestController`, `@RequiredArgsConstructor` 달아주니까 해결  
 
-## 💫 인텔리제이 자동완성
+## 인텔리제이 자동완성
 
 `soutm` : `System.out.println("className.methodName = " + param);`  
 `soutp` : `System.out.println("param = " + param);`  
 Alt + Enter : 변수 만들어 담기  
 
-## 💫 [MySql] SQL Error [1064] [42000]: You have an error in your SQL syntax
+## [MySql] SQL Error [1064] [42000]: You have an error in your SQL syntax
 
 말그대로 문법에 문제가 있다는 것.  
 
-## 💫 RestController
+## RestController
 
 [`@RestController`는 뷰페이지 리턴이 안된다.](https://okky.kr/questions/479475)  
 
-## 💫 Thymeleaf
+## Thymeleaf
 
 [Thymeleaf](http://www.thymeleaf.org)  
 
-### 🫧 Thymeleaf HTML에서 Security 정보 가져오기
+### Thymeleaf HTML에서 Security 정보 가져오기
 
 ```html
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
@@ -60,7 +60,7 @@ Alt + Enter : 변수 만들어 담기
 
 [참고 : cornarong의 블로그 - '타임리프로 화면단에서 사용자 시큐리티 정보 가져오기'](https://cornarong.tistory.com/73)  
 
-### 🫧 Thymeleaf 조건문
+### Thymeleaf 조건문
 
 ```html
 <div th:if="${#lists.isEmpty(ticketList)}">
@@ -70,15 +70,15 @@ Alt + Enter : 변수 만들어 담기
 
 [참고 : '[Springboot] Thymeleaf each문, if문(else if문, 조건이 여러 개인 if문)'](https://velog.io/@seratpfk/Springboot-Thymeleaf-if문-each문)  
 
-## 💫 MariaDB 비밀번호 초기화
+## MariaDB 비밀번호 초기화
 
 [bin 디렉토리에서 `mysql` 말구 `.\mysql`](https://jemmaa.tistory.com/26)  
 
-## 💫 HTML에서 바로 Style 적용
+## HTML에서 바로 Style 적용
 
 `<style>` 태그 안에 넣어주면 된다.  
 
-## 💫 FK 지정
+## FK 지정
 
 [참고 : Velog - 'JPA로 엔티티, 테이블 생성하기 / PK, FK 연결하기'](https://velog.io/@seulki412/Spring-Boot-JPA로-엔티티-테이블-생성하기-PK-FK-연결하기)  
 
@@ -103,46 +103,46 @@ public class A {
 }
 ```
 
-## 💫 TransientPropertyValueException~
+## TransientPropertyValueException~
 
 FK로 사용되는 객체가 저장되지 않아서.  
 오류를 해결해주기 위해서는 영속성 전이를 위해 cascade type을 지정.  
 `@ManyToOne(cascade = CascadeType.ALL)`  
 <https://velog.io/@jummi10/resolve-TransientPropertyValueException>  
 
-## 💫 Session을 이용한 로그인 구현
+## Session을 이용한 로그인 구현
 
 <https://chb2005.tistory.com/175>  
 <https://github.com/Changbum97/Springboot-Login-Study>  
 
-## 💫 패키지 구조 (계층형 구조, 도메인형 구조)
+## 패키지 구조 (계층형 구조, 도메인형 구조)
 
 패키지 구조 (계층형 구조, 도메인형 구조)  
 <https://youngsuk-dev.tistory.com/21>  
 
-## 💫 redirect
+## redirect
 
 `Controller`에서 return 값을 `redirect:/`로 하면  
 `/`로 리다이렉트 된다.  
 
-## 💫 Enum
+## Enum
 
 [참고 : '[Spring] Enum 타입을 DB에 저장하기'](https://velog.io/@zioo/Spring-Enum-타입을-DB에-저장하기)  
 
-## 💫 배포, 응답없음
+## 배포, 응답없음
 
 ---
 
 보안 그룹-인바운드 규칙 편집하여 포트번호 8080 열기  
 [참고 : s0nnyday.log - '[AWS EC2] 오류 - EC2, Jar 실행 후 웹 브라우저에 요청 보내도 응답x'](https://velog.io/@s0nnyday/AWS-EC2-배포-SSH프로토콜1-Jar-실행-후-웹-브라우저-테스트)  
 
-## 💫 -Dspring, .yml 환경설정 적용하기
+## -Dspring, .yml 환경설정 적용하기
 
 ---
 
 [참고 : monkeyDugi - 'Spring Boot -Dspring으로 환경설정 파일 적용하기'](https://dev-monkey-dugi.tistory.com/33)
 
-## 💫 Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [org.hibernate.dialect.Dialect]
+## Failed to initialize JPA EntityManagerFactory: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [org.hibernate.dialect.Dialect]
 
 ---
 
@@ -155,7 +155,7 @@ spring:
 
 [참고 : yesue2.log - 'Failed to initialize JPA EntityManagerFactory: Unable to create requested service [...] due to: Unable to resolve name [org.hibernate.dialect.MySQL5InnoDBDialect] as strategy [...] 에러'](https://velog.io/@yesue/SpringBoot-Failed-to-initialize-JPA-EntityManagerFactory-Unable-to-create-requested-service-...-due-to-Unable-to-resolve-name-org.hibernate.dialect.MySQL5InnoDBDialect-as-strategy-...-에러)
 
-## 💫 Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured
+## Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured
 
 ---
 
@@ -164,7 +164,7 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 
 [참고 : hoon's bLog - 'Spring Error | Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured.'](https://psip31.tistory.com/139)  
 
-## 💫 java.sql.SQLSyntaxErrorException: Unknown column 't1_0.~' in 'field list' using Hibernate
+## java.sql.SQLSyntaxErrorException: Unknown column 't1_0.~' in 'field list' using Hibernate
 
 ---
 
@@ -173,7 +173,7 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 
 [참고 : StackOverflow - 'java.sql.SQLSyntaxErrorException: Unknown column 't1_0.division' in 'field list' using Hibernate'](https://stackoverflow.com/questions/75385276/java-sql-sqlsyntaxerrorexception-unknown-column-t1-0-division-in-field-list)  
 
-## 💫 org.hibernate.HibernateException: The database returned no natively generated identity value
+## org.hibernate.HibernateException: The database returned no natively generated identity value
 
 ---
 
@@ -181,13 +181,13 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
 
 [참고 : StackOverflow - 'org.hibernate.HibernateException: The database returned no natively generated identity value'](https://stackoverflow.com/questions/7172657/org-hibernate-hibernateexception-the-database-returned-no-natively-generated-id)  
 
-## 💫 SpringSecurity 로그아웃
+## SpringSecurity 로그아웃
 
 ---
 
 [참고 : 돔돔이블로그 - '로그아웃기능 만들기 (+자동로그아웃)'](https://domdom.tistory.com/660)
 
-## 💫 Linux 명령어
+## Linux 명령어
 
 ---
 
@@ -224,7 +224,7 @@ DB 연결 시 필요한 정보가 없거나 잘못된 경우 발생하는 에러
   - `-n` : 뒤에서부터 n개 출력
   - `tail -f 파일명` : 파일 실시간 출력
 
-## 💫 TODO
+## TODO
 
 - `form`에서 `type = "tel"` 받아오는 법
 - <https://tecoble.techcourse.co.kr/post/2023-08-16-concurrency-managing/?mibextid=Zxz2cZ>

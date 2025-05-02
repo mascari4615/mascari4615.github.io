@@ -1,7 +1,7 @@
 ---
 title: "DirectX"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -11,7 +11,7 @@ date: 2024-04-08. 07:59
 last_modified_at: 2024-11-13. 07:47 # Init
 ---
 
-## 💫 Q
+## Q
 
 ---
 
@@ -21,11 +21,11 @@ last_modified_at: 2024-11-13. 07:47 # Init
 - 파이프라인 쭉 훑고 텍스쳐링이랑 알파블렌딩 해보면 충분?
 - <https://www.opengl-tutorial.org/> -> 렌더링 기초?
 
-## 💫 _
+## _
 
 ---
 
-### 🫧 _
+### _
 
 - [Direct X 프로그래밍 학습에 대한 조언](https://megayuchi.com/2019/04/18/direct-x-프로그래밍-학습에-대한-조언/)
 

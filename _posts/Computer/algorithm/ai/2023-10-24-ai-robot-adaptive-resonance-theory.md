@@ -1,7 +1,7 @@
 ---
 title: "Adaptive Resonance Theory - ART1"
 # description: ""
-categories: [💫Computer, 🌑Algorithm, AI]
+categories: [컴퓨터, 알고리즘, AI]
 tags: [AI]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,7 +13,7 @@ last_modified_at: 2023-12-08. 10:30
 5, 6차시  
 @ 50분 정도의 집중력  
 
-## 💫 서론
+## 서론
 
 ---
 
@@ -30,7 +30,7 @@ Resonance 공명
 Adaptive 적응형  
 @ LOL 적응형 능력치 : `Adaptive` Force  
 
-## 💫 Adaptive Resonance Theory - ART1
+## Adaptive Resonance Theory - ART1
 
 ---
 
@@ -73,7 +73,7 @@ ART1
 같은 분류의 요소들끼리 데이터 Vector를 합 (Sum Vector)  
 해당 분류의 요소들마다 Sum Vector에서 가장 큰 수 순서대로 없는 요소를 추천  
 
-## 💫 과정
+## 과정
 
 ---
 
@@ -119,7 +119,7 @@ P = P∩E
 Using ART1 for Personalization(Recommend System)  
 Sum Vector를 이용하여  
 
-## 💫 K-means Algorithm  
+## K-means Algorithm  
 
 ---
 

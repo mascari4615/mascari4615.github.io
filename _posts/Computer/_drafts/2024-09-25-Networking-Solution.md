@@ -1,7 +1,7 @@
 ---
 title: "Networking Solution"
 # description: ""
-categories: [💫Computer, 🌚Computer-General]
+categories: [컴퓨터, 🌚Computer-General]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-09-25. 01:22
 # last_modified_at: 2024-09-25. 01:22
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
@@ -32,15 +32,15 @@ https://medium.com/wardgames/unity-%EB%A9%80%ED%8B%B0%ED%94%8C%EB%A0%88%EC%9D%B4
 hlapi
 https://docs.unity3d.com/kr/2019.4/Manual/UNetUsingHLAPI.html
 
-### 🫧 _
+### _
 
-## 💫 [Photon](https://www.photonengine.com/ko-kr)
+## [Photon](https://www.photonengine.com/ko-kr)
 
 ---
 
 멀티플레이어 서비스  
 
-## 💫 [Riptide](https://github.com/RiptideNetworking/Riptide)
+## [Riptide](https://github.com/RiptideNetworking/Riptide)
 
 ---
 
@@ -51,23 +51,23 @@ Unity Networking Library
 
 유니티 데디케이트 서버 개발 등에 사용하기에 적합하지만, 객체 동기화 등의 기능은 없고, 순순하게 네트워크 메시지 전달 기능만 지원한다.  
 
-## 💫 Mirror
+## Mirror
 
 ---
 
-## 💫 LiteNetLib
+## LiteNetLib
 
 ---
 
-## 💫 Unity Multiplayer (Netcode)
+## Unity Multiplayer (Netcode)
 
 ---
 
-## 💫 Mirage
+## Mirage
 
 ---
 
-## 💫 메모
+## 메모
 
 ---
 

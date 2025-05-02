@@ -1,7 +1,7 @@
 ---
 title: "Animate"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,11 +10,11 @@ date: 2025-03-15. 10:03 # Init
 last_modified_at: 2025-03-24. 00:03 # 메모
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
-## 💫 메모
+## 메모
 
 ---
 

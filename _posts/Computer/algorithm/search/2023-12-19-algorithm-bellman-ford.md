@@ -1,7 +1,7 @@
 ---
 title: "벨먼-포드 알고리듬"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Dynamic-Programming]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -30,7 +30,7 @@ last_modified_at: 2024-08-29. 22:19
 A -( 1 )→ B -( 2 )→ C -( -3 )→  
 돌때마다 가중치가 무한히 작아짐  
 
-## 💫 Bellman-Ford Algorithm
+## Bellman-Ford Algorithm
 
 ---
 
@@ -91,11 +91,11 @@ i+1 i= 5=12 7=20
 → 변경되는 값을 기존거에 덮어쓰기 하자
 → 1차원 배열만 잇어도 된다
 
-### 🫧 벨먼-포드 알고리듬_예시
+### 벨먼-포드 알고리듬_예시
 
 n-1 만큼 루프를 돌리고, 한 번 더 기준 연산을 하는데, 또 줄어들면 그건 음의 사이클이다.  
 
-### 🫧 벨먼-포드 알고리듬_개선
+### 벨먼-포드 알고리듬_개선
 
 #### 어떤 순서로 처리하느냐에 따라 계산량이 줄 수 있다
 

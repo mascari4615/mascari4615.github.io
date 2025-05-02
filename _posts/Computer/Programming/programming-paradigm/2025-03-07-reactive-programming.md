@@ -1,7 +1,7 @@
 ---
 title: "Reactive Programming"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -12,7 +12,7 @@ last_modified_at: 2025-03-15. 09:26 # UniRx 분리: 사실 UniRx가 전부이긴
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 머리말
+## 머리말
 
 ---
 
@@ -25,7 +25,7 @@ Event Driven 개발 방식
 
 UniRx는 [이쪽](/posts/unirx)으로.  
 
-## 💫 Reactive Extensions
+## Reactive Extensions
 
 ---
 

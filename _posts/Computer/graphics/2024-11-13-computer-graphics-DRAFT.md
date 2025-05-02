@@ -1,7 +1,7 @@
 ---
 title: "CG"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,17 +10,17 @@ date: 2024-11-13. 06:35 # Init
 last_modified_at: 2025-03-24. 00:03 # 메모
 ---
 
-## 💫 CG
+## CG
 
 ---
 
 Computer Graphics.  
 
-## 💫 메모
+## 메모
 
 ---
 
-### 🫧 키워드
+### 키워드
 
 - 그래픽스
 - 디더링
@@ -33,11 +33,11 @@ Computer Graphics.
 - Scene Depth : 카메라부터 연산을 시작하는 점까지의 깊이?
   - Transparent는 통과하는 듯..?
 
-### 🫧 참고
+### 참고
 
 - `렌더링 파이프라인 / 셰이더`
 
-### 🫧 Link
+### Link
 
 - [The Unity Shaders Bible](https://learn.jettelly.com/unity-shader-bible/#buy-now)
 - [CatLikeCoding](https://catlikecoding.com/)
@@ -81,7 +81,7 @@ Computer Graphics.
   - [](https://x.com/TatsuyaBot/status/1894225734375555257)
   - <https://x.com/Seoran0715/status/1845077714279202891>
 
-### 🫧 무슨 말인지 이해하고 싶다
+### 무슨 말인지 이해하고 싶다
 
 - DC
   - 이펙터는 웬만한 쉐이더를 반투명으로만 사용한다. Translucent 아니면 Additive 즉 최적화를 크게 신경쓰지 않는. 반면 모델러들은 양면 렌더도 제대로 못 쓰게 한다 최적화에서 가장 크게 잡아먹는 Shadowdepth도 이펙터들은 크게 신경쓰지 않는다

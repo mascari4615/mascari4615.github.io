@@ -1,7 +1,7 @@
 ---
 title: "Procedural Programming"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,7 +11,7 @@ last_modified_at: 2024-08-30. 00:48
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 Procedural Programming \| 절차지향 프로그래밍
+## Procedural Programming \| 절차지향 프로그래밍
 
 ---
 
@@ -31,7 +31,7 @@ Procedural → Procedure
 절차 지향에서 사용되는 설계 방법은 하향식 설계 (Top Down Design) 이라고도 불린다.  
 하향식 설계 방법에서는 문제를더 작은 서브 프로시저로 분해하여 원하는 수준에 도달할 때까지 이 과정을 반복함으로써 시스템을 설계하는 방법을 말한다.  
 
-### 🫧 문제점
+### 문제점
 
 데이터가 함수와 분리된다.  
 많은 경우에, 절차 지향 방법에서는 데이터가 프로그램의 중요한 부분임에도 불구하고 프로그래머들은 함수 작성에만 신경을 쓰게 된다.  

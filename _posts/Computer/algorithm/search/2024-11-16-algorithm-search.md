@@ -1,7 +1,7 @@
 ---
 title: "Search"
 # description: ""
-categories: [💫Computer, 🌑Algorithm]
+categories: [컴퓨터, 알고리즘]
 tags: [Algorithm, Search]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,13 +10,13 @@ date: 2024-11-16. 03:47
 last_modified_at: 2024-11-16. 03:47 # Init
 ---
 
-## 💫 Search
+## Search
 
 ---
 
 탐색 알고리듬.  
 
-## 💫 Linear-Search, Single-Search
+## Linear-Search, Single-Search
 
 ---
 

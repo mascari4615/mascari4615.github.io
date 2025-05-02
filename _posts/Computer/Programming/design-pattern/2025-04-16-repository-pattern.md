@@ -1,7 +1,7 @@
 ---
 title: "Repository Pattern"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: [Design-Pattern]
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,11 +10,11 @@ date: 2025-04-16. 22:15 # Init
 # last_modified_at: 2025-04-16. 22:15
 ---
 
-## 💫 머리말
+## 머리말
 
 ---
 
-## 💫 Repository Pattern
+## Repository Pattern
 
 ---
 

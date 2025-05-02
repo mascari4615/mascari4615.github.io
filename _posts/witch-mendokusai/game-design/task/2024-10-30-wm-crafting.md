@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Crafting"
+title: "'마녀:귀찮아!' | Crafting"
 # description: ""
-categories: [🫐WitchMendokusai, 🥑Game-Design]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 디자인]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -23,31 +23,31 @@ last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
 `2024-10-30-WM-Alchemy : WitchMendokusai | Alchemy`,  
 `2024-10-30-WM-Hextech : WitchMendokusai | Hextech`,  
 
-## 📀 분류
+## 분류
 
 ---
 
-## 📀 제작대
+## 제작대
 
 ---
 
-### 💿 제작대
+### 제작대
 
 제작대.  
 
 기본적인 제작대는 마법을 쓰지 않고 손으로 만드는 것이 주된 방식이다.  
 이후 모듈을 추가하여 다양한 제작 방법을 추가할 수 있다.  
 
-### 💿 마법 모듈
+### 마법 모듈
 
 마법 모듈을 추가하면 제작에 마법을 이용할 수 있다.  
 
-### 💿 제작대 - 참고
+### 제작대 - 참고
 
 - 모동숲 제작대, DIY
 - 마인크래프트 제작대
 
-### 💿 연금술
+### 연금술
 
 - 마녀 : 빗자루, 가마솥, 물약
 
@@ -63,7 +63,7 @@ last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
 
 - 더 많은 가마솥/도가니
 
-### 💿 마공학
+### 마공학
 
 - 마공학
   - 인퓨전
@@ -73,11 +73,11 @@ last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
   - 지옥불 화로, 풀무, 풀무 속도 증가, 재련
   - 의식
 
-## 📀 _
+## _
 
 ---
 
-### 💿 _
+### _
 
 - 마법 크리스탈의 발견, 마도서 반응, 위상
   - 위상 스캐너, 위상 추출, 위상 정화, 보석 건틀릿, 완드 + 포커스, 빈 포커스, 연구 상화

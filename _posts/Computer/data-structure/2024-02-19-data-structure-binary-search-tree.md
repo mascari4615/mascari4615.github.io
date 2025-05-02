@@ -1,7 +1,7 @@
 ---
 title: "Binary (Search) Tree"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Tree]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -16,14 +16,14 @@ last_modified_at: 2024-10-04. 17:37
 {% include embed/youtube.html id='IKnjzmyk70U' %}
 {% include embed/youtube.html id='nehRy6hAJsA' %}
 
-## 💫 이진 트리 (Binary-Tree)
+## 이진 트리 (Binary-Tree)
 
 ---
 
 각 노드의 자식이 2개 이하인 트리  
 자식이 2개 이하이기 때문에 자식을 왼쪽과 오른쪽으로 구분할 수 있다.  
 
-### 🫧 이진 트리 구현
+### 이진 트리 구현
 
 ![이진 트리 구현](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2Fb1mDuH%2FbtrodS0jcTD%2FXNIcWM2daVsr1bMA8b7FcK%2Fimg.png)  
 
@@ -33,7 +33,7 @@ int rc[] = {};
 int parent[] = {};
 ```
 
-## 💫 이진 트리의 순회
+## 이진 트리의 순회
 
 ---
 
@@ -41,7 +41,7 @@ int parent[] = {};
 - [DFS](/posts/algorithm-dfs/#트리에서의-dfs)
 - 말고도 특별히 이진 트리에 대해 레벨/전위/중위/후위 순회가 있다.
 
-### 🫧 레벨 순회 (Level-order Traversal)
+### 레벨 순회 (Level-order Traversal)
 
 ![레벨 순회](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FdBBT4a%2FbtrnJdwJJYO%2Fdg9ZQa2aevyGennKFkq0L1%2Fimg.png)  
 
@@ -50,7 +50,7 @@ int parent[] = {};
 루트에서 BFS를 돌리면 자연스럽게 레벨 순회가 됨  
 이때 lc, rc로 이진 트리를 표현하고 있는 상황이기에 이에 맞는 BFS 코드가 필요.  
 
-### 🫧 전위 순회 (Preorder Traversal)
+### 전위 순회 (Preorder Traversal)
 
 ![전위 순회](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FHR7q8%2FbtrnOQgIjOR%2Fukzq4wrCVKGTHv5ikKI2F1%2Fimg.png)  
 
@@ -63,7 +63,7 @@ int parent[] = {};
 → DFS와 방문 순서가 동일, DFS는 자기 자신을 방문한 후 첫 번째 자식부터 들어가 거기에서 DFS를 다시 시작하는 방식  
 재귀를 이용해 자기 자신을 출력한 후 왼쪽 자식과 오른쪽 자식 각각에 대해 전위 순회  
 
-### 🫧 중위 순회 (Inorder Traversal)
+### 중위 순회 (Inorder Traversal)
 
 ![중위 순회](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FkNSNN%2FbtrnEJbSo6H%2FrxhXktyJhEW41uKHKlRES1%2Fimg.png)  
 
@@ -73,7 +73,7 @@ int parent[] = {};
 2. 현재 정점을 방문한다.
 3. 오른쪽 서브 트리를 중위 순회한다.
 
-### 🫧 후위 순회 (Postorder Traversal)
+### 후위 순회 (Postorder Traversal)
 
 ![후위 순회](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FpKHG0%2FbtrnPLffDRi%2FdAjvuXYnm2NLKzFGGEySVk%2Fimg.png)  
 
@@ -83,7 +83,7 @@ int parent[] = {};
 2. 오른쪽 서브 트리를 후위 순회한다.
 3. 현재 정점을 방문한다.
 
-### 🫧 이진 트리의 순회 메모
+### 이진 트리의 순회 메모
 
 ![서로 다른 트리라고 하더라도 순회 결과가 일치할 수 있다](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FesAGSl%2FbtrnN1iz6v7%2FiSMoZtqH69KlwqJDSW86Kk%2Fimg.png)
 
@@ -95,7 +95,7 @@ int parent[] = {};
 2개의 순회 결과가 주어졌을 때에는 그러한 트리가 유일할까요?  
 [만약 중위 순회(Inorder)와 다른 순회가 주어진다면 유일하지만 중위 순회가 포함되어있지 않다면 유일하지 않는다.](https://www.geeksforgeeks.org/if-you-are-given-two-traversal-sequences-can-you-construct-the-binary-tree/)  
 
-## 💫 이진 검색 트리 (Binary-Search-Tree)
+## 이진 검색 트리 (Binary-Search-Tree)
 
 ---
 
@@ -116,7 +116,7 @@ Binary-Search-Tree | 이진 탐색 트리
 이진 탐색 개념을 그래프의 트리 구조 사용하여 표현  
 마찬가지로 각 노드는 최대 두 개의 자식 노드를 가짐  
 
-### 🫧 왜 이진 검색 트리를 쓰냐?
+### 왜 이진 검색 트리를 쓰냐?
 
 탐색, 삽입, 삭제 연산을 O(logN)에 할 수 있기 때문  
 
@@ -134,14 +134,14 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
 
 때문에 insert, erase, find, update 등이 빈번하면서, 동시에 뭔가 원소의 대소와 관련한 성질이 필요한 경우에는 이진 검색 트리를 사용해야 한다.  
 
-### 🫧 성질
+### 성질
 
 - 모든 노드는 왼쪽 가지에 포함되는 어떤 숫자보다 큰 숫자
 - 모든 노드는 오른쪽 가지에 포함되는 어떤 숫자보다 작은 숫자
 - -> 따라서 최상단 노드로부터 왼쪽 가지만 쭉 따라가면 최소노드 (최솟값)이 나옴
 - -> 따라서 최상단 노드로부터 오른쪽 가지만 쭉 따라가면 최대노드 (최댓값)이 나옴
 
-### 🫧 Binary-Search-Tree 구현
+### Binary-Search-Tree 구현
 
 #### 추가/삽입 Insert
 
@@ -163,7 +163,7 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
    - 혹은 삭제한 노드의 오른쪽 가지에서 최소 (기존 노드 값보다 큰 것들 중 가장 작은) 노드를 찾아 기존 노드 위치로 이동
    - 이동한 자식 노드가 자식 노드를 가지고 있으면, 해당 노드에 대해 3번 재귀적 반복
 
-### 🫧 문제점
+### 문제점
 
 ![문제점](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FAsFh1%2Fbtrj3Wq2wSl%2Fx0uT0lByKesX8MFjcLWmA0%2Fimg.png)
 
@@ -178,7 +178,7 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
 각 연산을 O(logN)로 쓰려고 이진 검색 트리를 쓰는 건데, 만역 트리가 오른쪽 트리처럼 편향되어 있다면 이진 검색 트리를 쓰는 의미가 없어진다.  
 그리고 1, 2, 3, 4, ... 이렇게 크기 순으로 주어진 원소를 삽입한다면 1이 루트이고 나머지 원소들이 오른쪽에 일직서느올 연결되는 편향된 트리가 되니, 편향된 트리가 만들어지는 상황은 아주 잘 발생할 수 있다.  
 
-## 💫 Self-Balancing Tree
+## Self-Balancing Tree
 
 ---
 
@@ -192,7 +192,7 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
 
 이렇게 편향성을 해소해주는 자가 균형 트리를 사용할 때 비로소 이진 검색 트리에서 삽입, 검색, 삭제가 모두 O(lg N)이 됩니다.  
 
-## 💫 STL
+## STL
 
 ---
 
@@ -203,7 +203,7 @@ erase는 배열 중간에 있는 원소가 제거될 상황이 나올 수 있으
 - 공통 | 런타임 에러를 유발하는 주요 원인
   - `iterator`가 `end()`를 가리키고 있을 때 값 참조
 
-### 🫧 set
+### set
 
 ![set](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FbLouBY%2Fbtrj3hoNORk%2FAN6nrrpe1PhKDGEVoxgGjK%2Fimg.png)  
 
@@ -231,7 +231,7 @@ set에는 원소가 정렬되어 있기 때문에 O(lg N)에 가능합니다.
 
 한편 next, prev의 경우에는 정확히는 최악의 경우 O(lg N)이지만 amortized O(1)입니다. 운이 정말 안좋다면 1번 next나 prev 연산을 하는건 O(lg N)일 수 있지만, 예를 들어 K번 next나 prev를 한다고 하면 amortized O(1)이기 때문에 O(K)의 시간이 필요하게 됩니다.
 
-### 🫧 multiset
+### multiset
 
 ![multiset](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FqEMGv%2Fbtrj1Yp4ihm%2FdtmdE3oKovxDnWFdfOvjK1%2Fimg.png)  
 
@@ -251,7 +251,7 @@ set에는 원소가 정렬되어 있기 때문에 O(lg N)에 가능합니다.
 그리고 여기는 가리키는 원소가 없기 때문에 만약 *it2를 출력하게끔 했다면 런타임 에러가 발생합니다.
 또한 unordered_multiset과 마찬가지로 count 함수는 O(lg N)이 아닌 O(원소의 개수)만큼의 시간이 걸림에 유의하세요.
 
-### 🫧 map
+### map
 
 ![map](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcwVBO7%2Fbtrj5c8ajqZ%2Fo1ypN9u9ZjfjZNip0Ia771%2Fimg.png)  
 
@@ -264,7 +264,7 @@ set에는 원소가 정렬되어 있기 때문에 O(lg N)에 가능합니다.
 
 it1이 가리키는 대상은 `pair<string, int>`이기 때문에 `it1->first`, `it1->second`로 key와 value를 가져올 수 있습니다.
 
-### 🫧 메모
+### 메모
 
 #### 1
 
@@ -297,7 +297,7 @@ it1이 가리키는 대상은 `pair<string, int>`이기 때문에 `it1->first`, 
   2. STL set/map -> STL unordered_set/unordered_map 교체
   3. 이분 탐색, 정렬, 아니면 배열의 인덱스를 가지고 푸는 다른 풀이를 고민
 
-## 💫 메모
+## 메모
 
 ---
 

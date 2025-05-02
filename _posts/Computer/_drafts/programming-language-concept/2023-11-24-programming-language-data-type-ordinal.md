@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어 - Ordinal Data Type"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: [Data-Type]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,11 +9,11 @@ date: 2023-11-24. 09:20
 last_modified_at: 2023-12-01. 10:20
 ---
 
-## 💫 사용자 정의 순서 타입
+## 사용자 정의 순서 타입
 
 ---
 
-## 💫 순서 타입 - Ordinal type
+## 순서 타입 - Ordinal type
 
 ---
 
@@ -26,7 +26,7 @@ last_modified_at: 2023-12-01. 10:20
 
 → 사용하면 코드가 간결해지고 가독성이 좋아진다.  
 
-## 💫 열거 타입 - Enumeration Type
+## 열거 타입 - Enumeration Type
 
 ---
 
@@ -35,7 +35,7 @@ last_modified_at: 2023-12-01. 10:20
 
 - 열거 상수에는 전형적으로 정수 값 0, 1, … 등이 암묵적으로 할당되나 임의의 값을 명시적으로 할당하는 것도 가능
 
-### 🫧 설계 고려사항
+### 설계 고려사항
 
 열거형이 정수형으로 강제 형변환 가능한가?  
 열거형과 정수이외의 타입과의 관계를 허용할 것인가?  
@@ -81,7 +81,7 @@ if (gender == MALE) // ~
   - 표준 라이브러리에 제공
   - JavaScript, Python, Ruby, Lua, PHP, ...
 
-### 🫧 평가
+### 평가
 
 열거형은 가독성과 신뢰성을 향상시킨다.  
 
@@ -90,7 +90,7 @@ if (gender == MALE) // ~
 C, 열거형을 정수형처럼 취급, 이는 가독성을 향상시키지만 신뢰성 문제를 야기할 수 있다.  
 C++, 열겨형 비교연산 시 정수형 타입처럼 다뤄 질 수 있다.  
 
-## 💫 부분 범위 타입
+## 부분 범위 타입
 
 ---
 

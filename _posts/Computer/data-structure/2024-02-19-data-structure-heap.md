@@ -1,7 +1,7 @@
 ---
 title: "Heap"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Heap]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-02-19. 20:22
 last_modified_at: 2024-08-29. 22:06
 ---
 
-## 💫 @TODO
+## @TODO
 
 ---
 
@@ -52,4 +52,4 @@ Heap
 
 다익스트라  
 
-### 🫧 _
+### _

@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어 - 언어 설계에 영향을 주는 요소들"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -11,29 +11,29 @@ last_modified_at: 2023-12-08. 10:05
 
 {% include custom/computer/programming-language.html %}
 
-## 💫 프로그래밍 언어 설계에 영향을 주는 요소들
+## 프로그래밍 언어 설계에 영향을 주는 요소들
 
 ---
 
 **`컴퓨터 구조`**, **`프로그래밍 방법론`**
 
-## 💫 컴퓨터 구조
+## 컴퓨터 구조
 
 ---
 
 @ U 중간고사 출제 : 언어 설계에 영향을 주는 요소는 무엇이 있고, 그 중 컴퓨터 구조는 왜 영향을 주는가?  
 
-### 🫧 폰 노이만 구조 - Von Neumann Architecture
+### 폰 노이만 구조 - Von Neumann Architecture
 
 폰 노이만이 고안한 컴퓨터 구조로, 프로그램 내장 방식 (메모리에 명령어/데이터 저장)과 명령어의 순차적 실행, CPU Cycle(명령어 인출, 해석, 실행)을 가지는 것이 특징이다.  
 
 @ vs 프로그램 외장 방식 (기계 자체에)  
 
-### 🫧 명령형 언어 - Imperative Language
+### 명령형 언어 - Imperative Language
 
 기계 구조 관점에서 모델링된, 폰 노이만 구조 기반의 언어이다. 변수, 반복문, 배정문(Assignment)이 특징이다. 효율 측면에서 함수형 언어나 논리형 언어에 비해 뛰어나다.  
 
-## 💫 프로그래밍 방법론
+## 프로그래밍 방법론
 
 ---
 
@@ -43,7 +43,7 @@ last_modified_at: 2023-12-08. 10:05
 
 이와 같은 프로그래밍 방법론, SW 개발 방법론들은 이후 만들어지는 언어 설계에 큰 영향을 주었다.  
 
-### 🫧 추상화 - Abstraction
+### 추상화 - Abstraction
 
 복잡하고/실제적이고/구체적인 개념을 숨기고 요약하여, 보다 높은 수준의 개념을 유도하는 과정.  
 컴퓨터(명령형 언어)에서 `데이터`와 `흐름 제어`를 추상화  할 수 있다.  

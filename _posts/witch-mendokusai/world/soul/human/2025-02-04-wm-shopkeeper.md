@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Shopkeeper"
+title: "'마녀:귀찮아!' | Shopkeeper"
 # description: ""
-categories: [🫐WitchMendokusai, 🥥The-World]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 더 월드]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,14 +10,14 @@ date: 2025-02-04. 23:55 # Init
 last_modified_at: 2025-04-16. 20:02 # 모험가 길드 대장, 열매
 ---
 
-## 📀 머리말
+## 머리말
 
 ---
 
 훗날 모험가 길드 대장이 되는  
 상점 주인, 주점 주인,  
 
-## 📀 Concept
+## Concept
 
 ---
 
@@ -27,10 +27,10 @@ last_modified_at: 2025-04-16. 20:02 # 모험가 길드 대장, 열매
 - 상점 주인
 - 어떤 열매를 좋아함
 
-## 📀 메모
+## 메모
 
 ---
 
-### 💿 키워드
+### 키워드
 
 - 주인: 酒人 (술)

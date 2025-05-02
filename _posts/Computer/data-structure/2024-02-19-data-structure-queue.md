@@ -1,7 +1,7 @@
 ---
 title: "Queue"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Queue]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -9,7 +9,7 @@ date: 2024-02-19. 16:45
 last_modified_at: 2024-08-29. 22:07
 ---
 
-## 💫 @TODO
+## @TODO
 
 ---
 
@@ -93,4 +93,4 @@ Flood Fill
 
 둘 다 단골 문제  
 
-### 🫧 _
+### _

@@ -1,7 +1,7 @@
 ---
 title: "Linked-List"
 # description: ""
-categories: [💫Computer, 🌓Data-Structure]
+categories: [컴퓨터, 자료구조]
 tags: [Data-Structure, Linked-List]
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -12,7 +12,7 @@ date: 2024-02-19. 00:30
 last_modified_at: 2024-08-29. 22:07
 ---
 
-## 💫 @TODO
+## @TODO
 
 ---
 
@@ -32,7 +32,7 @@ Linked-List 연결 리스트
 극장에서 서로 흩어져서 영화보기  
 서로 어디있는지는 앎  
 
-### 🫧 _
+### _
 
 - 성질
   - k번째 원소를 확인/변경하기 위해 O(k)가 필요함

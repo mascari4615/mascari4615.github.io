@@ -1,7 +1,7 @@
 ---
 title: "Programming Paradigm 프로그래밍 패러다임"
 # description: ""
-categories: [💫Computer, 🌗Programming]
+categories: [컴퓨터, 프로그래밍]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -16,11 +16,11 @@ last_modified_at: 2024-08-30. 00:48
 
 {% include custom/computer/programming-paradigm.html %}
 
-## 💫 머리말
+## 머리말
 
 ---
 
-## 💫 메모
+## 메모
 
 ---
 

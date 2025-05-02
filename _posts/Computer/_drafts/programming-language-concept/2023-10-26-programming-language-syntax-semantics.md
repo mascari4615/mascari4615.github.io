@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어 - 구문론과 의미론"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -13,7 +13,7 @@ last_modified_at: 2023-12-08. 10:08
 
 @ 구문론과 의미론
 
-## 💫 Syntax, Semantics
+## Syntax, Semantics
 
 ---
 
@@ -26,7 +26,7 @@ Semantic 의미론
 i.e. while (bool) statement  
 → 위 명령어의 `문법` 그리고 `의미`  
 
-## 💫 언어 기술의 문제점 - Programming Language Description
+## 언어 기술의 문제점 - Programming Language Description
 
 ---
 
@@ -38,25 +38,25 @@ i.e. while (bool) statement
 - 구현자 : 언어 기술의 완전성과 정확성 중요
 - 사용자 : 언어 참고 메뉴얼의 제공
 
-### 🫧 Syntax와 Semantics는 서로 밀접한 관련
+### Syntax와 Semantics는 서로 밀접한 관련
 
 언어 설계가 잘되었다면,  
 문장의 문법(Syntax)에서 의미(Semantics)가 곧바로 보여야  
 
-### 🫧 Syntax를 기술하는 것이 Semantics를 기술하는 것보다 쉽다
+### Syntax를 기술하는 것이 Semantics를 기술하는 것보다 쉽다
 
 @ 정석 : 명확하고 공통적으로 받아들여지는 기술 양식(방법)  
 
 언어의 Syntax : 정석이 있음  
 언어의 Semantics : 정석이 없음  
 
-## 💫 Syntax 정의의 문제점 (해결 과제)
+## Syntax 정의의 문제점 (해결 과제)
 
 ---
 
 @ 컴파일러 만들 때, Lex (Lexeme 구분해주는) & Yacc (Parser)  
 
-### 🫧 Lexeme, Token
+### Lexeme, Token
 
 - Lexeme - 어휘 항목
   - (형식적 문법으로) 코드 최소 구분 단위 (Syntax 기준)
@@ -90,7 +90,7 @@ x, y - Identifier
 언어 생성기  
 → 정의된 문법으로부터 언어 L을 생성하는 장치  
 
-## 💫 구문 기술의 형식적 방법
+## 구문 기술의 형식적 방법
 
 ---
 
@@ -104,7 +104,7 @@ Type-1, Context Sensitive Grammar
 Type-2, Context Free Grammar  
 Type-3, Regular Grammar  
 
-### 🫧 프로그래밍 언어와 문맥 자유 문법 Context-Free
+### 프로그래밍 언어와 문맥 자유 문법 Context-Free
 
 - 토큰들의 형태는 정규문법으로 기술 가능 Regular Grammar
   - by Lex(Lexeme Analyzer Program)
@@ -140,7 +140,7 @@ if (\<logic_expr\>) \<stmt\> | if (\<logic_expr\>) \<stmt\> else \<stmt\>
 가변 길이의 리스트를 표현할 때 (BNF에서는) Recursive 재귀 사용  
 i.e. \<ident_list> → identifier | identifier, <ident_list>  
 
-## 💫 문법과 유도
+## 문법과 유도
 
 ---
 

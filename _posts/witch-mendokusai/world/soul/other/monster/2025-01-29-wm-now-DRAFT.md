@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | 나우"
+title: "'마녀:귀찮아!' | 나우"
 # description: ""
-categories: [🫐WitchMendokusai, 🥥The-World]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 더 월드]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,13 +10,13 @@ date: 2025-01-29. 18:57 # Init
 last_modified_at: 2025-01-29. 18:57
 ---
 
-## 📀 나우
+## 나우
 
 ---
 
 후천적 악인  
 
-### 💿 악인
+### 악인
 
 악인의 전형적인 특성을 지녔다  
 
@@ -24,20 +24,20 @@ last_modified_at: 2025-01-29. 18:57
 
 남을 깎아내리며, 주변인들에게 본인의 생각에 대한 동의를 구한다  
 
-### 💿 과거
+### 과거
 
 그는 훌륭한 과학자였다  
 
 방에 갇혀 나오지 않았다  
 
-### 💿 피해망상
+### 피해망상
 
 주변인들이 자신을 싫어한다고 믿는다  
 
-### 💿 도망
+### 도망
 
 공포를 이기지못해 주변인들로부터 도망쳤다  
 
-### 💿 인물 관계
+### 인물 관계
 
 - 탐

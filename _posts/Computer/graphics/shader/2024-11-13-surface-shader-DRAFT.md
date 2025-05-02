@@ -1,7 +1,7 @@
 ---
 title: "Surface Shader"
 # description: ""
-categories: [💫Computer, 🌕Graphics]
+categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
@@ -10,7 +10,7 @@ date: 2024-11-13. 07:20
 last_modified_at: 2024-11-13. 07:20 # Init
 ---
 
-## 💫 Surface Shader
+## Surface Shader
 
 ---
 
@@ -63,7 +63,7 @@ o.Albedo = rgb~ + 변수 값
 
 텍스쳐는 UV 좌표와 함께 계산되어야 float4로 출력될 수 있기 때문에, 아직 UV와 계산되지 않은 텍스쳐는 색상 (float4)으로 나타낼 수 없다. 그래서 이때까지는 sampler라고 부른다.  
 
-## 💫 _4
+## _4
 
 ---
 

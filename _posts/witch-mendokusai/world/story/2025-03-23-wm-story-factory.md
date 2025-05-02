@@ -1,8 +1,8 @@
 ---
-title: "WitchMendokusai | Story Factory"
+title: "'마녀:귀찮아!' | Story Factory"
 # description: ""
-categories: [🫐WitchMendokusai, 🥥The-World]
-tags: [WitchMendokusai]
+categories: [마녀:귀찮아!, 더 월드]
+tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
@@ -10,11 +10,11 @@ date: 2025-03-23. 18:52 # Init
 # last_modified_at: 2025-03-23. 18:52 #
 ---
 
-## 📀 머리말
+## 머리말
 
 ---
 
-## 📀 0000: 문장
+## 0000: 문장
 
 ---
 
@@ -139,7 +139,7 @@ date: 2025-03-23. 18:52 # Init
 - 모든 변화는 성장이 아니다. 모든 움직임은 앞을 향하지 않는다.
 - Ten years ago, I said “One day” - Yesterday, I said “Day One”
 
-## 📀 0001
+## 0001
 
 ---
 
@@ -149,7 +149,7 @@ date: 2025-03-23. 18:52 # Init
 - 아이 머리 하얀 손
 - 신 HW 우두머리 SW
 
-## 📀 0002
+## 0002
 
 ---
 
@@ -157,11 +157,11 @@ date: 2025-03-23. 18:52 # Init
   - 아우렐리온 솔
   - 물의 정령들이 혹은 순수한 비의 신
 
-## 📀 메모
+## 메모
 
 ---
 
-### 💿 키워드
+### 키워드
 
 - 제노사이드 - 인종, 이념 등의 대립을 이유로 특정집단의 구성원을 대량 학살하여 절멸시키려는 행위
 - 비익연리 - 일생을 함께할 짝, 영원한 사랑
@@ -172,7 +172,7 @@ date: 2025-03-23. 18:52 # Init
 - 아케이넘
   - RPG에서는 마법이 물리 법칙을 왜곡하고 차단하기므로 마법사가 기계를 만지면 고장나고 기술자가 마법 물품을 만지면 마력이 달아난다는 설정.
 
-### 💿 참고
+### 참고
 
 - [플루토니움](https://namu.wiki/w/%ED%94%8C%EB%A3%A8%ED%86%A0%EB%8B%88%EC%9B%80/%EB%93%B1%EC%9E%A5%EC%9D%B8%EB%AC%BC)
 - 하이퍼 라이트 드리프터(게임) - 갑자기 나타난 정체불명의 검은 존재에 의해 파괴된 세상에서 검은 존재에게 맞서다가 생긴 치명적인 병을 치료하기 위해 고군분투하는 한 방랑자

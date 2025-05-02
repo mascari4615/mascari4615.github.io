@@ -1,7 +1,7 @@
 ---
 title: "프로그래밍 언어들"
 # description: ""
-categories: [💫Computer, 🌒Programming]
+categories: [컴퓨터, 🌒Programming]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
@@ -14,7 +14,7 @@ last_modified_at: 2024-10-21. 12:01
 
 ---
 
-## 💫 C
+## C
 
 ---
 
@@ -27,7 +27,7 @@ last_modified_at: 2024-10-21. 12:01
 
 - 주요 프로그래밍 언어 다수가 C에 뿌리를 두고 있다.
 
-## 💫 C++
+## C++
 
 ---
 
@@ -49,7 +49,7 @@ last_modified_at: 2024-10-21. 12:01
   - C 프로그램을 그대로 사용할 수 있다.
   - C 프로그램은 C++ 컴파일러로 컴파일한다(일부 예외는 있다).
 
-## 💫 C\#
+## C\#
 
 ---
 
@@ -64,7 +64,7 @@ C#을 쓰자.
 
 - 초기 C#은 Java와 아주 많이 유사했지만, 최신 C#은 Java와 꽤 멀어졌다.
 
-## 💫 Java | 자바
+## Java | 자바
 
 ---
 
@@ -78,11 +78,11 @@ C#을 쓰자.
 - 현재 Java는 오라클의 소유이며 여전히 성장하고 있다.
 - 최근에는 위원회의 관리를 받고 있는데 여기에 소속된 위원들은 Java의 발전 속도를 늦추고 싶어 한다. (?)
 
-## 💫 언어 스펙 비교
+## 언어 스펙 비교
 
 ---
 
-### 🫧 OOP (Like C++, C\#, Java)
+### OOP (Like C++, C\#, Java)
 
 - 연산자 중복 | Operator Overloading : 대상에 따라서 동일한 연산자로 새로운 연산을 정의할 수 있다
 - 참조 타입 | Reference Type : 변수의 별명을 만들어서 변수와 같이 사용할 수 있다.
@@ -90,7 +90,7 @@ C#을 쓰자.
 - 제네릭 | Generics : 클래스 정의를 자료형에 상관없이 재사용하는 기술
 - new 와 delete 연산자 : 동적 메모리 할당과 해제를 담당하는 연산자
 
-### 🫧 C++ vs C\#, Java
+### C++ vs C\#, Java
 
 - 가상 기계의 코드 생성
   - C#, Java : 가상 기계의 코드를 생성 -> 다른 종류의 컴퓨터에서는 바로 실행되는, 이식성이 좋음
@@ -108,7 +108,7 @@ C#을 쓰자.
   - C#, Java : Reference Type
   - C++ : Value Type
 
-## 💫 Python
+## Python
 
 ---
 
@@ -121,7 +121,7 @@ C#을 쓰자.
 - 1989년 반 로섬(Van Rossum)이 만들었다.
   - 파이썬 커뮤니티에서는 "자애로운 종신 독재자"라고 부르는
 
-## 💫 JavaScript, JS | Java스크립트
+## JavaScript, JS | Java스크립트
 
 ---
 
@@ -143,11 +143,11 @@ JS의 최신 버전 - ECMAScript는 기존 단점을 많이 수정한 덕에 대
     - 플래시 같은 다른 기술이나 다른 스크립트 언어도 만들어졌다. 그런 언어가 더 뛰어나다고 평가하는 이들도 있었다.
     - 하지만 결국 JS만 남았다. (그럼 살아남는 내가 승자네-)
 
-## 💫 TypeScript, TS | 타입스크립트
+## TypeScript, TS | 타입스크립트
 
 ---
 
-## 💫 Else
+## Else
 
 ---
 
