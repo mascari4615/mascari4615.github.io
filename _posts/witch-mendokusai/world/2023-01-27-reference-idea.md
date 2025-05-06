@@ -1,6 +1,6 @@
 ---
 title: "Reference, Idea"
-description: "내 망상, 설정 놀음. 그리고 그것을 위한 `소재` 조작 모음."
+description: "내 망상, 설정 놀음. 그리고 그것을 위한 소재 조각 모음."
 categories: [마녀:귀찮아!, 디자인]
 tags: [마녀:귀찮아!, Concept]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
