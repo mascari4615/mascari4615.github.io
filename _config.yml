@@ -23,23 +23,23 @@ description: >- # used by seo meta and the atom feed
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
-url: "https://Mascari4615.github.io"
+url: "https://mascari4615.github.io"
 
 github:
-  username: Mascari4615 # change to your Github username
+  username: mascari4615 # change to your Github username
 
 twitter:
-  username: Mascari4615 # change to your Twitter username
+  username: mascari4615 # change to your Twitter username
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: Mascari4615
+  name: mascari4615
   email: mascari4615@gmail.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://twitter.com/Mascari4615 # change to your twitter homepage
-    - https://github.com/Mascari4615 # change to your github homepage
+    - https://twitter.com/mascari4615 # change to your twitter homepage
+    - https://github.com/mascari4615 # change to your github homepage
     - https://www.linkedin.com/in/도윤-김-b89049194/
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
@@ -95,7 +95,7 @@ theme_mode: # [light | dark]
 # will be added to all media resources (site avatar, posts' images, audio and video files) paths starting with '/'
 #
 # e.g. 'https://cdn.com'
-cdn: "https://cdn.jsdelivr.net/gh/Mascari4615/Mascari4615.github.io@master"
+cdn: "https://cdn.jsdelivr.net/gh/mascari4615/mascari4615.github.io@master"
 
 # the avatar on sidebar, support local or CORS resources
 avatar: "/assets/img/profile/star-transparent.png"
@@ -119,7 +119,7 @@ comments:
     issue_term: # < url | pathname | title | ...>
   # Giscus options › https://giscus.app
   giscus:
-    repo: Mascari4615/blog-comments # <gh-username>/<repo>
+    repo: mascari4615/blog-comments # <gh-username>/<repo>
     repo_id: MDEwOlJlcG9zaXRvcnk0MDA0Mzg3MjE=
     category: Announcements
     category_id: DIC_kwDOF941wc4CbVSv
