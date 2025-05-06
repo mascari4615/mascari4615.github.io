@@ -319,7 +319,7 @@ last_modified_at: 2025-04-29. 06:55 # game-design 병합, title 200623 -> Game D
 
 </details>
 
-<http://www.joysf.com/4021184>  
+['_':](http://www.joysf.com/4021184)  
 
 1. 인벤토리 정리는 꼭 있어야 해
 2. 스토리와 퀘스트가 있지만 필수는 아니게. 모험이 주요 콘텐츠
@@ -371,7 +371,7 @@ last_modified_at: 2025-04-29. 06:55 # game-design 병합, title 200623 -> Game D
 26. 스킬은 마찬가지로 직업관련 모두 사용가능
 27. 인게임에서 공지사항등이 담긴 신문은 맵 가운데부터 가장자리로 순서대로 배분돼
 
-<http://www.thisisgame.com/webzine/gameevent/nboard/227/?n=82141&utm_source=naver&utm_medium=outlink&utm_campaign=tigadmin68&utm_content=82141&nogate>  
+['_':](http://www.thisisgame.com/webzine/gameevent/nboard/227/?n=82141&utm_source=naver&utm_medium=outlink&utm_campaign=tigadmin68&utm_content=82141&nogate)  
 
 MMORPG는 한 번 운영을 개시하면 그리 간단히 운영을 중지 할 수 없습니다. 왜냐하면,  
 플레이어 여러분의 캐릭터 데이터나 게임 안의 재산은 단순히 0과 1로 결성되는 데이터가 아니라 추억과 시간과 동료가 담겨 있기 때문입니다. - 요시다 나오키?  

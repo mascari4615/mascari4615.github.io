@@ -14,13 +14,11 @@ last_modified_at: 2025-03-15. 09:33 # Unity-Asset -> Unity-Resource
 
 ---
 
-- <https://blog.naver.com/sorang226/223792661583>
+- ['_':](https://blog.naver.com/sorang226/223792661583)
 
 ## AssetBundle
 
 ---
-
-### AssetBundle
 
 AssetBundle로 불러오는 방법으로는 씬에 포함된 스크립트가 불러와지지 않는다.  
 
@@ -31,7 +29,5 @@ AssetBundle로 씬을 묶어오면, 최상위 오브젝트들의 순서가 뒤�
 ## Addressable
 
 ---
-
-### Addressable
 
 - AddressableDownloadRequest

@@ -10,22 +10,6 @@ date: 2023-04-11. 13:44
 last_modified_at: 2024-08-29. 22:30
 ---
 
-- [유니티 Vector3는 스택에 생성된다, 값 형식이다, Struct](https://3dmpengines.tistory.com/1566)  
-- [유니티 Vector3 Struct](https://answers.unity.com/questions/1033383/code-performance-when-to-use-new-on-vector3.html)  
-- [C# new Struct](https://asta8080.tistory.com/5)  
-
-<http://smilejsu.tistory.com/560>
-
-<https://velog.io/@csm2652/C-Struct%EC%97%90%EC%84%9C%EC%9D%98-NEW-%ED%82%A4%EC%9B%8C%EB%93%9C>
-
-<https://answers.unity.com/questions/225729/gameobject-positionset-not-working.html>
-
-<https://forum.unity.com/threads/vector3-and-other-structs-optimization-of-operators.477338/>
-
-<https://answers.unity.com/questions/1033383/code-performance-when-to-use-new-on-vector3.html>
-
-<https://stackoverflow.com/questions/18732930/how-is-vector3-implemented-why-are-the-properties-readonly>
-
 ## 다루는 주제
 
 ---
@@ -128,3 +112,19 @@ ss.SomeVar = 1;
 이건 의미가 있다  
 ss 라는 SomeStruct 변수의 SomeVar 값을 바꾸고 저장한다.  
 결과가 남는다.  
+
+## 메모
+
+---
+
+### 참고
+
+- [유니티 Vector3는 스택에 생성된다, 값 형식이다, Struct](https://3dmpengines.tistory.com/1566)
+- [유니티 Vector3 Struct](https://answers.unity.com/questions/1033383/code-performance-when-to-use-new-on-vector3.html)
+- [C# new Struct](https://asta8080.tistory.com/5)
+- ['_':](http://smilejsu.tistory.com/560)
+- ['_':](https://velog.io/@csm2652/C-Struct%EC%97%90%EC%84%9C%EC%9D%98-NEW-%ED%82%A4%EC%9B%8C%EB%93%9C)
+- ['_':](https://answers.unity.com/questions/225729/gameobject-positionset-not-working.html)
+- ['_':](https://forum.unity.com/threads/vector3-and-other-structs-optimization-of-operators.477338/)
+- ['_':](https://answers.unity.com/questions/1033383/code-performance-when-to-use-new-on-vector3.html)
+- ['_':](https://stackoverflow.com/questions/18732930/how-is-vector3-implemented-why-are-the-properties-readonly)

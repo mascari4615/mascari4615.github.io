@@ -232,7 +232,7 @@ spring:
       # 크게 의미는 없다, H2를 끄면 같이 날라가서
 ```
 
-<http://localhost:8080/h2-console>  
+[localhost:8080/h2-console](http://localhost:8080/h2-console)  
 
 `show tables;`  
 `select * from user;`  

@@ -10,7 +10,7 @@ date: 2024-12-18. 04:40 # Init
 last_modified_at: 2024-12-18. 04:40
 ---
 
-<https://youtu.be/twTZpKv0-uw?si=-P4A7GLI2cPJ7bGG>  
+['_':](https://youtu.be/twTZpKv0-uw?si=-P4A7GLI2cPJ7bGG)  
 
 ## 머리말
 

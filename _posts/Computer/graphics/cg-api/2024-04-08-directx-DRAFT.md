@@ -19,17 +19,15 @@ last_modified_at: 2024-11-13. 07:47 # Init
 - DirectX / OPENGL, 뭐든 "CG 이론을 알고 있다"를 어필할 수 있는
 - [그래픽스 공부한사람들 어느정도 공부했음?](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=89027)
 - 파이프라인 쭉 훑고 텍스쳐링이랑 알파블렌딩 해보면 충분?
-- <https://www.opengl-tutorial.org/> -> 렌더링 기초?
+- ['OpenGL-Tutorial': 렌더링 기초?](https://www.opengl-tutorial.org/)
 
 ## _
 
 ---
 
-### _
+{% include embed/youtube.html id = "NTvhVxSC_80" %}
 
 - [Direct X 프로그래밍 학습에 대한 조언](https://megayuchi.com/2019/04/18/direct-x-프로그래밍-학습에-대한-조언/)
-
-<https://www.youtube.com/live/NTvhVxSC_80?si=v6Buv00ygh2ETDdh&t=2997>
 
 - 콘솔모드 테트리스 or 뱀 (뭐든 간에)
 GDI로 헬로 월드

@@ -20,6 +20,6 @@ last_modified_at: 2024-08-29. 22:21
 한 번 고민해 보셔요.  
 저는 잘 모르겠습니다. 한 개인 것 같기도 하고..  
 
-<https://mindyourdecisions.com/blog/2018/02/19/how-many-holes-does-a-straw-have-the-correct-answer-explained-mathematically>  
+['_':](https://mindyourdecisions.com/blog/2018/02/19/how-many-holes-does-a-straw-have-the-correct-answer-explained-mathematically)  
 
 {% include embed/youtube.html id ="'W0tYRVQvKbM" %}

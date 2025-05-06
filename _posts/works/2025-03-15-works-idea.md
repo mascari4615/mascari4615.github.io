@@ -31,10 +31,10 @@ Sep 26, 2024: 'Horrible Udon Networking Code Generator' VSCode 확장으로 만�
 
 ### _
 
-<https://holaworld.io/>  
-<https://apps.apple.com/kr/charts/iphone/%EC%9C%A0%ED%8B%B8%EB%A6%AC%ED%8B%B0-apps/6002?chart=top-paid>  
-<https://devfolio.kr/>  
-<https://www.gpters.org/c/business/>  
+- ['_':](https://holaworld.io/)
+- ['_':](https://apps.apple.com/kr/charts/iphone/%EC%9C%A0%ED%8B%B8%EB%A6%AC%ED%8B%B0-apps/6002?chart=top-paid)
+- ['_':](https://devfolio.kr/)
+- ['_':](https://www.gpters.org/c/business/)
 
 ### 릴레이 소설 (소설 작가 커뮤니티/창작 공간)
 
@@ -78,7 +78,8 @@ private, public
 일부 기능만 만들어서 모듈화 시킨다거나  
 
 단순히 개성을 입히거나 (i.e. : 타이머 + 귀여운 곰 = `BFT 베어 포커스 타이머`)  
-<https://apps.apple.com/kr/app/bft-%EB%B2%A0%EC%96%B4-%ED%8F%AC%EC%BB%A4%EC%8A%A4-%ED%83%80%EC%9D%B4%EB%A8%B8/id1328806990>
+
+- ['_':](https://apps.apple.com/kr/app/bft-%EB%B2%A0%EC%96%B4-%ED%8F%AC%EC%BB%A4%EC%8A%A4-%ED%83%80%EC%9D%B4%EB%A8%B8/id1328806990)
 
 ### GPT 가상 온라인 모의면접
 
@@ -94,8 +95,9 @@ private, public
 
 ### 배너/명함 생성기
 
-<https://devfolio.kr/project/92>  
-<https://devfolio.kr/project/8>  
+- ['_':](https://devfolio.kr/project/92)
+- ['_':](https://devfolio.kr/project/8)
+
 GPT?
 
 ### ETC

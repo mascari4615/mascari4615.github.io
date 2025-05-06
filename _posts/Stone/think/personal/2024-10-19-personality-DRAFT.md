@@ -13,4 +13,4 @@ last_modified_at: 2024-10-19. 13:02 # Init
 
 ---
 
-- <https://www.16personalities.com/ko/결과/infp-t/m/lmgev5gc8>
+- ['_':](https://www.16personalities.com/ko/결과/infp-t/m/lmgev5gc8)
