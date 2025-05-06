@@ -103,7 +103,7 @@ last_modified_at: 2025-04-25. 05:42 # X
 - [](https://x.com/giro_natsu/status/1835709872350048464)
 - [](https://x.com/giro_natsu/status/1835667769326702768)
 - [](https://x.com/giro_natsu/status/1835541250809688489)
-- [나라 아버지 인격](https://twitter.com/keroro4792/status/1622267728336920580?s=20)
+- [나라 아버지 인격](https://x.com/keroro4792/status/1622267728336920580?s=20)
 - [mix](https://x.com/CandlMix/media)
 - [서부마녀](https://x.com/PT_CROW/status/1783423425756996021)
 - ['X, _': '남캐가 여캐를 더 좋아하는 관계'](https://x.com/Gojomegum/status/1912870190666199398)

@@ -28,7 +28,8 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2024-11-13. 03:33 # -PS
 # last_modified_at: 2024-11-13. 07:44 # -CG
 # last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 내한 내용은 Learning으로
-last_modified_at: 2025-04-28. 17:40 # 메모
+# last_modified_at: 2025-04-28. 17:40 # 메모
+last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 ---
 
 ## 리마인드
@@ -332,3 +333,276 @@ last_modified_at: 2025-04-28. 17:40 # 메모
 - data-bind: 코드 없이 데이터 런타임에 변화
 - instruments time profiler
   - unity profiler보다 더 깊게 볼 수 있음
+- SceneManager.MoveGameObjectToScene
+- 내외적 짐벌락 사원수
+- 주사 방식
+- 키보드 스캔 코드
+- 프로세스-프로그램
+- 콜스택
+- 디펜던시 인젝션 \| Dependency Injection == 문어발 콘센트, Like MVC
+  - 스탯/스킬트리, 프리셋 비유법
+- MAUI, WinForm
+- 조합형, 완성형 한글 코드, 가상키코드, [유니티 - 가상키보드](https://github.com/YeongJoo-Kim/UnityHangulKeybord/tree/master/VirtualKeyboard/Assets)
+- Cellular Automata 세포 자동자
+- Lint, Lint Roller
+- 정보 = Bit + Context
+- mono, il2cpp
+- 파일이름제한
+- 포터블 모니터
+- EGPU
+- 선조건 후조건
+- Quaternion
+- 언리얼 Double, 유니티 Float
+- A*, QuadTree, BSP
+- rule of thumb
+- UPROPERTY
+- 웹 어셈블리
+- 폴리싱
+- 암달의 법칙
+- Amortized 복잡도
+  - <https://medium.com/@satorusasozaki/amortized-time-in-the-time-complexity-of-an-algorithm-6dd9a5d38045#:~:text=Amortized%20time%20is%20the%20way,array%20and%20can%20be%20extended>
+- Random Access
+- Unity AnimationCurve curve.Evaluate
+- three d pose tracker
+- Null safety
+- InverseTransformDirection, InverseTransformPoint
+  - 복사생성자 v1 = v2 , v1(v2) , v1 {v2}
+- 객체 비교 시에도 복사가 일어난다
+- CISC RISC
+- 명령어가 다르면, 다시말해 여러가지를 쓸 수 있어서 편의성
+- 복잡해서 느림
+- RISC는 다 똑같아서 좀 불편해도 빠름
+- 진공관, 트랜지스터, IC, VLSI, SoC, 멀티코어
+- Multi Booting
+- Solaris/SUN, Linux/x86
+- 정규분포 활용
+- Quaternion.LookRotation
+- Best Practice
+- Flocking Algorithm
+- Tradeoff
+- Swagger
+- 도커라이징
+- 보일러 플레이트
+- 영상 처리 라이브러리 : OpenCV By Intel
+- 드래그 길이 : GetMouseButtonDown, "Up, Input.mousePosition
+- threshold
+- ParticleSystem : Rate/지속적, Burst/간헐적
+- ENUM
+  - 첫 번째, -1, NONE
+  - 마지막, NUM
+- Mathf.Repeat
+- Devil May Cry
+- OnBecomeVisible
+- OnBecomeInvisible
+- OnWillRenderObject
+- 프러스텀
+- 가변개수파라메터
+- TL;DR:
+- ShiftJIS 0x5c
+- LTE 본딩 장비
+- VMC Virtual Motion Capture
+- VRM
+- 밸리데이션
+- DTO
+- SLI : NVIDIA의 Scalable Link Interface, 그래픽 카드 여러 개 같이 쓰는, 성능이 그대로 증가하지는 않음
+- MSA : MiroService Architecture
+- GDI : Graphics Device Interface
+- GetMessage, PeekMessage
+  - GetMessage : 메시지가 있을 때까지 기다림
+  - PeekMessage : 메시지가 있든 없든 바로 리턴
+- 레퍼런스 카운트 : 레퍼런스가 0이 되면 메모리 해제
+  - 메모리가 소멸되는 방법은 두 가지
+    - 가비지 컬렉터 : .NET, 자동으로 메모리 해제
+    - 레퍼런스 카운트 : C++, 레퍼런스가 0이 되면 메모리 해제
+- 롱포인터, 숏포인터 : 32비트, 16비트
+- 시스템 메모리 : RAM
+- 비디오 메모리 : VRAM
+- 메모리 얼라인 : 메모리 주소가 4의 배수로 정렬
+- 비트맵 : 픽셀 데이터를 담는 메모리
+- 칼라키 : 색상 키, 투명도, 알파
+- WinDbg : 윈도우 디버거 도구
+  - 개요 : 프로세스, 스레드, 메모리, CPU 등의 정보를 제공
+- 섭스 언리얼 4 Packed
+- LitJSON
+- c# 확장메소드
+- 블렌드 트리
+- c# 인터페이스 프로퍼티
+- usb키
+- OPS
+- vsf 닐로툰
+- <https://wlsdn629.tistory.com/entry/유니티-Folder-Structure-체계적인-폴더-구조-규칙>
+- P-Shooters
+- GIGDC
+- 포스트모뎀
+- WDK (Windows Driver Kit)
+- MFC (Microsoft Foundation Classes) \| GUI UI 라이브러리
+- PoC (Proof of Concept) \| 새로운 기술/개념 도입 전 검증 과정
+- ROS (Robot Operating system) \| 로봇 운영체제
+- cloudflare
+- 컨퍼런스 VRChat ?
+- MUD Multi User Dungeon
+  - 그래픽이 없고 텍스트만 있는 WOW
+  - 모뎀을 통해 통화선으로 BBS 에 연결하던 시절
+- 애자일 소프트웨어 개발 | Agile
+- 테스트 주도 개발 | Test Driven Development
+- 폭포수 개발
+- 체크인 ㅡ 수정이 끝난 파일 사본을 저장소에 저장하여 버전을 갱신하는 작업
+- 지속적 통합 | Continous Integration
+- 파레토 법칙
+- 카우보이 코더 : 혼자서 일하는 프로그래머 (체계 없이 독선적으로 일하는 코더를 일컫는 부정적 함의가 담긴 표현)
+- 테스트베드 :
+- [어드레서블 에셋 시스템으로 메모리 최적화하기](https://unitysquare.co.kr/growwith/unityblog/webinarView?id=272)
+- OneSignal: 메시징 노티
+- static event
+- Resource 폴더 위치 자유롭다, 여러 개 있어도 되고
+- Enum 파일 하나로 합치기
+- 주석 신경쓰기 -> Class 주석
+- Screen.Orientation바뀌면 Screen.Width Hight도 바뀜
+- Singleton
+  - DontDestroy
+  - Scene마다 -> 씬 별로 다른 처리가 가능
+- Pwd DelDDa - Discord Bot" date: 2024-10-16. 07:24
+- [](https://namu.wiki/w/VA-11%20HALL-A:%20Cyberpunk%20Bartender%20Action#s-3.1)
+- [](https://discord.com/developers/applications)
+- [](https://docs.discordnet.dev/guides/getting_started/terminology.html)
+- 디커플링: 양쪽 코드 중에서 한쪽이 없으면 코드를 이해할 수 없을 때, 둘이 커플링되어 있다고 본다
+  - 작업에 관련된 코드가 두 코드 중에서 하나에만 연관되어 있다면, 한쪽 코드만 머리에 집어넣으면 된다
+- 작업에 들어가기 전에 알아야 할 지식의 양을 줄이는 것
+- 혼자서 작업하는 거면, 나만 보면 되는 코드라면 구조는 상관없다
+- 하지만 "변경"해야하는, 변경이 필요하다면, 디커플링은 중요하다
+- 너무 과도해도
+  - 추상화된 계층도가 머리 용량을 더 차지하는 경우가
+- 결국 배보다 배꼽이 더 커지면 안되는
+  - 엔진은 **게임을 만들기위해** 만들어졌다는것
+- 성능과 속도
+  - 성능과는 다른 방향을 바라보는
+  - 구조는 코드를 더 유연하고 쉽게 변경할 수 있도록 -> 어떤 것이 와도 문제없이 동작하기 위해
+  - 하지만 성능은 전부 **가정**에 기반한다.
+    - 최적화 기법은 구체적인 제한을 선호한다
+    - 적이 256개이하일거라고 확신한다면? ID를 1바이트로 압축할 수 있다.
+- 그렇지만 유연성은 필요하다
+  - 유연성이 좋아야 게임을 쉽게 변경할 수 있다
+  - **개발** 속도는 게임 재미를 찾는게 꼭 필요하다
+  - 기획서만으로는 게임 밸런스를 맞출 수 없고, 반복 개발과 실험을 같이 해야한다
+  - Idea를 빠르게 시험해보고 느낌을 빨리 확인하면, 더 많이 시도해볼 수 있고 멋진 걸 찾을 가능성이 높아진다
+- 쉬운답은 없다
+  - 프로토타이핑을 빠르게 하기 위해 유연하게 만들면 성능상 비용이 발생
+  - 반대로 코드를 최적화하면 유연성이 떨어진다
+- 저자의 경험 상
+  - 재미있는 게임을 최적화하는 것이
+  - 최적화된 게임을 재미있게 만드는 것보다 훨씬 쉽다
+  - 오..
+- 깔끔하고
+- 최적화되고
+- 빠르게 구현하고 싶다
+- version 뜻
+- `unity.com/how.to`
+- C#에서 C/C++ 실행
+- ThreadSafeTypes
+- Polyglot
+- WebAssembly -> VRChat에서 쓰는 것 같은데
+- LLVM 저수준 가상 머신?
+- Emscription
+- C++/C -> Emscription -> Wasm
+- Emscription 에서 LLVM을 컴파일에 이용
+- 모든 브라우저는 Wasm을 JS와 함께 실행 가능?
+- Wasm은 거의 네이티브 같은 속도로 실행된다?
+- Unity Web
+- HTTP Preload 태그를 이용
+- 첫 번째 씬에 필요한 에셋 로드
+- 코드 추출
+- Tree
+- WebGL vs WebGPU
+- Feel Update Note/Release Note -> 이쁨
+- .asmdef define
+- Camera MSAA
+- DofVFX Samples
+- Mono 호환성 -> IL2CPP 속도, 보안
+- BuildReportTool
+- EasyMobilePro
+- AntiCheat Toolkit
+- EasySave
+- 커서 AI
+- prefare 블로그 보기
+- apk 압축파일, 그냥 반디집으로도 풀어지네
+- Asset Studio 후속
+- Dnspy 후속
+- IL2CPP-Dumper
+- 한글화/에셋 수정에 사용되는 툴
+- ffmpeg
+- CodeRabbit : '코파일럿'같은 개발자를 위한 코드 리뷰 도구
+- Switch When
+- 인하우스, 아웃소싱
+- Bar Cmd Exe 확장자 차이
+- 로렘 입숨 lorem ipsum;
+- aa ASCII ART
+- #pragma
+  - 사전적 의미로 만능
+  - VS C++에서 컴파일러에게 그 뒤에 오는 내용을 따라 어떤 일을 하라는 전처리 명령어로 사용
+  - 컴파일러에게 직접 명령을 내리는 지시자
+- 곱셈이 나눗셈보다 빠르다
+  - 곱셈은 한 번에 처리
+  - 나눗셈은 뺄셈을 계속해서 처리
+  - [참고](https://blog.naver.com/PostView.nhn?blogId=fah204&logNo=221573584390)
+- 동기 비동기
+  - 병원 들어갔어, 접수처에서 순서기다리세요 부를게요~ 하는거랑
+  - 들어가자마자 아무것도 안하고 기다리는 것 차이
+  - 페이지에서 조금씩 조금씩 나오는 거
+- Setter보단 의미있는 메소드를
+- 이건 할 줄 알아야 한다
+  - <https://en.wikipedia.org/wiki/XOR_swap_algorithm>
+  - 해쉬 맵 링크드 리스트 트리=바이너리 서치=순서대로 출력 이건 할 줄 알아야
+- .NET 프레임워크 Old vs .NET Core New
+  - 코어는 윈도우 리눅수 맥 모두 실행가능
+  - 거의 똑같음
+- var let const
+  - JavaScript에 대하여,
+  - 중복 선언이 가능하다는 var의 특징 때문에, let이 나온 이후로는 변수 선언 시 let과 const를 주로 사용
+  - 호이스팅,스코프 관련해서도 다른 점이 있다고는데, 패스
+  - var : Variable
+  - let : Let
+  - const : Constant
+  - | var | 중복 선언 가능 | |
+  - | let | 중복 선언 불가능 | 값 변경 가능 |
+  - | const | 중복 선언 불가능 | 값 변경 불가능 |
+- 헤더 파일이 없어도 실행이 되는 이유
+  - → 특정 컴파일러나 다른 헤더가, 해당 헤더를 포함하고 있는 경우
+  - → I.E. iostream → string.h, C++ 표준 라이브러리 컴파일러 → string
+- Leading 0
+  - → [0 Padding](https://stackoverflow.com/questions/3122677/add-zero-padding-to-a-string)
+  - → string.PadLeft(4, '0')
+  - → int.ToString("D4")
+- malloc 리턴이 void *, 포인터인 이유?
+  - → Heap에 메모리 할당, 이렇게 할당한 주소를 가리켜야함
+  - → malloc으로 어떤 타입을 할당한 지 모름, 정할 수 없음, 그래서 void
+- 예전엔 C 변수 전방 선언
+  - → 과거 적은 메모리, 부족할 수 있어서 사용할 변수 미리 선언해두고 유지보수 쉽게??
+  - → 최신 버전에서는 고쳐지기도 했고, 컴파일러 따라 다르기도
+- 연결리스트 current (end)
+  - → 이게 없으면 삽입 O(n), 끝부분을 찾아야 하니까
+  - → 삭제는 어차피 찾는 거라서 크게 상관없음
+- Windows에서 돌아가는 모든 프로그램은 WinAPI 사용
+  - → Java가 느린 이유, WinAPI에 직접 접근하지 못함, JVM 한 단계 거쳐서
+  - → @ Minecraft Java에서 C++로 바뀐
+- 변수명 작성 스타일
+  - 케밥 케이스, 스네이크 케이스, 카멜 케이스, 파스칼 케이스
+- 섭스 앵커포인트: 뱅큐님 강의
+- a practical tutorial to hack and protect unity games  
+- 달리기 애니메이션 만들기: atdlfeKgBV8
+- Flush 물 내리 듯, 영속성 컨텍스트의 변경 내용을 반영? (로얄플러쉬도 그 플러쉬인가?
+- Postmodern
+- `Alt + Shift + 5`: 구글 워크스페이스 취소선
+- Hilbert ← Linear (raster)
+- Anomalous Cancellation 이상한 약분
+- Play By Mail Game  
+- 네크로 포스팅
+- Plogging = Plockaupp (줍다 in 스페인) + Jogging
+- Brachistochrone curve 최단시간곡선 → 배틀그라운드 낙하
+
+```cs
+Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
+GeometryUtillity.TestPlanesAABB(planes, Renderer.bounds);
+
+// 한 점
+Bounds B = new Bounds(Position: Vector3, Size: Vector3.zero);
+```

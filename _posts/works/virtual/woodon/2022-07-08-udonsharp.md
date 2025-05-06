@@ -173,7 +173,7 @@ Overlay 캔버스로 만들어도 되지만, VRChat에서 메뉴(R키)를 조작
 
 ### 메모
 
-- [VRC, 영화 자막](https://twitter.com/vr_hai/status/1495774702521958407?s=20)
+- [VRC, 영화 자막](https://x.com/vr_hai/status/1495774702521958407?s=20)
 - Light Probes Volme Settings
 - Light Probe Group
 - Occlusion Area

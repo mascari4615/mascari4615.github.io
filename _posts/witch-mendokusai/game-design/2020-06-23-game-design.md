@@ -187,7 +187,7 @@ last_modified_at: 2025-04-29. 06:55 # game-design 병합, title 200623 -> Game D
 
 ### 참고
 
-- [젤다](https://twitter.com/WonSoRang/status/1658023932820357120?s=20)
+- [젤다](https://x.com/WonSoRang/status/1658023932820357120?s=20)
 
 ### 에콜로지
 

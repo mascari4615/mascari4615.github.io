@@ -91,7 +91,7 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 - [쿠키런 사운드, 미들웨어, FMOD](https://v.daum.net/v/5ae023f36a8e510001f88d05)
 - [게임제작에 사용되는 영어단어](https://m.blog.naver.com/PostView.nhn?blogId=nicecapj&logNo=130062005836&proxyReferer=https:%2F%2Fwww.google.com%2F)
 - [당신이 보는 게임 화면은 진짜가 아니다.](https://gall.dcinside.com/mgallery/board/view/?id=aoegame&no=16490887)
-- [엔터더건전 3D 트윗](https://twitter.com/DodgeRollGames/status/593625936131653632)
+- [엔터더건전 3D 트윗](https://x.com/DodgeRollGames/status/593625936131653632)
 - [2D도트게임의 비밀](https://www.dogdrip.net/195354145)
 - [Game Jam Theme Generator](https://letsmakeagame.net/game-jam-theme-generator/)
 - [Level Design](https://www.worldofleveldesign.com/categories/cat-level-design.php)
@@ -208,12 +208,12 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 
 ### 아트
 
-- [블렌더 에드온](https://twitter.com/h_ram01/status/1545646179488124928?s=20&t=T5ZiW47P8k2CtzxR9_ec_g)
+- [블렌더 에드온](https://x.com/h_ram01/status/1545646179488124928?s=20&t=T5ZiW47P8k2CtzxR9_ec_g)
 - [애니메이션의 타이밍](https://spine304.tistory.com/65)
 - [AO 러프니스 메탈릭 채널이 정해진 이유](https://youtu.be/ZQagb9WG1bg?si=weV2vFkrYZcdyvTd)
 - [그래픽 블로그](https://rusalgames.tistory.com/)
-- [투명한 메쉬로 그림자 표현하기](https://twitter.com/JasperRLZ/status/1182510103943094272?ref_src=tws5Etfwrc%)
-- [Z-Fighting 고치는 방법](https://twitter.com/FreyaHolmer/status/799602767081848832?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ)
+- [투명한 메쉬로 그림자 표현하기](https://x.com/JasperRLZ/status/1182510103943094272?ref_src=tws5Etfwrc%)
+- [Z-Fighting 고치는 방법](https://x.com/FreyaHolmer/status/799602767081848832?s=20&t=EBmnPU-IlwzD5ylVXmrPqQ)
 - [블렌더 에드온 오브젝트 다른 오브젝트에 달라붙게](https://x.com/BlenderHub7/status/1819801883109695547)
 - [블렌더 루프 선택에서 특정 페이스만 띄워서 선택하기](https://x.com/what_wat_/status/1818966855127838897)
 - [모션그래픽](https://x.com/MotionLCM/status/1820878279165014349)
@@ -305,7 +305,7 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 
 - [컴퓨터과학에 대한 오해와 진실](https://spri.kr/posts/view/21907?code=column)
 - [발로란트 리버싱 도중 발견한 구인광고](https://x.com/matorialize/status/1248648303408852992?s=20)
-- [AI가 팩맨을 모방하여 만들어냄](https://twitter.com/lepreagles/status/1263982448532062208?ref_src=twsrc%5Etfw)
+- [AI가 팩맨을 모방하여 만들어냄](https://x.com/lepreagles/status/1263982448532062208)
 - [욕을 하면 고통이 줄어든다?](https://boingboing.net/2020/05/22/scientists-saying-fuck-an.html)
 
 - [IGN 인터뷰, 게임을 만들 때 가장 어려운 것은... 모든 것이다](https://kr.ign.com/control/11198/feature/geimeul-mandeul-ddae-gajang-eoryeoun-geoseun-modeun-geosida)
@@ -315,15 +315,15 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 - [float 연산이 정확하지 않다면 컴퓨터 계산기는 어떻게 소수를 계산하는가](https://www.quora.com/If-computers-cannot-compute-floating-numbers-accurately-how-do-calculators-and-scientific-computers-function)
 - [마인크래프트 지형 생성 알고리즘](https://blog.naver.com/kids1412/222686829072)
 - [휴머노이드 애니 리타겟팅](https://docs.unity3d.com/kr/2021.3/Manual/Retargeting.html)
-- [유니티 수학 시각화](https://twitter.com/Indiedev_Hub/status/1651707801591484416?s=20)
-- [레이마칭을 이용한 포탈 데칼](https://twitter.com/lateasusual_/status/1633659951607365632?s=20)
-- [GPT를 이용한 탄막 패턴 사례](https://twitter.com/alice_diffusion/status/1636000238757625867?s=20)
-- [라이팅/레벨](https://twitter.com/jpcorp72/status/1668992816796532737?s=20)
-- [게임으로 언어 공부하기](https://twitter.com/kinophio/status/1665907410618437633?s=20)
-- [십수년전.. 게임사가 배포한 정식 게임 클라이언트없이 MMO서버에 붙는 봇(OOG:OutOfGame bot)들 잡을 때 썼던 방식](https://twitter.com/deimos18770812/status/1507938863754334211?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
+- [유니티 수학 시각화](https://x.com/Indiedev_Hub/status/1651707801591484416?s=20)
+- [레이마칭을 이용한 포탈 데칼](https://x.com/lateasusual_/status/1633659951607365632?s=20)
+- [GPT를 이용한 탄막 패턴 사례](https://x.com/alice_diffusion/status/1636000238757625867?s=20)
+- [라이팅/레벨](https://x.com/jpcorp72/status/1668992816796532737?s=20)
+- [게임으로 언어 공부하기](https://x.com/kinophio/status/1665907410618437633?s=20)
+- [십수년전.. 게임사가 배포한 정식 게임 클라이언트없이 MMO서버에 붙는 봇(OOG:OutOfGame bot)들 잡을 때 썼던 방식](https://x.com/deimos18770812/status/1507938863754334211?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
 - [수학적 Coordinate, Color](https://catlikecoding.com/unity/tutorials/basics/mathematical-surfaces/)
 - [수학 시각화](https://gall.dcinside.com/mgallery/board/view/?id=singlebungle1472&no=288516&exception_mode=recommend&page=1)
-- [두 문자열을 결합하는 함수를 만들었는데 저 뒤에 췍이 '\0' 이겠죠? 왜 저렇게 나오는거람...?](https://twitter.com/beankong__/status/1465534135858917379?s=20&t=6OrpB8hwWz-erqS0iFftQQ)
+- [두 문자열을 결합하는 함수를 만들었는데 저 뒤에 췍이 '\0' 이겠죠? 왜 저렇게 나오는거람...?](https://x.com/beankong__/status/1465534135858917379?s=20&t=6OrpB8hwWz-erqS0iFftQQ)
 
 - [브라우저 확장](https://learn.microsoft.com/en-us/microsoft-edge/extensions-chromium/getting-started/part1-simple-extension?tabs=v3)
 

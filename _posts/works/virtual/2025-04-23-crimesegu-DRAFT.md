@@ -59,4 +59,5 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 
 ---
 
-전 굽기용으로 포커 게임 (Like ProminencePoker, With Scoreboard)  
+- 전 굽기용으로 포커 게임 (Like ProminencePoker, With Scoreboard)
+- 월드 접속하면 얼굴 찍기 -> 프로필 따로 넣을 필요 없이 바로

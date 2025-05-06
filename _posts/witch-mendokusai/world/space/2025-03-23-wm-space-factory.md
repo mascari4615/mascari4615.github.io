@@ -173,11 +173,11 @@ last_modified_at: 2025-04-19. 10:12 # 기믹
   - 전문용어(?)로 틴들현상이라고 부르죠. 공통과학 (요즘도 이 과목명이 있는지 모르겠군요) 시간에 배우고 나면 하늘에서 빛으로 길이 열릴때마다 누군가 "틴들현상이다!" 외치는 것을 들을 수 있습니다(…)
 - 어쩌면 선녀가 하늘로 올라갔다는 이야기는 공작을 보고 만들어낸 이야기인지도 모르겠다...
 - 카라칼의 귀
-- [오호츠크와 홋카이도의 깊고 차가운 바다에서 발견되는 희귀한 불가사리 Trophodiscus almus. 새끼를 표면 위에 낳는다는 특징이 있는데, 마치 별이 그려진 듯한 느낌을 줍니다. 불가사리](https://twitter.com/Luciferinoah/status/1477942887489085448?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
-- [손 위에 가득한 형형색색의 갯민숭달팽이(Nudibranch). 조상으로부터 껍질이 퇴화한 이들은 북극에서 따뜻한 열대 산호초를 거쳐 남극 대륙 주변에 이르는 세계의 모든 바다에 서식하며 약 3,000여 종이 세상에 알려졌습니다.](https://twitter.com/Luciferinoah/status/1496820983939829766?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
-- [An ocean full of ice eggs](https://twitter.com/gunsnrosesgirl3/status/1620059585276157954?s=20&t=wFo20YFQODQgHpo3xnoukA)
-- [2010년 남극의 빙붕 밑에 내려보낸 수중 로봇에 의해 우연하게 발견된 말미잘 Edwardsiella andrillae. 차가운 빙하 밑면에 구멍을 뚫고 거꾸로 자라는 종으로, 얼음 속에 사는 유일한 말미잘입니다.](https://twitter.com/Luciferinoah/status/1652981276289413121?s=20)
-- [조개로 수질 파악하는 장치](https://twitter.com/Rainmaker1973/status/1621111186082373632?s=20)
+- [오호츠크와 홋카이도의 깊고 차가운 바다에서 발견되는 희귀한 불가사리 Trophodiscus almus. 새끼를 표면 위에 낳는다는 특징이 있는데, 마치 별이 그려진 듯한 느낌을 줍니다. 불가사리](https://x.com/Luciferinoah/status/1477942887489085448?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
+- [손 위에 가득한 형형색색의 갯민숭달팽이(Nudibranch). 조상으로부터 껍질이 퇴화한 이들은 북극에서 따뜻한 열대 산호초를 거쳐 남극 대륙 주변에 이르는 세계의 모든 바다에 서식하며 약 3,000여 종이 세상에 알려졌습니다.](https://x.com/Luciferinoah/status/1496820983939829766?s=20&t=UCr8P5wJDoKdC6hj7_SyBQ)
+- [An ocean full of ice eggs](https://x.com/gunsnrosesgirl3/status/1620059585276157954?s=20&t=wFo20YFQODQgHpo3xnoukA)
+- [2010년 남극의 빙붕 밑에 내려보낸 수중 로봇에 의해 우연하게 발견된 말미잘 Edwardsiella andrillae. 차가운 빙하 밑면에 구멍을 뚫고 거꾸로 자라는 종으로, 얼음 속에 사는 유일한 말미잘입니다.](https://x.com/Luciferinoah/status/1652981276289413121?s=20)
+- [조개로 수질 파악하는 장치](https://x.com/Rainmaker1973/status/1621111186082373632?s=20)
 - 고동 눈
 - 청동거울 앞면은 다 녹쓸어서, 시대적 특징/차이를 보여주기 힘듦 → 교과서에서 뒷면을
 - 달력 (마사토끼님 만화에서)

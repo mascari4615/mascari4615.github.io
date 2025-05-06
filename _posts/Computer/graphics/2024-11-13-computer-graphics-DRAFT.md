@@ -47,10 +47,10 @@ Computer Graphics.
 - [가짜 투명도, 디더링](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=117790&page=1)
 - [쉐이더와 머테리얼](https://gall.dcinside.com/mgallery/board/view/?id=game_dev&no=117952&exception_mode=recommend&page=1)
 - [알베도, 이미션, 디퓨즈](https://m.blog.naver.com/sorang226/222940558803)
-- [2D→3D](https://twitter.com/asidys230/status/1635799802100482049?s=20)
-- [Post-processing outlines](https://twitter.com/TheMirzaBeig/status/1658643110409261056?s=20)
-- [light scrolling](https://twitter.com/cmzw_/status/1655536784485527552?s=20)
-- [Tiling Vs Hex Tiling](https://twitter.com/_kzr/status/1621052638723993600?s=20)
+- [2D→3D](https://x.com/asidys230/status/1635799802100482049?s=20)
+- [Post-processing outlines](https://x.com/TheMirzaBeig/status/1658643110409261056?s=20)
+- [light scrolling](https://x.com/cmzw_/status/1655536784485527552?s=20)
+- [Tiling Vs Hex Tiling](https://x.com/_kzr/status/1621052638723993600?s=20)
 - [일반적인 2Pass 방식일 때 노말 방향 보정 공부](https://x.com/longlong_stone/status/1664844118491553793)
 - [darkcatgame](https://darkcatgame.tistory.com/79)
 - [펭귄 게임 개발일지 - 툰 쉐이더](https://gall.dcinside.com/mgallery/board/view?id=game_dev&no=126408)
@@ -61,7 +61,7 @@ Computer Graphics.
 - 키바님
   - [숫자 타일](https://x.com/kjh030529/status/1754052982621274570)
   - [버튼](https://x.com/kjh030529/status/1757252520051888242)
-  - [홀로그램 쉐이더](https://twitter.com/kjh030529/status/1631561982842396677?s=20)
+  - [홀로그램 쉐이더](https://x.com/kjh030529/status/1631561982842396677?s=20)
 
 - 경섭님
   - [1](https://x.com/ryurud_n5/status/1822665541909434376)

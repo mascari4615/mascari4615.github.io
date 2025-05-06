@@ -339,3 +339,5 @@ This allows you to denote <var>variables</var>.
 
 > [!CAUTION]
 > Negative potential consequences of an action.
+
+- discord: `-# ⓘ`

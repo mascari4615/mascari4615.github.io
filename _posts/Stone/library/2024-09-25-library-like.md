@@ -24,7 +24,8 @@ date: 2024-09-25. 18:26
 # last_modified_at: 2025-03-23. 18:10 # 추가
 # last_modified_at: 2025-04-19. 02:35 # zz 추가
 # last_modified_at: 2025-04-23. 05:51 # 트위터 정리
-last_modified_at: 2025-04-25. 07:12 # Library-Like로 변경, Like 분리
+# last_modified_at: 2025-04-25. 07:12 # Library-Like로 변경, Like 분리
+last_modified_at: 2025-05-06. 15:43 # 정리
 ---
 
 ## 머리말
@@ -40,45 +41,24 @@ last_modified_at: 2025-04-25. 07:12 # Library-Like로 변경, Like 분리
 
 ### UwU
 
-#### UwU | X
+#### UwU: 트위터
 
-<details>
-	<summary>UwU | X</summary>
+- [Jill](https://x.com/lanxcer/status/1332376282907037696)
+- [Jill](https://x.com/rnna_7/status/1827960032601706539)
+- [3D Pixel](https://x.com/esukevi/status/1840763036308509079)
+- [Jill](https://x.com/tomatoketchup96/status/1842562690407133519)
+- [아피미쿠 4컷](https://x.com/ourloxeisgrxxt/status/1844069882071232930)
+- [World if we](https://x.com/TopGyaru/status/1791713728422920473)
+- [빙과](https://x.com/kindcow__/status/1823234476602016033)
+- [미니미 소나/그웬](https://x.com/1v9GG_/status/1809297679781855562)
+- [네코마타</a>](https://x.com/yomooog/status/1812734381817205016)
+- [니콜](https://x.com/nn161_9/status/1782726116320432446)
+- [짧은 애니메이션 스케치](https://x.com/RumblyF/status/1777038426946076704)
+- [？？？？](https://x.com/yuumagurenooto/status/1692171607798923580)
+- [블루아카이브](https://x.com/arisu_archive/status/1656220719116849152)
+- [최애의 아이](https://x.com/notephos/status/1845994480224047167)
 
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/lanxcer/status/1332376282907037696?ref_src=twsrc%5Etfw">Jill</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/rnna_7/status/1827960032601706539?ref_src=twsrc%5Etfw">Jill</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/esukevi/status/1840763036308509079?ref_src=twsrc%5Etfw">3D Pixel</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/tomatoketchup96/status/1842562690407133519?ref_src=twsrc%5Etfw">Jill</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/ourloxeisgrxxt/status/1844069882071232930?ref_src=twsrc%5Etfw">아피미쿠 4컷</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/TopGyaru/status/1791713728422920473?ref_src=twsrc%5Etfw">World if we</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/kindcow__/status/1823234476602016033?ref_src=twsrc%5Etfw">빙과</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/1v9GG_/status/1809297679781855562?ref_src=twsrc%5Etfw">미니미 소나/그웬</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/yomooog/status/1812734381817205016?ref_src=twsrc%5Etfw">네코마타</a></a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/nn161_9/status/1782726116320432446?ref_src=twsrc%5Etfw">니콜</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/RumblyF/status/1777038426946076704?ref_src=twsrc%5Etfw">짧은 애니메이션 스케치</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/yuumagurenooto/status/1692171607798923580?ref_src=twsrc%5Etfw">？？？？</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/arisu_archive/status/1656220719116849152?ref_src=twsrc%5Etfw">블루아카이브</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/notephos/status/1845994480224047167?ref_src=twsrc%5Etfw">최애의 아이</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-</details>
-
-#### UwU | Youtube
-
-<details>
-	<summary>UwU Youtube</summary>
+#### UwU: 유튜브
 
 DJMAX RESPECT V Muse Dash DLC Trailer  
 {% include embed/youtube.html id = "Ec-o7ADa0p8" %}
@@ -108,93 +88,51 @@ Digitalcircus
 {% include embed/youtube.html id = "3p37V-lTWkI" %}
 {% include embed/youtube.html id = "nQktEm_JdNk" %}
 
-</details>
-
 ### Wakta
 
-#### Wakta | X
+#### Wakta: 트위터
 
 - [릴챤 워싱씨](https://x.com/cocho224/status/1735709034085486894)
 - [마법소녀 비챤](https://x.com/Nega_mannaz/status/1671896491047395329)
 - [멜로크론님 주폭도](https://x.com/melochron/status/1670998635646177281)
+- [으음!?](https://x.com/foxleaf610/status/1839518326520729975)
+- [갓경](https://x.com/V1ichan/status/1841138251756941645)
+- [보거형과 와꾸텽](https://x.com/migyul22/status/1841737603210739767)
+- [칵](https://x.com/iam_282/status/1746507042029015199)
+- [고개 까딱임](https://x.com/buck_0610/status/1656699566127976449)
+- [마리](https://x.com/Abchimy__/status/1834858069144355204)
+- [미미짱짱세용과 티파니](https://x.com/ch5danforwakta/status/1807043324068643248)
+- [너에게 닿기를 - 베드엔딩](https://x.com/dyubu0902/status/1740350296336028136)
+- [ㅔ](https://x.com/Hzip_001/status/1735288649930133602)
+- [이세페 르르땅](https://x.com/dyubu0902/status/1737761292939821071)
+- [앙탈 르르땅](https://x.com/swnchann/status/1707345849750306970)
+- [분홍 르르땅](https://x.com/mkmk01092/status/1693080163687231976)
+- [여우였어 르르땅](https://x.com/drr7518/status/1688904846135676930)
+- [확대 르르땅](https://x.com/dd_epari/status/1685296944900632577)
+- [앙 르르땅](https://x.com/jr_rixve/status/1640255759303970817)
+- [토끼 르르땅](https://x.com/WAK_aci/status/1610678723325628416)
+- [하품하는 토끼 르릇땅 ](https://x.com/Bobppa_owo/status/1798027418336366791)
+- [드르륵 탁](https://x.com/drr7518/status/1609320745074831361)
+- [칭얼 르르땅](https://x.com/lem_ming_/status/1604833431107833856)
+- [쪽 콘르르](https://x.com/lem_ming_/status/1601158708641247232)
+- [냥냥펀치 르르땅](https://x.com/lem_ming_/status/1597575431754231809)
+- [쾌녀 르르땅](https://x.com/Nyong_wak/status/1529814456363995136)
+- [브이챤](https://x.com/canindaeyo/status/1673600024905928705)
+- [왕](https://x.com/plu_Vii_a/status/1596188612403818496)
+- [비상 볼빵빵](https://x.com/seguZzangsegu/status/1692502799630971339)
+- [홈파티](https://x.com/seguZzangsegu/status/1693276937626800335)
+- [몸 꼬이는 르르땅](https://x.com/ff9910e/status/1723670261378257056)
+- [스시버거](https://x.com/dd_epari/status/1725156673558392979)
+- [참혹한 모습](https://x.com/dd_epari/status/1692872918467068135)
+- [카감](https://x.com/sollog8__/status/1738187007720063082)
+- [고루시](https://x.com/drr7518/status/1542861876358705153)
+- [마법 숙녀](https://x.com/i__ii_11/status/1707719338810360028)
 
-<details>
-	<summary>Wakta | X</summary>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/foxleaf610/status/1839518326520729975?ref_src=twsrc%5Etfw">으음!?</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/V1ichan/status/1841138251756941645?ref_src=twsrc%5Etfw">갓경</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/migyul22/status/1841737603210739767?ref_src=twsrc%5Etfw">보거형과 와꾸텽</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/iam_282/status/1746507042029015199?ref_src=twsrc%5Etfw">칵</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/buck_0610/status/1656699566127976449?ref_src=twsrc%5Etfw">고개 까딱임</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/Abchimy__/status/1834858069144355204?ref_src=twsrc%5Etfw">마리</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/ch5danforwakta/status/1807043324068643248?ref_src=twsrc%5Etfw">미미짱짱세용과 티파니</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/dyubu0902/status/1740350296336028136?ref_src=twsrc%5Etfw">너에게 닿기를 - 베드엔딩</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/Hzip_001/status/1735288649930133602?ref_src=twsrc%5Etfw">ㅔ</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/dyubu0902/status/1737761292939821071?ref_src=twsrc%5Etfw">이세페 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/swnchann/status/1707345849750306970?ref_src=twsrc%5Etfw">앙탈 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/mkmk01092/status/1693080163687231976?ref_src=twsrc%5Etfw">분홍 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/drr7518/status/1688904846135676930?ref_src=twsrc%5Etfw">여우였어 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/dd_epari/status/1685296944900632577?ref_src=twsrc%5Etfw">확대 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/jr_rixve/status/1640255759303970817?ref_src=twsrc%5Etfw">앙 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/WAK_aci/status/1610678723325628416?ref_src=twsrc%5Etfw">토끼 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/Bobppa_owo/status/1798027418336366791?ref_src=twsrc%5Etfw"> 하품하는 토끼 르릇땅 </a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/drr7518/status/1609320745074831361?ref_src=twsrc%5Etfw">드르륵 탁</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/lem_ming_/status/1604833431107833856?ref_src=twsrc%5Etfw">칭얼 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/lem_ming_/status/1601158708641247232?ref_src=twsrc%5Etfw">쪽 콘르르</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/lem_ming_/status/1597575431754231809?ref_src=twsrc%5Etfw">냥냥펀치 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/Nyong_wak/status/1529814456363995136?ref_src=twsrc%5Etfw">쾌녀 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/canindaeyo/status/1673600024905928705?ref_src=twsrc%5Etfw">브이챤</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/plu_Vii_a/status/1596188612403818496?ref_src=twsrc%5Etfw">왕</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/seguZzangsegu/status/1692502799630971339?ref_src=twsrc%5Etfw">비상 볼빵빵</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/seguZzangsegu/status/1693276937626800335?ref_src=twsrc%5Etfw">홈파티</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/ff9910e/status/1723670261378257056?ref_src=twsrc%5Etfw">몸 꼬이는 르르땅</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/dd_epari/status/1725156673558392979?ref_src=twsrc%5Etfw">스시버거</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/dd_epari/status/1692872918467068135?ref_src=twsrc%5Etfw">참혹한 모습</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/sollog8__/status/1738187007720063082?ref_src=twsrc%5Etfw">카감</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/drr7518/status/1542861876358705153?ref_src=twsrc%5Etfw">고루시</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/i__ii_11/status/1707719338810360028?ref_src=twsrc%5Etfw">마법 숙녀</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-</details>
-
-#### Wakta | Youtube
+#### Wakta: 유튜브
 
 - [버튜버가 추는 'Magnetic' 극락 파트](https://www.youtube.com/watch?v=_FOAijVo3_w)
 - [미소 참기 LV.9999](https://www.youtube.com/watch?v=ajyEGw6hD_E)
 - [](https://youtu.be/nunEtQM82fo?si=WVKRgHb8rSQdK8D2)
-
-<details>
-	<summary>Wakta | Youtube</summary>
 
 주냥이 터미널 (맛보기)  
 {% include embed/youtube.html id = "g46LBsmf2Gs" %}
@@ -305,41 +243,23 @@ AI 번역 영상을 다시 AI로 번역한다면?
 절대 사과 하지 않는 남편  
 {% include embed/youtube.html id = "gK1gz5qeB7U" %}
 
-</details>
-
 ### 동물
 
 #### 동물 | X
 
-<details>
-	<summary>동물 | X</summary>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/PostsOfCats/status/1832676429219193163?ref_src=twsrc%5Etfw">앉는 검은 고양이</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1817052216907432405?ref_src=twsrc%5Etfw">긴 막대기를 문 닥스훈트</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1809560899189109154?ref_src=twsrc%5Etfw">들 뜬 시바</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1808058526633472184?ref_src=twsrc%5Etfw">3단 고양이</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1807071434189258959?ref_src=twsrc%5Etfw">하얀 족제비</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1835637176522142096?ref_src=twsrc%5Etfw">베개를 문 고양이</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/shouldhaveanima/status/1690287463951118336?ref_src=twsrc%5Etfw">아기 문어</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/healing_storage/status/1637682747803324416?ref_src=twsrc%5Etfw">웰시코기</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-</details>
-
-- [광대승천 동물들](https://www.youtube.com/watch?v=6GtBMQ_JaXg)
-- [Adorable Elephant Learns to Play the Drums!](https://www.youtube.com/watch?v=TMg0hDCm31k)
+- [앉는 검은 고양이](https://x.com/PostsOfCats/status/1832676429219193163)
+- [긴 막대기를 문 닥스훈트](https://x.com/healing_storage/status/1817052216907432405)
+- [들 뜬 시바](https://x.com/healing_storage/status/1809560899189109154)
+- [3단 고양이](https://x.com/healing_storage/status/1808058526633472184)
+- [하얀 족제비](https://x.com/healing_storage/status/1807071434189258959)
+- [베개를 문 고양이](https://x.com/healing_storage/status/1835637176522142096)
+- [아기 문어](https://x.com/shouldhaveanima/status/1690287463951118336)
+- [웰시코기](https://x.com/healing_storage/status/1637682747803324416)
 
 #### 동물 | Youtube
 
-<details>
-	<summary>동물 | Youtube</summary>
-
+- [광대승천 동물들](https://www.youtube.com/watch?v=6GtBMQ_JaXg)
+- [Adorable Elephant Learns to Play the Drums!](https://www.youtube.com/watch?v=TMg0hDCm31k)
 wawa  
 {% include embed/youtube.html id = "N_s_ZTeiXxE" %}
 도시공원에 작은 물그릇 하나 갖다두면 생기는 일  
@@ -347,51 +267,43 @@ wawa
 이집트 다합에서 밥을 먹으면?  
 {% include embed/youtube.html id = "-Z_hFj4S9Q8" %}
 
-</details>
-
 ### 일반
 
-#### 일반 | X
+#### 일반: 트위터
 
-<details>
-	<summary>일반 | X</summary>
+- [Michael, what's wrong?](https://x.com/maburuiz/status/1832761200326689230)
+- [하루 우라라](https://x.com/Hanguny/status/1541239177328463872)
+- [두부까는 호시노 겐](https://x.com/tyomateee/status/1654796088979886080)
+- [축구 테이블](https://x.com/TheFigen_/status/1815166372693070245)
+- [닌텐도](https://x.com/_MisterMiles_/status/1804089382556545120)
+- [VA-11 HALL-A GameBoy](https://x.com/GameboyJuntaro/status/1656345846936670208)
+- [네더 포털 버그](https://x.com/Translate_Ghost/status/1657352237071613952)
+- [구글 입사 포트폴리오](https://x.com/AkshayNarisetti/status/1651466332158984193)
+- [한국말하는 테토](https://x.com/backbbingss/status/1653366663063175170)
+- [부순 초콜릿](https://x.com/prac_tice_2023/status/1815322708730892753)
+- [수리검 냉장고 자석](https://x.com/fav_item/status/1825742581076029825)
 
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/maburuiz/status/1832761200326689230?ref_src=twsrc%5Etfw">Michael, what's wrong?</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/Hanguny/status/1541239177328463872?ref_src=twsrc%5Etfw">하루 우라라</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/tyomateee/status/1654796088979886080?ref_src=twsrc%5Etfw">두부까는 호시노 겐</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/TheFigen_/status/1815166372693070245?ref_src=twsrc%5Etfw">축구 테이블</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/_MisterMiles_/status/1804089382556545120?ref_src=twsrc%5Etfw">닌텐도</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-<blockquote class="twitter-tweet" data-media-max-width="720" data-lang="ko"><a href="https://twitter.com/GameboyJuntaro/status/1656345846936670208?ref_src=twsrc%5Etfw">VA-11 HALL-A GameBoy</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-</details>
+#### 일반: 유튜브
 
 - [We can pet cat](https://www.youtube.com/watch?v=3m5a7pVqLNc)
 - [𝖓𝖊𝖛𝖊𝖗 𝖌𝖔𝖓𝖓𝖆 𝖕𝖗𝖎𝖓𝖈𝖊𝖘𝖘](https://www.youtube.com/watch?v=MYpZYPI-cYI)
 - [낙인](https://www.youtube.com/watch?v=dJxyL8R5dBs)
 - XYpQqxBspRg
-- knjgTad9Sdk : 꼭두각시 서커스
-- SxC_7-5ZUjM : [매너가 없는 요즘 사람들](https://www.fmkorea.com/6794331213)
-- l_DE4XVXio0 : 요안부르주아 성공을 표현한 퍼포먼스
+- knjgTad9Sdk: 꼭두각시 서커스
+- SxC_7-5ZUjM: [매너가 없는 요즘 사람들](https://www.fmkorea.com/6794331213)
+- l_DE4XVXio0: 요안부르주아 성공을 표현한 퍼포먼스
 - yGkHzCCYYbk
-- myP3YGsboRk : 다메다네 3000
-- slazi2PpYUo : 이츠마데 후타리데 이루노카나
-- YPs3PKyqEqE : 비상교육 과학 브금
-- yDIOze0XndU : [라이트맵 튜토리얼](https://discussions.unity.com/t/bakery-gpu-lightmapper-v1-96-rtpreview-released/704890/5470?page=274)
-- X8Tj5zQexxw :
-- qachWbwDXSs :
-- wNlT5B1FlYc : 끈질긴 PPAP
-- wCw7O2hE6mk : 마인크래프트 홀로렌즈
-- 1Bix44C1EzY : Congratulations
-- R4ZcOPF8KjU :
-
-<details>
-	<summary>일반 | Youtube</summary>
-
+- myP3YGsboRk: 다메다네 3000
+- slazi2PpYUo: 이츠마데 후타리데 이루노카나
+- YPs3PKyqEqE: 비상교육 과학 브금
+- yDIOze0XndU: [라이트맵 튜토리얼](https://discussions.unity.com/t/bakery-gpu-lightmapper-v1-96-rtpreview-released/704890/5470?page=274)
+- X8Tj5zQexxw:
+- qachWbwDXSs:
+- wNlT5B1FlYc: 끈질긴 PPAP
+- wCw7O2hE6mk: 마인크래프트 홀로렌즈
+- 1Bix44C1EzY: Congratulations
+- R4ZcOPF8KjU:
+- 7NJwQutiUuIv: 요네즈켄시 TRPG
 당신의 사랑해는 어디?  
 {% include embed/youtube.html id = "-fyXK3SJ8Bc" %}
 띵곡 인트로 만드는 방법  
@@ -713,8 +625,6 @@ Musical Tesla coils and Faraday suit - Imperial March
 WOMBO COMBO!!!!  
 {% include embed/youtube.html id = "pD_imYhNoQ4" %}
 
-</details>
-
 ### 도토리
 
 - [](https://x.com/undefined/status/1859908442569462069)
@@ -747,14 +657,14 @@ WOMBO COMBO!!!!
     - [goodbye world](https://x.com/dinosaurs1969/status/1894477541521404154)
     - [재밌는 짤 찾으려면 핀터레스트에 meme image original 로 검색하면 잘나옴](https://x.com/mango0928/status/1770393179797471465)
     - [](https://x.com/shitpost_2077/status/1896251658213970130)
-    - [](https://twitter.com/mischiefanimals/status/1624094025547493381?s=20)
-    - [](https://twitter.com/mischiefanimals/status/1634992387947896832?s=20)
-    - [](https://twitter.com/mischiefanimals/status/1642199905534980100?s=20)
-    - [](https://twitter.com/mischiefanimals/status/1627686200096980994?s=20)
-    - [](https://twitter.com/mischiefanimals/status/1637202361260167169?s=20)
-    - [](https://twitter.com/memesbreakcore/status/1554691889307291648?s=20)
-    - [](https://twitter.com/memesbreakcore/status/1632520920932704256?s=20)
-    - [](https://twitter.com/NoContextHumans/status/1656723211587813395?s=20)
+    - [](https://x.com/mischiefanimals/status/1624094025547493381?s=20)
+    - [](https://x.com/mischiefanimals/status/1634992387947896832?s=20)
+    - [](https://x.com/mischiefanimals/status/1642199905534980100?s=20)
+    - [](https://x.com/mischiefanimals/status/1627686200096980994?s=20)
+    - [](https://x.com/mischiefanimals/status/1637202361260167169?s=20)
+    - [](https://x.com/memesbreakcore/status/1554691889307291648?s=20)
+    - [](https://x.com/memesbreakcore/status/1632520920932704256?s=20)
+    - [](https://x.com/NoContextHumans/status/1656723211587813395?s=20)
     - [뮤직비디오 패러디 드립](https://youtu.be/gcN9lyJBX9w?si=qdY-VQyRrfKZG2v0)
     - [햄부기](https://youtu.be/fxo4JW5U88U?si=_geUxIaxRaLzrEiu)
     - [랭킹](https://youtu.be/bZvnvk_I5BM?si=__0z_GPyTV6gKiM8)

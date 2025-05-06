@@ -6,9 +6,15 @@ tags: [마녀:귀찮아!]
 image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
-date: 2024-11-11. 07:37
-last_modified_at: 2024-11-11. 07:37 # Init
+date: 2024-11-11. 07:37 # Init
+last_modified_at: 2025-05-02. 17:01 # 정리
 ---
+
+## 머리말
+
+---
+
+던전
 
 ## 던전 제약
 
@@ -55,3 +61,7 @@ last_modified_at: 2024-11-11. 07:37 # Init
 [어둠](https://namu.wiki/w/20%20Minutes%20Till%20Dawn)  
 
 [유물](https://namu.wiki/w/Risk%20of%20Rain%202/%EC%9C%A0%EB%AC%BC)  
+
+- 소형, 대형, 보스, 엘리트
+- 개체 수 증가, 상대 스탯(체력, 속도, 공격 빈도) 증가, 본인 스탯(획득 경험치) 감소, 피격 데미지 2 증가, 선택지 감소
+- 특정 시간 이후 "
