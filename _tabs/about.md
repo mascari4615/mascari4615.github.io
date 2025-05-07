@@ -8,7 +8,7 @@ order: 100
 
 ---
 
-![Logo](/assets/img/profile/star_transparent.png){: width="100" height="100" .normal}
+![Logo](/assets/img/profile/star-transparent.png){: width="100" height="100" .normal}
 
 안녕하세요, **카모뜨린 KarmoDDrine** 입니다.  
 
@@ -68,21 +68,21 @@ order: 100
 ---
 
 - Contact / SNS
-  - 이메일 (Email) : `Mascari4615@gmail.com`
-  - Discord : `Mascari4615` (`391805564616704002`)
-  - X (Twitter) : [`@Mascari4615`](https://x.com/Mascari4615)
-  - Bluesky : [`@mascari4615.bsky.social`](https://bsky.app/profile/mascari4615.bsky.social)
-  - Instagram : [`mascari4615_`](https://www.instagram.com/mascari4615_/)
+  - 이메일 (Email): `Mascari4615@gmail.com`
+  - Discord: `Mascari4615` (`391805564616704002`)
+  - X (Twitter): [`@Mascari4615`](https://x.com/Mascari4615)
+  - Bluesky: [`@mascari4615.bsky.social`](https://bsky.app/profile/mascari4615.bsky.social)
+  - Instagram: [`mascari4615_`](https://www.instagram.com/mascari4615_/)
 
 - Main
-  - Github : [`Mascari4615`](https://github.com/Mascari4615)
-  - Youtube : [`@Mascari4615`](https://www.youtube.com/@Mascari4615)
-  - Steam : [`Mascari4615`](https://steamcommunity.com/id/Mascari4615)
+  - Github: [`Mascari4615`](https://github.com/Mascari4615)
+  - Youtube: [`@Mascari4615`](https://www.youtube.com/@Mascari4615)
+  - Steam: [`Mascari4615`](https://steamcommunity.com/id/Mascari4615)
 
 - Else
-  - VRChat : [`Mascari4615`](https://vrchat.com/home/user/usr_22099a07-e926-4751-85be-e5c9d528b28a)
-  - Baekjoon OJ : [`mascari4615`](https://www.acmicpc.net/user/mascari4615)
-  - Solved.ac : [`mascari4615`](https://solved.ac/profile/mascari4615)
+  - VRChat: [`Mascari4615`](https://vrchat.com/home/user/usr_22099a07-e926-4751-85be-e5c9d528b28a)
+  - Baekjoon OJ: [`mascari4615`](https://www.acmicpc.net/user/mascari4615)
+  - Solved.ac: [`mascari4615`](https://solved.ac/profile/mascari4615)
 
 ## \+
 
