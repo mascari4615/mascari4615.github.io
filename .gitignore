@@ -21,6 +21,6 @@ package-lock.json
 !.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/tasks.json
-!.vscode/Blog.code-snippets
+!.vscode/blog.code-snippets
 
 # Misc
