@@ -66,7 +66,7 @@ string str = sb.ToString();
 ```csharp
 class MyClass
 {
-	public int value;
+    public int value;
 }
 
 MyClass myClass = new MyClass();
@@ -149,32 +149,32 @@ GC.GetTotalMemory(true); // 전체 메모리 사용량 반환
 ```csharp
 public class MyClass : IDisposable
 {
-	private bool disposed = false;
+    private bool disposed = false;
 
-	public void Dispose()
-	{
-		Dispose(true);
-		GC.SuppressFinalize(this);
-	}
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-	protected virtual void Dispose(bool disposing)
-	{
-		if (!disposed)
-		{
-			if (disposing)
-			{
-				// 관리되는 자원 해제
-			}
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed)
+        {
+            if (disposing)
+            {
+                // 관리되는 자원 해제
+            }
 
-			// 비관리 자원 해제
-			disposed = true;
-		}
-	}
+            // 비관리 자원 해제
+            disposed = true;
+        }
+    }
 
-	~MyClass()
-	{
-		Dispose(false);
-	}
+    ~MyClass()
+    {
+        Dispose(false);
+    }
 }
 ```
 

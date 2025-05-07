@@ -77,11 +77,11 @@ C#으로 치면 Object?
 [CustomPropertyDrawer(typeof(Something))]
 public class SomethingEditor : PropertyDrawer
 {
-	public override VisualElement CreatePropertyGUI(SerializedProperty property)
-	{
-		return new PropertyField(property);
-		// 위 코드는 기존 모양 그대로 출력
-	}
+    public override VisualElement CreatePropertyGUI(SerializedProperty property)
+    {
+        return new PropertyField(property);
+        // 위 코드는 기존 모양 그대로 출력
+    }
 }
 ```
 
@@ -95,13 +95,13 @@ public class SomethingEditor : PropertyDrawer
 [CustomEditor(typeof(Something))]
 public class SomethingEditor : Editor
 {
-	public override VisualElement CreateInspectorGUI()
-	{
-		var root = new VisualElement();
-		InspectorElement.FillDefaultInspector(root, serializedObject, this);
-		// 위 코드는 기존 모양 그대로 출력
-		return root;
-	}
+    public override VisualElement CreateInspectorGUI()
+    {
+        var root = new VisualElement();
+        InspectorElement.FillDefaultInspector(root, serializedObject, this);
+        // 위 코드는 기존 모양 그대로 출력
+        return root;
+    }
 }
 ```
 
@@ -131,9 +131,9 @@ ScrollView의 경우, 마지막으로 스크롤한 위치를 복구한다던지 
 ```cs
 var foldout = new Foldout()
 {
-	viewDataKey = "*Foldout",
-	text = "인스펙터에서 보여질 Foldout Text",
-	InspectorElement.FillDefaultInspector(root, serializedObject, this);
+    viewDataKey = "*Foldout",
+    text = "인스펙터에서 보여질 Foldout Text",
+    InspectorElement.FillDefaultInspector(root, serializedObject, this);
 }
 ```
 
@@ -147,10 +147,10 @@ public VisualTreeAsset someUXML;
 // CustomEditor라면
 public override VisualElement CreateInspectorGUI()
 {
-	var root = new VisualElement();
-	someUXML.CloneTree(root);
+    var root = new VisualElement();
+    someUXML.CloneTree(root);
 
-	// ...
+    // ...
 }
 ```
 
@@ -175,19 +175,19 @@ Unity에서 지원하는 Painter2D API 활용
 ```cs
 public class SomethingEditor : EditorWindow
 {
-	[SerializeField] Something something;
+    [SerializeField] Something something;
 
-	[MenuItem("SomePath/Something")]
-	static void CreateMenu()
-	{
-		var window = GetWindow<SomethingWindow>();
-		window.titleContent = new GUIContent("Complex");
-	}
+    [MenuItem("SomePath/Something")]
+    static void CreateMenu()
+    {
+        var window = GetWindow<SomethingWindow>();
+        window.titleContent = new GUIContent("Complex");
+    }
 
-	public void OnEnable() { // ... }
-	public void CreateGUI() { // ... }
+    public void OnEnable() { // ... }
+    public void CreateGUI() { // ... }
 
-	// https://youtu.be/J2KNj3bw0Bw?t=2519
+    // https://youtu.be/J2KNj3bw0Bw?t=2519
 }
 ```
 

@@ -41,9 +41,9 @@ last_modified_at: 2024-08-29. 21:59
 ```cpp
 void func1(int n)
 {
-	if (n == 0) return;
-	cout << n << ' ';
-	func1(n - 1);
+    if (n == 0) return;
+    cout << n << ' ';
+    func1(n - 1);
 }
 ```
 

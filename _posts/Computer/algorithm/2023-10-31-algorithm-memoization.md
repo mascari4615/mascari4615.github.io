@@ -33,10 +33,10 @@ int[] M = new int[MAX_SIZE]{0, 1};
 
 int MemoFib(int n)
 {
-	if (n == 0) return 0;
-	if (n == 1) return 1;
-	if (M[n] == 0)
-		M[n] = memo_fib(n - 1) + memo_fib(n - 2);
-	return M[n];
+    if (n == 0) return 0;
+    if (n == 1) return 1;
+    if (M[n] == 0)
+        M[n] = memo_fib(n - 1) + memo_fib(n - 2);
+    return M[n];
 }
 ```

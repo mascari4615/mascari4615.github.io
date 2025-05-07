@@ -17,7 +17,7 @@ date: 2022-11-21. 16:35
 아무리 컴퓨터를 껐다켜도 해결되지 않는다면,  
 
 레지스트리 편집기에서,  
-컴퓨터\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager 에 위치한  
+`컴퓨터/HKEY_LOCAL_MACHINE/SYSTEM/CurrentControlSet/Control/Session Manager` 에 위치한  
 PendingFileRenameOperations 값을 비워주고 다시 설치를 시도한다.  
 
 [참고 링크](https://stackoverflow.com/questions/62261436/how-to-fix-endless-reboot-loop-installing-microsoft-odbc-driver-17-message-a)

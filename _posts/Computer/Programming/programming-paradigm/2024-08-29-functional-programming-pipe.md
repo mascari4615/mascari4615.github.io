@@ -50,14 +50,14 @@ Func<int, int> subtract = x => x - 3;
 
 // pipe 함수 구현
 Func<T, T> Pipe<T>(params Func<T, T>[] funcs) => 
-	input => funcs.Aggregate(input, (acc, func) => func(acc));
+    input => funcs.Aggregate(input, (acc, func) => func(acc));
 
 // pipe를 사용하여 함수들을 연결
 var process = Pipe
 (
-	add,
-	multiply,
-	subtract
+    add,
+    multiply,
+    subtract
 );
 
 Console.WriteLine(process(5)); // (5 + 1) * 2 - 3 = 9

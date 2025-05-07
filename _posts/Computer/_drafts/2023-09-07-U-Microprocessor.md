@@ -162,23 +162,23 @@ I.E. cbi(UCSR0B, TXEN0) : UCSR0B 레지스터의 TXEN0(==3)번 비트를 0으로
 
 void uart_init()
 {
-	// 115.2Kbps
-	UBRR0H = 0x00;
-	UBRR0L = 0x07;
+    // 115.2Kbps
+    UBRR0H = 0x00;
+    UBRR0L = 0x07;
 
-	// 통신 속도 2배
-	sbi(UCSR0A, U2X0);
+    // 통신 속도 2배
+    sbi(UCSR0A, U2X0);
 
-	// TX enable (Transmitter Enable, 송신 기능 활성화)
-	sbi(UCSR0B, TXEN0);
+    // TX enable (Transmitter Enable, 송신 기능 활성화)
+    sbi(UCSR0B, TXEN0);
 }
 
 void uart_putchar(char ch)
 {
-	if (ch == '\n')
-		uart_putchar('\r');
+    if (ch == '\n')
+        uart_putchar('\r');
 
-	UDR0 = ch;
+    UDR0 = ch;
 }
 
 ```
@@ -198,8 +198,8 @@ USART, 시리얼통신
 ```c
 int main()
 {
-	while(1) ; // must not return
-	return 0;
+    while(1) ; // must not return
+    return 0;
 }
 ```
 

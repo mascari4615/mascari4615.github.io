@@ -68,7 +68,7 @@ stringstream ss(s);
 string word;
 while (ss >> word)
 {
-	cout << word << endl;
+    cout << word << endl;
 }
 
 ceil ceiling 올림  
@@ -85,7 +85,7 @@ upper_bound : k < 요소가 배열 몇 번째에 처음 등장하는 지
 iterator로 반환되므로 자료구조 주소를 빼주면 인덱스가 나옴  
 
 while(!cin.eof())
-	cin >> temp;
+    cin >> temp;
 
 while(cin >> temp);
 ```
@@ -95,7 +95,7 @@ while(cin >> temp);
 ```cpp
 auto add(int x, int y)
 {
-	return x + y;
+    return x + y;
 }
 auto sum = add(5, 6);
 ```
@@ -121,16 +121,16 @@ get(cin, s);
 
 class Circle
 {
-	public:
-	double calcArea();
+    public:
+    double calcArea();
 
-	int radius;
-	// ...
+    int radius;
+    // ...
 }
 
 double Circle::calcArea()
 {
-	// ...
+    // ...
 }
 ```
 
@@ -161,16 +161,16 @@ double sqrt (double) { /* ... */ } // 선언과 정의
 ```cpp
 class SomeClass
 {
-	int hour;
-	int m;
-	SomeClass(int h, int n = 0) : hour(h), minute(m); // Initializer List 초기화 리스트
-	{
+    int hour;
+    int m;
+    SomeClass(int h, int n = 0) : hour(h), minute(m); // Initializer List 초기화 리스트
+    {
 
-	}
-	SomeClass(int h, int n = 0) : hour{h}, minute{m}; // Initializer List 초기화 리스트
-	{
-		
-	}
+    }
+    SomeClass(int h, int n = 0) : hour{h}, minute{m}; // Initializer List 초기화 리스트
+    {
+        
+    }
 };
 
 //생성자
@@ -235,7 +235,7 @@ const int* const p3; // 참조 값도, 참조하는 주소고 바뀔 수 없음
 ```cpp
 int getRadius() const
 {
-	return radius;
+    return radius;
 }
 // 함수안에서 멤버 변수를 변경하는 것이 금지됨
 
@@ -250,8 +250,8 @@ pConstObj.getRaius();
 pair<int, int> p;
 
 {
-	pair<int, int> p = make_pair(10, 13);
-	pair<int, int> p = {4, 6}; // C++11
+    pair<int, int> p = make_pair(10, 13);
+    pair<int, int> p = {4, 6}; // C++11
 }
 
 p.first
@@ -294,38 +294,38 @@ MyClass (MyClass other)
 ```cpp
 class MyArray
 {
-	public:
-	int size;
-	int* data;
+    public:
+    int size;
+    int* data;
 
-	MyArray(int size)
-	{
-		this->size = size;
-		data = new int[size];
-	}
+    MyArray(int size)
+    {
+        this->size = size;
+        data = new int[size];
+    }
 
-	~MyArrat()
-	{
-		if (data != NULL) delete[] this->data;
-	}
+    ~MyArrat()
+    {
+        if (data != NULL) delete[] this->data;
+    }
 };
 
 int main()
 {
-	MyArray buffer(10);
-	buffer.data[0] = 1;
-	
-	{
-		MyArray clone = buffer;
-	} 
-	buffer.data[0] = 2; // 이때 오류 발생
-	// 기본 복사 생성자로 buffer의 값이 clone에 복사가 되는데 (얕은 복사 Shallow Copy)
-	// 이때 data의 경우 똑같은 주소가 복사됨 (새로 공간이 할당되는 것이 아니라, 동일한 공간을 buffer와 clone이 공유하며 동시에 가리키는)
-	// clone이 { } 을 넘어 파괴자가 호출될때 data를 할당 해제(반납)하는데
-	// buffer와 clone이 가리키는 data 주소가 똑같음으로
-	// buffer에서 data에 접근하면 메모리가 이미 해제된 주소라 오류가 생김
+    MyArray buffer(10);
+    buffer.data[0] = 1;
+    
+    {
+        MyArray clone = buffer;
+    } 
+    buffer.data[0] = 2; // 이때 오류 발생
+    // 기본 복사 생성자로 buffer의 값이 clone에 복사가 되는데 (얕은 복사 Shallow Copy)
+    // 이때 data의 경우 똑같은 주소가 복사됨 (새로 공간이 할당되는 것이 아니라, 동일한 공간을 buffer와 clone이 공유하며 동시에 가리키는)
+    // clone이 { } 을 넘어 파괴자가 호출될때 data를 할당 해제(반납)하는데
+    // buffer와 clone이 가리키는 data 주소가 똑같음으로
+    // buffer에서 data에 접근하면 메모리가 이미 해제된 주소라 오류가 생김
 
-	return 0;
+    return 0;
 }
 ```
 
@@ -333,10 +333,10 @@ int main()
 // 이런 경우 직접 구현해주면 됨
 MyArray::MyArrat(const MyArray& other)
 {
-	this->size = other.size;
-	this->data = new int[other.size];
-	for (int i = 0; i < size; i ++)
-		this->data[i] = other.data[i];
+    this->size = other.size;
+    this->data = new int[other.size];
+    for (int i = 0; i < size; i ++)
+        this->data[i] = other.data[i];
 }
 ```
 
@@ -374,12 +374,12 @@ C++에서는 대입 연산자를 개발자가 재정의하여 사용할 수 있�
 ```cpp
 class Circle
 {
-	static int count;
-	const static int MAX_CIRCLES = 300;
-	static int getCount()
-	{
-		return count;
-	}
+    static int count;
+    const static int MAX_CIRCLES = 300;
+    static int getCount()
+    {
+        return count;
+    }
 }
 
 // 초기화는 클래스 외부에서
@@ -401,40 +401,40 @@ string에서 연산자 중복을 사용하고 있다 `+,-, &, /, =, ==, !=, ++, 
 ```cpp
 반환형 operator연산자(멤버 변수 목록)
 {
-	// ...
+    // ...
 }
 
 MyVector MyVector::operator+(const MyVector& v2)
 {
-	MyVector v;
-	v.x = this->x + v2.x;
-	v.y = this->y + v2.y;
-	return v;
+    MyVector v;
+    v.x = this->x + v2.x;
+    v.y = this->y + v2.y;
+    return v;
 }
 
 bool operator== (Time &t2)
 {
-	return blabla;
+    return blabla;
 }
 
 bool operator!= (Time &t2)
 {
-	return !(*this == t2);
+    return !(*this == t2);
 }
 
 // ++counter
 Counter& operator++()
 {
-	// blabla
-	return *this;
+    // blabla
+    return *this;
 }
 
 // counter++
 const Counter operator++(int i)
 {
-	Counter temp = { *this }; // 현재 상태 저장
-	// blabla
-	return temp;
+    Counter temp = { *this }; // 현재 상태 저장
+    // blabla
+    return temp;
 } 
 // const 객체를 반환하기에 반환된 임시 객체는 변경이 불가능
 // (v++)++; 오류
@@ -453,10 +453,10 @@ const Counter operator++(int i)
 ```cpp
 Box& operator=(const Box& b2)
 {
-	this->length = b2.length;
-	this->width = b2.width;
-	this->height = b2.height;
-	return *this;
+    this->length = b2.length;
+    this->width = b2.width;
+    this->height = b2.height;
+    return *this;
 }
 ```
 
@@ -470,7 +470,7 @@ Box& operator=(const Box& b2)
 ```cpp
 someType &operator[](int i)
 {
-	return blabla;
+    return blabla;
 }
 ```
 
@@ -501,10 +501,10 @@ C++11 도입
 ```cpp
 int main()
 [
-	unique_ptr<int> p(new int);
-	*p = 99;
-	// 여기서 지역변수인 p가 삭제되면서 소멸자가 호출되고 소멸자에서
-	// 동적 메모리도 함께 삭제하기 때문에 메모리 누수가 발생하지 않는다
+    unique_ptr<int> p(new int);
+    *p = 99;
+    // 여기서 지역변수인 p가 삭제되면서 소멸자가 호출되고 소멸자에서
+    // 동적 메모리도 함께 삭제하기 때문에 메모리 누수가 발생하지 않는다
 ]
 ```
 
@@ -528,7 +528,7 @@ unique_ptr에는 템플릿 기술이 추가되어 있다
 ```cpp
 class MyClass
 {
-	friend void sub();
+    friend void sub();
 };
 ```
 
@@ -540,23 +540,23 @@ class MyClass
 ```cpp
 class MyClass
 {
-	int someVar;
-	public:
-	friend class SomeClass; // SomeClass는 MyClass의 친구가 된다
-	friend void SomeFunc(MyClass myClass); // 프렌드 선언
+    int someVar;
+    public:
+    friend class SomeClass; // SomeClass는 MyClass의 친구가 된다
+    friend void SomeFunc(MyClass myClass); // 프렌드 선언
 };
 void SomeFunc(MyClass myClass) // 프렌드 정의
 {
-	cout << myClass.someVar;
+    cout << myClass.someVar;
 }
 
 class SomeClass
 {
-	public:
-	void print(MyClass myClass)
-	{
-		cout << myClass.someVar;
-	}
+    public:
+    void print(MyClass myClass)
+    {
+        cout << myClass.someVar;
+    }
 }
 ```
 
@@ -579,18 +579,18 @@ class SomeClass
 ```cpp
 friend ostream& operator<<(ostream& os, const MyVector& v)
 {
-	// ...
-	os << "(" << v.x << "," << v.y << ")" << endl;
-	return os;
+    // ...
+    os << "(" << v.x << "," << v.y << ")" << endl;
+    return os;
 }
 
 friend istream& operator>>(ostream& in, MyVector& v)
 {
-	// ...
-	in >> v.x >> v.y;
-	if (!in)
-		v = MyVector(0,0); // 입력 오류 처리
-	return in;
+    // ...
+    in >> v.x >> v.y;
+    if (!in)
+        v = MyVector(0,0); // 입력 오류 처리
+    return in;
 }
 ```
 
@@ -789,20 +789,20 @@ C++에서 파일 처리를 수행할 때는 `<iostream>` `<fstream>` 헤더 파�
 ```cpp
 int main()
 {
-	// 객체가 생성되면서 자동으로 파일이 열린다 open()
-	ofstream os("numbers.txt"); // 파일이름만 지정하면 현재 프로젝트 위치에서
-	if (!os) // os.fail()
-	{
-		cerr << "파일 오픈 실패" << endl;
-		exit(1);
-	}
-	for (int i = 0; i < 100; i++)
-	{
-		os << i << " ";
-	}
-	return 0;
+    // 객체가 생성되면서 자동으로 파일이 열린다 open()
+    ofstream os("numbers.txt"); // 파일이름만 지정하면 현재 프로젝트 위치에서
+    if (!os) // os.fail()
+    {
+        cerr << "파일 오픈 실패" << endl;
+        exit(1);
+    }
+    for (int i = 0; i < 100; i++)
+    {
+        os << i << " ";
+    }
+    return 0;
 
-	// 객체 os가 범위를 벗어나면 ofstream 소멸자가 파일을 닫는다. close()
+    // 객체 os가 범위를 벗어나면 ofstream 소멸자가 파일을 닫는다. close()
 }
 ```
 
@@ -813,23 +813,23 @@ int main()
 ```cpp
 int main()
 {
-	// 객체가 생성되면서 자동으로 파일이 열린다 open()
-	ifstream os("numbers.txt"); // 파일이름만 지정하면 현재 프로젝트 위치에서
-	if (!is) // is.fail()
-	{
-		cerr << "파일 오픈 실패" << endl;
-		exit(1);
-	}
-	int number;
-	while (is)
-	{
-		is >> number;
-		cout << number << " ";
-	}
-	cout << endl;
-	return 0;
+    // 객체가 생성되면서 자동으로 파일이 열린다 open()
+    ifstream os("numbers.txt"); // 파일이름만 지정하면 현재 프로젝트 위치에서
+    if (!is) // is.fail()
+    {
+        cerr << "파일 오픈 실패" << endl;
+        exit(1);
+    }
+    int number;
+    while (is)
+    {
+        is >> number;
+        cout << number << " ";
+    }
+    cout << endl;
+    return 0;
 
-	// 객체 is가 범위를 벗어나면 ifstream 소멸자가 파일을 닫는다. close()
+    // 객체 is가 범위를 벗어나면 ifstream 소멸자가 파일을 닫는다. close()
 }
 ```
 
@@ -849,16 +849,16 @@ isstream 생성자를 호출할 때 2번째 인수로 넘길 수있다
 ifstraem is("someText.txt");
 if (!is) // ! 연산자 오버로딩
 {
-	cerr << "파일 오픈에 실패하였습니다" << endl;
-	exit(1);
+    cerr << "파일 오픈에 실패하였습니다" << endl;
+    exit(1);
 }
 
 char c;
 is.get(c);
 while (!is.eof())
 {
-	cout << c;
-	is.get(c);
+    cout << c;
+    is.get(c);
 }
 ```
 
@@ -867,7 +867,7 @@ ofstream os("someText.txt");
 char c;
 while (cin.get(c))
 {
-	os.put(c);
+    os.put(c);
 }
 
 // Ctrl + Z = End of File
@@ -922,10 +922,10 @@ dest << source.rdbuf();
 // 2. get, put (read, write)
 if (source.is_open() && dest.is_open())
 {
-	while (!source.eof())
-	{
-		dest.put(source.get());
-	}
+    while (!source.eof())
+    {
+        dest.put(source.get());
+    }
 }
 ```
 
@@ -972,8 +972,8 @@ SetPixel(hdc, c, r, RGB(red, green, blue));
 ```cpp
 catch(...)
 {
-	// ... 으로 모든 예외를 잡을 수 있다
-	// 처리 될 수 있는 예외를 먼저 잡으니까, 구체적인 예외처리를 먼저, ... 는 나중에
+    // ... 으로 모든 예외를 잡을 수 있다
+    // 처리 될 수 있는 예외를 먼저 잡으니까, 구체적인 예외처리를 먼저, ... 는 나중에
 }
 ```
 
@@ -993,15 +993,15 @@ catch(...)
 template<typename T>
 T get_Max(T x, T y)
 {
-	if (x > y) return x;
-	else return y;
+    if (x > y) return x;
+    else return y;
 }
 
 template<> // 함수 템플릿의 특수화 (template specialization)
 T get_Max(float x, float y)
 {
-	if (x > y) return x;
-	else return y;
+    if (x > y) return x;
+    else return y;
 }
 
 // 중복 정의
@@ -1017,14 +1017,14 @@ template<typename T1, typename T2>
 template<typename T>
 class Box
 {
-	// ...
+    // ...
 }
 
 // 멤버 함수 외부 정의
 template<typename T>
 Box<T>::Box()
 {
-	// ...
+    // ...
 }
 
 // 기본 값
@@ -1281,10 +1281,10 @@ using namespace std;
 
 int main()
 {
-	time_t cur;
-	time(&cur);
-	tm* gmTM = gmtime(&cur);
-	printf("%d\n%02d\n%02d", 1900 + gmTM->tm_year, gmTM->tm_mon + 1, gmTM->tm_mday);
+    time_t cur;
+    time(&cur);
+    tm* gmTM = gmtime(&cur);
+    printf("%d\n%02d\n%02d", 1900 + gmTM->tm_year, gmTM->tm_mon + 1, gmTM->tm_mday);
 }
 ```
 

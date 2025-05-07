@@ -62,26 +62,26 @@ low/high (or start/end).
 ```cpp
 int binarySearch(int arr[], int target, int size)
 {
-	// 처음에는 모든 범위를 탐색
-	int low = 0;
-	int high = size - 1;
+    // 처음에는 모든 범위를 탐색
+    int low = 0;
+    int high = size - 1;
 
-	// 서로 위치가 역전되면, 예상 범위가 없다는 것.
-	while (low <= high)
-	{
-		// 절반씩 범위를 줄여 나가는
-		// 홀수일 경우에는 내림
-		int mid = (low + high) / 2;
+    // 서로 위치가 역전되면, 예상 범위가 없다는 것.
+    while (low <= high)
+    {
+        // 절반씩 범위를 줄여 나가는
+        // 홀수일 경우에는 내림
+        int mid = (low + high) / 2;
 
-		if (arr[mid] == target)
-			return mid;
-		else if (arr[mid] < target)
-			low = mid + 1;
-		else
-			high = mid - 1;
-	}
+        if (arr[mid] == target)
+            return mid;
+        else if (arr[mid] < target)
+            low = mid + 1;
+        else
+            high = mid - 1;
+    }
 
-	return -1;
+    return -1;
 }
 ```
 
@@ -105,20 +105,20 @@ int binarySearch(int arr[], int target, int size)
 ```cpp
 int lowerBound(int arr[], int target, int size)
 {
-	int low = 0;
-	int high = size;
+    int low = 0;
+    int high = size;
 
-	while (low < high)
-	{
-		int mid = (low + high) / 2;
+    while (low < high)
+    {
+        int mid = (low + high) / 2;
 
-		if (arr[mid] >= target)
-			high = mid;
-		else
-			low = mid + 1;
-	}
+        if (arr[mid] >= target)
+            high = mid;
+        else
+            low = mid + 1;
+    }
 
-	return low;
+    return low;
 }
 ```
 
@@ -130,20 +130,20 @@ int lowerBound(int arr[], int target, int size)
 ```cpp
 int upperBound(int arr[], int target, int size)
 {
-	int low = 0;
-	int high = size;
+    int low = 0;
+    int high = size;
 
-	while (low < high)
-	{
-		int mid = (low + high) / 2;
+    while (low < high)
+    {
+        int mid = (low + high) / 2;
 
-		if (arr[mid] > target)
-			high = mid;
-		else
-			low = mid + 1;
-	}
+        if (arr[mid] > target)
+            high = mid;
+        else
+            low = mid + 1;
+    }
 
-	return low;
+    return low;
 }
 ```
 

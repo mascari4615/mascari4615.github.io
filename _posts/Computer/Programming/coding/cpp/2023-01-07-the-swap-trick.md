@@ -24,13 +24,13 @@ date: 2023-01-07. 23:22
 ```cpp
 struct Recorder
 {
-	vector<float> data;
-	...
-	void Clear()
-	{
-		vector<float>().swap(data);
-		// 뭐? 그냥 data.clear() 를 호출하지 않는 이유가 뭐지?
-	}
+    vector<float> data;
+    ...
+    void Clear()
+    {
+        vector<float>().swap(data);
+        // 뭐? 그냥 data.clear() 를 호출하지 않는 이유가 뭐지?
+    }
 }
 ```
 

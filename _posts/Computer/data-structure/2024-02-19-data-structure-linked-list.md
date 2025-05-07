@@ -81,13 +81,13 @@ fill(nxt, nxt + MX, -1);
 // 0번지에서 출발해 nxt를 따라가는
 void traverse()
 {
-	int cur = nxt[0];
-	while(cur != -1)
-	{
-		cout << dat[cur] << ' ';
-		cur = nxt[cur];
-	}
-	cout << "\n\n";
+    int cur = nxt[0];
+    while(cur != -1)
+    {
+        cout << dat[cur] << ' ';
+        cur = nxt[cur];
+    }
+    cout << "\n\n";
 }
 
 // insert (int addr추가할위치주소, int num)
@@ -97,12 +97,12 @@ void traverse()
 // unused 1 증가
 void insert(int addr, int num)
 {
-	dat[unused] = num;
-	pre[unused] = addr;
-	nxt[unused] = nxt[addr];
-	if (nxt[addr] != -1) pre[nxt[addr]] = unused;
-	nxt[addr] = unused;
-	unused++;
+    dat[unused] = num;
+    pre[unused] = addr;
+    nxt[unused] = nxt[addr];
+    if (nxt[addr] != -1) pre[nxt[addr]] = unused;
+    nxt[addr] = unused;
+    unused++;
 }
 
 // erase
@@ -113,12 +113,12 @@ void insert(int addr, int num)
 // 그래서 실무에서는 못씀
 void erase(int addr)
 {
-	// dummy node의 존재로 인해 그 어떤 노드를 지우더라도 pre[addr]은 -1이 아님이 보장됨
-	nxt[pre[addr]] = nxt[addr];
-	if (nxt[addr] != -1) pre[nxt[addr]] = pre[addr];
+    // dummy node의 존재로 인해 그 어떤 노드를 지우더라도 pre[addr]은 -1이 아님이 보장됨
+    nxt[pre[addr]] = nxt[addr];
+    if (nxt[addr] != -1) pre[nxt[addr]] = pre[addr];
 
-	// 남은 데이터를 일부러 지울 필요는 없음
-	// 어차피 접근할 일도 없고, 새로 값이 들어올 때 덮어씌워질 것이기 때문
+    // 남은 데이터를 일부러 지울 필요는 없음
+    // 어차피 접근할 일도 없고, 새로 값이 들어올 때 덮어씌워질 것이기 때문
 }
 ```
 
@@ -130,21 +130,21 @@ using namespace std;
 // push_back, pop_back, push_front, pop_front는 모두 O(1)
 int main(void)
 {
-	list<int> L = { 1, 2 }; // 1 2
-	list<int>::iterator t = L.begin(); // t는 1을 가리키는 중
-	// c++ 11 이상 일때 auto t = L.begin() 가능
-	L.push_front(10); // 10 1 2
-	cout << *t << '\n'; // t가 가리키는 값 = 1을 출력
-	L.push_back(5); // 10 1 2 5
-	L.insert(t, 6); // t가 가리키는 곳 앞에 6을 삽입, 10 6 1 2 5
-	t++; // t를 1칸 앞으로 전진, 현재 t가 가리키는 값은 2
-	t = L.erase(t); // t가 가리키는 값을 제거, 그 다음 원소인 5의 위치를 반환
-					// 10 6 1 5, t가 가리키는 값은 5
-	cout << *t << '\n'; // 5
-	for(auto i : L) cout << i << ' '; // C++ 11 이상
-	cout << '\n';
-	for(list<int>::iterator it = L.begin(); it != L.end(); it++)
-	cout << *it << ' ';
+    list<int> L = { 1, 2 }; // 1 2
+    list<int>::iterator t = L.begin(); // t는 1을 가리키는 중
+    // c++ 11 이상 일때 auto t = L.begin() 가능
+    L.push_front(10); // 10 1 2
+    cout << *t << '\n'; // t가 가리키는 값 = 1을 출력
+    L.push_back(5); // 10 1 2 5
+    L.insert(t, 6); // t가 가리키는 곳 앞에 6을 삽입, 10 6 1 2 5
+    t++; // t를 1칸 앞으로 전진, 현재 t가 가리키는 값은 2
+    t = L.erase(t); // t가 가리키는 값을 제거, 그 다음 원소인 5의 위치를 반환
+                    // 10 6 1 5, t가 가리키는 값은 5
+    cout << *t << '\n'; // 5
+    for(auto i : L) cout << i << ' '; // C++ 11 이상
+    cout << '\n';
+    for(list<int>::iterator it = L.begin(); it != L.end(); it++)
+    cout << *it << ' ';
 }// remove unique merge reverse sort splice
 // []를 지원하지 않음, 따라서 임의 접근 반복자를 필요로 하는 binary_search 알고리듬 적용할 수 없다
 ```

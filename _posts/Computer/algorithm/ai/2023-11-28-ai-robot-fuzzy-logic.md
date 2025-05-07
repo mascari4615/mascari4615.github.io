@@ -115,9 +115,9 @@ QoS에 Fuzzy를 이용한다는 것은
 ```txt
 m_low(x) =
 {
-	0,						if rate(x) >= 100
-	(100-rate(x))/20		if rate(x) > 80 AND rate(x) < 100
-	1,						if rate(x) <= 80
+    0,                        if rate(x) >= 100
+    (100-rate(x))/20        if rate(x) > 80 AND rate(x) < 100
+    1,                        if rate(x) <= 80
 }
 ```
 
@@ -126,9 +126,9 @@ m_low(x) =
 ```txt
 m_low(x) =
 {
-	0,						if rate(x) <= 100
-	(100-rate(x))/20		if rate(x) > 100 AND rate(x) < 120
-	1,						if rate(x) >= 120
+    0,                        if rate(x) <= 100
+    (100-rate(x))/20        if rate(x) > 100 AND rate(x) < 120
+    1,                        if rate(x) >= 120
 }
 ```
 

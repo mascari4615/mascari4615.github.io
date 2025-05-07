@@ -81,37 +81,37 @@ i.e. 집합{-4, -2, 1, 3}의 경우 부분집합 {-4, 1, 3}의 원소 합이 0
 ```cs
 void SumOfSubsetsBT(int i, int weight, int rest)
 {
-	if (!Promising(i, weight, rest)) // 유망하지 않으면 패스
-		return;
+    if (!Promising(i, weight, rest)) // 유망하지 않으면 패스
+        return;
 
-	if (weight == M) // 찾으면 즉시 끝 (결정 문제)
-	{
-		OutputSolution(i);
-		Exit(); // 대충 끝나는 함수
-	}
-	else
-	{
-		// 왼쪽, 오른쪽 두 개의 노드만 보면 됨 (이진트리)
-		X[i + 1] = true;
-		SumOfSubsetsBT(i + 1, weight + W[i + 1], rest - W[i + 1]);
-		X[i + 1] = false;
-		SumOfSubsetsBT(i + 1, weight, rest - W[i + 1]);
-	}
+    if (weight == M) // 찾으면 즉시 끝 (결정 문제)
+    {
+        OutputSolution(i);
+        Exit(); // 대충 끝나는 함수
+    }
+    else
+    {
+        // 왼쪽, 오른쪽 두 개의 노드만 보면 됨 (이진트리)
+        X[i + 1] = true;
+        SumOfSubsetsBT(i + 1, weight + W[i + 1], rest - W[i + 1]);
+        X[i + 1] = false;
+        SumOfSubsetsBT(i + 1, weight, rest - W[i + 1]);
+    }
 }
 
 bool Promising(int i, int weight, int rest)
 {
-	// 유망하지 않은 경우
-	// 1. 남은 걸 다 더해도 목표 무게에 '도달'할 수 없음 (레퀴엠 ㄷㄷ)
-	// 2. 무게가 넘침
-	if (weight + rest < M)
-		return false;
-	
-	// (weight == M) → 해답
-	if ((weight != M) && (weight + W[i + 1] > M))
-		return false;
-	
-	return true;
+    // 유망하지 않은 경우
+    // 1. 남은 걸 다 더해도 목표 무게에 '도달'할 수 없음 (레퀴엠 ㄷㄷ)
+    // 2. 무게가 넘침
+    if (weight + rest < M)
+        return false;
+    
+    // (weight == M) → 해답
+    if ((weight != M) && (weight + W[i + 1] > M))
+        return false;
+    
+    return true;
 }
 ```
 

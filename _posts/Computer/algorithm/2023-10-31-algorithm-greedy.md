@@ -68,19 +68,19 @@ Greedy
 ```c
 greedy_method( )
 {
-	solution = { };
-	while (condition)
-	{
-		s = select(); // 1. 선택 작업 - 현 상태에서 최적해에 포함시킬 대안을 선택
-		if (feasible(s)) // 2. 타당성 조사 - 선택된 해가 주어진 문제의 조건을 만족하는지 검사
-		{ 
-			solution = solution ∪ {s};
-			if (problem_solved(solution)) // 3. 해답 조사 - 원래의 문제가 해결되었는지를 검사
-			{
-				return solution; 
-			}
-		}
-	}
+    solution = { };
+    while (condition)
+    {
+        s = select(); // 1. 선택 작업 - 현 상태에서 최적해에 포함시킬 대안을 선택
+        if (feasible(s)) // 2. 타당성 조사 - 선택된 해가 주어진 문제의 조건을 만족하는지 검사
+        { 
+            solution = solution ∪ {s};
+            if (problem_solved(solution)) // 3. 해답 조사 - 원래의 문제가 해결되었는지를 검사
+            {
+                return solution; 
+            }
+        }
+    }
 }
 ```
 
@@ -187,20 +187,20 @@ Find
 ```c
 edge_set kruskal_MST(edge_set E, int n)
 {
-	sort(E); // A
-	edge_set MST_E = { };
-	for (i=0; i＜n; i++) init_set(i); // B, n개의 집합(트리)을 생성
-	while (MST_E의 간선 수 ＜ n-1)
-	{ 
-		(u, v) = E의 최소 가중치 간선;
-		E = E - {(u, v)} ;
-		if (find(u) ≠ find(v))  // u와 v가 다른 집합(트리) 원소
-		{
-			MST_E = MST_E ∪ {(u, v)} ;
-			union(u, v);	// 두 집합(트리)을 합병
-		}
-	}
-	return MST_E;
+    sort(E); // A
+    edge_set MST_E = { };
+    for (i=0; i＜n; i++) init_set(i); // B, n개의 집합(트리)을 생성
+    while (MST_E의 간선 수 ＜ n-1)
+    { 
+        (u, v) = E의 최소 가중치 간선;
+        E = E - {(u, v)} ;
+        if (find(u) ≠ find(v))  // u와 v가 다른 집합(트리) 원소
+        {
+            MST_E = MST_E ∪ {(u, v)} ;
+            union(u, v);    // 두 집합(트리)을 합병
+        }
+    }
+    return MST_E;
 }
 ```
 
@@ -253,14 +253,14 @@ MST 아닌 (선태되지 않은) 정점만 선택하기 때문
 // 단순화한 프림의 MST(욕심쟁이 방법)
 edge_set prim_MST_1(edge_set E, vertex s)
 {
-	edge_set MST_E = { }; 
-	vertex_set MST_V = {s}; 
-	loop (n-1)
-	{ // n-1번 반복
-		(u, v) = E의 최소 가중치 간선, 단 u ∈ MST_V, v ∉ MST_V; MST_E = MST_E ∪ (u, v) ; // A
-		MST_V = MST_V ∪ v ;
-	}
-	return MST_E;
+    edge_set MST_E = { }; 
+    vertex_set MST_V = {s}; 
+    loop (n-1)
+    { // n-1번 반복
+        (u, v) = E의 최소 가중치 간선, 단 u ∈ MST_V, v ∉ MST_V; MST_E = MST_E ∪ (u, v) ; // A
+        MST_V = MST_V ∪ v ;
+    }
+    return MST_E;
 }
 ```
 
@@ -279,34 +279,34 @@ nearest(w) = u   if   distance(w)가 변경
 // 복잡도:  Θ(n2) , select_min 비용 인접 행렬을 기반
 void prim_MST_2(int graph[ ][MAX], int n, int s)
 {
-	bool MST_V[MAX] ;
-	int distance[MAX], nearest[MAX], i, u, w;
-	for (i = 0; i ＜ n; i++) 
-	{ // 초기화
-		MST_V[i] = false; 
+    bool MST_V[MAX] ;
+    int distance[MAX], nearest[MAX], i, u, w;
+    for (i = 0; i ＜ n; i++) 
+    { // 초기화
+        MST_V[i] = false; 
         distance[i] = graph[s][i]; nearest[i] = s;
-	}
-	MST_V[s] = true;
-	loop (n-2)
-	{ // n-2번 반복
-		u = select_min(distance, n, MST_V); MST_V[u] = true;
-		for (w = 0; w ＜ n; w++)
-			if (MST_V[w] == false)
-				if (graph[u][w] ＜ distance[w])
-				{
-					distance[w] = graph[u][w];
-					nearest[w] = u;
-				}
-	}
+    }
+    MST_V[s] = true;
+    loop (n-2)
+    { // n-2번 반복
+        u = select_min(distance, n, MST_V); MST_V[u] = true;
+        for (w = 0; w ＜ n; w++)
+            if (MST_V[w] == false)
+                if (graph[u][w] ＜ distance[w])
+                {
+                    distance[w] = graph[u][w];
+                    nearest[w] = u;
+                }
+    }
 }
 
 int select_min(int distance[ ], int n, bool MST_V[ ])
 {
-	int i, min = ∞, min_index = 0;
-	for (i = 0; i ＜ n; i++)
-	if (distance[i] ＜ min && MST_V[i]==false)
-		min = distance[i]; min_index = i;
-	return min_index;
+    int i, min = ∞, min_index = 0;
+    for (i = 0; i ＜ n; i++)
+    if (distance[i] ＜ min && MST_V[i]==false)
+        min = distance[i]; min_index = i;
+    return min_index;
 }
 ```
 

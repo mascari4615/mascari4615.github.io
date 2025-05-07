@@ -14,6 +14,4 @@ date: 2024-09-02. 13:19
 
 ---
 
-### 🫧
-
 IEnumerable\<T\>, IEnumerator MoveNext  

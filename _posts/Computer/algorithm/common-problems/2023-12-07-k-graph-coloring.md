@@ -99,40 +99,40 @@ Back-Tracking, 실제로 트리를 만들지는 않고, 각 레벨에 해당하�
 ```cs
 void ColoringBT(int i) // 노드가 아니라 레벨, 레벨에 대한 처리
 {
-	if (!Promising(i)) // 유망하지 않으면 패스
-		return;
+    if (!Promising(i)) // 유망하지 않으면 패스
+        return;
 
-	// 마지막 행이면 끝
-	// 왜 바로 끝이냐면, 유망한 노드에 대해서만 검사를 하니까 (위에서 검사)
-	// + 가능 여부만 찾으면 되니까
-	if (i == n) 
-	{
-		OutputSolution(i);
-		Exit(); // 대충 끝나는 함수
-	}
-	// 마지막 레벨이 아니면
-	// 자식 노드들에 대해서 검사
-	else
-	{
-		for (int c = 1; c <= k; c++)
-		{
-			color[i + 1] = c;
-			ColoringBT(i + 1);
-		}
-	}
+    // 마지막 행이면 끝
+    // 왜 바로 끝이냐면, 유망한 노드에 대해서만 검사를 하니까 (위에서 검사)
+    // + 가능 여부만 찾으면 되니까
+    if (i == n) 
+    {
+        OutputSolution(i);
+        Exit(); // 대충 끝나는 함수
+    }
+    // 마지막 레벨이 아니면
+    // 자식 노드들에 대해서 검사
+    else
+    {
+        for (int c = 1; c <= k; c++)
+        {
+            color[i + 1] = c;
+            ColoringBT(i + 1);
+        }
+    }
 }
 
 bool Promising(int i)
 {
-	// 유망하지 않은 경우
-	// 1. 인접하고 : graph[i][j]
-	// 2. 색이같음 : color[i] == color[j]
-	for (int j = 0; j < i; j++)
-	{
-		if (graph[i][j] && color[i] == color[j])
-			return false;
-	}
-	return true;
+    // 유망하지 않은 경우
+    // 1. 인접하고 : graph[i][j]
+    // 2. 색이같음 : color[i] == color[j]
+    for (int j = 0; j < i; j++)
+    {
+        if (graph[i][j] && color[i] == color[j])
+            return false;
+    }
+    return true;
 }
 ```
 

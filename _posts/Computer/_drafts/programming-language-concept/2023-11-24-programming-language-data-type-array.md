@@ -63,7 +63,7 @@ last_modified_at: 2023-12-01. 10:20
 int tempA[5] = { 1, 2, 3, 4, 5 };
 void main()
 {
-	static int tempB[5] = { 1, 2, 3, 4, 5 };
+    static int tempB[5] = { 1, 2, 3, 4, 5 };
 }
 ```
 
@@ -76,7 +76,7 @@ void main()
 ```c
 void main()
 {
-	int temp[5] = { 1, 2, 3, 4, 5 };
+    int temp[5] = { 1, 2, 3, 4, 5 };
 }
 ```
 
@@ -88,8 +88,8 @@ void main()
 ```c
 void main()
 {
-	int n;
-	scanf("%d", &n);
+    int n;
+    scanf("%d", &n);
 
     int temp[n];
 
@@ -109,27 +109,27 @@ void main()
 ```c
 void main()
 {
-	int n;
-	scanf("%d", &n);
-	
-	int *temp = NULL;
-	
-	temp = (int *)malloc(sizeof(int) * n);
+    int n;
+    scanf("%d", &n);
+    
+    int *temp = NULL;
+    
+    temp = (int *)malloc(sizeof(int) * n);
 
-	for (int i = 0; i < n; i++)
-		temp[i] = i;
+    for (int i = 0; i < n; i++)
+        temp[i] = i;
 
-	free(temp);
-	temp = NULL;
+    free(temp);
+    temp = NULL;
 }
 ```
 
 ```java
 public static void main(String[] args)
 {
-	int[] nums = {0, 1, 2, 3, 4, 5};
-	for(int i=0; i < nums.length; i++)
-		System.out.println(nums[i]);
+    int[] nums = {0, 1, 2, 3, 4, 5};
+    for(int i=0; i < nums.length; i++)
+        System.out.println(nums[i]);
 }
 ```
 
@@ -145,7 +145,7 @@ public static void main(String[] args)
 nums = [1, 2, 3, 4, 5]
 
 for item in nums:
-	print(item)
+    print(item)
 
 nums.append(6)
 nums.append(7)
@@ -154,7 +154,7 @@ nums.append(9)
 nums.append(10)
 
 for item in nums:
-	print(item)
+    print(item)
 ```
 
 - 첨자 범위와 기억공간의 할당이 동적으로 일어나며 배열의 존속기간에 바뀔수 있음

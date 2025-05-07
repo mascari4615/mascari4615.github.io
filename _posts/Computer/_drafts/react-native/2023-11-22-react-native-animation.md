@@ -82,31 +82,31 @@ useNativeDriver 속성을 통해 어떤 모드로 애니메이션을 동작시�
 ```js
 export class Value
 {
-	constructor(value: number);
-	setValue(value: numbe): void;
+    constructor(value: number);
+    setValue(value: numbe): void;
 
-	// 콜백 함수를 통해 현재 보간 중인 값을 얻을 수 있다.
-	// useEffect에서 add/remove 하는 식
-	addListener(callback: ValueListenderCallback): string;
-	removeListener(id: string): void;
-	removeAllListeners(): void;
+    // 콜백 함수를 통해 현재 보간 중인 값을 얻을 수 있다.
+    // useEffect에서 add/remove 하는 식
+    addListener(callback: ValueListenderCallback): string;
+    removeListener(id: string): void;
+    removeAllListeners(): void;
 
-	// 입력 보간 값을 새로운 보간값으로 바꿀 수 있다.
-	// i.e. 출력을 0 ~ 100, Red ~ Blue, 0deg ~ 360deg
-	interpolate(config: InterpolationConfigType): AnimatedInterpolation;
-	// animValue.interpolate({inputRange: [0, 1], outputRange: [0, 100]})
-	// animValue.interpolate({inputRange: [0, 1], outputRange: ['red', 'blue']})
-	// animValue.interpolate({inputRange: [0, 1], outputRange: ['0deg', '360deg']})
-	// animValue.interpolate({inputRange: [0, 0.7, 1], outputRange: [Colors.lightBlue900, Colors.lime500, Colors.pink500]})
+    // 입력 보간 값을 새로운 보간값으로 바꿀 수 있다.
+    // i.e. 출력을 0 ~ 100, Red ~ Blue, 0deg ~ 360deg
+    interpolate(config: InterpolationConfigType): AnimatedInterpolation;
+    // animValue.interpolate({inputRange: [0, 1], outputRange: [0, 100]})
+    // animValue.interpolate({inputRange: [0, 1], outputRange: ['red', 'blue']})
+    // animValue.interpolate({inputRange: [0, 1], outputRange: ['0deg', '360deg']})
+    // animValue.interpolate({inputRange: [0, 0.7, 1], outputRange: [Colors.lightBlue900, Colors.lime500, Colors.pink500]})
 
-	// ~
+    // ~
 }
 
 type ValueListenerCallback = (stage: {value: number}) => void;
 
 class AnimatedInterpolation
 {
-	interpolate(config: InterpolationConfigType): AnimatedInterpolation;
+    interpolate(config: InterpolationConfigType): AnimatedInterpolation;
 }
 
 // inputRange를 벗어난 값이 발생했을 때 어떤 값으로 outputRange를 만들지 결정하는 속성
@@ -117,11 +117,11 @@ type ExtrapolateType = 'extend' | 'identity' | 'clamp';
 
 type InterpolationConfigType = 
 {
-	inputRange: number[];
-	outputRange: number[] | string[];
-	
-	// Like Animated.timing
-	easing?: (input: number) => number;
+    inputRange: number[];
+    outputRange: number[] | string[];
+    
+    // Like Animated.timing
+    easing?: (input: number) => number;
 };
 ```
 
@@ -178,7 +178,7 @@ opacity 속성의 타입이 number가 아니라 Animated.Value 타입이므로 V
 ```js
 const onPress = () =>
 {
-	Animated.timing(animValue, {toValue:1, uesNativeDriver: true, duration: 1000}).start()
+    Animated.timing(animValue, {toValue:1, uesNativeDriver: true, duration: 1000}).start()
 }
 ```
 
@@ -195,7 +195,7 @@ MutableRefObject 제네릭 타입에는 다음 RefObject 타입처럼 current라
 ```js
 interface MutableRefObject<T>
 {
-	current: T;
+    current: T;
 }
 ```
 
@@ -234,37 +234,37 @@ Animated.timing은 value와 config를 매개변수로 받아 Animated.CompositeA
 ```js
 export const Animated.timing:
 (
-	value: Animated.Value | Animated.ValueXY,
-	config: Animated.TimingAnimationConfig
+    value: Animated.Value | Animated.ValueXY,
+    config: Animated.TimingAnimationConfig
 ) => Animated.ComposteAnimation;
 
 // Animated.TimingAnimationConfig
 interface AnimationConfig
 {
-	useNativeDriver: boolean;
+    useNativeDriver: boolean;
 }
 interface TimingAnimationConfig extends AnimationConfig
 {
-	toValue: number | Animated.Value // new Animated.Value(시작값)의 끝값 설정
-	duration?: number // 애니메이션 진행 시간 (millisecond)
-	delay?: number // 애니메이션 진행 전 대기 시간
-	easing?: (value: number) => nuber; // Easing이 사용하는 보간 함수
+    toValue: number | Animated.Value // new Animated.Value(시작값)의 끝값 설정
+    duration?: number // 애니메이션 진행 시간 (millisecond)
+    delay?: number // 애니메이션 진행 전 대기 시간
+    easing?: (value: number) => nuber; // Easing이 사용하는 보간 함수
 }
 
 // Easing
 export type EasingFunction = (value: number) => number;
 export interface Easing
 {
-	linear: EasingFunction;
-	ease: EasingFunction;
-	// ~
+    linear: EasingFunction;
+    ease: EasingFunction;
+    // ~
 }
 
 // CompositeAnimation
 export interface CompositeAnimation
 {
-	start: (callback?: EndCallback) => void;
-	// ~
+    start: (callback?: EndCallback) => void;
+    // ~
 }
 type EndResult = {finished: boolean};
 type EndCallback = (result: EndResult) => void;
@@ -274,18 +274,18 @@ type EndCallback = (result: EndResult) => void;
 // i.e.
 Animated.timing
 (
-	// 대상
-	animValue,
-	// 애니메이션
-	{
-		useNativeDriver: true,
-		toValue: show ? 0 : 1,
-		duration: 1000,
-		easing: Easing.bounce
-	}
+    // 대상
+    animValue,
+    // 애니메이션
+    {
+        useNativeDriver: true,
+        toValue: show ? 0 : 1,
+        duration: 1000,
+        easing: Easing.bounce
+    }
 ).start(
-	(result: {finished: boolean}) => console.log(result)
-	)
+    (result: {finished: boolean}) => console.log(result)
+    )
 
 // result 매개변수는 항상 {finished: true} 이므로 () => console.log('animation end') 같이 구현해도 좋다
 ```

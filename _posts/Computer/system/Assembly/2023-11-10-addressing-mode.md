@@ -66,12 +66,12 @@ void Temp(SomeType a, SomeType b) {}
 
 __asm
 {
-	Temp:
-		movq (%rdi), %rax
-		movq (%rsi), %rdx
-		movq %rdx, (%rdi)
-		movq %rax, (%rsi)
-	ret
+    Temp:
+        movq (%rdi), %rax
+        movq (%rsi), %rdx
+        movq %rdx, (%rdi)
+        movq %rax, (%rsi)
+    ret
 }
 ```
 

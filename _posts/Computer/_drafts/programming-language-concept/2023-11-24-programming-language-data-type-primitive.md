@@ -263,8 +263,8 @@ printf("%s\n", b); // "d" 출력
 ```c
 union FlexType
 {
-	int intE1;
-	float floatE1;
+    int intE1;
+    float floatE1;
 };
 
 union FlexType el1;

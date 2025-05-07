@@ -26,41 +26,41 @@ date: 2025-04-19. 01:17 # Init
 ```cs
 public abstract class SomeStrategy
 {
-	public abstract void CreateSomeThing(ref SomeObject someObject);
+    public abstract void CreateSomeThing(ref SomeObject someObject);
 }
 
 public class SomeStrategyA : SomeStrategy
 {
-	public SomeStrategyA() { /* Constructor */ }
+    public SomeStrategyA() { /* Constructor */ }
 
-	public override void CreateSomeThing(ref SomeObject someObject)
-	{
-		someObject = new SomeObjectA();
-	}
+    public override void CreateSomeThing(ref SomeObject someObject)
+    {
+        someObject = new SomeObjectA();
+    }
 }
 
 public class SomeClassB : SomeStrategy
 {
-	private SomeVariable someVariable; // Only for SomeClassB
+    private SomeVariable someVariable; // Only for SomeClassB
 
-	public SomeClassB(int a, int b)
-	{
-		someVariable = new SomeVariable();
-	}
+    public SomeClassB(int a, int b)
+    {
+        someVariable = new SomeVariable();
+    }
 
-	public override void CreateSomeThing(ref SomeObject someObject)
-	{
-		someObject = new SomeObjectB();
-	}
+    public override void CreateSomeThing(ref SomeObject someObject)
+    {
+        someObject = new SomeObjectB();
+    }
 }
 
 public class SomeFactory
 {
-	public SomeStrategy CreateSomeStrategy() => someEnum switch
-	{
-		SomeEnum.A => new SomeStrategyA(),
-		SomeEnum.B => new SomeStrategyB(1, 2),
-		_ => throw new ArgumentOutOfRangeException(nameof(someEnum), someEnum, null)
-	};
+    public SomeStrategy CreateSomeStrategy() => someEnum switch
+    {
+        SomeEnum.A => new SomeStrategyA(),
+        SomeEnum.B => new SomeStrategyB(1, 2),
+        _ => throw new ArgumentOutOfRangeException(nameof(someEnum), someEnum, null)
+    };
 }
 ```

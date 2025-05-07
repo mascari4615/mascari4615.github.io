@@ -144,9 +144,9 @@ i.e. 0-1 배낭 문제의 상태 공간 트리
 ```cs
 void DFS_Tree(Node node)
 {
-	DoSomething();
-	foreach (Node child in node.Childs)
-		DFS_tree(child);
+    DoSomething();
+    foreach (Node child in node.Childs)
+        DFS_tree(child);
 }
 ```
 
@@ -168,19 +168,19 @@ DFS와 Back-Tracking의 차이점, Purning 유무
 // 백트래킹의 공통된 구조, DFS에 이것저것 붙인 정도
 void Backtracking(Node v)
 {
-	if (Promising(v)) // 1. 요망한 놈에 대해서만 (가지치기, Pruning)
-		return;
+    if (Promising(v)) // 1. 요망한 놈에 대해서만 (가지치기, Pruning)
+        return;
 
-	if (IsSolution(v)) // 해답이라면 ?
-	{
-		OutputSolution(v); // 끝 (진행을 끝내는 코드가 생략됨)
-	}
-	else // 해답이 아니라면 ?
-	{
-		// 2. (요망한 놈에 대해서만 Backtracking하는 코드가 생략됨)
-		foreach (var child in v.Childs)
-			Backtracking(child);
-	}
+    if (IsSolution(v)) // 해답이라면 ?
+    {
+        OutputSolution(v); // 끝 (진행을 끝내는 코드가 생략됨)
+    }
+    else // 해답이 아니라면 ?
+    {
+        // 2. (요망한 놈에 대해서만 Backtracking하는 코드가 생략됨)
+        foreach (var child in v.Childs)
+            Backtracking(child);
+    }
 }
 ```
 
@@ -195,11 +195,11 @@ void Backtracking(Node v)
 ```cs
 void BT_OPT(Node v)
 {
-	optimal = Winner(optimal, Solution(v));
-	
-	if (Promising(v))
-		foreach (Node child in v.childNodes)
-			BT_OPT(child);
+    optimal = Winner(optimal, Solution(v));
+    
+    if (Promising(v))
+        foreach (Node child in v.childNodes)
+            BT_OPT(child);
 }
 ```
 

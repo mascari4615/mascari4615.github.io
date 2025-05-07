@@ -54,20 +54,20 @@ const cache: Record<string, any> = {}
 
 export const createOrUse = <T>(key: string, callback: () => T) =>
 {
-	if (!cache[key])
-		cache[key] = callback()
-	return cache[key]
+    if (!cache[key])
+        cache[key] = callback()
+    return cache[key]
 }
 
 const temp = createOrUse('Temp', () => createTemp)
 
 /*
-	Record<Key, Type>
-	TypeScript에서 제공하는 객체 타입
-	Type은 아무 타입이나 올 수 있음
+    Record<Key, Type>
+    TypeScript에서 제공하는 객체 타입
+    Type은 아무 타입이나 올 수 있음
 
-	있으면 꺼내서 반환  
-	없으면 callback으로 초기화 후 반환  
+    있으면 꺼내서 반환  
+    없으면 callback으로 초기화 후 반환  
 */
 ```
 
@@ -219,10 +219,10 @@ const onLayout = (e: LayoutChangeEvent) => { /* e.nativeEvent ~ */}
 
 export interface LayoutChangeEvent
 {
-	nativeEvent:
-	{
-		layout: LayoutRectangle;
-	};
+    nativeEvent:
+    {
+        layout: LayoutRectangle;
+    };
 }
 ```
 

@@ -76,7 +76,7 @@ last_modified_at: 1999-01-01. 00:03
 너무 길어지면, 포스트에 따로 기록으로 옮길 것.  
 
 <details>
-	<summary>수정 기록</summary>
+  <summary>수정 기록</summary>
 
 </details>
 

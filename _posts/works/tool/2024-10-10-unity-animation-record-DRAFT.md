@@ -82,20 +82,20 @@ Chanity에 사용될 모션녹화 모듈 개발.
 /// </summary>
 void SaveRecording()
 {
-	//Creates a new clip so we can save all of our curves.
-	AnimationClip clip = new();
+    //Creates a new clip so we can save all of our curves.
+    AnimationClip clip = new();
 
-	//Iterate through all curves and add the data to the currect EditorCurveBindings
-	for (int i = 0; i < recordedCurvesCount; i++)
-	{
-		AnimationUtility.SetEditorCurve(clip, indexToCurve[i], curves[i]);
-	}
+    //Iterate through all curves and add the data to the currect EditorCurveBindings
+    for (int i = 0; i < recordedCurvesCount; i++)
+    {
+        AnimationUtility.SetEditorCurve(clip, indexToCurve[i], curves[i]);
+    }
 
-	//Save the clip to disk
-	AssetDatabase.CreateAsset(clip, filePath + fileName + ".anim");
-	AssetDatabase.SaveAssets();
+    //Save the clip to disk
+    AssetDatabase.CreateAsset(clip, filePath + fileName + ".anim");
+    AssetDatabase.SaveAssets();
 
-	Debug.Log("[xens] Animation Clip <b>\"" + fileName + ".anim\"</b> saved successfuly in <b>" + filePath + "</b>");
+    Debug.Log("[xens] Animation Clip <b>\"" + fileName + ".anim\"</b> saved successfuly in <b>" + filePath + "</b>");
 }
 ```
 

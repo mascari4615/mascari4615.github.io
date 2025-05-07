@@ -37,32 +37,32 @@ int head = MAX, tail = MAX;
 
 void push_front(int x)
 {
-	dat[--head] = x;
+    dat[--head] = x;
 }
 
 void push_back(int x)
 {
-	dat[tail++] = x;
+    dat[tail++] = x;
 }
 
 void pop_front()
 {
-	head++;
+    head++;
 }
 
 void pop_back()
 {
-	tail--;
+    tail--;
 }
 
 int front()
 {
-	return dat[head];
+    return dat[head];
 }
 
 int back()
 {
-	return dat[tail-1];
+    return dat[tail-1];
 }
 
 ```
@@ -73,38 +73,38 @@ using namespace std;
 
 int main(void)
 {
-	// STL deque는 deque보다도 vector랑 비슷한데
-	// vector가 front에서도 O(1)로 추가 제거가 가능한 느낌
+    // STL deque는 deque보다도 vector랑 비슷한데
+    // vector가 front에서도 O(1)로 추가 제거가 가능한 느낌
 
-	// insert erase 인덱스접근
-	// stl vector에서 제공되는 기능을 stl deque에서도 다 제공
+    // insert erase 인덱스접근
+    // stl vector에서 제공되는 기능을 stl deque에서도 다 제공
 
-	// 단, vector와 달리 deque는 모든 원소들이 메모리상에 연속하게 배치되어 있지 않음
-	// 궁금하다면 c++ deque vs vector
+    // 단, vector와 달리 deque는 모든 원소들이 메모리상에 연속하게 배치되어 있지 않음
+    // 궁금하다면 c++ deque vs vector
 
-	deque<int> DQ;
-	DQ.push_front(10); // 10
-	DQ.push_back(50); // 10 50
-	DQ.push_front(24); // 24 10 50
-	for(auto x : DQ) cout << x << ' ';
-	cout << DQ.size() << '\n'; // 3
-	if(DQ.empty()) cout << "DQ is empty\n";
-	else cout << "DQ is not empty\n"; // DQ is not empty
-	DQ.pop_front(); // 10 50
-	DQ.pop_back(); // 10
-	cout << DQ.back() << '\n'; // 10
-	DQ.push_back(72); // 10 72
-	cout << DQ.front() << '\n'; // 10
-	DQ.push_back(12); // 10 72 12
-	DQ[2] = 17; // 10 72 17
-	DQ.insert(DQ.begin()+1, 33); // 10 33 72 17
-	DQ.insert(DQ.begin()+4, 60); // 10 33 72 17 60
-	for(auto x : DQ) cout << x << ' ';
-	cout << '\n';
-	DQ.erase(DQ.begin()+3); // 10 33 72 60
-	cout << DQ[3] << '\n'; // 60
-	DQ.clear(); // DQ의 모든 원소 제거
-	}
+    deque<int> DQ;
+    DQ.push_front(10); // 10
+    DQ.push_back(50); // 10 50
+    DQ.push_front(24); // 24 10 50
+    for(auto x : DQ) cout << x << ' ';
+    cout << DQ.size() << '\n'; // 3
+    if(DQ.empty()) cout << "DQ is empty\n";
+    else cout << "DQ is not empty\n"; // DQ is not empty
+    DQ.pop_front(); // 10 50
+    DQ.pop_back(); // 10
+    cout << DQ.back() << '\n'; // 10
+    DQ.push_back(72); // 10 72
+    cout << DQ.front() << '\n'; // 10
+    DQ.push_back(12); // 10 72 12
+    DQ[2] = 17; // 10 72 17
+    DQ.insert(DQ.begin()+1, 33); // 10 33 72 17
+    DQ.insert(DQ.begin()+4, 60); // 10 33 72 17 60
+    for(auto x : DQ) cout << x << ' ';
+    cout << '\n';
+    DQ.erase(DQ.begin()+3); // 10 33 72 60
+    cout << DQ[3] << '\n'; // 60
+    DQ.clear(); // DQ의 모든 원소 제거
+    }
 ```
 
 BFS  

@@ -60,13 +60,13 @@ DFS는 나중에 그래프와 트리라는 자료구조를 배울 때 필요하�
 #define Y second // pair에서 first, second를 줄여서 쓰기 위해서 사용
 
 int board[502][502] = {
-	{ 1, 1, 1, 0, 1, 0, 0, 0, 0, 0} ,
-	{ 1, 0, 0, 0, 1, 0, 0, 0, 0, 0} ,
-	{ 1, 1, 1, 0, 1, 0, 0, 0, 0, 0} ,
-	{ 1, 1, 0, 0, 1, 0, 0, 0, 0, 0} ,
-	{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0} ,
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} ,
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} }; // 1이 파란 칸, 0이 빨간 칸에 대응
+    { 1, 1, 1, 0, 1, 0, 0, 0, 0, 0} ,
+    { 1, 0, 0, 0, 1, 0, 0, 0, 0, 0} ,
+    { 1, 1, 1, 0, 1, 0, 0, 0, 0, 0} ,
+    { 1, 1, 0, 0, 1, 0, 0, 0, 0, 0} ,
+    { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0} ,
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} ,
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} }; // 1이 파란 칸, 0이 빨간 칸에 대응
 bool vis[502][502]; // visit 해당 칸을 방문했는지 여부를 저장
 int n = 7, m = 10; // n = 행의 수, m = 열의 수
 
@@ -75,38 +75,38 @@ int dy[4] = { 0, 1, 0, -1 }; // 상하좌우 네 방향을 의미
 
 int main(void)
 {
-	stack<pair<int,int>> S;
+    stack<pair<int,int>> S;
 
-	vis[0][0] = 1; // @ (0, 0)을 방문했다고 명시
-	S.push({ 0, 0 }); // 큐에 시작점인 (0, 0)을 삽입.
-	
-	while(!S.empty())
-	{
-		pair<int,int> cur = S.top();
-		S.pop();
-		
-		cout << '(' << cur.X << ", " << cur.Y << ") -> ";
-		
-		// 상하좌우 칸을 살펴볼 것이다.
-		for (int dir = 0; dir < 4; dir++)
-		{ 
-			// nx, ny에 dir에서 정한 방향의 인접한 칸의 좌표가 들어감
-			int nx = cur.X + dx[dir];
-			int ny = cur.Y + dy[dir];
+    vis[0][0] = 1; // @ (0, 0)을 방문했다고 명시
+    S.push({ 0, 0 }); // 큐에 시작점인 (0, 0)을 삽입.
+    
+    while(!S.empty())
+    {
+        pair<int,int> cur = S.top();
+        S.pop();
+        
+        cout << '(' << cur.X << ", " << cur.Y << ") -> ";
+        
+        // 상하좌우 칸을 살펴볼 것이다.
+        for (int dir = 0; dir < 4; dir++)
+        { 
+            // nx, ny에 dir에서 정한 방향의 인접한 칸의 좌표가 들어감
+            int nx = cur.X + dx[dir];
+            int ny = cur.Y + dy[dir];
 
-			// @ 아랫조건보다 먼저, 범위 밖일 경우 넘어감
-			if (nx < 0 || nx >= n || ny < 0 || ny >= m)
-				continue; 
-			// 이미 방문한 칸이거나 파란 칸이 아닐 경우
-			if (vis[nx][ny] || board[nx][ny] != 1)
-				continue;
+            // @ 아랫조건보다 먼저, 범위 밖일 경우 넘어감
+            if (nx < 0 || nx >= n || ny < 0 || ny >= m)
+                continue; 
+            // 이미 방문한 칸이거나 파란 칸이 아닐 경우
+            if (vis[nx][ny] || board[nx][ny] != 1)
+                continue;
 
-			// (nx, ny)를 방문했다고 명시
-			// @ 넣을때 표시하지 않고, 뺄 때 표시한다면 중복된 요소가 스택에 들어갈 수 있어서 메모리 초과, 시간 초과가 날 수 있다
-			vis[nx][ny] = 1; 
-			S.push({ nx, ny });
-		}
-	}
+            // (nx, ny)를 방문했다고 명시
+            // @ 넣을때 표시하지 않고, 뺄 때 표시한다면 중복된 요소가 스택에 들어갈 수 있어서 메모리 초과, 시간 초과가 날 수 있다
+            vis[nx][ny] = 1; 
+            S.push({ nx, ny });
+        }
+    }
 }
 ```
 
@@ -130,26 +130,26 @@ int depth[8]; // 깊이를 저장 (부가적인 정보)
 
 void dfs(int start)
 {
-	stack<int> s;
-	s.push(start);
-	vis[start] = true;
-	while (s.empty() == false)
-	{
-		int cur = s.top();
-		s.pop();
-		cout << cur << ' ';
-		for (int next : adj[cur])
-		{
-			// if (vis[next])
-			if (parent[cur] == next)
-				continue;
+    stack<int> s;
+    s.push(start);
+    vis[start] = true;
+    while (s.empty() == false)
+    {
+        int cur = s.top();
+        s.pop();
+        cout << cur << ' ';
+        for (int next : adj[cur])
+        {
+            // if (vis[next])
+            if (parent[cur] == next)
+                continue;
 
-			s.push(next);
-			// vis[next] = true;
-			parent[next] = cur;
-			depth[next] = depth[cur] + 1;
-		}
-	}
+            s.push(next);
+            // vis[next] = true;
+            parent[next] = cur;
+            depth[next] = depth[cur] + 1;
+        }
+    }
 }
 ```
 
@@ -162,15 +162,15 @@ int depth[8]; // 깊이를 저장 (부가적인 정보)
 
 void dfs(int cur)
 {
-	cout << cur << ' ';
-	for (int next : adj[cur])
-	{
-		if (parent[cur] == next)
-			continue;
-		parent[next] = cur;
-		depth[next] = depth[cur] + 1;
-		dfs(next);
-	}
+    cout << cur << ' ';
+    for (int next : adj[cur])
+    {
+        if (parent[cur] == next)
+            continue;
+        parent[next] = cur;
+        depth[next] = depth[cur] + 1;
+        dfs(next);
+    }
 }
 
 // or
@@ -178,12 +178,12 @@ void dfs(int cur)
 
 void dfs(int cur, int parent)
 {
-	cout << cur << ' ';
-	for (int next : adj[cur])
-	{
-		if (parent == next)
-			continue;
-		dfs(next, cur);
-	}
+    cout << cur << ' ';
+    for (int next : adj[cur])
+    {
+        if (parent == next)
+            continue;
+        dfs(next, cur);
+    }
 }
 ```

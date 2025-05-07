@@ -39,7 +39,7 @@ last_modified_at: 2024-10-20. 12:55 # 정리
 ```cpp
 inline void printHello()
 {
-	cout << "Hello";
+    cout << "Hello";
 }
 ```
 

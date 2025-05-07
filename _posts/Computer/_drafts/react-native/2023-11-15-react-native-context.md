@@ -95,7 +95,7 @@ theme 객체에 비구조화 할당 구문을 적용하여 fonts와 colors 속�
 ```js
 type SomeProps =
 {
-	theme: any
+    theme: any
 }
 
 const Some: FC<SomeProps> = ({theme}) => {}
@@ -123,10 +123,10 @@ Provider 컴포넌트는 value와 children 속성이 있는 ProviderProps 속성
 /* 타입 변수 T == createContext<T> */
 interface ProviderProps<T>
 {
-	/* 컨텍스트 Provider가 제공하는 기능 */
-	value: T;
-	/* 컴포넌트의 children과 같은 의미 */
-	children?: ReactNode;
+    /* 컨텍스트 Provider가 제공하는 기능 */
+    value: T;
+    /* 컴포넌트의 children과 같은 의미 */
+    children?: ReactNode;
 }
 ```
 
@@ -137,8 +137,8 @@ useContext 훅을 사용하는 코드 패턴은 아래와 같으며, useColorSch
 ```js
 export const useSome = () =>
 {
-	const value = uesContext(SomeContext)
-	return value;
+    const value = uesContext(SomeContext)
+    return value;
 }
 ```
 

@@ -57,18 +57,18 @@ then을 연달아 호출하여 사용할 수 있는데, 이를 then-체인이라
 function fetch(input: RequestInfo, init?:RequestInit): Promise<Response>
 interface Response
 {
-	blob(): Promise<Blob>;
-	json(): Promise<any>;
-	text(): Promise<string>;
+    blob(): Promise<Blob>;
+    json(): Promise<any>;
+    text(): Promise<string>;
 }
 
 // 사용
 fetch('RequestInfo Like URL')
 
 fetch('RequestInfo Like URL')
-	.then((res) => res.json())
-	.then((blabla) => someMethod(blabla))
-	.catch((error: Error) => console.log(error.message))
+    .then((res) => res.json())
+    .then((blabla) => someMethod(blabla))
+    .catch((error: Error) => console.log(error.message))
 ```
 
 ## 키워드
@@ -81,8 +81,8 @@ ActivityIndicator 코어 컴포넌트
 ```js
 export default function Timer()
 {
-	const [loading, setLoading] = useState(false)
-	return ( { loading && (<ActivityIndicator>) } )
+    const [loading, setLoading] = useState(false)
+    return ( { loading && (<ActivityIndicator>) } )
 }
 ```
 
@@ -95,23 +95,23 @@ export default function Timer()
 ```js
 export default function App()
 {
-	const isLoading = true
-	if (isLoading)
-	{
-		return
-		{
-			<SafeAreaView>
-				<Text>Loading...</Text>
-			</SafeAreaView>
-		}
-	}
+    const isLoading = true
+    if (isLoading)
+    {
+        return
+        {
+            <SafeAreaView>
+                <Text>Loading...</Text>
+            </SafeAreaView>
+        }
+    }
 
-	return
-	{
-		<SafeAreaView>
-			<Text>Hello JSX World !</Text>
-		</SafeAreaView>
-	}
+    return
+    {
+        <SafeAreaView>
+            <Text>Hello JSX World !</Text>
+        </SafeAreaView>
+    }
 }
 ```
 
@@ -119,13 +119,13 @@ export default function App()
 { /* 단축평가 Short Circuit Evaluation */ }
 export default function App()
 {
-	const isLoading = true
-	<SafeAreaView>
-		{ /* A && B : undefined */ }
-		{ /* JSX Parser, undefined or null 무시 */ }
-		{isLoading && <Text>Loading...</Text>}
-		{!isLoading && <Text>Hello JSX World !</Text>}
-	</SafeAreaView>
+    const isLoading = true
+    <SafeAreaView>
+        { /* A && B : undefined */ }
+        { /* JSX Parser, undefined or null 무시 */ }
+        {isLoading && <Text>Loading...</Text>}
+        {!isLoading && <Text>Hello JSX World !</Text>}
+    </SafeAreaView>
 }
 ```
 
@@ -133,11 +133,11 @@ export default function App()
 { /* 단축평가 Short Circuit Evaluation */ }
 export default function App()
 {
-	const isLoading = true
-	const children = isLoading ?
-		(<Text>Hello JSX World !</Text>) :
-		(<Text>Loading...</Text>)
-	return <SafeAreaView>{children}</SafeAreaView>
+    const isLoading = true
+    const children = isLoading ?
+        (<Text>Hello JSX World !</Text>) :
+        (<Text>Loading...</Text>)
+    return <SafeAreaView>{children}</SafeAreaView>
 }
 ```
 
@@ -163,22 +163,22 @@ export default function App()
 
 export type IPerson
 {
-	id: string
-	createdDate : Date
-	counts:
-	{
-		comment: number
-		retweet: number
-	}
+    id: string
+    createdDate : Date
+    counts:
+    {
+        comment: number
+        retweet: number
+    }
 }
 
 export const createRandomPerson = (): IPerson =>
 {
-	return
-	{
-		id: ~,
-		...
-	}
+    return
+    {
+        id: ~,
+        ...
+    }
 }
 
 { /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */ }
@@ -191,13 +191,13 @@ import * as D from './~'
 
 export type PersonProps =
 {
-	person: D.IPerson
+    person: D.IPerson
 }
 
 const Person: FC<PersonProps> = ({person}) =>
 {
-	{ /* 객체 그대로 출력할 수 없어서, 공백 2개 붙은 문자열로, Like .ToString */ }
-	return <Text>{JSON.stringify(person, null, 2)}</Text>
+    { /* 객체 그대로 출력할 수 없어서, 공백 2개 붙은 문자열로, Like .ToString */ }
+    return <Text>{JSON.stringify(person, null, 2)}</Text>
 }
 
 export default Person
@@ -211,7 +211,7 @@ const person = D.createRandomPerson()
 
 export default function App()
 {
-	return <ArrowComponent person = {person} />
+    return <ArrowComponent person = {person} />
 }
 
 ```
@@ -227,11 +227,11 @@ ESNext JS와 TS, Rest Operator - 잔여 연산자 지원
 ```js
 let address: any
 {
-	country: 'Korea',
-	city: 'Seoul',
-	address1: 'Gangnam-gu',
-	address2: '~',
-	address3: '~'
+    country: 'Korea',
+    city: 'Seoul',
+    address1: 'Gangnam-gu',
+    address2: '~',
+    address3: '~'
 }
 const {country, city, ...detail} = address
 
@@ -260,14 +260,14 @@ import React, {Fragment} from 'react'
 
 { /* Fragment : 실체가 있는 건 아니지만, XML 문법이 요구하는 부모 컴포넌트 역할로 동작하도록 */ }
 <Fragment>
-	<SafeAreaView />
-	<View />
+    <SafeAreaView />
+    <View />
 </Fragment>
 
 { /* 단축 구문 */ }
 <>
-	<SafeAreaView />
-	<View />
+    <SafeAreaView />
+    <View />
 </>
 ```
 

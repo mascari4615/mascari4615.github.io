@@ -203,9 +203,9 @@ in ReactNative
 // ReactNative Renderer는 Native에서 동작하므로
 export default function App()
 {
-	// 1. Virtual DOM 객체 생성
-	const textElement = React.createElement(Text, null, 'Hello world!')
-	return textElement
+    // 1. Virtual DOM 객체 생성
+    const textElement = React.createElement(Text, null, 'Hello world!')
+    return textElement
 }
 ```
 
@@ -233,7 +233,7 @@ NativeModule에서 동작하는 JS Engine이 index.js 파일의 존재를 알 �
 @Override
 protected String getJSMainModuleName()
 {
-	return "index"
+    return "index"
 };
 // ...
 ```

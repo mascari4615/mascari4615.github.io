@@ -139,15 +139,15 @@ last_modified_at: 2024-08-29. 22:29
 ```cs
 public override void Render()
 {
-	foreach (var change in _changeDetector.DetectChanges(this))
-	{
-		switch (change)
-		{
-			case nameof(변수):
-				// 변화 시 수행할 명령
-				break;
-		}
-	}
+    foreach (var change in _changeDetector.DetectChanges(this))
+    {
+        switch (change)
+        {
+            case nameof(변수):
+                // 변화 시 수행할 명령
+                break;
+        }
+    }
 }
 ```
 

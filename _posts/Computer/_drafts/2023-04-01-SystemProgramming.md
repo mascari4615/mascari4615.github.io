@@ -323,18 +323,18 @@ int a = 15213;
 ```c
 int mul12(int x)
 {
-	return x * 12;
+    return x * 12;
 
-	// 아래와 같이 컴파일 된다
-	__asm
-	{
-		leal (&eax, %eax, 2), %eax
-		sall $2, %eax
-	}
+    // 아래와 같이 컴파일 된다
+    __asm
+    {
+        leal (&eax, %eax, 2), %eax
+        sall $2, %eax
+    }
 
-	// 아래와 같은 의미
-	// t ← x + x * 2
-	// return t << 2
+    // 아래와 같은 의미
+    // t ← x + x * 2
+    // return t << 2
 }
 ```
 

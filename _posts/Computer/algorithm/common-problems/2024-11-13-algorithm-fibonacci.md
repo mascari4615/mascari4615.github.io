@@ -29,9 +29,9 @@ last_modified_at: 2024-11-13. 03:57 # Init
 ```cs
 int RecFib(int n)
 {
-	if (n == 0) return 0;
-	if (n == 1) return 1;
-	return RecFib(n - 1) + RecFib(n - 2);
+    if (n == 0) return 0;
+    if (n == 1) return 1;
+    return RecFib(n - 1) + RecFib(n - 2);
 }
 ```
 
@@ -45,14 +45,14 @@ int RecFib(int n)
 ```cs
 int DpFib(int n)
 {
-	int[] D = new int[n + 1];
-	D[0] = 0;
-	D[1] = 1;
+    int[] D = new int[n + 1];
+    D[0] = 0;
+    D[1] = 1;
 
-	for (int i = 2; i <= n; i++)
-		D[i] = D[i - 1] + D[i - 2];
+    for (int i = 2; i <= n; i++)
+        D[i] = D[i - 1] + D[i - 2];
 
-	return D[n];
+    return D[n];
 }
 ```
 
@@ -66,17 +66,17 @@ N+1칸을 채우고 나면 답(N)을 알 수 있으니 O(N)의 시간복잡도�
 ```cs
 int IterativeFib(int n)
 {
-	if (n == 0) return 0;
-	if (n == 1) return 1;
+    if (n == 0) return 0;
+    if (n == 1) return 1;
 
-	int a = 0, b = 1, c;
-	for (int i = 2; i <= n; i++)
-	{
-		c = a + b;
-		a = b;
-		b = c;
-	}
-	return b;
+    int a = 0, b = 1, c;
+    for (int i = 2; i <= n; i++)
+    {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
 }
 ```
 

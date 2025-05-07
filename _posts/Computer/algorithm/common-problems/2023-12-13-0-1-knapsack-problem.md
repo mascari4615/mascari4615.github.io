@@ -88,13 +88,13 @@ $$
 // w[]와 p[]는 각 물건의 무게와 이익을 담은 배열
 int DC_01_ks(int i, int w)
 {
-	if (i == 0 || w == 0)
-		return 0;
-	
-	if (w < W[i])
-		return DC_01_ks(i - 1, w);
-	
-	return Math.Max(DC_01_ks(i - 1, w), DC_01_ks(i - 1, w - W[i]) + P[i]);
+    if (i == 0 || w == 0)
+        return 0;
+    
+    if (w < W[i])
+        return DC_01_ks(i - 1, w);
+    
+    return Math.Max(DC_01_ks(i - 1, w), DC_01_ks(i - 1, w - W[i]) + P[i]);
 }
 ```
 
@@ -127,24 +127,24 @@ DP로 풀기 : 함수 대신 배열로
 // W[ ]와 P[ ]는 각 물건의 무게와 이익을 담은 배열
 int _01_ks_DP(int n, int M)
 {
-	int[][] K = new int[MAX][MAX];
+    int[][] K = new int[MAX][MAX];
 
-	for (int w = 0; w <= M; w++)
-		K[0][w] = 0;
-	for (int i = 0; i <= n; i++)
-		K[i][0] = 0;
+    for (int w = 0; w <= M; w++)
+        K[0][w] = 0;
+    for (int i = 0; i <= n; i++)
+        K[i][0] = 0;
 
-	for (int i = 1; i <= n; i++)
-	{
-		for (int w = 1; w <= M; w++)
-		{
-			if (w < W[i])
-				K[i][w] = K[i - 1][w];
-			else
-				K[i][w] = Math.Max(K[i - 1][w], K[i - 1][w - W[i]] + P[i]);
-		}
-	}
-	return K[n][M];
+    for (int i = 1; i <= n; i++)
+    {
+        for (int w = 1; w <= M; w++)
+        {
+            if (w < W[i])
+                K[i][w] = K[i - 1][w];
+            else
+                K[i][w] = Math.Max(K[i - 1][w], K[i - 1][w - W[i]] + P[i]);
+        }
+    }
+    return K[n][M];
 }
 ```
 
@@ -308,45 +308,45 @@ Back-Tracking, 실제로 트리를 만들지는 않고, 각 레벨에 해당하�
 ```cs
 void _01_ks_BT(int i, int profit, int weight)
 {
-	if (weight <= M && profit > max_profit)
-	{
-		max_profit = profit;	// 최대 이익의 변경 
-		optimal = (X[1]..X[i]); // i 개의 물건들의 포함 여부
-	}
+    if (weight <= M && profit > max_profit)
+    {
+        max_profit = profit;    // 최대 이익의 변경 
+        optimal = (X[1]..X[i]); // i 개의 물건들의 포함 여부
+    }
 
-	if (Promising(i, profit, weight))
-	{
-		X[i + 1] = true;
-		_01_ks_BT(i + 1, profit + P[i + 1], weight + W[i + 1]);
-		X[i + 1] = false;
-		_01_ks_BT(i + 1, profit, weight);
-	}
+    if (Promising(i, profit, weight))
+    {
+        X[i + 1] = true;
+        _01_ks_BT(i + 1, profit + P[i + 1], weight + W[i + 1]);
+        X[i + 1] = false;
+        _01_ks_BT(i + 1, profit, weight);
+    }
 }
 
 bool Promising(int i, int profit, int weight)
 {
-	int k, exp_weight = 0;
-	float exp_profit = 0;
+    int k, exp_weight = 0;
+    float exp_profit = 0;
 
-	// 꽉 차거나 찢어짐
-	if (weight >= M)
-		return false;
+    // 꽉 차거나 찢어짐
+    if (weight >= M)
+        return false;
 
-	for (k = i + 1; k <= n; k++)
-	{
-		if (weight + exp_weight + W[k] > M)
-			break;
-		exp_weight += W[k];
-		exp_profit += P[k];
-	}
+    for (k = i + 1; k <= n; k++)
+    {
+        if (weight + exp_weight + W[k] > M)
+            break;
+        exp_weight += W[k];
+        exp_profit += P[k];
+    }
 
-	if (k <= n)
-		exp_profit += (M - (weight + exp_weight)) * P[k] / W[k];
+    if (k <= n)
+        exp_profit += (M - (weight + exp_weight)) * P[k] / W[k];
 
-	if (profit + exp_profit <= max_profit)
-		return false; 
+    if (profit + exp_profit <= max_profit)
+        return false; 
 
-	return true;
+    return true;
 }
 ```
 

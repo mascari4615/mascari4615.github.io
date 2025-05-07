@@ -81,16 +81,16 @@ memset(b, 0, sizeof b);
 
 // 2. for
 for (int i = 0; i < 21; i++)
-	a[i] = 0;
+    a[i] = 0;
 for (int i = 0; i < 21; i++)
-	for (int j = 0; j < 21; j++)
-		b[i][j] = 0;
+    for (int j = 0; j < 21; j++)
+        b[i][j] = 0;
 
 // 3. fill
 #include <algorithm>
 fill(a, a + 21, 0);
 for (int i = 0; i < 21; i++)
-	fill(b[i], b[i] + 21, 0);
+    fill(b[i], b[i] + 21, 0);
 ```
 
 ### C++ STL vector

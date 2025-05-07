@@ -473,14 +473,14 @@ void Main() => Sub1();
 
 void Sub1()
 {
-	int x = 7;
-	Sub2();
+    int x = 7;
+    Sub2();
 }
 
 void Sub2()
 {
-	int y = x;
-	Console.WriteLine(y); // 7
+    int y = x;
+    Console.WriteLine(y); // 7
 }
 ```
 

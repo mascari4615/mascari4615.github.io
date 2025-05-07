@@ -19,7 +19,7 @@ last_modified_at: 2024-08-30. 00:06
 private readonly object thisLock = new object();
 lock (thisLock)
 {
-	// Bla Bla
+    // Bla Bla
 }
 ```
 
@@ -114,10 +114,10 @@ public static bool QueueUserWorkItem(WaitCallback callBack, object state);
 ```cs
 for (int i = 0; i < 100; i++)
 {
-	ThreadPool.QueueUserWorkItem((obj) =>
-	{
-		Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-	});
+    ThreadPool.QueueUserWorkItem((obj) =>
+    {
+        Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+    });
 }
 
 Console.ReadLine();
@@ -137,7 +137,7 @@ Taks 간의 상관관계가 없다면, 병렬로 수행 가능 -> 빨라진다
 // QueueUserWorkItem과 유사 동작을 수행하는 코드 패턴
 Action action = () =>
 {
-	Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+    Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
 };
 
 Task task = new Task(action); // #1: Task 객체 생성 후
@@ -160,37 +160,37 @@ Canceling a Task
 ```cs
 private static int Sum(CancellationToken ct, int n)
 {
-	int sum = 0;
-	for (; n > 0; n--)
-	{
-		// 작업 취소가 요청되면 OperationCanceledException을
-		// innerException으로 갖는 AggregateException을 던짐
-		ct.ThrowIfCancellationRequested();
-		checked
-		{
-			sum += n;
-		}
-	}
-	return sum;
+    int sum = 0;
+    for (; n > 0; n--)
+    {
+        // 작업 취소가 요청되면 OperationCanceledException을
+        // innerException으로 갖는 AggregateException을 던짐
+        ct.ThrowIfCancellationRequested();
+        checked
+        {
+            sum += n;
+        }
+    }
+    return sum;
 }
 
 static void Main(string[] args)
 {
-	CancellationTokenSource cts = new CancellationTokenSource();
-	Task<Int32> t = Task.Run(() => Sum(cts.Token, 100000000), cts.Token);
-	cts.Cancel(); // 작업 취소 요청
+    CancellationTokenSource cts = new CancellationTokenSource();
+    Task<Int32> t = Task.Run(() => Sum(cts.Token, 100000000), cts.Token);
+    cts.Cancel(); // 작업 취소 요청
 
-	try
-	{
-		Console.WriteLine("The result is: " + t.Result);
-	}
-	catch (AggregateException e)
-	{
-		e.Handle((innerException) => innerException is OperationCanceledException);
-		// Operation.. 이면 처리된 것으로  
+    try
+    {
+        Console.WriteLine("The result is: " + t.Result);
+    }
+    catch (AggregateException e)
+    {
+        e.Handle((innerException) => innerException is OperationCanceledException);
+        // Operation.. 이면 처리된 것으로  
 
-		Console.WriteLine("Exception: " + e.InnerExceptions[0].Message);
-	}
+        Console.WriteLine("Exception: " + e.InnerExceptions[0].Message);
+    }
 }
 ```
 
@@ -219,7 +219,7 @@ Task<Int32> t = Task.Run(() => Sum(CancellationTokenSource.None, 100));
 Task cwt = t.ContinueWith( // 완료되면
 (antecedent) =>
 {
-	Console.WriteLine("The result is: " + antecedent.Result);
+    Console.WriteLine("The result is: " + antecedent.Result);
 });
 
 // 연결하고 바로 빠져나옴
@@ -238,15 +238,15 @@ Task<Int32> t = Task.Run(() => Sum(cts.Token, 100000000), cts.Token);
 
 t.ContinueWith((task) => // 성공 완료시
 {
-	Console.WriteLine("The result is: " + task.Result);
+    Console.WriteLine("The result is: " + task.Result);
 }, TaskContinuationOptions.OnlyOnRanToCompletion);
 t.ContinueWith((task) => // 실패/예외 발생 시
 {
-	Console.WriteLine("The task failed" + task.Exception.InnerException);
+    Console.WriteLine("The task failed" + task.Exception.InnerException);
 }, TaskContinuationOptions.OnlyOnFaulted);
 t.ContinueWith((task) => // 취소시
 {
-	Console.WriteLine("The task was canceled");
+    Console.WriteLine("The task was canceled");
 }, TaskContinuationOptions.OnlyOnCanceled);
 ```
 
@@ -256,18 +256,18 @@ t.ContinueWith((task) => // 취소시
 // Parent-Child Task로의 연결, TaskCreationOptions.AttachedToParent
 Task<Int32[]> parent = new Task<Int32[]>(() =>
 {
-	var results = new Int32[3];
-	new Task(() => results[0] = Sum(CancellationToken.None, 10000), TaskCreationOptions.AttachedToParent).Start();
-	new Task(() => results[1] = Sum(CancellationToken.None, 20000), TaskCreationOptions.AttachedToParent).Start();
-	new Task(() => results[2] = Sum(CancellationToken.None, 30000), TaskCreationOptions.AttachedToParent).Start();
-	return results;
+    var results = new Int32[3];
+    new Task(() => results[0] = Sum(CancellationToken.None, 10000), TaskCreationOptions.AttachedToParent).Start();
+    new Task(() => results[1] = Sum(CancellationToken.None, 20000), TaskCreationOptions.AttachedToParent).Start();
+    new Task(() => results[2] = Sum(CancellationToken.None, 30000), TaskCreationOptions.AttachedToParent).Start();
+    return results;
 });
 
 // Child Task들이 모두 완료되면 = parent가 완료되면
 
 var cwt = parent.ContinueWith((parentTask) => // parentTask가 끝나면 수행할 Task 연결
 {
-	Array.ForEach(parentTask.Result, Console.WriteLine);
+    Array.ForEach(parentTask.Result, Console.WriteLine);
 });
 
 parent.Start();
@@ -356,8 +356,8 @@ await Task.WhenAll(t, t2);
 var tasks = new List<Task>() { t, t2 };
 while (tasks.Count > 0)
 {
-	Task t = await Task.WhenAny(tasks);
-	tasks.Remove(t);
+    Task t = await Task.WhenAny(tasks);
+    tasks.Remove(t);
 }
 ```
 

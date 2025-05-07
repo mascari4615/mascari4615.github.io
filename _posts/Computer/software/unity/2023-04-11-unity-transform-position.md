@@ -52,8 +52,8 @@ transform.position은 프로퍼티인게 아닐까?
 private Vector3 realPosition;
 public Vector3 position
 {
-	get => realPosition;
-	set => realPosition = value;
+    get => realPosition;
+    set => realPosition = value;
 }
 
 ```
@@ -74,15 +74,15 @@ transform.position으로 Get한 Vector3는, transform 내부에서 작동하는 
 private Vector3 realPosition;
 public Vector3 position
 {
-	get
-	{
-		return 월드 좌표계 기준 position;
-	}
-	set
-	{
-		realPosition = 로컬 좌표계 기준 value;
-		오브젝트 위치 처리();
-	}
+    get
+    {
+        return 월드 좌표계 기준 position;
+    }
+    set
+    {
+        realPosition = 로컬 좌표계 기준 value;
+        오브젝트 위치 처리();
+    }
 }
 
 ```

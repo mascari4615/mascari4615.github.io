@@ -47,19 +47,19 @@ int pos = 0; // 다음 원소가 추가될 곳, size : 원소의 수
 
 void push(int x)
 {
-	dat[pos++] = x;
+    dat[pos++] = x;
 }
 
 // 굳이 dat[pos]를 변경할 필요가 없음
 // 다시 접근할 일도 없고, 나중에 새 값으로 덮어씌워짐
 void pop()
 {
-	pos--;
+    pos--;
 }
 
 int top()
 {
-	return dat[pos - 1];
+    return dat[pos - 1];
 }
 ```
 

@@ -65,7 +65,7 @@ last_modified_at: 2024-08-29. 22:18
        - i∼>k∼>j의 최단 경로
        - i∼>k와 k∼>j도 최단 경로로 이동해야 함:  D<sub>k</sub>(i, k) + D<sub>k</sub>(k, j)
        - 이때, i∼>k의 최단 경로는 중간에 정점 k를 거치지 않음 (정점 수 : k-1)
-       - 이때, k∼>j의 최단 경로는 중간에 정점 k를 거치지 않음 (정점 수 	: k-1)
+       - 이때, k∼>j의 최단 경로는 중간에 정점 k를 거치지 않음 (정점 수     : k-1)
        - 🡺 D<sub>k</sub>(i, k) + D<sub>k</sub>(k, j) = D<sub>k-1</sub>(i, k) + D<sub>k-1</sub>(k, j)
 
 D<sub>n</sub>(i, j)는 D(n, i, j)로 써도 되긴하는데, 이렇게 되면 3차원 배열을 써야하고, 3차원 배열은 다루기 복잡하니까  
@@ -105,17 +105,17 @@ D<sub>k</sub>[i]\[j] =
 ```cpp
 void FloydWarshallDP(int d[][MAX], int n)
 {
-	int V[MAX][MAX] = {0};
-	for (int k = 1; k <= n; k++) // 각 정점에 대해 : n
-		for (int i = 1; i <= n; i++) // 행 : n
-			for (int j = 1; j <= n; j++) // 열 : n
-				if (D[i][k] + D[k][j] < D[i][j]) // k를 경유하는 거리가 더 짧으면
-				{
-					D[i][j] = D[i][k] + D[k][j]; // 거리
-					V[i][j] = k; // 경유
-				}
+    int V[MAX][MAX] = {0};
+    for (int k = 1; k <= n; k++) // 각 정점에 대해 : n
+        for (int i = 1; i <= n; i++) // 행 : n
+            for (int j = 1; j <= n; j++) // 열 : n
+                if (D[i][k] + D[k][j] < D[i][j]) // k를 경유하는 거리가 더 짧으면
+                {
+                    D[i][j] = D[i][k] + D[k][j]; // 거리
+                    V[i][j] = k; // 경유
+                }
 
-	// 복잡도 : n * n * n
+    // 복잡도 : n * n * n
 }
 ```
 
