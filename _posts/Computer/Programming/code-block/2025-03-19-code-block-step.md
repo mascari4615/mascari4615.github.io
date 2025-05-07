@@ -24,7 +24,7 @@ public enum SomeStep
     Step5 = 5,
 }
 
-public class SomeClass : MonoBehaviour
+public class SomeClass: MonoBehaviour
 {
     private SomeStep step = SomeStep.None;
 

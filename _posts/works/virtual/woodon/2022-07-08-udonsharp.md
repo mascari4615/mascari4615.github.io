@@ -19,9 +19,9 @@ date: 2022-07-08. 14:31
 last_modified_at: 2024-11-12. 11:44 # 라이브 스트리밍 ~
 ---
 
-2024-04-09. 02:28 : 글 계승  
-`2022-01-28-USharp-Fog : 🌔 VRChat 안개 (Fog)`,  
-`2022-06-28-USharp-ContextMenu : 🌔 VRChat 월드 에디터 테스트 시, ContextMenu Attribute`  
+2024-04-09. 02:28: 글 계승  
+`2022-01-28-USharp-Fog: 🌔 VRChat 안개 (Fog)`,  
+`2022-06-28-USharp-ContextMenu: 🌔 VRChat 월드 에디터 테스트 시, ContextMenu Attribute`  
 
 ## 라이브 스트리밍 용 VRChat 컨텐츠 제작 시 신경 쓸 점
 

@@ -435,7 +435,7 @@ last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각
 - [클럭 상태 - Google 검색](https://www.google.com/search?q=%ED%81%B4%EB%9F%AD+%EC%83%81%ED%83%9C&oq=%ED%81%B4%EB%9F%AD+%EC%83%81%ED%83%9C&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBCDE0ODRqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8)
 - [클록 상태 - Google 검색](https://www.google.com/search?q=%ED%81%B4%EB%A1%9D+%EC%83%81%ED%83%9C&oq=%ED%81%B4%EB%A1%9D+%EC%83%81%ED%83%9C&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBCDExNDRqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8)
 - [불변 업데이트 패턴 | Redux](https://ko.redux.js.org/usage/structuring-reducers/immutable-update-patterns/)
-- [왁물원 :: 종합 거시기 스트리머 우왁굳 팬카페 : 네이버 카페](https://cafe.naver.com/steamindiegame/18891500)
+- [왁물원 :: 종합 거시기 스트리머 우왁굳 팬카페: 네이버 카페](https://cafe.naver.com/steamindiegame/18891500)
 - [\[Unity\] 커스텀 단축키 만들기](https://giseung.tistory.com/57)
 - [Github으로 팀 프로젝트 하기 1편 \| Pull request 코드리뷰 개발자](https://youtu.be/9FZaYz0s8s4?si=rDBQkTO3FxDcuRmU)
 - [https://ask.vrchat.com/c/creator-hub](https://ask.vrchat.com/c/creator-hub/)

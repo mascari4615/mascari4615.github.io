@@ -30,8 +30,8 @@ Parser - 구문 분석기는 형식적 기술에 기반
 BNF 사용 → 문맥 자유 문법  
 
 대부분 컴파일러, 어휘/구문 분석을 따로 실행  
-어휘 분석 : Lexeme, Token 분리 - 작은 규모의 언어 구조 처리  
-구문 분석 : 식, 문장, 프로그램 단위 - 큰 규모의 언어 구조 처리  
+어휘 분석: Lexeme, Token 분리 - 작은 규모의 언어 구조 처리  
+구문 분석: 식, 문장, 프로그램 단위 - 큰 규모의 언어 구조 처리  
 
 - 왜 Why, 어휘/구문 분석 따로?
   - 단순성
@@ -40,8 +40,8 @@ BNF 사용 → 문맥 자유 문법
   - 효율성
     - 어휘 분석 오래 걸려서, 따로 최적화
   - 이식성
-    - 어휘 분석기 : 플랫폼 종속, 파일 Read 과정에서 입력 버퍼 사용
-    - 구문 분석기 : 플랫폼 독립일 수 있음
+    - 어휘 분석기: 플랫폼 종속, 파일 Read 과정에서 입력 버퍼 사용
+    - 구문 분석기: 플랫폼 독립일 수 있음
 
 ### Compilation 과정
 
@@ -87,7 +87,7 @@ Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~
 
 ---
 
-@ U 중간고사 출제 : 주어진 파싱 테이블을 가지고, 'inout state ~' 을 완성하고, LL파서보다 LR파서가 좋은 이유를 설명하시오.  
+@ U 중간고사 출제: 주어진 파싱 테이블을 가지고, 'inout state ~' 을 완성하고, LL파서보다 LR파서가 좋은 이유를 설명하시오.  
 
 - 어휘 분석
   - 주어진 문자열(프로그램)에서 특정의 문자 패턴과 일치하는 부분 문자열을 찾는 행위
@@ -95,9 +95,9 @@ Linux (VM), Lex, Yacc, Lex File Format, Python Tokenize Module ~
   - 어휘 분석은 구문 분석에 선행함
     - 기술적으로 어휘 분석기는 구문 분석기의 일부
 
-어휘 (Lexme) : 문자들을 모아서 구성한 논리적 그룹  
-토큰 (Token) : 어휘들 분류를 위한 부류(Category)  
-토큰화 (Tokenize) : 어휘를 토큰으로 분류  
+어휘 (Lexme): 문자들을 모아서 구성한 논리적 그룹  
+토큰 (Token): 어휘들 분류를 위한 부류(Category)  
+토큰화 (Tokenize): 어휘를 토큰으로 분류  
 
 초기 어휘 분석기,  
 소스 프로그램 Read → 토큰화 → 결과 (Lexeme, Token) 파일 Create  
@@ -168,16 +168,16 @@ Top-Down, Bottom-Up Parse
   - EBNF 구축에 적합
   - 문법의 각 NonTerminal에 대해 한 개의 부프로그램을 갖는다
     - 입력 문자열이 주어질 때, 부프로그램에서 해당 논터미널을 루트 노드로 가지며, LeafNode들이 그 입력 문자열과 매칭되는 ParseTree를 추적
-  - 전역 변수 nextToken : 다음 번 토큰을 의미
+  - 전역 변수 nextToken: 다음 번 토큰을 의미
     - 파싱할 때 항상 다음 토큰을 미리 본다
 
 - LL 파서
   - L 왼쪽에서 시작하며, L 좌측 유도 방식으로 파싱
   - 약점
     - Left Recursion 좌순환
-      - 직접 좌순환 : A → A + B
+      - 직접 좌순환: A → A + B
         - A가 자기 자신 호출, Stack Overflow
-      - 간접 좌순환 : A → BaA, B → Ab
+      - 간접 좌순환: A → BaA, B → Ab
         - 결국 A가 자기 자신을 호출하는 부분 발생
       - 상향식 파싱 알고리듬은 이런 일 없음
   - 하향식 파서는 최좌측 논터미널에 의해 생성되는 첫번째 토큰만을 사용, 파서가 입력의 다음번째 토큰에 기반하여 항상 올바른 RHS를 선택할 수 있는가가 하향식 파서의 구축에서 중요
@@ -249,16 +249,16 @@ Top-Down, Bottom-Up Parse
 
 Program과 Process  
 
-Program : Code(Text), Data  
-Process : Code(Text), Data + Stack, Heap  
+Program: Code(Text), Data  
+Process: Code(Text), Data + Stack, Heap  
 
 메모리에 프로그램 그대로 올라가고,  
 메모리에 동적으로 Stack과 Heap 할당  
 
-Code(Text) : 컴파일된 코드  
-Data : External, Static, 전역변수  
-Stack : 매개변수, 함수 호출 위치 (돌아갈 곳), 지역변수  
-Heap : 메모리 할당, new 등  
+Code(Text): 컴파일된 코드  
+Data: External, Static, 전역변수  
+Stack: 매개변수, 함수 호출 위치 (돌아갈 곳), 지역변수  
+Heap: 메모리 할당, new 등  
 
 4기가 가상공간 (32bit Linux 기준)  
 1기가 OS/커널 영역 + 3기가 유저 영역(프로세스가 들어가는 곳)  
@@ -287,21 +287,21 @@ Segmentation Fault Error
 @ 언어 디자인 단계  
 @ 컴파일러 구현 단계  
 
-- Editor or IDE (Edit Time) : 1. Write Source Codes
+- Editor or IDE (Edit Time): 1. Write Source Codes
   - Source codes (.c), Headers (.h)
-- Preprocessor (Build)  : 2. Preprocess
+- Preprocessor (Build) : 2. Preprocess
   - Included files, replaced symbols
-- Compiler (Compile Time)(Build) : 3. Compile
+- Compiler (Compile Time)(Build): 3. Compile
   - Object codes (.obj, .o)
-- Linker (Link Time)(Build) : 4. Link Edit
+- Linker (Link Time)(Build): 4. Link Edit
   - By Static Libraries (.lib, .a) → Excutable Code (.exe)
-- Loader (Load Time)(Run) : 5. Load
+- Loader (Load Time)(Run): 5. Load
   - By Shared Libraries (.dll, .so)
-- CPU (Run Time)(Run) : Execute
+- CPU (Run Time)(Run): Execute
   - By Input → Output
 
-Linker 전 : Static 정적, 프로그램  
-Linker 후 : !정적, 프로세서  
+Linker 전: Static 정적, 프로그램  
+Linker 후: !정적, 프로세서  
 
 Preprocess  
 gcc -E -P main.c  

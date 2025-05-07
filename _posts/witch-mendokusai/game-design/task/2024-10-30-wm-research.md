@@ -16,8 +16,8 @@ date: 2024-10-30. 21:08
 last_modified_at: 2025-04-19. 01:54 # 병합: Collection
 ---
 
-2025-04-19. 01:54 : 글 병합.  
-`2024-10-30-WM-Collection : WitchMendokusai | Collection`  
+2025-04-19. 01:54: 글 병합.  
+`2024-10-30-WM-Collection: WitchMendokusai | Collection`  
 
 ## 머리말
 
@@ -54,7 +54,7 @@ last_modified_at: 2025-04-19. 01:54 # 병합: Collection
 - 업적
 
 - 도전과제 (마도서 페이지)
-  - 공통 : 기술/테크/연구
+  - 공통: 기술/테크/연구
   - 캐릭터 별
 
 - 스팀 도전과제 연동?

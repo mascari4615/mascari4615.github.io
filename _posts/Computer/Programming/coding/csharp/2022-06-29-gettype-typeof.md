@@ -22,7 +22,7 @@ last_modified_at: 2024-11-19. 13:04 # 정리
 
 ```csharp
 // Testing Types | 타입 식별
-public class SomeDerivedClass : SomeClass { }
+public class SomeDerivedClass: SomeClass { }
 SomeDerivedClass someInstance = new SomeDerivedClass();
 
 if (someInstance is SomeClass)                       // ==> true

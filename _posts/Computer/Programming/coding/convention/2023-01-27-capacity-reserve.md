@@ -11,9 +11,9 @@ date: 2023-01-27. 07:37
 
 {% include embed/youtube.html id = "9er81n6NyuM" %}
 
-Capacity : the maximum amount that something can contain.  
-Reserve : 예약  
-Budget : 예산, 지출 예상 비용  
+Capacity: the maximum amount that something can contain.  
+Reserve: 예약  
+Budget: 예산, 지출 예상 비용  
 
 ## Capacity Reserve
 

@@ -56,11 +56,11 @@ DataCenter 하드웨어와 소프트웨어 공급업체들이 컴퓨팅 자원�
 
 ---
 
-컴퓨팅 자원 : 컴퓨트 Compute  
+컴퓨팅 자원: 컴퓨트 Compute  
 EC2 Elastic Compute Cloud 가 대표적  
 응용 요구에 따라 1개의 서버로ㅜ터 대형 서버 클러스터 까지 제공이 가능  
 
-스토리지 자원 : 스토리지 Storage  
+스토리지 자원: 스토리지 Storage  
 S3 Simple Storage Service 와 EBS Elastic ~
 
 ---
@@ -79,17 +79,17 @@ Nist
 ---
 
 - 5 클라우드 컴퓨팅 특징  
-  - On-Demand Self-Service : 주문형 셀프서비스  
-  - Broad Network Access : 광대역 네트워크 접근  
+  - On-Demand Self-Service: 주문형 셀프서비스  
+  - Broad Network Access: 광대역 네트워크 접근  
   - Resource Pooling 리소스 풀링  
-  - Rapid Elasticity : 빠른 탄력성  
-  - Measured Service : 측정 가능한 서비스  
+  - Rapid Elasticity: 빠른 탄력성  
+  - Measured Service: 측정 가능한 서비스  
 
 - 3 서비스 모델
-  - SaaS SW as a Service : 서비스 개념의 소프트웨어  
-  - PaaS Platform as a Service : 서비스 개념의 플랫폼  
+  - SaaS SW as a Service: 서비스 개념의 소프트웨어  
+  - PaaS Platform as a Service: 서비스 개념의 플랫폼  
     - #DEV Platform?  
-  - IaaS Infrastructure as a Service : 서비스 개념의 인프라  
+  - IaaS Infrastructure as a Service: 서비스 개념의 인프라  
     - #HW  
 
 종합 CSP Cloud Service Provider 는 대부분 세 가지 서비스 모델 지원  

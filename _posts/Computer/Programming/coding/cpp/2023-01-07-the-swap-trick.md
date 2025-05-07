@@ -9,7 +9,7 @@ date: 2023-01-07. 23:22
 # last_modified_at: 2023-01-07. 23:22
 ---
 
-## The Swap Trick : 메모리 재할당
+## The Swap Trick: 메모리 재할당
 
 ---
 

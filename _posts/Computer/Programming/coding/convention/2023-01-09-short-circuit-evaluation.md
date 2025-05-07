@@ -38,14 +38,14 @@ C# 에서 `&&` 은 Short-Circuit Evaluation 이 적용되기 때문에,
 위 코드에서 `a` 가 `null` 인채로 `a.SomeFunc()` 가 실행되어 `NullReferenceException` 이 발생했을 것이다.  
 
 ```cs
-// 1 : 최소 1ms
+// 1: 최소 1ms
 if (takes1ms() || takes1s())
-// 2 : 최소 1s
+// 2: 최소 1s
 if (takes1s() || takes1ms())
 
-// a : 최소 O(1)
+// a: 최소 O(1)
 if (boolVariable || take1s())
-// b : 최소 1s
+// b: 최소 1s
 if (takes1s() || boolVariable)
 ```
 

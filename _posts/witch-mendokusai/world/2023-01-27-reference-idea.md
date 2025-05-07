@@ -524,7 +524,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - 리히텐베르크 무늬 - 번개, 신경계 손상을 비롯해 피부 흉터
 - 게이트 드럭
 - 월화정인
-- 닿으면 보석이 되어버리는 무언가 : 손 / 금 / 보석 뜻
+- 닿으면 보석이 되어버리는 무언가: 손 / 금 / 보석 뜻
 - 인간 로봇 죽음
 - 마법쓰는 식물
 - 마법 뿌린 음식
@@ -615,13 +615,13 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - 모브
 - [충격적인 장면, 평화로운 배경음악](https://x.com/hehejeom/status/1670772613386493954?s=20)
 - [불쾌함을 주는 지하철 알림 소리 / 불협화음](https://x.com/kusobuta5877/status/1654877823243554816?s=20)
-- 샤덴프로이데 : 남의 고통을 보고 행복을 느끼는 것
-- 라이트 모티브 : 극에서 어떤 인물이나 감정 등 특정 주제에 대해 전용 테마곡을 만들고 극의 흐름에 따라 바리에이션을 시키는 것
+- 샤덴프로이데: 남의 고통을 보고 행복을 느끼는 것
+- 라이트 모티브: 극에서 어떤 인물이나 감정 등 특정 주제에 대해 전용 테마곡을 만들고 극의 흐름에 따라 바리에이션을 시키는 것
 - 설단현상
 - 멜랑꼴리
 - 젠가 시
 - 바이칼젠
-- 메모라이즈 : 아침에 일어나서 하루에 쓸 마법의 주문을 외우는 것. 마법을 한 번 영창하고 나면, 그 주문을 잊어버린다는 전제.
+- 메모라이즈: 아침에 일어나서 하루에 쓸 마법의 주문을 외우는 것. 마법을 한 번 영창하고 나면, 그 주문을 잊어버린다는 전제.
 - 한국인은 리버스 뱀파이어, 마늘을 안먹으면 곰이됨
 - 벨테브에리
 - 백화점 어느 사이 공간의 피자 가게
@@ -681,7 +681,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
   - [](https://x.com/undefined/status/1899671653782880446)
   - [아버지를 심장병으로 잃은 호주의 한 엔지니어가 박동(pulse)이 없는 인공 심장 개발에 인생을 걸었었다는 트윗을 한적이 있다. 이것이 완성되어 드디어 한 환자에게 이식되었고 심장 기증자가 나타나기까지 100일간 성공적으로 작동했다고.](https://x.com/gegoxx/status/1900107354068443259)
   - [Two equally smart Amazon robots](https://x.com/Rainmaker1973/status/1900218844083257643)
-  - [사람을 먹는 오니 Manhwa : 네이버 카페](https://cafe.naver.com/steamindiegame/19061302?tc=shared_link)
+  - [사람을 먹는 오니 Manhwa: 네이버 카페](https://cafe.naver.com/steamindiegame/19061302?tc=shared_link)
 - Concept
   - [](https://x.com/undefined/status/1855986704848765135)
   - [Ｎの気に入っている落書きです。](https://x.com/PlaW_01/status/1896853450975256933)
@@ -883,18 +883,18 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - [타로 카드/목록 - 나무위키](https://namu.wiki/w/%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C/%EB%AA%A9%EB%A1%9D)
 - [아르카나 - 나무위키](https://namu.wiki/w/%EC%95%84%EB%A5%B4%EC%B9%B4%EB%82%98)
 - [스타더스트 크루세이더즈 - 나무위키](https://namu.wiki/w/%EC%8A%A4%ED%83%80%EB%8D%94%EC%8A%A4%ED%8A%B8%20%ED%81%AC%EB%A3%A8%EC%84%B8%EC%9D%B4%EB%8D%94%EC%A6%88#s-5)
-- [문양 등급과 포커 족보 : 네이버 블로그](https://m.blog.naver.com/drkim1089/130179914789)
+- [문양 등급과 포커 족보: 네이버 블로그](https://m.blog.naver.com/drkim1089/130179914789)
 - [트럼프카드 숫자 - Google 검색](https://www.google.com/search?q=%ED%8A%B8%EB%9F%BC%ED%94%84%EC%B9%B4%EB%93%9C+%EC%88%AB%EC%9E%90&oq=%ED%8A%B8%EB%9F%BC%ED%94%84%EC%B9%B4%EB%93%9C+%EC%88%AB%EC%9E%90&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBCDM3MDlqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8#vhid=joQMYKKavhCfbM&vssid=_qFKiZ-qSGtbS1e8PtpHUWQ_38)
-- [숫자의 세계(77) - 트럼프는 왜 하필 52장일까? : 네이버 블로그](https://m.blog.naver.com/chpark277/221541731401)
+- [숫자의 세계(77) - 트럼프는 왜 하필 52장일까?: 네이버 블로그](https://m.blog.naver.com/chpark277/221541731401)
 - [플레잉 카드 - 위키백과, 우리 모두의 백과사전](https://ko.wikipedia.org/wiki/%ED%94%8C%EB%A0%88%EC%9E%89_%EC%B9%B4%EB%93%9C)
 - [타로 카드 - 나무위키](https://namu.wiki/w/%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C)
-- [타로, 메이저카드의 종류와 내용 : 네이버 블로그](https://blog.naver.com/leekywood/60129337487)
-- [타로 - 마이너 카드의 상징과 해석 : 네이버 블로그](https://blog.naver.com/healerjeun/222333724007)
+- [타로, 메이저카드의 종류와 내용: 네이버 블로그](https://blog.naver.com/leekywood/60129337487)
+- [타로 - 마이너 카드의 상징과 해석: 네이버 블로그](https://blog.naver.com/healerjeun/222333724007)
 - [[심볼론(Symbolon)] 78장의 카드 한번에 보기(이름포함) :: Let me dream.](https://miss-flower31.tistory.com/entry/%EC%8B%AC%EB%B3%BC%EB%A1%A0Symbolon-78%EC%9E%A5%EC%9D%98-%EC%B9%B4%EB%93%9C-%ED%95%9C%EB%B2%88%EC%97%90-%EB%B3%B4%EA%B8%B0%EC%9D%B4%EB%A6%84%ED%8F%AC%ED%95%A8)
 - [tarot 78 cards order - Google 검색](https://www.google.com/search?q=tarot+78+cards+order&num=10&sca_esv=3196b51d5507521a&biw=1223&bih=1343&ei=02CiZ5DdEsuJvr0P_aSy8Qo&ved=0ahUKEwjQksGP16qLAxXLhK8BHX2SLK44ChDh1QMIEA&uact=5&oq=tarot+78+cards+order&gs_lp=Egxnd3Mtd2l6LXNlcnAiFHRhcm90IDc4IGNhcmRzIG9yZGVyMgYQABgIGB4yBRAAGO8FMggQABiABBiiBDIIEAAYgAQYogQyCBAAGIAEGKIEMggQABiABBiiBEjLN1AAWNUrcAB4AZABAJgBvAGgAesQqgEEMC4xNLgBA8gBAPgBAZgCDqACkxHCAhEQLhiABBixAxjRAxiDARjHAcICCxAAGIAEGLEDGIMBwgIIEC4YgAQYsQPCAggQABiABBixA8ICIBAuGIAEGLEDGNEDGIMBGMcBGJcFGNwEGN4EGOAE2AEBwgIKEAAYgAQYQxiKBcICChAuGIAEGEMYigXCAgQQABgDwgIQEC4YgAQY0QMYQxjHARiKBcICBRAAGIAEwgIFEC4YgATCAgsQLhiABBjRAxjHAcICCxAuGIAEGMcBGK8BwgIEEAAYHsICBxAAGIAEGBPCAggQABgTGAoYHsICCBAAGBMYBRgewgIIEAAYCBgKGB6YAwC6BgYIARABGBSSBwQwLjE0oAe6fg&sclient=gws-wiz-serp)
 - [타로 카드 전체 해석 78장 (정방향/역방향)](https://saju-master.com/%ED%83%80%EB%A1%9C-%EC%B9%B4%EB%93%9C-%EC%A0%84%EC%B2%B4-%ED%95%B4%EC%84%9D/)
 - [트럼프 카드로 점치는 법](https://internetfortuneteller.tistory.com/1)
-- [78장의 타로 카드 : 네이버 블로그](https://blog.naver.com/ksy100700/222294587138)
+- [78장의 타로 카드: 네이버 블로그](https://blog.naver.com/ksy100700/222294587138)
 - [카발라 - Google 검색](https://www.google.com/search?q=%EC%B9%B4%EB%B0%9C%EB%9D%BC&oq=%EC%B9%B4%EB%B0%9C%EB%9D%BC&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOdIBBzczNmowajGoAgCwAgA&sourceid=chrome&ie=UTF-8)
 - [플레잉 카드 - 위키백과, 우리 모두의 백과사전](https://ko.wikipedia.org/wiki/%ED%94%8C%EB%A0%88%EC%9E%89_%EC%B9%B4%EB%93%9C)
 
@@ -1071,9 +1071,9 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - 개천고
 - 이걸 만화로 배워?
 - 게임
-  - 스타레일 : 전투 트리거, 박물관 - (가디언 테일즈)등급에 따른 효율, 약점
+  - 스타레일: 전투 트리거, 박물관 - (가디언 테일즈)등급에 따른 효율, 약점
     - [턴제분석](https://asecurity.dev/entry/%EB%B6%95%EA%B4%B4-%EC%8A%A4%ED%83%80%EB%A0%88%EC%9D%BC-%ED%84%B4%EC%A0%9C-%EC%86%8D%EB%8F%84%EC%99%80-%EC%95%BD%EC%A0%90-%EB%A9%94%EC%B9%B4%EB%8B%88%EC%A6%98-%EC%86%8D%EC%9D%98-%ED%96%89%EB%8F%99-%EA%B2%8C%EC%9D%B4%EC%A7%80)
-  - 옥토패스 트레블러 : 약점 (약점이 룰렛 랜덤?)
+  - 옥토패스 트레블러: 약점 (약점이 룰렛 랜덤?)
   - 포켓몬: 전투 UI, 배지 (박박닦는), 도구, 맵?
   - PostKnight
   - OuterPlane
@@ -1087,7 +1087,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
   - 그리모어
   - 포션마스터: 포션대회
   - 슬라임랜처: 농장?
-  - 메이플스토리 : 스킬 처럼 스킬쓰면 말풍선 뜨는거
+  - 메이플스토리: 스킬 처럼 스킬쓰면 말풍선 뜨는거
   - 마인크래프트. 사움크래프트
     - [Thaumcraft 7 \| Información, Imágenes y más (2024, Actualizado) \| #Thaumcraft: Tutorial Bits Español](https://youtu.be/mnOBxo-eKTg?si=BpRUam3WxQ0waScK)
     - [나무위키](https://namu.wiki/w/Thaumcraft%206)
@@ -1131,7 +1131,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
     - [[Soul Strike]캐릭터+전투장면_1200x1500_KR.mp4](https://youtu.be/DQGDSZGqoww?si=uygx19IbNWjmXcDg)
     - [[겨울의 탑] 사각 30s](https://youtu.be/xJWsHwMNojE?si=FQvDHc5X7RdIGYI4)
     - [메이플 능력조합 디펜스 (Official Thumbnail Video)](https://youtu.be/xRaSs-kghyA?si=fVHdD4rDv8vs8TvU)
-    - [Unity3D (유니티) 게임 프로그래밍 포트폴리오_가제 : 신의 뜻을 따라서](https://youtu.be/3GQGq0cnYbA?si=zIoMUfzgtw6MWd7q)
+    - [Unity3D (유니티) 게임 프로그래밍 포트폴리오_가제: 신의 뜻을 따라서](https://youtu.be/3GQGq0cnYbA?si=zIoMUfzgtw6MWd7q)
     - [직접 해보고 엄선한 추천 무료 모바일 게임 TOP10 [추석특집]](https://youtu.be/yey0AQI1jg0?si=Ionu_3a9dvEFvTu_)
     - [24시간이 모자라♬ 꿀잼~ 그잡채!! 방치형 게임 추천!!](https://youtu.be/Ij-Oh3cnvuY?si=erUjUI19PEW4Qpy0)
   - _
@@ -1185,7 +1185,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - [가장 메마른 시드를 골라주세요..](https://youtu.be/uHDA6el7w8A?si=hQ4S-APzwg8e4QIH)
 - [다닐 트리포노프가 왜 콩쿠르 사냥꾼인가를 보여주는 연주](https://youtu.be/JglEQpkIiGg?si=mdvu3N2ne7DAjpsp)
 - [가장 기이한 시드를 골라주세요..](https://youtu.be/5Jxe1TCu-GI?si=uEDOlfT0UI59jF9g)
-- [포카포카 디펜스 : 포커 타워 디펜스 PV](https://youtu.be/OVeTkYPxn0g?si=EZR8bngKRa8n7Mea)
+- [포카포카 디펜스: 포커 타워 디펜스 PV](https://youtu.be/OVeTkYPxn0g?si=EZR8bngKRa8n7Mea)
 - [2023 11 10 니케 뱀서같은 미니게임 해보기](https://youtu.be/7wmGHb8u-bA?si=AtFts141KRL9gJ-E)
 - [이게 그니까 뱀서류인가 싶기도 하면서도 뭔가 근데 재미는 있는데ㅇㅇ](https://youtu.be/aYDqm8cyULQ?si=VZMNgy1sgti9USjT)
 - [강력한 빌드를 만들어서 던전의 마물들을 물리치는 로그라이크 게임 Demo [메가루트/MEGALOOT]](https://youtu.be/Swoh6-Agxfs?si=dn9M7kmwrW3LvwoY)
@@ -1204,7 +1204,7 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 - [Google Play 인디 게임 페스티벌 | 오마이샐리 l 샐리의법칙](https://youtu.be/KAgDAUhlnN4?si=zFAFAez0CzOnTKLq)
 - [Google Play 인디 게임 페스티벌 | 고래의꿈 l 어비스리움](https://youtu.be/quI_Au8Tv-4?si=FKXh2AHejAQjWoBG)
 - [내맘대로 판타지 유니버스 ~독창적인 세계관 만들기의 첫걸음(부제:용은 항상 옳다.-테메레르-)~ 아이디어편](https://youtu.be/hi7N6-FHuSc?si=4md2Nb5gjUQ4YX1Y)
-- [인생게임(life is a game) 도트 디자이너의 도트 이야기 : 우리동네 사람들 #1 [미나니의 숏터뷰]](https://youtu.be/XbyeB8L_VBc?si=KXXOTH86xGKy1hhz)
+- [인생게임(life is a game) 도트 디자이너의 도트 이야기: 우리동네 사람들 #1 [미나니의 숏터뷰]](https://youtu.be/XbyeB8L_VBc?si=KXXOTH86xGKy1hhz)
 - [소년이여 개발자가 되어라 계획성 0% 막무가내 HP소드 개발기](https://youtu.be/7J5KA2MiNjI?si=Us80aDy5eMh6_tT7)
 - [HPSword 20171023](https://youtu.be/rnb16vOQDVk?si=ZsEIeI0QK-WZgibZ)
 - [[청강게임] 청강 게임 크로니클 TGB팀 HPSWORD](https://youtu.be/ySSAimpIncE?si=2CElNu_BnMNLDVuP)
@@ -1532,12 +1532,12 @@ Drawing Pac-Man With a Piano (Live MIDI Art)
 
 # ---- WitchMendokusai | Game-Design ----
 
-# 2024-04-10. 12:24 : 글 병합.
-# `2023-03-14-Slime : 🍐 슬라임`
+# 2024-04-10. 12:24: 글 병합.
+# `2023-03-14-Slime: 🍐 슬라임`
 
-# 2024-06-11. 13:53 : 글 병합.
-#`2024-04-27-WitchMendokusai-Story : 🫐 WitchMendokusai Story`,
-#`2024-04-03-WitchMendokusai-Doll : 🫐 WitchMendokusai Doll`
+# 2024-06-11. 13:53: 글 병합.
+#`2024-04-27-WitchMendokusai-Story: 🫐 WitchMendokusai Story`,
+#`2024-04-03-WitchMendokusai-Doll: 🫐 WitchMendokusai Doll`
 
 # WitchMendokusai Concept
 # date: 2024-04-03. 14:41
@@ -1551,8 +1551,8 @@ Drawing Pac-Man With a Piano (Live MIDI Art)
 # last_modified_at: 2024-10-20. 23:27 # Undo, Story, Doll 분리
 # last_modified_at: 2024-10-29. 21:22 # Slime 분리
 
-# 2024-10-30. 01:52 : 글 병합.
-# `2024-04-03-WitchMendokusai-Concept : WitchMendokusai Concept`
+# 2024-10-30. 01:52: 글 병합.
+# `2024-04-03-WitchMendokusai-Concept: WitchMendokusai Concept`
 
 # WitchMendokusai Memo
 # date: 2024-05-22. 20:50
@@ -1567,11 +1567,11 @@ Drawing Pac-Man With a Piano (Live MIDI Art)
 # WitchMendokusai | Gimmick
 # date: 2024-10-30. 21:08
 
-# 2024-10-30. 15:24 : 글 계승.
-# `2024-05-22-WitchMendokusai-Memo : WitchMendokusai Memo`
+# 2024-10-30. 15:24: 글 계승.
+# `2024-05-22-WitchMendokusai-Memo: WitchMendokusai Memo`
 
-# 2025-04-19. 02:10 : 글 병합.
-# `2024-10-30-WM-Gimmick : WitchMendokusai | Gimmick`
+# 2025-04-19. 02:10: 글 병합.
+# `2024-10-30-WM-Gimmick: WitchMendokusai | Gimmick`
 
 # WitchMendokusai | Game-Design
 # date: 2024-10-30. 15:24
@@ -1585,15 +1585,15 @@ Drawing Pac-Man With a Piano (Live MIDI Art)
 # last_modified_at: 2025-04-20. 23:17 # 메모 정리
 ```
 
-2025-03-23. 18:26 : 글 병합.  
-`2024-11-11-Game-Ref : Game Ref`,  
-`2024-10-30-WM-Ref : WitchMendokusai | Ref`,  
-`2024-10-30-WM-Art : WitchMendokusai | Art`,  
-`2024-10-30-WM-MDD : WitchMendokusai | MDD`,  
-`2025-03-03-WM-Concepts : WitchMendokusai | Concepts`,  
-`2025-03-15-WM-Transition : WitchMendokusai | Transition`  
+2025-03-23. 18:26: 글 병합.  
+`2024-11-11-Game-Ref: Game Ref`,  
+`2024-10-30-WM-Ref: WitchMendokusai | Ref`,  
+`2024-10-30-WM-Art: WitchMendokusai | Art`,  
+`2024-10-30-WM-MDD: WitchMendokusai | MDD`,  
+`2025-03-03-WM-Concepts: WitchMendokusai | Concepts`,  
+`2025-03-15-WM-Transition: WitchMendokusai | Transition`  
 
-2025-04-29. 06:45 : 글 병합.  
-`2024-10-30-wm-game-design : WitchMendokusai | Game-Design`  
+2025-04-29. 06:45: 글 병합.  
+`2024-10-30-wm-game-design: WitchMendokusai | Game-Design`  
 
 </details>

@@ -30,22 +30,22 @@ date: 2024-04-11. 19:09
 - `Exception` 은 많은 자식 클래스가 있음
 - `RuntimeException` 은 `Unchecked Exception`, 그 외는 `Checked Exception`
 
-- `Checked Exception` : 컴파일 시점에 예외 처리를 강제하는 예외
-  - 처리 여부 : 반드시 예외 처리 필요
-  - 확인 시점 : 컴파일 단계
-  - 예외발생 시 트랜잭션 : 롤백하지 않음
-  - 대표 예외 : IOException, SQLException
-- `Unchecked Exception` : 컴파일 시점에 예외 처리를 강제하지 않는 예외
-  - 처리 여부 : 명시적 처리를 강제하지 않음
-  - 확인 시점 : 런타임 단계
-  - 예외발생 시 트랜잭션 : 롤백
-  - 대표 예외 : NullPointerException, ArrayIndexOutOfBoundsException, ...
+- `Checked Exception`: 컴파일 시점에 예외 처리를 강제하는 예외
+  - 처리 여부: 반드시 예외 처리 필요
+  - 확인 시점: 컴파일 단계
+  - 예외발생 시 트랜잭션: 롤백하지 않음
+  - 대표 예외: IOException, SQLException
+- `Unchecked Exception`: 컴파일 시점에 예외 처리를 강제하지 않는 예외
+  - 처리 여부: 명시적 처리를 강제하지 않음
+  - 확인 시점: 런타임 단계
+  - 예외발생 시 트랜잭션: 롤백
+  - 대표 예외: NullPointerException, ArrayIndexOutOfBoundsException, ...
 
 롤백 여부는 설정에 따라 달라질 수 있으며, 기본적으로 `Unchecked Exception`은 롤백이 일어남  
 
 ### @ControllerAdvice, @RestControllerAdvice
 
-- `@ControllerAdvice` : 스프링에서 제공하는 어노테이션
+- `@ControllerAdvice`: 스프링에서 제공하는 어노테이션
 - 둘 다 발생하는 예외를 한 곳에서 관리하고 처리할 수 있게 하는 어노테이션
 - 설정을 통해 범위 지정이 가능하며, Default 설정은 모든 예외 처리를 관리함
   - `@RestControllerAdvice(basePackages = "com.example.controller")`와 같이 패키지 범위를 지정할 수 있음
@@ -74,9 +74,9 @@ date: 2024-04-11. 19:09
 
 ### 구현 예시
 
-- ErrorType : HttpStatus의 ReasonPhrase
-- ErrorCode : HttpStatus의 Value
-- Message : 상황별 디테일 Message
+- ErrorType: HttpStatus의 ReasonPhrase
+- ErrorCode: HttpStatus의 Value
+- Message: 상황별 디테일 Message
 
 ### HttpStatus
 

@@ -54,7 +54,7 @@ last_modified_at: 2024-07-26. 12:22
 인간이 어두운 부분의 음영을 더 잘 느낀다.  
 
 <https://youtu.be/Xwlm5V-bnBc?si=1SdTDuif4-zSc0Gt&t=190>  
-(Unity Korea : 'Gamma Color space와 Linear Color space란?' 3분 10초 ~)  
+(Unity Korea: 'Gamma Color space와 Linear Color space란?' 3분 10초 ~)  
 
 위 영상 3분 10초의 두 그라데이션 중, 어느 것이 정상으로 보이는가?  
 라고 한다면 대부분 1번이라고 답할 것이다.  
@@ -120,15 +120,15 @@ URP로 넘어오면서 기본적으로 리니어 워크플로우가 적용되어
 
 ### 키워드
 
-- `Contrast` : 이미지의 밝기 차이 (대비)
+- `Contrast`: 이미지의 밝기 차이 (대비)
 - `밴딩 현상` (등고선 현상) :
 
 ### 참고
 
-- [대충 살아가는 게임개발자 : 'Gamma Correction : 감마 코렉션'](https://chulin28ho.tistory.com/241)
-- [대충 살아가는 게임개발자 : 'Gamma Correction 감마 코렉션 : 어째서?'](https://chulin28ho.tistory.com/242)
-- [대충 살아가는 게임개발자 : '17.Gamma correction (감마 보정)'](https://chulin28ho.tistory.com/456)
-- [미카이님의 Tistory 블로그 : '감마 코렉션 : 감마 보정 Gamma Correction 에 대한 텍스쳐 옵션 정리'](https://boysboy3.tistory.com/58)
-- [붕대마음님의 Tistory 블로그 : '감마 보정 (gamma correction)'](https://mgun.tistory.com/1166)
-- [위키백과 : '감마보정'](https://ko.wikipedia.org/wiki/감마_보정)
-- [나무위키 : '감마'](https://namu.wiki/w/감마#s-2)
+- [대충 살아가는 게임개발자: 'Gamma Correction: 감마 코렉션'](https://chulin28ho.tistory.com/241)
+- [대충 살아가는 게임개발자: 'Gamma Correction 감마 코렉션: 어째서?'](https://chulin28ho.tistory.com/242)
+- [대충 살아가는 게임개발자: '17.Gamma correction (감마 보정)'](https://chulin28ho.tistory.com/456)
+- [미카이님의 Tistory 블로그: '감마 코렉션: 감마 보정 Gamma Correction 에 대한 텍스쳐 옵션 정리'](https://boysboy3.tistory.com/58)
+- [붕대마음님의 Tistory 블로그: '감마 보정 (gamma correction)'](https://mgun.tistory.com/1166)
+- [위키백과: '감마보정'](https://ko.wikipedia.org/wiki/감마_보정)
+- [나무위키: '감마'](https://namu.wiki/w/감마#s-2)

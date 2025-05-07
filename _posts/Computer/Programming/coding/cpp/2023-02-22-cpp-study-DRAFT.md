@@ -80,8 +80,8 @@ vector<T> v2(v1)
 memset(ptr, value, size)  
 
 오름차순 정렬되어 있는 자료구조에 대하여,  
-lower_bound : k <= 요소가 배열 몇 번째에 처음 등장하는 지  
-upper_bound : k < 요소가 배열 몇 번째에 처음 등장하는 지  
+lower_bound: k <= 요소가 배열 몇 번째에 처음 등장하는 지  
+upper_bound: k < 요소가 배열 몇 번째에 처음 등장하는 지  
 iterator로 반환되므로 자료구조 주소를 빼주면 인덱스가 나옴  
 
 while(!cin.eof())
@@ -163,11 +163,11 @@ class SomeClass
 {
     int hour;
     int m;
-    SomeClass(int h, int n = 0) : hour(h), minute(m); // Initializer List 초기화 리스트
+    SomeClass(int h, int n = 0): hour(h), minute(m); // Initializer List 초기화 리스트
     {
 
     }
-    SomeClass(int h, int n = 0) : hour{h}, minute{m}; // Initializer List 초기화 리스트
+    SomeClass(int h, int n = 0): hour{h}, minute{m}; // Initializer List 초기화 리스트
     {
         
     }
@@ -206,7 +206,7 @@ Smart Pointer
 자동으로 nullptr 초기화  
 
 ```cpp
-unique_ptr<int> p(new int); // new int : 포인터 초기화
+unique_ptr<int> p(new int); // new int: 포인터 초기화
 unique_ptr<int[]> p(new int[]);
 ```
 
@@ -366,8 +366,8 @@ C++에서는 대입 연산자를 개발자가 재정의하여 사용할 수 있�
 
 객체 지향에서 코드를 재사용하는 방법  
 
-1. is-a 관계 : 객체 지향 프로그래밍에서 is-a의 개념은 상속을 기반으로 한다. "A는 B유형의 물건" 이라고 말하는 것과 같다. Apple은 과일의 일종, Car는 자동차의 일정
-2. has-a 관계 : has-a는 하나의 객체가 다른 객체를 가지고 있는 관계이다. Car에는 Engine이 있고, House에는 Bathroom이 있다.
+1. is-a 관계: 객체 지향 프로그래밍에서 is-a의 개념은 상속을 기반으로 한다. "A는 B유형의 물건" 이라고 말하는 것과 같다. Apple은 과일의 일종, Car는 자동차의 일정
+2. has-a 관계: has-a는 하나의 객체가 다른 객체를 가지고 있는 관계이다. Car에는 Engine이 있고, House에는 Bathroom이 있다.
 
 정적 변수 Static Variable  
 
@@ -627,14 +627,14 @@ ostream 참조자를 반환하지 않으면 다음과 같이 << 연산자가 연
 ---
 
 ```cpp
-class ChildClass : 접근지정자 ParentClass { }
+class ChildClass: 접근지정자 ParentClass { }
 
 // 접근지정자가
 // public이면 그대로
 // protected면 상속 받는 public 멤버들이 protected로
 // private이면 상속 받는 모든 멤버들이 private으로
 
-class ChildClass : 접근지정자 ParentClass, 접근지정자 ParentClass { }
+class ChildClass: 접근지정자 ParentClass, 접근지정자 ParentClass { }
 // 똑같은 이름의 멤버가 있으면 자식객체.ParentClass:멤버
 ```
 
@@ -665,17 +665,17 @@ class ChildClass : 접근지정자 ParentClass, 접근지정자 ParentClass { }
 자식의 생성자 헤더의 뒤에 콜론을 추가한 후에 원하는 부모 클래스의생성자를 적어주면 된다  
 
 ```cpp
-자식생성자() : 부모생성자()
+자식생성자(): 부모생성자()
 {
 
 }
 
-자식생성자(int x = 0, int y = 0) : 부모생성자(x, y)
+자식생성자(int x = 0, int y = 0): 부모생성자(x, y)
 {
 
 }
 
-자식생성자(int x = 0, int y = 0) : 부모생성자(x, y), width(x), height(y)
+자식생성자(int x = 0, int y = 0): 부모생성자(x, y), width(x), height(y)
 {
 
 }
@@ -874,20 +874,20 @@ while (cin.get(c))
 ```
 
 - 출력 방식 지정, 플래그 설정, `|` 연산 가능
-  - `cout.precision(3)` : 소수점 자리 제한
-  - `cout.width(10)` : 출력 필드의 너비 지정
-  - `cout.setf(ios::fixed)` : 고정 소수점 표기법
-  - `cout.setf(ios::scientific)` : 과학적 표기법 (지수 이용)
-  - `cout.setf(ios::showpoint)` : 소수점 항상 표시
-  - `cout.setf(ios::showpos)` : 양수 부호를 반드시 출력
-  - `cout.setf(ios::left)` : 왼쪽 정렬
-  - `cout.setf(ios::right)` : 오른쪽 정렬
-  - `cout.setf(ios::dec)` : 10진법
-  - `cout.setf(ios::oct)` : 8진법
-  - `cout.setf(ios::hex)` : 16진법
-  - `cout.setf(ios::uppercase)` : 지수나 16진법으로 표시할 때 대문자
-  - `cout.setf(ios::show)` : 8진수면 앞에 0, 16진수면 앞에 0x
-- `os.unsetf(ios::uppercase)` : 플래그 해제
+  - `cout.precision(3)`: 소수점 자리 제한
+  - `cout.width(10)`: 출력 필드의 너비 지정
+  - `cout.setf(ios::fixed)`: 고정 소수점 표기법
+  - `cout.setf(ios::scientific)`: 과학적 표기법 (지수 이용)
+  - `cout.setf(ios::showpoint)`: 소수점 항상 표시
+  - `cout.setf(ios::showpos)`: 양수 부호를 반드시 출력
+  - `cout.setf(ios::left)`: 왼쪽 정렬
+  - `cout.setf(ios::right)`: 오른쪽 정렬
+  - `cout.setf(ios::dec)`: 10진법
+  - `cout.setf(ios::oct)`: 8진법
+  - `cout.setf(ios::hex)`: 16진법
+  - `cout.setf(ios::uppercase)`: 지수나 16진법으로 표시할 때 대문자
+  - `cout.setf(ios::show)`: 8진수면 앞에 0, 16진수면 앞에 0x
+- `os.unsetf(ios::uppercase)`: 플래그 해제
 
 - 텍스트 파일
   - 사람이 읽을 수 있는 문자들로 구성
@@ -948,9 +948,9 @@ if (source.is_open() && dest.is_open())
 
 - `seekg(long offset, seekdir way);`
   - way
-    - `ios::beg` : 처음부터의 offset
-    - `ios::cur` : 현재 위치부터의 offset
-    - `ios::end` : 파일 끝에서부터의 offset
+    - `ios::beg`: 처음부터의 offset
+    - `ios::cur`: 현재 위치부터의 offset
+    - `ios::end`: 파일 끝에서부터의 offset
 
 - `tellg()` 현재 파일 위치 표시자 값
 
@@ -1067,25 +1067,25 @@ STL은 템플릿 기법을 사용하였기 때문에 어떤 자료형에 대해�
 
 #### Container 공통 메서드
 
-- `Container()` : 기본 생성자
-  - `Container(size)` : 크기가 size인 컨텐이너 생성
-  - `Container(size, value)` : 크기가 size이고 초기값이 value인 컨테이너 생성
-  - `Container(iterator, iterator)` : 다른 컨테이너부터 초기값의 범위를 받아서 생성
-- `begin()` : 첫 번째 요소의 반복자 위치
-- `end()` : 반복자가 마지막 요소를 지난 위치
-- `rbegin()` : 끝을 나타내느 역반복자
-- `rend()` : 역반복자가 처음을 지난 위치
+- `Container()`: 기본 생성자
+  - `Container(size)`: 크기가 size인 컨텐이너 생성
+  - `Container(size, value)`: 크기가 size이고 초기값이 value인 컨테이너 생성
+  - `Container(iterator, iterator)`: 다른 컨테이너부터 초기값의 범위를 받아서 생성
+- `begin()`: 첫 번째 요소의 반복자 위치
+- `end()`: 반복자가 마지막 요소를 지난 위치
+- `rbegin()`: 끝을 나타내느 역반복자
+- `rend()`: 역반복자가 처음을 지난 위치
 - `front()` 컨테이너의 첫 번째 요소 반환
-- `insert(iterator, value)` : 컨테이너의 중간에 요소 삽입
-- `pop_back()` : 컨테이너의 마지막 요소를 삭제
-- `push_back(value)` : 컨테이너의 끝에 데이터를 추가
-- `erase(iterator)` : 컨테이너의 중간 요소를 삭제
-- `erase(iterator, iterator)` : 컨테이너의 지정된 범위를 삭제
-- `clear()` : 모든 요소를 삭제
-- `size()` : 컨테이너의 크기
-- `empty()` : 비어있는지를 검사
+- `insert(iterator, value)`: 컨테이너의 중간에 요소 삽입
+- `pop_back()`: 컨테이너의 마지막 요소를 삭제
+- `push_back(value)`: 컨테이너의 끝에 데이터를 추가
+- `erase(iterator)`: 컨테이너의 중간 요소를 삭제
+- `erase(iterator, iterator)`: 컨테이너의 지정된 범위를 삭제
+- `clear()`: 모든 요소를 삭제
+- `size()`: 컨테이너의 크기
+- `empty()`: 비어있는지를 검사
 
-참고 : `std::begin()`, `std::end()` 함수 -> 컨테이너의 `begin()`, `end()` 메서드 호출  
+참고: `std::begin()`, `std::end()` 함수 -> 컨테이너의 `begin()`, `end()` 메서드 호출  
 
 #### Container Adapter | 컨테이너 어댑터
 
@@ -1159,7 +1159,7 @@ for (vector<int>::iterator it = v.begin(); it != c.end(); it++)
 for (auto it = v.begin(); it != c.end(); it++)
 
 // new 2
-for (auto& n : v)
+for (auto& n: v)
 ```
 
 반복자는 코드(알고리듬)을 데이터에 연결하는 데 사용된다  
@@ -1171,9 +1171,9 @@ STL 알고리듬과 컨테이너가 잘 작동하는 이유는 서로에 대해 
 
 #### Iterator 종류
 
-- 전향 반복자 | Forward Iterator : ++연산자
-- 양방향 반복자 | Bidirectional Iterator : ++연산자, --연산자
-- 무작위 접근 반복자 | Random Access Iterator : ++연산자, -- 연산자, []연산자
+- 전향 반복자 | Forward Iterator: ++연산자
+- 양방향 반복자 | Bidirectional Iterator: ++연산자, --연산자
+- 무작위 접근 반복자 | Random Access Iterator: ++연산자, -- 연산자, []연산자
   - i.e. 벡터
 
 C++11 - 범위기반루프(Range-Based Loop) 로 대신 할 수 있다.  
@@ -1292,15 +1292,15 @@ int main()
 - [코딩 테스트 입문 (with C++)](https://gamedevlog.tistory.com/6?category=892157)
 
 > [C++ C3861](https://docs.microsoft.com/ko-kr/cpp/error-messages/compiler-errors-2/compiler-error-c3861?view=msvc-170)  
-> 에러 : '뭐시깽' 식별자를 찾을 수 없습니다.  
-> 해결 : 함수 위치 밑 선언 확인  
+> 에러: '뭐시깽' 식별자를 찾을 수 없습니다.  
+> 해결: 함수 위치 밑 선언 확인  
 
 ---
 
 > [C++ C2360](https://docs.microsoft.com/ko-kr/cpp/error-messages/compiler-errors-1/compiler-error-c2360?view=msvc-170), [C++ C2361](https://docs.microsoft.com/ko-kr/cpp/error-messages/compiler-errors-1/compiler-error-c2361?view=msvc-170)  
-> 에러 : '뭐시깽' 초기화가 'case'/'default' 레이블에 의해 생략되었습니다.  
-> 해결 : 변수 선언하는 case에 스코프 {} 달아주기  
-> [설명](https://ansohxxn.github.io/cpp/chapter5-1/) : case/default 이전 공간에서는 메모리 할당 안됨
+> 에러: '뭐시깽' 초기화가 'case'/'default' 레이블에 의해 생략되었습니다.  
+> 해결: 변수 선언하는 case에 스코프 {} 달아주기  
+> [설명](https://ansohxxn.github.io/cpp/chapter5-1/): case/default 이전 공간에서는 메모리 할당 안됨
 
 포인터 delete 후 어떤 코드가 없더라도 = nullptr 대입  
 

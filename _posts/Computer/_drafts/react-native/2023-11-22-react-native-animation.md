@@ -110,9 +110,9 @@ class AnimatedInterpolation
 }
 
 // inputRange를 벗어난 값이 발생했을 때 어떤 값으로 outputRange를 만들지 결정하는 속성
-// clamp : 값 무시
-// extend : 범위 내 값을 계산한 공식을 범위 외 값에도 똑같이 적용
-// identity : 어떤 공식도 적용하지 않고 입력값 그대로 출력
+// clamp: 값 무시
+// extend: 범위 내 값을 계산한 공식을 범위 외 값에도 똑같이 적용
+// identity: 어떤 공식도 적용하지 않고 입력값 그대로 출력
 type ExtrapolateType = 'extend' | 'identity' | 'clamp';
 
 type InterpolationConfigType = 
@@ -279,7 +279,7 @@ Animated.timing
     // 애니메이션
     {
         useNativeDriver: true,
-        toValue: show ? 0 : 1,
+        toValue: show ? 0: 1,
         duration: 1000,
         easing: Easing.bounce
     }

@@ -50,7 +50,7 @@ using WRC.Woodon;
 
 namespace Mascari4615.Project
 {
-    public class ChattingManager : MBase
+    public class ChattingManager: MBase
     {
         [Header("_" + nameof(ChattingManager))]
         [SerializeField] private MPlayerUdonIndex mPlayerUdonIndex;
@@ -79,7 +79,7 @@ namespace Mascari4615.Project
         #region SendChat
         public void SendChatMessage(string message)
         {
-            MDebugLog($"{nameof(SendChatMessage)} : {message}");
+            MDebugLog($"{nameof(SendChatMessage)}: {message}");
 
             if (string.IsNullOrEmpty(message))
                 return;
@@ -117,7 +117,7 @@ namespace Mascari4615.Project
         #region ReceieveChat
         public void ReceieveChat(int udonIndex)
         {
-            MDebugLog($"{nameof(ReceieveChat)} : {udonIndex}");
+            MDebugLog($"{nameof(ReceieveChat)}: {udonIndex}");
 
             MString mString = chatJSONs[udonIndex];
             string[] strings = mString.Value.Split(SPACE_CHAR);

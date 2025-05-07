@@ -32,7 +32,7 @@ last_modified_at: 2024-08-29. 22:11
 
 [참고](https://gamedevlog.tistory.com/71)  
 
-Instruction : 명령, (사전 = 지침)  
+Instruction: 명령, (사전 = 지침)  
 
 - Fetch (=bring) 인출
   - CPU가 명령을 수행하기 위해 그 명령어를 레지스터에서 꺼내 오는 것

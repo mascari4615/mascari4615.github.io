@@ -30,7 +30,7 @@ Computer Graphics.
 - 알파테스트, 알파블렌딩
 - 스크린 스페이스 쉐이더
 - sssShader
-- Scene Depth : 카메라부터 연산을 시작하는 점까지의 깊이?
+- Scene Depth: 카메라부터 연산을 시작하는 점까지의 깊이?
   - Transparent는 통과하는 듯..?
 
 ### 참고
@@ -76,7 +76,7 @@ Computer Graphics.
 - [하람쥐님 블로그 - Missing](https://blog.naver.com/hram01/221489477514)
 
 - 3D
-  - [World   : Principal Wells' Office - Life is Strange\nAuthor : SoftServeNeo\n\n#VRChat #VRChatPhotography #VRChatワールド紹介\n#VRChat_world #VRChat_world紹介](https://x.com/CupitanVR/status/1865716497563427186)
+  - [World  : Principal Wells' Office - Life is Strange\nAuthor: SoftServeNeo\n\n#VRChat #VRChatPhotography #VRChatワールド紹介\n#VRChat_world #VRChat_world紹介](https://x.com/CupitanVR/status/1865716497563427186)
   - [i bought a tesseract.](https://x.com/hamptonism/status/1891263459557281802)
   - [](https://x.com/TatsuyaBot/status/1894225734375555257)
   - <https://x.com/Seoran0715/status/1845077714279202891>

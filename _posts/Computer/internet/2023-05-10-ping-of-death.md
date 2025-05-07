@@ -50,10 +50,10 @@ Unable to locate package [PackageName]
 → sudo apt update  
 
 APT, Advance Packing Tools  
-apt update : 설치 가능한 패키지 '리스트' 최신화  
-apt list : 현재 리스트를 불러오기  
-apt list --upgradable : 현재 리스트 중 업그레이드 필요한 패키지 불러오기  
-apt upgrade : 설치 가능한 패키지 최신화  
+apt update: 설치 가능한 패키지 '리스트' 최신화  
+apt list: 현재 리스트를 불러오기  
+apt list --upgradable: 현재 리스트 중 업그레이드 필요한 패키지 불러오기  
+apt upgrade: 설치 가능한 패키지 최신화  
 
 VM에서 192.168.0.1 HostComputer  
 원래 192.168.0.1 은 Router, VM 은 HostComputer 내부에 있으므로  
@@ -64,10 +64,10 @@ Router에 Ping을 보내듯, VM에서 HostComputer로 Ping Of Death 공격을
 hping3 --icmp --rand-source 192.168.0.18 -d 6000 -S -flood  
 hping3 --rand-source 192.168.0.18 -p 21 -S -flood  
 
---rand-source : 공격자 IP 주소를 랜덤하게 생성  
--d 1 : 전송 패킷 크기를 1으로 설정  
--S : 지속적으로 전송  
--flood : 빠른 속도로 전송  
+--rand-source: 공격자 IP 주소를 랜덤하게 생성  
+-d 1: 전송 패킷 크기를 1으로 설정  
+-S: 지속적으로 전송  
+-flood: 빠른 속도로 전송  
 
 ## Ping Of Death 대응 방안
 

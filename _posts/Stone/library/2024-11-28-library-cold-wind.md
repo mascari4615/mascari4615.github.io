@@ -12,7 +12,7 @@ date: 2024-11-28. 13:29 # Init
 
 ---
 
-2023-11-28. 13:30 : 글 확장.  
+2023-11-28. 13:30: 글 확장.  
 [`🌱 211216 찬 바람이 분다`](/posts/monthstone-2112/)  
 
 ## 찬 바람
@@ -105,7 +105,7 @@ date: 2024-11-28. 13:29 # Init
 - [K/DA - POP/STARS (ft. Madison Beer, (G)I-DLE, Jaira Burns) | Music Video - League of Legends](https://youtu.be/UOxkGD8qRB4)
 - [Winter Rift Music](https://youtu.be/4eJ8JI-QpSU)
 - [Undertale Ost: 087 - Hopes and Dreams](https://youtu.be/tz82xbLvK_k)
-- [Dreams Dreams : Located Link Mix (Instrumental)](https://youtu.be/zlaziXtEyWo)
+- [Dreams Dreams: Located Link Mix (Instrumental)](https://youtu.be/zlaziXtEyWo)
 - [proleteR - April Showers](https://youtu.be/k2XVjIu5nvg)
 - [Directed by Robert B. Weide- theme meme](https://youtu.be/X-KwYX2u8e4)
 - [Every Day Is Night](https://youtu.be/H-AfGh8gmiQ)

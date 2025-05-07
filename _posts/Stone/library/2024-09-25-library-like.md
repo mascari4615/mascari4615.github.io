@@ -394,7 +394,7 @@ DIGITAL LANGUAGE
 {% include embed/youtube.html id = "PKjbBQ0PBCQ" %}
 [Pokemon] before evolution after evolution  
 {% include embed/youtube.html id = "Fd4y9mpP9zM" %}
-A music visualizer world named LOST IT! : VRCHAT  
+A music visualizer world named LOST IT!: VRCHAT  
 {% include embed/youtube.html id = "5xfGn4OQhkg" %}
 I am Steal Alive  
 {% include embed/youtube.html id = "AUpX0b4913I" %}

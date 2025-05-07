@@ -17,7 +17,7 @@ last_modified_at: 2023-12-12. 10:50
 
 ### _
 
-@ U 기말고사 출제 : Fuzzy Loggic이 무엇인지 설명하고, 왜 편리한지 설명하시오.  
+@ U 기말고사 출제: Fuzzy Loggic이 무엇인지 설명하고, 왜 편리한지 설명하시오.  
 
 실세계 시스템(Real-World Systems)과 소프트웨어 표현(Software Representations) 사이의 불일치를 극복하기 위해 로트피 자데(Lofti Zadeh)가 정의한 `논리 시스템(Logic Sytstem)`이다.  
 
@@ -195,7 +195,7 @@ rate = 80 + (1 x 10) - (0 x 10) = 90
 
 ---
 
-@ U 기말고사 출제 : 주어진 `Fuzzy Voltage Membership Funcions`, `Fuzzy Temperature Membership Funtions`에 대하여, `if (m_valtage_high(주어진_Valtage)) OR (not m_temperature_hot(주어진_Temperature)))` 에 대한 조건부 값을 구하시오.  
+@ U 기말고사 출제: 주어진 `Fuzzy Voltage Membership Funcions`, `Fuzzy Temperature Membership Funtions`에 대하여, `if (m_valtage_high(주어진_Valtage)) OR (not m_temperature_hot(주어진_Temperature)))` 에 대한 조건부 값을 구하시오.  
 
 기존의 Boolean 논리와 마찬가지로 퍼지 논리에도 기본 연산자들이 있습니다. 이들은 기존의 Boolean 연산자들을 따르지만 작동하는 방식에 차이가 있습니다. 퍼지 공리는 그림 9.5에 나와 있습니다.  
 
@@ -261,7 +261,7 @@ then mode = fast_charge
 
 전압 멤버십 그래프는 전압 도메인 내에서 낮은, 중간, 높은 세 가지 멤버십 함수를 정의합니다. 마찬가지로 온도 도메인도 차가운, 따뜻한, 뜨거운 세 가지를 정의합니다. 이러한 인위적인 값은 단지 시연용일 뿐 어떤 종류의 배터리 기술도 나타내지 않습니다.  
 
-NOTE : 멤버쉽 기능에서 패턴을 쉽게 볼 수 있습니다. 이 때문에 소스에는 이러한 멤버쉽 모양을 쉽게 만들 수 있도록 여러 도우미 기능이 제공됩니다(이들 그래프에는 표시되지 않은 스파이크 패턴 포함).  
+NOTE: 멤버쉽 기능에서 패턴을 쉽게 볼 수 있습니다. 이 때문에 소스에는 이러한 멤버쉽 모양을 쉽게 만들 수 있도록 여러 도우미 기능이 제공됩니다(이들 그래프에는 표시되지 않은 스파이크 패턴 포함).  
 
 @ 예시 - Charge curves for the battery charge control simulation.  
 

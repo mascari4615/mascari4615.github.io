@@ -49,7 +49,7 @@ private char cVariable = 'A';
 
 [참고](https://stackoverflow.com/questions/5016622/where-does-the-k-prefix-for-constants-come-from)
 
-> 요약 :  
+> 요약:  
 > c는 char의 약자로 이미 쓰고 있기 때문에,  
 > 수학에서 상수로 쓰이고, 독일어로 상수의 첫 글자인 (konstant), k 를 쓰게 되었다.  
 > ... 혹은 그저 정말 발음이 유사해서 썼다던지.  

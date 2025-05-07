@@ -44,15 +44,15 @@ lock (thisLock)
 
 - 공간비용
   - `Thread Kernel Object`
-    - x86 : 700B
-    - x64 : 1240B
-    - ARM : 350B
-  - `Thread Environment Block` : 4K
-  - `User Mode stack` : 1MB
+    - x86: 700B
+    - x64: 1240B
+    - ARM: 350B
+  - `Thread Environment Block`: 4K
+  - `User Mode stack`: 1MB
   - `Kernel Mode stack`
-    - 32bit OS : 12KB
-    - 64bit OS : 24KB
-  - 총 : 1053KB 남짓
+    - 32bit OS: 12KB
+    - 64bit OS: 24KB
+  - 총: 1053KB 남짓
 
 - 시간비용
   - DLL Thread attach/detach notification
@@ -300,8 +300,8 @@ public int Read(byte[] buffer, int offset, int count);
 ```cs
 public IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state);
 public int EndRead(IAsyncResult asyncResult);
-// 비동기 : 시키는 방식과 결과를 취하는 방식이 다름
-// 문제 : 매개변수가 많아짐, 받을 때도 복잡하고, EndRead를 언제 호출해야 할지 애매함
+// 비동기: 시키는 방식과 결과를 취하는 방식이 다름
+// 문제: 매개변수가 많아짐, 받을 때도 복잡하고, EndRead를 언제 호출해야 할지 애매함
 
 // 좀 더 쉬운 방법?
 ```
@@ -313,7 +313,7 @@ public void ReadAsync(byte[] buffer, int offset, int count);
 public event ReadCompletedEventHandler ReadCompleted;
 
 // 결과를 취하는 방식을 이벤트로
-// 문제 : APM, EAP 둘 다 작업을 시키는 위치와 받는 위치가 다름
+// 문제: APM, EAP 둘 다 작업을 시키는 위치와 받는 위치가 다름
 // (호출하는 쪽과 결과를 받아 처리하는 함수(콜백) 사이에 컨텍스트를 넘기기 위해 지역변수나 매개변수를 만들어 넘겨야 함)
 ```
 
@@ -369,15 +369,15 @@ while (tasks.Count > 0)
 
 - `CancellationTokenSource` 클래스 (cts)
   - `CancellationToken` 을 생성하고, Cancel 요청을 `CancellationToken` 에게 보내는 역할
-  - `Cancel()` : 발행한 모든 토큰에 취소 신호
-  - `CancelAfter(TimeSpan delay)` : "
-  - `IsCancellationRequested` : 취소가 요청되었는지 여부
+  - `Cancel()`: 발행한 모든 토큰에 취소 신호
+  - `CancelAfter(TimeSpan delay)`: "
+  - `IsCancellationRequested`: 취소가 요청되었는지 여부
 
 - `CancellationToken` 구조체
   - 현재 Cancel 상태를 모니터링 하는 구조체
   - 여러 Listener들에 의해 사용됨
-  - `Register(Action callback)` : 취소가 요청되었을 때 호출될 콜백을 등록
-  - `IsCancellationRequested` : 취소가 요청되었는지 여부
+  - `Register(Action callback)`: 취소가 요청되었을 때 호출될 콜백을 등록
+  - `IsCancellationRequested`: 취소가 요청되었는지 여부
 
 ### 사용
 
@@ -403,7 +403,7 @@ while (tasks.Count > 0)
 포그라운드 스레드가 종료되지 않으면 프로세스가 종료되지 않음  
 백그라운드 스레드는 프로세스가 종료되면 종료됨  
 
-Delegate : 내부적으로 오브젝팅을 합니다만, 오브젝트안에 콜백 함수에 관한 포인터를 가지고 있는 타입  
+Delegate: 내부적으로 오브젝팅을 합니다만, 오브젝트안에 콜백 함수에 관한 포인터를 가지고 있는 타입  
 
 비트레벨 parallel  
 데이터 parallel  
@@ -419,10 +419,10 @@ async 키워드를 쓰면
 
 ### 참고
 
-- [참고 : 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
-- [참고 : 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
-- [참고 : 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
-- [참고 : 'C# - CancellationToken'](https://bacha.tistory.com/137)  
+- [참고: 'C#을 이용한 Task 병렬화와 비동기 패턴'](https://youtu.be/ZUqUlZ3GjlA)  
+- [참고: 'C# 비동기 사용 예제(Task, WhenAll, WhenAny)'](https://youtu.be/44x5KsInMYw)  
+- [참고: 'C# 비동기/대기/작업 설명(심층 분석)'](https://youtu.be/il9gl8MH17s)  
+- [참고: 'C# - CancellationToken'](https://bacha.tistory.com/137)  
 
 ## 동기/비동기
 

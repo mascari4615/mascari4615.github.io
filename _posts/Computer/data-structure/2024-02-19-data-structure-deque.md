@@ -86,7 +86,7 @@ int main(void)
     DQ.push_front(10); // 10
     DQ.push_back(50); // 10 50
     DQ.push_front(24); // 24 10 50
-    for(auto x : DQ) cout << x << ' ';
+    for(auto x: DQ) cout << x << ' ';
     cout << DQ.size() << '\n'; // 3
     if(DQ.empty()) cout << "DQ is empty\n";
     else cout << "DQ is not empty\n"; // DQ is not empty
@@ -99,7 +99,7 @@ int main(void)
     DQ[2] = 17; // 10 72 17
     DQ.insert(DQ.begin()+1, 33); // 10 33 72 17
     DQ.insert(DQ.begin()+4, 60); // 10 33 72 17 60
-    for(auto x : DQ) cout << x << ' ';
+    for(auto x: DQ) cout << x << ' ';
     cout << '\n';
     DQ.erase(DQ.begin()+3); // 10 33 72 60
     cout << DQ[3] << '\n'; // 60

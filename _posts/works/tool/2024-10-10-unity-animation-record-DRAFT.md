@@ -62,8 +62,8 @@ Chanity에 사용될 모션녹화 모듈 개발.
 
 동작은 다음과 같다.  
 
-1. `Start()` : `EditorCurveBinding[]`, `AnimationCurve[]` 초기화
-2. `Record()` : 
+1. `Start()`: `EditorCurveBinding[]`, `AnimationCurve[]` 초기화
+2. `Record()`: 
 3. `SaveRecording()`에서 애니메이션 클립을 만들어 저장한다.
 
 - 알아야 할 것
@@ -113,14 +113,14 @@ void SaveRecording()
 `HumanPose`를 관리하고 조작하는 클래스.  
 `HumanPose`를 가져오거나 설정.  
 
-- `HumanPoseHandler(Avatar avatar, Transform root)` : 생성자. Avatar와 Transform을 사용하여 HumanPoseHandler를 초기화합니다
-- `void GetHumanPose(ref HumanPose humanPose)` : 현재 포즈를 HumanPose 구조체에 저장합니다.
-- `void SetHumanPose(ref HumanPose humanPose)` : HumanPose 구조체에 저장된 포즈를 설정합니다.
+- `HumanPoseHandler(Avatar avatar, Transform root)`: 생성자. Avatar와 Transform을 사용하여 HumanPoseHandler를 초기화합니다
+- `void GetHumanPose(ref HumanPose humanPose)`: 현재 포즈를 HumanPose 구조체에 저장합니다.
+- `void SetHumanPose(ref HumanPose humanPose)`: HumanPose 구조체에 저장된 포즈를 설정합니다.
 
 ```cs
 using UnityEngine;
 
-public class HumanPoseHandlerExample : MonoBehaviour
+public class HumanPoseHandlerExample: MonoBehaviour
 {
     public Animator animator;
 

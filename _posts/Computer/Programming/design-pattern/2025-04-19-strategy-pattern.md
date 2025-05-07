@@ -29,7 +29,7 @@ public abstract class SomeStrategy
     public abstract void CreateSomeThing(ref SomeObject someObject);
 }
 
-public class SomeStrategyA : SomeStrategy
+public class SomeStrategyA: SomeStrategy
 {
     public SomeStrategyA() { /* Constructor */ }
 
@@ -39,7 +39,7 @@ public class SomeStrategyA : SomeStrategy
     }
 }
 
-public class SomeClassB : SomeStrategy
+public class SomeClassB: SomeStrategy
 {
     private SomeVariable someVariable; // Only for SomeClassB
 

@@ -39,12 +39,12 @@ date: 2023-05-21. 15:03
 last_modified_at: 2025-04-28. 17:41 # 메모
 ---
 
-2024-04-09. 03:03 : 글 계승.  
-`2019-12-10-Unity-Public-SerializeField : 🌔 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수`,  
-`2022-08-26-Unity-GUID : 🌔 Unity GUID 보는 법`,  
-`2023-01-06-OnParticleCollision-Not-Work : 🌔 Unity OnParticleCollision 이 호출되지 않을 때`,  
-`2023-02-15-Unity-NavMesh : 🌔 Unity NavMesh`,  
-`2023-02-24-Cannot-Perform-Upm-Operation : 🌔 Unity 'Cannot perform upm operation: EBUSY: resource busy or locked, open'`  
+2024-04-09. 03:03: 글 계승.  
+`2019-12-10-Unity-Public-SerializeField: 🌔 유니티 _ 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수`,  
+`2022-08-26-Unity-GUID: 🌔 Unity GUID 보는 법`,  
+`2023-01-06-OnParticleCollision-Not-Work: 🌔 Unity OnParticleCollision 이 호출되지 않을 때`,  
+`2023-02-15-Unity-NavMesh: 🌔 Unity NavMesh`,  
+`2023-02-24-Cannot-Perform-Upm-Operation: 🌔 Unity 'Cannot perform upm operation: EBUSY: resource busy or locked, open'`  
 
 ## 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수
 
@@ -84,10 +84,10 @@ last_modified_at: 2025-04-28. 17:41 # 메모
 
 ### Particle Option
 
-- Limit Velocity over Lifetime : 말그대로
-- Noise : 움직임에 대한 노이즈
+- Limit Velocity over Lifetime: 말그대로
+- Noise: 움직임에 대한 노이즈
 
-- Color Gradation Editor : Mode는 Blend (Classic, Perceptual), Fixed가 있는데, Fixed로 설정하면 그라데이션 없이
+- Color Gradation Editor: Mode는 Blend (Classic, Perceptual), Fixed가 있는데, Fixed로 설정하면 그라데이션 없이
   - 시작 색을 여러 가지 고정된 색으로 설정하기, Fixed로 설정하여
 
 ## NavMesh
@@ -102,7 +102,7 @@ last_modified_at: 2025-04-28. 17:41 # 메모
 
 ---
 
-### 문제 : 하나의 Agent Type만 Bake 가능
+### 문제: 하나의 Agent Type만 Bake 가능
 
 여러 크기의 Agent를 함께 사용하고 싶었는데,  
 기본 내장 기능으로는 한 번에 한 Agent Type에 대해서만 NavMesh를 Bake 할 수 있었다.  
@@ -113,7 +113,7 @@ last_modified_at: 2025-04-28. 17:41 # 메모
 
 이에 여러 Agent Type에 대해, NavMesh를 '각각' Bake 하는 방법이 필요했다.  
 
-### 해결 : NavMeshSurface
+### 해결: NavMeshSurface
 
 NavMesh Building Components 중 NavMeshSurface 컴포넌트를 이용하면, 여러 Agent Type에 대해 NavMesh를 '각각' 구워낼 수 있다 !  
 
@@ -175,8 +175,8 @@ Cinemachine Brain 에서 Update Method 가 Fixed Update 면 바로바로 안바�
 
 ---
 
-오클루더 Occluder : 오클루디를 가리는 오브젝트  
-오클루디 Occludee : 오클루더에 의해 가려지는 오브젝트  
+오클루더 Occluder: 오클루디를 가리는 오브젝트  
+오클루디 Occludee: 오클루더에 의해 가려지는 오브젝트  
 
 ## 라이트 베이크
 
@@ -200,8 +200,8 @@ Convex 체크
 ---
 
 - `Debug.Break()`
-- Ctrl + Alt + P : 1 프레임 진행
-- Ctrl + Shift + P : 일시정지/재생
+- Ctrl + Alt + P: 1 프레임 진행
+- Ctrl + Shift + P: 일시정지/재생
 
 ## Unity6
 

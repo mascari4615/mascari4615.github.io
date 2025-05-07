@@ -110,9 +110,9 @@ MyClass myClass2 = myClass;
 
 세대가 낮은 메모리부터 메모리 해제를 해준 다음 메모리 컴펙션을 해준다.
 
-- 0세대 : GC를 한번도 겪지 않은 갓 생성된 객체가 대상
-- 1세대 : GC를 1회 겪은 객체가 대상
-- 2세대 : GC를 2회 이상 겪은 객체가 대상(전체를 의미)
+- 0세대: GC를 한번도 겪지 않은 갓 생성된 객체가 대상
+- 1세대: GC를 1회 겪은 객체가 대상
+- 2세대: GC를 2회 이상 겪은 객체가 대상(전체를 의미)
   - 2세대 GC를 할 시 Full Garbage Collection이라 하고 전체 Heap에 대하여 GC하는 것을 의미한다.
 
 ### 세대를 나누는 근거
@@ -124,10 +124,10 @@ MyClass myClass2 = myClass;
 ### 언어에서
 
 - 매니지드 언어 (GC 지원)
-  - C# : .NET 프레임워크에서 실행.
+  - C#: .NET 프레임워크에서 실행.
 
 - 언매니지드 언어
-  - C++ : 직접 메모리를 할당하고 해제.
+  - C++: 직접 메모리를 할당하고 해제.
 
 ## **C#**
 
@@ -147,7 +147,7 @@ GC.GetTotalMemory(true); // 전체 메모리 사용량 반환
 ### Dispose Pattern
 
 ```csharp
-public class MyClass : IDisposable
+public class MyClass: IDisposable
 {
     private bool disposed = false;
 
@@ -178,15 +178,15 @@ public class MyClass : IDisposable
 }
 ```
 
-- `IDisposable` : 관리되는 자원과 비관리 자원을 해제하는 메서드를 정의하는 인터페이스
+- `IDisposable`: 관리되는 자원과 비관리 자원을 해제하는 메서드를 정의하는 인터페이스
   - 직접 메서드를 만들어 쓸 수도 있지만, `IDisposable` 인터페이스를 상속받아 사용하는 것이 좋다.
     - 서로 다른 Type의 객체를 사용해도, 동일한 코드/방법으로 메모리를 해제할 수 있다.
     - `Dispose` 메서드만 보고도 '아, 클래스 사용이 끝나면 `Dispose`를 호출해야겠구나' 라는 것을 알 수 있다.
 
-- `Dispose` : 관리되는 자원과 비관리 자원을 해제
-  - `Dispose(true)` : 관리되는 자원을 해제
-  - `Dispose(false)` : 비관리 자원을 해제
-- `GC.SuppressFinalize(this)` : 파괴자를 호출하지 않도록 설정
+- `Dispose`: 관리되는 자원과 비관리 자원을 해제
+  - `Dispose(true)`: 관리되는 자원을 해제
+  - `Dispose(false)`: 비관리 자원을 해제
+- `GC.SuppressFinalize(this)`: 파괴자를 호출하지 않도록 설정
 
 `FileStream` 관련 객체에서 많이 볼 수 있다.  
 
@@ -196,5 +196,5 @@ public class MyClass : IDisposable
 WeakReference weakReference = new WeakReference(new MyClass());
 ```
 
-- `WeakReference` : 약한 참조
+- `WeakReference`: 약한 참조
 - `WeakReference`를 사용하면 가비지 컬렉션 대상이 되지 않는다.

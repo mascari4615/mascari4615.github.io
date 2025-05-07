@@ -68,7 +68,7 @@ Like 영화관에서 지인들과 나란히 좌석을 예매할 때
 
 ```cpp
 // Declaration & Definition & Init
-int a[21]; // [21] : Index 색인/Subscript 첨자
+int a[21]; // [21]: Index 색인/Subscript 첨자
 int b[21][21];
 int c[21] = { 1, 2, 3 }; // { 1, 2, 3, 0, 0 }
 int d[] = { 1, 2, 3 };
@@ -146,8 +146,8 @@ v1 = v2;
 // Traversal
 
 // 1. range-based for loop (since C++11)
-for (int e : v1)
-for (int& e : v1)
+for (int e: v1)
+for (int& e: v1)
 // & <- list, map, set 등에서도 모두 사용할 수 있는
 
 // 2. for (not bad)

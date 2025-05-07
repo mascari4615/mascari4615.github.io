@@ -80,12 +80,12 @@ last_modified_at: 2024-08-29. 21:22
 
 ### Starter 디펜던시
 
-- `spring-boot-starter-web` : RESTful 응용 프로그램
-- `spring-boot-starter-test` : 단위 테스트, 통합 테스트
-- `spring-boot-starter-security` : 스프링 시큐리티와 OAuth2를 사용한 보안 (인증, 권한 부여)
-- `spring-boot-starter-jdbc` : 기본적인 JDBC를 사용한 데이터 액세스
-- `spring-boot-starter-data-jpa` : JPA를 사용한 데이터 액세스 (Hibernate)
-- `spring-boot-starter-cache` : 스프링의 캐시 추상화를 사용한 캐시
+- `spring-boot-starter-web`: RESTful 응용 프로그램
+- `spring-boot-starter-test`: 단위 테스트, 통합 테스트
+- `spring-boot-starter-security`: 스프링 시큐리티와 OAuth2를 사용한 보안 (인증, 권한 부여)
+- `spring-boot-starter-jdbc`: 기본적인 JDBC를 사용한 데이터 액세스
+- `spring-boot-starter-data-jpa`: JPA를 사용한 데이터 액세스 (Hibernate)
+- `spring-boot-starter-cache`: 스프링의 캐시 추상화를 사용한 캐시
 - ...
 
 ## 의존성 주입
@@ -175,20 +175,20 @@ public String getHello()
 
 ---
 
-- `pom.xml` : Maven 프로젝트 설정 파일
-- `build.gradle` : Gradle 프로젝트 설정 파일
+- `pom.xml`: Maven 프로젝트 설정 파일
+- `build.gradle`: Gradle 프로젝트 설정 파일
 
 - `Project Object Model (POM)` 정보를 담고 있음
-  - 프로젝트 정보 : 프로젝트 이름, 개발자 목록, 라이센스, ...
-  - 빌드 설정 정보 : 소스, 리소스, 라이프 사이클, 실행할 플러그인, ...
-  - POM 연관 정보 : 의존 프로젝트(모듈), 상위 프로젝트, 하위 모듈, ...
+  - 프로젝트 정보: 프로젝트 이름, 개발자 목록, 라이센스, ...
+  - 빌드 설정 정보: 소스, 리소스, 라이프 사이클, 실행할 플러그인, ...
+  - POM 연관 정보: 의존 프로젝트(모듈), 상위 프로젝트, 하위 모듈, ...
 
 ## application.properties, application.yml
 
 ---
 
-- `application.properties` : 프로퍼티 설정 파일
-- `application.yml` : 프로퍼티 설정 파일
+- `application.properties`: 프로퍼티 설정 파일
+- `application.yml`: 프로퍼티 설정 파일
 
 `application.yml`이 많이 사용된다.  
 둘 다 사용할 경우, 우선순위는 `application.properties`가 더 높다.  
@@ -284,7 +284,7 @@ public class MemberController {
 
   // Talend API Tester, 확장 프로그램
   // http://localhost:8080/join
-  // { "id" : "feature", "name" : "asd", "phoneNumber" : "010-0000-0000" }
+  // { "id": "feature", "name": "asd", "phoneNumber": "010-0000-0000" }
  }
 }
 ```
@@ -300,15 +300,15 @@ public class JoinRequest {
 }
 ```
 
-- `@RestController` : `@Controller`와 `@ResponseBody`를 합친 어노테이션
-  - `@Controller` : View를 반환하는 컨트롤러
-  - `@ResponseBody` : View를 반환하는 것이 아닌, HTTP Response Body에 직접 작성하는 컨트롤러
+- `@RestController`: `@Controller`와 `@ResponseBody`를 합친 어노테이션
+  - `@Controller`: View를 반환하는 컨트롤러
+  - `@ResponseBody`: View를 반환하는 것이 아닌, HTTP Response Body에 직접 작성하는 컨트롤러
 
-- `@RequiredArgsConstructor` : `final`이 붙은 필드를 생성자로 만들어준다.
+- `@RequiredArgsConstructor`: `final`이 붙은 필드를 생성자로 만들어준다.
 
-- DTO (Data Transfer Object) : 데이터를 전송하는 객체
-  - `@RequestBody` : HTTP 요청의 body 내용을 자바 객체로 매핑하는 역할
-  - `@ResponseBody` : 자바 객체를 HTTP 응답의 body 내용으로 매핑하는 역할
+- DTO (Data Transfer Object): 데이터를 전송하는 객체
+  - `@RequestBody`: HTTP 요청의 body 내용을 자바 객체로 매핑하는 역할
+  - `@ResponseBody`: 자바 객체를 HTTP 응답의 body 내용으로 매핑하는 역할
   - `@RequestBody`를 통해 `JoinRequest` 객체를 받아서 `MemberService`로 전달한다.
   - `@ResponseBody`를 통해 `MemberService`의 반환값을 HTTP 응답의 body 내용으로 반환한다.
 
@@ -393,12 +393,12 @@ public class MemberRepositoryTest {
 
 ---
 
-- `@GetMapping` : Read, 서버에 있는 리소스를 가져올 때 사용
-- `@PostMapping` : Create, 서버에 리소스를 추가할 때 사용
-- `@PutMapping` : Update
+- `@GetMapping`: Read, 서버에 있는 리소스를 가져올 때 사용
+- `@PostMapping`: Create, 서버에 리소스를 추가할 때 사용
+- `@PutMapping`: Update
   - 리소스가 존재하면 갱신하고, 없으면 새로 생성, Update
   - 보통 잘 안쓰고, `@PostMapping`을 많이 쓴다.
-- `@DeleteMapping` : Delete, 서버를 통해 리소스를 삭제
+- `@DeleteMapping`: Delete, 서버를 통해 리소스를 삭제
 
 ## 생각의 흐름
 
@@ -434,8 +434,8 @@ public class MemberRepositoryTest {
 - Like auto_increment
 
 - `@GeneratedValue`를 사용하면 자동으로 값을 생성해준다.
-- `@GeneratedValue(strategy = GenerationType.IDENTITY)` : 자동 증가
-- `@GeneratedValue(strategy = GenerationType.SEQUENCE)` : 시퀀스
+- `@GeneratedValue(strategy = GenerationType.IDENTITY)`: 자동 증가
+- `@GeneratedValue(strategy = GenerationType.SEQUENCE)`: 시퀀스
 - ...
 
 ### _
@@ -447,7 +447,7 @@ public class MemberRepositoryTest {
 - restTemplate, webClient을 구현해보는 연습
 - 탈퇴, 휴먼 기능을 넣어보는 연습
 
-- `@PathVariable` : GET 요청에서 파라미터를 전달하기 위해 URL에 값을 담아 요청하는 방법
+- `@PathVariable`: GET 요청에서 파라미터를 전달하기 위해 URL에 값을 담아 요청하는 방법
 
 ```java
 @GetMapping("/hello/{name}")
@@ -463,7 +463,7 @@ public String hello(@PathVariable("some") String name)
 }
 ```
 
-- `@RequestParam` : GET 요청에서 쿼리 문자열을 전달하기 위해 URL에 값을 담아 요청하는 방법
+- `@RequestParam`: GET 요청에서 쿼리 문자열을 전달하기 위해 URL에 값을 담아 요청하는 방법
 - `?`를 기준으로 우측에 `{Key}={Value}`의 형태로 전달되며, 복수 형태로 전달할 경우 `&`로 구분
 - `http://localhost:8080/hello?name=feature&age=20`
 
@@ -484,14 +484,14 @@ public String hello(
  StringBuilder sb = new StringBuilder();
 
  param.forEach((key, value) -> {
-  sb.append(key).append(" : ").append(value).append("\n");
+  sb.append(key).append(": ").append(value).append("\n");
  });
 
  return sb.toString();
 }
 ```
 
-- DTO 사용 : `Key`와 `Value`가 정해져있지만, 받아야할 값이 많을 때 사용
+- DTO 사용: `Key`와 `Value`가 정해져있지만, 받아야할 값이 많을 때 사용
 
 ```java
 public class MemberDTO {
@@ -520,7 +520,7 @@ public class HelloController {
 }
 ```
 
-- `@PostMapping` : POST 요청을 받을 때 사용
+- `@PostMapping`: POST 요청을 받을 때 사용
 
 ```java
 @PostMapping("/member")
@@ -529,14 +529,14 @@ public String hello(@RequestBody Map<String, Object> postData)
  StringBuilder sb = new StringBuilder();
 
  postData.entrySet().forEach(entry -> {
-  sb.append(entry.getKey()).append(" : ").append(entry.getValue()).append("\n");
+  sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
  });
 
  return sb.toString();
 }
 ```
 
-- DTO 사용 : `Key`와 `Value`가 정해져있지만, 받아야할 값이 많을 때 사용
+- DTO 사용: `Key`와 `Value`가 정해져있지만, 받아야할 값이 많을 때 사용
 
 ```java
 public class MemberDTO {
@@ -551,7 +551,7 @@ public String hello(@RequestBody MemberDTO memberDTO) // @RequestBody를 꼭 사
 }
 ```
 
-- Swagger : API 문서를 만들어주는 도구, 협업을 위해 필요한 라이브러리
+- Swagger: API 문서를 만들어주는 도구, 협업을 위해 필요한 라이브러리
 - 서버로 요청되는 API리스트를 HTML 화면으로 문서화하여 테스트 할 수 있는 라이브러리
 - 서버가 가동되면서 `@RestController`가 붙은 클래스를 찾아서 문서화를 해준다.
 
@@ -562,8 +562,8 @@ public String hello(@RequestBody MemberDTO memberDTO) // @RequestBody를 꼭 사
   - API를 변경할 때마다 Referernce문서를 계속 업데이트 해야하는 번거로움을 줄여준다.
 
 - 설정 방법
-  - `@Configuration` : 어노테이션 기반의 환경 구성을 돕는 어노테이션, IoC Containter에게 해당 클래스를 Bean 구성 Class 임을 알려줌
-  - `@Bean` : 개발자가 직접 제어가 불가능한 외부 라이브러리 등을 Bean으로 만들 경우 사용
+  - `@Configuration`: 어노테이션 기반의 환경 구성을 돕는 어노테이션, IoC Containter에게 해당 클래스를 Bean 구성 Class 임을 알려줌
+  - `@Bean`: 개발자가 직접 제어가 불가능한 외부 라이브러리 등을 Bean으로 만들 경우 사용
 
 Bean?  
 
@@ -595,7 +595,7 @@ public ResponseEntity<MemberDTO> hello(@RequestBody MemberDTO memberDTO)
 }
 ```
 
-- ResponseEntity : 스프링에서 제공하는 클래스 중 HttpEntity라는 클래스를 상속받아 사용하는 클래스
+- ResponseEntity: 스프링에서 제공하는 클래스 중 HttpEntity라는 클래스를 상속받아 사용하는 클래스
 - 사용자의 HttpRequest에 대한 응답 데이터를 포함
 - 포함하는 클래스
   - HttpStatus
@@ -607,18 +607,18 @@ public ResponseEntity<MemberDTO> hello(@RequestBody MemberDTO memberDTO)
 - 반복되는 메소드를 어노테이션을 사용하여 자동으로 생성해주는 라이브러리
 - 일반적으로 VO, DTO, Model, Entity 등의 데이터 클래스에서 주로 사용됨
 - 대표적으로 많이 사용되는 Annotation
-  - `@Getter` : Getter 메소드 생성
-  - `@Setter` : Setter 메소드 생성
-  - `@ToString` : toString 메소드 생성
-    - exclude : 제외할 필드
-  - `@NoArgsConstructor` : 파라미터가 없는 생성자 생성
-  - `@AllArgsConstructor` : 모든 필드를 파라미터로 받는 생성자 생성
-  - `@RequiredArgsConstructor` : `final`이나 `@NonNull`이 붙은 필드를 파라미터로 받는 생성자 생성
-  - `@EqualsAndHashCode` : equals, hashCode 메소드 생성
-    - `equals` : 객체의 내용이 같은지 동등성(equality)를 비교
-    - `hashCode` : 두 객체가 같은 객체인지 동일성(identity)를 비교
-    - callSuper : 부모 클래스의 필드까지 감안하여 equals, hashCode 메소드를 생성
-  - `@Data` : `@Getter`, `@Setter`, `@ToString`, `@EqualsAndHashCode`, `@RequiredArgsConstructor`를 한번에 사용할 수 있다.
+  - `@Getter`: Getter 메소드 생성
+  - `@Setter`: Setter 메소드 생성
+  - `@ToString`: toString 메소드 생성
+    - exclude: 제외할 필드
+  - `@NoArgsConstructor`: 파라미터가 없는 생성자 생성
+  - `@AllArgsConstructor`: 모든 필드를 파라미터로 받는 생성자 생성
+  - `@RequiredArgsConstructor`: `final`이나 `@NonNull`이 붙은 필드를 파라미터로 받는 생성자 생성
+  - `@EqualsAndHashCode`: equals, hashCode 메소드 생성
+    - `equals`: 객체의 내용이 같은지 동등성(equality)를 비교
+    - `hashCode`: 두 객체가 같은 객체인지 동일성(identity)를 비교
+    - callSuper: 부모 클래스의 필드까지 감안하여 equals, hashCode 메소드를 생성
+  - `@Data`: `@Getter`, `@Setter`, `@ToString`, `@EqualsAndHashCode`, `@RequiredArgsConstructor`를 한번에 사용할 수 있다.
 
 - 스프링부트 서비스 구조
   - Client -(DTO)-> Controller -(DTO)-> Service/ServiceImpl -(Entity)-> DAO(Repository)/DAOImpl -(Entity)-> DB

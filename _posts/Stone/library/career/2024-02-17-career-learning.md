@@ -240,7 +240,7 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - 함수형 프로그래밍
 - 데이터 지향 프로그래밍
 - CBD 개발 방법론
-- CI/CD : Github Actions
+- CI/CD: Github Actions
 - Jenkins, Jira와 유사한 환경을 다뤄본 경험이 있습니다. (Github Action, Github Project)
 - OOP
   - OOP의 개념
@@ -383,10 +383,10 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - Swagger
 - 도커라이징
 - 보일러 플레이트
-- 영상 처리 라이브러리 : OpenCV By Intel
-- 드래그 길이 : GetMouseButtonDown, "Up, Input.mousePosition
+- 영상 처리 라이브러리: OpenCV By Intel
+- 드래그 길이: GetMouseButtonDown, "Up, Input.mousePosition
 - threshold
-- ParticleSystem : Rate/지속적, Burst/간헐적
+- ParticleSystem: Rate/지속적, Burst/간헐적
 - ENUM
   - 첫 번째, -1, NONE
   - 마지막, NUM
@@ -404,24 +404,24 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - VRM
 - 밸리데이션
 - DTO
-- SLI : NVIDIA의 Scalable Link Interface, 그래픽 카드 여러 개 같이 쓰는, 성능이 그대로 증가하지는 않음
-- MSA : MiroService Architecture
-- GDI : Graphics Device Interface
+- SLI: NVIDIA의 Scalable Link Interface, 그래픽 카드 여러 개 같이 쓰는, 성능이 그대로 증가하지는 않음
+- MSA: MiroService Architecture
+- GDI: Graphics Device Interface
 - GetMessage, PeekMessage
-  - GetMessage : 메시지가 있을 때까지 기다림
-  - PeekMessage : 메시지가 있든 없든 바로 리턴
-- 레퍼런스 카운트 : 레퍼런스가 0이 되면 메모리 해제
+  - GetMessage: 메시지가 있을 때까지 기다림
+  - PeekMessage: 메시지가 있든 없든 바로 리턴
+- 레퍼런스 카운트: 레퍼런스가 0이 되면 메모리 해제
   - 메모리가 소멸되는 방법은 두 가지
-    - 가비지 컬렉터 : .NET, 자동으로 메모리 해제
-    - 레퍼런스 카운트 : C++, 레퍼런스가 0이 되면 메모리 해제
-- 롱포인터, 숏포인터 : 32비트, 16비트
-- 시스템 메모리 : RAM
-- 비디오 메모리 : VRAM
-- 메모리 얼라인 : 메모리 주소가 4의 배수로 정렬
-- 비트맵 : 픽셀 데이터를 담는 메모리
-- 칼라키 : 색상 키, 투명도, 알파
-- WinDbg : 윈도우 디버거 도구
-  - 개요 : 프로세스, 스레드, 메모리, CPU 등의 정보를 제공
+    - 가비지 컬렉터: .NET, 자동으로 메모리 해제
+    - 레퍼런스 카운트: C++, 레퍼런스가 0이 되면 메모리 해제
+- 롱포인터, 숏포인터: 32비트, 16비트
+- 시스템 메모리: RAM
+- 비디오 메모리: VRAM
+- 메모리 얼라인: 메모리 주소가 4의 배수로 정렬
+- 비트맵: 픽셀 데이터를 담는 메모리
+- 칼라키: 색상 키, 투명도, 알파
+- WinDbg: 윈도우 디버거 도구
+  - 개요: 프로세스, 스레드, 메모리, CPU 등의 정보를 제공
 - 섭스 언리얼 4 Packed
 - LitJSON
 - c# 확장메소드
@@ -449,7 +449,7 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - 체크인 ㅡ 수정이 끝난 파일 사본을 저장소에 저장하여 버전을 갱신하는 작업
 - 지속적 통합 | Continous Integration
 - 파레토 법칙
-- 카우보이 코더 : 혼자서 일하는 프로그래머 (체계 없이 독선적으로 일하는 코더를 일컫는 부정적 함의가 담긴 표현)
+- 카우보이 코더: 혼자서 일하는 프로그래머 (체계 없이 독선적으로 일하는 코더를 일컫는 부정적 함의가 담긴 표현)
 - 테스트베드 :
 - [어드레서블 에셋 시스템으로 메모리 최적화하기](https://unitysquare.co.kr/growwith/unityblog/webinarView?id=272)
 - OneSignal: 메시징 노티
@@ -530,7 +530,7 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - IL2CPP-Dumper
 - 한글화/에셋 수정에 사용되는 툴
 - ffmpeg
-- CodeRabbit : '코파일럿'같은 개발자를 위한 코드 리뷰 도구
+- CodeRabbit: '코파일럿'같은 개발자를 위한 코드 리뷰 도구
 - Switch When
 - 인하우스, 아웃소싱
 - Bar Cmd Exe 확장자 차이
@@ -559,9 +559,9 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
   - JavaScript에 대하여,
   - 중복 선언이 가능하다는 var의 특징 때문에, let이 나온 이후로는 변수 선언 시 let과 const를 주로 사용
   - 호이스팅,스코프 관련해서도 다른 점이 있다고는데, 패스
-  - var : Variable
-  - let : Let
-  - const : Constant
+  - var: Variable
+  - let: Let
+  - const: Constant
   - | var | 중복 선언 가능 | |
   - | let | 중복 선언 불가능 | 값 변경 가능 |
   - | const | 중복 선언 불가능 | 값 변경 불가능 |

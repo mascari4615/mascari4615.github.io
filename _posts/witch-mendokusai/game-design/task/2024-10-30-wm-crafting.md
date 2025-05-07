@@ -19,9 +19,9 @@ date: 2024-10-30. 21:08 # Init
 last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
 ---
 
-2025-04-06. 15:40 : 글 병합.  
-`2024-10-30-WM-Alchemy : WitchMendokusai | Alchemy`,  
-`2024-10-30-WM-Hextech : WitchMendokusai | Hextech`,  
+2025-04-06. 15:40: 글 병합.  
+`2024-10-30-WM-Alchemy: WitchMendokusai | Alchemy`,  
+`2024-10-30-WM-Hextech: WitchMendokusai | Hextech`,  
 
 ## 분류
 
@@ -49,7 +49,7 @@ last_modified_at: 2025-04-06. 15:40 # Alchemy 글 병합
 
 ### 연금술
 
-- 마녀 : 빗자루, 가마솥, 물약
+- 마녀: 빗자루, 가마솥, 물약
 
 - 연금술
   - 새로운 포션

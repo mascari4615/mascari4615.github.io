@@ -4,7 +4,7 @@ date: 2021-08-31
 categories: Programming Java MinecraftPlugin
 ---
 
-**확인하세요!** : 이 튜토리얼은 2021년 8월 31일, <u>Minecraft 1.17.1</u>, <u>JDK-16</u>, <u>CraftBukkit-1.17.1</u> 을 기반으로 작성되었습니다.
+**확인하세요!**: 이 튜토리얼은 2021년 8월 31일, <u>Minecraft 1.17.1</u>, <u>JDK-16</u>, <u>CraftBukkit-1.17.1</u> 을 기반으로 작성되었습니다.
 {: .notice}
 {: .text-center}
 

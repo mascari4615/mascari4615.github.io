@@ -34,9 +34,9 @@ i.e. while (bool) statement
 
 왜 Why, 언어 기술 독자가 다양함
 
-- 초기 평가자 : 언어 기술의 명료성 중요
-- 구현자 : 언어 기술의 완전성과 정확성 중요
-- 사용자 : 언어 참고 메뉴얼의 제공
+- 초기 평가자: 언어 기술의 명료성 중요
+- 구현자: 언어 기술의 완전성과 정확성 중요
+- 사용자: 언어 참고 메뉴얼의 제공
 
 ### Syntax와 Semantics는 서로 밀접한 관련
 
@@ -45,10 +45,10 @@ i.e. while (bool) statement
 
 ### Syntax를 기술하는 것이 Semantics를 기술하는 것보다 쉽다
 
-@ 정석 : 명확하고 공통적으로 받아들여지는 기술 양식(방법)  
+@ 정석: 명확하고 공통적으로 받아들여지는 기술 양식(방법)  
 
-언어의 Syntax : 정석이 있음  
-언어의 Semantics : 정석이 없음  
+언어의 Syntax: 정석이 있음  
+언어의 Semantics: 정석이 없음  
 
 ## Syntax 정의의 문제점 (해결 과제)
 
@@ -96,7 +96,7 @@ x, y - Identifier
 
 @ Syntax Description, Formal  
 
-Grammar : 구문 기술의 형식적 언어 생성 매커니즘  
+Grammar: 구문 기술의 형식적 언어 생성 매커니즘  
 
 Chomsky Hierarchy  
 Type-0, Unrestricted Grammar  
@@ -115,8 +115,8 @@ Type-3, Regular Grammar
 - BNF, Backus-Nour Form 형식  
   - 메타 언어, 구문 구조 추상화
   - Context-Free 문법과 거의 동일  
-  - Bakus : John Bakus, ALGOL 58 기술  
-  - Nour : Peter Naur, ALGOL 60 기술 위해 수정  
+  - Bakus: John Bakus, ALGOL 58 기술  
+  - Nour: Peter Naur, ALGOL 60 기술 위해 수정  
 
 @ LHS - Left Hand Side  
 @ RHS - Right Hand Side  
@@ -125,13 +125,13 @@ i.e. \<assign\> → \<var\> = \<expression\>
 
 - Rule 규칙, Production 생성
   - LHS → RHS, 연결(유도) 하는 것  
-  - LHS : 정의하려는 추상화
-  - RHS : 정의 - Token, 어휘항목, 다른 추상화
+  - LHS: 정의하려는 추상화
+  - RHS: 정의 - Token, 어휘항목, 다른 추상화
 
 @ Terminal 끝난, 변하지 않는  
 
-Nonterminal Symbol : 추상화된 대상, 여러 정의 가능  
-Terminal Symbol : 규칙에 포함된 어휘 항목과 토큰  
+Nonterminal Symbol: 추상화된 대상, 여러 정의 가능  
+Terminal Symbol: 규칙에 포함된 어휘 항목과 토큰  
 
 i.e.  
 \<if_stmt\> →  
@@ -144,9 +144,9 @@ i.e. \<ident_list> → identifier | identifier, <ident_list>
 
 ---
 
-@ U 중간고사 출제 : 문법이 모호하다는 것은 어떤 의미인지, 주어진 문법과 문장을 가지고 설명하시오.  
+@ U 중간고사 출제: 문법이 모호하다는 것은 어떤 의미인지, 주어진 문법과 문장을 가지고 설명하시오.  
 
-문법 : 언어를 정의하기 위한 생성 장치  
+문법: 언어를 정의하기 위한 생성 장치  
 
 - 유도(대체) Derivation
   - 문장을 생성하기 위해 일련의 규칙을 적용하는 것
@@ -160,7 +160,7 @@ Loop Until 어떠한 논터미널도 포함하지 않을 때까지
 
 i.e.  
 
-주어진 배정문 : begin A = B + C; B = C end  
+주어진 배정문: begin A = B + C; B = C end  
 
 ```BNF
 <program> → begin <stmt_list> end
@@ -170,7 +170,7 @@ i.e.
 <expression> → <var> + <var>, <var> | <var> | <var>
 ```
 
-주어진 배정문 : begin A = B * A + C end  
+주어진 배정문: begin A = B * A + C end  
 
 ```BNF
 <assign> → <id> = <expr>
@@ -193,7 +193,7 @@ Parse Tree
 - 해결책
   - 파서 설계자가 비문법적 올바른 파스 트리를 구성  
   - 재작성
-  - 연산자 우선 순위 : 낮은 곳에 위치한 항목들로 먼저 계산
+  - 연산자 우선 순위: 낮은 곳에 위치한 항목들로 먼저 계산
   - 연산의 결합 규칙 :
     - 동일 우선 순위 연산자들 중 어떤 연산자가 먼저 계산되는지
     - i.e. A + B - C, 좌결합 우선 → \+
@@ -236,4 +236,4 @@ So, 많은 언어에서, else 문은 이전에 매칭되지 않은 가장 가까
 
 - 문법과 인식기
   - 문맥 자유 문법이 주어진 경우, 해당 언어를 인식하는 인식기 구축 가능
-    - Yacc : 구문 분석 생성기
+    - Yacc: 구문 분석 생성기

@@ -113,7 +113,7 @@ last_modified_at: 2024-08-29. 22:29
 - 모든 이동을 서버로 검증 받으면 뚝뚝 끊겨 보일 것
 - 하지만 앞으로 계속해서 갈 것 같음 -> 딜레이 만큼 예측
 - 딜레이 이후 서버로부터 이동 데이터가 도착한 이후 다시 또 딜레이 만큼 예측, 반복
-- 참고 : 예측할 때 마다 FixedUpdateNetwork가 실행, FixedUpdateNetwork를 기반으로 예측
+- 참고: 예측할 때 마다 FixedUpdateNetwork가 실행, FixedUpdateNetwork를 기반으로 예측
 
 ### NetworkBool
 
@@ -173,7 +173,7 @@ public override void Render()
 ### ETC
 
 - 위는 호스트 모드
-- Shared Mode : 각자 이동 권한을 가짐
-- Predictive Spawn : 클라에서 Spawning도 예측
-- Lag Compensation : 지연 보상, 클라 기존으로 판정 (핵 문제)
-- Area Of Interest : Interest Area에 있지 않는 오브젝트는 동기화하지 않는
+- Shared Mode: 각자 이동 권한을 가짐
+- Predictive Spawn: 클라에서 Spawning도 예측
+- Lag Compensation: 지연 보상, 클라 기존으로 판정 (핵 문제)
+- Area Of Interest: Interest Area에 있지 않는 오브젝트는 동기화하지 않는

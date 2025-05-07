@@ -34,9 +34,9 @@ date: 2024-11-13. 05:10 # Init
 last_modified_at: 2025-03-04. 23:41 # 읽을 것 하나
 ---
 
-2024-11-13. 05:10 : 글 계승, 병합.  
-`2023-09-07-U-Algorithm : 알고리듬 과목`,  
-`2024-02-18-Data-Structure : Data Structure`  
+2024-11-13. 05:10: 글 계승, 병합.  
+`2023-09-07-U-Algorithm: 알고리듬 과목`,  
+`2024-02-18-Data-Structure: Data Structure`  
 
 ## 머리말
 

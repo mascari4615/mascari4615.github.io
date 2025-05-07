@@ -44,7 +44,7 @@ Unity는 추가적으로 ShaderLab 언어를 제작하고 이를 지원.
 
 ### Shader Lab
 
-(고정 파이프라인 쉐이더 : fixed function shader)
+(고정 파이프라인 쉐이더: fixed function shader)
 
 - 매우 가볍고, 하드웨어 호환성이 좋지만, 기능이 상당히 부족 > 고급효과 X
 - 자체 문법 > 다른 쉐이더 문법과 거의 호환 X + 거의 지원 중단

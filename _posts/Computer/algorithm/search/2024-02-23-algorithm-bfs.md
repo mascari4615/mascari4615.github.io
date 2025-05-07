@@ -132,7 +132,7 @@ void bfs(int start)
         int cur = q.front();
         q.pop();
         cout << cur << ' ';
-        for (int next : adj[cur])
+        for (int next: adj[cur])
         {
             // if (vis[next])
             if (parent[cur] == next)

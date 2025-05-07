@@ -29,9 +29,9 @@ Last in First out
 
 ---
 
-- 원소의 추가 : O(1)
-- 원소 제거 : O(1)
-- 제일 상단의 원소 확인 : O(1)
+- 원소의 추가: O(1)
+- 원소 제거: O(1)
+- 제일 상단의 원소 확인: O(1)
 - 제일 상단이 아닌 나머지 원소들의 확인/변경이 **원칙적으로** 불가능
 
 ## 구현 및 사용
@@ -43,7 +43,7 @@ Last in First out
 ```cpp
 const int MAX = 100005;
 int dat[MAX];
-int pos = 0; // 다음 원소가 추가될 곳, size : 원소의 수
+int pos = 0; // 다음 원소가 추가될 곳, size: 원소의 수
 
 void push(int x)
 {

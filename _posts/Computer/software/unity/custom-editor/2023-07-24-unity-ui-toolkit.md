@@ -75,7 +75,7 @@ C#으로 치면 Object?
 
 ```cs
 [CustomPropertyDrawer(typeof(Something))]
-public class SomethingEditor : PropertyDrawer
+public class SomethingEditor: PropertyDrawer
 {
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
@@ -93,7 +93,7 @@ public class SomethingEditor : PropertyDrawer
 
 ```cs
 [CustomEditor(typeof(Something))]
-public class SomethingEditor : Editor
+public class SomethingEditor: Editor
 {
     public override VisualElement CreateInspectorGUI()
     {
@@ -173,7 +173,7 @@ Unity에서 지원하는 Painter2D API 활용
 ---
 
 ```cs
-public class SomethingEditor : EditorWindow
+public class SomethingEditor: EditorWindow
 {
     [SerializeField] Something something;
 

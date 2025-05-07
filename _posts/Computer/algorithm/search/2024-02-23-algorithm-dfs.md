@@ -138,7 +138,7 @@ void dfs(int start)
         int cur = s.top();
         s.pop();
         cout << cur << ' ';
-        for (int next : adj[cur])
+        for (int next: adj[cur])
         {
             // if (vis[next])
             if (parent[cur] == next)
@@ -163,7 +163,7 @@ int depth[8]; // 깊이를 저장 (부가적인 정보)
 void dfs(int cur)
 {
     cout << cur << ' ';
-    for (int next : adj[cur])
+    for (int next: adj[cur])
     {
         if (parent[cur] == next)
             continue;
@@ -179,7 +179,7 @@ void dfs(int cur)
 void dfs(int cur, int parent)
 {
     cout << cur << ' ';
-    for (int next : adj[cur])
+    for (int next: adj[cur])
     {
         if (parent == next)
             continue;

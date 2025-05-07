@@ -45,8 +45,8 @@ last_modified_at: 2024-08-29. 22:12
 간단한 메모리 주소 모드
 
 1. 참고
-   - Reg[R] : 레지스터 R 안의 값
-   - Mem[M] : 메모리 M 안의 값값
+   - Reg[R]: 레지스터 R 안의 값
+   - Mem[M]: 메모리 M 안의 값값
 
 2. 표준모드 (R)
    - Mem[Reg[R]]
@@ -79,7 +79,7 @@ __asm
   - 일반 형태
     - D(Rb, Ri, S) Mem[Reg[Rb]+S*Reg[Ri]+D]
     - D: 상수 변위(Displacement) 1,2,4 Bytes
-    - Rb: Base Register : 16개 정수 레지스터 중 어떤 것
+    - Rb: Base Register: 16개 정수 레지스터 중 어떤 것
     - Ri: Index Register: %rap를 제외한 어떤 것
       - 의외로 %ebp를 사용할 수도 있음
     - s: 배울 (Scale): 1,2,4,8 (why there numbers?)
@@ -90,7 +90,7 @@ __asm
 
 @ 여러 오퍼랜드 형태  
 
-- 데이터의 이동 : x86-64
+- 데이터의 이동: x86-64
   - 데이터 이동 move Source, Dest
     - Indtel은 move Dest, Source
   - 피연산자 (오퍼랜드 Operands)

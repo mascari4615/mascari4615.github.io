@@ -25,11 +25,11 @@ Client(Browser)에 저장되는, Key와 Value를 가지는 작은 Data File
   - User가 따로 요청하지 않아도, Browser가 Request시 Request Header를 넣어서 자동으로 Server에 전송
 
 - 구성 요소
-  - 이름 : Cookie 구별 시 사용
+  - 이름: Cookie 구별 시 사용
   - 값
   - 유효시간
-  - 도메인 : Cookie를 전송할 도메인
-  - 경로 : Cookie를 전송할 요청 경로
+  - 도메인: Cookie를 전송할 도메인
+  - 경로: Cookie를 전송할 요청 경로
 
 - 동작 방식
   1. Client가 Page 요청
@@ -43,7 +43,7 @@ Info를 Client의 Local(Browser)에 저장
 → 변질되거나 Request시 제 3자가 Sniffing 가능성
 → 보안에 취약
 
-- 사용 예 : 제 3자에게 공개되거나 조작되어도 크게 문제 없는 정보들
+- 사용 예: 제 3자에게 공개되거나 조작되어도 크게 문제 없는 정보들
   - 로그인 시 ID/PW 저장 여부, 자동 로그인 여부
   - 팝업 "오늘 더 이상 이 창을 보지 않음" 여부
   - 쇼핑몰 장바구니
@@ -96,14 +96,14 @@ Cookie처럼 기간 지정하여, 지워지지 않게 설정 가능
 - Cookie와 Session의 차이
   - Session이 Cookie 기반이기에, 비슷한 역할과 동작원리를 가짐
   - User State Info 저장s 위치
-    - Cookie : Browser(Local,) Server 자원 X
-    - Session : Server 자원
+    - Cookie: Browser(Local,) Server 자원 X
+    - Session: Server 자원
   - 보안, Cookie < Session
-    - Cookie : Client의 Local(Browser)에 저장, = 변질되거나 Request 시 스니핑 가능성, = 보안에 취약
-    - Session : Cookie로 Session ID만 저장, Session ID만으로 Server에서 처리, = 보안성 비교적 좋음
+    - Cookie: Client의 Local(Browser)에 저장, = 변질되거나 Request 시 스니핑 가능성, = 보안에 취약
+    - Session: Cookie로 Session ID만 저장, Session ID만으로 Server에서 처리, = 보안성 비교적 좋음
   - 요청 속도, Cookie > Session
-    - Cookie : Cookie 자체에 정보가 있기 때문에, Server에 Request 시 처리 속도가 빠름
-    - Session : 정보가 Server에 있기 때문에, 처리가 요구되어 속도 비교적 느림
+    - Cookie: Cookie 자체에 정보가 있기 때문에, Server에 Request 시 처리 속도가 빠름
+    - Session: 정보가 Server에 있기 때문에, 처리가 요구되어 속도 비교적 느림
   - Life Cycle @
     - Cookie :
       - 만료시간이 있지만 파일로 저장되기 때문에, 브라우저를 종료해도 계속해서 정보가 남아 있을 수 있다.

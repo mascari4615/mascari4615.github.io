@@ -22,9 +22,9 @@ last_modified_at: 2024-08-29. 22:16
 
 문제를 어떤 관점에서 세부화, 구체화 하느냐에 따라 세 가지로 구분된다  
 
-- What Tree : 현황 파악
-- Why Tree : 원인 분석
-- How Tree : 전략 도출
+- What Tree: 현황 파악
+- Why Tree: 원인 분석
+- How Tree: 전략 도출
 
 문제 분석이 아니라 주제 정리 등을 목적으로 LOGIC TREE 모양의 그래프를 사용하기도 하는 듯함  
 

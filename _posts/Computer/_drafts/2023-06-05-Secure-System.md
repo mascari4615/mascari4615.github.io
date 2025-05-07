@@ -30,19 +30,19 @@ F/W - 방화벽
 - Rule Set
   - 방화벽을 기준으로 보호하고자 하는 네트워크의 외부와 내부에 존재하는 시스템들의 IP와 PORT 단위로 이루어지는 것
 
-## IDS (Intrusion Detection System) : 침입 탐지 시스템
+## IDS (Intrusion Detection System): 침입 탐지 시스템
 
 ---
 
 - 시그니처(패턴) 기반으로 외부 공격을 탐지하여 발견하는 시스템
 
-- HIDS (Host-based Intrusion Detection System) : 호스트 기반 침입 탐지 시스템
+- HIDS (Host-based Intrusion Detection System): 호스트 기반 침입 탐지 시스템
   - 컴퓨터 시스템 내부 분석 및 탐지
   - 네트워크에 관한 공격은 탐지 불가능
   - 스스로 공격 대상이 될 경우만 침입 탐지
   - 백도어, 트로이목마 등 탐지
 
-- NIDS (Network Intrusion Detection System) : 네트워크 기반 침입 탐지 시스템
+- NIDS (Network Intrusion Detection System): 네트워크 기반 침입 탐지 시스템
   - 네트워크 통해 전송되는 패킷 정보 탐지
   - 암호화된 내용은 탐지 불가능
 
@@ -50,7 +50,7 @@ F/W - 방화벽
 
 - 설치 위치와 목적에 따라 호스트 기반과 네트워크 기반의 침입탐지시스템으로 나뉨
 
-- 호스트 기반 ( HIDS : Host-based IDS )
+- 호스트 기반 ( HIDS: Host-based IDS )
 
 - 컴퓨터 시스템의 내부를 감시하고 분석하는 데 중점을 둠
 
@@ -64,7 +64,7 @@ F/W - 방화벽
 
 ( ex) Tripwire )
 
-- 네트워크 기반 ( NIDS : Network-based IDS )
+- 네트워크 기반 ( NIDS: Network-based IDS )
 
 - 네트워크를 통해 전송되는 패킷 정보 수집 및 분석하여 침입을 탐지하는 시스템
 
@@ -100,7 +100,7 @@ F/W - 방화벽
 
 - 침입방지시스템으로, 패킷 분석, 공격 차단 기능을 제공
 
-## IPS (Intrusion Prevention System) : 침입 방지 시스템
+## IPS (Intrusion Prevention System): 침입 방지 시스템
 
 ---
 

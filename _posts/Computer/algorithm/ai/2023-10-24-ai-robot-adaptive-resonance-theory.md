@@ -20,15 +20,15 @@ last_modified_at: 2023-12-08. 10:30
 Resonance 공명  
 
 모든 물체는 고유한 진동수를 가진다  
-진동수 : 1초에 진동하는 수, Hz  
+진동수: 1초에 진동하는 수, Hz  
 
-공명 : 같이 운다  
+공명: 같이 운다  
 → 같은 진동수의 물체가 주변에서 진동하면, 함께 진동한다  
 → 진동수가 다르면 공명하지 않는다  
-→ 깨구락지의 공명 : 케로케로케로...  
+→ 깨구락지의 공명: 케로케로케로...  
 
 Adaptive 적응형  
-@ LOL 적응형 능력치 : `Adaptive` Force  
+@ LOL 적응형 능력치: `Adaptive` Force  
 
 ## Adaptive Resonance Theory - ART1
 
@@ -45,11 +45,11 @@ Adaptive Resonance Theory - ART1
 Supervise 지도  
 @ Supervised User  
 
-지도 학습 :  
+지도 학습:  
 답이 이미 존재하는, 누가 지도해주는 (Supervised)  
 @ 분류, 누가 누구다  
 
-비지도 학습 :  
+비지도 학습:  
 답이 없는 (비정량적인? Like 취향 - 나누는 기준이 정해진 게 없음)  
 @ 덩어리 만들기, 누가 비슷하다  
 
@@ -65,10 +65,10 @@ Clustering Algorithm
 에서 모티브를 얻은  
 
 ART1  
-→ Feature Vector : 뭐가 어떻다 하는 특징 데이터 (테이블)  
+→ Feature Vector: 뭐가 어떻다 하는 특징 데이터 (테이블)  
 → Feature Vector의 1, 0의 개수가 비슷해야 비슷한 데이터  
 
-@ U 중간고사 출제 : 적응형 공명 이론에 대한 클러스터링 결과를 보고, 특정 요소(i.e. 고객)에게 특정 요소(i.e. 물건)를 추천하는 과정을 설명하시오.  
+@ U 중간고사 출제: 적응형 공명 이론에 대한 클러스터링 결과를 보고, 특정 요소(i.e. 고객)에게 특정 요소(i.e. 물건)를 추천하는 과정을 설명하시오.  
 
 같은 분류의 요소들끼리 데이터 Vector를 합 (Sum Vector)  
 해당 분류의 요소들마다 Sum Vector에서 가장 큰 수 순서대로 없는 요소를 추천  

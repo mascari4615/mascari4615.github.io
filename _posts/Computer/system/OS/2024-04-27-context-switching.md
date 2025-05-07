@@ -15,7 +15,7 @@ last_modified_at: 2024-08-29. 21:47
 
 - PCB - Process Control Block
 - OS에 쓰이는 데이터구조, 프로세스와 관련된 모든 데이터를 저장
-- 프로그램 카운터 (PC Program Counter), 레지스털 파일, 메인메모리 : 현재 값 저장
+- 프로그램 카운터 (PC Program Counter), 레지스털 파일, 메인메모리: 현재 값 저장
 
 ## Context-Switching
 

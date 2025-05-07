@@ -6,7 +6,7 @@ tags: [작업물, 게임 개발, 유니티]
 image: "/assets/img/post/works/ddong-avoiding/190802-000013.png"
 
 date: 2019-08-02. 18:40:00
-# last_modified_at: 2023-05-10 13:23 : 사진 찾기, 글 마크다운 문법으로 수정
+# last_modified_at: 2023-05-10 13:23: 사진 찾기, 글 마크다운 문법으로 수정
 # last_modified_at: 2023-08-26. 10:54
 # last_modified_at: 2023-11-17. 01:50
 last_modified_at: 2024-08-29. 22:21

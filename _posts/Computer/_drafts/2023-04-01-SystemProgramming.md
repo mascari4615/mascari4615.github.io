@@ -22,7 +22,7 @@ last_modified_at: 2024-08-29. 21:27
   - Unix 컴파일
     - gcc -o hello hello.c
     - @ GNU Project
-      - @ Free SW : "free" as in "free speech", not "free beer"
+      - @ Free SW: "free" as in "free speech", not "free beer"
 
 - 1.3 컴파일 시스템의 이해
   - 프로그램 성능 최적화
@@ -49,7 +49,7 @@ last_modified_at: 2024-08-29. 21:27
     - 컴퓨터 시스템의 일부를 개선할 때 전체적으로 얼마 만큼의 최대 성능 향상이 있는지 계산하는 데 사용
     - 어떤 시스템을 개선하여 전체 작업 중 a%의 부분에서 k배의 성능이 향상되었을 때 전체 시스템에서 최대 성능 향상
     - → 뭘 최적화 시켜야 더 효율적인가?
-  - 동시성 프로세스 : 하나의 프로세서에서 다수의 프로세스 실행
+  - 동시성 프로세스: 하나의 프로세서에서 다수의 프로세스 실행
   - 하이퍼 스레딩
     - 하나의 프로세서가 두 개의 논리적 프로세스처럼 작동하도록 함
     - 컴퓨터 처리속도 향상
@@ -65,7 +65,7 @@ last_modified_at: 2024-08-29. 21:27
 
 ---
 
-- 정보 표현 : 비트
+- 정보 표현: 비트
 - 2진수/16진수
 - 바이트 표현
 - 불 대수
@@ -92,7 +92,7 @@ last_modified_at: 2024-08-29. 21:27
 
 가상주소 = 논리주소  
 
-- 16진수 표현 : 바이트 값의 인코딩
+- 16진수 표현: 바이트 값의 인코딩
   - Byte = 8 bits
     - Binary: 00000000 ~ 111111111
     - Decimal: 0 ~ 255
@@ -112,7 +112,7 @@ last_modified_at: 2024-08-29. 21:27
     - 많은 메모리르 사용하는 응용에겐 작을 수 있음
   - 최신 시스템은 64Bits (8Bytes) Word
     - 16 Exabytes의 잠재적 주소 공간
-    - x86 - 64 컴퓨터 48bit 주소 지원 : 256 Terabytes
+    - x86 - 64 컴퓨터 48bit 주소 지원: 256 Terabytes
   - 컴퓨터는 다수의 데이터 형식 지원
     - Typical 32-bit, Intel IA32, x86-64 별 데이터 크기
       - 특히 int, pointer
@@ -130,16 +130,16 @@ last_modified_at: 2024-08-29. 21:27
     - 워드의 첫 바이트 주소
     - 연속된 워드의 주소는 다름
       - by 4 (32bit) ot 8 (64bit)
-      - i.e. 32bit : 0000, 0004, 0008, 0012
-      - i.e. 64bit : 0000, 0008
+      - i.e. 32bit: 0000, 0004, 0008, 0012
+      - i.e. 64bit: 0000, 0008
 
 - Byte Ordering
   - 메모리에 바이트들으 정렬하는 방법
   - 규칙 Conventions
-    - Big Endian : IBM, Sun
+    - Big Endian: IBM, Sun
       - 최하위바이트 LSB가 가장 상위 주소에 배치
       - Come last
-    - Little Endian : x86
+    - Little Endian: x86
       - 최하위바이트 LSB가 가장 하위 주소에 배치
       - Come First
 
@@ -150,8 +150,8 @@ last_modified_at: 2024-08-29. 21:27
   - Example
     - 변수 x는 4Byte값 0x1234567
     - Address given by &x is 0x100
-      - Big Endian : 01 23 45 67
-      - Little Endian : 67 45 23 01
+      - Big Endian: 01 23 45 67
+      - Little Endian: 67 45 23 01
 
 - Reading Byte - Reversed Listings
   - 역어셈블리 Disassembly
@@ -201,8 +201,8 @@ Different compiler & machines assign different locations to objects
 명령은 산술연산, 메모리 읽기/쓰기, 조건 분기등의 개별적 단순 연산으로 구성된다.  
 
 명령은 바이트들로 부호화된다.  
-→ Alpha, Sun, Mac은 4-Byte 명령들을 사용 : RISC, Reduced Instruction Set Computer  
-→ PC는 가별 길이 명령들 사용 : CISC, Complex Instruction Set Compute  
+→ Alpha, Sun, Mac은 4-Byte 명령들을 사용: RISC, Reduced Instruction Set Computer  
+→ PC는 가별 길이 명령들 사용: CISC, Complex Instruction Set Compute  
 
 서로 다른 컴퓨터들 → 서로 다른 부호화 방식
 → 이진코드는 대부분 호환성 없음
@@ -304,12 +304,12 @@ int a = 15213;
   - ~0 + 1 = 0... == 0
 
 - 곱셈
-  - 비부호형 : 2w까지 필요
+  - 비부호형: 2w까지 필요
     - i.e. 111 * 111 = 110001
   - 부호형
-    - 최솟값(음수) : 2w-1
+    - 최솟값(음수): 2w-1
       - i.e. 100 * 011 = 001100
-    - 최댓값(양수) : 2w (최솟값)^2 인 경우에만
+    - 최댓값(양수): 2w (최솟값)^2 인 경우에만
       - i.e. 100 * 100 = 010000
   - 비부호, 실제곱 2*w, 상위 w 비트 무시, 모듈러 연산 적용됨
   - 부호, 실제곱 2*w, 상위 w 비트 무시, 비부호 결과와 하위 비트들은 동일
@@ -349,7 +349,7 @@ int mul12(int x)
 - 비부호형과 부호형(2의보수 방식)
   - 동일한 비트패턴을 가짐
 
-## 3 프로그램의 컴퓨터 수준 표현1 : 기초
+## 3 프로그램의 컴퓨터 수준 표현1: 기초
 
 ---
 
@@ -394,7 +394,7 @@ int mul12(int x)
 Dual-Core Processor, 인텔 x86 프로세서  
 @ 사진
 
-- x86 호환 기종 (Clones) : Advanced Micro Devices (AMD)
+- x86 호환 기종 (Clones): Advanced Micro Devices (AMD)
   - 역사적으로
     - AMD는 인텔의 후발주자, 좀 느리나 저렴
   - 그 후,
@@ -423,17 +423,17 @@ Dual-Core Processor, 인텔 x86 프로세서
 ### 3.2 프로그램의 인코딩
 
 - 정의
-  - Architecture (Also ISA : Instruction set Architecture)
+  - Architecture (Also ISA: Instruction set Architecture)
     - 어셈블리/기계어 코드 작성 또는 이해에 필요한 프로세서 설계 부분
-    - 예 : 명령어 집합 명세, 레지스터
-  - Microarchitecture : implementation of the architecture
+    - 예: 명령어 집합 명세, 레지스터
+  - Microarchitecture: implementation of the architecture
     - ISA가 프로세스 상에 구현되는 방법
-    - 예 : 캐쉬 크기와 코아 주파수
+    - 예: 캐쉬 크기와 코아 주파수
   - 코드 형태
-    - 기계코드 : 프로세서가 실행하는 바이트 수준 프로그램
-    - 어셈블리 코드 : 기계코드의 텍스트 버전
+    - 기계코드: 프로세서가 실행하는 바이트 수준 프로그램
+    - 어셈블리 코드: 기계코드의 텍스트 버전
   - Example ISAs (intel)
-    - 인텔 : x86, IA32, Itanium, x86-64
+    - 인텔: x86, IA32, Itanium, x86-64
     - ARM :거의 모든 이동전화에서 사용
 
 - 어셈블리/기계코드 관점
@@ -454,19 +454,19 @@ Dual-Core Processor, 인텔 x86 프로세서
 - C를 목적코드로 전환
   - i.e. p1.c p2.c
   - gcc -Og p1.c p2.c -o p
-  - -o : 출력 파일명을 지정
+  - -o: 출력 파일명을 지정
   - -Og 기본적인 최적화 옵션 (new to recent ver of GGCC)
   - 파일 p에 결과 이진 파일 저장
 
-text : C Program (p1.c, p2.c) (-S : ~.s 어셈블리 파일 생성)  
+text: C Program (p1.c, p2.c) (-S: ~.s 어셈블리 파일 생성)  
 Compiler (gcc -Og -S)  
-text : Asm program (p1.s,  p2.s)  
+text: Asm program (p1.s,  p2.s)  
 Assembler (gcc or as)  
-binary : Object Program (p1.o, p2.o)  
+binary: Object Program (p1.o, p2.o)  
 Linker (gcc or ld), With Static Livraries (.a, .lib in windows)  
-binary : Executable Progam (p)  
+binary: Executable Progam (p)  
 
-- 어셈블리의 특성 : Data Types
+- 어셈블리의 특성: Data Types
   - 1,2,4, 8 바이트의 정수형 데이터
     - 데이터 갑
     - 주소 (미형식 포인터)
@@ -476,7 +476,7 @@ binary : Executable Progam (p)
   - 집합체 (Aggregate: 배열, 구조체) 형식 없음
     - 다만 메모리에 연속으로 바이트들을 할당
 
-- 어셈블리 특성 : 연산
+- 어셈블리 특성: 연산
   - ALU에서 연산을 하려면 데이터가 필요
   - 레지스터 데이터나 메모리 데이터에서 데이터를 읽어 산술 함수 수행
   - 메모리와 레지스터 사이에 데이터 전송

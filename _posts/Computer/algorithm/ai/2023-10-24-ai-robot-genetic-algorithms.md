@@ -16,8 +16,8 @@ N차시
 
 @ 용불용설  
 @ 루카 LUCA  
-@ En~ : ~이 되게 하다  
-@ Takes Place : 발생하다  
+@ En~: ~이 되게 하다  
+@ Takes Place: 발생하다  
 
 @ 유전자 알고리듬 (X, 잘못된 표현)  
 
@@ -64,7 +64,7 @@ Natural Selection 자연 선택
 
 ---
 
-@ U 중간고사 출제 : [8-Queen](/posts/n-queen/) 문제에 유전 알고리듬을 적용하는 과정  
+@ U 중간고사 출제: [8-Queen](/posts/n-queen/) 문제에 유전 알고리듬을 적용하는 과정  
 
 1. Initialization
    - 문제 정의
@@ -93,8 +93,8 @@ Selection - 선택 연산 단계
 Recombination - Genetic Operation 유전 연산 단계  
 → Crossover 교차, Mutation 돌연변이  
 
-Crossover - 교차, 부분 교체 : 부모 유전자 섞이듯  
-Mutation - 돌연변이 : 아주 드물게, 부모에게 없는 성질을 주기 위해  
+Crossover - 교차, 부분 교체: 부모 유전자 섞이듯  
+Mutation - 돌연변이: 아주 드물게, 부모에게 없는 성질을 주기 위해  
 → (교체보다 나빠질 확률이 높음, 교체보다 비율을 적게)  
 
 @ 대부분 나빠지는 경우가 많은데,  
@@ -117,20 +117,20 @@ MSG, 계란, 파, 김
 
 Initialization  
 → 데이터를 기반으로 맛을 평가할 수 있는 함수 (적합도 함수)  
-→ 모집단 만들기 : 임의의 모집단 요소 수 (초매개변수)  
+→ 모집단 만들기: 임의의 모집단 요소 수 (초매개변수)  
 
-Evaluation 적합도 평가 : 적합도 함수 계산 ~  
-Selection 선택 연산 : 누적막대~  
+Evaluation 적합도 평가: 적합도 함수 계산 ~  
+Selection 선택 연산: 누적막대~  
 
 Recombination - Genetic Operation 유전 연산  
-→ 교차 : 일반적으로 모두 교차 X, (70%? - 초매개변수)  
-→ 돌연변이 : 염색체 단위가 아니라 유전자 단위로, 아주 드물게  
+→ 교차: 일반적으로 모두 교차 X, (70%? - 초매개변수)  
+→ 돌연변이: 염색체 단위가 아니라 유전자 단위로, 아주 드물게  
 
 ## Sample Problem - Stack Machine
 
 ---
 
-@ U 중간고사 출제 : Stack Machine, 주어진 명령어와 스택을 보고, 최종적으로 프로그램이 어떤 문제를 푸는지  
+@ U 중간고사 출제: Stack Machine, 주어진 명령어와 스택을 보고, 최종적으로 프로그램이 어떤 문제를 푸는지  
 
 숫자가 아니라 기호를 다루는 문제를 최적화하는 문제를 다뤄보자  
 → 명령어들의 열  
@@ -138,12 +138,12 @@ Recombination - Genetic Operation 유전 연산
 스택 머신 (in VM)  
 Zero-Address  
 
-- 0 DUP : A → A A, Duplicate
-- 1 SWAP : A B → B A
-- 2 MUL : 2 3 → 6, Multiply
-- 3 ADD : 2 3 → 5
-- 4 OVER : A B → B A B, 위에서 두 번째에 있는 요소 DUP
-- 5 NOP : No-Operation, Filler
+- 0 DUP: A → A A, Duplicate
+- 1 SWAP: A B → B A
+- 2 MUL: 2 3 → 6, Multiply
+- 3 ADD: 2 3 → 5
+- 4 OVER: A B → B A B, 위에서 두 번째에 있는 요소 DUP
+- 5 NOP: No-Operation, Filler
 
 Solution Encoding  
 문제의 솔루션을 인코딩 (문제 자체가 아니라)  
@@ -161,9 +161,9 @@ I.E.
 
 x^8 → DUP MUL DUP MUL DUP MUL  
 
-DUP : x → x x  
-MUL : → x^2  
-DUP : → x^2 x^2  
-MUL : → x^4  
-DUP : → x^4 x^4  
-MUL : → x^8  
+DUP: x → x x  
+MUL: → x^2  
+DUP: → x^2 x^2  
+MUL: → x^4  
+DUP: → x^4 x^4  
+MUL: → x^8  

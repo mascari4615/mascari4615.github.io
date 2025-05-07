@@ -14,7 +14,7 @@ last_modified_at: 2024-11-14. 00:32 # -1K=1024, -BinaryDigit
 ---
 
 글 계승.
-`2020-10-12 03:33:00 : 32-Bit, 64-Bit 관련 글 스크랩 (네이버 블로그)`  
+`2020-10-12 03:33:00: 32-Bit, 64-Bit 관련 글 스크랩 (네이버 블로그)`  
 
 ## Byte = 8 Bit ?
 
@@ -103,8 +103,8 @@ IA = Intel Architecture
 = DTU Data Transport Unit (DTU를 사용하는 용어가 많았기에 WORD를 사용하기 시작)  
 
 컴퓨터 아키텍쳐에서,  
-32-Bit = WORD : 32-Bit  
-64-Bit = WORD : 64-Bit  
+32-Bit = WORD: 32-Bit  
+64-Bit = WORD: 64-Bit  
 
 반먄 프로그래밍에서,  
 Win32 API의 WORD는 16-Bit다.  

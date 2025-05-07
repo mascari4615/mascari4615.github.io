@@ -44,7 +44,7 @@ Traveling Salesman Problem - TSP
 
 [개미 군집 최적화 ACO - 참고](https://www.mql5.com/ko/articles/11602)  
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 인공 개미 집단의 시간 변화에 따른 Behavior-행태를 나타낸 그림 3장  
 각각 어떤 원리에 의해 어떤 일이 일어나고 있는지 (그림 사이사이 일어난 일)  
 → (Stigmergy)-페로몬을 남기면서 서로 소통 ~  

@@ -1,6 +1,6 @@
 ---
-title: "승리의 여신 : 니케, 2주년 업데이트 광고"
-description: "'승리의 여신 : 니케, 2주년 업데이트 광고' 컨텐츠."
+title: "승리의 여신: 니케, 2주년 업데이트 광고"
+description: "'승리의 여신: 니케, 2주년 업데이트 광고' 컨텐츠."
 categories: [작업물, 버추얼]
 tags: [작업물, VRChat, 유니티]
 image: "/assets/img/post/works/nikke-2nd-anniversary/nikke-2nd-anniversary-ppt-title.png"
@@ -29,7 +29,7 @@ last_modified_at: 2024-11-18. 06:24 # Init
 
 ---
 
-24년 11월 04일에 진행된 '승리의 여신 : 니케, 2주년 업데이트 광고' 컨텐츠입니다.  
+24년 11월 04일에 진행된 '승리의 여신: 니케, 2주년 업데이트 광고' 컨텐츠입니다.  
 
 당시 여러 인플루언서 광고가 진행되었으며,  
 이세계아이돌(주르르, 고세구, 비챤), 뢴트게늄, 엔젤(김수현 아나운서)이 참여한 본 컨텐츠는 '패러블 엔터테인먼트'에서 주관하였습니다.
@@ -184,8 +184,8 @@ Discord를 통해 팀원/클라이언트와 소통했습니다.
 ![nikke-2nd-anniversary-ppt-title](/assets/img/post/works/nikke-2nd-anniversary/nikke-2nd-anniversary-ppt-title.png)
 
 - 일정
-  - 1104 18:00 방송 대기 : VRChat 엔젤님 영접
-  - 1104 19:00 방송 진행 : Discord 스태프 모여서 오퍼레이팅/방송 진행
+  - 1104 18:00 방송 대기: VRChat 엔젤님 영접
+  - 1104 19:00 방송 진행: Discord 스태프 모여서 오퍼레이팅/방송 진행
 - Link
   - PV: `https://youtu.be/zyB4V_xhSps?si=Pko64FAYMXUmxKJm`
   - 뢴트게늄님 SOOP 주소: `https://play.afreecatv.com/jey422/278399548`

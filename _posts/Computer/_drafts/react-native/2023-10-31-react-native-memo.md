@@ -15,7 +15,7 @@ date: 2023-10-31. 15:18
 last_modified_at: 2023-12-05. 14:57
 ---
 
-2023-12-05. 14:57 : 글 계승.  
+2023-12-05. 14:57: 글 계승.  
 `Mobile Programming Test`  
 
 ## 중첩된 ScrollView 방향의 제약
@@ -90,7 +90,7 @@ export default function Timer()
 
 ---
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 
 ```js
 export default function App()
@@ -121,7 +121,7 @@ export default function App()
 {
     const isLoading = true
     <SafeAreaView>
-        { /* A && B : undefined */ }
+        { /* A && B: undefined */ }
         { /* JSX Parser, undefined or null 무시 */ }
         {isLoading && <Text>Loading...</Text>}
         {!isLoading && <Text>Hello JSX World !</Text>}
@@ -145,13 +145,13 @@ export default function App()
 
 ---
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 
 ```js
-{ /* XML(Markup Language) : Attribute, TS(Programming Language) : Property */ }
+{ /* XML(Markup Language): Attribute, TS(Programming Language): Property */ }
 <Person name = "Jack" age = {22}/>
 
-{ /* 안쪽 중괄호 : 객체 생성, 바깥쪽 중괄호 : JSX 구문 */ }
+{ /* 안쪽 중괄호: 객체 생성, 바깥쪽 중괄호: JSX 구문 */ }
 <Person person ={% raw %}{{name: 'Jack', age: 32}}{% endraw %}/>
 
 { /* @ */ }
@@ -164,7 +164,7 @@ export default function App()
 export type IPerson
 {
     id: string
-    createdDate : Date
+    createdDate: Date
     counts:
     {
         comment: number
@@ -184,8 +184,8 @@ export const createRandomPerson = (): IPerson =>
 { /* ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- */ }
 
 import React from 'react'
-{ /* import type : TS→JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */ }
-{ /* FC : Function Component */ }
+{ /* import type: TS→JS 컴파일 때만 필요한 '타입', 반면 클래스는 남음 */ }
+{ /* FC: Function Component */ }
 import type {FC} from 'react'
 import * as D from './~'
 
@@ -220,7 +220,7 @@ export default function App()
 
 ---
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 
 ESNext JS와 TS, Rest Operator - 잔여 연산자 지원  
 
@@ -243,13 +243,13 @@ const {country, city, ...detail} = address
 
 ---
 
-@ U 기말고사 출제 : TODO, 전개 연산자  
+@ U 기말고사 출제: TODO, 전개 연산자  
 
 ## React.Fragment 컴포넌트
 
 ---
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 
 ```js
 import React, {Fragment} from 'react'
@@ -258,7 +258,7 @@ import React, {Fragment} from 'react'
 <SafeAreaView />
 <View />
 
-{ /* Fragment : 실체가 있는 건 아니지만, XML 문법이 요구하는 부모 컴포넌트 역할로 동작하도록 */ }
+{ /* Fragment: 실체가 있는 건 아니지만, XML 문법이 요구하는 부모 컴포넌트 역할로 동작하도록 */ }
 <Fragment>
     <SafeAreaView />
     <View />
@@ -275,7 +275,7 @@ import React, {Fragment} from 'react'
 
 ---
 
-@ U 중간고사 출제 :  
+@ U 중간고사 출제:  
 
 TS, Algebraic Data Type - ADT - 대수 데이터 타입 지원  
 
@@ -289,4 +289,4 @@ TS, Algebraic Data Type - ADT - 대수 데이터 타입 지원
 
 ---
 
-@ U 기말고사 출제 : TODO, useStyle 커스텀 훅 만들기 (6장), 400p  
+@ U 기말고사 출제: TODO, useStyle 커스텀 훅 만들기 (6장), 400p  

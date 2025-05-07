@@ -190,8 +190,8 @@ cout << lis.size();
 
 ---
 
-- [참고 : '나무위키 - 최장 증가 부분 수열'](https://namu.wiki/w/최장%20증가%20부분%20수열)
-- [참고 : 'doonghoon - Longest Increasing Subsequence (LIS)를 NlogN에 구하기'](https://blog.hoony.me/2023/10/01/find-lis-in-nlogn/)
+- [참고: '나무위키 - 최장 증가 부분 수열'](https://namu.wiki/w/최장%20증가%20부분%20수열)
+- [참고: 'doonghoon - Longest Increasing Subsequence (LIS)를 NlogN에 구하기'](https://blog.hoony.me/2023/10/01/find-lis-in-nlogn/)
 
 ## 문제
 

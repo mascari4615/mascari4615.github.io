@@ -24,4 +24,4 @@ last_modified_at: 2024-08-29. 22:15
 
 - 귀찮다면 전부 제거 후, 마우스 USB 뺐다 끼기
 
-- 정보 : `'HID'` > `'Human Interface Device'`
+- 정보: `'HID'` > `'Human Interface Device'`
