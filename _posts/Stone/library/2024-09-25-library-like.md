@@ -111,7 +111,7 @@ Digitalcircus
 - [확대 르르땅](https://x.com/dd_epari/status/1685296944900632577)
 - [앙 르르땅](https://x.com/jr_rixve/status/1640255759303970817)
 - [토끼 르르땅](https://x.com/WAK_aci/status/1610678723325628416)
-- [하품하는 토끼 르릇땅 ](https://x.com/Bobppa_owo/status/1798027418336366791)
+- [하품하는 토끼 르릇땅](https://x.com/Bobppa_owo/status/1798027418336366791)
 - [드르륵 탁](https://x.com/drr7518/status/1609320745074831361)
 - [칭얼 르르땅](https://x.com/lem_ming_/status/1604833431107833856)
 - [쪽 콘르르](https://x.com/lem_ming_/status/1601158708641247232)

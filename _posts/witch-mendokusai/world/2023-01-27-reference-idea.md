@@ -487,8 +487,6 @@ last_modified_at: 2025-05-06. 15:44 # 메모 정리
 
 ---
 
-### Concept
-
 - [메이플에서 도끼에 박힌 스텀프가 계속해서 생성되는 이유](https://youtu.be/8kWiOrQoEIc?si=j1IYuUwidYiUanjU)
 - [메이플 속 흥미로운 TMI 모음](https://youtu.be/HJqJl27AWVU?si=HQzD5LtG7OhJSOmm)
 - [이제는 보지 못할 오른의 걸작 아이템 이름들...](https://youtu.be/3bDVWwLMSDk?si=8ZYe1mIJ2-v5NquL)

@@ -14,8 +14,6 @@ last_modified_at: 2024-03-05. 06:45
 
 ---
 
-### Wedding Witch
-
 - 정보
   - 개발: Chowbie
   - 배급: Chowbie

@@ -71,7 +71,7 @@ last_modified_at: 2025-04-28. 20:02 # 정리
 
 - [제일 무서운 사람 유형](https://x.com/WkfxjfrP/status/1322787425224069120?s=20&t=0h_SDnsL-l-tNqpxp3XCrA)
 
-### 배움
+### 행동: 배움
 
 #### 세상의 해상도를 올리는 행위
 
