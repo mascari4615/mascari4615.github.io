@@ -11,14 +11,7 @@ order: 100
 ![Logo](/assets/img/profile/star-transparent.png){: width="100" height="100" .normal}
 
 안녕하세요, **카모뜨린 KarmoDDrine** 입니다.  
-
-게임 스트리머 **우왁굳**님을 위해 2021년 팬 게임 [왁그리드](https://github.com/Mascari4615/Wakgreed)를 만든 것을 계기로,  
-게임 개발과 VRChat 컨텐츠 제작에 시간을 쏟고 있습니다.  
-
-[마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai) 라는 게임 개발 프로젝트를 진행하고 있습니다.  
-어릴 때부터 만들고 싶었던 판타지 세계관를 구체화하고 구현하는 것이 목표입니다.  
-
-현재 IT 산업기능요원 복무를 위해, 게임 회사에서 수습 기간을 진행하고 있습니다. (2025.03 -)  
+유니티를 이용한 \[`게임 개발`, `VRChat 컨텐츠 제작`\]을 하고 있습니다.  
 
 > 그 외 어떤 작업을 해왔나요? - [작업물](/works)
 
@@ -28,10 +21,8 @@ order: 100
 
 ### 주요 경력 및 프로젝트
 
-- VRChat 컨텐츠 제작 (2022.02 - )
-  - Unity - U# (C# + VRChat SDK)을 이용한 VRChat 플랫폼 기반 컨텐츠 제작
-  - [Woodon](https://github.com/wrchat/Woodon)
-    - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
+- IT 산업기능요원 복무 (2025.03 -)
+  - [Game Spring](https://gamespring.co.kr/): 유니티 클라이언트 프로그래머 (2025.03 -)
 
 - [패러블 엔터테인먼트](https://parable-asia.com/) (프로젝트 개별 임시직/계약, 총 1년 9개월 ~) - VRChat 월드 프로그래밍
   - 2024.05 - 2024.08 (4개월) \| [VWorld - 버츄얼 종합 대회](https://bj.afreecatv.com/vworld)
@@ -41,14 +32,19 @@ order: 100
   - 2022.05 - 2023.03 (11개월) \| [소녀:리버스 (피버스)](https://www.youtube.com/@girlsreverse)
     - 카카오 엔터테이먼트 주관 버츄얼 아이돌 프로젝트
 
-- [왁그리드](https://github.com/Mascari4615/Wakgreed)
+- VRChat 컨텐츠 제작 (2022.02 - )
+  - Unity - U# (C# + VRChat SDK)을 이용한 VRChat 플랫폼 기반 컨텐츠 제작
+  - [Woodon](https://github.com/wrchat/Woodon)
+    - VRChat 컨텐츠 맵 제작에 사용 가능한 U# 스크립트, 프리팹을 모아 정리해둔 라이브러리. (유니티 커스텀 패키지)
+
+- [왁그리드](https://github.com/mascari4615/Wakgreed)
   - 게임 스트리머 '우왁굳'님을 위한 팬 게임, 탑뷰 2D 로그라이크
-  - [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
+  - [Public 리포지토리](https://github.com/mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
   - 2021 우왁굳 연말공모전 게임 분야 - 3위
 
-- [마녀: 귀찮아!](https://github.com/Mascari4615/Witch-Mendokusai)
+- [마녀: 귀찮아!](https://github.com/mascari4615/Witch-Mendokusai) (2023.06 - )
   - 개인 개발, HD-2D 마을 경영 x 로그라이크
-  - [Public 리포지토리](https://github.com/Mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
+  - [Public 리포지토리](https://github.com/mascari4615/Witch-Mendokusai) 공개 (개인 제작 리소스 \| 재배포 가능한 오픈소스 리소스 사용)
 
 ### 학력
 
@@ -75,7 +71,7 @@ order: 100
   - Instagram: [`mascari4615_`](https://www.instagram.com/mascari4615_/)
 
 - Main
-  - Github: [`Mascari4615`](https://github.com/Mascari4615)
+  - Github: [`Mascari4615`](https://github.com/mascari4615)
   - Youtube: [`@Mascari4615`](https://www.youtube.com/@Mascari4615)
   - Steam: [`Mascari4615`](https://steamcommunity.com/id/Mascari4615)
 

@@ -48,7 +48,7 @@ last_modified_at: 2024-10-24. 16:24 # Regex101.com 추가
 
 ### 기록
 
-- [240929](https://github.com/Mascari4615/KarmoPlayground/commit/6357c7bc5790591e05296a259d8c5a45e6810d27)
+- [240929](https://github.com/mascari4615/KarmoPlayground/commit/6357c7bc5790591e05296a259d8c5a45e6810d27)
   - [Past](/posts/past/) 글을 정리하면서 정규표현식을 사용했다.
   - C# 코드를 간단하게 짰다.
   - 텍스트 파일을 읽어와서 정규표현식을 이용해 특정 문자열을 찾아내고, 이를 원하는 모양으로 바꿨다.

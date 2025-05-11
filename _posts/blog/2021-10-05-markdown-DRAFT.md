@@ -108,7 +108,7 @@ public int i;
 // 적용은 되지만, 테마 때문인지 헤더가 제대로 보이지 않음.
 </code></pre>
 
-<script src="https://gist.github.com/Mascari4615/b1e61891bbc6934fdf5eb77580ace000.js"></script>
+<script src="https://gist.github.com/mascari4615/b1e61891bbc6934fdf5eb77580ace000.js"></script>
 
 <!-- 수평선 : ***, * * *, ---, - - -, ___, _ _ _, <hr/> -->
 <!-- MD035 : 일관되게 쓸 것 -->
