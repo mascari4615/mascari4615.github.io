@@ -29,7 +29,9 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2024-11-13. 07:44 # -CG
 # last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 내한 내용은 Learning으로
 # last_modified_at: 2025-04-28. 17:40 # 메모
-last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
+# last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
+# last_modified_at: 2025-05-18. 22:53 # +메모 form 노트 정리
+last_modified_at: 2025-05-19. 23:48 #
 ---
 
 ## 리마인드
@@ -598,6 +600,70 @@ last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 - 네크로 포스팅
 - Plogging = Plockaupp (줍다 in 스페인) + Jogging
 - Brachistochrone curve 최단시간곡선 → 배틀그라운드 낙하
+- Unity Release Note
+- 6.1
+  - LightMapping
+  - GetLightingDataAssetForScene
+- 어댑티프 퍼포먼스
+- UNITY_6000_0_OR_NEWER
+- VSCode compare
+- cocoPod, ruby 사용
+- os x (맥북) 기본 ruby 사용 가능
+- Android 그냥 apk 글땅하면 분석
+  - 이것이 apk Analyzer가 맞나?
+- vInspector Building
+- unity.com/campaign/unity-6-resources
+- Skinning
+- Build Report
+- Shader, Particle System, Anim, Image, DOTWeen, Spine
+- IDA, Gridna
+- Shader Graph, Graph Target
+  - Build-In 있긴 함
+  - 근데 소개는 대부분 SRP
+  - 대부분의 피처는 SRP 위주일듯
+- Shade Graph in Built-in Pipeline. Unity 2021.2
+  - Youtube
+- 어드레서블. 종속성 문제
+- Simple Profiler? or Advanced FPS 뭐시기
+  - 아마 Feel Asset에 포함된
+- 유니티 공식 UI 쉐이더
+  - UGUI 캔버스 쉐이더
+  - 2023 업?
+  - 트랜지션?
+- UI Effect Github
+- VFX GPU, Particle CPU
+- Windows 우클릭 Context Menu 커스텀?
+- Diagnostics
+  - JS Memory
+  - Performance.Memory API
+    - Only Chrome, Edge
+    - No Safari, Firefox, iOS
+- UnityWebMobile WASM
+  - Safari 15 16.4
+  - Chrome 58 91
+  - Firefox _ 89
+  - Edge _ 91
+- [\[최적화\] Shader Variants와 효율적인 사용](https://asatala.tistory.com/171)
+- Shader 키워드
+- Unity Manual - Rendering 추가 리소스 및 예제
+  - 20가지 고급 2D 쉐이더 효과
+- Unity Roadmap 사이트
+- 솔직히 경험 기간은 많은 것 같은데, 그에 비해 실력이 부족하다. 신입이라 생각하고 기본기 차근차근 다지자. 일단 조사, 정리, 문서 작성 방법부터.
+- 문서 이해도 높여야. 대충 일고 넘어가는 습관이 있다. 하나 할 때 확실히 이해, 소화, 정리
+- 적게 자주
+- 잠 확실히 자야. 이거 언젠간 일 한 번 만든다
+- Shader 정리
+  - 언어
+    - Cg Old built-in Only
+    - HLSL new SRP
+      - 둘이 유사함. NVIDIA x Microsoft
+    - GLSL x 안씀. 쓸수는 있는데 안씀. Cg/HLSL은 OpenGL/webGl 쓰는 플랫폼 빌드시 GLSL로 변환됨
+  - 방식
+    - ShaderLab: 예쩐 방식. 권장 x, 이미 만들어진 틀. 호환성은 좋음
+    - surface: Built-In only. 아티스트 단계
+    - verteex & fragment: 자주쓰이는 건 HLsl x vertex&fragment 조합
+    - compute:gpu 연산. 지식 필요
+  - Shader tool - Amplify
 
 ```cs
 Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
