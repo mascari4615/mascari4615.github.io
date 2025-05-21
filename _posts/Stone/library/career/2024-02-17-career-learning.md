@@ -31,7 +31,8 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2025-04-28. 17:40 # 메모
 # last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 # last_modified_at: 2025-05-18. 22:53 # +메모 form 노트 정리
-last_modified_at: 2025-05-19. 23:48 #
+# last_modified_at: 2025-05-19. 23:48 # +포스트잇
+last_modified_at: 2025-05-22. 06:29 # +포스트잇
 ---
 
 ## 리마인드
@@ -664,6 +665,29 @@ last_modified_at: 2025-05-19. 23:48 #
     - verteex & fragment: 자주쓰이는 건 HLsl x vertex&fragment 조합
     - compute:gpu 연산. 지식 필요
   - Shader tool - Amplify
+- shader frac -> 소수점만. 10.1 -> 0.1, 217.89 - > 0.89.
+- shader length(vector2) -> 길이 (피타고라스 삼각 정리)
+- dist = length(w) // 원점 ~ 거리
+- ring = smoothStep(radius + width, radius, dist) - smoothStep(radius, radius - width, dist)
+- 횡스크롤 강 쉐이더 만들기
+- BaseMeshEffect
+- Graphics
+- VertexHelper
+- Vertex 수정. 위치,색.
+- PostProcessing
+- ScreenSpaceShader
+- UIEffectV5
+- UIOutline
+- 나눌 수 있으면 나누기. 정보 과부하, 분리.
+- UIObject -> Canvas가 주심. Shader에서 움직이기 어려움
+- CanvasShaderGraph
+- Shader Compile
+- UnityEngine.UI -> Package로 존재 (UGUI) 그래서 매뉴얼엔 안보임. Package에서 찾아야함.
+- RectTransform.GetLocalCorners(corners)
+- ShaderGraph Tutorial and ShaderCode
+- Shader 언어 구조, Compute Shader
+- 수학적 모양
+- Effect 구변방법
 
 ```cs
 Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
