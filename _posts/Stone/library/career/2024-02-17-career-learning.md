@@ -32,7 +32,8 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
 # last_modified_at: 2025-05-18. 22:53 # +메모 form 노트 정리
 # last_modified_at: 2025-05-19. 23:48 # +포스트잇
-last_modified_at: 2025-05-22. 06:29 # +포스트잇
+# last_modified_at: 2025-05-22. 06:29 # +포스트잇
+last_modified_at: 2025-05-26. 07:06 # +포스트잇
 ---
 
 ## 리마인드
@@ -688,6 +689,34 @@ last_modified_at: 2025-05-22. 06:29 # +포스트잇
 - Shader 언어 구조, Compute Shader
 - 수학적 모양
 - Effect 구변방법
+- Unity how 게임 개발자를 위한 성능 프로파일링
+- 성능향상을 위해 toString 캐싱.
+- VS Doc 느린 열거형 .toString 성능
+- Image.material.setColor('_Color', ~);
+  - 이때, shared material x, 임의로 만들어 넣어줘야 함
+  - \_Color에 1 넘게 넣은 수 있음 (\_Emission, PP Bloom)
+  - 무선
+- DOVirtual
+- UIOutline 에셋에 텍스쳐 이상한거 넣으면 멋잇다
+- 파티클 시스템 -> 버텍스 컬러 바꿈
+  - 그래서 파티클 시스템에서 버텍스 컬러 받아야 함
+  - v2f, appdata 에서 float4 color : COLOR, 이것을 frag에서 사용
+- 파티클, Trails
+- PrimeTween
+- 40시간 채우듯, 나도 내 시간 어떻게 쓸지/쓰는지 계획/기록
+- 파티클 시스템 렌더러.bakeMesh(mesh,카메라) -> Graphics
+- Ripple 파문
+- fixed 4, half 4, tex2D( )~, _Time.x y z w
+- unity, 3dMax uv 좌표계 좌우 하상
+- RGP, XYZ, UVW
+- ㅍㅔ르소나 메뉴 UI 구현 - 블로그 - vertex 수정/쉐이더
+- Unity 잡학사전 - Unity UI 시스템 성능 최적화
+- CPU -> GPU 일반적인 메쉬 처음 한 번. 하지만 동적인 Skinning이나 UI (버튼, 스크롤) 등은 매번 연산
+  - UI 많으면 CPU 병목
+- Graphics 모든 UI 부모 클래스
+- 모든 드로우콜은 Canvas 단위
+- Unity Vertex Animation Texture ?
+- UnitySHadersIntroPart2: HLSL/CG EdgeDistortion~
 
 ```cs
 Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
