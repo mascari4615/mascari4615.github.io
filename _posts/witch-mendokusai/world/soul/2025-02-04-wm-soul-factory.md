@@ -8,7 +8,8 @@ hidden: true
 
 date: 2025-02-04. 23:49 # Init
 # last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
-last_modified_at: 2025-04-25. 05:42 # X
+# last_modified_at: 2025-04-25. 05:42 # X
+last_modified_at: 2025-05-27. 06:02 # +메모: 참고
 ---
 
 ## 머리말
@@ -109,6 +110,7 @@ last_modified_at: 2025-04-25. 05:42 # X
 - ['X, _': '남캐가 여캐를 더 좋아하는 관계'](https://x.com/Gojomegum/status/1912870190666199398)
 - ['X, _': 어른과 아이](https://x.com/nutella__1231/status/1912891916565533139)
 - ['X, _': 상대방에게 온전히 자신을 맡기는 동료](https://x.com/B82W57H81/status/1915265452034679293)
+- 돈, 권력만 탐하는 것 같던 캐릭터가 사실 전부 소중한 사람을 위해서 그랬다는
 
 ### 키워드
 

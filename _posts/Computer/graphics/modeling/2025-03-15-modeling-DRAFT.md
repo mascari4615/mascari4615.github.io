@@ -7,7 +7,7 @@ image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
 date: 2025-03-15. 10:03 # Init
-# last_modified_at: 2025-03-15. 10:03 #
+last_modified_at: 2025-05-27. 05:55 # +메모: 참고
 ---
 
 ## 머리말
@@ -93,3 +93,8 @@ urp의 경우 베이크가 굳이 드라마틱한 차이가 없다고 생각 맵
 ### 키워드
 
 - 리토폴로지
+
+### 참고
+
+- ['X, 도비': SECOND FAVORITE 광고맵](https://x.com/dobi_vrc/status/1926831238414827950)
+- ['X, IGNKKT':](https://x.com/InganEunKKeut/status/1925200291085136071)

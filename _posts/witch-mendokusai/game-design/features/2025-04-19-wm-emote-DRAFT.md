@@ -7,7 +7,7 @@ image: "/assets/img/post/works/_witch-mendokusai/screenshot/240618-000000.png"
 hidden: true
 
 date: 2025-04-16. 01:49 # Init
-# last_modified_at: 2025-04-16. 01:49
+last_modified_at: 2025-05-27. 06:04 # +메모: 참고
 ---
 
 ## 머리말
@@ -32,3 +32,7 @@ date: 2025-04-16. 01:49 # Init
 ---
 
 ### 키워드
+
+### 참고
+
+- ['X,_':](https://x.com/LP8000mao/status/1925162230187974843)
