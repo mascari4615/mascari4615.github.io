@@ -23,7 +23,8 @@ date: 2023-01-27. 08:15
 # last_modified_at: 2025-04-29. 06:49 # wm-game-design 병합, 역사, title/file-name: -wm
 # last_modified_at: 2025-05-06. 15:44 # 메모 정리
 # last_modified_at: 2025-05-20. 00:03 # +맛을 못 느낌, +지능의 편차가 큼
-last_modified_at: 2025-05-26. 07:08 # +포스트잇
+# last_modified_at: 2025-05-26. 07:08 # +정리: 포스트잇
+last_modified_at: 2025-05-26. 21:59 # +정리: 유튜브, 포스트잇
 ---
 
 ## 머리말
@@ -1053,6 +1054,38 @@ last_modified_at: 2025-05-26. 07:08 # +포스트잇
   - [2024년 7월 9일](https://x.com/vtuber_gallery/status/1810670567240192189)
   - [2024년 5월 5일](https://x.com/weirddalle/status/1787065406160507297)
   - [울면서 뭔 소리를 하는거야?](https://x.com/bback_it_up/status/1839506922208395696)
+- [그 손 내미는 짤](https://youtu.be/GieQq3eWSnE)
+- 젠존제 귤복복
+- 전투소라
+- 새의 마을 쿠스코이, 휘파람 소통
+- 수의, 원격
+- 로키 시간선 워그드라실
+- [혼자 연습하는데 찾아온 한 명의 관객](https://youtu.be/WdDJ7AwGloI)
+- 사이포노포
+- 도파민, 옥시토신, 사랑과 짝사랑, 사랑할 것을 찾기
+- 오래 사는 종족 -> 환경 보호, 파괴되면 자기들이 영향을 받아서
+- [영화속으로 들어간 짱구](https://youtu.be/3EkYp87N52c)
+- [\“이렇게 해도 케이팝인가요?\” 바밍타이거가 말하는 얼터너티브 케이팝과 반골 기질 (feat. RM) \| 머니 코드](https://youtu.be/mYobTUCjIK8)
+- [수많은 오타쿠들이 멘붕왔다는 애니 장면](https://youtu.be/dcvgUgqfPnk)
+- [옆모습 그리기](https://youtu.be/Hz3u5TEGzEY)
+- 위고비, 호르몬
+- 롤 나이대, 스타
+- [꿈틀거리는 고기](https://youtu.be/sipru-EmHsQ)
+- [명조 별 모으기](https://youtu.be/vlsj2XG-Qoo)
+- [큐브, 색](https://youtu.be/JrB3SSMzm6k)
+- 양자화오류
+- [젠존제 테마](https://youtu.be/bWdAV-ZmOys)
+- [스타레일 척자](https://youtu.be/ab8IcCAVtyk)
+- Renato Carosome Americano
+- [스카이림 퀘스트](https://youtu.be/lREa0fyT-h4)
+- [이기심에서 나오는 이타심](https://youtu.be/buLzK-D493U)
+- 도망치면 안돼, 인간에게서만 나오는
+- [죽기전에 가봐야 하는 캠핑 장소](https://youtu.be/TR0uqEsWb0w)
+- 시간 보내기 -> 시간 초콜릿
+- Ease 설정하는 무기
+- Booth. Deco-UI, AssetStore Ripple Effect
+- CoinCollectionAnimation \[Unity\]
+- ease Anium -> Woodon
 
 ## 메모
 

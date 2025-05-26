@@ -717,6 +717,7 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 - 모든 드로우콜은 Canvas 단위
 - Unity Vertex Animation Texture ?
 - UnitySHadersIntroPart2: HLSL/CG EdgeDistortion~
+- [\[무엇이든 알려드려요\] 캐릭터 추적 시 카메라 떨림 해결하기!](https://youtu.be/Y0f2Oqk_Tcs?si=53GhNrjusxifcn5m)
 
 ```cs
 Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
