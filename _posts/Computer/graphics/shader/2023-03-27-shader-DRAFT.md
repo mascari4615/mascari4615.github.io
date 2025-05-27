@@ -15,7 +15,8 @@ date: 2023-03-27. 13:27
 # last_modified_at: 2024-09-27. 22:44
 # last_modified_at: 2024-10-16. 08:14 # 메모
 # last_modified_at: 2024-11-13. 07:19 # -Cg
-last_modified_at: 2025-03-14. 23:32 # 메모
+# last_modified_at: 2025-03-14. 23:32 # 메모
+last_modified_at: 2025-05-28. 05:53 # +메모 from career-learning
 ---
 
 ## Shader
@@ -49,3 +50,53 @@ last_modified_at: 2025-03-14. 23:32 # 메모
 - [배포를 목적으로 경량화 버전의 툰 셰이더를 만들려고 하는데, 어차피 배포하는 김에 공부겸 모든 내용을 전부 주석을 달아가며 만드는 중\n\n지금까지 이해를 안하고 그냥 '선언해줘야 해서', '원래 넣는거라' 하며 작성하던 것들이 많았는데 이참에 걍 다 알아봐야 할듯\n#Shader](https://x.com/ryurud_n5/status/1852003762585636984)
   - 주석 훔쳐보기
 - [@jungu_nanbang 셰이더는 사용 중인 RP 버전에 따라 전처리 지시어의 사용 방법이나 라이트 루프 처리 방식이 기존과 다를 수 있습니다. 가장 확실한 방법은 사용 중인 RP의 ShaderLibrary/RealtimeLights.hlsl 파일을 확인하여 추가 조명 계산 및 처리 방식을 살펴보는 게 좋습니다. 도움이 되셨길!!](https://x.com/onestar_1337/status/1892932995520364749)
+
+### 키워드
+
+- 수학적 모양
+- ShaderGraph Tutorial and ShaderCode
+- Shader Compile
+- CanvasShaderGraph
+- UIObject -> Canvas가 주심. Shader에서 움직이기 어려움
+- ScreenSpaceShader
+- UIEffectV5
+- UIOutline
+- PostProcessing
+- Shader 정리
+  - 언어
+    - Cg Old built-in Only
+    - HLSL new SRP
+      - 둘이 유사함. NVIDIA x Microsoft
+    - GLSL x 안씀. 쓸수는 있는데 안씀. Cg/HLSL은 OpenGL/webGl 쓰는 플랫폼 빌드시 GLSL로 변환됨
+  - 방식
+    - ShaderLab: 예쩐 방식. 권장 x, 이미 만들어진 틀. 호환성은 좋음
+    - surface: Built-In only. 아티스트 단계
+    - verteex & fragment: 자주쓰이는 건 HLsl x vertex&fragment 조합
+    - compute:gpu 연산. 지식 필요
+  - Shader tool - Amplify
+- shader frac -> 소수점만. 10.1 -> 0.1, 217.89 - > 0.89.
+- shader length(vector2) -> 길이 (피타고라스 삼각 정리)
+- dist = length(w) // 원점 ~ 거리
+- ring = smoothStep(radius + width, radius, dist) - smoothStep(radius, radius - width, dist)
+- 횡스크롤 강 쉐이더 만들기
+- [\[최적화\] Shader Variants와 효율적인 사용](https://asatala.tistory.com/171)
+- Shader 키워드
+- Unity Manual - Rendering 추가 리소스 및 예제
+  - 20가지 고급 2D 쉐이더 효과
+- 유니티 공식 UI 쉐이더
+  - UGUI 캔버스 쉐이더
+  - 2023 업?
+  - 트랜지션?
+- Shade Graph in Built-in Pipeline. Unity 2021.2
+  - Youtube
+- Shader Graph, Graph Target
+  - Build-In 있긴 함
+  - 근데 소개는 대부분 SRP
+  - 대부분의 피처는 SRP 위주일듯
+- UnitySHadersIntroPart2: HLSL/CG EdgeDistortion~
+- Image.material.setColor('_Color', ~);
+  - 이때, shared material x, 임의로 만들어 넣어줘야 함
+  - \_Color에 1 넘게 넣은 수 있음 (\_Emission, PP Bloom)
+- fixed 4, half 4, tex2D( )~, _Time.x y z w
+- unity, 3dMax uv 좌표계 좌우 하상
+- RGB, XYZ, UVW

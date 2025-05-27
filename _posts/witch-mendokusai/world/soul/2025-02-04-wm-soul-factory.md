@@ -9,7 +9,8 @@ hidden: true
 date: 2025-02-04. 23:49 # Init
 # last_modified_at: 2025-03-23. 18:34 # Soul Template -> Factory
 # last_modified_at: 2025-04-25. 05:42 # X
-last_modified_at: 2025-05-27. 06:02 # +메모: 참고
+# last_modified_at: 2025-05-27. 06:02 # +메모: 참고
+last_modified_at: 2025-05-28. 06:51 # +관계, +메모
 ---
 
 ## 머리말
@@ -91,6 +92,13 @@ last_modified_at: 2025-05-27. 06:02 # +메모: 참고
   - 몸속에서 씨앗 자라고 씨앗 식물 능력 발현, Like 럼블볼
   - 전투 전에 씨앗을 심는
 
+## 관계
+
+---
+
+- ['X,_': 씨피?](https://x.com/Q_1D_/status/1905920704576647375)
+- ['X,_': 나는 나를 사랑해](https://x.com/leafriend/status/1916124863913464181)
+
 ## 메모
 
 ---
@@ -111,6 +119,7 @@ last_modified_at: 2025-05-27. 06:02 # +메모: 참고
 - ['X, _': 어른과 아이](https://x.com/nutella__1231/status/1912891916565533139)
 - ['X, _': 상대방에게 온전히 자신을 맡기는 동료](https://x.com/B82W57H81/status/1915265452034679293)
 - 돈, 권력만 탐하는 것 같던 캐릭터가 사실 전부 소중한 사람을 위해서 그랬다는
+- ['X,_': 건담 인물](https://x.com/AmuroRay_UC0079/status/1917076538320949718)  
 
 ### 키워드
 

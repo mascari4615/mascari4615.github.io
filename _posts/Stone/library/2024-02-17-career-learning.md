@@ -33,7 +33,8 @@ date: 2024-02-17. 01:40
 # last_modified_at: 2025-05-18. 22:53 # +메모 form 노트 정리
 # last_modified_at: 2025-05-19. 23:48 # +포스트잇
 # last_modified_at: 2025-05-22. 06:29 # +포스트잇
-last_modified_at: 2025-05-26. 07:06 # +포스트잇
+# last_modified_at: 2025-05-26. 07:06 # +포스트잇
+last_modified_at: 2025-05-28. 06:50 # ~정리
 ---
 
 ## 리마인드
@@ -54,9 +55,8 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 ---
 
 - 면접, 포폴 관련 질문 준비
-- "이 기능은 어떻게 구현하셨나요?", 단순 열거 보다는 경험과 함께 설명. "~를 몰랐는데 공부하게 됐습니다"
+- 단순 열거보다는, 경험과 함께 설명. "이 기능은 어떻게 구현하셨나요?" "~를 몰랐는데 공부하게 됐습니다"
 - 어떤 최적화 기법을 적용했는지
-
 - 하나의 기승전결 완성작보다는 효율적 로직, 기능구현에 포커싱
 - 게임 엔진 경험은 프로젝트의 핵심이 아니다. 프로젝트에서 강조할 점은 프로젝트를 통해 전반적인 게임 제작 프로세스와 타 파트가 하는 업무를 이해, 다양한 문제를 슬기롭게 대처한 경험.
 - -> 문제 해결자로서 팀에 기여한 내용들을 잘 기록.
@@ -260,7 +260,7 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
     - 오브젝트 풀
     - FSM
     - BT
-- 유니티
+- unity
   - 에셋번들
     - 무엇인지
     - 어떻게 사용하는지
@@ -268,7 +268,7 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
   - 에디터 프로그래밍
     - 사용해보셨는지
     - 그게 무엇인지 설명해주세요
-  - 쉐이더 기술
+  - shader 기술
   - 최적화 기술
   - ScriptableObject
     - SOHelper, SOManager
@@ -300,21 +300,6 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 
 ---
 
-- 공부할 것 찾을 때:
-  - Github Star, 혹은 `개발자`, `프로그래머`, `면접`, `컴공` 같은 키워드로 리포지토리 검색
-  - CookApps Story 등 개발자 블로그 like 넥슨
-  - unity square
-  - <https://velog.io/@suhan0304/posts>
-  - 유니티 설계 경험 기록
-  - unity document
-  - midium
-    - 트라플라
-  - unity 6 graphics
-    - learning resources
-  - MSDC CPU 인사이트
-    - Enum ToString이 Reflection을 쓴다?
-  - visual studio document - cpu insight, 성능 insight, enum.toString()~
-  - 강연 like gdc, unite
 - RectTransform.anchorPosition이 정확함
 - android log cat
 - state, step (flow가 있다면)
@@ -350,7 +335,6 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 - Cellular Automata 세포 자동자
 - Lint, Lint Roller
 - 정보 = Bit + Context
-- mono, il2cpp
 - 파일이름제한
 - 포터블 모니터
 - EGPU
@@ -504,36 +488,15 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 - C#에서 C/C++ 실행
 - ThreadSafeTypes
 - Polyglot
-- WebAssembly -> VRChat에서 쓰는 것 같은데
-- LLVM 저수준 가상 머신?
-- Emscription
-- C++/C -> Emscription -> Wasm
-- Emscription 에서 LLVM을 컴파일에 이용
-- 모든 브라우저는 Wasm을 JS와 함께 실행 가능?
-- Wasm은 거의 네이티브 같은 속도로 실행된다?
-- Unity Web
-- HTTP Preload 태그를 이용
-- 첫 번째 씬에 필요한 에셋 로드
-- 코드 추출
-- Tree
-- WebGL vs WebGPU
 - Feel Update Note/Release Note -> 이쁨
 - .asmdef define
 - Camera MSAA
 - DofVFX Samples
-- Mono 호환성 -> IL2CPP 속도, 보안
 - BuildReportTool
 - EasyMobilePro
-- AntiCheat Toolkit
 - EasySave
 - 커서 AI
 - prefare 블로그 보기
-- apk 압축파일, 그냥 반디집으로도 풀어지네
-- Asset Studio 후속
-- Dnspy 후속
-- IL2CPP-Dumper
-- 한글화/에셋 수정에 사용되는 툴
-- ffmpeg
 - CodeRabbit: '코파일럿'같은 개발자를 위한 코드 리뷰 도구
 - Switch When
 - 인하우스, 아웃소싱
@@ -591,9 +554,8 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 - 변수명 작성 스타일
   - 케밥 케이스, 스네이크 케이스, 카멜 케이스, 파스칼 케이스
 - 섭스 앵커포인트: 뱅큐님 강의
-- a practical tutorial to hack and protect unity games  
 - 달리기 애니메이션 만들기: atdlfeKgBV8
-- Flush 물 내리 듯, 영속성 컨텍스트의 변경 내용을 반영? (로얄플러쉬도 그 플러쉬인가?
+- Flush 물 내리 듯, 영속성 컨텍스트의 변경 내용을 반영? - 로얄플러쉬도 그 플러쉬인가?
 - Postmodern
 - `Alt + Shift + 5`: 구글 워크스페이스 취소선
 - Hilbert ← Linear (raster)
@@ -617,107 +579,74 @@ last_modified_at: 2025-05-26. 07:06 # +포스트잇
 - unity.com/campaign/unity-6-resources
 - Skinning
 - Build Report
-- Shader, Particle System, Anim, Image, DOTWeen, Spine
-- IDA, Gridna
-- Shader Graph, Graph Target
-  - Build-In 있긴 함
-  - 근데 소개는 대부분 SRP
-  - 대부분의 피처는 SRP 위주일듯
-- Shade Graph in Built-in Pipeline. Unity 2021.2
-  - Youtube
 - 어드레서블. 종속성 문제
 - Simple Profiler? or Advanced FPS 뭐시기
   - 아마 Feel Asset에 포함된
-- 유니티 공식 UI 쉐이더
-  - UGUI 캔버스 쉐이더
-  - 2023 업?
-  - 트랜지션?
-- UI Effect Github
-- VFX GPU, Particle CPU
 - Windows 우클릭 Context Menu 커스텀?
-- Diagnostics
-  - JS Memory
-  - Performance.Memory API
-    - Only Chrome, Edge
-    - No Safari, Firefox, iOS
-- UnityWebMobile WASM
-  - Safari 15 16.4
-  - Chrome 58 91
-  - Firefox _ 89
-  - Edge _ 91
-- [\[최적화\] Shader Variants와 효율적인 사용](https://asatala.tistory.com/171)
-- Shader 키워드
-- Unity Manual - Rendering 추가 리소스 및 예제
-  - 20가지 고급 2D 쉐이더 효과
 - Unity Roadmap 사이트
-- 솔직히 경험 기간은 많은 것 같은데, 그에 비해 실력이 부족하다. 신입이라 생각하고 기본기 차근차근 다지자. 일단 조사, 정리, 문서 작성 방법부터.
-- 문서 이해도 높여야. 대충 일고 넘어가는 습관이 있다. 하나 할 때 확실히 이해, 소화, 정리
-- 적게 자주
-- 잠 확실히 자야. 이거 언젠간 일 한 번 만든다
-- Shader 정리
-  - 언어
-    - Cg Old built-in Only
-    - HLSL new SRP
-      - 둘이 유사함. NVIDIA x Microsoft
-    - GLSL x 안씀. 쓸수는 있는데 안씀. Cg/HLSL은 OpenGL/webGl 쓰는 플랫폼 빌드시 GLSL로 변환됨
-  - 방식
-    - ShaderLab: 예쩐 방식. 권장 x, 이미 만들어진 틀. 호환성은 좋음
-    - surface: Built-In only. 아티스트 단계
-    - verteex & fragment: 자주쓰이는 건 HLsl x vertex&fragment 조합
-    - compute:gpu 연산. 지식 필요
-  - Shader tool - Amplify
-- shader frac -> 소수점만. 10.1 -> 0.1, 217.89 - > 0.89.
-- shader length(vector2) -> 길이 (피타고라스 삼각 정리)
-- dist = length(w) // 원점 ~ 거리
-- ring = smoothStep(radius + width, radius, dist) - smoothStep(radius, radius - width, dist)
-- 횡스크롤 강 쉐이더 만들기
-- BaseMeshEffect
-- Graphics
-- VertexHelper
-- Vertex 수정. 위치,색.
-- PostProcessing
-- ScreenSpaceShader
-- UIEffectV5
-- UIOutline
-- 나눌 수 있으면 나누기. 정보 과부하, 분리.
-- UIObject -> Canvas가 주심. Shader에서 움직이기 어려움
-- CanvasShaderGraph
-- Shader Compile
 - UnityEngine.UI -> Package로 존재 (UGUI) 그래서 매뉴얼엔 안보임. Package에서 찾아야함.
 - RectTransform.GetLocalCorners(corners)
-- ShaderGraph Tutorial and ShaderCode
-- Shader 언어 구조, Compute Shader
-- 수학적 모양
-- Effect 구변방법
 - Unity how 게임 개발자를 위한 성능 프로파일링
 - 성능향상을 위해 toString 캐싱.
 - VS Doc 느린 열거형 .toString 성능
-- Image.material.setColor('_Color', ~);
-  - 이때, shared material x, 임의로 만들어 넣어줘야 함
-  - \_Color에 1 넘게 넣은 수 있음 (\_Emission, PP Bloom)
-  - 무선
 - DOVirtual
-- UIOutline 에셋에 텍스쳐 이상한거 넣으면 멋잇다
-- 파티클 시스템 -> 버텍스 컬러 바꿈
-  - 그래서 파티클 시스템에서 버텍스 컬러 받아야 함
-  - v2f, appdata 에서 float4 color : COLOR, 이것을 frag에서 사용
-- 파티클, Trails
 - PrimeTween
-- 40시간 채우듯, 나도 내 시간 어떻게 쓸지/쓰는지 계획/기록
-- 파티클 시스템 렌더러.bakeMesh(mesh,카메라) -> Graphics
-- Ripple 파문
-- fixed 4, half 4, tex2D( )~, _Time.x y z w
-- unity, 3dMax uv 좌표계 좌우 하상
-- RGP, XYZ, UVW
 - ㅍㅔ르소나 메뉴 UI 구현 - 블로그 - vertex 수정/쉐이더
 - Unity 잡학사전 - Unity UI 시스템 성능 최적화
 - CPU -> GPU 일반적인 메쉬 처음 한 번. 하지만 동적인 Skinning이나 UI (버튼, 스크롤) 등은 매번 연산
   - UI 많으면 CPU 병목
 - Graphics 모든 UI 부모 클래스
 - 모든 드로우콜은 Canvas 단위
-- Unity Vertex Animation Texture ?
-- UnitySHadersIntroPart2: HLSL/CG EdgeDistortion~
 - [\[무엇이든 알려드려요\] 캐릭터 추적 시 카메라 떨림 해결하기!](https://youtu.be/Y0f2Oqk_Tcs?si=53GhNrjusxifcn5m)
+- 2:01 최근 읽었던 책
+- 2:01 본인의 목표와 10년 후 모습
+- 2:01 포트폴리오 또는 기타 작업물에 대해 상세하게 기술
+- 5:39 질문하는 이유 ㅡ 이 사람은 이런것같은데 불안한데 확신을 가져야겠는데
+- 왜 코루틴의 리턴값이 ienumerator인지 명확하게 설명할 수 있으면 베스트일듯  
+- dx나 opengl을 직접 물어보진 않음. 렌더링 파이프라인에 대해 설명할 정도 되면 A급. 적어도 드로우콜이나 셋패스가 많으면 왜 느리고 줄이려면 어떻게 해야 하는지 정도는 알아두면 좋음. 면접 단골 질문이 최적화 경험 있는지? 있다면 무얼했는지? 이런거임
+- 대체로 트러블슈팅에 대한 경험, 최적화에 대한 경험, 협업에 대한 경험, 인상깊었던 작업에 대한 경험 정도 많이물어봄 면접에서 생각해서 말하려면 말 안나오는 경우가 대부분이니 미리 준비하면 좋음
+- 비정형
+  - Athena -> S3에 쌓인 Log에서 찾기
+  - MySQL Query
+  - CTS, STC (Direction)
+  - Select 보고 싶은 Colum
+  - Select *(전부)
+  - Select id
+  - Select id, uuid
+  - where year>=2025
+  - where year>=2025 and or
+  - order by date desc
+  - and log like '%키워드%'
+    - %는 \* 같은거
+  - group by dat (이건 count만 반환한다고 하는데, 잘모르겟음)
+- CMD 다른 파티션 이동, 다른거 없이 `:D`, `:C`
+- While 대신 옵저버 패턴
+- stateful
+- 백로그 스프린트
+- Localization I2 Localize
+- 동시성 Issue 때문에 Coroutine -> UniTask?
+- MVC MVP MVVP
+- Command Pattern
+- Interlocked.Exchange(ref SceneService.Instance.isLoadingScene, 0);
+- 젠킨스
+- 깃허브 코파일럿, 윈도우즈 코파일럿의 차이
+- 체계적인, 커밋 (1커밋 1주제), 주제와 관련/의미없는 formatting 등 -> 코드 리뷰 시 어떤 부분이 달라진건지 확인 어려움. 문서화, 주석, README
+- MVP, 옵저버, Socket.Subscribe
+- 와일드카드, %appdata%이거는 그냥 appdata 폴더 찾는건가?
+- Application.dataPath (Assets 폴더 경로)
+- Enum을 줄바꿈 없이 한 줄에 몰아 쓰기?
+- Script 수정이랑 이에 따른 Asset 변화 따로 커밋하는게 좋겠다.
+- Asset 변화 많으니까 코드 변경 내용을 보고 싶은데 바로 찾기가 어렵다. (Ctrl F로 찾으면 되긴 하지만 어쨌든)
+- Template <- 변하지 않는 것
+- SpriteAtlas <- 생각보다 간단함
+- ReactiveProperty <- 값 할당할 때, 다른 변수를 new (매개변수)로 넣을 수 있다. 그러면 그 변수를 대상으로 하는듯?
+- Combine Latest (UniRx)
+- PlayerPrefs: 간단한 저장
+- OnApplicationPause
+- Unity Log Format: Color, size, bold, italic -> 확장 메서드
+- ~Class이름 파괴자
+- cts.Cancel, cts.Dispose
+- nameOf 연산자 컴파일 타임에 문자열로 바뀜
 
 ```cs
 Plane[] planes = GeometryUtillity.CalculateFrustumPlanes(Camera);
