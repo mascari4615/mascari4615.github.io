@@ -6,10 +6,16 @@ tags: []
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2024-08-29. 20:54
-# last_modified_at: 2024-08-29. 20:54
+last_modified_at: 2025-05-28. 21:53 # +Q: 왜 OOP
 ---
 
 {% include custom/computer/programming-paradigm.html %}
+
+## Q
+
+---
+
+- 왜 Functional
 
 ## Functional Programming \| 함수형 프로그래밍
 

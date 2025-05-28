@@ -36,7 +36,8 @@ date: 2023-05-21. 15:03
 # last_modified_at: 2025-04-16. 22:12 # Memo: InstantiateAsync
 # last_modified_at: 2025-04-19. 01:05 # Memo: 단축키, 메모 정리...
 # last_modified_at: 2025-04-19. 20:15 # Button Navigation & Animation
-last_modified_at: 2025-04-28. 17:41 # 메모
+# last_modified_at: 2025-04-28. 17:41 # 메모
+last_modified_at: 2025-05-28. 21:06 # +메모, +Q
 ---
 
 2024-04-09. 03:03: 글 계승.  
@@ -45,6 +46,23 @@ last_modified_at: 2025-04-28. 17:41 # 메모
 `2023-01-06-OnParticleCollision-Not-Work: 🌔 Unity OnParticleCollision 이 호출되지 않을 때`,  
 `2023-02-15-Unity-NavMesh: 🌔 Unity NavMesh`,  
 `2023-02-24-Cannot-Perform-Upm-Operation: 🌔 Unity 'Cannot perform upm operation: EBUSY: resource busy or locked, open'`  
+
+## Q
+
+---
+
+- 에셋번들
+  - 무엇인지
+  - 어떻게 사용하는지
+  - 왜 사용하는지
+- 에디터 프로그래밍
+  - 무엇인지
+  - 사용해보셨는지
+- shader 기술
+- 최적화 기술
+- ScriptableObject
+  - SOHelper, SOManager
+- 코루틴의 과정
 
 ## 인스펙터에서 값을 변경한 Public, [SerializeField] 속성 변수
 
@@ -279,7 +297,7 @@ Navigation None하면 Button Transition Animation 동작안할 수 있음. (특�
 - DrawCall 줄이기
   - 같은 리소스 최대한 한 번에 그리기?
   - `리소스 전환`?
-  - 동일한 텍스쳐/메쉬/쉐이더 한 번에 그리는 것: `Batching`?\
+  - 동일한 텍스쳐/메쉬/셰이더 한 번에 그리는 것: `Batching`?\
 - BaseMeshEffect
   - UIBehaviour
   - IMeshModifier
@@ -302,6 +320,16 @@ Navigation None하면 Button Transition Animation 동작안할 수 있음. (특�
 - build automation
 - multiplayer
 - ['원소랑': Unity lossyScale](https://m.blog.naver.com/sorang226/223802482530)
+- Unity Log Format: Color, size, bold, italic -> 확장 메서드
+- PlayerPrefs: 간단한 저장
+- OnApplicationPause
+- GeometryUtillity
+- SpriteAtlas <- 생각보다 간단함
+- UNITY_6000_0_OR_NEWER
+- Adaptive Performance
+- 6.1
+  - LightMapping
+  - GetLightingDataAssetForScene
 
 ### Asset
 

@@ -988,7 +988,7 @@ last_modified_at: 2025-05-27. 06:06 # ~정리
 - 선동기술: BVwy03nGs0g
 - 원신은 어떻게 초보자를 학습시키는가?: -CDa2T-Lkuw
 - 디아루가 vs 펄기아 vs 다크라이: YlW01z6_6BI
-- 버텍스 쉐이더, 위아래 움직이기: J3aeb8IasMk
+- 버텍스 셰이더, 위아래 움직이기: J3aeb8IasMk
 - 횡스크롤 Hd-2D: Voqj2KNT6us
 - Dead of Night: ew6RUiXebp4
 - 한별 모음집: y0kFS6sC6J8

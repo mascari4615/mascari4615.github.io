@@ -17,8 +17,18 @@ date: 2023-02-22. 02:35
 # last_modified_at: 2024-07-12. 22:06
 # last_modified_at: 2024-08-19. 14:07
 # last_modified_at: 2024-09-16. 16:35
-last_modified_at: 2025-04-28. 19:17 # 메모
+# last_modified_at: 2025-04-28. 19:17 # 메모
+last_modified_at: 2025-05-28. 21:59 # +Q
 ---
+
+## Q
+
+---
+
+- 엔진에서 쓰인 C++에 대한 지식
+  - OOP 개념
+  - 템플릿
+  - STL
 
 ## Modern C++ (VS Old C++)
 

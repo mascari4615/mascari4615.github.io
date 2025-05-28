@@ -7,7 +7,8 @@ image: "/assets/img/background/20240827-140647.jpg"
 hidden: true
 
 date: 2025-04-16. 20:43 # Init
-last_modified_at: 2025-04-16. 22:12 # Memo: Read/Write, MipMap
+# last_modified_at: 2025-04-16. 22:12 # 메모: Read/Write, MipMap
+last_modified_at: 2025-05-28. 21:30 # +메모:
 ---
 
 ## 머리말
@@ -110,7 +111,7 @@ IL2CPP Metadata
   - Deep Profiler대신 call stack 옵션 사용
 
 Shader.CreateGPUProgram  
-쉐이더 로드  
+셰이더 로드  
 
 Shader warmup
 
@@ -209,7 +210,7 @@ Alpha 0 일때 아예 꺼주는 것이 있는데
 
 Shader  
 SHader가 가지는 Pixel Coverage  
-Native Profiler를 쓰면 , 쉐이더, 스크린 기준으로 픽셀? 이 얼마나 쓰이고 있는 지 확인 가능  
+Native Profiler를 쓰면 , 셰이더, 스크린 기준으로 픽셀? 이 얼마나 쓰이고 있는 지 확인 가능  
 직접 Shader 최적화 한다고 했을때, 정적 정보를 수집하시고, 사용되는 인스트럭션의 정밀도?? 등이 포함되는데, 높은 정밀도의 인스트력션인 경우 정밀도를 낮추는 경우 효과?? 위치나 시간과 과련된 인스트력션인 겨우는 주의를 해야 ㅎ마.
 
 - 동적 분기 제거?
@@ -403,6 +404,10 @@ Max Size를 사용하지 않는 것
 MipMap  
 2의 배수로 작아지는 (다 합쳐서 원본의 33% 정도?)  
 카메라 거리마다 다르게  
+
+- VS Doc 느린 열거형 .toString 성능
+  - 성능향상을 위해 toString 캐싱.
+- Unity how 게임 개발자를 위한 성능 프로파일링
 
 ### 참고
 

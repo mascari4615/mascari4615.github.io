@@ -55,6 +55,8 @@ key = value
 
 ---
 
+- @GWAN: Windows 우클릭 Context Menu 커스텀
+
 ### Disable_StartMenu_BingSearch
 
 ```reg

@@ -6,7 +6,8 @@ tags: [유니티]
 image: "/assets/img/background/kururu-lab.jpg"
 
 date: 2025-03-15. 08:31 # Init
-last_modified_at: 2025-04-19. 01:08 # toUniTask
+# last_modified_at: 2025-04-19. 01:08 # toUniTask
+last_modified_at: 2025-05-28. 21:30 # +메모
 ---
 
 ## 머리말
@@ -31,3 +32,5 @@ last_modified_at: 2025-04-19. 01:08 # toUniTask
   - ... 그냥 일단 그대로 두자 (<- 후담, 결국 수정함)
 - DOTween.Init (logBehavior: ".ErrorOnly)
 - DOTween.Play(object_GameObjectX);
+- PrimeTween
+- DOVirtual

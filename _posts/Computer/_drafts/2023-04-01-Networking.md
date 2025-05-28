@@ -3,7 +3,38 @@ title: "네트워크"
 categories: [수필, 일기]
 
 date: 1999-01-01. 00:00
-# last_modified_at: 1999-01-01. 00:00
+last_modified_at: 2025-05-28. 22:13 # +Q
+---
+
+## Q
+
+---
+
+- 서버에서 여러 개의 요청을 동시에 처리하기 위한 방법
+  - Thread
+    - Lock
+    - DeadLock
+  - Microthred (Coroutine, Fiber)
+    - 장단점을 아아야 겠죠
+
+- 서버에서 여러 연결을 효율적으로 처리하는 방법
+  - IOCP
+  - epoll
+
+- TCP, UDP
+  - 어떻게 동기화를 할 것인가
+  - 메시지를 어떤 방식으로 보낼것인가 (Serialization)
+- 네트워크를 아는 것과 서버 프로그래머로의 능력을 갖추는 것과는 결이 다른 이야기
+- 서비스 관점에서 네트워크/DB 어떻게 동작하는지 이해 필요. i.e. AWS 기반 DB 연동 가벼운 웹사이트 및 관리도구
+- TCP소켓 기반의 실시간 게임
+
+- 소켓 (윈도우즈 기반)
+  - 기본 소켓 프로그래밍, IOCP
+  - boost::asio?
+- 웹
+
+## _
+
 ---
 
 Lan Topology  

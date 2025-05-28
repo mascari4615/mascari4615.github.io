@@ -133,8 +133,6 @@ MyClass myClass2 = myClass;
 
 ---
 
-### GC
-
 ```csharp
 GC.Collect(); // 가비지 컬렉션 강제 수행
 GC.Collect(0); // 0세대 가비지 컬렉션 강제 수행

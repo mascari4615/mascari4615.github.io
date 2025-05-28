@@ -10,7 +10,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 date: 2023-02-17. 10:38
 # last_modified_at: 2024-09-05. 04:47
 # last_modified_at: 2024-10-16. 08:36
-last_modified_at: 2025-03-15. 09:42 # 메모
+# last_modified_at: 2025-03-15. 09:42 # 메모
+last_modified_at: 2025-05-28. 22:05 # +메모
 ---
 
 2024-09-05. 04:47: 글 추상화.  
@@ -91,8 +92,9 @@ last_modified_at: 2025-03-15. 09:42 # 메모
 ---
 
 - '읽기 좋은 코드가 좋은 코드다', '개발자의 글쓰기'
-- Define partial class
-  - \{ Enum class
-    - \{ Enum What~ \}
-  - \}
+- Enum
+  - 요소가 몇 개 없다면, 줄바꿈 없이 한 줄에 몰아 쓸 수도 있다.
+  - `NONE = -1`, `TOTAL = 마지막`
+  - Define partial class
+    - `\{ Enum class \{ Enum What~ \} \}`
 - ~Service (Manager 대신?)

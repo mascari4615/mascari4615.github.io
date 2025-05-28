@@ -15,7 +15,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 date: 2024-04-27. 20:19
 # last_modified_at: 2024-04-27. 20:19
 # last_modified_at: 2024-08-29. 21:47
-last_modified_at: 2024-08-30. 00:06
+# last_modified_at: 2024-08-30. 00:06
+last_modified_at: 2025-05-28. 21:53 # +Q: 왜
 
 # 0406
 ---
@@ -29,6 +30,8 @@ last_modified_at: 2024-08-30. 00:06
 
 - 프로세스, 프로세서, 스레드에 대해 설명해 주세요.
 - 프로세스와 스레드의 차이점은 무엇인가요?
+- 왜 스레드
+- 왜 비동기
 
 ## Processor | 프로세서
 

@@ -51,8 +51,8 @@ Parameter 만으로 Particle 용 텍스쳐를 만들어내는.
 
 #### Depth of Field - Particle Shader
 
-보케/블러를 만드는 쉐이더  
-이를 통해 깊이감 있는 이펙트를 쉐이더로  
+보케/블러를 만드는 셰이더  
+이를 통해 깊이감 있는 이펙트를 셰이더로  
 \+ 블러  
 
 #### Exponential Random

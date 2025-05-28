@@ -9,7 +9,8 @@ date: 2024-11-15. 02:28 # Init
 # last_modified_at: 2025-03-15. 11:30 # 이것저것 추가
 # last_modified_at: 2025-04-18. 06:22 # 검색, 협업
 # last_modified_at: 2025-04-27. 06:09 # 이끔
-last_modified_at: 2025-05-28. 06:56 # ~명명: Project 프로젝트 -> Work 작업
+# last_modified_at: 2025-05-28. 06:56 # ~명명: Project 프로젝트 -> Work 작업
+last_modified_at: 2025-05-28. 21:00 # +개발: 하나씩, 한번에
 ---
 
 ## 머리말
@@ -122,6 +123,23 @@ Like 적시학습.
   - 큰 그림: 이 기술로 무엇을 할 수 있는가?
   - 시작하는 법
   - 최고의 효과를 거두기 위해 알아야 할 20%
+
+### 하나씩
+
+- 1커밋 1주제
+  - 다른 업무를 한 번에 X, 특히 Hotfix
+  - 주제와 관련/의미없는 formatting 등 -> 코드 리뷰 시 어떤 부분이 달라진건지 확인 어려움.
+  - Script 수정, 이에 따른 Asset 변화 따로 커밋.
+    - Asset 변화 많으니까, 코드 변경 내용을 바로 찾기가 어렵다. (Ctrl F로 찾으면 되긴 하지만 어쨌든)
+
+### 한번에
+
+- 커밋 전에
+  - Code Save
+  - Code Test (중요)
+  - In Unity Project
+    - Scene Save
+    - Prefab Override Apply
 
 ### 검색
 

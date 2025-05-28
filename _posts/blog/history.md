@@ -131,3 +131,64 @@ last_modified_at: 2025-05-02. 01:27 # 내 작업물에 대한 공격은 나에 �
 
 2025-05-05. 18:18: 글 계승.  
 `2023-04-11-library: 서재`  
+
+## todo.md
+
+```yml
+# Career
+# date: 2024-09-05. 04:38
+# last_modified_at: 2024-09-12. 13:09
+# last_modified_at: 2024-09-14. 21:07
+# last_modified_at: 2024-09-26. 20:54
+# last_modified_at: 2024-09-27. 22:48
+# last_modified_at: 2024-10-21. 12:08 # Job, Career, Interview 정리
+# last_modified_at: 2025-03-15. 06:38 # 정리
+# last_modified_at: 2025-04-18. 06:13 # 공고 리스트
+# last_modified_at: 2025-04-28. 18:42 # 질문, 메모
+# last_modified_at: 2025-05-28. 06:51 # ~정리, 메모: 참고
+
+# Learning
+# 내가 배우고 싶은 것들, 내가 배우고 있는 것들
+# date: 2024-03-15. 07:00 # Init
+# last_modified_at: 2024-03-23. 16:43 # 정리, 링크 메모만 남기기, 생각은 Mindset으로
+# last_modified_at: 2025-05-28. 07:10 # +Career:
+
+# Career-Learning
+# date: 2024-02-17. 01:40
+# last_modified_at: 2024-02-21. 05:58
+# last_modified_at: 2024-02-24. 03:49
+# last_modified_at: 2024-03-05. 16:29
+# last_modified_at: 2024-03-06. 05:18
+# last_modified_at: 2024-03-12. 14:20
+# last_modified_at: 2024-03-20. 06:01
+# last_modified_at: 2024-03-27. 17:58
+# last_modified_at: 2024-04-03. 13:30
+# last_modified_at: 2024-04-18. 20:13
+# last_modified_at: 2024-04-27. 13:53
+# last_modified_at: 2024-07-11. 21:45
+# last_modified_at: 2024-08-06. 23:09
+# last_modified_at: 2024-08-12. 11:21
+# last_modified_at: 2024-08-19. 16:30
+# last_modified_at: 2024-08-26. 11:39
+# last_modified_at: 2024-08-27. 22:06
+# last_modified_at: 2024-09-14. 16:57
+# last_modified_at: 2024-09-14. 21:06
+# last_modified_at: 2024-10-21. 12:14 # Job, Career, Interview 정리
+# last_modified_at: 2024-11-13. 03:33 # -PS
+# last_modified_at: 2024-11-13. 07:44 # -CG
+# last_modified_at: 2025-03-15. 07:00 # Learning -> Career Learning, '배움'에 내한 내용은 Learning으로
+# last_modified_at: 2025-04-28. 17:40 # 메모
+# last_modified_at: 2025-05-06. 15:43 # +메모 from memo.md
+# last_modified_at: 2025-05-18. 22:53 # +메모 form 노트 정리
+# last_modified_at: 2025-05-19. 23:48 # +포스트잇
+# last_modified_at: 2025-05-22. 06:29 # +포스트잇
+# last_modified_at: 2025-05-26. 07:06 # +포스트잇
+# last_modified_at: 2025-05-28. 06:50 # ~정리
+```
+
+2025-05-28. 07:10: 글 병합.  
+`2024-09-14-career-DRAFT: Career`  
+
+2025-05-28. 20:43: 글 병합.  
+`2025-03-15-library-learning: Learning`,  
+`2024-02-17-career-learning: Career-Learning`,  
