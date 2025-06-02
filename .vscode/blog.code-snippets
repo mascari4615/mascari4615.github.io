@@ -16,6 +16,15 @@
 	// 	"description": "Log output to console"
 	// }
 
+	// 24-10-12. 07:22
+	"Blog Time Short": {
+		"prefix": "karmoTimeShort",
+		"body": [
+			"$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE. $CURRENT_HOUR:$CURRENT_MINUTE"
+		],
+		"description": "Insert current time"
+	},
+
 	// date: 2024-10-12. 07:22
 	// # last_modified_at: 2024-10-15. 17:37 # VSCode 줄 들여쓰기
 	// 위 같은 형식으로
