@@ -69,3 +69,5 @@ PC Only
 ![250313-201206](/assets/img/post/works/im-solo-since-birth/250313-201206.png)
 ![im-solo-since-birth-banner](/assets/img/post/works/im-solo-since-birth/im-solo-since-birth-banner.png)
 ![im-solo-since-birth-credit](/assets/img/post/works/im-solo-since-birth/im-solo-since-birth-credit.png)
+
+- [폰트: 페이퍼로지](https://noonnu.cc/font_page/1458)
