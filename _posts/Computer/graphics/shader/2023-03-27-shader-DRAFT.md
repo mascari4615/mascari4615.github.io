@@ -17,7 +17,8 @@ date: 2023-03-27. 13:27
 # last_modified_at: 2024-11-13. 07:19 # -Cg
 # last_modified_at: 2025-03-14. 23:32 # 메모
 # last_modified_at: 2025-05-28. 05:53 # +메모 from career-learning
-last_modified_at: 2025-05-28. 20:09 # +메모 from CG
+# last_modified_at: 2025-05-28. 20:09 # +메모 from CG
+last_modified_at: 2025-06-08. 20:18 # +메모
 ---
 
 ## Shader
@@ -48,6 +49,65 @@ last_modified_at: 2025-05-28. 20:09 # +메모 from CG
 
 ---
 
+## 공부
+
+---
+
+- 14:44 Gusdnd_UI
+  - RETR0 강의 (쉐이더 & 렌더링 에센스)
+- 14:45 RenderingPipleline 그래픽스 API
+  - kblog.popekim/포프의 세이더 입문 강좌
+  - 아르카도 -> 이펙트 공부 순서
+- 14:47 shader
+  - 그래픽 기초이론
+  - 컬러 - 숫자
+  - 비트
+  - 텍스처와 rgb채널
+  - 상수-변수
+  - 리니어-감마
+  - 사칙연산-항등원
+  - 컬러 -> 값 변형
+  - UV
+  - 밉맵
+  - 벡터
+  - 벡터 연산
+  - 선형보간 lerp
+  - 분기
+  - 라이팅 모델
+  - 디퓨즈(램버트?)
+- 14:47 프레넬
+  - 스펙큘러(퐁)
+  - 스펙큘러(블린-퐁)
+  - 디퓨즈(오렌-네이어)
+  - 라이팅심화
+  - 탄젠트 노멀 매핑
+  - 큐브맵 리플렉션
+  - 실시간 그림자
+  - 에디셔널 라이트
+- 14:48 fake PBR
+  - PBR 물리기반렌더링
+  - fakePBR (디퓨즈)
+- 14:48 fakePBR(스펙큘러)
+- 14:48 GGX 스펙큘러
+- 14:50 NPR (Non-Photorealistic)
+  - NPR
+  - NPR-Floor
+  - " step/comparison
+  - " smoothStep
+  - "ramp
+  - " Matcap
+  - " 그림자 커스텀
+  - " 외곽선
+  - 렌더링 파이프라인
+  - 포워드 파이프라인
+  - 디퍼드 "
+  - 컴퓨트 쉐이더, 버퍼
+  - 그외
+  - Distortion
+  - GLSL -> ?
+  - random 함수 있음
+  - The Book of shaders
+
 ## 메모
 
 ---
@@ -55,6 +115,18 @@ last_modified_at: 2025-05-28. 20:09 # +메모 from CG
 - [배포를 목적으로 경량화 버전의 툰 셰이더를 만들려고 하는데, 어차피 배포하는 김에 공부겸 모든 내용을 전부 주석을 달아가며 만드는 중\n\n지금까지 이해를 안하고 그냥 '선언해줘야 해서', '원래 넣는거라' 하며 작성하던 것들이 많았는데 이참에 걍 다 알아봐야 할듯\n#Shader](https://x.com/ryurud_n5/status/1852003762585636984)
   - 주석 훔쳐보기
 - [@jungu_nanbang 셰이더는 사용 중인 RP 버전에 따라 전처리 지시어의 사용 방법이나 라이트 루프 처리 방식이 기존과 다를 수 있습니다. 가장 확실한 방법은 사용 중인 RP의 ShaderLibrary/RealtimeLights.hlsl 파일을 확인하여 추가 조명 계산 및 처리 방식을 살펴보는 게 좋습니다. 도움이 되셨길!!](https://x.com/onestar_1337/status/1892932995520364749)
+- 단점
+  - 기능마다 셰이더 만들어야 함. 컴포넌트처럼 조립할 수 없음.
+  - 로그 못 찍음
+  - 값(인스턴스) 차이를 주려면 각 머테리얼 파일을 만들거나, 스크립트에서 수정하거나 (디버깅 어려움). 컴포넌트처럼 씬 오브젝트 단위로 구분하고 저장할 수 없음.
+- 장점
+  - 에디터 타임 동작. 보면서 수정 가능. 비교적 컴파일 빠름.
+- 특이
+  - 플레이 모드 수정 저장됨.
+  - 중간 과정 디버깅 어려움. -> 셰이더 그래프는 가능.
+- shader. cpu와 다르게 if 문에서 쓰지 않을 내용도 모두 계산
+- 이를 해결하기 위해 shader variant
+- 빌드 용령, 속도 늘어남. 메모리도 영향 줌.
 
 ### 키워드
 
@@ -129,6 +201,17 @@ last_modified_at: 2025-05-28. 20:09 # +메모 from CG
 - 무슨 말인지 이해하고 싶다
   - 이펙터는 웬만한 셰이더를 반투명으로만 사용한다. Translucent 아니면 Additive 즉 최적화를 크게 신경쓰지 않는. 반면 모델러들은 양면 렌더도 제대로 못 쓰게 한다 최적화에서 가장 크게 잡아먹는 Shadowdepth도 이펙터들은 크게 신경쓰지 않는다
   - 모델러들은 라이트 베이킹부터 VRAM 때문에 라이트맵 해상도부터 줄여나가고 Batching과 Instancing도 해야하는 작업을 가진다. 이쁜 gi를 쓰고싶어도 forwardrender 쓰는 모바일에선 라이트베이킹만 써야하고. 하다못해 그것도 안써서 페이크 라이팅 쓰는곳도 많음. 특히 커스텀 셰이딩 모델은 대부분 캐릭터에서 나오지 이펙트에서 나오지 않는다.
+- \[ColorUsage(true,true)\] HDR Color
+- High Dynamic Range
+- Graphic material materialForRendering baseMaterial sharedMaterial?
+- material -> 사설 가능, 렌더링 사용 여부 X, 수정 가능 여부  O
+- base -> 원본, X, X
+- materialForRendering -> 렌더링에 쓰는, O, X
+- 렌더링 영향 주려면
+- Material mat = new Mat(renderMat)
+- mat.SetColor (~)
+- tmp.fontMaterial = mat
+- TMP fontMaterial fontSharedMaterial
 
 ### 역사
 

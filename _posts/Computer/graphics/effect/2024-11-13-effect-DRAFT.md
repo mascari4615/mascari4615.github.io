@@ -7,7 +7,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
 date: 2024-11-13. 06:50 # Init
-last_modified_at: 2025-05-28. 06:15 # +메모 from career-learning
+# last_modified_at: 2025-05-28. 06:15 # +메모 from career-learning
+last_modified_at: 2025-06-08. 20:18 # +메모
 ---
 
 ## Effect
@@ -29,6 +30,11 @@ last_modified_at: 2025-05-28. 06:15 # +메모 from career-learning
 - Unity Vertex Animation Texture ?
 - VFX GPU, Particle CPU
 - UI Effect Github
+- 슈리켄 (particle system) -> 원하는 것 만들 수 있을 정도?
+- 리소스 작업 - Texture (photoshop, substance painter), mesh (blender), animation
+- 롤 effect?
+- 모두의 마블 주사위
+- ui effect -> unity sample?
 
 ### 참고
 
