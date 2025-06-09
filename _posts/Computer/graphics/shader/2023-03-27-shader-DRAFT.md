@@ -18,7 +18,8 @@ date: 2023-03-27. 13:27
 # last_modified_at: 2025-03-14. 23:32 # 메모
 # last_modified_at: 2025-05-28. 05:53 # +메모 from career-learning
 # last_modified_at: 2025-05-28. 20:09 # +메모 from CG
-last_modified_at: 2025-06-08. 20:18 # +메모
+# last_modified_at: 2025-06-08. 20:18 # +메모
+last_modified_at: 2025-06-09. 21:00 # +메모
 ---
 
 ## Shader
@@ -53,8 +54,135 @@ last_modified_at: 2025-06-08. 20:18 # +메모
 
 ---
 
+- <https://youtu.be/LQPBRsgsoJ0>
+- 색
+  - <https://colorpalettes.net/>
+  - <https://coolors.co/ef476f-ffd166-06d6a0-118ab2-073b4c>
+  - <https://mycolor.space/?hex=%23845EC2&sub=1#AB372E&sub=1>
+- TA
+  - <https://blog.nexon.com/post/2321256>
+- <https://blog.popekim.com/ko/tags/shader-book/>
+- 린반, 에반 (언리언), 쿠파 (유니티)
+- <https://gamefx.co.kr/bbs/board.php?bo_table=ik>
+- <https://gamefx.co.kr/bbs/page.php?hid=Kupa_intro>
+- 비리비리 중국 ASE (엠플리파이 셰이더)
+- Book of Shader
+  - 깊은 그래픽스보다는, 원하는 셰이더를 어떻게 만들것인가
+  - 셰이더 잘한다 -> 셰이더를 어떻게 원하는 모양으로 만들까
+  - 수학적 공식을 써서 패턴을 만드느냐는 이미 많은 사람들이 정리해뒀기때문에, 그 패턴을 알아야함
+- 유니티 셰이더 생성 5가지 유형
+  - StandardSurfaceShader: 기본 조명 모델을 포함하는 표면 셰이더 템플릿을 생성
+  - UnlitShader: 조명 없이, 그러나 FOG를 포함하는 기본 버텍스,프래그먼트 셰이더를 생성함
+  - ImageEffectShader: 이미지 이펙트 셰이더는 화면 후처리 효과용 셰이더
+  - ComputeShader: 특수 셰이더인데, GPU 병렬성을 이용한 일반 렌더 파이프라인과 관련 없는 계산 수행함
+  - RayTracingShader: 유니티 실시간 레이트레이싱에 쓰는 셰이더, 레이트레이빙은 장면의 개별 픽셀에 대한 레이(Ray,즉 빛)을 추적하여 현실에게서 얻는 빛 반사를 시뮬레이션 하는 기술,
+- 유니티의 셰이더의 기초
+  - HLSL,GLSL도 아닌 셰이더 랩(ShaderLab)이라는 고급 렌더링 추상화 레이어
+  - 머티리얼 표시하는 모든 것을 정의
+  - 유니티 셰이더의 기본 구조
+    - Shader "셰이더 이름"
+    - 속성(Properties)
+    - 서브 셰이더(SubShader)
+    - 서브 셰이더(SubShader)
+    - Fallback
+  - 머티리얼과 유니티 셰이더간의 연결을 일반적으로 프로퍼티라고 하고
+  - 인스펙터, 즉 머티리얼 패널에서 일반적으로 보이게 정의할 수 있음
+  - 머티리얼 속성Properties
+    - 숫자 유형인 Int, Float, Range와 같은 프로퍼티의 기본값은 단일 숫자이고,
+    - Color, Vector와 같은 프로퍼티의 기본값은 괄호로 둘러싸인 4차원 벡터이며,
+    - 2D, Cube, 3D의 세 가지 텍스처 유형의 기본값은 약간 더 복잡하며 문자열 뒤에 괄호로 묶인 한 쌍으로 지정됨.
+    - 여기서 문자열은 비어 있거나 "흰색", "검은색", "회색" 또는"Bump".로 되어있음
+    - 괄호의 목적은 원래 일부 텍스처 속성을 지정하는 것.
+    - 고정 파이프라인의 텍스처 좌표 생성을 제어해야 하는 경우,
+    - 버텍스 셰이더에서 해당 텍스처 좌표를 계산하는 코드를 작성해야함
+  - 서브 셰이더(SubShader)는 여러개 있어도 되지만, 무조건 하나이상은 존재해야함
+    - 유니티에서는 셰이더를 로드해야할까, 서브 셰이더 블록을 스캔한 다음 플랫폼에서 실행할 첫번째 서브 셰이더를 선택함.
+    - 만약, 그 어떤 서브 셰이더라도 없을 경우 FallBack으로 지정된 셰이더를 사용함.
+    - 유니티에서 Fallback을 사용하는 이유는 기본적으로 그래픽카드마다 기능이 다르기때문에.
+  - SubShader블록에 정의된 것은 일반적으로 다음과 같은데
+    - Tags
+    - RenderSetup
+    - Pass{}
+  - _
+    - 서브 셰이더는 기본적으로 일련의 패스와 렌더 셋업 태그 설정을 함
+    - 각패스는 완전한 랜더링 프로세스를 정의하지만, 패스가 너무 많으면 랜더링 성능이 저하됨. 따라서 가능한 최소한의 패스를 사용해야함
+    - 서브셰이더의 경우 상태 및 태그도 패스에서 선언할 수 있음.
+  - 셰이더 랩은 이런 일련의 랜더링 상태 설정 명령을 제공하여, 블렌딩/뎁스 여부등의 다양한 상태를 설정할 수 있음
+    - Cull 컬링 모드 설정
+    - ZTest 심도 테스트 설정 시 사용되는 기능(그림자 그릴때 씀 그에 대해서 내가 쓴 글 링크)
+    - ZWrite 딥 라이팅 켜기/끄기
+    - Blend 블렝딩 모드 켜기 및 설정
+  - 위의 랜더링 상태가 서브셰이더 블록에 설정되면 나머지 모든 패스에 일괄적용됨. 이를 원하지 않을 경우, 패스 시멘틱 블록에서 별도로 설정가능함
+  - 서브셰이더는 기본적으로 태그는
+    - Key/Value Piar 로 이루어진 키와 문자열 유형임.
+    - 이러한 키와 밸류 페이너는 랜더링 엔진간의 일종의 통신 브리지임
+    - 태그의 기본 구조는 이러함
+    - Tags{"TagName1" = "Value1" "TagName'2" = "Value2"}
+    - 유니티가 지원하는 서브셰이더 태그 유형
+      - Queue -랜더링 순서 제어, 객체가 속하는 렌더링 대기열 지정
+      - RenderType - 셰이더 종류 분류
+      - DisableBatching - 일부 서브 셰이더에서 버텍스 애니메이션을 위해 공간 좌표 쓸때, 유니티의 일괄 처리기능 여부를 키고 끌수있음.
+      - ForceNoShadowCasting - 객체가 그림자를 투사할지
+      - IgnoreProjector -서브 셰이더를 사용하는 객체의 반투명 여부
+      - CanUseSpriteAtlas -서브 셰이더가 스프라이트에 사용되는 경우 False
+      - PreviewType - 패널에서 미리보기
+    - 패스 태그 유형
+      - LightMode Unity의 랜더링 파이프에서 이 패스 역할 정의
+      - RequireOptions 특정 조건 충족시 패스가 랜더링되도록 지정
+  - Fallback
+    - 모든 서브 셰이더가 이 그래픽 카드에서 실행되지 않을 경우 최하수준으로 실행되는 셰이더를 폴백이라고함
+    - 실제로 폴백은 그림자 투사에도 영향을 끼치고, 기본적으로 유니티 범용 패스가 포함되어있기때문에 직접 모든 패스를 구현할 필요가 없음.
+  - 셰이더 유형
+    - 기본적으로 표면 셰이더(SurfaceShader)는 서브 셰이더의 CGPROGRAM과 ENDCG사이에 정의됨
+    - 그 이유는 표면 셰이더를 사용할 때, 개발자가 사용할 패스 수, 각 패스가 랜더링 되는 방식에 대해서 생각할 필요가 없고, 이 작업을 유니티 엔진 차원에서 해줌
+    - CGPROGRAM과 ENDCG사이의 코드는 CG/HLSL을 사용하여 작성되는데, Cg/HLSL 언어는 셰이더 언어와 중복되서 쓸 수가 있음
+  - _
+    - Shader "Custom/Simple Surface Shader"{
+    - SubSHader{
+    - Tags{"RenderType"="Opaque"}
+    - CGPROGAM
+    - #pragma surface surf Lambert
+    - struct Input{
+    - float4 color : COLOR;
+    - };
+    - void surf(Input IN,inout SurfaceOutput o){
+    - o.Albedo = 1;
+    - }
+    - ENDCG
+    - }
+    - Fallback "Diffuse"
+    - }
+  - _
+    - Shader "Custom/Simple VertexFragment Shader"{
+    - SubShader{
+    - Pass{
+    - CGPROGRAM
+    - #progama vetex vert
+    - #pragma fragment frag
+    - float4 vert(float4 v : POSITION) : SV_POSITON{
+    - return mul(UNITY_MATRIX_MVP,v);
+    - }
+    - fixed4 frag() : SV_Target{
+    - return fixed4(1.0,0.0,0.0,1.0);
+    - }
+    - ENDCG
+    - }
+    - }
+    - }
+    - 버텍스/ 프래그먼트 셰이더 또한 CGPROGRAM과 ENDCG사이에 정의되야함
+    - 표면 셰이더와 차이점은 SubShader가 아닌 Pass 블록에서 작성된다는거
+  - 따라서 유니티 셰이더는 실제 셰이더가 아님.
+  - 전통적인 셰이더에서는 입력 출력을 하기 위해서 출력 위치 대응을 해야했지만, 유니티 셰이더에서는 특정 블록만 활성화하면됨.
+  - 유니티 셰이더는 모델에 제공되는 버텍스 위치, 텍스쳐 좌표, 노멀에 직접 접근할 수 있으므로 개발자는 셰이더에 데이터를 전달하기위한 추가 코딩이 필요 없음
+- 프로테제 효과
+- 셰이더 프로그래밍만 할거라면 굳이 유니티를 쓸 필요 없고 webgl 이나 shadertoy 사이트에서 공부하는 게 더 낫다? 네이티브 그래픽스 api 다루는 게 낫다?
+- 유니티 기본 lit 뜯어보기?
+- Learn to Write Unity Compute Shaders 유데미
+- ['캐니':](https://blog.naver.com/canny708/221547308831)
+- 아트 감성을 배워야 -> 단순 암기로 되는게 아님, 꾸준히 몇 년씩 그림그리고 해야
+- Game Feel, Juice
 - 14:44 Gusdnd_UI
-  - RETR0 강의 (쉐이더 & 렌더링 에센스)
+  - RETR0 강의 (셰이더 & 렌더링 에센스)
 - 14:45 RenderingPipleline 그래픽스 API
   - kblog.popekim/포프의 세이더 입문 강좌
   - 아르카도 -> 이펙트 공부 순서
@@ -101,7 +229,7 @@ last_modified_at: 2025-06-08. 20:18 # +메모
   - 렌더링 파이프라인
   - 포워드 파이프라인
   - 디퍼드 "
-  - 컴퓨트 쉐이더, 버퍼
+  - 컴퓨트 셰이더, 버퍼
   - 그외
   - Distortion
   - GLSL -> ?
