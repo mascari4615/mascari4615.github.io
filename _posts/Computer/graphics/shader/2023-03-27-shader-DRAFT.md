@@ -19,7 +19,7 @@ date: 2023-03-27. 13:27
 # last_modified_at: 2025-05-28. 05:53 # +메모 from career-learning
 # last_modified_at: 2025-05-28. 20:09 # +메모 from CG
 # last_modified_at: 2025-06-08. 20:18 # +메모
-last_modified_at: 2025-06-09. 21:00 # +메모
+last_modified_at: 2025-06-09. 21:00 # ~메모
 ---
 
 ## Shader
@@ -54,22 +54,10 @@ last_modified_at: 2025-06-09. 21:00 # +메모
 
 ---
 
-- <https://youtu.be/LQPBRsgsoJ0>
 - 색
   - <https://colorpalettes.net/>
   - <https://coolors.co/ef476f-ffd166-06d6a0-118ab2-073b4c>
   - <https://mycolor.space/?hex=%23845EC2&sub=1#AB372E&sub=1>
-- TA
-  - <https://blog.nexon.com/post/2321256>
-- <https://blog.popekim.com/ko/tags/shader-book/>
-- 린반, 에반 (언리언), 쿠파 (유니티)
-- <https://gamefx.co.kr/bbs/board.php?bo_table=ik>
-- <https://gamefx.co.kr/bbs/page.php?hid=Kupa_intro>
-- 비리비리 중국 ASE (엠플리파이 셰이더)
-- Book of Shader
-  - 깊은 그래픽스보다는, 원하는 셰이더를 어떻게 만들것인가
-  - 셰이더 잘한다 -> 셰이더를 어떻게 원하는 모양으로 만들까
-  - 수학적 공식을 써서 패턴을 만드느냐는 이미 많은 사람들이 정리해뒀기때문에, 그 패턴을 알아야함
 - 유니티 셰이더 생성 5가지 유형
   - StandardSurfaceShader: 기본 조명 모델을 포함하는 표면 셰이더 템플릿을 생성
   - UnlitShader: 조명 없이, 그러나 FOG를 포함하는 기본 버텍스,프래그먼트 셰이더를 생성함
@@ -175,66 +163,6 @@ last_modified_at: 2025-06-09. 21:00 # +메모
   - 전통적인 셰이더에서는 입력 출력을 하기 위해서 출력 위치 대응을 해야했지만, 유니티 셰이더에서는 특정 블록만 활성화하면됨.
   - 유니티 셰이더는 모델에 제공되는 버텍스 위치, 텍스쳐 좌표, 노멀에 직접 접근할 수 있으므로 개발자는 셰이더에 데이터를 전달하기위한 추가 코딩이 필요 없음
 - 프로테제 효과
-- 셰이더 프로그래밍만 할거라면 굳이 유니티를 쓸 필요 없고 webgl 이나 shadertoy 사이트에서 공부하는 게 더 낫다? 네이티브 그래픽스 api 다루는 게 낫다?
-- 유니티 기본 lit 뜯어보기?
-- Learn to Write Unity Compute Shaders 유데미
-- ['캐니':](https://blog.naver.com/canny708/221547308831)
-- 아트 감성을 배워야 -> 단순 암기로 되는게 아님, 꾸준히 몇 년씩 그림그리고 해야
-- Game Feel, Juice
-- 14:44 Gusdnd_UI
-  - RETR0 강의 (셰이더 & 렌더링 에센스)
-- 14:45 RenderingPipleline 그래픽스 API
-  - kblog.popekim/포프의 세이더 입문 강좌
-  - 아르카도 -> 이펙트 공부 순서
-- 14:47 shader
-  - 그래픽 기초이론
-  - 컬러 - 숫자
-  - 비트
-  - 텍스처와 rgb채널
-  - 상수-변수
-  - 리니어-감마
-  - 사칙연산-항등원
-  - 컬러 -> 값 변형
-  - UV
-  - 밉맵
-  - 벡터
-  - 벡터 연산
-  - 선형보간 lerp
-  - 분기
-  - 라이팅 모델
-  - 디퓨즈(램버트?)
-- 14:47 프레넬
-  - 스펙큘러(퐁)
-  - 스펙큘러(블린-퐁)
-  - 디퓨즈(오렌-네이어)
-  - 라이팅심화
-  - 탄젠트 노멀 매핑
-  - 큐브맵 리플렉션
-  - 실시간 그림자
-  - 에디셔널 라이트
-- 14:48 fake PBR
-  - PBR 물리기반렌더링
-  - fakePBR (디퓨즈)
-- 14:48 fakePBR(스펙큘러)
-- 14:48 GGX 스펙큘러
-- 14:50 NPR (Non-Photorealistic)
-  - NPR
-  - NPR-Floor
-  - " step/comparison
-  - " smoothStep
-  - "ramp
-  - " Matcap
-  - " 그림자 커스텀
-  - " 외곽선
-  - 렌더링 파이프라인
-  - 포워드 파이프라인
-  - 디퍼드 "
-  - 컴퓨트 셰이더, 버퍼
-  - 그외
-  - Distortion
-  - GLSL -> ?
-  - random 함수 있음
-  - The Book of shaders
 
 ## 메모
 
