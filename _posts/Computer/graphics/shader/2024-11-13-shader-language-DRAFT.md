@@ -8,7 +8,8 @@ hidden: true
 
 date: 2024-11-13. 06:42 # Init
 # last_modified_at: 2025-05-28. 05:57 # +Surface Shader
-last_modified_at: 2025-05-28. 20:38 # +Shader Graph, +정리: from CG
+# last_modified_at: 2025-05-28. 20:38 # +Shader Graph, +정리: from CG
+last_modified_at: 2025-06-10. 23:11 # ~정리
 ---
 
 ## 언어
@@ -75,26 +76,17 @@ Built-In only. 아티스트 단계
 스탠다스 서피스 셰이더는 유니티 5부터 기본으로 적용된 셰이더 형태  
 하지만 물리 기반 셰이더 라이트이기 때문에 모바일과 같은 저사양 기기에서 구동하기에는 다소 무거운 것이 사실
 
-#### Surface Shader_
+_
 
- 1. 설정 부분
+설정 부분
 전처리라고 할 수도 있고 스니핏(snippet)이라고 부르기도 합니다.
  이 부분은 말 그대로 셰이더의 조명계산 설정이나, 기타 세부적이 분기를 정해주는 부분입니다.
 
- float의 1/2 크기가 half
-half보다 더 작은 크기가 fixed
-
-컬러나 벡터 길이는 fixed로 충분
-범위나 정밀도가 필요한 것은 half
-나머지는 float을 사용하는 것이 좋습니다.
-
-실제로 Nvidia 쪽 GPU의 경우에는 half로 할 때 연산수가 2배로 빨라집니다. 그렇지만 그렇다고 float 정도로 정밀할 필요가 있는 데이터를 half로 바꾼다면 잘못된 결과가 나올 수 있겠죠?
  ★ Albedo는 빛을 받는다는 의미가 아닙니다. Diffuse와 동일하게 생각하면 곤란합니다.
  ★ 3ds Max에서 셀프 일루미네이션 (Self-illumination) 이라고 부르는 '자기 발광' 기능이 바로 Emission입니다
  ★ o.Albedo와 o.Emission의 값은 최종적으로 서로 더해집니다. 즉, 둘을 모두 쓰면 필연적으로 밝아집니다.
  Albedo > 조명 연산을 추가로 받게 되고, Emission 조명 연산을 받지 않아서
 '조명과 상관없는 순수한 색상' 만이 출력 > 순수한 결과물을 보고 싶을 때는 Emission을 즐겨서 사용
- 1보다 밝은 색이 있고, 0보다 어두운 색이 있어서 그것이 존재하고 계산되는 상태를 HDR (High Dynamic Range)
  float4.rgb => rgb만 쓰겠다, 자동 형변환 느낌인듯?
  float.rgb
 float.grb

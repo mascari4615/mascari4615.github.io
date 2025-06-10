@@ -1,13 +1,12 @@
 ---
-title: "RGB"
+title: "색"
 # description: ""
 categories: [컴퓨터, 그래픽]
 tags: []
 image: "/assets/img/background/kururu-lab.jpg"
-hidden: true
 
-date: 2024-11-13. 06:37
-last_modified_at: 2024-11-13. 06:37 # Init
+date: 2024-11-13. 06:37 # Init
+last_modified_at: 2025-06-10. 23:06 # 네이밍: RGB -> Color, +HDR:, +메모: 관련 링크
 ---
 
 ## 머리말
@@ -96,9 +95,26 @@ RGB는 합쳐 놓으면 컬러로 보이지만 따로따로 놓으면 흑백으�
 
 - 참고로 마인크래프트의 `휘몰아치는 칼날`은 `Sweeping`이다.  
 
+## HDR
+
+---
+
+High Dynamic Range  
+1보다 밝은 색, 0보다 어두운 색이 존재하고 계산되는 상태  
+
+유니티:  
+\[ColorUsage(true,true)\] 어트리뷰트로 color 변수 컬러피커 HDR 가능  
+
 ## 메모
 
 ---
+
+- <https://colorpalettes.net/>
+- <https://coolors.co/ef476f-ffd166-06d6a0-118ab2-073b4c>
+- <https://mycolor.space/?hex=%23845EC2&sub=1#AB372E&sub=1>
+- [ColorBlind ColorFilter](https://www.toptal.com/designers/colorfilter)
+- [Adobe Color](https://color.adobe.com/ko/create/color-wheel)
+- [컬러 팔레뜨](https://lospec.com/palette-list)
 
 ### 참고
 

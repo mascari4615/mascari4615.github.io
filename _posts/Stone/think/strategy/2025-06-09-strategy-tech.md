@@ -1,6 +1,6 @@
 ---
-title: "250609 전략 - 아트"
-description: "아트를 배우자"
+title: "250609 전략 - 테크"
+description: "테크를 배우자"
 categories: [수필, 생각]
 tags: [Strategy]
 image: "/assets/img/background/backtop.gif"
@@ -13,11 +13,23 @@ date: 2025-06-09. 21:36 # Init: from shader, effect, ref-idea, gwan
 
 ---
 
-아트를 배우자.  
+테크를 배우자.  
 
 ## 아트
 
+---
+
 - 아트 감성을 배워야 -> 단순 암기로 되는게 아님, 꾸준히 몇 년씩 그림그리고 해야
+
+## 툴
+
+---
+
+### 유니티
+
+#### 렌더 파이프라인
+
+#### 6
 
 ## TA
 
@@ -31,11 +43,17 @@ date: 2025-06-09. 21:36 # Init: from shader, effect, ref-idea, gwan
   - 유니티 셰이더 코드
   - 파티클 시스템
   - 포토샵
+- Reflection, CubeMap, Reflection Probe, MatCap
+- Code VS Graph
+  - 그래프만 쓸 수 있는가? 코드 안쓰나?
+  - 그래도 코드로 기초 때고 하는게 좋나?
+  - 그래프가 좋나?
 
 #### 이론
 
 - 그래픽스 API
 - **그래픽스 기초 이론**
+  - 렌더링 파이프라인
   - 컬러 - 숫자
   - 비트
   - 텍스처와 rgb채널
@@ -138,7 +156,7 @@ VFX를 만들기 위한 과정.
 - 렌더링 파이프라인
   - 포워드 파이프라인, 디퍼드 ", 컴퓨트 셰이더, 버퍼
 - 그 외
-  - Distortion, GLSL, random
+  - Distortion, GLSL, random, 컴퓨트 셰이더 (한별님 응원봉?)
 
 ## 텍스쳐
 
@@ -223,14 +241,6 @@ VFX를 만들기 위한 과정.
 ## 애니메이션
 
 ---
-
-## 색
-
----
-
-- [ColorBlind ColorFilter](https://www.toptal.com/designers/colorfilter)
-- [Adobe Color](https://color.adobe.com/ko/create/color-wheel)
-- [컬러 팔레뜨](https://lospec.com/palette-list)
 
 ## 에셋
 
@@ -407,11 +417,9 @@ VFX를 만들기 위한 과정.
 - Unity Vertex Animation Texture ?
 - VFX GPU, Particle CPU
 - UI Effect Github
+- 프로테제 효과
 
 ### 키워드
-
-- 그래픽스 API
-- 렌더링 파이프라인
 
 ### 역사
 
@@ -424,3 +432,5 @@ last_modified_at: 2025-06-08. 20:18 # +메모
 
 2025-06-09. 22:21: 글 확장,  
 `2024-11-13-effect-DRAFT: Effect`.
+
+### 기록

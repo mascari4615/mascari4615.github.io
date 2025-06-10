@@ -7,7 +7,8 @@ image: "/assets/img/background/kururu-lab.jpg"
 hidden: true
 
 date: 2025-03-15. 10:03 # Init
-last_modified_at: 2025-05-27. 05:55 # +메모: 참고
+# last_modified_at: 2025-05-27. 05:55 # +메모: 참고
+last_modified_at: 2025-06-10. 22:24 # +메모: 참고
 ---
 
 ## 머리말
@@ -96,5 +97,9 @@ urp의 경우 베이크가 굳이 드라마틱한 차이가 없다고 생각 맵
 
 ### 참고
 
-- ['X, 도비': SECOND FAVORITE 광고맵](https://x.com/dobi_vrc/status/1926831238414827950)
-- ['X, IGNKKT':](https://x.com/InganEunKKeut/status/1925200291085136071)
+- ['x, 서란':](https://x.com/Seoran0715/status/1845077714279202891)
+- ['x, 도비': SECOND FAVORITE 광고맵](https://x.com/dobi_vrc/status/1926831238414827950)
+- ['x, IGNKKT':](https://x.com/InganEunKKeut/status/1925200291085136071)
+- ['x, Tatsuya':](https://x.com/TatsuyaBot/status/1894225734375555257)
+- ['x, _': 조명이 이쁘다](https://x.com/CupitanVR/status/1865716497563427186)
+- ['x, _': 초입방체 (테서렉트)](https://x.com/hamptonism/status/1891263459557281802)
