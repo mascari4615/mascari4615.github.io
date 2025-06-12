@@ -85,7 +85,7 @@
 - [자연어](https://gall.dcinside.com/mgallery/board/view/?id=github&no=42311&exception_mode=recommend&page=1)
 - [PolyglotGameDev - 게임/게임개발 관련 용어 다국어 번역 시트](https://docs.google.com/spreadsheets/d/17f0dQawb-s_Fd7DHgmVvJoEGDMH_yoSd8EYigrb0zmM/edit#gid=296134756)
 - [레벨 디자인](https://docs.google.com/document/d/1fAlf2MwEFTwePwzbP3try1H0aYa9kpVBHPBkyIq-caY/edit)
-- [유용한 게임 기능 코드 모음](https://austinhenley.com/blog/usefulfunctions.html)
+- [유용한 게임 기능 코드 모음](https://austinhenley.com/blog/usefulfu1nctions.html)
 - [리오레2 팬 모드](https://gall.dcinside.com/mgallery/board/view/?id=riskofrain2&no=20125&exception_mode=recommend&page=1)
 - [기술블로그 딜레이에도 적절히 작동하는 리듬게임 채점 구현](https://mustardy.tistory.com/5)  
 - [엘든링 디자인](https://www.gamedeveloper.com/blogs/narrative-design-in-elden-ring)
@@ -1243,3 +1243,44 @@ Drawing Pac-Man With a Piano (Live MIDI Art)
 - 키바님 셰이더 <https://x.com/kjh030529/status/1930397637955727364>
 - 이해 <https://x.com/mandumukjja/status/1930864922147311686>
 - 1대다 브챗 게임 맵 <https://x.com/candy_k_banana/status/1930925111265096020>
+
+DOTween Ease 대신 Animation Curve 사용 가능. 그냥 SetEase에 AnimationCurve 넣으면 됨. 오버로딩  
+카드 Foil  
+잠시 나타났다 사라지는 존재 -> 플레이어? 세계 진입  
+느슨한 세계 설계 -> WM 상황은 캐릭터 중심, 이게 맞는 듯  
+꼼꼼한 세계 설계 -> 물론 다 스펙트럼 상의 한 지점에  
+
+공간에 얽매인 존재, 가문과 모토  
+
+수확체감의 법칙  
+인물/사건 증가하다가 감소  
+배경/세계 지수 함수  
+
+큰 맥락을 먼저  
+
+각 프로퍼티는 PropertyView (Editor)  
+늘 폭풍이 치는 세계  
+이미지 관련 문제 강의 19  
+지원하지 않는 파일에 대한 인스펙터 (Default Asset)  
+Shader GUI  
+Shader.SetGlobalVector("","") with ExecuteInEditMode
+
+Unity 기본 셰이더/에디터 탐구  
+
+win cnt shaderGUI  
+
+개인팀플 github  
+회사 gitlab tortoise-git
+
+프로퍼티 드로어  
+
+작업하면서 알려주게 되는 것들 그냥 글로 써도 될 듯  
+
+키링 필통에 달까. 필통 정리도 필요할 듯  
+GUI Label 등  
+
+영웅의 여정 12단계  
+인문 사건 배경  
+빙산의 일각  
+모두가 아는 것처럼 언급하는 태도 -> 상상력을 자극  
+뿌리가 약하는 나무는 죽는다. 땅 밖으로 나오면 나무는 죽는다  

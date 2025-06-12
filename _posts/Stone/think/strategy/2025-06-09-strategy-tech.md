@@ -6,7 +6,7 @@ tags: [Strategy]
 image: "/assets/img/background/backtop.gif"
 
 date: 2025-06-09. 21:36 # Init: from shader, effect, ref-idea, gwan
-# last_modified_at: 2025-06-09. 21:36
+last_modified_at: 2025-06-13. 00:29 # +공부 링크
 ---
 
 ## 머리말
@@ -33,6 +33,20 @@ date: 2025-06-09. 21:36 # Init: from shader, effect, ref-idea, gwan
 
 ## TA
 
+---
+
+- [아르카도: 유니티로 배우는 3D 게임 이펙트 디자인](https://class101.net/ko/products/5f4b07c90c9c31008c937785)
+- [Learn to Write Unity Compute Shaders](https://www.udemy.com/course/compute-shaders/?couponCode=PMNVD2525)
+- [Learn Unity Shaders from Scratch](https://www.udemy.com/course/learn-unity-shaders-from-scratch/?couponCode=PMNVD2525)
+- [Shader Development from Scratch with Cg - Unity 6 Compatible](https://www.udemy.com/course/unity-shaders/?couponCode=PMNVD2525)
+- [고라니 셰이더 노드](https://www.youtube.com/watch?v=KnueAgpUL3Y)
+- [레트로 셰이더&렌더링 에센스](https://www.youtube.com/playlist?list=PLctzObGsrjfyWa2CaxGtxsLD-W5zYC2JJ)
+- [Catlike Coding](https://catlikecoding.com/unity/tutorials/)
+- [Visual Case Studies](https://www.youtube.com/playlist?list=PLJ4rOFLQFH4C0zPBu-fgFKMvrHadY6dhm)
+- [Alan Zucconi](https://www.alanzucconi.com/category/shader/)
+- [Shaders Laboratory](https://www.youtube.com/@shaderslaboratory8437/videos)
+- [URP recipe: Compute shaders](https://learn.unity.com/tutorial/urp-recipe-compute-shaders#)
+
 - <https://blog.nexon.com/post/2321256>
 - Game Feel, Juice
 
@@ -44,10 +58,6 @@ date: 2025-06-09. 21:36 # Init: from shader, effect, ref-idea, gwan
   - 파티클 시스템
   - 포토샵
 - Reflection, CubeMap, Reflection Probe, MatCap
-- Code VS Graph
-  - 그래프만 쓸 수 있는가? 코드 안쓰나?
-  - 그래도 코드로 기초 때고 하는게 좋나?
-  - 그래프가 좋나?
 
 이론, 별개로 만드는 것이 필요.  
 레퍼런스, 벤치마킹 하나 정해서 쭉 따라 만들 것.  
