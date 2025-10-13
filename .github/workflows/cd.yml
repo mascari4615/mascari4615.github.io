@@ -2,29 +2,28 @@ name: CD
 
 on:
   push:
-    branches:
-      - production
-    tags-ignore:
-      - "**"
+    branches: [production]
+    tags-ignore: ["**"]
 
 jobs:
   release:
+    if: ${{ ! startsWith(github.event.head_commit.message, 'chore(release)') }}
     permissions:
       contents: write
       issues: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3
           bundler-cache: true
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: latest
+          node-version: lts/*
 
       - run: npm install
       - run: npx semantic-release
