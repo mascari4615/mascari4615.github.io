@@ -9,7 +9,7 @@
 import { Message, DMChannel, TextChannel } from 'discord.js';
 import { generateAssistantText } from 'karmolab-ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
-import type { CharacterService, CharacterCard } from '../services/character-service';
+import { CharacterService, type CharacterCard } from '../services/character-service';
 
 const MAX_RESPONSE_LENGTH = 1900;
 const MAX_PROMPT_CHARS = parseInt(process.env.ASSISTANT_MAX_PROMPT_CHARS || '12000', 10);
@@ -110,8 +110,7 @@ export async function handleAssistantMessage(
   if (!userContent) return;
 
   // 채널/DM 단위 활성 캐릭터 해석
-  const { CharacterService: CS } = await import('../services/character-service');
-  const channelKey = CS.channelKey({
+  const channelKey = CharacterService.channelKey({
     isDM,
     userId: message.author.id,
     channelId: message.channel.id,
