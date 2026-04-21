@@ -167,8 +167,13 @@ export class MemoryService {
     // 기존 핫메모리 라인과 내용이 유사하면 스킵
     const existingLines = existing.split('\n').filter((l) => /^- \[/.test(l));
     const factNorm = fact.toLowerCase().trim();
+    if (factNorm.length < 2) {
+      console.log(`[Memory:${this.slug}] Hot memory 빈 내용 스킵`);
+      return;
+    }
     const isDuplicate = existingLines.some((line) => {
       const lineContent = line.replace(/^- \[\d{4}-\d{2}-\d{2}\]\s*/, '').toLowerCase().trim();
+      if (lineContent.length < 2) return false;
       return lineContent.includes(factNorm) || factNorm.includes(lineContent);
     });
 
@@ -424,7 +429,8 @@ export class MemoryService {
     const optional: string[] = [];
 
     // 오늘 로그: 최근 N개만
-    const recentLogEntries = parseInt(process.env.ASSISTANT_RECENT_LOG_ENTRIES || '30', 10);
+    const parsed = parseInt(process.env.ASSISTANT_RECENT_LOG_ENTRIES || '', 10);
+    const recentLogEntries = Number.isFinite(parsed) ? Math.min(200, Math.max(1, parsed)) : 30;
     const todayLog = this._getRecentLog(recentLogEntries);
     if (todayLog) optional.push(`[오늘 대화 기록]\n${todayLog}`);
 

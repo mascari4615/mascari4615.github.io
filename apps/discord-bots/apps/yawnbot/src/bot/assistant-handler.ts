@@ -195,13 +195,20 @@ export async function handleAssistantMessage(
     ? userContent
     : buildFullPrompt(card, memory, channelType, userContent);
   const promptSize = Buffer.byteLength(fullPrompt, 'utf-8');
-  console.log(
-    `[Assistant:${card.slug}] 프롬프트 준비 완료: ${promptSize}바이트, ${fullPrompt.length}자 (빌드 소요: ${Date.now() - startTime}ms)`,
-  );
-
   const history = isGemini ? getHistory(card.slug) : undefined;
-  if (history) {
-    console.log(`[Assistant:${card.slug}] 히스토리: ${history.length / 2}턴`);
+
+  if (isGemini && systemInstruction != null) {
+    const sysSize = Buffer.byteLength(systemInstruction, 'utf-8');
+    const histSize = history
+      ? history.reduce((sum, e) => sum + Buffer.byteLength(JSON.stringify(e), 'utf-8'), 0)
+      : 0;
+    console.log(
+      `[Assistant:${card.slug}] 프롬프트 준비 완료: 메시지 ${promptSize}B / systemInstruction ${sysSize}B / history ${histSize}B / 합계 ${promptSize + sysSize + histSize}B / 히스토리 ${(history?.length ?? 0) / 2}턴 (빌드 소요: ${Date.now() - startTime}ms)`,
+    );
+  } else {
+    console.log(
+      `[Assistant:${card.slug}] 프롬프트 준비 완료: ${promptSize}바이트, ${fullPrompt.length}자 (빌드 소요: ${Date.now() - startTime}ms)`,
+    );
   }
 
   try {

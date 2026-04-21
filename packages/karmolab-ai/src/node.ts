@@ -371,7 +371,13 @@ export async function generateAssistantText(
     return { text, provider: 'claude-cli' };
   }
 
-  if (opts.history && opts.history.length > 0) {
+  if (opts.systemInstruction || (opts.history && opts.history.length > 0)) {
+    const surface = parseGenerativeSurfaceFromEnv(env);
+    if (surface === 'vertex') {
+      console.warn('[karmolab-ai] Vertex는 chat history를 지원하지 않아 single-turn으로 fallback합니다.');
+      const { text } = await generateBlobTextFromEnvWithOptions(env, prompt, { surface: 'vertex' });
+      return { text, provider: 'gemini' };
+    }
     const apiKey = env.GEMINI_API_KEY?.trim();
     if (!apiKey) throw new Error('AI Studio API: .env에 GEMINI_API_KEY가 필요합니다.');
     const modelId = resolveAiStudioTextModelId(env.GEMINI_MODEL);
@@ -379,7 +385,7 @@ export async function generateAssistantText(
       apiKey,
       modelId,
       systemInstruction: opts.systemInstruction,
-      history: opts.history,
+      history: opts.history ?? [],
       message: prompt,
     });
     return { text, provider: 'gemini' };
