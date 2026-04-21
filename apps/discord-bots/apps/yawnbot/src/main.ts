@@ -245,6 +245,7 @@ process.on('SIGINT', () => {
   stopProactive();
   stock.stopMarket();
   gameData.destroy();
+  characterService?.commitIfDirty();
   shutdownMemory();
   destroyAllMusicPlayers();
   destroyAllVoiceConnections();
@@ -258,6 +259,7 @@ process.on('SIGTERM', () => {
   stopProactive();
   stock.stopMarket();
   gameData.destroy();
+  characterService?.commitIfDirty();
   shutdownMemory();
   destroyAllMusicPlayers();
   destroyAllVoiceConnections();
