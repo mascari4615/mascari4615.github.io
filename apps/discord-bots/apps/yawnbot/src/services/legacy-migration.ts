@@ -10,6 +10,9 @@
  *
  * 원본은 assistant/.legacy/{logs,memory}/ 로 rename 되어 보존된다.
  * 이관 완료 후 memo 레포에서 git add + commit (push 없음).
+ *
+ * 크래시 복구: 복사 시작 전 .migration-in-progress 마커를 쓰고, rename 완료 후 삭제.
+ * 재시작 시 마커가 있으면 복사(idempotent)·rename 을 재시도한다.
  */
 import fs from 'fs';
 import path from 'path';
@@ -48,6 +51,7 @@ export function migrateLegacyAssistant(
 ): MigrationResult {
   const assistantDir = path.join(memoRepoPath, 'assistant');
   const legacyDir = path.join(assistantDir, '.legacy');
+  const inProgressMarker = path.join(assistantDir, '.migration-in-progress');
   const legacyLogsSrc = path.join(assistantDir, 'logs');
   const legacyMemorySrc = path.join(assistantDir, 'memory');
   const targetMemoryDir = path.join(
@@ -57,7 +61,12 @@ export function migrateLegacyAssistant(
     'memory',
   );
 
+  // rename 까지 완료된 경우 → 이미 이관 완료
   if (fs.existsSync(legacyDir)) {
+    if (fs.existsSync(inProgressMarker)) {
+      // 마커만 남은 경우 정리
+      try { fs.unlinkSync(inProgressMarker); } catch {}
+    }
     return {
       migrated: false,
       filesCopied: 0,
@@ -68,7 +77,9 @@ export function migrateLegacyAssistant(
 
   const hasLogs = fs.existsSync(legacyLogsSrc);
   const hasMemory = fs.existsSync(legacyMemorySrc);
-  if (!hasLogs && !hasMemory) {
+  const isRecovery = fs.existsSync(inProgressMarker);
+
+  if (!hasLogs && !hasMemory && !isRecovery) {
     return {
       migrated: false,
       filesCopied: 0,
@@ -77,11 +88,20 @@ export function migrateLegacyAssistant(
     };
   }
 
-  console.log(
-    `[Migration] assistant/ → characters/${targetSlug}/memory/ 이관 시작...`,
-  );
+  if (isRecovery) {
+    console.log('[Migration] 이전 이관 중단 감지, 복구 재시도...');
+  } else {
+    console.log(
+      `[Migration] assistant/ → characters/${targetSlug}/memory/ 이관 시작...`,
+    );
+  }
+
   fs.mkdirSync(targetMemoryDir, { recursive: true });
 
+  // 복사 시작 전 마커 기록 (crash recovery 기준점)
+  fs.writeFileSync(inProgressMarker, new Date().toISOString(), 'utf-8');
+
+  // 복사 (idempotent: 이미 존재하는 파일은 건너뜀)
   let filesCopied = 0;
   if (hasLogs) {
     filesCopied += copyDirRecursive(
@@ -93,13 +113,13 @@ export function migrateLegacyAssistant(
     filesCopied += copyDirRecursive(legacyMemorySrc, targetMemoryDir);
   }
 
-  // 원본 백업(.legacy/)
+  // 원본 백업(.legacy/): 복사 완료 후 rename
   fs.mkdirSync(legacyDir, { recursive: true });
   try {
-    if (hasLogs) {
+    if (hasLogs && fs.existsSync(legacyLogsSrc)) {
       fs.renameSync(legacyLogsSrc, path.join(legacyDir, 'logs'));
     }
-    if (hasMemory) {
+    if (hasMemory && fs.existsSync(legacyMemorySrc)) {
       fs.renameSync(legacyMemorySrc, path.join(legacyDir, 'memory'));
     }
   } catch (e: unknown) {
@@ -108,6 +128,9 @@ export function migrateLegacyAssistant(
       e instanceof Error ? e.message : e,
     );
   }
+
+  // rename 완료 후 마커 제거
+  try { fs.unlinkSync(inProgressMarker); } catch {}
 
   // git commit
   try {
