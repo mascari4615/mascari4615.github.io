@@ -390,8 +390,30 @@ export class MemoryService {
   // ── 컨텍스트 빌드 ─────────────────────────────────────────────────────────
 
   /**
+   * 오늘 로그에서 최근 maxEntries개 메시지 라인만 추출.
+   * 로그 전체가 수십 KB여도 컨텍스트 예산 초과 없이 최신 대화를 포함할 수 있다.
+   */
+  private _getRecentLog(maxEntries: number = 30): string {
+    const filePath = path.join(this.logsDir, `${kstDateStr()}.md`);
+    if (!fs.existsSync(filePath)) return '';
+    try {
+      const lines = fs.readFileSync(filePath, 'utf-8').split('\n');
+      const entryLines = lines.filter((l) => /^\[\d{2}:\d{2}/.test(l.trim()));
+      if (entryLines.length === 0) return '';
+      const recent = entryLines.slice(-maxEntries);
+      const truncated = entryLines.length > maxEntries;
+      const header = truncated
+        ? `# ${kstDateStr()} 대화 로그 (최근 ${recent.length}개 / 전체 ${entryLines.length}개)`
+        : `# ${kstDateStr()} 대화 로그`;
+      return `${header}\n\n${recent.join('\n')}`;
+    } catch {
+      return '';
+    }
+  }
+
+  /**
    * 시스템 프롬프트(card.md 본문)는 이 함수가 포함하지 않는다 — 호출자가 앞에 붙인다.
-   * 여기선 user.md / self.md / 주간·어제 요약 / 오늘 로그만 반환.
+   * 여기선 user.md / self.md / 주간·어제 요약 / 오늘 로그(최근 N개)만 반환.
    */
   buildContext(maxChars = 8000): string {
     const fixed: string[] = [];
@@ -404,7 +426,9 @@ export class MemoryService {
 
     const optional: string[] = [];
 
-    const todayLog = this._read(path.join(this.logsDir, `${kstDateStr()}.md`));
+    // 오늘 로그는 전체가 아닌 최근 N개만 — 로그가 아무리 커도 컨텍스트를 초과하지 않는다
+    const recentLogEntries = parseInt(process.env.ASSISTANT_RECENT_LOG_ENTRIES || '30', 10);
+    const todayLog = this._getRecentLog(recentLogEntries);
     if (todayLog) optional.push(`[오늘 대화 기록]\n${todayLog}`);
 
     const yesterdaySummary = this._read(
