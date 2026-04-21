@@ -8,6 +8,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 export interface CharacterCard {
   slug: string;
@@ -48,12 +49,16 @@ function parseFrontmatter(raw: string): { data: Record<string, string>; body: st
 }
 
 export class CharacterService {
+  // 경로 순회 공격 방지: 소문자·숫자·-·_ 조합, 첫 글자는 알파벳/숫자
+  private static readonly SLUG_RE = /^[a-z0-9][a-z0-9_-]*$/;
+
   private memoRepoPath: string;
   private charactersDir: string;
   private activeConfigPath: string;
   private cardCache = new Map<string, CharacterCard>();
   private activeCache: ActiveConfig | null = null;
   private fallbackDefault: string;
+  private dirty = false;
 
   constructor(memoRepoPath: string, fallbackDefault: string = 'yawn') {
     this.memoRepoPath = memoRepoPath;
@@ -76,6 +81,16 @@ export class CharacterService {
     );
   }
 
+  // ── 슬러그 유효성 검사 ──────────────────────────────────
+
+  private static assertSlug(slug: string): void {
+    if (!CharacterService.SLUG_RE.test(slug)) {
+      throw new Error(
+        `유효하지 않은 슬러그: "${slug}" (소문자·숫자·-·_ 조합, 알파벳/숫자로 시작)`,
+      );
+    }
+  }
+
   // ── 카드 로드 ────────────────────────────────────────────
 
   loadCard(slug: string): CharacterCard | null {
@@ -91,6 +106,7 @@ export class CharacterService {
   }
 
   private _readCard(slug: string): CharacterCard | null {
+    CharacterService.assertSlug(slug);
     const dir = path.join(this.charactersDir, slug);
     const cardPath = path.join(dir, 'card.md');
     if (!fs.existsSync(cardPath)) return null;
@@ -166,11 +182,39 @@ export class CharacterService {
 
   private _writeActive(cfg: ActiveConfig): void {
     this.activeCache = cfg;
+    this.dirty = true;
     fs.writeFileSync(
       this.activeConfigPath,
       JSON.stringify(cfg, null, 2) + '\n',
       'utf-8',
     );
+  }
+
+  /**
+   * 채널 전환 등으로 .active.json 이 변경됐으면 git commit.
+   * main.ts SIGINT 핸들러에서 호출.
+   */
+  commitIfDirty(): void {
+    if (!this.dirty) return;
+    try {
+      execSync(
+        `git -C "${this.memoRepoPath}" add characters/.active.json`,
+        { stdio: 'pipe' },
+      );
+      execSync(
+        `git -C "${this.memoRepoPath}" commit -m "chore: .active.json 채널-캐릭터 매핑 업데이트"`,
+        { stdio: 'pipe' },
+      );
+      this.dirty = false;
+      console.log('[Character] .active.json 변경 사항 커밋 완료');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes('nothing to commit')) {
+        this.dirty = false;
+      } else {
+        console.warn('[Character] .active.json commit 실패:', msg);
+      }
+    }
   }
 
   getDefaultSlug(): string {
@@ -189,12 +233,14 @@ export class CharacterService {
   }
 
   setChannelSlug(channelKey: string, slug: string): void {
+    CharacterService.assertSlug(slug);
     if (!this.loadCard(slug)) {
-      throw new Error(`캐릭터를 찾을 수 없음: ${slug}`);
+      const available = this.listCharacters().join(', ') || '없음';
+      throw new Error(`캐릭터를 찾을 수 없음: ${slug} (사용 가능: ${available})`);
     }
     const cfg = this._readActive();
     cfg.channels = { ...cfg.channels, [channelKey]: slug };
-    // switch 시 카드 편집 반영 (CLAUDE-karmoddrine.md: 캐시 무효화 타이밍)
+    // switch 시 카드 편집 반영 (캐시 무효화)
     this.reloadCard(slug);
     this._writeActive(cfg);
   }
