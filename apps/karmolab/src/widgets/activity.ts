@@ -162,6 +162,32 @@
       .replace(/'/g, '&#39;');
   }
 
+  /// KST 기준 시각 epoch → hour (0~23) + dow (0=월, 6=일).
+  function kstHourAndDowMon0(epochSec: number): { hour: number; dowMon0: number } {
+    const dt = new Date((epochSec + KST_OFFSET_SECS) * 1000);
+    const hour = dt.getUTCHours();
+    const utcDow = dt.getUTCDay();
+    const dowMon0 = utcDow === 0 ? 6 : utcDow - 1;
+    return { hour, dowMon0 };
+  }
+
+  /// active 샘플을 7행(월~일) × 24열(0시~23시) 매트릭스로 누적 (단위: 초).
+  /// idle 샘플은 제외 — "내가 실제로 활동한 시간대" 패턴 시각화가 목적.
+  function buildHeatmapMatrix(samples: ActivitySample[]): {
+    matrix: number[][];
+    max: number;
+  } {
+    const matrix: number[][] = Array.from({ length: 7 }, () => new Array<number>(24).fill(0));
+    let max = 0;
+    for (const s of samples) {
+      if (s.idle) continue;
+      const { hour, dowMon0 } = kstHourAndDowMon0(s.ts);
+      const v = (matrix[dowMon0][hour] += SAMPLE_INTERVAL_SECS);
+      if (v > max) max = v;
+    }
+    return { matrix, max };
+  }
+
   function build(container: HTMLElement): void {
     Mdd.injectCSS(
       'activity',
@@ -222,6 +248,33 @@
             .activity-title-row .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
             .activity-empty { padding: 30px 20px; text-align: center; color: var(--text-tertiary); }
             .activity-disabled-note { color: var(--text-tertiary); font-size: var(--font-size-sm); padding: 30px 20px; text-align: center; }
+
+            /* 시간대 히트맵 — 주 단위 모드 전용. 7행(월~일) × 24열(0~23시), accent 색 alpha 로 강도 표시. */
+            .activity-heatmap-wrap { margin: 0 0 18px 0; }
+            .activity-heatmap-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
+            .activity-heatmap-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
+            .activity-heatmap-grid {
+                display: grid;
+                grid-template-columns: 28px repeat(24, minmax(0, 1fr));
+                gap: 2px;
+                font-size: 9px;
+                color: var(--text-tertiary);
+            }
+            .activity-heatmap-corner { padding: 2px; }
+            .activity-heatmap-hour { padding: 1px 0; text-align: center; }
+            .activity-heatmap-hour--major { color: var(--text-secondary); font-weight: 600; }
+            .activity-heatmap-dow {
+                padding: 1px 4px; text-align: right;
+                line-height: 1; align-self: center;
+                color: var(--text-secondary); font-weight: 600;
+            }
+            .activity-heatmap-cell {
+                aspect-ratio: 1 / 1;
+                border-radius: 2px;
+                background: color-mix(in srgb, var(--accent) 0%, var(--bg-tertiary));
+                cursor: default;
+            }
+            .activity-heatmap-cell--empty { background: var(--bg-tertiary); }
         `
     );
 
@@ -321,6 +374,11 @@
     meta.className = 'activity-meta';
     meta.textContent = '';
     root.appendChild(meta);
+
+    const heatmapWrap = document.createElement('div');
+    heatmapWrap.className = 'activity-heatmap-wrap';
+    heatmapWrap.style.display = 'none';
+    root.appendChild(heatmapWrap);
 
     const listWrap = document.createElement('div');
     listWrap.className = 'activity-list';
@@ -425,6 +483,55 @@
       return `${hh}:${mm}:${ss}`;
     }
 
+    const DOW_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
+
+    function renderHeatmap(samples: ActivitySample[]): void {
+      // 주 단위 모드 전용. 다른 period 에선 숨김 (KL-002 sub 명세).
+      if ((periodSel.value as Period) !== 'week') {
+        heatmapWrap.style.display = 'none';
+        heatmapWrap.innerHTML = '';
+        return;
+      }
+      const { matrix, max } = buildHeatmapMatrix(samples);
+      if (max === 0) {
+        heatmapWrap.style.display = 'none';
+        heatmapWrap.innerHTML = '';
+        return;
+      }
+      heatmapWrap.style.display = 'block';
+      const parts: string[] = [];
+      parts.push('<div class="activity-heatmap-title">시간대 히트맵 (KST)</div>');
+      parts.push('<div class="activity-heatmap-hint">색이 진할수록 그 시간대에 더 많이 활동 · idle 제외</div>');
+      parts.push('<div class="activity-heatmap-grid">');
+      parts.push('<div class="activity-heatmap-corner"></div>');
+      for (let h = 0; h < 24; h++) {
+        const isMajor = h % 6 === 0;
+        parts.push(
+          `<div class="activity-heatmap-hour${isMajor ? ' activity-heatmap-hour--major' : ''}">${isMajor ? h : '·'}</div>`
+        );
+      }
+      for (let d = 0; d < 7; d++) {
+        parts.push(`<div class="activity-heatmap-dow">${DOW_LABELS[d]}</div>`);
+        for (let h = 0; h < 24; h++) {
+          const v = matrix[d][h];
+          if (v === 0) {
+            parts.push('<div class="activity-heatmap-cell activity-heatmap-cell--empty"></div>');
+            continue;
+          }
+          // 0 보다 큰 값은 최소 18% 강도부터 — 안 그러면 1~2 샘플 칸이 안 보임.
+          const ratio = v / max;
+          const pct = Math.round(18 + ratio * 82);
+          const mins = Math.round(v / 60);
+          const tooltip = `${DOW_LABELS[d]} ${h}시 — ${mins}분`;
+          parts.push(
+            `<div class="activity-heatmap-cell" style="background:color-mix(in srgb, var(--accent) ${pct}%, var(--bg-tertiary));" title="${escapeHtml(tooltip)}"></div>`
+          );
+        }
+      }
+      parts.push('</div>');
+      heatmapWrap.innerHTML = parts.join('');
+    }
+
     const render = (data: DayActivity): void => {
       const { apps, activeSecs, idleSecs } = aggregate(data.samples);
       activeEl.textContent = activeSecs > 0 ? formatDuration(activeSecs) : '—';
@@ -434,6 +541,8 @@
       const total = activeSecs + idleSecs;
       const idlePct = total > 0 ? Math.round((idleSecs / total) * 100) : 0;
       meta.textContent = `${data.day} · 샘플 ${totalSamples}건 · idle ${idlePct}% · 마지막 갱신 ${formatNow()}`;
+
+      renderHeatmap(data.samples);
 
       const filterTerm = currentFilter.trim().toLowerCase();
       const filtered = filterTerm
