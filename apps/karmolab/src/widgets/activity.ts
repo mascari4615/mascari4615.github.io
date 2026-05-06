@@ -171,6 +171,48 @@
     return { hour, dowMon0 };
   }
 
+  /// 앱 집계를 도넛 슬라이스로 변환. top N + 기타 1 슬라이스.
+  /// HSL hue rotation 으로 distinct color (기타 = 회색).
+  type DonutSlice = {
+    label: string;
+    color: string;
+    seconds: number;
+    pct: number;
+  };
+
+  function buildDonutSlices(
+    apps: AppAggregate[],
+    activeSecs: number,
+    topN: number
+  ): DonutSlice[] {
+    if (activeSecs <= 0 || apps.length === 0) return [];
+    const slices: DonutSlice[] = [];
+    const top = apps.slice(0, topN);
+    const rest = apps.slice(topN);
+    let restSecs = 0;
+    for (const a of rest) restSecs += a.seconds;
+    const total = activeSecs;
+    for (let i = 0; i < top.length; i++) {
+      const a = top[i];
+      const hue = Math.round((360 * i) / (topN + 1));
+      slices.push({
+        label: readableProcessName(a.process),
+        color: `hsl(${hue}, 55%, 55%)`,
+        seconds: a.seconds,
+        pct: (a.seconds / total) * 100,
+      });
+    }
+    if (restSecs > 0) {
+      slices.push({
+        label: `기타 (${rest.length}개)`,
+        color: 'var(--text-tertiary)',
+        seconds: restSecs,
+        pct: (restSecs / total) * 100,
+      });
+    }
+    return slices;
+  }
+
   /// epoch 시각이 속하는 KST 일자 문자열 (YYYY-MM-DD).
   function epochToKstDay(epoch: number): string {
     const dt = new Date((epoch + KST_OFFSET_SECS) * 1000);
@@ -351,6 +393,69 @@
                 color: var(--text-secondary);
                 font-weight: 600;
             }
+
+            /* 앱별 도넛 — 모든 period 모드. SVG stroke-dasharray 로 슬라이스. */
+            .activity-donut-wrap { margin: 0 0 18px 0; }
+            .activity-donut-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 8px 0; }
+            .activity-donut-row {
+                display: grid;
+                grid-template-columns: 140px 1fr;
+                gap: 16px;
+                align-items: center;
+            }
+            .activity-donut-svg {
+                width: 140px;
+                height: 140px;
+            }
+            .activity-donut-svg circle {
+                fill: none;
+                stroke-width: 16;
+            }
+            .activity-donut-bg { stroke: var(--bg-tertiary); }
+            .activity-donut-center {
+                font-size: 11px;
+                fill: var(--text-secondary);
+                text-anchor: middle;
+                dominant-baseline: middle;
+            }
+            .activity-donut-center-value {
+                font-size: 14px;
+                fill: var(--text-primary);
+                font-weight: 700;
+                text-anchor: middle;
+                dominant-baseline: middle;
+            }
+            .activity-donut-legend {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                font-size: var(--font-size-xs);
+            }
+            .activity-donut-leg {
+                display: grid;
+                grid-template-columns: 12px 1fr auto;
+                gap: 8px;
+                align-items: center;
+                color: var(--text-secondary);
+            }
+            .activity-donut-leg-swatch {
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+            }
+            .activity-donut-leg-name {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .activity-donut-leg-time {
+                color: var(--text-tertiary);
+                font-variant-numeric: tabular-nums;
+            }
+            @media (max-width: 540px) {
+                .activity-donut-row { grid-template-columns: 1fr; }
+                .activity-donut-svg { margin: 0 auto; }
+            }
         `
     );
 
@@ -450,6 +555,11 @@
     meta.className = 'activity-meta';
     meta.textContent = '';
     root.appendChild(meta);
+
+    const donutWrap = document.createElement('div');
+    donutWrap.className = 'activity-donut-wrap';
+    donutWrap.style.display = 'none';
+    root.appendChild(donutWrap);
 
     const heatmapWrap = document.createElement('div');
     heatmapWrap.className = 'activity-heatmap-wrap';
@@ -565,6 +675,55 @@
     }
 
     const DOW_LABELS = ['월', '화', '수', '목', '금', '토', '일'];
+
+    /// SVG stroke-dasharray 도넛. circumference = 2π × r 이므로
+    /// 각 슬라이스 dash = (pct/100) × C, offset = 누적 dash (역방향) 으로 위치.
+    function renderDonut(apps: AppAggregate[], activeSecs: number): void {
+      const slices = buildDonutSlices(apps, activeSecs, 7);
+      if (slices.length === 0) {
+        donutWrap.style.display = 'none';
+        donutWrap.innerHTML = '';
+        return;
+      }
+      donutWrap.style.display = 'block';
+      const r = 38;
+      const cx = 50;
+      const cy = 50;
+      const C = 2 * Math.PI * r;
+      const parts: string[] = [];
+      parts.push('<div class="activity-donut-title">앱별 비율 (활성 시간 기준)</div>');
+      parts.push('<div class="activity-donut-row">');
+      // SVG (transform rotate -90: 12시 방향 시작)
+      parts.push(`<svg class="activity-donut-svg" viewBox="0 0 100 100" role="img" aria-label="앱별 도넛 차트">`);
+      parts.push(`<circle class="activity-donut-bg" cx="${cx}" cy="${cy}" r="${r}"/>`);
+      let cumPct = 0;
+      for (const sl of slices) {
+        const dash = (sl.pct / 100) * C;
+        const gap = C - dash;
+        const offset = -((cumPct / 100) * C);
+        const tooltip = `${sl.label} — ${formatDuration(sl.seconds)} (${sl.pct.toFixed(1)}%)`;
+        parts.push(
+          `<circle cx="${cx}" cy="${cy}" r="${r}" stroke="${sl.color}" stroke-dasharray="${dash.toFixed(3)} ${gap.toFixed(3)}" stroke-dashoffset="${offset.toFixed(3)}" transform="rotate(-90 ${cx} ${cy})"><title>${escapeHtml(tooltip)}</title></circle>`
+        );
+        cumPct += sl.pct;
+      }
+      // 가운데 텍스트 — 총 활성 시간
+      parts.push(`<text class="activity-donut-center-value" x="${cx}" y="${cy - 4}">${escapeHtml(formatDuration(activeSecs))}</text>`);
+      parts.push(`<text class="activity-donut-center" x="${cx}" y="${cy + 10}">활성</text>`);
+      parts.push('</svg>');
+      // Legend
+      parts.push('<div class="activity-donut-legend">');
+      for (const sl of slices) {
+        parts.push('<div class="activity-donut-leg">');
+        parts.push(`<span class="activity-donut-leg-swatch" style="background:${sl.color};"></span>`);
+        parts.push(`<span class="activity-donut-leg-name" title="${escapeHtml(sl.label)}">${escapeHtml(sl.label)}</span>`);
+        parts.push(`<span class="activity-donut-leg-time">${escapeHtml(formatDuration(sl.seconds))} · ${sl.pct.toFixed(1)}%</span>`);
+        parts.push('</div>');
+      }
+      parts.push('</div>');
+      parts.push('</div>');
+      donutWrap.innerHTML = parts.join('');
+    }
 
     function renderHeatmap(samples: ActivitySample[]): void {
       // 주 단위 모드 전용. 다른 period 에선 숨김 (KL-002 sub 명세).
@@ -705,6 +864,7 @@
       const idlePct = total > 0 ? Math.round((idleSecs / total) * 100) : 0;
       meta.textContent = `${data.day} · 샘플 ${totalSamples}건 · idle ${idlePct}% · 마지막 갱신 ${formatNow()}`;
 
+      renderDonut(apps, activeSecs);
       renderHeatmap(data.samples);
       renderDailyBars(data.samples);
 
