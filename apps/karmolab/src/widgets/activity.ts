@@ -171,6 +171,26 @@
     return { hour, dowMon0 };
   }
 
+  /// epoch 시각이 속하는 KST 일자 문자열 (YYYY-MM-DD).
+  function epochToKstDay(epoch: number): string {
+    const dt = new Date((epoch + KST_OFFSET_SECS) * 1000);
+    const y = dt.getUTCFullYear();
+    const m = String(dt.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(dt.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  /// 일자별 활성 시간 Map (key=YYYY-MM-DD, value=초). idle 제외.
+  function buildDailyActiveMap(samples: ActivitySample[]): Map<string, number> {
+    const map = new Map<string, number>();
+    for (const s of samples) {
+      if (s.idle) continue;
+      const day = epochToKstDay(s.ts);
+      map.set(day, (map.get(day) || 0) + SAMPLE_INTERVAL_SECS);
+    }
+    return map;
+  }
+
   /// active 샘플을 7행(월~일) × 24열(0시~23시) 매트릭스로 누적 (단위: 초).
   /// idle 샘플은 제외 — "내가 실제로 활동한 시간대" 패턴 시각화가 목적.
   function buildHeatmapMatrix(samples: ActivitySample[]): {
@@ -275,6 +295,62 @@
                 cursor: default;
             }
             .activity-heatmap-cell--empty { background: var(--bg-tertiary); }
+
+            /* 일자별 막대 — 주/월 모드 전용. flex row, 각 막대는 height = active / max. */
+            .activity-bars-wrap { margin: 0 0 18px 0; }
+            .activity-bars-title { font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 600; margin: 0 0 6px 0; }
+            .activity-bars-hint { font-size: 10px; color: var(--text-tertiary); margin: 0 0 8px 0; }
+            .activity-bars-grid {
+                display: flex;
+                align-items: flex-end;
+                gap: 3px;
+                height: 100px;
+                padding: 4px 0 0;
+                border-bottom: 1px solid var(--border);
+            }
+            .activity-bars-col {
+                flex: 1 1 0;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-end;
+                height: 100%;
+                cursor: default;
+            }
+            .activity-bars-col-bar {
+                width: 100%;
+                min-height: 1px;
+                background: var(--accent);
+                border-radius: 2px 2px 0 0;
+                opacity: 0.85;
+            }
+            .activity-bars-col--empty .activity-bars-col-bar {
+                background: var(--bg-tertiary);
+                opacity: 1;
+            }
+            .activity-bars-col--today .activity-bars-col-bar {
+                background: color-mix(in srgb, var(--accent) 60%, var(--text-primary));
+            }
+            .activity-bars-labels {
+                display: flex;
+                gap: 3px;
+                margin-top: 4px;
+                font-size: 9px;
+                color: var(--text-tertiary);
+            }
+            .activity-bars-label {
+                flex: 1 1 0;
+                min-width: 0;
+                text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .activity-bars-label--major {
+                color: var(--text-secondary);
+                font-weight: 600;
+            }
         `
     );
 
@@ -379,6 +455,11 @@
     heatmapWrap.className = 'activity-heatmap-wrap';
     heatmapWrap.style.display = 'none';
     root.appendChild(heatmapWrap);
+
+    const barsWrap = document.createElement('div');
+    barsWrap.className = 'activity-bars-wrap';
+    barsWrap.style.display = 'none';
+    root.appendChild(barsWrap);
 
     const listWrap = document.createElement('div');
     listWrap.className = 'activity-list';
@@ -532,6 +613,88 @@
       heatmapWrap.innerHTML = parts.join('');
     }
 
+    /// 주/월 모드의 anchor 가 가리키는 일자 키 시퀀스 (월요일부터 / 1일부터).
+    function dailyKeysForPeriod(): string[] {
+      const period = periodSel.value as Period;
+      const anchor = dateIn.value || todayKstDay();
+      if (period === 'week') {
+        const monday = weekStartKst(anchor);
+        const out: string[] = [];
+        for (let i = 0; i < 7; i++) out.push(shiftKstDay(monday, i));
+        return out;
+      }
+      if (period === 'month') {
+        const first = monthStartKst(anchor);
+        const nextFirst = shiftKstMonth(first, 1);
+        const out: string[] = [];
+        let cur = first;
+        while (cur < nextFirst) {
+          out.push(cur);
+          cur = shiftKstDay(cur, 1);
+        }
+        return out;
+      }
+      return [];
+    }
+
+    function renderDailyBars(samples: ActivitySample[]): void {
+      const keys = dailyKeysForPeriod();
+      if (keys.length === 0) {
+        barsWrap.style.display = 'none';
+        barsWrap.innerHTML = '';
+        return;
+      }
+      const dailyMap = buildDailyActiveMap(samples);
+      const values = keys.map((k) => dailyMap.get(k) || 0);
+      const max = Math.max(...values, 0);
+      if (max === 0) {
+        barsWrap.style.display = 'none';
+        barsWrap.innerHTML = '';
+        return;
+      }
+      barsWrap.style.display = 'block';
+      const today = todayKstDay();
+      const period = periodSel.value as Period;
+      const isWeek = period === 'week';
+      const parts: string[] = [];
+      parts.push(`<div class="activity-bars-title">일자별 활성 시간 (${isWeek ? '주' : '월'})</div>`);
+      parts.push('<div class="activity-bars-hint">막대 높이 = 그 날의 활성 시간 (idle 제외) · 오늘 칸은 강조</div>');
+      parts.push('<div class="activity-bars-grid">');
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        const v = values[i];
+        const heightPct = max > 0 ? Math.max(1, Math.round((v / max) * 100)) : 0;
+        const colCls = ['activity-bars-col'];
+        if (v === 0) colCls.push('activity-bars-col--empty');
+        if (k === today) colCls.push('activity-bars-col--today');
+        const tooltip = v > 0 ? `${k} — ${formatDuration(v)}` : `${k} — 활동 없음`;
+        parts.push(
+          `<div class="${colCls.join(' ')}" title="${escapeHtml(tooltip)}"><div class="activity-bars-col-bar" style="height:${heightPct}%"></div></div>`
+        );
+      }
+      parts.push('</div>');
+      // 라벨 — 주: 월~일, 월: 1/8/15/22/말일 만 major (가독성).
+      parts.push('<div class="activity-bars-labels">');
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        const dom = parseInt(k.slice(8, 10), 10);
+        let text: string;
+        let major = false;
+        if (isWeek) {
+          text = DOW_LABELS[i] || '';
+          major = true;
+        } else {
+          const isMajor = dom === 1 || dom % 7 === 0 || i === keys.length - 1;
+          text = isMajor ? String(dom) : '·';
+          major = isMajor;
+        }
+        const cls = 'activity-bars-label' + (major ? ' activity-bars-label--major' : '');
+        parts.push(`<div class="${cls}">${escapeHtml(text)}</div>`);
+      }
+      parts.push('</div>');
+      barsWrap.innerHTML = parts.join('');
+    }
+
     const render = (data: DayActivity): void => {
       const { apps, activeSecs, idleSecs } = aggregate(data.samples);
       activeEl.textContent = activeSecs > 0 ? formatDuration(activeSecs) : '—';
@@ -543,6 +706,7 @@
       meta.textContent = `${data.day} · 샘플 ${totalSamples}건 · idle ${idlePct}% · 마지막 갱신 ${formatNow()}`;
 
       renderHeatmap(data.samples);
+      renderDailyBars(data.samples);
 
       const filterTerm = currentFilter.trim().toLowerCase();
       const filtered = filterTerm
