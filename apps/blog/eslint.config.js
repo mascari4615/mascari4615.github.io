@@ -52,8 +52,8 @@ export default defineConfig([
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'off',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'off'
+      '@typescript-eslint/no-redundant-type-constituents': 'off'
+      // KL-031 B1.4 ✅ no-unnecessary-type-assertion 활성 (auto-fix 적용 후).
     }
   },
   // root .js (rollup.config.js / purgecss.js / eslint.config.js 자체) 는 tsconfig 의 include
