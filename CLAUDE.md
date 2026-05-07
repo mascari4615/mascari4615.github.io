@@ -229,13 +229,9 @@ cd apps/karmolab && npm ci && npm run build
 `.github/pull_request_template.md` 의도 채움 → push → CodeRabbit 코멘트 대응 →
 완료 시 PR 리뷰 후 `master` 머지.
 
-### 예외 — `master` 직접 push 허용
+### Master 직접 push — 차단됨
 
-- 1~3줄 chore (오타 fix / 주석 갱신 / 단일 const 값 변경)
-- README · CLAUDE.md 자체 minor 보강
-- 빌드·CI 응급 fix (production deploy 깨진 상황)
-
-판단 기준: *코드 동작 변경 0* + *CodeRabbit 리뷰 가치 0*. 애매하면 PR 분기.
+Branch Protection (아래 § 참조) 으로 PR 강제 + Include administrators + `verify (master invariant)` required. **모든 master 변경은 PR 통해야 함** — 1~3줄 chore / 응급 fix 도 예외 X. 응급 시 PR 만들고 review 0 + verify 통과 즉시 머지 (review 강제 0). 본 단락의 옛 「예외」 룰은 자동화 강제로 폐기됨.
 
 ### Commit Messages
 
