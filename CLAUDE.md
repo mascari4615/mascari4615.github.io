@@ -193,7 +193,7 @@ cd apps/karmolab && npm ci && npm run build
 
 | Workflow | Trigger | Description |
 |---|---|---|
-| `verify.yml` | Push to `main`/`master`, PR | **Master invariant 단일 게이트** — `npm run verify` (apps/karmolab build + packages/karmolab-ai build + apps/karmolab-tauri cargo check) + typos. apps/blog lint 은 자동화 빚 (config 누락) — follow-up. branch protection 의 required status check 로 `verify (master invariant)` 등록 (사용자 액션). 폐기 흡수: `ai-quality.yml`, `code-quality.yml`, `karmolab-ts.yml`, `karmolab-tauri.yml`. |
+| `verify.yml` | Push to `main`/`master`, PR | **Master invariant 단일 게이트** — `npm run verify` (apps/karmolab build + packages/karmolab-ai build + apps/karmolab-tauri cargo check + apps/blog lint:js + lint:scss) + typos. branch protection 의 required status check 로 `verify (master invariant)` 등록 (사용자 액션). 폐기 흡수: `ai-quality.yml`, `code-quality.yml`, `karmolab-ts.yml`, `karmolab-tauri.yml`. |
 | `pages-deploy.yml` | Push to `main`/`master`, manual | Full site build and deploy to GitHub Pages |
 | `karmolab-tauri-release.yml` | Tag/manual | Tauri auto-update release pipeline |
 | `auto-merge.yml` | PR | Auto-merge after checks pass |
@@ -270,7 +270,7 @@ master 브랜치는 항상 다음을 만족:
 - `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
 - `packages/karmolab-ai` 의 build 통과 (필수)
 - `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
-- `apps/blog` 의 lint:js + lint:scss — *자동화 빚*: chirpy monorepo 분리 시 `apps/blog/eslint.config.js` + `.stylelintrc.json` 누락. follow-up TASK 로 chirpy upstream config 흡수 후 verify 에 재추가.
+- `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
 - typos check (`crate-ci/typos`) — `continue-on-error: true` (기존 code-quality.yml 행동 보존). *자동화 빚*: master 데이터 약어 false-positive 다수 (anime/tierlist json). follow-up TASK: `_typos.toml` 등록 + 진짜 typo fix → strict 게이트.
 
 검증의 단일 진실: **`npm run verify`** (`scripts/verify.mjs`). 모든 게이트가 이 한 명령만 호출.
