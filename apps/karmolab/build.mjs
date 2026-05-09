@@ -84,6 +84,7 @@ const entryPoints = [
   'src/widgets/shylink.ts',
   'src/widgets/speed.ts',
   'src/widgets/stone.ts',
+  'src/widgets/task-launcher.ts',
   'src/widgets/user.ts',
   'src/widgets/youtubedl.ts',
   'src/widgets/chatbot/characters.ts',
