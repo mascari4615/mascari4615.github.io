@@ -2,7 +2,7 @@
 /**
  * 무한 텍스트 어드벤처 (KL-032).
  *
- * 현재 단계: α (provider abstraction). γ 단계부터 turn 루프 진입.
+ * 단계: α (provider abstraction) + β (wiki entity kind) + γ (UI) + δ (turn loop) + ε (NPC chatbot context).
  * 시드: memo/projects/karmolab/tasks/TASK-KL-032-infinite-text-adventure.md
  */
 import {
@@ -12,46 +12,374 @@ import {
   getAdventureProviderIdPref,
 } from './provider';
 import type { AdventureProviderId } from './provider';
+import { listAllCharacterSlugs } from './npc-context';
+import { createSession, saveSession } from './storage';
+import type { AdventureSession } from './storage';
+import { createInitialState, runTurn } from './turn-loop';
+import type { TurnLoopState } from './turn-loop';
+import { parseTurnResponse } from './prompt';
 
 (function () {
+  function el<K extends keyof HTMLElementTagNameMap>(
+    tag: K,
+    props: Partial<HTMLElementTagNameMap[K]> & { style?: Partial<CSSStyleDeclaration> } = {},
+  ): HTMLElementTagNameMap[K] {
+    const node = document.createElement(tag);
+    if (props.style) Object.assign(node.style, props.style);
+    for (const k in props) {
+      if (k === 'style') continue;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (node as any)[k] = (props as any)[k];
+    }
+    return node;
+  }
+
   function buildAdventure(panel: HTMLElement) {
     panel.innerHTML = '';
 
-    const wrap = document.createElement('div');
-    wrap.className = 'kl-adventure-root';
-    wrap.style.padding = '16px';
-    wrap.style.display = 'flex';
-    wrap.style.flexDirection = 'column';
-    wrap.style.gap = '12px';
-    wrap.style.color = 'var(--text-primary, #e8e8e8)';
+    const wrap = el('div', {
+      style: {
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        color: 'var(--text-primary, #e8e8e8)',
+        maxWidth: '900px',
+        margin: '0 auto',
+      },
+    });
 
-    const heading = document.createElement('h3');
-    heading.textContent = '무한 텍스트 어드벤처';
-    heading.style.margin = '0';
-    heading.style.color = 'var(--accent, #d4a849)';
+    /* ===== 헤더 ===== */
+    const heading = el('h3', {
+      textContent: '무한 텍스트 어드벤처',
+      style: { margin: '0', color: 'var(--accent, #d4a849)' },
+    });
     wrap.appendChild(heading);
 
-    const phase = document.createElement('p');
-    phase.style.margin = '0';
-    phase.style.fontSize = '13px';
-    phase.style.color = 'var(--text-tertiary, #888)';
-    phase.textContent = 'α + β 단계 — provider abstraction + wiki entity kind 박힘. δ 단계부터 turn 루프 진입.';
+    const phase = el('p', {
+      textContent: '티메토 GM 의 KarmoWorld 모험 — α/β/γ/δ/ε 박힘. ζ (Tauri save) / θ (정수 추출) / κ (sample) 다음.',
+      style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
+    });
     wrap.appendChild(phase);
 
-    /* ===== 누적된 모험 (bindings.adventure) ===== */
-    const advList = document.createElement('div');
-    advList.style.background = 'var(--bg-secondary, #181818)';
-    advList.style.border = '1px solid var(--border-color, #333)';
-    advList.style.borderRadius = 'var(--radius-md, 6px)';
-    advList.style.padding = '10px 12px';
-    advList.style.fontSize = '13px';
+    /* ===== provider 토글 ===== */
+    const providerRow = el('div', {
+      style: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' },
+    });
+    providerRow.appendChild(el('strong', { textContent: 'Provider' }));
+    const providerSelect = el('select', {
+      style: {
+        padding: '4px 8px',
+        background: 'var(--bg-tertiary, #1f1f1f)',
+        color: 'var(--text-primary, #e8e8e8)',
+        border: '1px solid var(--border-color, #333)',
+        borderRadius: 'var(--radius-sm, 4px)',
+      },
+    });
+    for (const p of ALL_ADVENTURE_PROVIDERS) {
+      const opt = el('option', { value: p.id, textContent: `${p.name} (default: ${p.defaultModelId()})` });
+      providerSelect.appendChild(opt);
+    }
+    providerSelect.value = getAdventureProviderIdPref();
+    const Tx = (globalThis as unknown as {
+      Toolbox?: { setPref?: (key: string, value: unknown) => void };
+    }).Toolbox;
+    providerSelect.addEventListener('change', () => Tx?.setPref?.(ADV_PROVIDER_PREF_KEY, providerSelect.value));
+    providerRow.appendChild(providerSelect);
+    wrap.appendChild(providerRow);
 
-    const advTitle = document.createElement('strong');
-    advTitle.textContent = '누적된 모험';
-    advTitle.style.display = 'block';
-    advTitle.style.marginBottom = '6px';
-    advList.appendChild(advTitle);
+    /* ===== 모험 컨테이너 (cast picker / turn loop / 종료) ===== */
+    const stage = el('div', {
+      style: {
+        background: 'var(--bg-secondary, #181818)',
+        border: '1px solid var(--border-color, #333)',
+        borderRadius: 'var(--radius-md, 6px)',
+        padding: '14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+      },
+    });
+    wrap.appendChild(stage);
 
+    let state: TurnLoopState | null = null;
+
+    function renderCastPicker() {
+      stage.innerHTML = '';
+      stage.appendChild(el('strong', { textContent: '새 모험 — cast 선택' }));
+      stage.appendChild(el('p', {
+        textContent: '모험 시작 시 자세한 컨텍스트로 박을 NPC 를 선택하세요 (선택은 0~3명, 모험 도중 자동으로 새 NPC cast 흡수됨)',
+        style: { margin: '0', fontSize: '13px', color: 'var(--text-tertiary, #888)' },
+      }));
+
+      const checkboxList = el('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '8px' } });
+      const slugs = listAllCharacterSlugs();
+      const checked = new Set<string>();
+      for (const c of slugs) {
+        const lab = el('label', {
+          style: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '4px 8px',
+            background: 'var(--bg-tertiary, #1f1f1f)',
+            borderRadius: 'var(--radius-sm, 4px)',
+            cursor: 'pointer',
+            fontSize: '13px',
+          },
+        });
+        const cb = el('input');
+        cb.type = 'checkbox';
+        cb.value = c.slug;
+        cb.addEventListener('change', () => {
+          if (cb.checked) checked.add(c.slug);
+          else checked.delete(c.slug);
+        });
+        lab.appendChild(cb);
+        lab.appendChild(document.createTextNode(`${c.name} (${c.slug})`));
+        checkboxList.appendChild(lab);
+      }
+      stage.appendChild(checkboxList);
+
+      const startBtn = el('button', {
+        textContent: '모험 시작',
+        style: {
+          padding: '8px 16px',
+          background: 'var(--accent, #d4a849)',
+          color: '#000',
+          border: 'none',
+          borderRadius: 'var(--radius-sm, 4px)',
+          cursor: 'pointer',
+          alignSelf: 'flex-start',
+        },
+      });
+      startBtn.addEventListener('click', () => {
+        const session = createSession(Array.from(checked));
+        state = createInitialState(session);
+        void saveSession(session);
+        renderTurnUI();
+        // 첫 turn — 사용자 입력 없이 GM 이 도입부 시작
+        void doTurn('(모험을 시작하세요. 도입 narrative + 첫 선택지를 박아주세요.)', true);
+      });
+      stage.appendChild(startBtn);
+    }
+
+    function renderTurnUI() {
+      stage.innerHTML = '';
+
+      const meta = el('div', {
+        style: { fontSize: '12px', color: 'var(--text-tertiary, #888)', display: 'flex', gap: '12px', flexWrap: 'wrap' },
+      });
+      if (state) {
+        meta.appendChild(document.createTextNode(`session: ${state.session.slug}`));
+        meta.appendChild(document.createTextNode(`turn: ${state.session.turns.length}`));
+        meta.appendChild(document.createTextNode(`cast: ${state.session.castSlugs.join(', ') || '(없음)'}`));
+      }
+      stage.appendChild(meta);
+
+      const narrativeBox = el('div', {
+        style: {
+          background: 'var(--bg-tertiary, #1f1f1f)',
+          border: '1px solid var(--border-color, #333)',
+          borderRadius: 'var(--radius-md, 6px)',
+          padding: '14px',
+          minHeight: '160px',
+          maxHeight: '480px',
+          overflow: 'auto',
+          whiteSpace: 'pre-wrap',
+          lineHeight: '1.6',
+          fontSize: '14px',
+        },
+      });
+      narrativeBox.id = 'kl-adv-narrative';
+      narrativeBox.textContent = '(GM 의 narrative 가 박힙니다)';
+      stage.appendChild(narrativeBox);
+
+      const choicesBox = el('div', {
+        style: { display: 'flex', flexDirection: 'column', gap: '6px' },
+      });
+      choicesBox.id = 'kl-adv-choices';
+      stage.appendChild(choicesBox);
+
+      const inputRow = el('div', {
+        style: { display: 'flex', gap: '8px' },
+      });
+      const inputArea = el('textarea', {
+        placeholder: '자유 입력 (선택지 외 행동) — Ctrl+Enter 로 전송',
+        style: {
+          flex: '1',
+          padding: '8px',
+          background: 'var(--bg-tertiary, #1f1f1f)',
+          color: 'var(--text-primary, #e8e8e8)',
+          border: '1px solid var(--border-color, #333)',
+          borderRadius: 'var(--radius-sm, 4px)',
+          minHeight: '60px',
+          resize: 'vertical',
+          fontFamily: 'inherit',
+        },
+      });
+      const sendBtn = el('button', {
+        textContent: '전송',
+        style: {
+          padding: '0 16px',
+          background: 'var(--accent, #d4a849)',
+          color: '#000',
+          border: 'none',
+          borderRadius: 'var(--radius-sm, 4px)',
+          cursor: 'pointer',
+        },
+      });
+      sendBtn.addEventListener('click', () => {
+        const t = inputArea.value.trim();
+        if (!t) return;
+        inputArea.value = '';
+        void doTurn(t, false);
+      });
+      inputArea.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+      inputRow.appendChild(inputArea);
+      inputRow.appendChild(sendBtn);
+      stage.appendChild(inputRow);
+
+      const tools = el('div', {
+        style: { display: 'flex', gap: '8px', marginTop: '4px' },
+      });
+      const cameraBtn = el('button', {
+        textContent: '📷 (η 단계 후 활성화)',
+        disabled: true,
+        style: {
+          padding: '4px 10px',
+          background: 'var(--bg-tertiary, #1f1f1f)',
+          color: 'var(--text-tertiary, #888)',
+          border: '1px solid var(--border-color, #333)',
+          borderRadius: 'var(--radius-sm, 4px)',
+          cursor: 'not-allowed',
+        },
+      });
+      tools.appendChild(cameraBtn);
+      const endBtn = el('button', {
+        textContent: '모험 종료 (θ 단계 후 정수 추출)',
+        style: {
+          padding: '4px 10px',
+          background: 'var(--bg-tertiary, #1f1f1f)',
+          color: 'var(--text-primary, #e8e8e8)',
+          border: '1px solid var(--border-color, #333)',
+          borderRadius: 'var(--radius-sm, 4px)',
+          cursor: 'pointer',
+        },
+      });
+      endBtn.addEventListener('click', () => {
+        if (!confirm('모험을 종료하시겠어요? (정수 추출은 θ 단계에서 박힘)')) return;
+        state = null;
+        renderCastPicker();
+      });
+      tools.appendChild(endBtn);
+      stage.appendChild(tools);
+    }
+
+    async function doTurn(userText: string, isOpener: boolean) {
+      if (!state) return;
+      const narrativeBox = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
+      const choicesBox = stage.querySelector('#kl-adv-choices') as HTMLDivElement | null;
+      if (!narrativeBox || !choicesBox) return;
+
+      narrativeBox.textContent = '(GM 응답 기다리는 중…)';
+      choicesBox.innerHTML = '';
+
+      const provider = createAdventureProvider(providerSelect.value as AdventureProviderId);
+      try {
+        const result = await runTurn(state, provider, userText);
+        narrativeBox.textContent = result.parsed.narrative || '(narrative 비어있음)';
+        for (let i = 0; i < result.parsed.choices.length; i++) {
+          const choice = result.parsed.choices[i];
+          const btn = el('button', {
+            textContent: `${i + 1}. ${choice}`,
+            style: {
+              padding: '8px 12px',
+              background: 'var(--bg-tertiary, #1f1f1f)',
+              color: 'var(--text-primary, #e8e8e8)',
+              border: '1px solid var(--border-color, #333)',
+              borderRadius: 'var(--radius-sm, 4px)',
+              cursor: 'pointer',
+              textAlign: 'left',
+            },
+          });
+          btn.addEventListener('click', () => {
+            void doTurn(choice, false);
+          });
+          choicesBox.appendChild(btn);
+        }
+        if (result.parsed.choices.length === 0 && !result.parsed.ended) {
+          const note = el('div', {
+            textContent: '(선택지 박히지 않음 — 자유 입력으로 진행)',
+            style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
+          });
+          choicesBox.appendChild(note);
+        }
+        if (result.parsed.ended) {
+          const note = el('div', {
+            textContent: '[END] 박힘 — 모험 종료. (θ 단계 후 정수 추출 자동)',
+            style: {
+              fontSize: '13px',
+              color: 'var(--accent, #d4a849)',
+              padding: '8px',
+              background: 'var(--bg-tertiary, #1f1f1f)',
+              borderRadius: 'var(--radius-sm, 4px)',
+            },
+          });
+          choicesBox.appendChild(note);
+        }
+        // meta 갱신
+        renderTurnUI();
+        const nb2 = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
+        const cb2 = stage.querySelector('#kl-adv-choices') as HTMLDivElement | null;
+        if (nb2) nb2.textContent = result.parsed.narrative || '(narrative 비어있음)';
+        if (cb2) {
+          cb2.innerHTML = '';
+          for (let i = 0; i < result.parsed.choices.length; i++) {
+            const choice = result.parsed.choices[i];
+            const btn = el('button', {
+              textContent: `${i + 1}. ${choice}`,
+              style: {
+                padding: '8px 12px',
+                background: 'var(--bg-tertiary, #1f1f1f)',
+                color: 'var(--text-primary, #e8e8e8)',
+                border: '1px solid var(--border-color, #333)',
+                borderRadius: 'var(--radius-sm, 4px)',
+                cursor: 'pointer',
+                textAlign: 'left',
+              },
+            });
+            btn.addEventListener('click', () => {
+              void doTurn(choice, false);
+            });
+            cb2.appendChild(btn);
+          }
+        }
+      } catch (err) {
+        narrativeBox.textContent = '에러: ' + (err instanceof Error ? err.message : String(err));
+      }
+      void isOpener;
+    }
+
+    /* ===== 누적된 모험 (β 사용처) ===== */
+    const advList = el('div', {
+      style: {
+        background: 'var(--bg-secondary, #181818)',
+        border: '1px solid var(--border-color, #333)',
+        borderRadius: 'var(--radius-md, 6px)',
+        padding: '10px 12px',
+        fontSize: '13px',
+      },
+    });
+    advList.appendChild(el('strong', {
+      textContent: '누적된 모험 (wiki entity)',
+      style: { display: 'block', marginBottom: '6px' },
+    }));
     const KW = (globalThis as unknown as {
       KarmoWorld?: {
         bindings?: { adventure?: { adventures?: Array<{ slug: string; title: string; oneLine?: string }> } };
@@ -59,16 +387,14 @@ import type { AdventureProviderId } from './provider';
     }).KarmoWorld;
     const adventures = KW?.bindings?.adventure?.adventures ?? [];
     if (adventures.length === 0) {
-      const empty = document.createElement('div');
-      empty.style.color = 'var(--text-tertiary, #888)';
-      empty.textContent = '(아직 박힌 모험 없음 — 첫 모험 종료 시 wiki entity 로 누적됨)';
-      advList.appendChild(empty);
+      advList.appendChild(el('div', {
+        textContent: '(아직 박힌 모험 없음 — 첫 모험 종료 시 wiki entity 로 누적됨)',
+        style: { color: 'var(--text-tertiary, #888)' },
+      }));
     } else {
-      const ul = document.createElement('ul');
-      ul.style.margin = '0';
-      ul.style.paddingLeft = '18px';
+      const ul = el('ul', { style: { margin: '0', paddingLeft: '18px' } });
       for (const adv of adventures) {
-        const li = document.createElement('li');
+        const li = el('li');
         li.textContent = `${adv.title || adv.slug}${adv.oneLine ? ' — ' + adv.oneLine : ''}`;
         ul.appendChild(li);
       }
@@ -76,100 +402,14 @@ import type { AdventureProviderId } from './provider';
     }
     wrap.appendChild(advList);
 
-    /* ===== provider 토글 ===== */
-    const providerRow = document.createElement('div');
-    providerRow.style.display = 'flex';
-    providerRow.style.gap = '12px';
-    providerRow.style.alignItems = 'center';
-    providerRow.style.flexWrap = 'wrap';
+    panel.appendChild(wrap);
 
-    const label = document.createElement('strong');
-    label.textContent = 'Provider';
-    providerRow.appendChild(label);
+    /* 첫 진입 — cast picker 표시 */
+    renderCastPicker();
 
-    const select = document.createElement('select');
-    select.style.padding = '4px 8px';
-    select.style.background = 'var(--bg-tertiary, #1f1f1f)';
-    select.style.color = 'var(--text-primary, #e8e8e8)';
-    select.style.border = '1px solid var(--border-color, #333)';
-    select.style.borderRadius = 'var(--radius-sm, 4px)';
-    for (const p of ALL_ADVENTURE_PROVIDERS) {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name} (default: ${p.defaultModelId()})`;
-      select.appendChild(opt);
-    }
-    select.value = getAdventureProviderIdPref();
-
-    const Tx = (globalThis as unknown as {
-      Toolbox?: { setPref?: (key: string, value: unknown) => void };
-    }).Toolbox;
-    select.addEventListener('change', () => {
-      Tx?.setPref?.(ADV_PROVIDER_PREF_KEY, select.value);
-    });
-    providerRow.appendChild(select);
-
-    wrap.appendChild(providerRow);
-
-    /* ===== 테스트 호출 ===== */
-    const testRow = document.createElement('div');
-    testRow.style.display = 'flex';
-    testRow.style.gap = '8px';
-
-    const testBtn = document.createElement('button');
-    testBtn.textContent = 'provider 테스트 호출';
-    testBtn.style.padding = '6px 12px';
-    testBtn.style.background = 'var(--accent, #d4a849)';
-    testBtn.style.color = '#000';
-    testBtn.style.border = 'none';
-    testBtn.style.borderRadius = 'var(--radius-sm, 4px)';
-    testBtn.style.cursor = 'pointer';
-    testRow.appendChild(testBtn);
-
-    const status = document.createElement('span');
-    status.style.color = 'var(--text-tertiary, #888)';
-    status.style.fontSize = '13px';
-    testRow.appendChild(status);
-
-    wrap.appendChild(testRow);
-
-    const out = document.createElement('pre');
-    out.style.background = 'var(--bg-tertiary, #1f1f1f)';
-    out.style.border = '1px solid var(--border-color, #333)';
-    out.style.borderRadius = 'var(--radius-md, 6px)';
-    out.style.padding = '12px';
-    out.style.minHeight = '120px';
-    out.style.maxHeight = '320px';
-    out.style.overflow = 'auto';
-    out.style.fontFamily = 'var(--font-mono, monospace)';
-    out.style.fontSize = '12px';
-    out.style.whiteSpace = 'pre-wrap';
-    out.style.wordBreak = 'break-word';
-    out.textContent = '(테스트 호출 결과 / 에러가 여기에 표시됩니다)';
-    wrap.appendChild(out);
-
-    testBtn.addEventListener('click', async () => {
-      const pid = select.value as AdventureProviderId;
-      status.textContent = `[${pid}] 호출 중...`;
-      out.textContent = '';
-      try {
-        const provider = createAdventureProvider(pid);
-        const res = await provider.complete({
-          systemInstruction:
-            '당신은 무한 텍스트 어드벤처의 GM 티메토입니다. 지금은 α 단계 테스트입니다. 한국어로 정확히 "OK" 라고만 답하세요.',
-          history: [],
-          userText: 'ping',
-        });
-        status.textContent = `[${res.providerId} / ${res.modelId}] 응답 도착`;
-        out.textContent = res.text;
-      } catch (err) {
-        status.textContent = `[${pid}] 에러`;
-        out.textContent = err instanceof Error ? err.message : String(err);
-      }
-    });
+    void parseTurnResponse;
   }
 
-  /* ===== 위젯 등록 ===== */
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('adventure'),
     tabs: [{ id: 'adventure-main', label: '모험', build: buildAdventure }],
