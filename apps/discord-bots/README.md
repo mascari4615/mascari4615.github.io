@@ -4,8 +4,9 @@
 
 ## 앱 목록
 
-- `apps/yawnbot`: 게임/슬래시 커맨드 봇 (기존 YawnBot) — 앱별 요약은 [`apps/yawnbot/README.md`](apps/yawnbot/README.md)
-- `apps/atkup-bot`: **ATKUp** (Unity 무료·긱 뉴스 알림, 별도 토큰/프로세스) — [`apps/atkup-bot/README.md`](apps/atkup-bot/README.md)
+- `apps/yawnbot`: 게임/슬래시/음성/AI/Unity 무료 에셋·긱뉴스 알림 통합 봇 — 앱별 요약은 [`apps/yawnbot/README.md`](apps/yawnbot/README.md)
+
+> 이전 `apps/atkup-bot` (Unity 무료·긱뉴스 알림 별도 봇) 은 TASK-YB-003 (2026-05) 에서 yawnbot 안 `services/notifiers/` + `/atkup` 슬래시로 흡수 폐기. 봇 1개 / 토큰 1개 / `.env` 1개로 운영 통합.
 
 ## 설치
 
@@ -16,64 +17,26 @@ npm install
 
 ## 실행
 
-루트(`apps/discord-bots`)에서 워크스페이스 스크립트를 쓰면 한 곳에서 둘 다 제어할 수 있습니다.
-
-### 한 번에 두 봇 실행
-
 ```bash
-npm run start
-```
-
-### 봇별로만 실행
-
-```bash
+npm run start             # = npm run start:yawnbot
 npm run start:yawnbot
-npm run start:atkup
 ```
 
 ### 앱 단위(직접 `-w`)
-
-#### YawnBot
 
 ```bash
 npm -w apps/yawnbot run build
 npm -w apps/yawnbot run start
 ```
 
-#### ATKUp (`atkup-bot`)
-
-```bash
-npm -w apps/atkup-bot run build
-npm -w apps/atkup-bot run start
-```
-
 ## 커맨드 배포
 
-### 한 번에 둘 다 배포
-
 ```bash
-npm run deploy
-```
-
-### 봇별 배포
-
-```bash
+npm run deploy            # = npm run deploy:yawnbot
 npm run deploy:yawnbot
-npm run deploy:atkup
-```
 
-### 앱 단위(직접 `-w`)
-
-#### YawnBot
-
-```bash
+# 또는 앱 단위
 npm -w apps/yawnbot run deploy
-```
-
-#### ATKUp (`atkup-bot`)
-
-```bash
-npm -w apps/atkup-bot run deploy
 ```
 
 ## 레거시 `apps/yawnbot-server`

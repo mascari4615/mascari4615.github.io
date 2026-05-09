@@ -17,7 +17,6 @@
     "deploy:yawnbot": "npm -w apps/yawnbot run deploy"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
     "typescript": "^6.0.3"
   }
 }
