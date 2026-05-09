@@ -35,8 +35,46 @@ import type { AdventureProviderId } from './provider';
     phase.style.margin = '0';
     phase.style.fontSize = '13px';
     phase.style.color = 'var(--text-tertiary, #888)';
-    phase.textContent = 'α 단계 — provider abstraction 박힘. γ 단계부터 turn 루프 진입.';
+    phase.textContent = 'α + β 단계 — provider abstraction + wiki entity kind 박힘. δ 단계부터 turn 루프 진입.';
     wrap.appendChild(phase);
+
+    /* ===== 누적된 모험 (bindings.adventure) ===== */
+    const advList = document.createElement('div');
+    advList.style.background = 'var(--bg-secondary, #181818)';
+    advList.style.border = '1px solid var(--border-color, #333)';
+    advList.style.borderRadius = 'var(--radius-md, 6px)';
+    advList.style.padding = '10px 12px';
+    advList.style.fontSize = '13px';
+
+    const advTitle = document.createElement('strong');
+    advTitle.textContent = '누적된 모험';
+    advTitle.style.display = 'block';
+    advTitle.style.marginBottom = '6px';
+    advList.appendChild(advTitle);
+
+    const KW = (globalThis as unknown as {
+      KarmoWorld?: {
+        bindings?: { adventure?: { adventures?: Array<{ slug: string; title: string; oneLine?: string }> } };
+      };
+    }).KarmoWorld;
+    const adventures = KW?.bindings?.adventure?.adventures ?? [];
+    if (adventures.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.color = 'var(--text-tertiary, #888)';
+      empty.textContent = '(아직 박힌 모험 없음 — 첫 모험 종료 시 wiki entity 로 누적됨)';
+      advList.appendChild(empty);
+    } else {
+      const ul = document.createElement('ul');
+      ul.style.margin = '0';
+      ul.style.paddingLeft = '18px';
+      for (const adv of adventures) {
+        const li = document.createElement('li');
+        li.textContent = `${adv.title || adv.slug}${adv.oneLine ? ' — ' + adv.oneLine : ''}`;
+        ul.appendChild(li);
+      }
+      advList.appendChild(ul);
+    }
+    wrap.appendChild(advList);
 
     /* ===== provider 토글 ===== */
     const providerRow = document.createElement('div');

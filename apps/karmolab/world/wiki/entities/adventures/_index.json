@@ -1,0 +1,4 @@
+{
+  "_comment": "KL-032 모험 entity 의 별 manifest. sync-wiki.mjs 흐름 밖 (entity-schema 와 패턴 다름). Tauri adventure_commit_summary 가 갱신. directory listing 정적 사이트 차단 회피용.",
+  "adventures": []
+}
