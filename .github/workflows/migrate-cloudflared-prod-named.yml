@@ -1,14 +1,26 @@
-name: Migrate cloudflared-prod to named tunnel
+name: Migrate cloudflared-prod to named tunnel (token-based)
 
-# TASK-YB-005 ζ — TASK-YB-002-E 의 quick tunnel 흐름 (NSSM cloudflared-prod + tunnel-launcher.mjs)
-# 폐기. cloudflared 공식 service install 으로 named tunnel (yawnbot.mascari4615.com) 마이그레이션.
+# TASK-YB-006 sub-B (F2) — Token-based cloudflared service install.
 #
-# 근거: NSSM + cloudflared.exe (LocalSystem) 직접 호출 시 사용자 home `~/.cloudflared/`
-# 못 봐 cert.pem 없음 → cloudflared 즉시 exit → SERVICE_PAUSED. cloudflared 공식 service
-# 는 ProgramData\Cloudflare\cloudflared\ 자동 검색 + LocalSystem 정합.
+# 근거: TASK-YB-006 sub-A 진단 결과 (run #25608844861), `cloudflared service install`
+# (no-arg 형) 이 ImagePath 에 tunnel run / --config args 박지 않음 → service 시작 후
+# subcommand 없이 즉시 exit (WIN32_EXIT_CODE 1067) → 무한 재시작 사이클.
 #
-# Runner: 노트북 self-hosted (label: yawnbot).
-# Idempotent: 재 trigger 시 cert/cred/config overwrite + service uninstall + reinstall.
+# 진단 axis A5 의 dry run 으로 cert/cred/config 자체는 정상 검증됨 (LocalSystem
+# 컨텍스트, --config <path> tunnel run yawnbot-prod 명시 시 connector 등록 OK).
+# 즉 근본 = service 등록 args 누락. cert encoding / ACL / 버전 / connector lock /
+# 파일 권한 5 의심 후보 다 폐기.
+#
+# F2 fix = Cloudflare 공식 token-based install. Cloudflare ZT dashboard 에서
+# connector token 발급 → `cloudflared service install <TOKEN>` 으로 등록.
+# Token 에 tunnel ID / cert / credentials 다 인코딩됨 — cert.pem / credentials.json
+# / config.yml 파일 흐름 폐기. dashboard 가 ingress / DNS / connector 자동 관리.
+#
+# 폐기되는 secret: YB_PROD_CF_CERT_PEM, YB_PROD_CF_CREDENTIALS_JSON.
+# 새 secret: YB_PROD_CF_TUNNEL_TOKEN.
+#
+# Runner: 노트북 self-hosted (label: yawnbot, LocalSystem 컨텍스트).
+# Idempotent: 재 trigger 시 기존 service uninstall + reinstall.
 
 on:
   workflow_dispatch: {}
@@ -19,107 +31,28 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Setup ProgramData cloudflared dir + secrets reconstruct
+      - name: Token presence check
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         env:
-          CF_CERT_PEM: ${{ secrets.YB_PROD_CF_CERT_PEM }}
-          CF_CREDENTIALS_JSON: ${{ secrets.YB_PROD_CF_CREDENTIALS_JSON }}
+          CF_TUNNEL_TOKEN: ${{ secrets.YB_PROD_CF_TUNNEL_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $cfDir = "C:\ProgramData\Cloudflare\cloudflared"
-          New-Item -Path $cfDir -ItemType Directory -Force | Out-Null
+          if ([string]::IsNullOrEmpty($env:CF_TUNNEL_TOKEN)) {
+            throw "secret YB_PROD_CF_TUNNEL_TOKEN 누락. Cloudflare ZT dashboard → Networks → Tunnels → yawnbot-prod → Configure → Install connector → Windows → token 복사 후 GitHub repo Settings → Secrets → YB_PROD_CF_TUNNEL_TOKEN 등록"
+          }
+          # 토큰 길이만 출력 (값 자체 마스킹). Cloudflare connector token 은 base64-ish
+          # ~200~250자 안팎 — 명백히 짧으면 (e.g. <50자) 잘못 복사 신호.
+          $len = $env:CF_TUNNEL_TOKEN.Length
+          Write-Host "Token length: $len chars"
+          if ($len -lt 50) {
+            throw "Token 길이 $len chars — 너무 짧음. 잘못 복사 의심"
+          }
 
-          # UTF-8 no BOM (cloudflared parser strict)
-          $utf8 = [System.Text.UTF8Encoding]::new($false)
-
-          [System.IO.File]::WriteAllText("$cfDir\cert.pem", $env:CF_CERT_PEM, $utf8)
-          [System.IO.File]::WriteAllText("$cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json", $env:CF_CREDENTIALS_JSON, $utf8)
-
-          $configLines = @(
-            "tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2",
-            "credentials-file: $cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json",
-            "",
-            "ingress:",
-            "  - hostname: yawnbot.mascari4615.com",
-            "    service: http://localhost:4615",
-            "  - service: http_status:404"
-          )
-          $config = ($configLines -join "`n") + "`n"
-          [System.IO.File]::WriteAllText("$cfDir\config.yml", $config, $utf8)
-
-          Write-Host "Files written to ${cfDir}:"
-          Get-ChildItem $cfDir | Format-Table Name,Length -AutoSize
-
-      - name: Remove existing NSSM cloudflared-prod
+      - name: Uninstall existing cloudflared service
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
           $ErrorActionPreference = 'Continue'
 
-          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
-          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
-          if (-not $nssm) {
-            $candidates = @(
-              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
-              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
-            )
-            foreach ($pat in $candidates) {
-              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
-              if ($found) { $nssm = $found.FullName; break }
-            }
-          }
-
-          $svc = Get-Service -Name cloudflared-prod -ErrorAction SilentlyContinue
-          if ($svc) {
-            Write-Host "Existing cloudflared-prod service 발견 — stop + remove"
-            sc.exe stop cloudflared-prod | Out-Host
-            Start-Sleep -Seconds 5
-            Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 2
-
-            if ($nssm) {
-              & $nssm remove cloudflared-prod confirm 2>&1 | Out-Host
-              Write-Host "NSSM cloudflared-prod removed"
-            } else {
-              sc.exe delete cloudflared-prod | Out-Host
-            }
-            Start-Sleep -Seconds 3
-          } else {
-            Write-Host "cloudflared-prod NSSM service 없음 — skip"
-          }
-
-      - name: Mirror cert/cred to LocalSystem home
-        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
-        env:
-          CF_CERT_PEM: ${{ secrets.YB_PROD_CF_CERT_PEM }}
-          CF_CREDENTIALS_JSON: ${{ secrets.YB_PROD_CF_CREDENTIALS_JSON }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          # cloudflared LocalSystem service 의 home = C:\Windows\System32\config\systemprofile\.cloudflared\
-          # `cloudflared service install` 의 service ImagePath 가 단순 `cloudflared.exe service` 로
-          # config 자동 검색 — LocalSystem home 우선.
-          $sysHome = "C:\Windows\System32\config\systemprofile\.cloudflared"
-          New-Item -Path $sysHome -ItemType Directory -Force | Out-Null
-          $utf8 = [System.Text.UTF8Encoding]::new($false)
-          [System.IO.File]::WriteAllText("$sysHome\cert.pem", $env:CF_CERT_PEM, $utf8)
-          [System.IO.File]::WriteAllText("$sysHome\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json", $env:CF_CREDENTIALS_JSON, $utf8)
-          $configLines = @(
-            "tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2",
-            "credentials-file: $sysHome\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json",
-            "",
-            "ingress:",
-            "  - hostname: yawnbot.mascari4615.com",
-            "    service: http://localhost:4615",
-            "  - service: http_status:404"
-          )
-          $config = ($configLines -join "`n") + "`n"
-          [System.IO.File]::WriteAllText("$sysHome\config.yml", $config, $utf8)
-          Write-Host "Files written to ${sysHome}:"
-          Get-ChildItem $sysHome | Format-Table Name,Length -AutoSize
-
-      - name: cloudflared service install (idempotent reinstall)
-        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
-        run: |
-          $ErrorActionPreference = 'Continue'
           $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
           if (-not (Test-Path $cf)) {
             $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
@@ -129,29 +62,69 @@ jobs:
 
           $existing = Get-Service -Name cloudflared -ErrorAction SilentlyContinue
           if ($existing) {
-            Write-Host "기존 cloudflared service 발견 — uninstall 후 reinstall (clean state)"
+            Write-Host "기존 cloudflared service 발견 — uninstall (clean state)"
             sc.exe stop cloudflared | Out-Host
             Start-Sleep -Seconds 3
             Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 2
             & $cf service uninstall 2>&1 | Out-Host
             Start-Sleep -Seconds 3
+          } else {
+            Write-Host "cloudflared service 없음 — skip"
           }
 
-          Write-Host "service install:"
-          & $cf service install 2>&1 | Out-Host
+          # cert/cred/config 파일 흐름 폐기 — 사용 안 함. 단 자동 삭제 X (사용자
+          # 다른 용도 사용 가능성). 단 ProgramData 파일은 GHA secret 으로 박은
+          # 잔재라 안전 삭제 (TASK-YB-006 sub-A2 결과 = 두 home 다 동일 사본).
+          $cfDir = "C:\ProgramData\Cloudflare\cloudflared"
+          if (Test-Path $cfDir) {
+            Write-Host "ProgramData 잔재 정리 (token-based 에선 미사용)"
+            Remove-Item "$cfDir\*" -Force -ErrorAction SilentlyContinue
+          }
+          $sysHome = "C:\Windows\System32\config\systemprofile\.cloudflared"
+          if (Test-Path $sysHome) {
+            Write-Host "SystemProfile home 잔재 정리 (token-based 에선 미사용)"
+            Remove-Item "$sysHome\*" -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: cloudflared service install (token-based)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        env:
+          CF_TUNNEL_TOKEN: ${{ secrets.YB_PROD_CF_TUNNEL_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+          if (-not (Test-Path $cf)) {
+            $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
+            if ($cfCmd) { $cf = $cfCmd.Source }
+          }
+          if (-not (Test-Path $cf)) { throw "cloudflared.exe 못 찾음" }
+
+          Write-Host "service install (token):"
+          # cloudflared 가 token 을 ImagePath 에 그대로 박음 → SCM start 시
+          # cloudflared.exe service tunnel run --token <TOKEN> 실행
+          & $cf service install $env:CF_TUNNEL_TOKEN 2>&1 | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "service install failed (exit $LASTEXITCODE)" }
           Start-Sleep -Seconds 5
 
-          Write-Host "service ImagePath (검증):"
-          sc.exe qc cloudflared | Out-Host
+          Write-Host "service ImagePath (검증 — args 박혔는지):"
+          $qcOut = "$env:TEMP\sc-qc-install.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'qc','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $qcOut
+          if (Test-Path $qcOut) { Get-Content $qcOut | ForEach-Object { Write-Host $_ } }
 
           # service install 가 자동 start 함. exit 1056 = ALREADY RUNNING = 성공 신호
+          Write-Host ""
           Write-Host "ensure auto + ensure started (idempotent):"
           sc.exe config cloudflared start= auto | Out-Host
-          $startResult = sc.exe start cloudflared 2>&1
-          $startExit = $LASTEXITCODE
-          Write-Host $startResult
+          $startOut = "$env:TEMP\sc-start-install.txt"
+          $startErr = "$env:TEMP\sc-start-install.err"
+          $sp = Start-Process -FilePath 'sc.exe' -ArgumentList 'start','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $startOut -RedirectStandardError $startErr
+          if (Test-Path $startOut) { Get-Content $startOut | ForEach-Object { Write-Host $_ } }
+          $startExit = $sp.ExitCode
           if ($startExit -ne 0 -and $startExit -ne 1056) {
+            if (Test-Path $startErr) { Get-Content $startErr | ForEach-Object { Write-Host $_ } }
             throw "sc start cloudflared failed (exit $startExit)"
           }
           Start-Sleep -Seconds 8
@@ -165,21 +138,41 @@ jobs:
           if (-not $svc) { throw "cloudflared service not found after install" }
           Write-Host "Service status: $($svc.Status)"
 
-          # cloudflared.exe process 확인
+          # cloudflared 프로세스 (service start 후 살아있는지 — sub-A 의 1067 패턴 회귀 검증)
+          Write-Host ""
           Write-Host "=== cloudflared processes ==="
-          Get-Process cloudflared -ErrorAction SilentlyContinue | Format-Table Id,ProcessName,CPU,StartTime -AutoSize
-
-          # tunnel info — connector active 검증
-          $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
-          if (-not (Test-Path $cf)) {
-            $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
-            if ($cfCmd) { $cf = $cfCmd.Source }
+          $procs = Get-Process cloudflared -ErrorAction SilentlyContinue
+          if ($procs) {
+            $procs | Format-Table Id,ProcessName,StartTime -AutoSize
+          } else {
+            Write-Host "(none — child exit cycle 의심, A4 Event Log 확인 필요)"
           }
-          # connector 등록까지 ~10s 추가 대기 (service start 후)
-          Start-Sleep -Seconds 5
-          Write-Host "=== tunnel info yawnbot-prod ==="
-          & $cf tunnel info yawnbot-prod 2>&1 | Out-Host
+
+          # connector active — Application log 의 cloudflared provider 가
+          # "Registered tunnel connection" 박는지 (sub-A 의 dry run 패턴)
+          Write-Host ""
+          Write-Host "=== Application log: cloudflared, 최근 2분 ==="
+          $since = (Get-Date).AddMinutes(-2)
+          try {
+            $events = Get-WinEvent -FilterHashtable @{
+              LogName = 'Application'
+              StartTime = $since
+            } -ErrorAction Stop |
+              Where-Object { $_.ProviderName -match 'cloudflared' -or $_.Message -match 'cloudflared' } |
+              Select-Object -First 10
+            if ($events) {
+              foreach ($e in $events) {
+                Write-Host "$($e.TimeCreated) [$($e.LevelDisplayName)] $($e.Message)"
+              }
+            } else {
+              Write-Host "(매치 0)"
+            }
+          } catch {
+            Write-Host "Get-WinEvent 실패: $($_.Exception.Message)"
+          }
 
           if ($svc.Status -ne 'Running') {
             throw "cloudflared service status = $($svc.Status), expected Running"
           }
+          Write-Host ""
+          Write-Host "✅ cloudflared service Running. tunnel connector 등록 = curl https://yawnbot.mascari4615.com/webhook/github 으로 외부 검증."
