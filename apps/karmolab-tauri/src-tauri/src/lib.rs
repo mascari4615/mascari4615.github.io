@@ -1,5 +1,5 @@
 mod activity;
-mod karmoddrine_state;
+mod questlog_hub;
 mod life;
 mod local_dev;
 mod quest_index;
@@ -10,7 +10,7 @@ mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
-use karmoddrine_state::get_karmoddrine_state;
+use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
 use quest_index::get_quest_tree;
 use quest_launcher::{create_task, open_task_in_editor};
@@ -697,7 +697,7 @@ pub fn run() {
             activity_query_day,
             activity_list_days,
             activity_status,
-            get_karmoddrine_state,
+            get_questlog_hub,
             get_quest_tree,
             toggle_quest_check,
             set_quest_status,
