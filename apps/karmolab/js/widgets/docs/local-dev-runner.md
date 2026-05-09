@@ -49,7 +49,7 @@ npm run dev
 - **`cwd`:** 레포 루트 기준 상대 경로(예: `.`, `apps/discord-bots`). 반드시 루트 **아래** 실제 폴더여야 합니다.
 - **`npmInstall: true`:** 그 프로필에 **npm i** 버튼이 보이고, 해당 `cwd`에서 **`localdev_npm_install_stream`** 으로 실행됩니다. stdout/stderr는 카드 아래 **로그 패널**에 줄 단위로 스트림되고, 끝나면 토스트로 성공/실패가 뜹니다.
 - **`deployArgs`:** (선택) 예: `["run", "deploy:yawnbot"]` — 카드에 **deploy** 버튼이 생기고, 같은 `cwd`에서 **`localdev_deploy_stream`** 으로 `npm` + 인자를 실행합니다. 로그 패널·토스트 동작은 npm i와 같습니다.
-- **`localMonitors`:** 항목마다 `title`·`subtitle`(선택)·`url`(선택)·`noHealthUrl`(의도적으로 ping 안 함) 등을 둘 수 있습니다. 예전처럼 `label`만 있어도 됩니다. **ATKUp** 봇은 기본 **`http://127.0.0.1:8081/health`** (`ATKUP_HEALTH_PORT`, 끄려면 `0`). 데스크톱에서는 **`devProfiles` 항목과 `id`가 같으면 카드 한 장**에 URL 상태와 시작·종료가 같이 나옵니다.
+- **`localMonitors`:** 항목마다 `title`·`subtitle`(선택)·`url`(선택)·`noHealthUrl`(의도적으로 ping 안 함) 등을 둘 수 있습니다. 예전처럼 `label`만 있어도 됩니다. 예: **YawnBot** 은 기본 **`http://127.0.0.1:4615/webhook/github`** (`WEBHOOK_PORT`). 데스크톱에서는 **`devProfiles` 항목과 `id`가 같으면 카드 한 장**에 URL 상태와 시작·종료가 같이 나옵니다.
 - **`healthUrl`:** (선택) `devProfiles` 전용. `localMonitors`와 주소를 맞춰 두면 카드 ping과 의미가 같아집니다.
 
 ---
