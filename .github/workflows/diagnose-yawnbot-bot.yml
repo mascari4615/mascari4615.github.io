@@ -1,0 +1,186 @@
+name: Diagnose yawnbot-prod (NSSM 봇 startup fail)
+
+# TASK-YB-006 sub-D — yawnbot-prod NSSM 봇이 NSSM restart 후 ready 단계 도달 못함
+# (reportShutdown 임베드만 도달, reportStartup 안 뜸). cloudflared tunnel 은 sub-B
+# (F2-CLI) 로 fix 됐고 외부 도달 502 = 4615 origin 만 응답 X.
+#
+# 진단 axis:
+#   D1. NSSM service status + AppStdout/AppStderr file 위치 + 마지막 50줄
+#   D2. netstat :4615 (포트 listen 검증)
+#   D3. Node process 확인 (yawnbot 자식 프로세스)
+#   D4. .env 키 카운트 + 필수 secret (DISCORD_TOKEN / CLIENT_ID) 길이 — secret 마스킹
+#   D5. dist/ artifact (build 결과 main.js 존재 + size)
+#
+# Idempotent: 진단만. NSSM stop/start 없음.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 5
+
+    env:
+      YAWNBOT_DIR: 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io\apps\discord-bots\apps\yawnbot'
+
+    steps:
+      - name: D1. NSSM service + AppStdout/AppStderr tail
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { throw "nssm.exe 못 찾음" }
+          Write-Host "nssm: $nssm"
+
+          Write-Host ""
+          Write-Host "=== Get-Service yawnbot-prod ==="
+          $svc = Get-Service -Name 'yawnbot-prod' -ErrorAction SilentlyContinue
+          if ($svc) {
+            $svc | Format-List Name,Status,StartType,DisplayName
+          } else {
+            Write-Host "Service NOT FOUND"
+          }
+
+          Write-Host ""
+          Write-Host "=== sc.exe queryex yawnbot-prod ==="
+          $qxOut = "$env:TEMP\sc-queryex-yb.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'queryex','yawnbot-prod' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $qxOut
+          if (Test-Path $qxOut) { Get-Content $qxOut | ForEach-Object { Write-Host $_ } }
+
+          # NSSM 의 AppStdout / AppStderr file 경로
+          $stdoutFile = & $nssm get yawnbot-prod AppStdout 2>&1 | Out-String
+          $stderrFile = & $nssm get yawnbot-prod AppStderr 2>&1 | Out-String
+          $appExe = & $nssm get yawnbot-prod Application 2>&1 | Out-String
+          $appArgs = & $nssm get yawnbot-prod AppParameters 2>&1 | Out-String
+          $appDir = & $nssm get yawnbot-prod AppDirectory 2>&1 | Out-String
+          Write-Host ""
+          Write-Host "=== NSSM config ==="
+          Write-Host "Application: $($appExe.Trim())"
+          Write-Host "AppParameters: $($appArgs.Trim())"
+          Write-Host "AppDirectory: $($appDir.Trim())"
+          Write-Host "AppStdout: $($stdoutFile.Trim())"
+          Write-Host "AppStderr: $($stderrFile.Trim())"
+
+          $stdoutPath = $stdoutFile.Trim()
+          $stderrPath = $stderrFile.Trim()
+
+          if ($stdoutPath -and (Test-Path $stdoutPath)) {
+            Write-Host ""
+            Write-Host "=== AppStdout tail 100 ($stdoutPath, size: $((Get-Item $stdoutPath).Length) bytes) ==="
+            Get-Content $stdoutPath -Tail 100 | ForEach-Object { Write-Host $_ }
+          } else {
+            Write-Host "AppStdout file 없음"
+          }
+
+          if ($stderrPath -and (Test-Path $stderrPath) -and ($stderrPath -ne $stdoutPath)) {
+            Write-Host ""
+            Write-Host "=== AppStderr tail 100 ($stderrPath, size: $((Get-Item $stderrPath).Length) bytes) ==="
+            Get-Content $stderrPath -Tail 100 | ForEach-Object { Write-Host $_ }
+          }
+
+      - name: D2. netstat :4615 + D3. Node process
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          Write-Host "=== netstat :4615 (listen 검증) ==="
+          $nsOut = "$env:TEMP\netstat-4615.txt"
+          $p = Start-Process -FilePath 'netstat.exe' -ArgumentList '-ano' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $nsOut
+          if (Test-Path $nsOut) {
+            $matches = Get-Content $nsOut | Select-String -Pattern ':4615\s'
+            if ($matches) {
+              foreach ($m in $matches) { Write-Host $m.Line }
+            } else {
+              Write-Host "(:4615 listen 없음)"
+            }
+          }
+
+          Write-Host ""
+          Write-Host "=== Node 프로세스 (yawnbot 후보) ==="
+          $procs = Get-CimInstance Win32_Process -Filter "Name='node.exe'" -ErrorAction SilentlyContinue
+          if ($procs) {
+            $procs | ForEach-Object {
+              Write-Host "PID=$($_.ProcessId) ParentPID=$($_.ParentProcessId)"
+              Write-Host "  CommandLine: $($_.CommandLine)"
+            }
+          } else {
+            Write-Host "(node.exe 프로세스 없음)"
+          }
+
+      - name: D4. .env 키 + 필수 secret 길이 (마스킹)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          $envPath = Join-Path $env:YAWNBOT_DIR '.env'
+          if (-not (Test-Path $envPath)) {
+            Write-Host ".env 없음: $envPath"
+            return
+          }
+
+          Write-Host "=== .env ($envPath) ==="
+          Write-Host "Size: $((Get-Item $envPath).Length) bytes"
+          $lines = Get-Content $envPath
+          Write-Host "Total lines: $($lines.Count)"
+
+          # 키만 추출 (값 마스킹). 단 길이는 출력 (token 길이 검증용)
+          foreach ($line in $lines) {
+            if ($line -match '^([A-Z_][A-Z_0-9]*)=(.*)$') {
+              $key = $matches[1]
+              $value = $matches[2]
+              $valueLen = $value.Length
+
+              # 필수 키만 길이 노출 (DISCORD_TOKEN / CLIENT_ID / GUILD_ID 등)
+              # 그 외는 마스킹 + 길이만
+              if ($key -in @('DISCORD_TOKEN', 'CLIENT_ID', 'DISCORD_GUILD_ID', 'YAWNBOT_OPS_REPORT_CHANNEL_ID', 'YAWNBOT_ENV', 'GITHUB_WEBHOOK_CHANNEL_ID')) {
+                if ($key -eq 'DISCORD_TOKEN') {
+                  # token 은 길이만, 값 자체 마스킹
+                  Write-Host "$key=*** (length: $valueLen)"
+                } elseif ($key -in @('YAWNBOT_ENV', 'YAWNBOT_OPS_REPORT_CHANNEL_ID', 'GITHUB_WEBHOOK_CHANNEL_ID', 'CLIENT_ID', 'DISCORD_GUILD_ID')) {
+                  # 채널/guild ID 는 노출 (이미 .env grep 으로 사용자 알고 있음)
+                  Write-Host "$key=$value (length: $valueLen)"
+                }
+              } else {
+                Write-Host "$key=*** (length: $valueLen)"
+              }
+            }
+          }
+
+      - name: D5. dist artifact 검증
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          $dist = Join-Path $env:YAWNBOT_DIR 'dist'
+          if (-not (Test-Path $dist)) {
+            Write-Host "dist/ 없음: $dist"
+            return
+          }
+
+          Write-Host "=== dist/ artifact ($dist) ==="
+          Get-ChildItem $dist -Recurse -ErrorAction SilentlyContinue | Select-Object -First 30 | ForEach-Object {
+            Write-Host "  $($_.FullName.Substring($dist.Length)) ($($_.Length) bytes, $($_.LastWriteTime))"
+          }
+
+          $mainJs = Join-Path $dist 'main.js'
+          if (Test-Path $mainJs) {
+            Write-Host ""
+            Write-Host "main.js 박힘 (size: $((Get-Item $mainJs).Length) bytes, mtime: $((Get-Item $mainJs).LastWriteTime))"
+          } else {
+            Write-Host "main.js 없음"
+          }
