@@ -6,7 +6,6 @@
 use std::path::{Path, PathBuf};
 
 pub struct LifeScreenConfig {
-    #[allow(dead_code)]
     pub memo_repo_root: PathBuf,
     pub raw_screenshot_dir: PathBuf,
 }
