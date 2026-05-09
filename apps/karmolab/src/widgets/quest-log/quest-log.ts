@@ -775,7 +775,7 @@
   border: 1px solid var(--line); color: var(--ink);
 }
 
-/* hub-cards — `.featured` 의 절단 코너 패턴 흡수 */
+/* hub-cards — .featured 의 절단 코너 패턴 흡수 */
 .kl-quest-log .hub-cards {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px;
 }
@@ -809,7 +809,7 @@
   line-height: 1.55; color: var(--ink-2); word-break: break-all;
 }
 
-/* hub-pill — `.lane-pill` 톤 흡수 */
+/* hub-pill — .lane-pill 톤 흡수 */
 .kl-quest-log .hub-pill {
   display: inline-block; padding: 2px 8px;
   font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
