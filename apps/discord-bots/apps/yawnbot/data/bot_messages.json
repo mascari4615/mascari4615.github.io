@@ -1,12 +1,12 @@
 {
-	"Webhook_Ping_Title": "🔌 GitHub Webhook 연결 확인냥!",
-	"Webhook_Ping_Desc": "서버랑 잘 연결됐다냥! 이제 소식을 기다리라냥! 🐾",
-	"Webhook_Push_Title": "🚀 [Push] {0}개의 커밋이 올라왔다냥!",
-	"Webhook_Issue_Title": "🎫 [Issue] #{0} {1}냥!",
+	"Webhook_Ping_Title": "🔌 GitHub Webhook 연결 확인",
+	"Webhook_Ping_Desc": "서버에 연결되었습니다. 이제 알림이 도착합니다.",
+	"Webhook_Push_Title": "🚀 [Push] 커밋 {0}개",
+	"Webhook_Issue_Title": "🎫 [Issue] #{0} {1}",
 	"Webhook_Issue_Desc": "**{0}**\n[자세히 보기]({1})",
-	"Webhook_PR_Title": "🔀 [PR] #{0} {1}냥!",
+	"Webhook_PR_Title": "🔀 [PR] #{0} {1}",
 	"Webhook_PR_Desc": "**{0}**\n`{2}` → `{3}`\n[자세히 보기]({1})",
-	"Webhook_Release_Title": "🏷️ [Release] {0} 릴리즈됐다냥!",
+	"Webhook_Release_Title": "🏷️ [Release] {0} 배포",
 	"Webhook_Release_Desc": "**{0}**\n[자세히 보기]({1})",
 	"General_Ping_Title": "🏓 Pong!",
 	"General_Ping_Desc": "Latency: {0}ms",
@@ -161,5 +161,5 @@
 	"Admin_Reload_Desc": "데이터 및 설정을 다시 불러왔습니다.",
 	"Admin_Save_Title": "💾 저장 완료",
 	"Admin_Save_Desc": "게임 데이터를 저장했습니다.",
-	"Server_Startup_Greeting": "🚀 **서버 연결 완료!**\nYawnBot이 성공적으로 배포되어 다시 돌아왔다냥! 🐾\n(버전: {0})"
+	"Server_Startup_Greeting": "🚀 **YawnBot 재시작 완료**\n배포가 성공했습니다. (ver {0})"
 }
