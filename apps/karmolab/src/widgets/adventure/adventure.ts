@@ -20,6 +20,8 @@ import type { TurnLoopState } from './turn-loop';
 import { parseTurnResponse } from './prompt';
 import { buildSettingsPanel } from './settings';
 import { showEndModal } from './end-modal';
+import { generateAdventureImage } from './imagegen';
+import { attachImageRef } from './turn-loop';
 
 (function () {
   function el<K extends keyof HTMLElementTagNameMap>(
@@ -278,16 +280,51 @@ import { showEndModal } from './end-modal';
         style: { display: 'flex', gap: '8px', marginTop: '4px' },
       });
       const cameraBtn = el('button', {
-        textContent: '📷 (η 단계 후 활성화)',
-        disabled: true,
+        textContent: '📷 장면 이미지 (Vertex Imagen)',
         style: {
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
-          color: 'var(--text-tertiary, #888)',
+          color: 'var(--text-primary, #e8e8e8)',
           border: '1px solid var(--border-color, #333)',
           borderRadius: 'var(--radius-sm, 4px)',
-          cursor: 'not-allowed',
+          cursor: 'pointer',
         },
+      });
+      cameraBtn.addEventListener('click', () => {
+        if (!state) return;
+        const lastTurn = state.session.turns[state.session.turns.length - 1];
+        if (!lastTurn) {
+          alert('아직 narrative 없습니다. turn 한 번 진행 후 시도하세요.');
+          return;
+        }
+        const narrative = lastTurn.parsed?.narrative || lastTurn.assistantText;
+        cameraBtn.disabled = true;
+        const originalLabel = cameraBtn.textContent;
+        cameraBtn.textContent = '📷 생성 중…';
+        void (async () => {
+          try {
+            const result = await generateAdventureImage(narrative);
+            attachImageRef(state!.session, result.dataUrl);
+            const img = el('img', {
+              src: result.dataUrl,
+              alt: result.prompt.slice(0, 100),
+              title: result.prompt,
+              style: {
+                marginTop: '8px',
+                maxWidth: '100%',
+                borderRadius: 'var(--radius-sm, 4px)',
+                border: '1px solid var(--border-color, #333)',
+              },
+            });
+            const narrativeBox = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
+            narrativeBox?.appendChild(img);
+          } catch (err) {
+            alert('이미지 생성 실패: ' + (err instanceof Error ? err.message : String(err)));
+          } finally {
+            cameraBtn.disabled = false;
+            cameraBtn.textContent = originalLabel;
+          }
+        })();
       });
       tools.appendChild(cameraBtn);
       const endBtn = el('button', {
