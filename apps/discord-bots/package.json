@@ -11,6 +11,7 @@
     "build:yawnbot": "npm --prefix ../../packages/karmolab-ai run build && npm -w packages/discord-bot-common run build && npm -w apps/yawnbot run build",
     "dev": "npm -w apps/yawnbot run dev",
     "dev:yawnbot": "npm -w apps/yawnbot run dev",
+    "tunnel:prod": "npm -w apps/yawnbot run tunnel:prod",
     "start": "npm -w apps/yawnbot run start",
     "start:yawnbot": "npm -w apps/yawnbot run start",
     "deploy": "npm -w apps/yawnbot run deploy",

@@ -3,8 +3,14 @@
         {
             "id": "yawnbot-tunnel",
             "title": "YawnBot (dev)",
-            "subtitle": "cloudflared + webhook 자동등록 — prod 는 노트북 (TASK-YB-002)",
+            "subtitle": "cloudflared quick tunnel + webhook 자동등록 (dev)",
             "url": "http://127.0.0.1:4615/webhook/github"
+        },
+        {
+            "id": "yawnbot-tunnel-prod",
+            "title": "YawnBot Tunnel (prod)",
+            "subtitle": "cloudflared named tunnel — yawnbot.mascari4615.com (TASK-YB-005)",
+            "url": "https://yawnbot.mascari4615.com/webhook/github"
         },
         {
             "id": "jekyll",
@@ -86,6 +92,15 @@
             "healthUrl": "http://127.0.0.1:4615/webhook/github",
             "npmInstall": true,
             "deployArgs": ["run", "deploy:yawnbot"]
+        },
+        {
+            "id": "yawnbot-tunnel-prod",
+            "label": "YawnBot Tunnel (prod)",
+            "cwd": "apps/discord-bots",
+            "program": "npm",
+            "args": ["run", "tunnel:prod"],
+            "healthUrl": "https://yawnbot.mascari4615.com/webhook/github",
+            "npmInstall": false
         },
         {
             "id": "karmolab-py",
