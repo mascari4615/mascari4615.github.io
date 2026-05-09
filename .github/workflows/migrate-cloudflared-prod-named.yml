@@ -87,6 +87,35 @@ jobs:
             Write-Host "cloudflared-prod NSSM service 없음 — skip"
           }
 
+      - name: Mirror cert/cred to LocalSystem home
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        env:
+          CF_CERT_PEM: ${{ secrets.YB_PROD_CF_CERT_PEM }}
+          CF_CREDENTIALS_JSON: ${{ secrets.YB_PROD_CF_CREDENTIALS_JSON }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # cloudflared LocalSystem service 의 home = C:\Windows\System32\config\systemprofile\.cloudflared\
+          # `cloudflared service install` 의 service ImagePath 가 단순 `cloudflared.exe service` 로
+          # config 자동 검색 — LocalSystem home 우선.
+          $sysHome = "C:\Windows\System32\config\systemprofile\.cloudflared"
+          New-Item -Path $sysHome -ItemType Directory -Force | Out-Null
+          $utf8 = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText("$sysHome\cert.pem", $env:CF_CERT_PEM, $utf8)
+          [System.IO.File]::WriteAllText("$sysHome\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json", $env:CF_CREDENTIALS_JSON, $utf8)
+          $configLines = @(
+            "tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2",
+            "credentials-file: $sysHome\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json",
+            "",
+            "ingress:",
+            "  - hostname: yawnbot.mascari4615.com",
+            "    service: http://localhost:4615",
+            "  - service: http_status:404"
+          )
+          $config = ($configLines -join "`n") + "`n"
+          [System.IO.File]::WriteAllText("$sysHome\config.yml", $config, $utf8)
+          Write-Host "Files written to ${sysHome}:"
+          Get-ChildItem $sysHome | Format-Table Name,Length -AutoSize
+
       - name: cloudflared service install (idempotent reinstall)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
@@ -100,7 +129,7 @@ jobs:
 
           $existing = Get-Service -Name cloudflared -ErrorAction SilentlyContinue
           if ($existing) {
-            Write-Host "기존 cloudflared service 발견 — uninstall 후 reinstall"
+            Write-Host "기존 cloudflared service 발견 — uninstall 후 reinstall (clean state)"
             sc.exe stop cloudflared | Out-Host
             Start-Sleep -Seconds 3
             Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -109,13 +138,22 @@ jobs:
             Start-Sleep -Seconds 3
           }
 
-          # service install — config 절대경로 명시
-          $cfDir = "C:\ProgramData\Cloudflare\cloudflared"
-          & $cf --config "$cfDir\config.yml" service install 2>&1 | Out-Host
+          Write-Host "service install:"
+          & $cf service install 2>&1 | Out-Host
+          Start-Sleep -Seconds 5
 
-          # auto start + start (service install 자체가 시작 안 할 수도)
+          Write-Host "service ImagePath (검증):"
+          sc.exe qc cloudflared | Out-Host
+
+          # service install 가 자동 start 함. exit 1056 = ALREADY RUNNING = 성공 신호
+          Write-Host "ensure auto + ensure started (idempotent):"
           sc.exe config cloudflared start= auto | Out-Host
-          sc.exe start cloudflared | Out-Host
+          $startResult = sc.exe start cloudflared 2>&1
+          $startExit = $LASTEXITCODE
+          Write-Host $startResult
+          if ($startExit -ne 0 -and $startExit -ne 1056) {
+            throw "sc start cloudflared failed (exit $startExit)"
+          }
           Start-Sleep -Seconds 8
 
       - name: Verify
@@ -126,17 +164,22 @@ jobs:
           $svc = Get-Service -Name cloudflared -ErrorAction SilentlyContinue
           if (-not $svc) { throw "cloudflared service not found after install" }
           Write-Host "Service status: $($svc.Status)"
-          if ($svc.Status -ne 'Running') {
-            # 한 번 더 retry (service install 후 START_PENDING 가능)
-            Start-Sleep -Seconds 5
-            $svc = Get-Service -Name cloudflared
-            if ($svc.Status -ne 'Running') { throw "cloudflared service status = $($svc.Status), expected Running" }
-          }
 
+          # cloudflared.exe process 확인
+          Write-Host "=== cloudflared processes ==="
+          Get-Process cloudflared -ErrorAction SilentlyContinue | Format-Table Id,ProcessName,CPU,StartTime -AutoSize
+
+          # tunnel info — connector active 검증
           $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
           if (-not (Test-Path $cf)) {
             $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
             if ($cfCmd) { $cf = $cfCmd.Source }
           }
+          # connector 등록까지 ~10s 추가 대기 (service start 후)
+          Start-Sleep -Seconds 5
           Write-Host "=== tunnel info yawnbot-prod ==="
           & $cf tunnel info yawnbot-prod 2>&1 | Out-Host
+
+          if ($svc.Status -ne 'Running') {
+            throw "cloudflared service status = $($svc.Status), expected Running"
+          }
