@@ -12,6 +12,7 @@
 
 pub mod active_window;
 pub mod classify;
+pub mod companion;
 pub mod hotkey;
 pub mod ocr;
 pub mod schema;

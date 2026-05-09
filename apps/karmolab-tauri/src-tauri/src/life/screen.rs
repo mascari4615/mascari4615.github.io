@@ -17,6 +17,7 @@ use serde::Serialize;
 
 use super::active_window;
 use super::classify;
+use super::companion;
 use super::ocr;
 use super::schema;
 use super::state::LifeScreenConfig;
@@ -37,6 +38,10 @@ pub struct CaptureResult {
     pub trigger: String,
     /// VLM provider 가 작동했고 결과 박힘 시 Some.
     pub vision_summary: Option<String>,
+    /// sub-G companion: router 가 선택한 페르소나 id. None = 침묵.
+    pub companion_persona: Option<String>,
+    /// sub-G companion: 캐릭터 응답. None = 침묵 또는 LLM 빈 응답.
+    pub companion_response: Option<String>,
 }
 
 /// Tauri command — webview 또는 외부 invoke 진입점. trigger="manual".
@@ -132,6 +137,34 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
         .join(format!("{stamp}-{slug}.md"));
     schema::write_md(&md_path, &frontmatter, &ocr_text)?;
 
+    // 9) sub-G companion react — fail soft. claude CLI 또 호출 (~30s+).
+    let vision_summary_owned = vision_result
+        .as_ref()
+        .map(|r| r.summary.clone())
+        .filter(|s| !s.is_empty());
+    let vision_context_owned = vision_result
+        .as_ref()
+        .map(|r| r.context.clone())
+        .filter(|s| !s.is_empty());
+    let companion_input = companion::ReactInput {
+        trigger,
+        timestamp: now,
+        png_path: &final_png,
+        domain: &classification.domain,
+        tags: &classification.tags,
+        summary: &classification.summary,
+        app: app.as_deref(),
+        vision_summary: vision_summary_owned.as_deref(),
+        vision_context: vision_context_owned.as_deref(),
+    };
+    let companion_result = match companion::react(&companion_input, &config) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("[life-companion] react fail soft: {e}");
+            companion::ReactResult::default()
+        }
+    };
+
     Ok(CaptureResult {
         png_path: final_png.to_string_lossy().into_owned(),
         md_path: md_path.to_string_lossy().into_owned(),
@@ -142,6 +175,8 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
         app,
         trigger: trigger.into(),
         vision_summary: vision_result.and_then(|r| (!r.summary.is_empty()).then_some(r.summary)),
+        companion_persona: companion_result.persona,
+        companion_response: companion_result.response,
     })
 }
 
@@ -194,5 +229,41 @@ mod live_tests {
         assert!(md.contains("channel: screenshot"), "channel 필드 누락");
 
         let _ = std::fs::remove_dir_all(&tmp_root);
+    }
+
+    /// sub-G-1 라이브 검증 — real memo path + vision on + companion on. **수동 ignore**.
+    /// 본 테스트는 사용자 환경 hardcode (`LIFE_MEMO_ROOT` env 우선 — env 박혀있으면 그거 사용).
+    /// claude CLI subprocess 두 번 (분류 + companion) + claude vision 한 번 → ~90s+ 1회.
+    /// 결과: `<memo>/life/companion/log/<date>.md` 박힘 + companion_persona/response 검증.
+    #[test]
+    #[ignore]
+    fn live_capture_with_companion_to_real_memo() {
+        if std::env::var("LIFE_MEMO_ROOT").is_err() {
+            std::env::set_var(
+                "LIFE_MEMO_ROOT",
+                r"C:\Users\masca\repos\karmoddrine\memo",
+            );
+        }
+        std::env::remove_var("LIFE_VISION_PROVIDER");
+
+        let result = life_screen_capture().expect("capture 실패");
+        eprintln!("=== sub-G-1 라이브 검증 ===");
+        eprintln!("png_path: {}", result.png_path);
+        eprintln!("md_path: {}", result.md_path);
+        eprintln!("domain: {:?}", result.domain);
+        eprintln!("ocr_chars: {}", result.ocr_chars);
+        eprintln!("app: {:?}", result.app);
+        eprintln!("vision_summary: {:?}", result.vision_summary);
+        eprintln!("companion_persona: {:?}", result.companion_persona);
+        eprintln!("companion_response: {:?}", result.companion_response);
+
+        assert!(
+            std::path::Path::new(&result.png_path).exists(),
+            "png 미박힘"
+        );
+        assert!(
+            std::path::Path::new(&result.md_path).exists(),
+            "md 미박힘"
+        );
     }
 }
