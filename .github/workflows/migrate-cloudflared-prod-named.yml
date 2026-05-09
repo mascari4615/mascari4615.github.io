@@ -93,18 +93,39 @@ jobs:
           Write-Host "AppParameters: $(& $nssm get cloudflared-prod AppParameters 2>&1)"
           Write-Host "AppDirectory: $(& $nssm get cloudflared-prod AppDirectory 2>&1)"
 
-          # restart — stop → sleep → start retry (SERVICE_PAUSED race 회피)
-          & $nssm stop cloudflared-prod 2>&1
-          Start-Sleep -Seconds 5
+          # restart — sc.exe + Get-Service status loop + force kill fallback
+          # (nssm restart 의 NativeCommandError → retry loop 미동작 + SERVICE_PAUSED stuck 회피)
+          $ErrorActionPreference = 'Continue'
 
-          $started = $false
-          for ($i = 0; $i -lt 5; $i++) {
-            & $nssm start cloudflared-prod 2>&1
-            if ($LASTEXITCODE -eq 0) { $started = $true; break }
-            Write-Host "start attempt $($i+1) failed (exit $LASTEXITCODE) — wait 3s"
-            Start-Sleep -Seconds 3
+          Write-Host "stop step:"
+          sc.exe stop cloudflared-prod | Out-Host
+
+          Write-Host "wait for Stopped (max 30s, force kill at 12s):"
+          $stopped = $false
+          for ($i = 0; $i -lt 15; $i++) {
+            Start-Sleep -Seconds 2
+            $svc = Get-Service -Name cloudflared-prod -ErrorAction SilentlyContinue
+            if (-not $svc) { $stopped = $true; break }
+            Write-Host "  $($i+1): $($svc.Status)"
+            if ($svc.Status -eq 'Stopped') { $stopped = $true; break }
+            if ($i -eq 5) {
+              Write-Host "  force-killing cloudflared.exe processes:"
+              Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            }
           }
-          if (-not $started) { throw "nssm start cloudflared-prod failed after 5 attempts" }
+          if (-not $stopped) {
+            Write-Warning "service did not reach Stopped — proceeding anyway"
+          }
+
+          Write-Host "start step:"
+          sc.exe start cloudflared-prod | Out-Host
+          Start-Sleep -Seconds 3
+
+          $svc = Get-Service -Name cloudflared-prod
+          Write-Host "Final status: $($svc.Status)"
+          if ($svc.Status -ne 'Running') {
+            throw "cloudflared-prod final status = $($svc.Status), expected Running"
+          }
           Write-Host "cloudflared-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
 
       - name: Verify named tunnel connector
