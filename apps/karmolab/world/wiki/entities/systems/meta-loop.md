@@ -42,7 +42,7 @@ flowchart LR
 | --- | --- |
 | 보드 (병렬 세션 협업) | `memo/.claude/active-sessions.md` |
 | TASK 스펙 | `memo/TASK-SCHEMA.md` |
-| umbrella 작업 지침 | `memo/CLAUDE-karmoddrine.md` |
+| umbrella 작업 지침 | `memo/UMBRELLA.md` |
 | 문서 지도 | `memo/INDEX.md` |
 | 사용자 auto-memory (LLM 전용) | `~/.claude/projects/<this>/memory/MEMORY.md` |
 | 코드 레포 3 | `WitchMendokusai/`, `Mascari4615.github.io/`, `memo/` |

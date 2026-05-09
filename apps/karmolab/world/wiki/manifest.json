@@ -14,6 +14,9 @@
       "aliases": [
         "메이드 알리사",
         "Alisa"
+      ],
+      "stages": [
+        "wm"
       ]
     },
     {
@@ -31,6 +34,29 @@
       "aliases": [
         "강시 링",
         "Ling"
+      ],
+      "stages": [
+        "wm"
+      ]
+    },
+    {
+      "slug": "timeto",
+      "title": "티메토 (Timeto)",
+      "oneLine": "KarmoLab 의 소녀 연구소장. 조수님을 안내하는 마스코트.",
+      "tags": [
+        "character",
+        "karmolab",
+        "mascot",
+        "lab"
+      ],
+      "icon": "🔬",
+      "subLabel": "연구소장 티메토",
+      "aliases": [
+        "Timeto",
+        "연구소장 티메토"
+      ],
+      "stages": [
+        "karmolab"
       ]
     },
     {
@@ -51,6 +77,9 @@
       "relationships": [
         "alisa",
         "ling"
+      ],
+      "stages": [
+        "wm"
       ]
     }
   ],

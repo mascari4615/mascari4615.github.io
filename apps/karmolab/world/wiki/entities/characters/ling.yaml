@@ -14,6 +14,8 @@ tags:
   - mansion
   - maid
   - jiangshi
+stages:
+  - wm
 imagegen_presetId: ling
 imagegen_icon: 🧟‍♀️
 imagegen_label: 강시 링

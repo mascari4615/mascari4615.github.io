@@ -13,6 +13,8 @@ tags:
   - character
   - mansion
   - maid
+stages:
+  - wm
 imagegen_presetId: alisa
 imagegen_icon: 🧹
 imagegen_label: 메이드 알리사

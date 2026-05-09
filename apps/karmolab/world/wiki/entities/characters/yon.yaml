@@ -13,6 +13,8 @@ tags:
   - character
   - mansion
   - witch
+stages:
+  - wm
 relationships:
   - alisa
   - ling
