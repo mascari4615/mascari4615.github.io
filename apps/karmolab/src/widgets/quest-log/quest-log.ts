@@ -28,6 +28,7 @@
     text: string;
     done: boolean;
     group: string | null;
+    lineNumber: number;
   }
   interface MemoTaskNode {
     id: string;
@@ -102,12 +103,24 @@
     return 'seed';
   }
 
+  /// 위젯 → memo status 역방향 매핑 (KL-018 status write-back).
+  /// `ready` 는 위젯 표현 불가 → 위젯 'seed' 클릭은 memo 'seed' 로 통일 (lossy).
+  function mapWidgetStatusToMemo(widgetStatus: string): string {
+    if (widgetStatus === 'fire') return 'active';
+    if (widgetStatus === 'sleep') return 'hold';
+    if (widgetStatus === 'sealed') return 'done';
+    return 'seed';
+  }
+
   function taskNodeToLeaf(t: MemoTaskNode): any {
     return {
       id: t.id,
       title: t.title,
       status: mapMemoStatus(t.status),
-      checks: t.checks.map((c) => ({ t: c.text, done: c.done })),
+      memoStatus: t.status, // KL-018 — write-back 시 expected_status 로 사용
+      memoPriority: t.priority, // KL-021 — priority write-back expected
+      filePath: t.filePath,
+      checks: t.checks.map((c) => ({ t: c.text, done: c.done, lineNumber: c.lineNumber })),
     };
   }
 
@@ -648,6 +661,24 @@
   color: var(--ink); letter-spacing: -0.005em;
 }
 .kl-quest-log .check-row.done .check-label { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--line-3); }
+.kl-quest-log .check-row { position: relative; padding-right: 56px; }
+.kl-quest-log .check-edit, .kl-quest-log .check-delete {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--ink-3); font-size: 14px; line-height: 1; padding: 4px 6px;
+  opacity: 0; transition: opacity 0.12s, color 0.12s;
+}
+.kl-quest-log .check-edit { right: 28px; }
+.kl-quest-log .check-delete { right: 4px; font-size: 18px; }
+.kl-quest-log .check-row:hover .check-edit,
+.kl-quest-log .check-row:hover .check-delete { opacity: 1; }
+.kl-quest-log .check-edit:hover { color: var(--accent); }
+.kl-quest-log .check-delete:hover { color: #d4504e; }
+.kl-quest-log .check-edit-input {
+  font-family: 'Noto Serif KR', serif; font-size: 16px; line-height: 1.45;
+  background: var(--paper); color: var(--ink); border: 1px solid var(--accent);
+  outline: none; padding: 2px 6px; flex: 1; min-width: 0;
+}
 
 .kl-quest-log .add-check input {
   flex: 1; background: var(--paper); border: none; outline: none;
@@ -743,43 +774,71 @@
       container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:#888;">Quest Log 는 KarmoLab 데스크톱 앱 (Tauri) 에서만 동작합니다.<br/>memo TASK 파일을 런타임에 읽어 트리로 표시합니다.</div></div>`;
       return;
     }
-    container.innerHTML = `
-      <div class="kl-quest-log">
-        <div class="wrap">
-          <header class="hd">
-            <h1 class="serif">QUEST LOG <em>— in progress</em></h1>
-          </header>
 
-          <div class="stats" data-kl-ql="stats"></div>
+    // KL-024 — 이전 마운트의 file-watcher unlisten 이 있으면 정리.
+    const prevUnlisten = (container as any).__kl_quest_unlisten as (() => void) | undefined;
+    if (typeof prevUnlisten === 'function') {
+      try { prevUnlisten(); } catch (e) { console.error('previous unlisten 실패', e); }
+      (container as any).__kl_quest_unlisten = null;
+    }
 
-          <div data-kl-ql="featured-wrap"></div>
-          <div class="sub-grid" data-kl-ql="sub-columns"></div>
+    const renderOnce = (): void => {
+      container.innerHTML = `
+        <div class="kl-quest-log">
+          <div class="wrap">
+            <header class="hd">
+              <h1 class="serif">QUEST LOG <em>— in progress</em></h1>
+            </header>
 
-        </div>
+            <div class="stats" data-kl-ql="stats"></div>
 
-        <div class="drawer-backdrop" data-kl-ql="backdrop"></div>
-        <aside class="drawer" data-kl-ql="drawer">
-          <div class="drawer-head">
-            <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>—</b></div>
-            <button class="drawer-close" data-kl-ql="drawer-close" aria-label="Close">✕</button>
+            <div data-kl-ql="featured-wrap"></div>
+            <div class="sub-grid" data-kl-ql="sub-columns"></div>
+
           </div>
-          <div class="drawer-body" data-kl-ql="drawer-body"></div>
-        </aside>
-      </div>
-    `;
 
-    const root = container.querySelector('.kl-quest-log') as HTMLElement;
+          <div class="drawer-backdrop" data-kl-ql="backdrop"></div>
+          <aside class="drawer" data-kl-ql="drawer">
+            <div class="drawer-head">
+              <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>—</b></div>
+              <button class="drawer-close" data-kl-ql="drawer-close" aria-label="Close">✕</button>
+            </div>
+            <div class="drawer-body" data-kl-ql="drawer-body"></div>
+          </aside>
+        </div>
+      `;
 
-    // 비동기 invoke + 변환 + run
-    void (async () => {
-      const tree = await fetchMemoTree();
-      if (!tree) {
-        root.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">데이터 로딩 실패. F12 콘솔에 get_quest_tree 에러 확인.</div>`;
-        return;
-      }
-      const src = transformMemoToOld(tree);
-      runQuestLog(root, src);
-    })();
+      const root = container.querySelector('.kl-quest-log') as HTMLElement;
+
+      // 비동기 invoke + 변환 + run
+      void (async () => {
+        const tree = await fetchMemoTree();
+        if (!tree) {
+          root.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">데이터 로딩 실패. F12 콘솔에 get_quest_tree 에러 확인.</div>`;
+          return;
+        }
+        const src = transformMemoToOld(tree);
+        runQuestLog(root, src);
+      })();
+    };
+
+    renderOnce();
+
+    // KL-024 — Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
+    // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침.
+    const tauriEvent = (window as any).__TAURI__?.event;
+    if (tauriEvent && typeof tauriEvent.listen === 'function') {
+      void (async () => {
+        try {
+          const unlisten = await tauriEvent.listen('quest-tree-changed', () => {
+            renderOnce();
+          });
+          (container as any).__kl_quest_unlisten = unlisten;
+        } catch (err) {
+          console.error('quest-tree-changed listen 실패', err);
+        }
+      })();
+    }
   }
 
   // ── runQuestLog: 원본 IIFE 로직 (document → root, ID → data-kl-ql) ──────
@@ -1137,6 +1196,14 @@
           `).join('')}
         </div>
 
+        <div class="priority-switcher" style="display:flex; gap:1px; margin-top:8px; background:var(--line-2); border:1px solid var(--line-2); width:fit-content;">
+          ${['low', 'normal', 'high'].map(p => `
+            <button class="chip priority-toggle ${node.memoPriority === p ? 'on' : ''}" data-set-priority="${p}" style="border:none; padding:7px 14px; font-size:12px;">
+              ${p === 'high' ? '! HIGH' : p === 'low' ? '· LOW' : '○ NORMAL'}
+            </button>
+          `).join('')}
+        </div>
+
         <div class="progress-wrap">
           <div class="lbl"><span>PROGRESS · ${starsHTML(progress / 100, false)}</span><b>${progress}%</b></div>
           <div class="bar"><div class="f" style="width:${progress}%; background:${statusColor};"></div></div>
@@ -1154,6 +1221,8 @@
                   <input type="checkbox" ${c.done ? 'checked' : ''} style="display:none;">
                   <span class="check-box"></span>
                   <span class="check-label">${esc(c.t)}</span>
+                  <button class="check-edit" data-check-edit="${i}" title="편집">✎</button>
+                  <button class="check-delete" data-check-del="${i}" title="삭제">×</button>
                 </label>
               `).join('')}
             </div>
@@ -1189,11 +1258,36 @@
       `;
 
       $$('[data-check-idx]').forEach(el => {
-        el.addEventListener('click', (e) => {
+        el.addEventListener('click', async (e) => {
           e.preventDefault();
+          // 삭제·편집 버튼 클릭은 별도 핸들러에서 처리 — 토글 안 함
+          if ((e.target as HTMLElement).matches('[data-check-del]')) return;
+          if ((e.target as HTMLElement).matches('[data-check-edit]')) return;
+
           const i = Number(el.dataset.checkIdx);
-          node.checks[i].done = !node.checks[i].done;
-          if (node.checks[i].done) Mdd.linePreset('success', { msg: '하나 끝!' });
+          const check = node.checks[i];
+
+          // 메모 정본 write-back (TASK-KL-017). filePath/lineNumber 가 있는 경우만.
+          // 없으면 (옛 localStorage 데이터) 시각만 토글.
+          const invoke = (window as any).__TAURI__?.core?.invoke;
+          if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+            try {
+              const newDone = await invoke('toggle_quest_check', {
+                filePath: node.filePath,
+                lineNumber: check.lineNumber,
+                expectedText: check.t,
+              }) as boolean;
+              check.done = newDone;
+            } catch (err) {
+              console.error('toggle_quest_check 실패', err);
+              alert(`체크박스 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              return;
+            }
+          } else {
+            check.done = !check.done;
+          }
+
+          if (check.done) Mdd.linePreset('success', { msg: '하나 끝!' });
           save();
           openDrawer(id);
           renderColumns();
@@ -1201,11 +1295,182 @@
         });
       });
 
+      $$('[data-check-del]').forEach(el => {
+        el.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const i = Number(el.dataset.checkDel);
+          const check = node.checks[i];
+          if (!confirm(`정말 삭제할까요?\n\n"${check.t}"`)) return;
+
+          const invoke = (window as any).__TAURI__?.core?.invoke;
+          if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+            try {
+              await invoke('delete_quest_check', {
+                filePath: node.filePath,
+                lineNumber: check.lineNumber,
+                expectedText: check.t,
+              });
+            } catch (err) {
+              console.error('delete_quest_check 실패', err);
+              alert(`체크박스 삭제 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              return;
+            }
+          }
+
+          // 파일에서 라인 1개 사라지면 그 뒤 체크박스들의 절대 라인 번호가 1씩 당겨짐.
+          // in-memory 도 동기화 안 하면 다음 토글에서 text mismatch 로 실패.
+          for (let j = i + 1; j < node.checks.length; j++) {
+            if (typeof node.checks[j].lineNumber === 'number') {
+              node.checks[j].lineNumber -= 1;
+            }
+          }
+          node.checks.splice(i, 1);
+          save();
+          openDrawer(id);
+          renderColumns();
+          renderStats();
+        });
+      });
+
+      $$('[data-check-edit]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const i = Number(el.dataset.checkEdit);
+          const check = node.checks[i];
+          const labelEl = el.previousElementSibling as HTMLElement | null;
+          if (!labelEl || !labelEl.classList.contains('check-label')) return;
+
+          // input 으로 swap. 기존 텍스트 selected.
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'check-edit-input';
+          input.value = check.t;
+          labelEl.replaceWith(input);
+          input.focus();
+          input.select();
+
+          const restoreLabel = (newText: string) => {
+            const span = document.createElement('span');
+            span.className = 'check-label';
+            span.textContent = newText;
+            input.replaceWith(span);
+          };
+
+          let committed = false;
+          const commit = async () => {
+            if (committed) return;
+            committed = true;
+            const newText = input.value.trim();
+            if (!newText || newText === check.t) {
+              // 변경 없음 — 원복만
+              restoreLabel(check.t);
+              return;
+            }
+
+            const invoke = (window as any).__TAURI__?.core?.invoke;
+            if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+              try {
+                await invoke('rename_quest_check', {
+                  filePath: node.filePath,
+                  lineNumber: check.lineNumber,
+                  expectedText: check.t,
+                  newText,
+                });
+              } catch (err) {
+                console.error('rename_quest_check 실패', err);
+                alert(`체크박스 텍스트 수정 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+                restoreLabel(check.t);
+                return;
+              }
+            }
+
+            check.t = newText;
+            restoreLabel(newText);
+            save();
+            openDrawer(id);
+            renderColumns();
+            renderStats();
+          };
+
+          const cancel = () => {
+            if (committed) return;
+            committed = true;
+            restoreLabel(check.t);
+          };
+
+          input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              void commit();
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              cancel();
+            }
+          });
+          input.addEventListener('blur', () => { void commit(); });
+        });
+      });
+
       $$('[data-set-status]').forEach(el => {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', async () => {
           const s = el.dataset.setStatus!;
-          node.status = node.status === s ? 'seed' : s;
+          const newWidgetStatus = node.status === s ? 'seed' : s;
+
+          // memo 정본 status write-back (TASK-KL-018). filePath/memoStatus 가 있는 경우만.
+          const invoke = (window as any).__TAURI__?.core?.invoke;
+          if (node.filePath && node.memoStatus && typeof invoke === 'function') {
+            const newMemoStatus = mapWidgetStatusToMemo(newWidgetStatus);
+            try {
+              const written = await invoke('set_quest_status', {
+                filePath: node.filePath,
+                newStatus: newMemoStatus,
+                expectedStatus: node.memoStatus,
+              }) as string;
+              node.memoStatus = written;
+              node.status = mapMemoStatus(written);
+            } catch (err) {
+              console.error('set_quest_status 실패', err);
+              alert(`상태 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              return;
+            }
+          } else {
+            node.status = newWidgetStatus;
+          }
+
           if (node.status === 'fire') Mdd.linePreset('tool_run', { msg: '불 붙었어요 🔥' });
+          save();
+          openDrawer(id);
+          renderColumns();
+          renderStats();
+        });
+      });
+
+      $$('[data-set-priority]').forEach(el => {
+        el.addEventListener('click', async () => {
+          const newPriority = el.dataset.setPriority!;
+          // 같은 priority 클릭은 무동작 (status 와 달리 토글 의미 없음)
+          if (node.memoPriority === newPriority) return;
+
+          const invoke = (window as any).__TAURI__?.core?.invoke;
+          if (node.filePath && node.memoPriority && typeof invoke === 'function') {
+            try {
+              const written = await invoke('set_quest_priority', {
+                filePath: node.filePath,
+                newPriority,
+                expectedPriority: node.memoPriority,
+              }) as string;
+              node.memoPriority = written;
+            } catch (err) {
+              console.error('set_quest_priority 실패', err);
+              alert(`우선순위 쓰기 실패: ${err}\n\n파일이 외부에서 변경됐을 수 있습니다. 위젯을 재실행해 주세요.`);
+              return;
+            }
+          } else {
+            node.memoPriority = newPriority;
+          }
+
           save();
           openDrawer(id);
           renderColumns();
@@ -1216,10 +1481,28 @@
       const input = root.querySelector('.add-check input') as HTMLInputElement | null;
       const btn = root.querySelector('.add-check button') as HTMLButtonElement | null;
       if (input && btn) {
-        const add = () => {
+        const add = async () => {
           const t = input.value.trim();
           if (!t) return;
-          node.checks.push({ t, done: false });
+
+          // memo 정본 write-back (TASK-KL-019). filePath 가 있는 경우만.
+          const invoke = (window as any).__TAURI__?.core?.invoke;
+          if (node.filePath && typeof invoke === 'function') {
+            try {
+              const newLineNumber = await invoke('add_quest_check', {
+                filePath: node.filePath,
+                text: t,
+              }) as number;
+              node.checks.push({ t, done: false, lineNumber: newLineNumber });
+            } catch (err) {
+              console.error('add_quest_check 실패', err);
+              alert(`체크박스 추가 실패: ${err}`);
+              return;
+            }
+          } else {
+            node.checks.push({ t, done: false });
+          }
+
           input.value = '';
           save();
           openDrawer(id);
