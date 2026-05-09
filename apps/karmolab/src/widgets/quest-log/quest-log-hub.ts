@@ -41,13 +41,32 @@
     return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
   }
 
+  // 진단: 첫 호출 stuck 추적 — backend sync command (#[tauri::command]) 가 cold start 시
+  // git log × 3 repo + JSON parse + dir walk = 10~30초 가능. 30초 timeout 후 명확 메시지.
+  let lastError: { msg: string; t: number } | null = null;
   async function fetchState(): Promise<QuestlogHub | null> {
     const invoke = window.__TAURI__?.core?.invoke;
-    if (typeof invoke !== 'function') return null;
+    if (typeof invoke !== 'function') {
+      lastError = { msg: 'window.__TAURI__.core.invoke 없음 (Tauri 환경 X)', t: Date.now() };
+      return null;
+    }
+    const TIMEOUT_MS = 30_000;
+    const t0 = Date.now();
     try {
-      return await invoke('get_questlog_hub');
+      const result = await Promise.race([
+        invoke('get_questlog_hub'),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`timeout ${TIMEOUT_MS / 1000}s — backend hang 의심 (git log / JSON / dir walk 어디서 막힘)`)), TIMEOUT_MS)
+        )
+      ]);
+      lastError = null;
+      return result as QuestlogHub;
     } catch (e) {
+      const elapsed = Date.now() - t0;
+      const msg = `${(e as Error).message ?? String(e)} (${(elapsed / 1000).toFixed(1)}s 경과)`;
       console.error('get_questlog_hub 실패', e);
+      lastError = { msg, t: Date.now() };
+      (window as any).__lastQuestlogError = e;
       return null;
     }
   }
@@ -152,10 +171,16 @@
   }
 
   async function refresh(container: HTMLElement): Promise<void> {
+    const meta = container.querySelector('[data-hub="meta"]') as HTMLElement | null;
+    if (meta) meta.textContent = '불러오는 중… (첫 호출 cold start 5~30초 가능)';
     const state = await fetchState();
     if (!state) {
-      const meta = container.querySelector('[data-hub="meta"]') as HTMLElement | null;
-      if (meta) meta.textContent = '데이터 가져오기 실패 (Tauri 앱 안에서 실행 중인지 확인)';
+      if (meta) {
+        const errInfo = lastError ? ` · ${lastError.msg}` : '';
+        meta.innerHTML = `데이터 가져오기 실패${esc(errInfo)} <button data-hub="retry" style="margin-left:8px; padding:2px 10px; background:transparent; border:1px solid var(--accent); color:var(--accent); cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase;">다시 시도</button>`;
+        const retry = meta.querySelector('[data-hub="retry"]') as HTMLButtonElement | null;
+        if (retry) retry.onclick = () => { void refresh(container); };
+      }
       return;
     }
     renderMeta(container, state);
