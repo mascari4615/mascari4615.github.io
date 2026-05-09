@@ -35,15 +35,16 @@ jobs:
           [System.IO.File]::WriteAllText("$cfDir\cert.pem", $env:CF_CERT_PEM, $utf8)
           [System.IO.File]::WriteAllText("$cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json", $env:CF_CREDENTIALS_JSON, $utf8)
 
-          $config = @"
-tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2
-credentials-file: $cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json
-
-ingress:
-  - hostname: yawnbot.mascari4615.com
-    service: http://localhost:4615
-  - service: http_status:404
-"@
+          $configLines = @(
+            "tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2",
+            "credentials-file: $cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json",
+            "",
+            "ingress:",
+            "  - hostname: yawnbot.mascari4615.com",
+            "    service: http://localhost:4615",
+            "  - service: http_status:404"
+          )
+          $config = ($configLines -join "`n") + "`n"
           [System.IO.File]::WriteAllText("$cfDir\config.yml", $config, $utf8)
 
           Write-Host "Files written to ${cfDir}:"
