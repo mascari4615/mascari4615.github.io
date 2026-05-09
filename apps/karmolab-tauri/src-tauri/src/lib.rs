@@ -2,12 +2,20 @@ mod activity;
 mod karmoddrine_state;
 mod local_dev;
 mod quest_index;
+mod quest_launcher;
+mod quest_watcher;
+mod quest_writeback;
 mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use karmoddrine_state::get_karmoddrine_state;
 use quest_index::get_quest_tree;
+use quest_launcher::{create_task, open_task_in_editor};
+use quest_writeback::{
+    add_quest_check, delete_quest_check, rename_quest_check, set_quest_priority, set_quest_status,
+    toggle_quest_check,
+};
 use local_dev::{
     localdev_deploy, localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
     localdev_list_external_pids, localdev_list_tracked, localdev_npm_install,
@@ -689,6 +697,14 @@ pub fn run() {
             activity_status,
             get_karmoddrine_state,
             get_quest_tree,
+            toggle_quest_check,
+            set_quest_status,
+            set_quest_priority,
+            add_quest_check,
+            delete_quest_check,
+            rename_quest_check,
+            open_task_in_editor,
+            create_task,
             terminal_start,
             terminal_send_stdin,
             terminal_stop,
@@ -704,6 +720,10 @@ pub fn run() {
         }))
         .setup(|app| {
             let handle = app.handle().clone();
+
+            // QuestLog 파일 watcher (KL-024) — memo TASK 디렉토리 6개 변경 시
+            // 'quest-tree-changed' 이벤트 emit. 위젯이 listen 해서 자동 새로고침.
+            quest_watcher::start(handle.clone());
 
             // 카모랩 재시작 시 detached 봇 PID 복원 (영속 파일 → 살아있는 것만 in-memory map).
             // OS 호출이 들어가니까 background thread로 — 메인 윈도우 표시를 막지 않음.
