@@ -11,7 +11,7 @@ mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
-use adventure::adventure_claude_complete;
+use adventure::{adventure_claude_complete, adventure_commit_summary, adventure_save_raw};
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
 use quest_index::get_quest_tree;
@@ -742,7 +742,9 @@ pub fn run() {
             terminal_stop,
             terminal_status,
             life_screen_capture,
-            adventure_claude_complete
+            adventure_claude_complete,
+            adventure_save_raw,
+            adventure_commit_summary
         ])
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
