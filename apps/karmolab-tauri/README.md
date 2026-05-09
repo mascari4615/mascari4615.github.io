@@ -13,12 +13,35 @@
 ```bash
 cd apps/karmolab-tauri
 npm install
-npm run dev    # 정적 서버(8899): Python http.server 우선, 없으면 Node — /apps/karmolab/ 응답 대기 후 tauri dev (KarmoLab만; Jekyll 없음)
-npm run dev:app  # 이미 8899에 정적 서버가 떠 있을 때 Tauri만
+npm run dev          # 정적 서버(8899): Python http.server 우선, 없으면 Node — /apps/karmolab/ 응답 대기 후 tauri dev (KarmoLab만; Jekyll 없음)
+npm run dev:app      # 이미 8899에 정적 서버가 떠 있을 때 Tauri만
 npm run dev:with-jekyll   # 예전 방식: Jekyll(4000) + devUrl 4000/karmolab/ (블로그·Liquid 포함 로컬)
-npm run dev:remote  # 개발 모드(tauri dev)인데 WebView만 배포본 URL로
-npm run build    # 설치 패키지 빌드(웹은 GitHub Pages URL을 그대로 씀)
+npm run dev:remote   # 개발 모드(tauri dev)인데 WebView만 배포본 URL로
+npm run dev:dual     # production .exe 옆에 동시 실행 — 별 identifier / 8898 포트 / KarmoLab [DEV] 창 + DEV badge icon (아래 § 분리 참조)
+npm run build        # 설치 패키지 빌드(웹은 GitHub Pages URL을 그대로 씀)
 ```
+
+## 개발 빌드 vs Production — 동시 실행 (`dev:dual`)
+
+`npm run dev` / `dev:app` / `dev:with-jekyll` / `dev:remote` 는 production 과 같은 identifier (`com.mascari4615.karmolab`) → `tauri-plugin-single-instance` 가 같은 그룹으로 묶음 → **production 켜져있으면 dev 가 production 창 focus 만 하고 자기 종료** (동시 X).
+
+**production 옆에 dev 동시 켜려면 `npm run dev:dual`**. `src-tauri/tauri.dev-dual.conf.json` 이 production conf 와 다른 값을 박음:
+
+| 필드 | production | dev:dual |
+|---|---|---|
+| `productName` | `KarmoLab` | `KarmoLab Dev` |
+| `identifier` | `com.mascari4615.karmolab` | `com.mascari4615.karmolab.dev` |
+| window title | `KarmoLab` | `KarmoLab [DEV]` |
+| 정적 서버 포트 | 8899 | **8898** (production 충돌 방지) |
+| 트레이 icon | KarmoLab | KarmoLab + **DEV badge overlay** (`lib.rs::with_dev_overlay`) |
+| 트레이 메뉴 첫 항목 | `KarmoLab 창 보이기` | `KarmoLab [DEV] 창 보이기` |
+| 트레이 tooltip | `KarmoLab — …` | `KarmoLab [DEV] — debug 빌드 (dev:dual)` |
+
+→ 두 인스턴스 별 single-instance 그룹 / 별 window state. 작업 표시줄에 두 아이콘 (production = 깔끔 / dev = DEV badge) 동시 노출.
+
+### ⚠ `cargo build` / `cargo run` / `cargo check --all-targets` 직접 사용 X
+
+이 명령들은 `tauri.conf.json` (production identifier) 그대로 사용 → 만든 `target/debug/karmolab-desktop.exe` 가 **production single-instance 그룹** 에 들어감. 작업 표시줄 「KarmoLab」 누르면 production 이 아닌 그 dev .exe 가 focus 받아 사용자 혼란 (debug build / 다른 디자인 / 다른 데이터). dev 검증은 항상 `npm run dev:dual` 만.
 
 `tauri.conf.json`의 **`build.devUrl`** 은 **`http://127.0.0.1:8899/apps/karmolab/`** — 문서 루트는 **레포 최상위**여야 합니다(`dev:static` → `scripts/dev-static.mjs`: Python `http.server` 또는 Node 폴백). 자산 경로가 `/apps/karmolab/...` 이므로 이 구조를 유지합니다. **`build.frontendDist`** 는 배포용으로 **GitHub Pages URL**을 유지합니다.
 
