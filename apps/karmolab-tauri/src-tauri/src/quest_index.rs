@@ -40,6 +40,8 @@ pub struct CheckItem {
     pub text: String,
     pub done: bool,
     pub group: Option<String>,
+    /// 1-base 파일 라인 번호. v2 write-back (toggle_quest_check) 가 식별자로 사용.
+    pub line_number: u32,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -54,6 +56,9 @@ pub struct TaskNode {
     pub title: String,
     pub file_path: String,
     pub checks: Vec<CheckItem>,
+    /// 파일 mtime (UNIX seconds). KL-027 launcher 정렬 사용.
+    /// metadata read 실패 시 0 (가장 오래된 것으로 정렬됨).
+    pub modified_unix: u64,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -72,7 +77,7 @@ pub struct QuestTree {
     pub errors: Vec<TaskError>,
 }
 
-const DOMAIN_DIRS: &[&str] = &[
+pub const DOMAIN_DIRS: &[&str] = &[
     "wm/tasks",
     "projects/karmolab/tasks",
     "projects/yawnbot/tasks",
@@ -82,14 +87,24 @@ const DOMAIN_DIRS: &[&str] = &[
 ];
 
 /// frontmatter 파싱 — `---\n key: value\n ... \n---\n body`.
-/// 반환: (key→value map, body). frontmatter 가 없거나 닫는 `---` 가 없으면 None.
-fn parse_frontmatter(content: &str) -> Option<(HashMap<String, String>, String)> {
+/// 반환: (key→value map, body, body_start_line).
+/// `body_start_line` 은 1-base 파일 라인 번호 — v2 write-back 이 사용.
+/// frontmatter 가 없거나 닫는 `---` 가 없으면 None.
+fn parse_frontmatter(content: &str) -> Option<(HashMap<String, String>, String, u32)> {
     let normalized = content.replace("\r\n", "\n");
     let after_open = normalized.strip_prefix("---\n")?;
     let close_idx = after_open.find("\n---")?;
     let fm_text = &after_open[..close_idx];
     let body_with_close = &after_open[close_idx + "\n---".len()..];
     let body = body_with_close.strip_prefix('\n').unwrap_or(body_with_close);
+
+    // body 시작 파일 라인 = 1 (open ---) + fm_lines + 1 (close ---) + 1 (다음 라인)
+    let fm_lines = if fm_text.is_empty() {
+        0
+    } else {
+        fm_text.matches('\n').count() + 1
+    };
+    let body_start_line = (fm_lines + 3) as u32;
 
     let mut map: HashMap<String, String> = HashMap::new();
     for raw_line in fm_text.split('\n') {
@@ -101,7 +116,7 @@ fn parse_frontmatter(content: &str) -> Option<(HashMap<String, String>, String)>
             map.insert(key.trim().to_string(), value.trim().to_string());
         }
     }
-    Some((map, body.to_string()))
+    Some((map, body.to_string(), body_start_line))
 }
 
 /// `[a, b, c]` 형식 → `vec![a, b, c]`. 따옴표 제거. 그 외 형식이면 단일 요소.
@@ -121,10 +136,12 @@ fn parse_list(value: &str) -> Vec<String> {
 }
 
 /// 본문 체크박스 추출 — `- [ ]` / `- [x]` / `- [X]` 라인. 가장 가까운 위 h2/h3 헤더가 group.
-fn extract_checks(body: &str) -> Vec<CheckItem> {
+/// `body_start_line` 은 body 의 첫 라인이 파일에서 몇 번째 라인인지 (1-base).
+/// 각 CheckItem 의 `line_number` = 절대 파일 라인 번호.
+fn extract_checks(body: &str, body_start_line: u32) -> Vec<CheckItem> {
     let mut checks: Vec<CheckItem> = Vec::new();
     let mut current_group: Option<String> = None;
-    for raw_line in body.split('\n') {
+    for (idx, raw_line) in body.split('\n').enumerate() {
         let line = raw_line.trim_end_matches('\r');
         let trimmed = line.trim_start();
 
@@ -156,6 +173,7 @@ fn extract_checks(body: &str) -> Vec<CheckItem> {
             text,
             done,
             group: current_group.clone(),
+            line_number: body_start_line + idx as u32,
         });
     }
     checks
@@ -192,8 +210,15 @@ fn extract_title(file_name: &str) -> String {
 }
 
 /// 단일 TASK 파일 → TaskNode. parse 실패는 Err — 호출자가 errors[] 에 모음.
-fn parse_one_task(file_name: &str, rel_path: &str, content: &str) -> Result<TaskNode, String> {
-    let (fm, body) = parse_frontmatter(content).ok_or_else(|| "frontmatter 없음".to_string())?;
+/// `modified_unix` 는 호출자가 metadata 에서 미리 read 해 넘긴다 (read 실패 시 0).
+fn parse_one_task(
+    file_name: &str,
+    rel_path: &str,
+    content: &str,
+    modified_unix: u64,
+) -> Result<TaskNode, String> {
+    let (fm, body, body_start_line) =
+        parse_frontmatter(content).ok_or_else(|| "frontmatter 없음".to_string())?;
 
     let id = fm
         .get("id")
@@ -229,7 +254,7 @@ fn parse_one_task(file_name: &str, rel_path: &str, content: &str) -> Result<Task
         .unwrap_or_default();
 
     let title = extract_title(file_name);
-    let checks = extract_checks(&body);
+    let checks = extract_checks(&body, body_start_line);
 
     Ok(TaskNode {
         id,
@@ -241,6 +266,7 @@ fn parse_one_task(file_name: &str, rel_path: &str, content: &str) -> Result<Task
         title,
         file_path: rel_path.to_string(),
         checks,
+        modified_unix,
     })
 }
 
@@ -303,7 +329,15 @@ pub fn get_quest_tree(memo_path: Option<String>) -> Result<QuestTree, String> {
                 }
             };
 
-            match parse_one_task(&file_name, &rel_path, &content) {
+            // 파일 mtime — KL-027 launcher 정렬 사용. 실패 시 0.
+            let modified_unix = fs::metadata(&path)
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|st| st.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+
+            match parse_one_task(&file_name, &rel_path, &content, modified_unix) {
                 Ok(task) => tasks.push(task),
                 Err(reason) => errors.push(TaskError {
                     file_path: rel_path,
@@ -337,10 +371,12 @@ mod tests {
 
     #[test]
     fn parse_frontmatter_basic() {
-        let (fm, body) = parse_frontmatter(SAMPLE).unwrap();
+        let (fm, body, body_start_line) = parse_frontmatter(SAMPLE).unwrap();
         assert_eq!(fm.get("id").map(String::as_str), Some("TASK-WM-007"));
         assert_eq!(fm.get("status").map(String::as_str), Some("ready"));
         assert!(body.starts_with("\n## 목표"));
+        // SAMPLE: --- (1) + 5 fm lines (2~6) + --- (7) → body 첫 라인 = 8
+        assert_eq!(body_start_line, 8);
     }
 
     #[test]
@@ -362,8 +398,8 @@ mod tests {
 
     #[test]
     fn extract_checks_grouped_and_mixed() {
-        let (_, body) = parse_frontmatter(SAMPLE).unwrap();
-        let checks = extract_checks(&body);
+        let (_, body, body_start_line) = parse_frontmatter(SAMPLE).unwrap();
+        let checks = extract_checks(&body, body_start_line);
         assert_eq!(checks.len(), 4);
         assert_eq!(checks[0].text, "완료된 거");
         assert!(checks[0].done);
@@ -376,9 +412,20 @@ mod tests {
     }
 
     #[test]
+    fn extract_checks_line_numbers_match_file_lines() {
+        // SAMPLE 파일의 체크박스는 라인 15, 16, 20, 21.
+        let (_, body, body_start_line) = parse_frontmatter(SAMPLE).unwrap();
+        let checks = extract_checks(&body, body_start_line);
+        assert_eq!(checks[0].line_number, 15);
+        assert_eq!(checks[1].line_number, 16);
+        assert_eq!(checks[2].line_number, 20);
+        assert_eq!(checks[3].line_number, 21);
+    }
+
+    #[test]
     fn extract_checks_empty_body() {
-        assert!(extract_checks("").is_empty());
-        assert!(extract_checks("## 목표\n\n그냥 본문\n").is_empty());
+        assert!(extract_checks("", 1).is_empty());
+        assert!(extract_checks("## 목표\n\n그냥 본문\n", 1).is_empty());
     }
 
     #[test]
@@ -404,25 +451,26 @@ mod tests {
 
     #[test]
     fn parse_one_task_full_path() {
-        let task = parse_one_task("TASK-WM-007-나무벌목-컨텐츠.md", "wm/tasks/TASK-WM-007-나무벌목-컨텐츠.md", SAMPLE).unwrap();
+        let task = parse_one_task("TASK-WM-007-나무벌목-컨텐츠.md", "wm/tasks/TASK-WM-007-나무벌목-컨텐츠.md", SAMPLE, 1234567890).unwrap();
         assert_eq!(task.id, "TASK-WM-007");
         assert_eq!(task.status, "ready");
         assert_eq!(task.path, vec!["wm".to_string()]);
         assert_eq!(task.tags, vec!["content".to_string(), "lumber".to_string()]);
         assert!(task.parent.is_none());
         assert_eq!(task.checks.len(), 4);
+        assert_eq!(task.modified_unix, 1234567890);
     }
 
     #[test]
     fn parse_one_task_missing_id_errors() {
-        let res = parse_one_task("TASK-WM-001-x.md", "wm/tasks/TASK-WM-001-x.md", SAMPLE_NO_ID);
+        let res = parse_one_task("TASK-WM-001-x.md", "wm/tasks/TASK-WM-001-x.md", SAMPLE_NO_ID, 0);
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("id"));
     }
 
     #[test]
     fn parse_one_task_no_frontmatter_errors() {
-        let res = parse_one_task("TASK-WM-001-x.md", "wm/tasks/TASK-WM-001-x.md", SAMPLE_NO_FM);
+        let res = parse_one_task("TASK-WM-001-x.md", "wm/tasks/TASK-WM-001-x.md", SAMPLE_NO_FM, 0);
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("frontmatter"));
     }
@@ -430,7 +478,7 @@ mod tests {
     #[test]
     fn parse_one_task_with_parent_chain() {
         let content = "---\nid: TASK-WM-027-A\nstatus: done\npriority: normal\npath: [wm, voxel]\nparent: TASK-WM-027\n---\n\n본문\n";
-        let task = parse_one_task("TASK-WM-027-A-블록.md", "wm/tasks/TASK-WM-027-A-블록.md", content).unwrap();
+        let task = parse_one_task("TASK-WM-027-A-블록.md", "wm/tasks/TASK-WM-027-A-블록.md", content, 0).unwrap();
         assert_eq!(task.parent.as_deref(), Some("TASK-WM-027"));
         assert_eq!(task.path, vec!["wm".to_string(), "voxel".to_string()]);
     }
