@@ -782,8 +782,22 @@
       (container as any).__kl_quest_unlisten = null;
     }
 
+    // KL-035 — QuestLog (위) + Hub (아래) 두 wrapper 분리.
+    // renderOnce 가 appWrap 안만 갱신. Hub 는 hubWrap 에 별 polling.
+    if (!container.querySelector('[data-kl-ql-app]')) {
+      container.innerHTML = '';
+      const appWrap = document.createElement('div');
+      appWrap.setAttribute('data-kl-ql-app', '1');
+      container.appendChild(appWrap);
+      const hubWrap = document.createElement('div');
+      hubWrap.setAttribute('data-kl-ql-hub', '1');
+      container.appendChild(hubWrap);
+    }
+    const appWrap = container.querySelector('[data-kl-ql-app]') as HTMLElement;
+    const hubWrap = container.querySelector('[data-kl-ql-hub]') as HTMLElement;
+
     const renderOnce = (): void => {
-      container.innerHTML = `
+      appWrap.innerHTML = `
         <div class="kl-quest-log">
           <div class="wrap">
             <header class="hd">
@@ -808,7 +822,7 @@
         </div>
       `;
 
-      const root = container.querySelector('.kl-quest-log') as HTMLElement;
+      const root = appWrap.querySelector('.kl-quest-log') as HTMLElement;
 
       // 비동기 invoke + 변환 + run
       void (async () => {
@@ -823,6 +837,13 @@
     };
 
     renderOnce();
+
+    // KL-035 — Hub (활성 세션 / commit / 도구 / 룰 / 그래프) QuestLog 페이지 끝에 render.
+    // quest-log-hub.ts 가 lazyScriptPaths 통해 미리 로드됨 → window.KARMOLAB_QUESTLOG_HUB.renderHub.
+    const hubApi = (window as any).KARMOLAB_QUESTLOG_HUB;
+    if (hubApi && typeof hubApi.renderHub === 'function') {
+      try { hubApi.renderHub(hubWrap); } catch (err) { console.error('Hub renderHub 실패', err); }
+    }
 
     // KL-024 — Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
     // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침.

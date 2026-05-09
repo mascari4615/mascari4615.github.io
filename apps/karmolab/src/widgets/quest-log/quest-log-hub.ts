@@ -1,11 +1,16 @@
 /**
- * karmoddrine-dashboard — Tauri 데스크톱 전용 (category: 'desktop' 자동 게이팅).
+ * quest-log-hub — QuestLog 의 Hub 섹션 (TASK-KL-035 — KarmoDDrine 대시보드 흡수).
  *
- * karmoddrine umbrella 의 활성 세션 / 최근 commit / 도구 인벤토리 / 룰 단일 출처를
- * 카드 + 표 + Mermaid 그래프로 시각화. 데이터는 Rust 명령 `get_karmoddrine_state`
- * 가 ~/repos/karmoddrine/ 로컬 파일 + 3 레포 git log 에서 수집해 반환. 10초 폴링.
+ * QuestLog 페이지 끝에 「활성 세션 / 최근 commit / 도구 인벤토리 / 룰 단일 출처 /
+ * 파일 소유권 그래프 / 룰 네트워크」 6 섹션 세로 스크롤. 데이터 = Rust 명령
+ * `get_questlog_hub` 가 ~/repos/karmoddrine/ 로컬 파일 + 3 레포 git log 에서 수집.
+ * 10초 폴링.
  *
- * github.io 공개 사이트엔 표시 X (category: 'desktop' + invoke 결과 없음 → placeholder).
+ * 본 모듈은 quest-log.ts 가 사용하는 sub-script.
+ *   window.KARMOLAB_QUESTLOG_HUB = { renderHub(container) }
+ * quest-log.ts 의 build() 끝에서 호출. 별 위젯 register 안 함.
+ *
+ * github.io 공개 사이트엔 표시 X (Tauri 데스크톱만 — !window.__KARMOLAB_DESKTOP__ → placeholder).
  */
 // @ts-nocheck — Toolbox/Mdd/window.__TAURI__ 글로벌은 ambient 타입에 다 안 잡혀 있음.
 (function (): void {
@@ -15,7 +20,7 @@
   interface CommitInfo { hash: string; date: string; subject: string; }
   interface RuleRow { category: string; canonical: string; cite: string; }
   interface ToolsData { commands: string[]; hooks: string[]; settingsHooks: Record<string, string>; }
-  interface KarmoddrineState {
+  interface QuestlogHub {
     generatedAtUnix: number;
     home: string | null;
     umbrella: string | null;
@@ -32,13 +37,13 @@
     return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
   }
 
-  async function fetchState(): Promise<KarmoddrineState | null> {
+  async function fetchState(): Promise<QuestlogHub | null> {
     const invoke = window.__TAURI__?.core?.invoke;
     if (typeof invoke !== 'function') return null;
     try {
-      return await invoke('get_karmoddrine_state');
+      return await invoke('get_questlog_hub');
     } catch (e) {
-      console.error('get_karmoddrine_state 실패', e);
+      console.error('get_questlog_hub 실패', e);
       return null;
     }
   }
@@ -102,27 +107,10 @@
     return Math.abs(h).toString(36).slice(0, 6);
   }
 
-  // ── 폴링 상태 (Toolbox.register 의 build() 가 동기로 startPolling 을 호출하므로
-  //    register 전에 선언해 TDZ 회피) ────────────────────────────
+  // ── 폴링 상태 ────────────────────────────────────────────────────
   let pollTimer: number | null = null;
 
-  // ── Toolbox 등록 ─────────────────────────────────────────────────
-  Toolbox.register({
-    ...Toolbox.getLazyWidgetPublicMeta('karmoddrine-dashboard'),
-    tabs: [
-      {
-        id: 'app',
-        label: 'karmoddrine',
-        build(container: HTMLElement): void {
-          injectStyles();
-          renderShell(container);
-          startPolling(container);
-        },
-      },
-    ],
-  });
-
-  // ── 스타일 주입 ──────────────────────────────────────────────────
+  // ── 스타일 주입 (KD 대시보드 톤 그대로 — kd-* class. QuestLog 페이지 안 nested 라 충돌 X) ──
   function injectStyles(): void {
     if (document.getElementById('kd-dashboard-styles')) return;
     const style = document.createElement('style');
@@ -175,7 +163,7 @@
   // ── 셸 ──────────────────────────────────────────────────────────
   function renderShell(container: HTMLElement): void {
     if (!isKarmolabDesktop()) {
-      container.innerHTML = `<div class="kd-disabled">karmoddrine dashboard 는 Tauri 데스크톱 앱 전용입니다.</div>`;
+      container.innerHTML = `<div class="kd-disabled">QuestLog Hub 는 Tauri 데스크톱 앱 전용입니다.</div>`;
       return;
     }
     container.innerHTML = `
@@ -222,14 +210,14 @@
   }
 
   // ── 섹션 렌더 ──────────────────────────────────────────────────
-  function renderMeta(container: HTMLElement, state: KarmoddrineState): void {
+  function renderMeta(container: HTMLElement, state: QuestlogHub): void {
     const meta = container.querySelector('[data-kd="meta"]') as HTMLElement | null;
     if (!meta) return;
     const generated = state.generatedAtUnix > 0 ? new Date(state.generatedAtUnix * 1000).toLocaleString('ko-KR') : '?';
     meta.innerHTML = `생성: ${esc(generated)} · umbrella: <code>${esc(state.umbrella ?? '?')}</code> · 폴링: ${POLL_INTERVAL_MS / 1000}s`;
   }
 
-  function renderBoard(container: HTMLElement, state: KarmoddrineState): void {
+  function renderBoard(container: HTMLElement, state: QuestlogHub): void {
     const root = container.querySelector('[data-kd="board"]') as HTMLElement | null;
     if (!root) return;
     if (!state.board || state.board.rows.length === 0) {
@@ -248,7 +236,7 @@
     `).join('')}</div>`;
   }
 
-  function renderCommits(container: HTMLElement, state: KarmoddrineState): void {
+  function renderCommits(container: HTMLElement, state: QuestlogHub): void {
     const root = container.querySelector('[data-kd="commits"]') as HTMLElement | null;
     if (!root) return;
     root.innerHTML = REPOS.map(repo => {
@@ -260,7 +248,7 @@
     }).join('');
   }
 
-  function renderTools(container: HTMLElement, state: KarmoddrineState): void {
+  function renderTools(container: HTMLElement, state: QuestlogHub): void {
     const root = container.querySelector('[data-kd="tools"]') as HTMLElement | null;
     if (!root) return;
     const cmd = state.tools.commands;
@@ -282,7 +270,7 @@
     `;
   }
 
-  function renderRules(container: HTMLElement, state: KarmoddrineState): void {
+  function renderRules(container: HTMLElement, state: QuestlogHub): void {
     const root = container.querySelector('[data-kd="rules"]') as HTMLElement | null;
     if (!root) return;
     if (state.rules.length === 0) {
@@ -298,7 +286,7 @@
   }
 
   // ── 그래프: 파일 소유권 ─────────────────────────────────────────
-  async function renderOwnership(container: HTMLElement, state: KarmoddrineState): Promise<void> {
+  async function renderOwnership(container: HTMLElement, state: QuestlogHub): Promise<void> {
     const root = container.querySelector('[data-kd="ownership"]') as HTMLElement | null;
     if (!root) return;
     if (!state.board || state.board.rows.length === 0) {
@@ -352,7 +340,7 @@
   }
 
   // ── 그래프: 룰 단일 출처 네트워크 ───────────────────────────────
-  async function renderRulesGraph(container: HTMLElement, state: KarmoddrineState): Promise<void> {
+  async function renderRulesGraph(container: HTMLElement, state: QuestlogHub): Promise<void> {
     const root = container.querySelector('[data-kd="rules-graph"]') as HTMLElement | null;
     if (!root) return;
     if (state.rules.length === 0) {
@@ -401,9 +389,17 @@
     let m: RegExpExecArray | null;
     while ((m = re.exec(targets)) !== null) {
       const inner = m[1].trim();
-      // 너무 긴 토큰(중괄호 묶음)도 그대로. 단 빈 거 / 이상한 건 제외.
       if (inner.length > 0 && inner.length < 200) set.add(inner);
     }
     return Array.from(set);
   }
+
+  // ── 외부 노출 — quest-log.ts 가 build() 끝에서 호출 ──────────────
+  (window as any).KARMOLAB_QUESTLOG_HUB = {
+    renderHub(container: HTMLElement): void {
+      injectStyles();
+      renderShell(container);
+      startPolling(container);
+    }
+  };
 })();
