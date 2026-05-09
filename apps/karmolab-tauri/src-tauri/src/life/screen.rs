@@ -10,6 +10,8 @@
 //! 7. `.md` frontmatter + 본문 write.
 //! 8. 결과 (path + 분류 요약) 반환.
 
+use std::sync::atomic::{AtomicU64, Ordering};
+
 use chrono::Local;
 use serde::Serialize;
 
@@ -18,6 +20,9 @@ use super::classify;
 use super::ocr;
 use super::schema;
 use super::state::LifeScreenConfig;
+
+/// 같은 ms 안 동시 capture (빠른 PrintScreen 연타) 시 placeholder filename 충돌 방어.
+static CAPTURE_SEQ: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Debug)]
 pub struct CaptureResult {
@@ -53,10 +58,15 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
     let img = target.capture_image().map_err(|e| e.to_string())?;
 
     let now = Local::now();
-    let stamp = now.format("%Y-%m-%dT%H-%M-%S").to_string();
+    // ms 포함 stamp — 같은 second 안 동시 capture 시 final filename 충돌 방지.
+    let stamp = now.format("%Y-%m-%dT%H-%M-%S-%3f").to_string();
+    // atomic seq — 같은 ms 안 race 도 방어 (아주 드물지만 hotkey 빠른 연타 시).
+    let seq = CAPTURE_SEQ.fetch_add(1, Ordering::Relaxed);
 
     // 2) PNG save (placeholder slug — 분류 후 rename).
-    let placeholder_png = config.raw_screenshot_dir.join(format!("{stamp}-pending.png"));
+    let placeholder_png = config
+        .raw_screenshot_dir
+        .join(format!("{stamp}-pending-{seq}.png"));
     img.save(&placeholder_png).map_err(|e| e.to_string())?;
 
     // 3) OCR — fail soft (text 빈 채로 분류 fallback).
