@@ -733,6 +733,166 @@
   .kl-quest-log .stats { grid-template-columns: repeat(2, 1fr); }
   .kl-quest-log header.hd { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
+
+/* ═══ HUB (KL-035) — 페이지 끝 6 섹션. magazine 톤 흡수, paper/featured/obs vocabulary 활용 ═══ */
+.kl-quest-log .hub {
+  margin: 32px 0 48px;
+  padding: 0 28px;
+  border-top: 1px solid var(--line-2);
+}
+.kl-quest-log .hub-meta {
+  margin: 22px 0 26px;
+  padding: 8px 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  letter-spacing: 0.18em; color: var(--ink-3); text-transform: uppercase;
+}
+.kl-quest-log .hub-meta code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); background: transparent; padding: 0;
+  letter-spacing: 0.1em; text-transform: none;
+}
+.kl-quest-log .hub-section { margin-bottom: 32px; }
+.kl-quest-log .hub-section h2 {
+  margin: 0 0 14px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-2);
+  font-family: 'Noto Serif KR', serif; font-weight: 900;
+  font-size: 22px; line-height: 1.2; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.kl-quest-log .hub-section h3 {
+  margin: 0 0 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
+  font-weight: 500;
+}
+.kl-quest-log .hub-empty {
+  font-family: 'Noto Serif KR', serif; font-style: italic;
+  font-size: 14px; color: var(--ink-3);
+}
+.kl-quest-log .hub code {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: rgba(255,255,255,0.03); padding: 1px 5px;
+  border: 1px solid var(--line); color: var(--ink);
+}
+
+/* hub-cards — `.featured` 의 절단 코너 패턴 흡수 */
+.kl-quest-log .hub-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px;
+}
+.kl-quest-log .hub-card {
+  position: relative; padding: 14px 16px;
+  background: var(--paper); border: 1px solid var(--line-2);
+}
+.kl-quest-log .hub-card::before {
+  content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
+  border-top: 1px solid var(--accent); border-left: 1px solid var(--accent);
+}
+.kl-quest-log .hub-card::after {
+  content: ''; position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px;
+  border-bottom: 1px solid var(--line-3); border-right: 1px solid var(--line-3);
+}
+.kl-quest-log .hub-card-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--line-2);
+}
+.kl-quest-log .hub-card-start {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.16em; color: var(--ink-3); text-transform: uppercase;
+  white-space: nowrap;
+}
+.kl-quest-log .hub-card-topic {
+  font-family: 'Noto Serif KR', serif; font-size: 14.5px; line-height: 1.5; color: var(--ink);
+}
+.kl-quest-log .hub-card-targets {
+  margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line-2);
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  line-height: 1.55; color: var(--ink-2); word-break: break-all;
+}
+
+/* hub-pill — `.lane-pill` 톤 흡수 */
+.kl-quest-log .hub-pill {
+  display: inline-block; padding: 2px 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--line-3); white-space: nowrap;
+}
+.kl-quest-log .hub-pill--done { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.kl-quest-log .hub-pill--active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.kl-quest-log .hub-pill--warn { background: transparent; color: var(--accent); border-color: var(--accent); border-style: dashed; }
+.kl-quest-log .hub-pill--other { background: transparent; color: var(--ink-3); border-style: dashed; }
+
+/* hub-3col — commit 3 레포 */
+.kl-quest-log .hub-3col {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px;
+}
+
+/* hub-list — commit list, mono 톤 */
+.kl-quest-log .hub-list {
+  list-style: none; padding: 0; margin: 0;
+}
+.kl-quest-log .hub-list li {
+  display: grid; grid-template-columns: 64px 80px 1fr; gap: 8px; align-items: baseline;
+  padding: 4px 0; border-bottom: 1px dashed var(--line-2);
+  font-size: 11.5px; line-height: 1.5;
+}
+.kl-quest-log .hub-list li:last-child { border-bottom: none; }
+.kl-quest-log .hub-hash {
+  font-family: 'JetBrains Mono', monospace; color: var(--accent); letter-spacing: 0.04em;
+}
+.kl-quest-log .hub-date {
+  font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px;
+}
+
+/* hub-tool-list — bullet 톤 일관 */
+.kl-quest-log .hub-tool-list {
+  margin: 0; padding-left: 18px;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 12px; line-height: 1.7;
+}
+.kl-quest-log .hub-tool-list li { color: var(--ink-2); margin: 1px 0; }
+.kl-quest-log .hub-tool-list strong { color: var(--ink); font-weight: 500; }
+
+/* hub-table — dashed 톤, serif header 활용 */
+.kl-quest-log .hub-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12px; line-height: 1.5;
+}
+.kl-quest-log .hub-table th {
+  text-align: left; padding: 8px 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
+  border-bottom: 1px solid var(--line-2);
+}
+.kl-quest-log .hub-table td {
+  padding: 8px 10px; vertical-align: top;
+  border-bottom: 1px dashed var(--line-2); color: var(--ink-2);
+}
+.kl-quest-log .hub-table td.hub-cat {
+  font-family: 'Noto Serif KR', serif; font-weight: 500;
+  color: var(--accent); white-space: nowrap;
+}
+
+/* hub-graph — mermaid 컨테이너, paper 배경 */
+.kl-quest-log .hub-graph {
+  background: var(--paper); border: 1px solid var(--line-2);
+  padding: 14px 16px; min-height: 100px; overflow-x: auto;
+  position: relative;
+}
+.kl-quest-log .hub-graph::before {
+  content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
+  border-top: 1px solid var(--accent); border-left: 1px solid var(--accent);
+}
+.kl-quest-log .hub-graph svg { max-width: 100%; height: auto; }
+.kl-quest-log .hub-graph pre {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3);
+  white-space: pre-wrap; overflow: auto;
+}
+
+/* hub-disabled — Tauri 가 아닐 때 placeholder */
+.kl-quest-log .hub-disabled {
+  padding: 32px; text-align: center;
+  font-family: 'Noto Serif KR', serif; font-style: italic;
+  font-size: 14px; color: var(--ink-3);
+}
 `;
 
   function injectStyles(): void {
