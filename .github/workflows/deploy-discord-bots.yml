@@ -170,3 +170,19 @@ jobs:
           }
           # ops-self-report 의 reportShutdown → reportStartup 두 임베드가 운영 채널에 도착
           Write-Host "yawnbot-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+
+      - name: Upsert GitHub webhooks (production URL)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.BOTS_DIR }}
+        env:
+          YAWNBOT_WEBHOOK_URL: 'https://yawnbot.mascari4615.com/webhook/github'
+          GH_TOKEN: ${{ secrets.YB_PROD_GH_WEBHOOK_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          if ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
+            Write-Warning "YB_PROD_GH_WEBHOOK_TOKEN 누락 — webhook upsert skip (deploy 자체는 성공). secret 등록 후 다음 deploy 부터 작동 (TASK-YB-005)."
+            exit 0
+          }
+          & npm run webhook:upsert
+          if ($LASTEXITCODE -ne 0) { Write-Warning "webhook upsert 실패 (deploy 자체는 성공) — gh auth / token scope 확인 필요" }
+          # cloudflared named tunnel (yawnbot.mascari4615.com) 은 별도 영구 service (KarmoLab Server Monitor 의 yawnbot-tunnel-prod 카드 또는 NSSM)
