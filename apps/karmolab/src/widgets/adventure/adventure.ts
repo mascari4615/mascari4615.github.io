@@ -19,6 +19,7 @@ import { createInitialState, runTurn } from './turn-loop';
 import type { TurnLoopState } from './turn-loop';
 import { parseTurnResponse } from './prompt';
 import { buildSettingsPanel } from './settings';
+import { showEndModal } from './end-modal';
 
 (function () {
   function el<K extends keyof HTMLElementTagNameMap>(
@@ -290,7 +291,7 @@ import { buildSettingsPanel } from './settings';
       });
       tools.appendChild(cameraBtn);
       const endBtn = el('button', {
-        textContent: '모험 종료 (θ 단계 후 정수 추출)',
+        textContent: '모험 종료 + 정수 추출 → wiki commit',
         style: {
           padding: '4px 10px',
           background: 'var(--bg-tertiary, #1f1f1f)',
@@ -301,9 +302,21 @@ import { buildSettingsPanel } from './settings';
         },
       });
       endBtn.addEventListener('click', () => {
-        if (!confirm('모험을 종료하시겠어요? (정수 추출은 θ 단계에서 박힘)')) return;
-        state = null;
-        renderCastPicker();
+        if (!state) return;
+        if (state.session.turns.length === 0) {
+          if (!confirm('아직 turn 없는 모험입니다. 그냥 종료할까요?')) return;
+          state = null;
+          renderCastPicker();
+          return;
+        }
+        void (async () => {
+          const committed = await showEndModal(state!.session);
+          if (committed) {
+            // wiki 갱신 — 다음 위젯 진입 시 bindings.adventure 자동 fetch (페이지 새로고침 권장)
+            state = null;
+            renderCastPicker();
+          }
+        })();
       });
       tools.appendChild(endBtn);
       stage.appendChild(tools);
