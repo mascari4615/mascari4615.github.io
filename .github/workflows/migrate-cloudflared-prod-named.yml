@@ -1,12 +1,14 @@
 name: Migrate cloudflared-prod to named tunnel
 
-# TASK-YB-005 ζ — TASK-YB-002-E 의 quick tunnel 흐름 (tunnel-launcher.mjs + GITHUB_TOKEN env)
-# 폐기 후 named tunnel (yawnbot.mascari4615.com) 으로 마이그레이션. 1회 실행 workflow.
+# TASK-YB-005 ζ — TASK-YB-002-E 의 quick tunnel 흐름 (NSSM cloudflared-prod + tunnel-launcher.mjs)
+# 폐기. cloudflared 공식 service install 으로 named tunnel (yawnbot.mascari4615.com) 마이그레이션.
 #
-# Runner: 노트북 self-hosted (label: yawnbot). 노트북에 NSSM 서비스 cloudflared-prod
-# 박혀있어야 함 (TASK-YB-002-A done 가정).
+# 근거: NSSM + cloudflared.exe (LocalSystem) 직접 호출 시 사용자 home `~/.cloudflared/`
+# 못 봐 cert.pem 없음 → cloudflared 즉시 exit → SERVICE_PAUSED. cloudflared 공식 service
+# 는 ProgramData\Cloudflare\cloudflared\ 자동 검색 + LocalSystem 정합.
 #
-# 검증 후 본 workflow archive 또는 삭제.
+# Runner: 노트북 self-hosted (label: yawnbot).
+# Idempotent: 재 trigger 시 cert/cred/config overwrite + service uninstall + reinstall.
 
 on:
   workflow_dispatch: {}
@@ -17,122 +19,123 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Locate nssm + cloudflared
-        id: locate
+      - name: Setup ProgramData cloudflared dir + secrets reconstruct
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        env:
+          CF_CERT_PEM: ${{ secrets.YB_PROD_CF_CERT_PEM }}
+          CF_CREDENTIALS_JSON: ${{ secrets.YB_PROD_CF_CREDENTIALS_JSON }}
         run: |
           $ErrorActionPreference = 'Stop'
+          $cfDir = "C:\ProgramData\Cloudflare\cloudflared"
+          New-Item -Path $cfDir -ItemType Directory -Force | Out-Null
 
-          # nssm 위치 (deploy-discord-bots.yml 의 fallback 와 동일)
+          # UTF-8 no BOM (cloudflared parser strict)
+          $utf8 = [System.Text.UTF8Encoding]::new($false)
+
+          [System.IO.File]::WriteAllText("$cfDir\cert.pem", $env:CF_CERT_PEM, $utf8)
+          [System.IO.File]::WriteAllText("$cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json", $env:CF_CREDENTIALS_JSON, $utf8)
+
+          $config = @"
+tunnel: 67fcd09d-05b0-468d-b797-b0c08e5be7f2
+credentials-file: $cfDir\67fcd09d-05b0-468d-b797-b0c08e5be7f2.json
+
+ingress:
+  - hostname: yawnbot.mascari4615.com
+    service: http://localhost:4615
+  - service: http_status:404
+"@
+          [System.IO.File]::WriteAllText("$cfDir\config.yml", $config, $utf8)
+
+          Write-Host "Files written to ${cfDir}:"
+          Get-ChildItem $cfDir | Format-Table Name,Length -AutoSize
+
+      - name: Remove existing NSSM cloudflared-prod
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
           $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
           $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
           if (-not $nssm) {
             $candidates = @(
               "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
-              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
-              "$env:ProgramData\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
-              "C:\ProgramData\chocolatey\bin\nssm.exe"
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
             )
             foreach ($pat in $candidates) {
               $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
               if ($found) { $nssm = $found.FullName; break }
             }
           }
-          if (-not $nssm) { throw "nssm.exe 못 찾음" }
 
-          # cloudflared 위치
-          $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
-          $cf = if ($cfCmd) { $cfCmd.Source } else { "C:\Program Files (x86)\cloudflared\cloudflared.exe" }
-          if (-not (Test-Path $cf)) { throw "cloudflared.exe 못 찾음 ($cf)" }
+          $svc = Get-Service -Name cloudflared-prod -ErrorAction SilentlyContinue
+          if ($svc) {
+            Write-Host "Existing cloudflared-prod service 발견 — stop + remove"
+            sc.exe stop cloudflared-prod | Out-Host
+            Start-Sleep -Seconds 5
+            Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 2
 
-          $cfDir = Split-Path -Parent $cf
+            if ($nssm) {
+              & $nssm remove cloudflared-prod confirm 2>&1 | Out-Host
+              Write-Host "NSSM cloudflared-prod removed"
+            } else {
+              sc.exe delete cloudflared-prod | Out-Host
+            }
+            Start-Sleep -Seconds 3
+          } else {
+            Write-Host "cloudflared-prod NSSM service 없음 — skip"
+          }
 
-          Write-Host "nssm: $nssm"
-          Write-Host "cloudflared: $cf"
-          Write-Host "cloudflared dir: $cfDir"
-
-          # GitHub Actions output 으로 export
-          "nssm=$nssm" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "cf=$cf" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "cfDir=$cfDir" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Backup current cloudflared-prod config
+      - name: cloudflared service install (idempotent reinstall)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
-          $nssm = "${{ steps.locate.outputs.nssm }}"
-          Write-Host "=== 현재 config (backup 로그) ==="
-          Write-Host "Application: $(& $nssm get cloudflared-prod Application 2>&1)"
-          Write-Host "AppParameters: $(& $nssm get cloudflared-prod AppParameters 2>&1)"
-          Write-Host "AppDirectory: $(& $nssm get cloudflared-prod AppDirectory 2>&1)"
-          Write-Host "AppEnvironmentExtra: (마스킹 — GITHUB_TOKEN 박혀있을 수 있음)"
+          $ErrorActionPreference = 'Continue'
+          $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+          if (-not (Test-Path $cf)) {
+            $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
+            if ($cfCmd) { $cf = $cfCmd.Source }
+          }
+          if (-not (Test-Path $cf)) { throw "cloudflared.exe 못 찾음" }
 
-      - name: Migrate to named tunnel
+          $existing = Get-Service -Name cloudflared -ErrorAction SilentlyContinue
+          if ($existing) {
+            Write-Host "기존 cloudflared service 발견 — uninstall 후 reinstall"
+            sc.exe stop cloudflared | Out-Host
+            Start-Sleep -Seconds 3
+            Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 2
+            & $cf service uninstall 2>&1 | Out-Host
+            Start-Sleep -Seconds 3
+          }
+
+          # service install — config 절대경로 명시
+          $cfDir = "C:\ProgramData\Cloudflare\cloudflared"
+          & $cf --config "$cfDir\config.yml" service install 2>&1 | Out-Host
+
+          # auto start + start (service install 자체가 시작 안 할 수도)
+          sc.exe config cloudflared start= auto | Out-Host
+          sc.exe start cloudflared | Out-Host
+          Start-Sleep -Seconds 8
+
+      - name: Verify
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
-          $ErrorActionPreference = 'Stop'
-          $nssm = "${{ steps.locate.outputs.nssm }}"
-          $cf = "${{ steps.locate.outputs.cf }}"
-          $cfDir = "${{ steps.locate.outputs.cfDir }}"
-
-          # cloudflared 직접 호출로 변경 (node + tunnel-launcher.mjs 폐기)
-          & $nssm set cloudflared-prod Application $cf
-          if ($LASTEXITCODE -ne 0) { throw "nssm set Application failed" }
-
-          & $nssm set cloudflared-prod AppParameters "tunnel run yawnbot-prod"
-          if ($LASTEXITCODE -ne 0) { throw "nssm set AppParameters failed" }
-
-          & $nssm set cloudflared-prod AppDirectory $cfDir
-          if ($LASTEXITCODE -ne 0) { throw "nssm set AppDirectory failed" }
-
-          # GITHUB_TOKEN env 제거 (named tunnel 은 cert.pem 자체 인증 — PAT 무관)
-          & $nssm reset cloudflared-prod AppEnvironmentExtra
-          if ($LASTEXITCODE -ne 0) { Write-Warning "nssm reset AppEnvironmentExtra exit $LASTEXITCODE (이미 비어있을 수 있음)" }
-
-          Write-Host "=== 갱신 후 config ==="
-          Write-Host "Application: $(& $nssm get cloudflared-prod Application 2>&1)"
-          Write-Host "AppParameters: $(& $nssm get cloudflared-prod AppParameters 2>&1)"
-          Write-Host "AppDirectory: $(& $nssm get cloudflared-prod AppDirectory 2>&1)"
-
-          # restart — sc.exe + Get-Service status loop + force kill fallback
-          # (nssm restart 의 NativeCommandError → retry loop 미동작 + SERVICE_PAUSED stuck 회피)
           $ErrorActionPreference = 'Continue'
 
-          Write-Host "stop step:"
-          sc.exe stop cloudflared-prod | Out-Host
-
-          Write-Host "wait for Stopped (max 30s, force kill at 12s):"
-          $stopped = $false
-          for ($i = 0; $i -lt 15; $i++) {
-            Start-Sleep -Seconds 2
-            $svc = Get-Service -Name cloudflared-prod -ErrorAction SilentlyContinue
-            if (-not $svc) { $stopped = $true; break }
-            Write-Host "  $($i+1): $($svc.Status)"
-            if ($svc.Status -eq 'Stopped') { $stopped = $true; break }
-            if ($i -eq 5) {
-              Write-Host "  force-killing cloudflared.exe processes:"
-              Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-            }
-          }
-          if (-not $stopped) {
-            Write-Warning "service did not reach Stopped — proceeding anyway"
-          }
-
-          Write-Host "start step:"
-          sc.exe start cloudflared-prod | Out-Host
-          Start-Sleep -Seconds 3
-
-          $svc = Get-Service -Name cloudflared-prod
-          Write-Host "Final status: $($svc.Status)"
+          $svc = Get-Service -Name cloudflared -ErrorAction SilentlyContinue
+          if (-not $svc) { throw "cloudflared service not found after install" }
+          Write-Host "Service status: $($svc.Status)"
           if ($svc.Status -ne 'Running') {
-            throw "cloudflared-prod final status = $($svc.Status), expected Running"
+            # 한 번 더 retry (service install 후 START_PENDING 가능)
+            Start-Sleep -Seconds 5
+            $svc = Get-Service -Name cloudflared
+            if ($svc.Status -ne 'Running') { throw "cloudflared service status = $($svc.Status), expected Running" }
           }
-          Write-Host "cloudflared-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
 
-      - name: Verify named tunnel connector
-        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
-        run: |
-          $cf = "${{ steps.locate.outputs.cf }}"
-          # connector 등록까지 ~5-10s
-          Start-Sleep -Seconds 8
-          Write-Host "=== cloudflared tunnel info yawnbot-prod ==="
-          & $cf tunnel info yawnbot-prod 2>&1
+          $cf = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+          if (-not (Test-Path $cf)) {
+            $cfCmd = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
+            if ($cfCmd) { $cf = $cfCmd.Source }
+          }
+          Write-Host "=== tunnel info yawnbot-prod ==="
+          & $cf tunnel info yawnbot-prod 2>&1 | Out-Host
