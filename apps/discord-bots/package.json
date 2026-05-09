@@ -12,6 +12,7 @@
     "dev": "npm -w apps/yawnbot run dev",
     "dev:yawnbot": "npm -w apps/yawnbot run dev",
     "tunnel:prod": "npm -w apps/yawnbot run tunnel:prod",
+    "webhook:upsert": "npm -w apps/yawnbot run webhook:upsert",
     "start": "npm -w apps/yawnbot run start",
     "start:yawnbot": "npm -w apps/yawnbot run start",
     "deploy": "npm -w apps/yawnbot run deploy",
