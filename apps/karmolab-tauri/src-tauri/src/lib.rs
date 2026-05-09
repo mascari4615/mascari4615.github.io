@@ -665,8 +665,36 @@ fn desktop_trigger_release_workflow(
     }
 }
 
+/// Windows 작업 표시줄 그룹화는 AppUserModelID (AUMID) 기반 — 안 박으면 default = .exe filename
+/// 기준 → dev .exe 와 prod .exe 가 둘 다 `karmolab-desktop.exe` 라 같은 그룹 → 작업 표시줄
+/// 「KarmoLab」 click 시 dev focus (production spawn 안 됨). cfg!(debug_assertions) 분기로
+/// 별 AUMID 박아 두 process 의 작업 표시줄 그룹 분리.
+///
+/// 참고: prod .lnk 의 explicit AUMID 도 같이 박혀야 (NSIS installer 가 새 release 부터
+/// `bundle.windows.applicationId` 로 박음). 옛 .lnk 는 사용자가 PowerShell IPropertyStore 로
+/// 갱신 또는 새 release 받으면 자동.
+#[cfg(windows)]
+fn set_app_user_model_id() {
+    use std::ffi::OsStr;
+    use std::os::windows::ffi::OsStrExt;
+    extern "system" {
+        fn SetCurrentProcessExplicitAppUserModelID(app_id: *const u16) -> i32;
+    }
+    let aumid = if cfg!(debug_assertions) {
+        "com.mascari4615.karmolab.dev"
+    } else {
+        "com.mascari4615.karmolab"
+    };
+    let wide: Vec<u16> = OsStr::new(aumid).encode_wide().chain(Some(0)).collect();
+    let _ = unsafe { SetCurrentProcessExplicitAppUserModelID(wide.as_ptr()) };
+}
+
+#[cfg(not(windows))]
+fn set_app_user_model_id() {}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    set_app_user_model_id();
     tauri::Builder::default()
         .manage(LocalDevState::default())
         .manage(DevModeState::default())
