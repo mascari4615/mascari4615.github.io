@@ -108,6 +108,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['conch']
   },
   {
+    id: 'adventure',
+    title: '무한 텍스트 어드벤처',
+    category: 'play',
+    desc: '티메토 GM 의 무한 텍스트 어드벤처 (KL-032 — α: provider abstraction). 무대 = KarmoWorld, history → wiki entity 누적',
+    layout: 'full',
+    icon: '<path d="M14 4l6 6-9 9H5v-6l9-9z M3 21l3-3 M19 7l-2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+    lazyScriptPaths: ['adventure/adventure']
+  },
+  {
     id: 'planner',
     title: '플래너',
     category: 'lab',

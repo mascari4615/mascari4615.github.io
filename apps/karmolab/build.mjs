@@ -88,6 +88,7 @@ const entryPoints = [
   'src/widgets/task-launcher.ts',
   'src/widgets/user.ts',
   'src/widgets/youtubedl.ts',
+  'src/widgets/adventure/adventure.ts',
   'src/widgets/chatbot/characters.ts',
   'src/widgets/chatbot/chatbot.ts',
   'src/widgets/chatbot/karmo-image.ts',
