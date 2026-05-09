@@ -24,7 +24,7 @@ lazyScriptPaths: ['world/world', 'world/parse-md', 'world/load-characters-from-w
 
 ## 기본 캐릭터 시드
 
-첫 실행 시 `카레 (비서)` 한 명만 넣고, 이후 로드마다 id 기준으로 없으면 병합: `c_mascot_yon`(욘), `c_mascot_alisa`(알리사), `c_mascot_ling`(링). 문구·프롬프트 단일 출처는 [`world/wiki/entities/characters/`](../../../world/wiki/entities/characters/) Markdown frontmatter이며, 로드 시 `load-characters-from-wiki.js`가 `KarmoWorld.bindings.chatbot`에 넣습니다. 실패 시 `characters.js`의 내장 기본값을 씁니다.
+첫 실행 시 빌트인 마스코트 (`c_mascot_yon` 욘, `c_mascot_alisa` 알리사, `c_mascot_ling` 링) 가 시드되고, wiki 로드 후 `stages.includes('karmolab')` 인 entity (예: `c_mascot_timeto` 티메토) 가 추가됩니다. 문구·프롬프트 단일 출처는 [`world/wiki/entities/characters/`](../../../world/wiki/entities/characters/) Markdown frontmatter이며, 로드 시 `load-characters-from-wiki.js`가 `KarmoWorld.bindings.chatbot`에 넣습니다. 실패 시 `characters.js`의 내장 기본값을 씁니다.
 
 ## 프리셋 문구
 

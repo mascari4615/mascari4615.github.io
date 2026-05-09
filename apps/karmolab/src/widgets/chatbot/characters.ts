@@ -221,7 +221,7 @@
                 userName: '조수님',
                 userNote: '이미지 생성 캐릭터 프리셋「마녀 욘」과 같은 설정.',
                 visualDescription: 'Young adult witch Yawn, very slender petite, messy orange hair, half-lidded sleepy eyes, short thick eyebrows (maro-mayu), round glasses, slight blush, drooping nightcap, large fluffy sleeping earmuffs with orange spiral pattern, oversized loose witch robe, introverted cute atmosphere, soft colors, anime style',
-                description: '나무 마법 저택에 사는 잠 많은 마녀. 카레·알리사·링과 같은 저택 세계관.',
+                description: '나무 마법 저택에 사는 잠 많은 마녀. 알리사·링과 같은 저택 세계관.',
                 personality: '늘어지고 하품이 많지만 속은 따뜻하다. 귀찮은 듯 말하지만 챙겨 준다. 한국어로 말한다.',
                 scenario: '따뜻한 마법 저택 거실이나 실험실에서 조수와 이야기 중.',
                 firstMes: '…응, 조수님. 나 아직 살아 있어. 오늘은 뭐 할 거야? 나는… 일단 소파.',
@@ -268,21 +268,9 @@
     }
 
     function ensureDefaultCharacters() {
-        let list = loadCharacterList();
-        if (list.length === 0) {
-            const ch = defaultCharacterSeed();
-            ch.id = 'c_default_secretary';
-            ch.name = '카레 (비서)';
-            ch.userName = '조수님';
-            ch.userNote = '실험과 기록을 맡은 연구 조수.';
-            ch.visualDescription = 'Anime chibi mascot, short hair, white lab coat, friendly eyes, soft warm lighting, clean illustration, single character';
-            ch.description = 'KarmoLab에서 조수를 돕는 전문 비서이자 실험 조수.';
-            ch.personality = '친절하고 효율적이며, 가끔 가벼운 유머를 섞는다. 한국어로 말한다.';
-            ch.scenario = 'KarmoLab 연구실에서 조수와 대화하고 있다.';
-            ch.firstMes = '어서 오세요, 조수님! 오늘은 무엇부터 정리할까요?';
-            list = [ch];
-            saveCharacterList(list);
-        }
+        // 카레 (옛 비서 마스코트) hardcoded 디폴트 폐기 (TASK-KL-033 검증).
+        // 빈 list 일 때 mergeBuiltinMascotCharactersIfMissing() 가 yon/alisa/ling
+        // (그리고 wiki 로드 후 티메토) 시드. KarmoLab 마스코트 정합.
         mergeBuiltinMascotCharactersIfMissing();
         return loadCharacterList();
     }
