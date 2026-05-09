@@ -155,5 +155,41 @@ window.KARMOLAB_LAZY_META = [
     noHero: true,
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 9l3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
     lazyScriptPaths: ['terminal/terminal']
+  },
+
+  /* ───── 잡동사니 (Stash) — TASK-KL-034 ─────
+   * 사이드바 hide (hidden: true). 「잡동사니」 위젯 안에서 inline render + 자동 작동.
+   * 직접 진입 (Toolbox.switchPage) 가능. 21 개 dead 위젯 자산 보존. */
+  { id: 'bounce', title: '바운스', category: 'play', desc: '공을 튕겨 바운스 게임을 합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bounce'] },
+  { id: 'bubble', title: '뽁뽁이', category: 'play', desc: '뽁뽁이를 터뜨립니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['bubble'] },
+  { id: 'countdown', title: '카운트다운', category: 'tool', desc: '카운트다운 타이머를 설정합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['countdown'] },
+  { id: 'darkroom', title: '다크룸', category: 'play', desc: '어두운 방에서 마우스로 빛을 비춥니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['darkroom'] },
+  { id: 'eyes', title: '눈동자', category: 'play', desc: '마우스를 따라오는 눈동자', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['eyes'] },
+  { id: 'folder', title: '에러', category: 'play', desc: '폴더가 무한 증식하는 이스터에그', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['folder'] },
+  { id: 'fontgacha', title: '폰트가챠', category: 'play', desc: '가챠로 폰트를 바꿉니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
+  { id: 'hacker', title: '해커', category: 'play', desc: '키보드를 연타해 해커 느낌의 텍스트를 출력합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
+  { id: 'hourglass', title: '모래시계', category: 'tool', desc: '모래시계 타이머를 실행합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
+  { id: 'moon', title: '문페이즈', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
+  { id: 'morse', title: '모스', category: 'tool', desc: '모스 부호로 인코딩·디코딩합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['morse'] },
+  { id: 'news', title: '뉴스', category: 'play', desc: '가짜 뉴스 헤드라인을 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
+  { id: 'particle', title: '파티클', category: 'play', desc: '마우스로 파티클을 움직이고 클릭으로 폭발시킵니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
+  { id: 'password', title: '비번', category: 'tool', desc: '랜덤 비밀번호를 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
+  { id: 'pet', title: '쓰다듬기', category: 'play', desc: '고양이를 쓰다듬고 호감도를 올립니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['pet'] },
+  { id: 'reaction', title: '반응속도', category: 'play', desc: '반응 속도를 측정합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['reaction'] },
+  { id: 'shylink', title: '어그로', category: 'play', desc: '움직이는 링크를 잡는 미니게임', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['shylink'] },
+  { id: 'speed', title: '속도측정', category: 'play', desc: '드래그 속도를 측정합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['speed'] },
+  { id: 'stone', title: '돌', category: 'play', desc: '돌을 던져 점을 봅니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['stone'] },
+  { id: 'toast', title: '토스트', category: 'play', desc: '토스트 알림을 띄웁니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['toast'] },
+  { id: 'ytdownloader', title: '유튜브 다운로드', category: 'tool', desc: '유튜브 영상을 다운로드합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['youtubedl'] },
+
+  /* 잡동사니 위젯 본체 */
+  {
+    id: 'stash',
+    title: '잡동사니',
+    category: 'tool',
+    desc: '정리 안 된 실험들이 한 상자에 살아 움직임',
+    layout: 'full',
+    icon: '<path d="M3 7h18l-2 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L3 7z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['stash']
   }
 ] as KarmoLabLazyWidgetStub[];

@@ -83,6 +83,7 @@ const entryPoints = [
   'src/widgets/servermonitor.ts',
   'src/widgets/shylink.ts',
   'src/widgets/speed.ts',
+  'src/widgets/stash.ts',
   'src/widgets/stone.ts',
   'src/widgets/task-launcher.ts',
   'src/widgets/user.ts',
