@@ -51,19 +51,74 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
-      - name: Write prod .env (UTF-8 no BOM)
+      - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.YAWNBOT_DIR }}
+        # secrets 는 키별 YB_PROD_<KEY> 로 분리 (TASK-YB-003 push 2). 새 키 추가 시 아래 env 매핑 + $keys 둘 다 갱신.
         env:
-          YAWNBOT_PROD_ENV: ${{ secrets.YAWNBOT_PROD_ENV }}
+          YB_PROD_DISCORD_TOKEN: ${{ secrets.YB_PROD_DISCORD_TOKEN }}
+          YB_PROD_CLIENT_ID: ${{ secrets.YB_PROD_CLIENT_ID }}
+          YB_PROD_DISCORD_GUILD_ID: ${{ secrets.YB_PROD_DISCORD_GUILD_ID }}
+          YB_PROD_YAWNBOT_ALLOWED_GUILD_IDS: ${{ secrets.YB_PROD_YAWNBOT_ALLOWED_GUILD_IDS }}
+          YB_PROD_GITHUB_WEBHOOK_CHANNEL_ID: ${{ secrets.YB_PROD_GITHUB_WEBHOOK_CHANNEL_ID }}
+          YB_PROD_GEMINI_API_KEY: ${{ secrets.YB_PROD_GEMINI_API_KEY }}
+          YB_PROD_KARMOLAB_AI_SURFACE: ${{ secrets.YB_PROD_KARMOLAB_AI_SURFACE }}
+          YB_PROD_VERTEX_API_KEY: ${{ secrets.YB_PROD_VERTEX_API_KEY }}
+          YB_PROD_VERTEX_PROJECT_ID: ${{ secrets.YB_PROD_VERTEX_PROJECT_ID }}
+          YB_PROD_VERTEX_LOCATION: ${{ secrets.YB_PROD_VERTEX_LOCATION }}
+          YB_PROD_ADMIN_IDS: ${{ secrets.YB_PROD_ADMIN_IDS }}
+          YB_PROD_ASSISTANT_USER_ID: ${{ secrets.YB_PROD_ASSISTANT_USER_ID }}
+          YB_PROD_ASSISTANT_PUBLIC_CHANNEL_ID: ${{ secrets.YB_PROD_ASSISTANT_PUBLIC_CHANNEL_ID }}
+          YB_PROD_MEMO_REPO_PATH: ${{ secrets.YB_PROD_MEMO_REPO_PATH }}
+          YB_PROD_CURSOR_LOCAL_REPO_DIR: ${{ secrets.YB_PROD_CURSOR_LOCAL_REPO_DIR }}
+          YB_PROD_YAWNBOT_OPS_REPORT_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_OPS_REPORT_CHANNEL_ID }}
+          YB_PROD_YAWNBOT_ENV: ${{ secrets.YB_PROD_YAWNBOT_ENV }}
+          YB_PROD_YAWNBOT_UNITY_FREE_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_UNITY_FREE_CHANNEL_ID }}
+          YB_PROD_YAWNBOT_GEEKNEWS_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_GEEKNEWS_CHANNEL_ID }}
+          YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
+          YB_PROD_KAKAO_EXPORT_WATCH_DIR: ${{ secrets.YB_PROD_KAKAO_EXPORT_WATCH_DIR }}
         run: |
-          if ([string]::IsNullOrEmpty($env:YAWNBOT_PROD_ENV)) {
-            throw "secrets.YAWNBOT_PROD_ENV 가 비어있음 — GitHub Settings → Secrets 등록 필요"
+          $ErrorActionPreference = 'Stop'
+
+          # 키 list — env 매핑과 1:1. 빈 secret 라인은 skip (yawnbot 측 .env load 가 빈값=undefined 라 정합).
+          $keys = @(
+            'DISCORD_TOKEN', 'CLIENT_ID', 'DISCORD_GUILD_ID', 'YAWNBOT_ALLOWED_GUILD_IDS',
+            'GITHUB_WEBHOOK_CHANNEL_ID',
+            'GEMINI_API_KEY', 'KARMOLAB_AI_SURFACE', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'VERTEX_LOCATION',
+            'ADMIN_IDS', 'ASSISTANT_USER_ID', 'ASSISTANT_PUBLIC_CHANNEL_ID',
+            'MEMO_REPO_PATH', 'CURSOR_LOCAL_REPO_DIR',
+            'YAWNBOT_OPS_REPORT_CHANNEL_ID', 'YAWNBOT_ENV',
+            'YAWNBOT_UNITY_FREE_CHANNEL_ID', 'YAWNBOT_GEEKNEWS_CHANNEL_ID',
+            'DISCORD_SUMMARY_WEBHOOK_URL', 'KAKAO_EXPORT_WATCH_DIR'
+          )
+
+          # 필수 검증 — DISCORD_TOKEN / CLIENT_ID 둘 중 하나라도 없으면 deploy fail (마이그레이션 미완료 신호)
+          if ([string]::IsNullOrEmpty($env:YB_PROD_DISCORD_TOKEN) -or [string]::IsNullOrEmpty($env:YB_PROD_CLIENT_ID)) {
+            throw "필수 secret YB_PROD_DISCORD_TOKEN / YB_PROD_CLIENT_ID 누락 — TASK-YB-003 secret split 마이그레이션 완료 확인 (apps/discord-bots/scripts/migrate-prod-secrets.ps1)"
           }
+
+          $lines = @()
+          $missing = @()
+          foreach ($key in $keys) {
+            $envName = "YB_PROD_$key"
+            $value = (Get-Item -Path "Env:$envName" -ErrorAction SilentlyContinue).Value
+            if ($value) {
+              $lines += "$key=$value"
+            } else {
+              $missing += $key
+            }
+          }
+
+          $envContent = ($lines -join "`n") + "`n"
           $envPath = Join-Path $PWD '.env'
-          [System.IO.File]::WriteAllText($envPath, $env:YAWNBOT_PROD_ENV, [System.Text.UTF8Encoding]::new($false))
-          # 주입 검증 — 토큰은 마스킹
-          Get-Content $envPath | Select-String -Pattern '^(DISCORD_TOKEN|CLIENT_ID|YAWNBOT_ENV|YAWNBOT_OPS_REPORT_CHANNEL_ID)=' | ForEach-Object {
+          [System.IO.File]::WriteAllText($envPath, $envContent, [System.Text.UTF8Encoding]::new($false))
+
+          Write-Host "[Write prod .env] set=$($lines.Count) missing=$($missing.Count) (keys=$($keys.Count))"
+          if ($missing.Count -gt 0) {
+            Write-Host "  missing (skip): $($missing -join ', ')" -ForegroundColor DarkGray
+          }
+          # 주입 검증 — 토큰·키는 마스킹
+          Get-Content $envPath | Select-String -Pattern '^(DISCORD_TOKEN|CLIENT_ID|YAWNBOT_ENV|YAWNBOT_OPS_REPORT_CHANNEL_ID|YAWNBOT_UNITY_FREE_CHANNEL_ID|YAWNBOT_GEEKNEWS_CHANNEL_ID)=' | ForEach-Object {
             $line = $_ -replace '(DISCORD_TOKEN=.{15}).*','$1***MASKED***'
             Write-Host $line
           }
