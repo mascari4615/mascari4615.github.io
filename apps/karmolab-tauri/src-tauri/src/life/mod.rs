@@ -4,12 +4,15 @@
 //! 정본 schema: `memo/life/raw/README.md`.
 //!
 //! Phase 분할:
-//! - sub-F-1 (현재): screen capture skeleton + PNG write.
-//! - sub-F-2 (backlog): OCR (rusty-tesseract) + claude CLI subprocess 분류 → .md frontmatter.
+//! - sub-F-1 (✓ done): screen capture skeleton + PNG write.
+//! - sub-F-2 (현재): OCR (rusty-tesseract) + claude CLI subprocess 분류 → .md frontmatter.
 //! - sub-F-3 (backlog): global-hotkey (PrintScreen) + 5분 interval timer + active window.
 //! - sub-F-4 (backlog): Web UI widget (`apps/karmolab/src/widgets/life-screen/`).
 //! - sub-F-5 (backlog): autostart + privacy mask.
 
+pub mod classify;
+pub mod ocr;
+pub mod schema;
 pub mod screen;
 pub mod state;
 
