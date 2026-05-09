@@ -18,6 +18,7 @@ import type { AdventureSession } from './storage';
 import { createInitialState, runTurn } from './turn-loop';
 import type { TurnLoopState } from './turn-loop';
 import { parseTurnResponse } from './prompt';
+import { buildSettingsPanel } from './settings';
 
 (function () {
   function el<K extends keyof HTMLElementTagNameMap>(
@@ -62,7 +63,7 @@ import { parseTurnResponse } from './prompt';
     });
     wrap.appendChild(phase);
 
-    /* ===== provider 토글 ===== */
+    /* ===== provider 토글 + 설정 ===== */
     const providerRow = el('div', {
       style: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' },
     });
@@ -86,7 +87,34 @@ import { parseTurnResponse } from './prompt';
     }).Toolbox;
     providerSelect.addEventListener('change', () => Tx?.setPref?.(ADV_PROVIDER_PREF_KEY, providerSelect.value));
     providerRow.appendChild(providerSelect);
+
+    const settingsToggle = el('button', {
+      textContent: '⚙ 설정',
+      style: {
+        padding: '4px 10px',
+        background: 'var(--bg-tertiary, #1f1f1f)',
+        color: 'var(--text-primary, #e8e8e8)',
+        border: '1px solid var(--border-color, #333)',
+        borderRadius: 'var(--radius-sm, 4px)',
+        cursor: 'pointer',
+        marginLeft: 'auto',
+      },
+    });
+    providerRow.appendChild(settingsToggle);
     wrap.appendChild(providerRow);
+
+    const settingsPanel = buildSettingsPanel({
+      onProviderChange: (id) => {
+        providerSelect.value = id;
+      },
+    });
+    settingsPanel.style.display = 'none';
+    wrap.appendChild(settingsPanel);
+    settingsToggle.addEventListener('click', () => {
+      const open = settingsPanel.style.display === 'none';
+      settingsPanel.style.display = open ? 'flex' : 'none';
+      settingsToggle.textContent = open ? '⚙ 설정 닫기' : '⚙ 설정';
+    });
 
     /* ===== 모험 컨테이너 (cast picker / turn loop / 종료) ===== */
     const stage = el('div', {
