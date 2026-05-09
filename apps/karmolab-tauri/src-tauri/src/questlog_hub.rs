@@ -14,8 +14,10 @@ use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::time::Instant;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -26,9 +28,25 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 /// Tauri GUI 앱에서 console subsystem 자식(git, tasklist 등)을 spawn 하면 매번
 /// console 창이 잠깐 깜빡인다. `CREATE_NO_WINDOW` 로 그걸 막는다 — 폴링 invoke
 /// 가 매 N초 트리거이므로 hidden flag 빠지면 즉시 사용자 시야에 노이즈.
+///
+/// 또 `stdin = Stdio::null()` 강제 — Tauri GUI 프로세스의 stdin handle 은 NULL 인데
+/// default `Stdio::inherit()` 면 자식이 stdin read 시 무한 hang (TASK-KL-035 v0.1.16
+/// 원인 의심). git 자체는 stdin read 안 하지만 안전망.
 fn apply_no_window(cmd: &mut Command) {
     #[cfg(windows)]
     cmd.creation_flags(CREATE_NO_WINDOW);
+    cmd.stdin(Stdio::null());
+}
+
+/// 단계별 진단 로그 — `%TEMP%/karmolab-questlog-hub.log` 에 append.
+/// Tauri release build 가 console 없어 println 안 보임. file log 가 정본.
+fn diag_log(stage: &str, elapsed_ms: u128, detail: &str) {
+    let path = std::env::temp_dir().join("karmolab-questlog-hub.log");
+    let ts = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+    let line = format!("[{}] {:>5}ms · {} · {}\n", ts, elapsed_ms, stage, detail);
+    if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&path) {
+        let _ = f.write_all(line.as_bytes());
+    }
 }
 
 #[derive(Serialize)]
@@ -294,22 +312,53 @@ mod tests {
     }
 }
 
+/// async + spawn_blocking — sync command 의 main thread block 을 피한다 (TASK-KL-035 v0.1.16
+/// stuck 원인 분석에서 떠오른 후속 fix). 단계별 file log + 단계 timeout.
 #[tauri::command]
-pub fn get_questlog_hub() -> Result<QuestlogHub, String> {
+pub async fn get_questlog_hub() -> Result<QuestlogHub, String> {
+    tauri::async_runtime::spawn_blocking(get_questlog_hub_blocking)
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn get_questlog_hub_blocking() -> Result<QuestlogHub, String> {
+    let t_start = Instant::now();
+    diag_log("entry", 0, "get_questlog_hub_blocking 진입");
+
     let home = home_dir();
     let umbrella = umbrella_dir();
+    diag_log(
+        "paths",
+        t_start.elapsed().as_millis(),
+        &format!(
+            "home={:?} umbrella={:?}",
+            home.as_ref().map(|p| p.display().to_string()),
+            umbrella.as_ref().map(|p| p.display().to_string())
+        ),
+    );
+
     let generated_at_unix = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0);
 
     // 보드
+    let t_board = Instant::now();
     let board = umbrella.as_ref().and_then(|u| {
         let p = u.join("memo").join(".claude").join("active-sessions.md");
         read_text(&p).map(|c| parse_board(&c))
     });
+    diag_log(
+        "board",
+        t_board.elapsed().as_millis(),
+        &format!(
+            "rows={}",
+            board.as_ref().map(|b| b.rows.len()).unwrap_or(0)
+        ),
+    );
 
     // INDEX 룰 단일 출처
+    let t_rules = Instant::now();
     let rules = umbrella
         .as_ref()
         .and_then(|u| {
@@ -317,17 +366,30 @@ pub fn get_questlog_hub() -> Result<QuestlogHub, String> {
             read_text(&p).map(|c| parse_rules(&c))
         })
         .unwrap_or_default();
+    diag_log(
+        "rules",
+        t_rules.elapsed().as_millis(),
+        &format!("count={}", rules.len()),
+    );
 
     // 3 레포 git log
     let mut commits: BTreeMap<String, Vec<CommitInfo>> = BTreeMap::new();
     if let Some(u) = umbrella.as_ref() {
         for repo in ["memo", "Mascari4615.github.io", "WitchMendokusai"] {
+            let t_repo = Instant::now();
             let path = u.join(repo);
-            commits.insert(repo.to_string(), git_log(&path, 10));
+            let log = git_log(&path, 10);
+            diag_log(
+                &format!("git-log:{}", repo),
+                t_repo.elapsed().as_millis(),
+                &format!("count={}", log.len()),
+            );
+            commits.insert(repo.to_string(), log);
         }
     }
 
     // 도구 인벤토리
+    let t_tools = Instant::now();
     let (commands, hooks_files, settings_hooks) = if let Some(h) = home.as_ref() {
         let claude = h.join(".claude");
         let cmds = list_files(&claude.join("commands"), "md");
@@ -337,6 +399,22 @@ pub fn get_questlog_hub() -> Result<QuestlogHub, String> {
     } else {
         (Vec::new(), Vec::new(), BTreeMap::new())
     };
+    diag_log(
+        "tools",
+        t_tools.elapsed().as_millis(),
+        &format!(
+            "cmds={} hooks={} settings={}",
+            commands.len(),
+            hooks_files.len(),
+            settings_hooks.len()
+        ),
+    );
+
+    diag_log(
+        "done",
+        t_start.elapsed().as_millis(),
+        "get_questlog_hub_blocking 완료",
+    );
 
     Ok(QuestlogHub {
         generated_at_unix,
