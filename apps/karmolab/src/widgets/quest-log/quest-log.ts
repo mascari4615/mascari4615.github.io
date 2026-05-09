@@ -782,47 +782,53 @@
       (container as any).__kl_quest_unlisten = null;
     }
 
-    // KL-035 — QuestLog (위) + Hub (아래) 두 wrapper 분리.
-    // renderOnce 가 appWrap 안만 갱신. Hub 는 hubWrap 에 별 polling.
-    if (!container.querySelector('[data-kl-ql-app]')) {
+    // KL-035 — `.kl-quest-log` 한 컨테이너가 자체 스크롤 (CSS: flex:1; min-height:0; overflow-y:auto).
+    // layout-full tab-panel 이 flex column 이므로 스크롤 wrapper 는 단일이어야 chain 안 깨짐.
+    // 안쪽 [data-kl-ql-app] = renderOnce 갱신 영역 / [data-kl-ql-hub] = 한 번만 render.
+    if (!container.querySelector('.kl-quest-log')) {
       container.innerHTML = '';
+      const klRoot = document.createElement('div');
+      klRoot.className = 'kl-quest-log';
+      container.appendChild(klRoot);
+
       const appWrap = document.createElement('div');
       appWrap.setAttribute('data-kl-ql-app', '1');
-      container.appendChild(appWrap);
+      klRoot.appendChild(appWrap);
+
       const hubWrap = document.createElement('div');
       hubWrap.setAttribute('data-kl-ql-hub', '1');
-      container.appendChild(hubWrap);
+      klRoot.appendChild(hubWrap);
     }
-    const appWrap = container.querySelector('[data-kl-ql-app]') as HTMLElement;
-    const hubWrap = container.querySelector('[data-kl-ql-hub]') as HTMLElement;
+    const klRoot = container.querySelector('.kl-quest-log') as HTMLElement;
+    const appWrap = klRoot.querySelector('[data-kl-ql-app]') as HTMLElement;
+    const hubWrap = klRoot.querySelector('[data-kl-ql-hub]') as HTMLElement;
 
     const renderOnce = (): void => {
       appWrap.innerHTML = `
-        <div class="kl-quest-log">
-          <div class="wrap">
-            <header class="hd">
-              <h1 class="serif">QUEST LOG <em>— in progress</em></h1>
-            </header>
+        <div class="wrap">
+          <header class="hd">
+            <h1 class="serif">QUEST LOG <em>— in progress</em></h1>
+          </header>
 
-            <div class="stats" data-kl-ql="stats"></div>
+          <div class="stats" data-kl-ql="stats"></div>
 
-            <div data-kl-ql="featured-wrap"></div>
-            <div class="sub-grid" data-kl-ql="sub-columns"></div>
+          <div data-kl-ql="featured-wrap"></div>
+          <div class="sub-grid" data-kl-ql="sub-columns"></div>
 
-          </div>
-
-          <div class="drawer-backdrop" data-kl-ql="backdrop"></div>
-          <aside class="drawer" data-kl-ql="drawer">
-            <div class="drawer-head">
-              <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>—</b></div>
-              <button class="drawer-close" data-kl-ql="drawer-close" aria-label="Close">✕</button>
-            </div>
-            <div class="drawer-body" data-kl-ql="drawer-body"></div>
-          </aside>
         </div>
+
+        <div class="drawer-backdrop" data-kl-ql="backdrop"></div>
+        <aside class="drawer" data-kl-ql="drawer">
+          <div class="drawer-head">
+            <div class="crumb" data-kl-ql="crumb">KMLB-QST / <b>—</b></div>
+            <button class="drawer-close" data-kl-ql="drawer-close" aria-label="Close">✕</button>
+          </div>
+          <div class="drawer-body" data-kl-ql="drawer-body"></div>
+        </aside>
       `;
 
-      const root = appWrap.querySelector('.kl-quest-log') as HTMLElement;
+      // root = klRoot (단일 스크롤 컨테이너). data-kl-ql=* selector 가 appWrap 안에서 다 찾힘.
+      const root = klRoot;
 
       // 비동기 invoke + 변환 + run
       void (async () => {

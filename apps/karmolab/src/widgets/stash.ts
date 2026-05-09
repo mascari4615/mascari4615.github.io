@@ -9,6 +9,14 @@
   Mdd.injectCSS(
     'stash',
     `
+      /* layout-full tab-panel(flex column) 안에서 단일 스크롤 컨테이너로 동작.
+       * intro/grid 가 직접 자식이면 부모가 overflow:hidden 이라 잘림 — root 가 책임. */
+      .stash-root {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 24px 28px 48px;
+      }
       .stash-intro {
         margin-bottom: 18px;
         padding: 16px 18px;
@@ -82,14 +90,18 @@
         id: 'main',
         label: '잡동사니',
         build(container: HTMLElement): void {
+          const root = document.createElement('div');
+          root.className = 'stash-root';
+          container.appendChild(root);
+
           const intro = document.createElement('div');
           intro.className = 'stash-intro';
           intro.textContent = '조수님, 여기 정리 안 된 실험들이에요! 한 상자에 살아 움직이는 잡동사니. 만져보면 다 작동해요.';
-          container.appendChild(intro);
+          root.appendChild(intro);
 
           const grid = document.createElement('div');
           grid.className = 'stash-grid';
-          container.appendChild(grid);
+          root.appendChild(grid);
 
           for (const id of STASH_IDS) {
             const item = document.createElement('div');
