@@ -1,10 +1,11 @@
 /**
  * wiki/entities/characters/{slug}.yaml + {slug}.md 를 fetch → 파싱 → KarmoWorld.entities + bindings 채움
  * imagegen/chatbot 스크립트보다 먼저 실행되며, Toolbox 지연 로더가 Promise 완료까지 대기합니다.
+ *
+ * 캐릭터 목록은 wiki/manifest.json 에서 동적으로 발견 — `stages: ['karmolab', ...]` 포함 entity 만
+ * KarmoLab UI 에 노출 (TASK-KL-033). SLUGS 하드코딩 폐기 → 신규 entity 자동 발견.
  */
 (function (): void {
-  const SLUGS = ['yon', 'alisa', 'ling'] as const;
-
   function worldBaseUrl(): string {
     const s = document.currentScript as HTMLScriptElement | null;
     if (s && s.src) {
@@ -81,11 +82,23 @@
     }
 
     const base = worldBaseUrl();
+
+    // manifest.json 에서 stages.includes('karmolab') 캐릭터만 동적 발견 (KL-033).
+    const manifestUrl = base + 'wiki/manifest.json';
+    const rManifest = await fetch(manifestUrl);
+    if (!rManifest.ok) throw new Error('manifest 로드 실패: ' + manifestUrl);
+    const manifest = (await rManifest.json()) as {
+      characters?: Array<{ slug: string; stages?: string[] }>;
+    };
+    const slugs = (manifest.characters ?? [])
+      .filter((c) => Array.isArray(c.stages) && c.stages.includes('karmolab'))
+      .map((c) => c.slug);
+
     const imagegen: ReturnType<typeof metaToImagegen>[] = [];
     const chatbot: ReturnType<typeof metaToChatbot>[] = [];
     const characters: Record<string, ReturnType<typeof metaToEntity>> = {};
 
-    for (const slug of SLUGS) {
+    for (const slug of slugs) {
       const mdUrl = wikiUrl(base, slug);
       const yUrl = wikiYamlUrl(base, slug);
       const [rm, ry] = await Promise.all([fetch(mdUrl), fetch(yUrl)]);
