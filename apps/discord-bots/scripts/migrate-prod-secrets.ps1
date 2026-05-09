@@ -26,23 +26,26 @@ param(
     [string]$Prefix = 'YB_PROD_'
 )
 
-$ErrorActionPreference = 'Stop'
+# 'Continue' — native command (gh) 의 stderr 가 ErrorRecord 로 wrap 되어 'Stop' 시 즉시 폭발 (PS 5.1).
+# 의도적 native exit code 검증 흐름이라 Continue 가 정합. cmdlet 에러는 if 로 직접 검증.
+$ErrorActionPreference = 'Continue'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 if (-not (Test-Path $EnvPath)) {
-    Write-Error ".env not found: $EnvPath"
+    Write-Host "ERROR: .env not found: $EnvPath" -ForegroundColor Red
     exit 1
 }
 
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-    Write-Error "gh (GitHub CLI) not in PATH. Install: winget install --id GitHub.cli"
+    Write-Host "ERROR: gh (GitHub CLI) not in PATH. Install: winget install --id GitHub.cli" -ForegroundColor Red
     exit 1
 }
 
-# gh auth 검증
-$authStatus = & gh auth status 2>&1
+# gh auth 검증 — stderr 폐기 + exit code 만 검증 (NativeCommandError wrap 회피)
+& gh auth status 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "gh not authenticated. Run: gh auth login"
+    Write-Host "ERROR: gh not authenticated. Run: gh auth login" -ForegroundColor Red
+    Write-Host "       (브라우저 OAuth 또는 PAT 입력 — repo + workflow scope 필요)" -ForegroundColor DarkGray
     exit 1
 }
 
@@ -77,8 +80,8 @@ Get-Content $EnvPath | ForEach-Object {
     $secretName = "$Prefix$key"
     Write-Host "  set $secretName ..." -NoNewline
 
-    # gh secret set --body "$value" — 큰따옴표 포함 값에 안전하기 위해 stdin 으로
-    $value | & gh secret set $secretName --repo $Repo 2>&1 | Out-Null
+    # gh secret set --body "$value" — 큰따옴표 포함 값에 안전하기 위해 stdin 으로. stderr 폐기 (NativeCommandError wrap 회피).
+    $value | & gh secret set $secretName --repo $Repo 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Host " FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
         $script:failed++
