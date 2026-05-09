@@ -51,8 +51,8 @@ export default defineConfig([
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'off'
+      '@typescript-eslint/no-unsafe-argument': 'off'
+      // KL-031 B1.3 ✅ no-redundant-type-constituents 활성 (GLightboxInstance: unknown → object).
       // KL-031 B1.4 ✅ no-unnecessary-type-assertion 활성 (auto-fix 적용 후).
     }
   },
