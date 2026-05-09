@@ -33,7 +33,7 @@ jobs:
       YAWNBOT_DIR: 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io\apps\discord-bots\apps\yawnbot'
 
     steps:
-      - name: Pull latest master
+      - name: Sync to origin/master (force)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.REPO_DIR }}
         run: |
@@ -42,8 +42,13 @@ jobs:
           $repoUnix = '${{ env.REPO_DIR }}' -replace '\\', '/'
           & git config --global --add safe.directory $repoUnix 2>&1 | Out-Null
           & git switch master 2>&1 | Out-Null
-          & git pull --ff-only 2>&1
-          if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
+          # NSSM prod 폴더는 deploy 전용 (사용자 작업 영역 X — 작업은 .worktrees/* 에서). dirty state 는 항상 잔재 (line ending 변환 / 이전 deploy 잔재 / 잘못 복사 등) — 강제 동기화로 폐기.
+          # git pull --ff-only 는 working tree dirty 면 fail (yawnbot-defaults.txt CRLF 변환 사고 2026-05-09).
+          & git fetch origin master 2>&1
+          if ($LASTEXITCODE -ne 0) { throw "git fetch failed (exit $LASTEXITCODE)" }
+          & git reset --hard origin/master 2>&1
+          if ($LASTEXITCODE -ne 0) { throw "git reset --hard failed (exit $LASTEXITCODE)" }
+          & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
       - name: Write prod .env (UTF-8 no BOM)
