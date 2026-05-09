@@ -258,6 +258,8 @@ async function buildManifest() {
         if (Array.isArray(meta.aliases) && meta.aliases.length > 0) item.aliases = meta.aliases;
         // relationships: ["alisa", "ling"] 또는 [{target:"alisa",label:"동거"}, ...]
         if (meta.relationships !== undefined) item.relationships = meta.relationships;
+        // stages: ["wm", "karmolab"] — entity 가 등장하는 무대. KarmoLab UI 는 stages.includes('karmolab') 만 노출.
+        if (Array.isArray(meta.stages) && meta.stages.length > 0) item.stages = meta.stages;
       }
       if (type === 'system') {
         if (meta.owner) item.owner = meta.owner;
