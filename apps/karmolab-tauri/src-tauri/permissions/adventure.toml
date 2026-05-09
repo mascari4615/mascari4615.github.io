@@ -1,0 +1,6 @@
+[[permission]]
+identifier = "allow-adventure"
+description = "Allow the adventure widget (TASK-KL-032) to invoke the local claude CLI for narrative turns. Pro/Max OAuth, no API key."
+commands.allow = [
+  "adventure_claude_complete",
+]

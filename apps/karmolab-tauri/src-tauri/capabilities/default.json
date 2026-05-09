@@ -29,6 +29,7 @@
     "allow-quest-writeback",
     "allow-task-launcher",
     "allow-terminal",
+    "allow-adventure",
     "updater:default"
   ]
 }
