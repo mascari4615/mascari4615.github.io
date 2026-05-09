@@ -134,6 +134,21 @@ const Toolbox = (() => {
         tools.push(config);
     }
 
+    /** 등록된 위젯의 첫 tab.build 를 임의 container 에 inline 호출 (잡동사니 위젯 등 페이지 안 페이지). */
+    function renderInline(id, container) {
+        const tool = tools.find(t => t.id === id);
+        if (!tool || !tool.tabs || tool.tabs.length === 0) return false;
+        const tab = tool.tabs[0];
+        if (typeof tab.build !== 'function') return false;
+        try {
+            tab.build(container);
+            return true;
+        } catch (err) {
+            console.warn('[KarmoLab] renderInline fail —', id, err);
+            return false;
+        }
+    }
+
     /** 레지스트리·초기화용 — 스크립트는 첫 방문 시 loadDeferredWidget에서 로드 */
     function registerDeferred(stub) {
         const { lazyScriptPaths, ...rest } = stub;
@@ -1368,7 +1383,7 @@ const Toolbox = (() => {
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools,
         isDesktopApp,
-        kickLazyLoad, getLazyWidgetPublicMeta,
+        kickLazyLoad, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, toggleCollapsible,
         field, resultBox, button, select,
         escapeHtml, formatTimestamp, showLightbox,
