@@ -13,6 +13,7 @@
 use chrono::Local;
 use serde::Serialize;
 
+use super::active_window;
 use super::classify;
 use super::ocr;
 use super::schema;
@@ -26,10 +27,18 @@ pub struct CaptureResult {
     pub domain: Vec<String>,
     pub summary: String,
     pub ocr_chars: usize,
+    pub app: Option<String>,
+    pub trigger: String,
 }
 
+/// Tauri command — webview 또는 외부 invoke 진입점. trigger="manual".
 #[tauri::command]
 pub fn life_screen_capture() -> Result<CaptureResult, String> {
+    capture_with_trigger("manual")
+}
+
+/// 핵심 capture 함수 — sub-F-3 hotkey handler 가 trigger="hotkey" 로 호출.
+pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
     let config = LifeScreenConfig::resolve()?;
     std::fs::create_dir_all(&config.raw_screenshot_dir).map_err(|e| e.to_string())?;
 
@@ -73,7 +82,10 @@ pub fn life_screen_capture() -> Result<CaptureResult, String> {
     std::fs::rename(&placeholder_png, &final_png)
         .map_err(|e| format!("png rename 실패: {e}"))?;
 
-    // 6) .md frontmatter + 본문 write.
+    // 6) active window 발견 (capture 시점 사용자 보고 있던 앱).
+    let app = active_window::active_window_title();
+
+    // 7) .md frontmatter + 본문 write.
     let binary_filename = final_png
         .file_name()
         .and_then(|n| n.to_str())
@@ -85,6 +97,8 @@ pub fn life_screen_capture() -> Result<CaptureResult, String> {
         &binary_filename,
         ocr_chars,
         monitor_index,
+        app.clone(),
+        trigger,
     );
     let md_path = config
         .raw_screenshot_dir
@@ -98,6 +112,8 @@ pub fn life_screen_capture() -> Result<CaptureResult, String> {
         domain: classification.domain,
         summary: classification.summary,
         ocr_chars,
+        app,
+        trigger: trigger.into(),
     })
 }
 
@@ -121,8 +137,14 @@ mod live_tests {
 
         let result = life_screen_capture().expect("capture 실패");
         eprintln!(
-            "[live] png={} md={} ocr_chars={} domain={:?} slug-summary='{}'",
-            result.png_path, result.md_path, result.ocr_chars, result.domain, result.summary
+            "[live] png={} md={} ocr_chars={} domain={:?} app={:?} trigger={} slug-summary='{}'",
+            result.png_path,
+            result.md_path,
+            result.ocr_chars,
+            result.domain,
+            result.app,
+            result.trigger,
+            result.summary
         );
 
         assert!(

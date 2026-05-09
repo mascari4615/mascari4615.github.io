@@ -19,6 +19,12 @@ pub struct ScreenFrontmatter {
     pub summary: String,
     pub ocr_chars: usize,
     pub monitor_index: usize,
+    /// sub-F-3: capture 시점 active window 제목 (사용자가 어느 앱 보고 있었나).
+    /// None = 발견 실패 또는 비-Windows 플랫폼.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app: Option<String>,
+    /// sub-F-3: trigger 종류 — "hotkey" (의식적 trigger) / "manual" (Tauri command 직접 호출).
+    pub trigger: String,
 }
 
 pub fn build_frontmatter(
@@ -27,6 +33,8 @@ pub fn build_frontmatter(
     binary_filename: &str,
     ocr_chars: usize,
     monitor_index: usize,
+    app: Option<String>,
+    trigger: &str,
 ) -> ScreenFrontmatter {
     ScreenFrontmatter {
         channel: "screenshot".into(),
@@ -37,6 +45,8 @@ pub fn build_frontmatter(
         summary: classification.summary.clone(),
         ocr_chars,
         monitor_index,
+        app,
+        trigger: trigger.into(),
     }
 }
 
@@ -124,14 +134,32 @@ mod tests {
             slug: "샘플".into(),
             summary: "yaml 직렬화 검증 — 콜론: 따옴표\" 줄바꿈\n포함".into(),
         };
-        let fm = build_frontmatter(&ts, &cls, "샘플.png", 42, 0);
+        let fm = build_frontmatter(&ts, &cls, "샘플.png", 42, 0, Some("Chrome".into()), "hotkey");
         let tmp = std::env::temp_dir().join("life-screen-schema-test.md");
         write_md(&tmp, &fm, "임시 ocr 텍스트").unwrap();
         let read = std::fs::read_to_string(&tmp).unwrap();
         assert!(read.starts_with("---\n"));
         assert!(read.contains("channel: screenshot"));
         assert!(read.contains("infra"));
+        assert!(read.contains("trigger: hotkey"));
+        assert!(read.contains("app: Chrome"));
         assert!(read.contains("임시 ocr 텍스트"));
+        let _ = std::fs::remove_file(&tmp);
+    }
+
+    #[test]
+    fn write_md_omits_app_when_none() {
+        use chrono::TimeZone;
+        let ts = chrono::Local
+            .with_ymd_and_hms(2026, 5, 10, 0, 0, 0)
+            .unwrap();
+        let cls = ClassifyResult::default();
+        let fm = build_frontmatter(&ts, &cls, "x.png", 0, 0, None, "manual");
+        let tmp = std::env::temp_dir().join("life-screen-schema-no-app.md");
+        write_md(&tmp, &fm, "").unwrap();
+        let read = std::fs::read_to_string(&tmp).unwrap();
+        assert!(!read.contains("app:"), "app 필드 제외돼야 (None 시): {read}");
+        assert!(read.contains("trigger: manual"));
         let _ = std::fs::remove_file(&tmp);
     }
 }

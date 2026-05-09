@@ -23,14 +23,15 @@ uuid = { version = "1", features = ["v4"] }
 tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
 
-# TASK-LIFE-001-F (sub-F-1: capture + sub-F-2: OCR/분류/frontmatter)
-# image-hasher = sub-F-3 (diff 감지) 진입 시 추가
+# TASK-LIFE-001-F (sub-F-1: capture + sub-F-2: OCR/분류/frontmatter + sub-F-3: hotkey)
 xcap = "0.0.13"
 image = "0.25"
 chrono = { version = "0.4", features = ["serde"] }
 rusty-tesseract = "1"
 # serde_yaml 은 deprecated → 활성 fork serde_yml 사용 (memory feedback_no_legacy.md).
 serde_yml = "0.0.12"
+# sub-F-3: 의식적 trigger (PrintScreen) — interval 폐기 (의도 정정 2026-05-10).
+tauri-plugin-global-shortcut = "2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi"] }

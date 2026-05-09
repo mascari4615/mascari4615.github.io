@@ -721,6 +721,9 @@ pub fn run() {
                 let _ = w.set_focus();
             }
         }))
+        // sub-F-3: PrintScreen global hotkey → life_screen_capture(trigger="hotkey").
+        // 의도 정정 (2026-05-10): interval 자동 ❌, 의식적 trigger 만.
+        .plugin(life::hotkey::build_plugin())
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -747,6 +750,12 @@ pub fn run() {
                 let activity_state = ActivityState::new(activity_dir);
                 activity_state.start();
                 app.manage(activity_state);
+            }
+
+            // sub-F-3: PrintScreen global hotkey 등록 (plugin 은 이미 박힘 — 위 chain).
+            // register 실패는 fail soft (앱 시작 자체는 막지 않음).
+            if let Err(e) = life::hotkey::register(&handle) {
+                eprintln!("[life-screen] hotkey register 실패: {e}");
             }
 
             let window_conf = app
