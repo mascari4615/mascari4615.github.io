@@ -20,6 +20,7 @@ use super::classify;
 use super::ocr;
 use super::schema;
 use super::state::LifeScreenConfig;
+use super::vision;
 
 /// 같은 ms 안 동시 capture (빠른 PrintScreen 연타) 시 placeholder filename 충돌 방어.
 static CAPTURE_SEQ: AtomicU64 = AtomicU64::new(0);
@@ -34,6 +35,8 @@ pub struct CaptureResult {
     pub ocr_chars: usize,
     pub app: Option<String>,
     pub trigger: String,
+    /// VLM provider 가 작동했고 결과 박힘 시 Some.
+    pub vision_summary: Option<String>,
 }
 
 /// Tauri command — webview 또는 외부 invoke 진입점. trigger="manual".
@@ -95,12 +98,25 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
     // 6) active window 발견 (capture 시점 사용자 보고 있던 앱).
     let app = active_window::active_window_title();
 
-    // 7) .md frontmatter + 본문 write.
+    // 7) VLM (vision provider) — fail soft. final png 위에서 분석 (rename 후라 path stable).
+    let vision_provider = vision::default_provider();
+    let vision_result = match vision_provider.analyze(&final_png, Some(&ocr_text)) {
+        Ok(r) => Some(r),
+        Err(e) => {
+            eprintln!("[life-screen] vision ({}) fail soft: {e}", vision_provider.name());
+            None
+        }
+    };
+
+    // 8) .md frontmatter + 본문 write.
     let binary_filename = final_png
         .file_name()
         .and_then(|n| n.to_str())
         .unwrap_or("")
         .to_string();
+    let vision_field = vision_result
+        .as_ref()
+        .map(|r| (vision_provider.name(), r));
     let frontmatter = schema::build_frontmatter(
         &now,
         &classification,
@@ -109,6 +125,7 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
         monitor_index,
         app.clone(),
         trigger,
+        vision_field,
     );
     let md_path = config
         .raw_screenshot_dir
@@ -124,6 +141,7 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
         ocr_chars,
         app,
         trigger: trigger.into(),
+        vision_summary: vision_result.and_then(|r| (!r.summary.is_empty()).then_some(r.summary)),
     })
 }
 
@@ -145,15 +163,18 @@ mod live_tests {
         std::fs::create_dir_all(&tmp_root).expect("tempdir 생성 실패");
         std::env::set_var("LIFE_MEMO_ROOT", &tmp_root);
 
+        // 라이브 vision 호출 비용 회피 (claude vision 30s+) — env 로 disabled.
+        std::env::set_var("LIFE_VISION_PROVIDER", "none");
         let result = life_screen_capture().expect("capture 실패");
         eprintln!(
-            "[live] png={} md={} ocr_chars={} domain={:?} app={:?} trigger={} slug-summary='{}'",
+            "[live] png={} md={} ocr_chars={} domain={:?} app={:?} trigger={} vision={:?} slug-summary='{}'",
             result.png_path,
             result.md_path,
             result.ocr_chars,
             result.domain,
             result.app,
             result.trigger,
+            result.vision_summary,
             result.summary
         );
 

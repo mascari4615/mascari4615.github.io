@@ -17,5 +17,6 @@ pub mod ocr;
 pub mod schema;
 pub mod screen;
 pub mod state;
+pub mod vision;
 
 pub use screen::life_screen_capture;
