@@ -16,6 +16,8 @@ npm run build:yawnbot
 
 환경 변수는 **`config/yawnbot-defaults.txt`(커밋)** 에서 비밀이 아닌 기본값(모델명·타임아웃·Playing 문구·`kakao-export` 폴링·라운드 등)을 읽은 뒤, 같은 디렉터리의 **`.env`**(gitignore)가 있으면 그걸로 덮어씁니다. 키 목록·예시는 [.env.template](./.env.template)를 복사해 `.env`로 쓰면 됩니다.
 
+> **prod (노트북) 의 `.env`** = GitHub Secret [`YAWNBOT_PROD_ENV`](https://github.com/Mascari4615/Mascari4615.github.io/settings/secrets/actions/YAWNBOT_PROD_ENV) 의 전체 blob. master push 시 `Deploy Discord Bots (yawnbot)` workflow 의 *Write prod .env* 단계가 노트북 `.env` 에 덮어쓰기. 채널 ID·토큰 갱신은 그 secret 한 곳만 편집 → workflow 재트리거 (`gh workflow run "Deploy Discord Bots (yawnbot)" --repo Mascari4615/Mascari4615.github.io`).
+
 ```bash
 npm run start:yawnbot
 npm run deploy:yawnbot
