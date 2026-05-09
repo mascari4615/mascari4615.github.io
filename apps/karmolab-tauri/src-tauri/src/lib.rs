@@ -1,5 +1,6 @@
 mod activity;
 mod karmoddrine_state;
+mod life;
 mod local_dev;
 mod quest_index;
 mod quest_launcher;
@@ -10,6 +11,7 @@ mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use karmoddrine_state::get_karmoddrine_state;
+use life::life_screen_capture;
 use quest_index::get_quest_tree;
 use quest_launcher::{create_task, open_task_in_editor};
 use quest_writeback::{
@@ -708,7 +710,8 @@ pub fn run() {
             terminal_start,
             terminal_send_stdin,
             terminal_stop,
-            terminal_status
+            terminal_status,
+            life_screen_capture
         ])
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
