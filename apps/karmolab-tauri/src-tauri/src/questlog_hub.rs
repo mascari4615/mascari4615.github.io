@@ -1,5 +1,5 @@
-// karmoddrine_state.rs
-// karmoddrine 위젯 dashboard 용 상태 스냅샷 명령.
+// questlog_hub.rs
+// QuestLog Hub 용 상태 스냅샷 명령 (TASK-KL-035 — KarmoDDrine 대시보드 흡수).
 //
 // 데이터 소스 (모두 로컬, github.io 레포 외부):
 //   - ~/repos/karmoddrine/memo/.claude/active-sessions.md  (보드)
@@ -8,7 +8,7 @@
 //   - ~/.claude/commands/, ~/.claude/hooks/                (도구 인벤토리)
 //   - ~/.claude/settings.json                              (hooks 등록)
 //
-// 클라이언트는 invoke('get_karmoddrine_state') 로 호출, 주기 폴링.
+// 클라이언트는 invoke('get_questlog_hub') 로 호출, 주기 폴링.
 
 use serde::Serialize;
 use serde_json::Value;
@@ -33,7 +33,7 @@ fn apply_no_window(cmd: &mut Command) {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct KarmoddrineState {
+pub struct QuestlogHub {
     generated_at_unix: u64,
     home: Option<String>,
     umbrella: Option<String>,
@@ -295,7 +295,7 @@ mod tests {
 }
 
 #[tauri::command]
-pub fn get_karmoddrine_state() -> Result<KarmoddrineState, String> {
+pub fn get_questlog_hub() -> Result<QuestlogHub, String> {
     let home = home_dir();
     let umbrella = umbrella_dir();
     let generated_at_unix = std::time::SystemTime::now()
@@ -338,7 +338,7 @@ pub fn get_karmoddrine_state() -> Result<KarmoddrineState, String> {
         (Vec::new(), Vec::new(), BTreeMap::new())
     };
 
-    Ok(KarmoddrineState {
+    Ok(QuestlogHub {
         generated_at_unix,
         home: home.map(|p| p.to_string_lossy().to_string()),
         umbrella: umbrella.map(|p| p.to_string_lossy().to_string()),
