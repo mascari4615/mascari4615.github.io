@@ -65,9 +65,13 @@
     `
   );
 
+  /**
+   * ⚠ hourglass 제외 — `window.location.reload()` 자기 안에 박혀있어 stash 무한 loop 사고 (2026-05-10).
+   * hourglass 자체 reload 안 빼면 stash 에 못 들어옴. 별 follow-up.
+   */
   const STASH_IDS: string[] = [
     'bounce', 'bubble', 'countdown', 'darkroom', 'eyes', 'folder', 'fontgacha',
-    'hacker', 'hourglass', 'moon', 'morse', 'news', 'particle', 'password', 'pet',
+    'hacker', 'moon', 'morse', 'news', 'particle', 'password', 'pet',
     'reaction', 'shylink', 'speed', 'stone', 'toast', 'ytdownloader'
   ];
 
