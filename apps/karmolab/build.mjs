@@ -137,7 +137,8 @@ for (const rel of entryPoints) {
 const worldEntryPoints = [
   'src/world/world.ts',
   'src/world/parse-md.ts',
-  'src/world/load-characters-from-wiki.ts'
+  'src/world/load-characters-from-wiki.ts',
+  'src/world/load-adventures-from-wiki.ts'
 ];
 for (const rel of worldEntryPoints) {
   const outfile = rel.replace(/^src\/world\//, 'world/').replace(/\.ts$/, '.js');

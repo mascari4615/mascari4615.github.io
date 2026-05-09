@@ -71,14 +71,30 @@ export interface KarmoWorldParseMdAPI {
   ) => { meta: Record<string, unknown>; body: string };
 }
 
+export interface KarmoWorldAdventureEntity {
+  id: string;
+  slug: string;
+  title: string;
+  oneLine: string;
+  tags: string[];
+  npcs: string[];
+  places: string[];
+  events: string[];
+  startedAt: string;
+  endedAt: string;
+  summary: string;
+}
+
 export interface KarmoWorldNamespace {
   parseMd?: KarmoWorldParseMdAPI;
   entities?: {
     characters?: Record<string, Record<string, unknown>>;
+    adventures?: Record<string, KarmoWorldAdventureEntity>;
   };
   bindings?: {
     imagegen?: Record<string, unknown> & { characters?: unknown };
     chatbot?: Record<string, unknown> & { characters?: unknown };
+    adventure?: { adventures: KarmoWorldAdventureEntity[] };
   };
 }
 
