@@ -1,6 +1,11 @@
 # Set default behavior to automatically normalize line endings.
 * text=auto
 
+# yawnbot 정적 config — Windows core.autocrlf 의 LF→CRLF 변환이 self-hosted runner 에서 dirty state 만들어 deploy fail (TASK-YB-003 2026-05-09 사고).
+# 정본을 LF 로 강제 — 모든 플랫폼에서 같은 byte.
+apps/discord-bots/apps/yawnbot/config/*.txt text eol=lf
+apps/discord-bots/apps/yawnbot/.env.template text eol=lf
+
 # Force bash scripts to always use LF line endings so that if a repo is accessed
 # in Unix via a file share from Windows, the scripts will work.
 *.sh text eol=lf
