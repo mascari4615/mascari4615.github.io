@@ -16,7 +16,11 @@ npm run build:yawnbot
 
 환경 변수는 **`config/yawnbot-defaults.txt`(커밋)** 에서 비밀이 아닌 기본값(모델명·타임아웃·Playing 문구·`kakao-export` 폴링·라운드 등)을 읽은 뒤, 같은 디렉터리의 **`.env`**(gitignore)가 있으면 그걸로 덮어씁니다. 키 목록·예시는 [.env.template](./.env.template)를 복사해 `.env`로 쓰면 됩니다.
 
-> **prod (노트북) 의 `.env`** = GitHub Secret [`YAWNBOT_PROD_ENV`](https://github.com/Mascari4615/Mascari4615.github.io/settings/secrets/actions/YAWNBOT_PROD_ENV) 의 전체 blob. master push 시 `Deploy Discord Bots (yawnbot)` workflow 의 *Write prod .env* 단계가 노트북 `.env` 에 덮어쓰기. 채널 ID·토큰 갱신은 그 secret 한 곳만 편집 → workflow 재트리거 (`gh workflow run "Deploy Discord Bots (yawnbot)" --repo Mascari4615/Mascari4615.github.io`).
+> **prod (노트북) 의 `.env`** = GitHub Secret 들이 자동 주입.
+>
+> - **분리 흐름 (TASK-YB-003 진행중)** — 키별로 [`YB_PROD_<KEY>`](https://github.com/Mascari4615/Mascari4615.github.io/settings/secrets/actions) 개별 secret. `Deploy Discord Bots (yawnbot)` workflow 의 *Write prod .env* 단계가 secrets 를 KEY=VALUE 라인으로 조립. 한 키 갱신 시 그 secret 만 편집 → workflow 재트리거 (`gh workflow run "Deploy Discord Bots (yawnbot)" --repo Mascari4615/Mascari4615.github.io`).
+> - **마이그레이션 (1회 사용자 손)** — 기존 단일 blob 에서 분리 흐름으로 이전: `powershell -ExecutionPolicy Bypass -File apps/discord-bots/scripts/migrate-prod-secrets.ps1 -EnvPath apps/discord-bots/apps/yawnbot/.env` (노트북 또는 prod .env 사본 보관 머신에서 1회). 그 후 push 2 (workflow 갱신) 가 master 박히면 deploy 자동.
+> - **레거시 (폐기 예정)** — [`YAWNBOT_PROD_ENV`](https://github.com/Mascari4615/Mascari4615.github.io/settings/secrets/actions/YAWNBOT_PROD_ENV) 단일 blob. 분리 완료 시 폐기.
 
 ```bash
 npm run start:yawnbot
