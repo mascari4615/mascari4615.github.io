@@ -119,11 +119,13 @@
     }
   }
 
+  /// canonical → widget pill (KL-049). done/sealed 분리: done = main tree DONE pill, sealed = trophy 만.
   function mapMemoStatus(status: string): string {
     const c = canonicalStatus(status);
     if (c === 'active') return 'fire';
     if (c === 'hold') return 'sleep';
-    if (c === 'done' || c === 'sealed') return 'sealed';
+    if (c === 'done') return 'done';
+    if (c === 'sealed') return 'sealed';  // trophy view 만 도달
     return 'seed';  // seed + ready 는 widget 에서 'seed' 로 통합 (시각 단순화)
   }
 
@@ -132,7 +134,8 @@
   function mapWidgetStatusToMemo(widgetStatus: string): string {
     if (widgetStatus === 'fire') return 'active';
     if (widgetStatus === 'sleep') return 'hold';
-    if (widgetStatus === 'sealed') return 'done';
+    if (widgetStatus === 'done') return 'done';
+    if (widgetStatus === 'sealed') return 'sealed';  // 위젯 미사용, lossless
     return 'seed';
   }
 
@@ -143,6 +146,7 @@
       status: mapMemoStatus(t.status),
       memoStatus: t.status, // KL-018 — write-back 시 expected_status 로 사용
       memoPriority: t.priority, // KL-021 — priority write-back expected
+      parentId: t.parent, // KL-048 — sub-task hierarchy (트리 라인 / sort 묶음)
       filePath: t.filePath,
       checks: t.checks.map((c) => ({ t: c.text, done: c.done, lineNumber: c.lineNumber })),
     };
@@ -669,68 +673,40 @@
 }
 
 /* ── LOG LIST ── */
-.kl-quest-log .log { padding: 8px 16px 12px; flex: 1; display: flex; flex-direction: column; }
+.kl-quest-log .log { padding: 6px 12px 12px; flex: 1; display: flex; flex-direction: column; }
 .kl-quest-log .obs {
-  display: grid; grid-template-columns: 60px 1fr auto;
-  gap: 12px; align-items: baseline;
-  padding: 12px 0 11px; border-bottom: 1px dashed var(--line-2);
-  cursor: pointer;
-  transition: background 120ms, padding 120ms;
-  position: relative;
-}
-.kl-quest-log .obs:last-child { border-bottom: none; }
-.kl-quest-log .obs::before {
-  content: ''; position: absolute; left: -16px; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 0; background: var(--accent); transition: height 160ms;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 6px; cursor: pointer; border-radius: 3px; min-width: 0;
+  transition: background 80ms;
 }
 .kl-quest-log .obs:hover { background: var(--bg-2); }
-.kl-quest-log .obs:hover::before { height: 60%; }
-.kl-quest-log .obs.selected { background: var(--bg-2); margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
-.kl-quest-log .obs.selected::before { height: 70%; left: 0; }
-
-.kl-quest-log .obs .time {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
-  color: var(--ink-3); letter-spacing: 0.08em; line-height: 1.4;
+.kl-quest-log .obs.selected { background: var(--bg-2); outline: 1px solid var(--line-2); }
+.kl-quest-log .obs .obs-id {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--accent); letter-spacing: 0.05em; flex-shrink: 0; white-space: nowrap;
 }
-.kl-quest-log .obs .time b { color: var(--ink-2); font-weight: 500; display: block; }
-.kl-quest-log .obs .body .lane {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
-  margin-bottom: 3px; display: flex; align-items: center; gap: 6px;
+.kl-quest-log .obs .obs-name {
+  font-family: 'Noto Serif KR', serif; font-size: 13.5px; color: var(--ink); font-weight: 500;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  letter-spacing: -0.01em;
 }
-.kl-quest-log .obs .body .lane .sw { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.kl-quest-log .obs .body .t {
-  font-family: 'Noto Serif KR', serif; font-weight: 500;
-  font-size: 17.5px; letter-spacing: -0.01em; line-height: 1.3;
+.kl-quest-log .obs[data-status="fire"] .obs-name::before { content: '✦ '; color: var(--accent); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+.kl-quest-log .obs[data-status="done"] .obs-name,
+.kl-quest-log .obs[data-status="sealed"] .obs-name { text-decoration: line-through; color: var(--ink-3); text-decoration-thickness: 1px; }
+.kl-quest-log .obs .obs-prog {
+  display: flex; align-items: center; gap: 5px; margin-left: auto; flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3);
 }
-.kl-quest-log .obs .body .n {
-  margin-top: 4px; font-size: 14px; color: var(--ink-2); line-height: 1.55;
-}
-.kl-quest-log .obs .body .mini-bar {
-  margin-top: 6px; height: 2px; background: var(--line); width: 70%;
-  position: relative; overflow: hidden;
-}
-.kl-quest-log .obs .body .mini-bar .f {
-  position: absolute; inset: 0 auto 0 0; background: var(--ink-2);
-}
-.kl-quest-log .obs[data-status="done"] .body .mini-bar .f { background: var(--ink); width: 100% !important; }
-.kl-quest-log .obs[data-status="fire"] .body .mini-bar .f { background: var(--accent); }
+.kl-quest-log .obs .obs-bw { width: 40px; height: 3px; background: var(--line); border-radius: 2px; flex-shrink: 0; }
+.kl-quest-log .obs .obs-bf { display: block; height: 100%; background: var(--ink-2); border-radius: 2px; }
+.kl-quest-log .obs[data-status="fire"] .obs-bf { background: var(--accent); }
+.kl-quest-log .obs[data-status="done"] .obs-bf { background: var(--ink); width: 100% !important; }
 .kl-quest-log .obs .mag {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);
-  padding: 3px 7px; border: 1px solid var(--line-2);
-  white-space: nowrap; align-self: start;
-  min-width: 64px; text-align: center; box-sizing: border-box;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
+  padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
-.kl-quest-log .obs[data-status="fire"] .time b { color: var(--ink); }
-.kl-quest-log .obs[data-status="fire"] .body .t::before {
-  content: '✦'; color: var(--accent); margin-right: 6px; font-size: 15px;
-  display: inline-block;
-}
-.kl-quest-log .obs[data-status="done"] .body .t { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); text-decoration-thickness: 1px; }
-.kl-quest-log .obs[data-status="done"] .body .n { color: var(--ink-3); }
-.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-.kl-quest-log .obs[data-status="done"] .mag { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.kl-quest-log .obs-expand-ph { width: 18px; flex-shrink: 0; }
 
 .kl-quest-log .empty {
   padding: 32px 0; text-align: center; color: var(--ink-3);
@@ -897,12 +873,18 @@
 }
 
 .kl-quest-log .featured .f-right {
-  padding: 16px 20px 18px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px;
-  align-content: start;
+  padding: 10px 14px 14px;
+  display: flex; flex-direction: column; overflow-y: auto;
 }
+.kl-quest-log .obs-group--has-subs .obs-subs { display: none; }
+.kl-quest-log .obs-group--has-subs.obs-group--expanded .obs-subs { display: block; }
+.kl-quest-log .obs-expand-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  width: 18px; text-align: center; flex-shrink: 0;
+  color: var(--ink-3); font-size: 11px; line-height: 1; vertical-align: middle;
+}
+.kl-quest-log .obs-expand-btn:hover { color: var(--accent); }
 .kl-quest-log .featured .f-right .log-head {
-  grid-column: 1 / -1;
   display: flex; justify-content: space-between; align-items: baseline;
   padding-bottom: 8px; border-bottom: 1px solid var(--line-2); margin-bottom: 4px;
   font-family: 'JetBrains Mono', monospace; font-size: 13px;
@@ -916,23 +898,15 @@
   .kl-quest-log .sub-grid { grid-template-columns: 1fr; }
   .kl-quest-log .featured { grid-template-columns: 1fr; }
   .kl-quest-log .featured .f-left { border-right: none; border-bottom: 1px solid var(--line-2); }
-  .kl-quest-log .featured .f-right { grid-template-columns: 1fr; }
+  .kl-quest-log .featured .f-right { padding: 8px 10px 12px; }
 }
 
 /* ── status-coloured obs rows ── */
-.kl-quest-log .obs[data-status="fire"] .body .t::before {
-  content: '◉'; color: var(--accent); margin-right: 6px; font-size: 15px;
-  display: inline-block;
-}
 .kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-.kl-quest-log .obs[data-status="sleep"] .body .t { color: var(--ink-2); }
-.kl-quest-log .obs[data-status="sleep"] .mag { color: var(--ink-3); border-style: dashed; }
+.kl-quest-log .obs[data-status="done"] .mag,
+.kl-quest-log .obs[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+.kl-quest-log .obs[data-status="hold"] .mag { border-style: dashed; }
 .kl-quest-log .obs[data-status="seed"] .mag { color: var(--ink-3); }
-.kl-quest-log .obs[data-status="sealed"] .mag { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.kl-quest-log .obs[data-status="sealed"] .body .t { color: var(--ink-2); }
-.kl-quest-log .obs[data-status="sealed"] .body .t::before {
-  content: '◆'; color: var(--accent); margin-right: 6px; font-size: 14px;
-}
 
 /* ── 5-star rating ── */
 .kl-quest-log .stars { display: inline-flex; gap: 2px; vertical-align: middle; }
@@ -1229,54 +1203,37 @@
   color: var(--ink-3); margin-left: 6px; font-style: italic;
 }
 
-/* ═══ obs--compact (KL-045) — 1줄 밀도 ═══ */
-.kl-quest-log .obs--compact {
-  display: grid; grid-template-columns: auto 110px 1fr; gap: 10px; align-items: baseline;
-  padding: 6px 0; border-bottom: 1px dashed var(--line-2);
-  cursor: pointer; transition: background 120ms;
-  /* KL-047 — first column auto 유지 (priority 결합 시 'FIRE — HIGH' 폭 가변). */
-}
-.kl-quest-log .obs--compact:hover { background: var(--bg-2); }
-.kl-quest-log .obs--compact:last-child { border-bottom: none; }
-.kl-quest-log .obs--compact .mag {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.18em;
-  color: var(--ink-3); text-transform: uppercase;
-  border: 1px solid var(--line-2); padding: 2px 6px; text-align: center; white-space: nowrap;
-  align-self: center;
-  min-width: 56px; box-sizing: border-box;
-}
-.kl-quest-log .obs--compact[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-.kl-quest-log .obs--compact[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
-.kl-quest-log .obs--compact .id {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.06em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.kl-quest-log .obs--compact .t {
-  font-family: 'Noto Serif KR', serif; font-size: 14px; color: var(--ink); line-height: 1.4;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* ═══ obs priority chip pill (KL-047) — status pill 옆 별도 chip. 각 row 동일 폭 (blank placeholder). ═══ */
-.kl-quest-log .mag-cluster {
-  display: inline-flex; align-items: center; gap: 5px; align-self: start; white-space: nowrap;
-}
-/* full row .pri = .mag 와 동일 spec (padding/font/letter-spacing/min-width) */
+/* ═══ obs chips ═══ */
+.kl-quest-log .mag-cluster { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap; }
 .kl-quest-log .pri {
   display: inline-block;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);
-  padding: 3px 7px; border: 1px solid var(--line-2);
-  min-width: 64px; text-align: center; white-space: nowrap;
-  box-sizing: border-box;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
+  padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
 .kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-.kl-quest-log .pri--low  { color: var(--ink-3); border-color: var(--line-3); border-style: dashed; }
+.kl-quest-log .pri--low  { color: var(--ink-3); border-style: dashed; }
 .kl-quest-log .pri--blank { visibility: hidden; }
-/* compact row .pri = compact .mag spec */
-.kl-quest-log .obs--compact .pri {
-  font-size: 10.5px; letter-spacing: 0.18em; padding: 2px 6px; min-width: 56px;
+
+/* ═══ obs sub-task hierarchy (KL-048) — 트리 라인 (├── / └──) + 좌측 indent ═══ */
+.kl-quest-log .obs--sub-mid, .kl-quest-log .obs--sub-last {
+  padding-left: 32px; position: relative;
 }
-.kl-quest-log .obs--compact .mag-cluster { gap: 4px; }
+.kl-quest-log .obs--sub-mid::after, .kl-quest-log .obs--sub-last::after {
+  position: absolute; left: 4px; top: 14px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--ink-3); letter-spacing: 0; white-space: pre;
+  pointer-events: none;
+}
+.kl-quest-log .obs--sub-mid::after { content: '├──'; }
+.kl-quest-log .obs--sub-last::after { content: '└──'; }
+/* compact 도 동일 패턴, 작은 크기 */
+.kl-quest-log .obs--compact.obs--sub-mid, .kl-quest-log .obs--compact.obs--sub-last {
+  padding-left: 28px;
+}
+.kl-quest-log .obs--compact.obs--sub-mid::after, .kl-quest-log .obs--compact.obs--sub-last::after {
+  top: 6px; font-size: 10px;
+}
 `;
 
   function injectStyles(): void {
@@ -1351,6 +1308,7 @@
     const appWrap = klRoot.querySelector('[data-kl-ql-app]') as HTMLElement;
 
     const renderOnce = (): void => {
+      klRoot.dataset.pendingScroll = String(klRoot.scrollTop);
       appWrap.innerHTML = `
         <div class="wrap">
           <header class="hd">
@@ -1417,7 +1375,8 @@
 
   // ── runQuestLog: 원본 IIFE 로직 (document → root, ID → data-kl-ql) ──────
   function runQuestLog(root: HTMLElement, src: any): void {
-    const STORAGE_KEY = 'quest-log-state-v1';
+    // KL-048 — v2: leaf 에 parentId 필드 추가. 이전 v1 캐시는 자동 폐기 (sub-task hierarchy 정합).
+    const STORAGE_KEY = 'quest-log-state-v2';
     const SRC = src;
 
     const $ = (sel: string): HTMLElement | null => root.querySelector(sel) as HTMLElement | null;
@@ -1439,7 +1398,7 @@
     // KL-045 — UI prefs (status 필터 / 도메인 토글 / 행 밀도 / 다중 키 정렬). 별도 키 (DATA 캐시와 분리).
     const UI_PREFS_KEY = 'quest-log-ui-prefs-v1';
     type SortKey = 'status' | 'id-asc' | 'id-desc' | 'priority';
-    interface UIPrefs { statusOff: string[]; domainOff: string[]; density: 'full' | 'compact'; sortKeys: SortKey[]; }
+    interface UIPrefs { statusOff: string[]; domainOff: string[]; density: 'full' | 'compact'; sortKeys: SortKey[]; expandedParents: string[]; }
     const SORT_VALUES: SortKey[] = ['status', 'id-asc', 'id-desc', 'priority'];
     function loadPrefs(): UIPrefs {
       try {
@@ -1458,9 +1417,10 @@
           domainOff: Array.isArray(raw?.domainOff) ? raw.domainOff : [],
           density: raw?.density === 'compact' ? 'compact' : 'full',
           sortKeys,
+          expandedParents: Array.isArray(raw?.expandedParents) ? raw.expandedParents : [],
         };
       } catch (e) {
-        return { statusOff: [], domainOff: [], density: 'full', sortKeys: ['status'] };
+        return { statusOff: [], domainOff: [], density: 'full', sortKeys: ['status'], expandedParents: [] };
       }
     }
     function savePrefs(): void {
@@ -1576,6 +1536,76 @@
         return a.id.localeCompare(b.id);
       });
       return sorted;
+    }
+
+    // KL-048 — sub-task hierarchy. project.children 안 카테고리 노드 (부모+subs) 풀어 hier item 으로.
+    interface HierItem { leaf: any; isSub: boolean; isLast: boolean; }
+    function flattenWithHier(project: any): HierItem[] {
+      const out: HierItem[] = [];
+      for (const child of (project.children || [])) {
+        if (isLeaf(child)) {
+          out.push({ leaf: child, isSub: false, isLast: false });
+        } else if (Array.isArray(child.children)) {
+          // 카테고리 노드: children[0] = 부모 leaf / children[1..] = subs
+          const [parent, ...subs] = child.children;
+          if (parent) out.push({ leaf: parent, isSub: false, isLast: false });
+          subs.forEach((s: any, i: number) => {
+            out.push({ leaf: s, isSub: true, isLast: i === subs.length - 1 });
+          });
+        }
+      }
+      return out;
+    }
+
+    // 정렬 시 부모-자식 묶음 유지. parent 의 sort key 로 그룹 정렬, sub 는 부모 뒤 원래 순서.
+    function sortHierItems(items: HierItem[]): HierItem[] {
+      const groups = new Map<string, { parent: HierItem | null; subs: HierItem[] }>();
+      for (const it of items) {
+        if (!it.isSub) {
+          const id = it.leaf.id;
+          if (!groups.has(id)) groups.set(id, { parent: it, subs: [] });
+          else groups.get(id)!.parent = it;
+        } else {
+          const pid = it.leaf.parentId || it.leaf.id;
+          if (!groups.has(pid)) groups.set(pid, { parent: null, subs: [] });
+          groups.get(pid)!.subs.push(it);
+        }
+      }
+      const arr = Array.from(groups.values());
+      const keys = state.prefs.sortKeys;
+      if (keys.length > 0) {
+        arr.sort((a, b) => {
+          // parent 가 null 인 그룹 (orphan subs) 은 끝으로
+          if (!a.parent && !b.parent) return 0;
+          if (!a.parent) return 1;
+          if (!b.parent) return -1;
+          for (const key of keys) {
+            const cmp = compareByKey(a.parent.leaf, b.parent.leaf, key);
+            if (cmp !== 0) return cmp;
+          }
+          return a.parent.leaf.id.localeCompare(b.parent.leaf.id);
+        });
+      }
+      const out: HierItem[] = [];
+      for (const g of arr) {
+        if (g.parent) {
+          out.push(g.parent);
+          g.subs.forEach((s, i) => {
+            out.push({ leaf: s.leaf, isSub: true, isLast: i === g.subs.length - 1 });
+          });
+        } else {
+          // orphan: parent 가 필터됐으면 subs 도 트리 연결 끊고 standalone 으로
+          g.subs.forEach((s) => {
+            out.push({ leaf: s.leaf, isSub: false, isLast: false });
+          });
+        }
+      }
+      return out;
+    }
+
+    // KL-048 — TASK ID 의 도메인 prefix 떼고 번호만 (`TASK-WM-091-A` → `091-A`). 도메인은 그룹으로 이미 분리됨.
+    function shortId(id: string): string {
+      return String(id).replace(/^TASK-[A-Z]+-/, '');
     }
 
     function esc(s: any): string { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!)); }
@@ -1762,47 +1792,69 @@
       `;
     }
 
-    function obsRow(leaf: any, projectId: string) {
+    function obsRow(hierOrLeaf: any, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
+      const isHier = hierOrLeaf && hierOrLeaf.leaf;
+      const leaf = isHier ? hierOrLeaf.leaf : hierOrLeaf;
+      const isSub: boolean = isHier ? !!hierOrLeaf.isSub : false;
+      const isLast: boolean = isHier ? !!hierOrLeaf.isLast : false;
       const status = leaf.status || 'seed';
       const priority = canonicalPriority(leaf.memoPriority || 'normal');
       const selectedCls = state.selectedId === leaf.id ? 'selected' : '';
-      // KL-047 — priority chip pill (status pill 옆). normal 도 placeholder 박음 = 각 row 동일 폭.
       const priChip = priority === 'high'
-        ? '<span class="pri pri--high">HIGH</span>'
+        ? '<span class="pri pri--high">HI</span>'
         : priority === 'low'
-          ? '<span class="pri pri--low">LOW</span>'
-          : '<span class="pri pri--blank">HIGH</span>';
-      const magCluster = `<div class="mag-cluster"><div class="mag">${status.toUpperCase()}</div>${priChip}</div>`;
-      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목).
-      if (state.prefs.density === 'compact') {
-        return `
-          <div class="obs obs--compact ${selectedCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
-            ${magCluster}
-            <div class="id">${esc(leaf.id)}</div>
-            <div class="t serif">${esc(leaf.title)}</div>
-          </div>
-        `;
-      }
-      const area = findAreaOf(leaf.id);
-      const progress = Math.round(progressOf(leaf) * 100);
-      const areaLabel = area && area.id !== leaf.id ? area.title : '';
+          ? '<span class="pri pri--low">LO</span>'
+          : '<span class="pri pri--blank">HI</span>';
+      const magCluster = `<div class="mag-cluster"><span class="mag">${status.toUpperCase()}</span>${priChip}</div>`;
+      const subCls = isSub ? (isLast ? 'obs--sub-last' : 'obs--sub-mid') : '';
+      const toggleBtn = hasSubs
+        ? `<button class="obs-expand-btn">${isExpanded ? '▾' : '▸'}</button>`
+        : '<span class="obs-expand-ph"></span>';
       const checkN = leaf.checks.length;
       const checkDone = leaf.checks.filter((c: any) => c.done).length;
+      const progress = checkN > 0 ? Math.round(progressOf(leaf) * 100) : 0;
+      const progSection = checkN > 0
+        ? `<div class="obs-prog"><span class="obs-chk">${checkDone}/${checkN}</span>${!isSub && status !== 'seed' ? `<span class="obs-bw"><span class="obs-bf" style="width:${progress}%"></span></span>` : ''}</div>`
+        : '';
       return `
-        <div class="obs ${selectedCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
-          <div class="time">
-            <b>${checkDone}/${checkN}</b>
-            ${progress}%
-          </div>
-          <div class="body">
-            <div class="lane"><span class="sw"></span>${esc(areaLabel ? areaLabel.toUpperCase() : 'DIRECT')}</div>
-            <div class="t serif">${esc(leaf.title)}</div>
-            ${leaf.note ? `<div class="n">${esc(leaf.note)}</div>` : ''}
-            ${status !== 'seed' ? `<div class="mini-bar"><div class="f" style="width:${progress}%"></div></div>` : ''}
-          </div>
+        <div class="obs ${selectedCls} ${subCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
+          ${toggleBtn}
           ${magCluster}
+          <span class="obs-id">${esc(shortId(leaf.id))}</span>
+          <span class="obs-name">${esc(leaf.title)}</span>
+          ${progSection}
         </div>
       `;
+    }
+
+    // sub-task 접기/펼치기 — parent+subs 를 .obs-group 으로 묶어 반환.
+    function groupedObsRows(items: HierItem[], projectId: string): string {
+      const html: string[] = [];
+      let i = 0;
+      while (i < items.length) {
+        const item = items[i];
+        if (!item.isSub) {
+          const subs: HierItem[] = [];
+          let j = i + 1;
+          while (j < items.length && items[j].isSub) { subs.push(items[j]); j++; }
+          if (subs.length > 0) {
+            const parentId = item.leaf.id;
+            const isExp = state.prefs.expandedParents.includes(parentId);
+            html.push(`<div class="obs-group obs-group--has-subs${isExp ? ' obs-group--expanded' : ''}" data-parent-id="${esc(parentId)}">`);
+            html.push(obsRow(item, projectId, true, isExp));
+            html.push(`<div class="obs-subs">${subs.map(s => obsRow(s, projectId)).join('')}</div>`);
+            html.push('</div>');
+            i = j;
+          } else {
+            html.push(`<div class="obs-group">${obsRow(item, projectId)}</div>`);
+            i++;
+          }
+        } else {
+          html.push(`<div class="obs-group">${obsRow(item, projectId)}</div>`);
+          i++;
+        }
+      }
+      return html.join('');
     }
 
     function renderColumns() {
@@ -1816,13 +1868,16 @@
       if (wm && isDomainOn('wm')) {
         // KL-045 — WM featured 의 TASK 일렬 = 상태 필터 + 정렬 적용. 통계 (FIRE/SEALED/COVERAGE) 는 전체 기준 (필터 무관).
         const wmAllRaw = allLeaves(wm);
-        const wmAll = sortLeaves(wmAllRaw.filter((l) => isStatusOn(l.memoStatus)));
+        // KL-048 — sub-task hierarchy 보존 정렬. parent + subs 묶음으로 sort 진행.
+        const wmHierAll = flattenWithHier(wm).filter((h) => isStatusOn(h.leaf.memoStatus));
+        const wmAll = sortHierItems(wmHierAll);
         const wmFire = wmAllRaw.filter(l => l.status === 'fire').length;
         const wmSealedCount = DATA.sealed.filter((s: any) => s.project === wm.title).length;
         const wmProg = wmAllRaw.length ? Math.round(wmAllRaw.reduce((s, l) => s + progressOf(l), 0) / wmAllRaw.length * 100) : 0;
         const cst = CONST_BY_PROJECT.wm;
         const { rah, ram, decd, decm } = coords(0);
 
+        const prevFRightScroll = (fw.querySelector('.f-right') as HTMLElement | null)?.scrollTop ?? 0;
         fw.innerHTML = `
           <div class="featured">
             <div class="f-left">
@@ -1849,10 +1904,14 @@
             </div>
             <div class="f-right">
               <div class="log-head"><span>TASK LOG</span><span><b>${wmAll.length}</b> TASKS${wmAll.length !== wmAllRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">(${wmAllRaw.length} 중 필터)</small>` : ''}</span></div>
-              ${wmAll.length ? wmAll.map(l => obsRow(l, 'wm')).join('') : '<div class="empty" style="grid-column: 1 / -1;">필터로 0</div>'}
+              ${wmAll.length ? groupedObsRows(wmAll, 'wm') : '<div class="empty" style="flex: 0 0 100%;">필터로 0</div>'}
             </div>
           </div>
         `;
+        if (prevFRightScroll) {
+          const newFRight = fw.querySelector('.f-right') as HTMLElement | null;
+          if (newFRight) newFRight.scrollTop = prevFRightScroll;
+        }
       } else {
         fw.innerHTML = '';
       }
@@ -1863,7 +1922,8 @@
       subEl.innerHTML = others.map((p: any, subIdx: number) => {
         const idx = subIdx + 1;
         const allRaw = allLeaves(p);
-        const all = sortLeaves(allRaw.filter((l) => isStatusOn(l.memoStatus)));
+        const hierAll = flattenWithHier(p).filter((h) => isStatusOn(h.leaf.memoStatus));
+        const all = sortHierItems(hierAll);
         const totalP = allRaw.length ? Math.round(allRaw.reduce((s, l) => s + progressOf(l), 0) / allRaw.length * 100) : 0;
         const fireCount = allRaw.filter(l => l.status === 'fire').length;
         const cst = CONST_BY_PROJECT[p.id] || { name: p.title, sub: p.subtitle || '', mag: '—' };
@@ -1881,7 +1941,7 @@
             </div>
             ${skyHTML(idx, true)}
             <div class="log">
-              ${all.length ? all.map(l => obsRow(l, p.id)).join('') : '<div class="empty">필터로 0</div>'}
+              ${all.length ? groupedObsRows(all, p.id) : '<div class="empty">필터로 0</div>'}
             </div>
           </div>
         `;
@@ -1890,6 +1950,26 @@
       $$('.obs').forEach(el => {
         el.addEventListener('click', () => openDrawer(el.dataset.id!));
       });
+
+      $$('.obs-expand-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const group = (btn as HTMLElement).closest('.obs-group--has-subs') as HTMLElement | null;
+          if (!group) return;
+          const parentId = group.dataset.parentId || '';
+          const isExp = group.classList.toggle('obs-group--expanded');
+          (btn as HTMLElement).textContent = isExp ? '▾' : '▸';
+          if (isExp) {
+            if (!state.prefs.expandedParents.includes(parentId)) state.prefs.expandedParents.push(parentId);
+          } else {
+            state.prefs.expandedParents = state.prefs.expandedParents.filter(id => id !== parentId);
+          }
+          savePrefs();
+        });
+      });
+
+      const ps = Number(root.dataset.pendingScroll || 0);
+      if (ps > 0) { root.scrollTop = ps; delete root.dataset.pendingScroll; }
     }
 
     function renderTrophyView() {
