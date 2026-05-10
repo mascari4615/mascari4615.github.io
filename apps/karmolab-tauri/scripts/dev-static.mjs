@@ -172,19 +172,22 @@ async function handleRequest(req, res) {
 
     await sendFile(req, res, filePath, st);
   } catch (err) {
-    console.error('[dev-static]', err);
-    res.writeHead(500);
-    res.end('Internal Server Error');
+    // ERR_STREAM_PREMATURE_CLOSE: WebView 가 연결을 끊은 정상 케이스 — 무시.
+    if (err.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+      console.error('[dev-static]', err);
+    }
+    if (!res.headersSent) {
+      try { res.writeHead(500); res.end('Internal Server Error'); } catch {}
+    }
   }
 }
 
 function startNodeServer() {
   const server = http.createServer((req, res) => {
     handleRequest(req, res).catch((err) => {
-      console.error('[dev-static]', err);
-      if (!res.writableEnded) {
-        res.writeHead(500);
-        res.end('Internal Server Error');
+      if (err.code !== 'ERR_STREAM_PREMATURE_CLOSE') console.error('[dev-static]', err);
+      if (!res.headersSent) {
+        try { res.writeHead(500); res.end('Internal Server Error'); } catch {}
       }
     });
   });
@@ -194,6 +197,8 @@ function startNodeServer() {
   });
 
   server.on('error', (err) => {
+    // EADDRINUSE 는 이미 실행 중 — 조용히 종료 (호출측이 이미 listen 확인).
+    if (err.code === 'EADDRINUSE') { process.exit(0); return; }
     console.error('[dev-static]', err.message);
     process.exit(1);
   });
