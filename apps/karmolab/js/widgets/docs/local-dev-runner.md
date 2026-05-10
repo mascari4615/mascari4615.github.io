@@ -16,10 +16,8 @@ npm install
 npm run dev
 ```
 
-- `npm run dev`: **`scripts/dev-static.mjs`** 가 레포 루트를 8899에 서빙합니다(Python `http.server` 우선, 없으면 Node). **`http://127.0.0.1:8899/apps/karmolab/`** 가 응답할 때까지 기다렸다가 Tauri가 그 URL을 엽니다(KarmoLab만; Jekyll 없음). **데스크톱 창만 닫아도 정적 서버는 그대로** 둡니다(다시 `npm run dev:app`만 실행하면 됨). 둘 다 끄려면 터미널에서 **Ctrl+C** 하세요.
-- 이미 **8899**에 같은 방식으로 서버가 떠 있으면: `npm run dev:app` (Tauri만).
-- **블로그·Jekyll까지** 로컬로 쓰려면: `npm run dev:with-jekyll` (4000번 Jekyll + 별도 `devUrl` 설정).
-- Windows에서 Jekyll을 쓸 때 Listen이 **같은 폴더를 두 경로로 감시**한다고 에러를 내면, `_config.yml`의 `exclude`와 `dev:jekyll`의 **`--force_polling`** 을 참고하세요.
+- `npm run dev`: **`scripts/dev-static.mjs`** 가 레포 루트를 **8898** 에 서빙합니다 (Node, no-store header). **`http://127.0.0.1:8898/apps/karmolab/`** 가 응답할 때까지 기다렸다가 Tauri 가 그 URL 을 엽니다 (KarmoLab Dev identifier `.dev`). production .exe (`KarmoLab`) 옆에 그대로 켜면 됨 — 별 single-instance 그룹. 끄려면 터미널 **Ctrl+C**.
+- KL-046 — `dev:dual` / `dev:app` / `dev:with-jekyll` / `dev:remote` 변종 폐기. dev 흐름 한 개 (`npm run dev`) + build 한 개 (`npm run build`).
 
 빌드·원격 URL 등은 **문서 → 프로젝트 명령** 탭과 `apps/karmolab-tauri/README.md` 를 참고하세요.
 

@@ -5,62 +5,47 @@
 ## 준비물
 
 - [Rust](https://www.rust-lang.org/learn/get-started) + [Tauri 사전 요구사항](https://v2.tauri.app/start/prerequisites/) (Windows: Visual Studio Build Tools, WebView2)
-- **로컬 개발(기본)**: **Node.js**(필수, Tauri와 동일) — `npm run dev` 시 정적 서버는 **`scripts/dev-static.mjs`** 가 띄웁니다. **Python 3** 이 PATH에 있으면 `http.server`를 쓰고, 없으면 **Node 내장 http**로 8899를 서빙합니다.
-- **블로그까지 Jekyll로 보려면**(선택): Ruby/Jekyll(`Gemfile` 기준) — `npm run dev:with-jekyll`
+- **Node.js** (필수, Tauri 와 동일) — `npm run dev` 시 정적 서버는 `scripts/dev-static.mjs` 가 8898 포트로 서빙 (Node 단독, no-store header)
 
-## 명령
+## 명령 (KL-046 — 단순화: `dev` + `build` 둘만)
 
 ```bash
 cd apps/karmolab-tauri
 npm install
-npm run dev          # 정적 서버(8899): Python http.server 우선, 없으면 Node — /apps/karmolab/ 응답 대기 후 tauri dev (KarmoLab만; Jekyll 없음)
-npm run dev:app      # 이미 8899에 정적 서버가 떠 있을 때 Tauri만
-npm run dev:with-jekyll   # 예전 방식: Jekyll(4000) + devUrl 4000/karmolab/ (블로그·Liquid 포함 로컬)
-npm run dev:remote   # 개발 모드(tauri dev)인데 WebView만 배포본 URL로
-npm run dev:dual     # production .exe 옆에 동시 실행 — 별 identifier / 8898 포트 / KarmoLab [DEV] 창 + DEV badge icon (아래 § 분리 참조)
-npm run build        # 설치 패키지 빌드(웹은 GitHub Pages URL을 그대로 씀)
+npm run dev          # debug 빌드 (KarmoLab Dev) — 8898 정적 서버 + tauri dev. production .exe 옆에 동시 실행 OK.
+npm run build        # release 빌드 (KarmoLab 설치 패키지) — `--config tauri.release.conf.json` 명시.
 ```
 
-## 개발 빌드 vs Production — 동시 실행 (`dev:dual`)
+## 개발 빌드 vs Production — 자연스러운 분리 (KL-046)
 
-`npm run dev` / `dev:app` / `dev:with-jekyll` / `dev:remote` 는 production 과 같은 identifier (`com.mascari4615.karmolab`) → `tauri-plugin-single-instance` 가 같은 그룹으로 묶음 → **production 켜져있으면 dev 가 production 창 focus 만 하고 자기 종료** (동시 X).
+**핵심**: `tauri.conf.json` 자체가 dev 기본 (identifier `.dev` / port 8898 / `KarmoLab Dev`). production 빌드는 `tauri.release.conf.json` 가 오버라이드. **`npm run dev` 를 production 옆에서 그냥 켜면 됨** — single-instance 그룹 별도라 충돌 X.
 
-**production 옆에 dev 동시 켜려면 `npm run dev:dual`**. `src-tauri/tauri.dev-dual.conf.json` 이 production conf 와 다른 값을 박음:
-
-| 필드 | production | dev:dual |
+| 필드 | dev (`tauri.conf.json` 기본) | production (`tauri.release.conf.json` 오버라이드) |
 |---|---|---|
-| `productName` | `KarmoLab` | `KarmoLab Dev` |
-| `identifier` | `com.mascari4615.karmolab` | `com.mascari4615.karmolab.dev` |
-| window title | `KarmoLab` | `KarmoLab [DEV]` |
-| 정적 서버 포트 | 8899 | **8898** (production 충돌 방지) |
-| 트레이 icon | KarmoLab | KarmoLab + **DEV badge overlay** (`lib.rs::with_dev_overlay`) |
-| 트레이 메뉴 첫 항목 | `KarmoLab 창 보이기` | `KarmoLab [DEV] 창 보이기` |
-| 트레이 tooltip | `KarmoLab — …` | `KarmoLab [DEV] — debug 빌드 (dev:dual)` |
+| `productName` | `KarmoLab Dev` | `KarmoLab` |
+| `identifier` | `com.mascari4615.karmolab.dev` | `com.mascari4615.karmolab` |
+| window title | `KarmoLab [DEV]` | `KarmoLab` |
+| 정적 서버 포트 | 8898 | 8899 |
+| 트레이 icon | KarmoLab + **DEV badge overlay** (`lib.rs::with_dev_overlay`) | KarmoLab |
+| 트레이 tooltip | `KarmoLab [DEV] — debug 빌드 (npm run dev)` | `KarmoLab — 트레이 메뉴…` |
+| `createUpdaterArtifacts` | false | true |
 
-→ 두 인스턴스 별 single-instance 그룹 / 별 window state. 작업 표시줄에 두 아이콘 (production = 깔끔 / dev = DEV badge) 동시 노출.
+dev/prod 분기 진실 = Rust `cfg!(debug_assertions)` (debug build = dev / release = prod). identifier 도 그쪽에 맞춰 정합. CI workflow (`karmolab-tauri-release.yml`) 는 이미 `--config tauri.release.conf.json` 명시 사용.
 
 ### ⚠ `cargo build` / `cargo run` / `cargo check --all-targets` 직접 사용 X
 
-이 명령들은 `tauri.conf.json` (production identifier) 그대로 사용 → 만든 `target/debug/karmolab-desktop.exe` 가 **production single-instance 그룹** 에 들어감. 작업 표시줄 「KarmoLab」 누르면 production 이 아닌 그 dev .exe 가 focus 받아 사용자 혼란 (debug build / 다른 디자인 / 다른 데이터). dev 검증은 항상 `npm run dev:dual` 만.
-
-`tauri.conf.json`의 **`build.devUrl`** 은 **`http://127.0.0.1:8899/apps/karmolab/`** — 문서 루트는 **레포 최상위**여야 합니다(`dev:static` → `scripts/dev-static.mjs`: Python `http.server` 또는 Node 폴백). 자산 경로가 `/apps/karmolab/...` 이므로 이 구조를 유지합니다. **`build.frontendDist`** 는 배포용으로 **GitHub Pages URL**을 유지합니다.
-
-**Jekyll 없이**: `index.html` 상단에 프론트매터(`---`)가 그대로 보일 수 있습니다. 치우려면 `bundle exec jekyll build` 후 `_site`를 서빙하거나 `dev:with-jekyll`을 쓰세요.
-
-**`jekyll serve`(선택, `dev:with-jekyll`)**: `serve`는 저장 시 재생성·`--incremental`은 증분입니다. **`npm run dev:jekyll`** 에는 Windows Listen 이슈 완화를 위해 **`--force_polling`** 이 붙어 있습니다.
-
-**Windows + monorepo + Jekyll**: Listen “already being watched”는 `_config.yml`의 `exclude`(`**/node_modules`, `apps/discord-bots`, `packages`)와 위 폴링으로 완화합니다.
+이 명령들은 conf override 안 거치고 직접 컴파일 → tauri-plugin-single-instance / Windows AUMID 의 dev/prod 분기는 `cfg!(debug_assertions)` 로 작동하지만, frontend 자산 (devUrl 8898) 이 안 떠있으면 흰 화면. **dev 검증은 항상 `npm run dev`** (정적 서버 + tauri dev concurrently).
 
 ## 원격 + 캐시(오프라인에 가깝게)
 
 - KarmoLab 페이지(`apps/karmolab/index.html`)는 **프로덕션 빌드에서** 사이트 루트의 **`/sw.min.js`(Chirpy 서비스 워커)** 를 등록합니다. 본문 레이아웃을 쓰지 않던 페이지라 기존에는 SW가 붙지 않았습니다.
 - 그 SW는 설정상 **거부 경로가 아닌 GET 요청**을 네트워크로 받은 뒤 **Cache Storage에 넣습니다**. 그래서 **같은 출처**(`/karmolab/`, `/apps/karmolab/…` 등)는 방문·로드된 범위에서 캐시에 쌓일 수 있습니다.
 - **한계**: (1) 최초 실행부터 오프라인이면 캐시가 없어 빈 화면/실패할 수 있습니다. (2) 브라우저·WebView2가 디스크를 비우면 캐시가 사라집니다. (3) **폰트(Inter, Pretendard)·일부 위젯 전용 CDN** 등은 여전히 외부망이 필요할 수 있습니다. KarmoLab 본문은 `crypto-js`·`marked`·`prism`(테마·자주 쓰는 언어 컴포넌트)을 `apps/karmolab/js/vendor`에 두어 같은 출처로 제공합니다.
-- 로컬에서 앱으로 확인할 때는 기본 **`npm run dev`**(8899 정적 서버 + KarmoLab)를 쓰면 됩니다. 배포본·서비스 워커·원격 캐시를 **개발 빌드(Rust 디버그)** 로만 검증하려면 **`npm run dev:remote`** (`src-tauri/tauri.dev-remote.conf.json`이 `devUrl`만 GitHub Pages로 덮어씀).
+- 로컬에서 앱으로 확인할 때는 **`npm run dev`** (8898 정적 서버 + KarmoLab Dev) 를 쓰면 됩니다. 배포본·서비스 워커·원격 캐시 검증은 그냥 production .exe (`KarmoLab`) 사용 — 이미 GitHub Pages live URL 띄움.
 
 ## 배포·원격 검증(짧은 체크리스트)
 
-1. **`npm run dev:remote`** 로 WebView가 GitHub Pages `karmolab` 을 띄우는지.
+1. production `KarmoLab` 이 GitHub Pages `karmolab` 을 띄우는지.
 2. **사이드바 → 기타 → 디버그** 에서 OS 알림 테스트(성공/에러 로그).
 3. **트레이**: 창 숨김, 다시 실행 시 단일 인스턴스로 앞으로 오는지.
 4. **서비스 워커**: `index.html` 의 SW 등록은 **프로덕션 Jekyll** 에만 들어갑니다. 로컬 `jekyll serve`(기본 development)로는 해당 스크립트가 빠지므로, SW·오프라인 캐시는 **배포 URL** 또는 `JEKYLL_ENV=production` 으로 빌드한 `_site` 로 확인하세요.

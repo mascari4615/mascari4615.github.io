@@ -877,7 +877,7 @@ pub fn run() {
 
                 if let Some(icon) = app.default_window_icon().cloned() {
                     let tray_tooltip = if cfg!(debug_assertions) {
-                        "KarmoLab [DEV] — debug 빌드 (dev:dual)"
+                        "KarmoLab [DEV] — debug 빌드 (npm run dev)"
                     } else {
                         "KarmoLab — 트레이 메뉴에서 업데이트 확인 · 닫기(X)는 숨김"
                     };

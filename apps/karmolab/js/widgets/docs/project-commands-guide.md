@@ -140,11 +140,10 @@ npm install
 npm run dev
 ```
 
-- 기본: **`dev-static.mjs`** 가 레포 루트를 **8899**에 서빙(Python 우선, 없으면 Node) + Tauri가 **http://127.0.0.1:8899/apps/karmolab/** 를 연다(KarmoLab만).
-- 블로그까지 Jekyll이 필요하면 **`npm run dev:with-jekyll`** → **4000** + **http://127.0.0.1:4000/karmolab/** (`tauri.dev-jekyll.conf.json`).
-- 이미 **8899**에 레포 루트 정적 서버가 떠 있으면: `npm run dev:app`
-- WebView만 **배포 URL**로 테스트: `npm run dev:remote`
-- 설치 패키지 빌드: `npm run build`
+- **`dev-static.mjs`** 가 레포 루트를 **8898** (KarmoLab Dev identifier `.dev`) 에 서빙 (Node, no-store header) + Tauri 가 **http://127.0.0.1:8898/apps/karmolab/** 를 엽니다.
+- production .exe (`KarmoLab`) 옆에 그냥 켜면 됨 (별 single-instance 그룹).
+- 설치 패키지 빌드: `npm run build` (release.conf.json 오버라이드, identifier 복원).
+- KL-046 — `dev:dual` / `dev:app` / `dev:with-jekyll` / `dev:remote` 변종 폐기.
 - 데스크톱 앱에서 **KarmoLab → 데스크톱 앱 → 서버 모니터**의 **로컬** 블록에서 Jekyll·Discord 봇 등 프로필 시작·종료·`npm install`·(설정 시) **deploy**: **문서 → 데스크톱·로컬** 탭 (`apps/karmolab/js/widgets/docs/local-dev-runner.md`).
 
 ---
