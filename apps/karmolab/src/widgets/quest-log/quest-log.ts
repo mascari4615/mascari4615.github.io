@@ -95,12 +95,36 @@
     }
   }
 
+  // KL-045 — memo status drift 보정. memo TASK 들에 schema X 값 (`in_progress` / `in_review`
+  // / `seeded` / `in-progress` / `suspended` / `closed` / `medium` / `critical` 등) 가
+  // 다수 존재 (실측 50+ 케이스). 정렬·필터·overview 통계 모두 canonical 6 값으로 정규화 후 동작.
+  // 정본 fix = `node memo/scripts/sync-task-status.mjs --apply` 별도 (race 위험 — 본 frontend 는 방어).
+  function canonicalStatus(s: string): string {
+    switch (s) {
+      case 'active': case 'in_progress': case 'in-progress': return 'active';
+      case 'ready': case 'in_review': return 'ready';
+      case 'seed': case 'seeded': return 'seed';
+      case 'hold': case 'suspended': return 'hold';
+      case 'done': case 'closed': return 'done';
+      case 'sealed': return 'sealed';
+      default: return 'seed';
+    }
+  }
+  function canonicalPriority(p: string): string {
+    switch (p) {
+      case 'high': case 'critical': return 'high';
+      case 'normal': case 'medium': return 'normal';
+      case 'low': return 'low';
+      default: return 'normal';
+    }
+  }
+
   function mapMemoStatus(status: string): string {
-    if (status === 'seed' || status === 'ready') return 'seed';
-    if (status === 'active') return 'fire';
-    if (status === 'hold') return 'sleep';
-    if (status === 'done' || status === 'sealed') return 'sealed';
-    return 'seed';
+    const c = canonicalStatus(status);
+    if (c === 'active') return 'fire';
+    if (c === 'hold') return 'sleep';
+    if (c === 'done' || c === 'sealed') return 'sealed';
+    return 'seed';  // seed + ready 는 widget 에서 'seed' 로 통합 (시각 단순화)
   }
 
   /// 위젯 → memo status 역방향 매핑 (KL-018 status write-back).
@@ -197,6 +221,288 @@
     }));
 
     return { projects, sealed };
+  }
+
+  // ── 「프로젝트 개요」 데이터 모델 + 렌더 (KL-044) ──────────────────────
+  // App 트리 위 최상단. PM 뷰 = 도메인 진척 / 다음 할 것 / 7d commit / hold.
+  // 데이터 = fetchMemoTree() (raw 6 status) + get_questlog_hub (commits).
+  // commits 분류 = subject scope regex (`feat(wm):` / `chore(kl):`) + repo fallback.
+
+  interface DomainStat {
+    domain: string; label: string; icon: string;
+    fire: number; ready: number; seed: number; hold: number; done: number; sealed: number;
+    workingTotal: number;  // fire + ready + hold + done — seed/sealed 제외
+    progress: number;      // done / workingTotal · 0~1
+  }
+  interface TopNextItem {
+    id: string; title: string; domain: string; domainIcon: string;
+    status: string;  // 'active' | 'ready'
+  }
+  interface CommitDomainBucket {
+    domain: string; label: string; icon: string; count: number;
+    recent: { hash: string; date: string; subject: string; repo: string }[];  // top 3
+  }
+  interface HoldStat {
+    domain: string; label: string; icon: string; count: number;
+  }
+  interface ProjectOverview {
+    generatedAt: number;
+    domainStats: DomainStat[];
+    topNext: TopNextItem[];
+    commitsByDomain: CommitDomainBucket[];
+    holdByDomain: HoldStat[];
+    holdsTotal: number;
+    commitsLast7dTotal: number;
+  }
+
+  const SCOPE_TO_DOMAIN: Record<string, string> = {
+    wm: 'wm', witch: 'wm', witchmendokusai: 'wm', mendokusai: 'wm',
+    kl: 'karmolab', karmolab: 'karmolab',
+    yb: 'yawnbot', yawnbot: 'yawnbot', yawn: 'yawnbot',
+    life: 'life',
+    hobby: 'hobby',
+    learn: 'learning', learning: 'learning',
+  };
+  const REPO_DEFAULT_DOMAIN: Record<string, string> = {
+    'WitchMendokusai': 'wm',
+    'Mascari4615.github.io': 'meta',
+    'memo': 'meta',
+  };
+
+  function commitToDomain(repo: string, subject: string): string {
+    const scopeMatch = subject.match(/^[a-z]+\(([a-z\-]+)\)\s*[:!]/i);
+    if (scopeMatch) {
+      const mapped = SCOPE_TO_DOMAIN[scopeMatch[1].toLowerCase()];
+      if (mapped) return mapped;
+    }
+    return REPO_DEFAULT_DOMAIN[repo] ?? 'meta';
+  }
+
+  function buildProjectOverview(tree: MemoQuestTree, hubState: any | null): ProjectOverview {
+    const domainCounts = new Map<string, { fire: number; ready: number; seed: number; hold: number; done: number; sealed: number }>();
+    const ensure = (d: string) => {
+      if (!domainCounts.has(d)) domainCounts.set(d, { fire: 0, ready: 0, seed: 0, hold: 0, done: 0, sealed: 0 });
+      return domainCounts.get(d)!;
+    };
+    for (const t of tree.tasks) {
+      const domain = t.path[0] ?? 'unknown';
+      const c = ensure(domain);
+      // KL-045 — canonical 정규화 (memo 안 schema X 값 `in_progress` / `in_review` 등 흡수).
+      switch (canonicalStatus(t.status)) {
+        case 'active': c.fire++; break;
+        case 'ready': c.ready++; break;
+        case 'seed': c.seed++; break;
+        case 'hold': c.hold++; break;
+        case 'done': c.done++; break;
+        case 'sealed': c.sealed++; break;
+      }
+    }
+    const orderedDomains = [
+      ...DOMAIN_ORDER.filter((d) => domainCounts.has(d)),
+      ...Array.from(domainCounts.keys()).filter((d) => !DOMAIN_ORDER.includes(d)),
+    ];
+    const domainStats: DomainStat[] = orderedDomains.map((domain) => {
+      const c = domainCounts.get(domain)!;
+      const workingTotal = c.fire + c.ready + c.hold + c.done;
+      const progress = workingTotal > 0 ? c.done / workingTotal : 0;
+      return {
+        domain,
+        label: DOMAIN_LABEL[domain] ?? domain,
+        icon: DOMAIN_ICON[domain] ?? '📦',
+        fire: c.fire, ready: c.ready, seed: c.seed, hold: c.hold, done: c.done, sealed: c.sealed,
+        workingTotal,
+        progress,
+      };
+    });
+
+    const topNext: TopNextItem[] = tree.tasks
+      .filter((t) => {
+        // KL-045 — canonical 정규화 후 비교. priority `medium` / `critical` 도 흡수.
+        const cs = canonicalStatus(t.status);
+        const cp = canonicalPriority(t.priority);
+        return cp === 'high' && (cs === 'active' || cs === 'ready');
+      })
+      .sort((a, b) => {
+        const sa = canonicalStatus(a.status);
+        const sb = canonicalStatus(b.status);
+        if (sa !== sb) return sa === 'active' ? -1 : 1;
+        return a.id.localeCompare(b.id);
+      })
+      .slice(0, 5)
+      .map((t) => ({
+        id: t.id,
+        title: t.title,
+        domain: t.path[0] ?? 'unknown',
+        domainIcon: DOMAIN_ICON[t.path[0] ?? ''] ?? '📦',
+        status: canonicalStatus(t.status),  // KL-045 — render data-status="active|ready" CSS 매치
+      }));
+
+    const sevenDayMs = 7 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - sevenDayMs;
+    const commitDomainMap = new Map<string, { count: number; recent: { hash: string; date: string; subject: string; repo: string }[] }>();
+    let commitsLast7dTotal = 0;
+    if (hubState && hubState.commits) {
+      for (const repo of Object.keys(hubState.commits)) {
+        const list = hubState.commits[repo] ?? [];
+        for (const c of list) {
+          const t = Date.parse(c.date);
+          if (Number.isNaN(t) || t < cutoff) continue;
+          const dom = commitToDomain(repo, c.subject);
+          if (!commitDomainMap.has(dom)) commitDomainMap.set(dom, { count: 0, recent: [] });
+          const bucket = commitDomainMap.get(dom)!;
+          bucket.count++;
+          if (bucket.recent.length < 3) {
+            bucket.recent.push({ hash: c.hash, date: c.date, subject: c.subject, repo });
+          }
+          commitsLast7dTotal++;
+        }
+      }
+    }
+    const commitDomainOrder = [...DOMAIN_ORDER, 'meta'];
+    const commitsByDomain: CommitDomainBucket[] = [
+      ...commitDomainOrder.filter((d) => commitDomainMap.has(d)),
+      ...Array.from(commitDomainMap.keys()).filter((d) => !commitDomainOrder.includes(d)),
+    ].map((domain) => ({
+      domain,
+      label: domain === 'meta' ? '메타' : (DOMAIN_LABEL[domain] ?? domain),
+      icon: domain === 'meta' ? '🗂️' : (DOMAIN_ICON[domain] ?? '📦'),
+      count: commitDomainMap.get(domain)!.count,
+      recent: commitDomainMap.get(domain)!.recent,
+    }));
+
+    const holdByDomain: HoldStat[] = orderedDomains.map((domain) => ({
+      domain,
+      label: DOMAIN_LABEL[domain] ?? domain,
+      icon: DOMAIN_ICON[domain] ?? '📦',
+      count: domainCounts.get(domain)!.hold,
+    }));
+    const holdsTotal = holdByDomain.reduce((sum, h) => sum + h.count, 0);
+
+    return {
+      generatedAt: Date.now(),
+      domainStats,
+      topNext,
+      commitsByDomain,
+      holdByDomain,
+      holdsTotal,
+      commitsLast7dTotal,
+    };
+  }
+
+  async function fetchHubState(): Promise<any | null> {
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (typeof invoke !== 'function') return null;
+    try {
+      return await invoke('get_questlog_hub');
+    } catch (e) {
+      // hub 없어도 overview 의 도메인 진척 / top-5 / hold 는 작동. commit 만 빈 상태.
+      return null;
+    }
+  }
+
+  function escOverview(s: any): string {
+    return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]!);
+  }
+
+  function renderOverview(overviewWrap: HTMLElement, ov: ProjectOverview): void {
+    if (!isKarmolabDesktop()) {
+      overviewWrap.innerHTML = '';
+      return;
+    }
+    const dt = new Date(ov.generatedAt).toLocaleTimeString('ko-KR');
+    const domainsHtml = ov.domainStats.map((d) => `
+      <div class="overview-domain">
+        <div class="overview-domain-head">
+          <div class="overview-domain-name"><span class="overview-domain-icon">${escOverview(d.icon)}</span>${escOverview(d.label)}</div>
+          <div class="overview-domain-pct">${Math.round(d.progress * 100)}%</div>
+        </div>
+        <div class="overview-domain-bar"><div class="fill" style="width:${(d.progress * 100).toFixed(1)}%"></div></div>
+        <div class="overview-domain-counts">
+          <span class="fire"><span class="k">FIRE</span><span class="v ${d.fire === 0 ? 'zero' : ''}">${d.fire}</span></span>
+          <span><span class="k">SEED</span><span class="v ${d.seed + d.ready === 0 ? 'zero' : ''}">${d.seed + d.ready}</span></span>
+          <span><span class="k">HOLD</span><span class="v ${d.hold === 0 ? 'zero' : ''}">${d.hold}</span></span>
+          <span><span class="k">DONE</span><span class="v ${d.done === 0 ? 'zero' : ''}">${d.done}</span></span>
+        </div>
+      </div>
+    `).join('');
+
+    const topNextHtml = ov.topNext.length === 0
+      ? `<li class="overview-next-empty"><div class="overview-loading">— priority=high · status=ready/active 인 TASK 없음 —</div></li>`
+      : ov.topNext.map((t) => `
+        <li class="overview-next-item" data-status="${escOverview(t.status)}">
+          <div class="icon">${escOverview(t.domainIcon)}</div>
+          <div class="id">${escOverview(t.id)}</div>
+          <div class="title">${escOverview(t.title)}</div>
+        </li>
+      `).join('');
+
+    const commitsHtml = ov.commitsByDomain.length === 0
+      ? `<div class="overview-loading">— 7일 내 commit 없음 (또는 hub 데이터 미로드) —</div>`
+      : `<div class="overview-commits-grid">${ov.commitsByDomain.map((b) => `
+        <div class="overview-commit-bucket">
+          <div class="overview-commit-bucket-head">
+            <div class="overview-commit-bucket-name">${escOverview(b.icon)} ${escOverview(b.label)}</div>
+            <div class="overview-commit-bucket-count">${b.count}</div>
+          </div>
+          ${b.recent.length === 0 ? `<div class="empty">(0)</div>` : `<ul class="overview-commit-bucket-list">${b.recent.map((c) => `
+            <li><span class="hash">${escOverview(c.hash)}</span>${escOverview(c.subject)}</li>
+          `).join('')}</ul>`}
+        </div>
+      `).join('')}</div>`;
+
+    const holdHtml = `<div class="overview-hold-row">${ov.holdByDomain.map((h) => `
+      <span class="overview-hold ${h.count > 0 ? 'has-hold' : ''}"><span class="icon">${escOverview(h.icon)}</span><span class="k">${escOverview(h.label)}</span><span class="v">${h.count}</span></span>
+    `).join('')}</div>`;
+
+    overviewWrap.innerHTML = `
+      <section class="overview">
+        <div class="overview-head">
+          <h1>PROJECT OVERVIEW <em>— at a glance</em></h1>
+          <div class="meta">생성 ${escOverview(dt)} · 폴링 10s · 7d commits ${ov.commitsLast7dTotal} · hold ${ov.holdsTotal}</div>
+        </div>
+        <div class="overview-section">
+          <h2>도메인 진척 <small>${ov.domainStats.length}개 · DONE / 작업집합(FIRE+READY+HOLD+DONE)</small></h2>
+          <div class="overview-domains">${domainsHtml}</div>
+        </div>
+        <div class="overview-section">
+          <h2>다음 할 것 <small>priority=high · ready/active</small></h2>
+          <ul class="overview-next-list">${topNextHtml}</ul>
+        </div>
+        <div class="overview-section">
+          <h2>최근 7일 활동 <small>commit ${ov.commitsLast7dTotal}건 · 도메인 묶음</small></h2>
+          ${commitsHtml}
+        </div>
+        <div class="overview-section">
+          <h2>막힌 것 <small>status=hold · 합산 ${ov.holdsTotal}</small></h2>
+          ${holdHtml}
+        </div>
+      </section>
+    `;
+  }
+
+  const POLL_INTERVAL_OVERVIEW_MS = 10_000;
+  let overviewPollTimer: number | null = null;
+  async function refreshOverview(overviewWrap: HTMLElement): Promise<void> {
+    const [tree, hubState] = await Promise.all([fetchMemoTree(), fetchHubState()]);
+    if (!tree) {
+      // 트리 못 받으면 placeholder 비움. (App 영역이 자체 에러 메시지 보여줌.)
+      overviewWrap.innerHTML = `<div class="overview-loading">메모 트리 로딩 실패 — 다음 폴링 대기</div>`;
+      return;
+    }
+    const overview = buildProjectOverview(tree, hubState);
+    renderOverview(overviewWrap, overview);
+  }
+  function startOverviewPolling(overviewWrap: HTMLElement): void {
+    if (!isKarmolabDesktop()) return;
+    void refreshOverview(overviewWrap);
+    if (overviewPollTimer != null) window.clearInterval(overviewPollTimer);
+    overviewPollTimer = window.setInterval(() => {
+      if (!overviewWrap.isConnected) {
+        if (overviewPollTimer != null) { window.clearInterval(overviewPollTimer); overviewPollTimer = null; }
+        return;
+      }
+      void refreshOverview(overviewWrap);
+    }, POLL_INTERVAL_OVERVIEW_MS);
   }
 
   // ── STYLES (injected once) ──────────────────────────────────────────────
@@ -734,164 +1040,217 @@
   .kl-quest-log header.hd { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 
-/* ═══ HUB (KL-035) — 페이지 끝 6 섹션. magazine 톤 흡수, paper/featured/obs vocabulary 활용 ═══ */
-.kl-quest-log .hub {
-  margin: 32px 0 48px;
-  padding: 0 28px;
-  border-top: 1px solid var(--line-2);
-}
-.kl-quest-log .hub-meta {
-  margin: 22px 0 26px;
-  padding: 8px 0;
-  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
-  letter-spacing: 0.18em; color: var(--ink-3); text-transform: uppercase;
-}
-.kl-quest-log .hub-meta code {
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--accent); background: transparent; padding: 0;
-  letter-spacing: 0.1em; text-transform: none;
-}
-.kl-quest-log .hub-section { margin-bottom: 32px; }
-.kl-quest-log .hub-section h2 {
-  margin: 0 0 14px; padding-bottom: 6px;
+/* ═══ OVERVIEW (KL-044) — 페이지 최상단. PM 뷰. App 트리 위 ═══ */
+.kl-quest-log .overview {
+  padding: 24px 28px 22px;
   border-bottom: 1px solid var(--line-2);
+}
+.kl-quest-log .overview-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px dashed var(--line-2);
+}
+.kl-quest-log .overview-head h1 {
   font-family: 'Noto Serif KR', serif; font-weight: 900;
-  font-size: 22px; line-height: 1.2; letter-spacing: -0.01em;
+  font-size: clamp(22px, 2.6vw, 28px); line-height: 1; letter-spacing: -0.02em;
   color: var(--ink);
 }
-.kl-quest-log .hub-section h3 {
-  margin: 0 0 8px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
-  font-weight: 500;
-}
-.kl-quest-log .hub-empty {
-  font-family: 'Noto Serif KR', serif; font-style: italic;
-  font-size: 14px; color: var(--ink-3);
-}
-.kl-quest-log .hub code {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  background: rgba(255,255,255,0.03); padding: 1px 5px;
-  border: 1px solid var(--line); color: var(--ink);
+.kl-quest-log .overview-head h1 em { font-style: italic; font-weight: 500; color: var(--ink-2); }
+.kl-quest-log .overview-head .meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
 }
 
-/* hub-cards — .featured 의 절단 코너 패턴 흡수 */
-.kl-quest-log .hub-cards {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 14px;
+.kl-quest-log .overview-section { margin-bottom: 22px; }
+.kl-quest-log .overview-section:last-child { margin-bottom: 0; }
+.kl-quest-log .overview-section h2 {
+  margin: 0 0 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
 }
-.kl-quest-log .hub-card {
-  position: relative; padding: 14px 16px;
+.kl-quest-log .overview-section h2 small {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.16em; color: var(--ink-3); text-transform: uppercase;
+  margin-left: 8px; font-weight: 400;
+}
+
+/* domain stats grid */
+.kl-quest-log .overview-domains {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px;
+}
+.kl-quest-log .overview-domain {
+  position: relative; padding: 12px 14px;
   background: var(--paper); border: 1px solid var(--line-2);
 }
-.kl-quest-log .hub-card::before {
-  content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
+.kl-quest-log .overview-domain::before {
+  content: ''; position: absolute; top: -1px; left: -1px; width: 8px; height: 8px;
   border-top: 1px solid var(--accent); border-left: 1px solid var(--accent);
 }
-.kl-quest-log .hub-card::after {
-  content: ''; position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px;
-  border-bottom: 1px solid var(--line-3); border-right: 1px solid var(--line-3);
+.kl-quest-log .overview-domain-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  margin-bottom: 6px;
 }
-.kl-quest-log .hub-card-head {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
-  margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--line-2);
+.kl-quest-log .overview-domain-name {
+  font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 15px;
+  color: var(--ink); letter-spacing: -0.01em;
 }
-.kl-quest-log .hub-card-start {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  letter-spacing: 0.16em; color: var(--ink-3); text-transform: uppercase;
-  white-space: nowrap;
+.kl-quest-log .overview-domain-icon { margin-right: 4px; font-size: 14px; }
+.kl-quest-log .overview-domain-pct {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.04em;
 }
-.kl-quest-log .hub-card-topic {
-  font-family: 'Noto Serif KR', serif; font-size: 14.5px; line-height: 1.5; color: var(--ink);
+.kl-quest-log .overview-domain-bar {
+  height: 2px; background: var(--line); margin: 6px 0 8px;
+  position: relative; overflow: hidden;
 }
-.kl-quest-log .hub-card-targets {
-  margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line-2);
+.kl-quest-log .overview-domain-bar .fill {
+  position: absolute; inset: 0 auto 0 0; background: var(--accent);
+  transition: width 400ms ease;
+}
+.kl-quest-log .overview-domain-counts {
+  display: flex; gap: 12px; flex-wrap: wrap;
   font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  line-height: 1.55; color: var(--ink-2); word-break: break-all;
+  letter-spacing: 0.16em; text-transform: uppercase;
 }
+.kl-quest-log .overview-domain-counts .k { color: var(--ink-3); }
+.kl-quest-log .overview-domain-counts .v { color: var(--ink); font-weight: 500; margin-left: 3px; }
+.kl-quest-log .overview-domain-counts .v.zero { color: var(--ink-3); font-weight: 400; }
+.kl-quest-log .overview-domain-counts .fire .v:not(.zero) { color: var(--accent); }
 
-/* hub-pill — .lane-pill 톤 흡수 */
-.kl-quest-log .hub-pill {
-  display: inline-block; padding: 2px 8px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  border: 1px solid var(--line-3); white-space: nowrap;
-}
-.kl-quest-log .hub-pill--done { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.kl-quest-log .hub-pill--active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.kl-quest-log .hub-pill--warn { background: transparent; color: var(--accent); border-color: var(--accent); border-style: dashed; }
-.kl-quest-log .hub-pill--other { background: transparent; color: var(--ink-3); border-style: dashed; }
-
-/* hub-3col — commit 3 레포 */
-.kl-quest-log .hub-3col {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px;
-}
-
-/* hub-list — commit list, mono 톤 */
-.kl-quest-log .hub-list {
+/* top-next list */
+.kl-quest-log .overview-next-list {
   list-style: none; padding: 0; margin: 0;
 }
-.kl-quest-log .hub-list li {
-  display: grid; grid-template-columns: 64px 80px 1fr; gap: 8px; align-items: baseline;
-  padding: 4px 0; border-bottom: 1px dashed var(--line-2);
-  font-size: 11.5px; line-height: 1.5;
+.kl-quest-log .overview-next-item {
+  display: grid; grid-template-columns: 24px 130px 1fr; gap: 10px; align-items: baseline;
+  padding: 8px 0; border-bottom: 1px dashed var(--line-2);
 }
-.kl-quest-log .hub-list li:last-child { border-bottom: none; }
-.kl-quest-log .hub-hash {
-  font-family: 'JetBrains Mono', monospace; color: var(--accent); letter-spacing: 0.04em;
+.kl-quest-log .overview-next-item:last-child { border-bottom: none; }
+.kl-quest-log .overview-next-item .icon { font-size: 14px; text-align: center; }
+.kl-quest-log .overview-next-item .id {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.08em; color: var(--accent);
 }
-.kl-quest-log .hub-date {
-  font-family: 'JetBrains Mono', monospace; color: var(--ink-3); font-size: 11px;
+.kl-quest-log .overview-next-item .title {
+  font-family: 'Noto Serif KR', serif; font-size: 14.5px; color: var(--ink); line-height: 1.4;
 }
-
-/* hub-tool-list — bullet 톤 일관 */
-.kl-quest-log .hub-tool-list {
-  margin: 0; padding-left: 18px;
-  font-family: 'Noto Sans KR', sans-serif; font-size: 12px; line-height: 1.7;
+.kl-quest-log .overview-next-item[data-status="active"] .title::before {
+  content: '✦'; color: var(--accent); margin-right: 6px;
 }
-.kl-quest-log .hub-tool-list li { color: var(--ink-2); margin: 1px 0; }
-.kl-quest-log .hub-tool-list strong { color: var(--ink); font-weight: 500; }
-
-/* hub-table — dashed 톤, serif header 활용 */
-.kl-quest-log .hub-table {
-  width: 100%; border-collapse: collapse;
-  font-size: 12px; line-height: 1.5;
-}
-.kl-quest-log .hub-table th {
-  text-align: left; padding: 8px 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 500;
-  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
-  border-bottom: 1px solid var(--line-2);
-}
-.kl-quest-log .hub-table td {
-  padding: 8px 10px; vertical-align: top;
-  border-bottom: 1px dashed var(--line-2); color: var(--ink-2);
-}
-.kl-quest-log .hub-table td.hub-cat {
-  font-family: 'Noto Serif KR', serif; font-weight: 500;
-  color: var(--accent); white-space: nowrap;
+.kl-quest-log .overview-next-item[data-status="ready"] .title::before {
+  content: '◇'; color: var(--ink-2); margin-right: 6px;
 }
 
-/* hub-graph — mermaid 컨테이너, paper 배경 */
-.kl-quest-log .hub-graph {
-  background: var(--paper); border: 1px solid var(--line-2);
-  padding: 14px 16px; min-height: 100px; overflow-x: auto;
-  position: relative;
+/* commits by domain */
+.kl-quest-log .overview-commits-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;
 }
-.kl-quest-log .hub-graph::before {
-  content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px;
-  border-top: 1px solid var(--accent); border-left: 1px solid var(--accent);
+.kl-quest-log .overview-commit-bucket {
+  background: var(--paper); border: 1px solid var(--line-2); padding: 10px 12px;
 }
-.kl-quest-log .hub-graph svg { max-width: 100%; height: auto; }
-.kl-quest-log .hub-graph pre {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3);
-  white-space: pre-wrap; overflow: auto;
+.kl-quest-log .overview-commit-bucket-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed var(--line-2);
 }
-
-/* hub-disabled — Tauri 가 아닐 때 placeholder */
-.kl-quest-log .hub-disabled {
-  padding: 32px; text-align: center;
+.kl-quest-log .overview-commit-bucket-name {
+  font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 13.5px; color: var(--ink);
+}
+.kl-quest-log .overview-commit-bucket-count {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.04em;
+}
+.kl-quest-log .overview-commit-bucket-list {
+  list-style: none; padding: 0; margin: 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.6;
+}
+.kl-quest-log .overview-commit-bucket-list li {
+  color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kl-quest-log .overview-commit-bucket-list li .hash { color: var(--accent); margin-right: 6px; }
+.kl-quest-log .overview-commit-bucket .empty {
   font-family: 'Noto Serif KR', serif; font-style: italic;
-  font-size: 14px; color: var(--ink-3);
+  font-size: 11.5px; color: var(--ink-3);
+}
+
+/* hold by domain */
+.kl-quest-log .overview-hold-row {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.kl-quest-log .overview-hold {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  color: var(--ink-3);
+}
+.kl-quest-log .overview-hold.has-hold { color: var(--ink-2); }
+.kl-quest-log .overview-hold.has-hold .v { color: var(--accent); font-weight: 700; }
+.kl-quest-log .overview-hold .icon { font-size: 13px; }
+
+/* loading state */
+.kl-quest-log .overview-loading {
+  padding: 18px 16px; text-align: center;
+  font-family: 'Noto Serif KR', serif; font-style: italic;
+  font-size: 13px; color: var(--ink-3);
+}
+
+/* ═══ APP TREE CONTROLS (KL-045) — 상태 / 도메인 / 밀도 칩 ═══ */
+.kl-quest-log .ql-controls {
+  margin-bottom: 18px;
+  padding: 12px 0; border-top: 1px dashed var(--line-2); border-bottom: 1px dashed var(--line-2);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.kl-quest-log .ql-control-row {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+}
+.kl-quest-log .ql-control-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
+  width: 56px; flex-shrink: 0;
+}
+.kl-quest-log .ql-chip {
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  letter-spacing: 0.10em; color: var(--ink-3);
+  padding: 4px 10px; border: 1px dashed var(--line-3); background: transparent;
+  cursor: pointer; transition: all 140ms;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.kl-quest-log .ql-chip:hover { color: var(--ink-2); border-color: var(--ink-3); }
+.kl-quest-log .ql-chip.on {
+  color: var(--ink); border: 1px solid var(--accent); background: rgba(212, 168, 73, 0.10);
+}
+.kl-quest-log .ql-chip-num {
+  display: inline-block; background: var(--accent); color: var(--bg);
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700;
+  padding: 1px 5px; margin-right: 5px;
+  border-radius: 2px; letter-spacing: 0;
+}
+.kl-quest-log .ql-chip-hint {
+  font-family: 'Noto Sans KR', sans-serif; font-size: 10.5px;
+  color: var(--ink-3); margin-left: 6px; font-style: italic;
+}
+
+/* ═══ obs--compact (KL-045) — 1줄 밀도 ═══ */
+.kl-quest-log .obs--compact {
+  display: grid; grid-template-columns: 70px 110px 1fr; gap: 10px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px dashed var(--line-2);
+  cursor: pointer; transition: background 120ms;
+}
+.kl-quest-log .obs--compact:hover { background: var(--bg-2); }
+.kl-quest-log .obs--compact:last-child { border-bottom: none; }
+.kl-quest-log .obs--compact .mag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.18em;
+  color: var(--ink-3); text-transform: uppercase;
+  border: 1px solid var(--line-2); padding: 2px 6px; text-align: center; white-space: nowrap;
+  align-self: center;
+}
+.kl-quest-log .obs--compact[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .obs--compact[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+.kl-quest-log .obs--compact .id {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.06em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kl-quest-log .obs--compact .t {
+  font-family: 'Noto Serif KR', serif; font-size: 14px; color: var(--ink); line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 `;
 
@@ -944,24 +1303,27 @@
 
     // KL-035 — `.kl-quest-log` 한 컨테이너가 자체 스크롤 (CSS: flex:1; min-height:0; overflow-y:auto).
     // layout-full tab-panel 이 flex column 이므로 스크롤 wrapper 는 단일이어야 chain 안 깨짐.
-    // 안쪽 [data-kl-ql-app] = renderOnce 갱신 영역 / [data-kl-ql-hub] = 한 번만 render.
+    // KL-044 — [overview, app] 2 layer (KL-035 의 hub 6 섹션 통째로 폐기).
+    //   overview = PM 뷰 — 도메인 진척 / top-5 / 7d commits / hold (사람 인터페이스).
+    //   app = 도메인 TASK 트리 (renderOnce 갱신).
+    //   ※ hub (활성세션/commit/도구/룰/그래프) 는 Claude infra 데이터라 사용자에 X — 폐기.
     if (!container.querySelector('.kl-quest-log')) {
       container.innerHTML = '';
       const klRoot = document.createElement('div');
       klRoot.className = 'kl-quest-log';
       container.appendChild(klRoot);
 
+      const overviewWrap = document.createElement('div');
+      overviewWrap.setAttribute('data-kl-ql-overview', '1');
+      klRoot.appendChild(overviewWrap);
+
       const appWrap = document.createElement('div');
       appWrap.setAttribute('data-kl-ql-app', '1');
       klRoot.appendChild(appWrap);
-
-      const hubWrap = document.createElement('div');
-      hubWrap.setAttribute('data-kl-ql-hub', '1');
-      klRoot.appendChild(hubWrap);
     }
     const klRoot = container.querySelector('.kl-quest-log') as HTMLElement;
+    const overviewWrap = klRoot.querySelector('[data-kl-ql-overview]') as HTMLElement;
     const appWrap = klRoot.querySelector('[data-kl-ql-app]') as HTMLElement;
-    const hubWrap = klRoot.querySelector('[data-kl-ql-hub]') as HTMLElement;
 
     const renderOnce = (): void => {
       appWrap.innerHTML = `
@@ -971,6 +1333,8 @@
           </header>
 
           <div class="stats" data-kl-ql="stats"></div>
+
+          <div data-kl-ql="ql-controls"></div>
 
           <div data-kl-ql="featured-wrap"></div>
           <div class="sub-grid" data-kl-ql="sub-columns"></div>
@@ -994,7 +1358,8 @@
       void (async () => {
         const tree = await fetchMemoTree();
         if (!tree) {
-          root.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">데이터 로딩 실패. F12 콘솔에 get_quest_tree 에러 확인.</div>`;
+          // 에러 표시는 appWrap 만 wipe. overview 영역 유지 (자체 폴링).
+          appWrap.innerHTML = `<div style="padding:48px 24px; text-align:center; color:#c08080;">데이터 로딩 실패. F12 콘솔에 get_quest_tree 에러 확인.</div>`;
           return;
         }
         const src = transformMemoToOld(tree);
@@ -1004,21 +1369,18 @@
 
     renderOnce();
 
-    // KL-035 — Hub (활성 세션 / commit / 도구 / 룰 / 그래프) QuestLog 페이지 끝에 render.
-    // quest-log-hub.ts 가 lazyScriptPaths 통해 미리 로드됨 → window.KARMOLAB_QUESTLOG_HUB.renderHub.
-    const hubApi = (window as any).KARMOLAB_QUESTLOG_HUB;
-    if (hubApi && typeof hubApi.renderHub === 'function') {
-      try { hubApi.renderHub(hubWrap); } catch (err) { console.error('Hub renderHub 실패', err); }
-    }
+    // KL-044 — 「프로젝트 개요」 폴링 시작 (10s 자체 폴링).
+    startOverviewPolling(overviewWrap);
 
     // KL-024 — Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
-    // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침.
+    // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침. KL-044 — overview 도 즉시 갱신.
     const tauriEvent = (window as any).__TAURI__?.event;
     if (tauriEvent && typeof tauriEvent.listen === 'function') {
       void (async () => {
         try {
           const unlisten = await tauriEvent.listen('quest-tree-changed', () => {
             renderOnce();
+            void refreshOverview(overviewWrap);
           });
           (container as any).__kl_quest_unlisten = unlisten;
         } catch (err) {
@@ -1048,6 +1410,37 @@
       projects: stored?.projects ?? SRC.projects,
       sealed: stored?.sealed ?? SRC.sealed,
     };
+
+    // KL-045 — UI prefs (status 필터 / 도메인 토글 / 행 밀도 / 다중 키 정렬). 별도 키 (DATA 캐시와 분리).
+    const UI_PREFS_KEY = 'quest-log-ui-prefs-v1';
+    type SortKey = 'status' | 'id-asc' | 'id-desc' | 'priority';
+    interface UIPrefs { statusOff: string[]; domainOff: string[]; density: 'full' | 'compact'; sortKeys: SortKey[]; }
+    const SORT_VALUES: SortKey[] = ['status', 'id-asc', 'id-desc', 'priority'];
+    function loadPrefs(): UIPrefs {
+      try {
+        const raw = JSON.parse(localStorage.getItem(UI_PREFS_KEY) || 'null');
+        // 마이그레이션: 옛 단일 `sort: SortKey` → `sortKeys: [sort]`.
+        let sortKeys: SortKey[];
+        if (Array.isArray(raw?.sortKeys)) {
+          sortKeys = raw.sortKeys.filter((k: any) => SORT_VALUES.includes(k));
+        } else if (typeof raw?.sort === 'string' && SORT_VALUES.includes(raw.sort)) {
+          sortKeys = [raw.sort];
+        } else {
+          sortKeys = ['status'];  // default = 상태 우선 (PM 뷰 정합)
+        }
+        return {
+          statusOff: Array.isArray(raw?.statusOff) ? raw.statusOff : [],
+          domainOff: Array.isArray(raw?.domainOff) ? raw.domainOff : [],
+          density: raw?.density === 'compact' ? 'compact' : 'full',
+          sortKeys,
+        };
+      } catch (e) {
+        return { statusOff: [], domainOff: [], density: 'full', sortKeys: ['status'] };
+      }
+    }
+    function savePrefs(): void {
+      try { localStorage.setItem(UI_PREFS_KEY, JSON.stringify(state.prefs)); } catch (e) {}
+    }
 
     const HEROES = [
       '/apps/karmolab/img/widgets/quest-log/240126-072633.png',
@@ -1114,7 +1507,51 @@
     const state = {
       view: 'log' as 'log' | 'trophy',
       selectedId: null as string | null,
+      prefs: loadPrefs(),
     };
+
+    // KL-045 — 필터 헬퍼 (canonical status 기반 — 'active' / 'ready' / 'seed' / 'hold' / 'done' / 'sealed').
+    function isStatusOn(memoStatus: string): boolean {
+      return !state.prefs.statusOff.includes(canonicalStatus(memoStatus));
+    }
+    function isDomainOn(domainId: string): boolean {
+      return !state.prefs.domainOff.includes(domainId);
+    }
+    // KL-045 — 다중 키 정렬 헬퍼. state.prefs.sortKeys 순서대로 비교, tie 시 다음 키, 최종 tie = id asc.
+    const STATUS_RANK: Record<string, number> = { active: 0, ready: 1, seed: 2, hold: 3, done: 4, sealed: 5 };
+    const PRIORITY_RANK: Record<string, number> = { high: 0, normal: 1, low: 2 };
+    function compareByKey(a: any, b: any, key: SortKey): number {
+      switch (key) {
+        case 'status': {
+          const ra = STATUS_RANK[canonicalStatus(a.memoStatus)] ?? 99;
+          const rb = STATUS_RANK[canonicalStatus(b.memoStatus)] ?? 99;
+          return ra - rb;
+        }
+        case 'priority': {
+          const ra = PRIORITY_RANK[canonicalPriority(a.memoPriority)] ?? 99;
+          const rb = PRIORITY_RANK[canonicalPriority(b.memoPriority)] ?? 99;
+          return ra - rb;
+        }
+        case 'id-asc':
+          return a.id.localeCompare(b.id);
+        case 'id-desc':
+          return b.id.localeCompare(a.id);
+      }
+      return 0;
+    }
+    function sortLeaves(leaves: any[]): any[] {
+      const sorted = [...leaves];
+      const keys = state.prefs.sortKeys;
+      if (keys.length === 0) return sorted;
+      sorted.sort((a, b) => {
+        for (const key of keys) {
+          const cmp = compareByKey(a, b, key);
+          if (cmp !== 0) return cmp;
+        }
+        return a.id.localeCompare(b.id);
+      });
+      return sorted;
+    }
 
     function esc(s: any): string { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!)); }
 
@@ -1157,6 +1594,101 @@
           renderColumns();
         });
       }
+    }
+
+    // KL-045 — 컨트롤 row (상태 칩 / 도메인 토글 / 행 밀도). state.prefs ↔ localStorage `quest-log-ui-prefs-v1`.
+    function renderControls() {
+      const el = byKey('ql-controls');
+      if (!el) return;
+      const STATUS_CHIPS = [
+        { id: 'active', label: '◉ FIRE' },
+        { id: 'ready',  label: '◐ READY' },
+        { id: 'seed',   label: '○ SEED' },
+        { id: 'hold',   label: '─ SLEEP' },
+      ];
+      const DOMAIN_CHIPS = DOMAIN_ORDER.map((d) => ({
+        id: d,
+        label: `${DOMAIN_ICON[d] ?? '📦'} ${DOMAIN_LABEL[d] ?? d}`,
+      }));
+      const isStatusOff = (s: string) => state.prefs.statusOff.includes(s);
+      const isDomainOff = (d: string) => state.prefs.domainOff.includes(d);
+      const dense = state.prefs.density;
+      el.innerHTML = `
+        <div class="ql-controls">
+          <div class="ql-control-row">
+            <span class="ql-control-label">상태</span>
+            ${STATUS_CHIPS.map((c) => `
+              <button class="ql-chip ${isStatusOff(c.id) ? '' : 'on'}" data-status-toggle="${c.id}" type="button">${esc(c.label)}</button>
+            `).join('')}
+          </div>
+          <div class="ql-control-row">
+            <span class="ql-control-label">도메인</span>
+            ${DOMAIN_CHIPS.map((c) => `
+              <button class="ql-chip ${isDomainOff(c.id) ? '' : 'on'}" data-domain-toggle="${c.id}" type="button">${esc(c.label)}</button>
+            `).join('')}
+          </div>
+          <div class="ql-control-row">
+            <span class="ql-control-label">정렬</span>
+            ${(() => {
+              const sortLabels: Record<SortKey, string> = {
+                'status': '상태 (FIRE→READY→SEED→SLEEP)',
+                'priority': 'priority (high→normal→low)',
+                'id-desc': 'ID 최신↓',
+                'id-asc': 'ID 오래된↑',
+              };
+              return SORT_VALUES.map((key) => {
+                const idx = state.prefs.sortKeys.indexOf(key);
+                const on = idx >= 0;
+                const num = on ? `<span class="ql-chip-num">${idx + 1}</span>` : '';
+                return `<button class="ql-chip ${on ? 'on' : ''}" data-sort="${key}" type="button">${num}${esc(sortLabels[key])}</button>`;
+              }).join('');
+            })()}
+            <span class="ql-chip-hint">클릭 = 추가 / 다시 = 제거 · 순서 = 우선순위</span>
+          </div>
+          <div class="ql-control-row">
+            <span class="ql-control-label">밀도</span>
+            <button class="ql-chip ${dense === 'full' ? 'on' : ''}" data-density="full" type="button">FULL</button>
+            <button class="ql-chip ${dense === 'compact' ? 'on' : ''}" data-density="compact" type="button">COMPACT</button>
+          </div>
+        </div>
+      `;
+      el.querySelectorAll<HTMLElement>('[data-sort]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const next = btn.dataset.sort as SortKey;
+          if (!SORT_VALUES.includes(next)) return;
+          const idx = state.prefs.sortKeys.indexOf(next);
+          if (idx >= 0) {
+            state.prefs.sortKeys.splice(idx, 1);  // toggle off
+          } else {
+            state.prefs.sortKeys.push(next);  // append (lowest priority)
+          }
+          savePrefs(); renderControls(); renderColumns();
+        });
+      });
+      el.querySelectorAll<HTMLElement>('[data-status-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.statusToggle!;
+          const idx = state.prefs.statusOff.indexOf(id);
+          if (idx >= 0) state.prefs.statusOff.splice(idx, 1); else state.prefs.statusOff.push(id);
+          savePrefs(); renderControls(); renderColumns();
+        });
+      });
+      el.querySelectorAll<HTMLElement>('[data-domain-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.domainToggle!;
+          const idx = state.prefs.domainOff.indexOf(id);
+          if (idx >= 0) state.prefs.domainOff.splice(idx, 1); else state.prefs.domainOff.push(id);
+          savePrefs(); renderControls(); renderColumns();
+        });
+      });
+      el.querySelectorAll<HTMLElement>('[data-density]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const next = btn.dataset.density === 'compact' ? 'compact' : 'full';
+          if (state.prefs.density === next) return;
+          state.prefs.density = next;
+          savePrefs(); renderControls(); renderColumns();
+        });
+      });
     }
 
     function skyHTML(idx: number, photo: boolean) {
@@ -1206,14 +1738,25 @@
     }
 
     function obsRow(leaf: any, projectId: string) {
+      const status = leaf.status || 'seed';
+      const selectedCls = state.selectedId === leaf.id ? 'selected' : '';
+      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목).
+      if (state.prefs.density === 'compact') {
+        return `
+          <div class="obs obs--compact ${selectedCls}" data-status="${status}" data-proj="${projectId}" data-id="${leaf.id}">
+            <div class="mag">${status.toUpperCase()}</div>
+            <div class="id">${esc(leaf.id)}</div>
+            <div class="t serif">${esc(leaf.title)}</div>
+          </div>
+        `;
+      }
       const area = findAreaOf(leaf.id);
       const progress = Math.round(progressOf(leaf) * 100);
-      const status = leaf.status || 'seed';
       const areaLabel = area && area.id !== leaf.id ? area.title : '';
       const checkN = leaf.checks.length;
       const checkDone = leaf.checks.filter((c: any) => c.done).length;
       return `
-        <div class="obs ${state.selectedId === leaf.id ? 'selected' : ''}" data-status="${status}" data-proj="${projectId}" data-id="${leaf.id}">
+        <div class="obs ${selectedCls}" data-status="${status}" data-proj="${projectId}" data-id="${leaf.id}">
           <div class="time">
             <b>${checkDone}/${checkN}</b>
             ${progress}%
@@ -1233,15 +1776,17 @@
       if (state.view === 'trophy') { renderTrophyView(); return; }
 
       const wm = DATA.projects.find((p: any) => p.id === 'wm');
-      const others = DATA.projects.filter((p: any) => p.id !== 'wm');
+      const others = DATA.projects.filter((p: any) => p.id !== 'wm' && isDomainOn(p.id));
 
       const fw = byKey('featured-wrap');
       if (!fw) return;
-      if (wm) {
-        const wmAll = allLeaves(wm);
-        const wmFire = wmAll.filter(l => l.status === 'fire').length;
+      if (wm && isDomainOn('wm')) {
+        // KL-045 — WM featured 의 TASK 일렬 = 상태 필터 + 정렬 적용. 통계 (FIRE/SEALED/COVERAGE) 는 전체 기준 (필터 무관).
+        const wmAllRaw = allLeaves(wm);
+        const wmAll = sortLeaves(wmAllRaw.filter((l) => isStatusOn(l.memoStatus)));
+        const wmFire = wmAllRaw.filter(l => l.status === 'fire').length;
         const wmSealedCount = DATA.sealed.filter((s: any) => s.project === wm.title).length;
-        const wmProg = wmAll.length ? Math.round(wmAll.reduce((s, l) => s + progressOf(l), 0) / wmAll.length * 100) : 0;
+        const wmProg = wmAllRaw.length ? Math.round(wmAllRaw.reduce((s, l) => s + progressOf(l), 0) / wmAllRaw.length * 100) : 0;
         const cst = CONST_BY_PROJECT.wm;
         const { rah, ram, decd, decm } = coords(0);
 
@@ -1270,8 +1815,8 @@
               </div>
             </div>
             <div class="f-right">
-              <div class="log-head"><span>TASK LOG</span><span><b>${wmAll.length}</b> TASKS</span></div>
-              ${wmAll.length ? wmAll.map(l => obsRow(l, 'wm')).join('') : '<div class="empty" style="grid-column: 1 / -1;">no tasks</div>'}
+              <div class="log-head"><span>TASK LOG</span><span><b>${wmAll.length}</b> TASKS${wmAll.length !== wmAllRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">(${wmAllRaw.length} 중 필터)</small>` : ''}</span></div>
+              ${wmAll.length ? wmAll.map(l => obsRow(l, 'wm')).join('') : '<div class="empty" style="grid-column: 1 / -1;">필터로 0</div>'}
             </div>
           </div>
         `;
@@ -1281,11 +1826,13 @@
 
       const subEl = byKey('sub-columns');
       if (!subEl) return;
+      // KL-045 — sub-grid: 도메인 토글 = `others` 가 이미 isDomainOn 필터됨 (위). 행은 상태 필터 + 정렬 적용.
       subEl.innerHTML = others.map((p: any, subIdx: number) => {
         const idx = subIdx + 1;
-        const all = allLeaves(p);
-        const totalP = all.length ? Math.round(all.reduce((s, l) => s + progressOf(l), 0) / all.length * 100) : 0;
-        const fireCount = all.filter(l => l.status === 'fire').length;
+        const allRaw = allLeaves(p);
+        const all = sortLeaves(allRaw.filter((l) => isStatusOn(l.memoStatus)));
+        const totalP = allRaw.length ? Math.round(allRaw.reduce((s, l) => s + progressOf(l), 0) / allRaw.length * 100) : 0;
+        const fireCount = allRaw.filter(l => l.status === 'fire').length;
         const cst = CONST_BY_PROJECT[p.id] || { name: p.title, sub: p.subtitle || '', mag: '—' };
 
         return `
@@ -1295,13 +1842,13 @@
               <div class="sub">${esc(cst.name)} · <span style="font-style:italic;text-transform:none;letter-spacing:0.05em;">${esc(cst.sub)}</span></div>
               <div class="bar-line"><div class="fill" style="width:${totalP}%"></div></div>
               <div class="bar-meta">
-                <b>${all.length} TASKS</b>
+                <b>${all.length} TASKS${all.length !== allRaw.length ? ` <small style="color:var(--ink-3);font-weight:400;">(${allRaw.length} 중)</small>` : ''}</b>
                 <span>${fireCount} FIRE · ${totalP}% COVERAGE · MAG ${cst.mag}</span>
               </div>
             </div>
             ${skyHTML(idx, true)}
             <div class="log">
-              ${all.length ? all.map(l => obsRow(l, p.id)).join('') : '<div class="empty">no tasks</div>'}
+              ${all.length ? all.map(l => obsRow(l, p.id)).join('') : '<div class="empty">필터로 0</div>'}
             </div>
           </div>
         `;
@@ -1749,6 +2296,7 @@
     window.addEventListener('keydown', onEsc);
 
     renderStats();
+    renderControls();
     renderColumns();
   }
 })();
