@@ -1,0 +1,172 @@
+name: Diagnose cloudflared (logfile + connector 등록 확인)
+
+# TASK-YB-006 sub-D3 — sub-D2 의 4 step 진단 후 외부 502 지속.
+# 봇 = OK (localhost:4615 → 404/500 응답), cloudflared service Running,
+# Public Hostname 박힘. 단 cloudflared 가 dashboard 에 connector 등록 못함
+# (Application log 에 "Registered tunnel connection" 메시지 X — service mode
+# stdout/stderr capture 안 됨).
+#
+# 근거: cloudflared issue #1517 — `service install <TOKEN>` 가 ImagePath 에 추가
+# args 안 박음 → install 후 sc config 또는 Registry 로 ImagePath 갱신해야
+# `--loglevel debug --logfile <PATH>` 박을 수 있음.
+#
+# 흐름:
+#   1. 현 ImagePath 에서 token 부분 추출 (cert.pem 폐기됐으므로 다시 추출 X)
+#   2. 새 ImagePath = `cloudflared.exe tunnel --loglevel debug --logfile <PATH>
+#      run --token <TOKEN>` 으로 sc config 갱신
+#   3. service stop + start
+#   4. ~10s 대기 + logfile tail 100
+#
+# logfile = C:\Windows\Temp\cloudflared.log (LocalSystem 전용 ACL).
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 5
+
+    env:
+      CF_LOG: 'C:\Windows\Temp\cloudflared.log'
+
+    steps:
+      - name: 현 ImagePath 추출 + 새 binPath 조립 + sc config
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          # 현 ImagePath 추출 — sc qc cloudflared
+          $qcOut = "$env:TEMP\sc-qc-cf.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'qc','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $qcOut
+          if (-not (Test-Path $qcOut)) { throw "sc qc cloudflared 실패" }
+          $qc = Get-Content $qcOut -Raw
+          Write-Host "Current sc qc:"
+          Write-Host $qc
+
+          # BINARY_PATH_NAME 줄 파싱
+          if ($qc -notmatch 'BINARY_PATH_NAME\s*:\s*(.+)') {
+            throw "BINARY_PATH_NAME 파싱 실패"
+          }
+          $currentBinPath = $matches[1].Trim()
+          Write-Host ""
+          Write-Host "현 ImagePath: $currentBinPath"
+
+          # token 추출 — `--token <TOKEN>` 부분
+          if ($currentBinPath -notmatch '--token\s+([A-Za-z0-9+/=]+)') {
+            throw "ImagePath 에서 --token 추출 실패. token install 안 된 ImagePath?"
+          }
+          $token = $matches[1]
+          Write-Host "::add-mask::$token"
+          Write-Host "Token 추출 (length: $($token.Length))"
+
+          # cloudflared.exe path 추출 (현 ImagePath 의 첫 부분, quoted)
+          if ($currentBinPath -notmatch '^"([^"]+)"\s+') {
+            throw "cloudflared.exe path 추출 실패"
+          }
+          $cfExe = $matches[1]
+          Write-Host "cloudflared.exe: $cfExe"
+
+          # 새 binPath = `"<cfExe>" tunnel --loglevel debug --logfile <CF_LOG> run --token <TOKEN>`
+          $newBinPath = "`"$cfExe`" tunnel --loglevel debug --logfile $env:CF_LOG run --token $token"
+          Write-Host ""
+          Write-Host "새 binPath (token masked):"
+          Write-Host ("`"$cfExe`" tunnel --loglevel debug --logfile $env:CF_LOG run --token ***")
+
+          # sc config 의 binPath= 는 `=` 뒤에 공백 1개 필수 (Windows sc syntax 트랩)
+          # 또 binPath value 안 quote 가 escape 필요 — Start-Process 의 ArgumentList 가 자동
+          $scOut = "$env:TEMP\sc-config-cf.txt"
+          $scErr = "$env:TEMP\sc-config-cf.err"
+          $p = Start-Process -FilePath 'sc.exe' `
+            -ArgumentList 'config','cloudflared',"binPath= $newBinPath" `
+            -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $scOut -RedirectStandardError $scErr
+          if ($p.ExitCode -ne 0) {
+            Write-Host "stdout:"
+            if (Test-Path $scOut) { Get-Content $scOut | ForEach-Object { Write-Host $_ } }
+            Write-Host "stderr:"
+            if (Test-Path $scErr) { Get-Content $scErr | ForEach-Object { Write-Host $_ } }
+            throw "sc config failed (exit $($p.ExitCode))"
+          }
+          if (Test-Path $scOut) { Get-Content $scOut | ForEach-Object { Write-Host $_ } }
+
+          Write-Host ""
+          Write-Host "=== 새 sc qc 검증 ==="
+          $qcOut2 = "$env:TEMP\sc-qc-cf-new.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'qc','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $qcOut2
+          if (Test-Path $qcOut2) { Get-Content $qcOut2 | ForEach-Object { Write-Host $_ } }
+
+      - name: service restart
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          # 옛 logfile 삭제 (clean state)
+          if (Test-Path $env:CF_LOG) {
+            Remove-Item $env:CF_LOG -Force -ErrorAction SilentlyContinue
+          }
+
+          Write-Host "=== sc.exe stop cloudflared ==="
+          $stopOut = "$env:TEMP\sc-stop-cf-d3.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'stop','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $stopOut
+          if (Test-Path $stopOut) { Get-Content $stopOut | ForEach-Object { Write-Host $_ } }
+          Start-Sleep -Seconds 5
+
+          Write-Host ""
+          Write-Host "=== sc.exe start cloudflared ==="
+          $startOut = "$env:TEMP\sc-start-cf-d3.txt"
+          $p = Start-Process -FilePath 'sc.exe' -ArgumentList 'start','cloudflared' -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput $startOut
+          if (Test-Path $startOut) { Get-Content $startOut | ForEach-Object { Write-Host $_ } }
+          Start-Sleep -Seconds 15
+
+          Write-Host ""
+          Write-Host "=== Service status ==="
+          Get-Service cloudflared | Format-List Name,Status
+
+      - name: logfile tail
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          if (-not (Test-Path $env:CF_LOG)) {
+            Write-Host "logfile 없음: $env:CF_LOG (cloudflared 시작 안 됐거나 logfile flag 미반영)"
+            return
+          }
+
+          $size = (Get-Item $env:CF_LOG).Length
+          Write-Host "=== $($env:CF_LOG) (size: $size bytes) ==="
+          Write-Host ""
+          # logfile 안 token 이 박혀있을 가능성 — add-mask 처리 못 함 (이전 step 의
+          # token 변수 외 새 token string 발견 시 노출). 단 cloudflared 가 token 을
+          # log 에 박지 않는 게 docs 표준. 만약 보이면 alert.
+          Get-Content $env:CF_LOG -Tail 200 | ForEach-Object {
+            if ($_ -match 'eyJ[A-Za-z0-9+/=]{50,}') {
+              Write-Host "[REDACTED — token 의심 라인]"
+            } else {
+              Write-Host $_
+            }
+          }
+
+      - name: 외부 도달 재검증
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          Write-Host "=== POST https://yawnbot.mascari4615.com/webhook/github (ping) ==="
+          try {
+            $resp = Invoke-WebRequest -Uri 'https://yawnbot.mascari4615.com/webhook/github' -Method POST `
+              -Headers @{'Content-Type'='application/json'; 'X-GitHub-Event'='ping'} `
+              -Body '{"zen":"diagnose-d3"}' `
+              -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
+            Write-Host "Status: $($resp.StatusCode)"
+            Write-Host "Body: $($resp.Content.Substring(0, [Math]::Min(500, $resp.Content.Length)))"
+          } catch {
+            Write-Host "Error: $($_.Exception.Message)"
+            if ($_.Exception.Response) {
+              Write-Host "Status: $($_.Exception.Response.StatusCode.value__)"
+            }
+          }
