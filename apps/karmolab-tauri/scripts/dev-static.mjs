@@ -3,7 +3,7 @@
  * Python이 PATH에 있으면 `http.server`를 쓰고, 없으면 Node 내장 http로 폴백.
  *
  * 포트 결정: `argv[2]` > `KARMOLAB_DEV_STATIC_PORT` env > 8899 (default).
- * `dev:dual` 은 prod KarmoLab 의 트레이 「개발 모드」 (8899) 와 충돌하지 않게 8898 사용.
+ * KL-046 — dev 는 `8898` (KarmoLab Dev identifier `.dev`) / production 트레이 「개발 모드」 가 8899 사용.
  */
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
@@ -17,8 +17,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const HOST = '127.0.0.1';
 const PORT = Number(process.argv[2]) || Number(process.env.KARMOLAB_DEV_STATIC_PORT) || 8899;
-// `--node-only` 플래그 또는 env: Python 스킵. dev:dual 처럼 *webview cache 회피 (no-store header)*
-// 가 필수일 때 사용. Python http.server 는 cache header 통제 불가라서.
+// `--node-only` 플래그 또는 env: Python 스킵. *webview cache 회피 (no-store header)* 가 필수일 때 사용.
+// Python http.server 는 cache header 통제 불가라서. dev script 가 항상 박음 (KL-046).
 const NODE_ONLY = process.argv.includes('--node-only') || process.env.KARMOLAB_DEV_NODE_ONLY === '1';
 
 const PYTHON_LAUNCHERS = [
