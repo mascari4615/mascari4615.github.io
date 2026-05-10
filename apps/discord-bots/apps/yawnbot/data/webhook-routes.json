@@ -6,6 +6,9 @@
 		"mascari4615/Witch-Mendokusai",
 		"mascari4615/memo"
 	],
-	"localRoutes": {},
-	"localDefault": []
+	"localRoutes": {
+		"wm-compile-error": ["1490334302003663058"],
+		"wm-compile-warning": ["1490334302003663058"]
+	},
+	"localDefault": ["1490334302003663058"]
 }
