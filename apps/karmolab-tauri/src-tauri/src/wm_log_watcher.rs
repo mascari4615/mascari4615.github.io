@@ -27,7 +27,10 @@ use std::time::{Duration, Instant};
 
 const POLL_INTERVAL: Duration = Duration::from_secs(5);
 const QUIET_BATCH_DURATION: Duration = Duration::from_secs(5);
-const YAWNBOT_LOCAL_URL_DEFAULT: &str = "http://127.0.0.1:4615/webhook/local";
+/// 사용자 named tunnel 도메인 — yawnbot 봇 안정 endpoint (`webhook-upsert.mjs` 의 GitHub
+/// 등록 URL 과 동일 origin). KarmoLab Tauri 가 어느 머신에 도는지 무관 도달.
+/// `YAWNBOT_LOCAL_WEBHOOK_URL` env 박혀있으면 override.
+const YAWNBOT_LOCAL_URL_DEFAULT: &str = "https://yawnbot.mascari4615.com/webhook/local";
 const SOURCE_LABEL: &str = "karmolab-tauri/wm_log_watcher";
 const MAX_LINES_IN_SUMMARY: usize = 8;
 
