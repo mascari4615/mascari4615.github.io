@@ -139,7 +139,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     noHero: true,
     icon: '<path d="M12 2l2.9 6.95 7.6.6-5.75 4.95L18.4 22 12 17.9 5.6 22l1.65-7.5L1.5 9.55l7.6-.6z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['quest-log/quest-log-hub', 'quest-log/quest-log']
+    lazyScriptPaths: ['quest-log/quest-log']
   },
   {
     id: 'task-launcher',
