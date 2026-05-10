@@ -714,21 +714,22 @@
   position: absolute; inset: 0 auto 0 0; background: var(--ink-2);
 }
 .kl-quest-log .obs[data-status="done"] .body .mini-bar .f { background: var(--ink); width: 100% !important; }
-.kl-quest-log .obs[data-status="in-progress"] .body .mini-bar .f { background: var(--accent); }
+.kl-quest-log .obs[data-status="fire"] .body .mini-bar .f { background: var(--accent); }
 .kl-quest-log .obs .mag {
   font-family: 'JetBrains Mono', monospace; font-size: 12px;
   letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);
   padding: 3px 7px; border: 1px solid var(--line-2);
   white-space: nowrap; align-self: start;
+  min-width: 64px; text-align: center; box-sizing: border-box;
 }
-.kl-quest-log .obs[data-status="in-progress"] .time b { color: var(--ink); }
-.kl-quest-log .obs[data-status="in-progress"] .body .t::before {
+.kl-quest-log .obs[data-status="fire"] .time b { color: var(--ink); }
+.kl-quest-log .obs[data-status="fire"] .body .t::before {
   content: '✦'; color: var(--accent); margin-right: 6px; font-size: 15px;
   display: inline-block;
 }
 .kl-quest-log .obs[data-status="done"] .body .t { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-3); text-decoration-thickness: 1px; }
 .kl-quest-log .obs[data-status="done"] .body .n { color: var(--ink-3); }
-.kl-quest-log .obs[data-status="in-progress"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .obs[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .kl-quest-log .obs[data-status="done"] .mag { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 .kl-quest-log .empty {
@@ -1230,9 +1231,10 @@
 
 /* ═══ obs--compact (KL-045) — 1줄 밀도 ═══ */
 .kl-quest-log .obs--compact {
-  display: grid; grid-template-columns: 70px 110px 1fr; gap: 10px; align-items: baseline;
+  display: grid; grid-template-columns: auto 110px 1fr; gap: 10px; align-items: baseline;
   padding: 6px 0; border-bottom: 1px dashed var(--line-2);
   cursor: pointer; transition: background 120ms;
+  /* KL-047 — first column auto 유지 (priority 결합 시 'FIRE — HIGH' 폭 가변). */
 }
 .kl-quest-log .obs--compact:hover { background: var(--bg-2); }
 .kl-quest-log .obs--compact:last-child { border-bottom: none; }
@@ -1241,6 +1243,7 @@
   color: var(--ink-3); text-transform: uppercase;
   border: 1px solid var(--line-2); padding: 2px 6px; text-align: center; white-space: nowrap;
   align-self: center;
+  min-width: 56px; box-sizing: border-box;
 }
 .kl-quest-log .obs--compact[data-status="fire"] .mag { color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .kl-quest-log .obs--compact[data-status="sealed"] .mag { color: var(--bg); background: var(--ink); border-color: var(--ink); }
@@ -1253,10 +1256,27 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* ═══ obs priority 좌측 띠 (KL-047) — full + compact 공통 ═══ */
-.kl-quest-log .obs[data-priority="high"]   { box-shadow: inset 3px 0 0 0 var(--accent); }
-.kl-quest-log .obs[data-priority="normal"] { box-shadow: inset 1px 0 0 0 var(--ink-3); }
-.kl-quest-log .obs[data-priority="low"]    { box-shadow: inset 1px 0 0 0 var(--line-3); }
+/* ═══ obs priority chip pill (KL-047) — status pill 옆 별도 chip. 각 row 동일 폭 (blank placeholder). ═══ */
+.kl-quest-log .mag-cluster {
+  display: inline-flex; align-items: center; gap: 5px; align-self: start; white-space: nowrap;
+}
+/* full row .pri = .mag 와 동일 spec (padding/font/letter-spacing/min-width) */
+.kl-quest-log .pri {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);
+  padding: 3px 7px; border: 1px solid var(--line-2);
+  min-width: 64px; text-align: center; white-space: nowrap;
+  box-sizing: border-box;
+}
+.kl-quest-log .pri--high { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.kl-quest-log .pri--low  { color: var(--ink-3); border-color: var(--line-3); border-style: dashed; }
+.kl-quest-log .pri--blank { visibility: hidden; }
+/* compact row .pri = compact .mag spec */
+.kl-quest-log .obs--compact .pri {
+  font-size: 10.5px; letter-spacing: 0.18em; padding: 2px 6px; min-width: 56px;
+}
+.kl-quest-log .obs--compact .mag-cluster { gap: 4px; }
 `;
 
   function injectStyles(): void {
@@ -1746,11 +1766,18 @@
       const status = leaf.status || 'seed';
       const priority = canonicalPriority(leaf.memoPriority || 'normal');
       const selectedCls = state.selectedId === leaf.id ? 'selected' : '';
-      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목). KL-047 — data-priority 좌측 띠.
+      // KL-047 — priority chip pill (status pill 옆). normal 도 placeholder 박음 = 각 row 동일 폭.
+      const priChip = priority === 'high'
+        ? '<span class="pri pri--high">HIGH</span>'
+        : priority === 'low'
+          ? '<span class="pri pri--low">LOW</span>'
+          : '<span class="pri pri--blank">HIGH</span>';
+      const magCluster = `<div class="mag-cluster"><div class="mag">${status.toUpperCase()}</div>${priChip}</div>`;
+      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목).
       if (state.prefs.density === 'compact') {
         return `
           <div class="obs obs--compact ${selectedCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
-            <div class="mag">${status.toUpperCase()}</div>
+            ${magCluster}
             <div class="id">${esc(leaf.id)}</div>
             <div class="t serif">${esc(leaf.title)}</div>
           </div>
@@ -1773,7 +1800,7 @@
             ${leaf.note ? `<div class="n">${esc(leaf.note)}</div>` : ''}
             ${status !== 'seed' ? `<div class="mini-bar"><div class="f" style="width:${progress}%"></div></div>` : ''}
           </div>
-          <div class="mag">${status.toUpperCase()}</div>
+          ${magCluster}
         </div>
       `;
     }
