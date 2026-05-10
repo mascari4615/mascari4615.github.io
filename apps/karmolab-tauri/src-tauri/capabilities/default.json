@@ -26,6 +26,7 @@
     "allow-activity",
     "allow-questlog-hub",
     "allow-life-screen",
+    "allow-life-features",
     "allow-quest-index",
     "allow-quest-writeback",
     "allow-task-launcher",

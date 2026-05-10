@@ -1,11 +1,12 @@
 //! TASK-LIFE-001-B-2 — Rust 음성 채널 (life-voice.py 폐기, KarmoLab Tauri 단일 process).
 //!
 //! 흐름:
-//! 1. hotkey Pressed (Ctrl+Alt+Space) → `record_start` (cpal stream open)
-//! 2. hotkey Released → `record_stop_and_process` (별 thread 진입)
-//! 3. samples → wav write (placeholder) → transcribe (whisper-rs) → classify (claude CLI, Voice kind)
-//! 4. wav rename + .md write (sub-B Python schema 정합)
-//! 5. `companion::react` 직접 호출 (in-process — sub-G watcher 폐기 정합)
+//! 1. Life 위젯에서 voice enable → recorder 초기화 + whisper model 백그라운드 load
+//! 2. hotkey Pressed (Ctrl+Alt+Space) → `record_start` (cpal stream open)
+//! 3. hotkey Released → `record_stop_and_process` (별 thread 진입)
+//! 4. samples → wav write (placeholder) → transcribe (candle whisper) → classify (claude CLI, Voice kind)
+//! 5. wav rename + .md write (sub-B Python schema 정합)
+//! 6. `companion::react` 직접 호출 (in-process — sub-G watcher 폐기 정합)
 //!
 //! 정본: TASK-LIFE-001-B-2-Rust-음성-마이그.md.
 
@@ -13,7 +14,7 @@ pub mod capture;
 pub mod schema;
 pub mod transcribe;
 
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex, OnceLock};
 
 use super::classify::{self, ClassifyKind};
 use super::companion;
@@ -23,46 +24,66 @@ use super::state::LifeScreenConfig;
 const MIN_DURATION_SAMPLES: usize = (capture::TARGET_SAMPLE_RATE as usize) * 3 / 10; // 0.3s
 const MODEL_NAME: &str = "ggml-large-v3";
 
-static RECORDER: OnceLock<capture::Recorder> = OnceLock::new();
+static RECORDER_CELL: OnceLock<Arc<Mutex<Option<capture::Recorder>>>> = OnceLock::new();
 
-fn recorder() -> Result<&'static capture::Recorder, String> {
-    if let Some(r) = RECORDER.get() {
-        return Ok(r);
+fn recorder_arc() -> &'static Arc<Mutex<Option<capture::Recorder>>> {
+    RECORDER_CELL.get_or_init(|| Arc::new(Mutex::new(None)))
+}
+
+/// Life 위젯 활성화 — recorder 초기화 + Whisper model 백그라운드 load (~3.1GB).
+/// 이미 활성이면 no-op.
+pub fn enable() -> Result<(), String> {
+    {
+        let arc = recorder_arc();
+        let mut g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
+        if g.is_none() {
+            *g = Some(capture::Recorder::new()?);
+        }
     }
-    let r = capture::Recorder::new()?;
-    let _ = RECORDER.set(r);
-    RECORDER
-        .get()
-        .ok_or_else(|| "Recorder OnceLock race".to_string())
+    transcribe::load()
 }
 
-/// startup 시 백그라운드 thread 에서 호출 — whisper 모델 (~3.1GB) 사전 다운 + load.
-/// 첫 음성 발화 시 사용자 부담 0 (모델 이미 cache + Decoder ready).
-pub fn warm_up() {
-    std::thread::Builder::new()
-        .name("life-voice-warmup".into())
-        .spawn(|| {
-            eprintln!("[life-voice] decoder warmup 시작 (백그라운드, 모델 ~3.1GB 다운 가능)");
-            // 1초 zero samples — model load + 1회 decode 동작 검증.
-            let dummy = vec![0f32; capture::TARGET_SAMPLE_RATE as usize];
-            match transcribe::transcribe(&dummy) {
-                Ok(_) => eprintln!("[life-voice] decoder warmup 완료 — 첫 음성 발화 즉시 처리 가능"),
-                Err(e) => eprintln!("[life-voice] decoder warmup 실패: {e}"),
-            }
-        })
-        .ok();
+/// Life 위젯 비활성화 — Whisper model 해제 (~3.1GB 반환) + recorder 종료.
+pub fn disable() {
+    transcribe::unload();
+    if let Ok(mut g) = recorder_arc().lock() {
+        *g = None;
+    }
 }
 
-/// hotkey Pressed 시 호출. 이미 record 중이면 no-op.
+pub fn is_enabled() -> bool {
+    transcribe::is_loaded() || transcribe::is_loading()
+}
+
+pub fn is_loading() -> bool {
+    transcribe::is_loading()
+}
+
+/// hotkey Pressed 시 호출. 이미 record 중이면 no-op. voice 비활성이면 에러.
 pub fn record_start() -> Result<(), String> {
-    recorder()?.start()
+    let arc = recorder_arc();
+    let g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
+    match g.as_ref() {
+        Some(r) => r.start(),
+        None => Err("voice 기능 비활성 — Life 위젯에서 먼저 활성화".to_string()),
+    }
 }
 
 /// hotkey Released 시 호출. 별 thread 에서 transcribe + classify + md write + companion::react.
 /// 음성 짧음 (<0.3s) 또는 stream 미동작 시 noop.
 pub fn record_stop_and_process(trigger: &str) -> Result<(), String> {
-    let rec = recorder()?;
-    let samples = match rec.stop() {
+    let samples = {
+        let arc = recorder_arc();
+        let g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
+        match g.as_ref() {
+            Some(r) => r.stop(),
+            None => {
+                eprintln!("[life-voice] voice 비활성 — stop 무시");
+                return Ok(());
+            }
+        }
+    };
+    let samples = match samples {
         Some(s) => s,
         None => {
             eprintln!("[life-voice] record stop — frame 0 (이미 종료 또는 stream 미시작)");
@@ -107,7 +128,6 @@ fn process_recording(samples: &[f32], trigger: &str) -> Result<(), String> {
     let result = match transcribe::transcribe(samples) {
         Ok(r) => r,
         Err(e) => {
-            // transcribe 실패 시 wav 는 보존 (placeholder 그대로) — 사용자 후속 fix 가능.
             eprintln!("[life-voice] transcribe 실패: {e} (wav 보존: {})", placeholder_wav.display());
             return Err(e);
         }

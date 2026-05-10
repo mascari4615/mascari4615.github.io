@@ -5,6 +5,8 @@
 //!
 //! `tauri-plugin-global-shortcut` 사용 — Tauri 2 공식. PrintScreen 가로챔 → OS clipboard capture 폐기.
 //! clipboard capture 필요 시 Win+Shift+S 대체.
+//!
+//! 핫키는 Life 위젯 활성화 시에만 등록. 비활성 시 unregister → OS 다른 앱과 충돌 없음.
 
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Wry};
@@ -13,12 +15,10 @@ use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut,
 use super::screen::capture_with_trigger;
 use super::voice;
 
-/// PrintScreen 키 (modifier 없음).
 fn print_screen_shortcut() -> Shortcut {
     Shortcut::new(Some(Modifiers::empty()), Code::PrintScreen)
 }
 
-/// Ctrl+Alt+Space — sub-B-2 hold-to-talk.
 fn voice_shortcut() -> Shortcut {
     Shortcut::new(
         Some(Modifiers::CONTROL | Modifiers::ALT),
@@ -33,7 +33,6 @@ pub fn build_plugin() -> TauriPlugin<Wry> {
     tauri_plugin_global_shortcut::Builder::new()
         .with_handler(move |_app: &AppHandle, shortcut: &Shortcut, event| {
             if shortcut == &print_screen {
-                // 1번 누름 = 1회 capture. Released 무시.
                 if event.state() != ShortcutState::Pressed {
                     return;
                 }
@@ -64,15 +63,26 @@ pub fn build_plugin() -> TauriPlugin<Wry> {
         .build()
 }
 
-/// app.setup 안에서 호출 — PrintScreen + Ctrl+Alt+Space 등록.
-pub fn register(app: &AppHandle) -> Result<(), String> {
-    let manager = app.global_shortcut();
-    manager
+pub fn register_screen(app: &AppHandle) -> Result<(), String> {
+    app.global_shortcut()
         .register(print_screen_shortcut())
-        .map_err(|e| format!("PrintScreen hotkey 등록 실패: {e}"))?;
-    manager
+        .map_err(|e| format!("PrintScreen hotkey 등록 실패: {e}"))
+}
+
+pub fn unregister_screen(app: &AppHandle) -> Result<(), String> {
+    app.global_shortcut()
+        .unregister(print_screen_shortcut())
+        .map_err(|e| format!("PrintScreen hotkey 해제 실패: {e}"))
+}
+
+pub fn register_voice(app: &AppHandle) -> Result<(), String> {
+    app.global_shortcut()
         .register(voice_shortcut())
-        .map_err(|e| format!("Ctrl+Alt+Space hotkey 등록 실패: {e}"))?;
-    eprintln!("[life-screen] PrintScreen + [life-voice] Ctrl+Alt+Space hotkey 등록 ✓");
-    Ok(())
+        .map_err(|e| format!("Ctrl+Alt+Space hotkey 등록 실패: {e}"))
+}
+
+pub fn unregister_voice(app: &AppHandle) -> Result<(), String> {
+    app.global_shortcut()
+        .unregister(voice_shortcut())
+        .map_err(|e| format!("Ctrl+Alt+Space hotkey 해제 실패: {e}"))
 }
