@@ -785,11 +785,15 @@ pub fn run() {
                 app.manage(activity_state);
             }
 
-            // sub-F-3: PrintScreen global hotkey 등록 (plugin 은 이미 박힘 — 위 chain).
-            // register 실패는 fail soft (앱 시작 자체는 막지 않음).
+            // sub-F-3: PrintScreen global hotkey + sub-B-2: Ctrl+Alt+Space hold-to-talk 등록.
+            // (plugin 은 이미 박힘 — 위 chain). register 실패는 fail soft.
             if let Err(e) = life::hotkey::register(&handle) {
                 eprintln!("[life-screen] hotkey register 실패: {e}");
             }
+
+            // sub-B-2: 백그라운드 whisper 모델 다운 + Decoder warmup (~3.1GB 첫 시도).
+            // 첫 음성 발화 시 사용자 대기 0.
+            life::voice::warm_up();
 
             let window_conf = app
                 .config()

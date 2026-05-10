@@ -85,7 +85,7 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
     let ocr_chars = ocr_text.chars().count();
 
     // 4) classify (claude CLI subprocess) — fail soft.
-    let classification = classify::classify(&ocr_text);
+    let classification = classify::classify(&ocr_text, classify::ClassifyKind::Screenshot);
     let raw_slug = if classification.slug.is_empty() {
         "untagged"
     } else {
@@ -147,15 +147,17 @@ pub fn capture_with_trigger(trigger: &str) -> Result<CaptureResult, String> {
         .map(|r| r.context.clone())
         .filter(|s| !s.is_empty());
     let companion_input = companion::ReactInput {
+        channel: "screenshot",
         trigger,
         timestamp: now,
-        png_path: &final_png,
+        binary_path: &final_png,
         domain: &classification.domain,
         tags: &classification.tags,
         summary: &classification.summary,
         app: app.as_deref(),
         vision_summary: vision_summary_owned.as_deref(),
         vision_context: vision_context_owned.as_deref(),
+        transcript: None,
     };
     let companion_result = match companion::react(&companion_input, &config) {
         Ok(r) => r,

@@ -30,8 +30,28 @@ chrono = { version = "0.4", features = ["serde"] }
 rusty-tesseract = "1"
 # serde_yaml 은 deprecated → 활성 fork serde_yml 사용 (memory feedback_no_legacy.md).
 serde_yml = "0.0.12"
-# sub-F-3: 의식적 trigger (PrintScreen) — interval 폐기 (의도 정정 2026-05-10).
+# sub-F-3: 의식적 trigger (PrintScreen) + sub-B-2 hold-to-talk (Ctrl+Alt+Space) — Pressed/Released 분기.
 tauri-plugin-global-shortcut = "2"
+
+# TASK-LIFE-001-B-2: Rust 음성 마이그 (life-voice.py 폐기). cublas64_12.dll 환경 의존 hang 근본 fix + 단일 process 직접 호출.
+# candle (HuggingFace, pure Rust) — whisper-rs 의 libclang.dll 의존 회피. 환경 변경 0 = Mac/Linux/새 Win 그대로.
+# 0.10.1 = latest stable (2026-04). 0.7.2 가 half 2.7 + rand 0.9 dep tree 와 호환 X 라 escalate (TASK-LIFE-001-B-2).
+candle-core = { version = "0.10", default-features = false }
+candle-nn = { version = "0.10", default-features = false }
+candle-transformers = { version = "0.10", default-features = false }
+# whisper-large-v3 tokenizer (config.json + tokenizer.json + model.safetensors 다운은 reqwest 직접
+# — hf-hub 0.3 sync Api 의 RelativeUrlWithoutBase 사고 우회 + dep 단순화).
+tokenizers = { version = "0.20", default-features = false, features = ["onig"] }
+# audio capture cross-platform (Windows WASAPI / macOS CoreAudio / Linux ALSA).
+cpal = "0.15"
+# 16kHz mono PCM_16 .wav write (sub-B schema 정합).
+hound = "3.5"
+# 일반 HTTP (HF Hub fallback 또는 다른 다운).
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+# whisper mel filterbank bytes → f32 변환 (candle whisper example 패턴).
+byteorder = "1"
+# token sampling (greedy / temperature). candle 0.10 dep tree 와 일치 (0.9).
+rand = "0.9"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi"] }

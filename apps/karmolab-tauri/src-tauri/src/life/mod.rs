@@ -19,5 +19,6 @@ pub mod schema;
 pub mod screen;
 pub mod state;
 pub mod vision;
+pub mod voice;
 
 pub use screen::life_screen_capture;
