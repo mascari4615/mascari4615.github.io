@@ -123,8 +123,11 @@ fn watcher_loop(path: PathBuf) {
                 if !current_errors.is_empty() || !current_warnings.is_empty() {
                     let fp = fingerprint(&current_errors, &current_warnings);
                     if Some(fp) != last_batch_fingerprint {
-                        send_batch(&yawnbot_url, secret.as_deref(), &current_errors, &current_warnings);
-                        last_batch_fingerprint = Some(fp);
+                        // POST 성공 시만 fingerprint 갱신 — 실패 (yawnbot down / URL mismatch /
+                        // network 단절) 박힘 후 다음 polling 에 같은 batch 다시 시도해야.
+                        if send_batch(&yawnbot_url, secret.as_deref(), &current_errors, &current_warnings) {
+                            last_batch_fingerprint = Some(fp);
+                        }
                     } else {
                         eprintln!(
                             "[wm-log-watcher] 같은 fingerprint — 알림 skip ({} error / {} warning)",
@@ -247,12 +250,14 @@ fn fingerprint(errors: &[CompileMessage], warnings: &[CompileMessage]) -> u64 {
     h.finish()
 }
 
+/// POST 성공 (`2xx`) 시 true, fail 시 false. 호출자가 fingerprint 갱신을
+/// success path 한정 박기 위해 bool 반환.
 fn send_batch(
     url: &str,
     secret: Option<&str>,
     errors: &[CompileMessage],
     warnings: &[CompileMessage],
-) {
+) -> bool {
     let level = if errors.is_empty() { "warning" } else { "error" };
     let kind = if errors.is_empty() {
         "wm-compile-warning"
@@ -321,7 +326,7 @@ fn send_batch(
         Ok(c) => c,
         Err(e) => {
             eprintln!("[wm-log-watcher] reqwest client build 실패: {e}");
-            return;
+            return false;
         }
     };
 
@@ -340,16 +345,19 @@ fn send_batch(
                     status,
                     truncate(&body, 200)
                 );
+                false
             } else {
                 eprintln!(
                     "[wm-log-watcher] yawnbot POST OK ({} error / {} warning)",
                     errors.len(),
                     warnings.len()
                 );
+                true
             }
         }
         Err(e) => {
             eprintln!("[wm-log-watcher] yawnbot POST 실패 (yawnbot 봇 down 가능): {e}");
+            false
         }
     }
 }
