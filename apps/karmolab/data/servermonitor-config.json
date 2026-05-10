@@ -7,12 +7,6 @@
             "url": "http://127.0.0.1:4615/webhook/github"
         },
         {
-            "id": "yawnbot-tunnel-prod",
-            "title": "YawnBot Tunnel (prod)",
-            "subtitle": "cloudflared named tunnel — yawnbot.mascari4615.com (TASK-YB-005)",
-            "url": "https://yawnbot.mascari4615.com/webhook/github"
-        },
-        {
             "id": "jekyll",
             "title": "Jekyll Blog",
             "subtitle": "블로그 로컬",
@@ -92,15 +86,6 @@
             "healthUrl": "http://127.0.0.1:4615/webhook/github",
             "npmInstall": true,
             "deployArgs": ["run", "deploy:yawnbot"]
-        },
-        {
-            "id": "yawnbot-tunnel-prod",
-            "label": "YawnBot Tunnel (prod)",
-            "cwd": "apps/discord-bots",
-            "program": "npm",
-            "args": ["run", "tunnel:prod"],
-            "healthUrl": "https://yawnbot.mascari4615.com/webhook/github",
-            "npmInstall": false
         },
         {
             "id": "karmolab-py",
