@@ -43,6 +43,17 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           .map((c: any) => `- [\`${c.id.slice(0, 7)}\`](${c.url}) ${c.message}`)
           .join('\n');
         embed.setDescription(desc);
+
+        // TASK-WM-093 Phase F — claude-audit auto-fix push 시각 분리.
+        // 모든 commit 의 subject 첫 줄이 `chore(audit-fix):` prefix 면 회색 (자동 배경 작업 톤).
+        // 사람 손 push (default 초록 0x4caf50) 과 자동 fix push 디스코드 채널에서 즉시 구분.
+        const isAuditFixPush = payload.commits.every((c: any) => {
+          const firstLine = String(c.message ?? '').split('\n', 1)[0];
+          return firstLine.startsWith('chore(audit-fix):');
+        });
+        if (isAuditFixPush) {
+          embed.setColor(0x808080);
+        }
       } else if (event === 'issues') {
         embed
           .setTitle(gameData.getMessage('Webhook_Issue_Title', payload.issue?.number, payload.action))
