@@ -9,7 +9,6 @@ mod quest_watcher;
 mod quest_writeback;
 mod repo_file;
 mod terminal;
-mod wm_log_watcher;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use adventure::{adventure_claude_complete, adventure_commit_summary, adventure_save_raw};
@@ -795,10 +794,6 @@ pub fn run() {
             // sub-B-2: 백그라운드 whisper 모델 다운 + Decoder warmup (~3.1GB 첫 시도).
             // 첫 음성 발화 시 사용자 대기 0.
             life::voice::warm_up();
-
-            // TASK-WM-087: WM Editor.log watcher → yawnbot 봇 webhook.
-            // dedicated thread 가 5초마다 polling, error CS\d+ 발견 시 batch + dedup + POST.
-            wm_log_watcher::start();
 
             let window_conf = app
                 .config()
