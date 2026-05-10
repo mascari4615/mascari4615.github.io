@@ -37,6 +37,37 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Mirror cert.pem (사용자 home → LocalSystem home)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          # cloudflared tunnel login 은 사용자 home (C:\Users\masca\.cloudflared\) 에
+          # cert.pem 박음. 단 본 workflow runner = LocalSystem 컨텍스트 → home =
+          # SystemProfile. cloudflared tunnel token 명령은 home/.cloudflared/cert.pem
+          # 자동 검색 → SystemProfile 에 cert.pem 없으면 token 추출 fail.
+          #
+          # 사용자 손 0 path: Mirror 사용자 home cert.pem → SystemProfile.
+          # cert.pem 5년 만료 (Cloudflare 표준) 까지 영구 자동.
+
+          $userCert = "C:\Users\masca\.cloudflared\cert.pem"
+          $sysHome = "C:\Windows\System32\config\systemprofile\.cloudflared"
+          $sysCert = "$sysHome\cert.pem"
+
+          if (-not (Test-Path $userCert)) {
+            throw "사용자 home 에 cert.pem 없음 ($userCert). 사용자 노트북에서 `cloudflared tunnel login` 먼저 실행 (브라우저 OAuth)"
+          }
+          $userSize = (Get-Item $userCert).Length
+          Write-Host "사용자 cert.pem 발견: $userCert ($userSize bytes)"
+
+          if (-not (Test-Path $sysHome)) {
+            New-Item -Path $sysHome -ItemType Directory -Force | Out-Null
+          }
+
+          Copy-Item $userCert $sysCert -Force
+          $sysSize = (Get-Item $sysCert).Length
+          Write-Host "Mirror 완료: $sysCert ($sysSize bytes)"
+
       - name: Extract tunnel token (CLI, cert.pem 컨텍스트)
         id: token
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
@@ -50,12 +81,11 @@ jobs:
           }
           if (-not (Test-Path $cf)) { throw "cloudflared.exe 못 찾음" }
 
-          # cert.pem 위치 검증 — LocalSystem home 의 .cloudflared\cert.pem 우선
-          # (sub-A axis A2 결과 = 박혀있음)
+          # cert.pem 위치 검증 — 이전 step 에서 SystemProfile 로 mirror 됐어야
           $sysHome = "C:\Windows\System32\config\systemprofile\.cloudflared"
           $certPem = "$sysHome\cert.pem"
           if (-not (Test-Path $certPem)) {
-            throw "cert.pem 못 찾음 ($certPem). sub-A axis A2 결과와 모순 — sub-A 의 SystemProfile mirror 가 깨졌나 확인 (sub-A 진단 재실행)"
+            throw "cert.pem 못 찾음 ($certPem). 이전 Mirror step 실패 확인"
           }
           Write-Host "cert.pem 발견: $certPem ($((Get-Item $certPem).Length) bytes)"
 
