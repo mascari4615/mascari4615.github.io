@@ -30,6 +30,7 @@ import { handleMeme } from './bot/meme';
 import { handleButtonInteraction } from './bot/buttons';
 import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
+import { mountLocalWebhook } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
@@ -224,6 +225,7 @@ client.on('messageCreate', async (message) => {
 });
 
 const app = createGithubWebhookApp(client as any, gameData as any);
+mountLocalWebhook(app, client as any);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);

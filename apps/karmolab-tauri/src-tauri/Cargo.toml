@@ -46,8 +46,8 @@ tokenizers = { version = "0.20", default-features = false, features = ["onig"] }
 cpal = "0.15"
 # 16kHz mono PCM_16 .wav write (sub-B schema 정합).
 hound = "3.5"
-# 일반 HTTP (HF Hub fallback 또는 다른 다운).
-reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+# 일반 HTTP (HF Hub fallback 또는 다른 다운). TASK-WM-087: yawnbot webhook POST 용 `json` feature 추가.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls", "json"] }
 # whisper mel filterbank bytes → f32 변환 (candle whisper example 패턴).
 byteorder = "1"
 # token sampling (greedy / temperature). candle 0.10 dep tree 와 일치 (0.9).
