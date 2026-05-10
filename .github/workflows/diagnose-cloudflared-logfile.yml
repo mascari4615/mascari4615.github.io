@@ -74,22 +74,14 @@ jobs:
           Write-Host "새 binPath (token masked):"
           Write-Host ("`"$cfExe`" tunnel --loglevel debug --logfile $env:CF_LOG run --token ***")
 
-          # sc config 의 binPath= 는 `=` 뒤에 공백 1개 필수 (Windows sc syntax 트랩)
-          # 또 binPath value 안 quote 가 escape 필요 — Start-Process 의 ArgumentList 가 자동
-          $scOut = "$env:TEMP\sc-config-cf.txt"
-          $scErr = "$env:TEMP\sc-config-cf.err"
-          $p = Start-Process -FilePath 'sc.exe' `
-            -ArgumentList 'config','cloudflared',"binPath= $newBinPath" `
-            -NoNewWindow -Wait -PassThru `
-            -RedirectStandardOutput $scOut -RedirectStandardError $scErr
-          if ($p.ExitCode -ne 0) {
-            Write-Host "stdout:"
-            if (Test-Path $scOut) { Get-Content $scOut | ForEach-Object { Write-Host $_ } }
-            Write-Host "stderr:"
-            if (Test-Path $scErr) { Get-Content $scErr | ForEach-Object { Write-Host $_ } }
-            throw "sc config failed (exit $($p.ExitCode))"
-          }
-          if (Test-Path $scOut) { Get-Content $scOut | ForEach-Object { Write-Host $_ } }
+          # sc config 의 binPath= syntax 트랩 (=, 공백, quote escape) 회피.
+          # Registry 직접 수정 — HKLM\SYSTEM\CurrentControlSet\Services\cloudflared\ImagePath.
+          # service restart 후 새 ImagePath 자동 적용 (cloudflared docs 권장 path).
+          Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\cloudflared' `
+            -Name 'ImagePath' `
+            -Value $newBinPath `
+            -Type ExpandString
+          Write-Host "Registry ImagePath 갱신 완료"
 
           Write-Host ""
           Write-Host "=== 새 sc qc 검증 ==="
