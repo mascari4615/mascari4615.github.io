@@ -2857,6 +2857,7 @@ dependencies = [
 name = "karmolab-desktop"
 version = "0.1.19"
 dependencies = [
+ "base64 0.22.1",
  "byteorder",
  "candle-core",
  "candle-nn",

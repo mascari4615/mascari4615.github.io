@@ -304,7 +304,8 @@ import { attachImageRef } from './turn-loop';
         void (async () => {
           try {
             const result = await generateAdventureImage(narrative);
-            attachImageRef(state!.session, result.dataUrl);
+            // 실시간 표시는 dataUrl (메모리), 영구 저장은 path (KL-037 — Tauri 시 별 PNG).
+            await attachImageRef(state!.session, result.dataUrl);
             const img = el('img', {
               src: result.dataUrl,
               alt: result.prompt.slice(0, 100),
