@@ -13,6 +13,9 @@ import {
   type SendableChannels,
 } from 'discord.js';
 import cheerio from 'cheerio';
+import fs from 'fs';
+import path from 'path';
+import { PKG_ROOT } from '../../paths';
 
 const PUBLISHER_SALE_URL = 'https://assetstore.unity.com/ko-KR/publisher-sale';
 const EMBED_IMAGE_ATTACHMENT = 'atkup-publisher-og.jpg';
@@ -205,7 +208,53 @@ export async function sendPublisherSaleToChannel(
 }
 
 let timer: ReturnType<typeof setInterval> | null = null;
-let lastSentCoupon: string | null = null;
+
+// 봇 재시작·재배포 후에도 dedup 유지. 쿠폰 없는 주는 assetUrl 으로 fallback.
+// TASK-YB-007 — module-level let lastSentCoupon (TASK-YB-003) 휘발 + couponCode null 주 skip 두 케이스 fix.
+interface UnityFreeState {
+  lastCoupon: string | null;
+  lastAssetUrl: string | null;
+  lastSentAt: string | null;
+}
+
+const STATE_PATH = path.join(PKG_ROOT, 'data', 'unity-free-state.json');
+
+function loadState(): UnityFreeState {
+  try {
+    if (fs.existsSync(STATE_PATH)) {
+      const raw = fs.readFileSync(STATE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw) as Partial<UnityFreeState>;
+      return {
+        lastCoupon: typeof parsed.lastCoupon === 'string' ? parsed.lastCoupon : null,
+        lastAssetUrl: typeof parsed.lastAssetUrl === 'string' ? parsed.lastAssetUrl : null,
+        lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
+      };
+    }
+  } catch (err) {
+    console.warn('[UnityFree] dedup state 읽기 실패 — 새 state 로 시작:', err);
+  }
+  return { lastCoupon: null, lastAssetUrl: null, lastSentAt: null };
+}
+
+function saveState(state: UnityFreeState): void {
+  try {
+    fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
+    fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2) + '\n', 'utf-8');
+  } catch (err) {
+    // dedup 깨지더라도 알림 자체는 살림 — 권한 사고 시 안전 degrade.
+    console.warn('[UnityFree] dedup state 저장 실패:', err);
+  }
+}
+
+function isDuplicate(state: UnityFreeState, info: PublisherSaleAssetInfo): boolean {
+  if (info.couponCode != null && info.couponCode.length > 0) {
+    return state.lastCoupon === info.couponCode;
+  }
+  if (info.assetUrl != null && info.assetUrl.length > 0) {
+    return state.lastAssetUrl === info.assetUrl;
+  }
+  return false;
+}
 
 async function pollOnce(client: Client, channelId: string, force: boolean): Promise<{
   status: 'sent' | 'no_data' | 'dedup' | 'channel_unreachable' | 'fetch_failed';
@@ -224,7 +273,8 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
     return { status: 'no_data', info: null };
   }
 
-  if (!force && info.couponCode && lastSentCoupon === info.couponCode) {
+  const state = loadState();
+  if (!force && isDuplicate(state, info)) {
     return { status: 'dedup', info };
   }
 
@@ -235,9 +285,11 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
   }
 
   await sendPublisherSaleToChannel(channel, info);
-  if (info.couponCode) {
-    lastSentCoupon = info.couponCode;
-  }
+  saveState({
+    lastCoupon: info.couponCode,
+    lastAssetUrl: info.assetUrl,
+    lastSentAt: new Date().toISOString(),
+  });
   return { status: 'sent', info };
 }
 
