@@ -1252,6 +1252,11 @@
   font-family: 'Noto Serif KR', serif; font-size: 14px; color: var(--ink); line-height: 1.4;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+
+/* ═══ obs priority 좌측 띠 (KL-047) — full + compact 공통 ═══ */
+.kl-quest-log .obs[data-priority="high"]   { box-shadow: inset 3px 0 0 0 var(--accent); }
+.kl-quest-log .obs[data-priority="normal"] { box-shadow: inset 1px 0 0 0 var(--ink-3); }
+.kl-quest-log .obs[data-priority="low"]    { box-shadow: inset 1px 0 0 0 var(--line-3); }
 `;
 
   function injectStyles(): void {
@@ -1739,11 +1744,12 @@
 
     function obsRow(leaf: any, projectId: string) {
       const status = leaf.status || 'seed';
+      const priority = canonicalPriority(leaf.memoPriority || 'normal');
       const selectedCls = state.selectedId === leaf.id ? 'selected' : '';
-      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목).
+      // KL-045 — compact 밀도: 1줄 (pill + ID + 제목). KL-047 — data-priority 좌측 띠.
       if (state.prefs.density === 'compact') {
         return `
-          <div class="obs obs--compact ${selectedCls}" data-status="${status}" data-proj="${projectId}" data-id="${leaf.id}">
+          <div class="obs obs--compact ${selectedCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
             <div class="mag">${status.toUpperCase()}</div>
             <div class="id">${esc(leaf.id)}</div>
             <div class="t serif">${esc(leaf.title)}</div>
@@ -1756,7 +1762,7 @@
       const checkN = leaf.checks.length;
       const checkDone = leaf.checks.filter((c: any) => c.done).length;
       return `
-        <div class="obs ${selectedCls}" data-status="${status}" data-proj="${projectId}" data-id="${leaf.id}">
+        <div class="obs ${selectedCls}" data-status="${status}" data-priority="${priority}" data-proj="${projectId}" data-id="${leaf.id}">
           <div class="time">
             <b>${checkDone}/${checkN}</b>
             ${progress}%
