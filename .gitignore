@@ -77,6 +77,9 @@ assets/js/dist
 # Post graph tab bundle (Rollup: `npm run build`)
 assets/js/graph-view/
 
+# YawnBot 런타임 dedup state (deploy git clean -fd 가 untracked 지움 → ignored 라야 survive). TASK-YB-007.
+apps/discord-bots/apps/yawnbot/data/unity-free-state.json
+
 # Hidden system files
 *~
 .DS_Store
