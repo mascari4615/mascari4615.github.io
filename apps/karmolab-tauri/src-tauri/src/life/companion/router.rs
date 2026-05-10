@@ -46,17 +46,19 @@ mod tests {
         let domain: Vec<String> = d.iter().map(|s| s.to_string()).collect();
         (
             ReactInput {
+                channel: "screenshot",
                 trigger: "test",
                 timestamp: chrono::Local
                     .with_ymd_and_hms(2026, 5, 10, 0, 0, 0)
                     .unwrap(),
-                png_path: Path::new("x.png"),
+                binary_path: Path::new("x.png"),
                 domain: &[],
                 tags: &[],
                 summary: "",
                 app: None,
                 vision_summary: None,
                 vision_context: None,
+                transcript: None,
             },
             domain,
         )

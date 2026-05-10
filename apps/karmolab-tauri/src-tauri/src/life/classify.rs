@@ -1,10 +1,11 @@
-//! sub-F-2 — claude CLI subprocess 분류.
+//! sub-F-2 + sub-B-2 — claude CLI subprocess 분류 (채널 generic).
 //!
 //! sub-B (`memo/dotfiles/scripts/life-voice.py::classify`) 패턴 그대로:
 //! - `claude -p "<prompt>"` subprocess
 //! - stdout 에서 첫 `{` ~ 마지막 `}` 사이 JSON 추출 → serde_json 파싱
 //!
 //! Pro/Max OAuth 자동 (memory `feedback_claude_oauth_first.md`). API key 의존 X.
+//! 채널 분기 — `ClassifyKind::Screenshot` (OCR text) / `ClassifyKind::Voice` (transcript).
 
 use serde::Deserialize;
 use std::process::Command;
@@ -22,7 +23,29 @@ pub struct ClassifyResult {
     pub summary: String,
 }
 
-const DOMAIN_PROMPT_TEMPLATE: &str = r#"이 화면 캡쳐 OCR 텍스트를 LIFE 도메인 트리에 분류해.
+/// 분류 입력 종류 — prompt 분기. 미래 채널 (email / clipboard / ...) 추가 시 variant 확장.
+#[derive(Debug, Clone, Copy)]
+pub enum ClassifyKind {
+    Screenshot,
+    Voice,
+}
+
+impl ClassifyKind {
+    fn source_label(&self) -> &'static str {
+        match self {
+            Self::Screenshot => "화면 캡쳐 OCR 텍스트",
+            Self::Voice => "음성 메모 transcript",
+        }
+    }
+    fn input_field_label(&self) -> &'static str {
+        match self {
+            Self::Screenshot => "OCR Text",
+            Self::Voice => "Transcript",
+        }
+    }
+}
+
+const DOMAIN_PROMPT_HEAD: &str = r#"이 {source} 를 LIFE 도메인 트리에 분류해.
 
 도메인:
 - health: 운동 / 식단 / 수면 / 정기검진
@@ -34,8 +57,8 @@ const DOMAIN_PROMPT_TEMPLATE: &str = r#"이 화면 캡쳐 OCR 텍스트를 LIFE 
 
 multi-label OK. 해당 없으면 빈 배열.
 
-OCR Text:
-{ocr_text}
+{field}:
+{text}
 
 JSON only (다른 설명 X):
 {"domain": ["..."], "tags": ["..."], "slug": "짧은-한국어-슬러그-3단어이내", "summary": "한 줄 요약"}
@@ -43,8 +66,8 @@ JSON only (다른 설명 X):
 
 const CLASSIFY_TIMEOUT: Duration = Duration::from_secs(60);
 
-pub fn classify(ocr_text: &str) -> ClassifyResult {
-    let trimmed = ocr_text.trim();
+pub fn classify(text: &str, kind: ClassifyKind) -> ClassifyResult {
+    let trimmed = text.trim();
     if trimmed.is_empty() {
         return ClassifyResult {
             slug: "empty".to_string(),
@@ -54,7 +77,10 @@ pub fn classify(ocr_text: &str) -> ClassifyResult {
 
     // 앞 2000 char 만 LLM 으로 (sub-B 와 동일 방어).
     let truncated: String = trimmed.chars().take(2000).collect();
-    let prompt = DOMAIN_PROMPT_TEMPLATE.replace("{ocr_text}", &truncated);
+    let prompt = DOMAIN_PROMPT_HEAD
+        .replace("{source}", kind.source_label())
+        .replace("{field}", kind.input_field_label())
+        .replace("{text}", &truncated);
 
     match run_claude(&prompt) {
         Ok(stdout) => extract_and_parse(&stdout).unwrap_or_else(|| ClassifyResult {
@@ -62,7 +88,7 @@ pub fn classify(ocr_text: &str) -> ClassifyResult {
             ..Default::default()
         }),
         Err(e) => {
-            eprintln!("[life-screen] claude classify 실패: {e}");
+            eprintln!("[life-classify] claude classify 실패: {e}");
             ClassifyResult {
                 slug: "untagged".to_string(),
                 ..Default::default()
@@ -131,8 +157,16 @@ mod tests {
 
     #[test]
     fn classify_empty_returns_empty_slug() {
-        let r = classify("");
+        let r = classify("", ClassifyKind::Screenshot);
         assert_eq!(r.slug, "empty");
         assert!(r.domain.is_empty());
+        let v = classify("   \n  ", ClassifyKind::Voice);
+        assert_eq!(v.slug, "empty");
+    }
+
+    #[test]
+    fn voice_kind_uses_transcript_labels() {
+        assert_eq!(ClassifyKind::Voice.source_label(), "음성 메모 transcript");
+        assert_eq!(ClassifyKind::Voice.input_field_label(), "Transcript");
     }
 }

@@ -22,19 +22,29 @@ use std::path::{Path, PathBuf};
 
 use super::state::LifeScreenConfig;
 
-/// `react()` 호출 시 supply 되는 입력 (sub-F-2 capture 결과 정합).
+/// `react()` 호출 시 supply 되는 입력 — 채널 generic.
 ///
-/// raw OCR text 는 prompt 폭주 방지로 *제외* — `summary` (분류 LLM 한 줄) + `vision_summary`/`vision_context` (VLM) 로 충분. Phase 2 에서 raw OCR snippet 추가 검토.
+/// 채널별 unique 정보는 Optional 로 — 화면이면 `app`/`vision_*` Some, 음성이면 `transcript` Some.
+/// raw 본문 (OCR 전체 / word-level json) 은 prompt 폭주 방지로 *제외* — `summary` (분류 LLM 한 줄) +
+/// `vision_summary`/`vision_context` (VLM) + `transcript` (음성 본문) 만으로 충분.
 pub struct ReactInput<'a> {
+    /// "screenshot" | "voice" | (미래: "email" / "clipboard" / ...).
+    pub channel: &'a str,
     pub trigger: &'a str,
     pub timestamp: chrono::DateTime<chrono::Local>,
-    pub png_path: &'a Path,
+    /// 같이 박힌 binary 파일 경로 (.png / .wav / ...). frontmatter `binary` 필드와 정합.
+    pub binary_path: &'a Path,
     pub domain: &'a [String],
     pub tags: &'a [String],
     pub summary: &'a str,
+    /// 화면 전용 — 캡쳐 시점 사용자 보고 있던 active window. 음성이면 None.
     pub app: Option<&'a str>,
+    /// 화면 전용 — VLM 요약. 음성이면 None.
     pub vision_summary: Option<&'a str>,
+    /// 화면 전용 — VLM 컨텍스트. 음성이면 None.
     pub vision_context: Option<&'a str>,
+    /// 음성 전용 — Whisper transcript. 화면이면 None.
+    pub transcript: Option<&'a str>,
 }
 
 #[derive(Debug, Default)]
