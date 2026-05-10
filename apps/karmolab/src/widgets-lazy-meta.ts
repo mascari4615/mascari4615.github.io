@@ -7,6 +7,14 @@ import type { KarmoLabLazyWidgetStub } from '../types/karmolab';
 
 window.KARMOLAB_LAZY_META = [
   {
+    id: 'life',
+    title: 'Life 채널',
+    category: 'tool',
+    desc: '화면 캡처 / 음성 녹음 기능 on/off. 비활성 시 Whisper 모델 (~3.1GB) RAM 해제.',
+    icon: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+    lazyScriptPaths: ['life/life']
+  },
+  {
     id: 'crypto',
     title: '암호화 / 복호화',
     category: 'tool',

@@ -33,6 +33,92 @@ use terminal::{
 };
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
+
+// Life 기능 on/off 상태 (세션 간 영속).
+#[derive(Default)]
+struct LifeFeaturesState {
+    screen_enabled: std::sync::atomic::AtomicBool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+struct LifeFeaturesPersisted {
+    screen: bool,
+    voice: bool,
+}
+
+fn life_features_config_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path().app_data_dir().ok().map(|p| p.join("life-features.json"))
+}
+
+fn load_life_features(app: &tauri::AppHandle) -> LifeFeaturesPersisted {
+    let Some(path) = life_features_config_path(app) else {
+        return LifeFeaturesPersisted::default();
+    };
+    let Ok(json) = std::fs::read_to_string(&path) else {
+        return LifeFeaturesPersisted::default();
+    };
+    serde_json::from_str(&json).unwrap_or_default()
+}
+
+fn save_life_features(app: &tauri::AppHandle, state: &LifeFeaturesState) {
+    let Some(path) = life_features_config_path(app) else { return; };
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let data = LifeFeaturesPersisted {
+        screen: state.screen_enabled.load(std::sync::atomic::Ordering::Relaxed),
+        voice: life::voice::is_enabled(),
+    };
+    if let Ok(json) = serde_json::to_string(&data) {
+        let _ = std::fs::write(path, json);
+    }
+}
+
+#[derive(serde::Serialize)]
+struct LifeFeatureStatesDto {
+    screen_enabled: bool,
+    voice_enabled: bool,
+    voice_loading: bool,
+}
+
+#[tauri::command]
+fn life_get_feature_states(state: tauri::State<LifeFeaturesState>) -> LifeFeatureStatesDto {
+    LifeFeatureStatesDto {
+        screen_enabled: state.screen_enabled.load(std::sync::atomic::Ordering::Relaxed),
+        voice_enabled: life::voice::is_enabled(),
+        voice_loading: life::voice::is_loading(),
+    }
+}
+
+#[tauri::command]
+fn life_set_feature(
+    feature: String,
+    enabled: bool,
+    app: tauri::AppHandle,
+    state: tauri::State<LifeFeaturesState>,
+) -> Result<(), String> {
+    match (feature.as_str(), enabled) {
+        ("screen", true) => {
+            life::hotkey::register_screen(&app)?;
+            state.screen_enabled.store(true, std::sync::atomic::Ordering::Relaxed);
+        }
+        ("screen", false) => {
+            let _ = life::hotkey::unregister_screen(&app);
+            state.screen_enabled.store(false, std::sync::atomic::Ordering::Relaxed);
+        }
+        ("voice", true) => {
+            life::voice::enable()?;
+            life::hotkey::register_voice(&app)?;
+        }
+        ("voice", false) => {
+            let _ = life::hotkey::unregister_voice(&app);
+            life::voice::disable();
+        }
+        _ => return Err(format!("알 수 없는 feature: {feature}")),
+    }
+    save_life_features(&app, &state);
+    Ok(())
+}
 #[cfg(windows)]
 use tauri::tray::{MouseButton, TrayIconEvent};
 use tauri::webview::{NewWindowResponse, WebviewWindowBuilder};
@@ -55,6 +141,69 @@ extern "system" {
 const KARMOLAB_WEB_URL: &str = "https://mascari4615.github.io/karmolab/";
 const KARMOLAB_DEV_URL: &str = "http://127.0.0.1:8899/apps/karmolab/index.html";
 const KARMOLAB_DEV_PORT: u16 = 8899;
+
+/// dev 바이너리 직접 실행 시 devUrl(:8898) 서버가 없어 흰 화면이 되는 문제 해결.
+/// setup 시 자동 spawn — 이미 8898 이 열려있으면 (npm run dev 병행) 무시.
+#[cfg(debug_assertions)]
+fn spawn_dev_static_if_needed() {
+    const PORT: u16 = 8898;
+    if std::net::TcpStream::connect_timeout(
+        &format!("127.0.0.1:{PORT}").parse().unwrap(),
+        std::time::Duration::from_millis(150),
+    )
+    .is_ok()
+    {
+        return; // already running
+    }
+
+    let Ok(exe) = std::env::current_exe() else {
+        return;
+    };
+    // exe: .../apps/karmolab-tauri/target/debug/karmolab-desktop.exe
+    let Some(tauri_dir) = exe.parent().and_then(|p| p.parent()).and_then(|p| p.parent()) else {
+        return;
+    };
+    let Some(repo_root) = tauri_dir.parent().and_then(|p| p.parent()) else {
+        return;
+    };
+    let script = tauri_dir.join("scripts").join("dev-static.mjs");
+    if !script.exists() {
+        return;
+    }
+
+    let mut cmd = std::process::Command::new("node");
+    cmd.arg(&script)
+        .arg("8898")
+        .arg("--node-only")
+        .current_dir(&repo_root)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    let Ok(child) = cmd.spawn() else {
+        return;
+    };
+
+    // 최대 10s 대기
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    while std::time::Instant::now() < deadline {
+        if std::net::TcpStream::connect_timeout(
+            &format!("127.0.0.1:{PORT}").parse().unwrap(),
+            std::time::Duration::from_millis(200),
+        )
+        .is_ok()
+        {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+
+    std::mem::forget(child); // 앱 종료 후에도 서버 유지 — 다음 실행 시 재감지
+}
 
 /// 트레이 토글로 켜는 로컬 정적 서버. None = OFF (production URL 로딩 중), Some = ON.
 #[derive(Default)]
@@ -701,6 +850,7 @@ pub fn run() {
         .manage(LocalDevState::default())
         .manage(DevModeState::default())
         .manage(TerminalState::default())
+        .manage(LifeFeaturesState::default())
         .invoke_handler(tauri::generate_handler![
             desktop_notify,
             desktop_trigger_release_workflow,
@@ -742,6 +892,8 @@ pub fn run() {
             terminal_stop,
             terminal_status,
             life_screen_capture,
+            life_get_feature_states,
+            life_set_feature,
             adventure_claude_complete,
             adventure_save_raw,
             adventure_commit_summary
@@ -758,6 +910,9 @@ pub fn run() {
         // 의도 정정 (2026-05-10): interval 자동 ❌, 의식적 trigger 만.
         .plugin(life::hotkey::build_plugin())
         .setup(|app| {
+            #[cfg(debug_assertions)]
+            spawn_dev_static_if_needed();
+
             let handle = app.handle().clone();
 
             // QuestLog 파일 watcher (KL-024) — memo TASK 디렉토리 6개 변경 시
@@ -785,15 +940,24 @@ pub fn run() {
                 app.manage(activity_state);
             }
 
-            // sub-F-3: PrintScreen global hotkey + sub-B-2: Ctrl+Alt+Space hold-to-talk 등록.
-            // (plugin 은 이미 박힘 — 위 chain). register 실패는 fail soft.
-            if let Err(e) = life::hotkey::register(&handle) {
-                eprintln!("[life-screen] hotkey register 실패: {e}");
+            // Life 기능 상태 복원 (이전 세션 on/off 설정). 핫키/모델은 사용자가 켠 것만.
+            {
+                let life_state = app.state::<LifeFeaturesState>();
+                let persisted = load_life_features(&handle);
+                if persisted.screen {
+                    life_state.screen_enabled.store(true, std::sync::atomic::Ordering::Relaxed);
+                    if let Err(e) = life::hotkey::register_screen(&handle) {
+                        eprintln!("[life-screen] hotkey 복원 실패: {e}");
+                    }
+                }
+                if persisted.voice {
+                    if let Err(e) = life::voice::enable() {
+                        eprintln!("[life-voice] enable 복원 실패: {e}");
+                    } else if let Err(e) = life::hotkey::register_voice(&handle) {
+                        eprintln!("[life-voice] hotkey 복원 실패: {e}");
+                    }
+                }
             }
-
-            // sub-B-2: 백그라운드 whisper 모델 다운 + Decoder warmup (~3.1GB 첫 시도).
-            // 첫 음성 발화 시 사용자 대기 0.
-            life::voice::warm_up();
 
             let window_conf = app
                 .config()

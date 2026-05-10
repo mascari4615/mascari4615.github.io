@@ -10,7 +10,8 @@
 //! Decoder 영구 (`OnceLock<Mutex<Decoder>>`) — model/tokenizer load 1회.
 
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use candle_core::{Device, IndexOp, Tensor};
 use candle_nn::{ops::softmax, VarBuilder};
@@ -411,27 +412,69 @@ fn token_id(tokenizer: &Tokenizer, token: &str) -> Result<u32, String> {
         .ok_or_else(|| format!("token id 미발견: {token}"))
 }
 
-static DECODER: OnceLock<Mutex<Decoder>> = OnceLock::new();
+static DECODER_CELL: OnceLock<Arc<Mutex<Option<Decoder>>>> = OnceLock::new();
+static DECODER_LOADING: AtomicBool = AtomicBool::new(false);
 
-fn decoder() -> Result<&'static Mutex<Decoder>, String> {
-    if let Some(d) = DECODER.get() {
-        return Ok(d);
+fn decoder_arc() -> &'static Arc<Mutex<Option<Decoder>>> {
+    DECODER_CELL.get_or_init(|| Arc::new(Mutex::new(None)))
+}
+
+pub fn is_loaded() -> bool {
+    decoder_arc().lock().map(|g| g.is_some()).unwrap_or(false)
+}
+
+pub fn is_loading() -> bool {
+    DECODER_LOADING.load(Ordering::Relaxed)
+}
+
+/// 백그라운드 thread 에서 모델 로드. 이미 로드 중이거나 완료면 no-op.
+pub fn load() -> Result<(), String> {
+    if is_loaded() || DECODER_LOADING.load(Ordering::SeqCst) {
+        return Ok(());
     }
-    // CPU device default — CUDA feature 빌드 시 candle 자동 GPU.
-    let device = Device::Cpu;
-    let dec = Decoder::new(device)?;
-    let _ = DECODER.set(Mutex::new(dec));
-    DECODER
-        .get()
-        .ok_or_else(|| "OnceLock set/get race".to_string())
+    DECODER_LOADING.store(true, Ordering::SeqCst);
+    let arc = decoder_arc().clone();
+    std::thread::Builder::new()
+        .name("life-voice-decoder-load".into())
+        .spawn(move || {
+            eprintln!("[life-voice] decoder load 시작 (~3.1GB)");
+            match Decoder::new(Device::Cpu) {
+                Ok(dec) => {
+                    let mut g = arc.lock().unwrap();
+                    *g = Some(dec);
+                    drop(g);
+                    DECODER_LOADING.store(false, Ordering::SeqCst);
+                    eprintln!("[life-voice] decoder load 완료");
+                }
+                Err(e) => {
+                    DECODER_LOADING.store(false, Ordering::SeqCst);
+                    eprintln!("[life-voice] decoder load 실패: {e}");
+                }
+            }
+        })
+        .map_err(|e| {
+            DECODER_LOADING.store(false, Ordering::SeqCst);
+            format!("decoder load thread spawn 실패: {e}")
+        })?;
+    Ok(())
+}
+
+/// 모델을 메모리에서 해제 (~3.1GB 반환). 진행 중인 transcribe 완료 후 실행.
+pub fn unload() {
+    if let Ok(mut g) = decoder_arc().lock() {
+        *g = None;
+        eprintln!("[life-voice] decoder unload 완료");
+    }
 }
 
 pub fn transcribe(samples_16k: &[f32]) -> Result<TranscribeResult, String> {
     if samples_16k.is_empty() {
         return Ok(TranscribeResult::default());
     }
-    let mtx = decoder()?;
-    let mut dec = mtx.lock().map_err(|e| format!("decoder mutex: {e}"))?;
+    let arc = decoder_arc();
+    let mut guard = arc.lock().map_err(|e| format!("decoder mutex: {e}"))?;
+    let dec = guard.as_mut()
+        .ok_or_else(|| "voice 기능 비활성 — Life 위젯에서 먼저 활성화".to_string())?;
 
     let mel_filters = dec.mel_filters.clone();
     let mel = audio::pcm_to_mel(&dec.config, samples_16k, &mel_filters);

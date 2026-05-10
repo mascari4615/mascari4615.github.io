@@ -103,6 +103,7 @@ const entryPoints = [
   'src/widgets/imagegen/styles.ts',
   'src/widgets/linktree/linktree.ts',
   'src/widgets/planner/planner.ts',
+  'src/widgets/life/life.ts',
   'src/widgets/quest-log/quest-log.ts',
   'src/widgets/terminal/terminal.ts',
   'src/widgets/tierlist/dialogs.ts',
