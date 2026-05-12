@@ -41,7 +41,14 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
 }
 
-// 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
+// 4. apps/karmolab-tauri — ACL 4-source audit (KL-040).
+//    KL-035 사고 재발 방지: #[tauri::command] / generate_handler! / permissions/*.toml / capabilities/default.json
+//    4 source 정합 0 mismatch 강제. 새 커맨드 추가 시 4곳 동시 수정 누락 자동 감지.
+if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+  run('apps/karmolab-tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
+}
+
+// 5. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
 //    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면
 //    개발 흐름 깨짐. CI 는 verify.yml 의 'Install blog deps' step 이 보장.
 if (existsSync('apps/blog/node_modules')) {
@@ -51,6 +58,6 @@ if (existsSync('apps/blog/node_modules')) {
   console.log('[verify] ! apps/blog/node_modules 없음 — lint skip (정합: cd apps/blog && npm ci)');
 }
 
-// 5. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
+// 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
 
 console.log('\n[verify] OK — master invariant 통과');
