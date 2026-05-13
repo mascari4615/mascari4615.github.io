@@ -42,10 +42,11 @@ jobs:
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Linux deps (Tauri / WebKit)
+      - name: Install Linux deps (Tauri / WebKit / ALSA)
+        # libasound2-dev: cpal=0.15 → alsa-sys v0.3.1 build 의존 (2026-05-10 부터 verify 16+ 회 fail 원인).
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev
 
       - name: Cache Cargo
         uses: actions/cache@v4
