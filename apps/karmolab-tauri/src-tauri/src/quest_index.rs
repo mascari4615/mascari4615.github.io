@@ -271,7 +271,13 @@ fn parse_one_task(
 }
 
 #[tauri::command]
-pub fn get_quest_tree(memo_path: Option<String>) -> Result<QuestTree, String> {
+pub async fn get_quest_tree(memo_path: Option<String>) -> Result<QuestTree, String> {
+    tauri::async_runtime::spawn_blocking(move || get_quest_tree_blocking(memo_path))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn get_quest_tree_blocking(memo_path: Option<String>) -> Result<QuestTree, String> {
     let memo = match memo_path.filter(|s| !s.is_empty()) {
         Some(value) => PathBuf::from(value),
         None => default_memo_path().ok_or_else(|| {
