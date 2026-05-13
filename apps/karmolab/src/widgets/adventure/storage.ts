@@ -5,6 +5,9 @@
  * 브라우저: localStorage 임시 (Tauri 미가용 시 fallback).
  *
  * raw = turn 마다 user/assistant message + parsed (선택지 / NPC / scene) + image refs 누적.
+ *
+ * KL-037: 이미지 (η Vertex Imagen) 는 dataUrl 인라인 X — `adventure_save_image` 가
+ * 별 PNG 로 박고 path 만 imageRef 에 박힘. raw JSON 사이즈 폭주 방지 + git diff/push 비용 ↓.
  */
 
 export interface AdventureTurnRecord {
@@ -58,6 +61,47 @@ export function createSession(castSlugs: string[]): AdventureSession {
   };
 }
 
+/**
+ * KL-037: dataUrl → 별 PNG 파일 박고 session-relative path 반환.
+ *
+ * Tauri 환경: `adventure_save_image` 호출 → `images/turn-NN-ts.png` write → path return.
+ * Tauri 미가용 시 (브라우저): dataUrl 그대로 반환하지만 size limit (~256KB) 초과면 경고 + null.
+ */
+export async function saveImage(
+  slug: string,
+  turnIndex: number,
+  dataUrl: string,
+): Promise<string | null> {
+  const invoke = getTauriInvoke();
+  if (invoke) {
+    try {
+      const result = (await invoke('adventure_save_image', {
+        payload: {
+          sessionSlug: slug,
+          turnIndex,
+          dataUrl,
+        },
+      })) as { path?: string };
+      if (result?.path) {
+        return result.path;
+      }
+      console.warn('[adventure] adventure_save_image: path 없음', result);
+      return null;
+    } catch (err) {
+      console.warn('[adventure] adventure_save_image 실패, dataUrl fallback', err);
+    }
+  }
+  // 브라우저 fallback — dataUrl 직접 박지만 size limit 강제 (KL-037 raw JSON 폭주 방지).
+  const SIZE_LIMIT = 256 * 1024; // 256KB
+  if (dataUrl.length > SIZE_LIMIT) {
+    console.warn(
+      `[adventure] dataUrl 크기 ${dataUrl.length} > ${SIZE_LIMIT} — 인라인 박지 않음`,
+    );
+    return null;
+  }
+  return dataUrl;
+}
+
 export async function saveSession(session: AdventureSession): Promise<void> {
   const invoke = getTauriInvoke();
   if (invoke) {
@@ -84,6 +128,23 @@ export function loadSession(slug: string): AdventureSession | null {
   } catch (err) {
     console.error('[adventure] localStorage 로드 실패', err);
     return null;
+  }
+}
+
+export async function deleteSession(slug: string): Promise<void> {
+  const invoke = getTauriInvoke();
+  if (invoke) {
+    try {
+      await invoke('adventure_delete_raw', { slug });
+      return;
+    } catch (err) {
+      console.warn('[adventure] adventure_delete_raw 미가용, localStorage fallback', err);
+    }
+  }
+  try {
+    localStorage.removeItem(STORAGE_KEY_PREFIX + slug);
+  } catch (err) {
+    console.error('[adventure] localStorage 삭제 실패', err);
   }
 }
 

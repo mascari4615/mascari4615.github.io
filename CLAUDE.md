@@ -270,6 +270,7 @@ master 브랜치는 항상 다음을 만족:
 - `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
 - `packages/karmolab-ai` 의 build 통과 (필수)
 - `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
+- `apps/karmolab-tauri` ACL 4-source audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040). `#[tauri::command]` / `generate_handler!` / `permissions/*.toml` / `capabilities/default.json` 4 source 정합 0 mismatch. 새 커맨드 추가 시 4곳 동시 수정 필수.
 - `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
 - typos check (`crate-ci/typos`) — strict 게이트 (KL-032). `_typos.toml` 이 false-positive 정의 + 데이터/외부 라이브러리 exclude. 진짜 typo 일 가능성 큰 단어들은 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
 
@@ -335,6 +336,7 @@ master 브랜치는 항상 다음을 만족:
 9. **The `production` branch** is for releases only; normal development goes to `master`/`main` — but `master`/`main` 도 PR 거쳐 머지 (`§ Git Workflow` 참조). 직접 push 는 1~3줄 chore 등 예외만.
 10. **공통 작업 원칙 (레거시 금지 / 마이그레이션 자기소멸 / 커밋 전 확인 / 커밋 전 테스트 / 한 commit 한 주제 / 푸시는 지시 시에만)** — 단일 출처: `karmoddrine/memo/UMBRELLA.md` § 공통 작업 원칙 — 모든 레포. 본 레포에도 동일 적용. 충돌 시 K 가 우선.
 11. **Vertex AI is preferred over AI Studio** — the user has Vertex AI credits. When both surfaces support the same capability (text generation, embeddings), default to Vertex. Use `KARMOLAB_AI_SURFACE=vertex` as the standard. AI Studio is a fallback only. Do not propose AI Studio as the primary option. When adding new AI features, implement both surfaces via `karmolab-ai` and respect the surface env var.
+    - **KL-032 예외 (무한 텍스트 어드벤처)**: 사용자 발화 「Max x20 활용」 시드 → Claude (Max OAuth) default. provider abstraction + 위젯 토글로 Vertex 도 선택 가능 (`apps/karmolab/src/widgets/adventure/provider/`).
 12. **새 로컬 서버·dev 프로세스는 KarmoLab Server Monitor (`devProfiles`) 등록 우선** — 사용자는 `apps/karmolab-tauri` 데스크톱 앱을 상시 띄워두고 그 안의 **서버 모니터** 위젯에서 시작/종료/로그 스트림/deploy 를 한다. 새 봇·로컬 서버·dev runner 를 추가할 때는 **반드시 `apps/karmolab/data/servermonitor-config.json` 의 `devProfiles` (그리고 같은 `id` 로 `localMonitors`) 에 등록을 함께 제안**한다. 사용자가 외울 터미널 명령이 늘어나면 안 됨.
     - 허용 `program`: `npm`, `npx`, `bundle`, `ruby`, `node`. 그 외 바이너리 (`cloudflared`, `python`, `cargo` 등) 는 `package.json` script 로 한 번 감싼 뒤 등록.
     - `cwd` 는 레포 루트 기준 상대 경로만. `..` 금지. Rust 측에서 canonicalize 후 루트 prefix 검증함.
@@ -343,3 +345,8 @@ master 브랜치는 항상 다음을 만족:
     - 봉제 명령 (`localdev_send_stdin`), 외부 실행 PID 발견·종료 (`localdev_list_external_pids` / `localdev_stop_external`), 재기동 후 PID reattach 등도 자동.
     - 트레이 「개발 모드 (로컬 8899)」 토글은 KarmoLab 자체 (WebView 가 보는 페이지) 를 로컬 정적 서버로 띄울 때만. 일반 봇/서버는 `devProfiles` 가 정답.
     - 코드: `apps/karmolab-tauri/src-tauri/src/local_dev.rs`. 사용자 문서: `apps/karmolab/js/widgets/docs/local-dev-runner.md`.
+13. **IO 무거운 `#[tauri::command]` = `async` + `tauri::async_runtime::spawn_blocking` 강제** (TASK-KL-043, 2026-05-13).
+    - 기준: `fs::read_dir` 다중 호출 / external `std::process::Command` spawn (git, claude CLI, gh 등) / xcap + OCR + LLM 등 수 초 작업.
+    - 패턴: `pub async fn cmd(params) -> Result<T, String> { tauri::async_runtime::spawn_blocking(move || cmd_blocking(params)).await.map_err(|e| format!("spawn_blocking join 실패: {}", e))? }`
+    - 이미 마이그된 명령: `get_questlog_hub` (KL-035), `get_quest_tree`, `adventure_claude_complete`, `adventure_save_raw`, `adventure_commit_summary`, `life_screen_capture`, `desktop_install_pending_update`.
+    - Sync OK (< 10ms, 단일 파일 R/W): `toggle_quest_check`, `set_quest_status`, `set_quest_priority`, `add/delete/rename_quest_check`, `repofile_*`, `open_task_in_editor`, `create_task`, `terminal_*`, `life_get_feature_states`, `life_set_feature`, `desktop_notify`, `desktop_restart_app`.

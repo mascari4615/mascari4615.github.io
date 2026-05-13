@@ -16,6 +16,9 @@ on:
       - '.github/workflows/deploy-discord-bots.yml'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-discord-bots
   cancel-in-progress: false

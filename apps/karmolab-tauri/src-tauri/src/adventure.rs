@@ -8,6 +8,7 @@
 //! ζ-1 (done): adventure_claude_complete — narrative + 선택지 N개 응답.
 //! ζ-2 (현재): adventure_save_raw (memo raw JSON write) + adventure_commit_summary (wiki entity 박기 + git commit + push).
 
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
@@ -85,13 +86,17 @@ fn run_claude(prompt: &str, model_id: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn adventure_claude_complete(
+pub async fn adventure_claude_complete(
     payload: AdventureCompletePayload,
 ) -> Result<AdventureCompleteResult, String> {
-    let prompt = build_prompt(&payload);
-    let model_id = payload.model_id.clone();
-    let text = run_claude(&prompt, &model_id)?;
-    Ok(AdventureCompleteResult { text, model_id })
+    tauri::async_runtime::spawn_blocking(move || {
+        let prompt = build_prompt(&payload);
+        let model_id = payload.model_id.clone();
+        let text = run_claude(&prompt, &model_id)?;
+        Ok(AdventureCompleteResult { text, model_id })
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
 /* ===== ζ-2: raw save + wiki commit ===== */
@@ -125,8 +130,115 @@ pub struct AdventureSessionPayload {
     pub session: serde_json::Value,
 }
 
+/* ===== TASK-KL-037: dataUrl → 별 PNG 파일 분리 ===== */
+
+#[derive(Deserialize)]
+pub struct AdventureSaveImagePayload {
+    #[serde(rename = "sessionSlug")]
+    pub session_slug: String,
+    #[serde(rename = "turnIndex")]
+    pub turn_index: u32,
+    #[serde(rename = "dataUrl")]
+    pub data_url: String,
+}
+
+#[derive(Serialize)]
+pub struct AdventureSaveImageResult {
+    /// session 폴더 기준 상대 경로 (예: "images/turn-03-20260510T0235.png").
+    pub path: String,
+}
+
+/// "data:image/<ext>;base64,<encoded>" → (extension, bytes) 디코드.
+fn parse_data_url(data_url: &str) -> Result<(String, Vec<u8>), String> {
+    let prefix = "data:";
+    if !data_url.starts_with(prefix) {
+        return Err("dataUrl 가 'data:' prefix 아님".to_string());
+    }
+    let after = &data_url[prefix.len()..];
+    let comma = after
+        .find(',')
+        .ok_or_else(|| "dataUrl 에 ',' 구분자 없음".to_string())?;
+    let header = &after[..comma];
+    let encoded = &after[comma + 1..];
+
+    let mut mime = header;
+    let mut is_base64 = false;
+    if let Some((m, params)) = header.split_once(';') {
+        mime = m;
+        for p in params.split(';') {
+            if p.trim().eq_ignore_ascii_case("base64") {
+                is_base64 = true;
+            }
+        }
+    }
+    if !is_base64 {
+        return Err("dataUrl base64 인코딩 아님 (raw URL-encoded 미지원)".to_string());
+    }
+
+    let ext = match mime.to_ascii_lowercase().as_str() {
+        "image/png" => "png",
+        "image/jpeg" | "image/jpg" => "jpg",
+        "image/webp" => "webp",
+        "image/gif" => "gif",
+        other => return Err(format!("지원 안 하는 이미지 mime: {other}")),
+    };
+
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(encoded.trim())
+        .map_err(|e| format!("base64 디코드 실패: {e}"))?;
+
+    Ok((ext.to_string(), bytes))
+}
+
+fn safe_session_slug(slug: &str) -> Result<&str, String> {
+    if slug.is_empty() {
+        return Err("sessionSlug 빈 문자열".to_string());
+    }
+    // path traversal 방지 — slug 는 파일명 segment 만 허용.
+    for ch in slug.chars() {
+        if !(ch.is_ascii_alphanumeric() || ch == '-' || ch == '_') {
+            return Err(format!("sessionSlug 허용 외 문자: {ch:?}"));
+        }
+    }
+    Ok(slug)
+}
+
 #[tauri::command]
-pub fn adventure_save_raw(payload: AdventureSessionPayload) -> Result<(), String> {
+pub fn adventure_save_image(
+    payload: AdventureSaveImagePayload,
+) -> Result<AdventureSaveImageResult, String> {
+    let slug = safe_session_slug(&payload.session_slug)?;
+    let (ext, bytes) = parse_data_url(&payload.data_url)?;
+
+    let memo = memo_path()?;
+    let session_dir = memo
+        .join("projects")
+        .join("karmolab")
+        .join("raw")
+        .join("adventures")
+        .join(slug);
+    let images_dir = session_dir.join("images");
+    fs::create_dir_all(&images_dir)
+        .map_err(|e| format!("images dir 생성 실패 {images_dir:?}: {e}"))?;
+
+    // ts: YYYYMMDDTHHMMSS (압축 ISO 8601 — 파일명 친화). chrono 의존 (이미 있음).
+    let ts = chrono::Utc::now().format("%Y%m%dT%H%M%S").to_string();
+    let filename = format!("turn-{:02}-{ts}.{ext}", payload.turn_index);
+    let abs = images_dir.join(&filename);
+    fs::write(&abs, &bytes).map_err(|e| format!("이미지 쓰기 실패 {abs:?}: {e}"))?;
+
+    let rel = format!("images/{filename}");
+    Ok(AdventureSaveImageResult { path: rel })
+}
+
+#[tauri::command]
+pub async fn adventure_save_raw(payload: AdventureSessionPayload) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || adventure_save_raw_blocking(payload))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn adventure_save_raw_blocking(payload: AdventureSessionPayload) -> Result<(), String> {
     let session = &payload.session;
     let slug = session
         .get("slug")
@@ -181,7 +293,15 @@ fn run_git(cwd: &PathBuf, args: &[&str]) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn adventure_commit_summary(
+pub async fn adventure_commit_summary(
+    payload: AdventureSummaryPayload,
+) -> Result<AdventureCommitResult, String> {
+    tauri::async_runtime::spawn_blocking(move || adventure_commit_summary_blocking(payload))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn adventure_commit_summary_blocking(
     payload: AdventureSummaryPayload,
 ) -> Result<AdventureCommitResult, String> {
     if payload.slug.is_empty() {
@@ -254,31 +374,58 @@ pub fn adventure_commit_summary(
     let mut karmolab_pushed = true;
     let _ = &mut karmolab_pushed; // silence dead_assignment if future short-circuit
 
-    // memo 레포 raw JSON 도 commit + push (모험 종료 시 한 번)
+    // memo 레포 raw JSON + images/ 폴더 commit + push (모험 종료 시 한 번)
+    // KL-037: dataUrl 폐기 후 raw JSON 사이즈 ↓ + images/ 폴더 별 add.
     let memo = memo_path()?;
     let raw_rel = format!("projects/karmolab/raw/adventures/{}.json", payload.slug);
+    let images_rel = format!("projects/karmolab/raw/adventures/{}/images", payload.slug);
+    let session_dir_rel = format!("projects/karmolab/raw/adventures/{}", payload.slug);
     let mut memo_pushed = false;
-    if memo.join(&raw_rel).exists() {
+    let raw_exists = memo.join(&raw_rel).exists();
+    let images_exists = memo.join(&images_rel).exists();
+    if raw_exists || images_exists {
         run_git(&memo, &["fetch", "origin", "main"])?;
-        // raw 가 modified 안 됐을 수도 — git add 후 diff --cached 비어있으면 commit skip
-        run_git(&memo, &["add", &raw_rel])?;
+        // raw json + images/ 폴더 add. 폴더 path 는 git 가 sub 전부 add.
+        let mut add_args: Vec<&str> = vec!["add"];
+        if raw_exists {
+            add_args.push(&raw_rel);
+        }
+        if images_exists {
+            add_args.push(&session_dir_rel);
+        }
+        run_git(&memo, &add_args)?;
+
+        // diff --cached 가 빈지 검사 — pathspec 은 session_dir_rel 안 모두 포함.
         let staged = Command::new("git")
             .current_dir(&memo)
-            .args(["diff", "--cached", "--quiet", "--", &raw_rel])
+            .args([
+                "diff",
+                "--cached",
+                "--quiet",
+                "--",
+                &raw_rel,
+                &session_dir_rel,
+            ])
             .status()
             .map_err(|e| format!("git diff 실패: {e}"))?;
         if !staged.success() {
-            // diff 있음 (rc=1) — commit
-            run_git(
-                &memo,
-                &[
-                    "commit",
-                    "-o",
-                    &raw_rel,
-                    "-m",
-                    &format!("data(kl): KL-032 모험 raw 박음 — {} ({})", payload.title, payload.slug),
-                ],
-            )?;
+            // diff 있음 (rc=1) — commit (path-only 로 다른 세션 staged race 방어).
+            let mut commit_args: Vec<&str> = vec!["commit"];
+            if raw_exists {
+                commit_args.push("-o");
+                commit_args.push(&raw_rel);
+            }
+            if images_exists {
+                commit_args.push("-o");
+                commit_args.push(&session_dir_rel);
+            }
+            let msg = format!(
+                "data(kl): KL-032 모험 raw + 이미지 박음 — {} ({})",
+                payload.title, payload.slug,
+            );
+            commit_args.push("-m");
+            commit_args.push(&msg);
+            run_git(&memo, &commit_args)?;
             run_git(&memo, &["push", "origin", "main"])?;
             memo_pushed = true;
         }

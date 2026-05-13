@@ -57,6 +57,6 @@ if (existsSync('apps/blog/node_modules')) {
   console.log('[verify] ! apps/blog/node_modules 없음 — lint skip (정합: cd apps/blog && npm ci)');
 }
 
-// 5. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
+// 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
 
 console.log('\n[verify] OK — master invariant 통과');

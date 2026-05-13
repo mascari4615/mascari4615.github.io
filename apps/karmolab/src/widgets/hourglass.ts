@@ -14,7 +14,7 @@
           Mdd.linePreset('tool_run', { msg: '모래시계... 졸려요...' });
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; padding:20px; height:380px; box-sizing:border-box; overflow:hidden;">
-                    <div style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:8px;">픽셀 모래가 다 떨어지면 페이지가 새로고침돼요...</div>
+                    <div style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:8px;">픽셀 모래가 다 떨어지면 다시 시작돼요...</div>
                     <canvas id="hourglassCanvas" style="flex:1; background:#0a0a0c; border-radius:8px;"></canvas>
                 </div>
             `;
@@ -79,7 +79,10 @@
 
             const allFalled = grid.every((p) => p.y >= rows - 5);
             if (allFalled && grid.length > 0) {
-              setTimeout(() => window.location.reload(), 1500);
+              setTimeout(() => {
+                grid.forEach((p) => { p.y = Math.floor(Math.random() * 30); });
+                animId = requestAnimationFrame(animate);
+              }, 1500);
               return;
             }
 

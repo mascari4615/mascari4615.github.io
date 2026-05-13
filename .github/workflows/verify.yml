@@ -22,6 +22,9 @@ on:
   # KL-029 해결 후엔 push trigger 정상 작동 → 본 trigger 는 응급 가치만 남음.
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: verify (master invariant)
