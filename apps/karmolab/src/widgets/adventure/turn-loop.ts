@@ -9,6 +9,7 @@ import { buildSystemInstruction, parseTurnResponse, type ParsedTurn } from './pr
 import {
   type AdventureSession,
   type AdventureTurnRecord,
+  saveImage,
   saveSession,
 } from './storage';
 
@@ -100,10 +101,24 @@ export async function runTurn(
   }
 }
 
-export function attachImageRef(state: TurnLoopState, imageRef: string): void {
-  const last = state.session.turns[state.session.turns.length - 1];
+/**
+ * KL-037: dataUrl → 별 PNG 파일 박고 imageRefs 에 path 박음.
+ *
+ * Tauri 환경: `adventure_save_image` → `images/turn-NN-ts.png` 박힘 + path 받음.
+ * 브라우저: dataUrl size limit (~256KB) 안이면 dataUrl 박힘, 초과면 imageRef 박지 않음.
+ *
+ * 호출처가 `state.session` 만 넘기는 패턴이라 첫 인자 = AdventureSession.
+ */
+export async function attachImageRef(
+  session: AdventureSession,
+  dataUrl: string,
+): Promise<void> {
+  const turnIndex = session.turns.length - 1;
+  const last = session.turns[turnIndex];
   if (!last) return;
+  const ref = await saveImage(session.slug, turnIndex, dataUrl);
+  if (!ref) return;
   last.imageRefs = last.imageRefs ?? [];
-  last.imageRefs.push(imageRef);
-  void saveSession(state.session);
+  last.imageRefs.push(ref);
+  await saveSession(session);
 }
