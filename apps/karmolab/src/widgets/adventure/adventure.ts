@@ -13,7 +13,7 @@ import {
 } from './provider';
 import type { AdventureProviderId } from './provider';
 import { listAllCharacterSlugs } from './npc-context';
-import { createSession, saveSession } from './storage';
+import { createSession, saveSession, listLocalSessionSlugs, loadSession, deleteSession } from './storage';
 import type { AdventureSession } from './storage';
 import { createInitialState, runTurn } from './turn-loop';
 import type { TurnLoopState } from './turn-loop';
@@ -135,8 +135,148 @@ import { attachImageRef } from './turn-loop';
 
     let state: TurnLoopState | null = null;
 
+    function resumeFromSession(session: AdventureSession) {
+      const resumed = createInitialState(session);
+      for (const turn of session.turns) {
+        resumed.history.push({ role: 'user', content: turn.userText });
+        resumed.history.push({ role: 'assistant', content: turn.assistantText });
+      }
+      const lastTurn = session.turns[session.turns.length - 1];
+      if (lastTurn?.parsed) {
+        resumed.lastParsed = {
+          narrative: lastTurn.parsed.narrative,
+          choices: lastTurn.parsed.choices.slice(),
+          npcSlugs: lastTurn.parsed.npcSlugs.slice(),
+          sceneTitles: lastTurn.parsed.sceneTitles.slice(),
+          ended: lastTurn.parsed.ended,
+        };
+      }
+      state = resumed;
+      renderTurnUI();
+      if (resumed.lastParsed) {
+        const nb = stage.querySelector('#kl-adv-narrative') as HTMLDivElement | null;
+        const cb = stage.querySelector('#kl-adv-choices') as HTMLDivElement | null;
+        if (nb) nb.textContent = resumed.lastParsed.narrative || '(이전 narrative)';
+        if (cb) {
+          cb.innerHTML = '';
+          for (let i = 0; i < resumed.lastParsed.choices.length; i++) {
+            const choice = resumed.lastParsed.choices[i];
+            const btn = el('button', {
+              textContent: `${i + 1}. ${choice}`,
+              style: {
+                padding: '8px 12px',
+                background: 'var(--bg-tertiary, #1f1f1f)',
+                color: 'var(--text-primary, #e8e8e8)',
+                border: '1px solid var(--border-color, #333)',
+                borderRadius: 'var(--radius-sm, 4px)',
+                cursor: 'pointer',
+                textAlign: 'left',
+              },
+            });
+            btn.addEventListener('click', () => void doTurn(choice, false));
+            cb.appendChild(btn);
+          }
+        }
+      }
+    }
+
     function renderCastPicker() {
       stage.innerHTML = '';
+
+      // 미완 모험 resume box
+      const savedSlugs = listLocalSessionSlugs();
+      if (savedSlugs.length > 0) {
+        const resumeWrapper = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '0' } });
+        const resumeSec = el('div', {
+          style: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' },
+        });
+        resumeWrapper.appendChild(resumeSec);
+        resumeSec.appendChild(el('strong', { textContent: '미완 모험 이어가기' }));
+
+        let hasCard = false;
+        for (const slug of savedSlugs) {
+          const saved = loadSession(slug);
+          if (!saved) continue;
+          hasCard = true;
+
+          const card = el('div', {
+            style: {
+              padding: '10px 12px',
+              background: 'var(--bg-tertiary, #1f1f1f)',
+              border: '1px solid var(--border-color, #333)',
+              borderRadius: 'var(--radius-sm, 4px)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            },
+          });
+          card.dataset.slug = slug;
+
+          const date = new Date(saved.startedAt).toLocaleString('ko-KR', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit',
+          });
+          card.appendChild(el('div', {
+            textContent: slug,
+            style: { fontWeight: '600', fontSize: '13px', color: 'var(--text-primary, #e8e8e8)' },
+          }));
+          card.appendChild(el('div', {
+            textContent: `${date} · ${saved.turns.length}턴 · cast: ${saved.castSlugs.join(', ') || '(없음)'}`,
+            style: { fontSize: '12px', color: 'var(--text-tertiary, #888)' },
+          }));
+
+          const btnRow = el('div', { style: { display: 'flex', gap: '8px', marginTop: '4px' } });
+
+          const resumeBtn = el('button', {
+            textContent: '이어가기',
+            style: {
+              padding: '4px 12px',
+              background: 'var(--accent, #d4a849)',
+              color: '#000',
+              border: 'none',
+              borderRadius: 'var(--radius-sm, 4px)',
+              cursor: 'pointer',
+              fontSize: '13px',
+            },
+          });
+          resumeBtn.addEventListener('click', () => resumeFromSession(saved));
+
+          const discardBtn = el('button', {
+            textContent: '버리기',
+            style: {
+              padding: '4px 12px',
+              background: 'var(--bg-secondary, #181818)',
+              color: 'var(--text-tertiary, #888)',
+              border: '1px solid var(--border-color, #333)',
+              borderRadius: 'var(--radius-sm, 4px)',
+              cursor: 'pointer',
+              fontSize: '13px',
+            },
+          });
+          discardBtn.addEventListener('click', () => {
+            void deleteSession(slug).then(() => {
+              card.remove();
+              if (resumeSec.querySelectorAll('[data-slug]').length === 0) {
+                resumeWrapper.remove();
+              }
+            });
+          });
+
+          btnRow.appendChild(resumeBtn);
+          btnRow.appendChild(discardBtn);
+          card.appendChild(btnRow);
+          resumeSec.appendChild(card);
+        }
+
+        if (hasCard) {
+          const divider = el('hr', {
+            style: { border: 'none', borderTop: '1px solid var(--border-color, #444)', margin: '4px 0 8px' },
+          });
+          resumeWrapper.appendChild(divider);
+          stage.appendChild(resumeWrapper);
+        }
+      }
+
       stage.appendChild(el('strong', { textContent: '새 모험 — cast 선택' }));
       stage.appendChild(el('p', {
         textContent: '모험 시작 시 자세한 컨텍스트로 박을 NPC 를 선택하세요 (선택은 0~3명, 모험 도중 자동으로 새 NPC cast 흡수됨)',

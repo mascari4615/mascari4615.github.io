@@ -87,6 +87,23 @@ export function loadSession(slug: string): AdventureSession | null {
   }
 }
 
+export async function deleteSession(slug: string): Promise<void> {
+  const invoke = getTauriInvoke();
+  if (invoke) {
+    try {
+      await invoke('adventure_delete_raw', { slug });
+      return;
+    } catch (err) {
+      console.warn('[adventure] adventure_delete_raw 미가용, localStorage fallback', err);
+    }
+  }
+  try {
+    localStorage.removeItem(STORAGE_KEY_PREFIX + slug);
+  } catch (err) {
+    console.error('[adventure] localStorage 삭제 실패', err);
+  }
+}
+
 export function listLocalSessionSlugs(): string[] {
   const slugs: string[] = [];
   try {
