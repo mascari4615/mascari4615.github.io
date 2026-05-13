@@ -41,14 +41,13 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
 }
 
-// 4. apps/karmolab-tauri — ACL 4-source audit (KL-040).
-//    KL-035 사고 재발 방지: #[tauri::command] / generate_handler! / permissions/*.toml / capabilities/default.json
-//    4 source 정합 0 mismatch 강제. 새 커맨드 추가 시 4곳 동시 수정 누락 자동 감지.
-if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
-  run('apps/karmolab-tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
+// 3.5. Tauri ACL audit — backend/handler/perms 정합성 (TASK-KL-040).
+//      KL-035 사고 원인(삭제 fn 잔재 permissions) 재발 방지.
+if (existsSync('apps/karmolab-tauri/scripts/audit-tauri-acl.mjs')) {
+  run('Tauri ACL audit', '.', 'node apps/karmolab-tauri/scripts/audit-tauri-acl.mjs');
 }
 
-// 5. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
+// 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
 //    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면
 //    개발 흐름 깨짐. CI 는 verify.yml 의 'Install blog deps' step 이 보장.
 if (existsSync('apps/blog/node_modules')) {
