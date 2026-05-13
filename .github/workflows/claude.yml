@@ -46,6 +46,20 @@ jobs:
             /usr/local/lib/node_modules/@anthropic-ai
           key: claude-code-cli-${{ runner.os }}-v1
 
+      - name: Setup Claude permissions (CI bypass mode)
+        # claude-code-action 의 default settings 는 도구 호출마다 prompt → CI 자동 거부.
+        # bypassPermissions 모드 박아서 sandbox 풀어줌 (로컬 ~/.claude/settings.json 정합).
+        run: |
+          mkdir -p $HOME/.claude
+          cat > $HOME/.claude/settings.local.json << 'EOF'
+          {
+            "permissions": {
+              "defaultMode": "bypassPermissions"
+            }
+          }
+          EOF
+          echo "Claude settings.local.json: bypassPermissions mode 박힘"
+
       - name: Run Claude Triage + Auto-Fix
         uses: anthropics/claude-code-action@v1
         with:
