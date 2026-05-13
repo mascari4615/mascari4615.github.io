@@ -29,11 +29,11 @@
     "targets": "all",
     "createUpdaterArtifacts": false,
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
+      "icons/dev/32x32.png",
+      "icons/dev/128x128.png",
+      "icons/dev/128x128@2x.png",
       "icons/icon.icns",
-      "icons/icon.ico"
+      "icons/dev/icon.ico"
     ]
   },
   "plugins": {
