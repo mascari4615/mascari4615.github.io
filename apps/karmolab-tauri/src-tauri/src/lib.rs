@@ -11,7 +11,9 @@ mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
-use adventure::{adventure_claude_complete, adventure_commit_summary, adventure_save_raw};
+use adventure::{
+    adventure_claude_complete, adventure_commit_summary, adventure_save_image, adventure_save_raw,
+};
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
 use quest_index::get_quest_tree;
@@ -896,6 +898,7 @@ pub fn run() {
             life_set_feature,
             adventure_claude_complete,
             adventure_save_raw,
+            adventure_save_image,
             adventure_commit_summary
         ])
         .plugin(tauri_plugin_updater::Builder::new().build())
