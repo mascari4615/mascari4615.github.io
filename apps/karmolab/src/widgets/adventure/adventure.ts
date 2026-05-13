@@ -135,6 +135,15 @@ import { attachImageRef } from './turn-loop';
 
     let state: TurnLoopState | null = null;
 
+    // turn 진행 중 페이지 이탈 경고 — panel.isConnected 로 위젯 unload 시 자동 무효화
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (state?.busy && panel.isConnected) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     function resumeFromSession(session: AdventureSession) {
       const resumed = createInitialState(session);
       for (const turn of session.turns) {
