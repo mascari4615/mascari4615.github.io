@@ -20,6 +20,7 @@ extend-exclude = [
 
 # === 자체 코드 / build script 의 의도된 줄임 ===
 IIF = "IIF"          # build.mjs: IIFE 줄임 ('Immediately Invoked Function Expression')
+mmaped = "mmaped"    # candle-nn API: from_mmaped_safetensors (외부 라이브러리, 변경 불가)
 
 # === 한국어 / 외국어 약어 / 고유명사 ===
 SOOP = "SOOP"        # 한국 OTT 서비스 이름
