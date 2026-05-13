@@ -270,6 +270,7 @@ master 브랜치는 항상 다음을 만족:
 - `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
 - `packages/karmolab-ai` 의 build 통과 (필수)
 - `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
+- `apps/karmolab-tauri` ACL 4-source audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040). `#[tauri::command]` / `generate_handler!` / `permissions/*.toml` / `capabilities/default.json` 4 source 정합 0 mismatch. 새 커맨드 추가 시 4곳 동시 수정 필수.
 - `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
 - typos check (`crate-ci/typos`) — strict 게이트 (KL-032). `_typos.toml` 이 false-positive 정의 + 데이터/외부 라이브러리 exclude. 진짜 typo 일 가능성 큰 단어들은 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
 
