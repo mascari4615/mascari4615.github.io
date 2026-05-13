@@ -3,6 +3,7 @@ import { EmbedBuilder } from 'discord.js';
 import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
+import { isDigestCommit, handleDigestCommit } from '../services/digest-webhook';
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
   const app = express();
@@ -37,6 +38,17 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           res.sendStatus(200);
           return;
         }
+
+        // TASK-YB-004 — dev-digest commit 감지: chore(digests): + digests/*.md added.
+        // 해당 commit 발견 시 Yawn AI 가공 후 별도 embed 전송 + regular embed skip.
+        const digestCommit = payload.commits.find((c: any) => isDigestCommit(c));
+        if (digestCommit) {
+          res.sendStatus(200);
+          // async 이므로 res 먼저 보내고 AI 처리 (최대 수 초 소요)
+          void handleDigestCommit(client, digestCommit, repoFullName ?? '', channelIds);
+          return;
+        }
+
         embed.setTitle(gameData.getMessage('Webhook_Push_Title', payload.commits.length));
         const desc = payload.commits
           .slice(0, 5)
