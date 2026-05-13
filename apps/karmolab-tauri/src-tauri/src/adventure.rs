@@ -86,13 +86,17 @@ fn run_claude(prompt: &str, model_id: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn adventure_claude_complete(
+pub async fn adventure_claude_complete(
     payload: AdventureCompletePayload,
 ) -> Result<AdventureCompleteResult, String> {
-    let prompt = build_prompt(&payload);
-    let model_id = payload.model_id.clone();
-    let text = run_claude(&prompt, &model_id)?;
-    Ok(AdventureCompleteResult { text, model_id })
+    tauri::async_runtime::spawn_blocking(move || {
+        let prompt = build_prompt(&payload);
+        let model_id = payload.model_id.clone();
+        let text = run_claude(&prompt, &model_id)?;
+        Ok(AdventureCompleteResult { text, model_id })
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
 /* ===== ζ-2: raw save + wiki commit ===== */
@@ -228,7 +232,13 @@ pub fn adventure_save_image(
 }
 
 #[tauri::command]
-pub fn adventure_save_raw(payload: AdventureSessionPayload) -> Result<(), String> {
+pub async fn adventure_save_raw(payload: AdventureSessionPayload) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || adventure_save_raw_blocking(payload))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn adventure_save_raw_blocking(payload: AdventureSessionPayload) -> Result<(), String> {
     let session = &payload.session;
     let slug = session
         .get("slug")
@@ -283,7 +293,15 @@ fn run_git(cwd: &PathBuf, args: &[&str]) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn adventure_commit_summary(
+pub async fn adventure_commit_summary(
+    payload: AdventureSummaryPayload,
+) -> Result<AdventureCommitResult, String> {
+    tauri::async_runtime::spawn_blocking(move || adventure_commit_summary_blocking(payload))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn adventure_commit_summary_blocking(
     payload: AdventureSummaryPayload,
 ) -> Result<AdventureCommitResult, String> {
     if payload.slug.is_empty() {

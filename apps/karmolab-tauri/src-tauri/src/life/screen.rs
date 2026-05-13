@@ -46,8 +46,10 @@ pub struct CaptureResult {
 
 /// Tauri command — webview 또는 외부 invoke 진입점. trigger="manual".
 #[tauri::command]
-pub fn life_screen_capture() -> Result<CaptureResult, String> {
-    capture_with_trigger("manual")
+pub async fn life_screen_capture() -> Result<CaptureResult, String> {
+    tauri::async_runtime::spawn_blocking(|| capture_with_trigger("manual"))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
 /// 핵심 capture 함수 — sub-F-3 hotkey handler 가 trigger="hotkey" 로 호출.
@@ -202,7 +204,7 @@ mod live_tests {
 
         // 라이브 vision 호출 비용 회피 (claude vision 30s+) — env 로 disabled.
         std::env::set_var("LIFE_VISION_PROVIDER", "none");
-        let result = life_screen_capture().expect("capture 실패");
+        let result = capture_with_trigger("manual").expect("capture 실패");
         eprintln!(
             "[live] png={} md={} ocr_chars={} domain={:?} app={:?} trigger={} vision={:?} slug-summary='{}'",
             result.png_path,
@@ -248,7 +250,7 @@ mod live_tests {
         }
         std::env::remove_var("LIFE_VISION_PROVIDER");
 
-        let result = life_screen_capture().expect("capture 실패");
+        let result = capture_with_trigger("manual").expect("capture 실패");
         eprintln!("=== sub-G-1 라이브 검증 ===");
         eprintln!("png_path: {}", result.png_path);
         eprintln!("md_path: {}", result.md_path);

@@ -344,3 +344,8 @@ master 브랜치는 항상 다음을 만족:
     - 봉제 명령 (`localdev_send_stdin`), 외부 실행 PID 발견·종료 (`localdev_list_external_pids` / `localdev_stop_external`), 재기동 후 PID reattach 등도 자동.
     - 트레이 「개발 모드 (로컬 8899)」 토글은 KarmoLab 자체 (WebView 가 보는 페이지) 를 로컬 정적 서버로 띄울 때만. 일반 봇/서버는 `devProfiles` 가 정답.
     - 코드: `apps/karmolab-tauri/src-tauri/src/local_dev.rs`. 사용자 문서: `apps/karmolab/js/widgets/docs/local-dev-runner.md`.
+13. **IO 무거운 `#[tauri::command]` = `async` + `tauri::async_runtime::spawn_blocking` 강제** (TASK-KL-043, 2026-05-13).
+    - 기준: `fs::read_dir` 다중 호출 / external `std::process::Command` spawn (git, claude CLI, gh 등) / xcap + OCR + LLM 등 수 초 작업.
+    - 패턴: `pub async fn cmd(params) -> Result<T, String> { tauri::async_runtime::spawn_blocking(move || cmd_blocking(params)).await.map_err(|e| format!("spawn_blocking join 실패: {}", e))? }`
+    - 이미 마이그된 명령: `get_questlog_hub` (KL-035), `get_quest_tree`, `adventure_claude_complete`, `adventure_save_raw`, `adventure_commit_summary`, `life_screen_capture`, `desktop_install_pending_update`.
+    - Sync OK (< 10ms, 단일 파일 R/W): `toggle_quest_check`, `set_quest_status`, `set_quest_priority`, `add/delete/rename_quest_check`, `repofile_*`, `open_task_in_editor`, `create_task`, `terminal_*`, `life_get_feature_states`, `life_set_feature`, `desktop_notify`, `desktop_restart_app`.
