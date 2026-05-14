@@ -1,0 +1,84 @@
+name: Yawnbot NSSM Restart Policy
+
+# TASK 3 (세션) — NSSM AppExit Restart 정책 박기.
+# 봇 프로세스가 죽으면 NSSM 가 자동으로 재기동 (AppRestartDelay 후).
+# AppThrottle = 빠른 종료 (loop) 시 throttle — 무한 재시작 loop 방지.
+# self-hosted runner 에서 nssm set 즉시 적용 — service 재시작 필요 X.
+
+on:
+  workflow_dispatch:
+    inputs:
+      restart_delay_ms:
+        description: 'AppRestartDelay (ms) — exit 후 restart 까지 지연'
+        required: false
+        default: '5000'
+      throttle_ms:
+        description: 'AppThrottle (ms) — 이 시간 내 빠른 종료 시 loop 방지'
+        required: false
+        default: '1500'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yawnbot-nssm-ops
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 3
+
+    steps:
+      - name: Resolve nssm.exe path
+        id: nssm
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($cmd) { $cmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:ProgramData\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "C:\ProgramData\chocolatey\bin\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { throw "nssm.exe 못 찾음" }
+          Write-Host "Using nssm: $nssm"
+          "nssm=$nssm" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Apply restart policy
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $nssm = '${{ steps.nssm.outputs.nssm }}'
+          $delay = '${{ inputs.restart_delay_ms }}'
+          $throttle = '${{ inputs.throttle_ms }}'
+
+          Write-Host "=== Before ==="
+          & $nssm get yawnbot-prod AppExit Default
+          & $nssm get yawnbot-prod AppRestartDelay
+          & $nssm get yawnbot-prod AppThrottle
+
+          Write-Host ""
+          Write-Host "=== Applying ==="
+          & $nssm set yawnbot-prod AppExit Default Restart
+          if ($LASTEXITCODE -ne 0) { throw "AppExit Default Restart failed (exit $LASTEXITCODE)" }
+          & $nssm set yawnbot-prod AppRestartDelay $delay
+          if ($LASTEXITCODE -ne 0) { throw "AppRestartDelay $delay failed" }
+          & $nssm set yawnbot-prod AppThrottle $throttle
+          if ($LASTEXITCODE -ne 0) { throw "AppThrottle $throttle failed" }
+
+          Write-Host ""
+          Write-Host "=== After ==="
+          & $nssm get yawnbot-prod AppExit Default
+          & $nssm get yawnbot-prod AppRestartDelay
+          & $nssm get yawnbot-prod AppThrottle
+          Write-Host ""
+          Write-Host "NSSM restart policy applied. 다음 exit 부터 자동 재기동."
