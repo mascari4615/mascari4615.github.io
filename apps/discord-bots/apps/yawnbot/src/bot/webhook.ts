@@ -9,6 +9,15 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
   const app = express();
   app.use(express.json());
 
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      ok: client.isReady(),
+      uptime_sec: Math.floor(process.uptime()),
+      ws_status: client.ws.status,
+      ready_at: client.readyAt?.toISOString() ?? null,
+    });
+  });
+
   app.post('/webhook/github', async (req, res) => {
     try {
       const event = req.headers['x-github-event'];
