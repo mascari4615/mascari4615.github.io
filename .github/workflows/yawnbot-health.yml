@@ -1,0 +1,77 @@
+name: Yawnbot Health Watcher
+
+# TASK-YB-020 사후 인프라 — yawnbot prod health endpoint 외부 감시.
+# 「monitoring 주체 ≠ monitoring 대상」 원칙: github-hosted ubuntu runner 사용
+# (self-hosted runner = prod 노트북 = 감시 대상이라 같이 죽음).
+# alert 채널 = 봇 의존 X Discord Incoming Webhook URL (secret).
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # GH Actions schedule 실 발동 5~15분 지연 — yawnbot 분단위 SLA 아님, 충분.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yawnbot-health-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      HEALTH_URL: 'https://yawnbot.mascari4615.com/health'
+      ALERT_WEBHOOK: ${{ secrets.YAWNBOT_HEALTH_ALERT_WEBHOOK_URL }}
+
+    steps:
+      - name: HTTP probe
+        id: probe
+        run: |
+          set +e
+          # -m 10 = 10초 타임아웃 (네트워크 일시 지연 흡수)
+          BODY=$(curl -sS -m 10 -w "\nHTTP_CODE:%{http_code}\n" "$HEALTH_URL" 2>&1)
+          CURL_EXIT=$?
+          HTTP_CODE=$(echo "$BODY" | grep -oP 'HTTP_CODE:\K[0-9]+' | tail -1)
+          if [ -z "$HTTP_CODE" ]; then HTTP_CODE="000"; fi
+
+          echo "::group::Response"
+          echo "$BODY"
+          echo "::endgroup::"
+
+          echo "curl_exit=$CURL_EXIT" >> "$GITHUB_OUTPUT"
+          echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+
+          if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ]; then
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "::warning::yawnbot health probe FAIL (curl_exit=$CURL_EXIT http_code=$HTTP_CODE)"
+          else
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Alert on failure
+        if: steps.probe.outputs.status == 'fail'
+        run: |
+          if [ -z "$ALERT_WEBHOOK" ]; then
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL secret 미설정 — alert skip (probe 는 fail 검출)"
+            exit 0
+          fi
+          TS=$(date -Iseconds)
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          PAYLOAD=$(jq -nc \
+            --arg url "$HEALTH_URL" \
+            --arg ts "$TS" \
+            --arg http "${{ steps.probe.outputs.http_code }}" \
+            --arg curl "${{ steps.probe.outputs.curl_exit }}" \
+            --arg run_url "$RUN_URL" \
+            '{
+              username: "Yawnbot Health Watcher",
+              embeds: [{
+                title: "yawnbot health check FAIL",
+                description: ("URL: " + $url + "\nHTTP code: " + $http + "\ncurl exit: " + $curl + "\ntime: " + $ts),
+                color: 15158332,
+                fields: [{ name: "Workflow run", value: $run_url, inline: false }]
+              }]
+            }')
+          curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"

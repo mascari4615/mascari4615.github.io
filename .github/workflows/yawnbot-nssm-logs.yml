@@ -1,0 +1,112 @@
+name: Yawnbot NSSM Logs
+
+# TASK 2 (세션) — yawnbot prod 죽음 원인 파악.
+# self-hosted runner (karmo-laptop-yawnbot, deploy-discord-bots.yml 와 동일) 에서
+# nssm 서비스 상태 + AppExit 정책 + stdout/stderr tail 회수.
+# workflow_dispatch only — push 트리거 X (보안: ops workflow 는 명시 트리거만).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tail_lines:
+        description: 'stdout/stderr tail line count'
+        required: false
+        default: '300'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yawnbot-nssm-ops
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 5
+
+    steps:
+      - name: Resolve nssm.exe path
+        id: nssm
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # deploy-discord-bots.yml § "NSSM restart yawnbot-prod" 와 동일 fallback 패턴
+          $cmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($cmd) { $cmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:ProgramData\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "C:\ProgramData\chocolatey\bin\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { throw "nssm.exe 못 찾음" }
+          Write-Host "Using nssm: $nssm"
+          "nssm=$nssm" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Service + process status
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host "=== Get-Service yawnbot-prod ==="
+          Get-Service yawnbot-prod -ErrorAction SilentlyContinue | Format-List Status, StartType, DisplayName, ServiceName
+          Write-Host ""
+          Write-Host "=== Process check (node) ==="
+          Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*node*" } | Format-Table Id, Name, StartTime, Path -AutoSize
+
+      - name: NSSM detail
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssm = '${{ steps.nssm.outputs.nssm }}'
+          Write-Host "=== nssm status ==="
+          & $nssm status yawnbot-prod
+          Write-Host ""
+          Write-Host "=== AppExit Default ==="
+          & $nssm get yawnbot-prod AppExit Default
+          Write-Host ""
+          Write-Host "=== AppRestartDelay ==="
+          & $nssm get yawnbot-prod AppRestartDelay
+          Write-Host ""
+          Write-Host "=== AppThrottle ==="
+          & $nssm get yawnbot-prod AppThrottle
+          Write-Host ""
+          Write-Host "=== AppStdout ==="
+          & $nssm get yawnbot-prod AppStdout
+          Write-Host ""
+          Write-Host "=== AppStderr ==="
+          & $nssm get yawnbot-prod AppStderr
+
+      - name: Stdout tail
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssm = '${{ steps.nssm.outputs.nssm }}'
+          $tailLines = [int]'${{ inputs.tail_lines }}'
+          $stdoutPath = (& $nssm get yawnbot-prod AppStdout | Out-String).Trim()
+          if ($stdoutPath -and (Test-Path -LiteralPath $stdoutPath)) {
+            Write-Host "=== AppStdout last $tailLines lines: $stdoutPath ==="
+            Get-Content -LiteralPath $stdoutPath -Tail $tailLines
+          } else {
+            Write-Host "AppStdout path missing or empty: '$stdoutPath'"
+          }
+
+      - name: Stderr tail
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssm = '${{ steps.nssm.outputs.nssm }}'
+          $tailLines = [int]'${{ inputs.tail_lines }}'
+          $stderrPath = (& $nssm get yawnbot-prod AppStderr | Out-String).Trim()
+          if ($stderrPath -and (Test-Path -LiteralPath $stderrPath)) {
+            Write-Host "=== AppStderr last $tailLines lines: $stderrPath ==="
+            Get-Content -LiteralPath $stderrPath -Tail $tailLines
+          } else {
+            Write-Host "AppStderr path missing or empty: '$stderrPath'"
+          }
