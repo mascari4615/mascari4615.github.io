@@ -4,10 +4,15 @@ on:
     branches:
       - main
       - master
-    paths-ignore:
-      - .gitignore
-      - README.md
-      - LICENSE
+    # allow-list: pages-deploy 가 실제 빌드 입력으로 쓰는 dir 만 트리거.
+    # 새 sub-app / root 파일 추가돼도 기본 미트리거 (default safe).
+    # 의존 누락 발견 시 본 목록 갱신 (TASK-KL-057).
+    paths:
+      - apps/blog/**
+      - apps/karmolab/**
+      - apps/karmolab-react-src/**
+      - packages/karmolab-ai/**
+      - .github/workflows/pages-deploy.yml
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
