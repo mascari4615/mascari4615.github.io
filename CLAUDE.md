@@ -193,7 +193,7 @@ cd apps/karmolab && npm ci && npm run build
 
 | Workflow | Trigger | Description |
 |---|---|---|
-| `verify.yml` | Push to `main`/`master`, PR | **Master invariant 단일 게이트** — `npm run verify` (apps/karmolab build + packages/karmolab-ai build + apps/karmolab-tauri cargo check + apps/blog lint:js + lint:scss) + typos. branch protection 의 required status check 로 `verify (master invariant)` 등록 (사용자 액션). 폐기 흡수: `ai-quality.yml`, `code-quality.yml`, `karmolab-ts.yml`, `karmolab-tauri.yml`. |
+| `verify.yml` | Push to `main`/`master`, PR | **Master invariant 단일 게이트** — `npm run verify` (apps/karmolab build + packages/karmolab-ai build + apps/karmolab-tauri cargo check + apps/blog lint:js + lint:scss) + typos. branch protection 의 required status check 로 `verify (master invariant)` 등록됨 (applied). 폐기 흡수: `ai-quality.yml`, `code-quality.yml`, `karmolab-ts.yml`, `karmolab-tauri.yml`. |
 | `pages-deploy.yml` | Push to `main`/`master`, manual | Full site build and deploy to GitHub Pages |
 | `karmolab-tauri-release.yml` | Tag/manual | Tauri auto-update release pipeline |
 | `auto-merge.yml` | PR | Auto-merge after checks pass |
