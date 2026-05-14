@@ -7,7 +7,7 @@
     "tauri": "tauri",
     "dev": "concurrently -n static,tauri \"npm run dev:static\" \"npm run dev:tauri\"",
     "dev:static": "node ./scripts/dev-static.mjs 8898 --node-only",
-    "dev:tauri": "wait-on http-get://127.0.0.1:8898/apps/karmolab/ -t 120000 -i 250 && tauri dev",
+    "dev:tauri": "wait-on http-get://127.0.0.1:8898/apps/karmolab/ -t 30000 -i 250 && tauri dev --features dev-tools",
     "build": "tauri build --config src-tauri/tauri.release.conf.json",
     "audit:acl": "node scripts/audit-acl.mjs"
   },

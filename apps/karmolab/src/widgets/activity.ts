@@ -946,6 +946,8 @@
           refreshTimer = null;
           return;
         }
+        // KL-051: 트레이 hide 시 IPC + JSON 직렬화 비용 0.
+        if (typeof document !== 'undefined' && document.hidden) return;
         if (isViewingCurrentPeriod()) load(true);
       }, REFRESH_INTERVAL_MS);
     }
