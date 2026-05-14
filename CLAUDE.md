@@ -215,23 +215,61 @@ cd apps/karmolab && npm ci && npm run build
 
 ## Git Workflow
 
-본 § 가 본 레포 git workflow 의 정본. CodeRabbit 이 자동 픽업해 같은 룰로 PR 리뷰.
+본 § 가 본 레포 git workflow 의 *repo specific 보강*. **정본 = `karmoddrine/memo/rules/git.md`** (3 레포 trunk-based main 직접 push 통일 룰).
 
 ### Branches
 
-- `master` / `main`: Active development source. **직접 push 금지** (예외 단락 참조).
-- `production`: Release branch (triggers semantic-release). 직접 push 절대 금지.
-- Feature/fix branches: `feature/<주제>`, `fix/<주제>`, `chore/<주제>`, `refactor/<주제>`
+- `master` / `main`: Active development source. **직접 push 디폴트** (정본 정합).
+- `production`: Release branch (semantic-release). 직접 push 절대 금지 (Tag-only on master 대안 검토 — KL-NNN seed 가능).
+- Feature/fix branches: `feature/<주제>`, `fix/<주제>`, `chore/<주제>`, `refactor/<주제>` — autopilot Draft PR 흐름 또는 race 회피용 worktree
 
-### 브랜치 + PR 강제 (AI Native 게이트)
+### Trunk-based main 직접 push 디폴트 (3 레포 통일)
 
-작업마다 브랜치 분기 후 PR. **첫 커밋 시 바로 Draft PR 생성** +
-`.github/pull_request_template.md` 의도 채움 → push → CodeRabbit 코멘트 대응 →
-완료 시 PR 리뷰 후 `master` 머지.
+`memo/rules/git.md § Git Workflow — 3 레포 모두 main 직접 push` 정본 정합. WM / github.io / memo 모두 main(master) 직접 commit + push. PR / Draft PR / CodeRabbit 강제 룰 폐기.
 
-### Master 직접 push — 차단됨
+- commit 컨펌 후 `git push` 자율
+- 응급 fix / 1~3줄 chore / refactor / docs 모두 직접 push
+- `verify (master invariant)` required status check 만 강제 — 통과 시 push 허용
+- push 직전 race 회피: `safe-push.ps1 -Branch master -RepoPath ...` (정본 § push 직전 race 회피 참조)
 
-Branch Protection (아래 § 참조) 으로 PR 강제 + Include administrators + `verify (master invariant)` required. **모든 master 변경은 PR 통해야 함** — 1~3줄 chore / 응급 fix 도 예외 X. 응급 시 PR 만들고 review 0 + verify 통과 즉시 머지 (review 강제 0). 본 단락의 옛 「예외」 룰은 자동화 강제로 폐기됨.
+### PR 흐름 — 예외 케이스만
+
+PR 만드는 경우는 다음에 한정:
+
+- **Autopilot** (자율 개발 모드) — feature branch → Draft PR 까지만, main push 금지 (정본 § "예외 — autopilot")
+- **CodeRabbit / claude-pr-review 리뷰 받고 싶을 때** — feature branch + PR opened/ready_for_review 트리거. 평소 직접 push 흐름엔 미작동
+- **다른 세션과 파일 충돌 가능성** — worktree 격리 흐름 (정본 § main worktree — race 한정 우회)
+- **외부 협업** — fork PR / community contribution (해당 시점에만)
+
+### Commit Messages
+
+Conventional Commits are enforced via commitlint (`.husky/commit-msg`):
+
+```
+feat: add new feature
+fix: resolve a bug
+perf: performance improvement
+refactor: code restructuring (no behavior change)
+docs: documentation update
+chore: maintenance task
+style: formatting/style change
+test: add or update tests
+```
+
+- **Merge commits** are exempt from linting.
+- Semantic versioning and changelog generation run automatically on the `production` branch via `semantic-release`.
+
+### Branch Protection 실제 상태
+
+GitHub repo → Settings → Branches `master`:
+
+- `verify (master invariant)` required status check — verify CI 통과 필수
+- `enforce_admins: true` — admin 도 verify 통과 필요
+- `allow_force_pushes: false` / `allow_deletions: false` — master force-push / 삭제 차단
+- **`required_pull_request_reviews: null`** — PR 강제 X (직접 push OK)
+- **`restrictions: null`** — write access 가진 사용자는 누구나 직접 push 가능
+
+즉 *PR 흐름은 컨벤션이며 기계적 강제 X*. verify status check 만 강제 + force push / 삭제는 차단. trunk-based 정합.
 
 ### Commit Messages
 
@@ -279,8 +317,8 @@ master 브랜치는 항상 다음을 만족:
 3중 게이트:
 
 1. **로컬 pre-push** (`.husky/pre-push`) — 자동 호출. 우회: `git push --no-verify` (응급용).
-2. **CI** (`.github/workflows/verify.yml`) — `npm run verify` 호출. 아래 § Branch Protection 의 required status check 로 `verify (master invariant)` 등록 필요 (사용자 액션).
-3. **Branch Protection** (사용자 GitHub UI) — § Branch Protection 참조.
+2. **CI** (`.github/workflows/verify.yml`) — `npm run verify` 호출. push 시 자동 트리거 (master 직접 push 흐름 정합).
+3. **Branch Protection — `verify (master invariant)` required** — verify CI 통과 안 한 push 는 차단. PR 강제는 X (trunk-based 정합).
 
 추가 hook:
 - **`.husky/commit-msg`** — Conventional Commits (commitlint via `apps/blog`) 강제. `apps/blog/node_modules/@commitlint` 미설치 시 silent skip — 사용자가 `cd apps/blog && npm ci` 해야 활성.
@@ -333,7 +371,7 @@ master 브랜치는 항상 다음을 만족:
 6. **Do not edit `_config.yml` lightly** — changes affect the entire site behavior and build pipeline.
 7. **Apps in `apps/` are independent projects** with their own `package.json` and build processes. They are excluded from the main Jekyll build.
 8. **Commit messages must follow Conventional Commits** — the pre-commit hook (`husky`) will reject non-conforming messages.
-9. **The `production` branch** is for releases only; normal development goes to `master`/`main` — but `master`/`main` 도 PR 거쳐 머지 (`§ Git Workflow` 참조). 직접 push 는 1~3줄 chore 등 예외만.
+9. **The `production` branch** is for releases only; normal development goes to `master`/`main` — **직접 push 디폴트** (`§ Git Workflow` 정합, 정본 = `karmoddrine/memo/rules/git.md`). PR 흐름은 autopilot / CodeRabbit 리뷰 / 외부 협업 등 예외 케이스만.
 10. **공통 작업 원칙 (레거시 금지 / 마이그레이션 자기소멸 / 커밋 전 확인 / 커밋 전 테스트 / 한 commit 한 주제 / 푸시는 지시 시에만)** — 단일 출처: `karmoddrine/memo/UMBRELLA.md` § 공통 작업 원칙 — 모든 레포. 본 레포에도 동일 적용. 충돌 시 K 가 우선.
 11. **Vertex AI is preferred over AI Studio** — the user has Vertex AI credits. When both surfaces support the same capability (text generation, embeddings), default to Vertex. Use `KARMOLAB_AI_SURFACE=vertex` as the standard. AI Studio is a fallback only. Do not propose AI Studio as the primary option. When adding new AI features, implement both surfaces via `karmolab-ai` and respect the surface env var.
     - **KL-032 예외 (무한 텍스트 어드벤처)**: 사용자 발화 「Max x20 활용」 시드 → Claude (Max OAuth) default. provider abstraction + 위젯 토글로 Vertex 도 선택 가능 (`apps/karmolab/src/widgets/adventure/provider/`).
