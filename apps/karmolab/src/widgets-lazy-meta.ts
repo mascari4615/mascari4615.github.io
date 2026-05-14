@@ -169,6 +169,15 @@ window.KARMOLAB_LAZY_META = [
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 9l3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
     lazyScriptPaths: ['terminal/terminal']
   },
+  {
+    id: 'claude-env',
+    title: 'Claude 환경',
+    category: 'desktop',
+    desc: 'Claude Code Stop/Notification hook 사운드 알림 GUI — memo/dotfiles 정본 (v1: read 만, Step 2+: write + sync + preview + wav drag-drop)',
+    layout: 'form',
+    icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+    lazyScriptPaths: ['claude-env']
+  },
 
   /* ───── 잡동사니 (Stash) — TASK-KL-034 ─────
    * 사이드바 hide (hidden: true). 「잡동사니」 위젯 안에서 inline render + 자동 작동.

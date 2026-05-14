@@ -1,0 +1,6 @@
+[[permission]]
+identifier = "allow-claude-env"
+description = "Claude 환경 컨트롤 위젯 (TASK-KL-056) — karmoddrine/memo/dotfiles/claude-hooks 정본의 notify-*.ps1 설정 read/write."
+commands.allow = [
+  "claude_env_read_notify_config",
+]
