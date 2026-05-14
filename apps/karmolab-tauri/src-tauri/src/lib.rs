@@ -23,8 +23,8 @@ use quest_writeback::{
     toggle_quest_check,
 };
 use local_dev::{
-    localdev_deploy, localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
-    localdev_list_external_pids, localdev_list_tracked, localdev_npm_install,
+    localdev_deploy_stream, localdev_follow_log, localdev_get_repo_root,
+    localdev_list_external_pids, localdev_list_tracked,
     localdev_npm_install_stream, localdev_send_stdin, localdev_set_repo_root, localdev_start,
     localdev_stop, localdev_stop_external, localdev_stop_log_follow, reattach_persisted_pids,
     LocalDevState,
@@ -868,9 +868,7 @@ pub fn run() {
             localdev_send_stdin,
             localdev_follow_log,
             localdev_stop_log_follow,
-            localdev_npm_install,
             localdev_npm_install_stream,
-            localdev_deploy,
             localdev_deploy_stream,
             repofile_open_default,
             repofile_reveal,
