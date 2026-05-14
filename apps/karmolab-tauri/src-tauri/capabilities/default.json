@@ -6,8 +6,8 @@
   "remote": {
     "urls": [
       "https://mascari4615.github.io/*",
-      "http://localhost:*/*",
-      "http://127.0.0.1:*/*"
+      "http://127.0.0.1:8898/*",
+      "http://127.0.0.1:8899/*"
     ]
   },
   "permissions": [

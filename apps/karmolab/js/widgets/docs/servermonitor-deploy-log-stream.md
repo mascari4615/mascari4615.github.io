@@ -11,7 +11,6 @@
 | 항목 | 내용 |
 |------|------|
 | Rust 커맨드 | `localdev_deploy_stream`, `localdev_npm_install_stream` (`spawn_blocking` + 파이프) |
-| 블로킹 커맨드(유지) | `localdev_deploy`, `localdev_npm_install` — devtools·호환용 |
 | 이벤트 | `localdev-log` (줄), `localdev-log-done` (종료) |
 | WebView | `window.__TAURI__.event.listen` 등록 후 `invoke` (순서 고정) |
 | 권한 | `capabilities/default.json`에 `core:event:allow-listen` |
@@ -46,7 +45,7 @@
 ## 3. 구현과 블로킹 API
 
 - 스트리밍: 파이프 + **stdout/stderr 각각 별도 스레드**에서 `read_line` 후 `app.emit`.
-- 기존 `localdev_deploy` / `localdev_npm_install`은 `output()` 기반으로 그대로 두었다.
+- KL-051: 옛 sync 블로킹 버전 (`localdev_deploy` / `localdev_npm_install`) 은 frontend 호출 0 (dead) → 제거. 모든 호출 = `*_stream` 으로 통일.
 
 ## 4. UX (적용됨)
 

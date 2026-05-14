@@ -505,6 +505,8 @@
         if (overviewPollTimer != null) { window.clearInterval(overviewPollTimer); overviewPollTimer = null; }
         return;
       }
+      // KL-051: 트레이 hide 시 IPC + memo 6 도메인 walk 비용 0.
+      if (typeof document !== 'undefined' && document.hidden) return;
       void refreshOverview(overviewWrap);
     }, POLL_INTERVAL_OVERVIEW_MS);
   }
