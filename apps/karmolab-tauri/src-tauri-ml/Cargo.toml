@@ -1,0 +1,21 @@
+[package]
+name = "karmolab-ml-sidecar"
+version = "0.1.0"
+description = "KarmoLab ML stack sidecar — voice(Whisper) / capture(xcap) / OCR(tesseract). 메인 바이너리에서 분리 (KL-052)."
+authors = ["mascari4615"]
+edition = "2021"
+
+# Tauri externalBin: ["bin/karmolab-life-ml"] (KL-052-D 통합 시 이 바이너리명 사용).
+[[bin]]
+name = "karmolab-life-ml"
+path = "src/main.rs"
+
+[dependencies]
+# IPC 프로토콜 = 워크스페이스 공유 crate (메인과 단일 정의 공유, drift 0).
+karmolab-shared = { path = "../src-tauri-shared" }
+# KL-052-A 스켈레톤 = IPC 골격만. candle/tokenizers/cpal/hound/xcap/image/
+# rusty-tesseract 등 ML dep 은 각 모듈 마이그 시점에 추가:
+#   - KL-052-B: voice (candle/tokenizers/cpal/hound)
+#   - KL-052-C: capture (xcap/image) + ocr (rusty-tesseract)
+# 스켈레톤 단계에서 무거운 dep 미리 박지 X — -A cargo check 경량 유지.
+serde_json = "1"
