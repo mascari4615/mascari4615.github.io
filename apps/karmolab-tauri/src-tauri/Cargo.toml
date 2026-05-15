@@ -69,13 +69,9 @@ base64 = "0.22"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi"] }
 
-# KL-051: production 배포 최적화. cargo 디폴트 (lto=false / codegen-units=16 / strip=false) 가
-# desktop 앱 배포에는 부적합 — fat LTO + 단일 codegen + strip + abort panic 으로 사이즈 + perf 동시 ↑.
-# `[profile.dev]` 미설정 = `tauri dev` 빌드 속도 그대로 (사용자 명시).
-[profile.release]
-lto = "fat"
-codegen-units = 1
-strip = true
-panic = "abort"
-opt-level = 3
+# KL-051 의 production 배포 최적화 (fat LTO / codegen-units=1 / strip /
+# panic=abort / opt-level=3) 는 KL-052 워크스페이스 전환으로 *워크스페이스
+# 루트* (`apps/karmolab-tauri/Cargo.toml` 의 [profile.release]) 로 이관됐다.
+# cargo 는 워크스페이스 멤버의 [profile.*] 를 무시(warn)하므로 여기 두면
+# KL-051 최적화가 조용히 사라진다. 루트에서 정의 — 동작 동일, 회귀 방지.
 

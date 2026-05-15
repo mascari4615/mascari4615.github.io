@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Cargo workspace build output (KL-052: 워크스페이스 단일 target — 메인 + ML sidecar 공유)
+/target
+
 # Tauri updater — private key must never be committed (pubkey lives in tauri.conf.json)
 src-tauri/karmolab-updater.key
 src-tauri/karmolab-updater.key.pub
