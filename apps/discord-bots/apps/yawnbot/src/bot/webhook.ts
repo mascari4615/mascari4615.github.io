@@ -1,5 +1,5 @@
 import express from 'express';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, Status } from 'discord.js';
 import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
@@ -9,12 +9,27 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
   const app = express();
   app.use(express.json());
 
+  // YB-020 Step 2 — gateway 가 살아있어도 dispatch 가 멈춘 zombie 상태 관측용.
+  // discord.js 는 op0 dispatch 마다 'raw' emit. 503 판정엔 안 쓰고 (조용한
+  // 시간대 false disconnected 위험) observability 신호로만 노출.
+  let lastDispatchAt: number | null = null;
+  client.on('raw', () => {
+    lastDispatchAt = Date.now();
+  });
+
   app.get('/health', (_req, res) => {
-    res.status(200).json({
-      ok: client.isReady(),
+    const gatewayUp = client.isReady() && client.ws.status === Status.Ready;
+    res.status(gatewayUp ? 200 : 503).json({
+      ok: gatewayUp,
+      gateway: gatewayUp ? 'connected' : 'disconnected',
       uptime_sec: Math.floor(process.uptime()),
       ws_status: client.ws.status,
+      ws_ping_ms: client.ws.ping,
       ready_at: client.readyAt?.toISOString() ?? null,
+      last_dispatch_at: lastDispatchAt ? new Date(lastDispatchAt).toISOString() : null,
+      deps: {
+        game_data_users: Object.keys(gameData.users ?? {}).length,
+      },
     });
   });
 

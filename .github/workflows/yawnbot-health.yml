@@ -40,12 +40,17 @@ jobs:
           echo "$BODY"
           echo "::endgroup::"
 
+          # YB-020 Step 2 — status code 뿐 아니라 body 의 ok:true 도 검증.
+          # gateway disconnected = HTTP 503 (code 로 잡힘) + body ok:false (이중 방어).
+          BODY_OK=$(echo "$BODY" | grep -oE '"ok"[[:space:]]*:[[:space:]]*(true|false)' | grep -oE '(true|false)' | tail -1)
+
           echo "curl_exit=$CURL_EXIT" >> "$GITHUB_OUTPUT"
           echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+          echo "body_ok=$BODY_OK" >> "$GITHUB_OUTPUT"
 
-          if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ]; then
+          if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ] || [ "$BODY_OK" != "true" ]; then
             echo "status=fail" >> "$GITHUB_OUTPUT"
-            echo "::warning::yawnbot health probe FAIL (curl_exit=$CURL_EXIT http_code=$HTTP_CODE)"
+            echo "::warning::yawnbot health probe FAIL (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
           else
             echo "status=ok" >> "$GITHUB_OUTPUT"
           fi
@@ -64,12 +69,13 @@ jobs:
             --arg ts "$TS" \
             --arg http "${{ steps.probe.outputs.http_code }}" \
             --arg curl "${{ steps.probe.outputs.curl_exit }}" \
+            --arg body_ok "${{ steps.probe.outputs.body_ok }}" \
             --arg run_url "$RUN_URL" \
             '{
               username: "Yawnbot Health Watcher",
               embeds: [{
                 title: "yawnbot health check FAIL",
-                description: ("URL: " + $url + "\nHTTP code: " + $http + "\ncurl exit: " + $curl + "\ntime: " + $ts),
+                description: ("URL: " + $url + "\nHTTP code: " + $http + "\ncurl exit: " + $curl + "\nbody ok: " + $body_ok + "\ntime: " + $ts),
                 color: 15158332,
                 fields: [{ name: "Workflow run", value: $run_url, inline: false }]
               }]
