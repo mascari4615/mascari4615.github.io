@@ -81,10 +81,12 @@ pub enum SidecarEvent
     {
         text: String,
     },
-    /// 캡처 결과 PNG 경로 (KL-052-C).
+    /// 캡처 결과 — sidecar 임시 PNG 경로 + primary monitor index
+    /// (메인 schema frontmatter 정합). 메인이 PNG 를 memo 로 이동.
     Captured
     {
         path: String,
+        monitor_index: usize,
     },
     /// 명령 처리 실패 (치명 X — sidecar 살아있고 다음 명령 계속).
     Error

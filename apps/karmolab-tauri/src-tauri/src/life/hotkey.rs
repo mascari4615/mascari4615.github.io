@@ -31,12 +31,13 @@ pub fn build_plugin() -> TauriPlugin<Wry> {
     let print_screen = print_screen_shortcut();
     let voice_kbd = voice_shortcut();
     tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |_app: &AppHandle, shortcut: &Shortcut, event| {
+        .with_handler(move |app: &AppHandle, shortcut: &Shortcut, event| {
             if shortcut == &print_screen {
                 if event.state() != ShortcutState::Pressed {
                     return;
                 }
-                std::thread::spawn(|| match capture_with_trigger("hotkey") {
+                let app = app.clone();
+                std::thread::spawn(move || match capture_with_trigger(&app, "hotkey") {
                     Ok(r) => eprintln!(
                         "[life-screen] hotkey capture: png={} domain={:?} app={:?}",
                         r.png_path, r.domain, r.app
