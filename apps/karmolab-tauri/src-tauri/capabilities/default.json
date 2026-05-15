@@ -32,6 +32,8 @@
     "allow-task-launcher",
     "allow-terminal",
     "allow-adventure",
+    "allow-claude-env",
+    "dialog:allow-open",
     "updater:default"
   ]
 }
