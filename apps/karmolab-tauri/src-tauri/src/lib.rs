@@ -1,5 +1,6 @@
 mod activity;
 mod adventure;
+mod claude_env;
 mod questlog_hub;
 mod life;
 mod local_dev;
@@ -13,6 +14,9 @@ mod terminal;
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
 use adventure::{
     adventure_claude_complete, adventure_commit_summary, adventure_save_image, adventure_save_raw,
+};
+use claude_env::{
+    claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
@@ -897,8 +901,12 @@ pub fn run() {
             adventure_claude_complete,
             adventure_save_raw,
             adventure_save_image,
-            adventure_commit_summary
+            adventure_commit_summary,
+            claude_env_read_notify_config,
+            claude_env_write_notify_config,
+            claude_env_preview_sound
         ])
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
