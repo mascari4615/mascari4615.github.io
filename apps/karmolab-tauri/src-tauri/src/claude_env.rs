@@ -15,7 +15,7 @@
 //! 사용자 입력 sanitize:
 //! - mode = "system" | "beep" | "wav" whitelist
 //! - system_sound = Asterisk | Beep | Exclamation | Hand | Question whitelist
-//! - wav_path = 절대 경로 + .wav 확장자 + 따옴표/세미콜론/backtick/$ 거부 (PowerShell 인자 escape).
+//! - wav_path = 절대 경로 + .wav/.mp3 확장자 + 따옴표/세미콜론/backtick/$ 거부 (PowerShell 인자 escape).
 
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -214,8 +214,12 @@ fn validate_wav_path(label: &str, raw: &str) -> Result<(), String> {
             label, p
         ));
     }
-    if !p.to_ascii_lowercase().ends_with(".wav") {
-        return Err(format!("{}.wav_path 는 .wav 확장자만 허용: {:?}", label, p));
+    let lower = p.to_ascii_lowercase();
+    if !lower.ends_with(".wav") && !lower.ends_with(".mp3") {
+        return Err(format!(
+            "{}.wav_path 는 .wav / .mp3 확장자만 허용: {:?}",
+            label, p
+        ));
     }
     Ok(())
 }
@@ -398,8 +402,11 @@ fn preview_sound_blocking(
             }
             validate_wav_path(hook, path)?;
             // PowerShell single-quoted string — 내부 ' 는 위에서 reject. 안전.
+            // 확장자 분기: .wav = SoundPlayer.PlaySync (안정), .mp3 = WPF
+            // MediaPlayer + NaturalDuration 폴링 (정본 notify-*.ps1 과 동일
+            // 로직 — preview 가 실제 hook 사운드와 일치하도록).
             format!(
-                "$p='{}'; if(Test-Path $p){{(New-Object System.Media.SoundPlayer $p).PlaySync()}} else {{ throw \"파일 없음: $p\" }}",
+                "$p='{}'; if(Test-Path $p){{ if([System.IO.Path]::GetExtension($p).ToLower() -eq '.wav'){{(New-Object System.Media.SoundPlayer $p).PlaySync()}} else {{ Add-Type -AssemblyName PresentationCore; $m=New-Object System.Windows.Media.MediaPlayer; $m.Open([Uri]$p); $m.Play(); $d=(Get-Date).AddSeconds(10); while(-not $m.NaturalDuration.HasTimeSpan -and (Get-Date) -lt $d){{Start-Sleep -Milliseconds 30}}; if($m.NaturalDuration.HasTimeSpan){{Start-Sleep -Milliseconds ([int]$m.NaturalDuration.TimeSpan.TotalMilliseconds+150)}}; $m.Stop(); $m.Close() }} }} else {{ throw \"파일 없음: $p\" }}",
                 path
             )
         }
@@ -548,7 +555,12 @@ mod tests {
         assert!(validate_wav_path("stop", "C:\\bad;path.wav").is_err());
         assert!(validate_wav_path("stop", "C:\\bad$path.wav").is_err());
         assert!(validate_wav_path("stop", "relative\\bar.wav").is_err());
-        assert!(validate_wav_path("stop", r"C:\not-wav.mp3").is_err());
+        // .mp3 허용 (KL-059 — WPF MediaPlayer 다포맷)
+        assert!(validate_wav_path("stop", r"C:\sound\beep.mp3").is_ok());
+        assert!(validate_wav_path("stop", r"C:\sound\UP.MP3").is_ok());
+        // 그 외 확장자는 여전히 거부
+        assert!(validate_wav_path("stop", r"C:\not-audio.ogg").is_err());
+        assert!(validate_wav_path("stop", r"C:\not-audio.txt").is_err());
     }
 
     #[test]
