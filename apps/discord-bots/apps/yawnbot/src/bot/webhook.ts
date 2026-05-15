@@ -9,12 +9,11 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
   const app = express();
   app.use(express.json());
 
-  // YB-020 Step 2 — gateway 가 살아있어도 dispatch 가 멈춘 zombie 상태 관측용.
-  // discord.js 는 op0 dispatch 마다 'raw' emit. 503 판정엔 안 쓰고 (조용한
-  // 시간대 false disconnected 위험) observability 신호로만 노출.
+  // op0 dispatch 시각 — 503 판정 미사용 (조용한 시간대 false disconnected 위험). observability 전용.
+  // 'raw' 는 모든 gateway packet 마다 발동하므로 op===0 만 필터링 (heartbeat ACK 오염 방지).
   let lastDispatchAt: number | null = null;
-  client.on('raw', () => {
-    lastDispatchAt = Date.now();
+  client.on('raw', (packet) => {
+    if (packet.op === 0) lastDispatchAt = Date.now();
   });
 
   app.get('/health', (_req, res) => {
