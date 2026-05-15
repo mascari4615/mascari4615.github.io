@@ -31,6 +31,9 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
 # TASK-KL-056: Claude 환경 위젯 wav path 파일 선택 다이얼로그.
 tauri-plugin-dialog = "2"
+# KL-052-B: ML sidecar(karmolab-life-ml) spawn — externalBin + stdin/stdout
+# JSON line. 결정 #2 (Tauri 표준 lifecycle/번들 + KL-040 ACL 정합).
+tauri-plugin-shell = "2"
 
 # TASK-LIFE-001-F (sub-F-1: capture + sub-F-2: OCR/분류/frontmatter + sub-F-3: hotkey)
 xcap = "0.0.13"

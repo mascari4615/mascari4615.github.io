@@ -28,6 +28,7 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": false,
+    "externalBin": ["binaries/karmolab-life-ml"],
     "icon": [
       "icons/dev/32x32.png",
       "icons/dev/128x128.png",

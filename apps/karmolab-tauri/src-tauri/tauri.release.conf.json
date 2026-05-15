@@ -21,6 +21,7 @@
   "bundle": {
     "createUpdaterArtifacts": true,
     "targets": ["nsis"],
+    "externalBin": ["binaries/karmolab-life-ml"],
     "windows": {
       "webviewInstallMode": { "type": "skip" },
       "nsis": { "compression": "lzma" }

@@ -34,6 +34,10 @@
     "allow-adventure",
     "allow-claude-env",
     "dialog:allow-open",
-    "updater:default"
+    "updater:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [{ "name": "binaries/karmolab-life-ml", "sidecar": true }]
+    }
   ]
 }
