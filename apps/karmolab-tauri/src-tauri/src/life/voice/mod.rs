@@ -16,8 +16,6 @@
 
 pub mod schema;
 
-use std::path::Path;
-
 use tauri::AppHandle;
 
 use super::classify::{self, ClassifyKind};
@@ -123,16 +121,6 @@ pub fn record_stop_and_process(trigger: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// sidecar 임시 wav → 최종 경로. 같은 볼륨이면 rename, cross-device
-/// (OS temp ↔ memo 다른 드라이브) 면 copy + remove.
-fn move_into(src: &str, dest: &Path) -> Result<(), String> {
-    if std::fs::rename(src, dest).is_ok() {
-        return Ok(());
-    }
-    std::fs::copy(src, dest).map_err(|e| format!("wav copy 실패: {e}"))?;
-    let _ = std::fs::remove_file(src);
-    Ok(())
-}
 
 fn process_recording(
     text: &str,
@@ -163,7 +151,7 @@ fn process_recording(
 
     let final_wav = voice_dir.join(format!("{stamp}-{slug}.wav"));
     let md_path = voice_dir.join(format!("{stamp}-{slug}.md"));
-    move_into(sidecar_wav, &final_wav)?;
+    sidecar::move_into(sidecar_wav, &final_wav)?;
     eprintln!(
         "[life-voice] wav 박힘 ({}, {:.1}s)",
         final_wav.display(),

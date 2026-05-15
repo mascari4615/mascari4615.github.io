@@ -15,9 +15,12 @@ path = "src/main.rs"
 karmolab-shared = { path = "../src-tauri-shared" }
 serde_json = "1"
 
-# KL-052-B: voice (cpal 캡처 + candle Whisper transcribe) — 메인 src-tauri
-# 에서 이관. 버전 = 메인 src-tauri/Cargo.toml 과 일치 (워크스페이스 단일
-# Cargo.lock — drift 0). KL-052-C 에서 xcap/image/rusty-tesseract 추가 예정.
+# 버전 = 메인 src-tauri/Cargo.toml 과 일치 (워크스페이스 단일 Cargo.lock
+# — drift 0). KL-052-B voice (cpal/candle Whisper) + KL-052-C screen
+# 캡처(xcap/image) + OCR(rusty-tesseract) 이관 완료.
+xcap = "0.0.13"
+image = "0.25"
+rusty-tesseract = "1"
 candle-core = { version = "0.10", default-features = false }
 candle-nn = { version = "0.10", default-features = false }
 candle-transformers = { version = "0.10", default-features = false }

@@ -13,6 +13,7 @@
 //! 읽어 line 단위 `SidecarEvent` 로 파싱 → std mpsc 로 넘김. 메인 voice
 //! API(sync)는 std mpsc `recv_timeout` 으로 응답 수신.
 
+use std::path::Path;
 use std::sync::mpsc::{self, Receiver};
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
@@ -156,6 +157,18 @@ pub fn send(cmd: &SidecarCommand, timeout: Duration) -> Result<SidecarEvent, Str
         .as_mut()
         .ok_or_else(|| "ML sidecar 미활성 — ensure_spawned 선행 필요".to_string())?;
     send_locked(handle, cmd, timeout)
+}
+
+/// sidecar 임시 산출물(wav/png — OS temp) → 최종 memo 경로. 같은 볼륨
+/// 이면 rename, cross-device(temp ↔ memo 다른 드라이브)면 copy + remove.
+/// voice/screen 공용.
+pub fn move_into(src: &str, dest: &Path) -> Result<(), String> {
+    if std::fs::rename(src, dest).is_ok() {
+        return Ok(());
+    }
+    std::fs::copy(src, dest).map_err(|e| format!("sidecar 산출물 copy 실패: {e}"))?;
+    let _ = std::fs::remove_file(src);
+    Ok(())
 }
 
 /// 앱 종료 시 sidecar 프로세스 정리 — Shutdown(graceful) + child kill.

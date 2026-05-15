@@ -2866,12 +2866,10 @@ version = "0.1.19"
 dependencies = [
  "base64 0.22.1",
  "chrono",
- "image",
  "karmolab-shared",
  "notify",
  "notify-rust",
  "open",
- "rusty-tesseract",
  "serde",
  "serde_json",
  "serde_yml",
@@ -2884,7 +2882,6 @@ dependencies = [
  "tauri-plugin-updater",
  "uuid",
  "winapi",
- "xcap",
 ]
 
 [[package]]
@@ -2897,11 +2894,14 @@ dependencies = [
  "candle-transformers",
  "cpal",
  "hound",
+ "image",
  "karmolab-shared",
  "rand 0.9.4",
  "reqwest 0.12.28",
+ "rusty-tesseract",
  "serde_json",
  "tokenizers 0.20.4",
+ "xcap",
 ]
 
 [[package]]

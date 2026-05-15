@@ -14,7 +14,6 @@ pub mod active_window;
 pub mod classify;
 pub mod companion;
 pub mod hotkey;
-pub mod ocr;
 pub mod schema;
 pub mod screen;
 // KL-052: ML sidecar(karmolab-life-ml) IPC transport — voice/screen 공용
