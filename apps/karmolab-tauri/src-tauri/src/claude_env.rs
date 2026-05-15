@@ -140,8 +140,9 @@ fn replace_system_sound(line: &str, new_sound: &str) -> Option<String> {
 }
 
 fn parse_notify_ps1(path: &Path) -> Result<NotifyHookConfig, String> {
-    let content = std::fs::read_to_string(path)
+    let raw = std::fs::read_to_string(path)
         .map_err(|e| format!("{} read 실패: {}", path.display(), e))?;
+    let content = raw.strip_prefix(PS1_BOM).unwrap_or(raw.as_str());
     let mut mode: Option<String> = None;
     let mut system_sound: Option<String> = None;
     let mut wav_path: Option<String> = None;
@@ -220,9 +221,18 @@ fn validate_wav_path(label: &str, raw: &str) -> Result<(), String> {
 }
 
 /// 한 .ps1 파일을 받은 config 로 in-place 편집. 라인 단위 교체, 매칭 안된 라인은 그대로.
+/// UTF-8 BOM. PowerShell 5.1 (한국어 Windows) 은 BOM 없는 .ps1 을 시스템
+/// 코드페이지(cp949)로 읽어 파일 안 한글 `$wavPath` 가 깨진다 (Test-Path
+/// False → hook 무음). BOM 이 있으면 PS5.1 이 UTF-8 로 읽는다 (TASK-KL-056).
+const PS1_BOM: &str = "\u{FEFF}";
+
 fn write_notify_ps1(path: &Path, hook: &NotifyHookConfig) -> Result<(), String> {
-    let content = std::fs::read_to_string(path)
+    let raw = std::fs::read_to_string(path)
         .map_err(|e| format!("{} read 실패: {}", path.display(), e))?;
+    // 기존 BOM 은 일단 제거하고 처리 — write 시 무조건 다시 prepend (정본에
+    // BOM 이 없던 경우에도 PS5.1 안전 보장. read_to_string 의 BOM 보존 동작에
+    // 의존하지 않음).
+    let content = raw.strip_prefix(PS1_BOM).unwrap_or(raw.as_str());
     let line_ending = if content.contains("\r\n") { "\r\n" } else { "\n" };
     let has_final_newline = content.ends_with('\n');
 
@@ -268,7 +278,8 @@ fn write_notify_ps1(path: &Path, hook: &NotifyHookConfig) -> Result<(), String> 
         ));
     }
 
-    let mut joined = new_lines.join(line_ending);
+    let mut joined = String::from(PS1_BOM);
+    joined.push_str(&new_lines.join(line_ending));
     if has_final_newline {
         joined.push_str(line_ending);
     }
@@ -595,6 +606,45 @@ mod tests {
         assert_eq!(parsed.wav_path.as_deref(), Some(r"C:\new.wav"));
 
         let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_dir(&dir);
+    }
+
+    #[test]
+    fn write_notify_ps1_always_prepends_utf8_bom() {
+        let dir = std::env::temp_dir().join(format!("kl-056-bom-test-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+
+        // 케이스 1: BOM 없는 정본 → write 후 BOM 붙어야 함 (PS5.1 한글 깨짐 방지).
+        let no_bom = dir.join("no-bom.ps1");
+        std::fs::write(&no_bom, "$mode = \"wav\"\n$wavPath = \"C:\\a.wav\"\n").unwrap();
+        let cfg = NotifyHookConfig {
+            mode: "wav".into(),
+            system_sound: None,
+            wav_path: Some(r"C:\korean\피팟.wav".into()),
+        };
+        write_notify_ps1(&no_bom, &cfg).unwrap();
+        let bytes = std::fs::read(&no_bom).unwrap();
+        assert_eq!(&bytes[0..3], &[0xEF, 0xBB, 0xBF], "BOM 없던 파일에 BOM 추가돼야");
+
+        // 케이스 2: 이미 BOM 있는 정본 → write 후에도 BOM 1개만 (중복 X).
+        let with_bom = dir.join("with-bom.ps1");
+        std::fs::write(
+            &with_bom,
+            "\u{FEFF}$mode = \"system\"\n[System.Media.SystemSounds]::Asterisk.Play()\n",
+        )
+        .unwrap();
+        write_notify_ps1(&with_bom, &cfg).unwrap();
+        let bytes2 = std::fs::read(&with_bom).unwrap();
+        assert_eq!(&bytes2[0..3], &[0xEF, 0xBB, 0xBF]);
+        assert_ne!(&bytes2[3..6], &[0xEF, 0xBB, 0xBF], "BOM 중복 안 됨");
+
+        // 한글 wav_path 가 round-trip 으로 보존 (BOM strip 후 파싱).
+        let parsed = parse_notify_ps1(&no_bom).unwrap();
+        assert_eq!(parsed.wav_path.as_deref(), Some(r"C:\korean\피팟.wav"));
+        assert_eq!(parsed.mode, "wav");
+
+        let _ = std::fs::remove_file(&no_bom);
+        let _ = std::fs::remove_file(&with_bom);
         let _ = std::fs::remove_dir(&dir);
     }
 }
