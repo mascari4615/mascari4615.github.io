@@ -17,6 +17,10 @@ pub mod hotkey;
 pub mod ocr;
 pub mod schema;
 pub mod screen;
+// KL-052: ML sidecar(karmolab-life-ml) IPC transport — voice/screen 공용
+// 단일 프로세스 (결정 #1 "ML 도메인 한 프로세스"). 도메인 명령은 각
+// 모듈(voice/screen)이 sidecar::send 직접 호출.
+pub mod sidecar;
 pub mod state;
 pub mod vision;
 pub mod voice;

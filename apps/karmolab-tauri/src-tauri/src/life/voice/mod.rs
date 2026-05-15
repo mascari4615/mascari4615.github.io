@@ -15,7 +15,6 @@
 //! 제거됨 (마이그 자기소멸).
 
 pub mod schema;
-mod sidecar;
 
 use std::path::Path;
 
@@ -24,7 +23,10 @@ use tauri::AppHandle;
 use super::classify::{self, ClassifyKind};
 use super::companion;
 use super::schema as screen_schema;
+use super::sidecar;
 use super::state::LifeScreenConfig;
+
+use karmolab_shared::{SidecarCommand, SidecarEvent};
 
 const MODEL_NAME: &str = "ggml-large-v3";
 
@@ -37,39 +39,70 @@ fn model_dir() -> Result<std::path::PathBuf, String> {
         .join("whisper-large-v3"))
 }
 
-/// Life 위젯 활성화 — sidecar spawn(1회) + Whisper 백그라운드 로드(~3.1GB).
-/// 이미 활성이면 no-op. 원본과 달리 `app` 필요 (plugin-shell sidecar).
+/// Life 위젯 활성화 — sidecar spawn(공용, 1회) + Whisper 백그라운드
+/// 로드(~3.1GB). 이미 활성이면 no-op. `app` = plugin-shell sidecar spawn.
 pub fn enable(app: &AppHandle) -> Result<(), String> {
-    let dir = model_dir()?;
-    sidecar::ensure_spawned(app, &dir)
+    sidecar::ensure_spawned(app)?;
+    let model_dir = model_dir()?.to_string_lossy().into_owned();
+    match sidecar::send(&SidecarCommand::VoiceLoad { model_dir }, sidecar::SHORT_TIMEOUT)? {
+        SidecarEvent::Loaded => Ok(()),
+        other => Err(format!("VoiceLoad 예상 외 응답: {other:?}")),
+    }
 }
 
-/// Life 위젯 비활성화 — sidecar VoiceUnload(~3.1GB 반환) + 프로세스 종료.
+/// Life 위젯 비활성화 — VoiceUnload(~3.1GB 반환). sidecar 프로세스는
+/// screen 공용이라 유지 (종료는 앱 종료 hook = sidecar::terminate).
 pub fn disable() {
-    sidecar::shutdown();
+    if sidecar::is_spawned() {
+        let _ = sidecar::send(&SidecarCommand::VoiceUnload, sidecar::SHORT_TIMEOUT);
+    }
+}
+
+fn voice_status() -> (bool, bool) {
+    if !sidecar::is_spawned() {
+        return (false, false);
+    }
+    match sidecar::send(&SidecarCommand::VoiceStatus, sidecar::SHORT_TIMEOUT) {
+        Ok(SidecarEvent::Status { loaded, loading }) => (loaded, loading),
+        _ => (false, false),
+    }
 }
 
 pub fn is_enabled() -> bool {
-    let (loaded, loading) = sidecar::status();
+    let (loaded, loading) = voice_status();
     loaded || loading
 }
 
 pub fn is_loading() -> bool {
-    sidecar::status().1
+    voice_status().1
 }
 
 /// hotkey Pressed 시 호출. sidecar 가 cpal stream open.
 /// voice 비활성(sidecar 미spawn)이면 에러.
 pub fn record_start() -> Result<(), String> {
-    sidecar::record_start()
+    match sidecar::send(&SidecarCommand::VoiceRecordStart, sidecar::SHORT_TIMEOUT)? {
+        SidecarEvent::RecordStarted => Ok(()),
+        other => Err(format!("RecordStart 예상 외 응답: {other:?}")),
+    }
 }
 
 /// hotkey Released 시 호출. sidecar 가 cpal stop + Whisper transcribe.
 /// 짧은 음성(<0.3s, sidecar noise drop) / 빈 transcript = noop.
 /// 후반(classify/schema/companion)은 별 thread (원본 정합).
 pub fn record_stop_and_process(trigger: &str) -> Result<(), String> {
-    let (text, wav_path, duration_s) = match sidecar::record_stop() {
-        Ok(v) => v,
+    let (text, wav_path, duration_s) = match sidecar::send(
+        &SidecarCommand::VoiceRecordStop,
+        sidecar::HEAVY_TIMEOUT,
+    ) {
+        Ok(SidecarEvent::Transcribed {
+            text,
+            wav_path,
+            duration_s,
+        }) => (text, wav_path, duration_s),
+        Ok(other) => {
+            eprintln!("[life-voice] RecordStop 예상 외 응답: {other:?}");
+            return Ok(());
+        }
         Err(e) => {
             // noise drop / frame 0 등 = 정상 흐름 (원본도 무시).
             eprintln!("[life-voice] record_stop skip: {e}");
