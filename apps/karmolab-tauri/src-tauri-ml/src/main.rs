@@ -10,12 +10,11 @@
 
 mod capture;
 mod ocr;
-mod protocol;
 mod voice;
 
 use std::io::{self, BufRead, Write};
 
-use protocol::{SidecarCommand, SidecarEvent, PROTOCOL_VERSION};
+use karmolab_shared::{SidecarCommand, SidecarEvent, PROTOCOL_VERSION};
 
 fn main()
 {

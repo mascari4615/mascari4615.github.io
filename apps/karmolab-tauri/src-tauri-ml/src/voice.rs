@@ -4,7 +4,7 @@
 //! 이관 시 `life::voice::enable/disable` 의 RAM 토글(KL-051)은 sidecar
 //! 의 VoiceLoad/VoiceUnload + sidecar process 수명으로 대체된다.
 
-use crate::protocol::SidecarEvent;
+use karmolab_shared::SidecarEvent;
 
 pub fn load() -> SidecarEvent
 {

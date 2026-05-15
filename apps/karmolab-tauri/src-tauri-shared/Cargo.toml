@@ -1,0 +1,15 @@
+[package]
+name = "karmolab-shared"
+version = "0.1.0"
+description = "KarmoLab 메인(karmolab-desktop) ↔ ML sidecar(karmolab-ml-sidecar) IPC 프로토콜 계약 (KL-052). 양쪽이 path dep 으로 참조 — 스키마 단일 정의, 컴파일타임 정합 강제."
+authors = ["mascari4615"]
+edition = "2021"
+
+[lib]
+name = "karmolab_shared"
+path = "src/lib.rs"
+
+[dependencies]
+# 프로토콜 직렬화만 — ML dep(candle/cpal/...) 없음. 메인이 본 crate 를
+# 참조해도 ML stack 이 메인 바이너리에 링크되지 X (KL-052 사이즈 목적 정합).
+serde = { version = "1", features = ["derive"] }

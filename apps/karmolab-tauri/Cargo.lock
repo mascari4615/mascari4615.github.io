@@ -2888,8 +2888,15 @@ dependencies = [
 name = "karmolab-ml-sidecar"
 version = "0.1.0"
 dependencies = [
- "serde",
+ "karmolab-shared",
  "serde_json",
+]
+
+[[package]]
+name = "karmolab-shared"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

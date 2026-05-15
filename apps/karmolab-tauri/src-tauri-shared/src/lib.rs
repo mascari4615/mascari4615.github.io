@@ -1,10 +1,14 @@
-//! KL-052 sidecar IPC 프로토콜 — stdin/stdout JSON line.
+//! KL-052 메인 ↔ ML sidecar IPC 프로토콜 계약 — stdin/stdout JSON line.
 //!
 //! 메인(karmolab-desktop) → sidecar : 한 줄 = 한 [`SidecarCommand`] JSON.
 //! sidecar → 메인 : 한 줄 = 한 [`SidecarEvent`] JSON.
 //!
+//! **본 crate 가 프로토콜 단일 정의.** 메인 + sidecar 양쪽이 path dep 으로
+//! 참조 → enum 변경 시 양쪽 동시 컴파일 에러로 스키마 drift 0 강제
+//! (2멤버 구조의 복제-drift / ml-dep-재링크 / include-hack 회피, KL-052 redirect).
+//!
 //! 정본 명세(다운로드 정책 / keep-alive / 모델 파일 위치 결정 포함) =
-//! `src-tauri-ml/PROTOCOL.md`. 본 모듈 = 그 명세의 직렬화 타입만.
+//! `src-tauri-ml/PROTOCOL.md`. 본 crate = 그 명세의 직렬화 타입만.
 
 use serde::{Deserialize, Serialize};
 

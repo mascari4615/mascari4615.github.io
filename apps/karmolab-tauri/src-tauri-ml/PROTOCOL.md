@@ -1,6 +1,8 @@
 # KarmoLab ML Sidecar — IPC 프로토콜 명세 (KL-052)
 
-> 정본. `src/protocol.rs` 의 `SidecarCommand` / `SidecarEvent` 가 본 명세의 직렬화 구현.
+> 정본. `src-tauri-shared` crate (`karmolab_shared`) 의 `SidecarCommand` /
+> `SidecarEvent` 가 본 명세의 직렬화 구현 — 메인 + sidecar 가 path dep 으로
+> 공유 (스키마 단일 정의, drift 0 컴파일타임 강제).
 > 본 문서는 TASK-KL-052 의 「IPC 프로토콜 명세」 산출물 (KL-052-A).
 
 ## 1. 목적
@@ -72,7 +74,7 @@ spawn 하고 stdin/stdout 파이프로 통신.
 
 | # | 항목 | 결정 | 근거 |
 |---|---|---|---|
-| 1 | 워크스페이스 구조 | `apps/karmolab-tauri/Cargo.toml` 단일 `[workspace]`, members = `src-tauri` + `src-tauri-ml` | 단일 lockfile + 공유 dep 해석. verify `cargo check`(cwd=src-tauri) 는 멤버 scope → 게이트 그린/속도 유지. `[profile.release]` 는 워크스페이스 루트로 이관(멤버 profile cargo 무시 회귀 방지) |
+| 1 | 워크스페이스 구조 | `apps/karmolab-tauri/Cargo.toml` 단일 `[workspace]`, members = `src-tauri` + `src-tauri-ml` + **`src-tauri-shared`** (3멤버) | 단일 lockfile + 공유 dep 해석. verify `cargo check`(cwd=src-tauri) 는 멤버 scope → 게이트 그린/속도 유지. `[profile.release]` 는 워크스페이스 루트로 이관(멤버 profile cargo 무시 회귀 방지). **`src-tauri-shared`** = IPC 프로토콜 단일 정의 (serde만 의존) — 메인↔sidecar path dep 공유로 KL-052-B 의 스키마 복제-drift / ML-dep 재링크 / include-hack 회피 (사용자 redirect, 2026-05-15) |
 | 2 | IPC 모델 | stdin/stdout JSON line | § 2 근거 |
 | 3 | 모델 파일(~3.1GB Whisper safetensors) 위치 | **KL-052-B 에서 확정** (voice 이관 시 현 다운로드 경로 파악 후). 스켈레톤 단계 영향 X | 현재 코드(`life/voice`)의 실제 경로 확인 전 결정 = 추측. -B 에서 자연 결정 |
 | 4 | 다운로드-on-demand vs 항상 패키징 | **default = 항상 패키징** (NSIS externalBin). KL-052-E 에서 사이즈 측정 후 재평가 | 첫 사용 latency 0 + 서명/보안 단순. 사이즈 부담이 실측에서 크면 -E 에서 on-demand 전환 검토 |

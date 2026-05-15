@@ -1,14 +1,20 @@
 # Cargo 워크스페이스 — KL-052: ML stack sidecar 분리.
 #
 # 메인 (`src-tauri` = karmolab-desktop, Tauri+UI+IPC) 와 ML sidecar
-# (`src-tauri-ml` = karmolab-ml-sidecar, Whisper/xcap/tesseract) 를 한
-# 워크스페이스로 묶는다. 단일 lockfile + 공유 dep 버전 해석.
+# (`src-tauri-ml` = karmolab-ml-sidecar, Whisper/xcap/tesseract), 그리고
+# IPC 프로토콜 계약 (`src-tauri-shared` = karmolab-shared, serde 타입만) 을
+# 한 워크스페이스로 묶는다. 단일 lockfile + 공유 dep 버전 해석.
+#
+# src-tauri-shared = 메인 ↔ sidecar 프로토콜 단일 정의. 양쪽 path dep →
+# 스키마 drift 0 컴파일타임 강제 (2멤버 구조의 복제-drift / ML-dep 재링크 /
+# include-hack 회피 — KL-052 redirect). serde 만 의존이라 메인이 참조해도
+# ML stack 안 딸려옴 (사이즈 목적 정합).
 #
 # verify.mjs 의 `cargo check --all-targets` 는 cwd=`src-tauri` 에서 호출 →
 # 멤버(현재 패키지) scope 만 체크. sidecar 의 무거운 ML dep 은 `--workspace`
 # 가 아니므로 게이트에서 빌드 X — master-invariant 게이트 속도/그린 유지.
 [workspace]
-members = ["src-tauri", "src-tauri-ml"]
+members = ["src-tauri", "src-tauri-ml", "src-tauri-shared"]
 resolver = "2"
 
 # 워크스페이스에서 [profile.*] 는 *워크스페이스 루트에만* 유효하다.
