@@ -283,14 +283,22 @@ fn run_sync_claude_hooks() -> Result<(String, String), String> {
         return Err(format!("sync 스크립트 없음: {}", script.display()));
     }
     let script_str = script.to_string_lossy().into_owned();
+    // PowerShell 5.1 (한국어 Windows) 의 default stdout encoding = 시스템 코드페이지(cp949).
+    // Rust 는 UTF-8 로 디코드하므로 sync 스크립트의 한글 Write-Host 가 깨진다
+    // (`복사 1, 동일 12` → `????`). -File 대신 -Command 로 OutputEncoding 을 UTF-8
+    // 강제 후 script 호출 (정본 스크립트 본문은 안 건드림 — 다른 호출처와 분리).
+    let ps_command = format!(
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & '{}'",
+        script_str.replace('\'', "''")
+    );
     let mut cmd = Command::new("powershell");
     cmd.args([
         "-NoProfile",
         "-NonInteractive",
         "-ExecutionPolicy",
         "Bypass",
-        "-File",
-        &script_str,
+        "-Command",
+        &ps_command,
     ]);
     #[cfg(target_os = "windows")]
     {
