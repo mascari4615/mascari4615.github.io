@@ -13,7 +13,6 @@
 //! 읽어 line 단위 `SidecarEvent` 로 파싱 → std mpsc 로 넘김. 메인 voice
 //! API(sync)는 std mpsc `recv_timeout` 으로 응답 수신.
 
-use std::path::Path;
 use std::sync::mpsc::{self, Receiver};
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
@@ -24,10 +23,10 @@ use tauri_plugin_shell::ShellExt;
 
 use karmolab_shared::{SidecarCommand, SidecarEvent, PROTOCOL_VERSION};
 
-/// transcribe 는 수 초 — 넉넉히. record_stop 응답(=transcribe 완료) 대기.
-const RESP_TIMEOUT: Duration = Duration::from_secs(120);
-/// spawn 직후 Ready 핸드셰이크 / 일반 짧은 명령(record_start/status/unload).
-const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(15);
+/// 무거운 작업 — transcribe(수 초) / OCR. caller 가 send timeout 으로 사용.
+pub const HEAVY_TIMEOUT: Duration = Duration::from_secs(120);
+/// spawn 직후 Ready 핸드셰이크 / 짧은 명령(record_start/status/unload/capture).
+pub const SHORT_TIMEOUT: Duration = Duration::from_secs(15);
 
 struct SidecarHandle {
     child: CommandChild,
@@ -44,10 +43,11 @@ pub fn is_spawned() -> bool {
     cell().lock().map(|g| g.is_some()).unwrap_or(false)
 }
 
-/// sidecar 프로세스 spawn (1회) + `Ready` 핸드셰이크 + `VoiceLoad`.
-/// 이미 spawn 됐으면 no-op. `model_dir` = 메인이 resolve 한 Whisper 경로
-/// (결정 #3 — sidecar 는 LifeScreenConfig 모름).
-pub fn ensure_spawned(app: &AppHandle, model_dir: &Path) -> Result<(), String> {
+/// sidecar 프로세스 spawn (1회) + `Ready` 핸드셰이크. voice/screen 공용
+/// (결정 #1 ML 한 프로세스). 이미 spawn 됐으면 no-op. 도메인 명령
+/// (VoiceLoad / Capture / Ocr 등)은 각 모듈이 [`send`] 직접 호출 —
+/// sidecar.rs 는 transport-only (프로세스 생명 + 순차 요청-응답).
+pub fn ensure_spawned(app: &AppHandle) -> Result<(), String> {
     let mut guard = cell().lock().map_err(|e| format!("sidecar mutex: {e}"))?;
     if guard.is_some() {
         return Ok(());
@@ -106,7 +106,7 @@ pub fn ensure_spawned(app: &AppHandle, model_dir: &Path) -> Result<(), String> {
     let handle = guard.as_mut().expect("방금 set");
     match handle
         .resp_rx
-        .recv_timeout(HANDSHAKE_TIMEOUT)
+        .recv_timeout(SHORT_TIMEOUT)
         .map_err(|e| format!("sidecar Ready 대기 실패: {e}"))?
     {
         SidecarEvent::Ready { protocol_version } => {
@@ -116,22 +116,13 @@ pub fn ensure_spawned(app: &AppHandle, model_dir: &Path) -> Result<(), String> {
                     "sidecar 프로토콜 버전 불일치 (sidecar={protocol_version}, 메인={PROTOCOL_VERSION}) — 업데이트 필요"
                 ));
             }
+            Ok(())
         }
         other => {
             let _ = guard.take();
-            return Err(format!("sidecar 첫 이벤트가 Ready 아님: {other:?}"));
+            Err(format!("sidecar 첫 이벤트가 Ready 아님: {other:?}"))
         }
     }
-
-    // VoiceLoad — Whisper 백그라운드 로드 시작 (sidecar 가 thread spawn,
-    // Loaded = 로드 *시작* ack. 실제 준비 여부는 VoiceStatus 폴링).
-    let model_dir = model_dir.to_string_lossy().into_owned();
-    send_locked(
-        guard.as_mut().expect("handle"),
-        &SidecarCommand::VoiceLoad { model_dir },
-        HANDSHAKE_TIMEOUT,
-    )
-    .map(|_| ())
 }
 
 /// lock 잡은 상태에서 명령 1개 송신 + 응답 1개 수신 (순차 프로토콜).
@@ -156,56 +147,25 @@ fn send_locked(
     Ok(evt)
 }
 
-/// 명령 송신 + 응답 (Mutex 직렬화). sidecar 미spawn 이면 에러.
+/// 명령 송신 + 응답 (Mutex 직렬화 = 순차 프로토콜). sidecar 미spawn 이면
+/// 에러 — caller 가 먼저 [`ensure_spawned`]. 도메인 명령(Voice*/Capture/
+/// Ocr)은 voice/mod.rs · screen.rs 가 본 함수 직접 호출.
 pub fn send(cmd: &SidecarCommand, timeout: Duration) -> Result<SidecarEvent, String> {
     let mut guard = cell().lock().map_err(|e| format!("sidecar mutex: {e}"))?;
     let handle = guard
         .as_mut()
-        .ok_or_else(|| "voice sidecar 미활성 — Life 위젯에서 먼저 활성화".to_string())?;
+        .ok_or_else(|| "ML sidecar 미활성 — ensure_spawned 선행 필요".to_string())?;
     send_locked(handle, cmd, timeout)
 }
 
-/// record_start — 짧은 ack.
-pub fn record_start() -> Result<(), String> {
-    match send(&SidecarCommand::VoiceRecordStart, HANDSHAKE_TIMEOUT)? {
-        SidecarEvent::RecordStarted => Ok(()),
-        other => Err(format!("RecordStart 예상 외 응답: {other:?}")),
-    }
-}
-
-/// record_stop — cpal stop + transcribe (수 초).
-/// `(text, sidecar 임시 wav 경로, 녹음 길이 초)`.
-pub fn record_stop() -> Result<(String, String, f32), String> {
-    match send(&SidecarCommand::VoiceRecordStop, RESP_TIMEOUT)? {
-        SidecarEvent::Transcribed {
-            text,
-            wav_path,
-            duration_s,
-        } => Ok((text, wav_path, duration_s)),
-        other => Err(format!("RecordStop 예상 외 응답: {other:?}")),
-    }
-}
-
-/// Whisper 로드 상태 (loaded, loading) — 위젯 voice_enabled/loading 표시.
-pub fn status() -> (bool, bool) {
-    if !is_spawned() {
-        return (false, false);
-    }
-    match send(&SidecarCommand::VoiceStatus, HANDSHAKE_TIMEOUT) {
-        Ok(SidecarEvent::Status { loaded, loading }) => (loaded, loading),
-        _ => (false, false),
-    }
-}
-
-/// disable — VoiceUnload(모델 RAM 회수) + Shutdown + child kill.
-pub fn shutdown() {
+/// 앱 종료 시 sidecar 프로세스 정리 — Shutdown(graceful) + child kill.
+/// voice disable 은 프로세스 종료 X (screen 공용 — `VoiceUnload` 만 send).
+pub fn terminate() {
     let mut guard = match cell().lock() {
         Ok(g) => g,
         Err(_) => return,
     };
     if let Some(mut handle) = guard.take() {
-        let _ = send_locked(&mut handle, &SidecarCommand::VoiceUnload, HANDSHAKE_TIMEOUT);
-        // Shutdown 은 sidecar 가 stdin EOF 처리 전 graceful 종료.
         if let Ok(mut json) = serde_json::to_string(&SidecarCommand::Shutdown) {
             json.push('\n');
             let _ = handle.child.write(json.as_bytes());

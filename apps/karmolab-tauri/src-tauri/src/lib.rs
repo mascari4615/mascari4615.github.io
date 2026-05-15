@@ -1137,6 +1137,14 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|_app, event| {
+            // KL-052: 앱 종료 시 ML sidecar(karmolab-life-ml) 프로세스
+            // 정리 — 좀비 프로세스 방지 (voice disable 은 종료 X, screen
+            // 공용. 진짜 정리는 여기).
+            if let tauri::RunEvent::Exit = event {
+                life::sidecar::terminate();
+            }
+        });
 }
