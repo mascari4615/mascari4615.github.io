@@ -12,8 +12,6 @@ commands.allow = [
   "localdev_send_stdin",
   "localdev_follow_log",
   "localdev_stop_log_follow",
-  "localdev_npm_install",
   "localdev_npm_install_stream",
-  "localdev_deploy",
   "localdev_deploy_stream",
 ]
