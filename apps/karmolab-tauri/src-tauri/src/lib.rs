@@ -113,7 +113,7 @@ fn life_set_feature(
             state.screen_enabled.store(false, std::sync::atomic::Ordering::Relaxed);
         }
         ("voice", true) => {
-            life::voice::enable()?;
+            life::voice::enable(&app)?;
             life::hotkey::register_voice(&app)?;
         }
         ("voice", false) => {
@@ -962,7 +962,7 @@ pub fn run() {
                     }
                 }
                 if persisted.voice {
-                    if let Err(e) = life::voice::enable() {
+                    if let Err(e) = life::voice::enable(&handle) {
                         eprintln!("[life-voice] enable 복원 실패: {e}");
                     } else if let Err(e) = life::hotkey::register_voice(&handle) {
                         eprintln!("[life-voice] hotkey 복원 실패: {e}");

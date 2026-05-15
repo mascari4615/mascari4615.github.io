@@ -61,12 +61,14 @@ pub enum SidecarEvent
     Unloaded,
     /// VoiceRecordStart 완료 (cpal stream open).
     RecordStarted,
-    /// VoiceRecordStop 결과 — transcribe 텍스트 + sidecar 임시 wav 경로.
+    /// VoiceRecordStop 결과 — transcribe 텍스트 + sidecar 임시 wav 경로
+    /// + 녹음 길이(초, schema frontmatter 용 — 메인 hound 의존 0).
     /// 메인이 wav 를 `{memo_root}/life/raw/voice/` 로 이동 + md write.
     Transcribed
     {
         text: String,
         wav_path: String,
+        duration_s: f32,
     },
     /// VoiceStatus 응답 — Whisper 모델 로드 상태.
     Status
