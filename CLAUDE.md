@@ -229,7 +229,7 @@ cd apps/karmolab && npm ci && npm run build
 
 - commit 컨펌 후 `git push` 자율
 - 응급 fix / 1~3줄 chore / refactor / docs 모두 직접 push
-- `verify (master invariant)` required status check 만 강제 — 통과 시 push 허용
+- `verify.yml` CI 가 push trigger 로 자동 발동 — fail 시 SLO 1시간 revert (mandatory status check X, `§ Quality 게이트` 참조)
 - push 직전 race 회피: `safe-push.ps1 -Branch master -RepoPath ...` (정본 § push 직전 race 회피 참조)
 
 ### PR 흐름 — 예외 케이스만
@@ -259,45 +259,17 @@ test: add or update tests
 - **Merge commits** are exempt from linting.
 - Semantic versioning and changelog generation run automatically on the `production` branch via `semantic-release`.
 
-### Branch Protection 실제 상태
+### Quality 게이트 — verify post-push audit (branch protection 없음)
 
-GitHub repo → Settings → Branches `master`:
+**Branch protection 제거됨** (WM `main` 정합, TASK-KL-058). 1인 trunk-based 레포에서 mandatory status check 가 직접 push 를 dead-lock (push 전 status attach 필요) → branch protection 자체 폐기.
 
-- `verify (master invariant)` required status check — verify CI 통과 필수
-- `enforce_admins: true` — admin 도 verify 통과 필요
-- `allow_force_pushes: false` / `allow_deletions: false` — master force-push / 삭제 차단
-- **`required_pull_request_reviews: null`** — PR 강제 X (직접 push OK)
-- **`restrictions: null`** — write access 가진 사용자는 누구나 직접 push 가능
+master 직접 push 시:
 
-즉 *PR 흐름은 컨벤션이며 기계적 강제 X*. verify status check 만 강제 + force push / 삭제는 차단. trunk-based 정합.
-
-### Commit Messages
-
-Conventional Commits are enforced via commitlint (`.husky/commit-msg`):
-
-```
-feat: add new feature
-fix: resolve a bug
-perf: performance improvement
-refactor: code restructuring (no behavior change)
-docs: documentation update
-chore: maintenance task
-style: formatting/style change
-test: add or update tests
-```
-
-- **Merge commits** are exempt from linting.
-- Semantic versioning and changelog generation run automatically on the `production` branch via `semantic-release`.
-
-### Branch Protection (사용자 GitHub 측 설정)
-
-룰을 *기계적으로 강제* 하려면 GitHub repo → Settings → Branches 에서 `master` (와 `production`) 에 protection rule:
-- Require a pull request before merging
-- Require status checks to pass (Code Quality CI 통과 필수)
-- Restrict who can push to matching branches (직접 push 차단)
-- Include administrators (예외 없음)
-
-이 설정 안 되어있으면 본 § 룰은 *수동 약속* 만 됨.
+- `verify.yml` CI 가 push trigger 로 자동 발동 (`npm run verify`) — post-push audit
+- mandatory status check X — push 자체는 차단 안 됨 (verify 는 사후 검증)
+- **verify fail 시 SLO: 1시간 내 revert** (책임자 = 마지막 push 자). `§ master invariant` 참조
+- force push / branch 삭제 = GitHub default 보호만 (별도 protection rule 없음 — 1인 레포 책임 하 자율). force push 절대 금지는 `memo/rules/git.md` 룰로 강제
+- 로컬 `.husky/pre-push` 가 push 전 `npm run verify` 자동 호출 (1차 게이트)
 
 ---
 
@@ -314,16 +286,15 @@ master 브랜치는 항상 다음을 만족:
 
 검증의 단일 진실: **`npm run verify`** (`scripts/verify.mjs`). 모든 게이트가 이 한 명령만 호출.
 
-3중 게이트:
+2중 게이트 (branch protection 폐기 — `§ Git Workflow > Quality 게이트` 참조):
 
-1. **로컬 pre-push** (`.husky/pre-push`) — 자동 호출. 우회: `git push --no-verify` (응급용).
-2. **CI** (`.github/workflows/verify.yml`) — `npm run verify` 호출. push 시 자동 트리거 (master 직접 push 흐름 정합).
-3. **Branch Protection — `verify (master invariant)` required** — verify CI 통과 안 한 push 는 차단. PR 강제는 X (trunk-based 정합).
+1. **로컬 pre-push** (`.husky/pre-push`) — 자동 호출. push 전 `npm run verify`. 우회: `git push --no-verify` (응급용).
+2. **CI post-push audit** (`.github/workflows/verify.yml`) — push 시 자동 트리거. `npm run verify`. fail 시 SLO 1시간 revert (mandatory status check X — 사후 검증).
 
 추가 hook:
 - **`.husky/commit-msg`** — Conventional Commits (commitlint via `apps/blog`) 강제. `apps/blog/node_modules/@commitlint` 미설치 시 silent skip — 사용자가 `cd apps/blog && npm ci` 해야 활성.
 
-위반 발견 시 SLO: 1시간 내 revert. 책임자 = 마지막 머지자.
+위반 발견 시 SLO: 1시간 내 revert. 책임자 = 마지막 push 자.
 
 신규 자동화 룰 추가 시 분류 정합: `memo/CLAUDE-karmoddrine.md` § "자동화 가능 룰은 코드로" 참고. 텍스트 룰만 두면 클로드는 잊는다.
 
