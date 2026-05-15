@@ -24,7 +24,6 @@ use serde::Serialize;
 use std::path::Path;
 
 use super::super::classify::ClassifyResult;
-use super::transcribe::TranscribeResult;
 
 #[derive(Serialize, Debug)]
 pub struct VoiceFrontmatter {
@@ -61,10 +60,13 @@ pub fn build_frontmatter(
     }
 }
 
+/// `transcript` = sidecar Transcribed.text (KL-052-B: sidecar = text only,
+/// segment 타임스탬프는 PROTOCOL 미지원 — 정보원 자체 없음. 필요 시
+/// PROTOCOL Transcribed 에 segments 추가 후 부활, 그 전까지 dead 제거).
 pub fn write_md(
     md_path: &Path,
     frontmatter: &VoiceFrontmatter,
-    transcript: &TranscribeResult,
+    transcript: &str,
 ) -> Result<(), String> {
     let yaml = serde_yml::to_string(frontmatter)
         .map_err(|e| format!("frontmatter yaml 직렬화 실패: {e}"))?;
@@ -74,34 +76,17 @@ pub fn write_md(
     } else {
         &frontmatter.summary
     };
-    let transcript_block = if transcript.text.is_empty() {
-        "(빈 transcript)".to_string()
+    let transcript_block = if transcript.is_empty() {
+        "(빈 transcript)"
     } else {
-        transcript.text.clone()
+        transcript
     };
 
-    // segment-level (json) — sub-B 의 word-level 대신 segment 단위 (whisper-rs 0.14 word timestamp 후속).
-    let segments_json = serde_json::to_string_pretty(
-        &transcript
-            .segments
-            .iter()
-            .map(|s| {
-                serde_json::json!({
-                    "text": s.text,
-                    "start": s.start_s,
-                    "end": s.end_s,
-                })
-            })
-            .collect::<Vec<_>>(),
-    )
-    .unwrap_or_else(|_| "[]".to_string());
-
     let body = format!(
-        "---\n{yaml}---\n\n## 요약\n\n{summary}\n\n## Transcript\n\n{transcript}\n\n## segment-level (json)\n\n```json\n{segments}\n```\n",
+        "---\n{yaml}---\n\n## 요약\n\n{summary}\n\n## Transcript\n\n{transcript}\n",
         yaml = yaml,
         summary = summary_block,
         transcript = transcript_block,
-        segments = segments_json,
     );
 
     std::fs::write(md_path, body).map_err(|e| format!("voice md write 실패: {e}"))
@@ -133,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn write_md_includes_transcript_and_segments() {
+    fn write_md_includes_transcript() {
         let ts = chrono::Local
             .with_ymd_and_hms(2026, 5, 10, 12, 34, 56)
             .unwrap();
@@ -144,14 +129,6 @@ mod tests {
             summary: "단순 인사".into(),
         };
         let fm = build_frontmatter(&ts, &cls, "test.wav", 2.0, "ggml-large-v3", "hotkey");
-        let tr = TranscribeResult {
-            text: "안녕하세요".into(),
-            segments: vec![super::super::transcribe::Segment {
-                text: "안녕하세요".into(),
-                start_s: 0.0,
-                end_s: 1.5,
-            }],
-        };
         let tmp = std::env::temp_dir().join(format!(
             "voice-md-{}.md",
             std::time::SystemTime::now()
@@ -159,14 +136,13 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ));
-        write_md(&tmp, &fm, &tr).unwrap();
+        write_md(&tmp, &fm, "안녕하세요").unwrap();
         let read = std::fs::read_to_string(&tmp).unwrap();
         assert!(read.starts_with("---\n"));
         assert!(read.contains("channel: voice"));
         assert!(read.contains("trigger: hotkey"));
         assert!(read.contains("## Transcript"));
         assert!(read.contains("안녕하세요"));
-        assert!(read.contains("## segment-level (json)"));
         let _ = std::fs::remove_file(&tmp);
     }
 
@@ -177,7 +153,6 @@ mod tests {
             .unwrap();
         let cls = ClassifyResult::default();
         let fm = build_frontmatter(&ts, &cls, "empty.wav", 0.0, "ggml-large-v3", "hotkey");
-        let tr = TranscribeResult::default();
         let tmp = std::env::temp_dir().join(format!(
             "voice-md-empty-{}.md",
             std::time::SystemTime::now()
@@ -185,7 +160,7 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ));
-        write_md(&tmp, &fm, &tr).unwrap();
+        write_md(&tmp, &fm, "").unwrap();
         let read = std::fs::read_to_string(&tmp).unwrap();
         assert!(read.contains("(빈 transcript)"));
         assert!(read.contains("(분류 미생성)"));

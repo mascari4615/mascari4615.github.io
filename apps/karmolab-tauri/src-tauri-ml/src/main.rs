@@ -86,7 +86,10 @@ fn dispatch(command: SidecarCommand) -> SidecarEvent
         },
         SidecarCommand::VoiceRecordStop => match voice::record_stop()
         {
-            Ok((text, wav_path)) => SidecarEvent::Transcribed { text, wav_path },
+            Ok((text, wav_path, duration_s)) =>
+            {
+                SidecarEvent::Transcribed { text, wav_path, duration_s }
+            }
             Err(msg) => SidecarEvent::Error { msg },
         },
         SidecarCommand::VoiceStatus =>

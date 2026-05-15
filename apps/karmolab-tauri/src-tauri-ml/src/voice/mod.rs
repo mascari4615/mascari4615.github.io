@@ -54,7 +54,7 @@ pub fn record_start() -> Result<(), String> {
 /// `VoiceRecordStop` — cpal stop → samples → 임시 wav write → transcribe.
 /// 반환 `(text, wav_path)` — wav_path = sidecar OS temp 의 임시 .wav.
 /// 메인이 classify 후 `{memo_root}/life/raw/voice/{stamp}-{slug}.wav` 로 이동.
-pub fn record_stop() -> Result<(String, String), String> {
+pub fn record_stop() -> Result<(String, String, f32), String> {
     let samples = {
         let arc = recorder_arc();
         let g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
@@ -83,8 +83,9 @@ pub fn record_stop() -> Result<(String, String), String> {
         samples.len() as f32 / capture::TARGET_SAMPLE_RATE as f32
     );
 
+    let duration_s = samples.len() as f32 / capture::TARGET_SAMPLE_RATE as f32;
     let text = transcribe::transcribe(&samples)?;
-    Ok((text, tmp_wav.to_string_lossy().into_owned()))
+    Ok((text, tmp_wav.to_string_lossy().into_owned(), duration_s))
 }
 
 /// `VoiceStatus` — Whisper 모델 로드 상태 (loaded, loading).

@@ -1,141 +1,126 @@
-//! TASK-LIFE-001-B-2 — Rust 음성 채널 (life-voice.py 폐기, KarmoLab Tauri 단일 process).
+//! 음성 채널 — KL-052-B2: candle Whisper + cpal 캡처를 ML sidecar
+//! (karmolab-life-ml) 로 분리. 본 모듈 = sidecar IPC client + 후반
+//! 파이프라인(classify/schema/companion — ML dep 아님, 메인 유지).
 //!
 //! 흐름:
-//! 1. Life 위젯에서 voice enable → recorder 초기화 + whisper model 백그라운드 load
-//! 2. hotkey Pressed (Ctrl+Alt+Space) → `record_start` (cpal stream open)
-//! 3. hotkey Released → `record_stop_and_process` (별 thread 진입)
-//! 4. samples → wav write (placeholder) → transcribe (candle whisper) → classify (claude CLI, Voice kind)
-//! 5. wav rename + .md write (sub-B Python schema 정합)
-//! 6. `companion::react` 직접 호출 (in-process — sub-G watcher 폐기 정합)
+//! 1. Life 위젯 voice enable → `sidecar::ensure_spawned` (프로세스 1회 +
+//!    Whisper 백그라운드 로드, model_dir = 메인 resolve 주입 — 결정 #3)
+//! 2. hotkey Pressed (Ctrl+Alt+Space) → `record_start` → sidecar cpal open
+//! 3. hotkey Released → `record_stop_and_process` → sidecar stop+transcribe
+//!    → `(text, 임시 wav, duration)` → 별 thread 에서 후반 처리
+//! 4. classify (claude CLI) → wav memo 이동 → .md write → companion::react
 //!
-//! 정본: TASK-LIFE-001-B-2-Rust-음성-마이그.md.
+//! 정본: TASK-KL-052 § 작업 단계 KL-052-B / src-tauri-ml/PROTOCOL.md.
+//! cpal/candle in-process(capture.rs/transcribe.rs)는 sidecar 이관으로
+//! 제거됨 (마이그 자기소멸).
 
-pub mod capture;
 pub mod schema;
-pub mod transcribe;
+mod sidecar;
 
-use std::sync::{Arc, Mutex, OnceLock};
+use std::path::Path;
+
+use tauri::AppHandle;
 
 use super::classify::{self, ClassifyKind};
 use super::companion;
 use super::schema as screen_schema;
 use super::state::LifeScreenConfig;
 
-const MIN_DURATION_SAMPLES: usize = (capture::TARGET_SAMPLE_RATE as usize) * 3 / 10; // 0.3s
 const MODEL_NAME: &str = "ggml-large-v3";
 
-static RECORDER_CELL: OnceLock<Arc<Mutex<Option<capture::Recorder>>>> = OnceLock::new();
-
-fn recorder_arc() -> &'static Arc<Mutex<Option<capture::Recorder>>> {
-    RECORDER_CELL.get_or_init(|| Arc::new(Mutex::new(None)))
+fn model_dir() -> Result<std::path::PathBuf, String> {
+    let config = LifeScreenConfig::resolve()?;
+    Ok(config
+        .memo_repo_root
+        .join("life")
+        .join(".models")
+        .join("whisper-large-v3"))
 }
 
-/// Life 위젯 활성화 — recorder 초기화 + Whisper model 백그라운드 load (~3.1GB).
-/// 이미 활성이면 no-op.
-pub fn enable() -> Result<(), String> {
-    {
-        let arc = recorder_arc();
-        let mut g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
-        if g.is_none() {
-            *g = Some(capture::Recorder::new()?);
-        }
-    }
-    transcribe::load()
+/// Life 위젯 활성화 — sidecar spawn(1회) + Whisper 백그라운드 로드(~3.1GB).
+/// 이미 활성이면 no-op. 원본과 달리 `app` 필요 (plugin-shell sidecar).
+pub fn enable(app: &AppHandle) -> Result<(), String> {
+    let dir = model_dir()?;
+    sidecar::ensure_spawned(app, &dir)
 }
 
-/// Life 위젯 비활성화 — Whisper model 해제 (~3.1GB 반환) + recorder 종료.
+/// Life 위젯 비활성화 — sidecar VoiceUnload(~3.1GB 반환) + 프로세스 종료.
 pub fn disable() {
-    transcribe::unload();
-    if let Ok(mut g) = recorder_arc().lock() {
-        *g = None;
-    }
+    sidecar::shutdown();
 }
 
 pub fn is_enabled() -> bool {
-    transcribe::is_loaded() || transcribe::is_loading()
+    let (loaded, loading) = sidecar::status();
+    loaded || loading
 }
 
 pub fn is_loading() -> bool {
-    transcribe::is_loading()
+    sidecar::status().1
 }
 
-/// hotkey Pressed 시 호출. 이미 record 중이면 no-op. voice 비활성이면 에러.
+/// hotkey Pressed 시 호출. sidecar 가 cpal stream open.
+/// voice 비활성(sidecar 미spawn)이면 에러.
 pub fn record_start() -> Result<(), String> {
-    let arc = recorder_arc();
-    let g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
-    match g.as_ref() {
-        Some(r) => r.start(),
-        None => Err("voice 기능 비활성 — Life 위젯에서 먼저 활성화".to_string()),
-    }
+    sidecar::record_start()
 }
 
-/// hotkey Released 시 호출. 별 thread 에서 transcribe + classify + md write + companion::react.
-/// 음성 짧음 (<0.3s) 또는 stream 미동작 시 noop.
+/// hotkey Released 시 호출. sidecar 가 cpal stop + Whisper transcribe.
+/// 짧은 음성(<0.3s, sidecar noise drop) / 빈 transcript = noop.
+/// 후반(classify/schema/companion)은 별 thread (원본 정합).
 pub fn record_stop_and_process(trigger: &str) -> Result<(), String> {
-    let samples = {
-        let arc = recorder_arc();
-        let g = arc.lock().map_err(|e| format!("recorder mutex: {e}"))?;
-        match g.as_ref() {
-            Some(r) => r.stop(),
-            None => {
-                eprintln!("[life-voice] voice 비활성 — stop 무시");
-                return Ok(());
-            }
-        }
-    };
-    let samples = match samples {
-        Some(s) => s,
-        None => {
-            eprintln!("[life-voice] record stop — frame 0 (이미 종료 또는 stream 미시작)");
+    let (text, wav_path, duration_s) = match sidecar::record_stop() {
+        Ok(v) => v,
+        Err(e) => {
+            // noise drop / frame 0 등 = 정상 흐름 (원본도 무시).
+            eprintln!("[life-voice] record_stop skip: {e}");
             return Ok(());
         }
     };
-    if samples.len() < MIN_DURATION_SAMPLES {
-        eprintln!(
-            "[life-voice] {:.2}s < 0.3s — drop (noise)",
-            samples.len() as f32 / capture::TARGET_SAMPLE_RATE as f32
-        );
+    if text.trim().is_empty() {
+        eprintln!("[life-voice] 빈 transcript — skip (wav 정리)");
+        let _ = std::fs::remove_file(&wav_path);
         return Ok(());
     }
     let trigger = trigger.to_string();
     std::thread::spawn(move || {
-        if let Err(e) = process_recording(&samples, &trigger) {
+        if let Err(e) = process_recording(&text, &wav_path, duration_s, &trigger) {
             eprintln!("[life-voice] process_recording 실패: {e}");
         }
     });
     Ok(())
 }
 
-fn process_recording(samples: &[f32], trigger: &str) -> Result<(), String> {
+/// sidecar 임시 wav → 최종 경로. 같은 볼륨이면 rename, cross-device
+/// (OS temp ↔ memo 다른 드라이브) 면 copy + remove.
+fn move_into(src: &str, dest: &Path) -> Result<(), String> {
+    if std::fs::rename(src, dest).is_ok() {
+        return Ok(());
+    }
+    std::fs::copy(src, dest).map_err(|e| format!("wav copy 실패: {e}"))?;
+    let _ = std::fs::remove_file(src);
+    Ok(())
+}
+
+fn process_recording(
+    text: &str,
+    sidecar_wav: &str,
+    duration_s: f32,
+    trigger: &str,
+) -> Result<(), String> {
     let config = LifeScreenConfig::resolve()?;
-    let voice_dir = config.memo_repo_root.join("life").join("raw").join("voice");
+    let voice_dir = config
+        .memo_repo_root
+        .join("life")
+        .join("raw")
+        .join("voice");
     std::fs::create_dir_all(&voice_dir).map_err(|e| e.to_string())?;
 
     let now = chrono::Local::now();
     let stamp = now.format("%Y-%m-%dT%H-%M-%S").to_string();
-    let placeholder_wav = voice_dir.join(format!("{stamp}-pending.wav"));
-    capture::write_wav_pcm16(&placeholder_wav, samples)?;
-    eprintln!(
-        "[life-voice] wav 박힘 ({}, {:.1}s)",
-        placeholder_wav.display(),
-        samples.len() as f32 / capture::TARGET_SAMPLE_RATE as f32
-    );
-
-    eprintln!(
-        "[life-voice] transcribe 시작 ({} samples)",
-        samples.len()
-    );
-    let result = match transcribe::transcribe(samples) {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("[life-voice] transcribe 실패: {e} (wav 보존: {})", placeholder_wav.display());
-            return Err(e);
-        }
-    };
-    let transcript_snippet: String = result.text.chars().take(80).collect();
+    let transcript_snippet: String = text.chars().take(80).collect();
     eprintln!("[life-voice] transcript: {}", transcript_snippet);
 
-    let classification = classify::classify(&result.text, ClassifyKind::Voice);
+    let classification = classify::classify(text, ClassifyKind::Voice);
     let raw_slug = if classification.slug.is_empty() {
         "untagged"
     } else {
@@ -145,10 +130,13 @@ fn process_recording(samples: &[f32], trigger: &str) -> Result<(), String> {
 
     let final_wav = voice_dir.join(format!("{stamp}-{slug}.wav"));
     let md_path = voice_dir.join(format!("{stamp}-{slug}.md"));
-    std::fs::rename(&placeholder_wav, &final_wav)
-        .map_err(|e| format!("wav rename 실패: {e}"))?;
+    move_into(sidecar_wav, &final_wav)?;
+    eprintln!(
+        "[life-voice] wav 박힘 ({}, {:.1}s)",
+        final_wav.display(),
+        duration_s
+    );
 
-    let duration_s = samples.len() as f32 / capture::TARGET_SAMPLE_RATE as f32;
     let binary_filename = final_wav
         .file_name()
         .and_then(|n| n.to_str())
@@ -162,7 +150,7 @@ fn process_recording(samples: &[f32], trigger: &str) -> Result<(), String> {
         MODEL_NAME,
         trigger,
     );
-    schema::write_md(&md_path, &frontmatter, &result)?;
+    schema::write_md(&md_path, &frontmatter, text)?;
     eprintln!("[life-voice] md 박힘 ({})", md_path.display());
 
     let companion_input = companion::ReactInput {
@@ -176,7 +164,7 @@ fn process_recording(samples: &[f32], trigger: &str) -> Result<(), String> {
         app: None,
         vision_summary: None,
         vision_context: None,
-        transcript: Some(&result.text),
+        transcript: Some(text),
     };
     match companion::react(&companion_input, &config) {
         Ok(r) => {
