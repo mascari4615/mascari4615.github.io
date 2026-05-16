@@ -228,50 +228,63 @@ fn due_alarm_ids(
     due
 }
 
+/// 스케줄러 1 tick 의 *store 부작용 전부* — `now` 주입 = 시간 pin(결정성,
+/// process.md § 루프). due 판정 + 스누즈해제 + 중복발화차단 기록 +
+/// 1회성 비활성 + ringing 기록. **반환 = 발화할 알람들**. OS/Tauri 부작용
+/// (oswake/sound/window/emit) 은 호출자(thread)가 — 그래야 이 함수가
+/// Tauri 런타임 없이 단위 테스트 가능 (올바른 seam).
+fn pump(store: &AlarmStore, now: chrono::DateTime<Local>) -> Vec<Alarm> {
+    let now_key = now.format("%Y-%m-%d %H%M").to_string();
+    let alarms = store.list();
+    let last = store.last_fired.lock().unwrap().clone();
+    let snz = store.snooze_until.lock().unwrap().clone();
+    let due = due_alarm_ids(
+        &alarms,
+        &last,
+        &snz,
+        now.timestamp(),
+        &now_key,
+        now.hour() as u8,
+        now.minute() as u8,
+        now.weekday().num_days_from_monday() as u8,
+    );
+
+    let mut fired = Vec::new();
+    for id in due {
+        store.snooze_until.lock().unwrap().remove(&id);
+        store
+            .last_fired
+            .lock()
+            .unwrap()
+            .insert(id.clone(), now_key.clone());
+        let Some(alarm) = alarms.iter().find(|a| a.id == id).cloned() else {
+            continue;
+        };
+        // 1회성(반복 없음) → 발화 후 비활성. 스누즈 재발화는 snooze_until
+        // 분기로 들어와 여기 도달해도 repeat 비었으면 비활성(이미 1회성).
+        if alarm.repeat.is_empty() {
+            store.set_enabled(&id, false);
+        }
+        *store.ringing.lock().unwrap() = Some(alarm.clone());
+        fired.push(alarm);
+    }
+    fired
+}
+
 /// 상주 스케줄러 스레드 — setup() 에서 1회 spawn. activity tracker 선례 동일.
 pub fn start_scheduler(app: AppHandle) {
     std::thread::spawn(move || loop {
         std::thread::sleep(std::time::Duration::from_secs(5));
         let store = app.state::<AlarmStore>();
-        let now = Local::now();
-        let now_key = now.format("%Y-%m-%d %H%M").to_string();
-        let now_hour = now.hour() as u8;
-        let now_minute = now.minute() as u8;
-        let now_weekday0 = now.weekday().num_days_from_monday() as u8;
-        let now_epoch = now.timestamp();
-
-        let alarms = store.list();
-        let last = store.last_fired.lock().unwrap().clone();
-        let snz = store.snooze_until.lock().unwrap().clone();
-        let due = due_alarm_ids(
-            &alarms, &last, &snz, now_epoch, &now_key, now_hour, now_minute, now_weekday0,
-        );
-
-        for id in due {
-            store.snooze_until.lock().unwrap().remove(&id);
-            store
-                .last_fired
-                .lock()
-                .unwrap()
-                .insert(id.clone(), now_key.clone());
-
-            let alarm = alarms.iter().find(|a| a.id == id).cloned();
-            let Some(alarm) = alarm else { continue };
-
-            // 1회성(반복 없음, 스누즈 아님) → 발화 후 비활성.
-            if alarm.repeat.is_empty() {
-                store.set_enabled(&id, false);
-            }
-
+        for alarm in pump(&store, Local::now()) {
             fire(&app, &alarm);
         }
     });
 }
 
-/// 발화: ringing 기록 → (강제기상) 모니터 ON+볼륨 → 사운드 루프 →
-/// 발화 창 표시 → 프론트 이벤트.
+/// 발화 *OS/Tauri 부작용* — ringing 기록은 pump 가 이미 함.
+/// (강제기상) 모니터 ON+볼륨 → 사운드 루프 → 발화 창 표시 → 프론트 이벤트.
 fn fire(app: &AppHandle, alarm: &Alarm) {
-    *app.state::<AlarmStore>().ringing.lock().unwrap() = Some(alarm.clone());
     if alarm.force_wake {
         oswake::wake_for_alarm();
     }
@@ -788,6 +801,59 @@ mod tests {
 
     fn dt(s: &str) -> NaiveDateTime {
         NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M").unwrap()
+    }
+
+    fn ldt(s: &str) -> chrono::DateTime<Local> {
+        use chrono::TimeZone;
+        Local.from_local_datetime(&dt(s)).unwrap()
+    }
+
+    // ── pump = 스케줄러 1 tick 의 store 부작용 전부 (Tauri 런타임 없이 검증) ──
+
+    #[test]
+    fn pump_one_shot_fires_disables_sets_ringing_and_dedupes() {
+        let store = AlarmStore::default(); // path=None → persist no-op
+        store.upsert(mk("a", 6, 30, vec![], true));
+
+        // 06:29 → 미발화.
+        assert!(pump(&store, ldt("2026-05-17 06:29")).is_empty());
+        assert!(store.ringing.lock().unwrap().is_none());
+
+        // 06:30 → 발화 1개 + 1회성 비활성 + ringing 기록.
+        let fired = pump(&store, ldt("2026-05-17 06:30"));
+        assert_eq!(fired.len(), 1);
+        assert_eq!(fired[0].id, "a");
+        assert_eq!(store.list()[0].enabled, false, "1회성 발화 후 비활성");
+        assert_eq!(store.ringing.lock().unwrap().as_ref().unwrap().id, "a");
+
+        // 같은 분 재tick → 중복 발화 차단 (last_fired).
+        assert!(pump(&store, ldt("2026-05-17 06:30")).is_empty());
+    }
+
+    #[test]
+    fn pump_repeat_alarm_stays_enabled() {
+        let store = AlarmStore::default();
+        // 2026-05-17 = 일(weekday0=6). repeat=[6] → 그 날 발화, 비활성 X.
+        store.upsert(mk("r", 6, 30, vec![6], true));
+        let fired = pump(&store, ldt("2026-05-17 06:30"));
+        assert_eq!(fired.len(), 1);
+        assert_eq!(store.list()[0].enabled, true, "반복 알람은 발화해도 유지");
+    }
+
+    #[test]
+    fn pump_snooze_refires_then_clears() {
+        let store = AlarmStore::default();
+        store.upsert(mk("s", 6, 30, vec![], false)); // 비활성이어도 스누즈는 발화
+        let until = ldt("2026-05-17 09:00").timestamp();
+        store.snooze_until.lock().unwrap().insert("s".into(), until);
+
+        // 스누즈 시각 전 → 미발화.
+        assert!(pump(&store, ldt("2026-05-17 08:59")).is_empty());
+        // 스누즈 시각 도달 → 발화 + snooze_until 제거.
+        let fired = pump(&store, ldt("2026-05-17 09:00"));
+        assert_eq!(fired.len(), 1);
+        assert_eq!(fired[0].id, "s");
+        assert!(store.snooze_until.lock().unwrap().is_empty(), "스누즈 1회성 소비");
     }
 
     #[test]
