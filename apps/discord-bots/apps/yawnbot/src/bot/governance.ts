@@ -178,3 +178,48 @@ export function evaluateDrift(input: DriftInput): DriftResult {
   }
   return { ok: true };
 }
+
+// ── cadence 작업 단일 게이트 (D-3, slice-3) ─────────────────
+// 자율 cadence 가 spawn *전* 1콜로 통과시키는 합성 게이트:
+// 드리프트 3-판정 → 예산 verdict → 액션. risk-tag escalate = pending+#team-bus,
+// 사용자 승인(approved) 시 resume(재pull 시 escalate 우회). 순수 — 영속/Discord 0.
+
+export type CadenceAction = 'proceed' | 'skip' | 'escalate' | 'stop';
+
+export interface CadenceScreenInput {
+  drift: DriftInput;
+  budget: BudgetRequest;
+  ceilings: BudgetCeilings;
+  /** 이 작업이 이전 escalate 후 사용자 승인됨 (approvals.jsonl) → escalate 우회 resume. */
+  approved: boolean;
+}
+
+export interface CadenceGate {
+  action: CadenceAction;
+  reason: string;
+  /** proceed/narrow 시 승인된 ceiling. */
+  granted?: BudgetCeilings;
+}
+
+/**
+ * 자율 cadence 1작업 게이트 (parent ④, agent-mission §4 사다리 순서).
+ *  1) 드리프트(§정렬/§3비목표/§4역전) 실패 → skip (spawn X, #team-bus 사유).
+ *  2) 예산 stop → stop. escalate → (미승인) escalate(pending+#team-bus) / (승인) proceed.
+ *  3) allow|narrow → proceed(granted).
+ */
+export function screenCadenceWork(i: CadenceScreenInput): CadenceGate {
+  const dr = evaluateDrift(i.drift);
+  if (dr.ok === false) {
+    return { action: 'skip', reason: `drift J${dr.judgement}: ${dr.reason}` };
+  }
+  const b = reserveBudget(i.budget, i.ceilings);
+  if (b.verdict === 'stop') {
+    return { action: 'stop', reason: b.reason };
+  }
+  if (b.verdict === 'escalate') {
+    return i.approved
+      ? { action: 'proceed', reason: `승인됨 (resume): ${b.reason}`, granted: b.granted }
+      : { action: 'escalate', reason: b.reason };
+  }
+  return { action: 'proceed', reason: b.reason, granted: b.granted };
+}

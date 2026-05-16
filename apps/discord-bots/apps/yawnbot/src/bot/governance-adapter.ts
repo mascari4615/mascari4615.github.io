@@ -67,6 +67,96 @@ export function appendTrace(env: NodeJS.ProcessEnv, entry: TraceEntry): void {
   }
 }
 
+// ── pending-approval 영속 + resume (D-3, slice-3) ────────────
+// escalate → approvals.jsonl 에 pending append + notify(#team-bus).
+// resume = cadence 재pull 시 같은 objective 에 status:'approved' 라인 있으면
+// escalate 우회. *블록된 live 프로세스 X* (process.md 백그라운드 자율종료 정합).
+
+export interface ApprovalEntry {
+  ts: string;
+  objId: string;
+  core: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string;
+}
+
+export function approvalsPath(env: NodeJS.ProcessEnv): string {
+  const root = memoRoot(env);
+  return root ? path.join(root, '.claude', 'agent-approvals.jsonl') : '';
+}
+
+export function appendApproval(
+  env: NodeJS.ProcessEnv,
+  entry: ApprovalEntry,
+): void {
+  const p = approvalsPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(p, JSON.stringify(entry) + '\n', 'utf-8');
+  } catch {
+    /* best-effort */
+  }
+}
+
+/**
+ * objId 가 사용자 승인됨? 마지막 상태 라인 기준 (approved=true / rejected·pending=false).
+ * 사용자가 jsonl 에 `{"objId":..,"status":"approved"}` 라인 추가 = 승인
+ * (slice-3 durable 인터페이스 — /approve 슬래시는 후속).
+ */
+export function isObjectiveApproved(
+  env: NodeJS.ProcessEnv,
+  objId: string,
+): boolean {
+  const p = approvalsPath(env);
+  if (!p || !fs.existsSync(p)) return false;
+  try {
+    let approved = false;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const s = line.trim();
+      if (!s) continue;
+      const e = JSON.parse(s) as ApprovalEntry;
+      if (e.objId === objId) approved = e.status === 'approved';
+    }
+    return approved;
+  } catch {
+    return false;
+  }
+}
+
+/** 이미 이 objId 에 pending 이 떠 있나 (중복 #team-bus 게시·jsonl 폭증 방지). */
+export function hasPending(env: NodeJS.ProcessEnv, objId: string): boolean {
+  const p = approvalsPath(env);
+  if (!p || !fs.existsSync(p)) return false;
+  try {
+    let last: ApprovalEntry['status'] | null = null;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const s = line.trim();
+      if (!s) continue;
+      const e = JSON.parse(s) as ApprovalEntry;
+      if (e.objId === objId) last = e.status;
+    }
+    return last === 'pending';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * #team-bus 알림 훅 (DI). 실제 Discord 게시는 sub-A/B 「#team-bus 미러」
+ * 랜딩 시 배선 — 그 전까지 default = trace 만 (sub-B reserve seam 과 동일 패턴).
+ */
+export type NotifyFn = (msg: string) => void;
+export function defaultNotify(env: NodeJS.ProcessEnv): NotifyFn {
+  return (msg) =>
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'drift',
+      core: 'cadence',
+      reason: `#team-bus(deferred): ${msg}`,
+    });
+}
+
 /**
  * team-room.setBudgetReserve 에 주입할 BudgetReserveFn.
  * 전역 kill → deny / governance verdict(allow|narrow → true, escalate|stop → false).
