@@ -17,6 +17,7 @@ import {
   type ProposalEnvelope,
   type RouteTarget,
   type TaskSeedPayload,
+  type ObjectivePayload,
 } from './proposal';
 import {
   appendTrace,
@@ -315,10 +316,68 @@ export function materializeTaskProposal(
   }
 }
 
+function objectivesPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'objectives.md') : '';
+}
+
+/** 표 셀 안전화 — `|`·개행 제거(표 깨짐 방지), 길이 cap. */
+function cell(s: string): string {
+  return s.replace(/[\r\n|]+/g, ' ').trim().slice(0, 220) || '-';
+}
+
 /**
- * 인박스 1회 소비: 승인(approvals.jsonl approved)된 *task* 발굴만
- * seed TASK 머터리얼라이즈 (멱등 = materialized.jsonl). kill·미승인·
- * 비-task·이미처리 = skip. *블록 X* (백그라운드 자율종료 정합).
+ * 승인된 objective 발굴 → objectives.md 표에 `proposed` 행 append.
+ * **status=proposed** = 사람이 active 승격해야 cadence 픽업(parseCadence
+ * Objective 는 `active` 만 매칭) = W-4 no-auto-exec / 정본 「자동 실행 X」.
+ * 봇은 파일만 쓰고 *commit X* (사람이 diff 검토→승격→커밋 = 사용자 주기
+ * 승인, agent-mission §2.3). 표 블록 *안*(마지막 OBJ 행 뒤)에 삽입 —
+ * 뒤 prose 섹션 보존. objectives.md 부재·표 미발견 = null (정본 구조
+ * 날조 X). @returns `objectives.md:OBJ-NNN` | null.
+ */
+export function materializeObjectiveProposal(
+  env: NodeJS.ProcessEnv,
+  payload: ObjectivePayload,
+): string | null {
+  const p = objectivesPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    const raw = fs.readFileSync(p, 'utf-8');
+    const nl = raw.includes('\r\n') ? '\r\n' : '\n';
+    const lines = raw.split(/\r?\n/);
+    const rowRe = /^\|\s*OBJ-(\d+)\s*\|/;
+    let lastRow = -1;
+    let maxN = 0;
+    let sepIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(rowRe);
+      if (m) {
+        lastRow = i;
+        maxN = Math.max(maxN, parseInt(m[1], 10));
+      }
+      if (sepIdx < 0 && /^\|\s*-{2,}\s*\|/.test(lines[i])) sepIdx = i;
+    }
+    const at = lastRow >= 0 ? lastRow : sepIdx;
+    if (at < 0) return null; // 표 구조 미발견 = 날조 X
+    const objId = `OBJ-${String(maxN + 1).padStart(3, '0')}`;
+    const row =
+      `| ${objId} | ${cell(payload.summary)} | ` +
+      `${cell(payload.derivation)} | ${cell(payload.alignment)} | ` +
+      `proposed | - | - |`;
+    lines.splice(at + 1, 0, row);
+    fs.writeFileSync(p, lines.join(nl), 'utf-8');
+    return `objectives.md:${objId}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 인박스 1회 소비: 승인(approvals.jsonl approved)된 발굴 머터리얼라이즈
+ * (멱등 = materialized.jsonl). 지원 kind: `task`→seed TASK,
+ * `objective`→objectives.md proposed 행 (둘 다 사람 승격 게이트 = W-4).
+ * kill·미승인·미지원kind·이미처리 = skip. *블록 X* (백그라운드 자율종료).
+ * env/skill/agent kind = 엔진 실행 트랙(sub-E) — 본 소비자 미처리(inert).
  * @returns 이번에 머터리얼라이즈한 건수.
  */
 export async function runInboxConsumerOnce(
@@ -330,27 +389,42 @@ export async function runInboxConsumerOnce(
   let n = 0;
   const seen = new Set<string>();
   for (const e of readInboxProposals(env)) {
-    if (e.kind !== 'task' || seen.has(e.id) || done.has(e.id)) continue;
-    seen.add(e.id);
-    if (!isObjectiveApproved(env, e.id)) continue; // 미승인 = inert
-    const abs = materializeTaskProposal(
-      env,
-      e.envelope.payload as TaskSeedPayload,
-    );
-    if (!abs) {
-      notify(`⑦' 승인 발굴 ${e.id} 머터리얼라이즈 실패 (도메인 미지·IO) — 보류`);
+    if (
+      (e.kind !== 'task' && e.kind !== 'objective') ||
+      seen.has(e.id) ||
+      done.has(e.id)
+    ) {
       continue;
     }
-    appendMaterialized(env, e.id, abs);
+    seen.add(e.id);
+    if (!isObjectiveApproved(env, e.id)) continue; // 미승인 = inert
+    const desc =
+      e.kind === 'task'
+        ? materializeTaskProposal(env, e.envelope.payload as TaskSeedPayload)
+        : materializeObjectiveProposal(
+            env,
+            e.envelope.payload as ObjectivePayload,
+          );
+    if (!desc) {
+      notify(
+        `⑦' 승인 발굴 ${e.id}(${e.kind}) 머터리얼라이즈 실패 ` +
+          `(도메인 미지·objectives.md 부재·IO) — 보류`,
+      );
+      continue;
+    }
+    const short = e.kind === 'task' ? path.basename(desc) : desc;
+    appendMaterialized(env, e.id, short);
     appendTrace(env, {
       ts: new Date().toISOString(),
       type: 'budget',
       core: 'consumer',
-      reason: `승인 머터리얼라이즈 ${e.id} → ${path.basename(abs)} (seed)`,
+      reason: `승인 머터리얼라이즈 ${e.id} (${e.kind}) → ${short}`,
     });
     notify(
-      `✅ 승인 발굴 머터리얼라이즈: ${e.id} → ${path.basename(abs)} ` +
-        `(status:seed — 사람이 ready 승격 시 진행)`,
+      `✅ 승인 발굴 머터리얼라이즈: ${e.id} (${e.kind}) → ${short} ` +
+        (e.kind === 'task'
+          ? '(status:seed — 사람이 ready 승격 시 진행)'
+          : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),
     );
     n++;
   }
