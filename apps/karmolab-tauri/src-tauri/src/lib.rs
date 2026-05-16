@@ -857,55 +857,9 @@ pub fn run() {
         .manage(DevModeState::default())
         .manage(TerminalState::default())
         .manage(LifeFeaturesState::default())
-        .invoke_handler(tauri::generate_handler![
-            desktop_notify,
-            desktop_trigger_release_workflow,
-            desktop_install_pending_update,
-            desktop_restart_app,
-            localdev_set_repo_root,
-            localdev_get_repo_root,
-            localdev_list_tracked,
-            localdev_list_external_pids,
-            localdev_stop_external,
-            localdev_start,
-            localdev_stop,
-            localdev_send_stdin,
-            localdev_follow_log,
-            localdev_stop_log_follow,
-            localdev_npm_install_stream,
-            localdev_deploy_stream,
-            repofile_open_default,
-            repofile_reveal,
-            repofile_read,
-            repofile_write,
-            activity_query_day,
-            activity_list_days,
-            activity_status,
-            get_questlog_hub,
-            get_quest_tree,
-            toggle_quest_check,
-            set_quest_status,
-            set_quest_priority,
-            add_quest_check,
-            delete_quest_check,
-            rename_quest_check,
-            open_task_in_editor,
-            create_task,
-            terminal_start,
-            terminal_send_stdin,
-            terminal_stop,
-            terminal_status,
-            life_screen_capture,
-            life_get_feature_states,
-            life_set_feature,
-            adventure_claude_complete,
-            adventure_save_raw,
-            adventure_save_image,
-            adventure_commit_summary,
-            claude_env_read_notify_config,
-            claude_env_write_notify_config,
-            claude_env_preview_sound
-        ])
+        // TASK-KL-063: 핸들러 목록은 acl.toml 단일 정본 → build.rs 가
+        // $OUT_DIR/acl_handler.rs 로 파생 (tauri::generate_handler![..] expr).
+        .invoke_handler(include!(concat!(env!("OUT_DIR"), "/acl_handler.rs")))
         .plugin(tauri_plugin_dialog::init())
         // KL-052-B: ML sidecar(karmolab-life-ml) spawn 용.
         .plugin(tauri_plugin_shell::init())

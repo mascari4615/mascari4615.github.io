@@ -280,7 +280,7 @@ master 브랜치는 항상 다음을 만족:
 - `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
 - `packages/karmolab-ai` 의 build 통과 (필수)
 - `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
-- `apps/karmolab-tauri` ACL 4-source audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040). `#[tauri::command]` / `generate_handler!` / `permissions/*.toml` / `capabilities/default.json` 4 source 정합 0 mismatch. 새 커맨드 추가 시 4곳 동시 수정 필수.
+- `apps/karmolab-tauri` ACL audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040 / KL-063 단일정본 재정식화). **KL-063 이후**: command↔permission-group 정본 = `apps/karmolab-tauri/src-tauri/acl.toml` *단 하나*. `build.rs` 가 거기서 `generate_handler!`(→ `$OUT_DIR/acl_handler.rs`, lib.rs include!) + `permissions/_generated/*.toml` 를 파생. 새 command 추가 = **2곳**: ① 구현 모듈 `#[tauri::command] fn` ② `acl.toml` 알맞은 `[[group]].commands` 1줄 (`capabilities/default.json` 은 *그룹 단위* 라 새 command 로 안 바뀜 — 새 *그룹* 신설 시에만 caps 1줄). audit 는 `acl.toml ⟷ #[command] ⟷ caps` 를 독립 cross-check (파생물 비검증 → codegen 버그도 포착, cargo build 선행 불요).
 - `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
 - typos check (`crate-ci/typos`) — strict 게이트 (KL-032). `_typos.toml` 이 false-positive 정의 + 데이터/외부 라이브러리 exclude. 진짜 typo 일 가능성 큰 단어들은 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
 
