@@ -8,19 +8,19 @@
 # 로드: yawnbot-defaults.txt → (이 파일, YAWNBOT_ENV=prod 일 때) → .env.
 # 빈 값(KEY=) = 미설정과 동일(코드에서 undefined 취급) → 해당 기능 비활성.
 #
-# 🔧 일회성 마이그레이션: 아래 빈 값을 채우세요. **prod 봇/길드/채널 ID 는
-#    이 머신에 없음**(GitHub secret=쓰기전용 읽기불가, prod .env=노트북 전용).
-#    → Discord 에서 prod 서버 우클릭 ID 복사 또는 기존 YB_PROD_* secret 값.
-#    채워 commit 하면 해당 YB_PROD_* secret 삭제 가능.
-#  (개인 유저 ID 는 env 불변이라 dev .env 에서 자동 채움 — KAR-031 후속.)
+# 🔧 마이그레이션: .env.prod-backup(2026-05-09) 의 prod 값으로 채움 (사용자 결정).
+#    ⚠ 8일 전 백업 — deploy 후 prod 동작 확인 필수. 변경됐으면 그때 정정.
+#    백업에 없던 키(채널 다수·VERTEX_PROJECT_ID·ALLOWED_GUILD_IDS)는 빈칸:
+#    secret 으로만 설정됐거나 신규(NEWS). 그 값은 prod 노트북 live .env 또는
+#    Discord 우클릭 ID 로만 획득 가능 (NEWS=어느 채널인지 = 네 결정사항).
 
-# ── Discord 앱 (prod 봇 — dev 와 다른 앱) · prod 전용, 사용자 입력 필요 ──
-CLIENT_ID=
-DISCORD_GUILD_ID=
+# ── Discord 앱 (prod 봇 — dev 와 다른 앱) · backup 5/9 ──
+CLIENT_ID=825793713749622816
+DISCORD_GUILD_ID=1456979834566873131,400451987268829186
 YAWNBOT_ALLOWED_GUILD_IDS=
 
-# ── 알림 채널 ID (prod 서버) · prod 전용, 사용자 입력 필요 ──
-GITHUB_WEBHOOK_CHANNEL_ID=
+# ── 알림 채널 ID (prod 서버) ──
+GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
 ASSISTANT_PUBLIC_CHANNEL_ID=
 YAWNBOT_OPS_REPORT_CHANNEL_ID=
 YAWNBOT_UNITY_FREE_CHANNEL_ID=
