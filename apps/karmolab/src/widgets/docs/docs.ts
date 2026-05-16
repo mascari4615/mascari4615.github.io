@@ -60,7 +60,7 @@
       let n = 0;
       for (const el of elements) {
         if (!(el instanceof HTMLElement)) continue;
-        const text = (el.textContent || '').replace(/\uFEFF/g, '').trim();
+        const text = (el.textContent || '').replace(/﻿/g, '').trim();
         if (!text) continue;
         const id = 'kl-mmd-' + Date.now() + '-' + ++n;
         const { svg, bindFunctions } = await render.call(mm, id, text);
@@ -469,7 +469,7 @@
   function renderMarkdown(container: HTMLElement, md: string): void {
     const body = document.createElement('div');
     body.className = 'docs-body';
-    md = md.replace(/^\uFEFF/, '');
+    md = md.replace(/^﻿/, '');
 
     if (typeof marked === 'undefined') {
       container.innerHTML = '<p class="docs-body" style="color:var(--error)">marked.js 로드 실패. 새로고침해주세요.</p>';
@@ -550,7 +550,7 @@
     }
   }
 
-  // ── TASK-KL-015-B: 통합 문서 위젯 ─────────────────────────────────────────────────────────
+  // ── TASK-KL-015-B: 통합 문서 위젯 ──────────────────────────────────────────────────────
   // docs.ts 가 자체 사이드바 (그룹 헤더 + 동적 항목) + 본문 + TOC 그림. Toolbox tabs 단일.
   // 「프로젝트 문서」 그룹 = 외부 md/GitHub raw (현 hardcode).
   // 「캐릭터/시스템/개념/lore」 그룹 = `world/wiki/manifest.json` 동적 walk (sub-A 의 sync 결과).
@@ -568,15 +568,15 @@
 
   const EXTERNAL_DOCS: ExternalDoc[] = [
     { id: 'docs-intro', label: '소개', source: { kind: 'local', path: 'intro.md' }, mddPreset: 'tool_run', mddMsg: '문서 페이지예요!' },
-    { id: 'docs-roadmap', label: '로드맵', source: { kind: 'local', path: 'roadmap.md' }, mddPreset: 'daily_start', mddMsg: '로드맵이랑 기획이에요~' },
-    { id: 'docs-guide', label: '가이드', source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: '사용법을 알려줄게요~' },
-    { id: 'docs-karmolab-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmolab-ai.md' }, mddPreset: 'tool_run', mddMsg: 'karmolab-ai 패키지 쓰는 법이에요.' },
-    { id: 'docs-discord-yawnbot', label: 'Discord·욘봇', source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: '욘 봇 음성·DAVE·기능 요약·TODO 한곳이에요.' },
+    { id: 'docs-roadmap', label: '로드맵', source: { kind: 'local', path: 'roadmap.md' }, mddPreset: 'daily_start', mddMsg: '로드맵이랑 기획이어요~' },
+    { id: 'docs-guide', label: '가이드', source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: '사용법을 알려줌게~' },
+    { id: 'docs-karmolab-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmolab-ai.md' }, mddPreset: 'tool_run', mddMsg: 'karmolab-ai 패키지 쓰는 법이어요.' },
+    { id: 'docs-discord-yawnbot', label: 'Discord·욕봇', source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: '욕 봇 음성·DAVE·기능 요약·TODO 한곳이어요.' },
     { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: 'discord-bots 워크스페이스 README (GitHub).' },
     { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: '데스크톱 앱 폴더 README (GitHub).' },
-    { id: 'docs-project-commands', label: '프로젝트 명령', source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: '블로그·KarmoLab·앱 전체 명령을 모아 뒀어요. 복사해서 쓰기 좋게!' },
-    { id: 'docs-local-dev', label: '데스크톱·로컬', source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: 'Tauri 앱에서만 쓰는 로컬 데브 러너 안내예요.' },
-    { id: 'docs-servermonitor-deploy-log-design', label: '로컬 · deploy 로그', source: { kind: 'local', path: 'servermonitor-deploy-log-stream.md' }, mddPreset: 'tool_run', mddMsg: '서버 모니터 deploy·npm i 로그 스트림 — 이벤트·커맨드는 본문 참고.' },
+    { id: 'docs-project-commands', label: '프로젝트 명령', source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: '블로그·KarmoLab·앱 전체 명령을 모아 띠어요. 복사해서 쓰기 좋게!' },
+    { id: 'docs-local-dev', label: '데스크톱·로컈', source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: 'Tauri 앱에서만 쓰는 로컈 데브 러너 안내예요.' },
+    { id: 'docs-servermonitor-deploy-log-design', label: '로컈 · deploy 로그', source: { kind: 'local', path: 'servermonitor-deploy-log-stream.md' }, mddPreset: 'tool_run', mddMsg: '서버 모니터 deploy·npm i 로그 스트림 — 이벤트·커맨드는 본문 참고.' },
   ];
 
   type RelTarget = string | { target: string; label?: string };
@@ -653,7 +653,7 @@
       parts.push('');
     }
     // character 의 관계 그래프 — relationships 가 있으면 mermaid 자동 생성.
-    // marked fence 인식 우회: 직접 <div class="mermaid"> 인라인 HTML — mermaid lib 가 .mermaid 셀렉터 자동 잡음.
+    // marked fence 인식 우회: 직접 <div class="mermaid"> 인라인 HTML — mermaid lib 가 .mermaid 셀렉터 자동 잊음.
     if (dirName === 'characters' && item.relationships && item.relationships.length > 0) {
       const mmdLines: string[] = ['graph LR'];
       const selfId = sanitizeMermaidId(item.slug);
@@ -823,19 +823,6 @@
       });
   }
 
-  Toolbox.register({
-    id: 'docs',
-    title: '문서',
-    desc: 'KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차',
-    layout: 'wide',
-    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
-    tabs: [
-      {
-        id: 'docs',
-        label: '문서',
-        build: buildDocsShell,
-      },
-    ],
-  });
+  Toolbox.register({ ...Toolbox.getLazyWidgetPublicMeta('docs'), tabs: [{ id: 'docs', label: '문서', build: buildDocsShell }] });
 
 })();
