@@ -34,7 +34,8 @@ import { mountLocalWebhook } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
-import { isTeamRoomMessage } from './bot/team-room';
+import { isTeamRoomMessage, setBudgetReserve } from './bot/team-room';
+import { buildGovernanceReserve } from './bot/governance-adapter';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
@@ -239,6 +240,7 @@ client.once('clientReady', async () => {
     startProactive(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath || undefined, memoRepoPath ? getAnniversary : undefined);
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
+    setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
     await sendStartupGreeting(client, characterService, getMemory);
     console.log(
