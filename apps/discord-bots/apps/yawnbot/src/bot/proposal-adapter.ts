@@ -203,6 +203,35 @@ const DOMAIN_MAP: Record<string, { folder: string; prefix: string }> = {
   kar: { folder: 'tasks', prefix: 'KAR' },
 };
 
+/**
+ * 발굴 LLM 이 쓰는 자유어 도메인 → 정식 prefix 정규화 (KAR-018-V fix).
+ * 버그: LLM 이 "yawnbot"/"karmolab"/"witch" 식으로 써서 정확키 매칭
+ * 실패 → 승인했는데 TASK 0 생성(결정 증발). *절대 null 아님* —
+ * 미지는 kar(umbrella 메타)로 안착(seed 라 사람이 재분류, 무손실).
+ */
+const DOMAIN_ALIAS: Record<string, string> = {
+  wm: 'wm', witch: 'wm', witchmendokusai: 'wm', mendokusai: 'wm',
+  unity: 'wm', game: 'wm',
+  kl: 'kl', karmolab: 'kl', karmo: 'kl', tauri: 'kl', lab: 'kl',
+  yb: 'yb', yawnbot: 'yb', yawn: 'yb', bot: 'yb', discord: 'yb',
+  life: 'life', hobby: 'hobby',
+  learn: 'learn', learning: 'learn',
+  kar: 'kar', umbrella: 'kar', meta: 'kar', infra: 'kar', memo: 'kar',
+  dotfiles: 'kar', 'agent-team': 'kar', agent: 'kar', agents: 'kar',
+};
+function resolveDomain(raw: string | undefined): {
+  key: string;
+  folder: string;
+  prefix: string;
+} {
+  const norm = (raw ?? '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+  const key =
+    DOMAIN_ALIAS[norm] ??
+    DOMAIN_ALIAS[norm.replace(/-/g, '')] ??
+    'kar'; // 미지 = 메타 버킷 (결정 무손실 — 증발 X)
+  return { key, ...DOMAIN_MAP[key] };
+}
+
 export function materializedPath(env: NodeJS.ProcessEnv): string {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   return root ? path.join(root, '.claude', 'proposals-materialized.jsonl') : '';
@@ -299,8 +328,8 @@ export function materializeTaskProposal(
 ): string | null {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   if (!root) return null;
-  const dom = DOMAIN_MAP[payload.domain?.trim().toLowerCase()] ?? null;
-  if (!dom) return null; // 미지 도메인 = 폐기 (날조 0, 추측 X)
+  // 별칭 정규화 — 미지여도 kar 안착(승인 결정 증발 X, KAR-018-V fix).
+  const dom = resolveDomain(payload.domain);
   const id = nextTaskId(root, dom.folder, dom.prefix);
   const file = `TASK-${id}-${slugify(payload.title)}.md`;
   const abs = path.join(root, dom.folder, file);
@@ -309,7 +338,7 @@ export function materializeTaskProposal(
     `id: TASK-${id}`,
     'status: seed',
     'priority: normal',
-    `path: [${payload.domain.trim().toLowerCase()}, agent-discovered]`,
+    `path: [${dom.key}, agent-discovered]`,
     'tags: [agent-discovered]',
     '---',
     '',

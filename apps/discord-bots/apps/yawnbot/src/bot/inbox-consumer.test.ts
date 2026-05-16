@@ -118,15 +118,30 @@ describe('runInboxConsumerOnce — 승인 게이트', () => {
   });
 });
 
-describe('materializeTaskProposal — 미지 도메인 거부 (날조 0)', () => {
-  it('도메인 미지 → null (파일 X)', () => {
+describe('materializeTaskProposal — 도메인 별칭 정규화 (KAR-018-V fix)', () => {
+  it('별칭("yawnbot") → 정식 폴더(yb) 생성 — 증발 X', () => {
+    const r = materializeTaskProposal(env(), {
+      title: 'x',
+      body: 'b',
+      domain: 'yawnbot',
+    });
+    expect(r).toContain('TASK-YB-');
+  });
+
+  it('미지 도메인 → null 아님, kar(메타)로 안착 (승인 결정 무손실)', () => {
+    const r = materializeTaskProposal(env(), {
+      title: 'y',
+      body: 'b',
+      domain: 'nonsense-xyz',
+    });
+    expect(r).not.toBeNull();
+    expect(r).toContain('TASK-KAR-');
+  });
+
+  it('대소문자·공백·언더스코어 흡수 ("Karmo Lab" → kl)', () => {
     expect(
-      materializeTaskProposal(env(), {
-        title: 't',
-        body: 'b',
-        domain: 'nonsense',
-      }),
-    ).toBeNull();
+      materializeTaskProposal(env(), { title: 'z', body: 'b', domain: 'Karmo Lab' }),
+    ).toContain('TASK-KL-');
   });
 });
 
