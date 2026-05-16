@@ -4,7 +4,23 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const YAML = require('yaml');
 
-const DEFAULT_SITE_ORIGIN = 'https://mascari4615.github.io';
+// Last-resort fallback only. The canonical site origin is derived from
+// _config.yml `url` at build time (single source of truth — survives a
+// custom-domain change without touching this file). TASK-KAR-028.
+const DEFAULT_SITE_ORIGIN = 'https://blog.mascari4615.com';
+
+async function readSiteOriginFromConfig(root) {
+  try {
+    const raw = await fs.readFile(path.join(root, '_config.yml'), 'utf8');
+    const url = YAML.parse(raw)?.url;
+    if (typeof url === 'string' && url.trim()) {
+      return url.trim().replace(/\/$/, '');
+    }
+  } catch {
+    // _config.yml missing/unparsable → fall back to DEFAULT_SITE_ORIGIN
+  }
+  return null;
+}
 
 function shouldExclude(relFromPostsDir, basename) {
   const posix = relFromPostsDir.replace(/\\/g, '/');
@@ -112,7 +128,8 @@ function extractMarkdownHrefs(body) {
   return urls;
 }
 
-async function buildJekyllPostGraph(root, siteOrigin = DEFAULT_SITE_ORIGIN) {
+async function buildJekyllPostGraph(root, siteOrigin) {
+  const origin = siteOrigin || (await readSiteOriginFromConfig(root)) || DEFAULT_SITE_ORIGIN;
   const postsDir = path.join(root, '_posts');
   const files = await walkMdFiles(postsDir, postsDir);
   const bySlug = new Map();
@@ -151,7 +168,7 @@ async function buildJekyllPostGraph(root, siteOrigin = DEFAULT_SITE_ORIGIN) {
     const { body } = parseFrontMatter(raw);
     const slug = slugFromBasename(path.basename(file));
     for (const href of extractMarkdownHrefs(body)) {
-      const target = slugFromHref(href, siteOrigin);
+      const target = slugFromHref(href, origin);
       if (!target || target === slug || !bySlug.has(target)) {
         continue;
       }
