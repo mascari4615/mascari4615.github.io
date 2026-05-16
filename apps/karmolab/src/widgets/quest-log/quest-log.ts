@@ -19,6 +19,8 @@
  * v1 = read-only (memo 정본 우선). v2 (TASK-KL-010): 위젯 토글 → memo write back. v3: 인라인 에디터.
  */
 // @ts-nocheck — port of inline IIFE; types narrow incrementally
+import { isDesktop, invoke, listen } from '../../tauri-bridge';
+
 (function (): void {
   // ── DATA — memo 정본 view ─────────────────────────────────────────────
   // hardcoded QUEST_DATA 폐기. Rust 명령 `get_quest_tree` 가 6 도메인 walk
@@ -80,13 +82,11 @@
 
   // 이전 위젯 (a344ee85) 의 자기 소멸 코드는 옛 인터랙션 살리려 제거 (localStorage 다시 사용).
 
-  function isKarmolabDesktop(): boolean {
-    return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
-  }
+  // TASK-KL-062 slice3c: 로컬 isKarmolabDesktop 폐기 → tauri-bridge isDesktop.
 
   async function fetchMemoTree(): Promise<MemoQuestTree | null> {
-    const invoke = window.__TAURI__?.core?.invoke;
-    if (typeof invoke !== 'function') return null;
+    // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam (웹=isDesktop false).
+    if (!isDesktop()) return null;
     try {
       return (await invoke('get_quest_tree')) as MemoQuestTree;
     } catch (err) {
@@ -394,8 +394,8 @@
   }
 
   async function fetchHubState(): Promise<any | null> {
-    const invoke = window.__TAURI__?.core?.invoke;
-    if (typeof invoke !== 'function') return null;
+    // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam (웹=isDesktop false).
+    if (!isDesktop()) return null;
     try {
       return await invoke('get_questlog_hub');
     } catch (e) {
@@ -409,7 +409,7 @@
   }
 
   function renderOverview(overviewWrap: HTMLElement, ov: ProjectOverview): void {
-    if (!isKarmolabDesktop()) {
+    if (!isDesktop()) {
       overviewWrap.innerHTML = '';
       return;
     }
@@ -497,7 +497,7 @@
     renderOverview(overviewWrap, overview);
   }
   function startOverviewPolling(overviewWrap: HTMLElement): void {
-    if (!isKarmolabDesktop()) return;
+    if (!isDesktop()) return;
     void refreshOverview(overviewWrap);
     if (overviewPollTimer != null) window.clearInterval(overviewPollTimer);
     overviewPollTimer = window.setInterval(() => {
@@ -1273,7 +1273,7 @@
 
   // ── renderQuestLog: HTML scaffold + memo 정본 fetch + runQuestLog ───────
   function renderQuestLog(container: HTMLElement): void {
-    if (!isKarmolabDesktop()) {
+    if (!isDesktop()) {
       container.innerHTML = `<div class="kl-quest-log"><div style="padding:48px 24px; text-align:center; color:#888;">Quest Log 는 KarmoLab 데스크톱 앱 (Tauri) 에서만 동작합니다.<br/>memo TASK 파일을 런타임에 읽어 트리로 표시합니다.</div></div>`;
       return;
     }
@@ -1359,11 +1359,12 @@
 
     // KL-024 — Tauri file watcher 가 emit 하는 'quest-tree-changed' 이벤트 listen.
     // 외부 에디터에서 memo TASK 파일이 변경되면 자동 새로고침. KL-044 — overview 도 즉시 갱신.
-    const tauriEvent = (window as any).__TAURI__?.event;
-    if (tauriEvent && typeof tauriEvent.listen === 'function') {
+    // TASK-KL-062 slice3c: 로컬 tauriEvent 캡처+가드 폐기 → seam listen
+    // (웹=no-op unlisten). isDesktop() 게이트로 비-데스크톱 설치 skip 보존.
+    if (isDesktop()) {
       void (async () => {
         try {
-          const unlisten = await tauriEvent.listen('quest-tree-changed', () => {
+          const unlisten = await listen('quest-tree-changed', () => {
             renderOnce();
             void refreshOverview(overviewWrap);
           });
@@ -2118,8 +2119,8 @@
 
           // 메모 정본 write-back (TASK-KL-017). filePath/lineNumber 가 있는 경우만.
           // 없으면 (옛 localStorage 데이터) 시각만 토글.
-          const invoke = (window as any).__TAURI__?.core?.invoke;
-          if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+          // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+          if (node.filePath && check.lineNumber && isDesktop()) {
             try {
               const newDone = await invoke('toggle_quest_check', {
                 filePath: node.filePath,
@@ -2152,8 +2153,8 @@
           const check = node.checks[i];
           if (!confirm(`정말 삭제할까요?\n\n"${check.t}"`)) return;
 
-          const invoke = (window as any).__TAURI__?.core?.invoke;
-          if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+          // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+          if (node.filePath && check.lineNumber && isDesktop()) {
             try {
               await invoke('delete_quest_check', {
                 filePath: node.filePath,
@@ -2218,8 +2219,8 @@
               return;
             }
 
-            const invoke = (window as any).__TAURI__?.core?.invoke;
-            if (node.filePath && check.lineNumber && typeof invoke === 'function') {
+            // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+            if (node.filePath && check.lineNumber && isDesktop()) {
               try {
                 await invoke('rename_quest_check', {
                   filePath: node.filePath,
@@ -2268,8 +2269,8 @@
           const newWidgetStatus = node.status === s ? 'seed' : s;
 
           // memo 정본 status write-back (TASK-KL-018). filePath/memoStatus 가 있는 경우만.
-          const invoke = (window as any).__TAURI__?.core?.invoke;
-          if (node.filePath && node.memoStatus && typeof invoke === 'function') {
+          // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+          if (node.filePath && node.memoStatus && isDesktop()) {
             const newMemoStatus = mapWidgetStatusToMemo(newWidgetStatus);
             try {
               const written = await invoke('set_quest_status', {
@@ -2302,8 +2303,8 @@
           // 같은 priority 클릭은 무동작 (status 와 달리 토글 의미 없음)
           if (node.memoPriority === newPriority) return;
 
-          const invoke = (window as any).__TAURI__?.core?.invoke;
-          if (node.filePath && node.memoPriority && typeof invoke === 'function') {
+          // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+          if (node.filePath && node.memoPriority && isDesktop()) {
             try {
               const written = await invoke('set_quest_priority', {
                 filePath: node.filePath,
@@ -2335,8 +2336,8 @@
           if (!t) return;
 
           // memo 정본 write-back (TASK-KL-019). filePath 가 있는 경우만.
-          const invoke = (window as any).__TAURI__?.core?.invoke;
-          if (node.filePath && typeof invoke === 'function') {
+          // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
+          if (node.filePath && isDesktop()) {
             try {
               const newLineNumber = await invoke('add_quest_check', {
                 filePath: node.filePath,
