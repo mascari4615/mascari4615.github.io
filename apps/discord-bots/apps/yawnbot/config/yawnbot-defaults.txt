@@ -85,6 +85,13 @@ WEBHOOK_PORT=4615
 # Unity Publisher Sale 페이지 폴링 간격(분). 코드에서 최소 5분으로 잘림.
 YAWNBOT_UNITY_FREE_INTERVAL_MIN=60
 
+# ── 관심사 뉴스 cron (TASK-YB-027) ──
+# 비밀 아닌 튜닝 기본값. 채널 ID 는 secret(YB_PROD_YAWNBOT_NEWS_CHANNEL_ID).
+# 폴링 간격(분, 코드 최소 30) / 신선 기사 기준(시간) / 1회 최대 게시 수.
+YAWNBOT_NEWS_INTERVAL_MIN=180
+YAWNBOT_NEWS_MAX_AGE_HOURS=12
+YAWNBOT_NEWS_MAX_PER_POLL=3
+
 # ── Vertex AI 안전 필터 ──
 # 전체 카테고리에 적용할 임계값. 비워두면 Vertex 기본 필터 사용.
 # 옵션: BLOCK_NONE | BLOCK_ONLY_HIGH | BLOCK_MEDIUM_AND_ABOVE | BLOCK_LOW_AND_ABOVE
