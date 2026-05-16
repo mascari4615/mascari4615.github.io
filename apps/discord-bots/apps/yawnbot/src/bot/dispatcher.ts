@@ -79,3 +79,79 @@ export class SessionRegistry {
     return reclaimed;
   }
 }
+
+// ── tier3 spawn 오케스트레이션 (B-1/B-2/B-4, slice-2) ────────
+// substrate⊥어댑터(parent ⓪'): 본 모듈은 Discord·karmolab-ai 직접 import X.
+// spawn primitive(run)·예산훅(reserve)·머신(thisMachine) 전부 *주입* —
+// 어댑터/배선층이 generateAssistantText·team-room.reserveBudget·KAR_MACHINE 제공.
+
+export interface Tier3Request {
+  core: string;
+  /** 코어 core.md frontmatter machine: 어피니티 (B-4). */
+  machine: string;
+  /** 작업단위 지시 (bounded — 이 1건 후 세션 종료). */
+  prompt: string;
+}
+
+export type Tier3Status =
+  | 'done'
+  | 'busy'          // per-agent 동시1 (B-2)
+  | 'wrong-machine' // 머신 어피니티 불일치 (B-4) — 다른 머신 worker 가 드레인
+  | 'budget-denied' // ④ 예산 reserve 거부 (sub-D 가 훅 채움)
+  | 'error';
+
+export interface Tier3Result {
+  status: Tier3Status;
+  text?: string;
+  error?: string;
+}
+
+export interface Tier3Deps {
+  /** 이 머신 식별 ($env:KAR_MACHINE 등 — 어댑터가 주입). */
+  thisMachine: string;
+  /** ④ 예산 reserve 훅 (team-room.reserveBudget — 순수, default allow). */
+  reserve: (core: string) => boolean;
+  /** spawn primitive (generateAssistantText 래퍼 — 어댑터 주입). */
+  run: (req: Tier3Request) => Promise<string>;
+  registry: SessionRegistry;
+}
+
+/**
+ * 머신 어피니티 판정 (B-4, TASK-SCHEMA 어휘). 빈값/any = 어디서나.
+ * 정확 일치 or cloud 패밀리(cloud ↔ cloud-*) 매칭.
+ */
+export function machineEligible(coreMachine: string, thisMachine: string): boolean {
+  const c = (coreMachine || 'any').trim();
+  if (c === 'any') return true;
+  if (c === thisMachine) return true;
+  if (c === 'cloud' && thisMachine.startsWith('cloud')) return true;
+  if (thisMachine === 'cloud' && c.startsWith('cloud')) return true;
+  return false;
+}
+
+/**
+ * tier3 풀세션 오케스트레이션: 머신자격 → 동시1 acquire → 예산 →
+ * run(작업단위) → 완료/에러 무관 release(bounded, 좀비 X).
+ */
+export async function spawnTier3(
+  req: Tier3Request,
+  deps: Tier3Deps,
+): Promise<Tier3Result> {
+  if (!machineEligible(req.machine, deps.thisMachine)) {
+    return { status: 'wrong-machine' };
+  }
+  if (!deps.registry.acquire(req.core)) {
+    return { status: 'busy' };
+  }
+  try {
+    if (!deps.reserve(req.core)) {
+      return { status: 'budget-denied' };
+    }
+    const text = await deps.run(req);
+    return { status: 'done', text };
+  } catch (e: unknown) {
+    return { status: 'error', error: e instanceof Error ? e.message : String(e) };
+  } finally {
+    deps.registry.release(req.core);
+  }
+}
