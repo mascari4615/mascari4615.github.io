@@ -164,11 +164,24 @@ export class CharacterService {
       if (fs.existsSync(this.activeConfigPath)) {
         const raw = fs.readFileSync(this.activeConfigPath, 'utf-8');
         const parsed = JSON.parse(raw);
+        // 하위호환: 값이 string = 레거시 skin-only / { core, skin } = 3-튜플(KAR-018).
+        // 본 단계는 tolerant read 만 — skin 추출. core-aware read/write 는 후속 슬라이스.
+        const toSkin = (v: unknown): string | null =>
+          typeof v === 'string'
+            ? v
+            : v && typeof v === 'object' && typeof (v as { skin?: unknown }).skin === 'string'
+              ? (v as { skin: string }).skin
+              : null;
+        const rawChannels =
+          parsed.channels && typeof parsed.channels === 'object' ? parsed.channels : {};
+        const channels: Record<string, string> = {};
+        for (const [key, val] of Object.entries(rawChannels)) {
+          const skin = toSkin(val);
+          if (skin) channels[key] = skin;
+        }
         this.activeCache = {
-          default:
-            typeof parsed.default === 'string' ? parsed.default : this.fallbackDefault,
-          channels:
-            parsed.channels && typeof parsed.channels === 'object' ? parsed.channels : {},
+          default: toSkin(parsed.default) ?? this.fallbackDefault,
+          channels,
         };
         return this.activeCache;
       }
