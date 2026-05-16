@@ -35,6 +35,7 @@ import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve } from './bot/team-room';
+import { isOwnAgentWebhook } from './bot/agent-webhook';
 import { buildGovernanceReserve } from './bot/governance-adapter';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
@@ -194,6 +195,11 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
 
 client.on('messageCreate', async (message) => {
   const isBot = message.author.bot;
+  // ★ race-free 루프가드 (KAR-018-A 회귀 근본 fix): 우리 agent webhook 발화는
+  // *무조건* drop. per-message-id 가드(handler ①)는 register-after-send race
+  // 가 있어 자기 답장을 재인입 → 무한 self-loop. webhook id 는 생성 시 확정 →
+  // race 0. agent↔agent 는 dispatcher(sub-B)가 내부 구동, 재인입 아님.
+  if (isBot && isOwnAgentWebhook(message.webhookId)) return;
   // 팀 방(코어 바인딩 채널) webhook = 에이전트↔에이전트 → handler 로 통과
   // (handler 루프가드 ① 가 자기 webhook 은 drop). 그 외 bot 은 기존대로 무시. (KAR-018-A sub-A-1)
   const teamWebhook =
