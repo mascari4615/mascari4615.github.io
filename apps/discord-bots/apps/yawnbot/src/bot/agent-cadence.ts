@@ -34,6 +34,7 @@ import {
   defaultNotify,
   type NotifyFn,
 } from './governance-adapter';
+import { runProducerOnce, inboxDispatch } from './proposal-adapter';
 
 // ── kill switch (③ 사람·!kill 최우선 인터럽, B-3) — 순수(테스트가능) ──
 let killed = false;
@@ -116,6 +117,21 @@ export function parseCadenceWork(md: string): Tier3Request | null {
   if (!o || !o.alignment) return null;
   return objectiveToRequest(o);
 }
+
+/**
+ * ⑦' 발굴 프롬프트 (KAR-018-W). 미션·objectives 정렬 자가검사 후 *판별
+ * union 엔벨로프 JSON 1건*만 출력 (없으면 빈 출력 → 파서가 폐기, 날조 0).
+ */
+const DISCOVERY_PROMPT = [
+  '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다.',
+  'agent-mission.md §1 공통목표·§3 비목표를 자가검사해, *지금 가치 있는*',
+  '발굴물 1건을 아래 판별 union JSON 으로만 출력하라 (코드펜스 OK):',
+  '{"kind":"env|skill|agent|task|objective","payload":{...}}',
+  '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
+  '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
+  '- objective: {summary,derivation,alignment}',
+  '확신 없으면 아무것도 출력하지 마라 (빈 출력 = 폐기, 날조 금지).',
+].join('\n');
 
 // ── governed cadence (D-3 slice-3) ──────────────────────────
 // risk 분류 = *보수* (NLP 날조 X, 황금의 정신): 명시 `[risk]` 마커 또는
@@ -247,7 +263,7 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   const tick = async () => {
     try {
       if (killFile && fs.existsSync(killFile)) armKill(); // 크로스-프로세스 !kill
-      const r = await runGovernedCadenceOnce(deps, gov, () => {
+      let r = await runGovernedCadenceOnce(deps, gov, () => {
         const p = path.join(memoRoot, '.claude', 'objectives.md');
         if (!memoRoot || !fs.existsSync(p)) return null;
         try {
@@ -256,6 +272,23 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
           return null;
         }
       });
+      // ⑦'(2): active objective 없음(idle) → 발굴 (KAR-018-W slice-2).
+      // 발굴물은 proposals 인박스까지만 (no-auto-exec, canon 무변경).
+      if (r === 'idle' && memoRoot && !isKilled()) {
+        const pr = await runProducerOnce({
+          env,
+          discover: async () => {
+            const { text } = await generateAssistantText(
+              { ...env, ASSISTANT_AI_PROVIDER: 'claude-cli' },
+              DISCOVERY_PROMPT,
+              { timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000 },
+            );
+            return text;
+          },
+          dispatch: inboxDispatch(env),
+        });
+        r = `idle→producer:${pr}`;
+      }
       console.log(`[AgentCadence] tick -> ${r}`);
     } catch (e) {
       console.error(
