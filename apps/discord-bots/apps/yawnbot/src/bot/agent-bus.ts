@@ -81,32 +81,33 @@ function render(env: ProposalEnvelope): {
   const s = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
   switch (env.kind) {
     case 'task':
+      // title=제목, body=불릿(문제/제안/효과/승인시). 중복 X.
       return { title: s(p.title), cardBody: s(p.body), detailBody: s(p.body) };
     case 'objective':
+      // summary=제목 한 줄. derivation=핵심 불릿(카드). alignment=목표
+      // 정합(스레드에만). 제목 본문 반복 X.
       return {
         title: s(p.summary),
-        cardBody: s(p.summary),
-        detailBody:
-          `${s(p.summary)}\n\n— 왜 하냐 —\n${s(p.derivation)}\n\n` +
-          `— 우리 목표랑 어떻게 맞냐 —\n${s(p.alignment)}`,
+        cardBody: s(p.derivation),
+        detailBody: `${s(p.derivation)}\n\n**목표 정합**\n${s(p.alignment)}`,
       };
     case 'env':
       return {
         title: s(p.summary) || s(p.id),
         cardBody: s(p.summary),
-        detailBody: `${s(p.summary)}\n\n(출처: ${s(p.source)})`,
+        detailBody: `${s(p.summary)}\n\n_출처: ${s(p.source)}_`,
       };
     case 'skill':
       return {
         title: s(p.name),
         cardBody: s(p.summary),
-        detailBody: `${s(p.name)}\n\n${s(p.summary)}\n\n(출처: ${s(p.source)})`,
+        detailBody: `${s(p.summary)}\n\n_출처: ${s(p.source)}_`,
       };
     case 'agent':
       return {
         title: `새 에이전트: ${s(p.name)}`,
-        cardBody: `${s(p.name)} — 역할: ${s(p.role)}`,
-        detailBody: `새 에이전트 "${s(p.name)}" (역할: ${s(p.role)})\n\n(출처: ${s(p.source)})`,
+        cardBody: `역할: ${s(p.role)}`,
+        detailBody: `역할: ${s(p.role)}\n\n_출처: ${s(p.source)}_`,
       };
   }
 }
