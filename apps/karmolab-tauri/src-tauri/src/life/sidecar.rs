@@ -156,7 +156,27 @@ pub fn send(cmd: &SidecarCommand, timeout: Duration) -> Result<SidecarEvent, Str
     let handle = guard
         .as_mut()
         .ok_or_else(|| "ML sidecar 미활성 — ensure_spawned 선행 필요".to_string())?;
-    send_locked(handle, cmd, timeout)
+    match send_locked(handle, cmd, timeout) {
+        Ok(evt) => Ok(evt),
+        Err(e) => {
+            // "sidecar error:" = sidecar 가 명령 실패를 Error 이벤트로
+            // 반환(프로세스 생존, 다음 명령 처리 가능 — 프로토콜 § 견고성).
+            // 그 외(stdin write 실패 / 응답 Disconnected·timeout) = sidecar
+            // 프로세스 crash 신호 → 죽은 handle 정리. 다음 ensure_spawned
+            // 가 None 보고 자동 respawn (앱 재시작 없이 voice/screen 복구).
+            if !e.starts_with("sidecar error:") {
+                let _ = guard.take();
+                eprintln!("[life-sidecar] 통신 실패 — handle 정리, 다음 호출 시 respawn: {e}");
+                // 복구 범위: screen = capture_with_trigger 가 매번
+                // ensure_spawned → 다음 PrintScreen 에서 완전 자동 복구.
+                // voice = enable 시 1회 VoiceLoad(whisper 3.1GB) 라
+                // crash 후 사용자 voice 재토글 시 복구. record 마다
+                // 자동 재로드는 crash 실패턴(B3) 본 뒤 정밀화 (지금
+                // 과설계 = 가설 박기 — 잘못된 3.1GB 재로드 UX 위험).
+            }
+            Err(e)
+        }
+    }
 }
 
 /// sidecar 임시 산출물(wav/png — OS temp) → 최종 memo 경로. 같은 볼륨
