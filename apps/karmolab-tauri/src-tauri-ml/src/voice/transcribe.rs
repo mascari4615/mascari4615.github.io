@@ -359,12 +359,18 @@ impl Decoder {
         let (_, _, content_frames) = mel.dims3().map_err(|e| format!("mel dims 실패: {e}"))?;
         let mut seek = 0;
         let mut results = vec![];
+        eprintln!("[life-voice] transcribe run_mel: content_frames={content_frames}");
         while seek < content_frames {
             let segment_size = usize::min(content_frames - seek, m::N_FRAMES);
             let mel_segment = mel
                 .narrow(2, seek, segment_size)
                 .map_err(|e| format!("mel.narrow 실패: {e}"))?;
+            let t0 = std::time::Instant::now();
             let dr = self.decode_with_fallback(&mel_segment)?;
+            eprintln!(
+                "[life-voice] transcribe segment seek={seek}/{content_frames} decode {:.1}s",
+                t0.elapsed().as_secs_f32()
+            );
             seek += segment_size;
             if dr.no_speech_prob > m::NO_SPEECH_THRESHOLD && dr.avg_logprob < m::LOGPROB_THRESHOLD {
                 eprintln!("[life-voice] no speech detected, skip seek={seek}");
