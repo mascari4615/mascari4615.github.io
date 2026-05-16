@@ -16,8 +16,12 @@ describe('buildDiscoveryArgs — 비-agentic 하드 보장', () => {
     expect(args).toContain('--print');
   });
 
-  it('--bare (hooks·auto-memory·CLAUDE.md 자동탐색·plugin OFF)', () => {
-    expect(args).toContain('--bare');
+  it('--bare 절대 X (2026-05-17 실측: --bare → OAuth 미독 → EXIT1 "Not logged in"; CLAUDE.md 오염은 빈 임시 cwd 로 차단)', () => {
+    expect(args).not.toContain('--bare');
+  });
+
+  it('--strict-mcp-config (+ --mcp-config 미부여 → MCP 서버 spawn 0)', () => {
+    expect(args).toContain('--strict-mcp-config');
   });
 
   it('--no-session-persistence (ephemeral, 공유 세션 경합 0)', () => {
