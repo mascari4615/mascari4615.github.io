@@ -421,7 +421,8 @@ pub mod oswake {
 
     /// 볼륨 강제 상향 + 음소거 해제. VK_VOLUME_UP 다회 = Windows 가
     /// 자동 unmute + 최대 근접. (정밀 레벨 = 후속 Core Audio.)
-    fn force_volume_up_unmute() {
+    /// pub = audio_probe 비파괴 검증 테스트가 직접 호출.
+    pub fn force_volume_up_unmute() {
         unsafe {
             for _ in 0..50 {
                 keybd_event(VK_VOLUME_UP as u8, 0, 0, 0);
@@ -481,6 +482,85 @@ pub mod oswake {
     pub fn wake_for_alarm() {}
     pub fn release_display() {}
     pub fn start_wake_timer(_app: tauri::AppHandle) {}
+}
+
+// ───── 볼륨 강제 비파괴 검증 probe (Core Audio IAudioEndpointVolume) ─────
+// 테스트 전용 — `force_volume_up_unmute` 실효를 read→force→assert→restore 로
+// 자율 검증 (라이브 머신 안 망가뜨림: 원래 볼륨/뮤트 즉시 복원). CI 의
+// verify=cargo check 라 본 #[ignore] 테스트는 안 돌고, 여기서 명시 실행.
+#[cfg(all(windows, test))]
+mod audio_probe {
+    use winapi::shared::winerror::SUCCEEDED;
+    use winapi::um::combaseapi::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL};
+    use winapi::um::endpointvolume::IAudioEndpointVolume;
+    use winapi::um::mmdeviceapi::{
+        eConsole, eRender, CLSID_MMDeviceEnumerator, IMMDeviceEnumerator,
+    };
+    use winapi::um::objbase::COINIT_APARTMENTTHREADED;
+    use winapi::Interface;
+
+    /// COM 초기화 → 기본 렌더 엔드포인트의 IAudioEndpointVolume 으로 f 실행.
+    unsafe fn with_epv<R>(f: impl FnOnce(*mut IAudioEndpointVolume) -> R) -> Option<R> {
+        if !SUCCEEDED(CoInitializeEx(std::ptr::null_mut(), COINIT_APARTMENTTHREADED)) {
+            return None;
+        }
+        let mut enom: *mut IMMDeviceEnumerator = std::ptr::null_mut();
+        let hr = CoCreateInstance(
+            &CLSID_MMDeviceEnumerator,
+            std::ptr::null_mut(),
+            CLSCTX_ALL,
+            &IMMDeviceEnumerator::uuidof(),
+            &mut enom as *mut _ as *mut *mut winapi::ctypes::c_void,
+        );
+        let mut result = None;
+        if SUCCEEDED(hr) && !enom.is_null() {
+            let mut dev = std::ptr::null_mut();
+            if SUCCEEDED((*enom).GetDefaultAudioEndpoint(eRender, eConsole, &mut dev))
+                && !dev.is_null()
+            {
+                let mut epv: *mut IAudioEndpointVolume = std::ptr::null_mut();
+                if SUCCEEDED((*dev).Activate(
+                    &IAudioEndpointVolume::uuidof(),
+                    CLSCTX_ALL,
+                    std::ptr::null_mut(),
+                    &mut epv as *mut _ as *mut *mut winapi::ctypes::c_void,
+                )) && !epv.is_null()
+                {
+                    result = Some(f(epv));
+                    (*epv).Release();
+                }
+                (*dev).Release();
+            }
+            (*enom).Release();
+        }
+        CoUninitialize();
+        result
+    }
+
+    /// (마스터 볼륨 scalar 0..1, muted?).
+    pub fn get() -> Option<(f32, bool)> {
+        unsafe {
+            with_epv(|epv| {
+                let mut vol: f32 = -1.0;
+                let mut mute: i32 = 0;
+                (*epv).GetMasterVolumeLevelScalar(&mut vol);
+                (*epv).GetMute(&mut mute);
+                (vol, mute != 0)
+            })
+        }
+    }
+
+    /// 마스터 볼륨 scalar + 뮤트 설정 (복원/베이스라인용).
+    pub fn set(scalar: f32, mute: bool) -> bool {
+        unsafe {
+            with_epv(|epv| {
+                let a = (*epv).SetMasterVolumeLevelScalar(scalar, std::ptr::null_mut());
+                let b = (*epv).SetMute(if mute { 1 } else { 0 }, std::ptr::null_mut());
+                SUCCEEDED(a) && SUCCEEDED(b)
+            })
+            .unwrap_or(false)
+        }
+    }
 }
 
 // ───────────────────────── 사운드 (winmm, 무한 루프) ─────────────────────────
@@ -698,6 +778,40 @@ pub fn alarm_set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// 볼륨 강제 *실효* 비파괴 검증 — read→baseline(저볼륨+뮤트)→force→
+    /// assert(상승+unmute)→원복. 라이브 머신 안 망가뜨림(즉시 복원).
+    /// `#[ignore]` = 시스템 볼륨을 잠깐 만지고 오디오 엔드포인트 필요 →
+    /// 일반 `cargo test`/CI(=cargo check) 제외, 명시 실행:
+    /// `cargo test -p karmolab-desktop --lib volume_force -- --ignored`
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn volume_force_actually_raises_and_unmutes() {
+        let Some((orig_vol, orig_mute)) = super::audio_probe::get() else {
+            eprintln!("[skip] 오디오 엔드포인트 없음 (헤드리스/CI)");
+            return;
+        };
+        // 베이스라인: 확실히 낮게 + 뮤트 → force 효과가 명확히 보이게.
+        assert!(super::audio_probe::set(0.05, true), "베이스라인 set 실패");
+        std::thread::sleep(std::time::Duration::from_millis(150));
+        let (base_vol, base_mute) = super::audio_probe::get().unwrap();
+        assert!(base_vol < 0.2 && base_mute, "베이스라인 미적용: {base_vol} {base_mute}");
+
+        super::oswake::force_volume_up_unmute();
+        // keybd_event 는 시스템 입력 큐 경유 — 처리 시간 부여.
+        std::thread::sleep(std::time::Duration::from_millis(900));
+        let (new_vol, new_mute) = super::audio_probe::get().unwrap();
+
+        // 원복 먼저 (assert 실패해도 사용자 환경 보존).
+        super::audio_probe::set(orig_vol, orig_mute);
+
+        assert!(
+            new_vol >= 0.5,
+            "force 후 볼륨 충분히 안 오름: {base_vol} → {new_vol}"
+        );
+        assert!(!new_mute, "force 후 음소거 해제 안 됨");
+    }
 
     fn mk(id: &str, h: u8, m: u8, repeat: Vec<u8>, enabled: bool) -> Alarm {
         Alarm {
