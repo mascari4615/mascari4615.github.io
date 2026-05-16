@@ -60,13 +60,18 @@ pub fn enable(app: &AppHandle) -> Result<(), String> {
     }
 }
 
-/// Life 위젯 비활성화 — VoiceUnload(~3.1GB 반환). sidecar 프로세스는
-/// screen 공용이라 유지 (종료는 앱 종료 hook = sidecar::terminate).
+/// Life 위젯 비활성화 — **sidecar 프로세스 종료** (~3.1GB OS 완전 회수).
+///
+/// KL-052-B3 진단(0xC0000005): candle Whisper decoder 를 동일 프로세스에서
+/// VoiceUnload 후 VoiceLoad(재load)하면 ACCESS_VIOLATION segfault.
+/// → decoder unload→reload 조건 자체를 제거: voice off = 프로세스 종료,
+/// 다음 enable = 새 프로세스에서 decoder 최초 1회 load (재load 없음).
+/// (C1 의 "disable=VoiceUnload, 프로세스 유지"를 candle 제약으로 뒤집음.)
+/// screen 은 capture_with_trigger 가 매번 ensure_spawned → voice off 로
+/// 죽어도 PrintScreen 시 자동 respawn (decoder 無, 가벼움 — 공용성 유지).
 pub fn disable() {
     VOICE_LOADED.store(false, Ordering::SeqCst);
-    if sidecar::is_spawned() {
-        let _ = sidecar::send(&SidecarCommand::VoiceUnload, sidecar::SHORT_TIMEOUT);
-    }
+    sidecar::terminate();
 }
 
 /// (loaded, loading). loaded 1회 확정 후 캐시 — 이후 sidecar 안 거침
@@ -78,8 +83,6 @@ fn voice_status() -> (bool, bool) {
     if !sidecar::is_spawned() {
         return (false, false);
     }
-    // 아직 loaded 미확정 = enable 직후 decoder load 중 (record 전 →
-    // transcribe 없음 → send() lock 경합 0). loaded 받으면 캐시.
     match sidecar::send(&SidecarCommand::VoiceStatus, sidecar::SHORT_TIMEOUT) {
         Ok(SidecarEvent::Status { loaded, loading }) => {
             if loaded {
@@ -109,36 +112,42 @@ pub fn record_start() -> Result<(), String> {
     }
 }
 
-/// hotkey Released 시 호출. sidecar 가 cpal stop + Whisper transcribe.
-/// 짧은 음성(<0.3s, sidecar noise drop) / 빈 transcript = noop.
-/// 후반(classify/schema/companion)은 별 thread (원본 정합).
+/// hotkey Released 시 호출. **즉시 반환** — sidecar VoiceRecordStop
+/// (cpal stop + Whisper transcribe, 수초~십수초) + 후반(classify/schema/
+/// companion) 전부 백그라운드 thread.
+///
+/// KL-052-B3 진단: 이전엔 `sidecar::send(VoiceRecordStop, HEAVY_TIMEOUT)`
+/// 가 thread spawn *밖* 동기 호출이라 transcribe 완료까지 hotkey Released
+/// 핸들러 thread(global-shortcut 이벤트)가 block → KarmoLab 응답없음.
+/// 원본(KL-052 전)은 transcribe 가 thread 안이었음 — 마이그 때 회귀시킨
+/// 것 복원. send 포함 전체를 thread 로.
 pub fn record_stop_and_process(trigger: &str) -> Result<(), String> {
-    let (text, wav_path, duration_s) = match sidecar::send(
-        &SidecarCommand::VoiceRecordStop,
-        sidecar::HEAVY_TIMEOUT,
-    ) {
-        Ok(SidecarEvent::Transcribed {
-            text,
-            wav_path,
-            duration_s,
-        }) => (text, wav_path, duration_s),
-        Ok(other) => {
-            eprintln!("[life-voice] RecordStop 예상 외 응답: {other:?}");
-            return Ok(());
-        }
-        Err(e) => {
-            // noise drop / frame 0 등 = 정상 흐름 (원본도 무시).
-            eprintln!("[life-voice] record_stop skip: {e}");
-            return Ok(());
-        }
-    };
-    if text.trim().is_empty() {
-        eprintln!("[life-voice] 빈 transcript — skip (wav 정리)");
-        let _ = std::fs::remove_file(&wav_path);
-        return Ok(());
-    }
     let trigger = trigger.to_string();
     std::thread::spawn(move || {
+        let (text, wav_path, duration_s) = match sidecar::send(
+            &SidecarCommand::VoiceRecordStop,
+            sidecar::HEAVY_TIMEOUT,
+        ) {
+            Ok(SidecarEvent::Transcribed {
+                text,
+                wav_path,
+                duration_s,
+            }) => (text, wav_path, duration_s),
+            Ok(other) => {
+                eprintln!("[life-voice] RecordStop 예상 외 응답: {other:?}");
+                return;
+            }
+            Err(e) => {
+                // noise drop / frame 0 등 = 정상 흐름 (원본도 무시).
+                eprintln!("[life-voice] record_stop skip: {e}");
+                return;
+            }
+        };
+        if text.trim().is_empty() {
+            eprintln!("[life-voice] 빈 transcript — skip (wav 정리)");
+            let _ = std::fs::remove_file(&wav_path);
+            return;
+        }
         if let Err(e) = process_recording(&text, &wav_path, duration_s, &trigger) {
             eprintln!("[life-voice] process_recording 실패: {e}");
         }
