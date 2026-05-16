@@ -37,6 +37,7 @@ import {
 import {
   runProducerOnce,
   inboxDispatch,
+  runInboxConsumerOnce,
   type DiscoverFn,
 } from './proposal-adapter';
 
@@ -366,6 +367,12 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       // 발굴물은 proposals 인박스까지만 (no-auto-exec, canon 무변경).
       if (r === 'idle' && memoRoot && !isKilled()) {
         r = `idle→producer:${await runGovernedProducerOnce(env)}`;
+      }
+      // 승인 게이트 인박스 소비 (W slice-3): 사람이 approvals.jsonl 에
+      // approved 박은 task 발굴만 seed TASK 머터리얼라이즈. 멱등·inert.
+      if (memoRoot && !isKilled()) {
+        const mat = await runInboxConsumerOnce(env);
+        if (mat > 0) r = `${r}+consumed:${mat}`;
       }
       console.log(`[AgentCadence] tick -> ${r}`);
     } catch (e) {
