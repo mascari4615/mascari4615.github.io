@@ -813,6 +813,92 @@ mod tests {
         assert!(!new_mute, "force 후 음소거 해제 안 됨");
     }
 
+    /// HKCU Run 값 조회 (없으면 None, 있으면 데이터 문자열).
+    #[cfg(windows)]
+    fn query_run(name: &str) -> Option<String> {
+        let out = std::process::Command::new("reg")
+            .args([
+                "query",
+                r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+                "/v",
+                name,
+            ])
+            .output()
+            .ok()?;
+        if !out.status.success() {
+            return None;
+        }
+        let s = String::from_utf8_lossy(&out.stdout);
+        // 값 라인: "<name>    REG_SZ    <data>" — REG_SZ 뒤가 데이터(공백 포함 가능).
+        for line in s.lines() {
+            if line.contains(name) {
+                if let Some(idx) = line.find("REG_SZ") {
+                    return Some(line[idx + "REG_SZ".len()..].trim().to_string());
+                }
+            }
+        }
+        None
+    }
+
+    /// autostart 레지스트리 로직 비파괴 검증 — 선상태 save → add 확인 →
+    /// delete 확인 → 원복(재부팅 X, 라이브 머신 무손상). 사용자 승인(2026-05-17).
+    /// `#[ignore]`: 실제 HKCU Run 을 잠깐 만짐 → CI(cargo check)·일반 test 제외.
+    /// 실행: `cargo test --lib autostart_registry -- --ignored`
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn autostart_registry_roundtrip_nondestructive() {
+        let prior = query_run(super::RUN_VALUE_NAME); // 선상태 보존
+
+        super::apply_autostart(true).expect("apply_autostart(true) 실패");
+        let after_on = query_run(super::RUN_VALUE_NAME);
+        let exe = std::env::current_exe()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
+
+        super::apply_autostart(false).expect("apply_autostart(false) 실패");
+        let after_off = query_run(super::RUN_VALUE_NAME);
+
+        // 원복 먼저 (assert 실패해도 사용자 환경 보존).
+        match &prior {
+            Some(v) => {
+                let _ = std::process::Command::new("reg")
+                    .args([
+                        "add",
+                        r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+                        "/v",
+                        super::RUN_VALUE_NAME,
+                        "/t",
+                        "REG_SZ",
+                        "/d",
+                        v,
+                        "/f",
+                    ])
+                    .output();
+            }
+            None => { /* step3 에서 이미 삭제됨 = 선상태(부재)와 동일 */ }
+        }
+
+        assert!(
+            after_on.as_deref() == Some(exe.as_str()),
+            "add 후 Run 값이 현재 exe 와 불일치: {after_on:?} != {exe}"
+        );
+        assert!(
+            after_off.is_none(),
+            "delete 후에도 Run 값 잔존: {after_off:?}"
+        );
+    }
+
+    #[test]
+    fn alarm_settings_default_is_autostart_on() {
+        let s = AlarmSettings::default();
+        assert!(s.autostart, "autostart 기본값 = ON (재부팅 후 알람 보장 약속)");
+        // serde default: 빈/부분 JSON 도 autostart=true 로 복원.
+        let parsed: AlarmSettings = serde_json::from_str("{}").unwrap();
+        assert!(parsed.autostart);
+    }
+
     fn mk(id: &str, h: u8, m: u8, repeat: Vec<u8>, enabled: bool) -> Alarm {
         Alarm {
             id: id.into(),
