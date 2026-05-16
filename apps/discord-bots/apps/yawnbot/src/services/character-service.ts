@@ -25,9 +25,15 @@ export interface CharacterCard {
   dir: string;
 }
 
+/** 코어/스킨 2-층 바인딩 (KAR-018-A). core=null = 레거시 skin-only. */
+interface Binding {
+  core: string | null;
+  skin: string;
+}
+
 interface ActiveConfig {
-  default: string;
-  channels: Record<string, string>;
+  default: Binding;
+  channels: Record<string, Binding>;
 }
 
 function parseFrontmatter(raw: string): { data: Record<string, string>; body: string } {
@@ -73,8 +79,12 @@ export class CharacterService {
       fs.mkdirSync(this.charactersDir, { recursive: true });
     }
     if (!fs.existsSync(this.activeConfigPath)) {
-      const initial: ActiveConfig = { default: this.fallbackDefault, channels: {} };
-      fs.writeFileSync(this.activeConfigPath, JSON.stringify(initial, null, 2) + '\n', 'utf-8');
+      // 신규 파일 = 레거시 호환 형태(string default). _readActive 가 Binding 으로 정규화.
+      fs.writeFileSync(
+        this.activeConfigPath,
+        JSON.stringify({ default: this.fallbackDefault, channels: {} }, null, 2) + '\n',
+        'utf-8',
+      );
     }
     const available = this.listCharacters();
     console.log(
@@ -164,23 +174,27 @@ export class CharacterService {
       if (fs.existsSync(this.activeConfigPath)) {
         const raw = fs.readFileSync(this.activeConfigPath, 'utf-8');
         const parsed = JSON.parse(raw);
-        // 하위호환: 값이 string = 레거시 skin-only / { core, skin } = 3-튜플(KAR-018).
-        // 본 단계는 tolerant read 만 — skin 추출. core-aware read/write 는 후속 슬라이스.
-        const toSkin = (v: unknown): string | null =>
-          typeof v === 'string'
-            ? v
-            : v && typeof v === 'object' && typeof (v as { skin?: unknown }).skin === 'string'
-              ? (v as { skin: string }).skin
-              : null;
+        // 하위호환: 값이 string = 레거시 skin-only / { core, skin } = 3-튜플(KAR-018-A).
+        const toBinding = (v: unknown): Binding | null => {
+          if (typeof v === 'string') return { core: null, skin: v };
+          if (v && typeof v === 'object') {
+            const o = v as { core?: unknown; skin?: unknown };
+            if (typeof o.skin === 'string') {
+              return { core: typeof o.core === 'string' ? o.core : null, skin: o.skin };
+            }
+          }
+          return null;
+        };
         const rawChannels =
           parsed.channels && typeof parsed.channels === 'object' ? parsed.channels : {};
-        const channels: Record<string, string> = {};
+        const channels: Record<string, Binding> = {};
         for (const [key, val] of Object.entries(rawChannels)) {
-          const skin = toSkin(val);
-          if (skin) channels[key] = skin;
+          const b = toBinding(val);
+          if (b) channels[key] = b;
         }
         this.activeCache = {
-          default: toSkin(parsed.default) ?? this.fallbackDefault,
+          default:
+            toBinding(parsed.default) ?? { core: null, skin: this.fallbackDefault },
           channels,
         };
         return this.activeCache;
@@ -191,16 +205,25 @@ export class CharacterService {
         e instanceof Error ? e.message : e,
       );
     }
-    this.activeCache = { default: this.fallbackDefault, channels: {} };
+    this.activeCache = { default: { core: null, skin: this.fallbackDefault }, channels: {} };
     return this.activeCache;
   }
 
   private _writeActive(cfg: ActiveConfig): void {
     this.activeCache = cfg;
     this.dirty = true;
+    // back-compat 직렬화: core 없으면 레거시 string, 있으면 { core, skin }.
+    const ser = (b: Binding): string | { core: string; skin: string } =>
+      b.core ? { core: b.core, skin: b.skin } : b.skin;
+    const out = {
+      default: ser(cfg.default),
+      channels: Object.fromEntries(
+        Object.entries(cfg.channels).map(([k, b]) => [k, ser(b)]),
+      ),
+    };
     fs.writeFileSync(
       this.activeConfigPath,
-      JSON.stringify(cfg, null, 2) + '\n',
+      JSON.stringify(out, null, 2) + '\n',
       'utf-8',
     );
   }
@@ -233,14 +256,21 @@ export class CharacterService {
   }
 
   getDefaultSlug(): string {
-    return this._readActive().default;
+    return this._readActive().default.skin;
   }
 
-  /** channelKey가 매핑에 있으면 그 슬러그, 없으면 default */
+  /** channelKey가 매핑에 있으면 그 스킨 슬러그, 없으면 default 스킨 */
   resolveSlug(channelKey: string | null | undefined): string {
     const cfg = this._readActive();
-    if (channelKey && cfg.channels[channelKey]) return cfg.channels[channelKey];
-    return cfg.default;
+    if (channelKey && cfg.channels[channelKey]) return cfg.channels[channelKey].skin;
+    return cfg.default.skin;
+  }
+
+  /** channelKey 의 코어 id (채널 미지정 시 default.core, 없으면 null) — KAR-018-A */
+  resolveCore(channelKey: string | null | undefined): string | null {
+    const cfg = this._readActive();
+    if (channelKey && cfg.channels[channelKey]) return cfg.channels[channelKey].core;
+    return cfg.default.core;
   }
 
   resolveCard(channelKey: string | null | undefined): CharacterCard | null {
@@ -254,9 +284,22 @@ export class CharacterService {
       throw new Error(`캐릭터를 찾을 수 없음: ${slug} (사용 가능: ${available})`);
     }
     const cfg = this._readActive();
-    cfg.channels = { ...cfg.channels, [channelKey]: slug };
+    const prev = cfg.channels[channelKey];
+    cfg.channels = {
+      ...cfg.channels,
+      [channelKey]: { core: prev?.core ?? null, skin: slug },
+    };
     // switch 시 카드 편집 반영 (캐시 무효화)
     this.reloadCard(slug);
+    this._writeActive(cfg);
+  }
+
+  /** channelKey 의 코어만 설정(스킨 보존). core=null = 코어 해제. KAR-018-A */
+  setChannelCore(channelKey: string, core: string | null): void {
+    const cfg = this._readActive();
+    const prev = cfg.channels[channelKey];
+    const skin = prev?.skin ?? cfg.default.skin;
+    cfg.channels = { ...cfg.channels, [channelKey]: { core, skin } };
     this._writeActive(cfg);
   }
 
@@ -271,7 +314,9 @@ export class CharacterService {
   }
 
   getChannelMapping(): Record<string, string> {
-    return { ...this._readActive().channels };
+    return Object.fromEntries(
+      Object.entries(this._readActive().channels).map(([k, b]) => [k, b.skin]),
+    );
   }
 
   /** DM/채널 공통 key 생성 helper */
