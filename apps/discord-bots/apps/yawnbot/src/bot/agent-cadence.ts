@@ -123,19 +123,63 @@ export function parseCadenceWork(md: string): Tier3Request | null {
 }
 
 /**
- * ⑦' 발굴 프롬프트 (KAR-018-W). 미션·objectives 정렬 자가검사 후 *판별
- * union 엔벨로프 JSON 1건*만 출력 (없으면 빈 출력 → 파서가 폐기, 날조 0).
+ * ⑦' 발굴 프롬프트 빌더 (KAR-018-W, 2026-05-17 근본 fix).
+ *
+ * 황금의 정신 — 실 dev 봇 관측 + 로컬 재현으로 확정한 근본:
+ *  옛 프롬프트는 "agent-mission.md §1/§3 *자가검사*" 를 시켰다 → 발굴
+ *  claude 는 비-agentic(도구 거부 = 파일 못 읽음)이라 읽을 수 없는 파일을
+ *  읽으려다 무한 deliberation → **120s/180s 풀 타임아웃 hang** (실측).
+ *  fix = *어댑터가 fs 로 미션 텍스트를 읽어 프롬프트에 인라인*. spawn 된
+ *  claude 는 파일 접근 불요(자족). 재현: 자족 프롬프트 = EXIT0 50s +
+ *  고품질 미션정렬 발굴 (vs 파일읽기 프롬프트 = 풀 타임아웃).
+ *
+ * 순수 — missionText 인자만 받음(테스트 가능, fs 격리). "도구·파일 접근
+ * 없음, 아래 텍스트만으로 단일턴 추론, 파일 읽기 시도 X" 를 *명시* 해야
+ * 모델이 도구 거부 루프에 빠지지 않는다 (재현 확인).
  */
-const DISCOVERY_PROMPT = [
-  '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다.',
-  'agent-mission.md §1 공통목표·§3 비목표를 자가검사해, *지금 가치 있는*',
-  '발굴물 1건을 아래 판별 union JSON 으로만 출력하라 (코드펜스 OK):',
-  '{"kind":"env|skill|agent|task|objective","payload":{...}}',
-  '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
-  '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
-  '- objective: {summary,derivation,alignment}',
-  '확신 없으면 아무것도 출력하지 마라 (빈 출력 = 폐기, 날조 금지).',
-].join('\n');
+export function buildDiscoveryPrompt(missionText: string): string {
+  return [
+    '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일',
+    '접근 없이 *아래 제공된 미션 헌장 텍스트만으로* 단일턴 추론한다.',
+    '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
+    '',
+    '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
+    missionText.trim(),
+    '',
+    '[작업] 위 미션에 정렬되는 *지금 가치 있는* 발굴물 1건을 아래 판별',
+    'union JSON 으로만 출력하라 (코드펜스 OK). 서론·설명·질문 금지:',
+    '{"kind":"env|skill|agent|task|objective","payload":{...}}',
+    '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
+    '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
+    '- objective: {summary,derivation,alignment}',
+    '확신 없으면 아무것도 출력하지 마라 (빈 출력 = 폐기. 추측·날조 금지).',
+  ].join('\n');
+}
+
+/** 미션 헌장 최소 fallback (정본 파일 부재·읽기실패 시 — 자족 보장). */
+const MISSION_FALLBACK =
+  '§1 공통목표: karmoddrine 세계(3 레포+메타 인프라+앞으로 만들 것)를 ' +
+  '황금의 정신(근본·최고 코드·미래 안전망·환경 재현성·AI Native)으로 ' +
+  '주도적으로 키운다(개선뿐 X — 새 기능/프로젝트/아이디어). ' +
+  '§3 비목표(드리프트): 검증 우회 자가개선/날조 · 승인없는 정본 변경 · ' +
+  'objective 무한증식/미션무관 발굴 · 면적/리소스 핑계 · 외부 프레임워크 이중화.';
+
+/**
+ * agent-mission.md 본문을 어댑터가 fs 로 읽어 반환 (best-effort).
+ * spawn claude 가 아니라 *어댑터* 가 읽음 = 비-agentic 안전 불변.
+ * 부재·실패 → MISSION_FALLBACK (발굴 hang 대신 degraded 진행).
+ */
+export function readMissionText(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  if (!root) return MISSION_FALLBACK;
+  try {
+    const p = path.join(root, '.claude', 'agent-mission.md');
+    const t = fs.readFileSync(p, 'utf-8').trim();
+    return t.length > 0 ? t : MISSION_FALLBACK;
+  } catch {
+    return MISSION_FALLBACK;
+  }
+}
 
 // ── governed cadence (D-3 slice-3) ──────────────────────────
 // risk 분류 = *보수* (NLP 날조 X, 황금의 정신): 명시 `[risk]` 마커 또는
@@ -256,7 +300,7 @@ export async function runGovernedProducerOnce(
     opts.discover ??
     (() =>
       generateDiscoveryText({
-        prompt: DISCOVERY_PROMPT,
+        prompt: buildDiscoveryPrompt(readMissionText(env)),
         timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000,
       }));
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
