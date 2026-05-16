@@ -467,6 +467,92 @@ export async function generateClaudeCliText(opts: {
   }
 }
 
+/**
+ * ⑦' 자율 발굴 전용 *비-agentic* claude CLI 인자 (KAR-018-W 안전 근본).
+ *
+ * 황금의 정신 — "print 모드가 알아서 막겠지"에 의존 X, *결정적 하드 보장*:
+ *  · cwd 파라미터 자체 부재 → `--dangerously-skip-permissions` 구조적 불가
+ *  · `--bare`               → hooks/auto-memory/CLAUDE.md 자동탐색/plugin OFF
+ *  · `--no-session-persistence` → ephemeral, 공유 `yawnbot-assistant` 세션 경합 0
+ *  · `--disallowedTools <쓰기·실행 전부>` → 도구 명시 거부 (자율 루프 = 순수 추론)
+ *  · `--continue`/`--resume`/`--name` 없음 → 무상태 단발
+ * 발굴은 "미션·objectives 텍스트 → 엔벨로프 JSON 1건" 단일턴 추론이라
+ * 파일·명령·세션이 *원천적으로* 불필요. 누가 cwd 를 넘길 수 없는 시그니처
+ * = 런타임 플래그가 아닌 타입 레벨 안전 (Deep Modules).
+ */
+const DISCOVERY_DISALLOWED_TOOLS =
+  'Bash Edit Write Read NotebookEdit Glob Grep Task WebFetch WebSearch';
+
+export function buildDiscoveryArgs(): string[] {
+  return [
+    '--print',
+    '--bare',
+    '--no-session-persistence',
+    '--disallowedTools',
+    DISCOVERY_DISALLOWED_TOOLS,
+  ];
+}
+
+/**
+ * 로컬 `claude` CLI 로 *비-agentic* 단발 텍스트 생성 (⑦' 발굴 전용).
+ * generateClaudeCliText 와 달리 cwd 인자가 시그니처에 *없어* agentic 모드로
+ * 절대 진입 불가. 무상태 — resume/세션 저장 X (공유 세션 비경합).
+ */
+export async function generateDiscoveryText(opts: {
+  prompt: string;
+  timeoutMs?: number;
+}): Promise<string> {
+  const cmd = process.env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
+  const timeout =
+    opts.timeoutMs ?? parseInt(process.env.CLAUDE_CLI_TIMEOUT_MS || '60000', 10);
+
+  return new Promise<string>((resolve, reject) => {
+    const child = spawn(cmd, buildDiscoveryArgs(), {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      windowsHide: true,
+      // cwd 미지정 — 의도적 (agentic 차단). process cwd 상속이지만 도구
+      // 거부 + bare 라 파일 접근 경로 자체가 없음.
+    });
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (d: Buffer) => {
+      stdout += d.toString();
+    });
+    child.stderr.on('data', (d: Buffer) => {
+      stderr += d.toString();
+    });
+
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error(`Claude CLI(discovery) 타임아웃 (${timeout}ms)`));
+    }, timeout);
+
+    child.on('close', (code: number | null) => {
+      clearTimeout(timer);
+      // 빈 출력 = 발굴 없음(정상, 날조 0) → 빈 문자열 resolve (파서가 폐기).
+      if (code === 0) resolve(stdout.trim());
+      else
+        reject(
+          new Error(
+            `Claude CLI(discovery) 종료 코드 ${code}: ${stderr.slice(0, 400)}`,
+          ),
+        );
+    });
+    child.on('error', (err: Error) => {
+      clearTimeout(timer);
+      reject(
+        new Error(
+          `Claude CLI(discovery) 실행 실패: ${err.message} (PATH에 '${cmd}' 확인)`,
+        ),
+      );
+    });
+
+    child.stdin.write(opts.prompt);
+    child.stdin.end();
+  });
+}
+
 // ─── 통합 프로바이더 (ASSISTANT_AI_PROVIDER 로 선택) ────────────────────────
 
 export type AssistantAiProvider = 'gemini' | 'claude-cli';

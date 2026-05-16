@@ -12,7 +12,7 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { generateAssistantText } from 'karmolab-ai/node';
+import { generateAssistantText, generateDiscoveryText } from 'karmolab-ai/node';
 import { reserveBudget } from './team-room';
 import {
   SessionRegistry,
@@ -34,7 +34,11 @@ import {
   defaultNotify,
   type NotifyFn,
 } from './governance-adapter';
-import { runProducerOnce, inboxDispatch } from './proposal-adapter';
+import {
+  runProducerOnce,
+  inboxDispatch,
+  type DiscoverFn,
+} from './proposal-adapter';
 
 // ── kill switch (③ 사람·!kill 최우선 인터럽, B-3) — 순수(테스트가능) ──
 let killed = false;
@@ -217,6 +221,47 @@ export async function runGovernedCadenceOnce(
   return res.status;
 }
 
+/**
+ * ⑦' 발굴 1 tick — *governed*: kill 최우선 → 예산 reserve 게이트 → 비-agentic
+ * 발굴 → 인박스. objective 경로(runGovernedCadenceOnce)와 동형 — idle 발굴
+ * 도 parent ④/Freysa 하 예산 통제. reserve = governance-adapter 가
+ * setBudgetReserve 로 주입한 buildGovernanceReserve(!kill+ceilings+trace).
+ *
+ *  · killed                  → 'killed' (발굴 호출 X)
+ *  · reserve deny(!kill·상한) → 'producer-gated' (발굴 호출 X + trace)
+ *  · 통과                     → runProducerOnce 결과(target / parse-fail / ...)
+ *
+ * discover 디폴트 = `generateDiscoveryText`(cwd 부재 = 구조적 비-agentic).
+ * reserve/discover 주입 가능 = 단위테스트 (실 claude·실 예산 없이).
+ */
+export async function runGovernedProducerOnce(
+  env: NodeJS.ProcessEnv,
+  opts: {
+    discover?: DiscoverFn;
+    reserve?: (core: string, channelId: string) => boolean;
+  } = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const reserve = opts.reserve ?? reserveBudget;
+  if (!reserve('producer', 'cadence:producer')) {
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: 'producer',
+      reason: 'producer reserve deny (!kill·예산 상한) — 발굴 skip',
+    });
+    return 'producer-gated';
+  }
+  const discover: DiscoverFn =
+    opts.discover ??
+    (() =>
+      generateDiscoveryText({
+        prompt: DISCOVERY_PROMPT,
+        timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000,
+      }));
+  return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
+}
+
 /** objectives.md 읽어 parseCadenceWork (thin I/O wrapper). */
 export function pickWorkFromObjectives(memoRoot: string): Tier3Request | null {
   try {
@@ -272,22 +317,11 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
           return null;
         }
       });
-      // ⑦'(2): active objective 없음(idle) → 발굴 (KAR-018-W slice-2).
+      // ⑦'(2): active objective 없음(idle) → 발굴 (KAR-018-W).
+      // governed: 예산 reserve 게이트 + 비-agentic generateDiscoveryText.
       // 발굴물은 proposals 인박스까지만 (no-auto-exec, canon 무변경).
       if (r === 'idle' && memoRoot && !isKilled()) {
-        const pr = await runProducerOnce({
-          env,
-          discover: async () => {
-            const { text } = await generateAssistantText(
-              { ...env, ASSISTANT_AI_PROVIDER: 'claude-cli' },
-              DISCOVERY_PROMPT,
-              { timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000 },
-            );
-            return text;
-          },
-          dispatch: inboxDispatch(env),
-        });
-        r = `idle→producer:${pr}`;
+        r = `idle→producer:${await runGovernedProducerOnce(env)}`;
       }
       console.log(`[AgentCadence] tick -> ${r}`);
     } catch (e) {
