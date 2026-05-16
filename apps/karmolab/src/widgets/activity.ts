@@ -3,6 +3,8 @@
  * Tauri Rust collector(activity.rs)가 매 5초마다 포그라운드 윈도우를 샘플링해 JSONL로 저장한다.
  * 이 위젯은 그 데이터를 일자별로 조회·집계해 보여줌. 외부 전송 없음.
  */
+import { invoke as tauriInvoke } from '../tauri-bridge';
+
 (function (): void {
   'use strict';
 
@@ -78,13 +80,6 @@
   function readableProcessName(raw: string): string {
     if (!raw) return '(unknown)';
     return PROCESS_LABELS_LOWER[raw.toLowerCase()] || raw;
-  }
-
-  function desktopInvoke(cmd: string, args: unknown): Promise<unknown> {
-    const core = window.__TAURI__?.core;
-    const fn = core && typeof core.invoke === 'function' ? core.invoke : null;
-    if (!fn) return Promise.reject(new Error('Tauri invoke 없음 (웹 브라우저 또는 withGlobalTauri 비활성)'));
-    return fn(cmd, args);
   }
 
   function todayKstDay(): string {
@@ -859,7 +854,7 @@
       const period = (periodSel.value || 'day') as Period;
       const anchor = dateIn.value || todayKstDay();
       if (period === 'all') {
-        const days = (await desktopInvoke('activity_list_days', {}) as string[]) || [];
+        const days = (await tauriInvoke('activity_list_days', {}) as string[]) || [];
         if (days.length === 0) {
           return { startEpoch: 0, endEpoch: 0, utcDays: [], label: '전체 (데이터 없음)' };
         }
@@ -893,7 +888,7 @@
             return;
           }
           return Promise.all(
-            utcDays.map((day) => desktopInvoke('activity_query_day', { day }) as Promise<DayActivity>)
+            utcDays.map((day) => tauriInvoke('activity_query_day', { day }) as Promise<DayActivity>)
           ).then((results) => {
             const merged: ActivitySample[] = [];
             for (const r of results) {
