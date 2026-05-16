@@ -1,3 +1,5 @@
+import { isDesktop, invoke, listen } from '../tauri-bridge';
+
 (function (): void {
   'use strict';
 
@@ -125,10 +127,9 @@
   async function ensureFollowListener(): Promise<void> {
     if (followListenerUnlisten) return;
     if (followListenerInstalling) return followListenerInstalling;
-    const listen = window.__TAURI__?.event?.listen as
-      | ((event: string, cb: (e: { payload: unknown }) => void) => Promise<() => void>)
-      | undefined;
-    if (typeof listen !== 'function') return;
+    // TASK-KL-062 slice3b: 로컬 listen 캡처+캐스트 폐기 → seam listen
+    // (Tauri 미주입 시 no-op unlisten 반환). 웹에선 설치 자체 skip.
+    if (!isDesktop()) return;
     followListenerInstalling = (async () => {
       try {
         followListenerUnlisten = await listen('localdev-log', (e: { payload: unknown }) => {
@@ -144,9 +145,7 @@
     return followListenerInstalling;
   }
 
-  function isKarmolabDesktop(): boolean {
-    return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
-  }
+  // TASK-KL-062 slice3b: 로컬 isKarmolabDesktop 폐기 → tauri-bridge isDesktop.
 
   function esc(s: string): string {
     if (Toolbox.escapeHtml) return Toolbox.escapeHtml(s);
@@ -330,7 +329,7 @@
 
   /** 데스크톱: 저장소 기준 .env 바로가기(탐색기 / 기본 앱 / 인앱 편집) */
   function mountEnvFilesPanel(host: HTMLElement): void {
-    const invoke = window.__TAURI__?.core?.invoke;
+    // TASK-KL-062 slice3b: 로컬 invoke 캡처 폐기 → seam invoke (reject if 미주입).
 
     host.className = 'sm-env-section';
 
@@ -356,7 +355,7 @@
         grid.textContent = 'envFiles 항목이 없습니다.';
         return;
       }
-      if (typeof invoke !== 'function') {
+      if (!isDesktop()) {
         grid.textContent = 'Tauri invoke를 사용할 수 없습니다.';
         return;
       }
@@ -495,7 +494,7 @@
     registerRefresh: (fn: () => Promise<void>) => void,
     triggerStatusFetchSoon: (delayMs: number) => void
   ): HTMLElement {
-    const invoke = window.__TAURI__?.core?.invoke;
+    // TASK-KL-062 slice3b: 로컬 invoke 캡처 폐기 → seam invoke (reject if 미주입).
 
     const SM_LOG_MAX_LINES = 500;
     const SM_LOG_MAX_BYTES = 256 * 1024;
@@ -540,15 +539,10 @@
       disableBtns: HTMLButtonElement[],
       okFallback: string
     ): Promise<void> {
-      const inv = window.__TAURI__?.core?.invoke;
-      const listen = window.__TAURI__?.event?.listen as
-        | ((event: string, cb: (e: { payload: unknown }) => void) => Promise<() => void>)
-        | undefined;
-      if (typeof inv !== 'function') return;
-      if (typeof listen !== 'function') {
-        Toolbox.showToast?.('Tauri event.listen을 쓸 수 없습니다.', 'error', undefined);
-        return;
-      }
+      // TASK-KL-062 slice3b: inv/listen 로컬 캡처+캐스트 폐기 → seam.
+      // 비-데스크톱이면 silent return (구 inv 가드와 동일 관측동작 — listen
+      // 토스트는 inv·listen 동시 주입이라 도달 불가였던 죽은 분기).
+      if (!isDesktop()) return;
       for (const b of disableBtns) b.disabled = true;
       logPanel.replaceChildren();
       let unLog: (() => void) | undefined;
@@ -565,7 +559,7 @@
           const pl = e.payload as LocaldevDonePayload;
           if (pl.profileId !== profileId) return;
         });
-        const msg = (await inv(cmd, { profileId })) as string;
+        const msg = (await invoke(cmd, { profileId })) as string;
         Toolbox.showToast?.(msg || okFallback, undefined, undefined);
       } catch (e: unknown) {
         Toolbox.showToast?.(e instanceof Error ? e.message : String(e), 'error', undefined);
@@ -594,7 +588,7 @@
       void (async () => {
         const v = rootInput.value.trim();
         if (Toolbox.setPref) Toolbox.setPref(REPO_ROOT_PREF, v);
-        if (typeof invoke !== 'function') {
+        if (!isDesktop()) {
           Toolbox.showToast?.('Tauri invoke를 쓸 수 없습니다.', 'error', undefined);
           return;
         }
@@ -634,7 +628,7 @@
       const rows = mergeServiceRows(config);
       let tracked: string[] = [];
       let externalPids: Record<string, number[]> = {};
-      if (typeof invoke === 'function') {
+      if (isDesktop()) {
         try {
           tracked = normalizeLocaldevTrackedIds(await invoke('localdev_list_tracked'));
         } catch (e) {
@@ -779,7 +773,7 @@
               scBtn.title = sc.hint;
               if (!stdinSendable) scBtn.disabled = true;
               scBtn.onclick = () => {
-                if (!stdinSendable || typeof invoke !== 'function') return;
+                if (!stdinSendable || !isDesktop()) return;
                 const text = sc.signal;
                 void (async () => {
                   try {
@@ -803,7 +797,7 @@
           stdinForm.appendChild(stdinBtn);
           stdinForm.onsubmit = (ev) => {
             ev.preventDefault();
-            if (!stdinSendable || typeof invoke !== 'function') return;
+            if (!stdinSendable || !isDesktop()) return;
             const text = stdinInput.value;
             stdinInput.value = '';
             void (async () => {
@@ -844,7 +838,7 @@
             lifecycleItem = mkMenuItem('■ 종료', () => {
               closeMenu();
               void (async () => {
-                if (typeof invoke !== 'function') return;
+                if (!isDesktop()) return;
                 try {
                   await invoke('localdev_stop', { profileId: p.id });
                   Toolbox.showToast?.(`${p.label} 종료 요청`, undefined, undefined);
@@ -860,7 +854,7 @@
             lifecycleItem = mkMenuItem('✕ 외부 종료', () => {
               closeMenu();
               void (async () => {
-                if (typeof invoke !== 'function') return;
+                if (!isDesktop()) return;
                 try {
                   const killed = (await invoke('localdev_stop_external', { profileId: p.id })) as number;
                   Toolbox.showToast?.(`${p.label} 외부 ${killed}개 종료`, undefined, undefined);
@@ -876,7 +870,7 @@
             lifecycleItem = mkMenuItem('▶ 시작', () => {
               closeMenu();
               void (async () => {
-                if (typeof invoke !== 'function') return;
+                if (!isDesktop()) return;
                 try {
                   await invoke('localdev_start', { profileId: p.id });
                   Toolbox.showToast?.(`${p.label} 시작됨`, undefined, undefined);
@@ -962,7 +956,7 @@
           // 카드 그릴 때마다 follow 패널 등록 + Rust follow 시작 (이미 follow 중이면 noop).
           followPanels.set(p.id, logPanelEl);
           void ensureFollowListener();
-          if (typeof invoke === 'function') {
+          if (isDesktop()) {
             void invoke('localdev_follow_log', { profileId: p.id }).catch((e) => {
               console.warn('[ServerMonitor] localdev_follow_log 실패', e);
             });
@@ -998,7 +992,7 @@
     // 결과가 직전과 같으면 재마운트 skip → 사용자 stdin/스크롤 보존.
     window.setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      if (typeof invoke !== 'function') return;
+      if (!isDesktop()) return;
       void (async () => {
         try {
           const raw = (await invoke('localdev_list_external_pids')) as Record<string, number[]>;
@@ -1026,14 +1020,14 @@
     rootFooter.appendChild(rootRow);
 
     void (async () => {
-      if (typeof invoke === 'function' && rootInput.value.trim()) {
+      if (isDesktop() && rootInput.value.trim()) {
         try {
           await invoke('localdev_set_repo_root', { path: rootInput.value.trim() });
         } catch {
           /* ignore */
         }
       }
-      if (typeof invoke === 'function') {
+      if (isDesktop()) {
         try {
           const fromRust = (await invoke('localdev_get_repo_root')) as string | null;
           if (fromRust) rootInput.value = fromRust;
@@ -1222,7 +1216,7 @@
 
     container.innerHTML = '';
 
-    if (isKarmolabDesktop()) {
+    if (isDesktop()) {
       const localSection = document.createElement('div');
       localSection.className = 'sm-local-section';
 
