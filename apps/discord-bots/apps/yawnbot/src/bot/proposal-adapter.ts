@@ -13,10 +13,17 @@ import path from 'path';
 import {
   parseProposalEnvelope,
   routeProposal,
+  proposalId,
   type ProposalEnvelope,
   type RouteTarget,
+  type TaskSeedPayload,
 } from './proposal';
-import { appendTrace, defaultNotify, type NotifyFn } from './governance-adapter';
+import {
+  appendTrace,
+  defaultNotify,
+  isObjectiveApproved,
+  type NotifyFn,
+} from './governance-adapter';
 
 /** 발굴 LLM 호출 (DI — generateAssistantText 'claude-cli' 래퍼 주입). */
 export type DiscoverFn = () => Promise<string>;
@@ -73,13 +80,17 @@ export async function runProducerOnce(
   }
 
   await fn(envelope); // no-auto-exec: dispatch=인박스/seed/엔진게이트까지만
+  const pid = proposalId(envelope);
   appendTrace(deps.env, {
     ts: new Date().toISOString(),
     type: 'budget',
     core: 'producer',
-    reason: `발굴→${target} (${envelope.kind})`,
+    reason: `발굴→${target} (${envelope.kind}) ${pid}`,
   });
-  notify(`⑦' 발굴 → ${target} (${envelope.kind}) — 게이트 대기`);
+  notify(
+    `⑦' 발굴 → ${target} (${envelope.kind}) [${pid}] — 승인 시 처리 ` +
+      `(agent-approvals.jsonl 에 {"objId":"${pid}","status":"approved"})`,
+  );
   return target;
 }
 
@@ -96,6 +107,8 @@ export function proposalsPath(env: NodeJS.ProcessEnv): string {
 
 export interface ProposalInboxEntry {
   ts: string;
+  /** 결정적 발굴 id — 사람 승인(agent-approvals.jsonl objId) 매칭 키. */
+  id: string;
   target: RouteTarget;
   kind: ProposalEnvelope['kind'];
   envelope: ProposalEnvelope;
@@ -133,6 +146,7 @@ export function inboxDispatch(env: NodeJS.ProcessEnv): ProposalDispatch {
     d[t] = async (envelope) => {
       appendProposal(env, {
         ts: new Date().toISOString(),
+        id: proposalId(envelope),
         target: t,
         kind: envelope.kind,
         envelope,
@@ -140,4 +154,205 @@ export function inboxDispatch(env: NodeJS.ProcessEnv): ProposalDispatch {
     };
   }
   return d;
+}
+
+// ── 승인 게이트 인박스 소비자 (W slice-3, task kind) ──────────
+// proposals.jsonl 발굴 + agent-approvals.jsonl `approved`(objId=발굴id)
+// 일치 → 실 *seed* TASK 파일 머터리얼라이즈. canon 정합:
+//  · W-4 no-auto-exec: status:seed 까지만 (사람이 ready 승격 = 기존
+//    TASK 시스템 게이트, 즉시 실행 X)
+//  · W-5 사람승인 활성화: isObjectiveApproved(approvals.jsonl) 재사용
+//  · mission §3 무한증식 차단: *승인된 것만*, materialized 멱등
+//  · 평행정의0: approval seam·TASK-SCHEMA 재사용 (sub-E core.md
+//    authoring 트랙과 비충돌 — task kind=task-new 라우팅뿐)
+
+/** TASK-SCHEMA 도메인 → {폴더(memo 기준 상대), prefix}. */
+const DOMAIN_MAP: Record<string, { folder: string; prefix: string }> = {
+  wm: { folder: 'wm/tasks', prefix: 'WM' },
+  kl: { folder: 'projects/karmolab/tasks', prefix: 'KL' },
+  yb: { folder: 'projects/yawnbot/tasks', prefix: 'YB' },
+  life: { folder: 'life/tasks', prefix: 'LIFE' },
+  hobby: { folder: 'hobby/tasks', prefix: 'HOBBY' },
+  learn: { folder: 'learning/tasks', prefix: 'LEARN' },
+  kar: { folder: 'tasks', prefix: 'KAR' },
+};
+
+export function materializedPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'proposals-materialized.jsonl') : '';
+}
+
+export function readMaterialized(env: NodeJS.ProcessEnv): Set<string> {
+  const p = materializedPath(env);
+  const s = new Set<string>();
+  if (!p || !fs.existsSync(p)) return s;
+  try {
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (t) s.add(JSON.parse(t).id as string);
+    }
+  } catch {
+    /* best-effort */
+  }
+  return s;
+}
+
+function appendMaterialized(
+  env: NodeJS.ProcessEnv,
+  id: string,
+  taskPath: string,
+): void {
+  const p = materializedPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({ ts: new Date().toISOString(), id, taskPath }) + '\n',
+      'utf-8',
+    );
+  } catch {
+    /* best-effort */
+  }
+}
+
+export function readInboxProposals(
+  env: NodeJS.ProcessEnv,
+): ProposalInboxEntry[] {
+  const p = proposalsPath(env);
+  if (!p || !fs.existsSync(p)) return [];
+  const out: ProposalInboxEntry[] = [];
+  try {
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t) as ProposalInboxEntry;
+      if (e && e.id && e.envelope) out.push(e);
+    }
+  } catch {
+    /* best-effort — 손상 라인은 폐기 */
+  }
+  return out;
+}
+
+function slugify(title: string): string {
+  return (
+    title
+      .trim()
+      .replace(/[^\p{L}\p{N}]+/gu, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40)
+      .replace(/-+$/g, '') || 'untitled'
+  );
+}
+
+/** 도메인 폴더의 다음 빈 TASK 번호 (race-best-effort — seed 라 사람 검토). */
+function nextTaskId(memoRoot: string, folder: string, prefix: string): string {
+  const dir = path.join(memoRoot, folder);
+  let max = 0;
+  try {
+    const re = new RegExp(`^TASK-${prefix}-(\\d+)`);
+    for (const f of fs.readdirSync(dir)) {
+      const m = f.match(re);
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    }
+  } catch {
+    /* 폴더 부재 → 001 부터 */
+  }
+  return `${prefix}-${String(max + 1).padStart(3, '0')}`;
+}
+
+/**
+ * 승인된 task 발굴 → *seed* TASK 파일 작성. status:seed = 사람이
+ * ready 로 승격해야 진행(기존 TASK 시스템 게이트 = W-4 no-auto-exec).
+ * @returns 작성된 파일 절대경로 (실패 시 null).
+ */
+export function materializeTaskProposal(
+  env: NodeJS.ProcessEnv,
+  payload: TaskSeedPayload,
+): string | null {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  if (!root) return null;
+  const dom = DOMAIN_MAP[payload.domain?.trim().toLowerCase()] ?? null;
+  if (!dom) return null; // 미지 도메인 = 폐기 (날조 0, 추측 X)
+  const id = nextTaskId(root, dom.folder, dom.prefix);
+  const file = `TASK-${id}-${slugify(payload.title)}.md`;
+  const abs = path.join(root, dom.folder, file);
+  const body = [
+    '---',
+    `id: TASK-${id}`,
+    'status: seed',
+    'priority: normal',
+    `path: [${payload.domain.trim().toLowerCase()}, agent-discovered]`,
+    'tags: [agent-discovered]',
+    '---',
+    '',
+    '## 목표',
+    '',
+    '> ⑦\' 자율 발굴 (사람 승인 후 머터리얼라이즈 — agent-approvals.jsonl).',
+    `> 발굴 제목: "${payload.title.trim()}"`,
+    '',
+    '## 컨텍스트 (발굴 본문 — 검토 후 정제)',
+    '',
+    payload.body.trim(),
+    '',
+    '## 완료 조건',
+    '',
+    '- [ ] (검토 후 채움 — seed→ready 승격 시)',
+    '',
+    '## 비고',
+    '',
+    '- ⑦\' 발굴물. status=seed = 사람이 정제·검증 후 ready 승격해야 진행.',
+    '',
+  ].join('\n');
+  try {
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    if (fs.existsSync(abs)) return abs; // 멱등 (동일 slug 재머터리얼 방지)
+    fs.writeFileSync(abs, body, 'utf-8');
+    return abs;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 인박스 1회 소비: 승인(approvals.jsonl approved)된 *task* 발굴만
+ * seed TASK 머터리얼라이즈 (멱등 = materialized.jsonl). kill·미승인·
+ * 비-task·이미처리 = skip. *블록 X* (백그라운드 자율종료 정합).
+ * @returns 이번에 머터리얼라이즈한 건수.
+ */
+export async function runInboxConsumerOnce(
+  env: NodeJS.ProcessEnv,
+  opts: { notify?: NotifyFn } = {},
+): Promise<number> {
+  const notify = opts.notify ?? defaultNotify(env);
+  const done = readMaterialized(env);
+  let n = 0;
+  const seen = new Set<string>();
+  for (const e of readInboxProposals(env)) {
+    if (e.kind !== 'task' || seen.has(e.id) || done.has(e.id)) continue;
+    seen.add(e.id);
+    if (!isObjectiveApproved(env, e.id)) continue; // 미승인 = inert
+    const abs = materializeTaskProposal(
+      env,
+      e.envelope.payload as TaskSeedPayload,
+    );
+    if (!abs) {
+      notify(`⑦' 승인 발굴 ${e.id} 머터리얼라이즈 실패 (도메인 미지·IO) — 보류`);
+      continue;
+    }
+    appendMaterialized(env, e.id, abs);
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: 'consumer',
+      reason: `승인 머터리얼라이즈 ${e.id} → ${path.basename(abs)} (seed)`,
+    });
+    notify(
+      `✅ 승인 발굴 머터리얼라이즈: ${e.id} → ${path.basename(abs)} ` +
+        `(status:seed — 사람이 ready 승격 시 진행)`,
+    );
+    n++;
+  }
+  return n;
 }
