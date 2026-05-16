@@ -9,7 +9,8 @@
  *   ① 자기 webhook 무응답   ② (core,channel) cooldown
  *   ③ 예산 reserve(sub-D)   ④ 체인 깊이 상한 (사람/objective 없이 N연속 → pause)
  */
-import type { CharacterService } from '../services/character-service';
+import type { Message } from 'discord.js';
+import { CharacterService } from '../services/character-service';
 
 /** 채널이 "팀 방"인가 = .active.json 3-튜플에 코어가 바인딩됨 (DM 제외). */
 export function isTeamRoom(
@@ -19,6 +20,20 @@ export function isTeamRoom(
 ): boolean {
   if (isDM) return false;
   return cs.resolveCore(channelKey) !== null;
+}
+
+/**
+ * 메시지가 팀 방에서 온 것인가 — isDM·channelKey 조립을 은닉 (main.ts 재사용).
+ * main.ts:220 의 bot-gate 완화가 이 한 술어만 호출하도록 (조립 중복 X).
+ */
+export function isTeamRoomMessage(cs: CharacterService, message: Message): boolean {
+  const isDM = message.channel.isDMBased();
+  const channelKey = CharacterService.channelKey({
+    isDM,
+    userId: message.author.id,
+    channelId: message.channel.id,
+  });
+  return isTeamRoom(cs, channelKey, isDM);
 }
 
 // ── 가드 ① 자기 webhook 무시 ────────────────────────────────
