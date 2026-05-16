@@ -42,6 +42,7 @@ import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
+import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 
 const client = new Client({
   intents: [
@@ -246,6 +247,7 @@ client.once('clientReady', async () => {
     startProactive(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath || undefined, memoRepoPath ? getAnniversary : undefined);
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
+    if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
     // sendLocalEvent = webhook-routes 정본 재사용(평행정의0). 미주입 시 trace만(graceful).
@@ -364,6 +366,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   setMusicDiscordClient(null);
   stopPresenceRotation();
   stopUnityFreeNotifier();
+  stopNewsNotifier();
   stopAgentCadence();
   stopProactive();
   stock.stopMarket();
