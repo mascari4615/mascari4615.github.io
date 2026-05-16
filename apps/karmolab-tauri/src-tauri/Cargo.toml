@@ -55,12 +55,20 @@ tauri-plugin-global-shortcut = "2"
 # TASK-KL-037: adventure dataUrl → 별 PNG 파일 분리 시 base64 디코드.
 base64 = "0.22"
 
+# KL-055-A: winapi 0.3(deprecated) → windows-sys 0.59(공식, 이미 transitive 중복).
+# 단일 Win32 dep 으로 통일 — Cargo.lock 중복 제거.
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi"] }
+windows-sys = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_System_ProcessStatus",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
 
 # KL-051 의 production 배포 최적화 (fat LTO / codegen-units=1 / strip /
 # panic=abort / opt-level=3) 는 KL-052 워크스페이스 전환으로 *워크스페이스
 # 루트* (`apps/karmolab-tauri/Cargo.toml` 의 [profile.release]) 로 이관됐다.
 # cargo 는 워크스페이스 멤버의 [profile.*] 를 무시(warn)하므로 여기 두면
 # KL-051 최적화가 조용히 사라진다. 루트에서 정의 — 동작 동일, 회귀 방지.
-

@@ -33,12 +33,13 @@ mod platform {
     use std::os::windows::ffi::OsStringExt;
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    use winapi::shared::minwindef::{DWORD, FALSE};
-    use winapi::um::handleapi::CloseHandle;
-    use winapi::um::processthreadsapi::OpenProcess;
-    use winapi::um::psapi::GetModuleBaseNameW;
-    use winapi::um::winnt::{PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ};
-    use winapi::um::winuser::{
+    use windows_sys::Win32::Foundation::{CloseHandle, FALSE};
+    use windows_sys::Win32::System::ProcessStatus::GetModuleBaseNameW;
+    use windows_sys::Win32::System::SystemInformation::GetTickCount;
+    use windows_sys::Win32::System::Threading::{
+        OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
+    };
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetForegroundWindow, GetLastInputInfo, GetWindowTextLengthW, GetWindowTextW,
         GetWindowThreadProcessId, LASTINPUTINFO,
     };
@@ -76,7 +77,7 @@ mod platform {
                 return None;
             }
             // GetTickCount는 wraparound이지만 단기 비교엔 충분.
-            let now_ms = winapi::um::sysinfoapi::GetTickCount() as u64;
+            let now_ms = GetTickCount() as u64;
             let last_ms = info.dwTime as u64;
             Some(now_ms.saturating_sub(last_ms) / 1000)
         }
@@ -84,7 +85,7 @@ mod platform {
 
     unsafe fn foreground_info() -> (String, String) {
         let hwnd = GetForegroundWindow();
-        if hwnd.is_null() {
+        if hwnd == 0 {
             return (String::new(), String::new());
         }
 
@@ -106,14 +107,14 @@ mod platform {
         };
 
         // 프로세스 PID + 실행 파일명
-        let mut pid: DWORD = 0;
+        let mut pid: u32 = 0;
         GetWindowThreadProcessId(hwnd, &mut pid);
         let process = process_name(pid).unwrap_or_default();
 
         (process, title)
     }
 
-    unsafe fn process_name(pid: DWORD) -> Option<String> {
+    unsafe fn process_name(pid: u32) -> Option<String> {
         if pid == 0 {
             return None;
         }
@@ -122,11 +123,11 @@ mod platform {
             FALSE,
             pid,
         );
-        if handle.is_null() {
+        if handle == 0 {
             return None;
         }
         let mut buf: [u16; 260] = [0; 260];
-        let len = GetModuleBaseNameW(handle, std::ptr::null_mut(), buf.as_mut_ptr(), buf.len() as u32);
+        let len = GetModuleBaseNameW(handle, 0, buf.as_mut_ptr(), buf.len() as u32);
         CloseHandle(handle);
         if len == 0 {
             return None;
