@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   isTeamRoom,
+  isTeamRoomMessage,
   registerOwnWebhookMessage,
   isOwnWebhookMessage,
   checkAndStampCooldown,
@@ -34,6 +35,23 @@ describe('isTeamRoom — 코어 바인딩 채널 판정', () => {
 
   it('코어 바인딩된 비-DM 채널은 팀 방이다', () => {
     expect(isTeamRoom(fakeCS('atlas'), 'ch-B', false)).toBe(true);
+  });
+});
+
+describe('isTeamRoomMessage — main.ts bot-gate 임계경로', () => {
+  function fakeMsg(channelId: string, isDM: boolean) {
+    return {
+      author: { id: 'u1' },
+      channel: { id: channelId, isDMBased: () => isDM },
+    } as unknown as import('discord.js').Message;
+  }
+
+  it('코어 바인딩 비-DM 채널 메시지 = 팀 방 메시지', () => {
+    expect(isTeamRoomMessage(fakeCS('atlas'), fakeMsg('tm-ch', false))).toBe(true);
+  });
+
+  it('코어 미바인딩 채널 메시지 = 팀 방 아님 (bot-gate drop 유지)', () => {
+    expect(isTeamRoomMessage(fakeCS(null), fakeMsg('tm-ch', false))).toBe(false);
   });
 });
 

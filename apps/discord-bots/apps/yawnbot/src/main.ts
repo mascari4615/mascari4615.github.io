@@ -34,6 +34,7 @@ import { mountLocalWebhook } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
+import { isTeamRoomMessage } from './bot/team-room';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
@@ -217,11 +218,17 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
 });
 
 client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
+  const isBot = message.author.bot;
+  // 팀 방(코어 바인딩 채널) webhook = 에이전트↔에이전트 → handler 로 통과
+  // (handler 루프가드 ① 가 자기 webhook 은 drop). 그 외 bot 은 기존대로 무시. (KAR-018-A sub-A-1)
+  const teamWebhook =
+    isBot && !!message.webhookId && !!characterService &&
+    isTeamRoomMessage(characterService, message as any);
+  if (isBot && !teamWebhook) return;
   if (characterService) {
     await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
-  await handleMeme(message as any);
+  if (!isBot) await handleMeme(message as any);
 });
 
 const app = createGithubWebhookApp(client as any, gameData as any);

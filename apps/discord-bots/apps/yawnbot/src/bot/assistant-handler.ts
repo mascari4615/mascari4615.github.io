@@ -23,6 +23,10 @@ import {
   reserveBudget,
   bumpChain,
 } from './team-room';
+import { sendAsSkin, WebhookPermissionError, type SkinSendPayload } from './agent-webhook';
+
+// 팀 방 webhook 권한 부재 경고를 채널당 1회만 (로그 스팸 방지)
+const webhookPermWarned = new Set<string>();
 
 export const MOOD_REACTION_EMOJIS = ['👍', '❤️', '😂', '😢'] as const;
 export type MoodReactionEmoji = typeof MOOD_REACTION_EMOJIS[number];
@@ -556,14 +560,39 @@ export async function handleAssistantMessage(
     });
 
     const reactionRow = buildReactionRow(card.slug);
-    if (sceneImage) {
-      const ext = (sceneImage.mimeType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
-      const attachment = new AttachmentBuilder(sceneImage.buffer, { name: `scene.${ext}` });
-      await message.reply({ content: reply, files: [attachment], components: [reactionRow] });
-      lastSentImageId.set(card.slug, sceneImage.id);
-    } else {
-      await message.reply({ content: reply, components: [reactionRow] });
+    const payload: SkinSendPayload = sceneImage
+      ? (() => {
+          const ext = (sceneImage.mimeType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
+          const attachment = new AttachmentBuilder(sceneImage.buffer, { name: `scene.${ext}` });
+          return { content: reply, files: [attachment], components: [reactionRow] };
+        })()
+      : { content: reply, components: [reactionRow] };
+
+    // 팀 방 = 스킨 identity webhook 송신 (sub-A-1). 권한 부재 시 일반 reply fallback.
+    let delivered = false;
+    if (isTeam && message.channel instanceof TextChannel) {
+      try {
+        await sendAsSkin(message.channel, card, payload);
+        delivered = true;
+      } catch (e: unknown) {
+        if (e instanceof WebhookPermissionError) {
+          if (!webhookPermWarned.has(message.channel.id)) {
+            webhookPermWarned.add(message.channel.id);
+            console.warn(`[Assistant:${card.slug}] ${e.message}`);
+          }
+        } else {
+          throw e;
+        }
+      }
     }
+    if (!delivered) {
+      await message.reply(
+        payload.files
+          ? { content: payload.content, files: payload.files as never, components: payload.components as never }
+          : { content: payload.content, components: payload.components as never },
+      );
+    }
+    if (sceneImage) lastSentImageId.set(card.slug, sceneImage.id);
 
     if (relationship) {
       relationship.incrementConversation();
