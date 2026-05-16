@@ -286,7 +286,9 @@ pub fn start_scheduler(app: AppHandle) {
 /// (강제기상) 모니터 ON+볼륨 → 사운드 루프 → 발화 창 표시 → 프론트 이벤트.
 fn fire(app: &AppHandle, alarm: &Alarm) {
     if alarm.force_wake {
-        oswake::wake_for_alarm();
+        oswake::keep_display_on();
+        // 알람별 *지정* 볼륨으로 정확히 + 음소거 해제 (Core Audio).
+        audio::force_to(alarm.volume);
     }
     sound::start_loop(alarm.sound_path.as_deref());
     show_alarm_window(app);
@@ -385,17 +387,12 @@ pub mod oswake {
         ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, LARGE_INTEGER,
     };
     use winapi::um::winuser::{
-        keybd_event, mouse_event, SendMessageW, HWND_BROADCAST, KEYEVENTF_KEYUP,
-        MOUSEEVENTF_MOVE, SC_MONITORPOWER, VK_VOLUME_UP, WM_SYSCOMMAND,
+        mouse_event, SendMessageW, HWND_BROADCAST, MOUSEEVENTF_MOVE, SC_MONITORPOWER,
+        WM_SYSCOMMAND,
     };
 
-    /// 발화 순간: 모니터 ON + 절전/디스플레이 잠금 방지 + 볼륨 강제·음소거 해제.
-    pub fn wake_for_alarm() {
-        keep_display_on();
-        force_volume_up_unmute();
-    }
-
     /// ring 동안 시스템/디스플레이 OFF 차단 + 꺼진 모니터 깨우기.
+    /// (볼륨은 `super::audio::force_to` 가 담당 — 관심사 분리.)
     pub fn keep_display_on() {
         unsafe {
             SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
@@ -416,18 +413,6 @@ pub mod oswake {
     pub fn release_display() {
         unsafe {
             SetThreadExecutionState(ES_CONTINUOUS);
-        }
-    }
-
-    /// 볼륨 강제 상향 + 음소거 해제. VK_VOLUME_UP 다회 = Windows 가
-    /// 자동 unmute + 최대 근접. (정밀 레벨 = 후속 Core Audio.)
-    /// pub = audio_probe 비파괴 검증 테스트가 직접 호출.
-    pub fn force_volume_up_unmute() {
-        unsafe {
-            for _ in 0..50 {
-                keybd_event(VK_VOLUME_UP as u8, 0, 0, 0);
-                keybd_event(VK_VOLUME_UP as u8, 0, KEYEVENTF_KEYUP, 0);
-            }
         }
     }
 
@@ -479,17 +464,18 @@ pub mod oswake {
 
 #[cfg(not(windows))]
 pub mod oswake {
-    pub fn wake_for_alarm() {}
+    pub fn keep_display_on() {}
     pub fn release_display() {}
     pub fn start_wake_timer(_app: tauri::AppHandle) {}
 }
 
-// ───── 볼륨 강제 비파괴 검증 probe (Core Audio IAudioEndpointVolume) ─────
-// 테스트 전용 — `force_volume_up_unmute` 실효를 read→force→assert→restore 로
-// 자율 검증 (라이브 머신 안 망가뜨림: 원래 볼륨/뮤트 즉시 복원). CI 의
-// verify=cargo check 라 본 #[ignore] 테스트는 안 돌고, 여기서 명시 실행.
-#[cfg(all(windows, test))]
-mod audio_probe {
+// ───── 볼륨 제어 (프로덕션, Core Audio IAudioEndpointVolume) ─────
+// 알람별 *지정* 볼륨을 정확히 세팅 + 음소거 해제. (구 keybd VK_VOLUME_UP×50
+// = "무조건 MAX 로 밀기" 만 가능 → 위젯 볼륨 슬라이더 실효 없음 = 레거시,
+// 본 모듈로 자기소멸.) Core Audio 실패 시에만 keybd 폴백.
+// get/set 은 비파괴 검증 테스트도 재사용 (단일 정본).
+#[cfg(windows)]
+pub mod audio {
     use winapi::shared::winerror::SUCCEEDED;
     use winapi::um::combaseapi::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL};
     use winapi::um::endpointvolume::IAudioEndpointVolume;
@@ -497,6 +483,7 @@ mod audio_probe {
         eConsole, eRender, CLSID_MMDeviceEnumerator, IMMDeviceEnumerator,
     };
     use winapi::um::objbase::COINIT_APARTMENTTHREADED;
+    use winapi::um::winuser::{keybd_event, KEYEVENTF_KEYUP, VK_VOLUME_UP};
     use winapi::Interface;
 
     /// COM 초기화 → 기본 렌더 엔드포인트의 IAudioEndpointVolume 으로 f 실행.
@@ -537,8 +524,8 @@ mod audio_probe {
         result
     }
 
-    /// (마스터 볼륨 scalar 0..1, muted?).
-    pub fn get() -> Option<(f32, bool)> {
+    /// (마스터 볼륨 scalar 0..1, muted?). 검증/베이스라인용.
+    pub fn get_master() -> Option<(f32, bool)> {
         unsafe {
             with_epv(|epv| {
                 let mut vol: f32 = -1.0;
@@ -550,17 +537,44 @@ mod audio_probe {
         }
     }
 
-    /// 마스터 볼륨 scalar + 뮤트 설정 (복원/베이스라인용).
-    pub fn set(scalar: f32, mute: bool) -> bool {
+    /// 마스터 볼륨 scalar(0..1) + 뮤트 설정. 성공 여부.
+    pub fn set_master(scalar: f32, mute: bool) -> bool {
         unsafe {
             with_epv(|epv| {
-                let a = (*epv).SetMasterVolumeLevelScalar(scalar, std::ptr::null_mut());
+                let a = (*epv).SetMasterVolumeLevelScalar(scalar.clamp(0.0, 1.0), std::ptr::null_mut());
                 let b = (*epv).SetMute(if mute { 1 } else { 0 }, std::ptr::null_mut());
                 SUCCEEDED(a) && SUCCEEDED(b)
             })
             .unwrap_or(false)
         }
     }
+
+    /// 알람 발화: 시스템 볼륨을 알람 지정값(0-100%)으로 *정확히* + 음소거 해제.
+    /// Core Audio 실패(드라이버/COM) 시에만 keybd VK_VOLUME_UP 폴백(MAX 근접).
+    pub fn force_to(vol_pct: u8) {
+        let scalar = (vol_pct.min(100) as f32) / 100.0;
+        if set_master(scalar, false) {
+            return;
+        }
+        eprintln!("[alarm] Core Audio 볼륨 set 실패 — keybd VK_VOLUME_UP 폴백");
+        unsafe {
+            for _ in 0..50 {
+                keybd_event(VK_VOLUME_UP as u8, 0, 0, 0);
+                keybd_event(VK_VOLUME_UP as u8, 0, KEYEVENTF_KEYUP, 0);
+            }
+        }
+    }
+}
+
+#[cfg(not(windows))]
+pub mod audio {
+    pub fn get_master() -> Option<(f32, bool)> {
+        None
+    }
+    pub fn set_master(_scalar: f32, _mute: bool) -> bool {
+        false
+    }
+    pub fn force_to(_vol_pct: u8) {}
 }
 
 // ───────────────────────── 사운드 (winmm, 무한 루프) ─────────────────────────
@@ -779,36 +793,37 @@ pub fn alarm_set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> 
 mod tests {
     use super::*;
 
-    /// 볼륨 강제 *실효* 비파괴 검증 — read→baseline(저볼륨+뮤트)→force→
-    /// assert(상승+unmute)→원복. 라이브 머신 안 망가뜨림(즉시 복원).
+    /// 알람별 *지정* 볼륨 정확 적용 비파괴 검증 — read→baseline(5%+뮤트)→
+    /// `audio::force_to(70)` → assert(≈0.70 ±tol + unmute)→원복.
+    /// 단순 "≥0.5/MAX" 가 아니라 *지정값 정확도* 까지 검증(위젯 슬라이더 실효).
     /// `#[ignore]` = 시스템 볼륨을 잠깐 만지고 오디오 엔드포인트 필요 →
     /// 일반 `cargo test`/CI(=cargo check) 제외, 명시 실행:
-    /// `cargo test -p karmolab-desktop --lib volume_force -- --ignored`
+    /// `cargo test --lib volume_force -- --ignored`
     #[cfg(windows)]
     #[test]
     #[ignore]
-    fn volume_force_actually_raises_and_unmutes() {
-        let Some((orig_vol, orig_mute)) = super::audio_probe::get() else {
+    fn volume_force_sets_exact_level_and_unmutes() {
+        let Some((orig_vol, orig_mute)) = super::audio::get_master() else {
             eprintln!("[skip] 오디오 엔드포인트 없음 (헤드리스/CI)");
             return;
         };
-        // 베이스라인: 확실히 낮게 + 뮤트 → force 효과가 명확히 보이게.
-        assert!(super::audio_probe::set(0.05, true), "베이스라인 set 실패");
+        // 베이스라인: 확실히 낮게 + 뮤트 → 지정값 적용이 명확히 보이게.
+        assert!(super::audio::set_master(0.05, true), "베이스라인 set 실패");
         std::thread::sleep(std::time::Duration::from_millis(150));
-        let (base_vol, base_mute) = super::audio_probe::get().unwrap();
+        let (base_vol, base_mute) = super::audio::get_master().unwrap();
         assert!(base_vol < 0.2 && base_mute, "베이스라인 미적용: {base_vol} {base_mute}");
 
-        super::oswake::force_volume_up_unmute();
-        // keybd_event 는 시스템 입력 큐 경유 — 처리 시간 부여.
-        std::thread::sleep(std::time::Duration::from_millis(900));
-        let (new_vol, new_mute) = super::audio_probe::get().unwrap();
+        // 알람이 volume=70 으로 발화한 것과 동일 경로.
+        super::audio::force_to(70);
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        let (new_vol, new_mute) = super::audio::get_master().unwrap();
 
         // 원복 먼저 (assert 실패해도 사용자 환경 보존).
-        super::audio_probe::set(orig_vol, orig_mute);
+        super::audio::set_master(orig_vol, orig_mute);
 
         assert!(
-            new_vol >= 0.5,
-            "force 후 볼륨 충분히 안 오름: {base_vol} → {new_vol}"
+            (new_vol - 0.70).abs() < 0.05,
+            "지정 볼륨 부정확: 70% 요청 → {new_vol} (baseline {base_vol})"
         );
         assert!(!new_mute, "force 후 음소거 해제 안 됨");
     }
