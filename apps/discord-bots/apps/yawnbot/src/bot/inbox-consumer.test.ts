@@ -15,7 +15,20 @@ import {
   runInboxConsumerOnce,
   readMaterialized,
   materializeTaskProposal,
+  materializeObjectiveProposal,
 } from './proposal-adapter';
+
+const OBJ_MD = [
+  '# objectives',
+  '',
+  '| id | 목표 | 도출 | 정렬 | status | 승인 | TASK |',
+  '| --- | --- | --- | --- | --- | --- | --- |',
+  '| OBJ-001 | 예시 | self-task:x | §1 | proposed | - | - |',
+  '',
+  '## cross-cut',
+  '',
+  '- 뒤 prose 보존 검증용',
+].join('\n');
 
 const taskEnv: ProposalEnvelope = {
   kind: 'task',
@@ -114,5 +127,64 @@ describe('materializeTaskProposal — 미지 도메인 거부 (날조 0)', () =>
         domain: 'nonsense',
       }),
     ).toBeNull();
+  });
+});
+
+describe('materializeObjectiveProposal — proposed 행 (자동실행 X)', () => {
+  it('objectives.md 부재 → null (정본 구조 날조 X)', () => {
+    expect(
+      materializeObjectiveProposal(env(), {
+        summary: 's',
+        derivation: 'd',
+        alignment: '§1',
+      }),
+    ).toBeNull();
+  });
+
+  it('표에 proposed 행 append + 다음 OBJ id + 뒤 prose 보존', () => {
+    fs.writeFileSync(path.join(root, '.claude', 'objectives.md'), OBJ_MD);
+    const r = materializeObjectiveProposal(env(), {
+      summary: '자율발굴목표',
+      derivation: 'self-task:발굴',
+      alignment: '§1 공통목표',
+    });
+    expect(r).toBe('objectives.md:OBJ-002');
+    const md = fs.readFileSync(
+      path.join(root, '.claude', 'objectives.md'),
+      'utf-8',
+    );
+    expect(md).toMatch(/\| OBJ-002 \| 자율발굴목표 \|.*\| proposed \| - \| - \|/);
+    expect(md).toContain('## cross-cut'); // 뒤 prose 보존
+    // active 아님 = cadence 미픽업 (parseCadenceObjective 는 active 만)
+    expect(md).not.toMatch(/OBJ-002.*\| active \|/);
+  });
+});
+
+describe('runInboxConsumerOnce — objective kind 승인 게이트', () => {
+  const objEnv: ProposalEnvelope = {
+    kind: 'objective',
+    payload: { summary: '발굴된목표', derivation: 'self-task:y', alignment: '§1' },
+  };
+
+  it('미승인 objective → inert (objectives.md 무변경)', async () => {
+    fs.writeFileSync(path.join(root, '.claude', 'objectives.md'), OBJ_MD);
+    writeProposal(objEnv);
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+    expect(
+      fs.readFileSync(path.join(root, '.claude', 'objectives.md'), 'utf-8'),
+    ).toBe(OBJ_MD);
+  });
+
+  it('승인 objective → proposed 행 + 멱등', async () => {
+    fs.writeFileSync(path.join(root, '.claude', 'objectives.md'), OBJ_MD);
+    writeProposal(objEnv);
+    approve(proposalId(objEnv));
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(1);
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+    const md = fs.readFileSync(
+      path.join(root, '.claude', 'objectives.md'),
+      'utf-8',
+    );
+    expect((md.match(/\| OBJ-002 \| 발굴된목표 \|/g) || []).length).toBe(1);
   });
 });
