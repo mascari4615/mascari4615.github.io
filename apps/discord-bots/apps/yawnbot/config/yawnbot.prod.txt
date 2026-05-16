@@ -1,0 +1,39 @@
+# ② prod env 프로파일 (TASK-YB-028) — 비밀 아닌 env별 값. 레포에 커밋(public).
+#
+# ⚠ 이 레포는 공개(GitHub Pages). 사용자 결정: "비밀 아닌 건 전부 커밋"
+#   (채널/길드/개인 유저 ID public 영구 노출 수용 — 그릴 게이트 2026-05-16).
+# 진짜 비밀(DISCORD_TOKEN / GEMINI_API_KEY / VERTEX_API_KEY /
+#   DISCORD_SUMMARY_WEBHOOK_URL)은 절대 여기 X — ③ GitHub secret(YB_PROD_*).
+#
+# 로드: yawnbot-defaults.txt → (이 파일, YAWNBOT_ENV=prod 일 때) → .env.
+# 빈 값(KEY=) = 미설정과 동일(코드에서 undefined 취급) → 해당 기능 비활성.
+#
+# 🔧 일회성 마이그레이션: 아래 값을 채우세요(Discord 우클릭 ID 복사 /
+#    기존 GitHub secret 값). 채워 커밋하면 그 YB_PROD_* secret 은 삭제 가능.
+
+# ── Discord 앱 (prod 봇 — dev 와 다른 앱) ──
+CLIENT_ID=
+DISCORD_GUILD_ID=
+YAWNBOT_ALLOWED_GUILD_IDS=
+
+# ── 알림 채널 ID ──
+GITHUB_WEBHOOK_CHANNEL_ID=
+ASSISTANT_PUBLIC_CHANNEL_ID=
+YAWNBOT_OPS_REPORT_CHANNEL_ID=
+YAWNBOT_UNITY_FREE_CHANNEL_ID=
+YAWNBOT_GEEKNEWS_CHANNEL_ID=
+YAWNBOT_NEWS_CHANNEL_ID=
+
+# ── 개인 식별자 (Discord 유저 ID) ──
+ADMIN_IDS=
+ASSISTANT_USER_ID=
+
+# ── AI 표면 / Vertex (비밀 아님 — 키는 ③ secret) ──
+KARMOLAB_AI_SURFACE=vertex
+VERTEX_PROJECT_ID=
+VERTEX_LOCATION=us-central1
+
+# ── 머신 경로 (prod=노트북). MEMO_REPO_PATH 는 ① defaults 가 커버(동일 경로).
+#    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
+CURSOR_LOCAL_REPO_DIR=
+KAKAO_EXPORT_WATCH_DIR=
