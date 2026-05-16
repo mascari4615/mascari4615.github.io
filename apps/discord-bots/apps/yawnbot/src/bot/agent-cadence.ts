@@ -12,6 +12,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { generateAssistantText, generateDiscoveryText } from 'karmolab-ai/node';
 import { reserveBudget } from './team-room';
 import {
@@ -138,17 +139,32 @@ export function parseCadenceWork(md: string): Tier3Request | null {
  * 없음, 아래 텍스트만으로 단일턴 추론, 파일 읽기 시도 X" 를 *명시* 해야
  * 모델이 도구 거부 루프에 빠지지 않는다 (재현 확인).
  */
-export function buildDiscoveryPrompt(missionText: string): string {
+export function buildDiscoveryPrompt(
+  missionText: string,
+  contextText = '',
+): string {
+  const ctx = contextText.trim();
   return [
     '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일',
-    '접근 없이 *아래 제공된 미션 헌장 텍스트만으로* 단일턴 추론한다.',
+    '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
     '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
     '',
     '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
     missionText.trim(),
+    ...(ctx
+      ? [
+          '',
+          '[현황 컨텍스트 — 중복 발굴 회피·정렬 근거 (읽기전용 스냅샷)]',
+          ctx,
+          '',
+          '※ 위 현황에 *이미 있는/진행 중인* 것과 중복되는 발굴 금지',
+          '(mission §3 objective 무한증식·미션무관 발굴 = 드리프트).',
+        ]
+      : []),
     '',
-    '[작업] 위 미션에 정렬되는 *지금 가치 있는* 발굴물 1건을 아래 판별',
-    'union JSON 으로만 출력하라 (코드펜스 OK). 서론·설명·질문 금지:',
+    '[작업] 위 미션에 정렬되고 현황과 *중복되지 않는* 지금 가치 있는',
+    '발굴물 1건을 아래 판별 union JSON 으로만 출력하라 (코드펜스 OK).',
+    '서론·설명·질문 금지:',
     '{"kind":"env|skill|agent|task|objective","payload":{...}}',
     '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
     '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
@@ -180,6 +196,94 @@ export function readMissionText(env: NodeJS.ProcessEnv): string {
   } catch {
     return MISSION_FALLBACK;
   }
+}
+
+/**
+ * ⑦' 발굴 현황 컨텍스트 — *어댑터가 읽기전용 수집* (slice-5).
+ * 비-agentic 불변: spawn claude 는 여전히 tool-less, 어댑터(이 함수)가
+ * fs/git 으로 모아 프롬프트에 인라인 (readMissionText 와 동형 안전 모델).
+ * 목적 = 발굴이 mission 정렬이되 *현황 무지(중복·재발굴)* 인 문제 해소
+ * (mission §3 무한증식 차단의 구체 수단). best-effort·바운드(섹션별 cap),
+ * 실패 섹션은 생략 (hang/오염 0). git 은 5s 타임아웃.
+ */
+export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  if (!root) return '';
+  const parts: string[] = [];
+  const safe = (label: string, fn: () => string): void => {
+    try {
+      const v = fn().trim();
+      if (v) parts.push(`### ${label}\n${v}`);
+    } catch {
+      /* 섹션 실패 = 생략 (degraded, 절대 hang/throw X) */
+    }
+  };
+
+  safe('최근 memo 커밋 (중복 작업 회피)', () =>
+    execSync('git log --oneline -12', {
+      cwd: root,
+      timeout: 5000,
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .split(/\r?\n/)
+      .slice(0, 12)
+      .join('\n')
+      .slice(0, 1400),
+  );
+
+  safe('현 objectives (active/proposed — 재발굴 금지)', () => {
+    const p = path.join(root, '.claude', 'objectives.md');
+    return fs
+      .readFileSync(p, 'utf-8')
+      .split(/\r?\n/)
+      .filter((l) => /^\|\s*OBJ-\d+\s*\|/.test(l))
+      .slice(0, 14)
+      .join('\n')
+      .slice(0, 1600);
+  });
+
+  safe('최근 인박스 발굴 (중복 제안 금지)', () => {
+    const p = path.join(root, '.claude', 'proposals.jsonl');
+    const lines = fs.readFileSync(p, 'utf-8').trim().split(/\r?\n/);
+    return lines
+      .slice(-10)
+      .map((l) => {
+        try {
+          const e = JSON.parse(l);
+          const pl = e.envelope?.payload ?? {};
+          const t = pl.title || pl.summary || pl.name || pl.id || '?';
+          return `- ${e.kind}: ${String(t).slice(0, 90)}`;
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean)
+      .join('\n')
+      .slice(0, 1200);
+  });
+
+  safe('최근 cadence trace (루프 상태)', () => {
+    const p = path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl');
+    return fs
+      .readFileSync(p, 'utf-8')
+      .trim()
+      .split(/\r?\n/)
+      .slice(-6)
+      .map((l) => {
+        try {
+          const e = JSON.parse(l);
+          return `- ${e.core}: ${String(e.reason || '').slice(0, 80)}`;
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean)
+      .join('\n')
+      .slice(0, 800);
+  });
+
+  return parts.join('\n\n').slice(0, 4000);
 }
 
 // ── governed cadence (D-3 slice-3) ──────────────────────────
@@ -301,7 +405,10 @@ export async function runGovernedProducerOnce(
     opts.discover ??
     (() =>
       generateDiscoveryText({
-        prompt: buildDiscoveryPrompt(readMissionText(env)),
+        prompt: buildDiscoveryPrompt(
+          readMissionText(env),
+          gatherDiscoveryContext(env),
+        ),
         timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000,
       }));
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });

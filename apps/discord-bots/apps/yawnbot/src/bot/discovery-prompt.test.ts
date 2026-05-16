@@ -10,7 +10,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { buildDiscoveryPrompt, readMissionText } from './agent-cadence';
+import {
+  buildDiscoveryPrompt,
+  readMissionText,
+  gatherDiscoveryContext,
+} from './agent-cadence';
 
 describe('buildDiscoveryPrompt — 자족(파일 비의존)', () => {
   const p = buildDiscoveryPrompt('§1 TEST_MISSION_MARKER 공통목표');
@@ -62,5 +66,58 @@ describe('readMissionText — 어댑터 fs read + fallback', () => {
     expect(
       readMissionText({ MEMO_REPO_PATH: root } as NodeJS.ProcessEnv),
     ).toBe('REAL_MISSION_BODY §1');
+  });
+});
+
+describe('buildDiscoveryPrompt — 컨텍스트 섹션 (slice-5)', () => {
+  it('컨텍스트 미전달 = 기존 동작 불변 (하위호환)', () => {
+    const p = buildDiscoveryPrompt('§1 M');
+    expect(p).not.toContain('현황 컨텍스트');
+    expect(p).toContain('§1 M');
+  });
+
+  it('컨텍스트 전달 → 현황 섹션 + 중복금지 지시 임베드', () => {
+    const p = buildDiscoveryPrompt('§1 M', 'CTX_MARKER_데이터');
+    expect(p).toContain('현황 컨텍스트');
+    expect(p).toContain('CTX_MARKER_데이터');
+    expect(p).toContain('중복'); // 무한증식 회피 지시
+  });
+});
+
+describe('gatherDiscoveryContext — 어댑터 읽기전용·안전 (slice-5)', () => {
+  it('MEMO_REPO_PATH 미설정 → 빈 문자열 (안전 degraded)', () => {
+    expect(gatherDiscoveryContext({} as NodeJS.ProcessEnv)).toBe('');
+  });
+
+  it('정본 부재 환경에서도 throw·hang 0 (best-effort)', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-'));
+    try {
+      // .claude·git 없음 → 모든 섹션 실패해도 빈 문자열 (예외 X)
+      expect(() =>
+        gatherDiscoveryContext({ MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv),
+      ).not.toThrow();
+      expect(
+        gatherDiscoveryContext({ MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv),
+      ).toBe('');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('objectives.md 존재 → OBJ 행이 컨텍스트에 포함', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx2-'));
+    try {
+      fs.mkdirSync(path.join(tmp, '.claude'), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmp, '.claude', 'objectives.md'),
+        '| OBJ-009 | 기존목표XYZ | d | §1 | active | - | - |\n',
+      );
+      const ctx = gatherDiscoveryContext({
+        MEMO_REPO_PATH: tmp,
+      } as NodeJS.ProcessEnv);
+      expect(ctx).toContain('기존목표XYZ');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });
