@@ -1,0 +1,851 @@
+//! TASK-KL-064 — 데스크톱 알람 (Free Alarm Clock 레퍼런스).
+//!
+//! 사용자 비전: 밤샘 후에도 "깨어나지 않고는 못 배기게" 만드는 강제 기상.
+//! 본 모듈 스코프 = 기본 알람 (MVP) + OS 강제 기상.
+//!   dismiss 난이도 미션 / 풀스크린 인터셉트 / 스누즈 강화 = 후속 sub-TASK.
+//!
+//! 아키텍처 (자율 결정, TASK 시드 § 아키텍처 참조):
+//! - 스케줄러 = Rust 백엔드 상주 thread. 위젯 탭 미오픈·트레이 최소화 무관 발화
+//!   (프론트 setInterval = 위젯 닫히면 죽음 → 황금의 정신 위반).
+//! - store = `app_data_dir/alarms.json` (life-features.json 영속 패턴 재사용).
+//!   단일 진실 = `tauri::State<AlarmStore>` (Arc<Mutex<Vec<Alarm>>>).
+//! - 발화 = 프론트로 `alarm-fired` 이벤트 emit + 사운드 루프 시작. 발화 창은
+//!   프론트(별 윈도우)가 그림. dismiss/snooze 는 명령으로 사운드 정지·재무장.
+//! - 사운드 = winapi winmm::PlaySound (SND_LOOP|SND_ASYNC). 네이티브 무한
+//!   루프, cpal 비의존(KL-052 사이즈 목표 정합). mp3/ogg = 후속 증분(rodio).
+//! - 증분 분리(검증 단위): ① store+스케줄러+사운드(본 커밋) ② OS 강제 기상
+//!   (waitable timer/볼륨/모니터, winapi·COM) ③ 프론트 위젯+발화 창.
+
+use chrono::{Datelike, Duration, Local, NaiveDateTime, NaiveTime, Timelike};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::sync::Mutex;
+use tauri::{AppHandle, Emitter, Manager};
+
+/// 알람 1개. 반복 요일 = chrono Weekday::num_days_from_monday (0=월 .. 6=일).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Alarm {
+    pub id: String,
+    #[serde(default)]
+    pub label: String,
+    pub hour: u8,
+    pub minute: u8,
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    /// 빈 배열 = 1회성 (발화 후 enabled=false). 아니면 해당 요일마다 반복.
+    #[serde(default)]
+    pub repeat: Vec<u8>,
+    /// 절대 경로 `.wav`. None = 내장 시스템 알람음 루프.
+    #[serde(default)]
+    pub sound_path: Option<String>,
+    /// 0-100. OS 강제 볼륨 레벨 (증분 ② 에서 실제 적용).
+    #[serde(default = "default_volume")]
+    pub volume: u8,
+    /// 0 = 스누즈 비활성. 아니면 dismiss 대신 스누즈 시 N 분 뒤 재발화.
+    #[serde(default)]
+    pub snooze_minutes: u32,
+    /// OS 강제 기상(절전 깨우기 + 모니터 ON + 볼륨 강제·음소거 무시).
+    /// MVP 확정 포함 — 실제 OS 호출은 증분 ②.
+    #[serde(default = "default_true")]
+    pub force_wake: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+fn default_volume() -> u8 {
+    100
+}
+
+/// 사용자 입력 sanitize. 시각 범위 + wav 경로 안전(claude_env 패턴 차용).
+fn validate_alarm(a: &Alarm) -> Result<(), String> {
+    if a.hour > 23 {
+        return Err(format!("hour 범위 초과: {}", a.hour));
+    }
+    if a.minute > 59 {
+        return Err(format!("minute 범위 초과: {}", a.minute));
+    }
+    if a.volume > 100 {
+        return Err(format!("volume 범위 초과: {}", a.volume));
+    }
+    for d in &a.repeat {
+        if *d > 6 {
+            return Err(format!("repeat 요일 무효(0-6): {}", d));
+        }
+    }
+    if let Some(p) = a.sound_path.as_deref() {
+        validate_wav_path(p)?;
+    }
+    Ok(())
+}
+
+/// 절대 경로 + .wav + 위험 문자 거부 (winmm 에 그대로 넘기므로).
+fn validate_wav_path(raw: &str) -> Result<(), String> {
+    let p = raw.trim();
+    if p.is_empty() {
+        return Ok(());
+    }
+    for ch in p.chars() {
+        if matches!(ch, '"' | '\n' | '\r' | '\0') {
+            return Err(format!("sound_path 허용 안 된 문자: {:?}", ch));
+        }
+    }
+    let abs = (p.len() >= 3
+        && p.as_bytes()[1] == b':'
+        && (p.as_bytes()[2] == b'\\' || p.as_bytes()[2] == b'/'))
+        || p.starts_with("\\\\");
+    if !abs {
+        return Err(format!("sound_path 는 절대 경로여야 함: {:?}", p));
+    }
+    if !p.to_ascii_lowercase().ends_with(".wav") {
+        return Err(format!("sound_path 는 .wav 만 허용(MVP): {:?}", p));
+    }
+    Ok(())
+}
+
+/// 영속 상태 + 마지막 발화 분(중복 발화 방지) + 스누즈 1회성 큐 + 현재 울리는 알람.
+pub struct AlarmStore {
+    alarms: Mutex<Vec<Alarm>>,
+    path: Mutex<Option<PathBuf>>,
+    /// alarm.id → 마지막 발화 "yyyy-mm-dd HHMM" (같은 분 재발화 차단).
+    last_fired: Mutex<HashMap<String, String>>,
+    /// 스누즈: alarm.id → 재발화 절대 시각(epoch sec). dismiss/발화 시 제거.
+    snooze_until: Mutex<HashMap<String, i64>>,
+    /// 지금 울리는 알람 (발화 창이 load 시 alarm_active 로 조회). dismiss=None.
+    ringing: Mutex<Option<Alarm>>,
+}
+
+impl Default for AlarmStore {
+    fn default() -> Self {
+        Self {
+            alarms: Mutex::new(Vec::new()),
+            path: Mutex::new(None),
+            last_fired: Mutex::new(HashMap::new()),
+            snooze_until: Mutex::new(HashMap::new()),
+            ringing: Mutex::new(None),
+        }
+    }
+}
+
+impl AlarmStore {
+    fn store_path(app: &AppHandle) -> Option<PathBuf> {
+        app.path().app_data_dir().ok().map(|p| p.join("alarms.json"))
+    }
+
+    /// setup() 에서 1회. 디스크 → 메모리 복원.
+    pub fn load_from_disk(&self, app: &AppHandle) {
+        let path = Self::store_path(app);
+        if let Some(p) = &path {
+            if let Ok(json) = std::fs::read_to_string(p) {
+                if let Ok(list) = serde_json::from_str::<Vec<Alarm>>(&json) {
+                    *self.alarms.lock().unwrap() = list;
+                }
+            }
+        }
+        *self.path.lock().unwrap() = path;
+    }
+
+    fn persist(&self) {
+        let path = self.path.lock().unwrap().clone();
+        let Some(path) = path else { return };
+        if let Some(parent) = path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let snapshot = self.alarms.lock().unwrap().clone();
+        if let Ok(json) = serde_json::to_string_pretty(&snapshot) {
+            let _ = std::fs::write(path, json);
+        }
+    }
+
+    fn list(&self) -> Vec<Alarm> {
+        self.alarms.lock().unwrap().clone()
+    }
+
+    fn upsert(&self, alarm: Alarm) {
+        let mut guard = self.alarms.lock().unwrap();
+        if let Some(slot) = guard.iter_mut().find(|a| a.id == alarm.id) {
+            *slot = alarm;
+        } else {
+            guard.push(alarm);
+        }
+        drop(guard);
+        self.persist();
+    }
+
+    fn remove(&self, id: &str) {
+        self.alarms.lock().unwrap().retain(|a| a.id != id);
+        self.last_fired.lock().unwrap().remove(id);
+        self.snooze_until.lock().unwrap().remove(id);
+        self.persist();
+    }
+
+    fn set_enabled(&self, id: &str, enabled: bool) {
+        if let Some(a) = self.alarms.lock().unwrap().iter_mut().find(|a| a.id == id) {
+            a.enabled = enabled;
+        }
+        self.persist();
+    }
+}
+
+/// 스케줄러 1 tick: 발화해야 할 알람 id 목록을 계산. side-effect 없음(테스트 가능).
+/// `now_*` 주입 = 시간 pin(피드백 루프 결정성, process.md § 루프).
+fn due_alarm_ids(
+    alarms: &[Alarm],
+    last_fired: &HashMap<String, String>,
+    snooze_until: &HashMap<String, i64>,
+    now_epoch: i64,
+    now_key: &str,
+    now_hour: u8,
+    now_minute: u8,
+    now_weekday0: u8,
+) -> Vec<String> {
+    let mut due = Vec::new();
+    for a in alarms {
+        // 스누즈 재발화가 최우선 (enabled 무관 — 사용자가 스누즈 누른 것).
+        if let Some(until) = snooze_until.get(&a.id) {
+            if now_epoch >= *until {
+                due.push(a.id.clone());
+            }
+            continue;
+        }
+        if !a.enabled {
+            continue;
+        }
+        if a.hour != now_hour || a.minute != now_minute {
+            continue;
+        }
+        let day_ok = a.repeat.is_empty() || a.repeat.contains(&now_weekday0);
+        if !day_ok {
+            continue;
+        }
+        // 같은 분 중복 발화 차단.
+        if last_fired.get(&a.id).map(|s| s.as_str()) == Some(now_key) {
+            continue;
+        }
+        due.push(a.id.clone());
+    }
+    due
+}
+
+/// 상주 스케줄러 스레드 — setup() 에서 1회 spawn. activity tracker 선례 동일.
+pub fn start_scheduler(app: AppHandle) {
+    std::thread::spawn(move || loop {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        let store = app.state::<AlarmStore>();
+        let now = Local::now();
+        let now_key = now.format("%Y-%m-%d %H%M").to_string();
+        let now_hour = now.hour() as u8;
+        let now_minute = now.minute() as u8;
+        let now_weekday0 = now.weekday().num_days_from_monday() as u8;
+        let now_epoch = now.timestamp();
+
+        let alarms = store.list();
+        let last = store.last_fired.lock().unwrap().clone();
+        let snz = store.snooze_until.lock().unwrap().clone();
+        let due = due_alarm_ids(
+            &alarms, &last, &snz, now_epoch, &now_key, now_hour, now_minute, now_weekday0,
+        );
+
+        for id in due {
+            store.snooze_until.lock().unwrap().remove(&id);
+            store
+                .last_fired
+                .lock()
+                .unwrap()
+                .insert(id.clone(), now_key.clone());
+
+            let alarm = alarms.iter().find(|a| a.id == id).cloned();
+            let Some(alarm) = alarm else { continue };
+
+            // 1회성(반복 없음, 스누즈 아님) → 발화 후 비활성.
+            if alarm.repeat.is_empty() {
+                store.set_enabled(&id, false);
+            }
+
+            fire(&app, &alarm);
+        }
+    });
+}
+
+/// 발화: ringing 기록 → (강제기상) 모니터 ON+볼륨 → 사운드 루프 →
+/// 발화 창 표시 → 프론트 이벤트.
+fn fire(app: &AppHandle, alarm: &Alarm) {
+    *app.state::<AlarmStore>().ringing.lock().unwrap() = Some(alarm.clone());
+    if alarm.force_wake {
+        oswake::wake_for_alarm();
+    }
+    sound::start_loop(alarm.sound_path.as_deref());
+    show_alarm_window(app);
+    let _ = app.emit("alarm-fired", alarm.clone());
+}
+
+/// 발화 창 = label "alarm" WebviewWindow. main 윈도우의 *실제* URL(dev/prod/
+/// dev-mode 토글 무관)을 읽어 `#alarm-fire` fragment 만 덧붙임 — 하드코딩 X
+/// (WebviewUrl::External 은 tauri.conf dev/prod 자동전환 비적용이므로 필수).
+/// 풀스크린 + always-on-top + skip-taskbar (단순 dismiss, 풀스크린 인터셉트
+/// 강화는 후속). 이미 있으면 focus 만.
+fn show_alarm_window(app: &AppHandle) {
+    if let Some(w) = app.get_webview_window("alarm") {
+        let _ = w.unminimize();
+        let _ = w.show();
+        let _ = w.set_focus();
+        return;
+    }
+    let Some(main) = app.get_webview_window("main") else {
+        return;
+    };
+    let Ok(mut url) = main.url() else { return };
+    url.set_fragment(Some("alarm-fire"));
+    match tauri::WebviewWindowBuilder::new(app, "alarm", tauri::WebviewUrl::External(url))
+        .title("KarmoLab 알람")
+        .fullscreen(true)
+        .always_on_top(true)
+        .skip_taskbar(true)
+        .decorations(false)
+        .focused(true)
+        .build()
+    {
+        Ok(_) => {}
+        Err(e) => eprintln!("[alarm] 발화 창 생성 실패: {e}"),
+    }
+}
+
+/// dismiss/snooze 공통 정리 — ringing 해제 + 발화 창 닫기 + 잠금방지 해제.
+fn close_ring(app: &AppHandle, store: &AlarmStore) {
+    sound::stop();
+    oswake::release_display();
+    *store.ringing.lock().unwrap() = None;
+    if let Some(w) = app.get_webview_window("alarm") {
+        let _ = w.destroy();
+    }
+}
+
+/// 알람 1개의 `now` 이후 다음 발화 시각(로컬 naive). 비활성/계산불가 = None.
+/// 1회성 = 오늘 그 시각이 미래면 오늘, 아니면 내일. 반복 = 7일 내 다음 매칭 요일.
+/// 절전 resume 타이머가 "다음 깨울 절대시각" 산출에 사용 (순수 fn = 테스트 가능).
+fn next_fire_after(now: NaiveDateTime, a: &Alarm) -> Option<NaiveDateTime> {
+    if !a.enabled {
+        return None;
+    }
+    let t = NaiveTime::from_hms_opt(a.hour as u32, a.minute as u32, 0)?;
+    if a.repeat.is_empty() {
+        let today = now.date().and_time(t);
+        Some(if today > now {
+            today
+        } else {
+            today + Duration::days(1)
+        })
+    } else {
+        for add in 0..8 {
+            let d = now.date() + Duration::days(add);
+            let wd = d.weekday().num_days_from_monday() as u8;
+            if a.repeat.contains(&wd) {
+                let cand = d.and_time(t);
+                if cand > now {
+                    return Some(cand);
+                }
+            }
+        }
+        None
+    }
+}
+
+/// 모든 활성 알람 중 가장 이른 다음 발화 시각. (스누즈는 앱-깨어있음 단기라
+/// resume 타이머 대상 아님 — 5s 스케줄러가 처리. sleep-wake 는 예약 알람용.)
+fn earliest_next_fire(alarms: &[Alarm], now: NaiveDateTime) -> Option<NaiveDateTime> {
+    alarms.iter().filter_map(|a| next_fire_after(now, a)).min()
+}
+
+// ───────────────── OS 강제 기상 (winapi, 절전 resume / 모니터 / 볼륨) ─────────────────
+// 증분②. 사용자 컨펌 MVP 포함. winapi 재사용 (windows crate 미도입 — 사이즈).
+// 정밀 per-alarm 볼륨 레벨(Core Audio IAudioEndpointVolume) = 후속 증분.
+#[cfg(windows)]
+pub mod oswake {
+    use std::mem;
+    use winapi::shared::minwindef::{FALSE, TRUE};
+    use winapi::shared::windef::HWND;
+    use winapi::um::handleapi::CloseHandle;
+    use winapi::um::synchapi::{CreateWaitableTimerW, SetWaitableTimer, WaitForSingleObject};
+    use winapi::um::winbase::SetThreadExecutionState;
+    use winapi::um::winnt::{
+        ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, LARGE_INTEGER,
+    };
+    use winapi::um::winuser::{
+        keybd_event, mouse_event, SendMessageW, HWND_BROADCAST, KEYEVENTF_KEYUP,
+        MOUSEEVENTF_MOVE, SC_MONITORPOWER, VK_VOLUME_UP, WM_SYSCOMMAND,
+    };
+
+    /// 발화 순간: 모니터 ON + 절전/디스플레이 잠금 방지 + 볼륨 강제·음소거 해제.
+    pub fn wake_for_alarm() {
+        keep_display_on();
+        force_volume_up_unmute();
+    }
+
+    /// ring 동안 시스템/디스플레이 OFF 차단 + 꺼진 모니터 깨우기.
+    pub fn keep_display_on() {
+        unsafe {
+            SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+            // 모니터가 이미 꺼져 있으면 켜기.
+            SendMessageW(
+                HWND_BROADCAST as HWND,
+                WM_SYSCOMMAND,
+                SC_MONITORPOWER as usize,
+                -1isize, // -1 = power on
+            );
+            // 일부 전원정책/모던 스탠바이는 입력 없으면 즉시 재차 OFF — 미세 입력.
+            mouse_event(MOUSEEVENTF_MOVE, 1, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_MOVE, 0u32.wrapping_sub(1), 0, 0, 0);
+        }
+    }
+
+    /// dismiss/snooze 시 잠금 방지 해제 (ES_CONTINUOUS 단독 = 정책 복구).
+    pub fn release_display() {
+        unsafe {
+            SetThreadExecutionState(ES_CONTINUOUS);
+        }
+    }
+
+    /// 볼륨 강제 상향 + 음소거 해제. VK_VOLUME_UP 다회 = Windows 가
+    /// 자동 unmute + 최대 근접. (정밀 레벨 = 후속 Core Audio.)
+    fn force_volume_up_unmute() {
+        unsafe {
+            for _ in 0..50 {
+                keybd_event(VK_VOLUME_UP as u8, 0, 0, 0);
+                keybd_event(VK_VOLUME_UP as u8, 0, KEYEVENTF_KEYUP, 0);
+            }
+        }
+    }
+
+    /// 절전 resume 대기 타이머 스레드. 다음 발화 ~30s 전으로 resume 타이머를
+    /// 무장 → 시스템이 절전이어도 깨어나 5s 스케줄러가 발화. 알람 변경 반영
+    /// 위해 최대 60s 마다 재평가(재무장). HANDLE 은 Send 아님 → 스레드 내 생성.
+    pub fn start_wake_timer(app: tauri::AppHandle) {
+        use tauri::Manager;
+        std::thread::spawn(move || unsafe {
+            let timer = CreateWaitableTimerW(std::ptr::null_mut(), FALSE, std::ptr::null());
+            if timer.is_null() {
+                eprintln!("[alarm] CreateWaitableTimer 실패 — 절전 wake 비활성");
+                return;
+            }
+            loop {
+                let store = app.state::<super::AlarmStore>();
+                let now = chrono::Local::now().naive_local();
+                let alarms = store.list();
+                let wait_ms: u32 = match super::earliest_next_fire(&alarms, now) {
+                    Some(next) => {
+                        let fire_at = next - chrono::Duration::seconds(30);
+                        let rel_secs = (fire_at - now).num_seconds().max(1);
+                        // 음수 = 상대시간(100ns 단위). fResume=TRUE → 절전서 깨움.
+                        let mut due: LARGE_INTEGER = mem::zeroed();
+                        *due.QuadPart_mut() = -(rel_secs * 10_000_000);
+                        SetWaitableTimer(
+                            timer,
+                            &due,
+                            0,
+                            None,
+                            std::ptr::null_mut(),
+                            TRUE,
+                        );
+                        // 최대 60s 마다 재평가(알람 편집 픽업) — resume 타이머는
+                        // 절대 타깃으로 무장돼 있어 그 사이 절전돼도 깨움.
+                        ((rel_secs * 1000).min(60_000)) as u32
+                    }
+                    None => 60_000,
+                };
+                WaitForSingleObject(timer, wait_ms);
+            }
+            #[allow(unreachable_code)]
+            {
+                CloseHandle(timer);
+            }
+        });
+    }
+}
+
+#[cfg(not(windows))]
+pub mod oswake {
+    pub fn wake_for_alarm() {}
+    pub fn release_display() {}
+    pub fn start_wake_timer(_app: tauri::AppHandle) {}
+}
+
+// ───────────────────────── 사운드 (winmm, 무한 루프) ─────────────────────────
+mod sound {
+    /// wav 경로 = SND_FILENAME|SND_LOOP|SND_ASYNC. None = 시스템 알람음 alias 루프.
+    /// 비-Windows = no-op (KarmoLab = Windows 데스크톱 전용, life/state 동일 전제).
+    #[cfg(windows)]
+    pub fn start_loop(wav_path: Option<&str>) {
+        use std::os::windows::ffi::OsStrExt;
+        use winapi::um::playsoundapi::{
+            PlaySoundW, SND_ALIAS, SND_ASYNC, SND_FILENAME, SND_LOOP, SND_NODEFAULT,
+        };
+
+        let (text, flags): (Vec<u16>, u32) = match wav_path {
+            Some(p) if !p.trim().is_empty() => (
+                std::ffi::OsStr::new(p)
+                    .encode_wide()
+                    .chain(std::iter::once(0))
+                    .collect(),
+                SND_FILENAME | SND_LOOP | SND_ASYNC | SND_NODEFAULT,
+            ),
+            // 내장: Windows "SystemExclamation" 이벤트 사운드를 루프.
+            _ => (
+                std::ffi::OsStr::new("SystemExclamation")
+                    .encode_wide()
+                    .chain(std::iter::once(0))
+                    .collect(),
+                SND_ALIAS | SND_LOOP | SND_ASYNC,
+            ),
+        };
+        unsafe {
+            PlaySoundW(text.as_ptr(), std::ptr::null_mut(), flags);
+        }
+    }
+
+    /// 재생 중인 루프 정지 (dismiss / snooze 공용).
+    #[cfg(windows)]
+    pub fn stop() {
+        use winapi::um::playsoundapi::PlaySoundW;
+        unsafe {
+            PlaySoundW(std::ptr::null(), std::ptr::null_mut(), 0);
+        }
+    }
+
+    #[cfg(not(windows))]
+    pub fn start_loop(_wav_path: Option<&str>) {}
+    #[cfg(not(windows))]
+    pub fn stop() {}
+}
+
+// ───────────────────────────── #[tauri::command] ─────────────────────────────
+// 등록: acl.toml [[group]] name="alarm" 1줄 (build.rs 자동 파생, KL-063).
+// 전부 sync — store R/W < 10ms 단일 파일 (KL-043 기준 sync OK).
+
+#[tauri::command]
+pub fn alarm_list(store: tauri::State<AlarmStore>) -> Vec<Alarm> {
+    store.list()
+}
+
+#[tauri::command]
+pub fn alarm_upsert(alarm: Alarm, store: tauri::State<AlarmStore>) -> Result<(), String> {
+    validate_alarm(&alarm)?;
+    store.upsert(alarm);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn alarm_remove(id: String, store: tauri::State<AlarmStore>) {
+    store.remove(&id);
+}
+
+#[tauri::command]
+pub fn alarm_set_enabled(id: String, enabled: bool, store: tauri::State<AlarmStore>) {
+    store.set_enabled(&id, enabled);
+}
+
+/// 발화 창이 load 시 "지금 울리는 알람" 조회 (없으면 null).
+#[tauri::command]
+pub fn alarm_active(store: tauri::State<AlarmStore>) -> Option<Alarm> {
+    store.ringing.lock().unwrap().clone()
+}
+
+/// 발화 중인 알람 정지. 프론트 발화 창의 "끄기" 가 호출.
+#[tauri::command]
+pub fn alarm_dismiss(id: String, app: AppHandle, store: tauri::State<AlarmStore>) {
+    close_ring(&app, &store);
+    store.snooze_until.lock().unwrap().remove(&id);
+}
+
+/// 스누즈: 사운드 정지 + 발화 창 닫기 + N 분 뒤 재발화 예약.
+/// snooze_minutes==0 이면 dismiss 와 동일.
+#[tauri::command]
+pub fn alarm_snooze(
+    id: String,
+    app: AppHandle,
+    store: tauri::State<AlarmStore>,
+) -> Result<(), String> {
+    close_ring(&app, &store);
+    let minutes = store
+        .alarms
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|a| a.id == id)
+        .map(|a| a.snooze_minutes)
+        .ok_or_else(|| format!("알람 없음: {id}"))?;
+    if minutes == 0 {
+        store.snooze_until.lock().unwrap().remove(&id);
+        return Ok(());
+    }
+    let until = Local::now().timestamp() + (minutes as i64) * 60;
+    store.snooze_until.lock().unwrap().insert(id, until);
+    Ok(())
+}
+
+// ───────────────────────────── autostart (Windows) ─────────────────────────────
+// 재부팅 후에도 알람 보장 = HKCU\...\Run 레지스트리. reg.exe shell-out
+// (claude_env PowerShell shell-out 선례 — 신규 crate 0). 사용자 토글 영속:
+// app_data_dir/alarm-settings.json {autostart:bool} (default true = 핵심 약속).
+const RUN_VALUE_NAME: &str = "KarmoLabAlarm";
+
+#[derive(Serialize, Deserialize)]
+struct AlarmSettings {
+    #[serde(default = "default_true")]
+    autostart: bool,
+}
+impl Default for AlarmSettings {
+    fn default() -> Self {
+        Self { autostart: true }
+    }
+}
+
+fn settings_path(app: &AppHandle) -> Option<PathBuf> {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|p| p.join("alarm-settings.json"))
+}
+
+fn read_settings(app: &AppHandle) -> AlarmSettings {
+    settings_path(app)
+        .and_then(|p| std::fs::read_to_string(p).ok())
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+fn write_settings(app: &AppHandle, s: &AlarmSettings) {
+    if let Some(p) = settings_path(app) {
+        if let Some(parent) = p.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        if let Ok(json) = serde_json::to_string_pretty(s) {
+            let _ = std::fs::write(p, json);
+        }
+    }
+}
+
+/// 레지스트리 Run 키를 pref 에 맞춰 동기화. 현재 exe 경로 등록/삭제. idempotent.
+#[cfg(windows)]
+fn apply_autostart(enabled: bool) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::Command;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let run_key = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run";
+    let mut cmd = Command::new("reg");
+    if enabled {
+        let exe = std::env::current_exe()
+            .map_err(|e| format!("current_exe 실패: {e}"))?
+            .to_string_lossy()
+            .into_owned();
+        cmd.args([
+            "add", run_key, "/v", RUN_VALUE_NAME, "/t", "REG_SZ", "/d", &exe, "/f",
+        ]);
+    } else {
+        cmd.args(["delete", run_key, "/v", RUN_VALUE_NAME, "/f"]);
+    }
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    let out = cmd.output().map_err(|e| format!("reg spawn 실패: {e}"))?;
+    // delete 는 키 없으면 exit!=0 — disable 요청엔 무해(이미 없음).
+    if !out.status.success() && enabled {
+        return Err(format!(
+            "reg add 실패: {}",
+            String::from_utf8_lossy(&out.stderr)
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn apply_autostart(_enabled: bool) -> Result<(), String> {
+    Ok(())
+}
+
+/// setup() 에서 1회 — 저장된 pref(default ON) 를 레지스트리에 반영.
+/// 재부팅 후 알람 보장의 전제.
+pub fn ensure_autostart(app: &AppHandle) {
+    let s = read_settings(app);
+    if let Err(e) = apply_autostart(s.autostart) {
+        eprintln!("[alarm] autostart 동기화 실패: {e}");
+    }
+}
+
+#[tauri::command]
+pub fn alarm_get_autostart(app: AppHandle) -> bool {
+    read_settings(&app).autostart
+}
+
+#[tauri::command]
+pub fn alarm_set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> {
+    apply_autostart(enabled)?;
+    write_settings(&app, &AlarmSettings { autostart: enabled });
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn mk(id: &str, h: u8, m: u8, repeat: Vec<u8>, enabled: bool) -> Alarm {
+        Alarm {
+            id: id.into(),
+            label: String::new(),
+            hour: h,
+            minute: m,
+            enabled,
+            repeat,
+            sound_path: None,
+            volume: 100,
+            snooze_minutes: 9,
+            force_wake: true,
+        }
+    }
+
+    #[test]
+    fn fires_on_exact_minute_one_shot() {
+        let alarms = vec![mk("a", 6, 30, vec![], true)];
+        let due = due_alarm_ids(
+            &alarms,
+            &HashMap::new(),
+            &HashMap::new(),
+            0,
+            "2026-05-17 0630",
+            6,
+            30,
+            5,
+        );
+        assert_eq!(due, vec!["a".to_string()]);
+    }
+
+    #[test]
+    fn no_double_fire_same_minute() {
+        let alarms = vec![mk("a", 6, 30, vec![], true)];
+        let mut last = HashMap::new();
+        last.insert("a".to_string(), "2026-05-17 0630".to_string());
+        let due = due_alarm_ids(
+            &alarms, &last, &HashMap::new(), 0, "2026-05-17 0630", 6, 30, 5,
+        );
+        assert!(due.is_empty());
+    }
+
+    #[test]
+    fn repeat_day_filter() {
+        // repeat=[0(월)] 인데 오늘이 토(5) → 발화 X.
+        let alarms = vec![mk("a", 6, 30, vec![0], true)];
+        let due = due_alarm_ids(
+            &alarms,
+            &HashMap::new(),
+            &HashMap::new(),
+            0,
+            "2026-05-17 0630",
+            6,
+            30,
+            5,
+        );
+        assert!(due.is_empty());
+        // 월요일(0) 이면 발화.
+        let due2 = due_alarm_ids(
+            &alarms,
+            &HashMap::new(),
+            &HashMap::new(),
+            0,
+            "2026-05-18 0630",
+            6,
+            30,
+            0,
+        );
+        assert_eq!(due2, vec!["a".to_string()]);
+    }
+
+    #[test]
+    fn disabled_alarm_skipped() {
+        let alarms = vec![mk("a", 6, 30, vec![], false)];
+        let due = due_alarm_ids(
+            &alarms,
+            &HashMap::new(),
+            &HashMap::new(),
+            0,
+            "2026-05-17 0630",
+            6,
+            30,
+            5,
+        );
+        assert!(due.is_empty());
+    }
+
+    #[test]
+    fn snooze_refires_when_due_even_if_disabled() {
+        let alarms = vec![mk("a", 6, 30, vec![], false)];
+        let mut snz = HashMap::new();
+        snz.insert("a".to_string(), 1000);
+        // now_epoch < until → 아직 X.
+        let early = due_alarm_ids(&alarms, &HashMap::new(), &snz, 999, "x", 9, 9, 5);
+        assert!(early.is_empty());
+        // now_epoch >= until → 재발화 (분/요일 무관).
+        let late = due_alarm_ids(&alarms, &HashMap::new(), &snz, 1000, "x", 9, 9, 5);
+        assert_eq!(late, vec!["a".to_string()]);
+    }
+
+    fn dt(s: &str) -> NaiveDateTime {
+        NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M").unwrap()
+    }
+
+    #[test]
+    fn next_fire_one_shot_today_then_tomorrow() {
+        let a = mk("a", 6, 30, vec![], true);
+        // 현재 05:00 → 오늘 06:30.
+        assert_eq!(
+            next_fire_after(dt("2026-05-17 05:00"), &a),
+            Some(dt("2026-05-17 06:30"))
+        );
+        // 현재 07:00 → 내일 06:30.
+        assert_eq!(
+            next_fire_after(dt("2026-05-17 07:00"), &a),
+            Some(dt("2026-05-18 06:30"))
+        );
+    }
+
+    #[test]
+    fn next_fire_repeat_finds_next_matching_weekday() {
+        // 2026-05-17 = 일요일(weekday0=6). repeat=[0(월)] → 다음 월(05-18).
+        let a = mk("a", 6, 30, vec![0], true);
+        assert_eq!(
+            next_fire_after(dt("2026-05-17 08:00"), &a),
+            Some(dt("2026-05-18 06:30"))
+        );
+    }
+
+    #[test]
+    fn next_fire_disabled_is_none() {
+        let a = mk("a", 6, 30, vec![], false);
+        assert_eq!(next_fire_after(dt("2026-05-17 05:00"), &a), None);
+    }
+
+    #[test]
+    fn earliest_picks_soonest() {
+        let alarms = vec![
+            mk("late", 9, 0, vec![], true),
+            mk("soon", 6, 30, vec![], true),
+        ];
+        assert_eq!(
+            earliest_next_fire(&alarms, dt("2026-05-17 05:00")),
+            Some(dt("2026-05-17 06:30"))
+        );
+    }
+
+    #[test]
+    fn validate_rejects_bad_input() {
+        let mut a = mk("a", 25, 0, vec![], true);
+        assert!(validate_alarm(&a).is_err());
+        a.hour = 6;
+        a.minute = 70;
+        assert!(validate_alarm(&a).is_err());
+        a.minute = 0;
+        a.sound_path = Some("relative\\x.wav".into());
+        assert!(validate_alarm(&a).is_err());
+        a.sound_path = Some(r"C:\sounds\wake.wav".into());
+        assert!(validate_alarm(&a).is_ok());
+        a.sound_path = Some(r"C:\sounds\wake.mp3".into());
+        assert!(validate_alarm(&a).is_err());
+    }
+}

@@ -128,6 +128,22 @@ commands = [
 ]
 
 [[group]]
+name = "alarm"
+identifier = "allow-alarm"
+description = "데스크톱 알람 (TASK-KL-064) — Free Alarm Clock 레퍼런스. 알람 CRUD + on/off + dismiss/snooze. 상주 스케줄러가 alarm-fired 이벤트 emit, 발화 창이 dismiss/snooze 호출. store = app_data_dir/alarms.json."
+commands = [
+  "alarm_list",
+  "alarm_upsert",
+  "alarm_remove",
+  "alarm_set_enabled",
+  "alarm_active",
+  "alarm_dismiss",
+  "alarm_snooze",
+  "alarm_get_autostart",
+  "alarm_set_autostart",
+]
+
+[[group]]
 name = "claude-env"
 identifier = "allow-claude-env"
 description = "Claude 환경 컨트롤 위젯 (TASK-KL-056) — karmoddrine/memo/dotfiles/claude-hooks 정본의 notify-*.ps1 설정 read/write + 미리듣기."

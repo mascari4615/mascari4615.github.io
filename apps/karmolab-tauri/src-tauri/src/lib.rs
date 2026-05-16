@@ -1,5 +1,6 @@
 mod activity;
 mod adventure;
+mod alarm;
 mod claude_env;
 mod questlog_hub;
 mod life;
@@ -12,6 +13,10 @@ mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
+use alarm::{
+    alarm_active, alarm_dismiss, alarm_get_autostart, alarm_list, alarm_remove,
+    alarm_set_autostart, alarm_set_enabled, alarm_snooze, alarm_upsert, AlarmStore,
+};
 use adventure::{
     adventure_claude_complete, adventure_commit_summary, adventure_save_image, adventure_save_raw,
 };
@@ -857,6 +862,7 @@ pub fn run() {
         .manage(DevModeState::default())
         .manage(TerminalState::default())
         .manage(LifeFeaturesState::default())
+        .manage(AlarmStore::default())
         // TASK-KL-063: 핸들러 목록은 acl.toml 단일 정본 → build.rs 가
         // $OUT_DIR/acl_handler.rs 로 파생 (tauri::generate_handler![..] expr).
         .invoke_handler(include!(concat!(env!("OUT_DIR"), "/acl_handler.rs")))
@@ -922,6 +928,18 @@ pub fn run() {
                         eprintln!("[life-voice] hotkey 복원 실패: {e}");
                     }
                 }
+            }
+
+            // 알람 (KL-064): 디스크 복원 + 상주 스케줄러. 위젯 미오픈·트레이
+            // 최소화 무관 정시 발화 (activity tracker 와 동일 background thread).
+            {
+                let store = app.state::<AlarmStore>();
+                store.load_from_disk(&handle);
+                alarm::start_scheduler(handle.clone());
+                // 절전 resume 타이머 — 시스템이 자도 알람 시각에 깨움(OS 강제 기상).
+                alarm::oswake::start_wake_timer(handle.clone());
+                // 재부팅 후 알람 보장 — 저장된 pref(default ON)를 레지스트리 반영.
+                alarm::ensure_autostart(&handle);
             }
 
             let window_conf = app
