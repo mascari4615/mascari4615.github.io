@@ -2,8 +2,14 @@
  * dispatcher 코어 행동 테스트 (KAR-018-B slice-1).
  * tracer-bullet: public 인터페이스 행동 검증, 1테스트 1행동.
  */
-import { describe, it, expect } from 'vitest';
-import { decideTier, SessionRegistry } from './dispatcher';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  decideTier,
+  SessionRegistry,
+  machineEligible,
+  spawnTier3,
+  type Tier3Deps,
+} from './dispatcher';
 
 describe('decideTier — 3-tier 라우팅 정책', () => {
   it('상태 조회 = tier1 (spawn 0)', () => {
@@ -63,5 +69,73 @@ describe('SessionRegistry — per-agent 동시 1 (B-2)', () => {
     expect(r.isBusy('dead')).toBe(false);
     expect(r.isBusy('alive')).toBe(true);
     expect(r.isBusy('reserved')).toBe(true); // null = race 회피 보존
+  });
+});
+
+describe('machineEligible — 머신 어피니티 (B-4)', () => {
+  it('any/빈값은 어디서나 자격', () => {
+    expect(machineEligible('any', 'laptop')).toBe(true);
+    expect(machineEligible('', 'desktop')).toBe(true);
+  });
+  it('정확 일치만 자격 (desktop 코어는 laptop 에서 부적격)', () => {
+    expect(machineEligible('desktop', 'desktop')).toBe(true);
+    expect(machineEligible('desktop', 'laptop')).toBe(false);
+  });
+  it('cloud 패밀리 매칭 (cloud ↔ cloud-*)', () => {
+    expect(machineEligible('cloud', 'cloud-kl')).toBe(true);
+    expect(machineEligible('cloud-wm', 'cloud')).toBe(true);
+  });
+});
+
+describe('spawnTier3 — 오케스트레이션 (B-1/2/4)', () => {
+  function deps(over: Partial<Tier3Deps> = {}): Tier3Deps {
+    return {
+      thisMachine: 'laptop',
+      reserve: () => true,
+      run: vi.fn().mockResolvedValue('작업 완료'),
+      registry: new SessionRegistry(),
+      ...over,
+    };
+  }
+  const req = { core: 'atlas', machine: 'any', prompt: 'do work' };
+
+  it('자격·여유·예산 OK = run 실행 후 done', async () => {
+    const d = deps();
+    const res = await spawnTier3(req, d);
+    expect(res).toEqual({ status: 'done', text: '작업 완료' });
+    expect(d.run).toHaveBeenCalledWith(req);
+  });
+
+  it('머신 불일치 = wrong-machine, run 미실행 (다른 worker 가 드레인)', async () => {
+    const d = deps();
+    const res = await spawnTier3({ ...req, machine: 'desktop' }, d);
+    expect(res.status).toBe('wrong-machine');
+    expect(d.run).not.toHaveBeenCalled();
+  });
+
+  it('점유 중 = busy (per-agent 동시1)', async () => {
+    const d = deps();
+    d.registry.acquire('atlas');
+    const res = await spawnTier3(req, d);
+    expect(res.status).toBe('busy');
+  });
+
+  it('예산 거부 = budget-denied', async () => {
+    const d = deps({ reserve: () => false });
+    const res = await spawnTier3(req, d);
+    expect(res.status).toBe('budget-denied');
+  });
+
+  it('run 예외 = error, 그래도 release (bounded·좀비 X)', async () => {
+    const d = deps({ run: vi.fn().mockRejectedValue(new Error('spawn 실패')) });
+    const res = await spawnTier3(req, d);
+    expect(res).toEqual({ status: 'error', error: 'spawn 실패' });
+    expect(d.registry.isBusy('atlas')).toBe(false); // finally release
+  });
+
+  it('done 후에도 release (재acquire 가능)', async () => {
+    const d = deps();
+    await spawnTier3(req, d);
+    expect(d.registry.isBusy('atlas')).toBe(false);
   });
 });
