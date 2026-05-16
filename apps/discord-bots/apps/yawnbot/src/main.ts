@@ -80,69 +80,42 @@ const characterService = memoRepoPath
     )
   : null;
 
-/** 슬러그별 MemoryService 캐시 (lazy init). initialize() 는 첫 호출 시 실행. */
-const memoryMap = new Map<string, MemoryService>();
-function getMemory(slug: string): MemoryService {
-  const existing = memoryMap.get(slug);
-  if (existing) return existing;
-  if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — MemoryService 생성 불가');
+/**
+ * 슬러그별 서비스 lazy 캐시 팩토리 (TASK-YB-026 slice 1).
+ * Map + lazy init + memoRepoPath 가드 = 단일 정본. 호출자는 factory 만 제공.
+ * deletion test: 제거 시 위 boilerplate 가 6 caller 로 재출현 → deep.
+ */
+type SlugCache<T> = ((slug: string) => T) & { dispose: (visit?: (value: T) => void) => void };
+function createSlugCache<T>(label: string, factory: (slug: string) => T): SlugCache<T> {
+  const cache = new Map<string, T>();
+  const get = (slug: string): T => {
+    const hit = cache.get(slug);
+    if (hit) return hit;
+    if (!memoRepoPath) throw new Error(`MEMO_REPO_PATH 미설정 — ${label} 생성 불가`);
+    const created = factory(slug);
+    cache.set(slug, created);
+    return created;
+  };
+  return Object.assign(get, {
+    dispose: (visit?: (value: T) => void): void => {
+      if (visit) for (const v of cache.values()) visit(v);
+      cache.clear();
+    },
+  });
+}
+
+const charDirOf = (slug: string): string => `${memoRepoPath}/characters/${slug}`;
+
+const getMemory = createSlugCache('MemoryService', (slug) => {
   const m = new MemoryService(memoRepoPath, slug);
   m.initialize();
-  memoryMap.set(slug, m);
   return m;
-}
-
-/** 슬러그별 ScheduleService 캐시 (lazy init). */
-const scheduleMap = new Map<string, ScheduleService>();
-function getSchedule(slug: string): ScheduleService {
-  if (!scheduleMap.has(slug)) {
-    if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — ScheduleService 생성 불가');
-    scheduleMap.set(slug, new ScheduleService(memoRepoPath, slug));
-  }
-  return scheduleMap.get(slug)!;
-}
-
-/** 슬러그별 MoodService 캐시 (lazy init). */
-const moodMap = new Map<string, MoodService>();
-function getMood(slug: string): MoodService {
-  if (!moodMap.has(slug)) {
-    if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — MoodService 생성 불가');
-    moodMap.set(slug, new MoodService(memoRepoPath, slug));
-  }
-  return moodMap.get(slug)!;
-}
-
-/** 슬러그별 AnniversaryService 캐시 (lazy init). */
-const anniversaryMap = new Map<string, AnniversaryService>();
-function getAnniversary(slug: string): AnniversaryService {
-  if (!anniversaryMap.has(slug)) {
-    if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — AnniversaryService 생성 불가');
-    anniversaryMap.set(slug, new AnniversaryService(memoRepoPath, slug));
-  }
-  return anniversaryMap.get(slug)!;
-}
-
-/** 슬러그별 NewsService 캐시 (lazy init). */
-const newsMap = new Map<string, NewsService>();
-function getNews(slug: string): NewsService {
-  if (!newsMap.has(slug)) {
-    if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — NewsService 생성 불가');
-    const charDir = `${memoRepoPath}/characters/${slug}`;
-    newsMap.set(slug, new NewsService(charDir));
-  }
-  return newsMap.get(slug)!;
-}
-
-/** 슬러그별 RelationshipService 캐시 (lazy init). */
-const relationshipMap = new Map<string, RelationshipService>();
-function getRelationship(slug: string): RelationshipService {
-  if (!relationshipMap.has(slug)) {
-    if (!memoRepoPath) throw new Error('MEMO_REPO_PATH 미설정 — RelationshipService 생성 불가');
-    const charDir = `${memoRepoPath}/characters/${slug}`;
-    relationshipMap.set(slug, new RelationshipService(charDir));
-  }
-  return relationshipMap.get(slug)!;
-}
+});
+const getSchedule = createSlugCache('ScheduleService', (slug) => new ScheduleService(memoRepoPath, slug));
+const getMood = createSlugCache('MoodService', (slug) => new MoodService(memoRepoPath, slug));
+const getAnniversary = createSlugCache('AnniversaryService', (slug) => new AnniversaryService(memoRepoPath, slug));
+const getNews = createSlugCache('NewsService', (slug) => new NewsService(charDirOf(slug)));
+const getRelationship = createSlugCache('RelationshipService', (slug) => new RelationshipService(charDirOf(slug)));
 
 const ADMIN_IDS = parseCommaSeparatedEnv(process.env.ADMIN_IDS);
 const OWNER_ID = process.env.ASSISTANT_USER_ID?.trim() || '';
@@ -335,14 +308,13 @@ async function main() {
 }
 
 function shutdownMemory(): void {
-  for (const m of memoryMap.values()) {
+  getMemory.dispose((m) => {
     try {
       m.destroy();
     } catch (e: unknown) {
       console.warn('[Shutdown] memory destroy 실패:', e instanceof Error ? e.message : e);
     }
-  }
-  memoryMap.clear();
+  });
 }
 
 async function gracefulShutdown(reason: string): Promise<void> {
