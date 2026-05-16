@@ -27,6 +27,18 @@ export class WebhookPermissionError extends Error {
 // channelId → Webhook 캐시 (생성·fetch 비용 회피, per-channel rate limit 정합)
 const webhookCache = new Map<string, Webhook>();
 
+// 우리(봇)가 만든/소유한 agent webhook 의 id 집합.
+// webhook id 는 *생성·fetch 시점에 확정* → per-message-id 추적의
+// register-after-send race 가 원천 부재 (KAR-018-A 루프 회귀 근본 fix).
+// 봇=채널당 webhook 1개를 모든 스킨이 공유 + agent↔agent 는 dispatcher(sub-B)
+// 가 내부 구동 → inbound webhookId ∈ 본 집합이면 *항상* 우리 발화 → drop 안전.
+const ownAgentWebhookIds = new Set<string>();
+
+/** inbound 메시지의 webhookId 가 우리 agent webhook 인가 (race-free 루프가드). */
+export function isOwnAgentWebhook(webhookId: string | null | undefined): boolean {
+  return !!webhookId && ownAgentWebhookIds.has(webhookId);
+}
+
 function isMissingPermission(err: unknown): boolean {
   const e = err as { code?: number; message?: string };
   return e?.code === 50013 || /missing permissions/i.test(e?.message ?? '');
@@ -50,6 +62,7 @@ async function getOrCreateWebhook(channel: TextChannel): Promise<Webhook> {
         reason: 'yawnbot agent identity (KAR-018-A)',
       }));
     webhookCache.set(channel.id, hook);
+    ownAgentWebhookIds.add(hook.id); // race-free 루프가드 (send 전에 확정)
     return hook;
   } catch (err: unknown) {
     if (isMissingPermission(err)) {
