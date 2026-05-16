@@ -12,6 +12,17 @@
 import type { Message } from 'discord.js';
 import { CharacterService } from '../services/character-service';
 
+/**
+ * 인스턴스 전용 에이전트 채널 (prod/dev 격리, KAR-018-W).
+ * `YAWNBOT_AGENT_CHANNEL_ID` 설정 시 = 이 인스턴스는 *오직 그 채널만* 팀 방
+ * 으로 취급 (.active.json·다른 채널 무시). 미설정(prod default) → 기존
+ * .active.json 바인딩 동작 *불변*. 같은 서버에 prod+dev 공존 시 크로스-봇
+ * 루프·검증오염 차단 = env 가 유일하게 인스턴스별로 다른 축(공유 파일 X).
+ */
+export function agentChannelId(): string | null {
+  return process.env.YAWNBOT_AGENT_CHANNEL_ID?.trim() || null;
+}
+
 /** 채널이 "팀 방"인가 = .active.json 3-튜플에 코어가 바인딩됨 (DM 제외). */
 export function isTeamRoom(
   cs: CharacterService,
@@ -24,16 +35,19 @@ export function isTeamRoom(
 
 /**
  * 메시지가 팀 방에서 온 것인가 — isDM·channelKey 조립을 은닉 (main.ts 재사용).
- * main.ts:220 의 bot-gate 완화가 이 한 술어만 호출하도록 (조립 중복 X).
+ * env 격리 우선: `YAWNBOT_AGENT_CHANNEL_ID` 설정 시 *그 채널만* true
+ * (dev 인스턴스가 prod 채널·.active.json 에 절대 반응 안 함, 역도 동일).
  */
 export function isTeamRoomMessage(cs: CharacterService, message: Message): boolean {
-  const isDM = message.channel.isDMBased();
+  if (message.channel.isDMBased()) return false;
+  const envCh = agentChannelId();
+  if (envCh) return message.channel.id === envCh; // 인스턴스 전용 격리 모드
   const channelKey = CharacterService.channelKey({
-    isDM,
+    isDM: false,
     userId: message.author.id,
     channelId: message.channel.id,
   });
-  return isTeamRoom(cs, channelKey, isDM);
+  return isTeamRoom(cs, channelKey, false);
 }
 
 // ── 가드 ① 자기 webhook 무시 ────────────────────────────────

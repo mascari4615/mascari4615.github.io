@@ -53,6 +53,35 @@ describe('isTeamRoomMessage — main.ts bot-gate 임계경로', () => {
   it('코어 미바인딩 채널 메시지 = 팀 방 아님 (bot-gate drop 유지)', () => {
     expect(isTeamRoomMessage(fakeCS(null), fakeMsg('tm-ch', false))).toBe(false);
   });
+
+  describe('YAWNBOT_AGENT_CHANNEL_ID env 격리 (prod/dev 크로스봇 차단)', () => {
+    const KEY = 'YAWNBOT_AGENT_CHANNEL_ID';
+    afterEach(() => {
+      delete process.env[KEY];
+    });
+
+    it('env 설정 → 그 채널만 true (.active.json 무시)', () => {
+      process.env[KEY] = 'dev-ch';
+      // 코어 바인딩 없어도(fakeCS(null)) env 채널이면 true
+      expect(isTeamRoomMessage(fakeCS(null), fakeMsg('dev-ch', false))).toBe(true);
+    });
+
+    it('env 설정 → 다른 채널(=prod의 .active.json 채널)은 false', () => {
+      process.env[KEY] = 'dev-ch';
+      // 코어 바인딩 있어도(fakeCS("atlas")) env 채널 아니면 false = prod 채널 무반응
+      expect(isTeamRoomMessage(fakeCS('atlas'), fakeMsg('prod-ch', false))).toBe(false);
+    });
+
+    it('env 설정 + DM → false (DM 격리 유지)', () => {
+      process.env[KEY] = 'dev-ch';
+      expect(isTeamRoomMessage(fakeCS('atlas'), fakeMsg('dev-ch', true))).toBe(false);
+    });
+
+    it('env 미설정(prod default) → 기존 .active.json 동작 불변', () => {
+      expect(isTeamRoomMessage(fakeCS('atlas'), fakeMsg('any', false))).toBe(true);
+      expect(isTeamRoomMessage(fakeCS(null), fakeMsg('any', false))).toBe(false);
+    });
+  });
 });
 
 describe('가드 ① 자기 webhook 무응답', () => {

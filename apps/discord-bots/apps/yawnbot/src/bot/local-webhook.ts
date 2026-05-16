@@ -54,8 +54,12 @@ const COLOR_BY_LEVEL: Record<NonNullable<LocalEventPayload['level']>, number> = 
 export async function sendLocalEvent(
   client: Client,
   payload: LocalEventPayload,
+  channelOverride?: string[],
 ): Promise<number> {
-  const channelIds = getLocalChannels(payload.kind);
+  const channelIds =
+    channelOverride && channelOverride.length > 0
+      ? channelOverride
+      : getLocalChannels(payload.kind);
   if (channelIds.length === 0) return 0;
 
   const level = payload.level ?? 'info';
