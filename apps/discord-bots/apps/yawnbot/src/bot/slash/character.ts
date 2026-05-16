@@ -171,6 +171,54 @@ export async function handleCharacterReset(ctx: BotContext, interaction: ChatInp
   });
 }
 
+/**
+ * /character 카드 core — 이 DM/채널의 에이전트 *코어*(실제 정체성=무슨 일) 설정/조회/해제.
+ * 스킨(외모 껍데기)은 /character 카드 switch. 코어/스킨 독립 스왑 (KAR-018-A).
+ */
+export async function handleCharacterCore(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
+  const cs: CharacterService | null = ctx.characterService;
+  if (!cs) {
+    await interaction.reply({
+      content: 'MEMO_REPO_PATH가 설정되지 않아 캐릭터 시스템이 비활성화돼 있어요.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const channelKey = getChannelKey(interaction);
+  const where = interaction.guildId ? '채널' : 'DM';
+  const clear = interaction.options.getBoolean('해제') ?? false;
+  const id = interaction.options.getString('id')?.trim();
+
+  if (!clear && !id) {
+    const core = cs.resolveCore(channelKey);
+    const skin = cs.resolveSlug(channelKey);
+    await interaction.reply({
+      content: core
+        ? `이 ${where}: 코어 **${core}** ⊕ 스킨 **${skin}**`
+        : `이 ${where}: 코어 없음 (레거시 skin-only · 스킨 **${skin}**)`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (clear) {
+    cs.setChannelCore(channelKey, null);
+    await interaction.reply({
+      content: `이 ${where} 코어 해제 → skin-only 복귀 (스킨 **${cs.resolveSlug(channelKey)}**).`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // 코어 실체 검증(memo/.claude/agents/<id>/)은 후속 슬라이스(dispatcher/팩토리) — 현재 free-form.
+  cs.setChannelCore(channelKey, id as string);
+  await interaction.reply({
+    content: `이 ${where}: 코어 **${id}** 설정 (스킨 **${cs.resolveSlug(channelKey)}** 보존). ⚠ 코어 실체 검증 = 후속.`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 export async function handleCharacterReload(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   const cs: CharacterService | null = ctx.characterService;
   if (!cs) {

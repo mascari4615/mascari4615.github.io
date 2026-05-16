@@ -37,6 +37,7 @@ import {
   handleCharacterSwitch,
   handleCharacterInfo,
   handleCharacterReset,
+  handleCharacterCore,
   handleCharacterReload,
   handleCharacterImage,
   handleCharacterImageHistory,
@@ -240,6 +241,9 @@ export async function dispatchSlashCommand(ctx: BotContext, interaction: ChatInp
             case 'image': await handleCharacterImage(ctx, interaction); break;
             case 'history': await handleCharacterImageHistory(ctx, interaction); break;
             case 'reload': await handleCharacterReload(ctx, interaction); break;
+            case 'core':
+              if (!(await guardOwner(ctx, interaction))) break;
+              await handleCharacterCore(ctx, interaction); break;
             case '친밀도': await handleCharacterRelationship(ctx, interaction); break;
             default: await interaction.reply({ content: '알 수 없는 명령입니다.', flags: MessageFlags.Ephemeral });
           }
