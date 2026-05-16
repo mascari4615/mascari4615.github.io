@@ -36,6 +36,7 @@ import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rota
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage } from './bot/team-room';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
+import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
@@ -238,6 +239,7 @@ client.once('clientReady', async () => {
     startProactive(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath || undefined, memoRepoPath ? getAnniversary : undefined);
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
+    startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
     await sendStartupGreeting(client, characterService, getMemory);
     console.log(
       '[Assistant] AI 비서 활성화 (ASSISTANT_USER_ID:',
@@ -324,6 +326,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   setMusicDiscordClient(null);
   stopPresenceRotation();
   stopUnityFreeNotifier();
+  stopAgentCadence();
   stopProactive();
   stock.stopMarket();
   gameData.destroy();
