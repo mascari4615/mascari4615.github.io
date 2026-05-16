@@ -1,6 +1,0 @@
-[[permission]]
-identifier = "allow-questlog-hub"
-description = "Allow the QuestLog Hub (KL-035 — KarmoDDrine 대시보드 흡수) to fetch the umbrella state snapshot (read-only: memo files + 3 repo git log + ~/.claude inventory)."
-commands.allow = [
-  "get_questlog_hub",
-]

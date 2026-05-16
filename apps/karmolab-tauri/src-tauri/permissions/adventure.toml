@@ -1,9 +1,0 @@
-[[permission]]
-identifier = "allow-adventure"
-description = "Allow the adventure widget (TASK-KL-032) to: (1) invoke the local claude CLI for narrative turns (Pro/Max OAuth, no API key), (2) write raw turn JSON into memo/projects/karmolab/raw/adventures/, (3) write turn images as separate PNG files under {slug}/images/ (TASK-KL-037), (4) commit + push wiki entity summary on adventure end."
-commands.allow = [
-  "adventure_claude_complete",
-  "adventure_save_raw",
-  "adventure_save_image",
-  "adventure_commit_summary",
-]

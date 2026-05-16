@@ -17,6 +17,8 @@ dev-tools = ["tauri/devtools"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
 
 [dependencies]
 notify = "6"
