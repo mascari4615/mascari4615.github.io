@@ -42,6 +42,18 @@ await esbuild.build({
   logLevel: 'info'
 });
 
+// 알람 발화 풀스크린 (TASK-KL-064) — index.html #alarm-fire 조기 분기가
+// 대시보드 부트 전 로드. toolbox 비의존 self-contained iife.
+await esbuild.build({
+  entryPoints: [join(root, 'src/alarm-fire.ts')],
+  outfile: join(root, 'js/alarm-fire.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
 const entryPoints = [
   'src/widgets/imageconvert/core.ts',
   'src/widgets/imageconvert/batch-pipeline.ts',
@@ -66,6 +78,7 @@ const entryPoints = [
   'src/widgets/darkroom.ts',
   'src/widgets/dashboard.ts',
   'src/widgets/activity.ts',
+  'src/widgets/alarm.ts',
   'src/widgets/claude-env.ts',
   'src/widgets/devtools.ts',
   'src/widgets/eyes.ts',

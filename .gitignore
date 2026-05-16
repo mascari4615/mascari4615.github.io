@@ -62,6 +62,7 @@ apps/karmolab/world/*.js
 apps/karmolab/js/mdd.js
 apps/karmolab/js/gemini.js
 apps/karmolab/js/toolbox.js
+apps/karmolab/js/alarm-fire.js
 apps/karmolab/js/widgets-manifest.js
 apps/karmolab/js/widgets-lazy-meta.js
 apps/karmolab/js/widgets-loader.js

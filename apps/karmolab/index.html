@@ -14,6 +14,19 @@ permalink: /karmolab/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KarmoLab</title>
+    <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
+         WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
+         경량 풀스크린 알람만 로드 (widgets-loader.js 가 같은 hash 로 early-return). -->
+    <script>
+    (function () {
+      if (location.hash === '#alarm-fire') {
+        var s = document.createElement('script');
+        s.src = '/apps/karmolab/js/alarm-fire.js';
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+    })();
+    </script>
     <meta name="description" content="AI 챗봇, 이미지 생성·편집, 암호화, 랜덤 생성기 등 유틸리티와 미니게임을 모은 KarmoLab. 삶을 섞고 술을 바꿀 시간.">
     <link rel="canonical" href="https://mascari4615.github.io/karmolab/">
     <meta property="og:type" content="website">

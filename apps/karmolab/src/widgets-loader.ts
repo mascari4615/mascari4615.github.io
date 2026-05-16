@@ -2,6 +2,10 @@
  * 위젯 로더 — boot 위젯만 즉시 로드, 나머지는 지연(Toolbox.kickLazyLoad)
  */
 (function () {
+  // TASK-KL-064: 알람 발화 모드면 대시보드 부트 생략 (alarm-fire.js 단독
+  // takeover; index.html 조기 분기가 주입). Toolbox.init 미호출.
+  if (typeof location !== 'undefined' && location.hash === '#alarm-fire') return;
+
   if (!window.KARMOLAB_WIDGET_LOADER_WAIT) window.KARMOLAB_WIDGET_LOADER_WAIT = [];
 
   const base = (function () {
