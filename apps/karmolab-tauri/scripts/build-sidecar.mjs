@@ -14,7 +14,13 @@ import { existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const release = process.argv.includes("--release");
+// sidecar = ML stack(candle Whisper / xcap / tesseract). debug 빌드는
+// candle 행렬연산이 release 대비 수십배 느려 transcribe 가 분 단위 →
+// 사실상 사용 불가 (KL-052-B3 발현: dev debug → VoiceRecordStop 120s
+// timeout). 따라서 dev/build 무관 **항상 release** — debug 선택지 자체가
+// 실수 여지라 제거. 메인 src-tauri 는 dev=debug 유지(UI/IPC 가벼움,
+// KL-051 "tauri dev 속도 그대로" — 별 crate 라 sidecar release 와 무관).
+const release = true;
 const here = dirname(fileURLToPath(import.meta.url));
 const tauriDir = join(here, ".."); // apps/karmolab-tauri
 const srcTauri = join(tauriDir, "src-tauri");
