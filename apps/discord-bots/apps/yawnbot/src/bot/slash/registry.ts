@@ -19,6 +19,8 @@ import type { BotContext } from './bot-context';
 import { musicCommandGroup } from '../../deploy-builders/voice-music';
 import { gameCommandGroup } from '../../deploy-builders/game-stock';
 import { characterCommand } from '../../deploy-builders/character';
+import { roomCommand } from '../../deploy-builders/room';
+import { handleRoom } from './room';
 import { scheduleCommand } from '../../deploy-builders/schedule';
 import { adminCommand } from '../../deploy-builders/admin';
 import { atkupCommandGroup } from '../../deploy-builders/atkup';
@@ -481,6 +483,15 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       }
     },
     autocomplete: characterSlugAutocomplete,
+  },
+  {
+    name: '방',
+    builder: roomCommand,
+    run: async (ctx, interaction) => {
+      // 방 생성·초대·해체 = mutating → owner 가드 (slice-2b core 동형).
+      if (!(await guardOwner(ctx, interaction))) return;
+      await handleRoom(ctx, interaction);
+    },
   },
   {
     name: '일정',

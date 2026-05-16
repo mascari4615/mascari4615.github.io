@@ -568,20 +568,32 @@ export async function handleAssistantMessage(
         })()
       : { content: reply, components: [reactionRow] };
 
-    // 팀 방 = 스킨 identity webhook 송신 (sub-A-1). 권한 부재 시 일반 reply fallback.
+    // 팀 방 = 스킨 identity webhook 송신 (sub-A-1). 스레드 방(sub-A-3)은
+    // 부모채널 webhook + thread_id. 권한 부재 시 일반 reply fallback.
     let delivered = false;
-    if (isTeam && message.channel instanceof TextChannel) {
-      try {
-        await sendAsSkin(message.channel, card, payload);
-        delivered = true;
-      } catch (e: unknown) {
-        if (e instanceof WebhookPermissionError) {
-          if (!webhookPermWarned.has(message.channel.id)) {
-            webhookPermWarned.add(message.channel.id);
-            console.warn(`[Assistant:${card.slug}] ${e.message}`);
+    if (isTeam) {
+      const chan = message.channel;
+      let hookChan: TextChannel | null = null;
+      let threadId: string | undefined;
+      if (chan instanceof TextChannel) {
+        hookChan = chan;
+      } else if (chan.isThread() && chan.parent instanceof TextChannel) {
+        hookChan = chan.parent;
+        threadId = chan.id;
+      }
+      if (hookChan) {
+        try {
+          await sendAsSkin(hookChan, card, payload, { threadId });
+          delivered = true;
+        } catch (e: unknown) {
+          if (e instanceof WebhookPermissionError) {
+            if (!webhookPermWarned.has(hookChan.id)) {
+              webhookPermWarned.add(hookChan.id);
+              console.warn(`[Assistant:${card.slug}] ${e.message}`);
+            }
+          } else {
+            throw e;
           }
-        } else {
-          throw e;
         }
       }
     }
