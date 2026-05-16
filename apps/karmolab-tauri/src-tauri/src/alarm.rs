@@ -828,6 +828,53 @@ mod tests {
         assert!(!new_mute, "force 후 음소거 해제 안 됨");
     }
 
+    /// END-TO-END (GUI 없이): 실 store + 실 시계 + 실 pump + 실 Core Audio.
+    /// "지금 분" 알람(volume=33) 시드 → `pump(now)` 가 발화 판정 →
+    /// fire() 의 볼륨 라인(`audio::force_to(alarm.volume)`)과 동일 호출 →
+    /// 시스템 볼륨이 0.33 이 됐는지 readback → 원복. 스케줄러→발화→OS볼륨
+    /// 전 경로를 라이브 머신에서 비파괴 증명 (미커버 = Tauri 창/사운드/emit).
+    /// `cargo test --lib scheduler_to_volume_end_to_end -- --ignored`
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn scheduler_to_volume_end_to_end() {
+        use chrono::Timelike;
+        let Some((ov, om)) = super::audio::get_master() else {
+            eprintln!("[skip] 오디오 엔드포인트 없음");
+            return;
+        };
+        super::audio::set_master(0.05, true); // 베이스라인
+        std::thread::sleep(std::time::Duration::from_millis(120));
+
+        let store = AlarmStore::default();
+        let now = Local::now();
+        let mut a = mk("e2e", now.hour() as u8, now.minute() as u8, vec![], true);
+        a.volume = 33;
+        a.force_wake = true;
+        store.upsert(a);
+
+        // 실제 스케줄러 1 tick (실 시계).
+        let fired = pump(&store, now);
+
+        // fire() 의 OS 볼륨 라인과 동일 (창/사운드/emit 은 Tauri 의존이라 제외).
+        for al in &fired {
+            if al.force_wake {
+                super::audio::force_to(al.volume);
+            }
+        }
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        let (nv, nm) = super::audio::get_master().unwrap();
+        super::audio::set_master(ov, om); // 원복 먼저
+
+        assert_eq!(fired.len(), 1, "스케줄러가 '지금 분' 알람 발화 안 함");
+        assert_eq!(fired[0].id, "e2e");
+        assert!(
+            (nv - 0.33).abs() < 0.05,
+            "end-to-end 볼륨 불일치: 33% 기대 → {nv}"
+        );
+        assert!(!nm, "end-to-end 음소거 해제 안 됨");
+    }
+
     /// HKCU Run 값 조회 (없으면 None, 있으면 데이터 문자열).
     #[cfg(windows)]
     fn query_run(name: &str) -> Option<String> {
