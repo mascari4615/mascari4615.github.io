@@ -395,7 +395,7 @@
           }
           lines.push('', '* 새 세션부터 효과 (Claude Code hook reload 정책).');
           setLog(lines.join('\n'), false);
-          Toolbox.showToast?.('Claude 환경 저장 + sync 완료', 'success');
+          Toolbox.showToast?.('Claude 환경 저장 + sync 완료', 'success', undefined);
           saveBtn.textContent = '저장 + sync 실행';
           saveBtn.disabled = false;
         })
