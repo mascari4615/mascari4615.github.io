@@ -107,8 +107,9 @@ export declare function generateClaudeCliText(opts: {
 export declare function buildDiscoveryArgs(): string[];
 /**
  * 로컬 `claude` CLI 로 *비-agentic* 단발 텍스트 생성 (⑦' 발굴 전용).
- * generateClaudeCliText 와 달리 cwd 인자가 시그니처에 *없어* agentic 모드로
- * 절대 진입 불가. 무상태 — resume/세션 저장 X (공유 세션 비경합).
+ * cwd 인자가 시그니처에 *없다* — 함수가 빈 임시 디렉토리를 만들어 cwd 로
+ * 쓰고(청정 컨텍스트 = CLAUDE.md 오염 차단, agentic 차단) 종료 시 정리.
+ * 무상태 — resume/세션 저장 X (공유 세션 비경합).
  */
 export declare function generateDiscoveryText(opts: {
     prompt: string;
