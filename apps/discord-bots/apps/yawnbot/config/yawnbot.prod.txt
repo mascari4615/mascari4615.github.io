@@ -8,15 +8,18 @@
 # 로드: yawnbot-defaults.txt → (이 파일, YAWNBOT_ENV=prod 일 때) → .env.
 # 빈 값(KEY=) = 미설정과 동일(코드에서 undefined 취급) → 해당 기능 비활성.
 #
-# 🔧 일회성 마이그레이션: 아래 값을 채우세요(Discord 우클릭 ID 복사 /
-#    기존 GitHub secret 값). 채워 커밋하면 그 YB_PROD_* secret 은 삭제 가능.
+# 🔧 일회성 마이그레이션: 아래 빈 값을 채우세요. **prod 봇/길드/채널 ID 는
+#    이 머신에 없음**(GitHub secret=쓰기전용 읽기불가, prod .env=노트북 전용).
+#    → Discord 에서 prod 서버 우클릭 ID 복사 또는 기존 YB_PROD_* secret 값.
+#    채워 commit 하면 해당 YB_PROD_* secret 삭제 가능.
+#  (개인 유저 ID 는 env 불변이라 dev .env 에서 자동 채움 — KAR-031 후속.)
 
-# ── Discord 앱 (prod 봇 — dev 와 다른 앱) ──
+# ── Discord 앱 (prod 봇 — dev 와 다른 앱) · prod 전용, 사용자 입력 필요 ──
 CLIENT_ID=
 DISCORD_GUILD_ID=
 YAWNBOT_ALLOWED_GUILD_IDS=
 
-# ── 알림 채널 ID ──
+# ── 알림 채널 ID (prod 서버) · prod 전용, 사용자 입력 필요 ──
 GITHUB_WEBHOOK_CHANNEL_ID=
 ASSISTANT_PUBLIC_CHANNEL_ID=
 YAWNBOT_OPS_REPORT_CHANNEL_ID=
@@ -24,9 +27,9 @@ YAWNBOT_UNITY_FREE_CHANNEL_ID=
 YAWNBOT_GEEKNEWS_CHANNEL_ID=
 YAWNBOT_NEWS_CHANNEL_ID=
 
-# ── 개인 식별자 (Discord 유저 ID) ──
-ADMIN_IDS=
-ASSISTANT_USER_ID=
+# ── 개인 식별자 (Discord 유저 ID — env 불변, dev .env 에서 자동 채움) ──
+ADMIN_IDS=391805564616704002
+ASSISTANT_USER_ID=391805564616704002
 
 # ── AI 표면 / Vertex (비밀 아님 — 키는 ③ secret) ──
 KARMOLAB_AI_SURFACE=vertex
