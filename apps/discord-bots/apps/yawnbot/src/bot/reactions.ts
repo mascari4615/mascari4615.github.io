@@ -18,6 +18,7 @@ import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab
 import { CharacterService } from '../services/character-service';
 import type { BotContext } from './slash/bot-context';
 import { skipTrack, shuffleWaitingQueue, pauseToggleMusic } from './music-player';
+import { handleProposalReaction } from './agent-bus';
 
 // 전용 기능 이모지 (이것 외 봇 메시지 이모지 → 캐릭터 반응)
 const COMMAND_EMOJIS = new Set(['🔄', '⭐', '⏭️', '🔀', '⏸️', '❓']);
@@ -44,6 +45,20 @@ export async function handleReaction(
   const emoji = reaction.emoji.name ?? '';
   const isFromBot = message.author?.id === ctx.client.user?.id;
   const guildId = message.guildId;
+
+  // ── ⑦' 발굴 승인/거절 (KAR-018-V V-2) — 최우선 ────────────────
+  // 발굴 카드면 여기서 소비: 접수→처리→결과 스레드 회신 + 카드 잠금.
+  if (
+    await handleProposalReaction(
+      ctx.client,
+      process.env,
+      reaction,
+      user,
+      ctx.isOwner(user.id),
+    ).catch(() => false)
+  ) {
+    return;
+  }
 
   // ── 음악 제어 (길드 한정) ─────────────────────────────────────────
   if (guildId) {

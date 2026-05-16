@@ -18,8 +18,17 @@
 import fs from 'fs';
 import path from 'path';
 import { EmbedBuilder } from 'discord.js';
-import type { Client, TextChannel } from 'discord.js';
+import type {
+  Client,
+  TextChannel,
+  MessageReaction,
+  PartialMessageReaction,
+  User,
+  PartialUser,
+} from 'discord.js';
 import type { ProposalEnvelope } from './proposal';
+import { appendApproval } from './governance-adapter';
+import { runInboxConsumerOnce, materializedPath } from './proposal-adapter';
 
 export interface ProposalAnnouncement {
   /** 결정적 발굴 id (proposalId) — 승인 매칭 키. */
@@ -40,32 +49,64 @@ const COLOR_BY_KIND: Record<string, number> = {
   agent: 0xcb2431,
 };
 
-/** 발굴 kind 별 사람이 읽을 제목·본문 추출 (payload shape 흡수). */
-function render(env: ProposalEnvelope): { title: string; body: string } {
+/** kind → 비개발자용 평이 한국어 분류 라벨. */
+const KIND_LABEL: Record<string, string> = {
+  task: '할 일(TASK) 제안',
+  objective: '목표 제안',
+  env: '환경 개선 제안',
+  skill: '새 기능(스킬) 제안',
+  agent: '새 에이전트 제안',
+};
+
+/** 승인 시 평이 결과 안내. */
+const KIND_ONAPPROVE: Record<string, string> = {
+  task: '할 일(TASK) 카드가 하나 생깁니다 (나중에 진짜 시작할지는 당신이 결정)',
+  objective: '"목표 후보"로 등록됩니다 (당신이 활성화하면 자동으로 추진)',
+  env: '제안이 검증 단계로 넘어갑니다 (실제 적용은 검증 통과+당신 승인 후)',
+  skill: '새 기능 제안이 검증 단계로 넘어갑니다 (적용은 검증+승인 후)',
+  agent: '새 에이전트 후보로 올라갑니다 (실제 생성은 당신 승인 후)',
+};
+
+/**
+ * 발굴 → {제목, 카드용 평이 본문, 스레드용 상세}. 카드 = 사장이 읽을
+ * 핵심만(전문용어 분리), 상세·근거 = 스레드. 프롬프트가 평이 작성을
+ * 강제하지만 렌더도 카드엔 핵심만 노출(이중 안전).
+ */
+function render(env: ProposalEnvelope): {
+  title: string;
+  cardBody: string;
+  detailBody: string;
+} {
   const p = env.payload as unknown as Record<string, unknown>;
-  const s = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const s = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
   switch (env.kind) {
     case 'task':
-      return { title: s(p.title), body: s(p.body) };
+      return { title: s(p.title), cardBody: s(p.body), detailBody: s(p.body) };
     case 'objective':
       return {
         title: s(p.summary),
-        body: `**도출 근거:** ${s(p.derivation)}\n**미션 정렬:** ${s(p.alignment)}`,
+        cardBody: s(p.summary),
+        detailBody:
+          `${s(p.summary)}\n\n— 왜 하냐 —\n${s(p.derivation)}\n\n` +
+          `— 우리 목표랑 어떻게 맞냐 —\n${s(p.alignment)}`,
       };
     case 'env':
       return {
         title: s(p.summary) || s(p.id),
-        body: `**id:** ${s(p.id)}\n**대상:** ${(Array.isArray(p.targetFiles) ? p.targetFiles : []).join(', ')}\n**출처:** ${s(p.source)}`,
+        cardBody: s(p.summary),
+        detailBody: `${s(p.summary)}\n\n(출처: ${s(p.source)})`,
       };
     case 'skill':
       return {
-        title: `${s(p.name)} (${s(p.id)})`,
-        body: `**요약:** ${s(p.summary)}\n**코어:** ${s(p.coreId)}\n**출처:** ${s(p.source)}`,
+        title: s(p.name),
+        cardBody: s(p.summary),
+        detailBody: `${s(p.name)}\n\n${s(p.summary)}\n\n(출처: ${s(p.source)})`,
       };
     case 'agent':
       return {
-        title: `새 에이전트: ${s(p.name)} (${s(p.role)})`,
-        body: `**id:** ${s(p.id)}\n**코어:** ${s(p.coreId)}\n**출처:** ${s(p.source)}`,
+        title: `새 에이전트: ${s(p.name)}`,
+        cardBody: `${s(p.name)} — 역할: ${s(p.role)}`,
+        detailBody: `새 에이전트 "${s(p.name)}" (역할: ${s(p.role)})\n\n(출처: ${s(p.source)})`,
       };
   }
 }
@@ -121,6 +162,176 @@ export function lookupProposalByMessage(
   }
 }
 
+// ── 결정 잠금 (V-2 상태머신) ────────────────────────────────
+// 먼저 누른 결정이 확정·잠금. 머터리얼라이즈=부수효과라 1회·불가역.
+export function proposalResolvedPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'agent-proposal-resolved.jsonl') : '';
+}
+export function getResolved(
+  env: NodeJS.ProcessEnv,
+  id: string,
+): 'approved' | 'rejected' | null {
+  const p = proposalResolvedPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    let v: 'approved' | 'rejected' | null = null;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t);
+      if (e.id === id) v = e.decision;
+    }
+    return v;
+  } catch {
+    return null;
+  }
+}
+function markResolved(
+  env: NodeJS.ProcessEnv,
+  id: string,
+  decision: 'approved' | 'rejected',
+): void {
+  const p = proposalResolvedPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({ ts: new Date().toISOString(), id, decision }) + '\n',
+      'utf-8',
+    );
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 머터리얼라이즈 결과 1건 조회 (승인 후 사람에게 "뭐가 생겼나" 회신용). */
+function materializedDesc(env: NodeJS.ProcessEnv, id: string): string | null {
+  const p = materializedPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/).reverse()) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t);
+      if (e.id === id) return String(e.taskPath || '').split(/[\\/]/).pop() || null;
+    }
+  } catch {
+    /* */
+  }
+  return null;
+}
+
+/**
+ * ✅/❌ 리액션 → 승인/거절 상태머신 + *즉시·결과 피드백* (V-2).
+ * 발굴 카드가 아니면 false (일반 리액션 핸들러 계속). 발굴 카드면
+ * 항상 true(소비) + 스레드에 접수→완료 회신 + 카드 잠금/결과 반영.
+ * 규칙: 먼저 누른 결정 확정, 확정 후 추가/취소 무시(스레드 안내).
+ * best-effort — 외부 op 실패해도 throw X (게이트웨이 안정).
+ */
+export async function handleProposalReaction(
+  client: Client,
+  env: NodeJS.ProcessEnv,
+  reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser,
+  isOwner: boolean,
+): Promise<boolean> {
+  const emoji = reaction.emoji.name ?? '';
+  if (emoji !== '✅' && emoji !== '❌') return false;
+  const msg = reaction.message;
+  const entry = lookupProposalByMessage(env, msg.id);
+  if (!entry) return false; // 발굴 카드 아님 → 일반 핸들러로
+
+  const post = async (text: string): Promise<void> => {
+    try {
+      const ch = entry.threadId
+        ? await client.channels.fetch(entry.threadId).catch(() => null)
+        : null;
+      const target =
+        ch && ch.isTextBased() && 'send' in ch ? ch : (msg.channel as any);
+      await target?.send?.(text);
+    } catch {
+      /* 피드백 실패해도 처리 자체는 진행 */
+    }
+  };
+
+  if (!isOwner) {
+    await post('ℹ️ 결정은 오너만 가능합니다 — 이 반응은 무시됩니다.');
+    return true;
+  }
+
+  const decision: 'approved' | 'rejected' =
+    emoji === '✅' ? 'approved' : 'rejected';
+  const who = user.username || '오너';
+  const prior = getResolved(env, entry.id);
+  if (prior) {
+    await post(
+      `ℹ️ 이미 **${prior === 'approved' ? '승인' : '거절'}**됨 — ` +
+        `추가/취소 반응은 무시됩니다 (변경하려면 새 제안에서).`,
+    );
+    return true;
+  }
+
+  await post(
+    `⏳ **${who}** 님 **${decision === 'approved' ? '승인' : '거절'}** 접수 — 처리 중…`,
+  );
+  try {
+    appendApproval(env, {
+      ts: new Date().toISOString(),
+      objId: entry.id,
+      core: 'user',
+      status: decision,
+      reason: `discord reaction by ${user.id}`,
+    });
+    markResolved(env, entry.id, decision);
+
+    let result: string;
+    if (decision === 'approved') {
+      await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
+      const desc = materializedDesc(env, entry.id);
+      result = desc
+        ? `**${desc}** 생성됨`
+        : '거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음)';
+      await post(`✅ **승인 완료** — ${result}`);
+    } else {
+      result = '거절됨 — 아무것도 만들지 않았습니다';
+      await post(`❌ **거절 처리됨** — 아무것도 만들지 않았습니다.`);
+    }
+    await lockCard(msg, decision, result).catch(() => {});
+  } catch (e) {
+    await post(
+      `⚠️ 처리 중 오류 — ${e instanceof Error ? e.message : String(e)} (다시 시도하거나 알려주세요)`,
+    );
+  }
+  return true;
+}
+
+/** 카드 embed 를 결과로 갱신 + 잠금 표시 (모순 상태 제거). */
+async function lockCard(
+  msg: MessageReaction['message'],
+  decision: 'approved' | 'rejected',
+  result: string,
+): Promise<void> {
+  const src = msg.embeds?.[0];
+  if (!src) return;
+  const eb = EmbedBuilder.from(src);
+  eb.setColor(decision === 'approved' ? 0x2ecc71 : 0x95a5a6);
+  const fields = (src.fields ?? []).map((f) =>
+    f.name === '📌 상태'
+      ? {
+          name: '📌 상태',
+          value: decision === 'approved' ? '🟢 승인됨 (잠김)' : '🔴 거절됨 (잠김)',
+          inline: true,
+        }
+      : { name: f.name, value: f.value, inline: f.inline },
+  );
+  fields.push({ name: '🔒 결과', value: result.slice(0, 1000), inline: false });
+  eb.setFields(fields);
+  eb.setFooter({ text: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다' });
+  await (msg as any).edit?.({ embeds: [eb] });
+}
+
 /**
  * 발굴 1건을 #team-bus 에 *명명 에이전트 카드 + 스레드*로 게시.
  * embed.author = 에이전트(이름/아바타) → 익명 X, 누가 가 보임.
@@ -134,8 +345,10 @@ export async function announceProposal(
   ann: ProposalAnnouncement,
 ): Promise<void> {
   const agentName = ann.agent?.name || '🛰 Atlas';
-  const { title, body } = render(ann.envelope);
+  const { title, cardBody, detailBody } = render(ann.envelope);
   const safeTitle = (title || '(제목 없음)').slice(0, 230);
+  const kindLabel = KIND_LABEL[ann.kind] ?? ann.kind;
+  const onApprove = KIND_ONAPPROVE[ann.kind] ?? '검토 단계로 넘어갑니다';
 
   for (const channelId of channelIds) {
     const channel = await client.channels
@@ -143,26 +356,31 @@ export async function announceProposal(
       .catch(() => null);
     if (!channel || !channel.isTextBased() || !('send' in channel)) continue;
 
+    // 구조화 카드 — 사장이 스캔 가능. 상세·근거는 ▸ 스레드.
     const embed = new EmbedBuilder()
       .setColor(COLOR_BY_KIND[ann.kind] ?? 0x4caf50)
       .setAuthor({
-        name: `${agentName} · 발굴 제안`,
+        name: `🛰 ${agentName} 의 제안`,
         iconURL: ann.agent?.avatarUrl,
       })
-      .setTitle(safeTitle)
-      .setDescription(body.slice(0, 1400) || '(내용 없음)')
+      .setTitle(`💡 ${safeTitle}`)
       .addFields(
-        { name: '종류', value: `\`${ann.kind}\` → ${ann.target}`, inline: true },
-        { name: '제안 ID', value: `\`${ann.id}\``, inline: true },
+        {
+          name: '📋 무엇 / 왜',
+          value: (cardBody || '(내용 없음)').slice(0, 1000),
+        },
+        { name: '🏷️ 분류', value: kindLabel, inline: true },
+        { name: '🆔', value: `\`${ann.id}\``, inline: true },
+        { name: '📌 상태', value: '🟡 승인 대기', inline: true },
+        { name: '✅ 승인하면', value: onApprove },
       )
       .setFooter({
-        text: '✅ 승인 · ❌ 거절 — 이 메시지에 반응하세요. 자세히/질문은 ▸ 스레드',
+        text: '✅ 승인  ·  ❌ 거절  ·  ▸ 스레드에서 자세히/질문  |  먼저 누른 결정이 확정·잠금',
       })
       .setTimestamp();
 
     try {
       const msg = await (channel as TextChannel).send({ embeds: [embed] });
-      // 승인/거절 affordance 선반영 (사용자 클릭만)
       await msg.react('✅').catch(() => {});
       await msg.react('❌').catch(() => {});
 
@@ -174,18 +392,15 @@ export async function announceProposal(
         });
         threadId = thread.id;
         await thread.send(
-          `**${agentName}** 의 발굴 — 전문\n\n` +
-            `**${safeTitle}**\n\n${body.slice(0, 3500)}\n\n` +
-            `── 행동 ──\n` +
-            `· 위 카드에 ✅ = 승인 → 자동으로 ${
-              ann.kind === 'task'
-                ? 'seed TASK 생성'
-                : ann.kind === 'objective'
-                  ? 'objectives 후보 행 추가'
-                  : '거버넌스 평가'
-            }\n` +
-            `· ❌ = 거절 (아무 일도 안 일어남)\n` +
-            `· 이 스레드에 답글 = 질문/수정요청 (검토에 반영)`,
+          `**${agentName}** 의 제안 — 자세히\n\n` +
+            `**${safeTitle}**\n\n${detailBody.slice(0, 3500)}\n\n` +
+            `────────\n` +
+            `**어떻게 하나요?**\n` +
+            `· 위 카드에 **✅** = 승인 → ${onApprove}\n` +
+            `· **❌** = 거절 → 아무것도 만들지 않습니다\n` +
+            `· 이 스레드에 **답글** = 질문/수정요청 (검토에 반영)\n` +
+            `· 누르면 **여기 스레드에 처리 결과가 답글로 달립니다** (접수→완료)\n` +
+            `· 규칙: 먼저 누른 결정이 확정. 확정 후 추가/취소 반응은 무시.`,
         );
       } catch {
         /* 스레드 실패해도 카드는 떴음 (degraded) */

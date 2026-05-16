@@ -169,6 +169,18 @@ export function buildDiscoveryPrompt(
     '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
     '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
     '- objective: {summary,derivation,alignment}',
+    '',
+    '★★ 사람이 읽는 글쓰기 규칙 (필수 — 어기면 폐기 가치):',
+    '읽는 사람 = *비개발자 사장*. 정렬·근거 판단은 머릿속으로만 하고,',
+    '출력되는 모든 한국어 문장(title·body·summary·derivation·alignment)',
+    '에는 절대 쓰지 마라: §숫자/조항 참조, 내부 코드명(drift·anchor·seam·',
+    'cadence·governance·DGM·producer·hook 등), 영어 약어, 파일경로, 코드.',
+    '쉬운 일상어 평서문으로. 다음 3가지를 *명시적으로* 담아라:',
+    '  ① 지금 뭐가 문제이거나 무슨 아이디어인지 (쉽게 1~2문장)',
+    '  ② 이걸 하면 뭐가 좋아지는지 (1문장)',
+    '  ③ 승인하면 실제로 무슨 일이 일어나는지 (1문장)',
+    'title = 한 줄 요약(쉽게). task.body / objective.summary 에 위 ①②③',
+    '를 풀어 써라. objective.derivation/alignment 도 평이하게(전문용어 X).',
     '확신 없으면 아무것도 출력하지 마라 (빈 출력 = 폐기. 추측·날조 금지).',
   ].join('\n');
 }
