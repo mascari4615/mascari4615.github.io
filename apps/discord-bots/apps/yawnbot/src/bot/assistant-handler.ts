@@ -16,6 +16,13 @@ import { ImageCacheService } from '../services/image-cache-service';
 import type { MoodService } from '../services/mood-service';
 import type { RelationshipService } from '../services/relationship-service';
 import { buildCharacterImagePrompt } from './slash/image';
+import {
+  isTeamRoom,
+  isOwnWebhookMessage,
+  checkAndStampCooldown,
+  reserveBudget,
+  bumpChain,
+} from './team-room';
 
 export const MOOD_REACTION_EMOJIS = ['👍', '❤️', '😂', '😢'] as const;
 export type MoodReactionEmoji = typeof MOOD_REACTION_EMOJIS[number];
@@ -342,24 +349,53 @@ export async function handleAssistantMessage(
   const publicChannelId = process.env.ASSISTANT_PUBLIC_CHANNEL_ID?.trim();
 
   if (!assistantUserId) return;
-  if (message.author.id !== assistantUserId) return;
-  if (message.author.bot) return;
 
   const isDM = message.channel instanceof DMChannel || message.channel.isDMBased();
-  const isPublicChannel = !isDM && !!publicChannelId && message.channel.id === publicChannelId;
+  const channelKey = CharacterService.channelKey({
+    isDM,
+    userId: message.author.id,
+    channelId: message.channel.id,
+  });
+  const isTeam = isTeamRoom(characterService, channelKey, isDM);
+  const isOwner = message.author.id === assistantUserId;
+  const isWebhook = !!message.webhookId;
+  const isPublicChannel =
+    !isDM && !!publicChannelId && message.channel.id === publicChannelId;
 
-  if (!isDM && !isPublicChannel) return;
+  // ── 수신 게이트 (KAR-018-A sub-A-2) ───────────────────────
+  // 비-팀 방(기존, 하위호환 무변경): owner 의 DM / 단일 public 채널만.
+  // 팀 방(.active.json 코어 바인딩): owner + 에이전트 webhook(자기·가드 제외).
+  if (!isTeam) {
+    if (!isOwner) return;
+    if (message.author.bot) return;
+    if (!isDM && !isPublicChannel) return;
+  } else {
+    if (isWebhook && isOwnWebhookMessage(message.id)) return; // 가드 ① 자기발화
+    if (!isOwner && !isWebhook) return;                       // 외부 유저/일반봇 무시
+    if (isOwner) {
+      bumpChain(message.channel.id, true);                    // 사람 발화 = 체인 리셋
+    } else {
+      // 에이전트 webhook 트리거 — 가드 ②③④
+      // (main.ts:220 가 webhook 을 upstream drop 중 → sub-A-1 송신 라이브 시 활성)
+      const core = characterService.resolveCore(channelKey);
+      if (!core) return;
+      const chain = bumpChain(message.channel.id, false);     // 가드 ④
+      if (chain.exceeded) {
+        console.warn(
+          `[TeamRoom] 체인 깊이 ${chain.depth} > 상한 — pause (channel ${message.channel.id})`,
+        );
+        return; // TODO(sub-A 후속 slice): #team-bus pause 알림
+      }
+      if (!checkAndStampCooldown(core, message.channel.id)) return; // 가드 ②
+      if (!reserveBudget(core, message.channel.id)) return;         // 가드 ③ (sub-D)
+    }
+  }
 
   const channelType: 'dm' | 'public' = isDM ? 'dm' : 'public';
   const userContent = message.content.trim();
   if (!userContent) return;
 
   // 채널/DM 단위 활성 캐릭터 해석
-  const channelKey = CharacterService.channelKey({
-    isDM,
-    userId: message.author.id,
-    channelId: message.channel.id,
-  });
   const card = characterService.resolveCard(channelKey);
   if (!card) {
     console.warn('[Assistant] 활성 캐릭터 카드 없음 — 응답 스킵');
