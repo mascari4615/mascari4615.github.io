@@ -30,13 +30,13 @@ import { handleMeme } from './bot/meme';
 import { handleButtonInteraction } from './bot/buttons';
 import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
-import { mountLocalWebhook } from './bot/local-webhook';
+import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve } from './bot/team-room';
 import { isOwnAgentWebhook } from './bot/agent-webhook';
-import { buildGovernanceReserve } from './bot/governance-adapter';
+import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
@@ -247,6 +247,27 @@ client.once('clientReady', async () => {
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
+    // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
+    // sendLocalEvent = webhook-routes 정본 재사용(평행정의0). 미주입 시 trace만(graceful).
+    setTeamBusNotify((msg) => {
+      void sendLocalEvent(client as any, {
+        kind: 'agent-team',
+        source: 'KAR-018 에이전트 팀',
+        title: '🛰 에이전트 팀',
+        summary: String(msg).slice(0, 3900),
+        level: 'info',
+      });
+    });
+    // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
+    // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
+    void sendLocalEvent(client as any, {
+      kind: 'agent-team',
+      source: 'KAR-018-W',
+      title: '🛰 에이전트 팀 — #team-bus 연결',
+      summary:
+        '에이전트 팀 알림 파이프 라이브. 이후 거버넌스 escalate / 자가개선 reject / ⑦\' 발굴이 이 채널로 게시됩니다. (cadence 자율 구동은 AGENT_CADENCE_ENABLED=1 별도.)',
+      level: 'info',
+    });
     startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
     await sendStartupGreeting(client, characterService, getMemory);
     console.log(

@@ -142,19 +142,37 @@ export function hasPending(env: NodeJS.ProcessEnv, objId: string): boolean {
   }
 }
 
-/**
- * #team-bus 알림 훅 (DI). 실제 Discord 게시는 sub-A/B 「#team-bus 미러」
- * 랜딩 시 배선 — 그 전까지 default = trace 만 (sub-B reserve seam 과 동일 패턴).
- */
 export type NotifyFn = (msg: string) => void;
+
+// 실 #team-bus 게시 오버라이드 (setBudgetReserve 패턴, 평행정의0).
+// main.ts 가 Discord client 로 sendLocalEvent 래퍼를 주입. 미주입이면
+// trace 만 (KAR-018-W slice-3 이전 동작 보존 — graceful).
+let teamBusNotify: NotifyFn | null = null;
+export function setTeamBusNotify(fn: NotifyFn | null): void {
+  teamBusNotify = fn;
+}
+
+/**
+ * #team-bus 알림. *항상 trace 감사* + teamBusNotify 주입 시 *실 Discord 게시*.
+ * 전 엔진(governance escalate / self-improve·skill reject / factory /
+ * proposal)이 이 단일 seam 을 소비 → 한 곳 배선으로 전부 관측 가능.
+ */
 export function defaultNotify(env: NodeJS.ProcessEnv): NotifyFn {
-  return (msg) =>
+  return (msg) => {
     appendTrace(env, {
       ts: new Date().toISOString(),
       type: 'drift',
       core: 'cadence',
-      reason: `#team-bus(deferred): ${msg}`,
+      reason: `#team-bus: ${msg}`,
     });
+    if (teamBusNotify) {
+      try {
+        teamBusNotify(msg);
+      } catch {
+        /* 게시 실패가 감사·판정 막지 않음 (가용성 우선) */
+      }
+    }
+  };
 }
 
 /**
