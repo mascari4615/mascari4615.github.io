@@ -37,6 +37,9 @@ import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
 import { isOwnAgentWebhook } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
+import { setProposalAnnouncer } from './bot/proposal-adapter';
+import { announceProposal } from './bot/agent-bus';
+import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
@@ -265,6 +268,24 @@ client.once('clientReady', async () => {
         },
         agentChOverride,
       );
+    });
+    // KAR-018-V: 발굴 = 명명 에이전트 카드 + 스레드 (사람 팔로업 가시층).
+    // setTeamBusNotify(저수준 한 줄 audit)는 유지 — 본 announcer 는 발굴
+    // *전용* 풍부 카드. atlas 코어 정체성 소비(평행정의0, 재정의 X).
+    setProposalAnnouncer(async (a) => {
+      const card = characterService?.loadCard('atlas') ?? null;
+      const channelIds = agentCh
+        ? [agentCh]
+        : getLocalChannels('agent-team');
+      await announceProposal(client as any, process.env, channelIds, {
+        ...a,
+        agent: card
+          ? {
+              name: card.displayName || card.name || '🛰 Atlas',
+              avatarUrl: card.frontmatter?.avatar_url,
+            }
+          : { name: '🛰 Atlas' },
+      });
     });
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
     // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.

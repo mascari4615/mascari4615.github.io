@@ -29,6 +29,22 @@ import {
 /** 발굴 LLM 호출 (DI — generateAssistantText 'claude-cli' 래퍼 주입). */
 export type DiscoverFn = () => Promise<string>;
 
+/**
+ * 발굴 가시화 seam (KAR-018-V) — substrate-clean 최소 shape (Discord 무관).
+ * main.ts 가 명명 에이전트 카드+스레드 렌더러(agent-bus)를 주입.
+ * 미주입이면 no-op (기존 동작 보존 — graceful).
+ */
+export type ProposalAnnouncer = (a: {
+  id: string;
+  target: RouteTarget;
+  kind: ProposalEnvelope['kind'];
+  envelope: ProposalEnvelope;
+}) => void | Promise<void>;
+let _announcer: ProposalAnnouncer | null = null;
+export function setProposalAnnouncer(fn: ProposalAnnouncer | null): void {
+  _announcer = fn;
+}
+
 /** kind 별 엔진 디스패치 (DI — 각 run·seed·append 어댑터 주입). */
 export type ProposalDispatch = Partial<
   Record<RouteTarget, (env: ProposalEnvelope) => Promise<void>>
@@ -82,6 +98,15 @@ export async function runProducerOnce(
 
   await fn(envelope); // no-auto-exec: dispatch=인박스/seed/엔진게이트까지만
   const pid = proposalId(envelope);
+  // KAR-018-V: 명명 에이전트 카드+스레드 게시 (사람 팔로업 가시층).
+  // best-effort — 게시 실패가 발굴 파이프 비차단 (Discord 어댑터는 main).
+  if (_announcer) {
+    try {
+      await _announcer({ id: pid, target, kind: envelope.kind, envelope });
+    } catch {
+      /* 가시층 실패 ≠ 발굴 실패 (graceful) */
+    }
+  }
   appendTrace(deps.env, {
     ts: new Date().toISOString(),
     type: 'budget',
