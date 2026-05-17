@@ -14,6 +14,7 @@ import {
 } from 'discord.js';
 import cheerio from 'cheerio';
 import fs from 'fs';
+import { channelIdFor } from '../channel-provision';
 import path from 'path';
 import { PKG_ROOT } from '../../paths';
 
@@ -301,7 +302,7 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
 export function startUnityFreeNotifier(client: Client): void {
   stopUnityFreeNotifier();
 
-  const channelId = process.env.YAWNBOT_UNITY_FREE_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('unity-free');
   if (!channelId) {
     console.warn('[UnityFree] YAWNBOT_UNITY_FREE_CHANNEL_ID 미설정 — Unity 무료 에셋 알림 비활성');
     return;
@@ -333,7 +334,7 @@ export async function triggerUnityFreeOnce(
   client: Client,
   options: { force?: boolean } = {},
 ): Promise<{ status: 'sent' | 'no_data' | 'dedup' | 'channel_unreachable' | 'fetch_failed' | 'no_channel'; info: PublisherSaleAssetInfo | null; error?: string }> {
-  const channelId = process.env.YAWNBOT_UNITY_FREE_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('unity-free');
   if (!channelId) {
     return { status: 'no_channel', info: null };
   }

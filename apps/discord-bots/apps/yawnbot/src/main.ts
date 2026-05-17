@@ -32,6 +32,13 @@ import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
+import {
+  isProvisioningEnabled,
+  reconcileGuildChannels,
+  rememberMap,
+  getChannelSpec,
+  type GuildLike,
+} from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
@@ -229,6 +236,33 @@ client.once('clientReady', async () => {
   console.log('');
 
   stock.startMarket();
+
+  // 채널 자동 프로비저닝 (dev 한정 — prod 는 env *_CHANNEL_ID 우선이라 OFF).
+  // 인사·notifier 시작 *전* 에 reconcile → resolver(channelIdFor)가 즉시 신선.
+  if (isProvisioningEnabled()) {
+    const spec = getChannelSpec();
+    for (const guild of client.guilds.cache.values()) {
+      const canManage = guild.members.me?.permissions.has('ManageChannels') ?? false;
+      if (!canManage) {
+        console.warn(
+          `[ChannelProvision] ${guild.name}(${guild.id}) — ManageChannels 권한 없음, env 채널 ID 폴백 사용 (봇 초대 권한 확인 필요)`,
+        );
+        continue;
+      }
+      try {
+        const r = await reconcileGuildChannels(guild as unknown as GuildLike, spec);
+        rememberMap(r.guildId, r.map);
+        console.log(
+          `[ChannelProvision] ${guild.name}: 카테고리「${spec.categoryName}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
+        );
+      } catch (e: any) {
+        console.error(
+          `[ChannelProvision] ${guild.name}(${guild.id}) reconcile 실패 — env 폴백:`,
+          e?.message ?? e,
+        );
+      }
+    }
+  }
 
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {

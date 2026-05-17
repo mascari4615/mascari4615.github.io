@@ -16,6 +16,7 @@
 import fs from 'fs';
 import path from 'path';
 import { PKG_ROOT } from '../paths';
+import { channelIdFor, isProvisioningEnabled } from './channel-provision';
 
 export interface WebhookRoutes {
   default: string[];
@@ -66,16 +67,26 @@ function load(): WebhookRoutes {
   return cached;
 }
 
+/**
+ * dev 프로비저닝 ON 이면 논리 채널 ID 를 JSON 보다 우선 (없으면 JSON 폴백).
+ * prod(프로비저닝 OFF) = JSON 그대로 (기존 동작 byte-identical).
+ */
+function provisionedFirst(logicalKey: string, jsonChannels: string[]): string[] {
+  if (!isProvisioningEnabled()) return jsonChannels;
+  const id = channelIdFor(logicalKey);
+  return id ? [id] : jsonChannels;
+}
+
 /** repo full_name 매칭 채널, 없으면 default. */
 export function getChannelsForRepo(fullName: string | null | undefined): string[] {
   const r = load();
   if (fullName && r.routes[fullName]?.length) return r.routes[fullName];
-  return r.default;
+  return provisionedFirst('github-webhook', r.default);
 }
 
 /** 어떤 repo에도 묶이지 않는 메시지(예: 봇 시작 인사). */
 export function getDefaultChannels(): string[] {
-  return load().default;
+  return provisionedFirst('github-webhook', load().default);
 }
 
 /** GitHub 라우팅이 하나도 없는지(설정 미완료 경고용). */
@@ -90,9 +101,14 @@ export function hasAnyRoute(): boolean {
  */
 export function getLocalChannels(kind: string | null | undefined): string[] {
   const r = load();
+  // dev: 논리 키와 일치하는 kind 는 프로비저닝 채널 우선 (예: 'agent-team').
+  if (kind && isProvisioningEnabled()) {
+    const id = channelIdFor(kind);
+    if (id) return [id];
+  }
   if (kind && r.localRoutes && r.localRoutes[kind]?.length) return r.localRoutes[kind];
   if (r.localDefault && r.localDefault.length > 0) return r.localDefault;
-  return r.default;
+  return provisionedFirst('github-webhook', r.default);
 }
 
 /** 로컬 webhook 라우팅 (localRoutes / localDefault) 이 하나라도 박혀있는지 (default fallback 은 미고려). */
