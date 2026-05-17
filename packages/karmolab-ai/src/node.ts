@@ -400,6 +400,13 @@ export async function generateClaudeCliText(opts: {
   timeoutMs?: number;
   /** 에이전트 모드: cwd 지정 시 파일 읽기/편집/명령 실행 가능 */
   cwd?: string;
+  /**
+   * 단발 무상태 (KAR-018-Y). true = 공유 세션(yawnbot-assistant) 미사용,
+   * `--no-session-persistence` 단일 실행. bounded 워커 autopilot 전용 —
+   * 봇 대화 assistant 세션 & N 동시 워커의 --continue/--resume 충돌 회피
+   * (코드 정독상 자명한 설계 결함이었음). cwd 와 함께 = skip-perm agentic.
+   */
+  oneShot?: boolean;
 }): Promise<string> {
   const cmd = process.env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
   const timeout = opts.timeoutMs ?? parseInt(process.env.CLAUDE_CLI_TIMEOUT_MS || '60000', 10);
@@ -410,7 +417,12 @@ export async function generateClaudeCliText(opts: {
       // 고정 세션: 항상 같은 세션 이름으로 영구 세션 유지
       // 첫 호출: --continue --name yawnbot-assistant (세션 생성 + 이름 지정)
       // 이후 호출: --resume yawnbot-assistant (이름으로 재개)
-      const args = opts.cwd
+      // oneShot: 세션 미사용 단발(워커 — 공유세션 충돌 0).
+      const args = opts.oneShot
+        ? opts.cwd
+          ? ['--print', '--no-session-persistence', '--dangerously-skip-permissions']
+          : ['--print', '--no-session-persistence']
+        : opts.cwd
         ? useResume
           ? ['--print', '--resume', fixedSessionId, '--dangerously-skip-permissions']
           : ['--print', '--continue', '--name', fixedSessionId, '--dangerously-skip-permissions']
@@ -453,6 +465,11 @@ export async function generateClaudeCliText(opts: {
       child.stdin.end();
     });
   };
+
+  // oneShot = 세션 폴백 무의미(무상태 단발). 그대로 1회.
+  if (opts.oneShot) {
+    return await runClaude(false);
+  }
 
   // 첫 시도: 기존 세션 재개 (--resume)
   try {
