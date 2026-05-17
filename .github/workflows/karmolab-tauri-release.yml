@@ -1,5 +1,13 @@
 name: KarmoLab Tauri Release
 
+# 근본 (TASK-KL-064): 프론트(pages-deploy)는 master push 마다 자동 배포되나
+# Tauri 바이너리는 옛날엔 manual/tag 만 → 새 #[tauri::command] 가 프론트에만
+# 깔리고 앱엔 없어 "Command not found" 스큐 (alarm_list 사고). 이제 backend
+# contract (src-tauri/**, package.json) 가 master 에 push 되면 자동 patch
+# bump + build + release → 앱 auto-updater 가 받음. 프론트 자동배포와 대칭.
+# 루프 가드: bump 스텝의 커밋 메시지에 [skip ci] (아래 line) → 그 version-bump
+# push 는 paths 매칭돼도 GitHub Actions 가 run 자체를 skip. workflow_dispatch
+# 는 수동 강제(escape hatch) 로 유지.
 on:
   workflow_dispatch:
     inputs:
@@ -14,8 +22,10 @@ on:
           - minor
           - major
   push:
-    tags:
-      - "karmolab-v*"
+    branches: [master, main]
+    paths:
+      - 'apps/karmolab-tauri/src-tauri/**'
+      - 'apps/karmolab-tauri/package.json'
 
 jobs:
   publish-tauri:
@@ -33,16 +43,23 @@ jobs:
           fetch-depth: 0
 
       - name: Bump version
-        if: github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none'
+        # push(backend contract 변경) = 자동 patch. workflow_dispatch = 선택 bump.
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none')
         shell: bash
         run: |
           set -e
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BUMP=patch
+          else
+            BUMP="${{ inputs.bumpType }}"
+          fi
           CURRENT=$(node -p "require('./src-tauri/tauri.conf.json').version")
           IFS='.' read -r MA MI PA <<< "$CURRENT"
-          case "${{ inputs.bumpType }}" in
+          case "$BUMP" in
             patch) PA=$((PA + 1)) ;;
             minor) MI=$((MI + 1)); PA=0 ;;
             major) MA=$((MA + 1)); MI=0; PA=0 ;;
+            *) echo "알 수 없는 bump 종류: $BUMP" >&2; exit 1 ;;
           esac
           NEW="$MA.$MI.$PA"
           echo "Bump $CURRENT → $NEW"
