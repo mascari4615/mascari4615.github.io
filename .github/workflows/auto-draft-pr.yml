@@ -1,0 +1,47 @@
+name: Auto Draft PR (KAR-018-Y)
+
+# 워커가 push 한 feature/autopilot-task-* 브랜치 → Draft PR 자동 생성.
+#
+# 사유(데이터): 워커 자식 claude 가 `gh pr create` 시 PAT_FOR_AUTO_MERGE
+#   는 contents:write 만 있고 pull_requests:write 부재 → GraphQL
+#   "Resource not accessible by personal access token (createPullRequest)"
+#   (auto-merge 는 *기존 PR 머지*만 써서 그 갭 미노출). 토큰 scope 확장은
+#   사용자 GitHub 설정(외부) — 대신 Actions GITHUB_TOKEN 이 pull-requests:
+#   write 네이티브 지원 → 워커=push 만(PAT OK), PR=CI 가. 새 secret 0.
+# 한계(수용): GITHUB_TOKEN 생성 PR 은 anti-recursion 으로 on:pull_request
+#   (verify) 미트리거 → autopilot-graduate 자동머지 보류. 단 PR 자체는
+#   가시·리뷰가능 = 발단 "워커가 실제로 일한다" 충족. verify/graduate
+#   연계는 별 TASK(KAR-073 계보) — 지금 과스코프.
+# 멱등: 동일 head 브랜치 PR 이미 있으면 skip.
+# 정본: TASK-KAR-018-Y.
+
+on:
+  push:
+    branches:
+      - 'feature/autopilot-task-**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  draft-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Draft PR if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BR: ${{ github.ref_name }}
+        run: |
+          existing=$(gh pr list --head "$BR" --state open --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "[auto-draft-pr] PR already open for $BR — skip"
+            exit 0
+          fi
+          title="autopilot: ${BR#feature/autopilot-task-}"
+          gh pr create --draft --head "$BR" --base master \
+            --title "$title" \
+            --body "🤖 KAR-018-Y autopilot 워커 산출. 브랜치 \`$BR\`. 리뷰 대기 (verify 수동 트리거/리뷰 후 graduate)." \
+            && echo "[auto-draft-pr] Draft PR created for $BR" \
+            || echo "[auto-draft-pr] gh pr create failed for $BR (branch may equal base = no diff)"

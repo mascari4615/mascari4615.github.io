@@ -869,6 +869,19 @@ function setupWorkerWorktree(
   const branch = workerBranchName(taskId, now);
   const wtDir = workerWorktreeDir(umbrella, coreId, taskId, now);
   try {
+    // KAR-018-Y: 봇=NT AUTHORITY\SYSTEM, 사용자 클론 repo=Mois2\masca →
+    // git "detected dubious ownership" 거부(WM post-clone prod 07:37 KST
+    // 실증). deploy 는 memo/github.io 만 safe.directory 등록, 신규 클론
+    // 누락. worktree add 전 멱등 등록 = 전 도메인 repo 자가복원(git 가
+    // 중복 dedupe, 이미 등록=무해).
+    try {
+      execSync(
+        `git config --global --add safe.directory "${repo.repoRoot}"`,
+        { timeout: 15_000, stdio: 'ignore' },
+      );
+    } catch {
+      /* best-effort — 실패해도 worktree add 가 사유 surface */
+    }
     execSync(
       `git -C "${repo.repoRoot}" worktree add -b "${branch}" "${wtDir}" HEAD`,
       { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
