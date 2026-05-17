@@ -297,10 +297,15 @@ client.once('clientReady', async () => {
 
   startPresenceRotation(client);
   startUnityFreeNotifier(client);
-  // TASK-YB-021: outbound heartbeat (push 모델 — 터널 죽어도 봇 egress 가능하면
-  // Healthchecks 가 alive 감지). egress 단절은 inbound watcher 사각이라 ops-report 로도 alert.
+  // TASK-YB-021: outbound heartbeat (push 모델, 자체 구현 — 제3자 의존 0).
+  // 봇이 memo orphan 브랜치에 시각 기록 → github.io Actions watcher 가 신선도
+  // 감시. 인증 = 기존 MEMO_GITHUB_PAT(digest-webhook 과 동일). egress 단절은
+  // inbound·외부 watcher 사각이라 ops-report 로도 alert (상태 전이 1회).
   startHeartbeat({
-    url: process.env.HEALTHCHECKS_PING_URL,
+    token: process.env.MEMO_GITHUB_PAT || process.env.GITHUB_TOKEN,
+    repo: process.env.YAWNBOT_HEARTBEAT_REPO,
+    branch: process.env.YAWNBOT_HEARTBEAT_BRANCH,
+    path: process.env.YAWNBOT_HEARTBEAT_PATH,
     intervalMin: process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN
       ? parseInt(process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN, 10)
       : undefined,
