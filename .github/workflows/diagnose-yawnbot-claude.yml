@@ -113,6 +113,28 @@ jobs:
           }
 
           Write-Host ""
+          Write-Host "===== [8] yawnbot-prod nssm stdout/stderr tail (AgentCadence/worker truth) ====="
+          # KAR-018-Y: 워커 trace 0(재기동 후) = 추론 말고 봇 자신 로그.
+          # startAgentCadence 가 [AgentCadence] ON / workerTick 가
+          # [AgentCadence] worker -> | worker 오류 를 stdout/stderr 에 찍음.
+          if ($nssm) {
+            foreach ($stream in @('AppStdout','AppStderr')) {
+              $logPath = (& $nssm get yawnbot-prod $stream 2>&1)
+              Write-Host "[$stream] path = $logPath"
+              if ($logPath -and (Test-Path $logPath)) {
+                $lines = Get-Content -LiteralPath $logPath -Tail 220 -ErrorAction SilentlyContinue
+                $hit = $lines | Where-Object { $_ -match 'AgentCadence|worker|Worker|claim|tier3|cadence 오류|Error|착수' }
+                if ($hit) { $hit | Select-Object -Last 35 | ForEach-Object { Write-Host "  $_" } }
+                else { Write-Host "  (no AgentCadence/worker lines in last 220)" }
+              } else {
+                Write-Host "  (log path missing or not a file)"
+              }
+            }
+          } else {
+            Write-Host "nssm not resolved -- cannot read service logs"
+          }
+
+          Write-Host ""
           Write-Host "===== [5] verdict ====="
           Write-Host "ObjectName=LocalSystem/non-masca + creds only under masca + EXIT!=0 => service-account has no claude OAuth (fix via service account or CLAUDE_CONFIG_DIR)"
           Write-Host "EXIT=0 => claude fine; root is elsewhere (env/PATH/timeout) - re-trace"
