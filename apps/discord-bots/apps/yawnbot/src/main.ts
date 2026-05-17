@@ -256,6 +256,16 @@ client.once('clientReady', async () => {
       try {
         const r = await reconcileGuildChannels(guild as unknown as GuildLike, spec);
         rememberMap(r.guildId, r.map);
+        // KAR-018-V 라벨 추종 근본: atlas 코어를 *현 provisioned agent-team
+        // 채널*에 자동 바인딩. 프로비저닝이 채널 id 를 바꿔도 매 부팅
+        // 추종 → "에이전트가 사라짐"(하드코딩 ID 스테일) 영구 차단.
+        const agentTeamId = r.map['agent-team'];
+        if (agentTeamId && characterService) {
+          characterService.bindChannel(agentTeamId, 'atlas', 'alisa');
+          console.log(
+            `[AgentBind] atlas → provisioned agent-team 채널 ${agentTeamId} (라벨 추종, 하드코딩 X)`,
+          );
+        }
         console.log(
           `[ChannelProvision] ${guild.name}: 카테고리「${effectiveCategoryName(spec)}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
         );
