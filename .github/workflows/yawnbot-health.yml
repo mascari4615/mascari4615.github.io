@@ -81,3 +81,96 @@ jobs:
               }]
             }')
           curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"
+
+  # TASK-YB-021 — push 모델 heartbeat 신선도 감시 (inbound check job 과 공존).
+  # 봇이 memo orphan 브랜치 .heartbeat/yawnbot.json 의 ts 를 N분마다 갱신.
+  # 터널이 죽어도 봇이 살아 egress 가능하면 ts 가 신선 → inbound false
+  # negative 보완. 둘 중 하나만 fail 해도 alert. 인증·alert = 기존 재사용
+  # (새 secret 0): MEMO_GITHUB_PAT(deploy 가 쓰는 그 secret) + 같은 webhook.
+  heartbeat-freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      HB_REPO: 'mascari4615/memo'
+      HB_PATH: '.heartbeat/yawnbot.json'
+      HB_BRANCH: 'yawnbot-heartbeat'
+      # 봇 5분 주기 + GH schedule 5~15분 지연 흡수. 초과 시 stale 판정.
+      HB_STALE_SECONDS: '1500'
+      MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
+      ALERT_WEBHOOK: ${{ secrets.YAWNBOT_HEALTH_ALERT_WEBHOOK_URL }}
+
+    steps:
+      - name: Read heartbeat ts
+        id: hb
+        run: |
+          set +e
+          if [ -z "$MEMO_PAT" ]; then
+            echo "::warning::MEMO_GITHUB_PAT secret 미설정 — heartbeat 감시 skip"
+            echo "status=skip" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          API="https://api.github.com/repos/${HB_REPO}/contents/${HB_PATH}?ref=${HB_BRANCH}"
+          RESP=$(curl -sS -m 10 -w "\nHTTP_CODE:%{http_code}\n" \
+            -H "Authorization: Bearer ${MEMO_PAT}" \
+            -H "Accept: application/vnd.github.raw+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "User-Agent: yawnbot-health-watcher" \
+            "$API" 2>&1)
+          HTTP_CODE=$(echo "$RESP" | grep -oP 'HTTP_CODE:\K[0-9]+' | tail -1)
+          BODY=$(echo "$RESP" | sed 's/HTTP_CODE:[0-9]*//')
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat 파일 읽기 실패 (HTTP $HTTP_CODE) — 브랜치/경로/PAT 권한 확인" >> "$GITHUB_OUTPUT"
+            echo "::warning::heartbeat read FAIL http=$HTTP_CODE"
+            exit 0
+          fi
+          TS=$(echo "$BODY" | jq -r '.ts // empty' 2>/dev/null)
+          if [ -z "$TS" ]; then
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat JSON 에 ts 없음 (파일 손상?)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          TS_EPOCH=$(date -d "$TS" +%s 2>/dev/null)
+          NOW_EPOCH=$(date +%s)
+          if [ -z "$TS_EPOCH" ]; then
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat ts 파싱 불가: $TS" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          AGE=$((NOW_EPOCH - TS_EPOCH))
+          echo "age_seconds=$AGE" >> "$GITHUB_OUTPUT"
+          echo "ts=$TS" >> "$GITHUB_OUTPUT"
+          if [ "$AGE" -gt "$HB_STALE_SECONDS" ]; then
+            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "reason=heartbeat stale — 마지막 신호 ${AGE}s 전 (임계 ${HB_STALE_SECONDS}s). 봇 죽음 또는 egress 단절 의심." >> "$GITHUB_OUTPUT"
+            echo "::warning::heartbeat STALE age=${AGE}s"
+          else
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            echo "heartbeat fresh — age=${AGE}s (ts=$TS)"
+          fi
+
+      - name: Alert on stale/fail
+        if: steps.hb.outputs.status == 'fail'
+        run: |
+          if [ -z "$ALERT_WEBHOOK" ]; then
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정 — alert skip (감시는 fail 검출)"
+            exit 0
+          fi
+          TS_NOW=$(date -Iseconds)
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          PAYLOAD=$(jq -nc \
+            --arg reason "${{ steps.hb.outputs.reason }}" \
+            --arg age "${{ steps.hb.outputs.age_seconds }}" \
+            --arg hbts "${{ steps.hb.outputs.ts }}" \
+            --arg ts "$TS_NOW" \
+            --arg run_url "$RUN_URL" \
+            '{
+              username: "Yawnbot Health Watcher",
+              embeds: [{
+                title: "yawnbot heartbeat STALE/FAIL (push 모델)",
+                description: ($reason + "\nlast heartbeat ts: " + $hbts + "\nage: " + $age + "s\nchecked: " + $ts),
+                color: 15158332,
+                fields: [{ name: "Workflow run", value: $run_url, inline: false }]
+              }]
+            }')
+          curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"
