@@ -273,6 +273,69 @@ export function readMaterialized(env: NodeJS.ProcessEnv): Set<string> {
   return s;
 }
 
+// ── KAR-018-Y-2: 거절 이력 학습 (resolved 원장 = 제안 substrate) ──
+// 평행정의0: 결정-잠금 원장 경로 정본을 substrate(여기)로 단일화.
+// agent-bus `proposalResolvedPath` 가 본 함수에 위임(Discord 어댑터가
+// 소유하던 것을 substrate 로 승격 — getResolved/markResolved 는 본
+// 경로 재사용). 형식 = `{ts,id,decision}` 줄, id 별 *최신* 결정 유효.
+export function resolvedLedgerPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root
+    ? path.join(root, '.claude', 'agent-proposal-resolved.jsonl')
+    : '';
+}
+
+/** 최신 결정이 `rejected` 인 발굴 id 집합 (순수). 사장 명시 거부 = 학습 신호. */
+export function readRejectedProposalIds(env: NodeJS.ProcessEnv): Set<string> {
+  const p = resolvedLedgerPath(env);
+  const out = new Set<string>();
+  if (!p || !fs.existsSync(p)) return out;
+  try {
+    const latest = new Map<string, string>(); // id → 최신 decision
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t);
+      if (e && typeof e.id === 'string' && typeof e.decision === 'string') {
+        latest.set(e.id, e.decision);
+      }
+    }
+    for (const [id, dec] of latest) if (dec === 'rejected') out.add(id);
+  } catch {
+    /* best-effort */
+  }
+  return out;
+}
+
+/**
+ * 거절된 발굴 → discover 프롬프트용 "사장이 거절함, 반복 X" 컨텍스트
+ * 블록 (순수·바운드). resolved(rejected) ⨝ inbox 엔벨로프로 제목 회수.
+ * 거절 0 = '' (섹션 생략). gatherDiscoveryContext 의 거절-전용 신호
+ * (기존 '최근 인박스' 는 단순 최근 — 거절=사장 명시 거부, 더 강한 학습).
+ */
+export function summarizeRejectedForDiscovery(
+  env: NodeJS.ProcessEnv,
+): string {
+  const rejected = readRejectedProposalIds(env);
+  if (rejected.size === 0) return '';
+  const byId = new Map<string, ProposalInboxEntry>();
+  for (const e of readInboxProposals(env)) {
+    if (rejected.has(e.id)) byId.set(e.id, e); // 최신 엔트리 유효
+  }
+  const lines: string[] = [];
+  for (const e of byId.values()) {
+    const pl = (e.envelope?.payload ?? {}) as Record<string, unknown>;
+    const t =
+      (typeof pl.title === 'string' && pl.title) ||
+      (typeof pl.summary === 'string' && pl.summary) ||
+      (typeof pl.name === 'string' && pl.name) ||
+      e.id;
+    lines.push(`- ${e.kind}: ${String(t).slice(0, 90)}`);
+    if (lines.length >= 12) break;
+  }
+  return lines.join('\n').slice(0, 1400);
+}
+
 function appendMaterialized(
   env: NodeJS.ProcessEnv,
   id: string,
