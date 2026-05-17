@@ -1,6 +1,9 @@
 mod activity;
 mod adventure;
+mod alarm;
 mod claude_env;
+#[cfg(debug_assertions)]
+mod dev_static;
 mod questlog_hub;
 mod life;
 mod local_dev;
@@ -12,6 +15,10 @@ mod repo_file;
 mod terminal;
 
 use activity::{activity_list_days, activity_query_day, activity_status, ActivityState};
+use alarm::{
+    alarm_active, alarm_dismiss, alarm_get_autostart, alarm_list, alarm_remove,
+    alarm_set_autostart, alarm_set_enabled, alarm_snooze, alarm_upsert, AlarmStore,
+};
 use adventure::{
     adventure_claude_complete, adventure_commit_summary, adventure_save_image, adventure_save_raw,
 };
@@ -113,7 +120,7 @@ fn life_set_feature(
             state.screen_enabled.store(false, std::sync::atomic::Ordering::Relaxed);
         }
         ("voice", true) => {
-            life::voice::enable()?;
+            life::voice::enable(&app)?;
             life::hotkey::register_voice(&app)?;
         }
         ("voice", false) => {
@@ -144,72 +151,15 @@ extern "system" {
     fn MessageBeep(u_type: u32) -> i32;
 }
 
-const KARMOLAB_WEB_URL: &str = "https://mascari4615.github.io/karmolab/";
+// KL-064: 사이트가 커스텀 도메인 이전 → github.io 는 301 로 여기로 튕김.
+// frontendDist/allowlist 가 옛 URL 이라 prod 웹뷰가 301 stub 로딩 = 빈화면.
+const KARMOLAB_WEB_URL: &str = "https://blog.mascari4615.com/karmolab/";
 const KARMOLAB_DEV_URL: &str = "http://127.0.0.1:8899/apps/karmolab/index.html";
 const KARMOLAB_DEV_PORT: u16 = 8899;
 
-/// dev 바이너리 직접 실행 시 devUrl(:8898) 서버가 없어 흰 화면이 되는 문제 해결.
-/// setup 시 자동 spawn — 이미 8898 이 열려있으면 (npm run dev 병행) 무시.
-#[cfg(debug_assertions)]
-fn spawn_dev_static_if_needed() {
-    const PORT: u16 = 8898;
-    if std::net::TcpStream::connect_timeout(
-        &format!("127.0.0.1:{PORT}").parse().unwrap(),
-        std::time::Duration::from_millis(150),
-    )
-    .is_ok()
-    {
-        return; // already running
-    }
-
-    let Ok(exe) = std::env::current_exe() else {
-        return;
-    };
-    // exe: .../apps/karmolab-tauri/target/debug/karmolab-desktop.exe
-    let Some(tauri_dir) = exe.parent().and_then(|p| p.parent()).and_then(|p| p.parent()) else {
-        return;
-    };
-    let Some(repo_root) = tauri_dir.parent().and_then(|p| p.parent()) else {
-        return;
-    };
-    let script = tauri_dir.join("scripts").join("dev-static.mjs");
-    if !script.exists() {
-        return;
-    }
-
-    let mut cmd = std::process::Command::new("node");
-    cmd.arg(&script)
-        .arg("8898")
-        .arg("--node-only")
-        .current_dir(&repo_root)
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null());
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
-    let Ok(child) = cmd.spawn() else {
-        return;
-    };
-
-    // 최대 10s 대기
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
-    while std::time::Instant::now() < deadline {
-        if std::net::TcpStream::connect_timeout(
-            &format!("127.0.0.1:{PORT}").parse().unwrap(),
-            std::time::Duration::from_millis(200),
-        )
-        .is_ok()
-        {
-            break;
-        }
-        std::thread::sleep(std::time::Duration::from_millis(200));
-    }
-
-    std::mem::forget(child); // 앱 종료 후에도 서버 유지 — 다음 실행 시 재감지
-}
+// dev devUrl(:8898) 서버 = `dev_static` 모듈 (TASK-KL-067, in-process).
+// 옛 spawn_dev_static_if_needed (외부 node + mem::forget leak + 약한 connect
+// 체크 + setup-1회) 의 4중 취약을 대체 — 2026-05-17 incident 재발 0.
 
 /// 트레이 토글로 켜는 로컬 정적 서버. None = OFF (production URL 로딩 중), Some = ON.
 #[derive(Default)]
@@ -624,7 +574,10 @@ fn allow_in_webview(url: &Url) -> bool {
             let Some(host) = url.host_str() else {
                 return false;
             };
-            if host == "mascari4615.github.io" {
+            // blog.mascari4615.com = 현재 정식 도메인. mascari4615.github.io =
+            // 옛 도메인(301→blog) — 호환 위해 둘 다 허용 (KL-064: 새 도메인
+            // 미허용 → prod 웹뷰 navigation 거부 → 빈화면 근본).
+            if host == "blog.mascari4615.com" || host == "mascari4615.github.io" {
                 return true;
             }
             // localhost/127.0.0.1 항상 허용. 트레이의 "개발 모드" 토글이 spawn 한 정적 서버를
@@ -857,56 +810,13 @@ pub fn run() {
         .manage(DevModeState::default())
         .manage(TerminalState::default())
         .manage(LifeFeaturesState::default())
-        .invoke_handler(tauri::generate_handler![
-            desktop_notify,
-            desktop_trigger_release_workflow,
-            desktop_install_pending_update,
-            desktop_restart_app,
-            localdev_set_repo_root,
-            localdev_get_repo_root,
-            localdev_list_tracked,
-            localdev_list_external_pids,
-            localdev_stop_external,
-            localdev_start,
-            localdev_stop,
-            localdev_send_stdin,
-            localdev_follow_log,
-            localdev_stop_log_follow,
-            localdev_npm_install_stream,
-            localdev_deploy_stream,
-            repofile_open_default,
-            repofile_reveal,
-            repofile_read,
-            repofile_write,
-            activity_query_day,
-            activity_list_days,
-            activity_status,
-            get_questlog_hub,
-            get_quest_tree,
-            toggle_quest_check,
-            set_quest_status,
-            set_quest_priority,
-            add_quest_check,
-            delete_quest_check,
-            rename_quest_check,
-            open_task_in_editor,
-            create_task,
-            terminal_start,
-            terminal_send_stdin,
-            terminal_stop,
-            terminal_status,
-            life_screen_capture,
-            life_get_feature_states,
-            life_set_feature,
-            adventure_claude_complete,
-            adventure_save_raw,
-            adventure_save_image,
-            adventure_commit_summary,
-            claude_env_read_notify_config,
-            claude_env_write_notify_config,
-            claude_env_preview_sound
-        ])
+        .manage(AlarmStore::default())
+        // TASK-KL-063: 핸들러 목록은 acl.toml 단일 정본 → build.rs 가
+        // $OUT_DIR/acl_handler.rs 로 파생 (tauri::generate_handler![..] expr).
+        .invoke_handler(include!(concat!(env!("OUT_DIR"), "/acl_handler.rs")))
         .plugin(tauri_plugin_dialog::init())
+        // KL-052-B: ML sidecar(karmolab-life-ml) spawn 용.
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
@@ -920,7 +830,7 @@ pub fn run() {
         .plugin(life::hotkey::build_plugin())
         .setup(|app| {
             #[cfg(debug_assertions)]
-            spawn_dev_static_if_needed();
+            dev_static::start();
 
             let handle = app.handle().clone();
 
@@ -960,12 +870,24 @@ pub fn run() {
                     }
                 }
                 if persisted.voice {
-                    if let Err(e) = life::voice::enable() {
+                    if let Err(e) = life::voice::enable(&handle) {
                         eprintln!("[life-voice] enable 복원 실패: {e}");
                     } else if let Err(e) = life::hotkey::register_voice(&handle) {
                         eprintln!("[life-voice] hotkey 복원 실패: {e}");
                     }
                 }
+            }
+
+            // 알람 (KL-064): 디스크 복원 + 상주 스케줄러. 위젯 미오픈·트레이
+            // 최소화 무관 정시 발화 (activity tracker 와 동일 background thread).
+            {
+                let store = app.state::<AlarmStore>();
+                store.load_from_disk(&handle);
+                alarm::start_scheduler(handle.clone());
+                // 절전 resume 타이머 — 시스템이 자도 알람 시각에 깨움(OS 강제 기상).
+                alarm::oswake::start_wake_timer(handle.clone());
+                // 재부팅 후 알람 보장 — 저장된 pref(default ON)를 레지스트리 반영.
+                alarm::ensure_autostart(&handle);
             }
 
             let window_conf = app
@@ -1135,6 +1057,14 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|_app, event| {
+            // KL-052: 앱 종료 시 ML sidecar(karmolab-life-ml) 프로세스
+            // 정리 — 좀비 프로세스 방지 (voice disable 은 종료 X, screen
+            // 공용. 진짜 정리는 여기).
+            if let tauri::RunEvent::Exit = event {
+                life::sidecar::terminate();
+            }
+        });
 }

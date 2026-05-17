@@ -17,13 +17,21 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "cmd", rename_all = "snake_case")]
 pub enum SidecarCommand
 {
-    /// Whisper 모델 메모리 로드.
-    VoiceLoad,
-    /// 16kHz mono PCM_16 .wav 파일 경로를 transcribe.
-    VoiceTranscribe
+    /// Whisper 모델 메모리 로드. `model_dir` = 메인이 resolve 한
+    /// `{memo_root}/life/.models/whisper-large-v3/` (결정 #3 — config 진실원=메인).
+    VoiceLoad
     {
-        wav: String,
+        model_dir: String,
     },
+    /// cpal 캡처 시작 (sidecar 내부 — 결정 #1, 오디오 PCM 스트림 IPC 불필요).
+    VoiceRecordStart,
+    /// cpal 캡처 종료 + Whisper transcribe + 16kHz mono PCM_16 .wav write.
+    /// 결과 = `Transcribed { text, wav_path }` (sidecar 임시 wav, 메인이
+    /// memo 로 이동 + md write).
+    VoiceRecordStop,
+    /// Whisper 모델 로드 상태 조회 (메인 위젯 voice_loading/enabled 표시
+    /// — 원본 life_get_feature_states 정합, 마이그 자기소멸).
+    VoiceStatus,
     /// Whisper 모델 언로드 (RAM 회수 — life::voice::disable 정합).
     VoiceUnload,
     /// 화면 캡처 → PNG 파일 경로 반환.
@@ -51,15 +59,34 @@ pub enum SidecarEvent
     Loaded,
     /// VoiceUnload 완료.
     Unloaded,
-    /// transcribe / ocr 결과 텍스트.
+    /// VoiceRecordStart 완료 (cpal stream open).
+    RecordStarted,
+    /// VoiceRecordStop 결과 — transcribe 텍스트 + sidecar 임시 wav 경로
+    /// + 녹음 길이(초, schema frontmatter 용 — 메인 hound 의존 0).
+    /// 메인이 wav 를 `{memo_root}/life/raw/voice/` 로 이동 + md write.
+    Transcribed
+    {
+        text: String,
+        wav_path: String,
+        duration_s: f32,
+    },
+    /// VoiceStatus 응답 — Whisper 모델 로드 상태.
+    Status
+    {
+        loaded: bool,
+        loading: bool,
+    },
+    /// OCR 결과 텍스트 (KL-052-C).
     Result
     {
         text: String,
     },
-    /// 캡처 결과 PNG 경로.
+    /// 캡처 결과 — sidecar 임시 PNG 경로 + primary monitor index
+    /// (메인 schema frontmatter 정합). 메인이 PNG 를 memo 로 이동.
     Captured
     {
         path: String,
+        monitor_index: usize,
     },
     /// 명령 처리 실패 (치명 X — sidecar 살아있고 다음 명령 계속).
     Error
@@ -70,4 +97,9 @@ pub enum SidecarEvent
 
 /// 프로토콜 버전 — breaking change 시 bump. 메인이 `Ready.protocol_version`
 /// 으로 호환성 확인 (불일치 = 사용자 update 안내).
-pub const PROTOCOL_VERSION: u32 = 1;
+///
+/// v2 (KL-052-B): `VoiceTranscribe { wav }` 제거 → `VoiceRecordStart` /
+/// `VoiceRecordStop` (cpal 캡처 sidecar 내부, 결정 #1). `VoiceLoad` 에
+/// `model_dir` 추가 (결정 #3). `Transcribed { text, wav_path }` /
+/// `RecordStarted` 추가.
+pub const PROTOCOL_VERSION: u32 = 2;

@@ -1,7 +1,0 @@
-[[permission]]
-identifier = "allow-life-features"
-description = "Life 기능 on/off 토글 (screen capture hotkey / voice Whisper model load). Life 위젯에서 호출."
-commands.allow = [
-  "life_get_feature_states",
-  "life_set_feature",
-]

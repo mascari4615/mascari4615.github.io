@@ -1,0 +1,150 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# KarmoLab Tauri — ACL 단일 정본  (TASK-KL-063, KAR-022 child / Deep Modules)
+#
+# 이 파일이 command ↔ permission-group 매핑의 *유일한* 정본이다.
+# build.rs 가 빌드 시 여기서 파생한다:
+#   (1) $OUT_DIR/acl_handler.rs   → lib.rs 가 include!  (tauri::generate_handler!)
+#   (2) permissions/_generated/<group>.toml  → tauri-build 가 ACL 로 읽음 (gitignore)
+#
+# 새 command 추가 = 단 2곳:
+#   ① 구현 모듈에 #[tauri::command] fn 작성 (존재성 정본 = 구현 옆, locality)
+#   ② 아래 알맞은 [[group]] 의 commands 배열에 fn 이름 1줄 추가
+# → handler / permission toml 은 자동 파생. capabilities/default.json 은
+#   *그룹 단위* 라 새 command 로는 안 바뀐다 (새 *그룹* 신설 시에만 caps 1줄).
+#
+# 안전망: scripts/tauri-acl-audit.mjs 가 #[command] ⟷ 본 파일 ⟷ caps 를
+#   독립 cross-check (파생물이 아니라 정본을 직접 검증 → codegen 버그도 포착).
+#
+# identifier 규약: Tauri permission id = "allow-<group-kebab>". caps 가 이 id 로 참조.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[[group]]
+name = "desktop-notify"
+identifier = "allow-desktop-notify"
+description = "Enables the desktop_notify command without any pre-configured scope."
+commands = ["desktop_notify"]
+
+[[group]]
+name = "karmolab-release"
+identifier = "allow-karmolab-release"
+description = "Allow the debug widget to trigger the GitHub Actions release workflow via gh CLI."
+commands = ["desktop_trigger_release_workflow"]
+
+[[group]]
+name = "karmolab-update"
+identifier = "allow-karmolab-update"
+description = "Allow in-app update banner to install pending updates and restart the app."
+commands = ["desktop_install_pending_update", "desktop_restart_app"]
+
+[[group]]
+name = "localdev"
+identifier = "allow-localdev"
+description = "Enables localdev repo-root and process helper commands for the KarmoLab desktop shell."
+commands = [
+  "localdev_set_repo_root",
+  "localdev_get_repo_root",
+  "localdev_list_tracked",
+  "localdev_list_external_pids",
+  "localdev_stop_external",
+  "localdev_start",
+  "localdev_stop",
+  "localdev_send_stdin",
+  "localdev_follow_log",
+  "localdev_stop_log_follow",
+  "localdev_npm_install_stream",
+  "localdev_deploy_stream",
+]
+
+[[group]]
+name = "repofile"
+identifier = "allow-repofile"
+description = "Open/read/write repo-relative .env files under the configured repo root (server monitor shortcuts)."
+commands = ["repofile_open_default", "repofile_reveal", "repofile_read", "repofile_write"]
+
+[[group]]
+name = "activity"
+identifier = "allow-activity"
+description = "Allow the activity widget to query the local PC activity tracker (read-only, local file)."
+commands = ["activity_query_day", "activity_list_days", "activity_status"]
+
+[[group]]
+name = "questlog-hub"
+identifier = "allow-questlog-hub"
+description = "Allow the QuestLog Hub (KL-035 — KarmoDDrine 대시보드 흡수) to fetch the umbrella state snapshot (read-only: memo files + 3 repo git log + ~/.claude inventory)."
+commands = ["get_questlog_hub"]
+
+[[group]]
+name = "quest-index"
+identifier = "allow-quest-index"
+description = "Allow the QuestLog widget to fetch the TASK tree snapshot (read-only: memo TASK files frontmatter + body checkboxes)."
+commands = ["get_quest_tree"]
+
+[[group]]
+name = "quest-writeback"
+identifier = "allow-quest-writeback"
+description = "Allow the QuestLog widget to toggle a single checkbox or change the frontmatter status in a memo TASK file (write-back). Path whitelisted to {memo}/(wm|projects/karmolab|projects/yawnbot|life|hobby|learning)/tasks/TASK-*.md."
+commands = [
+  "toggle_quest_check",
+  "set_quest_status",
+  "set_quest_priority",
+  "add_quest_check",
+  "delete_quest_check",
+  "rename_quest_check",
+]
+
+[[group]]
+name = "task-launcher"
+identifier = "allow-task-launcher"
+description = "Allow the TASK launcher widget to open existing TASK files in the OS default editor and create new TASK files (next ID auto + frontmatter skeleton). File paths whitelisted to {memo}/(wm|projects/karmolab|projects/yawnbot|life|hobby|learning)/tasks/TASK-*.md."
+commands = ["open_task_in_editor", "create_task"]
+
+[[group]]
+name = "terminal"
+identifier = "allow-terminal"
+description = "Allow the terminal widget to start/stop a single PowerShell child shell, send stdin lines, and query status. KarmoLab webview only."
+commands = ["terminal_start", "terminal_send_stdin", "terminal_stop", "terminal_status"]
+
+[[group]]
+name = "life-screen"
+identifier = "allow-life-screen"
+description = "Allow LIFE 동반자 (TASK-LIFE-001-G sub-F) screen capture invoke (PrintScreen hotkey 또는 frontend trigger). xcap + OCR + VLM frontmatter 박음 — life/screen.rs."
+commands = ["life_screen_capture"]
+
+[[group]]
+name = "life-features"
+identifier = "allow-life-features"
+description = "Life 기능 on/off 토글 (screen capture hotkey / voice Whisper model load). Life 위젯에서 호출."
+commands = ["life_get_feature_states", "life_set_feature"]
+
+[[group]]
+name = "adventure"
+identifier = "allow-adventure"
+description = "Allow the adventure widget (TASK-KL-032) to: (1) invoke the local claude CLI for narrative turns (Pro/Max OAuth, no API key), (2) write raw turn JSON into memo/projects/karmolab/raw/adventures/, (3) write turn images as separate PNG files under {slug}/images/ (TASK-KL-037), (4) commit + push wiki entity summary on adventure end."
+commands = [
+  "adventure_claude_complete",
+  "adventure_save_raw",
+  "adventure_save_image",
+  "adventure_commit_summary",
+]
+
+[[group]]
+name = "alarm"
+identifier = "allow-alarm"
+description = "데스크톱 알람 (TASK-KL-064) — Free Alarm Clock 레퍼런스. 알람 CRUD + on/off + dismiss/snooze. 상주 스케줄러가 alarm-fired 이벤트 emit, 발화 창이 dismiss/snooze 호출. store = app_data_dir/alarms.json."
+commands = [
+  "alarm_list",
+  "alarm_upsert",
+  "alarm_remove",
+  "alarm_set_enabled",
+  "alarm_active",
+  "alarm_dismiss",
+  "alarm_snooze",
+  "alarm_get_autostart",
+  "alarm_set_autostart",
+]
+
+[[group]]
+name = "claude-env"
+identifier = "allow-claude-env"
+description = "Claude 환경 컨트롤 위젯 (TASK-KL-056) — karmoddrine/memo/dotfiles/claude-hooks 정본의 notify-*.ps1 설정 read/write + 미리듣기."
+commands = ["claude_env_read_notify_config", "claude_env_write_notify_config", "claude_env_preview_sound"]

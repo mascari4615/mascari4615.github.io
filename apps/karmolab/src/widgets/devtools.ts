@@ -1,6 +1,8 @@
 /**
  * 개발·디버그용 패널 (Tauri 전용 기능 등). 항목은 섹션 단위로 추가.
  */
+import { invoke as tauriInvoke } from '../tauri-bridge';
+
 (function (): void {
   'use strict';
 
@@ -10,13 +12,6 @@
     sound?: string;
     image_path?: string;
   };
-
-  function desktopInvoke(cmd: string, args: unknown): Promise<unknown> {
-    const core = window.__TAURI__?.core;
-    const fn = core && typeof core.invoke === 'function' ? core.invoke : null;
-    if (!fn) return Promise.reject(new Error('Tauri invoke 없음 (웹 브라우저 또는 withGlobalTauri 비활성)'));
-    return fn(cmd, args);
-  }
 
   function buildNotifyPayload(
     titleIn: HTMLInputElement,
@@ -165,7 +160,7 @@
       }
       status.className = 'devtools-log';
       status.textContent = '요청 중…\n\n' + JSON.stringify(payload, null, 2);
-      void desktopInvoke('desktop_notify', payload)
+      void tauriInvoke('desktop_notify', payload)
         .then(function () {
           status.className = 'devtools-log devtools-log-ok';
           status.textContent = 'invoke 성공.\n\n전송 페이로드:\n' + JSON.stringify(payload, null, 2);
@@ -266,7 +261,7 @@
       const selectedBump = bumpSel.value || 'patch';
       status.className = 'devtools-log';
       status.textContent = `요청 중…\nworkflow: KarmoLab Tauri Release\nref: ${selectedRef}\nbump: ${selectedBump}`;
-      void desktopInvoke('desktop_trigger_release_workflow', {
+      void tauriInvoke('desktop_trigger_release_workflow', {
         refName: selectedRef,
         bumpType: selectedBump
       })

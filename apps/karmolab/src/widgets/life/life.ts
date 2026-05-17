@@ -199,7 +199,14 @@
       featureKey: 'voice',
       onToggle: (enabled) => {
         setFeature('voice', enabled)
-          .then(() => refresh())
+          .then(() => {
+            refresh();
+            // enable = sidecar Whisper decoder 비동기 로드 시작 → loading
+            // → loaded 전환을 폴링이 잡아야 함. (KL-052: 기존엔 build()
+            //  1회 setInterval 이 초기 voice-off=loading-false 에 자멸 →
+            //  enable 후 폴링 0 → UI "로딩" 고착. enable 에 연동.)
+            if (enabled) startVoicePoll();
+          })
           .catch((e) => {
             console.error('[life] voice toggle 실패', e);
             refresh();
@@ -227,19 +234,41 @@
         });
     }
 
-    // 초기 상태 로드
-    refresh();
+    // voice_loading(decoder 비동기 로드) 동안만 1초 폴링, loaded 시 중단.
+    // build() 1회 X — enable 시점 + 초기 복원(이미 로딩 중)에 시작.
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    function startVoicePoll(): void {
+      if (pollTimer !== null) return; // 중복 방지
+      pollTimer = setInterval(() => {
+        getFeatureStates()
+          .then((s) => {
+            screenUpdater?.(s.screen_enabled, false);
+            voiceUpdater?.(s.voice_enabled, s.voice_loading);
+            if (!s.voice_loading && pollTimer !== null) {
+              clearInterval(pollTimer);
+              pollTimer = null;
+            }
+          })
+          .catch(() => {
+            if (pollTimer !== null) {
+              clearInterval(pollTimer);
+              pollTimer = null;
+            }
+          });
+      }, 1000);
+    }
 
-    // voice_loading 중에는 1초마다 갱신
-    const interval = setInterval(() => {
-      getFeatureStates()
-        .then((s) => {
-          screenUpdater?.(s.screen_enabled, false);
-          voiceUpdater?.(s.voice_enabled, s.voice_loading);
-          if (!s.voice_loading) clearInterval(interval);
-        })
-        .catch(() => clearInterval(interval));
-    }, 1000);
+    // 초기 상태 로드 — 앱 재시작 시 voice 복원으로 이미 loading 중이면 폴링.
+    getFeatureStates()
+      .then((s) => {
+        screenUpdater?.(s.screen_enabled, false);
+        voiceUpdater?.(s.voice_enabled, s.voice_loading);
+        if (s.voice_loading) startVoicePoll();
+      })
+      .catch(() => {
+        screenUpdater?.(false, false);
+        voiceUpdater?.(false, false);
+      });
   }
 
   Toolbox.register({

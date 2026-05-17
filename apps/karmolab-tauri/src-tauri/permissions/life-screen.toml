@@ -1,6 +1,0 @@
-[[permission]]
-identifier = "allow-life-screen"
-description = "Allow LIFE 동반자 (TASK-LIFE-001-G sub-F) screen capture invoke (PrintScreen hotkey 또는 frontend trigger). xcap + OCR + VLM frontmatter 박음 — life/screen.rs."
-commands.allow = [
-  "life_screen_capture",
-]

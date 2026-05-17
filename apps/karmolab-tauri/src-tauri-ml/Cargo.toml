@@ -13,9 +13,20 @@ path = "src/main.rs"
 [dependencies]
 # IPC 프로토콜 = 워크스페이스 공유 crate (메인과 단일 정의 공유, drift 0).
 karmolab-shared = { path = "../src-tauri-shared" }
-# KL-052-A 스켈레톤 = IPC 골격만. candle/tokenizers/cpal/hound/xcap/image/
-# rusty-tesseract 등 ML dep 은 각 모듈 마이그 시점에 추가:
-#   - KL-052-B: voice (candle/tokenizers/cpal/hound)
-#   - KL-052-C: capture (xcap/image) + ocr (rusty-tesseract)
-# 스켈레톤 단계에서 무거운 dep 미리 박지 X — -A cargo check 경량 유지.
 serde_json = "1"
+
+# 버전 = 메인 src-tauri/Cargo.toml 과 일치 (워크스페이스 단일 Cargo.lock
+# — drift 0). KL-052-B voice (cpal/candle Whisper) + KL-052-C screen
+# 캡처(xcap/image) + OCR(rusty-tesseract) 이관 완료.
+xcap = "0.0.13"
+image = "0.25"
+rusty-tesseract = "1"
+candle-core = { version = "0.10", default-features = false }
+candle-nn = { version = "0.10", default-features = false }
+candle-transformers = { version = "0.10", default-features = false }
+tokenizers = { version = "0.20", default-features = false, features = ["onig"] }
+cpal = "0.15"
+hound = "3.5"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+byteorder = "1"
+rand = "0.9"

@@ -1,5 +1,21 @@
 name: KarmoLab Tauri Release
 
+# 동시성 직렬화 (KL-064): 멀티세션 monorepo 에서 apps/karmolab-tauri/** push 가
+# 동시다발 → 릴리스 run 폭주 → bump 커밋 레이스(버전 건너뜀) + tauri-action
+# 의 GitHub release 생성 동시충돌("Resource not accessible by integration").
+# 한 번에 하나만 (publish 중인 run 은 중단 금지 → 큐잉, 최신이 뒤따라감).
+concurrency:
+  group: karmolab-tauri-release
+  cancel-in-progress: false
+
+# 근본 (TASK-KL-064): 프론트(pages-deploy)는 master push 마다 자동 배포되나
+# Tauri 바이너리는 옛날엔 manual/tag 만 → 새 #[tauri::command] 가 프론트에만
+# 깔리고 앱엔 없어 "Command not found" 스큐 (alarm_list 사고). 이제 backend
+# contract (src-tauri/**, package.json) 가 master 에 push 되면 자동 patch
+# bump + build + release → 앱 auto-updater 가 받음. 프론트 자동배포와 대칭.
+# 루프 가드: bump 스텝의 커밋 메시지에 [skip ci] (아래 line) → 그 version-bump
+# push 는 paths 매칭돼도 GitHub Actions 가 run 자체를 skip. workflow_dispatch
+# 는 수동 강제(escape hatch) 로 유지.
 on:
   workflow_dispatch:
     inputs:
@@ -14,8 +30,13 @@ on:
           - minor
           - major
   push:
-    tags:
-      - "karmolab-v*"
+    branches: [master, main]
+    paths:
+      # Tauri 앱 디렉토리 전체 = 바이너리 빌드 계약 (src-tauri 코드/ACL +
+      # scripts/build-sidecar.mjs 같은 빌드 파이프라인 + package.json).
+      # 좁게 src-tauri/** 만 두면 build-sidecar.mjs 수정이 자동릴리스 안 돼
+      # 또 스큐 (KL-064 3차 발견). 단일유저·always-latest 라 churn 수용.
+      - 'apps/karmolab-tauri/**'
 
 jobs:
   publish-tauri:
@@ -33,40 +54,63 @@ jobs:
           fetch-depth: 0
 
       - name: Bump version
-        if: github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none'
+        # push(backend contract 변경) = 자동 patch. workflow_dispatch = 선택 bump.
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none')
         shell: bash
+        # KL-064 race-safe: concurrency 가 run 을 직렬화해도 늦은 run 의
+        # checkout 이 master 보다 뒤 → 옛 코드는 `git push HEAD:master` 가
+        # non-fast-forward 거부로 실패(멀티세션 monorepo+bump 자체 push).
+        # → 매 시도 *최신 origin/master 로 reset → 그 위에서 버전 재계산
+        # (버전 충돌도 방지) → commit → push*, 거부 시 재시도.
         run: |
           set -e
-          CURRENT=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          IFS='.' read -r MA MI PA <<< "$CURRENT"
-          case "${{ inputs.bumpType }}" in
-            patch) PA=$((PA + 1)) ;;
-            minor) MI=$((MI + 1)); PA=0 ;;
-            major) MA=$((MA + 1)); MI=0; PA=0 ;;
-          esac
-          NEW="$MA.$MI.$PA"
-          echo "Bump $CURRENT → $NEW"
-          node -e "
-            const fs = require('fs');
-            for (const p of ['package.json', 'src-tauri/tauri.conf.json']) {
-              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-              j.version = '$NEW';
-              fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
-            }
-            let cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
-            cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$NEW\"');
-            fs.writeFileSync('src-tauri/Cargo.toml', cargo);
-            let lock = fs.readFileSync('src-tauri/Cargo.lock', 'utf8');
-            const replaced = lock.replace(/(name = \"karmolab-desktop\"\s+version = )\"[^\"]*\"/, '\$1\"$NEW\"');
-            if (replaced === lock) throw new Error('Cargo.lock의 karmolab-desktop 버전 패턴을 찾지 못했습니다.');
-            fs.writeFileSync('src-tauri/Cargo.lock', replaced);
-          "
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BUMP=patch
+          else
+            BUMP="${{ inputs.bumpType }}"
+          fi
           cd ../..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/karmolab-tauri/package.json apps/karmolab-tauri/src-tauri/Cargo.toml apps/karmolab-tauri/src-tauri/Cargo.lock apps/karmolab-tauri/src-tauri/tauri.conf.json
-          git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
-          git push origin HEAD:master
+          T=apps/karmolab-tauri
+          PUSHED=
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin master
+            git reset --hard origin/master
+            CURRENT=$(node -p "require('./$T/src-tauri/tauri.conf.json').version")
+            IFS='.' read -r MA MI PA <<< "$CURRENT"
+            case "$BUMP" in
+              patch) PA=$((PA + 1)) ;;
+              minor) MI=$((MI + 1)); PA=0 ;;
+              major) MA=$((MA + 1)); MI=0; PA=0 ;;
+              *) echo "알 수 없는 bump 종류: $BUMP" >&2; exit 1 ;;
+            esac
+            NEW="$MA.$MI.$PA"
+            echo "Bump $CURRENT → $NEW (attempt $attempt)"
+            node -e "
+              const fs = require('fs');
+              const T = '$T';
+              for (const p of [T+'/package.json', T+'/src-tauri/tauri.conf.json']) {
+                const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+                j.version = '$NEW';
+                fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+              }
+              let cargo = fs.readFileSync(T+'/src-tauri/Cargo.toml', 'utf8');
+              cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$NEW\"');
+              fs.writeFileSync(T+'/src-tauri/Cargo.toml', cargo);
+              // KL-052 워크스페이스 단일 lock = 루트(apps/karmolab-tauri/Cargo.lock).
+              let lock = fs.readFileSync(T+'/Cargo.lock', 'utf8');
+              const replaced = lock.replace(/(name = \"karmolab-desktop\"\s+version = )\"[^\"]*\"/, '\$1\"$NEW\"');
+              if (replaced === lock) throw new Error('Cargo.lock의 karmolab-desktop 버전 패턴을 찾지 못했습니다.');
+              fs.writeFileSync(T+'/Cargo.lock', replaced);
+            "
+            git add "$T/package.json" "$T/src-tauri/Cargo.toml" "$T/Cargo.lock" "$T/src-tauri/tauri.conf.json"
+            git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
+            if git push origin HEAD:master; then PUSHED=1; break; fi
+            echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
+            sleep $((attempt * 3))
+          done
+          if [ -z "$PUSHED" ]; then echo "bump push 6회 실패" >&2; exit 1; fi
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -80,6 +124,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build ML sidecar
+        # KL-052: tauri.release.conf.json externalBin = binaries/karmolab-life-ml.
+        # tauri-action 은 `npm run build`(=build:sidecar && tauri build) 가 아니라
+        # `tauri build` 만 호출 → sidecar 미생성 시 build.rs:97 panic
+        # ("resource path binaries\\karmolab-life-ml-...exe doesn't exist").
+        # 로컬 `npm run build`/`dev:tauri` 와 동일하게 사전 빌드 (KL-064 발견:
+        # KL-052 이후 모든 릴리스가 이 누락으로 실패해 왔음).
+        run: npm run build:sidecar
 
       - name: Build and publish release
         uses: tauri-apps/tauri-action@action-v0.6.2

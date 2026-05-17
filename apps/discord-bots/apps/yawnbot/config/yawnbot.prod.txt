@@ -1,0 +1,81 @@
+# ② prod env 프로파일 (TASK-YB-028) — 비밀 아닌 env별 값. 레포에 커밋(public).
+#
+# ⚠ 이 레포는 공개(GitHub Pages). 사용자 결정: "비밀 아닌 건 전부 커밋"
+#   (채널/길드/개인 유저 ID public 영구 노출 수용 — 그릴 게이트 2026-05-16).
+# 진짜 비밀(DISCORD_TOKEN / GEMINI_API_KEY / VERTEX_API_KEY /
+#   DISCORD_SUMMARY_WEBHOOK_URL)은 절대 여기 X — ③ GitHub secret(YB_PROD_*).
+#
+# 로드: yawnbot-defaults.txt → (이 파일, YAWNBOT_ENV=prod 일 때) → .env.
+# 빈 값(KEY=) = 미설정과 동일(코드에서 undefined 취급) → 해당 기능 비활성.
+#
+# 🔧 마이그레이션: .env.prod-backup(2026-05-09) 의 prod 값으로 채움 (사용자 결정).
+#    ⚠ 8일 전 백업 — deploy 후 prod 동작 확인 필수. 변경됐으면 그때 정정.
+#    백업에 없던 키(채널 다수·VERTEX_PROJECT_ID·ALLOWED_GUILD_IDS)는 빈칸:
+#    secret 으로만 설정됐거나 신규(NEWS). 그 값은 prod 노트북 live .env 또는
+#    Discord 우클릭 ID 로만 획득 가능 (NEWS=어느 채널인지 = 네 결정사항).
+
+# ── Discord 앱 (prod 봇 — dev 와 다른 앱) · backup 5/9 ──
+# 1456979834566873131=개발 본진, 400451987268829186=친구방 (사용자 2026-05-17).
+#   DISCORD_GUILD_ID = 슬래시 *등록* → 친구방 포함 둘 다.
+#   YAWNBOT_ALLOWED_GUILD_IDS = *응답* 게이트 → 본진만 (친구방은 명령 보여도
+#   실행 시 "등록된 서버에서만" 거부).
+CLIENT_ID=825793713749622816
+DISCORD_GUILD_ID=1456979834566873131,400451987268829186
+YAWNBOT_ALLOWED_GUILD_IDS=1456979834566873131
+
+# ── 알림 채널 ID (prod 서버) — 폴백 전용 (TASK-YB-029) ──
+# 정상 시 미사용: 봇이 부팅 시 본진에 「욘봇」 카테고리+채널을 자동
+# 생성/claim 하고 거기로 보냄 (정본 = data/channel-spec.json).
+# 아래 값은 프로비저닝 OFF(YAWNBOT_CHANNEL_PROVISION=0)·봇 Manage Channels
+# 권한 상실·reconcile 실패 시에만 쓰이는 안전망. 삭제 X(무음손실 방지),
+# 수동 개별 교체 불요(프로비저닝이 용도별 분리 자동 처리).
+GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
+YAWNBOT_OPS_REPORT_CHANNEL_ID=1490364315545636935
+YAWNBOT_UNITY_FREE_CHANNEL_ID=1490364315545636935
+YAWNBOT_NEWS_CHANNEL_ID=1490364315545636935
+
+# ── 개인 식별자 (Discord 유저 ID — env 불변, dev .env 에서 자동 채움) ──
+ADMIN_IDS=391805564616704002
+ASSISTANT_USER_ID=391805564616704002
+
+# ── AI 표면 / Vertex ──
+KARMOLAB_AI_SURFACE=vertex
+# VERTEX_PROJECT_ID = 준-비밀(GCP 프로젝트 노출=정찰정보) → 여기 비워두고
+#   ③ YB_PROD_VERTEX_PROJECT_ID secret 이 채움 (사용자 결정 2026-05-17). 커밋 X.
+VERTEX_PROJECT_ID=
+VERTEX_LOCATION=us-central1
+
+# ── 머신 경로 (prod=노트북). MEMO_REPO_PATH 는 ① defaults 가 커버(동일 경로).
+#    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
+CURSOR_LOCAL_REPO_DIR=
+KAKAO_EXPORT_WATCH_DIR=
+
+# ── 에이전트 자율 cadence (KAR-018, 비밀 아님) ──
+# prod ON: 워커(KAR-018-X) + 생산자(atlas/echo) 자율 루프.
+#   dev 관측 2회 검증(status-drift fix·황금의정신 거동·경계준수 실증)
+#   후 사용자 의식적 결정(2026-05-17, 비용·자율성 승인).
+# 거버넌스 안전망: sub-D 예산 reserve + 전역 !kill(`<memo>/.claude/
+#   agent-kill` 파일 생성 시 즉시 정지) + 드리프트 게이트.
+# 긴급 정지 = 이 줄 0 으로 + 재배포, 또는 agent-kill 파일 touch.
+# INTERVAL = 활발도 튜닝 지점(가시·redirect 가능). 4분 = 살아있는 팀
+# 체감(사용자 "좀 더 자주·활발", 2026-05-17). "작업 중 스킵"은 구조적
+# 보장: tick 은 producer→worker→dialogue 전부 await 후 맨끝 setTimeout
+# (단일 타이머) → 틱 안 겹침, 워커 장시간이면 그만큼 다음 틱 밀림.
+# 실 throttle = governance 예산엔진(상한 시 producer-gated, 타이머 X) +
+# dialogue 제안당 dedupe + heartbeat 의미활동만 → 짧아도 스팸·폭주 X.
+# 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
+AGENT_CADENCE_ENABLED=1
+# 1분 = 사용자 결정 "5분 뒤는 너무 길어요 틱을 1분으로" (2026-05-17).
+# 빠른 피드백·활발도 + 검증 churn 해소(틱이 다음 배포 전 완결). 겹침 0
+# (틱 전단계 await 후 setTimeout 단일타이머). 비용 throttle=governance
+# 예산엔진(상한 시 producer-gated). 너무 잦으면 redirect 가능.
+AGENT_CADENCE_INTERVAL_MS=60000
+# ── claude CLI OAuth 경로 (KAR-018-Y 근본 fix, 비밀 아님) ──
+# 진짜 근본(prod 계측 25987467988 으로 확정, 가설 X): yawnbot-prod nssm
+# ObjectName=LocalSystem → claude 가 LocalSystem 프로필에서 OAuth 탐색
+# → 없음(creds 는 C:\Users\masca\.claude 에만) → "Not logged in" exit1
+# → discovery/worker 전 claude spawn 실패 → 제안 0 → 코어↔코어 0 →
+# 팀 안 삶. fix 검증(같은 LocalSystem run #25987512170 [4b]): 이 env
+# 주입 시 동일 호출 EXIT0 "ok". 봇이 config→process.env 로드 → spawn
+# 한 claude 가 상속 → masca OAuth 인증. 경로=비밀 아님(가시 정본).
+CLAUDE_CONFIG_DIR=C:\Users\masca\.claude

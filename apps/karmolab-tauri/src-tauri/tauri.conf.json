@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "KarmoLab Dev",
-  "version": "0.1.19",
+  "version": "0.1.30",
   "identifier": "com.mascari4615.karmolab.dev",
   "build": {
     "devUrl": "http://127.0.0.1:8898/apps/karmolab/",
-    "frontendDist": "https://mascari4615.github.io/karmolab/"
+    "frontendDist": "https://blog.mascari4615.com/karmolab/"
   },
   "app": {
     "withGlobalTauri": true,
@@ -28,6 +28,9 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": false,
+    "externalBin": [
+      "binaries/karmolab-life-ml"
+    ],
     "icon": [
       "icons/dev/32x32.png",
       "icons/dev/128x128.png",

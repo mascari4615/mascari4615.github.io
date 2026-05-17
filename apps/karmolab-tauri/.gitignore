@@ -15,6 +15,10 @@ dist-ssr
 # Cargo workspace build output (KL-052: 워크스페이스 단일 target — 메인 + ML sidecar 공유)
 /target
 
+# KL-052-B: Tauri externalBin 배치 산출물 (build-sidecar.mjs 가 매 빌드 생성 —
+# triple-suffix 바이너리는 git 추적 X, CI/로컬이 빌드 시 생성).
+src-tauri/binaries/
+
 # Tauri updater — private key must never be committed (pubkey lives in tauri.conf.json)
 src-tauri/karmolab-updater.key
 src-tauri/karmolab-updater.key.pub

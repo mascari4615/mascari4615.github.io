@@ -21,6 +21,14 @@ extend-exclude = [
 # === 자체 코드 / build script 의 의도된 줄임 ===
 IIF = "IIF"          # build.mjs: IIFE 줄임 ('Immediately Invoked Function Expression')
 mmaped = "mmaped"    # candle-nn API: from_mmaped_safetensors (외부 라이브러리, 변경 불가)
+ser = "ser"          # yawnbot character-service.ts: serialize 줄임 변수 (정당 식별자)
+unparseable = "unparseable" # 유효 영어 변형 철자 (unparsable 와 동의 — 코드/주석 의도)
+
+# === WM 코드 식별자가 devlog 포스트에 인용 (역사적, 변경 불가, TASK-KAR-073) ===
+# apps/blog/_posts/.../wm-devlog-*.md 가 WM C#(Data.Criterias / RuntimeCriteria)
+# 와 rename 이력("Criterias => Criteria")을 인용 — 블로그 컨텐츠 false-positive.
+Criterias = "Criterias"
+criterias = "criterias"
 
 # === 한국어 / 외국어 약어 / 고유명사 ===
 SOOP = "SOOP"        # 한국 OTT 서비스 이름
