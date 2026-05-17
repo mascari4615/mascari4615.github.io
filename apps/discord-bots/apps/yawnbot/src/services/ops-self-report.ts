@@ -13,6 +13,7 @@
  * 모든 send 는 try/catch silent — 자기보고가 봇 자체를 죽이지 않도록.
  */
 import os from 'node:os';
+import { channelIdFor } from './channel-provision';
 import crypto from 'node:crypto';
 import { REST, Routes, EmbedBuilder } from 'discord.js';
 
@@ -27,7 +28,7 @@ export interface OpsReportContext {
 /** 환경변수에서 ctx 로드. channelId 없으면 null (= self-report 비활성). */
 export function loadOpsReportContext(): OpsReportContext | null {
   const token = process.env.DISCORD_TOKEN?.trim();
-  const channelId = process.env.YAWNBOT_OPS_REPORT_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('ops-report');
   if (!token || !channelId) return null;
   return {
     token,

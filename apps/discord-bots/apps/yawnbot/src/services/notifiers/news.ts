@@ -11,6 +11,7 @@
  * (spontaneous DM 의 30% 힌트 경로와 독립 — 그쪽은 그대로 둠.)
  */
 import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
+import { channelIdFor } from '../channel-provision';
 import fs from 'fs';
 import path from 'path';
 import { PKG_ROOT } from '../../paths';
@@ -135,7 +136,7 @@ let timer: ReturnType<typeof setInterval> | null = null;
 export function startNewsNotifier(client: Client, getNews: (slug: string) => NewsService, slug: string): void {
   stopNewsNotifier();
 
-  const channelId = process.env.YAWNBOT_NEWS_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('news');
   if (!channelId) {
     console.warn('[News] YAWNBOT_NEWS_CHANNEL_ID 미설정 — 관심사 뉴스 알림 비활성');
     return;
@@ -181,7 +182,7 @@ export async function triggerNewsOnce(
   maxAgeHours = 12,
   maxPerPoll = 3,
 ): Promise<{ status: 'sent' | 'no_article' | 'no_keywords' | 'channel_unreachable' | 'no_channel'; sent: number }> {
-  const channelId = process.env.YAWNBOT_NEWS_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('news');
   if (!channelId) {
     return { status: 'no_channel', sent: 0 };
   }
