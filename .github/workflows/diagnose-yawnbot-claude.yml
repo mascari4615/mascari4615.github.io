@@ -1,0 +1,72 @@
+name: Diagnose YawnBot Claude CLI (KAR-018-Y)
+
+# 노트북(prod) 에서 claude CLI 가 exit 1 (발굴·워커 0 → 팀 안 삶) 인 진짜
+# 원인을 데스크톱에서 재현 불가 → prod 계측 (황금의 정신: 재현 못 하면
+# 멈추고 아티팩트 캡처). self-hosted 러너 = 노트북. 실 claude 거동 +
+# nssm 서비스 실행 계정(결정적 단서)을 GH 로그로 덤프. prod 무변경·읽기.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 8
+    steps:
+      - name: Diagnose claude + service account
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host "===== [1] 러너 실행 컨텍스트 ====="
+          Write-Host "whoami        : $(whoami)"
+          Write-Host "USERPROFILE   : $env:USERPROFILE"
+          Write-Host "USERNAME      : $env:USERNAME"
+          Write-Host "COMPUTERNAME  : $env:COMPUTERNAME"
+
+          Write-Host "`n===== [2] yawnbot-prod nssm 서비스 실행 계정 (결정적 단서) ====="
+          $nssm = (Get-Command nssm.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nssm) {
+            $g = Get-ChildItem "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($g) { $nssm = $g.FullName }
+          }
+          if ($nssm) {
+            Write-Host "nssm: $nssm"
+            Write-Host ("ObjectName(서비스계정): " + (& $nssm get yawnbot-prod ObjectName 2>&1))
+            Write-Host ("AppDirectory          : " + (& $nssm get yawnbot-prod AppDirectory 2>&1))
+            Write-Host ("AppEnvironmentExtra   : " + (& $nssm get yawnbot-prod AppEnvironmentExtra 2>&1))
+          } else { Write-Host "nssm.exe 못 찾음" }
+
+          Write-Host "`n===== [3] claude CLI 위치/버전/인증 파일 ====="
+          $claude = (Get-Command claude -ErrorAction SilentlyContinue).Source
+          Write-Host "claude path : $claude"
+          Write-Host ("claude ver  : " + (& claude --version 2>&1))
+          foreach ($p in @("C:\Users\masca\.claude\.credentials.json","C:\Users\masca\.claude.json","C:\Windows\System32\config\systemprofile\.claude\.credentials.json")) {
+            Write-Host ("exists? {0,-62} = {1}" -f $p, (Test-Path $p))
+          }
+
+          Write-Host "`n===== [4] 정확한 발굴 invocation 실거동 (exit/stdout/stderr 전체) ====="
+          $cwd = Join-Path $env:TEMP ("yb-diag-" + [guid]::NewGuid().ToString("N"))
+          New-Item -ItemType Directory -Path $cwd -Force | Out-Null
+          $args = @('--print','--no-session-persistence','--strict-mcp-config','--disallowedTools','Bash Edit Write Read NotebookEdit Glob Grep Task WebFetch WebSearch')
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = $(if ($claude) { $claude } else { 'claude' })
+          foreach ($a in $args) { $psi.ArgumentList.Add($a) }
+          $psi.WorkingDirectory = $cwd
+          $psi.RedirectStandardInput = $true
+          $psi.RedirectStandardOutput = $true
+          $psi.RedirectStandardError = $true
+          $psi.UseShellExecute = $false
+          $p = [System.Diagnostics.Process]::Start($psi)
+          $p.StandardInput.WriteLine('한 줄로 ok 만 답하라')
+          $p.StandardInput.Close()
+          $out = $p.StandardOutput.ReadToEnd()
+          $err = $p.StandardError.ReadToEnd()
+          $done = $p.WaitForExit(120000)
+          if (-not $done) { $p.Kill(); Write-Host "TIMEOUT 120s" }
+          Write-Host ("EXIT   : " + $p.ExitCode)
+          Write-Host ("STDOUT : " + ($out.Trim()))
+          Write-Host ("STDERR : " + ($err.Trim()))
+          Remove-Item -Recurse -Force $cwd -ErrorAction SilentlyContinue
+
+          Write-Host "`n===== [5] 결론 단서 ====="
+          Write-Host "ObjectName 이 LocalSystem/비-masca + claude creds=masca 만 존재 + EXIT!=0 => 서비스계정 OAuth 부재 확정"
