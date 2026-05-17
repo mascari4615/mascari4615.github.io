@@ -1,5 +1,13 @@
 name: KarmoLab Tauri Release
 
+# 동시성 직렬화 (KL-064): 멀티세션 monorepo 에서 apps/karmolab-tauri/** push 가
+# 동시다발 → 릴리스 run 폭주 → bump 커밋 레이스(버전 건너뜀) + tauri-action
+# 의 GitHub release 생성 동시충돌("Resource not accessible by integration").
+# 한 번에 하나만 (publish 중인 run 은 중단 금지 → 큐잉, 최신이 뒤따라감).
+concurrency:
+  group: karmolab-tauri-release
+  cancel-in-progress: false
+
 # 근본 (TASK-KL-064): 프론트(pages-deploy)는 master push 마다 자동 배포되나
 # Tauri 바이너리는 옛날엔 manual/tag 만 → 새 #[tauri::command] 가 프론트에만
 # 깔리고 앱엔 없어 "Command not found" 스큐 (alarm_list 사고). 이제 backend
