@@ -26,9 +26,11 @@ import type {
   User,
   PartialUser,
 } from 'discord.js';
+import { generateDiscoveryText } from 'karmolab-ai/node';
 import type { ProposalEnvelope } from './proposal';
 import { appendApproval } from './governance-adapter';
 import { runInboxConsumerOnce, materializedPath } from './proposal-adapter';
+import { loadCoreDef } from '../services/agent-core';
 
 export interface ProposalAnnouncement {
   /** 결정적 발굴 id (proposalId) — 승인 매칭 키. */
@@ -37,8 +39,8 @@ export interface ProposalAnnouncement {
   target: string;
   kind: ProposalEnvelope['kind'];
   envelope: ProposalEnvelope;
-  /** 발굴 에이전트 정체성 (없으면 기본 Atlas). */
-  agent?: { name: string; avatarUrl?: string };
+  /** 발굴 에이전트 정체성 (없으면 기본 Atlas). coreId = 코어 def 키. */
+  agent?: { name: string; avatarUrl?: string; coreId?: string };
 }
 
 const COLOR_BY_KIND: Record<string, number> = {
@@ -339,6 +341,44 @@ async function lockCard(
  * 스레드 안 = 전문 + 승인/거절/질문 안내. 매핑 영속(V-2 소비).
  * best-effort: 채널·권한 실패해도 throw X (발굴 파이프 비차단).
  */
+/**
+ * 발굴을 *atlas 자기 목소리로* 한두 문장 운(R-2 — 주도적 동료).
+ * 코어 정체성(누구·직무) + 간결 존댓말로, 클리닉 카드가 아니라
+ * "팀, 점검하다 보니 ~ 이거 해볼까요?" 처럼. 비-agentic claude
+ * (generateDiscoveryText 안전 경로 재사용). 실패 시 '' (카드만 — graceful).
+ */
+async function atlasVoicedIntro(
+  env: NodeJS.ProcessEnv,
+  coreId: string,
+  title: string,
+  gist: string,
+): Promise<string> {
+  try {
+    const root = env.MEMO_REPO_PATH?.trim() || '';
+    const core = root ? loadCoreDef(root, coreId) : null;
+    const who = core
+      ? `너는 "${core.id}" — karmoddrine 팀의 AI 에이전트 동료. 직무: ${core.role}.`
+      : '너는 karmoddrine 팀의 AI 에이전트 동료다.';
+    const prompt = [
+      who,
+      '너는 가상 캐릭터가 아니라 실제 이 프로젝트의 엔지니어 동료다.',
+      '말투 = 간결한 한국어 존댓말. 서론·메타설명·이모지 남발 X.',
+      '',
+      '방금 네가 시스템을 점검하다 아래를 발견했고, 정식 제안 카드가',
+      '이 메시지 바로 다음에 자동으로 붙는다. 팀(사장)에게 *동료가',
+      '말하듯* 1~2문장으로 자연스럽게 먼저 말하라 (카드 내용 복붙 X,',
+      '"왜 눈에 띄었는지 / 같이 볼만한지" 톤). 카드는 아래 붙으니 언급만.',
+      '',
+      `발견: ${title}`,
+      `요지: ${gist.slice(0, 300)}`,
+    ].join('\n');
+    const text = await generateDiscoveryText({ prompt, timeoutMs: 90000 });
+    return (text || '').trim().slice(0, 600);
+  } catch {
+    return '';
+  }
+}
+
 export async function announceProposal(
   client: Client,
   env: NodeJS.ProcessEnv,
@@ -350,6 +390,13 @@ export async function announceProposal(
   const safeTitle = (title || '(제목 없음)').slice(0, 230);
   const kindLabel = KIND_LABEL[ann.kind] ?? ann.kind;
   const onApprove = KIND_ONAPPROVE[ann.kind] ?? '검토 단계로 넘어갑니다';
+  // R-2: atlas 가 카드 전에 자기 목소리로 운다 (주도적 동료).
+  const intro = await atlasVoicedIntro(
+    env,
+    ann.agent?.coreId || 'atlas',
+    safeTitle,
+    cardBody,
+  );
 
   for (const channelId of channelIds) {
     const channel = await client.channels
@@ -381,6 +428,13 @@ export async function announceProposal(
       .setTimestamp();
 
     try {
+      // R-2: atlas 가 *먼저 자기 목소리로* 운다 → 그 다음 정식 카드.
+      // = 클리닉 알림이 아니라 동료가 꺼내는 느낌. 실패 시 카드만(graceful).
+      if (intro) {
+        await (channel as TextChannel)
+          .send({ content: intro.slice(0, 1800) })
+          .catch(() => {});
+      }
       const msg = await (channel as TextChannel).send({ embeds: [embed] });
       await msg.react('✅').catch(() => {});
       await msg.react('❌').catch(() => {});
