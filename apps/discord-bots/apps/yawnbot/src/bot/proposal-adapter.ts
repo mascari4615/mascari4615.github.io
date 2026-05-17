@@ -19,6 +19,7 @@ import {
   type TaskSeedPayload,
   type ObjectivePayload,
 } from './proposal';
+import type { AgentSpec } from './agent-factory';
 import {
   appendTrace,
   defaultNotify,
@@ -426,12 +427,115 @@ export function materializeObjectiveProposal(
   }
 }
 
+// ── KAR-018-V R-4-i3a: 승인된 새 코어 머터리얼라이즈 ─────────────
+// factory(evaluateAgentSpec)=valid∧무충돌∧dry-run → escalate(④사람승인).
+// ✅ 승인 후 *실제 core.md 생성* 이 부재했음(line "agent kind inert").
+// 본 함수가 그 갭 = "팀이 팀을 만든다"(README 도그푸딩). 단 **status:
+// draft 만** — active 전이·바인딩은 별도 사람 게이트(agent-factory-
+// adapter 불변식: "활성화 = 사람 승인 후 별도"). 멱등 + *기존 코어
+// 절대 비덮어쓰기*(atlas/echo/선행 머터리얼 보존).
+
+const SAFE_CORE_ID = /^[a-z0-9][a-z0-9_-]*$/;
+
+/**
+ * 승인된 agent 발굴 → `memo/.claude/agents/<coreId>/core.md` **Draft**
+ * + `mem/README.md` 작성. atlas/echo core.md 구조 mirror(평행정의0,
+ * loadCoreDef 가 읽는 frontmatter+body). status:draft 고정(절대 active
+ * X — 활성/바인딩=별도 사람 게이트). coreId 부적합·불완전 spec = null
+ * (날조 X). 기존 core.md 존재 = 멱등 skip(반환만 — *덮어쓰기 X*).
+ * @returns `.claude/agents/<coreId>/core.md` (rel) | null.
+ */
+export function materializeAgentProposal(
+  env: NodeJS.ProcessEnv,
+  payload: AgentSpec,
+): string | null {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  if (!root) return null;
+  const coreId = (payload.coreId || '').trim();
+  const role = (payload.role || '').trim();
+  const name = (payload.name || '').trim();
+  // factory specComplete 와 동근(평행정의0): 불완전·부적합 = 결정 증발 X·날조 X
+  if (!SAFE_CORE_ID.test(coreId) || !role || !name) return null;
+  const relCore = path.join('.claude', 'agents', coreId, 'core.md');
+  const absCore = path.join(root, relCore);
+  try {
+    if (fs.existsSync(absCore)) return relCore; // 멱등 — *기존 코어 비덮어쓰기*
+    const display =
+      name || coreId.charAt(0).toUpperCase() + coreId.slice(1);
+    const src = (payload.source || '').trim() || '⑦\' 자율 발굴';
+    const core = [
+      '---',
+      `id: ${coreId}`,
+      `role: ${role}`,
+      'tools: [Read, Write, Edit, Glob, Grep, Bash(git status/log/diff/add/commit/branch/checkout), TASK, task-new, WebSearch, WebFetch]',
+      'skills: []',
+      'work_memory: ./mem/',
+      'default_skin: alisa',
+      'emoji: 🤖',
+      `display_name: ${display}`,
+      'status: draft',
+      '---',
+      '',
+      `# ${coreId}`,
+      '',
+      `> 팩토리(⑤)가 머터리얼라이즈한 코어 (KAR-018-V R-4-i3a — "팀이 팀을 만든다"). \`id: ${coreId}\` = 기능 핸들(내부). 디스코드 표시명·말투는 *스킨*(기본 \`alisa\`, 독립 스왑 — 사용자 redirect 가능)이 결정. \`emoji 🤖\`·\`default_skin\` 은 보수 default — 검토 시 조정.`,
+      '',
+      '## 직무',
+      '',
+      `- ${role}`,
+      `- 자율 작업 발굴(⑦'): 조사→적용성→**task-new seed / (b)objective 제안**으로만 산출. 직접 main 변경 X.`,
+      `- 출처(발굴): ${src}`,
+      '',
+      '## 경계 / 금지 (④ 거버넌스)',
+      '',
+      '- **destructive 금지**: merge / master·main push / force-push / 다른 세션 영역 침범. 산출 = feature 브랜치 + Draft PR 까지만.',
+      '- **검증 게이트 준수**: 환경 변경 = ②(compile/test/CI/hook + 회귀 베이스라인). 자기 스킬 = ②\'(행동평가 셋). 통과분만 archive·승격.',
+      '- **목표 정렬**: 모든 작업은 ⑥(a) `agent-mission.md` 대비 정렬. 미션 없는 자율 진행 시 #team-bus 에 정렬 불확실 표면화.',
+      '- **예산**: ④ 런타임 예산 reserve→evaluate 준수. 초과 시 narrow/escalate/stop.',
+      '- **도메인 경계**: 자기 직무 밖(타 코어 영역) 침범 전 #team-bus 표면화.',
+      '',
+      '## 에스컬레이션',
+      '',
+      '- 위험액션(risk-tag) / 새 코어 생성 / 미션 해석 모호 → **#team-bus 승인 대기** (state-managed interrupt, 사람·!kill 최우선).',
+      '- 피어 이견(타 코어와 도메인 경계·접근 충돌) → 즉시 행동 X, #team-bus 표면화 (해소 룰 = sub-D).',
+      '',
+      '## 상태',
+      '',
+      '`status: draft` — ⑤ 팩토리가 spec 검증(②)+사람 승인(④) 후 머터리얼라이즈한 Draft. **active 전이·채널 바인딩은 별도 사람 게이트**(자동 활성화 절대 X — agent-factory-adapter 불변식). atlas/echo 와 동형으로 첫 사용처에서 검토·승격.',
+      '',
+    ].join('\n');
+    fs.mkdirSync(path.dirname(absCore), { recursive: true });
+    fs.writeFileSync(absCore, core, 'utf-8');
+    const memReadme = path.join(root, '.claude', 'agents', coreId, 'mem', 'README.md');
+    if (!fs.existsSync(memReadme)) {
+      fs.mkdirSync(path.dirname(memReadme), { recursive: true });
+      fs.writeFileSync(
+        memReadme,
+        [
+          `# ${coreId} — work-memory`,
+          '',
+          `코어 \`${coreId}\` 의 work-memory. **코어 층 소유** (스킨 \`characters/<slug>/memory/\` = 봇 MemoryService 소유, 별개).`,
+          '',
+          '- 형식 = discoveries jsonl 재사용 (정본 `memo/.claude/discoveries/README.md`). 누적 raw append → 세션-end digest.',
+          '- 팩토리(⑤)가 머터리얼라이즈한 Draft 코어 (KAR-018-V R-4-i3a). 첫 entry = active 승격·실작업 진입 시 (현재 빈 상태 정상).',
+          '',
+        ].join('\n'),
+        'utf-8',
+      );
+    }
+    return relCore;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 인박스 1회 소비: 승인(approvals.jsonl approved)된 발굴 머터리얼라이즈
  * (멱등 = materialized.jsonl). 지원 kind: `task`→seed TASK,
- * `objective`→objectives.md proposed 행 (둘 다 사람 승격 게이트 = W-4).
+ * `objective`→objectives.md proposed 행, `agent`→`.claude/agents/
+ * <id>/core.md` **Draft** (전부 사람 승격/활성 게이트 = W-4·불변식).
  * kill·미승인·미지원kind·이미처리 = skip. *블록 X* (백그라운드 자율종료).
- * env/skill/agent kind = 엔진 실행 트랙(sub-E) — 본 소비자 미처리(inert).
+ * env/skill kind = 엔진 실행 트랙(sub-E) — 본 소비자 미처리(inert).
  * @returns 이번에 머터리얼라이즈한 건수.
  */
 export async function runInboxConsumerOnce(
@@ -444,7 +548,7 @@ export async function runInboxConsumerOnce(
   const seen = new Set<string>();
   for (const e of readInboxProposals(env)) {
     if (
-      (e.kind !== 'task' && e.kind !== 'objective') ||
+      (e.kind !== 'task' && e.kind !== 'objective' && e.kind !== 'agent') ||
       seen.has(e.id) ||
       done.has(e.id)
     ) {
@@ -455,10 +559,12 @@ export async function runInboxConsumerOnce(
     const desc =
       e.kind === 'task'
         ? materializeTaskProposal(env, e.envelope.payload as TaskSeedPayload)
-        : materializeObjectiveProposal(
-            env,
-            e.envelope.payload as ObjectivePayload,
-          );
+        : e.kind === 'agent'
+          ? materializeAgentProposal(env, e.envelope.payload as AgentSpec)
+          : materializeObjectiveProposal(
+              env,
+              e.envelope.payload as ObjectivePayload,
+            );
     if (!desc) {
       notify(
         `⑦' 승인 발굴 ${e.id}(${e.kind}) 머터리얼라이즈 실패 ` +
@@ -466,7 +572,7 @@ export async function runInboxConsumerOnce(
       );
       continue;
     }
-    const short = e.kind === 'task' ? path.basename(desc) : desc;
+    const short = e.kind === 'objective' ? desc : path.basename(desc);
     appendMaterialized(env, e.id, short);
     appendTrace(env, {
       ts: new Date().toISOString(),
@@ -478,7 +584,9 @@ export async function runInboxConsumerOnce(
       `✅ 승인 발굴 머터리얼라이즈: ${e.id} (${e.kind}) → ${short} ` +
         (e.kind === 'task'
           ? '(status:seed — 사람이 ready 승격 시 진행)'
-          : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),
+          : e.kind === 'agent'
+            ? '(core.md status:draft — active 전이·바인딩은 별도 사람 게이트)'
+            : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),
     );
     n++;
   }
