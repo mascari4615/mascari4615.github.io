@@ -188,21 +188,29 @@ impl AlarmStore {
     }
 }
 
-/// 스케줄러 1 tick: 발화해야 할 알람 id 목록을 계산. side-effect 없음(테스트 가능).
-/// `now_*` 주입 = 시간 pin(피드백 루프 결정성, process.md § 루프).
+/// 발화 grace 윈도우. 예정시각 ~ 예정+GRACE 사이면 발화(이미 그 occurrence
+/// 발화 안 했으면). equality(시:분 정확일치) 모델은 그 1분에 틱이 안 떨어지면
+/// (앱 재시작/hot-reload/절전복귀 jitter/IO 스톨) *영구 스킵* → 알람 앱 치명.
+/// grace = 짧은 다운/지연을 흡수해 "놓침 없이 (조금 늦더라도) 반드시 발화".
+/// 너무 길면 앱을 한참 뒤 열었을 때 옛 알람이 울리니 보수적으로 5분.
+/// KL-064: 사용자 "여유 두고 했는데 안 울림" = equality 결함 데이터 확증.
+const FIRE_GRACE_MINUTES: i64 = 5;
+
+/// 스케줄러 1 tick: 발화할 알람 id. side-effect 없음(테스트 가능, 시간 pin).
+/// `last_fired`: alarm.id → 마지막 발화 occurrence 날짜 "YYYY-MM-DD"
+/// (occurrence 당 1회 — 그 날 grace 안에서 여러 틱 떨어져도 1번만).
 fn due_alarm_ids(
     alarms: &[Alarm],
     last_fired: &HashMap<String, String>,
     snooze_until: &HashMap<String, i64>,
+    now: NaiveDateTime,
     now_epoch: i64,
-    now_key: &str,
-    now_hour: u8,
-    now_minute: u8,
-    now_weekday0: u8,
 ) -> Vec<String> {
+    let today_key = now.date().format("%Y-%m-%d").to_string();
+    let today_wd0 = now.date().weekday().num_days_from_monday() as u8;
     let mut due = Vec::new();
     for a in alarms {
-        // 스누즈 재발화가 최우선 (enabled 무관 — 사용자가 스누즈 누른 것).
+        // 스누즈 재발화 최우선 (enabled 무관 — 사용자가 누른 것).
         if let Some(until) = snooze_until.get(&a.id) {
             if now_epoch >= *until {
                 due.push(a.id.clone());
@@ -212,15 +220,20 @@ fn due_alarm_ids(
         if !a.enabled {
             continue;
         }
-        if a.hour != now_hour || a.minute != now_minute {
+        // 오늘이 이 알람의 occurrence 인가 (1회성=오늘, 반복=요일 매칭).
+        if !a.repeat.is_empty() && !a.repeat.contains(&today_wd0) {
             continue;
         }
-        let day_ok = a.repeat.is_empty() || a.repeat.contains(&now_weekday0);
-        if !day_ok {
+        let Some(t) = NaiveTime::from_hms_opt(a.hour as u32, a.minute as u32, 0) else {
+            continue;
+        };
+        let scheduled = now.date().and_time(t);
+        // catch-up: 예정 <= now <= 예정+grace (그 1분 정확 일치 불요).
+        if now < scheduled || now > scheduled + Duration::minutes(FIRE_GRACE_MINUTES) {
             continue;
         }
-        // 같은 분 중복 발화 차단.
-        if last_fired.get(&a.id).map(|s| s.as_str()) == Some(now_key) {
+        // 이 occurrence(오늘) 이미 발화 → 스킵 (grace 내 중복 차단).
+        if last_fired.get(&a.id).map(|s| s.as_str()) == Some(today_key.as_str()) {
             continue;
         }
         due.push(a.id.clone());
@@ -234,20 +247,13 @@ fn due_alarm_ids(
 /// (oswake/sound/window/emit) 은 호출자(thread)가 — 그래야 이 함수가
 /// Tauri 런타임 없이 단위 테스트 가능 (올바른 seam).
 fn pump(store: &AlarmStore, now: chrono::DateTime<Local>) -> Vec<Alarm> {
-    let now_key = now.format("%Y-%m-%d %H%M").to_string();
+    let now_naive = now.naive_local();
+    // last_fired 값 = occurrence 날짜 (occurrence 당 1회 발화 dedupe).
+    let today_key = now_naive.date().format("%Y-%m-%d").to_string();
     let alarms = store.list();
     let last = store.last_fired.lock().unwrap().clone();
     let snz = store.snooze_until.lock().unwrap().clone();
-    let due = due_alarm_ids(
-        &alarms,
-        &last,
-        &snz,
-        now.timestamp(),
-        &now_key,
-        now.hour() as u8,
-        now.minute() as u8,
-        now.weekday().num_days_from_monday() as u8,
-    );
+    let due = due_alarm_ids(&alarms, &last, &snz, now_naive, now.timestamp());
 
     let mut fired = Vec::new();
     for id in due {
@@ -256,7 +262,7 @@ fn pump(store: &AlarmStore, now: chrono::DateTime<Local>) -> Vec<Alarm> {
             .last_fired
             .lock()
             .unwrap()
-            .insert(id.clone(), now_key.clone());
+            .insert(id.clone(), today_key.clone());
         let Some(alarm) = alarms.iter().find(|a| a.id == id).cloned() else {
             continue;
         };
@@ -976,76 +982,58 @@ mod tests {
         }
     }
 
-    #[test]
-    fn fires_on_exact_minute_one_shot() {
-        let alarms = vec![mk("a", 6, 30, vec![], true)];
-        let due = due_alarm_ids(
-            &alarms,
-            &HashMap::new(),
-            &HashMap::new(),
-            0,
-            "2026-05-17 0630",
-            6,
-            30,
-            5,
-        );
-        assert_eq!(due, vec!["a".to_string()]);
+    fn due_at(alarms: &[Alarm], last: &HashMap<String, String>, when: &str) -> Vec<String> {
+        let n = dt(when);
+        due_alarm_ids(alarms, last, &HashMap::new(), n, n.and_utc().timestamp())
     }
 
     #[test]
-    fn no_double_fire_same_minute() {
-        let alarms = vec![mk("a", 6, 30, vec![], true)];
+    fn fires_at_scheduled_minute() {
+        let a = vec![mk("a", 6, 30, vec![], true)];
+        // 예정 직전 = X
+        assert!(due_at(&a, &HashMap::new(), "2026-05-17 06:29").is_empty());
+        // 예정 정각 = 발화
+        assert_eq!(due_at(&a, &HashMap::new(), "2026-05-17 06:30"), vec!["a".to_string()]);
+    }
+
+    #[test]
+    fn catch_up_fires_within_grace_then_stops() {
+        // KL-064 회귀: equality 면 이 분에 틱 못 떨어지면 영구 스킵.
+        let a = vec![mk("a", 15, 22, vec![], true)];
+        // 2분 늦게(앱 재시작/절전복귀로 정각 틱 놓침) → 여전히 발화 (catch-up).
+        assert_eq!(due_at(&a, &HashMap::new(), "2026-05-17 15:24"), vec!["a".to_string()]);
+        // grace(5분) 경계 = 발화
+        assert_eq!(due_at(&a, &HashMap::new(), "2026-05-17 15:27"), vec!["a".to_string()]);
+        // grace 초과 = 스킵 (한참 뒤 앱 열어도 옛 알람 안 울림)
+        assert!(due_at(&a, &HashMap::new(), "2026-05-17 15:28").is_empty());
+    }
+
+    #[test]
+    fn no_double_fire_same_occurrence() {
+        // last_fired = occurrence 날짜. 같은 날 grace 안 다른 틱이어도 1회만.
+        let a = vec![mk("a", 6, 30, vec![], true)];
         let mut last = HashMap::new();
-        last.insert("a".to_string(), "2026-05-17 0630".to_string());
-        let due = due_alarm_ids(
-            &alarms, &last, &HashMap::new(), 0, "2026-05-17 0630", 6, 30, 5,
-        );
-        assert!(due.is_empty());
+        last.insert("a".to_string(), "2026-05-17".to_string());
+        assert!(due_at(&a, &last, "2026-05-17 06:30").is_empty());
+        assert!(due_at(&a, &last, "2026-05-17 06:33").is_empty());
+        // 다음 날(반복 알람이라면)은 새 occurrence → 다시 발화 가능
+        let rep = vec![mk("a", 6, 30, vec![0, 1, 2, 3, 4, 5, 6], true)];
+        assert_eq!(due_at(&rep, &last, "2026-05-18 06:30"), vec!["a".to_string()]);
     }
 
     #[test]
     fn repeat_day_filter() {
-        // repeat=[0(월)] 인데 오늘이 토(5) → 발화 X.
-        let alarms = vec![mk("a", 6, 30, vec![0], true)];
-        let due = due_alarm_ids(
-            &alarms,
-            &HashMap::new(),
-            &HashMap::new(),
-            0,
-            "2026-05-17 0630",
-            6,
-            30,
-            5,
-        );
-        assert!(due.is_empty());
-        // 월요일(0) 이면 발화.
-        let due2 = due_alarm_ids(
-            &alarms,
-            &HashMap::new(),
-            &HashMap::new(),
-            0,
-            "2026-05-18 0630",
-            6,
-            30,
-            0,
-        );
-        assert_eq!(due2, vec!["a".to_string()]);
+        // repeat=[0(월)], 2026-05-17=일(wd0=6) → X
+        let a = vec![mk("a", 6, 30, vec![0], true)];
+        assert!(due_at(&a, &HashMap::new(), "2026-05-17 06:30").is_empty());
+        // 2026-05-18=월(wd0=0) → 발화
+        assert_eq!(due_at(&a, &HashMap::new(), "2026-05-18 06:30"), vec!["a".to_string()]);
     }
 
     #[test]
     fn disabled_alarm_skipped() {
-        let alarms = vec![mk("a", 6, 30, vec![], false)];
-        let due = due_alarm_ids(
-            &alarms,
-            &HashMap::new(),
-            &HashMap::new(),
-            0,
-            "2026-05-17 0630",
-            6,
-            30,
-            5,
-        );
-        assert!(due.is_empty());
+        let a = vec![mk("a", 6, 30, vec![], false)];
+        assert!(due_at(&a, &HashMap::new(), "2026-05-17 06:30").is_empty());
     }
 
     #[test]
@@ -1053,11 +1041,12 @@ mod tests {
         let alarms = vec![mk("a", 6, 30, vec![], false)];
         let mut snz = HashMap::new();
         snz.insert("a".to_string(), 1000);
-        // now_epoch < until → 아직 X.
-        let early = due_alarm_ids(&alarms, &HashMap::new(), &snz, 999, "x", 9, 9, 5);
+        let n = dt("2026-05-17 09:00");
+        // now_epoch < until → 아직 X (스누즈는 epoch 비교, 시각 무관).
+        let early = due_alarm_ids(&alarms, &HashMap::new(), &snz, n, 999);
         assert!(early.is_empty());
-        // now_epoch >= until → 재발화 (분/요일 무관).
-        let late = due_alarm_ids(&alarms, &HashMap::new(), &snz, 1000, "x", 9, 9, 5);
+        // now_epoch >= until → 재발화 (enabled/요일/시각 무관).
+        let late = due_alarm_ids(&alarms, &HashMap::new(), &snz, n, 1000);
         assert_eq!(late, vec!["a".to_string()]);
     }
 
