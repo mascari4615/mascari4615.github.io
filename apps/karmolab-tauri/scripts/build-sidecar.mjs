@@ -49,9 +49,14 @@ execSync(
 );
 
 // workspace target — Cargo.toml [workspace] 루트(apps/karmolab-tauri) 기준.
+// KL-052 워크스페이스 전환 후 단일 target 은 워크스페이스 루트(tauriDir)에
+// 생성됨 (멤버 cwd 무관). 옛 `srcTauri/target` 은 부재 → CI clean checkout
+// 에서 "빌드 산출물 없음" 실패 (KL-064 발견: Cargo.lock·sidecar스텝에 이은
+// 동일 계열 마이그 stale 경로 3번째. 로컬은 pre-workspace 잔존 target 으로
+// 우연히 통과해 미발견).
 const targetRoot = process.env.CARGO_TARGET_DIR
   ? process.env.CARGO_TARGET_DIR
-  : join(srcTauri, "target");
+  : join(tauriDir, "target");
 const built = join(targetRoot, profile, `karmolab-life-ml${exe}`);
 if (!existsSync(built)) {
   console.error(`[build-sidecar] 빌드 산출물 없음: ${built}`);
