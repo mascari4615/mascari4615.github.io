@@ -7,7 +7,6 @@
  * - 메시지는 슬러그별 logs/에 즉시 기록 (손실 없음)
  */
 import fs from 'fs';
-import { channelIdFor } from '../services/channel-provision';
 import { Message, DMChannel, TextChannel, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
 import type { ChatContent } from 'karmolab-ai/node';
@@ -416,7 +415,6 @@ export async function handleAssistantMessage(
   getRelationship?: (slug: string) => RelationshipService,
 ): Promise<void> {
   const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
-  const publicChannelId = channelIdFor('assistant-public');
 
   if (!assistantUserId) return;
 
@@ -429,16 +427,14 @@ export async function handleAssistantMessage(
   const isTeam = isTeamRoom(characterService, channelKey, isDM);
   const isOwner = message.author.id === assistantUserId;
   const isWebhook = !!message.webhookId;
-  const isPublicChannel =
-    !isDM && !!publicChannelId && message.channel.id === publicChannelId;
 
   // ── 수신 게이트 (KAR-018-A sub-A-2) ───────────────────────
-  // 비-팀 방(기존, 하위호환 무변경): owner 의 DM / 단일 public 채널만.
+  // 비-팀 방: owner 의 DM 만 (assistant-public 공개채널 경로 폐기 — YB-036).
   // 팀 방(.active.json 코어 바인딩): owner + 에이전트 webhook(자기·가드 제외).
   if (!isTeam) {
     if (!isOwner) return;
     if (message.author.bot) return;
-    if (!isDM && !isPublicChannel) return;
+    if (!isDM) return;
   } else {
     if (isWebhook && isOwnWebhookMessage(message.id)) return; // 가드 ① 자기발화
     if (!isOwner && !isWebhook) return;                       // 외부 유저/일반봇 무시

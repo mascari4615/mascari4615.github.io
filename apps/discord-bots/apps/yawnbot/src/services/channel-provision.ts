@@ -56,9 +56,7 @@ export const ENV_KEY_BY_LOGICAL: Record<string, string> = {
   'github-webhook': 'GITHUB_WEBHOOK_CHANNEL_ID',
   'ops-report': 'YAWNBOT_OPS_REPORT_CHANNEL_ID',
   'unity-free': 'YAWNBOT_UNITY_FREE_CHANNEL_ID',
-  geeknews: 'YAWNBOT_GEEKNEWS_CHANNEL_ID',
   news: 'YAWNBOT_NEWS_CHANNEL_ID',
-  'assistant-public': 'ASSISTANT_PUBLIC_CHANNEL_ID',
   'agent-team': 'YAWNBOT_AGENT_CHANNEL_ID',
   digest: 'YAWN_DIGEST_CHANNEL_ID',
 };

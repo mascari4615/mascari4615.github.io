@@ -1,7 +1,8 @@
 /**
  * 관심사 키워드 뉴스 주기 알림 (TASK-YB-027).
  *
- * - unity-free / geeknews 와 대칭인 전용 스케줄 notifier.
+ * - unity-free 와 대칭인 전용 스케줄 notifier. Google News(관심사 키워드)
+ *   + Hacker News(YB-036 흡수) 2 소스를 같은 `news` 채널에 게시.
  *   기존 NewsService(관심사 키워드 기반 Google News RSS, 캐릭터별)를 재사용.
  * - main.ts clientReady 에서 startNewsNotifier(client, getNews, slug) 호출 — interval poll 시작.
  * - 슬래시 단발 트리거용 triggerNewsOnce 도 동일 send 흐름 사용 (atkup 등에서 배선 가능).
@@ -16,10 +17,12 @@ import fs from 'fs';
 import path from 'path';
 import { PKG_ROOT } from '../../paths';
 import type { NewsService, NewsArticle } from '../news-service';
+import { fetchHnTopStories, buildHnEmbed } from '../sources/hacker-news';
 
 const EMBED_COLOR = 0x2196f3;
 const SENT_LINKS_CAP = 300;
 const SENT_KEYS_CAP = 300;
+const SENT_HN_CAP = 300;
 
 /**
  * 안정적 dedup 키 = 정규화된 제목.
@@ -51,6 +54,8 @@ function buildNewsEmbed(a: NewsArticle): EmbedBuilder {
 interface NewsNotifierState {
   sentKeys: string[];
   sentLinks: string[];
+  /** Hacker News 흡수(YB-036) — 게시한 HN item id (안정 식별자). */
+  sentHnKeys: string[];
   lastSentAt: string | null;
 }
 
@@ -64,13 +69,14 @@ function loadState(): NewsNotifierState {
         // 구 state (sentKeys 없음) 하위호환 — 신키는 다음 폴링부터 누적.
         sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
         sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
+        sentHnKeys: Array.isArray(parsed.sentHnKeys) ? parsed.sentHnKeys.filter((x) => typeof x === 'string') : [],
         lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
       };
     }
   } catch (err) {
     console.warn('[News] dedup state 읽기 실패 — 새 state 로 시작:', err);
   }
-  return { sentKeys: [], sentLinks: [], lastSentAt: null };
+  return { sentKeys: [], sentLinks: [], sentHnKeys: [], lastSentAt: null };
 }
 
 function saveState(state: NewsNotifierState): void {
@@ -79,6 +85,7 @@ function saveState(state: NewsNotifierState): void {
     const trimmed: NewsNotifierState = {
       sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
       sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
+      sentHnKeys: state.sentHnKeys.slice(-SENT_HN_CAP),
       lastSentAt: state.lastSentAt,
     };
     fs.writeFileSync(STATE_PATH, JSON.stringify(trimmed, null, 2) + '\n', 'utf-8');
@@ -150,6 +157,54 @@ async function pollOnce(
   return { status: 'sent', sent };
 }
 
+/**
+ * Hacker News 흡수 폴 (YB-036) — 같은 `news` 채널에 HN 상위 글을 게시.
+ * Google News 와 독립 dedup namespace(`sentHnKeys` = HN item id). 미게시
+ * 상위 글을 최대 maxPerPoll 개. id 는 제목 변경에도 불변 = 안정 키.
+ */
+async function pollHnOnce(
+  client: Client,
+  channelId: string,
+  maxPerPoll: number,
+): Promise<{ status: 'sent' | 'no_story' | 'channel_unreachable'; sent: number }> {
+  let stories;
+  try {
+    stories = await fetchHnTopStories(15);
+  } catch (err) {
+    console.warn('[News/HN] topstories 조회 실패:', err instanceof Error ? err.message : String(err));
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const state = loadState();
+  const seen = new Set(state.sentHnKeys);
+  const fresh = stories.filter((s) => !seen.has(String(s.id))).slice(0, maxPerPoll);
+  if (fresh.length === 0) {
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const channel = await client.channels.fetch(channelId).catch(() => null);
+  if (!channel?.isSendable()) {
+    console.error('[News/HN] 채널을 찾을 수 없거나 메시지를 보낼 수 없습니다:', channelId);
+    return { status: 'channel_unreachable', sent: 0 };
+  }
+
+  let sent = 0;
+  for (const s of fresh) {
+    try {
+      await channel.send({ embeds: [buildHnEmbed(s)] });
+      state.sentHnKeys.push(String(s.id));
+      sent++;
+    } catch (err) {
+      console.warn('[News/HN] 게시 실패:', err instanceof Error ? err.message : String(err));
+    }
+  }
+  if (sent > 0) {
+    state.lastSentAt = new Date().toISOString();
+    saveState(state);
+  }
+  return { status: 'sent', sent };
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 
 /**
@@ -158,6 +213,8 @@ let timer: ReturnType<typeof setInterval> | null = null;
  * - YAWNBOT_NEWS_INTERVAL_MIN — 폴링 간격 (분, 기본 180, 최소 30)
  * - YAWNBOT_NEWS_MAX_AGE_HOURS — 신선 기사 기준 (시간, 기본 12)
  * - YAWNBOT_NEWS_MAX_PER_POLL — 1회 poll 최대 게시 수 (기본 3)
+ * - YAWNBOT_NEWS_HN — Hacker News 흡수 소스 토글 (기본 ON, =0/off/false 면 비활성)
+ * - YAWNBOT_NEWS_HN_PER_POLL — HN 1회 poll 최대 게시 수 (기본 3)
  */
 export function startNewsNotifier(client: Client, getNews: (slug: string) => NewsService, slug: string): void {
   stopNewsNotifier();
@@ -171,6 +228,9 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
   const intervalMin = Math.max(30, parseInt(process.env.YAWNBOT_NEWS_INTERVAL_MIN || '180', 10));
   const maxAgeHours = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_AGE_HOURS || '12', 10));
   const maxPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_PER_POLL || '3', 10));
+  const hnFlag = process.env.YAWNBOT_NEWS_HN?.trim().toLowerCase();
+  const hnEnabled = !(hnFlag === '0' || hnFlag === 'off' || hnFlag === 'false');
+  const hnPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_HN_PER_POLL || '3', 10));
   const intervalMs = intervalMin * 60 * 1000;
 
   const tick = (): void => {
@@ -185,9 +245,14 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
       if (r.status === 'sent') console.log(`[News] 관심사 뉴스 ${r.sent}건 게시 (채널: ${channelId})`);
       else if (r.status === 'no_keywords') console.log('[News] 등록된 관심사 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
     });
+    if (hnEnabled) {
+      void pollHnOnce(client, channelId, hnPerPoll).then((r) => {
+        if (r.status === 'sent') console.log(`[News/HN] Hacker News ${r.sent}건 게시 (채널: ${channelId})`);
+      });
+    }
   };
 
-  console.log(`[News] 관심사 뉴스 알림 활성 (채널: ${channelId}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll})`);
+  console.log(`[News] 관심사 뉴스 알림 활성 (채널: ${channelId}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll}, HN: ${hnEnabled ? `ON(${hnPerPoll}/poll)` : 'OFF'})`);
   tick();
   timer = setInterval(tick, intervalMs);
 }

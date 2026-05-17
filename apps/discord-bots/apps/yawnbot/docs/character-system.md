@@ -89,8 +89,7 @@ AI 호출 시 프롬프트는 다음 순서로 조립된다 (`ASSISTANT_MAX_PROM
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `MEMO_REPO_PATH` | (필수) | `memo` 레포 로컬 경로. 비우면 AI 비서·캐릭터 시스템 전부 비활성화 |
-| `ASSISTANT_USER_ID` | (필수) | 봇이 DM·지정 채널에서 응답할 유저 ID |
-| `ASSISTANT_PUBLIC_CHANNEL_ID` | — | (선택) DM 외 응답할 채널 ID |
+| `ASSISTANT_USER_ID` | (필수) | 봇이 owner DM(+팀방)에서 응답할 유저 ID. 공개 채널 경로는 YB-036 에서 폐기 |
 | `ASSISTANT_AI_PROVIDER` | `gemini` | `gemini` 또는 `claude-cli` |
 | `ASSISTANT_AGENT_REPO_PATH` | — | (`claude-cli`일 때) Claude가 작업할 cwd. 비우면 텍스트 생성만 |
 | `ASSISTANT_DEFAULT_CHARACTER` | `yawn` | `.active.json.default` 가 없을 때 폴백 슬러그 |

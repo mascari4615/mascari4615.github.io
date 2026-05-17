@@ -72,7 +72,7 @@ import { handleAnniversaryList, handleAnniversaryAdd, handleAnniversaryDelete } 
 import { handleNewsKeywordList, handleNewsKeywordAdd, handleNewsKeywordDelete } from './news-keywords';
 import { handleGallery } from './gallery';
 import { handleProfile } from './profile';
-import { handleAtkupUnity, handleAtkupNews } from './atkup';
+import { handleAtkupUnity } from './atkup';
 import { CharacterService } from '../../services/character-service';
 
 /** toJSON() 만 요구하는 구조 타입 — SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
@@ -577,7 +577,6 @@ export const SLASH_COMMANDS: SlashCommand[] = [
     run: async (ctx, interaction) => {
       switch (interaction.options.getSubcommand()) {
         case 'unity': await handleAtkupUnity(ctx, interaction); break;
-        case 'news': await handleAtkupNews(ctx, interaction); break;
         default: await interaction.reply(ephemeral('알 수 없는 atkup 하위 명령입니다.'));
       }
     },
