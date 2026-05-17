@@ -151,7 +151,9 @@ extern "system" {
     fn MessageBeep(u_type: u32) -> i32;
 }
 
-const KARMOLAB_WEB_URL: &str = "https://mascari4615.github.io/karmolab/";
+// KL-064: 사이트가 커스텀 도메인 이전 → github.io 는 301 로 여기로 튕김.
+// frontendDist/allowlist 가 옛 URL 이라 prod 웹뷰가 301 stub 로딩 = 빈화면.
+const KARMOLAB_WEB_URL: &str = "https://blog.mascari4615.com/karmolab/";
 const KARMOLAB_DEV_URL: &str = "http://127.0.0.1:8899/apps/karmolab/index.html";
 const KARMOLAB_DEV_PORT: u16 = 8899;
 
@@ -572,7 +574,10 @@ fn allow_in_webview(url: &Url) -> bool {
             let Some(host) = url.host_str() else {
                 return false;
             };
-            if host == "mascari4615.github.io" {
+            // blog.mascari4615.com = 현재 정식 도메인. mascari4615.github.io =
+            // 옛 도메인(301→blog) — 호환 위해 둘 다 허용 (KL-064: 새 도메인
+            // 미허용 → prod 웹뷰 navigation 거부 → 빈화면 근본).
+            if host == "blog.mascari4615.com" || host == "mascari4615.github.io" {
                 return true;
             }
             // localhost/127.0.0.1 항상 허용. 트레이의 "개발 모드" 토글이 spawn 한 정적 서버를

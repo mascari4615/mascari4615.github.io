@@ -5,7 +5,7 @@
   "identifier": "com.mascari4615.karmolab.dev",
   "build": {
     "devUrl": "http://127.0.0.1:8898/apps/karmolab/",
-    "frontendDist": "https://mascari4615.github.io/karmolab/"
+    "frontendDist": "https://blog.mascari4615.com/karmolab/"
   },
   "app": {
     "withGlobalTauri": true,
