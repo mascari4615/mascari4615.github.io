@@ -120,6 +120,18 @@ declare global {
     field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
     isDesktopApp?: () => boolean;
     escapeHtml?: (s: string) => string;
+    getToolMeta?: (id: string) => Record<string, unknown> | undefined;
+    switchPage?: (id: string) => void;
+    getNavLayout?: () => string;
+    setNavLayout?: (v: string) => void;
+    getTheme?: () => string;
+    setTheme?: (v: string) => void;
+    getPrismTheme?: () => string;
+    setPrismTheme?: (v: string) => void;
+    getPrismThemes?: () => Array<{ id: string; label: string }>;
+    getBgTheme?: () => string;
+    setBgTheme?: (v: string) => void;
+    getBgThemes?: () => Array<{ id: string; label: string }>;
   };
 
 }

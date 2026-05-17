@@ -132,16 +132,16 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
     const wireEvents = async (): Promise<void> => {
       // seam listen 은 Tauri 미주입 시 no-op unlisten 반환 — 콜러 분기 불요.
       try {
-        unlistenLine = await listen('karmolab://terminal-line', (e: any) => {
-          const p = (e?.payload || {}) as TerminalLineEvt;
+        unlistenLine = await listen('karmolab://terminal-line', (e: { payload: unknown }) => {
+          const p = (e.payload || {}) as TerminalLineEvt;
           appendLine(out, p.line ?? '', p.stream === 'stderr' ? 'kt-stderr' : '');
         });
-        unlistenCwd = await listen('karmolab://terminal-cwd', (e: any) => {
-          const p = (e?.payload || {}) as TerminalCwdEvt;
+        unlistenCwd = await listen('karmolab://terminal-cwd', (e: { payload: unknown }) => {
+          const p = (e.payload || {}) as TerminalCwdEvt;
           if (p.cwd) cwdLabel.textContent = `cwd: ${p.cwd}`;
         });
-        unlistenExit = await listen('karmolab://terminal-exit', (e: any) => {
-          const p = (e?.payload || {}) as TerminalExitEvt;
+        unlistenExit = await listen('karmolab://terminal-exit', (e: { payload: unknown }) => {
+          const p = (e.payload || {}) as TerminalExitEvt;
           appendMeta(out, `[셸 종료 — exit code ${p.code ?? '?'}]`);
           setRunning(false);
         });

@@ -1028,7 +1028,7 @@ const Toolbox = (() => {
 
     /* ===== Shared Helpers ===== */
 
-    function showToast(msg, type = 'success', detail) {
+    function showToast(msg: string, type = 'success', detail?: unknown) {
         const t = document.getElementById('statusToast');
         if (!t) return;
         const hasDetail = detail !== undefined && detail !== null && detail !== '';
@@ -1246,7 +1246,7 @@ const Toolbox = (() => {
         return getTheme() === 'light' ? 'ghcolors' : 'tomorrow';
     }
 
-    function setPrismTheme(themeId, silent) {
+    function setPrismTheme(themeId: string, silent = false) {
         const t = PRISM_THEMES.find(x => x.id === themeId);
         if (!t) return;
         localStorage.setItem(PRISM_THEME_KEY, themeId);
