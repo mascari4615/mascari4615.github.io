@@ -90,6 +90,26 @@ export async function runProducerOnce(
     return 'parse-fail';
   }
 
+  // KAR-018-Y-1 중복 dedup: pid 는 결정적(같은 엔벨로프=같은 pid).
+  // proposals.jsonl = 디스패치된 모든 발굴 영속(resolved/materialized
+  // = 그 부분집합) → 이미 인박스면 *거절/대기/승인 재등장* 전부 차단
+  // (KAR-042/038). 재게시 X. substrate-pure(agent-bus 사이클 회피),
+  // 신규 발굴만 통과 = 회귀0.
+  const pid = proposalId(envelope);
+  const seenIds = new Set(readInboxProposals(deps.env).map((e) => e.id));
+  if (seenIds.has(pid)) {
+    appendTrace(deps.env, {
+      ts: new Date().toISOString(),
+      type: 'drift',
+      core: 'producer',
+      reason: `중복 발굴 dedup — 이미 인박스, 재게시 X [${pid}]`,
+    });
+    notify(
+      `⑦' 중복 제안 dedup — 이미 인박스(거절/대기/승인 무관), 재게시 안 함 [${pid}]`,
+    );
+    return 'duplicate';
+  }
+
   const target = routeProposal(envelope);
   const fn = deps.dispatch[target];
   if (!fn) {
@@ -98,7 +118,7 @@ export async function runProducerOnce(
   }
 
   await fn(envelope); // no-auto-exec: dispatch=인박스/seed/엔진게이트까지만
-  const pid = proposalId(envelope);
+  // pid = 위 Y-1 에서 이미 계산(중복 dedup 통과분).
   // KAR-018-V: 명명 에이전트 카드+스레드 게시 (사람 팔로업 가시층).
   // best-effort — 게시 실패가 발굴 파이프 비차단 (Discord 어댑터는 main).
   if (_announcer) {
@@ -463,6 +483,27 @@ export function materializeAgentProposal(
     const display =
       name || coreId.charAt(0).toUpperCase() + coreId.slice(1);
     const src = (payload.source || '').trim() || '⑦\' 자율 발굴';
+    // 워커 판별자 pass-through (KAR-018-X). 없으면 무출력 = 기존 byte-identical.
+    const kind = (payload.kind || '').trim();
+    const domain = (payload.domain || '').trim().toUpperCase();
+    const machine = (payload.machine || '').trim();
+    const isWorker = kind === 'worker';
+    const extraFm = [
+      ...(kind ? [`kind: ${kind}`] : []),
+      ...(domain ? [`domain: ${domain}`] : []),
+      ...(machine ? [`machine: ${machine}`] : []),
+    ];
+    const dutyBullets = isWorker
+      ? [
+          `- ${role}`,
+          `- ⑦(2) 소비자: 자기 도메인(${domain}) ready/seed TASK 를 pull→claim→tier3 실행→#team-bus 자기목소리 보고. autopilot 안전 룰셋(자기 worktree·Draft PR only).`,
+          `- 출처(발굴): ${src}`,
+        ]
+      : [
+          `- ${role}`,
+          `- 자율 작업 발굴(⑦'): 조사→적용성→**task-new seed / (b)objective 제안**으로만 산출. 직접 main 변경 X.`,
+          `- 출처(발굴): ${src}`,
+        ];
     const core = [
       '---',
       `id: ${coreId}`,
@@ -474,6 +515,7 @@ export function materializeAgentProposal(
       'emoji: 🤖',
       `display_name: ${display}`,
       'status: draft',
+      ...extraFm,
       '---',
       '',
       `# ${coreId}`,
@@ -482,9 +524,7 @@ export function materializeAgentProposal(
       '',
       '## 직무',
       '',
-      `- ${role}`,
-      `- 자율 작업 발굴(⑦'): 조사→적용성→**task-new seed / (b)objective 제안**으로만 산출. 직접 main 변경 X.`,
-      `- 출처(발굴): ${src}`,
+      ...dutyBullets,
       '',
       '## 경계 / 금지 (④ 거버넌스)',
       '',
