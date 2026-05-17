@@ -7,11 +7,13 @@
  * - 메시지는 슬러그별 logs/에 즉시 기록 (손실 없음)
  */
 import fs from 'fs';
+import { channelIdFor } from '../services/channel-provision';
 import { Message, DMChannel, TextChannel, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
 import type { ChatContent } from 'karmolab-ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
 import { CharacterService, type CharacterCard } from '../services/character-service';
+import { loadCoreDef, type CoreDef } from '../services/agent-core';
 import { ImageCacheService } from '../services/image-cache-service';
 import type { MoodService } from '../services/mood-service';
 import type { RelationshipService } from '../services/relationship-service';
@@ -293,11 +295,34 @@ const IMAGE_HINT = `
 ## 이미지 기능
 너는 대화에 이미지를 첨부할 수 있어. 사용자가 외모·모습·표정·포즈를 묻거나 시각적인 씬을 요청하면, 응답에 구체적인 시각 묘사(외형, 표정, 배경, 행동)를 자연스럽게 포함해줘. 이미지는 시스템이 자동으로 생성해서 첨부해 줄 거야.`.trim();
 
+/**
+ * 코어 정체성 블록 (KAR-018-V R-1). 코어 바인딩 채널이면 *에이전트가
+ * 누구이고 무슨 일을 하는가*를 스킨(목소리) 위에 얹는다. 정체 > 말투
+ * (충돌 시 정체 우선) — 그래야 "그냥 봇"이 아니라 *동료*가 된다.
+ * coreDef 없으면 빈 문자열 = 레거시 스킨 단독(하위호환 불변).
+ */
+function buildIdentityBlock(coreDef?: CoreDef | null): string {
+  if (!coreDef) return '';
+  return [
+    '[너의 정체 — 변하지 않음, 아래 말투보다 우선]',
+    `너는 "${coreDef.id}". karmoddrine 팀의 *동료 AI 에이전트*다.`,
+    '사람의 보조 도구가 아니라, 사용자와 함께 개발하는 거의 동등한',
+    '팀원이다. 조사·구현·발의를 스스로 한다 (수동 대기 X). 너의',
+    '정체·직무는 아래 "목소리"(말투 스킨)보다 우선한다.',
+    coreDef.role ? `\n직무: ${coreDef.role}` : '',
+    `\n${coreDef.body}`,
+    '\n────────',
+    '[목소리 — 위 정체를, 아래 인격의 말투·세계관으로 표현한다]',
+    '',
+  ].join('\n');
+}
+
 function buildSystemPrompt(
   card: CharacterCard,
   channelType: 'dm' | 'public',
   relationship?: RelationshipService | null,
   mood?: MoodService | null,
+  coreDef?: CoreDef | null,
 ): string {
   const channelDesc =
     channelType === 'dm'
@@ -306,7 +331,7 @@ function buildSystemPrompt(
   const relationshipHint = relationship ? `\n\n${relationship.buildRelationshipHint()}` : '';
   const carryOverHint = mood ? (mood.getCarryOverHint() ?? '') : '';
   const carryOverBlock = carryOverHint ? `\n\n${carryOverHint}` : '';
-  return `${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
+  return `${buildIdentityBlock(coreDef)}${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
 }
 
 function buildFullPrompt(
@@ -314,8 +339,9 @@ function buildFullPrompt(
   memory: MemoryService,
   channelType: 'dm' | 'public',
   userMessage: string,
+  coreDef?: CoreDef | null,
 ): string {
-  const system = buildSystemPrompt(card, channelType);
+  const system = buildSystemPrompt(card, channelType, null, null, coreDef);
   const budget = MAX_PROMPT_CHARS - system.length - userMessage.length - 50;
   const context = memory.buildContext(Math.max(2000, budget));
   const nowKST = new Date().toLocaleString('ko-KR', {
@@ -350,7 +376,7 @@ export async function handleAssistantMessage(
   getRelationship?: (slug: string) => RelationshipService,
 ): Promise<void> {
   const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
-  const publicChannelId = process.env.ASSISTANT_PUBLIC_CHANNEL_ID?.trim();
+  const publicChannelId = channelIdFor('assistant-public');
 
   if (!assistantUserId) return;
 
@@ -408,6 +434,17 @@ export async function handleAssistantMessage(
   }
   const memory = getMemory(card.slug);
   const relationship = getRelationship ? getRelationship(card.slug) : null;
+  // KAR-018-V R-1: 코어 바인딩 채널이면 *코어 정체성*을 스킨 위에 얹는다
+  // (코어=누구·무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
+  const coreId = characterService.resolveCore(channelKey);
+  const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
+  const coreDef =
+    coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
+  if (coreDef) {
+    console.log(
+      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}) — 스킨=목소리`,
+    );
+  }
 
   console.log(
     `[Assistant:${card.slug}] 메시지 수신 [${channelType}] (${userContent.length}자): ${userContent.slice(0, 50)}`,
@@ -455,7 +492,7 @@ export async function handleAssistantMessage(
 
   if (isGemini) {
     // systemInstruction = 캐릭터 카드 + 채널 타입만 (안정적 → Gemini implicit cache 활성화)
-    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood);
+    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood, coreDef);
     // 가변 부분(시각, 기분, 메모리 컨텍스트, 오늘 로그)은 user message에 포함
     const nowKST = new Date().toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -474,7 +511,7 @@ export async function handleAssistantMessage(
     const contextBlock = context ? `\n\n${context}` : '';
     fullPrompt = `[현재 시각] ${nowKST}${moodLine}${contextBlock}\n\n나: ${userContent}`;
   } else {
-    fullPrompt = buildFullPrompt(card, memory, channelType, userContent);
+    fullPrompt = buildFullPrompt(card, memory, channelType, userContent, coreDef);
     if (relationship) {
       fullPrompt = `${relationship.buildRelationshipHint()}\n\n${fullPrompt}`;
     }
