@@ -48,6 +48,12 @@ import { isOwnAgentWebhook } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal } from './bot/agent-bus';
+import {
+  loadCoreDef,
+  listCoreIds,
+  resolveProposalCore,
+  coreLabel,
+} from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
@@ -317,21 +323,40 @@ client.once('clientReady', async () => {
         agentChOverride,
       );
     });
-    // KAR-018-V: 발굴 = 명명 에이전트 카드 + 스레드 (사람 팔로업 가시층).
-    // setTeamBusNotify(저수준 한 줄 audit)는 유지 — 본 announcer 는 발굴
-    // *전용* 풍부 카드. atlas 코어 정체성 소비(평행정의0, 재정의 X).
+    // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
+    // 도메인 라우팅(yb/디스코드 → echo, 그 외 → atlas) = 결정적·순수
+    // (agent-core). 코어 정체성 소비(평행정의0, 재정의 X) — 단일 'atlas'
+    // 하드코딩 폐기, agents/ 디렉토리가 정본. 라우팅 default=atlas =
+    // 기존 전량 atlas 행동 보존(회귀 0).
     setProposalAnnouncer(async (a) => {
-      const card = characterService?.loadCard('atlas') ?? null;
       const channelIds = agentCh
         ? [agentCh]
         : getLocalChannels('agent-team');
+      const payload = a.envelope.payload as unknown as Record<
+        string,
+        unknown
+      >;
+      const coreId = resolveProposalCore(listCoreIds(memoRepoPath), {
+        domain: typeof payload.domain === 'string' ? payload.domain : undefined,
+        explicitCoreId:
+          typeof payload.coreId === 'string' ? payload.coreId : undefined,
+        text: `${a.target} ${JSON.stringify(payload)}`.slice(0, 2000),
+      });
+      const coreDef = memoRepoPath
+        ? loadCoreDef(memoRepoPath, coreId)
+        : null;
+      // 코어의 스킨(목소리/아바타) 카드 = avatar 출처. 코어 정체명은
+      // coreLabel(emoji+displayName) — 봇앱명·하드코딩 X.
+      const skinCard = coreDef
+        ? characterService?.loadCard(coreDef.defaultSkin) ?? null
+        : null;
       await announceProposal(client as any, process.env, channelIds, {
         ...a,
-        agent: card
+        agent: coreDef
           ? {
-              name: card.displayName || card.name || '🛰 Atlas',
-              avatarUrl: card.frontmatter?.avatar_url,
-              coreId: 'atlas',
+              name: coreLabel(coreDef),
+              avatarUrl: skinCard?.frontmatter?.avatar_url,
+              coreId: coreDef.id,
             }
           : { name: '🛰 Atlas', coreId: 'atlas' },
       });

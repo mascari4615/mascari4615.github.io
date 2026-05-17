@@ -22,9 +22,18 @@ export interface CoreDef {
   status: string;
   /** 기본 스킨 id (목소리 미지정 시). */
   defaultSkin: string;
+  /** 디스코드 표시 이모지 (frontmatter emoji, 미지정 시 🛰 — atlas 호환). */
+  emoji: string;
+  /** 디스코드 표시명 (frontmatter display_name, 미지정 시 Id 캐피털). */
+  displayName: string;
   /** core.md 본문 (직무/경계/에스컬레이션 등 — 정체성 상세). */
   body: string;
   frontmatter: Record<string, string>;
+}
+
+/** `emoji displayName` 합성 (디스코드 webhook username·embed author 용). */
+export function coreLabel(c: CoreDef): string {
+  return `${c.emoji} ${c.displayName}`.trim();
 }
 
 /** `---\n…\n---\n본문` 파싱 (character-service 와 동일 규약). */
@@ -60,15 +69,78 @@ export function loadCoreDef(memoRoot: string, coreId: string): CoreDef | null {
     if (!fs.existsSync(p)) return null;
     const { data, body } = parseFrontmatter(fs.readFileSync(p, 'utf-8'));
     if (!body) return null;
+    const resolvedId = data.id?.trim() || id;
     return {
-      id: data.id?.trim() || id,
+      id: resolvedId,
       role: data.role?.trim() || '',
       status: data.status?.trim() || 'draft',
       defaultSkin: data.default_skin?.trim() || '',
+      emoji: data.emoji?.trim() || '🛰',
+      displayName:
+        data.display_name?.trim() ||
+        resolvedId.charAt(0).toUpperCase() + resolvedId.slice(1),
       body,
       frontmatter: data,
     };
   } catch {
     return null;
   }
+}
+
+/**
+ * `memo/.claude/agents/<id>/core.md` 가 있는 코어 id 전부 (정렬). 복수
+ * 동료(KAR-018-V R-4) — 하드코딩 단일 'atlas' 폐기, 디렉토리가 정본.
+ */
+export function listCoreIds(memoRoot: string): string[] {
+  const root = (memoRoot || '').trim();
+  if (!root) return [];
+  try {
+    const dir = path.join(root, '.claude', 'agents');
+    return fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter(
+        (e) =>
+          e.isDirectory() &&
+          SAFE_ID.test(e.name) &&
+          fs.existsSync(path.join(dir, e.name, 'core.md')),
+      )
+      .map((e) => e.name)
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 발굴물 → 담당 코어 id (KAR-018-V R-4 도메인 라우팅, 결정적·순수).
+ *
+ * 규칙 (우선순위):
+ *  1. `explicitCoreId` 가 알려진 코어면 그대로 (skill/agent payload 의
+ *     이미 authoring 된 의도 존중).
+ *  2. 도메인/텍스트가 yawnbot·디스코드 마커를 담고 'echo' 코어 존재 →
+ *     'echo' (콘텐츠/경험 동료).
+ *  3. 그 외 = 'atlas' (존재 시) — *기존 전량 atlas 행동 보존 (회귀 0)*.
+ *  4. atlas 도 없으면 첫 코어 id, 그것도 없으면 'atlas' 문자열.
+ *
+ * 도메인 마커 = TASK-SCHEMA 도메인 prefix 'yb' / yawnbot·discord-bots
+ * 경로. atlas 가 default 라 *yb/디스코드 발굴만* echo 로 재라우팅된다.
+ */
+export function resolveProposalCore(
+  knownCoreIds: string[],
+  hint: { domain?: string; explicitCoreId?: string; text?: string },
+): string {
+  const known = new Set(knownCoreIds);
+  const explicit = (hint.explicitCoreId || '').trim();
+  if (explicit && known.has(explicit)) return explicit;
+
+  const domain = (hint.domain || '').trim().toLowerCase();
+  const text = (hint.text || '').toLowerCase();
+  const isYawnDomain =
+    domain === 'yb' ||
+    /\byb\b/.test(domain) ||
+    /yawnbot|discord-bots|apps\/discord-bots|디스코드 봇|욘봇/.test(text);
+  if (isYawnDomain && known.has('echo')) return 'echo';
+
+  if (known.has('atlas')) return 'atlas';
+  return knownCoreIds.length > 0 ? knownCoreIds[0] : 'atlas';
 }

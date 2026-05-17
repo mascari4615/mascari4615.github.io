@@ -7,7 +7,12 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { loadCoreDef } from './agent-core';
+import {
+  loadCoreDef,
+  listCoreIds,
+  resolveProposalCore,
+  coreLabel,
+} from './agent-core';
 
 let root: string;
 const CORE = [
@@ -47,6 +52,38 @@ describe('loadCoreDef', () => {
     expect(c!.body).toContain('## 직무');
   });
 
+  it('emoji/display_name 미지정 → 기본값(🛰 + Id 캐피털, atlas 호환)', () => {
+    write('atlas', CORE);
+    const c = loadCoreDef(root, 'atlas')!;
+    expect(c.emoji).toBe('🛰');
+    expect(c.displayName).toBe('Atlas');
+    expect(coreLabel(c)).toBe('🛰 Atlas'); // R-1b 회귀: 기존 표시명 불변
+  });
+
+  it('emoji/display_name 명시 → 그대로 (복수 동료 각자 정체)', () => {
+    write(
+      'echo',
+      [
+        '---',
+        'id: echo',
+        'role: yawnbot/콘텐츠 도메인',
+        'default_skin: ling',
+        'emoji: 📣',
+        'display_name: Echo',
+        'status: draft',
+        '---',
+        '',
+        '# echo',
+        '본문',
+      ].join('\n'),
+    );
+    const c = loadCoreDef(root, 'echo')!;
+    expect(c.emoji).toBe('📣');
+    expect(c.displayName).toBe('Echo');
+    expect(c.defaultSkin).toBe('ling');
+    expect(coreLabel(c)).toBe('📣 Echo');
+  });
+
   it('파일 부재 → null (레거시 스킨 단독 fallback)', () => {
     expect(loadCoreDef(root, 'atlas')).toBeNull();
   });
@@ -65,5 +102,60 @@ describe('loadCoreDef', () => {
     const c = loadCoreDef(root, 'x');
     expect(c).not.toBeNull();
     expect(c!.role).toBe('');
+  });
+});
+
+describe('listCoreIds (복수 동료 — 디렉토리가 정본)', () => {
+  it('core.md 있는 디렉토리만 정렬 반환', () => {
+    write('atlas', CORE);
+    write('echo', '---\nid: echo\n---\n\n# echo\n본문');
+    fs.mkdirSync(path.join(root, '.claude', 'agents', 'empty-dir'), {
+      recursive: true,
+    }); // core.md 없음 = 제외
+    expect(listCoreIds(root)).toEqual(['atlas', 'echo']);
+  });
+
+  it('디렉토리 부재 / 빈 root → []', () => {
+    expect(listCoreIds(root)).toEqual([]);
+    expect(listCoreIds('')).toEqual([]);
+  });
+});
+
+describe('resolveProposalCore (R-4 도메인 라우팅 — 결정적·순수)', () => {
+  const KNOWN = ['atlas', 'echo'];
+
+  it('default = atlas (기존 전량 atlas 행동 보존 — 회귀 0)', () => {
+    expect(resolveProposalCore(KNOWN, { text: 'WM 게임 코드 리팩터' })).toBe(
+      'atlas',
+    );
+    expect(resolveProposalCore(KNOWN, {})).toBe('atlas');
+  });
+
+  it('yb 도메인 / yawnbot·디스코드 마커 → echo', () => {
+    expect(resolveProposalCore(KNOWN, { domain: 'yb' })).toBe('echo');
+    expect(
+      resolveProposalCore(KNOWN, { text: 'apps/discord-bots 알림 개선' }),
+    ).toBe('echo');
+    expect(resolveProposalCore(KNOWN, { text: '욘봇 콘텐츠 발굴' })).toBe(
+      'echo',
+    );
+  });
+
+  it('echo 코어 부재 시 yb 도메인도 atlas (graceful)', () => {
+    expect(resolveProposalCore(['atlas'], { domain: 'yb' })).toBe('atlas');
+  });
+
+  it('explicitCoreId 가 알려진 코어면 우선 (authoring 의도 존중)', () => {
+    expect(
+      resolveProposalCore(KNOWN, { explicitCoreId: 'echo', domain: 'kar' }),
+    ).toBe('echo');
+    expect(
+      resolveProposalCore(KNOWN, { explicitCoreId: 'unknown', domain: 'yb' }),
+    ).toBe('echo'); // 미지 explicit 무시 → 도메인 규칙
+  });
+
+  it('알려진 코어 0 → 첫 코어 또는 atlas 문자열 (안전)', () => {
+    expect(resolveProposalCore([], { domain: 'yb' })).toBe('atlas');
+    expect(resolveProposalCore(['zeta'], {})).toBe('zeta');
   });
 });
