@@ -17,7 +17,10 @@
         "resizable": true,
         "decorations": false
       }
-    ]
+    ],
+    "security": {
+      "csp": "default-src 'self' https://mascari4615.github.io; script-src 'self' https://mascari4615.github.io 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://mascari4615.github.io https://*.googleapis.com https://noembed.com https://raw.githubusercontent.com http://127.0.0.1:*; img-src * data: blob:; object-src 'none'"
+    }
   },
   "bundle": {
     "createUpdaterArtifacts": true,
