@@ -1,21 +1,55 @@
-# Set default behavior to automatically normalize line endings.
-* text=auto
+# 정본: memo/dotfiles/gitattributes/gitattributes (TASK-KAR-074).
+# bootstrap.ps1 / sync-gitattributes.ps1 가 3 레포 루트(.github.io / memo /
+# WitchMendokusai) 의 .gitattributes 로 동일 배포. 배포본 직접 편집 X —
+# 정본 편집 후 `powershell -File memo/dotfiles/sync-gitattributes.ps1 -Apply`.
+#
+# 단일 파일을 3 레포에 동일 배포해도 안전: 경로 한정 규칙은 해당 경로가
+# 존재하는 레포에서만 매치(타 레포 = no-op). last-match-wins 라 구체 패턴이
+# `*` 를 덮어쓴다(*.bat=crlf 등).
+#
+# 핵심: `* text=auto eol=lf` — Windows core.autocrlf 의
+# "LF will be replaced by CRLF" 상시 경고를 영구 제거 (저장·워킹카피 모두 LF).
 
-# yawnbot 정적 config — Windows core.autocrlf 의 LF→CRLF 변환이 self-hosted runner 에서 dirty state 만들어 deploy fail (TASK-YB-003 2026-05-09 사고).
-# 정본을 LF 로 강제 — 모든 플랫폼에서 같은 byte.
-apps/discord-bots/apps/yawnbot/config/*.txt text eol=lf
-apps/discord-bots/apps/yawnbot/.env.template text eol=lf
+# 기본 — 텍스트 자동 감지 + 모든 플랫폼 LF.
+* text=auto eol=lf
 
-# Force bash scripts to always use LF line endings so that if a repo is accessed
-# in Unix via a file share from Windows, the scripts will work.
+# 셸 스크립트 = 항상 LF.
 *.sh text eol=lf
 
-# Force batch scripts to always use CRLF line endings so that if a repo is accessed
-# in Windows via a file share from Linux, the scripts will work.
+# Windows 배치 = 항상 CRLF (LF 면 깨짐 — `*` 규칙 override).
 *.{cmd,[cC][mM][dD]} text eol=crlf
 *.{bat,[bB][aA][tT]} text eol=crlf
 
-# Denote all files that are truly binary and should not be modified.
+# github.io 전용: yawnbot 정적 config — self-hosted runner dirty/deploy fail
+# 방지 (TASK-YB-003 2026-05-09 사고). `* eol=lf` 와 동일하나 의도 명시 보존.
+apps/discord-bots/apps/yawnbot/config/*.txt text eol=lf
+apps/discord-bots/apps/yawnbot/.env.template text eol=lf
+
+# WitchMendokusai 전용: FMOD 바이너리성 텍스트 LF 강제.
+Assets/Plugins/FMOD/**/*.bundle text eol=lf
+Assets/Plugins/FMOD/**/Info.plist text eol=lf
+
+# 진짜 바이너리 — 정규화/수정 금지 (`* text=auto` override).
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.gif binary
 *.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.exe binary
+# (*.bundle 은 WM FMOD 가 text eol=lf 로 의도 — global binary 지정 X)
