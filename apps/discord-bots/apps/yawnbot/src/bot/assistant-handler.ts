@@ -13,7 +13,13 @@ import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab
 import type { ChatContent } from 'karmolab-ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
 import { CharacterService, type CharacterCard } from '../services/character-service';
-import { loadCoreDef, coreLabel, type CoreDef } from '../services/agent-core';
+import {
+  loadCoreDef,
+  coreLabel,
+  listCoreIds,
+  resolveAddressedCore,
+  type CoreDef,
+} from '../services/agent-core';
 import { ImageCacheService } from '../services/image-cache-service';
 import type { MoodService } from '../services/mood-service';
 import type { RelationshipService } from '../services/relationship-service';
@@ -443,11 +449,11 @@ export async function handleAssistantMessage(
   }
 
   const channelType: 'dm' | 'public' = isDM ? 'dm' : 'public';
-  const userContent = message.content.trim();
+  let userContent = message.content.trim();
   if (!userContent) return;
 
   // 채널/DM 단위 활성 캐릭터 해석
-  const card = characterService.resolveCard(channelKey);
+  let card = characterService.resolveCard(channelKey);
   if (!card) {
     console.warn('[Assistant] 활성 캐릭터 카드 없음 — 응답 스킵');
     await message.reply('활성 캐릭터 카드가 없어서 대답할 수 없어요. `/character list` 로 확인해봐요.');
@@ -455,8 +461,31 @@ export async function handleAssistantMessage(
   }
   // KAR-018-V R-1: 코어 바인딩 채널이면 *코어 정체성*을 스킨 위에 얹는다
   // (코어=누구·무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
-  const coreId = characterService.resolveCore(channelKey);
+  let coreId = characterService.resolveCore(channelKey);
   const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
+  // KAR-018-V R-4-i2: 단일 #team-bus 다중 코어 — *이름으로 동료를
+  // 부르면* 그 코어가 자기 정체·스킨·기억으로 답한다 ("명명 코어 N"
+  // 실현). 채널 바인딩 코어 = default/lead (호칭 없으면 그대로 = 회귀
+  // 0). 비-팀 방·미지정·미지 핸들 = 불변.
+  if (isTeam && coreMemoRoot) {
+    const known = listCoreIds(coreMemoRoot)
+      .map((id) => loadCoreDef(coreMemoRoot, id))
+      .filter((d): d is CoreDef => d !== null)
+      .map((d) => ({ id: d.id, displayName: d.displayName }));
+    const addressed = resolveAddressedCore(userContent, known);
+    if (addressed && addressed.coreId !== coreId) {
+      const ad = loadCoreDef(coreMemoRoot, addressed.coreId);
+      const skinCard = ad ? characterService.loadCard(ad.defaultSkin) : null;
+      if (ad && skinCard) {
+        console.log(
+          `[Assistant] R-4 이름지정 라우팅: ${coreId ?? '∅'} → ${ad.id} (스킨 ${skinCard.slug})`,
+        );
+        coreId = ad.id;
+        card = skinCard;
+        userContent = addressed.text;
+      }
+    }
+  }
   const coreDef =
     coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
   // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업·
