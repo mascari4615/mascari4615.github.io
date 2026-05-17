@@ -84,6 +84,8 @@ declare global {
   var Toolbox: {
     registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
     getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
+    /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
+    ensureScript?: (path: string) => Promise<void>;
     register: (config: {
       id: string;
       title: string;

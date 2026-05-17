@@ -39,8 +39,13 @@ window.KARMOLAB_LAZY_META = [
     desc: 'AI와 대화합니다',
     layout: 'full',
     icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>',
-    /** load order matters; see widgets/chatbot/README.md */
+    /** load order matters; see widgets/chatbot/README.md.
+     *  KL-054: gemini/marked/prism = eager 제거 → chatbot 첫 진입 시 로드. */
     lazyScriptPaths: [
+      'root/gemini',
+      'vendor/marked.min',
+      'vendor/prism.min',
+      'vendor/prism-autoloader.min',
       'world/world',
       'world/parse-md',
       'world/load-characters-from-wiki',
@@ -60,6 +65,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     icon: '<circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/>',
     lazyScriptPaths: [
+      'root/gemini',
       'world/world',
       'world/parse-md',
       'world/load-characters-from-wiki',
@@ -77,7 +83,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '편집·형식·해상도 변환(PNG·JPEG·WebP 등)을 한 화면에서',
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 3v18" stroke="currentColor" stroke-width="1.5"/><path d="M3 15h18" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="9" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-    lazyScriptPaths: ['imageconvert/imageconvert', 'imageedit']
+    lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
     id: 'imagelib',
@@ -86,7 +92,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '생성한 이미지를 저장하고 관리합니다',
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
-    lazyScriptPaths: ['imagelib']
+    lazyScriptPaths: ['root/gemini', 'imagelib']
   },
   {
     id: 'tierlist',
