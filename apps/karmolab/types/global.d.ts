@@ -104,7 +104,7 @@ declare global {
     } & Record<string, unknown>) => void;
     initTheme: () => void;
     init: () => void;
-    getTools: () => Array<{ id: string }>;
+    getTools: () => Array<{ id: string; hidden?: boolean; category?: string; title?: string; icon?: string }>;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;

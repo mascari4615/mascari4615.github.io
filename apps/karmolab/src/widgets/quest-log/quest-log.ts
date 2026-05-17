@@ -406,7 +406,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
   }
 
-  function escOverview(s: any): string {
+  function escOverview(s: unknown): string {
     return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]!);
   }
 
@@ -1613,7 +1613,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       return String(id).replace(/^TASK-[A-Z]+-/, '');
     }
 
-    function esc(s: any): string { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!)); }
+    function esc(s: unknown): string { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]!)); }
 
     function starsHTML(progress: number, large = false): string {
       const filled = progress * 5;
