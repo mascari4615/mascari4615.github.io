@@ -14,7 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { generateAssistantText, generateDiscoveryText } from 'karmolab-ai/node';
-import { reserveBudget } from './team-room';
+import { reserveBudget, checkAndStampCooldown } from './team-room';
 import {
   SessionRegistry,
   spawnTier3,
@@ -46,8 +46,16 @@ import {
   listCoreIds,
   loadCoreDef,
   coreLabel,
+  resolveProposalCore,
+  appendCoreMemory,
   type CoreDef,
 } from '../services/agent-core';
+import {
+  decideDialogueTurn,
+  buildDialoguePrompt,
+  isDialoguePass,
+  type PeerUtterance,
+} from './agent-dialogue';
 
 // ── kill switch (③ 사람·!kill 최우선 인터럽, B-3) — 순수(테스트가능) ──
 let killed = false;
@@ -444,6 +452,199 @@ export async function runGovernedProducerOnce(
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
 
+// ── 코어↔코어 대화 producer (KAR-018-Y-1, i3b 복원) ──────────
+// 발단 명시 요구("자기들끼리도 대화"). dispatcher 내부 구동(team-room.ts:33
+// 의도) — Discord 재인입 X(self-loop 안전 불변). 한 tick 당 *최대 1턴*
+// (가장 보수적 anti-noise — i3b "노이즈" 우려의 근본 대응=바운드,제거X).
+// 최신 proposal 1건 → 관련 피어 코어가 #team-bus 에서 동료로 1턴 코멘트
+// → 사용자가 승인 결정 시 *동료 관점*도 같이 봄(실시간 팔로업 강화).
+
+/** 응답 코어가 #team-bus 에 자기 정체로 발화 (main.ts 가 sendAsSkin 주입). */
+export type CoreSpeakFn = (coreId: string, text: string) => Promise<boolean>;
+let coreSpeak: CoreSpeakFn | null = null;
+export function setCoreSpeak(fn: CoreSpeakFn): void {
+  coreSpeak = fn;
+}
+
+// 같은 proposal 에 매 tick 재코멘트 방지 (bounded set, ownWebhook 패턴 동형).
+const dialogueCommented = new Set<string>();
+const DIALOGUE_DEDUPE_CAP = 400;
+/** 테스트 전용 — dedupe 상태 리셋 (disarmKill 동형 컨벤션). */
+export function resetDialogueDedupe(): void {
+  dialogueCommented.clear();
+}
+function markCommented(id: string): void {
+  dialogueCommented.add(id);
+  if (dialogueCommented.size > DIALOGUE_DEDUPE_CAP) {
+    const first = dialogueCommented.values().next().value;
+    if (first !== undefined) dialogueCommented.delete(first);
+  }
+}
+
+/** proposals.jsonl 마지막 1줄 → {id, kind, domain, text} (best-effort). */
+function readLatestProposal(
+  memoRoot: string,
+): { id: string; domain?: string; text: string } | null {
+  try {
+    const p = path.join(memoRoot, '.claude', 'proposals.jsonl');
+    const lines = fs.readFileSync(p, 'utf-8').trim().split(/\r?\n/);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const t = lines[i].trim();
+      if (!t) continue;
+      const e = JSON.parse(t);
+      const pl = e.envelope?.payload ?? {};
+      const text = String(pl.title || pl.summary || pl.name || '').trim();
+      if (!e.id || !text) continue;
+      return {
+        id: String(e.id),
+        domain:
+          typeof pl.domain === 'string' ? pl.domain : undefined,
+        text:
+          `${text}\n${String(pl.body || pl.derivation || '').slice(0, 400)}`.trim(),
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export interface CoreDialogueDeps {
+  reserve?: (core: string) => boolean;
+  cooldown?: (core: string) => boolean;
+  generate?: (prompt: string) => Promise<string>;
+  speak?: CoreSpeakFn;
+  notify?: NotifyFn;
+  missionText?: string;
+}
+
+/**
+ * 코어↔코어 1턴 (governed·bounded). kill·예산·쿨다운·체인깊이·dedupe·
+ * PASS 6중 차단 — 명확한 동료 사유 있을 때만 1턴, 아니면 무발화.
+ *  · killed/예산              → 'killed' / 'dialogue-gated'
+ *  · proposal 없음/중복/무응답 → 'dialogue-idle' / '-dup' / '-none'
+ *  · PASS(억지발화 거부)       → 'dialogue-pass'
+ *  · 통과                      → 'dialogue:<responder>' (+trace+코어기억)
+ */
+export async function runCoreDialogueOnce(
+  env: NodeJS.ProcessEnv,
+  deps: CoreDialogueDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const latest = readLatestProposal(memoRoot);
+  if (!latest) return 'dialogue-idle';
+  if (dialogueCommented.has(latest.id)) return 'dialogue-dup';
+
+  const coreIds = listCoreIds(memoRoot);
+  const cores = coreIds
+    .map((id) => loadCoreDef(memoRoot, id))
+    .filter((d): d is CoreDef => d !== null);
+  if (cores.length < 2) return 'dialogue-none';
+
+  const speakerCoreId = resolveProposalCore(coreIds, {
+    domain: latest.domain,
+    text: latest.text,
+  });
+  const u: PeerUtterance = {
+    speakerCoreId,
+    kind: 'proposal',
+    domain: latest.domain,
+    text: latest.text,
+  };
+  const cap = Number(env.TEAM_ROOM_CHAIN_CAP) || 6;
+  const turn = decideDialogueTurn(u, cores, { depth: 0, cap });
+  if (!turn) {
+    markCommented(latest.id); // 응답자 없음 = 매 tick 재평가 X (noise 0)
+    return 'dialogue-none';
+  }
+
+  const reserve =
+    deps.reserve ?? ((c: string) => reserveBudget(c, `dialogue:${c}`));
+  if (!reserve(turn.responderCoreId)) {
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: turn.responderCoreId,
+      reason: `dialogue reserve deny (!kill·예산) — ${latest.id} skip`,
+    });
+    return 'dialogue-gated';
+  }
+  const cooldown =
+    deps.cooldown ??
+    ((c: string) => checkAndStampCooldown(c, 'dialogue'));
+  if (!cooldown(turn.responderCoreId)) return 'dialogue-cooldown';
+
+  const responder = cores.find((c) => c.id === turn.responderCoreId);
+  const speaker = cores.find((c) => c.id === speakerCoreId);
+  if (!responder) return 'dialogue-none';
+  const speakerLabel = speaker ? coreLabel(speaker) : speakerCoreId;
+  const missionText = deps.missionText ?? readMissionText(env);
+
+  const generate =
+    deps.generate ??
+    (async (prompt: string) => {
+      const { text } = await generateAssistantText(
+        {
+          ...env,
+          ASSISTANT_AI_PROVIDER: 'claude-cli',
+          ASSISTANT_AGENT_REPO_PATH: '', // 비-agentic (발굴 hang 교훈)
+        },
+        prompt,
+        { timeoutMs: Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000 },
+      );
+      return text;
+    });
+
+  let text = '';
+  try {
+    text = await generate(
+      buildDialoguePrompt(responder, speakerLabel, u, missionText),
+    );
+  } catch (e) {
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: turn.responderCoreId,
+      reason: `dialogue 생성 실패 — ${e instanceof Error ? e.message : e}`,
+    });
+    return 'dialogue-error';
+  }
+
+  if (isDialoguePass(text)) {
+    markCommented(latest.id);
+    return 'dialogue-pass';
+  }
+
+  const reply = text.trim().slice(0, 1500);
+  const speak =
+    deps.speak ??
+    coreSpeak ??
+    (async (cid: string, t: string) => {
+      (deps.notify ?? defaultNotify(env))(`${coreLabel(responder)}: ${t}`);
+      void cid;
+      return true;
+    });
+  await speak(turn.responderCoreId, reply);
+
+  appendTrace(env, {
+    ts: new Date().toISOString(),
+    type: 'drift',
+    core: turn.responderCoreId,
+    reason: `#team-bus 코어대화: ${turn.reason} → "${reply.slice(0, 80)}"`,
+  });
+  appendCoreMemory(memoRoot, turn.responderCoreId, {
+    session: 'cadence',
+    type: 'insight',
+    topic: 'team-dialogue',
+    summary: `${speakerLabel} 제안(${latest.id})에 동료로 응답: ${reply.slice(0, 200)}`,
+  });
+  markCommented(latest.id);
+  return `dialogue:${turn.responderCoreId}`;
+}
+
 // ── ⑦(2) 소비자 워커 cadence (KAR-018-X, slot A) ────────────
 // 생산자(atlas/echo=⑦' 발굴→제안)의 *짝*. 도메인별 전용 워커 코어가
 // 자기 prefix 의 ready/seed TASK 를 pull→claim→tier3 실행→#team-bus
@@ -732,6 +933,20 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
         const w = await runWorkerConsumerOnce(env);
         if (w && w !== 'no-workers' && w !== 'no-memo-root') {
           r = `${r}+worker:${w}`;
+        }
+      }
+      // 코어↔코어 1턴 (KAR-018-Y-1, i3b 복원): 최신 제안에 관련 피어
+      // 코어가 #team-bus 에서 동료로 코멘트 → 팀이 실제로 *대화*하고
+      // 사용자가 그 관점까지 보고 실시간 팔로업. tick 당 최대 1턴(bounded).
+      if (memoRoot && !isKilled()) {
+        const d = await runCoreDialogueOnce(env);
+        if (
+          d &&
+          !['dialogue-idle', 'dialogue-dup', 'dialogue-none', 'no-memo-root'].includes(
+            d,
+          )
+        ) {
+          r = `${r}+${d}`;
         }
       }
       console.log(`[AgentCadence] tick -> ${r}`);
