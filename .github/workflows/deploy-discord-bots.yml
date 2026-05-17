@@ -54,6 +54,49 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
+      - name: Sync prod memo (안전 — reset 금지, 봇 런타임 보존)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: 'C:\Users\masca\repos\karmoddrine\memo'
+        # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
+        # 런타임에 읽고 .active.json·기억은 *써서* commitIfDirty 로 로컬
+        # 커밋한다. github.io 식 reset --hard 절대 X (prod 런타임·미푸시
+        # 봇 커밋 파괴). fetch → ff-only, 분기 시 merge-commit(히스토리
+        # 보존, rebase X = 동시쓰기 안전), tracked-dirty/충돌 시 skip
+        # (deploy 비차단). pull-only(outbound side-effect 0). KAR-018-V —
+        # 신규 코어(echo)가 prod 에 도달하는 *유일 근본 경로*. 자동 동기
+        # 부재 = "Atlas 밖에 없는데" 의 진짜 원인 (deploy 는 github.io 만
+        # reset, memo 동기 메커니즘 0개였음).
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
+          & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
+          $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
+          if ($branch -ne 'main') {
+            Write-Warning "[memo-sync] 브랜치 '$branch' != main — skip (강제전환 X, prod 안전). deploy 계속."
+            exit 0
+          }
+          & git fetch origin main 2>&1
+          if ($LASTEXITCODE -ne 0) { Write-Warning '[memo-sync] fetch 실패 — skip (deploy 계속)'; exit 0 }
+          # tracked 변경(봇 mid-write 추정)만 차단. untracked 런타임
+          # (discoveries/logs/life) 은 merge 비차단이라 무시.
+          $dirtyTracked = (& git status --porcelain --untracked-files=no 2>$null | Where-Object { $_ -ne '' })
+          if ($dirtyTracked) {
+            Write-Warning '[memo-sync] tracked 작업트리 dirty (봇 쓰기 중 추정) — 이번 cycle skip, 다음 deploy 재시도 (prod 보존).'
+            exit 0
+          }
+          $local = (& git rev-parse HEAD 2>$null)
+          $remote = (& git rev-parse origin/main 2>$null)
+          if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
+          & git merge --ff-only origin/main 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
+          & git merge --no-edit origin/main 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] merge-commit -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 충돌 → 절대 conflicted 상태로 두지 X. abort+skip, deploy 계속.
+          & git merge --abort 2>&1 | Out-Null
+          Write-Warning '[memo-sync] merge 충돌 — abort+skip (prod 보존, deploy 계속). 수동 해소 필요.'
+          exit 0
+
       - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.YAWNBOT_DIR }}
