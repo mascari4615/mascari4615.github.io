@@ -1,0 +1,7 @@
+# TASK-KL-064: `tauri dev` 파일워처 제외.
+# permissions/_generated = build.rs 파생물 (KL-063). build.rs 가 idempotent
+# 라 보통은 안 바뀌지만, 워처가 이 디렉토리를 아예 안 보게 해서 codegen
+# 산출물이 절대 리빌드 루프를 못 만들게 한다 (belt-and-suspenders).
+permissions/_generated/
+binaries/
+target/
