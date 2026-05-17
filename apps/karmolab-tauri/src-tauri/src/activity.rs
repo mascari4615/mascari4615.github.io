@@ -33,14 +33,15 @@ mod platform {
     use std::os::windows::ffi::OsStringExt;
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    use winapi::shared::minwindef::{DWORD, FALSE};
-    use winapi::um::handleapi::CloseHandle;
-    use winapi::um::processthreadsapi::OpenProcess;
-    use winapi::um::psapi::GetModuleBaseNameW;
-    use winapi::um::winnt::{PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ};
-    use winapi::um::winuser::{
-        GetForegroundWindow, GetLastInputInfo, GetWindowTextLengthW, GetWindowTextW,
-        GetWindowThreadProcessId, LASTINPUTINFO,
+    use windows_sys::Win32::Foundation::CloseHandle;
+    use windows_sys::Win32::System::ProcessStatus::GetModuleBaseNameW;
+    use windows_sys::Win32::System::SystemInformation::GetTickCount;
+    use windows_sys::Win32::System::Threading::{
+        OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ,
+    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetForegroundWindow, GetWindowTextLengthW, GetWindowTextW, GetWindowThreadProcessId,
     };
 
     pub fn sample(idle_threshold_secs: u64) -> ActivitySample {
@@ -76,7 +77,7 @@ mod platform {
                 return None;
             }
             // GetTickCount는 wraparound이지만 단기 비교엔 충분.
-            let now_ms = winapi::um::sysinfoapi::GetTickCount() as u64;
+            let now_ms = GetTickCount() as u64;
             let last_ms = info.dwTime as u64;
             Some(now_ms.saturating_sub(last_ms) / 1000)
         }
@@ -106,20 +107,20 @@ mod platform {
         };
 
         // 프로세스 PID + 실행 파일명
-        let mut pid: DWORD = 0;
+        let mut pid: u32 = 0;
         GetWindowThreadProcessId(hwnd, &mut pid);
         let process = process_name(pid).unwrap_or_default();
 
         (process, title)
     }
 
-    unsafe fn process_name(pid: DWORD) -> Option<String> {
+    unsafe fn process_name(pid: u32) -> Option<String> {
         if pid == 0 {
             return None;
         }
         let handle = OpenProcess(
             PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ,
-            FALSE,
+            0,
             pid,
         );
         if handle.is_null() {

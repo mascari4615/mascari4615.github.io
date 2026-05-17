@@ -116,10 +116,22 @@ export function parseProposalEnvelope(raw: string): ProposalEnvelope | null {
   if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) {
     return null;
   }
-  if (!payloadValid(kind as ProposalKind, payload as Record<string, unknown>)) {
+  // KAR-018-Y 회귀 근본 (차분 실증): buildDiscoveryPrompt 가 본문 필드를
+  // *불릿*으로 요구 → 모델이 string[] 반환하는데 payloadValid 는 문자열
+  // 요구 → NULL 폐기(프롬프트↔파서 계약 드리프트). 계약 일치 = 알려진
+  // 자유텍스트 필드가 string[] 이면 줄바꿈 join 으로 정규화(프롬프트가
+  // 시키는 형식을 파서가 수용). env.targetFiles(배열 정당)는 미접촉.
+  const p = payload as Record<string, unknown>;
+  for (const k of ['summary', 'derivation', 'alignment', 'body', 'role'] as const) {
+    const v = p[k];
+    if (Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === 'string')) {
+      p[k] = (v as string[]).map((s) => s.trim()).filter(Boolean).join('\n');
+    }
+  }
+  if (!payloadValid(kind as ProposalKind, p)) {
     return null;
   }
-  return { kind, payload } as ProposalEnvelope;
+  return { kind, payload: p } as unknown as ProposalEnvelope;
 }
 
 /**
