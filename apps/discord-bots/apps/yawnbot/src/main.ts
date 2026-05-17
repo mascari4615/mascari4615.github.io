@@ -31,7 +31,8 @@ import { handleButtonInteraction } from './bot/buttons';
 import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
-import { makeThreadRouter } from './bot/agent-thread-router';
+import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
+import { recordDecision } from './bot/agent-decisions';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
@@ -212,6 +213,36 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
   await handleReaction(buildCtx(), reaction, user).catch((e) =>
     console.error('[ReactionAdd]', e instanceof Error ? e.message : e),
   );
+});
+
+// KAR-018-Y 양방향 스레드 (발단 완료조건 #2 "escalation 승인 루프 닫힘"):
+// 워커가 TASK 스레드에 "A/B?" 물으면 사용자가 그 스레드에 답글 → 여기서
+// 결정 기록 → 다음 워커 pickup 시 buildWorkerPrompt 가 임베드(자가구동).
+// 별 핸들러(기존 핸들러 루프가드 비간섭). 스레드명=TASK id 만 대상.
+client.on('messageCreate', async (message) => {
+  try {
+    if (message.author.bot || !memoRepoPath) return;
+    const ch = message.channel;
+    if (!ch.isThread()) return;
+    const taskId = extractTaskId(ch.name || '');
+    if (!taskId) return;
+    const text = (message.content || '').trim();
+    if (!text) return;
+    const ok = recordDecision(memoRepoPath, {
+      taskId,
+      text,
+      by: message.author.username,
+    });
+    await message
+      .reply(
+        ok
+          ? `✅ 결정 기록 — 다음 \`${taskId}\` 워커 픽업에 반영됩니다.`
+          : `⚠ 결정 기록 실패(파일). 다시 시도해 주세요.`,
+      )
+      .catch(() => undefined);
+  } catch {
+    /* 결정 캡처 실패가 봇 막지 X */
+  }
 });
 
 client.on('messageCreate', async (message) => {

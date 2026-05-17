@@ -16,6 +16,10 @@ import { execSync } from 'child_process';
 import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
 import { getInstallationToken } from './github-app-token';
 import {
+  getDecisionsForTask,
+  formatDecisionsBlock,
+} from './agent-decisions';
+import {
   resolveDomainRepo,
   workerBranchName,
   workerWorktreeDir,
@@ -755,6 +759,7 @@ export function buildWorkerPrompt(
   missionText: string,
   specText?: string,
   worktreeBranch?: string,
+  decisionsText?: string,
 ): string {
   // KAR-018-Y: agentic 워커 cwd = *도메인 코드 repo* worktree(github.io
   // 등)라 memo 스펙 경로(memo\tasks\..)가 거기 없음 → claude 가 "스펙
@@ -792,6 +797,7 @@ export function buildWorkerPrompt(
     `[작업 위치] 현재 cwd = 도메인 *코드 repo* 의 격리 worktree. memo`,
     `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
     '',
+    ...(decisionsText ? [decisionsText, ''] : []),
     ...specBlock,
     '[절차]',
     `1. 위 [TASK 스펙] 본문 + cwd 내 코드·정본 정독. 진단 우선(가설 박기 X).`,
@@ -1063,7 +1069,14 @@ export async function runWorkerConsumerOnce(
     const req: Tier3Request = {
       core: w.coreId,
       machine: w.machine,
-      prompt: buildWorkerPrompt(chosen, missionText, specText, wt?.branch),
+      prompt: buildWorkerPrompt(
+        chosen,
+        missionText,
+        specText,
+        wt?.branch,
+        formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) ||
+          undefined,
+      ),
       repoCwd: wt?.cwd,
     };
     // KAR-018-Y: github.io push/PR 자격 = GitHub App installation 토큰
