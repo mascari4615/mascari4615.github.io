@@ -16,6 +16,8 @@ jobs:
     runs-on: [self-hosted, windows, laptop, yawnbot]
     timeout-minutes: 8
     steps:
+      - name: Checkout (for .github/scripts/diag-discovery.cjs)
+        uses: actions/checkout@v4
       - name: Diagnose claude and service account
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
