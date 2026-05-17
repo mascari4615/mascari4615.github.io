@@ -35,7 +35,7 @@ import {
   materializedPath,
   resolvedLedgerPath,
 } from './proposal-adapter';
-import { loadCoreDef } from '../services/agent-core';
+import { loadCoreDef, appendCoreMemory } from '../services/agent-core';
 import { sendAsSkin, WebhookPermissionError } from './agent-webhook';
 import type { CharacterCard } from '../services/character-service';
 
@@ -144,6 +144,8 @@ export interface ProposalMsgEntry {
   target: string;
   title: string;
   ts: string;
+  /** 발의 코어 id (KAR-018-Z-2 — 결과를 그 코어 mem 에 학습). */
+  coreId?: string;
 }
 
 export function proposalMsgsPath(env: NodeJS.ProcessEnv): string {
@@ -310,6 +312,19 @@ export async function handleProposalReaction(
       reason: `discord reaction by ${user.id}`,
     });
     markResolved(env, entry.id, decision);
+
+    // KAR-018-Z-2: 코어가 자기 제안 결과를 *기억·학습* (승인=수용된
+    // 방향 / 거절=반복 X — Y-2 거절학습과 동근). best-effort·비차단.
+    if (entry.coreId) {
+      appendCoreMemory(env.MEMO_REPO_PATH?.trim() || '', entry.coreId, {
+        session: 'proposal-resolution',
+        type: decision === 'approved' ? 'decision' : 'fail',
+        topic: `${entry.kind} ${entry.id}`,
+        summary: `제안 "${entry.title}" → 사장 ${
+          decision === 'approved' ? '승인(수용된 방향)' : '거절(반복 X)'
+        }`,
+      });
+    }
 
     let result: string;
     if (decision === 'approved') {
@@ -533,6 +548,7 @@ export async function announceProposal(
         target: ann.target,
         title: safeTitle,
         ts: new Date().toISOString(),
+        coreId: ann.agent?.coreId, // Z-2: 결과를 이 코어 mem 에 학습
       });
     } catch (e) {
       console.error(

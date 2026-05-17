@@ -18,6 +18,7 @@ import {
   coreLabel,
   listCoreIds,
   resolveAddressedCore,
+  readRecentCoreMemory,
   type CoreDef,
 } from '../services/agent-core';
 import { ImageCacheService } from '../services/image-cache-service';
@@ -327,6 +328,7 @@ function buildSystemPrompt(
   relationship?: RelationshipService | null,
   mood?: MoodService | null,
   coreDef?: CoreDef | null,
+  coreMemo?: string,
 ): string {
   const channelDesc =
     channelType === 'dm'
@@ -344,6 +346,9 @@ function buildSystemPrompt(
       '개발하는 거의 동등한 팀원이다. 스스로 조사·구현·발의한다.',
       coreDef.role ? `\n직무: ${coreDef.role}` : '',
       `\n${coreDef.body}`,
+      coreMemo
+        ? `\n[너의 최근 기억 — 네가 한 작업·받은 결과. 세션이 바뀌어도\n 이걸 토대로 일관되게 말하라 (모르는 척 X, 반복 X)]\n${coreMemo}`
+        : '',
       '',
       '[중요 — 위반 금지]',
       '너는 가상 캐릭터가 아니다. 메이드·마녀·인형·마법저택 같은',
@@ -367,8 +372,16 @@ function buildFullPrompt(
   channelType: 'dm' | 'public',
   userMessage: string,
   coreDef?: CoreDef | null,
+  coreMemo?: string,
 ): string {
-  const system = buildSystemPrompt(card, channelType, null, null, coreDef);
+  const system = buildSystemPrompt(
+    card,
+    channelType,
+    null,
+    null,
+    coreDef,
+    coreMemo,
+  );
   const budget = MAX_PROMPT_CHARS - system.length - userMessage.length - 50;
   const context = memory.buildContext(Math.max(2000, budget));
   const nowKST = new Date().toLocaleString('ko-KR', {
@@ -488,6 +501,12 @@ export async function handleAssistantMessage(
   }
   const coreDef =
     coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
+  // KAR-018-Z-2: 코어가 *자기 최근 작업·결과를 기억*하고 답하도록
+  // 시스템 프롬프트에 주입(non-dead). 비-코어=빈문자(레거시 불변).
+  const coreMemo =
+    coreDef && coreMemoRoot
+      ? readRecentCoreMemory(coreMemoRoot, coreDef.id, 8)
+      : '';
   // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업·
   // 대화를 기억 — 스킨 alisa 잡담과 안 섞임). 비-코어=스킨 slug(불변).
   const memorySlug = coreDef ? coreDef.id : card.slug;
@@ -545,7 +564,7 @@ export async function handleAssistantMessage(
 
   if (isGemini) {
     // systemInstruction = 캐릭터 카드 + 채널 타입만 (안정적 → Gemini implicit cache 활성화)
-    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood, coreDef);
+    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood, coreDef, coreMemo);
     // 가변 부분(시각, 기분, 메모리 컨텍스트, 오늘 로그)은 user message에 포함
     const nowKST = new Date().toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -564,7 +583,7 @@ export async function handleAssistantMessage(
     const contextBlock = context ? `\n\n${context}` : '';
     fullPrompt = `[현재 시각] ${nowKST}${moodLine}${contextBlock}\n\n나: ${userContent}`;
   } else {
-    fullPrompt = buildFullPrompt(card, memory, channelType, userContent, coreDef);
+    fullPrompt = buildFullPrompt(card, memory, channelType, userContent, coreDef, coreMemo);
     if (relationship) {
       fullPrompt = `${relationship.buildRelationshipHint()}\n\n${fullPrompt}`;
     }
