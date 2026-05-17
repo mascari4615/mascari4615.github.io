@@ -31,19 +31,21 @@ jobs:
     if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - name: Check PAT availability
-        # 누락 시 silent 실패 방지 — visible ::error:: (auto-merge.yml 정합).
-        env:
-          PAT: ${{ secrets.PAT_FOR_AUTO_MERGE }}
-        run: |
-          if [ -z "$PAT" ]; then
-            echo "::error::secret PAT_FOR_AUTO_MERGE 누락 — autopilot graduate 차단됨."
-            exit 1
-          fi
+      # 로컬 composite action 사용 위해 checkout (workflow_run = 기본브랜치 master 체크아웃).
+      - uses: actions/checkout@v4
+
+      - name: Resolve merge token (App → PAT fallback)
+        # 단일 정본 = .github/actions/resolve-merge-token (auto-merge.yml 와 공유, KL-048).
+        id: tok
+        uses: ./.github/actions/resolve-merge-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.PAT_FOR_AUTO_MERGE }}
 
       - name: Resolve PR + guards + ready + merge
         env:
-          GH_TOKEN: ${{ secrets.PAT_FOR_AUTO_MERGE }}
+          GH_TOKEN: ${{ steps.tok.outputs.token }}
           GH_REPO: ${{ github.repository }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
