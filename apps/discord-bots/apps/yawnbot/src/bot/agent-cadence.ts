@@ -823,17 +823,24 @@ function runMemoScript(
 /**
  * 워커 격리 worktree 셋업 (KAR-018-Y). 도메인 repo HEAD 에서 feature
  * 브랜치 worktree add → 그 경로 반환(=agentic claude cwd). main worktree
- * HEAD swap 0(별 경로). 실패/미지원 도메인 = null → caller 비-agentic 폴백.
+ * HEAD swap 0(별 경로). 실패/미지원 = `{error}` (caller 가 trace+#team-bus
+ * 에 surface → silent 폴백 X, 다음 틱이 원인 자가표면화. KAR-018-Y 계측).
  * fetch X(결정적·경량 — 최신 정본은 claude 가 프롬프트 지시대로 git fetch).
  */
+type WorktreeSetup =
+  | { cwd: string; repoRoot: string; wtDir: string; branch: string }
+  | { error: string };
+
 function setupWorkerWorktree(
   memoRoot: string,
   coreId: string,
   taskId: string,
-): { cwd: string; repoRoot: string; wtDir: string; branch: string } | null {
+): WorktreeSetup {
   const umbrella = path.dirname(memoRoot);
   const repo = resolveDomainRepo(coreId, umbrella);
-  if (!repo || !fs.existsSync(repo.repoRoot)) return null;
+  if (!repo) return { error: `domain-unresolved(core=${coreId})` };
+  if (!fs.existsSync(repo.repoRoot))
+    return { error: `repo-missing(${repo.repoRoot})` };
   const now = new Date();
   const branch = workerBranchName(taskId, now);
   const wtDir = workerWorktreeDir(umbrella, coreId, taskId, now);
@@ -843,8 +850,10 @@ function setupWorkerWorktree(
       { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
     );
     return { cwd: wtDir, repoRoot: repo.repoRoot, wtDir, branch };
-  } catch {
-    return null;
+  } catch (e: unknown) {
+    const x = e as { stderr?: Buffer; message?: string };
+    const raw = (x.stderr?.toString() || x.message || String(e)).trim();
+    return { error: `worktree-add: ${raw.replace(/\s+/g, ' ').slice(0, 280)}` };
   }
 }
 
@@ -981,7 +990,9 @@ export async function runWorkerConsumerOnce(
     // KAR-018-Y: 도메인 repo 격리 worktree 셋업 → agentic claude cwd.
     // 미지원/실패 = wt null → 비-agentic 폴백(산출 0, 단 trace·메시지에
     // 명시 — 종전 silent theater 와 달리 *관측가능*).
-    const wt = setupWorkerWorktree(memoRoot, w.coreId, chosen.id);
+    const wtRes = setupWorkerWorktree(memoRoot, w.coreId, chosen.id);
+    const wt = 'error' in wtRes ? null : wtRes;
+    const wtErr = 'error' in wtRes ? wtRes.error : null;
     const req: Tier3Request = {
       core: w.coreId,
       machine: w.machine,
@@ -998,7 +1009,7 @@ export async function runWorkerConsumerOnce(
       ts: new Date().toISOString(),
       type: 'budget',
       core: w.coreId,
-      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ' non-agentic-fallback'}`,
+      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}`,
     });
     if (res.status === 'done') {
       const report = (res.text || '')
@@ -1007,7 +1018,7 @@ export async function runWorkerConsumerOnce(
         .slice(0, 500);
       const head = wt
         ? `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` (Draft PR 검토 대기). 도메인=${w.domain}`
-        : `${w.label} ⚠ ${chosen.id} 처리했으나 격리 worktree 미생성 = 비-agentic 폴백(실산출 0). 도메인=${w.domain}`;
+        : `${w.label} ⚠ ${chosen.id} 처리했으나 격리 worktree 실패 = 비-agentic 폴백(실산출 0). 사유: ${wtErr}. 도메인=${w.domain}`;
       noteWorkerStatus(
         w.coreId,
         report ? `${head}\n· 보고: ${report}` : head,
