@@ -39,6 +39,17 @@ jobs:
             echo "[auto-draft-pr] PR already open for $BR — skip"
             exit 0
           fi
+          # no-diff 가드 (KAR-018-Y): 워커가 no-op task(기머지/진단만)에서
+          # 브랜치만 push 하면 base 대비 0 commit → 빈 PR=노이즈(리뷰·
+          # graduate 낭비). compare API 의 ahead_by==0 이면 PR 미생성.
+          ahead=$(gh api "repos/$GH_REPO/compare/master...$BR" --jq '.ahead_by' 2>/dev/null || echo "err")
+          if [ "$ahead" = "0" ]; then
+            echo "[auto-draft-pr] $BR ahead_by=0 (no diff vs master) — PR 미생성 skip (빈 PR 방지)"
+            exit 0
+          fi
+          if [ "$ahead" = "err" ]; then
+            echo "[auto-draft-pr] compare 조회 실패 — 보수적으로 생성 시도"
+          fi
           title="autopilot: ${BR#feature/autopilot-task-}"
           gh pr create --draft --head "$BR" --base master \
             --title "$title" \
