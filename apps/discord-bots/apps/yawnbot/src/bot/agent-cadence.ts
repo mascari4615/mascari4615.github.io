@@ -72,6 +72,40 @@ export function isKilled(): boolean {
 // 프로세스 1개 = 단일 레지스트리 (per-agent 동시1, B-2).
 const registry = new SessionRegistry();
 
+/**
+ * 에이전트 대화·발굴 Gemini 호출 — **Vertex 우선, 실패 시 AI Studio 폴백**
+ * (사용자 결정 KAR-018-Y, 2026-05-17). prod Vertex creds 미설정/실패 시
+ * GEMINI_API_KEY(AI Studio, prod set)로 자동 폴백 → 즉시 unblock + Vertex
+ * 의도 유지. 둘 다 실패면 throw(caller graceful — 발굴 실패 trace).
+ * ASSISTANT_AI_PROVIDER=gemini 고정(claude-cli 아님 — 코드/문서 tier3 만
+ * Claude). 코어↔코어 대화·⑦' 발굴 공통(중복 정의 0).
+ */
+async function generateAgentText(
+  env: NodeJS.ProcessEnv,
+  prompt: string,
+  timeoutMs: number,
+): Promise<string> {
+  // surface 는 generateAssistantText 옵션 아님 — env(KARMOLAB_AI_SURFACE)
+  // 로만 제어(parseGenerativeSurfaceFromEnv). Vertex 강제 → 실패 시
+  // aiStudio 강제 env 로 폴백.
+  const base = { ...env, ASSISTANT_AI_PROVIDER: 'gemini' };
+  try {
+    const r = await generateAssistantText(
+      { ...base, KARMOLAB_AI_SURFACE: 'vertex' },
+      prompt,
+      { timeoutMs },
+    );
+    return r.text;
+  } catch {
+    const r = await generateAssistantText(
+      { ...base, KARMOLAB_AI_SURFACE: 'aiStudio' },
+      prompt,
+      { timeoutMs },
+    );
+    return r.text;
+  }
+}
+
 /** Tier3Deps 충전 — 어댑터가 substrate dispatcher 에 주입하는 DI. */
 export function buildTier3Deps(env: NodeJS.ProcessEnv): Tier3Deps {
   return {
@@ -445,19 +479,15 @@ export async function runGovernedProducerOnce(
   }
   const discover: DiscoverFn =
     opts.discover ??
-    (async () => {
-      // 사용자 결정(KAR-018-Y, 2026-05-17): discovery·대화 = Gemini(Vertex,
-      // 기존 yawnbot 대화 경로) / 코드·문서 수정(tier3)만 Claude. 비-agentic
-      // claude-cli 단발 = 페르소나·구조화 출력에 거부·비결정 prod 실증
-      // (regex/프롬프트 whack-a-mole). Gemini = 거부 X·빠름·JSON 안정 +
-      // 본질적 비-agentic(도구·fs 0 — 빈 cwd 안전장치 불요).
-      const { text } = await generateAssistantText(
-        { ...env, ASSISTANT_AI_PROVIDER: 'gemini' },
+    (() =>
+      // discovery·대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
+      // KAR-018-Y) / 코드·문서(tier3)만 Claude. Gemini = 페르소나 거부 X·
+      // 빠름·JSON 안정·본질적 비-agentic.
+      generateAgentText(
+        env,
         buildDiscoveryPrompt(readMissionText(env), gatherDiscoveryContext(env)),
-        { timeoutMs: Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000 },
-      );
-      return text;
-    });
+        Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
+      ));
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
 
@@ -594,19 +624,14 @@ export async function runCoreDialogueOnce(
 
   const generate =
     deps.generate ??
-    (async (prompt: string) => {
-      const { text } = await generateAssistantText(
-        {
-          ...env,
-          // 사용자 결정(KAR-018-Y): 코어↔코어 대화 = Gemini(Vertex) —
-          // claude-cli 페르소나 거부 prod 실증. Gemini 본질적 비-agentic.
-          ASSISTANT_AI_PROVIDER: 'gemini',
-        },
+    ((prompt: string) =>
+      // 코어↔코어 대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
+      // KAR-018-Y). claude-cli 페르소나 거부 prod 실증 → Gemini.
+      generateAgentText(
+        env,
         prompt,
-        { timeoutMs: Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000 },
-      );
-      return text;
-    });
+        Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
+      ));
 
   let text = '';
   try {
