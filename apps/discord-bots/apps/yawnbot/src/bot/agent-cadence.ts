@@ -883,6 +883,41 @@ export async function runCadenceOnce(
   return res.status;
 }
 
+/**
+ * tick 결과 코드 → #team-bus 하트비트 한 줄 (순수·사장 평이체).
+ * KAR-018-Y-2: tick 결과가 노트북 console.log 에만 있어 사용자(=yawnbot
+ * Discord 정보 인터페이스)에 *팀이 살아있음이 안 보임*. 의미 있는 활동만
+ * 한 줄 요약, 순수 idle 은 null(스팸 X — process.md 백그라운드 자율종료
+ * 정신 + 발굴 글쓰기 규칙: 내부 코드명·§조항 X, 짧게).
+ * 의미 활동 = 발굴 dispatch / 워커 착수 / 제안 머터리얼 / 코어대화 /
+ * 승인대기(escalate) / 예산정지 / 드리프트차단. 그 외(gated·idle) = null.
+ */
+export function summarizeTick(r: string): string | null {
+  const s = (r || '').trim();
+  if (!s) return null;
+  const bits: string[] = [];
+  const dlg = s.match(/dialogue:([a-z0-9_-]+)/i);
+  if (dlg) bits.push(`동료 ${dlg[1]} 가 팀 채팅에 한마디 보탬`);
+  const wk = s.match(/\+worker:([^+]+)/);
+  if (wk) {
+    for (const seg of wk[1].split(',')) {
+      const m = seg.match(/^([a-z0-9_-]+):done:([A-Z]+-[A-Z]*-?\d+|\S+)/i);
+      if (m) bits.push(`${m[1]} 가 «${m[2]}» 자율 착수 (검토 대기)`);
+    }
+  }
+  const cons = s.match(/\+consumed:(\d+)/);
+  if (cons) bits.push(`승인된 발굴 ${cons[1]}건 → 새 작업으로 만듦`);
+  if (/(?:^|[^a-z])(self-improve|self-skill|agent-factory|task|objective)\b/.test(s) &&
+      /idle→producer:(self-improve|self-skill|agent-factory|task|objective)/.test(s)) {
+    bits.push('새 아이디어 1건 발굴 → 승인 기다리는 중');
+  }
+  if (/\bescalated\b/.test(s)) bits.push('판단 필요한 건 — 사장 승인 대기');
+  if (/budget-stop/.test(s)) bits.push('예산 한도 — 이번 바퀴는 멈춤');
+  if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
+  if (bits.length === 0) return null;
+  return `🛰 팀 한 바퀴: ${bits.join(' · ')}`;
+}
+
 let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
@@ -950,6 +985,15 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
         }
       }
       console.log(`[AgentCadence] tick -> ${r}`);
+      // KAR-018-Y-2: 팀이 살아있음을 사용자(yawnbot Discord)가 보게 —
+      // 의미 있는 활동만 #team-bus 한 줄 (idle 스팸 X). 기존 notify
+      // pipe 재사용(평행정의0). 실패해도 tick 비차단.
+      try {
+        const hb = summarizeTick(r);
+        if (hb) gov.notify(hb);
+      } catch {
+        /* 하트비트 실패 = tick 비차단 */
+      }
     } catch (e) {
       console.error(
         '[AgentCadence] tick 오류:',
