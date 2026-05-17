@@ -30,7 +30,11 @@ import type {
 import { generateDiscoveryText } from 'karmolab-ai/node';
 import type { ProposalEnvelope } from './proposal';
 import { appendApproval } from './governance-adapter';
-import { runInboxConsumerOnce, materializedPath } from './proposal-adapter';
+import {
+  runInboxConsumerOnce,
+  materializedPath,
+  resolvedLedgerPath,
+} from './proposal-adapter';
 import { loadCoreDef } from '../services/agent-core';
 import { sendAsSkin, WebhookPermissionError } from './agent-webhook';
 import type { CharacterCard } from '../services/character-service';
@@ -184,9 +188,10 @@ export function lookupProposalByMessage(
 
 // ── 결정 잠금 (V-2 상태머신) ────────────────────────────────
 // 먼저 누른 결정이 확정·잠금. 머터리얼라이즈=부수효과라 1회·불가역.
+// 평행정의0 (KAR-018-Y-2): resolved 원장 경로 정본 = substrate
+// (proposal-adapter `resolvedLedgerPath`). 본 함수는 호환 위임만.
 export function proposalResolvedPath(env: NodeJS.ProcessEnv): string {
-  const root = env.MEMO_REPO_PATH?.trim() || '';
-  return root ? path.join(root, '.claude', 'agent-proposal-resolved.jsonl') : '';
+  return resolvedLedgerPath(env);
 }
 export function getResolved(
   env: NodeJS.ProcessEnv,

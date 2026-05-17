@@ -39,6 +39,7 @@ import {
   runProducerOnce,
   inboxDispatch,
   runInboxConsumerOnce,
+  summarizeRejectedForDiscovery,
   type DiscoverFn,
 } from './proposal-adapter';
 import {
@@ -284,6 +285,13 @@ export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
       .join('\n')
       .slice(0, 1200);
   });
+
+  // KAR-018-Y-2 거절 학습: '최근 인박스'(단순 최근)와 달리 *사장이
+  // 명시적으로 거절* 한 방향 — 더 강한 반복금지 신호. summarize 는
+  // substrate-pure(proposal-adapter), 거절 0 = 빈문자 → 섹션 생략.
+  safe('사장이 거절한 제안 (절대 반복 X)', () =>
+    summarizeRejectedForDiscovery(env),
+  );
 
   safe('최근 cadence trace (루프 상태)', () => {
     const p = path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl');
