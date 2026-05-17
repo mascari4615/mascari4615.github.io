@@ -11,6 +11,7 @@ import {
   appendProposalMsg,
   lookupProposalByMessage,
   proposalMsgsPath,
+  sanitizeVoicedIntro,
 } from './agent-bus';
 
 let root: string;
@@ -21,6 +22,39 @@ beforeEach(() => {
   fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
 });
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
+
+describe('sanitizeVoicedIntro — 거부/표덤프 방어 (KAR-018-Y)', () => {
+  it('디스클레이머 발화 → 결정적 폴백', () => {
+    const r = sanitizeVoicedIntro(
+      '안녕하세요. 저는 Anthropic의 Claude이며, karmoddrine 팀의 실제 동료가 될 수는 없습니다. 실제로 필요한 게 무엇인가요?',
+      '온보딩 가이드',
+    );
+    expect(r).toContain('온보딩 가이드');
+    expect(r).toContain('카드 봐주세요');
+    expect(r).not.toMatch(/Claude이며|동료가 될 수는 없/);
+  });
+
+  it('카드 마크다운 표 복붙 → 표 제거 후 문장만', () => {
+    const r = sanitizeVoicedIntro(
+      '팀, 점검하다 이게 눈에 띄어요.\n\n[제안 카드]\n| 항목 | 내용 |\n|------|------|\n| 발견명 | X |\n| 제안 | Y |',
+      'T',
+    );
+    expect(r).toContain('눈에 띄어요');
+    expect(r).not.toContain('|');
+    expect(r).not.toContain('제안 카드');
+  });
+
+  it('정상 1~2문장 발화 → 그대로(폴백 X)', () => {
+    const good = '팀 확장 시 온보딩이 없어 진입이 느려 보입니다. 가이드로 개선할 수 있을 것 같아요.';
+    expect(sanitizeVoicedIntro(good, 'T')).toBe(good);
+  });
+
+  it('빈 출력 → 폴백 (title 인용)', () => {
+    const r = sanitizeVoicedIntro('', '새 에이전트 시험장');
+    expect(r).toContain('새 에이전트 시험장');
+    expect(r.length).toBeGreaterThan(8);
+  });
+});
 
 describe('proposal 메시지 매핑 (V-2 리액션 승인이 소비)', () => {
   it('append → lookup round-trip', () => {
