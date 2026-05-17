@@ -67,7 +67,11 @@ KAKAO_EXPORT_WATCH_DIR=
 # dialogue 제안당 dedupe + heartbeat 의미활동만 → 짧아도 스팸·폭주 X.
 # 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
 AGENT_CADENCE_ENABLED=1
-AGENT_CADENCE_INTERVAL_MS=240000
+# 1분 = 사용자 결정 "5분 뒤는 너무 길어요 틱을 1분으로" (2026-05-17).
+# 빠른 피드백·활발도 + 검증 churn 해소(틱이 다음 배포 전 완결). 겹침 0
+# (틱 전단계 await 후 setTimeout 단일타이머). 비용 throttle=governance
+# 예산엔진(상한 시 producer-gated). 너무 잦으면 redirect 가능.
+AGENT_CADENCE_INTERVAL_MS=60000
 # ── claude CLI OAuth 경로 (KAR-018-Y 근본 fix, 비밀 아님) ──
 # 진짜 근본(prod 계측 25987467988 으로 확정, 가설 X): yawnbot-prod nssm
 # ObjectName=LocalSystem → claude 가 LocalSystem 프로필에서 OAuth 탐색
