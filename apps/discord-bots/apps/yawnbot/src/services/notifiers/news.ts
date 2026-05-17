@@ -19,6 +19,21 @@ import type { NewsService, NewsArticle } from '../news-service';
 
 const EMBED_COLOR = 0x2196f3;
 const SENT_LINKS_CAP = 300;
+const SENT_KEYS_CAP = 300;
+
+/**
+ * 안정적 dedup 키 = 정규화된 제목.
+ *
+ * Google News RSS 의 <link> (`.../articles/CBMi...?oc=5`) 토큰은 fetch 세션마다
+ * 재생성되어 같은 기사가 폴링·재시작마다 다른 link 를 가진다 → link 기준 dedup 이
+ * 같은 기사를 못 거른다. 제목은 재fetch·재시작에 안정적이라 영속 dedup 의 1차 키로 적합.
+ * (unity-free.ts 가 안정적 키 couponCode/assetUrl 을 영속하는 것과 동일 원리.)
+ * Google News 가 붙이는 ` - 언론사` suffix 는 동일 출처 재fetch 간 안정 → 유지
+ * (서로 다른 매체의 유사 헤드라인 오병합 방지).
+ */
+export function dedupKey(title: string): string {
+  return title.normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
+}
 
 function buildNewsEmbed(a: NewsArticle): EmbedBuilder {
   const embed = new EmbedBuilder()
@@ -32,7 +47,9 @@ function buildNewsEmbed(a: NewsArticle): EmbedBuilder {
 }
 
 // 봇 재시작·재배포 후에도 dedup 유지 (NewsService.seenTitles 는 in-memory 휘발).
+// sentKeys = 정규화 제목 (1차·재시작/link 로테이션 무관). sentLinks = 2차 안전망.
 interface NewsNotifierState {
+  sentKeys: string[];
   sentLinks: string[];
   lastSentAt: string | null;
 }
@@ -44,6 +61,8 @@ function loadState(): NewsNotifierState {
     if (fs.existsSync(STATE_PATH)) {
       const parsed = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8')) as Partial<NewsNotifierState>;
       return {
+        // 구 state (sentKeys 없음) 하위호환 — 신키는 다음 폴링부터 누적.
+        sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
         sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
         lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
       };
@@ -51,13 +70,14 @@ function loadState(): NewsNotifierState {
   } catch (err) {
     console.warn('[News] dedup state 읽기 실패 — 새 state 로 시작:', err);
   }
-  return { sentLinks: [], lastSentAt: null };
+  return { sentKeys: [], sentLinks: [], lastSentAt: null };
 }
 
 function saveState(state: NewsNotifierState): void {
   try {
     fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
     const trimmed: NewsNotifierState = {
+      sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
       sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
       lastSentAt: state.lastSentAt,
     };
@@ -84,16 +104,21 @@ async function pollOnce(
   }
 
   const state = loadState();
-  const seen = new Set(state.sentLinks);
+  const seenKeys = new Set(state.sentKeys);
+  const seenLinks = new Set(state.sentLinks);
   const fresh: NewsArticle[] = [];
 
   // fetchFreshArticle 은 호출마다 키워드를 섞어 미열람 1건 반환 + in-memory seen 누적.
-  // persistent dedup(seen) 으로 재시작 후 중복 방지. 같은 link 면 skip 하고 다음 시도.
+  // 영속 dedup: 1차 = 정규화 제목(재시작·link 로테이션 무관), 2차 = link(안전망).
+  // 둘 중 하나라도 본 적 있으면 skip 하고 다음 시도.
   for (let i = 0; i < maxPerPoll * 3 && fresh.length < maxPerPoll; i++) {
     const a = await news.fetchFreshArticle(maxAgeHours);
     if (!a) break;
-    if (!a.link || seen.has(a.link)) continue;
-    seen.add(a.link);
+    const key = dedupKey(a.title);
+    if (seenKeys.has(key)) continue;
+    if (a.link && seenLinks.has(a.link)) continue;
+    seenKeys.add(key);
+    if (a.link) seenLinks.add(a.link);
     fresh.push(a);
   }
 
@@ -111,7 +136,8 @@ async function pollOnce(
   for (const a of fresh) {
     try {
       await sendNewsArticleToChannel(channel, a);
-      state.sentLinks.push(a.link);
+      state.sentKeys.push(dedupKey(a.title));
+      if (a.link) state.sentLinks.push(a.link);
       sent++;
     } catch (err) {
       console.warn('[News] 기사 전송 실패:', err instanceof Error ? err.message : String(err));
