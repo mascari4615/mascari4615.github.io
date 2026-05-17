@@ -2,6 +2,8 @@ mod activity;
 mod adventure;
 mod alarm;
 mod claude_env;
+#[cfg(debug_assertions)]
+mod dev_static;
 mod questlog_hub;
 mod life;
 mod local_dev;
@@ -153,68 +155,9 @@ const KARMOLAB_WEB_URL: &str = "https://mascari4615.github.io/karmolab/";
 const KARMOLAB_DEV_URL: &str = "http://127.0.0.1:8899/apps/karmolab/index.html";
 const KARMOLAB_DEV_PORT: u16 = 8899;
 
-/// dev 바이너리 직접 실행 시 devUrl(:8898) 서버가 없어 흰 화면이 되는 문제 해결.
-/// setup 시 자동 spawn — 이미 8898 이 열려있으면 (npm run dev 병행) 무시.
-#[cfg(debug_assertions)]
-fn spawn_dev_static_if_needed() {
-    const PORT: u16 = 8898;
-    if std::net::TcpStream::connect_timeout(
-        &format!("127.0.0.1:{PORT}").parse().unwrap(),
-        std::time::Duration::from_millis(150),
-    )
-    .is_ok()
-    {
-        return; // already running
-    }
-
-    let Ok(exe) = std::env::current_exe() else {
-        return;
-    };
-    // exe: .../apps/karmolab-tauri/target/debug/karmolab-desktop.exe
-    let Some(tauri_dir) = exe.parent().and_then(|p| p.parent()).and_then(|p| p.parent()) else {
-        return;
-    };
-    let Some(repo_root) = tauri_dir.parent().and_then(|p| p.parent()) else {
-        return;
-    };
-    let script = tauri_dir.join("scripts").join("dev-static.mjs");
-    if !script.exists() {
-        return;
-    }
-
-    let mut cmd = std::process::Command::new("node");
-    cmd.arg(&script)
-        .arg("8898")
-        .arg("--node-only")
-        .current_dir(&repo_root)
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null());
-    #[cfg(target_os = "windows")]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
-    let Ok(child) = cmd.spawn() else {
-        return;
-    };
-
-    // 최대 10s 대기
-    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
-    while std::time::Instant::now() < deadline {
-        if std::net::TcpStream::connect_timeout(
-            &format!("127.0.0.1:{PORT}").parse().unwrap(),
-            std::time::Duration::from_millis(200),
-        )
-        .is_ok()
-        {
-            break;
-        }
-        std::thread::sleep(std::time::Duration::from_millis(200));
-    }
-
-    std::mem::forget(child); // 앱 종료 후에도 서버 유지 — 다음 실행 시 재감지
-}
+// dev devUrl(:8898) 서버 = `dev_static` 모듈 (TASK-KL-067, in-process).
+// 옛 spawn_dev_static_if_needed (외부 node + mem::forget leak + 약한 connect
+// 체크 + setup-1회) 의 4중 취약을 대체 — 2026-05-17 incident 재발 0.
 
 /// 트레이 토글로 켜는 로컬 정적 서버. None = OFF (production URL 로딩 중), Some = ON.
 #[derive(Default)]
@@ -882,7 +825,7 @@ pub fn run() {
         .plugin(life::hotkey::build_plugin())
         .setup(|app| {
             #[cfg(debug_assertions)]
-            spawn_dev_static_if_needed();
+            dev_static::start();
 
             let handle = app.handle().clone();
 
