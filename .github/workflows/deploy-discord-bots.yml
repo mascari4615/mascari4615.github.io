@@ -60,8 +60,10 @@ jobs:
         env:
           # github.io 는 public → 무인증 fetch OK. memo 는 private +
           # 러너=LocalSystem(사용자 자격증명 안 보임) → 인증 필수.
-          # kl-quality-loop 와 동일 PAT 재사용(평행정의0).
-          MEMO_PAT: ${{ vars.MEMO_GITHUB_PAT }}
+          # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14
+          # 등록). kl-quality-loop 가 vars. 로 오참조해 latent 깨짐(최근
+          # run 전부 failure) → 본 스텝은 secrets. 로 (그 버그 class fix).
+          MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
           # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
           GIT_TERMINAL_PROMPT: '0'
         # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
