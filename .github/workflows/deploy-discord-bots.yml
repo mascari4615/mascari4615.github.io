@@ -143,14 +143,17 @@ jobs:
           # KAR-004: digest-webhook 이 private memo digest 본문 fetch (인증). 없으면 송신0.
           # TASK-YB-021: heartbeat sender 도 이 동일 PAT 으로 memo 기록 (새 secret 불요).
           YB_PROD_MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
-          # KAR-018-Y: agentic 워커 push/PR 자격. MEMO_GITHUB_PAT 는
-          # memo-scope 라 github.io denied(prod 06:52 KST 데이터 반증) →
-          # 사용자 결정 2026-05-18 = GitHub App 토큰 재사용(resolve-merge-token
-          # 과 동일 App, github.io contents+PR write 확정). 봇이 런타임
-          # JWT→installation 토큰 발급(1h 만료 재발급). GH_TOKEN(memo PAT)
-          # = App 실패 시 additive 폴백(무중단). blast = Draft PR only +
-          # autopilot-graduate 머지게이트.
-          YB_PROD_GH_TOKEN: ${{ secrets.MEMO_GITHUB_PAT }}
+          # KAR-018-Y: agentic 워커 push/PR 자격. 데이터 체인:
+          # ① MEMO_GITHUB_PAT=memo-scope → github.io denied(06:52 KST)
+          # ② "App 재사용"(사용자 결정 05-18)=불가 — gh secret list 결과
+          #    GH_APP_ID/GH_APP_PRIVATE_KEY *부재*(App 미생성, KL-048 미완,
+          #    resolve-merge-token 줄곧 PAT 폴백). 전제 데이터 반증.
+          # ③ 정답 = PAT_FOR_AUTO_MERGE — github.io 실재 secret, auto-merge/
+          #    autopilot-graduate 가 그걸로 github.io PR 머지 중 = github.io
+          #    write 확정. 머지=push 자격 정체 일치. 새 secret 0.
+          # GH_APP_* 주입 보존 = KL-048 App 생성 시 getInstallationToken
+          # 자동승격(없으면 null→GH_TOKEN 폴백, 무중단 additive).
+          YB_PROD_GH_TOKEN: ${{ secrets.PAT_FOR_AUTO_MERGE }}
           YB_PROD_GH_APP_ID: ${{ secrets.GH_APP_ID }}
           YB_PROD_GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
         run: |
