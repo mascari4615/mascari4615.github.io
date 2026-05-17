@@ -752,8 +752,22 @@ export function selectWorkerCores(defs: (CoreDef | null)[]): WorkerCore[] {
 export function buildWorkerPrompt(
   task: { id: string; file: string },
   missionText: string,
+  specText?: string,
   worktreeBranch?: string,
 ): string {
+  // KAR-018-Y: agentic 워커 cwd = *도메인 코드 repo* worktree(github.io
+  // 등)라 memo 스펙 경로(memo\tasks\..)가 거기 없음 → claude 가 "스펙
+  // 못 찾음" 정직 보고하고 막혔음(prod 23:35 KST). 근본 = 봇이 memo
+  // 스펙 *내용* 을 프롬프트에 임베드(경로/cross-repo FS 의존 0).
+  const specBlock = specText
+    ? [
+        `[TASK 스펙 — 아래 *내용* 이 정본. memo 는 cwd 밖이라 경로로 못 읽음]`,
+        '<<<SPEC',
+        specText.trim().slice(0, 12000),
+        'SPEC',
+        '',
+      ]
+    : [`[스펙 파일] ${task.file} (내용 임베드 실패 — cwd 내 단서로 진단)`, ''];
   // worktreeBranch 지정 = 봇이 *이미* 격리 worktree(=cwd) 를 그 브랜치로
   // 생성해 줌 → claude 는 worktree 새로 만들지 X, 여기서 작업·push·PR.
   const step2 = worktreeBranch
@@ -773,17 +787,19 @@ export function buildWorkerPrompt(
     `너는 karmoddrine 에이전트 팀의 도메인 소비자 워커다. 아래 TASK 1건을`,
     `autopilot 안전 룰셋으로 *끝까지* 수행한다 (bounded — 이 1건 후 종료).`,
     '',
-    `[대상 TASK] ${task.id}`,
-    `[스펙 파일] ${task.file}`,
+    `[대상 TASK] ${task.id} (원 스펙경로 ${task.file} — 참고용, cwd 밖)`,
+    `[작업 위치] 현재 cwd = 도메인 *코드 repo* 의 격리 worktree. memo`,
+    `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
     '',
+    ...specBlock,
     '[절차]',
-    `1. 위 TASK 스펙(${task.file})·관련 정본 정독. 진단 우선(가설 박기 X).`,
+    `1. 위 [TASK 스펙] 본문 + cwd 내 코드·정본 정독. 진단 우선(가설 박기 X).`,
     ...step2,
     '3. 코드 변경 + 가능한 검증(build/test/typecheck). 검증 불가 영역은',
     '   PR Test plan 에 명시.',
     step4,
-    '5. 다른 세션 영역 침범 금지 — active-sessions 보드의 다른 행 타겟',
-    '   파일 미접촉. TASK 문서 backlog/status 갱신.',
+    '5. 다른 세션 영역 침범 금지. TASK 진행/결정은 *PR 설명* 에 기재',
+    '   (memo TASK 문서는 cwd 밖 — 편집 시도 X, 봇이 별도 반영).',
     '6. 끝나면 무엇을 했는지 *한 문단* 으로 요약(= #team-bus 보고용).',
     '   실패·미완·인증오류면 그것도 솔직히(가짜 성공 보고 X).',
     '',
@@ -994,10 +1010,21 @@ export async function runWorkerConsumerOnce(
     const wtRes = setupWorkerWorktree(memoRoot, w.coreId, chosen.id);
     const wt = 'error' in wtRes ? null : wtRes;
     const wtErr = 'error' in wtRes ? wtRes.error : null;
+    // memo 스펙 *내용* 임베드 (agentic cwd=코드 repo, memo 경로 부재 —
+    // prod 23:35 KST "스펙 못 찾음" 근본. umbrella-상대 chosen.file).
+    let specText: string | undefined;
+    try {
+      specText = fs.readFileSync(
+        path.join(path.dirname(memoRoot), chosen.file),
+        'utf-8',
+      );
+    } catch {
+      specText = undefined;
+    }
     const req: Tier3Request = {
       core: w.coreId,
       machine: w.machine,
-      prompt: buildWorkerPrompt(chosen, missionText, wt?.branch),
+      prompt: buildWorkerPrompt(chosen, missionText, specText, wt?.branch),
       repoCwd: wt?.cwd,
     };
     let res: Awaited<ReturnType<typeof spawn>>;
