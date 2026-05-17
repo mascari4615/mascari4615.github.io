@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
+import { getInstallationToken } from './github-app-token';
 import {
   resolveDomainRepo,
   workerBranchName,
@@ -1065,6 +1066,35 @@ export async function runWorkerConsumerOnce(
       prompt: buildWorkerPrompt(chosen, missionText, specText, wt?.branch),
       repoCwd: wt?.cwd,
     };
+    // KAR-018-Y: github.io push/PR 자격 = GitHub App installation 토큰
+    // (사용자 결정 2026-05-18). App→실패 시 GH_TOKEN 폴백(additive,
+    // prod 무중단). worktree origin URL 에 토큰 주입 = *결정적* push
+    // (claude/gh-setup-git 불신) + 자식 claude GH_TOKEN(gh pr create).
+    // 워커 루프 순차라 process.env 변경 레이스 0. worktree=ephemeral
+    // (finally cleanup)이라 URL 내 토큰 잔존 0.
+    if (wt) {
+      const tok =
+        (await getInstallationToken(env)) || env.GH_TOKEN?.trim() || '';
+      if (tok) {
+        try {
+          const url = execSync(
+            `git -C "${wt.wtDir}" remote get-url origin`,
+            { timeout: 15_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+          ).trim();
+          const authed = url.replace(
+            /^https:\/\/(?:x-access-token:[^@]*@)?github\.com\//,
+            `https://x-access-token:${tok}@github.com/`,
+          );
+          execSync(`git -C "${wt.wtDir}" remote set-url origin "${authed}"`, {
+            timeout: 15_000,
+            stdio: 'ignore',
+          });
+        } catch {
+          /* push 시 claude 가 에러 정직 보고(계측됨) */
+        }
+        process.env.GH_TOKEN = tok;
+      }
+    }
     let res: Awaited<ReturnType<typeof spawn>>;
     try {
       res = await spawn(req);
