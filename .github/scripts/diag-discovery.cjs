@@ -83,7 +83,10 @@ try {
   let raw = '';
   let threw = '';
   try {
-    raw = await kai.generateDiscoveryText({ prompt: prompt, timeoutMs: 90000 });
+    // 300s (현실값) — 90s 는 내 artifact 였고 그 위에 오진 가설을 박았다
+    // (KAR-018-Y, feedback_regression_first_not_redesign). prod 봇 실제
+    // timeout 은 30min; 여기선 5min 이면 "느림 vs 형식불량" 판별 충분.
+    raw = await kai.generateDiscoveryText({ prompt: prompt, timeoutMs: 300000 });
   } catch (e) {
     threw = String(e && e.message || e);
     console.log('DISCOVERY-THROW ' + threw);
