@@ -414,10 +414,49 @@ async function atlasVoicedIntro(
       `요지: ${gist.slice(0, 300)}`,
     ].join('\n');
     const text = await generateDiscoveryText({ prompt, timeoutMs: 90000 });
-    return (text || '').trim().slice(0, 600);
+    return sanitizeVoicedIntro(text || '', title);
   } catch {
-    return '';
+    return sanitizeVoicedIntro('', title);
   }
+}
+
+/**
+ * voiced-intro 출력 새니타이즈 + 결정적 폴백 (KAR-018-Y).
+ * 비-agentic claude-cli 단발은 페르소나 나레이션에 비신뢰 — 어떤 틱은
+ * 디스클레이머("저는 Claude…될 수 없습니다"), 어떤 틱은 카드 전체를
+ * 마크다운 표로 복붙. 프롬프트 강화만으론 불충분(prod 실증). 모델
+ * 비결정에 *방어적*: 표/펜스/헤딩/디스클레이머 제거 → 첫 1~2문장 →
+ * 비거나 여전히 디스클레이머면 결정적 동료 한 줄. 거부·덤프가 Discord
+ * 에 절대 안 나감. 순수·테스트가능.
+ */
+const DISCLAIMER_RE =
+  /(Anthropic|Claude이며|Claude입니다|실제 (팀 ?)?동료가? (될 수 없|아니)|동료가 될 수는 없|역할할 수 없|가장하|도움이 되고 싶지만|카드가 (안 |보이지)|명확히 (하면|해주)|실제로 필요한 게)/;
+
+export function sanitizeVoicedIntro(raw: string, title: string): string {
+  const fallback = `팀, 점검하다 「${String(title || '발견 1건').slice(0, 60)}」 가 눈에 띄어 정리해봤어요. 아래 카드 봐주세요.`;
+  let t = (raw || '').replace(/```[\s\S]*?```/g, ' '); // 펜스 제거
+  const kept = t
+    .split(/\r?\n/)
+    .filter((ln) => {
+      const s = ln.trim();
+      if (!s) return false;
+      if (/^[#>*\-]{0,3}\s*\[?제안 카드\]?/.test(s)) return false; // 카드 헤딩
+      if (/\|.*\|/.test(s)) return false; // 마크다운 표 행
+      if (/^[-|: ]+$/.test(s)) return false; // 표 구분선
+      if (/^#{1,6}\s/.test(s)) return false; // 헤딩
+      return true;
+    })
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // 디스클레이머 문장 제거
+  const sentences = kept
+    .split(/(?<=[.!?다요])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s && !DISCLAIMER_RE.test(s));
+  const out = sentences.slice(0, 2).join(' ').slice(0, 280).trim();
+  if (out.length < 8 || DISCLAIMER_RE.test(out)) return fallback;
+  return out;
 }
 
 export async function announceProposal(
