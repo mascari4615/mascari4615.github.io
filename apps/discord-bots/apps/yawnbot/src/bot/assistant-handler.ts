@@ -539,11 +539,19 @@ export async function handleAssistantMessage(
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
+        // KAR-018-V R-1: claude-cli 대화 = *비-agentic*(ASSISTANT_AGENT_
+        // REPO_PATH 제거 → cwd 없음 = 파일/명령 안 함, 발굴 hang 교훈) +
+        // 타임아웃 상향(claude --print 채팅 = 수십초, 20s 면 항상 timeout).
+        const isClaudeCli = provider === 'claude-cli';
+        const convEnv = isClaudeCli
+          ? { ...process.env, ASSISTANT_AGENT_REPO_PATH: '' }
+          : process.env;
+        const convTimeout = isClaudeCli ? 90000 : 20000;
         console.log(
-          `[Assistant:${card.slug}] AI 호출 시작 (${provider}, 시도 ${attempt}/3, 타임아웃 20초)...`,
+          `[Assistant:${card.slug}] AI 호출 시작 (${provider}, 시도 ${attempt}/3, 타임아웃 ${convTimeout / 1000}초${isClaudeCli ? ', 비-agentic' : ''})...`,
         );
-        const { text } = await generateAssistantText(process.env, fullPrompt, {
-          timeoutMs: 20000,
+        const { text } = await generateAssistantText(convEnv, fullPrompt, {
+          timeoutMs: convTimeout,
           history,
           systemInstruction,
         });
