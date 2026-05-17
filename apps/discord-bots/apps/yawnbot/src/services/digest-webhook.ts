@@ -59,15 +59,29 @@ export async function fetchRepoFile(
   return resp.text();
 }
 
+/** 일자 digest 파일만 (digests/YYYY-MM-DD.md). INDEX.md/README.md 제외. */
+const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
+
 /**
  * push payload 의 commit 하나가 dev-digest commit 인지 판별.
- * 조건: message 첫 줄이 "chore(digests):" 로 시작 + added 파일 중 "digests/" 경로 .md 있음.
+ * 조건: message 첫 줄 "chore(digests):" + **added ∪ modified** 중
+ * `digests/YYYY-MM-DD.md` 1개.
+ * - added 뿐 아니라 **modified 포함**: 같은 날 재실행/백필/수동
+ *   `/schedule run` 은 기존 일자파일 *modified* → added-only 면 영구
+ *   누락(KAR-004 2차 갭, 2026-05-17 사용자 트리거로 실증).
+ * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
+ *   파일 fetch → 깨진 게시 방지).
  */
 export function isDigestCommit(commit: any): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
-  const digestFile = added.find((p) => p.startsWith('digests/') && p.endsWith('.md'));
+  const modified: string[] = Array.isArray(commit?.modified)
+    ? commit.modified
+    : [];
+  const digestFile = [...added, ...modified].find((p) =>
+    DATED_DIGEST_RE.test(p),
+  );
   return digestFile ?? null;
 }
 
