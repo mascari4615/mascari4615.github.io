@@ -41,6 +41,12 @@ import {
   runInboxConsumerOnce,
   type DiscoverFn,
 } from './proposal-adapter';
+import {
+  listCoreIds,
+  loadCoreDef,
+  coreLabel,
+  type CoreDef,
+} from '../services/agent-core';
 
 // ── kill switch (③ 사람·!kill 최우선 인터럽, B-3) — 순수(테스트가능) ──
 let killed = false;
@@ -430,6 +436,221 @@ export async function runGovernedProducerOnce(
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
 
+// ── ⑦(2) 소비자 워커 cadence (KAR-018-X, slot A) ────────────
+// 생산자(atlas/echo=⑦' 발굴→제안)의 *짝*. 도메인별 전용 워커 코어가
+// 자기 prefix 의 ready/seed TASK 를 pull→claim→tier3 실행→#team-bus
+// 자기목소리 보고. 큐 스캔·claim = memo/scripts 단일 정본 모듈 shell
+// (평행 정의 0, autopilot 과 동일 정의). E R-4-i3 계약: agent-cadence.ts
+// = A 소유(E 미접촉 확정) / 워커 = 채널 바인딩 불요(loadCoreDef 정체
+// 회수, cadence 직접 구동) / 워커 core.md = 팩토리 머터리얼라이즈(i3a,
+// status:draft) → 사람이 status:active 로 가동 승인해야 본 cadence 가 구동.
+
+export interface WorkerCore {
+  coreId: string;
+  /** 담당 TASK prefix (frontmatter domain, 대문자). */
+  domain: string;
+  /** 머신 어피니티 (frontmatter machine, 미지정 any). */
+  machine: string;
+  /** #team-bus 표시 (emoji displayName). */
+  label: string;
+}
+
+/**
+ * 워커 코어 선별 (순수 — 테스트가능). 워커 = frontmatter `kind: worker`
+ * + `status: active`(사람 가동 승인) + `domain:` 존재. 생산자(atlas/echo
+ * = kind 미설정) / draft(미승인) 워커는 제외 = inert (계약 불변식).
+ */
+export function selectWorkerCores(defs: (CoreDef | null)[]): WorkerCore[] {
+  const out: WorkerCore[] = [];
+  for (const d of defs) {
+    if (!d) continue;
+    const fm = d.frontmatter || {};
+    if ((fm.kind || '').trim() !== 'worker') continue;
+    if ((d.status || '').trim() !== 'active') continue;
+    const domain = (fm.domain || '').trim().toUpperCase();
+    if (!domain) continue;
+    out.push({
+      coreId: d.id,
+      domain,
+      machine: (fm.machine || 'any').trim() || 'any',
+      label: coreLabel(d),
+    });
+  }
+  return out;
+}
+
+/**
+ * 워커 tier3 지시 프롬프트 (순수). autopilot 안전 룰셋 그대로 — 자기
+ * worktree·Draft PR only·merge/master/force 금지·다른 세션 영역 미접촉.
+ * 한 TASK 단위(bounded). spawn claude(tier3)=agentic 풀세션이라 파일
+ * 접근 가능 → 발굴 프롬프트(비-agentic)와 달리 도구 사용 명시.
+ */
+export function buildWorkerPrompt(
+  task: { id: string; file: string },
+  missionText: string,
+): string {
+  return [
+    `너는 karmoddrine 에이전트 팀의 도메인 소비자 워커다. 아래 TASK 1건을`,
+    `autopilot 안전 룰셋으로 *끝까지* 수행한다 (bounded — 이 1건 후 종료).`,
+    '',
+    `[대상 TASK] ${task.id}`,
+    `[스펙 파일] ${task.file}`,
+    '',
+    '[절차]',
+    `1. 위 TASK 스펙(${task.file})·관련 정본 정독. 진단 우선(가설 박기 X).`,
+    '2. 자기 worktree 에서만 작업 — main worktree(memo/WitchMendokusai/',
+    '   Mascari4615.github.io) HEAD swap 절대 X. 없으면 new-worktree.ps1.',
+    '3. 코드 변경 + 가능한 검증(build/test/typecheck). 검증 불가 영역은',
+    '   PR Test plan 에 명시.',
+    '4. feature 브랜치 commit + push + **Draft PR 까지만**. merge /',
+    '   master·main 직접 push / force-push **절대 금지**.',
+    '5. 다른 세션 영역 침범 금지 — active-sessions 보드의 다른 행 타겟',
+    '   파일 미접촉. TASK 문서 backlog/status 갱신.',
+    '6. 끝나면 무엇을 했는지 *한 문단* 으로 요약(= #team-bus 보고용).',
+    '',
+    '[미션 정렬 anchor — 이 작업이 아래에 정렬되는지 자가검사]',
+    missionText.trim(),
+    '',
+    '확신 안 서거나 사람 컨펌 필요한 비가역 결정이면 멈추고 그 사유를',
+    '요약에 명시(추측 진행 X).',
+  ].join('\n');
+}
+
+/** 워커 코어 목록 로드 (default — listCoreIds+loadCoreDef→selectWorkerCores). */
+function defaultListWorkers(memoRoot: string): WorkerCore[] {
+  return selectWorkerCores(
+    listCoreIds(memoRoot).map((id) => loadCoreDef(memoRoot, id)),
+  );
+}
+
+/** memo/scripts/<script>.mjs shell 1회 (단일 정본 호출, best-effort). */
+function runMemoScript(
+  memoRoot: string,
+  script: string,
+  args: string[],
+): { code: number; out: string } {
+  try {
+    const p = path.join(memoRoot, 'scripts', script);
+    const out = execSync(
+      `node "${p}" ${args.join(' ')} --root "${memoRoot}"`,
+      { timeout: 20_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return { code: 0, out };
+  } catch (e: unknown) {
+    const err = e as { status?: number; stdout?: string };
+    return { code: err.status ?? 1, out: err.stdout ?? '' };
+  }
+}
+
+export interface WorkerConsumerDeps {
+  listWorkers?: (memoRoot: string) => WorkerCore[];
+  scan?: (domain: string, machine: string) => { id: string; file: string }[];
+  claim?: (id: string, by: string) => boolean;
+  release?: (id: string, by: string) => void;
+  spawn?: (req: Tier3Request) => Promise<{ status: string }>;
+  notify?: NotifyFn;
+  missionText?: string;
+}
+
+/**
+ * 한 소비자 tick — 활성 워커마다: 자기 도메인 큐 스캔 → claim(레이스 시
+ * 다음 후보) → tier3 실행 → done=#team-bus 보고 / 실패=점유 해제·재대기.
+ * 매 단계 trace. *블록 X* — bounded(워커당 1 TASK/tick), registry 가
+ * per-core 동시1. governance reserve 는 spawnTier3 내부 deps.reserve 가.
+ */
+export async function runWorkerConsumerOnce(
+  env: NodeJS.ProcessEnv,
+  deps: WorkerConsumerDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const listWorkers = deps.listWorkers ?? defaultListWorkers;
+  const workers = listWorkers(memoRoot);
+  if (workers.length === 0) return 'no-workers';
+
+  const thisMachine = env.KAR_MACHINE?.trim() || 'any';
+  const notify = deps.notify ?? defaultNotify(env);
+  const missionText = deps.missionText ?? readMissionText(env);
+  const t3deps = buildTier3Deps(env);
+
+  const scan =
+    deps.scan ??
+    ((domain: string, machine: string) => {
+      const r = runMemoScript(memoRoot, 'task-queue.mjs', [
+        '--json',
+        '--domain',
+        domain,
+        '--machine',
+        machine,
+      ]);
+      try {
+        return JSON.parse(r.out).candidates ?? [];
+      } catch {
+        return [];
+      }
+    });
+  const claim =
+    deps.claim ??
+    ((id: string, by: string) =>
+      runMemoScript(memoRoot, 'task-claim.mjs', ['--claim', id, '--by', by])
+        .code === 0);
+  const release =
+    deps.release ??
+    ((id: string, by: string) => {
+      runMemoScript(memoRoot, 'task-claim.mjs', ['--release', id, '--by', by]);
+    });
+  const spawn =
+    deps.spawn ?? ((req: Tier3Request) => spawnTier3(req, t3deps));
+
+  const results: string[] = [];
+  for (const w of workers) {
+    if (isKilled()) break;
+    const cands = scan(w.domain, w.machine === 'any' ? thisMachine : w.machine);
+    if (cands.length === 0) {
+      results.push(`${w.coreId}:idle`);
+      continue;
+    }
+    let chosen: { id: string; file: string } | null = null;
+    for (const c of cands.slice(0, 3)) {
+      if (claim(c.id, w.coreId)) {
+        chosen = c;
+        break;
+      }
+    }
+    if (!chosen) {
+      results.push(`${w.coreId}:claim-lost`);
+      continue;
+    }
+    const req: Tier3Request = {
+      core: w.coreId,
+      machine: w.machine,
+      prompt: buildWorkerPrompt(chosen, missionText),
+    };
+    const res = await spawn(req);
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: w.coreId,
+      reason: `worker ${chosen.id} ${res.status}`,
+    });
+    if (res.status === 'done') {
+      notify(
+        `${w.label} ▶ ${chosen.id} 자율 착수 — 자기 worktree·Draft PR (검토 대기). 도메인=${w.domain}`,
+      );
+      results.push(`${w.coreId}:done:${chosen.id}`);
+    } else {
+      release(chosen.id, w.coreId);
+      notify(
+        `${w.label} ⚠ ${chosen.id} ${res.status} — 점유 해제·재대기 (도메인=${w.domain})`,
+      );
+      results.push(`${w.coreId}:${res.status}`);
+    }
+  }
+  return results.join(',') || 'no-workers';
+}
+
 /** objectives.md 읽어 parseCadenceWork (thin I/O wrapper). */
 export function pickWorkFromObjectives(memoRoot: string): Tier3Request | null {
   try {
@@ -496,6 +717,14 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       if (memoRoot && !isKilled()) {
         const mat = await runInboxConsumerOnce(env);
         if (mat > 0) r = `${r}+consumed:${mat}`;
+      }
+      // ⑦(2) 소비자 워커: 활성 도메인 워커가 자기 prefix ready TASK
+      // pull→claim→tier3→#team-bus 보고 (KAR-018-X — 생산자의 짝).
+      if (memoRoot && !isKilled()) {
+        const w = await runWorkerConsumerOnce(env);
+        if (w && w !== 'no-workers' && w !== 'no-memo-root') {
+          r = `${r}+worker:${w}`;
+        }
       }
       console.log(`[AgentCadence] tick -> ${r}`);
     } catch (e) {
