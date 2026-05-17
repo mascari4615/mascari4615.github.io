@@ -407,26 +407,40 @@ pub mod oswake {
         ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, LARGE_INTEGER,
     };
     use winapi::um::winuser::{
-        mouse_event, SendMessageW, HWND_BROADCAST, MOUSEEVENTF_MOVE, SC_MONITORPOWER,
-        WM_SYSCOMMAND,
+        mouse_event, SendMessageTimeoutW, HWND_BROADCAST, MOUSEEVENTF_MOVE, SC_MONITORPOWER,
+        SMTO_ABORTIFHUNG, WM_SYSCOMMAND,
     };
 
     /// ring 동안 시스템/디스플레이 OFF 차단 + 꺼진 모니터 깨우기.
-    /// (볼륨은 `super::audio::force_to` 가 담당 — 관심사 분리.)
+    /// (볼륨은 `super::audio::force_to` 담당 — 관심사 분리.)
+    ///
+    /// **KL-064 근본**: 옛 코드는 `SendMessageW(HWND_BROADCAST, …)` =
+    /// *모든 최상위 창이 처리할 때까지 동기 블록*. 멈춘 창 1개라도 있으면
+    /// 무한 대기 → 스케줄러 워커스레드가 fire() 1단계서 영영 갇혀 소리/창
+    /// 0 (계측 `fire enter` 뒤 `keep_display_on done` 안 찍힘으로 실증).
+    /// fix: ① SetThreadExecutionState(즉시·sleep방지 핵심)만 인라인
+    ///      ② 모니터-깨우기 broadcast 는 best-effort → 별 스레드 +
+    ///         SendMessageTimeoutW(SMTO_ABORTIFHUNG, 타임아웃) → fire() 는
+    ///         절대 여기서 못 막힘(critical path 격리).
     pub fn keep_display_on() {
         unsafe {
             SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
-            // 모니터가 이미 꺼져 있으면 켜기.
-            SendMessageW(
+        }
+        // best-effort 모니터 ON — fire 경로와 격리(blocking 불가).
+        std::thread::spawn(|| unsafe {
+            let mut res: usize = 0;
+            SendMessageTimeoutW(
                 HWND_BROADCAST as HWND,
                 WM_SYSCOMMAND,
                 SC_MONITORPOWER as usize,
                 -1isize, // -1 = power on
+                SMTO_ABORTIFHUNG,
+                1500,
+                &mut res,
             );
-            // 일부 전원정책/모던 스탠바이는 입력 없으면 즉시 재차 OFF — 미세 입력.
             mouse_event(MOUSEEVENTF_MOVE, 1, 0, 0, 0);
             mouse_event(MOUSEEVENTF_MOVE, 0u32.wrapping_sub(1), 0, 0, 0);
-        }
+        });
     }
 
     /// dismiss/snooze 시 잠금 방지 해제 (ES_CONTINUOUS 단독 = 정책 복구).
