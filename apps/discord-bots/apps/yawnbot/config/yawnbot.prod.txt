@@ -23,9 +23,12 @@ CLIENT_ID=825793713749622816
 DISCORD_GUILD_ID=1456979834566873131,400451987268829186
 YAWNBOT_ALLOWED_GUILD_IDS=1456979834566873131
 
-# ── 알림 채널 ID (prod 서버) ──
-# ⚠ 빈 채널은 임시로 1490364315545636935 일괄 설정 (사용자 지시 2026-05-17).
-#    제대로 된 채널 정해지면 개별 교체할 것 (임시값 = 한 채널로 다 몰림).
+# ── 알림 채널 ID (prod 서버) — 폴백 전용 (TASK-YB-029) ──
+# 정상 시 미사용: 봇이 부팅 시 본진에 「욘봇」 카테고리+채널을 자동
+# 생성/claim 하고 거기로 보냄 (정본 = data/channel-spec.json).
+# 아래 값은 프로비저닝 OFF(YAWNBOT_CHANNEL_PROVISION=0)·봇 Manage Channels
+# 권한 상실·reconcile 실패 시에만 쓰이는 안전망. 삭제 X(무음손실 방지),
+# 수동 개별 교체 불요(프로비저닝이 용도별 분리 자동 처리).
 GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
 ASSISTANT_PUBLIC_CHANNEL_ID=1490364315545636935
 YAWNBOT_OPS_REPORT_CHANNEL_ID=1490364315545636935
