@@ -122,4 +122,112 @@ try {
   } catch (e) {
     console.log('DIFF-THROW ' + (e && e.message || e));
   }
+
+  // ── [7] 워커(소비자) 침묵 진단 — read-only. runWorkerConsumerOnce 직접
+  //    실행 X(claim+tier3 부작용). 워커가 *보는 입력*만 관측: 활성 워커
+  //    선별 / 도메인별 prod memo 큐 candidates / prod agent-trace 워커 라인.
+  try {
+    const cp = require('child_process');
+    const fs2 = require('fs');
+    const memoRoot = env.MEMO_REPO_PATH || '';
+    console.log('WORKER_DIAG memoRoot=' + memoRoot);
+    const acore = tryReq('agent-core', [
+      path.join(yb, 'dist', 'src', 'services', 'agent-core.js'),
+    ]);
+    if (ac && ac.selectWorkerCores && acore && acore.listCoreIds && memoRoot) {
+      const defs = acore
+        .listCoreIds(memoRoot)
+        .map(function (id) {
+          return acore.loadCoreDef(memoRoot, id);
+        });
+      const workers = ac.selectWorkerCores(defs);
+      console.log(
+        'WORKERS_SELECTED ' +
+          JSON.stringify(
+            workers.map(function (w) {
+              return w.coreId + ':' + w.domain + ':' + w.machine;
+            }),
+          ),
+      );
+      for (let wi = 0; wi < workers.length; wi++) {
+        const w = workers[wi];
+        try {
+          const out = cp.execFileSync(
+            'node',
+            [
+              path.join(memoRoot, 'scripts', 'task-queue.mjs'),
+              '--json',
+              '--domain',
+              w.domain,
+              '--machine',
+              'any',
+              '--root',
+              memoRoot,
+            ],
+            { encoding: 'utf-8', timeout: 20000 },
+          );
+          const j = JSON.parse(out);
+          const cands = j.candidates || [];
+          console.log(
+            'WORKER_QUEUE ' +
+              w.coreId +
+              ' domain=' +
+              w.domain +
+              ' candidates=' +
+              cands.length +
+              ' ' +
+              cands
+                .slice(0, 5)
+                .map(function (c) {
+                  return c.id;
+                })
+                .join(','),
+          );
+        } catch (e) {
+          console.log(
+            'WORKER_QUEUE ' +
+              w.coreId +
+              ' SCAN-FAIL ' +
+              (e && e.message || e),
+          );
+        }
+      }
+    } else {
+      console.log(
+        'WORKER_DIAG skip (selectWorkerCores=' +
+          !!(ac && ac.selectWorkerCores) +
+          ' agent-core=' +
+          !!acore +
+          ' memoRoot=' +
+          !!memoRoot +
+          ')',
+      );
+    }
+    try {
+      const tp = path.join(
+        memoRoot,
+        '.claude',
+        'discoveries',
+        'agent-trace.jsonl',
+      );
+      const lines = fs2
+        .readFileSync(tp, 'utf-8')
+        .trim()
+        .split(/\r?\n/)
+        .slice(-40);
+      const wl = lines
+        .filter(function (l) {
+          return /worker|cadence|wm-worker|kl-worker/.test(l);
+        })
+        .slice(-12);
+      console.log('TRACE_WORKER_TAIL ' + wl.length + ' lines:');
+      wl.forEach(function (l) {
+        console.log('  ' + l.slice(0, 180));
+      });
+    } catch (e) {
+      console.log('TRACE_TAIL-FAIL ' + (e && e.message || e));
+    }
+  } catch (e) {
+    console.log('WORKER_DIAG-THROW ' + (e && e.message || e));
+  }
 })();
