@@ -5,17 +5,51 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
   const REPO_ROOT_PREF = 'karmolab_repo_root';
 
+  /**
+   * dev 프로필. 두 형식 (Rust `DevProfile::resolve` 와 동형):
+   * - **npm-script 참조** (선호): `{ app, script, deployScript? }` — `app` 에서
+   *   `npm run <script>`. program/args/cwd 손기재 X → package.json rename 자동 추종.
+   *   `servermonitor-config-audit.mjs` 가 script 실재를 verify 게이트에서 검증.
+   * - **raw** (npm 스크립트 아님, 예: jekyll `bundle exec`): `{ cwd, program, args }`.
+   */
   type DevProfile = {
     id: string;
     label: string;
-    cwd: string;
-    program: string;
-    args: string[];
+    // npm-script 참조 형식
+    app?: string;
+    script?: string;
+    deployScript?: string;
+    // raw 형식 (npm 스크립트 아님)
+    cwd?: string;
+    program?: string;
+    args?: string[];
     healthUrl?: string;
     npmInstall?: boolean;
-    /** `npm` + these args in profile `cwd` (e.g. Discord slash deploy) */
+  };
+
+  type ResolvedProfile = {
+    program: string;
+    args: string[];
+    cwd: string;
     deployArgs?: string[];
   };
+
+  /** `{app,script}` → `npm run <script>` @ app, 또는 raw 그대로. Rust resolve() 와 동형. */
+  function resolveProfile(p: DevProfile): ResolvedProfile {
+    if (p.script) {
+      return {
+        program: 'npm',
+        args: ['run', p.script],
+        cwd: p.app ?? '.',
+        deployArgs: p.deployScript ? ['run', p.deployScript] : undefined,
+      };
+    }
+    return {
+      program: p.program ?? '',
+      args: p.args ?? [],
+      cwd: p.cwd ?? '.',
+    };
+  }
 
   /** 카드 stdin form 단축키 프리셋 — Vite/jest/jekyll 같은 dev 러너가 stdin 으로 받는 단일 시그널. */
   type StdinShortcut = { signal: string; hint: string };
@@ -40,13 +74,15 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     { signal: '.exit', hint: 'exit REPL' },
   ];
 
-  /** profile.program/args 의 substring 으로 1차 매칭. vitest 가 vite 를 포함하므로 더 좁은 패턴 먼저. */
+  /** resolve 된 program/args (+ script명) 의 substring 으로 1차 매칭. vitest 가 vite 를 포함하므로 더 좁은 패턴 먼저. */
   function pickStdinShortcuts(profile: DevProfile): StdinShortcut[] | null {
-    const cmd = `${profile.program} ${profile.args.join(' ')}`.toLowerCase();
+    const r = resolveProfile(profile);
+    // script 명도 매칭에 포함 (`{script:"dev"}` 는 vite/jekyll 이 args 에 안 드러남)
+    const cmd = `${r.program} ${r.args.join(' ')} ${profile.script ?? ''}`.toLowerCase();
     if (cmd.includes('vitest') || cmd.includes('jest')) return TEST_WATCH_SHORTCUTS;
     if (cmd.includes('vite')) return VITE_SHORTCUTS;
     if (cmd.includes('jekyll')) return JEKYLL_SHORTCUTS;
-    if (profile.program === 'node' && profile.args.length === 0) return NODE_REPL_SHORTCUTS;
+    if (r.program === 'node' && r.args.length === 0) return NODE_REPL_SHORTCUTS;
     return null;
   }
 
@@ -687,8 +723,9 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
         const streamActionBtns: HTMLButtonElement[] = [];
 
         if (p) {
+          const resolvedP = resolveProfile(p);
           const deployArgsFiltered =
-            p.deployArgs?.filter((a) => (a || '').trim().length > 0) ?? [];
+            resolvedP.deployArgs?.filter((a) => (a || '').trim().length > 0) ?? [];
 
           const isTracked = tracked.includes(p.id);
           const externalForProfile = externalPids[p.id] ?? [];
@@ -927,7 +964,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
                 'deploy 완료'
               );
             });
-            btnDeploy.title = `npm ${deployArgsFiltered.join(' ')} (${p.cwd})`;
+            btnDeploy.title = `npm ${deployArgsFiltered.join(' ')} (${resolvedP.cwd})`;
             streamActionBtns.push(btnDeploy);
             menu.appendChild(btnDeploy);
           }

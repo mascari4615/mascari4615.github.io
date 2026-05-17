@@ -42,20 +42,76 @@ pub struct LocalDevState {
     process_list_cache: Mutex<Option<(Instant, Vec<(u32, String)>)>>,
 }
 
+/// 서버모니터 dev 프로필. 두 형식:
+/// - **npm-script 참조** (선호): `{ app, script, deployScript? }` — `app` 디렉토리에서
+///   `npm run <script>`. program/args/cwd 를 손기재하지 않으므로 package.json 의
+///   스크립트 rename 에 자동으로 따라간다 (drift 구조적 불가). `servermonitor-config-audit.mjs`
+///   가 `<app>/package.json` 에 해당 script 실재를 verify 게이트에서 cross-check.
+/// - **raw** (npm 스크립트가 아닌 경우만, 예: jekyll `bundle exec`):
+///   `{ cwd, program, args }` 명시.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DevProfile {
     id: String,
     #[allow(dead_code)]
     label: String,
-    cwd: String,
-    program: String,
-    args: Vec<String>,
+    // ── npm-script 참조 형식 ──
+    #[serde(default)]
+    app: Option<String>,
+    #[serde(default)]
+    script: Option<String>,
+    /// optional **Deploy** 버튼 — `npm run <deployScript>` (예: `"deploy:yawnbot"`)
+    #[serde(default)]
+    deploy_script: Option<String>,
+    // ── raw 형식 (npm 스크립트 아님) ──
+    #[serde(default)]
+    cwd: Option<String>,
+    #[serde(default)]
+    program: Option<String>,
+    #[serde(default)]
+    args: Option<Vec<String>>,
     #[serde(default)]
     npm_install: bool,
-    /// e.g. `["run", "deploy:yawnbot"]` — optional **Deploy** button in Server Monitor
-    #[serde(default)]
+}
+
+/// `DevProfile` 를 실행 가능한 (program, args, cwd) 로 파생한 결과.
+struct ResolvedProfile {
+    program: String,
+    args: Vec<String>,
+    cwd_rel: String,
     deploy_args: Option<Vec<String>>,
+}
+
+impl DevProfile {
+    /// 두 형식 중 무엇이든 단일 실행 형태로 정규화. npm-script 형식은
+    /// `npm run <script>` 로, raw 형식은 명시된 program/args/cwd 그대로.
+    fn resolve(&self) -> Result<ResolvedProfile, String> {
+        if let Some(script) = self.script.as_deref() {
+            let app = self.app.as_deref().ok_or_else(|| {
+                format!("프로필 '{}': script 형식엔 app 이 필요합니다.", self.id)
+            })?;
+            Ok(ResolvedProfile {
+                program: "npm".to_string(),
+                args: vec!["run".to_string(), script.to_string()],
+                cwd_rel: app.to_string(),
+                deploy_args: self
+                    .deploy_script
+                    .as_deref()
+                    .map(|s| vec!["run".to_string(), s.to_string()]),
+            })
+        } else {
+            Ok(ResolvedProfile {
+                program: self.program.clone().ok_or_else(|| {
+                    format!("프로필 '{}': program 또는 (app+script) 가 필요합니다.", self.id)
+                })?,
+                args: self.args.clone().unwrap_or_default(),
+                cwd_rel: self.cwd.clone().ok_or_else(|| {
+                    format!("프로필 '{}': cwd 또는 (app+script) 가 필요합니다.", self.id)
+                })?,
+                deploy_args: None,
+            })
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -123,8 +179,8 @@ fn profile_by_id<'a>(profiles: &'a [DevProfile], id: &str) -> Result<&'a DevProf
         .ok_or_else(|| format!("알 수 없는 프로필: {}", id))
 }
 
-fn resolve_cwd(repo: &Path, profile: &DevProfile) -> Result<PathBuf, String> {
-    let joined = repo.join(profile.cwd.trim());
+fn resolve_cwd(repo: &Path, cwd_rel: &str) -> Result<PathBuf, String> {
+    let joined = repo.join(cwd_rel.trim());
     if !joined.is_dir() {
         return Err(format!("cwd가 폴더가 아님: {}", joined.display()));
     }
@@ -551,7 +607,10 @@ fn list_all_processes() -> Vec<(u32, String)> {
 }
 
 fn matches_profile_cmdline(cmdline: &str, profile: &DevProfile) -> bool {
-    let needle = profile.args.join(" ");
+    let Ok(resolved) = profile.resolve() else {
+        return false;
+    };
+    let needle = resolved.args.join(" ");
     if needle.trim().is_empty() {
         return false;
     }
@@ -900,16 +959,17 @@ pub fn localdev_start(
 
     let profiles = read_profiles(&repo)?;
     let profile = profile_by_id(&profiles, &profile_id)?;
-    if !program_allowed(&profile.program) {
-        return Err(format!("허용되지 않은 program: {}", profile.program));
+    let resolved = profile.resolve()?;
+    if !program_allowed(&resolved.program) {
+        return Err(format!("허용되지 않은 program: {}", resolved.program));
     }
-    if !args_are_safe(&profile.args) {
+    if !args_are_safe(&resolved.args) {
         return Err("프로필 인자에 허용되지 않은 문자가 있습니다.".into());
     }
 
-    let cwd = resolve_cwd(&repo, profile)?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
     let log_path = log_file_path(&app, &profile_id)?;
-    let (pid, stdin) = spawn_detached_process(&profile.program, &profile.args, &cwd, &log_path)?;
+    let (pid, stdin) = spawn_detached_process(&resolved.program, &resolved.args, &cwd, &log_path)?;
 
     {
         let mut pids = state.pids.lock().map_err(|e| e.to_string())?;
@@ -986,16 +1046,17 @@ pub async fn localdev_deploy_stream(
 
     let profiles = read_profiles(&repo)?;
     let profile = profile_by_id(&profiles, &profile_id)?;
-    let Some(ref da) = profile.deploy_args else {
+    let resolved = profile.resolve()?;
+    let Some(ref da) = resolved.deploy_args else {
         return Err("이 프로필에 deploy가 설정되어 있지 않습니다.".into());
     };
     if da.is_empty() {
-        return Err("deploy_args가 비어 있습니다.".into());
+        return Err("deploy 설정이 비어 있습니다.".into());
     }
     if !args_are_safe(da) {
         return Err("deploy 인자에 허용되지 않은 문자가 있습니다.".into());
     }
-    let cwd = resolve_cwd(&repo, profile)?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
 
     {
         let mut busy = state.stream_busy.lock().map_err(|e| e.to_string())?;
@@ -1045,7 +1106,8 @@ pub async fn localdev_npm_install_stream(
     if !profile.npm_install {
         return Err("이 프로필은 npm install이 비활성화되어 있습니다.".into());
     }
-    let cwd = resolve_cwd(&repo, profile)?;
+    let resolved = profile.resolve()?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
 
     {
         let mut busy = state.stream_busy.lock().map_err(|e| e.to_string())?;
