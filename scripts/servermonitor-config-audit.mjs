@@ -114,6 +114,66 @@ for (const p of profiles) {
   }
 }
 
+// ── KL-068: Rust DevProfile forward-compat 계약 기계 강제 ──
+// 사고: KL-066 가 `cwd` 를 Rust DevProfile 필수 필드로 둔 채 config 스키마를 바꿔
+//   ≤v0.1.19 바이너리가 신형 config 를 serde hard-fail → 카드 사망. 룰(텍스트)만
+//   두면 또 잊는다 → 「형식-변종 필드는 전부 #[serde(default)]」 를 여기서 강제.
+//   id/label 만 예외(프로필 정체성 = 항상 존재, 제거 불가한 안정 필드).
+const FWD_COMPAT_ALLOWLIST = new Set(['id', 'label']);
+function auditRustForwardCompat() {
+  const rsRel = 'apps/karmolab-tauri/src-tauri/src/local_dev.rs';
+  const rsPath = join(REPO, rsRel);
+  if (!existsSync(rsPath)) {
+    failures.push(`[fwd-compat] ${rsRel} 없음 (DevProfile 계약 검증 불가)`);
+    return;
+  }
+  const src = readFileSync(rsPath, 'utf8');
+  const m = src.indexOf('struct DevProfile {');
+  if (m < 0) {
+    failures.push(`[fwd-compat] ${rsRel} 에 'struct DevProfile {' 없음 — 리팩터 시 본 게이트 갱신 필요`);
+    return;
+  }
+  // 여는 { 부터 brace 매칭으로 본문 슬라이스.
+  const open = src.indexOf('{', m);
+  let depth = 0;
+  let end = -1;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === '{') depth++;
+    else if (src[i] === '}' && --depth === 0) {
+      end = i;
+      break;
+    }
+  }
+  if (end < 0) {
+    failures.push(`[fwd-compat] DevProfile 본문 brace 매칭 실패`);
+    return;
+  }
+  const body = src.slice(open + 1, end);
+  let attrs = [];
+  for (const rawLine of body.split('\n')) {
+    const line = rawLine.trim();
+    if (line === '' || line.startsWith('//')) continue;
+    if (line.startsWith('#[')) {
+      attrs.push(line);
+      continue;
+    }
+    const fld = line.match(/^(?:pub\s+)?([a-z_][a-z0-9_]*)\s*:/);
+    if (fld) {
+      const name = fld[1];
+      const hasDefault = attrs.some((a) => a.includes('serde(default)'));
+      if (!FWD_COMPAT_ALLOWLIST.has(name) && !hasDefault) {
+        failures.push(
+          `[fwd-compat] DevProfile.${name} 가 #[serde(default)] 없는 필수 필드 — ` +
+            `옛 바이너리가 신형 config 를 만나면 serde hard-fail(KL-066/KL-068). ` +
+            `Option<T> + #[serde(default)] 로 두거나 resolve() 에서 의미 검증할 것.`
+        );
+      }
+    }
+    attrs = [];
+  }
+}
+auditRustForwardCompat();
+
 if (failures.length === 0) {
   console.log(
     `[sm-audit] OK — devProfiles ${profiles.length}개 정합 ` +
