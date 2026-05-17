@@ -34,6 +34,7 @@ import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
+  shouldProvisionGuild,
   reconcileGuildChannels,
   rememberMap,
   getChannelSpec,
@@ -237,11 +238,13 @@ client.once('clientReady', async () => {
 
   stock.startMarket();
 
-  // 채널 자동 프로비저닝 (dev 한정 — prod 는 env *_CHANNEL_ID 우선이라 OFF).
+  // 채널 자동 프로비저닝 (dev·prod 공통 — 옛 하드코딩 채널 폐기). 허용 길드
+  // (YAWNBOT_ALLOWED_GUILD_IDS)만 — 봇이 초대된 친구 서버 등엔 손대지 않음.
   // 인사·notifier 시작 *전* 에 reconcile → resolver(channelIdFor)가 즉시 신선.
   if (isProvisioningEnabled()) {
     const spec = getChannelSpec();
     for (const guild of client.guilds.cache.values()) {
+      if (!shouldProvisionGuild(guild.id)) continue;
       const canManage = guild.members.me?.permissions.has('ManageChannels') ?? false;
       if (!canManage) {
         console.warn(
