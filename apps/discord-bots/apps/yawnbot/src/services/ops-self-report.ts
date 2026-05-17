@@ -13,25 +13,29 @@
  * 모든 send 는 try/catch silent — 자기보고가 봇 자체를 죽이지 않도록.
  */
 import os from 'node:os';
+import { channelIdFor } from './channel-provision';
 import crypto from 'node:crypto';
 import { REST, Routes, EmbedBuilder } from 'discord.js';
 
 export interface OpsReportContext {
   token: string;
-  channelId: string;
   env: string;
   hostname: string;
   gitCommit: string;
 }
 
-/** 환경변수에서 ctx 로드. channelId 없으면 null (= self-report 비활성). */
+/**
+ * ctx 로드. token 만 게이트 — **채널 ID 는 여기서 동결하지 않는다.**
+ * 이 함수는 모듈 로드 시(= clientReady·reconcile *전*) 호출되므로, 채널을
+ * 여기서 캡처하면 프로비저닝 전 옛 env 채널로 영구 고정된다(TASK-YB-029
+ * 회귀: 시작/종료/배포 알림이 옛 채널 고착). 채널은 sendEmbed 에서 매
+ * send 시점 channelIdFor('ops-report') 로 lazy 해석 (reconcile 후 신선).
+ */
 export function loadOpsReportContext(): OpsReportContext | null {
   const token = process.env.DISCORD_TOKEN?.trim();
-  const channelId = process.env.YAWNBOT_OPS_REPORT_CHANNEL_ID?.trim();
-  if (!token || !channelId) return null;
+  if (!token) return null;
   return {
     token,
-    channelId,
     env: process.env.YAWNBOT_ENV?.trim() || 'unknown',
     hostname: os.hostname(),
     gitCommit: process.env.GIT_COMMIT?.trim() || 'unknown',
@@ -64,9 +68,16 @@ function buildFooter(ctx: OpsReportContext): string {
 }
 
 async function sendEmbed(ctx: OpsReportContext, embed: EmbedBuilder, timeoutMs = 3000): Promise<void> {
+  // 채널 lazy 해석 — send 시점 (reconcile 후이므로 프로비저닝된 ops-report
+  // 채널로 정확히 감). 미해석 시 skip(=self-report 비활성, 크래시 0).
+  const channelId = channelIdFor('ops-report');
+  if (!channelId) {
+    console.warn('[OpsReport] ops-report 채널 미해석 — 이번 보고 skip (프로비저닝/env 둘 다 없음)');
+    return;
+  }
   try {
     const rest = new REST({ timeout: timeoutMs }).setToken(ctx.token);
-    await rest.post(Routes.channelMessages(ctx.channelId), {
+    await rest.post(Routes.channelMessages(channelId), {
       body: { embeds: [embed.toJSON()] },
     });
   } catch (e: unknown) {
@@ -121,6 +132,25 @@ export async function reportError(
     .setTitle(`🔴 YawnBot 에러 (${kind})`)
     .setDescription(`**메시지**: ${e.message.slice(0, 300)}\n\`\`\`\n${stackPreview}\n\`\`\``)
     .setFooter({ text: `${buildFooter(ctx)} · stack:${stackHash}` })
+    .setTimestamp();
+  await sendEmbed(ctx, embed);
+}
+
+/**
+ * heartbeat 장애/복구 임베드 (TASK-YB-021). 봇이 외부 monitor 로 ping 을
+ * 못 보내는(egress 단절) 상태 전이를 ops-report 채널에 보고 — inbound
+ * watcher 가 못 보는 사각(봇 alive·터널 OK·DNS/네트워크만 단절) 보완.
+ * 상태 전이에서만 호출되므로 자체 dedup 불요.
+ */
+export async function reportHeartbeat(
+  ctx: OpsReportContext,
+  alert: { healthy: boolean; reason: string },
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(alert.healthy ? 0x2ecc71 : 0xe67e22)
+    .setTitle(alert.healthy ? '🟢 YawnBot heartbeat 복구' : '🟠 YawnBot heartbeat 실패')
+    .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
+    .setFooter({ text: buildFooter(ctx) })
     .setTimestamp();
   await sendEmbed(ctx, embed);
 }

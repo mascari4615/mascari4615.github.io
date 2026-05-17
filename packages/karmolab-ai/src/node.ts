@@ -3,6 +3,7 @@
  * 브라우저 번들에 포함하지 말 것 — `import 'karmolab-ai/node'`.
  */
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
@@ -470,15 +471,23 @@ export async function generateClaudeCliText(opts: {
 /**
  * ⑦' 자율 발굴 전용 *비-agentic* claude CLI 인자 (KAR-018-W 안전 근본).
  *
- * 황금의 정신 — "print 모드가 알아서 막겠지"에 의존 X, *결정적 하드 보장*:
- *  · cwd 파라미터 자체 부재 → `--dangerously-skip-permissions` 구조적 불가
- *  · `--bare`               → hooks/auto-memory/CLAUDE.md 자동탐색/plugin OFF
- *  · `--no-session-persistence` → ephemeral, 공유 `yawnbot-assistant` 세션 경합 0
- *  · `--disallowedTools <쓰기·실행 전부>` → 도구 명시 거부 (자율 루프 = 순수 추론)
+ * 황금의 정신 — 가설 X, 2026-05-17 실 dev 봇 관측 + 로컬 재현으로 확정:
+ *  · `--bare` 채택 → **EXIT 1 "Not logged in"**: --bare 는 OAuth/keychain
+ *    을 절대 안 읽음(help 명시). 사용자 환경=Claude Max OAuth(API키 없음)
+ *    → 인증 불가. `--bare` *제거* 가 근본 (안전 요건 아니었음).
+ *  · 그러나 --bare 없으면 claude 가 *프로젝트 CLAUDE.md(거대 karmoddrine
+ *    거버넌스) 자동탐색* → 모델이 풀-에이전트로 거부·역질문(발굴 불성립).
+ *  · 해소: cwd = **함수 내부 생성 빈 임시 디렉토리**. CLAUDE.md walk-up
+ *    이 karmoddrine 트리 밖이라 오염 0 + OAuth 생존 + `--disallowedTools`
+ *    + skip-perm 없음 → 빈 throwaway dir 라 agentic 불가(실측: 파일 0).
+ * 결정적 하드 보장:
+ *  · 시그니처에 cwd 파라미터 *부재* → caller 가 repo 를 못 가리킴 (임시
+ *    dir 은 함수가 소유·생성·정리). 런타임 플래그 아닌 타입레벨 안전.
+ *  · `--disallowedTools <쓰기·실행 전부>` → 도구 명시 거부
+ *  · `--dangerously-skip-permissions` 미부여 (cwd=빈 dir 라 무의미)
+ *  · `--no-session-persistence` → 공유 `yawnbot-assistant` 세션 경합 0
+ *  · `--strict-mcp-config` (+ --mcp-config 미부여) → MCP 서버 spawn 0
  *  · `--continue`/`--resume`/`--name` 없음 → 무상태 단발
- * 발굴은 "미션·objectives 텍스트 → 엔벨로프 JSON 1건" 단일턴 추론이라
- * 파일·명령·세션이 *원천적으로* 불필요. 누가 cwd 를 넘길 수 없는 시그니처
- * = 런타임 플래그가 아닌 타입 레벨 안전 (Deep Modules).
  */
 const DISCOVERY_DISALLOWED_TOOLS =
   'Bash Edit Write Read NotebookEdit Glob Grep Task WebFetch WebSearch';
@@ -486,8 +495,8 @@ const DISCOVERY_DISALLOWED_TOOLS =
 export function buildDiscoveryArgs(): string[] {
   return [
     '--print',
-    '--bare',
     '--no-session-persistence',
+    '--strict-mcp-config',
     '--disallowedTools',
     DISCOVERY_DISALLOWED_TOOLS,
   ];
@@ -495,8 +504,9 @@ export function buildDiscoveryArgs(): string[] {
 
 /**
  * 로컬 `claude` CLI 로 *비-agentic* 단발 텍스트 생성 (⑦' 발굴 전용).
- * generateClaudeCliText 와 달리 cwd 인자가 시그니처에 *없어* agentic 모드로
- * 절대 진입 불가. 무상태 — resume/세션 저장 X (공유 세션 비경합).
+ * cwd 인자가 시그니처에 *없다* — 함수가 빈 임시 디렉토리를 만들어 cwd 로
+ * 쓰고(청정 컨텍스트 = CLAUDE.md 오염 차단, agentic 차단) 종료 시 정리.
+ * 무상태 — resume/세션 저장 X (공유 세션 비경합).
  */
 export async function generateDiscoveryText(opts: {
   prompt: string;
@@ -505,13 +515,21 @@ export async function generateDiscoveryText(opts: {
   const cmd = process.env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
   const timeout =
     opts.timeoutMs ?? parseInt(process.env.CLAUDE_CLI_TIMEOUT_MS || '60000', 10);
+  // 함수 소유 빈 임시 cwd — caller 불가침. 청정 컨텍스트 + agentic 차단.
+  const cleanCwd = fs.mkdtempSync(path.join(os.tmpdir(), 'yb-discovery-'));
+  const cleanup = (): void => {
+    try {
+      fs.rmSync(cleanCwd, { recursive: true, force: true });
+    } catch {
+      /* best-effort — OS tmp 가 결국 회수 */
+    }
+  };
 
   return new Promise<string>((resolve, reject) => {
     const child = spawn(cmd, buildDiscoveryArgs(), {
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
-      // cwd 미지정 — 의도적 (agentic 차단). process cwd 상속이지만 도구
-      // 거부 + bare 라 파일 접근 경로 자체가 없음.
+      cwd: cleanCwd, // 빈 dir — 도구 거부 + skip-perm 없음 → agentic 불가
     });
 
     let stdout = '';
@@ -525,11 +543,13 @@ export async function generateDiscoveryText(opts: {
 
     const timer = setTimeout(() => {
       child.kill();
+      cleanup();
       reject(new Error(`Claude CLI(discovery) 타임아웃 (${timeout}ms)`));
     }, timeout);
 
     child.on('close', (code: number | null) => {
       clearTimeout(timer);
+      cleanup();
       // 빈 출력 = 발굴 없음(정상, 날조 0) → 빈 문자열 resolve (파서가 폐기).
       if (code === 0) resolve(stdout.trim());
       else
@@ -541,6 +561,7 @@ export async function generateDiscoveryText(opts: {
     });
     child.on('error', (err: Error) => {
       clearTimeout(timer);
+      cleanup();
       reject(
         new Error(
           `Claude CLI(discovery) 실행 실패: ${err.message} (PATH에 '${cmd}' 확인)`,

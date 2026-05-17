@@ -1,15 +1,20 @@
 /**
- * Hacker News 상위 스토리 (긱뉴스) 알림 (atkup-bot 흡수, TASK-YB-003).
+ * Hacker News 상위 스토리 소스 (구 geeknews.ts 의 fetch+embed 이전, TASK-YB-036).
+ *
+ * 순수 데이터/포맷 — discord 채널·env 비의존. 스케줄 news notifier
+ * (`notifiers/news.ts`)가 2번째 소스로 폴링·게시한다. standalone geeknews
+ * 채널/슬래시(/atkup news)는 폐기 (미사용 수동기능 → 자동 news 흡수).
  *
  * - 공개 Firebase API → topstories.json
- * - 슬래시 `/atkup news [count]` 호출 시 즉시 전송 (cron 없음)
  * - 정본: https://github.com/HackerNews/API
  */
-import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 
 const HN_COLOR = 0xff6600;
 
 export interface HnStoryLine {
+  /** HN item id — 안정 식별자(제목 변경에도 불변). */
+  id: number;
   title: string;
   href: string;
   score: number;
@@ -73,6 +78,7 @@ export async function fetchHnTopStories(limit: number): Promise<HnStoryLine[]> {
   for (const it of raw) {
     if (!it || typeof it.title !== 'string' || !it.title.trim()) continue;
     lines.push({
+      id: it.id,
       title: truncateTitle(it.title),
       href: storyHref(it),
       score: typeof it.score === 'number' ? it.score : 0,
@@ -83,48 +89,13 @@ export async function fetchHnTopStories(limit: number): Promise<HnStoryLine[]> {
   return lines;
 }
 
-function buildGeekNewsEmbed(lines: HnStoryLine[]): EmbedBuilder {
-  const desc = lines
-    .map((s, i) => {
-      const t = sanitizeTitleForMdLink(s.title);
-      return `${i + 1}. [${t}](${s.href}) · ${s.score}pt · ${s.host} · ${s.by}`;
-    })
-    .join('\n');
-
+/** 한 건 = 한 임베드 (news notifier 의 기사별 게시 흐름과 동형). */
+export function buildHnEmbed(s: HnStoryLine): EmbedBuilder {
+  const t = sanitizeTitleForMdLink(s.title);
   return new EmbedBuilder()
-    .setTitle('📰 Hacker News · 긱 뉴스')
-    .setDescription(desc.slice(0, 4090))
+    .setTitle(`📰 ${t.slice(0, 250)}`)
+    .setURL(s.href)
+    .setDescription(`${s.score}pt · ${s.host} · ${s.by}`)
     .setColor(HN_COLOR)
-    .setFooter({ text: 'YawnBot · GeekNews' });
-}
-
-export async function sendGeekNewsToChannel(channel: SendableChannels, count: number): Promise<number> {
-  const stories = await fetchHnTopStories(count);
-  if (stories.length === 0) {
-    await channel.send({ content: 'Hacker News에서 가져온 글이 없습니다.' });
-    return 0;
-  }
-  const embed = buildGeekNewsEmbed(stories);
-  await channel.send({ embeds: [embed] });
-  return stories.length;
-}
-
-/**
- * 슬래시 `/atkup news [count]` 진입점.
- * 환경변수 YAWNBOT_GEEKNEWS_CHANNEL_ID 미설정 시 'no_channel' 반환.
- */
-export async function triggerGeekNewsOnce(
-  client: Client,
-  count: number,
-): Promise<{ status: 'sent' | 'no_channel' | 'channel_unreachable'; sent: number }> {
-  const channelId = process.env.YAWNBOT_GEEKNEWS_CHANNEL_ID?.trim();
-  if (!channelId) {
-    return { status: 'no_channel', sent: 0 };
-  }
-  const channel = await client.channels.fetch(channelId).catch(() => null);
-  if (!channel?.isSendable()) {
-    return { status: 'channel_unreachable', sent: 0 };
-  }
-  const sent = await sendGeekNewsToChannel(channel, count);
-  return { status: 'sent', sent };
+    .setFooter({ text: 'YawnBot · Hacker News' });
 }

@@ -3,7 +3,7 @@
 // 호출처: `npm run verify` / `.husky/pre-push` / `.github/workflows/verify.yml`.
 // 정본: memo/UMBRELLA.md § 자동화 가능 룰은 코드로 — 텍스트 룰은 잊힌다.
 
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 function run(label, cwd, command) {
@@ -35,9 +35,42 @@ if (existsSync('packages/karmolab-ai/node_modules')) {
   console.log('[verify] ! packages/karmolab-ai/node_modules 없음 — build skip (정합: cd packages/karmolab-ai && npm ci)');
 }
 
+// 2.9. Tauri externalBin host-triple placeholder 보장 (TASK-KAR-073 / KL-052 회귀 fix).
+//      tauri.conf.json `externalBin: ["binaries/karmolab-life-ml"]` 은 sidecar 를
+//      host target-triple suffix 로 resolve 한다. tauri-build(build.rs) 가
+//      *cargo check 단계에서도* 그 경로 존재를 검증 → Linux CI 엔 Linux triple
+//      바이너리가 없어 "resource path ... doesn't exist" 로 master invariant 가
+//      2일간 red (KL-052-B2-1 1fd31c61 이 externalBin 추가 시 Windows .exe 만 커밋).
+//      워크스페이스 설계 의도 = "verify 는 무거운 ML sidecar 를 빌드 X (src-tauri
+//      member 만 check)". 그 의도 유지하면서 externalBin 존재 검증만 통과시키려면
+//      host triple placeholder 만 보장하면 충분 — cargo check 는 번들 X 라 빈
+//      파일이면 됨 (실 바이너리는 tauri build/bundle 시 sidecar 빌드가 생성).
+function ensureTauriSidecarPlaceholder() {
+  const tauriRoot = 'apps/karmolab-tauri/src-tauri';
+  const v = spawnSync('rustc', ['-vV'], { encoding: 'utf8' });
+  if (v.status !== 0) {
+    console.error('[verify] X rustc -vV 실패 — Rust toolchain 없음');
+    process.exit(v.status ?? 1);
+  }
+  const triple = (v.stdout.match(/^host:\s*(.+)$/m) || [])[1]?.trim();
+  if (!triple) {
+    console.error('[verify] X rustc host triple 파싱 실패');
+    process.exit(1);
+  }
+  const ext = triple.includes('windows') ? '.exe' : '';
+  const binDir = `${tauriRoot}/binaries`;
+  const binPath = `${binDir}/karmolab-life-ml-${triple}${ext}`;
+  if (!existsSync(binPath)) {
+    mkdirSync(binDir, { recursive: true });
+    writeFileSync(binPath, ''); // existence-only — cargo check 는 번들 X
+    console.log(`[verify] ! tauri externalBin placeholder 생성: ${binPath} (host=${triple}, KAR-073)`);
+  }
+}
+
 // 3. apps/karmolab-tauri — cargo check. 이전 karmolab-tauri.yml 흡수.
 //    PR #15 의 DOMAIN_DIRS private E0603 같은 사고 방지.
 if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+  ensureTauriSidecarPlaceholder();
   run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
 }
 
@@ -48,6 +81,20 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
 //      이 게이트를 verify 에서 영구 skip 시키던 잠복 결함 수정).
 if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('Tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
+}
+
+// 3.6. Server Monitor 설정 정합 audit — devProfiles {app,script} ⟷ <app>/package.json
+//      scripts 실재 cross-check (TASK-KL-066). `dev:dual`→`dev` rename 으로 카드가
+//      조용히 죽은 사고 재발 방지. 필수 게이트 — 무조건 실행.
+run('Server Monitor config audit', '.', 'node scripts/servermonitor-config-audit.mjs');
+
+// 3.7. App origin 정합 + liveness audit (TASK-KL-064). prod 앱이 로드하는
+//      URL(release conf frontendDist)을 정본으로, 흩어진 참조(base conf /
+//      lib.rs 상수 / allow_in_webview / capabilities) 일치 + 그 URL 이
+//      301/non-200 아닌지 cross-check. 도메인 이전 시 일부만 바뀌어 prod
+//      빈화면 났던 사고(KL-064) 재발을 기계 차단. 필수 게이트.
+if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+  run('App origin audit', '.', 'node scripts/app-origin-audit.mjs');
 }
 
 // 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)

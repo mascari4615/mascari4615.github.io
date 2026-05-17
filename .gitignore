@@ -62,6 +62,7 @@ apps/karmolab/world/*.js
 apps/karmolab/js/mdd.js
 apps/karmolab/js/gemini.js
 apps/karmolab/js/toolbox.js
+apps/karmolab/js/alarm-fire.js
 apps/karmolab/js/widgets-manifest.js
 apps/karmolab/js/widgets-lazy-meta.js
 apps/karmolab/js/widgets-loader.js
@@ -79,6 +80,9 @@ assets/js/graph-view/
 
 # YawnBot 런타임 dedup state (deploy git clean -fd 가 untracked 지움 → ignored 라야 survive). TASK-YB-007.
 apps/discord-bots/apps/yawnbot/data/unity-free-state.json
+
+# 채널 프로비저닝 파생 ID 맵 (정본=channel-spec.json, 본 파일=길드별 런타임 캐시).
+apps/discord-bots/apps/yawnbot/data/provisioned-channels.*.json
 
 # Hidden system files
 *~

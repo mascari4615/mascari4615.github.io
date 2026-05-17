@@ -294,6 +294,20 @@ export class CharacterService {
     this._writeActive(cfg);
   }
 
+  /**
+   * channelKey 에 코어+스킨 동시 바인딩 (KAR-018-V 라벨 추종 근본).
+   * setChannelCore 와 달리 스킨도 명시 — 프로비저닝이 채널 id 를 바꿔도
+   * 부팅 시 *현 provisioned 라벨 채널*에 atlas 를 다시 박아 "에이전트
+   * 사라짐" 영구 차단. 동일 바인딩이면 write 생략(불필요 git 변경 X).
+   */
+  bindChannel(channelKey: string, core: string, skin: string): void {
+    const cfg = this._readActive();
+    const prev = cfg.channels[channelKey];
+    if (prev && prev.core === core && prev.skin === skin) return;
+    cfg.channels = { ...cfg.channels, [channelKey]: { core, skin } };
+    this._writeActive(cfg);
+  }
+
   /** channelKey 의 코어만 설정(스킨 보존). core=null = 코어 해제. KAR-018-A */
   setChannelCore(channelKey: string, core: string | null): void {
     const cfg = this._readActive();

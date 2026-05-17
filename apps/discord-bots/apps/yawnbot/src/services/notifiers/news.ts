@@ -1,7 +1,8 @@
 /**
  * 관심사 키워드 뉴스 주기 알림 (TASK-YB-027).
  *
- * - unity-free / geeknews 와 대칭인 전용 스케줄 notifier.
+ * - unity-free 와 대칭인 전용 스케줄 notifier. Google News(관심사 키워드)
+ *   + Hacker News(YB-036 흡수) 2 소스를 같은 `news` 채널에 게시.
  *   기존 NewsService(관심사 키워드 기반 Google News RSS, 캐릭터별)를 재사용.
  * - main.ts clientReady 에서 startNewsNotifier(client, getNews, slug) 호출 — interval poll 시작.
  * - 슬래시 단발 트리거용 triggerNewsOnce 도 동일 send 흐름 사용 (atkup 등에서 배선 가능).
@@ -11,13 +12,31 @@
  * (spontaneous DM 의 30% 힌트 경로와 독립 — 그쪽은 그대로 둠.)
  */
 import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
+import { channelIdFor } from '../channel-provision';
 import fs from 'fs';
 import path from 'path';
 import { PKG_ROOT } from '../../paths';
 import type { NewsService, NewsArticle } from '../news-service';
+import { fetchHnTopStories, buildHnEmbed } from '../sources/hacker-news';
 
 const EMBED_COLOR = 0x2196f3;
 const SENT_LINKS_CAP = 300;
+const SENT_KEYS_CAP = 300;
+const SENT_HN_CAP = 300;
+
+/**
+ * 안정적 dedup 키 = 정규화된 제목.
+ *
+ * Google News RSS 의 <link> (`.../articles/CBMi...?oc=5`) 토큰은 fetch 세션마다
+ * 재생성되어 같은 기사가 폴링·재시작마다 다른 link 를 가진다 → link 기준 dedup 이
+ * 같은 기사를 못 거른다. 제목은 재fetch·재시작에 안정적이라 영속 dedup 의 1차 키로 적합.
+ * (unity-free.ts 가 안정적 키 couponCode/assetUrl 을 영속하는 것과 동일 원리.)
+ * Google News 가 붙이는 ` - 언론사` suffix 는 동일 출처 재fetch 간 안정 → 유지
+ * (서로 다른 매체의 유사 헤드라인 오병합 방지).
+ */
+export function dedupKey(title: string): string {
+  return title.normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
+}
 
 function buildNewsEmbed(a: NewsArticle): EmbedBuilder {
   const embed = new EmbedBuilder()
@@ -31,8 +50,12 @@ function buildNewsEmbed(a: NewsArticle): EmbedBuilder {
 }
 
 // 봇 재시작·재배포 후에도 dedup 유지 (NewsService.seenTitles 는 in-memory 휘발).
+// sentKeys = 정규화 제목 (1차·재시작/link 로테이션 무관). sentLinks = 2차 안전망.
 interface NewsNotifierState {
+  sentKeys: string[];
   sentLinks: string[];
+  /** Hacker News 흡수(YB-036) — 게시한 HN item id (안정 식별자). */
+  sentHnKeys: string[];
   lastSentAt: string | null;
 }
 
@@ -43,21 +66,26 @@ function loadState(): NewsNotifierState {
     if (fs.existsSync(STATE_PATH)) {
       const parsed = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8')) as Partial<NewsNotifierState>;
       return {
+        // 구 state (sentKeys 없음) 하위호환 — 신키는 다음 폴링부터 누적.
+        sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
         sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
+        sentHnKeys: Array.isArray(parsed.sentHnKeys) ? parsed.sentHnKeys.filter((x) => typeof x === 'string') : [],
         lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
       };
     }
   } catch (err) {
     console.warn('[News] dedup state 읽기 실패 — 새 state 로 시작:', err);
   }
-  return { sentLinks: [], lastSentAt: null };
+  return { sentKeys: [], sentLinks: [], sentHnKeys: [], lastSentAt: null };
 }
 
 function saveState(state: NewsNotifierState): void {
   try {
     fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
     const trimmed: NewsNotifierState = {
+      sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
       sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
+      sentHnKeys: state.sentHnKeys.slice(-SENT_HN_CAP),
       lastSentAt: state.lastSentAt,
     };
     fs.writeFileSync(STATE_PATH, JSON.stringify(trimmed, null, 2) + '\n', 'utf-8');
@@ -83,16 +111,21 @@ async function pollOnce(
   }
 
   const state = loadState();
-  const seen = new Set(state.sentLinks);
+  const seenKeys = new Set(state.sentKeys);
+  const seenLinks = new Set(state.sentLinks);
   const fresh: NewsArticle[] = [];
 
   // fetchFreshArticle 은 호출마다 키워드를 섞어 미열람 1건 반환 + in-memory seen 누적.
-  // persistent dedup(seen) 으로 재시작 후 중복 방지. 같은 link 면 skip 하고 다음 시도.
+  // 영속 dedup: 1차 = 정규화 제목(재시작·link 로테이션 무관), 2차 = link(안전망).
+  // 둘 중 하나라도 본 적 있으면 skip 하고 다음 시도.
   for (let i = 0; i < maxPerPoll * 3 && fresh.length < maxPerPoll; i++) {
     const a = await news.fetchFreshArticle(maxAgeHours);
     if (!a) break;
-    if (!a.link || seen.has(a.link)) continue;
-    seen.add(a.link);
+    const key = dedupKey(a.title);
+    if (seenKeys.has(key)) continue;
+    if (a.link && seenLinks.has(a.link)) continue;
+    seenKeys.add(key);
+    if (a.link) seenLinks.add(a.link);
     fresh.push(a);
   }
 
@@ -110,10 +143,59 @@ async function pollOnce(
   for (const a of fresh) {
     try {
       await sendNewsArticleToChannel(channel, a);
-      state.sentLinks.push(a.link);
+      state.sentKeys.push(dedupKey(a.title));
+      if (a.link) state.sentLinks.push(a.link);
       sent++;
     } catch (err) {
       console.warn('[News] 기사 전송 실패:', err instanceof Error ? err.message : String(err));
+    }
+  }
+  if (sent > 0) {
+    state.lastSentAt = new Date().toISOString();
+    saveState(state);
+  }
+  return { status: 'sent', sent };
+}
+
+/**
+ * Hacker News 흡수 폴 (YB-036) — 같은 `news` 채널에 HN 상위 글을 게시.
+ * Google News 와 독립 dedup namespace(`sentHnKeys` = HN item id). 미게시
+ * 상위 글을 최대 maxPerPoll 개. id 는 제목 변경에도 불변 = 안정 키.
+ */
+async function pollHnOnce(
+  client: Client,
+  channelId: string,
+  maxPerPoll: number,
+): Promise<{ status: 'sent' | 'no_story' | 'channel_unreachable'; sent: number }> {
+  let stories;
+  try {
+    stories = await fetchHnTopStories(15);
+  } catch (err) {
+    console.warn('[News/HN] topstories 조회 실패:', err instanceof Error ? err.message : String(err));
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const state = loadState();
+  const seen = new Set(state.sentHnKeys);
+  const fresh = stories.filter((s) => !seen.has(String(s.id))).slice(0, maxPerPoll);
+  if (fresh.length === 0) {
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const channel = await client.channels.fetch(channelId).catch(() => null);
+  if (!channel?.isSendable()) {
+    console.error('[News/HN] 채널을 찾을 수 없거나 메시지를 보낼 수 없습니다:', channelId);
+    return { status: 'channel_unreachable', sent: 0 };
+  }
+
+  let sent = 0;
+  for (const s of fresh) {
+    try {
+      await channel.send({ embeds: [buildHnEmbed(s)] });
+      state.sentHnKeys.push(String(s.id));
+      sent++;
+    } catch (err) {
+      console.warn('[News/HN] 게시 실패:', err instanceof Error ? err.message : String(err));
     }
   }
   if (sent > 0) {
@@ -131,11 +213,13 @@ let timer: ReturnType<typeof setInterval> | null = null;
  * - YAWNBOT_NEWS_INTERVAL_MIN — 폴링 간격 (분, 기본 180, 최소 30)
  * - YAWNBOT_NEWS_MAX_AGE_HOURS — 신선 기사 기준 (시간, 기본 12)
  * - YAWNBOT_NEWS_MAX_PER_POLL — 1회 poll 최대 게시 수 (기본 3)
+ * - YAWNBOT_NEWS_HN — Hacker News 흡수 소스 토글 (기본 ON, =0/off/false 면 비활성)
+ * - YAWNBOT_NEWS_HN_PER_POLL — HN 1회 poll 최대 게시 수 (기본 3)
  */
 export function startNewsNotifier(client: Client, getNews: (slug: string) => NewsService, slug: string): void {
   stopNewsNotifier();
 
-  const channelId = process.env.YAWNBOT_NEWS_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('news');
   if (!channelId) {
     console.warn('[News] YAWNBOT_NEWS_CHANNEL_ID 미설정 — 관심사 뉴스 알림 비활성');
     return;
@@ -144,6 +228,9 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
   const intervalMin = Math.max(30, parseInt(process.env.YAWNBOT_NEWS_INTERVAL_MIN || '180', 10));
   const maxAgeHours = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_AGE_HOURS || '12', 10));
   const maxPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_PER_POLL || '3', 10));
+  const hnFlag = process.env.YAWNBOT_NEWS_HN?.trim().toLowerCase();
+  const hnEnabled = !(hnFlag === '0' || hnFlag === 'off' || hnFlag === 'false');
+  const hnPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_HN_PER_POLL || '3', 10));
   const intervalMs = intervalMin * 60 * 1000;
 
   const tick = (): void => {
@@ -158,9 +245,14 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
       if (r.status === 'sent') console.log(`[News] 관심사 뉴스 ${r.sent}건 게시 (채널: ${channelId})`);
       else if (r.status === 'no_keywords') console.log('[News] 등록된 관심사 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
     });
+    if (hnEnabled) {
+      void pollHnOnce(client, channelId, hnPerPoll).then((r) => {
+        if (r.status === 'sent') console.log(`[News/HN] Hacker News ${r.sent}건 게시 (채널: ${channelId})`);
+      });
+    }
   };
 
-  console.log(`[News] 관심사 뉴스 알림 활성 (채널: ${channelId}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll})`);
+  console.log(`[News] 관심사 뉴스 알림 활성 (채널: ${channelId}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll}, HN: ${hnEnabled ? `ON(${hnPerPoll}/poll)` : 'OFF'})`);
   tick();
   timer = setInterval(tick, intervalMs);
 }
@@ -181,7 +273,7 @@ export async function triggerNewsOnce(
   maxAgeHours = 12,
   maxPerPoll = 3,
 ): Promise<{ status: 'sent' | 'no_article' | 'no_keywords' | 'channel_unreachable' | 'no_channel'; sent: number }> {
-  const channelId = process.env.YAWNBOT_NEWS_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('news');
   if (!channelId) {
     return { status: 'no_channel', sent: 0 };
   }

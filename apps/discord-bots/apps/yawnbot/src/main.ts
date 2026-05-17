@@ -7,7 +7,7 @@ import './install-console-timestamps';
 import dns from 'node:dns';
 import { generateDependencyReport } from '@discordjs/voice';
 import sodium from 'libsodium-wrappers';
-import { Client, GatewayIntentBits, Partials, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, TextChannel, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
 import { destroyAllVoiceConnections } from './bot/voice-connection';
 import { destroyAllMusicPlayers, setMusicDiscordClient, setMusicPlayFailureReporter } from './bot/music-player';
@@ -19,7 +19,7 @@ import { EnhancementService } from './services/enhancement';
 import { StockService } from './services/stock';
 import { RaidService } from './services/raid';
 import { MemoryService } from './services/memory-service';
-import { CharacterService } from './services/character-service';
+import { CharacterService, type CharacterCard } from './services/character-service';
 import { ScheduleService } from './services/schedule-service';
 import { MoodService } from './services/mood-service';
 import { AnniversaryService } from './services/anniversary-service';
@@ -32,15 +32,34 @@ import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
+import {
+  isProvisioningEnabled,
+  shouldProvisionGuild,
+  reconcileGuildChannels,
+  rememberMap,
+  getChannelSpec,
+  effectiveCategoryName,
+  type GuildLike,
+} from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
-import { isOwnAgentWebhook } from './bot/agent-webhook';
+import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
+import { setProposalAnnouncer } from './bot/proposal-adapter';
+import { announceProposal } from './bot/agent-bus';
+import {
+  loadCoreDef,
+  listCoreIds,
+  resolveProposalCore,
+  coreLabel,
+} from './services/agent-core';
+import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
-import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
+import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
-import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
+import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat } from './services/ops-self-report';
+import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 
@@ -227,6 +246,45 @@ client.once('clientReady', async () => {
 
   stock.startMarket();
 
+  // 채널 자동 프로비저닝 (dev·prod 공통 — 옛 하드코딩 채널 폐기). 허용 길드
+  // (YAWNBOT_ALLOWED_GUILD_IDS)만 — 봇이 초대된 친구 서버 등엔 손대지 않음.
+  // 인사·notifier 시작 *전* 에 reconcile → resolver(channelIdFor)가 즉시 신선.
+  if (isProvisioningEnabled()) {
+    const spec = getChannelSpec();
+    for (const guild of client.guilds.cache.values()) {
+      if (!shouldProvisionGuild(guild.id)) continue;
+      const canManage = guild.members.me?.permissions.has('ManageChannels') ?? false;
+      if (!canManage) {
+        console.warn(
+          `[ChannelProvision] ${guild.name}(${guild.id}) — ManageChannels 권한 없음, env 채널 ID 폴백 사용 (봇 초대 권한 확인 필요)`,
+        );
+        continue;
+      }
+      try {
+        const r = await reconcileGuildChannels(guild as unknown as GuildLike, spec);
+        rememberMap(r.guildId, r.map);
+        // KAR-018-V 라벨 추종 근본: atlas 코어를 *현 provisioned agent-team
+        // 채널*에 자동 바인딩. 프로비저닝이 채널 id 를 바꿔도 매 부팅
+        // 추종 → "에이전트가 사라짐"(하드코딩 ID 스테일) 영구 차단.
+        const agentTeamId = r.map['agent-team'];
+        if (agentTeamId && characterService) {
+          characterService.bindChannel(agentTeamId, 'atlas', 'alisa');
+          console.log(
+            `[AgentBind] atlas → provisioned agent-team 채널 ${agentTeamId} (라벨 추종, 하드코딩 X)`,
+          );
+        }
+        console.log(
+          `[ChannelProvision] ${guild.name}: 카테고리「${effectiveCategoryName(spec)}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
+        );
+      } catch (e: any) {
+        console.error(
+          `[ChannelProvision] ${guild.name}(${guild.id}) reconcile 실패 — env 폴백:`,
+          e?.message ?? e,
+        );
+      }
+    }
+  }
+
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {
     const channel = await client.channels.fetch(channelId).catch(() => null);
@@ -239,6 +297,20 @@ client.once('clientReady', async () => {
 
   startPresenceRotation(client);
   startUnityFreeNotifier(client);
+  // TASK-YB-021: outbound heartbeat (push 모델, 자체 구현 — 제3자 의존 0).
+  // 봇이 memo orphan 브랜치에 시각 기록 → github.io Actions watcher 가 신선도
+  // 감시. 인증 = 기존 MEMO_GITHUB_PAT(digest-webhook 과 동일). egress 단절은
+  // inbound·외부 watcher 사각이라 ops-report 로도 alert (상태 전이 1회).
+  startHeartbeat({
+    token: process.env.MEMO_GITHUB_PAT || process.env.GITHUB_TOKEN,
+    repo: process.env.YAWNBOT_HEARTBEAT_REPO,
+    branch: process.env.YAWNBOT_HEARTBEAT_BRANCH,
+    path: process.env.YAWNBOT_HEARTBEAT_PATH,
+    intervalMin: process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN
+      ? parseInt(process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN, 10)
+      : undefined,
+    alert: opsCtx ? (event) => void reportHeartbeat(opsCtx, event) : undefined,
+  });
 
   if (characterService) {
     characterService.initialize();
@@ -265,6 +337,76 @@ client.once('clientReady', async () => {
         },
         agentChOverride,
       );
+    });
+    // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
+    // 도메인 라우팅(yb/디스코드 → echo, 그 외 → atlas) = 결정적·순수
+    // (agent-core). 코어 정체성 소비(평행정의0, 재정의 X) — 단일 'atlas'
+    // 하드코딩 폐기, agents/ 디렉토리가 정본. 라우팅 default=atlas =
+    // 기존 전량 atlas 행동 보존(회귀 0).
+    setProposalAnnouncer(async (a) => {
+      const channelIds = agentCh
+        ? [agentCh]
+        : getLocalChannels('agent-team');
+      const payload = a.envelope.payload as unknown as Record<
+        string,
+        unknown
+      >;
+      const coreId = resolveProposalCore(listCoreIds(memoRepoPath), {
+        domain: typeof payload.domain === 'string' ? payload.domain : undefined,
+        explicitCoreId:
+          typeof payload.coreId === 'string' ? payload.coreId : undefined,
+        text: `${a.target} ${JSON.stringify(payload)}`.slice(0, 2000),
+      });
+      const coreDef = memoRepoPath
+        ? loadCoreDef(memoRepoPath, coreId)
+        : null;
+      // 코어의 스킨(목소리/아바타) 카드 = avatar 출처. 코어 정체명은
+      // coreLabel(emoji+displayName) — 봇앱명·하드코딩 X.
+      const skinCard = coreDef
+        ? characterService?.loadCard(coreDef.defaultSkin) ?? null
+        : null;
+      await announceProposal(client as any, process.env, channelIds, {
+        ...a,
+        agent: coreDef
+          ? {
+              name: coreLabel(coreDef),
+              avatarUrl: skinCard?.frontmatter?.avatar_url,
+              coreId: coreDef.id,
+            }
+          : { name: '🛰 Atlas', coreId: 'atlas' },
+      });
+    });
+    // KAR-018-Y-1 코어↔코어 대화: 응답 코어가 *자기 정체*(coreLabel +
+    // 스킨 아바타)로 #team-bus 에 발화 = 팀이 실제로 대화. announcer 와
+    // 동일 identity 패턴(평행정의0). dispatcher 내부 구동 — Discord
+    // 재인입 X(self-loop 안전 불변). 미배선/실패 = cadence 가 NotifyFn
+    // 폴백(무음 손실 0).
+    setCoreSpeak(async (coreId, text) => {
+      try {
+        if (!memoRepoPath || !characterService) return false;
+        const cd = loadCoreDef(memoRepoPath, coreId);
+        if (!cd) return false;
+        const skinCard = characterService.loadCard(cd.defaultSkin);
+        if (!skinCard) return false;
+        const ids = agentCh ? [agentCh] : getLocalChannels('agent-team');
+        const cid = ids[0];
+        if (!cid) return false;
+        const ch = await client.channels.fetch(cid).catch(() => null);
+        if (!(ch instanceof TextChannel)) return false;
+        const speakAs: CharacterCard = {
+          slug: skinCard.slug,
+          name: skinCard.name,
+          displayName: coreLabel(cd),
+          frontmatter: skinCard.frontmatter,
+          body: '',
+          dir: skinCard.dir,
+        } as unknown as CharacterCard;
+        await sendAsSkin(ch, speakAs, { content: text.slice(0, 1900) });
+        return true;
+      } catch (e: any) {
+        console.error('[CoreSpeak]', e?.message ?? e);
+        return false;
+      }
     });
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
     // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
@@ -365,6 +507,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   }
   setMusicDiscordClient(null);
   stopPresenceRotation();
+  stopHeartbeat();
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopAgentCadence();

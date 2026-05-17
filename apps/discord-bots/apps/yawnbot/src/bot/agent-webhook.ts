@@ -78,6 +78,8 @@ export interface SkinSendPayload {
   content: string;
   files?: unknown[];
   components?: unknown[];
+  /** embed 카드도 *에이전트 정체* webhook 으로 (KAR-018-V R-5 정체통일). */
+  embeds?: unknown[];
 }
 
 /**
@@ -91,18 +93,26 @@ export async function sendAsSkin(
   card: CharacterCard,
   payload: SkinSendPayload,
   opts?: { threadId?: string },
-): Promise<void> {
+): Promise<string | null> {
   const hook = await getOrCreateWebhook(channel);
   const avatarURL = card.frontmatter?.avatar_url || undefined;
   const sent = await hook.send({
-    content: payload.content,
+    // embeds-only(빈 content) 허용 → undefined (discord.js 빈문자열 거부 회피)
+    content: payload.content || undefined,
     username: card.displayName || card.name,
     avatarURL,
     files: payload.files as never,
     components: payload.components as never,
+    embeds: payload.embeds as never,
     threadId: opts?.threadId,
   });
-  if (sent?.id) registerOwnWebhookMessage(sent.id);
+  // hook.send 는 message(id 포함) 반환 — 카드 정체통일(R-5)이 이 id 로
+  // channel.messages.fetch→react/startThread (APIMessage↔Message 우회).
+  if (sent?.id) {
+    registerOwnWebhookMessage(sent.id);
+    return sent.id;
+  }
+  return null;
 }
 
 /** 채널 webhook 캐시 무효화 (webhook 삭제·갱신 시). */

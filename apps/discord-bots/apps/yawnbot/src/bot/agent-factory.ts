@@ -23,6 +23,17 @@ export interface AgentSpec {
   role: string;
   name: string;
   source: string;
+  /**
+   * 코어 종류 — `worker` 면 ⑦(2) 소비자 워커(KAR-018-X): 자기 도메인
+   * ready TASK pull→tier3 실행. 미설정 = 생산자/대화형(atlas/echo 동형).
+   * 머터리얼라이즈 시 core.md frontmatter 로 pass-through (없으면 무출력
+   * = 기존 동작 byte-identical, 후방호환).
+   */
+  kind?: string;
+  /** 워커 담당 TASK prefix (WM/KL/YB/KAR/...). kind=worker 시 필수. */
+  domain?: string;
+  /** 머신 어피니티 (desktop/laptop/any...). 미설정 = any. */
+  machine?: string;
 }
 
 export interface FactoryContext {

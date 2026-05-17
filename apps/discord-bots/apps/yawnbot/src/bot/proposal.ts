@@ -121,3 +121,27 @@ export function parseProposalEnvelope(raw: string): ProposalEnvelope | null {
   }
   return { kind, payload } as ProposalEnvelope;
 }
+
+/**
+ * 발굴물 결정적 id — 같은 엔벨로프 = 같은 id (사람 승인 매칭 키).
+ * substrate-순수 유지를 위해 crypto 미사용(FNV-1a 32bit; 보안 아님,
+ * 인박스↔approvals 매칭용 안정 식별자). 키 정렬 canonical JSON.
+ */
+export function proposalId(env: ProposalEnvelope): string {
+  const canon = (v: unknown): string => {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return `[${v.map(canon).join(',')}]`;
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canon(o[k])}`)
+      .join(',')}}`;
+  };
+  const s = `${env.kind}|${canon(env.payload)}`;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return `p${h.toString(16).padStart(8, '0')}`;
+}

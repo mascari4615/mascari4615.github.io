@@ -54,22 +54,84 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
+      - name: Sync prod memo (안전 — reset 금지, 봇 런타임 보존)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: 'C:\Users\masca\repos\karmoddrine\memo'
+        env:
+          # github.io 는 public → 무인증 fetch OK. memo 는 private +
+          # 러너=LocalSystem(사용자 자격증명 안 보임) → 인증 필수.
+          # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14
+          # 등록). kl-quality-loop 가 vars. 로 오참조해 latent 깨짐(최근
+          # run 전부 failure) → 본 스텝은 secrets. 로 (그 버그 class fix).
+          MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
+          # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
+          GIT_TERMINAL_PROMPT: '0'
+        # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
+        # 런타임에 읽고 .active.json·기억은 *써서* commitIfDirty 로 로컬
+        # 커밋한다. github.io 식 reset --hard 절대 X (prod 런타임·미푸시
+        # 봇 커밋 파괴). 인증 fetch → ff-only, 분기 시 merge-commit(히스토리
+        # 보존, rebase X = 동시쓰기 안전), tracked-dirty/충돌/무인증 시 skip
+        # (deploy 비차단·never hang). pull-only(outbound side-effect 0).
+        # KAR-018-V — 신규 코어(echo)가 prod 에 도달하는 *유일 근본 경로*.
+        # 자동 동기 부재 = "Atlas 밖에 없는데" 의 진짜 원인.
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
+          & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
+          $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
+          if ($branch -ne 'main') {
+            Write-Warning "[memo-sync] 브랜치 '$branch' != main — skip (강제전환 X, prod 안전). deploy 계속."
+            exit 0
+          }
+          if ([string]::IsNullOrEmpty($env:MEMO_PAT)) {
+            Write-Warning '[memo-sync] vars.MEMO_GITHUB_PAT 미설정 — 인증 fetch 불가, skip (deploy 계속). github.io repo Variables 에 등록 필요.'
+            exit 0
+          }
+          # 인증 URL fetch (토큰은 출력 안 함 — git fetch 는 URL 미인쇄).
+          $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
+          & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
+          if ($LASTEXITCODE -ne 0) { Write-Warning '[memo-sync] 인증 fetch 실패 — skip (deploy 계속, prod 보존)'; exit 0 }
+          # NOTE(blanket dirty 가드 제거, 근본): 라이브 prod 봇은
+          # characters/*/mood.json·relationship.json·.active.json 을
+          # *상시* 써서 tracked 작업트리가 항상 dirty → blanket skip 은
+          # echo 를 영영 차단했음(설계 버그). git merge 는 이미 원자적
+          # 안전: 로컬 수정과 *충돌하는* 경로만 거부(부분적용 X), 무관
+          # dirty(봇 런타임 ≠ 들어오는 agents/echo)는 보존하며 merge.
+          # 충돌 시 아래 merge --abort + skip 이 처리. → git 시맨틱 신뢰.
+          $local = (& git rev-parse HEAD 2>$null)
+          $remote = (& git rev-parse FETCH_HEAD 2>$null)
+          if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
+          & git merge --ff-only FETCH_HEAD 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
+          & git merge --no-edit FETCH_HEAD 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] merge-commit -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 충돌 → 절대 conflicted 상태로 두지 X. abort+skip, deploy 계속.
+          & git merge --abort 2>&1 | Out-Null
+          Write-Warning '[memo-sync] merge 충돌 — abort+skip (prod 보존, deploy 계속). 수동 해소 필요.'
+          exit 0
+
       - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.YAWNBOT_DIR }}
-        # ③ 진짜 비밀만 (TASK-YB-028: 21→4 축소). 비밀 아닌 env별 값 = ② config/yawnbot.prod.txt(커밋).
+        # ③ 진짜 비밀 + 준-비밀 (TASK-YB-028: 21→5 축소). 비밀 아닌 env별 값 = ② config/yawnbot.prod.txt(커밋).
         # 새 *비밀* 추가 시에만 아래 env 매핑 + $keys 갱신. 채널/길드/유저 ID = ② 프로파일 편집.
+        # VERTEX_PROJECT_ID = credential 아니나 GCP 프로젝트 노출 정찰정보 → public 커밋 X, secret 유지(준-비밀 경계, 사용자 결정 2026-05-17).
         env:
           YB_PROD_DISCORD_TOKEN: ${{ secrets.YB_PROD_DISCORD_TOKEN }}
           YB_PROD_GEMINI_API_KEY: ${{ secrets.YB_PROD_GEMINI_API_KEY }}
           YB_PROD_VERTEX_API_KEY: ${{ secrets.YB_PROD_VERTEX_API_KEY }}
+          YB_PROD_VERTEX_PROJECT_ID: ${{ secrets.YB_PROD_VERTEX_PROJECT_ID }}
           YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
+          # KAR-004: digest-webhook 이 private memo digest 본문 fetch (인증). 없으면 송신0.
+          # TASK-YB-021: heartbeat sender 도 이 동일 PAT 으로 memo 기록 (새 secret 불요).
+          YB_PROD_MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
         run: |
           $ErrorActionPreference = 'Stop'
 
-          # ③ 진짜 비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
+          # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'DISCORD_SUMMARY_WEBHOOK_URL'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)

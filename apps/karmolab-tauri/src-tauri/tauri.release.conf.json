@@ -3,6 +3,7 @@
   "productName": "KarmoLab",
   "identifier": "com.mascari4615.karmolab",
   "build": {
+    "frontendDist": "https://blog.mascari4615.com/karmolab/",
     "devUrl": "http://127.0.0.1:8899/apps/karmolab/"
   },
   "app": {
