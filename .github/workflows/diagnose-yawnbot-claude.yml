@@ -14,7 +14,7 @@ on:
 jobs:
   diag:
     runs-on: [self-hosted, windows, laptop, yawnbot]
-    timeout-minutes: 8
+    timeout-minutes: 16
     steps:
       - name: Checkout (for .github/scripts/diag-discovery.cjs)
         uses: actions/checkout@v4
