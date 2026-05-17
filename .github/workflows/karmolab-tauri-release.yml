@@ -101,6 +101,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build ML sidecar
+        # KL-052: tauri.release.conf.json externalBin = binaries/karmolab-life-ml.
+        # tauri-action 은 `npm run build`(=build:sidecar && tauri build) 가 아니라
+        # `tauri build` 만 호출 → sidecar 미생성 시 build.rs:97 panic
+        # ("resource path binaries\\karmolab-life-ml-...exe doesn't exist").
+        # 로컬 `npm run build`/`dev:tauri` 와 동일하게 사전 빌드 (KL-064 발견:
+        # KL-052 이후 모든 릴리스가 이 누락으로 실패해 왔음).
+        run: npm run build:sidecar
+
       - name: Build and publish release
         uses: tauri-apps/tauri-action@action-v0.6.2
         env:
