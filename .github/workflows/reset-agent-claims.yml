@@ -18,7 +18,7 @@ jobs:
     runs-on: [self-hosted, windows]
     steps:
       - name: Delete task-claims.json (prod memo ledger)
-        shell: powershell
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
           $ledger = 'C:\Users\masca\repos\karmoddrine\memo\.claude\task-claims.json'
           if (Test-Path $ledger) {
