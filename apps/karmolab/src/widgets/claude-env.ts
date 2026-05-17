@@ -7,13 +7,15 @@
  * + sync-claude-hooks.ps1 호출.
  *
  * wav 모드: .wav = SoundPlayer / .mp3 = WPF MediaPlayer (KL-059).
- * 후속: .wav drag-drop = TASK-KL-059 (별 항목).
+ * .wav/.mp3 drag-drop (TASK-KL-059): 카드 전체 drop → path 자동입력 +
+ *   mode=wav 전환. 드롭 파일 *원위치* 경로만 set (memo git 자동복사 X —
+ *   임의 바이너리 history bloat 비가역; canon-mirror 는 별 follow-up).
  *
  * Stop 과 Notification 의 차이:
  *   Stop = Claude 응답 끝날 때마다 — 일반 알림 (Asterisk 기본)
  *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
  */
-import { invoke as tauriInvoke } from '../tauri-bridge';
+import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
 
 (function (): void {
   'use strict';
@@ -48,6 +50,24 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     getWavPath: () => string;
     snapshot: () => NotifyHookConfig;
     populate: (hook: NotifyHookConfig) => void;
+    /** KL-059 — 드롭된 .wav/.mp3 경로를 path 입력에 반영 + mode=wav 전환. */
+    acceptDroppedSound: (path: string) => void;
+  };
+
+  /** KL-059 — drag-drop 허용 사운드 확장자 (mp3 = WPF MediaPlayer 확장 정합). */
+  const DROP_SOUND_EXTS: ReadonlyArray<string> = ['.wav', '.mp3'];
+
+  function hasSoundExt(path: string): boolean {
+    const lower = path.toLowerCase();
+    return DROP_SOUND_EXTS.some((e) => lower.endsWith(e));
+  }
+
+  /** KL-059 — 위젯 재진입(build 재호출) 시 직전 drag-drop 리스너 정리 (누수·stale DOM 방지). */
+  let dragTeardown: (() => void) | null = null;
+
+  type DragPayload = {
+    paths?: string[];
+    position?: { x: number; y: number };
   };
 
   function normalizeMode(raw: string | null | undefined): NotifyMode {
@@ -160,7 +180,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     const wavInput = document.createElement('input');
     wavInput.type = 'text';
     wavInput.className = 'claude-env-input';
-    wavInput.placeholder = 'C:\\…\\sound.wav  또는  .mp3';
+    wavInput.placeholder = 'C:\\…\\sound.wav 또는 .mp3  (드래그도 가능)';
     wavInput.spellcheck = false;
     wavControl.appendChild(wavInput);
     const wavBrowse = document.createElement('button');
@@ -198,8 +218,21 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         }
         sysSelect.value = normalizeSystemSound(hook.system_sound);
         wavInput.value = hook.wav_path ?? '';
-      }
+      },
+      acceptDroppedSound: applyPickedPath
     };
+
+    // 「찾아보기」(파일 다이얼로그) 와 drag-drop(KL-059) 공용 — 경로 반영 +
+    // mode=wav 자동 전환 + 짧은 시각 피드백. 단일 정의(평행 X).
+    function applyPickedPath(path: string): void {
+      wavInput.value = path;
+      for (const r of radios) {
+        r.checked = r.value === 'wav';
+      }
+      wavInput.classList.add('claude-env-input--flash');
+      window.setTimeout(() => wavInput.classList.remove('claude-env-input--flash'), 600);
+      setLog(`${name} wav path ← ${path}`, false);
+    }
 
     // 미리듣기 버튼들 — 클릭 시 입력 즉시 invoke (저장 안 함).
     function preview(mode: NotifyMode): void {
@@ -242,10 +275,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
           if (typeof selected !== 'string' || selected.length === 0) {
             return; // 취소
           }
-          wavInput.value = selected;
-          for (const r of radios) {
-            r.checked = r.value === 'wav';
-          }
+          applyPickedPath(selected);
         })
         .catch(function (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -264,7 +294,10 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
         .claude-env-root { max-width: 680px; }
         .claude-env-intro { font-size: var(--font-size-sm); color: var(--text-tertiary); margin: 0 0 8px 0; line-height: 1.5; }
         .claude-env-canonical { font-size: var(--font-size-xs); color: var(--text-tertiary); margin: 0 0 20px 0; font-family: ui-monospace, monospace; word-break: break-all; }
-        .claude-env-section { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
+        .claude-env-section { margin-bottom: 24px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); transition: outline-color 0.12s, background 0.12s; }
+        .claude-env-section.claude-env-drop-active { outline: 2px dashed var(--accent); outline-offset: 2px; background: var(--bg-tertiary); }
+        .claude-env-input--flash { animation: claude-env-flash 0.6s ease-out; }
+        @keyframes claude-env-flash { 0% { background: var(--accent); color: var(--accent-fg, #fff); } 100% { background: var(--bg-primary); } }
         .claude-env-section-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0 0 12px 0; }
         .claude-env-row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
         .claude-env-row:last-child { margin-bottom: 0; }
@@ -340,6 +373,67 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       saveBtn.disabled = true;
       return;
     }
+
+    // ── KL-059: .wav/.mp3 drag-drop — 카드 전체가 drop 타겟 ──
+    // 위임 UX 결정: drop=카드전체+mode자동wav / 저장=드롭 원위치 경로만 set
+    // (memo git 자동복사 X — 비가역 history bloat; canon-mirror=별 follow-up).
+    if (dragTeardown) {
+      dragTeardown();
+      dragTeardown = null;
+    }
+    const dropTargets: ReadonlyArray<{ sec: HTMLElement; form: HookForm }> = [
+      { sec: stopBuild.el, form: stopBuild.form },
+      { sec: notifBuild.el, form: notifBuild.form }
+    ];
+    function clearDropHighlight(): void {
+      for (const t of dropTargets) t.sec.classList.remove('claude-env-drop-active');
+    }
+    // Tauri drag 좌표 = physical px → elementFromPoint 는 CSS px (÷ DPR).
+    function cardAt(
+      pos: { x: number; y: number } | undefined
+    ): { sec: HTMLElement; form: HookForm } | null {
+      if (!pos) return null;
+      const ratio = window.devicePixelRatio || 1;
+      const el = document.elementFromPoint(pos.x / ratio, pos.y / ratio);
+      const sec = el ? el.closest('.claude-env-section') : null;
+      return dropTargets.find((t) => t.sec === sec) ?? null;
+    }
+    const dragSubs: Array<Promise<() => void>> = [
+      tauriListen('tauri://drag-over', (e: { payload: unknown }) => {
+        const hit = cardAt((e.payload as DragPayload | undefined)?.position);
+        clearDropHighlight();
+        if (hit) hit.sec.classList.add('claude-env-drop-active');
+      }),
+      tauriListen('tauri://drag-leave', () => clearDropHighlight()),
+      tauriListen('tauri://drag-drop', (e: { payload: unknown }) => {
+        clearDropHighlight();
+        const pl = e.payload as DragPayload | undefined;
+        const path = (pl?.paths ?? []).find(
+          (p) => typeof p === 'string' && p.length > 0
+        );
+        if (!path) return;
+        const hit = cardAt(pl?.position);
+        if (!hit) return; // 카드 밖 드롭 — 무시
+        if (!hasSoundExt(path)) {
+          setLog(`${hit.form.name} 드롭 무시 — .wav/.mp3 만 허용: ${path}`, true);
+          Toolbox.showToast?.('Claude 환경 — .wav/.mp3 파일만 가능', 'error', undefined);
+          return;
+        }
+        hit.form.acceptDroppedSound(path);
+      })
+    ];
+    dragTeardown = (): void => {
+      for (const s of dragSubs) {
+        void s.then((u) => {
+          try {
+            u();
+          } catch (_) {
+            /* noop */
+          }
+        });
+      }
+      clearDropHighlight();
+    };
 
     function loadConfig(): void {
       saveBtn.disabled = true;
