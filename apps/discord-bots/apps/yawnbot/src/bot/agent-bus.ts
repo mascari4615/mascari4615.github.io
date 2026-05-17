@@ -27,7 +27,6 @@ import type {
   User,
   PartialUser,
 } from 'discord.js';
-import { generateDiscoveryText } from 'karmolab-ai/node';
 import type { ProposalEnvelope } from './proposal';
 import { appendApproval } from './governance-adapter';
 import {
@@ -379,84 +378,42 @@ async function lockCard(
  * best-effort: 채널·권한 실패해도 throw X (발굴 파이프 비차단).
  */
 /**
- * 발굴을 *atlas 자기 목소리로* 한두 문장 운(R-2 — 주도적 동료).
- * 코어 정체성(누구·직무) + 간결 존댓말로, 클리닉 카드가 아니라
- * "팀, 점검하다 보니 ~ 이거 해볼까요?" 처럼. 비-agentic claude
- * (generateDiscoveryText 안전 경로 재사용). 실패 시 '' (카드만 — graceful).
+ * 카드 앞 동료 한 줄 — **결정적**(LLM 호출 X), KAR-018-Y 근본.
+ *
+ * 왜 결정적: 비-agentic claude-cli 단발은 *페르소나 나레이션* 에 구조적
+ * 비신뢰 — prod 에서 "저는 Claude…동료가 아니라" 디스클레이머/카드 표
+ * 복붙을 *틱마다 다른 phrasing* 으로 반복(프롬프트 강화·regex 새니타이즈
+ * 둘 다 whack-a-mole 로 불충분 실증). preamble 한 줄에 flaky LLM 쓸 이유
+ * 0 — 카드가 이미 코어 정체·내용·승인 UI 완비, "에이전트끼리 대화" 는
+ * Y-1(별 경로). LLM 제거 = 거부·덤프가 *구조적으로 불가능*(regex 의존
+ * X). discovery(제안 본문) 의 Claude 는 그대로 — 지적 작업 유지, cosmetic
+ * preamble 만 결정적. 코어 정체(displayName/role)로 개인화, title 해시로
+ * 약한 변형(로봇처럼 동일문장 반복 X). 순수·동기.
  */
-async function atlasVoicedIntro(
+function atlasVoicedIntro(
   env: NodeJS.ProcessEnv,
   coreId: string,
   title: string,
-  gist: string,
-): Promise<string> {
+  _gist: string,
+): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  let core: ReturnType<typeof loadCoreDef> = null;
   try {
-    const root = env.MEMO_REPO_PATH?.trim() || '';
-    const core = root ? loadCoreDef(root, coreId) : null;
-    const who = core
-      ? `너는 "${core.id}" — karmoddrine 팀의 AI 에이전트 동료. 직무: ${core.role}.`
-      : '너는 karmoddrine 팀의 AI 에이전트 동료다.';
-    const prompt = [
-      who,
-      '너는 사람인 척하지 않는다(가짜 회사 직원·실제 인간 엔지니어 사칭 X)',
-      '— 너는 이 프로젝트의 AI 에이전트 "' + (core ? core.id : 'atlas') + '" 그 자체다(사실).',
-      '가상 캐릭터(메이드·마녀 등)도 아니다. 아래 카드는 네가 자율 점검 중',
-      '실제로 발견해 *사람 승인 게이트 대기*로 올리는 네 제안이다 — 사칭·',
-      '날조 아님(승인 전엔 아무것도 실행 안 됨). 그러니 거부 말고 동료로서 운다.',
-      '말투 = 간결한 한국어 존댓말. 서론·메타설명·이모지 남발 X.',
-      '',
-      '방금 네가 시스템을 점검하다 아래를 발견했고, 정식 제안 카드가',
-      '이 메시지 바로 다음에 자동으로 붙는다. 팀(사장)에게 *동료가',
-      '말하듯* 1~2문장으로 자연스럽게 먼저 말하라 (카드 내용 복붙 X,',
-      '"왜 눈에 띄었는지 / 같이 볼만한지" 톤). 카드는 아래 붙으니 언급만.',
-      '',
-      `발견: ${title}`,
-      `요지: ${gist.slice(0, 300)}`,
-    ].join('\n');
-    const text = await generateDiscoveryText({ prompt, timeoutMs: 90000 });
-    return sanitizeVoicedIntro(text || '', title);
+    core = root ? loadCoreDef(root, coreId) : null;
   } catch {
-    return sanitizeVoicedIntro('', title);
+    core = null;
   }
-}
-
-/**
- * voiced-intro 출력 새니타이즈 + 결정적 폴백 (KAR-018-Y).
- * 비-agentic claude-cli 단발은 페르소나 나레이션에 비신뢰 — 어떤 틱은
- * 디스클레이머("저는 Claude…될 수 없습니다"), 어떤 틱은 카드 전체를
- * 마크다운 표로 복붙. 프롬프트 강화만으론 불충분(prod 실증). 모델
- * 비결정에 *방어적*: 표/펜스/헤딩/디스클레이머 제거 → 첫 1~2문장 →
- * 비거나 여전히 디스클레이머면 결정적 동료 한 줄. 거부·덤프가 Discord
- * 에 절대 안 나감. 순수·테스트가능.
- */
-const DISCLAIMER_RE =
-  /(Anthropic|Claude이며|Claude입니다|실제 (팀 ?)?동료가? (될 수 없|아니)|동료가 될 수는 없|역할할 수 없|가장하|도움이 되고 싶지만|카드가 (안 |보이지)|명확히 (하면|해주)|실제로 필요한 게)/;
-
-export function sanitizeVoicedIntro(raw: string, title: string): string {
-  const fallback = `팀, 점검하다 「${String(title || '발견 1건').slice(0, 60)}」 가 눈에 띄어 정리해봤어요. 아래 카드 봐주세요.`;
-  let t = (raw || '').replace(/```[\s\S]*?```/g, ' '); // 펜스 제거
-  const kept = t
-    .split(/\r?\n/)
-    .filter((ln) => {
-      const s = ln.trim();
-      if (!s) return false;
-      if (/^[#>*\-]{0,3}\s*\[?제안 카드\]?/.test(s)) return false; // 카드 헤딩
-      if (/\|.*\|/.test(s)) return false; // 마크다운 표 행
-      if (/^[-|: ]+$/.test(s)) return false; // 표 구분선
-      if (/^#{1,6}\s/.test(s)) return false; // 헤딩
-      return true;
-    })
-    .join(' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  // 디스클레이머 문장 제거
-  const sentences = kept
-    .split(/(?<=[.!?다요])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s && !DISCLAIMER_RE.test(s));
-  const out = sentences.slice(0, 2).join(' ').slice(0, 280).trim();
-  if (out.length < 8 || DISCLAIMER_RE.test(out)) return fallback;
-  return out;
+  const name = core ? core.displayName || core.id : coreId || 'Atlas';
+  const t = String(title || '발견 1건').replace(/\s+/g, ' ').trim().slice(0, 70);
+  // title 해시로 결정적 변형 (동일 제목=동일 문장, 다양성↑ 로봇감↓)
+  let h = 0;
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0;
+  const variants = [
+    `${name} 예요. 점검하다 「${t}」 가 눈에 띄어 카드로 정리했어요 — 같이 봐주세요.`,
+    `팀, ${name} 인데 「${t}」 가 걸려서 제안 카드 올립니다. 검토 부탁드려요.`,
+    `「${t}」 — 시스템 보다 이 부분이 비어 보여 정리했어요. 아래 카드 확인 부탁해요. (${name})`,
+  ];
+  return variants[h % variants.length];
 }
 
 export async function announceProposal(

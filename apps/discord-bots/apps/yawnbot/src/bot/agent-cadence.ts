@@ -13,7 +13,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { generateAssistantText, generateDiscoveryText } from 'karmolab-ai/node';
+import { generateAssistantText } from 'karmolab-ai/node';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
 import {
   SessionRegistry,
@@ -445,14 +445,19 @@ export async function runGovernedProducerOnce(
   }
   const discover: DiscoverFn =
     opts.discover ??
-    (() =>
-      generateDiscoveryText({
-        prompt: buildDiscoveryPrompt(
-          readMissionText(env),
-          gatherDiscoveryContext(env),
-        ),
-        timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000,
-      }));
+    (async () => {
+      // 사용자 결정(KAR-018-Y, 2026-05-17): discovery·대화 = Gemini(Vertex,
+      // 기존 yawnbot 대화 경로) / 코드·문서 수정(tier3)만 Claude. 비-agentic
+      // claude-cli 단발 = 페르소나·구조화 출력에 거부·비결정 prod 실증
+      // (regex/프롬프트 whack-a-mole). Gemini = 거부 X·빠름·JSON 안정 +
+      // 본질적 비-agentic(도구·fs 0 — 빈 cwd 안전장치 불요).
+      const { text } = await generateAssistantText(
+        { ...env, ASSISTANT_AI_PROVIDER: 'gemini' },
+        buildDiscoveryPrompt(readMissionText(env), gatherDiscoveryContext(env)),
+        { timeoutMs: Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000 },
+      );
+      return text;
+    });
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
 
@@ -593,8 +598,9 @@ export async function runCoreDialogueOnce(
       const { text } = await generateAssistantText(
         {
           ...env,
-          ASSISTANT_AI_PROVIDER: 'claude-cli',
-          ASSISTANT_AGENT_REPO_PATH: '', // 비-agentic (발굴 hang 교훈)
+          // 사용자 결정(KAR-018-Y): 코어↔코어 대화 = Gemini(Vertex) —
+          // claude-cli 페르소나 거부 prod 실증. Gemini 본질적 비-agentic.
+          ASSISTANT_AI_PROVIDER: 'gemini',
         },
         prompt,
         { timeoutMs: Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000 },
