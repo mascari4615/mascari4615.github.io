@@ -16,7 +16,9 @@ import {
   readMaterialized,
   materializeTaskProposal,
   materializeObjectiveProposal,
+  materializeAgentProposal,
 } from './proposal-adapter';
+import { loadCoreDef } from '../services/agent-core';
 
 const OBJ_MD = [
   '# objectives',
@@ -201,5 +203,62 @@ describe('runInboxConsumerOnce — objective kind 승인 게이트', () => {
       'utf-8',
     );
     expect((md.match(/\| OBJ-002 \| 발굴된목표 \|/g) || []).length).toBe(1);
+  });
+});
+
+// ── KAR-018-V R-4-i3a: agent kind 머터리얼라이즈 (팀이 팀을 만든다) ──
+const agentEnv: ProposalEnvelope = {
+  kind: 'agent',
+  payload: {
+    id: 'PROP-A1',
+    coreId: 'scout',
+    role: '리서치/조사 도메인을 점검해 발굴한다',
+    name: 'Scout',
+    source: '⑦\' 자율 발굴',
+  },
+};
+
+describe('materializeAgentProposal — 새 코어 Draft (i3a)', () => {
+  it('승인 agent → core.md Draft + mem/README + loadCoreDef 읽힘 + 멱등', async () => {
+    writeProposal(agentEnv);
+    approve(proposalId(agentEnv));
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(1);
+    const core = loadCoreDef(root, 'scout');
+    expect(core).not.toBeNull();
+    expect(core!.id).toBe('scout');
+    expect(core!.status).toBe('draft'); // 절대 active X (불변식)
+    expect(core!.role).toContain('리서치');
+    expect(core!.displayName).toBe('Scout');
+    expect(
+      fs.existsSync(path.join(root, '.claude', 'agents', 'scout', 'mem', 'README.md')),
+    ).toBe(true);
+    // 멱등 — 2회째 0건, core.md 비덮어쓰기
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+  });
+
+  it('미승인 agent → 0건, core.md 안 생김 (W-4 / 자동활성 X 불변식)', async () => {
+    writeProposal(agentEnv);
+    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+    expect(fs.existsSync(path.join(root, '.claude', 'agents', 'scout'))).toBe(false);
+  });
+
+  it('기존 코어 절대 비덮어쓰기 (atlas/echo/선행 보존 — 멱등 skip)', () => {
+    const dir = path.join(root, '.claude', 'agents', 'atlas');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'core.md'), '---\nid: atlas\n---\n\n# atlas\n원본');
+    const r = materializeAgentProposal(env(), {
+      id: 'P', coreId: 'atlas', role: '탈취 시도', name: 'X', source: 's',
+    });
+    expect(r).toBe(path.join('.claude', 'agents', 'atlas', 'core.md'));
+    expect(fs.readFileSync(path.join(dir, 'core.md'), 'utf-8')).toContain('원본'); // 불변
+  });
+
+  it('부적합 coreId / 불완전 spec → null (날조 X)', () => {
+    expect(
+      materializeAgentProposal(env(), { id: 'P', coreId: '../evil', role: 'r', name: 'n', source: 's' }),
+    ).toBeNull();
+    expect(
+      materializeAgentProposal(env(), { id: 'P', coreId: 'ok', role: '', name: 'n', source: 's' }),
+    ).toBeNull();
   });
 });
