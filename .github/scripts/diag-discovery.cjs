@@ -93,13 +93,33 @@ try {
   }
   raw = raw || '';
   console.log('RAW_LEN ' + raw.length);
-  console.log('RAW_BEGIN>>>');
-  console.log(raw.slice(0, 1800));
-  console.log('<<<RAW_END');
+  console.log('RAW_EXACT ' + JSON.stringify(raw.slice(0, 1800))); // 공백/펜스 정확히
   try {
     const r = pp && pp.parseProposalEnvelope ? pp.parseProposalEnvelope(raw) : null;
     console.log('PARSE_RESULT ' + (r ? ('OK kind=' + r.kind) : 'NULL (rejected -> discarded)'));
   } catch (e) {
     console.log('PARSE-THROW ' + (e && e.message || e));
+  }
+
+  // ── 프롬프트 꼬리(context+지시) — claude 가 "새것 없음→빈출력" 인지 판단 ──
+  console.log('PROMPT_TAIL>>>');
+  console.log(prompt.slice(-1100));
+  console.log('<<<PROMPT_TAIL');
+
+  // ── 차분 실험: context 빼고 mission-only 로 2차 호출 ──
+  // 이게 유효 JSON 제안을 뱉으면 = context(누적 backlog/형식)가 범인,
+  // claude-cli 자체는 정상 (회귀-차분, provider 스왑 X). 똑같이 빈출력이면
+  // mission/지시 자체 문제.
+  try {
+    const mission2 = ac.readMissionText ? ac.readMissionText(env) : '';
+    const p2 = ac.buildDiscoveryPrompt ? ac.buildDiscoveryPrompt(mission2, '') : '';
+    console.log('DIFF mission-only PROMPT_LEN ' + p2.length);
+    const raw2 = (await kai.generateDiscoveryText({ prompt: p2, timeoutMs: 300000 })) || '';
+    console.log('DIFF RAW_LEN ' + raw2.length);
+    console.log('DIFF RAW_EXACT ' + JSON.stringify(raw2.slice(0, 1200)));
+    const r2 = pp && pp.parseProposalEnvelope ? pp.parseProposalEnvelope(raw2) : null;
+    console.log('DIFF PARSE_RESULT ' + (r2 ? ('OK kind=' + r2.kind) : 'NULL'));
+  } catch (e) {
+    console.log('DIFF-THROW ' + (e && e.message || e));
   }
 })();
