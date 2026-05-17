@@ -61,6 +61,53 @@ describe('parseProposalEnvelope — 검증 (날조 0)', () => {
     ).toBeNull();
   });
 
+  it('불릿 배열 본문 필드 → join 정규화 후 통과 (KAR-018-Y 회귀근본)', () => {
+    // buildDiscoveryPrompt 가 derivation/alignment/body 를 *불릿*으로
+    // 요구 → 모델이 string[] 반환. 파서가 그 형식을 수용해야 함(계약).
+    const objArr = parseProposalEnvelope(
+      JSON.stringify({
+        kind: 'objective',
+        payload: {
+          summary: '에이전트 상태 추적 표준',
+          derivation: ['- 문제: 형식 없음', '- 제안: 표준 모델', '- 효과: 투명성'],
+          alignment: ['- 가시성', '- 거버넌스'],
+        },
+      }),
+    );
+    expect(objArr?.kind).toBe('objective');
+    const p = objArr?.payload as Record<string, string>;
+    expect(p.derivation).toBe('- 문제: 형식 없음\n- 제안: 표준 모델\n- 효과: 투명성');
+    expect(p.alignment).toBe('- 가시성\n- 거버넌스');
+
+    const taskArr = parseProposalEnvelope(
+      JSON.stringify({
+        kind: 'task',
+        payload: { title: 't', body: ['- 현황', '- 제안'], domain: 'kar' },
+      }),
+    );
+    expect(taskArr?.kind).toBe('task');
+    expect((taskArr?.payload as Record<string, string>).body).toBe('- 현황\n- 제안');
+
+    // env.targetFiles 는 배열이 정당 — join 으로 망가뜨리면 안 됨
+    const envOk = parseProposalEnvelope(
+      JSON.stringify({
+        kind: 'env',
+        payload: { id: 'P1', summary: 's', targetFiles: ['a', 'b'], source: 'x' },
+      }),
+    );
+    expect(Array.isArray((envOk?.payload as Record<string, unknown>).targetFiles)).toBe(true);
+
+    // 빈 배열·비-문자열 배열 = 정규화 안 함 → 여전히 거부(날조 0)
+    expect(
+      parseProposalEnvelope(
+        JSON.stringify({
+          kind: 'objective',
+          payload: { summary: 's', derivation: [], alignment: 'a' },
+        }),
+      ),
+    ).toBeNull();
+  });
+
   it('payload 가 배열/스칼라 → null', () => {
     expect(parseProposalEnvelope(JSON.stringify({ kind: 'task', payload: [] }))).toBeNull();
     expect(parseProposalEnvelope(JSON.stringify({ kind: 'task', payload: 'x' }))).toBeNull();

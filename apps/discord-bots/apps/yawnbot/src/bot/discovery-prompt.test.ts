@@ -37,7 +37,18 @@ describe('buildDiscoveryPrompt — 자족(파일 비의존)', () => {
     for (const k of ['env', 'skill', 'agent', 'task', 'objective']) {
       expect(p).toContain(k);
     }
-    expect(p).toContain('확신 없으면');
+    // KAR-018-Y 회귀근본: 판단기준=미션정렬 확신뿐(컨텍스트 완전성 X),
+    // 기권 시 *완전히 빈 출력*(설명·괄호문 금지 — 그게 파싱 깨뜨림).
+    expect(p).toContain('미션 정렬');
+    expect(p).toContain('완전히 빈 출력');
+    expect(p).toContain('날조');
+  });
+
+  it('context 있으면 "부분 스냅샷·기권하지 마라" 프레이밍 (KAR-018-Y 회귀)', () => {
+    // claude 가 "전체 목록 없음→판별 불가→기권" 한 차분 실증 직접 반박.
+    const pc = buildDiscoveryPrompt('§1 M', '### 최근 커밋\n- abc 일부');
+    expect(pc).toContain('부분 스냅샷');
+    expect(pc).toContain('기권하지 마라');
   });
 });
 

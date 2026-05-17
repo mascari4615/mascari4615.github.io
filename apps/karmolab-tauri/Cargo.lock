@@ -2883,6 +2883,7 @@ dependencies = [
  "toml 0.8.2",
  "uuid",
  "winapi",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

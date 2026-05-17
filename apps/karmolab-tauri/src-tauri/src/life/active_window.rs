@@ -3,12 +3,14 @@
 //! capture 순간 사용자가 어느 앱·창을 보고 있었는지 frontmatter `app` 필드에 박음.
 //! sub-G (캐릭터 동반자) 가 「본인이 어떤 앱 보고 반응할지」 판단 입력.
 //!
-//! winapi `GetForegroundWindow` + `GetWindowTextW`. PowerShell / Tauri webview 자체가
+//! windows-sys `GetForegroundWindow` + `GetWindowTextW` (KL-055 Phase 1a). PowerShell / Tauri webview 자체가
 //! foreground 면 그 창 제목 박힘 — 정직.
 
 #[cfg(windows)]
 pub fn active_window_title() -> Option<String> {
-    use winapi::um::winuser::{GetForegroundWindow, GetWindowTextLengthW, GetWindowTextW};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetForegroundWindow, GetWindowTextLengthW, GetWindowTextW,
+    };
 
     unsafe {
         let hwnd = GetForegroundWindow();
