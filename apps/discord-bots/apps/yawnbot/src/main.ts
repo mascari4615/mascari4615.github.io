@@ -7,7 +7,7 @@ import './install-console-timestamps';
 import dns from 'node:dns';
 import { generateDependencyReport } from '@discordjs/voice';
 import sodium from 'libsodium-wrappers';
-import { Client, GatewayIntentBits, Partials, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, TextChannel, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
 import { destroyAllVoiceConnections } from './bot/voice-connection';
 import { destroyAllMusicPlayers, setMusicDiscordClient, setMusicPlayFailureReporter } from './bot/music-player';
@@ -19,7 +19,7 @@ import { EnhancementService } from './services/enhancement';
 import { StockService } from './services/stock';
 import { RaidService } from './services/raid';
 import { MemoryService } from './services/memory-service';
-import { CharacterService } from './services/character-service';
+import { CharacterService, type CharacterCard } from './services/character-service';
 import { ScheduleService } from './services/schedule-service';
 import { MoodService } from './services/mood-service';
 import { AnniversaryService } from './services/anniversary-service';
@@ -44,7 +44,7 @@ import {
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
-import { isOwnAgentWebhook } from './bot/agent-webhook';
+import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal } from './bot/agent-bus';
@@ -56,7 +56,7 @@ import {
 } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
-import { startAgentCadence, stopAgentCadence } from './bot/agent-cadence';
+import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
@@ -360,6 +360,38 @@ client.once('clientReady', async () => {
             }
           : { name: '🛰 Atlas', coreId: 'atlas' },
       });
+    });
+    // KAR-018-Y-1 코어↔코어 대화: 응답 코어가 *자기 정체*(coreLabel +
+    // 스킨 아바타)로 #team-bus 에 발화 = 팀이 실제로 대화. announcer 와
+    // 동일 identity 패턴(평행정의0). dispatcher 내부 구동 — Discord
+    // 재인입 X(self-loop 안전 불변). 미배선/실패 = cadence 가 NotifyFn
+    // 폴백(무음 손실 0).
+    setCoreSpeak(async (coreId, text) => {
+      try {
+        if (!memoRepoPath || !characterService) return false;
+        const cd = loadCoreDef(memoRepoPath, coreId);
+        if (!cd) return false;
+        const skinCard = characterService.loadCard(cd.defaultSkin);
+        if (!skinCard) return false;
+        const ids = agentCh ? [agentCh] : getLocalChannels('agent-team');
+        const cid = ids[0];
+        if (!cid) return false;
+        const ch = await client.channels.fetch(cid).catch(() => null);
+        if (!(ch instanceof TextChannel)) return false;
+        const speakAs: CharacterCard = {
+          slug: skinCard.slug,
+          name: skinCard.name,
+          displayName: coreLabel(cd),
+          frontmatter: skinCard.frontmatter,
+          body: '',
+          dir: skinCard.dir,
+        } as unknown as CharacterCard;
+        await sendAsSkin(ch, speakAs, { content: text.slice(0, 1900) });
+        return true;
+      } catch (e: any) {
+        console.error('[CoreSpeak]', e?.message ?? e);
+        return false;
+      }
     });
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
     // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
