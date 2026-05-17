@@ -28,6 +28,12 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('에이전트틱')
+        .setDescription('에이전트 팀 cadence 1틱 수동 실행 (발굴·워커·대화·하트비트)')
+        .setDescriptionLocalizations(enUS('Run one agent-team cadence tick now')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('에이전트')
         .setDescription('로컬 저장소에서 Cursor agent로 프롬프트 실행')
         .setDescriptionLocalizations(enUS('Run a Cursor agent prompt on the local repo'))

@@ -992,6 +992,67 @@ let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
  * 자율 cadence 시작 — **default OFF**. `AGENT_CADENCE_ENABLED=1` 만 ON.
  * kill 파일(`<memo>/.claude/agent-kill`) 존재 시 tick skip (크로스-프로세스 !kill).
  */
+/**
+ * 한 cadence tick 1회 — 타이머·수동 슬래시 공용 (KAR-018-Y, 사용자
+ * "수동 호출 방법"). deps/gov 내부 구성 = standalone 호출 가능. *라이브
+ * 봇 프로세스*에서 호출 시 setTeamBusNotify/setCoreSpeak 가 전역 wired
+ * 라 #team-bus 실제 게시(테스트 위해 interval 줄이는 churn 제거 — ops
+ * 인터페이스 비-GUI). governed→producer→inbox→worker→dialogue→heartbeat
+ * = startAgentCadence 타이머와 동일 시퀀스(평행 정의 0).
+ */
+export async function runCadenceTickOnce(
+  env: NodeJS.ProcessEnv,
+): Promise<string> {
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  const killFile = memoRoot
+    ? path.join(memoRoot, '.claude', 'agent-kill')
+    : '';
+  const deps = buildTier3Deps(env);
+  const gov = buildGovernCadenceDeps(env);
+  if (killFile && fs.existsSync(killFile)) armKill();
+  let r = await runGovernedCadenceOnce(deps, gov, () => {
+    const p = path.join(memoRoot, '.claude', 'objectives.md');
+    if (!memoRoot || !fs.existsSync(p)) return null;
+    try {
+      return parseCadenceObjective(fs.readFileSync(p, 'utf-8'));
+    } catch {
+      return null;
+    }
+  });
+  if (r === 'idle' && memoRoot && !isKilled()) {
+    r = `idle→producer:${await runGovernedProducerOnce(env)}`;
+  }
+  if (memoRoot && !isKilled()) {
+    const mat = await runInboxConsumerOnce(env);
+    if (mat > 0) r = `${r}+consumed:${mat}`;
+  }
+  if (memoRoot && !isKilled()) {
+    const w = await runWorkerConsumerOnce(env);
+    if (w && w !== 'no-workers' && w !== 'no-memo-root') {
+      r = `${r}+worker:${w}`;
+    }
+  }
+  if (memoRoot && !isKilled()) {
+    const d = await runCoreDialogueOnce(env);
+    if (
+      d &&
+      !['dialogue-idle', 'dialogue-dup', 'dialogue-none', 'no-memo-root'].includes(
+        d,
+      )
+    ) {
+      r = `${r}+${d}`;
+    }
+  }
+  console.log(`[AgentCadence] tick -> ${r}`);
+  try {
+    const hb = summarizeTick(r);
+    if (hb) gov.notify(hb);
+  } catch {
+    /* 하트비트 실패 = tick 비차단 */
+  }
+  return r;
+}
+
 export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   if ((env.AGENT_CADENCE_ENABLED?.trim() || '') !== '1') {
     console.log(
@@ -1000,68 +1061,9 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     return;
   }
   const intervalMs = Number(env.AGENT_CADENCE_INTERVAL_MS) || 15 * 60_000;
-  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
-  const killFile = memoRoot
-    ? path.join(memoRoot, '.claude', 'agent-kill')
-    : '';
-  const deps = buildTier3Deps(env);
-  const gov = buildGovernCadenceDeps(env);
   const tick = async () => {
     try {
-      if (killFile && fs.existsSync(killFile)) armKill(); // 크로스-프로세스 !kill
-      let r = await runGovernedCadenceOnce(deps, gov, () => {
-        const p = path.join(memoRoot, '.claude', 'objectives.md');
-        if (!memoRoot || !fs.existsSync(p)) return null;
-        try {
-          return parseCadenceObjective(fs.readFileSync(p, 'utf-8'));
-        } catch {
-          return null;
-        }
-      });
-      // ⑦'(2): active objective 없음(idle) → 발굴 (KAR-018-W).
-      // governed: 예산 reserve 게이트 + 비-agentic generateDiscoveryText.
-      // 발굴물은 proposals 인박스까지만 (no-auto-exec, canon 무변경).
-      if (r === 'idle' && memoRoot && !isKilled()) {
-        r = `idle→producer:${await runGovernedProducerOnce(env)}`;
-      }
-      // 승인 게이트 인박스 소비 (W slice-3): 사람이 approvals.jsonl 에
-      // approved 박은 task 발굴만 seed TASK 머터리얼라이즈. 멱등·inert.
-      if (memoRoot && !isKilled()) {
-        const mat = await runInboxConsumerOnce(env);
-        if (mat > 0) r = `${r}+consumed:${mat}`;
-      }
-      // ⑦(2) 소비자 워커: 활성 도메인 워커가 자기 prefix ready TASK
-      // pull→claim→tier3→#team-bus 보고 (KAR-018-X — 생산자의 짝).
-      if (memoRoot && !isKilled()) {
-        const w = await runWorkerConsumerOnce(env);
-        if (w && w !== 'no-workers' && w !== 'no-memo-root') {
-          r = `${r}+worker:${w}`;
-        }
-      }
-      // 코어↔코어 1턴 (KAR-018-Y-1, i3b 복원): 최신 제안에 관련 피어
-      // 코어가 #team-bus 에서 동료로 코멘트 → 팀이 실제로 *대화*하고
-      // 사용자가 그 관점까지 보고 실시간 팔로업. tick 당 최대 1턴(bounded).
-      if (memoRoot && !isKilled()) {
-        const d = await runCoreDialogueOnce(env);
-        if (
-          d &&
-          !['dialogue-idle', 'dialogue-dup', 'dialogue-none', 'no-memo-root'].includes(
-            d,
-          )
-        ) {
-          r = `${r}+${d}`;
-        }
-      }
-      console.log(`[AgentCadence] tick -> ${r}`);
-      // KAR-018-Y-2: 팀이 살아있음을 사용자(yawnbot Discord)가 보게 —
-      // 의미 있는 활동만 #team-bus 한 줄 (idle 스팸 X). 기존 notify
-      // pipe 재사용(평행정의0). 실패해도 tick 비차단.
-      try {
-        const hb = summarizeTick(r);
-        if (hb) gov.notify(hb);
-      } catch {
-        /* 하트비트 실패 = tick 비차단 */
-      }
+      await runCadenceTickOnce(env);
     } catch (e) {
       console.error(
         '[AgentCadence] tick 오류:',
