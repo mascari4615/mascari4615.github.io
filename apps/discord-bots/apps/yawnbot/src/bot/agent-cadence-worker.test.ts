@@ -13,6 +13,7 @@ import {
   runWorkerConsumerOnce,
   armKill,
   disarmKill,
+  resetWorkerStatus,
   type WorkerCore,
 } from './agent-cadence';
 import type { CoreDef } from '../services/agent-core';
@@ -32,7 +33,10 @@ function core(over: Partial<CoreDef> & { id: string }): CoreDef {
 
 const env = () => ({ MEMO_REPO_PATH: '/tmp/memo' }) as NodeJS.ProcessEnv;
 
-beforeEach(() => disarmKill());
+beforeEach(() => {
+  disarmKill();
+  resetWorkerStatus();
+});
 
 describe('selectWorkerCores (순수)', () => {
   it('kind:worker + status:active + domain → 워커', () => {
@@ -107,6 +111,36 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       notify: () => {},
     });
     expect(r).toBe('wm-worker:idle');
+  });
+
+  it('idle 가시화: 첫 idle 은 #team-bus 알림, 동일 반복은 dedupe (KAR-018-Y)', async () => {
+    const notified: string[] = [];
+    const deps = {
+      listWorkers: () => [W],
+      scan: () => [],
+      notify: (m: string) => {
+        notified.push(m);
+      },
+    };
+    await runWorkerConsumerOnce(env(), deps); // 1회: 알림
+    await runWorkerConsumerOnce(env(), deps); // 2회: 동일 idle = dedupe
+    await runWorkerConsumerOnce(env(), deps); // 3회: 여전히 dedupe
+    expect(notified).toHaveLength(1);
+    expect(notified[0]).toContain('대기');
+    expect(notified[0]).toContain('WM');
+    // 상태 변화(작업 생김) 시 재알림 — 다른 상태면 dedupe 해제
+    const deps2 = {
+      listWorkers: () => [W],
+      scan: () => [{ id: 'TASK-WM-9', file: 'f' }],
+      claim: () => true,
+      spawn: async () => ({ status: 'done' }),
+      notify: (m: string) => {
+        notified.push(m);
+      },
+    };
+    await runWorkerConsumerOnce(env(), deps2);
+    expect(notified).toHaveLength(2);
+    expect(notified[1]).toContain('TASK-WM-9');
   });
 
   it('후보→claim ok→spawn done → 보고 + done', async () => {
