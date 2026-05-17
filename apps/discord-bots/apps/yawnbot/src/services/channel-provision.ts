@@ -60,6 +60,7 @@ export const ENV_KEY_BY_LOGICAL: Record<string, string> = {
   news: 'YAWNBOT_NEWS_CHANNEL_ID',
   'assistant-public': 'ASSISTANT_PUBLIC_CHANNEL_ID',
   'agent-team': 'YAWNBOT_AGENT_CHANNEL_ID',
+  digest: 'YAWN_DIGEST_CHANNEL_ID',
 };
 
 const SPEC_PATH = path.join(PKG_ROOT, 'data', 'channel-spec.json');

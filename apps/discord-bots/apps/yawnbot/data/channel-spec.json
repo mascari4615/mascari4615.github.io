@@ -8,6 +8,7 @@
 		{ "key": "geeknews", "name": "geeknews", "topic": "GeekNews 크론" },
 		{ "key": "news", "name": "news", "topic": "관심사 뉴스 크론" },
 		{ "key": "assistant-public", "name": "assistant-public", "topic": "AI 비서 공개 채널" },
-		{ "key": "agent-team", "name": "team-bus", "topic": "에이전트 팀 #team-bus (발굴·거버넌스 escalate)" }
+		{ "key": "agent-team", "name": "team-bus", "topic": "에이전트 팀 #team-bus (발굴·거버넌스 escalate)" },
+		{ "key": "digest", "name": "digest", "topic": "레포 digest 요약 (chore(digests))" }
 	]
 }

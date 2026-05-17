@@ -11,6 +11,7 @@
  */
 import type { Message } from 'discord.js';
 import { CharacterService } from '../services/character-service';
+import { channelIdFor } from '../services/channel-provision';
 
 /**
  * 인스턴스 전용 에이전트 채널 (prod/dev 격리, KAR-018-W).
@@ -20,7 +21,10 @@ import { CharacterService } from '../services/character-service';
  * 루프·검증오염 차단 = env 가 유일하게 인스턴스별로 다른 축(공유 파일 X).
  */
 export function agentChannelId(): string | null {
-  return process.env.YAWNBOT_AGENT_CHANNEL_ID?.trim() || null;
+  // channelIdFor 경유: prod(프로비저닝 OFF) → env YAWNBOT_AGENT_CHANNEL_ID 그대로
+  // (prod 미설정 = null, 기존 .active.json 동작 불변). dev(ON) → 프로비저닝
+  // 'agent-team'(team-bus) 우선, 없으면 env 폴백. 정본 = channel-provision.
+  return channelIdFor('agent-team');
 }
 
 /** 채널이 "팀 방"인가 = .active.json 3-튜플에 코어가 바인딩됨 (DM 제외). */
