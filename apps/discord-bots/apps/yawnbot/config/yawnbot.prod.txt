@@ -51,3 +51,15 @@ VERTEX_LOCATION=us-central1
 #    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
 CURSOR_LOCAL_REPO_DIR=
 KAKAO_EXPORT_WATCH_DIR=
+
+# ── 에이전트 자율 cadence (KAR-018, 비밀 아님) ──
+# prod ON: 워커(KAR-018-X) + 생산자(atlas/echo) 자율 루프.
+#   dev 관측 2회 검증(status-drift fix·황금의정신 거동·경계준수 실증)
+#   후 사용자 의식적 결정(2026-05-17, 비용·자율성 승인).
+# 거버넌스 안전망: sub-D 예산 reserve + 전역 !kill(`<memo>/.claude/
+#   agent-kill` 파일 생성 시 즉시 정지) + 드리프트 게이트.
+# 긴급 정지 = 이 줄 0 으로 + 재배포, 또는 agent-kill 파일 touch.
+# INTERVAL = 코드 default(15분) 명시화 — 비용 튜닝 지점(가시·redirect 가능).
+# 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
+AGENT_CADENCE_ENABLED=1
+AGENT_CADENCE_INTERVAL_MS=900000
