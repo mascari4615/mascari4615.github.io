@@ -14,6 +14,9 @@ import {
   reconcileGuildChannels,
   channelIdFor,
   getChannelSpec,
+  isProvisioningEnabled,
+  shouldProvisionGuild,
+  allowedGuildIds,
   type GuildLike,
   type ChannelLike,
 } from './channel-provision';
@@ -106,31 +109,53 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
   });
 });
 
-describe('channelIdFor — prod env-우선 / dev 프로비저닝-우선', () => {
-  it('프로비저닝 OFF(prod): env *_CHANNEL_ID 그대로', () => {
-    const env = {
-      YAWNBOT_ENV: 'prod',
-      YAWNBOT_NEWS_CHANNEL_ID: '111',
-      DISCORD_GUILD_ID: 'g1',
-    } as unknown as NodeJS.ProcessEnv;
-    expect(channelIdFor('news', env)).toBe('111');
+describe('isProvisioningEnabled — 기본 ON, =0 opt-out (prod 무관)', () => {
+  it('prod 여도 기본 ON (옛 채널 폐기 — dev먼저 철회)', () => {
+    expect(isProvisioningEnabled({ YAWNBOT_ENV: 'prod' } as any)).toBe(true);
   });
+  it('dev 도 기본 ON', () => {
+    expect(isProvisioningEnabled({ YAWNBOT_ENV: 'dev' } as any)).toBe(true);
+  });
+  it('YAWNBOT_CHANNEL_PROVISION=0 비상 비활성', () => {
+    expect(isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: '0' } as any)).toBe(false);
+    expect(isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: 'off' } as any)).toBe(false);
+  });
+});
 
-  it('프로비저닝 ON(dev) 인데 파생 ID 없으면 env 폴백', () => {
+describe('shouldProvisionGuild — 허용 길드 한정 (친구 서버 사고 방지)', () => {
+  it('YAWNBOT_ALLOWED_GUILD_IDS 우선 — 본진만 true, 친구방 false', () => {
     const env = {
-      YAWNBOT_ENV: 'dev',
+      YAWNBOT_ALLOWED_GUILD_IDS: '본진111',
+      DISCORD_GUILD_ID: '본진111,친구방222',
+    } as unknown as NodeJS.ProcessEnv;
+    expect(shouldProvisionGuild('본진111', env)).toBe(true);
+    expect(shouldProvisionGuild('친구방222', env)).toBe(false);
+  });
+  it('ALLOWED 없으면 DISCORD_GUILD_ID 폴백', () => {
+    const env = { DISCORD_GUILD_ID: 'g1,g2' } as unknown as NodeJS.ProcessEnv;
+    expect(allowedGuildIds(env)).toEqual(['g1', 'g2']);
+    expect(shouldProvisionGuild('g2', env)).toBe(true);
+    expect(shouldProvisionGuild('g3', env)).toBe(false);
+  });
+  it('둘 다 없으면 아무 길드도 프로비저닝 X (안전 default)', () => {
+    expect(shouldProvisionGuild('아무거나', {} as any)).toBe(false);
+  });
+});
+
+describe('channelIdFor — ON 기본, 파생 우선 / =0 시 env', () => {
+  it('파생 ID 없으면 env 폴백', () => {
+    const env = {
       YAWNBOT_NEWS_CHANNEL_ID: '222',
-      DISCORD_GUILD_ID: 'no-such-guild',
+      YAWNBOT_ALLOWED_GUILD_IDS: 'no-such-guild',
     } as unknown as NodeJS.ProcessEnv;
     expect(channelIdFor('news', env)).toBe('222');
   });
 
-  it('명시 off 플래그는 prod 판정보다 우선', () => {
+  it('YAWNBOT_CHANNEL_PROVISION=0 이면 env 그대로', () => {
     const env = {
-      YAWNBOT_ENV: 'dev',
       YAWNBOT_CHANNEL_PROVISION: '0',
       YAWNBOT_NEWS_CHANNEL_ID: '333',
-      DISCORD_GUILD_ID: 'g1',
+      YAWNBOT_ALLOWED_GUILD_IDS: 'g1',
     } as unknown as NodeJS.ProcessEnv;
     expect(channelIdFor('news', env)).toBe('333');
   });

@@ -91,10 +91,37 @@ export function getChannelSpec(): ChannelSpec {
  * 명시 on(YAWNBOT_CHANNEL_PROVISION=1) 이면 prod 여도 강제 활성 (수동 마이그레이션용).
  */
 export function isProvisioningEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  // 기본 ON (dev·prod 무관) — 사용자 「기존 채팅방 안 쓰고 싶다」(2026-05-17,
+  // "dev 먼저" 철회). 옛 하드코딩 채널을 prod 포함 전부 폐기. 안전성은
+  // shouldProvisionGuild(허용 길드 한정)이 담보 — 봇이 초대된 아무 서버에나
+  // 채널을 만들지 않음. YAWNBOT_CHANNEL_PROVISION=0/off 로 비상 비활성.
   const flag = env.YAWNBOT_CHANNEL_PROVISION?.trim().toLowerCase();
   if (flag === '0' || flag === 'off' || flag === 'false') return false;
-  if (flag === '1' || flag === 'on' || flag === 'true') return true;
-  return (env.YAWNBOT_ENV?.trim().toLowerCase() || 'dev') !== 'prod';
+  return true;
+}
+
+/**
+ * 프로비저닝 *대상 길드* 화이트리스트. 봇이 초대된 모든 길드(친구 서버 등)에
+ * 카테고리·채널을 만드는 사고 방지 = 근본 안전 가드.
+ * 우선순위: YAWNBOT_ALLOWED_GUILD_IDS → DISCORD_GUILD_ID → (없으면 빈=아무데도 X).
+ */
+export function allowedGuildIds(env: NodeJS.ProcessEnv = process.env): string[] {
+  const pick = (raw: string | undefined): string[] =>
+    (raw ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  const allowed = pick(env.YAWNBOT_ALLOWED_GUILD_IDS);
+  if (allowed.length) return allowed;
+  return pick(env.DISCORD_GUILD_ID);
+}
+
+/** 이 길드에 프로비저닝해도 되는가 (화이트리스트 멤버십). */
+export function shouldProvisionGuild(
+  guildId: string,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return allowedGuildIds(env).includes(guildId);
 }
 
 function mapPath(guildId: string): string {
@@ -225,10 +252,11 @@ export function rememberMap(guildId: string, map: Record<string, string>): void 
 
 /** dev 기준 길드 = DISCORD_GUILD_ID 의 첫 항목. resolver 의 단일 길드 선택. */
 export function primaryGuildId(env: NodeJS.ProcessEnv = process.env): string | null {
-  const raw = env.DISCORD_GUILD_ID?.trim();
-  if (!raw) return null;
-  const first = raw.split(',')[0]?.trim();
-  return first || null;
+  // 허용 길드 우선 → reconcile 가 프로비저닝한 길드와 resolver 가 동일 길드를
+  // 가리키게 함 (prod DISCORD_GUILD_ID 는 친구방 포함 다중이라 first 가 어긋날
+  // 수 있음 — 허용 길드[0] 가 정답).
+  const ids = allowedGuildIds(env);
+  return ids[0] ?? null;
 }
 
 function provisionedId(key: string, env: NodeJS.ProcessEnv = process.env): string | null {
