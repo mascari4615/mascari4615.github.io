@@ -781,7 +781,7 @@ export function buildWorkerPrompt(
         '   Mascari4615.github.io) HEAD swap 절대 X. 없으면 new-worktree.ps1.',
       ];
   const step4 = worktreeBranch
-    ? `4. \`${worktreeBranch}\` 에 commit → \`git push -u origin ${worktreeBranch}\` → \`gh pr create --draft\` **까지만**. merge / master·main 직접 push / force-push **절대 금지**. push·gh 인증 실패 시 그 에러 원문을 6번 요약에 명시(은폐 X).`
+    ? `4. \`${worktreeBranch}\` 에 commit → \`gh auth setup-git\` (GH_TOKEN 환경변수로 git 자격 배선, 1회) → \`git push -u origin ${worktreeBranch}\` → \`gh pr create --draft --fill\` **까지만**. merge / master·main 직접 push / force-push **절대 금지**. push·gh 인증 실패 시 그 에러 원문을 6번 요약에 명시(은폐 X).`
     : '4. feature 브랜치 commit + push + **Draft PR 까지만**. merge / master·main 직접 push / force-push **절대 금지**.';
   return [
     `너는 karmoddrine 에이전트 팀의 도메인 소비자 워커다. 아래 TASK 1건을`,
