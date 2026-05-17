@@ -453,17 +453,20 @@ export async function handleAssistantMessage(
     await message.reply('활성 캐릭터 카드가 없어서 대답할 수 없어요. `/character list` 로 확인해봐요.');
     return;
   }
-  const memory = getMemory(card.slug);
-  const relationship = getRelationship ? getRelationship(card.slug) : null;
   // KAR-018-V R-1: 코어 바인딩 채널이면 *코어 정체성*을 스킨 위에 얹는다
   // (코어=누구·무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
   const coreId = characterService.resolveCore(channelKey);
   const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
   const coreDef =
     coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
+  // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업·
+  // 대화를 기억 — 스킨 alisa 잡담과 안 섞임). 비-코어=스킨 slug(불변).
+  const memorySlug = coreDef ? coreDef.id : card.slug;
+  const memory = getMemory(memorySlug);
+  const relationship = getRelationship ? getRelationship(card.slug) : null;
   if (coreDef) {
     console.log(
-      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}) — 스킨=목소리`,
+      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}) — 스킨=목소리, 기억=${memorySlug}`,
     );
   }
 
@@ -649,7 +652,20 @@ export async function handleAssistantMessage(
       }
       if (hookChan) {
         try {
-          await sendAsSkin(hookChan, card, payload, { threadId });
+          // R-1b: 코어 바인딩이면 답장 이름 = *에이전트 정체*(🛰 Atlas),
+          // 얼굴(아바타)은 스킨 유지 — R-2 주도발화와 일관된 한 동료.
+          // 비-코어(레거시)는 스킨 카드 그대로(불변).
+          const speakAs: CharacterCard = coreDef
+            ? ({
+                slug: card.slug,
+                name: card.name,
+                displayName: `🛰 ${coreDef.id.charAt(0).toUpperCase()}${coreDef.id.slice(1)}`,
+                frontmatter: card.frontmatter,
+                body: '',
+                dir: card.dir,
+              } as unknown as CharacterCard)
+            : card;
+          await sendAsSkin(hookChan, speakAs, payload, { threadId });
           delivered = true;
         } catch (e: unknown) {
           if (e instanceof WebhookPermissionError) {
