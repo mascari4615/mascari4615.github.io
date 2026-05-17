@@ -48,8 +48,28 @@ try {
     return;
   }
   const env = Object.assign({}, process.env);
+  // Use the REAL prod prompt: pull MEMO_REPO_PATH (+ relevant vars) from
+  // the prod .env the deploy wrote, so readMissionText/gatherDiscoveryContext
+  // produce exactly what the prod bot feeds claude (not the degraded fallback).
   if (!env.MEMO_REPO_PATH) {
-    console.log('NOTE: MEMO_REPO_PATH unset -> readMissionText/gather use fallback');
+    const fs = require('fs');
+    const dotenv = path.join(yb, '.env');
+    try {
+      const txt = fs.readFileSync(dotenv, 'utf-8');
+      for (const line of txt.split(/\r?\n/)) {
+        const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+        if (m && (m[1] === 'MEMO_REPO_PATH' || m[1] === 'CLAUDE_CLI_TIMEOUT_MS' || m[1] === 'CLAUDE_CLI_COMMAND') && !env[m[1]]) {
+          env[m[1]] = m[2].trim();
+        }
+      }
+      console.log('prod .env loaded: MEMO_REPO_PATH=' + (env.MEMO_REPO_PATH || '(absent)'));
+    } catch (e) {
+      console.log('NOTE: cannot read prod .env (' + (e && e.message || e) + ') -> fallback prompt');
+    }
+  }
+  if (!env.MEMO_REPO_PATH) {
+    const guess = 'C:\\Users\\masca\\repos\\karmoddrine\\memo';
+    if (require('fs').existsSync(guess)) { env.MEMO_REPO_PATH = guess; console.log('MEMO_REPO_PATH guessed -> ' + guess); }
   }
   let prompt = '';
   try {
