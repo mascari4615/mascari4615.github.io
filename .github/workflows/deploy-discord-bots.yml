@@ -143,17 +143,22 @@ jobs:
           # KAR-004: digest-webhook 이 private memo digest 본문 fetch (인증). 없으면 송신0.
           # TASK-YB-021: heartbeat sender 도 이 동일 PAT 으로 memo 기록 (새 secret 불요).
           YB_PROD_MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
-          # KAR-018-Y: agentic 워커 자식 claude 가 gh pr create / git push 에
-          # 사용. 동일 MEMO_GITHUB_PAT 재사용(사용자 결정 2026-05-18, 새 secret
-          # 불요·YB-021 선례). blast radius = Draft PR only + autopilot-graduate
-          # 게이트가 머지 통제(verify+review GREEN 만 자동머지).
+          # KAR-018-Y: agentic 워커 push/PR 자격. MEMO_GITHUB_PAT 는
+          # memo-scope 라 github.io denied(prod 06:52 KST 데이터 반증) →
+          # 사용자 결정 2026-05-18 = GitHub App 토큰 재사용(resolve-merge-token
+          # 과 동일 App, github.io contents+PR write 확정). 봇이 런타임
+          # JWT→installation 토큰 발급(1h 만료 재발급). GH_TOKEN(memo PAT)
+          # = App 실패 시 additive 폴백(무중단). blast = Draft PR only +
+          # autopilot-graduate 머지게이트.
           YB_PROD_GH_TOKEN: ${{ secrets.MEMO_GITHUB_PAT }}
+          YB_PROD_GH_APP_ID: ${{ secrets.GH_APP_ID }}
+          YB_PROD_GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
         run: |
           $ErrorActionPreference = 'Stop'
 
           # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
@@ -169,6 +174,11 @@ jobs:
             $envName = "YB_PROD_$key"
             $value = (Get-Item -Path "Env:$envName" -ErrorAction SilentlyContinue).Value
             if ($value) {
+              # 멀티라인 PEM(GH_APP_PRIVATE_KEY) = 개행을 리터럴 \n 으로
+              # (1줄 .env 정합). github-app-token.ts 가 런타임 un-escape.
+              if ($key -eq 'GH_APP_PRIVATE_KEY') {
+                $value = ($value -replace "`r?`n", '\n')
+              }
               $lines += "$key=$value"
             } else {
               $missing += $key
