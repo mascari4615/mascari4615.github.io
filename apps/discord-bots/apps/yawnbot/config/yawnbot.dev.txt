@@ -1,0 +1,41 @@
+# ② dev env 프로파일 (TASK-YB-028) — 비밀 아닌 dev별 값. 레포에 커밋(public).
+#
+# YAWNBOT_ENV 미설정/dev 일 때 로드 (로컬 데스크톱 기본).
+# 진짜 비밀은 여기 X — dev 는 로컬 .env(④, 최우선)에 둠.
+# 기존 로컬 .env 가 이 파일을 덮으므로, 채워두면 dev 재현성 ↑(선택).
+# 빈 값 = 미설정 동일. 채우는 값 = dev 봇/길드(혼자 쓰는 테스트 서버).
+
+# ── Discord 앱 (dev 봇 — prod 와 다른 앱) · 로컬 .env 에서 채움 (KAR-031 후속) ──
+CLIENT_ID=1502626332356645075
+DISCORD_GUILD_ID=1456979834566873131
+YAWNBOT_ALLOWED_GUILD_IDS=1456979834566873131
+
+# ── 알림 채널 ID (dev 서버) — 폴백 전용 (TASK-YB-029) ──
+# 정상 시 미사용: dev 봇이 본진에 「욘봇-dev」 카테고리+채널 자동 생성/claim.
+# 아래는 프로비저닝 OFF·권한 상실·실패 시 안전망 (정본=channel-spec.json).
+GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
+ASSISTANT_PUBLIC_CHANNEL_ID=
+YAWNBOT_OPS_REPORT_CHANNEL_ID=1505165371869757550
+YAWNBOT_UNITY_FREE_CHANNEL_ID=
+YAWNBOT_GEEKNEWS_CHANNEL_ID=
+YAWNBOT_NEWS_CHANNEL_ID=
+
+# ── 개인 식별자 (Discord 유저 ID — env 불변) ──
+ADMIN_IDS=391805564616704002
+ASSISTANT_USER_ID=391805564616704002
+
+# ── AI 표면 / Vertex (비밀 아님 — 키는 로컬 .env) ──
+KARMOLAB_AI_SURFACE=vertex
+VERTEX_PROJECT_ID=
+VERTEX_LOCATION=us-central1
+
+# ── 머신 경로 (dev=데스크톱). 로컬 .env 가 덮으므로 보통 비워둠.
+CURSOR_LOCAL_REPO_DIR=
+KAKAO_EXPORT_WATCH_DIR=
+
+# ── 에이전트 자율 cadence (KAR-018, 비밀 아님 — 기본 OFF) ──
+# dev 한정 ON: 워커(KAR-018-X)·생산자 자율 루프 관측용. prod 는
+# config/yawnbot.prod.txt 가 정본(별도 의식적 결정 — 비용/자율성).
+# 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
+AGENT_CADENCE_ENABLED=1
+AGENT_CADENCE_INTERVAL_MS=60000

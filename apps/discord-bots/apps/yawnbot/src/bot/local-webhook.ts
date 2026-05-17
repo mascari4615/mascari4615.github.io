@@ -46,6 +46,58 @@ const COLOR_BY_LEVEL: Record<NonNullable<LocalEventPayload['level']>, number> = 
   error: 0xcb2431,
 };
 
+/**
+ * webhook-routes(localRoutes→localDefault→default) 해석 + embed 송신.
+ * HTTP 핸들러와 에이전트 팀 NotifyFn 의 *단일 송신 경로* (평행정의0).
+ * @returns 실제 전송된 채널 수.
+ */
+export async function sendLocalEvent(
+  client: Client,
+  payload: LocalEventPayload,
+  channelOverride?: string[],
+): Promise<number> {
+  const channelIds =
+    channelOverride && channelOverride.length > 0
+      ? channelOverride
+      : getLocalChannels(payload.kind);
+  if (channelIds.length === 0) return 0;
+
+  const level = payload.level ?? 'info';
+  const color = COLOR_BY_LEVEL[level] ?? COLOR_BY_LEVEL.info;
+  const embed = new EmbedBuilder()
+    .setTitle(payload.title.slice(0, 256))
+    .setColor(color)
+    .setTimestamp();
+  if (payload.summary) embed.setDescription(payload.summary.slice(0, 4000));
+  if (payload.url) embed.setURL(payload.url);
+  if (payload.source) embed.setFooter({ text: payload.source.slice(0, 256) });
+  if (Array.isArray(payload.fields) && payload.fields.length > 0) {
+    embed.addFields(
+      payload.fields.slice(0, 10).map((f) => ({
+        name: String(f?.name ?? '').slice(0, 256),
+        value: String(f?.value ?? '').slice(0, 1024),
+        inline: !!f?.inline,
+      })),
+    );
+  }
+
+  let sent = 0;
+  for (const channelId of channelIds) {
+    const channel = await client.channels.fetch(channelId).catch(() => null);
+    if (channel?.isSendable()) {
+      const ok = await channel
+        .send({ embeds: [embed] })
+        .then(() => true)
+        .catch((e: any) => {
+          console.error('[LocalWebhook] 채널 전송 실패:', channelId, e?.message ?? e);
+          return false;
+        });
+      if (ok) sent++;
+    }
+  }
+  return sent;
+}
+
 export function mountLocalWebhook(app: Application, client: Client): void {
   const expectedSecret = process.env.LOCAL_WEBHOOK_SECRET?.trim() || '';
 
@@ -66,49 +118,11 @@ export function mountLocalWebhook(app: Application, client: Client): void {
         return;
       }
 
-      const channelIds = getLocalChannels(payload.kind);
-      if (channelIds.length === 0) {
+      const sent = await sendLocalEvent(client, payload as LocalEventPayload);
+      if (sent === 0) {
         console.warn(
-          `[LocalWebhook] kind="${payload.kind}" 매칭 채널 없음 — 디스코드 전송 생략 (data/webhook-routes.json localRoutes 확인)`,
+          `[LocalWebhook] kind="${payload.kind}" 매칭 채널 없음/전송 0 — 생략 (data/webhook-routes.json 확인)`,
         );
-        res.sendStatus(200);
-        return;
-      }
-
-      const level = payload.level ?? 'info';
-      const color = COLOR_BY_LEVEL[level] ?? COLOR_BY_LEVEL.info;
-
-      const embed = new EmbedBuilder()
-        .setTitle(payload.title.slice(0, 256))
-        .setColor(color)
-        .setTimestamp();
-
-      if (payload.summary) {
-        embed.setDescription(payload.summary.slice(0, 4000));
-      }
-      if (payload.url) {
-        embed.setURL(payload.url);
-      }
-      if (payload.source) {
-        embed.setFooter({ text: payload.source.slice(0, 256) });
-      }
-      if (Array.isArray(payload.fields) && payload.fields.length > 0) {
-        embed.addFields(
-          payload.fields.slice(0, 10).map((f) => ({
-            name: String(f?.name ?? '').slice(0, 256),
-            value: String(f?.value ?? '').slice(0, 1024),
-            inline: !!f?.inline,
-          })),
-        );
-      }
-
-      for (const channelId of channelIds) {
-        const channel = await client.channels.fetch(channelId).catch(() => null);
-        if (channel?.isSendable()) {
-          await channel.send({ embeds: [embed] }).catch((e: any) =>
-            console.error('[LocalWebhook] 채널 전송 실패:', channelId, e?.message ?? e),
-          );
-        }
       }
       res.sendStatus(200);
     } catch (err: any) {

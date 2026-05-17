@@ -12,6 +12,8 @@
  *   Stop = Claude 응답 끝날 때마다 — 일반 알림 (Asterisk 기본)
  *   Notification = 권한 요청 / 60s idle 등 사용자 행동 필요 시 — 강조 (Exclamation 기본)
  */
+import { invoke as tauriInvoke } from '../tauri-bridge';
+
 (function (): void {
   'use strict';
 
@@ -37,17 +39,6 @@
     sync_stdout: string;
     sync_stderr: string;
   };
-
-  function desktopInvoke(cmd: string, args?: unknown): Promise<unknown> {
-    const core = window.__TAURI__?.core;
-    const fn = core && typeof core.invoke === 'function' ? core.invoke : null;
-    if (!fn) {
-      return Promise.reject(
-        new Error('Tauri invoke 없음 — KarmoLab 데스크톱 앱에서만 사용 가능합니다.')
-      );
-    }
-    return fn(cmd, args);
-  }
 
   type HookForm = {
     name: 'stop' | 'notification';
@@ -219,7 +210,7 @@
         systemSound: snap.system_sound,
         wavPath: snap.wav_path
       };
-      void desktopInvoke('claude_env_preview_sound', args).catch((e: unknown) => {
+      void tauriInvoke('claude_env_preview_sound', args).catch((e: unknown) => {
         const msg = e instanceof Error ? e.message : String(e);
         setLog(`${name} ${mode} 미리듣기 실패: ${msg}`, true);
         Toolbox.showToast?.('Claude 환경 미리듣기 실패', 'error', e);
@@ -353,7 +344,7 @@
       saveBtn.disabled = true;
       saveBtn.textContent = '읽는 중…';
       setLog('loading…', false);
-      void desktopInvoke('claude_env_read_notify_config')
+      void tauriInvoke('claude_env_read_notify_config')
         .then(function (res) {
           const config = res as NotifyConfigDto;
           canonical.textContent = '정본 위치: ' + config.canonical_root;
@@ -381,7 +372,7 @@
           notification: notifBuild.form.snapshot()
         }
       };
-      void desktopInvoke('claude_env_write_notify_config', payload)
+      void tauriInvoke('claude_env_write_notify_config', payload)
         .then(function (res) {
           const result = res as WriteResultDto;
           const lines: string[] = [
@@ -395,7 +386,7 @@
           }
           lines.push('', '* 새 세션부터 효과 (Claude Code hook reload 정책).');
           setLog(lines.join('\n'), false);
-          Toolbox.showToast?.('Claude 환경 저장 + sync 완료', 'success');
+          Toolbox.showToast?.('Claude 환경 저장 + sync 완료', 'success', undefined);
           saveBtn.textContent = '저장 + sync 실행';
           saveBtn.disabled = false;
         })

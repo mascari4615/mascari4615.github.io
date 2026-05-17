@@ -8,6 +8,8 @@
  * 이벤트: karmolab://terminal-line / karmolab://terminal-cwd / karmolab://terminal-exit
  */
 // @ts-nocheck — Toolbox / window.__TAURI__ 글로벌은 ambient 타입에 다 안 잡혀 있음.
+import { isDesktop, invoke, listen } from '../../tauri-bridge';
+
 (function (): void {
   interface TerminalStartResult {
     running: boolean;
@@ -21,17 +23,8 @@
 
   const MAX_OUTPUT_LINES = 5000;
 
-  function isKarmolabDesktop(): boolean {
-    return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
-  }
-  function getInvoke(): ((cmd: string, args?: any) => Promise<any>) | null {
-    const i = window.__TAURI__?.core?.invoke;
-    return typeof i === 'function' ? i : null;
-  }
-  function getListen(): ((evt: string, cb: (e: any) => void) => Promise<() => void>) | null {
-    const l = window.__TAURI__?.event?.listen;
-    return typeof l === 'function' ? l : null;
-  }
+  // TASK-KL-062 slice3: 로컬 isKarmolabDesktop/getInvoke/getListen 폐기 →
+  // tauri-bridge 단일 seam (isDesktop / invoke=reject / listen=no-op).
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta('terminal'),
@@ -42,7 +35,7 @@
         build(container: HTMLElement): void {
           injectStyles();
           renderShell(container);
-          if (isKarmolabDesktop()) void boot(container);
+          if (isDesktop()) void boot(container);
         },
       },
     ],
@@ -80,7 +73,7 @@
   }
 
   function renderShell(container: HTMLElement): void {
-    if (!isKarmolabDesktop()) {
+    if (!isDesktop()) {
       container.innerHTML = `<div class="kt-term"><div class="kt-disabled">terminal 위젯은 Tauri 데스크톱 앱 전용입니다.</div></div>`;
       return;
     }
@@ -114,9 +107,10 @@
     const cwdLabel = container.querySelector('[data-kt="cwd"]') as HTMLElement | null;
     if (!out || !bar || !btnStart || !btnStop || !btnSend || !input || !form || !shellLabel || !cwdLabel) return;
 
-    const invoke = getInvoke();
-    const listen = getListen();
-    if (!invoke) {
+    // boot 진입은 이미 isDesktop() 게이트(line 45). 방어적 재확인 —
+    // 데스크톱 플래그 true 인데 Tauri 미주입(깨진 빌드)이면 seam invoke 가
+    // 각 호출 site 에서 명확한 reject 메시지로 진단(아래 try/catch 가 표시).
+    if (!isDesktop()) {
       appendMeta(out, '[Tauri invoke 없음 — 터미널 사용 불가]');
       return;
     }
@@ -136,7 +130,7 @@
     };
 
     const wireEvents = async (): Promise<void> => {
-      if (!listen) return;
+      // seam listen 은 Tauri 미주입 시 no-op unlisten 반환 — 콜러 분기 불요.
       try {
         unlistenLine = await listen('karmolab://terminal-line', (e: any) => {
           const p = (e?.payload || {}) as TerminalLineEvt;

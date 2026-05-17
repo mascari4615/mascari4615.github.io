@@ -118,6 +118,25 @@ export const characterCommand = () =>
         )
         .addSubcommand((sub) =>
           sub
+            .setName('core')
+            .setDescription('이 DM/채널의 에이전트 코어 설정·조회·해제 (스킨과 독립, KAR-018-A)')
+            .setDescriptionLocalizations(enUS('Set/view/clear agent core for this DM/channel (independent of skin)'))
+            .addStringOption((opt) =>
+              opt
+                .setName('id')
+                .setDescription('코어 id (비우면 현재 조회). 예: atlas')
+                .setDescriptionLocalizations(enUS('Core id (empty = view current). e.g. atlas')),
+            )
+            .addBooleanOption((opt) =>
+              opt
+                .setName('해제')
+                .setNameLocalizations(enUS('clear'))
+                .setDescription('코어 해제 → 레거시 skin-only 복귀')
+                .setDescriptionLocalizations(enUS('Clear core → revert to legacy skin-only')),
+            ),
+        )
+        .addSubcommand((sub) =>
+          sub
             .setName('친밀도')
             .setNameLocalizations(enUS('relationship'))
             .setDescription('현재 캐릭터와의 친밀도 레벨 · 대화 횟수 · 호감도 확인')

@@ -104,6 +104,17 @@ export declare function generateClaudeCliText(opts: {
     /** 에이전트 모드: cwd 지정 시 파일 읽기/편집/명령 실행 가능 */
     cwd?: string;
 }): Promise<string>;
+export declare function buildDiscoveryArgs(): string[];
+/**
+ * 로컬 `claude` CLI 로 *비-agentic* 단발 텍스트 생성 (⑦' 발굴 전용).
+ * cwd 인자가 시그니처에 *없다* — 함수가 빈 임시 디렉토리를 만들어 cwd 로
+ * 쓰고(청정 컨텍스트 = CLAUDE.md 오염 차단, agentic 차단) 종료 시 정리.
+ * 무상태 — resume/세션 저장 X (공유 세션 비경합).
+ */
+export declare function generateDiscoveryText(opts: {
+    prompt: string;
+    timeoutMs?: number;
+}): Promise<string>;
 export type AssistantAiProvider = 'gemini' | 'claude-cli';
 export declare function resolveAssistantProvider(env?: NodeJS.ProcessEnv): AssistantAiProvider;
 /**

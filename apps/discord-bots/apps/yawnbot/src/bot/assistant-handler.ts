@@ -7,15 +7,35 @@
  * - 메시지는 슬러그별 logs/에 즉시 기록 (손실 없음)
  */
 import fs from 'fs';
+import { channelIdFor } from '../services/channel-provision';
 import { Message, DMChannel, TextChannel, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab-ai/node';
 import type { ChatContent } from 'karmolab-ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
 import { CharacterService, type CharacterCard } from '../services/character-service';
+import {
+  loadCoreDef,
+  coreLabel,
+  listCoreIds,
+  resolveAddressedCore,
+  readRecentCoreMemory,
+  type CoreDef,
+} from '../services/agent-core';
 import { ImageCacheService } from '../services/image-cache-service';
 import type { MoodService } from '../services/mood-service';
 import type { RelationshipService } from '../services/relationship-service';
 import { buildCharacterImagePrompt } from './slash/image';
+import {
+  isTeamRoom,
+  isOwnWebhookMessage,
+  checkAndStampCooldown,
+  reserveBudget,
+  bumpChain,
+} from './team-room';
+import { sendAsSkin, WebhookPermissionError, type SkinSendPayload } from './agent-webhook';
+
+// 팀 방 webhook 권한 부재 경고를 채널당 1회만 (로그 스팸 방지)
+const webhookPermWarned = new Set<string>();
 
 export const MOOD_REACTION_EMOJIS = ['👍', '❤️', '😂', '😢'] as const;
 export type MoodReactionEmoji = typeof MOOD_REACTION_EMOJIS[number];
@@ -282,11 +302,33 @@ const IMAGE_HINT = `
 ## 이미지 기능
 너는 대화에 이미지를 첨부할 수 있어. 사용자가 외모·모습·표정·포즈를 묻거나 시각적인 씬을 요청하면, 응답에 구체적인 시각 묘사(외형, 표정, 배경, 행동)를 자연스럽게 포함해줘. 이미지는 시스템이 자동으로 생성해서 첨부해 줄 거야.`.trim();
 
+/**
+ * 스킨에서 *말투/어조만* 추출 (KAR-018-V R-1 근본 fix). 스킨 카드는
+ * 완전한 가상 인격(세계관·역할·배경·상황)이라, 코어 바인딩 시 card.body
+ * 전체를 넣으면 모델이 그 *캐릭터*가 됨(관측: atlas 인데 "저택 메이드"
+ * 로 답함). 코어 = 정체·역할 전부 / 스킨 = *문장 톤만* 차용.
+ */
+function extractVoice(card: CharacterCard): string {
+  const fm = card.frontmatter ?? {};
+  const bits: string[] = [];
+  if (fm.tone) bits.push(`어조: ${fm.tone}`);
+  if (fm.speech_style) bits.push(`문체: ${fm.speech_style}`);
+  const m = card.body.match(/##\s*말투\s*\r?\n([\s\S]*?)(?:\r?\n##\s|\s*$)/);
+  if (m && m[1].trim()) bits.push(m[1].trim());
+  return bits.join('\n') || '한국어, 간결하고 분명한 평서문.';
+}
+
+/**
+ * 코어 바인딩 = 정체·역할 *전부 코어*, 스킨은 *말투 톤만*. 비-코어
+ * (레거시 DM 등)는 기존 스킨 단독 동작 *완전 불변*(회귀 0).
+ */
 function buildSystemPrompt(
   card: CharacterCard,
   channelType: 'dm' | 'public',
   relationship?: RelationshipService | null,
   mood?: MoodService | null,
+  coreDef?: CoreDef | null,
+  coreMemo?: string,
 ): string {
   const channelDesc =
     channelType === 'dm'
@@ -295,6 +337,32 @@ function buildSystemPrompt(
   const relationshipHint = relationship ? `\n\n${relationship.buildRelationshipHint()}` : '';
   const carryOverHint = mood ? (mood.getCarryOverHint() ?? '') : '';
   const carryOverBlock = carryOverHint ? `\n\n${carryOverHint}` : '';
+
+  if (coreDef) {
+    return [
+      '[너의 정체 — 절대 불변. 이것이 너의 전부다]',
+      `너는 "${coreDef.id}". karmoddrine 프로젝트의 **AI 에이전트 동료**다.`,
+      '사람의 보조 도구·챗봇이 아니라, 사용자와 함께 이 프로젝트를',
+      '개발하는 거의 동등한 팀원이다. 스스로 조사·구현·발의한다.',
+      coreDef.role ? `\n직무: ${coreDef.role}` : '',
+      `\n${coreDef.body}`,
+      coreMemo
+        ? `\n[너의 최근 기억 — 네가 한 작업·받은 결과. 세션이 바뀌어도\n 이걸 토대로 일관되게 말하라 (모르는 척 X, 반복 X)]\n${coreMemo}`
+        : '',
+      '',
+      '[중요 — 위반 금지]',
+      '너는 가상 캐릭터가 아니다. 메이드·마녀·인형·마법저택 같은',
+      '허구의 세계관·역할·배경·자기소개를 절대 차용하지 마라. 너는',
+      `실제 이 프로젝트의 엔지니어 동료 "${coreDef.id}" 다. 자기소개도`,
+      '그렇게 하라 (예: "atlas 입니다. 인프라 맡고 있어요").',
+      '',
+      '[말투 — 아래는 *문장 어조 참고용일 뿐*. 세계관·역할·정체성은',
+      ' 절대 차용 X, 오직 말하는 톤·문체만 이렇게:]',
+      extractVoice(card),
+      `\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`,
+    ].join('\n');
+  }
+  // 레거시(코어 없음) — 기존 스킨 단독 동작 불변
   return `${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
 }
 
@@ -303,8 +371,17 @@ function buildFullPrompt(
   memory: MemoryService,
   channelType: 'dm' | 'public',
   userMessage: string,
+  coreDef?: CoreDef | null,
+  coreMemo?: string,
 ): string {
-  const system = buildSystemPrompt(card, channelType);
+  const system = buildSystemPrompt(
+    card,
+    channelType,
+    null,
+    null,
+    coreDef,
+    coreMemo,
+  );
   const budget = MAX_PROMPT_CHARS - system.length - userMessage.length - 50;
   const context = memory.buildContext(Math.max(2000, budget));
   const nowKST = new Date().toLocaleString('ko-KR', {
@@ -339,35 +416,107 @@ export async function handleAssistantMessage(
   getRelationship?: (slug: string) => RelationshipService,
 ): Promise<void> {
   const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
-  const publicChannelId = process.env.ASSISTANT_PUBLIC_CHANNEL_ID?.trim();
+  const publicChannelId = channelIdFor('assistant-public');
 
   if (!assistantUserId) return;
-  if (message.author.id !== assistantUserId) return;
-  if (message.author.bot) return;
 
   const isDM = message.channel instanceof DMChannel || message.channel.isDMBased();
-  const isPublicChannel = !isDM && !!publicChannelId && message.channel.id === publicChannelId;
-
-  if (!isDM && !isPublicChannel) return;
-
-  const channelType: 'dm' | 'public' = isDM ? 'dm' : 'public';
-  const userContent = message.content.trim();
-  if (!userContent) return;
-
-  // 채널/DM 단위 활성 캐릭터 해석
   const channelKey = CharacterService.channelKey({
     isDM,
     userId: message.author.id,
     channelId: message.channel.id,
   });
-  const card = characterService.resolveCard(channelKey);
+  const isTeam = isTeamRoom(characterService, channelKey, isDM);
+  const isOwner = message.author.id === assistantUserId;
+  const isWebhook = !!message.webhookId;
+  const isPublicChannel =
+    !isDM && !!publicChannelId && message.channel.id === publicChannelId;
+
+  // ── 수신 게이트 (KAR-018-A sub-A-2) ───────────────────────
+  // 비-팀 방(기존, 하위호환 무변경): owner 의 DM / 단일 public 채널만.
+  // 팀 방(.active.json 코어 바인딩): owner + 에이전트 webhook(자기·가드 제외).
+  if (!isTeam) {
+    if (!isOwner) return;
+    if (message.author.bot) return;
+    if (!isDM && !isPublicChannel) return;
+  } else {
+    if (isWebhook && isOwnWebhookMessage(message.id)) return; // 가드 ① 자기발화
+    if (!isOwner && !isWebhook) return;                       // 외부 유저/일반봇 무시
+    if (isOwner) {
+      bumpChain(message.channel.id, true);                    // 사람 발화 = 체인 리셋
+    } else {
+      // 에이전트 webhook 트리거 — 가드 ②③④
+      // (main.ts:220 가 webhook 을 upstream drop 중 → sub-A-1 송신 라이브 시 활성)
+      const core = characterService.resolveCore(channelKey);
+      if (!core) return;
+      const chain = bumpChain(message.channel.id, false);     // 가드 ④
+      if (chain.exceeded) {
+        console.warn(
+          `[TeamRoom] 체인 깊이 ${chain.depth} > 상한 — pause (channel ${message.channel.id})`,
+        );
+        return; // TODO(sub-A 후속 slice): #team-bus pause 알림
+      }
+      if (!checkAndStampCooldown(core, message.channel.id)) return; // 가드 ②
+      if (!reserveBudget(core, message.channel.id)) return;         // 가드 ③ (sub-D)
+    }
+  }
+
+  const channelType: 'dm' | 'public' = isDM ? 'dm' : 'public';
+  let userContent = message.content.trim();
+  if (!userContent) return;
+
+  // 채널/DM 단위 활성 캐릭터 해석
+  let card = characterService.resolveCard(channelKey);
   if (!card) {
     console.warn('[Assistant] 활성 캐릭터 카드 없음 — 응답 스킵');
     await message.reply('활성 캐릭터 카드가 없어서 대답할 수 없어요. `/character list` 로 확인해봐요.');
     return;
   }
-  const memory = getMemory(card.slug);
+  // KAR-018-V R-1: 코어 바인딩 채널이면 *코어 정체성*을 스킨 위에 얹는다
+  // (코어=누구·무슨일, 스킨=목소리). 없으면 null=레거시 스킨 단독 불변.
+  let coreId = characterService.resolveCore(channelKey);
+  const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
+  // KAR-018-V R-4-i2: 단일 #team-bus 다중 코어 — *이름으로 동료를
+  // 부르면* 그 코어가 자기 정체·스킨·기억으로 답한다 ("명명 코어 N"
+  // 실현). 채널 바인딩 코어 = default/lead (호칭 없으면 그대로 = 회귀
+  // 0). 비-팀 방·미지정·미지 핸들 = 불변.
+  if (isTeam && coreMemoRoot) {
+    const known = listCoreIds(coreMemoRoot)
+      .map((id) => loadCoreDef(coreMemoRoot, id))
+      .filter((d): d is CoreDef => d !== null)
+      .map((d) => ({ id: d.id, displayName: d.displayName }));
+    const addressed = resolveAddressedCore(userContent, known);
+    if (addressed && addressed.coreId !== coreId) {
+      const ad = loadCoreDef(coreMemoRoot, addressed.coreId);
+      const skinCard = ad ? characterService.loadCard(ad.defaultSkin) : null;
+      if (ad && skinCard) {
+        console.log(
+          `[Assistant] R-4 이름지정 라우팅: ${coreId ?? '∅'} → ${ad.id} (스킨 ${skinCard.slug})`,
+        );
+        coreId = ad.id;
+        card = skinCard;
+        userContent = addressed.text;
+      }
+    }
+  }
+  const coreDef =
+    coreId && coreMemoRoot ? loadCoreDef(coreMemoRoot, coreId) : null;
+  // KAR-018-Z-2: 코어가 *자기 최근 작업·결과를 기억*하고 답하도록
+  // 시스템 프롬프트에 주입(non-dead). 비-코어=빈문자(레거시 불변).
+  const coreMemo =
+    coreDef && coreMemoRoot
+      ? readRecentCoreMemory(coreMemoRoot, coreDef.id, 8)
+      : '';
+  // R-3: 코어 바인딩이면 *그 코어 전용* 기억 store (atlas 가 자기 작업·
+  // 대화를 기억 — 스킨 alisa 잡담과 안 섞임). 비-코어=스킨 slug(불변).
+  const memorySlug = coreDef ? coreDef.id : card.slug;
+  const memory = getMemory(memorySlug);
   const relationship = getRelationship ? getRelationship(card.slug) : null;
+  if (coreDef) {
+    console.log(
+      `[Assistant:${card.slug}] 코어 정체성 적용: ${coreDef.id} (직무: ${coreDef.role.slice(0, 40)}) — 스킨=목소리, 기억=${memorySlug}`,
+    );
+  }
 
   console.log(
     `[Assistant:${card.slug}] 메시지 수신 [${channelType}] (${userContent.length}자): ${userContent.slice(0, 50)}`,
@@ -415,7 +564,7 @@ export async function handleAssistantMessage(
 
   if (isGemini) {
     // systemInstruction = 캐릭터 카드 + 채널 타입만 (안정적 → Gemini implicit cache 활성화)
-    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood);
+    systemInstruction = buildSystemPrompt(card, channelType, relationship, mood, coreDef, coreMemo);
     // 가변 부분(시각, 기분, 메모리 컨텍스트, 오늘 로그)은 user message에 포함
     const nowKST = new Date().toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -434,7 +583,7 @@ export async function handleAssistantMessage(
     const contextBlock = context ? `\n\n${context}` : '';
     fullPrompt = `[현재 시각] ${nowKST}${moodLine}${contextBlock}\n\n나: ${userContent}`;
   } else {
-    fullPrompt = buildFullPrompt(card, memory, channelType, userContent);
+    fullPrompt = buildFullPrompt(card, memory, channelType, userContent, coreDef, coreMemo);
     if (relationship) {
       fullPrompt = `${relationship.buildRelationshipHint()}\n\n${fullPrompt}`;
     }
@@ -462,11 +611,19 @@ export async function handleAssistantMessage(
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
+        // KAR-018-V R-1: claude-cli 대화 = *비-agentic*(ASSISTANT_AGENT_
+        // REPO_PATH 제거 → cwd 없음 = 파일/명령 안 함, 발굴 hang 교훈) +
+        // 타임아웃 상향(claude --print 채팅 = 수십초, 20s 면 항상 timeout).
+        const isClaudeCli = provider === 'claude-cli';
+        const convEnv = isClaudeCli
+          ? { ...process.env, ASSISTANT_AGENT_REPO_PATH: '' }
+          : process.env;
+        const convTimeout = isClaudeCli ? 90000 : 20000;
         console.log(
-          `[Assistant:${card.slug}] AI 호출 시작 (${provider}, 시도 ${attempt}/3, 타임아웃 20초)...`,
+          `[Assistant:${card.slug}] AI 호출 시작 (${provider}, 시도 ${attempt}/3, 타임아웃 ${convTimeout / 1000}초${isClaudeCli ? ', 비-agentic' : ''})...`,
         );
-        const { text } = await generateAssistantText(process.env, fullPrompt, {
-          timeoutMs: 20000,
+        const { text } = await generateAssistantText(convEnv, fullPrompt, {
+          timeoutMs: convTimeout,
           history,
           systemInstruction,
         });
@@ -520,14 +677,65 @@ export async function handleAssistantMessage(
     });
 
     const reactionRow = buildReactionRow(card.slug);
-    if (sceneImage) {
-      const ext = (sceneImage.mimeType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
-      const attachment = new AttachmentBuilder(sceneImage.buffer, { name: `scene.${ext}` });
-      await message.reply({ content: reply, files: [attachment], components: [reactionRow] });
-      lastSentImageId.set(card.slug, sceneImage.id);
-    } else {
-      await message.reply({ content: reply, components: [reactionRow] });
+    const payload: SkinSendPayload = sceneImage
+      ? (() => {
+          const ext = (sceneImage.mimeType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
+          const attachment = new AttachmentBuilder(sceneImage.buffer, { name: `scene.${ext}` });
+          return { content: reply, files: [attachment], components: [reactionRow] };
+        })()
+      : { content: reply, components: [reactionRow] };
+
+    // 팀 방 = 스킨 identity webhook 송신 (sub-A-1). 스레드 방(sub-A-3)은
+    // 부모채널 webhook + thread_id. 권한 부재 시 일반 reply fallback.
+    let delivered = false;
+    if (isTeam) {
+      const chan = message.channel;
+      let hookChan: TextChannel | null = null;
+      let threadId: string | undefined;
+      if (chan instanceof TextChannel) {
+        hookChan = chan;
+      } else if (chan.isThread() && chan.parent instanceof TextChannel) {
+        hookChan = chan.parent;
+        threadId = chan.id;
+      }
+      if (hookChan) {
+        try {
+          // R-1b/R-4: 코어 바인딩이면 답장 이름 = *코어 정체*
+          // (coreLabel = emoji+displayName, core.md 정본 — 복수 동료 각자
+          // 다른 정체). 얼굴(아바타)은 스킨 유지 — R-2 주도발화와 일관된
+          // 한 동료. 비-코어(레거시)는 스킨 카드 그대로(불변).
+          const speakAs: CharacterCard = coreDef
+            ? ({
+                slug: card.slug,
+                name: card.name,
+                displayName: coreLabel(coreDef),
+                frontmatter: card.frontmatter,
+                body: '',
+                dir: card.dir,
+              } as unknown as CharacterCard)
+            : card;
+          await sendAsSkin(hookChan, speakAs, payload, { threadId });
+          delivered = true;
+        } catch (e: unknown) {
+          if (e instanceof WebhookPermissionError) {
+            if (!webhookPermWarned.has(hookChan.id)) {
+              webhookPermWarned.add(hookChan.id);
+              console.warn(`[Assistant:${card.slug}] ${e.message}`);
+            }
+          } else {
+            throw e;
+          }
+        }
+      }
     }
+    if (!delivered) {
+      await message.reply(
+        payload.files
+          ? { content: payload.content, files: payload.files as never, components: payload.components as never }
+          : { content: payload.content, components: payload.components as never },
+      );
+    }
+    if (sceneImage) lastSentImageId.set(card.slug, sceneImage.id);
 
     if (relationship) {
       relationship.incrementConversation();

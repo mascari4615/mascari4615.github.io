@@ -10,8 +10,7 @@
 import type { Client } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { generateBlobTextFromEnvWithOptions } from 'karmolab-ai/node';
-
-const DIGEST_CHANNEL_ENV = 'YAWN_DIGEST_CHANNEL_ID';
+import { channelIdFor } from './channel-provision';
 const MAX_PLAIN_CHARS = 1800;
 const MAX_FETCH_CHARS = 8000;
 
@@ -96,8 +95,9 @@ export async function handleDigestCommit(
       .setFooter({ text: `${repoFullName} · chore(digests)` })
       .setTimestamp();
 
-    // 환경변수로 별도 채널 지정 가능 (없으면 기본 채널 사용)
-    const digestChannelId = process.env[DIGEST_CHANNEL_ENV];
+    // 별도 digest 채널: dev=프로비저닝 'digest' / prod=env YAWN_DIGEST_CHANNEL_ID
+    // (둘 다 없으면 호출부가 넘긴 기본 채널 = webhook-routes default).
+    const digestChannelId = channelIdFor('digest');
     const targetChannels = digestChannelId ? [digestChannelId] : channelIds;
 
     for (const channelId of targetChannels) {

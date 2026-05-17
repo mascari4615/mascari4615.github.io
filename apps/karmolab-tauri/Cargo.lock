@@ -2862,7 +2862,7 @@ dependencies = [
 
 [[package]]
 name = "karmolab-desktop"
-version = "0.1.19"
+version = "0.1.27"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2880,6 +2880,7 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tauri-plugin-updater",
+ "toml 0.8.2",
  "uuid",
  "winapi",
 ]

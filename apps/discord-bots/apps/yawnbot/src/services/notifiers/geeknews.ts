@@ -6,6 +6,7 @@
  * - 정본: https://github.com/HackerNews/API
  */
 import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
+import { channelIdFor } from '../channel-provision';
 
 const HN_COLOR = 0xff6600;
 
@@ -117,7 +118,7 @@ export async function triggerGeekNewsOnce(
   client: Client,
   count: number,
 ): Promise<{ status: 'sent' | 'no_channel' | 'channel_unreachable'; sent: number }> {
-  const channelId = process.env.YAWNBOT_GEEKNEWS_CHANNEL_ID?.trim();
+  const channelId = channelIdFor('geeknews');
   if (!channelId) {
     return { status: 'no_channel', sent: 0 };
   }

@@ -41,11 +41,19 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
 }
 
-// 3.5. Tauri ACL audit — backend/handler/perms 정합성 (TASK-KL-040).
-//      KL-035 사고 원인(삭제 fn 잔재 permissions) 재발 방지.
-if (existsSync('apps/karmolab-tauri/scripts/audit-tauri-acl.mjs')) {
-  run('Tauri ACL audit', '.', 'node apps/karmolab-tauri/scripts/audit-tauri-acl.mjs');
+// 3.5. Tauri ACL audit — acl.toml 단일정본 ⟷ #[command] ⟷ caps 정합 (KL-040, KL-063).
+//      KL-035 사고 원인(삭제 fn 잔재 permissions) 재발 방지. 정본 스크립트 =
+//      scripts/tauri-acl-audit.mjs (`npm run acl-audit` 와 동일). master invariant
+//      필수 게이트 — 무조건 실행 (KL-063: 옛 코드가 부재 경로 existsSync 가드로
+//      이 게이트를 verify 에서 영구 skip 시키던 잠복 결함 수정).
+if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+  run('Tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
 }
+
+// 3.6. Server Monitor 설정 정합 audit — devProfiles {app,script} ⟷ <app>/package.json
+//      scripts 실재 cross-check (TASK-KL-066). `dev:dual`→`dev` rename 으로 카드가
+//      조용히 죽은 사고 재발 방지. 필수 게이트 — 무조건 실행.
+run('Server Monitor config audit', '.', 'node scripts/servermonitor-config-audit.mjs');
 
 // 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
 //    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면

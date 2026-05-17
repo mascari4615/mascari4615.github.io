@@ -1,6 +1,6 @@
 [package]
 name = "karmolab-desktop"
-version = "0.1.19"
+version = "0.1.27"
 description = "KarmoLab desktop shell (Tauri WebView)"
 authors = ["mascari4615"]
 edition = "2021"
@@ -17,6 +17,8 @@ dev-tools = ["tauri/devtools"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
 
 [dependencies]
 notify = "6"
@@ -54,7 +56,12 @@ tauri-plugin-global-shortcut = "2"
 base64 = "0.22"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi"] }
+# KL-064 알람: playsoundapi/mmsystem = 사운드 무한 루프(PlaySoundW SND_LOOP).
+# synchapi/winbase/winnt/minwinbase = OS 강제 기상(절전 resume waitable timer +
+# SetThreadExecutionState 모니터 유지).
+# combaseapi/objbase/mmdeviceapi/endpointpvolume/combaseapi = Core Audio
+# (IAudioEndpointVolume) — 볼륨 강제 비파괴 검증 harness (read→force→assert→restore).
+winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi", "playsoundapi", "mmsystem", "synchapi", "winbase", "winnt", "minwinbase", "combaseapi", "objbase", "mmdeviceapi", "endpointvolume", "coml2api", "winerror"] }
 
 # KL-051 의 production 배포 최적화 (fat LTO / codegen-units=1 / strip /
 # panic=abort / opt-level=3) 는 KL-052 워크스페이스 전환으로 *워크스페이스

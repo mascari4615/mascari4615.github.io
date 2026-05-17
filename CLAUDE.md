@@ -280,7 +280,7 @@ master 브랜치는 항상 다음을 만족:
 - `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
 - `packages/karmolab-ai` 의 build 통과 (필수)
 - `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
-- `apps/karmolab-tauri` ACL 4-source audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040). `#[tauri::command]` / `generate_handler!` / `permissions/*.toml` / `capabilities/default.json` 4 source 정합 0 mismatch. 새 커맨드 추가 시 4곳 동시 수정 필수.
+- `apps/karmolab-tauri` ACL audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040 / KL-063 단일정본 재정식화). **KL-063 이후**: command↔permission-group 정본 = `apps/karmolab-tauri/src-tauri/acl.toml` *단 하나*. `build.rs` 가 거기서 `generate_handler!`(→ `$OUT_DIR/acl_handler.rs`, lib.rs include!) + `permissions/_generated/*.toml` 를 파생. 새 command 추가 = **2곳**: ① 구현 모듈 `#[tauri::command] fn` ② `acl.toml` 알맞은 `[[group]].commands` 1줄 (`capabilities/default.json` 은 *그룹 단위* 라 새 command 로 안 바뀜 — 새 *그룹* 신설 시에만 caps 1줄). audit 는 `acl.toml ⟷ #[command] ⟷ caps` 를 독립 cross-check (파생물 비검증 → codegen 버그도 포착, cargo build 선행 불요).
 - `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
 - typos check (`crate-ci/typos`) — strict 게이트 (KL-032). `_typos.toml` 이 false-positive 정의 + 데이터/외부 라이브러리 exclude. 진짜 typo 일 가능성 큰 단어들은 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
 
@@ -347,13 +347,16 @@ master 브랜치는 항상 다음을 만족:
 11. **Vertex AI is preferred over AI Studio** — the user has Vertex AI credits. When both surfaces support the same capability (text generation, embeddings), default to Vertex. Use `KARMOLAB_AI_SURFACE=vertex` as the standard. AI Studio is a fallback only. Do not propose AI Studio as the primary option. When adding new AI features, implement both surfaces via `karmolab-ai` and respect the surface env var.
     - **KL-032 예외 (무한 텍스트 어드벤처)**: 사용자 발화 「Max x20 활용」 시드 → Claude (Max OAuth) default. provider abstraction + 위젯 토글로 Vertex 도 선택 가능 (`apps/karmolab/src/widgets/adventure/provider/`).
 12. **새 로컬 서버·dev 프로세스는 KarmoLab Server Monitor (`devProfiles`) 등록 우선** — 사용자는 `apps/karmolab-tauri` 데스크톱 앱을 상시 띄워두고 그 안의 **서버 모니터** 위젯에서 시작/종료/로그 스트림/deploy 를 한다. 새 봇·로컬 서버·dev runner 를 추가할 때는 **반드시 `apps/karmolab/data/servermonitor-config.json` 의 `devProfiles` (그리고 같은 `id` 로 `localMonitors`) 에 등록을 함께 제안**한다. 사용자가 외울 터미널 명령이 늘어나면 안 됨.
-    - 허용 `program`: `npm`, `npx`, `bundle`, `ruby`, `node`. 그 외 바이너리 (`cloudflared`, `python`, `cargo` 등) 는 `package.json` script 로 한 번 감싼 뒤 등록.
-    - `cwd` 는 레포 루트 기준 상대 경로만. `..` 금지. Rust 측에서 canonicalize 후 루트 prefix 검증함.
-    - `npmInstall: true` / `deployArgs: ["run", "..."]` 를 두면 카드에 버튼이 자동 생성되고 stdout/stderr 가 카드 패널에 라이브 스트림.
+    - **프로필 형식 = 둘 (TASK-KL-066 근본화)**:
+        - **npm-script 참조 (선호·기본)**: `{ id, label, app, script, deployScript?, healthUrl?, npmInstall? }`. `app` = 레포상대 디렉토리(=cwd, package.json 위치), `script` = npm 스크립트명. `program/args/cwd` 손기재 **금지** — `npm run <script>` 로 자동 파생되어 package.json 의 스크립트 rename 에 구조적으로 따라간다(drift 불가). deploy 버튼 = `deployScript` (예: `"deploy:yawnbot"`).
+        - **raw (npm 스크립트가 아닌 경우만)**: `{ id, label, cwd, program, args, healthUrl? }`. `program ∈ {npm,npx,bundle,ruby,node}` (현재 jekyll `bundle exec` 만). 그 외 바이너리(`cloudflared`/`python`/`cargo`)는 `package.json` script 로 감싸 **npm-script 형식**으로 등록 — raw 로 늘리지 말 것.
+    - **stale 자동 차단**: `scripts/servermonitor-config-audit.mjs` 가 모든 `{app,script}` 의 `<app>/package.json` script 실재를 `npm run verify`(master invariant 필수 게이트)에서 cross-check. 죽은 프로필은 main 진입 불가. (이 게이트 신설 계기 = `dev:dual`→`dev` rename 으로 카드가 조용히 죽은 사고.)
+    - `cwd`(raw) / `app`(script) 는 레포 루트 기준 상대 경로만. `..` 금지. Rust 측에서 canonicalize 후 루트 prefix 검증함.
+    - `npmInstall: true` / `deployScript: "..."` 를 두면 카드에 버튼이 자동 생성되고 stdout/stderr 가 카드 패널에 라이브 스트림.
     - `.env` 파일은 `envFiles[]` 에 `relPath` 로 등록 — 사용자에게 "탐색기에서 .env 만들어주세요" 떠넘기지 말 것. 앱 내 편집기 (512KB 한도) 로 처리하게 한다.
     - 봉제 명령 (`localdev_send_stdin`), 외부 실행 PID 발견·종료 (`localdev_list_external_pids` / `localdev_stop_external`), 재기동 후 PID reattach 등도 자동.
     - 트레이 「개발 모드 (로컬 8899)」 토글은 KarmoLab 자체 (WebView 가 보는 페이지) 를 로컬 정적 서버로 띄울 때만. 일반 봇/서버는 `devProfiles` 가 정답.
-    - 코드: `apps/karmolab-tauri/src-tauri/src/local_dev.rs`. 사용자 문서: `apps/karmolab/js/widgets/docs/local-dev-runner.md`.
+    - 정본: Rust `apps/karmolab-tauri/src-tauri/src/local_dev.rs`(`DevProfile::resolve`) · TS `apps/karmolab/src/widgets/servermonitor.ts`(`resolveProfile`) · 검증 `scripts/servermonitor-config-audit.mjs` · 본 note 12 + `TASK-KL-066`.
 13. **IO 무거운 `#[tauri::command]` = `async` + `tauri::async_runtime::spawn_blocking` 강제** (TASK-KL-043, 2026-05-13).
     - 기준: `fs::read_dir` 다중 호출 / external `std::process::Command` spawn (git, claude CLI, gh 등) / xcap + OCR + LLM 등 수 초 작업.
     - 패턴: `pub async fn cmd(params) -> Result<T, String> { tauri::async_runtime::spawn_blocking(move || cmd_blocking(params)).await.map_err(|e| format!("spawn_blocking join 실패: {}", e))? }`

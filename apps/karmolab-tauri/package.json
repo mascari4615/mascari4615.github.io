@@ -1,16 +1,15 @@
 {
   "name": "karmolab-desktop",
   "private": true,
-  "version": "0.1.19",
+  "version": "0.1.27",
   "type": "module",
   "scripts": {
     "tauri": "tauri",
     "dev": "concurrently -n static,tauri \"npm run dev:static\" \"npm run dev:tauri\"",
     "dev:static": "node ./scripts/dev-static.mjs 8898 --node-only",
     "build:sidecar": "node scripts/build-sidecar.mjs",
-    "build:sidecar:release": "node scripts/build-sidecar.mjs --release",
     "dev:tauri": "npm run build:sidecar && wait-on http-get://127.0.0.1:8898/apps/karmolab/ -t 30000 -i 250 && tauri dev --features dev-tools",
-    "build": "npm run build:sidecar:release && tauri build --config src-tauri/tauri.release.conf.json",
+    "build": "npm run build:sidecar && tauri build --config src-tauri/tauri.release.conf.json",
     "audit:acl": "node scripts/audit-acl.mjs"
   },
   "devDependencies": {

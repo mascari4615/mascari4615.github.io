@@ -54,53 +54,91 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
+      - name: Sync prod memo (안전 — reset 금지, 봇 런타임 보존)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: 'C:\Users\masca\repos\karmoddrine\memo'
+        env:
+          # github.io 는 public → 무인증 fetch OK. memo 는 private +
+          # 러너=LocalSystem(사용자 자격증명 안 보임) → 인증 필수.
+          # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14
+          # 등록). kl-quality-loop 가 vars. 로 오참조해 latent 깨짐(최근
+          # run 전부 failure) → 본 스텝은 secrets. 로 (그 버그 class fix).
+          MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
+          # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
+          GIT_TERMINAL_PROMPT: '0'
+        # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
+        # 런타임에 읽고 .active.json·기억은 *써서* commitIfDirty 로 로컬
+        # 커밋한다. github.io 식 reset --hard 절대 X (prod 런타임·미푸시
+        # 봇 커밋 파괴). 인증 fetch → ff-only, 분기 시 merge-commit(히스토리
+        # 보존, rebase X = 동시쓰기 안전), tracked-dirty/충돌/무인증 시 skip
+        # (deploy 비차단·never hang). pull-only(outbound side-effect 0).
+        # KAR-018-V — 신규 코어(echo)가 prod 에 도달하는 *유일 근본 경로*.
+        # 자동 동기 부재 = "Atlas 밖에 없는데" 의 진짜 원인.
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
+          & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
+          $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
+          if ($branch -ne 'main') {
+            Write-Warning "[memo-sync] 브랜치 '$branch' != main — skip (강제전환 X, prod 안전). deploy 계속."
+            exit 0
+          }
+          if ([string]::IsNullOrEmpty($env:MEMO_PAT)) {
+            Write-Warning '[memo-sync] vars.MEMO_GITHUB_PAT 미설정 — 인증 fetch 불가, skip (deploy 계속). github.io repo Variables 에 등록 필요.'
+            exit 0
+          }
+          # 인증 URL fetch (토큰은 출력 안 함 — git fetch 는 URL 미인쇄).
+          $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
+          & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
+          if ($LASTEXITCODE -ne 0) { Write-Warning '[memo-sync] 인증 fetch 실패 — skip (deploy 계속, prod 보존)'; exit 0 }
+          # NOTE(blanket dirty 가드 제거, 근본): 라이브 prod 봇은
+          # characters/*/mood.json·relationship.json·.active.json 을
+          # *상시* 써서 tracked 작업트리가 항상 dirty → blanket skip 은
+          # echo 를 영영 차단했음(설계 버그). git merge 는 이미 원자적
+          # 안전: 로컬 수정과 *충돌하는* 경로만 거부(부분적용 X), 무관
+          # dirty(봇 런타임 ≠ 들어오는 agents/echo)는 보존하며 merge.
+          # 충돌 시 아래 merge --abort + skip 이 처리. → git 시맨틱 신뢰.
+          $local = (& git rev-parse HEAD 2>$null)
+          $remote = (& git rev-parse FETCH_HEAD 2>$null)
+          if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
+          & git merge --ff-only FETCH_HEAD 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
+          & git merge --no-edit FETCH_HEAD 2>&1
+          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] merge-commit -> $(& git rev-parse --short HEAD)"; exit 0 }
+          # 충돌 → 절대 conflicted 상태로 두지 X. abort+skip, deploy 계속.
+          & git merge --abort 2>&1 | Out-Null
+          Write-Warning '[memo-sync] merge 충돌 — abort+skip (prod 보존, deploy 계속). 수동 해소 필요.'
+          exit 0
+
       - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.YAWNBOT_DIR }}
-        # secrets 는 키별 YB_PROD_<KEY> 로 분리 (TASK-YB-003 push 2). 새 키 추가 시 아래 env 매핑 + $keys 둘 다 갱신.
+        # ③ 진짜 비밀 + 준-비밀 (TASK-YB-028: 21→5 축소). 비밀 아닌 env별 값 = ② config/yawnbot.prod.txt(커밋).
+        # 새 *비밀* 추가 시에만 아래 env 매핑 + $keys 갱신. 채널/길드/유저 ID = ② 프로파일 편집.
+        # VERTEX_PROJECT_ID = credential 아니나 GCP 프로젝트 노출 정찰정보 → public 커밋 X, secret 유지(준-비밀 경계, 사용자 결정 2026-05-17).
         env:
           YB_PROD_DISCORD_TOKEN: ${{ secrets.YB_PROD_DISCORD_TOKEN }}
-          YB_PROD_CLIENT_ID: ${{ secrets.YB_PROD_CLIENT_ID }}
-          YB_PROD_DISCORD_GUILD_ID: ${{ secrets.YB_PROD_DISCORD_GUILD_ID }}
-          YB_PROD_YAWNBOT_ALLOWED_GUILD_IDS: ${{ secrets.YB_PROD_YAWNBOT_ALLOWED_GUILD_IDS }}
-          YB_PROD_GITHUB_WEBHOOK_CHANNEL_ID: ${{ secrets.YB_PROD_GITHUB_WEBHOOK_CHANNEL_ID }}
           YB_PROD_GEMINI_API_KEY: ${{ secrets.YB_PROD_GEMINI_API_KEY }}
-          YB_PROD_KARMOLAB_AI_SURFACE: ${{ secrets.YB_PROD_KARMOLAB_AI_SURFACE }}
           YB_PROD_VERTEX_API_KEY: ${{ secrets.YB_PROD_VERTEX_API_KEY }}
           YB_PROD_VERTEX_PROJECT_ID: ${{ secrets.YB_PROD_VERTEX_PROJECT_ID }}
-          YB_PROD_VERTEX_LOCATION: ${{ secrets.YB_PROD_VERTEX_LOCATION }}
-          YB_PROD_ADMIN_IDS: ${{ secrets.YB_PROD_ADMIN_IDS }}
-          YB_PROD_ASSISTANT_USER_ID: ${{ secrets.YB_PROD_ASSISTANT_USER_ID }}
-          YB_PROD_ASSISTANT_PUBLIC_CHANNEL_ID: ${{ secrets.YB_PROD_ASSISTANT_PUBLIC_CHANNEL_ID }}
-          YB_PROD_MEMO_REPO_PATH: ${{ secrets.YB_PROD_MEMO_REPO_PATH }}
-          YB_PROD_CURSOR_LOCAL_REPO_DIR: ${{ secrets.YB_PROD_CURSOR_LOCAL_REPO_DIR }}
-          YB_PROD_YAWNBOT_OPS_REPORT_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_OPS_REPORT_CHANNEL_ID }}
-          YB_PROD_YAWNBOT_ENV: ${{ secrets.YB_PROD_YAWNBOT_ENV }}
-          YB_PROD_YAWNBOT_UNITY_FREE_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_UNITY_FREE_CHANNEL_ID }}
-          YB_PROD_YAWNBOT_GEEKNEWS_CHANNEL_ID: ${{ secrets.YB_PROD_YAWNBOT_GEEKNEWS_CHANNEL_ID }}
           YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
-          YB_PROD_KAKAO_EXPORT_WATCH_DIR: ${{ secrets.YB_PROD_KAKAO_EXPORT_WATCH_DIR }}
         run: |
           $ErrorActionPreference = 'Stop'
 
-          # 키 list — env 매핑과 1:1. 빈 secret 라인은 skip (yawnbot 측 .env load 가 빈값=undefined 라 정합).
+          # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'CLIENT_ID', 'DISCORD_GUILD_ID', 'YAWNBOT_ALLOWED_GUILD_IDS',
-            'GITHUB_WEBHOOK_CHANNEL_ID',
-            'GEMINI_API_KEY', 'KARMOLAB_AI_SURFACE', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'VERTEX_LOCATION',
-            'ADMIN_IDS', 'ASSISTANT_USER_ID', 'ASSISTANT_PUBLIC_CHANNEL_ID',
-            'MEMO_REPO_PATH', 'CURSOR_LOCAL_REPO_DIR',
-            'YAWNBOT_OPS_REPORT_CHANNEL_ID', 'YAWNBOT_ENV',
-            'YAWNBOT_UNITY_FREE_CHANNEL_ID', 'YAWNBOT_GEEKNEWS_CHANNEL_ID',
-            'DISCORD_SUMMARY_WEBHOOK_URL', 'KAKAO_EXPORT_WATCH_DIR'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL'
           )
 
-          # 필수 검증 — DISCORD_TOKEN / CLIENT_ID 둘 중 하나라도 없으면 deploy fail (마이그레이션 미완료 신호)
-          if ([string]::IsNullOrEmpty($env:YB_PROD_DISCORD_TOKEN) -or [string]::IsNullOrEmpty($env:YB_PROD_CLIENT_ID)) {
-            throw "필수 secret YB_PROD_DISCORD_TOKEN / YB_PROD_CLIENT_ID 누락 — TASK-YB-003 secret split 마이그레이션 완료 확인 (apps/discord-bots/scripts/migrate-prod-secrets.ps1)"
+          # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
+          if ([string]::IsNullOrEmpty($env:YB_PROD_DISCORD_TOKEN)) {
+            throw "필수 secret YB_PROD_DISCORD_TOKEN 누락 — GitHub Actions secrets 확인"
           }
 
-          $lines = @()
+          # ④ .env = YAWNBOT_ENV=prod 리터럴(비밀 아님, ② prod 프로파일 선택용) + ③ 주입 비밀.
+          # 비밀 아닌 채널/길드/ID 는 .env 에 안 씀 — ② config/yawnbot.prod.txt 가 정본.
+          $lines = @('YAWNBOT_ENV=prod')
           $missing = @()
           foreach ($key in $keys) {
             $envName = "YB_PROD_$key"
@@ -116,12 +154,12 @@ jobs:
           $envPath = Join-Path $PWD '.env'
           [System.IO.File]::WriteAllText($envPath, $envContent, [System.Text.UTF8Encoding]::new($false))
 
-          Write-Host "[Write prod .env] set=$($lines.Count) missing=$($missing.Count) (keys=$($keys.Count))"
+          Write-Host "[Write prod .env] secrets set=$($lines.Count - 1) missing=$($missing.Count) (+ YAWNBOT_ENV=prod)"
           if ($missing.Count -gt 0) {
             Write-Host "  missing (skip): $($missing -join ', ')" -ForegroundColor DarkGray
           }
           # 주입 검증 — 토큰·키는 마스킹
-          Get-Content $envPath | Select-String -Pattern '^(DISCORD_TOKEN|CLIENT_ID|YAWNBOT_ENV|YAWNBOT_OPS_REPORT_CHANNEL_ID|YAWNBOT_UNITY_FREE_CHANNEL_ID|YAWNBOT_GEEKNEWS_CHANNEL_ID)=' | ForEach-Object {
+          Get-Content $envPath | Select-String -Pattern '^(DISCORD_TOKEN|YAWNBOT_ENV)=' | ForEach-Object {
             $line = $_ -replace '(DISCORD_TOKEN=.{15}).*','$1***MASKED***'
             Write-Host $line
           }

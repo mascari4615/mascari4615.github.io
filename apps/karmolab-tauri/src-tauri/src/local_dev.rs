@@ -42,27 +42,101 @@ pub struct LocalDevState {
     process_list_cache: Mutex<Option<(Instant, Vec<(u32, String)>)>>,
 }
 
-#[derive(Debug, Deserialize)]
+/// 서버모니터 dev 프로필. 두 형식:
+/// - **npm-script 참조** (선호): `{ app, script, deployScript? }` — `app` 디렉토리에서
+///   `npm run <script>`. program/args/cwd 를 손기재하지 않으므로 package.json 의
+///   스크립트 rename 에 자동으로 따라간다 (drift 구조적 불가). `servermonitor-config-audit.mjs`
+///   가 `<app>/package.json` 에 해당 script 실재를 verify 게이트에서 cross-check.
+/// - **raw** (npm 스크립트가 아닌 경우만, 예: jekyll `bundle exec`):
+///   `{ cwd, program, args }` 명시.
+///
+/// **forward-compat 계약 (KL-068)**: 형식-변종 필드(app/script/cwd/program/args/
+/// deployScript/npmInstall)는 *전부* `Option` + `#[serde(default)]`. 어떤 필드도
+/// serde 필수로 두지 말 것 — 필수 필드 1개가 옛 바이너리에서 신형 config 를 만나면
+/// serde hard-fail → 카드 사망(KL-066 `cwd` 사고). 이 계약은 텍스트가 아니라
+/// `scripts/servermonitor-config-audit.mjs` 의 `auditRustForwardCompat()` 가
+/// `npm run verify` 에서 기계 강제한다(필수 필드 재도입 = verify FAIL).
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct DevProfile {
     id: String,
     #[allow(dead_code)]
     label: String,
-    cwd: String,
-    program: String,
-    args: Vec<String>,
+    // ── npm-script 참조 형식 ──
+    #[serde(default)]
+    app: Option<String>,
+    #[serde(default)]
+    script: Option<String>,
+    /// optional **Deploy** 버튼 — `npm run <deployScript>` (예: `"deploy:yawnbot"`)
+    #[serde(default)]
+    deploy_script: Option<String>,
+    // ── raw 형식 (npm 스크립트 아님) ──
+    #[serde(default)]
+    cwd: Option<String>,
+    #[serde(default)]
+    program: Option<String>,
+    #[serde(default)]
+    args: Option<Vec<String>>,
     #[serde(default)]
     npm_install: bool,
-    /// e.g. `["run", "deploy:yawnbot"]` — optional **Deploy** button in Server Monitor
-    #[serde(default)]
+}
+
+/// `DevProfile` 를 실행 가능한 (program, args, cwd) 로 파생한 결과.
+struct ResolvedProfile {
+    program: String,
+    args: Vec<String>,
+    cwd_rel: String,
     deploy_args: Option<Vec<String>>,
 }
 
+impl DevProfile {
+    /// 두 형식 중 무엇이든 단일 실행 형태로 정규화. npm-script 형식은
+    /// `npm run <script>` 로, raw 형식은 명시된 program/args/cwd 그대로.
+    fn resolve(&self) -> Result<ResolvedProfile, String> {
+        if let Some(script) = self.script.as_deref() {
+            let app = self.app.as_deref().ok_or_else(|| {
+                format!("프로필 '{}': script 형식엔 app 이 필요합니다.", self.id)
+            })?;
+            Ok(ResolvedProfile {
+                program: "npm".to_string(),
+                args: vec!["run".to_string(), script.to_string()],
+                cwd_rel: app.to_string(),
+                deploy_args: self
+                    .deploy_script
+                    .as_deref()
+                    .map(|s| vec!["run".to_string(), s.to_string()]),
+            })
+        } else {
+            Ok(ResolvedProfile {
+                program: self.program.clone().ok_or_else(|| {
+                    format!("프로필 '{}': program 또는 (app+script) 가 필요합니다.", self.id)
+                })?,
+                args: self.args.clone().unwrap_or_default(),
+                cwd_rel: self.cwd.clone().ok_or_else(|| {
+                    format!("프로필 '{}': cwd 또는 (app+script) 가 필요합니다.", self.id)
+                })?,
+                deploy_args: None,
+            })
+        }
+    }
+}
+
+/// **forward-compat 루트 (KL-068).** `dev_profiles` 를 `DevProfile` 로 *즉시*
+/// deserialize 하지 않고 `serde_json::Value` 로 받는다 → 한 프로필이 이 바이너리가
+/// 모르는 스키마여도(예: ≤v0.1.19 바이너리 ↔ KL-066 신형 config) 배열 파싱 자체는
+/// 성공하고, 프로필별 deserialize 실패가 *그 프로필만* 격리된다(전체 카드 사망 X).
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ServerMonitorFile {
     #[serde(default)]
-    dev_profiles: Vec<DevProfile>,
+    dev_profiles: Vec<serde_json::Value>,
+}
+
+/// 파싱에 실패한 프로필 = 이 KarmoLab 버전이 모르는 스키마. `id` 는 best-effort
+/// (raw Value 에서 추출 — DevProfile deserialize 전이라 id 만 따로 꺼낸다).
+struct ProfileParseError {
+    id: String,
+    err: String,
 }
 
 fn args_are_safe(args: &[String]) -> bool {
@@ -101,7 +175,13 @@ fn normalize_repo_root(path: &str) -> Result<String, String> {
         .map(|s| s.to_string())
 }
 
-fn read_profiles(repo: &Path) -> Result<Vec<DevProfile>, String> {
+/// config 를 읽어 (정상 파싱된 프로필, 파싱 실패 프로필) 로 분리한다(KL-068).
+/// 파일 부재 / 루트 JSON 자체 손상만 `Err`(진짜 사용 불가). 개별 프로필의
+/// 스키마 불일치는 *격리* 되어 두 번째 벡터로 빠진다 — 한 프로필이 깨져도
+/// 나머지 카드는 정상 동작한다(원자 파싱이 전체를 죽이던 KL-066 사고의 근본 수정).
+fn read_profiles_with_errors(
+    repo: &Path,
+) -> Result<(Vec<DevProfile>, Vec<ProfileParseError>), String> {
     let cfg_path = repo.join(CONFIG_REL_PATH);
     if !cfg_path.is_file() {
         return Err(format!(
@@ -113,18 +193,49 @@ fn read_profiles(repo: &Path) -> Result<Vec<DevProfile>, String> {
         .map_err(|e| format!("설정 읽기 실패 ({}): {}", cfg_path.display(), e))?;
     let parsed: ServerMonitorFile =
         serde_json::from_str(&raw).map_err(|e| format!("JSON 파싱 실패: {}", e))?;
-    Ok(parsed.dev_profiles)
+    let mut ok = Vec::new();
+    let mut bad = Vec::new();
+    for v in parsed.dev_profiles {
+        let id = v
+            .get("id")
+            .and_then(|x| x.as_str())
+            .unwrap_or("<id 불명>")
+            .to_string();
+        match serde_json::from_value::<DevProfile>(v) {
+            Ok(p) => ok.push(p),
+            Err(e) => bad.push(ProfileParseError {
+                id,
+                err: e.to_string(),
+            }),
+        }
+    }
+    Ok((ok, bad))
 }
 
-fn profile_by_id<'a>(profiles: &'a [DevProfile], id: &str) -> Result<&'a DevProfile, String> {
-    profiles
-        .iter()
-        .find(|p| p.id == id)
-        .ok_or_else(|| format!("알 수 없는 프로필: {}", id))
+fn read_profiles(repo: &Path) -> Result<Vec<DevProfile>, String> {
+    Ok(read_profiles_with_errors(repo)?.0)
 }
 
-fn resolve_cwd(repo: &Path, profile: &DevProfile) -> Result<PathBuf, String> {
-    let joined = repo.join(profile.cwd.trim());
+/// 프로필 1개를 id 로 찾는다. 정상 목록에 없고 *파싱 실패* 목록에 있으면
+/// = 이 KarmoLab 버전이 모르는 스키마 → 「앱 업데이트」 정밀 메시지(KL-068).
+/// 기존 `profile_by_id` 의 generic "알 수 없는 프로필" 보다 원인을 직시한다.
+fn find_profile(repo: &Path, id: &str) -> Result<DevProfile, String> {
+    let (ok, bad) = read_profiles_with_errors(repo)?;
+    if let Some(p) = ok.into_iter().find(|p| p.id == id) {
+        return Ok(p);
+    }
+    if let Some(b) = bad.iter().find(|b| b.id == id) {
+        return Err(format!(
+            "프로필 '{}': 이 KarmoLab 버전이 모르는 설정 스키마입니다. \
+             앱을 업데이트하세요 (자동 업데이트 또는 재설치, KL-068). 원인: {}",
+            id, b.err
+        ));
+    }
+    Err(format!("알 수 없는 프로필: {}", id))
+}
+
+fn resolve_cwd(repo: &Path, cwd_rel: &str) -> Result<PathBuf, String> {
+    let joined = repo.join(cwd_rel.trim());
     if !joined.is_dir() {
         return Err(format!("cwd가 폴더가 아님: {}", joined.display()));
     }
@@ -551,7 +662,10 @@ fn list_all_processes() -> Vec<(u32, String)> {
 }
 
 fn matches_profile_cmdline(cmdline: &str, profile: &DevProfile) -> bool {
-    let needle = profile.args.join(" ");
+    let Ok(resolved) = profile.resolve() else {
+        return false;
+    };
+    let needle = resolved.args.join(" ");
     if needle.trim().is_empty() {
         return false;
     }
@@ -898,18 +1012,18 @@ pub fn localdev_start(
         }
     }
 
-    let profiles = read_profiles(&repo)?;
-    let profile = profile_by_id(&profiles, &profile_id)?;
-    if !program_allowed(&profile.program) {
-        return Err(format!("허용되지 않은 program: {}", profile.program));
+    let profile = find_profile(&repo, &profile_id)?;
+    let resolved = profile.resolve()?;
+    if !program_allowed(&resolved.program) {
+        return Err(format!("허용되지 않은 program: {}", resolved.program));
     }
-    if !args_are_safe(&profile.args) {
+    if !args_are_safe(&resolved.args) {
         return Err("프로필 인자에 허용되지 않은 문자가 있습니다.".into());
     }
 
-    let cwd = resolve_cwd(&repo, profile)?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
     let log_path = log_file_path(&app, &profile_id)?;
-    let (pid, stdin) = spawn_detached_process(&profile.program, &profile.args, &cwd, &log_path)?;
+    let (pid, stdin) = spawn_detached_process(&resolved.program, &resolved.args, &cwd, &log_path)?;
 
     {
         let mut pids = state.pids.lock().map_err(|e| e.to_string())?;
@@ -984,18 +1098,18 @@ pub async fn localdev_deploy_stream(
     };
     let repo = PathBuf::from(&repo_str);
 
-    let profiles = read_profiles(&repo)?;
-    let profile = profile_by_id(&profiles, &profile_id)?;
-    let Some(ref da) = profile.deploy_args else {
+    let profile = find_profile(&repo, &profile_id)?;
+    let resolved = profile.resolve()?;
+    let Some(ref da) = resolved.deploy_args else {
         return Err("이 프로필에 deploy가 설정되어 있지 않습니다.".into());
     };
     if da.is_empty() {
-        return Err("deploy_args가 비어 있습니다.".into());
+        return Err("deploy 설정이 비어 있습니다.".into());
     }
     if !args_are_safe(da) {
         return Err("deploy 인자에 허용되지 않은 문자가 있습니다.".into());
     }
-    let cwd = resolve_cwd(&repo, profile)?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
 
     {
         let mut busy = state.stream_busy.lock().map_err(|e| e.to_string())?;
@@ -1040,12 +1154,12 @@ pub async fn localdev_npm_install_stream(
     };
     let repo = PathBuf::from(&repo_str);
 
-    let profiles = read_profiles(&repo)?;
-    let profile = profile_by_id(&profiles, &profile_id)?;
+    let profile = find_profile(&repo, &profile_id)?;
     if !profile.npm_install {
         return Err("이 프로필은 npm install이 비활성화되어 있습니다.".into());
     }
-    let cwd = resolve_cwd(&repo, profile)?;
+    let resolved = profile.resolve()?;
+    let cwd = resolve_cwd(&repo, &resolved.cwd_rel)?;
 
     {
         let mut busy = state.stream_busy.lock().map_err(|e| e.to_string())?;
@@ -1143,5 +1257,75 @@ mod tests {
         let processes = vec![(1u32, "node script.js".to_string())];
         let result = discover_external_pids_per_profile(&tmp, &processes);
         assert!(result.is_empty());
+    }
+
+    /// 격리된 temp repo 에 servermonitor-config.json 을 써넣고 경로를 돌려준다.
+    fn write_config(json: &str) -> PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let repo = std::env::temp_dir().join(format!("kl068-{}", nanos));
+        let data_dir = repo.join("apps/karmolab/data");
+        std::fs::create_dir_all(&data_dir).unwrap();
+        std::fs::write(data_dir.join("servermonitor-config.json"), json).unwrap();
+        repo
+    }
+
+    // KL-068 회귀: 한 프로필이 이 바이너리가 모르는 스키마(=raw 필수필드만 있고
+    // npm-script 형식, 옛 바이너리가 보면 깨질 모양)여도 *그 프로필만* 격리되고
+    // 나머지 정상 프로필은 살아야 한다. 원자 파싱이 전체를 죽이던 KL-066 의 근본 수정.
+    #[test]
+    fn one_bad_profile_does_not_nuke_the_rest() {
+        // `args` 가 배열이 아닌 문자열 → DevProfile deserialize 실패(스키마 불일치 모사).
+        let repo = write_config(
+            r#"{
+              "devProfiles": [
+                { "id": "good", "label": "OK", "app": "apps/x", "script": "dev" },
+                { "id": "broken", "label": "Bad", "cwd": ".", "program": "npm", "args": "not-an-array" }
+              ]
+            }"#,
+        );
+        let (ok, bad) = read_profiles_with_errors(&repo).expect("루트 JSON 은 정상");
+        assert_eq!(ok.len(), 1, "정상 프로필 1개는 살아야 함");
+        assert_eq!(ok[0].id, "good");
+        assert_eq!(bad.len(), 1, "깨진 프로필 1개만 격리");
+        assert_eq!(bad[0].id, "broken");
+        // read_profiles(=discovery 경로) 도 전체 Err 가 아니라 정상분만 반환.
+        assert_eq!(read_profiles(&repo).unwrap().len(), 1);
+        std::fs::remove_dir_all(&repo).ok();
+    }
+
+    // KL-068 회귀: 파싱 실패한 id 를 start/deploy/install 이 조회하면
+    // generic "알 수 없는 프로필" 이 아니라 「앱 업데이트」 정밀 메시지를 받는다.
+    #[test]
+    fn find_profile_on_unparseable_id_tells_user_to_update() {
+        let repo = write_config(
+            r#"{ "devProfiles": [
+                 { "id": "broken", "label": "Bad", "args": 123 } ] }"#,
+        );
+        let err = find_profile(&repo, "broken").unwrap_err();
+        assert!(
+            err.contains("앱을 업데이트") && err.contains("KL-068"),
+            "정밀 메시지여야 함, 실제: {err}"
+        );
+        // 아예 없는 id 는 기존대로 generic.
+        let err2 = find_profile(&repo, "nope").unwrap_err();
+        assert!(err2.contains("알 수 없는 프로필"), "실제: {err2}");
+        std::fs::remove_dir_all(&repo).ok();
+    }
+
+    // 정상 config(현 HEAD servermonitor-config.json 모양)는 전부 ok, bad 0.
+    #[test]
+    fn healthy_mixed_config_parses_all() {
+        let repo = write_config(
+            r#"{ "devProfiles": [
+                 { "id": "jekyll", "label": "J", "cwd": ".", "program": "bundle", "args": ["exec","jekyll"] },
+                 { "id": "yawn", "label": "Y", "app": "apps/discord-bots", "script": "dev:yawnbot", "deployScript": "deploy:yawnbot", "npmInstall": true } ] }"#,
+        );
+        let (ok, bad) = read_profiles_with_errors(&repo).unwrap();
+        assert_eq!(ok.len(), 2);
+        assert!(bad.is_empty());
+        std::fs::remove_dir_all(&repo).ok();
     }
 }

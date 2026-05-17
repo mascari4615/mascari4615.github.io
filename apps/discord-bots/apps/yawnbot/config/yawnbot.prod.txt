@@ -1,0 +1,53 @@
+# ② prod env 프로파일 (TASK-YB-028) — 비밀 아닌 env별 값. 레포에 커밋(public).
+#
+# ⚠ 이 레포는 공개(GitHub Pages). 사용자 결정: "비밀 아닌 건 전부 커밋"
+#   (채널/길드/개인 유저 ID public 영구 노출 수용 — 그릴 게이트 2026-05-16).
+# 진짜 비밀(DISCORD_TOKEN / GEMINI_API_KEY / VERTEX_API_KEY /
+#   DISCORD_SUMMARY_WEBHOOK_URL)은 절대 여기 X — ③ GitHub secret(YB_PROD_*).
+#
+# 로드: yawnbot-defaults.txt → (이 파일, YAWNBOT_ENV=prod 일 때) → .env.
+# 빈 값(KEY=) = 미설정과 동일(코드에서 undefined 취급) → 해당 기능 비활성.
+#
+# 🔧 마이그레이션: .env.prod-backup(2026-05-09) 의 prod 값으로 채움 (사용자 결정).
+#    ⚠ 8일 전 백업 — deploy 후 prod 동작 확인 필수. 변경됐으면 그때 정정.
+#    백업에 없던 키(채널 다수·VERTEX_PROJECT_ID·ALLOWED_GUILD_IDS)는 빈칸:
+#    secret 으로만 설정됐거나 신규(NEWS). 그 값은 prod 노트북 live .env 또는
+#    Discord 우클릭 ID 로만 획득 가능 (NEWS=어느 채널인지 = 네 결정사항).
+
+# ── Discord 앱 (prod 봇 — dev 와 다른 앱) · backup 5/9 ──
+# 1456979834566873131=개발 본진, 400451987268829186=친구방 (사용자 2026-05-17).
+#   DISCORD_GUILD_ID = 슬래시 *등록* → 친구방 포함 둘 다.
+#   YAWNBOT_ALLOWED_GUILD_IDS = *응답* 게이트 → 본진만 (친구방은 명령 보여도
+#   실행 시 "등록된 서버에서만" 거부).
+CLIENT_ID=825793713749622816
+DISCORD_GUILD_ID=1456979834566873131,400451987268829186
+YAWNBOT_ALLOWED_GUILD_IDS=1456979834566873131
+
+# ── 알림 채널 ID (prod 서버) — 폴백 전용 (TASK-YB-029) ──
+# 정상 시 미사용: 봇이 부팅 시 본진에 「욘봇」 카테고리+채널을 자동
+# 생성/claim 하고 거기로 보냄 (정본 = data/channel-spec.json).
+# 아래 값은 프로비저닝 OFF(YAWNBOT_CHANNEL_PROVISION=0)·봇 Manage Channels
+# 권한 상실·reconcile 실패 시에만 쓰이는 안전망. 삭제 X(무음손실 방지),
+# 수동 개별 교체 불요(프로비저닝이 용도별 분리 자동 처리).
+GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
+ASSISTANT_PUBLIC_CHANNEL_ID=1490364315545636935
+YAWNBOT_OPS_REPORT_CHANNEL_ID=1490364315545636935
+YAWNBOT_UNITY_FREE_CHANNEL_ID=1490364315545636935
+YAWNBOT_GEEKNEWS_CHANNEL_ID=1490364315545636935
+YAWNBOT_NEWS_CHANNEL_ID=1490364315545636935
+
+# ── 개인 식별자 (Discord 유저 ID — env 불변, dev .env 에서 자동 채움) ──
+ADMIN_IDS=391805564616704002
+ASSISTANT_USER_ID=391805564616704002
+
+# ── AI 표면 / Vertex ──
+KARMOLAB_AI_SURFACE=vertex
+# VERTEX_PROJECT_ID = 준-비밀(GCP 프로젝트 노출=정찰정보) → 여기 비워두고
+#   ③ YB_PROD_VERTEX_PROJECT_ID secret 이 채움 (사용자 결정 2026-05-17). 커밋 X.
+VERTEX_PROJECT_ID=
+VERTEX_LOCATION=us-central1
+
+# ── 머신 경로 (prod=노트북). MEMO_REPO_PATH 는 ① defaults 가 커버(동일 경로).
+#    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
+CURSOR_LOCAL_REPO_DIR=
+KAKAO_EXPORT_WATCH_DIR=
