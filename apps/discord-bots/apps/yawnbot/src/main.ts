@@ -31,6 +31,7 @@ import { handleButtonInteraction } from './bot/buttons';
 import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
+import { makeThreadRouter } from './bot/agent-thread-router';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
@@ -325,7 +326,10 @@ client.once('clientReady', async () => {
     // sendLocalEvent = webhook-routes 정본 재사용(평행정의0). 미주입 시 trace만(graceful).
     const agentCh = agentChannelId(); // prod=null(webhook-routes) / dev=전용 채널
     const agentChOverride = agentCh ? [agentCh] : undefined;
-    setTeamBusNotify((msg) => {
+    // KAR-018-Y: TASK 당 스레드 라우팅 + 전문 청크(트렁케이트 폐기,
+    // 사용자 페인 직격). taskId 없는 팀-공통(하트비트 등)=기존 embed
+    // 폴백. 스레드 불가/실패도 폴백(무손실 우선).
+    const teamBusFallback = (msg: string): void => {
       void sendLocalEvent(
         client as any,
         {
@@ -337,7 +341,14 @@ client.once('clientReady', async () => {
         },
         agentChOverride,
       );
-    });
+    };
+    setTeamBusNotify(
+      makeThreadRouter(client, {
+        resolveChannelId: () =>
+          agentCh ?? getLocalChannels('agent-team')[0] ?? null,
+        fallback: teamBusFallback,
+      }),
+    );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
     // 도메인 라우팅(yb/디스코드 → echo, 그 외 → atlas) = 결정적·순수
     // (agent-core). 코어 정체성 소비(평행정의0, 재정의 X) — 단일 'atlas'
