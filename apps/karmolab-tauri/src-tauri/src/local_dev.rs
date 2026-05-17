@@ -365,8 +365,29 @@ fn log_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 /// 프로필 로그 파일 경로 (디렉토리는 보장됨).
-fn log_file_path(app: &tauri::AppHandle, profile_id: &str) -> Result<PathBuf, String> {
+/// `pub(crate)` — `local_dev_http` 가 같은 진실원(로그 파일)을 tail/stream 한다
+/// (KL-065 — Tauri event 비결합, 사람 카드와 동일 소스).
+pub(crate) fn log_file_path(app: &tauri::AppHandle, profile_id: &str) -> Result<PathBuf, String> {
     Ok(log_dir(app)?.join(format!("{}.log", profile_id)))
+}
+
+/// 프로필 로그의 마지막 `lines` 줄 스냅샷. `#[tauri::command]` 아님 (ACL 무영향)
+/// — `local_dev_http` 의 비-GUI `GET /localdev/log` 가 카드 `localdev_follow_log`
+/// 초기 emit 과 동일 파일을 읽어 동형 응답을 만든다 (KL-065).
+pub fn localdev_log_tail(
+    app: &tauri::AppHandle,
+    profile_id: &str,
+    lines: usize,
+) -> Result<String, String> {
+    let path = log_file_path(app, profile_id)?;
+    let content = match fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(String::new()),
+        Err(e) => return Err(format!("로그 읽기 실패: {}", e)),
+    };
+    let all: Vec<&str> = content.lines().collect();
+    let start = all.len().saturating_sub(lines);
+    Ok(all[start..].join("\n"))
 }
 
 /// Windows에서 `npm`/`npx`는 `cmd /C`로 실행해 PATH의 `.cmd` 런처와 맞춘다.

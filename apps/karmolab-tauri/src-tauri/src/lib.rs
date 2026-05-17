@@ -7,6 +7,7 @@ mod dev_static;
 mod questlog_hub;
 mod life;
 mod local_dev;
+mod local_dev_http;
 mod quest_index;
 mod quest_launcher;
 mod quest_watcher;
@@ -846,6 +847,11 @@ pub fn run() {
                     reattach_persisted_pids(&h);
                 });
             }
+
+            // KL-065: 비-GUI localdev 제어 인터페이스 (localhost HTTP).
+            // AI 에이전트가 GUI 클릭 없이 dev 프로필 start/stop/log/deploy 자가구동.
+            // 전용 thread + 같은 LocalDevState 공유 (사람 카드와 동일 트리).
+            local_dev_http::start(handle.clone());
 
             // PC 활동 트래커 — app data dir 안에 일별 JSONL로 저장. 시작 시 자동 폴링 시작.
             {

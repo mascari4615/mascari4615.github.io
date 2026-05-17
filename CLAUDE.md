@@ -356,7 +356,8 @@ master 브랜치는 항상 다음을 만족:
     - `.env` 파일은 `envFiles[]` 에 `relPath` 로 등록 — 사용자에게 "탐색기에서 .env 만들어주세요" 떠넘기지 말 것. 앱 내 편집기 (512KB 한도) 로 처리하게 한다.
     - 봉제 명령 (`localdev_send_stdin`), 외부 실행 PID 발견·종료 (`localdev_list_external_pids` / `localdev_stop_external`), 재기동 후 PID reattach 등도 자동.
     - 트레이 「개발 모드 (로컬 8899)」 토글은 KarmoLab 자체 (WebView 가 보는 페이지) 를 로컬 정적 서버로 띄울 때만. 일반 봇/서버는 `devProfiles` 가 정답.
-    - 정본: Rust `apps/karmolab-tauri/src-tauri/src/local_dev.rs`(`DevProfile::resolve`) · TS `apps/karmolab/src/widgets/servermonitor.ts`(`resolveProfile`) · 검증 `scripts/servermonitor-config-audit.mjs` · 본 note 12 + `TASK-KL-066`.
+    - **AI 비-GUI 경로 (TASK-KL-065)**: 모든 `localdev_*` 운영 액션은 GUI 외에 **localhost HTTP** 로도 구동됨 — AI(Claude)가 데스크톱 창 클릭 없이 dev 프로필 start/stop/log/deploy 자가구동. `127.0.0.1:8766` (기본) + `Authorization: Bearer <token>` (토큰·포트 = 앱 자동 생성 `<app_local_data_dir>/localdev-http.json`). 카드와 **같은 `LocalDevState` 공유**(이중 추적 없음). 라우트는 `#[tauri::command]` 아님 → ACL 무영향. 스모크 = `apps/karmolab-tauri/scripts/localdev-http-smoke.sh`. 「GUI-only ops 떠넘기기 금지」(`memo/rules/process.md § Ops 인터페이스`) 충족 경로. 봇/서버 재기동을 사용자에게 안내하지 말고 이 HTTP 로 직접 처리.
+    - 정본: Rust `apps/karmolab-tauri/src-tauri/src/local_dev.rs`(`DevProfile::resolve`) + `local_dev_http.rs`(HTTP) · TS `apps/karmolab/src/widgets/servermonitor.ts`(`resolveProfile`) · 검증 `scripts/servermonitor-config-audit.mjs` · 본 note 12 + `TASK-KL-066`/`TASK-KL-065`.
 13. **IO 무거운 `#[tauri::command]` = `async` + `tauri::async_runtime::spawn_blocking` 강제** (TASK-KL-043, 2026-05-13).
     - 기준: `fs::read_dir` 다중 호출 / external `std::process::Command` spawn (git, claude CLI, gh 등) / xcap + OCR + LLM 등 수 초 작업.
     - 패턴: `pub async fn cmd(params) -> Result<T, String> { tauri::async_runtime::spawn_blocking(move || cmd_blocking(params)).await.map_err(|e| format!("spawn_blocking join 실패: {}", e))? }`

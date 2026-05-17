@@ -55,6 +55,11 @@ tauri-plugin-global-shortcut = "2"
 # TASK-KL-037: adventure dataUrl → 별 PNG 파일 분리 시 base64 디코드.
 base64 = "0.22"
 
+# TASK-KL-065: 비-GUI localdev 제어 (localhost HTTP). 경량 선택 — localhost
+# 저빈도 AI 호출 + 코드베이스 std::thread/spawn_blocking 관용 정합. axum 의
+# hyper/tower 트리 = KL-051 바이너리 사이즈 규율·cargo check 속도 역행.
+tiny_http = "0.12"
+
 [target.'cfg(windows)'.dependencies]
 # KL-064 알람: playsoundapi/mmsystem = 사운드 무한 루프(PlaySoundW SND_LOOP).
 # synchapi/winbase/winnt/minwinbase = OS 강제 기상(절전 resume waitable timer +

@@ -62,6 +62,33 @@ npm run dev
 
 ---
 
+## AI 비-GUI 경로 (localhost HTTP — TASK-KL-065)
+
+서버 모니터의 모든 운영 액션은 GUI(카드) 클릭 외에 **localhost HTTP** 로도 구동됩니다. AI 에이전트(Claude)가 데스크톱 앱 창을 클릭하지 않고 dev 프로필을 직접 start/stop/log/deploy 할 수 있게 하기 위함입니다. 사람 카드와 **같은 `LocalDevState`·같은 함수 본체**를 공유하므로 한쪽에서 시작한 프로세스를 다른 쪽이 관측·종료할 수 있습니다(이중 추적 없음).
+
+- **바인드:** `127.0.0.1` 만 (타 머신 접근 차단). 기본 포트 **8766**.
+- **인증:** `Authorization: Bearer <token>`. 토큰·포트는 앱이 최초 1회 자동 생성 → `<app_local_data_dir>/localdev-http.json` (`{ "port", "token" }`). Windows 경로 예: `%LOCALAPPDATA%\com.mascari4615.karmolab\localdev-http.json`. `/localdev/health` 만 무인증(liveness).
+- **응답 형식:** `{ "ok": true, "data": ... }` 또는 `{ "ok": false, "error": "..." }`.
+
+| Method | 경로 | 본문/쿼리 | 대응 카드 동작 |
+| --- | --- | --- | --- |
+| GET | `/localdev/health` | — | (liveness, 무인증) |
+| GET | `/localdev/repo-root` | — | 저장소 루트 조회 |
+| POST | `/localdev/repo-root` | `{"path":"..."}` | 저장소 루트 설정 |
+| GET | `/localdev/tracked` | — | 추적 중 프로필 목록 |
+| GET | `/localdev/external` | — | 외부 실행 PID 맵 |
+| POST | `/localdev/start` | `{"profile":"..."}` | 시작 |
+| POST | `/localdev/stop` | `{"profile":"..."}` | 종료 |
+| POST | `/localdev/external-stop` | `{"profile":"..."}` | 외부 실행 종료 |
+| POST | `/localdev/stdin` | `{"profile":"...","text":"..."}` | stdin 전송 |
+| POST | `/localdev/deploy` | `{"profile":"..."}` | deploy (blocking, 출력 반환) |
+| POST | `/localdev/npm-install` | `{"profile":"..."}` | npm i (blocking, 출력 반환) |
+| GET | `/localdev/log` | `?profile=X&tail=N` | 로그 마지막 N줄 스냅샷(기본 200, 폴링용) |
+
+자가구동 스모크: **`apps/karmolab-tauri/scripts/localdev-http-smoke.sh`** (health→repo-root→start→tracked→log→stop). 정본 = Rust `apps/karmolab-tauri/src-tauri/src/local_dev_http.rs` + `TASK-KL-065`.
+
+---
+
 ## 관련 문서
 
 - 터미널 명령 모음: **문서 → 프로젝트 명령**
