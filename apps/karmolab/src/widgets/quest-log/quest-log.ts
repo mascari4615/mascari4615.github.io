@@ -21,6 +21,8 @@
 // @ts-nocheck — port of inline IIFE; types narrow incrementally
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
 
+const _questUnlisten = new WeakMap<HTMLElement, () => void>();
+
 (function (): void {
   // ── DATA — memo 정본 view ─────────────────────────────────────────────
   // hardcoded QUEST_DATA 폐기. Rust 명령 `get_quest_tree` 가 6 도메인 walk
@@ -1279,10 +1281,10 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
     }
 
     // KL-024 — 이전 마운트의 file-watcher unlisten 이 있으면 정리.
-    const prevUnlisten = (container as any).__kl_quest_unlisten as (() => void) | undefined;
+    const prevUnlisten = _questUnlisten.get(container);
     if (typeof prevUnlisten === 'function') {
       try { prevUnlisten(); } catch (e) { console.error('previous unlisten 실패', e); }
-      (container as any).__kl_quest_unlisten = null;
+      _questUnlisten.delete(container);
     }
 
     // KL-035 — `.kl-quest-log` 한 컨테이너가 자체 스크롤 (CSS: flex:1; min-height:0; overflow-y:auto).
@@ -1368,7 +1370,7 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
             renderOnce();
             void refreshOverview(overviewWrap);
           });
-          (container as any).__kl_quest_unlisten = unlisten;
+          _questUnlisten.set(container, unlisten);
         } catch (err) {
           console.error('quest-tree-changed listen 실패', err);
         }

@@ -32,8 +32,7 @@ import { attachImageRef } from './turn-loop';
     if (props.style) Object.assign(node.style, props.style);
     for (const k in props) {
       if (k === 'style') continue;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (node as any)[k] = (props as any)[k];
+      (node as Record<string, unknown>)[k] = (props as Record<string, unknown>)[k];
     }
     return node;
   }
