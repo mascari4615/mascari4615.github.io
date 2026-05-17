@@ -13,13 +13,19 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { generateAssistantText } from 'karmolab-ai/node';
+import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
+import {
+  resolveDomainRepo,
+  workerBranchName,
+  workerWorktreeDir,
+} from './agent-worker-repo';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
 import {
   SessionRegistry,
   spawnTier3,
   type Tier3Deps,
   type Tier3Request,
+  type Tier3Result,
 } from './dispatcher';
 import {
   screenCadenceWork,
@@ -112,10 +118,23 @@ export function buildTier3Deps(env: NodeJS.ProcessEnv): Tier3Deps {
     thisMachine: env.KAR_MACHINE?.trim() || 'any',
     reserve: (core) => reserveBudget(core, `cadence:${core}`),
     run: async (req: Tier3Request) => {
+      const timeoutMs = Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000;
+      // 워커 tier3 = req.repoCwd(격리 worktree) → *agentic* claude
+      // (도구 허용 + --dangerously-skip-permissions, generateClaudeCliText
+      // cwd 모드). 실제 코드·git·Draft PR 수행. KAR-018-Y 근본:
+      // 종전 비-agentic 경로는 텍스트만 생성·폐기 = 산출 0(theater).
+      if (req.repoCwd) {
+        return await generateClaudeCliText({
+          prompt: req.prompt,
+          timeoutMs,
+          cwd: req.repoCwd,
+        });
+      }
+      // producer/cadence tier3 = 비-agentic 텍스트(기존 동작 불변).
       const { text } = await generateAssistantText(
         { ...env, ASSISTANT_AI_PROVIDER: 'claude-cli' },
         req.prompt,
-        { timeoutMs: Number(env.AGENT_TIER3_TIMEOUT_MS) || 30 * 60_000 },
+        { timeoutMs },
       );
       return text;
     },
@@ -732,7 +751,23 @@ export function selectWorkerCores(defs: (CoreDef | null)[]): WorkerCore[] {
 export function buildWorkerPrompt(
   task: { id: string; file: string },
   missionText: string,
+  worktreeBranch?: string,
 ): string {
+  // worktreeBranch 지정 = 봇이 *이미* 격리 worktree(=cwd) 를 그 브랜치로
+  // 생성해 줌 → claude 는 worktree 새로 만들지 X, 여기서 작업·push·PR.
+  const step2 = worktreeBranch
+    ? [
+        `2. 너는 *이미* 격리 worktree(현재 cwd) 안, 브랜치 \`${worktreeBranch}\``,
+        '   에 있다. git worktree 새로 만들지 마라. main/master checkout·',
+        '   HEAD swap 절대 X. 최신 정본 필요시 `git fetch origin` 후 참고.',
+      ]
+    : [
+        '2. 자기 worktree 에서만 작업 — main worktree(memo/WitchMendokusai/',
+        '   Mascari4615.github.io) HEAD swap 절대 X. 없으면 new-worktree.ps1.',
+      ];
+  const step4 = worktreeBranch
+    ? `4. \`${worktreeBranch}\` 에 commit → \`git push -u origin ${worktreeBranch}\` → \`gh pr create --draft\` **까지만**. merge / master·main 직접 push / force-push **절대 금지**. push·gh 인증 실패 시 그 에러 원문을 6번 요약에 명시(은폐 X).`
+    : '4. feature 브랜치 commit + push + **Draft PR 까지만**. merge / master·main 직접 push / force-push **절대 금지**.';
   return [
     `너는 karmoddrine 에이전트 팀의 도메인 소비자 워커다. 아래 TASK 1건을`,
     `autopilot 안전 룰셋으로 *끝까지* 수행한다 (bounded — 이 1건 후 종료).`,
@@ -742,15 +777,14 @@ export function buildWorkerPrompt(
     '',
     '[절차]',
     `1. 위 TASK 스펙(${task.file})·관련 정본 정독. 진단 우선(가설 박기 X).`,
-    '2. 자기 worktree 에서만 작업 — main worktree(memo/WitchMendokusai/',
-    '   Mascari4615.github.io) HEAD swap 절대 X. 없으면 new-worktree.ps1.',
+    ...step2,
     '3. 코드 변경 + 가능한 검증(build/test/typecheck). 검증 불가 영역은',
     '   PR Test plan 에 명시.',
-    '4. feature 브랜치 commit + push + **Draft PR 까지만**. merge /',
-    '   master·main 직접 push / force-push **절대 금지**.',
+    step4,
     '5. 다른 세션 영역 침범 금지 — active-sessions 보드의 다른 행 타겟',
     '   파일 미접촉. TASK 문서 backlog/status 갱신.',
     '6. 끝나면 무엇을 했는지 *한 문단* 으로 요약(= #team-bus 보고용).',
+    '   실패·미완·인증오류면 그것도 솔직히(가짜 성공 보고 X).',
     '',
     '[미션 정렬 anchor — 이 작업이 아래에 정렬되는지 자가검사]',
     missionText.trim(),
@@ -786,12 +820,60 @@ function runMemoScript(
   }
 }
 
+/**
+ * 워커 격리 worktree 셋업 (KAR-018-Y). 도메인 repo HEAD 에서 feature
+ * 브랜치 worktree add → 그 경로 반환(=agentic claude cwd). main worktree
+ * HEAD swap 0(별 경로). 실패/미지원 도메인 = null → caller 비-agentic 폴백.
+ * fetch X(결정적·경량 — 최신 정본은 claude 가 프롬프트 지시대로 git fetch).
+ */
+function setupWorkerWorktree(
+  memoRoot: string,
+  coreId: string,
+  taskId: string,
+): { cwd: string; repoRoot: string; wtDir: string; branch: string } | null {
+  const umbrella = path.dirname(memoRoot);
+  const repo = resolveDomainRepo(coreId, umbrella);
+  if (!repo || !fs.existsSync(repo.repoRoot)) return null;
+  const now = new Date();
+  const branch = workerBranchName(taskId, now);
+  const wtDir = workerWorktreeDir(umbrella, coreId, taskId, now);
+  try {
+    execSync(
+      `git -C "${repo.repoRoot}" worktree add -b "${branch}" "${wtDir}" HEAD`,
+      { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+    );
+    return { cwd: wtDir, repoRoot: repo.repoRoot, wtDir, branch };
+  } catch {
+    return null;
+  }
+}
+
+/** 워커 worktree 정리 (best-effort — 브랜치는 remote 에 push 됨, 보존). */
+function cleanupWorkerWorktree(repoRoot: string, wtDir: string): void {
+  try {
+    execSync(`git -C "${repoRoot}" worktree remove --force "${wtDir}"`, {
+      timeout: 30_000,
+      stdio: 'ignore',
+    });
+  } catch {
+    /* leak 방지 best-effort */
+  }
+  try {
+    execSync(`git -C "${repoRoot}" worktree prune`, {
+      timeout: 15_000,
+      stdio: 'ignore',
+    });
+  } catch {
+    /* noop */
+  }
+}
+
 export interface WorkerConsumerDeps {
   listWorkers?: (memoRoot: string) => WorkerCore[];
   scan?: (domain: string, machine: string) => { id: string; file: string }[];
   claim?: (id: string, by: string) => boolean;
   release?: (id: string, by: string) => void;
-  spawn?: (req: Tier3Request) => Promise<{ status: string }>;
+  spawn?: (req: Tier3Request) => Promise<Tier3Result>;
   notify?: NotifyFn;
   missionText?: string;
 }
@@ -896,22 +978,39 @@ export async function runWorkerConsumerOnce(
       results.push(`${w.coreId}:claim-lost`);
       continue;
     }
+    // KAR-018-Y: 도메인 repo 격리 worktree 셋업 → agentic claude cwd.
+    // 미지원/실패 = wt null → 비-agentic 폴백(산출 0, 단 trace·메시지에
+    // 명시 — 종전 silent theater 와 달리 *관측가능*).
+    const wt = setupWorkerWorktree(memoRoot, w.coreId, chosen.id);
     const req: Tier3Request = {
       core: w.coreId,
       machine: w.machine,
-      prompt: buildWorkerPrompt(chosen, missionText),
+      prompt: buildWorkerPrompt(chosen, missionText, wt?.branch),
+      repoCwd: wt?.cwd,
     };
-    const res = await spawn(req);
+    let res: Awaited<ReturnType<typeof spawn>>;
+    try {
+      res = await spawn(req);
+    } finally {
+      if (wt) cleanupWorkerWorktree(wt.repoRoot, wt.wtDir);
+    }
     appendTrace(env, {
       ts: new Date().toISOString(),
       type: 'budget',
       core: w.coreId,
-      reason: `worker ${chosen.id} ${res.status}`,
+      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ' non-agentic-fallback'}`,
     });
     if (res.status === 'done') {
+      const report = (res.text || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .slice(0, 500);
+      const head = wt
+        ? `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` (Draft PR 검토 대기). 도메인=${w.domain}`
+        : `${w.label} ⚠ ${chosen.id} 처리했으나 격리 worktree 미생성 = 비-agentic 폴백(실산출 0). 도메인=${w.domain}`;
       noteWorkerStatus(
         w.coreId,
-        `${w.label} ▶ ${chosen.id} 자율 착수 — 자기 worktree·Draft PR (검토 대기). 도메인=${w.domain}`,
+        report ? `${head}\n· 보고: ${report}` : head,
         notify,
       );
       results.push(`${w.coreId}:done:${chosen.id}`);

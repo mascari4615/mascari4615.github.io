@@ -91,6 +91,12 @@ export interface Tier3Request {
   machine: string;
   /** 작업단위 지시 (bounded — 이 1건 후 세션 종료). */
   prompt: string;
+  /**
+   * 지정 시 = agentic 실행(이 cwd 안에서 파일·git·gh 도구 사용).
+   * 워커 tier3 = 도메인 repo 격리 worktree 경로. 미지정(producer/
+   * cadence tier3) = 비-agentic 텍스트 생성(기존 동작 불변). KAR-018-Y.
+   */
+  repoCwd?: string;
 }
 
 export type Tier3Status =
