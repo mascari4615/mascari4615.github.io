@@ -31,6 +31,22 @@ import type { ProposalEnvelope } from './proposal';
 import { appendApproval } from './governance-adapter';
 import { runInboxConsumerOnce, materializedPath } from './proposal-adapter';
 import { loadCoreDef } from '../services/agent-core';
+import { sendAsSkin, WebhookPermissionError } from './agent-webhook';
+import type { CharacterCard } from '../services/character-service';
+
+/** ann.agent → sendAsSkin 용 최소 카드 (이름·아바타만 — 실 카드 불요). */
+function identityCard(ann: ProposalAnnouncement, name: string): CharacterCard {
+  return {
+    slug: ann.agent?.coreId || 'atlas',
+    name,
+    displayName: name,
+    frontmatter: ann.agent?.avatarUrl
+      ? { avatar_url: ann.agent.avatarUrl }
+      : {},
+    body: '',
+    dir: '',
+  } as unknown as CharacterCard;
+}
 
 export interface ProposalAnnouncement {
   /** 결정적 발굴 id (proposalId) — 승인 매칭 키. */
@@ -429,11 +445,27 @@ export async function announceProposal(
 
     try {
       // R-2: atlas 가 *먼저 자기 목소리로* 운다 → 그 다음 정식 카드.
-      // = 클리닉 알림이 아니라 동료가 꺼내는 느낌. 실패 시 카드만(graceful).
+      // 이름 = 봇앱("YawnDev") 아니라 *에이전트 정체*(webhook username
+      // =displayName, sub-A sendAsSkin). 권한 없으면 봇 send 폴백.
       if (intro) {
-        await (channel as TextChannel)
-          .send({ content: intro.slice(0, 1800) })
-          .catch(() => {});
+        const body = intro.slice(0, 1800);
+        try {
+          await sendAsSkin(
+            channel as TextChannel,
+            identityCard(ann, agentName),
+            { content: body },
+          );
+        } catch (e) {
+          if (!(e instanceof WebhookPermissionError)) {
+            console.error(
+              '[agent-bus] intro 송신 오류:',
+              e instanceof Error ? e.message : e,
+            );
+          }
+          await (channel as TextChannel)
+            .send({ content: body })
+            .catch(() => {});
+        }
       }
       const msg = await (channel as TextChannel).send({ embeds: [embed] });
       await msg.react('✅').catch(() => {});
