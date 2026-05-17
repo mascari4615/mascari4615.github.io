@@ -34,6 +34,12 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('워커틱')
+        .setDescription('워커 소화만 1회 수동 실행 (발굴·대화 없이 워커 소비만)')
+        .setDescriptionLocalizations(enUS('Run worker consumer only, once')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('에이전트')
         .setDescription('로컬 저장소에서 Cursor agent로 프롬프트 실행')
         .setDescriptionLocalizations(enUS('Run a Cursor agent prompt on the local repo'))
