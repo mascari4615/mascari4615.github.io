@@ -58,7 +58,8 @@ import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
 import { handleReaction } from './bot/reactions';
-import { loadOpsReportContext, reportStartup, reportShutdown, reportError } from './services/ops-self-report';
+import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat } from './services/ops-self-report';
+import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 
@@ -296,6 +297,15 @@ client.once('clientReady', async () => {
 
   startPresenceRotation(client);
   startUnityFreeNotifier(client);
+  // TASK-YB-021: outbound heartbeat (push 모델 — 터널 죽어도 봇 egress 가능하면
+  // Healthchecks 가 alive 감지). egress 단절은 inbound watcher 사각이라 ops-report 로도 alert.
+  startHeartbeat({
+    url: process.env.HEALTHCHECKS_PING_URL,
+    intervalMin: process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN
+      ? parseInt(process.env.YAWNBOT_HEARTBEAT_INTERVAL_MIN, 10)
+      : undefined,
+    alert: opsCtx ? (event) => void reportHeartbeat(opsCtx, event) : undefined,
+  });
 
   if (characterService) {
     characterService.initialize();
@@ -492,6 +502,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   }
   setMusicDiscordClient(null);
   stopPresenceRotation();
+  stopHeartbeat();
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopAgentCadence();

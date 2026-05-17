@@ -136,6 +136,25 @@ export async function reportError(
   await sendEmbed(ctx, embed);
 }
 
+/**
+ * heartbeat 장애/복구 임베드 (TASK-YB-021). 봇이 외부 monitor 로 ping 을
+ * 못 보내는(egress 단절) 상태 전이를 ops-report 채널에 보고 — inbound
+ * watcher 가 못 보는 사각(봇 alive·터널 OK·DNS/네트워크만 단절) 보완.
+ * 상태 전이에서만 호출되므로 자체 dedup 불요.
+ */
+export async function reportHeartbeat(
+  ctx: OpsReportContext,
+  alert: { healthy: boolean; reason: string },
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(alert.healthy ? 0x2ecc71 : 0xe67e22)
+    .setTitle(alert.healthy ? '🟢 YawnBot heartbeat 복구' : '🟠 YawnBot heartbeat 실패')
+    .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
+    .setFooter({ text: buildFooter(ctx) })
+    .setTimestamp();
+  await sendEmbed(ctx, embed);
+}
+
 /** deploy 결과 임베드 (파랑). deploy-commands.ts main() 끝에 호출. */
 export async function reportDeploy(
   ctx: OpsReportContext,
