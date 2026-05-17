@@ -10,16 +10,26 @@ import { isDigestCommit, fetchRepoFile } from './digest-webhook';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('isDigestCommit', () => {
-  it('chore(digests): + digests/*.md added → 그 경로 반환', () => {
+  it('chore(digests): + 일자파일 added → 그 경로 (INDEX.md 오선택 X)', () => {
     expect(
       isDigestCommit({
         message: 'chore(digests): 2026-05-17 digest (routine auto)',
-        added: ['digests/2026-05-17.md', 'digests/INDEX.md'],
+        added: ['digests/INDEX.md', 'digests/2026-05-17.md'],
       }),
     ).toBe('digests/2026-05-17.md');
   });
 
-  it('비-digest 커밋 / digests modified-만 → null', () => {
+  it('같은날 재실행/수동트리거 = modified-only 도 매칭 (2차 갭 fix)', () => {
+    expect(
+      isDigestCommit({
+        message: 'chore(digests): 2026-05-17 digest (routine auto)',
+        added: [],
+        modified: ['digests/2026-05-17.md', 'digests/INDEX.md'],
+      }),
+    ).toBe('digests/2026-05-17.md');
+  });
+
+  it('비-digest 메시지 / INDEX·README 만 → null', () => {
     expect(
       isDigestCommit({ message: 'feat: x', added: ['digests/2026-05-17.md'] }),
     ).toBeNull();
@@ -27,9 +37,9 @@ describe('isDigestCommit', () => {
       isDigestCommit({
         message: 'chore(digests): note',
         added: [],
-        modified: ['digests/INDEX.md'],
+        modified: ['digests/INDEX.md', 'digests/README.md'],
       }),
-    ).toBeNull(); // added 아니면 X (첫 fire=added 만 매칭)
+    ).toBeNull(); // 일자패턴 아님 = 오선택 차단
   });
 });
 
