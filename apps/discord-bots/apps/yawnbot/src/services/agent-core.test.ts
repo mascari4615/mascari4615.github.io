@@ -11,6 +11,7 @@ import {
   loadCoreDef,
   listCoreIds,
   resolveProposalCore,
+  resolveAddressedCore,
   coreLabel,
 } from './agent-core';
 
@@ -157,5 +158,42 @@ describe('resolveProposalCore (R-4 도메인 라우팅 — 결정적·순수)', 
   it('알려진 코어 0 → 첫 코어 또는 atlas 문자열 (안전)', () => {
     expect(resolveProposalCore([], { domain: 'yb' })).toBe('atlas');
     expect(resolveProposalCore(['zeta'], {})).toBe('zeta');
+  });
+});
+
+describe('resolveAddressedCore (R-4-i2 이름지정 라우팅 — 결정적·순수)', () => {
+  const CORES = [
+    { id: 'atlas', displayName: 'Atlas' },
+    { id: 'echo', displayName: 'Echo' },
+  ];
+
+  it('이름(id/displayName, 대소문자·@·구분자 무시)으로 호출 → 그 코어 + prefix 제거', () => {
+    expect(resolveAddressedCore('echo, 안녕', CORES)).toEqual({
+      coreId: 'echo',
+      text: '안녕',
+    });
+    expect(resolveAddressedCore('Echo: 상태 보고해줘', CORES)).toEqual({
+      coreId: 'echo',
+      text: '상태 보고해줘',
+    });
+    expect(resolveAddressedCore('@ATLAS 이거 봐봐', CORES)).toEqual({
+      coreId: 'atlas',
+      text: '이거 봐봐',
+    });
+  });
+
+  it('호칭 없음 / 미지 핸들 / 나머지 없음 → null (채널 바인딩 그대로 = 회귀 0)', () => {
+    expect(resolveAddressedCore('안녕하세요 다들', CORES)).toBeNull();
+    expect(resolveAddressedCore('unknown, 안녕', CORES)).toBeNull();
+    expect(resolveAddressedCore('echo', CORES)).toBeNull(); // 단독 호칭=모호
+    expect(resolveAddressedCore('', CORES)).toBeNull();
+  });
+
+  it('첫 단어가 우연히 일반 단어여도 코어명과 정확히 일치할 때만 (오라우팅 방지)', () => {
+    expect(resolveAddressedCore('echoes 가 무슨 뜻이야', CORES)).toBeNull();
+    expect(resolveAddressedCore('atlas 산맥 알려줘', CORES)).toEqual({
+      coreId: 'atlas',
+      text: '산맥 알려줘',
+    }); // 'atlas' 정확 일치 = 의도된 호출로 간주 (명시적 핸들)
   });
 });

@@ -112,6 +112,37 @@ export function listCoreIds(memoRoot: string): string[] {
 }
 
 /**
+ * 단일 #team-bus 다중 코어 *이름지정 라우팅* (KAR-018-V R-4-i2,
+ * 결정적·순수). 사용자가 동료를 *이름으로 부르면* 그 코어가 답한다 —
+ * "명명 코어 N"의 자연스러운 실현 (cadence 무관, 사용자 직접 검증 가능).
+ *
+ * 매칭 = 텍스트가 `@?<핸들><구분자><나머지>` 로 시작. 핸들 = 코어 id
+ * 또는 displayName (대소문자·@ 무시). 미지정·미지 핸들·나머지 없음 →
+ * null (호출자가 채널 바인딩 코어 그대로 = 회귀 0). 반환 text = 호칭
+ * prefix 제거 (모델이 "echo," 를 내용으로 오인 X).
+ */
+export function resolveAddressedCore(
+  text: string,
+  cores: { id: string; displayName: string }[],
+): { coreId: string; text: string } | null {
+  const t = (text || '').trim();
+  const m = t.match(/^@?([\p{L}\p{N}._-]{1,32})\s*[,:]?\s+([\s\S]+)$/u);
+  if (!m) return null;
+  const handle = m[1].toLowerCase();
+  const rest = m[2].trim();
+  if (!rest) return null;
+  for (const c of cores) {
+    if (
+      handle === c.id.toLowerCase() ||
+      handle === c.displayName.toLowerCase()
+    ) {
+      return { coreId: c.id, text: rest };
+    }
+  }
+  return null;
+}
+
+/**
  * 발굴물 → 담당 코어 id (KAR-018-V R-4 도메인 라우팅, 결정적·순수).
  *
  * 규칙 (우선순위):
