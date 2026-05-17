@@ -1011,11 +1011,16 @@ export async function runWorkerConsumerOnce(
     const wt = 'error' in wtRes ? null : wtRes;
     const wtErr = 'error' in wtRes ? wtRes.error : null;
     // memo 스펙 *내용* 임베드 (agentic cwd=코드 repo, memo 경로 부재 —
-    // prod 23:35 KST "스펙 못 찾음" 근본. umbrella-상대 chosen.file).
+    // prod 23:35 KST "스펙 못 찾음" 근본). chosen.file = task-queue 가
+    // `--root memoRoot` 로 산출한 *memoRoot-상대* 경로(예 projects\
+    // karmolab\tasks\..). 직전 fix 는 dirname(memoRoot)=umbrella 기준
+    // 으로 잘못 join → 항상 ENOENT→specText undefined→폴백("임베드 실패",
+    // KL-071 등 prod 06:15 KST 차단). 런타임-정확 재현으로 확정: base=
+    // memoRoot 여야 exists=true (dirname 은 false). `\` 는 path.join 정규화.
     let specText: string | undefined;
     try {
       specText = fs.readFileSync(
-        path.join(path.dirname(memoRoot), chosen.file),
+        path.join(memoRoot, chosen.file),
         'utf-8',
       );
     } catch {
