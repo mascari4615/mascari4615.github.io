@@ -227,6 +227,78 @@ try {
     } catch (e) {
       console.log('TRACE_TAIL-FAIL ' + (e && e.message || e));
     }
+    // 노트북 memo 동기 상태 (stale-sync vs stuck-claim 판별)
+    try {
+      const cp2 = require('child_process');
+      const head = cp2
+        .execFileSync(
+          'git',
+          ['-C', memoRoot, 'log', '-1', '--format=%h %ci %s'],
+          { encoding: 'utf-8', timeout: 15000 },
+        )
+        .trim();
+      console.log('LAPTOP_MEMO_HEAD ' + head.slice(0, 160));
+      let behind = '?';
+      try {
+        cp2.execFileSync('git', ['-C', memoRoot, 'fetch', 'origin', 'main'], {
+          timeout: 20000,
+          stdio: 'ignore',
+        });
+        behind = cp2
+          .execFileSync(
+            'git',
+            ['-C', memoRoot, 'rev-list', '--count', 'HEAD..origin/main'],
+            { encoding: 'utf-8', timeout: 15000 },
+          )
+          .trim();
+      } catch (e) {
+        behind = 'fetch-fail:' + (e && e.message || e);
+      }
+      console.log('LAPTOP_MEMO_BEHIND_ORIGIN ' + behind);
+    } catch (e) {
+      console.log('LAPTOP_MEMO_GIT-FAIL ' + (e && e.message || e));
+    }
+    // 후보 TASK status + claim 상태 (laptop) — stuck-claim/status-drift 직격
+    try {
+      const ids = [
+        'TASK-WM-084',
+        'TASK-WM-116',
+        'TASK-KL-054',
+        'TASK-KL-059',
+      ];
+      for (const id of ids) {
+        let found = null;
+        for (const sub of ['wm/tasks', 'karmolab/tasks']) {
+          const dir = path.join(memoRoot, sub);
+          let files = [];
+          try {
+            files = fs2.readdirSync(dir);
+          } catch (e) {
+            files = [];
+          }
+          const fn = files.find(function (f) {
+            return f.indexOf(id) === 0;
+          });
+          if (fn) {
+            found = path.join(dir, fn);
+            break;
+          }
+        }
+        if (!found) {
+          console.log('CAND ' + id + ' = FILE NOT ON LAPTOP');
+          continue;
+        }
+        const body = fs2.readFileSync(found, 'utf-8').slice(0, 600);
+        const st = (body.match(/^status:\s*(.+)$/m) || [])[1] || '?';
+        const cb = (body.match(/^claimed_by:\s*(.+)$/m) || [])[1] || '-';
+        const ca = (body.match(/^claimed_at:\s*(.+)$/m) || [])[1] || '-';
+        console.log(
+          'CAND ' + id + ' status=' + st.trim() + ' claimed_by=' + cb.trim() + ' claimed_at=' + ca.trim(),
+        );
+      }
+    } catch (e) {
+      console.log('CAND-FAIL ' + (e && e.message || e));
+    }
   } catch (e) {
     console.log('WORKER_DIAG-THROW ' + (e && e.message || e));
   }
