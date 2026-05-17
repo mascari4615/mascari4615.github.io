@@ -125,12 +125,14 @@ jobs:
           YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
           # KAR-004: digest-webhook 이 private memo digest 본문 fetch (인증). 없으면 송신0.
           YB_PROD_MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
+          # TASK-YB-021: outbound heartbeat ping URL. ping UUID = capability(아무나 가짜 alive 가능) → secret.
+          YB_PROD_HEALTHCHECKS_PING_URL: ${{ secrets.YB_PROD_HEALTHCHECKS_PING_URL }}
         run: |
           $ErrorActionPreference = 'Stop'
 
           # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'HEALTHCHECKS_PING_URL'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
