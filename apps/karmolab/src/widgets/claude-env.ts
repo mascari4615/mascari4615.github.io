@@ -1,12 +1,13 @@
 /**
  * Claude 환경 컨트롤 위젯 — TASK-KL-056.
  *
- * v1 Step 2 + 3 = read + write/sync + 미리듣기.
- * Stop/Notification hook 각각 mode (system/beep/wav) + system sound + wav path 편집,
- * 저장 시 정본 (memo/dotfiles/claude-hooks/notify-*.ps1) 편집 + sync-claude-hooks.ps1 호출.
+ * v1 = read + write/sync + 미리듣기 + 파일 선택 다이얼로그.
+ * Stop/Notification hook 각각 mode (system/beep/wav) + system sound + sound file
+ * (.wav/.mp3) 편집, 저장 시 정본 (memo/dotfiles/claude-hooks/notify-*.ps1) 편집
+ * + sync-claude-hooks.ps1 호출.
  *
- * 후속 Step:
- *   4 = .wav drag-drop (sub TASK 시드 — 별 PR)
+ * wav 모드: .wav = SoundPlayer / .mp3 = WPF MediaPlayer (KL-059).
+ * 후속: .wav drag-drop = TASK-KL-059 (별 항목).
  *
  * Stop 과 Notification 의 차이:
  *   Stop = Claude 응답 끝날 때마다 — 일반 알림 (Asterisk 기본)
@@ -152,26 +153,26 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
     wavRow.className = 'claude-env-row';
     const wavLabel = document.createElement('span');
     wavLabel.className = 'claude-env-field-label';
-    wavLabel.textContent = 'wav path';
+    wavLabel.textContent = 'sound file';
     wavRow.appendChild(wavLabel);
     const wavControl = document.createElement('div');
     wavControl.className = 'claude-env-input-row';
     const wavInput = document.createElement('input');
     wavInput.type = 'text';
     wavInput.className = 'claude-env-input';
-    wavInput.placeholder = 'C:\\Users\\…\\hooks\\sounds\\stop.wav';
+    wavInput.placeholder = 'C:\\…\\sound.wav  또는  .mp3';
     wavInput.spellcheck = false;
     wavControl.appendChild(wavInput);
     const wavBrowse = document.createElement('button');
     wavBrowse.type = 'button';
     wavBrowse.className = 'claude-env-browse';
-    wavBrowse.title = '.wav 파일 선택';
+    wavBrowse.title = '.wav / .mp3 파일 선택';
     wavBrowse.textContent = '찾아보기';
     wavControl.appendChild(wavBrowse);
     const wavPlay = document.createElement('button');
     wavPlay.type = 'button';
     wavPlay.className = 'claude-env-play';
-    wavPlay.title = '.wav 미리듣기';
+    wavPlay.title = 'sound 파일 미리듣기';
     wavPlay.textContent = '▶';
     wavControl.appendChild(wavPlay);
     wavRow.appendChild(wavControl);
@@ -235,7 +236,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
       void openFn({
         multiple: false,
         directory: false,
-        filters: [{ name: 'WAV 사운드', extensions: ['wav'] }]
+        filters: [{ name: '사운드 (wav/mp3)', extensions: ['wav', 'mp3'] }]
       })
         .then(function (selected) {
           if (typeof selected !== 'string' || selected.length === 0) {
