@@ -101,6 +101,16 @@ jobs:
           $local = (& git rev-parse HEAD 2>$null)
           $remote = (& git rev-parse FETCH_HEAD 2>$null)
           if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
+          # KAR-018-Y: 구 task-claim 이 tracked TASK .md(status:active+
+          # claimed_by) 를 더럽혀 merge 영구 차단했음. 이제 claim=gitignore
+          # 원장(.md 미변경)이라 *TASK-*.md 의 로컬 수정 = stale 부패* →
+          # 안전하게 discard 후 merge. .active.json·mood.json 등 prod 런타임
+          # (패턴 불일치)·untracked 신규 = 보존(scope=TASK-*.md 만).
+          $dirtyTasks = @(& git diff --name-only -- '*/tasks/TASK-*.md' 'tasks/TASK-*.md' 2>$null | Where-Object { $_ })
+          if ($dirtyTasks.Count -gt 0) {
+            & git checkout -- $dirtyTasks 2>&1 | Out-Null
+            Write-Host "[memo-sync] stale TASK .md dirt $($dirtyTasks.Count)건 정리 (claim=원장, .md 정본 — KAR-018-Y)"
+          }
           & git merge --ff-only FETCH_HEAD 2>&1
           if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
           # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
