@@ -1,10 +1,10 @@
 /**
- * /atkup unity · /atkup news 슬래시 핸들러 (atkup-bot 흡수, TASK-YB-003).
+ * /atkup unity 슬래시 핸들러 (atkup-bot 흡수, TASK-YB-003).
+ * (구 /atkup news = Hacker News 수동 — YB-036 에서 스케줄 news notifier 로 흡수·폐기.)
  */
 import { MessageFlags, type ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';
 import { triggerUnityFreeOnce } from '../../services/notifiers/unity-free';
-import { triggerGeekNewsOnce } from '../../services/notifiers/geeknews';
 
 export async function handleAtkupUnity(
   ctx: BotContext,
@@ -44,37 +44,5 @@ export async function handleAtkupUnity(
       await interaction.editReply(`Unity 무료 에셋 전송 완료: \`${coupon}\``);
       return;
     }
-  }
-}
-
-export async function handleAtkupNews(
-  ctx: BotContext,
-  interaction: ChatInputCommandInteraction,
-): Promise<void> {
-  const count = interaction.options.getInteger('count') ?? 10;
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-  let result: Awaited<ReturnType<typeof triggerGeekNewsOnce>>;
-  try {
-    result = await triggerGeekNewsOnce(ctx.client, count);
-  } catch (err: any) {
-    await interaction.editReply(`긱 뉴스 가져오기 실패: ${err?.message ?? err}`);
-    return;
-  }
-
-  switch (result.status) {
-    case 'no_channel':
-      await interaction.editReply(
-        'YAWNBOT_GEEKNEWS_CHANNEL_ID 가 .env 에 설정되어 있지 않아 전송할 수 없습니다.',
-      );
-      return;
-    case 'channel_unreachable':
-      await interaction.editReply(
-        '채널을 찾을 수 없거나 메시지를 보낼 수 없습니다 (YAWNBOT_GEEKNEWS_CHANNEL_ID 확인).',
-      );
-      return;
-    case 'sent':
-      await interaction.editReply(`Hacker News 글 ${result.sent}개를 알림 채널에 보냈습니다.`);
-      return;
   }
 }

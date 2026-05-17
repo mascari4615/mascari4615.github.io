@@ -188,7 +188,7 @@ export function buildDiscoveryPrompt(
     '★★ 글쓰기 규칙 (필수 — 어기면 폐기 가치). 읽는 사람=비개발자 사장:',
     '· 절대 금지: §숫자/조항, 내부 코드명(drift·anchor·seam·cadence·',
     '  governance·DGM·producer·hook 등), 영어 약어, 파일경로, 코드.',
-    '· **만연체 금지.** geeknews 처럼 *짧은 불릿*. 한 항목=한 줄(≤60자),',
+    '· **만연체 금지.** 뉴스 헤드라인처럼 *짧은 불릿*. 한 항목=한 줄(≤60자),',
     '  길면 쪼개라. 줄글 문단 X.',
     '· **제목**(task.title / objective.summary) = 딱 떨어지는 한 줄',
     '  명사구 (≤45자, 문장·마침표 X). 본문 내용 반복 X.',
