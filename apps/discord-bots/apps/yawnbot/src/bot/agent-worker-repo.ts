@@ -11,6 +11,9 @@
 const CORE_DOMAIN_REPO: Record<string, string> = {
   'wm-worker': 'WitchMendokusai',
   'kl-worker': 'Mascari4615.github.io',
+  // KAR = 에이전트 팀 인프라·자가개선. yawnbot 코드가 github.io 안 →
+  // 타겟 repo = Mascari4615.github.io (노트북 prod 존재 = agentic 가능).
+  'kar-worker': 'Mascari4615.github.io',
 };
 
 export interface DomainRepo {
