@@ -478,9 +478,15 @@ export async function handleAssistantMessage(
   const coreMemoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
   // KAR-018-V R-4-i2: 단일 #team-bus 다중 코어 — *이름으로 동료를
   // 부르면* 그 코어가 자기 정체·스킨·기억으로 답한다 ("명명 코어 N"
-  // 실현). 채널 바인딩 코어 = default/lead (호칭 없으면 그대로 = 회귀
-  // 0). 비-팀 방·미지정·미지 핸들 = 불변.
-  if (isTeam && coreMemoRoot) {
+  // 실현). 채널 바인딩 코어 = default/lead (호칭 없으면 그대로 = 회귀 0).
+  //
+  // KAR-018-Y: **개별 채팅창**(발단 명시 "개별 채팅창도 있으면 좋겠다")
+  // = DM 에도 동일 호명 라우팅. DM 은 isTeam=false 라 기존엔 legacy
+  // 스킨(yawn)만 = 코어 정체 0(dead 경로, atlas/echo stale-draft 와 동형).
+  // 이제 DM 에서 "atlas, …" / "@echo …" → 그 코어가 자기 정체·기억으로
+  // 1:1 응답. 무호명 DM = resolveAddressedCore null → coreId 불변(legacy
+  // yawn) = **회귀 0**. R-4 메커니즘 재사용(평행 정의 0).
+  if ((isTeam || isDM) && coreMemoRoot) {
     const known = listCoreIds(coreMemoRoot)
       .map((id) => loadCoreDef(coreMemoRoot, id))
       .filter((d): d is CoreDef => d !== null)
