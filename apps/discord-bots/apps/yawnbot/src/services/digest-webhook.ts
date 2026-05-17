@@ -21,6 +21,45 @@ function stripFrontmatter(raw: string): string {
 }
 
 /**
+ * 레포 파일 1개 본문 fetch. **memo = private** 라 무인증
+ * raw.githubusercontent 는 404 (digest 송신0 진짜 근본). 토큰
+ * (`MEMO_GITHUB_PAT`/`GITHUB_TOKEN`) 있으면 GitHub API contents
+ * (`Accept: raw`, private OK), 없으면 raw fallback (public github.io
+ * 호환). !ok = throw (caller graceful return). 평행정의0 — memo→prod
+ * sync 와 동일 「private=인증 필수」 class (quality.md § 정본→prod 동기).
+ */
+export async function fetchRepoFile(
+  repoFullName: string,
+  sha: string,
+  filePath: string,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<string> {
+  const token =
+    env.MEMO_GITHUB_PAT?.trim() || env.GITHUB_TOKEN?.trim() || '';
+  const signal = AbortSignal.timeout(10_000);
+  if (token) {
+    const apiUrl = `https://api.github.com/repos/${repoFullName}/contents/${filePath}?ref=${sha}`;
+    const resp = await fetch(apiUrl, {
+      signal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github.raw',
+        'User-Agent': 'yawnbot-digest-webhook',
+      },
+    });
+    if (!resp.ok) throw new Error(`GitHub API ${resp.status} (${apiUrl})`);
+    return resp.text();
+  }
+  const rawUrl = `https://raw.githubusercontent.com/${repoFullName}/${sha}/${filePath}`;
+  const resp = await fetch(rawUrl, { signal });
+  if (!resp.ok)
+    throw new Error(
+      `raw ${resp.status} (${rawUrl}) — private repo 면 토큰(MEMO_GITHUB_PAT) 필요`,
+    );
+  return resp.text();
+}
+
+/**
  * push payload 의 commit 하나가 dev-digest commit 인지 판별.
  * 조건: message 첫 줄이 "chore(digests):" 로 시작 + added 파일 중 "digests/" 경로 .md 있음.
  */
@@ -46,17 +85,19 @@ export async function handleDigestCommit(
   if (!digestFile) return;
 
   const sha: string = String(commit.id ?? '');
-  const rawUrl = `https://raw.githubusercontent.com/${repoFullName}/${sha}/${digestFile}`;
 
   try {
-    // 1. fetch digest body
+    // 1. fetch digest body — **memo 는 private** → 무인증 raw 는 404
+    //    (KAR-004 송신0 진짜 근본, 2026-05-17). 토큰 있으면 GitHub API
+    //    contents(private OK), 없으면 raw fallback(public github.io 호환).
     let rawBody = '';
     try {
-      const resp = await fetch(rawUrl, { signal: AbortSignal.timeout(10_000) });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      rawBody = await resp.text();
+      rawBody = await fetchRepoFile(repoFullName, sha, digestFile);
     } catch (e: any) {
-      console.error(`[DigestWebhook] raw fetch 실패 (${rawUrl}):`, e?.message ?? e);
+      console.error(
+        `[DigestWebhook] digest 본문 fetch 실패 (${repoFullName}@${sha.slice(0, 7)}/${digestFile}):`,
+        e?.message ?? e,
+      );
       return;
     }
     const body = stripFrontmatter(rawBody).slice(0, MAX_FETCH_CHARS);
