@@ -106,11 +106,18 @@ jobs:
           # 원장(.md 미변경)이라 *TASK-*.md 의 로컬 수정 = stale 부패* →
           # 안전하게 discard 후 merge. .active.json·mood.json 등 prod 런타임
           # (패턴 불일치)·untracked 신규 = 보존(scope=TASK-*.md 만).
-          $dirtyTasks = @(& git diff --name-only -- '*/tasks/TASK-*.md' 'tasks/TASK-*.md' 2>$null | Where-Object { $_ })
-          if ($dirtyTasks.Count -gt 0) {
-            & git checkout -- $dirtyTasks 2>&1 | Out-Null
-            Write-Host "[memo-sync] stale TASK .md dirt $($dirtyTasks.Count)건 정리 (claim=원장, .md 정본 — KAR-018-Y)"
-          }
+          #
+          # KAR-018-Y 2차 근본: 직전 fix(`git diff`+`git checkout --`)는
+          # *unstaged 만* 정리했다. 구 코드/워커가 `git add` 한 TASK .md 는
+          # staged 부패로 남아 merge 영구 abort("local changes would be
+          # overwritten" — KL-048..065/WM-101..134, 노트북 43-behind 의
+          # 실근본, diag 25991435300 데이터 확정). `git diff`=unstaged 만,
+          # `git checkout -- f`=index 에서 복원이라 staged 를 못 지웠음.
+          # → `git checkout HEAD -- <pathspec>` 로 index+worktree 동시
+          # 정본(HEAD) 복원: glob 직접 사용(staged/unstaged 무관, 매칭 0건
+          # = no-op). TASK-*.md 만 scope → 봇 런타임 파일 무손상.
+          & git checkout HEAD -- '*/tasks/TASK-*.md' 'tasks/TASK-*.md' 2>&1 | Out-Null
+          Write-Host '[memo-sync] TASK-*.md staged+unstaged stale 부패 정본(HEAD) 강제 복원 (KAR-018-Y 2차)'
           & git merge --ff-only FETCH_HEAD 2>&1
           if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
           # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
