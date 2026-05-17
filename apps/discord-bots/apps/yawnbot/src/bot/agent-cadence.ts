@@ -802,6 +802,25 @@ export interface WorkerConsumerDeps {
  * 매 단계 trace. *블록 X* — bounded(워커당 1 TASK/tick), registry 가
  * per-core 동시1. governance reserve 는 spawnTier3 내부 deps.reserve 가.
  */
+// 워커 가시성 (KAR-018-Y, 사용자 "말도 좀 하고 뭘 작업하는지 알아야").
+// idle/claim-lost/done/fail 상태를 #team-bus 에 알리되 *동일 상태 연속
+// 반복은 dedupe* (변화 시에만 — 30분 cadence 라 전이당 1줄=스팸 X,
+// 과거 WM-084 에러 매틱 도배도 동시 해소). per-core 마지막 상태 비교.
+const lastWorkerStatus = new Map<string, string>();
+function noteWorkerStatus(
+  coreId: string,
+  status: string,
+  notify: NotifyFn,
+): void {
+  if (lastWorkerStatus.get(coreId) === status) return;
+  lastWorkerStatus.set(coreId, status);
+  notify(status);
+}
+/** 테스트 전용 — 워커 상태 dedupe 리셋 (disarmKill 동형). */
+export function resetWorkerStatus(): void {
+  lastWorkerStatus.clear();
+}
+
 export async function runWorkerConsumerOnce(
   env: NodeJS.ProcessEnv,
   deps: WorkerConsumerDeps = {},
@@ -853,6 +872,11 @@ export async function runWorkerConsumerOnce(
     if (isKilled()) break;
     const cands = scan(w.domain, w.machine === 'any' ? thisMachine : w.machine);
     if (cands.length === 0) {
+      noteWorkerStatus(
+        w.coreId,
+        `${w.label} 🟦 대기 — ${w.domain} 도메인에 지금 맡을 일(claimable TASK) 0 (큐 비었거나 전부 진행중/PR/검토중). 새 일 생기면 자동 착수.`,
+        notify,
+      );
       results.push(`${w.coreId}:idle`);
       continue;
     }
@@ -864,6 +888,11 @@ export async function runWorkerConsumerOnce(
       }
     }
     if (!chosen) {
+      noteWorkerStatus(
+        w.coreId,
+        `${w.label} ⚠ ${w.domain} 후보 ${cands.length}건 다른 워커가 선점 — 재대기.`,
+        notify,
+      );
       results.push(`${w.coreId}:claim-lost`);
       continue;
     }
@@ -880,14 +909,18 @@ export async function runWorkerConsumerOnce(
       reason: `worker ${chosen.id} ${res.status}`,
     });
     if (res.status === 'done') {
-      notify(
+      noteWorkerStatus(
+        w.coreId,
         `${w.label} ▶ ${chosen.id} 자율 착수 — 자기 worktree·Draft PR (검토 대기). 도메인=${w.domain}`,
+        notify,
       );
       results.push(`${w.coreId}:done:${chosen.id}`);
     } else {
       release(chosen.id, w.coreId);
-      notify(
+      noteWorkerStatus(
+        w.coreId,
         `${w.label} ⚠ ${chosen.id} ${res.status} — 점유 해제·재대기 (도메인=${w.domain})`,
+        notify,
       );
       results.push(`${w.coreId}:${res.status}`);
     }
