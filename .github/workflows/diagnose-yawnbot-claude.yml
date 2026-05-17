@@ -78,6 +78,28 @@ jobs:
           Remove-Item -Recurse -Force $cwd -ErrorAction SilentlyContinue
 
           Write-Host ""
+          Write-Host "===== [4b] FIX VALIDATION: same call with CLAUDE_CONFIG_DIR ====="
+          $cwd2 = Join-Path $env:TEMP ("yb-diagfix-" + [guid]::NewGuid().ToString("N"))
+          New-Item -ItemType Directory -Path $cwd2 -Force | Out-Null
+          $inF2 = Join-Path $cwd2 "in.txt"
+          $outF2 = Join-Path $cwd2 "out.txt"
+          $errF2 = Join-Path $cwd2 "err.txt"
+          Set-Content -Path $inF2 -Value 'reply with the single word ok' -Encoding UTF8
+          $env:CLAUDE_CONFIG_DIR = 'C:\Users\masca\.claude'
+          Write-Host "CLAUDE_CONFIG_DIR set = $env:CLAUDE_CONFIG_DIR"
+          try {
+            $proc2 = Start-Process -FilePath $exe -ArgumentList $argList -WorkingDirectory $cwd2 -NoNewWindow -PassThru -RedirectStandardInput $inF2 -RedirectStandardOutput $outF2 -RedirectStandardError $errF2
+            $ok2 = $proc2.WaitForExit(120000)
+            if (-not $ok2) { $proc2.Kill(); Write-Host "TIMEOUT 120s" }
+            Write-Host ("FIX EXIT   : " + $proc2.ExitCode)
+          } catch {
+            Write-Host ("FIX START-FAIL : " + $_.Exception.Message)
+          }
+          Write-Host ("FIX STDOUT : " + (Get-Content $outF2 -Raw -ErrorAction SilentlyContinue))
+          Write-Host ("FIX STDERR : " + (Get-Content $errF2 -Raw -ErrorAction SilentlyContinue))
+          Remove-Item -Recurse -Force $cwd2 -ErrorAction SilentlyContinue
+
+          Write-Host ""
           Write-Host "===== [5] verdict ====="
           Write-Host "ObjectName=LocalSystem/non-masca + creds only under masca + EXIT!=0 => service-account has no claude OAuth (fix via service account or CLAUDE_CONFIG_DIR)"
           Write-Host "EXIT=0 => claude fine; root is elsewhere (env/PATH/timeout) - re-trace"
