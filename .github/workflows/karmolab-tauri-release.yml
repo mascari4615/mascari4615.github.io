@@ -57,6 +57,11 @@ jobs:
         # push(backend contract 변경) = 자동 patch. workflow_dispatch = 선택 bump.
         if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.bumpType != 'none')
         shell: bash
+        # KL-064 race-safe: concurrency 가 run 을 직렬화해도 늦은 run 의
+        # checkout 이 master 보다 뒤 → 옛 코드는 `git push HEAD:master` 가
+        # non-fast-forward 거부로 실패(멀티세션 monorepo+bump 자체 push).
+        # → 매 시도 *최신 origin/master 로 reset → 그 위에서 버전 재계산
+        # (버전 충돌도 방지) → commit → push*, 거부 시 재시도.
         run: |
           set -e
           if [ "${{ github.event_name }}" = "push" ]; then
@@ -64,40 +69,48 @@ jobs:
           else
             BUMP="${{ inputs.bumpType }}"
           fi
-          CURRENT=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          IFS='.' read -r MA MI PA <<< "$CURRENT"
-          case "$BUMP" in
-            patch) PA=$((PA + 1)) ;;
-            minor) MI=$((MI + 1)); PA=0 ;;
-            major) MA=$((MA + 1)); MI=0; PA=0 ;;
-            *) echo "알 수 없는 bump 종류: $BUMP" >&2; exit 1 ;;
-          esac
-          NEW="$MA.$MI.$PA"
-          echo "Bump $CURRENT → $NEW"
-          node -e "
-            const fs = require('fs');
-            for (const p of ['package.json', 'src-tauri/tauri.conf.json']) {
-              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-              j.version = '$NEW';
-              fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
-            }
-            let cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
-            cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$NEW\"');
-            fs.writeFileSync('src-tauri/Cargo.toml', cargo);
-            // KL-052 워크스페이스 전환 후 단일 lock = 워크스페이스 루트
-            // (apps/karmolab-tauri/Cargo.lock). 옛 'src-tauri/Cargo.lock'
-            // 은 부재 → ENOENT 로 모든 bump-릴리스가 깨져 있었음 (KL-064 발견).
-            let lock = fs.readFileSync('Cargo.lock', 'utf8');
-            const replaced = lock.replace(/(name = \"karmolab-desktop\"\s+version = )\"[^\"]*\"/, '\$1\"$NEW\"');
-            if (replaced === lock) throw new Error('Cargo.lock의 karmolab-desktop 버전 패턴을 찾지 못했습니다.');
-            fs.writeFileSync('Cargo.lock', replaced);
-          "
           cd ../..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/karmolab-tauri/package.json apps/karmolab-tauri/src-tauri/Cargo.toml apps/karmolab-tauri/Cargo.lock apps/karmolab-tauri/src-tauri/tauri.conf.json
-          git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
-          git push origin HEAD:master
+          T=apps/karmolab-tauri
+          PUSHED=
+          for attempt in 1 2 3 4 5 6; do
+            git fetch origin master
+            git reset --hard origin/master
+            CURRENT=$(node -p "require('./$T/src-tauri/tauri.conf.json').version")
+            IFS='.' read -r MA MI PA <<< "$CURRENT"
+            case "$BUMP" in
+              patch) PA=$((PA + 1)) ;;
+              minor) MI=$((MI + 1)); PA=0 ;;
+              major) MA=$((MA + 1)); MI=0; PA=0 ;;
+              *) echo "알 수 없는 bump 종류: $BUMP" >&2; exit 1 ;;
+            esac
+            NEW="$MA.$MI.$PA"
+            echo "Bump $CURRENT → $NEW (attempt $attempt)"
+            node -e "
+              const fs = require('fs');
+              const T = '$T';
+              for (const p of [T+'/package.json', T+'/src-tauri/tauri.conf.json']) {
+                const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+                j.version = '$NEW';
+                fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+              }
+              let cargo = fs.readFileSync(T+'/src-tauri/Cargo.toml', 'utf8');
+              cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$NEW\"');
+              fs.writeFileSync(T+'/src-tauri/Cargo.toml', cargo);
+              // KL-052 워크스페이스 단일 lock = 루트(apps/karmolab-tauri/Cargo.lock).
+              let lock = fs.readFileSync(T+'/Cargo.lock', 'utf8');
+              const replaced = lock.replace(/(name = \"karmolab-desktop\"\s+version = )\"[^\"]*\"/, '\$1\"$NEW\"');
+              if (replaced === lock) throw new Error('Cargo.lock의 karmolab-desktop 버전 패턴을 찾지 못했습니다.');
+              fs.writeFileSync(T+'/Cargo.lock', replaced);
+            "
+            git add "$T/package.json" "$T/src-tauri/Cargo.toml" "$T/Cargo.lock" "$T/src-tauri/tauri.conf.json"
+            git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
+            if git push origin HEAD:master; then PUSHED=1; break; fi
+            echo "push 거부(non-fast-forward) — 최신 reset 후 재시도"
+            sleep $((attempt * 3))
+          done
+          if [ -z "$PUSHED" ]; then echo "bump push 6회 실패" >&2; exit 1; fi
 
       - name: Setup Node
         uses: actions/setup-node@v6
