@@ -55,6 +55,15 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
 //      조용히 죽은 사고 재발 방지. 필수 게이트 — 무조건 실행.
 run('Server Monitor config audit', '.', 'node scripts/servermonitor-config-audit.mjs');
 
+// 3.7. App origin 정합 + liveness audit (TASK-KL-064). prod 앱이 로드하는
+//      URL(release conf frontendDist)을 정본으로, 흩어진 참조(base conf /
+//      lib.rs 상수 / allow_in_webview / capabilities) 일치 + 그 URL 이
+//      301/non-200 아닌지 cross-check. 도메인 이전 시 일부만 바뀌어 prod
+//      빈화면 났던 사고(KL-064) 재발을 기계 차단. 필수 게이트.
+if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
+  run('App origin audit', '.', 'node scripts/app-origin-audit.mjs');
+}
+
 // 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
 //    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면
 //    개발 흐름 깨짐. CI 는 verify.yml 의 'Install blog deps' step 이 보장.
