@@ -50,6 +50,11 @@ if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
   run('Tauri ACL audit', '.', 'node scripts/tauri-acl-audit.mjs');
 }
 
+// 3.6. Server Monitor 설정 정합 audit — devProfiles {app,script} ⟷ <app>/package.json
+//      scripts 실재 cross-check (TASK-KL-066). `dev:dual`→`dev` rename 으로 카드가
+//      조용히 죽은 사고 재발 방지. 필수 게이트 — 무조건 실행.
+run('Server Monitor config audit', '.', 'node scripts/servermonitor-config-audit.mjs');
+
 // 4. apps/blog lint — chirpy v7.5.0 의 root config (eslint.config.js + .stylelintrc.json)
 //    흡수 후 복원 (TASK-KL-031). node_modules 없으면 skip — pre-push 가 매번 npm ci 강요하면
 //    개발 흐름 깨짐. CI 는 verify.yml 의 'Install blog deps' step 이 보장.
