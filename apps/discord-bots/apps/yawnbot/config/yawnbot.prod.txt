@@ -65,11 +65,14 @@ KAKAO_EXPORT_WATCH_DIR=
 # dialogue 제안당 dedupe + heartbeat 의미활동만 → 짧아도 스팸·폭주 X.
 # 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
 AGENT_CADENCE_ENABLED=1
-# 30분 = 사용자 결정 "제안 쿨타임 30분으로 줄이자" (2026-05-17, 검증
-# 완료 후 운영 cadence). 1분은 검증·활발도용이었고 제안 분당 생성=과다.
-# 30분 = 제안/발굴 과밀 해소·노이즈↓. 겹침 0(틱 전단계 await 후 단일
-# setTimeout). 너무 잦으면/뜸하면 이 값만 redirect.
+# 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
+# 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
+# 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면
+# 안 쌓임(겹침 0). 너무 잦으면/뜸하면 각 값만 redirect.
 AGENT_CADENCE_INTERVAL_MS=1800000
+# 워커 소화 전용 5분 (작업 없을 때 claimable TASK 체크 주기). 워커가
+# tier3 실행 중이면 그 끝난 뒤 5분(밀림, 안 겹침).
+AGENT_WORKER_INTERVAL_MS=300000
 # ── claude CLI OAuth 경로 (KAR-018-Y 근본 fix, 비밀 아님) ──
 # 진짜 근본(prod 계측 25987467988 으로 확정, 가설 X): yawnbot-prod nssm
 # ObjectName=LocalSystem → claude 가 LocalSystem 프로필에서 OAuth 탐색

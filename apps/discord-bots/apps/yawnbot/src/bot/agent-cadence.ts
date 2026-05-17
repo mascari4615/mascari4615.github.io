@@ -987,6 +987,7 @@ export function summarizeTick(r: string): string | null {
 }
 
 let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
+let workerTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * 자율 cadence 시작 — **default OFF**. `AGENT_CADENCE_ENABLED=1` 만 ON.
@@ -1002,6 +1003,7 @@ let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
  */
 export async function runCadenceTickOnce(
   env: NodeJS.ProcessEnv,
+  opts: { includeWorker?: boolean } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
   const killFile = memoRoot
@@ -1026,7 +1028,11 @@ export async function runCadenceTickOnce(
     const mat = await runInboxConsumerOnce(env);
     if (mat > 0) r = `${r}+consumed:${mat}`;
   }
-  if (memoRoot && !isKilled()) {
+  // 워커 소화 = *별 cadence*(KAR-018-Y, 사용자: 제안 30분 OK, 소화는
+  // 더 빨라야 — 작업 없으면 5분 트리거). 자동 main 틱은 includeWorker
+  // false(워커 전용 타이머가 5분 주기). 수동 /관리자 에이전트틱 = 기본
+  // true(전체 1틱). 작업 중이면 await-after-setTimeout 라 안 쌓임.
+  if (opts.includeWorker !== false && memoRoot && !isKilled()) {
     const w = await runWorkerConsumerOnce(env);
     if (w && w !== 'no-workers' && w !== 'no-memo-root') {
       r = `${r}+worker:${w}`;
@@ -1060,10 +1066,16 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     );
     return;
   }
+  // 제안 발굴(producer)·대화 = 30분 OK / 워커 소화(consumer) = 더 빨라야
+  // (사용자 KAR-018-Y). 분리 타이머: main(발굴·inbox·대화·하트비트,
+  // AGENT_CADENCE_INTERVAL_MS) + worker(runWorkerConsumerOnce 전용,
+  // AGENT_WORKER_INTERVAL_MS 기본 5분). 둘 다 await-후-setTimeout =
+  // 자기 작업 중이면 다음 틱 안 쌓임(겹침 0).
   const intervalMs = Number(env.AGENT_CADENCE_INTERVAL_MS) || 15 * 60_000;
+  const workerMs = Number(env.AGENT_WORKER_INTERVAL_MS) || 5 * 60_000;
   const tick = async () => {
     try {
-      await runCadenceTickOnce(env);
+      await runCadenceTickOnce(env, { includeWorker: false });
     } catch (e) {
       console.error(
         '[AgentCadence] tick 오류:',
@@ -1072,9 +1084,24 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     }
     cadenceTimer = setTimeout(tick, intervalMs);
   };
+  const workerTick = async () => {
+    try {
+      const w = await runWorkerConsumerOnce(env);
+      if (w && w !== 'no-workers' && w !== 'no-memo-root') {
+        console.log(`[AgentCadence] worker -> ${w}`);
+      }
+    } catch (e) {
+      console.error(
+        '[AgentCadence] worker 오류:',
+        e instanceof Error ? e.message : e,
+      );
+    }
+    workerTimer = setTimeout(workerTick, workerMs);
+  };
   cadenceTimer = setTimeout(tick, intervalMs);
+  workerTimer = setTimeout(workerTick, workerMs);
   console.warn(
-    `[AgentCadence] ON (interval=${intervalMs}ms) — sub-D 거버넌스 게이트 활성 (drift 3-판정 + 예산 verdict + risk escalate).`,
+    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커소화 ${workerMs}ms 분리) — sub-D 게이트 활성.`,
   );
 }
 
@@ -1082,5 +1109,9 @@ export function stopAgentCadence(): void {
   if (cadenceTimer) {
     clearTimeout(cadenceTimer);
     cadenceTimer = null;
+  }
+  if (workerTimer) {
+    clearTimeout(workerTimer);
+    workerTimer = null;
   }
 }
