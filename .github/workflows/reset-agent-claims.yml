@@ -1,0 +1,31 @@
+name: Reset Agent Claims Ledger (KAR-018-Y)
+
+# 일회성 ops 레버 — prod 노트북 task-claims.json(gitignore 파생 원장) 비움.
+#
+# 사유: 디버깅 churn 틱들이 status=done(but no-PR) 으로 claim 영구잔존
+#   → task-queue 전 도메인 0 claimable(6h stale-reap 까지 워커 idle).
+#   claim-confirm 근본 fix(origin 브랜치 실재로만 claim 확정) 배포 후
+#   *이미 막힌* 원장은 자가복구 안 됨 → 1회 명시 리셋 필요.
+# 안전: 원장 = gitignore 파생 런타임 상태. TASK .md status = canon(불변).
+#   실 autopilot PR 0 확인 후 실행(누적 claim 전부 false=무손실).
+# 정본: TASK-KAR-018-Y. 트리거 = workflow_dispatch (사람/AI 명시).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reset:
+    runs-on: [self-hosted, windows]
+    steps:
+      - name: Delete task-claims.json (prod memo ledger)
+        shell: 'powershell -ExecutionPolicy Bypass -Command'
+        run: |
+          $ledger = 'C:\Users\masca\repos\karmoddrine\memo\.claude\task-claims.json'
+          if (Test-Path $ledger) {
+            $n = 0
+            try { $n = (Get-Content $ledger -Raw | ConvertFrom-Json).PSObject.Properties.Count } catch {}
+            Remove-Item $ledger -Force
+            Write-Host "[reset-claims] deleted ledger (had ~$n entries) -> 0 claimable cleared, queue refills"
+          } else {
+            Write-Host "[reset-claims] ledger absent (already empty) - noop"
+          }

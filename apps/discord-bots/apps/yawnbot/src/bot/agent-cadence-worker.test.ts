@@ -150,7 +150,9 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       listWorkers: () => [W],
       scan: () => [{ id: 'TASK-WM-119', file: 'f.md' }],
       claim: (id) => { claimed.push(id); return true; },
+      setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
       spawn: async () => ({ status: 'done' }),
+      branchPushed: () => true, // origin 브랜치 실재 = claim 확정
       notify: (m) => notified.push(m),
       missionText: 'M',
     });
@@ -169,11 +171,31 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
         { id: 'TASK-WM-2', file: 'b' },
       ],
       claim: (id) => { tried.push(id); return id === 'TASK-WM-2'; },
+      setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
       spawn: async () => ({ status: 'done' }),
+      branchPushed: () => true,
       notify: () => {},
     });
     expect(tried).toEqual(['TASK-WM-1', 'TASK-WM-2']);
     expect(r).toBe('wm-worker:done:TASK-WM-2');
+  });
+
+  it('claim-confirm: done 이나 origin 브랜치 미푸시 → release·재시도(드레인 방지)', async () => {
+    const released: string[] = [];
+    const notified: string[] = [];
+    const r = await runWorkerConsumerOnce(env(), {
+      listWorkers: () => [W],
+      scan: () => [{ id: 'TASK-WM-9', file: 'f.md' }],
+      claim: () => true,
+      release: (id) => released.push(id),
+      setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+      spawn: async () => ({ status: 'done' }),
+      branchPushed: () => false, // 산출 0 (스펙없음/blocked)
+      notify: (m) => notified.push(m),
+    });
+    expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-9');
+    expect(released).toEqual(['TASK-WM-9']);
+    expect(notified[0]).toContain('미푸시');
   });
 
   it('전 후보 claim 실패 → claim-lost (spawn 0)', async () => {
