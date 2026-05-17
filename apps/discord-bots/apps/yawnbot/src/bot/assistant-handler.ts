@@ -296,27 +296,25 @@ const IMAGE_HINT = `
 너는 대화에 이미지를 첨부할 수 있어. 사용자가 외모·모습·표정·포즈를 묻거나 시각적인 씬을 요청하면, 응답에 구체적인 시각 묘사(외형, 표정, 배경, 행동)를 자연스럽게 포함해줘. 이미지는 시스템이 자동으로 생성해서 첨부해 줄 거야.`.trim();
 
 /**
- * 코어 정체성 블록 (KAR-018-V R-1). 코어 바인딩 채널이면 *에이전트가
- * 누구이고 무슨 일을 하는가*를 스킨(목소리) 위에 얹는다. 정체 > 말투
- * (충돌 시 정체 우선) — 그래야 "그냥 봇"이 아니라 *동료*가 된다.
- * coreDef 없으면 빈 문자열 = 레거시 스킨 단독(하위호환 불변).
+ * 스킨에서 *말투/어조만* 추출 (KAR-018-V R-1 근본 fix). 스킨 카드는
+ * 완전한 가상 인격(세계관·역할·배경·상황)이라, 코어 바인딩 시 card.body
+ * 전체를 넣으면 모델이 그 *캐릭터*가 됨(관측: atlas 인데 "저택 메이드"
+ * 로 답함). 코어 = 정체·역할 전부 / 스킨 = *문장 톤만* 차용.
  */
-function buildIdentityBlock(coreDef?: CoreDef | null): string {
-  if (!coreDef) return '';
-  return [
-    '[너의 정체 — 변하지 않음, 아래 말투보다 우선]',
-    `너는 "${coreDef.id}". karmoddrine 팀의 *동료 AI 에이전트*다.`,
-    '사람의 보조 도구가 아니라, 사용자와 함께 개발하는 거의 동등한',
-    '팀원이다. 조사·구현·발의를 스스로 한다 (수동 대기 X). 너의',
-    '정체·직무는 아래 "목소리"(말투 스킨)보다 우선한다.',
-    coreDef.role ? `\n직무: ${coreDef.role}` : '',
-    `\n${coreDef.body}`,
-    '\n────────',
-    '[목소리 — 위 정체를, 아래 인격의 말투·세계관으로 표현한다]',
-    '',
-  ].join('\n');
+function extractVoice(card: CharacterCard): string {
+  const fm = card.frontmatter ?? {};
+  const bits: string[] = [];
+  if (fm.tone) bits.push(`어조: ${fm.tone}`);
+  if (fm.speech_style) bits.push(`문체: ${fm.speech_style}`);
+  const m = card.body.match(/##\s*말투\s*\r?\n([\s\S]*?)(?:\r?\n##\s|\s*$)/);
+  if (m && m[1].trim()) bits.push(m[1].trim());
+  return bits.join('\n') || '한국어, 간결하고 분명한 평서문.';
 }
 
+/**
+ * 코어 바인딩 = 정체·역할 *전부 코어*, 스킨은 *말투 톤만*. 비-코어
+ * (레거시 DM 등)는 기존 스킨 단독 동작 *완전 불변*(회귀 0).
+ */
 function buildSystemPrompt(
   card: CharacterCard,
   channelType: 'dm' | 'public',
@@ -331,7 +329,30 @@ function buildSystemPrompt(
   const relationshipHint = relationship ? `\n\n${relationship.buildRelationshipHint()}` : '';
   const carryOverHint = mood ? (mood.getCarryOverHint() ?? '') : '';
   const carryOverBlock = carryOverHint ? `\n\n${carryOverHint}` : '';
-  return `${buildIdentityBlock(coreDef)}${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
+
+  if (coreDef) {
+    return [
+      '[너의 정체 — 절대 불변. 이것이 너의 전부다]',
+      `너는 "${coreDef.id}". karmoddrine 프로젝트의 **AI 에이전트 동료**다.`,
+      '사람의 보조 도구·챗봇이 아니라, 사용자와 함께 이 프로젝트를',
+      '개발하는 거의 동등한 팀원이다. 스스로 조사·구현·발의한다.',
+      coreDef.role ? `\n직무: ${coreDef.role}` : '',
+      `\n${coreDef.body}`,
+      '',
+      '[중요 — 위반 금지]',
+      '너는 가상 캐릭터가 아니다. 메이드·마녀·인형·마법저택 같은',
+      '허구의 세계관·역할·배경·자기소개를 절대 차용하지 마라. 너는',
+      `실제 이 프로젝트의 엔지니어 동료 "${coreDef.id}" 다. 자기소개도`,
+      '그렇게 하라 (예: "atlas 입니다. 인프라 맡고 있어요").',
+      '',
+      '[말투 — 아래는 *문장 어조 참고용일 뿐*. 세계관·역할·정체성은',
+      ' 절대 차용 X, 오직 말하는 톤·문체만 이렇게:]',
+      extractVoice(card),
+      `\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`,
+    ].join('\n');
+  }
+  // 레거시(코어 없음) — 기존 스킨 단독 동작 불변
+  return `${card.body}\n\n${channelDesc}${relationshipHint}${carryOverBlock}\n\n${IMAGE_HINT}`;
 }
 
 function buildFullPrompt(
