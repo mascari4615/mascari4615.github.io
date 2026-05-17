@@ -24,8 +24,11 @@ on:
   push:
     branches: [master, main]
     paths:
-      - 'apps/karmolab-tauri/src-tauri/**'
-      - 'apps/karmolab-tauri/package.json'
+      # Tauri 앱 디렉토리 전체 = 바이너리 빌드 계약 (src-tauri 코드/ACL +
+      # scripts/build-sidecar.mjs 같은 빌드 파이프라인 + package.json).
+      # 좁게 src-tauri/** 만 두면 build-sidecar.mjs 수정이 자동릴리스 안 돼
+      # 또 스큐 (KL-064 3차 발견). 단일유저·always-latest 라 churn 수용.
+      - 'apps/karmolab-tauri/**'
 
 jobs:
   publish-tauri:
