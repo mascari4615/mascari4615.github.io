@@ -54,7 +54,7 @@ import {
 } from './music';
 import { handleSpeak } from './speak';
 import { handleSound } from './sound';
-import { handleAdminReload, handleAdminSave } from './admin';
+import { handleAdminReload, handleAdminSave, handleAdminCadenceTick } from './admin';
 import {
   handleCharacterList,
   handleCharacterSwitch,
@@ -147,6 +147,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         case '핑': await handlePing(ctx, interaction); break;
         case '리로드': await handleAdminReload(ctx, interaction, userId); break;
         case '저장': await handleAdminSave(ctx, interaction, userId); break;
+        case '에이전트틱': await handleAdminCadenceTick(ctx, interaction, userId); break;
         case '에이전트': await handleCursorEdit(ctx, interaction, userId); break;
         default: await interaction.reply(ephemeral('알 수 없는 관리자 하위 명령입니다.'));
       }
