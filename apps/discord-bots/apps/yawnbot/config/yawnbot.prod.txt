@@ -68,3 +68,12 @@ KAKAO_EXPORT_WATCH_DIR=
 # 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
 AGENT_CADENCE_ENABLED=1
 AGENT_CADENCE_INTERVAL_MS=240000
+# ── claude CLI OAuth 경로 (KAR-018-Y 근본 fix, 비밀 아님) ──
+# 진짜 근본(prod 계측 25987467988 으로 확정, 가설 X): yawnbot-prod nssm
+# ObjectName=LocalSystem → claude 가 LocalSystem 프로필에서 OAuth 탐색
+# → 없음(creds 는 C:\Users\masca\.claude 에만) → "Not logged in" exit1
+# → discovery/worker 전 claude spawn 실패 → 제안 0 → 코어↔코어 0 →
+# 팀 안 삶. fix 검증(같은 LocalSystem run #25987512170 [4b]): 이 env
+# 주입 시 동일 호출 EXIT0 "ok". 봇이 config→process.env 로드 → spawn
+# 한 claude 가 상속 → masca OAuth 인증. 경로=비밀 아님(가시 정본).
+CLAUDE_CONFIG_DIR=C:\Users\masca\.claude
