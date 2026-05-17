@@ -100,6 +100,17 @@ jobs:
           Remove-Item -Recurse -Force $cwd2 -ErrorAction SilentlyContinue
 
           Write-Host ""
+          Write-Host "===== [6] REAL discovery path (built dist) + raw output + parse verdict ====="
+          $env:CLAUDE_CONFIG_DIR = 'C:\Users\masca\.claude'
+          $env:YBDIR = 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io\apps\discord-bots\apps\yawnbot'
+          $script = Join-Path $env:GITHUB_WORKSPACE '.github\scripts\diag-discovery.cjs'
+          if (Test-Path $script) {
+            & node $script 2>&1 | ForEach-Object { Write-Host $_ }
+          } else {
+            Write-Host "diag-discovery.cjs not found at $script"
+          }
+
+          Write-Host ""
           Write-Host "===== [5] verdict ====="
           Write-Host "ObjectName=LocalSystem/non-masca + creds only under masca + EXIT!=0 => service-account has no claude OAuth (fix via service account or CLAUDE_CONFIG_DIR)"
           Write-Host "EXIT=0 => claude fine; root is elsewhere (env/PATH/timeout) - re-trace"
