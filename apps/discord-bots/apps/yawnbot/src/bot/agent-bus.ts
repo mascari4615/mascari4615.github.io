@@ -21,6 +21,7 @@ import { EmbedBuilder } from 'discord.js';
 import type {
   Client,
   TextChannel,
+  Message,
   MessageReaction,
   PartialMessageReaction,
   User,
@@ -467,7 +468,33 @@ export async function announceProposal(
             .catch(() => {});
         }
       }
-      const msg = await (channel as TextChannel).send({ embeds: [embed] });
+      // R-5 정체통일: 카드도 *에이전트 정체* webhook 게시(봇앱 YawnDev
+      // X). hook.send 반환 id 로 fetch → react/startThread (스레드·리액션
+      // 매핑 유지). WebhookPermissionError·실패 = 봇 embed fallback
+      // (기존 동작·회귀0·graceful — 권한 없어도 카드는 뜸).
+      let msg: Message | null = null;
+      try {
+        const sentId = await sendAsSkin(
+          channel as TextChannel,
+          identityCard(ann, agentName),
+          { content: '', embeds: [embed] },
+        );
+        if (sentId) {
+          msg = await (channel as TextChannel).messages
+            .fetch(sentId)
+            .catch(() => null);
+        }
+      } catch (e) {
+        if (!(e instanceof WebhookPermissionError)) {
+          console.error(
+            '[agent-bus] 카드 정체 송신 오류:',
+            e instanceof Error ? e.message : e,
+          );
+        }
+      }
+      if (!msg) {
+        msg = await (channel as TextChannel).send({ embeds: [embed] });
+      }
       await msg.react('✅').catch(() => {});
       await msg.react('❌').catch(() => {});
 
