@@ -1045,10 +1045,10 @@ export async function runWorkerConsumerOnce(
       reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
     });
     if (res.status === 'done') {
-      const report = (res.text || '')
-        .trim()
-        .replace(/\s+/g, ' ')
-        .slice(0, 500);
+      // KAR-018-Y: 트렁케이트(500) 폐기 — 봇-side 스레드 라우터가 전문
+      // 청크 분할(정보 손실 X = 사용자 페인 직격). 줄바꿈 보존(가독).
+      // 상한은 pathological 방지용만(라우터가 Discord 한도로 재분할).
+      const report = (res.text || '').trim().slice(0, 8000);
       const head = wt
         ? `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` (Draft PR 검토 대기). 도메인=${w.domain}`
         : `${w.label} ⚠ ${chosen.id} 처리했으나 격리 worktree 실패 = 비-agentic 폴백(실산출 0). 사유: ${wtErr}. 도메인=${w.domain}`;
@@ -1060,10 +1060,7 @@ export async function runWorkerConsumerOnce(
       results.push(`${w.coreId}:done:${chosen.id}`);
     } else {
       release(chosen.id, w.coreId);
-      const errDetail = (res.error || '')
-        .trim()
-        .replace(/\s+/g, ' ')
-        .slice(0, 400);
+      const errDetail = (res.error || '').trim().slice(0, 3000);
       noteWorkerStatus(
         w.coreId,
         `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
