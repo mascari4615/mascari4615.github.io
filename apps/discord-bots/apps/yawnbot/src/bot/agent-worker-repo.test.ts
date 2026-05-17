@@ -29,6 +29,12 @@ describe('resolveDomainRepo (순수)', () => {
     );
   });
 
+  it('kar-worker → Mascari4615.github.io (자가개선 = github.io yawnbot)', () => {
+    expect(resolveDomainRepo('kar-worker', '/x/karmoddrine')?.repoRoot).toBe(
+      '/x/karmoddrine/Mascari4615.github.io',
+    );
+  });
+
   it('미지원 코어 / 빈 umbrella = null', () => {
     expect(resolveDomainRepo('atlas', '/x')).toBeNull();
     expect(resolveDomainRepo('producer', '/x')).toBeNull();
