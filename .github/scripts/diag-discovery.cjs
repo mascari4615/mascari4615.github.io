@@ -28,12 +28,19 @@ const ac = tryReq('agent-cadence', [
 const pp = tryReq('proposal', [
   path.join(yb, 'dist', 'src', 'bot', 'proposal.js'),
 ]);
-const kai = tryReq('karmolab-ai/node', [
-  path.join(yb, 'node_modules', 'karmolab-ai', 'node.js'),
-  path.join(yb, 'node_modules', 'karmolab-ai', 'dist', 'node.js'),
-  path.join(yb, 'node_modules', 'karmolab-ai'),
-  'karmolab-ai/node',
-]);
+// karmolab-ai is a workspace pkg (root node_modules symlink). Resolve it
+// the SAME way the bot does: createRequire anchored at a built bot module.
+let kai = null;
+try {
+  const { createRequire } = require('module');
+  const anchor = path.join(yb, 'dist', 'src', 'bot', 'agent-cadence.js');
+  const botRequire = createRequire(anchor);
+  kai = botRequire('karmolab-ai/node');
+  console.log('resolved karmolab-ai/node <- createRequire(' + anchor + ')');
+} catch (e) {
+  console.log('FAILED createRequire karmolab-ai/node: ' + (e && e.message || e));
+  kai = tryReq('karmolab-ai/node', ['karmolab-ai/node']);
+}
 
 (async () => {
   if (!ac || !kai) {
