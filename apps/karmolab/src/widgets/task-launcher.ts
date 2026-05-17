@@ -49,6 +49,8 @@
     sealed: 'var(--mag-learn)',
   };
 
+  const _launcherUnlisten = new WeakMap<HTMLElement, () => void>();
+
   const STYLE_ID = 'kl-task-launcher-styles';
   const CSS = `
 .kl-task-launcher {
@@ -136,7 +138,7 @@
 `;
 
   function isKarmolabDesktop(): boolean {
-    return typeof (window as any).__TAURI__ !== 'undefined';
+    return typeof window.__TAURI__ !== 'undefined';
   }
 
   function esc(s: unknown): string {
@@ -149,7 +151,7 @@
   }
 
   async function fetchTree(): Promise<MemoQuestTree | null> {
-    const invoke = (window as any).__TAURI__?.core?.invoke;
+    const invoke = window.__TAURI__?.core?.invoke;
     if (typeof invoke !== 'function') return null;
     try {
       return (await invoke('get_quest_tree')) as MemoQuestTree;
@@ -255,7 +257,7 @@
         titleInput.style.borderColor = '#d4504e';
         return;
       }
-      const invoke = (window as any).__TAURI__?.core?.invoke;
+      const invoke = window.__TAURI__?.core?.invoke;
       if (typeof invoke !== 'function') {
         alert('Tauri invoke 사용 불가 — KarmoLab 데스크톱 앱이어야 동작합니다.');
         return;
@@ -278,7 +280,7 @@
   }
 
   async function openInEditor(filePath: string): Promise<void> {
-    const invoke = (window as any).__TAURI__?.core?.invoke;
+    const invoke = window.__TAURI__?.core?.invoke;
     if (typeof invoke !== 'function') return;
     try {
       await invoke('open_task_in_editor', { filePath });
@@ -302,10 +304,10 @@
     }
 
     // 이전 마운트의 unlisten 정리
-    const prevUnlisten = (container as any).__kl_launcher_unlisten as (() => void) | undefined;
+    const prevUnlisten = _launcherUnlisten.get(container);
     if (typeof prevUnlisten === 'function') {
       try { prevUnlisten(); } catch (e) { console.error('previous unlisten 실패', e); }
-      (container as any).__kl_launcher_unlisten = null;
+      _launcherUnlisten.delete(container);
     }
 
     const STATUS_FILTERS = ['all', 'seed', 'ready', 'active', 'hold', 'done', 'sealed'];
@@ -433,12 +435,12 @@
     setTimeout(() => searchEl.focus(), 100);
 
     // KL-024 file watcher 이벤트 listen — 외부 변경 시 자동 새로고침
-    const tauriEvent = (window as any).__TAURI__?.event;
-    if (tauriEvent && typeof tauriEvent.listen === 'function') {
+    const tauriListen = window.__TAURI__?.event?.listen;
+    if (typeof tauriListen === 'function') {
       void (async () => {
         try {
-          const unlisten = await tauriEvent.listen('quest-tree-changed', () => { void reload(); });
-          (container as any).__kl_launcher_unlisten = unlisten;
+          const unlisten = await tauriListen('quest-tree-changed', () => { void reload(); });
+          _launcherUnlisten.set(container, unlisten);
         } catch (err) {
           console.error('quest-tree-changed listen 실패', err);
         }

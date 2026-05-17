@@ -256,7 +256,7 @@
             if (!confirm('모든 도전과제, 뱃지, 진행도를 초기화합니다. 계속할까요?')) return;
             localStorage.removeItem('toolbox_user_data');
             renderBadges(container);
-            (Toolbox as any).showToast?.('유저 데이터 초기화 완료');
+            Toolbox.showToast?.('유저 데이터 초기화 완료');
         });
     }
 
@@ -405,7 +405,7 @@
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
         const bgThemes = Toolbox.getBgThemes?.() ?? [];
-        const navLayout = (Toolbox as any).getNavLayout?.() ?? 'header';
+        const navLayout = Toolbox.getNavLayout?.() ?? 'header';
         const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
 
         container.innerHTML = `
@@ -465,30 +465,30 @@
         container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
-            (Toolbox as any).setNavLayout?.(target.value);
+            Toolbox.setNavLayout?.(target.value);
             const label = target.value === 'sidebar' ? '사이드바' : '상단 메뉴';
-            (Toolbox as any).showToast?.('네비게이션: ' + label);
+            Toolbox.showToast?.('네비게이션: ' + label);
         });
 
         container.querySelector<HTMLSelectElement>('#setTheme')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
-            (Toolbox as any).setTheme?.(target.value);
-            (Toolbox as any).showToast?.('테마: ' + (target.value === 'dark' ? '다크' : '라이트'));
+            Toolbox.setTheme?.(target.value);
+            Toolbox.showToast?.('테마: ' + (target.value === 'dark' ? '다크' : '라이트'));
         });
 
         container.querySelector<HTMLSelectElement>('#setPrism')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
-            (Toolbox as any).setPrismTheme?.(target.value);
+            Toolbox.setPrismTheme?.(target.value);
         });
 
         container.querySelector<HTMLSelectElement>('#setBgTheme')?.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement | null;
             if (!target) return;
-            (Toolbox as any).setBgTheme?.(target.value);
+            Toolbox.setBgTheme?.(target.value);
             const label = bgThemes.find((t) => t.id === target.value)?.label || target.value;
-            (Toolbox as any).showToast?.('배경: ' + label);
+            Toolbox.showToast?.('배경: ' + label);
         });
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
@@ -501,14 +501,14 @@
         container.querySelector<HTMLButtonElement>('#setResetUser')?.addEventListener('click', () => {
             if (!confirm('모든 도전과제, 뱃지, 진행도를 초기화합니다. 계속할까요?')) return;
             localStorage.removeItem('toolbox_user_data');
-            (Toolbox as any).showToast?.('유저 데이터 초기화 완료');
+            Toolbox.showToast?.('유저 데이터 초기화 완료');
             renderSettings(container);
         });
 
         container.querySelector<HTMLButtonElement>('#setResetUsage')?.addEventListener('click', () => {
             if (!confirm('모든 사용량 기록을 삭제합니다. 계속할까요?')) return;
             localStorage.removeItem('toolbox_usage_stats');
-            (Toolbox as any).showToast?.('사용량 기록 초기화 완료');
+            Toolbox.showToast?.('사용량 기록 초기화 완료');
         });
     }
 

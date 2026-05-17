@@ -36,7 +36,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         const items: FavoriteItem[] = tools
             .filter((t: any) => {
                 if (t.hidden) return false;
-                if (t.category === 'desktop' && !(Toolbox as any).isDesktopApp?.()) return false;
+                if (t.category === 'desktop' && !Toolbox.isDesktopApp?.()) return false;
                 return true;
             })
             .map((t: any) => ({ type: 'tool', toolId: t.id, label: t.title, icon: t.icon }));
@@ -193,7 +193,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                             <div class="fav-grid ${isCard ? 'fav-grid-card' : ''}">
                                 ${g.items.map((it) => {
                                     const isTool = it.type === 'tool';
-                                    const metaDesc = (it.toolId && (Toolbox as any).getToolMeta && (Toolbox as any).getToolMeta(it.toolId)?.desc) || '';
+                                    const metaDesc = (it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '';
                                     const searchable = [it.label, g.group, it.url || '', it.toolId || '', metaDesc].join(' ').toLowerCase();
                                     const removeBtn = it.isCustom && it.url
                                         ? `<button type="button" class="fav-remove" data-group="${esc(g.group)}" data-url="${esc(it.url)}" title="삭제">×</button>`
@@ -271,7 +271,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 if (!urlInput || !labelInput || !groupSelect) return;
                 const url = (urlInput.value || '').trim();
                 if (!url) {
-                    (Toolbox as any).showToast?.('URL을 입력해주세요', 'error');
+                    Toolbox.showToast?.('URL을 입력해주세요', 'error');
                     return;
                 }
                 let label = (labelInput.value || '').trim();
@@ -296,7 +296,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 labelInput.value = '';
                 if (iconInput) iconInput.value = '';
                 modal?.classList.remove('open');
-                (Toolbox as any).showToast?.('추가되었습니다');
+                Toolbox.showToast?.('추가되었습니다');
                 render();
             };
 
@@ -312,7 +312,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                         g.items = g.items.filter((it) => it.url !== url);
                         if (!g.items.length) data.splice(data.indexOf(g), 1);
                         saveFavorites(data);
-                        (Toolbox as any).showToast?.('삭제되었습니다');
+                        Toolbox.showToast?.('삭제되었습니다');
                         render();
                     }
                 };
@@ -322,7 +322,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 a.onclick = (e: MouseEvent) => {
                     e.preventDefault();
                     const id = a.dataset.toolId;
-                    if (id && typeof Toolbox !== 'undefined' && (Toolbox as any).switchPage) (Toolbox as any).switchPage(id);
+                    if (id && typeof Toolbox !== 'undefined' && Toolbox.switchPage) Toolbox.switchPage(id);
                 };
             });
 
