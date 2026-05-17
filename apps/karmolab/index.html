@@ -62,9 +62,8 @@ permalink: /karmolab/
   if(el&&url)el.href=url;
 })();
     </script>
-    <script src="/apps/karmolab/js/vendor/marked.min.js" defer></script>
-    <script src="/apps/karmolab/js/vendor/prism.min.js" defer></script>
-    <script src="/apps/karmolab/js/vendor/prism-autoloader.min.js" defer></script>
+    <!-- KL-054: marked/prism eager 제거 → 첫 사용 위젯(chatbot/imagegen/docs/user 등)이
+         Toolbox.ensureScript / lazyScriptPaths 로 on-demand 로드 (load-once 캐시). -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
       if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
@@ -130,7 +129,8 @@ permalink: /karmolab/
     </div>
     <script defer src="/apps/karmolab/js/toolbox.js"></script>
     <script defer src="/apps/karmolab/js/mdd.js"></script>
-    <script defer src="/apps/karmolab/js/gemini.js"></script>
+    <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
+         · user(ensureScript) 가 첫 사용 시 로드. -->
     <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-topics.js"></script>
     <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-time.js"></script>
     <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-number.js"></script>

@@ -391,7 +391,15 @@
         renderSettings(container);
     }
 
-    function renderSettings(container: HTMLElement): void {
+    async function renderSettings(container: HTMLElement): Promise<void> {
+        // KL-054: gemini/prism = eager 제거 → user(boot 위젯) 설정 진입 시 로드.
+        try {
+            await Toolbox.ensureScript?.('root/gemini');
+            await Toolbox.ensureScript?.('vendor/prism.min');
+        } catch (_) {
+            /* typeof 가드가 부재 시 안전 폴백 */
+        }
+
         const theme = Toolbox.getTheme?.() ?? 'dark';
         const prismTheme = Toolbox.getPrismTheme?.() ?? '';
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];

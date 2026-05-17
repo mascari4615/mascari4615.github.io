@@ -466,10 +466,19 @@
       });
   }
 
-  function renderMarkdown(container: HTMLElement, md: string): void {
+  async function renderMarkdown(container: HTMLElement, md: string): Promise<void> {
     const body = document.createElement('div');
     body.className = 'docs-body';
     md = md.replace(/^\uFEFF/, '');
+
+    // KL-054: marked/Prism = eager 제거 → docs(boot 위젯) 가 첫 문서 렌더 시 로드.
+    try {
+      await Toolbox.ensureScript?.('vendor/marked.min');
+      await Toolbox.ensureScript?.('vendor/prism.min');
+      await Toolbox.ensureScript?.('vendor/prism-autoloader.min');
+    } catch (_) {
+      /* 아래 defensive guard 가 처리 */
+    }
 
     if (typeof marked === 'undefined') {
       container.innerHTML = '<p class="docs-body" style="color:var(--error)">marked.js 로드 실패. 새로고침해주세요.</p>';

@@ -201,6 +201,41 @@ const Toolbox = (() => {
         }
     }
 
+    /** js 루트 (widgets/ 한 단계 위). vendor/root prefix 해석용 (KL-054). */
+    function getJsScriptBase() {
+        return getWidgetScriptBase().replace(/widgets\/$/, '');
+    }
+
+    /**
+     * lazyScriptPaths / ensureScript 의 한 경로를 실제 URL 로 해석 (KL-054).
+     * prefix 규약 (단일 해석기 — loadDeferredWidget·ensureScript 공용):
+     * - `world/<x>`  → world 스크립트 base
+     * - `vendor/<x>` → js/vendor/<x>.js  (예: `vendor/marked.min`)
+     * - `root/<x>`   → js/<x>.js          (예: `root/gemini`)
+     * - 그 외        → js/widgets/<x>.js  (기존 위젯 경로 — 무변경)
+     */
+    function resolveScriptPath(rawPath) {
+        if (typeof rawPath === 'string' && rawPath.startsWith('world/')) {
+            return getWorldScriptBase() + rawPath.slice('world/'.length) + '.js';
+        }
+        if (typeof rawPath === 'string' && rawPath.startsWith('vendor/')) {
+            return getJsScriptBase() + 'vendor/' + rawPath.slice('vendor/'.length) + '.js';
+        }
+        if (typeof rawPath === 'string' && rawPath.startsWith('root/')) {
+            return getJsScriptBase() + rawPath.slice('root/'.length) + '.js';
+        }
+        return getWidgetScriptBase() + rawPath + '.js';
+    }
+
+    /**
+     * 단일 스크립트를 한 번만 주입 (load-once 캐시 = loadScriptOnce 재사용).
+     * boot 위젯(docs/user 등)이 무거운 vendor lib(marked/Prism/Gemini)를
+     * boot 가 아니라 *사용 직전* 로드하도록 — 발화 「버튼 눌렀을때 그제서야」.
+     */
+    function ensureScript(rawPath) {
+        return loadScriptOnce(resolveScriptPath(rawPath));
+    }
+
     const widgetScriptsLoaded = new Set();
     const widgetScriptsLoading = new Map();
 
@@ -236,14 +271,10 @@ const Toolbox = (() => {
             return Promise.resolve();
         }
 
-        const base = getWidgetScriptBase();
-        const worldBase = getWorldScriptBase();
         const p = (async () => {
             let waitIdx = (window.KARMOLAB_WIDGET_LOADER_WAIT || []).length;
             for (let i = 0; i < paths.length; i++) {
-                const rawPath = paths[i];
-                const isWorld = typeof rawPath === 'string' && rawPath.startsWith('world/');
-                const url = (isWorld ? worldBase : base) + (isWorld ? rawPath.slice('world/'.length) : rawPath) + '.js';
+                const url = resolveScriptPath(paths[i]);
                 await loadScriptOnce(url);
                 const w = window.KARMOLAB_WIDGET_LOADER_WAIT || [];
                 if (w.length > waitIdx) {
@@ -1383,7 +1414,7 @@ const Toolbox = (() => {
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools,
         isDesktopApp,
-        kickLazyLoad, getLazyWidgetPublicMeta, renderInline,
+        kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, toggleCollapsible,
         field, resultBox, button, select,
         escapeHtml, formatTimestamp, showLightbox,
