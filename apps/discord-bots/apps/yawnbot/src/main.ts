@@ -38,6 +38,7 @@ import {
   reconcileGuildChannels,
   rememberMap,
   getChannelSpec,
+  effectiveCategoryName,
   type GuildLike,
 } from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
@@ -256,7 +257,7 @@ client.once('clientReady', async () => {
         const r = await reconcileGuildChannels(guild as unknown as GuildLike, spec);
         rememberMap(r.guildId, r.map);
         console.log(
-          `[ChannelProvision] ${guild.name}: 카테고리「${spec.categoryName}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
+          `[ChannelProvision] ${guild.name}: 카테고리「${effectiveCategoryName(spec)}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
         );
       } catch (e: any) {
         console.error(
@@ -320,8 +321,9 @@ client.once('clientReady', async () => {
           ? {
               name: card.displayName || card.name || '🛰 Atlas',
               avatarUrl: card.frontmatter?.avatar_url,
+              coreId: 'atlas',
             }
-          : { name: '🛰 Atlas' },
+          : { name: '🛰 Atlas', coreId: 'atlas' },
       });
     });
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)

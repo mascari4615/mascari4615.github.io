@@ -124,13 +124,37 @@ export function shouldProvisionGuild(
   return allowedGuildIds(env).includes(guildId);
 }
 
-function mapPath(guildId: string): string {
-  return path.join(PKG_ROOT, 'data', `provisioned-channels.${guildId}.json`);
+/**
+ * 인스턴스 라벨 = 같은 길드에 prod·dev 봇이 공존할 때의 격리 축.
+ * 욘봇(prod)·욘봇Dev(dev)가 같은 서버를 쓰므로 카테고리·맵을 라벨로 분리한다.
+ */
+export function provisionInstanceLabel(env: NodeJS.ProcessEnv = process.env): string {
+  return env.YAWNBOT_ENV?.trim().toLowerCase() || 'dev';
 }
 
-export function loadProvisionedMap(guildId: string): Record<string, string> {
+/** prod = 기본 카테고리명(사용자 정면), 그 외 = `<base>-<label>` (dev 분리). */
+export function effectiveCategoryName(
+  spec: ChannelSpec = getChannelSpec(),
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const label = provisionInstanceLabel(env);
+  return label === 'prod' ? spec.categoryName : `${spec.categoryName}-${label}`;
+}
+
+function mapPath(guildId: string, env: NodeJS.ProcessEnv = process.env): string {
+  return path.join(
+    PKG_ROOT,
+    'data',
+    `provisioned-channels.${guildId}.${provisionInstanceLabel(env)}.json`,
+  );
+}
+
+export function loadProvisionedMap(
+  guildId: string,
+  env: NodeJS.ProcessEnv = process.env,
+): Record<string, string> {
   try {
-    const raw = JSON.parse(fs.readFileSync(mapPath(guildId), 'utf-8'));
+    const raw = JSON.parse(fs.readFileSync(mapPath(guildId, env), 'utf-8'));
     if (raw && typeof raw === 'object') {
       return Object.fromEntries(
         Object.entries(raw).filter(([, v]) => typeof v === 'string'),
@@ -142,8 +166,12 @@ export function loadProvisionedMap(guildId: string): Record<string, string> {
   return {};
 }
 
-function saveProvisionedMap(guildId: string, map: Record<string, string>): void {
-  fs.writeFileSync(mapPath(guildId), JSON.stringify(map, null, '\t') + '\n', 'utf-8');
+function saveProvisionedMap(
+  guildId: string,
+  map: Record<string, string>,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  fs.writeFileSync(mapPath(guildId, env), JSON.stringify(map, null, '\t') + '\n', 'utf-8');
 }
 
 // ── reconcile 가 의존하는 *최소* 길드 인터페이스 (discord.js Guild 의 구조적 부분집합).
@@ -183,29 +211,33 @@ export interface ReconcileResult {
 export async function reconcileGuildChannels(
   guild: GuildLike,
   spec: ChannelSpec = getChannelSpec(),
+  env: NodeJS.ProcessEnv = process.env,
 ): Promise<ReconcileResult> {
-  const map = loadProvisionedMap(guild.id);
+  const map = loadProvisionedMap(guild.id, env);
   const created: string[] = [];
   const claimed: string[] = [];
   const reused: string[] = [];
 
+  // 인스턴스별 카테고리명 — prod·dev 가 같은 길드를 써도 분리.
+  const categoryName = effectiveCategoryName(spec, env);
+
   const byId = (id: string | undefined): ChannelLike | undefined =>
     id ? guild.channels.cache.find((c) => c.id === id) : undefined;
 
-  // 1) 카테고리
+  // 1) 카테고리 (인스턴스 전용 이름으로만 claim — 남의 인스턴스 것 안 뺏음)
   let categoryId = map[CATEGORY_MAP_KEY];
   let category = byId(categoryId);
   if (category && category.type === ChannelType.GuildCategory) {
     reused.push(CATEGORY_MAP_KEY);
   } else {
     category = guild.channels.cache.find(
-      (c) => c.type === ChannelType.GuildCategory && c.name === spec.categoryName,
+      (c) => c.type === ChannelType.GuildCategory && c.name === categoryName,
     );
     if (category) {
       claimed.push(CATEGORY_MAP_KEY);
     } else {
       category = await guild.channels.create({
-        name: spec.categoryName,
+        name: categoryName,
         type: ChannelType.GuildCategory,
       });
       created.push(CATEGORY_MAP_KEY);
@@ -214,7 +246,8 @@ export async function reconcileGuildChannels(
     map[CATEGORY_MAP_KEY] = categoryId;
   }
 
-  // 2) 채널
+  // 2) 채널 — 이름 claim 을 *이 카테고리 하위로* 스코프 (다른 인스턴스의
+  //    동일 이름 채널을 가로채지 않음 = prod↔dev 교차오염 차단).
   for (const entry of spec.channels) {
     const stored = byId(map[entry.key]);
     if (stored && stored.type === ChannelType.GuildText) {
@@ -222,7 +255,10 @@ export async function reconcileGuildChannels(
       continue;
     }
     const existing = guild.channels.cache.find(
-      (c) => c.type === ChannelType.GuildText && c.name === entry.name,
+      (c) =>
+        c.type === ChannelType.GuildText &&
+        c.name === entry.name &&
+        c.parentId === categoryId,
     );
     if (existing) {
       map[entry.key] = existing.id;
@@ -239,15 +275,21 @@ export async function reconcileGuildChannels(
     created.push(entry.key);
   }
 
-  saveProvisionedMap(guild.id, map);
+  saveProvisionedMap(guild.id, map, env);
   return { guildId: guild.id, map, created, claimed, reused };
 }
 
-/** 길드별 reconcile 결과를 모듈 메모리에도 캐시 (resolver 가 파일 안 읽고 즉답). */
+/** (길드,인스턴스)별 reconcile 결과 메모리 캐시 (resolver 가 파일 안 읽고 즉답). */
 const liveMaps = new Map<string, Record<string, string>>();
+const liveKey = (guildId: string, env: NodeJS.ProcessEnv): string =>
+  `${guildId}:${provisionInstanceLabel(env)}`;
 
-export function rememberMap(guildId: string, map: Record<string, string>): void {
-  liveMaps.set(guildId, map);
+export function rememberMap(
+  guildId: string,
+  map: Record<string, string>,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  liveMaps.set(liveKey(guildId, env), map);
 }
 
 /** dev 기준 길드 = DISCORD_GUILD_ID 의 첫 항목. resolver 의 단일 길드 선택. */
@@ -262,14 +304,14 @@ export function primaryGuildId(env: NodeJS.ProcessEnv = process.env): string | n
 function provisionedId(key: string, env: NodeJS.ProcessEnv = process.env): string | null {
   const gid = primaryGuildId(env);
   if (!gid) return null;
-  const map = liveMaps.get(gid) ?? loadProvisionedMap(gid);
+  const map = liveMaps.get(liveKey(gid, env)) ?? loadProvisionedMap(gid, env);
   return map[key]?.trim() || null;
 }
 
 /**
  * 논리 키 → 실제 채널 ID. 소비자(notifier 등)의 단일 진입점.
- *  - 프로비저닝 OFF (prod): env *_CHANNEL_ID 그대로 (기존 동작 byte-identical).
- *  - 프로비저닝 ON  (dev) : 프로비저닝 ID 우선 → 없으면 env 폴백.
+ *  - 프로비저닝 OFF (=0): env *_CHANNEL_ID 그대로 (비상 폴백, byte-identical).
+ *  - 프로비저닝 ON  (기본): 인스턴스(prod/dev)별 프로비저닝 ID 우선 → 없으면 env.
  */
 export function channelIdFor(key: string, env: NodeJS.ProcessEnv = process.env): string | null {
   const envKey = ENV_KEY_BY_LOGICAL[key];
