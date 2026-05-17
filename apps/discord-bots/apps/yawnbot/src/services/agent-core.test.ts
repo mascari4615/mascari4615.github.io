@@ -13,6 +13,9 @@ import {
   resolveProposalCore,
   resolveAddressedCore,
   coreLabel,
+  appendCoreMemory,
+  readRecentCoreMemory,
+  coreMemPath,
 } from './agent-core';
 
 let root: string;
@@ -195,5 +198,60 @@ describe('resolveAddressedCore (R-4-i2 이름지정 라우팅 — 결정적·순
       coreId: 'atlas',
       text: '산맥 알려줘',
     }); // 'atlas' 정확 일치 = 의도된 호출로 간주 (명시적 핸들)
+  });
+});
+
+describe('코어 work-memory 생명주기 (KAR-018-Z-1)', () => {
+  it('append → readRecent roundtrip (discoveries 형식·최신순)', () => {
+    expect(
+      appendCoreMemory(root, 'atlas', {
+        session: 's1',
+        type: 'decision',
+        topic: 't1',
+        summary: '첫 결정',
+      }),
+    ).toBe(true);
+    appendCoreMemory(root, 'atlas', {
+      session: 's1',
+      type: 'fail',
+      topic: 't2',
+      summary: '두번째 실패',
+    });
+    const m = readRecentCoreMemory(root, 'atlas');
+    expect(m).toContain('[decision] t1: 첫 결정');
+    expect(m).toContain('[fail] t2: 두번째 실패');
+    // 실제 파일 = discoveries jsonl 형식
+    const p = coreMemPath(root, 'atlas')!;
+    const last = fs
+      .readFileSync(p, 'utf-8')
+      .trim()
+      .split(/\r?\n/)
+      .pop()!;
+    const e = JSON.parse(last);
+    expect(e.ts).toBeTruthy();
+    expect(e.type).toBe('fail');
+    expect(e.summary).toBe('두번째 실패');
+  });
+
+  it('max 바운드 — 최신 N 개만', () => {
+    for (let i = 1; i <= 12; i++) {
+      appendCoreMemory(root, 'echo', {
+        session: 's',
+        type: 'insight',
+        topic: `k${i}`,
+        summary: `s${i}`,
+      });
+    }
+    const m = readRecentCoreMemory(root, 'echo', 3);
+    expect(m.split('\n').length).toBe(3);
+    expect(m).toContain('s12'); // 최신 포함
+    expect(m).not.toContain('s1:'); // 오래된 잘림
+  });
+
+  it('부적합 id = 비차단(false) / 부재 = 빈문자 (graceful)', () => {
+    expect(appendCoreMemory(root, '../evil', { session: 's', type: 'fix', topic: 't', summary: 'x' })).toBe(false);
+    expect(coreMemPath(root, 'a/b')).toBeNull();
+    expect(readRecentCoreMemory(root, 'never')).toBe('');
+    expect(readRecentCoreMemory('', 'atlas')).toBe('');
   });
 });

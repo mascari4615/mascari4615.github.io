@@ -175,3 +175,115 @@ export function resolveProposalCore(
   if (known.has('atlas')) return 'atlas';
   return knownCoreIds.length > 0 ? knownCoreIds[0] : 'atlas';
 }
+
+// ── KAR-018-Z: 코어 work-memory 생명주기 (코어층 소유, 스킨 잡담과 별개) ──
+// 형식 = discoveries jsonl 정본 재사용(평행정의0): memo/.claude/agents/
+// <id>/mem/<YYYY-MM-DD>.jsonl. append(작업·결과 누적) + read(코어 정체·
+// 대화에 자기 기억 주입 = non-dead). 코어가 세션·재기동 넘어 *기억·학습*.
+
+export interface CoreMemEntry {
+  ts: string;
+  session: string;
+  type: 'discovery' | 'decision' | 'fix' | 'fail' | 'insight';
+  topic: string;
+  summary: string;
+}
+
+function coreMemDir(root: string, coreId: string): string | null {
+  const r = (root || '').trim();
+  const id = (coreId || '').trim();
+  if (!r || !SAFE_ID.test(id)) return null;
+  return path.join(r, '.claude', 'agents', id, 'mem');
+}
+
+/** `mem/<YYYY-MM-DD>.jsonl` 절대경로 (KST 일자). 부적합 = null. */
+export function coreMemPath(
+  memoRoot: string,
+  coreId: string,
+  date?: Date,
+): string | null {
+  const dir = coreMemDir(memoRoot, coreId);
+  if (!dir) return null;
+  const d = date ?? new Date();
+  const ymd = new Date(d.getTime() + 9 * 3600 * 1000) // KST
+    .toISOString()
+    .slice(0, 10);
+  return path.join(dir, `${ymd}.jsonl`);
+}
+
+/**
+ * 코어 mem 1 entry append (best-effort·날조 X). ts 미지정 시 now.
+ * 부적합 id·IO 실패 = false (비차단 — 기억 실패가 작업을 막지 X).
+ */
+export function appendCoreMemory(
+  memoRoot: string,
+  coreId: string,
+  entry: Omit<CoreMemEntry, 'ts'> & { ts?: string },
+): boolean {
+  const p = coreMemPath(memoRoot, coreId);
+  if (!p) return false;
+  const rec: CoreMemEntry = {
+    ts: entry.ts || new Date().toISOString(),
+    session: entry.session || 'agent',
+    type: entry.type,
+    topic: String(entry.topic || '').slice(0, 80),
+    summary: String(entry.summary || '').slice(0, 400),
+  };
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(p, JSON.stringify(rec) + '\n', 'utf-8');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 코어의 최근 mem entry → 프롬프트용 압축 블록 (순수·바운드). mem/
+ * *.jsonl 파일 일자 오름차순, 전체에서 최신 `max`개 → `- [type] topic:
+ * summary`. 부재·부적합 = '' (섹션 생략). 코어 정체/대화에 주입되어
+ * "자기 최근 작업·결과를 기억"하게 함(Z-2 first-use).
+ */
+export function readRecentCoreMemory(
+  memoRoot: string,
+  coreId: string,
+  max = 8,
+): string {
+  const dir = coreMemDir(memoRoot, coreId);
+  if (!dir) return '';
+  try {
+    if (!fs.existsSync(dir)) return '';
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f))
+      .sort(); // 일자 오름차순
+    const entries: CoreMemEntry[] = [];
+    for (const f of files) {
+      for (const line of fs
+        .readFileSync(path.join(dir, f), 'utf-8')
+        .split(/\r?\n/)) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as CoreMemEntry;
+          if (e && e.type && e.summary) entries.push(e);
+        } catch {
+          /* 손상 라인 폐기 */
+        }
+      }
+    }
+    if (entries.length === 0) return '';
+    return entries
+      .slice(-Math.max(1, max))
+      .map(
+        (e) =>
+          `- [${e.type}] ${String(e.topic || '').slice(0, 60)}: ${String(
+            e.summary || '',
+          ).slice(0, 200)}`,
+      )
+      .join('\n')
+      .slice(0, 1400);
+  } catch {
+    return '';
+  }
+}
