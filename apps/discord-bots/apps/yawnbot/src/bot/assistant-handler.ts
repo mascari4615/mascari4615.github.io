@@ -13,7 +13,7 @@ import { generateAssistantText, generateImageFromEnvWithOptions } from 'karmolab
 import type { ChatContent } from 'karmolab-ai/node';
 import type { MemoryService, ConversationEntry } from '../services/memory-service';
 import { CharacterService, type CharacterCard } from '../services/character-service';
-import { loadCoreDef, type CoreDef } from '../services/agent-core';
+import { loadCoreDef, coreLabel, type CoreDef } from '../services/agent-core';
 import { ImageCacheService } from '../services/image-cache-service';
 import type { MoodService } from '../services/mood-service';
 import type { RelationshipService } from '../services/relationship-service';
@@ -652,14 +652,15 @@ export async function handleAssistantMessage(
       }
       if (hookChan) {
         try {
-          // R-1b: 코어 바인딩이면 답장 이름 = *에이전트 정체*(🛰 Atlas),
-          // 얼굴(아바타)은 스킨 유지 — R-2 주도발화와 일관된 한 동료.
-          // 비-코어(레거시)는 스킨 카드 그대로(불변).
+          // R-1b/R-4: 코어 바인딩이면 답장 이름 = *코어 정체*
+          // (coreLabel = emoji+displayName, core.md 정본 — 복수 동료 각자
+          // 다른 정체). 얼굴(아바타)은 스킨 유지 — R-2 주도발화와 일관된
+          // 한 동료. 비-코어(레거시)는 스킨 카드 그대로(불변).
           const speakAs: CharacterCard = coreDef
             ? ({
                 slug: card.slug,
                 name: card.name,
-                displayName: `🛰 ${coreDef.id.charAt(0).toUpperCase()}${coreDef.id.slice(1)}`,
+                displayName: coreLabel(coreDef),
                 frontmatter: card.frontmatter,
                 body: '',
                 dir: card.dir,
