@@ -16,7 +16,7 @@
 //! - 증분 분리(검증 단위): ① store+스케줄러+사운드(본 커밋) ② OS 강제 기상
 //!   (waitable timer/볼륨/모니터, winapi·COM) ③ 프론트 위젯+발화 창.
 
-use chrono::{Datelike, Duration, Local, NaiveDateTime, NaiveTime, Timelike};
+use chrono::{Datelike, Duration, Local, NaiveDateTime, NaiveTime};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -283,7 +283,14 @@ pub fn start_scheduler(app: AppHandle) {
         std::thread::sleep(std::time::Duration::from_secs(5));
         let store = app.state::<AlarmStore>();
         for alarm in pump(&store, Local::now()) {
-            fire(&app, &alarm);
+            // fire() 패닉이 스케줄러 스레드(→ 프로세스)를 절대 못 죽이게 격리.
+            // 한 알람 발화 실패가 이후 모든 알람을 잃게 하면 알람앱 치명.
+            let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                fire(&app, &alarm)
+            }));
+            if res.is_err() {
+                eprintln!("[alarm] fire 패닉 격리됨 (id={}) — 스케줄러 생존", alarm.id);
+            }
         }
     });
 }
@@ -307,29 +314,36 @@ fn fire(app: &AppHandle, alarm: &Alarm) {
 /// 풀스크린 + always-on-top + skip-taskbar (단순 dismiss, 풀스크린 인터셉트
 /// 강화는 후속). 이미 있으면 focus 만.
 fn show_alarm_window(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("alarm") {
-        let _ = w.unminimize();
-        let _ = w.show();
-        let _ = w.set_focus();
-        return;
-    }
+    // URL 계산은 어느 스레드서나 OK(소유데이터 반환). 실제 윈도우 생성은
+    // **메인 스레드 필수** — Tauri WebviewWindowBuilder::build() 를 스케줄러
+    // 워커스레드서 호출하면 Windows 에서 비신뢰(무반응/크래시). run_on_main_
+    // thread 로 마샬 (KL-064: 사용자 "발화 로그는 찍히는데 아무 반응 없음").
     let Some(main) = app.get_webview_window("main") else {
         return;
     };
     let Ok(mut url) = main.url() else { return };
     url.set_fragment(Some("alarm-fire"));
-    match tauri::WebviewWindowBuilder::new(app, "alarm", tauri::WebviewUrl::External(url))
-        .title("KarmoLab 알람")
-        .fullscreen(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .decorations(false)
-        .focused(true)
-        .build()
-    {
-        Ok(_) => {}
-        Err(e) => eprintln!("[alarm] 발화 창 생성 실패: {e}"),
-    }
+    let app2 = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        if let Some(w) = app2.get_webview_window("alarm") {
+            let _ = w.unminimize();
+            let _ = w.show();
+            let _ = w.set_focus();
+            return;
+        }
+        match tauri::WebviewWindowBuilder::new(&app2, "alarm", tauri::WebviewUrl::External(url))
+            .title("KarmoLab 알람")
+            .fullscreen(true)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .decorations(false)
+            .focused(true)
+            .build()
+        {
+            Ok(_) => {}
+            Err(e) => eprintln!("[alarm] 발화 창 생성 실패: {e}"),
+        }
+    });
 }
 
 /// dismiss/snooze 공통 정리 — ringing 해제 + 발화 창 닫기 + 잠금방지 해제.
