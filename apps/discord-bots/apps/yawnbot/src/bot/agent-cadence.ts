@@ -128,6 +128,7 @@ export function buildTier3Deps(env: NodeJS.ProcessEnv): Tier3Deps {
           prompt: req.prompt,
           timeoutMs,
           cwd: req.repoCwd,
+          oneShot: true, // 워커 = 무상태 단발(공유세션 충돌 0)
         });
       }
       // producer/cadence tier3 = 비-agentic 텍스트(기존 동작 불변).
@@ -1009,7 +1010,7 @@ export async function runWorkerConsumerOnce(
       ts: new Date().toISOString(),
       type: 'budget',
       core: w.coreId,
-      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}`,
+      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
     });
     if (res.status === 'done') {
       const report = (res.text || '')
@@ -1027,9 +1028,13 @@ export async function runWorkerConsumerOnce(
       results.push(`${w.coreId}:done:${chosen.id}`);
     } else {
       release(chosen.id, w.coreId);
+      const errDetail = (res.error || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .slice(0, 400);
       noteWorkerStatus(
         w.coreId,
-        `${w.label} ⚠ ${chosen.id} ${res.status} — 점유 해제·재대기 (도메인=${w.domain})`,
+        `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
         notify,
       );
       results.push(`${w.coreId}:${res.status}`);
