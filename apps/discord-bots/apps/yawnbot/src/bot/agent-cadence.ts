@@ -874,6 +874,24 @@ function setupWorkerWorktree(
   }
 }
 
+/**
+ * 브랜치가 origin 에 실제 push 됐나 (KAR-018-Y claim-confirm 근본).
+ * agentic claude 가 status=done 이어도 "스펙없음/blocked" 면 산출 0 →
+ * 종전엔 claim 영구잔존(6h)→큐 드레인. 이제 *origin 브랜치 실재* 로만
+ * claim 확정, 미푸시=release(재시도 가능). 실패/불명=false(보수=release).
+ */
+function branchPushedToOrigin(repoRoot: string, branch: string): boolean {
+  try {
+    const out = execSync(
+      `git -C "${repoRoot}" ls-remote --heads origin "${branch}"`,
+      { timeout: 30_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** 워커 worktree 정리 (best-effort — 브랜치는 remote 에 push 됨, 보존). */
 function cleanupWorkerWorktree(repoRoot: string, wtDir: string): void {
   try {
@@ -900,6 +918,16 @@ export interface WorkerConsumerDeps {
   claim?: (id: string, by: string) => boolean;
   release?: (id: string, by: string) => void;
   spawn?: (req: Tier3Request) => Promise<Tier3Result>;
+  /** claim-confirm seam (KAR-018-Y): origin 브랜치 실재 여부. 기본
+   * = branchPushedToOrigin(git ls-remote). 테스트 결정성 위해 주입. */
+  branchPushed?: (repoRoot: string, branch: string) => boolean;
+  /** 격리 worktree 셋업 seam (KAR-018-Y). 기본 = setupWorkerWorktree
+   * (실 git). 테스트는 fake 주입(실 repo 무오염·결정성). */
+  setupWorktree?: (
+    memoRoot: string,
+    coreId: string,
+    taskId: string,
+  ) => WorktreeSetup;
   notify?: NotifyFn;
   missionText?: string;
 }
@@ -974,6 +1002,7 @@ export async function runWorkerConsumerOnce(
     });
   const spawn =
     deps.spawn ?? ((req: Tier3Request) => spawnTier3(req, t3deps));
+  const branchPushed = deps.branchPushed ?? branchPushedToOrigin;
 
   const results: string[] = [];
   for (const w of workers) {
@@ -1007,7 +1036,11 @@ export async function runWorkerConsumerOnce(
     // KAR-018-Y: 도메인 repo 격리 worktree 셋업 → agentic claude cwd.
     // 미지원/실패 = wt null → 비-agentic 폴백(산출 0, 단 trace·메시지에
     // 명시 — 종전 silent theater 와 달리 *관측가능*).
-    const wtRes = setupWorkerWorktree(memoRoot, w.coreId, chosen.id);
+    const wtRes = (deps.setupWorktree ?? setupWorkerWorktree)(
+      memoRoot,
+      w.coreId,
+      chosen.id,
+    );
     const wt = 'error' in wtRes ? null : wtRes;
     const wtErr = 'error' in wtRes ? wtRes.error : null;
     // memo 스펙 *내용* 임베드 (agentic cwd=코드 repo, memo 경로 부재 —
@@ -1049,15 +1082,24 @@ export async function runWorkerConsumerOnce(
       // 청크 분할(정보 손실 X = 사용자 페인 직격). 줄바꿈 보존(가독).
       // 상한은 pathological 방지용만(라우터가 Discord 한도로 재분할).
       const report = (res.text || '').trim().slice(0, 8000);
-      const head = wt
-        ? `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` (Draft PR 검토 대기). 도메인=${w.domain}`
-        : `${w.label} ⚠ ${chosen.id} 처리했으나 격리 worktree 실패 = 비-agentic 폴백(실산출 0). 사유: ${wtErr}. 도메인=${w.domain}`;
+      // claim-confirm 근본: status=done 이어도 origin 브랜치 실재로만
+      // claim 확정. 미푸시(스펙없음/blocked/no-op)=release → 큐 복귀
+      // (영구 드레인 차단, 재시도 가능). worktree 실패도 release.
+      const pushed = wt ? branchPushed(wt.repoRoot, wt.branch) : false;
+      let head: string;
+      if (pushed && wt) {
+        head = `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` origin push 확인 (Draft PR 검토 대기). 도메인=${w.domain}`;
+        results.push(`${w.coreId}:done:${chosen.id}`);
+      } else {
+        release(chosen.id, w.coreId);
+        head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제·재시도. ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
+        results.push(`${w.coreId}:done-no-artifact:${chosen.id}`);
+      }
       noteWorkerStatus(
         w.coreId,
         report ? `${head}\n· 보고: ${report}` : head,
         notify,
       );
-      results.push(`${w.coreId}:done:${chosen.id}`);
     } else {
       release(chosen.id, w.coreId);
       const errDetail = (res.error || '').trim().slice(0, 3000);
