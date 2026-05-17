@@ -20,8 +20,9 @@ name: KarmoLab Quality Loop (Scheduled)
 #
 # 필요 credentials:
 #   - CLAUDE_CODE_OAUTH_TOKEN: Claude API 인증 (secret)
-#   - MEMO_GITHUB_PAT: memo 레포 write 권한 PAT (variable — vars.MEMO_GITHUB_PAT)
-#     → github.io repo Settings → Variables → Actions → MEMO_GITHUB_PAT
+#   - MEMO_GITHUB_PAT: memo 레포 write 권한 PAT (**secret** — secrets.MEMO_GITHUB_PAT)
+#     → github.io repo Settings → Secrets → Actions → MEMO_GITHUB_PAT
+#     (과거 vars. 오참조 = 빈 토큰 → 전 run failure. KAR-018-V 진단으로 fix.)
 
 on:
   schedule:
@@ -52,7 +53,7 @@ jobs:
         with:
           repository: Mascari4615/memo
           path: _memo
-          token: ${{ vars.MEMO_GITHUB_PAT }}
+          token: ${{ secrets.MEMO_GITHUB_PAT }}
           fetch-depth: 0
 
       - name: Loop guard — 오픈 PR 중복 방지
@@ -101,10 +102,25 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           claude --version
-          claude --print "Reply with just OK." || {
-            echo "Claude auth 실패"
+          # TASK-KAR-013: quota/rate-limit ≠ auth 실패. 구분 안 하면 quota 부족
+          # 시 이 pre-check 가 workflow 를 fail 처리 → false ❌ (WM Issue #140).
+          # quota = 보류(exit 0, 다음 hourly 재시도) / 진짜 auth 실패만 exit 1.
+          # (main scan step 은 이미 quota 시 exit 0 — 본 pre-check 만 잔존 갭.)
+          set +e
+          AUTH_OUT=$(claude --print "Reply with just OK." 2>&1)
+          AUTH_EXIT=$?
+          set -e
+          if [ "$AUTH_EXIT" -eq 0 ]; then
+            echo "Claude auth OK"
+          elif echo "$AUTH_OUT" | grep -qiE '429|rate.?limit|quota|overloaded|too many requests|usage limit|capacity|503'; then
+            echo "::warning::Claude quota/rate-limit at auth pre-check (exit=$AUTH_EXIT) — 보류, 다음 hourly 재시도 (workflow fail 아님, TASK-KAR-013)"
+            echo "$AUTH_OUT"
+            exit 0
+          else
+            echo "::error::Claude auth 실패 (genuine, exit=$AUTH_EXIT)"
+            echo "$AUTH_OUT"
             exit 1
-          }
+          fi
 
       - name: Claude scan + fix + seed + stale-sync
         if: steps.guard.outputs.skip != 'yes'
@@ -277,7 +293,7 @@ jobs:
         if: steps.guard.outputs.skip != 'yes' && steps.claude.outputs.memo_changed == 'yes'
         id: memo_commit
         env:
-          MEMO_GITHUB_PAT: ${{ vars.MEMO_GITHUB_PAT }}
+          MEMO_GITHUB_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
         run: |
           git -C _memo config user.name "github-actions[bot]"
           git -C _memo config user.email "41898282+github-actions[bot]@users.noreply.github.com"

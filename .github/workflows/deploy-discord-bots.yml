@@ -91,13 +91,13 @@ jobs:
           $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
           & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
           if ($LASTEXITCODE -ne 0) { Write-Warning '[memo-sync] 인증 fetch 실패 — skip (deploy 계속, prod 보존)'; exit 0 }
-          # tracked 변경(봇 mid-write 추정)만 차단. untracked 런타임
-          # (discoveries/logs/life) 은 merge 비차단이라 무시.
-          $dirtyTracked = (& git status --porcelain --untracked-files=no 2>$null | Where-Object { $_ -ne '' })
-          if ($dirtyTracked) {
-            Write-Warning '[memo-sync] tracked 작업트리 dirty (봇 쓰기 중 추정) — 이번 cycle skip, 다음 deploy 재시도 (prod 보존).'
-            exit 0
-          }
+          # NOTE(blanket dirty 가드 제거, 근본): 라이브 prod 봇은
+          # characters/*/mood.json·relationship.json·.active.json 을
+          # *상시* 써서 tracked 작업트리가 항상 dirty → blanket skip 은
+          # echo 를 영영 차단했음(설계 버그). git merge 는 이미 원자적
+          # 안전: 로컬 수정과 *충돌하는* 경로만 거부(부분적용 X), 무관
+          # dirty(봇 런타임 ≠ 들어오는 agents/echo)는 보존하며 merge.
+          # 충돌 시 아래 merge --abort + skip 이 처리. → git 시맨틱 신뢰.
           $local = (& git rev-parse HEAD 2>$null)
           $remote = (& git rev-parse FETCH_HEAD 2>$null)
           if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
