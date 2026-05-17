@@ -1,7 +1,7 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';
-import { runCadenceTickOnce } from '../agent-cadence';
+import { runCadenceTickOnce, runWorkerConsumerOnce } from '../agent-cadence';
 
 export async function handleAdminReload(ctx: BotContext, interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
   const { gameData, isAdmin } = ctx;
@@ -65,6 +65,45 @@ export async function handleAdminCadenceTick(
     await interaction
       .editReply({
         content: `⚠ cadence 틱 오류: ${e instanceof Error ? e.message : String(e)}`,
+      })
+      .catch(() => {});
+  }
+}
+
+/**
+ * 워커 소화만 1회 수동 실행 (KAR-018-Y — 사용자 "워커만 실행하는거").
+ * runWorkerConsumerOnce 직호출 = 발굴·대화·하트비트 *없이* 워커 소비만.
+ * 라이브 프로세스라 워커 idle 사유/착수가 #team-bus 게시(noteWorkerStatus
+ * dedupe). owner 전용. claimable 있으면 tier3 = 수분 가능(best-effort
+ * editReply, 실제 산출 #team-bus).
+ */
+export async function handleAdminWorkerTick(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({
+      content: gameData.getMessage('Admin_AccessDenied_Desc'),
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const w = await runWorkerConsumerOnce(process.env);
+    await interaction
+      .editReply({
+        content:
+          `🤖 워커 소화 1회 완료 — \`${String(w).slice(0, 1500)}\`\n` +
+          '(착수·idle 사유는 #team-bus 확인)',
+      })
+      .catch(() => {});
+  } catch (e) {
+    await interaction
+      .editReply({
+        content: `⚠ 워커 틱 오류: ${e instanceof Error ? e.message : String(e)}`,
       })
       .catch(() => {});
   }
