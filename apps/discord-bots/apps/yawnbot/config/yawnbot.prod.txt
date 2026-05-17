@@ -59,7 +59,12 @@ KAKAO_EXPORT_WATCH_DIR=
 # 거버넌스 안전망: sub-D 예산 reserve + 전역 !kill(`<memo>/.claude/
 #   agent-kill` 파일 생성 시 즉시 정지) + 드리프트 게이트.
 # 긴급 정지 = 이 줄 0 으로 + 재배포, 또는 agent-kill 파일 touch.
-# INTERVAL = 코드 default(15분) 명시화 — 비용 튜닝 지점(가시·redirect 가능).
+# INTERVAL = 활발도 튜닝 지점(가시·redirect 가능). 4분 = 살아있는 팀
+# 체감(사용자 "좀 더 자주·활발", 2026-05-17). "작업 중 스킵"은 구조적
+# 보장: tick 은 producer→worker→dialogue 전부 await 후 맨끝 setTimeout
+# (단일 타이머) → 틱 안 겹침, 워커 장시간이면 그만큼 다음 틱 밀림.
+# 실 throttle = governance 예산엔진(상한 시 producer-gated, 타이머 X) +
+# dialogue 제안당 dedupe + heartbeat 의미활동만 → 짧아도 스팸·폭주 X.
 # 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
 AGENT_CADENCE_ENABLED=1
-AGENT_CADENCE_INTERVAL_MS=900000
+AGENT_CADENCE_INTERVAL_MS=240000
