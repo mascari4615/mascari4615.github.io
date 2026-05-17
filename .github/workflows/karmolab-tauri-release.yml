@@ -73,15 +73,18 @@ jobs:
             let cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
             cargo = cargo.replace(/^version = \".*\"/m, 'version = \"$NEW\"');
             fs.writeFileSync('src-tauri/Cargo.toml', cargo);
-            let lock = fs.readFileSync('src-tauri/Cargo.lock', 'utf8');
+            // KL-052 워크스페이스 전환 후 단일 lock = 워크스페이스 루트
+            // (apps/karmolab-tauri/Cargo.lock). 옛 'src-tauri/Cargo.lock'
+            // 은 부재 → ENOENT 로 모든 bump-릴리스가 깨져 있었음 (KL-064 발견).
+            let lock = fs.readFileSync('Cargo.lock', 'utf8');
             const replaced = lock.replace(/(name = \"karmolab-desktop\"\s+version = )\"[^\"]*\"/, '\$1\"$NEW\"');
             if (replaced === lock) throw new Error('Cargo.lock의 karmolab-desktop 버전 패턴을 찾지 못했습니다.');
-            fs.writeFileSync('src-tauri/Cargo.lock', replaced);
+            fs.writeFileSync('Cargo.lock', replaced);
           "
           cd ../..
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apps/karmolab-tauri/package.json apps/karmolab-tauri/src-tauri/Cargo.toml apps/karmolab-tauri/src-tauri/Cargo.lock apps/karmolab-tauri/src-tauri/tauri.conf.json
+          git add apps/karmolab-tauri/package.json apps/karmolab-tauri/src-tauri/Cargo.toml apps/karmolab-tauri/Cargo.lock apps/karmolab-tauri/src-tauri/tauri.conf.json
           git commit -m "chore(karmolab-tauri): bump version $CURRENT → $NEW [skip ci]"
           git push origin HEAD:master
 
