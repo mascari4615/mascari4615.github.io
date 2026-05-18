@@ -98,8 +98,8 @@
    - oswake, sound: winapi → windows-sys (기존과 일관)
 3. ⚠️ `cargo check` GREEN (Rust 환경 필요)
 4. ⚠️ 절전-resume 로컬 검증 1회 + PR 코멘트 기재
-5. ✅ Cargo.toml `winapi` 의존 제거
-6. ✅ `cargo tree --duplicates` 로 dedup 실증
+5. ⚠️ Cargo.toml `winapi` 의존 제거
+6. ⚠️ `cargo tree --duplicates` 로 dedup 실증
 
 ---
 
