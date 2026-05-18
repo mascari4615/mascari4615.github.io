@@ -103,6 +103,13 @@ export declare function generateClaudeCliText(opts: {
     timeoutMs?: number;
     /** 에이전트 모드: cwd 지정 시 파일 읽기/편집/명령 실행 가능 */
     cwd?: string;
+    /**
+     * 단발 무상태 (KAR-018-Y). true = 공유 세션(yawnbot-assistant) 미사용,
+     * `--no-session-persistence` 단일 실행. bounded 워커 autopilot 전용 —
+     * 봇 대화 assistant 세션 & N 동시 워커의 --continue/--resume 충돌 회피
+     * (코드 정독상 자명한 설계 결함이었음). cwd 와 함께 = skip-perm agentic.
+     */
+    oneShot?: boolean;
 }): Promise<string>;
 export declare function buildDiscoveryArgs(): string[];
 /**
