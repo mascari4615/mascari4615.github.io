@@ -61,8 +61,11 @@ import {
   inboxDispatch,
   runInboxConsumerOnce,
   summarizeRejectedForDiscovery,
+  publishEnvelope,
+  readInboxProposals,
   type DiscoverFn,
 } from './proposal-adapter';
+import { buildModifiedEnvelope } from './proposal';
 import {
   listCoreIds,
   loadCoreDef,
@@ -641,6 +644,15 @@ export async function runCoreDialogueOnce(
   const latest = readLatestProposal(memoRoot);
   if (!latest) return 'dialogue-idle';
   if (dialogueCommented.has(latest.id)) return 'dialogue-dup';
+  // LT-8 바운드(구조적·restart-safe): 팀이 *이미 수정안으로 만든* 카드는
+  // 사람 ✅/❌ 대기 상태지 재숙의 대상 X. 마커 부재였으면 readLatest 가
+  // 새 수정 카드를 latest 로 집어 팀이 자기 산출물을 무한 재수정(영구
+  // 기관). mission §3 "무한증식 = 바운드가 정답" 정합 — 한 번 수정 →
+  // 사람 결정. 상태 무관(파일 마커 기반) = 프로세스 재시작에도 견고.
+  if (latest.text.includes('[팀 수정안]')) {
+    markCommented(latest.id);
+    return 'dialogue-modified-pending';
+  }
 
   const coreIds = listCoreIds(memoRoot);
   const cores = coreIds
@@ -828,6 +840,55 @@ export async function runCoreDialogueOnce(
     });
   }
 
+  // LT-8: 숙의가 *수정 채택*(adopt-mods)으로 수렴 = 합의 수정안을 *새*
+  // 제안 카드로 실체화. 거버넌스 결정(2026-05-18, AskUserQuestion): 팀
+  // verdict 는 사람 ✅/❌ 를 *대체 X* — 수정안을 새 카드로 올려 사장님이
+  // 결정. 이전엔 verdict 가 #team-bus 1줄+trace 만 → 원 카드 영속 "승인
+  // 대기"(D3 미세 재발: "수정 채택했는데 카드 변화 0"). substrate 재사용
+  // (publishEnvelope, 평행 파이프 0). best-effort — 실패가 숙의 비차단.
+  if (verdict === 'adopt-mods') {
+    const orig = readInboxProposals(env).find((e) => e.id === latest.id);
+    const convergeText =
+      [...state.turns].reverse().find((t) => t.phase === 'converge')?.text ||
+      verdictReason;
+    // modNote = CONVERGE 의 *실제* 출력에서 결정 라벨만 제거(날조 0,
+    // 새 내용 발명 X). "결정: 수정 채택 — <무엇>" → "<무엇>".
+    const modNote = convergeText
+      .split(/\r?\n/)[0]
+      .replace(/^\s*결정\s*[:：]?\s*/i, '')
+      .replace(
+        /^\s*(수정\s*채택|보완\s*채택|adopt-?mods)\s*[—\-:：]?\s*/i,
+        '',
+      )
+      .trim();
+    const modified = orig
+      ? buildModifiedEnvelope(orig.envelope, modNote)
+      : null;
+    if (modified) {
+      const r = await publishEnvelope(
+        {
+          env,
+          discover: async () => '',
+          dispatch: inboxDispatch(env),
+          notify: deps.notify,
+        },
+        modified,
+      );
+      await speak(
+        state.peerCoreId,
+        r === 'duplicate'
+          ? `(수정안이 이미 인박스 — 재게시 안 함. 원 제안 ${latest.id} 는 오너 ✅/❌)`
+          : `↳ 팀 수정안을 새 카드로 올렸어요 — 오너 확인 부탁 (원 제안 ${latest.id} 대체)`,
+      );
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: state.peerCoreId,
+        reason: `adopt-mods → 수정안 새 카드 publish=${r} (원 ${latest.id})`,
+      });
+    }
+  }
+
   appendTrace(env, {
     ts: new Date().toISOString(),
     type: 'drift',
@@ -948,7 +1009,9 @@ export function buildWorkerPrompt(
     missionText.trim(),
     '',
     '확신 안 서거나 사람 컨펌 필요한 비가역 결정이면 멈추고 그 사유를',
-    '요약에 명시(추측 진행 X).',
+    `요약에 명시(추측 진행 X). 이 경우 요약 첫 줄에 정확히 \`${ESCALATE_MARKER}\``,
+    '토큰을 쓰고 이어서 사용자가 골라야 할 *선택지*를 명시하라(봇이 이를',
+    '#team-bus 의 이 TASK 스레드로 escalate → 사용자가 디코에서 결정).',
   ].join('\n');
 }
 
@@ -1171,6 +1234,7 @@ export async function voicedWorkerSpeak(
 export function resetWorkerStatus(): void {
   lastWorkerStatus.clear();
   noArtifactCooldown.clear();
+  escalateCooldown.clear();
 }
 
 // KAR-018-Y: no-artifact(미푸시/에러) task 즉시 재pick 무한루프 방지
@@ -1188,6 +1252,57 @@ function inNoArtifactCooldown(taskId: string, now: number): boolean {
 }
 function markNoArtifact(taskId: string, now: number): void {
   noArtifactCooldown.set(taskId, now);
+}
+
+// TASK-KAR-018-ESC: 워커가 *사용자 결정 필요* task(type:design 등)를
+// 픽했을 때, 미푸시를 *실패와 동일* 취급(silent release+30min cooldown)
+// 하면 사용자가 디코에서 결정할 기회 자체가 안 생기고 30분마다 churn
+// (prod WM-010-A 20:55/21:32 2회 실증). 근본 = 그 케이스를 *escalate*
+// (#team-bus per-TASK 스레드, agent-thread-router 가 TASK id 로 라우팅)
+// 해 사람이 디코에서 답 가능하게 한다. 일반 에러/no-op 은 종전 동작
+// 절대 불변(회귀 0).
+
+/** decision-needed escalate 마커 — 워커 프롬프트가 이 토큰을 요약에
+ *  쓰도록 지시. 봇이 res.text 에서 이걸 보면 type 무관 escalate(견고). */
+export const ESCALATE_MARKER = 'NEEDS-USER-DECISION';
+
+/**
+ * 결정 필요 task 판별 (순수 — 테스트 결정성). OR 조건:
+ *  (a) 스펙 frontmatter `type:` 가 design/decision (사용자 비전 의존)
+ *  (b) agentic 리포트(res.text)에 명시 escalate 마커(ESCALATE_MARKER)
+ * 둘 중 하나면 decision-needed. (a) 만으로도 1차 신호 충분하되 (b) 가
+ * agentic 판단(스펙엔 fix 라도 진행 중 비가역 결정 발견)까지 커버.
+ */
+export function detectDecisionNeeded(
+  specText: string | undefined,
+  reportText: string | undefined,
+): boolean {
+  if (reportText && reportText.includes(ESCALATE_MARKER)) return true;
+  if (!specText) return false;
+  // frontmatter 블록(--- ... ---) 안의 type: 필드만. 본문 우연 매치 배제.
+  const fmMatch = specText.match(/^\s*---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fmMatch) return false;
+  const typeMatch = fmMatch[1].match(/^\s*type\s*:\s*([A-Za-z_-]+)/m);
+  if (!typeMatch) return false;
+  const t = typeMatch[1].trim().toLowerCase();
+  return t === 'design' || t === 'decision';
+}
+
+// escalate dedupe — escalate 도 매 틱 #team-bus 도배하면 안 됨(사용자
+// 답 전까지 같은 task 가 매 cadence 재pick 가능). markNoArtifact 와
+// 동형 in-memory cooldown(escalate 전용). 일반 no-artifact cooldown
+// 과 *별 상태* — escalate 한 task 는 사용자 답을 기다리는 것이지
+// "환경 blocker 로 영구 실패" 가 아니므로 의미 분리. dedupe 윈도우
+// 동안은 그 task skip(다른 task 회전), 만료 후 사용자 미응답이면
+// 자연 재escalate(망각 방지).
+const ESCALATE_DEDUPE_MS = 6 * 3600_000;
+const escalateCooldown = new Map<string, number>();
+function inEscalateCooldown(taskId: string, now: number): boolean {
+  const t = escalateCooldown.get(taskId);
+  return t !== undefined && now - t < ESCALATE_DEDUPE_MS;
+}
+function markEscalated(taskId: string, now: number): void {
+  escalateCooldown.set(taskId, now);
 }
 
 export async function runWorkerConsumerOnce(
@@ -1270,7 +1385,13 @@ export async function runWorkerConsumerOnce(
     const tickNow = Date.now();
     // no-artifact cooldown 인 task 제외 → degenerate 무한 재pick 차단,
     // 다른 후보로 회전. 전부 cooldown 이면 그 사실 명시 idle(무음 X).
-    const cands = rawCands.filter((c) => !inNoArtifactCooldown(c.id, tickNow));
+    // KAR-018-ESC: escalate-dedupe 윈도우 task 도 제외(사용자 답 대기 중
+    // — 매 틱 #team-bus 재escalate 도배 X. 만료 후 미응답이면 재escalate).
+    const cands = rawCands.filter(
+      (c) =>
+        !inNoArtifactCooldown(c.id, tickNow) &&
+        !inEscalateCooldown(c.id, tickNow),
+    );
     // KAR-075: idle/cooldown-all/claim-lost = *비-이벤트* → Discord post X,
     // trace(results)만. 근거: producer 축은 이미 「순수 idle = null(스팸 X)」
     // 인데 worker 축만 매 틱 발화 = 설계 불일치 + 사용자 "이렇게 말하는 것좀
@@ -1405,6 +1526,18 @@ export async function runWorkerConsumerOnce(
       if (pushed && wt) {
         head = `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` origin push 확인 (Draft PR 검토 대기). 도메인=${w.domain}`;
         results.push(`${w.coreId}:done:${chosen.id}`);
+      } else if (detectDecisionNeeded(specText, res.text)) {
+        // TASK-KAR-018-ESC: 미푸시 사유 = *사용자 결정 필요*
+        // (type:design / agentic escalate 마커). 실패와 동일 silent
+        // release+30min cooldown 으로 붕괴시키지 X → #team-bus 로
+        // escalate. head 에 chosen.id 문자열 포함 = 필수
+        // (agent-thread-router.extractTaskId 가 그걸로 per-TASK
+        // 스레드 라우팅 — 사용자가 그 스레드서 답하면 inbound
+        // (agent-decisions) 가 다음 워커 프롬프트에 반영, 루프 완성).
+        release(chosen.id, w.coreId); // 점유 해제(다른 task 회전)
+        markEscalated(chosen.id, tickNow); // escalate 전용 dedupe(도배 X)
+        head = `${w.label} ⚠ ${chosen.id} = 사용자 결정 필요(type:design/escalate) — 자동 진행 불가. 이 스레드에서 결정해 주세요. 결정은 다음 워커 실행에 자동 반영됨. 도메인=${w.domain}`;
+        results.push(`${w.coreId}:escalated:${chosen.id}`);
       } else {
         release(chosen.id, w.coreId);
         markNoArtifact(chosen.id, tickNow); // 즉시 재pick 무한루프 차단

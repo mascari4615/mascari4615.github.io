@@ -117,11 +117,29 @@ export async function runProducerOnce(
     }
   }
 
-  // KAR-018-Y-1 중복 dedup: pid 는 결정적(같은 엔벨로프=같은 pid).
-  // proposals.jsonl = 디스패치된 모든 발굴 영속(resolved/materialized
-  // = 그 부분집합) → 이미 인박스면 *거절/대기/승인 재등장* 전부 차단
-  // (KAR-042/038). 재게시 X. substrate-pure(agent-bus 사이클 회피),
-  // 신규 발굴만 통과 = 회귀0.
+  // 게시(dedup→route→dispatch→카드→trace) = publishEnvelope 단일 substrate.
+  return publishEnvelope(deps, envelope);
+}
+
+/**
+ * 검증된 엔벨로프 1건을 인박스+명명에이전트 카드로 게시 (substrate —
+ * runProducerOnce 꼬리 추출, 평행 파이프 0). LT-8 의 *수정 채택→새 카드*
+ * 도 이 한 경로를 재사용(별 게시 파이프 신설 X = substrate-first ⓑ).
+ *
+ *  · dedup: 같은 pid(=같은 payload) 이미 인박스면 재게시 X (거절/대기/
+ *    승인 무관, KAR-042/038). adopt-mods 멱등 → 재숙의 폭주 0.
+ *  · route→dispatch: no-auto-exec(인박스/seed/엔진게이트까지만).
+ *  · _announcer: 카드+스레드 best-effort(가시층 실패 ≠ 파이프 실패).
+ *
+ * projectId 북극성 게이트는 *호출자* 책임 — producer=신규 발굴이라
+ * runProducerOnce 가 선검사 / adopt-mods=원 제안이 이미 통과(재검 불요).
+ * 반환 = RouteTarget | 'duplicate' | 'no-dispatch'.
+ */
+export async function publishEnvelope(
+  deps: ProposalProducerDeps,
+  envelope: ProposalEnvelope,
+): Promise<string> {
+  const notify = deps.notify ?? defaultNotify(deps.env);
   const pid = proposalId(envelope);
   const seenIds = new Set(readInboxProposals(deps.env).map((e) => e.id));
   if (seenIds.has(pid)) {
@@ -145,7 +163,6 @@ export async function runProducerOnce(
   }
 
   await fn(envelope); // no-auto-exec: dispatch=인박스/seed/엔진게이트까지만
-  // pid = 위 Y-1 에서 이미 계산(중복 dedup 통과분).
   // KAR-018-V: 명명 에이전트 카드+스레드 게시 (사람 팔로업 가시층).
   // best-effort — 게시 실패가 발굴 파이프 비차단 (Discord 어댑터는 main).
   if (_announcer) {

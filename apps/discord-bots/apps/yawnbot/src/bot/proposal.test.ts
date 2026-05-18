@@ -3,7 +3,12 @@
  * tracer-bullet: 판별 union 파싱(형식오류·부분=null 날조0) + 결정적 라우팅.
  */
 import { describe, it, expect } from 'vitest';
-import { parseProposalEnvelope, routeProposal } from './proposal';
+import {
+  parseProposalEnvelope,
+  routeProposal,
+  proposalId,
+  buildModifiedEnvelope,
+} from './proposal';
 
 const env = JSON.stringify({
   kind: 'env',
@@ -151,5 +156,50 @@ describe('parseProposalEnvelope — LT-2 projectId 추출 (순수)', () => {
     expect(
       parseProposalEnvelope(JSON.stringify({ ...b, projectId: '  ' }))?.projectId,
     ).toBeUndefined();
+  });
+});
+
+describe('buildModifiedEnvelope — LT-8 수정 채택 실체화 (순수)', () => {
+  const orig = parseProposalEnvelope(
+    JSON.stringify({
+      kind: 'objective',
+      payload: { summary: '목표 S', derivation: '도출 D', alignment: '정합 A' },
+    }),
+  )!;
+
+  it('수정 주석을 사람가독 필드에 주입 → payload·pid 변화 (새 카드)', () => {
+    const mod = buildModifiedEnvelope(orig, '가드 먼저 추가')!;
+    expect(mod.kind).toBe('objective');
+    const p = mod.payload as Record<string, string>;
+    expect(p.derivation).toContain('도출 D');
+    expect(p.derivation).toContain('[팀 수정안] 가드 먼저 추가');
+    expect(proposalId(mod)).not.toBe(proposalId(orig)); // 별 dedup 키
+    expect((orig.payload as Record<string, string>).derivation).toBe('도출 D'); // 원본 불변
+  });
+
+  it('멱등: 같은 modNote = 같은 pid (재숙의 폭주 0)', () => {
+    expect(proposalId(buildModifiedEnvelope(orig, 'x y')!)).toBe(
+      proposalId(buildModifiedEnvelope(orig, '  x   y ')!),
+    );
+  });
+
+  it('빈 modNote / 비객체 = null (억지 카드 X, 날조 0)', () => {
+    expect(buildModifiedEnvelope(orig, '   ')).toBeNull();
+    expect(buildModifiedEnvelope(orig, '')).toBeNull();
+    expect(
+      buildModifiedEnvelope(null as never, 'x'),
+    ).toBeNull();
+  });
+
+  it('kind 별 정확한 필드 (task=body, env/skill=summary)', () => {
+    const t = parseProposalEnvelope(
+      JSON.stringify({
+        kind: 'task',
+        payload: { title: 'T', body: 'B', domain: 'WM' },
+      }),
+    )!;
+    expect(
+      (buildModifiedEnvelope(t, 'note')!.payload as Record<string, string>).body,
+    ).toContain('[팀 수정안] note');
   });
 });

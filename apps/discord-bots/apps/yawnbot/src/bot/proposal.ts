@@ -171,3 +171,51 @@ export function proposalId(env: ProposalEnvelope): string {
   }
   return `p${h.toString(16).padStart(8, '0')}`;
 }
+
+/**
+ * LT-8: 팀 숙의 verdict='adopt-mods'(수정 채택) → 합의 수정안을 *새*
+ * 제안 엔벨로프로 실체화 (순수·결정적, 날조 0 — modNote = 팀 CONVERGE
+ * 턴의 *실제* 출력이며 새 내용 발명 X). 원 엔벨로프 deep clone + 그 kind
+ * 의 사람가독 필드에 수정 주석 주입 → payload 변화 → proposalId 변화 →
+ * 별개 카드(dedup 미충돌). 사람 승인 게이트 불변 — 거버넌스 결정
+ * (2026-05-18, AskUserQuestion): 팀 verdict 는 사람 ✅/❌ 를 *대체 X*,
+ * 합의 수정안을 새 카드로 올려 사장님이 결정. modNote 빈값/clone 실패 =
+ * null(억지 카드 X). 평행 파이프 0 — publishEnvelope 가 게시.
+ */
+export function buildModifiedEnvelope(
+  original: ProposalEnvelope,
+  modNote: string,
+): ProposalEnvelope | null {
+  const note = (modNote || '').replace(/\s+/g, ' ').trim();
+  if (!note || !original || typeof original !== 'object') return null;
+  let cloned: ProposalEnvelope;
+  try {
+    cloned = JSON.parse(JSON.stringify(original)) as ProposalEnvelope;
+  } catch {
+    return null;
+  }
+  const p = cloned.payload as unknown as Record<string, unknown>;
+  if (!p || typeof p !== 'object') return null;
+  const tag = `[팀 수정안] ${note}`;
+  const inject = (k: string): void => {
+    const prev = typeof p[k] === 'string' ? (p[k] as string).trim() : '';
+    p[k] = (prev ? `${prev}\n\n${tag}` : tag).trim();
+  };
+  switch (cloned.kind) {
+    case 'objective':
+      inject('derivation');
+      break;
+    case 'task':
+      inject('body');
+      break;
+    case 'env':
+    case 'skill':
+      inject('summary');
+      break;
+    case 'agent':
+      inject('role');
+      break;
+  }
+  // 동일 modNote 재주입 = 동일 payload(멱등) → 같은 pid (재숙의 폭주 0).
+  return cloned;
+}
