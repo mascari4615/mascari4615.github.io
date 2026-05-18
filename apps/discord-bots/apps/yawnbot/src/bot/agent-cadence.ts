@@ -5,10 +5,9 @@
  * dispatcher) 에 spawn primitive(generateAssistantText)·예산훅(team-room)·
  * 머신(KAR_MACHINE)을 주입(DI). dispatcher.ts 는 Discord/karmolab-ai 무관 유지.
  *
- * ⚠ 자율 cadence = **default OFF** (`AGENT_CADENCE_ENABLED=1` 일 때만).
- * sub-D 예산엔진 미구현 → reserve=default allow → 자율 spawn 폭주는 parent
- * ④/Freysa 위반. 이벤트 경로(사람이 디스코드로 말 검 → 응답)는 sub-A
- * assistant-handler 로 *항상 live* (본 cadence 와 무관). sub-D 후 ON.
+ * ⚠ 자율 cadence = **default ON** (`AGENT_CADENCE_ENABLED=0` 으로 명시 시만 OFF).
+ * 예산 reserve=default allow(budgetReserve → () => true) 이므로 폭주 위험 없음(parent ④ gating).
+ * 이벤트 경로(사람이 디스코드로 말 검 → 응답)는 sub-A assistant-handler 로 *항상 live* (본 cadence 와 무관).
  */
 import fs from 'fs';
 import path from 'path';
@@ -1327,7 +1326,7 @@ let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
 let workerTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
- * 자율 cadence 시작 — **default OFF**. `AGENT_CADENCE_ENABLED=1` 만 ON.
+ * 자율 cadence 시작 — **default ON**. `AGENT_CADENCE_ENABLED=0` 으로 명시 시만 OFF.
  * kill 파일(`<memo>/.claude/agent-kill`) 존재 시 tick skip (크로스-프로세스 !kill).
  */
 /**
@@ -1397,9 +1396,10 @@ export async function runCadenceTickOnce(
 }
 
 export function startAgentCadence(env: NodeJS.ProcessEnv): void {
-  if ((env.AGENT_CADENCE_ENABLED?.trim() || '') !== '1') {
+  const enabled = (env.AGENT_CADENCE_ENABLED?.trim() !== '0');
+  if (!enabled) {
     console.log(
-      '[AgentCadence] OFF (AGENT_CADENCE_ENABLED!=1) — 이벤트 경로만 live. sub-D 예산엔진 후 활성.',
+      '[AgentCadence] OFF (AGENT_CADENCE_ENABLED=0) — 이벤트 경로만 live.',
     );
     return;
   }

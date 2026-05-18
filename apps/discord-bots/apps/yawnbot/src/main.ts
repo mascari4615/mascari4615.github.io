@@ -458,7 +458,7 @@ client.once('clientReady', async () => {
         kind: 'agent-team',
         source: `KAR-018-W · ${agentCh ? 'dev(격리)' : 'prod(webhook-routes)'}`,
         title: '🛰 에이전트 팀 — #team-bus 연결',
-        summary: `에이전트 팀 알림 파이프 라이브 (${agentCh ? 'dev 전용 채널 격리' : 'prod 기본 채널'}). 이후 거버넌스 escalate / 자가개선 reject / ⑦' 발굴이 이 채널로 게시됩니다. (cadence 자율 구동은 AGENT_CADENCE_ENABLED=1 별도.)`,
+        summary: `에이전트 팀 알림 파이프 라이브 (${agentCh ? 'dev 전용 채널 격리' : 'prod 기본 채널'}). 이후 거버넌스 escalate / 자가개선 reject / ⑦' 발굴이 이 채널로 게시됩니다. (cadence 자율 구동은 기본 ON, AGENT_CADENCE_ENABLED=0 으로 명시 시 OFF.)`,
         level: 'info',
       },
       agentChOverride,
