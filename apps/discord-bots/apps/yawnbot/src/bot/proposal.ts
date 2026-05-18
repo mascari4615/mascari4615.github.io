@@ -32,12 +32,20 @@ export interface ObjectivePayload {
   alignment: string;
 }
 
-export type ProposalEnvelope =
+export type ProposalEnvelope = (
   | { kind: 'env'; payload: ProposalMeta }
   | { kind: 'skill'; payload: SkillProposal }
   | { kind: 'agent'; payload: AgentSpec }
   | { kind: 'task'; payload: TaskSeedPayload }
-  | { kind: 'objective'; payload: ObjectivePayload };
+  | { kind: 'objective'; payload: ObjectivePayload }
+) & {
+  /**
+   * 이 발굴이 전진시키는 팀 포트폴리오 projectId (TASK-KAR-018-LT 기둥1).
+   * 정책 게이트(runProducerOnce)가 team-portfolio 와 대조 — 미수렴 거부.
+   * payload shape(재사용 엔진입력) 미오염 위해 *엔벨로프 최상위*.
+   */
+  projectId?: string;
+};
 
 export type RouteTarget =
   | 'self-improve'
@@ -131,7 +139,13 @@ export function parseProposalEnvelope(raw: string): ProposalEnvelope | null {
   if (!payloadValid(kind as ProposalKind, p)) {
     return null;
   }
-  return { kind, payload: p } as unknown as ProposalEnvelope;
+  // LT-2: projectId 는 *엔벨로프 최상위* 선택 필드. 파서는 추출만(정책
+  // 거부 X — 순수 유지). 미수렴 거부 = runProducerOnce 정책 게이트.
+  const projectId =
+    typeof o.projectId === 'string' && o.projectId.trim()
+      ? o.projectId.trim()
+      : undefined;
+  return { kind, payload: p, projectId } as unknown as ProposalEnvelope;
 }
 
 /**

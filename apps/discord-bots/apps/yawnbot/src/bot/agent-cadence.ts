@@ -24,6 +24,7 @@ import {
   workerWorktreeDir,
 } from './agent-worker-repo';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
+import { loadPortfolio, formatPortfolioBlock } from './team-portfolio';
 import {
   SessionRegistry,
   spawnTier3,
@@ -215,8 +216,10 @@ export function parseCadenceWork(md: string): Tier3Request | null {
 export function buildDiscoveryPrompt(
   missionText: string,
   contextText = '',
+  portfolioBlock = '',
 ): string {
   const ctx = contextText.trim();
+  const pf = portfolioBlock.trim();
   return [
     '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일',
     '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
@@ -224,6 +227,7 @@ export function buildDiscoveryPrompt(
     '',
     '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
     missionText.trim(),
+    ...(pf ? ['', pf] : []),
     ...(ctx
       ? [
           '',
@@ -244,6 +248,14 @@ export function buildDiscoveryPrompt(
     '- env: {id,summary,targetFiles[],source}  - skill: {id,name,summary,source,coreId}',
     '- agent: {id,coreId,role,name,source}  - task: {title,body,domain}',
     '- objective: {summary,derivation,alignment}',
+    ...(pf
+      ? [
+          '★ 필수: 엔벨로프 최상위에 "projectId":"<위 포트폴리오 id 하나>"',
+          '  포함 + payload 내용이 그 프로젝트의 북극성/현 목표를 *어떻게*',
+          '  전진시키는지 본문 불릿에 1줄. 어느 projectId 에도 안 붙는',
+          '  발굴 = 폐기(영구기관 금지). 자가정비는 도구적 프로젝트 cite.',
+        ]
+      : []),
     '',
     '★★ 글쓰기 규칙 (필수 — 어기면 폐기 가치). 읽는 사람=비개발자 사장:',
     '· 절대 금지: §숫자/조항, 내부 코드명(drift·anchor·seam·cadence·',
@@ -509,7 +521,13 @@ export async function runGovernedProducerOnce(
       // 빠름·JSON 안정·본질적 비-agentic.
       generateAgentText(
         env,
-        buildDiscoveryPrompt(readMissionText(env), gatherDiscoveryContext(env)),
+        buildDiscoveryPrompt(
+          readMissionText(env),
+          gatherDiscoveryContext(env),
+          formatPortfolioBlock(
+            loadPortfolio(env.MEMO_REPO_PATH?.trim() || ''),
+          ),
+        ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
       ));
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
