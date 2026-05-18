@@ -407,6 +407,13 @@ export async function generateClaudeCliText(opts: {
    * (코드 정독상 자명한 설계 결함이었음). cwd 와 함께 = skip-perm agentic.
    */
   oneShot?: boolean;
+  /**
+   * per-spawn 환경변수 오버레이 (KAR-018-P). 미전달 = 자식이 부모
+   * process.env 그대로 상속(불변). 전달 시 `{...process.env,...env}` 로
+   * *이 자식만* 격리 주입 — 전역 process.env 변이 없이 동시 워커가
+   * 각자 자격(GH_TOKEN 등) 보유 → 직렬화 강제 결합 제거(병렬 안전).
+   */
+  env?: Record<string, string>;
 }): Promise<string> {
   const cmd = process.env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
   const timeout = opts.timeoutMs ?? parseInt(process.env.CLAUDE_CLI_TIMEOUT_MS || '60000', 10);
@@ -434,6 +441,9 @@ export async function generateClaudeCliText(opts: {
         stdio: ['pipe', 'pipe', 'pipe'],
         windowsHide: true,
         ...(opts.cwd ? { cwd: opts.cwd } : {}),
+        // KAR-018-P: env 미전달=상속(불변) / 전달=이 자식만 격리 오버레이
+        // (전역 process.env 변이 0 → 동시 워커 자격 비교차오염).
+        ...(opts.env ? { env: { ...process.env, ...opts.env } } : {}),
       });
 
       let stdout = '';

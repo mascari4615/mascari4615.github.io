@@ -148,6 +148,9 @@ export function buildTier3Deps(env: NodeJS.ProcessEnv): Tier3Deps {
           timeoutMs,
           cwd: req.repoCwd,
           oneShot: true, // 워커 = 무상태 단발(공유세션 충돌 0)
+          // KAR-018-P: per-spawn 자격(전역 process.env 변이 0) →
+          // 동시 워커 토큰 비교차오염. 미설정=상속(불변).
+          env: req.childEnv,
         });
       }
       // producer/cadence tier3 = 비-agentic 텍스트(기존 동작 불변).
@@ -1230,8 +1233,12 @@ export async function runWorkerConsumerOnce(
   const branchPushed = deps.branchPushed ?? branchPushedToOrigin;
 
   const results: string[] = [];
-  for (const w of workers) {
-    if (isKilled()) break;
+  // KAR-018-P: 직렬 for→bounded 풀. 워커는 서로 다른 도메인 repo·격리
+  // worktree·per-spawn 자격(req.childEnv)이라 본질 독립 — 동시 처리해도
+  // 교차오염 0. cap=AGENT_WORKER_CONCURRENCY(default=워커수, RAM 제약
+  // 머신 하향). per-core single-flight(SessionRegistry)·budget·kill 보존.
+  const processWorker = async (w: WorkerCore): Promise<void> => {
+    if (isKilled()) return;
     // KAR-075: 워커 도메인 repo 로 큐 라우팅 — memo-default task 는
     // code-worker 후보서 빠짐(no-op churn 근원 제거). repo 미해소 시
     // undefined → task-queue 필터 없음(backward-safe).
@@ -1258,11 +1265,11 @@ export async function runWorkerConsumerOnce(
     // "팀 살아있음", 실 활동이 "일 진행" 커버. 유휴 워커는 말할 게 없음.
     if (rawCands.length === 0) {
       results.push(`${w.coreId}:idle`);
-      continue;
+      return;
     }
     if (cands.length === 0) {
       results.push(`${w.coreId}:cooldown-all`);
-      continue;
+      return;
     }
     let chosen: { id: string; file: string } | null = null;
     for (const c of cands.slice(0, 3)) {
@@ -1274,7 +1281,7 @@ export async function runWorkerConsumerOnce(
     if (!chosen) {
       // claim-lost = transient 경합(다른 워커 선점) = 비-이벤트 → trace-only.
       results.push(`${w.coreId}:claim-lost`);
-      continue;
+      return;
     }
     // KAR-018-Y: 도메인 repo 격리 worktree 셋업 → agentic claude cwd.
     // 미지원/실패 = wt null → 비-agentic 폴백(산출 0, 단 trace·메시지에
@@ -1319,8 +1326,10 @@ export async function runWorkerConsumerOnce(
     // (사용자 결정 2026-05-18). App→실패 시 GH_TOKEN 폴백(additive,
     // prod 무중단). worktree origin URL 에 토큰 주입 = *결정적* push
     // (claude/gh-setup-git 불신) + 자식 claude GH_TOKEN(gh pr create).
-    // 워커 루프 순차라 process.env 변경 레이스 0. worktree=ephemeral
-    // (finally cleanup)이라 URL 내 토큰 잔존 0.
+    // KAR-018-P: 토큰을 *전역 process.env 변이 X* → req.childEnv 로
+    // 이 spawn 자식에만 격리 주입(generateClaudeCliText env 오버레이).
+    // ⟹ 동시 워커가 각자 도메인 자격 보유, 교차오염 0(직렬화 강제
+    // 결합 제거). worktree=ephemeral(finally cleanup) URL 토큰 잔존 0.
     if (wt) {
       // KAR-018-Y: 도메인별 push 자격. wm-worker→Witch-Mendokusai 는
       // github.io-scope PAT_FOR_AUTO_MERGE 로 403(별 repo) → WM_GITHUB_PAT
@@ -1351,7 +1360,8 @@ export async function runWorkerConsumerOnce(
         } catch {
           /* push 시 claude 가 에러 정직 보고(계측됨) */
         }
-        process.env.GH_TOKEN = tok;
+        // per-spawn 격리(전역 변이 X) — 자식 claude 가 gh pr create 시 사용.
+        req.childEnv = { ...(req.childEnv ?? {}), GH_TOKEN: tok };
       }
     }
     let res: Awaited<ReturnType<typeof spawn>>;
@@ -1403,7 +1413,28 @@ export async function runWorkerConsumerOnce(
       );
       results.push(`${w.coreId}:${res.status}`);
     }
-  }
+  };
+  // KAR-018-P: bounded 동시성 풀 — 인덱스 디스패치(신규 dep 0). 각
+  // 러너가 isKilled 체크 후 다음 워커 처리. results push 순서는 비결정
+  // (CSV 요약이라 무관 — 테스트는 정렬 비교). per-core 동시1 = SessionRegistry
+  // 보장(워커 간 병렬과 직교). budget reserve = 동기 함수(await 경계 0)라
+  // 동시 호출 원자 — 추가 락 불요.
+  const concurrency = Math.max(
+    1,
+    Number(env.AGENT_WORKER_CONCURRENCY) || workers.length,
+  );
+  let nextIdx = 0;
+  const runner = async (): Promise<void> => {
+    for (;;) {
+      if (isKilled()) return;
+      const i = nextIdx++;
+      if (i >= workers.length) return;
+      await processWorker(workers[i]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, workers.length) }, runner),
+  );
   const csv = results.join(',');
   // KAR-077: 최신 워커 상태를 대시보드가 읽도록 캐시(빈 결과면 직전 유지
   // — 워커가 별 timer 라 cadence tick 시점엔 최신값 필요).
