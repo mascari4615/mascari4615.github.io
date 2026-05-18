@@ -54,48 +54,67 @@ jobs:
           & git clean -fd 2>&1 | Out-Null
           & git rev-parse --short HEAD
 
-      - name: Sync prod memo (안전 — reset 금지, 봇 런타임 보존)
+      - name: Sync prod memo (결정화 — fetch + reset --hard, 런타임 untracked 보존)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: 'C:\Users\masca\repos\karmoddrine\memo'
         env:
           # github.io 는 public → 무인증 fetch OK. memo 는 private +
           # 러너=LocalSystem(사용자 자격증명 안 보임) → 인증 필수.
-          # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14
-          # 등록). kl-quality-loop 가 vars. 로 오참조해 latent 깨짐(최근
-          # run 전부 failure) → 본 스텝은 secrets. 로 (그 버그 class fix).
+          # MEMO_GITHUB_PAT 은 *secret* (gh secret list 확인, 2026-05-14 등록).
           MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
-          # memo-sync skip/실패 = silent 금지(prod memo 영구 동결 무관측 근본,
-          # feedback_prod_memo_frozen_by_merge_conflict_silent). 같은 webhook
-          # 으로 #ops alert + Actions ::warning:: 동시.
-          YB_OPS_WEBHOOK: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
+          # 같은 머신(노트북)에서 도는 yawnbot express 인그레스로 ops 알림.
+          # LOCAL_WEBHOOK_SECRET 미설정 시 dev bypass (local-webhook.ts) —
+          # 동일 머신 신뢰 모델. 설정돼 있으면 X-Yawnbot-Secret 헤더로 전달.
+          YB_LOCAL_WEBHOOK_SECRET: ${{ secrets.LOCAL_WEBHOOK_SECRET }}
           # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
           GIT_TERMINAL_PROMPT: '0'
-        # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
-        # 런타임에 읽고 .active.json·기억은 *써서* commitIfDirty 로 로컬
-        # 커밋한다. github.io 식 reset --hard 절대 X (prod 런타임·미푸시
-        # 봇 커밋 파괴). 인증 fetch → ff-only, 분기 시 merge-commit(히스토리
-        # 보존, rebase X = 동시쓰기 안전), tracked-dirty/충돌/무인증 시 skip
-        # (deploy 비차단·never hang). pull-only(outbound side-effect 0).
-        # KAR-018-V — 신규 코어(echo)가 prod 에 도달하는 *유일 근본 경로*.
-        # 자동 동기 부재 = "Atlas 밖에 없는데" 의 진짜 원인.
+        # 에이전트 코어·스킨·캐릭터 *정의* 정본 = memo. prod 봇이 이 체크아웃을
+        # 런타임에 읽는다. 봇이 *쓰는* 파일(.active.json·characters/*/memory/*·
+        # relationship.json·image-cache/*) 은 TASK-KAR-MEMOSYNC 에서 .gitignore
+        # 처리됨(yawnbot src commitIfDirty/commitToGit no-op 화) → 더는 tracked
+        # 정본을 mutate 안 함 → origin divergence 가 *구조적으로 불가능*.
+        # 그래서 merge 댄스(ff-only→merge--no-edit→abort, KAR-018-Y) 폐기 →
+        # `git fetch <auth> main` + `git reset --hard FETCH_HEAD` 결정화:
+        # tracked 는 origin 과 항상 byte-identical, untracked 런타임은
+        # reset --hard 가 *안 건드림*(생존). 영영 abort/diverge 불가.
+        # 헤드리스 재현 증명 = apps/discord-bots/apps/yawnbot/scripts/
+        # memo-sync-divergence-repro.sh (#1 divergence 불가 / #2 reset 보존 /
+        # #3 대조: tracked 면 reset 이 런타임 파괴 = part2 가 고침 입증).
+        # ⚠ part2(런타임 untrack, memo 레포) 와 *동시 착륙 필수* — 분리 착륙
+        # 시 (untrack 없이 reset --hard) prod 봇 런타임 origin 으로 파괴.
         run: |
           $ErrorActionPreference = 'Continue'
           $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
           & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
           # LOUD skip — silent Write-Warning 단독 = prod memo 동결 무관측
-          # 근본(2026-05-18 KAR-018-ESC, memo: prod_memo_frozen_by_merge_conflict).
-          # Discord #ops alert + Actions ::warning:: annotation + exit 0
-          # (bot-code deploy 는 계속 — memo-sync 실패가 봇 배포 차단 X).
+          # 근본(2026-05-18 KAR-018-ESC). 같은 머신 yawnbot 인그레스로 #ops
+          # 알림 + Actions ::warning:: + exit 0 (bot-code deploy 는 계속).
+          # 직전 YB_OPS_WEBHOOK=secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL 은
+          # 404 였음(deploy 26037374635 "ops alert 송신 실패 404" 실증) —
+          # 그 secret 은 raw Discord webhook 아님. 봇은 같은 노트북에서
+          # WEBHOOK_PORT(기본 4615) express 로 POST /webhook/local 을 이미
+          # 서빙(local-webhook.ts, TASK-WM-087) → 그게 올바른 ops 경로.
           function Skip-Loud($reason) {
             $msg = "🧊 [memo-sync] prod memo 동기 skip — $reason (prod memo 동결 가능, 수동 해소 필요. host=$env:COMPUTERNAME)"
             Write-Warning $msg
             Write-Output "::warning title=memo-sync skip::$msg"
-            if (-not [string]::IsNullOrEmpty($env:YB_OPS_WEBHOOK)) {
-              try {
-                Invoke-RestMethod -Uri $env:YB_OPS_WEBHOOK -Method Post -ContentType 'application/json' `
-                  -Body (@{ content = $msg } | ConvertTo-Json -Compress) -TimeoutSec 15 | Out-Null
-              } catch { Write-Warning "[memo-sync] ops alert 송신 실패(비차단): $($_.Exception.Message)" }
+            $port = if ($env:WEBHOOK_PORT) { $env:WEBHOOK_PORT } else { '4615' }
+            $headers = @{}
+            if (-not [string]::IsNullOrEmpty($env:YB_LOCAL_WEBHOOK_SECRET)) {
+              $headers['X-Yawnbot-Secret'] = $env:YB_LOCAL_WEBHOOK_SECRET
             }
+            $body = @{
+              kind    = 'memo-sync'
+              source  = 'deploy-discord-bots/Sync prod memo'
+              title   = '🧊 prod memo 동기 skip'
+              summary = $msg
+              level   = 'error'
+            } | ConvertTo-Json -Compress
+            try {
+              Invoke-RestMethod -Uri "http://127.0.0.1:$port/webhook/local" -Method Post `
+                -ContentType 'application/json; charset=utf-8' -Headers $headers `
+                -Body ([System.Text.Encoding]::UTF8.GetBytes($body)) -TimeoutSec 15 | Out-Null
+            } catch { Write-Warning "[memo-sync] ops alert 송신 실패(비차단): $($_.Exception.Message)" }
             exit 0
           }
           $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
@@ -109,42 +128,17 @@ jobs:
           $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
           & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
           if ($LASTEXITCODE -ne 0) { Skip-Loud '인증 fetch 실패 (토큰 만료/scope/네트워크 의심)' }
-          # NOTE(blanket dirty 가드 제거, 근본): 라이브 prod 봇은
-          # characters/*/mood.json·relationship.json·.active.json 을
-          # *상시* 써서 tracked 작업트리가 항상 dirty → blanket skip 은
-          # echo 를 영영 차단했음(설계 버그). git merge 는 이미 원자적
-          # 안전: 로컬 수정과 *충돌하는* 경로만 거부(부분적용 X), 무관
-          # dirty(봇 런타임 ≠ 들어오는 agents/echo)는 보존하며 merge.
-          # 충돌 시 아래 merge --abort + skip 이 처리. → git 시맨틱 신뢰.
-          $local = (& git rev-parse HEAD 2>$null)
+          $local  = (& git rev-parse HEAD 2>$null)
           $remote = (& git rev-parse FETCH_HEAD 2>$null)
           if ($local -eq $remote) { Write-Host "[memo-sync] 이미 최신 ($($local.Substring(0,7)))"; exit 0 }
-          # KAR-018-Y: 구 task-claim 이 tracked TASK .md(status:active+
-          # claimed_by) 를 더럽혀 merge 영구 차단했음. 이제 claim=gitignore
-          # 원장(.md 미변경)이라 *TASK-*.md 의 로컬 수정 = stale 부패* →
-          # 안전하게 discard 후 merge. .active.json·mood.json 등 prod 런타임
-          # (패턴 불일치)·untracked 신규 = 보존(scope=TASK-*.md 만).
-          #
-          # KAR-018-Y 2차 근본: 직전 fix(`git diff`+`git checkout --`)는
-          # *unstaged 만* 정리했다. 구 코드/워커가 `git add` 한 TASK .md 는
-          # staged 부패로 남아 merge 영구 abort("local changes would be
-          # overwritten" — KL-048..065/WM-101..134, 노트북 43-behind 의
-          # 실근본, diag 25991435300 데이터 확정). `git diff`=unstaged 만,
-          # `git checkout -- f`=index 에서 복원이라 staged 를 못 지웠음.
-          # → `git checkout HEAD -- <pathspec>` 로 index+worktree 동시
-          # 정본(HEAD) 복원: glob 직접 사용(staged/unstaged 무관, 매칭 0건
-          # = no-op). TASK-*.md 만 scope → 봇 런타임 파일 무손상.
-          & git checkout HEAD -- '*/tasks/TASK-*.md' 'tasks/TASK-*.md' 2>&1 | Out-Null
-          Write-Host '[memo-sync] TASK-*.md staged+unstaged stale 부패 정본(HEAD) 강제 복원 (KAR-018-Y 2차)'
-          & git merge --ff-only FETCH_HEAD 2>&1
-          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] ff -> $(& git rev-parse --short HEAD)"; exit 0 }
-          # 분기 = 로컬 봇 .active.json 커밋 존재 → merge-commit (양측 보존)
-          & git merge --no-edit FETCH_HEAD 2>&1
-          if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] merge-commit -> $(& git rev-parse --short HEAD)"; exit 0 }
-          # 충돌 → 절대 conflicted 상태로 두지 X. abort+skip, deploy 계속.
-          & git merge --abort 2>&1 | Out-Null
-          $cf = (& git diff --name-only HEAD FETCH_HEAD 2>$null) -join ', '
-          Skip-Loud "merge 충돌 abort — prod memo 동결됨(옛 정본으로 계속 돎). 충돌후보=[$cf]. 노트북서 수동 해소(reset/stash) 필요"
+          # 결정화: tracked 는 origin 과 항상 일치, untracked 런타임은 생존.
+          # 봇이 tracked 정본을 mutate 안 하므로(part2) 영영 안전·결정적.
+          & git reset --hard FETCH_HEAD 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Skip-Loud "git reset --hard 실패 (exit $LASTEXITCODE) — 인덱스 잠금/디스크 의심"
+          }
+          Write-Host "[memo-sync] reset --hard -> $(& git rev-parse --short HEAD) (prod==origin, 런타임 untracked 보존)"
+          exit 0
 
       - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
