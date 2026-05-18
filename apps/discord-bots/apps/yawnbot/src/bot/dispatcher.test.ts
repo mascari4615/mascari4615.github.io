@@ -120,10 +120,16 @@ describe('spawnTier3 — 오케스트레이션 (B-1/2/4)', () => {
     expect(res.status).toBe('busy');
   });
 
-  it('예산 거부 = budget-denied', async () => {
+  it('예산 거부 = budget-denied + expensive run 0 + release (KAR-018-Y Y-4 폭주차단 불변식)', async () => {
     const d = deps({ reserve: () => false });
     const res = await spawnTier3(req, d);
     expect(res.status).toBe('budget-denied');
+    // ★ Y-4 핵심: verdict=stop/narrow(reserve=false) 시 비싼 agentic
+    //   tier3(deps.run) 가 *절대 실행 안 됨* = 자율팀 폭주비용 차단.
+    //   생산자·워커 둘 다 spawnTier3 경유 → 이 1 불변식이 양 축 커버.
+    expect(d.run).not.toHaveBeenCalled();
+    // 거부 경로도 registry release(acquire 후 finally) — 좀비 점유 X.
+    expect(d.registry.isBusy('atlas')).toBe(false);
   });
 
   it('run 예외 = error, 그래도 release (bounded·좀비 X)', async () => {
