@@ -72,29 +72,55 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(await runCoreDialogueOnce(env())).toBe('killed');
   });
 
-  it('도메인 주인 워커가 speak DI 로 자기 정체 응답 + dedupe', async () => {
+  it('LT-3 다중턴 숙의: challenge→refine→converge + 결정 + dedupe', async () => {
     writeProposal('p1', { title: 'WM 던전망', body: '보강', domain: 'WM' });
     const spoke: { core: string; text: string }[] = [];
     const deps = {
       reserve: () => true,
       cooldown: () => true,
-      generate: async () => '이거 WM 쪽이라 제가 가져갈게요.',
+      // phase 별 응답 (프롬프트 마커로 분기 — 결정적 검증)
+      generate: async (prompt: string) =>
+        prompt.includes('토론을 *닫아라*')
+          ? '결정: 채택\n던전망과 정렬돼 북극성 전진.'
+          : prompt.includes('정면 응답')
+            ? '우려 수용해 입력검증 추가하겠습니다.'
+            : '우려: 입력 검증 빠지면 깨질 수 있어요. 대안=가드 먼저.',
       speak: async (core: string, text: string) => {
         spoke.push({ core, text });
         return true;
       },
     };
     const r1 = await runCoreDialogueOnce(env(), deps);
-    expect(r1).toBe('dialogue:wm-worker');
-    expect(spoke).toHaveLength(1);
-    expect(spoke[0].core).toBe('wm-worker');
-    // dedupe: 같은 proposal 재호출 = dialogue-dup (매 tick 재코멘트 X)
+    // 단일턴 'dialogue:<r>' 폐기 → 다중턴 deliberation:<n>:<verdict>
+    expect(r1).toBe('deliberation:3:adopt');
+    expect(spoke.length).toBeGreaterThanOrEqual(3); // challenge·refine·converge
+    expect(spoke[0].core).toBe('wm-worker'); // 도메인 주인 = 첫 도전자
+    // 깡통 동의가 아니라 실제 우려·응답·결정 (D1 직격 검증)
+    expect(spoke[0].text).toContain('우려');
+    expect(spoke.some((s) => s.text.includes('결정: 채택'))).toBe(true);
+    // dedupe: 같은 proposal 재호출 = dialogue-dup
     const r2 = await runCoreDialogueOnce(env(), deps);
     expect(r2).toBe('dialogue-dup');
-    expect(spoke).toHaveLength(1);
-    // 코어 기억에 대화 흔적 append (non-dead)
-    const memDir = path.join(root, '.claude', 'agents', 'wm-worker', 'mem');
-    expect(fs.existsSync(memDir)).toBe(true);
+    // 코어 기억에 숙의 흔적 append (틱 넘어 누적 = 기둥3)
+    expect(
+      fs.existsSync(path.join(root, '.claude', 'agents', 'wm-worker', 'mem')),
+    ).toBe(true);
+  });
+
+  it('LT-3 깡통 동의(bare-agree) challenge → 즉시 채택 수렴(무한 X)', async () => {
+    writeProposal('p1', { title: 'WM 작업', body: 'x', domain: 'WM' });
+    const spoke: string[] = [];
+    const r = await runCoreDialogueOnce(env(), {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async () => '좋아요 동의합니다', // 깡통 동의만
+      speak: async (_c: string, t: string) => {
+        spoke.push(t);
+        return true;
+      },
+    });
+    expect(r).toBe('deliberation:1:adopt'); // challenge 1턴 → 이의없음 채택
+    expect(spoke.some((t) => t.includes('결정: 채택'))).toBe(true);
   });
 
   it('예산 deny → dialogue-gated, 생성·speak 호출 X + trace', async () => {

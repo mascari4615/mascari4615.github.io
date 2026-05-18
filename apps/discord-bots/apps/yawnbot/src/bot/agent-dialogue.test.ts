@@ -10,7 +10,12 @@ import {
   decideDialogueTurn,
   buildDialoguePrompt,
   isDialoguePass,
+  classifyDeliberationReply,
+  parseVerdict,
+  nextDeliberationStep,
+  buildDeliberationPrompt,
   type PeerUtterance,
+  type DeliberationState,
 } from './agent-dialogue';
 import type { CoreDef } from '../services/agent-core';
 
@@ -151,5 +156,124 @@ describe('isDialoguePass — 억지 발화 차단', () => {
     expect(isDialoguePass('PASS')).toBe(true);
     expect(isDialoguePass('pass.')).toBe(true);
     expect(isDialoguePass('이건 WM 회귀망이랑 정렬돼요.')).toBe(false);
+  });
+});
+
+// ═══ LT-3 다중턴 숙의 엔진 (순수·결정적) ═══
+describe('classifyDeliberationReply — 실질성 분류 (D1 직격)', () => {
+  it('빈값/PASS = empty', () => {
+    expect(classifyDeliberationReply('')).toBe('empty');
+    expect(classifyDeliberationReply('PASS')).toBe('empty');
+  });
+  it('깡통 동의(짧고 동의어뿐) = bare-agree', () => {
+    expect(classifyDeliberationReply('좋아요')).toBe('bare-agree');
+    expect(classifyDeliberationReply('동의합니다 👍')).toBe('bare-agree');
+    expect(classifyDeliberationReply('네 좋은 생각')).toBe('bare-agree');
+    expect(classifyDeliberationReply('LGTM')).toBe('bare-agree');
+  });
+  it('결정 마커 = converge', () => {
+    expect(classifyDeliberationReply('결정: 채택 — 정렬됨')).toBe('converge');
+    expect(classifyDeliberationReply('이건 반려해야 함')).toBe('converge');
+  });
+  it('구체 우려·대안 = substantive (깡통 아님)', () => {
+    expect(
+      classifyDeliberationReply('입력 검증이 빠지면 깨질 수 있어요. 가드 먼저.'),
+    ).toBe('substantive');
+  });
+});
+
+describe('parseVerdict — 결정적 결정 파싱', () => {
+  it('채택/수정채택/반려/사용자판단', () => {
+    expect(parseVerdict('결정: 채택')).toBe('adopt');
+    expect(parseVerdict('결정: 수정 채택 — X 보완')).toBe('adopt-mods');
+    expect(parseVerdict('결정: 반려 — 근거 부족')).toBe('reject');
+    expect(parseVerdict('결정: 사용자 판단 필요 — 쟁점')).toBe('escalate');
+    expect(parseVerdict('애매한 말')).toBe('escalate'); // 불명확=사람
+  });
+});
+
+describe('nextDeliberationStep — 순수 상태머신', () => {
+  const base: DeliberationState = {
+    speakerCoreId: 'atlas',
+    peerCoreId: 'echo',
+    turns: [],
+    cap: 4,
+  };
+  it('turns 0 → challenge(peer)', () => {
+    const s = nextDeliberationStep(base);
+    expect(s).toEqual({ kind: 'turn', phase: 'challenge', speakerCoreId: 'echo' });
+  });
+  it('substantive challenge → refine(speaker)', () => {
+    const s = nextDeliberationStep({
+      ...base,
+      turns: [{ coreId: 'echo', phase: 'challenge', text: '우려: 검증 없으면 깨짐, 가드 먼저' }],
+    });
+    expect(s).toEqual({ kind: 'turn', phase: 'refine', speakerCoreId: 'atlas' });
+  });
+  it('bare-agree challenge → done adopt (무한 X)', () => {
+    const s = nextDeliberationStep({
+      ...base,
+      turns: [{ coreId: 'echo', phase: 'challenge', text: '좋아요' }],
+    });
+    expect(s).toEqual({
+      kind: 'done',
+      verdict: 'adopt',
+      reason: expect.stringContaining('이의 없음'),
+    });
+  });
+  it('refine → converge(peer); converge → done(verdict)', () => {
+    const afterRefine = nextDeliberationStep({
+      ...base,
+      turns: [
+        { coreId: 'echo', phase: 'challenge', text: '우려: A 빠짐 — 대안 B' },
+        { coreId: 'atlas', phase: 'refine', text: 'B 수용해 보강' },
+      ],
+    });
+    expect(afterRefine).toEqual({ kind: 'turn', phase: 'converge', speakerCoreId: 'echo' });
+    const done = nextDeliberationStep({
+      ...base,
+      turns: [
+        { coreId: 'echo', phase: 'challenge', text: '우려: A' },
+        { coreId: 'atlas', phase: 'refine', text: '보강' },
+        { coreId: 'echo', phase: 'converge', text: '결정: 채택' },
+      ],
+    });
+    expect(done).toEqual({ kind: 'done', verdict: 'adopt', reason: expect.any(String) });
+  });
+  it('cap 도달 → done escalate (입막음 아닌 사용자에게·바운드)', () => {
+    const s = nextDeliberationStep({
+      ...base,
+      cap: 2,
+      turns: [
+        { coreId: 'echo', phase: 'challenge', text: '우려: A' },
+        { coreId: 'atlas', phase: 'refine', text: '응답' },
+      ],
+    });
+    expect(s).toEqual({
+      kind: 'done',
+      verdict: 'escalate',
+      reason: expect.stringContaining('cap'),
+    });
+  });
+});
+
+describe('buildDeliberationPrompt — phase별 (맨 동의 금지 강제)', () => {
+  const u: PeerUtterance = { speakerCoreId: 'atlas', kind: 'proposal', text: '제안 X' };
+  const st = { turns: [] as DeliberationState['turns'] };
+  it('challenge = 우려/대안/근거endorse 강제 + 맨동의 폐기 명시', () => {
+    const p = buildDeliberationPrompt('challenge', echo, '🛰 Atlas', u, st, '미션');
+    expect(p).toContain('제안 X');
+    expect(p).toContain('우려');
+    expect(p).toContain('대안');
+    expect(p).toMatch(/맨 동의|그냥 "좋다/);
+  });
+  it('converge = 한 줄 결정 형식 강제', () => {
+    const p = buildDeliberationPrompt('converge', echo, '🛰 Atlas', u, st, '미션');
+    expect(p).toContain('결정: 채택');
+    expect(p).toContain('반려');
+  });
+  it('portfolioBlock 주입 시 포함', () => {
+    const p = buildDeliberationPrompt('challenge', echo, 'A', u, st, 'm', '[포트폴리오] wm');
+    expect(p).toContain('[포트폴리오] wm');
   });
 });
