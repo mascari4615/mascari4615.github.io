@@ -155,6 +155,27 @@ export async function reportHeartbeat(
   await sendEmbed(ctx, embed);
 }
 
+/**
+ * 캐릭터 런타임 스냅샷 장애/복구 임베드 (TASK-KAR-CHARSTATE).
+ * heartbeat 와 *다른 관심사*(liveness 가 아니라 상태 백업 무결성) 라
+ * 별 임베드 — 동일 mislabel 시 운영자가 heartbeat 장애로 오인.
+ * 상태 전이에서만 호출되므로 자체 dedup 불요 (reportHeartbeat 동형).
+ */
+export async function reportCharStateSnapshot(
+  ctx: OpsReportContext,
+  alert: { healthy: boolean; reason: string },
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(alert.healthy ? 0x2ecc71 : 0xe67e22)
+    .setTitle(
+      alert.healthy ? '🟢 YawnBot 캐릭터 스냅샷 복구' : '🟠 YawnBot 캐릭터 스냅샷 실패',
+    )
+    .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
+    .setFooter({ text: buildFooter(ctx) })
+    .setTimestamp();
+  await sendEmbed(ctx, embed);
+}
+
 /** deploy 결과 임베드 (파랑). deploy-commands.ts main() 끝에 호출. */
 export async function reportDeploy(
   ctx: OpsReportContext,

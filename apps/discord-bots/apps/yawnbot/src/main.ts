@@ -61,8 +61,12 @@ import { startProactive, stopProactive, sendStartupGreeting, startScheduleRemind
 import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
 import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
-import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat } from './services/ops-self-report';
+import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
+import {
+  startCharacterStateSnapshot,
+  stopCharacterStateSnapshot,
+} from './services/character-state-snapshot';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 
@@ -345,6 +349,23 @@ client.once('clientReady', async () => {
     alert: opsCtx ? (event) => void reportHeartbeat(opsCtx, event) : undefined,
   });
 
+  // TASK-KAR-CHARSTATE: 캐릭터 런타임 내구 스냅샷 (heartbeat 패턴 미러).
+  // KAR-MEMOSYNC part2 가 캐릭터 런타임(mood/relationship/.active/memory)을
+  // git untrack → divergence 동결은 해소됐으나 git 백업·이력·복원이 사라짐.
+  // 본 서비스가 단일-writer(prod 봇만) 로 memo orphan 브랜치에 스냅샷 →
+  // divergence 0 유지하며 durable. 로컬 git 무관 = race 0 (heartbeat 동형).
+  startCharacterStateSnapshot({
+    token: process.env.MEMO_GITHUB_PAT || process.env.GITHUB_TOKEN,
+    memoRepoPath: memoRepoPath || undefined,
+    repo: process.env.YAWNBOT_CHARSTATE_REPO,
+    branch: process.env.YAWNBOT_CHARSTATE_BRANCH,
+    path: process.env.YAWNBOT_CHARSTATE_PATH,
+    intervalMin: process.env.YAWNBOT_CHARSTATE_INTERVAL_MIN
+      ? parseInt(process.env.YAWNBOT_CHARSTATE_INTERVAL_MIN, 10)
+      : undefined,
+    alert: opsCtx ? (event) => void reportCharStateSnapshot(opsCtx, event) : undefined,
+  });
+
   if (characterService) {
     characterService.initialize();
     // default 슬러그 MemoryService 선-초기화 (stub 파일 준비)
@@ -596,6 +617,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   setMusicDiscordClient(null);
   stopPresenceRotation();
   stopHeartbeat();
+  stopCharacterStateSnapshot();
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopAgentCadence();
