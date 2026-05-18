@@ -33,6 +33,10 @@ import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
+import {
+  readTaskThreadId,
+  writeTaskThreadId,
+} from './bot/agent-thread-store';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
@@ -400,6 +404,17 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // KAR-018-THR: 영속 매핑(TASK frontmatter `discord_thread`) —
+        // 봇 nssm restart 후 in-memory Map 소실해도 파일기록으로 부활,
+        // 중복 스레드 0. memoRoot 미설정 시 미주입(in-memory만, 회귀0).
+        lookupPersisted: memoRepoPath
+          ? (taskId) => readTaskThreadId(memoRepoPath, taskId)
+          : undefined,
+        persist: memoRepoPath
+          ? (taskId, threadId) => {
+              void writeTaskThreadId(memoRepoPath, taskId, threadId);
+            }
+          : undefined,
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).

@@ -297,6 +297,19 @@ function resolveDomain(raw: string | undefined): {
   return { key, ...DOMAIN_MAP[key] };
 }
 
+/**
+ * TASK id prefix(KAR/WM/KL/YB/…) → memo 상대 도메인 폴더. DOMAIN_MAP
+ * 단일정본 역인덱스(평행정의0 — agent-thread-store 가 TASK 파일 위치
+ * 해석에 재사용). 미지 prefix=null. 순수.
+ */
+export function taskFolderForPrefix(prefix: string): string | null {
+  const p = prefix.toUpperCase();
+  for (const v of Object.values(DOMAIN_MAP)) {
+    if (v.prefix === p) return v.folder;
+  }
+  return null;
+}
+
 export function materializedPath(env: NodeJS.ProcessEnv): string {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   return root ? path.join(root, '.claude', 'proposals-materialized.jsonl') : '';
