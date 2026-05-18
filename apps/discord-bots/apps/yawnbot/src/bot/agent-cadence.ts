@@ -1115,7 +1115,8 @@ const lastWorkerStatus = new Map<string, string>();
  * = 스킨 아바타+coreLabel sendAsSkin). voice 실패=raw 폴백(여전히 스킨
  * 정체로 발화). speak 폴백(미설정)=notify 평문(가용성 우선).
  */
-async function voicedWorkerSpeak(
+// KAR-079: 테스트 seam — footer spoiler/budget 회귀 직접 검증용 export.
+export async function voicedWorkerSpeak(
   coreId: string,
   status: string,
   speak: CoreSpeakFn,
@@ -1141,7 +1142,22 @@ async function voicedWorkerSpeak(
     // 사실을 못 지우게 raw status 핵심을 *항상* footer 로 동봉 →
     // voicing drift 해도 ground-truth 가시·감사가능. voice 실패면
     // raw 자체라 footer 불요.
-    if (v) line = `${v.slice(0, 1500)}\n· 원문: ${status.replace(/\s+/g, ' ').slice(0, 200)}`;
+    // KAR-079: 평소 채팅 가독성 위해 원문을 Discord spoiler(||..||)로
+    // 접고(클릭 시 펼침), 200자 하드컷 → Discord 2000자 한계 내 budget
+    // 기반으로 완화(펼치면 거의 전문). status 내 '|' 는 spoiler 조기
+    // 종료 막게 '¦'(U+00A6) 치환. sendAsSkin 은 content 무절단 →
+    // 우리가 ceiling 강제 안 하면 초과분이 throw→메시지 무손실 소실.
+    if (v) {
+      const voiced = v.slice(0, 1200);
+      const RAW_HARD = 1500; // 원문 절대 상한 (극단 보고 방지)
+      const overhead = 24; // "\n· 원문: ||" + "||" + 안전 마진
+      const rawBudget = Math.min(RAW_HARD, 1900 - voiced.length - overhead);
+      const raw = status
+        .replace(/\s+/g, ' ')
+        .replace(/\|/g, '¦')
+        .slice(0, Math.max(0, rawBudget));
+      line = `${voiced}\n· 원문: ||${raw}||`;
+    }
   } catch {
     /* voice 실패 = raw status 그대로 (스킨 정체로는 여전히 발화) */
   }

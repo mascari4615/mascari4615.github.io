@@ -14,6 +14,7 @@ import {
   armKill,
   disarmKill,
   resetWorkerStatus,
+  voicedWorkerSpeak,
   type WorkerCore,
 } from './agent-cadence';
 import type { CoreDef } from '../services/agent-core';
@@ -272,5 +273,65 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       listWorkers: () => [W],
     });
     expect(r).toBe('no-memo-root');
+  });
+});
+
+// KAR-079: 원문 footer = Discord spoiler + budget 완화 회귀.
+// 날조 가드(KL-061) 불변: voiced 가 사실 못 지우게 raw ground-truth 동봉.
+describe('voicedWorkerSpeak — 원문 footer spoiler/budget (KAR-079)', () => {
+  beforeEach(() => resetWorkerStatus());
+
+  const capture = () => {
+    const lines: string[] = [];
+    const speak = async (_id: string, text: string) => {
+      lines.push(text);
+      return true;
+    };
+    return { lines, speak };
+  };
+
+  it('voiced 성공 → 원문이 Discord spoiler(||..||)로 감싸짐 + 200자 하드컷 폐기', async () => {
+    const { lines, speak } = capture();
+    const longStatus = 'WmWorker ▶ TASK-WM-010-A ' + 'x'.repeat(800);
+    await voicedWorkerSpeak('c1', longStatus, speak, async () => 'voiced 보고');
+    const out = lines[0];
+    expect(out).toContain('· 원문: ||');
+    expect(out.endsWith('||')).toBe(true);
+    // 200자 하드컷 폐기 — spoiler 안 raw 가 옛 상한(200) 초과
+    const raw = out.slice(out.indexOf('||') + 2, out.lastIndexOf('||'));
+    expect(raw.length).toBeGreaterThan(200);
+  });
+
+  it('Discord 2000자 한계 — 극단 길이 status 도 총길이 ≤ 2000', async () => {
+    const { lines, speak } = capture();
+    const huge = 'A'.repeat(9000);
+    await voicedWorkerSpeak('c1', huge, speak, async () => 'B'.repeat(3000));
+    expect(lines[0].length).toBeLessThanOrEqual(2000);
+  });
+
+  it("status 내 '|' 는 '¦' 치환 → spoiler 조기종료 방지", async () => {
+    const { lines, speak } = capture();
+    await voicedWorkerSpeak('c1', 'a||b|c 보고', speak, async () => 'v');
+    const out = lines[0];
+    const raw = out.slice(out.indexOf('||') + 2, out.lastIndexOf('||'));
+    expect(raw).not.toContain('|');
+    expect(raw).toContain('¦');
+  });
+
+  it('voice 실패 → raw status 폴백 (스포일러 X, 날조 가드 불요 경로)', async () => {
+    const { lines, speak } = capture();
+    await voicedWorkerSpeak('c1', 'raw 그대로 보고', speak, async () => {
+      throw new Error('voice down');
+    });
+    expect(lines[0]).toBe('raw 그대로 보고');
+    expect(lines[0]).not.toContain('||');
+  });
+
+  it('동일 status 연속 → dedupe (speak 1회)', async () => {
+    const { lines, speak } = capture();
+    const v = async () => 'voiced';
+    await voicedWorkerSpeak('c1', '같은 보고', speak, v);
+    await voicedWorkerSpeak('c1', '같은 보고', speak, v);
+    expect(lines.length).toBe(1);
   });
 });
