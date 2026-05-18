@@ -24,6 +24,7 @@ import {
   workerWorktreeDir,
 } from './agent-worker-repo';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
+import { updateDashboard } from './team-dashboard';
 import {
   loadPortfolio,
   formatPortfolioBlock,
@@ -1641,6 +1642,42 @@ export async function runCadenceTickOnce(
     if (hb) gov.notify(hb);
   } catch {
     /* 하트비트 실패 = tick 비차단 */
+  }
+  // TASK-KAR-077: 현황 대시보드 갱신 (전용 채널 2 메시지 edit-in-place).
+  // 비차단·비-fatal. 큐 = code-worker repo 라우팅(KAR-075) 기준 claimable.
+  try {
+    const nowKst = (ms: number): string =>
+      new Date(ms + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
+    const qspec: [string, string, string][] = [
+      ['KL', 'Mascari4615.github.io', 'KL→io'],
+      ['WM', 'WitchMendokusai', 'WM'],
+      ['KAR', 'Mascari4615.github.io', 'KAR→io'],
+    ];
+    const queue = memoRoot
+      ? qspec.map(([dom, repo, label]) => {
+          try {
+            const out = runMemoScript(memoRoot, 'task-queue.mjs', [
+              '--json',
+              '--domain',
+              dom,
+              '--repo',
+              repo,
+            ]).out;
+            return { repo: label, count: JSON.parse(out).count ?? 0 };
+          } catch {
+            return { repo: label, count: 0 };
+          }
+        })
+      : [];
+    await updateDashboard(env, {
+      atKST: nowKst(Date.now()),
+      lastTickKST: nowKst(Date.now()),
+      tickSummary: r,
+      queue,
+      alive: true,
+    });
+  } catch {
+    /* 대시보드 실패 = tick 비차단 (process.md 백그라운드 정합) */
   }
   return r;
 }
