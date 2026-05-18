@@ -420,6 +420,8 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // KAR-018-THR: TASK frontmatter `discord_thread` 영속 (재기동 내성).
+        memoRoot: memoRepoPath || null,
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).

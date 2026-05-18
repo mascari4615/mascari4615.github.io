@@ -329,10 +329,21 @@ export async function handleProposalReaction(
     if (decision === 'approved') {
       await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
       const desc = materializedDesc(env, entry.id);
+      // KAR-018-THR §흡수(B-1): 승인 ≠ active ≠ 적용 = 3단계. 이전 카피가
+      // "생성됨"에서 끊겨 *적용/실행됐다* 고 오인시킴(표현 결함). 다음
+      // 단계(사람이 승격해야 진행)를 kind 별로 명시 — 자동실행 X 는 설계.
+      const nextStep =
+        entry.kind === 'task'
+          ? '아직 *실행 전*(seed). 진행하려면 그 TASK 를 ready 로 승격하세요.'
+          : entry.kind === 'objective'
+            ? "아직 *추진 전*('proposed' 후보). objectives 에서 active 로 승격해야 cadence 가 픽업합니다."
+            : '검증·거버넌스 단계로 넘어갔을 뿐 — 적용은 검증 통과+추가 승인 후입니다.';
       result = desc
-        ? `**${desc}** 생성됨`
-        : '거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음)';
-      await post(`✅ **승인 완료** — ${result}`);
+        ? `**${desc}** 생성됨 — ${nextStep}`
+        : `거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음). ${nextStep}`;
+      await post(
+        `✅ **승인 접수·기록 완료** (= 1단계). ${result}`,
+      );
     } else {
       result = '거절됨 — 아무것도 만들지 않았습니다';
       await post(`❌ **거절 처리됨** — 아무것도 만들지 않았습니다.`);
