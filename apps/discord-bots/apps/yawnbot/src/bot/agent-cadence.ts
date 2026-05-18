@@ -1189,8 +1189,18 @@ export async function runWorkerConsumerOnce(
     // 워커 루프 순차라 process.env 변경 레이스 0. worktree=ephemeral
     // (finally cleanup)이라 URL 내 토큰 잔존 0.
     if (wt) {
+      // KAR-018-Y: 도메인별 push 자격. wm-worker→Witch-Mendokusai 는
+      // github.io-scope PAT_FOR_AUTO_MERGE 로 403(별 repo) → WM_GITHUB_PAT
+      // 우선(사용자 발급·등록 시). 미설정이면 기존 폴백(App→GH_TOKEN)
+      // = push 403 정직보고(현 동작, 회귀0 — additive). 비-WM(kar/kl
+      // →github.io)은 기존 그대로(App→GH_TOKEN=PAT_FOR_AUTO_MERGE).
+      const wmTok =
+        w.coreId === 'wm-worker' ? env.WM_GITHUB_PAT?.trim() || '' : '';
       const tok =
-        (await getInstallationToken(env)) || env.GH_TOKEN?.trim() || '';
+        wmTok ||
+        (await getInstallationToken(env)) ||
+        env.GH_TOKEN?.trim() ||
+        '';
       if (tok) {
         try {
           const url = execSync(

@@ -156,12 +156,16 @@ jobs:
           YB_PROD_GH_TOKEN: ${{ secrets.PAT_FOR_AUTO_MERGE }}
           YB_PROD_GH_APP_ID: ${{ secrets.GH_APP_ID }}
           YB_PROD_GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          # KAR-018-Y: wm-worker → Witch-Mendokusai push 자격(별 repo,
+          # PAT_FOR_AUTO_MERGE=github.io-scope 라 403). 사용자 발급·등록
+          # 시 wm-worker 가 우선 사용. 미등록=빈값→기존 폴백(현 동작·회귀0).
+          YB_PROD_WM_GITHUB_PAT: ${{ secrets.WM_GITHUB_PAT }}
         run: |
           $ErrorActionPreference = 'Stop'
 
           # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
