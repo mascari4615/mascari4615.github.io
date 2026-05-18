@@ -10,11 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  channelIdFor,
-  primaryGuildId,
-  provisionInstanceLabel,
-} from '../services/channel-provision';
+import { channelIdFor } from '../services/channel-provision';
 
 const PKG_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -176,9 +172,14 @@ export function renderDetailed(s: DashboardSnapshot): DashEmbed {
 // ── IO: 채널 fetch·edit·ID 영속 ────────────────────────────────────────
 /** main.ts 가 discord client 로 구현 주입(setCoreSpeak 동형). embed JSON
  *  하나를 ensure(없으면 send/있으면 edit)하고 그 메시지 ID 반환. */
+// panel = 'compact' | 'detailed'. sink 은 messageId 없거나 무효면 채널
+// 최근 메시지서 *이 패널의 봇 기존 대시보드 메시지*를 marker 로 찾아 edit
+// (파일 state 가 deploy git-clean 으로 소실돼도 self-heal — 메모리
+// feedback_yawnbot_runtime_state_gitignore_clean_trap). 새 전송은 최후.
 export type DashboardSink = (
   channelId: string,
   messageId: string | null,
+  panel: 'compact' | 'detailed',
   embed: DashEmbed,
 ) => Promise<string | null>;
 
@@ -192,34 +193,35 @@ interface DashState {
   detailedId?: string;
 }
 
-function statePath(env: NodeJS.ProcessEnv): string | null {
-  const gid = primaryGuildId(env);
-  if (!gid) return null;
-  return path.join(
-    PKG_ROOT,
-    'data',
-    `dashboard-state.${gid}.${provisionInstanceLabel(env)}.json`,
-  );
-}
+// 단일 파일 + channelId 키 — primaryGuildId 의존 제거(guild-null·label
+// drift 무관). `*-state.json` = 기존 gitignore 패턴 매칭. 단 deploy
+// git-clean 으로 소실 가능 → sink self-discovery 가 정합성 보장(영속은
+// fast-path 일 뿐). 정본 = TASK-KAR-077.
+const STATE_FILE = path.join(PKG_ROOT, 'data', 'dashboard-state.json');
 
-function loadState(env: NodeJS.ProcessEnv): DashState {
-  const p = statePath(env);
-  if (!p) return {};
+function loadState(channelId: string): DashState {
   try {
-    const raw = JSON.parse(fs.readFileSync(p, 'utf-8'));
-    return raw && typeof raw === 'object' ? raw : {};
+    const raw = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+    const v = raw?.[channelId];
+    return v && typeof v === 'object' ? v : {};
   } catch {
     return {};
   }
 }
 
-function saveState(env: NodeJS.ProcessEnv, st: DashState): void {
-  const p = statePath(env);
-  if (!p) return;
+function saveState(channelId: string, st: DashState): void {
   try {
-    fs.writeFileSync(p, JSON.stringify(st, null, 2));
+    let all: Record<string, DashState> = {};
+    try {
+      const raw = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+      if (raw && typeof raw === 'object') all = raw;
+    } catch {
+      /* 첫 쓰기 */
+    }
+    all[channelId] = st;
+    fs.writeFileSync(STATE_FILE, JSON.stringify(all, null, 2));
   } catch {
-    /* 영속 실패 = 다음 틱 새 메시지(중복 1회) — 비-fatal */
+    /* 영속 실패 = sink self-discovery 가 커버 — 비-fatal */
   }
 }
 
@@ -231,10 +233,10 @@ export async function updateDashboard(
   if (!sink) return 'skip';
   const cid = channelIdFor('dashboard', env);
   if (!cid) return 'skip';
-  const st = loadState(env);
+  const st = loadState(cid);
   let ok = 0;
   try {
-    const c = await sink(cid, st.compactId ?? null, renderCompact(snap));
+    const c = await sink(cid, st.compactId ?? null, 'compact', renderCompact(snap));
     if (c) {
       st.compactId = c;
       ok++;
@@ -243,7 +245,7 @@ export async function updateDashboard(
     /* 비-fatal */
   }
   try {
-    const d = await sink(cid, st.detailedId ?? null, renderDetailed(snap));
+    const d = await sink(cid, st.detailedId ?? null, 'detailed', renderDetailed(snap));
     if (d) {
       st.detailedId = d;
       ok++;
@@ -251,6 +253,6 @@ export async function updateDashboard(
   } catch {
     /* 비-fatal */
   }
-  saveState(env, st);
+  saveState(cid, st);
   return ok === 2 ? 'ok' : ok === 0 ? 'skip' : 'partial';
 }
