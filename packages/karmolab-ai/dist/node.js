@@ -365,6 +365,9 @@ async function generateClaudeCliText(opts) {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 windowsHide: true,
                 ...(opts.cwd ? { cwd: opts.cwd } : {}),
+                // KAR-018-P: env 미전달=상속(불변) / 전달=이 자식만 격리 오버레이
+                // (전역 process.env 변이 0 → 동시 워커 자격 비교차오염).
+                ...(opts.env ? { env: { ...process.env, ...opts.env } } : {}),
             });
             let stdout = '';
             let stderr = '';

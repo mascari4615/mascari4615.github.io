@@ -97,6 +97,12 @@ export interface Tier3Request {
    * cadence tier3) = 비-agentic 텍스트 생성(기존 동작 불변). KAR-018-Y.
    */
   repoCwd?: string;
+  /**
+   * per-spawn 자식 환경변수 오버레이 (KAR-018-P). 워커별 push 자격
+   * (GH_TOKEN 등)을 *전역 process.env 변이 없이* 이 spawn 에만 주입 →
+   * 동시 워커 자격 비교차오염(직렬화 강제 결합 제거). 미지정 = 상속(불변).
+   */
+  childEnv?: Record<string, string>;
 }
 
 export type Tier3Status =
