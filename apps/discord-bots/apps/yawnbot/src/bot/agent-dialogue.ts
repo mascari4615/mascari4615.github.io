@@ -150,3 +150,192 @@ export function isDialoguePass(text: string): boolean {
   const t = (text || '').trim();
   return t.length === 0 || /^pass[.!]?$/i.test(t);
 }
+
+// ═══ LT-3: 다중턴 숙의 엔진 (TASK-KAR-018-LT 기둥2) ═══
+// ADR: 노이즈 통제 = 입막음(단일턴·PASS gag)이 아니라 *수렴 압력*.
+// 모든 턴은 결정-상태를 전진시켜야 하고, 안 움직이는 턴만 폐기.
+// PROPOSE(들어온 발화) → CHALLENGE(피어: 구체 리스크/대안/근거endorse,
+// 맨"좋다" 폐기) → REFINE(제안자 응답) → CONVERGE(합성=결정). 바운드
+// 초과 = escalate(사용자). 순수·결정적(누가·어느 phase) + LLM 내용 분리.
+
+export type DeliberationPhase = 'challenge' | 'refine' | 'converge';
+
+/** 숙의 thread 1턴 기록 (LLM 생성 내용 + 누가·어느 phase). */
+export interface DeliberationTurnRec {
+  coreId: string;
+  phase: DeliberationPhase;
+  /** 그 턴 LLM 출력(요지). */
+  text: string;
+}
+
+export type ReplyClass = 'substantive' | 'bare-agree' | 'converge' | 'empty';
+
+const AGREE_ONLY =
+  /^(?:[\s.!~👍✅👌🙆]|좋(?:다|아요?|네요?|습니다)|동의(?:합?니다|해요|요)?|찬성(?:합?니다|요)?|네{1,2}|그렇(?:다|네요?|죠)|맞(?:다|아요?|네요?|습니다)|괜찮(?:다|아요?|네요?|습니다)|ok(?:ay)?|lgtm|sounds good|agree[d]?|sure|좋은\s*생각|굿)+$/i;
+
+const CONVERGE_MARK =
+  /(결정\s*[:：]|채택|수정\s*채택|반려|기각|escalat|사용자\s*(판단|결정)\s*(필요)?|보류 결정)/i;
+
+/**
+ * 응답의 *실질성* 분류 (순수·결정적). bare-agree = 결정 미전진 →
+ * 수렴 압력상 "이의 없음"으로 흡수(무한 X). substantive = 토론 전진.
+ * converge = 결정 신호. empty/PASS = 무발화.
+ */
+export function classifyDeliberationReply(text: string): ReplyClass {
+  const t = (text || '').trim();
+  if (isDialoguePass(t)) return 'empty';
+  if (CONVERGE_MARK.test(t)) return 'converge';
+  // 짧고(≤40자) 내용이 동의어뿐 = 깡통 동의 (D1 그 증상).
+  if (t.length <= 40 && AGREE_ONLY.test(t.replace(/\s+/g, ''))) {
+    return 'bare-agree';
+  }
+  return 'substantive';
+}
+
+/** 숙의 verdict (converge 턴 텍스트 → 결정·결정적 파싱). */
+export type DeliberationVerdict =
+  | 'adopt'
+  | 'adopt-mods'
+  | 'reject'
+  | 'escalate';
+
+export function parseVerdict(convergeText: string): DeliberationVerdict {
+  const t = (convergeText || '').toLowerCase();
+  if (/사용자\s*(판단|결정)|escalat/.test(t)) return 'escalate';
+  if (/반려|기각|reject/.test(t)) return 'reject';
+  if (/수정\s*채택|adopt-mods|보완\s*채택/.test(t)) return 'adopt-mods';
+  if (/채택|adopt|승인/.test(t)) return 'adopt';
+  return 'escalate'; // 불명확 = 사람에게 (날조 0)
+}
+
+export interface DeliberationState {
+  speakerCoreId: string;
+  peerCoreId: string;
+  turns: DeliberationTurnRec[];
+  /** 총 턴 상한 (체인깊이/예산 envelope — 내용 제약 X). */
+  cap: number;
+}
+
+export type DeliberationStep =
+  | { kind: 'turn'; phase: DeliberationPhase; speakerCoreId: string }
+  | { kind: 'done'; verdict: DeliberationVerdict; reason: string };
+
+/**
+ * 다음 숙의 스텝 (순수·결정적). PROPOSE 는 이미 발생(latest proposal)인
+ * 전제 — 첫 스텝 = CHALLENGE(피어). 흐름:
+ *  · turns 0           → challenge(peer)
+ *  · challenge 실질     → refine(speaker)  / bare-agree·empty → done adopt(이의없음)
+ *  · refine            → converge(peer)
+ *  · converge          → done(parseVerdict)
+ *  · cap 초과(어디서나) → done escalate(바운드 — 입막음 아닌 사람에게)
+ */
+export function nextDeliberationStep(s: DeliberationState): DeliberationStep {
+  const n = s.turns.length;
+  if (n >= Math.max(2, s.cap)) {
+    return { kind: 'done', verdict: 'escalate', reason: `cap(${s.cap}) 도달 — 사용자 판단` };
+  }
+  if (n === 0) {
+    return { kind: 'turn', phase: 'challenge', speakerCoreId: s.peerCoreId };
+  }
+  const last = s.turns[n - 1];
+  if (last.phase === 'challenge') {
+    const c = classifyDeliberationReply(last.text);
+    if (c === 'bare-agree' || c === 'empty') {
+      return { kind: 'done', verdict: 'adopt', reason: '실질 이의 없음 → 채택(수렴)' };
+    }
+    if (c === 'converge') {
+      return { kind: 'done', verdict: parseVerdict(last.text), reason: 'challenge 가 즉시 결정' };
+    }
+    return { kind: 'turn', phase: 'refine', speakerCoreId: s.speakerCoreId };
+  }
+  if (last.phase === 'refine') {
+    return { kind: 'turn', phase: 'converge', speakerCoreId: s.peerCoreId };
+  }
+  // last.phase === 'converge'
+  return { kind: 'done', verdict: parseVerdict(last.text), reason: '합성 턴 결정' };
+}
+
+function deliberationHeader(
+  responderId: string,
+  role: string,
+  missionText: string,
+  portfolioBlock: string,
+): string[] {
+  return [
+    `너는 "${responderId}". karmoddrine 에이전트 팀의 동료다.`,
+    role ? `직무: ${role}` : '',
+    '도구·파일 접근 없이 *아래 텍스트만으로* 단일턴 추론(파일 읽기 X).',
+    '· 사장(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
+    '  파일경로 금지. **2~4문장, 만연체 X.** 인사·요약반복 X.',
+    portfolioBlock.trim() ? '' : '',
+    ...(portfolioBlock.trim() ? ['', portfolioBlock.trim()] : []),
+    '',
+    `[미션 정렬 anchor]`,
+    missionText.trim().slice(0, 1200),
+  ].filter((x) => x !== undefined) as string[];
+}
+
+function threadBlock(turns: DeliberationTurnRec[]): string[] {
+  if (turns.length === 0) return [];
+  return [
+    '',
+    '[지금까지의 토론 — 이어서 *전진*시켜라(반복·되돌이 X)]',
+    ...turns.map(
+      (t) => `· (${t.coreId}/${t.phase}) ${t.text.trim().slice(0, 400)}`,
+    ),
+  ];
+}
+
+/**
+ * phase 별 숙의 프롬프트 (순수·바운드). 핵심 = CHALLENGE 가 *맨 동의
+ * 금지*를 강제(D1 직격). REFINE = 제안자 방어/보강. CONVERGE = 결정.
+ */
+export function buildDeliberationPrompt(
+  phase: DeliberationPhase,
+  responder: CoreDef,
+  speakerLabel: string,
+  u: PeerUtterance,
+  state: Pick<DeliberationState, 'turns'>,
+  missionText: string,
+  portfolioBlock = '',
+): string {
+  const head = deliberationHeader(
+    responder.id,
+    responder.role,
+    missionText,
+    portfolioBlock,
+  );
+  const proposalBlock = [
+    '',
+    `[동료 ${speakerLabel} 의 제안]`,
+    u.text.trim().slice(0, 1200),
+  ];
+  const tail = threadBlock(state.turns);
+  const task =
+    phase === 'challenge'
+      ? [
+          '',
+          '[너의 역할 — 동료로서 *진짜 검토* 1턴 (형식적 맞장구 폐기)]',
+          '아래 *셋 중 하나*를 구체적으로:',
+          '① 우려: 이 제안의 *구체 리스크/허점* 1개 — 무엇이·왜 문제인가.',
+          '② 대안: 더 나은 방향 1개 — 왜 그게 나은가.',
+          '③ 근거 있는 찬성: 이게 팀 북극성을 *어떻게* 전진시키는지 +',
+          '   놓친 전제 1개 보강. (그냥 "좋다/동의"만 = 폐기, 무의미.)',
+          '맨 동의·빈말은 출력하지 마라. 할 말 진짜 없으면 정확히 "PASS".',
+        ]
+      : phase === 'refine'
+        ? [
+            '',
+            `[너는 제안자(${speakerLabel}). 동료가 위 우려/대안 제기]`,
+            '그에 *정면 응답* 1턴: 수용해 제안을 보강하거나 / 근거로',
+            '방어하거나 / 대안을 부분 채택. 회피·반복·일반론 X. 구체적으로.',
+          ]
+        : [
+            '',
+            '[종합 — 토론을 *닫아라*. 한 줄 결정 + 한 줄 사유]',
+            '첫 줄 정확히 하나: "결정: 채택" / "결정: 수정 채택 — <무엇>" /',
+            '"결정: 반려 — <왜>" / "결정: 사용자 판단 필요 — <쟁점>".',
+            '둘째 줄 = 평이체 사유 1줄. 그 외 텍스트 금지.',
+          ];
+  return [...head, ...proposalBlock, ...tail, ...task].join('\n');
+}

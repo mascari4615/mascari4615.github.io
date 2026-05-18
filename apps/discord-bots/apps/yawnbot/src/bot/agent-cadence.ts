@@ -63,8 +63,12 @@ import {
 } from '../services/agent-core';
 import {
   decideDialogueTurn,
-  buildDialoguePrompt,
-  isDialoguePass,
+  nextDeliberationStep,
+  buildDeliberationPrompt,
+  classifyDeliberationReply,
+  type DeliberationState,
+  type DeliberationTurnRec,
+  type DeliberationVerdict,
   type PeerUtterance,
 } from './agent-dialogue';
 
@@ -635,91 +639,170 @@ export async function runCoreDialogueOnce(
     domain: latest.domain,
     text: latest.text,
   };
-  const cap = Number(env.TEAM_ROOM_CHAIN_CAP) || 6;
+  // LT-3: 단일턴 라우터 → 다중턴 숙의. decideDialogueTurn 으로 *피어
+  // (도전자)* 1명 결정(기존 라우팅 재사용). 숙의 턴 상한 = chainCap
+  // 안에서 ≤4 (envelope 바운드 — 입막음 X·결과로 바운드, ADR).
+  const chainCap = Number(env.TEAM_ROOM_CHAIN_CAP) || 6;
+  const cap = Math.min(4, Math.max(2, chainCap));
   const turn = decideDialogueTurn(u, cores, { depth: 0, cap });
   if (!turn) {
     markCommented(latest.id); // 응답자 없음 = 매 tick 재평가 X (noise 0)
     return 'dialogue-none';
   }
+  const speaker = cores.find((c) => c.id === speakerCoreId);
+  if (!cores.find((c) => c.id === turn.responderCoreId)) return 'dialogue-none';
+  const speakerLabel = speaker ? coreLabel(speaker) : speakerCoreId;
+  const missionText = deps.missionText ?? readMissionText(env);
+  const portfolioBlock = formatPortfolioBlock(loadPortfolio(memoRoot));
 
   const reserve =
     deps.reserve ?? ((c: string) => reserveBudget(c, `dialogue:${c}`));
-  if (!reserve(turn.responderCoreId)) {
-    appendTrace(env, {
-      ts: new Date().toISOString(),
-      type: 'budget',
-      core: turn.responderCoreId,
-      reason: `dialogue reserve deny (!kill·예산) — ${latest.id} skip`,
-    });
-    return 'dialogue-gated';
-  }
   const cooldown =
-    deps.cooldown ??
-    ((c: string) => checkAndStampCooldown(c, 'dialogue'));
-  if (!cooldown(turn.responderCoreId)) return 'dialogue-cooldown';
-
-  const responder = cores.find((c) => c.id === turn.responderCoreId);
-  const speaker = cores.find((c) => c.id === speakerCoreId);
-  if (!responder) return 'dialogue-none';
-  const speakerLabel = speaker ? coreLabel(speaker) : speakerCoreId;
-  const missionText = deps.missionText ?? readMissionText(env);
-
+    deps.cooldown ?? ((c: string) => checkAndStampCooldown(c, 'dialogue'));
   const generate =
     deps.generate ??
     ((prompt: string) =>
-      // 코어↔코어 대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
-      // KAR-018-Y). claude-cli 페르소나 거부 prod 실증 → Gemini.
+      // 코어↔코어 대화 = Gemini(Vertex 우선→AI Studio 폴백, KAR-018-Y).
       generateAgentText(
         env,
         prompt,
         Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
       ));
-
-  let text = '';
-  try {
-    text = await generate(
-      buildDialoguePrompt(responder, speakerLabel, u, missionText),
-    );
-  } catch (e) {
-    appendTrace(env, {
-      ts: new Date().toISOString(),
-      type: 'budget',
-      core: turn.responderCoreId,
-      reason: `dialogue 생성 실패 — ${e instanceof Error ? e.message : e}`,
-    });
-    return 'dialogue-error';
-  }
-
-  if (isDialoguePass(text)) {
-    markCommented(latest.id);
-    return 'dialogue-pass';
-  }
-
-  const reply = text.trim().slice(0, 1500);
   const speak =
     deps.speak ??
     coreSpeak ??
     (async (cid: string, t: string) => {
-      (deps.notify ?? defaultNotify(env))(`${coreLabel(responder)}: ${t}`);
-      void cid;
+      const c = cores.find((x) => x.id === cid);
+      (deps.notify ?? defaultNotify(env))(
+        `${c ? coreLabel(c) : cid}: ${t}`,
+      );
       return true;
     });
-  await speak(turn.responderCoreId, reply);
+  const coreOf = (id: string): CoreDef | undefined =>
+    cores.find((c) => c.id === id);
+
+  const state: DeliberationState = {
+    speakerCoreId,
+    peerCoreId: turn.responderCoreId,
+    turns: [] as DeliberationTurnRec[],
+    cap,
+  };
+  let verdict: DeliberationVerdict = 'escalate';
+  let verdictReason = '';
+  let spokeTurns = 0;
+
+  for (;;) {
+    const step = nextDeliberationStep(state);
+    if (step.kind === 'done') {
+      verdict = step.verdict;
+      verdictReason = step.reason;
+      break;
+    }
+    if (isKilled()) {
+      verdict = 'escalate';
+      verdictReason = 'kill 중단 — 사용자 판단';
+      break;
+    }
+    const sp = step.speakerCoreId;
+    const first = state.turns.length === 0;
+    // 예산·쿨다운: *첫 턴* deny = 기존 가드 계약 보존(회귀). 이후
+    // 턴 deny = 루프 정상 종료(바운드·graceful, 입막음 X).
+    if (!reserve(sp)) {
+      if (first) {
+        appendTrace(env, {
+          ts: new Date().toISOString(),
+          type: 'budget',
+          core: sp,
+          reason: `dialogue reserve deny (!kill·예산) — ${latest.id} skip`,
+        });
+        return 'dialogue-gated';
+      }
+      verdict = 'escalate';
+      verdictReason = `예산 소진(${sp}) — 토론 중단·사용자 판단`;
+      break;
+    }
+    if (!cooldown(sp)) {
+      if (first) return 'dialogue-cooldown';
+      verdict = 'escalate';
+      verdictReason = `쿨다운(${sp}) — 토론 중단`;
+      break;
+    }
+    const spCore = coreOf(sp);
+    if (!spCore) break;
+
+    let text = '';
+    try {
+      text = await generate(
+        buildDeliberationPrompt(
+          step.phase,
+          spCore,
+          step.phase === 'refine' ? coreLabel(coreOf(state.peerCoreId)!) : speakerLabel,
+          u,
+          state,
+          missionText,
+          portfolioBlock,
+        ),
+      );
+    } catch (e) {
+      if (first) {
+        appendTrace(env, {
+          ts: new Date().toISOString(),
+          type: 'budget',
+          core: sp,
+          reason: `dialogue 생성 실패 — ${e instanceof Error ? e.message : e}`,
+        });
+        return 'dialogue-error';
+      }
+      verdict = 'escalate';
+      verdictReason = '생성 실패 — 토론 중단';
+      break;
+    }
+
+    const cls = classifyDeliberationReply(text);
+    // 첫 challenge 가 빈/PASS = 기존 PASS 계약 보존 (speak X·dedupe).
+    if (first && step.phase === 'challenge' && cls === 'empty') {
+      markCommented(latest.id);
+      return 'dialogue-pass';
+    }
+    const reply = text.trim().slice(0, 1500);
+    state.turns.push({ coreId: sp, phase: step.phase, text: reply });
+    await speak(sp, reply);
+    spokeTurns += 1;
+    appendCoreMemory(memoRoot, sp, {
+      session: 'cadence',
+      type: step.phase === 'converge' ? 'decision' : 'insight',
+      topic: `team-deliberation:${latest.id}`,
+      summary: `[${step.phase}] ${speakerLabel} 제안 토론: ${reply.slice(0, 180)}`,
+    });
+  }
+
+  // 수렴 턴이 결정을 이미 말한 경우 외(bare-agree/escalate/cap) =
+  // #team-bus 에 1줄 결정 명시(사람 팔로업 — escalate=사용자 호출).
+  const lastPhase = state.turns[state.turns.length - 1]?.phase;
+  if (lastPhase !== 'converge') {
+    const vk =
+      verdict === 'adopt'
+        ? '채택 (실질 이의 없음)'
+        : verdict === 'adopt-mods'
+          ? '수정 채택'
+          : verdict === 'reject'
+            ? '반려'
+            : '⚠ 사용자 판단 필요';
+    await speak(
+      state.peerCoreId,
+      `결정: ${vk} — ${verdictReason} (제안 ${latest.id})`,
+    );
+  }
 
   appendTrace(env, {
     ts: new Date().toISOString(),
     type: 'drift',
-    core: turn.responderCoreId,
-    reason: `#team-bus 코어대화: ${turn.reason} → "${reply.slice(0, 80)}"`,
-  });
-  appendCoreMemory(memoRoot, turn.responderCoreId, {
-    session: 'cadence',
-    type: 'insight',
-    topic: 'team-dialogue',
-    summary: `${speakerLabel} 제안(${latest.id})에 동료로 응답: ${reply.slice(0, 200)}`,
+    core: state.peerCoreId,
+    reason: `#team-bus 숙의 ${state.turns.length}턴(${verdict}) — ${verdictReason} [${latest.id}]`,
   });
   markCommented(latest.id);
-  return `dialogue:${turn.responderCoreId}`;
+  if (spokeTurns === 0) return 'dialogue-none';
+  return `deliberation:${state.turns.length}:${verdict}`;
 }
 
 // ── ⑦(2) 소비자 워커 cadence (KAR-018-X, slot A) ────────────
