@@ -124,6 +124,71 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(spoke.some((t) => t.includes('결정: 채택'))).toBe(true);
   });
 
+  it('LT-8 수정 채택 → 합의 수정안이 *새 카드*로 게시 (사람 승인 게이트 불변)', async () => {
+    writeProposal('p1', { title: 'WM 던전망', body: '원안 본문', domain: 'WM' });
+    const spoke: string[] = [];
+    const r = await runCoreDialogueOnce(env(), {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async (prompt: string) =>
+        prompt.includes('토론을 *닫아라*')
+          ? '결정: 수정 채택 — 입력검증 가드를 먼저 추가\n그게 더 안전.'
+          : prompt.includes('정면 응답')
+            ? '가드 먼저 넣겠습니다.'
+            : '우려: 검증 빠지면 깨짐. 대안=가드 선행.',
+      speak: async (_c: string, t: string) => {
+        spoke.push(t);
+        return true;
+      },
+    });
+    expect(r).toBe('deliberation:3:adopt-mods');
+    // 팀이 새 카드 안내 발화 (D3 미세 재발 근본 — 원 카드 영속 X)
+    expect(spoke.some((t) => t.includes('팀 수정안을 새 카드로'))).toBe(true);
+    // proposals.jsonl 에 *새* 엔벨로프(수정안) 추가 — 원 p1 그대로 + 신규
+    const lines = fs
+      .readFileSync(path.join(root, '.claude', 'proposals.jsonl'), 'utf-8')
+      .trim()
+      .split(/\r?\n/)
+      .map((l) => JSON.parse(l));
+    expect(lines.length).toBe(2); // 원안 + 수정안 새 카드
+    const mod = lines[1];
+    expect(mod.id).not.toBe('p1'); // 새 pid (payload 변화)
+    expect(String(mod.envelope.payload.body)).toContain('[팀 수정안]');
+    expect(String(mod.envelope.payload.body)).toContain('입력검증 가드');
+    // 원안은 미변경(사람 ✅/❌ 최종권 보존 — verdict 가 승인 대체 X)
+    expect(lines[0].id).toBe('p1');
+    expect(String(lines[0].envelope.payload.body)).toBe('원안 본문');
+  });
+
+  it('LT-8 바운드: 팀-수정 카드는 재숙의 X (영구기관 차단, restart-safe)', async () => {
+    writeProposal('p1', { title: 'WM 던전망', body: '원안', domain: 'WM' });
+    const deps = {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async (prompt: string) =>
+        prompt.includes('토론을 *닫아라*')
+          ? '결정: 수정 채택 — 동일 보강'
+          : prompt.includes('정면 응답')
+            ? '수용'
+            : '우려: x. 대안=y.',
+      speak: async () => true,
+    };
+    expect(await runCoreDialogueOnce(env(), deps)).toBe(
+      'deliberation:3:adopt-mods',
+    );
+    // 새 수정 카드가 latest → in-process dedupe 풀어도 *구조적* 마커
+    // 가드로 재숙의 차단(사람 ✅/❌ 대기). 자기 산출물 무한 재수정 X.
+    resetDialogueDedupe();
+    expect(await runCoreDialogueOnce(env(), deps)).toBe(
+      'dialogue-modified-pending',
+    );
+    const lines = fs
+      .readFileSync(path.join(root, '.claude', 'proposals.jsonl'), 'utf-8')
+      .trim()
+      .split(/\r?\n/);
+    expect(lines.length).toBe(2); // 원안 + 수정안 1개 (재수정 폭주 0)
+  });
+
   it('LT-5 숙의 채택 → team-portfolio progressLog 진전 기록 (D3 측정)', async () => {
     // projectId 단 proposal + 포트폴리오 정본
     fs.writeFileSync(
