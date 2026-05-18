@@ -27,7 +27,7 @@ fn recorder_arc() -> &'static Arc<Mutex<Option<capture::Recorder>>> {
 }
 
 /// `VoiceLoad { model_dir }` — recorder 초기화 + Whisper 모델 백그라운드
-/// 로드 (~3.1GB). model_dir = 메인이 resolve 해 주입 (결정 #3). 이미 활성이면
+/// 로드. model_dir = 메인이 resolve 해 주입 (결정 #3). 이미 활성이면
 /// recorder 는 no-op, 모델 로드는 transcribe::load 가 중복 가드.
 pub fn load(model_dir: PathBuf) -> Result<(), String> {
     {
@@ -94,7 +94,7 @@ pub fn status() -> (bool, bool) {
     (transcribe::is_loaded(), transcribe::is_loading())
 }
 
-/// `VoiceUnload` — Whisper 모델 해제 (~3.1GB 반환) + recorder 종료.
+/// `VoiceUnload` — Whisper 모델 해제 (RAM 반환) + recorder 종료.
 pub fn unload() {
     transcribe::unload();
     if let Ok(mut g) = recorder_arc().lock() {
