@@ -64,7 +64,10 @@ KAKAO_EXPORT_WATCH_DIR=
 # 실 throttle = governance 예산엔진(상한 시 producer-gated, 타이머 X) +
 # dialogue 제안당 dedupe + heartbeat 의미활동만 → 짧아도 스팸·폭주 X.
 # 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
-AGENT_CADENCE_ENABLED=1
+# [KAR-076 2026-05-18] 일시정지 — 사용자 지시(클린·안정화 패스 중 워커
+# churn·orphan 브랜치 양산 중단). 폐기 아님(이벤트 경로 live, 팀=상위호환
+# 비전 유지). 안정화·자동화 완료 후 =1 로 되돌려 재가동(가역).
+AGENT_CADENCE_ENABLED=0
 # 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
 # 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
 # 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면
