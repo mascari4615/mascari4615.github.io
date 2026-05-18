@@ -1547,6 +1547,11 @@ export function summarizeTick(r: string, anchor = ''): string | null {
 
 let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
 let workerTimer: ReturnType<typeof setTimeout> | null = null;
+// KAR-077: 대시보드 = 팀 작업주기와 분리된 경량 독립 타이머(스캔3+edit2,
+// LLM·워커 X). 현황 "바로바로" = 짧은 주기로 자체 갱신(에이전트틱 불요).
+let dashboardTimer: ReturnType<typeof setTimeout> | null = null;
+/** 직전 cadence tick 요약 — 대시보드 독립 타이머가 마지막 활동 표기용. */
+let lastTickSummary = '';
 
 /**
  * 자율 cadence 시작 — **default ON**. `AGENT_CADENCE_ENABLED=0` 으로 명시 시만 OFF.
@@ -1678,6 +1683,7 @@ export async function runCadenceTickOnce(
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);
+  lastTickSummary = r; // KAR-077: 독립 대시보드 타이머가 최신 활동 표기
   try {
     // LT-5: 포트폴리오 앵커 = 최대 weight 프로젝트·현 목표. 하트비트가
     // "한 바퀴"(무상태) → "프로젝트 X 목표 Y 전진"(D2 가시 완결).
@@ -1749,10 +1755,22 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     }
     workerTimer = setTimeout(workerTick, workerMs);
   };
+  // KAR-077: 대시보드 독립 타이머 — 팀 작업주기 무관, 짧은 주기 자체 갱신.
+  // 부팅 직후 1회 즉시(재기동→수초 내 현황, 5~15분 대기 X) + 이후 주기.
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  const dashMs = Number(env.AGENT_DASHBOARD_INTERVAL_MS) || 120_000;
+  const dashTick = async (): Promise<void> => {
+    if (!isKilled()) {
+      await refreshDashboard(env, memoRoot, lastTickSummary || '(대기)');
+    }
+    dashboardTimer = setTimeout(dashTick, dashMs);
+  };
   cadenceTimer = setTimeout(tick, intervalMs);
   workerTimer = setTimeout(workerTick, workerMs);
+  void refreshDashboard(env, memoRoot, lastTickSummary || '(부팅)'); // 즉시
+  dashboardTimer = setTimeout(dashTick, dashMs);
   console.warn(
-    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커소화 ${workerMs}ms 분리) — sub-D 게이트 활성.`,
+    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms 분리, 부팅 즉시 1회) — sub-D 게이트 활성.`,
   );
 }
 
@@ -1764,5 +1782,9 @@ export function stopAgentCadence(): void {
   if (workerTimer) {
     clearTimeout(workerTimer);
     workerTimer = null;
+  }
+  if (dashboardTimer) {
+    clearTimeout(dashboardTimer);
+    dashboardTimer = null;
   }
 }
