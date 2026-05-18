@@ -113,7 +113,7 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     expect(r).toBe('wm-worker:idle');
   });
 
-  it('idle 가시화: 첫 idle 은 #team-bus 알림, 동일 반복은 dedupe (KAR-018-Y)', async () => {
+  it('idle = trace-only, #team-bus 발화 X — 실 활동만 발화 (KAR-075)', async () => {
     const notified: string[] = [];
     const deps = {
       listWorkers: () => [W],
@@ -122,13 +122,14 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
         notified.push(m);
       },
     };
-    await runWorkerConsumerOnce(env(), deps); // 1회: 알림
-    await runWorkerConsumerOnce(env(), deps); // 2회: 동일 idle = dedupe
-    await runWorkerConsumerOnce(env(), deps); // 3회: 여전히 dedupe
-    expect(notified).toHaveLength(1);
-    expect(notified[0]).toContain('대기');
-    expect(notified[0]).toContain('WM');
-    // 상태 변화(작업 생김) 시 재알림 — 다른 상태면 dedupe 해제
+    // idle 3회: 비-이벤트 → Discord post 0 (producer-idle-null 정합,
+    // 사용자 "이렇게 말하는 것좀 고쳐봐" — 3워커 '대기·쿨다운' 도배 해소).
+    const r1 = await runWorkerConsumerOnce(env(), deps);
+    await runWorkerConsumerOnce(env(), deps);
+    await runWorkerConsumerOnce(env(), deps);
+    expect(notified).toHaveLength(0); // 스팸 0
+    expect(r1).toContain('idle'); // ground-truth = 반환/trace 에 보존(무손실)
+    // 실 활동(작업 착수)은 여전히 발화 — heartbeat 아닌 의미활동.
     const deps2 = {
       listWorkers: () => [W],
       scan: () => [{ id: 'TASK-WM-9', file: 'f' }],
@@ -139,8 +140,8 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       },
     };
     await runWorkerConsumerOnce(env(), deps2);
-    expect(notified).toHaveLength(2);
-    expect(notified[1]).toContain('TASK-WM-9');
+    expect(notified).toHaveLength(1);
+    expect(notified[0]).toContain('TASK-WM-9');
   });
 
   it('후보→claim ok→spawn done → 보고 + done', async () => {
