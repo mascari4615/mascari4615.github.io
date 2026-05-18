@@ -453,20 +453,22 @@ client.once('clientReady', async () => {
     });
     // TASK-KAR-077: 대시보드 sink — ensure-or-edit 한 메시지, ID 반환.
     // setCoreSpeak 동형(client 주입, agent-cadence ⊥ discord.js).
-    setDashboardSink(async (channelId, messageId, content) => {
+    setDashboardSink(async (channelId, messageId, embed) => {
       try {
         const ch = await client.channels.fetch(channelId).catch(() => null);
         if (!(ch instanceof TextChannel)) return null;
-        const body = content.slice(0, 1990);
+        // DashEmbed = discord.js APIEmbed 호환 JSON (color/author/title/
+        // fields/footer) — EmbedBuilder 불요, embeds 배열 직투입.
+        const payload = { content: '', embeds: [embed as any] };
         if (messageId) {
           try {
-            await ch.messages.edit(messageId, { content: body });
+            await ch.messages.edit(messageId, payload);
             return messageId;
           } catch {
             /* 메시지 삭제됨 → 새로 생성 */
           }
         }
-        const m = await ch.send({ content: body });
+        const m = await ch.send(payload);
         return m.id;
       } catch (e: any) {
         console.error('[Dashboard]', e?.message ?? e);

@@ -1,13 +1,12 @@
 // 에이전트 팀 현황 대시보드 (TASK-KAR-077).
 //
-// 사용자: "대시보드 같은게 있으면 좋을듯 … 메시지 ID 저장해서 계속 수정 …
-// 메시지가 꼭 하나일 필요는 없어". → 전용 #dashboard 채널에 봇이 유지하는
-// 2 메시지(Compact 요약 / Detailed)를 cadence tick 마다 *edit-in-place*.
-// 채널엔 이 둘만 → 스크롤 0, 그것만 보면 현황 즉시.
+// 사용자: "대시보드 … 메시지 ID 저장 계속 수정 … 꼭 하나일 필요 없어"
+// → 전용 #dashboard 채널, 봇이 유지하는 2 메시지 edit-in-place.
+// "좀 꾸며봐" → Discord embed(상태색 accent + 워커 이모지 + 2열 필드 +
+// footer 타임스탬프). 사용자 선택 = 「상태색 + 이모지」.
 //
-// 설계: 순수 렌더(스냅샷→문자열) ⊥ IO(채널 fetch·edit·ID 영속). sink 주입
-// = setCoreSpeak 동형(agent-cadence ⊥ discord.js). 영속 = provisioned-
-// channels 동형 파일(gitignore 파생). 실패 전부 비-fatal(틱 안 막음).
+// 설계: 순수 렌더(스냅샷→embed JSON, discord.js 비의존=테스트가능) ⊥
+// IO(채널 fetch·edit·ID 영속, sink 주입=setCoreSpeak 동형). 실패 비-fatal.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,72 +18,168 @@ import {
 
 const PKG_ROOT = path.resolve(__dirname, '..', '..');
 
+// ── 워커 상태 파싱 (runWorkerConsumerOnce CSV 계약 — 우리 자체 안정 포맷) ──
+// `<core>:idle | cooldown-all | claim-lost | done:<id> | done-no-artifact:
+// <id> | <status>`. 알 수 없는 형태 = graceful fallback.
+export interface WorkerLine {
+  core: string; // 'KAR' | 'KL' | 'WM' | …
+  emoji: string; // 🟢 작업/완료 · ⏳ 대기류 · 🟡 무산출 · 🔴 에러
+  text: string; // '▸ TASK-… 완료' 등
+  kind: 'active' | 'wait' | 'noop' | 'error';
+}
+
+function coreShort(coreId: string): string {
+  const m = /^([a-z]+)-worker$/i.exec(coreId);
+  return (m ? m[1] : coreId).toUpperCase();
+}
+
+export function parseWorkerStates(csv: string | undefined): WorkerLine[] {
+  if (!csv) return [];
+  const out: WorkerLine[] = [];
+  for (const seg of csv.split(',').map((s) => s.trim()).filter(Boolean)) {
+    const i = seg.indexOf(':');
+    if (i < 0) continue;
+    const core = coreShort(seg.slice(0, i));
+    const rest = seg.slice(i + 1);
+    let emoji = '⏳';
+    let text = rest;
+    let kind: WorkerLine['kind'] = 'wait';
+    if (rest === 'idle') text = '대기';
+    else if (rest === 'cooldown-all') {
+      text = '쿨다운 (전 후보 ~30분)';
+    } else if (rest === 'claim-lost') text = '경합 — 재대기';
+    else if (rest.startsWith('done:')) {
+      emoji = '🟢';
+      text = `▸ ${rest.slice(5)} 완료 (push)`;
+      kind = 'active';
+    } else if (rest.startsWith('done-no-artifact:')) {
+      emoji = '🟡';
+      text = `▸ ${rest.slice(17)} 무산출 (쿨다운)`;
+      kind = 'noop';
+    } else {
+      emoji = '🔴';
+      text = `▸ ${rest}`;
+      kind = 'error';
+    }
+    out.push({ core, emoji, text, kind });
+  }
+  return out;
+}
+
+// ── 스냅샷 ──────────────────────────────────────────────────────────────
 export interface DashboardSnapshot {
   atKST: string; // "2026-05-18 18:42"
   lastTickKST: string | null;
-  /** 직전 cadence tick 결과 요약(가공 X — 그대로 표기, 파싱 의존 0). */
-  tickSummary: string;
-  /** repo 별 claimable 큐 수. */
+  tickSummary: string; // 직전 tick 결과(가공 X — 파싱 의존 0)
+  workers: WorkerLine[];
   queue: { repo: string; count: number }[];
-  /** 봇 가동 표식(heartbeat). */
   alive: boolean;
 }
 
-// ── 순수 렌더 (테스트가능, IO 0) ────────────────────────────────────────
-const BAR = '━'.repeat(34);
-
-function fmtQueue(q: { repo: string; count: number }[]): string {
-  if (q.length === 0) return '(미상)';
-  return q.map((x) => `${x.repo} ${x.count}`).join(' · ');
+// ── 순수 렌더 → embed JSON (discord.js APIEmbed 호환) ────────────────────
+export interface DashEmbed {
+  color: number;
+  author?: { name: string };
+  title?: string;
+  description?: string;
+  fields: { name: string; value: string; inline?: boolean }[];
+  footer?: { text: string };
 }
 
-/** Compact — 한눈 요약(채널 위 메시지). */
-export function renderCompact(s: DashboardSnapshot): string {
+const C_GREEN = 0x2ecc71;
+const C_YELLOW = 0xf1c40f;
+const C_RED = 0xe74c3c;
+const C_GREY = 0x95a5a6;
+
+/** 건강색 — red(에러/down) > yellow(전부 대기·큐0) > green(작업/정상). */
+function health(s: DashboardSnapshot): { color: number; tag: string } {
+  if (!s.alive) return { color: C_GREY, tag: '⚪ 미상' };
+  if (s.workers.some((w) => w.kind === 'error'))
+    return { color: C_RED, tag: '🔴 에러' };
   const total = s.queue.reduce((a, b) => a + b.count, 0);
-  return [
-    `🛰 **욘봇 팀 현황** · ${s.atKST} KST ${s.alive ? '· 🟢 가동' : '· ⚪'}`,
-    BAR,
-    `큐(claimable)  ${fmtQueue(s.queue)}  → 합 ${total}`,
-    `직전 틱  ${s.lastTickKST ?? '—'}`,
-    `  ${s.tickSummary.slice(0, 240) || '(유휴)'}`,
-    BAR,
-    `_15분마다 자동 갱신 · 상세 = 아래 메시지_`,
-  ].join('\n');
+  const anyActive = s.workers.some((w) => w.kind === 'active');
+  if (anyActive) return { color: C_GREEN, tag: '🟢 작업중' };
+  if (s.workers.some((w) => w.kind === 'noop'))
+    return { color: C_YELLOW, tag: '🟡 무산출 회전' };
+  if (total === 0) return { color: C_YELLOW, tag: '🟡 큐 빔' };
+  return { color: C_GREEN, tag: '🟢 가동' };
 }
 
-/** Detailed — 깊게(채널 아래 메시지). */
-export function renderDetailed(s: DashboardSnapshot): string {
-  const lines: string[] = [
-    `📋 **욘봇 팀 — 상세** · ${s.atKST} KST`,
-    BAR,
-    '▼ 큐 (claimable, repo 라우팅 KAR-075)',
-  ];
-  if (s.queue.length === 0) lines.push('  (스캔 미상)');
-  else for (const x of s.queue) lines.push(`  ${x.repo.padEnd(22)} ${x.count}`);
-  lines.push(
-    '',
-    '▼ 직전 cadence tick',
-    `  시각  ${s.lastTickKST ?? '—'}`,
-    `  결과  ${s.tickSummary.slice(0, 900) || '(유휴 — 발화/산출 없음)'}`,
-    '',
-    '▼ 시스템',
-    `  봇  ${s.alive ? '🟢 alive' : '⚪ 미상'} · 갱신 ${s.atKST} KST`,
-    BAR,
-    '_idle/cooldown 도배 X (KAR-075) — 현황은 여기로._',
-  );
-  return lines.join('\n');
+function workerBlock(ws: WorkerLine[]): string {
+  if (ws.length === 0) return '_(워커 보고 대기)_';
+  return ws
+    .map((w) => `${w.emoji} \`${w.core.padEnd(3)}\` ${w.text}`)
+    .join('\n')
+    .slice(0, 1000);
+}
+
+/** Compact — 채널 위, 한눈. */
+export function renderCompact(s: DashboardSnapshot): DashEmbed {
+  const h = health(s);
+  const total = s.queue.reduce((a, b) => a + b.count, 0);
+  const q =
+    s.queue.length === 0
+      ? '(미상)'
+      : s.queue.map((x) => `${x.repo} **${x.count}**`).join(' · ');
+  return {
+    color: h.color,
+    author: { name: `🛰 욘봇 팀 · ${h.tag}` },
+    fields: [
+      { name: '워커', value: workerBlock(s.workers), inline: false },
+      { name: '큐 (claimable)', value: `${q}\n합 **${total}**`, inline: true },
+      {
+        name: '직전 틱',
+        value: `${s.lastTickKST ?? '—'}\n${(s.tickSummary || '유휴').slice(0, 180)}`,
+        inline: true,
+      },
+    ],
+    footer: { text: `🔄 15분 자동 갱신 · ${s.atKST} KST · 상세 ↓` },
+  };
+}
+
+/** Detailed — 채널 아래, 깊게. */
+export function renderDetailed(s: DashboardSnapshot): DashEmbed {
+  const h = health(s);
+  const qLines =
+    s.queue.length === 0
+      ? '(스캔 미상)'
+      : s.queue.map((x) => `\`${x.repo.padEnd(8)}\` ${x.count}`).join('\n');
+  return {
+    color: h.color,
+    title: `📋 욘봇 팀 — 상세 · ${h.tag}`,
+    fields: [
+      { name: '워커 상태', value: workerBlock(s.workers), inline: false },
+      {
+        name: '큐 (KAR-075 repo 라우팅)',
+        value: qLines,
+        inline: true,
+      },
+      {
+        name: '시스템',
+        value: `봇 ${s.alive ? '🟢 alive' : '⚪ 미상'}\n갱신 ${s.atKST} KST`,
+        inline: true,
+      },
+      {
+        name: '직전 cadence tick',
+        value:
+          `시각 ${s.lastTickKST ?? '—'}\n` +
+          '```\n' +
+          (s.tickSummary || '유휴 — 발화·산출 없음').slice(0, 850) +
+          '\n```',
+        inline: false,
+      },
+    ],
+    footer: { text: `idle/cooldown 도배 X (KAR-075) — 현황은 여기로` },
+  };
 }
 
 // ── IO: 채널 fetch·edit·ID 영속 ────────────────────────────────────────
-/**
- * 대시보드 sink — 한 메시지를 ensure(없으면 send, 있으면 edit)하고 그
- * 메시지 ID 반환. main.ts 가 discord client 로 구현 주입(setCoreSpeak 동형).
- * 실패 시 null 반환(상위 비-fatal).
- */
+/** main.ts 가 discord client 로 구현 주입(setCoreSpeak 동형). embed JSON
+ *  하나를 ensure(없으면 send/있으면 edit)하고 그 메시지 ID 반환. */
 export type DashboardSink = (
   channelId: string,
   messageId: string | null,
-  content: string,
+  embed: DashEmbed,
 ) => Promise<string | null>;
 
 let sink: DashboardSink | null = null;
@@ -128,10 +223,7 @@ function saveState(env: NodeJS.ProcessEnv, st: DashState): void {
   }
 }
 
-/**
- * 대시보드 갱신 — Compact/Detailed 2 메시지 ensure-or-edit. 채널·sink
- * 미구성/실패 = 조용히 skip(틱 비차단). 정본 = TASK-KAR-077.
- */
+/** Compact/Detailed 2 embed ensure-or-edit. 미구성/실패 = 조용히 skip. */
 export async function updateDashboard(
   env: NodeJS.ProcessEnv,
   snap: DashboardSnapshot,
