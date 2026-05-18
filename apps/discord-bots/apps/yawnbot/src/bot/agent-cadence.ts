@@ -949,6 +949,13 @@ export interface WorkerConsumerDeps {
     taskId: string,
   ) => WorktreeSetup;
   notify?: NotifyFn;
+  /** 워커도 Atlas/Echo 처럼 스킨 정체로 발화 (KAR-018-Y, 사용자
+   * "말 좀 파게 + 스킨"). 기본 = coreSpeak(sendAsSkin: 스킨 아바타
+   * + coreLabel). 미주입·미설정 시 notify 평문 폴백. */
+  speak?: CoreSpeakFn;
+  /** status → 스킨 페르소나 목소리 voicing (기본 = generateAgentText,
+   * 생산자 axis 와 동일 substrate). 실패=원문 폴백(날조 0). */
+  voice?: (prompt: string) => Promise<string>;
   missionText?: string;
 }
 
@@ -963,14 +970,42 @@ export interface WorkerConsumerDeps {
 // 반복은 dedupe* (변화 시에만 — 30분 cadence 라 전이당 1줄=스팸 X,
 // 과거 WM-084 에러 매틱 도배도 동시 해소). per-core 마지막 상태 비교.
 const lastWorkerStatus = new Map<string, string>();
-function noteWorkerStatus(
+/**
+ * 워커 발화 = Atlas/Echo 동형 스킨 정체 + 페르소나 목소리 (KAR-018-Y,
+ * 사용자 "말 좀 파게 + 스킨"). dedupe(동일 raw status 연속 억제) →
+ * voice(스킨 페르소나 1~2문장, *사실 그대로*·날조0) → speak(coreSpeak
+ * = 스킨 아바타+coreLabel sendAsSkin). voice 실패=raw 폴백(여전히 스킨
+ * 정체로 발화). speak 폴백(미설정)=notify 평문(가용성 우선).
+ */
+async function voicedWorkerSpeak(
   coreId: string,
   status: string,
-  notify: NotifyFn,
-): void {
+  speak: CoreSpeakFn,
+  voice: (prompt: string) => Promise<string>,
+): Promise<void> {
   if (lastWorkerStatus.get(coreId) === status) return;
   lastWorkerStatus.set(coreId, status);
-  notify(status);
+  let line = status;
+  try {
+    const prompt = [
+      `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
+      `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
+      `규칙: TASK id·상태·사유·브랜치 등 *사실은 그대로 유지*(왜곡·`,
+      `날조·과장 절대 X). 이모지/말머리 과용 X. 자연스러운 동료 말투.`,
+      ``,
+      `[작업상태]`,
+      status,
+    ].join('\n');
+    const v = (await voice(prompt)).trim();
+    if (v) line = v.slice(0, 1600);
+  } catch {
+    /* voice 실패 = raw status 그대로 (스킨 정체로는 여전히 발화) */
+  }
+  try {
+    await speak(coreId, line);
+  } catch {
+    /* speak 실패가 워커 막지 X */
+  }
 }
 /** 테스트 전용 — 워커 상태 dedupe 리셋 (disarmKill 동형). */
 export function resetWorkerStatus(): void {
@@ -1009,6 +1044,19 @@ export async function runWorkerConsumerOnce(
 
   const thisMachine = env.KAR_MACHINE?.trim() || 'any';
   const notify = deps.notify ?? defaultNotify(env);
+  // 워커 발화 = 스킨 정체(Atlas/Echo 동형). speak: deps→coreSpeak(전역
+  // setCoreSpeak)→notify 평문 폴백. voice: deps→generateAgentText(생산자
+  // 동일 substrate)→실패 빈문자(voicedWorkerSpeak 가 raw 폴백).
+  const speak: CoreSpeakFn =
+    deps.speak ??
+    coreSpeak ??
+    (async (_cid, t) => {
+      notify(t);
+      return true;
+    });
+  const voice =
+    deps.voice ??
+    ((p: string) => generateAgentText(env, p, 20_000).catch(() => ''));
   const missionText = deps.missionText ?? readMissionText(env);
   const t3deps = buildTier3Deps(env);
 
@@ -1054,19 +1102,21 @@ export async function runWorkerConsumerOnce(
     // 다른 후보로 회전. 전부 cooldown 이면 그 사실 명시 idle(무음 X).
     const cands = rawCands.filter((c) => !inNoArtifactCooldown(c.id, tickNow));
     if (rawCands.length === 0) {
-      noteWorkerStatus(
+      await voicedWorkerSpeak(
         w.coreId,
         `${w.label} 🟦 대기 — ${w.domain} 도메인에 지금 맡을 일(claimable TASK) 0 (큐 비었거나 전부 진행중/PR/검토중). 새 일 생기면 자동 착수.`,
-        notify,
+        speak,
+        voice,
       );
       results.push(`${w.coreId}:idle`);
       continue;
     }
     if (cands.length === 0) {
-      noteWorkerStatus(
+      await voicedWorkerSpeak(
         w.coreId,
         `${w.label} 🟦 대기 — ${w.domain} claimable ${rawCands.length} 전부 최근 no-artifact 쿨다운(미푸시/에러 직후 재pick 차단, ~30분). 쿨다운 만료/신규 task 시 자동 재개. (다수=환경/자격 blocker 의심 — 누적보고)`,
-        notify,
+        speak,
+        voice,
       );
       results.push(`${w.coreId}:cooldown-all`);
       continue;
@@ -1079,10 +1129,11 @@ export async function runWorkerConsumerOnce(
       }
     }
     if (!chosen) {
-      noteWorkerStatus(
+      await voicedWorkerSpeak(
         w.coreId,
         `${w.label} ⚠ ${w.domain} 후보 ${cands.length}건 다른 워커가 선점 — 재대기.`,
-        notify,
+        speak,
+        voice,
       );
       results.push(`${w.coreId}:claim-lost`);
       continue;
@@ -1186,19 +1237,21 @@ export async function runWorkerConsumerOnce(
         head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제. 30분 쿨다운(다른 task 회전, 무한 재pick X). ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
         results.push(`${w.coreId}:done-no-artifact:${chosen.id}`);
       }
-      noteWorkerStatus(
+      await voicedWorkerSpeak(
         w.coreId,
         report ? `${head}\n· 보고: ${report}` : head,
-        notify,
+        speak,
+        voice,
       );
     } else {
       release(chosen.id, w.coreId);
       markNoArtifact(chosen.id, tickNow); // 에러 task 즉시 재pick 차단
       const errDetail = (res.error || '').trim().slice(0, 3000);
-      noteWorkerStatus(
+      await voicedWorkerSpeak(
         w.coreId,
         `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
-        notify,
+        speak,
+        voice,
       );
       results.push(`${w.coreId}:${res.status}`);
     }
