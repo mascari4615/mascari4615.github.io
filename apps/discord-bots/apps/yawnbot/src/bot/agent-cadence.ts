@@ -990,14 +990,20 @@ async function voicedWorkerSpeak(
     const prompt = [
       `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
       `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
-      `규칙: TASK id·상태·사유·브랜치 등 *사실은 그대로 유지*(왜곡·`,
-      `날조·과장 절대 X). 이모지/말머리 과용 X. 자연스러운 동료 말투.`,
+      `절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·`,
+      `결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토`,
+      `해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·`,
+      `사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.`,
       ``,
       `[작업상태]`,
       status,
     ].join('\n');
     const v = (await voice(prompt)).trim();
-    if (v) line = v.slice(0, 1600);
+    // 날조 가드(KAR-018-Y, prod KL-061 "수동 PR" 실증): voiced 가
+    // 사실을 못 지우게 raw status 핵심을 *항상* footer 로 동봉 →
+    // voicing drift 해도 ground-truth 가시·감사가능. voice 실패면
+    // raw 자체라 footer 불요.
+    if (v) line = `${v.slice(0, 1500)}\n· 원문: ${status.replace(/\s+/g, ' ').slice(0, 200)}`;
   } catch {
     /* voice 실패 = raw status 그대로 (스킨 정체로는 여전히 발화) */
   }

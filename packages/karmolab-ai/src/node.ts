@@ -449,7 +449,12 @@ export async function generateClaudeCliText(opts: {
 
       child.on('close', (code: number | null) => {
         clearTimeout(timer);
-        if (code === 0 && stdout.trim()) {
+        // KAR-018-Y: agentic 모드(opts.cwd)는 도구로 파일·git 작업 →
+        // stdout prose 가 비어도 exit 0 = 성공(산출물=git 커밋/브랜치,
+        // stdout 아님). prod WM-109 실증: exit0+빈stdout 을 error 로
+        // 오분류해 성공 agentic 실작업이 폐기·쿨다운됐음. text-gen
+        // 모드(cwd 없음)는 빈 stdout=실패 유지(불변).
+        if (code === 0 && (stdout.trim() || opts.cwd)) {
           resolve(stdout.trim());
         } else {
           reject(new Error(`Claude CLI 종료 코드 ${code}: ${stderr.slice(0, 400)}`));
