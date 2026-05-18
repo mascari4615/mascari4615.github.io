@@ -59,4 +59,32 @@ describe('summarizeTick — 의미 활동만 가시화', () => {
       ) ?? '';
     expect(s).not.toMatch(/cadence|governance|drift|seam|§|reserve|tier3/i);
   });
+
+  // ── LT-5: 다중턴 숙의 인식 + 포트폴리오 앵커 ──
+  it('deliberation:<n>:<verdict> → 진짜 토론→결정 가시화', () => {
+    expect(summarizeTick('idle+deliberation:3:adopt')).toContain(
+      '3턴 토론 끝에 — 채택',
+    );
+    expect(summarizeTick('idle+deliberation:4:reject')).toContain('반려');
+    expect(summarizeTick('idle+deliberation:2:adopt-mods')).toContain(
+      '수정 채택',
+    );
+    const esc = summarizeTick('idle+deliberation:4:escalate') ?? '';
+    expect(esc).toContain('사장 판단');
+  });
+  it('deliberation 토큰이 옛 dialogue 정규식에 오매치 X', () => {
+    const s = summarizeTick('idle+deliberation:3:adopt') ?? '';
+    expect(s).not.toContain('한마디 보탬'); // dialogue: 로 잘못 안 잡힘
+  });
+  it('anchor 미지정 = 기존 prefix(회귀0) / 지정 = 포트폴리오 앵커', () => {
+    expect(summarizeTick('idle+deliberation:1:adopt')).toContain(
+      '🛰 팀 한 바퀴',
+    );
+    const a = summarizeTick(
+      'idle+deliberation:1:adopt',
+      '📌 «WM» 목표: HomeInside 허브',
+    );
+    expect(a).toContain('📌 «WM» 목표: HomeInside 허브');
+    expect(a).not.toContain('🛰 팀 한 바퀴');
+  });
 });

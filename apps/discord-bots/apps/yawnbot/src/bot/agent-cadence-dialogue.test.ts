@@ -123,6 +123,48 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(spoke.some((t) => t.includes('결정: 채택'))).toBe(true);
   });
 
+  it('LT-5 숙의 채택 → team-portfolio progressLog 진전 기록 (D3 측정)', async () => {
+    // projectId 단 proposal + 포트폴리오 정본
+    fs.writeFileSync(
+      path.join(root, '.claude', 'team-portfolio.json'),
+      JSON.stringify({
+        projects: [
+          { id: 'wm', title: 'WM', northStar: '팬100', weight: 100, status: 'active', progressLog: [] },
+        ],
+      }),
+      'utf-8',
+    );
+    fs.appendFileSync(
+      path.join(root, '.claude', 'proposals.jsonl'),
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        id: 'pLT5',
+        target: 'task-new',
+        kind: 'task',
+        envelope: {
+          kind: 'task',
+          projectId: 'wm',
+          payload: { title: 'WM 던전 보강', body: 'x', domain: 'WM' },
+        },
+      }) + '\n',
+      'utf-8',
+    );
+    const r = await runCoreDialogueOnce(env(), {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async () => '좋아요', // bare-agree → 즉시 adopt
+      speak: async () => true,
+    });
+    expect(r).toBe('deliberation:1:adopt');
+    const pf = JSON.parse(
+      fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
+    );
+    const wm = pf.projects.find((p: { id: string }) => p.id === 'wm');
+    expect(wm.progressLog).toHaveLength(1);
+    expect(wm.progressLog[0].delta).toContain('채택');
+    expect(wm.progressLog[0].evidence).toContain('pLT5');
+  });
+
   it('예산 deny → dialogue-gated, 생성·speak 호출 X + trace', async () => {
     writeProposal('p1', { title: 'WM 작업', body: 'x', domain: 'WM' });
     let gen = false;
