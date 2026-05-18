@@ -8,6 +8,12 @@ name: Auto Draft PR (KAR-018-Y)
 #   (auto-merge 는 *기존 PR 머지*만 써서 그 갭 미노출). 토큰 scope 확장은
 #   사용자 GitHub 설정(외부) — 대신 Actions GITHUB_TOKEN 이 pull-requests:
 #   write 네이티브 지원 → 워커=push 만(PAT OK), PR=CI 가. 새 secret 0.
+# ⚠ 전제(KAR-077, 2026-05-18 규명): repo/org 설정 "Allow GitHub Actions
+#   to create and approve pull requests" = ON 필수. OFF 시 GITHUB_TOKEN
+#   도 GraphQL "GitHub Actions is not permitted to create or approve
+#   pull requests" 로 *무음 실패*(job 은 success, PR 0) — KAR-032/KL-071
+#   stranded 의 진짜 근원. 사용자 2026-05-18 ON → PR #77 by github-actions
+#   로 ground-truth 검증. 이 토글 OFF 되면 동일 무음 회귀하니 끄지 말 것.
 # 한계(수용): GITHUB_TOKEN 생성 PR 은 anti-recursion 으로 on:pull_request
 #   (verify) 미트리거 → autopilot-graduate 자동머지 보류. 단 PR 자체는
 #   가시·리뷰가능 = 발단 "워커가 실제로 일한다" 충족. verify/graduate
