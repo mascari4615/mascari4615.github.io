@@ -1,6 +1,12 @@
 import type {
+  ChatbotCharactersAPI,
+  ChatbotKarmoImageAPI,
+  ChatbotMarkdownAPI,
+  ChatbotPromptAPI,
+  GeminiImageResult,
   KarmoLabImageBatchAPI,
   KarmoLabImageConvertAPI,
+  KarmoLabImageGenNamespace,
   KarmoLabLazyWidgetStub,
   KarmoWorldNamespace,
   RandomGenTopic
@@ -22,13 +28,17 @@ declare global {
     KARMOLAB_WIDGETS_BOOT?: string[];
     KARMOLAB_LAZY_META?: KarmoLabLazyWidgetStub[];
 
-    /** imagegen/config.ts */
-    ImageGen?: {
-      GALLERY_SESSION_KEY: string;
-      GALLERY_SESSION_MAX: number;
-      PROMPT_HISTORY_KEY: string;
-      PROMPT_HISTORY_MAX: number;
-    };
+    /** imagegen/* 공용 네임스페이스 — config.ts 가 세션/히스토리 키를 채움 */
+    ImageGen?: KarmoLabImageGenNamespace;
+
+    /** chatbot/markdown.ts */
+    ChatbotMarkdown?: ChatbotMarkdownAPI;
+    /** chatbot/prompt.ts */
+    ChatbotPrompt?: ChatbotPromptAPI;
+    /** chatbot/karmo-image.ts */
+    ChatbotKarmoImage?: ChatbotKarmoImageAPI;
+    /** chatbot/characters.ts */
+    ChatbotCharacters?: ChatbotCharactersAPI;
 
     /** apps/karmolab-react-src 내 React 마운트 */
     mountKarmoPlanner?: (rootId: string) => void;
@@ -78,6 +88,18 @@ declare global {
           html: string;
           init: (container?: HTMLElement | Document | null) => void;
         };
+        getDefaultModel?: (provider?: string) => string;
+        requireVertexApiKey?: () => string | null;
+        callGeminiImage?: (
+          prompt: string,
+          modelId: string,
+          options?: Record<string, unknown>
+        ) => Promise<GeminiImageResult>;
+        callVertexGeminiImage?: (
+          prompt: string,
+          modelId: string,
+          options?: Record<string, unknown>
+        ) => Promise<GeminiImageResult>;
       };
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
@@ -115,6 +137,7 @@ declare global {
       string,
       { chatCount?: number; imageCount?: number; chatTokens?: number; imageTokens?: number }
     >;
+    recordUsage?: (type: string, tokens: number) => void;
     getPref?: (key: string, fallback?: string) => string;
     setPref?: (key: string, value: string) => void;
     field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
