@@ -28,8 +28,6 @@ use super::state::LifeScreenConfig;
 
 use karmolab_shared::{SidecarCommand, SidecarEvent};
 
-const MODEL_NAME: &str = "ggml-large-v3";
-
 /// 메인 로컬 상태 미러 — Whisper 로드 완료 1회 확정 후 캐시 (KL-052-B3 fix).
 /// sidecar 는 단일 stdin/stdout 순차 dispatch — transcribe(VoiceRecordStop,
 /// 수초+) 중엔 sidecar 가 다음 명령을 안 읽으므로 VoiceStatus 폴링이
@@ -39,17 +37,28 @@ const MODEL_NAME: &str = "ggml-large-v3";
 /// 즉답. disable 시 리셋.
 static VOICE_LOADED: AtomicBool = AtomicBool::new(false);
 
+/// 사용 중인 모델 슬러그 — frontmatter 기록용.
+/// `KL_WHISPER_MODEL_ID` 의 마지막 세그먼트 (예: "openai/whisper-small" → "whisper-small").
+fn model_name() -> String {
+    std::env::var("KL_WHISPER_MODEL_ID")
+        .unwrap_or_else(|_| "openai/whisper-small".to_string())
+        .rsplit('/')
+        .next()
+        .unwrap_or("whisper-small")
+        .to_string()
+}
+
 fn model_dir() -> Result<std::path::PathBuf, String> {
     let config = LifeScreenConfig::resolve()?;
     Ok(config
         .memo_repo_root
         .join("life")
         .join(".models")
-        .join("whisper-large-v3"))
+        .join(model_name()))
 }
 
 /// Life 위젯 활성화 — sidecar spawn(공용, 1회) + Whisper 백그라운드
-/// 로드(~3.1GB). 이미 활성이면 no-op. `app` = plugin-shell sidecar spawn.
+/// 로드(~240MB small / ~3.1GB large-v3). 이미 활성이면 no-op. `app` = plugin-shell sidecar spawn.
 pub fn enable(app: &AppHandle) -> Result<(), String> {
     sidecar::ensure_spawned(app)?;
     let model_dir = model_dir()?.to_string_lossy().into_owned();
@@ -60,7 +69,7 @@ pub fn enable(app: &AppHandle) -> Result<(), String> {
     }
 }
 
-/// Life 위젯 비활성화 — **sidecar 프로세스 종료** (~3.1GB OS 완전 회수).
+/// Life 위젯 비활성화 — **sidecar 프로세스 종료** (~모델 크기 OS 완전 회수).
 ///
 /// KL-052-B3 진단(0xC0000005): candle Whisper decoder 를 동일 프로세스에서
 /// VoiceUnload 후 VoiceLoad(재load)하면 ACCESS_VIOLATION segfault.
@@ -197,12 +206,13 @@ fn process_recording(
         .and_then(|n| n.to_str())
         .unwrap_or("")
         .to_string();
+    let model_name_str = model_name();
     let frontmatter = schema::build_frontmatter(
         &now,
         &classification,
         &binary_filename,
         duration_s,
-        MODEL_NAME,
+        &model_name_str,
         trigger,
     );
     schema::write_md(&md_path, &frontmatter, text)?;

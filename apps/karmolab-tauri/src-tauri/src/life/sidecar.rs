@@ -25,11 +25,10 @@ use tauri_plugin_shell::ShellExt;
 use karmolab_shared::{SidecarCommand, SidecarEvent, PROTOCOL_VERSION};
 
 /// 무거운 작업 — transcribe(수 초) / OCR. caller 가 send timeout 으로 사용.
-// whisper-large-v3 = 1.5B param. candle CPU(SIMD/MKL 없이)면 2초 음성도
-// 분 단위 — KL-052-B3 진단(120s timeout). 분리 구조 작동 검증엔 완료가
-// 1회 필요해 넉넉히. 속도 자체(모델 경량화/GPU)는 KL-052 분리와 별개
-// 후속 시드. 600s 초과 = hang 판정 (느림 아님).
-pub const HEAVY_TIMEOUT: Duration = Duration::from_secs(600);
+// whisper-small(244M) CPU 기준: 30초 음성도 ~60s 이내 예상 (KL-061 경량화).
+// 이전 600s 는 large-v3 분리 검증용 — small 전환으로 60s 로 축소.
+// 60s 초과 = hang 판정 (진짜 느린 게 아니라 멈춘 것).
+pub const HEAVY_TIMEOUT: Duration = Duration::from_secs(60);
 /// spawn 직후 Ready 핸드셰이크 / 짧은 명령(record_start/status/unload/capture).
 pub const SHORT_TIMEOUT: Duration = Duration::from_secs(15);
 
@@ -173,10 +172,10 @@ pub fn send(cmd: &SidecarCommand, timeout: Duration) -> Result<SidecarEvent, Str
                 eprintln!("[life-sidecar] 통신 실패 — handle 정리, 다음 호출 시 respawn: {e}");
                 // 복구 범위: screen = capture_with_trigger 가 매번
                 // ensure_spawned → 다음 PrintScreen 에서 완전 자동 복구.
-                // voice = enable 시 1회 VoiceLoad(whisper 3.1GB) 라
+                // voice = enable 시 1회 VoiceLoad(모델 로드) 라
                 // crash 후 사용자 voice 재토글 시 복구. record 마다
                 // 자동 재로드는 crash 실패턴(B3) 본 뒤 정밀화 (지금
-                // 과설계 = 가설 박기 — 잘못된 3.1GB 재로드 UX 위험).
+                // 과설계 = 가설 박기 — 잘못된 재로드 UX 위험).
             }
             Err(e)
         }
