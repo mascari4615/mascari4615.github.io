@@ -61,8 +61,11 @@ import {
   inboxDispatch,
   runInboxConsumerOnce,
   summarizeRejectedForDiscovery,
+  publishEnvelope,
+  readInboxProposals,
   type DiscoverFn,
 } from './proposal-adapter';
+import { buildModifiedEnvelope } from './proposal';
 import {
   listCoreIds,
   loadCoreDef,
@@ -641,6 +644,15 @@ export async function runCoreDialogueOnce(
   const latest = readLatestProposal(memoRoot);
   if (!latest) return 'dialogue-idle';
   if (dialogueCommented.has(latest.id)) return 'dialogue-dup';
+  // LT-8 바운드(구조적·restart-safe): 팀이 *이미 수정안으로 만든* 카드는
+  // 사람 ✅/❌ 대기 상태지 재숙의 대상 X. 마커 부재였으면 readLatest 가
+  // 새 수정 카드를 latest 로 집어 팀이 자기 산출물을 무한 재수정(영구
+  // 기관). mission §3 "무한증식 = 바운드가 정답" 정합 — 한 번 수정 →
+  // 사람 결정. 상태 무관(파일 마커 기반) = 프로세스 재시작에도 견고.
+  if (latest.text.includes('[팀 수정안]')) {
+    markCommented(latest.id);
+    return 'dialogue-modified-pending';
+  }
 
   const coreIds = listCoreIds(memoRoot);
   const cores = coreIds
@@ -826,6 +838,55 @@ export async function runCoreDialogueOnce(
         .slice(0, 120)}`,
       evidence: `deliberation ${state.turns.length}턴 [${latest.id}]`,
     });
+  }
+
+  // LT-8: 숙의가 *수정 채택*(adopt-mods)으로 수렴 = 합의 수정안을 *새*
+  // 제안 카드로 실체화. 거버넌스 결정(2026-05-18, AskUserQuestion): 팀
+  // verdict 는 사람 ✅/❌ 를 *대체 X* — 수정안을 새 카드로 올려 사장님이
+  // 결정. 이전엔 verdict 가 #team-bus 1줄+trace 만 → 원 카드 영속 "승인
+  // 대기"(D3 미세 재발: "수정 채택했는데 카드 변화 0"). substrate 재사용
+  // (publishEnvelope, 평행 파이프 0). best-effort — 실패가 숙의 비차단.
+  if (verdict === 'adopt-mods') {
+    const orig = readInboxProposals(env).find((e) => e.id === latest.id);
+    const convergeText =
+      [...state.turns].reverse().find((t) => t.phase === 'converge')?.text ||
+      verdictReason;
+    // modNote = CONVERGE 의 *실제* 출력에서 결정 라벨만 제거(날조 0,
+    // 새 내용 발명 X). "결정: 수정 채택 — <무엇>" → "<무엇>".
+    const modNote = convergeText
+      .split(/\r?\n/)[0]
+      .replace(/^\s*결정\s*[:：]?\s*/i, '')
+      .replace(
+        /^\s*(수정\s*채택|보완\s*채택|adopt-?mods)\s*[—\-:：]?\s*/i,
+        '',
+      )
+      .trim();
+    const modified = orig
+      ? buildModifiedEnvelope(orig.envelope, modNote)
+      : null;
+    if (modified) {
+      const r = await publishEnvelope(
+        {
+          env,
+          discover: async () => '',
+          dispatch: inboxDispatch(env),
+          notify: deps.notify,
+        },
+        modified,
+      );
+      await speak(
+        state.peerCoreId,
+        r === 'duplicate'
+          ? `(수정안이 이미 인박스 — 재게시 안 함. 원 제안 ${latest.id} 는 오너 ✅/❌)`
+          : `↳ 팀 수정안을 새 카드로 올렸어요 — 오너 확인 부탁 (원 제안 ${latest.id} 대체)`,
+      );
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: state.peerCoreId,
+        reason: `adopt-mods → 수정안 새 카드 publish=${r} (원 ${latest.id})`,
+      });
+    }
   }
 
   appendTrace(env, {
