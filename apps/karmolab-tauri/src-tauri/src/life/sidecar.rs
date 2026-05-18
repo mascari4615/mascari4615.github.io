@@ -25,11 +25,10 @@ use tauri_plugin_shell::ShellExt;
 use karmolab_shared::{SidecarCommand, SidecarEvent, PROTOCOL_VERSION};
 
 /// 무거운 작업 — transcribe(수 초) / OCR. caller 가 send timeout 으로 사용.
-// whisper-large-v3 = 1.5B param. candle CPU(SIMD/MKL 없이)면 2초 음성도
-// 분 단위 — KL-052-B3 진단(120s timeout). 분리 구조 작동 검증엔 완료가
-// 1회 필요해 넉넉히. 속도 자체(모델 경량화/GPU)는 KL-052 분리와 별개
-// 후속 시드. 600s 초과 = hang 판정 (느림 아님).
-pub const HEAVY_TIMEOUT: Duration = Duration::from_secs(600);
+// whisper-small(244M) CPU 기준: 30초 음성도 ~60s 이내 예상 (KL-061 경량화).
+// 이전 600s 는 large-v3 분리 검증용 — small 전환으로 60s 로 축소.
+// 60s 초과 = hang 판정 (진짜 느린 게 아니라 멈춘 것).
+pub const HEAVY_TIMEOUT: Duration = Duration::from_secs(60);
 /// spawn 직후 Ready 핸드셰이크 / 짧은 명령(record_start/status/unload/capture).
 pub const SHORT_TIMEOUT: Duration = Duration::from_secs(15);
 
