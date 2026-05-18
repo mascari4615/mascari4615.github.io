@@ -29,6 +29,10 @@ import {
   formatPortfolioBlock,
   appendProgress,
   topProject,
+  shouldRunRetro,
+  buildRetroPrompt,
+  parseRetroDecision,
+  recordRetro,
 } from './team-portfolio';
 import {
   SessionRegistry,
@@ -1454,6 +1458,12 @@ export function summarizeTick(r: string, anchor = ''): string | null {
             : `⚠ 사장 판단 필요`;
     bits.push(`팀이 ${n}턴 토론 끝에 — ${v}`);
   }
+  const rt = s.match(/retro:(adjust|achieved|keep)/);
+  if (rt && rt[1] !== 'keep') {
+    bits.push(
+      rt[1] === 'adjust' ? '회고 끝에 목표 갱신' : '현 목표 달성 — 다음으로',
+    );
+  }
   const dlg = s.match(/(?<!delibera)\bdialogue:([a-z0-9_-]+)/i);
   if (dlg) bits.push(`동료 ${dlg[1]} 가 팀 채팅에 한마디 보탬`);
   const wk = s.match(/\+worker:([^+]+)/);
@@ -1494,6 +1504,66 @@ let workerTimer: ReturnType<typeof setTimeout> | null = null;
  * 인터페이스 비-GUI). governed→producer→inbox→worker→dialogue→heartbeat
  * = startAgentCadence 타이머와 동일 시퀀스(평행 정의 0).
  */
+export interface RetroDeps {
+  generate?: (prompt: string) => Promise<string>;
+  notify?: NotifyFn;
+  missionText?: string;
+}
+
+/**
+ * LT-7 retro 밸브 (1회·gated·best-effort). 최대 weight 프로젝트의
+ * progressLog vs northStar 를 주기 회고 → currentObjective 자동 조정.
+ * shouldRunRetro 영속 게이트(intervalMs, default 6h) — 자가정비
+ * 맴돌이를 팀이 스스로 점검하는 ⓒ 결정 실현. 비차단.
+ *  · 게이트 미충족 → 'retro-skip'  · 결정 → 'retro:<action>'
+ */
+export async function runRetroOnce(
+  env: NodeJS.ProcessEnv,
+  deps: RetroDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+  const top = topProject(loadPortfolio(memoRoot));
+  if (!top) return 'retro-skip';
+  const intervalMs =
+    Number(env.AGENT_RETRO_INTERVAL_MS) || 6 * 3600_000;
+  if (!shouldRunRetro(top, Date.now(), intervalMs)) return 'retro-skip';
+
+  const missionText = deps.missionText ?? readMissionText(env);
+  const generate =
+    deps.generate ??
+    ((prompt: string) =>
+      generateAgentText(
+        env,
+        prompt,
+        Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
+      ));
+  let text = '';
+  try {
+    text = await generate(buildRetroPrompt(top, missionText));
+  } catch {
+    return 'retro-error'; // 비차단 (lastRetroTs 미스탬프 → 다음 틱 재시도)
+  }
+  const decision = parseRetroDecision(text);
+  recordRetro(memoRoot, top.id, decision);
+  const notify = deps.notify ?? defaultNotify(env);
+  const human =
+    decision.action === 'adjust'
+      ? `목표 조정 → «${decision.objective}»`
+      : decision.action === 'achieved'
+        ? '현 목표 달성 — 다음 발굴로'
+        : '현 목표 유지 (북극성 정렬 확인)';
+  notify(`🔭 «${top.title}» 회고: ${human}`);
+  appendTrace(env, {
+    ts: new Date().toISOString(),
+    type: 'drift',
+    core: 'retro',
+    reason: `retro «${top.id}» ${decision.action}${decision.objective ? ` → ${decision.objective.slice(0, 80)}` : ''}`,
+  });
+  return `retro:${decision.action}`;
+}
+
 export async function runCadenceTickOnce(
   env: NodeJS.ProcessEnv,
   opts: { includeWorker?: boolean } = {},
@@ -1540,6 +1610,15 @@ export async function runCadenceTickOnce(
       )
     ) {
       r = `${r}+${d}`;
+    }
+  }
+  // LT-7 retro 밸브 — gated(6h, 영속) best-effort. 게이트 미충족=무음.
+  if (memoRoot && !isKilled()) {
+    try {
+      const rt = await runRetroOnce(env);
+      if (rt.startsWith('retro:')) r = `${r}+${rt}`;
+    } catch {
+      /* retro 실패 = tick 비차단 */
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);
