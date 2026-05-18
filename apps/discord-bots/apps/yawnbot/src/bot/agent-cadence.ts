@@ -1829,7 +1829,19 @@ async function ensureMemoFreshBeforeWork(env: NodeJS.ProcessEnv): Promise<void> 
 
 export async function runCadenceTickOnce(
   env: NodeJS.ProcessEnv,
-  opts: { includeWorker?: boolean } = {},
+  opts: {
+    includeWorker?: boolean;
+    /**
+     * 합성 검증 seam (TASK-KAR-018-LT). 서브런들은 각자 deps 주입을
+     * *노출* 하나(runGovernedProducerOnce/runCoreDialogueOnce) tick
+     * orchestrator 가 안 thread 해 합성이 헤드리스 검증 불가 →
+     * behavior-verify 가 HITL prod-관측으로 강제(영영 안 닫힘). 옵셔널
+     * 주입(default undefined = prod 무변경)로 producer→dialogue
+     * 핸드오프를 LLM 경계만 stub 하고 결정적 E2E 가능케 한다.
+     */
+    producerOpts?: Parameters<typeof runGovernedProducerOnce>[1];
+    dialogueDeps?: Parameters<typeof runCoreDialogueOnce>[1];
+  } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
   const killFile = memoRoot
@@ -1848,7 +1860,7 @@ export async function runCadenceTickOnce(
     }
   });
   if (r === 'idle' && memoRoot && !isKilled()) {
-    r = `idle→producer:${await runGovernedProducerOnce(env)}`;
+    r = `idle→producer:${await runGovernedProducerOnce(env, opts.producerOpts)}`;
   }
   if (memoRoot && !isKilled()) {
     const mat = await runInboxConsumerOnce(env);
@@ -1870,7 +1882,7 @@ export async function runCadenceTickOnce(
     }
   }
   if (memoRoot && !isKilled()) {
-    const d = await runCoreDialogueOnce(env);
+    const d = await runCoreDialogueOnce(env, opts.dialogueDeps);
     if (
       d &&
       !['dialogue-idle', 'dialogue-dup', 'dialogue-none', 'no-memo-root'].includes(
