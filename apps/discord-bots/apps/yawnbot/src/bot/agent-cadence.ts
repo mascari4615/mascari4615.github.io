@@ -1106,23 +1106,19 @@ export async function runWorkerConsumerOnce(
     // no-artifact cooldown 인 task 제외 → degenerate 무한 재pick 차단,
     // 다른 후보로 회전. 전부 cooldown 이면 그 사실 명시 idle(무음 X).
     const cands = rawCands.filter((c) => !inNoArtifactCooldown(c.id, tickNow));
+    // KAR-075: idle/cooldown-all/claim-lost = *비-이벤트* → Discord post X,
+    // trace(results)만. 근거: producer 축은 이미 「순수 idle = null(스팸 X)」
+    // 인데 worker 축만 매 틱 발화 = 설계 불일치 + 사용자 "이렇게 말하는 것좀
+    // 고쳐봐"(3워커 동일 '대기·쿨다운' 도배). 상태 진동(idle→pick→cooldown
+    // -all)으로 dedupe 무력 + 재기동마다 lastWorkerStatus clear 버스트.
+    // ground-truth 는 results/trace 에 보존(가시성침묵≠상태, 무손실).
+    // 발화는 실 활동(착수/done/fail/escalate)·하트비트만 — heartbeat 가
+    // "팀 살아있음", 실 활동이 "일 진행" 커버. 유휴 워커는 말할 게 없음.
     if (rawCands.length === 0) {
-      await voicedWorkerSpeak(
-        w.coreId,
-        `${w.label} 🟦 대기 — ${w.domain} 도메인에 지금 맡을 일(claimable TASK) 0 (큐 비었거나 전부 진행중/PR/검토중). 새 일 생기면 자동 착수.`,
-        speak,
-        voice,
-      );
       results.push(`${w.coreId}:idle`);
       continue;
     }
     if (cands.length === 0) {
-      await voicedWorkerSpeak(
-        w.coreId,
-        `${w.label} 🟦 대기 — ${w.domain} claimable ${rawCands.length} 전부 최근 no-artifact 쿨다운(미푸시/에러 직후 재pick 차단, ~30분). 쿨다운 만료/신규 task 시 자동 재개. (다수=환경/자격 blocker 의심 — 누적보고)`,
-        speak,
-        voice,
-      );
       results.push(`${w.coreId}:cooldown-all`);
       continue;
     }
@@ -1134,12 +1130,7 @@ export async function runWorkerConsumerOnce(
       }
     }
     if (!chosen) {
-      await voicedWorkerSpeak(
-        w.coreId,
-        `${w.label} ⚠ ${w.domain} 후보 ${cands.length}건 다른 워커가 선점 — 재대기.`,
-        speak,
-        voice,
-      );
+      // claim-lost = transient 경합(다른 워커 선점) = 비-이벤트 → trace-only.
       results.push(`${w.coreId}:claim-lost`);
       continue;
     }
