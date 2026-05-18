@@ -8,7 +8,6 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
 export interface CharacterCard {
   slug: string;
@@ -229,30 +228,16 @@ export class CharacterService {
   }
 
   /**
-   * 채널 전환 등으로 .active.json 이 변경됐으면 git commit.
-   * main.ts SIGINT 핸들러에서 호출.
+   * 영속화 마커 리셋. _writeActive 가 .active.json 을 fs 로 *즉시* 디스크
+   * 반영하므로 별도 flush 없음. git 커밋 안 함 (TASK-KAR-MEMOSYNC):
+   * characters/.active.json 은 .gitignore 런타임 산출 — 봇 커밋이 곧 prod
+   * memo origin divergence 엔진이었다(deploy memo-sync 영구 동결 근본).
+   * 클린 클론 부팅 시 initialize() 가 {default,channels:{}} 재생성 +
+   * 부팅 provisioning 이 현 라벨 채널에 재바인딩(KAR-018-V) → 무손실.
+   * main.ts SIGINT 핸들러 호출 시그니처 보존 = Grey Box seam 불변.
    */
   commitIfDirty(): void {
-    if (!this.dirty) return;
-    try {
-      execSync(
-        `git -C "${this.memoRepoPath}" add characters/.active.json`,
-        { stdio: 'pipe' },
-      );
-      execSync(
-        `git -C "${this.memoRepoPath}" commit -m "chore: .active.json 채널-캐릭터 매핑 업데이트"`,
-        { stdio: 'pipe' },
-      );
-      this.dirty = false;
-      console.log('[Character] .active.json 변경 사항 커밋 완료');
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (msg.includes('nothing to commit')) {
-        this.dirty = false;
-      } else {
-        console.warn('[Character] .active.json commit 실패:', msg);
-      }
-    }
+    this.dirty = false;
   }
 
   getDefaultSlug(): string {

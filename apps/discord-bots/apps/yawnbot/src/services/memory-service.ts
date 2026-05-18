@@ -9,11 +9,15 @@
  *   user.md                 : 이 캐릭터가 아는 mascari4615
  *   self.md                 : 이 캐릭터가 아는 자기 자신
  *
- * git commit: 1시간마다 자동 (push 없음). 한 인스턴스가 커밋하면 해당 슬러그 경로만 포함.
+ * 영속화: 각 write 메서드가 fs.writeFileSync/appendFileSync 로 *즉시* 디스크
+ * 기록. git 커밋 안 함 — characters/<slug>/memory/ 는 .gitignore (런타임
+ * 산출, prod memo divergence 근본 제거, TASK-KAR-MEMOSYNC). 봇이 tracked
+ * 정본을 mutate → origin 영구 divergence → deploy memo-sync 동결이던 구조
+ * root 제거. memo 정본 동기 = deploy memo-sync 의 fetch + reset --hard
+ * (untracked 런타임은 reset 이 안 건드림 → 보존).
  */
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { generateAssistantText } from 'karmolab-ai/node';
 
 export interface ConversationEntry {
@@ -67,7 +71,6 @@ export class MemoryService {
   private characterDir: string;
   private memoryDir: string;
   private logsDir: string;
-  private commitTimer: ReturnType<typeof setInterval> | null = null;
   private dirty = false;
 
   constructor(memoRepoPath: string, slug: string) {
@@ -100,14 +103,10 @@ export class MemoryService {
 
     this._ensureAgentClaudeMd();
 
-    const intervalMs = parseInt(
-      process.env.ASSISTANT_MEMORY_COMMIT_INTERVAL_MS || '3600000',
-      10,
-    );
-    this.commitTimer = setInterval(() => this.commitIfDirty(), intervalMs);
-    console.log(
-      `[Memory:${this.slug}] 초기화 완료 (커밋 주기: ${intervalMs / 60000}분)`,
-    );
+    // git 커밋 타이머 폐기 (TASK-KAR-MEMOSYNC): memory/ 는 .gitignore 런타임
+    // 산출 → 봇 커밋이 곧 prod memo divergence 엔진이었다. write 는 각
+    // 메서드에서 fs 로 *즉시* 영속화되므로 별도 flush 주기 불요.
+    console.log(`[Memory:${this.slug}] 초기화 완료 (런타임 산출, git 비커밋)`);
   }
 
   private _ensureAgentClaudeMd(): void {
@@ -666,30 +665,20 @@ export class MemoryService {
     }
   }
 
-  // ── Git 커밋 ──────────────────────────────────────────────────────────────
+  // ── 영속화 (git 비커밋 — 런타임 산출) ────────────────────────────────────
 
+  /**
+   * 영속화 마커 리셋. write 는 각 메서드에서 fs 로 *즉시* 디스크 반영되므로
+   * 별도 flush 작업 없음. git 커밋 안 함 (TASK-KAR-MEMOSYNC): memory/ 는
+   * .gitignore 런타임 산출 — 봇 커밋이 곧 prod memo origin divergence
+   * 엔진이었다(deploy memo-sync 영구 동결 근본). 호출부(/저장 슬래시,
+   * destroy, main SIGINT) 시그니처는 보존 = Grey Box seam 불변.
+   */
   commitIfDirty(): void {
-    if (!this.dirty) return;
-    const today = kstDateStr();
-    const rel = `characters/${this.slug}/memory/`;
-    try {
-      execSync(`git -C "${this.memoRepoPath}" add "${rel}"`, { stdio: 'pipe' });
-      execSync(
-        `git -C "${this.memoRepoPath}" commit -m "chore(${this.slug}): 대화 기록 자동 저장 ${today}"`,
-        { stdio: 'pipe' },
-      );
-      this.dirty = false;
-      console.log(`[Memory:${this.slug}] git commit 완료 (${today})`);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (!msg.includes('nothing to commit')) {
-        console.error(`[Memory:${this.slug}] commit 실패:`, msg);
-      }
-    }
+    this.dirty = false;
   }
 
   destroy(): void {
-    if (this.commitTimer) clearInterval(this.commitTimer);
     this.commitIfDirty();
   }
 }

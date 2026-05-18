@@ -15,7 +15,6 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { execSync } from 'child_process';
 import { generateEmbedding } from 'karmolab-ai/node';
 
 const MAX_CACHE_ENTRIES = 50;
@@ -271,24 +270,14 @@ export class ImageCacheService {
     console.log(`[ImageCache] 정리: ${toRemove.length}개 삭제`);
   }
 
-  private commitToGit(entry: CacheEntry): void {
-    try {
-      const relCacheDir = path.relative(this.memoRepoPath, this.cacheDir).replace(/\\/g, '/');
-      const ext = (entry.mimeType.split('/')[1] || 'png').replace(/[^a-z0-9]/gi, '');
-      execSync(
-        `git -C "${this.memoRepoPath}" add "${relCacheDir}/index.json" "${relCacheDir}/image-log.jsonl" "${relCacheDir}/${entry.id}.${ext}"`,
-        { stdio: 'pipe' },
-      );
-      execSync(
-        `git -C "${this.memoRepoPath}" commit -m "feat(${this.slug}): 씬 이미지 캐시 추가 [${entry.sceneDesc.slice(0, 80)}]"`,
-        { stdio: 'pipe' },
-      );
-      console.log(`[ImageCache:${this.slug}] git commit 완료 (${entry.id})`);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (!msg.includes('nothing to commit')) {
-        console.warn(`[ImageCache:${this.slug}] git commit 실패:`, msg.slice(0, 200));
-      }
-    }
+  /**
+   * No-op (TASK-KAR-MEMOSYNC). image-cache/ 는 .gitignore 런타임 산출 —
+   * index.json·image-log.jsonl·*.png 는 writeLog/writeIndex 가 fs 로 이미
+   * 디스크 영속화. 봇 git 커밋이 곧 prod memo origin divergence 엔진이었다
+   * (deploy memo-sync 영구 동결 근본). 캐시는 미스 시 재생성되므로 클린
+   * 클론서 무손실. 호출부 시그니처 보존 = Grey Box seam 불변.
+   */
+  private commitToGit(_entry: CacheEntry): void {
+    /* git 비커밋 — 런타임 캐시 산출 */
   }
 }
