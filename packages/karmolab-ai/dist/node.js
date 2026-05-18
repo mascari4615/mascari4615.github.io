@@ -349,13 +349,18 @@ async function generateClaudeCliText(opts) {
             // 고정 세션: 항상 같은 세션 이름으로 영구 세션 유지
             // 첫 호출: --continue --name yawnbot-assistant (세션 생성 + 이름 지정)
             // 이후 호출: --resume yawnbot-assistant (이름으로 재개)
-            const args = opts.cwd
-                ? useResume
-                    ? ['--print', '--resume', fixedSessionId, '--dangerously-skip-permissions']
-                    : ['--print', '--continue', '--name', fixedSessionId, '--dangerously-skip-permissions']
-                : useResume
-                    ? ['--print', '--resume', fixedSessionId]
-                    : ['--print', '--continue', '--name', fixedSessionId];
+            // oneShot: 세션 미사용 단발(워커 — 공유세션 충돌 0).
+            const args = opts.oneShot
+                ? opts.cwd
+                    ? ['--print', '--no-session-persistence', '--dangerously-skip-permissions']
+                    : ['--print', '--no-session-persistence']
+                : opts.cwd
+                    ? useResume
+                        ? ['--print', '--resume', fixedSessionId, '--dangerously-skip-permissions']
+                        : ['--print', '--continue', '--name', fixedSessionId, '--dangerously-skip-permissions']
+                    : useResume
+                        ? ['--print', '--resume', fixedSessionId]
+                        : ['--print', '--continue', '--name', fixedSessionId];
             const child = (0, child_process_1.spawn)(cmd, args, {
                 stdio: ['pipe', 'pipe', 'pipe'],
                 windowsHide: true,
@@ -371,7 +376,12 @@ async function generateClaudeCliText(opts) {
             }, timeout);
             child.on('close', (code) => {
                 clearTimeout(timer);
-                if (code === 0 && stdout.trim()) {
+                // KAR-018-Y: agentic 모드(opts.cwd)는 도구로 파일·git 작업 →
+                // stdout prose 가 비어도 exit 0 = 성공(산출물=git 커밋/브랜치,
+                // stdout 아님). prod WM-109 실증: exit0+빈stdout 을 error 로
+                // 오분류해 성공 agentic 실작업이 폐기·쿨다운됐음. text-gen
+                // 모드(cwd 없음)는 빈 stdout=실패 유지(불변).
+                if (code === 0 && (stdout.trim() || opts.cwd)) {
                     resolve(stdout.trim());
                 }
                 else {
@@ -386,6 +396,10 @@ async function generateClaudeCliText(opts) {
             child.stdin.end();
         });
     };
+    // oneShot = 세션 폴백 무의미(무상태 단발). 그대로 1회.
+    if (opts.oneShot) {
+        return await runClaude(false);
+    }
     // 첫 시도: 기존 세션 재개 (--resume)
     try {
         return await runClaude(true);
