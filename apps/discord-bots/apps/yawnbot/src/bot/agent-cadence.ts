@@ -828,17 +828,27 @@ export async function runCoreDialogueOnce(
 
   // LT-5 진전 기록: 숙의가 *채택* 으로 수렴 = 그 proposal 의 프로젝트가
   // 실제로 전진. "전진" = progressLog delta(PR 수 X, D3 근본). best-effort.
-  if (
-    (verdict === 'adopt' || verdict === 'adopt-mods') &&
-    latest.projectId
-  ) {
-    appendProgress(memoRoot, {
-      projectId: latest.projectId,
-      delta: `숙의 ${verdict === 'adopt-mods' ? '수정 ' : ''}채택: ${latest.text
-        .split('\n')[0]
-        .slice(0, 120)}`,
-      evidence: `deliberation ${state.turns.length}턴 [${latest.id}]`,
-    });
+  //
+  // 발굴 LLM 이 엔벨로프 projectId 를 자주 누락(prod 실증 2026-05-18:
+  // adopt 났는데 progressLog=[] — diag trace «Witch-Mendokusai» 3턴
+  // 채택). deliberation 은 topProject(LT-5 앵커)로 호스팅되므로 그 토론
+  // 채택의 전진은 topProject 귀속이 앵커와 정합 — appendProgress 가
+  // 엔벨로프 projectId 만 보던 게 앵커와 어긋난 버그였다. 명시 projectId
+  // 우선, 누락 시 topProject fallback (날조 0: evidence 에 귀속 출처).
+  if (verdict === 'adopt' || verdict === 'adopt-mods') {
+    const pid =
+      latest.projectId || topProject(loadPortfolio(memoRoot))?.id || '';
+    if (pid) {
+      appendProgress(memoRoot, {
+        projectId: pid,
+        delta: `숙의 ${verdict === 'adopt-mods' ? '수정 ' : ''}채택: ${latest.text
+          .split('\n')[0]
+          .slice(0, 120)}`,
+        evidence: `deliberation ${state.turns.length}턴 [${latest.id}]${
+          latest.projectId ? '' : ' · topProject 귀속(projectId 누락)'
+        }`,
+      });
+    }
   }
 
   // LT-8: 숙의가 *수정 채택*(adopt-mods)으로 수렴 = 합의 수정안을 *새*
