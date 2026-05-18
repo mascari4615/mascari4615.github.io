@@ -453,20 +453,41 @@ client.once('clientReady', async () => {
     });
     // TASK-KAR-077: 대시보드 sink — ensure-or-edit 한 메시지, ID 반환.
     // setCoreSpeak 동형(client 주입, agent-cadence ⊥ discord.js).
-    setDashboardSink(async (channelId, messageId, embed) => {
+    setDashboardSink(async (channelId, messageId, panel, embed) => {
       try {
         const ch = await client.channels.fetch(channelId).catch(() => null);
         if (!(ch instanceof TextChannel)) return null;
-        // DashEmbed = discord.js APIEmbed 호환 JSON (color/author/title/
-        // fields/footer) — EmbedBuilder 불요, embeds 배열 직투입.
         const payload = { content: '', embeds: [embed as any] };
         if (messageId) {
           try {
             await ch.messages.edit(messageId, payload);
             return messageId;
           } catch {
-            /* 메시지 삭제됨 → 새로 생성 */
+            /* state 무효(삭제/소실) → self-discovery 폴백 */
           }
+        }
+        // self-heal: state 파일이 deploy git-clean 으로 소실돼도 채널의
+        // 봇 기존 대시보드 메시지를 marker 로 찾아 edit (새 메시지 도배 X).
+        // compact = embed.author "욘봇 팀"·title 無 / detailed = title
+        // "욘봇 팀 — 상세". 멱등 — 최후에만 send.
+        try {
+          const recent = await ch.messages.fetch({ limit: 30 });
+          const mine = recent.find((m) => {
+            if (m.author?.id !== client.user?.id) return false;
+            const e0: any = m.embeds?.[0];
+            if (!e0) return false;
+            const a = e0.author?.name ?? '';
+            const t = e0.title ?? '';
+            return panel === 'detailed'
+              ? t.includes('욘봇 팀 — 상세')
+              : a.includes('욘봇 팀') && !t;
+          });
+          if (mine) {
+            await ch.messages.edit(mine.id, payload);
+            return mine.id;
+          }
+        } catch {
+          /* 탐색 실패 → 새 전송 */
         }
         const m = await ch.send(payload);
         return m.id;
