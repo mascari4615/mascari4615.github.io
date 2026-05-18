@@ -12,6 +12,7 @@ import os from 'os';
 import path from 'path';
 import {
   runCoreDialogueOnce,
+  runRetroOnce,
   armKill,
   disarmKill,
   resetDialogueDedupe,
@@ -226,5 +227,72 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(await runCoreDialogueOnce(env(), { reserve: () => true })).toBe(
       'dialogue-none',
     );
+  });
+});
+
+describe('runRetroOnce — LT-7 retro 밸브 (gated·목표 자동조정)', () => {
+  function writePf(proj: Record<string, unknown>) {
+    fs.writeFileSync(
+      path.join(root, '.claude', 'team-portfolio.json'),
+      JSON.stringify({ projects: [proj] }),
+      'utf-8',
+    );
+  }
+  const base = {
+    id: 'wm',
+    title: 'WM',
+    northStar: '팬100',
+    weight: 100,
+    status: 'active',
+    currentObjective: { text: '허브 만들기', openedTs: '2026-05-01T00:00:00Z' },
+    progressLog: [
+      { ts: '2026-05-18T00:00:00Z', projectId: 'wm', delta: '진전 A', evidence: 'pX' },
+    ],
+  };
+
+  it('진전 없음 → retro-skip (게이트)', async () => {
+    writePf({ ...base, progressLog: [] });
+    expect(await runRetroOnce(env())).toBe('retro-skip');
+  });
+
+  it('조정 결정 → currentObjective 교체 + lastRetroTs 스탬프 + 알림', async () => {
+    writePf(base);
+    const notes: string[] = [];
+    const r = await runRetroOnce(env(), {
+      generate: async () => '조정: 던전 루프 닫기\n그게 북극성에 더 가깝다',
+      notify: (m) => notes.push(m),
+      missionText: '미션',
+    });
+    expect(r).toBe('retro:adjust');
+    const pf = JSON.parse(
+      fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
+    );
+    expect(pf.projects[0].currentObjective.text).toBe('던전 루프 닫기');
+    expect(typeof pf.projects[0].lastRetroTs).toBe('string');
+    expect(notes.some((n) => n.includes('회고') && n.includes('던전 루프 닫기'))).toBe(true);
+  });
+
+  it('lastRetroTs 최근 + 긴 주기 → retro-skip (영속 게이트)', async () => {
+    writePf({ ...base, lastRetroTs: new Date().toISOString() });
+    expect(
+      await runRetroOnce(
+        { ...env(), AGENT_RETRO_INTERVAL_MS: '3600000' } as NodeJS.ProcessEnv,
+        { generate: async () => '조정: X', notify: () => {} },
+      ),
+    ).toBe('retro-skip');
+  });
+
+  it('유지 결정 → retro:keep, 목표 불변(보수·날조0)', async () => {
+    writePf(base);
+    const r = await runRetroOnce(env(), {
+      generate: async () => '유지\n현 목표가 옳다',
+      notify: () => {},
+    });
+    expect(r).toBe('retro:keep');
+    const pf = JSON.parse(
+      fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
+    );
+    expect(pf.projects[0].currentObjective.text).toBe('허브 만들기'); // 불변
+    expect(typeof pf.projects[0].lastRetroTs).toBe('string'); // keep 도 스탬프
   });
 });

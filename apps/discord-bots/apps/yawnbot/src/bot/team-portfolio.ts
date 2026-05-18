@@ -40,6 +40,8 @@ export interface PortfolioProject {
   instrumental?: boolean;
   currentObjective?: CurrentObjective;
   progressLog: ProgressEntry[];
+  /** 마지막 retrospective 시각(ISO). LT-7 주기 게이트(영속·재시작 불변). */
+  lastRetroTs?: string;
 }
 
 export interface Portfolio {
@@ -100,6 +102,8 @@ function parseProject(o: unknown): PortfolioProject | null {
           })
           .filter((e): e is ProgressEntry => !!e && !!e.delta)
       : [],
+    lastRetroTs:
+      typeof r.lastRetroTs === 'string' ? r.lastRetroTs : undefined,
   };
 }
 
@@ -260,5 +264,102 @@ export function setObjective(
     openedTs: objective.openedTs ?? new Date().toISOString(),
     deliberationThreadId: objective.deliberationThreadId,
   };
+  return writePortfolio(memoRoot, p);
+}
+
+// ═══ LT-7: retro 밸브 (TASK-KAR-018-LT 기둥3 — anti-self-grooming) ═══
+// 주기 retrospective: progressLog vs northStar 리뷰 → currentObjective
+// 자동 조정. 자가정비를 *명시 instrumental + 주기 검토* 로만 허용한다는
+// ⓒ 결정의 실현 — 팀이 "전진하는 척"인지 스스로 점검하고 목표를 갱신.
+
+/**
+ * retro 실행 시점인가 (순수·결정적). active + 리뷰할 진전 존재 +
+ * 마지막 retro 후 intervalMs 경과. 영속 lastRetroTs 기준 → 재시작
+ * 불변(인메모리 쿨다운 아님 = 긴 주기 신뢰).
+ */
+export function shouldRunRetro(
+  proj: PortfolioProject,
+  nowMs: number,
+  intervalMs: number,
+): boolean {
+  if (proj.status !== 'active') return false;
+  if (proj.progressLog.length === 0) return false;
+  const last = proj.lastRetroTs ? Date.parse(proj.lastRetroTs) : 0;
+  return nowMs - (isFinite(last) ? last : 0) >= intervalMs;
+}
+
+export type RetroAction = 'keep' | 'adjust' | 'achieved';
+export interface RetroDecision {
+  action: RetroAction;
+  /** adjust 시 새 currentObjective 텍스트. */
+  objective?: string;
+}
+
+/** retro LLM 출력 → 결정적 파싱 (불명확=keep, 날조 0). 순수. */
+export function parseRetroDecision(text: string): RetroDecision {
+  const t = (text || '').trim();
+  const line = t.split('\n')[0] || '';
+  if (/달성|완료|achieved|done/i.test(line)) return { action: 'achieved' };
+  const adj = t.match(
+    /(?:조정|변경|adjust|새\s*목표)\s*[:：-]?\s*(.+)/i,
+  );
+  if (adj && adj[1].trim()) {
+    return { action: 'adjust', objective: adj[1].trim().slice(0, 300) };
+  }
+  return { action: 'keep' }; // 유지·불명확 = 현 목표 보존(보수·날조 0)
+}
+
+/** retro 프롬프트 (순수·바운드). 진전이 *진짜* 북극성으로 가는지 심문. */
+export function buildRetroPrompt(
+  proj: PortfolioProject,
+  missionText: string,
+): string {
+  const recent = proj.progressLog
+    .slice(-6)
+    .map((e) => `· ${e.ts.slice(0, 10)} ${e.delta} (${e.evidence})`)
+    .join('\n');
+  return [
+    `너는 karmoddrine 에이전트 팀. 프로젝트 «${proj.title}» 회고 1턴.`,
+    '도구·파일 접근 없이 아래만으로 판단. 사장(비개발자) 평이체,',
+    '내부 코드명·영어약어·경로 금지. 3~4문장.',
+    '',
+    `[북극성 — 사용자 영역, 바꾸지 마라]`,
+    proj.northStar,
+    `[현 목표]`,
+    proj.currentObjective?.text || '(없음)',
+    '',
+    '[최근 전진 기록]',
+    recent || '(없음)',
+    '',
+    '[미션 정렬 anchor]',
+    missionText.trim().slice(0, 800),
+    '',
+    '[질문] 이 전진들이 *진짜* 북극성으로 가고 있나, 자가정비 맴돌이인가?',
+    '첫 줄 정확히 하나:',
+    '· "유지" — 현 목표 그대로가 옳다.',
+    '· "조정: <새 목표 한 줄>" — 더 북극성에 가까운 목표로.',
+    '· "달성" — 현 목표 달성됨(다음은 별도 발굴).',
+    '둘째 줄 = 평이체 사유 1줄.',
+  ].join('\n');
+}
+
+/**
+ * retro 결과 반영 (best-effort, 항상 lastRetroTs 스탬프 — keep 라도
+ * 주기 재계산). adjust=currentObjective 교체. IO.
+ */
+export function recordRetro(
+  memoRoot: string,
+  projectId: string,
+  d: RetroDecision,
+  ts?: string,
+): boolean {
+  const p = loadPortfolio(memoRoot);
+  const proj = p.projects.find((x) => x.id === projectId);
+  if (!proj) return false;
+  const now = ts ?? new Date().toISOString();
+  proj.lastRetroTs = now;
+  if (d.action === 'adjust' && d.objective) {
+    proj.currentObjective = { text: d.objective.slice(0, 300), openedTs: now };
+  }
   return writePortfolio(memoRoot, p);
 }

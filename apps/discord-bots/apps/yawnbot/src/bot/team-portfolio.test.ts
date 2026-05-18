@@ -6,7 +6,11 @@ import {
   validateProjectCitation,
   formatPortfolioBlock,
   renderPortfolioMarkdown,
+  shouldRunRetro,
+  parseRetroDecision,
+  buildRetroPrompt,
   type Portfolio,
+  type PortfolioProject,
 } from './team-portfolio';
 
 const wm = {
@@ -122,5 +126,57 @@ describe('프롬프트/투영 (바운드·결정적)', () => {
     expect(md).toContain('손편집 X');
     expect(md).toContain('## [wm] Witch-Mendokusai');
     expect(md).toContain('허브 진입 배선');
+  });
+});
+
+// ── LT-7 retro 밸브 (순수) ──
+const mkProj = (o: Partial<PortfolioProject> = {}): PortfolioProject => ({
+  id: 'wm',
+  title: 'WM',
+  northStar: '팬100',
+  weight: 100,
+  status: 'active',
+  progressLog: [{ ts: '2026-05-18T00:00:00Z', projectId: 'wm', delta: 'd', evidence: 'e' }],
+  ...o,
+});
+
+describe('shouldRunRetro — 영속 주기 게이트', () => {
+  const NOW = Date.parse('2026-05-18T12:00:00Z');
+  it('진전 없음/비active = false', () => {
+    expect(shouldRunRetro(mkProj({ progressLog: [] }), NOW, 1000)).toBe(false);
+    expect(shouldRunRetro(mkProj({ status: 'paused' }), NOW, 1000)).toBe(false);
+  });
+  it('lastRetroTs 없음 = 즉시 가능(진전 있으면)', () => {
+    expect(shouldRunRetro(mkProj(), NOW, 3600_000)).toBe(true);
+  });
+  it('interval 미경과 = false / 경과 = true', () => {
+    const recent = mkProj({ lastRetroTs: '2026-05-18T11:50:00Z' }); // 10분 전
+    expect(shouldRunRetro(recent, NOW, 3600_000)).toBe(false); // 1h 주기
+    expect(shouldRunRetro(recent, NOW, 300_000)).toBe(true); // 5분 주기
+  });
+});
+
+describe('parseRetroDecision — 결정적(불명확=keep)', () => {
+  it('유지/조정/달성/불명확', () => {
+    expect(parseRetroDecision('유지\n정렬됨').action).toBe('keep');
+    const adj = parseRetroDecision('조정: 던전 루프 닫기\n더 가깝다');
+    expect(adj.action).toBe('adjust');
+    expect(adj.objective).toBe('던전 루프 닫기');
+    expect(parseRetroDecision('달성 — 허브 완성').action).toBe('achieved');
+    expect(parseRetroDecision('음 글쎄요').action).toBe('keep'); // 불명확=보수
+  });
+});
+
+describe('buildRetroPrompt — 북극성 불변·심문', () => {
+  it('북극성·현목표·진전·"맴돌이" 심문 포함, 결정 형식 강제', () => {
+    const p = buildRetroPrompt(
+      mkProj({ currentObjective: { text: '허브 만들기', openedTs: '' } }),
+      '미션텍스트',
+    );
+    expect(p).toContain('팬100'); // northStar
+    expect(p).toContain('허브 만들기'); // currentObjective
+    expect(p).toContain('바꾸지 마라'); // northStar 불변 가드
+    expect(p).toMatch(/맴돌이|자가정비/);
+    expect(p).toContain('조정:');
   });
 });
