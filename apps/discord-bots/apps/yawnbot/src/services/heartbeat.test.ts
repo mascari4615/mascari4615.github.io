@@ -62,20 +62,51 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
     expect(decoded).toEqual({ ts: '2026-05-17T10:00:00.000Z', source: 'yawnbot', schema: 1 });
   });
 
-  it('파일 없음(GET 404) → sha 없이 PUT (생성)', async () => {
-    const calls: any[] = [];
-    const fetchImpl = vi.fn(async (_url: string, opts: any) => {
-      calls.push(opts);
-      if (opts.method === 'GET') return res(404);
+  it('파일 없음(GET 404) + 브랜치 존재(ref 200) → sha 없이 PUT (생성), 부트스트랩 X', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(200, { ref: 'r' }); // 브랜치 존재
+      if (opts.method === 'GET') return res(404); // 파일만 없음
       return res(201);
     });
     await writeHeartbeatOnce(CFG, {
       fetchImpl: fetchImpl as unknown as typeof fetch,
       now: fixedNow,
       timeoutMs: 1000,
+      logger: silentLogger,
     });
-    const putBody = JSON.parse(calls[1].body);
+    // 순서: contents GET(404) → ref GET(200, 존재) → PUT
+    expect(calls.map((c) => c.opts.method)).toEqual(['GET', 'GET', 'PUT']);
+    expect(calls.some((c) => c.url.endsWith('/git/commits'))).toBe(false); // 부트스트랩 안 함
+    const putBody = JSON.parse(calls[2].opts.body);
     expect(putBody.sha).toBeUndefined();
+  });
+
+  it('브랜치 자체 부재(ref 404) → empty-tree orphan 부트스트랩 후 PUT 생성', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(404); // 브랜치 자체 부재
+      if (url.endsWith('/git/commits')) return res(201, { sha: 'c1' });
+      if (url.endsWith('/git/refs')) return res(201, {});
+      if (opts.method === 'GET') return res(404); // contents 파일 없음
+      return res(201);
+    });
+    const ts = await writeHeartbeatOnce(CFG, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      now: fixedNow,
+      timeoutMs: 1000,
+      logger: silentLogger,
+    });
+    expect(ts).toBe('2026-05-17T10:00:00.000Z');
+    // contents GET(404) → ref GET(404) → commit POST → ref POST → contents PUT
+    expect(calls.map((c) => c.opts.method)).toEqual(['GET', 'GET', 'POST', 'POST', 'PUT']);
+    expect(calls[2].url).toContain('/git/commits');
+    expect(calls[3].url).toContain('/git/refs');
+    const putBody = JSON.parse(calls[4].opts.body);
+    expect(putBody.sha).toBeUndefined();
+    expect(putBody.branch).toBe('yawnbot-heartbeat');
   });
 
   it('GET non-2xx(404 외, 예: 401) → throw', async () => {

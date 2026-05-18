@@ -12,6 +12,12 @@
  * 인증 = 기존 `MEMO_GITHUB_PAT` (digest-webhook 이 쓰는 그 토큰·패턴 재사용).
  * 로컬 git 무관 = 다세션 인덱스 race 0, main 히스토리 무관.
  *
+ * orphan 브랜치 부재 시 자동 부트스트랩(`github-orphan-branch.ts`,
+ * KAR-CHARSTATE follow-up) — Contents API 는 브랜치를 생성 못 하므로
+ * GET 404 시 ref 확인 후 없으면 empty-tree orphan ref 를 만든다.
+ * 과거엔 `yawnbot-heartbeat` 가 우연히 존재해 통했을 뿐(잠복 동일버그)
+ * — 그 브랜치 삭제 시에도 이제 self-heal.
+ *
  * 추가로, 기록 자체가 막힌 경우(네트워크/DNS/인증 단절로 PUT 실패)는
  * inbound watcher 도 외부 watcher 도 즉시 볼 수 없으므로 — 기록 실패를
  * ops-report 채널로 직접 alert 한다. 단 *상태 전이*(healthy↔unhealthy)
@@ -27,6 +33,8 @@
  * 순수부(writeHeartbeatOnce / runHeartbeatTick)는 fetch/clock 주입으로
  * 단위 테스트 가능 (Discord client·실 네트워크·실 GitHub 무관).
  */
+
+import { ensureOrphanBranch } from './github-orphan-branch';
 
 const GITHUB_API = 'https://api.github.com';
 
@@ -97,7 +105,12 @@ function ghHeaders(token: string): Record<string, string> {
  */
 export async function writeHeartbeatOnce(
   cfg: HeartbeatConfig,
-  deps: { fetchImpl: typeof fetch; now: () => Date; timeoutMs: number },
+  deps: {
+    fetchImpl: typeof fetch;
+    now: () => Date;
+    timeoutMs: number;
+    logger?: Pick<Console, 'log' | 'warn' | 'error'>;
+  },
 ): Promise<string> {
   const { fetchImpl, now, timeoutMs } = deps;
   const base = `${GITHUB_API}/repos/${cfg.repo}/contents/${cfg.path}`;
@@ -121,7 +134,16 @@ export async function writeHeartbeatOnce(
   if (getRes.ok) {
     const body = (await getRes.json()) as { sha?: string };
     sha = body.sha;
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    // 파일 없음 — 단 *브랜치 자체 부재*일 수 있다 (Contents API 는
+    // 브랜치를 생성 못 함). orphan 브랜치 ref 를 보장한 뒤 sha 없이
+    // PUT 으로 최초 생성. (TASK-KAR-CHARSTATE prod 버그 근본 — 과거
+    // heartbeat 가 통한 건 브랜치가 우연히 존재했기 때문, 잠복 동일버그)
+    await ensureOrphanBranch(
+      { token: cfg.token, repo: cfg.repo, branch: cfg.branch },
+      { fetchImpl, timeoutMs, userAgent: 'yawnbot-heartbeat', logger: deps.logger },
+    );
+  } else {
     throw new Error(`heartbeat sha 조회 실패 (HTTP ${getRes.status})`);
   }
 
@@ -167,7 +189,7 @@ export async function runHeartbeatTick(
   let healthy: boolean;
   let reason: string;
   try {
-    const ts = await writeHeartbeatOnce(cfg, { fetchImpl, now, timeoutMs });
+    const ts = await writeHeartbeatOnce(cfg, { fetchImpl, now, timeoutMs, logger });
     healthy = true;
     reason = `heartbeat 기록 OK (${ts})`;
   } catch (e: unknown) {

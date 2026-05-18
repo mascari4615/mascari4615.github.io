@@ -17,6 +17,12 @@
  * heartbeat 와 *다른 브랜치* (`yawnbot-character-state`) — 관심사 분리:
  * heartbeat = liveness 시각 / charstate = 캐릭터 상태 스냅샷.
  *
+ * orphan 브랜치 부재 시 자동 부트스트랩(`github-orphan-branch.ts`,
+ * KAR-CHARSTATE follow-up) — Contents API 는 브랜치를 생성 못 하므로,
+ * Contents GET 이 404 면 ref 를 확인해 없으면 universal empty-tree
+ * orphan commit + ref 를 생성한다. fresh env/브랜치 삭제 self-heal
+ * (이전 prod 버그: 수동 시드 의존 → 재발 가능했음).
+ *
  * 번들 대상 = KAR-MEMOSYNC part2 가 .gitignore 한 캐릭터 런타임 산출:
  * characters/.active.json, 캐릭터별 relationship.json,
  * memory/mood.json, memory/user.md, memory/self.md,
@@ -48,6 +54,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { ensureOrphanBranch } from './github-orphan-branch';
 
 const GITHUB_API = 'https://api.github.com';
 
@@ -291,7 +298,16 @@ export async function writeSnapshotOnce(
   if (getRes.ok) {
     const body = (await getRes.json()) as { sha?: string };
     sha = body.sha;
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    // 파일 없음 — 단 *브랜치 자체 부재*일 수 있다 (Contents API 는
+    // 브랜치를 생성 못 함 — prod 에서 37분/2틱 영영 부재로 실증된
+    // 근본). orphan 브랜치 ref 를 보장한 뒤 sha 없이 PUT 으로 최초
+    // 생성. fresh env/브랜치 삭제 시 자가 self-heal (수동 시드 불요).
+    await ensureOrphanBranch(
+      { token: cfg.token, repo: cfg.repo, branch: cfg.branch },
+      { fetchImpl, timeoutMs, userAgent: 'yawnbot-character-state', logger },
+    );
+  } else {
     throw new Error(`charstate sha 조회 실패 (HTTP ${getRes.status})`);
   }
 

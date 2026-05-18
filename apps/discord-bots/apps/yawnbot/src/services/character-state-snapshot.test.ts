@@ -215,10 +215,11 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
     expect(decoded.entries.length).toBe(10);
   });
 
-  it('파일 없음(GET 404) → sha 없이 PUT (최초 생성)', async () => {
-    const calls: any[] = [];
-    const fetchImpl = vi.fn(async (_url: string, opts: any) => {
-      calls.push(opts);
+  it('파일 없음(GET 404) + 브랜치 존재(ref 200) → sha 없이 PUT, 부트스트랩 X', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(200, { ref: 'r' });
       if (opts.method === 'GET') return res(404);
       return res(201);
     });
@@ -229,8 +230,38 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
       fsImpl: makeFs(SAMPLE_FILES),
       logger: silentLogger,
     });
-    const putBody = JSON.parse(calls[1].body);
+    expect(calls.map((c) => c.opts.method)).toEqual(['GET', 'GET', 'PUT']);
+    expect(calls.some((c) => c.url.endsWith('/git/commits'))).toBe(false);
+    const putBody = JSON.parse(calls[2].opts.body);
     expect(putBody.sha).toBeUndefined();
+  });
+
+  it('브랜치 자체 부재(ref 404) → empty-tree orphan 부트스트랩 후 PUT 생성', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(404);
+      if (url.endsWith('/git/commits')) return res(201, { sha: 'c1' });
+      if (url.endsWith('/git/refs')) return res(201, {});
+      if (opts.method === 'GET') return res(404);
+      return res(201);
+    });
+    const hash = await writeSnapshotOnce(CFG, null, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      now: fixedNow,
+      timeoutMs: 1000,
+      fsImpl: makeFs(SAMPLE_FILES),
+      logger: silentLogger,
+    });
+    expect(typeof hash).toBe('string');
+    expect(calls.map((c) => c.opts.method)).toEqual(['GET', 'GET', 'POST', 'POST', 'PUT']);
+    expect(calls[2].url).toContain('/git/commits');
+    expect(JSON.parse(calls[2].opts.body).tree).toBe('4b825dc642cb6eb9a060e54bf8d69288fbee4904');
+    expect(calls[3].url).toContain('/git/refs');
+    expect(JSON.parse(calls[3].opts.body).ref).toBe('refs/heads/yawnbot-character-state');
+    const putBody = JSON.parse(calls[4].opts.body);
+    expect(putBody.sha).toBeUndefined();
+    expect(putBody.branch).toBe('yawnbot-character-state');
   });
 
   it('GET non-2xx(404 외, 예: 401) → throw', async () => {
