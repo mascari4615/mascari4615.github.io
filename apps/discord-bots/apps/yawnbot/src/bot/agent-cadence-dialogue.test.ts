@@ -231,6 +231,54 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(wm.progressLog[0].evidence).toContain('pLT5');
   });
 
+  it('LT-5b 발굴 projectId 누락이라도 채택 → topProject(WM) progressLog 귀속 (앵커 정합, prod 근본 2026-05-18)', async () => {
+    // prod 실증: 발굴 LLM 이 엔벨로프 projectId 를 자주 누락 → adopt
+    // 났는데 progressLog=[] (deliberation 은 topProject 앵커로 도는데
+    // appendProgress 만 빈 엔벨로프 projectId 를 봐 어긋남). fallback 후
+    // = topProject(weight 최대 active=wm) 에 귀속.
+    fs.writeFileSync(
+      path.join(root, '.claude', 'team-portfolio.json'),
+      JSON.stringify({
+        projects: [
+          { id: 'agent-team', title: '팀인프라', northStar: 's', weight: 40, status: 'active', instrumental: true, progressLog: [] },
+          { id: 'wm', title: 'WM', northStar: '팬100', weight: 100, status: 'active', progressLog: [] },
+        ],
+      }),
+      'utf-8',
+    );
+    // projectId *없는* 엔벨로프 (발굴 LLM 누락 = prod 실제 케이스)
+    fs.appendFileSync(
+      path.join(root, '.claude', 'proposals.jsonl'),
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        id: 'pNoPid',
+        target: 'task-new',
+        kind: 'objective',
+        envelope: {
+          kind: 'objective',
+          payload: { summary: '환경 백지 복구 점검 체계', derivation: [], alignment: [] },
+        },
+      }) + '\n',
+      'utf-8',
+    );
+    const r = await runCoreDialogueOnce(env(), {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async () => '좋아요',
+      speak: async () => true,
+    });
+    expect(r).toBe('deliberation:1:adopt');
+    const pf = JSON.parse(
+      fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
+    );
+    const wm = pf.projects.find((p: { id: string }) => p.id === 'wm');
+    const at = pf.projects.find((p: { id: string }) => p.id === 'agent-team');
+    expect(wm.progressLog).toHaveLength(1); // topProject(w100) 귀속
+    expect(at.progressLog).toHaveLength(0); // instrumental 엔 안 박힘
+    expect(wm.progressLog[0].evidence).toContain('topProject 귀속');
+    expect(wm.progressLog[0].evidence).toContain('pNoPid');
+  });
+
   it('예산 deny → dialogue-gated, 생성·speak 호출 X + trace', async () => {
     writeProposal('p1', { title: 'WM 작업', body: 'x', domain: 'WM' });
     let gen = false;
