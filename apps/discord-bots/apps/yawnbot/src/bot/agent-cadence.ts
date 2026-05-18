@@ -24,7 +24,7 @@ import {
   workerWorktreeDir,
 } from './agent-worker-repo';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
-import { updateDashboard } from './team-dashboard';
+import { updateDashboard, parseWorkerStates } from './team-dashboard';
 import {
   loadPortfolio,
   formatPortfolioBlock,
@@ -1404,7 +1404,61 @@ export async function runWorkerConsumerOnce(
       results.push(`${w.coreId}:${res.status}`);
     }
   }
-  return results.join(',') || 'no-workers';
+  const csv = results.join(',');
+  // KAR-077: 최신 워커 상태를 대시보드가 읽도록 캐시(빈 결과면 직전 유지
+  // — 워커가 별 timer 라 cadence tick 시점엔 최신값 필요).
+  if (csv) lastWorkerCsv = csv;
+  return csv || 'no-workers';
+}
+
+/** KAR-077 — 최근 워커 결과 CSV(parseWorkerStates 입력). 모듈 in-memory. */
+let lastWorkerCsv = '';
+
+/**
+ * 대시보드 갱신 헬퍼 (KAR-077) — cadence tick·workerTick 양쪽서 호출
+ * (≤5분 신선도). 큐 = code-worker repo 라우팅(KAR-075) claimable.
+ * 전부 비-fatal(틱 비차단, process.md 백그라운드 정합).
+ */
+async function refreshDashboard(
+  env: NodeJS.ProcessEnv,
+  memoRoot: string,
+  tickSummary: string,
+): Promise<void> {
+  try {
+    const nowKst = (ms: number): string =>
+      new Date(ms + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
+    const qspec: [string, string, string][] = [
+      ['KL', 'Mascari4615.github.io', 'KL→io'],
+      ['WM', 'WitchMendokusai', 'WM'],
+      ['KAR', 'Mascari4615.github.io', 'KAR→io'],
+    ];
+    const queue = memoRoot
+      ? qspec.map(([dom, repo, label]) => {
+          try {
+            const out = runMemoScript(memoRoot, 'task-queue.mjs', [
+              '--json',
+              '--domain',
+              dom,
+              '--repo',
+              repo,
+            ]).out;
+            return { repo: label, count: JSON.parse(out).count ?? 0 };
+          } catch {
+            return { repo: label, count: 0 };
+          }
+        })
+      : [];
+    await updateDashboard(env, {
+      atKST: nowKst(Date.now()),
+      lastTickKST: nowKst(Date.now()),
+      tickSummary,
+      workers: parseWorkerStates(lastWorkerCsv),
+      queue,
+      alive: true,
+    });
+  } catch {
+    /* 대시보드 실패 = 비차단 */
+  }
 }
 
 /** objectives.md 읽어 parseCadenceWork (thin I/O wrapper). */
@@ -1643,42 +1697,8 @@ export async function runCadenceTickOnce(
   } catch {
     /* 하트비트 실패 = tick 비차단 */
   }
-  // TASK-KAR-077: 현황 대시보드 갱신 (전용 채널 2 메시지 edit-in-place).
-  // 비차단·비-fatal. 큐 = code-worker repo 라우팅(KAR-075) 기준 claimable.
-  try {
-    const nowKst = (ms: number): string =>
-      new Date(ms + 9 * 3600_000).toISOString().slice(0, 16).replace('T', ' ');
-    const qspec: [string, string, string][] = [
-      ['KL', 'Mascari4615.github.io', 'KL→io'],
-      ['WM', 'WitchMendokusai', 'WM'],
-      ['KAR', 'Mascari4615.github.io', 'KAR→io'],
-    ];
-    const queue = memoRoot
-      ? qspec.map(([dom, repo, label]) => {
-          try {
-            const out = runMemoScript(memoRoot, 'task-queue.mjs', [
-              '--json',
-              '--domain',
-              dom,
-              '--repo',
-              repo,
-            ]).out;
-            return { repo: label, count: JSON.parse(out).count ?? 0 };
-          } catch {
-            return { repo: label, count: 0 };
-          }
-        })
-      : [];
-    await updateDashboard(env, {
-      atKST: nowKst(Date.now()),
-      lastTickKST: nowKst(Date.now()),
-      tickSummary: r,
-      queue,
-      alive: true,
-    });
-  } catch {
-    /* 대시보드 실패 = tick 비차단 (process.md 백그라운드 정합) */
-  }
+  // TASK-KAR-077: 현황 대시보드 갱신 (refreshDashboard = workerTick 과 공용).
+  await refreshDashboard(env, memoRoot, r);
   return r;
 }
 
@@ -1714,6 +1734,13 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       if (w && w !== 'no-workers' && w !== 'no-memo-root') {
         console.log(`[AgentCadence] worker -> ${w}`);
       }
+      // KAR-077: 워커 timer(≤5분)서도 대시보드 갱신 → 워커 상태 변화가
+      // 15분 cadence 안 기다리고 곧 반영(신선도).
+      await refreshDashboard(
+        env,
+        env.MEMO_REPO_PATH?.trim() || '',
+        `worker:${w}`,
+      );
     } catch (e) {
       console.error(
         '[AgentCadence] worker 오류:',
