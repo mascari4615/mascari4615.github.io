@@ -59,6 +59,7 @@ import {
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
 import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
+import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
@@ -448,6 +449,28 @@ client.once('clientReady', async () => {
       } catch (e: any) {
         console.error('[CoreSpeak]', e?.message ?? e);
         return false;
+      }
+    });
+    // TASK-KAR-077: 대시보드 sink — ensure-or-edit 한 메시지, ID 반환.
+    // setCoreSpeak 동형(client 주입, agent-cadence ⊥ discord.js).
+    setDashboardSink(async (channelId, messageId, content) => {
+      try {
+        const ch = await client.channels.fetch(channelId).catch(() => null);
+        if (!(ch instanceof TextChannel)) return null;
+        const body = content.slice(0, 1990);
+        if (messageId) {
+          try {
+            await ch.messages.edit(messageId, { content: body });
+            return messageId;
+          } catch {
+            /* 메시지 삭제됨 → 새로 생성 */
+          }
+        }
+        const m = await ch.send({ content: body });
+        return m.id;
+      } catch (e: any) {
+        console.error('[Dashboard]', e?.message ?? e);
+        return null;
       }
     });
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)

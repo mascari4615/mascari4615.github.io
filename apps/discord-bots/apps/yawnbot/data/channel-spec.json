@@ -2,11 +2,40 @@
 	"_doc": "선언적 채널 구조 (정본 — 커밋). ID 가 아니라 *원하는 구조* 만 적는다. 봇이 부팅 시 dev 길드에서 reconcile: 저장된 ID 가 살아있으면 그대로, 없으면 이름으로 기존 채널 claim, 그것도 없으면 생성. 결과 ID 는 data/provisioned-channels.<guildId>.json (런타임·gitignore) 에 파생 저장. prod 는 env *_CHANNEL_ID 가 우선이라 본 spec 영향 없음 (YAWNBOT_ENV=prod 시 프로비저닝 OFF).",
 	"categoryName": "욘봇",
 	"channels": [
-		{ "key": "github-webhook", "name": "github-webhook", "topic": "GitHub · 로컬 webhook 이벤트" },
-		{ "key": "ops-report", "name": "ops-report", "topic": "봇 운영 자기보고 (시작·에러·메트릭)" },
-		{ "key": "unity-free", "name": "unity-free", "topic": "Unity 무료 에셋 세일 알림" },
-		{ "key": "news", "name": "news", "topic": "관심사 뉴스 + Hacker News 크론 (YB-036)" },
-		{ "key": "agent-team", "name": "team-bus", "topic": "에이전트 팀 #team-bus (발굴·거버넌스 escalate)" },
-		{ "key": "digest", "name": "digest", "topic": "레포 digest 요약 (chore(digests))" }
+		{
+			"key": "github-webhook",
+			"name": "github-webhook",
+			"topic": "GitHub · 로컬 webhook 이벤트"
+		},
+		{
+			"key": "ops-report",
+			"name": "ops-report",
+			"topic": "봇 운영 자기보고 (시작·에러·메트릭)"
+		},
+		{
+			"key": "unity-free",
+			"name": "unity-free",
+			"topic": "Unity 무료 에셋 세일 알림"
+		},
+		{
+			"key": "news",
+			"name": "news",
+			"topic": "관심사 뉴스 + Hacker News 크론 (YB-036)"
+		},
+		{
+			"key": "agent-team",
+			"name": "team-bus",
+			"topic": "에이전트 팀 #team-bus (발굴·거버넌스 escalate)"
+		},
+		{
+			"key": "digest",
+			"name": "digest",
+			"topic": "레포 digest 요약 (chore(digests))"
+		},
+		{
+			"key": "dashboard",
+			"name": "dashboard",
+			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"
+		}
 	]
 }
