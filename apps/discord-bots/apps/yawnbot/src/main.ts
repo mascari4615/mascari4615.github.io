@@ -61,12 +61,13 @@ import { startProactive, stopProactive, sendStartupGreeting, startScheduleRemind
 import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
 import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
-import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot } from './services/ops-self-report';
+import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
 import {
   startCharacterStateSnapshot,
   stopCharacterStateSnapshot,
 } from './services/character-state-snapshot';
+import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 
@@ -366,6 +367,25 @@ client.once('clientReady', async () => {
     alert: opsCtx ? (event) => void reportCharStateSnapshot(opsCtx, event) : undefined,
   });
 
+  // TASK-KAR-MEMOSYNC part4: prod memo 자동 동기 (heartbeat 패턴 미러).
+  // 현 memo-sync 는 github.io deploy 안에서만 → memo-only 변경(TASK·agent
+  // core·rules)이 deploy 없으면 prod 미반영(실증: wm-worker inactive 적용에
+  // deploy 수동 트리거 강제). 봇이 *스스로* memo fetch+reset --hard 를
+  // (a) 주기(env interval) (b) 이벤트 전(worker tick 직전 freshness hook,
+  // agent-cadence 측 호출) 으로 수행. part2/3 로 reset --hard 가 결정적·
+  // 안전(런타임 untracked, divergence 구조적 0) → 자주 돌려도 무해.
+  // deploy "Sync prod memo" 스텝과 동일 시맨틱(평행정의 X).
+  startMemoSync({
+    token: process.env.MEMO_GITHUB_PAT || process.env.GITHUB_TOKEN,
+    memoRepoPath: memoRepoPath || undefined,
+    repoSlug: process.env.YAWNBOT_MEMOSYNC_REPO_SLUG,
+    branch: process.env.YAWNBOT_MEMOSYNC_BRANCH,
+    intervalMin: process.env.YAWNBOT_MEMOSYNC_INTERVAL_MIN
+      ? parseInt(process.env.YAWNBOT_MEMOSYNC_INTERVAL_MIN, 10)
+      : undefined,
+    alert: opsCtx ? (event) => void reportMemoSync(opsCtx, event) : undefined,
+  });
+
   if (characterService) {
     characterService.initialize();
     // default 슬러그 MemoryService 선-초기화 (stub 파일 준비)
@@ -618,6 +638,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopPresenceRotation();
   stopHeartbeat();
   stopCharacterStateSnapshot();
+  stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopAgentCadence();
