@@ -74,6 +74,7 @@ import {
   appendCoreMemory,
   type CoreDef,
 } from '../services/agent-core';
+import { getActiveMemoSyncHandle } from '../services/memo-sync';
 import {
   decideDialogueTurn,
   nextDeliberationStep,
@@ -1805,6 +1806,27 @@ export async function runRetroOnce(
   return `retro:${decision.action}`;
 }
 
+/**
+ * 이벤트 전 memo freshness 가드 (TASK-KAR-MEMOSYNC part4).
+ * 워커가 작업을 *픽하기 직전* "마지막 memo-sync 후 N초 경과면 1회 sync" —
+ * 워커가 항상 fresh 정본(TASK 큐·core·rules)으로 픽하도록. 최소 침습 seam:
+ * memo-sync 서비스가 미설정/비활성이면 핸들 null → graceful no-op.
+ * **기존 tick 비차단·best-effort** — sync 실패해도 워커 tick 은 계속(픽이
+ * 약간 stale 할 뿐, 동결은 part1 ops alert 가 별도로 시끄럽게 알림).
+ * 임계 = AGENT_MEMOSYNC_FRESH_MS (기본 5분 — 워커 타이머 기본 주기와 동일,
+ * "픽 직전 메모는 한 사이클 이내 신선" 보장하면서 매 픽 fetch 노이즈 회피).
+ */
+async function ensureMemoFreshBeforeWork(env: NodeJS.ProcessEnv): Promise<void> {
+  const handle = getActiveMemoSyncHandle();
+  if (!handle) return; // 미설정/비활성 = graceful no-op
+  const maxAgeMs = Number(env.AGENT_MEMOSYNC_FRESH_MS) || 5 * 60_000;
+  try {
+    await handle.ensureFresh(maxAgeMs);
+  } catch {
+    /* best-effort — sync 실패는 워커 tick 비차단 (part1 ops alert 가 별도 표면화) */
+  }
+}
+
 export async function runCadenceTickOnce(
   env: NodeJS.ProcessEnv,
   opts: { includeWorker?: boolean } = {},
@@ -1837,6 +1859,11 @@ export async function runCadenceTickOnce(
   // false(워커 전용 타이머가 5분 주기). 수동 /관리자 에이전트틱 = 기본
   // true(전체 1틱). 작업 중이면 await-after-setTimeout 라 안 쌓임.
   if (opts.includeWorker !== false && memoRoot && !isKilled()) {
+    // KAR-MEMOSYNC part4: 워커 픽 *직전* memo freshness 가드 (pre-tick
+    // staleness — 워커가 항상 fresh 정본으로 픽). reset 이 worker spawn 과
+    // 시간 분리(픽 *전* 직렬 await) → 봇 프로세스 내 read-during-reset race
+    // 최소화. best-effort, 비차단.
+    await ensureMemoFreshBeforeWork(env);
     const w = await runWorkerConsumerOnce(env);
     if (w && w !== 'no-workers' && w !== 'no-memo-root') {
       r = `${r}+worker:${w}`;
@@ -1916,6 +1943,9 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   };
   const workerTick = async () => {
     try {
+      // KAR-MEMOSYNC part4: 워커 픽 직전 memo freshness 가드 (pre-tick
+      // staleness — 전용 워커 타이머 경로. runCadenceTickOnce 와 동일 seam).
+      await ensureMemoFreshBeforeWork(env);
       const w = await runWorkerConsumerOnce(env);
       if (w && w !== 'no-workers' && w !== 'no-memo-root') {
         console.log(`[AgentCadence] worker -> ${w}`);

@@ -176,6 +176,28 @@ export async function reportCharStateSnapshot(
   await sendEmbed(ctx, embed);
 }
 
+/**
+ * memo 자동 동기 장애/복구 임베드 (TASK-KAR-MEMOSYNC part4). 봇이 스스로
+ * 주기·이벤트 전 memo `fetch+reset --hard` 하던 게 실패하면(토큰 만료·
+ * 네트워크·인덱스 잠금) prod 가 옛 정본으로 돎 — silent 금지 근본(part1)
+ * 정합. heartbeat/charstate 와 *다른 관심사*(정본 신선도) 라 별 임베드.
+ * 상태 전이에서만 호출되므로 자체 dedup 불요.
+ */
+export async function reportMemoSync(
+  ctx: OpsReportContext,
+  alert: { healthy: boolean; reason: string },
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(alert.healthy ? 0x2ecc71 : 0xe67e22)
+    .setTitle(
+      alert.healthy ? '🟢 YawnBot memo 동기 복구' : '🟠 YawnBot memo 동기 실패',
+    )
+    .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
+    .setFooter({ text: buildFooter(ctx) })
+    .setTimestamp();
+  await sendEmbed(ctx, embed);
+}
+
 /** deploy 결과 임베드 (파랑). deploy-commands.ts main() 끝에 호출. */
 export async function reportDeploy(
   ctx: OpsReportContext,
