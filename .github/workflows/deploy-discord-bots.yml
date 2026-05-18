@@ -64,6 +64,10 @@ jobs:
           # 등록). kl-quality-loop 가 vars. 로 오참조해 latent 깨짐(최근
           # run 전부 failure) → 본 스텝은 secrets. 로 (그 버그 class fix).
           MEMO_PAT: ${{ secrets.MEMO_GITHUB_PAT }}
+          # memo-sync skip/실패 = silent 금지(prod memo 영구 동결 무관측 근본,
+          # feedback_prod_memo_frozen_by_merge_conflict_silent). 같은 webhook
+          # 으로 #ops alert + Actions ::warning:: 동시.
+          YB_OPS_WEBHOOK: ${{ secrets.YB_PROD_DISCORD_SUMMARY_WEBHOOK_URL }}
           # 어떤 git op 도 절대 자격증명 프롬프트로 hang X (실패=즉시 skip).
           GIT_TERMINAL_PROMPT: '0'
         # 에이전트 코어·스킨·캐릭터 정본 = memo. prod 봇이 *이 체크아웃*을
@@ -78,19 +82,33 @@ jobs:
           $ErrorActionPreference = 'Continue'
           $memoUnix = 'C:/Users/masca/repos/karmoddrine/memo'
           & git config --global --add safe.directory $memoUnix 2>&1 | Out-Null
-          $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
-          if ($branch -ne 'main') {
-            Write-Warning "[memo-sync] 브랜치 '$branch' != main — skip (강제전환 X, prod 안전). deploy 계속."
+          # LOUD skip — silent Write-Warning 단독 = prod memo 동결 무관측
+          # 근본(2026-05-18 KAR-018-ESC, memo: prod_memo_frozen_by_merge_conflict).
+          # Discord #ops alert + Actions ::warning:: annotation + exit 0
+          # (bot-code deploy 는 계속 — memo-sync 실패가 봇 배포 차단 X).
+          function Skip-Loud($reason) {
+            $msg = "🧊 [memo-sync] prod memo 동기 skip — $reason (prod memo 동결 가능, 수동 해소 필요. host=$env:COMPUTERNAME)"
+            Write-Warning $msg
+            Write-Output "::warning title=memo-sync skip::$msg"
+            if (-not [string]::IsNullOrEmpty($env:YB_OPS_WEBHOOK)) {
+              try {
+                Invoke-RestMethod -Uri $env:YB_OPS_WEBHOOK -Method Post -ContentType 'application/json' `
+                  -Body (@{ content = $msg } | ConvertTo-Json -Compress) -TimeoutSec 15 | Out-Null
+              } catch { Write-Warning "[memo-sync] ops alert 송신 실패(비차단): $($_.Exception.Message)" }
+            }
             exit 0
           }
+          $branch = (& git rev-parse --abbrev-ref HEAD 2>$null)
+          if ($branch -ne 'main') {
+            Skip-Loud "브랜치 '$branch' != main (강제전환 X, prod 안전)"
+          }
           if ([string]::IsNullOrEmpty($env:MEMO_PAT)) {
-            Write-Warning '[memo-sync] vars.MEMO_GITHUB_PAT 미설정 — 인증 fetch 불가, skip (deploy 계속). github.io repo Variables 에 등록 필요.'
-            exit 0
+            Skip-Loud 'MEMO_GITHUB_PAT secret 미설정 — 인증 fetch 불가 (github.io repo secret 등록 필요)'
           }
           # 인증 URL fetch (토큰은 출력 안 함 — git fetch 는 URL 미인쇄).
           $authUrl = "https://x-access-token:$($env:MEMO_PAT)@github.com/Mascari4615/memo.git"
           & git fetch $authUrl main 2>&1 | ForEach-Object { $_ -replace [regex]::Escape($env:MEMO_PAT), '***' }
-          if ($LASTEXITCODE -ne 0) { Write-Warning '[memo-sync] 인증 fetch 실패 — skip (deploy 계속, prod 보존)'; exit 0 }
+          if ($LASTEXITCODE -ne 0) { Skip-Loud '인증 fetch 실패 (토큰 만료/scope/네트워크 의심)' }
           # NOTE(blanket dirty 가드 제거, 근본): 라이브 prod 봇은
           # characters/*/mood.json·relationship.json·.active.json 을
           # *상시* 써서 tracked 작업트리가 항상 dirty → blanket skip 은
@@ -125,8 +143,8 @@ jobs:
           if ($LASTEXITCODE -eq 0) { Write-Host "[memo-sync] merge-commit -> $(& git rev-parse --short HEAD)"; exit 0 }
           # 충돌 → 절대 conflicted 상태로 두지 X. abort+skip, deploy 계속.
           & git merge --abort 2>&1 | Out-Null
-          Write-Warning '[memo-sync] merge 충돌 — abort+skip (prod 보존, deploy 계속). 수동 해소 필요.'
-          exit 0
+          $cf = (& git diff --name-only HEAD FETCH_HEAD 2>$null) -join ', '
+          Skip-Loud "merge 충돌 abort — prod memo 동결됨(옛 정본으로 계속 돎). 충돌후보=[$cf]. 노트북서 수동 해소(reset/stash) 필요"
 
       - name: Write prod .env (UTF-8 no BOM, secrets 분리 조립)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
