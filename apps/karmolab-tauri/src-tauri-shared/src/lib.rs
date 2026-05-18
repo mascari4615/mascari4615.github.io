@@ -18,7 +18,8 @@ use serde::{Deserialize, Serialize};
 pub enum SidecarCommand
 {
     /// Whisper 모델 메모리 로드. `model_dir` = 메인이 resolve 한
-    /// `{memo_root}/life/.models/whisper-large-v3/` (결정 #3 — config 진실원=메인).
+    /// `{memo_root}/life/.models/<model-slug>/` (결정 #3 — config 진실원=메인).
+    /// 모델 슬러그 = `KL_WHISPER_MODEL_ID` 마지막 세그먼트 (기본 `whisper-small`).
     VoiceLoad
     {
         model_dir: String,

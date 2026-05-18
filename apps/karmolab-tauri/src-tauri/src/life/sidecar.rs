@@ -172,10 +172,10 @@ pub fn send(cmd: &SidecarCommand, timeout: Duration) -> Result<SidecarEvent, Str
                 eprintln!("[life-sidecar] 통신 실패 — handle 정리, 다음 호출 시 respawn: {e}");
                 // 복구 범위: screen = capture_with_trigger 가 매번
                 // ensure_spawned → 다음 PrintScreen 에서 완전 자동 복구.
-                // voice = enable 시 1회 VoiceLoad(whisper 3.1GB) 라
+                // voice = enable 시 1회 VoiceLoad(모델 로드) 라
                 // crash 후 사용자 voice 재토글 시 복구. record 마다
                 // 자동 재로드는 crash 실패턴(B3) 본 뒤 정밀화 (지금
-                // 과설계 = 가설 박기 — 잘못된 3.1GB 재로드 UX 위험).
+                // 과설계 = 가설 박기 — 잘못된 재로드 UX 위험).
             }
             Err(e)
         }
