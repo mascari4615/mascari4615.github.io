@@ -24,7 +24,12 @@ import {
   workerWorktreeDir,
 } from './agent-worker-repo';
 import { reserveBudget, checkAndStampCooldown } from './team-room';
-import { loadPortfolio, formatPortfolioBlock } from './team-portfolio';
+import {
+  loadPortfolio,
+  formatPortfolioBlock,
+  appendProgress,
+  topProject,
+} from './team-portfolio';
 import {
   SessionRegistry,
   spawnTier3,
@@ -569,7 +574,7 @@ function markCommented(id: string): void {
 /** proposals.jsonl 마지막 1줄 → {id, kind, domain, text} (best-effort). */
 function readLatestProposal(
   memoRoot: string,
-): { id: string; domain?: string; text: string } | null {
+): { id: string; domain?: string; text: string; projectId?: string } | null {
   try {
     const p = path.join(memoRoot, '.claude', 'proposals.jsonl');
     const lines = fs.readFileSync(p, 'utf-8').trim().split(/\r?\n/);
@@ -584,6 +589,12 @@ function readLatestProposal(
         id: String(e.id),
         domain:
           typeof pl.domain === 'string' ? pl.domain : undefined,
+        // LT-2 projectId = 엔벨로프 최상위 (payload 아님). LT-5 진전
+        // 기록(appendProgress)의 대상 프로젝트.
+        projectId:
+          typeof e.envelope?.projectId === 'string'
+            ? e.envelope.projectId
+            : undefined,
         text:
           `${text}\n${String(pl.body || pl.derivation || '').slice(0, 400)}`.trim(),
       };
@@ -792,6 +803,21 @@ export async function runCoreDialogueOnce(
       state.peerCoreId,
       `결정: ${vk} — ${verdictReason} (제안 ${latest.id})`,
     );
+  }
+
+  // LT-5 진전 기록: 숙의가 *채택* 으로 수렴 = 그 proposal 의 프로젝트가
+  // 실제로 전진. "전진" = progressLog delta(PR 수 X, D3 근본). best-effort.
+  if (
+    (verdict === 'adopt' || verdict === 'adopt-mods') &&
+    latest.projectId
+  ) {
+    appendProgress(memoRoot, {
+      projectId: latest.projectId,
+      delta: `숙의 ${verdict === 'adopt-mods' ? '수정 ' : ''}채택: ${latest.text
+        .split('\n')[0]
+        .slice(0, 120)}`,
+      evidence: `deliberation ${state.turns.length}턴 [${latest.id}]`,
+    });
   }
 
   appendTrace(env, {
@@ -1407,11 +1433,28 @@ export async function runCadenceOnce(
  * 의미 활동 = 발굴 dispatch / 워커 착수 / 제안 머터리얼 / 코어대화 /
  * 승인대기(escalate) / 예산정지 / 드리프트차단. 그 외(gated·idle) = null.
  */
-export function summarizeTick(r: string): string | null {
+export function summarizeTick(r: string, anchor = ''): string | null {
   const s = (r || '').trim();
   if (!s) return null;
   const bits: string[] = [];
-  const dlg = s.match(/dialogue:([a-z0-9_-]+)/i);
+  // LT-3 다중턴 숙의 결과 (deliberation:<n>:<verdict>) — 깡통 한마디
+  // 아닌 *진짜 토론→결정* 가시화 (D1·D2 가시 완결).
+  const dlb = s.match(
+    /deliberation:(\d+):(adopt-mods|adopt|reject|escalate)/,
+  );
+  if (dlb) {
+    const n = dlb[1];
+    const v =
+      dlb[2] === 'adopt'
+        ? `채택`
+        : dlb[2] === 'adopt-mods'
+          ? `수정 채택`
+          : dlb[2] === 'reject'
+            ? `반려`
+            : `⚠ 사장 판단 필요`;
+    bits.push(`팀이 ${n}턴 토론 끝에 — ${v}`);
+  }
+  const dlg = s.match(/(?<!delibera)\bdialogue:([a-z0-9_-]+)/i);
   if (dlg) bits.push(`동료 ${dlg[1]} 가 팀 채팅에 한마디 보탬`);
   const wk = s.match(/\+worker:([^+]+)/);
   if (wk) {
@@ -1430,7 +1473,10 @@ export function summarizeTick(r: string): string | null {
   if (/budget-stop/.test(s)) bits.push('예산 한도 — 이번 바퀴는 멈춤');
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
   if (bits.length === 0) return null;
-  return `🛰 팀 한 바퀴: ${bits.join(' · ')}`;
+  // 포트폴리오 앵커 = 무상태 "한 바퀴" → "프로젝트 X 목표 Y" 실전진
+  // 서술(D2 가시 완결). anchor 미지정 = 기존 prefix(회귀0).
+  const head = anchor.trim() || '🛰 팀 한 바퀴';
+  return `${head}: ${bits.join(' · ')}`;
 }
 
 let cadenceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1498,7 +1544,20 @@ export async function runCadenceTickOnce(
   }
   console.log(`[AgentCadence] tick -> ${r}`);
   try {
-    const hb = summarizeTick(r);
+    // LT-5: 포트폴리오 앵커 = 최대 weight 프로젝트·현 목표. 하트비트가
+    // "한 바퀴"(무상태) → "프로젝트 X 목표 Y 전진"(D2 가시 완결).
+    let anchor = '';
+    try {
+      const tp = topProject(loadPortfolio(memoRoot));
+      if (tp) {
+        anchor = tp.currentObjective?.text
+          ? `📌 «${tp.title}» 목표: ${tp.currentObjective.text}`
+          : `📌 «${tp.title}»`;
+      }
+    } catch {
+      /* 앵커 실패 = 기존 prefix 폴백 */
+    }
+    const hb = summarizeTick(r, anchor);
     if (hb) gov.notify(hb);
   } catch {
     /* 하트비트 실패 = tick 비차단 */
