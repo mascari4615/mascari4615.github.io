@@ -1064,7 +1064,11 @@ function cleanupWorkerWorktree(repoRoot: string, wtDir: string): void {
 
 export interface WorkerConsumerDeps {
   listWorkers?: (memoRoot: string) => WorkerCore[];
-  scan?: (domain: string, machine: string) => { id: string; file: string }[];
+  scan?: (
+    domain: string,
+    machine: string,
+    repo?: string,
+  ) => { id: string; file: string }[];
   claim?: (id: string, by: string) => boolean;
   release?: (id: string, by: string) => void;
   spawn?: (req: Tier3Request) => Promise<Tier3Result>;
@@ -1198,14 +1202,12 @@ export async function runWorkerConsumerOnce(
 
   const scan =
     deps.scan ??
-    ((domain: string, machine: string) => {
-      const r = runMemoScript(memoRoot, 'task-queue.mjs', [
-        '--json',
-        '--domain',
-        domain,
-        '--machine',
-        machine,
-      ]);
+    ((domain: string, machine: string, repo?: string) => {
+      const a = ['--json', '--domain', domain, '--machine', machine];
+      // KAR-075: 워커의 effective repo 로 큐 필터 → memo-default task
+      // (KAR doc 등) 가 code-worker 후보서 제외 = no-op churn 근원 제거.
+      if (repo) a.push('--repo', repo);
+      const r = runMemoScript(memoRoot, 'task-queue.mjs', a);
       try {
         return JSON.parse(r.out).candidates ?? [];
       } catch {
@@ -1229,9 +1231,17 @@ export async function runWorkerConsumerOnce(
   const results: string[] = [];
   for (const w of workers) {
     if (isKilled()) break;
+    // KAR-075: 워커 도메인 repo 로 큐 라우팅 — memo-default task 는
+    // code-worker 후보서 빠짐(no-op churn 근원 제거). repo 미해소 시
+    // undefined → task-queue 필터 없음(backward-safe).
+    const wRepo = resolveDomainRepo(
+      w.coreId,
+      path.dirname(memoRoot),
+    )?.repoDir;
     const rawCands = scan(
       w.domain,
       w.machine === 'any' ? thisMachine : w.machine,
+      wRepo,
     );
     const tickNow = Date.now();
     // no-artifact cooldown 인 task 제외 → degenerate 무한 재pick 차단,
