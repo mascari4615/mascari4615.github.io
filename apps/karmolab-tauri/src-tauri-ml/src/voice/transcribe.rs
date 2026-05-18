@@ -23,6 +23,7 @@ use rand::distr::Distribution;
 use rand::SeedableRng;
 use tokenizers::Tokenizer;
 
+// 메인 voice/mod.rs model_name() 기본값 "openai/whisper-small" 과 sync 유지 필요.
 const DEFAULT_MODEL_ID: &str = "openai/whisper-small";
 const MODEL_REVISION: &str = "main";
 const HF_BASE: &str = "https://huggingface.co";
