@@ -6,7 +6,9 @@
 //! - timestamps=false / Task::Transcribe / verbose=false
 //! - CLI 폐기 — `transcribe(&[f32]) -> Result<TranscribeResult>` 단일 entrypoint
 //!
-//! 모델: openai/whisper-large-v3 (HF mirror 자동 다운 + 캐시). large-v3 = 128 mel bins.
+//! 모델: 기본 openai/whisper-small (244M param, 80 mel bins, ~240MB). 환경 변수
+//! `KL_WHISPER_MODEL_ID` 로 override 가능 (예: `openai/whisper-medium`).
+//! large-v3 = 1.5B param, CPU 9x realtime → small ≈ 1~2x realtime 예상 (KL-061).
 //! Decoder 영구 (`OnceLock<Mutex<Decoder>>`) — model/tokenizer load 1회.
 
 use std::path::{Path, PathBuf};
@@ -21,7 +23,7 @@ use rand::distr::Distribution;
 use rand::SeedableRng;
 use tokenizers::Tokenizer;
 
-const MODEL_ID: &str = "openai/whisper-large-v3";
+const DEFAULT_MODEL_ID: &str = "openai/whisper-small";
 const MODEL_REVISION: &str = "main";
 const HF_BASE: &str = "https://huggingface.co";
 const SEED: u64 = 299_792_458;
@@ -72,9 +74,9 @@ struct ModelFiles {
 }
 
 /// 모델 캐시 디렉토리 = 메인이 `--model-dir` 로 주입한 경로
-/// (`{memo_root}/life/.models/whisper-large-v3/` — 결정 #3, config 진실원=메인).
+/// (`{memo_root}/life/.models/whisper-small/` — 결정 #3, config 진실원=메인).
 /// sidecar 는 LifeScreenConfig 를 모름 — 경로만 받아 ensure + 로드.
-fn ensure_model_files(model_dir: &Path) -> Result<ModelFiles, String> {
+fn ensure_model_files(model_dir: &Path, model_id: &str) -> Result<ModelFiles, String> {
     std::fs::create_dir_all(model_dir)
         .map_err(|e| format!("model cache 디렉토리 생성 실패: {e}"))?;
     let cache = model_dir.to_path_buf();
@@ -82,7 +84,7 @@ fn ensure_model_files(model_dir: &Path) -> Result<ModelFiles, String> {
     for name in MODEL_FILES {
         let dest = cache.join(name);
         if !dest.exists() {
-            let url = format!("{HF_BASE}/{MODEL_ID}/resolve/{MODEL_REVISION}/{name}");
+            let url = format!("{HF_BASE}/{model_id}/resolve/{MODEL_REVISION}/{name}");
             download_with_progress(&url, &dest)?;
         }
         paths.push(dest);
@@ -147,9 +149,9 @@ fn download_with_progress(url: &str, dest: &Path) -> Result<(), String> {
 }
 
 impl Decoder {
-    fn new(device: Device, model_dir: &Path) -> Result<Self, String> {
-        eprintln!("[life-voice] candle whisper 모델 다운/캐시 ({MODEL_ID})");
-        let files = ensure_model_files(model_dir)?;
+    fn new(device: Device, model_dir: &Path, model_id: &str) -> Result<Self, String> {
+        eprintln!("[life-voice] candle whisper 모델 다운/캐시 ({model_id})");
+        let files = ensure_model_files(model_dir, model_id)?;
         let config_path = files.config;
         let tokenizer_path = files.tokenizer;
         let weights_path = files.weights;
@@ -404,17 +406,20 @@ pub fn is_loading() -> bool {
 }
 
 /// 백그라운드 thread 에서 모델 로드. 이미 로드 중이거나 완료면 no-op.
+/// 모델 ID = 환경 변수 `KL_WHISPER_MODEL_ID` 우선, 없으면 `DEFAULT_MODEL_ID`.
 pub fn load(model_dir: PathBuf) -> Result<(), String> {
     if is_loaded() || DECODER_LOADING.load(Ordering::SeqCst) {
         return Ok(());
     }
     DECODER_LOADING.store(true, Ordering::SeqCst);
+    let model_id = std::env::var("KL_WHISPER_MODEL_ID")
+        .unwrap_or_else(|_| DEFAULT_MODEL_ID.to_string());
     let arc = decoder_arc().clone();
     std::thread::Builder::new()
         .name("life-voice-decoder-load".into())
         .spawn(move || {
-            eprintln!("[life-voice] decoder load 시작 (~3.1GB)");
-            match Decoder::new(Device::Cpu, &model_dir) {
+            eprintln!("[life-voice] decoder load 시작 (model={model_id})");
+            match Decoder::new(Device::Cpu, &model_dir, &model_id) {
                 Ok(dec) => {
                     let mut g = arc.lock().unwrap();
                     *g = Some(dec);
@@ -435,7 +440,7 @@ pub fn load(model_dir: PathBuf) -> Result<(), String> {
     Ok(())
 }
 
-/// 모델을 메모리에서 해제 (~3.1GB 반환). 진행 중인 transcribe 완료 후 실행.
+/// 모델을 메모리에서 해제 (RAM 반환). 진행 중인 transcribe 완료 후 실행.
 pub fn unload() {
     if let Ok(mut g) = decoder_arc().lock() {
         *g = None;
