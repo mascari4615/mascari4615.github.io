@@ -18,7 +18,6 @@
  *
  * v1 = read-only (memo 정본 우선). v2 (TASK-KL-010): 위젯 토글 → memo write back. v3: 인라인 에디터.
  */
-// @ts-nocheck — port of inline IIFE; types narrow incrementally
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
 
 const _questUnlisten = new WeakMap<HTMLElement, () => void>();
@@ -54,6 +53,48 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     generatedAtUnix: number;
     memoPath: string;
     errors: MemoTaskError[];
+  }
+
+  // ── Legacy quest format (memo → 옛 위젯 데이터 변환) ──────────────────────────
+  interface QuestCheckItem {
+    t: string;
+    done: boolean;
+    lineNumber: number;
+  }
+  interface QuestLeaf {
+    id: string;
+    title: string;
+    status: string;
+    memoStatus: string;
+    memoPriority: string;
+    parentId: string | null;
+    filePath: string;
+    checks: QuestCheckItem[];
+  }
+  interface QuestNode {
+    id: string;
+    title: string;
+    note?: string;
+    children: (QuestLeaf | QuestNode)[];
+  }
+  interface QuestProject {
+    id: string;
+    title: string;
+    subtitle?: string;
+    kind?: string;
+    icon: string;
+    children: (QuestLeaf | QuestNode)[];
+  }
+  interface QuestSealedItem {
+    id: string;
+    title: string;
+    project: string;
+    note: string;
+    sealedNote: string;
+  }
+  interface QuestTreeData {
+    projects: QuestProject[];
+    sealed: QuestSealedItem[];
   }
 
   const DOMAIN_ORDER = ['wm', 'karmolab', 'yawnbot', 'life', 'hobby', 'learning'];
@@ -141,7 +182,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     return 'seed';
   }
 
-  function taskNodeToLeaf(t: MemoTaskNode): any {
+  function taskNodeToLeaf(t: MemoTaskNode): QuestLeaf {
     return {
       id: t.id,
       title: t.title,
@@ -157,7 +198,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   /// memo TaskNode 들 → 옛 위젯 데이터 (projects/children/leaf checks + sealed[]).
   /// status='sealed' 인 TASK 만 sealed[] 로 분리. 그 외는 트리 안.
   /// 도메인(path[0]) 별 그룹 + parent chain 카테고리 (parent 가 자식 가지면 children 노드로).
-  function transformMemoToOld(tree: MemoQuestTree): any {
+  function transformMemoToOld(tree: MemoQuestTree): QuestTreeData {
     const sealedTasks: MemoTaskNode[] = [];
     const liveTasks: MemoTaskNode[] = [];
     for (const t of tree.tasks) {
@@ -284,7 +325,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     return REPO_DEFAULT_DOMAIN[repo] ?? 'meta';
   }
 
-  function buildProjectOverview(tree: MemoQuestTree, hubState: any | null): ProjectOverview {
+  function buildProjectOverview(tree: MemoQuestTree, hubState: unknown | null): ProjectOverview {
     const domainCounts = new Map<string, { fire: number; ready: number; seed: number; hold: number; done: number; sealed: number }>();
     const ensure = (d: string) => {
       if (!domainCounts.has(d)) domainCounts.set(d, { fire: 0, ready: 0, seed: 0, hold: 0, done: 0, sealed: 0 });
@@ -1379,7 +1420,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   }
 
   // ── runQuestLog: 원본 IIFE 로직 (document → root, ID → data-kl-ql) ──────
-  function runQuestLog(root: HTMLElement, src: any): void {
+  function runQuestLog(root: HTMLElement, src: QuestTreeData): void {
     // KL-048 — v2: leaf 에 parentId 필드 추가. 이전 v1 캐시는 자동 폐기 (sub-task hierarchy 정합).
     const STORAGE_KEY = 'quest-log-state-v2';
     const SRC = src;
@@ -1411,7 +1452,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         // 마이그레이션: 옛 단일 `sort: SortKey` → `sortKeys: [sort]`.
         let sortKeys: SortKey[];
         if (Array.isArray(raw?.sortKeys)) {
-          sortKeys = raw.sortKeys.filter((k: any) => SORT_VALUES.includes(k));
+          sortKeys = raw.sortKeys.filter((k: unknown): k is SortKey => SORT_VALUES.includes(k as SortKey));
         } else if (typeof raw?.sort === 'string' && SORT_VALUES.includes(raw.sort)) {
           sortKeys = [raw.sort];
         } else {
@@ -1455,26 +1496,26 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       body:   { name: 'Corpus',    sub: 'the body',     mag: '3.4' },
     };
 
-    function findNode(id: string, nodes: any[] = DATA.projects, parents: any[] = []): { node: any; parents: any[] } | null {
+    function findNode(id: string, nodes: (QuestLeaf | QuestNode | QuestProject)[] = DATA.projects, parents: (QuestNode | QuestProject)[] = []): { node: QuestLeaf | QuestNode | QuestProject; parents: (QuestNode | QuestProject)[] } | null {
       for (const n of nodes) {
         if (n.id === id) return { node: n, parents };
-        if (n.children) {
-          const f = findNode(id, n.children, [...parents, n]);
+        if ('children' in n && n.children) {
+          const f = findNode(id, n.children, [...parents, n as QuestNode | QuestProject]);
           if (f) return f;
         }
       }
       return null;
     }
-    function isLeaf(n: any): boolean { return Array.isArray(n.checks); }
-    function allLeaves(n: any, out: any[] = []): any[] {
+    function isLeaf(n: QuestLeaf | QuestNode | QuestProject): n is QuestLeaf { return 'checks' in n && Array.isArray(n.checks); }
+    function allLeaves(n: QuestLeaf | QuestNode | QuestProject, out: QuestLeaf[] = []): QuestLeaf[] {
       if (isLeaf(n)) { out.push(n); return out; }
-      if (n.children) n.children.forEach((c: any) => allLeaves(c, out));
+      if ('children' in n && n.children) n.children.forEach((c) => allLeaves(c, out));
       return out;
     }
-    function progressOf(n: any): number {
-      if (isLeaf(n)) return n.checks.length ? n.checks.filter((c: any) => c.done).length / n.checks.length : 0;
-      if (!n.children || !n.children.length) return 0;
-      return n.children.reduce((s: number, c: any) => s + progressOf(c), 0) / n.children.length;
+    function progressOf(n: QuestLeaf | QuestNode | QuestProject): number {
+      if (isLeaf(n)) return n.checks.length ? n.checks.filter((c) => c.done).length / n.checks.length : 0;
+      if (!('children' in n) || !n.children || !n.children.length) return 0;
+      return n.children.reduce((s: number, c) => s + progressOf(c), 0) / n.children.length;
     }
     function findAreaOf(id: string) {
       const f = findNode(id);
@@ -1510,7 +1551,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     // KL-045 — 다중 키 정렬 헬퍼. state.prefs.sortKeys 순서대로 비교, tie 시 다음 키, 최종 tie = id asc.
     const STATUS_RANK: Record<string, number> = { active: 0, ready: 1, seed: 2, hold: 3, done: 4, sealed: 5 };
     const PRIORITY_RANK: Record<string, number> = { high: 0, normal: 1, low: 2 };
-    function compareByKey(a: any, b: any, key: SortKey): number {
+    function compareByKey(a: QuestLeaf, b: QuestLeaf, key: SortKey): number {
       switch (key) {
         case 'status': {
           const ra = STATUS_RANK[canonicalStatus(a.memoStatus)] ?? 99;
@@ -1529,7 +1570,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       }
       return 0;
     }
-    function sortLeaves(leaves: any[]): any[] {
+    function sortLeaves(leaves: QuestLeaf[]): QuestLeaf[] {
       const sorted = [...leaves];
       const keys = state.prefs.sortKeys;
       if (keys.length === 0) return sorted;
@@ -1544,8 +1585,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
 
     // KL-048 — sub-task hierarchy. project.children 안 카테고리 노드 (부모+subs) 풀어 hier item 으로.
-    interface HierItem { leaf: any; isSub: boolean; isLast: boolean; }
-    function flattenWithHier(project: any): HierItem[] {
+    interface HierItem { leaf: QuestLeaf; isSub: boolean; isLast: boolean; }
+    function flattenWithHier(project: QuestNode | QuestProject): HierItem[] {
       const out: HierItem[] = [];
       for (const child of (project.children || [])) {
         if (isLeaf(child)) {
@@ -1632,8 +1673,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
 
     function renderStats() {
-      const all: any[] = [];
-      DATA.projects.forEach((p: any) => allLeaves(p).forEach(l => all.push(l)));
+      const all: QuestLeaf[] = [];
+      DATA.projects.forEach((p) => allLeaves(p).forEach(l => all.push(l)));
       const sealed = DATA.sealed.length;
       const coverage = all.length ? Math.round(all.reduce((s, l) => s + progressOf(l), 0) / all.length * 100) : 0;
       const el = byKey('stats');
@@ -1763,7 +1804,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           </div>
         `;
       }
-      const stars: any[] = [];
+      const stars: Array<{x: number, y: number, r: number, bright: boolean}> = [];
       for (let i = 0; i < 14; i++) {
         const h = hash('s' + idx + i);
         stars.push({ x: h % 100, y: ((h >> 8) % 80) + 10, r: ((h >> 16) % 15) / 10 + 0.4, bright: i < 5 });
@@ -1797,9 +1838,9 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       `;
     }
 
-    function obsRow(hierOrLeaf: any, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
-      const isHier = hierOrLeaf && hierOrLeaf.leaf;
-      const leaf = isHier ? hierOrLeaf.leaf : hierOrLeaf;
+    function obsRow(hierOrLeaf: HierItem | QuestLeaf, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
+      const isHier = hierOrLeaf && 'leaf' in hierOrLeaf;
+      const leaf = isHier ? (hierOrLeaf as HierItem).leaf : (hierOrLeaf as QuestLeaf);
       const isSub: boolean = isHier ? !!hierOrLeaf.isSub : false;
       const isLast: boolean = isHier ? !!hierOrLeaf.isLast : false;
       const status = leaf.status || 'seed';
@@ -1865,8 +1906,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     function renderColumns() {
       if (state.view === 'trophy') { renderTrophyView(); return; }
 
-      const wm = DATA.projects.find((p: any) => p.id === 'wm');
-      const others = DATA.projects.filter((p: any) => p.id !== 'wm' && isDomainOn(p.id));
+      const wm = DATA.projects.find((p) => p.id === 'wm');
+      const others = DATA.projects.filter((p) => p.id !== 'wm' && isDomainOn(p.id));
 
       const fw = byKey('featured-wrap');
       if (!fw) return;
@@ -1877,7 +1918,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         const wmHierAll = flattenWithHier(wm).filter((h) => isStatusOn(h.leaf.memoStatus));
         const wmAll = sortHierItems(wmHierAll);
         const wmFire = wmAllRaw.filter(l => l.status === 'fire').length;
-        const wmSealedCount = DATA.sealed.filter((s: any) => s.project === wm.title).length;
+        const wmSealedCount = DATA.sealed.filter((s) => s.project === wm.title).length;
         const wmProg = wmAllRaw.length ? Math.round(wmAllRaw.reduce((s, l) => s + progressOf(l), 0) / wmAllRaw.length * 100) : 0;
         const cst = CONST_BY_PROJECT.wm;
         const { rah, ram, decd, decm } = coords(0);
@@ -1924,7 +1965,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       const subEl = byKey('sub-columns');
       if (!subEl) return;
       // KL-045 — sub-grid: 도메인 토글 = `others` 가 이미 isDomainOn 필터됨 (위). 행은 상태 필터 + 정렬 적용.
-      subEl.innerHTML = others.map((p: any, subIdx: number) => {
+      subEl.innerHTML = others.map((p, subIdx) => {
         const idx = subIdx + 1;
         const allRaw = allLeaves(p);
         const hierAll = flattenWithHier(p).filter((h) => isStatusOn(h.leaf.memoStatus));
@@ -1995,7 +2036,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
             <div class="bar-meta"><b>${DATA.sealed.length} ENTRIES</b><span>ARCHIVED</span></div>
           </div>
           <div class="log" style="padding: 8px 16px 20px;">
-            ${DATA.sealed.map((t: any, i: number) => `
+            ${DATA.sealed.map((t, i) => `
               <div class="obs" data-status="done">
                 <div class="time"><b>№ ${String(i + 1).padStart(3, '0')}</b>SEALED</div>
                 <div class="body">
@@ -2065,10 +2106,10 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ${isLeaf(node) ? `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
             <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
-              CHECKLIST · ${node.checks.filter((c: any) => c.done).length} / ${node.checks.length}
+              CHECKLIST · ${node.checks.filter((c) => c.done).length} / ${node.checks.length}
             </div>
             <div class="checklist">
-              ${node.checks.map((c: any, i: number) => `
+              ${node.checks.map((c, i) => `
                 <label class="check-row ${c.done ? 'done' : ''}" data-check-idx="${i}">
                   <input type="checkbox" ${c.done ? 'checked' : ''} style="display:none;">
                   <span class="check-box"></span>
@@ -2089,7 +2130,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
               SUB-AREAS · ${node.children.length}
             </div>
             <div class="children-list">
-              ${node.children.map((c: any) => {
+              ${node.children.map((c) => {
                 const cp = Math.round(progressOf(c) * 100);
                 const cs = c.status || 'seed';
                 return `
