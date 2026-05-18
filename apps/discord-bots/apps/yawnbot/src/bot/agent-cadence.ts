@@ -975,6 +975,24 @@ function noteWorkerStatus(
 /** 테스트 전용 — 워커 상태 dedupe 리셋 (disarmKill 동형). */
 export function resetWorkerStatus(): void {
   lastWorkerStatus.clear();
+  noArtifactCooldown.clear();
+}
+
+// KAR-018-Y: no-artifact(미푸시/에러) task 즉시 재pick 무한루프 방지
+// (prod 데이터 2026-05-18: wm-worker 가 TASK-WM-084 를 ~7분마다 무한
+// 재claim — WM 자격 외부blocker 로 영구 push 실패, cadence·agentic
+// 전부 1 task 에 낭비·타 WM task 굶음). no-artifact 직후 그 task 를
+// 단기 cooldown → 다음 틱 *다른 후보* 회전. 인메모리(프로세스 hygiene,
+// 재기동 자가복원 — 크로스프로세스 claim 원장과 별 관심사). 자격 복구
+// 시 cooldown 만료 후 자연 재시도.
+const NOARTIFACT_COOLDOWN_MS = 30 * 60_000;
+const noArtifactCooldown = new Map<string, number>();
+function inNoArtifactCooldown(taskId: string, now: number): boolean {
+  const t = noArtifactCooldown.get(taskId);
+  return t !== undefined && now - t < NOARTIFACT_COOLDOWN_MS;
+}
+function markNoArtifact(taskId: string, now: number): void {
+  noArtifactCooldown.set(taskId, now);
 }
 
 export async function runWorkerConsumerOnce(
@@ -1027,14 +1045,30 @@ export async function runWorkerConsumerOnce(
   const results: string[] = [];
   for (const w of workers) {
     if (isKilled()) break;
-    const cands = scan(w.domain, w.machine === 'any' ? thisMachine : w.machine);
-    if (cands.length === 0) {
+    const rawCands = scan(
+      w.domain,
+      w.machine === 'any' ? thisMachine : w.machine,
+    );
+    const tickNow = Date.now();
+    // no-artifact cooldown 인 task 제외 → degenerate 무한 재pick 차단,
+    // 다른 후보로 회전. 전부 cooldown 이면 그 사실 명시 idle(무음 X).
+    const cands = rawCands.filter((c) => !inNoArtifactCooldown(c.id, tickNow));
+    if (rawCands.length === 0) {
       noteWorkerStatus(
         w.coreId,
         `${w.label} 🟦 대기 — ${w.domain} 도메인에 지금 맡을 일(claimable TASK) 0 (큐 비었거나 전부 진행중/PR/검토중). 새 일 생기면 자동 착수.`,
         notify,
       );
       results.push(`${w.coreId}:idle`);
+      continue;
+    }
+    if (cands.length === 0) {
+      noteWorkerStatus(
+        w.coreId,
+        `${w.label} 🟦 대기 — ${w.domain} claimable ${rawCands.length} 전부 최근 no-artifact 쿨다운(미푸시/에러 직후 재pick 차단, ~30분). 쿨다운 만료/신규 task 시 자동 재개. (다수=환경/자격 blocker 의심 — 누적보고)`,
+        notify,
+      );
+      results.push(`${w.coreId}:cooldown-all`);
       continue;
     }
     let chosen: { id: string; file: string } | null = null;
@@ -1148,7 +1182,8 @@ export async function runWorkerConsumerOnce(
         results.push(`${w.coreId}:done:${chosen.id}`);
       } else {
         release(chosen.id, w.coreId);
-        head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제·재시도. ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
+        markNoArtifact(chosen.id, tickNow); // 즉시 재pick 무한루프 차단
+        head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제. 30분 쿨다운(다른 task 회전, 무한 재pick X). ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
         results.push(`${w.coreId}:done-no-artifact:${chosen.id}`);
       }
       noteWorkerStatus(
@@ -1158,6 +1193,7 @@ export async function runWorkerConsumerOnce(
       );
     } else {
       release(chosen.id, w.coreId);
+      markNoArtifact(chosen.id, tickNow); // 에러 task 즉시 재pick 차단
       const errDetail = (res.error || '').trim().slice(0, 3000);
       noteWorkerStatus(
         w.coreId,

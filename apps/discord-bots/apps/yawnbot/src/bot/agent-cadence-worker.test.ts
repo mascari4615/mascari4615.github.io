@@ -198,6 +198,45 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     expect(notified[0]).toContain('미푸시');
   });
 
+  it('cooldown: no-artifact task 즉시 재pick 안 함 — 다른 후보 회전, 전부면 cooldown-all (degenerate 무한루프 차단, prod WM-084 실증)', async () => {
+    const deps = {
+      listWorkers: () => [W],
+      claim: () => true,
+      release: () => {},
+      setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+      spawn: async () => ({ status: 'done' as const }),
+      branchPushed: () => false, // 항상 미푸시 (영구 환경 blocker 모사)
+      notify: () => {},
+    };
+    // 1틱: 후보 [A,B], A claim→no-artifact→cooldown
+    const r1 = await runWorkerConsumerOnce(env(), {
+      ...deps,
+      scan: () => [
+        { id: 'TASK-WM-1', file: 'a' },
+        { id: 'TASK-WM-2', file: 'b' },
+      ],
+    });
+    expect(r1).toBe('wm-worker:done-no-artifact:TASK-WM-1');
+    // 2틱: 동일 후보 — A 는 cooldown 이라 skip, B 선택(무한 A 재pick X)
+    const r2 = await runWorkerConsumerOnce(env(), {
+      ...deps,
+      scan: () => [
+        { id: 'TASK-WM-1', file: 'a' },
+        { id: 'TASK-WM-2', file: 'b' },
+      ],
+    });
+    expect(r2).toBe('wm-worker:done-no-artifact:TASK-WM-2');
+    // 3틱: 둘 다 cooldown → cooldown-all idle (무음 X, blocker 가시화)
+    const r3 = await runWorkerConsumerOnce(env(), {
+      ...deps,
+      scan: () => [
+        { id: 'TASK-WM-1', file: 'a' },
+        { id: 'TASK-WM-2', file: 'b' },
+      ],
+    });
+    expect(r3).toBe('wm-worker:cooldown-all');
+  });
+
   it('전 후보 claim 실패 → claim-lost (spawn 0)', async () => {
     let spawned = false;
     const r = await runWorkerConsumerOnce(env(), {
