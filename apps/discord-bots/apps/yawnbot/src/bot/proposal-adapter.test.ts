@@ -196,3 +196,81 @@ describe('KAR-018-Y-2 거절 학습 — resolved 원장 → discover 컨텍스�
     expect(s.startsWith('- task:')).toBe(true);
   });
 });
+
+// ── LT-2 북극성 게이트 (TASK-KAR-018-LT 기둥1) ──
+describe('runProducerOnce — LT-2 projectId 북극성 게이트', () => {
+  function writePortfolio() {
+    fs.writeFileSync(
+      path.join(root, '.claude', 'team-portfolio.json'),
+      JSON.stringify({
+        projects: [
+          { id: 'wm', title: 'WM', northStar: '팬100', weight: 100, status: 'active', progressLog: [] },
+        ],
+      }),
+      'utf-8',
+    );
+  }
+  const withPid = JSON.stringify({
+    kind: 'env',
+    projectId: 'wm',
+    payload: { id: 'P1', summary: 's', targetFiles: ['a'], source: 'self-task' },
+  });
+  const badPid = JSON.stringify({
+    kind: 'env',
+    projectId: 'ghost',
+    payload: { id: 'P1', summary: 's', targetFiles: ['a'], source: 'self-task' },
+  });
+
+  it('정본 존재 + projectId 미기재 → no-project (폐기, dispatch X)', async () => {
+    writePortfolio();
+    const fn = vi.fn();
+    const r = await runProducerOnce({
+      env: baseEnv(),
+      discover: async () => envJson, // projectId 없음
+      dispatch: { 'self-improve': fn },
+      notify: (m) => notes.push(m),
+    });
+    expect(r).toBe('no-project');
+    expect(fn).not.toHaveBeenCalled();
+    expect(notes.join()).toContain('북극성');
+  });
+
+  it('정본 존재 + 미지 projectId → no-project', async () => {
+    writePortfolio();
+    const fn = vi.fn();
+    const r = await runProducerOnce({
+      env: baseEnv(),
+      discover: async () => badPid,
+      dispatch: { 'self-improve': fn },
+      notify: (m) => notes.push(m),
+    });
+    expect(r).toBe('no-project');
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it('정본 존재 + 유효 projectId → 게이트 통과·dispatch', async () => {
+    writePortfolio();
+    const fn = vi.fn().mockResolvedValue(undefined);
+    const r = await runProducerOnce({
+      env: baseEnv(),
+      discover: async () => withPid,
+      dispatch: { 'self-improve': fn },
+      notify: (m) => notes.push(m),
+    });
+    expect(r).toBe('self-improve');
+    expect(fn).toHaveBeenCalledOnce();
+  });
+
+  it('pre-rollout (정본 부재) → 게이트 skip, 기존 동작 불변 (회귀 가드)', async () => {
+    // team-portfolio.json 미작성 → projects 0 → gate skip
+    const fn = vi.fn().mockResolvedValue(undefined);
+    const r = await runProducerOnce({
+      env: baseEnv(),
+      discover: async () => envJson, // projectId 없어도
+      dispatch: { 'self-improve': fn },
+      notify: (m) => notes.push(m),
+    });
+    expect(r).toBe('self-improve'); // 게이트 미적용
+    expect(fn).toHaveBeenCalledOnce();
+  });
+});

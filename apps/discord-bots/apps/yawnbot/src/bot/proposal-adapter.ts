@@ -20,6 +20,7 @@ import {
   type ObjectivePayload,
 } from './proposal';
 import type { AgentSpec } from './agent-factory';
+import { loadPortfolio, validateProjectCitation } from './team-portfolio';
 import {
   appendTrace,
   defaultNotify,
@@ -88,6 +89,32 @@ export async function runProducerOnce(
     });
     notify('⑦\' 발굴물 파싱 실패 — 폐기 (날조 0)');
     return 'parse-fail';
+  }
+
+  // LT-2 북극성 게이트: 모든 발굴은 팀 포트폴리오 projectId 하나로
+  // 수렴해야 한다(D3 영구기관 근본 — "어디에도 안 붙는 일" 차단).
+  // 단 *pre-rollout graceful*: 포트폴리오 정본 미배포(projects 0)면
+  // 게이트 skip(하드 outage 0, 코드베이스 degraded-not-hang 정합·회귀0).
+  // 정본 존재 시에만 미수렴 발굴 거부 = no-project (parse-fail 동형 폐기).
+  const portfolio = loadPortfolio(deps.env.MEMO_REPO_PATH?.trim() || '');
+  if (portfolio.projects.length > 0) {
+    const cite = validateProjectCitation(
+      portfolio,
+      envelope.projectId || '',
+    );
+    if (!cite.ok) {
+      appendTrace(deps.env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: 'producer',
+        reason: `발굴 projectId 미수렴 — 폐기 (${cite.reason})`,
+      });
+      notify(
+        `⑦' 발굴 폐기 — 팀 북극성 미수렴 (${cite.reason}). ` +
+          '모든 제안은 포트폴리오 projectId 하나를 cite 해야 함.',
+      );
+      return 'no-project';
+    }
   }
 
   // KAR-018-Y-1 중복 dedup: pid 는 결정적(같은 엔벨로프=같은 pid).

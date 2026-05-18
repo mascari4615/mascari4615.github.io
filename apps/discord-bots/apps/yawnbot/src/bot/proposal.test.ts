@@ -131,3 +131,25 @@ describe('routeProposal — 결정적 매핑', () => {
     expect(routeProposal(parseProposalEnvelope(obj)!)).toBe('objectives');
   });
 });
+
+describe('parseProposalEnvelope — LT-2 projectId 추출 (순수)', () => {
+  const b = { kind: 'task', payload: { title: 't', body: 'b', domain: 'kar' } };
+  it('projectId 문자열 → 추출', () => {
+    expect(
+      parseProposalEnvelope(JSON.stringify({ ...b, projectId: 'wm' }))?.projectId,
+    ).toBe('wm');
+  });
+  it('projectId 부재 → undefined (파서 거부 X — 정책 게이트 소관)', () => {
+    const e = parseProposalEnvelope(JSON.stringify(b));
+    expect(e?.kind).toBe('task');
+    expect(e?.projectId).toBeUndefined();
+  });
+  it('projectId 비문자열/공백 → undefined', () => {
+    expect(
+      parseProposalEnvelope(JSON.stringify({ ...b, projectId: 42 }))?.projectId,
+    ).toBeUndefined();
+    expect(
+      parseProposalEnvelope(JSON.stringify({ ...b, projectId: '  ' }))?.projectId,
+    ).toBeUndefined();
+  });
+});
