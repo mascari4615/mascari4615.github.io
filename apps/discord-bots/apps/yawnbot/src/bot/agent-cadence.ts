@@ -1258,15 +1258,57 @@ const lastWorkerStatus = new Map<string, string>();
  * = 스킨 아바타+coreLabel sendAsSkin). voice 실패=raw 폴백(여전히 스킨
  * 정체로 발화). speak 폴백(미설정)=notify 평문(가용성 우선).
  */
-// KAR-079: 테스트 seam — footer spoiler/budget 회귀 직접 검증용 export.
+// ── KAR-079-B: 워커 원문 내구 원장 (날조 가드 ground-truth) ──────
+// KAR-079 의 spoiler footer 가 채팅 가독성 저해(사용자 2026-05-19).
+// 원문을 *채팅에서 빼고* 내구 jsonl 로 — 날조 가드(voiced drift cross-
+// check)는 유지·강화(grep/스크립트 감사 가능, ephemeral 아님). LT-10
+// verdict 원장과 동일 substrate 패턴(평행정의0). best-effort.
+export function workerRawLedgerPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root
+    ? path.join(root, '.claude', 'agent-worker-raw.jsonl')
+    : '';
+}
+
+/** 워커 원문(raw status) 1줄 append — voiced drift 시 사실 대조용. */
+export function appendWorkerRaw(
+  env: NodeJS.ProcessEnv,
+  coreId: string,
+  status: string,
+): void {
+  const p = workerRawLedgerPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        coreId,
+        status: (status || '').slice(0, 8000),
+      }) + '\n',
+      'utf-8',
+    );
+  } catch {
+    /* best-effort — 원장 실패가 워커 발화 비차단 */
+  }
+}
+
+// KAR-079: 테스트 seam — voiced-only 채팅 + raw 원장 회귀 검증용 export.
 export async function voicedWorkerSpeak(
   coreId: string,
   status: string,
   speak: CoreSpeakFn,
   voice: (prompt: string) => Promise<string>,
+  env: NodeJS.ProcessEnv = process.env,
 ): Promise<void> {
   if (lastWorkerStatus.get(coreId) === status) return;
   lastWorkerStatus.set(coreId, status);
+  // 날조 가드(KAR-018-Y, prod KL-061 "수동 PR" voicing drift 실증):
+  // raw ground-truth 를 *항상* 내구 원장에 기록 → voiced 가 사실을
+  // 지워도 grep/스크립트로 대조 가능. KAR-079-B: 채팅엔 원문 미동봉
+  // (사용자 가독성 1차 필터) — spoiler footer 폐기, 원장이 그 역할.
+  appendWorkerRaw(env, coreId, status);
   let line = status;
   try {
     const prompt = [
@@ -1281,26 +1323,9 @@ export async function voicedWorkerSpeak(
       status,
     ].join('\n');
     const v = (await voice(prompt)).trim();
-    // 날조 가드(KAR-018-Y, prod KL-061 "수동 PR" 실증): voiced 가
-    // 사실을 못 지우게 raw status 핵심을 *항상* footer 로 동봉 →
-    // voicing drift 해도 ground-truth 가시·감사가능. voice 실패면
-    // raw 자체라 footer 불요.
-    // KAR-079: 평소 채팅 가독성 위해 원문을 Discord spoiler(||..||)로
-    // 접고(클릭 시 펼침), 200자 하드컷 → Discord 2000자 한계 내 budget
-    // 기반으로 완화(펼치면 거의 전문). status 내 '|' 는 spoiler 조기
-    // 종료 막게 '¦'(U+00A6) 치환. sendAsSkin 은 content 무절단 →
-    // 우리가 ceiling 강제 안 하면 초과분이 throw→메시지 무손실 소실.
-    if (v) {
-      const voiced = v.slice(0, 1200);
-      const RAW_HARD = 1500; // 원문 절대 상한 (극단 보고 방지)
-      const overhead = 24; // "\n· 원문: ||" + "||" + 안전 마진
-      const rawBudget = Math.min(RAW_HARD, 1900 - voiced.length - overhead);
-      const raw = status
-        .replace(/\s+/g, ' ')
-        .replace(/\|/g, '¦')
-        .slice(0, Math.max(0, rawBudget));
-      line = `${voiced}\n· 원문: ||${raw}||`;
-    }
+    // 채팅 = voiced 한 줄만 (깔끔). sendAsSkin 은 content 무절단 →
+    // Discord 2000자 초과 throw→무손실 소실 ⇒ ceiling 우리가 강제.
+    if (v) line = v.slice(0, 1900);
   } catch {
     /* voice 실패 = raw status 그대로 (스킨 정체로는 여전히 발화) */
   }
