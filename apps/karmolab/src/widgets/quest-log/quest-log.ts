@@ -18,7 +18,8 @@
  *
  * v1 = read-only (memo 정본 우선). v2 (TASK-KL-010): 위젯 토글 → memo write back. v3: 인라인 에디터.
  */
-// @ts-nocheck — port of inline IIFE; types narrow incrementally
+// KL-071: 레거시 IIFE 의 `: any` 어노테이션 제거 + 인터페이스화 완료 →
+// `@ts-nocheck` 제거. 이 파일은 이제 `tsc --noEmit` (strict) 로 실검증됨.
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
 
 const _questUnlisten = new WeakMap<HTMLElement, () => void>();
@@ -141,7 +142,76 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     return 'seed';
   }
 
-  function taskNodeToLeaf(t: MemoTaskNode): any {
+  // ── 레거시 quest 포맷 인터페이스 (KL-071) ──────────────────────────────
+  // transformMemoToOld 가 memo 트리를 옛 위젯 트리(projects/children/leaf
+  // + sealed[])로 변환한다. 그 *구성된* 모양을 정밀 타입으로 고정하고,
+  // 휴리스틱 순회/렌더 (findNode/allLeaves/progressOf/openDrawer)는 세
+  // 모양을 구조적으로 함께 다루므로 넓은 supertype `QuestNode` 를 쓴다.
+  // (`@ts-nocheck` 제거 — tsc 가 실제로 검증. `: any` → 정의된 타입.)
+  interface QuestCheck {
+    t: string;
+    done: boolean;
+    lineNumber?: number; // localStorage fallback add 경로는 lineNumber 없이 push (2355)
+  }
+  interface QuestLeaf {
+    id: string;
+    title: string;
+    status: string;       // 위젯 status: fire|sleep|done|sealed|seed
+    memoStatus: string;
+    memoPriority: string;
+    parentId: string | null;
+    filePath: string;
+    checks: QuestCheck[];
+    note?: string;        // taskNodeToLeaf 미생성 — drawer 가 node.note 읽음 (방어)
+  }
+  interface QuestCategory {
+    id: string;
+    title: string;
+    note: string;
+    children: QuestLeaf[];
+  }
+  type QuestTreeNode = QuestLeaf | QuestCategory;
+  interface QuestProject {
+    id: string;
+    title: string;
+    subtitle: string;
+    kind: 'main' | 'side';
+    icon: string;
+    children: QuestTreeNode[];
+  }
+  interface QuestSealedItem {
+    id: string;
+    title: string;
+    project: string;
+    note: string;
+    sealedNote: string;
+  }
+  interface QuestData {
+    projects: QuestProject[];
+    sealed: QuestSealedItem[];
+  }
+  // 순회/렌더가 project/category/leaf 를 구조적으로 함께 다루는 넓은 노드.
+  // 정밀 타입(QuestProject/Category/Leaf)은 구조적으로 이 supertype 에 대입된다.
+  interface QuestNode {
+    id: string;
+    title: string;
+    status?: string;
+    memoStatus?: string;
+    memoPriority?: string;
+    parentId?: string | null;
+    filePath?: string;
+    note?: string;
+    subtitle?: string;
+    icon?: string;
+    kind?: 'main' | 'side';
+    children?: QuestNode[];
+    checks?: QuestCheck[];
+  }
+  // get_questlog_hub (questlog_hub.rs QuestlogHub/CommitInfo) — 위젯은 commits 만 사용.
+  interface HubCommit { hash: string; date: string; subject: string; }
+  interface HubState { commits?: Record<string, HubCommit[]>; }
+
+  function taskNodeToLeaf(t: MemoTaskNode): QuestLeaf {
     return {
       id: t.id,
       title: t.title,
@@ -157,7 +227,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   /// memo TaskNode 들 → 옛 위젯 데이터 (projects/children/leaf checks + sealed[]).
   /// status='sealed' 인 TASK 만 sealed[] 로 분리. 그 외는 트리 안.
   /// 도메인(path[0]) 별 그룹 + parent chain 카테고리 (parent 가 자식 가지면 children 노드로).
-  function transformMemoToOld(tree: MemoQuestTree): any {
+  function transformMemoToOld(tree: MemoQuestTree): QuestData {
     const sealedTasks: MemoTaskNode[] = [];
     const liveTasks: MemoTaskNode[] = [];
     for (const t of tree.tasks) {
@@ -212,7 +282,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         id: domain,
         title: DOMAIN_LABEL[domain] ?? domain,
         subtitle: DOMAIN_SUBTITLE[domain] ?? '',
-        kind: domain === 'wm' ? 'main' : 'side',
+        kind: (domain === 'wm' ? 'main' : 'side') as 'main' | 'side',
         icon: DOMAIN_ICON[domain] ?? '📦',
         children,
       };
@@ -284,7 +354,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     return REPO_DEFAULT_DOMAIN[repo] ?? 'meta';
   }
 
-  function buildProjectOverview(tree: MemoQuestTree, hubState: any | null): ProjectOverview {
+  function buildProjectOverview(tree: MemoQuestTree, hubState: HubState | null): ProjectOverview {
     const domainCounts = new Map<string, { fire: number; ready: number; seed: number; hold: number; done: number; sealed: number }>();
     const ensure = (d: string) => {
       if (!domainCounts.has(d)) domainCounts.set(d, { fire: 0, ready: 0, seed: 0, hold: 0, done: 0, sealed: 0 });
@@ -395,11 +465,11 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     };
   }
 
-  async function fetchHubState(): Promise<any | null> {
+  async function fetchHubState(): Promise<HubState | null> {
     // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam (웹=isDesktop false).
     if (!isDesktop()) return null;
     try {
-      return await invoke('get_questlog_hub');
+      return (await invoke('get_questlog_hub')) as HubState;
     } catch (e) {
       // hub 없어도 overview 의 도메인 진척 / top-5 / hold 는 작동. commit 만 빈 상태.
       return null;
@@ -1379,7 +1449,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   }
 
   // ── runQuestLog: 원본 IIFE 로직 (document → root, ID → data-kl-ql) ──────
-  function runQuestLog(root: HTMLElement, src: any): void {
+  function runQuestLog(root: HTMLElement, src: QuestData): void {
     // KL-048 — v2: leaf 에 parentId 필드 추가. 이전 v1 캐시는 자동 폐기 (sub-task hierarchy 정합).
     const STORAGE_KEY = 'quest-log-state-v2';
     const SRC = src;
@@ -1388,8 +1458,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     const $$ = (sel: string): NodeListOf<HTMLElement> => root.querySelectorAll(sel) as NodeListOf<HTMLElement>;
     const byKey = (key: string): HTMLElement | null => root.querySelector(`[data-kl-ql="${key}"]`) as HTMLElement | null;
 
-    function loadStored() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) { return null; }
+    function loadStored(): QuestData | null {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as QuestData | null; } catch (e) { return null; }
     }
     function save() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects: DATA.projects, sealed: DATA.sealed })); } catch (e) {}
@@ -1411,7 +1481,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         // 마이그레이션: 옛 단일 `sort: SortKey` → `sortKeys: [sort]`.
         let sortKeys: SortKey[];
         if (Array.isArray(raw?.sortKeys)) {
-          sortKeys = raw.sortKeys.filter((k: any) => SORT_VALUES.includes(k));
+          sortKeys = raw.sortKeys.filter((k: unknown): k is SortKey => SORT_VALUES.includes(k as SortKey));
         } else if (typeof raw?.sort === 'string' && SORT_VALUES.includes(raw.sort)) {
           sortKeys = [raw.sort];
         } else {
@@ -1455,7 +1525,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       body:   { name: 'Corpus',    sub: 'the body',     mag: '3.4' },
     };
 
-    function findNode(id: string, nodes: any[] = DATA.projects, parents: any[] = []): { node: any; parents: any[] } | null {
+    function findNode(id: string, nodes: QuestNode[] = DATA.projects, parents: QuestNode[] = []): { node: QuestNode; parents: QuestNode[] } | null {
       for (const n of nodes) {
         if (n.id === id) return { node: n, parents };
         if (n.children) {
@@ -1465,18 +1535,18 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       }
       return null;
     }
-    function isLeaf(n: any): boolean { return Array.isArray(n.checks); }
-    function allLeaves(n: any, out: any[] = []): any[] {
+    function isLeaf(n: QuestNode): n is QuestLeaf { return Array.isArray(n.checks); }
+    function allLeaves(n: QuestNode, out: QuestNode[] = []): QuestNode[] {
       if (isLeaf(n)) { out.push(n); return out; }
-      if (n.children) n.children.forEach((c: any) => allLeaves(c, out));
+      if (n.children) n.children.forEach((c) => allLeaves(c, out));
       return out;
     }
-    function progressOf(n: any): number {
-      if (isLeaf(n)) return n.checks.length ? n.checks.filter((c: any) => c.done).length / n.checks.length : 0;
+    function progressOf(n: QuestNode): number {
+      if (isLeaf(n)) return n.checks.length ? n.checks.filter((c) => c.done).length / n.checks.length : 0;
       if (!n.children || !n.children.length) return 0;
-      return n.children.reduce((s: number, c: any) => s + progressOf(c), 0) / n.children.length;
+      return n.children.reduce((s: number, c) => s + progressOf(c), 0) / n.children.length;
     }
-    function findAreaOf(id: string) {
+    function findAreaOf(id: string): QuestNode | null {
       const f = findNode(id);
       if (!f) return null;
       return f.parents[1] || f.parents[0];
@@ -1510,7 +1580,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     // KL-045 — 다중 키 정렬 헬퍼. state.prefs.sortKeys 순서대로 비교, tie 시 다음 키, 최종 tie = id asc.
     const STATUS_RANK: Record<string, number> = { active: 0, ready: 1, seed: 2, hold: 3, done: 4, sealed: 5 };
     const PRIORITY_RANK: Record<string, number> = { high: 0, normal: 1, low: 2 };
-    function compareByKey(a: any, b: any, key: SortKey): number {
+    function compareByKey(a: QuestLeaf, b: QuestLeaf, key: SortKey): number {
       switch (key) {
         case 'status': {
           const ra = STATUS_RANK[canonicalStatus(a.memoStatus)] ?? 99;
@@ -1529,7 +1599,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       }
       return 0;
     }
-    function sortLeaves(leaves: any[]): any[] {
+    function sortLeaves(leaves: QuestLeaf[]): QuestLeaf[] {
       const sorted = [...leaves];
       const keys = state.prefs.sortKeys;
       if (keys.length === 0) return sorted;
@@ -1544,8 +1614,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
 
     // KL-048 — sub-task hierarchy. project.children 안 카테고리 노드 (부모+subs) 풀어 hier item 으로.
-    interface HierItem { leaf: any; isSub: boolean; isLast: boolean; }
-    function flattenWithHier(project: any): HierItem[] {
+    interface HierItem { leaf: QuestLeaf; isSub: boolean; isLast: boolean; }
+    function flattenWithHier(project: QuestProject): HierItem[] {
       const out: HierItem[] = [];
       for (const child of (project.children || [])) {
         if (isLeaf(child)) {
@@ -1554,7 +1624,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           // 카테고리 노드: children[0] = 부모 leaf / children[1..] = subs
           const [parent, ...subs] = child.children;
           if (parent) out.push({ leaf: parent, isSub: false, isLast: false });
-          subs.forEach((s: any, i: number) => {
+          subs.forEach((s, i) => {
             out.push({ leaf: s, isSub: true, isLast: i === subs.length - 1 });
           });
         }
@@ -1632,8 +1702,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     }
 
     function renderStats() {
-      const all: any[] = [];
-      DATA.projects.forEach((p: any) => allLeaves(p).forEach(l => all.push(l)));
+      const all: QuestNode[] = [];
+      DATA.projects.forEach((p) => allLeaves(p).forEach(l => all.push(l)));
       const sealed = DATA.sealed.length;
       const coverage = all.length ? Math.round(all.reduce((s, l) => s + progressOf(l), 0) / all.length * 100) : 0;
       const el = byKey('stats');
@@ -1763,7 +1833,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           </div>
         `;
       }
-      const stars: any[] = [];
+      const stars: { x: number; y: number; r: number; bright: boolean }[] = [];
       for (let i = 0; i < 14; i++) {
         const h = hash('s' + idx + i);
         stars.push({ x: h % 100, y: ((h >> 8) % 80) + 10, r: ((h >> 16) % 15) / 10 + 0.4, bright: i < 5 });
@@ -1797,11 +1867,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       `;
     }
 
-    function obsRow(hierOrLeaf: any, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
-      const isHier = hierOrLeaf && hierOrLeaf.leaf;
-      const leaf = isHier ? hierOrLeaf.leaf : hierOrLeaf;
-      const isSub: boolean = isHier ? !!hierOrLeaf.isSub : false;
-      const isLast: boolean = isHier ? !!hierOrLeaf.isLast : false;
+    // 모든 호출부가 HierItem 을 넘긴다 (groupedObsRows). 옛 bare-leaf 방어 분기는
+    // 사문(死文)이라 KL-071 에서 제거 — 동작 동일, 타입만 정밀.
+    function obsRow(hierOrLeaf: HierItem, projectId: string, hasSubs?: boolean, isExpanded?: boolean) {
+      const leaf = hierOrLeaf.leaf;
+      const isSub: boolean = !!hierOrLeaf.isSub;
+      const isLast: boolean = !!hierOrLeaf.isLast;
       const status = leaf.status || 'seed';
       const priority = canonicalPriority(leaf.memoPriority || 'normal');
       const selectedCls = state.selectedId === leaf.id ? 'selected' : '';
@@ -1816,7 +1887,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ? `<button class="obs-expand-btn">${isExpanded ? '▾' : '▸'}</button>`
         : '<span class="obs-expand-ph"></span>';
       const checkN = leaf.checks.length;
-      const checkDone = leaf.checks.filter((c: any) => c.done).length;
+      const checkDone = leaf.checks.filter((c) => c.done).length;
       const progress = checkN > 0 ? Math.round(progressOf(leaf) * 100) : 0;
       const progSection = checkN > 0
         ? `<div class="obs-prog"><span class="obs-chk">${checkDone}/${checkN}</span>${!isSub && status !== 'seed' ? `<span class="obs-bw"><span class="obs-bf" style="width:${progress}%"></span></span>` : ''}</div>`
@@ -1865,8 +1936,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
     function renderColumns() {
       if (state.view === 'trophy') { renderTrophyView(); return; }
 
-      const wm = DATA.projects.find((p: any) => p.id === 'wm');
-      const others = DATA.projects.filter((p: any) => p.id !== 'wm' && isDomainOn(p.id));
+      const wm = DATA.projects.find((p) => p.id === 'wm');
+      const others = DATA.projects.filter((p) => p.id !== 'wm' && isDomainOn(p.id));
 
       const fw = byKey('featured-wrap');
       if (!fw) return;
@@ -1877,7 +1948,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         const wmHierAll = flattenWithHier(wm).filter((h) => isStatusOn(h.leaf.memoStatus));
         const wmAll = sortHierItems(wmHierAll);
         const wmFire = wmAllRaw.filter(l => l.status === 'fire').length;
-        const wmSealedCount = DATA.sealed.filter((s: any) => s.project === wm.title).length;
+        const wmSealedCount = DATA.sealed.filter((s) => s.project === wm.title).length;
         const wmProg = wmAllRaw.length ? Math.round(wmAllRaw.reduce((s, l) => s + progressOf(l), 0) / wmAllRaw.length * 100) : 0;
         const cst = CONST_BY_PROJECT.wm;
         const { rah, ram, decd, decm } = coords(0);
@@ -1924,7 +1995,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
       const subEl = byKey('sub-columns');
       if (!subEl) return;
       // KL-045 — sub-grid: 도메인 토글 = `others` 가 이미 isDomainOn 필터됨 (위). 행은 상태 필터 + 정렬 적용.
-      subEl.innerHTML = others.map((p: any, subIdx: number) => {
+      subEl.innerHTML = others.map((p, subIdx: number) => {
         const idx = subIdx + 1;
         const allRaw = allLeaves(p);
         const hierAll = flattenWithHier(p).filter((h) => isStatusOn(h.leaf.memoStatus));
@@ -1995,7 +2066,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
             <div class="bar-meta"><b>${DATA.sealed.length} ENTRIES</b><span>ARCHIVED</span></div>
           </div>
           <div class="log" style="padding: 8px 16px 20px;">
-            ${DATA.sealed.map((t: any, i: number) => `
+            ${DATA.sealed.map((t, i: number) => `
               <div class="obs" data-status="done">
                 <div class="time"><b>№ ${String(i + 1).padStart(3, '0')}</b>SEALED</div>
                 <div class="body">
@@ -2065,10 +2136,10 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ${isLeaf(node) ? `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
             <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
-              CHECKLIST · ${node.checks.filter((c: any) => c.done).length} / ${node.checks.length}
+              CHECKLIST · ${node.checks.filter((c) => c.done).length} / ${node.checks.length}
             </div>
             <div class="checklist">
-              ${node.checks.map((c: any, i: number) => `
+              ${node.checks.map((c, i: number) => `
                 <label class="check-row ${c.done ? 'done' : ''}" data-check-idx="${i}">
                   <input type="checkbox" ${c.done ? 'checked' : ''} style="display:none;">
                   <span class="check-box"></span>
@@ -2086,10 +2157,10 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
         ` : `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
             <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
-              SUB-AREAS · ${node.children.length}
+              SUB-AREAS · ${node.children!.length}
             </div>
             <div class="children-list">
-              ${node.children.map((c: any) => {
+              ${node.children!.map((c) => {
                 const cp = Math.round(progressOf(c) * 100);
                 const cs = c.status || 'seed';
                 return `
@@ -2117,7 +2188,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           if ((e.target as HTMLElement).matches('[data-check-edit]')) return;
 
           const i = Number(el.dataset.checkIdx);
-          const check = node.checks[i];
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
 
           // 메모 정본 write-back (TASK-KL-017). filePath/lineNumber 가 있는 경우만.
           // 없으면 (옛 localStorage 데이터) 시각만 토글.
@@ -2152,7 +2223,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           e.preventDefault();
           e.stopPropagation();
           const i = Number(el.dataset.checkDel);
-          const check = node.checks[i];
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
           if (!confirm(`정말 삭제할까요?\n\n"${check.t}"`)) return;
 
           // TASK-KL-062 slice3c: 로컬 invoke 캡처 폐기 → seam invoke.
@@ -2172,12 +2243,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
           // 파일에서 라인 1개 사라지면 그 뒤 체크박스들의 절대 라인 번호가 1씩 당겨짐.
           // in-memory 도 동기화 안 하면 다음 토글에서 text mismatch 로 실패.
-          for (let j = i + 1; j < node.checks.length; j++) {
-            if (typeof node.checks[j].lineNumber === 'number') {
-              node.checks[j].lineNumber -= 1;
+          for (let j = i + 1; j < node.checks!.length; j++) {
+            const ln = node.checks![j].lineNumber;
+            if (typeof ln === 'number') {
+              node.checks![j].lineNumber = ln - 1;
             }
           }
-          node.checks.splice(i, 1);
+          node.checks!.splice(i, 1);
           save();
           openDrawer(id);
           renderColumns();
@@ -2190,7 +2262,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           e.preventDefault();
           e.stopPropagation();
           const i = Number(el.dataset.checkEdit);
-          const check = node.checks[i];
+          const check = node.checks![i];  // 핸들러는 isLeaf 렌더 시에만 부착 — checks 보장
           const labelEl = el.previousElementSibling as HTMLElement | null;
           if (!labelEl || !labelEl.classList.contains('check-label')) return;
 
@@ -2345,14 +2417,14 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                 filePath: node.filePath,
                 text: t,
               }) as number;
-              node.checks.push({ t, done: false, lineNumber: newLineNumber });
+              node.checks!.push({ t, done: false, lineNumber: newLineNumber });
             } catch (err) {
               console.error('add_quest_check 실패', err);
               alert(`체크박스 추가 실패: ${err}`);
               return;
             }
           } else {
-            node.checks.push({ t, done: false });
+            node.checks!.push({ t, done: false });
           }
 
           input.value = '';
