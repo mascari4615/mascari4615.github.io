@@ -1,0 +1,77 @@
+name: Autopilot PR Sweeper (KAR-081)
+
+# autopilot 워커가 push 한 feature/autopilot-task-* 브랜치 → PAT 로 Draft PR.
+#
+# 근본 (KAR-081, dogfood 실증 2026-05-19): 구 auto-draft-pr.yml 은
+#   `on: push` 라 *push 된 브랜치의 workflow 정의* 를 사용 → 워커가 옛
+#   master 서 분기한 브랜치는 옛 정의(GITHUB_TOKEN) 실행 → anti-recursion
+#   으로 verify·claude-pr-review 미트리거 → graduate 데드락. master 에
+#   토큰 fix 해도 기존 feature 브랜치엔 영영 반영 안 됨(ref-정의 함정).
+#
+# 해결: schedule·workflow_dispatch 트리거 = GitHub 규칙상 *항상 default
+#   브랜치(master) 정의* 실행 → ref-정의 함정 구조적 제거. 단일 정본
+#   (auto-draft-pr.yml 폐기, 평행 0). PAT 생성 PR = 일반 PAT 이벤트라
+#   anti-recursion 없음 → verify·claude-pr-review·graduate 4가드 자연
+#   충족(KAR-073 원설계 그대로). 기존 적재분 + 신규 일괄 커버.
+#
+# 전제: PAT_FOR_AUTO_MERGE fine-grained scope = 3레포 contents+PR write
+#   (KAR-082, 사용자 2026-05-19 적용). 멱등: open PR 있으면 skip.
+# 정본: TASK-KAR-081 / KAR-073 계보.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: autopilot-pr-sweeper
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sweep autopilot branches → Draft PR (PAT)
+        env:
+          GH_TOKEN: ${{ secrets.PAT_FOR_AUTO_MERGE }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # 원격 feature/autopilot-task-* 브랜치 (open PR 없는 것만 = 멱등)
+          mapfile -t branches < <(
+            gh api "repos/$GH_REPO/branches" --paginate \
+              --jq '.[].name | select(startswith("feature/autopilot-task-"))'
+          )
+          if [ "${#branches[@]}" -eq 0 ]; then
+            echo "[sweeper] autopilot 브랜치 없음 — 종료"; exit 0
+          fi
+
+          created=0 skipped=0 nodiff=0
+          for br in "${branches[@]}"; do
+            # 멱등 — 이미 open PR 있으면 skip
+            existing=$(gh pr list --head "$br" --state open --json number --jq 'length')
+            if [ "$existing" != "0" ]; then
+              skipped=$((skipped+1)); continue
+            fi
+            # no-diff 가드 — base 대비 0 commit = 빈 PR 노이즈 방지
+            ahead=$(gh api "repos/$GH_REPO/compare/master...$br" --jq '.ahead_by' 2>/dev/null || echo "err")
+            if [ "$ahead" = "0" ]; then
+              echo "[sweeper] $br ahead_by=0 — skip (빈 PR 방지)"
+              nodiff=$((nodiff+1)); continue
+            fi
+            title="autopilot: ${br#feature/autopilot-task-}"
+            if gh pr create --draft --head "$br" --base master \
+                 --title "$title" \
+                 --body "🤖 KAR-018-Y autopilot 워커 산출. 브랜치 \`$br\`. PAT 생성 → verify·claude-pr-review·graduate 자동 졸업 (KAR-081)."; then
+              echo "[sweeper] Draft PR created (PAT) for $br"
+              created=$((created+1))
+            else
+              echo "[sweeper] gh pr create failed for $br (no diff or transient)"
+            fi
+          done
+          echo "[sweeper] done — created=$created skipped(open)=$skipped nodiff=$nodiff total=${#branches[@]}"
