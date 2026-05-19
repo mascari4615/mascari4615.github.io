@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { channelIdFor } from '../services/channel-provision';
+import type { EvolutionSummary } from './evolution-observatory';
 
 const PKG_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -69,6 +70,7 @@ export interface DashboardSnapshot {
   tickSummary: string; // 직전 tick 결과(가공 X — 파싱 의존 0)
   workers: WorkerLine[];
   queue: { repo: string; count: number }[];
+  evolution?: EvolutionSummary;
   alive: boolean;
 }
 
@@ -101,6 +103,14 @@ function health(s: DashboardSnapshot): { color: number; tag: string } {
   return { color: C_GREEN, tag: '🟢 가동' };
 }
 
+function dashboardHealth(s: DashboardSnapshot): { color: number; tag: string } {
+  if ((s.evolution?.critical ?? 0) > 0)
+    return { color: C_RED, tag: 'evolution critical' };
+  if ((s.evolution?.warn ?? 0) > 0)
+    return { color: C_YELLOW, tag: 'evolution warn' };
+  return health(s);
+}
+
 function workerBlock(ws: WorkerLine[]): string {
   if (ws.length === 0) return '_(워커 보고 대기)_';
   return ws
@@ -110,8 +120,22 @@ function workerBlock(ws: WorkerLine[]): string {
 }
 
 /** Compact — 채널 위, 한눈. */
+function evolutionBlock(summary: EvolutionSummary | undefined): string {
+  if (!summary || summary.total === 0) return 'no evolution events';
+  const topCodes =
+    summary.topCodes.length > 0
+      ? summary.topCodes
+          .map((entry) => `${entry.code} ${entry.count}`)
+          .join('\n')
+      : 'none';
+  return [
+    `critical ${summary.critical} | warn ${summary.warn} | info ${summary.info}`,
+    topCodes,
+  ].join('\n').slice(0, 1000);
+}
+
 export function renderCompact(s: DashboardSnapshot): DashEmbed {
-  const h = health(s);
+  const h = dashboardHealth(s);
   const total = s.queue.reduce((a, b) => a + b.count, 0);
   const q =
     s.queue.length === 0
@@ -135,7 +159,7 @@ export function renderCompact(s: DashboardSnapshot): DashEmbed {
 
 /** Detailed — 채널 아래, 깊게. */
 export function renderDetailed(s: DashboardSnapshot): DashEmbed {
-  const h = health(s);
+  const h = dashboardHealth(s);
   const qLines =
     s.queue.length === 0
       ? '(스캔 미상)'
@@ -236,7 +260,9 @@ export async function updateDashboard(
   const st = loadState(cid);
   let ok = 0;
   try {
-    const c = await sink(cid, st.compactId ?? null, 'compact', renderCompact(snap));
+    const compact = renderCompact(snap);
+    compact.description = evolutionBlock(snap.evolution).slice(0, 500);
+    const c = await sink(cid, st.compactId ?? null, 'compact', compact);
     if (c) {
       st.compactId = c;
       ok++;
@@ -245,7 +271,9 @@ export async function updateDashboard(
     /* 비-fatal */
   }
   try {
-    const d = await sink(cid, st.detailedId ?? null, 'detailed', renderDetailed(snap));
+    const detailed = renderDetailed(snap);
+    detailed.description = evolutionBlock(snap.evolution).slice(0, 500);
+    const d = await sink(cid, st.detailedId ?? null, 'detailed', detailed);
     if (d) {
       st.detailedId = d;
       ok++;
