@@ -55,6 +55,10 @@ import {
   runCorePromotionRevertOnce,
 } from './self-augment';
 import {
+  runEvolutionObservatoryOnce,
+  summarizeRecentEvolutionEvents,
+} from './evolution-observatory';
+import {
   listCoreIds,
   loadCoreDef,
   coreLabel,
@@ -970,6 +974,7 @@ async function refreshDashboard(
       tickSummary,
       workers: parseWorkerStates(getLastWorkerCsv()),
       queue,
+      evolution: summarizeRecentEvolutionEvents(env),
       alive: true,
     });
   } catch {
@@ -1152,6 +1157,14 @@ export async function runCadenceTickOnce(
       if (qc === 'qc:sent') r = `${r}+${qc}`;
     } catch {
       /* 품질 체크 실패 = tick 비차단 */
+    }
+  }
+  if (memoRoot && !isKilled()) {
+    try {
+      const evo = runEvolutionObservatoryOnce(env, { notify: gov.notify });
+      if (evo.appended > 0) r = `${r}+evolution:${evo.appended}`;
+    } catch {
+      /* evolution observatory 실패 = tick 비차단 */
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);
