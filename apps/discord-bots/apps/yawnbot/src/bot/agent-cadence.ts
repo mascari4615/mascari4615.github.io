@@ -66,6 +66,7 @@ import {
   summarizeRejectedForDiscovery,
   publishEnvelope,
   readInboxProposals,
+  appendTeamVerdict,
   type DiscoverFn,
 } from './proposal-adapter';
 import { buildModifiedEnvelope } from './proposal';
@@ -961,6 +962,12 @@ export async function runCoreDialogueOnce(
       });
     }
   }
+
+  // LT-10 핵심: 숙의 verdict 를 내구 원장에 기록 (순수·client 0).
+  // client 쥔 reconcileProposalCards(main.ts)가 이걸 소비해 *원본
+  // 제안 카드* 에 반영 — 그동안 빠졌던 substrate↔Discord 합성 rung.
+  // adopt-mods 도 기록(원 카드는 🟠 supersede 로, 새 카드는 LT-8).
+  appendTeamVerdict(env, latest.id, verdict, verdictReason);
 
   appendTrace(env, {
     ts: new Date().toISOString(),

@@ -739,3 +739,112 @@ export async function runInboxConsumerOnce(
   }
   return n;
 }
+
+// ── KAR-018-LT: 팀 verdict 내구 원장 (substrate — Discord-free) ──
+// 그동안의 미반영 근본: 숙의(runCoreDialogueOnce)는 client-less 순수,
+// 원본 카드 embed 변형은 사람 ✅/❌ 리액션 때만 호출 → 팀 verdict 가
+// 카드에 영영 안 찍힘. 평행정의0: resolved 원장(resolvedLedgerPath)의
+// 형제 = 같은 substrate(여기). 숙의는 이 순수 함수만 호출(client 0),
+// Discord 반영(reconcileProposalCards)은 agent-bus 가 본 원장 소비.
+// restart-safe: reflected 마커 파일로 멱등(프로세스 재시작 견고).
+
+export type TeamVerdict = 'adopt' | 'adopt-mods' | 'reject' | 'escalate';
+
+export interface TeamVerdictRec {
+  ts: string;
+  id: string;
+  verdict: TeamVerdict;
+  reason: string;
+}
+
+export function teamVerdictLedgerPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root
+    ? path.join(root, '.claude', 'agent-proposal-team-verdict.jsonl')
+    : '';
+}
+
+/** 숙의(순수·client-less)가 verdict 확정 시 1줄 append. id별 최신 유효. */
+export function appendTeamVerdict(
+  env: NodeJS.ProcessEnv,
+  id: string,
+  verdict: TeamVerdict,
+  reason: string,
+): void {
+  const p = teamVerdictLedgerPath(env);
+  if (!p || !id) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        id,
+        verdict,
+        reason: (reason || '').slice(0, 500),
+      } satisfies TeamVerdictRec) + '\n',
+      'utf-8',
+    );
+  } catch {
+    /* best-effort — 원장 실패가 숙의 비차단 */
+  }
+}
+
+function cardReflectedPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root
+    ? path.join(root, '.claude', 'agent-proposal-card-reflected.jsonl')
+    : '';
+}
+
+function readReflected(env: NodeJS.ProcessEnv): Set<string> {
+  const p = cardReflectedPath(env);
+  const s = new Set<string>();
+  if (!p || !fs.existsSync(p)) return s;
+  try {
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (t) s.add(JSON.parse(t).id as string);
+    }
+  } catch {
+    /* best-effort */
+  }
+  return s;
+}
+
+/** 카드 반영 성공 마커 (멱등·restart-safe — reconciler 가 호출). */
+export function markCardReflected(env: NodeJS.ProcessEnv, id: string): void {
+  const p = cardReflectedPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({ ts: new Date().toISOString(), id }) + '\n',
+      'utf-8',
+    );
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** 최신 verdict 만 (id별, 아직 카드 미반영) — reconciler 입력. 순수. */
+export function readPendingTeamVerdicts(
+  env: NodeJS.ProcessEnv,
+): TeamVerdictRec[] {
+  const p = teamVerdictLedgerPath(env);
+  if (!p || !fs.existsSync(p)) return [];
+  const reflected = readReflected(env);
+  const latest = new Map<string, TeamVerdictRec>();
+  try {
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t) as TeamVerdictRec;
+      if (e && e.id && e.verdict) latest.set(e.id, e);
+    }
+  } catch {
+    /* best-effort — 손상 라인 폐기 */
+  }
+  return [...latest.values()].filter((e) => !reflected.has(e.id));
+}

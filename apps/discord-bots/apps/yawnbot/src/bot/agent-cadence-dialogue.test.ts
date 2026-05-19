@@ -17,6 +17,10 @@ import {
   disarmKill,
   resetDialogueDedupe,
 } from './agent-cadence';
+import {
+  readPendingTeamVerdicts,
+  markCardReflected,
+} from './proposal-adapter';
 
 let root: string;
 function env() {
@@ -106,6 +110,31 @@ describe('runCoreDialogueOnce — 합성·차단', () => {
     expect(
       fs.existsSync(path.join(root, '.claude', 'agents', 'wm-worker', 'mem')),
     ).toBe(true);
+  });
+
+  it('LT-10 숙의 verdict → 팀-verdict 내구 원장 기록 + reflected 멱등', async () => {
+    writeProposal('p1', { title: 'WM 던전망', body: '보강', domain: 'WM' });
+    const deps = {
+      reserve: () => true,
+      cooldown: () => true,
+      generate: async (prompt: string) =>
+        prompt.includes('토론을 *닫아라*')
+          ? '결정: 채택\n북극성 전진.'
+          : prompt.includes('정면 응답')
+            ? '우려 수용해 보강.'
+            : '우려: 입력 검증 빠짐. 대안=가드 먼저.',
+      speak: async () => true,
+    };
+    const r = await runCoreDialogueOnce(env(), deps);
+    expect(r).toBe('deliberation:3:adopt');
+    // 숙의(client-less 순수)가 verdict 를 내구 원장에 기록 — 그동안
+    // 빠졌던 substrate↔카드 다리의 producer 측. client 0 으로 검증.
+    const pend = readPendingTeamVerdicts(env());
+    expect(pend.length).toBe(1);
+    expect(pend[0]).toMatchObject({ id: 'p1', verdict: 'adopt' });
+    // reflected 마커 후 = pending 에서 빠짐 (reconciler 멱등·재시도 0)
+    markCardReflected(env(), 'p1');
+    expect(readPendingTeamVerdicts(env())).toEqual([]);
   });
 
   it('LT-3 깡통 동의(bare-agree) challenge → 즉시 채택 수렴(무한 X)', async () => {

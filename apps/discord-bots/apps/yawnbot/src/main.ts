@@ -49,7 +49,7 @@ import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
-import { announceProposal } from './bot/agent-bus';
+import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
 import {
   loadCoreDef,
   listCoreIds,
@@ -269,6 +269,9 @@ client.on('messageCreate', async (message) => {
   }
   if (!isBot) await handleMeme(message as any);
 });
+
+// KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
+let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 
 const app = createGithubWebhookApp(client as any, gameData as any);
 mountLocalWebhook(app, client as any);
@@ -551,6 +554,26 @@ client.once('clientReady', async () => {
       agentChOverride,
     );
     startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
+    // KAR-018-LT: 팀 verdict → 원본 제안 카드 반영 reconciler. 숙의는
+    // client-less 순수(원장에만 기록) → client 쥔 여기서 카드 edit.
+    // 멱등·restart-safe(reflected 마커). self-scheduling(자기 작업 중
+    // 다음 틱 안 쌓임). cadence OFF 여도 무해(원장 비면 no-op).
+    {
+      const reconcileMs =
+        Number(process.env.AGENT_CARD_RECONCILE_MS) || 120_000;
+      const reconcileTick = async (): Promise<void> => {
+        try {
+          await reconcileProposalCards(client, process.env);
+        } catch (e) {
+          console.error(
+            '[agent-bus] 카드 verdict reconcile 오류:',
+            e instanceof Error ? e.message : e,
+          );
+        }
+        cardReconcileTimer = setTimeout(reconcileTick, reconcileMs);
+      };
+      cardReconcileTimer = setTimeout(reconcileTick, reconcileMs);
+    }
     await sendStartupGreeting(client, characterService, getMemory);
     console.log(
       '[Assistant] AI 비서 활성화 (ASSISTANT_USER_ID:',
@@ -642,6 +665,10 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopAgentCadence();
+  if (cardReconcileTimer) {
+    clearTimeout(cardReconcileTimer);
+    cardReconcileTimer = null;
+  }
   stopProactive();
   stock.stopMarket();
   gameData.destroy();
