@@ -113,6 +113,7 @@ export function buildDialoguePrompt(
   speakerLabel: string,
   u: PeerUtterance,
   missionText: string,
+  skinHint?: string,
 ): string {
   const kindKo =
     u.kind === 'proposal'
@@ -135,6 +136,7 @@ export function buildDialoguePrompt(
     '· 사장(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
     '  파일경로 금지. 만연체 X. 잡담·인사·요약반복 X.',
     '· 새 작업을 *실행*하지 마라(여긴 대화방). 관점만.',
+    skinHint ? `[너의 캐릭터 말투] ${skinHint} — 이 말투를 유지하라.` : '',
     '',
     '[미션 정렬 anchor — 네 반응이 아래에 정렬되는지 자가검사]',
     missionText.trim().slice(0, 1500),
@@ -260,6 +262,7 @@ function deliberationHeader(
   role: string,
   missionText: string,
   portfolioBlock: string,
+  skinHint?: string,
 ): string[] {
   return [
     `너는 "${responderId}". karmoddrine 에이전트 팀의 동료다.`,
@@ -267,6 +270,7 @@ function deliberationHeader(
     '도구·파일 접근 없이 *아래 텍스트만으로* 단일턴 추론(파일 읽기 X).',
     '· 사장(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
     '  파일경로 금지. 만연체 X. 인사·요약반복 X.',
+    skinHint ? `[너의 캐릭터 말투] ${skinHint} — 이 말투를 유지하라.` : '',
     portfolioBlock.trim() ? '' : '',
     ...(portfolioBlock.trim() ? ['', portfolioBlock.trim()] : []),
     '',
@@ -298,12 +302,14 @@ export function buildDeliberationPrompt(
   state: Pick<DeliberationState, 'turns'>,
   missionText: string,
   portfolioBlock = '',
+  skinHint?: string,
 ): string {
   const head = deliberationHeader(
     responder.id,
     responder.role,
     missionText,
     portfolioBlock,
+    skinHint,
   );
   const proposalBlock = [
     '',

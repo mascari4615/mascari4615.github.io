@@ -646,6 +646,36 @@ export function setCoreSpeak(fn: CoreSpeakFn): void {
   coreSpeak = fn;
 }
 
+/**
+ * 코어의 default_skin card.md 에서 tone·speech_style 을 읽어 LLM 힌트로 반환.
+ * 실패 시 null (optional 이라 voice 프롬프트 생략 — graceful).
+ */
+export function loadSkinPersona(
+  memoRoot: string,
+  coreId: string,
+): string | null {
+  try {
+    const cd = loadCoreDef(memoRoot, coreId);
+    if (!cd?.defaultSkin) return null;
+    const slug = cd.defaultSkin.trim().replace(/[^a-z0-9_-]/gi, '');
+    if (!slug) return null;
+    const raw = fs.readFileSync(
+      path.join(memoRoot, 'characters', slug, 'card.md'),
+      'utf-8',
+    );
+    const tone = raw.match(/^tone:\s*(.+)$/m)?.[1]?.trim() || '';
+    const style = raw.match(/^speech_style:\s*(.+)$/m)?.[1]?.trim() || '';
+    const name =
+      raw.match(/^display_name:\s*(.+)$/m)?.[1]?.trim() ||
+      raw.match(/^name:\s*(.+)$/m)?.[1]?.trim() ||
+      slug;
+    const parts = [name, tone, style].filter(Boolean);
+    return parts.length ? parts.join(' | ') : null;
+  } catch {
+    return null;
+  }
+}
+
 // 같은 proposal 에 매 tick 재코멘트 방지 (bounded set, ownWebhook 패턴 동형).
 const dialogueCommented = new Set<string>();
 const DIALOGUE_DEDUPE_CAP = 400;
@@ -851,6 +881,7 @@ export async function runCoreDialogueOnce(
           state,
           missionText,
           portfolioBlock,
+          loadSkinPersona(memoRoot, sp),
         ),
       );
     } catch (e) {
@@ -1316,16 +1347,16 @@ export async function voicedWorkerSpeak(
   speak: CoreSpeakFn,
   voice: (prompt: string) => Promise<string>,
   env: NodeJS.ProcessEnv = process.env,
+  skinHint?: string | null,
 ): Promise<void> {
   if (lastWorkerStatus.get(coreId) === status) return;
   lastWorkerStatus.set(coreId, status);
-  // 날조 가드(KAR-018-Y, prod KL-061 "수동 PR" voicing drift 실증):
-  // raw ground-truth 를 *항상* 내구 원장에 기록 → voiced 가 사실을
-  // 지워도 grep/스크립트로 대조 가능. KAR-079-B: 채팅엔 원문 미동봉
-  // (사용자 가독성 1차 필터) — spoiler footer 폐기, 원장이 그 역할.
   appendWorkerRaw(env, coreId, status);
   let line = status;
   try {
+    const skinBlock = skinHint
+      ? `\n[너의 캐릭터] 이름·말투: ${skinHint}`
+      : '';
     const prompt = [
       `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
       `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
@@ -1333,16 +1364,15 @@ export async function voicedWorkerSpeak(
       `결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토`,
       `해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·`,
       `사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.`,
+      skinBlock,
       ``,
       `[작업상태]`,
       status,
     ].join('\n');
     const v = (await voice(prompt)).trim();
-    // 채팅 = voiced 한 줄만 (깔끔). sendAsSkin 은 content 무절단 →
-    // Discord 2000자 초과 throw→무손실 소실 ⇒ ceiling 우리가 강제.
     if (v) line = v.slice(0, 1900);
   } catch {
-    /* voice 실패 = raw status 그대로 (스킨 정체로는 여전히 발화) */
+    /* voice 실패 = raw status 그대로 */
   }
   try {
     await speak(coreId, line);
@@ -1669,16 +1699,20 @@ export async function runWorkerConsumerOnce(
         report ? `${head}\n· 보고: ${report}` : head,
         speak,
         voice,
+        env,
+        loadSkinPersona(memoRoot, w.coreId),
       );
     } else {
       release(chosen.id, w.coreId);
-      markNoArtifact(chosen.id, tickNow); // 에러 task 즉시 재pick 차단
+      markNoArtifact(chosen.id, tickNow);
       const errDetail = (res.error || '').trim().slice(0, 3000);
       await voicedWorkerSpeak(
         w.coreId,
         `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
         speak,
         voice,
+        env,
+        loadSkinPersona(memoRoot, w.coreId),
       );
       results.push(`${w.coreId}:${res.status}`);
     }
