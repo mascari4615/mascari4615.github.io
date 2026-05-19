@@ -2148,6 +2148,99 @@ export async function runSelfSurgeryOnce(
   return 'surgery:keep';
 }
 
+// ── 아무말 (idle chatter) ─────────────────────────────────────
+// 팀이 "살아있다"는 느낌 = 업무 보고 아닌 캐릭터 일상 발화.
+// 코어당 15% / 틱, 최소 2h 간격. 확률·쿨다운 = 봇 재시작에도 리셋
+// (인메모리) → 재기동 직후 버스트 없이 자연스럽게 퍼짐.
+
+const lastChatterTs = new Map<string, number>();
+/** 테스트 전용 — chatter 쿨다운 리셋 */
+export function resetChatterCooldown(): void { lastChatterTs.clear(); }
+
+/** 카드 전체 본문(프론트매터 제외) — 페르소나 전문 컨텍스트용. */
+function loadSkinCardBody(memoRoot: string, coreId: string): string | null {
+  try {
+    const cd = loadCoreDef(memoRoot, coreId);
+    if (!cd?.defaultSkin) return null;
+    const slug = cd.defaultSkin.trim().replace(/[^a-z0-9_-]/gi, '');
+    if (!slug) return null;
+    const raw = fs.readFileSync(
+      path.join(memoRoot, 'characters', slug, 'card.md'),
+      'utf-8',
+    );
+    const body = raw.match(/^---[\s\S]*?---\r?\n?([\s\S]*)$/)?.[1]?.trim();
+    return body || null;
+  } catch {
+    return null;
+  }
+}
+
+export interface IdleChatterDeps {
+  speak?: CoreSpeakFn;
+  generate?: (prompt: string) => Promise<string>;
+  /** 코어당 발화 확률 0~1 (기본 0.15). */
+  chatterProb?: number;
+  /** 코어당 최소 발화 간격 ms (기본 2h). */
+  chatterCooldownMs?: number;
+}
+
+/**
+ * 활성 코어 중 일부가 페르소나 기반 아무말을 #team-bus 에 툭 뱉는다.
+ * 업무 보고 X — 캐릭터 일상 발화. 팀이 살아있는 느낌 생성.
+ * 쿨다운(2h default)·확률(15% default) 이중 게이트 → 스팸 X.
+ */
+export async function runIdleChatterOnce(
+  env: NodeJS.ProcessEnv,
+  deps: IdleChatterDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const speak = deps.speak ?? coreSpeak;
+  if (!speak) return 'chatter-no-speak';
+
+  const prob = deps.chatterProb ?? 0.15;
+  const cooldownMs = deps.chatterCooldownMs ?? 2 * 3600_000;
+  const generate =
+    deps.generate ??
+    ((p: string) => generateAgentText(env, p, 30_000).catch(() => ''));
+
+  const coreIds = listCoreIds(memoRoot);
+  const cores = coreIds
+    .map((id) => loadCoreDef(memoRoot, id))
+    .filter((d): d is CoreDef => d !== null && d.status === 'active');
+
+  const fired: string[] = [];
+  for (const core of cores) {
+    if (Math.random() >= prob) continue;
+    const last = lastChatterTs.get(core.id) ?? 0;
+    if (Date.now() - last < cooldownMs) continue;
+    const body = loadSkinCardBody(memoRoot, core.id);
+    if (!body) continue;
+    try {
+      const prompt = [
+        `너는 아래 [캐릭터] 설명에 해당하는 캐릭터야.`,
+        `지금 팀 채널(#team-bus)에 갑자기 아무말이나 툭 뱉어봐.`,
+        `업무 보고 아님. 그냥 네 캐릭터답게 자연스럽게 1~2문장.`,
+        `너무 길거나 격식 있게 X. 사람이 SNS에 아무 생각 올리듯이.`,
+        `이모지 적당히 OK. 한국어.`,
+        ``,
+        `[캐릭터]`,
+        body.slice(0, 800),
+      ].join('\n');
+      const text = (await generate(prompt)).trim().slice(0, 250);
+      if (!text) continue;
+      lastChatterTs.set(core.id, Date.now());
+      await speak(core.id, text);
+      fired.push(core.id);
+    } catch {
+      /* best-effort — 실패가 tick 비차단 */
+    }
+  }
+  return fired.length ? `chatter:${fired.join(',')}` : 'chatter-none';
+}
+
 /**
  * 이벤트 전 memo freshness 가드 (TASK-KAR-MEMOSYNC part4).
  * 워커가 작업을 *픽하기 직전* "마지막 memo-sync 후 N초 경과면 1회 sync" —
@@ -2251,6 +2344,14 @@ export async function runCadenceTickOnce(
       r = `${r}+${d}`;
     }
   }
+  if (memoRoot && !isKilled()) {
+    try {
+      const ch = await runIdleChatterOnce(env);
+      if (ch.startsWith('chatter:')) r = `${r}+${ch}`;
+    } catch {
+      /* chatter 실패 = tick 비차단 */
+    }
+  }
   // LT-7 retro 밸브 — gated(6h, 영속) best-effort. 게이트 미충족=무음.
   if (memoRoot && !isKilled()) {
     try {
@@ -2295,6 +2396,12 @@ export async function runCadenceTickOnce(
   return r;
 }
 
+/** 기본값 ± fraction 무작위 오프셋 — 인간적 불규칙성 부여.
+ * fraction=0.4 → ±20% (예: 15분 → 12~18분), 워커는 0.2 권장. */
+function jitter(base: number, fraction = 0.4): number {
+  return Math.round(base + (Math.random() - 0.5) * base * fraction);
+}
+
 export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   const enabled = (env.AGENT_CADENCE_ENABLED?.trim() !== '0');
   if (!enabled) {
@@ -2319,7 +2426,7 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
         e instanceof Error ? e.message : e,
       );
     }
-    cadenceTimer = setTimeout(tick, intervalMs);
+    cadenceTimer = setTimeout(tick, jitter(intervalMs));
   };
   const workerTick = async () => {
     try {
@@ -2343,7 +2450,7 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
         e instanceof Error ? e.message : e,
       );
     }
-    workerTimer = setTimeout(workerTick, workerMs);
+    workerTimer = setTimeout(workerTick, jitter(workerMs, 0.2));
   };
   // KAR-077: 대시보드 독립 타이머 — 팀 작업주기 무관, 짧은 주기 자체 갱신.
   // 부팅 직후 1회 즉시(재기동→수초 내 현황, 5~15분 대기 X) + 이후 주기.
