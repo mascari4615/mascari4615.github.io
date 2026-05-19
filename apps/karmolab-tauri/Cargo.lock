@@ -2901,7 +2901,7 @@ dependencies = [
  "tiny_http",
  "toml 0.8.2",
  "uuid",
- "winapi",
+ "windows 0.61.3",
  "windows-sys 0.59.0",
 ]
 

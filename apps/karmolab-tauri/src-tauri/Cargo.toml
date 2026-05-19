@@ -67,12 +67,22 @@ tiny_http = "0.12"
 # combaseapi/objbase/mmdeviceapi/endpointpvolume/combaseapi = Core Audio
 # (IAudioEndpointVolume) — 볼륨 강제 비파괴 검증 harness (read→force→assert→restore).
 # TASK-KL-055 Phase 1a — activity.rs/active_window.rs(읽기전용 텔레메트리,
-# 저위험) 를 Microsoft 공식 windows-sys 로 마이그. alarm.rs(COM
-# IAudioEndpointVolume + waitable-timer + 전원 = 런타임 크리티컬·windows-sys
-# COM ergonomics 갭) 는 winapi 잔존 — KL-055-B 에서 `windows` crate 채택
-# 결정 후 마이그(런타임 검증 필요). 그래서 둘 다 잠시 공존(최종 dedup=1b 후).
-winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi", "playsoundapi", "mmsystem", "synchapi", "winbase", "winnt", "minwinbase", "combaseapi", "objbase", "mmdeviceapi", "endpointvolume", "coml2api", "winerror"] }
+# 저위험)를 Microsoft 공식 windows-sys 로 마이그. windows-sys 유지.
 windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_ProcessStatus", "Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse"] }
+# TASK-KL-055-B — alarm.rs(COM IAudioEndpointVolume + waitable-timer + 전원
+# = 런타임 크리티컬, winapi raw vtable 잔존)를 `windows` crate 로 마이그.
+# *왜 windows crate 인가 (과거 "사이즈" 주석 폐기 — 실증 근거)*:
+#   `windows` v0.61 + COM 인프라(windows-core/-implement/-interface/-targets)는
+#   이미 Tauri(tauri/wry/tao/webview2-com)가 transitive 로 끌어 *항상* 컴파일됨
+#   (`cargo tree -i windows@0.61.3` 로 실증). 우리가 같은 0.61 을 직접 추가해도
+#   그 인프라는 *공유* — 증분 비용 = 우리가 쓰는 COM 바인딩(IMMDeviceEnumerator/
+#   IAudioEndpointVolume) 의 얇은 생성 wrapper 뿐. winapi raw vtable 수동 작성
+#   (GUID·vtable offset·수동 Release) = 런타임 크리티컬 알람 경로(KL-064 신뢰성
+#   incident 전력)에 고위험·저보상. windows crate = Result/RAII Drop(자동
+#   Release) → 더 안전. 버전은 Tauri 해석값(0.61.3)과 통일해 중복 노드 0.
+# Win32_Security = CreateWaitableTimerW 의 lpTimerAttributes(SECURITY_ATTRIBUTES)
+# 타입이 그 feature 에 게이트됨(0.61 — 인자 안 써도 시그니처상 필요).
+windows = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Threading", "Win32_System_Power", "Win32_System_Com", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_Media_Audio", "Win32_Media_Audio_Endpoints"] }
 
 # KL-051 의 production 배포 최적화 (fat LTO / codegen-units=1 / strip /
 # panic=abort / opt-level=3) 는 KL-052 워크스페이스 전환으로 *워크스페이스
