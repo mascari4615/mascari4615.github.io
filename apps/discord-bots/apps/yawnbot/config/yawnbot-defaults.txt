@@ -127,6 +127,15 @@ MEMO_REPO_PATH=C:/Users/masca/repos/karmoddrine/memo
 ASSISTANT_MORNING_HOUR=8
 # 저녁 체크인 시각 (KST 시 단위, 0-23)
 ASSISTANT_EVENING_HOUR=21
+# ── AI 비서 DM 토글 ──
+# 전체 DM kill switch. 0/false/off/no/disabled 로 끄면 아래 개별 DM도 모두 꺼짐.
+ASSISTANT_DM_ENABLED=1
+# 개별 DM 토글. 시작/아침/저녁/일정/자발 메시지를 따로 끌 수 있음.
+ASSISTANT_STARTUP_DM_ENABLED=1
+ASSISTANT_MORNING_DM_ENABLED=1
+ASSISTANT_EVENING_DM_ENABLED=1
+ASSISTANT_REMINDER_DM_ENABLED=1
+ASSISTANT_SPONTANEOUS_DM_ENABLED=1
 # 대화 기억 커밋 주기 (ms). 기본 1시간.
 ASSISTANT_MEMORY_COMMIT_INTERVAL_MS=3600000
 # AI에 전달할 최대 프롬프트 길이
