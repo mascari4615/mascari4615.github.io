@@ -215,11 +215,12 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
     expect(decoded.entries.length).toBe(10);
   });
 
-  it('파일 없음(GET 404) → sha 없이 PUT (최초 생성)', async () => {
-    const calls: any[] = [];
-    const fetchImpl = vi.fn(async (_url: string, opts: any) => {
-      calls.push(opts);
-      if (opts.method === 'GET') return res(404);
+  it('브랜치 존재 + 파일 없음(contents 404) → ref 확인만, sha 없이 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(200, { ref: 'refs/heads/x' });
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
       return res(201);
     });
     await writeSnapshotOnce(CFG, null, {
@@ -229,8 +230,42 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
       fsImpl: makeFs(SAMPLE_FILES),
       logger: silentLogger,
     });
-    const putBody = JSON.parse(calls[1].body);
+    // contents GET → ref GET(존재) → PUT. commit/ref 생성 POST 없음.
+    expect(calls.map((c) => c.opts.method)).toEqual(['GET', 'GET', 'PUT']);
+    expect(calls[1].url).toContain('/git/ref/heads/yawnbot-character-state');
+    const putBody = JSON.parse(calls[2].opts.body);
     expect(putBody.sha).toBeUndefined();
+  });
+
+  it('★ 브랜치 부재 → empty-tree orphan 부트스트랩 후 sha 없이 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(404); // 브랜치 자체 부재
+      if (url.endsWith('/git/commits')) return res(201, { sha: 'orphanc0mmit' });
+      if (url.endsWith('/git/refs')) return res(201, {});
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
+      return res(201); // 최종 PUT
+    });
+    await writeSnapshotOnce(CFG, null, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      now: fixedNow,
+      timeoutMs: 1000,
+      fsImpl: makeFs(SAMPLE_FILES),
+      logger: silentLogger,
+    });
+    const commitCall = calls.find((c) => c.url.endsWith('/git/commits'))!;
+    expect(JSON.parse(commitCall.opts.body).tree).toBe(
+      '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+    );
+    expect(JSON.parse(commitCall.opts.body).parents).toBeUndefined(); // orphan root
+    const refCall = calls.find((c) => c.url.endsWith('/git/refs'))!;
+    expect(JSON.parse(refCall.opts.body)).toEqual({
+      ref: 'refs/heads/yawnbot-character-state',
+      sha: 'orphanc0mmit',
+    });
+    const putCall = calls.find((c) => c.url.includes('/contents/') && c.opts.method === 'PUT')!;
+    expect(JSON.parse(putCall.opts.body).sha).toBeUndefined();
   });
 
   it('GET non-2xx(404 외, 예: 401) → throw', async () => {

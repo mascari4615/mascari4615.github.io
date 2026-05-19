@@ -48,6 +48,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { ensureOrphanBranch } from './github-orphan-branch';
 
 const GITHUB_API = 'https://api.github.com';
 
@@ -291,7 +292,16 @@ export async function writeSnapshotOnce(
   if (getRes.ok) {
     const body = (await getRes.json()) as { sha?: string };
     sha = body.sha;
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    // 파일 404 는 「파일 없음」또는「브랜치 없음」모호 — Contents API 는
+    // 없는 브랜치를 만들지 못한다. orphan 브랜치 실재 보장(없으면
+    // empty-tree root commit 으로 부트스트랩) → 이후 sha 없이 PUT = 생성.
+    // (정본: github-orphan-branch.ts, TASK-KAR-CHARSTATE follow-up.)
+    await ensureOrphanBranch(
+      { token: cfg.token, repo: cfg.repo, branch: cfg.branch },
+      { fetchImpl, timeoutMs, logger },
+    );
+  } else {
     throw new Error(`charstate sha 조회 실패 (HTTP ${getRes.status})`);
   }
 

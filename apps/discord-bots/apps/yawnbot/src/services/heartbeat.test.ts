@@ -62,11 +62,12 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
     expect(decoded).toEqual({ ts: '2026-05-17T10:00:00.000Z', source: 'yawnbot', schema: 1 });
   });
 
-  it('파일 없음(GET 404) → sha 없이 PUT (생성)', async () => {
-    const calls: any[] = [];
-    const fetchImpl = vi.fn(async (_url: string, opts: any) => {
-      calls.push(opts);
-      if (opts.method === 'GET') return res(404);
+  it('브랜치 존재 + 파일 없음(contents 404) → ref 확인만, sha 없이 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(200, { ref: 'refs/heads/x' });
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
       return res(201);
     });
     await writeHeartbeatOnce(CFG, {
@@ -74,8 +75,43 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
       now: fixedNow,
       timeoutMs: 1000,
     });
-    const putBody = JSON.parse(calls[1].body);
+    // contents GET → ref GET(존재) → PUT. commit/ref 생성 POST 없음.
+    expect(calls.map((c) => c.url.replace(/^.*github\.com/, ''))).toEqual([
+      '/repos/mascari4615/memo/contents/.heartbeat/yawnbot.json?ref=yawnbot-heartbeat',
+      '/repos/mascari4615/memo/git/ref/heads/yawnbot-heartbeat',
+      '/repos/mascari4615/memo/contents/.heartbeat/yawnbot.json',
+    ]);
+    const putBody = JSON.parse(calls[2].opts.body);
     expect(putBody.sha).toBeUndefined();
+  });
+
+  it('★ 브랜치 부재(잠복 동일버그) → empty-tree orphan 부트스트랩 후 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(404); // 브랜치 자체 부재
+      if (url.endsWith('/git/commits')) return res(201, { sha: 'orphanc0mmit' });
+      if (url.endsWith('/git/refs')) return res(201, { ref: 'refs/heads/yawnbot-heartbeat' });
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
+      return res(201); // 최종 PUT
+    });
+    await writeHeartbeatOnce(CFG, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      now: fixedNow,
+      timeoutMs: 1000,
+    });
+    const commitCall = calls.find((c) => c.url.endsWith('/git/commits'))!;
+    expect(JSON.parse(commitCall.opts.body).tree).toBe(
+      '4b825dc642cb6eb9a060e54bf8d69288fbee4904',
+    );
+    expect(JSON.parse(commitCall.opts.body).parents).toBeUndefined(); // orphan root
+    const refCall = calls.find((c) => c.url.endsWith('/git/refs'))!;
+    expect(JSON.parse(refCall.opts.body)).toEqual({
+      ref: 'refs/heads/yawnbot-heartbeat',
+      sha: 'orphanc0mmit',
+    });
+    const putCall = calls.find((c) => c.url.includes('/contents/') && c.opts.method === 'PUT')!;
+    expect(JSON.parse(putCall.opts.body).sha).toBeUndefined();
   });
 
   it('GET non-2xx(404 외, 예: 401) → throw', async () => {
