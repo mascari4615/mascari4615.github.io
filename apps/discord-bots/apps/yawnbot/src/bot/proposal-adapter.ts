@@ -27,6 +27,7 @@ import {
   isObjectiveApproved,
   type NotifyFn,
 } from './governance-adapter';
+import { enqueuePromotionCandidate } from './self-augment';
 
 /** 발굴 LLM 호출 (DI — generateAssistantText 'claude-cli' 래퍼 주입). */
 export type DiscoverFn = () => Promise<string>;
@@ -721,6 +722,13 @@ export async function runInboxConsumerOnce(
     }
     const short = e.kind === 'objective' ? desc : path.basename(desc);
     appendMaterialized(env, e.id, short);
+    // LT-11 자가증강: 팀 채택 agent → draft 코어 materialize 됐으니
+    // 승격 후보 enqueue (runCorePromotionOnce 가 구조검증+비충돌 PASS
+    // 시 자율 active flip — "draft 사산" 죽은 rung 닫기).
+    if (e.kind === 'agent') {
+      const cid = (e.envelope.payload as AgentSpec)?.coreId?.trim();
+      if (cid) enqueuePromotionCandidate(env, cid);
+    }
     appendTrace(env, {
       ts: new Date().toISOString(),
       type: 'budget',
@@ -732,7 +740,7 @@ export async function runInboxConsumerOnce(
         (e.kind === 'task'
           ? '(status:seed — 사람이 ready 승격 시 진행)'
           : e.kind === 'agent'
-            ? '(core.md status:draft — active 전이·바인딩은 별도 사람 게이트)'
+            ? '(core.md status:draft — 자가증강 승격 게이트 대기, LT-11)'
             : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),
     );
     n++;
