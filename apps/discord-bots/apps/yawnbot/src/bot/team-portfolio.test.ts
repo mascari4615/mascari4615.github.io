@@ -9,6 +9,8 @@ import {
   shouldRunRetro,
   parseRetroDecision,
   buildRetroPrompt,
+  shouldRunQualityCheck,
+  buildQualityCheckMessage,
   type Portfolio,
   type PortfolioProject,
 } from './team-portfolio';
@@ -178,5 +180,58 @@ describe('buildRetroPrompt — 북극성 불변·심문', () => {
     expect(p).toContain('바꾸지 마라'); // northStar 불변 가드
     expect(p).toMatch(/맴돌이|자가정비/);
     expect(p).toContain('조정:');
+  });
+});
+
+// ── LT-QC: 사용자 품질 체크 강제 (순수) ──
+describe('shouldRunQualityCheck — HITL 게이트', () => {
+  const NOW = Date.parse('2026-05-19T10:00:00Z');
+  const INTERVAL = 24 * 3600_000;
+
+  it('비active = false', () => {
+    expect(shouldRunQualityCheck(mkProj({ status: 'paused' }), NOW, INTERVAL)).toBe(false);
+  });
+  it('lastQualityCheckTs 없음 = 즉시 가능(진전 없어도)', () => {
+    expect(shouldRunQualityCheck(mkProj({ progressLog: [] }), NOW, INTERVAL)).toBe(true);
+  });
+  it('interval 미경과 = false / 경과 = true', () => {
+    const recent = mkProj({ lastQualityCheckTs: '2026-05-19T09:00:00Z' }); // 1h 전
+    expect(shouldRunQualityCheck(recent, NOW, INTERVAL)).toBe(false); // 24h 주기
+    expect(shouldRunQualityCheck(recent, NOW, 3600_000)).toBe(true); // 1h 주기
+  });
+  it('retro 와 독립 — progressLog 없어도 품질 체크 가능', () => {
+    const noProgress = mkProj({ progressLog: [], lastQualityCheckTs: undefined });
+    expect(shouldRunQualityCheck(noProgress, NOW, INTERVAL)).toBe(true);
+  });
+});
+
+describe('buildQualityCheckMessage — 판정 요청 포함', () => {
+  it('프로젝트명·북극성·판정 안내 포함', () => {
+    const msg = buildQualityCheckMessage(
+      mkProj({ currentObjective: { text: '허브 만들기', openedTs: '' } }),
+    );
+    expect(msg).toContain('품질 체크');
+    expect(msg).toContain('WM'); // title
+    expect(msg).toContain('팬100'); // northStar
+    expect(msg).toContain('✅');
+    expect(msg).toContain('❌');
+    expect(msg).toContain('허브 만들기'); // objective
+  });
+  it('진전 없으면 "기록된 전진 없음" 포함', () => {
+    const msg = buildQualityCheckMessage(mkProj({ progressLog: [] }));
+    expect(msg).toContain('기록된 전진 없음');
+  });
+  it('최근 진전 최대 2건 요약', () => {
+    const p = mkProj({
+      progressLog: [
+        { ts: 't1', projectId: 'wm', delta: '작업A', evidence: 'e1' },
+        { ts: 't2', projectId: 'wm', delta: '작업B', evidence: 'e2' },
+        { ts: 't3', projectId: 'wm', delta: '작업C', evidence: 'e3' },
+      ],
+    });
+    const msg = buildQualityCheckMessage(p);
+    // 최신 2건(B,C) 포함, 오래된 A 는 잘림
+    expect(msg).toContain('작업B');
+    expect(msg).toContain('작업C');
   });
 });

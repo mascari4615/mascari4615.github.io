@@ -34,6 +34,9 @@ import {
   buildRetroPrompt,
   parseRetroDecision,
   recordRetro,
+  shouldRunQualityCheck,
+  buildQualityCheckMessage,
+  recordQualityCheck,
 } from './team-portfolio';
 import {
   SessionRegistry,
@@ -1816,6 +1819,45 @@ export async function runRetroOnce(
   return `retro:${decision.action}`;
 }
 
+// ══ LT-QC: 사용자 품질 체크 강제 (TASK-KAR-018-LT — HITL 닫힘 게이트) ══
+
+export interface QualityCheckDeps {
+  notify?: NotifyFn;
+}
+
+/**
+ * 사용자 품질 체크 (1회·gated·best-effort). 최대 weight 프로젝트를 기준으로
+ * 사용자에게 팀 숙의 품질을 직접 관측·판정해달라고 #team-bus 에 요청한다.
+ * LLM 호출 없음 — forcing-function 이 목적.
+ * shouldRunQualityCheck 영속 게이트(intervalMs, 기본 24h).
+ *  · 게이트 미충족 → 'qc-skip'  · 전송 → 'qc:sent'
+ */
+export async function runQualityCheckOnce(
+  env: NodeJS.ProcessEnv,
+  deps: QualityCheckDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+  const top = topProject(loadPortfolio(memoRoot));
+  if (!top) return 'qc-skip';
+  const intervalMs =
+    Number(env.AGENT_QUALITY_CHECK_INTERVAL_MS) || 24 * 3600_000;
+  if (!shouldRunQualityCheck(top, Date.now(), intervalMs)) return 'qc-skip';
+
+  const msg = buildQualityCheckMessage(top);
+  const notify = deps.notify ?? defaultNotify(env);
+  notify(msg);
+  recordQualityCheck(memoRoot, top.id);
+  appendTrace(env, {
+    ts: new Date().toISOString(),
+    type: 'drift',
+    core: 'quality-check',
+    reason: `품질 체크 요청 — «${top.id}» 사용자 관측 요청`,
+  });
+  return 'qc:sent';
+}
+
 /**
  * 이벤트 전 memo freshness 가드 (TASK-KAR-MEMOSYNC part4).
  * 워커가 작업을 *픽하기 직전* "마지막 memo-sync 후 N초 경과면 1회 sync" —
@@ -1851,6 +1893,7 @@ export async function runCadenceTickOnce(
      */
     producerOpts?: Parameters<typeof runGovernedProducerOnce>[1];
     dialogueDeps?: Parameters<typeof runCoreDialogueOnce>[1];
+    qualityCheckDeps?: QualityCheckDeps;
   } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -1909,6 +1952,15 @@ export async function runCadenceTickOnce(
       if (rt.startsWith('retro:')) r = `${r}+${rt}`;
     } catch {
       /* retro 실패 = tick 비차단 */
+    }
+  }
+  // LT-QC 품질 체크 — gated(24h, 영속) best-effort. 사용자 관측 강제.
+  if (memoRoot && !isKilled()) {
+    try {
+      const qc = await runQualityCheckOnce(env, opts.qualityCheckDeps);
+      if (qc === 'qc:sent') r = `${r}+${qc}`;
+    } catch {
+      /* 품질 체크 실패 = tick 비차단 */
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);

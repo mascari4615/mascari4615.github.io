@@ -42,6 +42,8 @@ export interface PortfolioProject {
   progressLog: ProgressEntry[];
   /** 마지막 retrospective 시각(ISO). LT-7 주기 게이트(영속·재시작 불변). */
   lastRetroTs?: string;
+  /** 마지막 사용자 품질 체크 요청 시각(ISO). LT-QC 주기 게이트(24h). */
+  lastQualityCheckTs?: string;
 }
 
 export interface Portfolio {
@@ -104,6 +106,8 @@ function parseProject(o: unknown): PortfolioProject | null {
       : [],
     lastRetroTs:
       typeof r.lastRetroTs === 'string' ? r.lastRetroTs : undefined,
+    lastQualityCheckTs:
+      typeof r.lastQualityCheckTs === 'string' ? r.lastQualityCheckTs : undefined,
   };
 }
 
@@ -361,5 +365,72 @@ export function recordRetro(
   if (d.action === 'adjust' && d.objective) {
     proj.currentObjective = { text: d.objective.slice(0, 300), openedTs: now };
   }
+  return writePortfolio(memoRoot, p);
+}
+
+// ═══ LT-QC: 사용자 품질 체크 강제 (HITL 닫힘 게이트) ═══
+// 최상위 진단(2026-05-19): 재설계가 CI-green 증분 영구기관이 된 근본 =
+// 완료조건 검증의 최종 rung 이 사용자 관측인데 그 관측을 *요청*하는 메커니즘이
+// 없었음. 본 섹션이 그 gap 을 닫는다.
+//
+// retro(LT-7) 와 차이: retro = 에이전트→자기 self-check(진전 필요).
+// quality-check = 에이전트→사용자 요청(진전 없어도 판정 필요, 오히려
+// 진전 0일수록 판정이 급함). 두 체크 독립.
+
+/**
+ * 사용자 품질 체크 요청 시점인가 (순수·결정적). active 프로젝트이고
+ * 마지막 요청 후 intervalMs 경과(기본 24h). retro 와 달리 progressLog
+ * 조건 없음 — 진전이 없을수록 요청이 더 중요.
+ */
+export function shouldRunQualityCheck(
+  proj: PortfolioProject,
+  nowMs: number,
+  intervalMs: number,
+): boolean {
+  if (proj.status !== 'active') return false;
+  const last = proj.lastQualityCheckTs ? Date.parse(proj.lastQualityCheckTs) : 0;
+  return nowMs - (isFinite(last) ? last : 0) >= intervalMs;
+}
+
+/**
+ * 사용자에게 보낼 품질 체크 메시지 (순수·바운드). 팀 숙의가 진짜 토론인지
+ * 사용자가 직접 #team-bus 에서 관측·판정해달라는 요청. LLM 호출 없음 —
+ * 이 메시지가 사용자를 팀 관찰로 이끄는 forcing-function.
+ */
+export function buildQualityCheckMessage(proj: PortfolioProject): string {
+  const obj = proj.currentObjective?.text
+    ? `현 목표: ${proj.currentObjective.text.slice(0, 100)}`
+    : '현 목표 없음';
+  const progress =
+    proj.progressLog.length > 0
+      ? `최근 전진: ${proj.progressLog
+          .slice(-2)
+          .map((e) => e.delta.slice(0, 80))
+          .join(' / ')}`
+      : '기록된 전진 없음';
+  return [
+    `🔍 **팀 품질 체크** — «${proj.title}»`,
+    `북극성: ${proj.northStar.slice(0, 100)}`,
+    `${obj} | ${progress}`,
+    '',
+    '**팀이 진짜 토론하고 있나요?** #team-bus 최근 숙의 스레드를 확인하고',
+    '이 메시지 스레드에 답글 해주세요:',
+    '✅ 진짜 토론 — 반박·대안·수렴 있음',
+    '❌ 아직 깡통 — Echo 동의만 / 숙의 없음',
+  ].join('\n');
+}
+
+/**
+ * 품질 체크 요청 기록 (lastQualityCheckTs 스탬프, best-effort). IO.
+ */
+export function recordQualityCheck(
+  memoRoot: string,
+  projectId: string,
+  ts?: string,
+): boolean {
+  const p = loadPortfolio(memoRoot);
+  const proj = p.projects.find((x) => x.id === projectId);
+  if (!proj) return false;
+  proj.lastQualityCheckTs = ts ?? new Date().toISOString();
   return writePortfolio(memoRoot, p);
 }
