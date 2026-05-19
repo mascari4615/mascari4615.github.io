@@ -28,6 +28,8 @@
  * 단위 테스트 가능 (Discord client·실 네트워크·실 GitHub 무관).
  */
 
+import { ensureOrphanBranch } from './github-orphan-branch';
+
 const GITHUB_API = 'https://api.github.com';
 
 export interface HeartbeatConfig {
@@ -97,9 +99,15 @@ function ghHeaders(token: string): Record<string, string> {
  */
 export async function writeHeartbeatOnce(
   cfg: HeartbeatConfig,
-  deps: { fetchImpl: typeof fetch; now: () => Date; timeoutMs: number },
+  deps: {
+    fetchImpl: typeof fetch;
+    now: () => Date;
+    timeoutMs: number;
+    logger?: Pick<Console, 'log' | 'warn' | 'error'>;
+  },
 ): Promise<string> {
   const { fetchImpl, now, timeoutMs } = deps;
+  const logger = deps.logger ?? console;
   const base = `${GITHUB_API}/repos/${cfg.repo}/contents/${cfg.path}`;
   const headers = ghHeaders(cfg.token);
 
@@ -121,7 +129,20 @@ export async function writeHeartbeatOnce(
   if (getRes.ok) {
     const body = (await getRes.json()) as { sha?: string };
     sha = body.sha;
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    // 파일 404 ≠ 브랜치 404. Contents API 는 브랜치를 생성 못 하므로
+    // PUT 직전 orphan 브랜치 실재를 보장 (fresh env/브랜치삭제 self-heal).
+    await ensureOrphanBranch(
+      { token: cfg.token, repo: cfg.repo, branch: cfg.branch },
+      {
+        fetchImpl,
+        timeoutMs,
+        logger,
+        label: 'Heartbeat',
+        message: `chore(heartbeat): bootstrap orphan branch ${cfg.branch} (empty tree)`,
+      },
+    );
+  } else {
     throw new Error(`heartbeat sha 조회 실패 (HTTP ${getRes.status})`);
   }
 
@@ -167,7 +188,7 @@ export async function runHeartbeatTick(
   let healthy: boolean;
   let reason: string;
   try {
-    const ts = await writeHeartbeatOnce(cfg, { fetchImpl, now, timeoutMs });
+    const ts = await writeHeartbeatOnce(cfg, { fetchImpl, now, timeoutMs, logger });
     healthy = true;
     reason = `heartbeat 기록 OK (${ts})`;
   } catch (e: unknown) {
