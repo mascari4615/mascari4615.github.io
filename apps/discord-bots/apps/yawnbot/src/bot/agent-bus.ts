@@ -33,6 +33,9 @@ import {
   runInboxConsumerOnce,
   materializedPath,
   resolvedLedgerPath,
+  readPendingTeamVerdicts,
+  markCardReflected,
+  type TeamVerdict,
 } from './proposal-adapter';
 import { loadCoreDef, appendCoreMemory } from '../services/agent-core';
 import { sendAsSkin, WebhookPermissionError } from './agent-webhook';
@@ -138,6 +141,8 @@ function render(env: ProposalEnvelope): {
 export interface ProposalMsgEntry {
   messageId: string;
   threadId: string;
+  /** 카드가 게시된 채널 id (KAR-018-LT — verdict reconciler 메시지 fetch). */
+  channelId?: string;
   id: string;
   kind: string;
   target: string;
@@ -180,6 +185,27 @@ export function lookupProposalByMessage(
       if (!t) continue;
       const e = JSON.parse(t) as ProposalMsgEntry;
       if (e.messageId === messageId) hit = e;
+    }
+    return hit;
+  } catch {
+    return null;
+  }
+}
+
+/** 발굴 id → 카드 매핑 1건 (최신 — KAR-018-LT verdict reconciler용). */
+export function lookupProposalById(
+  env: NodeJS.ProcessEnv,
+  id: string,
+): ProposalMsgEntry | null {
+  const p = proposalMsgsPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    let hit: ProposalMsgEntry | null = null;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t) as ProposalMsgEntry;
+      if (e.id === id) hit = e;
     }
     return hit;
   } catch {
@@ -346,7 +372,101 @@ export async function handleProposalReaction(
   return true;
 }
 
-/** 카드 embed 를 결과로 갱신 + 잠금 표시 (모순 상태 제거). */
+// ── 카드 상태 뷰 (사람 결정 + 팀 verdict 공용 — 평행정의0) ──────
+// 그동안의 미반영 근본: embed 변형 코드가 lockCard 하나뿐 + 사람
+// 리액션 경로에서만 호출 → 팀 숙의 verdict 가 카드에 영영 안 찍힘
+// (KAR-018-LT). 변형을 단일 뷰 테이블로 공용화 = 사람·팀 한 경로.
+export type CardState =
+  | 'approved' // 사람 ✅
+  | 'rejected' // 사람 ❌
+  | 'team-adopt' // 팀 채택 — 진행(시드 생성). 사람 veto 여지 유지(미잠금)
+  | 'team-adopt-mods' // 팀 수정 채택 — 새 카드로 분리(원본 supersede)
+  | 'team-reject' // 팀 반려 — 닫힘. 사람 ✅ 로 뒤집기 가능(미잠금)
+  | 'team-escalate'; // 팀 미수렴 — 여기서만 사람 ✅/❌ 가 진짜 필요
+
+interface CardView {
+  status: string;
+  color: number;
+  footer: string;
+  /** 사람 추가 반응을 무시(잠금)하는가. 팀 verdict 는 대부분 미잠금
+   *  (사용자 = veto/override — 2026-05-19 결정). supersede 만 잠금. */
+  locked: boolean;
+}
+
+const CARD_VIEW: Record<CardState, CardView> = {
+  approved: {
+    status: '🟢 승인됨 (잠김)',
+    color: 0x2ecc71,
+    footer: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다',
+    locked: true,
+  },
+  rejected: {
+    status: '🔴 거절됨 (잠김)',
+    color: 0x95a5a6,
+    footer: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다',
+    locked: true,
+  },
+  'team-adopt': {
+    status: '🟢 팀 채택 — 진행(시드 생성)',
+    color: 0x2ecc71,
+    footer: '🧑‍🤝‍🧑 팀이 결정·진행했습니다 · 뒤집으려면 ❌ (사장님 veto 유효)',
+    locked: false,
+  },
+  'team-adopt-mods': {
+    status: '🟠 팀 수정 채택 — 새 카드로 분리',
+    color: 0xff9800,
+    footer: '🧑‍🤝‍🧑 팀이 수정안을 새 카드로 올렸습니다 — 이 카드는 대체됨',
+    locked: true,
+  },
+  'team-reject': {
+    status: '🔴 팀 반려 — 닫힘',
+    color: 0x95a5a6,
+    footer: '🧑‍🤝‍🧑 팀이 반려했습니다 · 되살리려면 ✅ (사장님 override 유효)',
+    locked: false,
+  },
+  'team-escalate': {
+    status: '🟡 사용자 판단 필요 — ✅/❌ 로 결정',
+    color: 0x3f8cff,
+    footer: '🧑‍🤝‍🧑 팀이 수렴 못 함 — 사장님 결정이 필요합니다 (✅ 승인 / ❌ 거절)',
+    locked: false,
+  },
+};
+
+/**
+ * 카드 embed 를 상태 뷰로 갱신 (순수 — Discord 송신 X, 단위 테스트 가능).
+ * 사람 결정·팀 verdict 공용. resultLine = "🔒 결과"/"🧑‍🤝‍🧑 팀 토론" 한 줄.
+ * @returns 갱신된 EmbedBuilder (호출자가 msg.edit).
+ */
+export function applyCardEmbedState(
+  src: Parameters<typeof EmbedBuilder.from>[0],
+  state: CardState,
+  resultLine: string,
+  resultFieldName = '🔒 결과',
+): EmbedBuilder {
+  const view = CARD_VIEW[state];
+  const eb = EmbedBuilder.from(src);
+  eb.setColor(view.color);
+  const srcFields =
+    (src as { fields?: { name: string; value: string; inline?: boolean }[] })
+      .fields ?? [];
+  const fields = srcFields
+    .filter((f) => f.name !== resultFieldName) // 재반영 시 중복 X (멱등)
+    .map((f) =>
+      f.name === '📌 상태'
+        ? { name: '📌 상태', value: view.status, inline: true }
+        : { name: f.name, value: f.value, inline: f.inline },
+    );
+  fields.push({
+    name: resultFieldName,
+    value: resultLine.slice(0, 1000),
+    inline: false,
+  });
+  eb.setFields(fields);
+  eb.setFooter({ text: view.footer });
+  return eb;
+}
+
+/** 카드 embed 를 사람 결정 결과로 갱신 + 잠금 (V-2 리액션 경로). */
 async function lockCard(
   msg: MessageReaction['message'],
   decision: 'approved' | 'rejected',
@@ -354,21 +474,116 @@ async function lockCard(
 ): Promise<void> {
   const src = msg.embeds?.[0];
   if (!src) return;
-  const eb = EmbedBuilder.from(src);
-  eb.setColor(decision === 'approved' ? 0x2ecc71 : 0x95a5a6);
-  const fields = (src.fields ?? []).map((f) =>
-    f.name === '📌 상태'
-      ? {
-          name: '📌 상태',
-          value: decision === 'approved' ? '🟢 승인됨 (잠김)' : '🔴 거절됨 (잠김)',
-          inline: true,
-        }
-      : { name: f.name, value: f.value, inline: f.inline },
-  );
-  fields.push({ name: '🔒 결과', value: result.slice(0, 1000), inline: false });
-  eb.setFields(fields);
-  eb.setFooter({ text: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다' });
+  const eb = applyCardEmbedState(src, decision, result);
   await (msg as any).edit?.({ embeds: [eb] });
+}
+
+// ── 팀 verdict → 원본 카드 반영 (KAR-018-LT 근본) ──────────────
+// 숙의는 client-less 순수(runCoreDialogueOnce). 카드 edit 은 client
+// 필요(handleProposalReaction 동형). 둘 잇는 *내구 원장 + client
+// reconciler* = 그동안 빠졌던 substrate↔Discord 합성 rung. 평행기록
+// (Y-2 거절원장/LT-5 progress/Z-2 코어기억) 추가가 아니라, *사용자가
+// 보는 카드* 로 되돌아 쓰는 단일 다리. 원장 자체는 substrate
+// (proposal-adapter, Discord-free) — 여기는 그 소비(embed 반영)만.
+
+const VERDICT_STATE: Record<TeamVerdict, CardState> = {
+  adopt: 'team-adopt',
+  'adopt-mods': 'team-adopt-mods',
+  reject: 'team-reject',
+  escalate: 'team-escalate',
+};
+
+/**
+ * 팀 verdict 내구 원장 → 원본 카드 반영 (client 쥔 쪽 = main.ts 타이머).
+ * 멱등·restart-safe(reflected 마커). adopt = 팀이 *행동* —
+ * appendApproval(core:team)+inbox consumer 로 inert seed/draft 생성
+ * (자동 실행 X = 진짜 게이트 seed→ready 불변). reject/escalate =
+ * 카드 상태만(미잠금 — 사장님 veto/override 유효). best-effort:
+ * 카드/채널 실패해도 throw X, 단 *반영 성공분만* 마커(재시도 가능).
+ * @returns 이번에 카드 반영한 건수.
+ */
+export async function reconcileProposalCards(
+  client: Client,
+  env: NodeJS.ProcessEnv,
+): Promise<number> {
+  const pending = readPendingTeamVerdicts(env);
+  let n = 0;
+  for (const v of pending) {
+    const entry = lookupProposalById(env, v.id);
+    if (!entry || !entry.channelId) {
+      // 카드 매핑/채널 없음(게시 실패·구버전 엔트리) — 더 기다려도
+      // 안 생김. 마커 찍어 무한 재시도 0 (verdict 는 원장/trace 영속).
+      markCardReflected(env, v.id);
+      continue;
+    }
+    try {
+      const channel = await client.channels
+        .fetch(entry.channelId)
+        .catch(() => null);
+      if (!channel || !channel.isTextBased() || !('messages' in channel)) {
+        // 채널 일시 fetch 실패 = 마커 미기록(다음 tick 재시도).
+        continue;
+      }
+      const msg = await (channel as TextChannel).messages
+        .fetch(entry.messageId)
+        .catch(() => null);
+      if (!msg) {
+        // 메시지 삭제됨 — 재시도 무의미. 마커 찍고 verdict 는 원장에.
+        markCardReflected(env, v.id);
+        continue;
+      }
+      const state = VERDICT_STATE[v.verdict];
+      let resultLine: string;
+      if (v.verdict === 'adopt') {
+        // 팀이 *행동*: inert seed/draft 머터리얼라이즈 트리거 (자동
+        // 실행 X — 진짜 게이트 seed→ready 불변, 2026-05-19 결정).
+        appendApproval(env, {
+          ts: new Date().toISOString(),
+          objId: v.id,
+          core: 'team',
+          status: 'approved',
+          reason: `team deliberation adopt — ${v.reason}`.slice(0, 300),
+        });
+        await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
+        const desc = materializedDesc(env, v.id);
+        resultLine = desc
+          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (사장님이 ready 승격 시 진행) · ${v.reason}`
+          : `🧑‍🤝‍🧑 팀 채택 — 검토 단계로 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
+      } else if (v.verdict === 'adopt-mods') {
+        resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
+      } else if (v.verdict === 'reject') {
+        resultLine = `🧑‍🤝‍🧑 팀 반려 — 아무것도 만들지 않음 · ${v.reason}`;
+      } else {
+        resultLine = `🧑‍🤝‍🧑 팀이 수렴 못 함 — 사장님 ✅/❌ 결정 필요 · ${v.reason}`;
+      }
+      const src = msg.embeds?.[0];
+      if (src) {
+        const eb = applyCardEmbedState(
+          src,
+          state,
+          resultLine,
+          '🧑‍🤝‍🧑 팀 토론 결과',
+        );
+        await msg.edit({ embeds: [eb] }).catch(() => {});
+      }
+      // 스레드에도 결과 한 줄 (카드 못 봐도 사람 팔로업).
+      if (entry.threadId) {
+        const th = await client.channels
+          .fetch(entry.threadId)
+          .catch(() => null);
+        if (th && th.isTextBased() && 'send' in th) {
+          await (th as TextChannel)
+            .send(resultLine.slice(0, 1900))
+            .catch(() => {});
+        }
+      }
+      markCardReflected(env, v.id);
+      n += 1;
+    } catch {
+      /* 이 건 실패 = 마커 미기록(다음 tick 재시도). 다른 건 계속 */
+    }
+  }
+  return n;
 }
 
 /**
@@ -543,6 +758,7 @@ export async function announceProposal(
       appendProposalMsg(env, {
         messageId: msg.id,
         threadId,
+        channelId: msg.channelId, // KAR-018-LT: verdict reconciler 메시지 fetch
         id: ann.id,
         kind: ann.kind,
         target: ann.target,

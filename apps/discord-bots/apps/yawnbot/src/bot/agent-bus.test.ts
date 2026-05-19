@@ -7,10 +7,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { EmbedBuilder } from 'discord.js';
 import {
   appendProposalMsg,
   lookupProposalByMessage,
+  lookupProposalById,
   proposalMsgsPath,
+  applyCardEmbedState,
 } from './agent-bus';
 
 let root: string;
@@ -57,5 +60,78 @@ describe('proposal 메시지 매핑 (V-2 리액션 승인이 소비)', () => {
 
   it('MEMO_REPO_PATH 미설정 → path 빈 문자열 (안전 no-op)', () => {
     expect(proposalMsgsPath({} as NodeJS.ProcessEnv)).toBe('');
+  });
+
+  it('lookupProposalById — id 로 카드 매핑 회수 (verdict reconciler)', () => {
+    appendProposalMsg(env(), {
+      messageId: 'mX', threadId: 'tX', channelId: 'cX', id: 'pZ',
+      kind: 'task', target: 'task-new', title: 'z', ts: '1',
+    });
+    const hit = lookupProposalById(env(), 'pZ');
+    expect(hit?.messageId).toBe('mX');
+    expect(hit?.channelId).toBe('cX');
+    expect(lookupProposalById(env(), 'none')).toBeNull();
+  });
+});
+
+describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)', () => {
+  // 그동안의 미반영 근본 = embed 변형이 lockCard 하나뿐 + 사람
+  // 리액션에서만. 변형 공용화 = 팀 verdict 도 같은 경로로 카드 반영.
+  function baseEmbed() {
+    return new EmbedBuilder()
+      .setTitle('💡 제안')
+      .addFields(
+        { name: '📌 상태', value: '🟡 승인 대기', inline: true },
+        { name: '🆔', value: '`p1`', inline: true },
+      );
+  }
+
+  it('team-reject → 상태/색/푸터 갱신, 미잠금(사장님 override 유효)', () => {
+    const eb = applyCardEmbedState(
+      baseEmbed().data,
+      'team-reject',
+      '팀 반려 — 중복 우려',
+      '🧑‍🤝‍🧑 팀 토론 결과',
+    );
+    const d = eb.toJSON();
+    const status = d.fields?.find((f) => f.name === '📌 상태');
+    expect(status?.value).toContain('팀 반려');
+    expect(d.color).toBe(0x95a5a6);
+    expect(d.footer?.text).toContain('override 유효'); // 미잠금 신호
+    expect(
+      d.fields?.some((f) => f.name === '🧑‍🤝‍🧑 팀 토론 결과'),
+    ).toBe(true);
+  });
+
+  it('team-escalate → 사장님 결정 필요 상태 (여기서만 사람 게이트)', () => {
+    const d = applyCardEmbedState(
+      baseEmbed().data,
+      'team-escalate',
+      '쟁점 미수렴',
+      '🧑‍🤝‍🧑 팀 토론 결과',
+    ).toJSON();
+    expect(
+      d.fields?.find((f) => f.name === '📌 상태')?.value,
+    ).toContain('사용자 판단 필요');
+  });
+
+  it('재반영 멱등 — 같은 결과 필드 중복 X (reconciler 재시도 안전)', () => {
+    const once = applyCardEmbedState(
+      baseEmbed().data,
+      'team-adopt',
+      'r1',
+      '🧑‍🤝‍🧑 팀 토론 결과',
+    );
+    const twice = applyCardEmbedState(
+      once.data,
+      'team-adopt',
+      'r2',
+      '🧑‍🤝‍🧑 팀 토론 결과',
+    ).toJSON();
+    const hits = (twice.fields ?? []).filter(
+      (f) => f.name === '🧑‍🤝‍🧑 팀 토론 결과',
+    );
+    expect(hits.length).toBe(1); // 누적 X
+    expect(hits[0].value).toBe('r2'); // 최신으로 갱신
   });
 });
