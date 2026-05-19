@@ -97,6 +97,8 @@ export function summarizeTick(r: string, anchor = ''): string | null {
   if (/\bescalated\b/.test(s)) bits.push('판단 필요한 건 — 사장 승인 대기');
   if (/budget-stop/.test(s)) bits.push('예산 한도 — 이번 바퀴는 멈춤');
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
+  const evo = s.match(/\+evolution:(\d+)/);
+  if (evo && Number(evo[1]) > 0) bits.push(`팀 진화 이벤트 ${evo[1]}건 기록`);
   if (bits.length === 0) return null;
   const head = anchor.trim() || '🛰 팀 한 바퀴';
   return `${head}: ${bits.join(' · ')}`;
@@ -291,6 +293,40 @@ const lastChatterTs = new Map<string, number>();
 /** 테스트 전용 — chatter 쿨다운 리셋. */
 export function resetChatterCooldown(): void { lastChatterTs.clear(); }
 
+/**
+ * chatter 설정 — `<memoRoot>/.claude/agent-chatter-config.json`.
+ * 없으면 기본값(prob=0.15, cooldownMinutes=120). 공개 설정이라 env 불필요.
+ * 예시:
+ * ```json
+ * { "prob": 0.20, "cooldownMinutes": 90 }
+ * ```
+ */
+interface ChatterConfig { prob: number; cooldownMinutes: number; }
+function loadChatterConfig(memoRoot: string): ChatterConfig {
+  const defaults: ChatterConfig = { prob: 0.15, cooldownMinutes: 120 };
+  if (!memoRoot) return defaults;
+  try {
+    const raw = JSON.parse(
+      fs.readFileSync(
+        path.join(memoRoot, '.claude', 'agent-chatter-config.json'),
+        'utf-8',
+      ),
+    );
+    return {
+      prob:
+        typeof raw.prob === 'number' && raw.prob >= 0 && raw.prob <= 1
+          ? raw.prob
+          : defaults.prob,
+      cooldownMinutes:
+        typeof raw.cooldownMinutes === 'number' && raw.cooldownMinutes > 0
+          ? raw.cooldownMinutes
+          : defaults.cooldownMinutes,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 export interface IdleChatterDeps {
   speak?: CoreSpeakFn;
   generate?: (prompt: string) => Promise<string>;
@@ -316,8 +352,9 @@ export async function runIdleChatterOnce(
   const speak = deps.speak ?? getCoreSpeak();
   if (!speak) return 'chatter-no-speak';
 
-  const prob = deps.chatterProb ?? 0.15;
-  const cooldownMs = deps.chatterCooldownMs ?? 2 * 3600_000;
+  const cfg = loadChatterConfig(memoRoot);
+  const prob = deps.chatterProb ?? cfg.prob;
+  const cooldownMs = deps.chatterCooldownMs ?? cfg.cooldownMinutes * 60_000;
   const generate =
     deps.generate ??
     ((p: string) => generateAgentText(env, p, 30_000).catch(() => ''));

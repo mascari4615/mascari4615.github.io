@@ -1,4 +1,4 @@
-/**
+﻿/**
  * agent-cadence — ⑦ 자율 구동 cadence 어댑터 (KAR-018-B slice-3, B-3).
  *
  * substrate⊥어댑터(parent ⓪'): 본 파일 = *어댑터* 층 — substrate(순수
@@ -8,6 +8,17 @@
  * ⚠ 자율 cadence = **default ON** (`AGENT_CADENCE_ENABLED=0` 으로 명시 시만 OFF).
  * 예산 reserve=default allow(budgetReserve → () => true) 이므로 폭주 위험 없음(parent ④ gating).
  * 이벤트 경로(사람이 디스코드로 말 검 → 응답)는 sub-A assistant-handler 로 *항상 live* (본 cadence 와 무관).
+ *
+ * ## 모듈 구조 (TASK-KAR-019-MOD)
+ * ```text
+ * agent-cadence-state.ts   — kill·registry·LLM·coreSpeak 공유 상태
+ * agent-cadence-skin.ts    — 스킨 페르소나 헬퍼 (loadSkinPersona 등)
+ * agent-cadence-worker.ts  — 도메인 워커 소비자 (runWorkerConsumerOnce)
+ * agent-cadence-ops.ts     — Retro·QC·Surgery·IdleChatter
+ * agent-cadence.ts         — 오케스트레이터·거버넌스·대화·타이머 (이 파일)
+ * ```
+ * 의존 방향: state → skin/worker/ops → cadence (단방향, circular dep 0).
+ * 외부 코드는 agent-cadence.ts 에서 re-export 되는 심볼만 참조하면 됨.
  */
 import fs from 'fs';
 import path from 'path';
