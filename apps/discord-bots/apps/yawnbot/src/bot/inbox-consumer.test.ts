@@ -1,9 +1,8 @@
 /**
  * 승인 게이트 인박스 소비자 행동 테스트 (KAR-018-W slice-3).
  *
- * tracer-bullet: proposalId 결정성 + 미승인=inert + 승인 task→seed TASK
- * 머터리얼라이즈 + 멱등 + 비-task/미지도메인 skip. canon 정합 잠금:
- * 승인 없으면 절대 파일 안 생김(W-4 no-auto-exec / mission §3 무한증식).
+ * task kind = 미션 §2.3 "일반 코드 자율" → 게이트 없음, autoReady 시 즉시 ready.
+ * objective/agent kind = 사람 승인 게이트 유지 (W-4 불변식).
  * FS 격리 tmpdir.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -80,36 +79,37 @@ describe('proposalId — 결정적 식별자', () => {
   });
 });
 
-describe('runInboxConsumerOnce — 승인 게이트', () => {
-  it('미승인 → 0건, TASK 파일 안 생김 (inert, W-4)', async () => {
+describe('runInboxConsumerOnce — task kind 자율 실행 (미션 §2.3)', () => {
+  it('task = 게이트 없음 — 승인 없어도 autoReady 시 즉시 ready TASK 생성', async () => {
     writeProposal(taskEnv);
-    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
-    expect(fs.existsSync(path.join(root, 'tasks'))).toBe(false);
+    // autoReady: true = 미션 §2.3 일반 코드 자율 경로
+    const n = await runInboxConsumerOnce(env(), { notify: () => {}, autoReady: true });
+    expect(n).toBe(1);
+    const files = fs.readdirSync(path.join(root, 'tasks'));
+    expect(files).toHaveLength(1);
+    const md = fs.readFileSync(path.join(root, 'tasks', files[0]), 'utf-8');
+    expect(md).toContain('status: ready'); // seed 아닌 ready — 워커 즉시 픽업
+    expect(md).toContain('id: TASK-KAR-');
   });
 
-  it('승인 → seed TASK 머터리얼라이즈 + materialized 기록', async () => {
+  it('task autoReady 없으면 seed (기존 경로 보존)', async () => {
     writeProposal(taskEnv);
     approve(proposalId(taskEnv));
     const n = await runInboxConsumerOnce(env(), { notify: () => {} });
     expect(n).toBe(1);
     const files = fs.readdirSync(path.join(root, 'tasks'));
-    expect(files).toHaveLength(1);
     const md = fs.readFileSync(path.join(root, 'tasks', files[0]), 'utf-8');
-    expect(md).toContain('status: seed');
-    expect(md).toContain('id: TASK-KAR-');
-    expect(md).toContain('보드 mojibake 추적');
-    expect(readMaterialized(env()).has(proposalId(taskEnv))).toBe(true);
+    expect(md).toContain('status: seed'); // 사람 승인 + autoReady 없음 = seed
   });
 
   it('멱등 — 2회차는 0건 (materialized skip, 무한증식 차단)', async () => {
     writeProposal(taskEnv);
-    approve(proposalId(taskEnv));
-    await runInboxConsumerOnce(env(), { notify: () => {} });
-    expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+    await runInboxConsumerOnce(env(), { notify: () => {}, autoReady: true });
+    expect(await runInboxConsumerOnce(env(), { notify: () => {}, autoReady: true })).toBe(0);
     expect(fs.readdirSync(path.join(root, 'tasks'))).toHaveLength(1);
   });
 
-  it('비-task kind 승인돼도 무시 (이 slice=task 한정)', async () => {
+  it('비-task kind 미승인 → inert (objective/agent 게이트 유지, W-4)', async () => {
     const skill: ProposalEnvelope = {
       kind: 'skill',
       payload: { id: 'S', name: 'n', summary: 's', source: 'x', coreId: 'c' },

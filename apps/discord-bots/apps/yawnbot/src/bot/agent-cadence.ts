@@ -37,7 +37,18 @@ import {
   shouldRunQualityCheck,
   buildQualityCheckMessage,
   recordQualityCheck,
+  shouldRunSurgery,
+  buildSurgerySeedPrompt,
+  parseSurgeryDecision,
+  recordSurgery,
 } from './team-portfolio';
+import {
+  gatherHealthSignals,
+  diagnoseHealth,
+  formatHealthBlock,
+  type HealthSignals,
+  type HealthIssue,
+} from './system-health';
 import {
   SessionRegistry,
   spawnTier3,
@@ -742,7 +753,7 @@ export async function runCoreDialogueOnce(
   // (도전자)* 1명 결정(기존 라우팅 재사용). 숙의 턴 상한 = chainCap
   // 안에서 ≤4 (envelope 바운드 — 입막음 X·결과로 바운드, ADR).
   const chainCap = Number(env.TEAM_ROOM_CHAIN_CAP) || 6;
-  const cap = Math.min(4, Math.max(2, chainCap));
+  const cap = Math.min(4, Math.max(1, chainCap));
   const turn = decideDialogueTurn(u, cores, { depth: 0, cap });
   if (!turn) {
     markCommented(latest.id); // 응답자 없음 = 매 tick 재평가 X (noise 0)
@@ -1858,14 +1869,17 @@ export interface RetroDeps {
   generate?: (prompt: string) => Promise<string>;
   notify?: NotifyFn;
   missionText?: string;
+  healthSignals?: HealthSignals;
 }
 
 /**
- * LT-7 retro 밸브 (1회·gated·best-effort). 최대 weight 프로젝트의
- * progressLog vs northStar 를 주기 회고 → currentObjective 자동 조정.
- * shouldRunRetro 영속 게이트(intervalMs, default 6h) — 자가정비
- * 맴돌이를 팀이 스스로 점검하는 ⓒ 결정 실현. 비차단.
- *  · 게이트 미충족 → 'retro-skip'  · 결정 → 'retro:<action>'
+ * LT-7 retro 밸브 + 기둥4 헬스 주입 (1회·gated·best-effort).
+ * 최대 weight 프로젝트의 progressLog vs northStar 회고 + 시스템 헬스 컨텍스트.
+ * shouldRunRetro 영속 게이트(intervalMs, default 6h).
+ *
+ * 기둥4 확장: progressLog 유무와 무관하게 헬스 신호를 프롬프트에 주입해
+ * LLM 이 "목표 조정" 외 "시스템 이상"도 인지하게 한다.
+ * (progressLog 게이트는 유지 — 데이터 없으면 retro 대신 surgery 경로)
  */
 export async function runRetroOnce(
   env: NodeJS.ProcessEnv,
@@ -1881,6 +1895,11 @@ export async function runRetroOnce(
   if (!shouldRunRetro(top, Date.now(), intervalMs)) return 'retro-skip';
 
   const missionText = deps.missionText ?? readMissionText(env);
+  const signals =
+    deps.healthSignals ?? gatherHealthSignals(env);
+  const issues = diagnoseHealth(signals);
+  const healthCtx = issues.length > 0 ? `\n\n${formatHealthBlock(signals, issues)}` : '';
+
   const generate =
     deps.generate ??
     ((prompt: string) =>
@@ -1891,9 +1910,9 @@ export async function runRetroOnce(
       ));
   let text = '';
   try {
-    text = await generate(buildRetroPrompt(top, missionText));
+    text = await generate(buildRetroPrompt(top, missionText) + healthCtx);
   } catch {
-    return 'retro-error'; // 비차단 (lastRetroTs 미스탬프 → 다음 틱 재시도)
+    return 'retro-error';
   }
   const decision = parseRetroDecision(text);
   recordRetro(memoRoot, top.id, decision);
@@ -1904,28 +1923,33 @@ export async function runRetroOnce(
       : decision.action === 'achieved'
         ? '현 목표 달성 — 다음 발굴로'
         : '현 목표 유지 (북극성 정렬 확인)';
-  notify(`🔭 «${top.title}» 회고: ${human}`);
+  const healthSuffix =
+    issues.length > 0
+      ? ` | ⚠ 헬스 이슈 ${issues.length}건(surgery 경로 확인)`
+      : '';
+  notify(`🔭 «${top.title}» 회고: ${human}${healthSuffix}`);
   appendTrace(env, {
     ts: new Date().toISOString(),
     type: 'drift',
     core: 'retro',
-    reason: `retro «${top.id}» ${decision.action}${decision.objective ? ` → ${decision.objective.slice(0, 80)}` : ''}`,
+    reason: `retro «${top.id}» ${decision.action}${decision.objective ? ` → ${decision.objective.slice(0, 80)}` : ''}${healthSuffix}`,
   });
   return `retro:${decision.action}`;
 }
 
-// ══ LT-QC: 사용자 품질 체크 강제 (TASK-KAR-018-LT — HITL 닫힘 게이트) ══
+// ══ LT-QC: 사용자 품질 체크 + 기둥4 헬스 진단 포함 ══
+// 기둥4 확장(2026-05-19): 순수 사용자 핑 → 헬스 신호 포함 진단 메시지.
+// LLM 여전히 없음(forcing-function 본질 유지), 단 데이터 기반 컨텍스트 추가.
 
 export interface QualityCheckDeps {
   notify?: NotifyFn;
+  healthSignals?: HealthSignals;
 }
 
 /**
- * 사용자 품질 체크 (1회·gated·best-effort). 최대 weight 프로젝트를 기준으로
- * 사용자에게 팀 숙의 품질을 직접 관측·판정해달라고 #team-bus 에 요청한다.
- * LLM 호출 없음 — forcing-function 이 목적.
- * shouldRunQualityCheck 영속 게이트(intervalMs, 기본 24h).
- *  · 게이트 미충족 → 'qc-skip'  · 전송 → 'qc:sent'
+ * 사용자 품질 체크 (1회·gated·best-effort). 기존 HITL 요청 +
+ * 시스템 헬스 신호 인라인 — 사용자가 "무엇을" 관측해야 할지 데이터 제공.
+ * LLM 호출 없음. shouldRunQualityCheck 영속 게이트(intervalMs, 기본 24h).
  */
 export async function runQualityCheckOnce(
   env: NodeJS.ProcessEnv,
@@ -1940,7 +1964,14 @@ export async function runQualityCheckOnce(
     Number(env.AGENT_QUALITY_CHECK_INTERVAL_MS) || 24 * 3600_000;
   if (!shouldRunQualityCheck(top, Date.now(), intervalMs)) return 'qc-skip';
 
-  const msg = buildQualityCheckMessage(top);
+  const signals = deps.healthSignals ?? gatherHealthSignals(env);
+  const issues = diagnoseHealth(signals);
+  const healthSuffix =
+    issues.length > 0
+      ? `\n\n${formatHealthBlock(signals, issues)}`
+      : '';
+
+  const msg = buildQualityCheckMessage(top) + healthSuffix;
   const notify = deps.notify ?? defaultNotify(env);
   notify(msg);
   recordQualityCheck(memoRoot, top.id);
@@ -1948,9 +1979,139 @@ export async function runQualityCheckOnce(
     ts: new Date().toISOString(),
     type: 'drift',
     core: 'quality-check',
-    reason: `품질 체크 요청 — «${top.id}» 사용자 관측 요청`,
+    reason: `품질 체크 — «${top.id}» 사용자 관측 요청${issues.length > 0 ? ` | 헬스 이슈 ${issues.length}건 포함` : ''}`,
   });
   return 'qc:sent';
+}
+
+// ══ 기둥4 자기수술 러너 (TASK-KAR-018-LT) ══
+
+import { materializeTaskProposal } from './proposal-adapter';
+
+export interface SelfSurgeryDeps {
+  generate?: (prompt: string) => Promise<string>;
+  notify?: NotifyFn;
+  missionText?: string;
+  healthSignals?: HealthSignals;
+  /** TASK 파일 작성 (기본 = materializeTaskProposal). 테스트 stub. */
+  writeTask?: (
+    env: NodeJS.ProcessEnv,
+    payload: { title: string; body: string; domain: string },
+  ) => string | null;
+}
+
+/**
+ * 기둥4 자기수술 (1회·gated·best-effort). 시스템 헬스 신호 수집 →
+ * critical 이슈 있으면 LLM 자율 진단 → task seed 작성 OR escalate.
+ * shouldRunSurgery 게이트(기본 12h). 이슈 없으면 'surgery-skip'.
+ * "측정으로 들러붙는 진화만" 원칙 적용: 데이터 없는 수술 X.
+ */
+export async function runSelfSurgeryOnce(
+  env: NodeJS.ProcessEnv,
+  deps: SelfSurgeryDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const portfolio = loadPortfolio(memoRoot);
+  const top = topProject(portfolio);
+  if (!top) return 'surgery-skip';
+
+  const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 12 * 3600_000;
+  if (!shouldRunSurgery(portfolio, Date.now(), intervalMs)) return 'surgery-skip';
+
+  const signals = deps.healthSignals ?? gatherHealthSignals(env);
+  const issues = diagnoseHealth(signals);
+  // critical 이슈 없으면 수술 불필요 (warn 은 QC/retro 가 커버)
+  const critical = issues.filter((i) => i.severity === 'critical');
+  if (critical.length === 0) {
+    recordSurgery(memoRoot); // 타임스탬프 갱신(다음 주기 재계산)
+    return 'surgery-skip';
+  }
+
+  const missionText = deps.missionText ?? readMissionText(env);
+  const healthBlock = formatHealthBlock(signals, issues);
+  const generate =
+    deps.generate ??
+    ((prompt: string) =>
+      generateAgentText(
+        env,
+        prompt,
+        Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
+      ));
+
+  let text = '';
+  try {
+    text = await generate(buildSurgerySeedPrompt(top, healthBlock, missionText));
+  } catch {
+    return 'surgery-error';
+  }
+
+  const decision = parseSurgeryDecision(text);
+  recordSurgery(memoRoot);
+
+  const notify = deps.notify ?? defaultNotify(env);
+
+  if (decision.action === 'seed' && decision.taskTitle) {
+    const writeTask =
+      deps.writeTask ??
+      ((e, payload) => materializeTaskProposal(e, payload));
+    const filePath = writeTask(env, {
+      title: decision.taskTitle,
+      body: [
+        '## 자기수술 진단',
+        '',
+        decision.taskBody || decision.taskTitle,
+        '',
+        '## 헬스 신호',
+        '',
+        '```',
+        healthBlock,
+        '```',
+        '',
+        '> ⚕ 기둥4 자율 진단 (agent-cadence surgery loop). status=seed = 워커가 픽업해 실행.',
+      ].join('\n'),
+      domain: 'KAR',
+    });
+    const label = filePath ? `→ ${path.basename(filePath)}` : '(파일 생성 실패)';
+    notify(
+      `⚕ **자기수술** — 이슈 진단 완료. 과제 시드 작성 ${label}\n` +
+        `이슈: ${critical.map((i) => i.code).join(', ')}\n` +
+        `진단: ${decision.reason.slice(0, 120)}`,
+    );
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: 'surgery',
+      reason: `surgery seed: ${decision.taskTitle.slice(0, 80)} (${critical.map((i) => i.code).join(',')})`,
+    });
+    return `surgery:seed:${decision.taskTitle.slice(0, 40)}`;
+  }
+
+  if (decision.action === 'escalate') {
+    notify(
+      `⚕ **자기수술 escalate** — 사람 판단 필요.\n` +
+        `이슈: ${critical.map((i) => i.code).join(', ')}\n` +
+        `사유: ${decision.reason.slice(0, 200)}`,
+    );
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'drift',
+      core: 'surgery',
+      reason: `surgery escalate: ${decision.reason.slice(0, 80)}`,
+    });
+    return 'surgery:escalate';
+  }
+
+  // keep
+  appendTrace(env, {
+    ts: new Date().toISOString(),
+    type: 'drift',
+    core: 'surgery',
+    reason: `surgery keep: ${decision.reason.slice(0, 80)}`,
+  });
+  return 'surgery:keep';
 }
 
 /**
@@ -2011,7 +2172,9 @@ export async function runCadenceTickOnce(
     r = `idle→producer:${await runGovernedProducerOnce(env, opts.producerOpts)}`;
   }
   if (memoRoot && !isKilled()) {
-    const mat = await runInboxConsumerOnce(env);
+    // autoReady: task kind 발굴 → status:ready 직행 (미션 §2.3 일반 코드 자율).
+    // objective/agent kind 는 runInboxConsumerOnce 내부에서 기존 사람 승인 게이트 유지.
+    const mat = await runInboxConsumerOnce(env, { autoReady: true });
     if (mat > 0) r = `${r}+consumed:${mat}`;
   }
   // LT-11 자가증강 *닫는* 루프: 팀 채택→materialize 된 draft 코어를
