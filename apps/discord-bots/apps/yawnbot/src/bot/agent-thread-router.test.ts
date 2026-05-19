@@ -1,6 +1,10 @@
 // agent-thread-router 순수 코어 전수검증 (Discord IO 무관). KAR-018-Y.
 import { describe, it, expect } from 'vitest';
-import { extractTaskId, chunkForDiscord } from './agent-thread-router';
+import {
+  extractTaskId,
+  chunkForDiscord,
+  threadIdFromLink,
+} from './agent-thread-router';
 
 describe('extractTaskId (순수)', () => {
   it('워커 메시지에서 TASK id 추출', () => {
@@ -18,6 +22,38 @@ describe('extractTaskId (순수)', () => {
   it('TASK 없으면 null (팀-공통=하트비트)', () => {
     expect(extractTaskId('🛰 팀 한 바퀴: 동료 echo 한마디')).toBeNull();
     expect(extractTaskId('')).toBeNull();
+  });
+  it('흡수 A: 제안 id(p+8hex)도 스레드 키 (메인채널 누수 fix)', () => {
+    expect(extractTaskId('제안 p42c94051 검토 부탁')).toBe('p42c94051');
+    expect(extractTaskId('새 카드 (id `p0a1b2c3d`)')).toBe('p0a1b2c3d');
+  });
+  it('TASK 가 제안 id 보다 우선 (같이 있으면 TASK)', () => {
+    expect(extractTaskId('TASK-KAR-018-THR (p42c94051)')).toBe(
+      'TASK-KAR-018-THR',
+    );
+  });
+  it('p+8hex 아닌 토큰은 키 아님 (오검출 0)', () => {
+    expect(extractTaskId('port 8080 응답')).toBeNull();
+    expect(extractTaskId('pull request #123')).toBeNull();
+    expect(extractTaskId('p123')).toBeNull(); // 8 미만
+  });
+});
+
+describe('threadIdFromLink (순수)', () => {
+  it('숫자 id 원문', () => {
+    expect(threadIdFromLink('1380999900000000000')).toBe(
+      '1380999900000000000',
+    );
+  });
+  it('디스코드 url 끝 숫자 id 추출', () => {
+    expect(
+      threadIdFromLink('https://discord.com/channels/111/222/1380999900'),
+    ).toBe('1380999900');
+  });
+  it('빈/형식미상 = null (스테일 무시)', () => {
+    expect(threadIdFromLink('')).toBeNull();
+    expect(threadIdFromLink(null)).toBeNull();
+    expect(threadIdFromLink('not-an-id')).toBeNull();
   });
 });
 

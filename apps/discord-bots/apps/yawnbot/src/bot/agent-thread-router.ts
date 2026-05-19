@@ -10,11 +10,31 @@ import {
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 
-/** 메시지에서 TASK id 추출 (스레드 키). 없으면 null = 팀-공통(메인채널). */
+/**
+ * 메시지에서 스레드 키 추출. 없으면 null = 팀-공통(메인채널).
+ * 1순위 TASK-<PREFIX>-<번호>[-<서브>] (첫 매치 = 그 틱 대상).
+ * 2순위(흡수 A, TASK-KAR-018-THR): 제안 id = `p`+8 hex (proposal.ts
+ * `proposalId`). 종전엔 pXXX 가 TASK 정규식에 안 걸려 null → 제안
+ * 카드/숙의 메시지가 메인채널로 샜다(사용자 2026-05-19 관측). 제안
+ * 전용 스레드로 모으도록 키 인정.
+ */
 export function extractTaskId(msg: string): string | null {
-  // TASK-<PREFIX>-<번호>[-<서브>] (KAR/WM/KL/YB 등). 첫 매치 = 그 틱 대상.
   const m = msg.match(/TASK-[A-Z]{2,6}-\d+(?:-[A-Za-z0-9]+)?/);
-  return m ? m[0] : null;
+  if (m) return m[0];
+  const p = msg.match(/\bp[0-9a-f]{8}\b/);
+  return p ? p[0] : null;
+}
+
+/**
+ * `discord_thread` 기록값(스레드 id 또는 디스코드 url 끝 숫자 id)
+ * → 스레드 id. 순수. 형식 미상이면 null(스테일 무시 → 이름검색/생성).
+ */
+export function threadIdFromLink(v: string | null | undefined): string | null {
+  const s = (v || '').trim();
+  if (!s) return null;
+  if (/^\d{5,}$/.test(s)) return s;
+  const m = s.match(/(\d{5,})\s*$/); // url 끝 숫자 id
+  return m ? m[1] : null;
 }
 
 /**
@@ -54,6 +74,14 @@ export interface ThreadRouterDeps {
   resolveChannelId: () => string | null;
   /** taskId 없는 팀-공통 메시지 폴백(기존 embed 송신). */
   fallback: (msg: string) => void;
+  /**
+   * TASK 파일 frontmatter 영속 매핑 (TASK-KAR-018-THR). 미주입 시
+   * name-search 만으로도 재기동-중복은 0이나 durability(클릭 가능
+   * 링크)·audit 미적용. key = extractTaskId 결과. 제안 id(pXXX)는
+   * TASK 파일 부재 → no-op(name-search 가 재기동 내성 담당).
+   */
+  readThreadLink?: (taskId: string) => string | null;
+  writeThreadLink?: (taskId: string, threadId: string) => void;
 }
 
 /**
@@ -80,16 +108,61 @@ export function makeThreadRouter(
     const p = (async (): Promise<string | null> => {
       const ch = await client.channels.fetch(channelId).catch(() => null);
       if (!ch || ch.type !== ChannelType.GuildText) return null;
+      const name = taskId.slice(0, 100);
+
+      // (b) TASK 파일 기록 매핑 — 재기동 내성·클릭·audit (본 TASK 근본).
+      const linkedId = threadIdFromLink(
+        deps.readThreadLink?.(taskId) ?? null,
+      );
+      if (linkedId) {
+        const t = await client.channels.fetch(linkedId).catch(() => null);
+        if (t && t.isThread()) {
+          if (t.archived) await t.setArchived(false).catch(() => undefined);
+          taskThreads.set(taskId, linkedId);
+          return linkedId;
+        }
+        // 기록은 있으나 스레드 소멸 → 이름검색/생성 진행(스테일 무시).
+      }
+
+      // (c) 기존 스레드 이름검색(active+archived). 맵 miss != 무조건
+      //     create — 이 단독만으로도 재기동-중복 스레드 0 (본 TASK 핵심).
+      let found: string | null = null;
+      try {
+        const act = await ch.threads.fetchActive();
+        found = act.threads.find((th) => th.name === name)?.id ?? null;
+      } catch {
+        /* best-effort */
+      }
+      if (!found) {
+        try {
+          const arc = await ch.threads.fetchArchived();
+          const hit = arc.threads.find((th) => th.name === name);
+          if (hit) {
+            found = hit.id;
+            await hit.setArchived(false).catch(() => undefined);
+          }
+        } catch {
+          /* best-effort */
+        }
+      }
+      if (found) {
+        taskThreads.set(taskId, found);
+        deps.writeThreadLink?.(taskId, found); // durability·클릭·audit
+        return found;
+      }
+
+      // (d) 생성 + TASK 파일 write-back.
       const thread = await ch.threads
         .create({
-          name: taskId.slice(0, 100),
+          name,
           autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
           type: ChannelType.PublicThread,
-          reason: `KAR-018-Y agent-team TASK thread (${taskId})`,
+          reason: `KAR-018-THR agent-team TASK thread (${taskId})`,
         })
         .catch(() => null);
       if (!thread) return null;
       taskThreads.set(taskId, thread.id);
+      deps.writeThreadLink?.(taskId, thread.id);
       // 메인채널 포인터 = 스레드 생성 시 1회만 (스팸 0).
       await ch
         .send(`🧵 **${taskId}** 작업 스레드 → <#${thread.id}>`)

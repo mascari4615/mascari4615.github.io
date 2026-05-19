@@ -33,6 +33,10 @@ import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
+import {
+  readTaskThreadLink,
+  writeTaskThreadLink,
+} from './bot/task-thread-link';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
@@ -420,6 +424,14 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // TASK-KAR-018-THR: 영속 매핑(재기동 churn → 중복 스레드 fix).
+        // memoRepoPath 없으면 미주입 → name-search 만으로도 중복 0.
+        readThreadLink: memoRepoPath
+          ? (id) => readTaskThreadLink(memoRepoPath, id)
+          : undefined,
+        writeThreadLink: memoRepoPath
+          ? (id, tid) => writeTaskThreadLink(memoRepoPath, id, tid)
+          : undefined,
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).

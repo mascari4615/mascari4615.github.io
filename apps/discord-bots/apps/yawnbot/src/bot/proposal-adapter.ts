@@ -297,6 +297,25 @@ function resolveDomain(raw: string | undefined): {
   return { key, ...DOMAIN_MAP[key] };
 }
 
+/**
+ * TASK id(`TASK-<PREFIX>-…`) → 후보 TASK 폴더(memo 상대) 목록.
+ * prefix 매칭 폴더를 앞에, 나머지 폴더를 뒤에 (미지 prefix·교차배치
+ * 견고). DOMAIN_MAP 단일정본 재사용 — 평행정의0 (mission §원칙 4).
+ * TASK-KAR-018-THR: task↔thread 영속 매핑(task-thread-link)이 소비.
+ */
+export function taskFoldersForId(taskId: string): string[] {
+  const all = Object.values(DOMAIN_MAP).map((d) => d.folder);
+  const m = taskId.match(/^TASK-([A-Z]{2,6})-/);
+  if (!m) return all;
+  const pref = m[1];
+  const hit = Object.values(DOMAIN_MAP)
+    .filter((d) => d.prefix === pref)
+    .map((d) => d.folder);
+  return hit.length
+    ? [...hit, ...all.filter((f) => !hit.includes(f))]
+    : all;
+}
+
 export function materializedPath(env: NodeJS.ProcessEnv): string {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   return root ? path.join(root, '.claude', 'proposals-materialized.jsonl') : '';
