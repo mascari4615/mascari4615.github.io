@@ -1,10 +1,7 @@
-// @ts-nocheck
 /** 챗봇 메시지용 경량 마크다운 → HTML (styles.js의 .cb-msg-bot 규칙과 대응) */
 (function () {
-    window.ChatbotMarkdown = window.ChatbotMarkdown || {};
-
-    function escapeHtml(s) {
-        if (typeof Toolbox !== 'undefined' && Toolbox.escapeHtml) return Toolbox.escapeHtml(s);
+    function escapeHtml(s: unknown): string {
+        if (typeof Toolbox !== 'undefined' && Toolbox.escapeHtml) return Toolbox.escapeHtml(String(s));
         return String(s)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -13,9 +10,9 @@
             .replace(/'/g, '&#39;');
     }
 
-    function renderMarkdown(text) {
-        const codeBlocks = [];
-        let md = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    function renderMarkdown(text: string): string {
+        const codeBlocks: string[] = [];
+        let md = text.replace(/```(\w*)\n([\s\S]*?)```/g, (_: string, lang: string, code: string) => {
             const cls = lang ? ` language-${lang}` : '';
             const langLabel = lang || 'code';
             const header = `<div class="cb-code-header"><span class="cb-code-lang">${escapeHtml(langLabel)}</span><button class="btn btn-ghost" onclick="navigator.clipboard.writeText(this.closest('.cb-code-block').querySelector('code').textContent).then(()=>Toolbox.showToast('복사됨'))">복사</button></div>`;
@@ -23,8 +20,8 @@
             return `%%CODEBLOCK_${codeBlocks.length - 1}%%`;
         });
 
-        const inlineCodes = [];
-        md = md.replace(/`([^`]+)`/g, (_, code) => {
+        const inlineCodes: string[] = [];
+        md = md.replace(/`([^`]+)`/g, (_: string, code: string) => {
             inlineCodes.push(`<code>${escapeHtml(code)}</code>`);
             return `%%INLINE_${inlineCodes.length - 1}%%`;
         });
@@ -34,7 +31,7 @@
         md = md.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         md = md.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-        md = md.replace(/\[(.+?)\]\((.+?)\)/g, (_, t, url) => {
+        md = md.replace(/\[(.+?)\]\((.+?)\)/g, (_: string, t: string, url: string) => {
             if (/^(https?:|mailto:|\/|#)/i.test(url)) return `<a href="${url}" target="_blank" rel="noopener">${t}</a>`;
             return `${t} (${url})`;
         });
@@ -42,11 +39,11 @@
         md = md.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
         md = md.replace(/^---$/gm, '<hr>');
 
-        md = md.replace(/(^\|.+\|$\n?)+/gm, tableBlock => {
+        md = md.replace(/(^\|.+\|$\n?)+/gm, (tableBlock: string) => {
             const rows = tableBlock.trim().split('\n').filter(r => r.trim());
             if (rows.length < 2) return tableBlock;
-            const isSep = r => /^\|[\s\-:|]+\|$/.test(r.trim());
-            const parseRow = (r, tag) => {
+            const isSep = (r: string) => /^\|[\s\-:|]+\|$/.test(r.trim());
+            const parseRow = (r: string, tag: string) => {
                 const cells = r.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
                 return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
             };
@@ -67,7 +64,7 @@
         });
 
         md = md.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
-        md = md.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+        md = md.replace(/(<li>.*<\/li>\n?)+/g, (m: string) => `<ul>${m}</ul>`);
         md = md.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
         md = md.replace(/^### (.+)$/gm, '<strong>$1</strong>');
@@ -86,5 +83,5 @@
         return md;
     }
 
-    window.ChatbotMarkdown.renderMarkdown = renderMarkdown;
+    window.ChatbotMarkdown = { renderMarkdown };
 })();
