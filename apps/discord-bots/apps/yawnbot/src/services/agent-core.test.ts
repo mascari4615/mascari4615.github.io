@@ -162,6 +162,25 @@ describe('resolveProposalCore (R-4 도메인 라우팅 — 결정적·순수)', 
     expect(resolveProposalCore([], { domain: 'yb' })).toBe('atlas');
     expect(resolveProposalCore(['zeta'], {})).toBe('zeta');
   });
+
+  it('wm 도메인 / witch-mendokusai 마커 → wm-scout (wm-scout 존재 시)', () => {
+    const WITH_WM = ['atlas', 'echo', 'wm-scout'];
+    expect(resolveProposalCore(WITH_WM, { domain: 'wm' })).toBe('wm-scout');
+    expect(resolveProposalCore(WITH_WM, { text: 'witch-mendokusai 던전 시스템' })).toBe('wm-scout');
+    expect(resolveProposalCore(WITH_WM, { domain: 'WM' })).toBe('wm-scout');
+  });
+
+  it('wm-scout 코어 부재 시 wm 도메인도 atlas (graceful)', () => {
+    expect(resolveProposalCore(KNOWN, { domain: 'wm' })).toBe('atlas');
+  });
+
+  it('wm 라우팅이 echo 보다 후순위 (yb > wm, explicitCoreId 최우선)', () => {
+    const ALL = ['atlas', 'echo', 'wm-scout'];
+    // explicitCoreId 최우선
+    expect(resolveProposalCore(ALL, { explicitCoreId: 'echo', domain: 'wm' })).toBe('echo');
+    // yb 도메인은 echo (wm 아님)
+    expect(resolveProposalCore(ALL, { domain: 'yb' })).toBe('echo');
+  });
 });
 
 describe('resolveAddressedCore (R-4-i2 이름지정 라우팅 — 결정적·순수)', () => {

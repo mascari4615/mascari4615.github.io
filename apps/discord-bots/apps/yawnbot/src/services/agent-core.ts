@@ -172,6 +172,12 @@ export function resolveProposalCore(
     /yawnbot|discord-bots|apps\/discord-bots|디스코드 봇|욘봇/.test(text);
   if (isYawnDomain && known.has('echo')) return 'echo';
 
+  const isWmDomain =
+    domain === 'wm' ||
+    /\bwm\b/.test(domain) ||
+    /witch.*mendokusai|위치.*멘도쿠사이|witch-mendokusai/.test(text);
+  if (isWmDomain && known.has('wm-scout')) return 'wm-scout';
+
   if (known.has('atlas')) return 'atlas';
   return knownCoreIds.length > 0 ? knownCoreIds[0] : 'atlas';
 }

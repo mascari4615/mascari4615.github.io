@@ -131,4 +131,59 @@ describe('gatherDiscoveryContext — 어댑터 읽기전용·안전 (slice-5)', 
       fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
+
+  it('wm/tasks/ 에 ready/seed TASK 있으면 컨텍스트에 포함', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-wm-'));
+    try {
+      fs.mkdirSync(path.join(tmp, '.claude'), { recursive: true });
+      fs.mkdirSync(path.join(tmp, 'wm', 'tasks'), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmp, 'wm', 'tasks', 'TASK-WM-999-던전-드랍.md'),
+        '---\nid: TASK-WM-999\ntitle: 던전 드랍 테이블 설계\nstatus: ready\npriority: high\n---\n## 목표\n',
+      );
+      const ctx = gatherDiscoveryContext({ MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv);
+      expect(ctx).toContain('던전 드랍 테이블 설계');
+      expect(ctx).toContain('WM 준비 작업');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('wm/dev/context.md 있으면 WM 개발 상태 포함', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-wmdev-'));
+    try {
+      fs.mkdirSync(path.join(tmp, '.claude'), { recursive: true });
+      fs.mkdirSync(path.join(tmp, 'wm', 'dev'), { recursive: true });
+      fs.writeFileSync(
+        path.join(tmp, 'wm', 'dev', 'context.md'),
+        '# WM 컨텍스트\n현재 HomeInside 허브 작업 중.\n',
+      );
+      const ctx = gatherDiscoveryContext({ MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv);
+      expect(ctx).toContain('WM 현재 개발 상태');
+      expect(ctx).toContain('HomeInside 허브');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('buildDiscoveryPrompt — producerPerspective (코어 정체성)', () => {
+  it('perspective 없음 = 기존 범용 프롬프트 (회귀 0)', () => {
+    const p = buildDiscoveryPrompt('§1 M');
+    expect(p).toContain('cadence 생산자다');
+    expect(p).not.toContain('로서 발굴한다');
+  });
+
+  it('perspective 주입 시 해당 역할 문구 포함', () => {
+    const p = buildDiscoveryPrompt('§1 M', '', '', 'wm-scout (WM 게임 디자이너)');
+    expect(p).toContain('wm-scout');
+    expect(p).toContain('로서 발굴한다');
+    expect(p).toContain('§1 M'); // missionText 유지
+  });
+
+  it('포트폴리오 + perspective 동시 존재', () => {
+    const p = buildDiscoveryPrompt('§1 M', '', '[팀 포트폴리오]', 'atlas (KAR 인프라)');
+    expect(p).toContain('[팀 포트폴리오]');
+    expect(p).toContain('atlas');
+  });
 });

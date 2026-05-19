@@ -241,11 +241,16 @@ export function buildDiscoveryPrompt(
   missionText: string,
   contextText = '',
   portfolioBlock = '',
+  producerPerspective = '',
 ): string {
   const ctx = contextText.trim();
   const pf = portfolioBlock.trim();
+  const perspLine = producerPerspective.trim();
+  const identity = perspLine
+    ? `너는 karmoddrine 에이전트 팀의 **${perspLine}** 로서 발굴한다. 이 역할의 관점에서 가장 의미 있는 제안을 골라라. 도구·파일`
+    : '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일';
   return [
-    '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일',
+    `${identity}`,
     '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
     '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
     '',
@@ -419,7 +424,34 @@ export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
       .slice(0, 800);
   });
 
-  return parts.join('\n\n').slice(0, 4000);
+  // WM 도메인 컨텍스트 — 팀 으뜸 프로젝트. 이 정보 없이 LLM 은 WM 구체
+  // 제안 불가 → 모든 발굴이 인프라 쪽으로만 쏠리는 편향의 구조적 근본.
+  safe('WM 준비 작업 목록 (발굴 대상 — 가장 높은 weight 프로젝트)', () => {
+    const taskDir = path.join(root, 'wm', 'tasks');
+    const files = fs.readdirSync(taskDir).filter((f) => f.endsWith('.md'));
+    const lines: string[] = [];
+    for (const f of files.slice(0, 50)) {
+      try {
+        const content = fs.readFileSync(path.join(taskDir, f), 'utf-8');
+        if (!/status:\s*(ready|seed)/i.test(content)) continue;
+        const m = content.match(/^title:\s*(.+)/m);
+        const title = m ? m[1].trim() : f.replace(/\.md$/, '').replace(/-/g, ' ');
+        const pri = (content.match(/^priority:\s*(\w+)/m) || [])[1] || 'normal';
+        lines.push(`- [${pri}] ${title}`);
+      } catch {
+        /* skip */
+      }
+    }
+    return lines.slice(0, 12).join('\n').slice(0, 1000);
+  });
+
+  safe('WM 현재 개발 상태 (씬·시스템 현황)', () =>
+    fs
+      .readFileSync(path.join(root, 'wm', 'dev', 'context.md'), 'utf-8')
+      .slice(0, 1000),
+  );
+
+  return parts.join('\n\n').slice(0, 5000);
 }
 
 // ── governed cadence (D-3 slice-3) ──────────────────────────
@@ -537,6 +569,32 @@ export async function runGovernedProducerOnce(
     });
     return 'producer-gated';
   }
+  // 발굴 코어 선택: 활성 비-워커 코어 중 하나를 뽑아 그 관점으로 발굴한다.
+  // 각 코어가 자기 도메인 렌즈로 다른 제안을 생산 → 피어 다양성 실현.
+  // 부재·오류 = 익명 폴백(회귀 0).
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  let producerPerspective = '';
+  if (memoRoot) {
+    try {
+      const ids = listCoreIds(memoRoot);
+      const defs = ids
+        .map((id) => loadCoreDef(memoRoot, id))
+        .filter((d): d is CoreDef => d !== null);
+      const producers = defs.filter(
+        (d) =>
+          d.frontmatter.status === 'active' &&
+          (d.frontmatter.kind || '').trim() !== 'worker',
+      );
+      if (producers.length > 0) {
+        const picked = producers[Math.floor(Math.random() * producers.length)];
+        const role = (picked.frontmatter.role as string) || '';
+        if (role) producerPerspective = `${picked.id} (${role.slice(0, 120)})`;
+      }
+    } catch {
+      /* 폴백 — 기존 익명 발굴 */
+    }
+  }
+
   const discover: DiscoverFn =
     opts.discover ??
     (() =>
@@ -551,6 +609,7 @@ export async function runGovernedProducerOnce(
           formatPortfolioBlock(
             loadPortfolio(env.MEMO_REPO_PATH?.trim() || ''),
           ),
+          producerPerspective,
         ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
       ));
