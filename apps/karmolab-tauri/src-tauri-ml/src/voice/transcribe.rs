@@ -224,12 +224,18 @@ impl Decoder {
         })
     }
 
-    fn decode(&mut self, mel: &Tensor, t: f64) -> Result<DecodingResult, String> {
+    /// 한 segment 의 인코더 출력(`audio_features`)은 디코딩 temperature 와
+    /// 무관 — `decode_with_fallback` 가 segment 당 1회만 계산해 넘긴다.
+    /// (KL-061: temperature fallback 루프가 매 retry 마다 인코더 forward 를
+    /// 재계산하던 낭비 제거. 인코더는 mel 만의 순수 함수 → 출력 수학적
+    /// 동일 = 한국어 인식 품질 무영향. 새 dep/환경 변경 없음 = 환경 재현성
+    /// 유지. transcribe.rs sidecar 한정 = 메인 영향 0.)
+    fn decode_tokens(
+        &mut self,
+        audio_features: &Tensor,
+        t: f64,
+    ) -> Result<DecodingResult, String> {
         let model = &mut self.model;
-        let audio_features = model
-            .encoder
-            .forward(mel, true)
-            .map_err(|e| format!("encoder_forward 실패: {e}"))?;
         let sample_len = self.config.max_target_positions / 2;
         let mut sum_logprob = 0f64;
         let mut no_speech_prob = f64::NAN;
@@ -238,14 +244,14 @@ impl Decoder {
         tokens.push(self.no_timestamps_token);
 
         for i in 0..sample_len {
-            let tokens_t = Tensor::new(tokens.as_slice(), mel.device())
+            let tokens_t = Tensor::new(tokens.as_slice(), audio_features.device())
                 .map_err(|e| format!("tokens tensor 실패: {e}"))?;
             let tokens_t = tokens_t
                 .unsqueeze(0)
                 .map_err(|e| format!("unsqueeze 실패: {e}"))?;
             let ys = model
                 .decoder
-                .forward(&tokens_t, &audio_features, i == 0)
+                .forward(&tokens_t, audio_features, i == 0)
                 .map_err(|e| format!("decoder_forward 실패: {e}"))?;
 
             if i == 0 {
@@ -339,8 +345,17 @@ impl Decoder {
     }
 
     fn decode_with_fallback(&mut self, segment: &Tensor) -> Result<DecodingResult, String> {
+        // 인코더 forward = mel(segment) 만의 함수 — temperature fallback 루프
+        // 밖에서 segment 당 1회만 (KL-061). 기존엔 decode() 안에서 retry 마다
+        // 재계산 → 잡음/부분발화로 fallback 타는 실사용 음성 클립에서 인코더
+        // 를 2~6× 중복 실행하던 비용 제거. decode 출력은 불변.
+        let audio_features = self
+            .model
+            .encoder
+            .forward(segment, true)
+            .map_err(|e| format!("encoder_forward 실패: {e}"))?;
         for (i, &t) in m::TEMPERATURES.iter().enumerate() {
-            let dr = self.decode(segment, t);
+            let dr = self.decode_tokens(&audio_features, t);
             if i == m::TEMPERATURES.len() - 1 {
                 return dr;
             }

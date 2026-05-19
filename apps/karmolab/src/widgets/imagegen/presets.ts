@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * imagegen - 프리셋 데이터 (컨텍스트, 캐릭터, 옵션)
  */
 (function () {
     'use strict';
-    window.ImageGen = window.ImageGen || {};
+    const IG = (window.ImageGen = window.ImageGen || {});
 
     const CONTEXT_PRESETS = {
         bg: [
@@ -129,17 +128,20 @@
         { value: 'dont_allow', label: '비허용' }
     ];
 
-    function getSlotsFromPrompt(prompt) {
+    function getSlotsFromPrompt(prompt: string): string[] {
         const m = prompt.match(/<([A-Z]+)>/g);
         return m ? [...new Set(m.map(s => s.slice(1, -1)))] : [];
     }
 
-    function loadCustomCharacters() {
-        try { return JSON.parse(localStorage.getItem(CUSTOM_CHARACTERS_KEY)) || []; }
+    function loadCustomCharacters(): unknown[] {
+        try {
+            const raw = localStorage.getItem(CUSTOM_CHARACTERS_KEY);
+            return raw ? JSON.parse(raw) || [] : [];
+        }
         catch (_) { return []; }
     }
 
-    function saveCustomCharacters(list) {
+    function saveCustomCharacters(list: unknown[]) {
         localStorage.setItem(CUSTOM_CHARACTERS_KEY, JSON.stringify(list));
     }
 
@@ -149,16 +151,19 @@
         return [...builtin, ...custom];
     }
 
-    function loadCustomPresets() {
-        try { return JSON.parse(localStorage.getItem(CUSTOM_PRESETS_KEY)) || []; }
+    function loadCustomPresets(): unknown[] {
+        try {
+            const raw = localStorage.getItem(CUSTOM_PRESETS_KEY);
+            return raw ? JSON.parse(raw) || [] : [];
+        }
         catch (_) { return []; }
     }
 
-    function saveCustomPresets(list) {
+    function saveCustomPresets(list: unknown[]) {
         localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(list));
     }
 
-    Object.assign(window.ImageGen, {
+    Object.assign(IG, {
         CONTEXT_PRESETS,
         CHARACTER_PRESETS,
         CUSTOM_INPUT_ID,

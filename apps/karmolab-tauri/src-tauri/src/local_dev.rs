@@ -39,7 +39,8 @@ pub struct LocalDevState {
     /// 외부 PID 자동 폴링이 PowerShell `Get-CimInstance` 풀스캔(1~2초)을
     /// 30s 간격으로 반복하지 않도록 결과를 짧게 캐시한다.
     /// `localdev_list_external_pids`, `localdev_stop_external` 공용.
-    process_list_cache: Mutex<Option<(Instant, Vec<(u32, String)>)>>,
+    /// `Arc` 래핑 = KL-043 spawn_blocking 클로저로 옮기기 위함 (State 는 non-'static).
+    process_list_cache: Arc<Mutex<Option<(Instant, Vec<(u32, String)>)>>>,
 }
 
 /// 서버모니터 dev 프로필. 두 형식:
@@ -794,12 +795,20 @@ pub fn localdev_list_tracked(state: State<'_, LocalDevState>) -> Result<Vec<Stri
     Ok(pids.keys().cloned().collect())
 }
 
-/// 카모랩 외부에서 띄운 dev profile 매칭 PID들. profile_id → [pid] 맵.
-/// 카모랩 자체가 추적 중인 PID 는 제외. 결과가 빈 profile 은 맵에서 빠짐.
-#[tauri::command]
-pub fn localdev_list_external_pids(
-    state: State<'_, LocalDevState>,
-) -> Result<HashMap<String, Vec<u32>>, String> {
+/// State 락 read 만 (fast: lock + clone) 해서 외부 PID 작업에 필요한 소유 입력을
+/// 추출. State 는 non-'static 이라 spawn_blocking 클로저로 못 옮기므로, 무거운
+/// 작업(`list_all_processes` 풀스캔 / `kill_process_tree` spawn) 전에 여기서
+/// 소유 데이터(repo / tracked / cache Arc)만 떼어낸다 (KL-043 패턴).
+fn collect_external_inputs(
+    state: &LocalDevState,
+) -> Result<
+    (
+        PathBuf,
+        HashSet<u32>,
+        Arc<Mutex<Option<(Instant, Vec<(u32, String)>)>>>,
+    ),
+    String,
+> {
     let repo_str = {
         let g = state.repo_root.lock().map_err(|e| e.to_string())?;
         g.clone()
@@ -814,12 +823,19 @@ pub fn localdev_list_external_pids(
         .map(|m| m.values().copied().collect())
         .unwrap_or_default();
 
-    let processes = process_cache_get_or_fetch(
-        &state.process_list_cache,
-        PROCESS_CACHE_TTL,
-        Instant::now(),
-        list_all_processes,
-    );
+    let cache = Arc::clone(&state.process_list_cache);
+    Ok((repo, tracked, cache))
+}
+
+/// 블로킹 코어 — 소유 입력만 받음. cache cold-miss 시 `list_all_processes()`
+/// (PowerShell/ps 풀스캔) 호출 → 반드시 spawn_blocking / background thread 위에서.
+fn localdev_list_external_pids_blocking(
+    repo: PathBuf,
+    tracked: HashSet<u32>,
+    cache: Arc<Mutex<Option<(Instant, Vec<(u32, String)>)>>>,
+) -> Result<HashMap<String, Vec<u32>>, String> {
+    let processes =
+        process_cache_get_or_fetch(&cache, PROCESS_CACHE_TTL, Instant::now(), list_all_processes);
     let mut all = discover_external_pids_per_profile(&repo, &processes);
     for pids in all.values_mut() {
         pids.retain(|p| !tracked.contains(p));
@@ -828,33 +844,40 @@ pub fn localdev_list_external_pids(
     Ok(all)
 }
 
-/// 외부 실행 매칭 PID 모두 트리 종료. 카모랩 추적 PID 는 보호.
-/// 반환값은 실제로 kill 명령이 success 한 개수.
+/// 카모랩 외부에서 띄운 dev profile 매칭 PID들. profile_id → [pid] 맵.
+/// 카모랩 자체가 추적 중인 PID 는 제외. 결과가 빈 profile 은 맵에서 빠짐.
+/// KL-043: cache cold-miss 시 외부 프로세스 spawn → async + spawn_blocking.
 #[tauri::command]
-pub fn localdev_stop_external(
-    profile_id: String,
+pub async fn localdev_list_external_pids(
     state: State<'_, LocalDevState>,
+) -> Result<HashMap<String, Vec<u32>>, String> {
+    let (repo, tracked, cache) = collect_external_inputs(&state)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        localdev_list_external_pids_blocking(repo, tracked, cache)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+/// HTTP (non-Tauri) 동기 경로 — 이미 background thread (KL-065) 라 블로킹 OK.
+/// 카드(Tauri command)와 같은 `LocalDevState` / cache 공유.
+pub fn localdev_list_external_pids_sync(
+    state: &LocalDevState,
+) -> Result<HashMap<String, Vec<u32>>, String> {
+    let (repo, tracked, cache) = collect_external_inputs(state)?;
+    localdev_list_external_pids_blocking(repo, tracked, cache)
+}
+
+/// 블로킹 코어 — `list_all_processes()` 풀스캔 + `kill_process_tree()`
+/// (taskkill/kill spawn). 반드시 spawn_blocking / background thread 위에서.
+fn localdev_stop_external_blocking(
+    repo: PathBuf,
+    tracked: HashSet<u32>,
+    cache: Arc<Mutex<Option<(Instant, Vec<(u32, String)>)>>>,
+    profile_id: String,
 ) -> Result<usize, String> {
-    let repo_str = {
-        let g = state.repo_root.lock().map_err(|e| e.to_string())?;
-        g.clone()
-            .ok_or_else(|| "저장소 루트를 먼저 설정하세요.".to_string())?
-    };
-    let repo = PathBuf::from(&repo_str);
-
-    let tracked: HashSet<u32> = state
-        .pids
-        .lock()
-        .ok()
-        .map(|m| m.values().copied().collect())
-        .unwrap_or_default();
-
-    let processes = process_cache_get_or_fetch(
-        &state.process_list_cache,
-        PROCESS_CACHE_TTL,
-        Instant::now(),
-        list_all_processes,
-    );
+    let processes =
+        process_cache_get_or_fetch(&cache, PROCESS_CACHE_TTL, Instant::now(), list_all_processes);
     let by_profile = discover_external_pids_per_profile(&repo, &processes);
     let pids = by_profile.get(&profile_id).cloned().unwrap_or_default();
     if pids.is_empty() {
@@ -871,6 +894,31 @@ pub fn localdev_stop_external(
         }
     }
     Ok(killed)
+}
+
+/// 외부 실행 매칭 PID 모두 트리 종료. 카모랩 추적 PID 는 보호.
+/// 반환값은 실제로 kill 명령이 success 한 개수.
+/// KL-043: 풀스캔 + taskkill/kill spawn → async + spawn_blocking.
+#[tauri::command]
+pub async fn localdev_stop_external(
+    profile_id: String,
+    state: State<'_, LocalDevState>,
+) -> Result<usize, String> {
+    let (repo, tracked, cache) = collect_external_inputs(&state)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        localdev_stop_external_blocking(repo, tracked, cache, profile_id)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+/// HTTP (non-Tauri) 동기 경로 — 이미 background thread (KL-065) 라 블로킹 OK.
+pub fn localdev_stop_external_sync(
+    profile_id: String,
+    state: &LocalDevState,
+) -> Result<usize, String> {
+    let (repo, tracked, cache) = collect_external_inputs(state)?;
+    localdev_stop_external_blocking(repo, tracked, cache, profile_id)
 }
 
 /// 프로필 로그 파일을 background에서 tail. 새 라인이 들어올 때마다

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /** 시스템 프롬프트 프리셋·조립 (ChatbotCharacters 로드 후) */
 (function () {
     const SYSTEM_PROMPT_PRESETS = {
@@ -20,24 +19,28 @@
 `.trim();
 
     /** 프리셋 + textarea 반영. __none__ = 추가 지시 없음, 빈 값 = 직접 입력(아래 textarea), 그 외 = SYSTEM_PROMPT_PRESETS 키 */
-    function getAdditionalSystemPromptText() {
-        const presetSel = document.getElementById('cbSystemPreset');
-        const ta = document.getElementById('cbSystemPrompt');
+    function getAdditionalSystemPromptText(): string {
+        const presetSel = document.getElementById('cbSystemPreset') as HTMLSelectElement | null;
+        const ta = document.getElementById('cbSystemPrompt') as HTMLTextAreaElement | null;
         const v = presetSel?.value;
         if (v === '__none__') return '';
-        if (v && SYSTEM_PROMPT_PRESETS[v]) return SYSTEM_PROMPT_PRESETS[v];
+        const presetKey = v as keyof typeof SYSTEM_PROMPT_PRESETS;
+        if (v && SYSTEM_PROMPT_PRESETS[presetKey]) return SYSTEM_PROMPT_PRESETS[presetKey];
         return (ta?.value || '').trim();
     }
 
-    function assembleSystemPrompt(options) {
-        options = options || {};
-        const useMemory = !!options.useMemory;
-        const conversationSummary = options.conversationSummary || '';
+    function assembleSystemPrompt(options?: {
+        useMemory?: boolean;
+        conversationSummary?: string;
+    }): string {
+        const opts = options || {};
+        const useMemory = !!opts.useMemory;
+        const conversationSummary = opts.conversationSummary || '';
         const C = window.ChatbotCharacters;
 
-        const useChar = document.getElementById('cbCharUse')?.checked !== false;
-        const autoImg = document.getElementById('cbCharAutoImage')?.checked;
-        const sel = document.getElementById('cbCharacterSelect');
+        const useChar = (document.getElementById('cbCharUse') as HTMLInputElement | null)?.checked !== false;
+        const autoImg = (document.getElementById('cbCharAutoImage') as HTMLInputElement | null)?.checked;
+        const sel = document.getElementById('cbCharacterSelect') as HTMLSelectElement | null;
         const cid = sel?.value;
         let out = '';
 

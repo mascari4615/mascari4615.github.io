@@ -215,11 +215,12 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
     expect(decoded.entries.length).toBe(10);
   });
 
-  it('파일 없음(GET 404) → sha 없이 PUT (최초 생성)', async () => {
-    const calls: any[] = [];
-    const fetchImpl = vi.fn(async (_url: string, opts: any) => {
-      calls.push(opts);
-      if (opts.method === 'GET') return res(404);
+  it('브랜치 존재 + 파일 없음(Contents 404, ref 200) → 부트스트랩 X, sha 없이 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(200, { ref: 'refs/heads/x' });
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
       return res(201);
     });
     await writeSnapshotOnce(CFG, null, {
@@ -229,8 +230,40 @@ describe('writeSnapshotOnce — Contents API GET sha → PUT', () => {
       fsImpl: makeFs(SAMPLE_FILES),
       logger: silentLogger,
     });
-    const putBody = JSON.parse(calls[1].body);
-    expect(putBody.sha).toBeUndefined();
+    expect(calls.some((c) => c.url.includes('/git/commits'))).toBe(false);
+    expect(calls.some((c) => c.url.includes('/git/refs'))).toBe(false);
+    const put = calls.find((c) => c.url.includes('/contents/') && c.opts.method === 'PUT');
+    expect(JSON.parse(put!.opts.body).sha).toBeUndefined();
+  });
+
+  it('브랜치 부재(Contents 404, ref 404) → orphan 부트스트랩 후 sha 없이 PUT', async () => {
+    const calls: Array<{ url: string; opts: any }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+      calls.push({ url, opts });
+      if (url.includes('/git/ref/heads/')) return res(404);
+      if (url.includes('/git/commits')) return res(201, { sha: 'orphan_commit_sha' });
+      if (url.includes('/git/refs')) return res(201, { ref: 'refs/heads/yawnbot-character-state' });
+      if (url.includes('/contents/') && opts.method === 'GET') return res(404);
+      return res(201);
+    });
+    await writeSnapshotOnce(CFG, null, {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      now: fixedNow,
+      timeoutMs: 1000,
+      fsImpl: makeFs(SAMPLE_FILES),
+      logger: silentLogger,
+    });
+    const commit = calls.find((c) => c.url.includes('/git/commits'));
+    const commitBody = JSON.parse(commit!.opts.body);
+    expect(commitBody.parents).toEqual([]);
+    expect(commitBody.tree).toBe('4b825dc642cb6eb9a060e54bf8d69288fbee4904');
+    const refPost = calls.find((c) => c.url.includes('/git/refs') && c.opts.method === 'POST');
+    expect(JSON.parse(refPost!.opts.body)).toEqual({
+      ref: 'refs/heads/yawnbot-character-state',
+      sha: 'orphan_commit_sha',
+    });
+    const put = calls.find((c) => c.url.includes('/contents/') && c.opts.method === 'PUT');
+    expect(JSON.parse(put!.opts.body).sha).toBeUndefined();
   });
 
   it('GET non-2xx(404 외, 예: 401) → throw', async () => {

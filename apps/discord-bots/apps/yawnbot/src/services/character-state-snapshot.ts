@@ -48,6 +48,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { ensureOrphanBranch } from './github-orphan-branch';
 
 const GITHUB_API = 'https://api.github.com';
 
@@ -291,7 +292,20 @@ export async function writeSnapshotOnce(
   if (getRes.ok) {
     const body = (await getRes.json()) as { sha?: string };
     sha = body.sha;
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    // 파일 404 ≠ 브랜치 404. Contents API 는 브랜치를 생성 못 하므로
+    // PUT 직전 orphan 브랜치 실재를 보장 (fresh env/브랜치삭제 self-heal).
+    await ensureOrphanBranch(
+      { token: cfg.token, repo: cfg.repo, branch: cfg.branch },
+      {
+        fetchImpl,
+        timeoutMs,
+        logger,
+        label: 'CharState',
+        message: `chore(charstate): bootstrap orphan branch ${cfg.branch} (empty tree)`,
+      },
+    );
+  } else {
     throw new Error(`charstate sha 조회 실패 (HTTP ${getRes.status})`);
   }
 
