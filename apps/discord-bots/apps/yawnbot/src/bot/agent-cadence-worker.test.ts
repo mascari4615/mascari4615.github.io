@@ -6,7 +6,10 @@
  * deps 로 IO 격리(실 claude·실 scan·실 claim 없이 분기 전수 잠금).
  * 계약 불변식: draft 워커 inert / claim 레이스 시 다음 후보 / 실패=release.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import {
   selectWorkerCores,
   buildWorkerPrompt,
@@ -15,6 +18,8 @@ import {
   disarmKill,
   resetWorkerStatus,
   voicedWorkerSpeak,
+  appendWorkerRaw,
+  workerRawLedgerPath,
   type WorkerCore,
 } from './agent-cadence';
 import type { CoreDef } from '../services/agent-core';
@@ -278,8 +283,24 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
 
 // KAR-079: 원문 footer = Discord spoiler + budget 완화 회귀.
 // 날조 가드(KL-061) 불변: voiced 가 사실 못 지우게 raw ground-truth 동봉.
-describe('voicedWorkerSpeak — 원문 footer spoiler/budget (KAR-079)', () => {
-  beforeEach(() => resetWorkerStatus());
+describe('voicedWorkerSpeak — 원문 채팅밖 내구원장 (KAR-079-B)', () => {
+  let root: string;
+  const tenv = () => ({ MEMO_REPO_PATH: root }) as NodeJS.ProcessEnv;
+  const readRaw = (): { coreId: string; status: string }[] => {
+    const p = workerRawLedgerPath(tenv());
+    if (!p || !fs.existsSync(p)) return [];
+    return fs
+      .readFileSync(p, 'utf-8')
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((l) => JSON.parse(l));
+  };
+  beforeEach(() => {
+    resetWorkerStatus();
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'wraw-'));
+    fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+  });
+  afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
   const capture = () => {
     const lines: string[] = [];
@@ -290,48 +311,53 @@ describe('voicedWorkerSpeak — 원문 footer spoiler/budget (KAR-079)', () => {
     return { lines, speak };
   };
 
-  it('voiced 성공 → 원문이 Discord spoiler(||..||)로 감싸짐 + 200자 하드컷 폐기', async () => {
+  it('voiced 성공 → 채팅엔 voiced 한 줄만 (원문·spoiler 미동봉)', async () => {
     const { lines, speak } = capture();
     const longStatus = 'WmWorker ▶ TASK-WM-010-A ' + 'x'.repeat(800);
-    await voicedWorkerSpeak('c1', longStatus, speak, async () => 'voiced 보고');
-    const out = lines[0];
-    expect(out).toContain('· 원문: ||');
-    expect(out.endsWith('||')).toBe(true);
-    // 200자 하드컷 폐기 — spoiler 안 raw 가 옛 상한(200) 초과
-    const raw = out.slice(out.indexOf('||') + 2, out.lastIndexOf('||'));
-    expect(raw.length).toBeGreaterThan(200);
+    await voicedWorkerSpeak('c1', longStatus, speak, async () => 'voiced 보고', tenv());
+    expect(lines[0]).toBe('voiced 보고');
+    expect(lines[0]).not.toContain('||');
+    expect(lines[0]).not.toContain('원문');
   });
 
-  it('Discord 2000자 한계 — 극단 길이 status 도 총길이 ≤ 2000', async () => {
+  it('날조 가드: 원문이 내구 원장에 기록됨 (voiced drift cross-check)', async () => {
     const { lines, speak } = capture();
-    const huge = 'A'.repeat(9000);
-    await voicedWorkerSpeak('c1', huge, speak, async () => 'B'.repeat(3000));
+    const status = 'WmWorker ▶ TASK-WM-010-A 브랜치 push 확인\n· 보고: ' + 'D'.repeat(900);
+    await voicedWorkerSpeak('c1', status, speak, async () => '짧은 voiced', tenv());
+    expect(lines[0]).toBe('짧은 voiced'); // 채팅은 깔끔
+    const raw = readRaw();
+    expect(raw.length).toBe(1);
+    expect(raw[0]).toMatchObject({ coreId: 'c1' });
+    expect(raw[0].status).toBe(status); // 원문 전체 보존(절단 X, 8000 한도 내)
+  });
+
+  it('Discord 2000자 한계 — voiced ceiling ≤ 2000 (무손실 소실 방지)', async () => {
+    const { lines, speak } = capture();
+    await voicedWorkerSpeak('c1', 'A'.repeat(9000), speak, async () => 'B'.repeat(3000), tenv());
     expect(lines[0].length).toBeLessThanOrEqual(2000);
   });
 
-  it("status 내 '|' 는 '¦' 치환 → spoiler 조기종료 방지", async () => {
-    const { lines, speak } = capture();
-    await voicedWorkerSpeak('c1', 'a||b|c 보고', speak, async () => 'v');
-    const out = lines[0];
-    const raw = out.slice(out.indexOf('||') + 2, out.lastIndexOf('||'));
-    expect(raw).not.toContain('|');
-    expect(raw).toContain('¦');
-  });
-
-  it('voice 실패 → raw status 폴백 (스포일러 X, 날조 가드 불요 경로)', async () => {
+  it('voice 실패 → raw status 폴백 (채팅엔 raw, 원장에도 기록)', async () => {
     const { lines, speak } = capture();
     await voicedWorkerSpeak('c1', 'raw 그대로 보고', speak, async () => {
       throw new Error('voice down');
-    });
+    }, tenv());
     expect(lines[0]).toBe('raw 그대로 보고');
     expect(lines[0]).not.toContain('||');
+    expect(readRaw()[0].status).toBe('raw 그대로 보고');
   });
 
-  it('동일 status 연속 → dedupe (speak 1회)', async () => {
+  it('동일 status 연속 → dedupe (speak·원장 1회)', async () => {
     const { lines, speak } = capture();
     const v = async () => 'voiced';
-    await voicedWorkerSpeak('c1', '같은 보고', speak, v);
-    await voicedWorkerSpeak('c1', '같은 보고', speak, v);
+    await voicedWorkerSpeak('c1', '같은 보고', speak, v, tenv());
+    await voicedWorkerSpeak('c1', '같은 보고', speak, v, tenv());
     expect(lines.length).toBe(1);
+    expect(readRaw().length).toBe(1); // dedupe = 원장도 1회(중복 적재 X)
+  });
+
+  it('appendWorkerRaw 직접 — MEMO_REPO_PATH 미설정 안전 no-op', () => {
+    expect(workerRawLedgerPath({} as NodeJS.ProcessEnv)).toBe('');
+    appendWorkerRaw({} as NodeJS.ProcessEnv, 'c1', 's'); // throw X
   });
 });
