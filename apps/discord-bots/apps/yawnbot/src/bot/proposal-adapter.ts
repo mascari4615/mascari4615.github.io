@@ -454,6 +454,7 @@ function nextTaskId(memoRoot: string, folder: string, prefix: string): string {
 export function materializeTaskProposal(
   env: NodeJS.ProcessEnv,
   payload: TaskSeedPayload,
+  opts: { autoReady?: boolean } = {},
 ): string | null {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   if (!root) return null;
@@ -462,10 +463,13 @@ export function materializeTaskProposal(
   const id = nextTaskId(root, dom.folder, dom.prefix);
   const file = `TASK-${id}-${slugify(payload.title)}.md`;
   const abs = path.join(root, dom.folder, file);
+  // autoReady = 팀 자율 채택 경로(미션 §2.3 일반 코드 자율) — 사람 ready 승격 불요.
+  // seed = 기존 경로(사람이 검토·승격해야 진행).
+  const status = opts.autoReady ? 'ready' : 'seed';
   const body = [
     '---',
     `id: TASK-${id}`,
-    'status: seed',
+    `status: ${status}`,
     'priority: normal',
     `path: [${dom.key}, agent-discovered]`,
     'tags: [agent-discovered]',
@@ -486,7 +490,9 @@ export function materializeTaskProposal(
     '',
     '## 비고',
     '',
-    '- ⑦\' 발굴물. status=seed = 사람이 정제·검증 후 ready 승격해야 진행.',
+    opts.autoReady
+      ? '- ⑦\' 자율 발굴·채택(미션 §2.3). status=ready = 워커 즉시 픽업 가능. Draft PR 후 사람 검토.'
+      : '- ⑦\' 발굴물. status=seed = 사람이 정제·검증 후 ready 승격해야 진행.',
     '',
   ].join('\n');
   try {
@@ -688,7 +694,7 @@ export function materializeAgentProposal(
  */
 export async function runInboxConsumerOnce(
   env: NodeJS.ProcessEnv,
-  opts: { notify?: NotifyFn } = {},
+  opts: { notify?: NotifyFn; autoReady?: boolean } = {},
 ): Promise<number> {
   const notify = opts.notify ?? defaultNotify(env);
   const done = readMaterialized(env);
@@ -703,10 +709,12 @@ export async function runInboxConsumerOnce(
       continue;
     }
     seen.add(e.id);
-    if (!isObjectiveApproved(env, e.id)) continue; // 미승인 = inert
+    // task kind = 미션 §2.3 "일반 코드 자율" — 사람 승인 게이트 없음.
+    // objective/agent kind = 기존대로 사람 승인 필요.
+    if (e.kind !== 'task' && !isObjectiveApproved(env, e.id)) continue;
     const desc =
       e.kind === 'task'
-        ? materializeTaskProposal(env, e.envelope.payload as TaskSeedPayload)
+        ? materializeTaskProposal(env, e.envelope.payload as TaskSeedPayload, { autoReady: opts.autoReady })
         : e.kind === 'agent'
           ? materializeAgentProposal(env, e.envelope.payload as AgentSpec)
           : materializeObjectiveProposal(
@@ -736,9 +744,11 @@ export async function runInboxConsumerOnce(
       reason: `승인 머터리얼라이즈 ${e.id} (${e.kind}) → ${short}`,
     });
     notify(
-      `✅ 승인 발굴 머터리얼라이즈: ${e.id} (${e.kind}) → ${short} ` +
+      `✅ 발굴 머터리얼라이즈: ${e.id} (${e.kind}) → ${short} ` +
         (e.kind === 'task'
-          ? '(status:seed — 사람이 ready 승격 시 진행)'
+          ? opts.autoReady
+            ? '(status:ready — 워커 즉시 픽업, Draft PR 후 사람 검토)'
+            : '(status:seed — 사람이 ready 승격 시 진행)'
           : e.kind === 'agent'
             ? '(core.md status:draft — 자가증강 승격 게이트 대기, LT-11)'
             : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),

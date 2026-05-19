@@ -48,6 +48,8 @@ export interface PortfolioProject {
 
 export interface Portfolio {
   projects: PortfolioProject[];
+  /** 마지막 자기수술 시각(ISO). 기둥4 주기 게이트(기본 12h). */
+  lastSurgeryTs?: string;
 }
 
 export function portfolioPath(memoRoot: string): string {
@@ -432,5 +434,118 @@ export function recordQualityCheck(
   const proj = p.projects.find((x) => x.id === projectId);
   if (!proj) return false;
   proj.lastQualityCheckTs = ts ?? new Date().toISOString();
+  return writePortfolio(memoRoot, p);
+}
+
+// ═══ 기둥4: 자기수술 (self-surgery) — TASK-KAR-018-LT ═══
+// 진단(2026-05-19): retro/QC 가 형식적인 근본 = "측정 대상이 메타-목표뿐".
+// 기존 retro(목표 조정)·QC(사용자 핑)에 더해, 시스템 실작동 헬스 신호를
+// 보고 팀 자율 진단 → task-new seed OR escalate 루프를 추가한다.
+// (신설 X — retro/QC substrate 위에 health 층 추가, 평행파이프 0)
+
+/**
+ * 자기수술 실행 시점인가 (순수·결정적). active 프로젝트 존재 + 마지막
+ * 수술 후 intervalMs 경과. 이슈 없으면 호출측이 skip (이슈 필터는 외부).
+ */
+export function shouldRunSurgery(
+  portfolio: Portfolio,
+  nowMs: number,
+  intervalMs: number,
+): boolean {
+  if (!portfolio.projects.some((p) => p.status === 'active')) return false;
+  const last = portfolio.lastSurgeryTs
+    ? Date.parse(portfolio.lastSurgeryTs)
+    : 0;
+  return nowMs - (isFinite(last) ? last : 0) >= intervalMs;
+}
+
+export type SurgeryAction = 'seed' | 'escalate' | 'keep';
+
+export interface SurgeryDecision {
+  action: SurgeryAction;
+  /** action==='seed' 시 TASK 제목 (한 줄). */
+  taskTitle?: string;
+  /** action==='seed' 시 TASK 본문 (마크다운). */
+  taskBody?: string;
+  /** 결정 사유 (날조 X — LLM 원문 기반). */
+  reason: string;
+}
+
+/**
+ * 자기수술 LLM 프롬프트 (순수·바운드). 헬스 이슈 → 근본 진단 + fix 과제.
+ * 이슈는 system-health.ts 의 HealthIssue[] 포맷 문자열로 주입.
+ */
+export function buildSurgerySeedPrompt(
+  proj: PortfolioProject,
+  healthBlock: string,
+  missionText: string,
+): string {
+  return [
+    `너는 karmoddrine 에이전트 팀. 시스템 자기수술 진단 1턴.`,
+    '도구·파일 접근 없이 아래 데이터만으로 판단. 사장(비개발자) 평이체,',
+    '내부 코드명·영어약어·경로 금지. 4~6문장.',
+    '',
+    `[최우선 프로젝트]`,
+    `${proj.title} — 북극성: ${proj.northStar}`,
+    `현 목표: ${proj.currentObjective?.text || '(없음)'}`,
+    '',
+    healthBlock,
+    '',
+    '[미션 anchor]',
+    missionText.trim().slice(0, 600),
+    '',
+    '[지시] 위 헬스 이슈의 *진짜 근본*이 무엇인지 진단하고,',
+    '팀이 자율로 고칠 수 있는 과제 하나를 제안하라.',
+    '(비가역·외부·사람 비전 영역이면 "escalate" 를 선택)',
+    '',
+    '첫 줄 정확히 하나:',
+    '· "과제: <한 줄 제목>" — 자율 fix 가능 task seed 제안.',
+    '· "escalate: <사유 한 줄>" — 사람 판단 필요.',
+    '· "정상: <이유>" — 이슈가 사실 문제 없음.',
+    '둘째 줄 이후 = 진단 사유 3~4문장 (평이체).',
+  ].join('\n');
+}
+
+/**
+ * 자기수술 LLM 출력 → 결정 파싱 (순수·결정적, 불명확=escalate).
+ * "과제:" → seed, "escalate:" → escalate, "정상:" → keep.
+ */
+export function parseSurgeryDecision(text: string): SurgeryDecision {
+  const t = (text || '').trim();
+  const lines = t.split(/\r?\n/);
+  const first = lines[0]?.trim() || '';
+  const rest = lines.slice(1).join('\n').trim();
+
+  const seedMatch = first.match(/^과제\s*[:：]\s*(.+)/i);
+  if (seedMatch) {
+    const taskTitle = seedMatch[1].trim().slice(0, 120);
+    return {
+      action: 'seed',
+      taskTitle,
+      taskBody: rest.slice(0, 800) || taskTitle,
+      reason: rest.slice(0, 200) || taskTitle,
+    };
+  }
+
+  const escMatch = first.match(/^escalate\s*[:：]\s*(.+)/i);
+  if (escMatch) {
+    return { action: 'escalate', reason: escMatch[1].trim().slice(0, 200) };
+  }
+
+  const keepMatch = first.match(/^정상\s*[:：]\s*(.+)/i);
+  if (keepMatch) {
+    return { action: 'keep', reason: keepMatch[1].trim().slice(0, 200) };
+  }
+
+  // 불명확 = escalate (날조 X — 사람이 봐야 안전)
+  return { action: 'escalate', reason: `진단 불명확(원문): ${first.slice(0, 80)}` };
+}
+
+/**
+ * 자기수술 실행 기록 (lastSurgeryTs 스탬프, best-effort). IO.
+ */
+export function recordSurgery(memoRoot: string, ts?: string): boolean {
+  const p = loadPortfolio(memoRoot);
+  p.lastSurgeryTs = ts ?? new Date().toISOString();
   return writePortfolio(memoRoot, p);
 }

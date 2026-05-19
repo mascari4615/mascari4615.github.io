@@ -133,7 +133,7 @@ export function buildDialoguePrompt(
     '· 네 직무·도메인 관점에서 짧게: 동의/구체 보강 1개/우려·중복 지적/',
     '  네 도메인이면 "이거 내가 가져갈게" 인수 의사 중 *하나*.',
     '· 사장(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
-    '  파일경로 금지. **2~3문장, 만연체 X.** 잡담·인사·요약반복 X.',
+    '  파일경로 금지. 만연체 X. 잡담·인사·요약반복 X.',
     '· 새 작업을 *실행*하지 마라(여긴 대화방). 관점만.',
     '',
     '[미션 정렬 anchor — 네 반응이 아래에 정렬되는지 자가검사]',
@@ -231,7 +231,7 @@ export type DeliberationStep =
  */
 export function nextDeliberationStep(s: DeliberationState): DeliberationStep {
   const n = s.turns.length;
-  if (n >= Math.max(2, s.cap)) {
+  if (n >= Math.max(1, s.cap)) {
     return { kind: 'done', verdict: 'escalate', reason: `cap(${s.cap}) 도달 — 사용자 판단` };
   }
   if (n === 0) {
@@ -266,7 +266,7 @@ function deliberationHeader(
     role ? `직무: ${role}` : '',
     '도구·파일 접근 없이 *아래 텍스트만으로* 단일턴 추론(파일 읽기 X).',
     '· 사장(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
-    '  파일경로 금지. **2~4문장, 만연체 X.** 인사·요약반복 X.',
+    '  파일경로 금지. 만연체 X. 인사·요약반복 X.',
     portfolioBlock.trim() ? '' : '',
     ...(portfolioBlock.trim() ? ['', portfolioBlock.trim()] : []),
     '',
