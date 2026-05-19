@@ -103,13 +103,22 @@ YAWNBOT_NEWS_MAX_PER_POLL=3
 # VERTEX_SAFETY_THRESHOLD=BLOCK_NONE
 
 # ── AI 비서 ──
-# AI 프로바이더: gemini (기본) 또는 claude-cli (로컬 Claude Code 사용)
+# AI 프로바이더: gemini (기본), claude-cli (로컬 Claude Code), codex-cli (로컬 Codex)
 ASSISTANT_AI_PROVIDER=gemini
 # Claude CLI 실행 파일 이름 (PATH에 있어야 함, claude-cli 프로바이더 사용 시)
 CLAUDE_CLI_COMMAND=claude
 # Claude CLI 타임아웃 (ms)
 CLAUDE_CLI_TIMEOUT_MS=60000
-# 에이전트 모드에서 Claude가 접근할 작업 디렉토리. 설정 시 파일 읽기/편집/명령 실행 가능.
+# Codex CLI 실행 파일 이름/경로 (PATH에 없으면 절대경로 권장, codex-cli 프로바이더 사용 시)
+CODEX_CLI_COMMAND=codex
+# Codex CLI 타임아웃 (ms)
+CODEX_CLI_TIMEOUT_MS=600000
+# Codex agentic 모드 권한. 비우면 ASSISTANT_AGENT_REPO_PATH 설정 시 bypass, 미설정 시 보수 모드.
+# 0/false 로 끄면 CODEX_CLI_SANDBOX + CODEX_CLI_APPROVAL_POLICY 사용.
+# CODEX_CLI_BYPASS_PERMISSIONS=
+CODEX_CLI_SANDBOX=workspace-write
+CODEX_CLI_APPROVAL_POLICY=never
+# 에이전트 모드에서 CLI 에이전트가 접근할 작업 디렉토리. 설정 시 파일 읽기/편집/명령 실행 가능.
 # 비워두면 단순 텍스트 생성만. PC마다 다르면 .env 에 덮어쓰기.
 ASSISTANT_AGENT_REPO_PATH=C:/Users/masca/repos/karmoddrine/Mascari4615.github.io
 # memo 레포 로컬 경로

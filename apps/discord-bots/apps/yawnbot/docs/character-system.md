@@ -90,14 +90,19 @@ AI 호출 시 프롬프트는 다음 순서로 조립된다 (`ASSISTANT_MAX_PROM
 |------|--------|------|
 | `MEMO_REPO_PATH` | (필수) | `memo` 레포 로컬 경로. 비우면 AI 비서·캐릭터 시스템 전부 비활성화 |
 | `ASSISTANT_USER_ID` | (필수) | 봇이 owner DM(+팀방)에서 응답할 유저 ID. 공개 채널 경로는 YB-036 에서 폐기 |
-| `ASSISTANT_AI_PROVIDER` | `gemini` | `gemini` 또는 `claude-cli` |
-| `ASSISTANT_AGENT_REPO_PATH` | — | (`claude-cli`일 때) Claude가 작업할 cwd. 비우면 텍스트 생성만 |
+| `ASSISTANT_AI_PROVIDER` | `gemini` | `gemini`, `claude-cli`, `codex-cli` |
+| `ASSISTANT_AGENT_REPO_PATH` | — | CLI 프로바이더가 작업할 cwd. 비우면 텍스트 생성만 |
 | `ASSISTANT_DEFAULT_CHARACTER` | `yawn` | `.active.json.default` 가 없을 때 폴백 슬러그 |
 | `ASSISTANT_MORNING_HOUR` | `8` | 아침 인사 시각 (KST, 0–23) |
 | `ASSISTANT_MEMORY_COMMIT_INTERVAL_MS` | `3600000` | 기억 자동 커밋 주기(ms). 기본 1시간 |
 | `ASSISTANT_MAX_PROMPT_CHARS` | `12000` | AI 프롬프트 상한 (시스템+컨텍스트+질문 포함) |
 | `CLAUDE_CLI_COMMAND` | `claude` | `claude-cli` 프로바이더 실행 파일 이름 |
 | `CLAUDE_CLI_TIMEOUT_MS` | `60000` | Claude CLI 타임아웃(ms) |
+| `CODEX_CLI_COMMAND` | `codex` | `codex-cli` 프로바이더 실행 파일 이름/경로 |
+| `CODEX_CLI_TIMEOUT_MS` | `600000` | Codex CLI 타임아웃(ms) |
+| `CODEX_CLI_BYPASS_PERMISSIONS` | — | `1/true`면 Codex `--dangerously-bypass-approvals-and-sandbox`; `0/false`면 sandbox/approval 정책 사용. 비우면 cwd 설정 시 bypass |
+| `CODEX_CLI_SANDBOX` | `workspace-write` | bypass off일 때 Codex sandbox 모드 |
+| `CODEX_CLI_APPROVAL_POLICY` | `never` | bypass off일 때 Codex approval 정책 |
 
 `yawnbot-defaults.txt` 에 커밋된 기본값은 `apps/yawnbot/.env` 로 덮어쓸 수 있다.
 
