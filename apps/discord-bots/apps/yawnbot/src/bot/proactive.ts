@@ -86,6 +86,33 @@ let eveningTimer: ReturnType<typeof setTimeout> | null = null;
 let reminderTimer: ReturnType<typeof setTimeout> | null = null;
 let spontaneousTimer: ReturnType<typeof setTimeout> | null = null;
 
+type AssistantDmKind = 'startup' | 'morning' | 'evening' | 'reminder' | 'spontaneous';
+
+const ASSISTANT_DM_FLAG_BY_KIND: Record<AssistantDmKind, string> = {
+  startup: 'ASSISTANT_STARTUP_DM_ENABLED',
+  morning: 'ASSISTANT_MORNING_DM_ENABLED',
+  evening: 'ASSISTANT_EVENING_DM_ENABLED',
+  reminder: 'ASSISTANT_REMINDER_DM_ENABLED',
+  spontaneous: 'ASSISTANT_SPONTANEOUS_DM_ENABLED',
+};
+
+function envFlagEnabled(name: string, defaultValue = true): boolean {
+  const raw = process.env[name]?.trim().toLowerCase();
+  if (!raw) return defaultValue;
+  return !['0', 'false', 'off', 'no', 'n', 'disabled', '끔', '꺼짐'].includes(raw);
+}
+
+function isAssistantDmEnabled(kind?: AssistantDmKind): boolean {
+  if (!envFlagEnabled('ASSISTANT_DM_ENABLED')) return false;
+  if (!kind) return true;
+  return envFlagEnabled(ASSISTANT_DM_FLAG_BY_KIND[kind]);
+}
+
+function assistantDmUserId(kind?: AssistantDmKind): string {
+  if (!isAssistantDmEnabled(kind)) return '';
+  return process.env.ASSISTANT_USER_ID?.trim() || '';
+}
+
 function msUntilNextKSTHour(targetHour: number): number {
   const now = new Date();
   const kst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
@@ -163,7 +190,7 @@ async function sendMorningGreeting(
   memoRepoPath?: string,
   getAnniversary?: (slug: string) => AnniversaryService,
 ): Promise<void> {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('morning');
   if (!userId) return;
   if (!process.env.GEMINI_API_KEY?.trim()) return;
 
@@ -270,7 +297,7 @@ async function sendEveningCheckin(
   characterService: CharacterService,
   getMemory: (slug: string) => MemoryService,
 ): Promise<void> {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('evening');
   if (!userId) return;
 
   const card = resolveDMCard(characterService, userId);
@@ -324,7 +351,7 @@ export async function sendStartupGreeting(
   characterService: CharacterService,
   getMemory: (slug: string) => MemoryService,
 ): Promise<void> {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('startup');
   if (!userId) return;
 
   const card = resolveDMCard(characterService, userId);
@@ -366,17 +393,31 @@ export function startProactive(
   memoRepoPath?: string,
   getAnniversary?: (slug: string) => AnniversaryService,
 ): void {
+  if (!isAssistantDmEnabled()) {
+    console.warn('[Proactive] assistant DM disabled by ASSISTANT_DM_ENABLED');
+    return;
+  }
+
   const userId = process.env.ASSISTANT_USER_ID?.trim();
   if (!userId) {
     console.warn('[Proactive] ASSISTANT_USER_ID 미설정 — 아침/저녁 인사 비활성화');
     return;
   }
 
-  const morningHour = parseInt(process.env.ASSISTANT_MORNING_HOUR || '8', 10);
-  scheduleMorning(client, characterService, morningHour, getMood, memoRepoPath, getAnniversary);
+  if (!isAssistantDmEnabled('morning') && !isAssistantDmEnabled('evening')) {
+    console.warn('[Proactive] morning/evening DM disabled by env');
+    return;
+  }
 
-  const eveningHour = parseInt(process.env.ASSISTANT_EVENING_HOUR || '21', 10);
-  scheduleEvening(client, characterService, getMemory, eveningHour);
+  if (isAssistantDmEnabled('morning')) {
+    const morningHour = parseInt(process.env.ASSISTANT_MORNING_HOUR || '8', 10);
+    scheduleMorning(client, characterService, morningHour, getMood, memoRepoPath, getAnniversary);
+  }
+
+  if (isAssistantDmEnabled('evening')) {
+    const eveningHour = parseInt(process.env.ASSISTANT_EVENING_HOUR || '21', 10);
+    scheduleEvening(client, characterService, getMemory, eveningHour);
+  }
 }
 
 export function startScheduleReminder(
@@ -384,7 +425,7 @@ export function startScheduleReminder(
   characterService: CharacterService,
   getSchedule: (slug: string) => ScheduleService,
 ): void {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('reminder');
   if (!userId) return;
 
   const tick = async () => {
@@ -444,7 +485,7 @@ async function sendSpontaneousMessage(
   getSchedule?: (slug: string) => ScheduleService,
   getNews?: (slug: string) => NewsService,
 ): Promise<void> {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('spontaneous');
   if (!userId) return;
 
   const card = resolveDMCard(characterService, userId);
@@ -540,11 +581,10 @@ export function startSpontaneous(
   getSchedule?: (slug: string) => ScheduleService,
   getNews?: (slug: string) => NewsService,
 ): void {
-  const userId = process.env.ASSISTANT_USER_ID?.trim();
+  const userId = assistantDmUserId('spontaneous');
   if (!userId) return;
 
-  const enabled = process.env.ASSISTANT_SPONTANEOUS_ENABLED;
-  if (enabled === '0' || enabled === '끔') return;
+  if (!envFlagEnabled('ASSISTANT_SPONTANEOUS_ENABLED')) return;
 
   const activeStart = parseInt(process.env.ASSISTANT_SPONTANEOUS_ACTIVE_START || '10', 10);
   const activeEnd = parseInt(process.env.ASSISTANT_SPONTANEOUS_ACTIVE_END || '22', 10);
