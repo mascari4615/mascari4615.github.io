@@ -1,0 +1,515 @@
+/**
+ * agent-cadence-worker — 도메인 워커 소비자 (KAR-018-Y).
+ * WorkerCore 타입·프롬프트·worktree·voicedWorkerSpeak·runWorkerConsumerOnce.
+ */
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { getInstallationToken } from './github-app-token';
+import {
+  getDecisionsForTask,
+  formatDecisionsBlock,
+} from './agent-decisions';
+import {
+  resolveDomainRepo,
+  workerBranchName,
+  workerWorktreeDir,
+} from './agent-worker-repo';
+import { reserveBudget } from './team-room';
+import { appendTrace, defaultNotify, type NotifyFn } from './governance-adapter';
+import { spawnTier3, type Tier3Request, type Tier3Result } from './dispatcher';
+import {
+  listCoreIds,
+  loadCoreDef,
+  coreLabel,
+  type CoreDef,
+} from '../services/agent-core';
+import {
+  isKilled,
+  getCoreSpeak,
+  generateAgentText,
+  buildTier3Deps,
+  runMemoScript,
+  type CoreSpeakFn,
+} from './agent-cadence-state';
+import { loadSkinPersona } from './agent-cadence-skin';
+
+// ── WorkerCore ───────────────────────────────────────────────
+export interface WorkerCore {
+  coreId: string;
+  /** 담당 TASK prefix (frontmatter domain, 대문자). */
+  domain: string;
+  /** 머신 어피니티 (frontmatter machine, 미지정 any). */
+  machine: string;
+  /** #team-bus 표시 (emoji displayName). */
+  label: string;
+}
+
+/**
+ * 워커 코어 선별 (순수 — 테스트가능). 워커 = frontmatter `kind: worker`
+ * + `status: active` + `domain:` 존재.
+ */
+export function selectWorkerCores(defs: (CoreDef | null)[]): WorkerCore[] {
+  const out: WorkerCore[] = [];
+  for (const d of defs) {
+    if (!d) continue;
+    const fm = d.frontmatter || {};
+    if ((fm.kind || '').trim() !== 'worker') continue;
+    if ((d.status || '').trim() !== 'active') continue;
+    const domain = (fm.domain || '').trim().toUpperCase();
+    if (!domain) continue;
+    out.push({
+      coreId: d.id,
+      domain,
+      machine: (fm.machine || 'any').trim() || 'any',
+      label: coreLabel(d),
+    });
+  }
+  return out;
+}
+
+/** decision-needed escalate 마커. */
+export const ESCALATE_MARKER = 'NEEDS-USER-DECISION';
+
+/**
+ * 결정 필요 task 판별 (순수 — 테스트 결정성). OR 조건:
+ *  (a) 스펙 frontmatter `type:` 가 design/decision
+ *  (b) agentic 리포트에 명시 escalate 마커
+ */
+export function detectDecisionNeeded(
+  specText: string | undefined,
+  reportText: string | undefined,
+): boolean {
+  if (reportText && reportText.includes(ESCALATE_MARKER)) return true;
+  if (!specText) return false;
+  const fmMatch = specText.match(/^\s*---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fmMatch) return false;
+  const typeMatch = fmMatch[1].match(/^\s*type\s*:\s*([A-Za-z_-]+)/m);
+  if (!typeMatch) return false;
+  const t = typeMatch[1].trim().toLowerCase();
+  return t === 'design' || t === 'decision';
+}
+
+/**
+ * 워커 tier3 지시 프롬프트 (순수). autopilot 안전 룰셋.
+ */
+export function buildWorkerPrompt(
+  task: { id: string; file: string },
+  missionText: string,
+  specText?: string,
+  worktreeBranch?: string,
+  decisionsText?: string,
+): string {
+  const specBlock = specText
+    ? [
+        `[TASK 스펙 — 아래 *내용* 이 정본. memo 는 cwd 밖이라 경로로 못 읽음]`,
+        '<<<SPEC',
+        specText.trim().slice(0, 12000),
+        'SPEC',
+        '',
+      ]
+    : [`[스펙 파일] ${task.file} (내용 임베드 실패 — cwd 내 단서로 진단)`, ''];
+  const step2 = worktreeBranch
+    ? [
+        `2. 너는 *이미* 격리 worktree(현재 cwd) 안, 브랜치 \`${worktreeBranch}\``,
+        '   에 있다. git worktree 새로 만들지 마라. main/master checkout·',
+        '   HEAD swap 절대 X. 최신 정본 필요시 `git fetch origin` 후 참고.',
+      ]
+    : [
+        '2. 자기 worktree 에서만 작업 — main worktree(memo/WitchMendokusai/',
+        '   Mascari4615.github.io) HEAD swap 절대 X. 없으면 new-worktree.ps1.',
+      ];
+  const step4 = worktreeBranch
+    ? `4. \`${worktreeBranch}\` 에 commit → \`gh auth setup-git\` (GH_TOKEN 환경변수로 git 자격 배선, 1회) → \`git push -u origin ${worktreeBranch}\` → \`gh pr create --draft --fill\` **까지만**. merge / master·main 직접 push / force-push **절대 금지**. push·gh 인증 실패 시 그 에러 원문을 6번 요약에 명시(은폐 X).`
+    : '4. feature 브랜치 commit + push + **Draft PR 까지만**. merge / master·main 직접 push / force-push **절대 금지**.';
+  return [
+    `너는 karmoddrine 에이전트 팀의 도메인 소비자 워커다. 아래 TASK 1건을`,
+    `autopilot 안전 룰셋으로 *끝까지* 수행한다 (bounded — 이 1건 후 종료).`,
+    '',
+    `[대상 TASK] ${task.id} (원 스펙경로 ${task.file} — 참고용, cwd 밖)`,
+    `[작업 위치] 현재 cwd = 도메인 *코드 repo* 의 격리 worktree. memo`,
+    `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
+    '',
+    ...(decisionsText ? [decisionsText, ''] : []),
+    ...specBlock,
+    '[절차]',
+    `1. 위 [TASK 스펙] 본문 + cwd 내 코드·정본 정독. 진단 우선(가설 박기 X).`,
+    ...step2,
+    '3. 코드 변경 + 가능한 검증(build/test/typecheck). 검증 불가 영역은',
+    '   PR Test plan 에 명시.',
+    step4,
+    '5. 다른 세션 영역 침범 금지. TASK 진행/결정은 *PR 설명* 에 기재',
+    '   (memo TASK 문서는 cwd 밖 — 편집 시도 X, 봇이 별도 반영).',
+    '6. 끝나면 무엇을 했는지 *한 문단* 으로 요약(= #team-bus 보고용).',
+    '   실패·미완·인증오류면 그것도 솔직히(가짜 성공 보고 X).',
+    '',
+    '[미션 정렬 anchor — 이 작업이 아래에 정렬되는지 자가검사]',
+    missionText.trim(),
+    '',
+    '확신 안 서거나 사람 컨펌 필요한 비가역 결정이면 멈추고 그 사유를',
+    `요약에 명시(추측 진행 X). 이 경우 요약 첫 줄에 정확히 \`${ESCALATE_MARKER}\``,
+    '토큰을 쓰고 이어서 사용자가 골라야 할 *선택지*를 명시하라(봇이 이를',
+    '#team-bus 의 이 TASK 스레드로 escalate → 사용자가 디코에서 결정).',
+  ].join('\n');
+}
+
+// ── 워커 목록 기본 로더 ──────────────────────────────────────
+function defaultListWorkers(memoRoot: string): WorkerCore[] {
+  return selectWorkerCores(
+    listCoreIds(memoRoot).map((id) => loadCoreDef(memoRoot, id)),
+  );
+}
+
+// ── worktree 헬퍼 ────────────────────────────────────────────
+type WorktreeSetup =
+  | { cwd: string; repoRoot: string; wtDir: string; branch: string }
+  | { error: string };
+
+export type { WorktreeSetup };
+
+function setupWorkerWorktree(
+  memoRoot: string,
+  coreId: string,
+  taskId: string,
+): WorktreeSetup {
+  const umbrella = path.dirname(memoRoot);
+  const repo = resolveDomainRepo(coreId, umbrella);
+  if (!repo) return { error: `domain-unresolved(core=${coreId})` };
+  if (!fs.existsSync(repo.repoRoot))
+    return { error: `repo-missing(${repo.repoRoot})` };
+  const now = new Date();
+  const branch = workerBranchName(taskId, now);
+  const wtDir = workerWorktreeDir(umbrella, coreId, taskId, now);
+  try {
+    try {
+      execSync(
+        `git config --global --add safe.directory "${repo.repoRoot}"`,
+        { timeout: 15_000, stdio: 'ignore' },
+      );
+    } catch { /* best-effort */ }
+    execSync(
+      `git -C "${repo.repoRoot}" worktree add -b "${branch}" "${wtDir}" HEAD`,
+      { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+    );
+    return { cwd: wtDir, repoRoot: repo.repoRoot, wtDir, branch };
+  } catch (e: unknown) {
+    const x = e as { stderr?: Buffer; message?: string };
+    const raw = (x.stderr?.toString() || x.message || String(e)).trim();
+    return { error: `worktree-add: ${raw.replace(/\s+/g, ' ').slice(0, 280)}` };
+  }
+}
+
+function branchPushedToOrigin(repoRoot: string, branch: string): boolean {
+  try {
+    const out = execSync(
+      `git -C "${repoRoot}" ls-remote --heads origin "${branch}"`,
+      { timeout: 30_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+    );
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function cleanupWorkerWorktree(repoRoot: string, wtDir: string): void {
+  try {
+    execSync(`git -C "${repoRoot}" worktree remove --force "${wtDir}"`, {
+      timeout: 30_000, stdio: 'ignore',
+    });
+  } catch { /* leak 방지 best-effort */ }
+  try {
+    execSync(`git -C "${repoRoot}" worktree prune`, {
+      timeout: 15_000, stdio: 'ignore',
+    });
+  } catch { /* noop */ }
+}
+
+// ── WorkerConsumerDeps ───────────────────────────────────────
+export interface WorkerConsumerDeps {
+  listWorkers?: (memoRoot: string) => WorkerCore[];
+  scan?: (domain: string, machine: string, repo?: string) => { id: string; file: string }[];
+  claim?: (id: string, by: string) => boolean;
+  release?: (id: string, by: string) => void;
+  spawn?: (req: Tier3Request) => Promise<Tier3Result>;
+  branchPushed?: (repoRoot: string, branch: string) => boolean;
+  setupWorktree?: (memoRoot: string, coreId: string, taskId: string) => WorktreeSetup;
+  notify?: NotifyFn;
+  speak?: CoreSpeakFn;
+  voice?: (prompt: string) => Promise<string>;
+  missionText?: string;
+}
+
+// ── voicedWorkerSpeak ────────────────────────────────────────
+const lastWorkerStatus = new Map<string, string>();
+/** 테스트 전용 — 워커 상태 dedupe 리셋. */
+export function resetWorkerStatus(): void {
+  lastWorkerStatus.clear();
+  noArtifactCooldown.clear();
+  escalateCooldown.clear();
+}
+
+export function workerRawLedgerPath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'agent-worker-raw.jsonl') : '';
+}
+
+export function appendWorkerRaw(
+  env: NodeJS.ProcessEnv,
+  coreId: string,
+  status: string,
+): void {
+  const p = workerRawLedgerPath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({ ts: new Date().toISOString(), coreId, status: (status || '').slice(0, 8000) }) + '\n',
+      'utf-8',
+    );
+  } catch { /* best-effort */ }
+}
+
+export async function voicedWorkerSpeak(
+  coreId: string,
+  status: string,
+  speak: CoreSpeakFn,
+  voice: (prompt: string) => Promise<string>,
+  env: NodeJS.ProcessEnv = process.env,
+  skinHint?: string | null,
+): Promise<void> {
+  if (lastWorkerStatus.get(coreId) === status) return;
+  lastWorkerStatus.set(coreId, status);
+  appendWorkerRaw(env, coreId, status);
+  let line = status;
+  try {
+    const skinBlock = skinHint ? `\n[너의 캐릭터] 이름·말투: ${skinHint}` : '';
+    const prompt = [
+      `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
+      `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
+      `절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·`,
+      `결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토`,
+      `해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·`,
+      `사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.`,
+      skinBlock,
+      ``,
+      `[작업상태]`,
+      status,
+    ].join('\n');
+    const v = (await voice(prompt)).trim();
+    if (v) line = v.slice(0, 1900);
+  } catch { /* voice 실패 = raw status 그대로 */ }
+  try {
+    await speak(coreId, line);
+  } catch { /* speak 실패가 워커 막지 X */ }
+}
+
+// ── no-artifact / escalate cooldown ─────────────────────────
+const NOARTIFACT_COOLDOWN_MS = 30 * 60_000;
+const noArtifactCooldown = new Map<string, number>();
+function inNoArtifactCooldown(taskId: string, now: number): boolean {
+  const t = noArtifactCooldown.get(taskId);
+  return t !== undefined && now - t < NOARTIFACT_COOLDOWN_MS;
+}
+function markNoArtifact(taskId: string, now: number): void {
+  noArtifactCooldown.set(taskId, now);
+}
+
+const ESCALATE_DEDUPE_MS = 6 * 3600_000;
+const escalateCooldown = new Map<string, number>();
+function inEscalateCooldown(taskId: string, now: number): boolean {
+  const t = escalateCooldown.get(taskId);
+  return t !== undefined && now - t < ESCALATE_DEDUPE_MS;
+}
+function markEscalated(taskId: string, now: number): void {
+  escalateCooldown.set(taskId, now);
+}
+
+// ── lastWorkerCsv (대시보드용 캐시) ─────────────────────────
+let lastWorkerCsv = '';
+/** KAR-077 — 최근 워커 결과 CSV (refreshDashboard 입력). */
+export function getLastWorkerCsv(): string { return lastWorkerCsv; }
+
+// ── runWorkerConsumerOnce ────────────────────────────────────
+/**
+ * 한 소비자 tick — 활성 워커마다: 자기 도메인 큐 스캔 → claim →
+ * tier3 실행 → done=#team-bus 보고 / 실패=점유 해제·재대기.
+ */
+export async function runWorkerConsumerOnce(
+  env: NodeJS.ProcessEnv,
+  deps: WorkerConsumerDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const listWorkers = deps.listWorkers ?? defaultListWorkers;
+  const workers = listWorkers(memoRoot);
+  if (workers.length === 0) return 'no-workers';
+
+  const thisMachine = env.KAR_MACHINE?.trim() || 'any';
+  const notify = deps.notify ?? defaultNotify(env);
+  const speak: CoreSpeakFn =
+    deps.speak ??
+    getCoreSpeak() ??
+    (async (_cid, t) => { notify(t); return true; });
+  const voice =
+    deps.voice ??
+    ((p: string) => generateAgentText(env, p, 20_000).catch(() => ''));
+  const missionText = deps.missionText ?? (() => {
+    try {
+      return fs.readFileSync(path.join(memoRoot, '.claude', 'agent-mission.md'), 'utf-8').trim();
+    } catch { return ''; }
+  })();
+  const t3deps = buildTier3Deps(env);
+
+  const scan =
+    deps.scan ??
+    ((domain: string, machine: string, repo?: string) => {
+      const a = ['--json', '--domain', domain, '--machine', machine];
+      if (repo) a.push('--repo', repo);
+      const r = runMemoScript(memoRoot, 'task-queue.mjs', a);
+      try { return JSON.parse(r.out).candidates ?? []; } catch { return []; }
+    });
+  const claim =
+    deps.claim ??
+    ((id: string, by: string) =>
+      runMemoScript(memoRoot, 'task-claim.mjs', ['--claim', id, '--by', by]).code === 0);
+  const release =
+    deps.release ??
+    ((id: string, by: string) => {
+      runMemoScript(memoRoot, 'task-claim.mjs', ['--release', id, '--by', by]);
+    });
+  const spawn =
+    deps.spawn ?? ((req: Tier3Request) => spawnTier3(req, t3deps));
+  const branchPushed = deps.branchPushed ?? branchPushedToOrigin;
+
+  const results: string[] = [];
+  const processWorker = async (w: WorkerCore): Promise<void> => {
+    if (isKilled()) return;
+    const wRepo = resolveDomainRepo(w.coreId, path.dirname(memoRoot))?.repoDir;
+    const rawCands = scan(
+      w.domain,
+      w.machine === 'any' ? thisMachine : w.machine,
+      wRepo,
+    );
+    const tickNow = Date.now();
+    const cands = rawCands.filter(
+      (c) => !inNoArtifactCooldown(c.id, tickNow) && !inEscalateCooldown(c.id, tickNow),
+    );
+    if (rawCands.length === 0) { results.push(`${w.coreId}:idle`); return; }
+    if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
+
+    let chosen: { id: string; file: string } | null = null;
+    for (const c of cands.slice(0, 3)) {
+      if (claim(c.id, w.coreId)) { chosen = c; break; }
+    }
+    if (!chosen) { results.push(`${w.coreId}:claim-lost`); return; }
+
+    const wtRes = (deps.setupWorktree ?? setupWorkerWorktree)(memoRoot, w.coreId, chosen.id);
+    const wt = 'error' in wtRes ? null : wtRes;
+    const wtErr = 'error' in wtRes ? wtRes.error : null;
+
+    let specText: string | undefined;
+    try { specText = fs.readFileSync(path.join(memoRoot, chosen.file), 'utf-8'); } catch { specText = undefined; }
+
+    const req: Tier3Request = {
+      core: w.coreId,
+      machine: w.machine,
+      prompt: buildWorkerPrompt(
+        chosen,
+        missionText,
+        specText,
+        wt?.branch,
+        formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) || undefined,
+      ),
+      repoCwd: wt?.cwd,
+    };
+
+    if (wt) {
+      const wmTok = w.coreId === 'wm-worker' ? env.WM_GITHUB_PAT?.trim() || '' : '';
+      const tok =
+        wmTok || (await getInstallationToken(env)) || env.GH_TOKEN?.trim() || '';
+      if (tok) {
+        try {
+          const url = execSync(`git -C "${wt.wtDir}" remote get-url origin`, {
+            timeout: 15_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'],
+          }).trim();
+          const authed = url.replace(
+            /^https:\/\/(?:x-access-token:[^@]*@)?github\.com\//,
+            `https://x-access-token:${tok}@github.com/`,
+          );
+          execSync(`git -C "${wt.wtDir}" remote set-url origin "${authed}"`, {
+            timeout: 15_000, stdio: 'ignore',
+          });
+        } catch { /* push 시 claude 가 에러 정직 보고 */ }
+        req.childEnv = { ...(req.childEnv ?? {}), GH_TOKEN: tok };
+      }
+    }
+
+    let res: Awaited<ReturnType<typeof spawn>>;
+    try {
+      res = await spawn(req);
+    } finally {
+      if (wt) cleanupWorkerWorktree(wt.repoRoot, wt.wtDir);
+    }
+    appendTrace(env, {
+      ts: new Date().toISOString(),
+      type: 'budget',
+      core: w.coreId,
+      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
+    });
+
+    if (res.status === 'done') {
+      const report = (res.text || '').trim().slice(0, 8000);
+      const pushed = wt ? branchPushed(wt.repoRoot, wt.branch) : false;
+      let head: string;
+      if (pushed && wt) {
+        head = `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` origin push 확인 (Draft PR 검토 대기). 도메인=${w.domain}`;
+        results.push(`${w.coreId}:done:${chosen.id}`);
+      } else if (detectDecisionNeeded(specText, res.text)) {
+        release(chosen.id, w.coreId);
+        markEscalated(chosen.id, tickNow);
+        head = `${w.label} ⚠ ${chosen.id} = 사용자 결정 필요(type:design/escalate) — 자동 진행 불가. 이 스레드에서 결정해 주세요. 결정은 다음 워커 실행에 자동 반영됨. 도메인=${w.domain}`;
+        results.push(`${w.coreId}:escalated:${chosen.id}`);
+      } else {
+        release(chosen.id, w.coreId);
+        markNoArtifact(chosen.id, tickNow);
+        head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제. 30분 쿨다운(다른 task 회전, 무한 재pick X). ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
+        results.push(`${w.coreId}:done-no-artifact:${chosen.id}`);
+      }
+      await voicedWorkerSpeak(
+        w.coreId,
+        report ? `${head}\n· 보고: ${report}` : head,
+        speak, voice, env,
+        loadSkinPersona(memoRoot, w.coreId),
+      );
+    } else {
+      release(chosen.id, w.coreId);
+      markNoArtifact(chosen.id, tickNow);
+      const errDetail = (res.error || '').trim().slice(0, 3000);
+      await voicedWorkerSpeak(
+        w.coreId,
+        `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
+        speak, voice, env,
+        loadSkinPersona(memoRoot, w.coreId),
+      );
+      results.push(`${w.coreId}:${res.status}`);
+    }
+  };
+
+  const concurrency = Math.max(1, Number(env.AGENT_WORKER_CONCURRENCY) || workers.length);
+  let nextIdx = 0;
+  const runner = async (): Promise<void> => {
+    for (;;) {
+      if (isKilled()) return;
+      const i = nextIdx++;
+      if (i >= workers.length) return;
+      await processWorker(workers[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, workers.length) }, runner));
+  const csv = results.join(',');
+  if (csv) lastWorkerCsv = csv;
+  return csv || 'no-workers';
+}
