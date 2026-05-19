@@ -393,7 +393,9 @@ fn earliest_next_fire(alarms: &[Alarm], now: NaiveDateTime) -> Option<NaiveDateT
 }
 
 // ───────────────── OS 강제 기상 (winapi, 절전 resume / 모니터 / 볼륨) ─────────────────
-// 증분②. 사용자 컨펌 MVP 포함. winapi 재사용 (windows crate 미도입 — 사이즈).
+// 증분②. 사용자 컨펌 MVP 포함. winapi 잔존 — 백엔드 마이그 = KL-055-B 결정 게이트.
+//   ("windows crate 미도입 — 사이즈" 전제는 무효: windows crate 이미 트랜지티브
+//    컴파일 중. 분석·권고 = src-tauri/ALARM-COM-BACKEND-DECISION.md)
 // 정밀 per-alarm 볼륨 레벨(Core Audio IAudioEndpointVolume) = 후속 증분.
 #[cfg(windows)]
 pub mod oswake {
