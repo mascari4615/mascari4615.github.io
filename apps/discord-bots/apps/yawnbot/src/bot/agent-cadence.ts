@@ -71,6 +71,10 @@ import {
 } from './proposal-adapter';
 import { buildModifiedEnvelope } from './proposal';
 import {
+  runCorePromotionOnce,
+  runCorePromotionRevertOnce,
+} from './self-augment';
+import {
   listCoreIds,
   loadCoreDef,
   coreLabel,
@@ -2009,6 +2013,20 @@ export async function runCadenceTickOnce(
   if (memoRoot && !isKilled()) {
     const mat = await runInboxConsumerOnce(env);
     if (mat > 0) r = `${r}+consumed:${mat}`;
+  }
+  // LT-11 자가증강 *닫는* 루프: 팀 채택→materialize 된 draft 코어를
+  // 구조검증+비충돌 PASS 시 자율 active 승격, 가동 후 적합도 퇴행 시
+  // 자동 draft 원복. 사람=!kill·비전만(2026-05-19 "완전 자율+측정
+  // 게이트"). best-effort·비차단(자가증강 실패가 tick 비차단).
+  if (memoRoot && !isKilled()) {
+    try {
+      const pro = runCorePromotionOnce(env, { notify: gov.notify });
+      if (pro.length) r = `${r}+promoted:${pro.length}`;
+      const rev = runCorePromotionRevertOnce(env, { notify: gov.notify });
+      if (rev.length) r = `${r}+core-reverted:${rev.length}`;
+    } catch {
+      /* 자가증강 실패 = tick 비차단 (가용성 우선) */
+    }
   }
   // 워커 소화 = *별 cadence*(KAR-018-Y, 사용자: 제안 30분 OK, 소화는
   // 더 빨라야 — 작업 없으면 5분 트리거). 자동 main 틱은 includeWorker
