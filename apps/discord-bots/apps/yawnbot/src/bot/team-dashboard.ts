@@ -121,17 +121,17 @@ function workerBlock(ws: WorkerLine[]): string {
 
 /** Compact — 채널 위, 한눈. */
 function evolutionBlock(summary: EvolutionSummary | undefined): string {
-  if (!summary || summary.total === 0) return 'no evolution events';
-  const topCodes =
-    summary.topCodes.length > 0
-      ? summary.topCodes
-          .map((entry) => `${entry.code} ${entry.count}`)
-          .join('\n')
-      : 'none';
-  return [
-    `critical ${summary.critical} | warn ${summary.warn} | info ${summary.info}`,
-    topCodes,
-  ].join('\n').slice(0, 1000);
+  if (!summary || summary.total === 0) return '이상 없음 ✅';
+  const parts: string[] = [];
+  if (summary.critical > 0) parts.push(`🔴 critical×${summary.critical}`);
+  if (summary.warn > 0) parts.push(`🟡 warn×${summary.warn}`);
+  if (summary.info > 0) parts.push(`🔵 info×${summary.info}`);
+  const topLine = parts.join('  ');
+  const codeLines = summary.topCodes
+    .slice(0, 5)
+    .map((e) => `• ${e.code}×${e.count}`)
+    .join('\n');
+  return [topLine, codeLines].filter(Boolean).join('\n').slice(0, 1000);
 }
 
 export function renderCompact(s: DashboardSnapshot): DashEmbed {
