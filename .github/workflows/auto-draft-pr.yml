@@ -2,24 +2,23 @@ name: Auto Draft PR (KAR-018-Y)
 
 # 워커가 push 한 feature/autopilot-task-* 브랜치 → Draft PR 자동 생성.
 #
-# 사유(데이터): 워커 자식 claude 가 `gh pr create` 시 PAT_FOR_AUTO_MERGE
-#   는 contents:write 만 있고 pull_requests:write 부재 → GraphQL
+# 토큰 = PAT_FOR_AUTO_MERGE (KAR-081 근본 — 2026-05-19).
+#   GITHUB_TOKEN 차선책(과거)은 anti-recursion 으로 GITHUB_TOKEN 생성 PR
+#   이 on:pull_request workflow(verify·claude-pr-review) 를 미트리거 →
+#   autopilot-graduate 가드3·4 영영 미충족 → Draft 18개 데드락 적재.
+#   진짜 근본 = PAT 에 PR 생성권 부재였던 것. PAT 가 PR 을 만들면 일반
+#   PAT 이벤트라 anti-recursion 자체가 없음 → verify·claude-pr-review·
+#   graduate 4가드 전부 자연 충족(KAR-073 원설계 그대로 작동, graduate.yml
+#   무변경). 증상 우회(가드 면제·디스패치) 전부 불요.
+# ⚠ 전제: PAT_FOR_AUTO_MERGE fine-grained scope 에 "Pull requests: write"
+#   필수(사용자 GitHub 설정 — KAR-081, 2026-05-19 적용). 없으면 GraphQL
 #   "Resource not accessible by personal access token (createPullRequest)"
-#   (auto-merge 는 *기존 PR 머지*만 써서 그 갭 미노출). 토큰 scope 확장은
-#   사용자 GitHub 설정(외부) — 대신 Actions GITHUB_TOKEN 이 pull-requests:
-#   write 네이티브 지원 → 워커=push 만(PAT OK), PR=CI 가. 새 secret 0.
-# ⚠ 전제(KAR-077, 2026-05-18 규명): repo/org 설정 "Allow GitHub Actions
-#   to create and approve pull requests" = ON 필수. OFF 시 GITHUB_TOKEN
-#   도 GraphQL "GitHub Actions is not permitted to create or approve
-#   pull requests" 로 *무음 실패*(job 은 success, PR 0) — KAR-032/KL-071
-#   stranded 의 진짜 근원. 사용자 2026-05-18 ON → PR #77 by github-actions
-#   로 ground-truth 검증. 이 토글 OFF 되면 동일 무음 회귀하니 끄지 말 것.
-# 한계(수용): GITHUB_TOKEN 생성 PR 은 anti-recursion 으로 on:pull_request
-#   (verify) 미트리거 → autopilot-graduate 자동머지 보류. 단 PR 자체는
-#   가시·리뷰가능 = 발단 "워커가 실제로 일한다" 충족. verify/graduate
-#   연계는 별 TASK(KAR-073 계보) — 지금 과스코프.
+#   → PR 0(무음). 선례 = 2026-05-18 사용자가 같은 PAT 에 WM contents+PR
+#   write 추가(새 토큰·secret 0, 토큰값 불변=재배포 불요).
+#   부수 견고성: PAT 경로는 "Allow GitHub Actions to create PR" repo 토글
+#   (KAR-077, GITHUB_TOKEN 전용) 의존 제거 — 그 토글 OFF 회귀에 면역.
 # 멱등: 동일 head 브랜치 PR 이미 있으면 skip.
-# 정본: TASK-KAR-018-Y.
+# 정본: TASK-KAR-081 (KAR-073 계보·회귀) / TASK-KAR-018-Y.
 
 on:
   push:
@@ -36,7 +35,7 @@ jobs:
     steps:
       - name: Create Draft PR if absent
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PAT_FOR_AUTO_MERGE }}
           GH_REPO: ${{ github.repository }}
           BR: ${{ github.ref_name }}
         run: |
