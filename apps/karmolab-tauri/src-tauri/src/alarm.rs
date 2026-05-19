@@ -11,10 +11,13 @@
 //!   단일 진실 = `tauri::State<AlarmStore>` (Arc<Mutex<Vec<Alarm>>>).
 //! - 발화 = 프론트로 `alarm-fired` 이벤트 emit + 사운드 루프 시작. 발화 창은
 //!   프론트(별 윈도우)가 그림. dismiss/snooze 는 명령으로 사운드 정지·재무장.
-//! - 사운드 = winapi winmm::PlaySound (SND_LOOP|SND_ASYNC). 네이티브 무한
+//! - 사운드 = windows-sys PlaySoundW (SND_LOOP|SND_ASYNC). 네이티브 무한
 //!   루프, cpal 비의존(KL-052 사이즈 목표 정합). mp3/ogg = 후속 증분(rodio).
 //! - 증분 분리(검증 단위): ① store+스케줄러+사운드(본 커밋) ② OS 강제 기상
-//!   (waitable timer/볼륨/모니터, winapi·COM) ③ 프론트 위젯+발화 창.
+//!   (waitable timer/볼륨/모니터) ③ 프론트 위젯+발화 창.
+//! - FFI 백엔드 (KL-055-B): 비-COM Win32(oswake/sound) = `windows-sys`,
+//!   COM(audio = IAudioEndpointVolume) = `windows` crate(RAII Release).
+//!   winapi 완전 제거 — KL-055 dedup 최종. 결정 근거 = PR(KL-055-B).
 
 use chrono::{Datelike, Duration, Local, NaiveDateTime, NaiveTime};
 use serde::{Deserialize, Serialize};
@@ -392,23 +395,22 @@ fn earliest_next_fire(alarms: &[Alarm], now: NaiveDateTime) -> Option<NaiveDateT
     alarms.iter().filter_map(|a| next_fire_after(now, a)).min()
 }
 
-// ───────────────── OS 강제 기상 (winapi, 절전 resume / 모니터 / 볼륨) ─────────────────
-// 증분②. 사용자 컨펌 MVP 포함. winapi 재사용 (windows crate 미도입 — 사이즈).
-// 정밀 per-alarm 볼륨 레벨(Core Audio IAudioEndpointVolume) = 후속 증분.
+// ───────────────── OS 강제 기상 (windows-sys, 절전 resume / 모니터 / 볼륨) ─────────────────
+// 증분②. 사용자 컨펌 MVP 포함. KL-055-B: winapi → Microsoft 공식 windows-sys
+// (비-COM Win32 = Phase 1a activity.rs 와 동일 1:1). 정밀 per-alarm 볼륨
+// 레벨(Core Audio IAudioEndpointVolume) = `audio` mod (windows crate).
 #[cfg(windows)]
 pub mod oswake {
-    use std::mem;
-    use winapi::shared::minwindef::{FALSE, TRUE};
-    use winapi::shared::windef::HWND;
-    use winapi::um::handleapi::CloseHandle;
-    use winapi::um::synchapi::{CreateWaitableTimerW, SetWaitableTimer, WaitForSingleObject};
-    use winapi::um::winbase::SetThreadExecutionState;
-    use winapi::um::winnt::{
-        ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED, LARGE_INTEGER,
+    use windows_sys::Win32::Foundation::CloseHandle;
+    use windows_sys::Win32::System::Power::{
+        SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
     };
-    use winapi::um::winuser::{
-        mouse_event, SendMessageTimeoutW, HWND_BROADCAST, MOUSEEVENTF_MOVE, SC_MONITORPOWER,
-        SMTO_ABORTIFHUNG, WM_SYSCOMMAND,
+    use windows_sys::Win32::System::Threading::{
+        CreateWaitableTimerW, SetWaitableTimer, WaitForSingleObject,
+    };
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{mouse_event, MOUSEEVENTF_MOVE};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        SendMessageTimeoutW, HWND_BROADCAST, SC_MONITORPOWER, SMTO_ABORTIFHUNG, WM_SYSCOMMAND,
     };
 
     /// ring 동안 시스템/디스플레이 OFF 차단 + 꺼진 모니터 깨우기.
@@ -430,7 +432,7 @@ pub mod oswake {
         std::thread::spawn(|| unsafe {
             let mut res: usize = 0;
             SendMessageTimeoutW(
-                HWND_BROADCAST as HWND,
+                HWND_BROADCAST,
                 WM_SYSCOMMAND,
                 SC_MONITORPOWER as usize,
                 -1isize, // -1 = power on
@@ -438,8 +440,9 @@ pub mod oswake {
                 1500,
                 &mut res,
             );
+            // windows-sys mouse_event dx/dy = i32 (winapi 는 DWORD 였음).
             mouse_event(MOUSEEVENTF_MOVE, 1, 0, 0, 0);
-            mouse_event(MOUSEEVENTF_MOVE, 0u32.wrapping_sub(1), 0, 0, 0);
+            mouse_event(MOUSEEVENTF_MOVE, -1, 0, 0, 0);
         });
     }
 
@@ -456,7 +459,8 @@ pub mod oswake {
     pub fn start_wake_timer(app: tauri::AppHandle) {
         use tauri::Manager;
         std::thread::spawn(move || unsafe {
-            let timer = CreateWaitableTimerW(std::ptr::null_mut(), FALSE, std::ptr::null());
+            // bManualReset=0(FALSE) → 자동 리셋 동기 타이머.
+            let timer = CreateWaitableTimerW(std::ptr::null(), 0, std::ptr::null());
             if timer.is_null() {
                 eprintln!("[alarm] CreateWaitableTimer 실패 — 절전 wake 비활성");
                 return;
@@ -469,16 +473,17 @@ pub mod oswake {
                     Some(next) => {
                         let fire_at = next - chrono::Duration::seconds(30);
                         let rel_secs = (fire_at - now).num_seconds().max(1);
-                        // 음수 = 상대시간(100ns 단위). fResume=TRUE → 절전서 깨움.
-                        let mut due: LARGE_INTEGER = mem::zeroed();
-                        *due.QuadPart_mut() = -(rel_secs * 10_000_000);
+                        // 음수 = 상대시간(100ns 단위). fResume=1(TRUE) → 절전서
+                        // 깨움. windows-sys SetWaitableTimer 는 *const i64 직수령
+                        // → winapi LARGE_INTEGER 유니온(.QuadPart_mut()) hack 불요.
+                        let due: i64 = -(rel_secs * 10_000_000);
                         SetWaitableTimer(
                             timer,
                             &due,
                             0,
                             None,
-                            std::ptr::null_mut(),
-                            TRUE,
+                            std::ptr::null(),
+                            1,
                         );
                         // 최대 60s 마다 재평가(알람 편집 픽업) — resume 타이머는
                         // 절대 타깃으로 무장돼 있어 그 사이 절전돼도 깨움.
@@ -510,63 +515,42 @@ pub mod oswake {
 // get/set 은 비파괴 검증 테스트도 재사용 (단일 정본).
 #[cfg(windows)]
 pub mod audio {
-    use winapi::shared::winerror::SUCCEEDED;
-    use winapi::um::combaseapi::{CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL};
-    use winapi::um::endpointvolume::IAudioEndpointVolume;
-    use winapi::um::mmdeviceapi::{
-        eConsole, eRender, CLSID_MMDeviceEnumerator, IMMDeviceEnumerator,
+    use windows::Win32::Foundation::BOOL;
+    use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
+    use windows::Win32::Media::Audio::{eConsole, eRender, IMMDeviceEnumerator, MMDeviceEnumerator};
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_ALL, COINIT_APARTMENTTHREADED,
     };
-    use winapi::um::objbase::COINIT_APARTMENTTHREADED;
-    use winapi::um::winuser::{keybd_event, KEYEVENTF_KEYUP, VK_VOLUME_UP};
-    use winapi::Interface;
+    use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
+        keybd_event, KEYEVENTF_KEYUP, VK_VOLUME_UP,
+    };
 
     /// COM 초기화 → 기본 렌더 엔드포인트의 IAudioEndpointVolume 으로 f 실행.
-    unsafe fn with_epv<R>(f: impl FnOnce(*mut IAudioEndpointVolume) -> R) -> Option<R> {
-        if !SUCCEEDED(CoInitializeEx(std::ptr::null_mut(), COINIT_APARTMENTTHREADED)) {
-            return None;
-        }
-        let mut enom: *mut IMMDeviceEnumerator = std::ptr::null_mut();
-        let hr = CoCreateInstance(
-            &CLSID_MMDeviceEnumerator,
-            std::ptr::null_mut(),
-            CLSCTX_ALL,
-            &IMMDeviceEnumerator::uuidof(),
-            &mut enom as *mut _ as *mut *mut winapi::ctypes::c_void,
-        );
-        let mut result = None;
-        if SUCCEEDED(hr) && !enom.is_null() {
-            let mut dev = std::ptr::null_mut();
-            if SUCCEEDED((*enom).GetDefaultAudioEndpoint(eRender, eConsole, &mut dev))
-                && !dev.is_null()
-            {
-                let mut epv: *mut IAudioEndpointVolume = std::ptr::null_mut();
-                if SUCCEEDED((*dev).Activate(
-                    &IAudioEndpointVolume::uuidof(),
-                    CLSCTX_ALL,
-                    std::ptr::null_mut(),
-                    &mut epv as *mut _ as *mut *mut winapi::ctypes::c_void,
-                )) && !epv.is_null()
-                {
-                    result = Some(f(epv));
-                    (*epv).Release();
-                }
-                (*dev).Release();
-            }
-            (*enom).Release();
-        }
+    /// KL-055-B: `windows` crate = 인터페이스 Drop 시 자동 Release(RAII) +
+    /// Result `?` 전파 → winapi 수동 vtable `(*x).Release()` 사다리·널체크
+    /// footgun(KL-064급 누락 위험) 을 구조적으로 제거. epv 는 클로저 종료 시
+    /// Drop → Release 자동(누락 불가).
+    unsafe fn with_epv<R>(f: impl FnOnce(&IAudioEndpointVolume) -> R) -> Option<R> {
+        // RPC_E_CHANGED_MODE(이미 다른 모드로 초기화됨)는 비치명 — 결과만 사용.
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        let res = (|| -> windows::core::Result<R> {
+            let enom: IMMDeviceEnumerator =
+                CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)?;
+            let dev = enom.GetDefaultAudioEndpoint(eRender, eConsole)?;
+            let epv: IAudioEndpointVolume = dev.Activate(CLSCTX_ALL, None)?;
+            Ok(f(&epv))
+        })();
         CoUninitialize();
-        result
+        res.ok()
     }
 
     /// (마스터 볼륨 scalar 0..1, muted?). 검증/베이스라인용.
     pub fn get_master() -> Option<(f32, bool)> {
         unsafe {
             with_epv(|epv| {
-                let mut vol: f32 = -1.0;
-                let mut mute: i32 = 0;
-                (*epv).GetMasterVolumeLevelScalar(&mut vol);
-                (*epv).GetMute(&mut mute);
-                (vol, mute != 0)
+                let vol = epv.GetMasterVolumeLevelScalar().unwrap_or(-1.0);
+                let mute = epv.GetMute().map(|b| b.as_bool()).unwrap_or(false);
+                (vol, mute)
             })
         }
     }
@@ -575,9 +559,9 @@ pub mod audio {
     pub fn set_master(scalar: f32, mute: bool) -> bool {
         unsafe {
             with_epv(|epv| {
-                let a = (*epv).SetMasterVolumeLevelScalar(scalar.clamp(0.0, 1.0), std::ptr::null_mut());
-                let b = (*epv).SetMute(if mute { 1 } else { 0 }, std::ptr::null_mut());
-                SUCCEEDED(a) && SUCCEEDED(b)
+                let a = epv.SetMasterVolumeLevelScalar(scalar.clamp(0.0, 1.0), None);
+                let b = epv.SetMute(BOOL::from(mute), None);
+                a.is_ok() && b.is_ok()
             })
             .unwrap_or(false)
         }
@@ -618,7 +602,7 @@ mod sound {
     #[cfg(windows)]
     pub fn start_loop(wav_path: Option<&str>) {
         use std::os::windows::ffi::OsStrExt;
-        use winapi::um::playsoundapi::{
+        use windows_sys::Win32::Media::Audio::{
             PlaySoundW, SND_ALIAS, SND_ASYNC, SND_FILENAME, SND_LOOP, SND_NODEFAULT,
         };
 
@@ -647,7 +631,7 @@ mod sound {
     /// 재생 중인 루프 정지 (dismiss / snooze 공용).
     #[cfg(windows)]
     pub fn stop() {
-        use winapi::um::playsoundapi::PlaySoundW;
+        use windows_sys::Win32::Media::Audio::PlaySoundW;
         unsafe {
             PlaySoundW(std::ptr::null(), std::ptr::null_mut(), 0);
         }

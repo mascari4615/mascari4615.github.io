@@ -61,18 +61,22 @@ base64 = "0.22"
 tiny_http = "0.12"
 
 [target.'cfg(windows)'.dependencies]
-# KL-064 알람: playsoundapi/mmsystem = 사운드 무한 루프(PlaySoundW SND_LOOP).
-# synchapi/winbase/winnt/minwinbase = OS 강제 기상(절전 resume waitable timer +
-# SetThreadExecutionState 모니터 유지).
-# combaseapi/objbase/mmdeviceapi/endpointpvolume/combaseapi = Core Audio
-# (IAudioEndpointVolume) — 볼륨 강제 비파괴 검증 harness (read→force→assert→restore).
-# TASK-KL-055 Phase 1a — activity.rs/active_window.rs(읽기전용 텔레메트리,
-# 저위험) 를 Microsoft 공식 windows-sys 로 마이그. alarm.rs(COM
-# IAudioEndpointVolume + waitable-timer + 전원 = 런타임 크리티컬·windows-sys
-# COM ergonomics 갭) 는 winapi 잔존 — KL-055-B 에서 `windows` crate 채택
-# 결정 후 마이그(런타임 검증 필요). 그래서 둘 다 잠시 공존(최종 dedup=1b 후).
-winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi", "playsoundapi", "mmsystem", "synchapi", "winbase", "winnt", "minwinbase", "combaseapi", "objbase", "mmdeviceapi", "endpointvolume", "coml2api", "winerror"] }
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_ProcessStatus", "Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse"] }
+# TASK-KL-055-B 완료 (winapi 완전 제거 — KL-055 dedup 최종):
+# - 비-COM Win32 (oswake = waitable-timer 절전 resume + SetThreadExecutionState
+#   + SendMessageTimeoutW; sound = PlaySoundW SND_LOOP) → Microsoft 공식
+#   `windows-sys` (Phase 1a activity.rs/active_window.rs 와 동일 1:1 패턴).
+#   windows-sys SetWaitableTimer 는 *const i64 직수령 → winapi LARGE_INTEGER
+#   유니온(.QuadPart_mut()) hack 제거(더 안전·명료).
+# - COM (audio = CoCreateInstance/IMMDeviceEnumerator/IAudioEndpointVolume) →
+#   `windows` crate. RAII(인터페이스 Drop=자동 Release) + Result `?` 가
+#   winapi 수동 vtable `(*x).Release()` 사다리·널체크 footgun(KL-064급
+#   누락 위험) 을 구조적으로 제거. windows-sys 의 COM ergonomics 갭 회피.
+#   feature 는 audio COM 표면만(Win32_Media_Audio*/Win32_System_Com) — 사이즈
+#   영향은 KL-051 fat-LTO+strip 가 흡수. windows-sys 0.59 와 windows-targets
+#   0.52 공유(windows 0.58) → cargo tree --duplicates 0 목표.
+# 결정 근거·런타임 검증 프로토콜 = PR(KL-055-B) 본문.
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Power", "Win32_System_ProcessStatus", "Win32_System_SystemInformation", "Win32_Media_Audio", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse"] }
+windows = { version = "0.58", features = ["Win32_Foundation", "Win32_System_Com", "Win32_Media_Audio", "Win32_Media_Audio_Endpoints"] }
 
 # KL-051 의 production 배포 최적화 (fat LTO / codegen-units=1 / strip /
 # panic=abort / opt-level=3) 는 KL-052 워크스페이스 전환으로 *워크스페이스
