@@ -1,12 +1,12 @@
-// @ts-nocheck
 import { DEFAULT_VERTEX_LOCATION } from 'karmolab-ai';
 import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface';
+import type { ChatbotCharacter, KarmoImageSpec } from '../../../types/karmolab';
 
 /** 스트리밍 표시용 KARMO_IMAGE 태그 제거·파싱·캐릭터 이미지 생성 */
 (function () {
     const KARMO_IMAGE_RE = /\[\[KARMO_IMAGE:(\{[\s\S]*?\})\]\]/;
 
-    function displayTextForStream(s) {
+    function displayTextForStream(s: string): string {
         const start = s.indexOf('[[KARMO_IMAGE:');
         if (start === -1) return s;
         const tail = s.slice(start);
@@ -15,11 +15,11 @@ import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface
         return s.slice(0, start).trimEnd();
     }
 
-    function extractKarmoImage(text) {
+    function extractKarmoImage(text: string): { cleanText: string; spec: KarmoImageSpec | null } {
         const m = text.match(KARMO_IMAGE_RE);
         if (!m) return { cleanText: text.trim(), spec: null };
         try {
-            const spec = JSON.parse(m[1]);
+            const spec = JSON.parse(m[1]) as KarmoImageSpec;
             const cleanText = text.replace(KARMO_IMAGE_RE, '').trim();
             return { cleanText, spec };
         } catch (_) {
@@ -27,7 +27,11 @@ import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface
         }
     }
 
-    async function appendCharacterImageAfterMessage(wrap, char, spec) {
+    async function appendCharacterImageAfterMessage(
+        wrap: HTMLElement | null,
+        char: ChatbotCharacter | null,
+        spec: KarmoImageSpec | null
+    ): Promise<void> {
         if (!wrap?.parentNode || !spec?.show || !spec.prompt) return;
         const loading = document.createElement('div');
         loading.className = 'cb-msg cb-msg-bot cb-msg-image cb-msg-image-loading';
@@ -42,37 +46,42 @@ import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface
             `Scene and mood: ${sceneEn}`
         ].filter(Boolean).join('\n');
 
-        const imgModelSel = document.getElementById('cbCharImageModel');
+        const imgModelSel = document.getElementById('cbCharImageModel') as HTMLSelectElement | null;
         const imgModel = imgModelSel?.value || (typeof Gemini !== 'undefined' && Gemini.getDefaultModel ? Gemini.getDefaultModel('geminiImage') : 'gemini-2.5-flash-image');
 
         const ref = char?.referenceImageDataUrl;
-        const opt = {};
+        const opt: Record<string, unknown> = {};
         if (ref && ref.startsWith('data:')) opt.referenceImage = ref;
+
+        const G = Gemini;
+        if (!G) throw new Error('Gemini 모듈이 로드되지 않았습니다.');
 
         try {
             let res;
             if (chatbotUiSurfaceToPackage(getChatbotApiSurfaceUi()) === 'vertex') {
-                if (!Gemini.requireVertexApiKey()) {
+                if (!G.requireVertexApiKey?.()) {
                     loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
                     loading.textContent = '이미지 생성: Vertex API 키가 설정되지 않았습니다.';
                     return;
                 }
-                const projectId = (Toolbox.getPref('ig_vertex_project_id') || '').trim();
+                const projectId = (Toolbox.getPref?.('ig_vertex_project_id', '') || '').trim();
                 if (!projectId) {
                     loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
                     loading.textContent = '이미지 생성: Vertex 사용 시 설정에 GCP 프로젝트 ID가 필요합니다.';
-                    Toolbox.showToast('Vertex: 프로젝트 ID를 설정하세요.', 'error');
+                    Toolbox.showToast?.('Vertex: 프로젝트 ID를 설정하세요.', 'error');
                     return;
                 }
-                const locationRaw = (Toolbox.getPref('ig_vertex_location') || '').trim();
+                const locationRaw = (Toolbox.getPref?.('ig_vertex_location', '') || '').trim();
                 const location = locationRaw || DEFAULT_VERTEX_LOCATION;
-                res = await Gemini.callVertexGeminiImage(fullPrompt, imgModel, {
+                if (!G.callVertexGeminiImage) throw new Error('Vertex 이미지 생성 함수를 사용할 수 없습니다.');
+                res = await G.callVertexGeminiImage(fullPrompt, imgModel, {
                     ...opt,
                     projectId,
                     location,
                 });
             } else {
-                res = await Gemini.callGeminiImage(fullPrompt, imgModel, opt);
+                if (!G.callGeminiImage) throw new Error('이미지 생성 함수를 사용할 수 없습니다.');
+                res = await G.callGeminiImage(fullPrompt, imgModel, opt);
             }
             loading.remove();
             const box = document.createElement('div');
@@ -84,11 +93,12 @@ import { chatbotUiSurfaceToPackage, getChatbotApiSurfaceUi } from './api-surface
             wrap.parentNode.insertBefore(box, wrap.nextSibling);
             const msgs = document.getElementById('cbMessages');
             if (msgs) msgs.scrollTop = msgs.scrollHeight;
-            if (res.usage?.totalTokenCount) Toolbox.recordUsage('image', res.usage.totalTokenCount);
+            if (res.usage?.totalTokenCount) Toolbox.recordUsage?.('image', res.usage.totalTokenCount);
         } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
             loading.className = 'cb-msg cb-msg-bot cb-msg-error cb-msg-image';
-            loading.textContent = '이미지 생성 실패: ' + (e.message || e);
-            Toolbox.showToast(e.message || '이미지 오류', 'error', e);
+            loading.textContent = '이미지 생성 실패: ' + msg;
+            Toolbox.showToast?.(msg || '이미지 오류', 'error', e);
         }
     }
 

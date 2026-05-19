@@ -135,7 +135,7 @@ fn route(
             result_json(local_dev::localdev_list_tracked(state))
         }
         (Method::Get, "/localdev/external") => {
-            result_json(local_dev::localdev_list_external_pids(state))
+            result_json(local_dev::localdev_list_external_pids_sync(&state))
         }
 
         (Method::Post, "/localdev/start") => {
@@ -157,7 +157,7 @@ fn route(
                 Some(v) => v,
                 None => return (400, json_err("body 에 \"profile\" 필요")),
             };
-            result_json(local_dev::localdev_stop_external(p, state))
+            result_json(local_dev::localdev_stop_external_sync(p, &state))
         }
         (Method::Post, "/localdev/stdin") => {
             let p = match json_field(body, "profile") {

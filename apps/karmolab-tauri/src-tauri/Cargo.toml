@@ -1,6 +1,6 @@
 [package]
 name = "karmolab-desktop"
-version = "0.1.34"
+version = "0.1.35"
 description = "KarmoLab desktop shell (Tauri WebView)"
 authors = ["mascari4615"]
 edition = "2021"
@@ -69,8 +69,15 @@ tiny_http = "0.12"
 # TASK-KL-055 Phase 1a — activity.rs/active_window.rs(읽기전용 텔레메트리,
 # 저위험) 를 Microsoft 공식 windows-sys 로 마이그. alarm.rs(COM
 # IAudioEndpointVolume + waitable-timer + 전원 = 런타임 크리티컬·windows-sys
-# COM ergonomics 갭) 는 winapi 잔존 — KL-055-B 에서 `windows` crate 채택
-# 결정 후 마이그(런타임 검증 필요). 그래서 둘 다 잠시 공존(최종 dedup=1b 후).
+# COM ergonomics 갭) 는 winapi 잔존 — KL-055-B 에서 백엔드 결정 후 마이그
+# (런타임 검증 필요). 그래서 둘 다 잠시 공존(최종 dedup = 결정 후).
+#
+# KL-055-B 진단(2026-05-19): 과거 "windows crate 미도입 — 사이즈" 전제는
+# 무효 — `windows` crate 는 이미 트랜지티브로 4버전(0.54/0.57/0.58/0.61)
+# 컴파일 중(tauri 경유). audio(Core Audio COM)만 `windows` crate 를
+# *이미 트리에 있는 버전으로 pin* 하면 5번째 버전 없이 feature 모듈만 추가.
+# 권고 = split: sound/oswake→windows-sys, audio→windows crate.
+# 전체 분석·결정 게이트: src-tauri/ALARM-COM-BACKEND-DECISION.md (NEEDS-USER-DECISION).
 winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "psapi", "handleapi", "minwindef", "sysinfoapi", "playsoundapi", "mmsystem", "synchapi", "winbase", "winnt", "minwinbase", "combaseapi", "objbase", "mmdeviceapi", "endpointvolume", "coml2api", "winerror"] }
 windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_ProcessStatus", "Win32_System_SystemInformation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse"] }
 

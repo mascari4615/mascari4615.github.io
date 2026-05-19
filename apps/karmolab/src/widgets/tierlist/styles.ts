@@ -1,8 +1,7 @@
-// @ts-nocheck
 (function () {
     const T = window.Tierlist = window.Tierlist || {};
 
-    T.injectStyles = function injectStyles() {
+    const injectStyles: { (): void; _done?: boolean } = function () {
         if (injectStyles._done) return;
         injectStyles._done = true;
 
@@ -223,5 +222,7 @@
         }
         `);
     };
+
+    T.injectStyles = injectStyles;
 })();
 
