@@ -123,3 +123,79 @@ export interface KarmoLabImageBatchAPI {
     delayMs?: number
   ) => Promise<void>;
 }
+
+/** 챗봇 캐릭터 — `chatbot/characters.ts` 가 노출. 타입드 소비자에서 쓰는 필드만 명시(나머지는 인덱스). */
+export interface ChatbotCharacter {
+  id: string;
+  name?: string;
+  userName?: string;
+  userNote?: string;
+  description?: string;
+  personality?: string;
+  scenario?: string;
+  visualDescription?: string;
+  referenceImageDataUrl?: string;
+  [key: string]: unknown;
+}
+
+/** `[[KARMO_IMAGE:{...}]]` 태그 파싱 결과 스펙 */
+export interface KarmoImageSpec {
+  show?: boolean;
+  prompt?: string;
+  [key: string]: unknown;
+}
+
+/** `gemini.ts` 이미지 생성 함수 반환 */
+export interface GeminiImageResult {
+  dataUrl: string;
+  usage?: { totalTokenCount?: number; [key: string]: unknown };
+  [key: string]: unknown;
+}
+
+/** `chatbot/characters.ts` → `window.ChatbotCharacters` */
+export interface ChatbotCharactersAPI {
+  getCharacterById: (id: string) => ChatbotCharacter | null;
+  buildCharacterSystemBlock: (char: ChatbotCharacter | null) => string;
+  syncAfterSessionLoad: (...args: unknown[]) => unknown;
+  initCharacterUi: (...args: unknown[]) => unknown;
+}
+
+/** `chatbot/prompt.ts` → `window.ChatbotPrompt` */
+export interface ChatbotPromptAPI {
+  SYSTEM_PROMPT_PRESETS: Record<string, string>;
+  KARMO_IMAGE_INSTRUCTION: string;
+  getAdditionalSystemPromptText: () => string;
+  assembleSystemPrompt: (options?: {
+    useMemory?: boolean;
+    conversationSummary?: string;
+  }) => string;
+}
+
+/** `chatbot/markdown.ts` → `window.ChatbotMarkdown` */
+export interface ChatbotMarkdownAPI {
+  renderMarkdown: (text: string) => string;
+}
+
+/** `chatbot/karmo-image.ts` → `window.ChatbotKarmoImage` */
+export interface ChatbotKarmoImageAPI {
+  KARMO_IMAGE_RE: RegExp;
+  displayTextForStream: (s: string) => string;
+  extractKarmoImage: (text: string) => {
+    cleanText: string;
+    spec: KarmoImageSpec | null;
+  };
+  appendCharacterImageAfterMessage: (
+    wrap: HTMLElement | null,
+    char: ChatbotCharacter | null,
+    spec: KarmoImageSpec | null
+  ) => Promise<void>;
+}
+
+/** `imagegen/*` 공용 네임스페이스 백 — config.ts 가 세션/히스토리 키를 채움 */
+export interface KarmoLabImageGenNamespace {
+  GALLERY_SESSION_KEY?: string;
+  GALLERY_SESSION_MAX?: number;
+  PROMPT_HISTORY_KEY?: string;
+  PROMPT_HISTORY_MAX?: number;
+  [key: string]: unknown;
+}
