@@ -53,6 +53,7 @@ node_modules
 .yawnbot.kakao.env
 
 # Build artifacts
+packages/karmolab-ai/dist/
 apps/karmolab/react-dist/
 # KarmoWorld scripts (built from src/world/*.ts; wiki *.md stay tracked)
 apps/karmolab/world/*.js
