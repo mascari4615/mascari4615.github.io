@@ -20,7 +20,12 @@ export interface GnStoryLine {
 }
 
 async function fetchRaw(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'User-Agent': 'YawnBot/1.0' } });
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; YawnBot/1.0; +https://mascari4615.github.io)',
+      'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+    },
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
