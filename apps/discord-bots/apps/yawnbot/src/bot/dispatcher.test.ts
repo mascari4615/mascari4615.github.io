@@ -139,6 +139,37 @@ describe('spawnTier3 — 오케스트레이션 (B-1/2/4)', () => {
     expect(d.registry.isBusy('atlas')).toBe(false); // finally release
   });
 
+  // TASK-KAR-018-LT-W2-A: cli-claude 가 stderrFull/stdoutFull/exitCode 를
+  // Error 객체에 부착 → spawnTier3 catch 분기에서 duck-type 추출해
+  // Tier3Result 의 해당 필드로 전파. 다음 세션 grep 진단 게이트의 데이터 줄.
+  it('ClaudeCliError shape 전파 — stderrFull/stdoutFull/exitCode 가 result 에 동봉', async () => {
+    const err = new Error('Claude CLI 종료 코드 1 (cwd=/repo): stderr=cap | stdout=cap') as
+      Error & { stderrFull?: string; stdoutFull?: string; exitCode?: number | null };
+    err.stderrFull = 'Not logged in · Please run /login\n[full backtrace ...]';
+    err.stdoutFull = 'partial stdout before failure';
+    err.exitCode = 1;
+    const d = deps({ run: vi.fn().mockRejectedValue(err) });
+    const res = await spawnTier3(req, d);
+    expect(res.status).toBe('error');
+    expect(res.error).toContain('Claude CLI 종료 코드 1');
+    expect(res.stderrFull).toContain('Not logged in');
+    expect(res.stdoutFull).toBe('partial stdout before failure');
+    expect(res.exitCode).toBe(1);
+    expect(d.registry.isBusy('atlas')).toBe(false);
+  });
+
+  // 일반 Error (cli-claude 외 — 타임아웃·spawn 실패 등) = 진단 필드 없이도
+  // status='error' + message 만으로 동작 (현행 동작 회귀 방지).
+  it('일반 Error (stderrFull 없음) = 진단 필드 undefined, 그래도 status=error', async () => {
+    const d = deps({ run: vi.fn().mockRejectedValue(new Error('타임아웃')) });
+    const res = await spawnTier3(req, d);
+    expect(res.status).toBe('error');
+    expect(res.error).toBe('타임아웃');
+    expect(res.stderrFull).toBeUndefined();
+    expect(res.stdoutFull).toBeUndefined();
+    expect(res.exitCode).toBeUndefined();
+  });
+
   it('done 후에도 release (재acquire 가능)', async () => {
     const d = deps();
     await spawnTier3(req, d);
