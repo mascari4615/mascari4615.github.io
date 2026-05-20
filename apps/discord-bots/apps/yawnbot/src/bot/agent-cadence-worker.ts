@@ -33,6 +33,7 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinPersona } from './agent-cadence-skin';
+import { fetchTeamBusContext as defaultFetchTeamBusContext } from './team-bus-fetcher';
 
 // ── WorkerCore ───────────────────────────────────────────────
 export interface WorkerCore {
@@ -436,23 +437,23 @@ export async function runWorkerConsumerOnce(
     let specText: string | undefined;
     try { specText = fs.readFileSync(path.join(memoRoot, chosen.file), 'utf-8'); } catch { specText = undefined; }
 
-    // KAR-018-LT-W1: chat=state inject. fetch 실패·미주입 = undefined → 5입력
-    // 호환(블록 미포함). Phase 1 = deps 통과로 면적 0(LT-W1-WIRE 가 wire).
+    // KAR-018-LT-W1: chat=state inject. deps 미주입 = module-level fallback
+    // (LT-W1-WIRE: main.ts startup 이 setTeamBusContextFetcher 로 wire).
+    // fetch 실패·wire 안 됨 = undefined → 5입력 호환(블록 미포함).
+    const fetchCtx = deps.fetchTeamBusContext ?? defaultFetchTeamBusContext;
     let channelContext: string | undefined;
-    if (deps.fetchTeamBusContext) {
-      try {
-        channelContext = await deps.fetchTeamBusContext(20);
-      } catch (e) {
-        // chat=state fetch 실패 = silent X (drift trace 1줄). 워커는 5입력
-        // fallback 으로 계속 — 채팅 read 만 누락, TASK 실행 자체는 진행.
-        appendTrace(env, {
-          ts: new Date().toISOString(),
-          type: 'drift',
-          core: w.coreId,
-          reason: `team-bus-fetch-fail: ${String(e).replace(/\s+/g, ' ').slice(0, 200)}`,
-        });
-        channelContext = undefined;
-      }
+    try {
+      channelContext = await fetchCtx(20);
+    } catch (e) {
+      // chat=state fetch 실패 = silent X (drift trace 1줄). 워커는 5입력
+      // fallback 으로 계속 — 채팅 read 만 누락, TASK 실행 자체는 진행.
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: w.coreId,
+        reason: `team-bus-fetch-fail: ${String(e).replace(/\s+/g, ' ').slice(0, 200)}`,
+      });
+      channelContext = undefined;
     }
 
     const req: Tier3Request = {
