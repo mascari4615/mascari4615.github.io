@@ -1,0 +1,101 @@
+name: Agent Team Graduate
+
+# LT 워커 Draft PR 자동 졸업 — TASK-KAR-018-LT-RENAME R-5 (구 TASK-KAR-073 부활).
+#
+# 역사: 2026-05-20 slot C 가 sweeper(autopilot 자동 PR 생성기) 폐기와 함께
+#       graduate 까지 도매금 폐기(0d27ce54). sweeper 폐기는 정합(autopilot
+#       skill 제거 = 생성자 사라짐). graduate 폐기는 과보수 — LT 워커는
+#       무한 PR 생성기가 아니라 매 cycle 1건 유한 의도 PR. 본 파일은
+#       graduate 의 substrate 재부활 + LT 워커 정체성 정합 rename.
+#
+# 갭: claude.yml § claude-pr-review 는 Draft PR 을 리뷰+fix 하지만 머지 스텝이 없고,
+#     auto-merge.yml 은 `if: draft == false` 라 Draft 를 영구 skip → LT 워커 Draft 무한 적재.
+# 해결: verify 또는 Claude 워크플로 완료를 workflow_run 으로 받아, 두 조건
+#       (PR head 에 verify green check-run + claude-pr-review 리뷰 코멘트) 이 *모두*
+#       충족된 LT 워커 Draft 를 ready 전환 + squash merge.
+#
+# 순서 무관(idempotent): verify 와 claude-pr-review 는 병렬이라 어느 쪽이 늦든
+#   "마지막에 끝난 쪽"의 workflow_run 이 양 조건을 재평가 → clean PR(fix commit 없어
+#   재-verify 안 도는 케이스)도 영구 stuck 안 됨. 이미 merged/ready 면 가드가 skip.
+#
+# 화이트리스트 = head_branch prefix (author 무관, spoof 불가):
+#   - `feature/agent-team-task-*` (R-3 prefix rename 후 정본)
+#   - `feature/autopilot-task-*`  (R-3 미완 마이그 호환, LT-RENAME 완결 후 제거)
+#   - `fix/issue-*` / `feature/issue-*` (claude.yml § claude-triage 자동 fix PR)
+#
+# PAT 사용 (GITHUB_TOKEN 아님): GITHUB_TOKEN 머지는 GitHub 재귀 방지로 master push
+# event 를 차단 → pages-deploy.yml / verify.yml 미작동. auto-merge.yml 과 동일 사유.
+# 정본: memo/tasks/TASK-KAR-018-LT-RENAME / memo/rules/git.md § Agent Team 예외.
+
+on:
+  workflow_run:
+    workflows: ["verify", "Claude Code"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  graduate:
+    # pull_request 발 run 만 (push 발 verify 는 PR 무관) — 노이즈 축소.
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # 로컬 composite action 사용 위해 checkout (workflow_run = 기본브랜치 master 체크아웃).
+      - uses: actions/checkout@v4
+
+      - name: Resolve merge token (App → PAT fallback)
+        # 단일 정본 = .github/actions/resolve-merge-token (auto-merge.yml 와 공유, KL-048).
+        id: tok
+        uses: ./.github/actions/resolve-merge-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.PAT_FOR_AUTO_MERGE }}
+
+      - name: Resolve PR + guards + ready + merge
+        env:
+          GH_TOKEN: ${{ steps.tok.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          pr=$(gh pr list --head "$HEAD_BRANCH" --state open \
+                --json number,isDraft,headRefName,headRefOid,comments --jq '.[0] // empty')
+          if [ -z "$pr" ]; then
+            echo "branch '$HEAD_BRANCH' 에 open PR 없음 — skip"; exit 0
+          fi
+
+          num=$(echo "$pr"       | jq -r '.number')
+          isDraft=$(echo "$pr"   | jq -r '.isDraft')
+          headRef=$(echo "$pr"   | jq -r '.headRefName')
+          headOid=$(echo "$pr"   | jq -r '.headRefOid')
+          reviewed=$(echo "$pr"  | jq -r '[.comments[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
+
+          # 가드 1 — Draft 만 졸업 대상 (ready = auto-merge.yml 담당)
+          if [ "$isDraft" != "true" ]; then
+            echo "PR #$num not draft — auto-merge.yml 담당, skip"; exit 0
+          fi
+          # 가드 2 — head_branch prefix 화이트리스트 (author spoof 불가)
+          case "$headRef" in
+            feature/agent-team-task-*|feature/autopilot-task-*|fix/issue-*|feature/issue-*) ;;
+            *) echo "PR #$num head '$headRef' = 화이트리스트 prefix 아님 — skip"; exit 0 ;;
+          esac
+          # 가드 3 — claude-pr-review 리뷰 완료 (코멘트 푸터 존재)
+          if [ "$reviewed" -lt 1 ]; then
+            echo "PR #$num — claude-pr-review 코멘트 없음(리뷰 미완) — 상대 워크플로 완료 시 재평가, skip"
+            exit 0
+          fi
+          # 가드 4 — *현재 PR head commit* 에 verify green check-run (stale verify 자동 배제)
+          verify_ok=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
+            --jq '[.check_runs[] | select(.name=="verify (master invariant)" and .conclusion=="success")] | length')
+          if [ "${verify_ok:-0}" -lt 1 ]; then
+            echo "PR #$num — head $headOid 에 성공한 verify check-run 없음 — verify 완료 시 재평가, skip"
+            exit 0
+          fi
+
+          echo "PR #$num: verify green + reviewed + 화이트리스트 prefix Draft → 졸업 (ready + squash merge)"
+          gh pr ready "$num"
+          gh pr merge "$num" --squash --delete-branch
