@@ -168,9 +168,10 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
         void syncTaskStatusOnPrMerge(process.env, {
           prNumber: pr.number,
           prTitle: pr.title,
+          prBody: pr.body,
         })
           .then(async (r) => {
-            if (r.outcome === 'no-change' || !r.summaryLine) return;
+            if (!r.summaryLine) return;
             console.log(`[task-status-sync] ${r.outcome}: pushed=${r.pushed} skipped=${r.skipped} errors=${r.errors.length}`);
             for (const channelId of channelIds) {
               const channel = await client.channels.fetch(channelId).catch(() => null);

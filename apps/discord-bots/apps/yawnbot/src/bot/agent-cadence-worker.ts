@@ -215,9 +215,9 @@ function setupWorkerWorktree(
   if (!repo) return { error: `domain-unresolved(core=${coreId})` };
   if (!fs.existsSync(repo.repoRoot))
     return { error: `repo-missing(${repo.repoRoot})` };
-  const now = new Date();
-  const branch = workerBranchName(taskId, now);
-  const wtDir = workerWorktreeDir(umbrella, coreId, taskId, now);
+  const branch = workerBranchName(taskId);
+  const wtDir = workerWorktreeDir(umbrella, coreId, taskId);
+
   try {
     try {
       execSync(
@@ -225,10 +225,65 @@ function setupWorkerWorktree(
         { timeout: 15_000, stdio: 'ignore' },
       );
     } catch { /* best-effort */ }
-    execSync(
-      `git -C "${repo.repoRoot}" worktree add -b "${branch}" "${wtDir}" HEAD`,
-      { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
-    );
+
+    // KAR-018 (2026-05-21 사용자 진단): 매 호출마다 새 브랜치 만들지 X.
+    // 같은 TASK = 같은 브랜치 = 진행 누적. 재진입 4가지 케이스:
+    //
+    //  1. 워크트리 디렉토리 이미 존재  → 그대로 reuse (claude CLI 가 state read)
+    //  2. 로컬에 브랜치만 존재         → worktree add <dir> <branch> (no -b)
+    //  3. origin 에만 브랜치 존재      → fetch + worktree add 로 트래킹
+    //  4. 둘 다 없음                  → worktree add -b <branch> HEAD (기존 동작)
+
+    // 1. 워크트리 디렉토리 재사용
+    if (fs.existsSync(wtDir)) {
+      return { cwd: wtDir, repoRoot: repo.repoRoot, wtDir, branch };
+    }
+
+    const branchExistsLocal = (() => {
+      try {
+        execSync(
+          `git -C "${repo.repoRoot}" show-ref --verify --quiet "refs/heads/${branch}"`,
+          { timeout: 15_000, stdio: 'ignore' },
+        );
+        return true;
+      } catch { return false; }
+    })();
+
+    const branchExistsOrigin = (() => {
+      try {
+        const out = execSync(
+          `git -C "${repo.repoRoot}" ls-remote --heads origin "${branch}"`,
+          { timeout: 30_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+        );
+        return out.trim().length > 0;
+      } catch { return false; }
+    })();
+
+    if (branchExistsLocal) {
+      // 2. 로컬 브랜치 → worktree add (no -b)
+      execSync(
+        `git -C "${repo.repoRoot}" worktree add "${wtDir}" "${branch}"`,
+        { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+      );
+    } else if (branchExistsOrigin) {
+      // 3. origin 브랜치 → fetch + worktree add (트래킹)
+      try {
+        execSync(
+          `git -C "${repo.repoRoot}" fetch origin "${branch}:${branch}"`,
+          { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+        );
+      } catch { /* best-effort - 다음 step 에서 다시 시도 */ }
+      execSync(
+        `git -C "${repo.repoRoot}" worktree add "${wtDir}" "${branch}"`,
+        { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+      );
+    } else {
+      // 4. 신규 브랜치 (기존 동작)
+      execSync(
+        `git -C "${repo.repoRoot}" worktree add -b "${branch}" "${wtDir}" HEAD`,
+        { timeout: 60_000, stdio: ['ignore', 'ignore', 'pipe'] },
+      );
+    }
     return { cwd: wtDir, repoRoot: repo.repoRoot, wtDir, branch };
   } catch (e: unknown) {
     const x = e as { stderr?: Buffer; message?: string };
