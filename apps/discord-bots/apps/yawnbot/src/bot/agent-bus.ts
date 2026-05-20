@@ -258,6 +258,27 @@ function markResolved(
   }
 }
 
+/**
+ * 승인/채택 후 *다음 게이트* 평이 안내 (KAR-018-THR (B-1) 표현 결함 흡수).
+ * 사용자 발화 (2026-05-19, 의역 X): "지들이 채택했는데 알아서 채택됨 그것도
+ * 적용안되는 것 같은데". = 머터리얼화 ≠ 승격(active) ≠ 적용 *3단 미구분*
+ * UX. desc 가 생겼다고 "**X** 생성됨" 만 표시하면 사용자는 "됐다"고 오인.
+ * 각 kind 의 *다음 사람 게이트* 를 결과 라인에 명시 = 오인 차단.
+ */
+export function approvalNextGate(kind: ProposalEnvelope['kind']): string {
+  switch (kind) {
+    case 'task':
+      return '`status: seed` (사장이 ready 승격 시 워커가 픽업·진행)';
+    case 'objective':
+      return '`status: proposed` (사장이 active 승격 시 cadence 가 픽업)';
+    case 'agent':
+      return 'core.md `status: draft` (행동 검증 후 active 승격 게이트 통과 시 적용)';
+    case 'env':
+    case 'skill':
+      return '엔진 검토 인박스 등록 (검증+승인 후 적용)';
+  }
+}
+
 /** 머터리얼라이즈 결과 1건 조회 (승인 후 사람에게 "뭐가 생겼나" 회신용). */
 function materializedDesc(env: NodeJS.ProcessEnv, id: string): string | null {
   const p = materializedPath(env);
@@ -355,10 +376,13 @@ export async function handleProposalReaction(
     if (decision === 'approved') {
       await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
       const desc = materializedDesc(env, entry.id);
+      // KAR-018-THR (B-1): 머터리얼화 ≠ active ≠ 적용 3단 명시. "**X** 생성됨"
+      // 만 보면 사용자 "됐다"고 오인 (5/19 prod 관측). 다음 게이트를 함께.
+      const kind = entry.kind as ProposalEnvelope['kind'];
       result = desc
-        ? `**${desc}** 생성됨`
-        : '거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음)';
-      await post(`✅ **승인 완료** — ${result}`);
+        ? `**${desc}** 머터리얼화 — ${approvalNextGate(kind)}`
+        : '거버넌스 검토 인박스 등록 — 즉시 산출물 없음 (엔진 트랙)';
+      await post(`✅ **승인 접수** — ${result}`);
     } else {
       result = '거절됨 — 아무것도 만들지 않았습니다';
       await post(`❌ **거절 처리됨** — 아무것도 만들지 않았습니다.`);
@@ -546,9 +570,11 @@ export async function reconcileProposalCards(
         });
         await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
         const desc = materializedDesc(env, v.id);
+        // KAR-018-THR (B-1): 사람 ✅ 경로와 동일 3단 안내(머터리얼화 ≠
+        // 승격 ≠ 적용). 평행 표현 0 — approvalNextGate 단일 정본.
         resultLine = desc
-          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (사장님이 ready 승격 시 진행) · ${v.reason}`
-          : `🧑‍🤝‍🧑 팀 채택 — 검토 단계로 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
+          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 머터리얼화 — ${approvalNextGate(entry.kind as ProposalEnvelope['kind'])} · ${v.reason}`
+          : `🧑‍🤝‍🧑 팀 채택 — 거버넌스 검토 인박스 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
       } else if (v.verdict === 'adopt-mods') {
         resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
       } else if (v.verdict === 'reject') {

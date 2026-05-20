@@ -14,6 +14,7 @@ import {
   lookupProposalById,
   proposalMsgsPath,
   applyCardEmbedState,
+  approvalNextGate,
 } from './agent-bus';
 
 let root: string;
@@ -133,5 +134,27 @@ describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)'
     );
     expect(hits.length).toBe(1); // 누적 X
     expect(hits[0].value).toBe('r2'); // 최신으로 갱신
+  });
+});
+
+describe('approvalNextGate (KAR-018-THR B-1 — 머터리얼≠승격≠적용 3단)', () => {
+  // 그동안의 미반영 근본 = 승인 결과 라인이 "**X** 생성됨" 만 출력 →
+  // 사용자 "됐다"고 오인 (5/19 prod 관측). kind 별 *다음 사람 게이트*
+  // 를 명시해 오인 차단. 사람 ✅ 경로 + 팀 verdict adopt 경로 공용.
+  it('task → seed→ready 게이트 (워커 픽업)', () => {
+    expect(approvalNextGate('task')).toContain('seed');
+    expect(approvalNextGate('task')).toContain('ready');
+  });
+  it('objective → proposed→active 게이트 (cadence 픽업)', () => {
+    expect(approvalNextGate('objective')).toContain('proposed');
+    expect(approvalNextGate('objective')).toContain('active');
+  });
+  it('agent → draft→active 행동 검증 게이트', () => {
+    expect(approvalNextGate('agent')).toContain('draft');
+    expect(approvalNextGate('agent')).toContain('active');
+  });
+  it('env/skill → 엔진 검토 인박스', () => {
+    expect(approvalNextGate('env')).toContain('엔진');
+    expect(approvalNextGate('skill')).toContain('엔진');
   });
 });

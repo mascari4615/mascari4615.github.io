@@ -1,6 +1,12 @@
-// agent-thread-router 순수 코어 전수검증 (Discord IO 무관). KAR-018-Y.
+// agent-thread-router 순수 코어 전수검증 (Discord IO 무관). KAR-018-Y +
+// KAR-018-THR (재기동 영속·이름검색·proposal 라우팅 확장).
 import { describe, it, expect } from 'vitest';
-import { extractTaskId, chunkForDiscord } from './agent-thread-router';
+import {
+  extractTaskId,
+  extractProposalId,
+  extractRouteKey,
+  chunkForDiscord,
+} from './agent-thread-router';
 
 describe('extractTaskId (순수)', () => {
   it('워커 메시지에서 TASK id 추출', () => {
@@ -18,6 +24,42 @@ describe('extractTaskId (순수)', () => {
   it('TASK 없으면 null (팀-공통=하트비트)', () => {
     expect(extractTaskId('🛰 팀 한 바퀴: 동료 echo 한마디')).toBeNull();
     expect(extractTaskId('')).toBeNull();
+  });
+});
+
+describe('extractProposalId (THR — pXXX 라우팅 키)', () => {
+  it('proposalId 헥사 매치 (8자+)', () => {
+    expect(extractProposalId('p42c94051 채택 — 진행')).toBe('p42c94051');
+    expect(extractProposalId('발굴 [p1234abcd5678] dispatch')).toBe(
+      'p1234abcd5678',
+    );
+  });
+  it('TASK·일반 텍스트 = null (서로 namespace 안 겹침)', () => {
+    expect(extractProposalId('TASK-KL-071 작업')).toBeNull();
+    expect(extractProposalId('팀 한 바퀴')).toBeNull();
+    expect(extractProposalId('')).toBeNull();
+  });
+  it('p + <8 hex 또는 비hex = null (false-positive 차단)', () => {
+    expect(extractProposalId('p1234567')).toBeNull(); // 7자
+    expect(extractProposalId('pgggggggg')).toBeNull(); // 비hex
+  });
+});
+
+describe('extractRouteKey (TASK > proposal > 팀공통)', () => {
+  it('TASK 가 있으면 TASK 우선 (더 구체적)', () => {
+    expect(extractRouteKey('TASK-KL-071 ref p42c94051')).toEqual({
+      kind: 'task',
+      id: 'TASK-KL-071',
+    });
+  });
+  it('proposal 만 있으면 proposal', () => {
+    expect(extractRouteKey('p42c94051 dispatched')).toEqual({
+      kind: 'proposal',
+      id: 'p42c94051',
+    });
+  });
+  it('아무것도 없으면 null (팀-공통 fallback)', () => {
+    expect(extractRouteKey('🛰 한 바퀴')).toBeNull();
   });
 });
 

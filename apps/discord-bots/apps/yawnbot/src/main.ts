@@ -33,6 +33,10 @@ import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
+import {
+  lookupTaskThread,
+  recordTaskThread,
+} from './bot/agent-task-thread-store';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
 import {
   isProvisioningEnabled,
@@ -49,7 +53,11 @@ import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
-import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
+import {
+  announceProposal,
+  reconcileProposalCards,
+  lookupProposalById,
+} from './bot/agent-bus';
 import {
   loadCoreDef,
   listCoreIds,
@@ -423,6 +431,30 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // KAR-018-THR: TASK 영속 매핑 — 봇 재기동 churn(nssm restart)
+        // 시 in-memory map 소실 → 중복 스레드 버그. substrate jsonl 로
+        // 복원, lookup 미설정(memoRepoPath 부재) = 옛 동작(in-memory만).
+        lookupPersistedThread: memoRepoPath
+          ? (taskId) => {
+              const rec = lookupTaskThread(memoRepoPath, taskId);
+              return rec
+                ? { channelId: rec.channelId, threadId: rec.threadId }
+                : null;
+            }
+          : undefined,
+        recordPersistedThread: memoRepoPath
+          ? (taskId, channelId, threadId) => {
+              recordTaskThread(memoRepoPath, { taskId, channelId, threadId });
+            }
+          : undefined,
+        // KAR-018-THR (B-A): 제안 pXXX 메시지 → 카드 스레드. 매핑은
+        // announceProposal 가 생성 시점에 영속화(`agent-proposal-msgs.jsonl`).
+        // router 가 소비만 — 평행 정의 0(카드 스레드는 agent-bus 가 소유).
+        lookupProposalThread: (proposalId) => {
+          const e = lookupProposalById(process.env, proposalId);
+          if (!e || !e.threadId) return null;
+          return { channelId: e.channelId ?? '', threadId: e.threadId };
+        },
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
