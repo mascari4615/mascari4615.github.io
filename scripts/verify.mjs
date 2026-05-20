@@ -24,16 +24,22 @@ function requireDeps(sub) {
 
 console.log('[verify] master invariant 게이트 시작');
 
-// 1. apps/karmolab — build (typecheck 포함). 이전 karmolab-ts.yml + ai-quality.yml karmolab-ai-surface 흡수.
-requireDeps('apps/karmolab');
-run('apps/karmolab build', 'apps/karmolab', 'npm run build');
-
-// 2. packages/karmolab-ai — build. 이전 ai-quality.yml shared-ai-package-build 흡수.
-if (existsSync('packages/karmolab-ai/node_modules')) {
+// 1. packages/karmolab-ai — build *먼저* (apps/karmolab 의 의존성, dist 가
+//    있어야 import 해소). 이전 ai-quality.yml shared-ai-package-build 흡수.
+//    TASK-KAR-MASTER-RED (5/19~ 6+연속 RED 진단): 순서가 거꾸로면 apps/karmolab
+//    build 가 karmolab-ai/dist 부재로 "Could not resolve" RED. workspace
+//    hoist 환경에서 packages/karmolab-ai/node_modules 가 별도로 안 만들어질
+//    수 있어 guard 는 dist 부재 체크로 변경(silent skip 차단).
+if (!existsSync('packages/karmolab-ai/dist')) {
   run('packages/karmolab-ai build', 'packages/karmolab-ai', 'npm run build');
 } else {
-  console.log('[verify] ! packages/karmolab-ai/node_modules 없음 — build skip (정합: cd packages/karmolab-ai && npm ci)');
+  console.log('[verify] ! packages/karmolab-ai/dist 존재 — build skip (이미 빌드됨)');
 }
+
+// 2. apps/karmolab — build (typecheck 포함). karmolab-ai/dist 를 import.
+//    이전 karmolab-ts.yml + ai-quality.yml karmolab-ai-surface 흡수.
+requireDeps('apps/karmolab');
+run('apps/karmolab build', 'apps/karmolab', 'npm run build');
 
 // 2.9. Tauri externalBin host-triple placeholder 보장 (TASK-KAR-073 / KL-052 회귀 fix).
 //      tauri.conf.json `externalBin: ["binaries/karmolab-life-ml"]` 은 sidecar 를
