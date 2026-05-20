@@ -22,7 +22,10 @@
 
 import { execFile } from 'child_process';
 
-const DEFAULT_REPO_SLUG = 'Mascari4615/memo';
+// canonical owner = lowercase 'mascari4615' (사용자명 케이스 변경됨, 2026-05).
+// REST API 는 케이스 일치 필요 → 'Mascari4615/memo' = HTTP 404.
+// git remote 는 자동 리다이렉트하지만 API 는 안 함.
+const DEFAULT_REPO_SLUG = 'mascari4615/memo';
 const DEFAULT_BRANCH = 'main';
 const DEFAULT_AUTHOR_NAME = 'yawnbot';
 const DEFAULT_AUTHOR_EMAIL = 'noreply@yawnbot.mascari4615.com';
