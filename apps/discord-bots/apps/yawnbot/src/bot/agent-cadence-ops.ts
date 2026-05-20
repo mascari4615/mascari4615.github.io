@@ -18,13 +18,19 @@ import {
   buildSurgerySeedPrompt,
   parseSurgeryDecision,
   recordSurgery,
+  shouldRunDigest,
+  recordDigest,
+  type Portfolio,
 } from './team-portfolio';
 import {
   gatherHealthSignals,
   diagnoseHealth,
   formatHealthBlock,
   type HealthSignals,
+  type HealthIssue,
 } from './system-health';
+import { readEvolutionEvents, type EvolutionEvent } from './evolution-observatory';
+import { buildDigestText, filterEventsByWindow } from './team-digest';
 import { appendTrace, defaultNotify, type NotifyFn } from './governance-adapter';
 import { materializeTaskProposal } from './proposal-adapter';
 import { listCoreIds, loadCoreDef, type CoreDef } from '../services/agent-core';
@@ -294,6 +300,61 @@ export async function runSelfSurgeryOnce(
     reason: `surgery keep: ${decision.reason.slice(0, 80)}`,
   });
   return 'surgery:keep';
+}
+
+// ── Digest (LT-DIGEST) ───────────────────────────────────────
+export interface DigestDeps {
+  notify?: NotifyFn;
+  portfolio?: Portfolio;
+  events?: EvolutionEvent[];
+  healthSignals?: HealthSignals;
+  healthIssues?: HealthIssue[];
+  nowMs?: number;
+}
+
+/**
+ * #team-bus 주기 다이제스트 (1회·gated·best-effort, 기본 12h).
+ * ticker(evolution-observatory)와 ⊥: ticker=push event-driven, digest=pull time-driven.
+ * 진화 0 일 때도 "12h 진화 0 — stalled: X" 명시 → "cron 껍데기" 인지 직격.
+ * LLM 호출 없음(LT-QC 동형). 모든 source = 기존 substrate read-only.
+ */
+export async function runDigestOnce(
+  env: NodeJS.ProcessEnv,
+  deps: DigestDeps = {},
+): Promise<string> {
+  if (isKilled()) return 'killed';
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) return 'no-memo-root';
+
+  const nowMs = deps.nowMs ?? Date.now();
+  const intervalMs = Number(env.AGENT_DIGEST_INTERVAL_MS) || 12 * 3600_000;
+  const portfolio = deps.portfolio ?? loadPortfolio(memoRoot);
+  if (!shouldRunDigest(portfolio, nowMs, intervalMs)) return 'digest:skip';
+
+  const signals = deps.healthSignals ?? gatherHealthSignals(env, nowMs);
+  const issues = deps.healthIssues ?? diagnoseHealth(signals);
+  const allEvents = deps.events ?? readEvolutionEvents(env, 500);
+  const windowEvents = filterEventsByWindow(allEvents, nowMs - intervalMs);
+
+  const text = buildDigestText({
+    events: windowEvents,
+    portfolio,
+    signals,
+    issues,
+    windowMs: intervalMs,
+    nowMs,
+  });
+
+  const notify = deps.notify ?? defaultNotify(env);
+  notify(text);
+  recordDigest(memoRoot, new Date(nowMs).toISOString());
+  appendTrace(env, {
+    ts: new Date(nowMs).toISOString(),
+    type: 'drift',
+    core: 'digest',
+    reason: `digest ${Math.round(intervalMs / 3600_000)}h | events:${windowEvents.length} issues:${issues.length}`,
+  });
+  return 'digest:sent';
 }
 
 // ── Idle Chatter ─────────────────────────────────────────────

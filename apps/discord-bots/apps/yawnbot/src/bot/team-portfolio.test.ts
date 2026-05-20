@@ -11,6 +11,7 @@ import {
   buildRetroPrompt,
   shouldRunQualityCheck,
   buildQualityCheckMessage,
+  shouldRunDigest,
   type Portfolio,
   type PortfolioProject,
 } from './team-portfolio';
@@ -233,5 +234,53 @@ describe('buildQualityCheckMessage — 판정 요청 포함', () => {
     // 최신 2건(B,C) 포함, 오래된 A 는 잘림
     expect(msg).toContain('작업B');
     expect(msg).toContain('작업C');
+  });
+});
+
+describe('parsePortfolio top-level 보존 (LT-DIGEST · 기둥4 잠복 버그 fix)', () => {
+  it('lastSurgeryTs 보존 — 미보존 시 주기 게이트 영구 통과 (잠복)', () => {
+    const raw = JSON.stringify({
+      projects: [wm],
+      lastSurgeryTs: '2026-05-20T12:00:00Z',
+    });
+    expect(parsePortfolio(raw).lastSurgeryTs).toBe('2026-05-20T12:00:00Z');
+  });
+  it('lastDigestTs 보존', () => {
+    const raw = JSON.stringify({
+      projects: [wm],
+      lastDigestTs: '2026-05-20T12:00:00Z',
+    });
+    expect(parsePortfolio(raw).lastDigestTs).toBe('2026-05-20T12:00:00Z');
+  });
+  it('non-string top-level = undefined (견고)', () => {
+    const raw = JSON.stringify({ projects: [wm], lastDigestTs: 12345 });
+    expect(parsePortfolio(raw).lastDigestTs).toBeUndefined();
+  });
+});
+
+describe('shouldRunDigest — LT-DIGEST 주기 게이트', () => {
+  const INTERVAL = 12 * 3600_000;
+  it('lastDigestTs 없으면 즉시 실행', () => {
+    expect(shouldRunDigest({ projects: [] }, Date.now(), INTERVAL)).toBe(true);
+  });
+  it('주기 미경과 = skip', () => {
+    const now = Date.parse('2026-05-20T12:00:00Z');
+    const p: Portfolio = {
+      projects: [],
+      lastDigestTs: '2026-05-20T06:00:00Z', // 6h 전
+    };
+    expect(shouldRunDigest(p, now, INTERVAL)).toBe(false);
+  });
+  it('주기 경과 = 실행', () => {
+    const now = Date.parse('2026-05-20T12:00:00Z');
+    const p: Portfolio = {
+      projects: [],
+      lastDigestTs: '2026-05-19T23:00:00Z', // 13h 전
+    };
+    expect(shouldRunDigest(p, now, INTERVAL)).toBe(true);
+  });
+  it('lastDigestTs 파싱 실패 = 즉시 실행 (견고)', () => {
+    const p: Portfolio = { projects: [], lastDigestTs: 'not-a-date' };
+    expect(shouldRunDigest(p, Date.now(), INTERVAL)).toBe(true);
   });
 });
