@@ -109,7 +109,7 @@ import {
   runWorkerConsumerOnce, getLastWorkerCsv,
   type WorkerCore, type WorkerConsumerDeps, type WorktreeSetup,
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
-  ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw,
+  ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
 } from './agent-cadence-worker';
 import {
@@ -130,7 +130,7 @@ export { loadSkinPersona } from './agent-cadence-skin';
 export {
   type WorkerCore, type WorkerConsumerDeps, type WorktreeSetup,
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
-  ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw,
+  ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
   runWorkerConsumerOnce,
 } from './agent-cadence-worker';

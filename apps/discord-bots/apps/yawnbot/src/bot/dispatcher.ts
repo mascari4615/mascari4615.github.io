@@ -116,6 +116,15 @@ export interface Tier3Result {
   status: Tier3Status;
   text?: string;
   error?: string;
+  /**
+   * KAR-018-LT-W2-A: cli exit-1 시 untruncated stderr/stdout. error 메시지는
+   * chat 발화용 cap(1200/600), 본 두 필드는 worker 가 agent-worker-raw.jsonl
+   * diag entry 로 적재 → 다음 세션 grep 으로 진짜 원인 진단. substrate⊥ 유지
+   * (cli-claude 타입 import X — Error 객체 duck-type 으로 추출).
+   */
+  stderrFull?: string;
+  stdoutFull?: string;
+  exitCode?: number | null;
 }
 
 export interface Tier3Deps {
@@ -162,7 +171,23 @@ export async function spawnTier3(
     const text = await deps.run(req);
     return { status: 'done', text };
   } catch (e: unknown) {
-    return { status: 'error', error: e instanceof Error ? e.message : String(e) };
+    if (e instanceof Error) {
+      // TASK-KAR-018-LT-W2-A: cli-claude ClaudeCliError 가 stderrFull/stdoutFull/
+      // exitCode 부착(타입은 substrate⊥ 유지 위해 import X — duck-type 추출).
+      const diag = e as Error & {
+        stderrFull?: string;
+        stdoutFull?: string;
+        exitCode?: number | null;
+      };
+      return {
+        status: 'error',
+        error: e.message,
+        stderrFull: diag.stderrFull,
+        stdoutFull: diag.stdoutFull,
+        exitCode: diag.exitCode,
+      };
+    }
+    return { status: 'error', error: String(e) };
   } finally {
     deps.registry.release(req.core);
   }
