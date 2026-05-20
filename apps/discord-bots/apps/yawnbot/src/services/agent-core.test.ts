@@ -9,6 +9,7 @@ import os from 'os';
 import path from 'path';
 import {
   loadCoreDef,
+  parseCoreSkills,
   listCoreIds,
   resolveProposalCore,
   resolveAddressedCore,
@@ -106,6 +107,26 @@ describe('loadCoreDef', () => {
     const c = loadCoreDef(root, 'x');
     expect(c).not.toBeNull();
     expect(c!.role).toBe('');
+  });
+
+  it('skills inline list 를 정규화해 CoreDef.skills 로 싣는다', () => {
+    write(
+      'atlas',
+      [
+        '---',
+        'id: atlas',
+        'role: infra',
+        'skills: [task-new, diagnose-ladder, ../bad]',
+        '---',
+        '',
+        '# atlas',
+        '본문',
+      ].join('\n'),
+    );
+    const c = loadCoreDef(root, 'atlas')!;
+    expect(c.skills).toEqual(['task-new', 'diagnose-ladder']);
+    expect(parseCoreSkills('[]')).toEqual([]);
+    expect(parseCoreSkills('task-new')).toEqual([]);
   });
 });
 

@@ -15,6 +15,8 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
+  analyzeAgentTeamGaps,
+  buildGapDiscoveryContext,
   runCadenceTickOnce,
   disarmKill,
   resetDialogueDedupe,
@@ -49,6 +51,15 @@ function readProposals(): Array<Record<string, unknown>> {
     .split(/\r?\n/)
     .filter(Boolean)
     .map((l) => JSON.parse(l));
+}
+function writeTrace(reason: string, ts = new Date().toISOString()) {
+  const p = path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl');
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.appendFileSync(
+    p,
+    JSON.stringify({ ts, type: 'budget', core: 'test', reason }) + '\n',
+    'utf-8',
+  );
 }
 
 const SEED_BODY = '던전 드랍 테이블 원안 본문';
@@ -164,5 +175,62 @@ describe('runCadenceTickOnce — producer→dialogue→write-back 합성 (LT 안
     expect(r).not.toContain('deliberation');
     expect(r).not.toContain('producer:task-new');
     expect(readProposals().length).toBe(0);
+  });
+
+  it('LT-12: 헬스 이슈 0이면 producer LLM 호출 없이 gap-idle', async () => {
+    writeTrace('heartbeat ok');
+    const pf = JSON.parse(
+      fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
+    );
+    pf.projects[0].progressLog.push({
+      ts: new Date().toISOString(),
+      delta: 'recent progress',
+      evidence: 'test',
+    });
+    fs.writeFileSync(
+      path.join(root, '.claude', 'team-portfolio.json'),
+      JSON.stringify(pf),
+      'utf-8',
+    );
+
+    const r = await runCadenceTickOnce(env(), {
+      includeWorker: false,
+      producerOpts: {
+        reserve: () => true,
+        discover: async () => {
+          throw new Error('producer should not run when gap-analysis is clean');
+        },
+      },
+    });
+
+    expect(analyzeAgentTeamGaps(env()).shouldRun).toBe(false);
+    expect(r).toContain('idle→gap-idle');
+    expect(r).not.toContain('producer:');
+    expect(readProposals()).toHaveLength(0);
+  });
+
+  it('LT-12: 헬스 이슈가 있으면 gap-analysis 블록을 producer 입력으로 주입', async () => {
+    const r = await runCadenceTickOnce(env(), {
+      includeWorker: false,
+      producerOpts: {
+        reserve: () => true,
+        discover: async () =>
+          JSON.stringify({
+            kind: 'task',
+            projectId: 'wm',
+            payload: { title: '전진 기록 복구', body: 'gap issue', domain: 'WM' },
+          }),
+      },
+      dialogueDeps: {
+        reserve: () => false,
+      },
+    });
+
+    const gap = analyzeAgentTeamGaps(env());
+    expect(gap.shouldRun).toBe(true);
+    const ctx = buildGapDiscoveryContext(env(), gap);
+    expect(ctx).toContain('에이전트 팀 능력격차 입력');
+    expect(ctx).toContain('감지된 이슈');
+    expect(r).toContain('producer:task-new');
   });
 });

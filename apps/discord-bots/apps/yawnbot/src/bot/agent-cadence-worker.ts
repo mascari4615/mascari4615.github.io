@@ -23,6 +23,7 @@ import {
   listCoreIds,
   loadCoreDef,
   coreLabel,
+  appendCoreMemory,
   type CoreDef,
 } from '../services/agent-core';
 import {
@@ -45,6 +46,8 @@ export interface WorkerCore {
   machine: string;
   /** #team-bus 표시 (emoji displayName). */
   label: string;
+  /** core.md skills: [] 에 누적된 검증 자기 스킬. */
+  skills: string[];
 }
 
 /**
@@ -65,6 +68,7 @@ export function selectWorkerCores(defs: (CoreDef | null)[]): WorkerCore[] {
       domain,
       machine: (fm.machine || 'any').trim() || 'any',
       label: coreLabel(d),
+      skills: d.skills,
     });
   }
   return out;
@@ -98,6 +102,9 @@ export function detectDecisionNeeded(
  * channelContext (KAR-018-LT-W1) = #team-bus 최근 발언. 빈 문자열·undefined
  * 면 블록 미포함(5입력 호환). 워커가 자기·동료 직전 발언을 read 하여 같은
  * 사유 반복 announce 를 cite/dedupe 하라는 chat=state substrate 진입.
+ *
+ * skills (KAR-018-LT-15) = core.md frontmatter 에 누적된 검증 자기 스킬 id.
+ * 빈 배열·undefined = 블록 미포함.
  */
 export function buildWorkerPrompt(
   task: { id: string; file: string },
@@ -106,7 +113,16 @@ export function buildWorkerPrompt(
   worktreeBranch?: string,
   decisionsText?: string,
   channelContext?: string,
+  skills?: string[],
 ): string {
+  const skillBlock =
+    skills && skills.length > 0
+      ? [
+          '[검증된 자기 스킬 — 행동평가를 통과해 core.md skills 에 누적된 작업 방식]',
+          ...skills.map((s) => `- ${s}`),
+          '',
+        ]
+      : [];
   const specBlock = specText
     ? [
         `[TASK 스펙 — 아래 *내용* 이 정본. memo 는 cwd 밖이라 경로로 못 읽음]`,
@@ -150,6 +166,7 @@ export function buildWorkerPrompt(
     '',
     ...(decisionsText ? [decisionsText, ''] : []),
     ...channelBlock,
+    ...skillBlock,
     ...specBlock,
     '[절차]',
     `1. 위 [TASK 스펙] 본문 + cwd 내 코드·정본 정독. 진단 우선(가설 박기 X).`,
@@ -293,6 +310,21 @@ export function appendWorkerRaw(
       'utf-8',
     );
   } catch { /* best-effort */ }
+}
+
+function rememberWorkerOutcome(
+  memoRoot: string,
+  coreId: string,
+  taskId: string,
+  kind: 'fix' | 'fail' | 'decision',
+  summary: string,
+): void {
+  appendCoreMemory(memoRoot, coreId, {
+    session: 'worker',
+    type: kind,
+    topic: `worker:${taskId}`,
+    summary,
+  });
 }
 
 export async function voicedWorkerSpeak(
@@ -523,6 +555,7 @@ export async function runWorkerConsumerOnce(
         wt?.branch,
         formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) || undefined,
         channelContext,
+        w.skills,
       ),
       repoCwd: wt?.cwd,
     };
@@ -554,31 +587,55 @@ export async function runWorkerConsumerOnce(
     } finally {
       if (wt) cleanupWorkerWorktree(wt.repoRoot, wt.wtDir);
     }
-    appendTrace(env, {
-      ts: new Date().toISOString(),
-      type: 'budget',
-      core: w.coreId,
-      reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
-    });
-
     if (res.status === 'done') {
       const report = (res.text || '').trim().slice(0, 8000);
       const pushed = wt ? branchPushed(wt.repoRoot, wt.branch) : false;
       let head: string;
+      let traceStatus: 'done' | 'escalated' | 'done-no-artifact';
       if (pushed && wt) {
+        traceStatus = 'done';
         head = `${w.label} ▶ ${chosen.id} 수행 — 브랜치 \`${wt.branch}\` origin push 확인 (Draft PR 검토 대기). 도메인=${w.domain}`;
         results.push(`${w.coreId}:done:${chosen.id}`);
+        rememberWorkerOutcome(
+          memoRoot,
+          w.coreId,
+          chosen.id,
+          'fix',
+          `Draft PR 준비 완료: branch=${wt.branch}, domain=${w.domain}`,
+        );
       } else if (detectDecisionNeeded(specText, res.text)) {
+        traceStatus = 'escalated';
         release(chosen.id, w.coreId);
         markEscalated(chosen.id, tickNow);
         head = `${w.label} ⚠ ${chosen.id} = 사용자 결정 필요(type:design/escalate) — 자동 진행 불가. 이 스레드에서 결정해 주세요. 결정은 다음 워커 실행에 자동 반영됨. 도메인=${w.domain}`;
         results.push(`${w.coreId}:escalated:${chosen.id}`);
+        rememberWorkerOutcome(
+          memoRoot,
+          w.coreId,
+          chosen.id,
+          'decision',
+          `사용자 결정 필요로 escalated: domain=${w.domain}`,
+        );
       } else {
+        traceStatus = 'done-no-artifact';
         release(chosen.id, w.coreId);
         markNoArtifact(chosen.id, tickNow);
         head = `${w.label} ⚠ ${chosen.id} 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 점유 해제. 30분 쿨다운(다른 task 회전, 무한 재pick X). ${wt ? `(브랜치 ${wt.branch} 로컬뿐)` : `worktree 실패: ${wtErr}`}. 도메인=${w.domain}`;
         results.push(`${w.coreId}:done-no-artifact:${chosen.id}`);
+        rememberWorkerOutcome(
+          memoRoot,
+          w.coreId,
+          chosen.id,
+          'fail',
+          `실산출 0(done-no-artifact): ${wt ? `branch=${wt.branch} not pushed` : `worktree=${wtErr}`}`,
+        );
       }
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: w.coreId,
+        reason: `worker ${chosen.id} ${traceStatus}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
+      });
       await voicedWorkerSpeak(
         w.coreId,
         report ? `${head}\n· 보고: ${report}` : head,
@@ -586,6 +643,12 @@ export async function runWorkerConsumerOnce(
         loadSkinPersona(memoRoot, w.coreId),
       );
     } else {
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: w.coreId,
+        reason: `worker ${chosen.id} ${res.status}${wt ? ` agentic ${wt.branch}` : ` non-agentic(${wtErr})`}${res.error ? ` err=${res.error.replace(/\s+/g, ' ').slice(0, 200)}` : ''}`,
+      });
       release(chosen.id, w.coreId);
       // KAR-018-LT-W2: 같은 (task, errHash) 사다리 cooldown. 1-3회=30min,
       // 4-9회=6h, 10+회=24h. 다른 errHash 면 count reset(현행 동작 유지).
@@ -599,6 +662,14 @@ export async function runWorkerConsumerOnce(
       const repeatTag = repeatCount > 1
         ? ` · 같은 사유 ${repeatCount}회 — cooldown ${cooldownLabel}`
         : '';
+      // KAR-018-LT-16: 결과를 work-memory 에 append → 다음 대화 자기 기억.
+      rememberWorkerOutcome(
+        memoRoot,
+        w.coreId,
+        chosen.id,
+        'fail',
+        `${res.status}${wt ? ` on ${wt.branch}` : ` non-agentic:${wtErr}`}${errDetail ? ` — ${errDetail.slice(0, 200)}` : ''}`,
+      );
       await voicedWorkerSpeak(
         w.coreId,
         `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기${repeatTag}. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,

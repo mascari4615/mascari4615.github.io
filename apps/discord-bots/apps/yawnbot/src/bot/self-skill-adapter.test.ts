@@ -7,7 +7,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { runSelfSkill, type SelfSkillDeps } from './self-skill-adapter';
+import {
+  applyRosterSkillToCore,
+  runSelfSkill,
+  type SelfSkillDeps,
+} from './self-skill-adapter';
 import type { SkillProposal, SkillEvalResults } from './self-skill';
 import { archivePath } from './self-improve-adapter';
 import { approvalsPath } from './governance-adapter';
@@ -37,6 +41,30 @@ function deps(over: Partial<SelfSkillDeps> = {}): SelfSkillDeps {
 function envObj() {
   return { MEMO_REPO_PATH: root } as NodeJS.ProcessEnv;
 }
+function writeCore(id = 'atlas', skills = '[]') {
+  const dir = path.join(root, '.claude', 'agents', id);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, 'core.md'),
+    [
+      '---',
+      `id: ${id}`,
+      'role: infra',
+      `skills: ${skills}`,
+      'status: active',
+      '---',
+      '# core',
+      '',
+    ].join('\n'),
+    'utf-8',
+  );
+}
+function readCore(id = 'atlas') {
+  return fs.readFileSync(
+    path.join(root, '.claude', 'agents', id, 'core.md'),
+    'utf-8',
+  );
+}
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'sk-'));
@@ -61,6 +89,30 @@ describe('runSelfSkill — accept', () => {
     const out = await runSelfSkill(meta, deps());
     expect(out.verdict.kind).toBe('accept');
     expect(out.rosterApplied).toBe(false);
+  });
+
+  it('LT-13: DI 미배선이어도 core.md skills 에 기본 적용', async () => {
+    writeCore('atlas', '[]');
+    const out = await runSelfSkill(meta, deps());
+    expect(out.verdict.kind).toBe('accept');
+    expect(out.rosterApplied).toBe(true);
+    expect(readCore()).toContain('skills: [diagnose-ladder]');
+  });
+
+  it('LT-13: 기본 roster 적용은 멱등이고 기존 skills 를 보존', async () => {
+    writeCore('atlas', '[task-new]');
+    expect(applyRosterSkillToCore(envObj(), meta)).toBe(true);
+    expect(applyRosterSkillToCore(envObj(), meta)).toBe(true);
+    const raw = readCore();
+    expect(raw).toContain('skills: [task-new, diagnose-ladder]');
+    expect(raw.match(/diagnose-ladder/g)).toHaveLength(1);
+  });
+
+  it('LT-13: 낯선 skills 형식은 파일 손상 없이 보류', async () => {
+    writeCore('atlas', '');
+    const before = readCore();
+    expect(applyRosterSkillToCore(envObj(), meta)).toBe(false);
+    expect(readCore()).toBe(before);
   });
 });
 

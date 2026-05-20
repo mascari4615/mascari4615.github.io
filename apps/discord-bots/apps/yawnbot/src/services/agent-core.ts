@@ -28,6 +28,8 @@ export interface CoreDef {
   displayName: string;
   /** core.md 본문 (직무/경계/에스컬레이션 등 — 정체성 상세). */
   body: string;
+  /** 검증 후 core.md frontmatter 에 누적된 자기 스킬 id 목록. */
+  skills: string[];
   frontmatter: Record<string, string>;
 }
 
@@ -56,6 +58,18 @@ function parseFrontmatter(raw: string): {
 
 const SAFE_ID = /^[a-z0-9][a-z0-9_-]*$/;
 
+/** frontmatter inline list (`[]`, `[a, b]`) 파서. 알 수 없는 형식은 빈 배열. */
+export function parseCoreSkills(raw: string | undefined): string[] {
+  const text = (raw || '').trim();
+  if (!text || text === '[]') return [];
+  const m = text.match(/^\[(.*)\]$/);
+  if (!m) return [];
+  return m[1]
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => SAFE_ID.test(s));
+}
+
 /**
  * 코어 정의 로드. 부재·형식이상·잘못된 id = null (caller=레거시 스킨
  * 단독 경로로 graceful fallback). spawn LLM 아닌 *어댑터*가 fs 읽음.
@@ -80,6 +94,7 @@ export function loadCoreDef(memoRoot: string, coreId: string): CoreDef | null {
         data.display_name?.trim() ||
         resolvedId.charAt(0).toUpperCase() + resolvedId.slice(1),
       body,
+      skills: parseCoreSkills(data.skills),
       frontmatter: data,
     };
   } catch {

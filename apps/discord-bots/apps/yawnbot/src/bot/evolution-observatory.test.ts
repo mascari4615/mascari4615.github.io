@@ -9,8 +9,12 @@ import {
   eventFingerprint,
   evolutionLedgerPath,
   formatEvolutionSummary,
+  formatRecentEvolutionForDiscovery,
   normalizeHealthEvents,
+  normalizePromotionEvents,
   normalizeTraceEvents,
+  promotionTracePath,
+  readPromotionEntries,
   readTraceEntries,
   summarizeRecentEvolutionEvents,
   runEvolutionObservatoryOnce,
@@ -45,6 +49,12 @@ const issues: HealthIssue[] = [
 
 function appendTrace(entry: TraceEntry): void {
   const filePath = tracePath(env());
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.appendFileSync(filePath, JSON.stringify(entry) + '\n', 'utf-8');
+}
+
+function appendPromotion(entry: Record<string, unknown>): void {
+  const filePath = promotionTracePath(env());
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.appendFileSync(filePath, JSON.stringify(entry) + '\n', 'utf-8');
 }
@@ -103,6 +113,32 @@ describe('normalizeTraceEvents', () => {
   });
 });
 
+describe('normalizePromotionEvents', () => {
+  it('turns self-augmentation promote/revert records into evolution events', () => {
+    const events = normalizePromotionEvents([
+      {
+        ts: '2026-05-19T00:00:00Z',
+        coreId: 'scout',
+        action: 'promoted',
+        reason: '구조검증+비충돌 PASS',
+      },
+      {
+        ts: '2026-05-19T00:10:00Z',
+        coreId: 'scout',
+        action: 'reverted',
+        reason: 'done 비율 0/4(0.00) < 0.34 — 퇴행',
+      },
+    ]);
+    expect(events.map((e) => e.code)).toEqual(['core-promoted', 'core-reverted']);
+    expect(events[0]).toMatchObject({
+      severity: 'info',
+      source: 'self-augment',
+      subject: 'scout',
+    });
+    expect(events[1].severity).toBe('critical');
+  });
+});
+
 describe('summary and ledger IO', () => {
   it('summarizes events by severity, code, source, and subject', () => {
     const events = [
@@ -123,11 +159,14 @@ describe('summary and ledger IO', () => {
   it('reads trace entries, collects normalized events, and appends a ledger', () => {
     appendTrace({ ts: '2026-05-19T00:00:00Z', core: 'wm-worker', reason: 'worker TASK-WM-001 done-no-artifact' });
     appendTrace({ ts: '2026-05-19T00:01:00Z', core: 'producer', reason: 'producer parse-fail invalid json' });
+    appendPromotion({ ts: '2026-05-19T00:02:00Z', coreId: 'scout', action: 'promoted', reason: 'PASS' });
 
     expect(readTraceEntries(env())).toHaveLength(2);
+    expect(readPromotionEntries(env())).toHaveLength(1);
     const events = collectEvolutionEvents(env(), signals, issues, Date.parse('2026-05-19T01:00:00Z'));
     expect(events.map((e) => e.code)).toContain('worker-no-artifact');
     expect(events.map((e) => e.code)).toContain('proposal-parse-fail');
+    expect(events.map((e) => e.code)).toContain('core-promoted');
 
     appendEvolutionEvents(env(), events);
     const lines = fs.readFileSync(evolutionLedgerPath(env()), 'utf-8').trim().split(/\r?\n/);
@@ -147,11 +186,13 @@ describe('summary and ledger IO', () => {
     const lines = fs.readFileSync(evolutionLedgerPath(env()), 'utf-8').trim().split(/\r?\n/);
     expect(lines).toHaveLength(1);
     expect(summarizeRecentEvolutionEvents(env()).byCode['worker-no-artifact']).toBe(1);
+    expect(formatRecentEvolutionForDiscovery(env())).toContain('worker-no-artifact');
   });
 
   it('runs an observatory tick, appends only fresh events, and notifies summary', () => {
     const notes: string[] = [];
     appendTrace({ ts: '2026-05-19T00:00:00Z', core: 'wm-worker', reason: 'worker TASK-WM-001 done-no-artifact' });
+    appendPromotion({ ts: '2026-05-19T00:02:00Z', coreId: 'scout', action: 'promoted', reason: 'PASS' });
 
     const first = runEvolutionObservatoryOnce(env(), {
       healthSignals: signals,
@@ -166,9 +207,9 @@ describe('summary and ledger IO', () => {
       nowMs: Date.parse('2026-05-19T01:01:00Z'),
     });
 
-    expect(first.observed).toBe(3);
-    expect(first.appended).toBe(3);
-    expect(second.observed).toBe(3);
+    expect(first.observed).toBe(4);
+    expect(first.appended).toBe(4);
+    expect(second.observed).toBe(4);
     expect(second.appended).toBe(0);
     expect(notes).toHaveLength(1);
     expect(notes[0]).toContain('worker-no-artifact');

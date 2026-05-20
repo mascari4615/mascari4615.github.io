@@ -8,7 +8,12 @@ import {
 } from './system-health';
 
 export type EvolutionSeverity = 'info' | 'warn' | 'critical';
-export type EvolutionSource = 'health' | 'trace' | 'portfolio' | 'proposal';
+export type EvolutionSource =
+  | 'health'
+  | 'trace'
+  | 'portfolio'
+  | 'proposal'
+  | 'self-augment';
 
 export interface EvolutionMetric {
   name: string;
@@ -31,6 +36,13 @@ export interface TraceEntry {
   ts?: string;
   type?: string;
   core?: string;
+  reason?: string;
+}
+
+export interface PromotionEntry {
+  ts?: string;
+  coreId?: string;
+  action?: 'promoted' | 'reverted';
   reason?: string;
 }
 
@@ -192,6 +204,31 @@ export function normalizeTraceEvents(
   return events;
 }
 
+export function normalizePromotionEvents(
+  entries: PromotionEntry[],
+  nowMs: number = Date.now(),
+): EvolutionEvent[] {
+  const fallbackTs = isoNow(nowMs);
+  const events: EvolutionEvent[] = [];
+  for (const entry of entries) {
+    if (!entry.coreId || !entry.action) continue;
+    const promoted = entry.action === 'promoted';
+    events.push({
+      ts: entry.ts || fallbackTs,
+      code: promoted ? 'core-promoted' : 'core-reverted',
+      severity: promoted ? 'info' : 'critical',
+      source: 'self-augment',
+      subject: entry.coreId,
+      detail: promoted
+        ? `Core ${entry.coreId} passed self-augmentation promotion gates and became active.`
+        : `Core ${entry.coreId} regressed after promotion and was reverted to draft.`,
+      metrics: [metric('count', 1)],
+      evidence: `${entry.action}: ${entry.reason || ''}`.slice(0, 240),
+    });
+  }
+  return events;
+}
+
 export function summarizeEvolutionEvents(
   events: EvolutionEvent[],
 ): EvolutionSummary {
@@ -285,6 +322,11 @@ export function tracePath(env: NodeJS.ProcessEnv): string {
   return root ? path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl') : '';
 }
 
+export function promotionTracePath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'agent-core-promotion.jsonl') : '';
+}
+
 export function readTraceEntries(env: NodeJS.ProcessEnv): TraceEntry[] {
   const filePath = tracePath(env);
   if (!filePath || !fs.existsSync(filePath)) return [];
@@ -295,6 +337,26 @@ export function readTraceEntries(env: NodeJS.ProcessEnv): TraceEntry[] {
       if (!trimmed) continue;
       try {
         entries.push(JSON.parse(trimmed) as TraceEntry);
+      } catch {
+        entries.push({});
+      }
+    }
+  } catch {
+    return [];
+  }
+  return entries;
+}
+
+export function readPromotionEntries(env: NodeJS.ProcessEnv): PromotionEntry[] {
+  const filePath = promotionTracePath(env);
+  if (!filePath || !fs.existsSync(filePath)) return [];
+  const entries: PromotionEntry[] = [];
+  try {
+    for (const line of fs.readFileSync(filePath, 'utf-8').split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        entries.push(JSON.parse(trimmed) as PromotionEntry);
       } catch {
         entries.push({});
       }
@@ -348,6 +410,7 @@ export function collectEvolutionEvents(
   return [
     ...normalizeHealthEvents(signals, issues, nowMs),
     ...normalizeTraceEvents(readTraceEntries(env), nowMs),
+    ...normalizePromotionEvents(readPromotionEntries(env), nowMs),
   ];
 }
 
@@ -359,9 +422,11 @@ export function runEvolutionObservatoryOnce(
   const signals = deps.healthSignals ?? gatherHealthSignals(env, nowMs);
   const issues = deps.healthIssues ?? diagnoseHealth(signals);
   const traceEntries = deps.traceEntries ?? readTraceEntries(env);
+  const promotionEntries = readPromotionEntries(env);
   const observed = [
     ...normalizeHealthEvents(signals, issues, nowMs),
     ...normalizeTraceEvents(traceEntries, nowMs),
+    ...normalizePromotionEvents(promotionEntries, nowMs),
   ];
   const appended = appendNewEvolutionEvents(env, observed);
   const summary = summarizeEvolutionEvents(appended);
@@ -373,6 +438,22 @@ export function runEvolutionObservatoryOnce(
     appended: appended.length,
     summary,
   };
+}
+
+export function formatRecentEvolutionForDiscovery(
+  env: NodeJS.ProcessEnv,
+  limit = 12,
+): string {
+  const events = readEvolutionEvents(env, limit);
+  if (events.length === 0) return '';
+  return events
+    .slice(-Math.max(1, limit))
+    .map(
+      (event) =>
+        `- [${event.severity}] ${event.code} / ${event.subject}: ${event.detail}`,
+    )
+    .join('\n')
+    .slice(0, 1400);
 }
 
 export function formatEvolutionSummary(summary: EvolutionSummary): string {

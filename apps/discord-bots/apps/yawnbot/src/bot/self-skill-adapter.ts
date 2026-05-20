@@ -5,8 +5,10 @@
  * archive/escalate/roster write 사이. 평행정의0 — sub-C·D 어댑터 재사용:
  *  · archive = sub-C `appendArchive`(improvement-archive/<date>.jsonl)
  *  · escalate = sub-D `appendApproval`+`hasPending`(pending) + `NotifyFn`
- *  · accept → roster.skills 추가 = DI(core.md authoring=sub-E 영역, seam만)
+ *  · accept → roster.skills 추가 = 기본 core.md writer + DI override
  */
+import fs from 'fs';
+import path from 'path';
 import {
   evaluateSkill,
   toSkillArchiveLine,
@@ -40,6 +42,87 @@ export interface SelfSkillDeps {
 export interface SelfSkillOutcome {
   verdict: SkillVerdict;
   rosterApplied: boolean;
+}
+
+const SAFE_CORE_ID = /^[a-z0-9][a-z0-9_-]*$/;
+const SAFE_SKILL_NAME = /^[a-z0-9][a-z0-9._/-]{0,80}$/i;
+
+function memoRoot(env: NodeJS.ProcessEnv): string {
+  return env.MEMO_REPO_PATH?.trim() || '';
+}
+
+function parseInlineList(raw: string): string[] | null {
+  const t = raw.trim();
+  if (t === '[]') return [];
+  const m = /^\[(.*)\]$/.exec(t);
+  if (!m) return null;
+  const body = m[1].trim();
+  if (!body) return [];
+  return body
+    .split(',')
+    .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
+    .filter(Boolean);
+}
+
+function formatInlineList(values: string[]): string {
+  return `[${values.join(', ')}]`;
+}
+
+/**
+ * LT-13: 검증된 자기 스킬을 실제 코어 frontmatter `skills` 에 멱등
+ * 반영한다. YAML 전체 파서 도입 없이 기존 core.md inline-list 관례만
+ * 다룬다. 낯선 형식은 false 로 보류해 코어 파일을 망가뜨리지 않는다.
+ */
+export function applyRosterSkillToCore(
+  env: NodeJS.ProcessEnv,
+  meta: SkillProposal,
+): boolean {
+  const root = memoRoot(env);
+  const coreId = meta.coreId.trim();
+  const skillName = meta.name.trim();
+  if (!root || !SAFE_CORE_ID.test(coreId) || !SAFE_SKILL_NAME.test(skillName)) {
+    return false;
+  }
+  const filePath = path.join(root, '.claude', 'agents', coreId, 'core.md');
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const nl = raw.includes('\r\n') ? '\r\n' : '\n';
+    const lines = raw.split(/\r?\n/);
+    if (lines[0]?.trim() !== '---') return false;
+    let end = -1;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim() === '---') {
+        end = i;
+        break;
+      }
+    }
+    if (end < 0) return false;
+
+    let skillsLine = -1;
+    for (let i = 1; i < end; i++) {
+      if (/^skills\s*:/.test(lines[i])) {
+        skillsLine = i;
+        break;
+      }
+    }
+
+    if (skillsLine < 0) {
+      lines.splice(end, 0, `skills: ${formatInlineList([skillName])}`);
+      fs.writeFileSync(filePath, lines.join(nl), 'utf-8');
+      return true;
+    }
+
+    const currentRaw = lines[skillsLine].slice(lines[skillsLine].indexOf(':') + 1);
+    const current = parseInlineList(currentRaw);
+    if (!current) return false;
+    if (current.includes(skillName)) return true;
+    current.push(skillName);
+    lines[skillsLine] = `skills: ${formatInlineList(current)}`;
+    fs.writeFileSync(filePath, lines.join(nl), 'utf-8');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -79,24 +162,26 @@ export async function runSelfSkill(
     return { verdict, rosterApplied: false };
   }
 
-  // accept → roster.skills 추가 (core.md authoring=sub-E 영역, DI seam)
+  // accept → roster.skills 추가. DI override 가 없으면 기본 core.md writer.
   let rosterApplied = false;
-  if (deps.applyRosterSkill) {
-    try {
+  try {
+    if (deps.applyRosterSkill) {
       await deps.applyRosterSkill(meta);
       rosterApplied = true;
-    } catch (e) {
-      notify(
-        `스킬 ${meta.id} accept 했으나 roster 적용 실패: ${
-          e instanceof Error ? e.message : String(e)
-        }`,
-      );
-      return { verdict, rosterApplied: false };
+    } else {
+      rosterApplied = applyRosterSkillToCore(deps.env, meta);
     }
+  } catch (e) {
+    notify(
+      `스킬 ${meta.id} accept 했으나 roster 적용 실패: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
+    return { verdict, rosterApplied: false };
   }
   notify(
     `스킬 accept: ${meta.id}(${meta.name}) → roster.skills ${
-      rosterApplied ? '추가' : '(applyRosterSkill 미배선 — sub-E 랜딩 시)'
+      rosterApplied ? '추가' : '적용 보류(core.md 부재·형식 불일치)'
     }`,
   );
   return { verdict, rosterApplied };

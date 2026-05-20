@@ -20,6 +20,8 @@ import {
   type ObjectivePayload,
 } from './proposal';
 import type { AgentSpec } from './agent-factory';
+import type { ProposalMeta } from './self-improve';
+import type { SkillProposal } from './self-skill';
 import { loadPortfolio, validateProjectCitation } from './team-portfolio';
 import {
   appendTrace,
@@ -505,6 +507,50 @@ export function materializeTaskProposal(
   }
 }
 
+export function materializeEngineProposalAsTask(
+  env: NodeJS.ProcessEnv,
+  envelope: Extract<ProposalEnvelope, { kind: 'env' | 'skill' }>,
+  opts: { autoReady?: boolean } = {},
+): string | null {
+  const payload = envelope.payload as ProposalMeta | SkillProposal;
+  const title =
+    envelope.kind === 'env'
+      ? `자가개선 검증: ${(payload as ProposalMeta).summary}`
+      : `자가스킬 검증: ${(payload as SkillProposal).name}`;
+  const body =
+    envelope.kind === 'env'
+      ? [
+          '## 자가개선 환경 트랙 제안',
+          '',
+          `- proposalId: ${(payload as ProposalMeta).id}`,
+          `- source: ${(payload as ProposalMeta).source}`,
+          `- summary: ${(payload as ProposalMeta).summary}`,
+          `- targetFiles: ${(payload as ProposalMeta).targetFiles.join(', ')}`,
+          '',
+          '## 작업',
+          '',
+          '- 제안이 실제로 필요한지 코드/문서를 확인한다.',
+          '- 필요한 경우 feature branch + Draft PR 로만 산출한다.',
+          '- compile/test/hook/baseline 검증 결과를 PR 본문에 남긴다.',
+        ].join('\n')
+      : [
+          '## 자가스킬 행동평가 제안',
+          '',
+          `- proposalId: ${(payload as SkillProposal).id}`,
+          `- coreId: ${(payload as SkillProposal).coreId}`,
+          `- skillName: ${(payload as SkillProposal).name}`,
+          `- source: ${(payload as SkillProposal).source}`,
+          `- summary: ${(payload as SkillProposal).summary}`,
+          '',
+          '## 작업',
+          '',
+          '- 스킬이 실제 반복 행동을 개선하는지 회귀 시나리오를 정의한다.',
+          '- persona-core 변경 없이 적용 가능한지 검증한다.',
+          '- accept 가능하면 core.md skills 반영 또는 후속 PR 근거를 남긴다.',
+        ].join('\n');
+  return materializeTaskProposal(env, { title, body, domain: 'yb' }, opts);
+}
+
 function objectivesPath(env: NodeJS.ProcessEnv): string {
   const root = env.MEMO_REPO_PATH?.trim() || '';
   return root ? path.join(root, '.claude', 'objectives.md') : '';
@@ -655,7 +701,7 @@ export function materializeAgentProposal(
       '',
       '## 상태',
       '',
-      '`status: draft` — ⑤ 팩토리가 spec 검증(②)+사람 승인(④) 후 머터리얼라이즈한 Draft. **active 전이·채널 바인딩은 별도 사람 게이트**(자동 활성화 절대 X — agent-factory-adapter 불변식). atlas/echo 와 동형으로 첫 사용처에서 검토·승격.',
+      '`status: draft` — ⑤ 팩토리가 spec 검증(②)+사람 승인(④) 후 머터리얼라이즈한 Draft. active 전이는 LT-11 자가증강 승격 게이트(구조검증+비충돌+사후측정)가 처리한다. 채널 바인딩·비전/페르소나 변경은 별도 사람 게이트.',
       '',
     ].join('\n');
     fs.mkdirSync(path.dirname(absCore), { recursive: true });
@@ -685,9 +731,10 @@ export function materializeAgentProposal(
 
 /**
  * 인박스 1회 소비: 승인(approvals.jsonl approved)된 발굴 머터리얼라이즈
- * (멱등 = materialized.jsonl). 지원 kind: `task`→seed TASK,
- * `objective`→objectives.md proposed 행, `agent`→`.claude/agents/
- * <id>/core.md` **Draft** (전부 사람 승격/활성 게이트 = W-4·불변식).
+ * (멱등 = materialized.jsonl). 지원 kind: `task`→seed/ready TASK,
+ * `env|skill`→검증 TASK, `objective`→objectives.md proposed 행, `agent`→`.claude/agents/
+ * <id>/core.md` **Draft** + LT-11 승격 후보 enqueue (active flip 은
+ * 구조검증+비충돌+사후측정 게이트).
  * kill·미승인·미지원kind·이미처리 = skip. *블록 X* (백그라운드 자율종료).
  * env/skill kind = 엔진 실행 트랙(sub-E) — 본 소비자 미처리(inert).
  * @returns 이번에 머터리얼라이즈한 건수.
@@ -702,7 +749,13 @@ export async function runInboxConsumerOnce(
   const seen = new Set<string>();
   for (const e of readInboxProposals(env)) {
     if (
-      (e.kind !== 'task' && e.kind !== 'objective' && e.kind !== 'agent') ||
+      (
+        e.kind !== 'task' &&
+        e.kind !== 'env' &&
+        e.kind !== 'skill' &&
+        e.kind !== 'objective' &&
+        e.kind !== 'agent'
+      ) ||
       seen.has(e.id) ||
       done.has(e.id)
     ) {
@@ -710,17 +763,23 @@ export async function runInboxConsumerOnce(
     }
     seen.add(e.id);
     // task kind = 미션 §2.3 "일반 코드 자율" — 사람 승인 게이트 없음.
-    // objective/agent kind = 기존대로 사람 승인 필요.
+    // env/skill/objective/agent kind = 기존대로 사람 승인 필요.
     if (e.kind !== 'task' && !isObjectiveApproved(env, e.id)) continue;
     const desc =
       e.kind === 'task'
         ? materializeTaskProposal(env, e.envelope.payload as TaskSeedPayload, { autoReady: opts.autoReady })
-        : e.kind === 'agent'
-          ? materializeAgentProposal(env, e.envelope.payload as AgentSpec)
-          : materializeObjectiveProposal(
+        : e.kind === 'env' || e.kind === 'skill'
+          ? materializeEngineProposalAsTask(
               env,
-              e.envelope.payload as ObjectivePayload,
-            );
+              e.envelope as Extract<ProposalEnvelope, { kind: 'env' | 'skill' }>,
+              { autoReady: opts.autoReady },
+            )
+          : e.kind === 'agent'
+            ? materializeAgentProposal(env, e.envelope.payload as AgentSpec)
+            : materializeObjectiveProposal(
+                env,
+                e.envelope.payload as ObjectivePayload,
+              );
     if (!desc) {
       notify(
         `⑦' 승인 발굴 ${e.id}(${e.kind}) 머터리얼라이즈 실패 ` +
@@ -749,6 +808,10 @@ export async function runInboxConsumerOnce(
           ? opts.autoReady
             ? '(status:ready — 워커 즉시 픽업, Draft PR 후 사람 검토)'
             : '(status:seed — 사람이 ready 승격 시 진행)'
+          : e.kind === 'env' || e.kind === 'skill'
+            ? opts.autoReady
+              ? '(검증 TASK status:ready — 워커가 구현·검증 후 Draft PR)'
+              : '(검증 TASK status:seed — 사람이 ready 승격 시 진행)'
           : e.kind === 'agent'
             ? '(core.md status:draft — 자가증강 승격 게이트 대기, LT-11)'
             : '(status:proposed — 사람이 active 승격 시 cadence 픽업)'),
