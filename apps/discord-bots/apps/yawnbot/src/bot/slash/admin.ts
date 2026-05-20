@@ -146,19 +146,23 @@ export async function handleAdminWorkerTick(
   const taskBare = taskInput.replace(/^TASK-/, '');
 
   // task 지정 시 메모 dir 에서 파일 lookup (manual override = scan/cooldown 우회).
+  // prod(memo standalone) = MEMO_REPO_PATH/tasks · 로컬(umbrella) = MEMO_REPO_PATH/memo/tasks.
+  // resolveTaskRoot 동치: .claude 있으면 standalone, 없으면 umbrella.
   let forcedTaskFile: string | null = null;
   if (taskBare) {
     const memoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
-    const tasksDir = path.join(memoRoot, 'memo', 'tasks');
+    const isMemoStandalone = fs.existsSync(path.join(memoRoot, '.claude'));
+    const tasksRel = isMemoStandalone ? 'tasks' : path.join('memo', 'tasks');
+    const tasksDir = path.join(memoRoot, tasksRel);
     try {
       const files = fs.readdirSync(tasksDir).filter((f) =>
         f === `TASK-${taskBare}.md` || f.startsWith(`TASK-${taskBare}-`),
       );
-      if (files.length > 0) forcedTaskFile = path.join('memo', 'tasks', files[0]);
+      if (files.length > 0) forcedTaskFile = path.join(tasksRel, files[0]);
     } catch { /* memoRoot 없음/접근불가 → forcedTaskFile null 유지 */ }
     if (!forcedTaskFile) {
       await interaction.reply({
-        content: `⚠ TASK 파일을 못 찾음: \`TASK-${taskBare}*.md\` (memo/tasks/)`,
+        content: `⚠ TASK 파일을 못 찾음: \`TASK-${taskBare}*.md\` (${tasksRel}/)`,
         flags: MessageFlags.Ephemeral,
       });
       return;
