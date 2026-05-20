@@ -4,6 +4,7 @@ import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
 import { isDigestCommit, handleDigestCommit } from '../services/digest-webhook';
+import { syncTaskStatusOnPrMerge } from '../services/task-status-sync';
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
   const app = express();
@@ -160,6 +161,27 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
           );
         }
       }
+
+      // TASK-KAR-092: PR merge → TASK status 자동 sync (비동기 — 임베드 전송 비차단).
+      if (event === 'pull_request' && payload.action === 'closed' && payload.pull_request?.merged) {
+        const pr = payload.pull_request;
+        void syncTaskStatusOnPrMerge(process.env, {
+          prNumber: pr.number,
+          prTitle: pr.title,
+        })
+          .then(async (r) => {
+            if (r.outcome === 'no-change' || !r.summaryLine) return;
+            console.log(`[task-status-sync] ${r.outcome}: pushed=${r.pushed} skipped=${r.skipped} errors=${r.errors.length}`);
+            for (const channelId of channelIds) {
+              const channel = await client.channels.fetch(channelId).catch(() => null);
+              if (channel?.isSendable()) {
+                await channel.send({ content: r.summaryLine }).catch(() => {});
+              }
+            }
+          })
+          .catch((e) => console.error('[task-status-sync] error:', e?.message ?? e));
+      }
+
       res.sendStatus(200);
     } catch (err: any) {
       console.error('[Webhook] Error:', err?.message ?? err);
