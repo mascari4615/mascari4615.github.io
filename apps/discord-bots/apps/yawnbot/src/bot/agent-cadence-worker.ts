@@ -33,6 +33,7 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinPersona } from './agent-cadence-skin';
+import { fetchTeamBusContext as defaultFetchTeamBusContext } from './team-bus-fetcher';
 
 // ── WorkerCore ───────────────────────────────────────────────
 export interface WorkerCore {
@@ -92,6 +93,10 @@ export function detectDecisionNeeded(
 
 /**
  * 워커 tier3 지시 프롬프트 (순수). autopilot 안전 룰셋.
+ *
+ * channelContext (KAR-018-LT-W1) = #team-bus 최근 발언. 빈 문자열·undefined
+ * 면 블록 미포함(5입력 호환). 워커가 자기·동료 직전 발언을 read 하여 같은
+ * 사유 반복 announce 를 cite/dedupe 하라는 chat=state substrate 진입.
  */
 export function buildWorkerPrompt(
   task: { id: string; file: string },
@@ -99,6 +104,7 @@ export function buildWorkerPrompt(
   specText?: string,
   worktreeBranch?: string,
   decisionsText?: string,
+  channelContext?: string,
 ): string {
   const specBlock = specText
     ? [
@@ -109,6 +115,17 @@ export function buildWorkerPrompt(
         '',
       ]
     : [`[스펙 파일] ${task.file} (내용 임베드 실패 — cwd 내 단서로 진단)`, ''];
+  const channelBlock = channelContext && channelContext.trim()
+    ? [
+        `[팀 최근 채팅 — 너·동료들의 직전 발언. 같은 사유·결론 반복 X.`,
+        `이미 누군가 같은 (TASK·에러) announce 했으면 그 사실을 cite 하고`,
+        `다른 가설/접근으로 진입하거나 멈춰라. 새 정보·관점이면 응답·반응.]`,
+        '<<<CHANNEL',
+        channelContext.trim().slice(0, 3000),
+        'CHANNEL',
+        '',
+      ]
+    : [];
   const step2 = worktreeBranch
     ? [
         `2. 너는 *이미* 격리 worktree(현재 cwd) 안, 브랜치 \`${worktreeBranch}\``,
@@ -131,6 +148,7 @@ export function buildWorkerPrompt(
     `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
     '',
     ...(decisionsText ? [decisionsText, ''] : []),
+    ...channelBlock,
     ...specBlock,
     '[절차]',
     `1. 위 [TASK 스펙] 본문 + cwd 내 코드·정본 정독. 진단 우선(가설 박기 X).`,
@@ -236,6 +254,12 @@ export interface WorkerConsumerDeps {
   notify?: NotifyFn;
   speak?: CoreSpeakFn;
   voice?: (prompt: string) => Promise<string>;
+  /**
+   * #team-bus 최근 N 발언 fetch (KAR-018-LT-W1). 미주입 = chat=state 비활성
+   * (현행 5입력 호환). 실패 시 undefined 반환(silent X — 호출 측이 fallback).
+   * Phase 2 (LT-W1-WIRE) 가 main.ts startup 에서 wire.
+   */
+  fetchTeamBusContext?: (limit: number) => Promise<string | undefined>;
   missionText?: string;
 }
 
@@ -413,6 +437,25 @@ export async function runWorkerConsumerOnce(
     let specText: string | undefined;
     try { specText = fs.readFileSync(path.join(memoRoot, chosen.file), 'utf-8'); } catch { specText = undefined; }
 
+    // KAR-018-LT-W1: chat=state inject. deps 미주입 = module-level fallback
+    // (LT-W1-WIRE: main.ts startup 이 setTeamBusContextFetcher 로 wire).
+    // fetch 실패·wire 안 됨 = undefined → 5입력 호환(블록 미포함).
+    const fetchCtx = deps.fetchTeamBusContext ?? defaultFetchTeamBusContext;
+    let channelContext: string | undefined;
+    try {
+      channelContext = await fetchCtx(20);
+    } catch (e) {
+      // chat=state fetch 실패 = silent X (drift trace 1줄). 워커는 5입력
+      // fallback 으로 계속 — 채팅 read 만 누락, TASK 실행 자체는 진행.
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: w.coreId,
+        reason: `team-bus-fetch-fail: ${String(e).replace(/\s+/g, ' ').slice(0, 200)}`,
+      });
+      channelContext = undefined;
+    }
+
     const req: Tier3Request = {
       core: w.coreId,
       machine: w.machine,
@@ -422,6 +465,7 @@ export async function runWorkerConsumerOnce(
         specText,
         wt?.branch,
         formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) || undefined,
+        channelContext,
       ),
       repoCwd: wt?.cwd,
     };
