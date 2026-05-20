@@ -268,7 +268,7 @@ export function buildDiscoveryPrompt(
         ]
       : []),
     '',
-    '★★ 글쓰기 규칙 (필수 — 어기면 폐기 가치). 읽는 사람=비개발자 사장:',
+    '★★ 글쓰기 규칙 (필수 — 어기면 폐기 가치). 읽는 사람=비개발자 동료:',
     '· 절대 금지: §숫자/조항, 내부 코드명(drift·anchor·seam·cadence·',
     '  governance·DGM·producer·hook 등), 영어 약어, 파일경로, 코드.',
     '· **만연체 금지.** 뉴스 헤드라인처럼 *짧은 불릿*. 한 항목=한 줄(≤60자),',
@@ -379,10 +379,10 @@ export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
       .slice(0, 1200);
   });
 
-  // KAR-018-Y-2 거절 학습: '최근 인박스'(단순 최근)와 달리 *사장이
+  // KAR-018-Y-2 거절 학습: '최근 인박스'(단순 최근)와 달리 *동료이
   // 명시적으로 거절* 한 방향 — 더 강한 반복금지 신호. summarize 는
   // substrate-pure(proposal-adapter), 거절 0 = 빈문자 → 섹션 생략.
-  safe('사장이 거절한 제안 (절대 반복 X)', () =>
+  safe('동료이 거절한 제안 (절대 반복 X)', () =>
     summarizeRejectedForDiscovery(env),
   );
 
@@ -943,7 +943,7 @@ export async function runCoreDialogueOnce(
 
   // LT-8: 숙의가 *수정 채택*(adopt-mods)으로 수렴 = 합의 수정안을 *새*
   // 제안 카드로 실체화. 거버넌스 결정(2026-05-18, AskUserQuestion): 팀
-  // verdict 는 사람 ✅/❌ 를 *대체 X* — 수정안을 새 카드로 올려 사장님이
+  // verdict 는 사람 ✅/❌ 를 *대체 X* — 수정안을 새 카드로 올려 동료이
   // 결정. 이전엔 verdict 가 #team-bus 1줄+trace 만 → 원 카드 영속 "승인
   // 대기"(D3 미세 재발: "수정 채택했는데 카드 변화 0"). substrate 재사용
   // (publishEnvelope, 평행 파이프 0). best-effort — 실패가 숙의 비차단.

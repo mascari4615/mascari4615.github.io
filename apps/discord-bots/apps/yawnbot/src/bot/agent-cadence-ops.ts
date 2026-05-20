@@ -68,7 +68,7 @@ function readMissionText(env: NodeJS.ProcessEnv): string {
 
 // ── summarizeTick ────────────────────────────────────────────
 /**
- * tick 결과 코드 → #team-bus 하트비트 한 줄 (순수·사장 평이체).
+ * tick 결과 코드 → #team-bus 하트비트 한 줄 (순수·동료 평이체).
  * 의미 있는 활동만 한 줄 요약, 순수 idle 은 null(스팸 X).
  */
 export function summarizeTick(r: string, anchor = ''): string | null {
@@ -82,7 +82,7 @@ export function summarizeTick(r: string, anchor = ''): string | null {
       dlb[2] === 'adopt' ? `채택`
       : dlb[2] === 'adopt-mods' ? `수정 채택`
       : dlb[2] === 'reject' ? `반려`
-      : `⚠ 사장 판단 필요`;
+      : `⚠ 동료 판단 필요`;
     bits.push(`팀이 ${n}턴 토론 끝에 — ${v}`);
   }
   const rt = s.match(/retro:(adjust|achieved|keep)/);
@@ -104,7 +104,7 @@ export function summarizeTick(r: string, anchor = ''): string | null {
       /idle→producer:(self-improve|self-skill|agent-factory|task|objective)/.test(s)) {
     bits.push('새 아이디어 1건 발굴 → 승인 기다리는 중');
   }
-  if (/\bescalated\b/.test(s)) bits.push('판단 필요한 건 — 사장 승인 대기');
+  if (/\bescalated\b/.test(s)) bits.push('판단 필요한 건 — 동료 승인 대기');
   if (/budget-stop/.test(s)) bits.push('예산 한도 — 이번 바퀴는 멈춤');
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
   const evo = s.match(/\+evolution:(\d+)/);

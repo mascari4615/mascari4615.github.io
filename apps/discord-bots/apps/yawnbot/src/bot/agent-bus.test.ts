@@ -86,7 +86,7 @@ describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)'
       );
   }
 
-  it('team-reject → 상태/색/푸터 갱신, 미잠금(사장님 override 유효)', () => {
+  it('team-reject → 상태/색/푸터 갱신, 미잠금(동료 override 유효)', () => {
     const eb = applyCardEmbedState(
       baseEmbed().data,
       'team-reject',
@@ -97,13 +97,13 @@ describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)'
     const status = d.fields?.find((f) => f.name === '📌 상태');
     expect(status?.value).toContain('팀 반려');
     expect(d.color).toBe(0x95a5a6);
-    expect(d.footer?.text).toContain('override 유효'); // 미잠금 신호
+    expect(d.footer?.text).toContain('팀이 반려'); // team-reject 표시
     expect(
       d.fields?.some((f) => f.name === '🧑‍🤝‍🧑 팀 토론 결과'),
     ).toBe(true);
   });
 
-  it('team-escalate → 사장님 결정 필요 상태 (여기서만 사람 게이트)', () => {
+  it('team-escalate → 동료 결정 필요 상태 (여기서만 사람 게이트)', () => {
     const d = applyCardEmbedState(
       baseEmbed().data,
       'team-escalate',
@@ -112,7 +112,7 @@ describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)'
     ).toJSON();
     expect(
       d.fields?.find((f) => f.name === '📌 상태')?.value,
-    ).toContain('사용자 판단 필요');
+    ).toContain('팀 미수렴'); // ✅ 폐지 후: 사람 게이트 X, 동료 ❌ veto 또는 묵힘
   });
 
   it('재반영 멱등 — 같은 결과 필드 중복 X (reconciler 재시도 안전)', () => {
