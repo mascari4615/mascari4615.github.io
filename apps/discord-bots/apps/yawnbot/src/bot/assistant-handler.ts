@@ -317,6 +317,14 @@ function extractVoice(card: CharacterCard): string {
   return bits.join('\n') || '한국어, 간결하고 분명한 평서문.';
 }
 
+function formatCoreSkills(skills: string[] | undefined): string {
+  if (!skills || skills.length === 0) return '';
+  return [
+    '[검증된 자기 스킬 — 행동평가를 통과해 core.md skills 에 누적된 작업 방식]',
+    ...skills.map((s) => `- ${s}`),
+  ].join('\n');
+}
+
 /**
  * 코어 바인딩 = 정체·역할 *전부 코어*, 스킨은 *말투 톤만*. 비-코어
  * (레거시 DM 등)는 기존 스킨 단독 동작 *완전 불변*(회귀 0).
@@ -350,6 +358,7 @@ function buildSystemPrompt(
       coreMemo
         ? `\n[너의 최근 기억 — 네가 한 작업·받은 결과. 세션이 바뀌어도\n 이걸 토대로 일관되게 말하라 (모르는 척 X, 반복 X)]\n${coreMemo}`
         : '',
+      coreDef.skills.length ? `\n${formatCoreSkills(coreDef.skills)}` : '',
       '',
       '[중요 — 위반 금지]',
       '너는 가상 캐릭터가 아니다. 메이드·마녀·인형·마법저택 같은',

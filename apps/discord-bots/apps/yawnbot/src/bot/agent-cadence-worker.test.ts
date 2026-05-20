@@ -27,6 +27,7 @@ import {
   getNoArtifactRepeatCount,
 } from './agent-cadence-worker';
 import type { CoreDef } from '../services/agent-core';
+import { readRecentCoreMemory } from '../services/agent-core';
 
 function core(over: Partial<CoreDef> & { id: string }): CoreDef {
   return {
@@ -37,6 +38,7 @@ function core(over: Partial<CoreDef> & { id: string }): CoreDef {
     emoji: over.emoji ?? '🛠',
     displayName: over.displayName ?? over.id,
     body: over.body ?? 'body',
+    skills: over.skills ?? [],
     frontmatter: over.frontmatter ?? {},
   };
 }
@@ -86,6 +88,18 @@ describe('selectWorkerCores (순수)', () => {
       core({ id: 'kl-worker', status: 'active', frontmatter: { kind: 'worker', domain: 'KL', machine: 'desktop' } }),
     ];
     expect(selectWorkerCores(defs)[0].machine).toBe('desktop');
+  });
+
+  it('core.md skills 를 WorkerCore 로 전달한다', () => {
+    const defs = [
+      core({
+        id: 'wm-worker',
+        status: 'active',
+        skills: ['diagnose-ladder'],
+        frontmatter: { kind: 'worker', domain: 'wm' },
+      }),
+    ];
+    expect(selectWorkerCores(defs)[0].skills).toEqual(['diagnose-ladder']);
   });
 });
 
@@ -221,9 +235,24 @@ describe('buildWorkerPrompt (순수)', () => {
     const blockBody = p.slice(channelStart + '<<<CHANNEL\n'.length, channelEnd);
     expect(blockBody.length).toBeLessThanOrEqual(3000);
   });
+
+  // KAR-018-LT-15 — core.md skills 누적 → 워커 프롬프트 자기 스킬 블록
+  it('검증된 자기 스킬을 프롬프트 입력으로 포함한다', () => {
+    const p = buildWorkerPrompt(
+      { id: 'TASK-WM-119', file: 'memo/wm/tasks/x.md' },
+      'MISSION',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ['diagnose-ladder'],
+    );
+    expect(p).toContain('검증된 자기 스킬');
+    expect(p).toContain('- diagnose-ladder');
+  });
 });
 
-const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker' };
+const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker', skills: [] };
 
 describe('runWorkerConsumerOnce (주입 IO)', () => {
   it('killed → 호출 0', async () => {
@@ -330,6 +359,61 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-9');
     expect(released).toEqual(['TASK-WM-9']);
     expect(notified[0]).toContain('미푸시');
+  });
+
+  it('trace 는 spawn status 가 아니라 최종 산출물 판정(done-no-artifact)을 남긴다', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wtrace-'));
+    try {
+      fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+      const r = await runWorkerConsumerOnce(
+        { MEMO_REPO_PATH: root } as NodeJS.ProcessEnv,
+        {
+          listWorkers: () => [W],
+          scan: () => [{ id: 'TASK-WM-TRACE', file: 'f.md' }],
+          claim: () => true,
+          release: () => {},
+          setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+          spawn: async () => ({ status: 'done' }),
+          branchPushed: () => false,
+          notify: () => {},
+        },
+      );
+      expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-TRACE');
+      const trace = fs.readFileSync(
+        path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl'),
+        'utf-8',
+      );
+      expect(trace).toContain('worker TASK-WM-TRACE done-no-artifact');
+      expect(trace).not.toContain('worker TASK-WM-TRACE done agentic');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('워커 산출/실패를 core work-memory 에 기록해 다음 대화 기억으로 남긴다', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wmem-'));
+    try {
+      fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+      const r = await runWorkerConsumerOnce(
+        { MEMO_REPO_PATH: root } as NodeJS.ProcessEnv,
+        {
+          listWorkers: () => [W],
+          scan: () => [{ id: 'TASK-WM-MEM', file: 'f.md' }],
+          claim: () => true,
+          release: () => {},
+          setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+          spawn: async () => ({ status: 'done' }),
+          branchPushed: () => false,
+          notify: () => {},
+        },
+      );
+      expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-MEM');
+      const mem = readRecentCoreMemory(root, 'wm-worker');
+      expect(mem).toContain('[fail] worker:TASK-WM-MEM');
+      expect(mem).toContain('실산출 0');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('cooldown: no-artifact task 즉시 재pick 안 함 — 다른 후보 회전, 전부면 cooldown-all (degenerate 무한루프 차단, prod WM-084 실증)', async () => {

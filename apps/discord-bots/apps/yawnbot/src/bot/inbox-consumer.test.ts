@@ -14,6 +14,7 @@ import {
   runInboxConsumerOnce,
   readMaterialized,
   materializeTaskProposal,
+  materializeEngineProposalAsTask,
   materializeObjectiveProposal,
   materializeAgentProposal,
 } from './proposal-adapter';
@@ -109,14 +110,62 @@ describe('runInboxConsumerOnce — task kind 자율 실행 (미션 §2.3)', () =
     expect(fs.readdirSync(path.join(root, 'tasks'))).toHaveLength(1);
   });
 
-  it('비-task kind 미승인 → inert (objective/agent 게이트 유지, W-4)', async () => {
+  it('비-task kind 미승인 → inert (env/skill/objective/agent 게이트 유지)', async () => {
     const skill: ProposalEnvelope = {
       kind: 'skill',
       payload: { id: 'S', name: 'n', summary: 's', source: 'x', coreId: 'c' },
     };
     writeProposal(skill);
-    approve(proposalId(skill));
     expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
+  });
+
+  it('승인 env → yawnbot 검증 TASK 로 materialize 되어 죽은 self-improve 라우팅을 닫는다', async () => {
+    const envProposal: ProposalEnvelope = {
+      kind: 'env',
+      payload: {
+        id: 'ENV-1',
+        summary: 'trace 분류 보강',
+        targetFiles: ['apps/discord-bots/apps/yawnbot/src/bot/agent-cadence-worker.ts'],
+        source: 'gap-analysis',
+      },
+    };
+    writeProposal(envProposal);
+    approve(proposalId(envProposal));
+    expect(await runInboxConsumerOnce(env(), { notify: () => {}, autoReady: true })).toBe(1);
+    const files = fs.readdirSync(path.join(root, 'projects', 'yawnbot', 'tasks'));
+    expect(files[0]).toContain('TASK-YB-');
+    const md = fs.readFileSync(
+      path.join(root, 'projects', 'yawnbot', 'tasks', files[0]),
+      'utf-8',
+    );
+    expect(md).toContain('status: ready');
+    expect(md).toContain('자가개선 환경 트랙 제안');
+    expect(md).toContain('trace 분류 보강');
+    expect(md).toContain('agent-cadence-worker.ts');
+  });
+
+  it('승인 skill → yawnbot 검증 TASK 로 materialize 되어 죽은 self-skill 라우팅을 닫는다', async () => {
+    const skill: ProposalEnvelope = {
+      kind: 'skill',
+      payload: {
+        id: 'SK-1',
+        name: 'diagnose-ladder',
+        summary: '실패 로그를 먼저 분류한다',
+        source: 'self-task',
+        coreId: 'atlas',
+      },
+    };
+    writeProposal(skill);
+    approve(proposalId(skill));
+    expect(await runInboxConsumerOnce(env(), { notify: () => {}, autoReady: true })).toBe(1);
+    const files = fs.readdirSync(path.join(root, 'projects', 'yawnbot', 'tasks'));
+    const md = fs.readFileSync(
+      path.join(root, 'projects', 'yawnbot', 'tasks', files[0]),
+      'utf-8',
+    );
+    expect(md).toContain('자가스킬 행동평가 제안');
+    expect(md).toContain('diagnose-ladder');
+    expect(md).toContain('coreId: atlas');
   });
 });
 
@@ -144,6 +193,28 @@ describe('materializeTaskProposal — 도메인 별칭 정규화 (KAR-018-V fix)
     expect(
       materializeTaskProposal(env(), { title: 'z', body: 'b', domain: 'Karmo Lab' }),
     ).toContain('TASK-KL-');
+  });
+});
+
+describe('materializeEngineProposalAsTask — env/skill 엔진 라우팅 폐쇄', () => {
+  it('env 는 YB 검증 TASK 본문으로 변환', () => {
+    const r = materializeEngineProposalAsTask(
+      env(),
+      {
+        kind: 'env',
+        payload: {
+          id: 'E',
+          summary: '검증 자동화',
+          targetFiles: ['x.ts'],
+          source: 'gap',
+        },
+      },
+      { autoReady: true },
+    );
+    expect(r).toContain('TASK-YB-');
+    const raw = fs.readFileSync(r!, 'utf-8');
+    expect(raw).toContain('status: ready');
+    expect(raw).toContain('targetFiles: x.ts');
   });
 });
 
@@ -226,9 +297,14 @@ describe('materializeAgentProposal — 새 코어 Draft (i3a)', () => {
     const core = loadCoreDef(root, 'scout');
     expect(core).not.toBeNull();
     expect(core!.id).toBe('scout');
-    expect(core!.status).toBe('draft'); // 절대 active X (불변식)
+    expect(core!.status).toBe('draft'); // materialize 직후는 draft, active flip 은 LT-11 게이트
     expect(core!.role).toContain('리서치');
     expect(core!.displayName).toBe('Scout');
+    const q = fs.readFileSync(
+      path.join(root, '.claude', 'agent-core-promotion-candidates.jsonl'),
+      'utf-8',
+    );
+    expect(q).toContain('"coreId":"scout"');
     expect(
       fs.existsSync(path.join(root, '.claude', 'agents', 'scout', 'mem', 'README.md')),
     ).toBe(true);
@@ -236,10 +312,13 @@ describe('materializeAgentProposal — 새 코어 Draft (i3a)', () => {
     expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
   });
 
-  it('미승인 agent → 0건, core.md 안 생김 (W-4 / 자동활성 X 불변식)', async () => {
+  it('미승인 agent → 0건, core.md/승격후보 안 생김', async () => {
     writeProposal(agentEnv);
     expect(await runInboxConsumerOnce(env(), { notify: () => {} })).toBe(0);
     expect(fs.existsSync(path.join(root, '.claude', 'agents', 'scout'))).toBe(false);
+    expect(
+      fs.existsSync(path.join(root, '.claude', 'agent-core-promotion-candidates.jsonl')),
+    ).toBe(false);
   });
 
   it('기존 코어 절대 비덮어쓰기 (atlas/echo/선행 보존 — 멱등 skip)', () => {

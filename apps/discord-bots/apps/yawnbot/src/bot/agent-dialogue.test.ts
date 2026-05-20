@@ -34,6 +34,7 @@ function core(
     emoji: opts.emoji ?? '🛰',
     displayName: opts.displayName ?? id,
     body: opts.body ?? `${id} body`,
+    skills: opts.skills ?? [],
     frontmatter: { ...fm, ...(opts.frontmatter ?? {}) },
   };
 }

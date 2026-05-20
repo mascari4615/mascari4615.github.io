@@ -118,9 +118,10 @@ describe('readCoreOutcomes + detectCorePromotionRegression (순수)', () => {
     traceLine('w', '2026-05-19T00:00:00Z', 'done'); // before
     traceLine('w', '2026-05-19T02:00:00Z', 'done');
     traceLine('w', '2026-05-19T02:01:00Z', 'error');
+    traceLine('w', '2026-05-19T02:02:00Z', 'done-no-artifact');
     traceLine('other', '2026-05-19T02:02:00Z', 'done'); // 다른 코어
     const o = readCoreOutcomes(env(), 'w', '2026-05-19T01:00:00Z');
-    expect(o).toEqual({ done: 1, fail: 1, total: 2 });
+    expect(o).toEqual({ done: 1, fail: 2, total: 3 });
   });
 
   it('관측 부족 → 미퇴행(유지, 성급 revert X)', () => {

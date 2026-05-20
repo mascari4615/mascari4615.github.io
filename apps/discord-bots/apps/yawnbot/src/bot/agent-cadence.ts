@@ -68,7 +68,15 @@ import {
 import {
   runEvolutionObservatoryOnce,
   summarizeRecentEvolutionEvents,
+  formatRecentEvolutionForDiscovery,
 } from './evolution-observatory';
+import {
+  diagnoseHealth,
+  formatHealthBlock,
+  gatherHealthSignals,
+  type HealthIssue,
+  type HealthSignals,
+} from './system-health';
 import {
   listCoreIds,
   loadCoreDef,
@@ -391,6 +399,10 @@ export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
       .slice(0, 800);
   });
 
+  safe('최근 진화 관측 (자가증강/퇴행/반복 실패 — 다음 발굴 입력)', () =>
+    formatRecentEvolutionForDiscovery(env),
+  );
+
   // WM 도메인 컨텍스트 — 팀 으뜸 프로젝트. 이 정보 없이 LLM 은 WM 구체
   // 제안 불가 → 모든 발굴이 인프라 쪽으로만 쏠리는 편향의 구조적 근본.
   safe('WM 준비 작업 목록 (발굴 대상 — 가장 높은 weight 프로젝트)', () => {
@@ -419,6 +431,47 @@ export function gatherDiscoveryContext(env: NodeJS.ProcessEnv): string {
   );
 
   return parts.join('\n\n').slice(0, 5000);
+}
+
+export interface GapAnalysis {
+  signals: HealthSignals;
+  issues: HealthIssue[];
+  shouldRun: boolean;
+  context: string;
+}
+
+/**
+ * LT-12: cadence 를 "시간 됐으니 brainstorm" 에서 "측정된 능력격차가
+ * 있으니 gap-analysis" 로 전환하는 결정부. 타이머는 heartbeat/worker
+ * wakeup 일 뿐이고, producer LLM 은 이슈가 있을 때만 돈다.
+ */
+export function analyzeAgentTeamGaps(
+  env: NodeJS.ProcessEnv,
+  nowMs: number = Date.now(),
+): GapAnalysis {
+  const signals = gatherHealthSignals(env, nowMs);
+  const issues = diagnoseHealth(signals);
+  const context = [
+    '### 에이전트 팀 능력격차 입력',
+    formatHealthBlock(signals, issues),
+    '',
+    '위 이슈 중 하나를 줄이는 제안만 가치가 있다. 새 제안은 반드시 어떤 이슈를 줄이는지 본문에 드러내라.',
+  ].join('\n');
+  return {
+    signals,
+    issues,
+    shouldRun: issues.length > 0,
+    context,
+  };
+}
+
+export function buildGapDiscoveryContext(
+  env: NodeJS.ProcessEnv,
+  gap: GapAnalysis,
+): string {
+  return [gap.context, gatherDiscoveryContext(env)]
+    .filter((s) => s.trim())
+    .join('\n\n');
 }
 
 // ── governed cadence (D-3 slice-3) ──────────────────────────
@@ -523,6 +576,7 @@ export async function runGovernedProducerOnce(
   opts: {
     discover?: DiscoverFn;
     reserve?: (core: string, channelId: string) => boolean;
+    gap?: GapAnalysis;
   } = {},
 ): Promise<string> {
   if (isKilled()) return 'killed';
@@ -564,7 +618,10 @@ export async function runGovernedProducerOnce(
 
   const discover: DiscoverFn =
     opts.discover ??
-    (() =>
+    (() => {
+      const gap = opts.gap ?? analyzeAgentTeamGaps(env);
+      const discoveryContext = buildGapDiscoveryContext(env, gap);
+      return (
       // discovery·대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
       // KAR-018-Y) / 코드·문서(tier3)만 Claude. Gemini = 페르소나 거부 X·
       // 빠름·JSON 안정·본질적 비-agentic.
@@ -572,7 +629,7 @@ export async function runGovernedProducerOnce(
         env,
         buildDiscoveryPrompt(
           readMissionText(env),
-          gatherDiscoveryContext(env),
+          discoveryContext,
           formatPortfolioBlock(
             loadPortfolio(env.MEMO_REPO_PATH?.trim() || ''),
           ),
@@ -580,6 +637,7 @@ export async function runGovernedProducerOnce(
         ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
       ));
+    });
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
 
@@ -1097,7 +1155,21 @@ export async function runCadenceTickOnce(
     }
   });
   if (r === 'idle' && memoRoot && !isKilled()) {
-    r = `idle→producer:${await runGovernedProducerOnce(env, opts.producerOpts)}`;
+    const gap = opts.producerOpts?.gap ?? analyzeAgentTeamGaps(env);
+    if (gap.shouldRun) {
+      r = `idle→producer:${await runGovernedProducerOnce(env, {
+        ...opts.producerOpts,
+        gap,
+      })}`;
+    } else {
+      r = 'idle→gap-idle';
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: 'producer',
+        reason: 'producer gap-analysis idle — 측정된 능력격차 없음',
+      });
+    }
   }
   if (memoRoot && !isKilled()) {
     // autoReady: task kind 발굴 → status:ready 직행 (미션 §2.3 일반 코드 자율).

@@ -15,6 +15,7 @@ import {
   readMissionText,
   gatherDiscoveryContext,
 } from './agent-cadence';
+import { appendEvolutionEvents } from './evolution-observatory';
 
 describe('buildDiscoveryPrompt — 자족(파일 비의존)', () => {
   const p = buildDiscoveryPrompt('§1 TEST_MISSION_MARKER 공통목표');
@@ -161,6 +162,32 @@ describe('gatherDiscoveryContext — 어댑터 읽기전용·안전 (slice-5)', 
       const ctx = gatherDiscoveryContext({ MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv);
       expect(ctx).toContain('WM 현재 개발 상태');
       expect(ctx).toContain('HomeInside 허브');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('최근 evolution ledger 를 다음 발굴 컨텍스트에 포함', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-evo-'));
+    try {
+      fs.mkdirSync(path.join(tmp, '.claude'), { recursive: true });
+      const tenv = { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv;
+      appendEvolutionEvents(tenv, [
+        {
+          ts: '2026-05-20T00:00:00Z',
+          code: 'core-reverted',
+          severity: 'critical',
+          source: 'self-augment',
+          subject: 'scout',
+          detail: 'Core scout regressed after promotion and was reverted to draft.',
+          metrics: [{ name: 'count', value: 1 }],
+          evidence: 'reverted: done 비율 0/4',
+        },
+      ]);
+      const ctx = gatherDiscoveryContext(tenv);
+      expect(ctx).toContain('최근 진화 관측');
+      expect(ctx).toContain('core-reverted');
+      expect(ctx).toContain('scout');
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
