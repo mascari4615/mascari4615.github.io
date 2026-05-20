@@ -55,13 +55,15 @@ function ensureTauriSidecarPlaceholder() {
   const tauriRoot = 'apps/karmolab-tauri/src-tauri';
   const v = spawnSync('rustc', ['-vV'], { encoding: 'utf8' });
   if (v.status !== 0) {
-    console.error('[verify] X rustc -vV 실패 — Rust toolchain 없음');
-    process.exit(v.status ?? 1);
+    // Rust toolchain 부재 = env 차이 (bot prod 노트북, Rust 미설치 등). CI 가
+    // 진짜 정본 게이트 (CI 환경엔 항상 rustc) → 로컬/봇 env 에선 skip 으로
+    // graceful, push 자체는 허용. autopilot/봇 워커가 hook 우회(--no-verify)
+    // 안 써도 push 가능해짐 (KAR-018-PUSH-CLOSURE, 2026-05-21 prod 진단).
+    return { skipped: true, reason: 'Rust toolchain 없음 (rustc -vV 실패)' };
   }
   const triple = (v.stdout.match(/^host:\s*(.+)$/m) || [])[1]?.trim();
   if (!triple) {
-    console.error('[verify] X rustc host triple 파싱 실패');
-    process.exit(1);
+    return { skipped: true, reason: 'rustc host triple 파싱 실패' };
   }
   const ext = triple.includes('windows') ? '.exe' : '';
   const binDir = `${tauriRoot}/binaries`;
@@ -71,13 +73,19 @@ function ensureTauriSidecarPlaceholder() {
     writeFileSync(binPath, ''); // existence-only — cargo check 는 번들 X
     console.log(`[verify] ! tauri externalBin placeholder 생성: ${binPath} (host=${triple}, KAR-073)`);
   }
+  return { skipped: false };
 }
 
 // 3. apps/karmolab-tauri — cargo check. 이전 karmolab-tauri.yml 흡수.
 //    PR #15 의 DOMAIN_DIRS private E0603 같은 사고 방지.
+//    rustc 부재 env (봇 prod 노트북 등) = graceful skip + CI 가 정본 게이트.
 if (existsSync('apps/karmolab-tauri/src-tauri/Cargo.toml')) {
-  ensureTauriSidecarPlaceholder();
-  run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
+  const placeholder = ensureTauriSidecarPlaceholder();
+  if (placeholder.skipped) {
+    console.log(`[verify] ! apps/karmolab-tauri cargo check skip — ${placeholder.reason}. CI 가 정본 게이트.`);
+  } else {
+    run('apps/karmolab-tauri cargo check', 'apps/karmolab-tauri/src-tauri', 'cargo check --all-targets');
+  }
 }
 
 // 3.5. Tauri ACL audit — acl.toml 단일정본 ⟷ #[command] ⟷ caps 정합 (KL-040, KL-063).
