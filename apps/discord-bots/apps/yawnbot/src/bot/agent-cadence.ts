@@ -117,6 +117,7 @@ import {
   runRetroOnce, type RetroDeps,
   runQualityCheckOnce, type QualityCheckDeps,
   runSelfSurgeryOnce, type SelfSurgeryDeps,
+  runDigestOnce, type DigestDeps,
   runIdleChatterOnce, type IdleChatterDeps,
   resetChatterCooldown,
 } from './agent-cadence-ops';
@@ -139,6 +140,7 @@ export {
   runRetroOnce, type RetroDeps,
   runQualityCheckOnce, type QualityCheckDeps,
   runSelfSurgeryOnce, type SelfSurgeryDeps,
+  runDigestOnce, type DigestDeps,
   runIdleChatterOnce, type IdleChatterDeps,
   resetChatterCooldown,
 } from './agent-cadence-ops';
@@ -1258,6 +1260,16 @@ export async function runCadenceTickOnce(
       if (evo.appended > 0) r = `${r}+evolution:${evo.appended}`;
     } catch {
       /* evolution observatory 실패 = tick 비차단 */
+    }
+  }
+  // LT-DIGEST 주기 다이제스트 — gated(12h) best-effort. 진화 0 일 때도
+  // "12h 진화 0 — stalled" 명시 송신 → "cron 껍데기" 인지 직격.
+  if (memoRoot && !isKilled()) {
+    try {
+      const dg = await runDigestOnce(env);
+      if (dg === 'digest:sent') r = `${r}+${dg}`;
+    } catch {
+      /* digest 실패 = tick 비차단 */
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);

@@ -50,6 +50,8 @@ export interface Portfolio {
   projects: PortfolioProject[];
   /** 마지막 자기수술 시각(ISO). 기둥4 주기 게이트(기본 12h). */
   lastSurgeryTs?: string;
+  /** 마지막 #team-bus 다이제스트 송신 시각(ISO). LT-DIGEST 주기 게이트(기본 12h). */
+  lastDigestTs?: string;
 }
 
 export function portfolioPath(memoRoot: string): string {
@@ -113,15 +115,22 @@ function parseProject(o: unknown): PortfolioProject | null {
   };
 }
 
-/** raw JSON → Portfolio (이상=빈/기본, 견고). 순수. */
+/** raw JSON → Portfolio (이상=빈/기본, 견고). 순수.
+ *  top-level lastSurgeryTs / lastDigestTs 보존 — 미보존 시 매 load 마다 0 리셋되어
+ *  주기 게이트(기둥4·LT-DIGEST)가 영구 통과(잠복 버그). */
 export function parsePortfolio(raw: string): Portfolio {
   try {
     const o = JSON.parse(raw);
-    const arr = o && Array.isArray(o.projects) ? o.projects : [];
+    const root = (o && typeof o === 'object' ? o : {}) as Record<string, unknown>;
+    const arr = Array.isArray(root.projects) ? (root.projects as unknown[]) : [];
     return {
       projects: arr
         .map(parseProject)
         .filter((p: PortfolioProject | null): p is PortfolioProject => !!p),
+      lastSurgeryTs:
+        typeof root.lastSurgeryTs === 'string' ? root.lastSurgeryTs : undefined,
+      lastDigestTs:
+        typeof root.lastDigestTs === 'string' ? root.lastDigestTs : undefined,
     };
   } catch {
     return { projects: [] };
@@ -547,5 +556,26 @@ export function parseSurgeryDecision(text: string): SurgeryDecision {
 export function recordSurgery(memoRoot: string, ts?: string): boolean {
   const p = loadPortfolio(memoRoot);
   p.lastSurgeryTs = ts ?? new Date().toISOString();
+  return writePortfolio(memoRoot, p);
+}
+
+// ═══ LT-DIGEST: #team-bus 주기 가시화 다이제스트 (TASK-KAR-018-LT-DIGEST) ═══
+// 진화 ledger(ticker) 와 ⊥: ticker=event-driven push / digest=time-driven pull.
+// 진화 0 일 때도 "12h 진화 0 — stalled: X" 명시 → "cron 껍데기" 인지 직격.
+
+/** digest 실행 시점인가 (순수·결정적). 영속 lastDigestTs 기준. */
+export function shouldRunDigest(
+  p: Portfolio,
+  nowMs: number,
+  intervalMs: number,
+): boolean {
+  const last = p.lastDigestTs ? Date.parse(p.lastDigestTs) : 0;
+  return nowMs - (Number.isFinite(last) ? last : 0) >= intervalMs;
+}
+
+/** digest 송신 기록 (lastDigestTs 스탬프, best-effort). IO. */
+export function recordDigest(memoRoot: string, ts?: string): boolean {
+  const p = loadPortfolio(memoRoot);
+  p.lastDigestTs = ts ?? new Date().toISOString();
   return writePortfolio(memoRoot, p);
 }
