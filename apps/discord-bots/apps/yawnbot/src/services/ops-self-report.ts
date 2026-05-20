@@ -16,12 +16,15 @@ import os from 'node:os';
 import { channelIdFor } from './channel-provision';
 import crypto from 'node:crypto';
 import { REST, Routes, EmbedBuilder } from 'discord.js';
+import { parseCommaSeparatedEnv } from '@discord-bots/common';
 
 export interface OpsReportContext {
   token: string;
   env: string;
   hostname: string;
   gitCommit: string;
+  /** 경고(🟠/🔴) 임베드에서 핑할 Discord 유저 ID. ADMIN_IDS 정합 — 비면 핑 X (자연 off-switch). */
+  adminMentionIds: string[];
 }
 
 /**
@@ -39,6 +42,7 @@ export function loadOpsReportContext(): OpsReportContext | null {
     env: process.env.YAWNBOT_ENV?.trim() || 'unknown',
     hostname: os.hostname(),
     gitCommit: process.env.GIT_COMMIT?.trim() || 'unknown',
+    adminMentionIds: parseCommaSeparatedEnv(process.env.ADMIN_IDS),
   };
 }
 
@@ -67,7 +71,12 @@ function buildFooter(ctx: OpsReportContext): string {
   return `${ctx.env} · ${ctx.hostname} · ${ctx.gitCommit}`;
 }
 
-async function sendEmbed(ctx: OpsReportContext, embed: EmbedBuilder, timeoutMs = 3000): Promise<void> {
+async function sendEmbed(
+  ctx: OpsReportContext,
+  embed: EmbedBuilder,
+  opts: { mentionAdmins?: boolean; timeoutMs?: number } = {},
+): Promise<void> {
+  const { mentionAdmins = false, timeoutMs = 3000 } = opts;
   // 채널 lazy 해석 — send 시점 (reconcile 후이므로 프로비저닝된 ops-report
   // 채널로 정확히 감). 미해석 시 skip(=self-report 비활성, 크래시 0).
   const channelId = channelIdFor('ops-report');
@@ -75,11 +84,17 @@ async function sendEmbed(ctx: OpsReportContext, embed: EmbedBuilder, timeoutMs =
     console.warn('[OpsReport] ops-report 채널 미해석 — 이번 보고 skip (프로비저닝/env 둘 다 없음)');
     return;
   }
+  // mentionAdmins=true 면서 ADMIN_IDS 있으면 content 에 핑 + allowed_mentions 로 그 유저만 허용.
+  // 비면 핑 X (off-switch = ADMIN_IDS 비우기).
+  const mentionIds = mentionAdmins ? ctx.adminMentionIds : [];
+  const body: Record<string, unknown> = { embeds: [embed.toJSON()] };
+  if (mentionIds.length > 0) {
+    body.content = mentionIds.map((id) => `<@${id}>`).join(' ');
+    body.allowed_mentions = { users: mentionIds };
+  }
   try {
     const rest = new REST({ timeout: timeoutMs }).setToken(ctx.token);
-    await rest.post(Routes.channelMessages(channelId), {
-      body: { embeds: [embed.toJSON()] },
-    });
+    await rest.post(Routes.channelMessages(channelId), { body });
   } catch (e: unknown) {
     console.warn('[OpsReport] send 실패 (silent):', e instanceof Error ? e.message : e);
   }
@@ -133,7 +148,7 @@ export async function reportError(
     .setDescription(`**메시지**: ${e.message.slice(0, 300)}\n\`\`\`\n${stackPreview}\n\`\`\``)
     .setFooter({ text: `${buildFooter(ctx)} · stack:${stackHash}` })
     .setTimestamp();
-  await sendEmbed(ctx, embed);
+  await sendEmbed(ctx, embed, { mentionAdmins: true });
 }
 
 /**
@@ -152,7 +167,7 @@ export async function reportHeartbeat(
     .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
     .setFooter({ text: buildFooter(ctx) })
     .setTimestamp();
-  await sendEmbed(ctx, embed);
+  await sendEmbed(ctx, embed, { mentionAdmins: !alert.healthy });
 }
 
 /**
@@ -173,7 +188,7 @@ export async function reportCharStateSnapshot(
     .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
     .setFooter({ text: buildFooter(ctx) })
     .setTimestamp();
-  await sendEmbed(ctx, embed);
+  await sendEmbed(ctx, embed, { mentionAdmins: !alert.healthy });
 }
 
 /**
@@ -195,7 +210,7 @@ export async function reportMemoSync(
     .setDescription(`**상태**: ${alert.reason.slice(0, 500)}`)
     .setFooter({ text: buildFooter(ctx) })
     .setTimestamp();
-  await sendEmbed(ctx, embed);
+  await sendEmbed(ctx, embed, { mentionAdmins: !alert.healthy });
 }
 
 /** deploy 결과 임베드 (파랑). deploy-commands.ts main() 끝에 호출. */
