@@ -431,7 +431,8 @@ export function runEvolutionObservatoryOnce(
   const appended = appendNewEvolutionEvents(env, observed);
   const summary = summarizeEvolutionEvents(appended);
   if (summary.total > 0 && deps.notify) {
-    deps.notify(formatEvolutionSummary(summary));
+    const ticker = formatEvolutionTicker(appended, summary);
+    deps.notify(ticker || formatEvolutionSummary(summary));
   }
   return {
     observed: observed.length,
@@ -465,4 +466,41 @@ export function formatEvolutionSummary(summary: EvolutionSummary): string {
     `total=${summary.total} critical=${summary.critical} warn=${summary.warn} info=${summary.info}`,
     `topCodes=${codes}`,
   ].join('\n');
+}
+
+/**
+ * 진화 ticker — appended 이벤트를 사용자 정서 한 메시지로.
+ * 빅토르식 마일스톤: 코어 승격/퇴행 = 헤드라인, 그 외 = 누적 신호.
+ * cron 톤 X — 살아있는 팀이 "이번 틱에 일어난 일"을 #team-bus 에 알림.
+ */
+export function formatEvolutionTicker(
+  appended: EvolutionEvent[],
+  summary: EvolutionSummary,
+): string {
+  if (appended.length === 0) return '';
+  const lines: string[] = [];
+  const promotions = appended.filter((e) => e.code === 'core-promoted');
+  const reverts = appended.filter((e) => e.code === 'core-reverted');
+  for (const e of promotions) {
+    lines.push(`🧬 «${e.subject}» 코어 승격 — ${e.evidence || 'PASS'}`);
+  }
+  for (const e of reverts) {
+    lines.push(`🩸 «${e.subject}» 진화 퇴행 → 복구 — ${e.evidence || 'revert'}`);
+  }
+  const others = summary.topCodes.filter(
+    (c) => c.code !== 'core-promoted' && c.code !== 'core-reverted',
+  );
+  if (others.length > 0) {
+    const tags = others
+      .slice(0, 5)
+      .map((c) => `${c.code}×${c.count}`)
+      .join(' · ');
+    const sev = `crit=${summary.critical} warn=${summary.warn} info=${summary.info}`;
+    lines.push(`📈 진화 입력 (${sev}) — ${tags}`);
+  } else if (lines.length === 0) {
+    lines.push(
+      `📈 진화 ${summary.total}건 — crit=${summary.critical} warn=${summary.warn} info=${summary.info}`,
+    );
+  }
+  return lines.join('\n');
 }
