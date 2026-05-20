@@ -441,16 +441,22 @@ fn preview_sound_blocking(
     Ok(())
 }
 
+/// .ps1 파일 2회 read_to_string — async + spawn_blocking (KL-043 / KL-073).
+/// write 버전(claude_env_write_notify_config)과 동일 패턴.
 #[tauri::command]
-pub fn claude_env_read_notify_config() -> Result<NotifyConfigDto, String> {
-    let root = karmoddrine_dotfiles_root()?;
-    let stop = parse_notify_ps1(&root.join("notify-stop.ps1"))?;
-    let notification = parse_notify_ps1(&root.join("notify-notification.ps1"))?;
-    Ok(NotifyConfigDto {
-        stop,
-        notification,
-        canonical_root: root.to_string_lossy().into_owned(),
+pub async fn claude_env_read_notify_config() -> Result<NotifyConfigDto, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let root = karmoddrine_dotfiles_root()?;
+        let stop = parse_notify_ps1(&root.join("notify-stop.ps1"))?;
+        let notification = parse_notify_ps1(&root.join("notify-notification.ps1"))?;
+        Ok(NotifyConfigDto {
+            stop,
+            notification,
+            canonical_root: root.to_string_lossy().into_owned(),
+        })
     })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
 /// 정본 .ps1 두 개를 받은 config 로 편집 + `sync-claude-hooks.ps1` 호출.

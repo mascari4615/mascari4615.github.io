@@ -813,16 +813,24 @@ pub fn ensure_autostart(app: &AppHandle) {
     }
 }
 
+/// 단일 파일 읽기 — async 전환 (alarm_set_autostart 와 일관성, KL-043 / KL-074).
 #[tauri::command]
-pub fn alarm_get_autostart(app: AppHandle) -> bool {
-    read_settings(&app).autostart
+pub async fn alarm_get_autostart(app: AppHandle) -> bool {
+    tauri::async_runtime::spawn_blocking(move || read_settings(&app).autostart)
+        .await
+        .unwrap_or(false)
 }
 
+/// external process spawn (reg.exe) — async + spawn_blocking (KL-043 / KL-074).
 #[tauri::command]
-pub fn alarm_set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> {
-    apply_autostart(enabled)?;
-    write_settings(&app, &AlarmSettings { autostart: enabled });
-    Ok(())
+pub async fn alarm_set_autostart(enabled: bool, app: AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        apply_autostart(enabled)?;
+        write_settings(&app, &AlarmSettings { autostart: enabled });
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
 }
 
 #[cfg(test)]
