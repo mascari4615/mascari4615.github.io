@@ -8,7 +8,6 @@
  * - 안정 dedup 키 = URL 내 topic id (예: ?id=12345)
  */
 import { EmbedBuilder } from 'discord.js';
-import https from 'https';
 
 const GN_COLOR = 0x00b386;
 
@@ -20,15 +19,10 @@ export interface GnStoryLine {
   pubDate: string;
 }
 
-function fetchRaw(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      const chunks: Buffer[] = [];
-      res.on('data', (chunk: Buffer) => chunks.push(chunk));
-      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-      res.on('error', reject);
-    }).on('error', reject);
-  });
+async function fetchRaw(url: string): Promise<string> {
+  const res = await fetch(url, { headers: { 'User-Agent': 'YawnBot/1.0' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
 }
 
 function extractTopicId(url: string): string {
@@ -47,6 +41,9 @@ export async function fetchGnTopStories(limit: number): Promise<GnStoryLine[]> {
   const xml = await fetchRaw('https://news.hada.io/rss');
 
   const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) ?? [];
+  if (itemMatches.length === 0) {
+    console.warn('[News/GN] RSS 파싱 0건 — XML 구조 확인 필요 (redirect·포맷 변경 등)');
+  }
   const results: GnStoryLine[] = [];
 
   for (const item of itemMatches) {
