@@ -19,6 +19,7 @@ import {
   resetWorkerStatus,
   voicedWorkerSpeak,
   appendWorkerRaw,
+  appendWorkerRawDiag,
   workerRawLedgerPath,
   type WorkerCore,
 } from './agent-cadence';
@@ -181,6 +182,122 @@ describe('cooldown 사다리 — 같은 (task, errHash) 반복 (LT-W2)', () => {
     await runWorkerConsumerOnce(env(), deps);
     // 다른 errHash → count 1 새로 (누적 X)
     expect(getNoArtifactRepeatCount(cand.id)).toBe(1);
+  });
+});
+
+// TASK-KAR-018-LT-W2-A: cli exit-1 시 full stderr/stdout 별 diag entry 적재.
+// chat 발화 cap 유지(불변), 원장만 full. 진단 데이터 부재 시 entry 생략.
+describe('appendWorkerRawDiag — full stderr/stdout 적재 (LT-W2-A)', () => {
+  function readLedger(memoRoot: string): Array<Record<string, unknown>> {
+    const p = path.join(memoRoot, '.claude', 'agent-worker-raw.jsonl');
+    if (!fs.existsSync(p)) return [];
+    return fs.readFileSync(p, 'utf-8').trim().split('\n')
+      .filter((l) => l.length > 0)
+      .map((l) => JSON.parse(l) as Record<string, unknown>);
+  }
+
+  it('stderrFull/stdoutFull 적재 — kind=diag, exitCode, full 보존(>1200)', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-w2-a-'));
+    try {
+      const huge = 'X'.repeat(2500); // 1200/600 cap 초과 — full 보존 확인용
+      appendWorkerRawDiag(
+        { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv,
+        'wm-worker',
+        'TASK-Z',
+        'Claude CLI 종료 코드 1: ...(snip)',
+        huge,
+        'stdout-extras',
+        1,
+      );
+      const entries = readLedger(tmp);
+      expect(entries).toHaveLength(1);
+      const [e] = entries;
+      expect(e.kind).toBe('diag');
+      expect(e.coreId).toBe('wm-worker');
+      expect(e.taskId).toBe('TASK-Z');
+      expect(e.exitCode).toBe(1);
+      expect((e.stderrFull as string).length).toBe(2500); // 40k cap 안쪽 = 그대로
+      expect(e.stdoutFull).toBe('stdout-extras');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('진단 데이터 부재(둘 다 undefined·빈) = entry 생략 (noise X)', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-w2-a-empty-'));
+    try {
+      appendWorkerRawDiag(
+        { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv,
+        'wm-worker', 'TASK-NONE', 'err msg',
+        undefined, undefined, 1,
+      );
+      appendWorkerRawDiag(
+        { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv,
+        'wm-worker', 'TASK-EMPTY', 'err msg',
+        '', '', null,
+      );
+      expect(readLedger(tmp)).toHaveLength(0);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('40000자 cap (disk 폭주 가드)', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-w2-a-cap-'));
+    try {
+      const massive = 'Y'.repeat(50000);
+      appendWorkerRawDiag(
+        { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv,
+        'kar-worker', 'TASK-MASSIVE', 'err',
+        massive, massive, 1,
+      );
+      const [e] = readLedger(tmp);
+      expect((e.stderrFull as string).length).toBe(40000);
+      expect((e.stdoutFull as string).length).toBe(40000);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('통합 — runWorkerConsumerOnce error 시 res.stderrFull 전파 → diag entry', async () => {
+    resetWorkerStatus();
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-w2-a-int-'));
+    try {
+      const W: WorkerCore = { coreId: 'kar-worker', domain: 'KAR', machine: 'any', label: '🛠 Kar' };
+      const cand = { id: 'TASK-KAR-DIAG', file: 'x.md' };
+      const spawn = async () => ({
+        status: 'error' as const,
+        error: 'Claude CLI 종료 코드 1: stderr=... | stdout=...',
+        stderrFull: 'Not logged in · Please run /login\n[full stack trace ...]',
+        stdoutFull: 'partial output before failure',
+        exitCode: 1,
+      });
+      const deps = {
+        listWorkers: () => [W],
+        scan: () => [cand],
+        claim: () => true,
+        release: () => {},
+        spawn,
+        setupWorktree: () => ({ error: 'wt-skip' as const }),
+        notify: () => {},
+        // voice·speak 는 noop — appendWorkerRaw(status) 도 한 줄 박힘.
+      };
+      await runWorkerConsumerOnce(
+        { MEMO_REPO_PATH: tmp } as NodeJS.ProcessEnv,
+        deps,
+      );
+      const entries = readLedger(tmp);
+      // 최소 2 entry: voicedWorkerSpeak 의 status 한 줄 + 본 시드 diag 한 줄.
+      const diags = entries.filter((e) => e.kind === 'diag');
+      expect(diags).toHaveLength(1);
+      const [d] = diags;
+      expect(d.taskId).toBe('TASK-KAR-DIAG');
+      expect(d.exitCode).toBe(1);
+      expect(d.stderrFull).toContain('Not logged in');
+      expect(d.stdoutFull).toBe('partial output before failure');
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });
 

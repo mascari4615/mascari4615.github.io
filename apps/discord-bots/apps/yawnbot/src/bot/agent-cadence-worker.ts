@@ -312,6 +312,46 @@ export function appendWorkerRaw(
   } catch { /* best-effort */ }
 }
 
+/**
+ * TASK-KAR-018-LT-W2-A: cli exit-1 진단 게이트. error 상태(`res.status==='error'`)
+ * 일 때 untruncated stderr/stdout 을 별 `kind:'diag'` entry 로 적재 → 다음
+ * 세션이 jsonl grep 으로 진짜 원인(인증·quota·tool 거부 등) 진단. chat 발화
+ * 는 cap 유지(1200/600), 본 함수만 full(40k cap). 진단 데이터 부재(둘 다
+ * undefined·빈) = entry 생략(노이즈 X). bounded cap = disk 폭주 방지.
+ */
+export function appendWorkerRawDiag(
+  env: NodeJS.ProcessEnv,
+  coreId: string,
+  taskId: string,
+  errMsg: string,
+  stderrFull?: string,
+  stdoutFull?: string,
+  exitCode?: number | null,
+): void {
+  const p = workerRawLedgerPath(env);
+  if (!p) return;
+  const hasStderr = (stderrFull ?? '').length > 0;
+  const hasStdout = (stdoutFull ?? '').length > 0;
+  if (!hasStderr && !hasStdout) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(
+      p,
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        coreId,
+        taskId,
+        kind: 'diag',
+        exitCode: exitCode ?? null,
+        errMsg: (errMsg || '').slice(0, 2000),
+        stderrFull: (stderrFull || '').slice(0, 40000),
+        stdoutFull: (stdoutFull || '').slice(0, 40000),
+      }) + '\n',
+      'utf-8',
+    );
+  } catch { /* best-effort */ }
+}
+
 function rememberWorkerOutcome(
   memoRoot: string,
   coreId: string,
@@ -654,6 +694,12 @@ export async function runWorkerConsumerOnce(
       // 4-9회=6h, 10+회=24h. 다른 errHash 면 count reset(현행 동작 유지).
       const errMsgRaw = (res.error || '').trim();
       const errHash = errMsgRaw ? computeErrHash(errMsgRaw) : undefined;
+      // TASK-KAR-018-LT-W2-A: error 시 full stderr/stdout 을 별 diag entry 로
+      // 적재(chat cap 유지, 원장만 full). 다음 세션 grep 으로 진단 가능.
+      appendWorkerRawDiag(
+        env, w.coreId, chosen.id, errMsgRaw,
+        res.stderrFull, res.stdoutFull, res.exitCode,
+      );
       markNoArtifact(chosen.id, tickNow, errHash);
       const repeatCount = errHash ? getNoArtifactRepeatCount(chosen.id) : 0;
       const cooldownLabel =

@@ -4,6 +4,18 @@ import * as path from 'path';
 import { spawn } from 'child_process';
 
 /**
+ * KAR-018-LT-W2-A: cli exit-1 시 full stderr/stdout 을 Error 객체에 부착.
+ * message 는 chat 발화 cap 유지(1200/600), full 은 호출 측이 raw jsonl 적재용
+ * 으로 추출 → 다음 세션 grep 으로 exit-1 진짜 원인(인증/quota/tool 거부 등)
+ * 진단 가능. 부재 시(타임아웃·spawn 실패) undefined — caller duck-type 검사.
+ */
+export interface ClaudeCliError extends Error {
+  exitCode?: number | null;
+  stderrFull?: string;
+  stdoutFull?: string;
+}
+
+/**
  * 로컬에 설치된 `claude` CLI (`claude --print`)로 텍스트 생성.
  * Claude Max 구독으로 인증된 환경에서 API 키 없이 사용 가능.
  *
@@ -90,7 +102,11 @@ export async function generateClaudeCliText(opts: {
           // exit 함께 박아 silent failure 본문이 디스코드까지 도달하게.
           const stderrSnip = (stderr || '').trim().slice(0, 1200) || '<stderr empty>';
           const stdoutSnip = (stdout || '').trim().slice(0, 600) || '<stdout empty>';
-          reject(new Error(`Claude CLI 종료 코드 ${code} (cwd=${opts.cwd ?? '<none>'}): stderr=${stderrSnip} | stdout=${stdoutSnip}`));
+          const err = new Error(`Claude CLI 종료 코드 ${code} (cwd=${opts.cwd ?? '<none>'}): stderr=${stderrSnip} | stdout=${stdoutSnip}`) as ClaudeCliError;
+          err.exitCode = code;
+          err.stderrFull = stderr;
+          err.stdoutFull = stdout;
+          reject(err);
         }
       });
 
