@@ -91,4 +91,10 @@ export const adminCommand = () =>
               { name: 'plan', value: 'plan' },
             ),
         ),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('뉴스틱')
+        .setDescription('뉴스 소스 1회 즉시 폴 (YAWNBOT_NEWS_SOURCES 기준 전체)')
+        .setDescriptionLocalizations(enUS('Trigger one news poll now (all active sources)')),
     );

@@ -9,6 +9,7 @@ import {
   getWorkerAutoEnabled, setWorkerAutoEnabled,
   defaultListWorkers, type WorkerConsumerDeps,
 } from '../agent-cadence';
+import { triggerAllNewsOnce } from '../../services/notifiers/news';
 
 export async function handleAdminReload(ctx: BotContext, interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
   const { gameData, isAdmin } = ctx;
@@ -204,3 +205,39 @@ export async function handleAdminWorkerTick(
   }
 }
 
+export async function handleAdminNewsTick(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin, client, getNews, characterService } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  if (!getNews || !characterService) {
+    await interaction.reply({ content: '⚠ MEMO_REPO_PATH 미설정 — 뉴스 서비스 비활성', flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const r = await triggerAllNewsOnce(client, getNews, characterService.getDefaultSlug());
+    if (r.noChannel) {
+      await interaction.editReply({ content: '⚠ 뉴스 채널 미설정 (YAWNBOT_NEWS_CHANNEL_ID)' }).catch(() => {});
+      return;
+    }
+    const total = r.google + r.gn + r.hn;
+    const detail = [
+      r.google > 0 && `google ${r.google}건`,
+      r.gn > 0 && `gn ${r.gn}건`,
+      r.hn > 0 && `hn ${r.hn}건`,
+    ].filter(Boolean).join(' · ');
+    await interaction.editReply({
+      content: total > 0
+        ? `📰 뉴스 ${total}건 게시 완료 — ${detail}`
+        : '📭 새 기사 없음 (전부 dedup 또는 소스 응답 0건)',
+    }).catch(() => {});
+  } catch (e) {
+    await interaction.editReply({ content: `⚠ 뉴스틱 오류: ${e instanceof Error ? e.message : String(e)}` }).catch(() => {});
+  }
+}

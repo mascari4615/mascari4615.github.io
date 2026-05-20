@@ -332,7 +332,7 @@ export function stopNewsNotifier(): void {
 }
 
 /**
- * 슬래시 단발 트리거 진입점. YAWNBOT_NEWS_CHANNEL_ID 미설정 시 'no_channel'.
+ * 슬래시 단발 트리거 — Google 키워드 뉴스 1회. YAWNBOT_NEWS_CHANNEL_ID 미설정 시 'no_channel'.
  */
 export async function triggerNewsOnce(
   client: Client,
@@ -345,4 +345,40 @@ export async function triggerNewsOnce(
     return { status: 'no_channel', sent: 0 };
   }
   return pollOnce(client, channelId, news, maxAgeHours, maxPerPoll);
+}
+
+/**
+ * 슬래시 단발 트리거 — 활성 소스(YAWNBOT_NEWS_SOURCES) 전체 1회 폴.
+ * /관리자 뉴스틱 용.
+ */
+export async function triggerAllNewsOnce(
+  client: Client,
+  getNews: (slug: string) => NewsService,
+  slug: string,
+): Promise<{ google: number; gn: number; hn: number; noChannel: boolean }> {
+  const channelId = channelIdFor('news');
+  if (!channelId) return { google: 0, gn: 0, hn: 0, noChannel: true };
+
+  const sources = parseSources(process.env.YAWNBOT_NEWS_SOURCES);
+  const maxAgeHours = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_AGE_HOURS || '12', 10));
+  const maxPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_PER_POLL || '3', 10));
+
+  let google = 0, gn = 0, hn = 0;
+
+  if (sources.has('google')) {
+    try {
+      const r = await pollOnce(client, channelId, getNews(slug), maxAgeHours, maxPerPoll);
+      if (r.status === 'sent') google = r.sent;
+    } catch { /* ignore */ }
+  }
+  if (sources.has('gn')) {
+    const r = await pollGnOnce(client, channelId, maxPerPoll);
+    if (r.status === 'sent') gn = r.sent;
+  }
+  if (sources.has('hn')) {
+    const r = await pollHnOnce(client, channelId, maxPerPoll);
+    if (r.status === 'sent') hn = r.sent;
+  }
+
+  return { google, gn, hn, noChannel: false };
 }
