@@ -48,7 +48,8 @@ import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
 import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
-import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
+import { buildGovernanceReserve, defaultNotify, setTeamBusNotify } from './bot/governance-adapter';
+import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
 import {
@@ -570,6 +571,26 @@ client.once('clientReady', async () => {
       },
       agentChOverride,
     );
+    // KAR-018-PUSH-CLOSURE pre-flight — MEMO_GITHUB_PAT 가 memo push 권한 있는지
+    // startup 1회 검증. 부족 시 #team-bus alert (silent fail 회피). 비차단.
+    try {
+      const scope = await checkMemoPushScope(process.env);
+      if (!scope.ok) {
+        console.warn(`[memo-push] preflight FAIL: ${scope.error}`);
+        defaultNotify(process.env)(
+          `🔐 memo-push pre-flight FAIL — ${scope.error}. KAR-018-PUSH-CLOSURE silent fail 상태 (워커 outcome / evolution ledger / surgery seed origin 미도달). 사용자 secret 또는 PAT 점검 필요.`,
+        );
+      } else if (scope.canPush === false) {
+        console.warn(`[memo-push] preflight: token OK but push permission missing (scopes=${scope.scopes})`);
+        defaultNotify(process.env)(
+          `🔐 memo-push pre-flight: MEMO_GITHUB_PAT 인증 OK 이나 push 권한 없음 (scopes=${scope.scopes || '<empty>'}). PAT 에 repo (classic) 또는 Contents+Pull requests Write (fine-grained) 권한 보강 필요. KAR-018-PUSH-CLOSURE silent fail 회피.`,
+        );
+      } else {
+        console.log(`[memo-push] preflight OK: canPush=true scopes=${scope.scopes || '<fine-grained>'}`);
+      }
+    } catch (e) {
+      console.warn(`[memo-push] preflight exception: ${e instanceof Error ? e.message : String(e)}`);
+    }
     startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
     // KAR-018-LT: 팀 verdict → 원본 제안 카드 반영 reconciler. 숙의는
     // client-less 순수(원장에만 기록) → client 쥔 여기서 카드 edit.

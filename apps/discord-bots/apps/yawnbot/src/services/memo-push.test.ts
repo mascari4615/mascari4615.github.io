@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   commitAndPushMemoFile,
+  checkMemoPushScope,
   type MemoPushGitRunner,
   type MemoPushConfig,
 } from './memo-push';
@@ -186,6 +187,61 @@ describe('commitAndPushMemoFile', () => {
     // 토큰 leak 검증 — error handler 자체는 git runner 에서 mask. stub git 은 raw msg.
     // 실 runner 가 mask 한다는 건 createMemoPushGitRunner 의 maskToken 책임.
     expect(result.detail).toContain('fetch failed');
+  });
+
+  it('checkMemoPushScope — no token returns ok=false', async () => {
+    const result = await checkMemoPushScope({} as NodeJS.ProcessEnv);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain('missing');
+  });
+
+  it('checkMemoPushScope — permissions.push=true returns canPush=true', async () => {
+    const env = makeEnv();
+    const fakeFetch = (async () => ({
+      ok: true,
+      headers: { get: (k: string) => (k === 'x-oauth-scopes' ? 'repo, workflow' : null) },
+      json: async () => ({ permissions: { push: true, pull: true, admin: false } }),
+    })) as unknown as typeof fetch;
+    const result = await checkMemoPushScope(env, { fetchImpl: fakeFetch });
+    expect(result.ok).toBe(true);
+    expect(result.canPush).toBe(true);
+    expect(result.scopes).toContain('repo');
+  });
+
+  it('checkMemoPushScope — permissions.push=false returns canPush=false', async () => {
+    const env = makeEnv();
+    const fakeFetch = (async () => ({
+      ok: true,
+      headers: { get: () => null },
+      json: async () => ({ permissions: { push: false, pull: true, admin: false } }),
+    })) as unknown as typeof fetch;
+    const result = await checkMemoPushScope(env, { fetchImpl: fakeFetch });
+    expect(result.ok).toBe(true);
+    expect(result.canPush).toBe(false);
+  });
+
+  it('checkMemoPushScope — HTTP 401 returns ok=false', async () => {
+    const env = makeEnv();
+    const fakeFetch = (async () => ({
+      ok: false,
+      status: 401,
+      headers: { get: () => null },
+      json: async () => ({ message: 'Bad credentials' }),
+    })) as unknown as typeof fetch;
+    const result = await checkMemoPushScope(env, { fetchImpl: fakeFetch });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain('401');
+  });
+
+  it('checkMemoPushScope — network error returns masked error', async () => {
+    const env = makeEnv();
+    const fakeFetch = (async () => {
+      throw new Error('ENOTFOUND tok-PAT-deadbeef should be masked');
+    }) as unknown as typeof fetch;
+    const result = await checkMemoPushScope(env, { fetchImpl: fakeFetch });
+    expect(result.ok).toBe(false);
+    expect(result.error).not.toContain('tok-PAT-deadbeef');
+    expect(result.error).toContain('***');
   });
 
   it('handles Windows-style absolute path within memo root', async () => {
