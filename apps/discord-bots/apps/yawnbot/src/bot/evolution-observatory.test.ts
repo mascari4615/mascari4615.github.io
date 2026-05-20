@@ -8,9 +8,15 @@ import {
   appendNewEvolutionEvents,
   eventFingerprint,
   evolutionLedgerPath,
+  buildEvolutionStatsDigest,
   formatEvolutionSummary,
   formatEvolutionTicker,
   formatRecentEvolutionForDiscovery,
+  runEvolutionStatsDigestOnce,
+  shouldRunStatsDigest,
+  statsDigestStatePath,
+  readStatsDigestState,
+  writeStatsDigestState,
   normalizeHealthEvents,
   normalizePromotionEvents,
   normalizeTraceEvents,
@@ -253,6 +259,87 @@ describe('summary and ledger IO', () => {
 
   it('formats evolution ticker — empty appended returns empty string', () => {
     expect(formatEvolutionTicker([], summarizeEvolutionEvents([]))).toBe('');
+  });
+
+  it('builds evolution stats digest — zero evolution honestly reports cron tone', () => {
+    const nowMs = Date.parse('2026-05-20T12:00:00Z');
+    const digest = buildEvolutionStatsDigest([], nowMs);
+    expect(digest).toContain('📊 진화 stats');
+    expect(digest).toContain('지난 7d');
+    expect(digest).toContain('🦴');
+    expect(digest).toContain('진화 0건');
+    expect(digest).toContain('cron 톤 그대로');
+  });
+
+  it('builds evolution stats digest — counts promotions/reverts/worker stats in window', () => {
+    const nowMs = Date.parse('2026-05-20T12:00:00Z');
+    const events = [
+      ...normalizePromotionEvents([
+        { ts: '2026-05-19T00:00:00Z', coreId: 'scout', action: 'promoted', reason: 'PASS' },
+        { ts: '2026-05-19T01:00:00Z', coreId: 'tinker', action: 'promoted', reason: 'PASS' },
+        { ts: '2026-05-19T02:00:00Z', coreId: 'scout', action: 'reverted', reason: 'regress' },
+      ]),
+      ...normalizeTraceEvents([
+        { ts: '2026-05-19T03:00:00Z', core: 'wm-worker', reason: 'worker TASK-WM-1 done-no-artifact' },
+        { ts: '2026-05-19T03:01:00Z', core: 'kar-worker', reason: 'worker TASK-KAR-2 done-no-artifact' },
+        { ts: '2026-05-19T03:02:00Z', core: 'kl-worker', reason: 'worker TASK-KL-3 error' },
+      ]),
+    ];
+    const digest = buildEvolutionStatsDigest(events, nowMs);
+    expect(digest).toContain('🧬 코어 승격 2');
+    expect(digest).toContain('🩸 퇴행 1');
+    expect(digest).toContain('no-artifact 2');
+    expect(digest).toContain('failed 1');
+    expect(digest).not.toContain('🦴');
+  });
+
+  it('builds evolution stats digest — events outside window excluded', () => {
+    const nowMs = Date.parse('2026-05-20T12:00:00Z');
+    const events = normalizePromotionEvents([
+      { ts: '2026-05-01T00:00:00Z', coreId: 'old', action: 'promoted', reason: 'old' },
+    ]);
+    const digest = buildEvolutionStatsDigest(events, nowMs);
+    expect(digest).toContain('🦴');
+    expect(digest).toContain('진화 0건');
+  });
+
+  it('shouldRunStatsDigest — fresh env returns true, then false within interval', () => {
+    const nowMs = Date.parse('2026-05-20T12:00:00Z');
+    expect(shouldRunStatsDigest(env(), nowMs)).toBe(true);
+    writeStatsDigestState(env(), { lastTs: new Date(nowMs).toISOString() });
+    expect(shouldRunStatsDigest(env(), nowMs + 3600 * 1000)).toBe(false);
+    expect(shouldRunStatsDigest(env(), nowMs + 25 * 3600 * 1000)).toBe(true);
+  });
+
+  it('runEvolutionStatsDigestOnce — sent on first call, gated on second within interval', () => {
+    const notes: string[] = [];
+    appendPromotion({ ts: '2026-05-19T00:00:00Z', coreId: 'scout', action: 'promoted', reason: 'PASS' });
+    runEvolutionObservatoryOnce(env(), {
+      healthSignals: signals,
+      healthIssues: issues,
+      nowMs: Date.parse('2026-05-19T01:00:00Z'),
+    });
+    const first = runEvolutionStatsDigestOnce(env(), {
+      notify: (m) => notes.push(m),
+      nowMs: Date.parse('2026-05-20T12:00:00Z'),
+    });
+    const second = runEvolutionStatsDigestOnce(env(), {
+      notify: (m) => notes.push(m),
+      nowMs: Date.parse('2026-05-20T13:00:00Z'),
+    });
+    expect(first).toBe('digest:sent');
+    expect(second).toBe('digest:gated');
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toContain('📊 진화 stats');
+    expect(notes[0]).toContain('🧬 코어 승격 1');
+    // state file persisted
+    const state = readStatsDigestState(env());
+    expect(state?.lastTs).toContain('2026-05-20T12:00:00');
+  });
+
+  it('statsDigestStatePath — empty without MEMO_REPO_PATH', () => {
+    expect(statsDigestStatePath({} as NodeJS.ProcessEnv)).toBe('');
+    expect(readStatsDigestState({} as NodeJS.ProcessEnv)).toBeNull();
   });
 
   it('is a no-op without MEMO_REPO_PATH', () => {
