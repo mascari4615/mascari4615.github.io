@@ -449,9 +449,9 @@ client.once('clientReady', async () => {
     // 하드코딩 폐기, agents/ 디렉토리가 정본. 라우팅 default=atlas =
     // 기존 전량 atlas 행동 보존(회귀 0).
     setProposalAnnouncer(async (a) => {
-      const channelIds = agentCh
-        ? [agentCh]
-        : getLocalChannels('agent-team');
+      // LT-FORUM: 카드 substrate = #team-work forum 채널.
+      // channelIds 텍스트 라우팅 폐기 — channel-spec.json `agent-work` 키가
+      // forum 채널 단일 정본 (announceProposal 내부 createForumPost 경유).
       const payload = a.envelope.payload as unknown as Record<
         string,
         unknown
@@ -470,7 +470,7 @@ client.once('clientReady', async () => {
       const skinCard = coreDef
         ? characterService?.loadCard(coreDef.defaultSkin) ?? null
         : null;
-      await announceProposal(client as any, process.env, channelIds, {
+      await announceProposal(client as any, process.env, {
         ...a,
         agent: coreDef
           ? {
