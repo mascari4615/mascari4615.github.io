@@ -1,4 +1,3 @@
-// @ts-nocheck
 (function(){ 'use strict'; if(typeof Mdd!=='undefined') Mdd.injectCSS('imagegen', `
         /* ===== 생성 탭 ===== */
         .ig-layout { display:flex; gap:24px; flex:1; min-height:0; }
