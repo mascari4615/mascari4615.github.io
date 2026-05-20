@@ -33,6 +33,10 @@ import { readEvolutionEvents, type EvolutionEvent } from './evolution-observator
 import { buildDigestText, filterEventsByWindow } from './team-digest';
 import { appendTrace, defaultNotify, type NotifyFn } from './governance-adapter';
 import { materializeTaskProposal } from './proposal-adapter';
+import {
+  commitAndPushMemoFile,
+  type MemoPushResult,
+} from '../services/memo-push';
 import { listCoreIds, loadCoreDef, type CoreDef } from '../services/agent-core';
 import {
   isKilled,
@@ -213,6 +217,15 @@ export interface SelfSurgeryDeps {
   missionText?: string;
   healthSignals?: HealthSignals;
   writeTask?: (env: NodeJS.ProcessEnv, payload: { title: string; body: string; domain: string }) => string | null;
+  /**
+   * KAR-018-PUSH-CLOSURE Phase 1 — surgery seed 파일을 memo origin 으로 push.
+   * 기본 = commitAndPushMemoFile. 테스트에서 stub 주입 가능. 실패 = tick 비차단.
+   */
+  pushArtifact?: (
+    env: NodeJS.ProcessEnv,
+    absPath: string,
+    message: string,
+  ) => Promise<MemoPushResult>;
 }
 
 /**
@@ -269,7 +282,27 @@ export async function runSelfSurgeryOnce(
       ].join('\n'),
       domain: 'KAR',
     });
-    const label = filePath ? `→ ${path.basename(filePath)}` : '(파일 생성 실패)';
+    // KAR-018-PUSH-CLOSURE Phase 1 — seed 파일을 memo origin 으로 push.
+    // 실패 = tick 비차단, outcome 만 trace/notify 라벨에 노출.
+    let pushResult: MemoPushResult | null = null;
+    if (filePath) {
+      try {
+        const pushArtifact =
+          deps.pushArtifact ??
+          ((e, abs, msg) => commitAndPushMemoFile(e, abs, msg));
+        pushResult = await pushArtifact(
+          env,
+          filePath,
+          `chore(KAR-018-surgery): seed ${decision.taskTitle.slice(0, 60)}`,
+        );
+      } catch {
+        /* push 실패 = tick 비차단. trace 가 빈 label 로 신호 */
+      }
+    }
+    const pushLabel = pushResult
+      ? ` [${pushResult.outcome}${pushResult.pushedSha ? `@${pushResult.pushedSha.slice(0, 7)}` : ''}]`
+      : '';
+    const label = filePath ? `→ ${path.basename(filePath)}${pushLabel}` : '(파일 생성 실패)';
     notify(
       `⚕ **자기수술** — 이슈 진단 완료. 과제 시드 작성 ${label}\n` +
         `이슈: ${critical.map((i) => i.code).join(', ')}\n` +
@@ -277,7 +310,7 @@ export async function runSelfSurgeryOnce(
     );
     appendTrace(env, {
       ts: new Date().toISOString(), type: 'budget', core: 'surgery',
-      reason: `surgery seed: ${decision.taskTitle.slice(0, 80)} (${critical.map((i) => i.code).join(',')})`,
+      reason: `surgery seed: ${decision.taskTitle.slice(0, 80)} (${critical.map((i) => i.code).join(',')})${pushLabel}`,
     });
     return `surgery:seed:${decision.taskTitle.slice(0, 40)}`;
   }
