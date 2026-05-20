@@ -56,6 +56,9 @@ export async function handleAdminCadenceTick(
     return;
   }
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction
+    .editReply({ content: '🛰 cadence 1틱 시작… (발굴 LLM 수십초, 산출은 #team-bus)' })
+    .catch(() => {});
   try {
     const r = await runCadenceTickOnce(process.env);
     await interaction
@@ -135,6 +138,9 @@ export async function handleAdminWorkerTick(
     return;
   }
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction
+    .editReply({ content: '🤖 워커 시작… (claimable 있으면 tier3 수분 소요, 산출은 #team-bus)' })
+    .catch(() => {});
   try {
     const w = await runWorkerConsumerOnce(process.env);
     await interaction
