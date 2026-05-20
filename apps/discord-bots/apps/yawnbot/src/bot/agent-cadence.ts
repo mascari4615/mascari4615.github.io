@@ -1263,40 +1263,40 @@ export async function runCadenceTickOnce(
   if (memoRoot && !isKilled()) {
     try {
       const evo = runEvolutionObservatoryOnce(env, { notify: gov.notify });
-      if (evo.appended > 0) {
-        r = `${r}+evolution:${evo.appended}`;
-        // KAR-018-PUSH-CLOSURE Phase 3 — ledger push 시도 (변경 있을 때만).
-        // Claude session·데스크톱 직접 read 가능 → stats digest 측정 정확도 ↑.
-        // 비차단·race 회피·pathspec — commitAndPushMemoFile 정합.
-        try {
-          const ledgerAbs = evolutionLedgerPath(env);
-          if (ledgerAbs) {
-            const p1 = await commitAndPushMemoFile(
-              env,
-              ledgerAbs,
-              `chore(KAR-018-evolution): events ledger +${evo.appended}`,
-            );
-            if (p1.outcome === 'pushed') r = `${r}+evolution-push:ok`;
-            else if (p1.outcome === 'skipped:race') r = `${r}+evolution-push:race`;
-            else if (p1.outcome === 'error') r = `${r}+evolution-push:err`;
-          }
-          const promAbs = promotionTracePath(env);
-          if (promAbs) {
-            const p2 = await commitAndPushMemoFile(
-              env,
-              promAbs,
-              `chore(KAR-018-evolution): promotion ledger update`,
-            );
-            if (p2.outcome === 'pushed') r = `${r}+promotion-push:ok`;
-            else if (p2.outcome === 'skipped:race') r = `${r}+promotion-push:race`;
-            else if (p2.outcome === 'error') r = `${r}+promotion-push:err`;
-          }
-        } catch {
-          /* push 실패 = tick 비차단 */
-        }
-      }
+      if (evo.appended > 0) r = `${r}+evolution:${evo.appended}`;
     } catch {
       /* evolution observatory 실패 = tick 비차단 */
+    }
+    // KAR-018-PUSH-CLOSURE Phase 3 — ledger push 시도 (변경 무관 매 tick).
+    // appended>0 게이트 X: prod 노트북에 누적된 untracked ledger (Phase 3 적용
+    // 이전 생성) = appended 0 영구라 영원히 push 안 되던 버그 fix. status 빈
+    // 출력 → commitAndPushMemoFile 가 skipped:no-change 즉시 반환 (비용 ≈ 0).
+    // 변경 있는 첫 tick 부터 origin 도달.
+    try {
+      const ledgerAbs = evolutionLedgerPath(env);
+      if (ledgerAbs) {
+        const p1 = await commitAndPushMemoFile(
+          env,
+          ledgerAbs,
+          `chore(KAR-018-evolution): events ledger sync`,
+        );
+        if (p1.outcome === 'pushed') r = `${r}+evolution-push:ok`;
+        else if (p1.outcome === 'skipped:race') r = `${r}+evolution-push:race`;
+        else if (p1.outcome === 'error') r = `${r}+evolution-push:err`;
+      }
+      const promAbs = promotionTracePath(env);
+      if (promAbs) {
+        const p2 = await commitAndPushMemoFile(
+          env,
+          promAbs,
+          `chore(KAR-018-evolution): promotion ledger sync`,
+        );
+        if (p2.outcome === 'pushed') r = `${r}+promotion-push:ok`;
+        else if (p2.outcome === 'skipped:race') r = `${r}+promotion-push:race`;
+        else if (p2.outcome === 'error') r = `${r}+promotion-push:err`;
+      }
+    } catch {
+      /* push 실패 = tick 비차단 */
     }
   }
   // LT-12: 24h 정기 stats 다이제스트 — 봇이 자기 ledger 측정 후 #team-bus 발화.
