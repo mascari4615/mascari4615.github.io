@@ -57,12 +57,14 @@ export function tsStamp(now: Date): string {
 }
 
 /**
- * autopilot 안전 룰셋 브랜치명. autopilot-graduate.yml 이 `feature/*`
+ * LT 워커 브랜치명. agent-team-graduate.yml 이 화이트리스트 prefix
  * head 를 졸업시키므로 prefix 고정. taskId 소문자 + ts = 재실행 충돌 0.
+ * 정본 = TASK-KAR-018-LT-RENAME R-1/R-3 (substrate⊥skin 정합 — autopilot
+ * skill 과 LT 워커 정체성 분리).
  */
 export function workerBranchName(taskId: string, now: Date): string {
   const slug = taskId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return `feature/autopilot-${slug}-${tsStamp(now)}`;
+  return `feature/agent-team-${slug}-${tsStamp(now)}`;
 }
 
 /**
