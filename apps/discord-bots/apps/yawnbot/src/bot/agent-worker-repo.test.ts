@@ -35,6 +35,12 @@ describe('resolveDomainRepo (순수)', () => {
     );
   });
 
+  it('wm-support → WitchMendokusai (보좌 모델, TASK-KAR-018-WMS)', () => {
+    expect(resolveDomainRepo('wm-support', '/x/karmoddrine')?.repoRoot).toBe(
+      '/x/karmoddrine/WitchMendokusai',
+    );
+  });
+
   it('미지원 코어 / 빈 umbrella = null', () => {
     expect(resolveDomainRepo('atlas', '/x')).toBeNull();
     expect(resolveDomainRepo('producer', '/x')).toBeNull();
