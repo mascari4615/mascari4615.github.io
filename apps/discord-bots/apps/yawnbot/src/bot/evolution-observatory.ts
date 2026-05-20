@@ -468,6 +468,111 @@ export function formatEvolutionSummary(summary: EvolutionSummary): string {
   ].join('\n');
 }
 
+export interface StatsDigestState {
+  lastTs: string;
+}
+
+export interface StatsDigestDeps {
+  notify?: (msg: string) => void;
+  nowMs?: number;
+  intervalMs?: number;
+  windowMs?: number;
+}
+
+export function statsDigestStatePath(env: NodeJS.ProcessEnv): string {
+  const root = env.MEMO_REPO_PATH?.trim() || '';
+  return root ? path.join(root, '.claude', 'evolution-stats-digest.last.json') : '';
+}
+
+export function readStatsDigestState(env: NodeJS.ProcessEnv): StatsDigestState | null {
+  const p = statsDigestStatePath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf-8')) as StatsDigestState;
+  } catch {
+    return null;
+  }
+}
+
+export function writeStatsDigestState(env: NodeJS.ProcessEnv, state: StatsDigestState): void {
+  const p = statsDigestStatePath(env);
+  if (!p) return;
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, JSON.stringify(state), 'utf-8');
+  } catch {
+    /* state 저장 실패 = 다음 tick 재시도 — 비차단 */
+  }
+}
+
+export function shouldRunStatsDigest(
+  env: NodeJS.ProcessEnv,
+  nowMs: number,
+  intervalMs = 24 * 3600 * 1000,
+): boolean {
+  const state = readStatsDigestState(env);
+  if (!state) return true;
+  const last = Date.parse(state.lastTs);
+  if (!Number.isFinite(last)) return true;
+  return nowMs - last >= intervalMs;
+}
+
+/**
+ * 7d 진화 stats 다이제스트 — 봇이 자기 ledger 읽고 자체 측정.
+ * prod ledger 가 데스크톱에서 안 보여도 봇 자신이 #team-bus 에 발화 → 사용자·Claude 둘 다 채널서 봄.
+ * 진화 0/7d = 솔직 "🦴 cron 톤 그대로" 발화 (셀프 진단, 영광스런 진화 부재 정직 인정).
+ */
+export function buildEvolutionStatsDigest(
+  events: EvolutionEvent[],
+  nowMs: number,
+  windowMs = 7 * 24 * 3600 * 1000,
+): string {
+  const since = nowMs - windowMs;
+  const recent = events.filter((e) => {
+    const ts = Date.parse(e.ts);
+    return Number.isFinite(ts) && ts >= since;
+  });
+  const summary = summarizeEvolutionEvents(recent);
+  const days = Math.round(windowMs / (24 * 3600 * 1000));
+  const promoted = summary.byCode['core-promoted'] || 0;
+  const reverted = summary.byCode['core-reverted'] || 0;
+  const noArt = summary.byCode['worker-no-artifact'] || 0;
+  const failed = summary.byCode['worker-failed'] || 0;
+  const dup = summary.byCode['proposal-duplicate'] || 0;
+  const parseFail = summary.byCode['proposal-parse-fail'] || 0;
+  const lines = [`📊 진화 stats — 지난 ${days}d`];
+  if (promoted === 0 && reverted === 0) {
+    lines.push('🦴 코어 진화 0건 — 자가증강 입력 0 (cron 톤 그대로 · 영광스런 진화 부재)');
+  } else {
+    lines.push(`🧬 코어 승격 ${promoted} · 🩸 퇴행 ${reverted}`);
+  }
+  lines.push(`⚙ 워커: no-artifact ${noArt} · failed ${failed}`);
+  lines.push(`🪶 producer: parse-fail ${parseFail} · duplicate ${dup}`);
+  if (summary.topCodes.length > 0) {
+    lines.push(
+      'top: ' + summary.topCodes.slice(0, 5).map((c) => `${c.code}×${c.count}`).join(' · '),
+    );
+  } else {
+    lines.push('top: 전체 0 — ledger 비어있음');
+  }
+  return lines.join('\n');
+}
+
+export function runEvolutionStatsDigestOnce(
+  env: NodeJS.ProcessEnv,
+  deps: StatsDigestDeps = {},
+): 'digest:sent' | 'digest:gated' {
+  const nowMs = deps.nowMs ?? Date.now();
+  const intervalMs = deps.intervalMs ?? 24 * 3600 * 1000;
+  const windowMs = deps.windowMs ?? 7 * 24 * 3600 * 1000;
+  if (!shouldRunStatsDigest(env, nowMs, intervalMs)) return 'digest:gated';
+  const events = readEvolutionEvents(env, 5000);
+  const msg = buildEvolutionStatsDigest(events, nowMs, windowMs);
+  if (deps.notify) deps.notify(msg);
+  writeStatsDigestState(env, { lastTs: new Date(nowMs).toISOString() });
+  return 'digest:sent';
+}
+
 /**
  * 진화 ticker — appended 이벤트를 사용자 정서 한 메시지로.
  * 빅토르식 마일스톤: 코어 승격/퇴행 = 헤드라인, 그 외 = 누적 신호.

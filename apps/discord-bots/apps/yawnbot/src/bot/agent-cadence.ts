@@ -67,8 +67,10 @@ import {
 } from './self-augment';
 import {
   runEvolutionObservatoryOnce,
+  runEvolutionStatsDigestOnce,
   summarizeRecentEvolutionEvents,
   formatRecentEvolutionForDiscovery,
+  type StatsDigestDeps,
 } from './evolution-observatory';
 import {
   diagnoseHealth,
@@ -1138,6 +1140,7 @@ export async function runCadenceTickOnce(
     dialogueDeps?: Parameters<typeof runCoreDialogueOnce>[1];
     qualityCheckDeps?: QualityCheckDeps;
     selfSurgeryDeps?: SelfSurgeryDeps;
+    statsDigestDeps?: StatsDigestDeps;
   } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -1262,8 +1265,21 @@ export async function runCadenceTickOnce(
       /* evolution observatory 실패 = tick 비차단 */
     }
   }
-  // LT-DIGEST 주기 다이제스트 — gated(12h) best-effort. 진화 0 일 때도
-  // "12h 진화 0 — stalled" 명시 송신 → "cron 껍데기" 인지 직격.
+  // LT-12: 24h 정기 stats 다이제스트 — 봇이 자기 ledger 측정 후 #team-bus 발화.
+  // 진화 0/7d 시 솔직 발화 (cron 셀프 진단). prod ledger 가 데스크톱에서
+  // 안 보여도 봇 자신이 채널로 가시화. defaultNotify = #team-bus 단일 seam.
+  if (memoRoot && !isKilled()) {
+    try {
+      const ds = runEvolutionStatsDigestOnce(env, opts.statsDigestDeps ?? { notify: gov.notify });
+      if (ds === 'digest:sent') r = `${r}+stats-digest:sent`;
+    } catch {
+      /* stats digest 실패 = tick 비차단 */
+    }
+  }
+  // LT-DIGEST 주기 종합 다이제스트 — gated(12h) best-effort. portfolio progressLog
+  // 정체 + health + self-augment + proposal + trace 통합 superset. 진화 0 일 때도
+  // "12h 진화 0 — stalled" 명시 → "cron 껍데기" 인지 직격. stats-digest(24h)와
+  // 직교: stats = 진화 빈도 회고 / digest = 종합 가시화 (다른 빈도·다른 source).
   if (memoRoot && !isKilled()) {
     try {
       const dg = await runDigestOnce(env);
