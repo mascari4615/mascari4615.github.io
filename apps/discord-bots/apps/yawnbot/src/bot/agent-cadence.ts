@@ -138,7 +138,7 @@ export {
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
   ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
-  runWorkerConsumerOnce,
+  runWorkerConsumerOnce, defaultListWorkers,
 } from './agent-cadence-worker';
 export {
   summarizeTick,

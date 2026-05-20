@@ -36,7 +36,25 @@ export const adminCommand = () =>
       sub
         .setName('워커틱')
         .setDescription('워커 소화만 1회 수동 실행 (발굴·대화 없이 워커 소비만)')
-        .setDescriptionLocalizations(enUS('Run worker consumer only, once')),
+        .setDescriptionLocalizations(enUS('Run worker consumer only, once'))
+        .addStringOption((opt) =>
+          opt
+            .setName('워커')
+            .setDescription('특정 워커만 실행 (생략 시 전체)')
+            .setDescriptionLocalizations(enUS('Run only this worker (default: all)'))
+            .addChoices(
+              { name: 'kar-worker', value: 'kar-worker' },
+              { name: 'kl-worker', value: 'kl-worker' },
+              { name: 'wm-support', value: 'wm-support' },
+              { name: 'wm-worker', value: 'wm-worker' },
+            ),
+        )
+        .addStringOption((opt) =>
+          opt
+            .setName('task')
+            .setDescription('특정 TASK 강제 실행 (예: KAR-018-LT-W1-WIRE)')
+            .setDescriptionLocalizations(enUS('Force specific TASK id (bypasses scan/cooldown)')),
+        ),
     )
     .addSubcommand((sub) =>
       sub

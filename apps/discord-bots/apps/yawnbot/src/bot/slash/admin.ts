@@ -1,10 +1,13 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import type { BotContext } from './bot-context';
 import {
   runCadenceTickOnce, runWorkerConsumerOnce,
   getCadenceAutoEnabled, setCadenceAutoEnabled,
   getWorkerAutoEnabled, setWorkerAutoEnabled,
+  defaultListWorkers, type WorkerConsumerDeps,
 } from '../agent-cadence';
 
 export async function handleAdminReload(ctx: BotContext, interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
@@ -137,16 +140,54 @@ export async function handleAdminWorkerTick(
     });
     return;
   }
+  const workerFilter = interaction.options.getString('워커')?.trim() || '';
+  const taskInput = interaction.options.getString('task')?.trim() || '';
+  // task 옵션 = "KAR-018-LT-W1-WIRE" 형식(TASK- prefix 없이) 또는 "TASK-..." 모두 수용.
+  const taskBare = taskInput.replace(/^TASK-/, '');
+
+  // task 지정 시 메모 dir 에서 파일 lookup (manual override = scan/cooldown 우회).
+  let forcedTaskFile: string | null = null;
+  if (taskBare) {
+    const memoRoot = process.env.MEMO_REPO_PATH?.trim() || '';
+    const tasksDir = path.join(memoRoot, 'memo', 'tasks');
+    try {
+      const files = fs.readdirSync(tasksDir).filter((f) =>
+        f === `TASK-${taskBare}.md` || f.startsWith(`TASK-${taskBare}-`),
+      );
+      if (files.length > 0) forcedTaskFile = path.join('memo', 'tasks', files[0]);
+    } catch { /* memoRoot 없음/접근불가 → forcedTaskFile null 유지 */ }
+    if (!forcedTaskFile) {
+      await interaction.reply({
+        content: `⚠ TASK 파일을 못 찾음: \`TASK-${taskBare}*.md\` (memo/tasks/)`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+  }
+
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const filterDesc =
+    [workerFilter && `워커=${workerFilter}`, taskBare && `task=${taskBare}`]
+      .filter(Boolean).join(' · ') || '전체';
   await interaction
-    .editReply({ content: '🤖 워커 시작… (claimable 있으면 tier3 수분 소요, 산출은 #team-bus)' })
+    .editReply({ content: `🤖 워커 시작… (${filterDesc}, 산출은 #team-bus)` })
     .catch(() => {});
+
+  const deps: WorkerConsumerDeps = {};
+  if (workerFilter) {
+    deps.listWorkers = (memoRoot) =>
+      defaultListWorkers(memoRoot).filter((w) => w.coreId === workerFilter);
+  }
+  if (forcedTaskFile) {
+    deps.scan = () => [{ id: `TASK-${taskBare}`, file: forcedTaskFile! } as never];
+  }
+
   try {
-    const w = await runWorkerConsumerOnce(process.env);
+    const w = await runWorkerConsumerOnce(process.env, deps);
     await interaction
       .editReply({
         content:
-          `🤖 워커 소화 1회 완료 — \`${String(w).slice(0, 1500)}\`\n` +
+          `🤖 워커 소화 1회 완료 (${filterDesc}) — \`${String(w).slice(0, 1500)}\`\n` +
           '(착수·idle 사유는 #team-bus 확인)',
       })
       .catch(() => {});

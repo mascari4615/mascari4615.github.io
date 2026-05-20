@@ -192,7 +192,7 @@ export function buildWorkerPrompt(
 }
 
 // ── 워커 목록 기본 로더 ──────────────────────────────────────
-function defaultListWorkers(memoRoot: string): WorkerCore[] {
+export function defaultListWorkers(memoRoot: string): WorkerCore[] {
   return selectWorkerCores(
     listCoreIds(memoRoot).map((id) => loadCoreDef(memoRoot, id)),
   );
