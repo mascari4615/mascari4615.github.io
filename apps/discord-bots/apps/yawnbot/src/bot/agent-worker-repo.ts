@@ -58,26 +58,29 @@ export function tsStamp(now: Date): string {
 
 /**
  * LT 워커 브랜치명. agent-team-graduate.yml 이 화이트리스트 prefix
- * head 를 졸업시키므로 prefix 고정. taskId 소문자 + ts = 재실행 충돌 0.
+ * head 를 졸업시키므로 prefix 고정. taskId 소문자 = deterministic, ts X
+ * (KAR-018, 2026-05-21 사용자 진단: ts 접미 시 매 워커 호출마다 새 브랜치
+ * = 진행 상황 무손실 0. 같은 TASK = 같은 브랜치, setup 측이 reuse).
  * 정본 = TASK-KAR-018-LT-RENAME R-1/R-3 (substrate⊥skin 정합 — autopilot
  * skill 과 LT 워커 정체성 분리).
  */
-export function workerBranchName(taskId: string, now: Date): string {
+export function workerBranchName(taskId: string, _now?: Date): string {
   const slug = taskId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return `feature/agent-team-${slug}-${tsStamp(now)}`;
+  return `feature/agent-team-${slug}`;
 }
 
 /**
- * 격리 worktree 절대 경로. umbrella/.worktrees/ 는 이미 gitignore 패턴
- * (race-only worktree 관례). 코어+ts = 동시 wm/kl + 재실행 충돌 0.
+ * 격리 worktree 절대 경로. umbrella/.worktrees/ 는 이미 gitignore 패턴.
+ * deterministic (ts X) → 같은 TASK 재진입 시 기존 worktree 재사용.
+ * 동시 충돌 = claim 파일이 차단 (같은 TASK 동시 claim 불가).
  */
 export function workerWorktreeDir(
   umbrellaRoot: string,
   coreId: string,
   taskId: string,
-  now: Date,
+  _now?: Date,
 ): string {
   const root = umbrellaRoot.replace(/[\\/]+$/, '');
   const slug = taskId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return `${root}/.worktrees/aw-${coreId}-${slug}-${tsStamp(now)}`;
+  return `${root}/.worktrees/aw-${coreId}-${slug}`;
 }

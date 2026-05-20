@@ -53,28 +53,33 @@ describe('tsStamp / workerBranchName / workerWorktreeDir (순수·결정적)', (
     expect(tsStamp(NOW)).toBe('2605171306');
   });
 
-  it('workerBranchName = feature/agent-team + 소문자 슬러그 + ts', () => {
-    expect(workerBranchName('TASK-WM-084', NOW)).toBe(
-      'feature/agent-team-task-wm-084-2605171306',
+  it('workerBranchName = feature/agent-team + 소문자 슬러그 (KAR-018: ts X, deterministic)', () => {
+    expect(workerBranchName('TASK-WM-084')).toBe(
+      'feature/agent-team-task-wm-084',
     );
   });
 
   it('workerBranchName 특수문자 → 단일 하이픈·양끝 trim', () => {
-    expect(workerBranchName('TASK-KL-055-B', NOW)).toBe(
-      'feature/agent-team-task-kl-055-b-2605171306',
+    expect(workerBranchName('TASK-KL-055-B')).toBe(
+      'feature/agent-team-task-kl-055-b',
     );
   });
 
-  it('workerWorktreeDir = umbrella/.worktrees/aw-<core>-<slug>-<ts>', () => {
-    expect(
-      workerWorktreeDir('/x/karmoddrine', 'kl-worker', 'TASK-KL-061', NOW),
-    ).toBe('/x/karmoddrine/.worktrees/aw-kl-worker-task-kl-061-2605171306');
+  it('workerBranchName 같은 TASK 다른 시각 = 동일 (연속성)', () => {
+    const later = new Date('2026-05-21T07:00:00Z');
+    expect(workerBranchName('TASK-WM-084', NOW)).toBe(workerBranchName('TASK-WM-084', later));
   });
 
-  it('branch 와 worktreeDir 의 slug·ts 일관', () => {
-    const b = workerBranchName('TASK-WM-116', NOW);
-    const d = workerWorktreeDir('/r', 'wm-worker', 'TASK-WM-116', NOW);
-    expect(b.endsWith('task-wm-116-2605171306')).toBe(true);
-    expect(d.endsWith('task-wm-116-2605171306')).toBe(true);
+  it('workerWorktreeDir = umbrella/.worktrees/aw-<core>-<slug> (KAR-018: ts X)', () => {
+    expect(
+      workerWorktreeDir('/x/karmoddrine', 'kl-worker', 'TASK-KL-061'),
+    ).toBe('/x/karmoddrine/.worktrees/aw-kl-worker-task-kl-061');
+  });
+
+  it('branch 와 worktreeDir 의 slug 일관', () => {
+    const b = workerBranchName('TASK-WM-116');
+    const d = workerWorktreeDir('/r', 'wm-worker', 'TASK-WM-116');
+    expect(b.endsWith('task-wm-116')).toBe(true);
+    expect(d.endsWith('task-wm-116')).toBe(true);
   });
 });
