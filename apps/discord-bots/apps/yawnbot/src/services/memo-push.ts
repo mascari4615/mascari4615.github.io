@@ -183,6 +183,61 @@ export function createMemoPushGitRunner(): MemoPushGitRunner {
   };
 }
 
+/**
+ * KAR-018-PUSH-CLOSURE 후속 — startup pre-flight: MEMO_GITHUB_PAT 가 memo
+ * repo 에 push 권한 가졌는지 GitHub API 로 검증. push fail 의 KL-073 동형
+ * silent 패턴 (token 있으나 scope 부족 → 매 cadence tick 'error') 회피.
+ *
+ * - token 없음 → ok=false (push 비활성, 사용자 secret 박기 필요)
+ * - HTTP fail → ok=false (network or invalid token)
+ * - GET /repos/<slug> 성공 + permissions.push=true → canPush=true (GREEN)
+ * - permissions.push=false → canPush=false (read scope만, push 부족)
+ *
+ * `x-oauth-scopes` 헤더는 classic PAT 에만 — fine-grained PAT 는 빈 출력
+ * 이라 `permissions.push` 가 정본 판단 기준. (fine-grained 의 Pull requests:
+ * Write + Contents: Write 가 push 권한.)
+ */
+export interface MemoPushScopeResult {
+  ok: boolean;
+  canPush?: boolean;
+  scopes?: string;
+  error?: string;
+}
+
+export async function checkMemoPushScope(
+  env: NodeJS.ProcessEnv,
+  deps: { fetchImpl?: typeof fetch; repoSlug?: string } = {},
+): Promise<MemoPushScopeResult> {
+  const token = env.MEMO_GITHUB_PAT?.trim() || env.GITHUB_TOKEN?.trim() || '';
+  if (!token) {
+    return { ok: false, error: 'MEMO_GITHUB_PAT (and GITHUB_TOKEN) missing' };
+  }
+  const slug = deps.repoSlug ?? env.YAWNBOT_MEMOSYNC_REPO_SLUG?.trim() ?? DEFAULT_REPO_SLUG;
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  try {
+    const res = await fetchImpl(`https://api.github.com/repos/${slug}`, {
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'yawnbot-memo-push-preflight',
+      },
+    });
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: maskToken(`HTTP ${res.status}`, token),
+      };
+    }
+    const data = (await res.json()) as { permissions?: { push?: boolean } };
+    const scopes = res.headers.get('x-oauth-scopes') || '';
+    const canPush = data?.permissions?.push === true;
+    return { ok: true, canPush, scopes };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: maskToken(msg.slice(0, 240), token) };
+  }
+}
+
 function toRelPath(memoRoot: string, absPath: string): string | null {
   const sep = absPath.includes('\\') ? '\\' : '/';
   const root = memoRoot.replace(/[\\/]+$/, '');
