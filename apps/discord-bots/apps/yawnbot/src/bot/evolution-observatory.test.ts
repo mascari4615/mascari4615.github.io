@@ -9,6 +9,7 @@ import {
   eventFingerprint,
   evolutionLedgerPath,
   formatEvolutionSummary,
+  formatEvolutionTicker,
   formatRecentEvolutionForDiscovery,
   normalizeHealthEvents,
   normalizePromotionEvents,
@@ -212,7 +213,46 @@ describe('summary and ledger IO', () => {
     expect(second.observed).toBe(4);
     expect(second.appended).toBe(0);
     expect(notes).toHaveLength(1);
+    // ★ 진화 ticker: 사용자 정서 톤. promotion 마일스톤 + worker-no-artifact 진화 입력.
+    expect(notes[0]).toContain('🧬');
+    expect(notes[0]).toContain('scout');
     expect(notes[0]).toContain('worker-no-artifact');
+    expect(notes[0]).toContain('📈');
+  });
+
+  it('formats evolution ticker — promotions get headline, others get rollup', () => {
+    const events = [
+      ...normalizePromotionEvents([
+        { ts: '2026-05-20T00:00:00Z', coreId: 'scout', action: 'promoted', reason: 'PASS gates' },
+      ]),
+      ...normalizeTraceEvents([
+        { ts: '2026-05-20T00:01:00Z', core: 'kar-worker', reason: 'worker TASK-KAR-9 done-no-artifact' },
+        { ts: '2026-05-20T00:02:00Z', core: 'kar-worker', reason: 'worker TASK-KAR-10 done-no-artifact' },
+      ]),
+    ];
+    const summary = summarizeEvolutionEvents(events);
+    const ticker = formatEvolutionTicker(events, summary);
+    expect(ticker).toContain('🧬');
+    expect(ticker).toContain('«scout»');
+    expect(ticker).toContain('PASS gates');
+    expect(ticker).toContain('📈');
+    expect(ticker).toContain('worker-no-artifact×2');
+  });
+
+  it('formats evolution ticker — revert is highlighted as 진화 퇴행', () => {
+    const events = normalizePromotionEvents([
+      { ts: '2026-05-20T00:00:00Z', coreId: 'scout', action: 'reverted', reason: 'regress=worker-no-artifact x3' },
+    ]);
+    const summary = summarizeEvolutionEvents(events);
+    const ticker = formatEvolutionTicker(events, summary);
+    expect(ticker).toContain('🩸');
+    expect(ticker).toContain('«scout»');
+    expect(ticker).toContain('진화 퇴행');
+    expect(ticker).toContain('regress=worker-no-artifact');
+  });
+
+  it('formats evolution ticker — empty appended returns empty string', () => {
+    expect(formatEvolutionTicker([], summarizeEvolutionEvents([]))).toBe('');
   });
 
   it('is a no-op without MEMO_REPO_PATH', () => {
