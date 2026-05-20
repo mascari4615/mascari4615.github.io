@@ -96,6 +96,53 @@ YAWNBOT_UNITY_FREE_INTERVAL_MIN=60
 YAWNBOT_NEWS_INTERVAL_MIN=180
 YAWNBOT_NEWS_MAX_AGE_HOURS=12
 YAWNBOT_NEWS_MAX_PER_POLL=3
+# 활성 소스 목록(쉼표 구분). 새 소스 추가 = 이 값만 수정하면 됨.
+# 유효값: google(키워드RSS) / hn(Hacker News) / gn(GeekNews news.hada.io)
+YAWNBOT_NEWS_SOURCES=google,hn,gn
+
+# ── 콘솔 타임스탬프 ──
+# 1/on/true 면 로그 앞에 [HH:MM:SS] 붙임. 기본 꺼짐.
+YAWNBOT_CONSOLE_TIMESTAMPS=
+
+# ── 채널 자동 프로비저닝 (TASK-YB-029) ──
+# prod = 자동 ON / dev = 자동 OFF. 비상 비활성 = 0/off. 강제 활성 = 1.
+YAWNBOT_CHANNEL_PROVISION=
+
+# ── 슬래시 채널 제한 ──
+# 허용 채널 ID(쉼표 구분). 미설정 = 전 채널 허용.
+YAWNBOT_ALLOWED_SLASH_CHANNEL_IDS=
+# 슬래시 사용 기록. 1/on/true 면 콘솔 출력. 기본 꺼짐.
+YAWNBOT_SLASH_USAGE_LOG=
+
+# ── /music yt-dlp 경로 ──
+# yt-dlp 실행 파일 경로(PATH 에 없을 때). YT_DLP_PATH 별칭도 동일.
+YAWNBOT_YT_DLP_PATH=
+# YouTube 쿠키 파일 경로. YT_DLP_COOKIES_PATH 별칭도 동일.
+YAWNBOT_YOUTUBE_COOKIES_PATH=
+
+# ── outbound heartbeat (TASK-YB-021) ──
+# 미설정(REPO 빈값) = 비활성. 봇이 주기적으로 memo 레포에 생존 기록.
+YAWNBOT_HEARTBEAT_REPO=
+YAWNBOT_HEARTBEAT_BRANCH=
+YAWNBOT_HEARTBEAT_PATH=
+# 폴링 간격(분). 코드 기본값 = 5분.
+YAWNBOT_HEARTBEAT_INTERVAL_MIN=5
+
+# ── 캐릭터 상태 스냅샷 (TASK-KAR-CHARSTATE) ──
+# 미설정(REPO 빈값) = 비활성. mood·relationship 등을 memo 레포에 내구 저장.
+YAWNBOT_CHARSTATE_REPO=
+YAWNBOT_CHARSTATE_BRANCH=
+YAWNBOT_CHARSTATE_PATH=
+# 폴링 간격(분). 코드 기본값 = 30분.
+YAWNBOT_CHARSTATE_INTERVAL_MIN=30
+
+# ── memo 자동 동기 (TASK-KAR-MEMOSYNC) ──
+# 미설정(REPO_SLUG 빈값) = 비활성. prod 봇이 주기로 memo 레포를 pull.
+# 코드 기본값 = Mascari4615/memo / main / 10분.
+YAWNBOT_MEMOSYNC_REPO_SLUG=
+YAWNBOT_MEMOSYNC_BRANCH=
+# 폴링 간격(분). 코드 기본값 = 10분.
+YAWNBOT_MEMOSYNC_INTERVAL_MIN=10
 
 # ── Vertex AI 안전 필터 ──
 # 전체 카테고리에 적용할 임계값. 비워두면 Vertex 기본 필터 사용.

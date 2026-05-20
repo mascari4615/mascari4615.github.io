@@ -18,11 +18,13 @@ import path from 'path';
 import { PKG_ROOT } from '../../paths';
 import type { NewsService, NewsArticle } from '../news-service';
 import { fetchHnTopStories, buildHnEmbed } from '../sources/hacker-news';
+import { fetchGnTopStories, buildGnEmbed } from '../sources/geeknews';
 
 const EMBED_COLOR = 0x2196f3;
 const SENT_LINKS_CAP = 300;
 const SENT_KEYS_CAP = 300;
 const SENT_HN_CAP = 300;
+const SENT_GN_CAP = 300;
 
 /**
  * 안정적 dedup 키 = 정규화된 제목.
@@ -56,6 +58,8 @@ interface NewsNotifierState {
   sentLinks: string[];
   /** Hacker News 흡수(YB-036) — 게시한 HN item id (안정 식별자). */
   sentHnKeys: string[];
+  /** GeekNews(news.hada.io) — 게시한 topic id (안정 식별자). */
+  sentGnKeys: string[];
   lastSentAt: string | null;
 }
 
@@ -70,13 +74,14 @@ function loadState(): NewsNotifierState {
         sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
         sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
         sentHnKeys: Array.isArray(parsed.sentHnKeys) ? parsed.sentHnKeys.filter((x) => typeof x === 'string') : [],
+        sentGnKeys: Array.isArray(parsed.sentGnKeys) ? parsed.sentGnKeys.filter((x) => typeof x === 'string') : [],
         lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
       };
     }
   } catch (err) {
     console.warn('[News] dedup state 읽기 실패 — 새 state 로 시작:', err);
   }
-  return { sentKeys: [], sentLinks: [], sentHnKeys: [], lastSentAt: null };
+  return { sentKeys: [], sentLinks: [], sentHnKeys: [], sentGnKeys: [], lastSentAt: null };
 }
 
 function saveState(state: NewsNotifierState): void {
@@ -86,6 +91,7 @@ function saveState(state: NewsNotifierState): void {
       sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
       sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
       sentHnKeys: state.sentHnKeys.slice(-SENT_HN_CAP),
+      sentGnKeys: state.sentGnKeys.slice(-SENT_GN_CAP),
       lastSentAt: state.lastSentAt,
     };
     fs.writeFileSync(STATE_PATH, JSON.stringify(trimmed, null, 2) + '\n', 'utf-8');
@@ -205,16 +211,72 @@ async function pollHnOnce(
   return { status: 'sent', sent };
 }
 
+/**
+ * GeekNews(news.hada.io) 폴 — 같은 `news` 채널에 상위 글을 게시.
+ * HN 과 독립 dedup namespace(`sentGnKeys` = topic id). 미게시 글을 최대 maxPerPoll 개.
+ */
+async function pollGnOnce(
+  client: Client,
+  channelId: string,
+  maxPerPoll: number,
+): Promise<{ status: 'sent' | 'no_story' | 'channel_unreachable'; sent: number }> {
+  let stories;
+  try {
+    stories = await fetchGnTopStories(15);
+  } catch (err) {
+    console.warn('[News/GN] RSS 조회 실패:', err instanceof Error ? err.message : String(err));
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const state = loadState();
+  const seen = new Set(state.sentGnKeys);
+  const fresh = stories.filter((s) => !seen.has(s.id)).slice(0, maxPerPoll);
+  if (fresh.length === 0) {
+    return { status: 'no_story', sent: 0 };
+  }
+
+  const channel = await client.channels.fetch(channelId).catch(() => null);
+  if (!channel?.isSendable()) {
+    console.error('[News/GN] 채널을 찾을 수 없거나 메시지를 보낼 수 없습니다:', channelId);
+    return { status: 'channel_unreachable', sent: 0 };
+  }
+
+  let sent = 0;
+  for (const s of fresh) {
+    try {
+      await channel.send({ embeds: [buildGnEmbed(s)] });
+      state.sentGnKeys.push(s.id);
+      sent++;
+    } catch (err) {
+      console.warn('[News/GN] 게시 실패:', err instanceof Error ? err.message : String(err));
+    }
+  }
+  if (sent > 0) {
+    state.lastSentAt = new Date().toISOString();
+    saveState(state);
+  }
+  return { status: 'sent', sent };
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
+
+const ALL_SOURCES = ['google', 'hn', 'gn'] as const;
+type NewsSource = (typeof ALL_SOURCES)[number];
+
+function parseSources(raw: string | undefined): Set<NewsSource> {
+  if (!raw?.trim()) return new Set(ALL_SOURCES);
+  const tokens = raw.split(',').map((s) => s.trim().toLowerCase());
+  const valid = tokens.filter((t): t is NewsSource => (ALL_SOURCES as readonly string[]).includes(t));
+  return valid.length > 0 ? new Set(valid) : new Set(ALL_SOURCES);
+}
 
 /**
  * 환경변수:
  * - YAWNBOT_NEWS_CHANNEL_ID — 알림 채널 (미설정 시 폴링 비활성)
+ * - YAWNBOT_NEWS_SOURCES — 활성 소스 목록(쉼표 구분, 기본 google,hn,gn). 새 소스 = 이 값만 수정.
  * - YAWNBOT_NEWS_INTERVAL_MIN — 폴링 간격 (분, 기본 180, 최소 30)
- * - YAWNBOT_NEWS_MAX_AGE_HOURS — 신선 기사 기준 (시간, 기본 12)
- * - YAWNBOT_NEWS_MAX_PER_POLL — 1회 poll 최대 게시 수 (기본 3)
- * - YAWNBOT_NEWS_HN — Hacker News 흡수 소스 토글 (기본 ON, =0/off/false 면 비활성)
- * - YAWNBOT_NEWS_HN_PER_POLL — HN 1회 poll 최대 게시 수 (기본 3)
+ * - YAWNBOT_NEWS_MAX_AGE_HOURS — google 신선 기사 기준 (시간, 기본 12)
+ * - YAWNBOT_NEWS_MAX_PER_POLL — 소스당 1회 최대 게시 수 (기본 3)
  */
 export function startNewsNotifier(client: Client, getNews: (slug: string) => NewsService, slug: string): void {
   stopNewsNotifier();
@@ -225,34 +287,39 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
     return;
   }
 
+  const sources = parseSources(process.env.YAWNBOT_NEWS_SOURCES);
   const intervalMin = Math.max(30, parseInt(process.env.YAWNBOT_NEWS_INTERVAL_MIN || '180', 10));
   const maxAgeHours = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_AGE_HOURS || '12', 10));
   const maxPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_PER_POLL || '3', 10));
-  const hnFlag = process.env.YAWNBOT_NEWS_HN?.trim().toLowerCase();
-  const hnEnabled = !(hnFlag === '0' || hnFlag === 'off' || hnFlag === 'false');
-  const hnPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_HN_PER_POLL || '3', 10));
   const intervalMs = intervalMin * 60 * 1000;
 
   const tick = (): void => {
-    let news: NewsService;
-    try {
-      news = getNews(slug);
-    } catch (err) {
-      console.warn('[News] NewsService 생성 불가 (MEMO_REPO_PATH?):', err instanceof Error ? err.message : String(err));
-      return;
+    if (sources.has('google')) {
+      let news: NewsService;
+      try {
+        news = getNews(slug);
+      } catch (err) {
+        console.warn('[News] NewsService 생성 불가 (MEMO_REPO_PATH?):', err instanceof Error ? err.message : String(err));
+        return;
+      }
+      void pollOnce(client, channelId, news, maxAgeHours, maxPerPoll).then((r) => {
+        if (r.status === 'sent') console.log(`[News/google] 관심사 뉴스 ${r.sent}건 게시 (채널: ${channelId})`);
+        else if (r.status === 'no_keywords') console.log('[News/google] 등록된 관심사 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
+      });
     }
-    void pollOnce(client, channelId, news, maxAgeHours, maxPerPoll).then((r) => {
-      if (r.status === 'sent') console.log(`[News] 관심사 뉴스 ${r.sent}건 게시 (채널: ${channelId})`);
-      else if (r.status === 'no_keywords') console.log('[News] 등록된 관심사 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
-    });
-    if (hnEnabled) {
-      void pollHnOnce(client, channelId, hnPerPoll).then((r) => {
-        if (r.status === 'sent') console.log(`[News/HN] Hacker News ${r.sent}건 게시 (채널: ${channelId})`);
+    if (sources.has('hn')) {
+      void pollHnOnce(client, channelId, maxPerPoll).then((r) => {
+        if (r.status === 'sent') console.log(`[News/hn] Hacker News ${r.sent}건 게시 (채널: ${channelId})`);
+      });
+    }
+    if (sources.has('gn')) {
+      void pollGnOnce(client, channelId, maxPerPoll).then((r) => {
+        if (r.status === 'sent') console.log(`[News/gn] GeekNews ${r.sent}건 게시 (채널: ${channelId})`);
       });
     }
   };
 
-  console.log(`[News] 관심사 뉴스 알림 활성 (채널: ${channelId}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll}, HN: ${hnEnabled ? `ON(${hnPerPoll}/poll)` : 'OFF'})`);
+  console.log(`[News] 알림 활성 (채널: ${channelId}, 소스: ${[...sources].join(',')}, 간격: ${intervalMin}분, 신선: ${maxAgeHours}h, 회당 최대: ${maxPerPoll})`);
   tick();
   timer = setInterval(tick, intervalMs);
 }
