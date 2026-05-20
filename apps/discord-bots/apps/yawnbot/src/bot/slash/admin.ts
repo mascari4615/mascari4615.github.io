@@ -1,7 +1,11 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';
-import { runCadenceTickOnce, runWorkerConsumerOnce } from '../agent-cadence';
+import {
+  runCadenceTickOnce, runWorkerConsumerOnce,
+  getCadenceAutoEnabled, setCadenceAutoEnabled,
+  getWorkerAutoEnabled, setWorkerAutoEnabled,
+} from '../agent-cadence';
 
 export async function handleAdminReload(ctx: BotContext, interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
   const { gameData, isAdmin } = ctx;
@@ -77,6 +81,46 @@ export async function handleAdminCadenceTick(
  * dedupe). owner 전용. claimable 있으면 tier3 = 수분 가능(best-effort
  * editReply, 실제 산출 #team-bus).
  */
+export async function handleAdminCadenceToggle(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  const next = !getCadenceAutoEnabled();
+  setCadenceAutoEnabled(next);
+  await interaction.reply({
+    content: next
+      ? '🟢 에이전트 자동 ON — 발굴·대화·retro 자동 재개'
+      : '🔴 에이전트 자동 OFF — 수동 `/관리자 에이전트틱` 으로만 실행',
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+export async function handleAdminWorkerToggle(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  const next = !getWorkerAutoEnabled();
+  setWorkerAutoEnabled(next);
+  await interaction.reply({
+    content: next
+      ? '🟢 워커 자동 ON — 5분 주기 자동 소화 재개'
+      : '🔴 워커 자동 OFF — 수동 `/관리자 워커틱` 으로만 실행',
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
 export async function handleAdminWorkerTick(
   ctx: BotContext,
   interaction: ChatInputCommandInteraction,

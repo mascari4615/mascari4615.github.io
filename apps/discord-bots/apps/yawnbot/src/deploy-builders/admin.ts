@@ -40,6 +40,18 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('에이전트자동')
+        .setDescription('에이전트 자동 실행 ON/OFF 토글 (발굴·대화·retro 루프)')
+        .setDescriptionLocalizations(enUS('Toggle agent cadence auto-loop on/off')),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('워커자동')
+        .setDescription('워커 자동 실행 ON/OFF 토글 (5분 주기 자동 소화)')
+        .setDescriptionLocalizations(enUS('Toggle worker auto-loop on/off')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('에이전트')
         .setDescription('로컬 저장소에서 Cursor agent로 프롬프트 실행')
         .setDescriptionLocalizations(enUS('Run a Cursor agent prompt on the local repo'))
