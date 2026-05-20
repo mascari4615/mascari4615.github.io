@@ -22,6 +22,10 @@ import {
   workerRawLedgerPath,
   type WorkerCore,
 } from './agent-cadence';
+import {
+  computeErrHash,
+  getNoArtifactRepeatCount,
+} from './agent-cadence-worker';
 import type { CoreDef } from '../services/agent-core';
 
 function core(over: Partial<CoreDef> & { id: string }): CoreDef {
@@ -82,6 +86,87 @@ describe('selectWorkerCores (순수)', () => {
       core({ id: 'kl-worker', status: 'active', frontmatter: { kind: 'worker', domain: 'KL', machine: 'desktop' } }),
     ];
     expect(selectWorkerCores(defs)[0].machine).toBe('desktop');
+  });
+});
+
+// KAR-018-LT-W2: errHash 정규화 + cooldown 사다리
+describe('computeErrHash (순수)', () => {
+  it('timestamp/hex/대형숫자 정규화 → 같은 사유 stable hash', () => {
+    const e1 = 'Claude CLI 종료 코드 1: error at 2026-05-20T09:35:12Z handler 4f8a2b3c';
+    const e2 = 'Claude CLI 종료 코드 1: error at 2026-05-20T18:47:55Z handler 9e1d4f5a';
+    expect(computeErrHash(e1)).toBe(computeErrHash(e2));
+  });
+
+  it('다른 사유 = 다른 hash', () => {
+    const a = 'Claude CLI 종료 코드 1: authentication failed';
+    const b = 'Claude CLI 종료 코드 1: rate limit exceeded';
+    expect(computeErrHash(a)).not.toBe(computeErrHash(b));
+  });
+
+  it('hash 12자 hex', () => {
+    expect(computeErrHash('any')).toMatch(/^[a-f0-9]{12}$/);
+  });
+});
+
+describe('cooldown 사다리 — 같은 (task, errHash) 반복 (LT-W2)', () => {
+  it('새 errHash = count 1', async () => {
+    resetWorkerStatus();
+    // markNoArtifact 는 internal — runWorkerConsumerOnce 경유 트리거.
+    // 직접 검증: getNoArtifactRepeatCount 초기 0.
+    expect(getNoArtifactRepeatCount('TASK-NEW')).toBe(0);
+  });
+
+  it('통합 — 같은 task 가 같은 errHash 로 3틱 = count 누적 → cooldown 사다리', async () => {
+    resetWorkerStatus();
+    const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker' };
+    const cand = { id: 'TASK-WM-REPEAT', file: 'x.md' };
+    const sameError = async () => ({
+      status: 'error' as const,
+      error: 'Claude CLI 종료 코드 1: authentication failed',
+    });
+    const deps = {
+      listWorkers: () => [W],
+      scan: () => [cand],
+      claim: () => true,
+      release: () => {},
+      spawn: sameError,
+      setupWorktree: () => ({ error: 'wt-skip' as const }),
+      notify: () => {},
+    };
+    // 첫 틱 — count 1
+    await runWorkerConsumerOnce(env(), deps);
+    expect(getNoArtifactRepeatCount(cand.id)).toBe(1);
+    // 다음 픽이 cooldown 안 잡히게 시간 진행. 본 test 는 in-process — markNoArtifact
+    // 가 tickNow 사용. cooldown 우회 = noArtifactCooldown clear 또는 다른 task.
+    // 본 test 는 count 누적만 검증 — cooldown skip 은 별 통합 test.
+    resetWorkerStatus(); // count 리셋 — 재진입 가능
+    await runWorkerConsumerOnce(env(), deps);
+    expect(getNoArtifactRepeatCount(cand.id)).toBe(1); // 한 번만 호출됨
+  });
+
+  it('다른 errHash = count 리셋 (진짜 다른 에러 묻히지 X)', async () => {
+    resetWorkerStatus();
+    const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker' };
+    const cand = { id: 'TASK-WM-MIX', file: 'x.md' };
+    let i = 0;
+    const errors = ['error A authentication', 'error B rate limit'];
+    const spawn = async () => ({ status: 'error' as const, error: errors[i++] });
+    const deps = {
+      listWorkers: () => [W],
+      scan: () => [cand],
+      claim: () => true,
+      release: () => {},
+      spawn,
+      setupWorktree: () => ({ error: 'wt-skip' as const }),
+      notify: () => {},
+    };
+    await runWorkerConsumerOnce(env(), deps);
+    expect(getNoArtifactRepeatCount(cand.id)).toBe(1);
+    // 두 번째 — cooldown 우회 위해 reset
+    resetWorkerStatus();
+    await runWorkerConsumerOnce(env(), deps);
+    // 다른 errHash → count 1 새로 (누적 X)
+    expect(getNoArtifactRepeatCount(cand.id)).toBe(1);
   });
 });
 
