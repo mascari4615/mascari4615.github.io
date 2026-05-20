@@ -36,6 +36,30 @@
 			"key": "dashboard",
 			"name": "dashboard",
 			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"
+		},
+		{
+			"_doc": "에이전트 팀 작업 카드 substrate (TASK-KAR-018-LT-FORUM). 1포스트=1흐름객체 (discovery→proposal→in-progress→verdict→done). 태그 12개 / 3 그룹: kind(3) + status(5) + domain(4). status 만 exclusive 토글. announceProposal·worker-report·verdict 가 이 채널 사용, #team-bus 텍스트는 hb·digest 그대로.",
+			"key": "agent-work",
+			"name": "team-work",
+			"type": "GuildForum",
+			"topic": "에이전트 팀 작업 카드 — 1포스트=1흐름객체 (TASK-KAR-018-LT-FORUM)",
+			"forum": {
+				"defaultAutoArchiveDuration": 1440,
+				"availableTags": [
+					{ "name": "proposal", "emoji": "💡" },
+					{ "name": "worker-report", "emoji": "🤖" },
+					{ "name": "discovery", "emoji": "🔍" },
+					{ "name": "pending", "emoji": "🟡" },
+					{ "name": "in-progress", "emoji": "⏳" },
+					{ "name": "approved", "emoji": "✅" },
+					{ "name": "rejected", "emoji": "❌" },
+					{ "name": "done", "emoji": "🏁" },
+					{ "name": "WM", "emoji": "🧙" },
+					{ "name": "KAR", "emoji": "🛰" },
+					{ "name": "YB", "emoji": "📣" },
+					{ "name": "KL", "emoji": "🧪" }
+				]
+			}
 		}
 	]
 }
