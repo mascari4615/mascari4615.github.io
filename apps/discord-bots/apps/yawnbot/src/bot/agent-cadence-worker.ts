@@ -24,8 +24,10 @@ import {
   loadCoreDef,
   coreLabel,
   appendCoreMemory,
+  coreMemPath,
   type CoreDef,
 } from '../services/agent-core';
+import { commitAndPushMemoFile } from '../services/memo-push';
 import {
   isKilled,
   getCoreSpeak,
@@ -365,6 +367,21 @@ function rememberWorkerOutcome(
     topic: `worker:${taskId}`,
     summary,
   });
+  // KAR-018-PUSH-CLOSURE Phase 2/4 — core mem 파일을 memo origin 으로 push.
+  // fire-and-forget · best-effort · race 시 skip (다음 worker outcome 또는 tick
+  // 에서 재시도, append-only 라 변경 lost 0). 같은 코어 동시 작업은 dispatcher
+  // busy 락 (per-agent 동시1) 가 보호 → 같은 mem 파일 동시 push 0.
+  const memPath = coreMemPath(memoRoot, coreId);
+  if (memPath) {
+    void commitAndPushMemoFile(
+      process.env,
+      memPath,
+      `chore(KAR-018-worker): ${coreId} ${kind} ${taskId.slice(0, 40)}`,
+    ).catch(() => {
+      /* silent 비차단 — push 결과 trace 별도 없음. 다음 cadence stats digest
+       * 가 ledger 자체를 push 하므로 outcome 가시화는 그쪽이 cover. */
+    });
+  }
 }
 
 export async function voicedWorkerSpeak(
