@@ -2,7 +2,7 @@
  * summarizeTick 순수 회귀 (KAR-018-Y-2 — 팀 aliveness 가시화).
  *
  * tracer-bullet: 의미 있는 활동만 #team-bus 한 줄, 순수 idle = null
- * (스팸 X). 사장 평이체(내부 코드명·§조항 X) 잠금.
+ * (스팸 X). 동료 평이체(내부 코드명·§조항 X) 잠금.
  */
 import { describe, it, expect } from 'vitest';
 import { summarizeTick } from './agent-cadence';
@@ -52,7 +52,7 @@ describe('summarizeTick — 의미 활동만 가시화', () => {
     expect(s).toContain('1건');
   });
 
-  it('내부 코드명·§조항 누출 0 (사장 평이체)', () => {
+  it('내부 코드명·§조항 누출 0 (동료 평이체)', () => {
     const s =
       summarizeTick(
         'idle→producer:task+worker:kl-worker:done:TASK-KL-070+dialogue:echo',
@@ -70,7 +70,7 @@ describe('summarizeTick — 의미 활동만 가시화', () => {
       '수정 채택',
     );
     const esc = summarizeTick('idle+deliberation:4:escalate') ?? '';
-    expect(esc).toContain('사장 판단');
+    expect(esc).toContain('동료 판단');
   });
   it('deliberation 토큰이 옛 dialogue 정규식에 오매치 X', () => {
     const s = summarizeTick('idle+deliberation:3:adopt') ?? '';

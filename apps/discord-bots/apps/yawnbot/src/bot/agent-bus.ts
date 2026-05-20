@@ -82,7 +82,7 @@ const KIND_ONAPPROVE: Record<string, string> = {
 };
 
 /**
- * 발굴 → {제목, 카드용 평이 본문, 스레드용 상세}. 카드 = 사장이 읽을
+ * 발굴 → {제목, 카드용 평이 본문, 스레드용 상세}. 카드 = 동료이 읽을
  * 핵심만(전문용어 분리), 상세·근거 = 스레드. 프롬프트가 평이 작성을
  * 강제하지만 렌더도 카드엔 핵심만 노출(이중 안전).
  */
@@ -302,8 +302,14 @@ export async function handleProposalReaction(
     return true;
   }
 
-  const decision: 'approved' | 'rejected' =
-    emoji === '✅' ? 'approved' : 'rejected';
+  // ✅ 폐지 (2026-05-20) — 팀 채택이 자동 진행 substrate. 동료 권한 = veto(❌) 만.
+  if (emoji === '✅') {
+    await post(
+      'ℹ️ 팀 채택 = 자동 진행 — 별도 ✅ 불필요. 동료 권한은 **❌ veto** 만.',
+    );
+    return true;
+  }
+
   const who = user.username || '오너';
   const prior = getResolved(env, entry.id);
   if (prior) {
@@ -314,45 +320,30 @@ export async function handleProposalReaction(
     return true;
   }
 
-  await post(
-    `⏳ **${who}** 님 **${decision === 'approved' ? '승인' : '거절'}** 접수 — 처리 중…`,
-  );
+  await post(`⏳ **${who}** 님 **veto(❌)** 접수 — 처리 중…`);
   try {
     appendApproval(env, {
       ts: new Date().toISOString(),
       objId: entry.id,
       core: 'user',
-      status: decision,
-      reason: `discord reaction by ${user.id}`,
+      status: 'rejected',
+      reason: `discord veto reaction by ${user.id}`,
     });
-    markResolved(env, entry.id, decision);
+    markResolved(env, entry.id, 'rejected');
 
-    // KAR-018-Z-2: 코어가 자기 제안 결과를 *기억·학습* (승인=수용된
-    // 방향 / 거절=반복 X — Y-2 거절학습과 동근). best-effort·비차단.
+    // KAR-018-Z-2: 코어가 자기 제안 결과를 *기억·학습* (veto = 반복 X).
     if (entry.coreId) {
       appendCoreMemory(env.MEMO_REPO_PATH?.trim() || '', entry.coreId, {
         session: 'proposal-resolution',
-        type: decision === 'approved' ? 'decision' : 'fail',
+        type: 'fail',
         topic: `${entry.kind} ${entry.id}`,
-        summary: `제안 "${entry.title}" → 사장 ${
-          decision === 'approved' ? '승인(수용된 방향)' : '거절(반복 X)'
-        }`,
+        summary: `제안 "${entry.title}" → 동료 veto(❌) (반복 X)`,
       });
     }
 
-    let result: string;
-    if (decision === 'approved') {
-      await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
-      const desc = materializedDesc(env, entry.id);
-      result = desc
-        ? `**${desc}** 생성됨`
-        : '거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음)';
-      await post(`✅ **승인 완료** — ${result}`);
-    } else {
-      result = '거절됨 — 아무것도 만들지 않았습니다';
-      await post(`❌ **거절 처리됨** — 아무것도 만들지 않았습니다.`);
-    }
-    await lockCard(msg, decision, result).catch(() => {});
+    const result = 'veto — 팀 채택을 동료이 거절, 아무것도 만들지 않음';
+    await post(`❌ **veto 처리됨** — 아무것도 만들지 않았습니다.`);
+    await lockCard(msg, 'rejected', result).catch(() => {});
   } catch (e) {
     await post(
       `⚠️ 처리 중 오류 — ${e instanceof Error ? e.message : String(e)} (다시 시도하거나 알려주세요)`,
@@ -361,44 +352,35 @@ export async function handleProposalReaction(
   return true;
 }
 
-// ── 카드 상태 뷰 (사람 결정 + 팀 verdict 공용 — 평행정의0) ──────
-// 그동안의 미반영 근본: embed 변형 코드가 lockCard 하나뿐 + 사람
-// 리액션 경로에서만 호출 → 팀 숙의 verdict 가 카드에 영영 안 찍힘
-// (KAR-018-LT). 변형을 단일 뷰 테이블로 공용화 = 사람·팀 한 경로.
+// ── 카드 상태 뷰 (동료 ❌ veto + 팀 verdict 공용 — 평행정의 0) ──────
+// 2026-05-20: 사람 ✅ 권한 폐지(팀 채택 = 자동 진행 substrate). 동료 권한 =
+// ❌ veto 만. 'approved' CardState 도 함께 자기소멸 (사람 ✅ 잔존 dead).
 export type CardState =
-  | 'approved' // 사람 ✅
-  | 'rejected' // 사람 ❌
-  | 'team-adopt' // 팀 채택 — 진행(시드 생성). 사람 veto 여지 유지(미잠금)
+  | 'rejected' // 동료 ❌ veto
+  | 'team-adopt' // 팀 채택 — 진행(시드 생성). 동료 veto 여지 유지(미잠금)
   | 'team-adopt-mods' // 팀 수정 채택 — 새 카드로 분리(원본 supersede)
-  | 'team-reject' // 팀 반려 — 닫힘. 사람 ✅ 로 뒤집기 가능(미잠금)
-  | 'team-escalate'; // 팀 미수렴 — 여기서만 사람 ✅/❌ 가 진짜 필요
+  | 'team-reject' // 팀 반려 — 닫힘. 동료 override 없음(팀 결정 존중)
+  | 'team-escalate'; // 팀 미수렴 — 동료 ❌ veto 또는 그냥 묵힘
 
 interface CardView {
   status: string;
   color: number;
   footer: string;
-  /** 사람 추가 반응을 무시(잠금)하는가. 팀 verdict 는 대부분 미잠금
-   *  (사용자 = veto/override — 2026-05-19 결정). supersede 만 잠금. */
+  /** 사람 추가 반응 무시(잠금) — supersede/동료veto 만 잠금. */
   locked: boolean;
 }
 
 const CARD_VIEW: Record<CardState, CardView> = {
-  approved: {
-    status: '🟢 승인됨 (잠김)',
-    color: 0x2ecc71,
-    footer: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다',
-    locked: true,
-  },
   rejected: {
-    status: '🔴 거절됨 (잠김)',
+    status: '🔴 동료 veto (잠김)',
     color: 0x95a5a6,
-    footer: '🔒 처리 완료 — 추가/취소 반응은 무시됩니다',
+    footer: '🔒 동료 ❌ veto — 추가 반응은 무시됩니다',
     locked: true,
   },
   'team-adopt': {
     status: '🟢 팀 채택 — 진행(시드 생성)',
     color: 0x2ecc71,
-    footer: '🧑‍🤝‍🧑 팀이 결정·진행했습니다 · 뒤집으려면 ❌ (사장님 veto 유효)',
+    footer: '🧑‍🤝‍🧑 팀이 결정·진행했습니다 · 뒤집으려면 ❌ (동료 veto 유효)',
     locked: false,
   },
   'team-adopt-mods': {
@@ -410,13 +392,13 @@ const CARD_VIEW: Record<CardState, CardView> = {
   'team-reject': {
     status: '🔴 팀 반려 — 닫힘',
     color: 0x95a5a6,
-    footer: '🧑‍🤝‍🧑 팀이 반려했습니다 · 되살리려면 ✅ (사장님 override 유효)',
+    footer: '🧑‍🤝‍🧑 팀이 반려했습니다 — 닫힘',
     locked: false,
   },
   'team-escalate': {
-    status: '🟡 사용자 판단 필요 — ✅/❌ 로 결정',
+    status: '🟡 팀 미수렴 — 보류 또는 ❌ veto',
     color: 0x3f8cff,
-    footer: '🧑‍🤝‍🧑 팀이 수렴 못 함 — 사장님 결정이 필요합니다 (✅ 승인 / ❌ 거절)',
+    footer: '🧑‍🤝‍🧑 팀이 수렴 못 함 — 동료 ❌ veto 또는 묵힘',
     locked: false,
   },
 };
@@ -455,10 +437,10 @@ export function applyCardEmbedState(
   return eb;
 }
 
-/** 카드 embed 를 사람 결정 결과로 갱신 + 잠금 (V-2 리액션 경로). */
+/** 카드 embed 를 동료 ❌ veto 결과로 갱신 + 잠금 (2026-05-20 자기소멸 후 veto 전용). */
 async function lockCard(
   msg: MessageReaction['message'],
-  decision: 'approved' | 'rejected',
+  decision: 'rejected',
   result: string,
 ): Promise<void> {
   const src = msg.embeds?.[0];
@@ -484,12 +466,11 @@ const VERDICT_STATE: Record<TeamVerdict, CardState> = {
 
 /** CardState → forum 의 status 태그 매핑 (#team-work 태그 토글 정합). */
 const STATE_TO_FORUM_STATUS: Record<CardState, ForumStatus> = {
-  approved: 'approved',
-  rejected: 'rejected',
-  'team-adopt': 'in-progress', // 팀 채택 → 진행(사람 veto 여지)
+  rejected: 'rejected', // 동료 ❌ veto
+  'team-adopt': 'in-progress', // 팀 채택 → 진행 (동료 veto 여지)
   'team-adopt-mods': 'approved', // 수정 채택 = 원본 supersede
   'team-reject': 'rejected',
-  'team-escalate': 'pending', // 사장 결정 대기
+  'team-escalate': 'pending', // 팀 미수렴 — 동료 ❌ veto 또는 묵힘
 };
 
 /**
@@ -497,7 +478,7 @@ const STATE_TO_FORUM_STATUS: Record<CardState, ForumStatus> = {
  * 멱등·restart-safe(reflected 마커). adopt = 팀이 *행동* —
  * appendApproval(core:team)+inbox consumer 로 inert seed/draft 생성
  * (자동 실행 X = 진짜 게이트 seed→ready 불변). reject/escalate =
- * 카드 상태만(미잠금 — 사장님 veto/override 유효). best-effort:
+ * 카드 상태만(미잠금 — 동료 veto/override 유효). best-effort:
  * 채널/포스트 실패해도 throw X, 단 *반영 성공분만* 마커(재시도 가능).
  *
  * LT-FORUM 마이그: forum-post 의 evolveForumPost 단일 seam 경유 —
@@ -536,14 +517,14 @@ export async function reconcileProposalCards(
         await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
         const desc = materializedDesc(env, v.id);
         resultLine = desc
-          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (사장님이 ready 승격 시 진행) · ${v.reason}`
+          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (동료이 ready 승격 시 진행) · ${v.reason}`
           : `🧑‍🤝‍🧑 팀 채택 — 검토 단계로 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
       } else if (v.verdict === 'adopt-mods') {
         resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
       } else if (v.verdict === 'reject') {
         resultLine = `🧑‍🤝‍🧑 팀 반려 — 아무것도 만들지 않음 · ${v.reason}`;
       } else {
-        resultLine = `🧑‍🤝‍🧑 팀이 수렴 못 함 — 사장님 ✅/❌ 결정 필요 · ${v.reason}`;
+        resultLine = `🧑‍🤝‍🧑 팀이 수렴 못 함 — 동료 ✅/❌ 결정 필요 · ${v.reason}`;
       }
       // forum starter 의 source embed → applyCardEmbedState 로 진화된 embed
       // 만들기. 채널 fetch 실패 = 일시(continue, 다음 tick 재시도).
@@ -695,11 +676,11 @@ export async function announceProposal(
       },
       { name: '🏷️ 분류', value: kindLabel, inline: true },
       { name: '🆔', value: `\`${ann.id}\``, inline: true },
-      { name: '📌 상태', value: '🟡 승인 대기', inline: true },
-      { name: '✅ 승인하면', value: onApprove },
+      { name: '📌 상태', value: '🟡 팀 결정 대기', inline: true },
+      { name: '🧑‍🤝‍🧑 팀 채택 시', value: onApprove },
     )
     .setFooter({
-      text: '✅ 승인  ·  ❌ 거절  ·  ▸ 스레드에서 자세히/질문  |  먼저 누른 결정이 확정·잠금',
+      text: '🧑‍🤝‍🧑 팀 채택 = 자동 진행  ·  ❌ veto = 동료 거절  ·  ▸ 스레드에서 자세히/질문',
     })
     .setTimestamp();
 
@@ -722,7 +703,8 @@ export async function announceProposal(
     return;
   }
 
-  // 진입 후속 — 스레드 상세 메시지 + starter ✅/❌ react.
+  // 진입 후속 — 스레드 상세 메시지 + starter ❌ react (동료 veto).
+  // ✅ 자동 박기 폐지 — 팀 채택이 자동 진행 (사용자 의향, 2026-05-20).
   // Discord 사양: forum-post 의 starter message id == thread id.
   try {
     const channel = (await client.channels
@@ -751,18 +733,17 @@ export async function announceProposal(
             `**${safeTitle}**\n\n${detailBody.slice(0, 3500)}\n\n` +
             `────────\n` +
             `**어떻게 하나요?**\n` +
-            `· 위 카드에 **✅** = 승인 → ${onApprove}\n` +
-            `· **❌** = 거절 → 아무것도 만들지 않습니다\n` +
+            `· **팀 채택 = 자동 진행** (별도 ✅ 불필요)\n` +
+            `· 위 카드에 **❌** = 동료 veto → 아무것도 만들지 않습니다\n` +
             `· 이 스레드에 **답글** = 질문/수정요청 (검토에 반영)\n` +
-            `· 누르면 **여기 스레드에 처리 결과가 답글로 달립니다** (접수→완료)\n` +
-            `· 규칙: 먼저 누른 결정이 확정. 확정 후 추가/취소 반응은 무시.`,
+            `· 처리 결과는 **여기 스레드에 답글**로 달립니다 (팀 결정→완료)`,
         })
         .catch(() => {});
     }
     if (thread && typeof thread.fetchStarterMessage === 'function') {
       const starter = await thread.fetchStarterMessage().catch(() => null);
       if (starter) {
-        await starter.react('✅').catch(() => {});
+        // ❌ veto 만 자동 박음 — ✅ 폐지(팀 채택 = 자동 진행, 2026-05-20).
         await starter.react('❌').catch(() => {});
       }
     }
