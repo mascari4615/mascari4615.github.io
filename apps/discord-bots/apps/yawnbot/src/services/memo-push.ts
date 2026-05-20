@@ -239,12 +239,15 @@ export async function checkMemoPushScope(
 }
 
 function toRelPath(memoRoot: string, absPath: string): string | null {
-  const sep = absPath.includes('\\') ? '\\' : '/';
-  const root = memoRoot.replace(/[\\/]+$/, '');
-  const norm = absPath.replace(/[\\/]+$/, '');
-  if (!norm.startsWith(root)) return null;
-  const rel = norm.slice(root.length).replace(/^[\\/]+/, '');
-  return rel.split(sep).join('/');
+  // Windows mixed-slash 안전: forward slash 로 정규화 후 비교.
+  // 실 버그(2026-05-20 prod 진단): MEMO_REPO_PATH=`C:/Users/.../memo` (forward,
+  // .env) ↔ path.join 결과=`C:\Users\...` (backslash, Windows native) → 단순
+  // startsWith 비교 시 false → outcome:skipped:no-path → silent fail.
+  const norm = (p: string): string => p.replace(/\\/g, '/').replace(/\/+$/, '');
+  const root = norm(memoRoot);
+  const target = norm(absPath);
+  if (!target.startsWith(root + '/') && target !== root) return null;
+  return target.slice(root.length).replace(/^\/+/, '');
 }
 
 /**

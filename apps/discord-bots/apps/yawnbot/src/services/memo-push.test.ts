@@ -244,6 +244,38 @@ describe('commitAndPushMemoFile', () => {
     expect(result.error).toContain('***');
   });
 
+  it('handles mixed-slash path (env=forward, abs=backslash) — Windows prod 실 버그 회귀', async () => {
+    const env = {
+      MEMO_GITHUB_PAT: 'tok',
+      MEMO_REPO_PATH: 'C:/Users/masca/repos/karmoddrine/memo', // forward (env)
+    } as NodeJS.ProcessEnv;
+    const { git, calls } = makeGit();
+    const result = await commitAndPushMemoFile(
+      env,
+      'C:\\Users\\masca\\repos\\karmoddrine\\memo\\.claude\\evolution-events.jsonl', // backslash (path.join Windows)
+      'msg',
+      { git },
+    );
+    expect(result.outcome).toBe('pushed');
+    const addCall = calls.find((c) => c.step === 'add');
+    expect(addCall?.arg).toBe('.claude/evolution-events.jsonl');
+  });
+
+  it('rejects path outside memo root even with mixed slashes', async () => {
+    const env = {
+      MEMO_GITHUB_PAT: 'tok',
+      MEMO_REPO_PATH: 'C:/Users/masca/repos/karmoddrine/memo',
+    } as NodeJS.ProcessEnv;
+    const { git } = makeGit();
+    const result = await commitAndPushMemoFile(
+      env,
+      'C:\\Users\\masca\\repos\\karmoddrine\\OTHER\\file.md',
+      'msg',
+      { git },
+    );
+    expect(result.outcome).toBe('skipped:no-path');
+  });
+
   it('handles Windows-style absolute path within memo root', async () => {
     const env = {
       MEMO_GITHUB_PAT: 'tok',
