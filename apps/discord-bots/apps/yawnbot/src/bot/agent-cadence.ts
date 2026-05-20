@@ -67,8 +67,10 @@ import {
 } from './self-augment';
 import {
   runEvolutionObservatoryOnce,
+  runEvolutionStatsDigestOnce,
   summarizeRecentEvolutionEvents,
   formatRecentEvolutionForDiscovery,
+  type StatsDigestDeps,
 } from './evolution-observatory';
 import {
   diagnoseHealth,
@@ -1136,6 +1138,7 @@ export async function runCadenceTickOnce(
     dialogueDeps?: Parameters<typeof runCoreDialogueOnce>[1];
     qualityCheckDeps?: QualityCheckDeps;
     selfSurgeryDeps?: SelfSurgeryDeps;
+    statsDigestDeps?: StatsDigestDeps;
   } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -1258,6 +1261,17 @@ export async function runCadenceTickOnce(
       if (evo.appended > 0) r = `${r}+evolution:${evo.appended}`;
     } catch {
       /* evolution observatory 실패 = tick 비차단 */
+    }
+  }
+  // LT-12: 24h 정기 stats 다이제스트 — 봇이 자기 ledger 측정 후 #team-bus 발화.
+  // 진화 0/7d 시 솔직 발화 (cron 셀프 진단). prod ledger 가 데스크톱에서
+  // 안 보여도 봇 자신이 채널로 가시화. defaultNotify = #team-bus 단일 seam.
+  if (memoRoot && !isKilled()) {
+    try {
+      const ds = runEvolutionStatsDigestOnce(env, opts.statsDigestDeps ?? { notify: gov.notify });
+      if (ds === 'digest:sent') r = `${r}+${ds}`;
+    } catch {
+      /* stats digest 실패 = tick 비차단 */
     }
   }
   console.log(`[AgentCadence] tick -> ${r}`);
