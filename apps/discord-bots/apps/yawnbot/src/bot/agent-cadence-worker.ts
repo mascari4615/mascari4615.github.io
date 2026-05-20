@@ -4,6 +4,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { execSync } from 'child_process';
 import { getInstallationToken } from './github-app-token';
 import {
@@ -329,14 +330,70 @@ export async function voicedWorkerSpeak(
 }
 
 // ── no-artifact / escalate cooldown ─────────────────────────
-const NOARTIFACT_COOLDOWN_MS = 30 * 60_000;
-const noArtifactCooldown = new Map<string, number>();
-function inNoArtifactCooldown(taskId: string, now: number): boolean {
-  const t = noArtifactCooldown.get(taskId);
-  return t !== undefined && now - t < NOARTIFACT_COOLDOWN_MS;
+// KAR-018-LT-W2: 같은 (task, errHash) N회 반복 시 harder cooldown 사다리.
+// 같은 사유로 무한 재pick → 12시간 24회 announce 의 근본 fix.
+const NOARTIFACT_COOLDOWN_MS = 30 * 60_000;       // 기본 30분 (1-3회)
+const NOARTIFACT_COOLDOWN_HARD_MS = 6 * 3600_000; // 4-9회
+const NOARTIFACT_COOLDOWN_PEAK_MS = 24 * 3600_000;// 10+회 (24h)
+
+interface NoArtifactState {
+  ts: number;
+  /** errHash — 빈 문자열 = 성공-no-artifact(push 없음). 같은 hash N회 = 사다리. */
+  hash: string;
+  /** 같은 hash 연속 반복 횟수. 다른 hash 면 1로 reset. */
+  count: number;
 }
-function markNoArtifact(taskId: string, now: number): void {
-  noArtifactCooldown.set(taskId, now);
+const noArtifactCooldown = new Map<string, NoArtifactState>();
+
+function cooldownMsForCount(count: number): number {
+  if (count <= 3) return NOARTIFACT_COOLDOWN_MS;
+  if (count <= 9) return NOARTIFACT_COOLDOWN_HARD_MS;
+  return NOARTIFACT_COOLDOWN_PEAK_MS;
+}
+
+function inNoArtifactCooldown(taskId: string, now: number): boolean {
+  const s = noArtifactCooldown.get(taskId);
+  return s !== undefined && now - s.ts < cooldownMsForCount(s.count);
+}
+
+/**
+ * cooldown 등록. errHash 미전달(성공 케이스) = count 1 reset(기존 동작).
+ * errHash 전달 + 같은 hash = count++, 다른 hash = count 1 새로 시작.
+ */
+function markNoArtifact(taskId: string, now: number, errHash?: string): void {
+  if (!errHash) {
+    noArtifactCooldown.set(taskId, { ts: now, hash: '', count: 1 });
+    return;
+  }
+  const prev = noArtifactCooldown.get(taskId);
+  if (prev && prev.hash === errHash) {
+    noArtifactCooldown.set(taskId, { ts: now, hash: errHash, count: prev.count + 1 });
+  } else {
+    noArtifactCooldown.set(taskId, { ts: now, hash: errHash, count: 1 });
+  }
+}
+
+/**
+ * 같은 (task, error) 재시도 정도 (테스트·디버그용). 0 = 미등록 또는 성공 cooldown.
+ */
+export function getNoArtifactRepeatCount(taskId: string): number {
+  const s = noArtifactCooldown.get(taskId);
+  return s && s.hash ? s.count : 0;
+}
+
+/**
+ * errMsg 정규화 후 SHA8 — timestamp/hex/large-num 변동 흡수해서 같은 사유
+ * 반복을 stable hash 로 묶음. cli-claude 의 "Claude CLI 종료 코드 N: <stderr>"
+ * 가 stderr 일부에 timestamp 포함해도 hash 안정.
+ */
+export function computeErrHash(errMsg: string): string {
+  const norm = errMsg
+    .replace(/\d{4}-\d{2}-\d{2}T?[\d:.]+Z?/g, 'TS')
+    .replace(/\d{2}:\d{2}:\d{2}(\.\d+)?/g, 'TIME')
+    .replace(/\b[a-f0-9]{8,40}\b/gi, 'HEX')
+    .replace(/\b\d{6,}\b/g, 'NUM')
+    .slice(0, 500);
+  return crypto.createHash('sha256').update(norm).digest('hex').slice(0, 12);
 }
 
 const ESCALATE_DEDUPE_MS = 6 * 3600_000;
@@ -530,11 +587,21 @@ export async function runWorkerConsumerOnce(
       );
     } else {
       release(chosen.id, w.coreId);
-      markNoArtifact(chosen.id, tickNow);
-      const errDetail = (res.error || '').trim().slice(0, 3000);
+      // KAR-018-LT-W2: 같은 (task, errHash) 사다리 cooldown. 1-3회=30min,
+      // 4-9회=6h, 10+회=24h. 다른 errHash 면 count reset(현행 동작 유지).
+      const errMsgRaw = (res.error || '').trim();
+      const errHash = errMsgRaw ? computeErrHash(errMsgRaw) : undefined;
+      markNoArtifact(chosen.id, tickNow, errHash);
+      const repeatCount = errHash ? getNoArtifactRepeatCount(chosen.id) : 0;
+      const cooldownLabel =
+        repeatCount <= 3 ? '30분' : repeatCount <= 9 ? '6h' : '24h(반복 한도)';
+      const errDetail = errMsgRaw.slice(0, 3000);
+      const repeatTag = repeatCount > 1
+        ? ` · 같은 사유 ${repeatCount}회 — cooldown ${cooldownLabel}`
+        : '';
       await voicedWorkerSpeak(
         w.coreId,
-        `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
+        `${w.label} ⚠ ${chosen.id} ${res.status}(${wt ? `agentic ${wt.branch}` : `non-agentic:${wtErr}`}) — 점유 해제·재대기${repeatTag}. 도메인=${w.domain}${errDetail ? `\n· 사유: ${errDetail}` : ''}`,
         speak, voice, env,
         loadSkinPersona(memoRoot, w.coreId),
       );
