@@ -1088,6 +1088,14 @@ let workerTimer: ReturnType<typeof setTimeout> | null = null;
 // KAR-077: 대시보드 = 팀 작업주기와 분리된 경량 독립 타이머(스캔3+edit2,
 // LLM·워커 X). 현황 "바로바로" = 짧은 주기로 자체 갱신(에이전트틱 불요).
 let dashboardTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** 런타임 pause 플래그 — /관리자 에이전트자동 · 워커자동 으로 toggle. */
+let cadenceAutoEnabled = true;
+let workerAutoEnabled = true;
+export function setCadenceAutoEnabled(val: boolean): void { cadenceAutoEnabled = val; }
+export function setWorkerAutoEnabled(val: boolean): void { workerAutoEnabled = val; }
+export function getCadenceAutoEnabled(): boolean { return cadenceAutoEnabled; }
+export function getWorkerAutoEnabled(): boolean { return workerAutoEnabled; }
 /** 직전 cadence tick 요약 — 대시보드 독립 타이머가 마지막 활동 표기용. */
 let lastTickSummary = '';
 
@@ -1370,6 +1378,10 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   const intervalMs = Number(env.AGENT_CADENCE_INTERVAL_MS) || 15 * 60_000;
   const workerMs = Number(env.AGENT_WORKER_INTERVAL_MS) || 5 * 60_000;
   const tick = async () => {
+    if (!cadenceAutoEnabled) {
+      cadenceTimer = setTimeout(tick, jitter(intervalMs));
+      return;
+    }
     try {
       await runCadenceTickOnce(env, { includeWorker: false });
     } catch (e) {
@@ -1381,6 +1393,10 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     cadenceTimer = setTimeout(tick, jitter(intervalMs));
   };
   const workerTick = async () => {
+    if (!workerAutoEnabled) {
+      workerTimer = setTimeout(workerTick, jitter(workerMs, 0.2));
+      return;
+    }
     try {
       // KAR-MEMOSYNC part4: 워커 픽 직전 memo freshness 가드 (pre-tick
       // staleness — 전용 워커 타이머 경로. runCadenceTickOnce 와 동일 seam).
