@@ -273,6 +273,34 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     expect(notified[0]).toContain('점유 해제');
   });
 
+  it('open Draft PR TASK 는 재선택 X — 다른 후보 회전, 전부면 open-pr-all (status-drift 회피, KL-053 재선택 사고 재발 방지)', async () => {
+    // 1틱: 후보 [A=open PR, B], A skip → B claim (status-drift 회피)
+    const r1 = await runWorkerConsumerOnce(env(), {
+      listWorkers: () => [W],
+      scan: () => [
+        { id: 'TASK-WM-1', file: 'a' },
+        { id: 'TASK-WM-2', file: 'b' },
+      ],
+      excludeOpenPRs: () => new Set(['TASK-WM-1']),
+      claim: () => true,
+      setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+      spawn: async () => ({ status: 'done' }),
+      branchPushed: () => true,
+      notify: () => {},
+    });
+    expect(r1).toBe('wm-worker:done:TASK-WM-2');
+    // 2틱: 후보 [A=open PR] 만 → open-pr-all (cooldown-all 과 구분, 가시화)
+    const r2 = await runWorkerConsumerOnce(env(), {
+      listWorkers: () => [W],
+      scan: () => [{ id: 'TASK-WM-1', file: 'a' }],
+      excludeOpenPRs: () => new Set(['TASK-WM-1']),
+      claim: () => true,
+      spawn: async () => ({ status: 'done' as const }),
+      notify: () => {},
+    });
+    expect(r2).toBe('wm-worker:open-pr-all');
+  });
+
   it('MEMO_REPO_PATH 부재 → no-memo-root', async () => {
     const r = await runWorkerConsumerOnce({} as NodeJS.ProcessEnv, {
       listWorkers: () => [W],

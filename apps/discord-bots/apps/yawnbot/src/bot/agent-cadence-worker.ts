@@ -15,6 +15,7 @@ import {
   workerBranchName,
   workerWorktreeDir,
 } from './agent-worker-repo';
+import { fetchOpenPRTaskIds } from './agent-worker-pr-exclude';
 import { reserveBudget } from './team-room';
 import { appendTrace, defaultNotify, type NotifyFn } from './governance-adapter';
 import { spawnTier3, type Tier3Request, type Tier3Result } from './dispatcher';
@@ -233,6 +234,12 @@ export interface WorkerConsumerDeps {
   spawn?: (req: Tier3Request) => Promise<Tier3Result>;
   branchPushed?: (repoRoot: string, branch: string) => boolean;
   setupWorktree?: (memoRoot: string, coreId: string, taskId: string) => WorktreeSetup;
+  /**
+   * tick 시작 시 1회 — 워커가 *이미 Draft PR 가 열려있는* TASK 를
+   * 재선택하지 않도록 차단 (status-drift 회피). 미주입 시 default =
+   * `fetchOpenPRTaskIds` (gh best-effort, 부재·timeout = 빈 set).
+   */
+  excludeOpenPRs?: (umbrellaRoot: string) => Set<string>;
   notify?: NotifyFn;
   speak?: CoreSpeakFn;
   voice?: (prompt: string) => Promise<string>;
@@ -371,6 +378,22 @@ export async function runWorkerConsumerOnce(
       const r = runMemoScript(memoRoot, 'task-queue.mjs', a);
       try { return JSON.parse(r.out).candidates ?? []; } catch { return []; }
     });
+  // status-drift 회피: 이미 open Draft PR 가 있는 TASK 는 재선택 X
+  // (board 제외와 동형 best-effort). tick 시작 시 1회 — 워커별 반복 X.
+  const umbrella = path.dirname(memoRoot);
+  const excludeOpenPRs =
+    deps.excludeOpenPRs ??
+    ((root: string): Set<string> => {
+      // 워커가 PR 을 만들 수 있는 모든 도메인 repo + memo (autopilot 산출은
+      // memo Draft PR 로도 옴). 한 곳 실패 = 다른 곳 결과로 계속.
+      const repos = [
+        `${root}/WitchMendokusai`,
+        `${root}/Mascari4615.github.io`,
+        memoRoot,
+      ];
+      try { return fetchOpenPRTaskIds(repos); } catch { return new Set(); }
+    });
+  const openPrIds = excludeOpenPRs(umbrella);
   const claim =
     deps.claim ??
     ((id: string, by: string) =>
@@ -395,10 +418,20 @@ export async function runWorkerConsumerOnce(
     );
     const tickNow = Date.now();
     const cands = rawCands.filter(
-      (c) => !inNoArtifactCooldown(c.id, tickNow) && !inEscalateCooldown(c.id, tickNow),
+      (c) =>
+        !openPrIds.has(c.id) &&
+        !inNoArtifactCooldown(c.id, tickNow) &&
+        !inEscalateCooldown(c.id, tickNow),
     );
     if (rawCands.length === 0) { results.push(`${w.coreId}:idle`); return; }
-    if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
+    if (cands.length === 0) {
+      // 전 후보가 open PR 로만 막힌 경우 = 그 사실을 가시화 (cooldown-all 과 구분).
+      const allOpenPr =
+        rawCands.length > 0 &&
+        rawCands.every((c) => openPrIds.has(c.id));
+      results.push(`${w.coreId}:${allOpenPr ? 'open-pr-all' : 'cooldown-all'}`);
+      return;
+    }
 
     let chosen: { id: string; file: string } | null = null;
     for (const c of cands.slice(0, 3)) {
