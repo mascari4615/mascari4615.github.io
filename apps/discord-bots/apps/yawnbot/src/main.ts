@@ -423,6 +423,11 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // KAR-018-THR: memoRepoPath 주입 = TASK 스레드 매핑 영속 활성.
+        // 봇 재기동(deploy nssm restart) 마다 같은 TASK 에 중복 스레드
+        // 생성되던 D2 회귀 fix. dev/test 등 미주입 시 graceful in-memory.
+        memoRepoPath: memoRepoPath || null,
+        env: process.env,
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).

@@ -83,13 +83,22 @@ const KIND_LABEL: Record<string, string> = {
   agent: '새 에이전트 제안',
 };
 
-/** 승인 시 평이 결과 안내. */
+/** 승인 시 평이 결과 안내. KAR-018-THR (2026-05-20 사용자 발화: "지들이
+ *  채택했는데 알아서 채택됨 그것도 적용안되는 것 같은데" — 코드확정: 승인
+ *  ≠ 활성 ≠ 적용 *3 단계* 인데 UX 가 "✅승인 머터리얼라이즈" 한 줄로 묶어
+ *  표현 → 사장이 *적용됐다*고 오인. 단계마다 명시. */
 const KIND_ONAPPROVE: Record<string, string> = {
-  task: '할 일(TASK) 카드가 하나 생깁니다 (나중에 진짜 시작할지는 당신이 결정)',
-  objective: '"목표 후보"로 등록됩니다 (당신이 활성화하면 자동으로 추진)',
-  env: '제안이 검증 단계로 넘어갑니다 (실제 적용은 검증 통과+당신 승인 후)',
-  skill: '새 기능 제안이 검증 단계로 넘어갑니다 (적용은 검증+승인 후)',
-  agent: '새 에이전트 후보로 올라갑니다 (실제 생성은 당신 승인 후)',
+  task:
+    '① TASK 파일이 `status:seed` 로 생성 (이건 *멈춰 있음*). ' +
+    '② 사장이 `seed→ready` 승격해야 워커가 픽업·실행.',
+  objective:
+    '① `objectives.md` 에 `proposed` 행 추가 (이건 *멈춰 있음*). ' +
+    '② 사장이 `proposed→active` 승격해야 cadence 가 픽업.',
+  env: '검증 단계로 넘어감 (실제 적용은 ②/②\' 게이트 통과 + 사장 승인 후).',
+  skill: '검증 단계로 넘어감 (적용은 행동평가 게이트 통과 + 사장 승인 후).',
+  agent:
+    '① `core.md` 가 `status:draft` 로 생성 (이건 *멈춰 있음*). ' +
+    '② 사장이 `draft→active` 승격(또는 LT-11 자가증강 게이트 통과)해야 활성.',
 };
 
 /**
@@ -258,6 +267,34 @@ function markResolved(
   }
 }
 
+/**
+ * 머터리얼라이즈된 산출물 → "다음 단계는 ___" 명시 안내 (KAR-018-THR).
+ * 그동안 "X 생성됨" 한 줄로 *적용됐다*고 오인 유발. 단계마다 명시 = 같은
+ * 카피 라인이 시스템 전반(KIND_ONAPPROVE / team adopt result line) 공유.
+ * 순수.
+ */
+export function stageDescription(kind: string, desc: string): string {
+  if (kind === 'task') {
+    return (
+      `**${desc}** 파일 생성 (\`status:seed\` — *멈춰 있음*). ` +
+      `→ 다음 단계: 사장이 \`seed→ready\` 승격해야 워커 픽업.`
+    );
+  }
+  if (kind === 'objective') {
+    return (
+      `\`${desc}\` 행 추가 (\`status:proposed\` — *멈춰 있음*). ` +
+      `→ 다음 단계: 사장이 \`proposed→active\` 승격해야 cadence 픽업.`
+    );
+  }
+  if (kind === 'agent') {
+    return (
+      `**${desc}** 생성 (\`status:draft\` — *멈춰 있음*). ` +
+      `→ 다음 단계: 사장이 \`draft→active\` 승격(또는 LT-11 자가증강)해야 활성.`
+    );
+  }
+  return `**${desc}** 생성`;
+}
+
 /** 머터리얼라이즈 결과 1건 조회 (승인 후 사람에게 "뭐가 생겼나" 회신용). */
 function materializedDesc(env: NodeJS.ProcessEnv, id: string): string | null {
   const p = materializedPath(env);
@@ -355,10 +392,12 @@ export async function handleProposalReaction(
     if (decision === 'approved') {
       await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
       const desc = materializedDesc(env, entry.id);
+      // KAR-018-THR: "생성" ≠ "픽업/실행". 3단계 명시(승인→파일생성→
+      // 활성승격) — 그동안 한 줄로 묶어 "적용됐다" 오인 유발.
       result = desc
-        ? `**${desc}** 생성됨`
+        ? stageDescription(entry.kind, desc)
         : '거버넌스 검토 단계로 넘어감 (엔진 트랙 — 즉시 산출물 없음)';
-      await post(`✅ **승인 완료** — ${result}`);
+      await post(`✅ **승인 접수 (1/2 단계)** — ${result}`);
     } else {
       result = '거절됨 — 아무것도 만들지 않았습니다';
       await post(`❌ **거절 처리됨** — 아무것도 만들지 않았습니다.`);
@@ -546,8 +585,14 @@ export async function reconcileProposalCards(
         });
         await runInboxConsumerOnce(env, { notify: () => {} }).catch(() => 0);
         const desc = materializedDesc(env, v.id);
+        // KAR-018-THR: 팀 채택 = inert 산출물 생성까지만(사장 승격 게이트
+        // 잠겨 있음). "생성됨" 한 줄로 *적용됐다* 오인 차단. v.id 로
+        // entry 회수해 kind 추정(없으면 generic). 같은 stageDescription
+        // 공유 → 사람 ✅ 와 팀 adopt 가 같은 표현 (혼란 0).
+        const entry = lookupProposalById(env, v.id);
+        const kind = entry?.kind || 'task';
         resultLine = desc
-          ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (사장님이 ready 승격 시 진행) · ${v.reason}`
+          ? `🧑‍🤝‍🧑 팀 채택 → ${stageDescription(kind, desc)} · 사유: ${v.reason}`
           : `🧑‍🤝‍🧑 팀 채택 — 검토 단계로 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
       } else if (v.verdict === 'adopt-mods') {
         resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
