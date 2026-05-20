@@ -46,6 +46,7 @@ import {
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
+import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, setTeamBusNotify } from './bot/governance-adapter';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
@@ -278,6 +279,22 @@ mountLocalWebhook(app, client as any);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
+  // KAR-018-LT-W1-WIRE: 워커 prompt 에 #team-bus 최근 발언 inject seam wire.
+  // 워커 spawn 시점에 lazily 호출 — agentChannelId() 는 provisioning 완료
+  // 후에도 fresh(channelIdFor 가 매번 resolver). wire 안 되면 cadence-worker
+  // 의 fallback = undefined → 5입력 호환.
+  setTeamBusContextFetcher(async (limit) => {
+    const id = agentChannelId();
+    if (!id) return undefined;
+    const ch = await client.channels.fetch(id);
+    if (!ch || !ch.isTextBased()) return undefined;
+    const msgs = await ch.messages.fetch({ limit });
+    return Array.from(msgs.values())
+      .reverse()
+      .map((m) => `[${m.author?.username || '?'}] ${(m.content || '').slice(0, 300)}`)
+      .filter((s) => s.trim().length > 0)
+      .join('\n');
+  });
   console.log(`\n  ⚔️  YawnBot (Node.js)`);
   console.log(`  ─────────────────────────`);
   console.log(`  로그인: ${client.user?.tag}`);
@@ -658,6 +675,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
     await reportShutdown(opsCtx, reason);
   }
   setMusicDiscordClient(null);
+  setTeamBusContextFetcher(null);
   stopPresenceRotation();
   stopHeartbeat();
   stopCharacterStateSnapshot();

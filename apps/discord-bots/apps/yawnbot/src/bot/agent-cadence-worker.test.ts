@@ -94,6 +94,48 @@ describe('buildWorkerPrompt (순수)', () => {
     expect(p).toMatch(/merge.*master.*force.*금지|force-push/);
     expect(p).toContain('MISSION');
   });
+
+  // KAR-018-LT-W1 — chat=state substrate
+  it('channelContext 주어지면 CHANNEL 블록 포함', () => {
+    const p = buildWorkerPrompt(
+      { id: 'TASK-WM-119', file: 'x.md' },
+      'MISSION',
+      undefined, undefined, undefined,
+      '[KarWorker] TASK-X 점유 해제·재대기 (exit 1)\n[WmSupport] TASK-Y 점유 해제·재대기 (exit 1)',
+    );
+    expect(p).toContain('<<<CHANNEL');
+    expect(p).toContain('CHANNEL');
+    expect(p).toContain('[KarWorker] TASK-X');
+    expect(p).toContain('같은 사유·결론 반복');
+  });
+
+  it('channelContext undefined/빈 문자열이면 CHANNEL 블록 부재 (5입력 호환)', () => {
+    const p1 = buildWorkerPrompt({ id: 'TASK-X', file: 'x.md' }, 'MISSION');
+    expect(p1).not.toContain('CHANNEL');
+    const p2 = buildWorkerPrompt(
+      { id: 'TASK-X', file: 'x.md' },
+      'MISSION',
+      undefined, undefined, undefined,
+      '   ',  // whitespace only
+    );
+    expect(p2).not.toContain('CHANNEL');
+  });
+
+  it('channelContext 3000자 cap (prompt 폭주 가드)', () => {
+    const huge = 'X'.repeat(5000);
+    const p = buildWorkerPrompt(
+      { id: 'TASK-X', file: 'x.md' },
+      'MISSION',
+      undefined, undefined, undefined,
+      huge,
+    );
+    const channelStart = p.indexOf('<<<CHANNEL');
+    const channelEnd = p.indexOf('\nCHANNEL', channelStart);
+    expect(channelStart).toBeGreaterThan(-1);
+    expect(channelEnd).toBeGreaterThan(channelStart);
+    const blockBody = p.slice(channelStart + '<<<CHANNEL\n'.length, channelEnd);
+    expect(blockBody.length).toBeLessThanOrEqual(3000);
+  });
 });
 
 const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker' };
