@@ -97,9 +97,11 @@ function resolveConfig(env: NodeJS.ProcessEnv, deps: MemoPushDeps): MemoPushConf
     token,
     memoRepoPath,
     repoSlug: deps.repoSlug || env.YAWNBOT_MEMOSYNC_REPO_SLUG?.trim() || DEFAULT_REPO_SLUG,
-    branch: deps.branch ?? env.YAWNBOT_MEMOSYNC_BRANCH?.trim() ?? DEFAULT_BRANCH,
-    authorName: deps.authorName ?? env.YAWNBOT_PUSH_AUTHOR_NAME?.trim() ?? DEFAULT_AUTHOR_NAME,
-    authorEmail: deps.authorEmail ?? env.YAWNBOT_PUSH_AUTHOR_EMAIL?.trim() ?? DEFAULT_AUTHOR_EMAIL,
+    // 같은 패턴 (defaults.txt 빈 문자열 line) — ?? 는 nullish 만 fallback 이라
+    // empty string 통과 → "" 로 깨짐 (KAR-018-PUSH-CLOSURE 2026-05-20).
+    branch: deps.branch || env.YAWNBOT_MEMOSYNC_BRANCH?.trim() || DEFAULT_BRANCH,
+    authorName: deps.authorName || env.YAWNBOT_PUSH_AUTHOR_NAME?.trim() || DEFAULT_AUTHOR_NAME,
+    authorEmail: deps.authorEmail || env.YAWNBOT_PUSH_AUTHOR_EMAIL?.trim() || DEFAULT_AUTHOR_EMAIL,
   };
 }
 
