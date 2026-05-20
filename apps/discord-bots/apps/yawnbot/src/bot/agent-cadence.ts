@@ -1077,6 +1077,7 @@ export async function runCadenceTickOnce(
     producerOpts?: Parameters<typeof runGovernedProducerOnce>[1];
     dialogueDeps?: Parameters<typeof runCoreDialogueOnce>[1];
     qualityCheckDeps?: QualityCheckDeps;
+    selfSurgeryDeps?: SelfSurgeryDeps;
   } = {},
 ): Promise<string> {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -1168,6 +1169,15 @@ export async function runCadenceTickOnce(
       if (qc === 'qc:sent') r = `${r}+${qc}`;
     } catch {
       /* 품질 체크 실패 = tick 비차단 */
+    }
+  }
+  // 기둥4 자기수술 — gated(12h) + critical 이슈 한정. LLM 자율 진단 → task seed / escalate.
+  if (memoRoot && !isKilled()) {
+    try {
+      const sr = await runSelfSurgeryOnce(env, opts.selfSurgeryDeps);
+      if (sr.startsWith('surgery:seed:') || sr === 'surgery:escalate') r = `${r}+${sr}`;
+    } catch {
+      /* surgery 실패 = tick 비차단 */
     }
   }
   if (memoRoot && !isKilled()) {
