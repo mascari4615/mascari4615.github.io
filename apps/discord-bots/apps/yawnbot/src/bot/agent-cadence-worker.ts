@@ -580,6 +580,15 @@ export async function runWorkerConsumerOnce(
     const wt = 'error' in wtRes ? null : wtRes;
     const wtErr = 'error' in wtRes ? wtRes.error : null;
 
+    // 착수 알림 — 사용자 가시성 (이전엔 silent → 완료까지 #team-bus 무발화).
+    // voicedWorkerSpeak 가 lastWorkerStatus 로 dedupe → 동일 status 중복 X.
+    await voicedWorkerSpeak(
+      w.coreId,
+      `🤖 착수: ${chosen.id}${wt ? ` (worktree=${wt.branch})` : ` (worktree 실패: ${wtErr ?? '?'})`}`,
+      speak, voice, env,
+      loadSkinPersona(memoRoot, w.coreId),
+    );
+
     let specText: string | undefined;
     try { specText = fs.readFileSync(path.join(memoRoot, chosen.file), 'utf-8'); } catch { specText = undefined; }
 
