@@ -14,6 +14,11 @@ const CORE_DOMAIN_REPO: Record<string, string> = {
   // KAR = 에이전트 팀 인프라·자가개선. yawnbot 코드가 github.io 안 →
   // 타겟 repo = Mascari4615.github.io (노트북 prod 존재 = agentic 가능).
   'kar-worker': 'Mascari4615.github.io',
+  // wm-support = WM 보좌 모델 (TASK-KAR-018-WMS). teamScope = WM Unity-GUI
+  // 불요 substrate (context.md drift sync / headless 부팅 스모크 / 툴링·schema /
+  // docs·data·JSON 성격 분) — WitchMendokusai repo. 매핑 누락 시 wt 실패 →
+  // 비-agentic 폴백 → 매 사이클 domain-unresolved 메시지 폭주 (2026-05-20 실증).
+  'wm-support': 'WitchMendokusai',
 };
 
 export interface DomainRepo {

@@ -83,7 +83,14 @@ export async function generateClaudeCliText(opts: {
         if (code === 0 && (stdout.trim() || opts.cwd)) {
           resolve(stdout.trim());
         } else {
-          reject(new Error(`Claude CLI 종료 코드 ${code}: ${stderr.slice(0, 400)}`));
+          // KAR-CLAUDE-DIAG: claude CLI 가 인증 실패 등 silent failure 시
+          // stderr 비고 stdout 으로 'Not logged in · Please run /login' 박는
+          // 케이스 실증(LocalSystem nssm 컨텍스트, 2026-05-20). stderr 만
+          // 박으면 「종료 코드 1: 」 휑한 메시지 → 진단 12h 마비. stdout/cwd/
+          // exit 함께 박아 silent failure 본문이 디스코드까지 도달하게.
+          const stderrSnip = (stderr || '').trim().slice(0, 1200) || '<stderr empty>';
+          const stdoutSnip = (stdout || '').trim().slice(0, 600) || '<stdout empty>';
+          reject(new Error(`Claude CLI 종료 코드 ${code} (cwd=${opts.cwd ?? '<none>'}): stderr=${stderrSnip} | stdout=${stdoutSnip}`));
         }
       });
 
@@ -200,12 +207,16 @@ export async function generateDiscoveryText(opts: {
       cleanup();
       // 빈 출력 = 발굴 없음(정상, 날조 0) → 빈 문자열 resolve (파서가 폐기).
       if (code === 0) resolve(stdout.trim());
-      else
+      else {
+        // KAR-CLAUDE-DIAG: silent failure (stderr 빈) 대비 stdout 도 박기.
+        const stderrSnip = (stderr || '').trim().slice(0, 1200) || '<stderr empty>';
+        const stdoutSnip = (stdout || '').trim().slice(0, 600) || '<stdout empty>';
         reject(
           new Error(
-            `Claude CLI(discovery) 종료 코드 ${code}: ${stderr.slice(0, 400)}`,
+            `Claude CLI(discovery) 종료 코드 ${code}: stderr=${stderrSnip} | stdout=${stdoutSnip}`,
           ),
         );
+      }
     });
     child.on('error', (err: Error) => {
       clearTimeout(timer);
