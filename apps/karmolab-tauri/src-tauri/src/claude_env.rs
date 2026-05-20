@@ -441,8 +441,16 @@ fn preview_sound_blocking(
     Ok(())
 }
 
+/// 정본 .ps1 두 개 R/O — async + spawn_blocking (KL-043 룰).
+/// 같은 파일의 write 버전 (`claude_env_write_notify_config`) 도 동일 패턴.
 #[tauri::command]
-pub fn claude_env_read_notify_config() -> Result<NotifyConfigDto, String> {
+pub async fn claude_env_read_notify_config() -> Result<NotifyConfigDto, String> {
+    tauri::async_runtime::spawn_blocking(read_notify_config_blocking)
+        .await
+        .map_err(|e| format!("read spawn_blocking join 실패: {}", e))?
+}
+
+fn read_notify_config_blocking() -> Result<NotifyConfigDto, String> {
     let root = karmoddrine_dotfiles_root()?;
     let stop = parse_notify_ps1(&root.join("notify-stop.ps1"))?;
     let notification = parse_notify_ps1(&root.join("notify-notification.ps1"))?;
