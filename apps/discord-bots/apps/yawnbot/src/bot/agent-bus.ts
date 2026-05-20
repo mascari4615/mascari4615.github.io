@@ -1,19 +1,18 @@
 /**
- * agent-bus — ⑦' 발굴을 *사람이 팔로업 가능한* 디스코드 가시층 (KAR-018-V).
+ * agent-bus — ⑦' 발굴을 *사람이 팔로업 가능한* 디스코드 가시층.
  *
  * 문제(사용자 2026-05-17): 익명 "🛰 에이전트 팀" 한 줄 로그 → 누가/뭘
- * 제안했는지·왜·뭘 하면 되는지 알 수 없음. "각 에이전트가 구분되는 게
- * 아니잖아요 … 제가 원하던 게 아니에요".
+ * 제안했는지·왜·뭘 하면 되는지 알 수 없음.
  *
- * V-1: 발굴 = **명명 에이전트(atlas …)가 자기 이름·아바타로** 읽을 수
- * 있는 카드 게시 → 그 메시지를 **스레드**로 (당신 아이디어 채택) →
- * 스레드 안에 *전문* + 승인/거절/질문 안내. 메시지↔발굴id 매핑 영속
- * (V-2 리액션 승인이 소비). 평행정의0 — 코어 정체성은 기존 sub-A0/A
- * 소비(재정의 X), 인박스·승인 seam 재사용.
- *
- * 왜 embed(봇)이고 sendAsSkin(webhook) 아닌가: sendAsSkin 은 메시지 id
- * 미반환 → 스레드·리액션 매핑 불가. embed.author 로 *명명 정체성*은
- * 충족하면서 메시지 객체 확보(스레드·매핑) = V-1 실용 최선.
+ * substrate 진화:
+ *  - V-1 (2026-05-17): 텍스트 채널(#team-bus) 카드 + 스레드 + ✅/❌ react.
+ *    명명 에이전트 정체성으로 누가/뭘 박힘.
+ *  - LT-FORUM (2026-05-20): 작업 카드 substrate = 포럼 채널(#team-work).
+ *    1포스트=1흐름객체 (discovery→proposal→verdict→done). announceProposal /
+ *    reconcileProposalCards 가 forum-post.ts 단일 seam 경유 — 평행 정의 0.
+ *    #team-bus 텍스트는 hb/digest/escalate 1줄용으로 유지(변경 0).
+ *    handleProposalReaction = forum starter message 의 ✅/❌ react 그대로
+ *    소비(Discord 사양상 forum-post.starter.id == thread.id, 매핑 호환).
  */
 import fs from 'fs';
 import path from 'path';
@@ -21,7 +20,6 @@ import { EmbedBuilder } from 'discord.js';
 import type {
   Client,
   TextChannel,
-  Message,
   MessageReaction,
   PartialMessageReaction,
   User,
@@ -38,22 +36,13 @@ import {
   type TeamVerdict,
 } from './proposal-adapter';
 import { loadCoreDef, appendCoreMemory } from '../services/agent-core';
-import { sendAsSkin, WebhookPermissionError } from './agent-webhook';
-import type { CharacterCard } from '../services/character-service';
-
-/** ann.agent → sendAsSkin 용 최소 카드 (이름·아바타만 — 실 카드 불요). */
-function identityCard(ann: ProposalAnnouncement, name: string): CharacterCard {
-  return {
-    slug: ann.agent?.coreId || 'atlas',
-    name,
-    displayName: name,
-    frontmatter: ann.agent?.avatarUrl
-      ? { avatar_url: ann.agent.avatarUrl }
-      : {},
-    body: '',
-    dir: '',
-  } as unknown as CharacterCard;
-}
+import {
+  createForumPost,
+  evolveForumPost,
+  type ClientLike,
+  type ForumStatus,
+  type ForumDomain,
+} from './forum-post';
 
 export interface ProposalAnnouncement {
   /** 결정적 발굴 id (proposalId) — 승인 매칭 키. */
@@ -493,13 +482,28 @@ const VERDICT_STATE: Record<TeamVerdict, CardState> = {
   escalate: 'team-escalate',
 };
 
+/** CardState → forum 의 status 태그 매핑 (#team-work 태그 토글 정합). */
+const STATE_TO_FORUM_STATUS: Record<CardState, ForumStatus> = {
+  approved: 'approved',
+  rejected: 'rejected',
+  'team-adopt': 'in-progress', // 팀 채택 → 진행(사람 veto 여지)
+  'team-adopt-mods': 'approved', // 수정 채택 = 원본 supersede
+  'team-reject': 'rejected',
+  'team-escalate': 'pending', // 사장 결정 대기
+};
+
 /**
- * 팀 verdict 내구 원장 → 원본 카드 반영 (client 쥔 쪽 = main.ts 타이머).
+ * 팀 verdict 내구 원장 → 원본 forum-post 반영 (client 쥔 쪽 = main.ts 타이머).
  * 멱등·restart-safe(reflected 마커). adopt = 팀이 *행동* —
  * appendApproval(core:team)+inbox consumer 로 inert seed/draft 생성
  * (자동 실행 X = 진짜 게이트 seed→ready 불변). reject/escalate =
  * 카드 상태만(미잠금 — 사장님 veto/override 유효). best-effort:
- * 카드/채널 실패해도 throw X, 단 *반영 성공분만* 마커(재시도 가능).
+ * 채널/포스트 실패해도 throw X, 단 *반영 성공분만* 마커(재시도 가능).
+ *
+ * LT-FORUM 마이그: forum-post 의 evolveForumPost 단일 seam 경유 —
+ * embed edit(starter 카드) + status 태그 토글 + 스레드 결과 한 줄 누적.
+ * Legacy 텍스트 카드 entries(threadId 없는 옛 데이터) = 닫고 다음(degraded,
+ * verdict 자체는 원장 보존). 평행 정의 0.
  * @returns 이번에 카드 반영한 건수.
  */
 export async function reconcileProposalCards(
@@ -510,28 +514,13 @@ export async function reconcileProposalCards(
   let n = 0;
   for (const v of pending) {
     const entry = lookupProposalById(env, v.id);
-    if (!entry || !entry.channelId) {
-      // 카드 매핑/채널 없음(게시 실패·구버전 엔트리) — 더 기다려도
-      // 안 생김. 마커 찍어 무한 재시도 0 (verdict 는 원장/trace 영속).
+    if (!entry || !entry.channelId || !entry.threadId) {
+      // 카드 매핑/채널/스레드 없음(게시 실패·forum 마이그 전 legacy) —
+      // 더 기다려도 안 생김. 마커 찍어 무한 재시도 0.
       markCardReflected(env, v.id);
       continue;
     }
     try {
-      const channel = await client.channels
-        .fetch(entry.channelId)
-        .catch(() => null);
-      if (!channel || !channel.isTextBased() || !('messages' in channel)) {
-        // 채널 일시 fetch 실패 = 마커 미기록(다음 tick 재시도).
-        continue;
-      }
-      const msg = await (channel as TextChannel).messages
-        .fetch(entry.messageId)
-        .catch(() => null);
-      if (!msg) {
-        // 메시지 삭제됨 — 재시도 무의미. 마커 찍고 verdict 는 원장에.
-        markCardReflected(env, v.id);
-        continue;
-      }
       const state = VERDICT_STATE[v.verdict];
       let resultLine: string;
       if (v.verdict === 'adopt') {
@@ -556,27 +545,49 @@ export async function reconcileProposalCards(
       } else {
         resultLine = `🧑‍🤝‍🧑 팀이 수렴 못 함 — 사장님 ✅/❌ 결정 필요 · ${v.reason}`;
       }
-      const src = msg.embeds?.[0];
-      if (src) {
-        const eb = applyCardEmbedState(
-          src,
-          state,
-          resultLine,
-          '🧑‍🤝‍🧑 팀 토론 결과',
-        );
-        await msg.edit({ embeds: [eb] }).catch(() => {});
-      }
-      // 스레드에도 결과 한 줄 (카드 못 봐도 사람 팔로업).
-      if (entry.threadId) {
-        const th = await client.channels
-          .fetch(entry.threadId)
-          .catch(() => null);
-        if (th && th.isTextBased() && 'send' in th) {
-          await (th as TextChannel)
-            .send(resultLine.slice(0, 1900))
-            .catch(() => {});
+      // forum starter 의 source embed → applyCardEmbedState 로 진화된 embed
+      // 만들기. 채널 fetch 실패 = 일시(continue, 다음 tick 재시도).
+      const channel = (await client.channels
+        .fetch(entry.channelId)
+        .catch(() => null)) as unknown as
+        | (Awaited<ReturnType<ClientLike['channels']['fetch']>> & {
+            threads?: {
+              fetch: (id: string) => Promise<unknown>;
+            };
+          })
+        | null;
+      if (!channel) continue;
+      const thread = (await channel?.threads
+        ?.fetch(entry.threadId)
+        .catch(() => null)) as
+        | (Awaited<ReturnType<NonNullable<typeof channel.threads>['fetch']>> & {
+            fetchStarterMessage?: () => Promise<{
+              embeds?: { data?: unknown }[];
+            } | null>;
+          })
+        | null;
+      let editedEmbed: EmbedBuilder | undefined;
+      if (thread && typeof thread.fetchStarterMessage === 'function') {
+        const starter = await thread.fetchStarterMessage().catch(() => null);
+        const src = (starter?.embeds as { data?: unknown }[] | undefined)?.[0];
+        if (src) {
+          editedEmbed = applyCardEmbedState(
+            (src.data ?? src) as Parameters<typeof EmbedBuilder.from>[0],
+            state,
+            resultLine,
+            '🧑‍🤝‍🧑 팀 토론 결과',
+          );
         }
       }
+      await evolveForumPost(
+        client as unknown as ClientLike,
+        { postId: entry.threadId, channelId: entry.channelId },
+        {
+          embedEdit: editedEmbed,
+          statusTag: STATE_TO_FORUM_STATUS[state],
+          threadMessage: resultLine,
+        },
+      );
       markCardReflected(env, v.id);
       n += 1;
     } catch {
@@ -586,12 +597,24 @@ export async function reconcileProposalCards(
   return n;
 }
 
-/**
- * 발굴 1건을 #team-bus 에 *명명 에이전트 카드 + 스레드*로 게시.
- * embed.author = 에이전트(이름/아바타) → 익명 X, 누가 가 보임.
- * 스레드 안 = 전문 + 승인/거절/질문 안내. 매핑 영속(V-2 소비).
- * best-effort: 채널·권한 실패해도 throw X (발굴 파이프 비차단).
- */
+/** ProposalAnnouncement → forum domain 태그. payload.domain 우선,
+ *  coreId prefix 폴백, 기본 KAR. */
+function resolveDomain(ann: ProposalAnnouncement): ForumDomain {
+  const p = ann.envelope.payload as unknown as Record<string, unknown>;
+  const raw = (typeof p?.domain === 'string' ? p.domain : '')
+    .trim()
+    .toLowerCase();
+  if (raw === 'wm') return 'WM';
+  if (raw === 'kl' || raw === 'karmolab') return 'KL';
+  if (raw === 'yb' || raw === 'yawnbot') return 'YB';
+  if (raw === 'kar' || raw === 'karmoddrine') return 'KAR';
+  const cid = (ann.agent?.coreId || '').toLowerCase();
+  if (cid.startsWith('wm')) return 'WM';
+  if (cid.startsWith('kl')) return 'KL';
+  if (cid.startsWith('yb') || cid === 'echo') return 'YB';
+  return 'KAR';
+}
+
 /**
  * 카드 앞 동료 한 줄 — **결정적**(LLM 호출 X), KAR-018-Y 근본.
  *
@@ -631,10 +654,19 @@ function atlasVoicedIntro(
   return variants[h % variants.length];
 }
 
+/**
+ * 발굴 1건을 #team-work forum 채널에 *1포스트=1흐름객체* 로 게시
+ * (TASK-KAR-018-LT-FORUM 마이그). starter embed = 명명 에이전트 카드,
+ * appliedTags = [kind, pending, domain]. 스레드 첫 메시지 = atlas voiced
+ * intro, 두 번째 메시지 = 전문 + 승인/거절/질문 안내. starter 에 ✅/❌
+ * react (사람 결정 인터페이스, handleProposalReaction 호환).
+ *
+ * best-effort: forum 미프로비저닝(handle=null) → 콘솔 경고 후 skip.
+ * #team-bus 텍스트 폴백 X — 평행 정의 회피 (자기소멸 마이그 정합).
+ */
 export async function announceProposal(
   client: Client,
   env: NodeJS.ProcessEnv,
-  channelIds: string[],
   ann: ProposalAnnouncement,
 ): Promise<void> {
   const agentName = ann.agent?.name || '🛰 Atlas';
@@ -642,7 +674,6 @@ export async function announceProposal(
   const safeTitle = (title || '(제목 없음)').slice(0, 230);
   const kindLabel = KIND_LABEL[ann.kind] ?? ann.kind;
   const onApprove = KIND_ONAPPROVE[ann.kind] ?? '검토 단계로 넘어갑니다';
-  // R-2: atlas 가 카드 전에 자기 목소리로 운다 (주도적 동료).
   const intro = await atlasVoicedIntro(
     env,
     ann.agent?.coreId || 'atlas',
@@ -650,98 +681,73 @@ export async function announceProposal(
     cardBody,
   );
 
-  for (const channelId of channelIds) {
-    const channel = await client.channels
-      .fetch(channelId)
-      .catch(() => null);
-    if (!channel || !channel.isTextBased() || !('send' in channel)) continue;
+  const embed = new EmbedBuilder()
+    .setColor(COLOR_BY_KIND[ann.kind] ?? 0x4caf50)
+    .setAuthor({
+      name: `🛰 ${agentName} 의 제안`,
+      iconURL: ann.agent?.avatarUrl,
+    })
+    .setTitle(`💡 ${safeTitle}`)
+    .addFields(
+      {
+        name: '📋 무엇 / 왜',
+        value: (cardBody || '(내용 없음)').slice(0, 1000),
+      },
+      { name: '🏷️ 분류', value: kindLabel, inline: true },
+      { name: '🆔', value: `\`${ann.id}\``, inline: true },
+      { name: '📌 상태', value: '🟡 승인 대기', inline: true },
+      { name: '✅ 승인하면', value: onApprove },
+    )
+    .setFooter({
+      text: '✅ 승인  ·  ❌ 거절  ·  ▸ 스레드에서 자세히/질문  |  먼저 누른 결정이 확정·잠금',
+    })
+    .setTimestamp();
 
-    // 구조화 카드 — 사장이 스캔 가능. 상세·근거는 ▸ 스레드.
-    const embed = new EmbedBuilder()
-      .setColor(COLOR_BY_KIND[ann.kind] ?? 0x4caf50)
-      .setAuthor({
-        name: `🛰 ${agentName} 의 제안`,
-        iconURL: ann.agent?.avatarUrl,
-      })
-      .setTitle(`💡 ${safeTitle}`)
-      .addFields(
-        {
-          name: '📋 무엇 / 왜',
-          value: (cardBody || '(내용 없음)').slice(0, 1000),
-        },
-        { name: '🏷️ 분류', value: kindLabel, inline: true },
-        { name: '🆔', value: `\`${ann.id}\``, inline: true },
-        { name: '📌 상태', value: '🟡 승인 대기', inline: true },
-        { name: '✅ 승인하면', value: onApprove },
-      )
-      .setFooter({
-        text: '✅ 승인  ·  ❌ 거절  ·  ▸ 스레드에서 자세히/질문  |  먼저 누른 결정이 확정·잠금',
-      })
-      .setTimestamp();
+  const handle = await createForumPost(
+    client as unknown as ClientLike,
+    env,
+    {
+      kind: 'proposal',
+      domain: resolveDomain(ann),
+      title: `제안 ${ann.id}: ${safeTitle}`,
+      embed,
+      intro: intro || undefined,
+    },
+  );
+  if (!handle) {
+    console.warn(
+      '[agent-bus] #team-work forum 미프로비저닝 — 제안 카드 게시 skip:',
+      ann.id,
+    );
+    return;
+  }
 
-    try {
-      // R-2: atlas 가 *먼저 자기 목소리로* 운다 → 그 다음 정식 카드.
-      // 이름 = 봇앱("YawnDev") 아니라 *에이전트 정체*(webhook username
-      // =displayName, sub-A sendAsSkin). 권한 없으면 봇 send 폴백.
-      if (intro) {
-        const body = intro.slice(0, 1800);
-        try {
-          await sendAsSkin(
-            channel as TextChannel,
-            identityCard(ann, agentName),
-            { content: body },
-          );
-        } catch (e) {
-          if (!(e instanceof WebhookPermissionError)) {
-            console.error(
-              '[agent-bus] intro 송신 오류:',
-              e instanceof Error ? e.message : e,
-            );
-          }
-          await (channel as TextChannel)
-            .send({ content: body })
-            .catch(() => {});
+  // 진입 후속 — 스레드 상세 메시지 + starter ✅/❌ react.
+  // Discord 사양: forum-post 의 starter message id == thread id.
+  try {
+    const channel = (await client.channels
+      .fetch(handle.channelId)
+      .catch(() => null)) as unknown as
+      | {
+          threads?: {
+            fetch: (id: string) => Promise<unknown>;
+          };
         }
-      }
-      // R-5 정체통일: 카드도 *에이전트 정체* webhook 게시(봇앱 YawnDev
-      // X). hook.send 반환 id 로 fetch → react/startThread (스레드·리액션
-      // 매핑 유지). WebhookPermissionError·실패 = 봇 embed fallback
-      // (기존 동작·회귀0·graceful — 권한 없어도 카드는 뜸).
-      let msg: Message | null = null;
-      try {
-        const sentId = await sendAsSkin(
-          channel as TextChannel,
-          identityCard(ann, agentName),
-          { content: '', embeds: [embed] },
-        );
-        if (sentId) {
-          msg = await (channel as TextChannel).messages
-            .fetch(sentId)
-            .catch(() => null);
-        }
-      } catch (e) {
-        if (!(e instanceof WebhookPermissionError)) {
-          console.error(
-            '[agent-bus] 카드 정체 송신 오류:',
-            e instanceof Error ? e.message : e,
-          );
-        }
-      }
-      if (!msg) {
-        msg = await (channel as TextChannel).send({ embeds: [embed] });
-      }
-      await msg.react('✅').catch(() => {});
-      await msg.react('❌').catch(() => {});
-
-      let threadId = '';
-      try {
-        const thread = await msg.startThread({
-          name: `제안 ${ann.id}: ${safeTitle}`.slice(0, 95),
-          autoArchiveDuration: 1440,
-        });
-        threadId = thread.id;
-        await thread.send(
-          `**${agentName}** 의 제안 — 자세히\n\n` +
+      | null;
+    const thread = (await channel?.threads
+      ?.fetch(handle.postId)
+      .catch(() => null)) as
+      | (TextChannel & {
+          fetchStarterMessage?: () => Promise<{
+            react: (e: string) => Promise<unknown>;
+          } | null>;
+        })
+      | null;
+    if (thread && 'send' in thread) {
+      await thread
+        .send({
+          content:
+            `**${agentName}** 의 제안 — 자세히\n\n` +
             `**${safeTitle}**\n\n${detailBody.slice(0, 3500)}\n\n` +
             `────────\n` +
             `**어떻게 하나요?**\n` +
@@ -750,28 +756,34 @@ export async function announceProposal(
             `· 이 스레드에 **답글** = 질문/수정요청 (검토에 반영)\n` +
             `· 누르면 **여기 스레드에 처리 결과가 답글로 달립니다** (접수→완료)\n` +
             `· 규칙: 먼저 누른 결정이 확정. 확정 후 추가/취소 반응은 무시.`,
-        );
-      } catch {
-        /* 스레드 실패해도 카드는 떴음 (degraded) */
-      }
-
-      appendProposalMsg(env, {
-        messageId: msg.id,
-        threadId,
-        channelId: msg.channelId, // KAR-018-LT: verdict reconciler 메시지 fetch
-        id: ann.id,
-        kind: ann.kind,
-        target: ann.target,
-        title: safeTitle,
-        ts: new Date().toISOString(),
-        coreId: ann.agent?.coreId, // Z-2: 결과를 이 코어 mem 에 학습
-      });
-    } catch (e) {
-      console.error(
-        '[agent-bus] 발굴 카드 게시 실패:',
-        channelId,
-        e instanceof Error ? e.message : e,
-      );
+        })
+        .catch(() => {});
     }
+    if (thread && typeof thread.fetchStarterMessage === 'function') {
+      const starter = await thread.fetchStarterMessage().catch(() => null);
+      if (starter) {
+        await starter.react('✅').catch(() => {});
+        await starter.react('❌').catch(() => {});
+      }
+    }
+  } catch (e) {
+    console.error(
+      '[agent-bus] forum-post 후속 처리 실패:',
+      e instanceof Error ? e.message : e,
+    );
   }
+
+  // 매핑 영속 — forum 사양상 starter msg id == thread id, 둘 다 postId.
+  // ProposalMsgEntry 그대로 — verdict reconciler / handleProposalReaction 호환.
+  appendProposalMsg(env, {
+    messageId: handle.postId,
+    threadId: handle.postId,
+    channelId: handle.channelId,
+    id: ann.id,
+    kind: ann.kind,
+    target: ann.target,
+    title: safeTitle,
+    ts: new Date().toISOString(),
+    coreId: ann.agent?.coreId,
+  });
 }
