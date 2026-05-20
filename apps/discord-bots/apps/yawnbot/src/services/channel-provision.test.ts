@@ -30,7 +30,8 @@ function newGuildId(): string {
   return id;
 }
 
-/** discord.js GuildChannelManager 의 최소 구조적 페이크. create 는 id 증가 + cache push. */
+/** discord.js GuildChannelManager 의 최소 구조적 페이크. create 는 id 증가 + cache push.
+ *  GuildForum 채널은 availableTags 보관 + setAvailableTags 메소드 노출 (드리프트 sync 시뮬). */
 function fakeGuild(id: string, seed: ChannelLike[] = []): GuildLike {
   const channels = [...seed];
   let seq = 1000;
@@ -45,6 +46,12 @@ function fakeGuild(id: string, seed: ChannelLike[] = []): GuildLike {
           type: opts.type,
           parentId: opts.parent ?? null,
         };
+        if (opts.availableTags) ch.availableTags = [...opts.availableTags];
+        if (opts.type === ChannelType.GuildForum) {
+          ch.setAvailableTags = async (tags) => {
+            ch.availableTags = [...tags];
+          };
+        }
         channels.push(ch);
         return ch;
       },
@@ -116,7 +123,7 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
       ...spec.channels.map((e) => ({
         id: r1.map[e.key],
         name: e.key === 'news' ? '잡담' : e.name,
-        type: ChannelType.GuildText,
+        type: e.type === 'GuildForum' ? ChannelType.GuildForum : ChannelType.GuildText,
         parentId: r1.map.__category,
       })),
     ]);
@@ -140,6 +147,12 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
             type: o.type,
             parentId: o.parent ?? null,
           };
+          if (o.availableTags) c.availableTags = [...o.availableTags];
+          if (o.type === ChannelType.GuildForum) {
+            c.setAvailableTags = async (tags) => {
+              c.availableTags = [...tags];
+            };
+          }
           channels.push(c);
           return c;
         },
@@ -162,6 +175,79 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
       const ch = channels.find((c) => c.id === rd.map[e.key]);
       expect(ch?.parentId).toBe(devCat);
     }
+  });
+});
+
+describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => {
+  it('agent-work entry = GuildForum 타입으로 생성 + availableTags 박힘', async () => {
+    const guild = fakeGuild(newGuildId());
+    const r = await reconcileGuildChannels(guild, spec, PROD);
+    expect(r.created).toContain('agent-work');
+    // cache 에서 실제 채널 객체 찾아 검증
+    const ch = guild.channels.cache.find((c) => c.id === r.map['agent-work']);
+    expect(ch).toBeDefined();
+    expect(ch!.type).toBe(ChannelType.GuildForum);
+    // spec 의 12개 태그가 그대로 박힘 (discord.js 형식 변환: emoji → { name })
+    const tagNames = (ch!.availableTags ?? []).map((t) => t.name).sort();
+    expect(tagNames).toContain('proposal');
+    expect(tagNames).toContain('worker-report');
+    expect(tagNames).toContain('discovery');
+    expect(tagNames).toContain('pending');
+    expect(tagNames).toContain('done');
+    expect(tagNames).toContain('WM');
+    expect(tagNames.length).toBe(12);
+    // emoji = { name: '<unicode>' } 형식
+    const proposalTag = (ch!.availableTags ?? []).find((t) => t.name === 'proposal');
+    expect(proposalTag?.emoji).toEqual({ name: '💡' });
+  });
+
+  it('두 번째 reconcile: forum 채널도 reused (멱등 + 태그 드리프트 sync)', async () => {
+    const guild = fakeGuild(newGuildId());
+    await reconcileGuildChannels(guild, spec, PROD);
+    // 외부에서 사용자가 태그 임의 제거 (드리프트 시뮬)
+    const forumCh = guild.channels.cache.find(
+      (c) => c.type === ChannelType.GuildForum,
+    );
+    expect(forumCh).toBeDefined();
+    forumCh!.availableTags = [{ name: 'orphan-tag' }];
+    const r2 = await reconcileGuildChannels(guild, spec, PROD);
+    expect(r2.created).toEqual([]);
+    expect(r2.reused).toContain('agent-work');
+    // setAvailableTags 가 호출돼 spec 정합으로 복원
+    expect((forumCh!.availableTags ?? []).map((t) => t.name).sort()).not.toContain(
+      'orphan-tag',
+    );
+    expect((forumCh!.availableTags ?? []).length).toBe(12);
+  });
+
+  it('같은 이름 forum 채널이 미리 있으면 claim (생성 X) + 태그 동기', async () => {
+    const gid = newGuildId();
+    const seed: ChannelLike[] = [
+      { id: 'cat-x', name: spec.categoryName, type: ChannelType.GuildCategory, parentId: null },
+      {
+        id: 'existing-forum',
+        name: 'team-work',
+        type: ChannelType.GuildForum,
+        parentId: 'cat-x',
+        availableTags: [{ name: 'legacy' }],
+        setAvailableTags: async function (this: ChannelLike, tags) {
+          this.availableTags = [...tags];
+        } as ChannelLike['setAvailableTags'],
+      },
+    ];
+    // setAvailableTags 의 this 바인딩 보정 — seed 채널 객체 자체에 박음
+    const existing = seed[1];
+    existing.setAvailableTags = async (tags) => {
+      existing.availableTags = [...tags];
+    };
+    const guild = fakeGuild(gid, seed);
+    const r = await reconcileGuildChannels(guild, spec, PROD);
+    expect(r.claimed).toContain('agent-work');
+    expect(r.created).not.toContain('agent-work');
+    expect(r.map['agent-work']).toBe('existing-forum');
+    // 태그 동기로 legacy 제거 + spec 12개 박힘
+    expect((existing.availableTags ?? []).map((t) => t.name)).not.toContain('legacy');
+    expect((existing.availableTags ?? []).length).toBe(12);
   });
 });
 

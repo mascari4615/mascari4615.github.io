@@ -38,17 +38,55 @@ function pkgRoot(): string {
 }
 const PKG_ROOT = pkgRoot();
 
+/** spec 의 forum 태그 (JSON 친화 — emoji = unicode 단일 문자). */
+export interface ForumTag {
+  name: string;
+  emoji?: string;
+  moderated?: boolean;
+}
+
+/** type=GuildForum 일 때만 적용되는 추가 설정. */
+export interface ForumConfig {
+  /** Discord native 값: 60 / 1440 / 4320 / 10080 (분). */
+  defaultAutoArchiveDuration?: number;
+  availableTags?: ForumTag[];
+}
+
 export interface ChannelSpecEntry {
   /** 논리 키 (코드·env 매핑 안정 식별자, 절대 안 바뀜). */
   key: string;
   /** 디스코드에 만들 채널 이름 (사용자가 바꿔도 저장 ID 로 추적). */
   name: string;
+  /** 채널 종류. 미지정 = GuildText (하위호환). */
+  type?: 'GuildText' | 'GuildForum';
   topic?: string;
+  /** type === 'GuildForum' 일 때만 의미. */
+  forum?: ForumConfig;
 }
 
 export interface ChannelSpec {
   categoryName: string;
   channels: ChannelSpecEntry[];
+}
+
+/** discord.js v14 GuildForumTagData 형식 (실 API 호출 시 패스). */
+export interface DiscordForumTagInput {
+  name: string;
+  emoji?: { id?: string | null; name?: string | null };
+  moderated?: boolean;
+}
+
+function specTagsToDiscord(tags: ForumTag[]): DiscordForumTagInput[] {
+  return tags.map((t) => ({
+    name: t.name,
+    ...(t.emoji ? { emoji: { name: t.emoji } } : {}),
+    ...(t.moderated !== undefined ? { moderated: t.moderated } : {}),
+  }));
+}
+
+/** entry 의 channel 종류 → discord.js ChannelType. 미지정 = GuildText (하위호환). */
+function entryChannelType(entry: ChannelSpecEntry): number {
+  return entry.type === 'GuildForum' ? ChannelType.GuildForum : ChannelType.GuildText;
 }
 
 /** 논리 키 → 기존 env 키. prod 우선·dev 폴백 매핑의 단일 정본 (평행정의 0). */
@@ -179,6 +217,10 @@ export interface ChannelLike {
   name: string;
   type: number;
   parentId?: string | null;
+  /** type === GuildForum 일 때만 의미. discord.js ForumChannel 구조적 부분집합. */
+  availableTags?: DiscordForumTagInput[];
+  /** ForumChannel 만 노출. spec 드리프트 동기용. */
+  setAvailableTags?: (tags: DiscordForumTagInput[]) => Promise<void>;
 }
 export interface GuildChannelManagerLike {
   cache: { find(fn: (c: ChannelLike) => boolean): ChannelLike | undefined };
@@ -187,6 +229,8 @@ export interface GuildChannelManagerLike {
     type: number;
     parent?: string | null;
     topic?: string;
+    availableTags?: DiscordForumTagInput[];
+    defaultAutoArchiveDuration?: number;
   }): Promise<ChannelLike>;
 }
 export interface GuildLike {
@@ -200,6 +244,21 @@ export interface ReconcileResult {
   created: string[];
   claimed: string[];
   reused: string[];
+}
+
+/**
+ * 기존 forum 채널 (reused/claimed) 의 availableTags 를 spec 정합 동기.
+ * 신규 생성은 create 옵션이 직접 박혀 호출 불요. best-effort — setAvailableTags
+ * 미지원 채널/페이크는 silent skip (드리프트만 잡으면 됨, 신규 채널엔 안전).
+ */
+async function syncForumTagsIfNeeded(
+  channel: ChannelLike,
+  entry: ChannelSpecEntry,
+): Promise<void> {
+  if (entry.type !== 'GuildForum') return;
+  if (!entry.forum?.availableTags) return;
+  if (!channel.setAvailableTags) return;
+  await channel.setAvailableTags(specTagsToDiscord(entry.forum.availableTags));
 }
 
 /**
@@ -247,28 +306,47 @@ export async function reconcileGuildChannels(
   // 2) 채널 — 이름 claim 을 *이 카테고리 하위로* 스코프 (다른 인스턴스의
   //    동일 이름 채널을 가로채지 않음 = prod↔dev 교차오염 차단).
   for (const entry of spec.channels) {
+    const wantType = entryChannelType(entry);
     const stored = byId(map[entry.key]);
-    if (stored && stored.type === ChannelType.GuildText) {
+    if (stored && stored.type === wantType) {
+      await syncForumTagsIfNeeded(stored, entry);
       reused.push(entry.key);
       continue;
     }
     const existing = guild.channels.cache.find(
       (c) =>
-        c.type === ChannelType.GuildText &&
+        c.type === wantType &&
         c.name === entry.name &&
         c.parentId === categoryId,
     );
     if (existing) {
       map[entry.key] = existing.id;
+      await syncForumTagsIfNeeded(existing, entry);
       claimed.push(entry.key);
       continue;
     }
-    const ch = await guild.channels.create({
+    const createOpts: {
+      name: string;
+      type: number;
+      parent?: string | null;
+      topic?: string;
+      availableTags?: DiscordForumTagInput[];
+      defaultAutoArchiveDuration?: number;
+    } = {
       name: entry.name,
-      type: ChannelType.GuildText,
+      type: wantType,
       parent: categoryId,
       topic: entry.topic,
-    });
+    };
+    if (wantType === ChannelType.GuildForum && entry.forum) {
+      if (entry.forum.availableTags) {
+        createOpts.availableTags = specTagsToDiscord(entry.forum.availableTags);
+      }
+      if (entry.forum.defaultAutoArchiveDuration) {
+        createOpts.defaultAutoArchiveDuration = entry.forum.defaultAutoArchiveDuration;
+      }
+    }
+    const ch = await guild.channels.create(createOpts);
     map[entry.key] = ch.id;
     created.push(entry.key);
   }
