@@ -53,15 +53,15 @@ describe('tsStamp / workerBranchName / workerWorktreeDir (순수·결정적)', (
     expect(tsStamp(NOW)).toBe('2605171306');
   });
 
-  it('workerBranchName = feature/autopilot + 소문자 슬러그 + ts', () => {
+  it('workerBranchName = feature/agent-team + 소문자 슬러그 + ts', () => {
     expect(workerBranchName('TASK-WM-084', NOW)).toBe(
-      'feature/autopilot-task-wm-084-2605171306',
+      'feature/agent-team-task-wm-084-2605171306',
     );
   });
 
   it('workerBranchName 특수문자 → 단일 하이픈·양끝 trim', () => {
     expect(workerBranchName('TASK-KL-055-B', NOW)).toBe(
-      'feature/autopilot-task-kl-055-b-2605171306',
+      'feature/agent-team-task-kl-055-b-2605171306',
     );
   });
 
