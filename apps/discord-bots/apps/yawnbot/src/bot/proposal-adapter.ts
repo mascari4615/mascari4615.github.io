@@ -332,7 +332,7 @@ export function resolvedLedgerPath(env: NodeJS.ProcessEnv): string {
     : '';
 }
 
-/** 최신 결정이 `rejected` 인 발굴 id 집합 (순수). 사장 명시 거부 = 학습 신호. */
+/** 최신 결정이 `rejected` 인 발굴 id 집합 (순수). 동료 명시 거부 = 학습 신호. */
 export function readRejectedProposalIds(env: NodeJS.ProcessEnv): Set<string> {
   const p = resolvedLedgerPath(env);
   const out = new Set<string>();
@@ -355,10 +355,10 @@ export function readRejectedProposalIds(env: NodeJS.ProcessEnv): Set<string> {
 }
 
 /**
- * 거절된 발굴 → discover 프롬프트용 "사장이 거절함, 반복 X" 컨텍스트
+ * 거절된 발굴 → discover 프롬프트용 "동료이 거절함, 반복 X" 컨텍스트
  * 블록 (순수·바운드). resolved(rejected) ⨝ inbox 엔벨로프로 제목 회수.
  * 거절 0 = '' (섹션 생략). gatherDiscoveryContext 의 거절-전용 신호
- * (기존 '최근 인박스' 는 단순 최근 — 거절=사장 명시 거부, 더 강한 학습).
+ * (기존 '최근 인박스' 는 단순 최근 — 거절=동료 명시 거부, 더 강한 학습).
  */
 export function summarizeRejectedForDiscovery(
   env: NodeJS.ProcessEnv,

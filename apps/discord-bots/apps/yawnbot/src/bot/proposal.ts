@@ -179,7 +179,7 @@ export function proposalId(env: ProposalEnvelope): string {
  * 의 사람가독 필드에 수정 주석 주입 → payload 변화 → proposalId 변화 →
  * 별개 카드(dedup 미충돌). 사람 승인 게이트 불변 — 거버넌스 결정
  * (2026-05-18, AskUserQuestion): 팀 verdict 는 사람 ✅/❌ 를 *대체 X*,
- * 합의 수정안을 새 카드로 올려 사장님이 결정. modNote 빈값/clone 실패 =
+ * 합의 수정안을 새 카드로 올려 동료이 결정. modNote 빈값/clone 실패 =
  * null(억지 카드 X). 평행 파이프 0 — publishEnvelope 가 게시.
  */
 export function buildModifiedEnvelope(
