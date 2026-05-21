@@ -19,7 +19,7 @@ name: Agent Team Graduate
 #   재-verify 안 도는 케이스)도 영구 stuck 안 됨. 이미 merged/ready 면 가드가 skip.
 #
 # 화이트리스트 = head_branch prefix (author 무관, spoof 불가):
-#   - `feature/agent-team-task-*` (LT 워커 정본 prefix)
+#   - `feature/agent-team-*` (LT 워커 정본 prefix — task-/도메인-suffix 양쪽 수용)
 #   - `fix/issue-*` / `feature/issue-*` (claude.yml § claude-triage 자동 fix PR)
 #
 # PAT 사용 (GITHUB_TOKEN 아님): GITHUB_TOKEN 머지는 GitHub 재귀 방지로 master push
@@ -79,7 +79,7 @@ jobs:
           fi
           # 가드 2 — head_branch prefix 화이트리스트 (author spoof 불가)
           case "$headRef" in
-            feature/agent-team-task-*|fix/issue-*|feature/issue-*) ;;
+            feature/agent-team-*|fix/issue-*|feature/issue-*) ;;
             *) echo "PR #$num head '$headRef' = 화이트리스트 prefix 아님 — skip"; exit 0 ;;
           esac
           # 가드 3 — claude-pr-review 리뷰 완료 (코멘트 푸터 존재)
