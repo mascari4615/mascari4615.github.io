@@ -1,21 +1,20 @@
-// @ts-nocheck
 (function() {
-    async function loadFromTxt() {
+    async function loadFromTxt(): Promise<void> {
         try {
             const res = await fetch('/assets/js/mathjax-config.json?t=' + Date.now());
             if (!res.ok) throw new Error('데이터 파일 로드에 실패했습니다.');
-            document.getElementById('cryptoInput').value = (await res.text()).trim();
-            Toolbox.showToast('데이터 로드 완료');
-        } catch (e) { Toolbox.showToast(e.message, 'error'); }
+            (document.getElementById('cryptoInput') as HTMLTextAreaElement).value = (await res.text()).trim();
+            Toolbox.showToast!('데이터 로드 완료');
+        } catch (e) { Toolbox.showToast!((e as Error).message, 'error'); }
     }
     window.loadFromTxt = loadFromTxt;
 
-    function toggleCryptoFields() {
-        const method = document.getElementById('cryptoMethod').value;
-        const mode = document.getElementById('cryptoMode').value;
+    function toggleCryptoFields(): void {
+        const method = (document.getElementById('cryptoMethod') as HTMLInputElement).value;
+        const mode = (document.getElementById('cryptoMode') as HTMLInputElement).value;
         const aesFields = document.getElementById('cryptoAesFields');
         const execBtn = document.getElementById('cryptoExecBtn');
-        const inputEl = document.getElementById('cryptoInput');
+        const inputEl = document.getElementById('cryptoInput') as HTMLTextAreaElement | null;
 
         if (aesFields) aesFields.style.display = method === 'aes' ? '' : 'none';
         if (execBtn) execBtn.textContent = mode === 'encrypt' ? '암호화' : '복호화';
@@ -27,32 +26,32 @@
     }
     window.toggleCryptoFields = toggleCryptoFields;
 
-    function swapResultToInput() {
+    function swapResultToInput(): void {
         const resultContent = document.getElementById('cryptoResultContent');
-        const inputEl = document.getElementById('cryptoInput');
-        const hiddenMode = document.getElementById('cryptoMode');
-        const modeBtns = document.querySelectorAll('.crypto-mode-btn');
+        const inputEl = document.getElementById('cryptoInput') as HTMLTextAreaElement | null;
+        const hiddenMode = document.getElementById('cryptoMode') as HTMLInputElement | null;
+        const modeBtns = document.querySelectorAll<HTMLElement>('.crypto-mode-btn');
         if (!resultContent || !inputEl) return;
         const text = resultContent.textContent?.trim();
-        if (!text) { Toolbox.showToast('복사할 결과가 없습니다.', 'error'); return; }
+        if (!text) { Toolbox.showToast!('복사할 결과가 없습니다.', 'error'); return; }
         inputEl.value = text;
         const nextMode = hiddenMode?.value === 'encrypt' ? 'decrypt' : 'encrypt';
         if (hiddenMode) hiddenMode.value = nextMode;
         modeBtns.forEach(b => { b.classList.toggle('active', b.dataset.mode === nextMode); });
         toggleCryptoFields();
-        Toolbox.showToast('입력창으로 복사 & 모드 전환');
+        Toolbox.showToast!('입력창으로 복사 & 모드 전환');
     }
     window.swapResultToInput = swapResultToInput;
 
-    function doEncrypt(text, method) {
+    function doEncrypt(text: string, method: string): void {
         if (method === 'base64') {
             try {
                 const encoded = btoa(unescape(encodeURIComponent(text)));
-                Toolbox.displayResult('crypto', '인코딩 완료', encoded, null);
-                Toolbox.showToast('인코딩 성공');
+                Toolbox.displayResult!('crypto', '인코딩 완료', encoded, null);
+                Toolbox.showToast!('인코딩 성공');
             } catch (e) {
-                Toolbox.displayResult('crypto', '오류', '인코딩 실패: ' + e.message, null, true);
-                Toolbox.showToast('인코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', '오류', '인코딩 실패: ' + (e as Error).message, null, true);
+                Toolbox.showToast!('인코딩 실패', 'error');
             }
             return;
         }
@@ -60,46 +59,48 @@
         if (method === 'url') {
             try {
                 const encoded = encodeURIComponent(text);
-                Toolbox.displayResult('crypto', '인코딩 완료', encoded, null);
-                Toolbox.showToast('인코딩 성공');
+                Toolbox.displayResult!('crypto', '인코딩 완료', encoded, null);
+                Toolbox.showToast!('인코딩 성공');
             } catch (e) {
-                Toolbox.displayResult('crypto', '오류', '인코딩 실패: ' + e.message, null, true);
-                Toolbox.showToast('인코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', '오류', '인코딩 실패: ' + (e as Error).message, null, true);
+                Toolbox.showToast!('인코딩 실패', 'error');
             }
             return;
         }
 
-        const pass = document.getElementById('cryptoPass').value;
-        const iterations = parseInt(document.getElementById('cryptoIterSlider')?.value || 10000);
-        if (!pass) { Toolbox.showToast('비밀번호를 입력해주세요.', 'error'); return; }
+        if (!CryptoJS) { Toolbox.showToast!('CryptoJS 가 로드되지 않았어요.', 'error'); return; }
+        const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
+        const iterSlider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
+        const iterations = parseInt(iterSlider?.value || '10000', 10);
+        if (!pass) { Toolbox.showToast!('비밀번호를 입력해주세요.', 'error'); return; }
 
         const t0 = performance.now();
         try {
-            const salt = CryptoJS.lib.WordArray.random(16);
-            const iv = CryptoJS.lib.WordArray.random(16);
+            const salt = CryptoJS.lib.WordArray.random(16) as { toString: (e: unknown) => string };
+            const iv = CryptoJS.lib.WordArray.random(16) as { toString: (e: unknown) => string };
             const key = CryptoJS.PBKDF2(pass, salt, { keySize: 256 / 32, iterations, hasher: CryptoJS.algo.SHA256 });
             const encrypted = CryptoJS.AES.encrypt(text, key, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
 
             const hex = salt.toString(CryptoJS.enc.Hex) + iv.toString(CryptoJS.enc.Hex) + iterations.toString(16).padStart(8, '0') + encrypted.ciphertext.toString(CryptoJS.enc.Hex);
             const result = CryptoJS.enc.Hex.parse(hex).toString(CryptoJS.enc.Base64);
 
-            Toolbox.displayResult('crypto', '암호화 완료', result, (performance.now() - t0) / 1000);
-            Toolbox.showToast('암호화 성공');
+            Toolbox.displayResult!('crypto', '암호화 완료', result, (performance.now() - t0) / 1000);
+            Toolbox.showToast!('암호화 성공');
         } catch (e) {
-            Toolbox.displayResult('crypto', '오류', '암호화 실패: ' + e.message, null, true);
-            Toolbox.showToast('암호화 실패', 'error');
+            Toolbox.displayResult!('crypto', '오류', '암호화 실패: ' + (e as Error).message, null, true);
+            Toolbox.showToast!('암호화 실패', 'error');
         }
     }
 
-    function doDecrypt(input, method) {
+    function doDecrypt(input: string, method: string): void {
         if (method === 'base64') {
             try {
                 const decoded = decodeURIComponent(escape(atob(input.trim())));
-                Toolbox.displayResult('crypto', '디코딩 완료', decoded, null);
-                Toolbox.showToast('디코딩 성공');
+                Toolbox.displayResult!('crypto', '디코딩 완료', decoded, null);
+                Toolbox.showToast!('디코딩 성공');
             } catch (e) {
-                Toolbox.displayResult('crypto', '오류', '디코딩 실패: 올바른 Base64 문자열이 아닙니다.', null, true);
-                Toolbox.showToast('디코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', '오류', '디코딩 실패: 올바른 Base64 문자열이 아닙니다.', null, true);
+                Toolbox.showToast!('디코딩 실패', 'error');
             }
             return;
         }
@@ -107,17 +108,18 @@
         if (method === 'url') {
             try {
                 const decoded = decodeURIComponent(input.trim().replace(/\+/g, '%20'));
-                Toolbox.displayResult('crypto', '디코딩 완료', decoded, null);
-                Toolbox.showToast('디코딩 성공');
+                Toolbox.displayResult!('crypto', '디코딩 완료', decoded, null);
+                Toolbox.showToast!('디코딩 성공');
             } catch (e) {
-                Toolbox.displayResult('crypto', '오류', '디코딩 실패: 올바르지 않은 형식입니다.', null, true);
-                Toolbox.showToast('디코딩 실패', 'error');
+                Toolbox.displayResult!('crypto', '오류', '디코딩 실패: 올바르지 않은 형식입니다.', null, true);
+                Toolbox.showToast!('디코딩 실패', 'error');
             }
             return;
         }
 
-        const pass = document.getElementById('cryptoPass').value;
-        if (!pass) { Toolbox.showToast('비밀번호를 입력해주세요.', 'error'); return; }
+        if (!CryptoJS) { Toolbox.showToast!('CryptoJS 가 로드되지 않았어요.', 'error'); return; }
+        const pass = (document.getElementById('cryptoPass') as HTMLInputElement).value;
+        if (!pass) { Toolbox.showToast!('비밀번호를 입력해주세요.', 'error'); return; }
 
         const t0 = performance.now();
         try {
@@ -137,21 +139,21 @@
 
             if (!result) throw new Error('비밀번호가 일치하지 않거나 데이터가 손상되었습니다.');
 
-            Toolbox.displayResult('crypto', `복호화 완료 · iterations: ${iterations.toLocaleString()}`, result, (performance.now() - t0) / 1000);
-            Toolbox.showToast('복호화 성공');
+            Toolbox.displayResult!('crypto', `복호화 완료 · iterations: ${iterations.toLocaleString()}`, result, (performance.now() - t0) / 1000);
+            Toolbox.showToast!('복호화 성공');
         } catch (e) {
-            Toolbox.displayResult('crypto', '오류', '해독 실패: ' + e.message, null, true);
-            Toolbox.showToast('복호화 실패', 'error');
+            Toolbox.displayResult!('crypto', '오류', '해독 실패: ' + (e as Error).message, null, true);
+            Toolbox.showToast!('복호화 실패', 'error');
         }
     }
 
-    function doCrypto() {
-        const mode = document.getElementById('cryptoMode').value;
-        const method = document.getElementById('cryptoMethod').value;
-        const text = document.getElementById('cryptoInput').value;
+    function doCrypto(): void {
+        const mode = (document.getElementById('cryptoMode') as HTMLInputElement).value;
+        const method = (document.getElementById('cryptoMethod') as HTMLInputElement).value;
+        const text = (document.getElementById('cryptoInput') as HTMLTextAreaElement).value;
 
         if (!text) {
-            Toolbox.showToast(mode === 'encrypt' ? '텍스트를 입력해주세요.' : '암호문을 입력해주세요.', 'error');
+            Toolbox.showToast!(mode === 'encrypt' ? '텍스트를 입력해주세요.' : '암호문을 입력해주세요.', 'error');
             return;
         }
 
@@ -163,13 +165,14 @@
     }
     window.doCrypto = doCrypto;
 
+    const lazyMeta = Toolbox.getLazyWidgetPublicMeta!('crypto') as Record<string, unknown>;
     Toolbox.register({
-        ...Toolbox.getLazyWidgetPublicMeta('crypto'),
+        ...(lazyMeta as { id: string; title: string }),
         tabs: [
             {
                 id: 'crypto',
                 label: '암호화 / 복호화',
-                build(c) {
+                build(c: HTMLElement) {
                     Mdd.linePreset('meme_done', { msg: '암호화·복호화 실험 개시예요... 히히' });
 
                     const modeGroup = document.createElement('div');
@@ -188,9 +191,9 @@
                     hiddenMode.type = 'hidden'; hiddenMode.id = 'cryptoMode'; hiddenMode.value = 'encrypt';
                     [encBtn, decBtn].forEach(btn => {
                         btn.onclick = function() {
-                            modeWrap.querySelectorAll('.crypto-mode-btn').forEach(b => b.classList.remove('active'));
+                            modeWrap.querySelectorAll<HTMLElement>('.crypto-mode-btn').forEach(b => b.classList.remove('active'));
                             btn.classList.add('active');
-                            hiddenMode.value = btn.dataset.mode;
+                            hiddenMode.value = btn.dataset.mode!;
                             toggleCryptoFields();
                         };
                         modeWrap.appendChild(btn);
@@ -221,9 +224,9 @@
                         btn.textContent = m.label;
                         btn.dataset.method = m.value;
                         btn.onclick = function() {
-                            methodWrap.querySelectorAll('.crypto-method-btn').forEach(b => b.classList.remove('active'));
+                            methodWrap.querySelectorAll<HTMLElement>('.crypto-method-btn').forEach(b => b.classList.remove('active'));
                             btn.classList.add('active');
-                            hiddenMethod.value = btn.dataset.method;
+                            hiddenMethod.value = btn.dataset.method!;
                             toggleCryptoFields();
                         };
                         methodWrap.appendChild(btn);
@@ -234,22 +237,23 @@
 
                     const loadBtn = document.createElement('button');
                     loadBtn.className = 'btn btn-ghost'; loadBtn.textContent = 'DATA 불러오기';
-                    loadBtn.onclick = function () { window.loadFromTxt(); };
+                    loadBtn.onclick = function () { window.loadFromTxt!(); };
 
-                    Toolbox.field(c, {
+                    Toolbox.field!(c, {
                         id: 'cryptoInput', label: '입력',
                         placeholder: '암호화할 평문 또는 복호화할 암호문을 입력하세요',
+                        type: undefined,
                         topRight: loadBtn, mono: true
                     });
 
                     const passGroup = document.createElement('div');
                     passGroup.id = 'cryptoAesFields';
-                    Toolbox.field(passGroup, { tag: 'input', id: 'cryptoPass', label: '비밀번호', placeholder: '비밀번호를 입력하세요', type: 'password' });
+                    Toolbox.field!(passGroup, { tag: 'input', id: 'cryptoPass', label: '비밀번호', placeholder: '비밀번호를 입력하세요', type: 'password', topRight: undefined, mono: false });
 
                     const trigger = document.createElement('button');
                     trigger.className = 'collapsible-trigger';
                     trigger.innerHTML = '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>고급 설정';
-                    trigger.onclick = function () { Toolbox.toggleCollapsible(this); };
+                    trigger.onclick = function () { Toolbox.toggleCollapsible!(trigger); };
                     passGroup.appendChild(trigger);
 
                     const body = document.createElement('div');
@@ -265,21 +269,21 @@
                     execBtn.className = 'btn btn-primary';
                     execBtn.id = 'cryptoExecBtn';
                     execBtn.textContent = '실행';
-                    execBtn.onclick = function () { window.doCrypto(); };
+                    execBtn.onclick = function () { window.doCrypto!(); };
                     btnRow.appendChild(execBtn);
                     const swapBtn = document.createElement('button');
                     swapBtn.className = 'btn btn-ghost';
                     swapBtn.textContent = '결과를 입력으로';
-                    swapBtn.onclick = function () { window.swapResultToInput(); };
+                    swapBtn.onclick = function () { window.swapResultToInput!(); };
                     btnRow.appendChild(swapBtn);
                     c.appendChild(btnRow);
 
-                    Toolbox.resultBox(c, 'crypto');
+                    Toolbox.resultBox!(c, 'crypto');
 
                     requestAnimationFrame(() => {
-                        window.toggleCryptoFields();
-                        const slider = document.getElementById('cryptoIterSlider');
-                        if (slider) slider.oninput = function () { document.getElementById('cryptoIterVal').textContent = Number(this.value).toLocaleString(); };
+                        window.toggleCryptoFields!();
+                        const slider = document.getElementById('cryptoIterSlider') as HTMLInputElement | null;
+                        if (slider) slider.oninput = function () { (document.getElementById('cryptoIterVal') as HTMLElement).textContent = Number(slider.value).toLocaleString(); };
                     });
                 }
             }

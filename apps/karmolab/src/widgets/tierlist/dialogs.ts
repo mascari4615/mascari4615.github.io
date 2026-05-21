@@ -1,12 +1,69 @@
-// @ts-nocheck
 (function () {
-    const T = window.Tierlist = window.Tierlist || {};
+    interface TierItem {
+        name?: string;
+        tlOrigin?: string;
+        tlEdited?: boolean;
+        userLabelIds?: string[];
+        [k: string]: unknown;
+    }
+    interface UserLabelDef { id: string; name?: string; color?: string }
+    interface TierDef { id: string; label?: string; color?: string }
+    interface TierList {
+        items?: Record<string, TierItem>;
+        tiers?: TierDef[];
+        userLabels: Record<string, UserLabelDef>;
+        updatedAt?: number;
+        [k: string]: unknown;
+    }
+    interface Catalog { items?: Record<string, TierItem>; [k: string]: unknown }
+    interface DialogMountArgs { dialog: HTMLElement; close: () => void }
+    interface OpenDialogOptions {
+        title: string;
+        wide?: boolean;
+        bodyHtml: string;
+        onMount: (args: DialogMountArgs) => void;
+    }
+    interface TierlistApi {
+        state: {
+            currentList: () => TierList | null;
+            processImageFile: (f: File) => Promise<string>;
+            addItem: (name: string, imgKey: string | null) => void;
+            canResetItemFromPool: (list: TierList, itemId: string) => boolean;
+            ensureWritableList?: (reason: string) => void;
+            saveState: () => void;
+            createList: (title: string, cat: string) => void;
+            getState: () => { catalogs?: Record<string, Catalog | undefined>; [k: string]: unknown };
+            createCatalog: (title: string, cat: string) => void;
+            addCatalogItem: (catalogId: string, name: string, imgKey: string | null) => void;
+            uid: () => string;
+            getDefaultTiers: () => TierDef[];
+            applyTiers: (list: TierList, tiers: TierDef[]) => boolean;
+            ensureListUserLabels: (list: TierList) => void;
+            addUserLabelDef: (name: string, color: string) => void;
+            updateUserLabelDef: (id: string, name: string, color: string) => void;
+            countCardsUsingUserLabel: (id: string) => number;
+            removeUserLabelDef: (id: string) => void;
+            setItemUserLabelIds: (itemId: string, ids: string[]) => void;
+        };
+        ui: { openDialog: (o: OpenDialogOptions) => void };
+        publish: { resetItemToCatalogDefault: (itemId: string) => Promise<boolean> };
+        render: { renderAll: () => void };
+        dialogs?: Record<string, unknown>;
+    }
 
-    function showAddItemDialog() {
+    const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistApi;
+
+    function dq<T extends Element = HTMLElement>(root: ParentNode, sel: string): T | null {
+        return root.querySelector(sel) as T | null;
+    }
+
+    const esc = (s: string): string => Toolbox.escapeHtml?.(s) ?? s;
+
+    function showAddItemDialog(): void {
         const list = T.state.currentList();
-        if (!list) { Toolbox.showToast('먼저 티어리스트를 선택하세요.', 'error'); return; }
+        if (!list) { Toolbox.showToast?.('먼저 티어리스트를 선택하세요.', 'error'); return; }
 
-        let pendingFiles = [];
+        let pendingFiles: File[] = [];
         T.ui.openDialog({
             title: '아이템 추가',
             wide: false,
@@ -20,13 +77,18 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                const fileInput = dialog.querySelector('#tl-add-file');
-                const nameInput = dialog.querySelector('#tl-add-name');
-                fileInput.onchange = () => pendingFiles = Array.from(fileInput.files || []).filter(f => f.type.startsWith('image/'));
-                dialog.querySelector('#tl-add-cancel').onclick = close;
-                dialog.querySelector('#tl-add-ok').onclick = async () => {
+                const fileInput = dq<HTMLInputElement>(dialog, '#tl-add-file');
+                const nameInput = dq<HTMLInputElement>(dialog, '#tl-add-name');
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-add-cancel');
+                const ok = dq<HTMLButtonElement>(dialog, '#tl-add-ok');
+                if (!fileInput || !nameInput || !cancel || !ok) return;
+                fileInput.onchange = () => {
+                    pendingFiles = Array.from(fileInput.files || []).filter(f => f.type.startsWith('image/'));
+                };
+                cancel.onclick = close;
+                ok.onclick = async () => {
                     const name = nameInput.value.trim();
-                    if (!pendingFiles.length && !name) { Toolbox.showToast('이미지나 이름을 입력하세요.', 'error'); return; }
+                    if (!pendingFiles.length && !name) { Toolbox.showToast?.('이미지나 이름을 입력하세요.', 'error'); return; }
                     close();
                     if (pendingFiles.length) {
                         for (const f of pendingFiles) {
@@ -42,7 +104,7 @@
         });
     }
 
-    function showEditItemDialog(itemId) {
+    function showEditItemDialog(itemId: string): void {
         const list = T.state.currentList();
         if (!list?.items?.[itemId]) return;
         const item = list.items[itemId];
@@ -54,7 +116,7 @@
             wide: false,
             bodyHtml: `
                 <label>이름</label>
-                <input type="text" id="tl-edit-name" value="${Toolbox.escapeHtml(item.name || '')}">
+                <input type="text" id="tl-edit-name" value="${Toolbox.escapeHtml?.(item.name || '') ?? ''}">
                 ${showReset ? '<p class="tl-tier-hint" style="margin-top:10px;">이름·이미지·라벨을 연결된 후보 풀과 동일하게 맞춥니다.</p><button type="button" class="tl-btn" id="tl-edit-reset" style="margin-top:6px;">수정 초기화 (풀과 같게)</button>' : ''}
                 <div class="tl-dialog-actions">
                     <button class="tl-btn" id="tl-edit-cancel">취소</button>
@@ -62,19 +124,23 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                dialog.querySelector('#tl-edit-reset')?.addEventListener('click', async () => {
+                dq<HTMLButtonElement>(dialog, '#tl-edit-reset')?.addEventListener('click', async () => {
                     const ok = await T.publish.resetItemToCatalogDefault(itemId);
                     if (ok) {
                         close();
                         T.render.renderAll();
                     }
                 });
-                dialog.querySelector('#tl-edit-cancel').onclick = close;
-                dialog.querySelector('#tl-edit-ok').onclick = () => {
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-edit-cancel');
+                const okBtn = dq<HTMLButtonElement>(dialog, '#tl-edit-ok');
+                if (!cancel || !okBtn) return;
+                cancel.onclick = close;
+                okBtn.onclick = () => {
                     T.state.ensureWritableList?.('editItem');
                     const cur = T.state.currentList();
                     if (!cur?.items?.[itemId]) { close(); return; }
-                    const next = dialog.querySelector('#tl-edit-name').value.trim();
+                    const nameInput = dq<HTMLInputElement>(dialog, '#tl-edit-name');
+                    const next = nameInput?.value.trim() ?? '';
                     const it = cur.items[itemId];
                     it.name = next;
                     /** 직접 추가(custom)만 제외 — tlOrigin 누락·레거시 풀 카드도 이름 바꾸면 「수정」 */
@@ -88,7 +154,7 @@
         });
     }
 
-    function showNewListDialog() {
+    function showNewListDialog(): void {
         T.ui.openDialog({
             title: '새 티어리스트',
             wide: false,
@@ -103,10 +169,15 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                dialog.querySelector('#tl-new-cancel').onclick = close;
-                dialog.querySelector('#tl-new-ok').onclick = () => {
-                    const t = dialog.querySelector('#tl-new-title').value.trim();
-                    const c = dialog.querySelector('#tl-new-cat').value.trim();
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-new-cancel');
+                const ok = dq<HTMLButtonElement>(dialog, '#tl-new-ok');
+                if (!cancel || !ok) return;
+                cancel.onclick = close;
+                ok.onclick = () => {
+                    const titleEl = dq<HTMLInputElement>(dialog, '#tl-new-title');
+                    const catEl = dq<HTMLInputElement>(dialog, '#tl-new-cat');
+                    const t = titleEl?.value.trim() ?? '';
+                    const c = catEl?.value.trim() ?? '';
                     T.state.createList(t || '새 티어리스트', c);
                     close();
                     T.render.renderAll();
@@ -115,7 +186,7 @@
         });
     }
 
-    function showNewCatalogDialog() {
+    function showNewCatalogDialog(): void {
         T.ui.openDialog({
             title: '새 후보 풀',
             wide: false,
@@ -130,24 +201,29 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                dialog.querySelector('#tl-cat-cancel').onclick = close;
-                dialog.querySelector('#tl-cat-ok').onclick = () => {
-                    const t = dialog.querySelector('#tl-cat-title').value.trim();
-                    const c = dialog.querySelector('#tl-cat-cat').value.trim();
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-cat-cancel');
+                const ok = dq<HTMLButtonElement>(dialog, '#tl-cat-ok');
+                if (!cancel || !ok) return;
+                cancel.onclick = close;
+                ok.onclick = () => {
+                    const titleEl = dq<HTMLInputElement>(dialog, '#tl-cat-title');
+                    const catEl = dq<HTMLInputElement>(dialog, '#tl-cat-cat');
+                    const t = titleEl?.value.trim() ?? '';
+                    const c = catEl?.value.trim() ?? '';
                     T.state.createCatalog(t || '새 후보 풀', c);
                     close();
                     T.render.renderAll();
-                    Toolbox.showToast('후보 풀을 만들었어요. 목록에서 우클릭으로 항목을 추가할 수 있어요.');
+                    Toolbox.showToast?.('후보 풀을 만들었어요. 목록에서 우클릭으로 항목을 추가할 수 있어요.');
                 };
             }
         });
     }
 
-    function showAddCatalogItemDialog(catalogId) {
-        const c = T.state.getState().catalogs?.[catalogId];
-        if (!c) return;
+    function showAddCatalogItemDialog(catalogId: string): void {
+        const cat = T.state.getState().catalogs?.[catalogId];
+        if (!cat) return;
 
-        let pendingFiles = [];
+        let pendingFiles: File[] = [];
         T.ui.openDialog({
             title: '후보 항목 추가',
             wide: false,
@@ -161,13 +237,18 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                const fileInput = dialog.querySelector('#tl-cat-add-file');
-                const nameInput = dialog.querySelector('#tl-cat-add-name');
-                fileInput.onchange = () => pendingFiles = Array.from(fileInput.files || []).filter(f => f.type.startsWith('image/'));
-                dialog.querySelector('#tl-cat-add-cancel').onclick = close;
-                dialog.querySelector('#tl-cat-add-ok').onclick = async () => {
+                const fileInput = dq<HTMLInputElement>(dialog, '#tl-cat-add-file');
+                const nameInput = dq<HTMLInputElement>(dialog, '#tl-cat-add-name');
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-cat-add-cancel');
+                const ok = dq<HTMLButtonElement>(dialog, '#tl-cat-add-ok');
+                if (!fileInput || !nameInput || !cancel || !ok) return;
+                fileInput.onchange = () => {
+                    pendingFiles = Array.from(fileInput.files || []).filter(f => f.type.startsWith('image/'));
+                };
+                cancel.onclick = close;
+                ok.onclick = async () => {
                     const name = nameInput.value.trim();
-                    if (!pendingFiles.length && !name) { Toolbox.showToast('이미지나 이름을 입력하세요.', 'error'); return; }
+                    if (!pendingFiles.length && !name) { Toolbox.showToast?.('이미지나 이름을 입력하세요.', 'error'); return; }
                     close();
                     if (pendingFiles.length) {
                         for (const f of pendingFiles) {
@@ -183,7 +264,7 @@
         });
     }
 
-    function normTierColor(c) {
+    function normTierColor(c: unknown): string {
         const s = String(c || '#999999').trim();
         if (/^#[0-9a-fA-F]{6}$/.test(s)) return s;
         if (/^#[0-9a-fA-F]{3}$/.test(s)) {
@@ -192,10 +273,10 @@
         return '#999999';
     }
 
-    function tierRowHtml(t) {
-        const id = Toolbox.escapeHtml(t.id);
-        const lab = Toolbox.escapeHtml(t.label || '');
-        const col = Toolbox.escapeHtml(normTierColor(t.color));
+    function tierRowHtml(t: TierDef): string {
+        const id = esc(t.id);
+        const lab = esc(t.label || '');
+        const col = esc(normTierColor(t.color));
         return `<div class="tl-tier-row" data-tier-id="${id}">
             <input type="text" class="tl-tier-label" value="${lab}" maxlength="12" aria-label="티어 이름">
             <input type="color" class="tl-tier-color" value="${col}" aria-label="티어 색">
@@ -207,7 +288,7 @@
         </div>`;
     }
 
-    function showTierSettingsDialog() {
+    function showTierSettingsDialog(): void {
         T.state.ensureWritableList?.('tierSettings');
         const list = T.state.currentList();
         if (!list?.tiers?.length) {
@@ -231,14 +312,20 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                const wrap = dialog.querySelector('#tl-tier-rows');
-                const paint = (tiers) => {
+                const wrap = dq<HTMLElement>(dialog, '#tl-tier-rows');
+                const addBtn = dq<HTMLButtonElement>(dialog, '#tl-tier-add');
+                const defaultBtn = dq<HTMLButtonElement>(dialog, '#tl-tier-default');
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-tier-cancel');
+                const okBtn = dq<HTMLButtonElement>(dialog, '#tl-tier-ok');
+                if (!wrap || !addBtn || !defaultBtn || !cancel || !okBtn) return;
+                const paint = (tiers: TierDef[] | undefined): void => {
                     wrap.innerHTML = (tiers || []).map(tierRowHtml).join('');
                 };
                 paint(list.tiers);
 
-                wrap.addEventListener('click', (ev) => {
-                    const btn = ev.target.closest('button');
+                wrap.addEventListener('click', (ev: Event) => {
+                    const target = ev.target as Element | null;
+                    const btn = target?.closest('button');
                     if (!btn || !wrap.contains(btn)) return;
                     const row = btn.closest('.tl-tier-row');
                     if (!row) return;
@@ -250,44 +337,49 @@
                         if (next) wrap.insertBefore(next, row);
                     } else if (btn.classList.contains('tl-tier-del')) {
                         if (wrap.querySelectorAll('.tl-tier-row').length <= 1) {
-                            Toolbox.showToast('티어는 최소 1개 필요합니다.', 'error');
+                            Toolbox.showToast?.('티어는 최소 1개 필요합니다.', 'error');
                             return;
                         }
                         row.remove();
                     }
                 });
 
-                dialog.querySelector('#tl-tier-add').onclick = () => {
+                addBtn.onclick = () => {
                     const id = 'tr-' + T.state.uid();
                     const holder = document.createElement('div');
                     holder.innerHTML = tierRowHtml({ id, label: '?', color: '#cccccc' });
-                    wrap.appendChild(holder.firstElementChild);
+                    const first = holder.firstElementChild;
+                    if (first) wrap.appendChild(first);
                 };
 
-                dialog.querySelector('#tl-tier-default').onclick = () => {
+                defaultBtn.onclick = () => {
                     if (!confirm('티어 줄을 S A B C D F(기본 색)로 바꿉니다.\n지금 쓰는 티어 id와 다른 줄에 있던 카드는 미배치로 옮겨질 수 있어요. 계속할까요?')) return;
                     paint(T.state.getDefaultTiers());
                 };
 
-                dialog.querySelector('#tl-tier-cancel').onclick = close;
-                dialog.querySelector('#tl-tier-ok').onclick = () => {
-                    const rows = [...wrap.querySelectorAll('.tl-tier-row')];
+                cancel.onclick = close;
+                okBtn.onclick = () => {
+                    const rows = [...wrap.querySelectorAll('.tl-tier-row')] as HTMLElement[];
                     if (!rows.length) {
-                        Toolbox.showToast('티어는 최소 1개 필요합니다.', 'error');
+                        Toolbox.showToast?.('티어는 최소 1개 필요합니다.', 'error');
                         return;
                     }
                     const cur = T.state.currentList();
                     if (!cur) {
-                        Toolbox.showToast('순위를 찾을 수 없어요.', 'error');
+                        Toolbox.showToast?.('순위를 찾을 수 없어요.', 'error');
                         return;
                     }
-                    const tiers = rows.map(r => ({
-                        id: r.getAttribute('data-tier-id') || r.dataset.tierId,
-                        label: r.querySelector('.tl-tier-label').value.trim() || '?',
-                        color: r.querySelector('.tl-tier-color').value,
-                    }));
+                    const tiers: TierDef[] = rows.map(r => {
+                        const labelEl = r.querySelector('.tl-tier-label') as HTMLInputElement | null;
+                        const colorEl = r.querySelector('.tl-tier-color') as HTMLInputElement | null;
+                        return {
+                            id: r.getAttribute('data-tier-id') || r.dataset.tierId || '',
+                            label: labelEl?.value.trim() || '?',
+                            color: colorEl?.value || '#cccccc',
+                        };
+                    });
                     if (!T.state.applyTiers(cur, tiers)) {
-                        Toolbox.showToast('저장에 실패했어요.', 'error');
+                        Toolbox.showToast?.('저장에 실패했어요.', 'error');
                         return;
                     }
                     close();
@@ -297,11 +389,11 @@
         });
     }
 
-    function showUserLabelsManagerDialog() {
+    function showUserLabelsManagerDialog(): void {
         T.state.ensureWritableList?.('userLabels');
         const list0 = T.state.currentList();
         if (!list0) {
-            Toolbox.showToast('순위 보드를 먼저 열어 주세요.', 'error');
+            Toolbox.showToast?.('순위 보드를 먼저 열어 주세요.', 'error');
             return;
         }
         T.state.ensureListUserLabels(list0);
@@ -318,9 +410,13 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                const body = dialog.querySelector('#tl-ul-manager-body');
+                const body = dq<HTMLElement>(dialog, '#tl-ul-manager-body');
+                const addBtn = dq<HTMLButtonElement>(dialog, '#tl-ul-add');
+                const doneBtn = dq<HTMLButtonElement>(dialog, '#tl-ul-done');
+                if (!body || !addBtn || !doneBtn) return;
 
-                function paint() {
+                function paint(): void {
+                    if (!body) return;
                     const list = T.state.currentList();
                     if (!list) return;
                     T.state.ensureListUserLabels(list);
@@ -331,9 +427,9 @@
                     }
                     body.innerHTML = defs.map(d => {
                         const n = T.state.countCardsUsingUserLabel(d.id);
-                        const nm = Toolbox.escapeHtml(d.name || '');
-                        const col = Toolbox.escapeHtml(d.color || '#5c6bc0');
-                        return `<div class="tl-ul-row" data-id="${Toolbox.escapeHtml(d.id)}">
+                        const nm = esc(d.name || '');
+                        const col = esc(d.color || '#5c6bc0');
+                        return `<div class="tl-ul-row" data-id="${esc(d.id)}">
                             <input type="text" class="tl-ul-name" value="${nm}" maxlength="32" aria-label="라벨 이름">
                             <input type="color" class="tl-ul-color" value="${col}" aria-label="라벨 색">
                             <span class="tl-ul-usage" title="이 라벨이 붙은 카드 수">${n}장</span>
@@ -344,20 +440,24 @@
 
                 paint();
 
-                dialog.querySelector('#tl-ul-add').onclick = () => {
+                addBtn.onclick = () => {
                     T.state.addUserLabelDef('새 라벨', '#5c6bc0');
                     paint();
                 };
 
-                body.addEventListener('change', (ev) => {
-                    const row = ev.target.closest('.tl-ul-row');
+                body.addEventListener('change', (ev: Event) => {
+                    const target = ev.target as Element | null;
+                    const row = target?.closest('.tl-ul-row') as HTMLElement | null;
                     if (!row) return;
-                    const id = row.getAttribute('data-id') || row.dataset.id;
-                    const name = row.querySelector('.tl-ul-name')?.value ?? '';
-                    const color = row.querySelector('.tl-ul-color')?.value ?? '#5c6bc0';
-                    if (ev.target.classList.contains('tl-ul-name') || ev.target.classList.contains('tl-ul-color')) {
+                    const id = row.getAttribute('data-id') || row.dataset.id || '';
+                    const nameEl = row.querySelector('.tl-ul-name') as HTMLInputElement | null;
+                    const colorEl = row.querySelector('.tl-ul-color') as HTMLInputElement | null;
+                    const name = nameEl?.value ?? '';
+                    const color = colorEl?.value ?? '#5c6bc0';
+                    const classes = target?.classList;
+                    if (classes?.contains('tl-ul-name') || classes?.contains('tl-ul-color')) {
                         T.state.updateUserLabelDef(id, name, color);
-                        if (ev.target.classList.contains('tl-ul-color')) paint();
+                        if (classes.contains('tl-ul-color')) paint();
                         else {
                             const n = T.state.countCardsUsingUserLabel(id);
                             const u = row.querySelector('.tl-ul-usage');
@@ -366,18 +466,19 @@
                     }
                 });
 
-                body.addEventListener('click', (ev) => {
-                    const btn = ev.target.closest('.tl-ul-del');
+                body.addEventListener('click', (ev: Event) => {
+                    const target = ev.target as Element | null;
+                    const btn = target?.closest('.tl-ul-del');
                     if (!btn) return;
-                    const row = btn.closest('.tl-ul-row');
+                    const row = btn.closest('.tl-ul-row') as HTMLElement | null;
                     if (!row) return;
-                    const id = row.getAttribute('data-id') || row.dataset.id;
+                    const id = row.getAttribute('data-id') || row.dataset.id || '';
                     if (!confirm('이 라벨을 지우면 모든 카드에서 빠집니다. 계속할까요?')) return;
                     T.state.removeUserLabelDef(id);
                     paint();
                 });
 
-                dialog.querySelector('#tl-ul-done').onclick = () => {
+                doneBtn.onclick = () => {
                     close();
                     T.render.renderAll();
                 };
@@ -385,7 +486,7 @@
         });
     }
 
-    function showAssignUserLabelsDialog(itemId) {
+    function showAssignUserLabelsDialog(itemId: string): void {
         T.state.ensureWritableList?.('assignUserLabels');
         const list = T.state.currentList();
         if (!list?.items?.[itemId]) return;
@@ -395,16 +496,16 @@
         const cur = new Set(list.items[itemId].userLabelIds || []);
 
         if (!defs.length) {
-            Toolbox.showToast('먼저 툴바 「라벨」에서 라벨을 추가하세요.', 'error');
+            Toolbox.showToast?.('먼저 툴바 「라벨」에서 라벨을 추가하세요.', 'error');
             return;
         }
 
         const checks = defs.map(d => {
             const ck = cur.has(d.id) ? 'checked' : '';
-            const col = Toolbox.escapeHtml(d.color || '#666');
-            const nm = Toolbox.escapeHtml(d.name || '');
+            const col = esc(d.color || '#666');
+            const nm = esc(d.name || '');
             return `<label class="tl-ul-assign-row">
-                <input type="checkbox" data-label-id="${Toolbox.escapeHtml(d.id)}" ${ck}>
+                <input type="checkbox" data-label-id="${esc(d.id)}" ${ck}>
                 <span class="tl-ul-assign-swatch" style="background:${col}"></span>
                 <span class="tl-ul-assign-name">${nm}</span>
             </label>`;
@@ -421,11 +522,15 @@
                 </div>
             `,
             onMount: ({ dialog, close }) => {
-                dialog.querySelector('#tl-ul-assign-cancel').onclick = close;
-                dialog.querySelector('#tl-ul-assign-ok').onclick = () => {
-                    const ids = [...dialog.querySelectorAll('#tl-ul-assign-list input[type="checkbox"]')]
+                const cancel = dq<HTMLButtonElement>(dialog, '#tl-ul-assign-cancel');
+                const ok = dq<HTMLButtonElement>(dialog, '#tl-ul-assign-ok');
+                if (!cancel || !ok) return;
+                cancel.onclick = close;
+                ok.onclick = () => {
+                    const checkboxes = [...dialog.querySelectorAll('#tl-ul-assign-list input[type="checkbox"]')] as HTMLInputElement[];
+                    const ids = checkboxes
                         .filter(cb => cb.checked)
-                        .map(cb => cb.getAttribute('data-label-id') || cb.dataset.labelId)
+                        .map(cb => cb.getAttribute('data-label-id') || cb.dataset.labelId || '')
                         .filter(Boolean);
                     T.state.setItemUserLabelIds(itemId, ids);
                     close();
