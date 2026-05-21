@@ -215,6 +215,7 @@ export async function runHeartbeatTick(
 }
 
 let activeStop: (() => void) | null = null;
+let activeTickNow: (() => Promise<void>) | null = null;
 
 /**
  * heartbeat 시작. token 미설정 시 경고 후 no-op (다른 notifier 와 동일 정책).
@@ -267,12 +268,24 @@ export function startHeartbeat(deps: HeartbeatDeps): HeartbeatHandle | null {
   const stop = (): void => {
     clearInterval(timer);
     if (activeStop === stop) activeStop = null;
+    if (activeTickNow === tickNow) activeTickNow = null;
   };
   activeStop = stop;
+  activeTickNow = tickNow;
   return { tickNow, stop };
 }
 
 /** 활성 heartbeat interval 해제 (graceful shutdown). */
 export function stopHeartbeat(): void {
   if (activeStop) activeStop();
+}
+
+/**
+ * 수동 트리거 — 현재 실행 중인 heartbeat 의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
+ * 비활성(token 미설정 등) 시 `inactive` 반환.
+ */
+export async function triggerHeartbeatNow(): Promise<{ status: 'ok' | 'inactive' }> {
+  if (!activeTickNow) return { status: 'inactive' };
+  await activeTickNow();
+  return { status: 'ok' };
 }

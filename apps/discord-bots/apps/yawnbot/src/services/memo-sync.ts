@@ -377,3 +377,13 @@ export function getActiveMemoSyncHandle(): MemoSyncHandle | null {
 export function stopMemoSync(): void {
   if (activeStop) activeStop();
 }
+
+/**
+ * 수동 트리거 — 현재 활성 memo-sync 의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
+ * 비활성(token/path 미설정 등) 시 `inactive` 반환.
+ */
+export async function triggerMemoSyncNow(): Promise<{ status: 'ok' | 'inactive' }> {
+  if (!activeHandle) return { status: 'inactive' };
+  await activeHandle.tickNow();
+  return { status: 'ok' };
+}
