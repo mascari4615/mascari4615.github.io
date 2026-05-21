@@ -116,6 +116,7 @@ import {
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
   ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
+  reapWorkerInFlight,
 } from './agent-cadence-worker';
 import {
   summarizeTick,
@@ -139,6 +140,7 @@ export {
   ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
   runWorkerConsumerOnce, defaultListWorkers, reapMyWorkerClaims,
+  reapWorkerInFlight,
 } from './agent-cadence-worker';
 export {
   summarizeTick,
@@ -1401,6 +1403,13 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       // KAR-MEMOSYNC part4: 워커 픽 직전 memo freshness 가드 (pre-tick
       // staleness — 전용 워커 타이머 경로. runCadenceTickOnce 와 동일 seam).
       await ensureMemoFreshBeforeWork(env);
+      // KAR-094 후속 (2026-05-22): detached tier3 완료 폴링 (워커 픽 *전*).
+      // 완료된 in-flight 가 있으면 후처리 → 클레임 해제 → 다음 scan 이 잡을 수 있음.
+      try {
+        await reapWorkerInFlight(env);
+      } catch (e) {
+        console.warn(`[AgentCadence] reapWorkerInFlight 오류: ${e instanceof Error ? e.message : String(e)}`);
+      }
       const w = await runWorkerConsumerOnce(env);
       if (w && w !== 'no-workers' && w !== 'no-memo-root') {
         console.log(`[AgentCadence] worker -> ${w}`);

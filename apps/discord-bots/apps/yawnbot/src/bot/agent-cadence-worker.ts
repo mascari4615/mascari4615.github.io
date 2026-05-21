@@ -29,6 +29,16 @@ import {
 } from '../services/agent-core';
 import { commitAndPushMemoFile } from '../services/memo-push';
 import {
+  spawnTier3Detached,
+  readClaims,
+  writeClaims,
+  activeInFlightTaskIds,
+  reapInFlight,
+  type InFlightMarker,
+  type Tier3DoneResult,
+  type ReaperSummary,
+} from '../services/tier3-detached';
+import {
   isKilled,
   getCoreSpeak,
   generateAgentText,
@@ -667,11 +677,15 @@ export async function runWorkerConsumerOnce(
     const cands = rawCands.filter(
       (c) => !inNoArtifactCooldown(c.id, tickNow) && !inEscalateCooldown(c.id, tickNow),
     );
+    // KAR-094 후속: detached in-flight 인 task 는 이중 claim 방지로 제외.
+    const inFlightIds = activeInFlightTaskIds(memoRoot);
+    const filtered = cands.filter((c) => !inFlightIds.has(c.id));
     if (rawCands.length === 0) { results.push(`${w.coreId}:idle`); return; }
     if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
+    if (filtered.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
 
     let chosen: { id: string; file: string } | null = null;
-    for (const c of cands.slice(0, 3)) {
+    for (const c of filtered.slice(0, 3)) {
       if (claim(c.id, w.coreId)) { chosen = c; break; }
     }
     if (!chosen) { results.push(`${w.coreId}:claim-lost`); return; }
@@ -744,6 +758,73 @@ export async function runWorkerConsumerOnce(
           });
         } catch { /* push 시 claude 가 에러 정직 보고 */ }
         req.childEnv = { ...(req.childEnv ?? {}), GH_TOKEN: tok };
+      }
+    }
+
+    // KAR-094 후속 (2026-05-22 사용자 진단 "봇 죽으면 워커도 죽음"):
+    // WORKER_TIER3_DETACHED=1 면 wrapper 로 detached spawn → 봇 무관 생존.
+    // 후처리는 reapWorkerInFlight 가 cadence/startup 에서 done.json 보고 수행.
+    // wt 없으면 (비-agentic 폴백) detached 의미 없음 → 기존 attached 만.
+    const detachEnabled = env.WORKER_TIER3_DETACHED === '1' && !!wt;
+    if (detachEnabled && wt) {
+      const cmd = env.CLAUDE_CLI_COMMAND?.trim() || 'claude';
+      const cliArgs = ['--print', '--no-session-persistence', '--dangerously-skip-permissions'];
+      try {
+        const handle = spawnTier3Detached({
+          memoRoot,
+          taskId: chosen.id,
+          coreId: w.coreId,
+          branch: wt.branch,
+          cwd: wt.cwd,
+          cmd,
+          args: cliArgs,
+          prompt: req.prompt,
+          env: req.childEnv,
+        });
+        // claim 파일에 inFlight 마커 추가 (다음 워커 scan 이 제외, reaper 가 후처리).
+        try {
+          const claims = readClaims(memoRoot);
+          const prev = claims[chosen.id] ?? { by: w.coreId, at: Date.now() };
+          claims[chosen.id] = {
+            ...prev,
+            by: w.coreId,
+            at: Date.now(),
+            inFlight: handle.marker,
+          };
+          writeClaims(memoRoot, claims);
+        } catch (e) {
+          // claim 파일 write 실패해도 wrapper 는 detached 로 살아있음. 다음
+          // claim TTL 6h reap 이 백업. 알림에 명시.
+          console.warn(`[worker] inFlight marker write fail: ${e instanceof Error ? e.message : String(e)}`);
+        }
+        appendTrace(env, {
+          ts: new Date().toISOString(),
+          type: 'budget',
+          core: w.coreId,
+          reason: `worker ${chosen.id} detached spawn pid=${handle.pid} branch=${wt.branch}`,
+        });
+        results.push(`${w.coreId}:detached:${chosen.id}:pid=${handle.pid}`);
+        // worktree cleanup 은 reaper 가 (claude CLI 가 worktree 안에서 작업 중).
+        return;
+      } catch (e) {
+        // detached spawn 실패 = 즉시 escalate (attached 폴백 X — 의도된 토폴로지 차이).
+        const msg = e instanceof Error ? e.message : String(e);
+        appendTrace(env, {
+          ts: new Date().toISOString(),
+          type: 'drift',
+          core: w.coreId,
+          reason: `worker ${chosen.id} detached spawn 실패: ${msg.slice(0, 200)}`,
+        });
+        release(chosen.id, w.coreId);
+        if (wt) cleanupWorkerWorktree(wt.repoRoot, wt.wtDir);
+        results.push(`${w.coreId}:detached-spawn-fail:${chosen.id}`);
+        await voicedWorkerSpeak(
+          w.coreId,
+          `${w.label} ⚠ ${chosen.id} detached spawn 실패: ${msg.slice(0, 200)} — 점유 해제.`,
+          speak, voice, env,
+          loadSkinPersona(memoRoot, w.coreId),
+        );
+        return;
       }
     }
 
@@ -866,4 +947,134 @@ export async function runWorkerConsumerOnce(
   const csv = results.join(',');
   if (csv) lastWorkerCsv = csv;
   return csv || 'no-workers';
+}
+
+/**
+ * 완료된 detached tier3 후처리 (KAR-094, 2026-05-22).
+ *
+ * tier3-detached.ts:reapInFlight 의 caller — 각 완료 in-flight 마다:
+ *   - exit 0 + branch pushed → done (PR 검토 대기)
+ *   - exit 0 + 미푸시 + escalate marker → escalated
+ *   - exit 0 + 미푸시 → done-no-artifact
+ *   - exit != 0 → error (cooldown 적용)
+ *   - voicedWorkerSpeak + appendTrace + 워크트리 cleanup
+ * crashed (PID 죽었으나 done.json 없음) → 짧은 알림 + cleanup.
+ *
+ * 호출: main.ts startup + 매 cadence tick (worker 후) + /관리자 워커틱.
+ */
+export async function reapWorkerInFlight(
+  env: NodeJS.ProcessEnv,
+  speakOverride?: CoreSpeakFn,
+): Promise<ReaperSummary> {
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot) {
+    return { total: 0, alive: 0, completed: [], crashed: [], errors: [] };
+  }
+  const notify = defaultNotify(env);
+  const speak: CoreSpeakFn =
+    speakOverride ??
+    getCoreSpeak() ??
+    (async (_cid: string, t: string) => { notify(t); return true; });
+  const voice = (p: string): Promise<string> =>
+    generateAgentText(env, p, 20_000).catch(() => '');
+
+  const workersByCoreId = new Map(defaultListWorkers(memoRoot).map((w) => [w.coreId, w]));
+
+  return reapInFlight(memoRoot, {
+    onCompleted: async (taskId, marker, result, output) => {
+      const w = workersByCoreId.get(marker.coreId);
+      const label = w?.label ?? marker.coreId;
+      const domain = w?.domain ?? '?';
+      const branch = marker.branch ?? '?';
+      const stdout = (output.stdout || '').trim();
+      const exitOk = result.exitCode === 0;
+      const escalate = stdout.includes(ESCALATE_MARKER);
+      // branchPushed: marker.cwd 있으면 거기서 origin ls-remote 체크.
+      let pushed = false;
+      if (exitOk && marker.cwd && marker.branch) {
+        try {
+          // cwd 가 워크트리 → 그 안에서 git 명령 가능 (cleanup 전).
+          const out = execSync(
+            `git -C "${marker.cwd}" ls-remote --heads origin "${marker.branch}"`,
+            { timeout: 30_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+          );
+          pushed = out.trim().length > 0;
+        } catch { pushed = false; }
+      }
+      const tickNow = Date.now();
+      let head: string;
+      let traceStatus: string;
+      if (!exitOk) {
+        traceStatus = `error(exit=${result.exitCode}${result.signal ? `,sig=${result.signal}` : ''})`;
+        markNoArtifact(taskId, tickNow);
+        head = `${label} ⚠ ${taskId} detached tier3 종료코드 ${result.exitCode}${result.signal ? ` (${result.signal})` : ''} — 30분 cooldown. 도메인=${domain}`;
+      } else if (pushed) {
+        traceStatus = 'done';
+        head = `${label} ▶ ${taskId} 수행 — 브랜치 \`${branch}\` origin push 확인 (Draft PR 검토 대기, detached). 도메인=${domain}`;
+      } else if (escalate) {
+        traceStatus = 'escalated';
+        markEscalated(taskId, tickNow);
+        head = `${label} ⚠ ${taskId} = 사용자 결정 필요(escalate, detached) — 자동 진행 불가. 이 스레드에서 결정해 주세요. 도메인=${domain}`;
+      } else {
+        traceStatus = 'done-no-artifact';
+        markNoArtifact(taskId, tickNow);
+        head = `${label} ⚠ ${taskId} detached 실행 완료했으나 origin 브랜치 미푸시 = 실산출 0 → 30분 cooldown. (브랜치 ${branch} 로컬뿐). 도메인=${domain}`;
+      }
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: marker.coreId,
+        reason: `worker ${taskId} detached ${traceStatus} branch=${branch} duration=${Math.round(result.durationMs / 1000)}s`,
+      });
+      const report = stdout.slice(-2000);
+      await voicedWorkerSpeak(
+        marker.coreId,
+        report ? `${head}\n· 보고: ${report}` : head,
+        speak, voice, env,
+        loadSkinPersona(memoRoot, marker.coreId),
+      );
+      rememberWorkerOutcome(
+        memoRoot, marker.coreId, taskId,
+        pushed ? 'fix' : escalate ? 'decision' : 'fail',
+        `detached ${traceStatus} branch=${branch}`,
+      );
+      // 워크트리 cleanup (claude CLI 가 끝났으니 안전).
+      if (marker.cwd) {
+        try {
+          const repoRoot = execSync(
+            `git -C "${marker.cwd}" rev-parse --show-superproject-working-tree`,
+            { timeout: 10_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
+          ).trim();
+          const root = repoRoot || marker.cwd.replace(/[/\\]\.worktrees[/\\][^/\\]+$/, '');
+          if (root && root !== marker.cwd) {
+            cleanupWorkerWorktree(root, marker.cwd);
+          }
+        } catch { /* best-effort */ }
+      }
+    },
+    onCrashed: async (taskId, marker) => {
+      const w = workersByCoreId.get(marker.coreId);
+      const label = w?.label ?? marker.coreId;
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: marker.coreId,
+        reason: `worker ${taskId} detached crashed (pid=${marker.pid} dead, done.json 없음) — wrapper crash 의심`,
+      });
+      await voicedWorkerSpeak(
+        marker.coreId,
+        `${label} ⚠ ${taskId} detached wrapper crash 의심 (pid=${marker.pid} 죽음, 결과 없음) — 점유 해제·재시도 가능.`,
+        speak, voice, env,
+        loadSkinPersona(memoRoot, marker.coreId),
+      );
+      if (marker.cwd) {
+        try {
+          const root = marker.cwd.replace(/[/\\]\.worktrees[/\\][^/\\]+$/, '');
+          if (root && root !== marker.cwd) {
+            cleanupWorkerWorktree(root, marker.cwd);
+          }
+        } catch { /* best-effort */ }
+      }
+    },
+  });
 }

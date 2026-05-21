@@ -60,7 +60,7 @@ import {
 } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
-import { startAgentCadence, stopAgentCadence, setCoreSpeak, reapMyWorkerClaims } from './bot/agent-cadence';
+import { startAgentCadence, stopAgentCadence, setCoreSpeak, reapMyWorkerClaims, reapWorkerInFlight } from './bot/agent-cadence';
 import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
@@ -594,6 +594,22 @@ client.once('clientReady', async () => {
     // KAR-018 (2026-05-21 사용자 진단): 봇 재시작 시 자기 워커 claim 자동 reap.
     // claim 파일 TTL=6h 라 봇 사망 후 같은 task 재시도 'claim-lost' 영구 고착 방지.
     // 단일 노트북 prod 가정 = 이 봇이 모든 worker coreId 의 유일 owner.
+    // KAR-094 후속 (2026-05-22): startup 시 detached tier3 in-flight 먼저 reap.
+    // 봇이 죽어있는 동안 wrapper 가 완료한 작업의 done.json 후처리 + 봇이 죽으면서
+    // 끊긴 in-flight 정리. 그 후 단순 claim reap (in-flight 없는 stale claim 만).
+    try {
+      const summary = await reapWorkerInFlight(process.env);
+      if (summary.total > 0) {
+        console.log(`[startup] in-flight reap: total=${summary.total} alive=${summary.alive} completed=${summary.completed.length} crashed=${summary.crashed.length}`);
+        if (summary.completed.length > 0 || summary.crashed.length > 0) {
+          defaultNotify(process.env)(
+            `🧹 봇 재시작 — 죽어있는 동안 끝난 워커 ${summary.completed.length}건 후처리 + crashed ${summary.crashed.length}건 정리 (alive ${summary.alive}건 보존).`,
+          );
+        }
+      }
+    } catch (e) {
+      console.warn(`[startup] in-flight reap exception: ${e instanceof Error ? e.message : String(e)}`);
+    }
     try {
       const reaped = reapMyWorkerClaims(memoRepoPath || '');
       if (reaped.length > 0) {
