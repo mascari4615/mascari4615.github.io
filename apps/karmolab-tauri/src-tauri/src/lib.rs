@@ -687,7 +687,18 @@ fn desktop_notify(
 }
 
 #[tauri::command]
-fn desktop_trigger_release_workflow(
+async fn desktop_trigger_release_workflow(
+    ref_name: Option<String>,
+    bump_type: Option<String>,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        desktop_trigger_release_workflow_blocking(ref_name, bump_type)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn desktop_trigger_release_workflow_blocking(
     ref_name: Option<String>,
     bump_type: Option<String>,
 ) -> Result<String, String> {
