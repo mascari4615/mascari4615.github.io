@@ -12,7 +12,7 @@ import type {
   KarmoLabImageGenNamespace,
   KarmoLabLazyWidgetStub,
   KarmoWorldNamespace,
-  RandomGenTopic
+  RandomGenTopic as _RandomGenTopic
 } from './karmolab';
 
 export {};
@@ -24,7 +24,9 @@ declare global {
     KarmoWorld?: KarmoWorldNamespace;
     /** tierlist 네임스페이스 — `namespace.js` */
     Tierlist?: Record<string, unknown>;
-    RANDOMGEN_TOPICS?: RandomGenTopic[];
+    RANDOMGEN_TOPICS?: _RandomGenTopic[];
+    /** randomgen.ts — `id → label` 매핑. tab UI 가 채움. */
+    RANDOMGEN_TOPIC_LABELS?: Record<string, string>;
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
     KARMOLAB_LAZY_META_BY_ID?: Record<string, KarmoLabLazyWidgetStub>;
@@ -112,6 +114,9 @@ declare global {
 
   /** `gemini.ts` ImageDB 항목 — script-mode 위젯이 타입으로 사용 */
   type ImageDBItem = _ImageDBItem;
+
+  /** randomgen 위젯 주제 — script-mode 에서 타입으로 사용 */
+  type RandomGenTopic = _RandomGenTopic;
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
