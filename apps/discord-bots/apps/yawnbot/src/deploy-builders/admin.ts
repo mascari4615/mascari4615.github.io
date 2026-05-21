@@ -97,4 +97,22 @@ export const adminCommand = () =>
         .setName('뉴스틱')
         .setDescription('뉴스 소스 1회 즉시 폴 (YAWNBOT_NEWS_SOURCES 기준 전체)')
         .setDescriptionLocalizations(enUS('Trigger one news poll now (all active sources)')),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('하트비트')
+        .setDescription('heartbeat 1회 즉시 기록 (memo orphan 브랜치)')
+        .setDescriptionLocalizations(enUS('Trigger one heartbeat write now')),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('메모싱크')
+        .setDescription('memo 레포 1회 즉시 동기 (git reset --hard origin)')
+        .setDescriptionLocalizations(enUS('Trigger one memo-sync now')),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('캐릭상태')
+        .setDescription('캐릭터 런타임 상태 1회 즉시 스냅샷')
+        .setDescriptionLocalizations(enUS('Trigger one character-state snapshot now')),
     );

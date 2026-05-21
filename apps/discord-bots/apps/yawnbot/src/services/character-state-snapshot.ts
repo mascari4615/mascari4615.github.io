@@ -431,6 +431,7 @@ export interface SnapshotHandle {
 }
 
 let activeStop: (() => void) | null = null;
+let activeTickNow: (() => Promise<void>) | null = null;
 
 /**
  * 캐릭터 스냅샷 시작. token/memoRepoPath 미설정 시 경고 후 no-op
@@ -494,12 +495,24 @@ export function startCharacterStateSnapshot(deps: SnapshotDeps): SnapshotHandle 
   const stop = (): void => {
     clearInterval(timer);
     if (activeStop === stop) activeStop = null;
+    if (activeTickNow === tickNow) activeTickNow = null;
   };
   activeStop = stop;
+  activeTickNow = tickNow;
   return { tickNow, stop };
 }
 
 /** 활성 스냅샷 interval 해제 (graceful shutdown). */
 export function stopCharacterStateSnapshot(): void {
   if (activeStop) activeStop();
+}
+
+/**
+ * 수동 트리거 — 현재 활성 character state 스냅샷의 tickNow 호출 (YB-038, 자동화 수동 전제 원칙).
+ * 비활성(token/path 미설정 등) 시 `inactive` 반환.
+ */
+export async function triggerCharStateSnapshotNow(): Promise<{ status: 'ok' | 'inactive' }> {
+  if (!activeTickNow) return { status: 'inactive' };
+  await activeTickNow();
+  return { status: 'ok' };
 }

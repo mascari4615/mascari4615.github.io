@@ -10,6 +10,9 @@ import {
   defaultListWorkers, type WorkerConsumerDeps,
 } from '../agent-cadence';
 import { triggerAllNewsOnce } from '../../services/notifiers/news';
+import { triggerHeartbeatNow } from '../../services/heartbeat';
+import { triggerMemoSyncNow } from '../../services/memo-sync';
+import { triggerCharStateSnapshotNow } from '../../services/character-state-snapshot';
 
 export async function handleAdminReload(ctx: BotContext, interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
   const { gameData, isAdmin } = ctx;
@@ -240,4 +243,55 @@ export async function handleAdminNewsTick(
   } catch (e) {
     await interaction.editReply({ content: `⚠ 뉴스틱 오류: ${e instanceof Error ? e.message : String(e)}` }).catch(() => {});
   }
+}
+
+/** 공통 폴백 — 트리거 함수 1개 호출 + 결과 ephemeral 응답 (YB-038 패턴). */
+async function handleManualTrigger(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+  label: string,
+  trigger: () => Promise<{ status: 'ok' | 'inactive' }>,
+  inactiveReason: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const r = await trigger();
+    if (r.status === 'inactive') {
+      await interaction.editReply({ content: `⚠ ${label} 비활성 — ${inactiveReason}` }).catch(() => {});
+      return;
+    }
+    await interaction.editReply({ content: `✅ ${label} 1회 완료` }).catch(() => {});
+  } catch (e) {
+    await interaction.editReply({ content: `⚠ ${label} 오류: ${e instanceof Error ? e.message : String(e)}` }).catch(() => {});
+  }
+}
+
+export async function handleAdminHeartbeatTick(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  await handleManualTrigger(ctx, interaction, userId, 'heartbeat', triggerHeartbeatNow, 'MEMO_GITHUB_PAT 미설정');
+}
+
+export async function handleAdminMemoSyncTick(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  await handleManualTrigger(ctx, interaction, userId, 'memo-sync', triggerMemoSyncNow, 'MEMO_GITHUB_PAT 또는 MEMO_REPO_PATH 미설정');
+}
+
+export async function handleAdminCharStateTick(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  await handleManualTrigger(ctx, interaction, userId, 'character-state 스냅샷', triggerCharStateSnapshotNow, 'MEMO_GITHUB_PAT 또는 MEMO_REPO_PATH 미설정');
 }
