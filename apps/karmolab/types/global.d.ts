@@ -76,7 +76,27 @@ declare global {
       };
     };
     __karmolabSetNotifyInvokeDebug?: (payload: unknown) => void;
+
+    /** crypto.ts — 위젯 내부 함수를 onclick 핸들러에서 호출하기 위해 게재 */
+    loadFromTxt?: () => Promise<void>;
+    toggleCryptoFields?: () => void;
+    swapResultToInput?: () => void;
+    doCrypto?: () => void;
   }
+
+  /** crypto-js (vendor script-mode) — 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
+  var CryptoJS: {
+    lib: { WordArray: { random: (nBytes: number) => unknown }; CipherParams: { create: (cfg: { ciphertext: unknown }) => unknown } };
+    enc: { Hex: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Base64: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Utf8: unknown };
+    algo: { SHA256: unknown };
+    mode: { CBC: unknown };
+    pad: { Pkcs7: unknown };
+    PBKDF2: (pass: string, salt: unknown, opts: { keySize: number; iterations: number; hasher: unknown }) => unknown;
+    AES: {
+      encrypt: (text: string, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { ciphertext: { toString: (encoder?: unknown) => string } };
+      decrypt: (cipher: unknown, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { toString: (encoder?: unknown) => string };
+    };
+  } | undefined;
 
   /** 페이지 스크립트로 주입된 marked / Prism */
   var marked: { parse: (src: string) => string; setOptions: (opts: Record<string, unknown>) => void } | undefined;
@@ -157,6 +177,14 @@ declare global {
     getPref?: (key: string, fallback?: string) => string;
     setPref?: (key: string, value: string) => void;
     field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
+    /** 결과 박스 (id={prefix}Result) 에 제목/내용/소요시간 표시. isError true 면 에러 스타일 */
+    displayResult?: (prefix: string, title: string, content: string, timeTaken: number | null, isError?: boolean) => void;
+    /** 컨테이너 안에 결과 박스 (`<pre>` + 복사 버튼) 생성 */
+    resultBox?: (container: HTMLElement, prefix: string) => void;
+    /** id 의 textContent 를 클립보드로 복사 + 토스트 */
+    copyResult?: (contentId: string) => void;
+    /** trigger.classList.toggle('open') + 다음 형제도 토글 */
+    toggleCollapsible?: (trigger: HTMLElement) => void;
     isDesktopApp?: () => boolean;
     escapeHtml?: (s: string) => string;
     formatTimestamp?: (ts: number | string | Date) => string;
