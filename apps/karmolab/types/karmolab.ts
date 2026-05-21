@@ -183,8 +183,13 @@ export interface ImageDBAPI {
 export interface ChatbotCharactersAPI {
   getCharacterById: (id: string) => ChatbotCharacter | null;
   buildCharacterSystemBlock: (char: ChatbotCharacter | null) => string;
-  syncAfterSessionLoad: (...args: unknown[]) => unknown;
-  initCharacterUi: (...args: unknown[]) => unknown;
+  syncAfterSessionLoad: (sessionCharacterId: string | null | undefined) => void;
+  initCharacterUi: (deps: {
+    saveSession?: () => void;
+    getChatHistoryLength?: () => number;
+    appendBotFirstMes?: (m: string) => void;
+    getLastLoadedSessionCharacterId?: () => string | null | undefined;
+  }) => void;
 }
 
 /** `chatbot/prompt.ts` → `window.ChatbotPrompt` */

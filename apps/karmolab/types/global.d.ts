@@ -1,4 +1,5 @@
 import type {
+  ChatbotCharacter as _ChatbotCharacter,
   ChatbotCharactersAPI,
   ChatbotKarmoImageAPI,
   ChatbotMarkdownAPI,
@@ -137,6 +138,9 @@ declare global {
 
   /** randomgen 위젯 주제 — script-mode 에서 타입으로 사용 */
   type RandomGenTopic = _RandomGenTopic;
+
+  /** chatbot/characters.ts → 위젯 내부에서 타입으로 사용 (script-mode) */
+  type ChatbotCharacter = _ChatbotCharacter;
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
