@@ -302,19 +302,26 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
         console.warn('[News] NewsService 생성 불가 (MEMO_REPO_PATH?):', err instanceof Error ? err.message : String(err));
         return;
       }
+      // No-news is bad-news (process.md § healthy log 전제): 0건이어도 매 poll 1줄.
       void pollOnce(client, channelId, news, maxAgeHours, maxPerPoll).then((r) => {
-        if (r.status === 'sent') console.log(`[News/google] 관심사 뉴스 ${r.sent}건 게시 (채널: ${channelId})`);
-        else if (r.status === 'no_keywords') console.log('[News/google] 등록된 관심사 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
+        if (r.status === 'sent') console.log(`[News/google] ${r.sent}건 게시 (채널: ${channelId})`);
+        else if (r.status === 'no_article') console.log('[News/google] 0건 fresh (전부 dedup 또는 신선기사 0)');
+        else if (r.status === 'no_keywords') console.log('[News/google] 키워드 0개 — 게시 건너뜀 (/일정 키워드 추가)');
+        else console.log(`[News/google] skip — status=${r.status}`);
       });
     }
     if (sources.has('hn')) {
       void pollHnOnce(client, channelId, maxPerPoll).then((r) => {
-        if (r.status === 'sent') console.log(`[News/hn] Hacker News ${r.sent}건 게시 (채널: ${channelId})`);
+        if (r.status === 'sent') console.log(`[News/hn] ${r.sent}건 게시 (채널: ${channelId})`);
+        else if (r.status === 'no_story') console.log('[News/hn] 0건 fresh (전부 dedup)');
+        else console.log(`[News/hn] skip — status=${r.status}`);
       });
     }
     if (sources.has('gn')) {
       void pollGnOnce(client, channelId, maxPerPoll).then((r) => {
-        if (r.status === 'sent') console.log(`[News/gn] GeekNews ${r.sent}건 게시 (채널: ${channelId})`);
+        if (r.status === 'sent') console.log(`[News/gn] ${r.sent}건 게시 (채널: ${channelId})`);
+        else if (r.status === 'no_story') console.log('[News/gn] 0건 fresh (전부 dedup 또는 RSS 0건 — stderr [News/GN] 확인)');
+        else console.log(`[News/gn] skip — status=${r.status}`);
       });
     }
   };
