@@ -126,6 +126,20 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
+        /** Imagen (AI Studio) — N 장 반환 (dataUrl 배열) */
+        callImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
+        /** Imagen (Vertex) — N 장 반환 */
+        callVertexImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
         /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
         MODELS?: GeminiModelsCatalog;
       };
