@@ -156,6 +156,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['quest-log/quest-log']
   },
   {
+    id: 'karmoddrine-map',
+    title: 'karmoddrine 지도',
+    category: 'desktop',
+    desc: 'umbrella 전체 토폴로지 — D3 force graph (드래그/줌/hover/클릭 패널). TASK-KAR-091 Phase 1 MVP, 정적 schema',
+    layout: 'full',
+    noHero: true,
+    icon: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="5" y2="18" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="18" stroke="currentColor" stroke-width="1.3"/>',
+    lazyScriptPaths: ['karmoddrine-map/karmoddrine-map']
+  },
+  {
     id: 'task-launcher',
     title: 'TASK Launcher',
     category: 'desktop',
