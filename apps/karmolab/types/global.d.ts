@@ -1,15 +1,19 @@
 import type {
+  ChatbotCharacter as _ChatbotCharacter,
   ChatbotCharactersAPI,
   ChatbotKarmoImageAPI,
   ChatbotMarkdownAPI,
   ChatbotPromptAPI,
   GeminiImageResult,
+  GeminiModelsCatalog,
+  ImageDBAPI,
+  ImageDBItem as _ImageDBItem,
   KarmoLabImageBatchAPI,
   KarmoLabImageConvertAPI,
   KarmoLabImageGenNamespace,
   KarmoLabLazyWidgetStub,
   KarmoWorldNamespace,
-  RandomGenTopic
+  RandomGenTopic as _RandomGenTopic
 } from './karmolab';
 
 export {};
@@ -21,7 +25,9 @@ declare global {
     KarmoWorld?: KarmoWorldNamespace;
     /** tierlist 네임스페이스 — `namespace.js` */
     Tierlist?: Record<string, unknown>;
-    RANDOMGEN_TOPICS?: RandomGenTopic[];
+    RANDOMGEN_TOPICS?: _RandomGenTopic[];
+    /** randomgen.ts — `id → label` 매핑. tab UI 가 채움. */
+    RANDOMGEN_TOPIC_LABELS?: Record<string, string>;
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
     KARMOLAB_LAZY_META_BY_ID?: Record<string, KarmoLabLazyWidgetStub>;
@@ -71,7 +77,27 @@ declare global {
       };
     };
     __karmolabSetNotifyInvokeDebug?: (payload: unknown) => void;
+
+    /** crypto.ts — 위젯 내부 함수를 onclick 핸들러에서 호출하기 위해 게재 */
+    loadFromTxt?: () => Promise<void>;
+    toggleCryptoFields?: () => void;
+    swapResultToInput?: () => void;
+    doCrypto?: () => void;
   }
+
+  /** crypto-js (vendor script-mode) — 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
+  var CryptoJS: {
+    lib: { WordArray: { random: (nBytes: number) => unknown }; CipherParams: { create: (cfg: { ciphertext: unknown }) => unknown } };
+    enc: { Hex: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Base64: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Utf8: unknown };
+    algo: { SHA256: unknown };
+    mode: { CBC: unknown };
+    pad: { Pkcs7: unknown };
+    PBKDF2: (pass: string, salt: unknown, opts: { keySize: number; iterations: number; hasher: unknown }) => unknown;
+    AES: {
+      encrypt: (text: string, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { ciphertext: { toString: (encoder?: unknown) => string } };
+      decrypt: (cipher: unknown, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { toString: (encoder?: unknown) => string };
+    };
+  } | undefined;
 
   /** 페이지 스크립트로 주입된 marked / Prism */
   var marked: { parse: (src: string) => string; setOptions: (opts: Record<string, unknown>) => void } | undefined;
@@ -100,7 +126,35 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
+        /** Imagen (AI Studio) — N 장 반환 (dataUrl 배열) */
+        callImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
+        /** Imagen (Vertex) — N 장 반환 */
+        callVertexImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
+        /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
+        MODELS?: GeminiModelsCatalog;
       };
+
+  /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
+  var ImageDB: ImageDBAPI | undefined;
+
+  /** `gemini.ts` ImageDB 항목 — script-mode 위젯이 타입으로 사용 */
+  type ImageDBItem = _ImageDBItem;
+
+  /** randomgen 위젯 주제 — script-mode 에서 타입으로 사용 */
+  type RandomGenTopic = _RandomGenTopic;
+
+  /** chatbot/characters.ts → 위젯 내부에서 타입으로 사용 (script-mode) */
+  type ChatbotCharacter = _ChatbotCharacter;
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
@@ -141,8 +195,17 @@ declare global {
     getPref?: (key: string, fallback?: string) => string;
     setPref?: (key: string, value: string) => void;
     field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
+    /** 결과 박스 (id={prefix}Result) 에 제목/내용/소요시간 표시. isError true 면 에러 스타일 */
+    displayResult?: (prefix: string, title: string, content: string, timeTaken: number | null, isError?: boolean) => void;
+    /** 컨테이너 안에 결과 박스 (`<pre>` + 복사 버튼) 생성 */
+    resultBox?: (container: HTMLElement, prefix: string) => void;
+    /** id 의 textContent 를 클립보드로 복사 + 토스트 */
+    copyResult?: (contentId: string) => void;
+    /** trigger.classList.toggle('open') + 다음 형제도 토글 */
+    toggleCollapsible?: (trigger: HTMLElement) => void;
     isDesktopApp?: () => boolean;
     escapeHtml?: (s: string) => string;
+    formatTimestamp?: (ts: number | string | Date) => string;
     getToolMeta?: (id: string) => Record<string, unknown> | undefined;
     switchPage?: (id: string) => void;
     getNavLayout?: () => string;
