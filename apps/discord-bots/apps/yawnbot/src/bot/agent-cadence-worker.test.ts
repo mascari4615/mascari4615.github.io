@@ -409,6 +409,7 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     expect(notified).toHaveLength(0); // 스팸 0
     expect(r1).toContain('idle'); // ground-truth = 반환/trace 에 보존(무손실)
     // 실 활동(작업 착수)은 여전히 발화 — heartbeat 아닌 의미활동.
+    // KAR-018(2026-05-21): claim 직후 "🤖 착수" + 완료 후 outcome = 2 발화.
     const deps2 = {
       listWorkers: () => [W],
       scan: () => [{ id: 'TASK-WM-9', file: 'f' }],
@@ -419,8 +420,8 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       },
     };
     await runWorkerConsumerOnce(env(), deps2);
-    expect(notified).toHaveLength(1);
-    expect(notified[0]).toContain('TASK-WM-9');
+    expect(notified).toHaveLength(2); // 착수 + outcome
+    expect(notified.every((n) => n.includes('TASK-WM-9'))).toBe(true);
   });
 
   it('후보→claim ok→spawn done → 보고 + done', async () => {
@@ -438,8 +439,10 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     });
     expect(r).toBe('wm-worker:done:TASK-WM-119');
     expect(claimed).toEqual(['TASK-WM-119']);
-    expect(notified[0]).toContain('TASK-WM-119');
-    expect(notified[0]).toContain('🛠 WmWorker');
+    // KAR-018(2026-05-21): notified[0] = 🤖 착수, notified[-1] = outcome(label+TASK id).
+    const outcome = notified.at(-1) ?? '';
+    expect(outcome).toContain('TASK-WM-119');
+    expect(outcome).toContain('🛠 WmWorker');
   });
 
   it('claim 레이스 — 첫 후보 실패 시 다음 후보', async () => {
@@ -475,7 +478,8 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     });
     expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-9');
     expect(released).toEqual(['TASK-WM-9']);
-    expect(notified[0]).toContain('미푸시');
+    // KAR-018(2026-05-21): 미푸시 outcome 은 착수 알림 다음(마지막).
+    expect(notified.at(-1) ?? '').toContain('미푸시');
   });
 
   it('trace 는 spawn status 가 아니라 최종 산출물 판정(done-no-artifact)을 남긴다', async () => {
@@ -598,7 +602,8 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
     });
     expect(r).toBe('wm-worker:error');
     expect(released).toEqual(['TASK-WM-9']);
-    expect(notified[0]).toContain('점유 해제');
+    // KAR-018(2026-05-21): 점유 해제 outcome 은 착수 알림(또는 worktree-실패 경로) 다음.
+    expect(notified.at(-1) ?? '').toContain('점유 해제');
   });
 
   it('MEMO_REPO_PATH 부재 → no-memo-root', async () => {

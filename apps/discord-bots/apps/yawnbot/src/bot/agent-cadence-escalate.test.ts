@@ -129,13 +129,15 @@ describe('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC)', () 
     });
     expect(r).toBe('wm-worker:escalated:TASK-WM-010-A');
     expect(released).toEqual(['TASK-WM-010-A']); // 점유 해제(다른 task 회전)
-    expect(spoken).toHaveLength(1);
+    // KAR-018(2026-05-21): spoken[0] = 🤖 착수, spoken[-1] = escalate outcome.
+    expect(spoken).toHaveLength(2);
+    const outcome = spoken.at(-1) ?? '';
     // agent-thread-router.extractTaskId 가 라우팅하려면 TASK id 문자열 필수
-    expect(spoken[0]).toContain('TASK-WM-010-A');
-    expect(spoken[0]).toContain('🛠 WmWorker'); // 스킨 정체 발화
-    expect(spoken[0]).toContain('사용자 결정 필요');
+    expect(outcome).toContain('TASK-WM-010-A');
+    expect(outcome).toContain('🛠 WmWorker'); // 스킨 정체 발화
+    expect(outcome).toContain('사용자 결정 필요');
     // agentic 옵션 리포트 동봉(사용자가 그 스레드서 보고 결정)
-    expect(spoken[0]).toContain('선택지: A안 / B안');
+    expect(outcome).toContain('선택지: A안 / B안');
   });
 
   it('(a2) 리포트 escalate 마커만 있어도(type=fix) escalate — 견고 OR', async () => {
@@ -183,8 +185,10 @@ describe('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC)', () 
     // 종전 코드와 동일: done-no-artifact + 미푸시 메시지 + release.
     expect(r).toBe('wm-worker:done-no-artifact:TASK-WM-300');
     expect(released).toEqual(['TASK-WM-300']);
-    expect(spoken[0]).toContain('미푸시');
-    expect(spoken[0]).not.toContain('사용자 결정 필요');
+    // KAR-018(2026-05-21): spoken[0] = 🤖 착수, spoken[-1] = outcome 메시지.
+    const outcome = spoken.at(-1) ?? '';
+    expect(outcome).toContain('미푸시');
+    expect(outcome).not.toContain('사용자 결정 필요');
   });
 
   it('(b2) spawn 에러(status=error) → 종전 release+에러보고 *불변* (escalate 경로 미진입)', async () => {
@@ -208,8 +212,10 @@ describe('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC)', () 
     });
     expect(r).toBe('wm-worker:error');
     expect(released).toEqual(['TASK-WM-400']);
-    expect(spoken[0]).toContain('점유 해제');
-    expect(spoken[0]).not.toContain('사용자 결정 필요');
+    // KAR-018(2026-05-21): spoken[0] = 🤖 착수, spoken[-1] = 점유 해제 outcome.
+    const outcome = spoken.at(-1) ?? '';
+    expect(outcome).toContain('점유 해제');
+    expect(outcome).not.toContain('사용자 결정 필요');
   });
 
   it('(c) escalate dedupe — 같은 task 다음 틱 재escalate 도배 X (escalate-cooldown 윈도우 skip)', async () => {
@@ -237,15 +243,15 @@ describe('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC)', () 
       },
       voice: async () => '',
     };
-    // 1틱: escalate
+    // 1틱: escalate. KAR-018(2026-05-21): 🤖 착수 + escalate outcome = 2 발화.
     const r1 = await runWorkerConsumerOnce(env(), deps);
     expect(r1).toBe('wm-worker:escalated:TASK-WM-010-A');
-    expect(spoken).toHaveLength(1);
+    expect(spoken).toHaveLength(2);
     // 2틱: 동일 task 만 후보 → escalate-cooldown 으로 skip → cooldown-all
-    //      (#team-bus 재escalate 도배 X — speak 추가 호출 0)
+    //      (#team-bus 재escalate 도배 X — 착수/outcome 추가 발화 0)
     const r2 = await runWorkerConsumerOnce(env(), deps);
     expect(r2).toBe('wm-worker:cooldown-all');
-    expect(spoken).toHaveLength(1); // 도배 0 (dedupe 작동)
+    expect(spoken).toHaveLength(2); // 도배 0 (dedupe 작동 — 추가 발화 없음)
   });
 
   it('(c2) escalate 후 *다른* task 는 정상 회전(escalate-cooldown 은 그 task 한정)', async () => {
