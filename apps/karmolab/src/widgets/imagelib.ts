@@ -1,21 +1,23 @@
-// @ts-nocheck
 (function () {
     /* ===== 유틸 ===== */
-    function getModelDisplayName(modelId) {
+    function getModelDisplayName(modelId: string): string {
+        const models = Gemini?.MODELS;
+        if (!models) return modelId;
         const all = [
-            ...(Gemini.MODELS.gemini || []),
-            ...(Gemini.MODELS.geminiImage || []),
-            ...(Gemini.MODELS.imagen || [])
+            ...(models.gemini || []),
+            ...(models.geminiImage || []),
+            ...(models.imagen || [])
         ];
         const found = all.find(m => m.id === modelId);
         return found ? found.name : modelId;
     }
 
-    const formatTimestamp = Toolbox.formatTimestamp;
-    const escapeHtml = Toolbox.escapeHtml;
+    const formatTimestamp = Toolbox.formatTimestamp!;
+    const escapeHtml = Toolbox.escapeHtml!;
+    const showToast = Toolbox.showToast!;
 
-    function showLightbox(imageUrl) {
-        let lb = document.getElementById('ilLightbox');
+    function showLightbox(imageUrl: string): void {
+        let lb = document.getElementById('ilLightbox') as HTMLDivElement | null;
         if (!lb) {
             lb = document.createElement('div');
             lb.id = 'ilLightbox';
@@ -26,31 +28,35 @@
                     <button class="btn btn-accent" id="ilLightboxDl">⬇️ 다운로드</button>
                     <button class="btn btn-ghost" id="ilLightboxClose">닫기</button>
                 </div>`;
-            lb.onclick = (e) => { if (e.target === lb) lb.classList.remove('open'); };
+            lb.onclick = (e) => { if (e.target === lb) lb!.classList.remove('open'); };
             document.body.appendChild(lb);
         }
-        document.getElementById('ilLightboxImg').src = imageUrl;
-        document.getElementById('ilLightboxDl').onclick = () => downloadImage(imageUrl);
-        document.getElementById('ilLightboxClose').onclick = () => lb.classList.remove('open');
-        lb.classList.add('open');
+        const lbRef = lb;
+        const imgEl = document.getElementById('ilLightboxImg') as HTMLImageElement | null;
+        if (imgEl) imgEl.src = imageUrl;
+        const dlEl = document.getElementById('ilLightboxDl');
+        if (dlEl) dlEl.onclick = () => downloadImage(imageUrl);
+        const closeEl = document.getElementById('ilLightboxClose');
+        if (closeEl) closeEl.onclick = () => lbRef.classList.remove('open');
+        lbRef.classList.add('open');
     }
 
-    function downloadImage(url) {
+    function downloadImage(url: string): void {
         const a = document.createElement('a');
         a.href = url;
         a.download = `ai-image-${Date.now()}.png`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        Toolbox.showToast('다운로드 시작');
+        showToast('다운로드 시작');
     }
 
-    function copyToClipboard(text) {
+    function copyToClipboard(text: string): void {
         if (navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText(text).then(() => Toolbox.showToast('클립보드에 복사됨'));
+            navigator.clipboard.writeText(text).then(() => showToast('클립보드에 복사됨'));
         } else {
             const ta = document.createElement('textarea');
             ta.value = text; document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); document.body.removeChild(ta);
-            Toolbox.showToast('클립보드에 복사됨');
+            showToast('클립보드에 복사됨');
         }
     }
 
@@ -166,7 +172,7 @@
     `);
 
     /* ===== 메인 빌드 ===== */
-    function buildMain(container) {
+    function buildMain(container: HTMLElement): void {
         container.innerHTML = `
             <div id="ilGridView">
                 <div class="il-lib-header">
@@ -203,27 +209,35 @@
             </div>`;
 
         requestAnimationFrame(() => {
-            document.getElementById('ilClearBtn').onclick = async () => {
-                if (!confirm('모든 이미지를 삭제하시겠습니까?')) return;
-                try {
-                    await ImageDB.clear();
-                    loadGrid();
-                    Toolbox.showToast('라이브러리를 비웠습니다.');
-                } catch (e) {
-                    Toolbox.showToast('삭제 실패', 'error');
-                }
-            };
+            const clearBtn = document.getElementById('ilClearBtn');
+            if (clearBtn) {
+                clearBtn.onclick = async () => {
+                    if (!confirm('모든 이미지를 삭제하시겠습니까?')) return;
+                    try {
+                        await ImageDB!.clear();
+                        loadGrid();
+                        showToast('라이브러리를 비웠습니다.');
+                    } catch (e) {
+                        showToast('삭제 실패', 'error');
+                    }
+                };
+            }
 
-            document.getElementById('ilBackBtn').onclick = () => {
-                document.getElementById('ilGridView').style.display = '';
-                document.getElementById('ilDetailView').style.display = 'none';
-            };
+            const backBtn = document.getElementById('ilBackBtn');
+            if (backBtn) {
+                backBtn.onclick = () => {
+                    const grid = document.getElementById('ilGridView');
+                    const detail = document.getElementById('ilDetailView');
+                    if (grid) grid.style.display = '';
+                    if (detail) detail.style.display = 'none';
+                };
+            }
 
             const searchInput = document.getElementById('ilSearchInput');
-            let searchDebounce = null;
+            let searchDebounce: ReturnType<typeof setTimeout> | null = null;
             if (searchInput) {
                 searchInput.addEventListener('input', () => {
-                    clearTimeout(searchDebounce);
+                    if (searchDebounce) clearTimeout(searchDebounce);
                     searchDebounce = setTimeout(() => renderGrid(), 200);
                 });
             }
@@ -234,19 +248,19 @@
         });
     }
 
-    let _allItems = [];
+    let _allItems: ImageDBItem[] = [];
 
-    async function loadGrid() {
+    async function loadGrid(): Promise<void> {
         try {
-            _allItems = await ImageDB.getAll();
+            _allItems = ImageDB ? await ImageDB.getAll() : [];
             renderGrid();
         } catch (e) {
             console.error('Library load error:', e);
         }
     }
 
-    function renderGrid() {
-        const searchInput = document.getElementById('ilSearchInput');
+    function renderGrid(): void {
+        const searchInput = document.getElementById('ilSearchInput') as HTMLInputElement | null;
         const query = (searchInput?.value || '').trim().toLowerCase();
         const items = query
             ? _allItems.filter(item => (item.prompt || '').toLowerCase().includes(query) || (item.modelName || item.model || '').toLowerCase().includes(query))
@@ -268,9 +282,10 @@
 
         if (gridEl) gridEl.style.display = '';
         if (emptyEl) emptyEl.style.display = 'none';
+        if (!gridEl) return;
         gridEl.innerHTML = '';
 
-        items.forEach(item => {
+        items.forEach((item: ImageDBItem) => {
             const card = document.createElement('div');
             card.className = 'il-lib-card';
             card.innerHTML = `
@@ -285,33 +300,42 @@
         });
     }
 
-    function showDetail(item) {
-        document.getElementById('ilGridView').style.display = 'none';
-        document.getElementById('ilDetailView').style.display = '';
+    function showDetail(item: ImageDBItem): void {
+        const gridView = document.getElementById('ilGridView');
+        const detailView = document.getElementById('ilDetailView');
+        if (gridView) gridView.style.display = 'none';
+        if (detailView) detailView.style.display = '';
 
-        const detailImg = document.getElementById('ilDetailImg');
-        detailImg.src = item.url;
-        detailImg.onclick = () => showLightbox(item.url);
-        document.getElementById('ilDetailModel').textContent = '🤖 ' + (item.modelName || item.model || 'Unknown');
-        document.getElementById('ilDetailDate').textContent = formatTimestamp(item.timestamp);
-        document.getElementById('ilDetailPrompt').textContent = item.prompt || '(프롬프트 없음)';
+        const detailImg = document.getElementById('ilDetailImg') as HTMLImageElement | null;
+        if (detailImg) {
+            detailImg.src = item.url;
+            detailImg.onclick = () => showLightbox(item.url);
+        }
+        const modelEl = document.getElementById('ilDetailModel');
+        if (modelEl) modelEl.textContent = '🤖 ' + (item.modelName || item.model || 'Unknown');
+        const dateEl = document.getElementById('ilDetailDate');
+        if (dateEl) dateEl.textContent = formatTimestamp(item.timestamp);
+        const promptEl = document.getElementById('ilDetailPrompt');
+        if (promptEl) promptEl.textContent = item.prompt || '(프롬프트 없음)';
 
-        const stats = [];
+        const stats: string[] = [];
         if (item.tokens) stats.push(`${Number(item.tokens).toLocaleString()} tokens`);
         if (item.elapsed) stats.push(`${item.elapsed}s`);
-        document.getElementById('ilDetailStats').textContent = stats.join(' · ') || '';
+        const statsEl = document.getElementById('ilDetailStats');
+        if (statsEl) statsEl.textContent = stats.join(' · ') || '';
 
         const actionsEl = document.getElementById('ilDetailActions');
+        if (!actionsEl) return;
         actionsEl.innerHTML = '';
 
-        const actions = [
+        const actions: Array<{ label: string; cls: string; fn: () => void | Promise<void> }> = [
             {
                 label: '🔄 프롬프트 재사용', cls: 'btn-accent',
                 fn: () => {
-                    const promptEl = document.getElementById('igPrompt');
-                    if (promptEl) promptEl.value = item.prompt || '';
-                    Toolbox.switchPage('imagegen');
-                    Toolbox.showToast('프롬프트를 불러왔습니다.');
+                    const igPromptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | HTMLInputElement | null;
+                    if (igPromptEl) igPromptEl.value = item.prompt || '';
+                    Toolbox.switchPage?.('imagegen');
+                    showToast('프롬프트를 불러왔습니다.');
                 }
             },
             {
@@ -327,13 +351,13 @@
                 fn: async () => {
                     if (!confirm('이 이미지를 삭제하시겠습니까?')) return;
                     try {
-                        await ImageDB.remove(item.id);
-                        document.getElementById('ilGridView').style.display = '';
-                        document.getElementById('ilDetailView').style.display = 'none';
+                        await ImageDB!.remove(item.id);
+                        if (gridView) gridView.style.display = '';
+                        if (detailView) detailView.style.display = 'none';
                         loadGrid();
-                        Toolbox.showToast('삭제되었습니다.');
+                        showToast('삭제되었습니다.');
                     } catch (e) {
-                        Toolbox.showToast('삭제 실패', 'error');
+                        showToast('삭제 실패', 'error');
                     }
                 }
             }

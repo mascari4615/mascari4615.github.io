@@ -4,6 +4,9 @@ import type {
   ChatbotMarkdownAPI,
   ChatbotPromptAPI,
   GeminiImageResult,
+  GeminiModelsCatalog,
+  ImageDBAPI,
+  ImageDBItem as _ImageDBItem,
   KarmoLabImageBatchAPI,
   KarmoLabImageConvertAPI,
   KarmoLabImageGenNamespace,
@@ -100,7 +103,15 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
+        /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
+        MODELS?: GeminiModelsCatalog;
       };
+
+  /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
+  var ImageDB: ImageDBAPI | undefined;
+
+  /** `gemini.ts` ImageDB 항목 — script-mode 위젯이 타입으로 사용 */
+  type ImageDBItem = _ImageDBItem;
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
@@ -143,6 +154,7 @@ declare global {
     field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
     isDesktopApp?: () => boolean;
     escapeHtml?: (s: string) => string;
+    formatTimestamp?: (ts: number | string | Date) => string;
     getToolMeta?: (id: string) => Record<string, unknown> | undefined;
     switchPage?: (id: string) => void;
     getNavLayout?: () => string;
