@@ -10,11 +10,26 @@ import {
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 
-/** 메시지에서 TASK id 추출 (스레드 키). 없으면 null = 팀-공통(메인채널). */
+/**
+ * 메시지에서 스레드 키 추출. 우선순위:
+ *  1) TASK-<PREFIX>-<번호>[-<서브>] (KAR/WM/KL/YB 등) — 첫 매치 = 그 틱 대상.
+ *  2) 제안 발굴 id `pXXXXXXXX` (proposalId = `p` + 8 hex, proposal.ts 정본).
+ *
+ * (2) 추가 근거 (TASK-KAR-018-THR (A) — prod 코드실증): proposal notify
+ * 라인(`⑦' 발굴 → task-new (task) [p42c94051] …`)은 TASK id 가 없어
+ * 기존 정규식에 매칭 0 → null → 메인채널 fallback = "제안 카드가 스레드
+ * 아닌 일반채팅" 페인의 root. proposal-id 도 thread key 로 인정하면 그
+ * notify 가 *그 제안 전용 안정 스레드* 로 수렴(메인채널 스팸 해소).
+ * TASK 우선이라 기존 TASK 라우팅·단위검증은 byte-identical (회귀 0).
+ * 없으면 null = 팀-공통(하트비트 등 메인채널).
+ */
 export function extractTaskId(msg: string): string | null {
-  // TASK-<PREFIX>-<번호>[-<서브>] (KAR/WM/KL/YB 등). 첫 매치 = 그 틱 대상.
-  const m = msg.match(/TASK-[A-Z]{2,6}-\d+(?:-[A-Za-z0-9]+)?/);
-  return m ? m[0] : null;
+  const t = msg.match(/TASK-[A-Z]{2,6}-\d+(?:-[A-Za-z0-9]+)?/);
+  if (t) return t[0];
+  // proposalId 형식 = `p` + 정확히 8 hex (proposal.ts proposalId). 단어
+  // 경계 강제 — "prod"/"plan" 등 일반어 오매칭 0 (8 hex 동반 필수).
+  const p = msg.match(/(?<![A-Za-z0-9])p[0-9a-f]{8}(?![0-9a-z])/);
+  return p ? p[0] : null;
 }
 
 /**
@@ -49,6 +64,50 @@ export function chunkForDiscord(text: string, max = 1900): string[] {
   return out;
 }
 
+/**
+ * 채널의 *기존* 스레드 중 이름이 정확히 `name` 인 것의 id (없으면 null).
+ * active → archived(public) 순 조회. 봇 재기동으로 in-memory 맵이
+ * 소실돼도 같은 TASK 의 스레드를 Discord 측에서 되찾는 경로
+ * (TASK-KAR-018-THR 재기동-중복 root fix). best-effort — 어떤
+ * fetch 실패도 swallow(throw X) → 호출부는 생성으로 graceful 폴백.
+ * discord.js 최소 표면(`threads.fetchActive/fetchArchived`)만 의존 →
+ * 테스트에서 가짜 채널로 분기 전수검증 가능.
+ */
+export async function findThreadByName(
+  ch: {
+    threads: {
+      fetchActive: () => Promise<{
+        threads: { values: () => Iterable<{ id: string; name: string }> };
+      }>;
+      fetchArchived: (opts?: {
+        type?: 'public' | 'private';
+      }) => Promise<{
+        threads: { values: () => Iterable<{ id: string; name: string }> };
+      }>;
+    };
+  },
+  name: string,
+): Promise<string | null> {
+  const scan = (
+    res: {
+      threads: { values: () => Iterable<{ id: string; name: string }> };
+    } | null,
+  ): string | null => {
+    if (!res) return null;
+    for (const t of res.threads.values()) {
+      if (t && t.name === name) return t.id;
+    }
+    return null;
+  };
+  const active = await ch.threads.fetchActive().catch(() => null);
+  const hitA = scan(active);
+  if (hitA) return hitA;
+  const archived = await ch.threads
+    .fetchArchived({ type: 'public' })
+    .catch(() => null);
+  return scan(archived);
+}
+
 export interface ThreadRouterDeps {
   /** agent-team 채널 id 해석 (override 우선 → webhook-routes). */
   resolveChannelId: () => string | null;
@@ -80,9 +139,24 @@ export function makeThreadRouter(
     const p = (async (): Promise<string | null> => {
       const ch = await client.channels.fetch(channelId).catch(() => null);
       if (!ch || ch.type !== ChannelType.GuildText) return null;
+      const wantName = taskId.slice(0, 100);
+      // ── TASK-KAR-018-THR root fix: 생성 전 *기존 스레드 이름검색* ──
+      // 근본 진단(코드실증): taskThreads 는 in-memory Map → prod 봇은
+      // master push 마다 nssm restart(1h~5 deploy 실측) → 맵 소실 →
+      // 같은 TASK 다음 메시지에 무조건 ch.threads.create = 중복 스레드
+      // + 옛 스레드(맥락·사용자 미응답) 고아 → OneDay 아카이브 = KAR-
+      // 018-LT D2「누적 0」를 재기동 churn 이 적극 파괴. 맵 miss 시
+      // active/archived 를 이름(=생성 시 쓰는 wantName)으로 먼저 조회 →
+      // 있으면 재사용. 스펙 명시: "기존 이름검색 단독으로도 재기동-중복
+      // 버그 해소". best-effort — 조회 실패는 생성으로 폴백(가용성 우선).
+      const existing = await findThreadByName(ch, wantName);
+      if (existing) {
+        taskThreads.set(taskId, existing);
+        return existing;
+      }
       const thread = await ch.threads
         .create({
-          name: taskId.slice(0, 100),
+          name: wantName,
           autoArchiveDuration: ThreadAutoArchiveDuration.OneDay,
           type: ChannelType.PublicThread,
           reason: `KAR-018-Y agent-team TASK thread (${taskId})`,
@@ -90,7 +164,7 @@ export function makeThreadRouter(
         .catch(() => null);
       if (!thread) return null;
       taskThreads.set(taskId, thread.id);
-      // 메인채널 포인터 = 스레드 생성 시 1회만 (스팸 0).
+      // 메인채널 포인터 = 스레드 *신규 생성* 시 1회만 (재사용 시 X = 스팸 0).
       await ch
         .send(`🧵 **${taskId}** 작업 스레드 → <#${thread.id}>`)
         .catch(() => undefined);
