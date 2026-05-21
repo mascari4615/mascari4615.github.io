@@ -198,6 +198,51 @@ export function defaultListWorkers(memoRoot: string): WorkerCore[] {
   );
 }
 
+/**
+ * 봇 startup 시 자기(=이 노트북 단일 봇 인스턴스) 가 잡고 죽었던 worker claim 을 reap.
+ * 사용자 진단 (2026-05-21): claim 파일 TTL=6h 라 봇 재시작 후에도 stale claim
+ * 이 후보 제외 → 같은 task 재시도 시 'claim-lost'. deterministic 워크트리는
+ * 보존(reuse) 이라 진행은 누적되나, claim 이 발목.
+ *
+ * 정합 안전: by 가 worker coreId 인 claim 만 reap. 다른 source (cloud routine
+ * 등 다른 코어명) 의 claim 은 보존 — 다세션·다머신 미래 확장 충돌 회피.
+ * 단일 노트북 prod 가정 = 이 봇이 모든 worker coreId 의 유일 owner.
+ *
+ * 반환 = reap 된 id 목록 (#team-bus 알림·로그용).
+ */
+export function reapMyWorkerClaims(memoRoot: string): string[] {
+  const base = path.join(memoRoot, '.claude', 'task-claims.json');
+  let raw: Record<string, { by?: string; at?: number }> = {};
+  try {
+    if (!fs.existsSync(base)) return [];
+    const text = fs.readFileSync(base, 'utf-8');
+    raw = JSON.parse(text);
+  } catch { return []; }
+  if (!raw || typeof raw !== 'object') return [];
+
+  const myCoreIds = new Set(defaultListWorkers(memoRoot).map((w) => w.coreId));
+  if (myCoreIds.size === 0) return [];
+
+  const reaped: string[] = [];
+  const next: typeof raw = {};
+  for (const [id, entry] of Object.entries(raw)) {
+    const by = (entry && entry.by) || '';
+    if (myCoreIds.has(by)) {
+      reaped.push(id);
+    } else {
+      next[id] = entry;
+    }
+  }
+  if (reaped.length === 0) return [];
+
+  try {
+    const tmp = `${base}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(next, null, 2) + '\n');
+    fs.renameSync(tmp, base);
+  } catch { /* best-effort — 다음 startup 재시도 */ }
+  return reaped;
+}
+
 // ── worktree 헬퍼 ────────────────────────────────────────────
 type WorktreeSetup =
   | { cwd: string; repoRoot: string; wtDir: string; branch: string }

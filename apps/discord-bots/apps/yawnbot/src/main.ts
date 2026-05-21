@@ -60,7 +60,7 @@ import {
 } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
-import { startAgentCadence, stopAgentCadence, setCoreSpeak } from './bot/agent-cadence';
+import { startAgentCadence, stopAgentCadence, setCoreSpeak, reapMyWorkerClaims } from './bot/agent-cadence';
 import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
@@ -590,6 +590,20 @@ client.once('clientReady', async () => {
       }
     } catch (e) {
       console.warn(`[memo-push] preflight exception: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    // KAR-018 (2026-05-21 사용자 진단): 봇 재시작 시 자기 워커 claim 자동 reap.
+    // claim 파일 TTL=6h 라 봇 사망 후 같은 task 재시도 'claim-lost' 영구 고착 방지.
+    // 단일 노트북 prod 가정 = 이 봇이 모든 worker coreId 의 유일 owner.
+    try {
+      const reaped = reapMyWorkerClaims(memoRepoPath || '');
+      if (reaped.length > 0) {
+        console.log(`[startup] worker claim reap: ${reaped.length}건 — ${reaped.join(', ')}`);
+        defaultNotify(process.env)(
+          `🧹 봇 재시작 — 죽기 전 잡고 있던 워커 claim ${reaped.length}건 자동 해제: ${reaped.slice(0, 3).join(', ')}${reaped.length > 3 ? ` 외 ${reaped.length - 3}` : ''}`,
+        );
+      }
+    } catch (e) {
+      console.warn(`[startup] claim reap exception: ${e instanceof Error ? e.message : String(e)}`);
     }
     startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
     // KAR-018-LT: 팀 verdict → 원본 제안 카드 반영 reconciler. 숙의는
