@@ -247,13 +247,19 @@ export async function runSelfSurgeryOnce(
   const top = topProject(portfolio);
   if (!top) return 'surgery-skip';
 
-  const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 12 * 3600_000;
-  if (!deps.force && !shouldRunSurgery(portfolio, Date.now(), intervalMs)) return 'surgery-skip';
-
+  // 2026-05-22 사용자 발화 「12h? 왜 12h인데?」 — 12h default 너무 길어 「지혼자
+  // 자가발전」 체감 0. 30분 default + critical 시 gate 우회. health signal 먼저
+  // 수집해서 critical 이면 interval 무관 즉시 진단 (Cronbot → 즉응성).
+  const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 30 * 60_000;
   const signals = deps.healthSignals ?? gatherHealthSignals(env);
   const issues = diagnoseHealth(signals);
   const critical = issues.filter((i) => i.severity === 'critical');
-  if (critical.length === 0) {
+  const hasCritical = critical.length > 0;
+  // gate: force OR critical OR interval 경과. critical = 즉시 진입 (사용자 발화 정합).
+  if (!deps.force && !hasCritical && !shouldRunSurgery(portfolio, Date.now(), intervalMs)) {
+    return 'surgery-skip';
+  }
+  if (!hasCritical) {
     recordSurgery(memoRoot);
     return 'surgery-skip';
   }
