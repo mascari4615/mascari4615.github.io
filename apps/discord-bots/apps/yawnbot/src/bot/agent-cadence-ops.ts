@@ -217,6 +217,8 @@ export interface SelfSurgeryDeps {
   missionText?: string;
   healthSignals?: HealthSignals;
   writeTask?: (env: NodeJS.ProcessEnv, payload: { title: string; body: string; domain: string }) => string | null;
+  /** force=true → 12h gate 우회 (수동 슬래시 트리거용). */
+  force?: boolean;
   /**
    * KAR-018-PUSH-CLOSURE Phase 1 — surgery seed 파일을 memo origin 으로 push.
    * 기본 = commitAndPushMemoFile. 테스트에서 stub 주입 가능. 실패 = tick 비차단.
@@ -246,7 +248,7 @@ export async function runSelfSurgeryOnce(
   if (!top) return 'surgery-skip';
 
   const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 12 * 3600_000;
-  if (!shouldRunSurgery(portfolio, Date.now(), intervalMs)) return 'surgery-skip';
+  if (!deps.force && !shouldRunSurgery(portfolio, Date.now(), intervalMs)) return 'surgery-skip';
 
   const signals = deps.healthSignals ?? gatherHealthSignals(env);
   const issues = diagnoseHealth(signals);
