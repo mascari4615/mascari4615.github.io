@@ -100,6 +100,11 @@ AGENT_CADENCE_ENABLED=1
 # SO-3 (producer schema 자기교정) 으로 흡수. 사용자 발화가 코어 전 phase 에
 # 실시간 흘러들어가는 「자가발전」 비전 정합.
 AGENT_CADENCE_QUIET=0
+# KAR-095 분리 toggle — 서브 기능별 독립 ON/OFF (default OFF = 安全, 여기서 opt-in).
+# 자가발전 only mode: SURGERY+WORKER ON, DIALOGUE OFF (잡담·발굴 noise 차단).
+AGENT_CADENCE_SURGERY_ENABLED=1
+AGENT_CADENCE_WORKER_ENABLED=1
+AGENT_CADENCE_DIALOGUE_ENABLED=0
 # 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
 # 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
 # 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면

@@ -7,6 +7,7 @@ import {
   runCadenceTickOnce, runWorkerConsumerOnce,
   getCadenceAutoEnabled, setCadenceAutoEnabled,
   getWorkerAutoEnabled, setWorkerAutoEnabled,
+  getSurgeryAutoEnabled, setSurgeryAutoEnabled,
   defaultListWorkers, type WorkerConsumerDeps,
   runSelfSurgeryOnce,
 } from '../agent-cadence';
@@ -167,6 +168,26 @@ export async function handleAdminSelfSurgery(
       })
       .catch(() => {});
   }
+}
+
+export async function handleAdminSurgeryToggle(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  const next = !getSurgeryAutoEnabled();
+  setSurgeryAutoEnabled(next);
+  await interaction.reply({
+    content: next
+      ? '🟢 자기수술 자동 ON — 12h 게이트 + critical 이슈 한정 자동 진단 재개'
+      : '🔴 자기수술 자동 OFF — 수동 `/관리자 자기수술` 으로만 실행',
+    flags: MessageFlags.Ephemeral,
+  });
 }
 
 export async function handleAdminWorkerTick(
