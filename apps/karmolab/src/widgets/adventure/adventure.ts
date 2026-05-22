@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * 무한 텍스트 어드벤처 (KL-032).
  *
@@ -24,9 +23,12 @@ import { generateAdventureImage } from './imagegen';
 import { attachImageRef } from './turn-loop';
 
 (function () {
+  type ElProps<K extends keyof HTMLElementTagNameMap> = Omit<Partial<HTMLElementTagNameMap[K]>, 'style'> & {
+    style?: Partial<CSSStyleDeclaration>;
+  };
   function el<K extends keyof HTMLElementTagNameMap>(
     tag: K,
-    props: Partial<HTMLElementTagNameMap[K]> & { style?: Partial<CSSStyleDeclaration> } = {},
+    props: ElProps<K> = {} as ElProps<K>,
   ): HTMLElementTagNameMap[K] {
     const node = document.createElement(tag);
     if (props.style) Object.assign(node.style, props.style);

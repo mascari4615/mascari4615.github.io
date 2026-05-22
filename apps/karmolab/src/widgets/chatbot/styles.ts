@@ -1,4 +1,3 @@
-// @ts-nocheck
 (function () {
     Mdd.injectCSS('chatbot', `
         .cb-outer { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; width:100%; position:relative; }
