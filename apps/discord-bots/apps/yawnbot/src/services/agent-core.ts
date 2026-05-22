@@ -308,3 +308,89 @@ export function readRecentCoreMemory(
     return '';
   }
 }
+
+// ── KAR-018-SO-1: 워커 self-recall (TASK 단위 직전 결과 회수) ──
+// LT-16 가 `topic: worker:<taskId>` 로 적재한 mem entry 를 *TASK 단위로*
+// 집계 → worker select 시점에 "이 코어가 이 TASK 를 직전에 어떻게 끝냈는가"
+// 회수. fix(done+pushed) = 재선택 skip 의 근거. fail 누적 = prompt 에
+// inline 으로 다음 시도 자기 회피. done-재선택 무한 cycle 의 닫는 rung.
+
+export interface WorkerTaskOutcome {
+  taskId: string;
+  /** 마지막 결과 종류 (LT-16 적재 규약). */
+  kind: 'fix' | 'fail' | 'decision';
+  /** 마지막 결과 timestamp (ISO). */
+  lastTs: string;
+  /** 같은 (core, task) 누적 outcome 수 (windowDays 내). */
+  count: number;
+  /** 마지막 결과 summary (400자 이내, 그대로). */
+  lastSummary: string;
+}
+
+/**
+ * 워커 코어의 TASK 단위 직전 결과 회수 (KAR-018-SO-1).
+ *
+ * mem/*.jsonl 일자 오름차순으로 전부 읽고 `topic = "worker:<id>"` 인 entry
+ * 만 집계. windowDays 이내(default 14일) 만, 같은 taskId 는 마지막 entry 가
+ * `lastTs/kind/lastSummary` 가 됨. count = 누적 횟수.
+ *
+ * 부재·부적합 id·IO 실패 = 빈 Map (비차단 — 회수 실패가 worker 작업 자체를
+ * 막지는 X, 단 done-재선택 회피는 못 함 = 기존 동작 fallback).
+ */
+export function readWorkerTaskOutcomes(
+  memoRoot: string,
+  coreId: string,
+  windowDays = 14,
+): Map<string, WorkerTaskOutcome> {
+  const out = new Map<string, WorkerTaskOutcome>();
+  const dir = coreMemDir(memoRoot, coreId);
+  if (!dir) return out;
+  let files: string[];
+  try {
+    if (!fs.existsSync(dir)) return out;
+    files = fs
+      .readdirSync(dir)
+      .filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f))
+      .sort();
+  } catch {
+    return out;
+  }
+  const cutoffMs = Date.now() - Math.max(1, windowDays) * 24 * 3600 * 1000;
+  for (const f of files) {
+    let text: string;
+    try {
+      text = fs.readFileSync(path.join(dir, f), 'utf-8');
+    } catch {
+      continue;
+    }
+    for (const line of text.split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      let e: CoreMemEntry;
+      try {
+        e = JSON.parse(t) as CoreMemEntry;
+      } catch {
+        continue;
+      }
+      if (!e || !e.topic || !e.ts) continue;
+      const tsMs = Date.parse(e.ts);
+      if (!Number.isFinite(tsMs) || tsMs < cutoffMs) continue;
+      const m = /^worker:(.+)$/.exec(e.topic);
+      if (!m) continue;
+      const taskId = m[1].trim();
+      if (!taskId) continue;
+      const kind = e.type === 'fix' || e.type === 'fail' || e.type === 'decision'
+        ? e.type
+        : 'fail';
+      const prev = out.get(taskId);
+      out.set(taskId, {
+        taskId,
+        kind,
+        lastTs: e.ts,
+        count: (prev?.count ?? 0) + 1,
+        lastSummary: String(e.summary || '').slice(0, 400),
+      });
+    }
+  }
+  return out;
+}
