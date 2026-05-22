@@ -9,6 +9,7 @@ on:
     branches: [master, main]
     paths:
       - 'apps/discord-bots/apps/yawnbot/**'
+      - 'apps/discord-bots/apps/agent-orchestrator/**'
       - 'apps/discord-bots/packages/**'
       - 'apps/discord-bots/package.json'
       - 'apps/discord-bots/package-lock.json'
@@ -27,6 +28,8 @@ jobs:
   deploy-yawnbot:
     runs-on: [self-hosted, windows, laptop, yawnbot]
     timeout-minutes: 15
+    outputs:
+      cadence_changed: ${{ steps.detect.outputs.cadence_changed }}
 
     # 노트북의 prod 폴더 직접 사용 — actions/checkout 의 _work 폴더 X.
     # NSSM 이 보는 폴더 = build 폴더 = runner working dir. 통일.
@@ -36,6 +39,39 @@ jobs:
       YAWNBOT_DIR: 'C:\Users\masca\repos\karmoddrine\Mascari4615.github.io\apps\discord-bots\apps\yawnbot'
 
     steps:
+      # === TASK-KAR-096 Phase 3: selective restart detection ===
+      # cadence 관련 path 변경 X 시 orchestrator + 4 worker daemon restart skip.
+      # yawnbot reactive (슬래시·웹훅·게임·뉴스) 만 변경 = yawnbot-prod 만 restart.
+      # cadence_changed=1 조건: agent-* 코드 / agent-orchestrator/ / karmolab-ai / workflow yml 변경.
+      # workflow_dispatch (수동) = 항상 1 (강제 전체 restart).
+      - name: Detect cadence change
+        id: detect
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.REPO_DIR }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            Write-Host "[KAR-096 Phase 3] workflow_dispatch — cadence_changed=1 (force)"
+            "cadence_changed=1" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            exit 0
+          }
+          $changed = & git diff --name-only 'HEAD^' HEAD 2>$null
+          if (-not $changed) {
+            Write-Host "[KAR-096 Phase 3] git diff 결과 비음 (단일 commit·initial) — cadence_changed=1 (safe default)"
+            "cadence_changed=1" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            exit 0
+          }
+          $cadencePathRegex = 'apps/discord-bots/apps/yawnbot/src/(bot|services)/|apps/discord-bots/apps/agent-orchestrator/|packages/karmolab-ai/|\.github/workflows/deploy-discord-bots\.yml'
+          $cadenceTouched = $changed | Where-Object { $_ -match $cadencePathRegex }
+          if ($cadenceTouched) {
+            Write-Host "[KAR-096 Phase 3] cadence path 변경 감지 → cadence_changed=1"
+            $cadenceTouched | ForEach-Object { Write-Host "  $_" }
+            "cadence_changed=1" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          } else {
+            Write-Host "[KAR-096 Phase 3] cadence path 미변경 → cadence_changed=0 (yawnbot-prod 만 restart)"
+            "cadence_changed=0" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }
+
       - name: Sync to origin/master (force)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.REPO_DIR }}
@@ -308,7 +344,9 @@ jobs:
       # 별 NSSM service `agent-orchestrator-prod` 가 cadence 호스트. yawnbot-prod 와 분리 process.
       # yawnbot-prod 의 AGENT_HOST=orchestrator env 가 cadence skip 신호 (이중 race 방지).
       # service 미존재 시 install (idempotent). 첫 deploy = install + start.
+      # Phase 3: cadence_changed=0 시 build/restart skip (yawnbot reactive 만 변경).
       - name: build agent-orchestrator
+        if: steps.detect.outputs.cadence_changed == '1'
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
@@ -316,6 +354,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Warning "build:orchestrator failed — orchestrator deploy skip (yawnbot 정상)"; exit 0 }
 
       - name: NSSM upsert + restart agent-orchestrator-prod
+        if: steps.detect.outputs.cadence_changed == '1'
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
@@ -378,7 +417,9 @@ jobs:
       # === TASK-KAR-096 Phase 2: 4 worker daemon NSSM (같은 binary, env role 차이) ===
       # orchestrator 와 같은 dist/src/main.js 실행. AGENT_CADENCE_ROLE=worker-<core-id> env 로
       # 자기 코어만 처리. 각 워커 자기 코드 fix → 자기만 restart, 다른 워커·orchestrator·yawnbot 영향 0.
+      # Phase 3: cadence_changed=0 시 skip (yawnbot reactive 만 변경 시 워커 daemon 그대로).
       - name: NSSM upsert + restart agent-worker-* daemons
+        if: steps.detect.outputs.cadence_changed == '1'
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
