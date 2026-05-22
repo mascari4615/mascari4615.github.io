@@ -58,6 +58,7 @@ import {
   publishEnvelope,
   readInboxProposals,
   appendTeamVerdict,
+  readRecentProducerSchemaFails,
   type DiscoverFn,
 } from './proposal-adapter';
 import { buildModifiedEnvelope } from './proposal';
@@ -226,10 +227,21 @@ export function buildDiscoveryPrompt(
   contextText = '',
   portfolioBlock = '',
   producerPerspective = '',
+  schemaFailExamples: string[] = [],
 ): string {
   const ctx = contextText.trim();
   const pf = portfolioBlock.trim();
   const perspLine = producerPerspective.trim();
+  // KAR-018-SO-3: 직전 schema-fail snippet 자기 inject. 사람-박은 schema 룰
+  // 강화 X — *자기 출력 cycle* 닫는 rung. 부재(첫 호출/리셋) = 블록 생략.
+  const schemaFailBlock = schemaFailExamples.length > 0
+    ? [
+        '[너의 직전 출력 형식 실패 (이 형식들로 다시 내면 또 폐기됨)]',
+        ...schemaFailExamples.slice(-3).map((s, i) => `· 직전 ${i + 1}: ${s.slice(0, 200)}`),
+        '※ 위는 *너* 가 직전에 낸 깨진 출력 일부다. 이번엔 아래 union JSON',
+        '  스키마를 *정확히* 한 줄 객체로 내라(코드펜스만 OK·기타 0).',
+      ]
+    : [];
   const identity = perspLine
     ? `너는 karmoddrine 에이전트 팀의 **${perspLine}** 로서 발굴한다. 이 역할의 관점에서 가장 의미 있는 제안을 골라라. 도구·파일`
     : '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일';
@@ -237,6 +249,7 @@ export function buildDiscoveryPrompt(
     `${identity}`,
     '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
     '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
+    ...(schemaFailBlock.length > 0 ? ['', ...schemaFailBlock] : []),
     '',
     '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
     missionText.trim(),
@@ -643,6 +656,7 @@ export async function runGovernedProducerOnce(
             loadPortfolio(env.MEMO_REPO_PATH?.trim() || ''),
           ),
           producerPerspective,
+          readRecentProducerSchemaFails(env, 3),
         ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
       ));

@@ -15,6 +15,7 @@ import {
   resolvedLedgerPath,
   readRejectedProposalIds,
   summarizeRejectedForDiscovery,
+  readRecentProducerSchemaFails,
   type ProposalProducerDeps,
 } from './proposal-adapter';
 
@@ -59,6 +60,28 @@ describe('runProducerOnce — 발굴 → route → dispatch', () => {
     });
     expect(r).toBe('parse-fail');
     expect(fn).not.toHaveBeenCalled();
+  });
+
+  it('SO-3: 파싱 실패 시 evolution-events 에 producer-schema-fail + raw 적재 + reader 회수', async () => {
+    const env = baseEnv();
+    const r = await runProducerOnce({
+      env,
+      discover: async () => '   완전 깨진 출력 — JSON 아님   ',
+      dispatch: {},
+      notify: () => {},
+    });
+    expect(r).toBe('parse-fail');
+    const evoPath = path.join(root, '.claude', 'evolution-events.jsonl');
+    expect(fs.existsSync(evoPath)).toBe(true);
+    const last = fs.readFileSync(evoPath, 'utf-8').trim().split(/\r?\n/).pop()!;
+    const e = JSON.parse(last);
+    expect(e.code).toBe('producer-schema-fail');
+    expect(e.source).toBe('proposal');
+    expect(e.evidence).toContain('깨진 출력');
+    // reader 가 evidence snippet 회수 (다음 producer prompt 자가 inject)
+    const fails = readRecentProducerSchemaFails(env, 3);
+    expect(fails.length).toBeGreaterThanOrEqual(1);
+    expect(fails[fails.length - 1]).toContain('깨진 출력');
   });
 
   it('타겟 미배선 → no-dispatch (graceful)', async () => {

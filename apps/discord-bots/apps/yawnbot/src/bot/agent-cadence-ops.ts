@@ -404,6 +404,58 @@ const lastChatterTs = new Map<string, number>();
 export function resetChatterCooldown(): void { lastChatterTs.clear(); }
 
 /**
+ * KAR-018-SO-2: 직전 N시간 *실 진척* 카운트 (자가차단 게이트용).
+ *
+ * 진척 = `agent-trace.jsonl` 에서 `worker <TASK> done agentic` 패턴 (push 됨).
+ * done-no-artifact / escalated / error / idle / chatter 는 진척 X. 즉 사용자
+ * 시점 "뭐 진짜 됐냐" = pushed worker 산출. promotion ledger(`evolution-events`)
+ * 의 core-promoted 도 자가발전 신호로 포함.
+ *
+ * 부재·IO 실패 = 0 (안전: 잡담 일단 허용. 진척 측정 못 함 = 막을 근거 없음).
+ */
+export function recentRealProgressCount(
+  memoRoot: string,
+  windowHours = 6,
+  nowMs = Date.now(),
+): number {
+  if (!memoRoot) return 0;
+  const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
+  let count = 0;
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  if (fs.existsSync(tracePath)) {
+    try {
+      for (const line of fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/)) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; reason?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          // worker pushed done: "worker TASK-XXX done agentic <branch>"
+          if (/\bworker\s+TASK-[A-Z0-9-]+\s+done\s+agentic\b/.test(e.reason || '')) {
+            count += 1;
+          }
+        } catch { /* skip 손상 */ }
+      }
+    } catch { /* IO 실패 = 0 */ }
+  }
+  const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
+  if (fs.existsSync(evoPath)) {
+    try {
+      for (const line of fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/)) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; code?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          if (e.code === 'core-promoted' || e.code === 'core-reverted') count += 1;
+        } catch { /* skip */ }
+      }
+    } catch { /* IO 실패 = 0 */ }
+  }
+  return count;
+}
+
+/**
  * chatter 설정 — `<memoRoot>/.claude/agent-chatter-config.json`.
  * 없으면 기본값(prob=0.15, cooldownMinutes=120). 공개 설정이라 env 불필요.
  * 예시:
@@ -444,6 +496,14 @@ export interface IdleChatterDeps {
   chatterProb?: number;
   /** 코어당 최소 발화 간격 ms (기본 2h). */
   chatterCooldownMs?: number;
+  /**
+   * KAR-018-SO-2: 진척 측정창 (시간). 이 창 내 *실 진척* 0 이면 chatter 전체
+   * skip. 0 또는 미지정 = 가드 무효 (legacy 동작). 기본 6h (사용자 raw dump
+   * 「실작업 0 잡담」 진단 정합).
+   */
+  progressWindowHours?: number;
+  /** SO-2 진척 카운터 주입 (test). 미주입 = recentRealProgressCount. */
+  progressCounter?: (memoRoot: string, windowHours: number) => number;
 }
 
 /**
@@ -461,6 +521,26 @@ export async function runIdleChatterOnce(
 
   const speak = deps.speak ?? getCoreSpeak();
   if (!speak) return 'chatter-no-speak';
+
+  // KAR-018-SO-2: 진척 0 자가차단. 사용자 진단 「KlWorker 점심 메뉴 등 잡담 박음,
+  // 실작업 0」 — chatter 자체가 「뭐 되는게 없어」 인상의 주범. 가드 = pushed
+  // worker outcome + core promotion 직전 6h 0 이면 chatter 전체 skip + trace.
+  // 가드 무효 (windowHours<=0 or 미지정) 시 legacy 동작 — 기본 6h 활성.
+  const progressWindow = deps.progressWindowHours ?? 6;
+  if (progressWindow > 0) {
+    const counter = deps.progressCounter ?? ((r, w) => recentRealProgressCount(r, w));
+    const progress = counter(memoRoot, progressWindow);
+    if (progress === 0) {
+      // [no-news is bad-news] 룰 정합 — 차단 사실을 trace 로 남겨 silent X.
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: 'chatter',
+        reason: `SO-2 chatter skip: no real progress in ${progressWindow}h (pushed-done + core-promoted = 0)`,
+      });
+      return `chatter-skip:no-progress-${progressWindow}h`;
+    }
+  }
 
   const cfg = loadChatterConfig(memoRoot);
   const prob = deps.chatterProb ?? cfg.prob;
