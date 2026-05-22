@@ -182,10 +182,16 @@ export function diagnoseHealth(
   }
 
   if (signals.progressStale) {
+    // KAR-018 후속 (2026-05-22 사용자 goal "에이전트 봇이 지혼자 자가발전"):
+    // warn → critical 승격. 팀이 자기 코드만 청소하고 사용자 북극성 (WM 등)
+    // 전진 0 = 팀 존재 이유 결손. 자기수술이 12h마다 발동해서 user-value-
+    // aligned TASK 자율 시드해야 깡통 자가개선 탈출. system-health 의
+    // critical 정의 = "팀이 사용자 가치 전달 0" 도 시스템 침묵·워커 막힘과
+    // 동급으로 critical.
     issues.push({
-      severity: 'warn',
+      severity: 'critical',
       code: 'progress-stale',
-      detail: '모든 active 프로젝트 progressLog 비어있음 — 팀 전진 기록 전무',
+      detail: '모든 active 프로젝트 progressLog 비어있음 — 팀 전진 기록 전무 (사용자 가치 전달 결손)',
     });
   }
 

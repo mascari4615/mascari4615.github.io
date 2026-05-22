@@ -34,6 +34,12 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('자기수술')
+        .setDescription('자기수술 강제 1회 (12h gate 우회 — 헬스 critical 시 LLM 진단 → task seed)')
+        .setDescriptionLocalizations(enUS('Force self-surgery (bypass 12h gate)')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('워커틱')
         .setDescription('워커 소화만 1회 수동 실행 (발굴·대화 없이 워커 소비만)')
         .setDescriptionLocalizations(enUS('Run worker consumer only, once'))
