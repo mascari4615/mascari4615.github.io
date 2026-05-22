@@ -69,7 +69,15 @@ KAKAO_EXPORT_WATCH_DIR=
 # [KAR-076 2026-05-18] 재가동 — 안정화·자동화 완료(git-hygiene 자동시스템
 # 가동·autopilot 폐기·클린) 조건 충족, 사용자 지시로 =1 복귀. KAR-018
 # 살아있는 팀 비전 복귀. 워커 산출 브랜치는 git-hygiene 가 자동 수거.
-AGENT_CADENCE_ENABLED=1
+# [SLOT-B 2026-05-22] 다시 OFF — 사용자 raw dump (18:24-18:49 디코) 실증:
+#   ① WmSupport 가 done TASK-WM-109-E 를 무한 재선택 → 「착수」 → no-op 종료
+#      → 다시 「착수」 cycle 수십 회. dedup·idempotency 0.
+#   ② KlWorker 가 점심 메뉴 등 잡담 박음. 실작업 0.
+#   ③ ⑦' 발굴 파싱 실패 7건 누적. 「진화 입력」 의미 0.
+#   사용자 「뭐 되는게 전혀 없어」 + 「이게 에이전트 팀이야?」 = 비전 작동 X.
+#   재가동 조건 = 워커 selection 게이트 (status≠done 필터) + 잡담 차단 +
+#   ⑦' parser fix. 모두 별 TASK 시드 후. 자율 재가동 금지.
+AGENT_CADENCE_ENABLED=0
 # 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
 # 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
 # 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면
