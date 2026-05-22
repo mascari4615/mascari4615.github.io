@@ -114,6 +114,8 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
+        /** chatbot/imagegen 등은 MODELS, getActiveProfileName 등 동적 면을 추가로 사용 — narrow 미완 (KL-069/078). */
+        [k: string]: any;
       };
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */

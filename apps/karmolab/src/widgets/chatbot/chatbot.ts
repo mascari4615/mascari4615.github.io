@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
     CB_API_SURFACE_PREF_KEY,
     ChatbotApiSurfaceUi,
@@ -10,7 +9,7 @@ import {
     /* ===== 상태 ===== */
     const CHATBOT_SESSIONS_INDEX_KEY = 'toolbox_chatbot_sessions_index';
     const CHATBOT_SESSION_PREFIX = 'toolbox_chatbot_session_';
-    let currentSessionId = null;
+    let currentSessionId: string | null = null;
     let lastLoadedSessionCharacterId = '';
     const MAX_SESSIONS = 10;
 
@@ -23,11 +22,11 @@ import {
         } catch (_) { return []; }
     }
 
-    function saveSessionsIndex(index) {
+    function saveSessionsIndex(index: any) {
         sessionStorage.setItem(CHATBOT_SESSIONS_INDEX_KEY, JSON.stringify(index));
     }
 
-    function createNewSession(name) {
+    function createNewSession(name?: any) {
         const id = generateSessionId();
         const index = getSessionsIndex();
         index.push({ id, name: name || `대화 ${index.length + 1}`, createdAt: Date.now() });
@@ -39,21 +38,21 @@ import {
         return id;
     }
 
-    function deleteSession(id) {
-        let index = getSessionsIndex().filter(s => s.id !== id);
+    function deleteSession(id: any) {
+        let index = getSessionsIndex().filter((s: any) => s.id !== id);
         saveSessionsIndex(index);
         sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + id);
     }
 
-    let chatHistory = [];
+    let chatHistory: any[] = [];
     let conversationSummary = '';
-    let pendingImages = []; // { base64, mimeType }
+    let pendingImages: any[] = []; // { base64, mimeType }
 
-    function fileToBase64(file) {
+    function fileToBase64(file: any) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
-                const dataUrl = reader.result;
+                const dataUrl = reader.result as string;
                 const base64 = dataUrl.split(',')[1];
                 resolve({ base64, mimeType: file.type, dataUrl });
             };
@@ -62,17 +61,17 @@ import {
         });
     }
 
-    function addPendingImage(imgData) {
+    function addPendingImage(imgData: any) {
         if (pendingImages.length >= 5) { Toolbox.showToast('최대 5장까지 첨부 가능', 'error'); return; }
         pendingImages.push(imgData);
         renderAttachThumbs();
     }
 
     function renderAttachThumbs() {
-        const area = document.getElementById('cbAttachArea');
+        const area = (document.getElementById('cbAttachArea') as any);
         if (!area) return;
-        area.querySelectorAll('.cb-attach-wrap').forEach(el => el.remove());
-        pendingImages.forEach((img, i) => {
+        area.querySelectorAll('.cb-attach-wrap').forEach((el: any) => el.remove());
+        pendingImages.forEach((img: any, i: number) => {
             const wrap = document.createElement('span');
             wrap.className = 'cb-attach-wrap';
             const thumb = document.createElement('img');
@@ -84,21 +83,21 @@ import {
             rm.onclick = () => { pendingImages.splice(i, 1); renderAttachThumbs(); };
             wrap.appendChild(thumb);
             wrap.appendChild(rm);
-            area.insertBefore(wrap, area.querySelector('.cb-attach-btn'));
+            area.insertBefore(wrap, area.querySelector('.cb-attach-btn') as Node);
         });
     }
 
     function saveSession() {
         if (!currentSessionId) return;
         try {
-            const toSave = chatHistory.map(msg => {
-                const parts = msg.parts.map(p => {
+            const toSave = chatHistory.map((msg: any) => {
+                const parts = msg.parts.map((p: any) => {
                     if (p.inlineData) return { text: '[image]' };
                     return p;
                 });
                 return { role: msg.role, parts };
             });
-            const charSel = document.getElementById('cbCharacterSelect');
+            const charSel = (document.getElementById('cbCharacterSelect') as any) as HTMLSelectElement | null;
             const characterId = charSel?.value || '';
             sessionStorage.setItem(CHATBOT_SESSION_PREFIX + currentSessionId, JSON.stringify({
                 chatHistory: toSave,
@@ -106,12 +105,12 @@ import {
                 characterId,
                 savedAt: Date.now()
             }));
-        } catch (e) {
+        } catch (e: any) {
             console.warn('Chatbot session save failed', e);
         }
     }
 
-    function loadSession(id) {
+    function loadSession(id?: any) {
         lastLoadedSessionCharacterId = '';
         try {
             const raw = sessionStorage.getItem(CHATBOT_SESSION_PREFIX + (id || currentSessionId));
@@ -123,23 +122,23 @@ import {
                 lastLoadedSessionCharacterId = data.characterId || '';
                 return true;
             }
-        } catch (e) {
+        } catch (e: any) {
             console.warn('Chatbot session load failed', e);
         }
         return false;
     }
 
-    function switchSession(id) {
+    function switchSession(id: any) {
         saveSession();
         currentSessionId = id;
         chatHistory = [];
         conversationSummary = '';
         pendingImages = [];
         renderAttachThumbs();
-        const msgs = document.getElementById('cbMessages');
+        const msgs = (document.getElementById('cbMessages') as any);
         if (msgs) msgs.innerHTML = '';
         if (loadSession(id) && chatHistory.length > 0) {
-            chatHistory.forEach(msg => {
+            chatHistory.forEach((msg: any) => {
                 const role = msg.role === 'user' ? 'user' : 'bot';
                 const text = msg.parts?.[0]?.text || '';
                 if (text) appendMsg(role, text, false);
@@ -153,23 +152,23 @@ import {
     }
 
     function syncCharacterSelectAfterSessionLoad() {
-        window.ChatbotCharacters.syncAfterSessionLoad(lastLoadedSessionCharacterId);
+        window.ChatbotCharacters?.syncAfterSessionLoad(lastLoadedSessionCharacterId);
     }
 
     function renderSessionTabs() {
-        const container = document.getElementById('cbSessionTabs');
+        const container = (document.getElementById('cbSessionTabs') as any);
         if (!container) return;
         const index = getSessionsIndex();
         container.innerHTML = '';
-        index.forEach(s => {
+        index.forEach((s: any) => {
             const tab = document.createElement('button');
             tab.className = 'cb-session-tab' + (s.id === currentSessionId ? ' active' : '');
-            tab.innerHTML = `<span class="cb-session-tab-name">${Toolbox.escapeHtml(s.name)}</span>`;
+            tab.innerHTML = `<span class="cb-session-tab-name">${Toolbox.escapeHtml?.(s.name) ?? s.name}</span>`;
             if (index.length > 1) {
                 const del = document.createElement('span');
                 del.className = 'cb-session-tab-del';
                 del.textContent = '×';
-                del.onclick = e => {
+                del.onclick = (e: any) => {
                     e.stopPropagation();
                     deleteSession(s.id);
                     if (s.id === currentSessionId) {
@@ -183,9 +182,9 @@ import {
                 tab.appendChild(del);
             }
             tab.onclick = () => { if (s.id !== currentSessionId) switchSession(s.id); };
-            const nameSpan = tab.querySelector('.cb-session-tab-name');
+            const nameSpan = tab.querySelector('.cb-session-tab-name') as HTMLElement | null;
             if (nameSpan) {
-                nameSpan.ondblclick = e => {
+                nameSpan.ondblclick = (e: any) => {
                     e.stopPropagation();
                     const input = document.createElement('input');
                     input.className = 'cb-session-tab-edit';
@@ -195,12 +194,12 @@ import {
                         const newName = input.value.trim() || s.name;
                         s.name = newName;
                         const idx = getSessionsIndex();
-                        const found = idx.find(x => x.id === s.id);
+                        const found = idx.find((x: any) => x.id === s.id);
                         if (found) { found.name = newName; saveSessionsIndex(idx); }
                         renderSessionTabs();
                     };
                     input.onblur = commit;
-                    input.onkeydown = ev => { if (ev.key === 'Enter') commit(); if (ev.key === 'Escape') renderSessionTabs(); };
+                    input.onkeydown = (ev: any) => { if (ev.key === 'Enter') commit(); if (ev.key === 'Escape') renderSessionTabs(); };
                     nameSpan.replaceWith(input);
                     input.focus();
                     input.select();
@@ -222,7 +221,7 @@ import {
     }
 
     /* ===== 빌드 ===== */
-    function buildChat(container) {
+    function buildChat(container: any) {
         Mdd.linePreset('tool_run', { msg: '대화 상대가 필요해요?' });
 
         container.innerHTML = `
@@ -235,7 +234,7 @@ import {
                             <label class="field-label">🔑 API 키</label>
                             <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
-                                    프로필: <strong id="cbActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName() || '기본') : '-'}</strong>
+                                    프로필: <strong id="cbActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? ((Gemini as any).getActiveProfileName() || '기본') : '-'}</strong>
                                 </div>
                                 <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">설정</button>
                             </div>
@@ -280,7 +279,7 @@ import {
                             <div class="cb-shortcut-row"><span>새 세션</span><span class="cb-shortcut-key">Ctrl + N</span></div>
                             <div class="cb-shortcut-row"><span>단축키 안내</span><span class="cb-shortcut-key">Ctrl + /</span></div>
                             <div style="margin-top:12px;text-align:center;">
-                                <button class="btn btn-ghost" onclick="document.getElementById('cbShortcutsOverlay').classList.remove('open')">닫기</button>
+                                <button class="btn btn-ghost" onclick="(document.getElementById('cbShortcutsOverlay') as any).classList.remove('open')">닫기</button>
                             </div>
                         </div>
                     </div>
@@ -289,10 +288,10 @@ import {
                         <div class="cb-chat-header-actions">
                             <button class="btn btn-ghost" id="cbShortcutsBtn" title="키보드 단축키 (Ctrl+/)">⌨️</button>
                             <button class="btn btn-ghost" id="cbSearchToggle" title="대화 검색 (Ctrl+F)">🔍</button>
-                            <button class="btn btn-ghost" onclick="window._cb.importChat()">가져오기</button>
-                            <button class="btn btn-ghost" onclick="window._cb.exportChat('txt')">TXT</button>
-                            <button class="btn btn-ghost" onclick="window._cb.exportChat('json')">JSON</button>
-                            <button class="btn btn-ghost" onclick="window._cb.clearChat()">초기화</button>
+                            <button class="btn btn-ghost" onclick="(window as any)._cb.importChat()">가져오기</button>
+                            <button class="btn btn-ghost" onclick="(window as any)._cb.exportChat('txt')">TXT</button>
+                            <button class="btn btn-ghost" onclick="(window as any)._cb.exportChat('json')">JSON</button>
+                            <button class="btn btn-ghost" onclick="(window as any)._cb.clearChat()">초기화</button>
                         </div>
                     </div>
                     <div class="cb-session-bar" id="cbSessionTabs"></div>
@@ -312,8 +311,8 @@ import {
                         <div class="cb-input-row">
                             <textarea id="cbInput" placeholder="메시지를 입력하세요... (이미지를 드래그하거나 붙여넣기 가능)"></textarea>
                             <button class="cb-mic-btn" id="cbMicBtn" title="음성 입력" aria-label="음성 입력">🎤</button>
-                            <button class="cb-send-btn" id="cbSendBtn" onclick="window._cb.send()" aria-label="메시지 전송">➤</button>
-                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="window._cb.stopStream()" aria-label="응답 중지">■ 중지</button>
+                            <button class="cb-send-btn" id="cbSendBtn" onclick="(window as any)._cb.send()" aria-label="메시지 전송">➤</button>
+                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="(window as any)._cb.stopStream()" aria-label="응답 중지">■ 중지</button>
                         </div>
                         <div class="cb-token-bar">
                             <span id="cbTokenDisplay">Tokens: 0</span>
@@ -420,9 +419,9 @@ import {
 
         requestAnimationFrame(() => {
             // 모델 셀렉트
-            const sel = document.getElementById('cbModelSelect');
+            const sel = (document.getElementById('cbModelSelect') as any);
             if (sel) {
-                Gemini.MODELS.gemini.forEach(m => {
+                (Gemini as any).MODELS.gemini.forEach((m: any) => {
                     const o = document.createElement('option');
                     o.value = m.id; o.textContent = m.name;
                     if (m.isDefault) o.selected = true;
@@ -431,14 +430,14 @@ import {
             }
 
             // 설정 복원
-            const savedModel = Toolbox.getPref('cb_model');
+            const savedModel = Toolbox.getPref('cb_model', '');
             if (savedModel && sel) { sel.value = savedModel; }
             if (sel) sel.addEventListener('change', () => Toolbox.setPref('cb_model', sel.value));
 
-            const surfaceSel = document.getElementById('cbApiSurfaceSelect');
+            const surfaceSel = (document.getElementById('cbApiSurfaceSelect') as any);
             function syncWebSearchForApiSurface() {
                 const v = surfaceSel instanceof HTMLSelectElement ? surfaceSel.value : ChatbotApiSurfaceUi.studio;
-                const ws = document.getElementById('cbWebSearch');
+                const ws = (document.getElementById('cbWebSearch') as any);
                 const row = ws?.closest('.cb-option-row');
                 if (ws instanceof HTMLInputElement) {
                     if (v === ChatbotApiSurfaceUi.vertex) {
@@ -452,7 +451,7 @@ import {
                 }
             }
             if (surfaceSel instanceof HTMLSelectElement) {
-                const savedSurface = Toolbox.getPref(CB_API_SURFACE_PREF_KEY);
+                const savedSurface = Toolbox.getPref(CB_API_SURFACE_PREF_KEY, '');
                 if (savedSurface === ChatbotApiSurfaceUi.vertex || savedSurface === ChatbotApiSurfaceUi.studio) {
                     surfaceSel.value = savedSurface;
                 }
@@ -464,9 +463,9 @@ import {
             }
 
             // 시스템 프롬프트 프리셋 (__none__ / 직접입력 / 명명 프리셋)
-            const presetSel = document.getElementById('cbSystemPreset');
-            const sysPromptTa = document.getElementById('cbSystemPrompt');
-            const savedPreset = Toolbox.getPref('cb_preset');
+            const presetSel = (document.getElementById('cbSystemPreset') as any);
+            const sysPromptTa = (document.getElementById('cbSystemPrompt') as any);
+            const savedPreset = Toolbox.getPref('cb_preset', '');
             function applySystemPresetUi() {
                 if (!presetSel || !sysPromptTa) return;
                 const v = presetSel.value;
@@ -477,12 +476,12 @@ import {
                 } else {
                     sysPromptTa.readOnly = false;
                     sysPromptTa.placeholder = 'AI의 역할, 성격, 답변 스타일 등을 지정하세요...';
-                    if (window.ChatbotPrompt.SYSTEM_PROMPT_PRESETS[v]) sysPromptTa.value = window.ChatbotPrompt.SYSTEM_PROMPT_PRESETS[v];
+                    if (window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS[v]) sysPromptTa.value = window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS[v];
                 }
             }
             if (presetSel && sysPromptTa) {
                 if (typeof savedPreset === 'string') {
-                    const hasOpt = Array.from(presetSel.options).some(o => o.value === savedPreset);
+                    const hasOpt = Array.from(presetSel.options as any[]).some((o: any) => o.value === savedPreset);
                     if (hasOpt) presetSel.value = savedPreset;
                 }
                 applySystemPresetUi();
@@ -493,18 +492,18 @@ import {
             }
 
             // Temperature 슬라이더 표시 갱신
-            const tempSlider = document.getElementById('cbTemperature');
-            const tempValueEl = document.getElementById('cbTempValue');
-            const savedTemp = Toolbox.getPref('cb_temperature');
+            const tempSlider = (document.getElementById('cbTemperature') as any);
+            const tempValueEl = (document.getElementById('cbTempValue') as any);
+            const savedTemp = Toolbox.getPref('cb_temperature', '');
             if (tempSlider && tempValueEl) {
                 if (savedTemp !== undefined) { tempSlider.value = savedTemp; tempValueEl.textContent = savedTemp; }
                 tempSlider.addEventListener('input', () => { tempValueEl.textContent = tempSlider.value; Toolbox.setPref('cb_temperature', tempSlider.value); });
             }
 
             // 이미지 첨부
-            const attachBtn = document.getElementById('cbAttachBtn');
-            const fileInput = document.getElementById('cbFileInput');
-            const inputArea = document.getElementById('cbInputArea');
+            const attachBtn = (document.getElementById('cbAttachBtn') as any);
+            const fileInput = (document.getElementById('cbFileInput') as any);
+            const inputArea = (document.getElementById('cbInputArea') as any);
             if (attachBtn && fileInput) {
                 attachBtn.onclick = () => fileInput.click();
                 fileInput.onchange = async () => {
@@ -515,9 +514,9 @@ import {
                 };
             }
             if (inputArea) {
-                inputArea.ondragover = e => { e.preventDefault(); inputArea.classList.add('drag-over'); };
+                inputArea.ondragover = (e: any) => { e.preventDefault(); inputArea.classList.add('drag-over'); };
                 inputArea.ondragleave = () => inputArea.classList.remove('drag-over');
-                inputArea.ondrop = async e => {
+                inputArea.ondrop = async (e: any) => {
                     e.preventDefault(); inputArea.classList.remove('drag-over');
                     for (const f of e.dataTransfer.files) {
                         if (f.type.startsWith('image/')) addPendingImage(await fileToBase64(f));
@@ -526,15 +525,15 @@ import {
             }
 
             // Enter 키 + 클립보드 이미지 붙여넣기
-            const chatInput = document.getElementById('cbInput');
+            const chatInput = (document.getElementById('cbInput') as any);
             if (chatInput) {
-                chatInput.addEventListener('keydown', e => {
+                chatInput.addEventListener('keydown', (e: any) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        window._cb.send();
+                        (window as any)._cb.send();
                     }
                 });
-                chatInput.addEventListener('paste', async e => {
+                chatInput.addEventListener('paste', async (e: any) => {
                     const items = e.clipboardData?.items;
                     if (!items) return;
                     for (const item of items) {
@@ -548,9 +547,9 @@ import {
             }
 
             // 음성 입력 (Web Speech API)
-            const micBtn = document.getElementById('cbMicBtn');
+            const micBtn = (document.getElementById('cbMicBtn') as any);
             if (micBtn) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
                 if (SpeechRecognition) {
                     const recognition = new SpeechRecognition();
                     recognition.lang = 'ko-KR';
@@ -578,14 +577,14 @@ import {
                             chatInput.focus();
                         }
                     };
-                    recognition.onresult = (e) => {
+                    recognition.onresult = (e: any) => {
                         let interim = '';
                         for (let i = e.resultIndex; i < e.results.length; i++) {
                             if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
                             else interim += e.results[i][0].transcript;
                         }
                     };
-                    recognition.onerror = (e) => {
+                    recognition.onerror = (e: any) => {
                         if (e.error !== 'aborted') Toolbox.showToast('음성 인식 오류: ' + e.error, 'error');
                     };
                 } else {
@@ -603,12 +602,12 @@ import {
             renderSessionTabs();
 
             // 세션 데이터 먼저 로드 → 캐릭터 선택 복원에 사용
-            const msgs = document.getElementById('cbMessages');
+            const msgs = (document.getElementById('cbMessages') as any);
             const sessionLoaded = msgs && loadSession(currentSessionId);
-            window.ChatbotCharacters.initCharacterUi({
+            window.ChatbotCharacters?.initCharacterUi({
                 saveSession,
                 getChatHistoryLength: () => chatHistory.length,
-                appendBotFirstMes: (fm) => {
+                appendBotFirstMes: (fm: any) => {
                     appendMsg('bot', fm, false);
                     chatHistory.push({ role: 'model', parts: [{ text: fm }] });
                     saveSession();
@@ -617,7 +616,7 @@ import {
             });
             if (msgs) {
                 if (sessionLoaded && chatHistory.length > 0) {
-                    chatHistory.forEach(msg => {
+                    chatHistory.forEach((msg: any) => {
                         const role = msg.role === 'user' ? 'user' : 'bot';
                         const text = msg.parts?.[0]?.text || '';
                         if (text) appendMsg(role, text, false);
@@ -630,15 +629,15 @@ import {
             }
 
             // 대화 검색
-            const searchToggle = document.getElementById('cbSearchToggle');
-            const searchBar = document.getElementById('cbSearchBar');
-            const searchInput = document.getElementById('cbSearchInput');
-            const searchNav = document.getElementById('cbSearchNav');
-            const searchPrev = document.getElementById('cbSearchPrev');
-            const searchNext = document.getElementById('cbSearchNext');
-            const searchClose = document.getElementById('cbSearchClose');
+            const searchToggle = (document.getElementById('cbSearchToggle') as any);
+            const searchBar = (document.getElementById('cbSearchBar') as any);
+            const searchInput = (document.getElementById('cbSearchInput') as any);
+            const searchNav = (document.getElementById('cbSearchNav') as any);
+            const searchPrev = (document.getElementById('cbSearchPrev') as any);
+            const searchNext = (document.getElementById('cbSearchNext') as any);
+            const searchClose = (document.getElementById('cbSearchClose') as any);
             if (searchToggle && searchBar && searchInput) {
-                let searchResults = [];
+                let searchResults: any[] = [];
                 let searchIdx = -1;
 
                 function toggleSearch() {
@@ -649,7 +648,7 @@ import {
 
                 function clearHighlights() {
                     if (!msgs) return;
-                    msgs.querySelectorAll('.cb-search-highlight').forEach(el => {
+                    msgs.querySelectorAll('.cb-search-highlight').forEach((el: any) => {
                         const parent = el.parentNode;
                         parent.replaceChild(document.createTextNode(el.textContent), el);
                         parent.normalize();
@@ -663,16 +662,16 @@ import {
                     const q = searchInput.value.trim();
                     if (!q || !msgs) { searchNav.textContent = ''; return; }
                     const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-                    const walker = document.createTreeWalker(msgs, NodeFilter.SHOW_TEXT, null, false);
-                    const matches = [];
+                    const walker = document.createTreeWalker(msgs, NodeFilter.SHOW_TEXT);
+                    const matches: any[] = [];
                     while (walker.nextNode()) {
                         const node = walker.currentNode;
-                        if (node.parentElement.closest('pre, code, .cb-code-header')) continue;
-                        if (regex.test(node.textContent)) matches.push(node);
+                        if ((node.parentElement as any)?.closest('pre, code, .cb-code-header')) continue;
+                        if (regex.test(node.textContent || '')) matches.push(node);
                         regex.lastIndex = 0;
                     }
-                    matches.forEach(node => {
-                        const text = node.textContent;
+                    matches.forEach((node: any) => {
+                        const text = node.textContent || '';
                         const parts = text.split(regex);
                         if (parts.length <= 1) return;
                         const frag = document.createDocumentFragment();
@@ -688,7 +687,7 @@ import {
                             lastIdx = regex.lastIndex;
                         }
                         if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
-                        node.parentNode.replaceChild(frag, node);
+                        (node.parentNode as any)?.replaceChild(frag, node);
                     });
                     searchResults = Array.from(msgs.querySelectorAll('.cb-search-highlight'));
                     searchIdx = searchResults.length > 0 ? 0 : -1;
@@ -698,11 +697,11 @@ import {
                 function updateSearchNav() {
                     if (searchResults.length === 0) { searchNav.textContent = '결과 없음'; return; }
                     searchNav.textContent = `${searchIdx + 1} / ${searchResults.length}`;
-                    searchResults.forEach((el, i) => el.classList.toggle('current', i === searchIdx));
+                    searchResults.forEach((el: any, i: number) => el.classList.toggle('current', i === searchIdx));
                     searchResults[searchIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
 
-                function navigate(dir) {
+                function navigate(dir: any) {
                     if (searchResults.length === 0) return;
                     searchIdx = (searchIdx + dir + searchResults.length) % searchResults.length;
                     updateSearchNav();
@@ -713,7 +712,7 @@ import {
                 searchInput.addEventListener('input', doSearch);
                 searchPrev.addEventListener('click', () => navigate(-1));
                 searchNext.addEventListener('click', () => navigate(1));
-                searchInput.addEventListener('keydown', e => {
+                searchInput.addEventListener('keydown', (e: any) => {
                     if (e.key === 'Enter') { e.preventDefault(); navigate(e.shiftKey ? -1 : 1); }
                     if (e.key === 'Escape') toggleSearch();
                 });
@@ -721,24 +720,24 @@ import {
             }
 
             // 단축키 안내 버튼
-            const shortcutsBtn = document.getElementById('cbShortcutsBtn');
-            const shortcutsOverlay = document.getElementById('cbShortcutsOverlay');
+            const shortcutsBtn = (document.getElementById('cbShortcutsBtn') as any);
+            const shortcutsOverlay = (document.getElementById('cbShortcutsOverlay') as any);
             if (shortcutsBtn && shortcutsOverlay) {
                 shortcutsBtn.addEventListener('click', () => shortcutsOverlay.classList.toggle('open'));
-                shortcutsOverlay.addEventListener('click', e => {
+                shortcutsOverlay.addEventListener('click', (e: any) => {
                     if (e.target === shortcutsOverlay) shortcutsOverlay.classList.remove('open');
                 });
             }
 
             // 글로벌 키보드 단축키 (단일 리스너)
-            document.addEventListener('keydown', e => {
-                const chatEl = document.querySelector('.cb-chat');
+            document.addEventListener('keydown', (e: any) => {
+                const chatEl = document.querySelector('.cb-chat') as any;
                 if (!chatEl || chatEl.offsetParent === null) return;
 
                 if (e.ctrlKey && e.key === 'f') {
                     e.preventDefault();
-                    const sb = document.getElementById('cbSearchBar');
-                    const si = document.getElementById('cbSearchInput');
+                    const sb = (document.getElementById('cbSearchBar') as any);
+                    const si = (document.getElementById('cbSearchInput') as any);
                     if (sb && si) {
                         if (!sb.classList.contains('open')) sb.classList.add('open');
                         si.focus();
@@ -761,7 +760,7 @@ import {
             });
 
             // 랜덤 생성기 → 이야기 만들기 연동
-            const chatbotPage = document.getElementById('page-chatbot');
+            const chatbotPage = (document.getElementById('page-chatbot') as any);
             if (chatbotPage) {
                 const checkStoryKeywords = function () {
                     try {
@@ -770,10 +769,10 @@ import {
                             sessionStorage.removeItem('toolbox_chatbot_story_keywords');
                             const keywords = JSON.parse(raw);
                             if (Array.isArray(keywords) && keywords.length > 0) {
-                                const input = document.getElementById('cbInput');
-                                const presetSel = document.getElementById('cbSystemPreset');
-                                const sysPromptTa = document.getElementById('cbSystemPrompt');
-                                if (presetSel && sysPromptTa && window.ChatbotPrompt.SYSTEM_PROMPT_PRESETS.writer) {
+                                const input = (document.getElementById('cbInput') as any);
+                                const presetSel = (document.getElementById('cbSystemPreset') as any);
+                                const sysPromptTa = (document.getElementById('cbSystemPrompt') as any);
+                                if (presetSel && sysPromptTa && window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS.writer) {
                                     presetSel.value = 'writer';
                                     Toolbox.setPref('cb_preset', 'writer');
                                     applySystemPresetUi();
@@ -794,10 +793,10 @@ import {
         });
     }
 
-    const { displayTextForStream, extractKarmoImage, appendCharacterImageAfterMessage } = window.ChatbotKarmoImage;
+    const { displayTextForStream, extractKarmoImage, appendCharacterImageAfterMessage } = (window.ChatbotKarmoImage || {}) as any;
 
     /** 메모리 요약 블록 제거 후 KARMO_IMAGE 파싱 (스트리밍 send / regenerate 공통) */
-    function parseStreamResponseText(fullText, useMemory) {
+    function parseStreamResponseText(fullText: any, useMemory: any) {
         let t = fullText;
         let newSummary;
         if (useMemory) {
@@ -811,11 +810,11 @@ import {
         return { responseText: imgParsed.cleanText, imgParsed, newSummary };
     }
 
-    const renderMarkdown = window.ChatbotMarkdown.renderMarkdown;
+    const renderMarkdown: any = window.ChatbotMarkdown?.renderMarkdown ?? ((s: string) => s);
 
     /* ===== 헬퍼 ===== */
-    function appendMsg(role, text, isError = false) {
-        const msgs = document.getElementById('cbMessages');
+    function appendMsg(role: any, text: any, isError = false) {
+        const msgs = (document.getElementById('cbMessages') as any);
         if (!msgs) return;
         const wrap = document.createElement('div');
         wrap.className = 'cb-msg-wrap';
@@ -839,20 +838,20 @@ import {
             const regen = document.createElement('button');
             regen.className = 'btn btn-ghost';
             regen.textContent = '🔄 재생성';
-            regen.onclick = () => window._cb.regenerate();
+            regen.onclick = () => (window as any)._cb.regenerate();
             wrap.appendChild(regen);
         }
         msgs.appendChild(wrap);
         if (role === 'bot' && !isError && typeof Prism !== 'undefined') {
-            div.querySelectorAll('pre code[class*="language-"]').forEach(el => Prism.highlightElement(el));
+            div.querySelectorAll('pre code[class*="language-"]').forEach((el: any) => Prism!.highlightElement(el));
         }
         msgs.scrollTop = msgs.scrollHeight;
     }
 
-    function updateTokens(usage) {
+    function updateTokens(usage: any) {
         if (!usage) return;
         const total = usage.totalTokenCount || 0;
-        const display = document.getElementById('cbTokenDisplay');
+        const display = (document.getElementById('cbTokenDisplay') as any);
         if (display) {
             display.textContent = `Tokens: ${total.toLocaleString()}`;
             display.style.color = 'var(--text-tertiary)';
@@ -861,7 +860,7 @@ import {
 
     /* ===== 스트리밍 봇 메시지 헬퍼 ===== */
     function appendStreamMsg() {
-        const msgs = document.getElementById('cbMessages');
+        const msgs = (document.getElementById('cbMessages') as any);
         if (!msgs) return null;
         const wrap = document.createElement('div');
         wrap.className = 'cb-msg-wrap';
@@ -879,11 +878,11 @@ import {
         return { div, copyBtn, wrap };
     }
 
-    function finalizeStreamMsg(el, fullText) {
+    function finalizeStreamMsg(el: any, fullText: any) {
         if (!el) return;
         el.div.innerHTML = renderMarkdown(fullText);
         if (typeof Prism !== 'undefined') {
-            el.div.querySelectorAll('pre code[class*="language-"]').forEach(c => Prism.highlightElement(c));
+            el.div.querySelectorAll('pre code[class*="language-"]').forEach((c: any) => Prism!.highlightElement(c));
         }
         el.copyBtn.onclick = () => {
             navigator.clipboard.writeText(fullText).then(() => Toolbox.showToast('복사됨')).catch(() => {});
@@ -891,65 +890,65 @@ import {
         const regen = document.createElement('button');
         regen.className = 'btn btn-ghost';
         regen.textContent = '🔄 재생성';
-        regen.onclick = () => window._cb.regenerate();
+        regen.onclick = () => (window as any)._cb.regenerate();
         el.wrap.appendChild(regen);
     }
 
-    let currentStreamAbort = null;
+    let currentStreamAbort: AbortController | null = null;
 
     /* ===== 액션 ===== */
-    window._cb = {
+    (window as any)._cb = {
         async send() {
-            const input = document.getElementById('cbInput');
+            const input = (document.getElementById('cbInput') as any);
             const text = input?.value.trim();
             if (!text) return;
 
             const apiSurface = getChatbotApiSurfaceUi();
             if (chatbotUiSurfaceToPackage(apiSurface) === 'vertex') {
-                if (!Gemini.requireVertexApiKey()) return;
-                if (!(Toolbox.getPref('ig_vertex_project_id') || '').trim()) {
+                if (!(Gemini as any).requireVertexApiKey()) return;
+                if (!(Toolbox.getPref('ig_vertex_project_id', '') || '').trim()) {
                     Toolbox.showToast('Vertex 채팅: 사용자 설정에 GCP 프로젝트 ID를 입력하세요.', 'error');
                     return;
                 }
-            } else if (!Gemini.requireApiKey()) {
+            } else if (!(Gemini as any).requireApiKey()) {
                 return;
             }
 
             appendMsg('user', text + (pendingImages.length ? ` [📎 이미지 ${pendingImages.length}장]` : ''));
             input.value = '';
 
-            const parts = [{ text }];
-            pendingImages.forEach(img => {
+            const parts: any[] = [{ text }];
+            pendingImages.forEach((img: any) => {
                 parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } });
             });
             pendingImages = [];
             renderAttachThumbs();
             chatHistory.push({ role: 'user', parts });
 
-            const useMemory = document.getElementById('cbMemory')?.checked;
-            const useWebSearch = document.getElementById('cbWebSearch')?.checked;
-            const systemPrompt = window.ChatbotPrompt.assembleSystemPrompt({ useMemory, conversationSummary });
+            const useMemory = (document.getElementById('cbMemory') as any)?.checked;
+            const useWebSearch = (document.getElementById('cbWebSearch') as any)?.checked;
+            const systemPrompt = window.ChatbotPrompt?.assembleSystemPrompt({ useMemory, conversationSummary });
 
-            const modelSel = document.getElementById('cbModelSelect');
-            const modelId = modelSel?.value || Gemini.getDefaultModel('gemini');
-            const tempInput = document.getElementById('cbTemperature');
+            const modelSel = (document.getElementById('cbModelSelect') as any);
+            const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
+            const tempInput = (document.getElementById('cbTemperature') as any);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
 
-            const streamEl = appendStreamMsg();
+            const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
-            const sendBtn = document.getElementById('cbSendBtn');
-            const stopBtn = document.getElementById('cbStopBtn');
+            const sendBtn = (document.getElementById('cbSendBtn') as any);
+            const stopBtn = (document.getElementById('cbStopBtn') as any);
             if (sendBtn) sendBtn.style.display = 'none';
             if (stopBtn) stopBtn.style.display = '';
 
             try {
                 const stream =
                     chatbotUiSurfaceToPackage(apiSurface) === 'vertex'
-                        ? await Gemini.callVertexChatStream(chatHistory, systemPrompt, modelId, {
+                        ? await (Gemini as any).callVertexChatStream(chatHistory, systemPrompt, modelId, {
                               temperature,
                               signal: currentStreamAbort.signal
                           })
-                        : await Gemini.callChatStream(chatHistory, systemPrompt, modelId, {
+                        : await (Gemini as any).callChatStream(chatHistory, systemPrompt, modelId, {
                               webSearch: useWebSearch,
                               temperature,
                               signal: currentStreamAbort.signal
@@ -966,7 +965,7 @@ import {
                         requestAnimationFrame(() => {
                             renderPending = false;
                             streamEl.div.innerHTML = renderMarkdown(displayTextForStream(fullText)) + '<span class="cb-cursor-blink">▌</span>';
-                            const msgs = document.getElementById('cbMessages');
+                            const msgs = (document.getElementById('cbMessages') as any);
                             if (msgs) msgs.scrollTop = msgs.scrollHeight;
                         });
                     }
@@ -975,10 +974,10 @@ import {
                 const { responseText, imgParsed, newSummary } = parseStreamResponseText(fullText, useMemory);
                 if (newSummary !== undefined) conversationSummary = newSummary;
 
-                const autoImgOn = document.getElementById('cbCharAutoImage')?.checked;
-                const charSel = document.getElementById('cbCharacterSelect');
+                const autoImgOn = (document.getElementById('cbCharAutoImage') as any)?.checked;
+                const charSel = (document.getElementById('cbCharacterSelect') as any);
                 const charForImg = charSel?.value
-                    ? window.ChatbotCharacters.getCharacterById(charSel.value)
+                    ? window.ChatbotCharacters?.getCharacterById(charSel.value)
                     : null;
 
                 finalizeStreamMsg(streamEl, responseText);
@@ -993,7 +992,7 @@ import {
                     void appendCharacterImageAfterMessage(streamEl.wrap, charForImg, imgParsed.spec);
                 }
 
-            } catch (e) {
+            } catch (e: any) {
                 if (streamEl.wrap.parentNode) streamEl.wrap.remove();
                 if (e.message !== '요청이 취소되었습니다.') {
                     appendMsg('bot', `오류: ${e.message}`, true);
@@ -1021,7 +1020,7 @@ import {
             if (lastModel?.role === 'model') {
                 chatHistory.pop();
             }
-            const msgs = document.getElementById('cbMessages');
+            const msgs = (document.getElementById('cbMessages') as any);
             if (msgs) {
                 const wraps = msgs.querySelectorAll('.cb-msg-wrap');
                 const last = wraps[wraps.length - 1];
@@ -1034,39 +1033,39 @@ import {
 
             const apiSurface = getChatbotApiSurfaceUi();
             if (chatbotUiSurfaceToPackage(apiSurface) === 'vertex') {
-                if (!Gemini.requireVertexApiKey()) return;
-                if (!(Toolbox.getPref('ig_vertex_project_id') || '').trim()) {
+                if (!(Gemini as any).requireVertexApiKey()) return;
+                if (!(Toolbox.getPref('ig_vertex_project_id', '') || '').trim()) {
                     Toolbox.showToast('Vertex 채팅: 사용자 설정에 GCP 프로젝트 ID를 입력하세요.', 'error');
                     return;
                 }
-            } else if (!Gemini.requireApiKey()) {
+            } else if (!(Gemini as any).requireApiKey()) {
                 return;
             }
 
-            const useMemory = document.getElementById('cbMemory')?.checked;
-            const useWebSearch = document.getElementById('cbWebSearch')?.checked;
-            const systemPrompt = window.ChatbotPrompt.assembleSystemPrompt({ useMemory, conversationSummary });
+            const useMemory = (document.getElementById('cbMemory') as any)?.checked;
+            const useWebSearch = (document.getElementById('cbWebSearch') as any)?.checked;
+            const systemPrompt = window.ChatbotPrompt?.assembleSystemPrompt({ useMemory, conversationSummary });
 
-            const modelSel = document.getElementById('cbModelSelect');
-            const modelId = modelSel?.value || Gemini.getDefaultModel('gemini');
-            const tempInput = document.getElementById('cbTemperature');
+            const modelSel = (document.getElementById('cbModelSelect') as any);
+            const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
+            const tempInput = (document.getElementById('cbTemperature') as any);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
 
-            const streamEl = appendStreamMsg();
+            const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
-            const sendBtn = document.getElementById('cbSendBtn');
-            const stopBtn = document.getElementById('cbStopBtn');
+            const sendBtn = (document.getElementById('cbSendBtn') as any);
+            const stopBtn = (document.getElementById('cbStopBtn') as any);
             if (sendBtn) sendBtn.style.display = 'none';
             if (stopBtn) stopBtn.style.display = '';
 
             try {
                 const stream =
                     chatbotUiSurfaceToPackage(apiSurface) === 'vertex'
-                        ? await Gemini.callVertexChatStream(chatHistory, systemPrompt, modelId, {
+                        ? await (Gemini as any).callVertexChatStream(chatHistory, systemPrompt, modelId, {
                               temperature,
                               signal: currentStreamAbort.signal
                           })
-                        : await Gemini.callChatStream(chatHistory, systemPrompt, modelId, {
+                        : await (Gemini as any).callChatStream(chatHistory, systemPrompt, modelId, {
                               webSearch: useWebSearch,
                               temperature,
                               signal: currentStreamAbort.signal
@@ -1082,7 +1081,7 @@ import {
                         requestAnimationFrame(() => {
                             renderPending2 = false;
                             streamEl.div.innerHTML = renderMarkdown(displayTextForStream(fullText)) + '<span class="cb-cursor-blink">▌</span>';
-                            const msgsEl = document.getElementById('cbMessages');
+                            const msgsEl = (document.getElementById('cbMessages') as any);
                             if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
                         });
                     }
@@ -1090,10 +1089,10 @@ import {
                 const { responseText, imgParsed: imgParsedR, newSummary: newSummaryR } = parseStreamResponseText(fullText, useMemory);
                 if (newSummaryR !== undefined) conversationSummary = newSummaryR;
 
-                const autoImgR = document.getElementById('cbCharAutoImage')?.checked;
-                const charSelR = document.getElementById('cbCharacterSelect');
+                const autoImgR = (document.getElementById('cbCharAutoImage') as any)?.checked;
+                const charSelR = (document.getElementById('cbCharacterSelect') as any);
                 const charForImgR = charSelR?.value
-                    ? window.ChatbotCharacters.getCharacterById(charSelR.value)
+                    ? window.ChatbotCharacters?.getCharacterById(charSelR.value)
                     : null;
                 finalizeStreamMsg(streamEl, responseText);
                 updateTokens(lastUsage);
@@ -1104,7 +1103,7 @@ import {
                 if (autoImgR && imgParsedR.spec?.show && charForImgR) {
                     void appendCharacterImageAfterMessage(streamEl.wrap, charForImgR, imgParsedR.spec);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 if (streamEl.wrap.parentNode) streamEl.wrap.remove();
                 if (e.message !== '요청이 취소되었습니다.') {
                     appendMsg('bot', `오류: ${e.message}`, true);
@@ -1123,9 +1122,9 @@ import {
             pendingImages = [];
             renderAttachThumbs();
             if (currentSessionId) {
-                try { sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + currentSessionId); } catch (e) {}
+                try { sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + currentSessionId); } catch (e: any) {}
             }
-            const msgs = document.getElementById('cbMessages');
+            const msgs = (document.getElementById('cbMessages') as any);
             if (msgs) {
                 msgs.innerHTML = '';
                 appendMsg('bot', '대화가 초기화되었습니다. 무엇을 도와드릴까요?');
@@ -1167,7 +1166,7 @@ import {
                     chatHistory = imported;
                     saveSession();
                     renderSessionTabs();
-                    const msgs = document.getElementById('cbMessages');
+                    const msgs = (document.getElementById('cbMessages') as any);
                     if (msgs) {
                         msgs.innerHTML = '';
                         chatHistory.forEach(msg => {
@@ -1178,7 +1177,7 @@ import {
                         msgs.scrollTop = msgs.scrollHeight;
                     }
                     Toolbox.showToast(`${imported.length}개 메시지를 가져왔습니다.`);
-                } catch (e) {
+                } catch (e: any) {
                     Toolbox.showToast('가져오기 실패: ' + e.message, 'error');
                 }
             };

@@ -15,7 +15,6 @@
  *
  * 모델·URL·Vertex 기본값 SSOT: packages/karmolab-ai (KarmoLabAI — AI Studio + Vertex)
  */
-// @ts-nocheck — large API surface; narrow types incrementally later (Toolbox/Gemini shapes)
 import {
   MODEL_CATALOG as MODELS,
   getDefaultModelId,
@@ -71,7 +70,7 @@ const Gemini = (() => {
         return store;
     }
 
-    function saveKeyStore(store) {
+    function saveKeyStore(store: any) {
         localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(store));
     }
 
@@ -85,27 +84,27 @@ const Gemini = (() => {
         return store.activeId;
     }
 
-    function setActiveProfileId(id) {
+    function setActiveProfileId(id: any) {
         const store = getKeyStore();
-        if (!store.profiles?.some(p => p.id === id)) return;
+        if (!store.profiles?.some((p: any) => p.id === id)) return;
         store.activeId = id;
         saveKeyStore(store);
     }
 
     function getActiveProfileName() {
         const store = getKeyStore();
-        const p = store.profiles?.find(p => p.id === store.activeId);
+        const p = store.profiles?.find((p: any) => p.id === store.activeId);
         return p ? p.name : '';
     }
 
-    function getApiKey(id = null) {
+    function getApiKey(id: any = null) {
         const store = getKeyStore();
         const pid = id || store.activeId;
-        const p = store.profiles?.find(p => p.id === pid);
+        const p = store.profiles?.find((p: any) => p.id === pid);
         return p ? (p.key || '') : '';
     }
 
-    function setApiKey(key, id = null, nameOverride) {
+    function setApiKey(key: any, id: any = null, nameOverride?: any) {
         const store = getKeyStore();
         let pid = id || store.activeId;
         if (!pid) {
@@ -114,7 +113,7 @@ const Gemini = (() => {
             store.profiles.push({ id: pid, name: nameOverride || '프로필', key: '' });
             store.activeId = pid;
         }
-        const idx = (store.profiles || []).findIndex(p => p.id === pid);
+        const idx = (store.profiles || []).findIndex((p: any) => p.id === pid);
         if (idx >= 0) {
             store.profiles[idx].key = key;
             if (nameOverride) store.profiles[idx].name = nameOverride;
@@ -141,7 +140,7 @@ const Gemini = (() => {
         }
     }
 
-    function setVertexApiKey(key) {
+    function setVertexApiKey(key: any) {
         try {
             if (key) localStorage.setItem(VERTEX_API_KEY_STORAGE, key);
             else localStorage.removeItem(VERTEX_API_KEY_STORAGE);
@@ -159,7 +158,7 @@ const Gemini = (() => {
     }
 
     /* ===== 기본 모델 (catalog: karmolab-ai) ===== */
-    function getDefaultModel(provider = 'gemini') {
+    function getDefaultModel(provider: any = 'gemini') {
         return getDefaultModelId(provider);
     }
 
@@ -167,27 +166,27 @@ const Gemini = (() => {
     const VERTEX_CHAT_PROJECT_PREF = 'ig_vertex_project_id';
     const VERTEX_CHAT_LOCATION_PREF = 'ig_vertex_location';
 
-    function getVertexChatContext(options = {}) {
+    function getVertexChatContext(options: any = {}) {
         const projectId = String(
-            options.projectId != null ? options.projectId : Toolbox.getPref(VERTEX_CHAT_PROJECT_PREF) || ''
+            options.projectId != null ? options.projectId : Toolbox.getPref?.(VERTEX_CHAT_PROJECT_PREF, '') || ''
         ).trim();
         const locRaw =
-            options.location != null ? options.location : Toolbox.getPref(VERTEX_CHAT_LOCATION_PREF) || DEFAULT_VERTEX_LOCATION;
+            options.location != null ? options.location : Toolbox.getPref?.(VERTEX_CHAT_LOCATION_PREF, '') || DEFAULT_VERTEX_LOCATION;
         const location = String(locRaw || DEFAULT_VERTEX_LOCATION).trim() || DEFAULT_VERTEX_LOCATION;
         return { projectId, location };
     }
 
     /* ===== API 요청/응답 히스토리 (디버깅용, 메모리만) ===== */
-    const apiHistory = [];
+    const apiHistory: any[] = [];
     const API_HISTORY_MAX = 20;
 
-    function recordApiCall(entry) {
-        const copy = { ...entry, ts: new Date().toISOString() };
+    function recordApiCall(entry: any) {
+        const copy: any = { ...entry, ts: new Date().toISOString() };
         if (copy.requestBody && typeof copy.requestBody === 'object') {
             try {
                 copy.requestBody = JSON.parse(JSON.stringify(copy.requestBody));
-                copy.requestBody.contents?.forEach(c => {
-                    c.parts?.forEach(p => {
+                copy.requestBody.contents?.forEach((c: any) => {
+                    c.parts?.forEach((p: any) => {
                         if (p.inlineData?.data) {
                             const len = String(p.inlineData.data).length;
                             p.inlineData.data = `[base64 ${len} chars]`;
@@ -198,15 +197,15 @@ const Gemini = (() => {
         }
         if (copy.responseBody && copy.responseBody.candidates) {
             copy.responseBody = JSON.parse(JSON.stringify(copy.responseBody));
-            copy.responseBody.candidates?.forEach(c => {
-                c.content?.parts?.forEach(p => {
+            copy.responseBody.candidates?.forEach((c: any) => {
+                c.content?.parts?.forEach((p: any) => {
                     if (p.inlineData?.data) p.inlineData.data = `[base64 ${p.inlineData.data.length} chars]`;
                 });
             });
         }
         if (copy.responseBody?.predictions) {
             copy.responseBody = JSON.parse(JSON.stringify(copy.responseBody));
-            copy.responseBody.predictions?.forEach(p => {
+            copy.responseBody.predictions?.forEach((p: any) => {
                 if (p.bytesBase64Encoded) p.bytesBase64Encoded = `[base64 ${p.bytesBase64Encoded.length} chars]`;
             });
         }
@@ -219,12 +218,12 @@ const Gemini = (() => {
     function clearApiHistory() { apiHistory.length = 0; }
 
     /* ===== HTTP 헬퍼 ===== */
-    function maskKey(key) {
+    function maskKey(key: any) {
         if (!key || key.length < 8) return '••••';
         return key.slice(0, 6) + '...' + key.slice(-4);
     }
 
-    function maskUrl(url) {
+    function maskUrl(url: any) {
         try {
             const u = new URL(url);
             const k = u.searchParams.get('key');
@@ -233,9 +232,9 @@ const Gemini = (() => {
         } catch (_) { return url.replace(/key=[^&]+/, 'key=••••'); }
     }
 
-    async function fetchWithRetry(url, body, options = {}) {
+    async function fetchWithRetry(url: any, body: any, options: any = {}) {
         try {
-            const fetchOpts = {
+            const fetchOpts: any = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -276,7 +275,7 @@ const Gemini = (() => {
             }
 
             return response;
-        } catch (e) {
+        } catch (e: any) {
             if (e.name === 'AbortError') throw new Error('요청이 취소되었습니다.');
             if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
                 throw new Error('네트워크 연결 오류. 인터넷 연결을 확인해주세요.');
@@ -286,7 +285,7 @@ const Gemini = (() => {
     }
 
     /* ===== 텍스트 생성 ===== */
-    async function callText(userText, systemPrompt, modelId) {
+    async function callText(userText: any, systemPrompt: any, modelId: any) {
         const key = requireApiKey();
         if (!key) return null;
 
@@ -312,13 +311,13 @@ const Gemini = (() => {
     }
 
     /* ===== 챗 (멀티턴) ===== */
-    async function callChat(history, systemPrompt, modelId, options = {}) {
+    async function callChat(history: any, systemPrompt: any, modelId: any, options: any = {}) {
         const key = requireApiKey();
         if (!key) return null;
 
         const model = modelId || getDefaultModel('gemini');
         const url = buildAiStudioGenerateContentUrl(model, key);
-        const body = {
+        const body: any = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -345,13 +344,13 @@ const Gemini = (() => {
     }
 
     /* ===== 챗 스트리밍 ===== */
-    async function callChatStream(history, systemPrompt, modelId, options = {}) {
+    async function callChatStream(history: any, systemPrompt: any, modelId: any, options: any = {}) {
         const key = requireApiKey();
         if (!key) return null;
 
         const model = modelId || getDefaultModel('gemini');
         const url = buildAiStudioStreamGenerateContentUrl(model, key);
-        const body = {
+        const body: any = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -361,7 +360,7 @@ const Gemini = (() => {
         };
         if (options.webSearch) body.tools = [{ googleSearch: {} }];
 
-        const fetchOpts = {
+        const fetchOpts: any = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
@@ -371,13 +370,13 @@ const Gemini = (() => {
         const response = await fetch(url, fetchOpts);
         if (!response.ok) {
             let msg = `[HTTP ${response.status}]`;
-            try { const e = await response.json(); msg += ' ' + (e.error?.message || JSON.stringify(e)); } catch (_) {}
+            try { const e: any = await response.json(); msg += ' ' + (e.error?.message || JSON.stringify(e)); } catch (_) {}
             throw new Error(msg);
         }
 
         return {
             async *chunks() {
-                const reader = response.body.getReader();
+                const reader = (response.body as any).getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
                 while (true) {
@@ -385,7 +384,7 @@ const Gemini = (() => {
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
-                    buffer = lines.pop();
+                    buffer = lines.pop() || '';
                     for (const line of lines) {
                         if (!line.startsWith('data: ')) continue;
                         const jsonStr = line.slice(6).trim();
@@ -402,7 +401,7 @@ const Gemini = (() => {
     }
 
     /* ===== Vertex — 텍스트 / 채팅 / 스트리밍 (generateContent·streamGenerateContent) ===== */
-    async function callVertexText(userText, systemPrompt, modelId, options = {}) {
+    async function callVertexText(userText: any, systemPrompt: any, modelId: any, options: any = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -441,7 +440,7 @@ const Gemini = (() => {
         };
     }
 
-    async function callVertexChat(history, systemPrompt, modelId, options = {}) {
+    async function callVertexChat(history: any, systemPrompt: any, modelId: any, options: any = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -483,7 +482,7 @@ const Gemini = (() => {
         };
     }
 
-    async function callVertexChatStream(history, systemPrompt, modelId, options = {}) {
+    async function callVertexChatStream(history: any, systemPrompt: any, modelId: any, options: any = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -500,7 +499,7 @@ const Gemini = (() => {
             method: 'streamGenerateContent',
             apiKey: key,
         });
-        const body = {
+        const body: any = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -509,7 +508,7 @@ const Gemini = (() => {
             },
         };
 
-        const fetchOpts = {
+        const fetchOpts: any = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -520,7 +519,7 @@ const Gemini = (() => {
         if (!response.ok) {
             let msg = `[HTTP ${response.status}]`;
             try {
-                const e = await response.json();
+                const e: any = await response.json();
                 msg += ' ' + (e.error?.message || JSON.stringify(e));
             } catch (_) {}
             throw new Error(msg);
@@ -528,7 +527,7 @@ const Gemini = (() => {
 
         return {
             async *chunks() {
-                const reader = response.body.getReader();
+                const reader = (response.body as any).getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
                 while (true) {
@@ -536,7 +535,7 @@ const Gemini = (() => {
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
-                    buffer = lines.pop();
+                    buffer = lines.pop() || '';
                     for (const line of lines) {
                         if (!line.startsWith('data: ')) continue;
                         const jsonStr = line.slice(6).trim();
@@ -560,14 +559,14 @@ const Gemini = (() => {
      * - referenceImage: data URL 또는 순수 base64(편집·업스케일 등 입력 이미지)
      * - referenceMimeType: 기본 image/png
      */
-    async function callGeminiImage(prompt, modelId, options = {}) {
+    async function callGeminiImage(prompt: any, modelId: any, options: any = {}) {
         const key = requireApiKey();
         if (!key) throw new Error('API 키가 설정되지 않았습니다.');
 
         const model = modelId || getDefaultModel('geminiImage');
         const url = buildAiStudioGenerateContentUrl(model, key);
 
-        const genConfig = {
+        const genConfig: any = {
             maxOutputTokens: 8192,
             responseModalities: ['TEXT', 'IMAGE']
         };
@@ -575,7 +574,7 @@ const Gemini = (() => {
             genConfig.imageConfig = { aspectRatio: options.aspectRatio };
         }
 
-        const parts = [{ text: prompt }];
+        const parts: any[] = [{ text: prompt }];
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
@@ -629,9 +628,9 @@ const Gemini = (() => {
             throw new Error(`이미지 데이터가 없습니다. (finishReason: ${reason})`);
         }
 
-        const imageData = cand.content.parts.find(p => p.inlineData);
+        const imageData = cand.content.parts.find((p: any) => p.inlineData);
         if (!imageData) {
-            const hasText = cand.content.parts.some(p => p.text);
+            const hasText = cand.content.parts.some((p: any) => p.text);
             throw new Error(hasText
                 ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
                 : '이미지를 찾을 수 없습니다.');
@@ -650,7 +649,7 @@ const Gemini = (() => {
      * - 엔드포인트: https://aiplatform.googleapis.com/v1/publishers/google/models/${model}:generateContent?key=...
      * - Imagen 이미지는 callVertexImagen(:predict) 사용.
      */
-    async function callVertexGeminiImage(prompt, modelId, options = {}) {
+    async function callVertexGeminiImage(prompt: any, modelId: any, options: any = {}) {
         const key = requireVertexApiKey();
         if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
 
@@ -669,7 +668,7 @@ const Gemini = (() => {
             apiKey: key,
         });
 
-        const genConfig = {
+        const genConfig: any = {
             maxOutputTokens: 8192,
             responseModalities: ['TEXT', 'IMAGE']
         };
@@ -677,7 +676,7 @@ const Gemini = (() => {
             genConfig.imageConfig = { aspectRatio: options.aspectRatio };
         }
 
-        const parts = [{ text: prompt }];
+        const parts: any[] = [{ text: prompt }];
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
@@ -731,9 +730,9 @@ const Gemini = (() => {
             throw new Error(`이미지 데이터가 없습니다. (finishReason: ${reason})`);
         }
 
-        const imageData = cand.content.parts.find(p => p.inlineData);
+        const imageData = cand.content.parts.find((p: any) => p.inlineData);
         if (!imageData) {
-            const hasText = cand.content.parts.some(p => p.text);
+            const hasText = cand.content.parts.some((p: any) => p.text);
             throw new Error(hasText
                 ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
                 : '이미지를 찾을 수 없습니다.');
@@ -753,19 +752,19 @@ const Gemini = (() => {
      * - negativePrompt: 제외할 요소 텍스트
      * - personGeneration: 'allow_adult'(기본) | 'allow_all' | 'dont_allow'
      */
-    async function callImagen(prompt, modelId, count = 1, options = {}) {
+    async function callImagen(prompt: any, modelId: any, count: any = 1, options: any = {}) {
         const key = requireApiKey();
         if (!key) throw new Error('API 키가 설정되지 않았습니다.');
 
         const model = modelId || getDefaultModel('imagen');
         const url = buildAiStudioPredictUrl(model, key);
 
-        const params = { sampleCount: count };
+        const params: any = { sampleCount: count };
         if (options.aspectRatio) params.aspectRatio = options.aspectRatio;
         if (options.safetyFilterLevel) params.safetyFilterLevel = options.safetyFilterLevel;
         if (options.personGeneration) params.personGeneration = options.personGeneration;
 
-        const instance = { prompt };
+        const instance: any = { prompt };
         if (options.negativePrompt) instance.negativePrompt = options.negativePrompt;
 
         const body = { instances: [instance], parameters: params };
@@ -786,14 +785,14 @@ const Gemini = (() => {
             throw new Error('이미지 생성 결과가 없습니다.');
         }
 
-        return data.predictions.map(p => {
+        return data.predictions.map((p: any) => {
             if (!p.bytesBase64Encoded) throw new Error('base64 이미지 데이터 없음');
             return `data:image/png;base64,${p.bytesBase64Encoded}`;
         });
     }
 
     /** Vertex predict 응답의 이미지 base64 추출 (JSON 또는 protobuf Struct JSON) */
-    function extractImagenPredictionBase64(p) {
+    function extractImagenPredictionBase64(p: any) {
         if (!p) return null;
         if (p.bytesBase64Encoded) return p.bytesBase64Encoded;
         const fields = p.structValue?.fields;
@@ -807,7 +806,7 @@ const Gemini = (() => {
      * - 엔드포인트: https://{location}-aiplatform.googleapis.com/v1/projects/.../models/...:predict?key=...
      * options: { signal, projectId, location, aspectRatio, safetyFilterLevel, negativePrompt, personGeneration }
      */
-    async function callVertexImagen(prompt, modelId, count = 1, options = {}) {
+    async function callVertexImagen(prompt: any, modelId: any, count: any = 1, options: any = {}) {
         const key = requireVertexApiKey();
         if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
 
@@ -827,12 +826,12 @@ const Gemini = (() => {
             apiKey: key,
         });
 
-        const params = { sampleCount: count };
+        const params: any = { sampleCount: count };
         if (options.aspectRatio) params.aspectRatio = options.aspectRatio;
         if (options.safetyFilterLevel) params.safetyFilterLevel = options.safetyFilterLevel;
         if (options.personGeneration) params.personGeneration = options.personGeneration;
 
-        const instance = { prompt };
+        const instance: any = { prompt };
         if (options.negativePrompt) instance.negativePrompt = options.negativePrompt;
 
         const body = { instances: [instance], parameters: params };
@@ -857,7 +856,7 @@ const Gemini = (() => {
             throw new Error('이미지 생성 결과가 없습니다.');
         }
 
-        return data.predictions.map((p) => {
+        return data.predictions.map((p: any) => {
             const b64 = extractImagenPredictionBase64(p);
             if (!b64) throw new Error('base64 이미지 데이터 없음 (필터 차단 또는 응답 형식 불일치)');
             return `data:image/png;base64,${b64}`;
@@ -865,7 +864,7 @@ const Gemini = (() => {
     }
 
     /* ===== 공통 API 키 UI 빌더 (프로필 리스트) ===== */
-    function buildApiKeyUI(idPrefix) {
+    function buildApiKeyUI(idPrefix: any) {
         const store = getKeyStore();
         const profiles = store.profiles || [];
         const activeId = store.activeId;
@@ -913,7 +912,7 @@ const Gemini = (() => {
             </div>`;
         return {
             html,
-            init(container) {
+            init(container: any) {
                 const root = container || document;
                 const listEl = root.querySelector ? root.querySelector(`#${idPrefix}ApiProfileList`) : document.getElementById(`${idPrefix}ApiProfileList`);
                 const addBtn = root.querySelector ? root.querySelector(`#${idPrefix}ApiAdd`) : document.getElementById(`${idPrefix}ApiAdd`);
@@ -929,11 +928,11 @@ const Gemini = (() => {
 
                 function syncVertexContextInputs() {
                     if (vertexProjectEl instanceof HTMLInputElement) {
-                        const v = Toolbox.getPref(VERTEX_PREF_PROJECT) || '';
+                        const v = Toolbox.getPref?.(VERTEX_PREF_PROJECT, '') || '';
                         vertexProjectEl.value = typeof v === 'string' ? v : '';
                     }
                     if (vertexLocationEl instanceof HTMLInputElement) {
-                        const v = Toolbox.getPref(VERTEX_PREF_LOCATION) || DEFAULT_VERTEX_LOCATION;
+                        const v = Toolbox.getPref?.(VERTEX_PREF_LOCATION, '') || DEFAULT_VERTEX_LOCATION;
                         vertexLocationEl.value = (typeof v === 'string' && v.trim()) ? v.trim() : DEFAULT_VERTEX_LOCATION;
                     }
                 }
@@ -950,7 +949,7 @@ const Gemini = (() => {
                     const profiles = store.profiles || [];
                     const activeId = store.activeId;
                     if (!listEl) return;
-                    listEl.innerHTML = profiles.map(p => {
+                    listEl.innerHTML = profiles.map((p: any) => {
                         const hasKey = !!p.key;
                         return `
                             <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
@@ -1028,21 +1027,21 @@ const Gemini = (() => {
                 }
 
                 if (listEl) {
-                    listEl.addEventListener('input', (e) => {
+                    listEl.addEventListener('input', (e: any) => {
                         const target = e.target;
                         if (!(target instanceof HTMLInputElement) || !target.classList.contains('api-prof-name')) return;
                         const row = target.closest('.api-prof-row');
                         const id = row?.getAttribute('data-id');
                         if (!id) return;
                         const store = getKeyStore();
-                        const idx = (store.profiles || []).findIndex(p => p.id === id);
+                        const idx = (store.profiles || []).findIndex((p: any) => p.id === id);
                         if (idx >= 0) {
                             store.profiles[idx].name = target.value.trim() || '프로필';
                             saveKeyStore(store);
                         }
                     });
 
-                    listEl.addEventListener('click', (e) => {
+                    listEl.addEventListener('click', (e: any) => {
                         const btn = e.target.closest('button');
                         if (!btn) return;
                         const role = btn.getAttribute('data-role');
@@ -1051,7 +1050,7 @@ const Gemini = (() => {
                         if (!id) return;
                         const store = getKeyStore();
                         const profiles = store.profiles || [];
-                        const idx = profiles.findIndex(p => p.id === id);
+                        const idx = profiles.findIndex((p: any) => p.id === id);
                         if (idx < 0) return;
 
                         if (role === 'active') {
@@ -1103,13 +1102,13 @@ const Gemini = (() => {
     }
 
     /* ===== 프롬프트 향상 ===== */
-    async function enhancePrompt(originalPrompt) {
+    async function enhancePrompt(originalPrompt: any) {
         const systemPrompt = `You are a prompt enhancement expert for AI image generation.
 Improve the given prompt to produce higher quality, more detailed, and more visually striking images.
 Keep the same subject and intent, but add details about lighting, composition, art style, colors, and atmosphere.
 Reply ONLY with the enhanced prompt in English, nothing else. Do not add any explanation.`;
 
-        const result = await callText(originalPrompt, systemPrompt);
+        const result = await callText(originalPrompt, systemPrompt, undefined);
         if (!result) throw new Error('프롬프트 향상 실패');
         return result.text.trim();
     }
@@ -1140,7 +1139,7 @@ const ImageDB = (() => {
     function open() {
         return new Promise((resolve, reject) => {
             const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = (e) => {
+            req.onupgradeneeded = (e: any) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
                     const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
@@ -1152,14 +1151,14 @@ const ImageDB = (() => {
         });
     }
 
-    function notify(action, detail) {
+    function notify(action: any, detail?: any) {
         window.dispatchEvent(new CustomEvent('imagedb-change', { detail: { action, ...detail } }));
     }
 
-    async function save(item) {
-        const db = await open();
+    async function save(item: any) {
+        const db: any = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).put(item);
                 tx.oncomplete = () => resolve();
@@ -1170,7 +1169,7 @@ const ImageDB = (() => {
     }
 
     async function getAll() {
-        const db = await open();
+        const db: any = await open();
         try {
             return await new Promise((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readonly');
@@ -1181,10 +1180,10 @@ const ImageDB = (() => {
         } finally { db.close(); }
     }
 
-    async function remove(id) {
-        const db = await open();
+    async function remove(id: any) {
+        const db: any = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).delete(id);
                 tx.oncomplete = () => resolve();
@@ -1195,9 +1194,9 @@ const ImageDB = (() => {
     }
 
     async function clear() {
-        const db = await open();
+        const db: any = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).clear();
                 tx.oncomplete = () => resolve();
