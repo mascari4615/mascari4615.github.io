@@ -1172,7 +1172,11 @@ export async function runCadenceTickOnce(
       return null;
     }
   });
-  if (r === 'idle' && memoRoot && !isKilled()) {
+  // AGENT_CADENCE_QUIET=1 (2026-05-22 사용자 goal "자가발전"): producer(발굴) +
+  // dialogue(대화) skip → 잡담·발굴 noise 차단, surgery+worker+corePromotion 만
+  // 가동 = 자가발전 only mode. raw dump 18:24-18:49 실증 (잡담/⑦' fail).
+  const quiet = env.AGENT_CADENCE_QUIET?.trim() === '1';
+  if (r === 'idle' && memoRoot && !isKilled() && !quiet) {
     const gap = opts.producerOpts?.gap ?? analyzeAgentTeamGaps(env);
     if (gap.shouldRun) {
       r = `idle→producer:${await runGovernedProducerOnce(env, {
@@ -1188,6 +1192,8 @@ export async function runCadenceTickOnce(
         reason: 'producer gap-analysis idle — 측정된 능력격차 없음',
       });
     }
+  } else if (quiet && r === 'idle') {
+    r = 'idle→quiet-producer-skip';
   }
   if (memoRoot && !isKilled()) {
     // autoReady: task kind 발굴 → status:ready 직행 (미션 §2.3 일반 코드 자율).
@@ -1224,7 +1230,7 @@ export async function runCadenceTickOnce(
       r = `${r}+worker:${w}`;
     }
   }
-  if (memoRoot && !isKilled()) {
+  if (memoRoot && !isKilled() && !quiet) {
     const d = await runCoreDialogueOnce(env, opts.dialogueDeps);
     if (
       d &&
@@ -1234,6 +1240,8 @@ export async function runCadenceTickOnce(
     ) {
       r = `${r}+${d}`;
     }
+  } else if (quiet) {
+    r = `${r}+quiet-dialogue-skip`;
   }
   if (memoRoot && !isKilled()) {
     try {
