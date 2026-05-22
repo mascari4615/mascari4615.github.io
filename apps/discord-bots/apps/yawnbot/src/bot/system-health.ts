@@ -26,6 +26,13 @@ export interface HealthSignals {
   workerFailRatio: number | null;
   /** 최근 24h trace 에서 type==='error' 이벤트 수. */
   traceErrorCount: number;
+  /**
+   * 최근 6h 안에 동일 task id 가 3회 이상 *no-op done* (착수 → no-op → 종료) 반복한 task 수.
+   * ≥1 = 「Cronbot 패턴」 (사용자 발화 2026-05-22): cron 이 돌지만 매번 동일 동작 = 자가발전 0.
+   * 근본 원인 = status drift (frontmatter ≠ 코드 실상태) → 워커 PICKABLE 무한 재선택.
+   * sync regex fix (commit bbe2af42/e4cb1c58) 후에도 잔존 패턴 감지용.
+   */
+  brokenLoopTaskCount: number;
 }
 
 interface TraceEntry {
@@ -33,6 +40,7 @@ interface TraceEntry {
   type?: string;
   core?: string;
   reason?: string;
+  task?: string;
 }
 
 function readTraceLines(memoRoot: string): TraceEntry[] {
@@ -131,7 +139,37 @@ export function gatherHealthSignals(
     }
   }
 
-  return { traceStalenessHrs, progressStale, workerFailRatio, traceErrorCount };
+  // brokenLoopTaskCount (최근 6h, 동일 task id no-op done ≥3회)
+  //   trace.jsonl 의 reason `worker <core> done` 라인을 task id 별 누적.
+  //   sync regex fix 후에도 잔존하는 broken loop 패턴 — 코드/스펙 drift 가
+  //   real fail mode 임을 health signal 로 표면화 → self-surgery LLM 진단 가능.
+  let brokenLoopTaskCount = 0;
+  if (memoRoot) {
+    try {
+      const cutoff6h = new Date(nowMs - 6 * 3_600_000).toISOString();
+      const lines = readTraceLines(memoRoot);
+      const doneCount = new Map<string, number>();
+      for (const e of lines) {
+        if (!e.ts || e.ts < cutoff6h) continue;
+        if (!/\bdone\b/.test(e.reason || '')) continue;
+        // reason "worker <core> done TASK-XXX-NNN ..." → task id 추출.
+        // 또는 e.task 필드 직접 사용 (스키마 확장 대비).
+        const taskId =
+          e.task ||
+          (e.reason || '').match(/TASK-[A-Z]+-\d{3}(?:-[A-Z0-9]+)*/)?.[0] ||
+          null;
+        if (!taskId) continue;
+        doneCount.set(taskId, (doneCount.get(taskId) ?? 0) + 1);
+      }
+      for (const [, count] of doneCount) {
+        if (count >= 3) brokenLoopTaskCount++;
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  return { traceStalenessHrs, progressStale, workerFailRatio, traceErrorCount, brokenLoopTaskCount };
 }
 
 // ── 진단 ─────────────────────────────────────────────────────────────────────
@@ -223,6 +261,14 @@ export function diagnoseHealth(
     });
   }
 
+  if (signals.brokenLoopTaskCount >= 1) {
+    issues.push({
+      severity: 'critical',
+      code: 'broken-loop',
+      detail: `동일 task ${signals.brokenLoopTaskCount}개가 6h 안에 3회+ no-op 종료 반복 — Cronbot 패턴 (자가발전 0, status drift 또는 워커 선택 게이트 결함)`,
+    });
+  }
+
   return issues;
 }
 
@@ -250,6 +296,9 @@ export function formatHealthBlock(
   }
   if (signals.traceErrorCount > 0) {
     lines.push(`· trace 에러(24h): ${signals.traceErrorCount}건`);
+  }
+  if (signals.brokenLoopTaskCount > 0) {
+    lines.push(`· broken-loop task(6h, ≥3회 no-op): ${signals.brokenLoopTaskCount}개`);
   }
   if (issues.length === 0) {
     lines.push('→ 이상 없음');
