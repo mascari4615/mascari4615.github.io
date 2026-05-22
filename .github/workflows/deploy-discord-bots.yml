@@ -404,7 +404,8 @@ jobs:
             'YAWNBOT_ENV=prod' `
             'AGENT_HOST=orchestrator' `
             'AGENT_CADENCE_ROLE=main' `
-            'USERPROFILE=C:\Users\masca' | Out-Null
+            'USERPROFILE=C:\Users\masca' `
+            'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
 
           # restart (or start)
           & $nssm restart $svc 2>&1
@@ -470,7 +471,8 @@ jobs:
               'YAWNBOT_ENV=prod' `
               'AGENT_HOST=orchestrator' `
               "AGENT_CADENCE_ROLE=worker-$scope" `
-              'USERPROFILE=C:\Users\masca' | Out-Null
+              'USERPROFILE=C:\Users\masca' `
+              'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
             & $nssm restart $svc 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
               & $nssm start $svc 2>&1 | Out-Null
@@ -478,6 +480,8 @@ jobs:
             }
             Write-Host "$svc restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
           }
+          # step 종료 exit code 명시 — 개별 worker fail 은 Warning 후 continue 했으니 step 자체는 success
+          exit 0
       # === /KAR-096 Phase 2 ===
 
       - name: NSSM set yawnbot-prod AGENT_HOST=orchestrator
