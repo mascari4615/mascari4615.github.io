@@ -688,7 +688,9 @@ export async function runWorkerConsumerOnce(
     // 자가발전 layer 2 (KAR-018, 2026-05-22): broken-loop 후보를 *맨 뒤로 정렬*.
     // 같은 task 가 6h 내 3회+ no-op done 했으면 의심 — 다른 후보 있으면 그쪽 우선.
     // filter 가 아닌 sort = 마지막 후보면 시도 (완전 차단 X, 안전 layer).
-    const prioritized = deprioritizeBrokenLoopCandidates(memoRoot, filtered, 3, 6, tickNow);
+    const prioritized = deprioritizeBrokenLoopCandidates<{ id: string; file: string }>(
+      memoRoot, filtered, 3, 6, tickNow,
+    );
 
     let chosen: { id: string; file: string } | null = null;
     for (const c of prioritized.slice(0, 3)) {
