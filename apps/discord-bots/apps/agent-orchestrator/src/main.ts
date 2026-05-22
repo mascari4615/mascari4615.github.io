@@ -19,7 +19,10 @@
  * 같은 npm workspace 라 node_modules hoist 로 link 자동.
  */
 import 'dotenv/config';
-import { createRequire } from 'node:module';
+// KAR-018-SO-X 후속: CJS 빌드라 createRequire(import.meta.url) 가 ESM-only
+// → Node 24 가 reparse 후 `exports is not defined` crash loop (30+ cycles
+// 실측, stderr 1324B 반복). tsconfig.base.json = module:CommonJS 강제 →
+// top-level `require` 가 이미 글로벌. createRequire 불요.
 
 const log = (msg: string): void => {
   // eslint-disable-next-line no-console
@@ -42,11 +45,11 @@ if (process.env.AGENT_HOST?.trim() !== 'orchestrator') {
 }
 
 // yawnbot dist 의 cadence entry require. node_modules workspace hoist 로 link.
-const localRequire = createRequire(import.meta.url);
 let startAgentCadence: ((env: NodeJS.ProcessEnv) => void) | null = null;
 try {
   // path: orchestrator/dist/src/main.js → ../../../yawnbot/dist/src/bot/agent-cadence.js
-  const mod = localRequire('../../../yawnbot/dist/src/bot/agent-cadence.js');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require('../../../yawnbot/dist/src/bot/agent-cadence.js');
   startAgentCadence = mod.startAgentCadence;
 } catch (e) {
   log(`ERROR: yawnbot/dist/src/bot/agent-cadence.js require 실패: ${e instanceof Error ? e.message : String(e)}`);
