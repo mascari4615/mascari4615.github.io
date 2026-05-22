@@ -38,6 +38,7 @@ import {
   type Tier3DoneResult,
   type ReaperSummary,
 } from '../services/tier3-detached';
+import { deprioritizeBrokenLoopCandidates } from './worker-self-memory';
 import {
   isKilled,
   getCoreSpeak,
@@ -684,8 +685,13 @@ export async function runWorkerConsumerOnce(
     if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
     if (filtered.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
 
+    // 자가발전 layer 2 (KAR-018, 2026-05-22): broken-loop 후보를 *맨 뒤로 정렬*.
+    // 같은 task 가 6h 내 3회+ no-op done 했으면 의심 — 다른 후보 있으면 그쪽 우선.
+    // filter 가 아닌 sort = 마지막 후보면 시도 (완전 차단 X, 안전 layer).
+    const prioritized = deprioritizeBrokenLoopCandidates(memoRoot, filtered, 3, 6, tickNow);
+
     let chosen: { id: string; file: string } | null = null;
-    for (const c of filtered.slice(0, 3)) {
+    for (const c of prioritized.slice(0, 3)) {
       if (claim(c.id, w.coreId)) { chosen = c; break; }
     }
     if (!chosen) { results.push(`${w.coreId}:claim-lost`); return; }
