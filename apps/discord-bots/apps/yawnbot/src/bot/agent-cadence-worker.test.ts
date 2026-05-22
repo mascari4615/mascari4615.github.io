@@ -28,7 +28,10 @@ import {
   getNoArtifactRepeatCount,
 } from './agent-cadence-worker';
 import type { CoreDef } from '../services/agent-core';
-import { readRecentCoreMemory } from '../services/agent-core';
+import {
+  readRecentCoreMemory,
+  appendCoreMemory,
+} from '../services/agent-core';
 
 function core(over: Partial<CoreDef> & { id: string }): CoreDef {
   return {
@@ -372,6 +375,15 @@ describe('buildWorkerPrompt (순수)', () => {
 const W: WorkerCore = { coreId: 'wm-worker', domain: 'WM', machine: 'any', label: '🛠 WmWorker', skills: [] };
 
 describe('runWorkerConsumerOnce (주입 IO)', () => {
+  // KAR-018-SO-1: rememberWorkerOutcome 가 /tmp/memo 에 work-memory append.
+  // 다른 테스트가 남긴 mem entry 가 다음 테스트 readWorkerTaskOutcomes 에
+  // 잡혀 'already-fixed-all' false-positive 유발 → 매 it 전에 mem 폴더 정리.
+  beforeEach(() => {
+    try {
+      fs.rmSync('/tmp/memo/.claude/agents', { recursive: true, force: true });
+    } catch { /* 부재 OK */ }
+  });
+
   it('killed → 호출 0', async () => {
     armKill();
     const r = await runWorkerConsumerOnce(env(), { listWorkers: () => [W] });
@@ -611,6 +623,76 @@ describe('runWorkerConsumerOnce (주입 IO)', () => {
       listWorkers: () => [W],
     });
     expect(r).toBe('no-memo-root');
+  });
+
+  // ── KAR-018-SO-1: 워커 self-recall — done-재선택 무한 cycle 의 닫는 rung ──
+  describe('SO-1 self-recall (fix-된 TASK 재선택 skip)', () => {
+    let root: string;
+    const renv = () => ({ MEMO_REPO_PATH: root }) as NodeJS.ProcessEnv;
+    beforeEach(() => {
+      root = fs.mkdtempSync(path.join(os.tmpdir(), 'so1-w-'));
+      fs.mkdirSync(path.join(root, '.claude'), { recursive: true });
+    });
+    afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
+
+    it('이 코어가 직전에 fix 한 TASK 는 후보에서 skip (1개뿐이면 already-fixed-all)', async () => {
+      appendCoreMemory(root, 'wm-worker', {
+        session: 'worker', type: 'fix', topic: 'worker:TASK-WM-109-E',
+        summary: 'Draft PR push 완료',
+      });
+      const claimed: string[] = [];
+      const r = await runWorkerConsumerOnce(renv(), {
+        listWorkers: () => [W],
+        scan: () => [{ id: 'TASK-WM-109-E', file: 'f.md' }],
+        claim: (id) => { claimed.push(id); return true; },
+        spawn: async () => ({ status: 'done' }),
+        branchPushed: () => true,
+        notify: () => {},
+      });
+      expect(r).toBe('wm-worker:already-fixed-all');
+      expect(claimed).toHaveLength(0); // claim 도 안 함 = 무한 cycle 차단
+    });
+
+    it('fix-된 TASK 와 새 TASK 섞이면 새 것만 선택', async () => {
+      appendCoreMemory(root, 'wm-worker', {
+        session: 'worker', type: 'fix', topic: 'worker:TASK-WM-OLD',
+        summary: 'pushed',
+      });
+      const claimed: string[] = [];
+      const r = await runWorkerConsumerOnce(renv(), {
+        listWorkers: () => [W],
+        scan: () => [
+          { id: 'TASK-WM-OLD', file: 'a.md' },
+          { id: 'TASK-WM-NEW', file: 'b.md' },
+        ],
+        claim: (id) => { claimed.push(id); return true; },
+        setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+        spawn: async () => ({ status: 'done' }),
+        branchPushed: () => true,
+        notify: () => {},
+      });
+      expect(claimed).toEqual(['TASK-WM-NEW']);
+      expect(r).toBe('wm-worker:done:TASK-WM-NEW');
+    });
+
+    it('직전 fail 인 TASK 는 skip 안 함 (재시도 OK) — kind:fail 보존', async () => {
+      appendCoreMemory(root, 'wm-worker', {
+        session: 'worker', type: 'fail', topic: 'worker:TASK-WM-RETRY',
+        summary: 'spawn error',
+      });
+      const claimed: string[] = [];
+      const r = await runWorkerConsumerOnce(renv(), {
+        listWorkers: () => [W],
+        scan: () => [{ id: 'TASK-WM-RETRY', file: 'f.md' }],
+        claim: (id) => { claimed.push(id); return true; },
+        setupWorktree: () => ({ cwd: 'w', repoRoot: 'r', wtDir: 'w', branch: 'b' }),
+        spawn: async () => ({ status: 'done' }),
+        branchPushed: () => true,
+        notify: () => {},
+      });
+      expect(claimed).toEqual(['TASK-WM-RETRY']);
+      expect(r).toBe('wm-worker:done:TASK-WM-RETRY');
+    });
   });
 });
 
