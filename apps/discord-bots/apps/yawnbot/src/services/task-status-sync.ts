@@ -18,6 +18,24 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { commitAndPushMemoFile, type MemoPushResult } from './memo-push';
+import { appendProgress } from '../bot/team-portfolio';
+
+/**
+ * TASK prefix → portfolio projectId 매핑 (KAR-018 2026-05-22 자가발전 루프 폐쇄).
+ * 매핑 부재 = 해당 도메인은 portfolio 미추적 (progressLog skip).
+ */
+const PREFIX_TO_PROJECT: Record<string, string> = {
+  WM: 'wm',
+  KAR: 'agent-team',
+  KL: 'karmolab',
+  YB: 'agent-team',
+};
+
+function projectIdForTask(taskId: string): string | null {
+  const m = /^TASK-([A-Z]+)-/.exec(taskId);
+  if (!m) return null;
+  return PREFIX_TO_PROJECT[m[1]] ?? null;
+}
 
 /** TASK id 정규식 — TASK-PREFIX-NNN[-suffix]. memo task-queue.mjs 와 정합. */
 const TASK_ID_REGEX = /TASK-(?:KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-[A-Z0-9][A-Z0-9-]*/g;
@@ -208,6 +226,42 @@ export async function syncTaskStatusOnPrMerge(
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       errors.push(`${u.id}: throw ${m.slice(0, 160)}`);
+    }
+  }
+
+  // KAR-018 자가발전 루프 폐쇄 (2026-05-22): TASK done → portfolio progressLog
+  // 자동 append. progressStale 신호가 진짜로 풀려서 surgery 가 영원히 critical
+  // 외치는 가짜 루프 탈출. 매핑 부재 도메인은 skip (LIFE/HOBBY/LEARN 등).
+  const portfolioPushes: string[] = [];
+  for (const u of updates) {
+    const projectId = projectIdForTask(u.id);
+    if (!projectId) continue;
+    try {
+      const ok = appendProgress(memoRoot, {
+        projectId,
+        delta: `${u.id} done (PR #${prContext.prNumber ?? '?'} merge)`,
+        evidence: prContext.prNumber
+          ? `https://github.com/Mascari4615/Mascari4615.github.io/pull/${prContext.prNumber}`
+          : (prContext.prTitle || '').slice(0, 120),
+      });
+      if (ok) {
+        portfolioPushes.push(`${u.id}→${projectId}`);
+      }
+    } catch (e) {
+      logger.warn(`[task-status-sync] appendProgress ${u.id} fail: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  // portfolio.json push (best-effort, 분리 commit — 별 noise 줄 1 OK)
+  if (portfolioPushes.length > 0) {
+    try {
+      const portfolioAbs = path.join(memoRoot, '.claude', 'team-portfolio.json');
+      await push(
+        env,
+        portfolioAbs,
+        `chore(portfolio): progressLog +${portfolioPushes.length} (${portfolioPushes.slice(0, 3).join(',')}${portfolioPushes.length > 3 ? ` 외 ${portfolioPushes.length - 3}` : ''})`,
+      );
+    } catch (e) {
+      logger.warn(`[task-status-sync] portfolio push fail: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
