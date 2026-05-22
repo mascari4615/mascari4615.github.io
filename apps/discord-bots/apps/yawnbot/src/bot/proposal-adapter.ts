@@ -30,9 +30,35 @@ import {
   type NotifyFn,
 } from './governance-adapter';
 import { enqueuePromotionCandidate } from './self-augment';
+import {
+  appendEvolutionEvents,
+  readEvolutionEvents,
+  type EvolutionEvent,
+} from './evolution-observatory';
 
 /** 발굴 LLM 호출 (DI — generateAssistantText 'claude-cli' 래퍼 주입). */
 export type DiscoverFn = () => Promise<string>;
+
+/**
+ * KAR-018-SO-3: producer 의 *자기* 직전 schema-fail 예시 회수 (다음 prompt
+ * 자가 inject 용). evolution-events 에 적재된 `producer-schema-fail` 중 최신
+ * `max` 개의 evidence(raw snippet) 반환. 부재·실패 = [] (graceful, prompt 에
+ * 블록 미포함 = legacy fallback).
+ */
+export function readRecentProducerSchemaFails(
+  env: NodeJS.ProcessEnv,
+  max = 3,
+): string[] {
+  try {
+    const all = readEvolutionEvents(env, 500);
+    const fails = all
+      .filter((e) => e.code === 'producer-schema-fail')
+      .slice(-Math.max(1, max));
+    return fails.map((e) => e.evidence || '').filter(Boolean);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * 발굴 가시화 seam (KAR-018-V) — substrate-clean 최소 shape (Discord 무관).
@@ -84,12 +110,27 @@ export async function runProducerOnce(
 
   const envelope = parseProposalEnvelope(raw);
   if (!envelope) {
+    const snippet = (raw || '').replace(/\s+/g, ' ').slice(0, 200);
     appendTrace(deps.env, {
       ts: new Date().toISOString(),
       type: 'drift',
       core: 'producer',
-      reason: '발굴물 파싱 실패(형식·부분·미지) — 폐기',
+      reason: `발굴물 파싱 실패(형식·부분·미지) — 폐기 [raw: ${snippet}]`,
     });
+    // KAR-018-SO-3: producer self-observation. parse-fail 사실을 evolution-events
+    // 로 적재 → 다음 producer prompt 가 직전 fail 예시 자기 inject (사람-박은
+    // schema 룰 아닌 *자기 출력 cycle* 닫는 rung). 사용자 raw dump 2026-05-22:
+    // 「⑦' 발굴 파싱 실패 7건 누적 silent」 → 측정 가능·자기교정.
+    appendEvolutionEvents(deps.env, [{
+      ts: new Date().toISOString(),
+      code: 'producer-schema-fail',
+      severity: 'warn',
+      source: 'proposal',
+      subject: 'producer',
+      detail: 'Producer output failed envelope schema parse — discarded.',
+      metrics: [{ name: 'count', value: 1 }],
+      evidence: snippet,
+    }]);
     notify('⑦\' 발굴물 파싱 실패 — 폐기 (날조 0)');
     return 'parse-fail';
   }

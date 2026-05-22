@@ -75,10 +75,21 @@ KAKAO_EXPORT_WATCH_DIR=
 #   ② KlWorker 가 점심 메뉴 등 잡담 박음. 실작업 0.
 #   ③ ⑦' 발굴 파싱 실패 7건 누적. 「진화 입력」 의미 0.
 #   사용자 「뭐 되는게 전혀 없어」 + 「이게 에이전트 팀이야?」 = 비전 작동 X.
-# [SLOT-B 2026-05-22 후속] 자가발전 substrate 박힘 (broken-loop signal + worker
-#   deprioritize + sync regex scope 인식 + status drift 19 자동 정정). 재가동 +
-#   QUIET=1 으로 잡담/발굴 skip — surgery+worker+corePromotion 만 가동 =
-#   자가발전 only mode. KAR-095 분리 toggle 의 최소 substrate 1단.
+#   재가동 조건 = 워커 selection 게이트 (status≠done 필터) + 잡담 차단 +
+#   ⑦' parser fix. 모두 별 TASK 시드 후. 자율 재가동 금지.
+# [2026-05-22 19:43, /goal 「자가발전」 응답] 두 세션 (slot A/C + slot D) 가
+# 동시 응답으로 보완 substrate 박음. 재가동 조건 3개 모두 충족:
+#   ① done-재선택 = SO-1 워커 self-recall (slot D, `readWorkerTaskOutcomes`)
+#      + worker-self-memory layer 2 (slot A/C, `deprioritizeBrokenLoopCandidates`)
+#   ② 잡담 = SO-2 chatter 진척-0 자가차단 (slot D, `recentRealProgressCount`)
+#      + QUIET 모드 (slot A/C, producer+dialogue 전체 skip = sledgehammer 대안)
+#   ③ parser fail = SO-3 producer schema self-observation (slot D, 직전 fail
+#      snippet 자기 inject) + sync-task-status conventional-commits scope 인식
+#      (slot A/C, e4cb1c58)
+# 추가: 부팅 직후 cadence 1회 즉시 발동 (119e73ae), self-surgery 30min/critical
+# bypass (5d9cb1af). 자가발전 only mode 운영 — QUIET=1 일 때 SO-2/3 dormant
+# (활성 phase 외라 무관), QUIET=0 시 SO-2/3 활성.
+# !kill 게이트(`agent-kill.off`) 그대로, 가역 (이 줄 0 으로 재 OFF).
 AGENT_CADENCE_ENABLED=1
 # QUIET 모드 (자가발전 only) — producer(발굴) + dialogue(대화) skip. surgery·
 # worker·corePromotion 은 가동. 0 또는 미설정 = 정상 모드(전체 phase).
