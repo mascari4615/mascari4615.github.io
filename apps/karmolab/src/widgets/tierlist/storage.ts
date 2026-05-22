@@ -1,6 +1,5 @@
-// @ts-nocheck
 (function () {
-    const T = window.Tierlist = window.Tierlist || {};
+    const T: any = (window.Tierlist = window.Tierlist || {});
 
     const STORAGE_KEY = 'toolbox_tierlists';
 
@@ -17,12 +16,12 @@
         const DB_NAME = 'toolbox_tierlist_images';
         const STORE = 'images';
         const VER = 1;
-        const cache = new Map();
+        const cache = new Map<string, any>();
 
-        function open() {
+        function open(): Promise<IDBDatabase> {
             return new Promise((res, rej) => {
                 const r = indexedDB.open(DB_NAME, VER);
-                r.onupgradeneeded = e => {
+                r.onupgradeneeded = (e: any) => {
                     const db = e.target.result;
                     if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
                 };
@@ -31,10 +30,10 @@
             });
         }
 
-        async function save(id, dataUrl) {
+        async function save(id: any, dataUrl: any) {
             const db = await open();
             try {
-                await new Promise((res, rej) => {
+                await new Promise((res: any, rej: any) => {
                     const tx = db.transaction(STORE, 'readwrite');
                     tx.objectStore(STORE).put({ id, dataUrl });
                     tx.oncomplete = () => res();
@@ -44,11 +43,11 @@
             } finally { db.close(); }
         }
 
-        async function get(id) {
+        async function get(id: any) {
             if (cache.has(id)) return cache.get(id);
             const db = await open();
             try {
-                const item = await new Promise((res, rej) => {
+                const item: any = await new Promise((res: any, rej: any) => {
                     const tx = db.transaction(STORE, 'readonly');
                     const req = tx.objectStore(STORE).get(id);
                     req.onsuccess = () => res(req.result);
@@ -59,11 +58,11 @@
             } finally { db.close(); }
         }
 
-        async function remove(id) {
+        async function remove(id: any) {
             cache.delete(id);
             const db = await open();
             try {
-                await new Promise((res, rej) => {
+                await new Promise((res: any, rej: any) => {
                     const tx = db.transaction(STORE, 'readwrite');
                     tx.objectStore(STORE).delete(id);
                     tx.oncomplete = () => res();
@@ -72,9 +71,9 @@
             } finally { db.close(); }
         }
 
-        async function getMany(ids) {
-            const results = {};
-            const missing = ids.filter(id => {
+        async function getMany(ids: any) {
+            const results: Record<string, any> = {};
+            const missing = ids.filter((id: any) => {
                 if (cache.has(id)) { results[id] = cache.get(id); return false; }
                 return true;
             });
@@ -84,7 +83,7 @@
             try {
                 const tx = db.transaction(STORE, 'readonly');
                 const store = tx.objectStore(STORE);
-                await Promise.all(missing.map(id => new Promise((res, rej) => {
+                await Promise.all(missing.map((id: any) => new Promise((res: any, rej: any) => {
                     const req = store.get(id);
                     req.onsuccess = () => {
                         if (req.result?.dataUrl) {
@@ -102,12 +101,12 @@
         return { save, get, remove, getMany };
     })();
 
-    let state = { catalogs: {}, instances: {}, currentInstanceId: null };
-    let publishedCurrent = null;
+    let state: any = { catalogs: {}, instances: {}, currentInstanceId: null };
+    let publishedCurrent: any = null;
 
     function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
-    function isCatalogPayload(data) {
+    function isCatalogPayload(data: any) {
         if (!data || typeof data !== 'object') return false;
         if (data.kind === 'catalog') return true;
         if (data.version >= 2 && data.items && typeof data.items === 'object' && !data.list) return true;
@@ -118,22 +117,22 @@
         state.catalogs = state.catalogs || {};
         state.instances = state.instances || {};
 
-        const pickCurrentId = (preserved) => {
+        const pickCurrentId = (preserved: any) => {
             if (preserved && state.instances[preserved]) state.currentInstanceId = preserved;
             else if (!state.currentInstanceId) {
-                const first = Object.values(state.instances).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+                const first: any = Object.values(state.instances).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
                 state.currentInstanceId = first?.id || null;
             }
         };
 
-        const ingestList = (list) => {
+        const ingestList = (list: any) => {
             if (!list || !list.id) return;
             state.instances[list.id] = JSON.parse(JSON.stringify(list));
         };
 
         if (state.datasets && typeof state.datasets === 'object' && Object.keys(state.datasets).length) {
             const preserved = state.currentListId || state.currentInstanceId;
-            Object.values(state.datasets).forEach(ds => {
+            Object.values(state.datasets).forEach((ds: any) => {
                 Object.values(ds.lists || {}).forEach(ingestList);
             });
             delete state.datasets;
@@ -153,7 +152,7 @@
         }
     }
 
-    function catalogEntryToListItem(entry) {
+    function catalogEntryToListItem(entry: any) {
         if (!entry || typeof entry !== 'object') return null;
         const it = JSON.parse(JSON.stringify(entry));
         it.id = entry.id;
@@ -163,7 +162,7 @@
     }
 
     /** 후보 풀 기준 되돌리기 가능 여부(로컬 풀·URL 풀·풀 출처 카드) */
-    function canResetItemFromPool(list, itemId) {
+    function canResetItemFromPool(list: any, itemId: any) {
         const it = list?.items?.[itemId];
         if (!it) return false;
         if (list.catalogId && state.catalogs[list.catalogId]?.items?.[itemId]) return true;
@@ -172,7 +171,7 @@
     }
 
     /** 연결된 후보 풀 항목으로 덮어쓰기(이름·이미지·라벨·수정 표시 제거). catalogEntry 는 풀 items[id] 원본 */
-    function applyCatalogEntryToItem(list, itemId, catalogEntry) {
+    function applyCatalogEntryToItem(list: any, itemId: any, catalogEntry: any) {
         if (!list?.items?.[itemId] || !catalogEntry) return false;
         const old = list.items[itemId];
         const oldKey = old.imageKey ?? null;
@@ -191,19 +190,19 @@
      * 카탈로그에 있는 id는 list.items에 없으면 채우고, 어떤 티어·_pool에도 없으면 _pool 끝에 추가.
      * @returns {boolean} 변경 여부
      */
-    function ensureAllCatalogItemsOnBoard(list, catalogItems) {
+    function ensureAllCatalogItemsOnBoard(list: any, catalogItems: any) {
         if (!list || !catalogItems || typeof catalogItems !== 'object') return false;
         list.items = list.items || {};
         list.rankings = list.rankings || {};
         list.rankings._pool = list.rankings._pool || [];
 
         const seenRank = new Set();
-        Object.values(list.rankings).forEach(arr => {
-            (arr || []).forEach(id => { if (id) seenRank.add(id); });
+        Object.values(list.rankings).forEach((arr: any) => {
+            (arr || []).forEach((id: any) => { if (id) seenRank.add(id); });
         });
 
         let changed = false;
-        Object.keys(catalogItems).forEach(id => {
+        Object.keys(catalogItems).forEach((id: any) => {
             const src = catalogItems[id];
             if (!src || typeof src !== 'object') return;
             if (!list.items[id]) {
@@ -223,21 +222,21 @@
     }
 
     /** 동일 id가 여러 줄에 있으면 티어 표시 순·_pool 순으로 한 곳만 남김 */
-    function dedupeRankingPlacements(list) {
+    function dedupeRankingPlacements(list: any) {
         if (!list?.rankings) return false;
         const seen = new Set();
-        const order = [];
-        (list.tiers || []).forEach(t => order.push(t.id));
+        const order: any[] = [];
+        (list.tiers || []).forEach((t: any) => order.push(t.id));
         order.push('_pool');
-        Object.keys(list.rankings).forEach(k => {
+        Object.keys(list.rankings).forEach((k: any) => {
             if (!order.includes(k)) order.push(k);
         });
         let changed = false;
-        order.forEach(tid => {
+        order.forEach((tid: any) => {
             const arr = list.rankings[tid];
             if (!Array.isArray(arr)) return;
-            const next = [];
-            arr.forEach(id => {
+            const next: any[] = [];
+            arr.forEach((id: any) => {
                 if (!id) return;
                 if (seen.has(id)) {
                     changed = true;
@@ -256,7 +255,7 @@
      * 카탈로그 items 맵과 순위 판 동기화(누락 항목·배치·중복·떠 있는 custom 정리).
      * @returns {boolean} 변경 여부
      */
-    function reconcileListWithCatalogPayload(list, catalogItems) {
+    function reconcileListWithCatalogPayload(list: any, catalogItems: any) {
         if (!list || !catalogItems || typeof catalogItems !== 'object') return false;
         let ch = ensureAllCatalogItemsOnBoard(list, catalogItems);
         ch = dedupeRankingPlacements(list) || ch;
@@ -265,7 +264,7 @@
         return ch;
     }
 
-    function isItemRemovable(list, itemId) {
+    function isItemRemovable(list: any, itemId: any) {
         const it = list?.items?.[itemId];
         return !!(it && it.tlOrigin === 'custom');
     }
@@ -274,15 +273,15 @@
      * items에는 있는데 티어·미배치 어디에도 없는 id → _pool에 한 번만 추가.
      * @returns {boolean} 변경 여부
      */
-    function ensureFloatingItemsInPool(list) {
+    function ensureFloatingItemsInPool(list: any) {
         if (!list?.items) return false;
         const seen = new Set();
-        Object.values(list.rankings || {}).forEach(arr => {
-            (arr || []).forEach(id => { if (id) seen.add(id); });
+        Object.values(list.rankings || {}).forEach((arr: any) => {
+            (arr || []).forEach((id: any) => { if (id) seen.add(id); });
         });
         const pool = list.rankings._pool = list.rankings._pool || [];
         let changed = false;
-        Object.keys(list.items).forEach(id => {
+        Object.keys(list.items).forEach((id: any) => {
             if (seen.has(id)) return;
             if (!pool.includes(id)) {
                 pool.push(id);
@@ -300,7 +299,7 @@
         const catalogs = state.catalogs || {};
         const instances = state.instances || {};
         let any = false;
-        Object.values(instances).forEach(list => {
+        Object.values(instances).forEach((list: any) => {
             if (!list?.id) return;
             let changed = false;
             const cid = list.catalogId;
@@ -308,12 +307,12 @@
                 delete list.catalogId;
                 changed = true;
                 const pool = list.rankings._pool = list.rankings._pool || [];
-                Object.keys(list.items || {}).forEach(itemId => {
+                Object.keys(list.items || {}).forEach((itemId: any) => {
                     const it = list.items[itemId];
                     if (!it || it.tlOrigin !== 'catalog') return;
                     it.tlOrigin = 'custom';
                     delete it.tlEdited;
-                    Object.keys(list.rankings || {}).forEach(tid => {
+                    Object.keys(list.rankings || {}).forEach((tid: any) => {
                         if (tid === '_pool') return;
                         const arr = list.rankings[tid];
                         if (!Array.isArray(arr)) return;
@@ -336,7 +335,7 @@
     function reconcileInstancesWithLinkedCatalogs() {
         const catalogs = state.catalogs || {};
         let any = false;
-        Object.values(state.instances || {}).forEach(list => {
+        Object.values(state.instances || {}).forEach((list: any) => {
             if (!list?.catalogId || !catalogs[list.catalogId]) return;
             const catItems = catalogs[list.catalogId].items || {};
             let ch = false;
@@ -350,7 +349,7 @@
         if (any) saveState();
     }
 
-    function touchInstance(list) {
+    function touchInstance(list: any) {
         if (list) list.updatedAt = Date.now();
     }
 
@@ -365,7 +364,7 @@
         migrateDetachedCatalogInstances();
         reconcileInstancesWithLinkedCatalogs();
         if (state.currentInstanceId && !state.instances[state.currentInstanceId]) {
-            const next = Object.values(state.instances).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+            const next: any = Object.values(state.instances).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
             state.currentInstanceId = next?.id || null;
         }
     }
@@ -375,7 +374,7 @@
     }
 
     function iterAllInstances() {
-        return Object.values(state.instances || {}).map(list => ({ list, catalogTitle: null }));
+        return Object.values(state.instances || {}).map((list: any) => ({ list, catalogTitle: null }));
     }
 
     function isPublishedMode() { return !!publishedCurrent; }
@@ -427,7 +426,7 @@
         };
     }
 
-    function openPublished(meta, data) { publishedCurrent = { meta: meta || {}, data }; }
+    function openPublished(meta: any, data: any) { publishedCurrent = { meta: meta || {}, data }; }
     function closePublished() { publishedCurrent = null; }
 
     function getPublishedCatalogSnapshot() {
@@ -441,7 +440,7 @@
         return publishedCurrent.data.images || {};
     }
 
-    function ensureWritableList(reason) {
+    function ensureWritableList(reason: any) {
         if (!isPublishedMode()) return currentList();
         if (isPublishedCatalogMode()) return null;
 
@@ -472,9 +471,9 @@
     }
 
     /** 후보 풀에서 복사한 항목에 tlOrigin= catalog (뱃지용) */
-    function stampItemsFromCatalog(itemsRaw) {
+    function stampItemsFromCatalog(itemsRaw: any) {
         const items = JSON.parse(JSON.stringify(itemsRaw || {}));
-        Object.values(items).forEach(it => {
+        Object.values(items).forEach((it: any) => {
             if (it && typeof it === 'object') {
                 it.tlOrigin = 'catalog';
                 delete it.tlEdited;
@@ -484,16 +483,16 @@
     }
 
     /** 블로그 등에서 연 순수 후보 풀 → 로컬 순위 인스턴스 1개 생성(이미지는 publish에서 주입) */
-    function forkInstanceFromCatalogData(catalogData, meta) {
+    function forkInstanceFromCatalogData(catalogData: any, meta: any) {
         closePublished();
         const id = 'tl-' + uid();
         const now = Date.now();
-        const tiers = DEFAULT_TIERS.map(t => ({ ...t }));
-        const rankings = {};
-        tiers.forEach(t => { rankings[t.id] = []; });
+        const tiers = DEFAULT_TIERS.map((t: any) => ({ ...t }));
+        const rankings: any = {};
+        tiers.forEach((t: any) => { rankings[t.id] = []; });
         rankings._pool = [];
         const items = stampItemsFromCatalog(catalogData.items || {});
-        Object.keys(items).forEach(k => rankings._pool.push(k));
+        Object.keys(items).forEach((k: any) => rankings._pool.push(k));
         state.instances[id] = {
             id,
             title: `${meta?.title || catalogData.title || '순위'} · 순위`,
@@ -515,14 +514,14 @@
         return state.instances[id];
     }
 
-    function switchToInstance(instanceId) {
+    function switchToInstance(instanceId: any) {
         closePublished();
         if (!state.instances[instanceId]) return;
         state.currentInstanceId = instanceId;
         saveState();
     }
 
-    function createCatalog(title, category) {
+    function createCatalog(title: any, category: any) {
         closePublished();
         const id = 'cat-' + uid();
         const now = Date.now();
@@ -537,12 +536,12 @@
         return id;
     }
 
-    function deleteCatalog(catalogId) {
+    function deleteCatalog(catalogId: any) {
         closePublished();
         const c = state.catalogs[catalogId];
         if (!c) return;
         try {
-            Object.values(c.items || {}).forEach(it => {
+            Object.values(c.items || {}).forEach((it: any) => {
                 if (it?.imageKey) TierDB.remove(it.imageKey);
             });
         } catch (_) {}
@@ -552,7 +551,7 @@
         reconcileInstancesWithLinkedCatalogs();
     }
 
-    function addCatalogItem(catalogId, name, imageKey) {
+    function addCatalogItem(catalogId: any, name: any, imageKey: any) {
         closePublished();
         const c = state.catalogs[catalogId];
         if (!c) return null;
@@ -564,7 +563,7 @@
         return id;
     }
 
-    function removeCatalogItem(catalogId, itemId) {
+    function removeCatalogItem(catalogId: any, itemId: any) {
         closePublished();
         const c = state.catalogs[catalogId];
         if (!c?.items?.[itemId]) return;
@@ -575,18 +574,18 @@
         saveState();
     }
 
-    function createInstanceFromLocalCatalog(catalogId) {
+    function createInstanceFromLocalCatalog(catalogId: any) {
         closePublished();
         const c = state.catalogs[catalogId];
         if (!c) return null;
         const id = 'tl-' + uid();
         const now = Date.now();
-        const tiers = DEFAULT_TIERS.map(t => ({ ...t }));
-        const rankings = {};
-        tiers.forEach(t => { rankings[t.id] = []; });
+        const tiers = DEFAULT_TIERS.map((t: any) => ({ ...t }));
+        const rankings: any = {};
+        tiers.forEach((t: any) => { rankings[t.id] = []; });
         rankings._pool = [];
         const items = stampItemsFromCatalog(c.items || {});
-        Object.keys(items).forEach(k => rankings._pool.push(k));
+        Object.keys(items).forEach((k: any) => rankings._pool.push(k));
         state.instances[id] = {
             id,
             title: `${c.title || '순위'} · 순위`,
@@ -605,13 +604,13 @@
         return id;
     }
 
-    function createList(title, category) {
+    function createList(title: any, category: any) {
         closePublished();
         const id = 'tl-' + uid();
         const now = Date.now();
-        const tiers = DEFAULT_TIERS.map(t => ({ ...t }));
-        const rankings = {};
-        tiers.forEach(t => { rankings[t.id] = []; });
+        const tiers = DEFAULT_TIERS.map((t: any) => ({ ...t }));
+        const rankings: any = {};
+        tiers.forEach((t: any) => { rankings[t.id] = []; });
         rankings._pool = [];
         state.instances[id] = {
             id,
@@ -630,7 +629,7 @@
         return id;
     }
 
-    function addItem(name, imageKey) {
+    function addItem(name: any, imageKey: any) {
         const list = ensureWritableList('addItem') || currentList();
         if (!list) return null;
         const id = 'ti-' + uid();
@@ -642,14 +641,14 @@
         return id;
     }
 
-    function removeItem(itemId) {
+    function removeItem(itemId: any) {
         const list = ensureWritableList('removeItem') || currentList();
         if (!list?.items?.[itemId]) return false;
         if (list.items[itemId].tlOrigin !== 'custom') return false;
         const imgKey = list.items[itemId].imageKey;
         if (imgKey) TierDB.remove(imgKey);
         delete list.items[itemId];
-        Object.values(list.rankings || {}).forEach(arr => {
+        Object.values(list.rankings || {}).forEach((arr: any) => {
             const idx = arr.indexOf(itemId);
             if (idx !== -1) arr.splice(idx, 1);
         });
@@ -659,12 +658,12 @@
     }
 
     /** @returns {boolean} */
-    function moveItem(itemId, targetTier, insertIdx) {
+    function moveItem(itemId: any, targetTier: any, insertIdx: any) {
         const list = ensureWritableList('moveItem') || currentList();
         if (!list) return false;
         const target = list.rankings[targetTier];
         if (!Array.isArray(target)) return false;
-        Object.values(list.rankings || {}).forEach(arr => {
+        Object.values(list.rankings || {}).forEach((arr: any) => {
             const idx = arr.indexOf(itemId);
             if (idx !== -1) arr.splice(idx, 1);
         });
@@ -680,10 +679,10 @@
      * @param {object} list — ensureWritableList 이후의 순위 인스턴스
      * @param {{id:string,label:string,color:string}[]} tiersInOrder — 위에서 아래 표시 순
      */
-    function applyTiers(list, tiersInOrder) {
+    function applyTiers(list: any, tiersInOrder: any) {
         if (!list || !Array.isArray(tiersInOrder) || tiersInOrder.length === 0) return false;
         const maxTiers = 16;
-        const raw = tiersInOrder.slice(0, maxTiers).map(t => ({
+        const raw = tiersInOrder.slice(0, maxTiers).map((t: any) => ({
             id: String(t.id || '').trim(),
             label: String(t.label || '').trim() || '?',
             color: String(t.color || '#999999').trim() || '#999999',
@@ -696,15 +695,15 @@
             used.add(id);
             clean.push({ id, label: t.label, color: t.color });
         }
-        const newIdSet = new Set(clean.map(t => t.id));
+        const newIdSet = new Set(clean.map((t: any) => t.id));
         const oldR = list.rankings || {};
         const pool = [...(oldR._pool || [])];
-        Object.keys(oldR).forEach(tid => {
+        Object.keys(oldR).forEach((tid: any) => {
             if (tid === '_pool' || newIdSet.has(tid)) return;
             pool.push(...(oldR[tid] || []));
         });
-        const newR = { _pool: pool };
-        clean.forEach(t => {
+        const newR: any = { _pool: pool };
+        clean.forEach((t: any) => {
             newR[t.id] = [...(oldR[t.id] || [])];
         });
         list.tiers = clean;
@@ -719,10 +718,10 @@
      * itemOverrides만 있던·tlOrigin 미표기 등도 포함해 catalog 잔존 표시를 걷어냄.
      * @returns {boolean} 변경 여부
      */
-    function promoteCatalogMissingToCustom(list, catalogItemIdSet) {
+    function promoteCatalogMissingToCustom(list: any, catalogItemIdSet: any) {
         if (!list?.items || !(catalogItemIdSet instanceof Set)) return false;
         let changed = false;
-        Object.keys(list.items).forEach(id => {
+        Object.keys(list.items).forEach((id: any) => {
             const it = list.items[id];
             if (!it || it.tlOrigin === 'custom' || catalogItemIdSet.has(id)) return;
             it.tlOrigin = 'custom';
@@ -737,26 +736,26 @@
      * tlOrigin === 'custom' 인 항목(직접 추가)만 풀 밖 id를 유지한다.
      * @returns {boolean} 변경 여부
      */
-    function pruneStaleCatalogBindings(list, catalogItems) {
+    function pruneStaleCatalogBindings(list: any, catalogItems: any) {
         if (!list?.items || !catalogItems || typeof catalogItems !== 'object') return false;
         const catIds = new Set(Object.keys(catalogItems));
         let changed = false;
-        const toDrop = [];
-        Object.keys(list.items).forEach(id => {
+        const toDrop: any[] = [];
+        Object.keys(list.items).forEach((id: any) => {
             const it = list.items[id];
             if (!it) return;
             if (it.tlOrigin === 'custom') return;
             if (catIds.has(id)) return;
             toDrop.push(id);
         });
-        toDrop.forEach(id => {
+        toDrop.forEach((id: any) => {
             const it = list.items[id];
             const imgKey = it?.imageKey;
             if (imgKey) {
                 try { TierDB.remove(imgKey); } catch (_) {}
             }
             delete list.items[id];
-            Object.values(list.rankings || {}).forEach(arr => {
+            Object.values(list.rankings || {}).forEach((arr: any) => {
                 if (!Array.isArray(arr)) return;
                 for (let i = arr.length - 1; i >= 0; i--) {
                     if (arr[i] === id) {
@@ -768,10 +767,10 @@
             changed = true;
         });
         const valid = new Set(Object.keys(list.items || {}));
-        Object.keys(list.rankings || {}).forEach(tid => {
+        Object.keys(list.rankings || {}).forEach((tid: any) => {
             const arr = list.rankings[tid];
             if (!Array.isArray(arr)) return;
-            const next = arr.filter(x => valid.has(x));
+            const next = arr.filter((x: any) => valid.has(x));
             if (next.length !== arr.length) changed = true;
             list.rankings[tid] = next;
         });
@@ -779,7 +778,7 @@
         return changed;
     }
 
-    function persistList(list) {
+    function persistList(list: any) {
         if (!list) return;
         touchInstance(list);
         saveState();
@@ -790,9 +789,9 @@
         if (!list) return false;
         const valid = new Set(Object.keys(list.items || {}));
         let changed = false;
-        Object.keys(list.rankings || {}).forEach(k => {
+        Object.keys(list.rankings || {}).forEach((k: any) => {
             const arr = list.rankings[k] || [];
-            const next = arr.filter(id => valid.has(id));
+            const next = arr.filter((id: any) => valid.has(id));
             if (next.length !== arr.length) changed = true;
             list.rankings[k] = next;
         });
@@ -803,22 +802,22 @@
         return changed;
     }
 
-    function repairDeleteItemsByIds(itemIds) {
+    function repairDeleteItemsByIds(itemIds: any) {
         if (!itemIds?.length) return 0;
         ensureWritableList('integrityRepair') || currentList();
         let n = 0;
-        itemIds.forEach(id => {
+        itemIds.forEach((id: any) => {
             if (removeItem(id)) n++;
         });
         return n;
     }
 
-    function repairMarkStaleAsLocalItems(itemIds) {
+    function repairMarkStaleAsLocalItems(itemIds: any) {
         if (!itemIds?.length) return 0;
         const list = ensureWritableList('integrityRepair') || currentList();
         if (!list) return 0;
         let n = 0;
-        itemIds.forEach(id => {
+        itemIds.forEach((id: any) => {
             if (!list.items[id]) return;
             list.items[id].tlOrigin = 'custom';
             list.items[id].tlEdited = true;
@@ -829,22 +828,22 @@
         return n;
     }
 
-    function ensureListUserLabels(list) {
+    function ensureListUserLabels(list: any) {
         if (!list || typeof list !== 'object') return;
         if (!list.userLabels || typeof list.userLabels !== 'object') list.userLabels = {};
     }
 
-    function countCardsUsingUserLabel(labelId) {
+    function countCardsUsingUserLabel(labelId: any) {
         const list = currentList();
         if (!list) return 0;
         let n = 0;
-        Object.values(list.items || {}).forEach(it => {
+        Object.values(list.items || {}).forEach((it: any) => {
             if (Array.isArray(it.userLabelIds) && it.userLabelIds.includes(labelId)) n++;
         });
         return n;
     }
 
-    function addUserLabelDef(name, color) {
+    function addUserLabelDef(name: any, color: any) {
         const list = ensureWritableList('addUserLabel') || currentList();
         if (!list) return null;
         ensureListUserLabels(list);
@@ -859,7 +858,7 @@
         return id;
     }
 
-    function updateUserLabelDef(labelId, name, color) {
+    function updateUserLabelDef(labelId: any, name: any, color: any) {
         const list = ensureWritableList('updateUserLabel') || currentList();
         if (!list?.userLabels?.[labelId]) return;
         list.userLabels[labelId].name = String(name || '').trim() || '라벨';
@@ -868,20 +867,20 @@
         saveState();
     }
 
-    function removeUserLabelDef(labelId) {
+    function removeUserLabelDef(labelId: any) {
         const list = ensureWritableList('removeUserLabel') || currentList();
         if (!list?.userLabels?.[labelId]) return;
         delete list.userLabels[labelId];
-        Object.values(list.items || {}).forEach(it => {
+        Object.values(list.items || {}).forEach((it: any) => {
             if (!Array.isArray(it.userLabelIds)) return;
-            it.userLabelIds = it.userLabelIds.filter(x => x !== labelId);
+            it.userLabelIds = it.userLabelIds.filter((x: any) => x !== labelId);
             if (!it.userLabelIds.length) delete it.userLabelIds;
         });
         touchInstance(list);
         saveState();
     }
 
-    function setItemUserLabelIds(itemId, ids) {
+    function setItemUserLabelIds(itemId: any, ids: any) {
         const list = ensureWritableList('setItemUserLabels') || currentList();
         if (!list?.items?.[itemId]) return;
         const it = list.items[itemId];
@@ -893,7 +892,7 @@
         saveState();
     }
 
-    function duplicateList(listId) {
+    function duplicateList(listId: any) {
         closePublished();
         const src = state.instances[listId];
         if (!src) return null;
@@ -912,25 +911,25 @@
         return id;
     }
 
-    function deleteList(listId) {
+    function deleteList(listId: any) {
         closePublished();
         const l = state.instances[listId];
         if (!l) return;
         try {
-            Object.values(l.items || {}).forEach(it => {
+            Object.values(l.items || {}).forEach((it: any) => {
                 if (it?.imageKey) TierDB.remove(it.imageKey);
             });
         } catch (_) {}
         delete state.instances[listId];
         if (state.currentInstanceId === listId) {
-            const next = Object.values(state.instances).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+            const next: any = Object.values(state.instances).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
             state.currentInstanceId = next?.id || null;
         }
         saveState();
     }
 
-    function fileToDataUrl(file) {
-        return new Promise((res, rej) => {
+    function fileToDataUrl(file: any) {
+        return new Promise((res: any, rej: any) => {
             const reader = new FileReader();
             reader.onload = () => res(reader.result);
             reader.onerror = () => rej(reader.error);
@@ -938,8 +937,8 @@
         });
     }
 
-    function createThumbnail(dataUrl, maxSize) {
-        return new Promise(res => {
+    function createThumbnail(dataUrl: any, maxSize: any) {
+        return new Promise((res: any) => {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -951,7 +950,7 @@
                 }
                 canvas.width = w;
                 canvas.height = h;
-                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
                 res(canvas.toDataURL('image/webp', 0.85));
             };
             img.onerror = () => res(dataUrl);
@@ -959,7 +958,7 @@
         });
     }
 
-    async function processImageFile(file) {
+    async function processImageFile(file: any) {
         const dataUrl = await fileToDataUrl(file);
         const thumb = await createThumbnail(dataUrl, 200);
         const imgKey = 'tl-img-' + uid();
@@ -998,7 +997,7 @@
         removeItem,
         moveItem,
         applyTiers,
-        getDefaultTiers: () => DEFAULT_TIERS.map(t => ({ ...t })),
+        getDefaultTiers: () => DEFAULT_TIERS.map((t: any) => ({ ...t })),
         promoteCatalogMissingToCustom,
         pruneStaleCatalogBindings,
         canResetItemFromPool,

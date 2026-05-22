@@ -19,8 +19,22 @@ declare global {
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
     KarmoWorld?: KarmoWorldNamespace;
-    /** tierlist 네임스페이스 — `namespace.js` */
-    Tierlist?: Record<string, unknown>;
+    /**
+     * tierlist 네임스페이스 — `namespace.js`.
+     * IIFE 들 (storage/publish/render/dialogs/dnd/index 등) 이 T.state·T.db·T.publish 등
+     * 동적으로 채우는 구조라 정적 타입 narrow 가 어렵다 (KL-078). 멤버는 일단 any 로 두고
+     * KL-069 의 `as any` 정리 흐름에서 점진 narrow.
+     */
+    Tierlist?: {
+      state?: any;
+      db?: any;
+      publish?: any;
+      render?: any;
+      dialogs?: any;
+      dnd?: any;
+      ui?: any;
+      [k: string]: any;
+    };
     RANDOMGEN_TOPICS?: RandomGenTopic[];
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
@@ -144,7 +158,8 @@ declare global {
     isDesktopApp?: () => boolean;
     escapeHtml?: (s: string) => string;
     getToolMeta?: (id: string) => Record<string, unknown> | undefined;
-    switchPage?: (id: string) => void;
+    switchPage?: (id: string, opts?: Record<string, unknown>) => void;
+    switchTab?: (id: string) => void;
     getNavLayout?: () => string;
     setNavLayout?: (v: string) => void;
     getTheme?: () => string;

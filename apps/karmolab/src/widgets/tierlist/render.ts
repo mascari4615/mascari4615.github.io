@@ -1,22 +1,21 @@
-// @ts-nocheck
 (function () {
-    const T = window.Tierlist = window.Tierlist || {};
+    const T: any = (window.Tierlist = window.Tierlist || {});
 
-    let editorContainer = null;
-    let listContainer = null;
-    let statsContainer = null;
+    let editorContainer: any = null;
+    let listContainer: any = null;
+    let statsContainer: any = null;
     /** 편집기: 카드 클릭으로 삭제 */
     let editorDeleteMode = false;
     let editorDeleteModeEscBound = false;
     let lastQuickDeleteBlockedToastAt = 0;
-    function setContainers({ editor, list, stats }) {
+    function setContainers({ editor, list, stats }: any) {
         if (editor !== undefined) editorContainer = editor;
         if (list !== undefined) listContainer = list;
         if (stats !== undefined) statsContainer = stats;
     }
 
     /** index.json 행: 후보 풀(catalog) vs 사이트에 올린 순위판(karmo). 미표기는 카탈로그. */
-    function publishedIndexGroup(it) {
+    function publishedIndexGroup(it: any) {
         const g = String(it?.tierlistGroup ?? it?.group ?? '')
             .toLowerCase()
             .trim();
@@ -29,26 +28,26 @@
         try {
             if (typeof Toolbox !== 'undefined' && Toolbox.switchPage && Toolbox.switchTab) {
                 Toolbox.switchPage('tierlist', { pushHistory: false });
-                Toolbox.switchTab('tl-edit');
+                (Toolbox.switchTab as any)('tl-edit');
             }
         } catch (_) {}
     }
 
-    function optionsFromPublishedRows(rows, meta) {
+    function optionsFromPublishedRows(rows: any, meta: any) {
         if (!rows.length) return '<option disabled>(항목 없음)</option>';
         return [...rows]
-            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
-            .map(it => {
+            .sort((a: any, b: any) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .map((it: any) => {
                 const selected = T.state.isPublishedMode() && meta.url === it.url;
                 return `<option value="blog:${Toolbox.escapeHtml(it.url || '')}" ${selected ? 'selected' : ''}>${Toolbox.escapeHtml(it.title || it.id || 'tierlist')}</option>`;
             })
             .join('');
     }
 
-    async function buildListSelectorHtml(st, meta) {
+    async function buildListSelectorHtml(st: any, meta: any) {
         const localInst = Object.values(st.instances || {})
-            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
-            .map(l => {
+            .sort((a: any, b: any) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .map((l: any) => {
                 const val = `local:${l.id}`;
                 const sel = !T.state.isPublishedMode() && l.id === st.currentInstanceId;
                 return `<option value="${Toolbox.escapeHtml(val)}" ${sel ? 'selected' : ''}>${Toolbox.escapeHtml(l.title || '(제목 없음)')}</option>`;
@@ -61,9 +60,9 @@
         let karmoOpts = '<option disabled>(항목 없음)</option>';
         try {
             const publishedRows = await T.publish.getPublishedIndex();
-            const catalogRows = [];
-            const karmoRows = [];
-            publishedRows.forEach(it => {
+            const catalogRows: any[] = [];
+            const karmoRows: any[] = [];
+            publishedRows.forEach((it: any) => {
                 (publishedIndexGroup(it) === 'karmo' ? karmoRows : catalogRows).push(it);
             });
             catalogOpts = optionsFromPublishedRows(catalogRows, meta);
@@ -81,7 +80,7 @@
     }
 
     function bindListSelectChange() {
-        editorContainer.querySelector('#tl-list-select')?.addEventListener('change', async (e) => {
+        editorContainer.querySelector('#tl-list-select')?.addEventListener('change', async (e: any) => {
             const v = String(e.target.value || '');
             if (v.startsWith('local:')) {
                 const id = v.slice('local:'.length);
@@ -93,7 +92,7 @@
                 const rel = v.slice('blog:'.length);
                 try {
                     const items = await T.publish.getPublishedIndex();
-                    const row = items.find(x => x.url === rel);
+                    const row = items.find((x: any) => x.url === rel);
                     const g = row ? publishedIndexGroup(row) : 'catalog';
                     await T.publish.openPublishedDirect(rel, {
                         id: row?.id || '',
@@ -117,10 +116,10 @@
             const d = snap?.data || {};
             const items = d.items || {};
             const fileImages = d.images || {};
-            const keys = Object.values(items).filter(i => i.imageKey).map(i => i.imageKey);
+            const keys = Object.values(items).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
             const dbMap = await T.db.getMany(keys);
 
-            function cardHtmlCatalog(itemId) {
+            function cardHtmlCatalog(itemId: any) {
                 const item = items[itemId];
                 if (!item) return '';
                 const imgData = item.imageKey ? (fileImages[item.imageKey] || dbMap[item.imageKey]) : null;
@@ -188,11 +187,11 @@
             } catch (_) {}
         });
 
-        const allImageKeys = Object.values(list.items || {}).filter(i => i.imageKey).map(i => i.imageKey);
+        const allImageKeys = Object.values(list.items || {}).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
         const imgMap = await T.db.getMany(allImageKeys);
         const embeddedImages = T.state.getPublishedEmbeddedImages();
 
-        function itemUserLabelsHtml(item) {
+        function itemUserLabelsHtml(item: any) {
             const defs = list.userLabels || {};
             const ids = item.userLabelIds || [];
             if (!ids.length) return '';
@@ -200,7 +199,7 @@
             const shown = ids.slice(0, maxShow);
             const more = ids.length - shown.length;
             const pills = [];
-            shown.forEach(lid => {
+            shown.forEach((lid: any) => {
                 const d = defs[lid];
                 if (!d) return;
                 const bg = Toolbox.escapeHtml(d.color || '#666');
@@ -208,13 +207,13 @@
                 pills.push(`<span class="tl-item-userlabel" style="background:${bg}" title="${nm}">${nm}</span>`);
             });
             if (more > 0) {
-                const rest = ids.slice(maxShow).map(lid => defs[lid]?.name || lid).join(', ');
+                const rest = ids.slice(maxShow).map((lid: any) => defs[lid]?.name || lid).join(', ');
                 pills.push(`<span class="tl-item-userlabel tl-item-userlabel--more" title="${Toolbox.escapeHtml(rest)}">+${more}</span>`);
             }
             return pills.length ? `<div class="tl-item-userlabels">${pills.join('')}</div>` : '';
         }
 
-        function itemOriginBadge(item) {
+        function itemOriginBadge(item: any) {
             if (!item || (item.tlOrigin !== 'custom' && !item.tlEdited)) return '';
             const isAdd = item.tlOrigin === 'custom';
             const label = isAdd ? '추가' : '수정';
@@ -223,7 +222,7 @@
             return `<span class="${cls}" title="${Toolbox.escapeHtml(tip)}">${Toolbox.escapeHtml(label)}</span>`;
         }
 
-        function cardHtml(itemId) {
+        function cardHtml(itemId: any) {
             const item = list.items[itemId];
             if (!item) return '';
             const imgData = item.imageKey
@@ -245,7 +244,7 @@
         const localBadge = !isPublished && list ? '<span class="tl-badge tl-badge-local">로컬 순위</span>' : '';
         const wrapClass = `${isPublished ? 'tl-wrap tl-wrap--embedded' : 'tl-wrap'} tl-wrap--toc-dock`;
 
-        const tocChips = `${(list.tiers || []).map(tier => {
+        const tocChips = `${(list.tiers || []).map((tier: any) => {
             const col = Toolbox.escapeHtml(tier.color || '#ccc');
             const lab = Toolbox.escapeHtml(tier.label || '?');
             const tid = Toolbox.escapeHtml(tier.id);
@@ -272,7 +271,7 @@
             </div>
             <div class="tl-board" id="tl-editor-board">`;
 
-        (list.tiers || []).forEach(tier => {
+        (list.tiers || []).forEach((tier: any) => {
             const rowItems = (list.rankings?.[tier.id] || []).map(cardHtml).join('');
             html += `<div class="tl-row">
                 <div class="tl-label" style="background:${tier.color};color:#000;">${Toolbox.escapeHtml(tier.label)}</div>
@@ -293,7 +292,7 @@
         const wrap = editorContainer.querySelector('.tl-wrap');
         if (editorDeleteMode) wrap.classList.add('tl-delete-mode');
 
-        function toastTierlistDrop(itemId, tierId, insertIdx) {
+        function toastTierlistDrop(itemId: any, tierId: any, insertIdx: any) {
             const item = list.items[itemId];
             const raw = String(item?.name || '').trim();
             const disp = raw.length > 30 ? raw.slice(0, 27) + '…' : (raw || '이름 없음');
@@ -302,7 +301,7 @@
             if (tierId === '_pool') {
                 dest = tocAppend ? '미배치 풀 맨 뒤' : '미배치';
             } else {
-                const t = (list.tiers || []).find(x => x.id === tierId);
+                const t = (list.tiers || []).find((x: any) => x.id === tierId);
                 const lab = String(t?.label || '').trim() || '티어';
                 dest = tocAppend ? `${lab} 맨 뒤` : lab;
             }
@@ -310,16 +309,16 @@
         }
 
         T.dnd.initDnD(wrap, {
-            onDrop: ({ itemId, tierId, insertIdx }) => {
+            onDrop: ({ itemId, tierId, insertIdx }: any) => {
                 if (T.state.moveItem(itemId, tierId, insertIdx)) toastTierlistDrop(itemId, tierId, insertIdx);
                 renderAll();
             },
-            shouldBlockDragStart(e) {
+            shouldBlockDragStart(e: any) {
                 return editorDeleteMode || !!(e.ctrlKey || e.metaKey);
             },
         });
 
-        wrap.querySelector('.tl-toc')?.addEventListener('click', e => {
+        wrap.querySelector('.tl-toc')?.addEventListener('click', (e: any) => {
             const chip = e.target.closest('.tl-toc-chip');
             if (!chip || e.button !== 0) return;
             const tid = chip.getAttribute('data-tier-id');
@@ -329,13 +328,13 @@
                 return;
             }
             const board = wrap.querySelector('#tl-editor-board');
-            const dz = board && [...board.querySelectorAll('.tl-dropzone[data-tier-id]')].find(z => z.getAttribute('data-tier-id') === tid && !z.classList.contains('tl-toc-chip'));
+            const dz = board && [...board.querySelectorAll('.tl-dropzone[data-tier-id]')].find((z: any) => z.getAttribute('data-tier-id') === tid && !z.classList.contains('tl-toc-chip'));
             dz?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
 
         wrap.addEventListener(
             'click',
-            e => {
+            (e: any) => {
                 const itemEl = e.target.closest('.tl-item');
                 if (!itemEl || itemEl.classList.contains('tl-item--static')) return;
                 const itemId = itemEl.dataset.itemId;
@@ -374,12 +373,12 @@
         editorContainer.querySelector('#tl-btn-export-img')?.addEventListener('click', T.publish.exportAsImage);
         editorContainer.querySelector('#tl-btn-export-json')?.addEventListener('click', () => T.publish.showJsonPreview());
 
-        wrap.addEventListener('contextmenu', e => {
+        wrap.addEventListener('contextmenu', (e: any) => {
             const itemEl = e.target.closest('.tl-item');
             if (!itemEl) return;
             e.preventDefault();
             const itemId = itemEl.dataset.itemId;
-            const menu = [
+            const menu: any[] = [
                 { label: '편집', action: () => T.dialogs.showEditItemDialog(itemId) },
                 { label: '라벨…', action: () => T.dialogs.showAssignUserLabelsDialog(itemId) },
             ];
@@ -387,7 +386,7 @@
                 menu.push({
                     label: '수정 초기화',
                     action: () => {
-                        T.publish.resetItemToCatalogDefault(itemId).then(ok => { if (ok) renderAll(); });
+                        T.publish.resetItemToCatalogDefault(itemId).then((ok: any) => { if (ok) renderAll(); });
                     },
                 });
             }
@@ -410,7 +409,7 @@
 
         if (!editorDeleteModeEscBound) {
             editorDeleteModeEscBound = true;
-            document.addEventListener('keydown', ev => {
+            document.addEventListener('keydown', (ev: any) => {
                 if (ev.key !== 'Escape' || !editorDeleteMode) return;
                 editorDeleteMode = false;
                 renderAll();
@@ -460,7 +459,7 @@
         const gridLocalPools = listContainer.querySelector('#tl-grid-local-pools');
         const instGrid = listContainer.querySelector('#tl-grid-instances');
 
-        async function embedIndexCardHtml(it) {
+        async function embedIndexCardHtml(it: any) {
             const title = it.title || it.id || 'tierlist';
             const rel = it.url || '';
             const grp = publishedIndexGroup(it);
@@ -491,9 +490,9 @@
                 blogErr = true;
             }
 
-            const catalogItems = [];
-            const karmoItems = [];
-            blogItems.forEach(it => {
+            const catalogItems: any[] = [];
+            const karmoItems: any[] = [];
+            blogItems.forEach((it: any) => {
                 (publishedIndexGroup(it) === 'karmo' ? karmoItems : catalogItems).push(it);
             });
 
@@ -513,9 +512,9 @@
                 }
             }
 
-            const catalogs = Object.values(st.catalogs || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            const catalogs = Object.values(st.catalogs || {}).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
             let catHtml = '';
-            catalogs.forEach(c => {
+            catalogs.forEach((c: any) => {
                 const n = Object.keys(c.items || {}).length;
                 const date = new Date(c.updatedAt || Date.now());
                 catHtml += `<div class="tl-list-card tl-list-card-catalog" data-catalog-id="${Toolbox.escapeHtml(c.id)}">
@@ -539,11 +538,11 @@
                 gridLocalPools.innerHTML = catHtml || emptyLocal;
             }
 
-            const instances = Object.values(st.instances || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            const instances = Object.values(st.instances || {}).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
             let instHtml = '';
-            instances.forEach(inst => {
+            instances.forEach((inst: any) => {
                 const ic = Object.keys(inst.items || {}).length;
-                const rc = Object.entries(inst.rankings || {}).filter(([k]) => k !== '_pool').reduce((s, [, arr]) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+                const rc = Object.entries(inst.rankings || {}).filter(([k]: any) => k !== '_pool').reduce((s: any, [, arr]: any) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                 const date = new Date(inst.updatedAt || Date.now());
                 const active = !T.state.isPublishedMode() && inst.id === st.currentInstanceId;
                 instHtml += `<div class="tl-list-card tl-list-card-instance${active ? ' active' : ''}" data-instance-id="${Toolbox.escapeHtml(inst.id)}">
@@ -558,7 +557,7 @@
                 instGrid.innerHTML = instHtml;
             }
 
-            listContainer.querySelectorAll('.tl-list-card-embed[data-embed-url]').forEach(card => {
+            listContainer.querySelectorAll('.tl-list-card-embed[data-embed-url]').forEach((card: any) => {
                 card.addEventListener('click', async () => {
                     const rel = card.getAttribute('data-embed-url');
                     if (!rel) return;
@@ -581,7 +580,7 @@
                 });
             });
 
-            gridLocalPools?.querySelectorAll('.tl-list-card-catalog[data-catalog-id]').forEach(card => {
+            gridLocalPools?.querySelectorAll('.tl-list-card-catalog[data-catalog-id]').forEach((card: any) => {
                 card.addEventListener('click', async () => {
                     const cid = card.dataset.catalogId;
                     if (!cid) return;
@@ -595,7 +594,7 @@
                     await renderAll();
                     goToTierlistEditTab();
                 });
-                card.addEventListener('contextmenu', e => {
+                card.addEventListener('contextmenu', (e: any) => {
                     e.preventDefault();
                     const cid = card.dataset.catalogId;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
@@ -614,7 +613,7 @@
                 });
             });
 
-            instGrid?.querySelectorAll('.tl-list-card-instance[data-instance-id]').forEach(card => {
+            instGrid?.querySelectorAll('.tl-list-card-instance[data-instance-id]').forEach((card: any) => {
                 card.addEventListener('click', async () => {
                     const iid = card.dataset.instanceId;
                     if (!iid) return;
@@ -622,7 +621,7 @@
                     await renderAll();
                     goToTierlistEditTab();
                 });
-                card.addEventListener('contextmenu', e => {
+                card.addEventListener('contextmenu', (e: any) => {
                     e.preventDefault();
                     const iid = card.dataset.instanceId;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
@@ -660,12 +659,12 @@
         }
 
         let totalItems = 0, totalRanked = 0;
-        const tierCounts = {};
+        const tierCounts: Record<string, { count: number; color: string }> = {};
 
-        bundles.forEach(({ list: l }) => {
+        bundles.forEach(({ list: l }: any) => {
             const itemCount = Object.keys(l.items || {}).length;
             totalItems += itemCount;
-            (l.tiers || []).forEach(t => {
+            (l.tiers || []).forEach((t: any) => {
                 const count = (l.rankings?.[t.id] || []).length;
                 totalRanked += count;
                 const key = String(t.label || t.id || '?').toUpperCase();
@@ -674,7 +673,7 @@
             });
         });
 
-        const maxCount = Math.max(1, ...Object.values(tierCounts).map(v => v.count));
+        const maxCount = Math.max(1, ...Object.values(tierCounts).map((v: any) => v.count));
 
         let html = `<div class="tl-stats">
             <div class="tl-stat-cards">
@@ -701,7 +700,7 @@
                     <thead><tr><th>출처</th><th>제목</th><th>카테고리</th><th>아이템</th><th>배치</th><th>최근 수정</th></tr></thead>
                     <tbody>`;
 
-        function sourceLabel(l) {
+        function sourceLabel(l: any) {
             const s = l.meta?.source || 'local';
             if (s === 'from-local-catalog') return '로컬 후보 풀';
             if (s === 'from-catalog') return '사이트 후보 풀';
@@ -711,9 +710,9 @@
             return s;
         }
 
-        bundles.sort((a, b) => (b.list.updatedAt || 0) - (a.list.updatedAt || 0)).forEach(({ list: l }) => {
+        bundles.sort((a: any, b: any) => (b.list.updatedAt || 0) - (a.list.updatedAt || 0)).forEach(({ list: l }: any) => {
             const ic = Object.keys(l.items || {}).length;
-            const rc = Object.entries(l.rankings || {}).filter(([k]) => k !== '_pool').reduce((s, [, arr]) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+            const rc = Object.entries(l.rankings || {}).filter(([k]: any) => k !== '_pool').reduce((s: any, [, arr]: any) => s + (Array.isArray(arr) ? arr.length : 0), 0);
             html += `<tr>
                 <td>${Toolbox.escapeHtml(sourceLabel(l))}</td>
                 <td>${Toolbox.escapeHtml(l.title || '(제목 없음)')}</td>
