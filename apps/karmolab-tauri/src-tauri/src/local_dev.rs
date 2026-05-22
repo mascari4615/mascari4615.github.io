@@ -26,16 +26,19 @@ const INITIAL_TAIL_LINES: usize = 200;
 #[derive(Default)]
 pub struct LocalDevState {
     pub repo_root: Mutex<Option<String>>,
-    pub pids: Mutex<HashMap<String, u32>>,
+    /// `Arc` 래핑 = KL-043/077 spawn_blocking 클로저로 옮기기 위함 (State 는 non-'static).
+    pub pids: Arc<Mutex<HashMap<String, u32>>>,
     /// 프로필당 동시에 하나의 스트리밍 npm/deploy 작업만 허용
     stream_busy: Mutex<HashSet<String>>,
     /// profile_id → 살아있는 로그 follow thread의 stop flag.
     /// `localdev_follow_log`로 등록되고 `localdev_stop_log_follow` 또는
     /// thread 자체 종료 시점에 제거된다.
-    log_followers: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    /// `Arc` 래핑 = KL-077 spawn_blocking 패턴.
+    log_followers: Arc<Mutex<HashMap<String, Arc<AtomicBool>>>>,
     /// 카모랩이 spawn 한 자식의 stdin 핸들. `localdev_send_stdin` 으로 텍스트 전송.
     /// reattach 된 PID 는 핸들이 없음 (그땐 send_stdin 명령이 not-found 로 실패).
-    stdins: Mutex<HashMap<String, std::process::ChildStdin>>,
+    /// `Arc` 래핑 = KL-077 spawn_blocking 패턴.
+    stdins: Arc<Mutex<HashMap<String, std::process::ChildStdin>>>,
     /// 외부 PID 자동 폴링이 PowerShell `Get-CimInstance` 풀스캔(1~2초)을
     /// 30s 간격으로 반복하지 않도록 결과를 짧게 캐시한다.
     /// `localdev_list_external_pids`, `localdev_stop_external` 공용.
@@ -925,14 +928,29 @@ pub fn localdev_stop_external_sync(
 /// `localdev-log` 이벤트로 emit (run_id="follow"). 파일이 아직 없거나
 /// EOF에 도달하면 짧게 sleep 후 재시도. `localdev_stop_log_follow`로 중단.
 /// 같은 profile_id로 이미 follower가 있으면 noop.
+/// KL-077: 초기 `fs::read_to_string` (크기 무제한) + emit 루프 → async + spawn_blocking.
+/// `thread::spawn` tail loop 는 블로킹 내부에서 시작 (이미 별도 thread).
 #[tauri::command]
-pub fn localdev_follow_log(
+pub async fn localdev_follow_log(
     profile_id: String,
     app: tauri::AppHandle,
     state: State<'_, LocalDevState>,
 ) -> Result<(), String> {
     let log_path = log_file_path(&app, &profile_id)?;
+    let log_followers = Arc::clone(&state.log_followers);
+    tauri::async_runtime::spawn_blocking(move || {
+        localdev_follow_log_blocking(profile_id, app, log_path, log_followers)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
 
+fn localdev_follow_log_blocking(
+    profile_id: String,
+    app: tauri::AppHandle,
+    log_path: PathBuf,
+    log_followers: Arc<Mutex<HashMap<String, Arc<AtomicBool>>>>,
+) -> Result<(), String> {
     // 카드가 재마운트(시작/종료/dev mode navigate 등)될 때마다 호출되므로,
     // 매번 마지막 N 줄을 즉시 emit 해서 새 panel 도 옛 로그를 즉시 복구한다.
     if let Ok(content) = fs::read_to_string(&log_path) {
@@ -949,28 +967,26 @@ pub fn localdev_follow_log(
         }
     }
 
-    {
-        let mut followers = state.log_followers.lock().map_err(|e| e.to_string())?;
-        if followers.contains_key(&profile_id) {
-            return Ok(());
-        }
-        let stop = Arc::new(AtomicBool::new(false));
-        followers.insert(profile_id.clone(), stop.clone());
-
-        let app_thread = app.clone();
-        let pid_thread = profile_id.clone();
-        let stop_thread = stop;
-        thread::spawn(move || {
-            tail_log_loop(app_thread.clone(), pid_thread.clone(), log_path, stop_thread);
-            // 자연 종료 시 스스로 followers map에서 제거 (정상 stop이면
-            // localdev_stop_log_follow가 이미 제거했으니 noop)
-            if let Some(state) = app_thread.try_state::<LocalDevState>() {
-                if let Ok(mut f) = state.log_followers.lock() {
-                    f.remove(&pid_thread);
-                }
-            }
-        });
+    let mut followers = log_followers.lock().map_err(|e| e.to_string())?;
+    if followers.contains_key(&profile_id) {
+        return Ok(());
     }
+    let stop = Arc::new(AtomicBool::new(false));
+    followers.insert(profile_id.clone(), stop.clone());
+
+    let app_thread = app.clone();
+    let pid_thread = profile_id.clone();
+    let stop_thread = stop;
+    thread::spawn(move || {
+        tail_log_loop(app_thread.clone(), pid_thread.clone(), log_path, stop_thread);
+        // 자연 종료 시 스스로 followers map에서 제거 (정상 stop이면
+        // localdev_stop_log_follow가 이미 제거했으니 noop)
+        if let Some(state) = app_thread.try_state::<LocalDevState>() {
+            if let Ok(mut f) = state.log_followers.lock() {
+                f.remove(&pid_thread);
+            }
+        }
+    });
     Ok(())
 }
 
@@ -1061,8 +1077,10 @@ fn tail_log_loop(
     }
 }
 
+/// KL-077: `find_profile()` 파일 읽기 + `spawn_detached_process()` external spawn
+/// + `persist_pids()` 파일 쓰기 → async + spawn_blocking.
 #[tauri::command]
-pub fn localdev_start(
+pub async fn localdev_start(
     profile_id: String,
     app: tauri::AppHandle,
     state: State<'_, LocalDevState>,
@@ -1073,9 +1091,41 @@ pub fn localdev_start(
             .ok_or_else(|| "저장소 루트를 먼저 설정하세요.".to_string())?
     };
     let repo = PathBuf::from(&repo_str);
+    let pids = Arc::clone(&state.pids);
+    let stdins = Arc::clone(&state.stdins);
+    tauri::async_runtime::spawn_blocking(move || {
+        localdev_start_blocking(profile_id, app, repo, pids, stdins)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
 
+/// HTTP (non-Tauri) 동기 경로 — 이미 background thread (KL-065) 라 블로킹 OK.
+pub fn localdev_start_sync(
+    profile_id: String,
+    app: tauri::AppHandle,
+    state: &LocalDevState,
+) -> Result<(), String> {
+    let repo_str = {
+        let g = state.repo_root.lock().map_err(|e| e.to_string())?;
+        g.clone()
+            .ok_or_else(|| "저장소 루트를 먼저 설정하세요.".to_string())?
+    };
+    let repo = PathBuf::from(&repo_str);
+    let pids = Arc::clone(&state.pids);
+    let stdins = Arc::clone(&state.stdins);
+    localdev_start_blocking(profile_id, app, repo, pids, stdins)
+}
+
+fn localdev_start_blocking(
+    profile_id: String,
+    app: tauri::AppHandle,
+    repo: PathBuf,
+    pids_arc: Arc<Mutex<HashMap<String, u32>>>,
+    stdins_arc: Arc<Mutex<HashMap<String, std::process::ChildStdin>>>,
+) -> Result<(), String> {
     {
-        let pids = state.pids.lock().map_err(|e| e.to_string())?;
+        let pids = pids_arc.lock().map_err(|e| e.to_string())?;
         if pids.contains_key(&profile_id) {
             return Err("이미 추적 중인 프로세스가 있습니다. 먼저 종료하세요.".into());
         }
@@ -1095,32 +1145,60 @@ pub fn localdev_start(
     let (pid, stdin) = spawn_detached_process(&resolved.program, &resolved.args, &cwd, &log_path)?;
 
     {
-        let mut pids = state.pids.lock().map_err(|e| e.to_string())?;
+        let mut pids = pids_arc.lock().map_err(|e| e.to_string())?;
         pids.insert(profile_id.clone(), pid);
         let _ = persist_pids(&app, &pids);
     }
     {
-        let mut stdins = state.stdins.lock().map_err(|e| e.to_string())?;
+        let mut stdins = stdins_arc.lock().map_err(|e| e.to_string())?;
         stdins.insert(profile_id, stdin);
     }
     Ok(())
 }
 
+/// KL-077: `persist_pids()` 파일 쓰기 + `kill_process_tree()` external kill →
+/// async + spawn_blocking.
 #[tauri::command]
-pub fn localdev_stop(
+pub async fn localdev_stop(
     profile_id: String,
     app: tauri::AppHandle,
     state: State<'_, LocalDevState>,
 ) -> Result<(), String> {
+    let pids = Arc::clone(&state.pids);
+    let stdins = Arc::clone(&state.stdins);
+    tauri::async_runtime::spawn_blocking(move || {
+        localdev_stop_blocking(profile_id, app, pids, stdins)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+/// HTTP (non-Tauri) 동기 경로 — 이미 background thread (KL-065) 라 블로킹 OK.
+pub fn localdev_stop_sync(
+    profile_id: String,
+    app: tauri::AppHandle,
+    state: &LocalDevState,
+) -> Result<(), String> {
+    let pids = Arc::clone(&state.pids);
+    let stdins = Arc::clone(&state.stdins);
+    localdev_stop_blocking(profile_id, app, pids, stdins)
+}
+
+fn localdev_stop_blocking(
+    profile_id: String,
+    app: tauri::AppHandle,
+    pids_arc: Arc<Mutex<HashMap<String, u32>>>,
+    stdins_arc: Arc<Mutex<HashMap<String, std::process::ChildStdin>>>,
+) -> Result<(), String> {
     let pid = {
-        let mut pids = state.pids.lock().map_err(|e| e.to_string())?;
+        let mut pids = pids_arc.lock().map_err(|e| e.to_string())?;
         let removed = pids.remove(&profile_id);
         let _ = persist_pids(&app, &pids);
         removed
     };
     {
         // stdin 핸들 Drop → close. send_stdin 시도하면 해당 프로필 not-found 로 떨어짐.
-        let mut stdins = state.stdins.lock().map_err(|e| e.to_string())?;
+        let mut stdins = stdins_arc.lock().map_err(|e| e.to_string())?;
         stdins.remove(&profile_id);
     }
     let Some(pid) = pid else {

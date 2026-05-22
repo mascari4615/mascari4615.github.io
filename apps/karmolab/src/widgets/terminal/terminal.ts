@@ -7,7 +7,6 @@
  * Rust 명령: terminal_start / terminal_send_stdin / terminal_stop / terminal_status
  * 이벤트: karmolab://terminal-line / karmolab://terminal-cwd / karmolab://terminal-exit
  */
-// @ts-nocheck — Toolbox / window.__TAURI__ 글로벌은 ambient 타입에 다 안 잡혀 있음.
 import { isDesktop, invoke, listen } from '../../tauri-bridge';
 
 (function (): void {

@@ -1,16 +1,26 @@
-// @ts-nocheck
+interface TlDnDDropPayload {
+    itemId: string;
+    tierId: string | undefined;
+    insertIdx: number;
+}
+
+interface TlDnDOptions {
+    onDrop?: (payload: TlDnDDropPayload) => void;
+    shouldBlockDragStart?: (e: PointerEvent) => boolean;
+}
+
 (function () {
-    const T = window.Tierlist = window.Tierlist || {};
+    const T = (window.Tierlist = window.Tierlist || {}) as { dnd?: { initDnD: (root: HTMLElement, opts: TlDnDOptions) => void } } & Record<string, unknown>;
 
     const DRAG_THRESHOLD = 5;
     const ROW_ALIGN_TOL = 10;
 
-    function initDnD(root, { onDrop, shouldBlockDragStart }) {
-        function getDropTarget(x, y) {
-            const zones = root.querySelectorAll('.tl-dropzone, .tl-pool');
-            let best = null;
+    function initDnD(root: HTMLElement, { onDrop, shouldBlockDragStart }: TlDnDOptions) {
+        function getDropTarget(x: number, y: number): HTMLElement | null {
+            const zones = root.querySelectorAll<HTMLElement>('.tl-dropzone, .tl-pool');
+            let best: HTMLElement | null = null;
             let bestArea = Infinity;
-            for (const zone of zones) {
+            for (const zone of Array.from(zones)) {
                 const rect = zone.getBoundingClientRect();
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                     const area = rect.width * rect.height;
@@ -23,7 +33,7 @@
             return best;
         }
 
-        function slotAnchor(cards, k, zoneRect) {
+        function slotAnchor(cards: Element[], k: number, zoneRect: DOMRect): { x: number; y: number } {
             if (k === 0) {
                 if (!cards.length) {
                     return { x: zoneRect.left + 36, y: zoneRect.top + 36 };
@@ -47,9 +57,9 @@
             return { x: rR.left - 6, y: rR.top + rR.height / 2 };
         }
 
-        function getInsertIndex(zone, x, y) {
+        function getInsertIndex(zone: HTMLElement, x: number, y: number): number {
             if (zone.dataset.tocDrop === '1') return 999999;
-            const cards = Array.from(zone.querySelectorAll('.tl-item:not(.dragging)'));
+            const cards = Array.from(zone.querySelectorAll<HTMLElement>('.tl-item:not(.dragging)'));
             if (cards.length === 0) return 0;
 
             const pad = 3;
@@ -75,8 +85,8 @@
             return bestK;
         }
 
-        function placeholderAlreadyAt(zone, placeholder, idx) {
-            const cards = Array.from(zone.querySelectorAll('.tl-item:not(.dragging)'));
+        function placeholderAlreadyAt(zone: HTMLElement, placeholder: HTMLElement, idx: number): boolean {
+            const cards = Array.from(zone.querySelectorAll<HTMLElement>('.tl-item:not(.dragging)'));
             const refChild = cards[idx] ?? null;
             if (placeholder.parentNode !== zone) return false;
             if (refChild === null) {
@@ -87,8 +97,8 @@
             return placeholder.nextElementSibling === refChild;
         }
 
-        function onPointerDown(e) {
-            const itemEl = e.target.closest('.tl-item');
+        function onPointerDown(e: PointerEvent) {
+            const itemEl = (e.target as HTMLElement | null)?.closest<HTMLElement>('.tl-item');
             if (!itemEl || e.button === 2) return;
             const itemId = itemEl.dataset.itemId;
             if (!itemId) return;
@@ -103,9 +113,9 @@
 
             let moved = false;
             let dragDone = false;
-            let ghost = null;
-            let placeholder = null;
-            let currentZone = null;
+            let ghost: HTMLElement | null = null;
+            let placeholder: HTMLElement | null = null;
+            let currentZone: HTMLElement | null = null;
             let lastX = e.clientX;
             let lastY = e.clientY;
 
@@ -114,30 +124,30 @@
                 ghost = null;
                 placeholder?.remove();
                 placeholder = null;
-                itemEl.classList.remove('dragging');
+                itemEl!.classList.remove('dragging');
                 currentZone?.classList.remove('drag-over');
                 currentZone = null;
             }
 
-            function applyDropAt(clientX, clientY) {
+            function applyDropAt(clientX: number, clientY: number) {
                 const zone = getDropTarget(clientX, clientY);
                 if (zone) {
                     const tierId = zone.dataset.tierId;
                     const idx = getInsertIndex(zone, clientX, clientY);
-                    onDrop?.({ itemId, tierId, insertIdx: idx });
+                    onDrop?.({ itemId: itemId!, tierId, insertIdx: idx });
                 }
             }
 
-            function finishOnce(evClientX, evClientY) {
+            function finishOnce(evClientX: number, evClientY: number) {
                 if (dragDone) return;
                 dragDone = true;
                 document.removeEventListener('pointermove', onDocMove, true);
                 document.removeEventListener('pointerup', onDocUp, true);
                 document.removeEventListener('pointercancel', onDocUp, true);
-                itemEl.removeEventListener('lostpointercapture', onLostCapture);
+                itemEl!.removeEventListener('lostpointercapture', onLostCapture);
                 try {
-                    itemEl.releasePointerCapture(e.pointerId);
-                } catch (_) {
+                    itemEl!.releasePointerCapture(e.pointerId);
+                } catch {
                     /* noop */
                 }
 
@@ -157,7 +167,7 @@
                 applyDropAt(lastX, lastY);
             }
 
-            function applyHover(clientX, clientY) {
+            function applyHover(clientX: number, clientY: number) {
                 const zone = getDropTarget(clientX, clientY);
                 if (currentZone && currentZone !== zone) currentZone.classList.remove('drag-over');
                 if (zone) {
@@ -168,19 +178,19 @@
                         return;
                     }
                     const idx = getInsertIndex(zone, clientX, clientY);
-                    if (placeholderAlreadyAt(zone, placeholder, idx)) return;
-                    if (placeholder.parentNode) placeholder.remove();
-                    const cards = zone.querySelectorAll('.tl-item:not(.dragging)');
+                    if (placeholder && placeholderAlreadyAt(zone, placeholder, idx)) return;
+                    if (placeholder?.parentNode) placeholder.remove();
+                    const cards = zone.querySelectorAll<HTMLElement>('.tl-item:not(.dragging)');
                     const refChild = cards[idx] ?? null;
-                    zone.insertBefore(placeholder, refChild);
+                    if (placeholder) zone.insertBefore(placeholder, refChild);
                 } else if (currentZone) {
                     currentZone.classList.remove('drag-over');
                     currentZone = null;
-                    if (placeholder.parentNode) placeholder.remove();
+                    if (placeholder?.parentNode) placeholder.remove();
                 }
             }
 
-            function onDocMove(ev) {
+            function onDocMove(ev: PointerEvent) {
                 lastX = ev.clientX;
                 lastY = ev.clientY;
 
@@ -192,7 +202,7 @@
                         return;
                     }
                     moved = true;
-                    ghost = itemEl.cloneNode(true);
+                    ghost = itemEl!.cloneNode(true) as HTMLElement;
                     ghost.className = 'tl-drag-ghost';
                     ghost.style.width = rect.width + 'px';
                     ghost.style.height = rect.height + 'px';
@@ -200,16 +210,16 @@
 
                     placeholder = document.createElement('div');
                     placeholder.className = 'tl-placeholder';
-                    itemEl.classList.add('dragging');
+                    itemEl!.classList.add('dragging');
                 }
 
                 ev.preventDefault();
-                ghost.style.left = ev.clientX - offsetX + 'px';
-                ghost.style.top = ev.clientY - offsetY + 'px';
+                ghost!.style.left = ev.clientX - offsetX + 'px';
+                ghost!.style.top = ev.clientY - offsetY + 'px';
                 applyHover(ev.clientX, ev.clientY);
             }
 
-            function onDocUp(ev) {
+            function onDocUp(ev: PointerEvent) {
                 finishOnce(ev.clientX, ev.clientY);
             }
 

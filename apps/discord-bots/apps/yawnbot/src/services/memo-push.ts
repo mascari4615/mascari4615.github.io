@@ -89,8 +89,11 @@ export interface MemoPushDeps {
   logger?: Pick<Console, 'log' | 'warn' | 'error'>;
 }
 
-function resolveConfig(env: NodeJS.ProcessEnv, deps: MemoPushDeps): MemoPushConfig | null {
-  const token = deps.token ?? env.MEMO_GITHUB_PAT?.trim() ?? env.GITHUB_TOKEN?.trim() ?? '';
+export function resolveConfig(env: NodeJS.ProcessEnv, deps: MemoPushDeps): MemoPushConfig | null {
+  // 같은 nullish-vs-falsy 패턴 (KAR-094): defaults.txt `MEMO_GITHUB_PAT=` 빈
+  // 라인이 process.env 에 빈 문자열로 주입 → `??` 는 통과 → token="" silent
+  // fail. `||` 가드로 빈 문자열도 fallback (GITHUB_TOKEN).
+  const token = deps.token || env.MEMO_GITHUB_PAT?.trim() || env.GITHUB_TOKEN?.trim() || '';
   const memoRepoPath = deps.memoRepoPath ?? env.MEMO_REPO_PATH?.trim() ?? '';
   if (!token || !memoRepoPath) return null;
   return {
