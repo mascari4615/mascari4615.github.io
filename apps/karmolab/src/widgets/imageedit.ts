@@ -1,4 +1,3 @@
-// @ts-nocheck
 (function () {
     /* ===== CSS ===== */
     Mdd.injectCSS('imageedit', `
@@ -479,17 +478,17 @@
     const WARN_PIXELS = 3000 * 3000;
 
     /* ===== State ===== */
-    let canvas, ctx;
-    let history = [], historyIdx = -1;
+    let canvas: any, ctx: any;
+    let history: any[] = [], historyIdx = -1;
     let activeTool = 'crop';
-    let cropState = null;
-    let cropAspect = null;
+    let cropState: any = null;
+    let cropAspect: any = null;
     let adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
     /** 조정 도구 진입 시점의 픽셀 (선명도 실시간 미리보기·취소 시 복원용) */
-    let adjustSnapshot = null;
+    let adjustSnapshot: any = null;
     let adjustPreviewRaf = 0;
-    let ieAdjSrcCanvas = null;
-    let ieAdjOffCanvas = null;
+    let ieAdjSrcCanvas: any = null;
+    let ieAdjOffCanvas: any = null;
     let jpegQuality = 0.92;
     let freeRotateDeg = 0;
     let hasPendingPreview = false;
@@ -498,14 +497,14 @@
     let rembgOutput = 'foreground';
     let rembgMaxSize = 1024;
     let rembgBusy = false;
-    let chromaColor = null;
+    let chromaColor: any = null;
     let chromaTolerance = 30;
     let chromaFeather = 5;
     let brushMode = 'bg';
     let brushSize = 20;
     let brushDrawing = false;
     /** 툴바·변환 미리보기 — bytesKind: file | dataUrl | null. natural = 마지막으로 디코드된 원본 픽셀 크기 */
-    let ieImageSourceMeta = {
+    let ieImageSourceMeta: any = {
         displayName: '',
         sourceBytes: null,
         bytesKind: null,
@@ -516,15 +515,15 @@
     /** 이미지 로드 경쟁 시 EXIF·디코드 순서 보정 */
     let ieImageLoadGen = 0;
     /** 형식·변환 탭 — 여러 파일 일괄 처리 중 취소용 */
-    let ieCvBatchAbort = null;
+    let ieCvBatchAbort: any = null;
     /** 일괄 변환 대기 파일(패널을 다시 그려도 드롭으로 채운 목록 유지) */
-    let ieCvBatchState = { files: [] };
+    let ieCvBatchState: any = { files: [] };
 
     let viewPanX = 0;
     let viewPanY = 0;
     let viewZoom = 1;
     let viewDragging = false;
-    let viewDragPointerId = null;
+    let viewDragPointerId: any = null;
     let viewDragStartClientX = 0;
     let viewDragStartClientY = 0;
     let viewStartPanX = 0;
@@ -543,7 +542,7 @@
         fillAlpha: false,
         smoothing: 'high'
     };
-    let convertPreviewBlob = null;
+    let convertPreviewBlob: any = null;
     let convertPreviewKey = '';
 
     /* ===== Helpers ===== */
@@ -588,11 +587,11 @@
     function updateUndoRedoButtons() {
         const undoBtn = document.getElementById('ieUndoBtn');
         const redoBtn = document.getElementById('ieRedoBtn');
-        if (undoBtn) undoBtn.disabled = historyIdx <= 0;
-        if (redoBtn) redoBtn.disabled = historyIdx >= history.length - 1;
+        if (undoBtn) (undoBtn as any).disabled = historyIdx <= 0;
+        if (redoBtn) (redoBtn as any).disabled = historyIdx >= history.length - 1;
     }
 
-    function ieFormatToolbarBytes(n) {
+    function ieFormatToolbarBytes(n: any) {
         if (n == null || !Number.isFinite(n) || n < 0) return '';
         if (n < 1024) return n + ' B';
         if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
@@ -600,7 +599,7 @@
     }
 
     /** data: URL 페이로드 바이트 수 근사 (base64 디코딩 길이) */
-    function ieEstimateDataUrlBytes(dataUrl) {
+    function ieEstimateDataUrlBytes(dataUrl: any) {
         if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return null;
         const comma = dataUrl.indexOf(',');
         if (comma < 0) return null;
@@ -618,7 +617,7 @@
     }
 
     /** MP = 화소 수 ÷ 1,000,000 (카메라·이미지 업계 관례). 1 미만이면 소수로 표시되는 것이 정상. */
-    function ieFormatMegapixels(w, h) {
+    function ieFormatMegapixels(w: any, h: any) {
         const px = w * h;
         const mp = px / 1e6;
         if (mp < 0.01) return px.toLocaleString() + ' px';
@@ -631,7 +630,7 @@
     }
 
     /** 툴바 표시용: 마지막 점 뒤가 짧은 영숫자 확장자일 때만 stem / 확장자 분리 */
-    function ieToolbarSplitFileName(name) {
+    function ieToolbarSplitFileName(name: any) {
         const s = (name || '').trim();
         if (!s) return { stem: '', extWithDot: '' };
         const dot = s.lastIndexOf('.');
@@ -642,7 +641,7 @@
     }
 
     /** 저장 파일명: 표시명(보통 원본 파일명)의 stem + 출력 확장자. OS 금지 문자 제거 */
-    function ieDownloadFilenameFromDisplayName(displayName, outExt) {
+    function ieDownloadFilenameFromDisplayName(displayName: any, outExt: any) {
         let ext = String(outExt || 'png')
             .replace(/^\./, '')
             .replace(/[^a-z0-9]/gi, '');
@@ -655,17 +654,17 @@
         return base + '.' + ext;
     }
 
-    function ieIsJpegArrayBuffer(ab) {
+    function ieIsJpegArrayBuffer(ab: any) {
         if (!ab || ab.byteLength < 2) return false;
         const u8 = new Uint8Array(ab, 0, 2);
         return u8[0] === 0xff && u8[1] === 0xd8;
     }
 
-    function ieExifU16(u8, off, le) {
+    function ieExifU16(u8: any, off: any, le: any) {
         return le ? u8[off] | (u8[off + 1] << 8) : (u8[off] << 8) | u8[off + 1];
     }
 
-    function ieExifU32(u8, off, le) {
+    function ieExifU32(u8: any, off: any, le: any) {
         const a = u8[off],
             b = u8[off + 1],
             c = u8[off + 2],
@@ -675,7 +674,7 @@
             : ((a << 24) | (b << 16) | (c << 8) | d) >>> 0;
     }
 
-    function ieExifReadAscii(u8, off, maxLen) {
+    function ieExifReadAscii(u8: any, off: any, maxLen: any) {
         let s = '';
         for (let i = 0; i < maxLen && off + i < u8.length; i++) {
             const c = u8[off + i];
@@ -685,18 +684,18 @@
         return s.trim();
     }
 
-    function ieExifFmtShutter(sec) {
+    function ieExifFmtShutter(sec: any) {
         if (!(sec > 0) || !Number.isFinite(sec)) return null;
         if (sec >= 1) return sec.toFixed(1).replace(/\.0$/, '') + ' s';
         const inv = Math.round(1 / sec);
         return inv > 0 ? '1/' + inv + ' s' : null;
     }
 
-    function ieExifReadU32BE(u8, o) {
+    function ieExifReadU32BE(u8: any, o: any) {
         return ((u8[o] << 24) | (u8[o + 1] << 16) | (u8[o + 2] << 8) | u8[o + 3]) >>> 0;
     }
 
-    function ieExifReadU32LE(u8, o) {
+    function ieExifReadU32LE(u8: any, o: any) {
         return (u8[o] | (u8[o + 1] << 8) | (u8[o + 2] << 16) | (u8[o + 3] << 24)) >>> 0;
     }
 
@@ -704,7 +703,7 @@
      * JPEG APP1 / PNG eXIf / WebP EXIF 등 페이로드에서 TIFF EXIF 추출.
      * Exif\\0\\0 + TIFF 또는 곧바로 TIFF(II/MM).
      */
-    function ieTryExifPayloadToLines(u8, off, byteLen) {
+    function ieTryExifPayloadToLines(u8: any, off: any, byteLen: any) {
         const end = Math.min(off + byteLen, u8.length);
         if (off + 8 > end) return null;
         if (
@@ -729,7 +728,7 @@
     }
 
     /** JPEG APP1(Exif) */
-    function ieParseJpegExifLines(ab) {
+    function ieParseJpegExifLines(ab: any) {
         if (!ieIsJpegArrayBuffer(ab)) return null;
         const u8 = new Uint8Array(ab);
         let i = 2;
@@ -754,7 +753,7 @@
     }
 
     /** PNG eXIf 청크 */
-    function ieParsePngExifLines(ab) {
+    function ieParsePngExifLines(ab: any) {
         const u8 = new Uint8Array(ab);
         const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
         if (u8.length < 32) return null;
@@ -776,7 +775,7 @@
     }
 
     /** WebP 컨테이너의 EXIF 청크 */
-    function ieParseWebpExifLines(ab) {
+    function ieParseWebpExifLines(ab: any) {
         const u8 = new Uint8Array(ab);
         if (u8.length < 20) return null;
         if (u8[0] !== 0x52 || u8[1] !== 0x49 || u8[2] !== 0x46 || u8[3] !== 0x46) return null;
@@ -803,11 +802,11 @@
     }
 
     /** JPEG · PNG(eXIf) · WebP(EXIF) 순으로 시도 */
-    function ieExtractExifLinesFromArrayBuffer(ab) {
+    function ieExtractExifLinesFromArrayBuffer(ab: any) {
         return ieParseJpegExifLines(ab) || ieParsePngExifLines(ab) || ieParseWebpExifLines(ab);
     }
 
-    function ieParseExifTiffToLines(u8, t0) {
+    function ieParseExifTiffToLines(u8: any, t0: any) {
         if (t0 + 8 > u8.length) return null;
         const b0 = u8[t0],
             b1 = u8[t0 + 1];
@@ -816,7 +815,7 @@
         if (ieExifU16(u8, t0 + 2, le) !== 0x002a) return null;
         const ifd0Off = ieExifU32(u8, t0 + 4, le);
         const tags = {};
-        function readIFD(ifdRel) {
+        function readIFD(ifdRel: any) {
             const p = t0 + ifdRel;
             if (p + 2 > u8.length) return;
             const n = ieExifU16(u8, p, le);
@@ -841,31 +840,31 @@
                 if (dataOff + total > u8.length) continue;
                 const tag = ieExifU16(u8, e, le);
                 if (type === 2) {
-                    tags[tag] = ieExifReadAscii(u8, dataOff, cnt);
+                    (tags as any)[tag] = ieExifReadAscii(u8, dataOff, cnt);
                 } else if (type === 3) {
-                    tags[tag] = ieExifU16(u8, dataOff, le);
+                    (tags as any)[tag] = ieExifU16(u8, dataOff, le);
                 } else if (type === 4) {
-                    tags[tag] = ieExifU32(u8, dataOff, le);
+                    (tags as any)[tag] = ieExifU32(u8, dataOff, le);
                 } else if (type === 5 || type === 10) {
                     const num = ieExifU32(u8, dataOff, le);
                     const den = ieExifU32(u8, dataOff + 4, le);
-                    tags[tag] = den ? num / den : null;
+                    (tags as any)[tag] = den ? num / den : null;
                 }
             }
         }
         readIFD(ifd0Off);
-        const exOff = tags[0x8769];
+        const exOff = (tags as any)[0x8769];
         if (typeof exOff === 'number' && exOff > 0) readIFD(exOff);
         const lines = [];
-        const make = tags[0x010f] || '';
-        const model = tags[0x0110] || '';
+        const make = (tags as any)[0x010f] || '';
+        const model = (tags as any)[0x0110] || '';
         const cam = [make, model].filter(Boolean).join(' ');
         if (cam) lines.push(cam);
-        const when = tags[0x9003] || tags[0x0132];
+        const when = (tags as any)[0x9003] || (tags as any)[0x0132];
         if (when) lines.push(when);
-        const ori = tags[0x0112];
+        const ori = (tags as any)[0x0112];
         if (ori >= 1 && ori <= 8) {
-            const om = {
+            const om = ({
                 1: '0°',
                 2: '좌우 반전',
                 3: '180°',
@@ -874,25 +873,25 @@
                 6: '90° (시계)',
                 7: '90° CCW+반전',
                 8: '90° (반시계)'
-            }[ori];
+            } as any)[ori];
             if (om) lines.push('방향 · ' + om);
         }
         const photo = [];
-        const exp = tags[0x829a];
+        const exp = (tags as any)[0x829a];
         if (typeof exp === 'number' && exp > 0) {
             const es = ieExifFmtShutter(exp);
             if (es) photo.push(es);
         }
-        const fn = tags[0x829d];
+        const fn = (tags as any)[0x829d];
         if (typeof fn === 'number' && fn > 0) {
             const fv = fn < 10 ? fn.toFixed(1).replace(/\.0$/, '') : String(Math.round(fn * 10) / 10);
             photo.push('f/' + fv);
         }
-        const iso = tags[0x8827];
+        const iso = (tags as any)[0x8827];
         if (iso != null && iso > 0) photo.push('ISO ' + iso);
-        const fl = tags[0x920a];
+        const fl = (tags as any)[0x920a];
         if (typeof fl === 'number' && fl > 0) photo.push(Math.round(fl) + ' mm');
-        const fl35 = tags[0xa405];
+        const fl35 = (tags as any)[0xa405];
         if (typeof fl35 === 'number' && fl35 > 0) photo.push('35mm환산 ' + fl35 + ' mm');
         if (photo.length) lines.push(photo.join(' · '));
         return lines.length ? lines : null;
@@ -916,7 +915,7 @@
             el.setAttribute('aria-label', 'EXIF 읽는 중');
             return;
         }
-        if (!lines.length) {
+        if (!(lines as any).length) {
             el.textContent =
                 'EXIF\n이 파일에는 읽을 수 있는 EXIF가 없습니다.\n' +
                 '(카메라 JPEG에 흔하고, PNG·WebP·재저장본에는 없을 수 있어요.)\n' +
@@ -924,7 +923,7 @@
             el.setAttribute('aria-label', 'EXIF 없음');
             return;
         }
-        el.textContent = 'EXIF\n' + lines.join('\n');
+        el.textContent = 'EXIF\n' + (lines as any).join('\n');
         el.setAttribute('aria-label', 'EXIF 메타데이터');
     }
 
@@ -1055,7 +1054,7 @@
                     ? '선택된 파일: 없음'
                     : '선택된 파일: ' + ieCvBatchState.files.length + '개';
         }
-        if (run) run.disabled = ieCvBatchState.files.length === 0;
+        if (run) (run as any).disabled = ieCvBatchState.files.length === 0;
     }
 
     function applyImageViewTransform() {
@@ -1077,7 +1076,7 @@
         applyImageViewTransform();
     }
 
-    function syncOverlaySizeToCanvas(ov) {
+    function syncOverlaySizeToCanvas(ov: any) {
         if (!ov || !canvas) return;
         ov.style.left = '0px';
         ov.style.top = '0px';
@@ -1090,7 +1089,7 @@
     }
 
     /* ===== Image Loading ===== */
-    function loadImageFromSrc(src, loadGen) {
+    function loadImageFromSrc(src: any, loadGen: any) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -1125,7 +1124,7 @@
         img.src = src;
     }
 
-    function commitImageLoad(img) {
+    function commitImageLoad(img: any) {
         ieImageSourceMeta.sourceNaturalW = img.naturalWidth;
         ieImageSourceMeta.sourceNaturalH = img.naturalHeight;
         canvas.width = img.naturalWidth;
@@ -1142,7 +1141,7 @@
         Mdd.linePreset('success', { mood: 'happy', msg: '이미지 불러왔어요!' });
     }
 
-    function commitImageLoadDownscaled(img, targetW, targetH) {
+    function commitImageLoadDownscaled(img: any, targetW: any, targetH: any) {
         ieImageSourceMeta.sourceNaturalW = img.naturalWidth;
         ieImageSourceMeta.sourceNaturalH = img.naturalHeight;
         canvas.width = targetW;
@@ -1159,7 +1158,7 @@
         Mdd.linePreset('success', { mood: 'happy', msg: '이미지를 축소해서 불러왔어요!' });
     }
 
-    function showSizeWarning(img, forceDownscale) {
+    function showSizeWarning(img: any, forceDownscale: any) {
         const dialog = document.getElementById('ieWarnDialog');
         if (!dialog) { commitImageLoad(img); return; }
 
@@ -1170,7 +1169,7 @@
         const scale = targetMax / maxSide;
         const dw = Math.round(w * scale), dh = Math.round(h * scale);
 
-        document.getElementById('ieWarnText').innerHTML =
+        document!.getElementById('ieWarnText')!.innerHTML =
             '이미지 크기: <strong>' + w + ' × ' + h + '</strong> (' + mp + ')<br>' +
             (forceDownscale
                 ? '너무 큰 이미지입니다. 편집을 위해 <strong>' + dw + ' × ' + dh + '</strong>로 축소합니다.'
@@ -1181,19 +1180,19 @@
         const btnCancel = document.getElementById('ieWarnCancel');
 
         if (forceDownscale) {
-            btnOrig.style.display = 'none';
+            btnOrig!.style.display = 'none';
         } else {
-            btnOrig.style.display = '';
+            btnOrig!.style.display = '';
         }
 
-        btnOrig.onclick = () => { dialog.classList.remove('open'); commitImageLoad(img); };
-        btnDown.onclick = () => { dialog.classList.remove('open'); commitImageLoadDownscaled(img, dw, dh); };
-        btnCancel.onclick = () => { dialog.classList.remove('open'); };
+        btnOrig!.onclick = () => { dialog.classList.remove('open'); commitImageLoad(img); };
+        btnDown!.onclick = () => { dialog.classList.remove('open'); commitImageLoadDownscaled(img, dw, dh); };
+        btnCancel!.onclick = () => { dialog.classList.remove('open'); };
         dialog.onclick = (e) => { if (e.target === dialog) dialog.classList.remove('open'); };
         dialog.classList.add('open');
     }
 
-    function loadImageFromFile(file) {
+    function loadImageFromFile(file: any) {
         if (!file || !file.type.startsWith('image/')) {
             Toolbox.showToast('이미지 파일이 아닙니다.', 'error');
             return;
@@ -1209,7 +1208,7 @@
         };
         file
             .arrayBuffer()
-            .then(ab => {
+            .then((ab: any) => {
                 if (g !== ieImageLoadGen) return;
                 ieImageSourceMeta.exifLines = ieExtractExifLinesFromArrayBuffer(ab) || [];
                 updateExifOverlay();
@@ -1220,7 +1219,7 @@
                 updateExifOverlay();
             });
         const reader = new FileReader();
-        reader.onload = e => loadImageFromSrc(e.target.result, g);
+        reader.onload = e => loadImageFromSrc(e!.target!.result, g);
         reader.readAsDataURL(file);
     }
 
@@ -1239,7 +1238,7 @@
         { label: '9:16', value: 9 / 16 },
     ];
 
-    function buildCropOptions(container) {
+    function buildCropOptions(container: any) {
         container.innerHTML = '';
 
         CROP_RATIOS.forEach(r => {
@@ -1248,7 +1247,7 @@
             btn.textContent = r.label;
             btn.onclick = () => {
                 cropAspect = r.value;
-                container.querySelectorAll('.ie-opt-btn').forEach(b => b.classList.remove('active'));
+                container.querySelectorAll('.ie-opt-btn').forEach((b: any) => b.classList.remove('active'));
                 btn.classList.add('active');
                 if (hasImage()) { destroyCrop(); initCrop(); }
             };
@@ -1272,7 +1271,7 @@
         container.appendChild(applyBtn);
     }
 
-    function buildResizeOptions(container) {
+    function buildResizeOptions(container: any) {
         container.innerHTML = `
             <span class="ie-opt-label">너비</span>
             <input type="number" class="ie-opt-input" id="ieResizeW" min="1">
@@ -1295,29 +1294,29 @@
             const hInput = document.getElementById('ieResizeH');
             const lockCb = document.getElementById('ieResizeLock');
             const aspect = canvas.width / canvas.height;
-            wInput.value = canvas.width;
-            hInput.value = canvas.height;
+            (wInput! as any).value = canvas.width;
+            (hInput! as any).value = canvas.height;
 
-            wInput.oninput = () => {
-                if (lockCb.checked) hInput.value = Math.round(parseInt(wInput.value) / aspect) || '';
+            wInput!.oninput = () => {
+                if ((lockCb! as any).checked) (hInput! as any).value = Math.round(parseInt!((wInput! as any).value) / aspect) || '';
             };
-            hInput.oninput = () => {
-                if (lockCb.checked) wInput.value = Math.round(parseInt(hInput.value) * aspect) || '';
+            hInput!.oninput = () => {
+                if ((lockCb! as any).checked) (wInput! as any).value = Math.round(parseInt!((hInput! as any).value) * aspect) || '';
             };
 
-            container.querySelectorAll('[data-pct]').forEach(btn => {
+            container.querySelectorAll('[data-pct]').forEach((btn: any) => {
                 btn.onclick = () => {
                     const p = parseInt(btn.dataset.pct) / 100;
-                    wInput.value = Math.round(canvas.width * p);
-                    hInput.value = Math.round(canvas.height * p);
+                    (wInput! as any).value = Math.round(canvas.width * p);
+                    (hInput! as any).value = Math.round(canvas.height * p);
                 };
             });
 
-            document.getElementById('ieResizeApply').onclick = applyResize;
+            document!.getElementById('ieResizeApply')!.onclick = applyResize;
         });
     }
 
-    function buildRotateOptions(container) {
+    function buildRotateOptions(container: any) {
         freeRotateDeg = 0;
         container.innerHTML = `
             <button class="ie-opt-btn" id="ieRot90cw">↻ 90°</button>
@@ -1333,16 +1332,16 @@
             <button class="ie-apply-btn" id="ieRotApply">적용</button>`;
 
         requestAnimationFrame(() => {
-            document.getElementById('ieRot90cw').onclick = () => applyRotate(90);
-            document.getElementById('ieRot90ccw').onclick = () => applyRotate(-90);
-            document.getElementById('ieRot180').onclick = () => applyRotate(180);
-            document.getElementById('ieFlipH').onclick = () => applyFlip('h');
-            document.getElementById('ieFlipV').onclick = () => applyFlip('v');
+            document!.getElementById('ieRot90cw')!.onclick = () => applyRotate(90);
+            document!.getElementById('ieRot90ccw')!.onclick = () => applyRotate(-90);
+            document!.getElementById('ieRot180')!.onclick = () => applyRotate(180);
+            document!.getElementById('ieFlipH')!.onclick = () => applyFlip('h');
+            document!.getElementById('ieFlipV')!.onclick = () => applyFlip('v');
 
             const range = document.getElementById('ieRotRange');
             const degInput = document.getElementById('ieRotDeg');
 
-            const syncPreview = (deg) => {
+            const syncPreview = (deg: any) => {
                 freeRotateDeg = deg;
                 if (canvas) {
                     canvas.style.transform = deg ? 'rotate(' + deg + 'deg)' : '';
@@ -1350,30 +1349,30 @@
                 }
             };
 
-            range.oninput = () => {
-                const v = parseInt(range.value);
-                degInput.value = v;
+            range!.oninput = () => {
+                const v = parseInt((range! as any).value);
+                (degInput! as any).value = v;
                 syncPreview(v);
             };
-            degInput.oninput = () => {
-                const v = parseInt(degInput.value) || 0;
-                range.value = Math.max(-180, Math.min(180, v));
+            degInput!.oninput = () => {
+                const v = parseInt((degInput! as any).value) || 0;
+                (range! as any).value = Math.max(-180, Math.min(180, v));
                 syncPreview(v);
             };
 
-            document.getElementById('ieRotApply').onclick = () => {
+            document!.getElementById('ieRotApply')!.onclick = () => {
                 if (!freeRotateDeg) return;
                 canvas.style.transform = '';
                 hasPendingPreview = false;
                 applyFreeRotate(freeRotateDeg);
                 freeRotateDeg = 0;
-                range.value = 0;
-                degInput.value = 0;
+                (range! as any).value = 0;
+                (degInput! as any).value = 0;
             };
         });
     }
 
-    function buildAdjustOptions(container) {
+    function buildAdjustOptions(container: any) {
         adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
         const sliders = [
             { id: 'brightness', label: '밝기', min: 0, max: 200, val: 100, unit: '%' },
@@ -1383,7 +1382,7 @@
             { id: 'sharpen', label: '선명도', min: 0, max: 120, val: 0, unit: '' },
         ];
         container.innerHTML = sliders.map(s => `
-            <span class="ie-opt-label">${s.label}${s.suffix || ''}</span>
+            <span class="ie-opt-label">${s.label}${(s as any).suffix || ''}</span>
             <input type="range" class="ie-opt-range" id="ieAdj_${s.id}" min="${s.min}" max="${s.max}" value="${s.val}">
             <span class="ie-opt-range-val" id="ieAdjVal_${s.id}">${s.val}${s.unit}</span>
         `).join('') + '<button class="ie-opt-btn" id="ieAdjReset">초기화</button><button class="ie-apply-btn" id="ieAdjApply">적용</button>';
@@ -1392,27 +1391,27 @@
             sliders.forEach(s => {
                 const range = document.getElementById('ieAdj_' + s.id);
                 const valEl = document.getElementById('ieAdjVal_' + s.id);
-                range.oninput = () => {
-                    adjustValues[s.id] = parseInt(range.value, 10);
-                    valEl.textContent = range.value + s.unit;
+                range!.oninput = () => {
+                    (adjustValues as any)[s.id] = parseInt!((range as any).value, 10);
+                    valEl!.textContent = (range! as any).value + s.unit;
                     previewAdjust();
                 };
             });
-            document.getElementById('ieAdjReset').onclick = () => {
+            document!.getElementById('ieAdjReset')!.onclick = () => {
                 sliders.forEach(s => {
-                    document.getElementById('ieAdj_' + s.id).value = s.val;
-                    document.getElementById('ieAdjVal_' + s.id).textContent = s.val + s.unit;
-                    adjustValues[s.id] = s.val;
+                    (document!.getElementById('ieAdj_' + s.id) as any).value = s.val;
+                    document!.getElementById('ieAdjVal_' + s.id)!.textContent = s.val + s.unit;
+                    (adjustValues as any)[s.id] = s.val;
                 });
                 previewAdjust();
             };
-            document.getElementById('ieAdjApply').onclick = applyAdjust;
+            document!.getElementById('ieAdjApply')!.onclick = applyAdjust;
             captureAdjustSnapshot();
             previewAdjust();
         });
     }
 
-    function cloneImageData(id) {
+    function cloneImageData(id: any) {
         return new ImageData(new Uint8ClampedArray(id.data), id.width, id.height);
     }
 
@@ -1424,7 +1423,7 @@
         adjustSnapshot = cloneImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
     }
 
-    function ensureIeAdjWorkCanvases(w, h) {
+    function ensureIeAdjWorkCanvases(w: any, h: any) {
         if (!ieAdjSrcCanvas) {
             ieAdjSrcCanvas = document.createElement('canvas');
             ieAdjOffCanvas = document.createElement('canvas');
@@ -1446,7 +1445,7 @@
         { id: 'warm', name: '따뜻한', css: 'sepia(20%) saturate(140%) brightness(105%)' },
     ];
 
-    function buildFilterOptions(container) {
+    function buildFilterOptions(container: any) {
         container.innerHTML = '';
         const grid = document.createElement('div');
         grid.className = 'ie-filter-grid';
@@ -1462,10 +1461,10 @@
             thumb.height = 48;
             if (hasImage()) {
                 const tCtx = thumb.getContext('2d');
-                tCtx.filter = f.css === 'none' ? '' : f.css;
+                tCtx!.filter = f.css === 'none' ? '' : f.css;
                 const scale = Math.min(48 / canvas.width, 48 / canvas.height);
                 const w = canvas.width * scale, h = canvas.height * scale;
-                tCtx.drawImage(canvas, (48 - w) / 2, (48 - h) / 2, w, h);
+                tCtx!.drawImage(canvas, (48 - w) / 2, (48 - h) / 2, w, h);
             }
 
             const name = document.createElement('div');
@@ -1500,7 +1499,7 @@
     }
 
     /** 인접 4방 라플라시안 계열 샤프닝 (브라우저 전용, strength 0–120) */
-    function sharpenImageData(srcData, strength) {
+    function sharpenImageData(srcData: any, strength: any) {
         const w = srcData.width;
         const h = srcData.height;
         if (strength <= 0 || w < 3 || h < 3) return srcData;
@@ -1598,7 +1597,7 @@
         Toolbox.showToast('조정 적용 완료');
     }
 
-    function previewFilter(css) {
+    function previewFilter(css: any) {
         if (!canvas) return;
         canvas.style.filter = css === 'none' ? '' : css;
         hasPendingPreview = css !== 'none';
@@ -1608,7 +1607,7 @@
         if (!requireImage()) return;
         const activeCard = document.querySelector('.ie-filter-card.active');
         if (!activeCard) return;
-        const fId = activeCard.dataset.filterId;
+        const fId = (activeCard as any).dataset.filterId;
         const f = FILTERS.find(x => x.id === fId);
         if (!f || f.id === 'none') {
             canvas.style.filter = '';
@@ -1619,13 +1618,13 @@
         Toolbox.showToast('필터 적용 완료');
     }
 
-    function applyCanvasFilter(filterStr) {
+    function applyCanvasFilter(filterStr: any) {
         const off = document.createElement('canvas');
         off.width = canvas.width;
         off.height = canvas.height;
         const offCtx = off.getContext('2d');
-        offCtx.filter = filterStr;
-        offCtx.drawImage(canvas, 0, 0);
+        offCtx!.filter = filterStr;
+        offCtx!.drawImage(canvas, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(off, 0, 0);
         pushHistory();
@@ -1633,8 +1632,8 @@
 
     function applyResize() {
         if (!requireImage()) return;
-        const w = parseInt(document.getElementById('ieResizeW').value);
-        const h = parseInt(document.getElementById('ieResizeH').value);
+        const w = parseInt((document!.getElementById('ieResizeW') as any).value);
+        const h = parseInt((document!.getElementById('ieResizeH') as any).value);
         if (!w || !h || w < 1 || h < 1) {
             Toolbox.showToast('유효한 크기를 입력하세요.', 'error');
             return;
@@ -1642,7 +1641,7 @@
         const off = document.createElement('canvas');
         off.width = w;
         off.height = h;
-        off.getContext('2d').drawImage(canvas, 0, 0, w, h);
+        off!.getContext('2d')!.drawImage(canvas, 0, 0, w, h);
         canvas.width = w;
         canvas.height = h;
         ctx.drawImage(off, 0, 0);
@@ -1651,7 +1650,7 @@
         Toolbox.showToast('크기 조절 완료');
     }
 
-    function applyRotate(deg) {
+    function applyRotate(deg: any) {
         if (!requireImage()) return;
         const radians = (deg * Math.PI) / 180;
         const absDeg = Math.abs(deg % 360);
@@ -1662,9 +1661,9 @@
         off.width = newW;
         off.height = newH;
         const offCtx = off.getContext('2d');
-        offCtx.translate(newW / 2, newH / 2);
-        offCtx.rotate(radians);
-        offCtx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+        offCtx!.translate(newW / 2, newH / 2);
+        offCtx!.rotate(radians);
+        offCtx!.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
         canvas.width = newW;
         canvas.height = newH;
         ctx.drawImage(off, 0, 0);
@@ -1673,7 +1672,7 @@
         Toolbox.showToast(deg + '° 회전 완료');
     }
 
-    function applyFreeRotate(deg) {
+    function applyFreeRotate(deg: any) {
         if (!requireImage()) return;
         const rad = (deg * Math.PI) / 180;
         const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
@@ -1683,9 +1682,9 @@
         off.width = newW;
         off.height = newH;
         const offCtx = off.getContext('2d');
-        offCtx.translate(newW / 2, newH / 2);
-        offCtx.rotate(rad);
-        offCtx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+        offCtx!.translate(newW / 2, newH / 2);
+        offCtx!.rotate(rad);
+        offCtx!.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
         canvas.width = newW;
         canvas.height = newH;
         ctx.drawImage(off, 0, 0);
@@ -1694,20 +1693,20 @@
         Toolbox.showToast(deg + '° 회전 완료');
     }
 
-    function applyFlip(dir) {
+    function applyFlip(dir: any) {
         if (!requireImage()) return;
         const off = document.createElement('canvas');
         off.width = canvas.width;
         off.height = canvas.height;
         const offCtx = off.getContext('2d');
         if (dir === 'h') {
-            offCtx.translate(canvas.width, 0);
-            offCtx.scale(-1, 1);
+            offCtx!.translate(canvas.width, 0);
+            offCtx!.scale(-1, 1);
         } else {
-            offCtx.translate(0, canvas.height);
-            offCtx.scale(1, -1);
+            offCtx!.translate(0, canvas.height);
+            offCtx!.scale(1, -1);
         }
-        offCtx.drawImage(canvas, 0, 0);
+        offCtx!.drawImage(canvas, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(off, 0, 0);
         pushHistory();
@@ -1720,7 +1719,7 @@
         if (ov) { ov.style.display = 'none'; ov.onpointerdown = null; ov.onpointermove = null; ov.onpointerup = null; }
     }
 
-    function buildRembgOptions(container) {
+    function buildRembgOptions(container: any) {
         destroyBrush();
         const modes = [
             { id: 'chroma', label: '🎨 크로마키' },
@@ -1739,10 +1738,10 @@
             </div>`;
 
         requestAnimationFrame(() => {
-            container.querySelectorAll('.ie-rembg-tab').forEach(btn => {
+            container.querySelectorAll('.ie-rembg-tab').forEach((btn: any) => {
                 btn.onclick = () => {
                     rembgMode = btn.dataset.rm;
-                    container.querySelectorAll('.ie-rembg-tab').forEach(b => b.classList.toggle('active', b.dataset.rm === rembgMode));
+                    container.querySelectorAll('.ie-rembg-tab').forEach((b: any) => b.classList.toggle('active', b.dataset.rm === rembgMode));
                     destroyBrush();
                     buildRembgBody();
                 };
@@ -1765,7 +1764,7 @@
     }
 
     /* ===== Mode 1 — Chromakey ===== */
-    function buildChromaBody(body) {
+    function buildChromaBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">색상</span>
             <span class="ie-chroma-swatch" id="ieChromaSwatch"></span>
@@ -1781,21 +1780,21 @@
             <button class="ie-apply-btn" id="ieChromaApply">적용</button>`;
         requestAnimationFrame(() => {
             const swatch = document.getElementById('ieChromaSwatch');
-            if (chromaColor) swatch.style.backgroundColor = `rgb(${chromaColor.join(',')})`;
+            if (chromaColor) swatch!.style.backgroundColor = `rgb(${chromaColor.join(',')})`;
 
-            document.getElementById('ieChromaTol').oninput = (e) => {
-                chromaTolerance = parseInt(e.target.value);
-                document.getElementById('ieChromaTolVal').textContent = chromaTolerance;
+            document!.getElementById('ieChromaTol')!.oninput = (e) => {
+                chromaTolerance = parseInt((e!.target as any).value);
+                document!.getElementById('ieChromaTolVal')!.textContent = String(chromaTolerance);
             };
-            document.getElementById('ieChromaFeather').oninput = (e) => {
-                chromaFeather = parseInt(e.target.value);
-                document.getElementById('ieChromaFeatherVal').textContent = chromaFeather;
+            document!.getElementById('ieChromaFeather')!.oninput = (e) => {
+                chromaFeather = parseInt((e!.target as any).value);
+                document!.getElementById('ieChromaFeatherVal')!.textContent = String(chromaFeather);
             };
-            document.getElementById('ieChromaApply').onclick = applyChromakey;
+            document!.getElementById('ieChromaApply')!.onclick = applyChromakey;
         });
     }
 
-    function onCanvasClickForChroma(e) {
+    function onCanvasClickForChroma(e: any) {
         if (activeTool !== 'rembg' || rembgMode !== 'chroma' || !hasImage()) return;
         if (e.target !== canvas) return;
         const rect = canvas.getBoundingClientRect();
@@ -1833,7 +1832,7 @@
     }
 
     /* ===== Mode 2 — Brush ===== */
-    function buildBrushBody(body) {
+    function buildBrushBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">모드</span>
             <button class="ie-opt-btn${brushMode === 'bg' ? ' active' : ''}" id="ieBrushBg">🔴 배경 (제거)</button>
@@ -1847,17 +1846,17 @@
         requestAnimationFrame(() => {
             const bgBtn = document.getElementById('ieBrushBg');
             const fgBtn = document.getElementById('ieBrushFg');
-            bgBtn.onclick = () => { brushMode = 'bg'; bgBtn.classList.add('active'); fgBtn.classList.remove('active'); };
-            fgBtn.onclick = () => { brushMode = 'fg'; fgBtn.classList.add('active'); bgBtn.classList.remove('active'); };
-            document.getElementById('ieBrushSize').oninput = (e) => {
-                brushSize = parseInt(e.target.value);
-                document.getElementById('ieBrushSizeVal').textContent = brushSize + 'px';
+            bgBtn!.onclick = () => { brushMode = 'bg'; bgBtn!.classList.add('active'); fgBtn!.classList.remove('active'); };
+            fgBtn!.onclick = () => { brushMode = 'fg'; fgBtn!.classList.add('active'); bgBtn!.classList.remove('active'); };
+            document!.getElementById('ieBrushSize')!.oninput = (e) => {
+                brushSize = parseInt((e!.target as any).value);
+                document!.getElementById('ieBrushSizeVal')!.textContent = brushSize + 'px';
             };
-            document.getElementById('ieBrushClear').onclick = () => {
+            document!.getElementById('ieBrushClear')!.onclick = () => {
                 const ov = document.getElementById('ieBrushOverlay');
-                if (ov) ov.getContext('2d').clearRect(0, 0, ov.width, ov.height);
+                if (ov) (ov as any).getContext('2d').clearRect(0, 0, (ov as any).width, (ov as any).height);
             };
-            document.getElementById('ieBrushApply').onclick = applyBrushSegmentation;
+            document!.getElementById('ieBrushApply')!.onclick = applyBrushSegmentation;
             if (hasImage()) initBrushOverlay();
         });
     }
@@ -1869,10 +1868,10 @@
         syncOverlaySizeToCanvas(ov);
         const bw = canvas.offsetWidth;
         const bh = canvas.offsetHeight;
-        ov.width = Math.round(bw);
-        ov.height = Math.round(bh);
-        const bCtx = ov.getContext('2d');
-        bCtx.clearRect(0, 0, ov.width, ov.height);
+        (ov as any).width = Math.round(bw);
+        (ov as any).height = Math.round(bh);
+        const bCtx = (ov as any).getContext('2d');
+        bCtx.clearRect(0, 0, (ov as any).width, (ov as any).height);
 
         ov.onpointerdown = (e) => {
             if (e.button !== 0) return;
@@ -1903,9 +1902,9 @@
         if (!requireImage()) return;
         const ov = document.getElementById('ieBrushOverlay');
         if (!ov) return;
-        const bCtx = ov.getContext('2d');
-        const bData = bCtx.getImageData(0, 0, ov.width, ov.height).data;
-        const scaleX = canvas.width / ov.width, scaleY = canvas.height / ov.height;
+        const bCtx = (ov as any).getContext('2d');
+        const bData = bCtx.getImageData(0, 0, (ov as any).width, (ov as any).height).data;
+        const scaleX = (canvas as any).width / (ov as any).width, scaleY = (canvas as any).height / (ov as any).height;
 
         const BINS = 16, SHIFT = 4, TOTAL = BINS * BINS * BINS;
         const fgH = new Float32Array(TOTAL), bgH = new Float32Array(TOTAL);
@@ -1915,7 +1914,7 @@
 
         for (let i = 0; i < bData.length; i += 4) {
             if (bData[i + 3] < 40) continue;
-            const bx = (i / 4) % ov.width, by = Math.floor((i / 4) / ov.width);
+            const bx = (i / 4) % (ov as any).width, by = Math.floor((i / 4) / (ov as any).width);
             const cx = Math.min(Math.floor(bx * scaleX), canvas.width - 1);
             const cy = Math.min(Math.floor(by * scaleY), canvas.height - 1);
             const ci = (cy * canvas.width + cx) * 4;
@@ -1942,7 +1941,7 @@
     }
 
     /* ===== Mode 3 — AI (ONNX) ===== */
-    function buildAiBody(body) {
+    function buildAiBody(body: any) {
         body.innerHTML = `
             <span class="ie-opt-label">모델</span>
             <button class="ie-opt-btn${rembgModel === 'isnet_quint8' ? ' active' : ''}" id="ieRembgSmall">⚡ 빠른</button>
@@ -1958,10 +1957,10 @@
             <button class="ie-apply-btn" id="ieRembgApply">🪄 배경 제거</button>`;
         requestAnimationFrame(() => {
             const s = document.getElementById('ieRembgSmall'), m = document.getElementById('ieRembgMedium');
-            s.onclick = () => { rembgModel = 'isnet_quint8'; s.classList.add('active'); m.classList.remove('active'); };
-            m.onclick = () => { rembgModel = 'isnet_fp16'; m.classList.add('active'); s.classList.remove('active'); };
-            document.getElementById('ieRembgSize').onchange = (e) => { rembgMaxSize = parseInt(e.target.value); };
-            document.getElementById('ieRembgApply').onclick = applyRemoveBackground;
+            s!.onclick = () => { rembgModel = 'isnet_quint8'; s!.classList.add('active'); m!.classList.remove('active'); };
+            m!.onclick = () => { rembgModel = 'isnet_fp16'; m!.classList.add('active'); s!.classList.remove('active'); };
+            document!.getElementById('ieRembgSize')!.onchange = (e) => { rembgMaxSize = parseInt((e.target as any).value); };
+            document!.getElementById('ieRembgApply')!.onclick = applyRemoveBackground;
         });
     }
 
@@ -1992,7 +1991,7 @@
         `;
     }
 
-    function runInWorker(blob, model, onProgress) {
+    function runInWorker(blob: any, model: any, onProgress: any) {
         const url = URL.createObjectURL(new Blob([rembgWorkerCode()], { type: 'text/javascript' }));
         const w = new Worker(url, { type: 'module' });
         let settled = false;
@@ -2011,10 +2010,10 @@
         return { promise, cancel: cleanup };
     }
 
-    async function runOnMainThread(blob, model, onProgress) {
+    async function runOnMainThread(blob: any, model: any, onProgress: any) {
         const mod = await import(REMBG_CDN);
         const fn = mod.removeBackground || mod.default;
-        const run = (d) => fn(blob, { model, device: d, output: { format: 'image/png', type: 'foreground' }, progress: onProgress });
+        const run = (d: any) => fn(blob, { model, device: d, output: { format: 'image/png', type: 'foreground' }, progress: onProgress });
         try { return await run('gpu'); } catch { return await run('cpu'); }
     }
 
@@ -2028,7 +2027,7 @@
             <div class="ie-rembg-status" style="font-size:var(--font-size-xs);font-weight:400;opacity:0.8" id="ieRembgElapsed">경과: 0.0s</div>
             <div class="ie-rembg-bar-wrap"><div class="ie-rembg-bar" id="ieRembgBar"></div></div>
             <button class="ie-tb-btn" id="ieRembgCancel" style="margin-top:6px;">취소</button>`;
-        wrap.appendChild(ov);
+        wrap!.appendChild(ov);
         const start = performance.now();
         const timer = setInterval(() => {
             const el = document.getElementById('ieRembgElapsed');
@@ -2039,7 +2038,7 @@
         return { timer, overlay: ov };
     }
 
-    function cleanupOverlay(ui) {
+    function cleanupOverlay(ui: any) {
         try { ui.overlay.remove(); } catch {}
         clearInterval(ui.timer);
         rembgBusy = false;
@@ -2053,11 +2052,11 @@
         const ui = showRembgOverlay();
         const stEl = () => document.getElementById('ieRembgStatus');
         const barEl = () => document.getElementById('ieRembgBar');
-        let cancelFn = null;
+        let cancelFn: any = null;
         const cBtn = document.getElementById('ieRembgCancel');
         if (cBtn) cBtn.onclick = () => { if (cancelFn) cancelFn(); cleanupOverlay(ui); Toolbox.showToast('취소됨'); };
 
-        const onProg = (key, cur, tot) => {
+        const onProg = (key: any, cur: any, tot: any) => {
             if (!tot) return;
             const p = Math.round(cur / tot * 100);
             const b = barEl(); if (b) { b.classList.add('determinate'); b.style.width = p + '%'; }
@@ -2070,21 +2069,21 @@
             let procW = origW, procH = origH;
             if (longest > rembgMaxSize) { const sc = rembgMaxSize / longest; procW = Math.round(origW * sc); procH = Math.round(origH * sc); }
 
-            if (stEl()) stEl().textContent = '이미지 축소 중... (' + procW + '×' + procH + ')';
+            if (stEl()) stEl!()!.textContent = '이미지 축소 중... (' + procW + '×' + procH + ')';
             const pc = document.createElement('canvas'); pc.width = procW; pc.height = procH;
-            pc.getContext('2d').drawImage(canvas, 0, 0, procW, procH);
+            pc!.getContext('2d')!.drawImage(canvas, 0, 0, procW, procH);
             const blob = await new Promise(r => pc.toBlob(r, 'image/png'));
 
-            if (stEl()) stEl().textContent = 'AI 엔진 초기화 중...';
+            if (stEl()) stEl!()!.textContent = 'AI 엔진 초기화 중...';
             let rb;
             try {
                 const job = runInWorker(blob, rembgModel, onProg);
                 cancelFn = job.cancel;
                 rb = await job.promise;
             } catch (we) {
-                if (stEl()) stEl().textContent = '배경 제거 중... (화면 멈출 수 있음)';
+                if (stEl()) stEl!()!.textContent = '배경 제거 중... (화면 멈출 수 있음)';
                 const b = barEl(); if (b) { b.classList.remove('determinate'); b.style.width = ''; }
-                const c = document.getElementById('ieRembgCancel'); if (c) { c.disabled = true; c.textContent = '취소 불가'; }
+                const c = document.getElementById('ieRembgCancel'); if (c) { (c as any).disabled = true; c.textContent = '취소 불가'; }
                 await new Promise(r => requestAnimationFrame(() => setTimeout(r, 100)));
                 rb = await runOnMainThread(blob, rembgModel, onProg);
             }
@@ -2095,9 +2094,9 @@
             if (procW !== origW) {
                 const off = document.createElement('canvas'); off.width = origW; off.height = origH;
                 const oc = off.getContext('2d');
-                oc.drawImage(canvas, 0, 0);
-                oc.globalCompositeOperation = 'destination-in';
-                oc.drawImage(img, 0, 0, origW, origH);
+                oc!.drawImage(canvas, 0, 0);
+                oc!.globalCompositeOperation = 'destination-in';
+                oc!.drawImage(img, 0, 0, origW, origH);
                 canvas.width = origW; canvas.height = origH;
                 ctx.drawImage(off, 0, 0);
             } else {
@@ -2111,19 +2110,19 @@
         } catch (e) {
             console.error('BG removal error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('배경 제거 실패: ' + (e.message || e), 'error');
+            Toolbox.showToast('배경 제거 실패: ' + ((e as any).message || e), 'error');
         }
     }
 
     /* ===== Mode 4 — Gemini ===== */
-    let lastGeminiMaskDataUrl = null;
+    let lastGeminiMaskDataUrl: any = null;
 
-    function buildGeminiBody(body) {
-        const hasKey = !!Gemini.getApiKey();
+    function buildGeminiBody(body: any) {
+        const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <span class="ie-opt-label">모델</span>
             <select class="ie-opt-input" id="ieGeminiModel" style="width:auto;">
-                ${Gemini.MODELS.geminiImage.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+                ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
             <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요 (홈 > 사용자 설정)'}</span>
@@ -2132,8 +2131,8 @@
                 <button class="ie-apply-btn" id="ieGeminiDownloadMask" style="background:#555;" ${lastGeminiMaskDataUrl ? '' : 'disabled'}>🖼️ 마스크 다운로드</button>
             </div>`;
         requestAnimationFrame(() => {
-            document.getElementById('ieGeminiApply').onclick = applyGeminiRemoveBg;
-            document.getElementById('ieGeminiDownloadMask').onclick = downloadGeminiMask;
+            document!.getElementById('ieGeminiApply')!.onclick = applyGeminiRemoveBg;
+            document!.getElementById('ieGeminiDownloadMask')!.onclick = downloadGeminiMask;
         });
     }
 
@@ -2148,7 +2147,7 @@
 
     async function applyGeminiRemoveBg() {
         if (!requireImage()) return;
-        const key = Gemini.requireApiKey();
+        const key = Gemini!.requireApiKey();
         if (!key) return;
         if (rembgBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
         rembgBusy = true;
@@ -2158,17 +2157,17 @@
         const origW = canvas.width, origH = canvas.height;
 
         try {
-            if (stEl()) stEl().textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
             const maxSide = 1024;
             let dw = origW, dh = origH;
             const longest = Math.max(dw, dh);
             if (longest > maxSide) { const sc = maxSide / longest; dw = Math.round(dw * sc); dh = Math.round(dh * sc); }
             const tmp = document.createElement('canvas'); tmp.width = dw; tmp.height = dh;
-            tmp.getContext('2d').drawImage(canvas, 0, 0, dw, dh);
+            tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            if (stEl()) stEl().textContent = 'Gemini에 마스크 요청 중...';
-            const modelId = document.getElementById('ieGeminiModel')?.value || Gemini.MODELS.geminiImage[0].id;
+            if (stEl()) stEl!()!.textContent = 'Gemini에 마스크 요청 중...';
+            const modelId = (document.getElementById('ieGeminiModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`;
             const reqBody = {
                 contents: [{ parts: [
@@ -2178,12 +2177,12 @@
                 generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
             };
 
-            const res = await Gemini.fetchWithRetry(url, reqBody);
+            const res = await Gemini!.fetchWithRetry(url, reqBody);
             const data = await res.json();
-            const imgPart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            const imgPart = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
             if (!imgPart) throw new Error('Gemini에서 마스크 응답이 없습니다.');
 
-            if (stEl()) stEl().textContent = '마스크 적용 중...';
+            if (stEl()) stEl!()!.textContent = '마스크 적용 중...';
             const rawMaskUrl = `data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`;
             const maskImg = new Image();
             await new Promise((ok, no) => { maskImg.onload = ok; maskImg.onerror = no; maskImg.src = rawMaskUrl; });
@@ -2191,27 +2190,27 @@
             const maskCvs = document.createElement('canvas');
             maskCvs.width = origW; maskCvs.height = origH;
             const mc = maskCvs.getContext('2d');
-            mc.drawImage(maskImg, 0, 0, origW, origH);
+            mc!.drawImage(maskImg, 0, 0, origW, origH);
 
             lastGeminiMaskDataUrl = maskCvs.toDataURL('image/png');
             const dlBtn = document.getElementById('ieGeminiDownloadMask');
-            if (dlBtn) dlBtn.disabled = false;
+            if (dlBtn) (dlBtn as any).disabled = false;
 
-            const maskData = mc.getImageData(0, 0, origW, origH);
+            const maskData = mc!.getImageData(0, 0, origW, origH);
             const md = maskData.data;
             for (let i = 0; i < md.length; i += 4) {
                 const lum = md[i] * 0.299 + md[i + 1] * 0.587 + md[i + 2] * 0.114;
                 md[i] = 255; md[i + 1] = 255; md[i + 2] = 255;
                 md[i + 3] = Math.round(lum);
             }
-            mc.putImageData(maskData, 0, 0);
+            mc!.putImageData(maskData, 0, 0);
 
             const off = document.createElement('canvas');
             off.width = origW; off.height = origH;
             const oc = off.getContext('2d');
-            oc.drawImage(canvas, 0, 0);
-            oc.globalCompositeOperation = 'destination-in';
-            oc.drawImage(maskCvs, 0, 0);
+            oc!.drawImage(canvas, 0, 0);
+            oc!.globalCompositeOperation = 'destination-in';
+            oc!.drawImage(maskCvs, 0, 0);
 
             canvas.width = origW; canvas.height = origH;
             ctx.clearRect(0, 0, origW, origH);
@@ -2223,12 +2222,12 @@
         } catch (e) {
             console.error('Gemini mask error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('Gemini 실패: ' + (e.message || e), 'error');
+            Toolbox.showToast('Gemini 실패: ' + ((e as any).message || e), 'error');
             Mdd.linePreset('error', { msg: 'Gemini 실패했어요...' });
         }
     }
 
-    function geminiNearestAspectRatio(w, h) {
+    function geminiNearestAspectRatio(w: any, h: any) {
         const r = w / Math.max(h, 1);
         const pairs = [
             ['1:1', 1],
@@ -2241,11 +2240,11 @@
         ];
         let best = '1:1';
         let bestDiff = Infinity;
-        pairs.forEach(([name, v]) => {
+        pairs.forEach(([name, v]: any) => {
             const d = Math.abs(Math.log(r / v));
             if (d < bestDiff) {
                 bestDiff = d;
-                best = name;
+                best = name as string;
             }
         });
         return best;
@@ -2254,8 +2253,8 @@
     /* ===== Mode 4b — Gemini 업스케일 ===== */
     let upscaleBusy = false;
 
-    function buildUpscaleBody(body) {
-        const hasKey = !!Gemini.getApiKey();
+    function buildUpscaleBody(body: any) {
+        const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;">
                 <span class="ie-opt-label">배율</span>
@@ -2267,7 +2266,7 @@
                 <span class="ie-toolbar-sep"></span>
                 <span class="ie-opt-label">모델 (AI)</span>
                 <select class="ie-opt-input" id="ieUpscaleModel" style="width:auto;">
-                    ${Gemini.MODELS.geminiImage.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+                    ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
                 </select>
                 <button type="button" class="ie-apply-btn" id="ieUpscaleApply" ${hasKey ? '' : 'disabled'}>✨ AI 업스케일</button>
             </div>
@@ -2277,8 +2276,8 @@
                 <strong>AI</strong> — Nano Banana에 보내 디테일을 “추정”해 키웁니다. 긴 변 최대 약 1536px로 줄여 요청하고, 결과를 위 배율 크기에 맞춥니다.
             </div>`;
         requestAnimationFrame(() => {
-            document.getElementById('ieUpscaleLocal').onclick = applyLocalUpscale;
-            document.getElementById('ieUpscaleApply').onclick = applyGeminiUpscale;
+            document!.getElementById('ieUpscaleLocal')!.onclick = applyLocalUpscale;
+            document!.getElementById('ieUpscaleApply')!.onclick = applyGeminiUpscale;
         });
     }
 
@@ -2286,7 +2285,7 @@
     function applyLocalUpscale() {
         if (!requireImage()) return;
         if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
-        const factor = parseInt(document.getElementById('ieUpscaleFactor')?.value || '2', 10);
+        const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
         const origW = canvas.width;
         const origH = canvas.height;
@@ -2301,9 +2300,9 @@
         off.width = tw;
         off.height = th;
         const o = off.getContext('2d');
-        o.imageSmoothingEnabled = true;
-        o.imageSmoothingQuality = 'high';
-        o.drawImage(canvas, 0, 0, tw, th);
+        o!.imageSmoothingEnabled = true;
+        o!.imageSmoothingQuality = 'high';
+        o!.drawImage(canvas, 0, 0, tw, th);
         canvas.width = tw;
         canvas.height = th;
         ctx.imageSmoothingEnabled = true;
@@ -2317,10 +2316,10 @@
 
     async function applyGeminiUpscale() {
         if (!requireImage()) return;
-        if (!Gemini.requireApiKey()) return;
+        if (!Gemini!.requireApiKey()) return;
         if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
 
-        const factor = parseInt(document.getElementById('ieUpscaleFactor')?.value || '2', 10);
+        const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
 
         const origW = canvas.width;
@@ -2338,7 +2337,7 @@
         const targetH = origH * factor;
 
         try {
-            if (stEl()) stEl().textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
             const maxSide = 1536;
             let dw = origW, dh = origH;
             const longest = Math.max(dw, dh);
@@ -2350,10 +2349,10 @@
             const tmp = document.createElement('canvas');
             tmp.width = dw;
             tmp.height = dh;
-            tmp.getContext('2d').drawImage(canvas, 0, 0, dw, dh);
+            tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            const modelId = document.getElementById('ieUpscaleModel')?.value || Gemini.MODELS.geminiImage[0].id;
+            const modelId = (document.getElementById('ieUpscaleModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
             const ar = geminiNearestAspectRatio(dw, dh);
             const multText = factor === 4 ? 'four times' : 'two times';
             const prompt =
@@ -2362,14 +2361,14 @@
                 'Enhance fine detail and sharpness naturally without adding new objects, people, or text. ' +
                 'Do not crop or reframe. Output a single PNG image.';
 
-            if (stEl()) stEl().textContent = 'Gemini 업스케일 요청 중...';
-            const result = await Gemini.callGeminiImage(prompt, modelId, {
+            if (stEl()) stEl!()!.textContent = 'Gemini 업스케일 요청 중...';
+            const result = await (Gemini as any)!.callGeminiImage(prompt, modelId, {
                 referenceImage: base64,
                 aspectRatio: ar
             });
             if (!result?.dataUrl) throw new Error('이미지 응답이 없습니다.');
 
-            if (stEl()) stEl().textContent = '결과 적용 중...';
+            if (stEl()) stEl!()!.textContent = '결과 적용 중...';
             const img = new Image();
             await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = result.dataUrl; });
 
@@ -2388,7 +2387,7 @@
         } catch (e) {
             console.error('Gemini upscale error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('업스케일 실패: ' + (e.message || e), 'error');
+            Toolbox.showToast('업스케일 실패: ' + ((e as any).message || e), 'error');
             Mdd.linePreset('error', { msg: '업스케일 실패했어요...' });
         } finally {
             upscaleBusy = false;
@@ -2398,8 +2397,8 @@
     /* ===== Mode 5 — 배경색 변경 (Gemini) ===== */
     let bggBusy = false;
 
-    function buildBggBody(body) {
-        const hasKey = !!Gemini.getApiKey();
+    function buildBggBody(body: any) {
+        const hasKey = !!Gemini!.getApiKey();
         body.innerHTML = `
             <span class="ie-opt-label">배경색</span>
             <input type="color" id="ieBggColor" value="#ffffff" style="width:40px;height:28px;padding:2px;border:1px solid var(--border);border-radius:4px;cursor:pointer;">
@@ -2407,7 +2406,7 @@
             <span class="ie-toolbar-sep"></span>
             <span class="ie-opt-label">모델</span>
             <select class="ie-opt-input" id="ieBggModel" style="width:auto;">
-                ${Gemini.MODELS.geminiImage.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
+                ${Gemini!.MODELS.geminiImage.map((m: any) => `<option value="${m.id}">${m.name}</option>`).join('')}
             </select>
             <span class="ie-toolbar-sep"></span>
             <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요'}</span>
@@ -2415,49 +2414,49 @@
         requestAnimationFrame(() => {
             const textEl = document.getElementById('ieBggColorText');
             textEl?.addEventListener('input', () => {
-                const v = textEl.value.trim();
-                if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('ieBggColor').value = v;
+                const v = (textEl as any).value.trim();
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) (document!.getElementById('ieBggColor') as any).value = v;
             });
-            document.getElementById('ieBggApply').onclick = applyGeminiBgg;
+            document!.getElementById('ieBggApply')!.onclick = applyGeminiBgg;
         });
     }
 
     async function applyGeminiBgg() {
         if (!requireImage()) return;
-        const key = Gemini.requireApiKey();
+        const key = Gemini!.requireApiKey();
         if (!key) return;
         if (bggBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
         bggBusy = true;
 
-        const colorText = document.getElementById('ieBggColorText')?.value?.trim();
-        const colorHex = document.getElementById('ieBggColor')?.value || '#ffffff';
+        const colorText = (document.getElementById('ieBggColorText') as any)?.value?.trim();
+        const colorHex = (document.getElementById('ieBggColor') as any)?.value || '#ffffff';
         const colorDesc = colorText || colorHex;
 
         const ui = showRembgOverlay();
         const stEl = () => document.getElementById('ieRembgStatus');
 
         try {
-            if (stEl()) stEl().textContent = '이미지 준비 중...';
+            if (stEl()) stEl!()!.textContent = '이미지 준비 중...';
             const maxSide = 1024;
             let dw = canvas.width, dh = canvas.height;
             const longest = Math.max(dw, dh);
             if (longest > maxSide) { const sc = maxSide / longest; dw = Math.round(dw * sc); dh = Math.round(dh * sc); }
             const tmp = document.createElement('canvas');
             tmp.width = dw; tmp.height = dh;
-            tmp.getContext('2d').drawImage(canvas, 0, 0, dw, dh);
+            tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            if (stEl()) stEl().textContent = 'Gemini에 배경색 변경 요청 중...';
-            const modelId = document.getElementById('ieBggModel')?.value || Gemini.MODELS.geminiImage[0].id;
+            if (stEl()) stEl!()!.textContent = 'Gemini에 배경색 변경 요청 중...';
+            const modelId = (document.getElementById('ieBggModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
             const colorPrompt = /^#[0-9a-fA-F]{6}$/.test(colorDesc)
                 ? `solid color ${colorDesc}`
                 : colorDesc;
             const prompt = `Change the background of this image to ${colorPrompt}. Keep the foreground subject exactly the same. Do not alter the subject's appearance, pose, or lighting. Replace only the background. Output the result as a PNG image.`;
 
-            const result = await Gemini.callGeminiImage(prompt, modelId, { referenceImage: base64 });
+            const result = await (Gemini as any)!.callGeminiImage(prompt, modelId, { referenceImage: base64 });
             if (!result?.dataUrl) throw new Error('이미지 응답이 없습니다.');
 
-            if (stEl()) stEl().textContent = '결과 적용 중...';
+            if (stEl()) stEl!()!.textContent = '결과 적용 중...';
             const img = new Image();
             await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = result.dataUrl; });
 
@@ -2470,7 +2469,7 @@
         } catch (e) {
             console.error('Gemini BGG error:', e);
             cleanupOverlay(ui);
-            Toolbox.showToast('Gemini 실패: ' + (e.message || e), 'error');
+            Toolbox.showToast('Gemini 실패: ' + ((e as any).message || e), 'error');
             Mdd.linePreset('error', { msg: 'Gemini 실패했어요...' });
         } finally {
             bggBusy = false;
@@ -2492,7 +2491,7 @@
         link.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap';
         document.head.appendChild(link);
     })();
-    function wrapCaptionLines(ctx, text, maxWidth) {
+    function wrapCaptionLines(ctx: any, text: any, maxWidth: any) {
         if (!text || maxWidth <= 0) return [];
         const lines = [];
         const paragraphs = String(text).split(/\n/);
@@ -2507,7 +2506,7 @@
         }
         return lines;
     }
-    function roundRect(ctx, x, y, w, h, r) {
+    function roundRect(ctx: any, x: any, y: any, w: any, h: any, r: any) {
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + w - r, y);
@@ -2523,7 +2522,7 @@
     let captionPosX = 0.5, captionPosY = 0.8;
     let captionDragging = false;
 
-    function renderCaptionOnCanvas(ctx, preset, text, canvasW, canvasH, positionOverride) {
+    function renderCaptionOnCanvas(ctx: any, preset: any, text: any, canvasW: any, canvasH: any, positionOverride: any) {
         if (!text || !preset) return;
         const pad = Math.min(canvasW, canvasH) * 0.05;
         const maxWidth = canvasW - pad * 2;
@@ -2637,13 +2636,13 @@
     function redrawCaptionPreview() {
         const ov = document.getElementById('ieCaptionOverlay');
         if (!ov || ov.style.display !== 'block' || !hasImage()) return;
-        const presetId = document.querySelector('#ieCaptionPresets button.active')?.dataset?.preset || 'impact';
+        const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
         const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
-        const text = document.getElementById('ieCaptionText')?.value?.trim() || '';
-        const ovCtx = ov.getContext('2d');
+        const text = (document.getElementById('ieCaptionText') as any)?.value?.trim() || '';
+        const ovCtx = (ov as any).getContext('2d');
         ovCtx.drawImage(canvas, 0, 0);
         if (text) {
-            renderCaptionOnCanvas(ovCtx, preset, text, ov.width, ov.height, { x: captionPosX, y: captionPosY });
+            renderCaptionOnCanvas(ovCtx, preset, text, (ov as any).width, (ov as any).height, { x: captionPosX, y: captionPosY });
         }
     }
 
@@ -2652,10 +2651,10 @@
         if (!ov || !hasImage()) return;
         ov.style.display = 'block';
         syncOverlaySizeToCanvas(ov);
-        ov.width = canvas.width;
-        ov.height = canvas.height;
+        (ov as any).width = canvas.width;
+        (ov as any).height = canvas.height;
         redrawCaptionPreview();
-        const getCanvasCoords = (e) => {
+        const getCanvasCoords = (e: any) => {
             const r = ov.getBoundingClientRect();
             const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
             const y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
@@ -2681,7 +2680,7 @@
         };
         ov.onpointerup = ov.onpointerleave = () => { captionDragging = false; };
     }
-    function buildCaptionOptions(optPanel) {
+    function buildCaptionOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
                 <span class="ie-opt-label">스타일</span>
@@ -2701,33 +2700,33 @@
             btn.dataset.preset = p.id;
             btn.innerHTML = `<span style="font-size:1.2em;">${p.icon}</span><span class="ie-opt-label" style="font-size:var(--font-size-2xs);">${p.label}</span>`;
             btn.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;';
-            presetWrap.appendChild(btn);
+            presetWrap!.appendChild(btn);
         });
-        presetWrap.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-preset]');
+        presetWrap!.addEventListener('click', (e) => {
+            const btn = (e!.target as any).closest('[data-preset]');
             if (!btn) return;
-            presetWrap.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            presetWrap!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             redrawCaptionPreview();
         });
         const textEl = document.getElementById('ieCaptionText');
-        textEl.addEventListener('input', () => redrawCaptionPreview());
-        textEl.addEventListener('keyup', () => redrawCaptionPreview());
+        textEl!.addEventListener('input', () => redrawCaptionPreview());
+        textEl!.addEventListener('keyup', () => redrawCaptionPreview());
         if (document.fonts && document.fonts.load) {
             document.fonts.load('16px "Noto Sans KR"').catch(() => {});
         }
-        document.getElementById('ieCaptionApply').onclick = applyCaption;
+        document!.getElementById('ieCaptionApply')!.onclick = applyCaption;
         if (hasImage()) initCaptionOverlay();
     }
     function applyCaption() {
         if (!requireImage()) return;
-        const presetId = document.querySelector('#ieCaptionPresets button.active')?.dataset?.preset || 'impact';
+        const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
         const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
-        const text = document.getElementById('ieCaptionText')?.value?.trim();
+        const text = (document.getElementById('ieCaptionText') as any)?.value?.trim();
         if (!text) { Toolbox.showToast('캡션 텍스트를 입력하세요.', 'error'); return; }
         pushHistory();
         renderCaptionOnCanvas(ctx, preset, text, canvas.width, canvas.height, { x: captionPosX, y: captionPosY });
-        document.getElementById('ieCaptionText').value = '';
+        (document!.getElementById('ieCaptionText') as any).value = '';
         redrawCaptionPreview();
         updateSizeLabel();
         Toolbox.showToast('캡션 적용됨', 'success');
@@ -2739,7 +2738,7 @@
     let stickerPosX = 0.5, stickerPosY = 0.5;
     let stickerScale = 0.2;
     let stickerDragging = false;
-    let selectedStickerImg = null;
+    let selectedStickerImg: any = null;
     let selectedStickerFile = null;
 
     function destroyStickerOverlay() {
@@ -2753,7 +2752,7 @@
         }
     }
 
-    function renderStickerOnCanvas(ctx, img, canvasW, canvasH, posX, posY, scale) {
+    function renderStickerOnCanvas(ctx: any, img: any, canvasW: any, canvasH: any, posX: any, posY: any, scale: any) {
         if (!img || !img.complete || img.naturalWidth === 0) return;
         const baseSize = Math.min(canvasW, canvasH) * scale;
         const w = img.naturalWidth;
@@ -2770,10 +2769,10 @@
     function redrawStickerPreview() {
         const ov = document.getElementById('ieStickerOverlay');
         if (!ov || ov.style.display !== 'block' || !hasImage()) return;
-        const ovCtx = ov.getContext('2d');
+        const ovCtx = (ov as any).getContext('2d');
         ovCtx.drawImage(canvas, 0, 0);
         if (selectedStickerImg) {
-            renderStickerOnCanvas(ovCtx, selectedStickerImg, ov.width, ov.height, stickerPosX, stickerPosY, stickerScale);
+            renderStickerOnCanvas(ovCtx, selectedStickerImg, (ov as any).width, (ov as any).height, stickerPosX, stickerPosY, stickerScale);
         }
     }
 
@@ -2782,10 +2781,10 @@
         if (!ov || !hasImage()) return;
         ov.style.display = 'block';
         syncOverlaySizeToCanvas(ov);
-        ov.width = canvas.width;
-        ov.height = canvas.height;
+        (ov as any).width = canvas.width;
+        (ov as any).height = canvas.height;
         redrawStickerPreview();
-        const getCanvasCoords = (e) => {
+        const getCanvasCoords = (e: any) => {
             const r = ov.getBoundingClientRect();
             return {
                 x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)),
@@ -2813,7 +2812,7 @@
         ov.onpointerup = ov.onpointerleave = () => { stickerDragging = false; };
     }
 
-    function buildStickerOptions(optPanel) {
+    function buildStickerOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-opt-row" style="flex-wrap:wrap;gap:8px;">
                 <span class="ie-opt-label">스티커 <span style="color:var(--text-tertiary);font-weight:400;">(드래그로 위치 이동)</span></span>
@@ -2830,14 +2829,14 @@
         const grid = document.getElementById('ieStickerGrid');
         const scaleSlider = document.getElementById('ieStickerScale');
         const scaleVal = document.getElementById('ieStickerScaleVal');
-        scaleSlider.oninput = () => {
-            stickerScale = scaleSlider.value / 100;
-            scaleVal.textContent = scaleSlider.value + '%';
+        scaleSlider!.oninput = () => {
+            stickerScale = (scaleSlider! as any).value / 100;
+            scaleVal!.textContent = (scaleSlider! as any).value + '%';
             redrawStickerPreview();
         };
-        function loadStickers(files) {
+        function loadStickers(files: any) {
                 if (!Array.isArray(files) || files.length === 0) {
-                    grid.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">스티커가 없습니다. img/stickers/ 폴더에 이미지 추가 후 stickers.json에 파일명을 적어주세요.</span>';
+                    grid!.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">스티커가 없습니다. img/stickers/ 폴더에 이미지 추가 후 stickers.json에 파일명을 적어주세요.</span>';
                     return;
                 }
                 stickerImages = [];
@@ -2850,17 +2849,17 @@
                     btn.style.cssText = 'padding:4px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;';
                     btn.innerHTML = '<img src="' + STICKER_BASE + '/' + encodeURIComponent(file) + '" alt="" style="max-width:40px;max-height:40px;object-fit:contain;" loading="lazy">';
                     btn.onclick = () => {
-                        grid.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                        grid!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        if (btn._stickerImg) {
-                            selectedStickerImg = btn._stickerImg;
+                        if ((btn as any)._stickerImg) {
+                            selectedStickerImg = (btn as any)._stickerImg;
                             selectedStickerFile = file;
                             redrawStickerPreview();
                         }
                     };
-                    grid.appendChild(btn);
+                    grid!.appendChild(btn);
                     img.onload = () => {
-                        btn._stickerImg = img;
+                        (btn as any)._stickerImg = img;
                         stickerImages.push(img);
                         if (i === 0) { selectedStickerImg = img; selectedStickerFile = file; }
                         redrawStickerPreview();
@@ -2873,9 +2872,9 @@
             .then(r => r.ok ? r.json() : [])
             .then(files => loadStickers(files))
             .catch(() => {
-                grid.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">stickers.json을 불러올 수 없습니다.</span>';
+                grid!.innerHTML = '<span class="ie-opt-label" style="grid-column:1/-1;">stickers.json을 불러올 수 없습니다.</span>';
             });
-        document.getElementById('ieStickerApply').onclick = applySticker;
+        document!.getElementById('ieStickerApply')!.onclick = applySticker;
         if (hasImage()) initStickerOverlay();
     }
 
@@ -2893,11 +2892,11 @@
     }
 
     /* ===== Mask Apply Tool ===== */
-    let maskImageData = null;
+    let maskImageData: any = null;
     let maskInvert = false;
     let maskPreviewActive = false;
 
-    function buildMaskOptions(optPanel) {
+    function buildMaskOptions(optPanel: any) {
         optPanel.innerHTML = `
             <div class="ie-options-stack" style="display:flex;flex-direction:column;gap:10px;width:100%;">
                 <div style="padding-bottom:8px;border-bottom:1px solid var(--border);">
@@ -2945,10 +2944,10 @@
             fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.style.display = 'none';
             optPanel.appendChild(fileInput);
 
-            document.getElementById('ieMaskLoadFile').onclick = () => fileInput.click();
-            fileInput.onchange = (e) => { if (e.target.files[0]) loadMaskFromFile(e.target.files[0]); };
+            document!.getElementById('ieMaskLoadFile')!.onclick = () => fileInput.click();
+            fileInput.onchange = (e) => { if ((e!.target as any).files[0]) loadMaskFromFile!((e!.target! as any).files[0]); };
 
-            document.getElementById('ieMaskPaste').onclick = async () => {
+            document!.getElementById('ieMaskPaste')!.onclick = async () => {
                 try {
                     const items = await navigator.clipboard.read();
                     for (const item of items) {
@@ -2959,46 +2958,46 @@
                 } catch { Toolbox.showToast('클립보드 읽기 실패', 'error'); }
             };
 
-            document.getElementById('ieMaskInterpret').onchange = () => {
+            document!.getElementById('ieMaskInterpret')!.onchange = () => {
                 if (maskPreviewActive) refreshMaskSplitPreview();
             };
-            document.getElementById('ieMaskInvertCb').onchange = (e) => {
-                maskInvert = e.target.checked;
+            document!.getElementById('ieMaskInvertCb')!.onchange = (e) => {
+                maskInvert = (e!.target as any).checked;
                 updateMaskThumbPreview();
                 if (maskPreviewActive) refreshMaskSplitPreview();
             };
-            document.getElementById('ieMaskPreviewBtn').onclick = showMaskSplitPreview;
-            document.getElementById('ieMaskApplyBtn').onclick = applyMaskToImage;
+            document!.getElementById('ieMaskPreviewBtn')!.onclick = showMaskSplitPreview;
+            document!.getElementById('ieMaskApplyBtn')!.onclick = applyMaskToImage;
 
-            document.getElementById('ieSelfMaskTol').oninput = (e) => {
-                document.getElementById('ieSelfMaskTolVal').textContent = e.target.value;
+            document!.getElementById('ieSelfMaskTol')!.oninput = (e) => {
+                document!.getElementById('ieSelfMaskTolVal')!.textContent = (e!.target as any).value;
             };
-            document.getElementById('ieSelfMaskFeather').oninput = (e) => {
-                document.getElementById('ieSelfMaskFeatherVal').textContent = e.target.value;
+            document!.getElementById('ieSelfMaskFeather')!.oninput = (e) => {
+                document!.getElementById('ieSelfMaskFeatherVal')!.textContent = (e!.target as any).value;
             };
-            document.getElementById('ieSelfMaskApply').onclick = applySelfMask;
+            document!.getElementById('ieSelfMaskApply')!.onclick = applySelfMask;
         });
     }
 
-    function loadMaskFromFile(fileOrBlob) {
+    function loadMaskFromFile(fileOrBlob: any) {
         const reader = new FileReader();
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
                 const cvs = document.createElement('canvas');
                 cvs.width = img.naturalWidth; cvs.height = img.naturalHeight;
-                cvs.getContext('2d').drawImage(img, 0, 0);
+                cvs!.getContext('2d')!.drawImage(img, 0, 0);
                 maskImageData = cvs;
                 updateMaskThumbPreview();
                 const applyBtn = document.getElementById('ieMaskApplyBtn');
                 const prevBtn = document.getElementById('ieMaskPreviewBtn');
-                if (applyBtn) applyBtn.disabled = false;
-                if (prevBtn) prevBtn.disabled = false;
-                document.getElementById('ieMaskPreviewWrap').style.display = 'flex';
-                document.getElementById('ieMaskInvertLabel').style.display = 'flex';
+                if (applyBtn) (applyBtn as any).disabled = false;
+                if (prevBtn) (prevBtn as any).disabled = false;
+                (document!.getElementById('ieMaskPreviewWrap') as any).style.display = 'flex';
+                (document!.getElementById('ieMaskInvertLabel') as any).style.display = 'flex';
                 Toolbox.showToast('마스크 이미지 로드 완료');
             };
-            img.src = e.target.result;
+            img.src = e!.target!.result as string;
         };
         reader.readAsDataURL(fileOrBlob);
     }
@@ -3009,13 +3008,13 @@
         if (!preview) return;
         const w = maskImageData.width, h = maskImageData.height;
         const scale = Math.min(60 / w, 40 / h, 1);
-        preview.width = Math.round(w * scale); preview.height = Math.round(h * scale);
-        const pc = preview.getContext('2d');
-        pc.drawImage(maskImageData, 0, 0, preview.width, preview.height);
+        (preview as any).width = Math.round(w * scale); (preview as any).height = Math.round(h * scale);
+        const pc = (preview as any).getContext('2d');
+        pc.drawImage(maskImageData, 0, 0, (preview as any).width, (preview as any).height);
         if (maskInvert) {
             pc.globalCompositeOperation = 'difference';
             pc.fillStyle = '#fff';
-            pc.fillRect(0, 0, preview.width, preview.height);
+            pc.fillRect(0, 0, (preview as any).width, (preview as any).height);
             pc.globalCompositeOperation = 'source-over';
         }
         const info = document.getElementById('ieMaskInfo');
@@ -3024,12 +3023,12 @@
 
     function computeMaskedImageData() {
         const w = canvas.width, h = canvas.height;
-        const useAlpha = (document.getElementById('ieMaskInterpret')?.value || 'alpha') === 'alpha';
+        const useAlpha = ((document.getElementById('ieMaskInterpret') as any)?.value || 'alpha') === 'alpha';
         const src = ctx.getImageData(0, 0, w, h);
         const maskCvs = document.createElement('canvas');
         maskCvs.width = w; maskCvs.height = h;
-        maskCvs.getContext('2d').drawImage(maskImageData, 0, 0, w, h);
-        const mask = maskCvs.getContext('2d').getImageData(0, 0, w, h).data;
+        maskCvs!.getContext('2d')!.drawImage(maskImageData, 0, 0, w, h);
+        const mask = maskCvs!.getContext('2d')!.getImageData(0, 0, w, h)!.data;
 
         const out = new Uint8ClampedArray(w * h * 4);
         const srcD = src.data;
@@ -3069,11 +3068,11 @@
         canvas.style.visibility = 'hidden';
 
         const w = canvas.width, h = canvas.height;
-        beforeCvs.width = w; beforeCvs.height = h;
-        afterCvs.width = w; afterCvs.height = h;
+        (beforeCvs as any).width = w; (beforeCvs as any).height = h;
+        (afterCvs as any).width = w; (afterCvs as any).height = h;
 
-        beforeCvs.getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
-        afterCvs.getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
+        (beforeCvs as any).getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
+        (afterCvs as any).getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
 
         const ow = overlay.clientWidth || 400, oh = overlay.clientHeight || 300;
         const pad = 60;
@@ -3088,26 +3087,26 @@
         box.style.width = dispW + 'px';
 
         let splitPct = 50;
-        rangeInput.value = 50;
+        (rangeInput as any).value = 50;
 
         function updateSplit() {
             const pct = splitPct;
-            layerBefore.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
-            layerAfter.style.clipPath = 'inset(0 0 0 ' + pct + '%)';
-            divider.style.left = pct + '%';
-            rangeInput.value = Math.round(pct);
+            layerBefore!.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+            layerAfter!.style.clipPath = 'inset(0 0 0 ' + pct + '%)';
+            divider!.style.left = pct + '%';
+            (rangeInput! as any).value = Math.round(pct);
         }
         updateSplit();
 
         rangeInput.oninput = () => {
-            splitPct = parseInt(rangeInput.value, 10);
+            splitPct = parseInt((rangeInput as any).value, 10);
             updateSplit();
         };
 
         let dragging = false;
-        function onMove(e) {
+        function onMove(e: any) {
             if (!dragging) return;
-            const rect = inner.getBoundingClientRect();
+            const rect = inner!.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             splitPct = Math.max(0, Math.min(100, x));
             updateSplit();
@@ -3115,7 +3114,7 @@
         function onUp() { dragging = false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
         divider.onmousedown = (e) => { e.preventDefault(); dragging = true; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); };
 
-        closeBtn.onclick = () => {
+        closeBtn!.onclick = () => {
             overlay.classList.remove('active');
             canvas.style.visibility = '';
             maskPreviewActive = false;
@@ -3128,8 +3127,8 @@
         const afterCvs = document.getElementById('ieMaskAfter');
         if (!beforeCvs || !afterCvs) return;
         const w = canvas.width, h = canvas.height;
-        beforeCvs.getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
-        afterCvs.getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
+        (beforeCvs as any).getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
+        (afterCvs as any).getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
     }
 
     function destroyMaskPreview() {
@@ -3154,9 +3153,9 @@
 
     function applySelfMask() {
         if (!requireImage()) return;
-        const target = document.getElementById('ieSelfMaskTarget')?.value || 'dark';
-        const tol = parseInt(document.getElementById('ieSelfMaskTol')?.value || '30', 10);
-        const feather = parseInt(document.getElementById('ieSelfMaskFeather')?.value || '10', 10);
+        const target = (document.getElementById('ieSelfMaskTarget') as any)?.value || 'dark';
+        const tol = parseInt((document.getElementById('ieSelfMaskTol') as any)?.value || '30', 10);
+        const feather = parseInt((document.getElementById('ieSelfMaskFeather') as any)?.value || '10', 10);
 
         const w = canvas.width, h = canvas.height;
         const imgData = ctx.getImageData(0, 0, w, h);
@@ -3251,7 +3250,7 @@
         }
     }
 
-    function constrainCropAspect(baseX, baseY, dx, dy) {
+    function constrainCropAspect(baseX: any, baseY: any, dx: any, dy: any) {
         if (!cropAspect) return { dx, dy };
         const adx = Math.abs(dx), ady = Math.abs(dy);
         const dominant = adx > ady ? 'x' : 'y';
@@ -3263,12 +3262,12 @@
         return { dx, dy };
     }
 
-    function onCropPointerDown(e) {
+    function onCropPointerDown(e: any) {
         if (!cropState) return;
         if (e.button !== 0) return;
         if (viewSpaceDown) return;
         const overlay = document.getElementById('ieCropOverlay');
-        const oRect = overlay.getBoundingClientRect();
+        const oRect = overlay!.getBoundingClientRect();
         const mx = e.clientX - oRect.left;
         const my = e.clientY - oRect.top;
 
@@ -3290,16 +3289,16 @@
         e.preventDefault();
     }
 
-    function onCropPointerMove(e) {
+    function onCropPointerMove(e: any) {
         if (!cropState || !cropState.dragging) return;
         const overlay = document.getElementById('ieCropOverlay');
-        const oRect = overlay.getBoundingClientRect();
+        const oRect = overlay!.getBoundingClientRect();
         const mx = e.clientX - oRect.left;
         const my = e.clientY - oRect.top;
         const dx = mx - cropState.startX;
         const dy = my - cropState.startY;
         const s = cropState.startCrop;
-        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        const clamp = (v: any, lo: any, hi: any) => Math.max(lo, Math.min(hi, v));
 
         if (cropState.dragging === 'move') {
             cropState.x = clamp(s.x + dx, 0, cropState.maxW - s.w);
@@ -3377,11 +3376,11 @@
     }
 
     /* ===== Export ===== */
-    function exportDownload(format) {
+    function exportDownload(format: any) {
         if (!requireImage()) return;
         const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
         const quality = format === 'jpeg' ? jpegQuality : undefined;
-        canvas.toBlob(blob => {
+        canvas.toBlob((blob: any) => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -3399,7 +3398,7 @@
     async function exportClipboard() {
         if (!requireImage()) return;
         try {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const blob = await new Promise<Blob>(resolve => canvas.toBlob((b: Blob) => resolve(b), 'image/png'));
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             Toolbox.showToast('클립보드에 복사됨');
         } catch (e) {
@@ -3411,7 +3410,7 @@
         if (!requireImage()) return;
         try {
             const dataUrl = canvas.toDataURL('image/png');
-            await ImageDB.save({
+            await (globalThis as any).ImageDB.save({
                 id: 'edit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
                 url: dataUrl,
                 prompt: '(이미지 편집)',
@@ -3435,23 +3434,23 @@
             o = JSON.parse(localStorage.getItem(IE_CONVERT_STORAGE) || '{}') || {};
         } catch (_) {}
         return {
-            outFmt: o.outFmt === 'jpeg' || o.outFmt === 'webp' || o.outFmt === 'png' ? o.outFmt : IE_CV_DEFAULTS.outFmt,
-            quality: Math.min(100, Math.max(5, parseInt(o.quality, 10) || IE_CV_DEFAULTS.quality)),
-            maxPreset: typeof o.maxPreset === 'string' ? o.maxPreset : IE_CV_DEFAULTS.maxPreset,
-            maxCustom: Math.min(16384, Math.max(64, parseInt(o.maxCustom, 10) || IE_CV_DEFAULTS.maxCustom)),
-            bg: typeof o.bg === 'string' && /^#[0-9a-fA-F]{6}$/.test(o.bg) ? o.bg : IE_CV_DEFAULTS.bg,
-            fillAlpha: !!o.fillAlpha,
-            smoothing: o.smoothing === 'low' || o.smoothing === 'medium' ? o.smoothing : IE_CV_DEFAULTS.smoothing
+            outFmt: (o as any).outFmt === 'jpeg' || (o as any).outFmt === 'webp' || (o as any).outFmt === 'png' ? (o as any).outFmt : IE_CV_DEFAULTS.outFmt,
+            quality: Math.min(100, Math.max(5, parseInt((o as any).quality, 10) || IE_CV_DEFAULTS.quality)),
+            maxPreset: typeof (o as any).maxPreset === 'string' ? (o as any).maxPreset : IE_CV_DEFAULTS.maxPreset,
+            maxCustom: Math.min(16384, Math.max(64, parseInt((o as any).maxCustom, 10) || IE_CV_DEFAULTS.maxCustom)),
+            bg: typeof (o as any).bg === 'string' && /^#[0-9a-fA-F]{6}$/.test((o as any).bg) ? (o as any).bg : IE_CV_DEFAULTS.bg,
+            fillAlpha: !!(o as any).fillAlpha,
+            smoothing: (o as any).smoothing === 'low' || (o as any).smoothing === 'medium' ? (o as any).smoothing : IE_CV_DEFAULTS.smoothing
         };
     }
 
-    function saveIeConvertSettings(s) {
+    function saveIeConvertSettings(s: any) {
         try {
             localStorage.setItem(IE_CONVERT_STORAGE, JSON.stringify(s));
         } catch (_) {}
     }
 
-    function ieCvMaxLong(preset, customVal) {
+    function ieCvMaxLong(preset: any, customVal: any) {
         if (preset === 'custom') return customVal > 0 ? customVal : 0;
         if (!preset) return 0;
         const n = parseInt(preset, 10);
@@ -3468,19 +3467,19 @@
         const sm = document.getElementById('ieCvSmooth');
         if (!fmtEl || !maxPreset || !maxCustom || !q || !bg || !fa || !sm) return;
         saveIeConvertSettings({
-            outFmt: fmtEl.value,
-            quality: parseInt(q.value, 10),
-            maxPreset: maxPreset.value,
-            maxCustom: parseInt(maxCustom.value, 10) || IE_CV_DEFAULTS.maxCustom,
-            bg: bg.value,
-            fillAlpha: fa.checked,
-            smoothing: sm.value
+            outFmt: (fmtEl as any).value,
+            quality: parseInt((q as any).value, 10),
+            maxPreset: (maxPreset as any).value,
+            maxCustom: parseInt((maxCustom as any).value, 10) || IE_CV_DEFAULTS.maxCustom,
+            bg: (bg as any).value,
+            fillAlpha: (fa as any).checked,
+            smoothing: (sm as any).value
         });
     }
 
-    function ieCvOptsFromPanel(IC) {
+    function ieCvOptsFromPanel(IC: any) {
         const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const fmt = fmtEl ? fmtEl.value : 'png';
+        const fmt = fmtEl ? (fmtEl as any).value : 'png';
         const maxPreset = document.getElementById('ieCvMaxPreset');
         const maxCustom = document.getElementById('ieCvMaxCustom');
         const q = document.getElementById('ieCvQuality');
@@ -3490,11 +3489,11 @@
         const mime = fmt === 'jpeg' ? IC.MIME_JPEG : fmt === 'webp' ? IC.MIME_WEBP : IC.MIME_PNG;
         return {
             outputMime: mime,
-            quality: (parseInt(q && q.value, 10) || 92) / 100,
-            maxLongSide: ieCvMaxLong(maxPreset && maxPreset.value, parseInt(maxCustom && maxCustom.value, 10) || 1920),
-            background: (bg && bg.value) || '#ffffff',
-            fillAlpha: !!(fa && fa.checked),
-            smoothing: (sm && sm.value) || 'high'
+            quality: (parseInt(q && (q as any).value, 10) || 92) / 100,
+            maxLongSide: ieCvMaxLong(maxPreset && (maxPreset as any).value, parseInt(maxCustom && (maxCustom as any).value, 10) || 1920),
+            background: (bg && (bg as any).value) || '#ffffff',
+            fillAlpha: !!(fa && (fa as any).checked),
+            smoothing: (sm && (sm as any).value) || 'high'
         };
     }
 
@@ -3507,13 +3506,13 @@
         const fa = document.getElementById('ieCvFillAlpha');
         const sm = document.getElementById('ieCvSmooth');
         return JSON.stringify({
-            f: fmtEl ? fmtEl.value : 'png',
-            q: q ? q.value : '92',
-            mp: maxPreset ? maxPreset.value : '',
-            mc: maxCustom ? maxCustom.value : '',
-            bg: bg ? bg.value : '',
-            fa: fa ? fa.checked : false,
-            sm: sm ? sm.value : 'high',
+            f: fmtEl ? (fmtEl as any).value : 'png',
+            q: q ? (q as any).value : '92',
+            mp: maxPreset ? (maxPreset as any).value : '',
+            mc: maxCustom ? (maxCustom as any).value : '',
+            bg: bg ? (bg as any).value : '',
+            fa: fa ? (fa as any).checked : false,
+            sm: sm ? (sm as any).value : 'high',
             cw: canvas && canvas.width,
             ch: canvas && canvas.height
         });
@@ -3528,12 +3527,12 @@
         const row = document.getElementById('ieCvResampleRow');
         const sel = document.getElementById('ieCvMaxPreset');
         if (!row || !sel) return;
-        row.style.display = sel.value ? 'flex' : 'none';
+        row.style.display = (sel as any).value ? 'flex' : 'none';
     }
 
-    function ieCvSyncQualityRow(IC) {
+    function ieCvSyncQualityRow(IC: any) {
         const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const fmt = fmtEl ? fmtEl.value : 'png';
+        const fmt = fmtEl ? (fmtEl as any).value : 'png';
         const lossy = fmt === 'jpeg' || fmt === 'webp';
         const row = document.getElementById('ieCvQlRow');
         const ql = document.getElementById('ieCvQlLabel');
@@ -3542,7 +3541,7 @@
         const hint = document.getElementById('ieCvHint');
         if (!row || !q) return;
         row.style.opacity = lossy ? '1' : '0.45';
-        q.disabled = !lossy;
+        (q as any).disabled = !lossy;
         if (ql) ql.style.opacity = lossy ? '1' : '0.45';
         if (qv) qv.style.opacity = lossy ? '1' : '0.45';
         if (hint) {
@@ -3557,10 +3556,10 @@
         }
     }
 
-    function ieCvRevokeLightboxUrls(lb) {
+    function ieCvRevokeLightboxUrls(lb: any) {
         const list = lb._ieCvRevokeUrls;
         if (list && list.length) {
-            list.forEach(u => {
+            list.forEach((u: any) => {
                 if (u && String(u).indexOf('blob:') === 0) {
                     try {
                         URL.revokeObjectURL(u);
@@ -3574,7 +3573,7 @@
         lb._ieCvMeta = null;
     }
 
-    function ieCvFormatLbBytes(n) {
+    function ieCvFormatLbBytes(n: any) {
         if (n == null || n < 0 || !Number.isFinite(n)) return '—';
         if (n < 1024) return n + ' B';
         if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
@@ -3582,7 +3581,7 @@
     }
 
     /** @param {{ w?: number, h?: number, bytes?: number }|null|undefined} m */
-    function ieCvFormatLbMetaLine(label, m) {
+    function ieCvFormatLbMetaLine(label: any, m: any) {
         if (!m) return label + ': —';
         const parts = [];
         if (m.w > 0 && m.h > 0) parts.push(m.w + ' × ' + m.h + ' px');
@@ -3596,7 +3595,7 @@
      * 변환 전 패널 — 해상도는 실제 인코딩 입력(캔버스), 용량은 불러온 파일·data 근사 우선(캔버스 PNG 재인코딩 크기는 쓰지 않음)
      * @param {{ w?: number, h?: number, bytes?: number|null, bytesKind?: string|null, naturalW?: number, naturalH?: number }|null|undefined} m
      */
-    function ieCvFormatOriginalMetaLine(m) {
+    function ieCvFormatOriginalMetaLine(m: any) {
         const label = '변환 전';
         if (!m || !(m.w > 0) || !(m.h > 0)) return label + ': —';
         const parts = [m.w + ' × ' + m.h + ' px'];
@@ -3616,7 +3615,7 @@
         return label + ': ' + parts.join(' · ');
     }
 
-    function ieCvLightboxUpdateMeta(lb, mode) {
+    function ieCvLightboxUpdateMeta(lb: any, mode: any) {
         const el = lb.querySelector('#ieCvLbMeta');
         if (!el) return;
         const meta = lb._ieCvMeta;
@@ -3632,7 +3631,7 @@
         el.textContent = ieCvFormatLbMetaLine('변환 미리보기', meta.preview);
     }
 
-    function ieCvLightboxSetView(lb, mode) {
+    function ieCvLightboxSetView(lb: any, mode: any) {
         const preview = lb._ieCvPreviewUrl;
         const original = lb._ieCvOriginalUrl;
         const img = lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img');
@@ -3640,7 +3639,7 @@
         const showOriginal = mode === 'original' && original;
         img.src = showOriginal ? original : preview;
         img.alt = showOriginal ? '변환 전(현재 편집 화면)' : '변환 미리보기';
-        lb.querySelectorAll('.ie-cv-lb-btn').forEach(b => {
+        lb.querySelectorAll('.ie-cv-lb-btn').forEach((b: any) => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', showOriginal ? v === 'original' : v === 'preview');
         });
@@ -3666,7 +3665,7 @@
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
             lb.addEventListener('click', e => {
-                if (e.target.closest('.ie-cv-lightbox-bar')) return;
+                if ((e!.target as any).closest('.ie-cv-lightbox-bar')) return;
                 ieCvCloseLightbox();
             });
             lb.querySelectorAll('.ie-cv-lb-btn').forEach(btn => {
@@ -3695,7 +3694,7 @@
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
             lb.addEventListener('click', e => {
-                if (e.target.closest('.ie-cv-lightbox-bar')) return;
+                if ((e!.target as any).closest('.ie-cv-lightbox-bar')) return;
                 ieCvCloseLightbox();
             });
             lb.querySelectorAll('.ie-cv-lb-btn').forEach(btn => {
@@ -3721,7 +3720,7 @@
         document.removeEventListener('keydown', ieCvOnEscape);
     }
 
-    function ieCvOnEscape(e) {
+    function ieCvOnEscape(e: any) {
         if (e.key === 'Escape') ieCvCloseLightbox();
     }
 
@@ -3730,18 +3729,18 @@
      * @param {string} [originalUrl] 비교용 — 현재 캔버스를 PNG로 뗀 blob URL(표시만, 메타 용량은 meta.original 기준)
      * @param {{ original?: { w?: number, h?: number, bytes?: number|null, bytesKind?: string|null, naturalW?: number, naturalH?: number }, preview?: { w?: number, h?: number, bytes?: number } }} [meta]
      */
-    function ieCvOpenLightbox(previewUrl, originalUrl, meta) {
+    function ieCvOpenLightbox(previewUrl: any, originalUrl: any, meta: any) {
         const lb = ieCvEnsureLightboxShell();
         ieCvRevokeLightboxUrls(lb);
-        lb._ieCvPreviewUrl = previewUrl;
-        lb._ieCvOriginalUrl = originalUrl || '';
-        lb._ieCvRevokeUrls = originalUrl ? [previewUrl, originalUrl] : [previewUrl];
-        lb._ieCvMeta = meta && typeof meta === 'object' ? meta : null;
+        (lb as any)._ieCvPreviewUrl = previewUrl;
+        (lb as any)._ieCvOriginalUrl = originalUrl || '';
+        (lb as any)._ieCvRevokeUrls = originalUrl ? [previewUrl, originalUrl] : [previewUrl];
+        (lb as any)._ieCvMeta = meta && typeof meta === 'object' ? meta : null;
         const img = lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img');
         const origBtn = lb.querySelector('[data-ie-cv-view="original"]');
-        if (origBtn) origBtn.style.display = originalUrl ? '' : 'none';
-        img.src = previewUrl;
-        img.alt = '변환 미리보기';
+        if (origBtn) (origBtn as any).style.display = originalUrl ? '' : 'none';
+        (img! as any).src = previewUrl;
+        (img! as any).alt = '변환 미리보기';
         lb.querySelectorAll('.ie-cv-lb-btn').forEach(b => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', v === 'preview');
@@ -3752,7 +3751,7 @@
         if (!wasOpen) document.addEventListener('keydown', ieCvOnEscape);
     }
 
-    function ieCvProbeImageBlobSize(blob) {
+    function ieCvProbeImageBlobSize(blob: any) {
         if (typeof createImageBitmap === 'function') {
             return createImageBitmap(blob).then(
                 bmp => {
@@ -3782,9 +3781,9 @@
     }
 
     /** @param {(img: HTMLImageElement, objectUrl: string, pngBlob: Blob) => void} fn */
-    function withCanvasAsImage(fn) {
+    function withCanvasAsImage(fn: any) {
         if (!hasImage()) return;
-        canvas.toBlob(blob => {
+        canvas.toBlob((blob: any) => {
             if (!blob) return;
             const url = URL.createObjectURL(blob);
             const img = new Image();
@@ -3799,7 +3798,7 @@
         }, 'image/png');
     }
 
-    function buildConvertOptions(optPanel) {
+    function buildConvertOptions(optPanel: any) {
         const IC = window.KarmoLabImageConvert;
         const Batch = window.KarmoLabImageBatch;
         if (!IC) {
@@ -3885,8 +3884,8 @@
 
         const maxPresetEl = document.getElementById('ieCvMaxPreset');
         const maxCustomEl = document.getElementById('ieCvMaxCustom');
-        maxPresetEl.value = st.maxPreset;
-        maxCustomEl.style.display = st.maxPreset === 'custom' ? 'inline-block' : 'none';
+        (maxPresetEl! as any).value = st.maxPreset;
+        maxCustomEl!.style.display = st.maxPreset === 'custom' ? 'inline-block' : 'none';
 
         const onChange = () => {
             ieCvPersistFromPanel();
@@ -3898,29 +3897,29 @@
         document.querySelectorAll('input[name="ieCvFmt"]').forEach(r => {
             r.addEventListener('change', onChange);
         });
-        document.getElementById('ieCvQuality').addEventListener('input', () => {
-            document.getElementById('ieCvQualityVal').textContent = document.getElementById('ieCvQuality').value + '%';
+        document!.getElementById('ieCvQuality')!.addEventListener('input', () => {
+            document!.getElementById('ieCvQualityVal')!.textContent = (document!.getElementById('ieCvQuality') as any).value + '%';
             onChange();
         });
-        maxPresetEl.addEventListener('change', () => {
-            maxCustomEl.style.display = maxPresetEl.value === 'custom' ? 'inline-block' : 'none';
+        maxPresetEl!.addEventListener('change', () => {
+            maxCustomEl!.style.display = (maxPresetEl! as any).value === 'custom' ? 'inline-block' : 'none';
             onChange();
         });
-        maxCustomEl.addEventListener('change', onChange);
-        document.getElementById('ieCvBg').addEventListener('change', onChange);
-        document.getElementById('ieCvFillAlpha').addEventListener('change', onChange);
-        document.getElementById('ieCvSmooth').addEventListener('change', onChange);
+        maxCustomEl!.addEventListener('change', onChange);
+        document!.getElementById('ieCvBg')!.addEventListener('change', onChange);
+        document!.getElementById('ieCvFillAlpha')!.addEventListener('change', onChange);
+        document!.getElementById('ieCvSmooth')!.addEventListener('change', onChange);
 
         ieCvSyncResampleRow();
         ieCvSyncQualityRow(IC);
 
-        document.getElementById('ieCvPreview').onclick = () => {
+        document!.getElementById('ieCvPreview')!.onclick = () => {
             if (!requireImageForConvertCanvas()) return;
             const key = ieCvSettingsKeyFromPanel();
             const opts = ieCvOptsFromPanel(IC);
             const btn = document.getElementById('ieCvPreview');
-            btn.disabled = true;
-            withCanvasAsImage((img, srcUrl, pngBlob) => {
+            (btn! as any).disabled = true;
+            withCanvasAsImage((img: any, srcUrl: any, pngBlob: any) => {
                 IC.convertImage(img, opts)
                     .then(blob => {
                         convertPreviewBlob = blob;
@@ -3947,8 +3946,8 @@
                             ieCvOpenLightbox(outUrl, srcUrl, {
                                 ...metaBase,
                                 preview: {
-                                    w: wh.w,
-                                    h: wh.h,
+                                    w: (wh as any).w,
+                                    h: (wh as any).h,
                                     bytes: blob.size
                                 }
                             });
@@ -3961,19 +3960,19 @@
                         Toolbox.showToast('변환에 실패했어요.', 'error');
                     })
                     .finally(() => {
-                        btn.disabled = false;
+                        (btn! as any).disabled = false;
                     });
             });
         };
 
-        document.getElementById('ieCvDownload').onclick = () => {
+        document!.getElementById('ieCvDownload')!.onclick = () => {
             if (!requireImageForConvertCanvas()) return;
             const key = ieCvSettingsKeyFromPanel();
             const opts = ieCvOptsFromPanel(IC);
             const mime = opts.outputMime;
             const ext = IC.extFromMime(mime);
 
-            const doDl = blob => {
+            const doDl = (blob: any) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -3988,7 +3987,7 @@
                 doDl(convertPreviewBlob);
                 return;
             }
-            withCanvasAsImage((img, srcUrl, _pngBlob) => {
+            withCanvasAsImage((img: any, srcUrl: any, _pngBlob: any) => {
                 IC.convertImage(img, opts)
                     .then(blob => {
                         URL.revokeObjectURL(srcUrl);
@@ -4010,29 +4009,29 @@
             const batchIdle = () => {
                 ieCvBatchAbort = null;
                 syncIeCvBatchUiFromState();
-                batchPick.disabled = false;
-                batchCancel.disabled = true;
-                batchCancel.style.display = 'none';
+                (batchPick! as any).disabled = false;
+                (batchCancel! as any).disabled = true;
+                batchCancel!.style.display = 'none';
                 const p = document.getElementById('ieCvPreview');
                 const d = document.getElementById('ieCvDownload');
-                if (p) p.disabled = false;
-                if (d) d.disabled = false;
+                if (p) (p as any).disabled = false;
+                if (d) (d as any).disabled = false;
             };
-            batchPick.onclick = e => {
+            batchPick!.onclick = e => {
                 e.stopPropagation();
-                batchInput.click();
+                batchInput!.click();
             };
-            batchInput.onchange = () => {
-                ieCvBatchState.files = batchInput.files ? Array.from(batchInput.files) : [];
+            batchInput!.onchange = () => {
+                (ieCvBatchState as any).files = (batchInput! as any).files ? Array!.from((batchInput! as any).files) : [];
                 syncIeCvBatchUiFromState();
-                batchInput.value = '';
+                (batchInput! as any).value = '';
             };
-            batchCancel.onclick = e => {
+            batchCancel!.onclick = e => {
                 e.stopPropagation();
                 if (ieCvBatchAbort) ieCvBatchAbort.abort();
             };
             syncIeCvBatchUiFromState();
-            batchRun.onclick = e => {
+            batchRun!.onclick = e => {
                 e.stopPropagation();
                 if (!ieCvBatchState.files.length) return;
                 ieCvPersistFromPanel();
@@ -4040,19 +4039,19 @@
                 const mime = opts.outputMime;
                 const recipe = Batch.recipeConvert(opts);
                 ieCvBatchAbort = new AbortController();
-                batchRun.disabled = true;
-                batchPick.disabled = true;
-                batchCancel.disabled = false;
-                batchCancel.style.display = 'inline-block';
+                (batchRun! as any).disabled = true;
+                (batchPick! as any).disabled = true;
+                (batchCancel! as any).disabled = false;
+                batchCancel!.style.display = 'inline-block';
                 const prevBtn = document.getElementById('ieCvPreview');
                 const dlBtn = document.getElementById('ieCvDownload');
-                if (prevBtn) prevBtn.disabled = true;
-                if (dlBtn) dlBtn.disabled = true;
-                batchStatus.textContent = '변환 중… 0 / ' + ieCvBatchState.files.length;
+                if (prevBtn) (prevBtn as any).disabled = true;
+                if (dlBtn) (dlBtn as any).disabled = true;
+                batchStatus!.textContent = '변환 중… 0 / ' + ieCvBatchState.files.length;
                 Batch.processFilesSequential(IC, ieCvBatchState.files, recipe, {
                     signal: ieCvBatchAbort.signal,
                     onItemStart(idx, file, total) {
-                        batchStatus.textContent =
+                        batchStatus!.textContent =
                             '변환 중… ' + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
                     }
                 })
@@ -4062,11 +4061,11 @@
                         const failed = results.length - okc;
                         if (out.aborted) {
                             Toolbox.showToast('일괄 변환을 취소했어요.');
-                            batchStatus.textContent =
+                            batchStatus!.textContent =
                                 '취소됨 · 처리 ' + results.length + ' · 성공 ' + okc + ' · 실패 ' + failed;
                             return;
                         }
-                        batchStatus.textContent =
+                        batchStatus!.textContent =
                             '완료 · 성공 ' + okc + ' · 실패 ' + failed + (okc ? ' · 저장 창이 순서대로 열립니다' : '');
                         if (!okc) {
                             Toolbox.showToast('변환에 성공한 파일이 없어요.', 'error');
@@ -4091,7 +4090,7 @@
     }
 
     /* ===== Tool Switching ===== */
-    function selectTool(toolId) {
+    function selectTool(toolId: any) {
         if (hasPendingPreview && toolId !== activeTool) {
             if (!confirm('적용하지 않은 변경사항이 있습니다. 무시하고 전환하시겠습니까?')) return;
             if (activeTool === 'adjust' && adjustSnapshot && ctx) {
@@ -4126,7 +4125,7 @@
         destroyStickerOverlay();
         destroyMaskPreview();
 
-        document.querySelectorAll('.ie-tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === toolId));
+        document.querySelectorAll('.ie-tool-btn').forEach(b => b.classList.toggle('active', (b as any).dataset.tool === toolId));
 
         const optPanel = document.getElementById('ieOptions');
         if (!optPanel) return;
@@ -4152,7 +4151,7 @@
     /* ===== Dialogs ===== */
     function showUrlDialog() {
         const d = document.getElementById('ieUrlDialog');
-        if (d) { d.classList.add('open'); document.getElementById('ieUrlInput').value = ''; document.getElementById('ieUrlInput').focus(); }
+        if (d) { d.classList.add('open'); (document!.getElementById('ieUrlInput') as any).value = ''; document!.getElementById('ieUrlInput')!.focus(); }
     }
 
     function showLibDialog() {
@@ -4160,14 +4159,14 @@
         if (!d) return;
         d.classList.add('open');
         const grid = document.getElementById('ieLibGrid');
-        grid.innerHTML = '<div class="ie-lib-empty">로딩 중...</div>';
-        ImageDB.getAll().then(items => {
+        grid!.innerHTML = '<div class="ie-lib-empty">로딩 중...</div>';
+        (globalThis as any).ImageDB.getAll().then((items: any) => {
             if (items.length === 0) {
-                grid.innerHTML = '<div class="ie-lib-empty">라이브러리가 비어 있습니다.</div>';
+                grid!.innerHTML = '<div class="ie-lib-empty">라이브러리가 비어 있습니다.</div>';
                 return;
             }
-            grid.innerHTML = '';
-            items.forEach(item => {
+            grid!.innerHTML = '';
+            items.forEach((item: any) => {
                 const card = document.createElement('div');
                 card.className = 'ie-lib-thumb-card';
                 card.innerHTML = '<img src="' + Toolbox.escapeHtml(item.url) + '" alt="" loading="lazy">';
@@ -4204,15 +4203,15 @@
                         });
                     d.classList.remove('open');
                 };
-                grid.appendChild(card);
+                grid!.appendChild(card);
             });
         }).catch(() => {
-            grid.innerHTML = '<div class="ie-lib-empty">라이브러리를 불러올 수 없습니다.</div>';
+            grid!.innerHTML = '<div class="ie-lib-empty">라이브러리를 불러올 수 없습니다.</div>';
         });
     }
 
     /* ===== Build ===== */
-    function buildEditor(container) {
+    function buildEditor(container: any) {
         Mdd.linePreset('tool_run', { mood: 'happy', msg: '이미지 편집이에요!' });
 
         container.innerHTML = `
@@ -4382,14 +4381,14 @@
 
         requestAnimationFrame(() => {
             canvas = document.getElementById('ieCanvas');
-            ctx = canvas.getContext('2d');
-            canvas.width = 0;
-            canvas.height = 0;
+            ctx = canvas!.getContext('2d');
+            canvas!.width = 0;
+            canvas!.height = 0;
 
             /* Toolbar buttons */
-            document.getElementById('ieUndoBtn').onclick = undo;
-            document.getElementById('ieRedoBtn').onclick = redo;
-            document.getElementById('ieResetBtn').onclick = () => {
+            document!.getElementById('ieUndoBtn')!.onclick = undo;
+            document!.getElementById('ieRedoBtn')!.onclick = redo;
+            document!.getElementById('ieResetBtn')!.onclick = () => {
                 if (!hasImage()) return;
                 const first = history[0];
                 if (!first) return;
@@ -4407,14 +4406,14 @@
             };
 
             /* Dropdown toggles — fix: close other menus first */
-            const setupDropdown = (btnId, menuId) => {
+            const setupDropdown = (btnId: any, menuId: any) => {
                 const btn = document.getElementById(btnId);
                 const menu = document.getElementById(menuId);
-                btn.onclick = (e) => {
+                btn!.onclick = (e) => {
                     e.stopPropagation();
-                    const wasOpen = menu.classList.contains('open');
+                    const wasOpen = menu!.classList.contains('open');
                     closeAllDropdowns();
-                    if (!wasOpen) menu.classList.add('open');
+                    if (!wasOpen) menu!.classList.add('open');
                 };
             };
             setupDropdown('ieImportBtn', 'ieImportMenu');
@@ -4425,43 +4424,43 @@
             /* JPEG quality slider */
             const jpegSlider = document.getElementById('ieJpegQuality');
             const jpegVal = document.getElementById('ieJpegQualityVal');
-            jpegSlider.oninput = () => {
-                jpegQuality = parseInt(jpegSlider.value) / 100;
-                jpegVal.textContent = jpegSlider.value + '%';
+            jpegSlider!.oninput = () => {
+                jpegQuality = parseInt((jpegSlider! as any).value) / 100;
+                jpegVal!.textContent = (jpegSlider! as any).value + '%';
             };
-            jpegSlider.onclick = (e) => e.stopPropagation();
+            jpegSlider!.onclick = (e) => e.stopPropagation();
 
             /* Import actions */
             const fileInput = document.getElementById('ieFileInput');
-            document.getElementById('ieImportFile').onclick = () => fileInput.click();
-            fileInput.onchange = () => {
-                if (fileInput.files[0]) loadImageFromFile(fileInput.files[0]);
-                fileInput.value = '';
+            document!.getElementById('ieImportFile')!.onclick = () => fileInput!.click();
+            fileInput!.onchange = () => {
+                if ((fileInput! as any).files[0]) loadImageFromFile((fileInput! as any).files[0]);
+                (fileInput! as any).value = '';
             };
-            document.getElementById('ieImportUrl').onclick = showUrlDialog;
-            document.getElementById('ieImportLib').onclick = showLibDialog;
+            document!.getElementById('ieImportUrl')!.onclick = showUrlDialog;
+            document!.getElementById('ieImportLib')!.onclick = showLibDialog;
 
             /* Export actions */
-            document.getElementById('ieExDlPng').onclick = () => exportDownload('png');
-            document.getElementById('ieExDlJpg').onclick = () => exportDownload('jpeg');
-            document.getElementById('ieExClip').onclick = exportClipboard;
-            document.getElementById('ieExLib').onclick = exportToLibrary;
+            document!.getElementById('ieExDlPng')!.onclick = () => exportDownload('png');
+            document!.getElementById('ieExDlJpg')!.onclick = () => exportDownload('jpeg');
+            document!.getElementById('ieExClip')!.onclick = exportClipboard;
+            document!.getElementById('ieExLib')!.onclick = exportToLibrary;
 
             /* Tool buttons */
             document.querySelectorAll('.ie-tool-btn').forEach(btn => {
-                btn.onclick = () => selectTool(btn.dataset.tool);
+                (btn as any).onclick = () => selectTool((btn as any).dataset.tool);
             });
 
             /* Placeholder → 단일 파일(캔버스). 일괄은 오른쪽 「여러 파일」또는 2장 이상 드롭만. */
-            document.getElementById('iePlaceholder').onclick = e => {
+            document!.getElementById('iePlaceholder')!.onclick = e => {
                 e.stopPropagation();
-                fileInput.click();
+                fileInput!.click();
             };
 
             /* URL dialog */
-            document.getElementById('ieUrlCancel').onclick = () => document.getElementById('ieUrlDialog').classList.remove('open');
-            document.getElementById('ieUrlConfirm').onclick = () => {
-                const url = document.getElementById('ieUrlInput').value.trim();
+            document!.getElementById('ieUrlCancel')!.onclick = () => document!.getElementById('ieUrlDialog')!.classList!.remove('open');
+            document!.getElementById('ieUrlConfirm')!.onclick = () => {
+                const url = (document!.getElementById('ieUrlInput') as any).value.trim();
                 if (!url) { Toolbox.showToast('URL을 입력하세요.', 'error'); return; }
                 let disp = 'URL';
                 try {
@@ -4500,28 +4499,28 @@
                         ieImageSourceMeta.exifLines = [];
                         updateExifOverlay();
                     });
-                document.getElementById('ieUrlDialog').classList.remove('open');
+                document!.getElementById('ieUrlDialog')!.classList!.remove('open');
             };
-            document.getElementById('ieUrlInput').onkeydown = (e) => {
-                if (e.key === 'Enter') document.getElementById('ieUrlConfirm').click();
+            document!.getElementById('ieUrlInput')!.onkeydown = (e) => {
+                if (e.key === 'Enter') document!.getElementById('ieUrlConfirm')!.click();
             };
-            document.getElementById('ieUrlDialog').onclick = (e) => {
-                if (e.target.id === 'ieUrlDialog') document.getElementById('ieUrlDialog').classList.remove('open');
+            document!.getElementById('ieUrlDialog')!.onclick = (e) => {
+                if ((e!.target as any).id === 'ieUrlDialog') document!.getElementById('ieUrlDialog')!.classList!.remove('open');
             };
 
             /* Library dialog */
-            document.getElementById('ieLibClose').onclick = () => document.getElementById('ieLibDialog').classList.remove('open');
-            document.getElementById('ieLibDialog').onclick = (e) => {
-                if (e.target.id === 'ieLibDialog') document.getElementById('ieLibDialog').classList.remove('open');
+            document!.getElementById('ieLibClose')!.onclick = () => document!.getElementById('ieLibDialog')!.classList!.remove('open');
+            document!.getElementById('ieLibDialog')!.onclick = (e) => {
+                if ((e!.target as any).id === 'ieLibDialog') document!.getElementById('ieLibDialog')!.classList!.remove('open');
             };
 
             /* Drag & Drop */
             const wrap = document.getElementById('ieCanvasWrap');
-            wrap.ondragover = (e) => { e.preventDefault(); wrap.classList.add('dragover'); };
-            wrap.ondragleave = () => wrap.classList.remove('dragover');
-            wrap.ondrop = e => {
+            wrap!.ondragover = (e) => { e.preventDefault(); wrap!.classList.add('dragover'); };
+            wrap!.ondragleave = () => wrap!.classList.remove('dragover');
+            wrap!.ondrop = e => {
                 e.preventDefault();
-                wrap.classList.remove('dragover');
+                wrap!.classList.remove('dragover');
                 const dt = e.dataTransfer && e.dataTransfer.files;
                 if (!dt || !dt.length) return;
                 const list = Array.from(dt).filter(f => f.type.startsWith('image/'));
@@ -4541,7 +4540,7 @@
 
             applyImageViewTransform();
 
-            function onViewPanPointerDown(e) {
+            function onViewPanPointerDown(e: any) {
                 const page = document.getElementById('page-imageedit');
                 if (!page || !page.classList.contains('active')) return;
                 if (e.button === 1) e.preventDefault();
@@ -4554,40 +4553,40 @@
                 viewDragStartClientY = e.clientY;
                 viewStartPanX = viewPanX;
                 viewStartPanY = viewPanY;
-                wrap.classList.add('ie-view-grabbing');
-                wrap.classList.remove('ie-view-grab');
+                wrap!.classList.add('ie-view-grabbing');
+                wrap!.classList.remove('ie-view-grab');
                 try {
-                    wrap.setPointerCapture(e.pointerId);
+                    wrap!.setPointerCapture(e.pointerId);
                 } catch (_) {}
             }
-            function onViewPanPointerMove(e) {
+            function onViewPanPointerMove(e: any) {
                 if (!viewDragging || e.pointerId !== viewDragPointerId) return;
                 viewPanX = viewStartPanX + (e.clientX - viewDragStartClientX);
                 viewPanY = viewStartPanY + (e.clientY - viewDragStartClientY);
                 applyImageViewTransform();
             }
-            function onViewPanPointerUp(e) {
+            function onViewPanPointerUp(e: any) {
                 if (!viewDragging || e.pointerId !== viewDragPointerId) return;
                 viewDragging = false;
                 try {
-                    wrap.releasePointerCapture(e.pointerId);
+                    wrap!.releasePointerCapture(e.pointerId);
                 } catch (_) {}
-                wrap.classList.remove('ie-view-grabbing');
-                if (viewSpaceDown) wrap.classList.add('ie-view-grab');
+                wrap!.classList.remove('ie-view-grabbing');
+                if (viewSpaceDown) wrap!.classList.add('ie-view-grab');
             }
-            wrap.addEventListener('pointerdown', onViewPanPointerDown, true);
-            wrap.addEventListener('pointermove', onViewPanPointerMove);
-            wrap.addEventListener('pointerup', onViewPanPointerUp);
-            wrap.addEventListener('pointercancel', onViewPanPointerUp);
+            wrap!.addEventListener('pointerdown', onViewPanPointerDown, true);
+            wrap!.addEventListener('pointermove', onViewPanPointerMove);
+            wrap!.addEventListener('pointerup', onViewPanPointerUp);
+            wrap!.addEventListener('pointercancel', onViewPanPointerUp);
 
-            wrap.addEventListener(
+            wrap!.addEventListener(
                 'wheel',
                 (e) => {
                     const page = document.getElementById('page-imageedit');
                     if (!page || !page.classList.contains('active')) return;
-                    if (!wrap.contains(e.target)) return;
+                    if (!wrap!.contains(e.target as Node | null)) return;
                     e.preventDefault();
-                    const rect = wrap.getBoundingClientRect();
+                    const rect = wrap!.getBoundingClientRect();
                     const cx = rect.width * 0.5;
                     const cy = rect.height * 0.5;
                     const mx = e.clientX - rect.left;
@@ -4633,12 +4632,12 @@
             document.addEventListener('keydown', (e) => {
                 const page = document.getElementById('page-imageedit');
                 if (!page || !page.classList.contains('active')) return;
-                const inField = !!e.target.closest(
+                const inField = !!(e!.target as any).closest(
                     'a[href], button, input, textarea, select, [contenteditable="true"]'
                 );
                 if (e.code === 'Space' && !e.repeat && !inField) {
                     viewSpaceDown = true;
-                    wrap.classList.add('ie-view-grab');
+                    wrap!.classList.add('ie-view-grab');
                     e.preventDefault();
                 }
                 if (inField) return;
@@ -4650,17 +4649,17 @@
                 viewSpaceDown = false;
                 const page = document.getElementById('page-imageedit');
                 if (!page || !page.classList.contains('active')) return;
-                wrap.classList.remove('ie-view-grab', 'ie-view-grabbing');
+                wrap!.classList.remove('ie-view-grab', 'ie-view-grabbing');
             });
 
             /* Crop pointer events */
             const overlay = document.getElementById('ieCropOverlay');
-            overlay.onpointerdown = onCropPointerDown;
-            overlay.onpointermove = onCropPointerMove;
-            overlay.onpointerup = onCropPointerUp;
+            overlay!.onpointerdown = onCropPointerDown;
+            overlay!.onpointermove = onCropPointerMove;
+            overlay!.onpointerup = onCropPointerUp;
 
             /* Chromakey color picker — canvas click */
-            wrap.addEventListener('click', onCanvasClickForChroma);
+            wrap!.addEventListener('click', onCanvasClickForChroma);
 
             /* Window resize => re-init crop/brush/caption if active */
             window.addEventListener('resize', () => {

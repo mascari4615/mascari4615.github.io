@@ -118,15 +118,24 @@ declare global {
         [k: string]: any;
       };
 
-  /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
+  /**
+   * toolbox.ts — global lexical binding (not necessarily window.Toolbox).
+   * KL-078 에서 @ts-nocheck 제거됨 — 메서드들은 실제 IIFE 반환 객체에 항상 존재하므로
+   * non-optional 로 선언. 일부 위젯이 동적으로 추가하는 면(`registerAchievement` 등)은
+   * 인덱스 시그니처 `[k: string]: any` 로 통합 (KL-069 narrow 흐름에서 점진 좁힘).
+   */
   var Toolbox: {
-    registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
-    getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
+    registerDeferred: (stub: KarmoLabLazyWidgetStub) => void;
+    getLazyWidgetPublicMeta: (id: string) => Record<string, unknown>;
     /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
-    ensureScript?: (path: string) => Promise<void>;
+    ensureScript: (path: string) => Promise<void>;
+    /**
+     * id/title 은 등록 시점에 spread (`...getLazyWidgetPublicMeta('id') ?? {}`)
+     * 로 주입되는 케이스가 다수라 정적 검사에서는 optional. lazy meta 결합 후 실제로는 채워짐.
+     */
     register: (config: {
-      id: string;
-      title: string;
+      id?: string;
+      title?: string;
       /** tool | play | lab | desktop | undefined(기타) */
       category?: string;
       desc?: string;
@@ -143,35 +152,37 @@ declare global {
     initTheme: () => void;
     init: () => void;
     getTools: () => Array<{ id: string; hidden?: boolean; category?: string; title?: string; icon?: string }>;
-    showToast?: (msg: string, type?: string, detail?: unknown) => void;
-    getProgress?: (key: string) => number;
-    setProgress?: (key: string, value: number) => void;
-    completeAchievement?: (id: string, meta?: { title?: string } & Record<string, unknown>) => void;
-    incrementProgress?: (key: string, amount?: number) => number;
-    unlockBadge?: (id: string, meta?: { title?: string } & Record<string, unknown>) => boolean | void;
-    getUsageStats?: () => Record<
+    showToast: (msg: string, type?: string, detail?: unknown) => void;
+    getProgress: (key: string) => number;
+    setProgress: (key: string, value: number) => void;
+    completeAchievement: (id: string, meta?: { title?: string } & Record<string, unknown>) => void;
+    incrementProgress: (key: string, amount?: number) => number;
+    unlockBadge: (id: string, meta?: { title?: string } & Record<string, unknown>) => boolean | void;
+    getUsageStats: () => Record<
       string,
       { chatCount?: number; imageCount?: number; chatTokens?: number; imageTokens?: number }
     >;
-    recordUsage?: (type: string, tokens: number) => void;
-    getPref?: (key: string, fallback?: string) => string;
-    setPref?: (key: string, value: string) => void;
-    field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
-    isDesktopApp?: () => boolean;
-    escapeHtml?: (s: string) => string;
-    getToolMeta?: (id: string) => Record<string, unknown> | undefined;
-    switchPage?: (id: string, opts?: Record<string, unknown>) => void;
-    switchTab?: (id: string) => void;
-    getNavLayout?: () => string;
-    setNavLayout?: (v: string) => void;
-    getTheme?: () => string;
-    setTheme?: (v: string) => void;
-    getPrismTheme?: () => string;
-    setPrismTheme?: (v: string) => void;
-    getPrismThemes?: () => Array<{ id: string; label: string }>;
-    getBgTheme?: () => string;
-    setBgTheme?: (v: string) => void;
-    getBgThemes?: () => Array<{ id: string; label: string }>;
+    recordUsage: (type: string, tokens: number) => void;
+    getPref: (key: string, fallback?: string) => string;
+    setPref: (key: string, value: string) => void;
+    field: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
+    isDesktopApp: () => boolean;
+    escapeHtml: (s: string) => string;
+    getToolMeta: (id: string) => Record<string, unknown> | undefined;
+    switchPage: (id: string, opts?: Record<string, unknown>) => void;
+    switchTab: (id: string) => void;
+    getNavLayout: () => string;
+    setNavLayout: (v: string) => void;
+    getTheme: () => string;
+    setTheme: (v: string) => void;
+    getPrismTheme: () => string;
+    setPrismTheme: (v: string) => void;
+    getPrismThemes: () => Array<{ id: string; label: string }>;
+    getBgTheme: () => string;
+    setBgTheme: (v: string) => void;
+    getBgThemes: () => Array<{ id: string; label: string }>;
+    /** 위젯이 동적으로 사용하는 면 (KL-069 narrow): registerAchievement / getUserData / kickLazyLoad / renderInline / displayResult / copyResult / toggleCollapsible / resultBox / button / select / formatTimestamp / showLightbox / toggleTheme / hasAchievement / hasBadge / registerBadge / getStreaks / getAchievementRegistry / getBadgeRegistry / CATEGORIES */
+    [k: string]: any;
   };
 
 }
