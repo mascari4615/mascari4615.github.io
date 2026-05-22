@@ -111,6 +111,7 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinPersona } from './agent-cadence-skin';
+import { fetchTeamBusContext } from './team-bus-fetcher';
 import {
   runWorkerConsumerOnce, getLastWorkerCsv,
   type WorkerCore, type WorkerConsumerDeps, type WorktreeSetup,
@@ -228,10 +229,21 @@ export function buildDiscoveryPrompt(
   portfolioBlock = '',
   producerPerspective = '',
   schemaFailExamples: string[] = [],
+  channelContextText = '',
 ): string {
   const ctx = contextText.trim();
   const pf = portfolioBlock.trim();
   const perspLine = producerPerspective.trim();
+  // KAR-018-SO-2-A: producer 도 #team-bus 직전 발언 read → 사용자가 채널에서
+  // 박은 의도·요청을 발굴이 캐치 (워커만 읽던 LT-W1 갭 닫음). 빈 = 블록 생략.
+  const channelBlock = channelContextText.trim()
+    ? [
+        '[팀 채널(#team-bus) 직전 발언 — 사용자·동료의 최근 맥락]',
+        '※ 사용자가 채널에서 박은 요청·관심사·우려가 있으면 이번 발굴에',
+        '  *우선* 반영하라. 동료가 이미 다룬 주제 중복 X.',
+        channelContextText.trim().slice(0, 2500),
+      ]
+    : [];
   // KAR-018-SO-3: 직전 schema-fail snippet 자기 inject. 사람-박은 schema 룰
   // 강화 X — *자기 출력 cycle* 닫는 rung. 부재(첫 호출/리셋) = 블록 생략.
   const schemaFailBlock = schemaFailExamples.length > 0
@@ -250,6 +262,7 @@ export function buildDiscoveryPrompt(
     '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
     '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
     ...(schemaFailBlock.length > 0 ? ['', ...schemaFailBlock] : []),
+    ...(channelBlock.length > 0 ? ['', ...channelBlock] : []),
     '',
     '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
     missionText.trim(),
@@ -640,14 +653,18 @@ export async function runGovernedProducerOnce(
 
   const discover: DiscoverFn =
     opts.discover ??
-    (() => {
+    (async () => {
       const gap = opts.gap ?? analyzeAgentTeamGaps(env);
       const discoveryContext = buildGapDiscoveryContext(env, gap);
-      return (
+      // KAR-018-SO-2-A: producer 도 #team-bus 직전 발언 read. 사용자 채팅 발화
+      // 가 발굴 prompt 에 inject → 「자기들끼리만」 갭 닫음. fetch 실패=빈 문자열.
+      let channelCtx = '';
+      try { channelCtx = (await fetchTeamBusContext(15)) || ''; }
+      catch { /* silent — 채팅 fetch 실패가 발굴 비차단 */ }
       // discovery·대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
       // KAR-018-Y) / 코드·문서(tier3)만 Claude. Gemini = 페르소나 거부 X·
       // 빠름·JSON 안정·본질적 비-agentic.
-      generateAgentText(
+      return generateAgentText(
         env,
         buildDiscoveryPrompt(
           readMissionText(env),
@@ -657,9 +674,10 @@ export async function runGovernedProducerOnce(
           ),
           producerPerspective,
           readRecentProducerSchemaFails(env, 3),
+          channelCtx,
         ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
-      ));
+      );
     });
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
@@ -827,6 +845,10 @@ export async function runCoreDialogueOnce(
   let verdict: DeliberationVerdict = 'escalate';
   let verdictReason = '';
   let spokeTurns = 0;
+  // KAR-018-SO-2-A: 토론 시작 1회 fetch — 모든 phase 가 같은 channel ctx 공유.
+  let dialogueChannelCtx = '';
+  try { dialogueChannelCtx = (await fetchTeamBusContext(15)) || ''; }
+  catch { /* silent — 토론 비차단 */ }
 
   for (;;) {
     const step = nextDeliberationStep(state);
@@ -879,6 +901,7 @@ export async function runCoreDialogueOnce(
           missionText,
           portfolioBlock,
           loadSkinPersona(memoRoot, sp),
+          dialogueChannelCtx,
         ),
       );
     } catch (e) {
