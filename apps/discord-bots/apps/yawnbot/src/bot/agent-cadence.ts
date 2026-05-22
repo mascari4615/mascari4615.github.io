@@ -1447,12 +1447,21 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     }
     dashboardTimer = setTimeout(dashTick, dashMs);
   };
-  cadenceTimer = setTimeout(tick, intervalMs);
+  // KAR-018 (2026-05-22 사용자 goal "자가발전"): 부팅 직후 cadence 1회 즉시
+  // 트리거. 30min 대기 = 사용자 검증·관측 지연. opt-out = AGENT_CADENCE_BOOT_TICK=0.
+  // dashTick (즉시 1회) 와 동일 의미 — 부팅이 정의상 "1 cycle 강제 점검" 신호.
+  const bootTick = (env.AGENT_CADENCE_BOOT_TICK?.trim() || '1') !== '0';
+  if (bootTick) {
+    // 짧은 delay (5s) — 봇 초기화 + setTeamBusNotify 등 wiring 완료 보장.
+    cadenceTimer = setTimeout(tick, 5_000);
+  } else {
+    cadenceTimer = setTimeout(tick, intervalMs);
+  }
   workerTimer = setTimeout(workerTick, workerMs);
   void refreshDashboard(env, memoRoot, lastTickSummary || '(부팅)'); // 즉시
   dashboardTimer = setTimeout(dashTick, dashMs);
   console.warn(
-    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms 분리, 부팅 즉시 1회) — sub-D 게이트 활성.`,
+    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms 분리, 부팅 ${bootTick ? '즉시 1회 (5s 후)' : '대기'}) — sub-D 게이트 활성.`,
   );
 }
 
