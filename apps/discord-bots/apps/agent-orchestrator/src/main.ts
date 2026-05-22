@@ -18,11 +18,19 @@
  * yawnbot 코드 require: declaration 미생성이라 TS import 불가, runtime require 사용.
  * 같은 npm workspace 라 node_modules hoist 로 link 자동.
  */
-import 'dotenv/config';
 // KAR-018-SO-X 후속: CJS 빌드라 createRequire(import.meta.url) 가 ESM-only
 // → Node 24 가 reparse 후 `exports is not defined` crash loop (30+ cycles
 // 실측, stderr 1324B 반복). tsconfig.base.json = module:CommonJS 강제 →
 // top-level `require` 가 이미 글로벌. createRequire 불요.
+//
+// KAR-018-SO-X 추가 fix: yawnbot load-env.js 를 cadence 전에 require → yawnbot
+// 4-레이어 config (defaults + prod profile + .env + AI keys) 자동 로드. NSSM
+// AppEnvironmentExtra 에 MEMO_REPO_PATH/CADENCE_* 일일이 박는 평행 정의 회피.
+// load-env.js 부재 (yawnbot 빌드 X) = silent — cadence require 가 어차피 실패.
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../../yawnbot/dist/src/load-env.js');
+} catch { /* yawnbot 빌드 미완 = 다음 require 에서 진단 */ }
 
 const log = (msg: string): void => {
   // eslint-disable-next-line no-console
