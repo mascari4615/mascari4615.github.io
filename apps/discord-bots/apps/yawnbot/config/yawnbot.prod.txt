@@ -93,7 +93,13 @@ KAKAO_EXPORT_WATCH_DIR=
 AGENT_CADENCE_ENABLED=1
 # QUIET 모드 (자가발전 only) — producer(발굴) + dialogue(대화) skip. surgery·
 # worker·corePromotion 은 가동. 0 또는 미설정 = 정상 모드(전체 phase).
-AGENT_CADENCE_QUIET=1
+# [SLOT-D 2026-05-22 SO-2-A 후속] 0 으로 풀음 — 사용자 ★「근본」 결정.
+# SO-2-A 가 producer/dialogue prompt 에 #team-bus 발화 inject 박은 효과를
+# 라이브에 실현. QUIET=1 일 땐 producer/dialogue 자체가 skip 이라 SO-2-A
+# dormant. 재발 위험 (parser-fail/잡담 누적) = SO-2 (chatter 진척0 가드) +
+# SO-3 (producer schema 자기교정) 으로 흡수. 사용자 발화가 코어 전 phase 에
+# 실시간 흘러들어가는 「자가발전」 비전 정합.
+AGENT_CADENCE_QUIET=0
 # 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
 # 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
 # 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면
