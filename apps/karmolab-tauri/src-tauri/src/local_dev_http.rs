@@ -143,14 +143,14 @@ fn route(
                 Some(v) => v,
                 None => return (400, json_err("body 에 \"profile\" 필요")),
             };
-            wrap_unit(local_dev::localdev_start(p, app.clone(), state))
+            wrap_unit(local_dev::localdev_start_sync(p, app.clone(), &state))
         }
         (Method::Post, "/localdev/stop") => {
             let p = match json_field(body, "profile") {
                 Some(v) => v,
                 None => return (400, json_err("body 에 \"profile\" 필요")),
             };
-            wrap_unit(local_dev::localdev_stop(p, app.clone(), state))
+            wrap_unit(local_dev::localdev_stop_sync(p, app.clone(), &state))
         }
         (Method::Post, "/localdev/external-stop") => {
             let p = match json_field(body, "profile") {
