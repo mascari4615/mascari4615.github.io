@@ -277,4 +277,18 @@ describe('buildDeliberationPrompt — phase별 (맨 동의 금지 강제)', () =
     const p = buildDeliberationPrompt('challenge', echo, 'A', u, st, 'm', '[포트폴리오] wm');
     expect(p).toContain('[포트폴리오] wm');
   });
+
+  it('SO-2-A: channelContextText 주입 시 #team-bus 직전 발언 블록 inline', () => {
+    const p = buildDeliberationPrompt(
+      'challenge', echo, 'A', u, st, 'm', '', undefined,
+      '[masca] 이거 정말 필요해?',
+    );
+    expect(p).toContain('팀 채널(#team-bus) 직전 발언');
+    expect(p).toContain('정말 필요해?');
+  });
+
+  it('SO-2-A: channelContextText 빈 = 블록 미포함', () => {
+    const p = buildDeliberationPrompt('challenge', echo, 'A', u, st, 'm', '', undefined, '');
+    expect(p).not.toContain('팀 채널(#team-bus) 직전 발언');
+  });
 });

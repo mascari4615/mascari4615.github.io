@@ -303,6 +303,7 @@ export function buildDeliberationPrompt(
   missionText: string,
   portfolioBlock = '',
   skinHint?: string,
+  channelContextText = '',
 ): string {
   const head = deliberationHeader(
     responder.id,
@@ -311,6 +312,16 @@ export function buildDeliberationPrompt(
     portfolioBlock,
     skinHint,
   );
+  // KAR-018-SO-2-A: 숙의 참여 코어도 #team-bus 직전 발언 read → 사용자가
+  // 채널에서 박은 관점·우려가 토론에 반영. fetch 0 = 블록 생략.
+  const channelBlock = channelContextText.trim()
+    ? [
+        '',
+        '[팀 채널(#team-bus) 직전 발언 — 사용자·동료 최근 맥락]',
+        '※ 사용자가 채널에 박은 의견·요청이 있으면 이번 의견에 *우선* 반영.',
+        channelContextText.trim().slice(0, 1500),
+      ]
+    : [];
   const proposalBlock = [
     '',
     `[동료 ${speakerLabel} 의 제안]`,
@@ -343,5 +354,5 @@ export function buildDeliberationPrompt(
             '"결정: 반려 — <왜>" / "결정: 사용자 판단 필요 — <쟁점>".',
             '둘째 줄 = 평이체 사유 1줄. 그 외 텍스트 금지.',
           ];
-  return [...head, ...proposalBlock, ...tail, ...task].join('\n');
+  return [...head, ...channelBlock, ...proposalBlock, ...tail, ...task].join('\n');
 }

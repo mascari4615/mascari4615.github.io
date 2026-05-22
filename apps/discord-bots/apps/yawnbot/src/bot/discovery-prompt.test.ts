@@ -109,6 +109,21 @@ describe('buildDiscoveryPrompt — 컨텍스트 섹션 (slice-5)', () => {
     const p = buildDiscoveryPrompt('§1 M', '', '', '', []);
     expect(p).not.toContain('너의 직전 출력 형식 실패');
   });
+
+  it('SO-2-A: channelContextText 주어지면 #team-bus 블록 inline (사용자 발화 read)', () => {
+    const p = buildDiscoveryPrompt(
+      '§1 M', '', '', '', [],
+      '[masca] 봇 잠담 좀 줄여줘\n[wm-worker] 알겠습니다',
+    );
+    expect(p).toContain('팀 채널(#team-bus) 직전 발언');
+    expect(p).toContain('잠담 좀 줄여줘');
+    expect(p).toContain('사용자가 채널에서 박은 요청');
+  });
+
+  it('SO-2-A: channelContextText 빈 = 블록 미포함 (graceful)', () => {
+    const p = buildDiscoveryPrompt('§1 M', '', '', '', [], '');
+    expect(p).not.toContain('팀 채널(#team-bus) 직전 발언');
+  });
 });
 
 describe('gatherDiscoveryContext — 어댑터 읽기전용·안전 (slice-5)', () => {

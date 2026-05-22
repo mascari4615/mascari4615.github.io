@@ -45,6 +45,7 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinCardBody } from './agent-cadence-skin';
+import { fetchTeamBusContext } from './team-bus-fetcher';
 
 // ── readMissionText (로컬 — ops 내부 기본값 전용) ────────────
 const MISSION_FALLBACK =
@@ -548,6 +549,11 @@ export async function runIdleChatterOnce(
   const generate =
     deps.generate ??
     ((p: string) => generateAgentText(env, p, 30_000).catch(() => ''));
+  // KAR-018-SO-2-A: chatter 도 #team-bus 직전 발언 read → 사용자가 채팅에
+  // 박은 분위기·관심사 반영 (그냥 "아무말" 이 아니라 *대화 흐름에 맞는*).
+  let chatterChannelCtx = '';
+  try { chatterChannelCtx = (await fetchTeamBusContext(8)) || ''; }
+  catch { /* silent — chatter 비차단 */ }
 
   const coreIds = listCoreIds(memoRoot);
   const cores = coreIds
@@ -562,16 +568,26 @@ export async function runIdleChatterOnce(
     const body = loadSkinCardBody(memoRoot, core.id);
     if (!body) continue;
     try {
+      const channelHint = chatterChannelCtx.trim()
+        ? [
+            ``,
+            `[팀 채널 직전 발언 — 분위기·맥락]`,
+            chatterChannelCtx.trim().slice(0, 1000),
+            `※ 사용자/동료가 박은 내용에 *반응* 하거나 그 분위기 이어가는`,
+            `   한마디면 더 좋음 (반드시 X — 무관한 잡담도 OK).`,
+          ].join('\n')
+        : '';
       const prompt = [
         `너는 아래 [캐릭터] 설명에 해당하는 캐릭터야.`,
         `지금 팀 채널(#team-bus)에 갑자기 아무말이나 툭 뱉어봐.`,
         `업무 보고 아님. 그냥 네 캐릭터답게 자연스럽게 1~2문장.`,
         `너무 길거나 격식 있게 X. 사람이 SNS에 아무 생각 올리듯이.`,
         `이모지 적당히 OK. 한국어.`,
+        channelHint,
         ``,
         `[캐릭터]`,
         body.slice(0, 800),
-      ].join('\n');
+      ].filter(Boolean).join('\n');
       const text = (await generate(prompt)).trim().slice(0, 250);
       if (!text) continue;
       lastChatterTs.set(core.id, Date.now());
