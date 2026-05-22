@@ -1417,6 +1417,22 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     );
     return;
   }
+  // TASK-KAR-096 Phase 2 (2026-05-22, 사용자 「독립적으로 안돼?」 + 「계속해」):
+  // AGENT_CADENCE_ROLE 분리 — 한 binary 를 N NSSM service 에 띄우되 env 로 역할 분기.
+  //   - 'all' (default) — main + worker 둘 다 (단일 process 시 동작 — 기존 호환)
+  //   - 'main'          — main timer 만 (cadence·surgery·dialogue·producer·corePromotion)
+  //   - 'worker'        — worker timer 만 (전 코어, scope X)
+  //   - 'worker-<id>'   — worker timer 만 + 특정 코어만 (예: worker-kar-worker)
+  // 5 service 분리 가능: orchestrator(main) + agent-worker-{kar/kl/wm-support/wm-worker}.
+  // 각 워커 자기 코드 fix → 자기만 restart, 다른 워커·orchestrator·yawnbot 영향 0.
+  const role = (env.AGENT_CADENCE_ROLE?.trim() || 'all').toLowerCase();
+  const runMain = role === 'all' || role === 'main';
+  const runWorker = role === 'all' || role === 'worker' || role.startsWith('worker-');
+  const workerScope = role.startsWith('worker-') ? role.slice('worker-'.length) : '';
+  if (!runMain && !runWorker) {
+    console.warn(`[AgentCadence] unknown AGENT_CADENCE_ROLE='${role}' — fallback 'all'`);
+  }
+
   // 제안 발굴(producer)·대화 = 30분 OK / 워커 소화(consumer) = 더 빨라야
   // (사용자 KAR-018-Y). 분리 타이머: main(발굴·inbox·대화·하트비트,
   // AGENT_CADENCE_INTERVAL_MS) + worker(runWorkerConsumerOnce 전용,
@@ -1455,9 +1471,16 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       } catch (e) {
         console.warn(`[AgentCadence] reapWorkerInFlight 오류: ${e instanceof Error ? e.message : String(e)}`);
       }
-      const w = await runWorkerConsumerOnce(env);
+      // Phase 2 worker scope filter: worker-<id> role 시 그 코어만 처리.
+      const consumerDeps = workerScope
+        ? {
+            listWorkers: (memoRoot: string) =>
+              defaultListWorkers(memoRoot).filter((c) => c.coreId === workerScope),
+          }
+        : undefined;
+      const w = await runWorkerConsumerOnce(env, consumerDeps);
       if (w && w !== 'no-workers' && w !== 'no-memo-root') {
-        console.log(`[AgentCadence] worker -> ${w}`);
+        console.log(`[AgentCadence] worker (scope=${workerScope || 'all'}) -> ${w}`);
       }
       // KAR-077: 워커 timer(≤5분)서도 대시보드 갱신 → 워커 상태 변화가
       // 15분 cadence 안 기다리고 곧 반영(신선도).
@@ -1488,17 +1511,21 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   // 트리거. 30min 대기 = 사용자 검증·관측 지연. opt-out = AGENT_CADENCE_BOOT_TICK=0.
   // dashTick (즉시 1회) 와 동일 의미 — 부팅이 정의상 "1 cycle 강제 점검" 신호.
   const bootTick = (env.AGENT_CADENCE_BOOT_TICK?.trim() || '1') !== '0';
-  if (bootTick) {
-    // 짧은 delay (5s) — 봇 초기화 + setTeamBusNotify 등 wiring 완료 보장.
-    cadenceTimer = setTimeout(tick, 5_000);
-  } else {
-    cadenceTimer = setTimeout(tick, intervalMs);
+  if (runMain) {
+    if (bootTick) {
+      // 짧은 delay (5s) — 봇 초기화 + setTeamBusNotify 등 wiring 완료 보장.
+      cadenceTimer = setTimeout(tick, 5_000);
+    } else {
+      cadenceTimer = setTimeout(tick, intervalMs);
+    }
   }
-  workerTimer = setTimeout(workerTick, workerMs);
+  if (runWorker) {
+    workerTimer = setTimeout(workerTick, workerMs);
+  }
   void refreshDashboard(env, memoRoot, lastTickSummary || '(부팅)'); // 즉시
   dashboardTimer = setTimeout(dashTick, dashMs);
   console.warn(
-    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms 분리, 부팅 ${bootTick ? '즉시 1회 (5s 후)' : '대기'}) — sub-D 게이트 활성.`,
+    `[AgentCadence] ON role=${role}${workerScope ? ` scope=${workerScope}` : ''} (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms, 부팅 ${bootTick ? '즉시 1회 (5s 후)' : '대기'}) — sub-D 게이트 활성.`,
   );
 }
 
