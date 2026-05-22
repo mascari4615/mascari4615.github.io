@@ -39,6 +39,7 @@ const signals: HealthSignals = {
   progressStale: true,
   workerFailRatio: 0.75,
   traceErrorCount: 2,
+  brokenLoopTaskCount: 0,
 };
 
 const issues: HealthIssue[] = [

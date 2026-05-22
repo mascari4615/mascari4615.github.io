@@ -16,6 +16,7 @@ const healthy: HealthSignals = {
   progressStale: false,
   workerFailRatio: 0.1,
   traceErrorCount: 0,
+  brokenLoopTaskCount: 0,
 };
 
 const critical: HealthSignals = {
@@ -23,6 +24,7 @@ const critical: HealthSignals = {
   progressStale: true,
   workerFailRatio: 0.9,
   traceErrorCount: 10,
+  brokenLoopTaskCount: 2,
 };
 
 // ── diagnoseHealth ───────────────────────────────────────────────
