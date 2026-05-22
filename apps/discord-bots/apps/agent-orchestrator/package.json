@@ -1,0 +1,19 @@
+{
+  "name": "agent-orchestrator",
+  "private": true,
+  "description": "에이전트 팀 cadence orchestrator — yawnbot host 에서 분리된 별 process. TASK-KAR-096 Phase 1.",
+  "main": "dist/src/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/main.js"
+  },
+  "dependencies": {
+    "karmolab-ai": "file:../../../../packages/karmolab-ai",
+    "@discord-bots/common": "*",
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
+  }
+}

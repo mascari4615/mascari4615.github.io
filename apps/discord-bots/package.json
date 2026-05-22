@@ -9,6 +9,7 @@
     "install:deps": "node -e \"require('child_process').execSync('npm install', { stdio: 'inherit', env: { ...process.env, YOUTUBE_DL_SKIP_PYTHON_CHECK: '1' } })\"",
     "build": "npm run audit:cron && npm --prefix ../../packages/karmolab-ai run build && npm -w packages/discord-bot-common run build && npm -w apps/yawnbot run build",
     "build:yawnbot": "npm run audit:cron && npm --prefix ../../packages/karmolab-ai run build && npm -w packages/discord-bot-common run build && npm -w apps/yawnbot run build",
+    "build:orchestrator": "npm --prefix ../../packages/karmolab-ai run build && npm -w packages/discord-bot-common run build && npm -w apps/yawnbot run build && npm -w apps/agent-orchestrator run build",
     "dev": "npm -w apps/yawnbot run dev",
     "dev:yawnbot": "npm -w apps/yawnbot run dev",
     "tunnel:prod": "npm -w apps/yawnbot run tunnel:prod",

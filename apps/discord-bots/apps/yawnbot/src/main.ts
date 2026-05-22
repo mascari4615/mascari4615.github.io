@@ -621,7 +621,13 @@ client.once('clientReady', async () => {
     } catch (e) {
       console.warn(`[startup] claim reap exception: ${e instanceof Error ? e.message : String(e)}`);
     }
-    startAgentCadence(process.env); // ⑦ 자율 cadence (KAR-018-B, default OFF — sub-D 후 ON)
+    // ⑦ 자율 cadence (KAR-018-B). TASK-KAR-096 Phase 1a: `AGENT_HOST=orchestrator` 시 yawnbot
+    // cadence skip — agent-orchestrator daemon 이 호스트. 미설정/yawnbot = 기존(yawnbot 안 cadence).
+    if (process.env.AGENT_HOST?.trim() === 'orchestrator') {
+      console.log('[startup] AGENT_HOST=orchestrator — cadence skip (agent-orchestrator daemon 책임).');
+    } else {
+      startAgentCadence(process.env);
+    }
     // KAR-018-LT: 팀 verdict → 원본 제안 카드 반영 reconciler. 숙의는
     // client-less 순수(원장에만 기록) → client 쥔 여기서 카드 edit.
     // 멱등·restart-safe(reflected 마커). self-scheduling(자기 작업 중
