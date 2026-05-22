@@ -90,6 +90,14 @@
             "script": "dev",
             "healthUrl": "http://127.0.0.1:5173/",
             "npmInstall": true
+        },
+        {
+            "id": "agent-orchestrator",
+            "label": "Agent Orchestrator",
+            "app": "apps/discord-bots",
+            "script": "start:orchestrator",
+            "deployScript": "build:orchestrator",
+            "npmInstall": true
         }
     ]
 }
