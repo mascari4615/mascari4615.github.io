@@ -17,6 +17,7 @@ import {
   appendCoreMemory,
   readRecentCoreMemory,
   coreMemPath,
+  readWorkerTaskOutcomes,
 } from './agent-core';
 
 let root: string;
@@ -293,5 +294,63 @@ describe('코어 work-memory 생명주기 (KAR-018-Z-1)', () => {
     expect(coreMemPath(root, 'a/b')).toBeNull();
     expect(readRecentCoreMemory(root, 'never')).toBe('');
     expect(readRecentCoreMemory('', 'atlas')).toBe('');
+  });
+});
+
+// ── KAR-018-SO-1: readWorkerTaskOutcomes — 워커 self-recall ─────────
+describe('readWorkerTaskOutcomes (SO-1)', () => {
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'so1-'));
+  });
+  afterEach(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it('worker topic 만 골라 task 단위로 집계 (마지막이 lastTs/kind)', () => {
+    appendCoreMemory(root, 'wm-support', {
+      session: 'worker', type: 'fail', topic: 'worker:TASK-WM-109-E',
+      summary: '첫 fail',
+    });
+    appendCoreMemory(root, 'wm-support', {
+      session: 'worker', type: 'fix', topic: 'worker:TASK-WM-109-E',
+      summary: 'PR push 완료',
+    });
+    appendCoreMemory(root, 'wm-support', {
+      session: 'worker', type: 'fail', topic: 'worker:TASK-OTHER',
+      summary: '관련 없음',
+    });
+    // worker 가 아닌 entry 는 무시
+    appendCoreMemory(root, 'wm-support', {
+      session: 's', type: 'insight', topic: 'random:note',
+      summary: '잡담',
+    });
+    const m = readWorkerTaskOutcomes(root, 'wm-support');
+    expect(m.size).toBe(2);
+    const wm109 = m.get('TASK-WM-109-E')!;
+    expect(wm109.kind).toBe('fix');
+    expect(wm109.count).toBe(2);
+    expect(wm109.lastSummary).toContain('PR push');
+    expect(m.get('TASK-OTHER')!.kind).toBe('fail');
+  });
+
+  it('windowDays 밖 entry 는 제외', () => {
+    const oldTs = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    appendCoreMemory(root, 'kar-worker', {
+      ts: oldTs, session: 'worker', type: 'fix', topic: 'worker:TASK-OLD',
+      summary: 'oldFix',
+    });
+    appendCoreMemory(root, 'kar-worker', {
+      session: 'worker', type: 'fail', topic: 'worker:TASK-NEW',
+      summary: 'recent',
+    });
+    const m = readWorkerTaskOutcomes(root, 'kar-worker', 7);
+    expect(m.has('TASK-OLD')).toBe(false);
+    expect(m.has('TASK-NEW')).toBe(true);
+  });
+
+  it('부재·부적합 = 빈 Map (graceful)', () => {
+    expect(readWorkerTaskOutcomes(root, 'never').size).toBe(0);
+    expect(readWorkerTaskOutcomes(root, '../evil').size).toBe(0);
+    expect(readWorkerTaskOutcomes('', 'atlas').size).toBe(0);
   });
 });

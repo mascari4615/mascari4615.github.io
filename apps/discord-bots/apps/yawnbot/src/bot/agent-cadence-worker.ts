@@ -25,7 +25,9 @@ import {
   coreLabel,
   appendCoreMemory,
   coreMemPath,
+  readWorkerTaskOutcomes,
   type CoreDef,
+  type WorkerTaskOutcome,
 } from '../services/agent-core';
 import { commitAndPushMemoFile } from '../services/memo-push';
 import {
@@ -127,6 +129,7 @@ export function buildWorkerPrompt(
   decisionsText?: string,
   channelContext?: string,
   skills?: string[],
+  pastAttempt?: WorkerTaskOutcome | null,
 ): string {
   const skillBlock =
     skills && skills.length > 0
@@ -145,6 +148,19 @@ export function buildWorkerPrompt(
         '',
       ]
     : [`[스펙 파일] ${task.file} (내용 임베드 실패 — cwd 내 단서로 진단)`, ''];
+  // KAR-018-SO-1: 이 코어의 *이 TASK 직전 결과* 회수 → 자기 행동 회피 신호.
+  // fix(이미 done+pushed) 면 select 단계가 이미 skip 하므로 여기 도달 X — 즉
+  // 여기 들어오는 pastAttempt 는 거의 fail/decision (재시도 케이스).
+  const pastBlock = pastAttempt
+    ? [
+        `[너의 직전 시도 (이 TASK ${task.id} 에 대한 *너* 의 기록)]`,
+        `- 마지막 결과: ${pastAttempt.kind} (누적 ${pastAttempt.count}회, 최근 ${pastAttempt.lastTs})`,
+        `- 사유 요약: ${pastAttempt.lastSummary || '(기록 없음)'}`,
+        `이번 시도는 같은 사유 반복 X — 다른 가설·접근으로 진입하거나 확신 없으면`,
+        `escalate 한다.`,
+        '',
+      ]
+    : [];
   const channelBlock = channelContext && channelContext.trim()
     ? [
         `[팀 최근 채팅 — 너·동료들의 직전 발언. 같은 사유·결론 반복 X.`,
@@ -178,6 +194,7 @@ export function buildWorkerPrompt(
     `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
     '',
     ...(decisionsText ? [decisionsText, ''] : []),
+    ...pastBlock,
     ...channelBlock,
     ...skillBlock,
     ...specBlock,
@@ -680,10 +697,32 @@ export async function runWorkerConsumerOnce(
     );
     // KAR-094 후속: detached in-flight 인 task 는 이중 claim 방지로 제외.
     const inFlightIds = activeInFlightTaskIds(memoRoot);
-    const filtered = cands.filter((c) => !inFlightIds.has(c.id));
+    const filtered0 = cands.filter((c) => !inFlightIds.has(c.id));
+    // KAR-018-SO-1: 워커 self-recall — 이 코어가 직전에 *fix(done+pushed)* 한
+    // TASK 는 재선택 X (done-재선택 무한 cycle 의 닫는 rung). 회수 실패 = 빈
+    // Map → filter 무효(기존 동작 fallback, 비차단).
+    const myOutcomes = readWorkerTaskOutcomes(memoRoot, w.coreId, 14);
+    const skippedFixed: string[] = [];
+    const filtered = filtered0.filter((c) => {
+      const o = myOutcomes.get(c.id);
+      if (o && o.kind === 'fix') {
+        skippedFixed.push(c.id);
+        return false;
+      }
+      return true;
+    });
+    if (skippedFixed.length > 0) {
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: w.coreId,
+        reason: `SO-1 self-recall skip ${skippedFixed.length} task(s) already-fixed: ${skippedFixed.slice(0, 5).join(',')}`,
+      });
+    }
     if (rawCands.length === 0) { results.push(`${w.coreId}:idle`); return; }
     if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
-    if (filtered.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
+    if (filtered0.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
+    if (filtered.length === 0) { results.push(`${w.coreId}:already-fixed-all`); return; }
 
     // 자가발전 layer 2 (KAR-018, 2026-05-22): broken-loop 후보를 *맨 뒤로 정렬*.
     // 같은 task 가 6h 내 3회+ no-op done 했으면 의심 — 다른 후보 있으면 그쪽 우선.
@@ -744,6 +783,7 @@ export async function runWorkerConsumerOnce(
         formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) || undefined,
         channelContext,
         w.skills,
+        myOutcomes.get(chosen.id) ?? null,
       ),
       repoCwd: wt?.cwd,
     };

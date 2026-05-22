@@ -94,6 +94,21 @@ describe('buildDiscoveryPrompt — 컨텍스트 섹션 (slice-5)', () => {
     expect(p).toContain('CTX_MARKER_데이터');
     expect(p).toContain('중복'); // 무한증식 회피 지시
   });
+
+  it('SO-3: schemaFailExamples 주어지면 자기 직전 fail snippet 인라인 (자가교정 rung)', () => {
+    const p = buildDiscoveryPrompt(
+      '§1 M', '', '', '',
+      ['깨진 출력 v1 — JSON 아님', '두번째 fail snippet — kind 누락'],
+    );
+    expect(p).toContain('너의 직전 출력 형식 실패');
+    expect(p).toContain('깨진 출력 v1');
+    expect(p).toContain('두번째 fail snippet');
+  });
+
+  it('SO-3: schemaFailExamples 빈 배열 = 블록 미포함 (legacy 동작)', () => {
+    const p = buildDiscoveryPrompt('§1 M', '', '', '', []);
+    expect(p).not.toContain('너의 직전 출력 형식 실패');
+  });
 });
 
 describe('gatherDiscoveryContext — 어댑터 읽기전용·안전 (slice-5)', () => {

@@ -53,10 +53,12 @@ describe('diagnoseHealth', () => {
     expect(issues.filter((i) => i.code.startsWith('cadence-'))).toHaveLength(0);
   });
 
-  it('progressStale true → progress-stale warn', () => {
+  it('progressStale true → progress-stale critical (0415ff91 승격)', () => {
+    // 평행 세션 commit 0415ff91 (자가발전 루프 깡통 탈출) 에서 warn→critical
+    // 승격. 테스트 assertion 미반영 잔존 (master red). SO-X 와 함께 fix.
     const issues = diagnoseHealth({ ...healthy, progressStale: true });
     const c = issues.find((i) => i.code === 'progress-stale');
-    expect(c?.severity).toBe('warn');
+    expect(c?.severity).toBe('critical');
   });
 
   it('workerFailRatio >= 0.8 → worker-fail-critical', () => {
