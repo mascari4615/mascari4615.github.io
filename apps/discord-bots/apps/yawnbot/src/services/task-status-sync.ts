@@ -21,6 +21,13 @@ import { commitAndPushMemoFile, type MemoPushResult } from './memo-push';
 
 /** TASK id 정규식 — TASK-PREFIX-NNN[-suffix]. memo task-queue.mjs 와 정합. */
 const TASK_ID_REGEX = /TASK-(?:KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-[A-Z0-9][A-Z0-9-]*/g;
+/**
+ * conventional-commits scope 형태: `feat(WM-109-E): ...` / `fix(KL-046): ...` 등.
+ * 워커 코어 + autopilot 다수가 이 form 으로 PR title 박음 → TASK_ID_REGEX 미인식 시
+ * PR-merge 후에도 frontmatter status drift = 워커 PICKABLE 무한 재선택 (broken loop).
+ * 2026-05-22 raw dump 실증 (slot B): WM-109-E status=seed 영영 유지.
+ */
+const SCOPE_ID_REGEX = /\((KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-(\d{3}(?:-[A-Z0-9]+)*)\)/g;
 
 /** PR 머지 시 done 으로 승격 가능한 시작 상태. */
 const ACTIVE_STATUSES = new Set(['ready', 'seed', 'in_progress', 'active', 'in-progress']);
@@ -69,7 +76,7 @@ export interface TaskStatusSyncDeps {
   logger?: Pick<Console, 'log' | 'warn'>;
 }
 
-/** 자유 텍스트에서 TASK id 추출 (중복 제거, 순서 보존). */
+/** 자유 텍스트에서 TASK id 추출 (중복 제거, 순서 보존). TASK- prefix + scope form 둘 다. */
 export function extractTaskIds(text: string): string[] {
   if (!text) return [];
   const seen = new Set<string>();
@@ -78,6 +85,14 @@ export function extractTaskIds(text: string): string[] {
     if (!seen.has(m[0])) {
       seen.add(m[0]);
       out.push(m[0]);
+    }
+  }
+  // scope form: (WM-109-E) → TASK-WM-109-E
+  for (const m of text.matchAll(SCOPE_ID_REGEX)) {
+    const id = `TASK-${m[1]}-${m[2]}`;
+    if (!seen.has(id)) {
+      seen.add(id);
+      out.push(id);
     }
   }
   return out;
