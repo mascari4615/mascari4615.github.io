@@ -304,6 +304,101 @@ jobs:
           # ops-self-report 의 reportShutdown → reportStartup 두 임베드가 운영 채널에 도착
           Write-Host "yawnbot-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
 
+      # === TASK-KAR-096 Phase 1b: agent-orchestrator 빌드 + NSSM upsert + restart ===
+      # 별 NSSM service `agent-orchestrator-prod` 가 cadence 호스트. yawnbot-prod 와 분리 process.
+      # yawnbot-prod 의 AGENT_HOST=orchestrator env 가 cadence skip 신호 (이중 race 방지).
+      # service 미존재 시 install (idempotent). 첫 deploy = install + start.
+      - name: build agent-orchestrator
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.BOTS_DIR }}
+        run: |
+          & npm run build:orchestrator
+          if ($LASTEXITCODE -ne 0) { Write-Warning "build:orchestrator failed — orchestrator deploy skip (yawnbot 정상)"; exit 0 }
+
+      - name: NSSM upsert + restart agent-orchestrator-prod
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.BOTS_DIR }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:ProgramData\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { Write-Warning "nssm.exe 못 찾음 — orchestrator NSSM upsert skip (yawnbot 정상)"; exit 0 }
+
+          $svc = 'agent-orchestrator-prod'
+          $nodeExe = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nodeExe) { Write-Warning "node.exe 못 찾음 — orchestrator install skip"; exit 0 }
+          $orchDir = Join-Path (Get-Location) 'apps\agent-orchestrator'
+          $mainJs = Join-Path $orchDir 'dist\src\main.js'
+          if (-not (Test-Path $mainJs)) { Write-Warning "orchestrator dist/src/main.js 없음 — build 실패 가능, skip"; exit 0 }
+
+          # service 존재 확인 (status 호출 → 비-zero 면 미존재)
+          & $nssm status $svc 2>$null | Out-Null
+          $exists = ($LASTEXITCODE -eq 0)
+          if (-not $exists) {
+            Write-Host "[KAR-096] agent-orchestrator-prod NSSM install (첫 deploy)"
+            & $nssm install $svc $nodeExe "`"$mainJs`"" | Out-Null
+            if ($LASTEXITCODE -ne 0) { Write-Warning "nssm install agent-orchestrator-prod failed"; exit 0 }
+            & $nssm set $svc AppDirectory $orchDir | Out-Null
+            & $nssm set $svc Start SERVICE_AUTO_START | Out-Null
+          }
+
+          # 로깅 + USERPROFILE 마스킹 + AGENT_HOST=orchestrator (이중 race 방지)
+          $logDir = 'C:\nssm-logs\agent-orchestrator-prod'
+          if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Force $logDir | Out-Null }
+          & $nssm set $svc AppStderr "$logDir\stderr.log" | Out-Null
+          & $nssm set $svc AppStdout "$logDir\stdout.log" | Out-Null
+          & $nssm set $svc AppRotateFiles 1 | Out-Null
+          & $nssm set $svc AppRotateBytes 10485760 | Out-Null
+          & $nssm set $svc AppEnvironmentExtra `
+            'YAWNBOT_ENV=prod' `
+            'AGENT_HOST=orchestrator' `
+            'USERPROFILE=C:\Users\masca' | Out-Null
+
+          # restart (or start)
+          & $nssm restart $svc 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            & $nssm start $svc 2>&1
+            if ($LASTEXITCODE -ne 0) { Write-Warning "nssm restart/start agent-orchestrator-prod failed (yawnbot 정상)"; exit 0 }
+          }
+          Write-Host "agent-orchestrator-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+
+      - name: NSSM set yawnbot-prod AGENT_HOST=orchestrator
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { exit 0 }
+          # yawnbot-prod 에 AGENT_HOST=orchestrator 추가 (cadence 호출 skip → orchestrator 가 인계)
+          & $nssm set yawnbot-prod AppEnvironmentExtra `
+            'YAWNBOT_ENV=prod' `
+            'USERPROFILE=C:\Users\masca' `
+            'AGENT_HOST=orchestrator' | Out-Null
+          & $nssm restart yawnbot-prod | Out-Null
+          Write-Host "yawnbot-prod env updated (AGENT_HOST=orchestrator) + restarted"
+      # === /KAR-096 Phase 1b ===
+
       - name: Upsert GitHub webhooks (production URL)
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
