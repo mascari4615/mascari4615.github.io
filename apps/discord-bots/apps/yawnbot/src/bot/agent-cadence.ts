@@ -118,6 +118,7 @@ import {
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
   ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
+  defaultListWorkers,
   reapWorkerInFlight,
 } from './agent-cadence-worker';
 import {
