@@ -8,6 +8,7 @@
     "start": "node dist/src/main.js"
   },
   "dependencies": {
+    "yawnbot": "*",
     "karmolab-ai": "file:../../../../packages/karmolab-ai",
     "@discord-bots/common": "*",
     "dotenv": "^16.6.1"
