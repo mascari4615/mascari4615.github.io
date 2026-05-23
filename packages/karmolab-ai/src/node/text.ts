@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
   type GoogleGenerativeSurface,
   buildVertexPublisherModelUrl,
+  buildGeminiSafetySettings,
   DEFAULT_VERTEX_LOCATION,
   DEFAULT_TEXT_MODEL_ID,
 } from '../index';
@@ -94,15 +95,8 @@ export async function generateVertexText(opts: {
   if (sys) {
     body.systemInstruction = { parts: [{ text: sys }] };
   }
-  const threshold = opts.safetyThreshold?.trim();
-  if (threshold) {
-    body.safetySettings = [
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold },
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold },
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold },
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold },
-    ];
-  }
+  const safetySettings = buildGeminiSafetySettings(opts.safetyThreshold);
+  if (safetySettings.length > 0) body.safetySettings = safetySettings;
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

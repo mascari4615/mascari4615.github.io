@@ -122,3 +122,56 @@ export function getDefaultModelId(provider: ModelProvider): string {
 
 /** 텍스트 generateContent 기본 모델 (AI Studio·Vertex 동일 모델 ID 문자열) */
 export const DEFAULT_TEXT_MODEL_ID = getDefaultModelId('gemini');
+export type GeminiSafetyThreshold =
+  | 'OFF'
+  | 'BLOCK_NONE'
+  | 'BLOCK_ONLY_HIGH'
+  | 'BLOCK_MEDIUM_AND_ABOVE'
+  | 'BLOCK_LOW_AND_ABOVE';
+
+export type GeminiSafetyCategory =
+  | 'HARM_CATEGORY_HARASSMENT'
+  | 'HARM_CATEGORY_HATE_SPEECH'
+  | 'HARM_CATEGORY_SEXUALLY_EXPLICIT'
+  | 'HARM_CATEGORY_DANGEROUS_CONTENT'
+  | 'HARM_CATEGORY_CIVIC_INTEGRITY';
+
+export type GeminiSafetySetting = {
+  category: GeminiSafetyCategory;
+  threshold: GeminiSafetyThreshold;
+};
+
+export type GeminiSafetyLevel = {
+  value: GeminiSafetyThreshold;
+  label: string;
+};
+
+export const DEFAULT_GEMINI_SAFETY_THRESHOLD: GeminiSafetyThreshold = 'BLOCK_ONLY_HIGH';
+
+export const GEMINI_SAFETY_LEVELS: GeminiSafetyLevel[] = [
+  { value: 'OFF', label: '끄기 (OFF)' },
+  { value: 'BLOCK_NONE', label: '차단 없음 (BLOCK_NONE)' },
+  { value: 'BLOCK_ONLY_HIGH', label: '높음만 차단 (BLOCK_ONLY_HIGH)' },
+  { value: 'BLOCK_MEDIUM_AND_ABOVE', label: '중간 이상 차단 (BLOCK_MEDIUM_AND_ABOVE)' },
+  { value: 'BLOCK_LOW_AND_ABOVE', label: '낮음 이상 차단 (BLOCK_LOW_AND_ABOVE)' },
+];
+
+export const GEMINI_SAFETY_CATEGORIES: GeminiSafetyCategory[] = [
+  'HARM_CATEGORY_HARASSMENT',
+  'HARM_CATEGORY_HATE_SPEECH',
+  'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+  'HARM_CATEGORY_DANGEROUS_CONTENT',
+  'HARM_CATEGORY_CIVIC_INTEGRITY',
+];
+
+export function isGeminiSafetyThreshold(value: string): value is GeminiSafetyThreshold {
+  return GEMINI_SAFETY_LEVELS.some((level) => level.value === value);
+}
+
+export function buildGeminiSafetySettings(
+  threshold?: string | null,
+): GeminiSafetySetting[] {
+  const raw = threshold?.trim();
+  if (!raw || !isGeminiSafetyThreshold(raw)) return [];
+  return GEMINI_SAFETY_CATEGORIES.map((category) => ({ category, threshold: raw }));
+}
