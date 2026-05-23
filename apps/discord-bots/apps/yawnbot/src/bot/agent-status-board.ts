@@ -26,7 +26,7 @@ import {
   type HealthSignals,
 } from './system-health';
 import { readLedger } from './agent-initiator';
-import { getDecisionsForTask } from './agent-decisions';
+import { decisionsPath, parseDecisionLine } from './agent-decisions';
 
 export interface StatusBoardState {
   channelId?: string;
@@ -139,6 +139,20 @@ function extractTaskIdFromFile(file: string): string | null {
   return m ? m[1] : null;
 }
 
+// decisions jsonl 한 번 read → Set<taskId> (loop 안에서 N번 file read 회피).
+function loadDecidedTaskIds(memoRoot: string): Set<string> {
+  const out = new Set<string>();
+  if (!memoRoot) return out;
+  try {
+    const raw = fs.readFileSync(decisionsPath(memoRoot), 'utf-8');
+    for (const line of raw.split('\n')) {
+      const d = parseDecisionLine(line);
+      if (d) out.add(d.taskId);
+    }
+  } catch { /* 파일 부재 = 빈 set */ }
+  return out;
+}
+
 function gatherUserPending(
   memoRoot: string,
   signals: HealthSignals,
@@ -146,15 +160,14 @@ function gatherUserPending(
   // 1순위: 최신 INIT seed TASK *결정 안 한* 것 (사용자 행동 candidate)
   // 종전: 결정된 TASK 도 계속 표시 → 사용자 「같은 거 또?」 nag.
   // fix: agent-decisions.jsonl 에 답글 있으면 skip (다음 미결정 entry 로 진행).
+  // perf: decisions Set 한 번 빌드 (N entry × M decision file-read 회피).
   const ledger = memoRoot ? readLedger(memoRoot) : [];
+  const decided = loadDecidedTaskIds(memoRoot);
   for (let i = ledger.length - 1; i >= 0; i--) {
     const e = ledger[i];
     if (e.type !== 'seeded' || !e.seededTaskFile) continue;
     const taskId = extractTaskIdFromFile(e.seededTaskFile);
-    if (taskId && memoRoot) {
-      const decisions = getDecisionsForTask(memoRoot, taskId);
-      if (decisions.length > 0) continue; // 이미 결정 = skip
-    }
+    if (taskId && decided.has(taskId)) continue; // 이미 결정 = skip
     return {
       count: 1,
       topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
