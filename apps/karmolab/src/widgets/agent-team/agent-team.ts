@@ -61,6 +61,13 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     decision?: string;
   };
 
+  type BusEntry = {
+    ts: string;
+    slot: string;
+    headline: string;
+    body_preview: string;
+  };
+
   const REFRESH_INTERVAL_MS = 5000;
 
   const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
@@ -101,6 +108,10 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">목표 (Objectives) (<span class="at-count-objectives">-</span>)</h3>
           <div class="at-list at-objectives-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
         </section>
+        <section class="at-section at-bus">
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">💬 슬롯 간 메시지 (<span class="at-count-bus">-</span>)</h3>
+          <div class="at-list at-bus-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
+        </section>
         <div class="at-err" style="display:none;color:#e66;padding:.5rem;border:1px solid #e66;border-radius:.3rem;white-space:pre-wrap"></div>
       </div>
     `;
@@ -113,10 +124,12 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     const rosterList = container.querySelector<HTMLDivElement>('.at-roster-list')!;
     const sessionsList = container.querySelector<HTMLDivElement>('.at-sessions-list')!;
     const objectivesList = container.querySelector<HTMLDivElement>('.at-objectives-list')!;
+    const busList = container.querySelector<HTMLDivElement>('.at-bus-list')!;
     const countProposals = container.querySelector<HTMLSpanElement>('.at-count-proposals')!;
     const countAgents = container.querySelector<HTMLSpanElement>('.at-count-agents')!;
     const countSessions = container.querySelector<HTMLSpanElement>('.at-count-sessions')!;
     const countObjectives = container.querySelector<HTMLSpanElement>('.at-count-objectives')!;
+    const countBus = container.querySelector<HTMLSpanElement>('.at-count-bus')!;
 
     let intervalHandle: number | null = null;
     let cachedRepoRoot: string | null = null;
@@ -220,6 +233,40 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         .join('');
     }
 
+    function slotColor(slot: string): string {
+      // slot-A/B/C/D/E/F ... 안정적 hash → 색상
+      const m = slot.match(/slot-([A-Z])/);
+      const idx = m ? m[1].charCodeAt(0) - 65 : 0;
+      const palette = ['#39c', '#3a8', '#c63', '#a36', '#69a', '#c93', '#669', '#893'];
+      return palette[idx % palette.length];
+    }
+
+    function renderBus(rows: BusEntry[]): void {
+      countBus.textContent = String(rows.length);
+      if (rows.length === 0) {
+        busList.innerHTML =
+          '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">슬롯 간 메시지 없음</div>';
+        return;
+      }
+      busList.innerHTML = rows
+        .map((b) => {
+          const color = slotColor(b.slot);
+          const preview = b.body_preview
+            ? `<div style="margin-top:.2rem;font-size:.76rem;opacity:.75;line-height:1.45;white-space:pre-wrap;max-height:6em;overflow:hidden;text-overflow:ellipsis">${escapeHtml(b.body_preview)}</div>`
+            : '';
+          return `
+            <div style="padding:.4rem .55rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem;border-left:3px solid ${color}">
+              <div style="display:flex;align-items:center;gap:.4rem">
+                <span style="font-size:.7rem;padding:.05rem .3rem;border-radius:.2rem;background:${color};color:#fff;font-family:monospace">${escapeHtml(b.slot)}</span>
+                <strong style="flex:1;font-size:.82rem;line-height:1.4">${escapeHtml(b.headline)}</strong>
+                <span style="font-size:.66rem;opacity:.55;font-family:monospace">${escapeHtml(b.ts)}</span>
+              </div>
+              ${preview}
+            </div>`;
+        })
+        .join('');
+    }
+
     function renderProposals(rows: ProposalInfo[]): void {
       const pending = rows.filter((p) => !p.decided);
       countProposals.textContent = String(pending.length);
@@ -294,16 +341,18 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           return;
         }
         cachedRepoRoot = repoRoot;
-        const [agents, objectives, sessions, proposals] = (await Promise.all([
+        const [agents, objectives, sessions, proposals, bus] = (await Promise.all([
           tauriInvoke('agent_team_list_agents', { repoRoot }),
           tauriInvoke('agent_team_list_objectives', { repoRoot }),
           tauriInvoke('agent_team_list_sessions', { repoRoot }),
-          tauriInvoke('agent_team_list_proposals', { repoRoot })
-        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[]];
+          tauriInvoke('agent_team_list_proposals', { repoRoot }),
+          tauriInvoke('agent_team_list_bus', { repoRoot, limit: 15 })
+        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[], BusEntry[]];
         renderAgents(agents);
         renderObjectives(objectives);
         renderSessions(sessions);
         renderProposals(proposals);
+        renderBus(bus);
         meta.textContent = `${new Date().toLocaleTimeString('ko-KR', { hour12: false })} KST · repo=${repoRoot.split(/[\\/]/).slice(-2).join('/')}`;
       } catch (e) {
         errBox.style.display = 'block';
