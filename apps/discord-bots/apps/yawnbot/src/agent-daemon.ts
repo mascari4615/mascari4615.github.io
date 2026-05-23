@@ -38,7 +38,7 @@ import {
 
 interface DaemonArgs {
   coreId: string;
-  channelId: string;
+  channelId?: string;
 }
 
 function parseArgs(argv: string[]): DaemonArgs {
@@ -49,10 +49,27 @@ function parseArgs(argv: string[]): DaemonArgs {
     if (k === '--core-id') { out.coreId = v; i += 1; }
     else if (k === '--channel-id') { out.channelId = v; i += 1; }
   }
-  if (!out.coreId || !out.channelId) {
-    throw new Error('agent-daemon: --core-id and --channel-id required');
+  if (!out.coreId) {
+    out.coreId = process.env.AGENT_DAEMON_CORE_ID;
+  }
+  if (!out.channelId) {
+    out.channelId = process.env.AGENT_DAEMON_CHANNEL_ID;
+  }
+  if (!out.coreId) {
+    throw new Error('agent-daemon: --core-id or AGENT_DAEMON_CORE_ID required');
   }
   return out as DaemonArgs;
+}
+
+/** channelId resolve — args/env 없으면 yawnbot provisioned file 통해. */
+async function resolveChannelId(args: DaemonArgs): Promise<string | null> {
+  if (args.channelId) return args.channelId;
+  try {
+    const { channelIdFor } = await import('./services/channel-provision.js');
+    return channelIdFor('agent-team');
+  } catch {
+    return null;
+  }
 }
 
 interface PrefilterDecision {
@@ -267,10 +284,26 @@ async function main(): Promise<void> {
   // load-env 는 entry 가동 시에만 (test import 시 path resolve 충돌 회피).
   await import('./load-env.js');
   const args = parseArgs(process.argv.slice(2));
-  const memoRoot = (process.env.LAPTOP_MEMO_ROOT || path.resolve('./memo')).trim();
+  const memoRoot = (process.env.LAPTOP_MEMO_ROOT || process.env.MEMO_REPO_PATH || path.resolve('./memo')).trim();
   const busRoot = resolveBusRoot();
   const ratePer5min = Number.parseInt(process.env.AGENT_DAEMON_RATE_PER_5MIN || '2', 10);
   const contextMinutes = Number.parseInt(process.env.AGENT_DAEMON_CONTEXT_MINUTES || '5', 10);
+
+  // channelId resolve — boot 시점에 yawnbot 이 아직 provision 안 했을 수 있음 → retry.
+  let channelId: string | null = await resolveChannelId(args);
+  let waited = 0;
+  while (!channelId && waited < 600) {  // 최대 10분 대기
+    await new Promise((r) => setTimeout(r, 5000));
+    waited += 5;
+    channelId = await resolveChannelId(args);
+    if (waited % 60 === 0) {
+      console.log(`[agent-daemon] channelId 대기 중 (${waited}s) — yawnbot provisioning 대기`);
+    }
+  }
+  if (!channelId) {
+    console.error('[agent-daemon] channelId resolve 실패 (10분 timeout). 종료.');
+    process.exit(5);
+  }
 
   const core = loadCoreDef(memoRoot, args.coreId);
   if (!core) {
@@ -288,15 +321,15 @@ async function main(): Promise<void> {
     process.exit(4);
   }
 
-  console.log(`[agent-daemon] start coreId=${core.id} channelId=${args.channelId} surface=${llm.surface} bus=${busRoot}`);
+  console.log(`[agent-daemon] start coreId=${core.id} channelId=${channelId} surface=${llm.surface} bus=${busRoot}`);
 
   let inFlight = 0;
-  const sub = subscribeBusEvents(busRoot, args.channelId, (event) => {
+  const sub = subscribeBusEvents(busRoot, channelId, (event) => {
     // 동시 1개만 처리 (cap LLM 비용 폭주). 초과 = 다음 사이클서 자연 catchup.
     if (inFlight > 0) return;
     inFlight += 1;
     handleTrigger(
-      { core, llm, busRoot, channelId: args.channelId, memoRoot, ratePer5min, contextMinutes },
+      { core, llm, busRoot, channelId: channelId!, memoRoot, ratePer5min, contextMinutes },
       event,
     )
       .catch((e) =>

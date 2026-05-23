@@ -484,6 +484,70 @@ jobs:
           exit 0
       # === /KAR-096 Phase 2 ===
 
+      # === TASK-KAR-018-LT-DIVERSITY D-7: agent-ambient-* daemons (ambient channel listening) ===
+      # 코어 1개 = 독립 process. yawnbot dist/src/agent-daemon.js 한 binary, env 의 AGENT_DAEMON_CORE_ID 로 정체성 분기.
+      # Discord adapter (yawnbot-prod) 와 별도 process — 봇 crash·restart·교체 무관하게 코어 발화 살아있음.
+      # 사용자 비전 「디코 Client 바뀌어도 에이전트 살아있음」 의 첫 first-use. echo 1개부터 (점진 migration).
+      - name: NSSM upsert + restart agent-ambient-* daemons
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.BOTS_DIR }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { Write-Warning "nssm.exe 못 찾음 — ambient daemon skip"; exit 0 }
+          $nodeExe = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nodeExe) { Write-Warning "node.exe 못 찾음 — ambient daemon skip"; exit 0 }
+          $yawnbotDir = Join-Path (Get-Location) 'apps\yawnbot'
+          $mainJs = Join-Path $yawnbotDir 'dist\src\agent-daemon.js'
+          if (-not (Test-Path $mainJs)) { Write-Warning "yawnbot dist/src/agent-daemon.js 없음 — build 미완 가능, ambient daemon skip"; exit 0 }
+
+          # 첫 박힘 = echo 1개만 (D-7). 검증 통과 후 D-9 에서 나머지 코어 점진 추출.
+          $ambients = @(
+            @{ svc='agent-ambient-echo-prod'; coreId='echo' }
+          )
+          foreach ($a in $ambients) {
+            $svc = $a.svc
+            $coreId = $a.coreId
+            & $nssm status $svc 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "[KAR-018-LT-DIVERSITY D-7] $svc install (coreId=$coreId)"
+              & $nssm install $svc $nodeExe "`"$mainJs`"" | Out-Null
+              if ($LASTEXITCODE -ne 0) { Write-Warning "nssm install $svc failed — skip"; continue }
+              & $nssm set $svc AppDirectory $yawnbotDir | Out-Null
+              & $nssm set $svc Start SERVICE_AUTO_START | Out-Null
+            }
+            $logDir = "C:\nssm-logs\$svc"
+            if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Force $logDir | Out-Null }
+            & $nssm set $svc AppStderr "$logDir\stderr.log" | Out-Null
+            & $nssm set $svc AppStdout "$logDir\stdout.log" | Out-Null
+            & $nssm set $svc AppRotateFiles 1 | Out-Null
+            & $nssm set $svc AppRotateBytes 10485760 | Out-Null
+            & $nssm set $svc AppEnvironmentExtra `
+              'YAWNBOT_ENV=prod' `
+              "AGENT_DAEMON_CORE_ID=$coreId" `
+              'USERPROFILE=C:\Users\masca' `
+              'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
+            & $nssm restart $svc 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              & $nssm start $svc 2>&1 | Out-Null
+              if ($LASTEXITCODE -ne 0) { Write-Warning "$svc restart/start failed"; continue }
+            }
+            Write-Host "$svc restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+          }
+          exit 0
+      # === /KAR-018-LT-DIVERSITY D-7 ===
+
       - name: NSSM set yawnbot-prod AGENT_HOST=orchestrator
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
