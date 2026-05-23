@@ -62,6 +62,10 @@ export function decideDialogueTurn(
   cores: CoreDef[],
   chain: { depth: number; cap: number },
 ): DialogueTurn | null {
+  // KAR-018-LT-DIVERSITY (2026-05-23): dyadic dialogue engine 가드.
+  // ambient daemon 패러다임 전환 후 — producer/worker 는 살리고 dyadic
+  // 챌린지 path 만 OFF. AGENT_DIALOGUE_DISABLED=1 = "혼자 말함" source 차단.
+  if ((process.env.AGENT_DIALOGUE_DISABLED || '').trim() === '1') return null;
   if (chain.depth >= chain.cap) return null;
   const speaker = (u.speakerCoreId || '').trim();
   const others = cores.filter((c) => c && c.id && c.id !== speaker);
