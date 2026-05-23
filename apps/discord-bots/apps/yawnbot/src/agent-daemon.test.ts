@@ -7,6 +7,7 @@ import {
   countRecentSelfUtterances,
   handleTrigger,
   decideUtterance,
+  LlmCallBudget,
 } from './agent-daemon.js';
 import { publishBusEvent, readRecentBusEvents } from './services/agent-bus.js';
 import type { CoreDef } from './services/agent-core.js';
@@ -278,6 +279,101 @@ describe('handleTrigger', () => {
       trigger,
     );
     expect(called).toBe(0);
+  });
+});
+
+describe('LlmCallBudget', () => {
+  it('cap 이하 = canCall true, record 누적', () => {
+    const b = new LlmCallBudget(3);
+    const t = Date.now();
+    expect(b.canCall(t)).toBe(true);
+    b.record(t);
+    b.record(t);
+    expect(b.canCall(t)).toBe(true);
+    expect(b.count(t)).toBe(2);
+    b.record(t);
+    expect(b.canCall(t)).toBe(false);
+    expect(b.count(t)).toBe(3);
+  });
+  it('1h 윈도우 밖 entry = prune', () => {
+    const b = new LlmCallBudget(3);
+    const old = Date.now() - 70 * 60 * 1000;
+    b.record(old);
+    b.record(old);
+    b.record(old);
+    const now = Date.now();
+    expect(b.canCall(now)).toBe(true);
+    expect(b.count(now)).toBe(0);
+  });
+});
+
+describe('handleTrigger + budget', () => {
+  let bus: string;
+  let memo: string;
+  beforeEach(async () => {
+    ({ bus, memo } = await freshRoots('budget'));
+  });
+
+  it('budget cap 초과 = LLM 호출 X + skip publish', async () => {
+    const core = fakeCore('atlas');
+    let called = 0;
+    const llm = fakeLLM(() => {
+      called += 1;
+      return '{"decision":"answer","text":"x"}';
+    });
+    const budget = new LlmCallBudget(1);
+    budget.record();
+    const trigger = await publishBusEvent(bus, {
+      type: 'channel-msg',
+      channelId: 'ch1',
+      source: 'discord:user',
+      text: 'hi',
+    });
+    await handleTrigger(
+      {
+        core,
+        llm,
+        busRoot: bus,
+        channelId: 'ch1',
+        memoRoot: memo,
+        ratePer5min: 2,
+        contextMinutes: 5,
+        budget,
+      },
+      trigger,
+    );
+    expect(called).toBe(0);
+    const evs = await readRecentBusEvents(bus, 'ch1', 10);
+    const skip = evs.find(
+      (e) => e.type === 'core-react-skip' && e.refs?.skipReason === 'llm-budget-cap',
+    );
+    expect(skip).toBeDefined();
+  });
+
+  it('budget 여유 = LLM 호출 + record', async () => {
+    const core = fakeCore('atlas');
+    const llm = fakeLLM('{"decision":"answer","text":"답"}');
+    const budget = new LlmCallBudget(5);
+    const trigger = await publishBusEvent(bus, {
+      type: 'channel-msg',
+      channelId: 'ch1',
+      source: 'discord:user',
+      text: 'hi',
+    });
+    await handleTrigger(
+      {
+        core,
+        llm,
+        busRoot: bus,
+        channelId: 'ch1',
+        memoRoot: memo,
+        ratePer5min: 2,
+        contextMinutes: 5,
+        budget,
+      },
+      trigger,
+    );
+    expect(budget.count()).toBe(1);
   });
 });
 

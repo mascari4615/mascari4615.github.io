@@ -182,6 +182,45 @@ export function countRecentSelfUtterances(
   ).length;
 }
 
+/**
+ * P-4 LLM 호출 카운터 (sliding 1h window) — orchestrator governance reserve 의
+ * ambient daemon 시대 대안. peer-only 정합: 각 daemon 자기 cap 자율 적용,
+ * 중앙 reserve 없음. 한 daemon 이 폭주해도 다른 daemon 영향 0.
+ *
+ * cap 초과 = LLM 호출 skip (prefilter·발화·self-tick 전부 차단).
+ * window=1h, cap default 60 (env AGENT_DAEMON_LLM_BUDGET_HOURLY override).
+ */
+class LlmCallBudget {
+  private readonly windowMs = 60 * 60 * 1000;
+  private readonly cap: number;
+  private timestamps: number[] = [];
+  constructor(cap: number) {
+    this.cap = Math.max(1, cap);
+  }
+  private prune(now: number): void {
+    const cutoff = now - this.windowMs;
+    while (this.timestamps.length > 0 && this.timestamps[0] < cutoff) {
+      this.timestamps.shift();
+    }
+  }
+  canCall(now: number = Date.now()): boolean {
+    this.prune(now);
+    return this.timestamps.length < this.cap;
+  }
+  record(now: number = Date.now()): void {
+    this.prune(now);
+    this.timestamps.push(now);
+  }
+  count(now: number = Date.now()): number {
+    this.prune(now);
+    return this.timestamps.length;
+  }
+  get capacity(): number {
+    return this.cap;
+  }
+}
+export { LlmCallBudget };
+
 /** mem 파일 append (jsonl). 부재 디렉토리 자동 생성. */
 function appendCoreMem(memoRoot: string, coreId: string, entry: Record<string, unknown>): void {
   try {
@@ -208,6 +247,7 @@ export async function handleTrigger(deps: {
   memoRoot: string;
   ratePer5min: number;
   contextMinutes: number;
+  budget?: LlmCallBudget;
   now?: Date;
 }, trigger: BusEvent): Promise<void> {
   if (trigger.type !== 'channel-msg' && trigger.type !== 'core-utter') return;
@@ -247,6 +287,27 @@ export async function handleTrigger(deps: {
     return;
   }
 
+  // P-4 LLM budget cap — sliding 1h window. peer-only 정합 (자기 자율 cap).
+  if (deps.budget && !deps.budget.canCall()) {
+    appendCoreMem(deps.memoRoot, deps.core.id, {
+      kind: 'skip',
+      reason: 'llm-budget-cap',
+      budgetCount: deps.budget.count(),
+      budgetCap: deps.budget.capacity,
+      triggerTs: trigger.ts,
+    });
+    await publishBusEvent(deps.busRoot, {
+      type: 'core-react-skip',
+      channelId: deps.channelId,
+      source: `core:${deps.core.id}`,
+      coreId: deps.core.id,
+      text: '',
+      refs: { skipReason: 'llm-budget-cap', parentTs: trigger.ts },
+    });
+    return;
+  }
+
+  if (deps.budget) deps.budget.record();
   const decision = await decideUtterance(deps.llm, deps.core, context, trigger);
   if (decision.decision === 'skip') {
     appendCoreMem(deps.memoRoot, deps.core.id, {
@@ -330,7 +391,9 @@ async function main(): Promise<void> {
   }
 
   const selfTickMs = Number.parseInt(process.env.AGENT_DAEMON_CADENCE_MS || '1800000', 10);
-  console.log(`[agent-daemon] start coreId=${core.id} channelId=${channelId} surface=${llm.surface} bus=${busRoot} selfTickMs=${selfTickMs}`);
+  const budgetCap = Number.parseInt(process.env.AGENT_DAEMON_LLM_BUDGET_HOURLY || '60', 10);
+  const budget = new LlmCallBudget(budgetCap);
+  console.log(`[agent-daemon] start coreId=${core.id} channelId=${channelId} surface=${llm.surface} bus=${busRoot} selfTickMs=${selfTickMs} budgetHourly=${budgetCap}`);
 
   let inFlight = 0;
   const sub = subscribeBusEvents(busRoot, channelId, (event) => {
@@ -338,7 +401,7 @@ async function main(): Promise<void> {
     if (inFlight > 0) return;
     inFlight += 1;
     handleTrigger(
-      { core, llm, busRoot, channelId: channelId!, memoRoot, ratePer5min, contextMinutes },
+      { core, llm, busRoot, channelId: channelId!, memoRoot, ratePer5min, contextMinutes, budget },
       event,
     )
       .catch((e) =>
@@ -367,6 +430,13 @@ async function main(): Promise<void> {
           scheduleSelfTick();
           return;
         }
+        if (!budget.canCall()) {
+          console.log(`[agent-daemon] self-tick skip budget-cap coreId=${core.id} count=${budget.count()}/${budget.capacity}`);
+          inFlight -= 1;
+          scheduleSelfTick();
+          return;
+        }
+        budget.record();
         const selfTrigger: BusEvent = {
           ts: new Date().toISOString(),
           type: 'channel-msg',
@@ -408,7 +478,7 @@ async function main(): Promise<void> {
 
   // healthy log heartbeat (no-news=bad-news 룰 정합)
   setInterval(() => {
-    console.log(`[agent-daemon] alive coreId=${core.id} inFlight=${inFlight}`);
+    console.log(`[agent-daemon] alive coreId=${core.id} inFlight=${inFlight} budget=${budget.count()}/${budget.capacity}`);
   }, 5 * 60 * 1000).unref();
 }
 
