@@ -110,13 +110,11 @@ export function summarizeTick(r: string, anchor = ''): string | null {
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
   const evo = s.match(/\+evolution:(\d+)/);
   if (evo && Number(evo[1]) > 0) bits.push(`팀 진화 이벤트 ${evo[1]}건 기록`);
-  const surg = s.match(/\+surgery:(seed:[^+]*|escalate)/);
+  const surg = s.match(/\+surgery:(seed:[^+]*|escalate|dedupe:[^+]*)/);
   if (surg) {
-    bits.push(
-      surg[1].startsWith('seed:')
-        ? `⚕ 자기수술 진단 완료 — 과제 시드 작성`
-        : `⚕ 자기수술 — 사람 판단 필요`,
-    );
+    if (surg[1].startsWith('seed:')) bits.push(`⚕ 자기수술 진단 완료 — 과제 시드 작성`);
+    else if (surg[1] === 'escalate') bits.push(`⚕ 자기수술 — 사람 판단 필요`);
+    else if (surg[1].startsWith('dedupe:')) bits.push(`⚕ 자기수술 — 같은 진단 24h 내 처리됨, 새 시드 skip`);
   }
   if (bits.length === 0) return null;
   const head = anchor.trim() || '🛰 팀 한 바퀴';
