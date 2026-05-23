@@ -239,8 +239,24 @@ export function formatStatusBoard(data: StatusBoardData): string {
     }
   }
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  // KST 표시 (사용자 시점 — 메모리 메타룰 [[feedback_time_always_kst]] 정합).
+  const kst = (() => {
+    try {
+      const d = new Date(data.ts);
+      const kstMs = d.getTime() + 9 * 3_600_000;
+      const k = new Date(kstMs);
+      const yyyy = k.getUTCFullYear();
+      const mm = String(k.getUTCMonth() + 1).padStart(2, '0');
+      const dd = String(k.getUTCDate()).padStart(2, '0');
+      const hh = String(k.getUTCHours()).padStart(2, '0');
+      const mi = String(k.getUTCMinutes()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${mi} KST`;
+    } catch {
+      return data.ts;
+    }
+  })();
   lines.push(
-    `_갱신 ${data.ts} · 다른 디스코드 메시지 = 내부 cron 펼치기 (스레드) — 모두 펴볼 필요 X_`,
+    `_갱신 ${kst} · 다른 디스코드 메시지 = 내부 cron 펼치기 (스레드) — 모두 펴볼 필요 X_`,
   );
   return lines.join('\n');
 }
