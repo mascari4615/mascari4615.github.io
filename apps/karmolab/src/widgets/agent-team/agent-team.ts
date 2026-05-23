@@ -410,19 +410,37 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           return;
         }
         cachedRepoRoot = repoRoot;
-        const [agents, objectives, sessions, proposals, bus] = (await Promise.all([
+        const [agents, objectives, sessions, proposals, bus, cards] = (await Promise.all([
           tauriInvoke('agent_team_list_agents', { repoRoot }),
           tauriInvoke('agent_team_list_objectives', { repoRoot }),
           tauriInvoke('agent_team_list_sessions', { repoRoot }),
           tauriInvoke('agent_team_list_proposals', { repoRoot }),
-          tauriInvoke('agent_team_list_bus', { repoRoot, limit: 15 })
-        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[], BusEntry[]];
+          tauriInvoke('agent_team_list_bus', { repoRoot, limit: 15 }),
+          tauriInvoke('agent_team_list_cards', { repoRoot, limit: 240 })
+        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[], BusEntry[], CardInfo[]];
         renderAgents(agents);
         renderObjectives(objectives);
         renderSessions(sessions);
         renderProposals(proposals);
         renderBus(bus);
-        meta.textContent = `${new Date().toLocaleTimeString('ko-KR', { hour12: false })} KST · repo=${repoRoot.split(/[\\/]/).slice(-2).join('/')}`;
+
+        // 24h 카드 카운트 (활동 펄스)
+        const now = Date.now();
+        const last24h = cards.filter((c) => {
+          const t = new Date(c.ts).getTime();
+          return !isNaN(t) && now - t < 24 * 3600 * 1000;
+        }).length;
+        const activeAgents = agents.filter((a) => (a.status || '').toLowerCase() === 'active').length;
+        const pendingProposals = proposals.filter((p) => !p.decided).length;
+        const liveSessions = sessions.filter((s) => /in_progress|active|deploy/i.test(s.state)).length;
+
+        const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+        const repoShort = repoRoot.split(/[\\/]/).slice(-2).join('/');
+        meta.innerHTML = `<span>${time} KST · repo=${escapeHtml(repoShort)}</span>
+          <span style="margin-left:.75rem">🟢 ${activeAgents}코어</span>
+          <span style="margin-left:.4rem">💼 ${liveSessions}세션</span>
+          <span style="margin-left:.4rem">📮 ${pendingProposals}대기</span>
+          <span style="margin-left:.4rem">📈 24h ${last24h}</span>`;
       } catch (e) {
         errBox.style.display = 'block';
         errBox.textContent = `로드 실패: ${String(e)}`;
