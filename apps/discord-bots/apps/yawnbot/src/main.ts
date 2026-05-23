@@ -49,6 +49,7 @@ import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-
 import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, defaultNotify, setTeamBusNotify } from './bot/governance-adapter';
+import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
@@ -558,6 +559,54 @@ client.once('clientReady', async () => {
         return null;
       }
     });
+    // TASK-KAR-018-INIT: 한 화면 status board sender 주입 (사용자 피드백
+    // "정신없음" — 매 tick edit 1개 메시지). setDashboardSink 동형 (client⊥agent-cadence).
+    // 채널 = #team-bus (agentCh 또는 webhook-routes default). pin 시도 = 권한
+    // 없으면 silent skip (best-effort).
+    {
+      const resolveTeamBus = (): string | null =>
+        agentCh ?? getLocalChannels('agent-team')[0] ?? null;
+      setStatusBoardSender({
+        send: async (channelId: string, content: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return null;
+            const m = await ch.send({ content: content.slice(0, 1900) });
+            return m.id;
+          } catch (e: any) {
+            console.error('[StatusBoard send]', e?.message ?? e);
+            return null;
+          }
+        },
+        edit: async (channelId: string, messageId: string, content: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return false;
+            await ch.messages.edit(messageId, { content: content.slice(0, 1900) });
+            return true;
+          } catch {
+            return false; // 메시지 삭제·권한 등 → send 폴백 트리거
+          }
+        },
+        pin: async (channelId: string, messageId: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return false;
+            const m = await ch.messages.fetch(messageId).catch(() => null);
+            if (!m) return false;
+            await m.pin('🛰 status board (KAR-018-INIT 한 화면 상태)');
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      });
+      // YAWNBOT_TEAM_BUS_CHANNEL_ID env 도 fallback path — cadence wiring 이
+      // 환경변수 우선이라 prod 명시 시 dev 격리 OK.
+      if (resolveTeamBus()) {
+        process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID = resolveTeamBus() || '';
+      }
+    }
     // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
     // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
     void sendLocalEvent(

@@ -84,6 +84,7 @@ import {
   type HealthSignals,
 } from './system-health';
 import { runInitiatorOnce } from './agent-initiator';
+import { runStatusBoardOnce } from './agent-status-board';
 import {
   listCoreIds,
   loadCoreDef,
@@ -1299,6 +1300,26 @@ export async function runCadenceTickOnce(
       r = `${r}+${init.label}`;
     } catch (e) {
       r = `${r}+init:error:${(e as Error).message?.slice(0, 30) || 'unknown'}`;
+    }
+  }
+  // 한 화면 status board (TASK-KAR-018-INIT 사용자 피드백 2026-05-23):
+  // "텍스트랑 채팅이 너무 많고, 뭘 기다리면 되는지·진행상황 모르겠음" → #team-bus
+  // 상단 *고정 메시지 1개* 매 tick edit (새 메시지 X). 사용자는 그 1개만 보면 끝.
+  // INIT *후* 호출 = 최신 finding (ledger seeded entry) 즉시 반영. best-effort·
+  // 비차단·sender 미주입 시 silent skip.
+  if (memoRoot && !isKilled()) {
+    try {
+      const sb = await runStatusBoardOnce(env, {
+        resolveChannelId: () =>
+          process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID?.trim() ||
+          process.env.AGENT_TEAM_CHANNEL_ID?.trim() ||
+          null,
+      });
+      if (sb !== 'status:no-sender' && sb !== 'status:no-channel') {
+        r = `${r}+${sb}`;
+      }
+    } catch {
+      /* status board 실패 = tick 비차단 */
     }
   }
   if (memoRoot && !isKilled()) {
