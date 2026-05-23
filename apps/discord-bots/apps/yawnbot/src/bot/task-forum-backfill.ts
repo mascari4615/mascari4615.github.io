@@ -36,13 +36,20 @@ const TASK_DIRS = [
   'projects/yawnbot/tasks',
 ];
 
-/** backfill 대상 status — 아직 살아있는 작업만. done/wont_do/archived 제외. */
+/** backfill 대상 status — 아직 살아있는 작업만. done/wont_do/archived/sealed/deferred/absorbed 제외.
+ *  in_review/unit_verified = 검증 대기 (작업 끝났지만 아직 done X — 사용자 시점 진행중).
+ *  design = WM phase (아키텍처/설계 단계 — 진행중).
+ *  hold = 일시 보류이지만 의도적 — 보여주는 게 안전. */
 const PICKABLE_STATUSES = new Set([
   'ready',
   'in_progress',
-  'active',
   'in-progress',
+  'active',
   'seed',
+  'in_review',
+  'unit_verified',
+  'design',
+  'hold',
 ]);
 
 const TASK_ID_RE = /^(TASK-(?:KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-[A-Z0-9][A-Z0-9-]*)/;
@@ -148,13 +155,20 @@ function domainFromTaskId(taskId: string): ForumDomain {
   return 'KAR';
 }
 
-/** md status → forum status tag. ledger reconciler 와 정합 (재사용). */
+/** md status → forum status tag. ledger reconciler 와 정합 (재사용).
+ *  in_review/unit_verified = approved (검증 후 done 직전 단계 시각 구분).
+ *  design = in-progress (설계 = 진행). hold/seed/ready = pending. */
 export function tagStatusFromTaskStatus(
   status: string,
-): 'in-progress' | 'pending' | 'done' | 'rejected' {
+): 'in-progress' | 'pending' | 'done' | 'rejected' | 'approved' {
   if (status === 'done') return 'done';
-  if (status === 'wont_do' || status === 'rejected' || status === 'archived') return 'rejected';
-  if (status === 'in_progress' || status === 'in-progress' || status === 'active') return 'in-progress';
+  if (status === 'wont_do' || status === 'rejected' || status === 'archived' || status === 'sealed') {
+    return 'rejected';
+  }
+  if (status === 'in_review' || status === 'unit_verified') return 'approved';
+  if (status === 'in_progress' || status === 'in-progress' || status === 'active' || status === 'design') {
+    return 'in-progress';
+  }
   return 'pending';
 }
 
@@ -184,8 +198,9 @@ export async function runTaskForumBackfillOnce(
       continue;
     }
     try {
-      // worker-report kind = "기 진행 중 작업" 의미적 디폴트 — proposal/discovery 아님.
-      const kind: ForumKind = 'worker-report';
+      // backfill = 이미 박힌 TASK md → forum-post. kind 'task' = TASK lifecycle
+      // object (proposal/worker-report/discovery 와 의미 구분).
+      const kind: ForumKind = 'task';
       const embed = {
         title: `🏷️ ${t.taskId}`,
         description: t.title,

@@ -89,39 +89,33 @@ describe('listPickableTasks', () => {
     mem = freshMemo();
   });
 
-  it('pickable status 만 (done/wont_do 제외)', () => {
-    writeTask(
-      mem.root,
-      'projects/yawnbot/tasks',
-      'TASK-YB-A.md',
-      '---\nstatus: ready\n---\n# A\n',
-    );
-    writeTask(
-      mem.root,
-      'projects/yawnbot/tasks',
-      'TASK-YB-B.md',
-      '---\nstatus: in_progress\n---\n# B\n',
-    );
-    writeTask(
-      mem.root,
-      'projects/yawnbot/tasks',
-      'TASK-YB-C.md',
-      '---\nstatus: seed\n---\n# C\n',
-    );
-    writeTask(
-      mem.root,
-      'projects/yawnbot/tasks',
-      'TASK-YB-D.md',
-      '---\nstatus: done\n---\n# D\n',
-    );
-    writeTask(
-      mem.root,
-      'projects/yawnbot/tasks',
-      'TASK-YB-E.md',
-      '---\nstatus: wont_do\n---\n# E\n',
-    );
-    const r = listPickableTasks(mem.root);
-    expect(r.map((t) => t.taskId).sort()).toEqual(['TASK-YB-A', 'TASK-YB-B', 'TASK-YB-C']);
+  it('pickable status: 9가지 포함 / done·wont_do·sealed·deferred·absorbed 제외', () => {
+    const cases: [string, string, boolean][] = [
+      ['A', 'ready', true],
+      ['B', 'in_progress', true],
+      ['C', 'seed', true],
+      ['D', 'done', false],
+      ['E', 'wont_do', false],
+      ['F', 'in_review', true],
+      ['G', 'unit_verified', true],
+      ['H', 'design', true],
+      ['I', 'hold', true],
+      ['J', 'active', true],
+      ['K', 'sealed', false],
+      ['L', 'deferred', false],
+      ['M', 'absorbed', false],
+    ];
+    for (const [id, status] of cases) {
+      writeTask(
+        mem.root,
+        'projects/yawnbot/tasks',
+        `TASK-YB-${id}.md`,
+        `---\nstatus: ${status}\n---\n# ${id}\n`,
+      );
+    }
+    const r = listPickableTasks(mem.root).map((t) => t.taskId).sort();
+    const expected = cases.filter(([, , p]) => p).map(([id]) => `TASK-YB-${id}`).sort();
+    expect(r).toEqual(expected);
   });
 
   it('5 TASK_DIRS 전체 스캔', () => {
@@ -161,7 +155,7 @@ interface FakeForum {
 function buildFakeForum(channelId: string): FakeForum {
   const createCalls: FakeForum['createCalls'] = [];
   const tags = [
-    'proposal', 'worker-report', 'discovery',
+    'proposal', 'task', 'worker-report', 'discovery',
     'pending', 'in-progress', 'approved', 'rejected', 'done',
     'WM', 'KAR', 'YB', 'KL',
   ].map((name) => ({ name, id: `t-${name}` }));
@@ -225,11 +219,16 @@ describe('runTaskForumBackfillOnce — 멱등 + 가시 로그', () => {
     expect(r.skipped).toBe(0);
     expect(r.errors).toBe(0);
     expect(forum.createCalls.length).toBe(2);
-    // YB 도메인 태그 확인
+    // YB 도메인 태그 + kind=task + status=pending(ready) 확인
     const ybCall = forum.createCalls.find((c) => c.name.startsWith('[TASK-YB-9]'));
     expect(ybCall).toBeTruthy();
     expect(ybCall!.appliedTags).toContain('t-YB');
     expect(ybCall!.appliedTags).toContain('t-pending');
+    expect(ybCall!.appliedTags).toContain('t-task');
+    // KAR in_progress → in-progress 태그 직접 박힘 (initialStatus, 2단계 회피)
+    const karCall = forum.createCalls.find((c) => c.name.startsWith('[TASK-KAR-9]'));
+    expect(karCall!.appliedTags).toContain('t-in-progress');
+    expect(karCall!.appliedTags).toContain('t-task');
   });
 
   it('두 번째 호출 = 같은 TASK 전부 skipped (멱등)', async () => {
