@@ -437,6 +437,21 @@ client.once('clientReady', async () => {
     );
   }
 
+  // TASK-YB-039 P5: md status drift → #team-work forum 태그 sync (단방향
+  // md=정본). 부팅 1회 + 주기 5분 (env override 가능). 멱등 — last-applied
+  // 캐시로 변화 없는 entry 는 API 미호출.
+  try {
+    const { reconcileTaskForumStatusOnce, startTaskForumReconciler } =
+      await import('./bot/task-forum-reconciler.js');
+    await reconcileTaskForumStatusOnce(client as any, process.env);
+    startTaskForumReconciler(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[TaskForumReconciler] 부팅 sync 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {
     const channel = await client.channels.fetch(channelId).catch(() => null);

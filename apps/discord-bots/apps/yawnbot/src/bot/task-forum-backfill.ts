@@ -148,11 +148,14 @@ function domainFromTaskId(taskId: string): ForumDomain {
   return 'KAR';
 }
 
-/** in-progress → forum status tag in-progress / 그 외 = pending (생성 시점만, evolve 로 후속). */
-function tagStatusFromTaskStatus(status: string): 'in-progress' | 'pending' {
-  return status === 'in_progress' || status === 'in-progress' || status === 'active'
-    ? 'in-progress'
-    : 'pending';
+/** md status → forum status tag. ledger reconciler 와 정합 (재사용). */
+export function tagStatusFromTaskStatus(
+  status: string,
+): 'in-progress' | 'pending' | 'done' | 'rejected' {
+  if (status === 'done') return 'done';
+  if (status === 'wont_do' || status === 'rejected' || status === 'archived') return 'rejected';
+  if (status === 'in_progress' || status === 'in-progress' || status === 'active') return 'in-progress';
+  return 'pending';
 }
 
 /**
@@ -198,6 +201,9 @@ export async function runTaskForumBackfillOnce(
         domain: domainFromTaskId(t.taskId),
         title: forumTitleForTask(t.taskId, t.title),
         embed,
+        // 초기 status 태그 = md status 매핑. in_progress TASK 가 'pending'
+        // 으로 잘못 박히는 2단계 (생성→evolve) 회피.
+        initialStatus: tagStatusFromTaskStatus(t.status),
       });
       if (!handle) {
         // forum 미프로비저닝 — 전체 중단 (다음 부팅 재시도).
@@ -211,11 +217,6 @@ export async function runTaskForumBackfillOnce(
         postId: handle.postId,
         channelId: handle.channelId,
       });
-      // forum 생성 시점에 in-progress 태그가 필요하면 별도 evolve — 디폴트
-      // pending(`createForumPost` 가 박음). in-progress 인 TASK 는 후속 evolve.
-      // 본 슬라이스는 가시화 우선이라 태그 변경은 P4 (cadence emit) 와 묶어
-      // 후속. 여기선 status 정보가 embed 본문에 박혀있어 사용자 정보 손실 0.
-      void tagStatusFromTaskStatus; // 참조 보존 — P4 에서 사용 예정
       stat.created += 1;
     } catch (e) {
       stat.errors += 1;
