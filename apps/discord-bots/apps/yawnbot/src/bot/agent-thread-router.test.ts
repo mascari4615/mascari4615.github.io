@@ -203,6 +203,82 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
   });
 });
 
+describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', () => {
+  function makeFakeClient() {
+    const sends: string[] = [];
+    const channel: any = {
+      type: ChannelType.GuildText,
+      threads: {
+        create: async () => ({ id: 'should-not-create' }),
+        fetchActive: async () => ({
+          threads: { values: () => [][Symbol.iterator]() },
+        }),
+        fetchArchived: async () => ({
+          threads: { values: () => [][Symbol.iterator]() },
+        }),
+      },
+      send: async (m: string) => {
+        sends.push(m);
+      },
+    };
+    const client: any = {
+      channels: {
+        fetch: async () => channel,
+      },
+    };
+    return { client, sends, channel };
+  }
+
+  const wait = () => new Promise((r) => setTimeout(r, 0));
+
+  it('silent + TASK-id 없는 메시지 = fallback 호출 0 + Discord send 0', async () => {
+    const f = makeFakeClient();
+    let fallbackCalled = 0;
+    const router = makeThreadRouter(f.client, {
+      resolveChannelId: () => 'CH',
+      fallback: () => {
+        fallbackCalled++;
+      },
+      onMissingTask: 'silent',
+    });
+    router('🛰 cadence digest — 일반 메시지 TASK-id 없음');
+    await wait();
+    await wait();
+    expect(fallbackCalled).toBe(0);
+    expect(f.sends.length).toBe(0);
+  });
+
+  it('silent + TASK-id 있는 메시지 = 스레드 라우팅 정상 (silent 무관)', async () => {
+    const f = makeFakeClient();
+    const router = makeThreadRouter(f.client, {
+      resolveChannelId: () => 'CH',
+      fallback: () => {},
+      onMissingTask: 'silent',
+    });
+    router('🤖 TASK-KAR-018-INIT 발의 결과');
+    await wait();
+    await wait();
+    // 스레드 생성 + 포인터 1회 (silent 는 missing 경우만)
+    expect(f.sends.length).toBe(1);
+    expect(f.sends[0]).toContain('TASK-KAR-018-INIT');
+  });
+
+  it('default (옵션 미명시) = 기존 fallback 동작 (backwards compat)', async () => {
+    const f = makeFakeClient();
+    let fallbackCalled = 0;
+    const router = makeThreadRouter(f.client, {
+      resolveChannelId: () => 'CH',
+      fallback: () => {
+        fallbackCalled++;
+      },
+    });
+    router('🛰 cadence digest — 일반');
+    await wait();
+    await wait();
+    expect(fallbackCalled).toBe(1);
+  });
+});
+
 describe('chunkForDiscord (순수·결정적)', () => {
   it('한도 이하 = 1청크', () => {
     expect(chunkForDiscord('짧은 보고')).toEqual(['짧은 보고']);

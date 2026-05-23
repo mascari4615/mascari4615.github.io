@@ -442,6 +442,14 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // 2026-05-23 사용자 피드백 "텍스트랑 채팅이 너무 많고 정신없음" fix:
+        // TASK-id 추출 실패 메시지(digest·ticker·qc·등)는 메인 채널 spam X.
+        // 정보 통합 = status board 1개 메시지 (cadence INIT 후 매 tick edit).
+        // env `AGENT_NOTIFY_FALLBACK=fallback` 으로 명시적 override 가능.
+        onMissingTask:
+          process.env.AGENT_NOTIFY_FALLBACK?.trim() === 'fallback'
+            ? 'fallback'
+            : 'silent',
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
