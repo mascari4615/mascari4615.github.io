@@ -75,17 +75,22 @@ pub struct SessionInfo {
 }
 
 fn memo_root(repo_root: &str) -> PathBuf {
-    // umbrella: karmoddrine/memo/ ↔ Mascari4615.github.io/ 가 형제.
-    // repo_root 가 github.io 루트일 때 ../memo 로 해소. 아닐 경우(직접 memo) 그대로.
+    // 3 케이스 (KAR-116 버그 fix 2026-05-23):
+    //  ① repo_root 자체가 memo (직계 `.claude` 포함)
+    //  ② umbrella karmoddrine/ — `repo_root/memo/.claude` (사용자 보편 = `C:\...\karmoddrine`)
+    //  ③ 형제 — `repo_root/../memo/.claude` (repo_root 가 github.io 일 때)
     let p = PathBuf::from(repo_root);
-    let direct = p.join(".claude");
-    if direct.exists() {
+    if p.join(".claude").exists() {
         return p;
     }
-    let sibling = p.parent().map(|x| x.join("memo"));
-    if let Some(s) = sibling.as_ref() {
-        if s.join(".claude").exists() {
-            return s.clone();
+    let nested = p.join("memo");
+    if nested.join(".claude").exists() {
+        return nested;
+    }
+    if let Some(parent) = p.parent() {
+        let sibling = parent.join("memo");
+        if sibling.join(".claude").exists() {
+            return sibling;
         }
     }
     p
@@ -353,13 +358,23 @@ pub struct CadenceTickResult {
 }
 
 fn yawnbot_dir(repo_root: &str) -> PathBuf {
-    // umbrella 형제 = github.io. yawnbot 경로 = github.io/apps/discord-bots/apps/yawnbot.
+    // 3 케이스 동형 — KAR-116 path-resolve fix.
     let p = PathBuf::from(repo_root);
     let direct = p.join("apps").join("discord-bots").join("apps").join("yawnbot");
     if direct.exists() {
         return direct;
     }
-    // repo_root 가 memo 인 경우 형제 github.io 로
+    // umbrella karmoddrine: repo_root/Mascari4615.github.io/...
+    let nested = p
+        .join("Mascari4615.github.io")
+        .join("apps")
+        .join("discord-bots")
+        .join("apps")
+        .join("yawnbot");
+    if nested.exists() {
+        return nested;
+    }
+    // memo 형제: repo_root/../Mascari4615.github.io/...
     if let Some(parent) = p.parent() {
         let sibling = parent
             .join("Mascari4615.github.io")
