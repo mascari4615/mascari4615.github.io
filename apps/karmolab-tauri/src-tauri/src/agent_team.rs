@@ -448,6 +448,53 @@ pub async fn agent_team_run_cadence_tick(
         .map_err(|e| format!("spawn_blocking join 실패: {e}"))?
 }
 
+fn run_cadence_tick_prod_blocking(
+    repo_root: String,
+    include_worker: bool,
+) -> Result<CadenceTickResult, String> {
+    // 노트북 yawnbot-prod cadence 1회 = memo/scripts/yawnbot-prod-cadence-tick.mjs
+    // (laptop-ops `/exec` 게이트웨이 우회). 데스크톱 측 ~/.laptop-ops-token 자동 로드.
+    let memo = memo_root(&repo_root);
+    let script = memo.join("scripts").join("yawnbot-prod-cadence-tick.mjs");
+    if !script.exists() {
+        return Err(format!("prod-cadence-tick script 없음: {}", script.display()));
+    }
+
+    let started = std::time::Instant::now();
+    let mut cmd = std::process::Command::new(if cfg!(windows) { "node.exe" } else { "node" });
+    cmd.current_dir(&memo).arg(&script);
+    if include_worker {
+        cmd.arg("--include-worker");
+    }
+    cmd.stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
+
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000);
+
+    let output = cmd.output().map_err(|e| format!("node spawn 실패: {e}"))?;
+    let elapsed_ms = started.elapsed().as_millis();
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    Ok(CadenceTickResult {
+        ok: output.status.success(),
+        elapsed_ms,
+        stdout_tail: tail_lines(&stdout, 30),
+        stderr_tail: tail_lines(&stderr, 30),
+        exit_code: output.status.code(),
+    })
+}
+
+#[tauri::command]
+pub async fn agent_team_run_cadence_tick_prod(
+    repo_root: String,
+    include_worker: Option<bool>,
+) -> Result<CadenceTickResult, String> {
+    let iw = include_worker.unwrap_or(false);
+    tauri::async_runtime::spawn_blocking(move || run_cadence_tick_prod_blocking(repo_root, iw))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {e}"))?
+}
+
 fn read_cards_blocking(repo_root: String, limit: usize) -> Result<Vec<CardInfo>, String> {
     let memo = memo_root(&repo_root);
     let mut all: Vec<CardInfo> = Vec::new();

@@ -27,7 +27,7 @@ use adventure::{
 use agent_team::{
     agent_team_decide_proposal, agent_team_list_agents, agent_team_list_cards,
     agent_team_list_objectives, agent_team_list_proposals, agent_team_list_sessions,
-    agent_team_run_cadence_tick,
+    agent_team_run_cadence_tick, agent_team_run_cadence_tick_prod,
 };
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
