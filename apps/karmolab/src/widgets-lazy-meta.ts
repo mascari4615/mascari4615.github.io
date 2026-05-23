@@ -158,17 +158,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['quest-log/quest-log']
   },
   {
-    id: 'karmoddrine-map',
-    title: 'karmoddrine 지도',
-    category: 'lab',
-    desktopOnly: true,
-    desc: 'umbrella 전체 토폴로지 — D3 force graph (드래그/줌/hover/클릭 패널). TASK-KAR-091 Phase 1 MVP, 정적 schema',
-    layout: 'full',
-    noHero: true,
-    icon: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="5" y2="18" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="18" stroke="currentColor" stroke-width="1.3"/>',
-    lazyScriptPaths: ['karmoddrine-map/karmoddrine-map']
-  },
-  {
     id: 'task-launcher',
     title: 'TASK Launcher',
     category: 'tool',
@@ -178,6 +167,17 @@ window.KARMOLAB_LAZY_META = [
     noHero: true,
     icon: '<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M16 16l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     lazyScriptPaths: ['task-launcher']
+  },
+  {
+    id: 'cockpit',
+    title: 'Cockpit',
+    category: 'lab',
+    desktopOnly: true,
+    desc: '프로젝트 구조·상황 단일 표면 — Unity Shader Graph 식 노드 그래프 + TASK 탭 (TASK-KL-082, 통합 위젯)',
+    layout: 'full',
+    noHero: true,
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6h4M6 10v4M18 10v4M10 18h4" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['cockpit/cockpit']
   },
   {
     id: 'terminal',
