@@ -291,11 +291,15 @@ export async function handleYawn(ctx: BotContext, interaction: ChatInputCommandI
     if (blobPrompt.length > maxFullClamped) {
       blobPrompt = blobPrompt.slice(0, maxFullClamped) + '\n\n…(앞부분·맥락이 잘렸습니다)';
     }
+    // TASK-KAR-145: 사용자 가시 응답 = 'standard' tier (풀 품질). modelOpt 명시 시
+    // 그게 우선 (resolveGeminiModelId: explicit > tier). usage telemetry tag.
     const { text: response, surface: usedSurface, modelId: usedModelId } =
       await generateBlobTextFromEnvWithOptions(process.env, blobPrompt, {
         surface: surfaceOverride,
         modelId: modelOpt,
+        tier: modelOpt ? undefined : 'standard',
         systemInstruction,
+        tag: 'yawnbot/yawn-slash',
       });
     await stopGeminiTicker();
     stopGeminiTicker = async () => {};

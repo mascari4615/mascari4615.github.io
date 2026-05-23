@@ -7,6 +7,7 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
+import type { GeminiTextTier } from 'karmolab-ai';
 import {
   SessionRegistry,
   spawnTier3,
@@ -28,25 +29,45 @@ export const registry = new SessionRegistry();
 /**
  * 에이전트 대화·발굴 Gemini 호출 — Vertex 우선, 실패 시 AI Studio 폴백.
  * (사용자 결정 KAR-018-Y, 2026-05-17).
+ *
+ * **TASK-KAR-145**: tier/systemInstruction/tag 옵션 추가.
+ * - `tier` 미지정 = 기존 동작(env GEMINI_MODEL / 패키지 default = 2.5-flash standard).
+ *   `'lite'` 명시 = 짧은 voicing/말투 보정용(가격 ~1/3). `'pro'` = 복잡 추론.
+ *   callers 가 *명시적*으로 박는다 — silent 다운그레이드 X (retro/surgery 추론 정합).
+ * - `systemInstruction` = 안정 prefix (persona·mission·portfolio·skin) →
+ *   Gemini implicit cache hit 정렬 (청구 25%).
+ * - `tag` = telemetry 분류 라벨 (`yawnbot/voiced-worker` 등). `KARMOLAB_AI_USAGE_LOG=1`
+ *   환경에서 어디서 비싼지 식별 가능.
  */
 export async function generateAgentText(
   env: NodeJS.ProcessEnv,
   prompt: string,
   timeoutMs: number,
+  opts: {
+    tier?: GeminiTextTier;
+    systemInstruction?: string;
+    tag?: string;
+  } = {},
 ): Promise<string> {
   const base = { ...env, ASSISTANT_AI_PROVIDER: 'gemini' };
+  const passthrough = {
+    timeoutMs,
+    tier: opts.tier,
+    systemInstruction: opts.systemInstruction,
+    tag: opts.tag,
+  };
   try {
     const r = await generateAssistantText(
       { ...base, KARMOLAB_AI_SURFACE: 'vertex' },
       prompt,
-      { timeoutMs },
+      passthrough,
     );
     return r.text;
   } catch {
     const r = await generateAssistantText(
       { ...base, KARMOLAB_AI_SURFACE: 'aiStudio' },
       prompt,
-      { timeoutMs },
+      passthrough,
     );
     return r.text;
   }

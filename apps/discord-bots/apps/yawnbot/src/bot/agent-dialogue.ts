@@ -108,6 +108,53 @@ export function decideDialogueTurn(
  * 반응. 도구·파일 접근 없음(비-agentic 안전, 발굴 hang 교훈 정합).
  * 미션 = 정렬 anchor. 잡담·만연체 금지 = #team-bus 신호 가치 보존.
  */
+/**
+ * **TASK-KAR-145**: split 빌더 — {system, user} 분리.
+ * system = 안정 prefix (정체성·역할·규약·skinHint·미션 anchor) → 같은 responder+mission
+ * 의 N콜 = Gemini implicit cache prefix-match → 청구 25% (cached 토큰).
+ * user = 동적 (동료 발화·반응 지시).
+ *
+ * 기존 `buildDialoguePrompt` 는 join wrapper (BC 보존, 테스트 무수정).
+ */
+export function buildDialoguePromptSplit(
+  responder: CoreDef,
+  speakerLabel: string,
+  u: PeerUtterance,
+  missionText: string,
+  skinHint?: string,
+): { system: string; user: string } {
+  const kindKo =
+    u.kind === 'proposal'
+      ? '제안'
+      : u.kind === 'worker-report'
+        ? '작업 착수 보고'
+        : 'objective';
+  const system = [
+    `너는 "${responder.id}". karmoddrine 에이전트 팀의 동료다.`,
+    responder.role ? `직무: ${responder.role}` : '',
+    '도구·파일 접근 없이 *아래 텍스트만으로* 단일턴 추론한다',
+    '(파일 읽기 시도 X — 불가, 빈 출력 낭비).',
+    '',
+    '[너의 역할 — 팀 단톡방(#team-bus)에서 *동료로서* 1턴 반응]',
+    '· 네 직무·도메인 관점에서 짧게: 동의/구체 보강 1개/우려·중복 지적/',
+    '  네 도메인이면 "이거 내가 가져갈게" 인수 의사 중 *하나*.',
+    '· 동료(비개발자)이 읽는다 — 평이체. 내부 코드명·§조항·영어약어·',
+    '  파일경로 금지. 만연체 X. 잡담·인사·요약반복 X.',
+    '· 새 작업을 *실행*하지 마라(여긴 대화방). 관점만.',
+    skinHint ? `[너의 캐릭터 말투] ${skinHint} — 이 말투를 유지하라.` : '',
+    '',
+    '[미션 정렬 anchor — 네 반응이 아래에 정렬되는지 자가검사]',
+    missionText.trim().slice(0, 1500),
+    '',
+    '확신 없으면 정확히 "PASS" 한 단어만 출력(억지 발화 X = 노이즈 방지).',
+  ].filter(Boolean).join('\n');
+  const user = [
+    `[동료 ${speakerLabel} 의 ${kindKo}]`,
+    u.text.trim().slice(0, 1200),
+  ].join('\n');
+  return { system, user };
+}
+
 export function buildDialoguePrompt(
   responder: CoreDef,
   speakerLabel: string,
@@ -288,6 +335,75 @@ function threadBlock(turns: DeliberationTurnRec[]): string[] {
       (t) => `· (${t.coreId}/${t.phase}) ${t.text.trim().slice(0, 400)}`,
     ),
   ];
+}
+
+/**
+ * **TASK-KAR-145** deliberation split — system(안정) + user(동적) 분리.
+ * system = responder identity + role + 동료 행동규약 + skinHint + missionText + portfolioBlock.
+ * user = channel context + 동료 제안 + thread + phase 별 task 지시.
+ *
+ * 같은 (responder, mission, portfolio, skin) 의 N콜 = system prefix 동일 →
+ * Gemini implicit cache hit (challenge / refine / converge 3-phase × N peer × N proposal).
+ */
+export function buildDeliberationPromptSplit(
+  phase: DeliberationPhase,
+  responder: CoreDef,
+  speakerLabel: string,
+  u: PeerUtterance,
+  state: Pick<DeliberationState, 'turns'>,
+  missionText: string,
+  portfolioBlock = '',
+  skinHint?: string,
+  channelContextText = '',
+): { system: string; user: string } {
+  const system = deliberationHeader(
+    responder.id,
+    responder.role,
+    missionText,
+    portfolioBlock,
+    skinHint,
+  ).join('\n');
+  const channelBlock = channelContextText.trim()
+    ? [
+        '[팀 채널(#team-bus) 직전 발언 — 사용자·동료 최근 맥락]',
+        '※ 사용자가 채널에 박은 의견·요청이 있으면 이번 의견에 *우선* 반영.',
+        channelContextText.trim().slice(0, 1500),
+        '',
+      ]
+    : [];
+  const proposalBlock = [
+    `[동료 ${speakerLabel} 의 제안]`,
+    u.text.trim().slice(0, 1200),
+  ];
+  const tail = threadBlock(state.turns)
+    .filter((l) => l !== '')
+    .map((l) => l)
+    .concat(['']);
+  const task =
+    phase === 'challenge'
+      ? [
+          '[너의 역할 — 동료로서 *진짜 검토* 1턴 (형식적 맞장구 폐기)]',
+          '아래 *셋 중 하나*를 구체적으로:',
+          '① 우려: 이 제안의 *구체 리스크/허점* 1개 — 무엇이·왜 문제인가.',
+          '② 대안: 더 나은 방향 1개 — 왜 그게 나은가.',
+          '③ 근거 있는 찬성: 이게 팀 북극성을 *어떻게* 전진시키는지 +',
+          '   놓친 전제 1개 보강. (그냥 "좋다/동의"만 = 폐기, 무의미.)',
+          '맨 동의·빈말은 출력하지 마라. 할 말 진짜 없으면 정확히 "PASS".',
+        ]
+      : phase === 'refine'
+        ? [
+            `[너는 제안자(${speakerLabel}). 동료가 위 우려/대안 제기]`,
+            '그에 *정면 응답* 1턴: 수용해 제안을 보강하거나 / 근거로',
+            '방어하거나 / 대안을 부분 채택. 회피·반복·일반론 X. 구체적으로.',
+          ]
+        : [
+            '[종합 — 토론을 *닫아라*. 한 줄 결정 + 한 줄 사유]',
+            '첫 줄 정확히 하나: "결정: 채택" / "결정: 수정 채택 — <무엇>" /',
+            '"결정: 반려 — <왜>" / "결정: 사용자 판단 필요 — <쟁점>".',
+            '둘째 줄 = 평이체 사유 1줄. 그 외 텍스트 금지.',
+          ];
+  const user = [...channelBlock, ...proposalBlock, '', ...tail, ...task].join('\n');
+  return { system, user };
 }
 
 /**

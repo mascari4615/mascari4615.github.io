@@ -98,6 +98,7 @@ import {
   decideDialogueTurn,
   nextDeliberationStep,
   buildDeliberationPrompt,
+  buildDeliberationPromptSplit,
   classifyDeliberationReply,
   type DeliberationState,
   type DeliberationTurnRec,
@@ -817,14 +818,20 @@ export async function runCoreDialogueOnce(
     deps.reserve ?? ((c: string) => reserveBudget(c, `dialogue:${c}`));
   const cooldown =
     deps.cooldown ?? ((c: string) => checkAndStampCooldown(c, 'dialogue'));
-  const generate =
-    deps.generate ??
-    ((prompt: string) =>
+  // TASK-KAR-145: generate 콜백을 2-arg(user, system) 로 확장. legacy 1-arg deps.generate
+  // 는 합쳐서 호출 (BC). 신규 호출 = systemInstruction 분리 + tier='lite' + tag.
+  type GenerateSplit = (user: string, system?: string) => Promise<string>;
+  const generate: GenerateSplit =
+    (deps.generate as GenerateSplit | undefined) ??
+    ((user: string, system?: string) =>
       // 코어↔코어 대화 = Gemini(Vertex 우선→AI Studio 폴백, KAR-018-Y).
+      // TASK-KAR-145: 짧은 동료 반응(평이체) = lite tier 충분. system prefix
+      // 안정 → implicit cache hit (responder+mission+portfolio 같은 ticks).
       generateAgentText(
         env,
-        prompt,
+        user,
         Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
+        { tier: 'lite', systemInstruction: system, tag: 'yawnbot/deliberation' },
       ));
   const speak =
     deps.speak ??
@@ -894,19 +901,18 @@ export async function runCoreDialogueOnce(
 
     let text = '';
     try {
-      text = await generate(
-        buildDeliberationPrompt(
-          step.phase,
-          spCore,
-          step.phase === 'refine' ? coreLabel(coreOf(state.peerCoreId)!) : speakerLabel,
-          u,
-          state,
-          missionText,
-          portfolioBlock,
-          loadSkinPersona(memoRoot, sp),
-          dialogueChannelCtx,
-        ),
+      const split = buildDeliberationPromptSplit(
+        step.phase,
+        spCore,
+        step.phase === 'refine' ? coreLabel(coreOf(state.peerCoreId)!) : speakerLabel,
+        u,
+        state,
+        missionText,
+        portfolioBlock,
+        loadSkinPersona(memoRoot, sp),
+        dialogueChannelCtx,
       );
+      text = await generate(split.user, split.system);
     } catch (e) {
       if (first) {
         appendTrace(env, {
