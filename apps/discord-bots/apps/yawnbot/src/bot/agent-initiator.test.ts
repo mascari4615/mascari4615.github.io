@@ -300,6 +300,32 @@ describe('runInitiatorOnce — deliberation handoff (출력 layer #3)', () => {
   });
 });
 
+// E2E behavior verify: INIT envelope → agent-cadence readLatestProposal 픽업
+describe('appendDeliberationEnvelope ↔ readLatestProposal 호환 (E2E handoff)', () => {
+  it('INIT envelope = 다음 tick dialogue 의 readLatestProposal 호환 (id+payload.title/body+domain)', () => {
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      seedTasks: false,
+    });
+    expect(r.deliberationIds).toHaveLength(1);
+    // proposals.jsonl 의 envelope = readLatestProposal 가 파싱하는 형식 검증
+    // (agent-cadence.ts readLatestProposal: e.envelope.payload.title|summary|name)
+    const raw = fs
+      .readFileSync(path.join(root, '.claude', 'proposals.jsonl'), 'utf-8')
+      .trim();
+    const env0 = JSON.parse(raw);
+    // 필수 필드 (agent-cadence.ts:712 readLatestProposal 정합)
+    expect(env0.id).toBeTruthy();
+    expect(env0.envelope?.payload?.title).toBeTruthy();
+    expect(env0.envelope?.payload?.body).toBeTruthy();
+    expect(env0.envelope?.payload?.domain).toBeTruthy();
+    expect(env0.envelope?.projectId).toBe('kar-018');
+    // initiator origin 마커 (deliberation 측에서 INIT 발의 식별 가능)
+    expect(env0.envelope.payload.body).toContain('[INITIATOR-AUTO]');
+    expect(env0.id).toMatch(/^initiator-/);
+  });
+});
+
 describe('writeCoreSpecDraft — new-core kind 시 core.md draft 자동 생성', () => {
   it('worker-fail-critical → triage-worker id + role 추론', () => {
     const cid = writeCoreSpecDraft(
