@@ -42,17 +42,18 @@ const Toolbox = (() => {
 
     /* ===== 카테고리 & 메타데이터 ===== */
 
+    // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039) — 위젯은 일반
+    // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
     const CATEGORIES = [
         { id: 'tool', label: '도구', icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.15a2.1 2.1 0 0 1-3-3l6.72-6.72a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
         { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
-        { id: 'desktop', label: '데스크톱 앱', icon: '<rect x="2" y="4" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="20" x2="16" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
     ];
 
-    /** 위젯별 메타데이터 (category, desc, hidden 등) — 각 위젯 register에서 정의 */
+    /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
     function getToolMeta(id) {
         const t = tools.find(x => x.id === id);
-        return t ? { category: t.category, desc: t.desc, hidden: t.hidden } : null;
+        return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
     }
     const LAST_PAGE_KEY = 'toolbox_last_page';
     const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
@@ -584,9 +585,10 @@ const Toolbox = (() => {
         win.onResized?.(() => { void syncMaximized(); }).catch(() => {});
     }
 
-    /** 데스크톱 전용(category desktop) 도구는 일반 브라우저에서 메뉴·페이지에 넣지 않음 */
+    /** 데스크톱 전용(desktopOnly 플래그) 도구는 일반 브라우저에서 메뉴·페이지에 넣지 않음.
+     *  레거시: category==='desktop' 도 데스크톱전용으로 취급 (마이그 안전망). */
     function isDesktopOnlyTool(tool) {
-        return tool && tool.category === 'desktop';
+        return tool && (tool.desktopOnly === true || tool.category === 'desktop');
     }
 
     function mirrorToastToDesktop(msg, type, detailText) {
@@ -719,7 +721,7 @@ const Toolbox = (() => {
 
             CATEGORIES.forEach(cat => {
                 const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (cat.id !== 'desktop' || isDesktopApp()))
+                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
                 buildHeaderNavGroup(cat.label, catTools, headerNavScroll);
             });
@@ -771,7 +773,7 @@ const Toolbox = (() => {
 
             CATEGORIES.forEach(cat => {
                 const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (cat.id !== 'desktop' || isDesktopApp()))
+                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
                 buildSidebarGroup(cat.id, cat.label, catTools);
             });

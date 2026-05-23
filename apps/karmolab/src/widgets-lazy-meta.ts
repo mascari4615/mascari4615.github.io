@@ -148,7 +148,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'quest-log',
     title: 'Quest Log',
-    category: 'desktop',
+    category: 'lab',
+    desktopOnly: true,
     desc: 'memo TASK 트리 — Tauri 전용 (memo 폴더 런타임 read, 6 도메인 그룹 + parent chain + 체크박스 진행도, 2s 폴링)',
     layout: 'full',
     noHero: true,
@@ -158,7 +159,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'karmoddrine-map',
     title: 'karmoddrine 지도',
-    category: 'desktop',
+    category: 'lab',
+    desktopOnly: true,
     desc: 'umbrella 전체 토폴로지 — D3 force graph (드래그/줌/hover/클릭 패널). TASK-KAR-091 Phase 1 MVP, 정적 schema',
     layout: 'full',
     noHero: true,
@@ -168,7 +170,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'task-launcher',
     title: 'TASK Launcher',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: 'memo TASK 파일 flat 검색 + 외부 에디터 즉시 오픈 + 새 TASK 즉석 생성 (id 자동 발급, frontmatter skeleton)',
     layout: 'full',
     noHero: true,
@@ -178,7 +181,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'terminal',
     title: 'PowerShell 터미널',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: '카드 stdin 무관 단일 셸 (line-IO). pwsh→powershell.exe fallback, cd/Set-Location 자동 추적, 5000줄 cap',
     layout: 'full',
     noHero: true,
@@ -188,7 +192,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'claude-env',
     title: 'Claude 환경',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: 'Claude Code Stop/Notification hook 사운드 알림 GUI — memo/dotfiles 정본 (v1: read 만, Step 2+: write + sync + preview + wav drag-drop)',
     layout: 'form',
     icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
@@ -197,7 +202,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'agent-team',
     title: '에이전트 팀',
-    category: 'desktop',
+    category: 'lab',
+    desktopOnly: true,
     desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1: roster + objectives + 활성 세션 read-only)',
     layout: 'full',
     icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
@@ -206,7 +212,8 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'alarm',
     title: '알람',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: '강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상(절전 깨우기/모니터 ON/볼륨 강제) + autostart',
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v4l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 3 2 6M19 3l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
