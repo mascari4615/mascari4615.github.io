@@ -480,6 +480,29 @@ async function main(): Promise<void> {
   setInterval(() => {
     console.log(`[agent-daemon] alive coreId=${core.id} inFlight=${inFlight} budget=${budget.count()}/${budget.capacity}`);
   }, 5 * 60 * 1000).unref();
+
+  // KAR-018-LT-PEER-ONLY P-5: !kill watcher. memo/.claude/agent-kill 파일 존재
+  // = 모든 daemon 즉시 graceful exit. 30s polling — 진짜 비상 차단 (사용자 panic
+  // button). peer-only 정합: 각 daemon 자율 watch, 중앙 broadcast 없음.
+  const killFile = path.join(memoRoot, '.claude', 'agent-kill');
+  // 시작 시 1회 즉시 확인
+  if (fs.existsSync(killFile)) {
+    console.log(`[agent-daemon] !kill 파일 존재 (${killFile}) — 시작 거부, 즉시 exit`);
+    sub.stop();
+    process.exit(7);
+  }
+  setInterval(() => {
+    try {
+      if (fs.existsSync(killFile)) {
+        console.log(`[agent-daemon] !kill 감지 (${killFile}) — graceful exit coreId=${core.id}`);
+        sub.stop();
+        clearTimeout(selfTickTimer);
+        setTimeout(() => process.exit(7), 200);
+      }
+    } catch {
+      /* fs error = silent (watcher 자체가 daemon 막지 X) */
+    }
+  }, 30 * 1000).unref();
 }
 
 // entry: node ... agent-daemon.js
