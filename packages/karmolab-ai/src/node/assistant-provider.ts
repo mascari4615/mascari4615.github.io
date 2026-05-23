@@ -13,8 +13,13 @@ import {
   generateBlobTextFromEnvWithOptions,
   generateVertexText,
   parseGenerativeSurfaceFromEnv,
-  resolveAiStudioTextModelId,
+  resolveGeminiModelId,
 } from './text';
+import {
+  type GeminiTextTier,
+  type UsageRecorder,
+  recordUsage,
+} from '../index';
 
 // TASK-KAR-115-A — provider union 확장. 기존 3종(gemini/claude-cli/codex-cli)
 // 동작 변경 0 (회귀 베이스라인). 신규 = openai/ollama/openrouter.
@@ -79,7 +84,14 @@ async function callOne(
   provider: AssistantAiProvider,
   env: NodeJS.ProcessEnv,
   prompt: string,
-  opts: { timeoutMs?: number; history?: ChatContent[]; systemInstruction?: string },
+  opts: {
+    timeoutMs?: number;
+    history?: ChatContent[];
+    systemInstruction?: string;
+    tier?: GeminiTextTier | null;
+    tag?: string;
+    onUsage?: UsageRecorder | null;
+  },
 ): Promise<string> {
   if (provider === 'claude-cli') {
     const cwd = env.ASSISTANT_AGENT_REPO_PATH?.trim() || undefined;
@@ -110,38 +122,56 @@ async function callOne(
     const { text } = await generateOllamaText({ config, messages });
     return text;
   }
-  // provider === 'gemini' (default) — 기존 경로 그대로 (회귀 0).
+  // provider === 'gemini' (default). TASK-KAR-145: tier/tag/onUsage propagate + usage 기록.
   if (opts.systemInstruction || (opts.history && opts.history.length > 0)) {
     const surface = parseGenerativeSurfaceFromEnv(env);
+    const modelId = resolveGeminiModelId({ tier: opts.tier, env });
+    const t0 = Date.now();
     if (surface === 'vertex') {
       const apiKey = env.VERTEX_API_KEY?.trim();
       const projectId = env.VERTEX_PROJECT_ID?.trim();
       if (!apiKey || !projectId) {
         throw new Error('Vertex API: .env에 VERTEX_API_KEY와 VERTEX_PROJECT_ID가 필요합니다.');
       }
-      return generateVertexText({
+      const r = await generateVertexText({
         apiKey,
         projectId,
         location: env.VERTEX_LOCATION?.trim() || null,
-        modelId: resolveAiStudioTextModelId(env.GEMINI_MODEL),
+        modelId,
         userText: prompt,
         systemInstruction: opts.systemInstruction,
         history: opts.history,
         safetyThreshold: env.VERTEX_SAFETY_THRESHOLD?.trim() || null,
       });
+      recordUsage(r.usage, {
+        provider: 'gemini', surface: 'vertex', modelId: r.modelId,
+        tier: opts.tier ?? undefined, tag: opts.tag,
+        durationMs: Date.now() - t0, ts: new Date().toISOString(),
+      }, opts.onUsage);
+      return r.text;
     }
     const apiKey = env.GEMINI_API_KEY?.trim();
     if (!apiKey) throw new Error('AI Studio API: .env에 GEMINI_API_KEY가 필요합니다.');
-    const modelId = resolveAiStudioTextModelId(env.GEMINI_MODEL);
-    return generateAiStudioChatText({
+    const r = await generateAiStudioChatText({
       apiKey,
       modelId,
       systemInstruction: opts.systemInstruction,
       history: opts.history ?? [],
       message: prompt,
     });
+    recordUsage(r.usage, {
+      provider: 'gemini', surface: 'aiStudio', modelId: r.modelId,
+      tier: opts.tier ?? undefined, tag: opts.tag,
+      durationMs: Date.now() - t0, ts: new Date().toISOString(),
+    }, opts.onUsage);
+    return r.text;
   }
-  const { text } = await generateBlobTextFromEnvWithOptions(env, prompt, { surface: 'inherit' });
+  const { text } = await generateBlobTextFromEnvWithOptions(env, prompt, {
+    surface: 'inherit',
+    tier: opts.tier,
+    tag: opts.tag,
+    onUsage: opts.onUsage,
+  });
   return text;
 }
 
@@ -155,7 +185,14 @@ async function callOne(
 export async function generateAssistantText(
   env: NodeJS.ProcessEnv,
   prompt: string,
-  opts: { timeoutMs?: number; history?: ChatContent[]; systemInstruction?: string } = {},
+  opts: {
+    timeoutMs?: number;
+    history?: ChatContent[];
+    systemInstruction?: string;
+    tier?: GeminiTextTier | null;
+    tag?: string;
+    onUsage?: UsageRecorder | null;
+  } = {},
 ): Promise<{ text: string; provider: AssistantAiProvider }> {
   const primary = resolveAssistantProvider(env);
   const chain = resolveProviderChain(env, primary);
