@@ -116,6 +116,17 @@ export function summarizeTick(r: string, anchor = ''): string | null {
     else if (surg[1] === 'escalate') bits.push(`⚕ 자기수술 — 사람 판단 필요`);
     else if (surg[1].startsWith('dedupe:')) bits.push(`⚕ 자기수술 — 같은 진단 24h 내 처리됨, 새 시드 skip`);
   }
+  // INIT (팀 자율 발의) — 사용자 체감 면 「자기들끼리 뭘 만들어볼까」 가시화.
+  // no-signal / below-threshold = 진짜 idle = silent (스팸 X).
+  const initProp = s.match(/\+init:proposed:(\d+)(?:\+deduped:(\d+))?/);
+  if (initProp) {
+    const n = initProp[1];
+    const ded = initProp[2];
+    bits.push(ded ? `🌱 새 발의 ${n}건 (+ 24h 중복 ${ded}건 보류)` : `🌱 새 발의 ${n}건`);
+  } else {
+    const initDed = s.match(/\+init:all-deduped:(\d+)/);
+    if (initDed) bits.push(`🌱 발의 ${initDed[1]}건 — 24h 중복으로 전부 보류`);
+  }
   if (bits.length === 0) return null;
   const head = anchor.trim() || '🛰 팀 한 바퀴';
   return `${head}: ${bits.join(' · ')}`;
@@ -484,11 +495,13 @@ export function recentRealProgressCount(
 ): number {
   if (!memoRoot) return 0;
   const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
+  const TAIL = 2000; // 6h 윈도우 안전 margin (system-health tail-read 정합)
   let count = 0;
   const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
   if (fs.existsSync(tracePath)) {
     try {
-      for (const line of fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/)) {
+      const lines = fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
         const t = line.trim();
         if (!t) continue;
         try {
@@ -505,7 +518,8 @@ export function recentRealProgressCount(
   const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
   if (fs.existsSync(evoPath)) {
     try {
-      for (const line of fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/)) {
+      const lines = fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
         const t = line.trim();
         if (!t) continue;
         try {

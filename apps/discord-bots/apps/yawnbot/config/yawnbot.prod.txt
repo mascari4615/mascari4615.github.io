@@ -46,6 +46,9 @@ KARMOLAB_AI_SURFACE=vertex
 #   ③ YB_PROD_VERTEX_PROJECT_ID secret 이 채움 (사용자 결정 2026-05-17). 커밋 X.
 VERTEX_PROJECT_ID=
 VERTEX_LOCATION=us-central1
+# 호출별 토큰 사용량(input/cached/output) JSON 한 줄 stdout emit
+# (TASK-KAR-145). 비밀 아닌 운영 플래그 — 가시 정본.
+KARMOLAB_AI_USAGE_LOG=1
 
 # ── 머신 경로 (prod=노트북). MEMO_REPO_PATH 는 ① defaults 가 커버(동일 경로).
 #    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
@@ -90,7 +93,12 @@ KAKAO_EXPORT_WATCH_DIR=
 # bypass (5d9cb1af). 자가발전 only mode 운영 — QUIET=1 일 때 SO-2/3 dormant
 # (활성 phase 외라 무관), QUIET=0 시 SO-2/3 활성.
 # !kill 게이트(`agent-kill.off`) 그대로, 가역 (이 줄 0 으로 재 OFF).
+# 2026-05-23 KAR-018-LT-DIVERSITY: producer/worker 자율 작업·발의 = ON,
+# dyadic dialogue path 만 OFF (별 env AGENT_DIALOGUE_DISABLED=1, decideDialogueTurn
+# 가드). 사용자 발화 X 시간에도 워커는 TASK 자율 실행, initiator/atlas 는
+# 발의 박음. "혼자 말함" source 인 Atlas→Auditor 챌린지만 차단.
 AGENT_CADENCE_ENABLED=1
+AGENT_DIALOGUE_DISABLED=1
 # QUIET 모드 (자가발전 only) — producer(발굴) + dialogue(대화) skip. surgery·
 # worker·corePromotion 은 가동. 0 또는 미설정 = 정상 모드(전체 phase).
 # [SLOT-D 2026-05-22 SO-2-A 후속] 0 으로 풀음 — 사용자 ★「근본」 결정.
@@ -100,6 +108,11 @@ AGENT_CADENCE_ENABLED=1
 # SO-3 (producer schema 자기교정) 으로 흡수. 사용자 발화가 코어 전 phase 에
 # 실시간 흘러들어가는 「자가발전」 비전 정합.
 AGENT_CADENCE_QUIET=0
+# KAR-095 분리 toggle — 서브 기능별 독립 ON/OFF (default OFF = 安全, 여기서 opt-in).
+# 자가발전 only mode: SURGERY+WORKER ON, DIALOGUE OFF (잡담·발굴 noise 차단).
+AGENT_CADENCE_SURGERY_ENABLED=1
+AGENT_CADENCE_WORKER_ENABLED=1
+AGENT_CADENCE_DIALOGUE_ENABLED=0
 # 분리 cadence (사용자 KAR-018-Y): 제안 발굴 30분 OK / 워커 소화는 더
 # 빨라야 — 작업 없으면 5분 트리거. main(발굴·대화)=INTERVAL, worker
 # 소화=WORKER_INTERVAL 별 타이머. 둘 다 await-후-setTimeout=작업 중이면

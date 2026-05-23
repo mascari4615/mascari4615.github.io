@@ -76,6 +76,12 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('자기수술자동')
+        .setDescription('자기수술 자동 ON/OFF 토글 (12h 게이트 + critical 이슈 한정 자율 진단)')
+        .setDescriptionLocalizations(enUS('Toggle self-surgery auto-loop on/off (12h gate, critical issues only)')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('에이전트')
         .setDescription('로컬 저장소에서 Cursor agent로 프롬프트 실행')
         .setDescriptionLocalizations(enUS('Run a Cursor agent prompt on the local repo'))

@@ -142,6 +142,8 @@ declare global {
         ) => Promise<string[]>;
         /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
         MODELS?: GeminiModelsCatalog;
+        GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
+        DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
       };
 
   /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
