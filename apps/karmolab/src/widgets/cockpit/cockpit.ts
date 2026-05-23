@@ -9,6 +9,8 @@ import { loadGraphSpec, saveGraphCoords } from './graph-spec';
 import { GraphCanvas } from './graph-canvas';
 import { ActivityCollector } from './activity-collector';
 import { buildTaskTab } from './task-tab';
+import { buildTeamTab } from './team-tab';
+import { buildCardsTab } from './cards-tab';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -18,7 +20,7 @@ import { buildTaskTab } from './task-tab';
 
   let canvas: GraphCanvas | null = null;
   let collector: ActivityCollector | null = null;
-  let currentTab: 'graph' | 'task' = 'graph';
+  let currentTab: 'graph' | 'task' | 'team' | 'cards' = 'graph';
   let statusEl: HTMLElement | null = null;
 
   // ── repo_root 취득 ────────────────────────────────────────────────────────
@@ -128,18 +130,17 @@ import { buildTaskTab } from './task-tab';
   // ── 탭 전환 ──────────────────────────────────────────────────────────────
 
   function switchTab(
-    tab: 'graph' | 'task',
+    tab: 'graph' | 'task' | 'team' | 'cards',
     tabBtns: NodeListOf<HTMLElement>,
-    graphPanel: HTMLElement,
-    taskPanel: HTMLElement,
+    panels: Record<string, HTMLElement>,
   ): void {
     currentTab = tab;
     tabBtns.forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
-    graphPanel.classList.toggle('hidden', tab !== 'graph');
-    taskPanel.classList.toggle('hidden', tab !== 'task');
-
+    for (const [key, el] of Object.entries(panels)) {
+      el.classList.toggle('hidden', key !== tab);
+    }
     if (tab === 'graph') {
       collector?.start();
     } else {
@@ -162,37 +163,45 @@ import { buildTaskTab } from './task-tab';
     tabBar.innerHTML = `
       <div class="ck-tab active" data-tab="graph">그래프</div>
       <div class="ck-tab" data-tab="task">TASK</div>
+      <div class="ck-tab" data-tab="team">팀</div>
+      <div class="ck-tab" data-tab="cards">카드</div>
     `;
     cockpit.appendChild(tabBar);
 
-    // 그래프 패널
-    const graphPanel = document.createElement('div');
-    graphPanel.className = 'ck-panel';
+    function makePanel(visible = false): HTMLElement {
+      const el = document.createElement('div');
+      el.className = 'ck-panel' + (visible ? '' : ' hidden');
+      el.style.cssText = 'width:100%;height:100%;';
+      cockpit.appendChild(el);
+      return el;
+    }
+
+    const graphPanel = makePanel(true);
     graphPanel.style.cssText = 'position:relative;width:100%;height:100%;';
+    const taskPanel  = makePanel();
+    const teamPanel  = makePanel();
+    const cardsPanel = makePanel();
 
-    // TASK 패널
-    const taskPanel = document.createElement('div');
-    taskPanel.className = 'ck-panel hidden';
-    taskPanel.style.cssText = 'width:100%;height:100%;';
-
-    cockpit.appendChild(graphPanel);
-    cockpit.appendChild(taskPanel);
     container.appendChild(cockpit);
 
     const tabBtns = tabBar.querySelectorAll<HTMLElement>('.ck-tab');
+    const panels: Record<string, HTMLElement> = { graph: graphPanel, task: taskPanel, team: teamPanel, cards: cardsPanel };
 
-    // 그래프 탭 초기화
+    // 탭 초기화 (팀/카드는 최초 클릭 시 lazy init)
+    let teamBuilt = false;
+    let cardsBuilt = false;
+
     void buildGraphTab(graphPanel);
-
-    // TASK 탭 초기화
     buildTaskTab(taskPanel);
 
     // 탭 클릭
     tabBar.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest('[data-tab]') as HTMLElement | null;
       if (!btn) return;
-      const tab = btn.dataset.tab as 'graph' | 'task';
-      switchTab(tab, tabBtns, graphPanel, taskPanel);
+      const tab = btn.dataset.tab as 'graph' | 'task' | 'team' | 'cards';
+      if (tab === 'team' && !teamBuilt) { buildTeamTab(teamPanel); teamBuilt = true; }
+      if (tab === 'cards' && !cardsBuilt) { buildCardsTab(cardsPanel); cardsBuilt = true; }
+      switchTab(tab, tabBtns, panels);
     });
   }
 

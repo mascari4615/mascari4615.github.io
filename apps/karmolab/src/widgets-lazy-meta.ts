@@ -179,16 +179,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['claude-env']
   },
   {
-    id: 'agent-team',
-    title: '에이전트 팀',
-    category: 'lab',
-    desktopOnly: true,
-    desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1: roster + objectives + 활성 세션 read-only)',
-    layout: 'full',
-    icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
-    lazyScriptPaths: ['agent-team/agent-team']
-  },
-  {
     id: 'alarm',
     title: '알람',
     category: 'tool',
