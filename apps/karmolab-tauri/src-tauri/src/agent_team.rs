@@ -736,3 +736,191 @@ pub async fn agent_team_list_sessions(repo_root: String) -> Result<Vec<SessionIn
         .await
         .map_err(|e| format!("spawn_blocking join 실패: {e}"))?
 }
+
+// ────────────────────────────────────────────────────────────────────────
+// TASK Board (TASK-YB-039 — Core/skin 분리: Discord forum-post 와 *peer*).
+//
+// memo TASK md = Core 정본. yawnbot 의 #team-work forum-post 와 KarmoLab
+// Team Board 가 그걸 표현하는 두 skin. ledger
+// (`.claude/task-forum-bridge.jsonl`) = Discord 측 매핑이지만 *taskId* 가
+// shared key — KarmoLab 도 같은 ledger 읽어 "이 TASK 의 Discord 포스트는
+// 여기" 링크 가능 (사용자 cross-skin navigation).
+//
+// 본 명령은 read-only — 5 TASK_DIRS scan + bridge ledger 머지 → entry 목록.
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TaskBoardEntry {
+    pub task_id: String,
+    pub status: String,
+    pub title: String,
+    /// memoRoot 기준 상대 경로 (open-in-editor 등 호출자 활용).
+    pub md_path: String,
+    /// Discord forum-post id (bridge ledger 에 매핑 있는 경우만 — KarmoLab
+    /// 에서 "디코에서 보기" 링크 생성용). discord 미연결 = None.
+    pub discord_post_id: Option<String>,
+    pub discord_channel_id: Option<String>,
+}
+
+const TASK_DIRS: [&str; 5] = [
+    "tasks",
+    "wm/tasks",
+    "life/tasks",
+    "projects/karmolab/tasks",
+    "projects/yawnbot/tasks",
+];
+
+const PICKABLE_STATUSES: [&str; 9] = [
+    "ready",
+    "in_progress",
+    "in-progress",
+    "active",
+    "seed",
+    "in_review",
+    "unit_verified",
+    "design",
+    "hold",
+];
+
+/// `TASK-(KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-NNN[-suffix]` 추출 — filename 기준.
+fn parse_task_id(filename: &str) -> Option<String> {
+    let base = filename.strip_suffix(".md").unwrap_or(filename);
+    let prefixes = ["TASK-KAR-", "TASK-WM-", "TASK-KL-", "TASK-YB-", "TASK-LIFE-", "TASK-HOBBY-", "TASK-LEARN-"];
+    for p in prefixes.iter() {
+        if base.starts_with(p) {
+            // 다음 - 또는 끝까지를 id 본체
+            let rest = &base[p.len()..];
+            let end = rest.find('-').unwrap_or(rest.len());
+            return Some(format!("{}{}", p, &rest[..end]));
+        }
+    }
+    None
+}
+
+/// frontmatter status / title 추출. title 우선순위: `title:` 필드 > 첫 `# H1` > filename body.
+fn parse_status_title(content: &str, filename: &str) -> (Option<String>, String) {
+    let mut status: Option<String> = None;
+    let mut fm_title: Option<String> = None;
+    let mut h1_title: Option<String> = None;
+    let mut in_fm = false;
+    let mut fm_done = false;
+    for line in content.lines() {
+        if !fm_done {
+            if line.starts_with("---") {
+                if in_fm {
+                    fm_done = true;
+                } else {
+                    in_fm = true;
+                }
+                continue;
+            }
+            if in_fm {
+                if let Some(v) = line.strip_prefix("status:").map(|s| s.trim()) {
+                    status = Some(v.trim_matches(|c| c == '"' || c == '\'').to_string());
+                } else if let Some(v) = line.strip_prefix("title:").map(|s| s.trim()) {
+                    fm_title = Some(v.trim_matches(|c| c == '"' || c == '\'').to_string());
+                }
+            }
+        } else if h1_title.is_none() {
+            if let Some(t) = line.strip_prefix("# ") {
+                h1_title = Some(t.trim().to_string());
+            }
+        }
+    }
+    let fallback = filename
+        .strip_suffix(".md")
+        .unwrap_or(filename)
+        .splitn(4, '-')
+        .nth(3)
+        .unwrap_or("")
+        .replace('-', " ");
+    let title = fm_title
+        .or(h1_title)
+        .unwrap_or_else(|| if fallback.trim().is_empty() { "(제목 없음)".to_string() } else { fallback });
+    (status, title)
+}
+
+fn read_tasks_blocking(repo_root: String) -> Result<Vec<TaskBoardEntry>, String> {
+    let memo = memo_root(&repo_root);
+
+    // 1) bridge ledger 읽음 → taskId → (postId, channelId) 최신 매핑
+    let ledger_path = memo.join(".claude").join("task-forum-bridge.jsonl");
+    let mut bridge: std::collections::HashMap<String, (String, String)> =
+        std::collections::HashMap::new();
+    if let Ok(content) = fs::read_to_string(&ledger_path) {
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+            let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else { continue };
+            let task_id = v.get("taskId").and_then(|x| x.as_str()).map(String::from);
+            let post_id = v.get("postId").and_then(|x| x.as_str()).map(String::from);
+            let channel_id = v.get("channelId").and_then(|x| x.as_str()).map(String::from);
+            if let (Some(t), Some(p), Some(c)) = (task_id, post_id, channel_id) {
+                bridge.insert(t, (p, c)); // append-only → 마지막이 최신
+            }
+        }
+    }
+
+    // 2) 5 TASK_DIRS scan
+    let mut out: Vec<TaskBoardEntry> = Vec::new();
+    for dir in TASK_DIRS.iter() {
+        let dir_abs = memo.join(dir);
+        if !dir_abs.exists() {
+            continue;
+        }
+        let Ok(entries) = fs::read_dir(&dir_abs) else { continue };
+        for e in entries.flatten() {
+            let p = e.path();
+            let Some(name) = p.file_name().and_then(|s| s.to_str()) else { continue };
+            if !name.ends_with(".md") {
+                continue;
+            }
+            let Some(task_id) = parse_task_id(name) else { continue };
+            let Ok(content) = fs::read_to_string(&p) else { continue };
+            let (status, title) = parse_status_title(&content, name);
+            let Some(status) = status else { continue };
+            if !PICKABLE_STATUSES.contains(&status.as_str()) {
+                continue;
+            }
+            let rel = format!("{}/{}", dir, name);
+            let (post_id, channel_id) = match bridge.get(&task_id) {
+                Some((p, c)) => (Some(p.clone()), Some(c.clone())),
+                None => (None, None),
+            };
+            out.push(TaskBoardEntry {
+                task_id,
+                status,
+                title,
+                md_path: rel,
+                discord_post_id: post_id,
+                discord_channel_id: channel_id,
+            });
+        }
+    }
+    // 정렬: in_progress 우선, 그 다음 status 순, 같으면 id 순
+    fn status_prio(s: &str) -> u8 {
+        match s {
+            "in_progress" | "in-progress" | "active" => 0,
+            "in_review" | "unit_verified" => 1,
+            "design" => 2,
+            "ready" => 3,
+            "hold" => 4,
+            "seed" => 5,
+            _ => 6,
+        }
+    }
+    out.sort_by(|a, b| {
+        status_prio(&a.status)
+            .cmp(&status_prio(&b.status))
+            .then(a.task_id.cmp(&b.task_id))
+    });
+    Ok(out)
+}
+
+#[tauri::command]
+pub async fn agent_team_list_tasks(repo_root: String) -> Result<Vec<TaskBoardEntry>, String> {
+    tauri::async_runtime::spawn_blocking(move || read_tasks_blocking(repo_root))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {e}"))?
+}
