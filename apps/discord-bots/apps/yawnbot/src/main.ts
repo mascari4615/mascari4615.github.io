@@ -594,6 +594,21 @@ client.once('clientReady', async () => {
           dir: skinCard.dir,
         } as unknown as CharacterCard;
         await sendAsSkin(ch, speakAs, { content: text.slice(0, 1900) });
+        // KAR-018-LT-PEER-ONLY P-1: 코어 발화 = bus 에도 publish.
+        // ambient daemon 들이 ambient listener 로 듣고 시각 있으면 자율 답.
+        // self-loop 회피 = daemon 안 source 매칭 skip (이미 박힘 source=core:<id>).
+        try {
+          const { publishBusEvent, resolveBusRoot } = await import('./services/agent-bus.js');
+          await publishBusEvent(resolveBusRoot(), {
+            type: 'core-utter',
+            channelId: cid,
+            source: `core:${coreId}`,
+            coreId,
+            text: text.slice(0, 1900),
+          });
+        } catch (busErr) {
+          console.error('[CoreSpeak] bus publish 실패', busErr instanceof Error ? busErr.message : busErr);
+        }
         return true;
       } catch (e: any) {
         console.error('[CoreSpeak]', e?.message ?? e);
@@ -693,19 +708,6 @@ client.once('clientReady', async () => {
         process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID = resolveTeamBus() || '';
       }
     }
-    // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
-    // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
-    void sendLocalEvent(
-      client as any,
-      {
-        kind: 'agent-team',
-        source: `KAR-018-W · ${agentCh ? 'dev(격리)' : 'prod(webhook-routes)'}`,
-        title: '🛰 에이전트 팀 — #team-bus 연결',
-        summary: `에이전트 팀 알림 파이프 라이브 (${agentCh ? 'dev 전용 채널 격리' : 'prod 기본 채널'}). 이후 거버넌스 escalate / 자가개선 reject / ⑦' 발굴이 이 채널로 게시됩니다. (cadence 자율 구동은 기본 ON, AGENT_CADENCE_ENABLED=0 으로 명시 시 OFF.)`,
-        level: 'info',
-      },
-      agentChOverride,
-    );
     // KAR-018-PUSH-CLOSURE pre-flight — MEMO_GITHUB_PAT 가 memo push 권한 있는지
     // startup 1회 검증. 부족 시 #team-bus alert (silent fail 회피). 비차단.
     try {
