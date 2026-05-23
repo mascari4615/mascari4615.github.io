@@ -33,6 +33,7 @@ import {
   type HealthIssue,
   type HealthSignals,
 } from './system-health';
+import { appendProgress } from './team-portfolio';
 
 /** 발의 종류 — 4축 매핑 (TASK-KAR-018-INIT § end-state). */
 export type ProposalKind =
@@ -734,6 +735,21 @@ export function runInitiatorOnce(
       const file = seedTaskFile(memoRoot, entry, nowMs);
       if (file) {
         seededFiles.push(file);
+        // KAR-018 portfolio progressLog 박기 — INIT 발의 = KAR-018 substrate 진전.
+        // false-progress 함정 회피 (제안만 = 진전 아님)이나, [INITIATOR-AUTO]
+        // seeded TASK 박힘 = 「사용자 가시 윈도우 진입 + 워커 픽업 candidate
+        // 적재」 = KAR-018 인프라 자체의 실제 진전. system-health 의 progress-
+        // stale 100h 해소 (cron봇 함정 차단).
+        try {
+          appendProgress(memoRoot, {
+            projectId: 'kar-018',
+            delta: `INIT 자동 발의: ${first.headline.slice(0, 150)}`,
+            evidence: `seeded ${file} · rootCodes=${first.rootCodes.join(',')} · score=${first.score.toFixed(2)}`,
+            ts: new Date(nowMs).toISOString(),
+          });
+        } catch {
+          /* progressLog 실패 = ledger·seed 는 박힘 (안전) */
+        }
         // new-core kind = core.md draft 도 동시 작성 (출력 layer #4)
         let createdCoreId: string | undefined;
         if (first.kind === 'new-core') {
