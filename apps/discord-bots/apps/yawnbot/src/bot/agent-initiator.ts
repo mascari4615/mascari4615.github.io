@@ -156,9 +156,13 @@ export function readLedger(memoRoot: string): ProposalLedgerEntry[] {
   const p = ledgerPath(memoRoot);
   if (!fs.existsSync(p)) return [];
   try {
+    // tail-2000 — INIT 가 24h 윈도우 dedupe + status-board 가 최신 entry 부터
+    // backward 만 사용. 30분 cycle × ~10 entry = ~480/day → 2000 = 4× safety.
+    // 누적 ledger 가 MB 자라도 cycle latency 안정 (system-health/observatory 정합).
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-2000)
       .filter(Boolean)
       .map((l) => {
         try {
