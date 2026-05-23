@@ -32,15 +32,33 @@ const DOMAINS: Array<{ value: string; label: string }> = [
   { value: 'learning', label: '학습 (LEARN)' },
 ];
 
+// 도메인별 포스터 설정 (gradient 종료색, 이니셜, 이미지 URL hook)
+interface DomainPoster {
+  from: string;
+  to: string;
+  initial: string;
+  imageUrl?: string; // 실제 포스터 이미지 경로 (없으면 gradient fallback)
+}
+const DOMAIN_POSTERS: Record<string, DomainPoster> = {
+  wm:        { from: '#1a0a2e', to: '#3b1f6b', initial: 'W' },
+  karmolab:  { from: '#071929', to: '#0c3f6e', initial: 'K' },
+  yawnbot:   { from: '#1c1200', to: '#5a3b00', initial: 'Y' },
+  life:      { from: '#051a10', to: '#0e4d2a', initial: 'L' },
+  hobby:     { from: '#1f0a18', to: '#5a1f42', initial: 'H' },
+  learning:  { from: '#0a0f25', to: '#1e3068', initial: 'E' },
+  _default:  { from: '#111418', to: '#1f2630', initial: '?' },
+};
+
 const STATUS_COLORS: Record<string, string> = {
-  seed: '#55555a',
-  ready: '#7fa6d4',
+  seed:   '#55555a',
+  ready:  '#7fa6d4',
   active: '#d4a849',
-  hold: '#a08060',
-  done: '#9ec4a8',
+  hold:   '#a08060',
+  done:   '#9ec4a8',
   sealed: '#b7a3d6',
 };
 
+const STATUS_ORDER = ['active', 'ready', 'hold', 'seed', 'done', 'sealed'];
 const STATUS_FILTERS = ['all', 'seed', 'ready', 'active', 'hold', 'done', 'sealed'];
 
 function esc(s: unknown): string {
@@ -110,6 +128,8 @@ function applyFilter(
   return filtered;
 }
 
+// ── LIST 모드 ────────────────────────────────────────────────────────────────
+
 function renderList(listEl: HTMLElement, sorted: MemoTaskNode[], selectedIdx: number): void {
   if (sorted.length === 0) {
     listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
@@ -133,6 +153,78 @@ function renderList(listEl: HTMLElement, sorted: MemoTaskNode[], selectedIdx: nu
   const sel = listEl.querySelector('.ckt-row.selected') as HTMLElement | null;
   if (sel) sel.scrollIntoView({ block: 'nearest' });
 }
+
+// ── QUEST 모드 ───────────────────────────────────────────────────────────────
+
+function buildStatusBadges(tasks: MemoTaskNode[]): string {
+  const counts: Record<string, number> = {};
+  for (const t of tasks) counts[t.status] = (counts[t.status] ?? 0) + 1;
+  return STATUS_ORDER
+    .filter((s) => counts[s] > 0)
+    .map((s) => `<span class="ckt-qbadge" style="color:${STATUS_COLORS[s] ?? '#9a9a94'}">${esc(s)} ${counts[s]}</span>`)
+    .join('');
+}
+
+function buildPosterStyle(poster: DomainPoster): string {
+  if (poster.imageUrl) {
+    return `background: linear-gradient(to right, ${poster.from}ee, ${poster.from}88), url(${poster.imageUrl}) center/cover no-repeat;`;
+  }
+  return `background: linear-gradient(135deg, ${poster.from} 0%, ${poster.to} 100%);`;
+}
+
+function renderQuestSection(domain: string, tasks: MemoTaskNode[]): string {
+  const domainInfo = DOMAINS.find((d) => d.value === domain);
+  const label = domainInfo?.label ?? domain.toUpperCase();
+  const poster = DOMAIN_POSTERS[domain] ?? DOMAIN_POSTERS['_default'];
+
+  const taskRows = tasks
+    .map((t) => {
+      const sc = STATUS_COLORS[t.status] ?? '#55555a';
+      return `<div class="ckt-qrow" data-file="${esc(t.filePath)}">
+        <span class="ckt-qdot" style="background:${sc}"></span>
+        <span class="ckt-qid">${esc(t.id)}</span>
+        <span class="ckt-qstatus" style="color:${sc}">${esc(t.status)}</span>
+        <span class="ckt-qtitle">${esc(t.title)}</span>
+      </div>`;
+    })
+    .join('');
+
+  return `<div class="ckt-qsection">
+    <div class="ckt-qposter" style="${buildPosterStyle(poster)}">
+      <div class="ckt-qinitial">${esc(poster.initial)}</div>
+      <div class="ckt-qposter-info">
+        <div class="ckt-qlabel">${esc(label)}</div>
+        <div class="ckt-qbadges">${buildStatusBadges(tasks)}</div>
+      </div>
+    </div>
+    <div class="ckt-qtasks">${taskRows}</div>
+  </div>`;
+}
+
+function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[]): void {
+  if (sorted.length === 0) {
+    listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
+    return;
+  }
+
+  // 도메인 순서: DOMAINS 정의 순 우선, 나머지 알파벳
+  const domainOrder = DOMAINS.map((d) => d.value);
+  const groups = new Map<string, MemoTaskNode[]>();
+  for (const t of sorted) {
+    const d = t.path[0] ?? '_other';
+    if (!groups.has(d)) groups.set(d, []);
+    groups.get(d)!.push(t);
+  }
+
+  const orderedKeys = [
+    ...domainOrder.filter((k) => groups.has(k)),
+    ...[...groups.keys()].filter((k) => !domainOrder.includes(k)).sort(),
+  ];
+
+  listEl.innerHTML = orderedKeys.map((k) => renderQuestSection(k, groups.get(k)!)).join('');
+}
+
+// ── 모달 ─────────────────────────────────────────────────────────────────────
 
 function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): void {
   const backdrop = document.createElement('div');
@@ -182,6 +274,8 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
   });
 }
 
+// ── CSS ──────────────────────────────────────────────────────────────────────
+
 const TASK_TAB_STYLE_ID = 'ck-task-tab-styles';
 const TASK_TAB_CSS = `
 .ckt-wrap {
@@ -208,6 +302,17 @@ const TASK_TAB_CSS = `
   background: var(--paper); color: var(--ink); border: 1px solid var(--line2);
   padding: 7px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; outline: none;
 }
+
+/* 모드 토글 */
+.ckt-mode-toggle { display: flex; gap: 0; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.ckt-mode-btn {
+  background: var(--bg2); color: var(--ink2); border: none;
+  padding: 7px 12px; font-size: 11px; cursor: pointer; white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace; transition: background 0.15s, color 0.15s;
+}
+.ckt-mode-btn.on { background: var(--accent2); color: var(--bg); }
+.ckt-mode-btn:not(.on):hover { background: var(--line2); color: var(--ink); }
+
 .ckt-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .ckt-chip {
   background: var(--bg2); color: var(--ink2); border: 1px solid var(--line2);
@@ -217,6 +322,8 @@ const TASK_TAB_CSS = `
 .ckt-chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 .ckt-meta { font-size: 11px; color: var(--ink3); }
 .ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
+
+/* LIST 모드 */
 .ckt-row {
   display: grid; grid-template-columns: 120px 72px 1fr auto;
   gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line);
@@ -229,6 +336,44 @@ const TASK_TAB_CSS = `
 .ckt-title { font-size: 13px; }
 .ckt-tags { font-size: 10px; color: var(--ink3); white-space: nowrap; }
 .ckt-empty { padding: 40px; text-align: center; color: var(--ink3); }
+
+/* QUEST 모드 */
+.ckt-qsection { margin-bottom: 20px; }
+.ckt-qsection:last-child { margin-bottom: 0; }
+
+.ckt-qposter {
+  position: relative; height: 160px; border-radius: 6px 6px 0 0;
+  overflow: hidden; display: flex; align-items: flex-end; padding: 16px;
+  border: 1px solid rgba(255,255,255,0.06); border-bottom: none;
+}
+.ckt-qinitial {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
+  font-size: 96px; font-weight: 900; color: rgba(255,255,255,0.07);
+  font-family: 'JetBrains Mono', monospace; letter-spacing: -0.05em;
+  user-select: none; pointer-events: none;
+}
+.ckt-qposter-info { position: relative; z-index: 1; }
+.ckt-qlabel { font-size: 18px; font-weight: 700; color: #f2f2ee; line-height: 1.2; margin-bottom: 6px; }
+.ckt-qbadges { display: flex; gap: 10px; flex-wrap: wrap; }
+.ckt-qbadge { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; }
+
+.ckt-qtasks {
+  border: 1px solid rgba(255,255,255,0.06); border-top: none;
+  border-radius: 0 0 6px 6px; overflow: hidden;
+}
+.ckt-qrow {
+  display: grid; grid-template-columns: 8px 130px 72px 1fr;
+  gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line);
+  cursor: pointer; align-items: center;
+}
+.ckt-qrow:last-child { border-bottom: none; }
+.ckt-qrow:hover { background: var(--bg2); }
+.ckt-qdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ckt-qid { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); }
+.ckt-qstatus { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; }
+.ckt-qtitle { font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 모달 */
 .ckt-modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
   display: flex; align-items: center; justify-content: center;
@@ -248,6 +393,8 @@ const TASK_TAB_CSS = `
 .ckt-create { background: var(--accent); color: var(--bg); border: none; padding: 7px 14px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 600; }
 `;
 
+// ── 진입점 ────────────────────────────────────────────────────────────────────
+
 const _taskUnlisten = new WeakMap<HTMLElement, () => void>();
 
 export function buildTaskTab(container: HTMLElement): void {
@@ -258,13 +405,16 @@ export function buildTaskTab(container: HTMLElement): void {
     document.head.appendChild(tag);
   }
 
-  // 이전 listener 정리
   const prev = _taskUnlisten.get(container);
   if (typeof prev === 'function') { try { prev(); } catch (_) { /* noop */ } _taskUnlisten.delete(container); }
 
   container.innerHTML = `
     <div class="ckt-wrap">
       <div class="ckt-header">
+        <div class="ckt-mode-toggle">
+          <button class="ckt-mode-btn on" data-mode="list">≡ LIST</button>
+          <button class="ckt-mode-btn" data-mode="quest">◉ QUEST</button>
+        </div>
         <input type="text" class="ckt-search" placeholder="검색 — id / title / tag / status (↑↓ Enter)">
         <select class="ckt-sort">
           <option value="mtime">최근 수정 ▾</option>
@@ -293,11 +443,20 @@ export function buildTaskTab(container: HTMLElement): void {
   let selectedIdx = 0;
   let statusFilter = 'all';
   let sortMode = 'mtime';
+  let viewMode: 'list' | 'quest' = 'list';
+
+  const rerender = () => {
+    if (viewMode === 'quest') {
+      renderQuestLog(listEl, filteredTasks);
+    } else {
+      renderList(listEl, filteredTasks, selectedIdx);
+    }
+  };
 
   const refilter = () => {
     filteredTasks = applyFilter(currentTasks, searchEl.value, statusFilter, sortMode);
     if (selectedIdx >= filteredTasks.length) selectedIdx = 0;
-    renderList(listEl, filteredTasks, selectedIdx);
+    rerender();
   };
 
   const reload = async () => {
@@ -310,8 +469,21 @@ export function buildTaskTab(container: HTMLElement): void {
 
   void reload();
 
+  // 모드 토글
+  wrap.querySelector('.ckt-mode-toggle')!.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('[data-mode]') as HTMLButtonElement | null;
+    if (!btn) return;
+    const next = btn.dataset.mode as 'list' | 'quest';
+    if (viewMode === next) return;
+    viewMode = next;
+    wrap.querySelectorAll('.ckt-mode-btn').forEach((b) =>
+      b.classList.toggle('on', (b as HTMLElement).dataset.mode === next));
+    rerender();
+  });
+
   searchEl.addEventListener('input', () => { selectedIdx = 0; refilter(); });
   searchEl.addEventListener('keydown', (e) => {
+    if (viewMode !== 'list') return;
     if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, filteredTasks.length - 1); renderList(listEl, filteredTasks, selectedIdx); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, filteredTasks, selectedIdx); }
     else if (e.key === 'Enter') { e.preventDefault(); const t = filteredTasks[selectedIdx]; if (t) void openInEditor(t.filePath); }
@@ -331,7 +503,7 @@ export function buildTaskTab(container: HTMLElement): void {
   sortEl.addEventListener('change', () => { sortMode = sortEl.value; selectedIdx = 0; refilter(); searchEl.focus(); });
 
   listEl.addEventListener('click', (e) => {
-    const row = (e.target as HTMLElement).closest('.ckt-row') as HTMLElement | null;
+    const row = (e.target as HTMLElement).closest('[data-file]') as HTMLElement | null;
     if (!row) return;
     const filePath = row.dataset.file;
     if (filePath) void openInEditor(filePath);
@@ -346,7 +518,6 @@ export function buildTaskTab(container: HTMLElement): void {
 
   setTimeout(() => searchEl.focus(), 100);
 
-  // file watcher 이벤트
   const tauriListen = (window as unknown as { __TAURI__?: { event?: { listen?: unknown } } }).__TAURI__?.event?.listen;
   if (typeof tauriListen === 'function') {
     void (async () => {
