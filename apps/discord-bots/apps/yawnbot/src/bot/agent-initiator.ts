@@ -207,6 +207,33 @@ export interface InitiatorTickResult {
 }
 
 /**
+ * #team-bus 헤드라인 포맷 — 신규 proposal 만 모아 1메시지. evolution-ticker
+ * (🧬/🩸/📈) 와 의미 다르므로 자체 marker (📜) 사용 (평행 정의 X — 같은
+ * notify seam 재사용, 토픽만 분리).
+ */
+export function formatProposalTicker(
+  accepted: ProposalCandidate[],
+  deduped: number,
+): string {
+  if (accepted.length === 0) {
+    return deduped > 0
+      ? `[initiator] ${deduped}건 dedupe (24h 윈도우, 재발의 X)`
+      : '';
+  }
+  const lines = accepted.map((c) => `- ${c.headline}`);
+  const trail =
+    deduped > 0 ? `\n_(추가로 ${deduped}건 dedupe)_` : '';
+  return [
+    `📜 **새 발의 ${accepted.length}건** (initiator — TASK-KAR-018-INIT)`,
+    ...lines,
+    trail,
+    '_ledger: `.claude/initiator-ledger.jsonl` · status=draft (실 시드 write 는 active 전이 후)_',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+/**
  * INIT 1틱: 신호 수집 → 매핑 → dedupe → ledger append.
  *
  * 실 TASK seed write / Discord 발화 = 별도 사이클 (active 전이 후). 본 함수는
@@ -223,6 +250,13 @@ export function runInitiatorOnce(
     /** 테스트 hook — 측정 단계 stub. default = gatherHealthSignals. */
     gatherSignals?: (env: NodeJS.ProcessEnv, nowMs: number) => HealthSignals;
     sessionId?: string;
+    /**
+     * #team-bus 발화 hook (evolution-observatory 와 같은 seam). 신규 proposal
+     * appended > 0 일 때만 호출. dedupe-only 는 silent (사용자 노이즈 차단,
+     * 단 cadence trace 라벨은 별도 박힘 = no-news-is-bad-news 정합).
+     * default undefined = 발화 X (테스트·draft 코어 stage 안전).
+     */
+    notify?: (message: string) => void;
   } = {},
 ): InitiatorTickResult {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -280,5 +314,15 @@ export function runInitiatorOnce(
     appended > 0
       ? `init:proposed:${appended}${deduped ? `+deduped:${deduped}` : ''}`
       : `init:all-deduped:${deduped}`;
+
+  if (appended > 0 && opts.notify) {
+    try {
+      const msg = formatProposalTicker(accepted, deduped);
+      if (msg) opts.notify(msg);
+    } catch {
+      /* notify 실패 = tick 비차단 (ledger 는 이미 박힘) */
+    }
+  }
+
   return { label, candidates: accepted, appended, deduped };
 }

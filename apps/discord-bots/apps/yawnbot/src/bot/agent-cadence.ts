@@ -1243,11 +1243,12 @@ export async function runCadenceTickOnce(
   // INIT (TASK-KAR-018-INIT) 팀-드리븐 발의 — corePromotion *전* 박는
   // 이유: 발의가 적용에 선행이 자연 순서. quiet 모드에서도 작동(자가발전
   // 핵심). best-effort·비차단·LLM 무관 결정적 (날조 0). 산출 = ledger
-  // append + cadence trace 라벨 ("no-news-is-bad-news" 정합). 실 TASK seed
-  // write / Discord 발화는 active 전이 후 (코어 status=draft).
+  // append + cadence trace 라벨 ("no-news-is-bad-news" 정합) + #team-bus
+  // 「📜 새 발의 N건」 헤드라인 (gov.notify 재사용, 평행 정의 X). 실 TASK
+  // seed write 는 active 전이 후 (현 단계 = surface 표면화 only).
   if (memoRoot && !isKilled()) {
     try {
-      const init = runInitiatorOnce(env);
+      const init = runInitiatorOnce(env, { notify: gov.notify });
       if (init.label.startsWith('init:proposed:')) {
         r = `${r}+${init.label}`;
       }

@@ -155,4 +155,34 @@ describe('runInitiatorOnce — 진입점', () => {
     expect(r.label).toBe('init:no-memo-root');
     expect(r.appended).toBe(0);
   });
+
+  it('notify hook = appended > 0 시 1회 호출, 헤드라인에 발의 카운트 + 마커', () => {
+    const messages: string[] = [];
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      notify: (m) => messages.push(m),
+    });
+    expect(r.appended).toBe(1);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain('📜');
+    expect(messages[0]).toContain('새 발의 1건');
+    expect(messages[0]).toContain('initiator');
+  });
+
+  it('notify hook = appended 0 (전부 dedupe) 시 미호출 (사용자 노이즈 차단)', () => {
+    const messages: string[] = [];
+    const now = Date.parse('2026-05-23T00:00:00Z');
+    runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      notify: (m) => messages.push(m),
+      nowMs: now,
+    });
+    expect(messages).toHaveLength(1);
+    runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      notify: (m) => messages.push(m),
+      nowMs: now + 60_000,
+    });
+    expect(messages).toHaveLength(1); // 두 번째는 dedupe = silent
+  });
 });
