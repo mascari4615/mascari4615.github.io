@@ -1293,11 +1293,12 @@ export async function runCadenceTickOnce(
   if (memoRoot && !isKilled()) {
     try {
       const init = runInitiatorOnce(env, { notify: gov.notify });
-      if (init.label.startsWith('init:proposed:')) {
-        r = `${r}+${init.label}`;
-      }
-    } catch {
-      /* INIT 실패 = tick 비차단 */
+      // healthy-log 룰 (process.md § 자동화는 healthy log 전제) — silent skip
+      // 패턴 차단. no-signal/below-threshold/no-memo-root 도 trace 박음 = "로그
+      // 부재"가 정상인지 fail 인지 구분 가능 (YB-037 trap 학습).
+      r = `${r}+${init.label}`;
+    } catch (e) {
+      r = `${r}+init:error:${(e as Error).message?.slice(0, 30) || 'unknown'}`;
     }
   }
   if (memoRoot && !isKilled()) {
