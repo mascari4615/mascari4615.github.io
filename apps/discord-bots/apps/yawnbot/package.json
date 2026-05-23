@@ -20,7 +20,8 @@
     "kakao-export-save": "node scripts/kakao-export.mjs --trigger-only",
     "kakao-export-watch": "node scripts/kakao-export.mjs --watch",
     "kakao-export-watch-bg": "node scripts/kakao-export-watch-background.mjs",
-    "kakao-export-watch-stop": "node scripts/kakao-export-watch-stop.mjs"
+    "kakao-export-watch-stop": "node scripts/kakao-export-watch-stop.mjs",
+    "cadence-tick": "node scripts/run-cadence-tick.mjs"
   },
   "dependencies": {
     "karmolab-ai": "file:../../../../packages/karmolab-ai",

@@ -1,0 +1,511 @@
+/**
+ * KarmoApp 에이전트 팀 운영 콘솔 — TASK-KAR-116-A (Phase 1 PoC, read-only).
+ *
+ * 데이터 정본 (Rust agent_team.rs 가 read):
+ *   - roster: memo/.claude/agents/<id>/core.md frontmatter
+ *   - objectives: memo/.claude/objectives.md
+ *   - sessions: memo/.claude/active-sessions.md
+ *
+ * Phase 2 (KAR-116-C) = 액션 (cadence run / proposal decide) via yawnbot HTTP.
+ * Phase 3 (KAR-116-B, KAR-112 흡수) = agent-driven Canvas 패널.
+ */
+import { invoke as tauriInvoke } from '../../tauri-bridge';
+
+(function (): void {
+  'use strict';
+
+  type AgentInfo = {
+    id: string;
+    display_name?: string;
+    emoji?: string;
+    role?: string;
+    kind?: string;
+    status?: string;
+    default_skin?: string;
+  };
+
+  type ObjectiveInfo = {
+    id: string;
+    goal: string;
+    status: string;
+    align: string;
+  };
+
+  type SessionInfo = {
+    name: string;
+    task: string;
+    started_kst: string;
+    topic: string;
+    target_files: string;
+    state: string;
+  };
+
+  type CardInfo = {
+    ts: string;
+    source: string;
+    session?: string;
+    kind?: string;
+    topic?: string;
+    summary: string;
+  };
+
+  type ProposalInfo = {
+    id: string;
+    ts: string;
+    target?: string;
+    kind?: string;
+    domain?: string;
+    title?: string;
+    body?: string;
+    decided: boolean;
+    decision?: string;
+  };
+
+  const REFRESH_INTERVAL_MS = 5000;
+
+  const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
+
+  function build(container: HTMLElement): void {
+    if (!isApp) {
+      container.innerHTML =
+        '<div style="padding:1.5rem;opacity:.7;line-height:1.6">에이전트 팀 콘솔은 데스크톱 앱(KarmoLab Tauri) 전용입니다.<br>브라우저에서는 표시되지 않습니다.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem">
+        <header style="display:flex;align-items:center;gap:.75rem">
+          <h2 style="margin:0;font-size:1.1rem">🛰 에이전트 팀</h2>
+          <span class="at-meta" style="opacity:.6;font-size:.8rem"></span>
+          <label style="font-size:.78rem;opacity:.65;display:flex;align-items:center;gap:.25rem;margin-left:auto">
+            <input class="at-autorefresh" type="checkbox" checked /> 자동 5초
+          </label>
+          <button class="at-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
+          <button class="at-cadence" type="button" title="에이전트 사이클 1회 강제 실행 (yawnbot dist 빌드 필요)" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Cadence 1회</button>
+        </header>
+        <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
+        <section class="at-section at-proposals">
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
+          <div class="at-list at-proposals-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
+        </section>
+        <section class="at-section at-roster">
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">코어 (<span class="at-count-agents">-</span>)</h3>
+          <div class="at-list at-roster-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.5rem"></div>
+        </section>
+        <section class="at-section at-sessions">
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">활성 Claude 세션 (<span class="at-count-sessions">-</span>)</h3>
+          <div class="at-list at-sessions-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.5rem"></div>
+        </section>
+        <section class="at-section at-objectives">
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">목표 (Objectives) (<span class="at-count-objectives">-</span>)</h3>
+          <div class="at-list at-objectives-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
+        </section>
+        <div class="at-err" style="display:none;color:#e66;padding:.5rem;border:1px solid #e66;border-radius:.3rem;white-space:pre-wrap"></div>
+      </div>
+    `;
+
+    const meta = container.querySelector<HTMLSpanElement>('.at-meta')!;
+    const errBox = container.querySelector<HTMLDivElement>('.at-err')!;
+    const refreshBtn = container.querySelector<HTMLButtonElement>('.at-refresh')!;
+    const autoChk = container.querySelector<HTMLInputElement>('.at-autorefresh')!;
+    const proposalsList = container.querySelector<HTMLDivElement>('.at-proposals-list')!;
+    const rosterList = container.querySelector<HTMLDivElement>('.at-roster-list')!;
+    const sessionsList = container.querySelector<HTMLDivElement>('.at-sessions-list')!;
+    const objectivesList = container.querySelector<HTMLDivElement>('.at-objectives-list')!;
+    const countProposals = container.querySelector<HTMLSpanElement>('.at-count-proposals')!;
+    const countAgents = container.querySelector<HTMLSpanElement>('.at-count-agents')!;
+    const countSessions = container.querySelector<HTMLSpanElement>('.at-count-sessions')!;
+    const countObjectives = container.querySelector<HTMLSpanElement>('.at-count-objectives')!;
+
+    let intervalHandle: number | null = null;
+    let cachedRepoRoot: string | null = null;
+
+    function statusColor(s: string | undefined): string {
+      switch ((s || '').toLowerCase()) {
+        case 'active':
+          return '#3a3';
+        case 'draft':
+          return '#ca0';
+        case 'inactive':
+        case 'retired':
+          return '#888';
+        default:
+          return '#888';
+      }
+    }
+
+    function escapeHtml(s: string): string {
+      return s.replace(/[&<>"']/g, (c) =>
+        c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;'
+      );
+    }
+
+    function renderAgents(rows: AgentInfo[]): void {
+      countAgents.textContent = String(rows.length);
+      rosterList.innerHTML = rows
+        .map((a) => {
+          const dot = `<span style="display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:${statusColor(
+            a.status
+          )};margin-right:.3rem"></span>`;
+          const name = escapeHtml(a.display_name || a.id);
+          const emoji = a.emoji ? escapeHtml(a.emoji) + ' ' : '';
+          const role = a.role ? `<div style="opacity:.7;font-size:.78rem;line-height:1.35;margin-top:.2rem">${escapeHtml(a.role)}</div>` : '';
+          const kind = a.kind ? `<span style="opacity:.6;font-size:.72rem;margin-left:.3rem">[${escapeHtml(a.kind)}]</span>` : '';
+          return `
+            <div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+              <div style="display:flex;align-items:center">
+                ${dot}<strong>${emoji}${name}</strong>${kind}
+                <span style="margin-left:auto;font-size:.72rem;opacity:.55">${escapeHtml(a.id)}</span>
+              </div>
+              ${role}
+            </div>`;
+        })
+        .join('');
+    }
+
+    function sessionStateColor(s: string): string {
+      const low = s.toLowerCase();
+      if (low.includes('in_progress') || low.includes('active')) return '#3a8';
+      if (low.includes('pending') || low === '-') return '#888';
+      if (low.includes('deploy')) return '#39c';
+      return '#888';
+    }
+
+    function renderSessions(rows: SessionInfo[]): void {
+      countSessions.textContent = String(rows.length);
+      sessionsList.innerHTML = rows
+        .map((s) => {
+          const dot = `<span style="display:inline-block;width:.5rem;height:.5rem;border-radius:50%;background:${sessionStateColor(
+            s.state
+          )};margin-right:.3rem"></span>`;
+          const topic = s.topic && s.topic !== '-' ? `<div style="opacity:.75;font-size:.78rem;margin-top:.25rem">${escapeHtml(s.topic)}</div>` : '';
+          const task = s.task && s.task !== '-' ? `<span style="font-size:.72rem;opacity:.7;margin-left:.4rem">${escapeHtml(s.task)}</span>` : '';
+          return `
+            <div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+              <div style="display:flex;align-items:center">
+                ${dot}<strong>slot-${escapeHtml(s.name)}</strong>${task}
+                <span style="margin-left:auto;font-size:.7rem;opacity:.55">${escapeHtml(s.started_kst)}</span>
+              </div>
+              ${topic}
+              <div style="font-size:.7rem;opacity:.5;margin-top:.2rem;font-family:monospace">${escapeHtml(s.state)}</div>
+            </div>`;
+        })
+        .join('');
+    }
+
+    function objectiveStatusBadge(s: string): string {
+      const map: Record<string, string> = {
+        proposed: '#ca0',
+        approved: '#3a3',
+        active: '#39c',
+        retired: '#888'
+      };
+      const color = map[s.toLowerCase()] || '#888';
+      return `<span style="display:inline-block;padding:.05rem .35rem;border-radius:.3rem;font-size:.7rem;background:${color};color:#fff">${escapeHtml(s)}</span>`;
+    }
+
+    function renderObjectives(rows: ObjectiveInfo[]): void {
+      countObjectives.textContent = String(rows.length);
+      objectivesList.innerHTML = rows
+        .map(
+          (o) => `
+        <div style="display:flex;align-items:flex-start;gap:.5rem;padding:.4rem .55rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem">
+          <span style="font-family:monospace;font-size:.78rem;opacity:.7;min-width:4.5rem">${escapeHtml(o.id)}</span>
+          ${objectiveStatusBadge(o.status)}
+          <span style="flex:1;line-height:1.4">${escapeHtml(o.goal)}</span>
+          <span style="font-size:.7rem;opacity:.55;font-family:monospace">${escapeHtml(o.align)}</span>
+        </div>`
+        )
+        .join('');
+    }
+
+    function renderProposals(rows: ProposalInfo[]): void {
+      const pending = rows.filter((p) => !p.decided);
+      countProposals.textContent = String(pending.length);
+      if (pending.length === 0) {
+        proposalsList.innerHTML =
+          '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">결재 대기 없음</div>';
+        return;
+      }
+      proposalsList.innerHTML = pending
+        .slice(0, 12)
+        .map((p) => {
+          const title = p.title || p.id;
+          const domain = p.domain
+            ? `<span style="display:inline-block;padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:rgba(127,127,127,.25);font-family:monospace">${escapeHtml(p.domain)}</span>`
+            : '';
+          const body = p.body
+            ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">본문 펴기</summary><pre style="white-space:pre-wrap;font-size:.78rem;margin:.3rem 0 0 0;line-height:1.45;opacity:.85">${escapeHtml(p.body)}</pre></details>`
+            : '';
+          return `
+            <div class="at-prop" data-id="${escapeHtml(p.id)}" style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+              <div style="display:flex;align-items:center;gap:.4rem">
+                ${domain}
+                <strong style="flex:1;line-height:1.4">${escapeHtml(title)}</strong>
+                <span style="font-size:.66rem;opacity:.5;font-family:monospace">${escapeHtml(p.id)}</span>
+              </div>
+              ${body}
+              <div style="display:flex;gap:.3rem;margin-top:.4rem">
+                <button data-decision="approved" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#3a3;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✓ 승인</button>
+                <button data-decision="rejected" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#c44;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✗ 거절</button>
+                <button data-decision="deferred" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#888;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⏸ 보류</button>
+                <span class="at-prop-msg" style="margin-left:.3rem;font-size:.72rem;opacity:.7;align-self:center"></span>
+              </div>
+            </div>`;
+        })
+        .join('');
+
+      proposalsList.querySelectorAll<HTMLButtonElement>('button[data-decision]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const card = btn.closest<HTMLDivElement>('.at-prop');
+          if (!card) return;
+          const id = card.dataset.id || '';
+          const decision = btn.dataset.decision || '';
+          const msgSpan = card.querySelector<HTMLSpanElement>('.at-prop-msg');
+          if (msgSpan) msgSpan.textContent = '처리 중...';
+          card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = true));
+          try {
+            await tauriInvoke('agent_team_decide_proposal', {
+              repoRoot: cachedRepoRoot,
+              id,
+              decision,
+              note: 'karmoapp-gui'
+            });
+            if (msgSpan) msgSpan.textContent = `✓ ${decision} 기록 완료`;
+            void load();
+          } catch (e) {
+            if (msgSpan) msgSpan.textContent = `실패: ${String(e)}`;
+            card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = false));
+          }
+        });
+      });
+    }
+
+    async function load(): Promise<void> {
+      errBox.style.display = 'none';
+      errBox.textContent = '';
+      try {
+        const repoRoot = (await tauriInvoke('localdev_get_repo_root')) as string | null;
+        if (!repoRoot) {
+          errBox.style.display = 'block';
+          errBox.textContent = 'repo_root 미설정 — 서버 모니터 위젯에서 먼저 repo 폴더 선택해주세요.';
+          meta.textContent = '';
+          return;
+        }
+        cachedRepoRoot = repoRoot;
+        const [agents, objectives, sessions, proposals] = (await Promise.all([
+          tauriInvoke('agent_team_list_agents', { repoRoot }),
+          tauriInvoke('agent_team_list_objectives', { repoRoot }),
+          tauriInvoke('agent_team_list_sessions', { repoRoot }),
+          tauriInvoke('agent_team_list_proposals', { repoRoot })
+        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[]];
+        renderAgents(agents);
+        renderObjectives(objectives);
+        renderSessions(sessions);
+        renderProposals(proposals);
+        meta.textContent = `${new Date().toLocaleTimeString('ko-KR', { hour12: false })} KST · repo=${repoRoot.split(/[\\/]/).slice(-2).join('/')}`;
+      } catch (e) {
+        errBox.style.display = 'block';
+        errBox.textContent = `로드 실패: ${String(e)}`;
+      }
+    }
+
+    function applyAutoRefresh(): void {
+      if (intervalHandle !== null) {
+        clearInterval(intervalHandle);
+        intervalHandle = null;
+      }
+      if (autoChk.checked) {
+        intervalHandle = window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+      }
+    }
+
+    const cadenceBtn = container.querySelector<HTMLButtonElement>('.at-cadence')!;
+    const cadenceOut = container.querySelector<HTMLDivElement>('.at-cadence-out')!;
+    cadenceBtn.addEventListener('click', async () => {
+      if (!cachedRepoRoot) {
+        cadenceOut.style.display = 'block';
+        cadenceOut.textContent = 'repo_root 미설정';
+        return;
+      }
+      cadenceBtn.disabled = true;
+      const orig = cadenceBtn.textContent || '';
+      cadenceBtn.textContent = '⏳ 실행 중...';
+      cadenceOut.style.display = 'block';
+      cadenceOut.textContent = '에이전트 cadence tick 1회 실행 중... (수 초 소요)';
+      try {
+        const r = (await tauriInvoke('agent_team_run_cadence_tick', {
+          repoRoot: cachedRepoRoot,
+          includeWorker: false
+        })) as {
+          ok: boolean;
+          elapsed_ms: number;
+          stdout_tail: string;
+          stderr_tail: string;
+          exit_code: number | null;
+        };
+        const head = r.ok
+          ? `✓ OK (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`
+          : `✗ FAIL (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`;
+        cadenceOut.textContent = `${head}\n--- stdout (tail) ---\n${r.stdout_tail}\n--- stderr (tail) ---\n${r.stderr_tail}`;
+        void load();
+      } catch (e) {
+        cadenceOut.textContent = `실행 실패: ${String(e)}`;
+      } finally {
+        cadenceBtn.disabled = false;
+        cadenceBtn.textContent = orig;
+      }
+    });
+
+    refreshBtn.addEventListener('click', () => void load());
+    autoChk.addEventListener('change', applyAutoRefresh);
+    void load();
+    applyAutoRefresh();
+  }
+
+  function escapeHtmlGlobal(s: string): string {
+    return s.replace(/[&<>"']/g, (c) =>
+      c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;'
+    );
+  }
+
+  function kindColor(k: string | undefined): string {
+    switch ((k || '').toLowerCase()) {
+      case 'fix':
+        return '#e85';
+      case 'decision':
+        return '#39c';
+      case 'finding':
+      case 'discovery':
+        return '#3a8';
+      case 'incident':
+        return '#c44';
+      case 'note':
+        return '#888';
+      default:
+        return '#777';
+    }
+  }
+
+  function formatTs(ts: string): string {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return ts.slice(0, 16);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return `${mm}-${dd} ${hh}:${mi}`;
+  }
+
+  function buildCanvas(container: HTMLElement): void {
+    const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
+    if (!isApp) {
+      container.innerHTML =
+        '<div style="padding:1.5rem;opacity:.7">Canvas 는 데스크톱 앱 전용입니다.</div>';
+      return;
+    }
+    container.innerHTML = `
+      <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem">
+        <header style="display:flex;align-items:center;gap:.75rem">
+          <h2 style="margin:0;font-size:1.05rem">🎴 에이전트 카드 피드</h2>
+          <span class="ac-meta" style="opacity:.6;font-size:.78rem"></span>
+          <select class="ac-filter" style="margin-left:auto;padding:.25rem .4rem">
+            <option value="all">전체</option>
+            <option value="decision">결정</option>
+            <option value="fix">수정</option>
+            <option value="finding">발견</option>
+            <option value="incident">사고</option>
+          </select>
+          <button class="ac-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
+        </header>
+        <div class="ac-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
+        <div class="ac-err" style="display:none;color:#e66;padding:.5rem;border:1px solid #e66;border-radius:.3rem;white-space:pre-wrap"></div>
+      </div>
+    `;
+    const meta = container.querySelector<HTMLSpanElement>('.ac-meta')!;
+    const filterSel = container.querySelector<HTMLSelectElement>('.ac-filter')!;
+    const refreshBtn = container.querySelector<HTMLButtonElement>('.ac-refresh')!;
+    const list = container.querySelector<HTMLDivElement>('.ac-list')!;
+    const errBox = container.querySelector<HTMLDivElement>('.ac-err')!;
+
+    let allCards: CardInfo[] = [];
+
+    function render(): void {
+      const filter = filterSel.value;
+      const rows =
+        filter === 'all'
+          ? allCards
+          : allCards.filter((c) => (c.kind || '').toLowerCase() === filter);
+      list.innerHTML = rows
+        .map((c) => {
+          const k = c.kind || '?';
+          const badge = `<span style="display:inline-block;padding:.05rem .35rem;border-radius:.25rem;font-size:.68rem;background:${kindColor(
+            c.kind
+          )};color:#fff;font-family:monospace">${escapeHtmlGlobal(k)}</span>`;
+          const topic = c.topic
+            ? `<span style="font-size:.74rem;opacity:.7;font-family:monospace;margin-left:.4rem">${escapeHtmlGlobal(c.topic)}</span>`
+            : '';
+          const session = c.session
+            ? `<span style="font-size:.7rem;opacity:.55;margin-left:.4rem">@${escapeHtmlGlobal(c.session)}</span>`
+            : '';
+          return `
+            <div style="padding:.45rem .6rem;border:1px solid rgba(127,127,127,.2);border-radius:.3rem">
+              <div style="display:flex;align-items:center;gap:.3rem">
+                ${badge}${topic}${session}
+                <span style="margin-left:auto;font-size:.7rem;opacity:.55;font-family:monospace">${escapeHtmlGlobal(formatTs(c.ts))}</span>
+              </div>
+              <div style="margin-top:.25rem;line-height:1.5;font-size:.85rem">${escapeHtmlGlobal(c.summary)}</div>
+              <div style="font-size:.66rem;opacity:.4;margin-top:.2rem;font-family:monospace">${escapeHtmlGlobal(c.source)}</div>
+            </div>`;
+        })
+        .join('');
+      if (rows.length === 0) {
+        list.innerHTML = '<div style="opacity:.5;padding:1rem;text-align:center">표시할 카드 없음</div>';
+      }
+    }
+
+    async function load(): Promise<void> {
+      errBox.style.display = 'none';
+      meta.textContent = '로딩 중...';
+      try {
+        const repoRoot = (await tauriInvoke('localdev_get_repo_root')) as string | null;
+        if (!repoRoot) {
+          errBox.style.display = 'block';
+          errBox.textContent = 'repo_root 미설정 — 서버 모니터 위젯에서 먼저 repo 폴더 선택해주세요.';
+          meta.textContent = '';
+          return;
+        }
+        allCards = (await tauriInvoke('agent_team_list_cards', {
+          repoRoot,
+          limit: 80
+        })) as CardInfo[];
+        meta.textContent = `${allCards.length}건 (최근 80개)`;
+        render();
+      } catch (e) {
+        errBox.style.display = 'block';
+        errBox.textContent = `로드 실패: ${String(e)}`;
+        meta.textContent = '';
+      }
+    }
+
+    filterSel.addEventListener('change', render);
+    refreshBtn.addEventListener('click', () => void load());
+    void load();
+    window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
+  }
+
+  Toolbox.register({
+    ...Toolbox.getLazyWidgetPublicMeta?.('agent-team'),
+    id: 'agent-team',
+    title: '에이전트 팀',
+    category: 'desktop',
+    desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1 PoC: roster + objectives + 활성 세션 read-only)',
+    layout: 'full',
+    icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
+    tabs: [
+      { id: 'agent-team-main', label: '팀 / 콘솔', build },
+      { id: 'agent-team-canvas', label: '🎴 카드 피드', build: buildCanvas }
+    ]
+  });
+})();
