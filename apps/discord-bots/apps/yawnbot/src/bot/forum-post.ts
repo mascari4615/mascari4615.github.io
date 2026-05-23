@@ -56,6 +56,9 @@ export interface ThreadChannelLike {
   fetchStarterMessage(): Promise<StarterMessageLike | null>;
   setAppliedTags(tagIds: string[]): Promise<unknown>;
   setArchived(archived: boolean): Promise<unknown>;
+  /** thread 제목 변경 (proposal → TASK 채택 시 `[TASK-YB-NNN] ...` rename).
+   *  optional — 옛 페이크 mock 호환 (없으면 evolve 의 setName change silent skip). */
+  setName?(name: string): Promise<unknown>;
 }
 
 export interface ForumChannelLike {
@@ -149,6 +152,9 @@ export async function evolveForumPost(
     embedEdit?: unknown;
     statusTag?: ForumStatus;
     threadMessage?: string;
+    /** thread 제목 rename — proposal → TASK 채택 시 `[TASK-YB-NNN] ...`.
+     *  discord 한도(100) 까지 절단. setName 미지원 thread = silent skip. */
+    setName?: string;
   },
 ): Promise<void> {
   const channel = await client.channels
@@ -157,6 +163,9 @@ export async function evolveForumPost(
   if (!channel) return;
   const thread = await fetchThread(channel, handle.postId);
   if (!thread) return;
+  if (change.setName && typeof thread.setName === 'function') {
+    await thread.setName(change.setName.slice(0, 100)).catch(() => {});
+  }
   if (change.embedEdit !== undefined) {
     const starter = await thread.fetchStarterMessage().catch(() => null);
     if (starter) {
