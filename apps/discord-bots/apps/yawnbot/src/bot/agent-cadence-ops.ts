@@ -232,9 +232,56 @@ export interface SelfSurgeryDeps {
 }
 
 /**
+ * surgery dedupe — 같은 critical-issue 코드 조합으로 windowMs 내 seed 박은
+ * 이력 있으면 새 LLM 호출·seed 생성 skip (KAR-130/132/138-144 같은 자기복제
+ * 8+ 중복 차단). trace `core='surgery' & reason='surgery seed: ... (codes)'`
+ * 패턴 매칭. trace 부재·파싱 실패 = false (가용성 우선, dedupe 안 함).
+ */
+export function recentSurgeryDedupeHit(
+  env: NodeJS.ProcessEnv,
+  criticalKey: string,
+  windowMs: number,
+): { hit: boolean; lastTs?: string; count: number } {
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot || !criticalKey || windowMs <= 0) return { hit: false, count: 0 };
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  let raw = '';
+  try { raw = fs.readFileSync(tracePath, 'utf-8'); }
+  catch { return { hit: false, count: 0 }; }
+  const cutoff = Date.now() - windowMs;
+  const tail = raw.split('\n').slice(-500);
+  let count = 0;
+  let lastTs: string | undefined;
+  for (const line of tail) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      const o = JSON.parse(t) as { ts?: string; core?: string; reason?: string };
+      if (o.core !== 'surgery') continue;
+      if (!o.reason || !o.reason.startsWith('surgery seed')) continue;
+      const ts = o.ts ? Date.parse(o.ts) : NaN;
+      if (!Number.isFinite(ts) || ts < cutoff) continue;
+      const m = o.reason.match(/\(([^)]+)\)/);
+      if (!m) continue;
+      const codes = m[1].split(',').map((s) => s.trim()).filter(Boolean).sort().join(',');
+      if (codes === criticalKey) {
+        count++;
+        lastTs = o.ts;
+      }
+    } catch { /* skip ill-formed line */ }
+  }
+  return { hit: count > 0, lastTs, count };
+}
+
+function criticalKeyOf(critical: HealthIssue[]): string {
+  return critical.map((i) => i.code).filter(Boolean).sort().join(',');
+}
+
+/**
  * 기둥4 자기수술 (1회·gated·best-effort). 헬스 신호 수집 →
  * critical 이슈 있으면 LLM 자율 진단 → task seed OR escalate.
- * shouldRunSurgery 게이트(기본 12h).
+ * shouldRunSurgery 게이트(기본 12h). dedupe 게이트(24h, force 우회 불가는 X
+ * — `force=true` 가 우회).
  */
 export async function runSelfSurgeryOnce(
   env: NodeJS.ProcessEnv,
@@ -263,6 +310,24 @@ export async function runSelfSurgeryOnce(
   if (!hasCritical) {
     recordSurgery(memoRoot);
     return 'surgery-skip';
+  }
+
+  // dedupe: 같은 critical 조합으로 24h 내 seed 박은 이력 = LLM 호출 전 skip.
+  // KAR-130/132/138-144 (worker-fail-critical 8+ 자기복제) 차단. force 우회.
+  const dedupeWindowMs = Number(env.AGENT_SURGERY_DEDUPE_MS) || 24 * 3600_000;
+  const criticalKey = criticalKeyOf(critical);
+  if (!deps.force && dedupeWindowMs > 0 && criticalKey) {
+    const dh = recentSurgeryDedupeHit(env, criticalKey, dedupeWindowMs);
+    if (dh.hit) {
+      recordSurgery(memoRoot);
+      const lastMs = dh.lastTs ? Date.parse(dh.lastTs) : Date.now();
+      const hrs = Math.max(0, Math.round((Date.now() - lastMs) / 36e5));
+      appendTrace(env, {
+        ts: new Date().toISOString(), type: 'drift', core: 'surgery',
+        reason: `surgery dedupe: ${criticalKey} (${dh.count}건 24h 내, 마지막 ~${hrs}h 전)`,
+      });
+      return `surgery:dedupe:${criticalKey}`;
+    }
   }
 
   const missionText = deps.missionText ?? readMissionText(env);
