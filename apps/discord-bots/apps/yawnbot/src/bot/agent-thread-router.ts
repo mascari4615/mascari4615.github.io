@@ -113,6 +113,14 @@ export interface ThreadRouterDeps {
   resolveChannelId: () => string | null;
   /** taskId 없는 팀-공통 메시지 폴백(기존 embed 송신). */
   fallback: (msg: string) => void;
+  /**
+   * taskId 추출 실패 시 어디로? (사용자 정신없음 fix · 2026-05-23):
+   *  - 'fallback' (default, backwards-compat) = 메인 채널 send
+   *  - 'silent' = Discord 게시 X (trace 만 — status board 가 정보 통합)
+   *
+   * env `AGENT_NOTIFY_FALLBACK=silent` 도 같은 효과 (main.ts wiring).
+   */
+  onMissingTask?: 'fallback' | 'silent';
 }
 
 /**
@@ -178,12 +186,21 @@ export function makeThreadRouter(
     }
   }
 
+  const onMissing =
+    deps.onMissingTask ??
+    ((process.env.AGENT_NOTIFY_FALLBACK?.trim() === 'silent'
+      ? 'silent'
+      : 'fallback') as 'fallback' | 'silent');
+
   return (msg: string): void => {
     void (async () => {
       try {
         const taskId = extractTaskId(msg);
         const channelId = deps.resolveChannelId();
         if (!taskId || !channelId) {
+          if (onMissing === 'silent') {
+            return; // 사용자 정신없음 fix — status board 가 정보 통합
+          }
           deps.fallback(msg);
           return;
         }
