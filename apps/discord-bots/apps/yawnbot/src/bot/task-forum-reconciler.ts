@@ -17,7 +17,11 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { evolveForumPost, type ClientLike } from './forum-post';
+import {
+  evolveForumPost,
+  archiveForumPost,
+  type ClientLike,
+} from './forum-post';
 import {
   readAllLatestTaskForumLinks,
   type TaskForumLink,
@@ -172,6 +176,15 @@ export async function reconcileTaskForumStatusOnce(
             threadMessage: `📌 상태 변경: \`${last ?? '(첫 sync)'}\` → \`${desired}\` (md: ${status})`,
           },
         );
+        // terminal status (done/rejected) 도달 = 사용자 시점 정리. Discord
+        // native archive = 채널 상단에서 사라짐, 검색·재open 가능 (비파괴).
+        // 첫 sync 에서 done 이면 archive — 안 쓰는 옛 TASK 도 자동 정리.
+        if (desired === 'done' || desired === 'rejected') {
+          await archiveForumPost(client, {
+            postId: link.postId,
+            channelId: link.channelId,
+          });
+        }
       } catch (e) {
         stat.errors += 1;
         logger.warn(

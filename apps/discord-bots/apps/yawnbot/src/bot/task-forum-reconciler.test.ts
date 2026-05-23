@@ -37,6 +37,7 @@ interface EvolveCall {
   postId: string;
   statusTag?: string;
   threadMessage?: string;
+  archived?: boolean;
 }
 
 function buildFakeClient(channelId: string, postIds: string[]): {
@@ -45,7 +46,7 @@ function buildFakeClient(channelId: string, postIds: string[]): {
 } {
   const evolveCalls: EvolveCall[] = [];
   const tags = [
-    'proposal', 'worker-report', 'discovery',
+    'proposal', 'task', 'worker-report', 'discovery',
     'pending', 'in-progress', 'approved', 'rejected', 'done',
     'WM', 'KAR', 'YB', 'KL',
   ].map((name) => ({ name, id: `t-${name}` }));
@@ -53,13 +54,15 @@ function buildFakeClient(channelId: string, postIds: string[]): {
   for (const pid of postIds) {
     const t: ThreadChannelLike = {
       id: pid,
-      appliedTags: ['t-worker-report', 't-pending', 't-YB'],
+      appliedTags: ['t-task', 't-pending', 't-YB'],
       send: async (m) => {
         evolveCalls.push({ postId: pid, threadMessage: m.content });
       },
       fetchStarterMessage: async () => null,
       setAppliedTags: async () => {},
-      setArchived: async () => {},
+      setArchived: async (b) => {
+        evolveCalls.push({ postId: pid, archived: b });
+      },
     };
     threads.set(pid, t);
   }
@@ -171,7 +174,7 @@ describe('reconcileTaskForumStatusOnce', () => {
     expect(evolveCalls.length).toBe(0);
   });
 
-  it('drift 감지 (in-progress → done)', async () => {
+  it('drift 감지 (in-progress → done) + done 도달 = archive 자동', async () => {
     writeTask(
       mem.root,
       'projects/yawnbot/tasks',
@@ -188,9 +191,49 @@ describe('reconcileTaskForumStatusOnce', () => {
     await reconcileTaskForumStatusOnce(client, mem.env, {
       logger: { log: () => {}, warn: () => {} },
     });
-    expect(evolveCalls.some((c) => c.statusTag === 'done')).toBe(true);
     expect(evolveCalls.some((c) => c.threadMessage?.includes('in-progress'))).toBe(true);
     expect(evolveCalls.some((c) => c.threadMessage?.includes('done'))).toBe(true);
+    // archive 자동 호출 (stale cleanup)
+    expect(evolveCalls.some((c) => c.archived === true)).toBe(true);
+  });
+
+  it('wont_do → rejected = archive 자동', async () => {
+    writeTask(
+      mem.root,
+      'projects/yawnbot/tasks',
+      'TASK-YB-5.md',
+      '---\nstatus: wont_do\n---\n# x\n',
+    );
+    appendTaskForumLink(mem.env, {
+      taskId: 'TASK-YB-5',
+      postId: 'th-5',
+      channelId: 'ch-tw',
+    });
+    writeStatusState(mem.env, { 'TASK-YB-5': 'in-progress' });
+    const { client, evolveCalls } = buildFakeClient('ch-tw', ['th-5']);
+    await reconcileTaskForumStatusOnce(client, mem.env, {
+      logger: { log: () => {}, warn: () => {} },
+    });
+    expect(evolveCalls.some((c) => c.archived === true)).toBe(true);
+  });
+
+  it('done 으로 변화 X = archive 미호출 (in-progress 유지)', async () => {
+    writeTask(
+      mem.root,
+      'projects/yawnbot/tasks',
+      'TASK-YB-6.md',
+      '---\nstatus: in_progress\n---\n# x\n',
+    );
+    appendTaskForumLink(mem.env, {
+      taskId: 'TASK-YB-6',
+      postId: 'th-6',
+      channelId: 'ch-tw',
+    });
+    const { client, evolveCalls } = buildFakeClient('ch-tw', ['th-6']);
+    await reconcileTaskForumStatusOnce(client, mem.env, {
+      logger: { log: () => {}, warn: () => {} },
+    });
+    expect(evolveCalls.some((c) => c.archived === true)).toBe(false);
   });
 
   it('md 파일 못 찾음 = missing 카운트', async () => {

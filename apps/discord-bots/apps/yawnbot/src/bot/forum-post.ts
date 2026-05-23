@@ -24,7 +24,7 @@ export interface ForumPostHandle {
   channelId: string;
 }
 
-export type ForumKind = 'proposal' | 'worker-report' | 'discovery';
+export type ForumKind = 'proposal' | 'task' | 'worker-report' | 'discovery';
 export type ForumStatus = 'pending' | 'in-progress' | 'approved' | 'rejected' | 'done';
 export type ForumDomain = 'WM' | 'KAR' | 'YB' | 'KL';
 
@@ -35,6 +35,8 @@ const ALL_STATUS: ForumStatus[] = [
   'rejected',
   'done',
 ];
+
+const ALL_KIND: ForumKind[] = ['proposal', 'task', 'worker-report', 'discovery'];
 
 // ── discord.js v14 ForumChannel / ThreadChannel / Message 의 구조적
 //    부분집합. 페이크 client 단위 테스트 가능, 실 코드 변경 0 (deep module). ──
@@ -155,6 +157,8 @@ export async function evolveForumPost(
   change: {
     embedEdit?: unknown;
     statusTag?: ForumStatus;
+    /** kind 태그 1개 교체 (proposal → task 등). 4개 mutually exclusive 한 그룹. */
+    kindTag?: ForumKind;
     threadMessage?: string;
     /** thread 제목 rename — proposal → TASK 채택 시 `[TASK-YB-NNN] ...`.
      *  discord 한도(100) 까지 절단. setName 미지원 thread = silent skip. */
@@ -176,15 +180,22 @@ export async function evolveForumPost(
       await starter.edit({ embeds: [change.embedEdit] }).catch(() => {});
     }
   }
-  if (change.statusTag) {
-    const statusIds = new Set(
-      resolveTagIds(channel.availableTags, ALL_STATUS),
+  if (change.statusTag || change.kindTag) {
+    // status·kind 둘 다 mutually exclusive 토글 — 같은 setAppliedTags 호출로
+    // 한 번에 swap (Discord rate limit 절약). domain 태그는 보존.
+    const statusIds = new Set(resolveTagIds(channel.availableTags, ALL_STATUS));
+    const kindIds = new Set(resolveTagIds(channel.availableTags, ALL_KIND));
+    let next = thread.appliedTags.filter(
+      (id) => !(change.statusTag && statusIds.has(id)) && !(change.kindTag && kindIds.has(id)),
     );
-    const next = thread.appliedTags.filter((id) => !statusIds.has(id));
-    const newStatusId = resolveTagIds(channel.availableTags, [
-      change.statusTag,
-    ])[0];
-    if (newStatusId) next.push(newStatusId);
+    if (change.statusTag) {
+      const newStatusId = resolveTagIds(channel.availableTags, [change.statusTag])[0];
+      if (newStatusId) next.push(newStatusId);
+    }
+    if (change.kindTag) {
+      const newKindId = resolveTagIds(channel.availableTags, [change.kindTag])[0];
+      if (newKindId) next.push(newKindId);
+    }
     await thread.setAppliedTags(next).catch(() => {});
   }
   if (change.threadMessage) {
