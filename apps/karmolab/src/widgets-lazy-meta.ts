@@ -147,28 +147,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['planner/planner']
   },
   {
-    id: 'quest-log',
-    title: 'Quest Log',
-    category: 'lab',
-    desktopOnly: true,
-    desc: 'memo TASK 트리 — Tauri 전용 (memo 폴더 런타임 read, 6 도메인 그룹 + parent chain + 체크박스 진행도, 2s 폴링)',
-    layout: 'full',
-    noHero: true,
-    icon: '<path d="M12 2l2.9 6.95 7.6.6-5.75 4.95L18.4 22 12 17.9 5.6 22l1.65-7.5L1.5 9.55l7.6-.6z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['quest-log/quest-log']
-  },
-  {
-    id: 'task-launcher',
-    title: 'TASK Launcher',
-    category: 'tool',
-    desktopOnly: true,
-    desc: 'memo TASK 파일 flat 검색 + 외부 에디터 즉시 오픈 + 새 TASK 즉석 생성 (id 자동 발급, frontmatter skeleton)',
-    layout: 'full',
-    noHero: true,
-    icon: '<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M16 16l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
-    lazyScriptPaths: ['task-launcher']
-  },
-  {
     id: 'cockpit',
     title: 'Cockpit',
     category: 'lab',
@@ -249,7 +227,7 @@ window.KARMOLAB_LAZY_META = [
   /* 잡동사니 위젯 본체 */
   {
     id: 'stash',
-    title: '잡동사니',
+    title: '놀이',
     category: 'tool',
     desc: '정리 안 된 실험들이 한 상자에 살아 움직임',
     layout: 'full',
