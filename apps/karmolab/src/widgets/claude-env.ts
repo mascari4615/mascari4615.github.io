@@ -500,7 +500,8 @@ import { invoke as tauriInvoke, listen as tauriListen } from '../tauri-bridge';
   Toolbox.register({
     id: 'claude-env',
     title: 'Claude 환경',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: 'Claude Code Stop/Notification hook 사운드 알림 GUI (memo/dotfiles 정본 편집 + sync; v1 Step 2/3)',
     layout: 'form',
     icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
