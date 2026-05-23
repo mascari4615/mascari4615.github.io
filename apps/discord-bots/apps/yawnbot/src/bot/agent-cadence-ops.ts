@@ -495,11 +495,13 @@ export function recentRealProgressCount(
 ): number {
   if (!memoRoot) return 0;
   const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
+  const TAIL = 2000; // 6h 윈도우 안전 margin (system-health tail-read 정합)
   let count = 0;
   const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
   if (fs.existsSync(tracePath)) {
     try {
-      for (const line of fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/)) {
+      const lines = fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
         const t = line.trim();
         if (!t) continue;
         try {
@@ -516,7 +518,8 @@ export function recentRealProgressCount(
   const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
   if (fs.existsSync(evoPath)) {
     try {
-      for (const line of fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/)) {
+      const lines = fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
         const t = line.trim();
         if (!t) continue;
         try {
