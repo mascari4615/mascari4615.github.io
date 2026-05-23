@@ -348,7 +348,18 @@ client.once('clientReady', async () => {
             if (!card) return;
             const ch = await client.channels.fetch(targetCh);
             if (!ch || !(ch as any).isTextBased?.()) return;
-            await sendAsSkin(ch as TextChannel, card, { content: event.text });
+            // KAR-018-LT-DIVERSITY: 발화에 *어떤 메시지에 대한 답*인지 자연 인용 prefix.
+            // 사용자 push back 2026-05-23: "갑자기 지혼자 이렇게 말하는데, 최소한 뭘 대상을
+            // 말하는지는 알 수 있어야 할 것 같은데" — 컨텍스트 단절 fix.
+            const refs = event.refs;
+            let prefix = '';
+            if (refs?.parentAuthor && refs?.parentSnippet) {
+              const author = refs.parentAuthor.replace(/[<>@*_`~]/g, '');
+              const snippet = refs.parentSnippet.replace(/\s+/g, ' ').trim().slice(0, 100);
+              const ellipsis = (refs.parentSnippet?.length ?? 0) > 100 ? '…' : '';
+              prefix = `> ↩ **${author}**: ${snippet}${ellipsis}\n\n`;
+            }
+            await sendAsSkin(ch as TextChannel, card, { content: prefix + event.text });
           } catch (e) {
             console.error('[agent-bus] outbound post 실패', e instanceof Error ? e.message : e);
           }

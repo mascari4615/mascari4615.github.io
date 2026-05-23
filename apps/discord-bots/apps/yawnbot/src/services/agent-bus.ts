@@ -55,6 +55,12 @@ export interface BusEvent {
     messageId?: string;
     /** 참조 BusEvent ts (직전 발의 reply 체인). */
     parentTs?: string;
+    /** Discord 트리거 메시지 id — core-utter 발화 시 reply 대상. */
+    parentMessageId?: string;
+    /** 트리거 메시지의 author (사용자명 또는 코어 display) — daemon prompt context 용. */
+    parentAuthor?: string;
+    /** 트리거 메시지 본문 snippet (앞 200자) — daemon prompt context 용. */
+    parentSnippet?: string;
     /** react-skip 사유 (prefilter 출력 — 관측 가시화). */
     skipReason?: string;
     /** channel-msg author (Discord username 또는 코어 id). */
