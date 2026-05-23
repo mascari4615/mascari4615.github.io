@@ -4,7 +4,7 @@
  * killSwitch / SessionRegistry / generateAgentText / buildTier3Deps /
  * CoreSpeakFn·coreSpeak·setCoreSpeak / runMemoScript(공용 헬퍼).
  */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
 import type { GeminiTextTier } from 'karmolab-ai';
@@ -108,7 +108,13 @@ export function setCoreSpeak(fn: CoreSpeakFn): void { coreSpeak = fn; }
 export function getCoreSpeak(): CoreSpeakFn | null { return coreSpeak; }
 
 // ── runMemoScript 공용 헬퍼 ──────────────────────────────────
-/** memo/scripts/<script>.mjs shell 1회 (단일 정본 호출, best-effort). */
+/** memo/scripts/<script>.mjs 1회 호출 (단일 정본, best-effort).
+ *
+ * execFileSync = shell 없음 → args 안에 ; | & 등 shell metachar 있어도
+ * 안전 (execSync 문자열 보간이면 shell injection 벡터). 호출자가 신뢰
+ * 가능한 args 만 전달하지만 defense-in-depth (TASK 파일의 id 가 외부
+ * 출처일 수 있음 — autonomous agent 가 만든 frontmatter).
+ */
 export function runMemoScript(
   memoRoot: string,
   script: string,
@@ -116,8 +122,9 @@ export function runMemoScript(
 ): { code: number; out: string } {
   try {
     const p = path.join(memoRoot, 'scripts', script);
-    const out = execSync(
-      `node "${p}" ${args.join(' ')} --root "${memoRoot}"`,
+    const out = execFileSync(
+      'node',
+      [p, ...args, '--root', memoRoot],
       { timeout: 20_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
     );
     return { code: 0, out };
