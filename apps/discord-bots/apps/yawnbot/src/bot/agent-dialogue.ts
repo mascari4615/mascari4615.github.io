@@ -57,54 +57,26 @@ export interface DialogueTurn {
  * worker-report 는 도메인 주인이 *자기 보고*이므로 ②를 건너뛰고 ③(피어
  * 코멘트)만 — 자기 자신에게 응답 금지.
  */
+/**
+ * @deprecated KAR-018-LT-PEER-ONLY P-2 (2026-05-23). dyadic dialogue engine 폐기.
+ *
+ * 사용자 비전 (peer-only ambient daemon 전환):
+ *  - 코어 = 독립 daemon process · 자기 cadence self-tick (agent-daemon.ts:scheduleSelfTick)
+ *  - 발의·챌린지 = ambient 채널 listener 자율 판단 (silence default + rate limit)
+ *  - dyadic '한 발화 → 즉시 1명 peer 챌린지' path = "혼자 말함" source → 폐기
+ *
+ * 함수 시그니처는 잔존 caller (agent-cadence.ts:808) 호환 위해 유지, *무조건 null* 반환.
+ * caller cleanup = 별 turn (deletion test = caller 가 null 받아 'dialogue-none' return,
+ * 회귀 0 검증된 후 caller 제거 안전).
+ *
+ * env 가드 (AGENT_DIALOGUE_DISABLED=1) 도 이제 무관 — 본 함수 자체가 무조건 null.
+ */
 export function decideDialogueTurn(
-  u: PeerUtterance,
-  cores: CoreDef[],
-  chain: { depth: number; cap: number },
+  _u: PeerUtterance,
+  _cores: CoreDef[],
+  _chain: { depth: number; cap: number },
 ): DialogueTurn | null {
-  // KAR-018-LT-DIVERSITY (2026-05-23): dyadic dialogue engine 가드.
-  // ambient daemon 패러다임 전환 후 — producer/worker 는 살리고 dyadic
-  // 챌린지 path 만 OFF. AGENT_DIALOGUE_DISABLED=1 = "혼자 말함" source 차단.
-  if ((process.env.AGENT_DIALOGUE_DISABLED || '').trim() === '1') return null;
-  if (chain.depth >= chain.cap) return null;
-  const speaker = (u.speakerCoreId || '').trim();
-  const others = cores.filter((c) => c && c.id && c.id !== speaker);
-  if (others.length === 0) return null;
-
-  const isWorker = (c: CoreDef): boolean =>
-    (c.frontmatter?.kind || '').trim() === 'worker';
-  const isActive = (c: CoreDef): boolean =>
-    (c.status || '').trim() === 'active';
-
-  const domain = (u.domain || '').trim().toUpperCase();
-
-  // ② 도메인 주인 워커 (proposal 한정 — worker-report 는 발화자 본인이라 skip)
-  if (u.kind === 'proposal' && domain) {
-    const owner = others.find(
-      (c) =>
-        isWorker(c) &&
-        isActive(c) &&
-        (c.frontmatter?.domain || '').trim().toUpperCase() === domain,
-    );
-    if (owner) {
-      return {
-        responderCoreId: owner.id,
-        reason: `도메인 주인(${domain}) 워커 ${owner.id} 인수 의사`,
-      };
-    }
-  }
-
-  // ③ 지정 피어 = speaker 아닌 첫 *비-워커* 코어 (atlas↔echo 류 피어 리뷰).
-  //    비-워커 우선(워커는 작업 실행자라 잡담 X), 없으면 첫 other.
-  const peer =
-    others.find((c) => !isWorker(c) && isActive(c)) ??
-    others.find((c) => isActive(c)) ??
-    null;
-  if (!peer) return null;
-  return {
-    responderCoreId: peer.id,
-    reason: `피어 ${peer.id} 정렬·중복 관점 코멘트`,
-  };
+  return null;
 }
 
 /**
