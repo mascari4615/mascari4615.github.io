@@ -7,7 +7,9 @@ import {
   runCadenceTickOnce, runWorkerConsumerOnce,
   getCadenceAutoEnabled, setCadenceAutoEnabled,
   getWorkerAutoEnabled, setWorkerAutoEnabled,
+  getSurgeryAutoEnabled, setSurgeryAutoEnabled,
   defaultListWorkers, type WorkerConsumerDeps,
+  runSelfSurgeryOnce,
 } from '../agent-cadence';
 import { triggerAllNewsOnce } from '../../services/notifiers/news';
 import { triggerHeartbeatNow } from '../../services/heartbeat';
@@ -127,6 +129,63 @@ export async function handleAdminWorkerToggle(
     content: next
       ? '🟢 워커 자동 ON — 5분 주기 자동 소화 재개'
       : '🔴 워커 자동 OFF — 수동 `/관리자 워커틱` 으로만 실행',
+    flags: MessageFlags.Ephemeral,
+  });
+}
+
+/**
+ * 자기수술 강제 1회 실행 (KAR-018, 2026-05-22 사용자 goal "자가발전").
+ * 12h gate 우회 (force=true) — 사용자가 즉시 검증 가능.
+ * critical 헬스 이슈 있어야 LLM 진단 → seed/escalate.
+ */
+export async function handleAdminSelfSurgery(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction
+    .editReply({ content: '⚕ 자기수술 시작 (force=true, gate 우회)…' })
+    .catch(() => {});
+  try {
+    const r = await runSelfSurgeryOnce(process.env, { force: true });
+    await interaction
+      .editReply({
+        content:
+          `⚕ 자기수술 완료 — \`${String(r).slice(0, 1500)}\`\n` +
+          '(seed 생성 시 #team-bus 알림 + memo origin push)',
+      })
+      .catch(() => {});
+  } catch (e) {
+    await interaction
+      .editReply({
+        content: `⚠ 자기수술 오류: ${e instanceof Error ? e.message : String(e)}`,
+      })
+      .catch(() => {});
+  }
+}
+
+export async function handleAdminSurgeryToggle(
+  ctx: BotContext,
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const { gameData, isAdmin } = ctx;
+  if (!isAdmin(userId)) {
+    await interaction.reply({ content: gameData.getMessage('Admin_AccessDenied_Desc'), flags: MessageFlags.Ephemeral });
+    return;
+  }
+  const next = !getSurgeryAutoEnabled();
+  setSurgeryAutoEnabled(next);
+  await interaction.reply({
+    content: next
+      ? '🟢 자기수술 자동 ON — 12h 게이트 + critical 이슈 한정 자동 진단 재개'
+      : '🔴 자기수술 자동 OFF — 수동 `/관리자 자기수술` 으로만 실행',
     flags: MessageFlags.Ephemeral,
   });
 }

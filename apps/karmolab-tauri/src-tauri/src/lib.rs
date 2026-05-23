@@ -1,5 +1,6 @@
 mod activity;
 mod adventure;
+mod agent_team;
 mod alarm;
 mod claude_env;
 #[cfg(debug_assertions)]
@@ -22,6 +23,11 @@ use alarm::{
 };
 use adventure::{
     adventure_claude_complete, adventure_commit_summary, adventure_save_image, adventure_save_raw,
+};
+use agent_team::{
+    agent_team_decide_proposal, agent_team_list_agents, agent_team_list_bus,
+    agent_team_list_cards, agent_team_list_objectives, agent_team_list_proposals,
+    agent_team_list_sessions, agent_team_run_cadence_tick, agent_team_run_cadence_tick_prod,
 };
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
@@ -552,8 +558,9 @@ fn with_dev_overlay<'a>(icon: &tauri::image::Image<'a>) -> tauri::image::Image<'
 /// 빌드 사이에 캐시된 구버전 자산이 그대로 보이는 문제 예방. `karmolab_app_version_seen`을
 /// reload 전에 기록하므로 같은 버전에서는 다시 들어가지 않음.
 ///
-/// debug 빌드 (cfg(debug_assertions)) 시: 상단 빨간 띠 banner 추가 + `__KARMOLAB_DEV_INSTANCE__`
-/// 플래그 노출. `decorations: false` 라 시스템 타이틀바 없어서 prod/dev 시각 구분 필요.
+/// debug 빌드 (cfg(debug_assertions)) 시: `__KARMOLAB_DEV_INSTANCE__` 플래그만 노출 —
+/// 시각 구분은 Header 로고 옆 버전 배지(`#headerVersionBadge`)가 `· dev` 라벨로 표시.
+/// (옛 상단 빨간 띠 banner 폐기 — 시야 점유 + 결국 같은 의도 = 버전+빌드 라벨로 통합.)
 fn karmolab_desktop_init_script() -> String {
     let base = concat!(
         r#"window.__KARMOLAB_DESKTOP__=!0;window.__karmolabSetNotifyInvokeDebug=function(){};window.__KARMOLAB_VERSION__=""#,
@@ -562,9 +569,7 @@ fn karmolab_desktop_init_script() -> String {
     );
     let mut script = String::from(base);
     if cfg!(debug_assertions) {
-        script.push_str(
-            r#"window.__KARMOLAB_DEV_INSTANCE__=!0;(function(){function inject(){if(document.getElementById('__karmolab_dev_banner__'))return;var b=document.createElement('div');b.id='__karmolab_dev_banner__';b.textContent='⚠ KarmoLab DEV INSTANCE — debug build';b.style.cssText='position:fixed;top:0;left:0;right:0;background:#c04040;color:#fff;text-align:center;font-size:11px;padding:3px 0;z-index:2147483647;font-family:sans-serif;letter-spacing:0.15em;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,0.5);';if(document.body){document.body.appendChild(b);}else{document.addEventListener('DOMContentLoaded',inject,{once:true});}}inject();})();"#
-        );
+        script.push_str(r#"window.__KARMOLAB_DEV_INSTANCE__=!0;"#);
     }
     script
 }
@@ -687,7 +692,18 @@ fn desktop_notify(
 }
 
 #[tauri::command]
-fn desktop_trigger_release_workflow(
+async fn desktop_trigger_release_workflow(
+    ref_name: Option<String>,
+    bump_type: Option<String>,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        desktop_trigger_release_workflow_blocking(ref_name, bump_type)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn desktop_trigger_release_workflow_blocking(
     ref_name: Option<String>,
     bump_type: Option<String>,
 ) -> Result<String, String> {

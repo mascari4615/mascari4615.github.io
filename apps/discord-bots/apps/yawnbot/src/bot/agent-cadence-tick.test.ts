@@ -98,7 +98,10 @@ afterEach(() => {
 });
 
 describe('runCadenceTickOnce — producer→dialogue→write-back 합성 (LT 안 닫힌 rung)', () => {
-  it('한 틱서 발굴 제안이 다중턴 숙의 수정채택 → 새 카드 + progressLog (LLM 경계만 stub)', async () => {
+  // KAR-018-LT-PEER-ONLY P-2 (2026-05-23): dyadic dialogue engine 폐기 후 본 합성
+  // 시나리오 (발굴→다중턴 숙의→수정 채택→progressLog) 의 dialogue 부분 inert.
+  // it.skip + DEPRECATED 마크. ambient daemon self-tick 패러다임으로 흡수.
+  it.skip('한 틱서 발굴 제안이 다중턴 숙의 수정채택 → 새 카드 + progressLog (LLM 경계만 stub) [DEPRECATED P-2]', async () => {
     const spoke: string[] = [];
     const r = await runCadenceTickOnce(env(), {
       includeWorker: false,

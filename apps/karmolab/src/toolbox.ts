@@ -36,22 +36,24 @@
  *   Mdd.bounce()           — 바운스 애니메이션
  *   Mdd.addAffection(n)    — 호감도 증가 (스토리 해금 트리거)
  */
+// @ts-nocheck — core shell; narrow types incrementally
 const Toolbox = (() => {
-    const tools: any[] = [];
+    const tools = [];
 
     /* ===== 카테고리 & 메타데이터 ===== */
 
+    // 'desktop' 카테고리 폐지 (사용자 발화 2026-05-23, TASK-YB-039) — 위젯은 일반
+    // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
     const CATEGORIES = [
         { id: 'tool', label: '도구', icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.15a2.1 2.1 0 0 1-3-3l6.72-6.72a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
         { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
-        { id: 'desktop', label: '데스크톱 앱', icon: '<rect x="2" y="4" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="20" x2="16" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
     ];
 
-    /** 위젯별 메타데이터 (category, desc, hidden 등) — 각 위젯 register에서 정의 */
-    function getToolMeta(id: any) {
+    /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
+    function getToolMeta(id) {
         const t = tools.find(x => x.id === id);
-        return t ? { category: t.category, desc: t.desc, hidden: t.hidden } : null;
+        return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
     }
     const LAST_PAGE_KEY = 'toolbox_last_page';
     const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
@@ -62,7 +64,7 @@ const Toolbox = (() => {
         return (v === 'sidebar' || v === 'header') ? v : 'header';
     }
 
-    function setNavLayout(layout: any) {
+    function setNavLayout(layout) {
         document.documentElement.setAttribute('data-nav', layout);
         try { localStorage.setItem(NAV_LAYOUT_KEY, layout); } catch (_) {}
     }
@@ -75,11 +77,11 @@ const Toolbox = (() => {
         return { tool: true, play: false, lab: false, misc: true };
     }
 
-    function setSidebarGroupState(state: any) {
+    function setSidebarGroupState(state) {
         try { localStorage.setItem(SIDEBAR_GROUP_KEY, JSON.stringify(state)); } catch (_) {}
     }
 
-    let megaMenuCloseTimer: any = null;
+    let megaMenuCloseTimer = null;
 
     function clearMegaMenuTimer() {
         if (megaMenuCloseTimer) {
@@ -103,18 +105,18 @@ const Toolbox = (() => {
             const tr = wrap.querySelector('.header-nav-trigger');
             if (tr) tr.setAttribute('aria-expanded', 'false');
             const p = wrap.querySelector('.header-nav-panel');
-            if (p) (p as any).hidden = true;
+            if (p) p.hidden = true;
         });
     }
 
-    function closeAllHeaderNavExcept(except: any) {
+    function closeAllHeaderNavExcept(except) {
         document.querySelectorAll('.header-nav-group.is-open').forEach((w) => {
             if (w === except) return;
             w.classList.remove('is-open');
             const tr = w.querySelector('.header-nav-trigger');
             if (tr) tr.setAttribute('aria-expanded', 'false');
             const p = w.querySelector('.header-nav-panel');
-            if (p) (p as any).hidden = true;
+            if (p) p.hidden = true;
         });
     }
 
@@ -122,7 +124,7 @@ const Toolbox = (() => {
 
     const lazyLoadPromises = new Map();
 
-    function register(config: any) {
+    function register(config) {
         const deferredIdx = tools.findIndex(t => t.id === config.id && t._deferred);
         if (deferredIdx >= 0) {
             tools[deferredIdx] = { ...config, _deferred: false };
@@ -134,7 +136,7 @@ const Toolbox = (() => {
     }
 
     /** 등록된 위젯의 첫 tab.build 를 임의 container 에 inline 호출 (잡동사니 위젯 등 페이지 안 페이지). */
-    function renderInline(id: any, container: any) {
+    function renderInline(id, container) {
         const tool = tools.find(t => t.id === id);
         if (!tool || !tool.tabs || tool.tabs.length === 0) return false;
         const tab = tool.tabs[0];
@@ -149,7 +151,7 @@ const Toolbox = (() => {
     }
 
     /** 레지스트리·초기화용 — 스크립트는 첫 방문 시 loadDeferredWidget에서 로드 */
-    function registerDeferred(stub: any) {
+    function registerDeferred(stub) {
         const { lazyScriptPaths, ...rest } = stub;
         tools.push({
             ...rest,
@@ -158,14 +160,14 @@ const Toolbox = (() => {
             tabs: [{
                 id: '__lazy',
                 label: '…',
-                build(container: any) {
+                build(container) {
                     container.innerHTML = '<p class="tb-lazy-loading" style="padding:32px;text-align:center;color:var(--text-secondary);">불러오는 중…</p>';
                 },
             }],
         });
     }
 
-    function rebuildToolPageIfInDom(pageId: any) {
+    function rebuildToolPageIfInDom(pageId) {
         const toolPages = document.getElementById('tool-pages');
         if (!toolPages) return;
         const tool = tools.find(t => t.id === pageId);
@@ -190,7 +192,7 @@ const Toolbox = (() => {
     }
 
     function getWorldScriptBase() {
-        const b = typeof window !== 'undefined' && (window as any).KARMOLAB_WORLD_SCRIPT_BASE;
+        const b = typeof window !== 'undefined' && window.KARMOLAB_WORLD_SCRIPT_BASE;
         if (b) return b;
         try {
             const origin = location.origin || '';
@@ -213,7 +215,7 @@ const Toolbox = (() => {
      * - `root/<x>`   → js/<x>.js          (예: `root/gemini`)
      * - 그 외        → js/widgets/<x>.js  (기존 위젯 경로 — 무변경)
      */
-    function resolveScriptPath(rawPath: any) {
+    function resolveScriptPath(rawPath) {
         if (typeof rawPath === 'string' && rawPath.startsWith('world/')) {
             return getWorldScriptBase() + rawPath.slice('world/'.length) + '.js';
         }
@@ -231,17 +233,17 @@ const Toolbox = (() => {
      * boot 위젯(docs/user 등)이 무거운 vendor lib(marked/Prism/Gemini)를
      * boot 가 아니라 *사용 직전* 로드하도록 — 발화 「버튼 눌렀을때 그제서야」.
      */
-    function ensureScript(rawPath: any) {
+    function ensureScript(rawPath) {
         return loadScriptOnce(resolveScriptPath(rawPath));
     }
 
     const widgetScriptsLoaded = new Set();
     const widgetScriptsLoading = new Map();
 
-    function loadScriptOnce(src: any) {
+    function loadScriptOnce(src) {
         if (widgetScriptsLoaded.has(src)) return Promise.resolve();
         if (widgetScriptsLoading.has(src)) return widgetScriptsLoading.get(src);
-        const p = new Promise<void>((resolve, reject) => {
+        const p = new Promise((resolve, reject) => {
             const s = document.createElement('script');
             s.src = src;
             s.async = false;
@@ -260,7 +262,7 @@ const Toolbox = (() => {
         return p;
     }
 
-    function loadDeferredWidget(pageId: any) {
+    function loadDeferredWidget(pageId) {
         const tool = tools.find(t => t.id === pageId && t._deferred);
         if (!tool) return Promise.resolve();
         if (lazyLoadPromises.has(pageId)) return lazyLoadPromises.get(pageId);
@@ -294,12 +296,12 @@ const Toolbox = (() => {
         return p;
     }
 
-    function kickLazyLoad(pageId: any) {
+    function kickLazyLoad(pageId) {
         return loadDeferredWidget(pageId);
     }
 
     /** 지연 위젯용 — lazy-meta에 정의된 공개 필드만 (lazyScriptPaths 제외). 위젯 register 시 스프레드 */
-    function getLazyWidgetPublicMeta(id: any) {
+    function getLazyWidgetPublicMeta(id) {
         const m = typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID && window.KARMOLAB_LAZY_META_BY_ID[id];
         if (!m) {
             console.warn('[KarmoLab] getLazyWidgetPublicMeta: 정의 없음 —', id);
@@ -309,7 +311,7 @@ const Toolbox = (() => {
         return rest;
     }
 
-    function setNotifyInvokeDebugPayload(payload: any) {
+    function setNotifyInvokeDebugPayload(payload) {
         if (typeof window.__karmolabSetNotifyInvokeDebug === 'function') {
             window.__karmolabSetNotifyInvokeDebug(payload);
             return;
@@ -321,7 +323,7 @@ const Toolbox = (() => {
             const line = JSON.stringify(payload);
             if (pre) pre.textContent = JSON.stringify(payload, null, 2);
             if (sum) sum.textContent = line.length > 100 ? line.slice(0, 97) + '…' : line;
-            if (det) (det as any).open = true;
+            if (det) det.open = true;
         } catch (_) {}
     }
 
@@ -342,7 +344,7 @@ const Toolbox = (() => {
         }).catch(() => {});
     }
 
-    function showUpdateBanner(current: any, newVer: any) {
+    function showUpdateBanner(current, newVer) {
         if (document.querySelector('.karmolab-update-banner')) return;
         const banner = document.createElement('div');
         banner.className = 'karmolab-update-banner';
@@ -583,12 +585,13 @@ const Toolbox = (() => {
         win.onResized?.(() => { void syncMaximized(); }).catch(() => {});
     }
 
-    /** 데스크톱 전용(category desktop) 도구는 일반 브라우저에서 메뉴·페이지에 넣지 않음 */
-    function isDesktopOnlyTool(tool: any) {
-        return tool && tool.category === 'desktop';
+    /** 데스크톱 전용(desktopOnly 플래그) 도구는 일반 브라우저에서 메뉴·페이지에 넣지 않음.
+     *  레거시: category==='desktop' 도 데스크톱전용으로 취급 (마이그 안전망). */
+    function isDesktopOnlyTool(tool) {
+        return tool && (tool.desktopOnly === true || tool.category === 'desktop');
     }
 
-    function mirrorToastToDesktop(msg: any, type: any, detailText: any) {
+    function mirrorToastToDesktop(msg, type, detailText) {
         if (!isDesktopApp()) return;
         const notifyLevel = localStorage.getItem('karmolab_os_notify_level') || 'important';
         if (notifyLevel === 'off') return;
@@ -610,7 +613,7 @@ const Toolbox = (() => {
         let body = typeof detailText === 'string' ? detailText.trim() : '';
         if (body.length > 240) body = body.slice(0, 237) + '…';
         const payload = { title: title.slice(0, 120), body: body || 'KarmoLab' };
-        if (type === 'error') (payload as any).sound = 'Mail';
+        if (type === 'error') payload.sound = 'Mail';
         setNotifyInvokeDebugPayload(payload);
         invokeFn('desktop_notify', payload).catch(function () {});
     }
@@ -621,7 +624,7 @@ const Toolbox = (() => {
         const toolPages = document.getElementById('tool-pages');
         const hiddenSet = new Set(tools.filter(t => t.hidden).map(t => t.id));
 
-        function addNavItem(container: any, tool: any) {
+        function addNavItem(container, tool) {
             const a = document.createElement('a');
             a.className = 'nav-item';
             a.href = '#';
@@ -636,13 +639,13 @@ const Toolbox = (() => {
             container.appendChild(a);
         }
 
-        function addMobileNavItem(tool: any) {
+        function addMobileNavItem(tool) {
             const m = document.createElement('a');
             m.className = 'nav-item';
             m.dataset.page = tool.id;
             m.textContent = tool.title;
             m.onclick = () => switchPage(tool.id);
-            mobileNav!.appendChild(m);
+            mobileNav.appendChild(m);
         }
 
         // Mobile home button
@@ -651,9 +654,9 @@ const Toolbox = (() => {
         mHome.dataset.page = 'home';
         mHome.textContent = '홈';
         mHome.onclick = () => switchPage('home');
-        mobileNav!.appendChild(mHome);
+        mobileNav.appendChild(mHome);
 
-        function buildHeaderNavGroup(label: any, catTools: any, navParent: any) {
+        function buildHeaderNavGroup(label, catTools, navParent) {
             if (!catTools.length) return;
 
             const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
@@ -674,7 +677,7 @@ const Toolbox = (() => {
             panel.hidden = true;
             const inner = document.createElement('div');
             inner.className = 'header-nav-panel-inner';
-            catTools.forEach((tool: any) => addNavItem(inner, tool));
+            catTools.forEach(tool => addNavItem(inner, tool));
             panel.appendChild(inner);
 
             trigger.appendChild(labelSpan);
@@ -687,7 +690,7 @@ const Toolbox = (() => {
                 trigger.setAttribute('aria-expanded', 'true');
             }
 
-            function toggleClick(e: any) {
+            function toggleClick(e) {
                 e.stopPropagation();
                 const wasOpen = wrap.classList.contains('is-open');
                 if (wasOpen) {
@@ -718,7 +721,7 @@ const Toolbox = (() => {
 
             CATEGORIES.forEach(cat => {
                 const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (cat.id !== 'desktop' || isDesktopApp()))
+                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
                 buildHeaderNavGroup(cat.label, catTools, headerNavScroll);
             });
@@ -731,7 +734,7 @@ const Toolbox = (() => {
             }
 
             document.addEventListener('click', (e) => {
-                if ((!e.target! as any).closest('.header-nav')) closeAllHeaderNav();
+                if (!e.target.closest('.header-nav')) closeAllHeaderNav();
             });
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeAllHeaderNav();
@@ -741,7 +744,7 @@ const Toolbox = (() => {
         // Build sidebar nav groups
         const sidebarNavEl = document.getElementById('sidebar-nav');
         if (sidebarNavEl) {
-            function buildSidebarGroup(catId: any, label: any, catTools: any) {
+            function buildSidebarGroup(catId, label, catTools) {
                 if (!catTools.length) return;
                 const isOpen = getSidebarGroupState()[catId] !== undefined
                     ? getSidebarGroupState()[catId]
@@ -756,7 +759,7 @@ const Toolbox = (() => {
                     + '<span class="sidebar-group-label">' + label + '</span>';
                 const body = document.createElement('div');
                 body.className = 'sidebar-group-body' + (isOpen ? ' open' : '');
-                catTools.forEach((tool: any) => addNavItem(body, tool));
+                catTools.forEach(tool => addNavItem(body, tool));
                 trigger.onclick = () => {
                     const open = body.classList.toggle('open');
                     trigger.classList.toggle('open', open);
@@ -765,12 +768,12 @@ const Toolbox = (() => {
                 };
                 wrap.appendChild(trigger);
                 wrap.appendChild(body);
-                sidebarNavEl!.appendChild(wrap);
+                sidebarNavEl.appendChild(wrap);
             }
 
             CATEGORIES.forEach(cat => {
                 const catTools = tools
-                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (cat.id !== 'desktop' || isDesktopApp()))
+                    .filter(t => !hiddenSet.has(t.id) && t.category === cat.id && (!isDesktopOnlyTool(t) || isDesktopApp()))
                     .sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
                 buildSidebarGroup(cat.id, cat.label, catTools);
             });
@@ -782,13 +785,13 @@ const Toolbox = (() => {
         }
 
         // Build landing page
-        toolPages!.appendChild(buildLanding());
+        toolPages.appendChild(buildLanding());
 
         // Build tool pages (가나다순)
         const sortedTools = [...tools].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
         sortedTools.forEach(tool => {
             if (!hiddenSet.has(tool.id) && (!isDesktopOnlyTool(tool) || isDesktopApp())) addMobileNavItem(tool);
-            if (!isDesktopOnlyTool(tool) || isDesktopApp()) toolPages!.appendChild(buildToolPage(tool));
+            if (!isDesktopOnlyTool(tool) || isDesktopApp()) toolPages.appendChild(buildToolPage(tool));
         });
 
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
@@ -803,7 +806,7 @@ const Toolbox = (() => {
 
         const hashPage = location.hash ? location.hash.slice(1) : null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
-        const isValidPage = (id: any) => {
+        const isValidPage = (id) => {
             if (id === 'home' || id === 'user') return true;
             const t = tools.find(x => x.id === id);
             if (!t) return false;
@@ -873,7 +876,7 @@ const Toolbox = (() => {
         return h || 'home';
     }
 
-    function switchPage(pageId: any, opts: any = {}) {
+    function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
         let { pushHistory = true } = opts;
         const base = location.pathname + (location.search || '');
@@ -907,7 +910,7 @@ const Toolbox = (() => {
             if (landing) landing.classList.add('active');
             if (headerHomeBtn) headerHomeBtn.classList.add('active');
             document.querySelectorAll('[data-page="home"]').forEach(n => n.classList.add('active'));
-            document.getElementById('pageTitle')!.textContent = 'KarmoLab';
+            document.getElementById('pageTitle').textContent = 'KarmoLab';
             if (breadcrumb) breadcrumb.innerHTML = '';
             try { localStorage.setItem(LAST_PAGE_KEY, 'home'); } catch (_) {}
             if (typeof Mdd !== 'undefined') {
@@ -928,7 +931,7 @@ const Toolbox = (() => {
 
         const tool = tools.find(t => t.id === pageId);
         if (tool) {
-            document.getElementById('pageTitle')!.textContent = tool.title;
+            document.getElementById('pageTitle').textContent = tool.title;
             if (breadcrumb && tool.category) {
                 const cat = CATEGORIES.find(c => c.id === tool.category);
                 breadcrumb.innerHTML = `
@@ -942,7 +945,7 @@ const Toolbox = (() => {
         }
     }
 
-    function switchTab(btn: any, tabId: any) {
+    function switchTab(btn, tabId) {
         if (typeof btn === 'string') {
             tabId = btn;
             btn = document.querySelector(`[data-tab-id="${tabId}"]`);
@@ -950,11 +953,11 @@ const Toolbox = (() => {
         }
         const tabRow = btn.closest('.tab-row');
         const page = btn.closest('.tool-page');
-        tabRow.querySelectorAll('.tab-btn').forEach((b: any) => {
+        tabRow.querySelectorAll('.tab-btn').forEach((b) => {
             b.classList.remove('active');
             b.setAttribute('aria-selected', 'false');
         });
-        page.querySelectorAll('.tab-panel').forEach((p: any) => p.classList.remove('active'));
+        page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
         document.getElementById('panel-' + tabId)?.classList.add('active');
@@ -962,7 +965,7 @@ const Toolbox = (() => {
 
     /* ===== Page Builder ===== */
 
-    function buildToolPage(tool: any) {
+    function buildToolPage(tool) {
         const div = document.createElement('div');
         div.className = 'tool-page';
         if (tool.layout) div.classList.add('layout-' + tool.layout);
@@ -987,7 +990,7 @@ const Toolbox = (() => {
                 tabRow.setAttribute('role', 'tablist');
                 tabRow.setAttribute('aria-orientation', 'vertical');
             }
-            tool.tabs.forEach((tab: any, i: any) => {
+            tool.tabs.forEach((tab, i) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
@@ -1013,7 +1016,7 @@ const Toolbox = (() => {
             }
         }
 
-        tool.tabs.forEach((tab: any, i: any) => {
+        tool.tabs.forEach((tab, i) => {
             const panel = document.createElement('div');
             panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
             panel.id = 'panel-' + tab.id;
@@ -1031,7 +1034,7 @@ const Toolbox = (() => {
         const t = document.getElementById('statusToast');
         if (!t) return;
         const hasDetail = detail !== undefined && detail !== null && detail !== '';
-        const detailText = typeof detail === 'string' ? detail : (detail && (detail as any).message) ? (detail as any).message + ((detail as any).stack ? '\n' + (detail as any).stack : '') : '';
+        const detailText = typeof detail === 'string' ? detail : (detail && detail.message) ? detail.message + (detail.stack ? '\n' + detail.stack : '') : '';
         if (hasDetail && detailText) {
             t.className = 'status-toast visible has-detail ' + type;
             const fullText = msg + '\n\n' + detailText;
@@ -1039,7 +1042,7 @@ const Toolbox = (() => {
             t.onclick = null;
             const copyBtn = t.querySelector('.status-toast-copy');
             if (copyBtn) {
-                (copyBtn as any).onclick = function (ev: any) {
+                copyBtn.onclick = function (ev) {
                     ev.stopPropagation();
                     if (navigator.clipboard?.writeText) {
                         navigator.clipboard.writeText(fullText).then(() => showToast('클립보드에 복사됨'));
@@ -1055,8 +1058,8 @@ const Toolbox = (() => {
                 };
             }
             t.style.pointerEvents = 'auto';
-            clearTimeout((t as any)._toastHide);
-            (t as any)._toastHide = setTimeout(() => {
+            clearTimeout(t._toastHide);
+            t._toastHide = setTimeout(() => {
                 t.classList.remove('visible');
                 t.onclick = null;
                 t.style.pointerEvents = '';
@@ -1067,33 +1070,33 @@ const Toolbox = (() => {
             t.className = 'status-toast visible ' + type;
             t.onclick = null;
             t.style.pointerEvents = '';
-            clearTimeout((t as any)._toastHide);
-            (t as any)._toastHide = setTimeout(() => t.classList.remove('visible'), 2500);
+            clearTimeout(t._toastHide);
+            t._toastHide = setTimeout(() => t.classList.remove('visible'), 2500);
             mirrorToastToDesktop(msg, type, '');
         }
     }
 
-    function escapeHtml(s: any) {
+    function escapeHtml(s) {
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function formatTimestamp(ts: any) {
+    function formatTimestamp(ts) {
         const d = new Date(ts);
         return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    function showLightbox(imageUrl: any) {
+    function showLightbox(imageUrl) {
         let overlay = document.querySelector('.tb-lightbox-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.className = 'tb-lightbox-overlay';
-            (overlay as any).onclick = () => overlay!.remove();
+            overlay.onclick = () => overlay.remove();
             document.body.appendChild(overlay);
         }
         overlay.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="확대 이미지">`;
     }
 
-    function displayResult(prefix: any, title: any, content: any, timeTaken: any, isError = false) {
+    function displayResult(prefix, title, content, timeTaken, isError = false) {
         const box = document.getElementById(prefix + 'Result');
         const label = document.getElementById(prefix + 'ResultLabel');
         const area = document.getElementById(prefix + 'ResultContent');
@@ -1103,8 +1106,8 @@ const Toolbox = (() => {
         if (box) box.classList.add('visible');
     }
 
-    function copyResult(contentId: any) {
-        const text = document.getElementById(contentId)!.textContent;
+    function copyResult(contentId) {
+        const text = document.getElementById(contentId).textContent;
         if (navigator.clipboard?.writeText) {
             navigator.clipboard.writeText(text).then(() => showToast('클립보드에 복사됨'));
         } else {
@@ -1115,12 +1118,12 @@ const Toolbox = (() => {
         }
     }
 
-    function toggleCollapsible(trigger: any) {
+    function toggleCollapsible(trigger) {
         trigger.classList.toggle('open');
         trigger.nextElementSibling.classList.toggle('open');
     }
 
-    function field(container: any, { tag = 'textarea', id, label, placeholder, type, topRight, mono }: any) {
+    function field(container, { tag = 'textarea', id, label, placeholder, type, topRight, mono }) {
         const g = document.createElement('div');
         g.className = 'field-group';
         if (topRight) {
@@ -1138,29 +1141,29 @@ const Toolbox = (() => {
             g.appendChild(lbl);
         }
         const el = document.createElement(tag);
-        el.id = id; (el as any).placeholder = placeholder || '';
-        if (type) (el as any).type = type;
+        el.id = id; el.placeholder = placeholder || '';
+        if (type) el.type = type;
         if (mono) el.className = 'mono-input';
         g.appendChild(el);
         container.appendChild(g);
         return el;
     }
 
-    function resultBox(container: any, prefix: any) {
+    function resultBox(container, prefix) {
         const box = document.createElement('div');
         box.className = 'result-box'; box.id = prefix + 'Result';
         box.innerHTML = `<div class="result-header"><span class="result-label" id="${prefix}ResultLabel">결과</span><button class="btn-ghost" onclick="Toolbox.copyResult('${prefix}ResultContent')">복사</button></div><pre class="result-content" id="${prefix}ResultContent"></pre>`;
         container.appendChild(box);
     }
 
-    function button(container: any, { text, onclick, style }: any) {
+    function button(container, { text, onclick, style }) {
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary'; btn.textContent = text; btn.onclick = onclick;
         if (style) btn.setAttribute('style', style);
         container.appendChild(btn);
     }
 
-    function select(container: any, { id, label, options, onChange }: any) {
+    function select(container, { id, label, options, onChange }) {
         const g = document.createElement('div');
         g.className = 'field-group';
         const lbl = document.createElement('label');
@@ -1168,7 +1171,7 @@ const Toolbox = (() => {
         g.appendChild(lbl);
         const sel = document.createElement('select');
         sel.id = id;
-        options.forEach((o: any) => {
+        options.forEach(o => {
             const opt = document.createElement('option');
             opt.value = o.value; opt.textContent = o.label;
             sel.appendChild(opt);
@@ -1184,7 +1187,7 @@ const Toolbox = (() => {
 
     function getTheme() { return localStorage.getItem(THEME_KEY) || 'dark'; }
 
-    function setTheme(theme: any) {
+    function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem(THEME_KEY, theme);
     }
@@ -1211,7 +1214,7 @@ const Toolbox = (() => {
         return 'observatory';
     }
 
-    function setBgTheme(bgId: any) {
+    function setBgTheme(bgId) {
         document.documentElement.setAttribute('data-bg', bgId);
         localStorage.setItem(BG_THEME_KEY, bgId);
     }
@@ -1262,10 +1265,10 @@ const Toolbox = (() => {
         };
         newLink.onerror = () => {
             newLink.remove();
-            if (oldLink) (oldLink as any).href = t.url;
+            if (oldLink) oldLink.href = t.url;
             showToast('코드 테마 로드 실패', 'error');
         };
-        (oldLink ? oldLink.parentNode : document.head)!.appendChild(newLink);
+        (oldLink ? oldLink.parentNode : document.head).appendChild(newLink);
     }
 
     function initTheme() {
@@ -1281,17 +1284,17 @@ const Toolbox = (() => {
     const PREFS_KEY = 'toolbox_widget_prefs';
 
     function getPrefs() {
-        try { return JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; }
+        try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; }
         catch (_) { return {}; }
     }
 
-    function setPref(key: any, value: any) {
+    function setPref(key, value) {
         const prefs = getPrefs();
         prefs[key] = value;
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
     }
 
-    function getPref(key: any, fallback: any) {
+    function getPref(key, fallback) {
         const v = getPrefs()[key];
         return v !== undefined ? v : fallback;
     }
@@ -1300,22 +1303,22 @@ const Toolbox = (() => {
     const USAGE_KEY = 'toolbox_usage_stats';
 
     function getUsageStats() {
-        try { return JSON.parse(localStorage.getItem(USAGE_KEY) || '{}') || {}; }
+        try { return JSON.parse(localStorage.getItem(USAGE_KEY)) || {}; }
         catch (_) { return {}; }
     }
 
-    function saveUsageStats(stats: any) {
+    function saveUsageStats(stats) {
         localStorage.setItem(USAGE_KEY, JSON.stringify(stats));
     }
 
     const DAILY_WARN_THRESHOLDS = { chat: 50, image: 20, tokens: 500000 };
 
-    function recordUsage(type: any, tokens: any) {
+    function recordUsage(type, tokens) {
         const stats = getUsageStats();
         const today = new Date().toISOString().slice(0, 10);
         if (!stats[today]) stats[today] = { chatCount: 0, chatTokens: 0, imageCount: 0, imageTokens: 0 };
         let totalChat = 0, totalImage = 0;
-        Object.values(stats).forEach((s: any) => { totalChat += s.chatCount || 0; totalImage += s.imageCount || 0; });
+        Object.values(stats).forEach(s => { totalChat += s.chatCount || 0; totalImage += s.imageCount || 0; });
         if (type === 'chat') {
             stats[today].chatCount++;
             stats[today].chatTokens += (tokens || 0);
@@ -1360,16 +1363,16 @@ const Toolbox = (() => {
         return (data.streaks && typeof data.streaks === 'object') ? data.streaks : {};
     }
 
-    function saveUserData(data: any) {
+    function saveUserData(data) {
         try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(data)); } catch (_) {}
     }
 
-    function getProgress(key: any) {
+    function getProgress(key) {
         const data = getUserData();
         return (data.progress && data.progress[key]) || 0;
     }
 
-    function setProgress(key: any, value: any) {
+    function setProgress(key, value) {
         const data = getUserData();
         if (!data.progress) data.progress = {};
         data.progress[key] = value;
@@ -1377,36 +1380,36 @@ const Toolbox = (() => {
         return value;
     }
 
-    function incrementProgress(key: any, amount = 1) {
+    function incrementProgress(key, amount = 1) {
         return setProgress(key, getProgress(key) + amount);
     }
 
-    function completeAchievement(id: any, meta = {}) {
+    function completeAchievement(id, meta = {}) {
         const data = getUserData();
         if (!data.achievements) data.achievements = [];
         if (data.achievements.includes(id)) return false;
         data.achievements.push(id);
         saveUserData(data);
-        const title = (meta as any).title || (ACHIEVEMENT_REGISTRY as any)[id]?.title || id;
+        const title = meta.title || ACHIEVEMENT_REGISTRY[id]?.title || id;
         showToast('도전과제 달성: ' + title, 'success');
         return true;
     }
 
-    function unlockBadge(id: any, meta = {}) {
+    function unlockBadge(id, meta = {}) {
         const data = getUserData();
         if (!data.badges) data.badges = [];
         if (data.badges.includes(id)) return false;
         data.badges.push(id);
         saveUserData(data);
-        const title = (meta as any).title || (BADGE_REGISTRY as any)[id]?.title || id;
+        const title = meta.title || BADGE_REGISTRY[id]?.title || id;
         showToast('뱃지 획득: ' + title, 'success');
         return true;
     }
 
-    function registerAchievement(id: any, def: any) { (ACHIEVEMENT_REGISTRY as any)[id] = def; }
-    function registerBadge(id: any, def: any) { (BADGE_REGISTRY as any)[id] = def; }
-    function hasAchievement(id: any) { return (getUserData().achievements || []).includes(id); }
-    function hasBadge(id: any) { return (getUserData().badges || []).includes(id); }
+    function registerAchievement(id, def) { ACHIEVEMENT_REGISTRY[id] = def; }
+    function registerBadge(id, def) { BADGE_REGISTRY[id] = def; }
+    function hasAchievement(id) { return (getUserData().achievements || []).includes(id); }
+    function hasBadge(id) { return (getUserData().badges || []).includes(id); }
 
     function getTools() { return [...tools]; }
 
@@ -1434,5 +1437,3 @@ const Toolbox = (() => {
 
 /* ===== Bootstrap ===== */
 /* widgets-loader.js가 위젯 로드 후 init 호출 */
-export {};
-

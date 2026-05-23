@@ -30,9 +30,35 @@ import {
   type NotifyFn,
 } from './governance-adapter';
 import { enqueuePromotionCandidate } from './self-augment';
+import {
+  appendEvolutionEvents,
+  readEvolutionEvents,
+  type EvolutionEvent,
+} from './evolution-observatory';
 
 /** 발굴 LLM 호출 (DI — generateAssistantText 'claude-cli' 래퍼 주입). */
 export type DiscoverFn = () => Promise<string>;
+
+/**
+ * KAR-018-SO-3: producer 의 *자기* 직전 schema-fail 예시 회수 (다음 prompt
+ * 자가 inject 용). evolution-events 에 적재된 `producer-schema-fail` 중 최신
+ * `max` 개의 evidence(raw snippet) 반환. 부재·실패 = [] (graceful, prompt 에
+ * 블록 미포함 = legacy fallback).
+ */
+export function readRecentProducerSchemaFails(
+  env: NodeJS.ProcessEnv,
+  max = 3,
+): string[] {
+  try {
+    const all = readEvolutionEvents(env, 500);
+    const fails = all
+      .filter((e) => e.code === 'producer-schema-fail')
+      .slice(-Math.max(1, max));
+    return fails.map((e) => e.evidence || '').filter(Boolean);
+  } catch {
+    return [];
+  }
+}
 
 /**
  * 발굴 가시화 seam (KAR-018-V) — substrate-clean 최소 shape (Discord 무관).
@@ -84,12 +110,27 @@ export async function runProducerOnce(
 
   const envelope = parseProposalEnvelope(raw);
   if (!envelope) {
+    const snippet = (raw || '').replace(/\s+/g, ' ').slice(0, 200);
     appendTrace(deps.env, {
       ts: new Date().toISOString(),
       type: 'drift',
       core: 'producer',
-      reason: '발굴물 파싱 실패(형식·부분·미지) — 폐기',
+      reason: `발굴물 파싱 실패(형식·부분·미지) — 폐기 [raw: ${snippet}]`,
     });
+    // KAR-018-SO-3: producer self-observation. parse-fail 사실을 evolution-events
+    // 로 적재 → 다음 producer prompt 가 직전 fail 예시 자기 inject (사람-박은
+    // schema 룰 아닌 *자기 출력 cycle* 닫는 rung). 사용자 raw dump 2026-05-22:
+    // 「⑦' 발굴 파싱 실패 7건 누적 silent」 → 측정 가능·자기교정.
+    appendEvolutionEvents(deps.env, [{
+      ts: new Date().toISOString(),
+      code: 'producer-schema-fail',
+      severity: 'warn',
+      source: 'proposal',
+      subject: 'producer',
+      detail: 'Producer output failed envelope schema parse — discarded.',
+      metrics: [{ name: 'count', value: 1 }],
+      evidence: snippet,
+    }]);
     notify('⑦\' 발굴물 파싱 실패 — 폐기 (날조 0)');
     return 'parse-fail';
   }
@@ -432,20 +473,44 @@ function slugify(title: string): string {
   );
 }
 
-/** 도메인 폴더의 다음 빈 TASK 번호 (race-best-effort — seed 라 사람 검토). */
-function nextTaskId(memoRoot: string, folder: string, prefix: string): string {
+/**
+ * 도메인 폴더의 다음 빈 TASK 번호.
+ *
+ * 파일명 + frontmatter `id:` 둘 다 scan = 같은 ID 가 *다른 slug 파일* 에 박혀
+ * 있어도 감지 (TASK-KAR-119 race 케이스: legit pulse-dashboard + surgery dup
+ * 이 같은 slug-다른-파일명 충돌). frontmatter scan 실패 = filename fallback.
+ *
+ * `excludeIds` 옵션 = `materializeTaskProposal` 의 retry loop 에서 직전 시도
+ * ID 강제 skip (race 시 즉시 다음 번호).
+ */
+function nextTaskId(
+  memoRoot: string,
+  folder: string,
+  prefix: string,
+  excludeIds: Set<string> = new Set(),
+): string {
   const dir = path.join(memoRoot, folder);
   let max = 0;
   try {
-    const re = new RegExp(`^TASK-${prefix}-(\\d+)`);
+    const fnRe = new RegExp(`^TASK-${prefix}-(\\d+)`);
+    const idRe = new RegExp(`^id:\\s*TASK-${prefix}-(\\d+)`, 'm');
     for (const f of fs.readdirSync(dir)) {
-      const m = f.match(re);
-      if (m) max = Math.max(max, parseInt(m[1], 10));
+      const fm = f.match(fnRe);
+      if (fm) max = Math.max(max, parseInt(fm[1], 10));
+      if (f.endsWith('.md')) {
+        try {
+          const head = fs.readFileSync(path.join(dir, f), 'utf-8').slice(0, 800);
+          const im = head.match(idRe);
+          if (im) max = Math.max(max, parseInt(im[1], 10));
+        } catch { /* per-file 읽기 실패 = skip */ }
+      }
     }
   } catch {
     /* 폴더 부재 → 001 부터 */
   }
-  return `${prefix}-${String(max + 1).padStart(3, '0')}`;
+  let n = max + 1;
+  while (excludeIds.has(`${prefix}-${String(n).padStart(3, '0')}`)) n++;
+  return `${prefix}-${String(n).padStart(3, '0')}`;
 }
 
 /**
@@ -462,49 +527,60 @@ export function materializeTaskProposal(
   if (!root) return null;
   // 별칭 정규화 — 미지여도 kar 안착(승인 결정 증발 X, KAR-018-V fix).
   const dom = resolveDomain(payload.domain);
-  const id = nextTaskId(root, dom.folder, dom.prefix);
-  const file = `TASK-${id}-${slugify(payload.title)}.md`;
-  const abs = path.join(root, dom.folder, file);
-  // autoReady = 팀 자율 채택 경로(미션 §2.3 일반 코드 자율) — 사람 ready 승격 불요.
-  // seed = 기존 경로(사람이 검토·승격해야 진행).
   const status = opts.autoReady ? 'ready' : 'seed';
-  const body = [
-    '---',
-    `id: TASK-${id}`,
-    `status: ${status}`,
-    'priority: normal',
-    `path: [${dom.key}, agent-discovered]`,
-    'tags: [agent-discovered]',
-    '---',
-    '',
-    '## 목표',
-    '',
-    '> ⑦\' 자율 발굴 (사람 승인 후 머터리얼라이즈 — agent-approvals.jsonl).',
-    `> 발굴 제목: "${payload.title.trim()}"`,
-    '',
-    '## 컨텍스트 (발굴 본문 — 검토 후 정제)',
-    '',
-    payload.body.trim(),
-    '',
-    '## 완료 조건',
-    '',
-    '- [ ] (검토 후 채움 — seed→ready 승격 시)',
-    '',
-    '## 비고',
-    '',
-    opts.autoReady
-      ? '- ⑦\' 자율 발굴·채택(미션 §2.3). status=ready = 워커 즉시 픽업 가능. Draft PR 후 사람 검토.'
-      : '- ⑦\' 발굴물. status=seed = 사람이 정제·검증 후 ready 승격해야 진행.',
-    '',
-  ].join('\n');
-  try {
-    fs.mkdirSync(path.dirname(abs), { recursive: true });
-    if (fs.existsSync(abs)) return abs; // 멱등 (동일 slug 재머터리얼 방지)
-    fs.writeFileSync(abs, body, 'utf-8');
-    return abs;
-  } catch {
-    return null;
+
+  // race-safe write — 5회 재시도. nextTaskId 가 본 시도 동안 charge 했던 ID
+  // 들은 excludeIds 로 skip → 동시 write 가 같은 ID 박으면 즉시 다음 번호.
+  // wx flag = "create-only" — 같은 절대경로 존재 시 EEXIST throw (filename-
+  // level race 도 닫음). frontmatter id scan 은 다른 slug 동일-id 의 KAR-119
+  // 같은 race 케이스 차단.
+  const tried = new Set<string>();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const id = nextTaskId(root, dom.folder, dom.prefix, tried);
+    tried.add(id);
+    const file = `TASK-${id}-${slugify(payload.title)}.md`;
+    const abs = path.join(root, dom.folder, file);
+    const body = [
+      '---',
+      `id: TASK-${id}`,
+      `status: ${status}`,
+      'priority: normal',
+      `path: [${dom.key}, agent-discovered]`,
+      'tags: [agent-discovered]',
+      '---',
+      '',
+      '## 목표',
+      '',
+      '> ⑦\' 자율 발굴 (사람 승인 후 머터리얼라이즈 — agent-approvals.jsonl).',
+      `> 발굴 제목: "${payload.title.trim()}"`,
+      '',
+      '## 컨텍스트 (발굴 본문 — 검토 후 정제)',
+      '',
+      payload.body.trim(),
+      '',
+      '## 완료 조건',
+      '',
+      '- [ ] (검토 후 채움 — seed→ready 승격 시)',
+      '',
+      '## 비고',
+      '',
+      opts.autoReady
+        ? '- ⑦\' 자율 발굴·채택(미션 §2.3). status=ready = 워커 즉시 픽업 가능. Draft PR 후 사람 검토.'
+        : '- ⑦\' 발굴물. status=seed = 사람이 정제·검증 후 ready 승격해야 진행.',
+      '',
+    ].join('\n');
+    try {
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      if (fs.existsSync(abs)) return abs; // 멱등 (동일 slug 재머터리얼 방지)
+      fs.writeFileSync(abs, body, { encoding: 'utf-8', flag: 'wx' });
+      return abs;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (code === 'EEXIST') continue; // 동시 write race — 다음 번호 재시도
+      return null; // 다른 IO 에러 = abort
+    }
   }
+  return null; // 5회 다 race — 포기 (best-effort, 다음 cycle 재시도)
 }
 
 export function materializeEngineProposalAsTask(

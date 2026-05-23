@@ -10,6 +10,7 @@
  * spawn 주입으로 실 claude·실 git 없이 분기 잠금(결정성).
  */
 import { describe, it, expect, beforeEach } from 'vitest';
+import fs from 'fs';
 import {
   runWorkerConsumerOnce,
   disarmKill,
@@ -42,6 +43,11 @@ const tick = () => new Promise((r) => setTimeout(r, 5));
 beforeEach(() => {
   disarmKill();
   resetWorkerStatus();
+  // KAR-018-SO-1: 워커 self-recall 이 /tmp/memo work-memory 를 읽음.
+  // 직전 테스트 jsonl 잔존 시 다음 테스트가 'already-fixed-all' false-positive.
+  try {
+    fs.rmSync('/tmp/memo/.claude/agents', { recursive: true, force: true });
+  } catch { /* 부재 OK */ }
 });
 
 describe('KAR-018-P 병렬화 — env 격리 (전역 변이 0, 교차오염 0)', () => {

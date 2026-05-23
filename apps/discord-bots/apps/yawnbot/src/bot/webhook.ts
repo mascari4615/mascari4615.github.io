@@ -42,6 +42,31 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
 
       const repoFullName: string | undefined = payload.repository?.full_name;
       const channelIds = getChannelsForRepo(repoFullName);
+
+      // TASK-KAR-092: PR merge → TASK status 자동 sync (디스코드 채널 무관 — 매핑
+      // 없는 repo 도 KAR-092 가 작동해야 자가발전 루프 폐쇄). 2026-05-22 fix:
+      // 이전엔 채널 매칭 없으면 early return → KAR-092 미발동 → fake/외부 webhook
+      // 검증 불가능 + 새 repo 추가 시 sync 누락.
+      if (event === 'pull_request' && payload.action === 'closed' && payload.pull_request?.merged) {
+        const pr = payload.pull_request;
+        void syncTaskStatusOnPrMerge(process.env, {
+          prNumber: pr.number,
+          prTitle: pr.title,
+          prBody: pr.body,
+        })
+          .then(async (r) => {
+            console.log(`[task-status-sync] ${r.outcome}: pushed=${r.pushed} skipped=${r.skipped} errors=${r.errors.length}`);
+            if (!r.summaryLine) return;
+            for (const channelId of channelIds) {
+              const channel = await client.channels.fetch(channelId).catch(() => null);
+              if (channel?.isSendable()) {
+                await channel.send({ content: r.summaryLine }).catch(() => {});
+              }
+            }
+          })
+          .catch((e) => console.error('[task-status-sync] error:', e?.message ?? e));
+      }
+
       if (channelIds.length === 0) {
         console.warn(
           `[Webhook] ${repoFullName ?? '?'} 매칭 채널 없음 — 디스코드 전송 생략 (data/webhook-routes.json 확인)`,
@@ -160,27 +185,6 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
             console.error('[Webhook] 채널 전송 실패:', channelId, e?.message ?? e),
           );
         }
-      }
-
-      // TASK-KAR-092: PR merge → TASK status 자동 sync (비동기 — 임베드 전송 비차단).
-      if (event === 'pull_request' && payload.action === 'closed' && payload.pull_request?.merged) {
-        const pr = payload.pull_request;
-        void syncTaskStatusOnPrMerge(process.env, {
-          prNumber: pr.number,
-          prTitle: pr.title,
-          prBody: pr.body,
-        })
-          .then(async (r) => {
-            if (!r.summaryLine) return;
-            console.log(`[task-status-sync] ${r.outcome}: pushed=${r.pushed} skipped=${r.skipped} errors=${r.errors.length}`);
-            for (const channelId of channelIds) {
-              const channel = await client.channels.fetch(channelId).catch(() => null);
-              if (channel?.isSendable()) {
-                await channel.send({ content: r.summaryLine }).catch(() => {});
-              }
-            }
-          })
-          .catch((e) => console.error('[task-status-sync] error:', e?.message ?? e));
       }
 
       res.sendStatus(200);

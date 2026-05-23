@@ -106,8 +106,43 @@ const KINDS: ReadonlySet<string> = new Set<ProposalKind>([
 export function parseProposalEnvelope(raw: string): ProposalEnvelope | null {
   if (!str(raw)) return null;
   let text = raw.trim();
+  // 정상 fence (open + close)
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fence) text = fence[1].trim();
+  if (fence) {
+    text = fence[1].trim();
+  } else {
+    // 한쪽 fence 만 있는 경우 (LLM 응답 잘림 / closing ``` 누락 — prod 실증
+    // 2026-05-23 trace: producer parse-fail 4건+ 의 공통 패턴). opening fence
+    // 뒤 또는 첫 `{` 부터 마지막 `}` 까지 추출 시도 (extra-prose 제거).
+    const openFence = text.match(/```(?:json)?\s*/i);
+    if (openFence) {
+      text = text.slice(openFence.index! + openFence[0].length).trim();
+      // closing fence 가 뒤에 있을 수도 (위 정상 fence 매치 실패 시 fallback)
+      const close = text.indexOf('```');
+      if (close >= 0) text = text.slice(0, close).trim();
+    }
+    // JSON object 자동 추출 — 첫 `{` 부터 *짝맞는* 마지막 `}` (escape·string 보존)
+    const objStart = text.indexOf('{');
+    if (objStart >= 0) {
+      let depth = 0;
+      let inStr = false;
+      let esc = false;
+      let end = -1;
+      for (let i = objStart; i < text.length; i++) {
+        const c = text[i];
+        if (esc) { esc = false; continue; }
+        if (c === '\\') { esc = true; continue; }
+        if (c === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (c === '{') depth++;
+        else if (c === '}') {
+          depth--;
+          if (depth === 0) { end = i; break; }
+        }
+      }
+      if (end > objStart) text = text.slice(objStart, end + 1);
+    }
+  }
 
   let obj: unknown;
   try {

@@ -152,12 +152,44 @@ export interface GeminiImageResult {
   [key: string]: unknown;
 }
 
+/** `gemini.ts` MODEL_CATALOG 재노출 — 위젯에서 `Gemini.MODELS.gemini` 등으로 사용 */
+export interface GeminiModelEntry {
+  id: string;
+  name: string;
+  isDefault?: boolean;
+}
+export type GeminiModelsCatalog = Record<'gemini' | 'geminiImage' | 'imagen' | 'embedding', GeminiModelEntry[]>;
+
+/** `gemini.ts` ImageDB — IndexedDB 이미지 라이브러리 공유 모듈 */
+export interface ImageDBItem {
+  id: string;
+  url: string;
+  prompt?: string;
+  model?: string;
+  modelName?: string;
+  timestamp: number;
+  tokens?: number;
+  elapsed?: number | string;
+  [key: string]: unknown;
+}
+export interface ImageDBAPI {
+  save: (item: ImageDBItem) => Promise<void>;
+  getAll: () => Promise<ImageDBItem[]>;
+  remove: (id: string) => Promise<void>;
+  clear: () => Promise<void>;
+}
+
 /** `chatbot/characters.ts` → `window.ChatbotCharacters` */
 export interface ChatbotCharactersAPI {
   getCharacterById: (id: string) => ChatbotCharacter | null;
   buildCharacterSystemBlock: (char: ChatbotCharacter | null) => string;
-  syncAfterSessionLoad: (...args: unknown[]) => unknown;
-  initCharacterUi: (...args: unknown[]) => unknown;
+  syncAfterSessionLoad: (sessionCharacterId: string | null | undefined) => void;
+  initCharacterUi: (deps: {
+    saveSession?: () => void;
+    getChatHistoryLength?: () => number;
+    appendBotFirstMes?: (m: string) => void;
+    getLastLoadedSessionCharacterId?: () => string | null | undefined;
+  }) => void;
 }
 
 /** `chatbot/prompt.ts` → `window.ChatbotPrompt` */

@@ -18,9 +18,34 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { commitAndPushMemoFile, type MemoPushResult } from './memo-push';
+import { appendProgress } from '../bot/team-portfolio';
+
+/**
+ * TASK prefix → portfolio projectId 매핑 (KAR-018 2026-05-22 자가발전 루프 폐쇄).
+ * 매핑 부재 = 해당 도메인은 portfolio 미추적 (progressLog skip).
+ */
+const PREFIX_TO_PROJECT: Record<string, string> = {
+  WM: 'wm',
+  KAR: 'agent-team',
+  KL: 'karmolab',
+  YB: 'agent-team',
+};
+
+function projectIdForTask(taskId: string): string | null {
+  const m = /^TASK-([A-Z]+)-/.exec(taskId);
+  if (!m) return null;
+  return PREFIX_TO_PROJECT[m[1]] ?? null;
+}
 
 /** TASK id 정규식 — TASK-PREFIX-NNN[-suffix]. memo task-queue.mjs 와 정합. */
 const TASK_ID_REGEX = /TASK-(?:KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-[A-Z0-9][A-Z0-9-]*/g;
+/**
+ * conventional-commits scope 형태: `feat(WM-109-E): ...` / `fix(KL-046): ...` 등.
+ * 워커 코어 + autopilot 다수가 이 form 으로 PR title 박음 → TASK_ID_REGEX 미인식 시
+ * PR-merge 후에도 frontmatter status drift = 워커 PICKABLE 무한 재선택 (broken loop).
+ * 2026-05-22 raw dump 실증 (slot B): WM-109-E status=seed 영영 유지.
+ */
+const SCOPE_ID_REGEX = /\((KAR|WM|KL|YB|LIFE|HOBBY|LEARN)-(\d{3}(?:-[A-Z0-9]+)*)\)/g;
 
 /** PR 머지 시 done 으로 승격 가능한 시작 상태. */
 const ACTIVE_STATUSES = new Set(['ready', 'seed', 'in_progress', 'active', 'in-progress']);
@@ -69,7 +94,7 @@ export interface TaskStatusSyncDeps {
   logger?: Pick<Console, 'log' | 'warn'>;
 }
 
-/** 자유 텍스트에서 TASK id 추출 (중복 제거, 순서 보존). */
+/** 자유 텍스트에서 TASK id 추출 (중복 제거, 순서 보존). TASK- prefix + scope form 둘 다. */
 export function extractTaskIds(text: string): string[] {
   if (!text) return [];
   const seen = new Set<string>();
@@ -78,6 +103,14 @@ export function extractTaskIds(text: string): string[] {
     if (!seen.has(m[0])) {
       seen.add(m[0]);
       out.push(m[0]);
+    }
+  }
+  // scope form: (WM-109-E) → TASK-WM-109-E
+  for (const m of text.matchAll(SCOPE_ID_REGEX)) {
+    const id = `TASK-${m[1]}-${m[2]}`;
+    if (!seen.has(id)) {
+      seen.add(id);
+      out.push(id);
     }
   }
   return out;
@@ -193,6 +226,42 @@ export async function syncTaskStatusOnPrMerge(
     } catch (e) {
       const m = e instanceof Error ? e.message : String(e);
       errors.push(`${u.id}: throw ${m.slice(0, 160)}`);
+    }
+  }
+
+  // KAR-018 자가발전 루프 폐쇄 (2026-05-22): TASK done → portfolio progressLog
+  // 자동 append. progressStale 신호가 진짜로 풀려서 surgery 가 영원히 critical
+  // 외치는 가짜 루프 탈출. 매핑 부재 도메인은 skip (LIFE/HOBBY/LEARN 등).
+  const portfolioPushes: string[] = [];
+  for (const u of updates) {
+    const projectId = projectIdForTask(u.id);
+    if (!projectId) continue;
+    try {
+      const ok = appendProgress(memoRoot, {
+        projectId,
+        delta: `${u.id} done (PR #${prContext.prNumber ?? '?'} merge)`,
+        evidence: prContext.prNumber
+          ? `https://github.com/Mascari4615/Mascari4615.github.io/pull/${prContext.prNumber}`
+          : (prContext.prTitle || '').slice(0, 120),
+      });
+      if (ok) {
+        portfolioPushes.push(`${u.id}→${projectId}`);
+      }
+    } catch (e) {
+      logger.warn(`[task-status-sync] appendProgress ${u.id} fail: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  // portfolio.json push (best-effort, 분리 commit — 별 noise 줄 1 OK)
+  if (portfolioPushes.length > 0) {
+    try {
+      const portfolioAbs = path.join(memoRoot, '.claude', 'team-portfolio.json');
+      await push(
+        env,
+        portfolioAbs,
+        `chore(portfolio): progressLog +${portfolioPushes.length} (${portfolioPushes.slice(0, 3).join(',')}${portfolioPushes.length > 3 ? ` 외 ${portfolioPushes.length - 3}` : ''})`,
+      );
+    } catch (e) {
+      logger.warn(`[task-status-sync] portfolio push fail: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 

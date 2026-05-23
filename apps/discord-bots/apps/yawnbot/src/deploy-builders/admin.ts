@@ -34,6 +34,12 @@ export const adminCommand = () =>
     )
     .addSubcommand((sub) =>
       sub
+        .setName('자기수술')
+        .setDescription('자기수술 강제 1회 (12h gate 우회 — 헬스 critical 시 LLM 진단 → task seed)')
+        .setDescriptionLocalizations(enUS('Force self-surgery (bypass 12h gate)')),
+    )
+    .addSubcommand((sub) =>
+      sub
         .setName('워커틱')
         .setDescription('워커 소화만 1회 수동 실행 (발굴·대화 없이 워커 소비만)')
         .setDescriptionLocalizations(enUS('Run worker consumer only, once'))
@@ -67,6 +73,12 @@ export const adminCommand = () =>
         .setName('워커자동')
         .setDescription('워커 자동 실행 ON/OFF 토글 (5분 주기 자동 소화)')
         .setDescriptionLocalizations(enUS('Toggle worker auto-loop on/off')),
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('자기수술자동')
+        .setDescription('자기수술 자동 ON/OFF 토글 (12h 게이트 + critical 이슈 한정 자율 진단)')
+        .setDescriptionLocalizations(enUS('Toggle self-surgery auto-loop on/off (12h gate, critical issues only)')),
     )
     .addSubcommand((sub) =>
       sub

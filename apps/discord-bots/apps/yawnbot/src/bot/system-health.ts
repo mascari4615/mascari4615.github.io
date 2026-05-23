@@ -26,6 +26,13 @@ export interface HealthSignals {
   workerFailRatio: number | null;
   /** 최근 24h trace 에서 type==='error' 이벤트 수. */
   traceErrorCount: number;
+  /**
+   * 최근 6h 안에 동일 task id 가 3회 이상 *no-op done* (착수 → no-op → 종료) 반복한 task 수.
+   * ≥1 = 「Cronbot 패턴」 (사용자 발화 2026-05-22): cron 이 돌지만 매번 동일 동작 = 자가발전 0.
+   * 근본 원인 = status drift (frontmatter ≠ 코드 실상태) → 워커 PICKABLE 무한 재선택.
+   * sync regex fix (commit bbe2af42/e4cb1c58) 후에도 잔존 패턴 감지용.
+   */
+  brokenLoopTaskCount: number;
 }
 
 interface TraceEntry {
@@ -33,8 +40,12 @@ interface TraceEntry {
   type?: string;
   core?: string;
   reason?: string;
+  task?: string;
 }
 
+// gatherHealthSignals 가 4회 호출 → 매 cycle 전체 trace parse = O(N). 6h/24h
+// window 만 보므로 tail 만 read. 누적 trace 가 커져도 cadence latency 영향 X.
+const TRACE_TAIL_LINES = 2000;
 function readTraceLines(memoRoot: string): TraceEntry[] {
   try {
     const p = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
@@ -42,6 +53,7 @@ function readTraceLines(memoRoot: string): TraceEntry[] {
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-TRACE_TAIL_LINES)
       .filter(Boolean)
       .map((l) => {
         try {
@@ -97,6 +109,13 @@ export function gatherHealthSignals(
   }
 
   // workerFailRatio (최근 6h)
+  // status 분류:
+  //  - done             = 성공(push 확인)
+  //  - escalated        = 사용자 결정 필요로 올바르게 라우팅 = *정상 동작* (분모·분자 둘 다 제외)
+  //  - done-no-artifact = 실행했으나 산출 0 = soft fail (분자)
+  //  - error/timeout/.. = hard fail (분자)
+  // 「escalated 도 fail 카운트」 버그 fix: 봇이 결정 task 만 보아도 100% fail
+  // 신호 → surgery loop 무한 발동 (KAR-130/132/138~144 자기복제 직접 원인).
   let workerFailRatio: number | null = null;
   if (memoRoot) {
     try {
@@ -108,7 +127,9 @@ export function gatherHealthSignals(
         if (!e.ts || e.ts < cutoff6h) continue;
         const m = /^worker\s+\S+\s+(\S+)/.exec(e.reason || '');
         if (!m) continue;
-        if (m[1] === 'done') done++;
+        const status = m[1];
+        if (status === 'done') done++;
+        else if (status === 'escalated') { /* 정상 라우팅 = 분모 미포함 */ }
         else fail++;
       }
       if (done + fail > 0) workerFailRatio = fail / (done + fail);
@@ -131,7 +152,37 @@ export function gatherHealthSignals(
     }
   }
 
-  return { traceStalenessHrs, progressStale, workerFailRatio, traceErrorCount };
+  // brokenLoopTaskCount (최근 6h, 동일 task id no-op done ≥3회)
+  //   trace.jsonl 의 reason `worker <core> done` 라인을 task id 별 누적.
+  //   sync regex fix 후에도 잔존하는 broken loop 패턴 — 코드/스펙 drift 가
+  //   real fail mode 임을 health signal 로 표면화 → self-surgery LLM 진단 가능.
+  let brokenLoopTaskCount = 0;
+  if (memoRoot) {
+    try {
+      const cutoff6h = new Date(nowMs - 6 * 3_600_000).toISOString();
+      const lines = readTraceLines(memoRoot);
+      const doneCount = new Map<string, number>();
+      for (const e of lines) {
+        if (!e.ts || e.ts < cutoff6h) continue;
+        if (!/\bdone\b/.test(e.reason || '')) continue;
+        // reason "worker <core> done TASK-XXX-NNN ..." → task id 추출.
+        // 또는 e.task 필드 직접 사용 (스키마 확장 대비).
+        const taskId =
+          e.task ||
+          (e.reason || '').match(/TASK-[A-Z]+-\d{3}(?:-[A-Z0-9]+)*/)?.[0] ||
+          null;
+        if (!taskId) continue;
+        doneCount.set(taskId, (doneCount.get(taskId) ?? 0) + 1);
+      }
+      for (const [, count] of doneCount) {
+        if (count >= 3) brokenLoopTaskCount++;
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  return { traceStalenessHrs, progressStale, workerFailRatio, traceErrorCount, brokenLoopTaskCount };
 }
 
 // ── 진단 ─────────────────────────────────────────────────────────────────────
@@ -182,10 +233,16 @@ export function diagnoseHealth(
   }
 
   if (signals.progressStale) {
+    // KAR-018 후속 (2026-05-22 사용자 goal "에이전트 봇이 지혼자 자가발전"):
+    // warn → critical 승격. 팀이 자기 코드만 청소하고 사용자 북극성 (WM 등)
+    // 전진 0 = 팀 존재 이유 결손. 자기수술이 12h마다 발동해서 user-value-
+    // aligned TASK 자율 시드해야 깡통 자가개선 탈출. system-health 의
+    // critical 정의 = "팀이 사용자 가치 전달 0" 도 시스템 침묵·워커 막힘과
+    // 동급으로 critical.
     issues.push({
-      severity: 'warn',
+      severity: 'critical',
       code: 'progress-stale',
-      detail: '모든 active 프로젝트 progressLog 비어있음 — 팀 전진 기록 전무',
+      detail: '모든 active 프로젝트 progressLog 비어있음 — 팀 전진 기록 전무 (사용자 가치 전달 결손)',
     });
   }
 
@@ -217,6 +274,14 @@ export function diagnoseHealth(
     });
   }
 
+  if (signals.brokenLoopTaskCount >= 1) {
+    issues.push({
+      severity: 'critical',
+      code: 'broken-loop',
+      detail: `동일 task ${signals.brokenLoopTaskCount}개가 6h 안에 3회+ no-op 종료 반복 — Cronbot 패턴 (자가발전 0, status drift 또는 워커 선택 게이트 결함)`,
+    });
+  }
+
   return issues;
 }
 
@@ -244,6 +309,9 @@ export function formatHealthBlock(
   }
   if (signals.traceErrorCount > 0) {
     lines.push(`· trace 에러(24h): ${signals.traceErrorCount}건`);
+  }
+  if (signals.brokenLoopTaskCount > 0) {
+    lines.push(`· broken-loop task(6h, ≥3회 no-op): ${signals.brokenLoopTaskCount}개`);
   }
   if (issues.length === 0) {
     lines.push('→ 이상 없음');

@@ -36,7 +36,8 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         const items: FavoriteItem[] = tools
             .filter((t) => {
                 if (t.hidden) return false;
-                if (t.category === 'desktop' && !Toolbox.isDesktopApp?.()) return false;
+                // 데스크톱 전용 (desktopOnly 또는 legacy category=desktop) = 브라우저 hide
+                if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
                 return true;
             })
             .map((t) => ({ type: 'tool' as const, toolId: t.id, label: t.title || t.id, icon: t.icon || '' }));

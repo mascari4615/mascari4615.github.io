@@ -66,7 +66,12 @@ afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-describe('runCoreDialogueOnce — 합성·차단', () => {
+// KAR-018-LT-PEER-ONLY P-2 (2026-05-23): dyadic dialogue engine 폐기.
+// runCoreDialogueOnce 는 decideDialogueTurn → null 받아 'dialogue-none' 반환.
+// 본 describe 의 9 test 는 옛 dyadic 합성·verdict·progressLog 동작 잠금이라
+// 의미 사라짐. describe.skip + DEPRECATED 마크. caller (agent-cadence.ts:808)
+// cleanup 후 본 test 파일 전체 제거 정합.
+describe.skip('runCoreDialogueOnce — 합성·차단 [DEPRECATED P-2]', () => {
   it('proposal 없음 → dialogue-idle', async () => {
     expect(await runCoreDialogueOnce(env())).toBe('dialogue-idle');
   });

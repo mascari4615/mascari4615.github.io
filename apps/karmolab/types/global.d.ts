@@ -1,15 +1,19 @@
 import type {
+  ChatbotCharacter as _ChatbotCharacter,
   ChatbotCharactersAPI,
   ChatbotKarmoImageAPI,
   ChatbotMarkdownAPI,
   ChatbotPromptAPI,
   GeminiImageResult,
+  GeminiModelsCatalog,
+  ImageDBAPI,
+  ImageDBItem as _ImageDBItem,
   KarmoLabImageBatchAPI,
   KarmoLabImageConvertAPI,
   KarmoLabImageGenNamespace,
   KarmoLabLazyWidgetStub,
   KarmoWorldNamespace,
-  RandomGenTopic
+  RandomGenTopic as _RandomGenTopic
 } from './karmolab';
 
 export {};
@@ -19,23 +23,11 @@ declare global {
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
     KarmoWorld?: KarmoWorldNamespace;
-    /**
-     * tierlist 네임스페이스 — `namespace.js`.
-     * IIFE 들 (storage/publish/render/dialogs/dnd/index 등) 이 T.state·T.db·T.publish 등
-     * 동적으로 채우는 구조라 정적 타입 narrow 가 어렵다 (KL-078). 멤버는 일단 any 로 두고
-     * KL-069 의 `as any` 정리 흐름에서 점진 narrow.
-     */
-    Tierlist?: {
-      state?: any;
-      db?: any;
-      publish?: any;
-      render?: any;
-      dialogs?: any;
-      dnd?: any;
-      ui?: any;
-      [k: string]: any;
-    };
-    RANDOMGEN_TOPICS?: RandomGenTopic[];
+    /** tierlist 네임스페이스 — `namespace.js` */
+    Tierlist?: Record<string, unknown>;
+    RANDOMGEN_TOPICS?: _RandomGenTopic[];
+    /** randomgen.ts — `id → label` 매핑. tab UI 가 채움. */
+    RANDOMGEN_TOPIC_LABELS?: Record<string, string>;
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
     KARMOLAB_LAZY_META_BY_ID?: Record<string, KarmoLabLazyWidgetStub>;
@@ -85,7 +77,27 @@ declare global {
       };
     };
     __karmolabSetNotifyInvokeDebug?: (payload: unknown) => void;
+
+    /** crypto.ts — 위젯 내부 함수를 onclick 핸들러에서 호출하기 위해 게재 */
+    loadFromTxt?: () => Promise<void>;
+    toggleCryptoFields?: () => void;
+    swapResultToInput?: () => void;
+    doCrypto?: () => void;
   }
+
+  /** crypto-js (vendor script-mode) — 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
+  var CryptoJS: {
+    lib: { WordArray: { random: (nBytes: number) => unknown }; CipherParams: { create: (cfg: { ciphertext: unknown }) => unknown } };
+    enc: { Hex: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Base64: { parse: (s: string) => { toString: (encoder?: unknown) => string } }; Utf8: unknown };
+    algo: { SHA256: unknown };
+    mode: { CBC: unknown };
+    pad: { Pkcs7: unknown };
+    PBKDF2: (pass: string, salt: unknown, opts: { keySize: number; iterations: number; hasher: unknown }) => unknown;
+    AES: {
+      encrypt: (text: string, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { ciphertext: { toString: (encoder?: unknown) => string } };
+      decrypt: (cipher: unknown, key: unknown, opts: { iv: unknown; mode: unknown; padding: unknown }) => { toString: (encoder?: unknown) => string };
+    };
+  } | undefined;
 
   /** 페이지 스크립트로 주입된 marked / Prism */
   var marked: { parse: (src: string) => string; setOptions: (opts: Record<string, unknown>) => void } | undefined;
@@ -114,28 +126,47 @@ declare global {
           modelId: string,
           options?: Record<string, unknown>
         ) => Promise<GeminiImageResult>;
-        /** chatbot/imagegen 등은 MODELS, getActiveProfileName 등 동적 면을 추가로 사용 — narrow 미완 (KL-069/078). */
-        [k: string]: any;
+        /** Imagen (AI Studio) — N 장 반환 (dataUrl 배열) */
+        callImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
+        /** Imagen (Vertex) — N 장 반환 */
+        callVertexImagen?: (
+          prompt: string,
+          modelId: string,
+          count: number,
+          options?: Record<string, unknown>
+        ) => Promise<string[]>;
+        /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
+        MODELS?: GeminiModelsCatalog;
+        GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
+        DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
       };
 
-  /**
-   * toolbox.ts — global lexical binding (not necessarily window.Toolbox).
-   * KL-078 에서 @ts-nocheck 제거됨 — 메서드들은 실제 IIFE 반환 객체에 항상 존재하므로
-   * non-optional 로 선언. 일부 위젯이 동적으로 추가하는 면(`registerAchievement` 등)은
-   * 인덱스 시그니처 `[k: string]: any` 로 통합 (KL-069 narrow 흐름에서 점진 좁힘).
-   */
+  /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
+  var ImageDB: ImageDBAPI | undefined;
+
+  /** `gemini.ts` ImageDB 항목 — script-mode 위젯이 타입으로 사용 */
+  type ImageDBItem = _ImageDBItem;
+
+  /** randomgen 위젯 주제 — script-mode 에서 타입으로 사용 */
+  type RandomGenTopic = _RandomGenTopic;
+
+  /** chatbot/characters.ts → 위젯 내부에서 타입으로 사용 (script-mode) */
+  type ChatbotCharacter = _ChatbotCharacter;
+
+  /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
-    registerDeferred: (stub: KarmoLabLazyWidgetStub) => void;
-    getLazyWidgetPublicMeta: (id: string) => Record<string, unknown>;
+    registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
+    getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
     /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
-    ensureScript: (path: string) => Promise<void>;
-    /**
-     * id/title 은 등록 시점에 spread (`...getLazyWidgetPublicMeta('id') ?? {}`)
-     * 로 주입되는 케이스가 다수라 정적 검사에서는 optional. lazy meta 결합 후 실제로는 채워짐.
-     */
+    ensureScript?: (path: string) => Promise<void>;
     register: (config: {
-      id?: string;
-      title?: string;
+      id: string;
+      title: string;
       /** tool | play | lab | desktop | undefined(기타) */
       category?: string;
       desc?: string;
@@ -152,37 +183,43 @@ declare global {
     initTheme: () => void;
     init: () => void;
     getTools: () => Array<{ id: string; hidden?: boolean; category?: string; title?: string; icon?: string }>;
-    showToast: (msg: string, type?: string, detail?: unknown) => void;
-    getProgress: (key: string) => number;
-    setProgress: (key: string, value: number) => void;
-    completeAchievement: (id: string, meta?: { title?: string } & Record<string, unknown>) => void;
-    incrementProgress: (key: string, amount?: number) => number;
-    unlockBadge: (id: string, meta?: { title?: string } & Record<string, unknown>) => boolean | void;
-    getUsageStats: () => Record<
+    showToast?: (msg: string, type?: string, detail?: unknown) => void;
+    getProgress?: (key: string) => number;
+    setProgress?: (key: string, value: number) => void;
+    completeAchievement?: (id: string, meta?: { title?: string } & Record<string, unknown>) => void;
+    incrementProgress?: (key: string, amount?: number) => number;
+    unlockBadge?: (id: string, meta?: { title?: string } & Record<string, unknown>) => boolean | void;
+    getUsageStats?: () => Record<
       string,
       { chatCount?: number; imageCount?: number; chatTokens?: number; imageTokens?: number }
     >;
-    recordUsage: (type: string, tokens: number) => void;
-    getPref: (key: string, fallback?: string) => string;
-    setPref: (key: string, value: string) => void;
-    field: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
-    isDesktopApp: () => boolean;
-    escapeHtml: (s: string) => string;
-    getToolMeta: (id: string) => Record<string, unknown> | undefined;
-    switchPage: (id: string, opts?: Record<string, unknown>) => void;
-    switchTab: (id: string) => void;
-    getNavLayout: () => string;
-    setNavLayout: (v: string) => void;
-    getTheme: () => string;
-    setTheme: (v: string) => void;
-    getPrismTheme: () => string;
-    setPrismTheme: (v: string) => void;
-    getPrismThemes: () => Array<{ id: string; label: string }>;
-    getBgTheme: () => string;
-    setBgTheme: (v: string) => void;
-    getBgThemes: () => Array<{ id: string; label: string }>;
-    /** 위젯이 동적으로 사용하는 면 (KL-069 narrow): registerAchievement / getUserData / kickLazyLoad / renderInline / displayResult / copyResult / toggleCollapsible / resultBox / button / select / formatTimestamp / showLightbox / toggleTheme / hasAchievement / hasBadge / registerBadge / getStreaks / getAchievementRegistry / getBadgeRegistry / CATEGORIES */
-    [k: string]: any;
+    recordUsage?: (type: string, tokens: number) => void;
+    getPref?: (key: string, fallback?: string) => string;
+    setPref?: (key: string, value: string) => void;
+    field?: (container: HTMLElement, opts: Record<string, unknown>) => HTMLElement;
+    /** 결과 박스 (id={prefix}Result) 에 제목/내용/소요시간 표시. isError true 면 에러 스타일 */
+    displayResult?: (prefix: string, title: string, content: string, timeTaken: number | null, isError?: boolean) => void;
+    /** 컨테이너 안에 결과 박스 (`<pre>` + 복사 버튼) 생성 */
+    resultBox?: (container: HTMLElement, prefix: string) => void;
+    /** id 의 textContent 를 클립보드로 복사 + 토스트 */
+    copyResult?: (contentId: string) => void;
+    /** trigger.classList.toggle('open') + 다음 형제도 토글 */
+    toggleCollapsible?: (trigger: HTMLElement) => void;
+    isDesktopApp?: () => boolean;
+    escapeHtml?: (s: string) => string;
+    formatTimestamp?: (ts: number | string | Date) => string;
+    getToolMeta?: (id: string) => Record<string, unknown> | undefined;
+    switchPage?: (id: string) => void;
+    getNavLayout?: () => string;
+    setNavLayout?: (v: string) => void;
+    getTheme?: () => string;
+    setTheme?: (v: string) => void;
+    getPrismTheme?: () => string;
+    setPrismTheme?: (v: string) => void;
+    getPrismThemes?: () => Array<{ id: string; label: string }>;
+    getBgTheme?: () => string;
+    setBgTheme?: (v: string) => void;
+    getBgThemes?: () => Array<{ id: string; label: string }>;
   };
 
 }

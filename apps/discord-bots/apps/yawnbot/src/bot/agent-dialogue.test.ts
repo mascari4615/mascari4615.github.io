@@ -47,7 +47,11 @@ const ALL = [atlas, echo, wmWorker, klWorker];
 
 const NO_CHAIN = { depth: 0, cap: 6 };
 
-describe('decideDialogueTurn — 결정적 라우팅', () => {
+// KAR-018-LT-PEER-ONLY P-2 (2026-05-23): dyadic engine deprecated → 무조건 null.
+// 옛 라우팅 expectation 잠금 의미 사라짐 — describe.skip 으로 비활성. caller (agent-cadence)
+// cleanup 후 본 describe 블록 전체 제거 정합. 일부 test (chain 깊이 컷·self 응답 금지)
+// 는 새 함수에서 영원히 null 이라 같은 결과 — 별도 마크 불요.
+describe.skip('decideDialogueTurn — 결정적 라우팅 (DEPRECATED — dyadic engine 폐기, P-2)', () => {
   it('proposal 도메인 주인 워커가 인수 의사로 응답', () => {
     const u: PeerUtterance = {
       speakerCoreId: 'atlas',
@@ -276,5 +280,19 @@ describe('buildDeliberationPrompt — phase별 (맨 동의 금지 강제)', () =
   it('portfolioBlock 주입 시 포함', () => {
     const p = buildDeliberationPrompt('challenge', echo, 'A', u, st, 'm', '[포트폴리오] wm');
     expect(p).toContain('[포트폴리오] wm');
+  });
+
+  it('SO-2-A: channelContextText 주입 시 #team-bus 직전 발언 블록 inline', () => {
+    const p = buildDeliberationPrompt(
+      'challenge', echo, 'A', u, st, 'm', '', undefined,
+      '[masca] 이거 정말 필요해?',
+    );
+    expect(p).toContain('팀 채널(#team-bus) 직전 발언');
+    expect(p).toContain('정말 필요해?');
+  });
+
+  it('SO-2-A: channelContextText 빈 = 블록 미포함', () => {
+    const p = buildDeliberationPrompt('challenge', echo, 'A', u, st, 'm', '', undefined, '');
+    expect(p).not.toContain('팀 채널(#team-bus) 직전 발언');
   });
 });

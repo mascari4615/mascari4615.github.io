@@ -25,7 +25,9 @@ import {
   coreLabel,
   appendCoreMemory,
   coreMemPath,
+  readWorkerTaskOutcomes,
   type CoreDef,
+  type WorkerTaskOutcome,
 } from '../services/agent-core';
 import { commitAndPushMemoFile } from '../services/memo-push';
 import {
@@ -38,6 +40,7 @@ import {
   type Tier3DoneResult,
   type ReaperSummary,
 } from '../services/tier3-detached';
+import { deprioritizeBrokenLoopCandidates } from './worker-self-memory';
 import {
   isKilled,
   getCoreSpeak,
@@ -126,6 +129,7 @@ export function buildWorkerPrompt(
   decisionsText?: string,
   channelContext?: string,
   skills?: string[],
+  pastAttempt?: WorkerTaskOutcome | null,
 ): string {
   const skillBlock =
     skills && skills.length > 0
@@ -144,6 +148,19 @@ export function buildWorkerPrompt(
         '',
       ]
     : [`[스펙 파일] ${task.file} (내용 임베드 실패 — cwd 내 단서로 진단)`, ''];
+  // KAR-018-SO-1: 이 코어의 *이 TASK 직전 결과* 회수 → 자기 행동 회피 신호.
+  // fix(이미 done+pushed) 면 select 단계가 이미 skip 하므로 여기 도달 X — 즉
+  // 여기 들어오는 pastAttempt 는 거의 fail/decision (재시도 케이스).
+  const pastBlock = pastAttempt
+    ? [
+        `[너의 직전 시도 (이 TASK ${task.id} 에 대한 *너* 의 기록)]`,
+        `- 마지막 결과: ${pastAttempt.kind} (누적 ${pastAttempt.count}회, 최근 ${pastAttempt.lastTs})`,
+        `- 사유 요약: ${pastAttempt.lastSummary || '(기록 없음)'}`,
+        `이번 시도는 같은 사유 반복 X — 다른 가설·접근으로 진입하거나 확신 없으면`,
+        `escalate 한다.`,
+        '',
+      ]
+    : [];
   const channelBlock = channelContext && channelContext.trim()
     ? [
         `[팀 최근 채팅 — 너·동료들의 직전 발언. 같은 사유·결론 반복 X.`,
@@ -177,6 +194,7 @@ export function buildWorkerPrompt(
     `(룰·TASK 정본)는 여기 없음. 스펙은 아래 [TASK 스펙] 본문이 정본.`,
     '',
     ...(decisionsText ? [decisionsText, ''] : []),
+    ...pastBlock,
     ...channelBlock,
     ...skillBlock,
     ...specBlock,
@@ -383,7 +401,8 @@ export interface WorkerConsumerDeps {
   setupWorktree?: (memoRoot: string, coreId: string, taskId: string) => WorktreeSetup;
   notify?: NotifyFn;
   speak?: CoreSpeakFn;
-  voice?: (prompt: string) => Promise<string>;
+  /** voice 콜백. legacy 1-arg `(prompt) => …` 또는 TASK-KAR-145 V2 `(user, system) => …`. */
+  voice?: ((prompt: string) => Promise<string>) | VoicedSpeakFn;
   /**
    * #team-bus 최근 N 발언 fetch (KAR-018-LT-W1). 미주입 = chat=state 비활성
    * (현행 5입력 호환). 실패 시 undefined 반환(silent X — 호출 측이 fallback).
@@ -494,11 +513,44 @@ function rememberWorkerOutcome(
   }
 }
 
+/**
+ * **TASK-KAR-145**: voiced 보고를 systemInstruction(persona/규칙) + user(상태) 로 분리.
+ * implicit cache 정렬 — skinHint 가 같은 코어면 prefix 안정 → 같은 코어 N콜 = 캐시 hit.
+ *
+ * 신규: voice 콜백 = `(p) => generateAgentText(env, p, t, {systemInstruction, tier:'lite', tag})`
+ * 형태로 만들지 말고, `voiced` 콜백을 둘로 분리하거나 caller 가 systemInstruction 미사용.
+ * 본 함수는 **여전히 단일 prompt 콜백** 호환 — caller 가 systemInstruction 분리 못 하면
+ * 자동 합쳐서 voice 에 박음(BC). 분리하려면 `voicedV2` (아래) 사용.
+ */
+export function buildVoicedWorkerSystemInstruction(skinHint?: string | null): string {
+  // 안정 prefix — skinHint 가 같으면 같음 (implicit cache 정렬).
+  const lines = [
+    '너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를',
+    '*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.',
+    '절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·',
+    '결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토',
+    '해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·',
+    '사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.',
+  ];
+  if (skinHint) lines.push(`[너의 캐릭터] 이름·말투: ${skinHint}`);
+  return lines.join('\n');
+}
+
+export function buildVoicedWorkerUserPrompt(status: string): string {
+  return `[작업상태]\n${status}`;
+}
+
+/** voice 콜백 = systemInstruction 분리 인식 가능한 V2 인터페이스. */
+export type VoicedSpeakFn = (
+  userPrompt: string,
+  systemInstruction: string,
+) => Promise<string>;
+
 export async function voicedWorkerSpeak(
   coreId: string,
   status: string,
   speak: CoreSpeakFn,
-  voice: (prompt: string) => Promise<string>,
+  voice: ((prompt: string) => Promise<string>) | VoicedSpeakFn,
   env: NodeJS.ProcessEnv = process.env,
   skinHint?: string | null,
 ): Promise<void> {
@@ -507,20 +559,14 @@ export async function voicedWorkerSpeak(
   appendWorkerRaw(env, coreId, status);
   let line = status;
   try {
-    const skinBlock = skinHint ? `\n[너의 캐릭터] 이름·말투: ${skinHint}` : '';
-    const prompt = [
-      `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
-      `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
-      `절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·`,
-      `결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토`,
-      `해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·`,
-      `사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.`,
-      skinBlock,
-      ``,
-      `[작업상태]`,
-      status,
-    ].join('\n');
-    const v = (await voice(prompt)).trim();
+    const system = buildVoicedWorkerSystemInstruction(skinHint);
+    const user = buildVoicedWorkerUserPrompt(status);
+    // voice 가 V2(2-arg) 면 분리해 호출. 1-arg legacy 콜백이면 합쳐서 호출 (BC).
+    const isV2 = voice.length >= 2;
+    const raw = isV2
+      ? await (voice as VoicedSpeakFn)(user, system)
+      : await (voice as (p: string) => Promise<string>)(`${system}\n\n${user}`);
+    const v = (raw || '').trim();
     if (v) line = v.slice(0, 1900);
   } catch { /* voice 실패 = raw status 그대로 */ }
   try {
@@ -633,9 +679,16 @@ export async function runWorkerConsumerOnce(
     deps.speak ??
     getCoreSpeak() ??
     (async (_cid, t) => { notify(t); return true; });
-  const voice =
-    deps.voice ??
-    ((p: string) => generateAgentText(env, p, 20_000).catch(() => ''));
+  // TASK-KAR-145: V2 voice — systemInstruction 분리 + tier='lite' + tag.
+  // implicit cache 정렬(같은 skinHint 면 system prefix 안정) + 가격 ~1/3.
+  const voice: VoicedSpeakFn =
+    (deps.voice as VoicedSpeakFn | undefined) ??
+    ((user: string, system: string) =>
+      generateAgentText(env, user, 20_000, {
+        tier: 'lite',
+        systemInstruction: system,
+        tag: 'yawnbot/voiced-worker',
+      }).catch(() => ''));
   const missionText = deps.missionText ?? (() => {
     try {
       return fs.readFileSync(path.join(memoRoot, '.claude', 'agent-mission.md'), 'utf-8').trim();
@@ -679,13 +732,42 @@ export async function runWorkerConsumerOnce(
     );
     // KAR-094 후속: detached in-flight 인 task 는 이중 claim 방지로 제외.
     const inFlightIds = activeInFlightTaskIds(memoRoot);
-    const filtered = cands.filter((c) => !inFlightIds.has(c.id));
+    const filtered0 = cands.filter((c) => !inFlightIds.has(c.id));
+    // KAR-018-SO-1: 워커 self-recall — 이 코어가 직전에 *fix(done+pushed)* 한
+    // TASK 는 재선택 X (done-재선택 무한 cycle 의 닫는 rung). 회수 실패 = 빈
+    // Map → filter 무효(기존 동작 fallback, 비차단).
+    const myOutcomes = readWorkerTaskOutcomes(memoRoot, w.coreId, 14);
+    const skippedFixed: string[] = [];
+    const filtered = filtered0.filter((c) => {
+      const o = myOutcomes.get(c.id);
+      if (o && o.kind === 'fix') {
+        skippedFixed.push(c.id);
+        return false;
+      }
+      return true;
+    });
+    if (skippedFixed.length > 0) {
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'budget',
+        core: w.coreId,
+        reason: `SO-1 self-recall skip ${skippedFixed.length} task(s) already-fixed: ${skippedFixed.slice(0, 5).join(',')}`,
+      });
+    }
     if (rawCands.length === 0) { results.push(`${w.coreId}:idle`); return; }
     if (cands.length === 0) { results.push(`${w.coreId}:cooldown-all`); return; }
-    if (filtered.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
+    if (filtered0.length === 0) { results.push(`${w.coreId}:in-flight-all`); return; }
+    if (filtered.length === 0) { results.push(`${w.coreId}:already-fixed-all`); return; }
+
+    // 자가발전 layer 2 (KAR-018, 2026-05-22): broken-loop 후보를 *맨 뒤로 정렬*.
+    // 같은 task 가 6h 내 3회+ no-op done 했으면 의심 — 다른 후보 있으면 그쪽 우선.
+    // filter 가 아닌 sort = 마지막 후보면 시도 (완전 차단 X, 안전 layer).
+    const prioritized = deprioritizeBrokenLoopCandidates<{ id: string; file: string }>(
+      memoRoot, filtered, 3, 6, tickNow,
+    );
 
     let chosen: { id: string; file: string } | null = null;
-    for (const c of filtered.slice(0, 3)) {
+    for (const c of prioritized.slice(0, 3)) {
       if (claim(c.id, w.coreId)) { chosen = c; break; }
     }
     if (!chosen) { results.push(`${w.coreId}:claim-lost`); return; }
@@ -736,6 +818,7 @@ export async function runWorkerConsumerOnce(
         formatDecisionsBlock(getDecisionsForTask(memoRoot, chosen.id)) || undefined,
         channelContext,
         w.skills,
+        myOutcomes.get(chosen.id) ?? null,
       ),
       repoCwd: wt?.cwd,
     };
@@ -975,8 +1058,13 @@ export async function reapWorkerInFlight(
     speakOverride ??
     getCoreSpeak() ??
     (async (_cid: string, t: string) => { notify(t); return true; });
-  const voice = (p: string): Promise<string> =>
-    generateAgentText(env, p, 20_000).catch(() => '');
+  // TASK-KAR-145: V2 voice (reaper 경로). voicedWorkerSpeak 가 2-arg detect.
+  const voice: VoicedSpeakFn = (user: string, system: string) =>
+    generateAgentText(env, user, 20_000, {
+      tier: 'lite',
+      systemInstruction: system,
+      tag: 'yawnbot/voiced-worker-reap',
+    }).catch(() => '');
 
   const workersByCoreId = new Map(defaultListWorkers(memoRoot).map((w) => [w.coreId, w]));
 

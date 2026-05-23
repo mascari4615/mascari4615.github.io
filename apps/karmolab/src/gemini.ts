@@ -23,6 +23,9 @@ import {
   buildAiStudioPredictUrl,
   buildVertexPublisherModelUrl,
   DEFAULT_VERTEX_LOCATION,
+  DEFAULT_GEMINI_SAFETY_THRESHOLD,
+  GEMINI_SAFETY_LEVELS,
+  buildGeminiSafetySettings,
   DOC_URL_AI_STUDIO_API_KEY,
   DOC_URL_VERTEX_API_KEYS,
 } from 'karmolab-ai';
@@ -217,6 +220,11 @@ const Gemini = (() => {
     function getApiHistory() { return [...apiHistory]; }
     function clearApiHistory() { apiHistory.length = 0; }
 
+    function applySafetySettings(body, threshold) {
+        const safetySettings = buildGeminiSafetySettings(threshold);
+        if (safetySettings.length > 0) body.safetySettings = safetySettings;
+    }
+
     /* ===== HTTP 헬퍼 ===== */
     function maskKey(key: any) {
         if (!key || key.length < 8) return '••••';
@@ -325,6 +333,7 @@ const Gemini = (() => {
                 maxOutputTokens: options.maxTokens || 8192
             }
         };
+        applySafetySettings(body, options.safetyThreshold);
 
         if (options.webSearch) {
             body.tools = [{ googleSearch: {} }];
@@ -358,6 +367,7 @@ const Gemini = (() => {
                 maxOutputTokens: options.maxTokens || 8192
             }
         };
+        applySafetySettings(body, options.safetyThreshold);
         if (options.webSearch) body.tools = [{ googleSearch: {} }];
 
         const fetchOpts: any = {
@@ -465,6 +475,7 @@ const Gemini = (() => {
                 maxOutputTokens: options.maxTokens || 8192,
             },
         };
+        applySafetySettings(body, options.safetyThreshold);
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
         const data = await res.json();
@@ -507,6 +518,7 @@ const Gemini = (() => {
                 maxOutputTokens: options.maxTokens || 8192,
             },
         };
+        applySafetySettings(body, options.safetyThreshold);
 
         const fetchOpts: any = {
             method: 'POST',
@@ -1116,6 +1128,8 @@ Reply ONLY with the enhanced prompt in English, nothing else. Do not add any exp
     /* ===== Public API ===== */
     return {
         MODELS,
+        GEMINI_SAFETY_LEVELS,
+        DEFAULT_GEMINI_SAFETY_THRESHOLD,
         getApiKey, setApiKey, getProfiles, getActiveProfileId, setActiveProfileId, getActiveProfileName, requireApiKey,
         getVertexApiKey, setVertexApiKey, requireVertexApiKey,
         getDefaultModel,

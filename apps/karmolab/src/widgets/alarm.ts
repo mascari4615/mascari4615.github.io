@@ -451,7 +451,8 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
   Toolbox.register({
     id: 'alarm',
     title: '알람',
-    category: 'desktop',
+    category: 'tool',
+    desktopOnly: true,
     desc: '강제 기상 데스크톱 알람 (Free Alarm Clock 레퍼런스, TASK-KL-064) — 상주 스케줄러 + OS 강제기상 + autostart',
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v4l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 3 2 6M19 3l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',

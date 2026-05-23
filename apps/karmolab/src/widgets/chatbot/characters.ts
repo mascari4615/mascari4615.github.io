@@ -1,12 +1,33 @@
-// @ts-nocheck
 /** 캐릭터 저장소·폼·모달 (chatbot.js에서 세션·전송과 연동) */
 (function () {
+    type Char = ChatbotCharacter & {
+        name?: string;
+        userName?: string;
+        userNote?: string;
+        visualDescription?: string;
+        description?: string;
+        personality?: string;
+        scenario?: string;
+        firstMes?: string;
+        referenceImageDataUrl?: string;
+    };
+    type CharUiDeps = {
+        saveSession?: () => void;
+        getChatHistoryLength?: () => number;
+        appendBotFirstMes?: (m: string) => void;
+        getLastLoadedSessionCharacterId?: () => string | null | undefined;
+    };
+
+    function byId<T extends HTMLElement = HTMLElement>(id: string): T | null {
+        return document.getElementById(id) as T | null;
+    }
+
     let cbCharModalEscBound = false;
     let cbCharModalTabBound = false;
-    let charModalPreviousFocus = null;
+    let charModalPreviousFocus: Element | null = null;
 
     const CHARACTERS_KEY = 'karmolab_chatbot_characters_v1';
-    function defaultCharacterSeed() {
+    function defaultCharacterSeed(): Char {
         return {
             id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
             name: '새 캐릭터',
@@ -22,11 +43,11 @@
     }
 
     /** SillyTavern Character Card V2/V3 `data` 또는 이 위젯 내보내기 JSON → 내부 캐릭터 객체 (항상 새 id) */
-    function mapImportedJsonToCharacter(obj) {
+    function mapImportedJsonToCharacter(obj: Record<string, unknown> | null | undefined): Char {
         if (!obj || typeof obj !== 'object') throw new Error('JSON이 아닙니다.');
+        const str = (x: unknown): string => (x == null ? '' : String(x)).trim();
         if (obj.spec === 'karmochat_character_v1' && obj.data && typeof obj.data === 'object') {
-            const d = obj.data;
-            const str = x => (x == null ? '' : String(x)).trim();
+            const d = obj.data as Record<string, unknown>;
             return {
                 id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
                 name: str(d.name) || '가져온 캐릭터',
@@ -42,12 +63,11 @@
                     : ''
             };
         }
-        let d = obj.data;
+        let d = obj.data as Record<string, unknown> | undefined;
         if (!d || typeof d !== 'object') {
-            if (obj.name != null || obj.description != null || obj.personality != null) d = obj;
+            if (obj.name != null || obj.description != null || obj.personality != null) d = obj as Record<string, unknown>;
         }
         if (!d || typeof d !== 'object') throw new Error('캐릭터 data 블록을 찾을 수 없습니다. (SillyTavern V2 JSON인지 확인)');
-        const str = x => (x == null ? '' : String(x)).trim();
         const name = str(d.name) || '가져온 캐릭터';
         let description = str(d.description);
         const sp = str(d.system_prompt);
@@ -62,7 +82,8 @@
         }
         let visualDescription = str(d.appearance);
         if (!visualDescription && d.extensions && typeof d.extensions === 'object') {
-            visualDescription = str(d.extensions.portrait || d.extensions.face || '');
+            const ext = d.extensions as Record<string, unknown>;
+            visualDescription = str(ext.portrait || ext.face || '');
         }
         return {
             id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
@@ -78,10 +99,10 @@
         };
     }
 
-    function exportCurrentCharacterToJsonFile() {
+    function exportCurrentCharacterToJsonFile(): void {
         const ch = readCharacterFromForm();
         if (!ch) {
-            Toolbox.showToast('내보낼 캐릭터가 없습니다.', 'error');
+            Toolbox.showToast!('내보낼 캐릭터가 없습니다.', 'error');
             return;
         }
         const exportObj = {
@@ -99,25 +120,25 @@
                 referenceImageDataUrl: ch.referenceImageDataUrl || ''
             }
         };
-        const safe = (ch.name || 'character').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').slice(0, 60);
+        const safe = (ch.name || 'character').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').slice(0, 60);
         const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = `karmochat-${safe}-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(a.href);
-        Toolbox.showToast('캐릭터 JSON을 내보냈습니다.');
+        Toolbox.showToast!('캐릭터 JSON을 내보냈습니다.');
     }
 
-    async function zlibInflateZtxChunk(compressed) {
+    async function zlibInflateZtxChunk(compressed: Uint8Array): Promise<Uint8Array> {
         if (typeof DecompressionStream === 'undefined') throw new Error('이 브라우저는 PNG zTXt 압축 해제를 지원하지 않습니다.');
         const ds = new DecompressionStream('deflate');
-        const buf = await new Response(new Blob([compressed]).stream().pipeThrough(ds)).arrayBuffer();
+        const buf = await new Response(new Blob([compressed as BlobPart]).stream().pipeThrough(ds)).arrayBuffer();
         return new Uint8Array(buf);
     }
 
     /** SillyTavern 등 PNG의 tEXt/zTXt `chara` 청크 → 원본 JSON 객체 */
-    async function extractCharaObjectFromPngBuffer(buffer) {
+    async function extractCharaObjectFromPngBuffer(buffer: ArrayBuffer): Promise<Record<string, unknown> | null> {
         const view = new DataView(buffer);
         if (buffer.byteLength < 24) return null;
         if (view.getUint32(0) !== 0x89504E47 || view.getUint32(4) !== 0x0D0A1A0A) return null;
@@ -140,7 +161,7 @@
                 if (keyword.toLowerCase() === 'chara') {
                     try {
                         const jsonStr = atob(text.replace(/\s/g, ''));
-                        return JSON.parse(jsonStr);
+                        return JSON.parse(jsonStr) as Record<string, unknown>;
                     } catch (_) {}
                 }
             }
@@ -155,7 +176,7 @@
                     try {
                         const inflated = await zlibInflateZtxChunk(compressed);
                         const jsonStr = decoder.decode(inflated);
-                        return JSON.parse(jsonStr);
+                        return JSON.parse(jsonStr) as Record<string, unknown>;
                     } catch (_) {}
                 }
             }
@@ -164,7 +185,7 @@
         return null;
     }
 
-    async function parseCharacterImportFile(buffer) {
+    async function parseCharacterImportFile(buffer: ArrayBuffer): Promise<Record<string, unknown>> {
         const u8 = new Uint8Array(buffer);
         if (u8.length >= 8 && u8[0] === 0x89 && u8[1] === 0x50 && u8[2] === 0x4E && u8[3] === 0x47) {
             const obj = await extractCharaObjectFromPngBuffer(buffer);
@@ -172,10 +193,10 @@
             throw new Error('PNG에 chara 메타데이터가 없습니다. (SillyTavern에서 내보낸 카드 PNG인지 확인)');
         }
         const text = new TextDecoder('utf-8').decode(buffer);
-        return JSON.parse(text);
+        return JSON.parse(text) as Record<string, unknown>;
     }
 
-    function loadCharacterList() {
+    function loadCharacterList(): Char[] {
         try {
             const raw = localStorage.getItem(CHARACTERS_KEY);
             const arr = raw ? JSON.parse(raw) : [];
@@ -185,32 +206,32 @@
         }
     }
 
-    function saveCharacterList(list) {
+    function saveCharacterList(list: Char[]): void {
         try {
             localStorage.setItem(CHARACTERS_KEY, JSON.stringify(list));
         } catch (e) {
             console.warn('saveCharacterList', e);
-            Toolbox.showToast('캐릭터 저장 실패(용량 초과 등). 참조 이미지를 줄여 보세요.', 'error');
+            Toolbox.showToast!('캐릭터 저장 실패(용량 초과 등). 참조 이미지를 줄여 보세요.', 'error');
         }
     }
 
     /** imagegen CHARACTER_PRESETS(witch / alisa / ling)와 동일 컨셉 — id 기준으로 없을 때만 병합 */
-    function getBuiltinMascotCharacters() {
+    function getBuiltinMascotCharacters(): Char[] {
         try {
-            const b = window.KarmoWorld?.bindings?.chatbot?.characters;
+            const b = window.KarmoWorld?.bindings?.chatbot?.characters as Array<Record<string, unknown>> | undefined;
             if (Array.isArray(b) && b.length) {
                 const out = b.map(x => ({
-                    id: x.chatbotId,
-                    name: x.name,
-                    userName: x.userName,
-                    userNote: x.userNote,
-                    visualDescription: x.visualDescription,
-                    description: x.description,
-                    personality: x.personality,
-                    scenario: x.scenario,
-                    firstMes: x.firstMes,
+                    id: String(x.chatbotId ?? ''),
+                    name: x.name as string | undefined,
+                    userName: x.userName as string | undefined,
+                    userNote: x.userNote as string | undefined,
+                    visualDescription: x.visualDescription as string | undefined,
+                    description: x.description as string | undefined,
+                    personality: x.personality as string | undefined,
+                    scenario: x.scenario as string | undefined,
+                    firstMes: x.firstMes as string | undefined,
                     referenceImageDataUrl: ''
-                })).filter(x => x.id && x.name);
+                } as Char)).filter(x => x.id && x.name);
                 if (out.length) return out;
             }
         } catch (_) {}
@@ -254,7 +275,7 @@
         ];
     }
 
-    function mergeBuiltinMascotCharactersIfMissing() {
+    function mergeBuiltinMascotCharactersIfMissing(): void {
         const list = loadCharacterList();
         const existing = new Set(list.map(c => c.id));
         let changed = false;
@@ -267,7 +288,7 @@
         if (changed) saveCharacterList(list);
     }
 
-    function ensureDefaultCharacters() {
+    function ensureDefaultCharacters(): Char[] {
         // 카레 (옛 비서 마스코트) hardcoded 디폴트 폐기 (TASK-KL-033 검증).
         // 빈 list 일 때 mergeBuiltinMascotCharactersIfMissing() 가 yon/alisa/ling
         // (그리고 wiki 로드 후 티메토) 시드. KarmoLab 마스코트 정합.
@@ -275,10 +296,10 @@
         return loadCharacterList();
     }
 
-    function getCharacterById(id) {
+    function getCharacterById(id: string): Char | null {
         return loadCharacterList().find(x => x.id === id) || null;
     }
-    function buildCharacterSystemBlock(char) {
+    function buildCharacterSystemBlock(char: Char | null): string {
         if (!char) return '';
         const user = char.userName || '사용자';
         const charName = char.name || '캐릭터';
@@ -300,8 +321,8 @@
         ];
         return parts.filter(Boolean).join('\n');
     }
-    function syncAfterSessionLoad(sessionCharacterId) {
-        const charSel = document.getElementById('cbCharacterSelect');
+    function syncAfterSessionLoad(sessionCharacterId: string | null | undefined): void {
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         if (!charSel) return;
         if (sessionCharacterId && getCharacterById(sessionCharacterId)) {
             charSel.value = sessionCharacterId;
@@ -310,24 +331,28 @@
         updateChatHeaderTitle();
     }
 
-    function populateCharacterSelectOptions() {
-        const charSel = document.getElementById('cbCharacterSelect');
+    function populateCharacterSelectOptions(): void {
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         if (!charSel) return;
         const cur = charSel.value;
         const list = ensureDefaultCharacters();
-        charSel.innerHTML = list.map(c => `<option value="${Toolbox.escapeHtml(c.id)}">${Toolbox.escapeHtml(c.name || c.id)}</option>`).join('');
+        const esc = Toolbox.escapeHtml!;
+        charSel.innerHTML = list.map(c => `<option value="${esc(c.id)}">${esc(c.name || c.id)}</option>`).join('');
         if (cur && getCharacterById(cur)) charSel.value = cur;
         else if (list[0]) charSel.value = list[0].id;
     }
 
-    function applyCharacterFormFromSelection() {
-        const charSel = document.getElementById('cbCharacterSelect');
+    function applyCharacterFormFromSelection(): void {
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         const ch = charSel && getCharacterById(charSel.value);
         if (!ch) {
             updateCharProfilePreview();
             return;
         }
-        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+        const set = (id: string, v: string | undefined): void => {
+            const el = byId<HTMLInputElement>(id);
+            if (el) el.value = v ?? '';
+        };
         set('cbCharName', ch.name);
         set('cbCharUserName', ch.userName);
         set('cbCharUserNote', ch.userNote);
@@ -336,7 +361,7 @@
         set('cbCharPersonality', ch.personality);
         set('cbCharScenario', ch.scenario);
         set('cbCharFirstMes', ch.firstMes);
-        const thumb = document.getElementById('cbCharRefThumb');
+        const thumb = byId<HTMLImageElement>('cbCharRefThumb');
         if (thumb) {
             if (ch.referenceImageDataUrl) {
                 thumb.src = ch.referenceImageDataUrl;
@@ -349,13 +374,13 @@
         updateCharProfilePreview();
     }
 
-    function updateCharProfilePreview() {
-        const charSel = document.getElementById('cbCharacterSelect');
+    function updateCharProfilePreview(): void {
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         const ch = charSel && getCharacterById(charSel.value);
-        const refThumb = document.getElementById('cbCharRefThumb');
-        const av = document.getElementById('cbCharProfileAvatar');
-        const ph = document.getElementById('cbCharProfilePlaceholder');
-        const nameEl = document.getElementById('cbCharProfileName');
+        const refThumb = byId<HTMLImageElement>('cbCharRefThumb');
+        const av = byId<HTMLImageElement>('cbCharProfileAvatar');
+        const ph = byId('cbCharProfilePlaceholder');
+        const nameEl = byId('cbCharProfileName');
         let refUrl = ch?.referenceImageDataUrl || '';
         if (refThumb && refThumb.getAttribute('src') && refThumb.style.display !== 'none') refUrl = refThumb.src || refUrl;
         if (nameEl) nameEl.textContent = ch ? (ch.name || '이름 없음') : '—';
@@ -372,12 +397,12 @@
         }
     }
 
-    function readCharacterFromForm() {
-        const g = id => document.getElementById(id)?.value?.trim() ?? '';
-        const charSel = document.getElementById('cbCharacterSelect');
+    function readCharacterFromForm(): Char | null {
+        const g = (id: string): string => byId<HTMLInputElement>(id)?.value?.trim() ?? '';
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         const id = charSel?.value;
         if (!id) return null;
-        const ch = getCharacterById(id) || { id };
+        const ch = getCharacterById(id) || { id } as Char;
         ch.name = g('cbCharName') || ch.name || '이름 없음';
         ch.userName = g('cbCharUserName') || '사용자';
         ch.userNote = g('cbCharUserNote');
@@ -386,13 +411,13 @@
         ch.personality = g('cbCharPersonality');
         ch.scenario = g('cbCharScenario');
         ch.firstMes = g('cbCharFirstMes');
-        const thumb = document.getElementById('cbCharRefThumb');
+        const thumb = byId<HTMLImageElement>('cbCharRefThumb');
         if (thumb && thumb.src && thumb.style.display !== 'none') ch.referenceImageDataUrl = thumb.src;
         else ch.referenceImageDataUrl = '';
         return ch;
     }
 
-    function persistCharacterFromForm() {
+    function persistCharacterFromForm(): void {
         const ch = readCharacterFromForm();
         if (!ch) return;
         const list = loadCharacterList();
@@ -401,23 +426,23 @@
         else list.push(ch);
         saveCharacterList(list);
         populateCharacterSelectOptions();
-        const selAfter = document.getElementById('cbCharacterSelect');
+        const selAfter = byId<HTMLSelectElement>('cbCharacterSelect');
         if (selAfter) selAfter.value = ch.id;
-        Toolbox.showToast('캐릭터 저장됨');
+        Toolbox.showToast!('캐릭터 저장됨');
         updateChatHeaderTitle();
         updateCharProfilePreview();
     }
 
-    function updateChatHeaderTitle() {
-        const el = document.getElementById('cbChatTitle');
-        const charSel = document.getElementById('cbCharacterSelect');
+    function updateChatHeaderTitle(): void {
+        const el = byId('cbChatTitle');
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         if (!el || !charSel) return;
         const ch = getCharacterById(charSel.value);
         el.textContent = ch ? `💬 ${ch.name}` : '💬 챗봇';
     }
 
-    function openCharEditModal() {
-        const modal = document.getElementById('cbCharEditModal');
+    function openCharEditModal(): void {
+        const modal = byId('cbCharEditModal');
         if (!modal) return;
         charModalPreviousFocus = document.activeElement;
         applyCharacterFormFromSelection();
@@ -425,29 +450,29 @@
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
         document.body.dataset.cbCharModalOpen = '1';
-        document.getElementById('cbCharEditClose')?.focus();
+        byId<HTMLButtonElement>('cbCharEditClose')?.focus();
     }
 
-    function closeCharEditModal() {
-        const modal = document.getElementById('cbCharEditModal');
+    function closeCharEditModal(): void {
+        const modal = byId('cbCharEditModal');
         if (!modal) return;
         modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
         delete document.body.dataset.cbCharModalOpen;
         updateCharProfilePreview();
-        const prev = charModalPreviousFocus;
+        const prev = charModalPreviousFocus as HTMLElement | null;
         charModalPreviousFocus = null;
         if (prev && typeof prev.focus === 'function' && document.body.contains(prev)) prev.focus();
-        else document.getElementById('cbCharProfileOpen')?.focus();
+        else byId<HTMLButtonElement>('cbCharProfileOpen')?.focus();
     }
 
-    function initCharacterUi(deps) {
+    function initCharacterUi(deps: CharUiDeps): void {
         const saveSession = deps && deps.saveSession;
         const getChatHistoryLength = deps && deps.getChatHistoryLength;
         const appendBotFirstMes = deps && deps.appendBotFirstMes;
         const getLastLoadedSessionCharacterId = deps && deps.getLastLoadedSessionCharacterId;
-        const block = document.getElementById('cbCharacterBlock');
+        const block = byId('cbCharacterBlock');
         if (block?.dataset.inited === '1') {
             populateCharacterSelectOptions();
             applyCharacterFormFromSelection();
@@ -458,8 +483,8 @@
         if (block) block.dataset.inited = '1';
 
         populateCharacterSelectOptions();
-        const pref = Toolbox.getPref('cb_active_character');
-        const charSel = document.getElementById('cbCharacterSelect');
+        const pref = Toolbox.getPref!('cb_active_character', '');
+        const charSel = byId<HTMLSelectElement>('cbCharacterSelect');
         if (charSel && pref && getCharacterById(pref)) charSel.value = pref;
         if (charSel && getLastLoadedSessionCharacterId) {
             const sid = getLastLoadedSessionCharacterId();
@@ -467,8 +492,8 @@
         }
         applyCharacterFormFromSelection();
 
-        const imgSel = document.getElementById('cbCharImageModel');
-        if (imgSel && typeof Gemini !== 'undefined' && Gemini.MODELS?.geminiImage) {
+        const imgSel = byId<HTMLSelectElement>('cbCharImageModel');
+        if (imgSel && typeof Gemini !== 'undefined' && Gemini && Gemini.MODELS?.geminiImage) {
             imgSel.innerHTML = '';
             Gemini.MODELS.geminiImage.forEach(m => {
                 const o = document.createElement('option');
@@ -477,83 +502,85 @@
                 if (m.isDefault) o.selected = true;
                 imgSel.appendChild(o);
             });
-            const saved = Toolbox.getPref('cb_char_image_model');
+            const saved = Toolbox.getPref!('cb_char_image_model', '');
             if (saved) imgSel.value = saved;
-            imgSel.addEventListener('change', () => Toolbox.setPref('cb_char_image_model', imgSel.value));
+            imgSel.addEventListener('change', () => Toolbox.setPref!('cb_char_image_model', imgSel.value));
         }
 
         charSel?.addEventListener('change', () => {
-            Toolbox.setPref('cb_active_character', charSel.value);
+            Toolbox.setPref!('cb_active_character', charSel.value);
             applyCharacterFormFromSelection();
             updateChatHeaderTitle();
-            saveSession();
+            saveSession && saveSession();
         });
 
-        document.getElementById('cbCharSave')?.addEventListener('click', () => persistCharacterFromForm());
-        document.getElementById('cbCharNew')?.addEventListener('click', () => {
+        byId<HTMLButtonElement>('cbCharSave')?.addEventListener('click', () => persistCharacterFromForm());
+        byId<HTMLButtonElement>('cbCharNew')?.addEventListener('click', () => {
             const n = defaultCharacterSeed();
             const list = loadCharacterList();
             list.push(n);
             saveCharacterList(list);
             populateCharacterSelectOptions();
-            charSel.value = n.id;
+            if (charSel) charSel.value = n.id;
             applyCharacterFormFromSelection();
             updateChatHeaderTitle();
-            Toolbox.showToast('새 캐릭터 — 내용을 채운 뒤 저장하세요');
+            Toolbox.showToast!('새 캐릭터 — 내용을 채운 뒤 저장하세요');
         });
-        document.getElementById('cbCharDel')?.addEventListener('click', () => {
+        byId<HTMLButtonElement>('cbCharDel')?.addEventListener('click', () => {
             if (!charSel?.value) return;
             if (!confirm('이 캐릭터를 삭제할까요?')) return;
             const list = loadCharacterList().filter(c => c.id !== charSel.value);
             if (!list.length) {
-                Toolbox.showToast('마지막 캐릭터는 삭제할 수 없습니다.', 'error');
+                Toolbox.showToast!('마지막 캐릭터는 삭제할 수 없습니다.', 'error');
                 return;
             }
             saveCharacterList(list);
             populateCharacterSelectOptions();
             applyCharacterFormFromSelection();
             updateChatHeaderTitle();
-            saveSession();
+            saveSession && saveSession();
         });
-        document.getElementById('cbCharRefFile')?.addEventListener('change', async e => {
-            const f = e.target.files?.[0];
-            const thumb = document.getElementById('cbCharRefThumb');
+        byId<HTMLInputElement>('cbCharRefFile')?.addEventListener('change', async (e) => {
+            const tgt = e.target as HTMLInputElement;
+            const f = tgt.files?.[0];
+            const thumb = byId<HTMLImageElement>('cbCharRefThumb');
             if (!f || !f.type.startsWith('image/') || !thumb) return;
             const reader = new FileReader();
             reader.onload = () => {
-                thumb.src = reader.result;
+                thumb.src = reader.result as string;
                 thumb.style.display = '';
                 updateCharProfilePreview();
             };
             reader.readAsDataURL(f);
-            e.target.value = '';
+            tgt.value = '';
         });
-        document.getElementById('cbCharRefClear')?.addEventListener('click', () => {
-            const thumb = document.getElementById('cbCharRefThumb');
+        byId<HTMLButtonElement>('cbCharRefClear')?.addEventListener('click', () => {
+            const thumb = byId<HTMLImageElement>('cbCharRefThumb');
             if (thumb) { thumb.removeAttribute('src'); thumb.style.display = 'none'; }
             updateCharProfilePreview();
         });
-        document.getElementById('cbCharFirstBtn')?.addEventListener('click', () => {
-            const ch = getCharacterById(charSel?.value);
+        byId<HTMLButtonElement>('cbCharFirstBtn')?.addEventListener('click', () => {
+            const ch = getCharacterById(charSel?.value ?? '');
             const fm = ch?.firstMes?.trim();
-            if (!fm) { Toolbox.showToast('첫 인사가 비어 있습니다.', 'error'); return; }
-            if (getChatHistoryLength && getChatHistoryLength() > 0) { Toolbox.showToast('대화가 이미 있을 때는 넣지 않습니다.', 'error'); return; }
+            if (!fm) { Toolbox.showToast!('첫 인사가 비어 있습니다.', 'error'); return; }
+            if (getChatHistoryLength && getChatHistoryLength() > 0) { Toolbox.showToast!('대화가 이미 있을 때는 넣지 않습니다.', 'error'); return; }
             if (appendBotFirstMes) appendBotFirstMes(fm);
         });
 
-        const importOverwriteEl = document.getElementById('cbCharImportOverwrite');
+        const importOverwriteEl = byId<HTMLInputElement>('cbCharImportOverwrite');
         if (importOverwriteEl) {
-            const savedOw = Toolbox.getPref('cb_char_import_overwrite');
+            const savedOw = Toolbox.getPref!('cb_char_import_overwrite', '');
             if (savedOw === '1') importOverwriteEl.checked = true;
             importOverwriteEl.addEventListener('change', () => {
-                Toolbox.setPref('cb_char_import_overwrite', importOverwriteEl.checked ? '1' : '0');
+                Toolbox.setPref!('cb_char_import_overwrite', importOverwriteEl.checked ? '1' : '0');
             });
         }
 
-        document.getElementById('cbCharImportBtn')?.addEventListener('click', () => document.getElementById('cbCharImportFile')?.click());
-        document.getElementById('cbCharImportFile')?.addEventListener('change', e => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
+        byId<HTMLButtonElement>('cbCharImportBtn')?.addEventListener('click', () => byId<HTMLInputElement>('cbCharImportFile')?.click());
+        byId<HTMLInputElement>('cbCharImportFile')?.addEventListener('change', (e) => {
+            const tgt = e.target as HTMLInputElement;
+            const f = tgt.files?.[0];
+            tgt.value = '';
             if (!f) return;
             const reader = new FileReader();
             reader.onload = async () => {
@@ -562,7 +589,7 @@
                     if (!buffer || !(buffer instanceof ArrayBuffer)) throw new Error('파일을 읽지 못했습니다.');
                     const obj = await parseCharacterImportFile(buffer);
                     let ch = mapImportedJsonToCharacter(obj);
-                    const overwrite = document.getElementById('cbCharImportOverwrite')?.checked;
+                    const overwrite = byId<HTMLInputElement>('cbCharImportOverwrite')?.checked;
                     const curId = charSel?.value;
                     const list = loadCharacterList();
                     if (overwrite && curId && getCharacterById(curId)) {
@@ -571,45 +598,46 @@
                         if (idx >= 0) list[idx] = ch;
                         else list.push(ch);
                         saveCharacterList(list);
-                        Toolbox.showToast(`캐릭터를 덮어썼습니다: ${ch.name}`);
+                        Toolbox.showToast!(`캐릭터를 덮어썼습니다: ${ch.name}`);
                     } else {
                         list.push(ch);
                         saveCharacterList(list);
-                        Toolbox.showToast(`캐릭터 카드를 불러왔습니다: ${ch.name}`);
+                        Toolbox.showToast!(`캐릭터 카드를 불러왔습니다: ${ch.name}`);
                     }
                     populateCharacterSelectOptions();
                     if (charSel) charSel.value = ch.id;
-                    Toolbox.setPref('cb_active_character', ch.id);
+                    Toolbox.setPref!('cb_active_character', ch.id);
                     applyCharacterFormFromSelection();
                     updateChatHeaderTitle();
                     updateCharProfilePreview();
                 } catch (err) {
-                    Toolbox.showToast('가져오기 실패: ' + (err && err.message ? err.message : err), 'error');
+                    const msg = (err && typeof err === 'object' && 'message' in err) ? String((err as { message: unknown }).message) : String(err);
+                    Toolbox.showToast!('가져오기 실패: ' + msg, 'error');
                 }
             };
-            reader.onerror = () => Toolbox.showToast('파일을 읽지 못했습니다.', 'error');
+            reader.onerror = () => Toolbox.showToast!('파일을 읽지 못했습니다.', 'error');
             reader.readAsArrayBuffer(f);
         });
-        document.getElementById('cbCharExportBtn')?.addEventListener('click', () => exportCurrentCharacterToJsonFile());
+        byId<HTMLButtonElement>('cbCharExportBtn')?.addEventListener('click', () => exportCurrentCharacterToJsonFile());
 
-        const syncAuto = () => {
-            const use = document.getElementById('cbCharUse')?.checked;
-            const auto = document.getElementById('cbCharAutoImage');
+        const syncAuto = (): void => {
+            const use = byId<HTMLInputElement>('cbCharUse')?.checked;
+            const auto = byId<HTMLInputElement>('cbCharAutoImage');
             if (auto) auto.disabled = !use;
             if (!use && auto) auto.checked = false;
         };
-        document.getElementById('cbCharUse')?.addEventListener('change', () => { syncAuto(); saveSession(); });
-        document.getElementById('cbCharAutoImage')?.addEventListener('change', () => saveSession());
+        byId<HTMLInputElement>('cbCharUse')?.addEventListener('change', () => { syncAuto(); saveSession && saveSession(); });
+        byId<HTMLInputElement>('cbCharAutoImage')?.addEventListener('change', () => saveSession && saveSession());
         syncAuto();
 
-        document.getElementById('cbCharProfileOpen')?.addEventListener('click', () => openCharEditModal());
-        document.getElementById('cbCharEditBackdrop')?.addEventListener('click', closeCharEditModal);
-        document.getElementById('cbCharEditClose')?.addEventListener('click', closeCharEditModal);
+        byId<HTMLButtonElement>('cbCharProfileOpen')?.addEventListener('click', () => openCharEditModal());
+        byId<HTMLElement>('cbCharEditBackdrop')?.addEventListener('click', closeCharEditModal);
+        byId<HTMLButtonElement>('cbCharEditClose')?.addEventListener('click', closeCharEditModal);
         if (!cbCharModalEscBound) {
             cbCharModalEscBound = true;
             document.addEventListener('keydown', e => {
                 if (e.key !== 'Escape') return;
-                const modal = document.getElementById('cbCharEditModal');
+                const modal = byId('cbCharEditModal');
                 if (!modal || modal.hidden) return;
                 e.preventDefault();
                 e.stopPropagation();
@@ -620,13 +648,13 @@
             cbCharModalTabBound = true;
             document.addEventListener('keydown', e => {
                 if (e.key !== 'Tab' || !document.body.dataset.cbCharModalOpen) return;
-                const modal = document.getElementById('cbCharEditModal');
+                const modal = byId('cbCharEditModal');
                 if (!modal || modal.hidden) return;
-                const dialog = modal.querySelector('.cb-modal-dialog');
+                const dialog = modal.querySelector<HTMLElement>('.cb-modal-dialog');
                 if (!dialog) return;
-                const nodes = dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+                const nodes = dialog.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
                 const list = Array.from(nodes).filter(el => {
-                    if (el.disabled) return false;
+                    if ((el as HTMLInputElement | HTMLButtonElement).disabled) return false;
                     const st = window.getComputedStyle(el);
                     return st.display !== 'none' && st.visibility !== 'hidden';
                 });

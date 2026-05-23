@@ -58,6 +58,7 @@ import {
   publishEnvelope,
   readInboxProposals,
   appendTeamVerdict,
+  readRecentProducerSchemaFails,
   type DiscoverFn,
 } from './proposal-adapter';
 import { buildModifiedEnvelope } from './proposal';
@@ -82,6 +83,8 @@ import {
   type HealthIssue,
   type HealthSignals,
 } from './system-health';
+import { runInitiatorOnce } from './agent-initiator';
+import { runStatusBoardOnce } from './agent-status-board';
 import {
   listCoreIds,
   loadCoreDef,
@@ -95,6 +98,7 @@ import {
   decideDialogueTurn,
   nextDeliberationStep,
   buildDeliberationPrompt,
+  buildDeliberationPromptSplit,
   classifyDeliberationReply,
   type DeliberationState,
   type DeliberationTurnRec,
@@ -110,12 +114,14 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinPersona } from './agent-cadence-skin';
+import { fetchTeamBusContext } from './team-bus-fetcher';
 import {
   runWorkerConsumerOnce, getLastWorkerCsv,
   type WorkerCore, type WorkerConsumerDeps, type WorktreeSetup,
   selectWorkerCores, buildWorkerPrompt, detectDecisionNeeded,
   ESCALATE_MARKER, workerRawLedgerPath, appendWorkerRaw, appendWorkerRawDiag,
   voicedWorkerSpeak, resetWorkerStatus,
+  defaultListWorkers,
   reapWorkerInFlight,
 } from './agent-cadence-worker';
 import {
@@ -226,10 +232,32 @@ export function buildDiscoveryPrompt(
   contextText = '',
   portfolioBlock = '',
   producerPerspective = '',
+  schemaFailExamples: string[] = [],
+  channelContextText = '',
 ): string {
   const ctx = contextText.trim();
   const pf = portfolioBlock.trim();
   const perspLine = producerPerspective.trim();
+  // KAR-018-SO-2-A: producer 도 #team-bus 직전 발언 read → 사용자가 채널에서
+  // 박은 의도·요청을 발굴이 캐치 (워커만 읽던 LT-W1 갭 닫음). 빈 = 블록 생략.
+  const channelBlock = channelContextText.trim()
+    ? [
+        '[팀 채널(#team-bus) 직전 발언 — 사용자·동료의 최근 맥락]',
+        '※ 사용자가 채널에서 박은 요청·관심사·우려가 있으면 이번 발굴에',
+        '  *우선* 반영하라. 동료가 이미 다룬 주제 중복 X.',
+        channelContextText.trim().slice(0, 2500),
+      ]
+    : [];
+  // KAR-018-SO-3: 직전 schema-fail snippet 자기 inject. 사람-박은 schema 룰
+  // 강화 X — *자기 출력 cycle* 닫는 rung. 부재(첫 호출/리셋) = 블록 생략.
+  const schemaFailBlock = schemaFailExamples.length > 0
+    ? [
+        '[너의 직전 출력 형식 실패 (이 형식들로 다시 내면 또 폐기됨)]',
+        ...schemaFailExamples.slice(-3).map((s, i) => `· 직전 ${i + 1}: ${s.slice(0, 200)}`),
+        '※ 위는 *너* 가 직전에 낸 깨진 출력 일부다. 이번엔 아래 union JSON',
+        '  스키마를 *정확히* 한 줄 객체로 내라(코드펜스만 OK·기타 0).',
+      ]
+    : [];
   const identity = perspLine
     ? `너는 karmoddrine 에이전트 팀의 **${perspLine}** 로서 발굴한다. 이 역할의 관점에서 가장 의미 있는 제안을 골라라. 도구·파일`
     : '너는 karmoddrine 에이전트 팀의 자율 cadence 생산자다. 도구·파일';
@@ -237,6 +265,8 @@ export function buildDiscoveryPrompt(
     `${identity}`,
     '접근 없이 *아래 제공된 텍스트만으로* 단일턴 추론한다.',
     '파일을 읽으려 시도하지 마라 (불가 — 빈 출력만 낭비).',
+    ...(schemaFailBlock.length > 0 ? ['', ...schemaFailBlock] : []),
+    ...(channelBlock.length > 0 ? ['', ...channelBlock] : []),
     '',
     '[미션 헌장 — 정렬 anchor (§1 공통목표 / §3 비목표 자가검사용)]',
     missionText.trim(),
@@ -627,14 +657,18 @@ export async function runGovernedProducerOnce(
 
   const discover: DiscoverFn =
     opts.discover ??
-    (() => {
+    (async () => {
       const gap = opts.gap ?? analyzeAgentTeamGaps(env);
       const discoveryContext = buildGapDiscoveryContext(env, gap);
-      return (
+      // KAR-018-SO-2-A: producer 도 #team-bus 직전 발언 read. 사용자 채팅 발화
+      // 가 발굴 prompt 에 inject → 「자기들끼리만」 갭 닫음. fetch 실패=빈 문자열.
+      let channelCtx = '';
+      try { channelCtx = (await fetchTeamBusContext(15)) || ''; }
+      catch { /* silent — 채팅 fetch 실패가 발굴 비차단 */ }
       // discovery·대화 = Gemini(Vertex 우선→AI Studio 폴백, 사용자 결정
       // KAR-018-Y) / 코드·문서(tier3)만 Claude. Gemini = 페르소나 거부 X·
       // 빠름·JSON 안정·본질적 비-agentic.
-      generateAgentText(
+      return generateAgentText(
         env,
         buildDiscoveryPrompt(
           readMissionText(env),
@@ -643,9 +677,11 @@ export async function runGovernedProducerOnce(
             loadPortfolio(env.MEMO_REPO_PATH?.trim() || ''),
           ),
           producerPerspective,
+          readRecentProducerSchemaFails(env, 3),
+          channelCtx,
         ),
         Number(env.AGENT_DISCOVERY_TIMEOUT_MS) || 90_000,
-      ));
+      );
     });
   return runProducerOnce({ env, discover, dispatch: inboxDispatch(env) });
 }
@@ -782,14 +818,20 @@ export async function runCoreDialogueOnce(
     deps.reserve ?? ((c: string) => reserveBudget(c, `dialogue:${c}`));
   const cooldown =
     deps.cooldown ?? ((c: string) => checkAndStampCooldown(c, 'dialogue'));
-  const generate =
-    deps.generate ??
-    ((prompt: string) =>
+  // TASK-KAR-145: generate 콜백을 2-arg(user, system) 로 확장. legacy 1-arg deps.generate
+  // 는 합쳐서 호출 (BC). 신규 호출 = systemInstruction 분리 + tier='lite' + tag.
+  type GenerateSplit = (user: string, system?: string) => Promise<string>;
+  const generate: GenerateSplit =
+    (deps.generate as GenerateSplit | undefined) ??
+    ((user: string, system?: string) =>
       // 코어↔코어 대화 = Gemini(Vertex 우선→AI Studio 폴백, KAR-018-Y).
+      // TASK-KAR-145: 짧은 동료 반응(평이체) = lite tier 충분. system prefix
+      // 안정 → implicit cache hit (responder+mission+portfolio 같은 ticks).
       generateAgentText(
         env,
-        prompt,
+        user,
         Number(env.AGENT_DIALOGUE_TIMEOUT_MS) || 90_000,
+        { tier: 'lite', systemInstruction: system, tag: 'yawnbot/deliberation' },
       ));
   const speak =
     deps.speak ??
@@ -813,6 +855,10 @@ export async function runCoreDialogueOnce(
   let verdict: DeliberationVerdict = 'escalate';
   let verdictReason = '';
   let spokeTurns = 0;
+  // KAR-018-SO-2-A: 토론 시작 1회 fetch — 모든 phase 가 같은 channel ctx 공유.
+  let dialogueChannelCtx = '';
+  try { dialogueChannelCtx = (await fetchTeamBusContext(15)) || ''; }
+  catch { /* silent — 토론 비차단 */ }
 
   for (;;) {
     const step = nextDeliberationStep(state);
@@ -855,18 +901,18 @@ export async function runCoreDialogueOnce(
 
     let text = '';
     try {
-      text = await generate(
-        buildDeliberationPrompt(
-          step.phase,
-          spCore,
-          step.phase === 'refine' ? coreLabel(coreOf(state.peerCoreId)!) : speakerLabel,
-          u,
-          state,
-          missionText,
-          portfolioBlock,
-          loadSkinPersona(memoRoot, sp),
-        ),
+      const split = buildDeliberationPromptSplit(
+        step.phase,
+        spCore,
+        step.phase === 'refine' ? coreLabel(coreOf(state.peerCoreId)!) : speakerLabel,
+        u,
+        state,
+        missionText,
+        portfolioBlock,
+        loadSkinPersona(memoRoot, sp),
+        dialogueChannelCtx,
       );
+      text = await generate(split.user, split.system);
     } catch (e) {
       if (first) {
         appendTrace(env, {
@@ -1091,13 +1137,17 @@ let workerTimer: ReturnType<typeof setTimeout> | null = null;
 // LLM·워커 X). 현황 "바로바로" = 짧은 주기로 자체 갱신(에이전트틱 불요).
 let dashboardTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** 런타임 pause 플래그 — /관리자 에이전트자동 · 워커자동 으로 toggle. */
+/** 런타임 pause 플래그 — /관리자 에이전트자동 · 워커자동 · 자기수술자동 으로 toggle.
+ * startAgentCadence 에서 AGENT_CADENCE_{DIALOGUE,WORKER,SURGERY}_ENABLED 로 초기화. */
 let cadenceAutoEnabled = true;
 let workerAutoEnabled = true;
+let surgeryAutoEnabled = false;
 export function setCadenceAutoEnabled(val: boolean): void { cadenceAutoEnabled = val; }
 export function setWorkerAutoEnabled(val: boolean): void { workerAutoEnabled = val; }
+export function setSurgeryAutoEnabled(val: boolean): void { surgeryAutoEnabled = val; }
 export function getCadenceAutoEnabled(): boolean { return cadenceAutoEnabled; }
 export function getWorkerAutoEnabled(): boolean { return workerAutoEnabled; }
+export function getSurgeryAutoEnabled(): boolean { return surgeryAutoEnabled; }
 /** 직전 cadence tick 요약 — 대시보드 독립 타이머가 마지막 활동 표기용. */
 let lastTickSummary = '';
 
@@ -1172,7 +1222,13 @@ export async function runCadenceTickOnce(
       return null;
     }
   });
-  if (r === 'idle' && memoRoot && !isKilled()) {
+  // AGENT_CADENCE_DIALOGUE_ENABLED=0 (KAR-095) 또는 QUIET=1: producer(발굴) +
+  // dialogue(대화) skip → 잡담·발굴 noise 차단, surgery+worker+corePromotion 만
+  // 가동 = 자가발전 only mode. raw dump 18:24-18:49 실증 (잡담/⑦' fail).
+  // DIALOGUE_ENABLED=1 = 명시 opt-in (default OFF = 安全). QUIET=1 추가 우선.
+  const dialogueEnabled = env.AGENT_CADENCE_DIALOGUE_ENABLED?.trim() === '1';
+  const quiet = !dialogueEnabled || env.AGENT_CADENCE_QUIET?.trim() === '1';
+  if (r === 'idle' && memoRoot && !isKilled() && !quiet) {
     const gap = opts.producerOpts?.gap ?? analyzeAgentTeamGaps(env);
     if (gap.shouldRun) {
       r = `idle→producer:${await runGovernedProducerOnce(env, {
@@ -1188,6 +1244,8 @@ export async function runCadenceTickOnce(
         reason: 'producer gap-analysis idle — 측정된 능력격차 없음',
       });
     }
+  } else if (quiet && r === 'idle') {
+    r = 'idle→quiet-producer-skip';
   }
   if (memoRoot && !isKilled()) {
     // autoReady: task kind 발굴 → status:ready 직행 (미션 §2.3 일반 코드 자율).
@@ -1224,7 +1282,7 @@ export async function runCadenceTickOnce(
       r = `${r}+worker:${w}`;
     }
   }
-  if (memoRoot && !isKilled()) {
+  if (memoRoot && !isKilled() && !quiet) {
     const d = await runCoreDialogueOnce(env, opts.dialogueDeps);
     if (
       d &&
@@ -1233,6 +1291,47 @@ export async function runCadenceTickOnce(
       )
     ) {
       r = `${r}+${d}`;
+    }
+  } else if (quiet) {
+    r = `${r}+quiet-dialogue-skip`;
+  }
+  // INIT (TASK-KAR-018-INIT) 팀-드리븐 발의 — dialogue *후* 박는 이유:
+  // INIT 가 proposals.jsonl 에 envelope append (출력 layer #3). dialogue 보다
+  // 먼저 박으면 *현 tick* 의 producer 산출물 대신 INIT envelope 가 latest 로
+  // 픽업돼 producer→dialogue 합성 검증 회귀 (agent-cadence-tick.test.ts).
+  // dialogue *후* = INIT proposal 이 *다음 tick* dialogue 의 input (30분 latency,
+  // 다중턴 deliberation 자연 진입). quiet 모드에서도 작동(자가발전 핵심).
+  // best-effort·비차단·LLM 무관 결정적 (날조 0). 산출 = ledger + #team-bus
+  // 헤드라인 + 실 TASK seed 파일 + proposals.jsonl envelope.
+  if (memoRoot && !isKilled()) {
+    try {
+      const init = runInitiatorOnce(env, { notify: gov.notify });
+      // healthy-log 룰 (process.md § 자동화는 healthy log 전제) — silent skip
+      // 패턴 차단. no-signal/below-threshold/no-memo-root 도 trace 박음 = "로그
+      // 부재"가 정상인지 fail 인지 구분 가능 (YB-037 trap 학습).
+      r = `${r}+${init.label}`;
+    } catch (e) {
+      r = `${r}+init:error:${(e as Error).message?.slice(0, 30) || 'unknown'}`;
+    }
+  }
+  // 한 화면 status board (TASK-KAR-018-INIT 사용자 피드백 2026-05-23):
+  // "텍스트랑 채팅이 너무 많고, 뭘 기다리면 되는지·진행상황 모르겠음" → #team-bus
+  // 상단 *고정 메시지 1개* 매 tick edit (새 메시지 X). 사용자는 그 1개만 보면 끝.
+  // INIT *후* 호출 = 최신 finding (ledger seeded entry) 즉시 반영. best-effort·
+  // 비차단·sender 미주입 시 silent skip.
+  if (memoRoot && !isKilled()) {
+    try {
+      const sb = await runStatusBoardOnce(env, {
+        resolveChannelId: () =>
+          process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID?.trim() ||
+          process.env.AGENT_TEAM_CHANNEL_ID?.trim() ||
+          null,
+      });
+      if (sb !== 'status:no-sender' && sb !== 'status:no-channel') {
+        r = `${r}+${sb}`;
+      }
+    } catch {
+      /* status board 실패 = tick 비차단 */
     }
   }
   if (memoRoot && !isKilled()) {
@@ -1261,8 +1360,9 @@ export async function runCadenceTickOnce(
       /* 품질 체크 실패 = tick 비차단 */
     }
   }
-  // 기둥4 자기수술 — gated(12h) + critical 이슈 한정. LLM 자율 진단 → task seed / escalate.
-  if (memoRoot && !isKilled()) {
+  // 기둥4 자기수술 — gated(12h) + critical 이슈 한정 + surgeryAutoEnabled.
+  // surgeryAutoEnabled = AGENT_CADENCE_SURGERY_ENABLED 로 초기화, /관리자 자기수술자동 로 toggle.
+  if (memoRoot && !isKilled() && surgeryAutoEnabled) {
     try {
       const sr = await runSelfSurgeryOnce(env, opts.selfSurgeryDeps);
       if (sr.startsWith('surgery:seed:') || sr === 'surgery:escalate') r = `${r}+${sr}`;
@@ -1372,6 +1472,32 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     );
     return;
   }
+  // KAR-095: 서브 기능 toggle env 로 초기화 (default OFF = 安全 — prod.txt 에서 opt-in).
+  // 이후 /관리자 {에이전트자동|워커자동|자기수술자동} 으로 런타임 override 가능.
+  workerAutoEnabled = env.AGENT_CADENCE_WORKER_ENABLED?.trim() !== '0';
+  surgeryAutoEnabled = env.AGENT_CADENCE_SURGERY_ENABLED?.trim() === '1';
+  // cadenceAutoEnabled (dialogue/producer timer gate) = 에이전트자동 slash 전용;
+  // 초기값 = true (dialogue env 는 quiet 경로로 반영 — runCadenceTickOnce 내부).
+  console.log(
+    `[AgentCadence] sub-feature init: dialogue=${env.AGENT_CADENCE_DIALOGUE_ENABLED?.trim() === '1'} ` +
+    `worker=${workerAutoEnabled} surgery=${surgeryAutoEnabled}`,
+  );
+  // TASK-KAR-096 Phase 2 (2026-05-22, 사용자 「독립적으로 안돼?」 + 「계속해」):
+  // AGENT_CADENCE_ROLE 분리 — 한 binary 를 N NSSM service 에 띄우되 env 로 역할 분기.
+  //   - 'all' (default) — main + worker 둘 다 (단일 process 시 동작 — 기존 호환)
+  //   - 'main'          — main timer 만 (cadence·surgery·dialogue·producer·corePromotion)
+  //   - 'worker'        — worker timer 만 (전 코어, scope X)
+  //   - 'worker-<id>'   — worker timer 만 + 특정 코어만 (예: worker-kar-worker)
+  // 5 service 분리 가능: orchestrator(main) + agent-worker-{kar/kl/wm-support/wm-worker}.
+  // 각 워커 자기 코드 fix → 자기만 restart, 다른 워커·orchestrator·yawnbot 영향 0.
+  const role = (env.AGENT_CADENCE_ROLE?.trim() || 'all').toLowerCase();
+  const runMain = role === 'all' || role === 'main';
+  const runWorker = role === 'all' || role === 'worker' || role.startsWith('worker-');
+  const workerScope = role.startsWith('worker-') ? role.slice('worker-'.length) : '';
+  if (!runMain && !runWorker) {
+    console.warn(`[AgentCadence] unknown AGENT_CADENCE_ROLE='${role}' — fallback 'all'`);
+  }
+
   // 제안 발굴(producer)·대화 = 30분 OK / 워커 소화(consumer) = 더 빨라야
   // (사용자 KAR-018-Y). 분리 타이머: main(발굴·inbox·대화·하트비트,
   // AGENT_CADENCE_INTERVAL_MS) + worker(runWorkerConsumerOnce 전용,
@@ -1410,9 +1536,16 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
       } catch (e) {
         console.warn(`[AgentCadence] reapWorkerInFlight 오류: ${e instanceof Error ? e.message : String(e)}`);
       }
-      const w = await runWorkerConsumerOnce(env);
+      // Phase 2 worker scope filter: worker-<id> role 시 그 코어만 처리.
+      const consumerDeps = workerScope
+        ? {
+            listWorkers: (memoRoot: string) =>
+              defaultListWorkers(memoRoot).filter((c) => c.coreId === workerScope),
+          }
+        : undefined;
+      const w = await runWorkerConsumerOnce(env, consumerDeps);
       if (w && w !== 'no-workers' && w !== 'no-memo-root') {
-        console.log(`[AgentCadence] worker -> ${w}`);
+        console.log(`[AgentCadence] worker (scope=${workerScope || 'all'}) -> ${w}`);
       }
       // KAR-077: 워커 timer(≤5분)서도 대시보드 갱신 → 워커 상태 변화가
       // 15분 cadence 안 기다리고 곧 반영(신선도).
@@ -1439,12 +1572,25 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
     }
     dashboardTimer = setTimeout(dashTick, dashMs);
   };
-  cadenceTimer = setTimeout(tick, intervalMs);
-  workerTimer = setTimeout(workerTick, workerMs);
+  // KAR-018 (2026-05-22 사용자 goal "자가발전"): 부팅 직후 cadence 1회 즉시
+  // 트리거. 30min 대기 = 사용자 검증·관측 지연. opt-out = AGENT_CADENCE_BOOT_TICK=0.
+  // dashTick (즉시 1회) 와 동일 의미 — 부팅이 정의상 "1 cycle 강제 점검" 신호.
+  const bootTick = (env.AGENT_CADENCE_BOOT_TICK?.trim() || '1') !== '0';
+  if (runMain) {
+    if (bootTick) {
+      // 짧은 delay (5s) — 봇 초기화 + setTeamBusNotify 등 wiring 완료 보장.
+      cadenceTimer = setTimeout(tick, 5_000);
+    } else {
+      cadenceTimer = setTimeout(tick, intervalMs);
+    }
+  }
+  if (runWorker) {
+    workerTimer = setTimeout(workerTick, workerMs);
+  }
   void refreshDashboard(env, memoRoot, lastTickSummary || '(부팅)'); // 즉시
   dashboardTimer = setTimeout(dashTick, dashMs);
   console.warn(
-    `[AgentCadence] ON (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms 분리, 부팅 즉시 1회) — sub-D 게이트 활성.`,
+    `[AgentCadence] ON role=${role}${workerScope ? ` scope=${workerScope}` : ''} (발굴 ${intervalMs}ms · 워커 ${workerMs}ms · 대시보드 ${dashMs}ms, 부팅 ${bootTick ? '즉시 1회 (5s 후)' : '대기'}) — sub-D 게이트 활성.`,
   );
 }
 

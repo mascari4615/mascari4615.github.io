@@ -137,6 +137,43 @@ describe('routeProposal — 결정적 매핑', () => {
   });
 });
 
+describe('parseProposalEnvelope — fence robustness (2026-05-23 prod parse-fail fix)', () => {
+  const valid = { kind: 'task', payload: { title: 't', body: 'b', domain: 'kar' } };
+
+  it('정상 fence (open + close) — 통과 (회귀 보존)', () => {
+    const raw = '```json\n' + JSON.stringify(valid) + '\n```';
+    expect(parseProposalEnvelope(raw)?.kind).toBe('task');
+  });
+
+  it('opening fence 만 (closing 잘림) — 통과 (extra-prose fallback)', () => {
+    const raw = '```json\n' + JSON.stringify(valid);
+    expect(parseProposalEnvelope(raw)?.kind).toBe('task');
+  });
+
+  it('fence 뒤 prose (LLM commentary) — 통과 (object 자동 추출)', () => {
+    const raw = '여기 발의 envelope:\n' + JSON.stringify(valid) + '\n— end.';
+    expect(parseProposalEnvelope(raw)?.kind).toBe('task');
+  });
+
+  it('opening fence + 안 닫힘 + 뒤 텍스트 (실 prod 패턴) — object 추출 시도', () => {
+    const raw = '```json\n' + JSON.stringify(valid) + '\n\n추가 설명...';
+    expect(parseProposalEnvelope(raw)?.kind).toBe('task');
+  });
+
+  it('escape·내부 string 안전 (object 추출 balance 보존)', () => {
+    const tricky = { kind: 'task', payload: { title: 'has } brace', body: 'and { brace', domain: 'kar' } };
+    const raw = '```json\n' + JSON.stringify(tricky);
+    const e = parseProposalEnvelope(raw);
+    expect(e?.kind).toBe('task');
+    expect((e?.payload as any).title).toBe('has } brace');
+  });
+
+  it('JSON 자체가 깨짐 (잘린 본문) — null (날조 0)', () => {
+    const raw = '```json\n{"kind":"task","payload":{"title":"x","body"';
+    expect(parseProposalEnvelope(raw)).toBeNull();
+  });
+});
+
 describe('parseProposalEnvelope — LT-2 projectId 추출 (순수)', () => {
   const b = { kind: 'task', payload: { title: 't', body: 'b', domain: 'kar' } };
   it('projectId 문자열 → 추출', () => {

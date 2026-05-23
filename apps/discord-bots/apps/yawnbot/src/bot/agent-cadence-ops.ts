@@ -45,6 +45,7 @@ import {
   type CoreSpeakFn,
 } from './agent-cadence-state';
 import { loadSkinCardBody } from './agent-cadence-skin';
+import { fetchTeamBusContext } from './team-bus-fetcher';
 
 // ── readMissionText (로컬 — ops 내부 기본값 전용) ────────────
 const MISSION_FALLBACK =
@@ -109,13 +110,22 @@ export function summarizeTick(r: string, anchor = ''): string | null {
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
   const evo = s.match(/\+evolution:(\d+)/);
   if (evo && Number(evo[1]) > 0) bits.push(`팀 진화 이벤트 ${evo[1]}건 기록`);
-  const surg = s.match(/\+surgery:(seed:[^+]*|escalate)/);
+  const surg = s.match(/\+surgery:(seed:[^+]*|escalate|dedupe:[^+]*)/);
   if (surg) {
-    bits.push(
-      surg[1].startsWith('seed:')
-        ? `⚕ 자기수술 진단 완료 — 과제 시드 작성`
-        : `⚕ 자기수술 — 사람 판단 필요`,
-    );
+    if (surg[1].startsWith('seed:')) bits.push(`⚕ 자기수술 진단 완료 — 과제 시드 작성`);
+    else if (surg[1] === 'escalate') bits.push(`⚕ 자기수술 — 사람 판단 필요`);
+    else if (surg[1].startsWith('dedupe:')) bits.push(`⚕ 자기수술 — 같은 진단 24h 내 처리됨, 새 시드 skip`);
+  }
+  // INIT (팀 자율 발의) — 사용자 체감 면 「자기들끼리 뭘 만들어볼까」 가시화.
+  // no-signal / below-threshold = 진짜 idle = silent (스팸 X).
+  const initProp = s.match(/\+init:proposed:(\d+)(?:\+deduped:(\d+))?/);
+  if (initProp) {
+    const n = initProp[1];
+    const ded = initProp[2];
+    bits.push(ded ? `🌱 새 발의 ${n}건 (+ 24h 중복 ${ded}건 보류)` : `🌱 새 발의 ${n}건`);
+  } else {
+    const initDed = s.match(/\+init:all-deduped:(\d+)/);
+    if (initDed) bits.push(`🌱 발의 ${initDed[1]}건 — 24h 중복으로 전부 보류`);
   }
   if (bits.length === 0) return null;
   const head = anchor.trim() || '🛰 팀 한 바퀴';
@@ -217,6 +227,8 @@ export interface SelfSurgeryDeps {
   missionText?: string;
   healthSignals?: HealthSignals;
   writeTask?: (env: NodeJS.ProcessEnv, payload: { title: string; body: string; domain: string }) => string | null;
+  /** force=true → 12h gate 우회 (수동 슬래시 트리거용). */
+  force?: boolean;
   /**
    * KAR-018-PUSH-CLOSURE Phase 1 — surgery seed 파일을 memo origin 으로 push.
    * 기본 = commitAndPushMemoFile. 테스트에서 stub 주입 가능. 실패 = tick 비차단.
@@ -229,9 +241,56 @@ export interface SelfSurgeryDeps {
 }
 
 /**
+ * surgery dedupe — 같은 critical-issue 코드 조합으로 windowMs 내 seed 박은
+ * 이력 있으면 새 LLM 호출·seed 생성 skip (KAR-130/132/138-144 같은 자기복제
+ * 8+ 중복 차단). trace `core='surgery' & reason='surgery seed: ... (codes)'`
+ * 패턴 매칭. trace 부재·파싱 실패 = false (가용성 우선, dedupe 안 함).
+ */
+export function recentSurgeryDedupeHit(
+  env: NodeJS.ProcessEnv,
+  criticalKey: string,
+  windowMs: number,
+): { hit: boolean; lastTs?: string; count: number } {
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot || !criticalKey || windowMs <= 0) return { hit: false, count: 0 };
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  let raw = '';
+  try { raw = fs.readFileSync(tracePath, 'utf-8'); }
+  catch { return { hit: false, count: 0 }; }
+  const cutoff = Date.now() - windowMs;
+  const tail = raw.split('\n').slice(-500);
+  let count = 0;
+  let lastTs: string | undefined;
+  for (const line of tail) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      const o = JSON.parse(t) as { ts?: string; core?: string; reason?: string };
+      if (o.core !== 'surgery') continue;
+      if (!o.reason || !o.reason.startsWith('surgery seed')) continue;
+      const ts = o.ts ? Date.parse(o.ts) : NaN;
+      if (!Number.isFinite(ts) || ts < cutoff) continue;
+      const m = o.reason.match(/\(([^)]+)\)/);
+      if (!m) continue;
+      const codes = m[1].split(',').map((s) => s.trim()).filter(Boolean).sort().join(',');
+      if (codes === criticalKey) {
+        count++;
+        lastTs = o.ts;
+      }
+    } catch { /* skip ill-formed line */ }
+  }
+  return { hit: count > 0, lastTs, count };
+}
+
+function criticalKeyOf(critical: HealthIssue[]): string {
+  return critical.map((i) => i.code).filter(Boolean).sort().join(',');
+}
+
+/**
  * 기둥4 자기수술 (1회·gated·best-effort). 헬스 신호 수집 →
  * critical 이슈 있으면 LLM 자율 진단 → task seed OR escalate.
- * shouldRunSurgery 게이트(기본 12h).
+ * shouldRunSurgery 게이트(기본 12h). dedupe 게이트(24h, force 우회 불가는 X
+ * — `force=true` 가 우회).
  */
 export async function runSelfSurgeryOnce(
   env: NodeJS.ProcessEnv,
@@ -245,15 +304,39 @@ export async function runSelfSurgeryOnce(
   const top = topProject(portfolio);
   if (!top) return 'surgery-skip';
 
-  const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 12 * 3600_000;
-  if (!shouldRunSurgery(portfolio, Date.now(), intervalMs)) return 'surgery-skip';
-
+  // 2026-05-22 사용자 발화 「12h? 왜 12h인데?」 — 12h default 너무 길어 「지혼자
+  // 자가발전」 체감 0. 30분 default + critical 시 gate 우회. health signal 먼저
+  // 수집해서 critical 이면 interval 무관 즉시 진단 (Cronbot → 즉응성).
+  const intervalMs = Number(env.AGENT_SURGERY_INTERVAL_MS) || 30 * 60_000;
   const signals = deps.healthSignals ?? gatherHealthSignals(env);
   const issues = diagnoseHealth(signals);
   const critical = issues.filter((i) => i.severity === 'critical');
-  if (critical.length === 0) {
+  const hasCritical = critical.length > 0;
+  // gate: force OR critical OR interval 경과. critical = 즉시 진입 (사용자 발화 정합).
+  if (!deps.force && !hasCritical && !shouldRunSurgery(portfolio, Date.now(), intervalMs)) {
+    return 'surgery-skip';
+  }
+  if (!hasCritical) {
     recordSurgery(memoRoot);
     return 'surgery-skip';
+  }
+
+  // dedupe: 같은 critical 조합으로 24h 내 seed 박은 이력 = LLM 호출 전 skip.
+  // KAR-130/132/138-144 (worker-fail-critical 8+ 자기복제) 차단. force 우회.
+  const dedupeWindowMs = Number(env.AGENT_SURGERY_DEDUPE_MS) || 24 * 3600_000;
+  const criticalKey = criticalKeyOf(critical);
+  if (!deps.force && dedupeWindowMs > 0 && criticalKey) {
+    const dh = recentSurgeryDedupeHit(env, criticalKey, dedupeWindowMs);
+    if (dh.hit) {
+      recordSurgery(memoRoot);
+      const lastMs = dh.lastTs ? Date.parse(dh.lastTs) : Date.now();
+      const hrs = Math.max(0, Math.round((Date.now() - lastMs) / 36e5));
+      appendTrace(env, {
+        ts: new Date().toISOString(), type: 'drift', core: 'surgery',
+        reason: `surgery dedupe: ${criticalKey} (${dh.count}건 24h 내, 마지막 ~${hrs}h 전)`,
+      });
+      return `surgery:dedupe:${criticalKey}`;
+    }
   }
 
   const missionText = deps.missionText ?? readMissionText(env);
@@ -396,6 +479,61 @@ const lastChatterTs = new Map<string, number>();
 export function resetChatterCooldown(): void { lastChatterTs.clear(); }
 
 /**
+ * KAR-018-SO-2: 직전 N시간 *실 진척* 카운트 (자가차단 게이트용).
+ *
+ * 진척 = `agent-trace.jsonl` 에서 `worker <TASK> done agentic` 패턴 (push 됨).
+ * done-no-artifact / escalated / error / idle / chatter 는 진척 X. 즉 사용자
+ * 시점 "뭐 진짜 됐냐" = pushed worker 산출. promotion ledger(`evolution-events`)
+ * 의 core-promoted 도 자가발전 신호로 포함.
+ *
+ * 부재·IO 실패 = 0 (안전: 잡담 일단 허용. 진척 측정 못 함 = 막을 근거 없음).
+ */
+export function recentRealProgressCount(
+  memoRoot: string,
+  windowHours = 6,
+  nowMs = Date.now(),
+): number {
+  if (!memoRoot) return 0;
+  const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
+  const TAIL = 2000; // 6h 윈도우 안전 margin (system-health tail-read 정합)
+  let count = 0;
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  if (fs.existsSync(tracePath)) {
+    try {
+      const lines = fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; reason?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          // worker pushed done: "worker TASK-XXX done agentic <branch>"
+          if (/\bworker\s+TASK-[A-Z0-9-]+\s+done\s+agentic\b/.test(e.reason || '')) {
+            count += 1;
+          }
+        } catch { /* skip 손상 */ }
+      }
+    } catch { /* IO 실패 = 0 */ }
+  }
+  const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
+  if (fs.existsSync(evoPath)) {
+    try {
+      const lines = fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; code?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          if (e.code === 'core-promoted' || e.code === 'core-reverted') count += 1;
+        } catch { /* skip */ }
+      }
+    } catch { /* IO 실패 = 0 */ }
+  }
+  return count;
+}
+
+/**
  * chatter 설정 — `<memoRoot>/.claude/agent-chatter-config.json`.
  * 없으면 기본값(prob=0.15, cooldownMinutes=120). 공개 설정이라 env 불필요.
  * 예시:
@@ -436,6 +574,14 @@ export interface IdleChatterDeps {
   chatterProb?: number;
   /** 코어당 최소 발화 간격 ms (기본 2h). */
   chatterCooldownMs?: number;
+  /**
+   * KAR-018-SO-2: 진척 측정창 (시간). 이 창 내 *실 진척* 0 이면 chatter 전체
+   * skip. 0 또는 미지정 = 가드 무효 (legacy 동작). 기본 6h (사용자 raw dump
+   * 「실작업 0 잡담」 진단 정합).
+   */
+  progressWindowHours?: number;
+  /** SO-2 진척 카운터 주입 (test). 미주입 = recentRealProgressCount. */
+  progressCounter?: (memoRoot: string, windowHours: number) => number;
 }
 
 /**
@@ -454,12 +600,37 @@ export async function runIdleChatterOnce(
   const speak = deps.speak ?? getCoreSpeak();
   if (!speak) return 'chatter-no-speak';
 
+  // KAR-018-SO-2: 진척 0 자가차단. 사용자 진단 「KlWorker 점심 메뉴 등 잡담 박음,
+  // 실작업 0」 — chatter 자체가 「뭐 되는게 없어」 인상의 주범. 가드 = pushed
+  // worker outcome + core promotion 직전 6h 0 이면 chatter 전체 skip + trace.
+  // 가드 무효 (windowHours<=0 or 미지정) 시 legacy 동작 — 기본 6h 활성.
+  const progressWindow = deps.progressWindowHours ?? 6;
+  if (progressWindow > 0) {
+    const counter = deps.progressCounter ?? ((r, w) => recentRealProgressCount(r, w));
+    const progress = counter(memoRoot, progressWindow);
+    if (progress === 0) {
+      // [no-news is bad-news] 룰 정합 — 차단 사실을 trace 로 남겨 silent X.
+      appendTrace(env, {
+        ts: new Date().toISOString(),
+        type: 'drift',
+        core: 'chatter',
+        reason: `SO-2 chatter skip: no real progress in ${progressWindow}h (pushed-done + core-promoted = 0)`,
+      });
+      return `chatter-skip:no-progress-${progressWindow}h`;
+    }
+  }
+
   const cfg = loadChatterConfig(memoRoot);
   const prob = deps.chatterProb ?? cfg.prob;
   const cooldownMs = deps.chatterCooldownMs ?? cfg.cooldownMinutes * 60_000;
   const generate =
     deps.generate ??
     ((p: string) => generateAgentText(env, p, 30_000).catch(() => ''));
+  // KAR-018-SO-2-A: chatter 도 #team-bus 직전 발언 read → 사용자가 채팅에
+  // 박은 분위기·관심사 반영 (그냥 "아무말" 이 아니라 *대화 흐름에 맞는*).
+  let chatterChannelCtx = '';
+  try { chatterChannelCtx = (await fetchTeamBusContext(8)) || ''; }
+  catch { /* silent — chatter 비차단 */ }
 
   const coreIds = listCoreIds(memoRoot);
   const cores = coreIds
@@ -474,16 +645,26 @@ export async function runIdleChatterOnce(
     const body = loadSkinCardBody(memoRoot, core.id);
     if (!body) continue;
     try {
+      const channelHint = chatterChannelCtx.trim()
+        ? [
+            ``,
+            `[팀 채널 직전 발언 — 분위기·맥락]`,
+            chatterChannelCtx.trim().slice(0, 1000),
+            `※ 사용자/동료가 박은 내용에 *반응* 하거나 그 분위기 이어가는`,
+            `   한마디면 더 좋음 (반드시 X — 무관한 잡담도 OK).`,
+          ].join('\n')
+        : '';
       const prompt = [
         `너는 아래 [캐릭터] 설명에 해당하는 캐릭터야.`,
         `지금 팀 채널(#team-bus)에 갑자기 아무말이나 툭 뱉어봐.`,
         `업무 보고 아님. 그냥 네 캐릭터답게 자연스럽게 1~2문장.`,
         `너무 길거나 격식 있게 X. 사람이 SNS에 아무 생각 올리듯이.`,
         `이모지 적당히 OK. 한국어.`,
+        channelHint,
         ``,
         `[캐릭터]`,
         body.slice(0, 800),
-      ].join('\n');
+      ].filter(Boolean).join('\n');
       const text = (await generate(prompt)).trim().slice(0, 250);
       if (!text) continue;
       lastChatterTs.set(core.id, Date.now());
