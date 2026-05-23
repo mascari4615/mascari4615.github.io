@@ -523,7 +523,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         <header style="display:flex;align-items:center;gap:.75rem">
           <h2 style="margin:0;font-size:1.05rem">🎴 에이전트 카드 피드</h2>
           <span class="ac-meta" style="opacity:.6;font-size:.78rem"></span>
-          <select class="ac-filter" style="margin-left:auto;padding:.25rem .4rem">
+          <input class="ac-search" type="search" placeholder="검색 (토픽·본문)" style="margin-left:auto;padding:.25rem .5rem;min-width:10rem" />
+          <select class="ac-filter" style="padding:.25rem .4rem">
             <option value="all">전체</option>
             <option value="decision">결정</option>
             <option value="fix">수정</option>
@@ -538,6 +539,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     `;
     const meta = container.querySelector<HTMLSpanElement>('.ac-meta')!;
     const filterSel = container.querySelector<HTMLSelectElement>('.ac-filter')!;
+    const searchInput = container.querySelector<HTMLInputElement>('.ac-search')!;
     const refreshBtn = container.querySelector<HTMLButtonElement>('.ac-refresh')!;
     const list = container.querySelector<HTMLDivElement>('.ac-list')!;
     const errBox = container.querySelector<HTMLDivElement>('.ac-err')!;
@@ -546,10 +548,22 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
 
     function render(): void {
       const filter = filterSel.value;
-      const rows =
+      const q = searchInput.value.trim().toLowerCase();
+      let rows =
         filter === 'all'
           ? allCards
           : allCards.filter((c) => (c.kind || '').toLowerCase() === filter);
+      if (q) {
+        rows = rows.filter((c) => {
+          const hay = `${c.topic ?? ''} ${c.summary} ${c.session ?? ''} ${c.source}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+      const matched = rows.length;
+      const total = allCards.length;
+      meta.textContent = q || filter !== 'all'
+        ? `${matched} / ${total} (필터)`
+        : `${total}건 (최근)`;
       list.innerHTML = rows
         .map((c) => {
           const k = c.kind || '?';
@@ -591,9 +605,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         }
         allCards = (await tauriInvoke('agent_team_list_cards', {
           repoRoot,
-          limit: 80
+          limit: 240
         })) as CardInfo[];
-        meta.textContent = `${allCards.length}건 (최근 80개)`;
         render();
       } catch (e) {
         errBox.style.display = 'block';
@@ -603,6 +616,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     filterSel.addEventListener('change', render);
+    searchInput.addEventListener('input', render);
     refreshBtn.addEventListener('click', () => void load());
     void load();
     window.setInterval(() => void load(), REFRESH_INTERVAL_MS);
