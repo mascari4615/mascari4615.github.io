@@ -78,7 +78,6 @@ const entryPoints = [
   'src/widgets/darkroom.ts',
   'src/widgets/dashboard.ts',
   'src/widgets/activity.ts',
-  'src/widgets/agent-team/agent-team.ts',
   'src/widgets/alarm.ts',
   'src/widgets/claude-env.ts',
   'src/widgets/devtools.ts',
