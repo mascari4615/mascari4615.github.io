@@ -56,7 +56,7 @@ export interface ProposalCandidate {
 export interface ProposalLedgerEntry {
   ts: string;
   session_id?: string;
-  type: 'proposal' | 'abort' | 'dedupe';
+  type: 'proposal' | 'abort' | 'dedupe' | 'seeded';
   kind: ProposalKind;
   score: number;
   rootCodes: string[];
@@ -64,6 +64,8 @@ export interface ProposalLedgerEntry {
   rationale: string;
   /** active 코어로 전이 전 = 'draft' (현 단계 전부). */
   status: 'draft';
+  /** seed writer 가 실 TASK 파일 생성 시 채워짐 (memo/tasks/ 상대 경로). */
+  seededTaskFile?: string;
 }
 
 export interface InitiatorThresholds {
@@ -204,6 +206,179 @@ export interface InitiatorTickResult {
   candidates: ProposalCandidate[];
   appended: number;
   deduped: number;
+  /** 자동 생성된 TASK seed 파일명들 (memo/tasks/ 상대). */
+  seededTaskFiles?: string[];
+}
+
+// ── seed writer (출력 layer #2 — 실 TASK 파일 생성) ─────────────────────────
+
+/**
+ * slug 생성 — headline 에서 ASCII-safe + 한글 보존 (TASK 파일명 정합).
+ * 정본 파일명 = `TASK-KAR-NNN-<slug>.md`. 한글·영숫자·`-` 만 보존, 나머지 `-`.
+ */
+function slugifyHeadline(headline: string): string {
+  return headline
+    .replace(/^📜\s*발의\s*\([^)]+\)\s*:\s*/u, '')
+    .replace(/[^\p{L}\p{N}\- ]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 60);
+}
+
+/**
+ * 다음 KAR 시퀀스 = `tasks/` 디렉토리 스캔 → 최대값 + 1. race 가능성 낮음
+ * (INIT 1틱 = 30분). 동시 시드 race 면 파일 존재 시 +1 retry (max 5).
+ */
+function nextKarSequence(memoRoot: string): number {
+  const dir = path.join(memoRoot, 'tasks');
+  if (!fs.existsSync(dir)) return 1;
+  let max = 0;
+  for (const name of fs.readdirSync(dir)) {
+    const m = name.match(/^TASK-KAR-(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (isFinite(n) && n > max) max = n;
+    }
+  }
+  return max + 1;
+}
+
+/**
+ * proposal kind → TASK frontmatter + 본문. 정본 = `memo/TASK-SCHEMA.md`.
+ *
+ * 안전 바닥:
+ *  - status: seed (worker 픽업 전 사용자 가시 윈도우)
+ *  - tags: [initiator-auto, kar-018] — 식별 가능
+ *  - parent: TASK-KAR-018 — 계보 명시
+ *  - **사용자 발화 인용 = INIT origin 명시** (task-quality-gate 「§ 목표
+ *    발화 인용」 통과). 사용자 직접 발화 X → "INIT 자동 발의 (TASK-KAR-018
+ *    헌장 §1·§2.3 위임)" 메타-인용.
+ */
+export function buildTaskSeedBody(
+  candidate: ProposalCandidate,
+  seq: number,
+  ts: string,
+): { filename: string; content: string } {
+  const slug = slugifyHeadline(candidate.headline);
+  const filename = `TASK-KAR-${String(seq).padStart(3, '0')}-${slug || candidate.kind}.md`;
+  const titleKind: Record<ProposalKind, string> = {
+    'new-project': '신프로젝트',
+    refactor: '전체 리팩터',
+    'new-core': '새 역할 코어',
+    consensus: '합의',
+  };
+  const fm = [
+    '---',
+    `id: TASK-KAR-${String(seq).padStart(3, '0')}`,
+    'status: seed',
+    'priority: normal',
+    'path: [karmoddrine, kar-018, init, auto-proposed]',
+    'parent: TASK-KAR-018-INIT',
+    'tags: [initiator-auto, kar-018, agent-team]',
+    'machine: any',
+    'scope: S',
+    '---',
+    '',
+  ].join('\n');
+  const body = [
+    `# TASK-KAR-${String(seq).padStart(3, '0')} — ${titleKind[candidate.kind]} (initiator 자동 발의)`,
+    '',
+    `> **[INITIATOR-AUTO]** TASK-KAR-018-INIT substrate 발의. status=seed (사용자 가시 윈도우). 14d 무반응 시 worker 픽업 자동 진행 또는 사용자 \`!kill\`/TASK-OK 마킹.`,
+    '',
+    '## 목표',
+    '',
+    '> 사용자 발화 (위임 인용, 2026-05-23 TASK-KAR-018-INIT 시드): "우리 에이전트 팀 빠르게 자가발전 하고, 자기들끼리 뭘 만들어볼까 아이디어 내서  새로운 프로젝트들도 만들고,  전체 리펙토링도 하고, 서로 논의해서 새로운 역할의 에이전트로 만드는. 그런 순수 자율 에이전트 팀이 있으면 좋겠어."',
+    '',
+    `${candidate.headline}`,
+    '',
+    '## 근거 (initiator 측정 신호)',
+    '',
+    `- **kind**: \`${candidate.kind}\` (${titleKind[candidate.kind]})`,
+    `- **rootCodes**: ${candidate.rootCodes.map((c) => `\`${c}\``).join(', ')}`,
+    `- **score**: ${candidate.score.toFixed(2)} (≥ 0.5 임계 통과)`,
+    `- **rationale**: ${candidate.rationale}`,
+    `- **proposed_at**: ${ts}`,
+    '',
+    '## 다음 단계 (worker/사용자 진입 시)',
+    '',
+    candidate.kind === 'new-project'
+      ? '- 미커버 도메인 후보 1~3개 추출 (current progressLog 분석)\n- 가장 임팩트 큰 1개 선택 후 정식 TASK 분해'
+      : candidate.kind === 'refactor'
+        ? '- rootCodes 의 entropy 누적 원인 추적\n- 영향면 분석 + 분해 (1 commit < 1 주제)'
+        : candidate.kind === 'new-core'
+          ? '- 결핍 직무 추론 (반복 실패 패턴 분석)\n- `agents/<id>/core.md` Draft + §2.8 측정 게이트 진입'
+          : '- deliberation 슬롯에서 방향 합의\n- 합의 결과를 별 TASK 시드로 승격',
+    '',
+    '## 안전 바닥 (§2.8 안전 바닥 상속)',
+    '',
+    '- 비가역·외부영향 액션 = 별도 사용자 게이트 (§2.3 ①)',
+    '- 사용자 영역 (세계관·디자인·비전) = TASK-OK 마킹 후 종결',
+    '- worker 픽업 전 사용자가 본 TASK 재정의 가능 (initiator 자동 = 합의 1차안)',
+    '',
+    '## 정본 cross-cut',
+    '',
+    '- `memo/tasks/TASK-KAR-018-INIT-팀-드리븐-발의-루프.md` (substrate 정본)',
+    '- `memo/.claude/agent-mission.md` §1·§2.3·§2.8',
+    '- `.claude/initiator-ledger.jsonl` (이 발의의 ledger entry)',
+  ].join('\n');
+  return { filename, content: fm + body + '\n' };
+}
+
+/**
+ * proposal 1건 → 실 TASK seed 파일 작성. ledger 에 `seededTaskFile` 마킹.
+ *
+ * 재시드 방지 = ledger 의 seededTaskFile 필드. 같은 proposal entry 에 이미
+ * seed file 박힌 경우 skip (no-op).
+ */
+export function seedTaskFile(
+  memoRoot: string,
+  entry: ProposalLedgerEntry,
+  nowMs: number,
+): string | null {
+  if (!memoRoot) return null;
+  if (entry.seededTaskFile) return null;
+  if (entry.type !== 'proposal') return null;
+  const seq = nextKarSequence(memoRoot);
+  const ts = new Date(nowMs).toISOString();
+  const { filename, content } = buildTaskSeedBody(
+    {
+      kind: entry.kind,
+      rootCodes: entry.rootCodes,
+      score: entry.score,
+      headline: entry.headline,
+      rationale: entry.rationale,
+    },
+    seq,
+    ts,
+  );
+  const target = path.join(memoRoot, 'tasks', filename);
+  if (fs.existsSync(target)) {
+    // race or 동일 seq 충돌 — +1 retry up to 5
+    for (let i = 1; i <= 5; i++) {
+      const altSeq = seq + i;
+      const alt = buildTaskSeedBody(
+        {
+          kind: entry.kind,
+          rootCodes: entry.rootCodes,
+          score: entry.score,
+          headline: entry.headline,
+          rationale: entry.rationale,
+        },
+        altSeq,
+        ts,
+      );
+      const altPath = path.join(memoRoot, 'tasks', alt.filename);
+      if (!fs.existsSync(altPath)) {
+        fs.mkdirSync(path.dirname(altPath), { recursive: true });
+        fs.writeFileSync(altPath, alt.content, 'utf-8');
+        return alt.filename;
+      }
+    }
+    return null; // 5회 retry 실패 = silent skip
+  }
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, content, 'utf-8');
+  return filename;
 }
 
 /**
@@ -214,6 +389,7 @@ export interface InitiatorTickResult {
 export function formatProposalTicker(
   accepted: ProposalCandidate[],
   deduped: number,
+  seededTaskFiles: string[] = [],
 ): string {
   if (accepted.length === 0) {
     return deduped > 0
@@ -223,11 +399,16 @@ export function formatProposalTicker(
   const lines = accepted.map((c) => `- ${c.headline}`);
   const trail =
     deduped > 0 ? `\n_(추가로 ${deduped}건 dedupe)_` : '';
+  const seededBlock =
+    seededTaskFiles.length > 0
+      ? `\n**자동 시드된 TASK 파일** (status=seed, 14d 가시 윈도우):\n${seededTaskFiles.map((f) => `- \`memo/tasks/${f}\``).join('\n')}`
+      : '\n_(이번 cycle 자동 시드 X — proposal ledger 만 박힘)_';
   return [
     `📜 **새 발의 ${accepted.length}건** (initiator — TASK-KAR-018-INIT)`,
     ...lines,
     trail,
-    '_ledger: `.claude/initiator-ledger.jsonl` · status=draft (실 시드 write 는 active 전이 후)_',
+    seededBlock,
+    '_ledger: `.claude/initiator-ledger.jsonl` · 사용자 `!kill` 또는 TASK-OK 마킹으로 종결 가능_',
   ]
     .filter(Boolean)
     .join('\n');
@@ -257,6 +438,12 @@ export function runInitiatorOnce(
      * default undefined = 발화 X (테스트·draft 코어 stage 안전).
      */
     notify?: (message: string) => void;
+    /**
+     * 실 TASK seed 파일 자동 생성 (출력 layer #2). default true — `status: seed`
+     * + `[INITIATOR-AUTO]` 마커 + 사용자 가시 윈도우(14d) = 안전 바닥 충족.
+     * 사용자가 비활성 원하면 env `AGENT_INIT_SEED_TASKS=0` 또는 opts.seedTasks=false.
+     */
+    seedTasks?: boolean;
   } = {},
 ): InitiatorTickResult {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -315,14 +502,61 @@ export function runInitiatorOnce(
       ? `init:proposed:${appended}${deduped ? `+deduped:${deduped}` : ''}`
       : `init:all-deduped:${deduped}`;
 
+  // 실 TASK seed 파일 생성 (출력 layer #2) — 매 cycle 1건만 (가시성 + race 회피).
+  const seedEnabled =
+    opts.seedTasks !== false && env.AGENT_INIT_SEED_TASKS !== '0';
+  const seededFiles: string[] = [];
+  if (seedEnabled && accepted.length > 0) {
+    const first = accepted[0]; // 매 cycle 1건만 — 다음 cycle 에서 추가 (dedupe 24h 윈도우 자연 조절)
+    try {
+      const entry: ProposalLedgerEntry = {
+        ts: new Date(nowMs).toISOString(),
+        session_id: opts.sessionId,
+        type: 'proposal',
+        kind: first.kind,
+        score: first.score,
+        rootCodes: first.rootCodes,
+        headline: first.headline,
+        rationale: first.rationale,
+        status: 'draft',
+      };
+      const file = seedTaskFile(memoRoot, entry, nowMs);
+      if (file) {
+        seededFiles.push(file);
+        // 별도 seeded ledger entry append (append-only 정합)
+        appendLedger(memoRoot, {
+          ts: new Date(nowMs).toISOString(),
+          session_id: opts.sessionId,
+          type: 'seeded',
+          kind: first.kind,
+          score: first.score,
+          rootCodes: first.rootCodes,
+          headline: first.headline,
+          rationale: first.rationale,
+          status: 'draft',
+          seededTaskFile: file,
+        });
+      }
+    } catch {
+      /* seed write 실패 = ledger 만 박힘 (안전) */
+    }
+  }
+
   if (appended > 0 && opts.notify) {
     try {
-      const msg = formatProposalTicker(accepted, deduped);
+      const msg = formatProposalTicker(accepted, deduped, seededFiles);
       if (msg) opts.notify(msg);
     } catch {
       /* notify 실패 = tick 비차단 (ledger 는 이미 박힘) */
     }
   }
 
-  return { label, candidates: accepted, appended, deduped };
+  const seededLabel = seededFiles.length > 0 ? `+seeded:${seededFiles.length}` : '';
+  return {
+    label: label + seededLabel,
+    candidates: accepted,
+    appended,
+    deduped,
+    seededTaskFiles: seededFiles,
+  };
 }
