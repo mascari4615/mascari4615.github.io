@@ -329,7 +329,8 @@ async function main(): Promise<void> {
     process.exit(4);
   }
 
-  console.log(`[agent-daemon] start coreId=${core.id} channelId=${channelId} surface=${llm.surface} bus=${busRoot}`);
+  const selfTickMs = Number.parseInt(process.env.AGENT_DAEMON_CADENCE_MS || '1800000', 10);
+  console.log(`[agent-daemon] start coreId=${core.id} channelId=${channelId} surface=${llm.surface} bus=${busRoot} selfTickMs=${selfTickMs}`);
 
   let inFlight = 0;
   const sub = subscribeBusEvents(busRoot, channelId, (event) => {
@@ -346,9 +347,60 @@ async function main(): Promise<void> {
       .finally(() => { inFlight -= 1; });
   }, { intervalMs: 500, onError: (e) => console.error('[agent-daemon] tail error', e.message) });
 
+  // KAR-018-LT-PEER-ONLY P-3: self-tick — 사용자 발화 0 시간에도 자기 cadence
+  // 로 자율 발의. orchestrator 폐기 후 producer 책임을 daemon 이 흡수.
+  // jitter ±20% (모든 daemon 동시 tick 폭주 방지). silence default 그대로
+  // 적용 = 의미 없으면 skip, 시각 있을 때만 publish.
+  const jitter = (): number => selfTickMs * (0.8 + Math.random() * 0.4);
+  const scheduleSelfTick = (): NodeJS.Timeout =>
+    setTimeout(async () => {
+      try {
+        if (inFlight > 0) {
+          scheduleSelfTick();
+          return;
+        }
+        inFlight += 1;
+        const ctx = await readRecentBusEvents(busRoot, channelId!, contextMinutes);
+        const recentSelf = countRecentSelfUtterances(ctx, core.id, 5);
+        if (recentSelf >= ratePer5min) {
+          inFlight -= 1;
+          scheduleSelfTick();
+          return;
+        }
+        const selfTrigger: BusEvent = {
+          ts: new Date().toISOString(),
+          type: 'channel-msg',
+          channelId: channelId!,
+          source: 'self-tick',
+          text: `(자율 cadence — ${core.displayName} 자기 시점·직무 안에서 박을 게 있나)`,
+        };
+        const decision = await decideUtterance(llm, core, ctx, selfTrigger);
+        if (decision.decision === 'answer') {
+          await publishBusEvent(busRoot, {
+            type: 'core-utter',
+            channelId: channelId!,
+            source: `core:${core.id}`,
+            coreId: core.id,
+            text: decision.text,
+            refs: { parentTs: selfTrigger.ts },
+          });
+          console.log(`[agent-daemon] self-tick utter coreId=${core.id} len=${decision.text.length}`);
+        } else {
+          console.log(`[agent-daemon] self-tick skip coreId=${core.id} reason=${decision.text.slice(0, 80)}`);
+        }
+      } catch (e) {
+        console.error('[agent-daemon] self-tick 실패', e instanceof Error ? e.message : e);
+      } finally {
+        inFlight = Math.max(0, inFlight - 1);
+        scheduleSelfTick();
+      }
+    }, jitter()).unref();
+  let selfTickTimer = scheduleSelfTick();
+
   const shutdown = (sig: string): void => {
     console.log(`[agent-daemon] ${sig} 수신 — shutdown`);
     sub.stop();
+    clearTimeout(selfTickTimer);
     setTimeout(() => process.exit(0), 200);
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
