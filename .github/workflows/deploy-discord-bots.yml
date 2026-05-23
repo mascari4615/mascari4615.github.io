@@ -346,6 +346,10 @@ jobs:
       # service 미존재 시 install (idempotent). 첫 deploy = install + start.
       # Phase 3: cadence_changed=0 시 build/restart skip (yawnbot reactive 만 변경).
       - name: build agent-orchestrator
+        # KAR-018-LT-PEER-ONLY P-6 (2026-05-23): orchestrator main-loop nssm 서비스 폐기.
+        # binary 자체는 유지 — agent-worker-*-prod 서비스가 같은 `dist/src/main.js`
+        # 를 AGENT_CADENCE_ROLE=worker-<scope> 로 재사용 (deploy yml line 444 정합).
+        # 따라서 build step 은 그대로 (worker daemon 이 의존).
         if: steps.detect.outputs.cadence_changed == '1'
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
@@ -354,7 +358,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Warning "build:orchestrator failed — orchestrator deploy skip (yawnbot 정상)"; exit 0 }
 
       - name: NSSM upsert + restart agent-orchestrator-prod
-        if: steps.detect.outputs.cadence_changed == '1'
+        if: false  # KAR-018-LT-PEER-ONLY P-6: peer-only 전환. orchestrator main loop = ambient daemon self-tick 으로 흡수. 아래 stop+remove step 이 노트북 잔존 서비스 정리.
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
@@ -416,6 +420,36 @@ jobs:
             if ($LASTEXITCODE -ne 0) { Write-Warning "nssm restart/start agent-orchestrator-prod failed (yawnbot 정상)"; exit 0 }
           }
           Write-Host "agent-orchestrator-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+
+      # === KAR-018-LT-PEER-ONLY P-6: agent-orchestrator-prod 노트북 잔존 서비스 stop+remove ===
+      # peer-only 전환 — main loop = ambient daemon self-tick 으로 흡수.
+      # 위 install step `if: false` 라 새 deploy 가 install/restart 안 하지만 직전
+      # deploy 에서 install 된 nssm 서비스가 노트북에 잔존 → 명시 stop+remove.
+      # idempotent: 이미 없으면 stderr 만, exit code 무시.
+      - name: NSSM stop + remove agent-orchestrator-prod (peer-only 전환)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { Write-Warning "nssm.exe 못 찾음 — orchestrator remove skip"; exit 0 }
+          & $nssm status agent-orchestrator-prod 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) { Write-Host "agent-orchestrator-prod 미존재 — 이미 polite"; exit 0 }
+          & $nssm stop agent-orchestrator-prod 2>&1 | Out-Null
+          & $nssm remove agent-orchestrator-prod confirm 2>&1 | Out-Null
+          Write-Host "agent-orchestrator-prod stopped + removed (peer-only 전환)"
+          exit 0
+      # === /P-6 orchestrator stop ===
 
       # === TASK-KAR-096 Phase 2: 4 worker daemon NSSM (같은 binary, env role 차이) ===
       # orchestrator 와 같은 dist/src/main.js 실행. AGENT_CADENCE_ROLE=worker-<core-id> env 로

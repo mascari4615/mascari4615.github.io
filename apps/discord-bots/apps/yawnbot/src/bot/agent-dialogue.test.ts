@@ -47,7 +47,11 @@ const ALL = [atlas, echo, wmWorker, klWorker];
 
 const NO_CHAIN = { depth: 0, cap: 6 };
 
-describe('decideDialogueTurn — 결정적 라우팅', () => {
+// KAR-018-LT-PEER-ONLY P-2 (2026-05-23): dyadic engine deprecated → 무조건 null.
+// 옛 라우팅 expectation 잠금 의미 사라짐 — describe.skip 으로 비활성. caller (agent-cadence)
+// cleanup 후 본 describe 블록 전체 제거 정합. 일부 test (chain 깊이 컷·self 응답 금지)
+// 는 새 함수에서 영원히 null 이라 같은 결과 — 별도 마크 불요.
+describe.skip('decideDialogueTurn — 결정적 라우팅 (DEPRECATED — dyadic engine 폐기, P-2)', () => {
   it('proposal 도메인 주인 워커가 인수 의사로 응답', () => {
     const u: PeerUtterance = {
       speakerCoreId: 'atlas',

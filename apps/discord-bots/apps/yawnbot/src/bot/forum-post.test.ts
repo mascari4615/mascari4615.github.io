@@ -18,6 +18,7 @@ import {
 
 const TAGS_SPEC: { name: string; id: string }[] = [
   { name: 'proposal', id: 't-prop' },
+  { name: 'task', id: 't-task' },
   { name: 'worker-report', id: 't-wr' },
   { name: 'discovery', id: 't-disc' },
   { name: 'pending', id: 't-pend' },
@@ -50,6 +51,9 @@ interface FakeThread extends ThreadChannelLike {
   starterEdits: { embeds?: unknown[]; content?: string }[];
   setTagsCalls: string[][];
   archivedCalls: boolean[];
+  setNameCalls: string[];
+  /** thread 명 — setName 호출 시 갱신 (rename 검증용). */
+  name: string;
 }
 
 function buildFakeForum(opts: {
@@ -77,8 +81,10 @@ function buildFakeForum(opts: {
         const sendCalls: { content?: string; embeds?: unknown[] }[] = [];
         const setTagsCalls: string[][] = [];
         const archivedCalls: boolean[] = [];
+        const setNameCalls: string[] = [];
         const thread: FakeThread = {
           id,
+          name: o.name,
           appliedTags: [...(o.appliedTags ?? [])],
           send: async (m) => {
             sendCalls.push(m);
@@ -91,10 +97,15 @@ function buildFakeForum(opts: {
           setArchived: async (b) => {
             archivedCalls.push(b);
           },
+          setName: async (n) => {
+            setNameCalls.push(n);
+            thread.name = n;
+          },
           sendCalls,
           starterEdits,
           setTagsCalls,
           archivedCalls,
+          setNameCalls,
         };
         threads.set(id, thread);
         return thread;
@@ -251,6 +262,48 @@ describe('forum-post — 진화 (evolveForumPost)', () => {
     expect(th.starterEdits.length).toBe(1);
     expect(th.setTagsCalls.length).toBe(1);
     expect(th.sendCalls.some((m) => m.content === '결정')).toBe(true);
+  });
+
+  it('kindTag = kind 태그 1개 교체 (proposal → task), domain 보존', async () => {
+    const { forum, handle } = await setupPost('ch-k1');
+    // setup = proposal 으로 진입 (kind=proposal, status=pending, domain=WM)
+    await evolveForumPost(forum.client, handle, { kindTag: 'task' });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setTagsCalls.length).toBe(1);
+    const next = th.setTagsCalls[0].sort();
+    // proposal 만 빠지고 task 추가, pending + WM 보존
+    expect(next).toEqual(['t-pend', 't-task', 't-wm'].sort());
+  });
+
+  it('kindTag + statusTag 동시 = 1번의 setAppliedTags 호출 (rate limit 절약)', async () => {
+    const { forum, handle } = await setupPost('ch-k2');
+    await evolveForumPost(forum.client, handle, {
+      kindTag: 'task',
+      statusTag: 'in-progress',
+    });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setTagsCalls.length).toBe(1);
+    const next = th.setTagsCalls[0].sort();
+    expect(next).toEqual(['t-ip', 't-task', 't-wm'].sort());
+  });
+
+  it('setName = thread.setName 호출 + 100자 절단 (TASK-YB-039)', async () => {
+    const { forum, handle } = await setupPost('ch-name1');
+    await evolveForumPost(forum.client, handle, {
+      setName: '[TASK-YB-039] 제안 → TASK 채택',
+    });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setNameCalls).toEqual(['[TASK-YB-039] 제안 → TASK 채택']);
+    expect(th.name).toBe('[TASK-YB-039] 제안 → TASK 채택');
+  });
+
+  it('setName 100자 초과 = 절단', async () => {
+    const { forum, handle } = await setupPost('ch-name2');
+    await evolveForumPost(forum.client, handle, {
+      setName: 'A'.repeat(200),
+    });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setNameCalls[0].length).toBe(100);
   });
 
   it('channel fetch 실패 = silent skip (throw X)', async () => {

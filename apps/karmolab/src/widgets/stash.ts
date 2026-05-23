@@ -74,7 +74,7 @@
   );
 
   const STASH_IDS: string[] = [
-    'bounce', 'bubble', 'countdown', 'darkroom', 'eyes', 'folder', 'fontgacha',
+    'bounce', 'bubble', 'conch', 'countdown', 'darkroom', 'eyes', 'folder', 'fontgacha',
     'hacker', 'hourglass', 'moon', 'morse', 'news', 'particle', 'password', 'pet',
     'reaction', 'shylink', 'speed', 'stone', 'toast', 'ytdownloader'
   ];
