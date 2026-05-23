@@ -45,6 +45,7 @@ import {
 } from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
+import { isBrainCapture, handleBrainCapture } from './bot/brain-capture';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
 import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
@@ -267,6 +268,14 @@ client.on('messageCreate', async (message) => {
     isBot && !!message.webhookId && !!characterService &&
     isTeamRoomMessage(characterService, message as any);
   if (isBot && !teamWebhook) return;
+  // 뇌 캡처 인터셉트 — DM에서 `뇌: <내용>` 형태면 외장 뇌로 저장 후 return
+  const isDM = message.channel.isDMBased();
+  const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
+  if (isDM && memoRepoPath && assistantUserId && message.author.id === assistantUserId && isBrainCapture(message.content)) {
+    await handleBrainCapture(message as any, memoRepoPath);
+    return;
+  }
+
   if (characterService) {
     await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
