@@ -76,6 +76,13 @@
             "npmInstall": true
         },
         {
+            "id": "agent-daemons",
+            "label": "Agent Daemons (8 코어)",
+            "app": "apps/discord-bots",
+            "script": "start:daemons-all",
+            "npmInstall": true
+        },
+        {
             "id": "karmolab-tauri-dev",
             "label": "KarmoLab Tauri Dev (dual)",
             "app": "apps/karmolab-tauri",

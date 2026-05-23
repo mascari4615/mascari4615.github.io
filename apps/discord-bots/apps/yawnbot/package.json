@@ -7,6 +7,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "node dist/src/main.js",
+    "start:daemons-all": "node scripts/start-daemons.mjs",
     "deploy": "node dist/src/deploy-commands.js",
     "deploy:clear-global": "node scripts/clear-global-commands.mjs",
     "test:webhook": "node scripts/webhook-test.mjs",
