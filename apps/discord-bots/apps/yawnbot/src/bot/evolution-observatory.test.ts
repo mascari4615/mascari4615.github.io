@@ -105,6 +105,15 @@ describe('normalizeTraceEvents', () => {
     expect(events[0].severity).toBe('critical');
   });
 
+  it('escalated = 정상 라우팅 — worker-failed 미생성 (system-health 분류 정합)', () => {
+    const events = normalizeTraceEvents([
+      { ts: '2026-05-19T00:00:00Z', core: 'wm-worker', reason: 'worker TASK-WM-1 escalated agentic b' },
+      { ts: '2026-05-19T00:01:00Z', core: 'kar-worker', reason: 'worker TASK-KAR-2 escalated agentic c' },
+      { ts: '2026-05-19T00:02:00Z', core: 'kl-worker', reason: 'worker TASK-KL-3 done branch/z' },
+    ]);
+    expect(events.map((e) => e.code)).toEqual([]);
+  });
+
   it('extracts proposal parse, duplicate, and project citation failures', () => {
     const events = normalizeTraceEvents([
       { reason: 'producer parse-fail invalid json' },
