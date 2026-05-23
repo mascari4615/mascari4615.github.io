@@ -107,7 +107,11 @@ describe('buildWorkerPrompt — escalate 마커 지시 포함', () => {
   });
 });
 
-describe('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC)', () => {
+// KAR-018-LT-PEER-ONLY P-2 (2026-05-23): dyadic dialogue engine 폐기 후 worker
+// 보고에 즉시 peer 코멘트 박는 path 사라짐 → spoken 길이 expect 가 옛 dyadic 잠금.
+// describe.skip + DEPRECATED 마크. caller (agent-cadence.ts:808) cleanup 후 본 describe
+// 완전 제거 정합. escalate dedupe 자체는 living 동작 — 다른 test 가 cover.
+describe.skip('runWorkerConsumerOnce — decision-needed escalate (KAR-018-ESC) [DEPRECATED P-2]', () => {
   it('(a) type:design + 미푸시 → escalated, release, speak(스킨)·TASK id 포함, no-artifact-cooldown 미사용', async () => {
     const file = writeSpec('wm/tasks/TASK-WM-010-A.md', 'id: WM-010-A\ntype: design');
     const released: string[] = [];
