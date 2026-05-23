@@ -1,8 +1,5 @@
 /**
  * task-tab.ts — TASK Launcher 로직 이식 (TASK-KL-082 단위 I).
- *
- * task-launcher.ts 의 핵심 로직을 Cockpit 의 TASK 탭 안에 직접 렌더.
- * 원본 task-launcher.ts 는 삭제 X (v1 안정 1주 후 별 commit).
  */
 
 interface MemoTaskNode {
@@ -46,7 +43,6 @@ const DOMAIN_SUBTITLE: Record<string, string> = {
   learning: '학습 — 책·강의·언어·기술',
 };
 
-// quest-log 의 HEROES 이미지를 도메인별 포스터로 활용
 const DOMAIN_IMAGE: Record<string, string> = {
   wm:       '/apps/karmolab/img/widgets/quest-log/240714-071225.jpg',
   karmolab: '/apps/karmolab/img/widgets/quest-log/250315-170647.png',
@@ -54,11 +50,6 @@ const DOMAIN_IMAGE: Record<string, string> = {
   life:     '/apps/karmolab/img/widgets/quest-log/240330-000000.png',
   hobby:    '/apps/karmolab/img/widgets/quest-log/240330-111546.png',
   learning: '/apps/karmolab/img/widgets/quest-log/240513-131941.png',
-};
-
-// 이미지 없는 도메인용 gradient fallback 색상
-const DOMAIN_GRADIENT: Record<string, string> = {
-  _default: 'radial-gradient(ellipse at 30% 60%, #182033 0%, #0a0d14 70%)',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -76,11 +67,8 @@ const DOMAIN_ORDER = ['wm', 'karmolab', 'yawnbot', 'life', 'hobby', 'learning'];
 
 function esc(s: unknown): string {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function getInvoke(): ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null {
@@ -143,23 +131,29 @@ function applyFilter(
 
 // ── LIST 모드 ────────────────────────────────────────────────────────────────
 
-function renderList(listEl: HTMLElement, sorted: MemoTaskNode[], selectedIdx: number): void {
-  if (sorted.length === 0) {
+function renderList(
+  listEl: HTMLElement,
+  sorted: MemoTaskNode[],
+  selectedIdx: number,
+  subCountMap: Map<string, number>,
+): void {
+  // 루트 태스크만 (parent == null)
+  const roots = sorted.filter((t) => t.parent == null);
+  if (roots.length === 0) {
     listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
     return;
   }
-  listEl.innerHTML = sorted
+  listEl.innerHTML = roots
     .map((t, i) => {
       const sc = STATUS_COLORS[t.status] ?? '#55555a';
       const sel = i === selectedIdx ? ' selected' : '';
-      const tags = t.tags.length > 0
-        ? `[${t.tags.slice(0, 3).join(', ')}${t.tags.length > 3 ? '…' : ''}]`
-        : '';
-      return `<div class="ckt-row${sel}" data-file="${esc(t.filePath)}" data-idx="${i}">
+      const subs = subCountMap.get(t.id) ?? 0;
+      const subBadge = subs > 0 ? `<span class="ckt-sub-badge">(${subs})</span>` : '';
+      return `<div class="ckt-row${sel}" data-task-id="${esc(t.id)}" data-idx="${i}">
         <span class="ckt-id">${esc(t.id)}</span>
         <span class="ckt-status" style="color:${sc}">${esc(t.status)}</span>
-        <span class="ckt-title">${esc(t.title)}</span>
-        <span class="ckt-tags">${esc(tags)}</span>
+        <span class="ckt-title">${esc(t.title)}${subBadge}</span>
+        <span class="ckt-tags">${t.tags.length > 0 ? esc(`[${t.tags.slice(0, 3).join(', ')}${t.tags.length > 3 ? '…' : ''}]`) : ''}</span>
       </div>`;
     })
     .join('');
@@ -178,14 +172,11 @@ function buildStatusBar(tasks: MemoTaskNode[]): string {
   return parts.join('<span class="ckt-qstat-sep">·</span>');
 }
 
-// SVG 별자리 fallback (이미지 없는 도메인)
 function svgStarField(seed: number): string {
   const h = (n: number) => ((seed * 2654435761 + n * 40503) >>> 0);
   const stars = Array.from({ length: 18 }, (_, i) => ({
-    x: h(i * 3) % 100,
-    y: ((h(i * 3 + 1) % 70) + 8),
-    r: ((h(i * 3 + 2) % 14) / 10 + 0.4),
-    bright: i < 6,
+    x: h(i * 3) % 100, y: ((h(i * 3 + 1) % 70) + 8),
+    r: ((h(i * 3 + 2) % 14) / 10 + 0.4), bright: i < 6,
   }));
   const bright = stars.filter((s) => s.bright);
   const lines = bright.slice(0, -1).map((s, i) =>
@@ -218,12 +209,15 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
     .map((t) => {
       const sc = STATUS_COLORS[t.status] ?? '#55555a';
       const isActive = t.status === 'active';
-      const prefix = isActive ? '<span class="ckt-qrow-prefix" style="color:#d4a849">✦</span>' : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
-      return `<div class="ckt-qrow" data-file="${esc(t.filePath)}">
+      const prefix = isActive
+        ? '<span class="ckt-qrow-prefix" style="color:#d4a849">✦</span>'
+        : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
+      const indentCls = t.parent ? ' ckt-qrow--sub' : '';
+      return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(t.id)}">
         ${prefix}
         <span class="ckt-qid">${esc(t.id)}</span>
         <span class="ckt-qmag" style="color:${sc};border-color:${sc}33">${esc(t.status.toUpperCase())}</span>
-        <span class="ckt-qtitle" data-status="${esc(t.status)}">${esc(t.title)}</span>
+        <span class="ckt-qtitle" data-status="${esc(t.status)}">${t.parent ? '<span class="ckt-qsub-mark">└ </span>' : ''}${esc(t.title)}</span>
       </div>`;
     })
     .join('');
@@ -257,20 +251,96 @@ function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[], expandedDom
     listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
     return;
   }
-
   const groups = new Map<string, MemoTaskNode[]>();
   for (const t of sorted) {
     const d = t.path[0] ?? '_other';
     if (!groups.has(d)) groups.set(d, []);
     groups.get(d)!.push(t);
   }
-
   const orderedKeys = [
     ...DOMAIN_ORDER.filter((k) => groups.has(k)),
     ...[...groups.keys()].filter((k) => !DOMAIN_ORDER.includes(k)).sort(),
   ];
-
   listEl.innerHTML = orderedKeys.map((k, i) => renderQuestSection(k, groups.get(k)!, i, expandedDomains.has(k))).join('');
+}
+
+// ── Drawer ───────────────────────────────────────────────────────────────────
+
+function openDrawer(
+  task: MemoTaskNode,
+  allTasks: MemoTaskNode[],
+  drawerEl: HTMLElement,
+  backdropEl: HTMLElement,
+  crumbEl: HTMLElement,
+  bodyEl: HTMLElement,
+): void {
+  const sc = STATUS_COLORS[task.status] ?? '#55555a';
+  const domain = task.path[0] ?? '';
+  const domainLabel = DOMAINS.find((d) => d.value === domain)?.label ?? domain;
+  const pathStr = task.path.slice(1).join(' / ');
+
+  // 부모 태스크 찾기
+  const parentTask = task.parent ? allTasks.find((t) => t.id === task.parent) : null;
+  // 이 태스크의 서브 태스크들
+  const children = allTasks.filter((t) => t.parent === task.id);
+
+  crumbEl.innerHTML = `COCKPIT / <b>${esc(task.id)}</b>`;
+
+  const priorityLabel: Record<string, string> = { high: '! HIGH', normal: '○ NORMAL', low: '· LOW' };
+  const pri = task.priority ?? 'normal';
+
+  bodyEl.innerHTML = `
+    <div class="ckt-dr-pills">
+      <span class="ckt-dr-status" style="color:${sc};border-color:${sc}40">${esc(task.status.toUpperCase())}</span>
+      <span class="ckt-dr-priority">${esc(priorityLabel[pri] ?? pri.toUpperCase())}</span>
+    </div>
+
+    <h2 class="ckt-dr-title">${esc(task.title)}</h2>
+
+    <div class="ckt-dr-meta">
+      <div class="ckt-dr-meta-row">
+        <span class="ckt-dr-k">DOMAIN</span>
+        <span class="ckt-dr-v">${esc(DOMAIN_ICON[domain] ?? '')} ${esc(domainLabel)}${pathStr ? ' · ' + esc(pathStr) : ''}</span>
+      </div>
+      ${parentTask ? `<div class="ckt-dr-meta-row">
+        <span class="ckt-dr-k">PARENT</span>
+        <span class="ckt-dr-v ckt-dr-link" data-task-id="${esc(parentTask.id)}">${esc(parentTask.id)} — ${esc(parentTask.title)}</span>
+      </div>` : ''}
+      ${task.tags.length > 0 ? `<div class="ckt-dr-meta-row">
+        <span class="ckt-dr-k">TAGS</span>
+        <span class="ckt-dr-v">${task.tags.map((tag) => `<span class="ckt-dr-tag">${esc(tag)}</span>`).join('')}</span>
+      </div>` : ''}
+      <div class="ckt-dr-meta-row">
+        <span class="ckt-dr-k">FILE</span>
+        <span class="ckt-dr-v ckt-dr-filepath">${esc(task.filePath.replace(/\\/g, '/').split('/').pop() ?? task.filePath)}</span>
+      </div>
+    </div>
+
+    ${children.length > 0 ? `
+    <div class="ckt-dr-section">
+      <div class="ckt-dr-section-head">SUB-TASKS · ${children.length}</div>
+      ${children.map((c) => {
+        const csc = STATUS_COLORS[c.status] ?? '#55555a';
+        return `<div class="ckt-dr-child" data-task-id="${esc(c.id)}">
+          <span class="ckt-dr-child-status" style="color:${csc};border-color:${csc}40">${esc(c.status.toUpperCase())}</span>
+          <span class="ckt-dr-child-id">${esc(c.id)}</span>
+          <span class="ckt-dr-child-title">${esc(c.title)}</span>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <div class="ckt-dr-actions">
+      <button class="ckt-dr-open-btn" data-open-file="${esc(task.filePath)}">↗ 에디터에서 열기</button>
+    </div>
+  `;
+
+  drawerEl.classList.add('open');
+  backdropEl.classList.add('open');
+}
+
+function closeDrawer(drawerEl: HTMLElement, backdropEl: HTMLElement): void {
+  drawerEl.classList.remove('open');
+  backdropEl.classList.remove('open');
 }
 
 // ── 모달 ─────────────────────────────────────────────────────────────────────
@@ -309,7 +379,6 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
   backdrop.querySelector('.ckt-cancel')!.addEventListener('click', close);
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
   setTimeout(() => titleInput.focus(), 50);
-
   const submit = async () => {
     const domain = domainSel.value;
     const title = titleInput.value.trim();
@@ -320,11 +389,8 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
       const newPath = (await invoke('create_task', { domain, title })) as string;
       close();
       onCreated(newPath);
-    } catch (e) {
-      alert(`생성 실패: ${e}`);
-    }
+    } catch (e) { alert(`생성 실패: ${e}`); }
   };
-
   backdrop.querySelector('.ckt-create')!.addEventListener('click', () => { void submit(); });
   titleInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); void submit(); }
@@ -345,6 +411,7 @@ const TASK_TAB_CSS = `
   font-family: 'Noto Sans KR', system-ui, sans-serif;
   height: 100%; display: flex; flex-direction: column;
   padding: 16px; gap: 10px; overflow: hidden;
+  position: relative;
 }
 .ckt-wrap *, .ckt-wrap *::before, .ckt-wrap *::after { box-sizing: border-box; }
 
@@ -362,9 +429,7 @@ const TASK_TAB_CSS = `
   background: var(--paper); color: var(--ink); border: 1px solid var(--line2);
   padding: 7px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; outline: none;
 }
-
-/* 모드 토글 */
-.ckt-mode-toggle { display: flex; gap: 0; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.ckt-mode-toggle { display: flex; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
 .ckt-mode-btn {
   background: var(--bg2); color: var(--ink3); border: none;
   padding: 7px 12px; font-size: 11px; cursor: pointer; white-space: nowrap;
@@ -373,7 +438,6 @@ const TASK_TAB_CSS = `
 .ckt-mode-btn.on { background: var(--accent2); color: var(--bg); }
 .ckt-mode-btn:not(.on):hover { background: var(--line2); color: var(--ink); }
 
-/* status chips */
 .ckt-chips { display: flex; gap: 4px; flex-wrap: wrap; }
 .ckt-chip {
   background: var(--bg2); color: var(--ink2); border: 1px dashed var(--line3);
@@ -384,7 +448,7 @@ const TASK_TAB_CSS = `
 .ckt-meta { font-size: 11px; color: var(--ink3); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.14em; }
 .ckt-list { flex: 1; overflow-y: auto; border: 1px solid var(--line); border-radius: 4px; }
 
-/* LIST 모드 rows */
+/* LIST rows */
 .ckt-row {
   display: grid; grid-template-columns: 120px 72px 1fr auto;
   gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line);
@@ -395,12 +459,13 @@ const TASK_TAB_CSS = `
 .ckt-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); letter-spacing: 0.05em; }
 .ckt-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; }
 .ckt-title { font-size: 13px; }
+.ckt-sub-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink3); margin-left: 5px; }
 .ckt-tags { font-size: 10px; color: var(--ink3); white-space: nowrap; }
 .ckt-empty { padding: 40px; text-align: center; color: var(--ink3); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.2em; font-size: 12px; }
-.ckt-empty::before, .ckt-empty::after { content: '— '; opacity: 0.5; }
-.ckt-empty::after { content: ' —'; }
+.ckt-empty::before { content: '— '; opacity: 0.5; }
+.ckt-empty::after { content: ' —'; opacity: 0.5; }
 
-/* QUEST 모드 — 섹션 */
+/* QUEST 섹션 */
 .ckt-qsection { margin-bottom: 28px; position: relative; }
 .ckt-qsection::before {
   content: ''; position: absolute; top: -1px; left: -1px; width: 12px; height: 12px;
@@ -412,7 +477,7 @@ const TASK_TAB_CSS = `
 }
 .ckt-qsection:last-child { margin-bottom: 0; }
 
-/* QUEST 포스터 (quest-log .sky.photo 참고) */
+/* QUEST 포스터 */
 .ckt-qposter {
   position: relative; height: 200px;
   overflow: hidden; border: 1px solid var(--line2); border-bottom: none;
@@ -423,77 +488,62 @@ const TASK_TAB_CSS = `
   position: absolute; inset: 0;
   background: linear-gradient(to bottom, rgba(11,13,18,0.25) 0%, rgba(11,13,18,0.82) 100%);
 }
-
-/* 좌상단 좌표 오버레이 */
 .ckt-qcoord {
   position: absolute; left: 14px; top: 14px; z-index: 3;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--ink2); letter-spacing: 0.15em; line-height: 1.8;
 }
 .ckt-qcoord-k { color: var(--ink3); }
-
-/* 우상단 태그 뱃지 */
 .ckt-qtag {
   position: absolute; right: 14px; top: 14px; z-index: 3;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   color: var(--ink); letter-spacing: 0.18em; text-transform: uppercase;
   padding: 3px 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.09);
 }
-
-/* 우하단 chevron */
 .ckt-qchevron {
   position: absolute; right: 14px; bottom: 14px; z-index: 3;
   font-family: 'JetBrains Mono', monospace; font-size: 18px;
-  color: rgba(255,255,255,0.5); line-height: 1;
-  transition: color 0.15s;
+  color: rgba(255,255,255,0.5); line-height: 1; transition: color 0.15s;
 }
 .ckt-qposter--toggle { cursor: pointer; }
 .ckt-qposter--toggle:hover .ckt-qchevron { color: var(--accent); }
 .ckt-qposter--toggle:hover .ckt-qposter-veil {
   background: linear-gradient(to bottom, rgba(11,13,18,0.35) 0%, rgba(11,13,18,0.88) 100%);
 }
-
-/* 좌하단 제목 오버레이 */
 .ckt-qoverlay {
   position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 3;
 }
 .ckt-qoverlay-sub {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase;
-  margin-bottom: 5px;
+  letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; margin-bottom: 5px;
 }
 .ckt-qoverlay-title {
   font-family: 'Noto Serif KR', serif; font-style: italic; font-weight: 700;
   font-size: 28px; color: var(--ink); line-height: 1.05;
   letter-spacing: -0.01em; text-shadow: 0 2px 20px rgba(0,0,0,0.9);
 }
-
-/* status 바 (포스터 하단 — col-head bar-meta 스타일) */
 .ckt-qstatbar {
-  display: flex; gap: 0; flex-wrap: wrap; align-items: center;
-  padding: 7px 14px; gap: 8px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  padding: 7px 14px;
   background: var(--paper); border: 1px solid var(--line2); border-top: none; border-bottom: none;
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em;
 }
 .ckt-qstat-item b { font-weight: 700; }
 .ckt-qstat-sep { color: var(--line3); margin: 0 2px; }
 
-/* QUEST task 행 (obs 스타일 참고) */
-.ckt-qtasks {
-  border: 1px solid var(--line2); border-top: none; overflow: hidden;
-}
+/* QUEST task 행 */
+.ckt-qtasks { border: 1px solid var(--line2); border-top: none; overflow: hidden; }
 .ckt-qrow {
   display: grid; grid-template-columns: 16px 130px 72px 1fr;
   gap: 10px; padding: 9px 14px; border-bottom: 1px dashed var(--line);
   cursor: pointer; align-items: center;
 }
+.ckt-qrow--sub { padding-left: 26px; background: rgba(255,255,255,0.01); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
 .ckt-qrow-prefix { font-size: 12px; line-height: 1; }
-.ckt-qid {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--accent); letter-spacing: 0.05em;
-}
+.ckt-qsub-mark { color: var(--ink3); font-family: 'JetBrains Mono', monospace; }
+.ckt-qid { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.05em; }
 .ckt-qmag {
   font-family: 'JetBrains Mono', monospace; font-size: 10px;
   letter-spacing: 0.14em; text-transform: uppercase;
@@ -501,26 +551,106 @@ const TASK_TAB_CSS = `
 }
 .ckt-qtitle {
   font-family: 'Noto Serif KR', serif; font-size: 13.5px; color: var(--ink);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em;
 }
 .ckt-qtitle[data-status="done"],
 .ckt-qtitle[data-status="sealed"] { color: var(--ink3); text-decoration: line-through; text-decoration-thickness: 1px; }
-.ckt-qtitle[data-status="active"]::before { content: ''; }
-.ckt-qempty {
-  padding: 24px 14px; text-align: center; color: var(--ink3);
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em;
-}
+.ckt-qempty { padding: 24px 14px; text-align: center; color: var(--ink3); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; }
 
-/* 모달 */
+/* ── DRAWER (quest-log .drawer 참고) ── */
+.ckt-backdrop {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.65);
+  z-index: 99; opacity: 0; pointer-events: none; transition: opacity 220ms;
+}
+.ckt-backdrop.open { opacity: 1; pointer-events: auto; }
+.ckt-drawer {
+  position: absolute; inset: 0 0 0 auto; width: min(440px, 92%);
+  background: var(--paper); border-left: 1px solid var(--line3);
+  transform: translateX(100%); transition: transform 280ms cubic-bezier(0.22, 0.9, 0.32, 1);
+  z-index: 100; overflow-y: auto;
+  box-shadow: -40px 0 80px rgba(0,0,0,0.4);
+  display: flex; flex-direction: column;
+}
+.ckt-drawer.open { transform: translateX(0); }
+.ckt-drawer-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--line2);
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; background: var(--paper); z-index: 2;
+  flex-shrink: 0;
+}
+.ckt-drawer-crumb {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink3);
+}
+.ckt-drawer-crumb b { color: var(--ink); }
+.ckt-drawer-close {
+  background: transparent; border: 1px solid var(--line2); color: var(--ink2);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ckt-drawer-close:hover { border-color: var(--ink); color: var(--ink); }
+.ckt-drawer-body { padding: 24px 24px 40px; flex: 1; }
+
+/* drawer 내부 */
+.ckt-dr-pills { display: flex; gap: 6px; align-items: center; margin-bottom: 16px; }
+.ckt-dr-status {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid;
+}
+.ckt-dr-priority {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 0.2em; color: var(--ink2);
+  padding: 3px 8px; border: 1px dashed var(--line3);
+}
+.ckt-dr-title {
+  margin: 0 0 20px; font-family: 'Noto Serif KR', serif; font-weight: 700;
+  font-size: 26px; line-height: 1.2; letter-spacing: -0.02em; color: var(--ink);
+}
+.ckt-dr-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed var(--line2); }
+.ckt-dr-meta-row { display: flex; gap: 12px; align-items: baseline; }
+.ckt-dr-k { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink3); width: 52px; flex-shrink: 0; }
+.ckt-dr-v { font-size: 13px; color: var(--ink2); flex: 1; }
+.ckt-dr-link { color: var(--accent2); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.ckt-dr-link:hover { color: var(--ink); }
+.ckt-dr-filepath { font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-all; }
+.ckt-dr-tag {
+  display: inline-block; background: var(--bg2); border: 1px solid var(--line2);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+  padding: 2px 6px; margin: 0 3px 3px 0;
+}
+.ckt-dr-section { margin-bottom: 20px; }
+.ckt-dr-section-head {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.ckt-dr-child {
+  display: grid; grid-template-columns: 72px 100px 1fr;
+  gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line);
+  cursor: pointer; align-items: baseline;
+}
+.ckt-dr-child:last-child { border-bottom: none; }
+.ckt-dr-child:hover { background: var(--bg2); }
+.ckt-dr-child-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; padding: 2px 5px; border: 1px solid; text-transform: uppercase; }
+.ckt-dr-child-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); }
+.ckt-dr-child-title { font-family: 'Noto Serif KR', serif; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ckt-dr-actions { margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--line2); }
+.ckt-dr-open-btn {
+  width: 100%; background: var(--ink); color: var(--bg); border: none;
+  padding: 13px; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  letter-spacing: 0.22em; text-transform: uppercase; transition: background 140ms;
+}
+.ckt-dr-open-btn:hover { background: var(--accent); }
+
+/* 생성 모달 */
 .ckt-modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200;
   display: flex; align-items: center; justify-content: center;
 }
 .ckt-modal {
   background: var(--paper); border: 1px solid var(--line2); border-radius: 6px;
-  padding: 22px; min-width: 380px; max-width: 90%;
-  position: relative;
+  padding: 22px; min-width: 380px; max-width: 90%; position: relative;
 }
 .ckt-modal::before {
   content: ''; position: absolute; top: -1px; left: -1px; width: 12px; height: 12px;
@@ -571,6 +701,14 @@ export function buildTaskTab(container: HTMLElement): void {
       </div>
       <div class="ckt-meta" data-meta>로딩 중…</div>
       <div class="ckt-list" data-list></div>
+      <div class="ckt-backdrop" data-backdrop></div>
+      <aside class="ckt-drawer" data-drawer>
+        <div class="ckt-drawer-head">
+          <div class="ckt-drawer-crumb" data-drawer-crumb>COCKPIT / <b>—</b></div>
+          <button class="ckt-drawer-close" data-drawer-close>✕</button>
+        </div>
+        <div class="ckt-drawer-body" data-drawer-body></div>
+      </aside>
     </div>
   `;
 
@@ -581,26 +719,41 @@ export function buildTaskTab(container: HTMLElement): void {
   const chipsEl = wrap.querySelector('[data-chips]') as HTMLElement;
   const metaEl = wrap.querySelector('[data-meta]') as HTMLElement;
   const listEl = wrap.querySelector('[data-list]') as HTMLElement;
+  const drawerEl = wrap.querySelector('[data-drawer]') as HTMLElement;
+  const backdropEl = wrap.querySelector('[data-backdrop]') as HTMLElement;
+  const crumbEl = wrap.querySelector('[data-drawer-crumb]') as HTMLElement;
+  const bodyEl = wrap.querySelector('[data-drawer-body]') as HTMLElement;
 
   let currentTasks: MemoTaskNode[] = [];
   let filteredTasks: MemoTaskNode[] = [];
+  let listRoots: MemoTaskNode[] = []; // LIST 모드용 루트 태스크만
+  let subCountMap = new Map<string, number>();
   let selectedIdx = 0;
   let statusFilter = 'all';
   let sortMode = 'mtime';
   let viewMode: 'list' | 'quest' = 'list';
-  const expandedDomains = new Set<string>(); // 기본 전체 접힘
+  const expandedDomains = new Set<string>();
+
+  const doCloseDrawer = () => closeDrawer(drawerEl, backdropEl);
+
+  const doOpenDrawer = (taskId: string) => {
+    const task = currentTasks.find((t) => t.id === taskId);
+    if (!task) return;
+    openDrawer(task, currentTasks, drawerEl, backdropEl, crumbEl, bodyEl);
+  };
 
   const rerender = () => {
     if (viewMode === 'quest') {
       renderQuestLog(listEl, filteredTasks, expandedDomains);
     } else {
-      renderList(listEl, filteredTasks, selectedIdx);
+      renderList(listEl, listRoots, selectedIdx, subCountMap);
     }
   };
 
   const refilter = () => {
     filteredTasks = applyFilter(currentTasks, searchEl.value, statusFilter, sortMode);
-    if (selectedIdx >= filteredTasks.length) selectedIdx = 0;
+    listRoots = filteredTasks.filter((t) => t.parent == null);
+    if (selectedIdx >= listRoots.length) selectedIdx = 0;
     rerender();
   };
 
@@ -608,6 +761,11 @@ export function buildTaskTab(container: HTMLElement): void {
     const tree = await fetchTree();
     if (!tree) { listEl.innerHTML = '<div class="ckt-empty">데이터 로딩 실패</div>'; metaEl.textContent = '오류'; return; }
     currentTasks = tree.tasks;
+    // 전체 서브카운트 맵 (필터 무관)
+    subCountMap = new Map();
+    for (const t of currentTasks) {
+      if (t.parent) subCountMap.set(t.parent, (subCountMap.get(t.parent) ?? 0) + 1);
+    }
     metaEl.textContent = `${currentTasks.length} TASK`;
     refilter();
   };
@@ -628,10 +786,14 @@ export function buildTaskTab(container: HTMLElement): void {
   searchEl.addEventListener('input', () => { selectedIdx = 0; refilter(); });
   searchEl.addEventListener('keydown', (e) => {
     if (viewMode !== 'list') return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, filteredTasks.length - 1); renderList(listEl, filteredTasks, selectedIdx); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, filteredTasks, selectedIdx); }
-    else if (e.key === 'Enter') { e.preventDefault(); const t = filteredTasks[selectedIdx]; if (t) void openInEditor(t.filePath); }
-    else if (e.key === 'Escape') { e.preventDefault(); if (searchEl.value) { searchEl.value = ''; selectedIdx = 0; refilter(); } else { searchEl.blur(); } }
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap); }
+    else if (e.key === 'Enter') { e.preventDefault(); const t = listRoots[selectedIdx]; if (t) doOpenDrawer(t.id); }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      if (drawerEl.classList.contains('open')) { doCloseDrawer(); return; }
+      if (searchEl.value) { searchEl.value = ''; selectedIdx = 0; refilter(); } else { searchEl.blur(); }
+    }
   });
 
   chipsEl.addEventListener('click', (e) => {
@@ -647,10 +809,12 @@ export function buildTaskTab(container: HTMLElement): void {
   sortEl.addEventListener('change', () => { sortMode = sortEl.value; selectedIdx = 0; refilter(); searchEl.focus(); });
 
   listEl.addEventListener('click', (e) => {
-    // task 행 클릭 (파일 오픈) — 포스터 내부가 아닌 경우
-    const row = (e.target as HTMLElement).closest('[data-file]') as HTMLElement | null;
-    if (row) { void openInEditor(row.dataset.file ?? ''); return; }
-
+    // task 행 클릭 → drawer
+    const taskRow = (e.target as HTMLElement).closest('[data-task-id]') as HTMLElement | null;
+    if (taskRow && !taskRow.hasAttribute('data-toggle-domain')) {
+      doOpenDrawer(taskRow.dataset.taskId ?? '');
+      return;
+    }
     // 포스터 토글
     const poster = (e.target as HTMLElement).closest('[data-toggle-domain]') as HTMLElement | null;
     if (poster) {
@@ -669,6 +833,18 @@ export function buildTaskTab(container: HTMLElement): void {
       }
     }
   });
+
+  // drawer 내부 이벤트 (open-btn, parent link, child row)
+  drawerEl.addEventListener('click', (e) => {
+    const openBtn = (e.target as HTMLElement).closest('[data-open-file]') as HTMLElement | null;
+    if (openBtn) { void openInEditor(openBtn.dataset.openFile ?? ''); return; }
+
+    const link = (e.target as HTMLElement).closest('[data-task-id]') as HTMLElement | null;
+    if (link) { doOpenDrawer(link.dataset.taskId ?? ''); return; }
+  });
+
+  backdropEl.addEventListener('click', doCloseDrawer);
+  wrap.querySelector('[data-drawer-close]')!.addEventListener('click', doCloseDrawer);
 
   newBtn.addEventListener('click', () => {
     showCreateModal(wrap, async (newPath) => {
