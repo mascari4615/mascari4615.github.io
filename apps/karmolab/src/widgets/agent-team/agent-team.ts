@@ -95,7 +95,10 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         </header>
         <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
         <section class="at-section at-proposals">
-          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
+          <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem 0">
+            <h3 style="margin:0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
+            <input class="at-proposals-search" type="search" placeholder="제안 검색 (제목·본문·domain)" style="margin-left:auto;padding:.2rem .4rem;min-width:12rem;font-size:.78rem" />
+          </div>
           <div class="at-list at-proposals-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
         </section>
         <section class="at-section at-roster">
@@ -135,6 +138,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
 
     let intervalHandle: number | null = null;
     let cachedRepoRoot: string | null = null;
+    let cachedProposals: ProposalInfo[] = [];
+    const proposalsSearch = container.querySelector<HTMLInputElement>('.at-proposals-search')!;
 
     function statusColor(s: string | undefined): string {
       switch ((s || '').toLowerCase()) {
@@ -324,8 +329,16 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     function renderProposals(rows: ProposalInfo[]): void {
-      const pending = rows.filter((p) => !p.decided);
-      countProposals.textContent = String(pending.length);
+      cachedProposals = rows;
+      let pending = rows.filter((p) => !p.decided);
+      const q = proposalsSearch.value.trim().toLowerCase();
+      if (q) {
+        pending = pending.filter((p) => {
+          const hay = `${p.title ?? ''} ${p.body ?? ''} ${p.domain ?? ''} ${p.id}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+      countProposals.textContent = q ? `${pending.length}/${rows.filter((p) => !p.decided).length}` : String(pending.length);
       if (pending.length === 0) {
         proposalsList.innerHTML =
           '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">결재 대기 없음</div>';
@@ -472,6 +485,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
 
     refreshBtn.addEventListener('click', () => void load());
     autoChk.addEventListener('change', applyAutoRefresh);
+    proposalsSearch.addEventListener('input', () => renderProposals(cachedProposals));
     void load();
     applyAutoRefresh();
   }
