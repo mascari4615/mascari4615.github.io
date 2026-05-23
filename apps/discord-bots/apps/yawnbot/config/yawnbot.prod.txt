@@ -46,6 +46,9 @@ KARMOLAB_AI_SURFACE=vertex
 #   ③ YB_PROD_VERTEX_PROJECT_ID secret 이 채움 (사용자 결정 2026-05-17). 커밋 X.
 VERTEX_PROJECT_ID=
 VERTEX_LOCATION=us-central1
+# 호출별 토큰 사용량(input/cached/output) JSON 한 줄 stdout emit
+# (TASK-KAR-145). 비밀 아닌 운영 플래그 — 가시 정본.
+KARMOLAB_AI_USAGE_LOG=1
 
 # ── 머신 경로 (prod=노트북). MEMO_REPO_PATH 는 ① defaults 가 커버(동일 경로).
 #    아래는 노트북에서 해당 기능 쓸 때만 채움(보통 dev 전용이라 비워둠 OK).
