@@ -83,6 +83,7 @@ import {
   type HealthIssue,
   type HealthSignals,
 } from './system-health';
+import { runInitiatorOnce } from './agent-initiator';
 import {
   listCoreIds,
   loadCoreDef,
@@ -1238,6 +1239,21 @@ export async function runCadenceTickOnce(
     // objective/agent kind 는 runInboxConsumerOnce 내부에서 기존 사람 승인 게이트 유지.
     const mat = await runInboxConsumerOnce(env, { autoReady: true });
     if (mat > 0) r = `${r}+consumed:${mat}`;
+  }
+  // INIT (TASK-KAR-018-INIT) 팀-드리븐 발의 — corePromotion *전* 박는
+  // 이유: 발의가 적용에 선행이 자연 순서. quiet 모드에서도 작동(자가발전
+  // 핵심). best-effort·비차단·LLM 무관 결정적 (날조 0). 산출 = ledger
+  // append + cadence trace 라벨 ("no-news-is-bad-news" 정합). 실 TASK seed
+  // write / Discord 발화는 active 전이 후 (코어 status=draft).
+  if (memoRoot && !isKilled()) {
+    try {
+      const init = runInitiatorOnce(env);
+      if (init.label.startsWith('init:proposed:')) {
+        r = `${r}+${init.label}`;
+      }
+    } catch {
+      /* INIT 실패 = tick 비차단 */
+    }
   }
   // LT-11 자가증강 *닫는* 루프: 팀 채택→materialize 된 draft 코어를
   // 구조검증+비충돌 PASS 시 자율 active 승격, 가동 후 적합도 퇴행 시
