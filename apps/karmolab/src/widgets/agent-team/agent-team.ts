@@ -81,7 +81,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
             <input class="at-autorefresh" type="checkbox" checked /> 자동 5초
           </label>
           <button class="at-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
-          <button class="at-cadence" type="button" title="에이전트 사이클 1회 강제 실행 (yawnbot dist 빌드 필요)" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Cadence 1회</button>
+          <button class="at-cadence" type="button" title="로컬 데스크톱 yawnbot dev 인스턴스 cadence 1회 (yawnbot dist 빌드 필요)" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Dev</button>
+          <button class="at-cadence-prod" type="button" title="노트북 yawnbot-prod cadence 1회 (laptop-ops 게이트웨이 우회, ~/.laptop-ops-token 필요)" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Prod</button>
         </header>
         <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
         <section class="at-section at-proposals">
@@ -321,20 +322,24 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     const cadenceBtn = container.querySelector<HTMLButtonElement>('.at-cadence')!;
+    const cadenceProdBtn = container.querySelector<HTMLButtonElement>('.at-cadence-prod')!;
     const cadenceOut = container.querySelector<HTMLDivElement>('.at-cadence-out')!;
-    cadenceBtn.addEventListener('click', async () => {
+
+    async function runCadence(target: 'dev' | 'prod', btn: HTMLButtonElement): Promise<void> {
       if (!cachedRepoRoot) {
         cadenceOut.style.display = 'block';
         cadenceOut.textContent = 'repo_root 미설정';
         return;
       }
-      cadenceBtn.disabled = true;
-      const orig = cadenceBtn.textContent || '';
-      cadenceBtn.textContent = '⏳ 실행 중...';
+      const cmd = target === 'prod' ? 'agent_team_run_cadence_tick_prod' : 'agent_team_run_cadence_tick';
+      const label = target === 'prod' ? '⚡ Prod' : '⚡ Dev';
+      btn.disabled = true;
+      const orig = btn.textContent || label;
+      btn.textContent = '⏳ 실행 중...';
       cadenceOut.style.display = 'block';
-      cadenceOut.textContent = '에이전트 cadence tick 1회 실행 중... (수 초 소요)';
+      cadenceOut.textContent = `${label} cadence tick 1회 실행 중... (수 초 ~ 십수 초)`;
       try {
-        const r = (await tauriInvoke('agent_team_run_cadence_tick', {
+        const r = (await tauriInvoke(cmd, {
           repoRoot: cachedRepoRoot,
           includeWorker: false
         })) as {
@@ -345,17 +350,20 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           exit_code: number | null;
         };
         const head = r.ok
-          ? `✓ OK (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`
-          : `✗ FAIL (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`;
+          ? `✓ ${label} OK (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`
+          : `✗ ${label} FAIL (${r.elapsed_ms}ms, exit=${r.exit_code ?? '?'})`;
         cadenceOut.textContent = `${head}\n--- stdout (tail) ---\n${r.stdout_tail}\n--- stderr (tail) ---\n${r.stderr_tail}`;
         void load();
       } catch (e) {
-        cadenceOut.textContent = `실행 실패: ${String(e)}`;
+        cadenceOut.textContent = `${label} 실행 실패: ${String(e)}`;
       } finally {
-        cadenceBtn.disabled = false;
-        cadenceBtn.textContent = orig;
+        btn.disabled = false;
+        btn.textContent = orig;
       }
-    });
+    }
+
+    cadenceBtn.addEventListener('click', () => void runCadence('dev', cadenceBtn));
+    cadenceProdBtn.addEventListener('click', () => void runCadence('prod', cadenceProdBtn));
 
     refreshBtn.addEventListener('click', () => void load());
     autoChk.addEventListener('change', applyAutoRefresh);
