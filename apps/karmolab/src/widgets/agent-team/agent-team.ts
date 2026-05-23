@@ -267,6 +267,40 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         .join('');
     }
 
+    function renderProposalBody(raw: string): string {
+      // 단순 markdown 렌더 — 제안서 본문이 `- ...` 불릿 위주. 안전 1차 escape 후 가벼운 변환.
+      const escaped = escapeHtml(raw);
+      const lines = escaped.split(/\r?\n/);
+      const out: string[] = [];
+      let inList = false;
+      for (const line of lines) {
+        const m = line.match(/^\s*-\s+(.*)$/);
+        if (m) {
+          if (!inList) {
+            out.push('<ul style="margin:.2rem 0 .2rem 1.1rem;padding:0;line-height:1.55">');
+            inList = true;
+          }
+          // **bold** 와 `code` 만 인라인 처리 (안전 escape 이후이므로 token 만 매치).
+          const inline = m[1]
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/`([^`]+)`/g, '<code style="background:rgba(127,127,127,.15);padding:0 .25rem;border-radius:.2rem">$1</code>');
+          out.push(`<li>${inline}</li>`);
+        } else {
+          if (inList) {
+            out.push('</ul>');
+            inList = false;
+          }
+          if (line.trim() === '') {
+            out.push('<div style="height:.3rem"></div>');
+          } else {
+            out.push(`<div>${line}</div>`);
+          }
+        }
+      }
+      if (inList) out.push('</ul>');
+      return out.join('');
+    }
+
     function renderProposals(rows: ProposalInfo[]): void {
       const pending = rows.filter((p) => !p.decided);
       countProposals.textContent = String(pending.length);
@@ -283,7 +317,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
             ? `<span style="display:inline-block;padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:rgba(127,127,127,.25);font-family:monospace">${escapeHtml(p.domain)}</span>`
             : '';
           const body = p.body
-            ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">본문 펴기</summary><pre style="white-space:pre-wrap;font-size:.78rem;margin:.3rem 0 0 0;line-height:1.45;opacity:.85">${escapeHtml(p.body)}</pre></details>`
+            ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">본문 펴기</summary><div style="font-size:.82rem;margin:.3rem 0 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
             : '';
           return `
             <div class="at-prop" data-id="${escapeHtml(p.id)}" style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
