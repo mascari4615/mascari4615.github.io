@@ -53,6 +53,7 @@ import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
+import { extractDiscordPublish, publishIncomingDiscord } from './bot/agent-channel-bridge';
 import {
   loadCoreDef,
   listCoreIds,
@@ -267,6 +268,23 @@ client.on('messageCreate', async (message) => {
     isBot && !!message.webhookId && !!characterService &&
     isTeamRoomMessage(characterService, message as any);
   if (isBot && !teamWebhook) return;
+  // KAR-018-LT-DIVERSITY D-2: 팀 방 incoming message → agent-channel-bus publish.
+  // 추가 sink (기존 handleAssistantMessage 등은 그대로). substrate 미가용/메모
+  // 미설정 = silent no-op. 사용자 메시지만 channel-msg 로 적재 — 외부 봇은 잡음.
+  if (memoRepoPath && !isBot) {
+    try {
+      const agentCh = agentChannelId();
+      if (agentCh && message.channel.id === agentCh) {
+        const opts = extractDiscordPublish(message as any, {
+          isOwnAgentWebhook,
+          coreIdForWebhook: () => null,
+        });
+        publishIncomingDiscord({ MEMO_REPO_PATH: memoRepoPath } as NodeJS.ProcessEnv, opts);
+      }
+    } catch {
+      /* publish 실패가 봇 진행 막지 X */
+    }
+  }
   if (characterService) {
     await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
