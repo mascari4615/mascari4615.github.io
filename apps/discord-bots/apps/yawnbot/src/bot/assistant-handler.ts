@@ -646,6 +646,39 @@ export async function handleAssistantMessage(
         console.log(
           `[Assistant:${card.slug}] AI 응답 수신 (${aiDuration}ms, 시도 ${attempt}/3): ${response.length}자 -> 응답 중...`,
         );
+
+        // KAR-115 driver-봇흐름 통합 (slot-A 2026-05-23) — response 안에 fenced
+        // ```json {tool, args} 가 있으면 memo router 로 dispatch + 결과 reply 끝
+        // 에 prepend. 라우터 미설치/dispatch 실패 = silent skip (응답 본문 보존).
+        // 정본 = memo/scripts/lib/agent-tool-router.mjs (15 tool registry).
+        try {
+          if (response.includes('```json') || /^\s*[\{\[]/.test(response)) {
+            const path = await import('node:path');
+            const routerUrl = 'file:///' + path.resolve(
+              process.cwd(), '../../../../memo/scripts/lib/agent-tool-router.mjs',
+            ).replace(/\\/g, '/');
+            const router = await import(routerUrl);
+            const calls = router.parseToolCalls(response);
+            if (calls.length > 0) {
+              const results = [];
+              for (const c of calls) {
+                results.push(await router.dispatchTool(c));
+              }
+              const summary = results
+                .map((r: { ok: boolean; tool: string; durationMs?: number; error?: string }) =>
+                  `${r.ok ? '✅' : '❌'} ${r.tool}${r.durationMs ? ` (${r.durationMs}ms)` : ''}${r.error ? `: ${r.error.slice(0, 80)}` : ''}`
+                )
+                .join('\n');
+              response = response + '\n\n---\n🛠 도구 실행:\n' + summary;
+              console.log(`[Assistant:${card.slug}] KAR-115 router dispatched ${calls.length} tool(s)`);
+            }
+          }
+        } catch (e: unknown) {
+          // router 부재 / dispatch 에러 = silent. yawnbot prod 가 memo 폴더 없을 수도 있음 (deploy 분리).
+          if (process.env.KAR_115_ROUTER_DEBUG === '1') {
+            console.warn(`[Assistant:${card.slug}] KAR-115 router skip: ${e instanceof Error ? e.message : String(e)}`);
+          }
+        }
         break;
       } catch (e: unknown) {
         lastError = e instanceof Error ? e : new Error(String(e));
