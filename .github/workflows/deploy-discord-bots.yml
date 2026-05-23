@@ -313,7 +313,7 @@ jobs:
           # ② USERPROFILE 마스킹 — LocalSystem 컨텍스트가 사용자 자격 가시.
           # AppEnvironmentExtra 는 *전체 교체* 라 prod env + USERPROFILE 둘 다 명시.
           # 새 env 추가 시 이 라인에 추가 (별도 nssm set 호출 X — 마지막 호출이 전체 덮어씀).
-          & $nssm set yawnbot-prod AppEnvironmentExtra 'YAWNBOT_ENV=prod' 'AGENT_CADENCE_ENABLED=0' 'USERPROFILE=C:\Users\masca' | Out-Null
+          & $nssm set yawnbot-prod AppEnvironmentExtra 'YAWNBOT_ENV=prod' 'AGENT_CADENCE_ENABLED=1' 'AGENT_DIALOGUE_DISABLED=1' 'USERPROFILE=C:\Users\masca' | Out-Null
 
           # ③ safe.directory '*' — 봇이 USERPROFILE 마스킹 후 보는 사용자 gitconfig
           # (C:\Users\masca\.gitconfig). 미박으면 git fetch 시 'dubious ownership'
@@ -404,7 +404,8 @@ jobs:
             'YAWNBOT_ENV=prod' `
             'AGENT_HOST=orchestrator' `
             'AGENT_CADENCE_ROLE=main' `
-            'AGENT_CADENCE_ENABLED=0' `
+            'AGENT_CADENCE_ENABLED=1' `
+            'AGENT_DIALOGUE_DISABLED=1' `
             'USERPROFILE=C:\Users\masca' `
             'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
 
@@ -472,7 +473,8 @@ jobs:
               'YAWNBOT_ENV=prod' `
               'AGENT_HOST=orchestrator' `
               "AGENT_CADENCE_ROLE=worker-$scope" `
-              'AGENT_CADENCE_ENABLED=0' `
+              'AGENT_CADENCE_ENABLED=1' `
+              'AGENT_DIALOGUE_DISABLED=1' `
               'USERPROFILE=C:\Users\masca' `
               'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
             & $nssm restart $svc 2>&1 | Out-Null
@@ -580,7 +582,8 @@ jobs:
             'YAWNBOT_ENV=prod' `
             'USERPROFILE=C:\Users\masca' `
             'AGENT_HOST=orchestrator' `
-            'AGENT_CADENCE_ENABLED=0' | Out-Null
+            'AGENT_CADENCE_ENABLED=1' `
+            'AGENT_DIALOGUE_DISABLED=1' | Out-Null
           & $nssm restart yawnbot-prod | Out-Null
           Write-Host "yawnbot-prod env updated (AGENT_HOST=orchestrator) + restarted"
       # === /KAR-096 Phase 1b ===

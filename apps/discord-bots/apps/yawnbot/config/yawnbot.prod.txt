@@ -93,11 +93,12 @@ KAKAO_EXPORT_WATCH_DIR=
 # bypass (5d9cb1af). 자가발전 only mode 운영 — QUIET=1 일 때 SO-2/3 dormant
 # (활성 phase 외라 무관), QUIET=0 시 SO-2/3 활성.
 # !kill 게이트(`agent-kill.off`) 그대로, 가역 (이 줄 0 으로 재 OFF).
-# 2026-05-23 KAR-018-LT-DIVERSITY: ambient daemon 패러다임 전환 → 기존 cadence
-# (dyadic dialogue, 자율 brainstorm 발의) OFF. ambient daemon 8개가 #team-bus
-# 메시지에 자율 답/읽씹. cadence "지혼자 말함" 증상 (Atlas 자율발의→Auditor
-# dyadic 챌린지 반복) 제거. D-11 코드 제거 전 임시 env kill switch.
-AGENT_CADENCE_ENABLED=0
+# 2026-05-23 KAR-018-LT-DIVERSITY: producer/worker 자율 작업·발의 = ON,
+# dyadic dialogue path 만 OFF (별 env AGENT_DIALOGUE_DISABLED=1, decideDialogueTurn
+# 가드). 사용자 발화 X 시간에도 워커는 TASK 자율 실행, initiator/atlas 는
+# 발의 박음. "혼자 말함" source 인 Atlas→Auditor 챌린지만 차단.
+AGENT_CADENCE_ENABLED=1
+AGENT_DIALOGUE_DISABLED=1
 # QUIET 모드 (자가발전 only) — producer(발굴) + dialogue(대화) skip. surgery·
 # worker·corePromotion 은 가동. 0 또는 미설정 = 정상 모드(전체 phase).
 # [SLOT-D 2026-05-22 SO-2-A 후속] 0 으로 풀음 — 사용자 ★「근본」 결정.
