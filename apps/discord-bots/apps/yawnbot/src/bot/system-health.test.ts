@@ -1,8 +1,12 @@
 // system-health 순수 코어 검증 (FS 무관). TASK-KAR-018-LT 기둥4.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import {
   diagnoseHealth,
   formatHealthBlock,
+  gatherHealthSignals,
   DEFAULT_HEALTH_THRESHOLDS,
   type HealthSignals,
   type HealthIssue,
@@ -186,5 +190,67 @@ describe('parseSurgeryDecision', () => {
     const d = parseSurgeryDecision(`과제: ${'a'.repeat(200)}`);
     expect(d.action).toBe('seed');
     expect(d.taskTitle!.length).toBeLessThanOrEqual(120);
+  });
+});
+
+// ── gatherHealthSignals: workerFailRatio 의 escalated 제외 ──────
+//
+// 회귀: escalated (사용자 결정 라우팅 = 정상) 가 fail 로 카운트되어 봇이
+// 정상 동작해도 100% fail 신호 → surgery loop 무한 발동 → 자기복제 dup TASK.
+// KAR-130/132/138~144 (8+ dup) 직접 원인. fix = escalated 분모·분자 제외.
+
+describe('gatherHealthSignals — workerFailRatio escalated 제외', () => {
+  let root: string;
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'shealth-'));
+    fs.mkdirSync(path.join(root, '.claude', 'discoveries'), { recursive: true });
+  });
+  afterEach(() => {
+    try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* ignore */ }
+  });
+  function writeTrace(reasons: string[]) {
+    const now = new Date().toISOString();
+    fs.writeFileSync(
+      path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl'),
+      reasons.map((r) => JSON.stringify({ ts: now, type: 'budget', core: 'kar-worker', reason: r })).join('\n') + '\n',
+      'utf-8',
+    );
+  }
+  const env = () => ({ MEMO_REPO_PATH: root } as NodeJS.ProcessEnv);
+
+  it('done 만 → workerFailRatio=0', () => {
+    writeTrace(['worker TASK-X-1 done agentic b1', 'worker TASK-X-2 done agentic b2']);
+    expect(gatherHealthSignals(env()).workerFailRatio).toBe(0);
+  });
+
+  it('escalated 만 → workerFailRatio=null (분모 0)', () => {
+    writeTrace(['worker TASK-X-1 escalated agentic b', 'worker TASK-X-2 escalated agentic b2']);
+    // 봇이 결정 task 만 만나도 fail 신호 X (이전엔 100% fail 로 카운트되던 버그).
+    expect(gatherHealthSignals(env()).workerFailRatio).toBe(null);
+  });
+
+  it('done 1 + escalated 2 → workerFailRatio=0 (escalated 제외)', () => {
+    writeTrace([
+      'worker TASK-X-1 done agentic b',
+      'worker TASK-X-2 escalated agentic b',
+      'worker TASK-X-3 escalated agentic b',
+    ]);
+    expect(gatherHealthSignals(env()).workerFailRatio).toBe(0);
+  });
+
+  it('done-no-artifact 는 여전히 fail', () => {
+    writeTrace([
+      'worker TASK-X-1 done agentic b',
+      'worker TASK-X-2 done-no-artifact agentic b',
+    ]);
+    expect(gatherHealthSignals(env()).workerFailRatio).toBe(0.5);
+  });
+
+  it('error 는 여전히 fail', () => {
+    writeTrace([
+      'worker TASK-X-1 done agentic b',
+      'worker TASK-X-2 error agentic b err=oops',
+    ]);
+    expect(gatherHealthSignals(env()).workerFailRatio).toBe(0.5);
   });
 });
