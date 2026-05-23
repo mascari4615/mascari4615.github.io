@@ -109,6 +109,31 @@ export function lookupTaskForumLinkByTaskId(
   }
 }
 
+/** 전 ledger 의 taskId 별 *최신* 1건 (reconciler 가 일괄 처리용).
+ *  중복 append 의 옛 entry 는 자연 superseded. */
+export function readAllLatestTaskForumLinks(
+  env: NodeJS.ProcessEnv,
+): TaskForumLink[] {
+  const p = taskForumLedgerPath(env);
+  if (!p || !fs.existsSync(p)) return [];
+  try {
+    const byTaskId = new Map<string, TaskForumLink>();
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      try {
+        const e = JSON.parse(t) as TaskForumLink;
+        byTaskId.set(e.taskId, e);
+      } catch {
+        /* skip */
+      }
+    }
+    return Array.from(byTaskId.values());
+  } catch {
+    return [];
+  }
+}
+
 /** postId → 최신 매핑 1건 (역방향 — worker-report 에서 thread → TASK 회수). */
 export function lookupTaskForumLinkByPostId(
   env: NodeJS.ProcessEnv,
