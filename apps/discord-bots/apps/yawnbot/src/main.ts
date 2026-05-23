@@ -273,6 +273,34 @@ client.on('messageCreate', async (message) => {
   if (!isBot) await handleMeme(message as any);
 });
 
+// KAR-018-LT-DIVERSITY D-2: #team-bus 메시지 → agent-bus publish (인바운드 bridge).
+// 코어 daemon 들이 subscribe 하여 ambient 판단(답/읽씹) 입력으로 사용.
+// 자기 코어 발화(isOwnAgentWebhook) = skip — daemon 이 자체 core-utter 로 이미 publish.
+// 외부 bot·사용자 메시지만 → bus 인입.
+client.on('messageCreate', async (message) => {
+  try {
+    const targetCh = agentChannelId();
+    if (!targetCh || message.channelId !== targetCh) return;
+    if (message.author.bot && isOwnAgentWebhook(message.webhookId)) return;
+    const { publishBusEvent, resolveBusRoot } = await import('./services/agent-bus.js');
+    await publishBusEvent(resolveBusRoot(), {
+      type: 'channel-msg',
+      channelId: targetCh,
+      source: message.author.bot ? 'discord:bot' : 'discord:user',
+      text: message.content || '',
+      refs: {
+        messageId: message.id,
+        author: message.author.username,
+      },
+    });
+  } catch (e) {
+    console.error(
+      '[agent-bus] inbound publish 실패',
+      e instanceof Error ? e.message : e,
+    );
+  }
+});
+
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 
