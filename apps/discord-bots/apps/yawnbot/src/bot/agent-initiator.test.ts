@@ -99,10 +99,11 @@ describe('runInitiatorOnce — 진입점', () => {
     expect(readLedger(root)).toEqual([]);
   });
 
-  it('progress-stale 1회 → new-project 1건 ledger (seedTasks: false)', () => {
+  it('progress-stale 1회 → new-project 1건 ledger (seedTasks: false, deliberate: false)', () => {
     const r = runInitiatorOnce(env(), {
       gatherSignals: progressStaleStub,
       seedTasks: false,
+      deliberate: false,
     });
     expect(r.label).toBe('init:proposed:1');
     expect(r.appended).toBe(1);
@@ -246,6 +247,55 @@ describe('buildTaskSeedBody — frontmatter + 본문 결정성', () => {
     );
     expect(content).toContain('새 역할 코어');
     expect(content).toContain('결핍 직무 추론');
+  });
+});
+
+describe('runInitiatorOnce — deliberation handoff (출력 layer #3)', () => {
+  it('progress-stale 1건 → proposals.jsonl envelope 1건 append (readLatestProposal 호환)', () => {
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      seedTasks: false, // ledger 영향 단순화
+    });
+    expect(r.deliberationIds).toHaveLength(1);
+    expect(r.label).toContain('+deliberate:1');
+    const envelopePath = path.join(root, '.claude', 'proposals.jsonl');
+    expect(fs.existsSync(envelopePath)).toBe(true);
+    const lines = fs.readFileSync(envelopePath, 'utf-8').trim().split(/\r?\n/);
+    expect(lines).toHaveLength(1);
+    const env0 = JSON.parse(lines[0]);
+    // readLatestProposal 가 읽는 필드 호환
+    expect(env0.id).toMatch(/^initiator-/);
+    expect(env0.envelope.payload.title).toBeTruthy();
+    expect(env0.envelope.payload.body).toContain('[INITIATOR-AUTO]');
+    expect(env0.envelope.projectId).toBe('kar-018');
+  });
+
+  it('AGENT_INIT_DELIBERATE=0 = deliberation 비활성', () => {
+    const r = runInitiatorOnce(
+      { ...env(), AGENT_INIT_DELIBERATE: '0' } as NodeJS.ProcessEnv,
+      { gatherSignals: progressStaleStub, seedTasks: false },
+    );
+    expect(r.deliberationIds).toEqual([]);
+    const envelopePath = path.join(root, '.claude', 'proposals.jsonl');
+    expect(fs.existsSync(envelopePath)).toBe(false);
+  });
+
+  it('다중 kind accepted = 다중 envelope append', () => {
+    const both = (): HealthSignals => ({
+      ...healthyStub(),
+      progressStale: true,
+      workerFailRatio: 0.9,
+    });
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: both,
+      seedTasks: false,
+    });
+    expect(r.deliberationIds).toHaveLength(2);
+    const lines = fs
+      .readFileSync(path.join(root, '.claude', 'proposals.jsonl'), 'utf-8')
+      .trim()
+      .split(/\r?\n/);
+    expect(lines).toHaveLength(2);
   });
 });
 

@@ -1240,22 +1240,6 @@ export async function runCadenceTickOnce(
     const mat = await runInboxConsumerOnce(env, { autoReady: true });
     if (mat > 0) r = `${r}+consumed:${mat}`;
   }
-  // INIT (TASK-KAR-018-INIT) 팀-드리븐 발의 — corePromotion *전* 박는
-  // 이유: 발의가 적용에 선행이 자연 순서. quiet 모드에서도 작동(자가발전
-  // 핵심). best-effort·비차단·LLM 무관 결정적 (날조 0). 산출 = ledger
-  // append + cadence trace 라벨 ("no-news-is-bad-news" 정합) + #team-bus
-  // 「📜 새 발의 N건」 헤드라인 (gov.notify 재사용, 평행 정의 X). 실 TASK
-  // seed write 는 active 전이 후 (현 단계 = surface 표면화 only).
-  if (memoRoot && !isKilled()) {
-    try {
-      const init = runInitiatorOnce(env, { notify: gov.notify });
-      if (init.label.startsWith('init:proposed:')) {
-        r = `${r}+${init.label}`;
-      }
-    } catch {
-      /* INIT 실패 = tick 비차단 */
-    }
-  }
   // LT-11 자가증강 *닫는* 루프: 팀 채택→materialize 된 draft 코어를
   // 구조검증+비충돌 PASS 시 자율 active 승격, 가동 후 적합도 퇴행 시
   // 자동 draft 원복. 사람=!kill·비전만(2026-05-19 "완전 자율+측정
@@ -1297,6 +1281,24 @@ export async function runCadenceTickOnce(
     }
   } else if (quiet) {
     r = `${r}+quiet-dialogue-skip`;
+  }
+  // INIT (TASK-KAR-018-INIT) 팀-드리븐 발의 — dialogue *후* 박는 이유:
+  // INIT 가 proposals.jsonl 에 envelope append (출력 layer #3). dialogue 보다
+  // 먼저 박으면 *현 tick* 의 producer 산출물 대신 INIT envelope 가 latest 로
+  // 픽업돼 producer→dialogue 합성 검증 회귀 (agent-cadence-tick.test.ts).
+  // dialogue *후* = INIT proposal 이 *다음 tick* dialogue 의 input (30분 latency,
+  // 다중턴 deliberation 자연 진입). quiet 모드에서도 작동(자가발전 핵심).
+  // best-effort·비차단·LLM 무관 결정적 (날조 0). 산출 = ledger + #team-bus
+  // 헤드라인 + 실 TASK seed 파일 + proposals.jsonl envelope.
+  if (memoRoot && !isKilled()) {
+    try {
+      const init = runInitiatorOnce(env, { notify: gov.notify });
+      if (init.label.startsWith('init:proposed:')) {
+        r = `${r}+${init.label}`;
+      }
+    } catch {
+      /* INIT 실패 = tick 비차단 */
+    }
   }
   if (memoRoot && !isKilled()) {
     try {
