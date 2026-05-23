@@ -22,6 +22,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     kind?: string;
     status?: string;
     default_skin?: string;
+    last_activity_ts?: string;
+    activity_count: number;
   };
 
   type ObjectiveInfo = {
@@ -154,6 +156,21 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
       );
     }
 
+    function relativeTime(iso: string | undefined): string {
+      if (!iso) return '활동 없음';
+      const t = new Date(iso).getTime();
+      if (isNaN(t)) return iso.slice(0, 16);
+      const diffMs = Date.now() - t;
+      if (diffMs < 60_000) return '방금';
+      const m = Math.floor(diffMs / 60_000);
+      if (m < 60) return `${m}분 전`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h}시간 전`;
+      const d = Math.floor(h / 24);
+      if (d < 14) return `${d}일 전`;
+      return iso.slice(0, 10);
+    }
+
     function renderAgents(rows: AgentInfo[]): void {
       countAgents.textContent = String(rows.length);
       rosterList.innerHTML = rows
@@ -165,6 +182,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           const emoji = a.emoji ? escapeHtml(a.emoji) + ' ' : '';
           const role = a.role ? `<div style="opacity:.7;font-size:.78rem;line-height:1.35;margin-top:.2rem">${escapeHtml(a.role)}</div>` : '';
           const kind = a.kind ? `<span style="opacity:.6;font-size:.72rem;margin-left:.3rem">[${escapeHtml(a.kind)}]</span>` : '';
+          const lastSeen = a.last_activity_ts ? relativeTime(a.last_activity_ts) : '활동 없음';
+          const countLabel = a.activity_count > 0 ? `·${a.activity_count}건` : '';
           return `
             <div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
               <div style="display:flex;align-items:center">
@@ -172,6 +191,9 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
                 <span style="margin-left:auto;font-size:.72rem;opacity:.55">${escapeHtml(a.id)}</span>
               </div>
               ${role}
+              <div style="margin-top:.25rem;font-size:.72rem;opacity:.6;display:flex;gap:.3rem">
+                <span>📊 ${escapeHtml(lastSeen)}${countLabel}</span>
+              </div>
             </div>`;
         })
         .join('');

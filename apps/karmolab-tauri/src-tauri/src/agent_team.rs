@@ -31,6 +31,10 @@ pub struct AgentInfo {
     pub kind: Option<String>,
     pub status: Option<String>,
     pub default_skin: Option<String>,
+    /// `agents/<id>/mem/*.jsonl` 의 가장 최근 ts (RFC3339). None = mem 디렉토리 비어있음 또는 미존재.
+    pub last_activity_ts: Option<String>,
+    /// 같은 mem/ 안 총 jsonl 라인 수 (활동량 proxy).
+    pub activity_count: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -147,6 +151,35 @@ fn read_agents_blocking(repo_root: String) -> Result<Vec<AgentInfo>, String> {
             .unwrap_or_else(|| "?".to_string());
         let content = fs::read_to_string(&core_md).map_err(|e| format!("core.md read 실패 ({}): {e}", core_md.display()))?;
         let fm = parse_yaml_frontmatter(&content);
+
+        // mem/*.jsonl scan — 마지막 ts + 총 라인 수
+        let mut last_ts: Option<String> = None;
+        let mut activity_count: u32 = 0;
+        let mem_dir = path.join("mem");
+        if let Ok(rd) = fs::read_dir(&mem_dir) {
+            for f in rd.flatten() {
+                let fp = f.path();
+                if fp.extension().and_then(|e| e.to_str()) != Some("jsonl") {
+                    continue;
+                }
+                let Ok(c) = fs::read_to_string(&fp) else { continue };
+                for line in c.lines() {
+                    let line = line.trim();
+                    if line.is_empty() {
+                        continue;
+                    }
+                    activity_count = activity_count.saturating_add(1);
+                    if let Ok(v) = serde_json::from_str::<serde_json::Value>(line) {
+                        if let Some(ts) = v.get("ts").and_then(|x| x.as_str()) {
+                            if last_ts.as_deref().map_or(true, |prev| ts > prev) {
+                                last_ts = Some(ts.to_string());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         out.push(AgentInfo {
             id: yaml_str(&fm, "id").unwrap_or(id.clone()),
             display_name: yaml_str(&fm, "display_name"),
@@ -155,6 +188,8 @@ fn read_agents_blocking(repo_root: String) -> Result<Vec<AgentInfo>, String> {
             kind: yaml_str(&fm, "kind"),
             status: yaml_str(&fm, "status"),
             default_skin: yaml_str(&fm, "default_skin"),
+            last_activity_ts: last_ts,
+            activity_count,
         });
     }
     out.sort_by(|a, b| a.id.cmp(&b.id));
