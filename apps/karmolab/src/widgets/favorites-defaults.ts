@@ -61,6 +61,7 @@ export const DEFAULT_ITEMS: FavoriteGroup[] = [
         { url: 'https://aistudio.google.com', label: 'AI Studio', icon: 'https://cdn.simpleicons.org/google' },
         { url: 'https://notebooklm.google.com/', label: 'NotebookLM', icon: 'https://cdn.simpleicons.org/google' },
         { url: 'https://cursor.com/dashboard/spending', label: 'Cursor Spending', icon: 'https://cdn.simpleicons.org/cursor' },
+        { url: 'https://console.cloud.google.com/welcome?chat=true&orgonly=true&project=gen-lang-client-0029124356', label: 'GCP Console (gen-lang-client)', icon: 'https://cdn.simpleicons.org/googlecloud' },
     ]},
     { group: 'AI 아트', items: [
         { url: 'https://pixai.art/', label: 'PixAI', icon: null },
