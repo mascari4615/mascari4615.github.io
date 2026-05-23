@@ -295,8 +295,10 @@ export async function handleProposalReaction(
         ? await client.channels.fetch(entry.threadId).catch(() => null)
         : null;
       const target =
-        ch && ch.isTextBased() && 'send' in ch ? ch : (msg.channel as any);
-      await target?.send?.(text);
+        ch && ch.isTextBased() && 'send' in ch ? ch : msg.channel;
+      if (target && 'send' in target) {
+        await target.send(text);
+      }
     } catch {
       /* 피드백 실패해도 처리 자체는 진행 */
     }
@@ -451,7 +453,9 @@ async function lockCard(
   const src = msg.embeds?.[0];
   if (!src) return;
   const eb = applyCardEmbedState(src, decision, result);
-  await (msg as any).edit?.({ embeds: [eb] });
+  if (msg.editable) {
+    await msg.edit({ embeds: [eb] });
+  }
 }
 
 // ── 팀 verdict → 원본 카드 반영 (KAR-018-LT 근본) ──────────────

@@ -54,6 +54,7 @@ import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
+import type { ClientLike } from './bot/forum-post';
 import {
   loadCoreDef,
   listCoreIds,
@@ -208,15 +209,15 @@ function buildCtx() {
 client.on('interactionCreate', async (interaction) => {
   const ctx = buildCtx();
   if (interaction.isButton()) {
-    await handleButtonInteraction(ctx as any, interaction as any);
+    await handleButtonInteraction(ctx, interaction);
     return;
   }
   if (interaction.isAutocomplete()) {
-    await dispatchAutocomplete(ctx as any, interaction as any);
+    await dispatchAutocomplete(ctx, interaction);
     return;
   }
   if (interaction.isChatInputCommand()) {
-    await dispatchSlashCommand(ctx as any, interaction as any);
+    await dispatchSlashCommand(ctx, interaction);
   }
 });
 
@@ -267,20 +268,20 @@ client.on('messageCreate', async (message) => {
   // (handler 루프가드 ① 가 자기 webhook 은 drop). 그 외 bot 은 기존대로 무시. (KAR-018-A sub-A-1)
   const teamWebhook =
     isBot && !!message.webhookId && !!characterService &&
-    isTeamRoomMessage(characterService, message as any);
+    isTeamRoomMessage(characterService, message);
   if (isBot && !teamWebhook) return;
   // 뇌 캡처 인터셉트 — DM에서 `뇌: <내용>` 형태면 외장 뇌로 저장 후 return
   const isDM = message.channel.isDMBased();
   const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
   if (isDM && memoRepoPath && assistantUserId && message.author.id === assistantUserId && isBrainCapture(message.content)) {
-    await handleBrainCapture(message as any, memoRepoPath);
+    await handleBrainCapture(message, memoRepoPath);
     return;
   }
 
   if (characterService) {
-    await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
+    await handleAssistantMessage(message, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
-  if (!isBot) await handleMeme(message as any);
+  if (!isBot) await handleMeme(message);
 });
 
 // KAR-018-LT-DIVERSITY D-2: #team-bus 메시지 → agent-bus publish (인바운드 bridge).
@@ -319,8 +320,8 @@ let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 // daemon = Discord client 무관, 본 어댑터가 thin bridge.
 let agentBusSubscription: { stop: () => void } | null = null;
 
-const app = createGithubWebhookApp(client as any, gameData as any);
-mountLocalWebhook(app, client as any);
+const app = createGithubWebhookApp(client, gameData);
+mountLocalWebhook(app, client);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
@@ -357,7 +358,7 @@ client.once('clientReady', async () => {
             const card = characterService!.loadCard(core.defaultSkin);
             if (!card) return;
             const ch = await client.channels.fetch(targetCh);
-            if (!ch || !(ch as any).isTextBased?.()) return;
+            if (!ch?.isTextBased()) return;
             // KAR-018-LT-DIVERSITY: 발화에 *어떤 메시지에 대한 답*인지 자연 인용 prefix.
             // 사용자 push back 2026-05-23: "갑자기 지혼자 이렇게 말하는데, 최소한 뭘 대상을
             // 말하는지는 알 수 있어야 할 것 같은데" — 컨텍스트 단절 fix.
@@ -439,7 +440,7 @@ client.once('clientReady', async () => {
   // boot 자체 진행.
   try {
     const { runTaskForumBackfillOnce } = await import('./bot/task-forum-backfill.js');
-    await runTaskForumBackfillOnce(client as any, process.env);
+    await runTaskForumBackfillOnce(client as unknown as ClientLike, process.env);
   } catch (e) {
     console.error(
       '[TaskForumBackfill] 부팅 backfill 실패:',
@@ -453,8 +454,8 @@ client.once('clientReady', async () => {
   try {
     const { reconcileTaskForumStatusOnce, startTaskForumReconciler } =
       await import('./bot/task-forum-reconciler.js');
-    await reconcileTaskForumStatusOnce(client as any, process.env);
-    startTaskForumReconciler(client as any, process.env);
+    await reconcileTaskForumStatusOnce(client as unknown as ClientLike, process.env);
+    startTaskForumReconciler(client as unknown as ClientLike, process.env);
   } catch (e) {
     console.error(
       '[TaskForumReconciler] 부팅 sync 실패:',
@@ -544,7 +545,7 @@ client.once('clientReady', async () => {
     // 폴백. 스레드 불가/실패도 폴백(무손실 우선).
     const teamBusFallback = (msg: string): void => {
       void sendLocalEvent(
-        client as any,
+        client,
         {
           kind: 'agent-team',
           source: 'KAR-018 에이전트 팀',
@@ -597,7 +598,7 @@ client.once('clientReady', async () => {
       const skinCard = coreDef
         ? characterService?.loadCard(coreDef.defaultSkin) ?? null
         : null;
-      await announceProposal(client as any, process.env, {
+      await announceProposal(client, process.env, {
         ...a,
         agent: coreDef
           ? {
@@ -661,7 +662,7 @@ client.once('clientReady', async () => {
       try {
         const ch = await client.channels.fetch(channelId).catch(() => null);
         if (!(ch instanceof TextChannel)) return null;
-        const payload = { content: '', embeds: [embed as any] };
+        const payload = { content: '', embeds: [embed] };
         if (messageId) {
           try {
             await ch.messages.edit(messageId, payload);
