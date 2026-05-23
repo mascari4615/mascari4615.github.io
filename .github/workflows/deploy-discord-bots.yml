@@ -512,9 +512,17 @@ jobs:
           $mainJs = Join-Path $yawnbotDir 'dist\src\agent-daemon.js'
           if (-not (Test-Path $mainJs)) { Write-Warning "yawnbot dist/src/agent-daemon.js 없음 — build 미완 가능, ambient daemon skip"; exit 0 }
 
-          # 첫 박힘 = echo 1개만 (D-7). 검증 통과 후 D-9 에서 나머지 코어 점진 추출.
+          # 전 active 코어 daemon 동시 박음 (사용자 결정 2026-05-23 "echo 만? 다 박아").
+          # inactive 코어 (wm-worker 등) = daemon process 가 status 체크 후 자기 exit(3), 다른 daemon 영향 0.
           $ambients = @(
-            @{ svc='agent-ambient-echo-prod'; coreId='echo' }
+            @{ svc='agent-ambient-atlas-prod';      coreId='atlas' },
+            @{ svc='agent-ambient-echo-prod';       coreId='echo' },
+            @{ svc='agent-ambient-kar-worker-prod'; coreId='kar-worker' },
+            @{ svc='agent-ambient-kl-worker-prod';  coreId='kl-worker' },
+            @{ svc='agent-ambient-wm-scout-prod';   coreId='wm-scout' },
+            @{ svc='agent-ambient-wm-support-prod'; coreId='wm-support' },
+            @{ svc='agent-ambient-initiator-prod';  coreId='initiator' },
+            @{ svc='agent-ambient-auditor-prod';    coreId='auditor' }
           )
           foreach ($a in $ambients) {
             $svc = $a.svc
