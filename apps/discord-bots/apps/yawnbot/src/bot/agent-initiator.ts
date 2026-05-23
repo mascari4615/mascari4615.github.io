@@ -637,12 +637,22 @@ export function formatProposalTicker(
   const lines = accepted.map((c) => `- ${c.headline}`);
   const trail =
     deduped > 0 ? `\n_(추가로 ${deduped}건 dedupe)_` : '';
+  // makeThreadRouter extractTaskId = 첫 매치만 — 시드 TASK-id 를 *맨 앞* 에
+  // 박으면 그 TASK 의 새 스레드에 자동 라우팅 (사용자 시점 정합 · INIT
+  // 자체 스레드보다 시드된 새 TASK 스레드가 더 적합).
+  const primaryTaskId =
+    seededTaskFiles.length > 0
+      ? (seededTaskFiles[0].match(/^(TASK-[A-Z]{2,6}-\d+)/)?.[1] ?? null)
+      : null;
   const seededBlock =
     seededTaskFiles.length > 0
       ? `\n**자동 시드된 TASK 파일** (status=seed, 14d 가시 윈도우):\n${seededTaskFiles.map((f) => `- \`memo/tasks/${f}\``).join('\n')}`
       : '\n_(이번 cycle 자동 시드 X — proposal ledger 만 박힘)_';
+  const header = primaryTaskId
+    ? `📜 **${primaryTaskId}** 자동 발의 · ${accepted.length}건 (initiator · KAR-018-INIT)`
+    : `📜 **새 발의 ${accepted.length}건** (initiator — TASK-KAR-018-INIT)`;
   return [
-    `📜 **새 발의 ${accepted.length}건** (initiator — TASK-KAR-018-INIT)`,
+    header,
     ...lines,
     trail,
     seededBlock,
