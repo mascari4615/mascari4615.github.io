@@ -304,6 +304,11 @@ client.on('messageCreate', async (message) => {
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 
+// KAR-018-LT-DIVERSITY D-2 (outbound): agent-bus core-utter → Discord post.
+// daemon process 가 publish 한 발화 → 봇이 받아서 채널에 webhook post.
+// daemon = Discord client 무관, 본 어댑터가 thin bridge.
+let agentBusSubscription: { stop: () => void } | null = null;
+
 const app = createGithubWebhookApp(client as any, gameData as any);
 mountLocalWebhook(app, client as any);
 
@@ -325,6 +330,40 @@ client.once('clientReady', async () => {
       .filter((s) => s.trim().length > 0)
       .join('\n');
   });
+  // KAR-018-LT-DIVERSITY D-2 outbound: agent-bus core-utter → Discord webhook post.
+  try {
+    const { subscribeBusEvents, resolveBusRoot } = await import('./services/agent-bus.js');
+    const targetCh = agentChannelId();
+    if (targetCh && memoRepoPath && characterService) {
+      const busRoot = resolveBusRoot();
+      agentBusSubscription = subscribeBusEvents(
+        busRoot,
+        targetCh,
+        async (event) => {
+          if (event.type !== 'core-utter' || !event.coreId || !event.text) return;
+          try {
+            const core = loadCoreDef(memoRepoPath!, event.coreId);
+            if (!core || core.status !== 'active') return;
+            const card = characterService!.loadCard(core.defaultSkin);
+            if (!card) return;
+            const ch = await client.channels.fetch(targetCh);
+            if (!ch || !(ch as any).isTextBased?.()) return;
+            await sendAsSkin(ch as TextChannel, card, { content: event.text });
+          } catch (e) {
+            console.error('[agent-bus] outbound post 실패', e instanceof Error ? e.message : e);
+          }
+        },
+        {
+          intervalMs: 500,
+          onError: (e) => console.error('[agent-bus] outbound tail error', e.message),
+        },
+      );
+      console.log(`[agent-bus] outbound bridge ON channel=${targetCh} root=${busRoot}`);
+    }
+  } catch (e) {
+    console.error('[agent-bus] outbound init 실패', e instanceof Error ? e.message : e);
+  }
+
   console.log(`\n  ⚔️  YawnBot (Node.js)`);
   console.log(`  ─────────────────────────`);
   console.log(`  로그인: ${client.user?.tag}`);
@@ -818,6 +857,10 @@ async function gracefulShutdown(reason: string): Promise<void> {
   }
   setMusicDiscordClient(null);
   setTeamBusContextFetcher(null);
+  if (agentBusSubscription) {
+    agentBusSubscription.stop();
+    agentBusSubscription = null;
+  }
   stopPresenceRotation();
   stopHeartbeat();
   stopCharacterStateSnapshot();
