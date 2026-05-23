@@ -129,7 +129,10 @@ export function normalizeTraceEvents(
     if (worker) {
       const taskId = worker[1];
       const status = worker[2];
-      if (status === 'done') continue;
+      // done = 성공, escalated = 사용자 결정 라우팅(정상 동작) — 둘 다 evolution
+      // event 미생성. 「escalated 가 worker-failed 로 잡혀 가짜 퇴행 신호」 회피
+      // (system-health workerFailRatio 와 동일 분류 정합).
+      if (status === 'done' || status === 'escalated') continue;
       const noArtifact = status === 'done-no-artifact';
       events.push({
         ts,
