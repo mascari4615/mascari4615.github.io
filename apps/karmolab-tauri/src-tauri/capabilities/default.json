@@ -35,6 +35,7 @@
     "allow-adventure",
     "allow-claude-env",
     "allow-alarm",
+    "allow-agent-team",
     "dialog:allow-open",
     "updater:default",
     {

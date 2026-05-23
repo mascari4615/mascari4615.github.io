@@ -148,3 +148,9 @@ name = "claude-env"
 identifier = "allow-claude-env"
 description = "Claude 환경 컨트롤 위젯 (TASK-KL-056) — karmoddrine/memo/dotfiles/claude-hooks 정본의 notify-*.ps1 설정 read/write + 미리듣기."
 commands = ["claude_env_read_notify_config", "claude_env_write_notify_config", "claude_env_preview_sound"]
+
+[[group]]
+name = "agent-team"
+identifier = "allow-agent-team"
+description = "KarmoApp 에이전트 팀 운영 GUI (TASK-KAR-116) — 읽기 전용: memo/.claude/agents/<id>/core.md + objectives.md + active-sessions.md parse. 쓰기 액션(cadence run / proposal decide)은 yawnbot HTTP 우회(Phase 2)."
+commands = ["agent_team_list_agents", "agent_team_list_objectives", "agent_team_list_sessions", "agent_team_list_cards", "agent_team_list_proposals", "agent_team_decide_proposal", "agent_team_run_cadence_tick"]
