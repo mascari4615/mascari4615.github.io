@@ -70,6 +70,17 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     body_preview: string;
   };
 
+  // TASK-YB-039: Core/skin 분리 — memo TASK md = Core, KarmoLab/Discord = peer skin.
+  // Rust agent_team_list_tasks 가 5 TASK_DIRS scan + bridge ledger 머지 후 반환.
+  type TaskBoardEntry = {
+    task_id: string;
+    status: string;
+    title: string;
+    md_path: string;
+    discord_post_id?: string;
+    discord_channel_id?: string;
+  };
+
   const REFRESH_INTERVAL_MS = 5000;
 
   const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
@@ -82,7 +93,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     container.innerHTML = `
-      <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem">
+      <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
           <h2 style="margin:0;font-size:1.1rem">🛰 에이전트 팀</h2>
           <span class="at-meta" style="opacity:.6;font-size:.8rem"></span>
@@ -94,6 +105,13 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           <button class="at-cadence-prod" type="button" title="노트북 yawnbot-prod cadence 1회 (laptop-ops 게이트웨이 우회, ~/.laptop-ops-token 필요)" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Prod</button>
         </header>
         <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
+        <section class="at-section at-tasks">
+          <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem 0">
+            <h3 style="margin:0;font-size:.95rem;opacity:.85">📋 작업중 TASK (<span class="at-count-tasks">-</span>)</h3>
+            <input class="at-tasks-search" type="search" placeholder="TASK 검색 (id·제목·status·domain)" style="margin-left:auto;padding:.2rem .4rem;min-width:14rem;font-size:.78rem" />
+          </div>
+          <div class="at-list at-tasks-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.4rem"></div>
+        </section>
         <section class="at-section at-proposals">
           <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem 0">
             <h3 style="margin:0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
@@ -135,6 +153,10 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     const countSessions = container.querySelector<HTMLSpanElement>('.at-count-sessions')!;
     const countObjectives = container.querySelector<HTMLSpanElement>('.at-count-objectives')!;
     const countBus = container.querySelector<HTMLSpanElement>('.at-count-bus')!;
+    const tasksList = container.querySelector<HTMLDivElement>('.at-tasks-list')!;
+    const countTasks = container.querySelector<HTMLSpanElement>('.at-count-tasks')!;
+    const tasksSearch = container.querySelector<HTMLInputElement>('.at-tasks-search')!;
+    let cachedTasks: TaskBoardEntry[] = [];
 
     let intervalHandle: number | null = null;
     let cachedRepoRoot: string | null = null;
@@ -294,6 +316,79 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         .join('');
     }
 
+    // TASK-YB-039: 상태별 색·이모지 (Discord forum 태그와 정합).
+    function taskStatusVisual(s: string): { color: string; emoji: string; label: string } {
+      const l = s.toLowerCase();
+      if (l === 'in_progress' || l === 'in-progress' || l === 'active')
+        return { color: '#3a8', emoji: '⏳', label: l };
+      if (l === 'in_review' || l === 'unit_verified')
+        return { color: '#38a', emoji: '✅', label: l };
+      if (l === 'design') return { color: '#a83', emoji: '🎨', label: l };
+      if (l === 'ready') return { color: '#3a3', emoji: '🟢', label: l };
+      if (l === 'hold') return { color: '#888', emoji: '⏸', label: l };
+      if (l === 'seed') return { color: '#ca0', emoji: '🌱', label: l };
+      return { color: '#888', emoji: '·', label: l };
+    }
+
+    function taskDomain(id: string): { color: string; emoji: string; label: string } {
+      if (id.startsWith('TASK-WM-')) return { color: '#8b5fff', emoji: '🧙', label: 'WM' };
+      if (id.startsWith('TASK-KL-')) return { color: '#3aa', emoji: '🧪', label: 'KL' };
+      if (id.startsWith('TASK-YB-')) return { color: '#c83', emoji: '📣', label: 'YB' };
+      if (id.startsWith('TASK-LIFE-')) return { color: '#a3a', emoji: '🌿', label: 'LIFE' };
+      return { color: '#88a', emoji: '🛰', label: 'KAR' };
+    }
+
+    function renderTasks(rows: TaskBoardEntry[]): void {
+      const q = tasksSearch.value.trim().toLowerCase();
+      const filtered = q
+        ? rows.filter((t) =>
+            (t.task_id + ' ' + t.title + ' ' + t.status).toLowerCase().includes(q),
+          )
+        : rows;
+      countTasks.textContent =
+        rows.length === filtered.length ? String(rows.length) : `${filtered.length}/${rows.length}`;
+      if (filtered.length === 0) {
+        tasksList.innerHTML =
+          '<div style="opacity:.55;font-size:.82rem;padding:.5rem">진행 중 TASK 없음 (ledger 비었거나 검색 매치 0).</div>';
+        return;
+      }
+      tasksList.innerHTML = filtered
+        .map((t) => {
+          const sv = taskStatusVisual(t.status);
+          const dv = taskDomain(t.task_id);
+          const discordLink = t.discord_post_id
+            ? `<a href="#" class="at-task-discord" data-post="${escapeHtml(t.discord_post_id)}" data-ch="${escapeHtml(t.discord_channel_id || '')}" style="font-size:.72rem;opacity:.7;text-decoration:none">🔗 디코</a>`
+            : '<span style="font-size:.72rem;opacity:.4">디코 미연결</span>';
+          return `
+            <div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
+              <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+                <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
+                <strong style="font-family:monospace;font-size:.82rem">${escapeHtml(t.task_id)}</strong>
+                <span style="background:${sv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${sv.emoji} ${escapeHtml(sv.label)}</span>
+                <span style="margin-left:auto">${discordLink}</span>
+              </div>
+              <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${escapeHtml(t.title)}</div>
+              <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${escapeHtml(t.md_path)}</div>
+            </div>`;
+        })
+        .join('');
+      // 디코 링크 click → discord:// 또는 https 우회 (Discord deep link)
+      tasksList.querySelectorAll<HTMLAnchorElement>('.at-task-discord').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          const post = a.dataset.post || '';
+          const ch = a.dataset.ch || '';
+          if (!post || !ch) return;
+          // Discord forum-post = thread → URL `https://discord.com/channels/<guild>/<channelOrThreadId>`
+          // forum-post 의 starter msg id == thread id == postId.
+          // guild id 추적 불요 — discord.com 이 자동 라우팅 (channelId 가 unique).
+          window.open(`https://discord.com/channels/@me/${post}`, '_blank');
+        });
+      });
+    }
+
+    tasksSearch.addEventListener('input', () => renderTasks(cachedTasks));
+
     function renderProposalBody(raw: string): string {
       // 단순 markdown 렌더 — 제안서 본문이 `- ...` 불릿 위주. 안전 1차 escape 후 가벼운 변환.
       const escaped = escapeHtml(raw);
@@ -410,19 +505,22 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           return;
         }
         cachedRepoRoot = repoRoot;
-        const [agents, objectives, sessions, proposals, bus, cards] = (await Promise.all([
+        const [agents, objectives, sessions, proposals, bus, cards, tasks] = (await Promise.all([
           tauriInvoke('agent_team_list_agents', { repoRoot }),
           tauriInvoke('agent_team_list_objectives', { repoRoot }),
           tauriInvoke('agent_team_list_sessions', { repoRoot }),
           tauriInvoke('agent_team_list_proposals', { repoRoot }),
           tauriInvoke('agent_team_list_bus', { repoRoot, limit: 15 }),
-          tauriInvoke('agent_team_list_cards', { repoRoot, limit: 240 })
-        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[], BusEntry[], CardInfo[]];
+          tauriInvoke('agent_team_list_cards', { repoRoot, limit: 240 }),
+          tauriInvoke('agent_team_list_tasks', { repoRoot }),
+        ])) as [AgentInfo[], ObjectiveInfo[], SessionInfo[], ProposalInfo[], BusEntry[], CardInfo[], TaskBoardEntry[]];
         renderAgents(agents);
         renderObjectives(objectives);
         renderSessions(sessions);
         renderProposals(proposals);
         renderBus(bus);
+        cachedTasks = tasks;
+        renderTasks(tasks);
 
         // 24h 카드 카운트 (활동 펄스)
         const now = Date.now();
@@ -440,6 +538,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           <span style="margin-left:.75rem">🟢 ${activeAgents}코어</span>
           <span style="margin-left:.4rem">💼 ${liveSessions}세션</span>
           <span style="margin-left:.4rem">📮 ${pendingProposals}대기</span>
+          <span style="margin-left:.4rem">📋 ${tasks.length}TASK</span>
           <span style="margin-left:.4rem">📈 24h ${last24h}</span>`;
       } catch (e) {
         errBox.style.display = 'block';
@@ -551,7 +650,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
       return;
     }
     container.innerHTML = `
-      <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem">
+      <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
           <h2 style="margin:0;font-size:1.05rem">🎴 에이전트 카드 피드</h2>
           <span class="ac-meta" style="opacity:.6;font-size:.78rem"></span>
@@ -658,7 +757,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     ...Toolbox.getLazyWidgetPublicMeta?.('agent-team'),
     id: 'agent-team',
     title: '에이전트 팀',
-    category: 'desktop',
+    category: 'lab',
+    desktopOnly: true,
     desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1 PoC: roster + objectives + 활성 세션 read-only)',
     layout: 'full',
     icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',

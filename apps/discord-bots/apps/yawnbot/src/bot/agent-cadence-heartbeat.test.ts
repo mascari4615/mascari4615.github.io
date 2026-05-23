@@ -42,6 +42,27 @@ describe('summarizeTick — 의미 활동만 가시화', () => {
     expect(summarizeTick('drift-skip')).toContain('건너뜀');
   });
 
+  it('surgery seed / escalate / dedupe 셋 다 가시화 (각각 다른 어휘)', () => {
+    expect(summarizeTick('idle+surgery:seed:워커 진단')).toContain('과제 시드 작성');
+    expect(summarizeTick('idle+surgery:escalate')).toContain('사람 판단 필요');
+    // dedupe = 사용자가 「surgery 죽었나?」 오해 회피 — silent X
+    expect(summarizeTick('idle+surgery:dedupe:worker-fail-critical')).toContain('24h 내 처리됨');
+  });
+
+  it('init 발의 가시화 — proposed / all-deduped / no-signal 분기', () => {
+    // proposed = 새 발의 가시화 (사용자 「자기들끼리 발의」 체감 면)
+    expect(summarizeTick('idle+init:proposed:2')).toContain('새 발의 2건');
+    // proposed + deduped 합산 = 둘 다 표시
+    const both = summarizeTick('idle+init:proposed:1+deduped:3') ?? '';
+    expect(both).toContain('1건');
+    expect(both).toContain('3건');
+    // all-deduped = "전부 보류" (signal 있었으나 24h 중복)
+    expect(summarizeTick('idle+init:all-deduped:5')).toContain('전부 보류');
+    // no-signal / below-threshold = silent (진짜 idle)
+    expect(summarizeTick('idle+init:no-signal')).toBeNull();
+    expect(summarizeTick('idle+init:below-threshold')).toBeNull();
+  });
+
   it('복합 tick = 항목 · 으로 결합', () => {
     const s = summarizeTick(
       'idle→producer:task+consumed:1+worker:wm-worker:done:TASK-WM-120+dialogue:atlas',

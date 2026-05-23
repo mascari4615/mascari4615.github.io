@@ -111,6 +111,72 @@ describe('gatherStatusBoardData — substrate 통합 (ledger/health)', () => {
     expect(data.userPending.topItem).toContain('❌');
   });
 
+  it('미결정 N건 → count=N + topItem 에 (+ N-1건 미결정) 텍스트', () => {
+    // 3건 시드, 결정 0 → count=3, topItem 에 최신 + "+ 2건 미결정"
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      [
+        JSON.stringify({ ts: '2026-05-23T00:30:00Z', type: 'seeded', kind: 'k', score: 0.5, rootCodes: [], headline: 'h1', rationale: 'r', status: 'draft', seededTaskFile: 'TASK-KAR-200-a.md' }),
+        JSON.stringify({ ts: '2026-05-23T00:31:00Z', type: 'seeded', kind: 'k', score: 0.5, rootCodes: [], headline: 'h2', rationale: 'r', status: 'draft', seededTaskFile: 'TASK-KAR-201-b.md' }),
+        JSON.stringify({ ts: '2026-05-23T00:32:00Z', type: 'seeded', kind: 'k', score: 0.5, rootCodes: [], headline: 'h3', rationale: 'r', status: 'draft', seededTaskFile: 'TASK-KAR-202-c.md' }),
+      ].join('\n') + '\n',
+      'utf-8',
+    );
+    const data = gatherStatusBoardData(env(), Date.parse('2026-05-23T01:00:00Z'));
+    expect(data.userPending.count).toBe(3);
+    expect(data.userPending.topItem).toContain('TASK-KAR-202'); // 최신
+    expect(data.userPending.topItem).toContain('+ 2건 미결정'); // 나머지 표기
+  });
+
+  it('사용자 결정 박힌 seeded entry skip → 다음 미결정 entry / 없으면 0', () => {
+    // 시드 2건: 새 거 (KAR-137) = 결정 박힘, 옛 거 (KAR-136) = 미결정
+    // → status board 가 KAR-136 (미결정) 표시 (KAR-137 skip).
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      [
+        JSON.stringify({
+          ts: '2026-05-23T00:30:00Z',
+          type: 'seeded',
+          kind: 'new-project',
+          score: 0.8,
+          rootCodes: ['progress-stale'],
+          headline: '📜 옛',
+          rationale: 'r',
+          status: 'draft',
+          seededTaskFile: 'TASK-KAR-136-old.md',
+        }),
+        JSON.stringify({
+          ts: '2026-05-23T00:40:00Z',
+          type: 'seeded',
+          kind: 'new-project',
+          score: 0.8,
+          rootCodes: ['progress-stale'],
+          headline: '📜 새',
+          rationale: 'r',
+          status: 'draft',
+          seededTaskFile: 'TASK-KAR-137-new.md',
+        }),
+      ].join('\n') + '\n',
+      'utf-8',
+    );
+    // 결정 = KAR-137 에만 박음 (사용자가 디스코드 스레드에서 답글한 시뮬레이션)
+    const decisionsPath = path.join(root, '.claude', 'agent-decisions.jsonl');
+    fs.writeFileSync(
+      decisionsPath,
+      JSON.stringify({ taskId: 'TASK-KAR-137', text: 'approve', by: 'user', ts: '2026-05-23T00:45:00Z' }) + '\n',
+      'utf-8',
+    );
+    const data = gatherStatusBoardData(env(), Date.parse('2026-05-23T01:00:00Z'));
+    // KAR-137 skip → 다음 미결정 = KAR-136
+    expect(data.userPending.count).toBe(1);
+    expect(data.userPending.topItem).toContain('TASK-KAR-136');
+    expect(data.userPending.topItem).not.toContain('TASK-KAR-137');
+  });
+
   it('ledger 의 최신 seeded entry → finding', () => {
     const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
     fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });

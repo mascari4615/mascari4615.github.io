@@ -126,9 +126,13 @@ export async function handleDigestCommit(
 
     let yawnResponse = '';
     try {
+      // TASK-KAR-145: digest 톤가공 = lite tier (짧은 코멘트·요약, 가격 ~1/3).
+      // YAWN_DIGEST_MODEL_ID 명시 시 explicit (resolveGeminiModelId: explicit > tier).
       const { text } = await generateBlobTextFromEnvWithOptions(process.env, userPrompt, {
         systemInstruction: systemPrompt,
         modelId: process.env.YAWN_DIGEST_MODEL_ID,
+        tier: process.env.YAWN_DIGEST_MODEL_ID ? undefined : 'lite',
+        tag: 'yawnbot/digest',
       });
       yawnResponse = text.trim();
     } catch (e: any) {

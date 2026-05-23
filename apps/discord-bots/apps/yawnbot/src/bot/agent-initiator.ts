@@ -156,9 +156,13 @@ export function readLedger(memoRoot: string): ProposalLedgerEntry[] {
   const p = ledgerPath(memoRoot);
   if (!fs.existsSync(p)) return [];
   try {
+    // tail-2000 — INIT 가 24h 윈도우 dedupe + status-board 가 최신 entry 부터
+    // backward 만 사용. 30분 cycle × ~10 entry = ~480/day → 2000 = 4× safety.
+    // 누적 ledger 가 MB 자라도 cycle latency 안정 (system-health/observatory 정합).
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-2000)
       .filter(Boolean)
       .map((l) => {
         try {
@@ -576,47 +580,36 @@ export function seedTaskFile(
   if (!memoRoot) return null;
   if (entry.seededTaskFile) return null;
   if (entry.type !== 'proposal') return null;
-  const seq = nextKarSequence(memoRoot);
   const ts = new Date(nowMs).toISOString();
-  const { filename, content } = buildTaskSeedBody(
-    {
-      kind: entry.kind,
-      rootCodes: entry.rootCodes,
-      score: entry.score,
-      headline: entry.headline,
-      rationale: entry.rationale,
-    },
-    seq,
-    ts,
-  );
-  const target = path.join(memoRoot, 'tasks', filename);
-  if (fs.existsSync(target)) {
-    // race or 동일 seq 충돌 — +1 retry up to 5
-    for (let i = 1; i <= 5; i++) {
-      const altSeq = seq + i;
-      const alt = buildTaskSeedBody(
-        {
-          kind: entry.kind,
-          rootCodes: entry.rootCodes,
-          score: entry.score,
-          headline: entry.headline,
-          rationale: entry.rationale,
-        },
-        altSeq,
-        ts,
-      );
-      const altPath = path.join(memoRoot, 'tasks', alt.filename);
-      if (!fs.existsSync(altPath)) {
-        fs.mkdirSync(path.dirname(altPath), { recursive: true });
-        fs.writeFileSync(altPath, alt.content, 'utf-8');
-        return alt.filename;
-      }
+  const baseCandidate: ProposalCandidate = {
+    kind: entry.kind,
+    rootCodes: entry.rootCodes,
+    score: entry.score,
+    headline: entry.headline,
+    rationale: entry.rationale,
+  };
+
+  // race-safe: wx atomic (filename-level race) + 동시 init/surgery 가 같은 seq
+  // 박을 수 있어 매 시도마다 nextKarSequence 재계산 + tried set skip. 5회 retry.
+  // (materializeTaskProposal 의 race fix 와 동일 패턴 — KAR-119 ID 충돌 학습 정합.)
+  fs.mkdirSync(path.join(memoRoot, 'tasks'), { recursive: true });
+  const tried = new Set<number>();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    let seq = nextKarSequence(memoRoot);
+    while (tried.has(seq)) seq++;
+    tried.add(seq);
+    const { filename, content } = buildTaskSeedBody(baseCandidate, seq, ts);
+    const target = path.join(memoRoot, 'tasks', filename);
+    try {
+      fs.writeFileSync(target, content, { encoding: 'utf-8', flag: 'wx' });
+      return filename;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (code === 'EEXIST') continue; // race / 동일 seq → 다음 시도
+      return null; // 다른 IO = abort
     }
-    return null; // 5회 retry 실패 = silent skip
   }
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, content, 'utf-8');
-  return filename;
+  return null; // 5회 다 race — silent skip
 }
 
 /**

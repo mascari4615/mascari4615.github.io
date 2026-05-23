@@ -4,9 +4,10 @@
  * killSwitch / SessionRegistry / generateAgentText / buildTier3Deps /
  * CoreSpeakFn·coreSpeak·setCoreSpeak / runMemoScript(공용 헬퍼).
  */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import { generateAssistantText, generateClaudeCliText } from 'karmolab-ai/node';
+import type { GeminiTextTier } from 'karmolab-ai';
 import {
   SessionRegistry,
   spawnTier3,
@@ -28,25 +29,45 @@ export const registry = new SessionRegistry();
 /**
  * 에이전트 대화·발굴 Gemini 호출 — Vertex 우선, 실패 시 AI Studio 폴백.
  * (사용자 결정 KAR-018-Y, 2026-05-17).
+ *
+ * **TASK-KAR-145**: tier/systemInstruction/tag 옵션 추가.
+ * - `tier` 미지정 = 기존 동작(env GEMINI_MODEL / 패키지 default = 2.5-flash standard).
+ *   `'lite'` 명시 = 짧은 voicing/말투 보정용(가격 ~1/3). `'pro'` = 복잡 추론.
+ *   callers 가 *명시적*으로 박는다 — silent 다운그레이드 X (retro/surgery 추론 정합).
+ * - `systemInstruction` = 안정 prefix (persona·mission·portfolio·skin) →
+ *   Gemini implicit cache hit 정렬 (청구 25%).
+ * - `tag` = telemetry 분류 라벨 (`yawnbot/voiced-worker` 등). `KARMOLAB_AI_USAGE_LOG=1`
+ *   환경에서 어디서 비싼지 식별 가능.
  */
 export async function generateAgentText(
   env: NodeJS.ProcessEnv,
   prompt: string,
   timeoutMs: number,
+  opts: {
+    tier?: GeminiTextTier;
+    systemInstruction?: string;
+    tag?: string;
+  } = {},
 ): Promise<string> {
   const base = { ...env, ASSISTANT_AI_PROVIDER: 'gemini' };
+  const passthrough = {
+    timeoutMs,
+    tier: opts.tier,
+    systemInstruction: opts.systemInstruction,
+    tag: opts.tag,
+  };
   try {
     const r = await generateAssistantText(
       { ...base, KARMOLAB_AI_SURFACE: 'vertex' },
       prompt,
-      { timeoutMs },
+      passthrough,
     );
     return r.text;
   } catch {
     const r = await generateAssistantText(
       { ...base, KARMOLAB_AI_SURFACE: 'aiStudio' },
       prompt,
-      { timeoutMs },
+      passthrough,
     );
     return r.text;
   }
@@ -87,7 +108,13 @@ export function setCoreSpeak(fn: CoreSpeakFn): void { coreSpeak = fn; }
 export function getCoreSpeak(): CoreSpeakFn | null { return coreSpeak; }
 
 // ── runMemoScript 공용 헬퍼 ──────────────────────────────────
-/** memo/scripts/<script>.mjs shell 1회 (단일 정본 호출, best-effort). */
+/** memo/scripts/<script>.mjs 1회 호출 (단일 정본, best-effort).
+ *
+ * execFileSync = shell 없음 → args 안에 ; | & 등 shell metachar 있어도
+ * 안전 (execSync 문자열 보간이면 shell injection 벡터). 호출자가 신뢰
+ * 가능한 args 만 전달하지만 defense-in-depth (TASK 파일의 id 가 외부
+ * 출처일 수 있음 — autonomous agent 가 만든 frontmatter).
+ */
 export function runMemoScript(
   memoRoot: string,
   script: string,
@@ -95,8 +122,9 @@ export function runMemoScript(
 ): { code: number; out: string } {
   try {
     const p = path.join(memoRoot, 'scripts', script);
-    const out = execSync(
-      `node "${p}" ${args.join(' ')} --root "${memoRoot}"`,
+    const out = execFileSync(
+      'node',
+      [p, ...args, '--root', memoRoot],
       { timeout: 20_000, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] },
     );
     return { code: 0, out };

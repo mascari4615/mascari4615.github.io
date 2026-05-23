@@ -313,7 +313,7 @@ jobs:
           # ② USERPROFILE 마스킹 — LocalSystem 컨텍스트가 사용자 자격 가시.
           # AppEnvironmentExtra 는 *전체 교체* 라 prod env + USERPROFILE 둘 다 명시.
           # 새 env 추가 시 이 라인에 추가 (별도 nssm set 호출 X — 마지막 호출이 전체 덮어씀).
-          & $nssm set yawnbot-prod AppEnvironmentExtra 'YAWNBOT_ENV=prod' 'USERPROFILE=C:\Users\masca' | Out-Null
+          & $nssm set yawnbot-prod AppEnvironmentExtra 'YAWNBOT_ENV=prod' 'AGENT_CADENCE_ENABLED=1' 'AGENT_DIALOGUE_DISABLED=1' 'USERPROFILE=C:\Users\masca' | Out-Null
 
           # ③ safe.directory '*' — 봇이 USERPROFILE 마스킹 후 보는 사용자 gitconfig
           # (C:\Users\masca\.gitconfig). 미박으면 git fetch 시 'dubious ownership'
@@ -346,6 +346,10 @@ jobs:
       # service 미존재 시 install (idempotent). 첫 deploy = install + start.
       # Phase 3: cadence_changed=0 시 build/restart skip (yawnbot reactive 만 변경).
       - name: build agent-orchestrator
+        # KAR-018-LT-PEER-ONLY P-6 (2026-05-23): orchestrator main-loop nssm 서비스 폐기.
+        # binary 자체는 유지 — agent-worker-*-prod 서비스가 같은 `dist/src/main.js`
+        # 를 AGENT_CADENCE_ROLE=worker-<scope> 로 재사용 (deploy yml line 444 정합).
+        # 따라서 build step 은 그대로 (worker daemon 이 의존).
         if: steps.detect.outputs.cadence_changed == '1'
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
@@ -354,7 +358,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { Write-Warning "build:orchestrator failed — orchestrator deploy skip (yawnbot 정상)"; exit 0 }
 
       - name: NSSM upsert + restart agent-orchestrator-prod
-        if: steps.detect.outputs.cadence_changed == '1'
+        if: false  # KAR-018-LT-PEER-ONLY P-6: peer-only 전환. orchestrator main loop = ambient daemon self-tick 으로 흡수. 아래 stop+remove step 이 노트북 잔존 서비스 정리.
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
@@ -404,6 +408,8 @@ jobs:
             'YAWNBOT_ENV=prod' `
             'AGENT_HOST=orchestrator' `
             'AGENT_CADENCE_ROLE=main' `
+            'AGENT_CADENCE_ENABLED=1' `
+            'AGENT_DIALOGUE_DISABLED=1' `
             'USERPROFILE=C:\Users\masca' `
             'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
 
@@ -414,6 +420,36 @@ jobs:
             if ($LASTEXITCODE -ne 0) { Write-Warning "nssm restart/start agent-orchestrator-prod failed (yawnbot 정상)"; exit 0 }
           }
           Write-Host "agent-orchestrator-prod restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+
+      # === KAR-018-LT-PEER-ONLY P-6: agent-orchestrator-prod 노트북 잔존 서비스 stop+remove ===
+      # peer-only 전환 — main loop = ambient daemon self-tick 으로 흡수.
+      # 위 install step `if: false` 라 새 deploy 가 install/restart 안 하지만 직전
+      # deploy 에서 install 된 nssm 서비스가 노트북에 잔존 → 명시 stop+remove.
+      # idempotent: 이미 없으면 stderr 만, exit code 무시.
+      - name: NSSM stop + remove agent-orchestrator-prod (peer-only 전환)
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { Write-Warning "nssm.exe 못 찾음 — orchestrator remove skip"; exit 0 }
+          & $nssm status agent-orchestrator-prod 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) { Write-Host "agent-orchestrator-prod 미존재 — 이미 polite"; exit 0 }
+          & $nssm stop agent-orchestrator-prod 2>&1 | Out-Null
+          & $nssm remove agent-orchestrator-prod confirm 2>&1 | Out-Null
+          Write-Host "agent-orchestrator-prod stopped + removed (peer-only 전환)"
+          exit 0
+      # === /P-6 orchestrator stop ===
 
       # === TASK-KAR-096 Phase 2: 4 worker daemon NSSM (같은 binary, env role 차이) ===
       # orchestrator 와 같은 dist/src/main.js 실행. AGENT_CADENCE_ROLE=worker-<core-id> env 로
@@ -471,6 +507,8 @@ jobs:
               'YAWNBOT_ENV=prod' `
               'AGENT_HOST=orchestrator' `
               "AGENT_CADENCE_ROLE=worker-$scope" `
+              'AGENT_CADENCE_ENABLED=1' `
+              'AGENT_DIALOGUE_DISABLED=1' `
               'USERPROFILE=C:\Users\masca' `
               'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
             & $nssm restart $svc 2>&1 | Out-Null
@@ -483,6 +521,78 @@ jobs:
           # step 종료 exit code 명시 — 개별 worker fail 은 Warning 후 continue 했으니 step 자체는 success
           exit 0
       # === /KAR-096 Phase 2 ===
+
+      # === TASK-KAR-018-LT-DIVERSITY D-7: agent-ambient-* daemons (ambient channel listening) ===
+      # 코어 1개 = 독립 process. yawnbot dist/src/agent-daemon.js 한 binary, env 의 AGENT_DAEMON_CORE_ID 로 정체성 분기.
+      # Discord adapter (yawnbot-prod) 와 별도 process — 봇 crash·restart·교체 무관하게 코어 발화 살아있음.
+      # 사용자 비전 「디코 Client 바뀌어도 에이전트 살아있음」 의 첫 first-use. echo 1개부터 (점진 migration).
+      - name: NSSM upsert + restart agent-ambient-* daemons
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        working-directory: ${{ env.BOTS_DIR }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssmCmd = Get-Command nssm.exe -ErrorAction SilentlyContinue
+          $nssm = if ($nssmCmd) { $nssmCmd.Source } else { $null }
+          if (-not $nssm) {
+            $candidates = @(
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe",
+              "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe"
+            )
+            foreach ($pat in $candidates) {
+              $found = Get-Item $pat -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $nssm = $found.FullName; break }
+            }
+          }
+          if (-not $nssm) { Write-Warning "nssm.exe 못 찾음 — ambient daemon skip"; exit 0 }
+          $nodeExe = (Get-Command node.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nodeExe) { Write-Warning "node.exe 못 찾음 — ambient daemon skip"; exit 0 }
+          $yawnbotDir = Join-Path (Get-Location) 'apps\yawnbot'
+          $mainJs = Join-Path $yawnbotDir 'dist\src\agent-daemon.js'
+          if (-not (Test-Path $mainJs)) { Write-Warning "yawnbot dist/src/agent-daemon.js 없음 — build 미완 가능, ambient daemon skip"; exit 0 }
+
+          # 전 active 코어 daemon 동시 박음 (사용자 결정 2026-05-23 "echo 만? 다 박아").
+          # inactive 코어 (wm-worker 등) = daemon process 가 status 체크 후 자기 exit(3), 다른 daemon 영향 0.
+          $ambients = @(
+            @{ svc='agent-ambient-atlas-prod';      coreId='atlas' },
+            @{ svc='agent-ambient-echo-prod';       coreId='echo' },
+            @{ svc='agent-ambient-kar-worker-prod'; coreId='kar-worker' },
+            @{ svc='agent-ambient-kl-worker-prod';  coreId='kl-worker' },
+            @{ svc='agent-ambient-wm-scout-prod';   coreId='wm-scout' },
+            @{ svc='agent-ambient-wm-support-prod'; coreId='wm-support' },
+            @{ svc='agent-ambient-initiator-prod';  coreId='initiator' },
+            @{ svc='agent-ambient-auditor-prod';    coreId='auditor' }
+          )
+          foreach ($a in $ambients) {
+            $svc = $a.svc
+            $coreId = $a.coreId
+            & $nssm status $svc 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "[KAR-018-LT-DIVERSITY D-7] $svc install (coreId=$coreId)"
+              & $nssm install $svc $nodeExe "`"$mainJs`"" | Out-Null
+              if ($LASTEXITCODE -ne 0) { Write-Warning "nssm install $svc failed — skip"; continue }
+              & $nssm set $svc AppDirectory $yawnbotDir | Out-Null
+              & $nssm set $svc Start SERVICE_AUTO_START | Out-Null
+            }
+            $logDir = "C:\nssm-logs\$svc"
+            if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Force $logDir | Out-Null }
+            & $nssm set $svc AppStderr "$logDir\stderr.log" | Out-Null
+            & $nssm set $svc AppStdout "$logDir\stdout.log" | Out-Null
+            & $nssm set $svc AppRotateFiles 1 | Out-Null
+            & $nssm set $svc AppRotateBytes 10485760 | Out-Null
+            & $nssm set $svc AppEnvironmentExtra `
+              'YAWNBOT_ENV=prod' `
+              "AGENT_DAEMON_CORE_ID=$coreId" `
+              'USERPROFILE=C:\Users\masca' `
+              'MEMO_REPO_PATH=C:\Users\masca\repos\karmoddrine\memo' | Out-Null
+            & $nssm restart $svc 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              & $nssm start $svc 2>&1 | Out-Null
+              if ($LASTEXITCODE -ne 0) { Write-Warning "$svc restart/start failed"; continue }
+            }
+            Write-Host "$svc restarted at $(Get-Date -Format 'yyyy-MM-ddTHH:mm:sszzz')"
+          }
+          exit 0
+      # === /KAR-018-LT-DIVERSITY D-7 ===
 
       - name: NSSM set yawnbot-prod AGENT_HOST=orchestrator
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
@@ -505,7 +615,9 @@ jobs:
           & $nssm set yawnbot-prod AppEnvironmentExtra `
             'YAWNBOT_ENV=prod' `
             'USERPROFILE=C:\Users\masca' `
-            'AGENT_HOST=orchestrator' | Out-Null
+            'AGENT_HOST=orchestrator' `
+            'AGENT_CADENCE_ENABLED=1' `
+            'AGENT_DIALOGUE_DISABLED=1' | Out-Null
           & $nssm restart yawnbot-prod | Out-Null
           Write-Host "yawnbot-prod env updated (AGENT_HOST=orchestrator) + restarted"
       # === /KAR-096 Phase 1b ===

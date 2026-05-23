@@ -26,6 +26,7 @@ import {
   type HealthSignals,
 } from './system-health';
 import { readLedger } from './agent-initiator';
+import { decisionsPath, parseDecisionLine } from './agent-decisions';
 
 export interface StatusBoardState {
   channelId?: string;
@@ -131,20 +132,54 @@ function gatherBotHealth(
  *
  * 「행동 1개」 = 사용자 의사결정 비용 최소화 = 펀쿨섹 정합.
  */
+// filename `TASK-XX-NNN-...md` 또는 path → TASK id 추출. 없으면 null.
+function extractTaskIdFromFile(file: string): string | null {
+  const base = file.replace(/^.*[\\/]/, '');
+  const m = base.match(/^(TASK-[A-Z]+-\d{3}(?:-[A-Z0-9]+)*)/);
+  return m ? m[1] : null;
+}
+
+// decisions jsonl 한 번 read → Set<taskId> (loop 안에서 N번 file read 회피).
+function loadDecidedTaskIds(memoRoot: string): Set<string> {
+  const out = new Set<string>();
+  if (!memoRoot) return out;
+  try {
+    const raw = fs.readFileSync(decisionsPath(memoRoot), 'utf-8');
+    for (const line of raw.split('\n')) {
+      const d = parseDecisionLine(line);
+      if (d) out.add(d.taskId);
+    }
+  } catch { /* 파일 부재 = 빈 set */ }
+  return out;
+}
+
 function gatherUserPending(
   memoRoot: string,
   signals: HealthSignals,
 ): StatusBoardData['userPending'] {
-  // 1순위: 최신 INIT seed TASK (사용자 행동 candidate)
+  // 1순위: INIT seed TASK *결정 안 한* 것 (사용자 행동 candidate)
+  // 종전: 결정된 TASK 도 계속 표시 → 사용자 「같은 거 또?」 nag.
+  // fix: agent-decisions.jsonl 답글 있으면 skip + 미결정 N건 카운트 +
+  //      최신 1건 highlight (「행동 1개」 mantra 유지하되 실 count 정직).
+  // perf: decisions Set 한 번 빌드 (N entry × M decision file-read 회피).
   const ledger = memoRoot ? readLedger(memoRoot) : [];
+  const decided = loadDecidedTaskIds(memoRoot);
+  const pending: { file: string; ts: string }[] = [];
   for (let i = ledger.length - 1; i >= 0; i--) {
     const e = ledger[i];
-    if (e.type === 'seeded' && e.seededTaskFile) {
-      return {
-        count: 1,
-        topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
-      };
-    }
+    if (e.type !== 'seeded' || !e.seededTaskFile) continue;
+    const taskId = extractTaskIdFromFile(e.seededTaskFile);
+    if (taskId && decided.has(taskId)) continue;
+    pending.push({ file: e.seededTaskFile, ts: e.ts });
+  }
+  if (pending.length > 0) {
+    const top = pending[0]; // 가장 최신 (backward iter 으로 head 가 최신)
+    const more = pending.length - 1;
+    const moreTag = more > 0 ? ` _(+ ${more}건 미결정 대기)_` : '';
+    return {
+      count: pending.length,
+      topItem: `\`${top.file}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동${moreTag}`,
+    };
   }
   // 2순위: critical issues (시스템 레벨)
   const issues = diagnoseHealth(signals);

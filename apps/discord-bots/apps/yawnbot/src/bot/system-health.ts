@@ -43,6 +43,9 @@ interface TraceEntry {
   task?: string;
 }
 
+// gatherHealthSignals 가 4회 호출 → 매 cycle 전체 trace parse = O(N). 6h/24h
+// window 만 보므로 tail 만 read. 누적 trace 가 커져도 cadence latency 영향 X.
+const TRACE_TAIL_LINES = 2000;
 function readTraceLines(memoRoot: string): TraceEntry[] {
   try {
     const p = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
@@ -50,6 +53,7 @@ function readTraceLines(memoRoot: string): TraceEntry[] {
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-TRACE_TAIL_LINES)
       .filter(Boolean)
       .map((l) => {
         try {
@@ -105,6 +109,13 @@ export function gatherHealthSignals(
   }
 
   // workerFailRatio (최근 6h)
+  // status 분류:
+  //  - done             = 성공(push 확인)
+  //  - escalated        = 사용자 결정 필요로 올바르게 라우팅 = *정상 동작* (분모·분자 둘 다 제외)
+  //  - done-no-artifact = 실행했으나 산출 0 = soft fail (분자)
+  //  - error/timeout/.. = hard fail (분자)
+  // 「escalated 도 fail 카운트」 버그 fix: 봇이 결정 task 만 보아도 100% fail
+  // 신호 → surgery loop 무한 발동 (KAR-130/132/138~144 자기복제 직접 원인).
   let workerFailRatio: number | null = null;
   if (memoRoot) {
     try {
@@ -116,7 +127,9 @@ export function gatherHealthSignals(
         if (!e.ts || e.ts < cutoff6h) continue;
         const m = /^worker\s+\S+\s+(\S+)/.exec(e.reason || '');
         if (!m) continue;
-        if (m[1] === 'done') done++;
+        const status = m[1];
+        if (status === 'done') done++;
+        else if (status === 'escalated') { /* 정상 라우팅 = 분모 미포함 */ }
         else fail++;
       }
       if (done + fail > 0) workerFailRatio = fail / (done + fail);
