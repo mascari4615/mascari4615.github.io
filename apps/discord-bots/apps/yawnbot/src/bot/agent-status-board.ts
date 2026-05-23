@@ -121,16 +121,39 @@ function gatherBotHealth(
 }
 
 /**
- * 사용자 결정 대기 카운트 — progress-stale / worker-fail-critical 같은 critical
- * 이슈 수. 봇 자체가 처리 못 하고 사용자 입력 필요한 항목 (1차 = critical issues).
+ * 사용자 결정 대기 — INIT 최신 발의 TASK 1건 (사용자 「원하는 수준」 fix #1).
+ *
+ * 디자인 (2026-05-23 사용자 피드백 "뭘 기다리면 되는지 모르겠음"):
+ *  - 1순위 = INIT seed 의 최신 TASK 1건 = 「사용자가 ✅ approve / ❌ reject /
+ *    💤 14d 자동」 결정 대기. 명시적·1개·행동 가능.
+ *  - 2순위 = critical health issues (worker-fail·progress-stale 등) = 시스템
+ *    레벨 alert (사용자가 봇 자체 점검 또는 무시).
+ *
+ * 「행동 1개」 = 사용자 의사결정 비용 최소화 = 펀쿨섹 정합.
  */
 function gatherUserPending(
+  memoRoot: string,
   signals: HealthSignals,
 ): StatusBoardData['userPending'] {
+  // 1순위: 최신 INIT seed TASK (사용자 행동 candidate)
+  const ledger = memoRoot ? readLedger(memoRoot) : [];
+  for (let i = ledger.length - 1; i >= 0; i--) {
+    const e = ledger[i];
+    if (e.type === 'seeded' && e.seededTaskFile) {
+      return {
+        count: 1,
+        topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
+      };
+    }
+  }
+  // 2순위: critical issues (시스템 레벨)
   const issues = diagnoseHealth(signals);
   const criticals = issues.filter((i) => i.severity === 'critical');
   if (criticals.length === 0) return { count: 0 };
-  return { count: criticals.length, topItem: criticals[0].detail };
+  return {
+    count: criticals.length,
+    topItem: `[시스템] ${criticals[0].detail}`,
+  };
 }
 
 /** evolution-events ledger tail — 7d window promotion/revert 카운트. */
@@ -170,7 +193,7 @@ export function gatherStatusBoardData(
   return {
     botHealth: gatherBotHealth(signals),
     latestFinding: gatherLatestFinding(memoRoot),
-    userPending: gatherUserPending(signals),
+    userPending: gatherUserPending(memoRoot, signals),
     evolution: gatherEvolution(memoRoot),
     ts: new Date(nowMs).toISOString(),
   };
@@ -209,8 +232,11 @@ export function formatStatusBoard(data: StatusBoardData): string {
     lines.push('• **사용자 결정 대기**: _없음_ ✨');
   } else {
     lines.push(
-      `• **사용자 결정 대기**: ${data.userPending.count}건${data.userPending.topItem ? ` — ${data.userPending.topItem.slice(0, 80)}` : ''}`,
+      `• **사용자 결정 대기**: ${data.userPending.count}건`,
     );
+    if (data.userPending.topItem) {
+      lines.push(`    ↳ ${data.userPending.topItem.slice(0, 200)}`);
+    }
   }
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push(
