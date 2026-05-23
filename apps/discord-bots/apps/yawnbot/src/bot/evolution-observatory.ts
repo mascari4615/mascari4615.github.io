@@ -330,12 +330,18 @@ export function promotionTracePath(env: NodeJS.ProcessEnv): string {
   return root ? path.join(root, '.claude', 'agent-core-promotion.jsonl') : '';
 }
 
+// 매 cadence tick 호출 → 전체 trace 파일 parse. fingerprint dedup 이 중복
+// append 는 차단하지만 old 라인 재처리 CPU 가 누적 trace 크기에 비례.
+// tail 만 read 로 안정화 (system-health/worker-self-memory tail-2000 정합).
+const EVENT_TRACE_TAIL_LINES = 2000;
+
 export function readTraceEntries(env: NodeJS.ProcessEnv): TraceEntry[] {
   const filePath = tracePath(env);
   if (!filePath || !fs.existsSync(filePath)) return [];
   const entries: TraceEntry[] = [];
   try {
-    for (const line of fs.readFileSync(filePath, 'utf-8').split(/\r?\n/)) {
+    const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/).slice(-EVENT_TRACE_TAIL_LINES);
+    for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       try {
@@ -355,7 +361,8 @@ export function readPromotionEntries(env: NodeJS.ProcessEnv): PromotionEntry[] {
   if (!filePath || !fs.existsSync(filePath)) return [];
   const entries: PromotionEntry[] = [];
   try {
-    for (const line of fs.readFileSync(filePath, 'utf-8').split(/\r?\n/)) {
+    const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/).slice(-EVENT_TRACE_TAIL_LINES);
+    for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       try {
