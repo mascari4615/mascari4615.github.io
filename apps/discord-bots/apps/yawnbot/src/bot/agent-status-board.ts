@@ -26,6 +26,7 @@ import {
   type HealthSignals,
 } from './system-health';
 import { readLedger } from './agent-initiator';
+import { getDecisionsForTask } from './agent-decisions';
 
 export interface StatusBoardState {
   channelId?: string;
@@ -131,20 +132,33 @@ function gatherBotHealth(
  *
  * 「행동 1개」 = 사용자 의사결정 비용 최소화 = 펀쿨섹 정합.
  */
+// filename `TASK-XX-NNN-...md` 또는 path → TASK id 추출. 없으면 null.
+function extractTaskIdFromFile(file: string): string | null {
+  const base = file.replace(/^.*[\\/]/, '');
+  const m = base.match(/^(TASK-[A-Z]+-\d{3}(?:-[A-Z0-9]+)*)/);
+  return m ? m[1] : null;
+}
+
 function gatherUserPending(
   memoRoot: string,
   signals: HealthSignals,
 ): StatusBoardData['userPending'] {
-  // 1순위: 최신 INIT seed TASK (사용자 행동 candidate)
+  // 1순위: 최신 INIT seed TASK *결정 안 한* 것 (사용자 행동 candidate)
+  // 종전: 결정된 TASK 도 계속 표시 → 사용자 「같은 거 또?」 nag.
+  // fix: agent-decisions.jsonl 에 답글 있으면 skip (다음 미결정 entry 로 진행).
   const ledger = memoRoot ? readLedger(memoRoot) : [];
   for (let i = ledger.length - 1; i >= 0; i--) {
     const e = ledger[i];
-    if (e.type === 'seeded' && e.seededTaskFile) {
-      return {
-        count: 1,
-        topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
-      };
+    if (e.type !== 'seeded' || !e.seededTaskFile) continue;
+    const taskId = extractTaskIdFromFile(e.seededTaskFile);
+    if (taskId && memoRoot) {
+      const decisions = getDecisionsForTask(memoRoot, taskId);
+      if (decisions.length > 0) continue; // 이미 결정 = skip
     }
+    return {
+      count: 1,
+      topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
+    };
   }
   // 2순위: critical issues (시스템 레벨)
   const issues = diagnoseHealth(signals);
