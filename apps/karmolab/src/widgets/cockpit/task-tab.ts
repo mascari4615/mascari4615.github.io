@@ -200,7 +200,7 @@ function svgStarField(seed: number): string {
   </svg>`;
 }
 
-function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: number): string {
+function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: number, expanded: boolean): string {
   const domainInfo = DOMAINS.find((d) => d.value === domain);
   const label = domainInfo?.label ?? domain.toUpperCase();
   const icon = DOMAIN_ICON[domain] ?? '📦';
@@ -208,6 +208,7 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
   const imgSrc = DOMAIN_IMAGE[domain];
   const isMain = domain === 'wm';
   const tagLabel = isMain ? '★ MAIN PROJECT' : `DOMAIN №${String(domainIdx + 1).padStart(2, '0')}`;
+  const chevron = expanded ? '▾' : '▸';
 
   const posterInner = imgSrc
     ? `<img src="${esc(imgSrc)}" alt="" class="ckt-qposter-img">`
@@ -227,8 +228,10 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
     })
     .join('');
 
-  return `<div class="ckt-qsection">
-    <div class="ckt-qposter">
+  const bodyDisplay = expanded ? '' : ' style="display:none"';
+
+  return `<div class="ckt-qsection" data-domain="${esc(domain)}">
+    <div class="ckt-qposter ckt-qposter--toggle" data-toggle-domain="${esc(domain)}">
       ${posterInner}
       <div class="ckt-qposter-veil"></div>
       <div class="ckt-qcoord">
@@ -240,13 +243,16 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
         <div class="ckt-qoverlay-sub">${esc(icon)} ${esc(subtitle)}</div>
         <div class="ckt-qoverlay-title">${esc(label)}</div>
       </div>
+      <div class="ckt-qchevron" data-chevron="${esc(domain)}">${chevron}</div>
     </div>
-    <div class="ckt-qstatbar">${buildStatusBar(tasks)}</div>
-    <div class="ckt-qtasks">${taskRows || '<div class="ckt-qempty">조건에 맞는 TASK 없음</div>'}</div>
+    <div class="ckt-qbody" data-body="${esc(domain)}"${bodyDisplay}>
+      <div class="ckt-qstatbar">${buildStatusBar(tasks)}</div>
+      <div class="ckt-qtasks">${taskRows || '<div class="ckt-qempty">조건에 맞는 TASK 없음</div>'}</div>
+    </div>
   </div>`;
 }
 
-function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[]): void {
+function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[], expandedDomains: Set<string>): void {
   if (sorted.length === 0) {
     listEl.innerHTML = '<div class="ckt-empty">조건에 맞는 TASK 없음</div>';
     return;
@@ -264,7 +270,7 @@ function renderQuestLog(listEl: HTMLElement, sorted: MemoTaskNode[]): void {
     ...[...groups.keys()].filter((k) => !DOMAIN_ORDER.includes(k)).sort(),
   ];
 
-  listEl.innerHTML = orderedKeys.map((k, i) => renderQuestSection(k, groups.get(k)!, i)).join('');
+  listEl.innerHTML = orderedKeys.map((k, i) => renderQuestSection(k, groups.get(k)!, i, expandedDomains.has(k))).join('');
 }
 
 // ── 모달 ─────────────────────────────────────────────────────────────────────
@@ -434,6 +440,19 @@ const TASK_TAB_CSS = `
   padding: 3px 8px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.09);
 }
 
+/* 우하단 chevron */
+.ckt-qchevron {
+  position: absolute; right: 14px; bottom: 14px; z-index: 3;
+  font-family: 'JetBrains Mono', monospace; font-size: 18px;
+  color: rgba(255,255,255,0.5); line-height: 1;
+  transition: color 0.15s;
+}
+.ckt-qposter--toggle { cursor: pointer; }
+.ckt-qposter--toggle:hover .ckt-qchevron { color: var(--accent); }
+.ckt-qposter--toggle:hover .ckt-qposter-veil {
+  background: linear-gradient(to bottom, rgba(11,13,18,0.35) 0%, rgba(11,13,18,0.88) 100%);
+}
+
 /* 좌하단 제목 오버레이 */
 .ckt-qoverlay {
   position: absolute; left: 18px; right: 18px; bottom: 16px; z-index: 3;
@@ -569,10 +588,11 @@ export function buildTaskTab(container: HTMLElement): void {
   let statusFilter = 'all';
   let sortMode = 'mtime';
   let viewMode: 'list' | 'quest' = 'list';
+  const expandedDomains = new Set<string>(); // 기본 전체 접힘
 
   const rerender = () => {
     if (viewMode === 'quest') {
-      renderQuestLog(listEl, filteredTasks);
+      renderQuestLog(listEl, filteredTasks, expandedDomains);
     } else {
       renderList(listEl, filteredTasks, selectedIdx);
     }
@@ -627,10 +647,27 @@ export function buildTaskTab(container: HTMLElement): void {
   sortEl.addEventListener('change', () => { sortMode = sortEl.value; selectedIdx = 0; refilter(); searchEl.focus(); });
 
   listEl.addEventListener('click', (e) => {
+    // task 행 클릭 (파일 오픈) — 포스터 내부가 아닌 경우
     const row = (e.target as HTMLElement).closest('[data-file]') as HTMLElement | null;
-    if (!row) return;
-    const filePath = row.dataset.file;
-    if (filePath) void openInEditor(filePath);
+    if (row) { void openInEditor(row.dataset.file ?? ''); return; }
+
+    // 포스터 토글
+    const poster = (e.target as HTMLElement).closest('[data-toggle-domain]') as HTMLElement | null;
+    if (poster) {
+      const domain = poster.dataset.toggleDomain ?? '';
+      if (!domain) return;
+      const body = listEl.querySelector(`[data-body="${CSS.escape(domain)}"]`) as HTMLElement | null;
+      const chevron = listEl.querySelector(`[data-chevron="${CSS.escape(domain)}"]`) as HTMLElement | null;
+      if (expandedDomains.has(domain)) {
+        expandedDomains.delete(domain);
+        if (body) body.style.display = 'none';
+        if (chevron) chevron.textContent = '▸';
+      } else {
+        expandedDomains.add(domain);
+        if (body) body.style.display = '';
+        if (chevron) chevron.textContent = '▾';
+      }
+    }
   });
 
   newBtn.addEventListener('click', () => {
