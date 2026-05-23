@@ -308,7 +308,7 @@ const html = `<!doctype html>
 </footer>
 
 <script>
-const INITIAL = ${JSON.stringify(data)};
+const INITIAL = ${JSON.stringify(data).replace(/<\/script>/gi, '<\\/script>')};
 
 function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
