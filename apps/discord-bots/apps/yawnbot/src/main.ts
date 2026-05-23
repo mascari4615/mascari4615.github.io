@@ -53,7 +53,15 @@ import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
-import { extractDiscordPublish, publishIncomingDiscord } from './bot/agent-channel-bridge';
+import { extractDiscordPublish, publishIncomingDiscord, publishToBus } from './bot/agent-channel-bridge';
+import { readRecentBusEvents } from './bot/agent-channel-bus';
+import {
+  publisherTickOnce,
+  summarizePublisherTick,
+  type PublisherState,
+} from './bot/agent-channel-bus-publisher';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   loadCoreDef,
   listCoreIds,
@@ -293,6 +301,9 @@ client.on('messageCreate', async (message) => {
 
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
+// KAR-018-LT-DIVERSITY D-7: 외부 daemon(agent-runtime) 의 core-utter 를
+// Discord 로 표면화하는 publisher tick 타이머 (shutdown 정리).
+let busPublisherTimer: ReturnType<typeof setTimeout> | null = null;
 
 const app = createGithubWebhookApp(client as any, gameData as any);
 mountLocalWebhook(app, client as any);
@@ -513,7 +524,16 @@ client.once('clientReady', async () => {
     // 동일 identity 패턴(평행정의0). dispatcher 내부 구동 — Discord
     // 재인입 X(self-loop 안전 불변). 미배선/실패 = cadence 가 NotifyFn
     // 폴백(무음 손실 0).
-    setCoreSpeak(async (coreId, text) => {
+    //
+    // KAR-018-LT-DIVERSITY D-7: postCoreUtterToDiscord 추출 = Discord 표면화
+    // 만 담는 *공용* 헬퍼. setCoreSpeak callback (in-process dispatcher) +
+    // bus publisher (외부 daemon 표면화) 두 caller 가 같은 경로를 쓰되,
+    // bus mirror 는 in-process 경로에서만 수행(publisher 가 부른 발화는
+    // 이미 bus 의 외부 core-utter 의 *표면화* 결과 → 다시 mirror 하면 dup).
+    const postCoreUtterToDiscord = async (
+      coreId: string,
+      text: string,
+    ): Promise<boolean> => {
       try {
         if (!memoRepoPath || !characterService) return false;
         const cd = loadCoreDef(memoRepoPath, coreId);
@@ -539,7 +559,112 @@ client.once('clientReady', async () => {
         console.error('[CoreSpeak]', e?.message ?? e);
         return false;
       }
+    };
+    setCoreSpeak(async (coreId, text) => {
+      const ok = await postCoreUtterToDiscord(coreId, text);
+      if (ok && memoRepoPath) {
+        // KAR-018-LT-DIVERSITY D-7: in-process 코어 발화도 bus 에 mirror.
+        // source='in-process' → 다른 어댑터(KL/Web/auditor) 가 같은 흐름을
+        // tail 가능. publisher 의 default excludeSources='in-process' 가
+        // self-loop(같은 utter Discord 재게시) 차단. mirror 실패 = 무해.
+        const targetCh = agentCh ?? getLocalChannels('agent-team')[0] ?? null;
+        if (targetCh) {
+          try {
+            publishToBus(
+              { MEMO_REPO_PATH: memoRepoPath } as NodeJS.ProcessEnv,
+              {
+                source: 'in-process',
+                channelId: targetCh,
+                type: 'core-utter',
+                coreId,
+                text,
+              },
+            );
+          } catch {
+            /* bus mirror 실패가 Discord 발화 자체를 막지 X */
+          }
+        }
+      }
+      return ok;
     });
+    // KAR-018-LT-DIVERSITY D-7: bus → Discord publisher ticker.
+    // 외부 agent-runtime daemon(`scripts/run-agent-runtime.mjs`) 이 코어
+    // 발화를 source='agent-runtime' 로 bus 에 publish. 본 ticker 가 bus 를
+    // tail 해 *그 외부 utter* 만 Discord 로 표면화 (in-process 발화는
+    // excludeSources=['in-process'] 가 자기루프 차단). yawnbot 단일 process
+    // ↔ 외부 daemon process 의 *물리적 분리* 의 실증 경로 (substrate⊥어댑터).
+    //
+    // state(lastSeenTs) 는 `<MEMO>/.claude/agent-channel-bus-publisher/<channelId>.json`
+    // 에 영속 — 재기동 시 이미 표면화한 utter 재게시 X (멱등). 미가용 시
+    // (memo/agentCh 부재) ticker 자체 미기동.
+    {
+      const publisherChannelId =
+        agentCh ?? getLocalChannels('agent-team')[0] ?? null;
+      if (memoRepoPath && publisherChannelId) {
+        const stateDir = path.join(
+          memoRepoPath,
+          '.claude',
+          'agent-channel-bus-publisher',
+        );
+        const statePath = path.join(stateDir, `${publisherChannelId}.json`);
+        const loadPublisherState = (): PublisherState => {
+          try {
+            const raw = fs.readFileSync(statePath, 'utf-8');
+            const parsed = JSON.parse(raw) as { lastSeenTs?: unknown };
+            return { lastSeenTs: String(parsed.lastSeenTs || '') };
+          } catch {
+            return { lastSeenTs: '' };
+          }
+        };
+        const savePublisherState = (s: PublisherState): void => {
+          try {
+            fs.mkdirSync(stateDir, { recursive: true });
+            fs.writeFileSync(statePath, JSON.stringify(s), 'utf-8');
+          } catch {
+            /* best-effort — 실패해도 다음 tick 메모리상태 진전 */
+          }
+        };
+        let publisherState = loadPublisherState();
+        const publisherIntervalMs =
+          Number(process.env.AGENT_BUS_PUBLISHER_INTERVAL_MS) || 3000;
+        const publisherTick = async (): Promise<void> => {
+          try {
+            const m = await publisherTickOnce(
+              publisherState,
+              {
+                readSince: (chId: string, sinceTs: string) =>
+                  readRecentBusEvents(
+                    { MEMO_REPO_PATH: memoRepoPath } as NodeJS.ProcessEnv,
+                    chId,
+                    {
+                      sinceTs: sinceTs || undefined,
+                      daysBack: 1,
+                      limit: 400,
+                    },
+                  ),
+                speak: postCoreUtterToDiscord,
+              },
+              { channelId: publisherChannelId },
+            );
+            if (m.lastSeenTs && m.lastSeenTs !== publisherState.lastSeenTs) {
+              publisherState = { lastSeenTs: m.lastSeenTs };
+              savePublisherState(publisherState);
+            }
+            if (m.posted > 0 || m.failed > 0) {
+              console.log(summarizePublisherTick(m));
+            }
+          } catch (e: any) {
+            console.error('[bus-publisher]', e?.message ?? e);
+          }
+          busPublisherTimer = setTimeout(publisherTick, publisherIntervalMs);
+        };
+        busPublisherTimer = setTimeout(publisherTick, publisherIntervalMs);
+      } else {
+        console.log(
+          '[bus-publisher] skip — MEMO_REPO_PATH 또는 agent-team channel 미배선',
+        );
+      }
+    }
     // TASK-KAR-077: 대시보드 sink — ensure-or-edit 한 메시지, ID 반환.
     // setCoreSpeak 동형(client 주입, agent-cadence ⊥ discord.js).
     setDashboardSink(async (channelId, messageId, panel, embed) => {
@@ -818,6 +943,10 @@ async function gracefulShutdown(reason: string): Promise<void> {
   if (cardReconcileTimer) {
     clearTimeout(cardReconcileTimer);
     cardReconcileTimer = null;
+  }
+  if (busPublisherTimer) {
+    clearTimeout(busPublisherTimer);
+    busPublisherTimer = null;
   }
   stopProactive();
   stock.stopMarket();
