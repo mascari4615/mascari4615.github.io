@@ -43,6 +43,9 @@ interface TraceEntry {
   task?: string;
 }
 
+// gatherHealthSignals 가 4회 호출 → 매 cycle 전체 trace parse = O(N). 6h/24h
+// window 만 보므로 tail 만 read. 누적 trace 가 커져도 cadence latency 영향 X.
+const TRACE_TAIL_LINES = 2000;
 function readTraceLines(memoRoot: string): TraceEntry[] {
   try {
     const p = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
@@ -50,6 +53,7 @@ function readTraceLines(memoRoot: string): TraceEntry[] {
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-TRACE_TAIL_LINES)
       .filter(Boolean)
       .map((l) => {
         try {

@@ -25,7 +25,14 @@ interface TraceEntry {
   task?: string;
 }
 
-/** worker tick → done 결과 카운트 (최근 N hour, task id 기준). 안전 기본 = 빈 Map. */
+/** worker tick → done 결과 카운트 (최근 N hour, task id 기준). 안전 기본 = 빈 Map.
+ *
+ * 매 워커 tick 호출 → 전체 trace 파일 parse = O(N). 6h 윈도우 = 라인 수 작음
+ * (cadence 30분 + ops 합쳐 ≤ 50~100). tail 만 read 로 성능 안정화 — 트레이스
+ * 누적이 커져도 워커 pick latency 영향 X. tail size 는 6h × 안전계수 (cadence
+ * tick 빈도 × 라인/tick) 보다 충분히 크게.
+ */
+const TAIL_LINES = 2000;
 export function loadRecentDoneCounts(
   memoRoot: string,
   windowHours: number = 6,
@@ -37,10 +44,8 @@ export function loadRecentDoneCounts(
   if (!fs.existsSync(p)) return out;
   try {
     const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
-    const lines = fs
-      .readFileSync(p, 'utf-8')
-      .split(/\r?\n/)
-      .filter(Boolean);
+    const all = fs.readFileSync(p, 'utf-8').split(/\r?\n/);
+    const lines = all.slice(-TAIL_LINES).filter(Boolean);
     for (const l of lines) {
       let e: TraceEntry;
       try { e = JSON.parse(l); } catch { continue; }
