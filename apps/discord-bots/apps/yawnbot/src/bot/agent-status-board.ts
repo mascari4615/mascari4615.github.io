@@ -157,20 +157,28 @@ function gatherUserPending(
   memoRoot: string,
   signals: HealthSignals,
 ): StatusBoardData['userPending'] {
-  // 1순위: 최신 INIT seed TASK *결정 안 한* 것 (사용자 행동 candidate)
+  // 1순위: INIT seed TASK *결정 안 한* 것 (사용자 행동 candidate)
   // 종전: 결정된 TASK 도 계속 표시 → 사용자 「같은 거 또?」 nag.
-  // fix: agent-decisions.jsonl 에 답글 있으면 skip (다음 미결정 entry 로 진행).
+  // fix: agent-decisions.jsonl 답글 있으면 skip + 미결정 N건 카운트 +
+  //      최신 1건 highlight (「행동 1개」 mantra 유지하되 실 count 정직).
   // perf: decisions Set 한 번 빌드 (N entry × M decision file-read 회피).
   const ledger = memoRoot ? readLedger(memoRoot) : [];
   const decided = loadDecidedTaskIds(memoRoot);
+  const pending: { file: string; ts: string }[] = [];
   for (let i = ledger.length - 1; i >= 0; i--) {
     const e = ledger[i];
     if (e.type !== 'seeded' || !e.seededTaskFile) continue;
     const taskId = extractTaskIdFromFile(e.seededTaskFile);
-    if (taskId && decided.has(taskId)) continue; // 이미 결정 = skip
+    if (taskId && decided.has(taskId)) continue;
+    pending.push({ file: e.seededTaskFile, ts: e.ts });
+  }
+  if (pending.length > 0) {
+    const top = pending[0]; // 가장 최신 (backward iter 으로 head 가 최신)
+    const more = pending.length - 1;
+    const moreTag = more > 0 ? ` _(+ ${more}건 미결정 대기)_` : '';
     return {
-      count: 1,
-      topItem: `\`${e.seededTaskFile}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동`,
+      count: pending.length,
+      topItem: `\`${top.file}\` — TASK 스레드에서 ✅ approve · ❌ reject · 💤 14d 자동${moreTag}`,
     };
   }
   // 2순위: critical issues (시스템 레벨)
