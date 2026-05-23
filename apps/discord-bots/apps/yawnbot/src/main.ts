@@ -423,6 +423,20 @@ client.once('clientReady', async () => {
     }
   }
 
+  // TASK-YB-039 P6: 기존 ready/in_progress/seed TASK 들을 #team-work
+  // forum-post 로 1회 시드 (멱등 — ledger 박힌 건 skip). 채널 프로비저닝
+  // *뒤* 호출해서 agent-work channelId 신선 보장. best-effort — 실패해도
+  // boot 자체 진행.
+  try {
+    const { runTaskForumBackfillOnce } = await import('./bot/task-forum-backfill.js');
+    await runTaskForumBackfillOnce(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[TaskForumBackfill] 부팅 backfill 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {
     const channel = await client.channels.fetch(channelId).catch(() => null);
