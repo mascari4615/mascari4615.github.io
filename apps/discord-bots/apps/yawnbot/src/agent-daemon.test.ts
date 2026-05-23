@@ -282,6 +282,25 @@ describe('handleTrigger', () => {
   });
 });
 
+<<<<<<< Updated upstream
+=======
+describe('!kill watcher (P-5)', () => {
+  it('!kill 파일 존재 check 패턴', async () => {
+    // 본 daemon 의 watcher 는 main() 안 setInterval 이라 직접 unit test 어려움
+    // (process.exit 호출). 대신 file existence check 동작 verify.
+    const root = path.join(os.tmpdir(), `kill-${process.pid}-${Date.now()}`);
+    await fsp.mkdir(path.join(root, '.claude'), { recursive: true });
+    const killFile = path.join(root, '.claude', 'agent-kill');
+    // 파일 없음 = false
+    expect(await fsp.access(killFile).then(() => true).catch(() => false)).toBe(false);
+    // 파일 생성
+    await fsp.writeFile(killFile, '1', 'utf8');
+    expect(await fsp.access(killFile).then(() => true).catch(() => false)).toBe(true);
+    await fsp.rm(root, { recursive: true, force: true });
+  });
+});
+
+>>>>>>> Stashed changes
 describe('LlmCallBudget', () => {
   it('cap 이하 = canCall true, record 누적', () => {
     const b = new LlmCallBudget(3);
