@@ -1,0 +1,27 @@
+{
+  "name": "KarmoLab",
+  "short_name": "KarmoLab",
+  "description": "Karmoddrine agent team companion — Hermes/OpenClaw 동등 이상",
+  "start_url": "/apps/karmolab/",
+  "display": "standalone",
+  "background_color": "#0f0f12",
+  "theme_color": "#0f0f12",
+  "orientation": "portrait-primary",
+  "lang": "ko-KR",
+  "scope": "/apps/karmolab/",
+  "icons": [
+    {
+      "src": "/apps/karmolab/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apps/karmolab/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}

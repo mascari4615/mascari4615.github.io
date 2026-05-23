@@ -12,7 +12,22 @@ permalink: /karmolab/
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- KAR-115 PWA (Phase 3 native mobile substrate) -->
+    <link rel="manifest" href="/apps/karmolab/manifest.json">
+    <meta name="theme-color" content="#0f0f12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KarmoLab">
+    <script>
+      // KAR-115 PWA service worker register (defer-ok).
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/apps/karmolab/sw.js', { scope: '/apps/karmolab/' })
+            .catch(function (e) { console.warn('[PWA] sw register fail:', e && e.message); });
+        });
+      }
+    </script>
     <title>KarmoLab</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
