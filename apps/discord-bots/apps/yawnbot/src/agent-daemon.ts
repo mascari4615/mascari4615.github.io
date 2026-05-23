@@ -276,7 +276,15 @@ export async function handleTrigger(deps: {
     source: `core:${deps.core.id}`,
     coreId: deps.core.id,
     text: decision.text,
-    refs: { parentTs: trigger.ts },
+    refs: {
+      parentTs: trigger.ts,
+      parentMessageId: trigger.refs?.messageId,
+      parentAuthor:
+        trigger.type === 'core-utter'
+          ? trigger.coreId
+          : trigger.refs?.author,
+      parentSnippet: trigger.text ? trigger.text.slice(0, 200) : undefined,
+    },
   });
 }
 
