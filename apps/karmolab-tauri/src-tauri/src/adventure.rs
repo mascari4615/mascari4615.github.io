@@ -204,7 +204,15 @@ fn safe_session_slug(slug: &str) -> Result<&str, String> {
 }
 
 #[tauri::command]
-pub fn adventure_save_image(
+pub async fn adventure_save_image(
+    payload: AdventureSaveImagePayload,
+) -> Result<AdventureSaveImageResult, String> {
+    tauri::async_runtime::spawn_blocking(move || adventure_save_image_blocking(payload))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn adventure_save_image_blocking(
     payload: AdventureSaveImagePayload,
 ) -> Result<AdventureSaveImageResult, String> {
     let slug = safe_session_slug(&payload.session_slug)?;
