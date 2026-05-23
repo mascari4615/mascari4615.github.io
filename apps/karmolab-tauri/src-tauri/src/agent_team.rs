@@ -42,6 +42,14 @@ pub struct ObjectiveInfo {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BusEntry {
+    pub ts: String,
+    pub slot: String,
+    pub headline: String,
+    pub body_preview: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProposalInfo {
     pub id: String,
     pub ts: String,
@@ -216,6 +224,78 @@ fn read_sessions_blocking(repo_root: String) -> Result<Vec<SessionInfo>, String>
         });
     }
     Ok(out)
+}
+
+fn read_bus_blocking(repo_root: String, limit: usize) -> Result<Vec<BusEntry>, String> {
+    // session-bus.md 의 헤더 라인 = `## YYYY-MM-DD HH:MM KST · slot-X · <헤드라인>`.
+    // 본문 = 다음 헤더 또는 EOF 까지. preview = 본문 첫 ~200 글자 (개행 보존, 끝 줄임).
+    let memo = memo_root(&repo_root);
+    let path = memo.join(".claude").join("session-bus.md");
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let content = fs::read_to_string(&path)
+        .map_err(|e| format!("session-bus.md read 실패 ({}): {e}", path.display()))?;
+    let mut entries: Vec<BusEntry> = Vec::new();
+    let mut cur: Option<(String, String, String, Vec<String>)> = None;
+    for line in content.lines() {
+        let trimmed = line.trim_start();
+        if let Some(rest) = trimmed.strip_prefix("## ") {
+            // 헤더 — 이전 entry 마감
+            if let Some((ts, slot, headline, body)) = cur.take() {
+                let joined = body.join("\n").trim().to_string();
+                let preview = if joined.chars().count() > 200 {
+                    let cut: String = joined.chars().take(200).collect();
+                    format!("{cut}…")
+                } else {
+                    joined
+                };
+                entries.push(BusEntry {
+                    ts,
+                    slot,
+                    headline,
+                    body_preview: preview,
+                });
+            }
+            // 새 헤더 파싱: `2026-05-23 13:50 KST · slot-E · <헤드라인>`
+            let parts: Vec<&str> = rest.splitn(3, " · ").collect();
+            if parts.len() < 3 {
+                continue;
+            }
+            cur = Some((parts[0].to_string(), parts[1].to_string(), parts[2].to_string(), Vec::new()));
+        } else if let Some((_, _, _, ref mut body)) = cur.as_mut() {
+            body.push(line.to_string());
+        }
+    }
+    if let Some((ts, slot, headline, body)) = cur {
+        let joined = body.join("\n").trim().to_string();
+        let preview = if joined.chars().count() > 200 {
+            let cut: String = joined.chars().take(200).collect();
+            format!("{cut}…")
+        } else {
+            joined
+        };
+        entries.push(BusEntry {
+            ts,
+            slot,
+            headline,
+            body_preview: preview,
+        });
+    }
+    // 본 파일 위(최신)→아래(과거) append-only. 입력 순서 그대로가 ts desc.
+    entries.truncate(limit);
+    Ok(entries)
+}
+
+#[tauri::command]
+pub async fn agent_team_list_bus(
+    repo_root: String,
+    limit: Option<usize>,
+) -> Result<Vec<BusEntry>, String> {
+    let lim = limit.unwrap_or(15);
+    tauri::async_runtime::spawn_blocking(move || read_bus_blocking(repo_root, lim))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {e}"))?
 }
 
 fn read_proposals_blocking(repo_root: String) -> Result<Vec<ProposalInfo>, String> {
