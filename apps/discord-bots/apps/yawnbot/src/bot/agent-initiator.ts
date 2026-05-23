@@ -34,6 +34,7 @@ import {
   type HealthSignals,
 } from './system-health';
 import { appendProgress } from './team-portfolio';
+import { getDecisionsForTask } from './agent-decisions';
 
 /** 발의 종류 — 4축 매핑 (TASK-KAR-018-INIT § end-state). */
 export type ProposalKind =
@@ -182,22 +183,46 @@ function appendLedger(memoRoot: string, entry: ProposalLedgerEntry): void {
 /**
  * 24h 윈도우 dedupe: 같은 kind + 같은 rootCodes set 이면 중복 = skip.
  * (rationale 본문 차이는 무시 — 동일 신호의 noise 재발 차단.)
+ *
+ * + 사용자 reject 결정 시 7d 영구 dedupe (의사 존중). reject 시그널 =
+ *   디스코드 TASK 스레드 답글에 "reject" / "❌" / "kill" 포함.
  */
 function isDuplicate(
   ledger: ProposalLedgerEntry[],
   candidate: ProposalCandidate,
   nowMs: number,
   windowHrs: number,
+  memoRoot: string,
+  rejectWindowHrs: number = 7 * 24,
 ): boolean {
   const cutoff = nowMs - windowHrs * 3_600_000;
+  const rejectCutoff = nowMs - rejectWindowHrs * 3_600_000;
   const keyA = [...candidate.rootCodes].sort().join('|');
   return ledger.some((e) => {
-    if (e.type !== 'proposal') return false;
     if (e.kind !== candidate.kind) return false;
-    const ts = Date.parse(e.ts || '');
-    if (!isFinite(ts) || ts < cutoff) return false;
     const keyB = [...e.rootCodes].sort().join('|');
-    return keyA === keyB;
+    if (keyA !== keyB) return false;
+    const ts = Date.parse(e.ts || '');
+    if (!isFinite(ts)) return false;
+
+    // 24h 표준 dedupe (type=proposal)
+    if (e.type === 'proposal' && ts >= cutoff) return true;
+
+    // 사용자 reject 결정 → 7d 영구 dedupe (의사 존중)
+    if (e.type === 'seeded' && e.seededTaskFile && ts >= rejectCutoff) {
+      // TASK 파일명 `TASK-KAR-NNN-slug.md` → 본 id `TASK-KAR-NNN` (slug 제외)
+      // — agent-decisions 가 본 id 기준 저장 (slug 미포함, main.ts:236 extractTaskId
+      // from thread name=TASK-id only).
+      const m = e.seededTaskFile.match(/^(TASK-[A-Z]{2,6}-\d+)/);
+      const taskId = m ? m[1] : null;
+      if (!taskId || !memoRoot) return false;
+      const decisions = getDecisionsForTask(memoRoot, taskId);
+      const hasReject = decisions.some((d) =>
+        /reject|❌|kill|취소|거절|기각/i.test(d.text),
+      );
+      if (hasReject) return true;
+    }
+    return false;
   });
 }
 
@@ -696,7 +721,7 @@ export function runInitiatorOnce(
   let deduped = 0;
   const accepted: ProposalCandidate[] = [];
   for (const c of passing) {
-    if (isDuplicate(ledger, c, nowMs, thresholds.dedupeWindowHrs)) {
+    if (isDuplicate(ledger, c, nowMs, thresholds.dedupeWindowHrs, memoRoot)) {
       deduped++;
       continue;
     }

@@ -326,6 +326,121 @@ describe('appendDeliberationEnvelope ↔ readLatestProposal 호환 (E2E handoff)
   });
 });
 
+describe('isDuplicate: 사용자 reject 결정 → 7d 영구 dedupe (의사 존중)', () => {
+  it('reject 결정 박힌 TASK 의 rootCodes 와 동일 = 24h 윈도우 넘어도 dedupe', () => {
+    const now = Date.parse('2026-05-23T00:00:00Z');
+    // 25h 전 (24h dedupe 윈도우 만료) seeded entry — 같은 rootCodes
+    const prevSeedTime = now - 25 * 3_600_000;
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        ts: new Date(prevSeedTime).toISOString(),
+        type: 'seeded',
+        kind: 'new-project',
+        score: 0.8,
+        rootCodes: ['progress-stale'],
+        headline: '📜 발의',
+        rationale: 'r',
+        status: 'draft',
+        seededTaskFile: 'TASK-KAR-200-foo.md',
+      }) + '\n',
+      'utf-8',
+    );
+    // 사용자 reject 결정 박힘
+    const decisionsPath = path.join(root, '.claude', 'agent-decisions.jsonl');
+    fs.writeFileSync(
+      decisionsPath,
+      JSON.stringify({
+        taskId: 'TASK-KAR-200',
+        text: 'reject 이 발의는 필요 없음',
+        by: 'user',
+        ts: new Date(now - 12 * 3_600_000).toISOString(),
+      }) + '\n',
+      'utf-8',
+    );
+    // 같은 신호 다시 = 영구 dedupe (24h 넘었어도)
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      nowMs: now,
+      seedTasks: false,
+      deliberate: false,
+    });
+    expect(r.appended).toBe(0);
+    expect(r.deduped).toBe(1);
+  });
+
+  it('reject 없는 25h 후 seeded = 정상 재발의 (회귀 안전)', () => {
+    const now = Date.parse('2026-05-23T00:00:00Z');
+    const prevSeedTime = now - 25 * 3_600_000;
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        ts: new Date(prevSeedTime).toISOString(),
+        type: 'seeded',
+        kind: 'new-project',
+        score: 0.8,
+        rootCodes: ['progress-stale'],
+        headline: '📜 발의',
+        rationale: 'r',
+        status: 'draft',
+        seededTaskFile: 'TASK-KAR-201-foo.md',
+      }) + '\n',
+      'utf-8',
+    );
+    // 결정 0 = reject X
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      nowMs: now,
+      seedTasks: false,
+      deliberate: false,
+    });
+    expect(r.appended).toBe(1); // 정상 재발의
+  });
+
+  it('approve 결정 = dedupe X (사용자가 같은 시도 OK 명시)', () => {
+    const now = Date.parse('2026-05-23T00:00:00Z');
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        ts: new Date(now - 25 * 3_600_000).toISOString(),
+        type: 'seeded',
+        kind: 'new-project',
+        score: 0.8,
+        rootCodes: ['progress-stale'],
+        headline: '📜 발의',
+        rationale: 'r',
+        status: 'draft',
+        seededTaskFile: 'TASK-KAR-202-foo.md',
+      }) + '\n',
+      'utf-8',
+    );
+    const decisionsPath = path.join(root, '.claude', 'agent-decisions.jsonl');
+    fs.writeFileSync(
+      decisionsPath,
+      JSON.stringify({
+        taskId: 'TASK-KAR-202',
+        text: 'approve 진행하세요',
+        by: 'user',
+        ts: new Date(now - 12 * 3_600_000).toISOString(),
+      }) + '\n',
+      'utf-8',
+    );
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: progressStaleStub,
+      nowMs: now,
+      seedTasks: false,
+      deliberate: false,
+    });
+    expect(r.appended).toBe(1); // approve = 새 시도 OK
+  });
+});
+
 describe('writeCoreSpecDraft — new-core kind 시 core.md draft 자동 생성', () => {
   it('worker-fail-critical → triage-worker id + role 추론', () => {
     const cid = writeCoreSpecDraft(
