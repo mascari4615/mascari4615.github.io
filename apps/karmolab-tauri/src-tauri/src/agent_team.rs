@@ -87,25 +87,30 @@ pub struct SessionInfo {
 }
 
 fn memo_root(repo_root: &str) -> PathBuf {
-    // 3 케이스 (KAR-116 버그 fix 2026-05-23):
-    //  ① repo_root 자체가 memo (직계 `.claude` 포함)
-    //  ② umbrella karmoddrine/ — `repo_root/memo/.claude` (사용자 보편 = `C:\...\karmoddrine`)
-    //  ③ 형제 — `repo_root/../memo/.claude` (repo_root 가 github.io 일 때)
+    // 4 케이스 — 분기 기준 = `.claude/agents` 디렉토리 (단순 `.claude` X).
+    // 사유: umbrella `karmoddrine/.claude` 도 별 dotfile 로 존재 (active-sessions.md 등). 단순
+    // `.claude` exists 로 분기하면 그쪽을 잘못 잡음. 진짜 memo 정본 = `.claude/agents` 가 있는 곳.
     let p = PathBuf::from(repo_root);
-    if p.join(".claude").exists() {
-        return p;
-    }
+    let has_agents = |c: &PathBuf| c.join(".claude").join("agents").exists();
+
+    // ① umbrella karmoddrine — repo_root/memo (가장 보편)
     let nested = p.join("memo");
-    if nested.join(".claude").exists() {
+    if has_agents(&nested) {
         return nested;
     }
+    // ② repo_root 자체가 memo
+    if has_agents(&p) {
+        return p;
+    }
+    // ③ 형제 (repo_root 가 github.io 일 때)
     if let Some(parent) = p.parent() {
         let sibling = parent.join("memo");
-        if sibling.join(".claude").exists() {
+        if has_agents(&sibling) {
             return sibling;
         }
     }
-    p
+    // ④ fallback (어디도 못 찾으면 직계 — 그러면 read 시 error 가 분명한 path 로 노출)
+    p.join("memo")
 }
 
 fn parse_yaml_frontmatter(content: &str) -> serde_yml::Value {
