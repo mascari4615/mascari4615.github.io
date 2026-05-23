@@ -82,7 +82,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     container.innerHTML = `
-      <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem">
+      <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
           <h2 style="margin:0;font-size:1.1rem">🛰 에이전트 팀</h2>
           <span class="at-meta" style="opacity:.6;font-size:.8rem"></span>
@@ -551,7 +551,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
       return;
     }
     container.innerHTML = `
-      <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem">
+      <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
           <h2 style="margin:0;font-size:1.05rem">🎴 에이전트 카드 피드</h2>
           <span class="ac-meta" style="opacity:.6;font-size:.78rem"></span>
