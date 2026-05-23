@@ -95,7 +95,6 @@ async function openInEditor(filePath: string): Promise<void> {
     await invoke('open_task_in_editor', { filePath });
   } catch (e) {
     console.error('[cockpit-task] open_task_in_editor 실패', e);
-    alert(`에디터 오픈 실패: ${e}`);
   }
 }
 
