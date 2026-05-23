@@ -14,6 +14,7 @@ import {
   mapIssuesToProposals,
   readLedger,
   runInitiatorOnce,
+  writeCoreSpecDraft,
   type ProposalKind,
 } from './agent-initiator';
 import type { HealthSignals } from './system-health';
@@ -296,6 +297,86 @@ describe('runInitiatorOnce — deliberation handoff (출력 layer #3)', () => {
       .trim()
       .split(/\r?\n/);
     expect(lines).toHaveLength(2);
+  });
+});
+
+describe('writeCoreSpecDraft — new-core kind 시 core.md draft 자동 생성', () => {
+  it('worker-fail-critical → triage-worker id + role 추론', () => {
+    const cid = writeCoreSpecDraft(
+      root,
+      {
+        kind: 'new-core',
+        rootCodes: ['worker-fail-critical'],
+        score: 0.8,
+        headline: '📜 발의 (새 역할 코어): 반복 실패',
+        rationale: 'x',
+      },
+      '2026-05-23T01:00:00Z',
+    );
+    expect(cid).toBe('triage-worker');
+    const coreMd = fs.readFileSync(
+      path.join(root, '.claude', 'agents', 'triage-worker', 'core.md'),
+      'utf-8',
+    );
+    expect(coreMd).toContain('id: triage-worker');
+    expect(coreMd).toContain('status: draft');
+    expect(coreMd).toContain('created_by: initiator');
+    expect(coreMd).toContain('[INITIATOR-AUTO]');
+    // mem/README.md 도 박힘
+    expect(
+      fs.existsSync(
+        path.join(root, '.claude', 'agents', 'triage-worker', 'mem', 'README.md'),
+      ),
+    ).toBe(true);
+  });
+
+  it('cadence-stale → cadence-monitor id', () => {
+    const cid = writeCoreSpecDraft(
+      root,
+      {
+        kind: 'new-core',
+        rootCodes: ['cadence-stale'],
+        score: 0.8,
+        headline: 'x',
+        rationale: 'x',
+      },
+      '2026-05-23T01:00:00Z',
+    );
+    expect(cid).toBe('cadence-monitor');
+  });
+
+  it('non-new-core kind = null (no-op)', () => {
+    const cid = writeCoreSpecDraft(
+      root,
+      {
+        kind: 'new-project',
+        rootCodes: ['progress-stale'],
+        score: 0.8,
+        headline: 'x',
+        rationale: 'x',
+      },
+      '2026-05-23T01:00:00Z',
+    );
+    expect(cid).toBeNull();
+  });
+
+  it('id 충돌 시 -2 suffix', () => {
+    // 기존 triage-worker 디렉토리 박아 충돌 유도
+    fs.mkdirSync(path.join(root, '.claude', 'agents', 'triage-worker'), {
+      recursive: true,
+    });
+    const cid = writeCoreSpecDraft(
+      root,
+      {
+        kind: 'new-core',
+        rootCodes: ['worker-fail-critical'],
+        score: 0.8,
+        headline: 'x',
+        rationale: 'x',
+      },
+      '2026-05-23T01:00:00Z',
+    );
+    expect(cid).toBe('triage-worker-2');
   });
 });
 

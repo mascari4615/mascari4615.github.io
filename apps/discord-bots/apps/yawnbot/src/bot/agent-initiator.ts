@@ -66,6 +66,8 @@ export interface ProposalLedgerEntry {
   status: 'draft';
   /** seed writer 가 실 TASK 파일 생성 시 채워짐 (memo/tasks/ 상대 경로). */
   seededTaskFile?: string;
+  /** new-core kind 시 자동 생성된 코어 id (agents/<id>/core.md draft). */
+  createdCoreId?: string;
 }
 
 export interface InitiatorThresholds {
@@ -208,6 +210,8 @@ export interface InitiatorTickResult {
   deduped: number;
   /** 자동 생성된 TASK seed 파일명들 (memo/tasks/ 상대). */
   seededTaskFiles?: string[];
+  /** 자동 생성된 new-core spec id들 (memo/.claude/agents/<id>/core.md draft). */
+  seededCoreIds?: string[];
   /** proposals.jsonl 에 append 된 envelope id들 (다음 cadence tick deliberation 입력). */
   deliberationIds?: string[];
 }
@@ -265,6 +269,149 @@ export function appendDeliberationEnvelope(
   } catch {
     return null;
   }
+}
+
+// ── core spec writer (출력 layer #4 — new-core kind 시 agents/<id>/core.md Draft) ─
+
+/**
+ * rootCodes → 결핍 직무 추론. 결정적 (LLM 무관 — 날조 0). 추론 룰:
+ *  - worker-fail-critical / worker-fail-warn → `triage-worker` (반복 실패 분석 직무)
+ *  - cadence-stale / cadence-slow → `cadence-monitor` (시스템 헬스 직무)
+ *  - broken-loop → `loop-breaker` (cron봇 패턴 차단 직무)
+ *  - 그 외 → `gap-{rootCode}` 의 일반 핸들 (마지막 fallback)
+ *
+ * id 충돌 = 기존 코어 dir 존재 시 `-2`/`-3` 등 suffix (race retry max 5).
+ */
+function inferCoreSpec(
+  candidate: ProposalCandidate,
+): { id: string; role: string } {
+  const codeMap: Record<string, { id: string; role: string }> = {
+    'worker-fail-critical': {
+      id: 'triage-worker',
+      role: '반복 워커 실패 trace 분석 + 결핍 직무 추론',
+    },
+    'worker-fail-warn': {
+      id: 'triage-worker',
+      role: '반복 워커 실패 trace 분석 + 결핍 직무 추론',
+    },
+    'cadence-stale': {
+      id: 'cadence-monitor',
+      role: '시스템 cadence trace 정체 감지 + 재시작 트리거',
+    },
+    'cadence-slow': {
+      id: 'cadence-monitor',
+      role: '시스템 cadence trace 정체 감지 + 재시작 트리거',
+    },
+    'broken-loop': {
+      id: 'loop-breaker',
+      role: 'cron봇 패턴 (status drift) 차단 + 자동 해소',
+    },
+  };
+  for (const code of candidate.rootCodes) {
+    if (codeMap[code]) return codeMap[code];
+  }
+  // fallback — 첫 rootCode 슬러그 사용
+  const slug = (candidate.rootCodes[0] || 'unknown')
+    .replace(/[^a-z0-9-]/gi, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 30);
+  return {
+    id: `gap-${slug}`,
+    role: `${candidate.rootCodes.join(',')} 신호 해소 직무 (initiator 추론)`,
+  };
+}
+
+/**
+ * 결핍 직무 → `agents/<id>/core.md` Draft 자동 작성. README 의 core.md 포맷
+ * 정합 (frontmatter + 본문). `status: draft` — §2.8 측정 게이트 통과 전 자동
+ * 활성 X.
+ *
+ * 안전 바닥:
+ *  - 기존 코어 id 충돌 시 `-2`/`-3` 등 suffix (max 5 retry)
+ *  - mem/README.md 도 같이 박음 (work-memory 디렉토리 marker)
+ *  - 결정적 추론 (LLM 무관, rootCodes → id 매핑)
+ */
+export function writeCoreSpecDraft(
+  memoRoot: string,
+  candidate: ProposalCandidate,
+  ts: string,
+): string | null {
+  if (!memoRoot) return null;
+  if (candidate.kind !== 'new-core') return null;
+  const { id: baseId, role } = inferCoreSpec(candidate);
+  const agentsDir = path.join(memoRoot, '.claude', 'agents');
+  fs.mkdirSync(agentsDir, { recursive: true });
+
+  // id 충돌 회피
+  let id = baseId;
+  for (let i = 2; i <= 6; i++) {
+    if (!fs.existsSync(path.join(agentsDir, id))) break;
+    id = `${baseId}-${i}`;
+    if (i === 6) return null;
+  }
+  const coreDir = path.join(agentsDir, id);
+  if (fs.existsSync(coreDir)) return null;
+  fs.mkdirSync(coreDir, { recursive: true });
+  fs.mkdirSync(path.join(coreDir, 'mem'), { recursive: true });
+
+  const coreContent = [
+    '---',
+    `id: ${id}`,
+    `role: ${role}`,
+    'tools: [Read, Write, Edit, Glob, Grep, Bash(git status/log/diff)]',
+    'skills: []',
+    'work_memory: ./mem/',
+    'default_skin: alisa',
+    'emoji: 🧩',
+    `display_name: ${id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`,
+    'machine: any',
+    'status: draft',
+    `created_by: initiator`,
+    `created_at: ${ts}`,
+    '---',
+    '',
+    `# ${id}`,
+    '',
+    `> [INITIATOR-AUTO] TASK-KAR-018-INIT 의 new-core 발의로 자동 생성된 Draft 코어. §2.8 측정 게이트 (행동적합도/측정 baseline 1주 + 채택률 ≥ 0.2 + revert SLO 위반 0) 통과 후 active 전이.`,
+    '',
+    '## 직무',
+    '',
+    `${role}`,
+    '',
+    '## 발의 근거',
+    '',
+    `- **trigger rootCodes**: ${candidate.rootCodes.map((c) => `\`${c}\``).join(', ')}`,
+    `- **trigger headline**: ${candidate.headline}`,
+    `- **rationale**: ${candidate.rationale}`,
+    '',
+    '## 경계 / 금지 (④ 거버넌스)',
+    '',
+    '- **destructive 금지**: merge / main push / force-push',
+    '- **검증 게이트 준수**: 환경 변경 = ②(compile/test/CI/hook + 회귀 베이스라인)',
+    '- **active 자동승격 0**: §2.8 측정 게이트 통과 후만',
+    '- **사용자 영역 침범 0**: 세계관·디자인·비전 변경 X',
+    '',
+    '## 측정 baseline (§2.8-C — auditor 가 평가)',
+    '',
+    '- *기여도*: 본 코어가 처리한 작업의 성공률 / 시간',
+    '- *중복도*: 기존 active 코어와의 직무 중복 비율',
+    '- *전진 기여*: 사용자 가치 metric (progressLog 진척) 기여',
+    '',
+    '## 정본 cross-cut',
+    '',
+    `- \`memo/.claude/agents/README.md\` (로스터 — active 전이 시 행 추가)`,
+    `- \`memo/.claude/agent-mission.md\` §2.8`,
+    `- \`memo/tasks/TASK-KAR-018-INIT-팀-드리븐-발의-루프.md\` (발의 origin)`,
+    '',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(coreDir, 'core.md'), coreContent, 'utf-8');
+  fs.writeFileSync(
+    path.join(coreDir, 'mem', 'README.md'),
+    `# ${id} — work-memory\n\n[INITIATOR-AUTO] 코어 \`${id}\` 의 work-memory. 형식 = jsonl. 첫 entry 는 active 전이 후.\n`,
+    'utf-8',
+  );
+  return id;
 }
 
 // ── seed writer (출력 layer #2 — 실 TASK 파일 생성) ─────────────────────────
@@ -569,6 +716,7 @@ export function runInitiatorOnce(
   const seedEnabled =
     opts.seedTasks !== false && env.AGENT_INIT_SEED_TASKS !== '0';
   const seededFiles: string[] = [];
+  const seededCoreIds: string[] = [];
   if (seedEnabled && accepted.length > 0) {
     const first = accepted[0]; // 매 cycle 1건만 — 다음 cycle 에서 추가 (dedupe 24h 윈도우 자연 조절)
     try {
@@ -586,6 +734,23 @@ export function runInitiatorOnce(
       const file = seedTaskFile(memoRoot, entry, nowMs);
       if (file) {
         seededFiles.push(file);
+        // new-core kind = core.md draft 도 동시 작성 (출력 layer #4)
+        let createdCoreId: string | undefined;
+        if (first.kind === 'new-core') {
+          try {
+            const cid = writeCoreSpecDraft(
+              memoRoot,
+              first,
+              new Date(nowMs).toISOString(),
+            );
+            if (cid) {
+              createdCoreId = cid;
+              seededCoreIds.push(cid);
+            }
+          } catch {
+            /* core spec write 실패 = TASK seed 는 박힘 (안전) */
+          }
+        }
         // 별도 seeded ledger entry append (append-only 정합)
         appendLedger(memoRoot, {
           ts: new Date(nowMs).toISOString(),
@@ -598,6 +763,7 @@ export function runInitiatorOnce(
           rationale: first.rationale,
           status: 'draft',
           seededTaskFile: file,
+          createdCoreId,
         });
       }
     } catch {
@@ -634,14 +800,16 @@ export function runInitiatorOnce(
   }
 
   const seededLabel = seededFiles.length > 0 ? `+seeded:${seededFiles.length}` : '';
+  const coreLabel = seededCoreIds.length > 0 ? `+core-draft:${seededCoreIds.length}` : '';
   const deliberateLabel =
     deliberationIds.length > 0 ? `+deliberate:${deliberationIds.length}` : '';
   return {
-    label: label + seededLabel + deliberateLabel,
+    label: label + seededLabel + coreLabel + deliberateLabel,
     candidates: accepted,
     appended,
     deduped,
     seededTaskFiles: seededFiles,
+    seededCoreIds,
     deliberationIds,
   };
 }
