@@ -86,6 +86,31 @@ describe('gatherStatusBoardData — substrate 통합 (ledger/health)', () => {
     expect(data.userPending.count).toBeGreaterThanOrEqual(0);
   });
 
+  it('ledger 의 최신 seeded entry → userPending 1순위 (TASK 결정 대기)', () => {
+    const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(
+      ledgerPath,
+      JSON.stringify({
+        ts: '2026-05-23T00:34:00Z',
+        type: 'seeded',
+        kind: 'new-project',
+        score: 0.8,
+        rootCodes: ['progress-stale'],
+        headline: '📜 발의',
+        rationale: 'r',
+        status: 'draft',
+        seededTaskFile: 'TASK-KAR-136-x.md',
+      }) + '\n',
+      'utf-8',
+    );
+    const data = gatherStatusBoardData(env(), Date.parse('2026-05-23T01:00:00Z'));
+    expect(data.userPending.count).toBe(1);
+    expect(data.userPending.topItem).toContain('TASK-KAR-136');
+    expect(data.userPending.topItem).toContain('✅');
+    expect(data.userPending.topItem).toContain('❌');
+  });
+
   it('ledger 의 최신 seeded entry → finding', () => {
     const ledgerPath = path.join(root, '.claude', 'initiator-ledger.jsonl');
     fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
