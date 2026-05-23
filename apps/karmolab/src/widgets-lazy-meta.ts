@@ -116,6 +116,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'conch',
     title: '소라고동',
     category: 'play',
+    hidden: true,
     desc: '소라고동에게 질문합니다',
     layout: 'form',
     icon: '<path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z M12 6c-3.31 0-6 2.69-6 6 M12 8c-2.21 0-4 1.79-4 4" stroke="currentColor" stroke-width="1.5" fill="none"/>',
