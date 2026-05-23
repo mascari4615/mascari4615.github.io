@@ -1,0 +1,4 @@
+# karmoddrine-pulse 는 generate.mjs 가 prod 환경(yawnbot-prod 노트북)에서
+# 주기 실행 → 매 tick 마다 갱신되는 라이브 스냅샷. 데이터 파일은 churn 회피.
+# (committed index.html = README 용 정적 데모. JSON 은 prod 측만 생성.)
+pulse-data.json
