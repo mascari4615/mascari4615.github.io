@@ -18,6 +18,7 @@ import {
 
 const TAGS_SPEC: { name: string; id: string }[] = [
   { name: 'proposal', id: 't-prop' },
+  { name: 'task', id: 't-task' },
   { name: 'worker-report', id: 't-wr' },
   { name: 'discovery', id: 't-disc' },
   { name: 'pending', id: 't-pend' },
@@ -261,6 +262,29 @@ describe('forum-post — 진화 (evolveForumPost)', () => {
     expect(th.starterEdits.length).toBe(1);
     expect(th.setTagsCalls.length).toBe(1);
     expect(th.sendCalls.some((m) => m.content === '결정')).toBe(true);
+  });
+
+  it('kindTag = kind 태그 1개 교체 (proposal → task), domain 보존', async () => {
+    const { forum, handle } = await setupPost('ch-k1');
+    // setup = proposal 으로 진입 (kind=proposal, status=pending, domain=WM)
+    await evolveForumPost(forum.client, handle, { kindTag: 'task' });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setTagsCalls.length).toBe(1);
+    const next = th.setTagsCalls[0].sort();
+    // proposal 만 빠지고 task 추가, pending + WM 보존
+    expect(next).toEqual(['t-pend', 't-task', 't-wm'].sort());
+  });
+
+  it('kindTag + statusTag 동시 = 1번의 setAppliedTags 호출 (rate limit 절약)', async () => {
+    const { forum, handle } = await setupPost('ch-k2');
+    await evolveForumPost(forum.client, handle, {
+      kindTag: 'task',
+      statusTag: 'in-progress',
+    });
+    const th = forum.threads.get(handle.postId)!;
+    expect(th.setTagsCalls.length).toBe(1);
+    const next = th.setTagsCalls[0].sort();
+    expect(next).toEqual(['t-ip', 't-task', 't-wm'].sort());
   });
 
   it('setName = thread.setName 호출 + 100자 절단 (TASK-YB-039)', async () => {

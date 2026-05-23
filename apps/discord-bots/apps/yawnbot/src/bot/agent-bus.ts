@@ -510,8 +510,10 @@ export async function reconcileProposalCards(
       const state = VERDICT_STATE[v.verdict];
       let resultLine: string;
       // TASK-YB-039: adopt 분기에서 materialize 결과의 TASK id 추출 →
-      // 같은 forum-post thread 제목 rename + bridge ledger 박음.
+      // 같은 forum-post thread 제목 rename + kind 태그 proposal→task 토글 +
+      // bridge ledger 박음.
       let renameTo: string | undefined;
+      let kindToggle: 'task' | undefined;
       if (v.verdict === 'adopt') {
         // 팀이 *행동*: inert seed/draft 머터리얼라이즈 트리거 (자동
         // 실행 X — 진짜 게이트 seed→ready 불변, 2026-05-19 결정).
@@ -536,6 +538,7 @@ export async function reconcileProposalCards(
             proposalId: v.id,
           });
           renameTo = forumTitleForTask(taskId, entry.title);
+          kindToggle = 'task';
         }
       } else if (v.verdict === 'adopt-mods') {
         resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
@@ -584,6 +587,7 @@ export async function reconcileProposalCards(
         {
           embedEdit: editedEmbed,
           statusTag: STATE_TO_FORUM_STATUS[state],
+          kindTag: kindToggle,
           threadMessage: resultLine,
           setName: renameTo,
         },
