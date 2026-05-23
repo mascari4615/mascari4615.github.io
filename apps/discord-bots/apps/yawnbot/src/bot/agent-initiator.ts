@@ -208,6 +208,63 @@ export interface InitiatorTickResult {
   deduped: number;
   /** 자동 생성된 TASK seed 파일명들 (memo/tasks/ 상대). */
   seededTaskFiles?: string[];
+  /** proposals.jsonl 에 append 된 envelope id들 (다음 cadence tick deliberation 입력). */
+  deliberationIds?: string[];
+}
+
+// ── deliberation handoff (출력 layer #3 — 기존 dialogue 엔진 재사용) ─────────
+
+/**
+ * proposals.jsonl envelope 형식 변환 — `readLatestProposal` 호환 (`agent-cadence.ts`
+ * `runCoreDialogueOnce` 가 읽는 substrate). 평행 정의 X — 같은 파일·같은 schema.
+ *
+ * INIT proposal 1건 append → 다음 cadence tick 의 dialogue 슬롯이 *자동* 그 envelope
+ * 픽업 + 다중턴 deliberation (LT-3 substrate). 기존 governed-producer 가 만든
+ * envelope 와 형식 동일, 단 `payload.body` 에 [INITIATOR-AUTO] 마커 + rootCodes
+ * (deliberation 측에서 origin 추적 가능).
+ */
+export function appendDeliberationEnvelope(
+  memoRoot: string,
+  candidate: ProposalCandidate,
+  seq: number,
+  ts: string,
+): string | null {
+  if (!memoRoot) return null;
+  const id = `initiator-${seq}-${candidate.kind}`;
+  const domainHint: Record<ProposalKind, string> = {
+    'new-project': 'meta',
+    refactor: 'meta',
+    'new-core': 'meta',
+    consensus: 'meta',
+  };
+  const envelope = {
+    id,
+    ts,
+    envelope: {
+      projectId: 'kar-018',
+      payload: {
+        title: candidate.headline,
+        summary: candidate.headline,
+        body: [
+          '[INITIATOR-AUTO] TASK-KAR-018-INIT substrate 발의.',
+          `kind=${candidate.kind} rootCodes=${candidate.rootCodes.join(',')} score=${candidate.score.toFixed(2)}`,
+          '',
+          candidate.rationale,
+        ].join('\n'),
+        domain: domainHint[candidate.kind],
+        derivation: candidate.rationale,
+        kind: candidate.kind,
+      },
+    },
+  };
+  const p = path.join(memoRoot, '.claude', 'proposals.jsonl');
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.appendFileSync(p, JSON.stringify(envelope) + '\n', 'utf-8');
+    return id;
+  } catch {
+    return null;
+  }
 }
 
 // ── seed writer (출력 layer #2 — 실 TASK 파일 생성) ─────────────────────────
@@ -444,6 +501,12 @@ export function runInitiatorOnce(
      * 사용자가 비활성 원하면 env `AGENT_INIT_SEED_TASKS=0` 또는 opts.seedTasks=false.
      */
     seedTasks?: boolean;
+    /**
+     * deliberation handoff (출력 layer #3) — proposals.jsonl 에 envelope append.
+     * default true. 다음 cadence tick 의 `runCoreDialogueOnce` 가 그 envelope 픽업
+     * → 다중턴 deliberation 자동 발동. env `AGENT_INIT_DELIBERATE=0` 비활성.
+     */
+    deliberate?: boolean;
   } = {},
 ): InitiatorTickResult {
   const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
@@ -542,6 +605,25 @@ export function runInitiatorOnce(
     }
   }
 
+  // deliberation handoff (출력 layer #3) — proposals.jsonl envelope append.
+  // 매 cycle accepted 후보 *전부* (각각 별 envelope) → 다음 cadence tick 의
+  // dialogue 슬롯이 latest 1건씩 픽업 (LT-3 다중턴 substrate 자동 발동).
+  // 평행 정의 X — `readLatestProposal` 가 읽는 동일 파일·schema.
+  const deliberateEnabled =
+    opts.deliberate !== false && env.AGENT_INIT_DELIBERATE !== '0';
+  const deliberationIds: string[] = [];
+  if (deliberateEnabled && accepted.length > 0) {
+    const tsIso = new Date(nowMs).toISOString();
+    for (let i = 0; i < accepted.length; i++) {
+      try {
+        const id = appendDeliberationEnvelope(memoRoot, accepted[i], nowMs + i, tsIso);
+        if (id) deliberationIds.push(id);
+      } catch {
+        /* envelope append 실패 = ledger·seed 는 이미 박힘 (안전) */
+      }
+    }
+  }
+
   if (appended > 0 && opts.notify) {
     try {
       const msg = formatProposalTicker(accepted, deduped, seededFiles);
@@ -552,11 +634,14 @@ export function runInitiatorOnce(
   }
 
   const seededLabel = seededFiles.length > 0 ? `+seeded:${seededFiles.length}` : '';
+  const deliberateLabel =
+    deliberationIds.length > 0 ? `+deliberate:${deliberationIds.length}` : '';
   return {
-    label: label + seededLabel,
+    label: label + seededLabel + deliberateLabel,
     candidates: accepted,
     appended,
     deduped,
     seededTaskFiles: seededFiles,
+    deliberationIds,
   };
 }
