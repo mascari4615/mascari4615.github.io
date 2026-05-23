@@ -111,6 +111,10 @@ export async function createForumPost(
     embed: unknown;
     /** 첫 스레드 메시지 (atlas voiced intro 등). 비면 스레드 메시지 X. */
     intro?: string;
+    /** 초기 status 태그 (생성 시점). 미지정 = 'pending' (proposal default).
+     *  backfill 등 진행 중 TASK 는 'in-progress' 직접 박음 — pending → evolve
+     *  2단계 안 거치게. */
+    initialStatus?: ForumStatus;
   },
 ): Promise<ForumPostHandle | null> {
   const channelId = channelIdFor('agent-work', env);
@@ -119,7 +123,7 @@ export async function createForumPost(
   if (!channel || !Array.isArray(channel.availableTags)) return null;
   const tagIds = resolveTagIds(channel.availableTags, [
     args.kind,
-    'pending',
+    args.initialStatus ?? 'pending',
     args.domain,
   ]);
   const name = (args.title || '(제목 없음)').slice(0, 100);
