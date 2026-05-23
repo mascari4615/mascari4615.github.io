@@ -131,6 +131,19 @@ function render(env: ProposalEnvelope): {
   }
 }
 
+/**
+ * 발굴 raw 출처를 카드 embed 의 dedicated field 로 끌어올림 (TASK-KAR-018-LT-FORUM P4).
+ * env/skill/agent payload 의 `source` 가 정본 — LLM 발굴 시 prequel mem
+ * (`memo/.claude/discoveries/agent-trace.jsonl` 또는 코어별 mem) 의 출처 식별자
+ * (예: `agents/atlas/mem/2026-05-23.jsonl:42`) 가 박힘. task/objective 은 source
+ * 미정의 — 빈 문자열. 호출자가 비면 embed field 자체 skip.
+ */
+export function extractDiscoverySource(env: ProposalEnvelope): string {
+  const p = env.payload as unknown as Record<string, unknown>;
+  const raw = p && typeof p === 'object' ? p.source : undefined;
+  return typeof raw === 'string' ? raw.trim() : '';
+}
+
 // ── 메시지↔발굴id 매핑 영속 (V-2 리액션 승인이 소비) ──────────
 export interface ProposalMsgEntry {
   messageId: string;
@@ -685,6 +698,8 @@ export async function announceProposal(
     cardBody,
   );
 
+  const source = extractDiscoverySource(ann.envelope);
+
   const embed = new EmbedBuilder()
     .setColor(COLOR_BY_KIND[ann.kind] ?? 0x4caf50)
     .setAuthor({
@@ -700,6 +715,12 @@ export async function announceProposal(
       { name: '🏷️ 분류', value: kindLabel, inline: true },
       { name: '🆔', value: `\`${ann.id}\``, inline: true },
       { name: '📌 상태', value: '🟡 팀 결정 대기', inline: true },
+      // LT-FORUM P4: discovery raw → 카드 embed 의 dedicated source field.
+      // env/skill/agent 만 source 박힘 (task/objective = LLM payload 미정의).
+      // 1024 limit (discord field) 만족 위해 절단 — 긴 path 다중 사용자 X.
+      ...(source
+        ? [{ name: '🔗 출처', value: source.slice(0, 1000) }]
+        : []),
       { name: '🧑‍🤝‍🧑 팀 채택 시', value: onApprove },
     )
     .setFooter({
