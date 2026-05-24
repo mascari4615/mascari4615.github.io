@@ -20,6 +20,9 @@ interface MemoQuestTree {
   memoPath: string;
 }
 
+type BusEntry = { ts: string; slot: string; headline: string; body_preview: string; task_ids: string[] };
+type CardInfo = { ts: string; source: string; session?: string; kind?: string; topic?: string; summary: string; task_ids: string[] };
+
 const DOMAINS: Array<{ value: string; label: string }> = [
   { value: 'wm', label: 'WitchMendokusai' },
   { value: 'karmolab', label: 'KarmoLab' },
@@ -88,6 +91,46 @@ async function fetchTree(): Promise<MemoQuestTree | null> {
   }
 }
 
+async function fetchRepoRoot(): Promise<string | null> {
+  const invoke = getInvoke();
+  if (!invoke) return null;
+  try { return (await invoke('localdev_get_repo_root')) as string | null; } catch { return null; }
+}
+
+async function fetchBusEntries(repoRoot: string): Promise<BusEntry[]> {
+  const invoke = getInvoke();
+  if (!invoke) return [];
+  try { return (await invoke('agent_team_list_bus', { repoRoot, limit: 50 })) as BusEntry[]; } catch { return []; }
+}
+
+async function fetchCardEntries(repoRoot: string): Promise<CardInfo[]> {
+  const invoke = getInvoke();
+  if (!invoke) return [];
+  try { return (await invoke('agent_team_list_cards', { repoRoot, limit: 240 })) as CardInfo[]; } catch { return []; }
+}
+
+function buildBusMap(entries: BusEntry[]): Map<string, BusEntry[]> {
+  const map = new Map<string, BusEntry[]>();
+  for (const e of entries) {
+    for (const id of e.task_ids) {
+      if (!map.has(id)) map.set(id, []);
+      map.get(id)!.push(e);
+    }
+  }
+  return map;
+}
+
+function buildCardMap(entries: CardInfo[]): Map<string, CardInfo[]> {
+  const map = new Map<string, CardInfo[]>();
+  for (const e of entries) {
+    for (const id of e.task_ids) {
+      if (!map.has(id)) map.set(id, []);
+      map.get(id)!.push(e);
+    }
+  }
+  return map;
+}
+
 async function openInEditor(filePath: string): Promise<void> {
   const invoke = getInvoke();
   if (!invoke) return;
@@ -135,6 +178,7 @@ function renderList(
   sorted: MemoTaskNode[],
   selectedIdx: number,
   subCountMap: Map<string, number>,
+  cardMap: Map<string, CardInfo[]>,
 ): void {
   // 루트 태스크만 (parent == null)
   const roots = sorted.filter((t) => t.parent == null);
@@ -148,11 +192,16 @@ function renderList(
       const sel = i === selectedIdx ? ' selected' : '';
       const subs = subCountMap.get(t.id) ?? 0;
       const subBadge = subs > 0 ? `<span class="ckt-sub-badge">(${subs})</span>` : '';
+      const latestCard = cardMap.get(t.id)?.[0];
+      const cardHint = latestCard
+        ? `<div class="ckt-card-hint">${esc(latestCard.summary.slice(0, 80))}</div>`
+        : '';
       return `<div class="ckt-row${sel}" data-task-id="${esc(t.id)}" data-idx="${i}">
         <span class="ckt-id">${esc(t.id)}</span>
         <span class="ckt-status" style="color:${sc}">${esc(t.status)}</span>
         <span class="ckt-title">${esc(t.title)}${subBadge}</span>
         <span class="ckt-tags">${t.tags.length > 0 ? esc(`[${t.tags.slice(0, 3).join(', ')}${t.tags.length > 3 ? '…' : ''}]`) : ''}</span>
+        ${cardHint}
       </div>`;
     })
     .join('');
@@ -272,6 +321,7 @@ function openDrawer(
   backdropEl: HTMLElement,
   crumbEl: HTMLElement,
   bodyEl: HTMLElement,
+  busMap: Map<string, BusEntry[]>,
 ): void {
   const sc = STATUS_COLORS[task.status] ?? '#55555a';
   const domain = task.path[0] ?? '';
@@ -327,6 +377,19 @@ function openDrawer(
         </div>`;
       }).join('')}
     </div>` : ''}
+
+    ${(() => {
+      const busEntries = busMap.get(task.id) ?? [];
+      if (busEntries.length === 0) return '';
+      return `<div class="ckt-dr-section">
+        <div class="ckt-dr-section-head">슬롯 메시지 · ${busEntries.length}</div>
+        ${busEntries.map((b) => `<div class="ckt-dr-bus-entry">
+          <span class="ckt-dr-bus-slot">[${esc(b.slot)}]</span>
+          <span class="ckt-dr-bus-head">${esc(b.headline)}</span>
+          <span class="ckt-dr-bus-ts">${esc(b.ts)}</span>
+        </div>`).join('')}
+      </div>`;
+    })()}
 
     <div class="ckt-dr-actions">
       <button class="ckt-dr-open-btn" data-open-file="${esc(task.filePath)}">↗ 에디터에서 열기</button>
@@ -633,6 +696,23 @@ const TASK_TAB_CSS = `
 .ckt-dr-child-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; padding: 2px 5px; border: 1px solid; text-transform: uppercase; }
 .ckt-dr-child-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); }
 .ckt-dr-child-title { font-family: 'Noto Serif KR', serif; font-size: 13px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ckt-card-hint {
+  grid-column: 1 / -1; font-size: 11px; color: var(--ink3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 2px; padding: 0 2px; opacity: 0.8;
+}
+.ckt-dr-bus-entry {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 6px 0; border-bottom: 1px dashed var(--line);
+  font-size: 12px;
+}
+.ckt-dr-bus-entry:last-child { border-bottom: none; }
+.ckt-dr-bus-slot {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--accent2); flex-shrink: 0; letter-spacing: 0.1em;
+}
+.ckt-dr-bus-head { flex: 1; color: var(--ink2); line-height: 1.4; }
+.ckt-dr-bus-ts { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink3); flex-shrink: 0; }
 .ckt-dr-actions { margin-top: 24px; padding-top: 20px; border-top: 1px dashed var(--line2); }
 .ckt-dr-open-btn {
   width: 100%; background: var(--ink); color: var(--bg); border: none;
@@ -727,6 +807,8 @@ export function buildTaskTab(container: HTMLElement): void {
   let filteredTasks: MemoTaskNode[] = [];
   let listRoots: MemoTaskNode[] = []; // LIST 모드용 루트 태스크만
   let subCountMap = new Map<string, number>();
+  let busMap = new Map<string, BusEntry[]>();
+  let cardMap = new Map<string, CardInfo[]>();
   let selectedIdx = 0;
   let statusFilter = 'all';
   let sortMode = 'mtime';
@@ -738,14 +820,14 @@ export function buildTaskTab(container: HTMLElement): void {
   const doOpenDrawer = (taskId: string) => {
     const task = currentTasks.find((t) => t.id === taskId);
     if (!task) return;
-    openDrawer(task, currentTasks, drawerEl, backdropEl, crumbEl, bodyEl);
+    openDrawer(task, currentTasks, drawerEl, backdropEl, crumbEl, bodyEl, busMap);
   };
 
   const rerender = () => {
     if (viewMode === 'quest') {
       renderQuestLog(listEl, filteredTasks, expandedDomains);
     } else {
-      renderList(listEl, listRoots, selectedIdx, subCountMap);
+      renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap);
     }
   };
 
@@ -757,9 +839,17 @@ export function buildTaskTab(container: HTMLElement): void {
   };
 
   const reload = async () => {
-    const tree = await fetchTree();
+    const [tree, repoRoot] = await Promise.all([fetchTree(), fetchRepoRoot()]);
     if (!tree) { listEl.innerHTML = '<div class="ckt-empty">데이터 로딩 실패</div>'; metaEl.textContent = '오류'; return; }
     currentTasks = tree.tasks;
+    if (repoRoot) {
+      const [busEntries, cardEntries] = await Promise.all([
+        fetchBusEntries(repoRoot),
+        fetchCardEntries(repoRoot),
+      ]);
+      busMap = buildBusMap(busEntries);
+      cardMap = buildCardMap(cardEntries);
+    }
     // 전체 서브카운트 맵 (필터 무관)
     subCountMap = new Map();
     for (const t of currentTasks) {
