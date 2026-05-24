@@ -71,6 +71,8 @@ export interface ChannelSpec {
 
 /** discord.js v14 GuildForumTagData 형식 (실 API 호출 시 패스). */
 export interface DiscordForumTagInput {
+  /** 기존 태그 업데이트 시 Discord 가 ID 를 보존하도록 포함. 신규 생성 시 생략. */
+  id?: string;
   name: string;
   emoji?: { id?: string | null; name?: string | null };
   moderated?: boolean;
@@ -250,6 +252,10 @@ export interface ReconcileResult {
  * 기존 forum 채널 (reused/claimed) 의 availableTags 를 spec 정합 동기.
  * 신규 생성은 create 옵션이 직접 박혀 호출 불요. best-effort — setAvailableTags
  * 미지원 채널/페이크는 silent skip (드리프트만 잡으면 됨, 신규 채널엔 안전).
+ *
+ * ID 보존: 이름 집합이 이미 일치하면 setAvailableTags 자체를 skip (Discord 가
+ * 호출마다 새 ID 를 발급해 기존 포스트 appliedTags 를 무효화하는 것 방지).
+ * 이름이 다를 때만 동기 — 동명 기존 태그는 ID 재사용해 파괴 최소화.
  */
 async function syncForumTagsIfNeeded(
   channel: ChannelLike,
@@ -258,7 +264,27 @@ async function syncForumTagsIfNeeded(
   if (entry.type !== 'GuildForum') return;
   if (!entry.forum?.availableTags) return;
   if (!channel.setAvailableTags) return;
-  await channel.setAvailableTags(specTagsToDiscord(entry.forum.availableTags));
+
+  const specNames = entry.forum.availableTags.map((t) => t.name);
+  const currentTags = channel.availableTags ?? [];
+  const currentNameSet = new Set(currentTags.map((t) => t.name));
+
+  // 이름 집합 동일 = 변경 불요 → skip (ID 재발급 방지).
+  const namesMatch =
+    specNames.length === currentNameSet.size &&
+    specNames.every((n) => currentNameSet.has(n));
+  if (namesMatch) return;
+
+  // 변경 필요 — 동명 기존 태그 ID 보존해 appliedTags 파괴 최소화.
+  const existingIdByName = new Map(
+    currentTags.filter((t) => t.id !== undefined).map((t) => [t.name, t.id!]),
+  );
+  const merged = entry.forum.availableTags.map((t) => {
+    const base = specTagsToDiscord([t])[0];
+    const existingId = existingIdByName.get(t.name);
+    return existingId !== undefined ? { ...base, id: existingId } : base;
+  });
+  await channel.setAvailableTags(merged);
 }
 
 /**
