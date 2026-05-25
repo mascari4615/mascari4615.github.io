@@ -88,8 +88,8 @@ export async function sendLocalEvent(
       const ok = await channel
         .send({ embeds: [embed] })
         .then(() => true)
-        .catch((e: any) => {
-          console.error('[LocalWebhook] 채널 전송 실패:', channelId, e?.message ?? e);
+        .catch((e: unknown) => {
+          console.error('[LocalWebhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e));
           return false;
         });
       if (ok) sent++;
@@ -125,8 +125,8 @@ export function mountLocalWebhook(app: Application, client: Client): void {
         );
       }
       res.sendStatus(200);
-    } catch (err: any) {
-      console.error('[LocalWebhook] Error:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[LocalWebhook] Error:', err instanceof Error ? err.message : String(err));
       res.sendStatus(500);
     }
   });

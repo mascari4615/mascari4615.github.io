@@ -265,9 +265,10 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
   let info: PublisherSaleAssetInfo | null;
   try {
     info = await fetchPublisherSaleAssetInfo();
-  } catch (err: any) {
-    console.error('[UnityFree] Unity 페이지 요청/파싱 실패:', err?.message ?? err);
-    return { status: 'fetch_failed', info: null, error: String(err?.message ?? err) };
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error('[UnityFree] Unity 페이지 요청/파싱 실패:', errMsg);
+    return { status: 'fetch_failed', info: null, error: errMsg };
   }
 
   if (!info) {

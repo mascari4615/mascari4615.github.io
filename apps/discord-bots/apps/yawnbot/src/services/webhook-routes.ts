@@ -60,8 +60,8 @@ function load(): WebhookRoutes {
         ? parsed.localDefault.filter((s) => typeof s === 'string')
         : [],
     };
-  } catch (e: any) {
-    console.warn(`[WebhookRoutes] ${ROUTES_PATH} 로드 실패 — 빈 라우팅으로 시작:`, e?.message ?? e);
+  } catch (e: unknown) {
+    console.warn(`[WebhookRoutes] ${ROUTES_PATH} 로드 실패 — 빈 라우팅으로 시작:`, e instanceof Error ? e.message : String(e));
     cached = { default: [], routes: {}, localRoutes: {}, localDefault: [] };
   }
   return cached;
