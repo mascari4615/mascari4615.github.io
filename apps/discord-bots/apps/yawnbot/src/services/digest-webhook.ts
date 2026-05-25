@@ -14,6 +14,15 @@ import { channelIdFor } from './channel-provision';
 const MAX_PLAIN_CHARS = 1800;
 const MAX_FETCH_CHARS = 8000;
 
+/** GitHub push webhook payload 의 commit 원소 타입 (실제 접근 필드만). */
+export interface GitHubCommit {
+  id: string;
+  url: string;
+  message: string;
+  added?: string[];
+  modified?: string[];
+}
+
 /** .md 본문에서 앞 YAML frontmatter (--- ... ---) 를 제거하고 본문만 반환 */
 function stripFrontmatter(raw: string): string {
   const m = raw.match(/^---[\s\S]*?---\r?\n([\s\S]*)$/);
@@ -72,7 +81,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
-export function isDigestCommit(commit: any): string | null {
+export function isDigestCommit(commit: GitHubCommit): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
@@ -91,7 +100,7 @@ export function isDigestCommit(commit: any): string | null {
  */
 export async function handleDigestCommit(
   client: Client,
-  commit: any,
+  commit: GitHubCommit,
   repoFullName: string,
   channelIds: string[],
 ): Promise<void> {
