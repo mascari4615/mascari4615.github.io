@@ -21,7 +21,7 @@
 use serde::Serialize;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{ChildStdin, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use tauri::{AppHandle, Emitter, State};
 
@@ -43,7 +43,7 @@ fn apply_no_window(cmd: &mut Command) {
 
 #[derive(Default)]
 pub struct TerminalState {
-    inner: Mutex<TerminalInner>,
+    inner: Arc<Mutex<TerminalInner>>,
 }
 
 #[derive(Default)]
@@ -127,12 +127,22 @@ fn initial_cwd() -> String {
 }
 
 #[tauri::command]
-pub fn terminal_start(
+pub async fn terminal_start(
     app: AppHandle,
     state: State<'_, TerminalState>,
 ) -> Result<TerminalStartResult, String> {
-    let mut inner = state.inner.lock().map_err(|e| format!("state lock 실패: {}", e))?;
-    if inner.child_id.is_some() {
+    let inner = Arc::clone(&state.inner);
+    tauri::async_runtime::spawn_blocking(move || terminal_start_blocking(app, inner))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn terminal_start_blocking(
+    app: AppHandle,
+    inner: Arc<Mutex<TerminalInner>>,
+) -> Result<TerminalStartResult, String> {
+    let mut inner_guard = inner.lock().map_err(|e| format!("state lock 실패: {}", e))?;
+    if inner_guard.child_id.is_some() {
         return Ok(TerminalStartResult {
             running: true,
             cwd: initial_cwd(),
@@ -170,8 +180,8 @@ pub fn terminal_start(
         .take()
         .ok_or_else(|| "stderr pipe 없음".to_string())?;
 
-    inner.stdin = Some(stdin_handle);
-    inner.child_id = Some(pid);
+    inner_guard.stdin = Some(stdin_handle);
+    inner_guard.child_id = Some(pid);
 
     spawn_reader(stdout, app.clone(), "stdout");
     spawn_reader(stderr, app.clone(), "stderr");
@@ -184,7 +194,7 @@ pub fn terminal_start(
     });
 
     // 시작 직후 cwd 마커 한 번 — 위젯이 표시할 cwd 보장.
-    if let Some(stdin_handle) = inner.stdin.as_mut() {
+    if let Some(stdin_handle) = inner_guard.stdin.as_mut() {
         let _ = writeln!(
             stdin_handle,
             "Write-Host \"{}$((Get-Location).Path)\"",
