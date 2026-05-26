@@ -62,6 +62,15 @@ export async function fetchRepoFile(
 /** 일자 digest 파일만 (digests/YYYY-MM-DD.md). INDEX.md/README.md 제외. */
 const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
 
+/** GitHub push webhook payload 의 commit 원소 — 실제로 접근하는 필드만 선언. */
+export interface GitHubPushCommit {
+  id: string;
+  url: string;
+  message: string;
+  added?: string[];
+  modified?: string[];
+}
+
 /**
  * push payload 의 commit 하나가 dev-digest commit 인지 판별.
  * 조건: message 첫 줄 "chore(digests):" + **added ∪ modified** 중
@@ -72,7 +81,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
-export function isDigestCommit(commit: any): string | null {
+export function isDigestCommit(commit: GitHubPushCommit): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
@@ -91,7 +100,7 @@ export function isDigestCommit(commit: any): string | null {
  */
 export async function handleDigestCommit(
   client: Client,
-  commit: any,
+  commit: GitHubPushCommit,
   repoFullName: string,
   channelIds: string[],
 ): Promise<void> {
@@ -107,10 +116,10 @@ export async function handleDigestCommit(
     let rawBody = '';
     try {
       rawBody = await fetchRepoFile(repoFullName, sha, digestFile);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(
         `[DigestWebhook] digest 본문 fetch 실패 (${repoFullName}@${sha.slice(0, 7)}/${digestFile}):`,
-        e?.message ?? e,
+        e instanceof Error ? e.message : String(e),
       );
       return;
     }
@@ -135,8 +144,8 @@ export async function handleDigestCommit(
         tag: 'yawnbot/digest',
       });
       yawnResponse = text.trim();
-    } catch (e: any) {
-      console.error('[DigestWebhook] AI 가공 실패:', e?.message ?? e);
+    } catch (e: unknown) {
+      console.error('[DigestWebhook] AI 가공 실패:', e instanceof Error ? e.message : String(e));
       // fallback: 원본 첫 500자 그대로
       yawnResponse = body.slice(0, 500) + (body.length > 500 ? '\n…' : '');
     }
@@ -162,15 +171,15 @@ export async function handleDigestCommit(
     for (const channelId of targetChannels) {
       const channel = await client.channels.fetch(channelId).catch(() => null);
       if (channel?.isSendable()) {
-        await channel.send({ embeds: [embed] }).catch((e: any) =>
-          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e?.message ?? e),
+        await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
         );
       }
     }
 
     console.log(`[DigestWebhook] ${dateLabel} digest 전송 완료 (${targetChannels.length} 채널)`);
-  } catch (e: any) {
-    console.error('[DigestWebhook] handleDigestCommit 예외:', e?.message ?? e);
+  } catch (e: unknown) {
+    console.error('[DigestWebhook] handleDigestCommit 예외:', e instanceof Error ? e.message : String(e));
   }
 }
 

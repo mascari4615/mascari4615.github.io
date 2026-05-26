@@ -3,7 +3,7 @@ import { EmbedBuilder, Status } from 'discord.js';
 import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
-import { isDigestCommit, handleDigestCommit } from '../services/digest-webhook';
+import { isDigestCommit, handleDigestCommit, type GitHubPushCommit } from '../services/digest-webhook';
 import { syncTaskStatusOnPrMerge } from '../services/task-status-sync';
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
@@ -91,7 +91,7 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
 
         // TASK-YB-004 — dev-digest commit 감지: chore(digests): + digests/*.md added.
         // 해당 commit 발견 시 Yawn AI 가공 후 별도 embed 전송 + regular embed skip.
-        const digestCommit = payload.commits.find((c: any) => isDigestCommit(c));
+        const digestCommit = payload.commits.find((c: GitHubPushCommit) => isDigestCommit(c));
         if (digestCommit) {
           res.sendStatus(200);
           // async 이므로 res 먼저 보내고 AI 처리 (최대 수 초 소요)
@@ -102,14 +102,14 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
         embed.setTitle(gameData.getMessage('Webhook_Push_Title', payload.commits.length));
         const desc = payload.commits
           .slice(0, 5)
-          .map((c: any) => `- [\`${c.id.slice(0, 7)}\`](${c.url}) ${c.message}`)
+          .map((c: GitHubPushCommit) => `- [\`${c.id.slice(0, 7)}\`](${c.url}) ${c.message}`)
           .join('\n');
         embed.setDescription(desc);
 
         // TASK-WM-093 Phase F — claude-audit auto-fix push 시각 분리.
         // 모든 commit 의 subject 첫 줄이 `chore(audit-fix):` prefix 면 회색 (자동 배경 작업 톤).
         // 사람 손 push (default 초록 0x4caf50) 과 자동 fix push 디스코드 채널에서 즉시 구분.
-        const isAuditFixPush = payload.commits.every((c: any) => {
+        const isAuditFixPush = payload.commits.every((c: GitHubPushCommit) => {
           const firstLine = String(c.message ?? '').split('\n', 1)[0];
           return firstLine.startsWith('chore(audit-fix):');
         });
@@ -181,15 +181,15 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
       for (const channelId of channelIds) {
         const channel = await client.channels.fetch(channelId).catch(() => null);
         if (channel?.isSendable()) {
-          await channel.send({ embeds: [embed] }).catch((e: any) =>
-            console.error('[Webhook] 채널 전송 실패:', channelId, e?.message ?? e),
+          await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+            console.error('[Webhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
           );
         }
       }
 
       res.sendStatus(200);
-    } catch (err: any) {
-      console.error('[Webhook] Error:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[Webhook] Error:', err instanceof Error ? err.message : String(err));
       res.sendStatus(500);
     }
   });
