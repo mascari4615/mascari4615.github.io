@@ -123,7 +123,17 @@ fn normalize_title_for_filename(title: &str) -> String {
 /// 위젯에서 "+ 새 TASK" → 다음 ID 자동 발급 + frontmatter skeleton 생성.
 /// 반환: 생성된 파일 절대 경로 (위젯이 즉시 open_task_in_editor 호출).
 #[tauri::command]
-pub fn create_task(
+pub async fn create_task(
+    domain: String,
+    title: String,
+    memo_path: Option<String>,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || create_task_blocking(domain, title, memo_path))
+        .await
+        .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn create_task_blocking(
     domain: String,
     title: String,
     memo_path: Option<String>,
