@@ -18,6 +18,7 @@
     "start:yawnbot": "npm -w apps/yawnbot run start",
     "deploy": "npm -w apps/yawnbot run deploy",
     "deploy:yawnbot": "npm -w apps/yawnbot run deploy",
+    "start:daemons-all": "npm -w apps/yawnbot run start:daemons-all",
     "audit:cron": "node scripts/audit-cron-traceability.mjs"
   },
   "devDependencies": {

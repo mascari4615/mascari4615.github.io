@@ -90,6 +90,13 @@
             "script": "dev",
             "healthUrl": "http://127.0.0.1:5173/",
             "npmInstall": true
+        },
+        {
+            "id": "agent-daemons",
+            "label": "Agent Daemons (8코어)",
+            "app": "apps/discord-bots",
+            "script": "start:daemons-all",
+            "npmInstall": true
         }
     ]
 }
