@@ -150,8 +150,8 @@ export function runCursorLocalRunner(
                 if (child.stdin && !child.stdin.destroyed) {
                   child.stdin.write(`${JSON.stringify(payloadOut)}\n`);
                 }
-              } catch (e: any) {
-                console.error('[cursor question]', e?.message ?? e);
+              } catch (e: unknown) {
+                console.error('[cursor question]', e instanceof Error ? e.message : String(e));
                 if (child.stdin && !child.stdin.destroyed) {
                   child.stdin.write(`${JSON.stringify({ rpcId: msg.rpcId, cancelled: true })}\n`);
                 }
@@ -196,8 +196,8 @@ export function runCursorLocalRunner(
         const lastLine = trimmed.includes('\n') ? trimmed.split('\n').pop()!.trim() : trimmed;
         const json = JSON.parse(lastLine);
         resolve({ json, code, err });
-      } catch (e: any) {
-        reject(new Error(`runner JSON parse: ${e?.message ?? e}; exit=${code}; stderr=${String(err).slice(0, 2000)}`));
+      } catch (e: unknown) {
+        reject(new Error(`runner JSON parse: ${e instanceof Error ? e.message : String(e)}; exit=${code}; stderr=${String(err).slice(0, 2000)}`));
       }
     });
   });
