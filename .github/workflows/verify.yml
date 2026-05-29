@@ -50,9 +50,12 @@ jobs:
         # libgtk-3-dev: gdk-sys v0.18.2 pkg-config 의존. ubuntu-latest 업그레이드 후
         #   libwebkit2gtk-4.1-dev 가 더 이상 libgtk-3-dev 를 transitively 설치 안 함
         #   → cargo cache miss 시 gdk-3.0 not found (KL-082 CI 진단).
+        # libgdk-pixbuf2.0-dev: gdk-3.0.pc 가 gdk-pixbuf-2.0 을 pkg-config Requires 로 선언.
+        #   libgtk-3-dev 가 libgdk-pixbuf-2.0-dev 를 transitively 설치해야 하지만
+        #   ubuntu-latest 환경에서 보장 안 됨 → 명시적 설치로 gdk-pixbuf-2.0.pc 확보 (KL-082 CI 진단).
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev libgtk-3-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev libgtk-3-dev libgdk-pixbuf2.0-dev
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -61,8 +64,8 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             apps/karmolab-tauri/src-tauri/target
-          key: cargo-${{ runner.os }}-${{ hashFiles('apps/karmolab-tauri/Cargo.lock') }}
-          restore-keys: cargo-${{ runner.os }}-
+          key: cargo-v2-${{ runner.os }}-${{ hashFiles('apps/karmolab-tauri/Cargo.lock') }}
+          restore-keys: cargo-v2-${{ runner.os }}-
 
       - name: Install karmolab deps
         run: cd apps/karmolab && npm ci
