@@ -78,6 +78,12 @@ jobs:
         run: cd apps/blog && npm ci
 
       - name: Run verify (master invariant)
+        # PKG_CONFIG_PATH: gdk-sys v0.18.2 빌드 스크립트가 pkg-config --libs --cflags gdk-3.0 을 호출.
+        # CI 러너 환경에서 PKG_CONFIG_PATH 가 설정되지 않거나 multiarch 경로 미포함 시
+        # gdk-pixbuf-2.0.pc (libgdk-pixbuf-2.0-dev 설치) 를 찾지 못함 → exit 101.
+        # 명시적 경로 설정으로 x86_64 multiarch + fallback 경로 보장 (KL-082 CI 진단).
+        env:
+          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
         run: npm run verify
 
       - name: Typos check
