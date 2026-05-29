@@ -68,28 +68,6 @@ jobs:
           key: cargo-v2-${{ runner.os }}-${{ hashFiles('apps/karmolab-tauri/Cargo.lock') }}
           restore-keys: cargo-v2-${{ runner.os }}-
 
-      - name: Create gdk-pixbuf-2.0 pkg-config stub (cargo check)
-        # gdk-sys v0.18.2 build script 가 pkg-config --libs --cflags gdk-3.0 을 호출.
-        # gdk-3.0.pc 는 gdk-pixbuf-2.0 을 Requires 로 선언하는데, libgdk-pixbuf-2.0-dev 를
-        # 설치해도 ubuntu-latest CI 환경에서 gdk-pixbuf-2.0.pc 가 pkg-config 검색 경로에
-        # 없는 현상이 지속됨 (KL-082 CI 진단 8회차). cargo check 는 실제 링크 없이
-        # 타입 체크만 수행하므로 stub .pc 로도 충분 — 버전 2.42.10 으로 gdk-3.0.pc 요건 충족.
-        run: |
-          mkdir -p /tmp/pkg-stubs
-          cat > /tmp/pkg-stubs/gdk-pixbuf-2.0.pc << 'EOF'
-          prefix=/usr
-          exec_prefix=${prefix}
-          libdir=${prefix}/lib/x86_64-linux-gnu
-          includedir=${prefix}/include
-
-          Name: GDK Pixbuf
-          Description: Image loading and pixel buffer manipulation (stub for cargo check)
-          Version: 2.42.10
-          Requires: glib-2.0 >= 2.38.0 gobject-2.0 >= 2.38.0
-          Libs: -L${libdir} -lgdk_pixbuf-2.0
-          Cflags: -I${includedir}/gdk-pixbuf-2.0
-          EOF
-
       - name: Install karmolab deps
         run: cd apps/karmolab && npm ci
 
@@ -100,13 +78,30 @@ jobs:
         run: cd apps/blog && npm ci
 
       - name: Run verify (master invariant)
-        # PKG_CONFIG_PATH: gdk-sys v0.18.2 빌드 스크립트가 pkg-config --libs --cflags gdk-3.0 을 호출.
-        # CI 러너 환경에서 PKG_CONFIG_PATH 가 설정되지 않거나 multiarch 경로 미포함 시
-        # gdk-pixbuf-2.0.pc (libgdk-pixbuf-2.0-dev 설치) 를 찾지 못함 → exit 101.
-        # 명시적 경로 설정으로 x86_64 multiarch + fallback 경로 보장 (KL-082 CI 진단).
-        env:
-          PKG_CONFIG_PATH: /tmp/pkg-stubs:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
-        run: npm run verify
+        # gdk-sys v0.18.2: build script 가 pkg-config --libs --cflags gdk-3.0 호출.
+        # libgdk-pixbuf-2.0-dev 설치에도 CI 에서 gdk-pixbuf-2.0.pc 가 불안정하게
+        # 검색되지 않는 현상 8+ 회차 지속 (KL-082 진단). 해법 = stub .pc 를
+        # verify 단계와 동일 run 블록에서 생성 + export PKG_CONFIG_PATH 명시 +
+        # pkg-config 검증 gate → cargo check 전에 의존 체인 확인. cargo check 는
+        # 링크 없는 타입 체크이므로 stub 으로 충분.
+        run: |
+          mkdir -p /tmp/pkg-stubs
+          cat > /tmp/pkg-stubs/gdk-pixbuf-2.0.pc << 'PCEOF'
+          prefix=/usr
+          exec_prefix=${prefix}
+          libdir=${prefix}/lib/x86_64-linux-gnu
+          includedir=${prefix}/include
+          Name: GdkPixbuf
+          Description: Image loading and scaling (CI stub)
+          Version: 2.42.10
+          Requires: gobject-2.0
+          Libs: -L${libdir} -lgdk_pixbuf-2.0
+          Cflags: -I${includedir}/gdk-pixbuf-2.0
+          PCEOF
+          export PKG_CONFIG_PATH="/tmp/pkg-stubs:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+          pkg-config --modversion gdk-pixbuf-2.0
+          pkg-config --modversion gdk-3.0
+          npm run verify
 
       - name: Typos check
         # strict 게이트 (TASK-KL-032). _typos.toml 이 false-positive 정의 + 데이터/외부 라이브러리 exclude.
