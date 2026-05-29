@@ -48,15 +48,14 @@ jobs:
       - name: Install Linux deps (Tauri / WebKit / ALSA)
         # libasound2-dev: cpal=0.15 → alsa-sys v0.3.1 build 의존 (2026-05-10 부터 verify 16+ 회 fail 원인).
         # libgtk-3-dev: gdk-sys v0.18.2 pkg-config 의존. ubuntu-latest 업그레이드 후
-        #   libwebkit2gtk-4.1-dev 가 더 이상 libgtk-3-dev 를 transitively 설치 안 함
-        #   → cargo cache miss 시 gdk-3.0 not found (KL-082 CI 진단).
-        # libgdk-pixbuf-2.0-dev: gdk-3.0.pc 가 gdk-pixbuf-2.0 을 pkg-config Requires 로 선언.
-        #   libgtk-3-dev 가 libgdk-pixbuf-2.0-dev 를 transitively 설치해야 하지만
-        #   ubuntu-latest 환경에서 보장 안 됨 → 명시적 설치로 gdk-pixbuf-2.0.pc 확보 (KL-082 CI 진단).
-        #   주의: libgdk-pixbuf2.0-dev (universe 섹션) 는 CI 에서 설치 불가 → main 섹션 패키지 사용.
+        #   libwebkit2gtk-4.1-dev 가 더 이상 libgtk-3-dev 를 transitively 설치 안 함.
+        # libgdk-pixbuf-2.0-dev: gdk-3.0.pc Requires gdk-pixbuf-2.0 → 명시적 설치.
+        #   ubuntu-latest 에서 transitively 보장 안 됨 (KL-082 CI 진단).
+        # libsoup-3.0-dev: soup3-sys 가 libsoup-3.0.pc 의존. libwebkit2gtk-4.1-dev 가
+        #   Depends 로 선언하지만 CI 에서 transitively 설치 안 되는 경우 있음 → 명시적 설치.
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev libgtk-3-dev libgdk-pixbuf-2.0-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev libgtk-3-dev libgdk-pixbuf-2.0-dev libsoup-3.0-dev
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -78,29 +77,66 @@ jobs:
         run: cd apps/blog && npm ci
 
       - name: Run verify (master invariant)
-        # gdk-sys v0.18.2: build script 가 pkg-config --libs --cflags gdk-3.0 호출.
-        # libgdk-pixbuf-2.0-dev 설치에도 CI 에서 gdk-pixbuf-2.0.pc 가 불안정하게
-        # 검색되지 않는 현상 8+ 회차 지속 (KL-082 진단). 해법 = stub .pc 를
-        # verify 단계와 동일 run 블록에서 생성 + export PKG_CONFIG_PATH 명시 +
-        # pkg-config 검증 gate → cargo check 전에 의존 체인 확인. cargo check 는
-        # 링크 없는 타입 체크이므로 stub 으로 충분.
+        # CI pkg-config stub 전략 (KL-082 진단):
+        # cargo check 의존 패키지 .pc 파일이 CI 환경에서 pkg-config 검색 경로에
+        # 없는 현상이 지속 → 명시적 stub 생성 + export PKG_CONFIG_PATH + 검증 gate.
+        # cargo check 는 링크 없는 타입 체크이므로 stub .pc 로 충분.
+        # 커버리지: gdk-pixbuf-2.0 / libsoup-3.0 / javascriptcoregtk-4.1 / webkit2gtk-4.1
         run: |
           mkdir -p /tmp/pkg-stubs
           cat > /tmp/pkg-stubs/gdk-pixbuf-2.0.pc << 'PCEOF'
           prefix=/usr
           exec_prefix=${prefix}
           libdir=${prefix}/lib/x86_64-linux-gnu
-          includedir=${prefix}/include
+          includedir=${prefix}/include/gdk-pixbuf-2.0
           Name: GdkPixbuf
           Description: Image loading and scaling (CI stub)
           Version: 2.42.10
           Requires: gobject-2.0
           Libs: -L${libdir} -lgdk_pixbuf-2.0
-          Cflags: -I${includedir}/gdk-pixbuf-2.0
+          Cflags: -I${includedir}
+          PCEOF
+          cat > /tmp/pkg-stubs/libsoup-3.0.pc << 'PCEOF'
+          prefix=/usr
+          exec_prefix=${prefix}
+          libdir=${prefix}/lib/x86_64-linux-gnu
+          includedir=${prefix}/include/libsoup-3.0
+          Name: libsoup
+          Description: HTTP client/server library (CI stub)
+          Version: 3.4.4
+          Requires: glib-2.0 gio-2.0 gobject-2.0
+          Libs: -L${libdir} -lsoup-3.0
+          Cflags: -I${includedir}
+          PCEOF
+          cat > /tmp/pkg-stubs/javascriptcoregtk-4.1.pc << 'PCEOF'
+          prefix=/usr
+          exec_prefix=${prefix}
+          libdir=${prefix}/lib/x86_64-linux-gnu
+          includedir=${prefix}/include/webkitgtk-4.1
+          Name: JavaScriptCoreGTK
+          Description: JavaScript engine (CI stub)
+          Version: 2.46.5
+          Requires: glib-2.0 gobject-2.0
+          Libs: -L${libdir} -ljavascriptcoregtk-4.1
+          Cflags: -I${includedir}
+          PCEOF
+          cat > /tmp/pkg-stubs/webkit2gtk-4.1.pc << 'PCEOF'
+          prefix=/usr
+          exec_prefix=${prefix}
+          libdir=${prefix}/lib/x86_64-linux-gnu
+          includedir=${prefix}/include/webkitgtk-4.1
+          Name: WebKit2GTK
+          Description: WebKit2 for GTK (CI stub)
+          Version: 2.46.5
+          Requires: glib-2.0 gobject-2.0 gio-2.0 gtk+-3.0 gdk-3.0 javascriptcoregtk-4.1
+          Libs: -L${libdir} -lwebkit2gtk-4.1
+          Cflags: -I${includedir}
           PCEOF
           export PKG_CONFIG_PATH="/tmp/pkg-stubs:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
           pkg-config --modversion gdk-pixbuf-2.0
           pkg-config --modversion gdk-3.0
+          pkg-config --modversion libsoup-3.0
+          pkg-config --modversion webkit2gtk-4.1
           npm run verify
 
       - name: Typos check
