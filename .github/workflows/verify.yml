@@ -47,9 +47,12 @@ jobs:
 
       - name: Install Linux deps (Tauri / WebKit / ALSA)
         # libasound2-dev: cpal=0.15 → alsa-sys v0.3.1 build 의존 (2026-05-10 부터 verify 16+ 회 fail 원인).
+        # libgtk-3-dev: gdk-sys v0.18.2 pkg-config 의존. ubuntu-latest 업그레이드 후
+        #   libwebkit2gtk-4.1-dev 가 더 이상 libgtk-3-dev 를 transitively 설치 안 함
+        #   → cargo cache miss 시 gdk-3.0 not found (KL-082 CI 진단).
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libasound2-dev libgtk-3-dev
 
       - name: Cache Cargo
         uses: actions/cache@v4
