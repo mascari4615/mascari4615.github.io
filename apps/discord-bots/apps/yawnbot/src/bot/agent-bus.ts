@@ -20,6 +20,8 @@ import { EmbedBuilder } from 'discord.js';
 import type {
   Client,
   TextChannel,
+  TextBasedChannel,
+  Message,
   MessageReaction,
   PartialMessageReaction,
   User,
@@ -316,7 +318,7 @@ export async function handleProposalReaction(
         ? await client.channels.fetch(entry.threadId).catch(() => null)
         : null;
       const target =
-        ch && ch.isTextBased() && 'send' in ch ? ch : (msg.channel as any);
+        ch && ch.isTextBased() && 'send' in ch ? ch : (msg.channel as TextBasedChannel);
       await target?.send?.(text);
     } catch {
       /* 피드백 실패해도 처리 자체는 진행 */
@@ -472,7 +474,7 @@ async function lockCard(
   const src = msg.embeds?.[0];
   if (!src) return;
   const eb = applyCardEmbedState(src, decision, result);
-  await (msg as any).edit?.({ embeds: [eb] });
+  await (msg as Message).edit?.({ embeds: [eb] });
 }
 
 // ── 팀 verdict → 원본 카드 반영 (KAR-018-LT 근본) ──────────────
