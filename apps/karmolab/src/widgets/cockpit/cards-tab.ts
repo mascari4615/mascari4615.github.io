@@ -11,6 +11,7 @@ type CardInfo = {
   kind?: string;
   topic?: string;
   summary: string;
+  task_ids: string[];
 };
 
 const REFRESH_MS = 5000;

@@ -45,12 +45,44 @@ pub struct ObjectiveInfo {
     pub align: String,
 }
 
+/// `TASK-PREFIX-NNN(-suffix)?` 패턴 토큰 추출 (중복 제거, 삽입 순서 보존).
+fn extract_task_ids(text: &str) -> Vec<String> {
+    let mut seen = std::collections::HashSet::new();
+    let mut ids: Vec<String> = Vec::new();
+    let mut tok_start: Option<usize> = None;
+    let char_indices: Vec<(usize, char)> = text.char_indices().collect();
+    let flush = |s: usize, e: usize, seen: &mut std::collections::HashSet<String>, ids: &mut Vec<String>| {
+        let tok = &text[s..e];
+        if !tok.starts_with("TASK-") { return; }
+        let rest = &tok["TASK-".len()..];
+        let mut parts = rest.splitn(3, '-');
+        let prefix = parts.next().unwrap_or("");
+        let num_part = parts.next().unwrap_or("");
+        if prefix.is_empty() || !prefix.chars().all(|c| c.is_ascii_uppercase()) { return; }
+        if num_part.is_empty() || !num_part.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) { return; }
+        if seen.insert(tok.to_string()) { ids.push(tok.to_string()); }
+    };
+    for (i, c) in &char_indices {
+        if c.is_alphanumeric() || *c == '-' {
+            if tok_start.is_none() { tok_start = Some(*i); }
+        } else if let Some(s) = tok_start.take() {
+            flush(s, *i, &mut seen, &mut ids);
+        }
+    }
+    if let Some(s) = tok_start {
+        flush(s, text.len(), &mut seen, &mut ids);
+    }
+    ids
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct BusEntry {
     pub ts: String,
     pub slot: String,
     pub headline: String,
     pub body_preview: String,
+    /// 헤드라인+본문에서 추출한 TASK id 목록 (프론트 인덱싱용).
+    pub task_ids: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -74,6 +106,8 @@ pub struct CardInfo {
     pub kind: Option<String>,
     pub topic: Option<String>,
     pub summary: String,
+    /// topic+summary에서 추출한 TASK id 목록 (프론트 인덱싱용).
+    pub task_ids: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -290,11 +324,13 @@ fn read_bus_blocking(repo_root: String, limit: usize) -> Result<Vec<BusEntry>, S
                 } else {
                     joined
                 };
+                let task_ids = extract_task_ids(&format!("{headline} {preview}"));
                 entries.push(BusEntry {
                     ts,
                     slot,
                     headline,
                     body_preview: preview,
+                    task_ids,
                 });
             }
             // 새 헤더 파싱: `2026-05-23 13:50 KST · slot-E · <헤드라인>`
@@ -315,11 +351,13 @@ fn read_bus_blocking(repo_root: String, limit: usize) -> Result<Vec<BusEntry>, S
         } else {
             joined
         };
+        let task_ids = extract_task_ids(&format!("{headline} {preview}"));
         entries.push(BusEntry {
             ts,
             slot,
             headline,
             body_preview: preview,
+            task_ids,
         });
     }
     // 본 파일 위(최신)→아래(과거) append-only. 입력 순서 그대로가 ts desc.
@@ -646,17 +684,17 @@ fn read_cards_blocking(repo_root: String, limit: usize) -> Result<Vec<CardInfo>,
                         continue;
                     }
                     let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else { continue };
+                    let topic = v.get("topic").and_then(|x| x.as_str()).map(|s| s.to_string());
+                    let summary = v.get("summary").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                    let task_ids = extract_task_ids(&format!("{} {summary}", topic.as_deref().unwrap_or("")));
                     all.push(CardInfo {
                         ts: v.get("ts").and_then(|x| x.as_str()).unwrap_or("").to_string(),
                         source: format!("agent:{agent_id}"),
                         session: v.get("session").and_then(|x| x.as_str()).map(|s| s.to_string()),
                         kind: v.get("type").and_then(|x| x.as_str()).map(|s| s.to_string()),
-                        topic: v.get("topic").and_then(|x| x.as_str()).map(|s| s.to_string()),
-                        summary: v
-                            .get("summary")
-                            .and_then(|x| x.as_str())
-                            .unwrap_or("")
-                            .to_string(),
+                        topic,
+                        summary,
+                        task_ids,
                     });
                 }
             }
@@ -683,17 +721,17 @@ fn read_cards_blocking(repo_root: String, limit: usize) -> Result<Vec<CardInfo>,
                     continue;
                 }
                 let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else { continue };
+                let topic = v.get("topic").and_then(|x| x.as_str()).map(|s| s.to_string());
+                let summary = v.get("summary").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                let task_ids = extract_task_ids(&format!("{} {summary}", topic.as_deref().unwrap_or("")));
                 all.push(CardInfo {
                     ts: v.get("ts").and_then(|x| x.as_str()).unwrap_or("").to_string(),
                     source: format!("discovery:{slug}"),
                     session: v.get("session").and_then(|x| x.as_str()).map(|s| s.to_string()),
                     kind: v.get("type").and_then(|x| x.as_str()).map(|s| s.to_string()),
-                    topic: v.get("topic").and_then(|x| x.as_str()).map(|s| s.to_string()),
-                    summary: v
-                        .get("summary")
-                        .and_then(|x| x.as_str())
-                        .unwrap_or("")
-                        .to_string(),
+                    topic,
+                    summary,
+                    task_ids,
                 });
             }
         }

@@ -128,11 +128,19 @@ function issueToKind(code: string): ProposalKind {
   if (code === 'progress-stale') return 'new-project';
   if (code.startsWith('worker-fail')) return 'new-core';
   if (code.startsWith('cadence-') || code === 'broken-loop') return 'refactor';
+  // team-dormant (KAR-018 죽은-루프-부활) = 봇은 돌지만 실산출 0 → 방향 발의/드레인
+  // 합의가 필요한 상태. consensus 로 매핑 (default 와 동치이나 의도 명시).
+  if (code === 'team-dormant') return 'consensus';
   return 'consensus';
 }
 
 function defaultHeadline(kind: ProposalKind, codes: string[]): string {
   const join = codes.join(',');
+  // team-dormant = 자기 침묵 자각 신호 — 전용 헤드라인 (generic consensus 문구가
+  // "다중 신호/deliberation 슬롯" 으로 오해 유발. 사용자 시점 명확화).
+  if (codes.includes('team-dormant')) {
+    return '📜 발의: 팀이 실산출 0 (skip만 반복, 18h) — 백로그 드레인 또는 새 작업 방향 발의 필요';
+  }
   switch (kind) {
     case 'new-project':
       return `📜 발의 (신프로젝트): 팀 전진 0 신호 [${join}] — 미커버 도메인 후보 합의 필요`;

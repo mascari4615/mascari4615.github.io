@@ -42,6 +42,13 @@ const workerFailStub = (): HealthSignals => ({
   workerFailRatio: 0.9,
 });
 
+// 봇은 돌지만(warm trace) 실산출 0 = team-dormant (KAR-018 죽은-루프-부활).
+const teamDormantStub = (): HealthSignals => ({
+  ...healthyStub(),
+  traceStalenessHrs: 0.5,
+  realProgressRecent: 0,
+});
+
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'init-'));
 });
@@ -57,6 +64,16 @@ describe('mapIssuesToProposals — 순수 결정적 매핑', () => {
     expect(props).toHaveLength(1);
     expect(props[0].kind).toBe<ProposalKind>('new-project');
     expect(props[0].score).toBe(0.8);
+  });
+
+  it('team-dormant → consensus + 전용 헤드라인 (죽은 루프 부활)', () => {
+    const props = mapIssuesToProposals([
+      { severity: 'critical', code: 'team-dormant', detail: '18h 실산출 0' },
+    ]);
+    expect(props).toHaveLength(1);
+    expect(props[0].kind).toBe<ProposalKind>('consensus');
+    expect(props[0].score).toBe(0.8);
+    expect(props[0].headline).toContain('실산출 0');
   });
 
   it('worker-fail-critical → new-core', () => {
@@ -113,6 +130,21 @@ describe('runInitiatorOnce — 진입점', () => {
     expect(ledger).toHaveLength(1);
     expect(ledger[0].type).toBe('proposal');
     expect(ledger[0].status).toBe('draft');
+  });
+
+  it('team-dormant → consensus 발의 + seed (죽은 루프 부활, 봇 자율 산출물)', () => {
+    const notified: string[] = [];
+    const r = runInitiatorOnce(env(), {
+      gatherSignals: teamDormantStub,
+      deliberate: false,
+      notify: (m) => notified.push(m),
+    });
+    expect(r.appended).toBe(1);
+    expect(r.candidates[0].kind).toBe<ProposalKind>('consensus');
+    // 실 TASK seed 파일이 박혀 사용자 가시 (#team-bus + git)
+    expect(r.seededTaskFiles?.length).toBe(1);
+    // #team-bus 발화 = 사용자가 보는 자율 산출 신호 (전용 헤드라인)
+    expect(notified.join('\n')).toContain('실산출 0');
   });
 
   it('같은 신호 24h 안 두 번 → 두 번째는 dedupe (seedTasks: false)', () => {
