@@ -9,10 +9,16 @@ import {
   buildForumGroundTruth,
   type DedupThread,
 } from './forum-dedup';
+import { rememberMap } from '../services/channel-provision';
 
-/** channelIdFor 는 env 폴백(YAWNBOT_AGENT_WORK_CHANNEL_ID) 우선 → 테스트는 이걸로 직접 주입. */
+let guildSeq = 0;
+/** 'agent-work' 는 provision 전용(env 폴백 키 없음) → rememberMap 으로 채널 주입.
+ *  테스트별 고유 guild 로 캐시 충돌 회피 (forum-post.test 패턴 정합). */
 function envWith(channelId: string): NodeJS.ProcessEnv {
-  return { YAWNBOT_AGENT_WORK_CHANNEL_ID: channelId } as NodeJS.ProcessEnv;
+  const g = `g-dd-${++guildSeq}`;
+  const env = { YAWNBOT_ALLOWED_GUILD_IDS: g } as NodeJS.ProcessEnv;
+  rememberMap(g, { 'agent-work': channelId }, env);
+  return env;
 }
 
 /** 페이크 forum — active/archived 스레드 + delete 호출 기록(삭제 안 됨을 검증). */
