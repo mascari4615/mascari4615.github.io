@@ -258,6 +258,20 @@ jobs:
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         working-directory: ${{ env.BOTS_DIR }}
         run: |
+          $ErrorActionPreference = 'Continue'
+          # KAR-150: 실행 중 봇이 node_modules (@discordjs/opus.node 등) 파일을 잠가
+          # npm install 이 EPERM. install 전 봇 stop 으로 잠금 해제 — 뒤의 NSSM restart
+          # step 이 재기동. (opus 는 optionalDependencies 로 내려 prebuild 부재 시에도
+          # install 통과 → @discordjs/voice 가 opusscript 폴백.)
+          $nssm = (Get-Command nssm.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nssm) {
+            $f = Get-ChildItem `
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe", `
+              "C:\ProgramData\chocolatey\bin\nssm.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($f) { $nssm = $f.FullName }
+          }
+          if ($nssm) { & $nssm stop yawnbot-prod 2>&1 | Out-Null; Start-Sleep -Seconds 2; Write-Host "[KAR-150] yawnbot-prod stopped for clean npm install" }
+          else { Write-Warning "[KAR-150] nssm 못 찾음 — stop skip" }
           & npm install --prefer-offline --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
           & npm run build:yawnbot
