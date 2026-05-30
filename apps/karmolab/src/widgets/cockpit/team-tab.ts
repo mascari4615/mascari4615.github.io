@@ -49,6 +49,7 @@ type BusEntry = {
   slot: string;
   headline: string;
   body_preview: string;
+  task_ids: string[];
 };
 
 type TaskBoardEntry = {
@@ -67,6 +68,7 @@ type CardInfo = {
   kind?: string;
   topic?: string;
   summary: string;
+  task_ids: string[];
 };
 
 const REFRESH_MS = 5000;
