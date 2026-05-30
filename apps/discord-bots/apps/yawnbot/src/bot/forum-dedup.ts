@@ -3,20 +3,24 @@
  * **예방(prevention)** 으로 보장. (TASK-KAR-150)
  *
  * 설계 원칙 (사용자 2026-05-30):
- *  1. **삭제하지 않는다.** 포스트 안에서 사람이 소통할 수 있다 → 스레드 삭제·복구는
- *     *최후 수단*(사람이 수동 결정, manual CLI = memo/scripts/forum-dedupe.mjs).
- *     봇의 자동 경로는 **절대 삭제 X**.
- *  2. 그러므로 "1개 유지"는 *지우는 게 아니라 안 만드는 것*으로 달성한다.
+ *  1. **삭제(delete)하지 않는다.** 포스트 안에서 사람이 소통할 수 있다 → 스레드
+ *     *삭제*는 최후 수단(수동 CLI = memo/scripts/forum-dedupe.mjs --delete). 봇 자동
+ *     경로는 절대 delete X.
+ *  2. 대신 잉여는 **archive(접기)** — 비파괴: 글 본문·댓글·소통 전부 보존, 검색·재open
+ *     가능, 목록에서만 사라짐. 사용자 결정(2026-05-30): "봇 자동 archive". 이게
+ *     "TASK당 1개만 보임" 을 비파괴로 달성. delete 거부 ≠ 정리 거부.
+ *  3. "1개 유지" = 예방(안 만들기) + archive(이미 쌓인 잉여 접기) 둘 다.
  *
  * 왜 (근본): 기존 dedup 은 로컬 원장(task-forum-bridge.jsonl) 하나에만 의존 =
  * 단일 실패점. 원장이 wipe/손상되면 backfill 이 전부 재생성 → 중복 폭발.
  * → dedup 의 *진실*은 원장이 아니라 Discord 에 실제 존재하는 스레드여야 한다.
  *
- * 2계층(둘 다 비파괴):
+ * 2계층:
  *  - **예방**: backfill 이 생성 전 ground-truth(buildForumGroundTruth)로 존재 확인 →
  *    원장이 비어도 이미 있는 TASK 는 재생성 X.
- *  - **감지+heal+알림**: auditForumDupsOnce 가 부팅·주기로 중복 *감지*만 — 원장 heal
- *    (누락 entry 보충) + 중복 있으면 WARN 로그/알림. **삭제 안 함.** 사람이 보고 결정.
+ *  - **수렴 archive+heal**: auditForumDupsOnce 가 부팅·주기로 canonical(최신) 외
+ *    잉여 active 스레드를 archive + 원장 heal. env `YAWNBOT_FORUM_DEDUP_ARCHIVE=0`
+ *    = 감지만(archive OFF). 한 run archive 캡 + 매 run healthy log.
  */
 import { channelIdFor } from '../services/channel-provision';
 import {
@@ -105,20 +109,26 @@ export interface AuditDeps {
   logger?: Pick<Console, 'log' | 'warn'>;
   /** 중복 감지 시 호출(선택) — yawnbot 알림 등. 미주입 = 로그만. */
   notify?: (message: string) => void | Promise<void>;
+  /** false = archive 안 함(감지만). 미지정 = env YAWNBOT_FORUM_DEDUP_ARCHIVE!=='0'. */
+  archive?: boolean;
 }
 
 export interface AuditResult {
   taskIds: number;
   dupGroups: number;
   dupThreads: number;
+  archived: number;
   healed: number;
   skipped?: boolean;
 }
 
+/** 한 run archive 상한 — 버그로 인한 폭주 접기 backstop. 초과 시 경고+중단. */
+const MAX_ARCHIVE_PER_RUN = 400;
+
 /**
- * 1회 감사 — Discord 실제 스레드 열거 → 중복 *감지* + 원장 heal(누락 보충).
- * **삭제 안 함.** 중복 발견 시 WARN 로그 + notify(있으면). 사람이 보고 결정.
- * 매 run healthy log(no-news-is-bad-news).
+ * 1회 감사 — Discord 실제 스레드 열거 → canonical(최신) 외 잉여 active 스레드를
+ * **archive(비파괴 접기)** + 원장 heal(누락 보충). delete 는 절대 안 함.
+ * env `YAWNBOT_FORUM_DEDUP_ARCHIVE=0` = 감지만. 매 run healthy log.
  */
 export async function auditForumDupsOnce(
   client: any,
@@ -126,7 +136,17 @@ export async function auditForumDupsOnce(
   deps: AuditDeps = {},
 ): Promise<AuditResult> {
   const logger = deps.logger ?? console;
-  const base: AuditResult = { taskIds: 0, dupGroups: 0, dupThreads: 0, healed: 0 };
+  const doArchive =
+    deps.archive !== undefined
+      ? deps.archive
+      : env.YAWNBOT_FORUM_DEDUP_ARCHIVE !== '0';
+  const base: AuditResult = {
+    taskIds: 0,
+    dupGroups: 0,
+    dupThreads: 0,
+    archived: 0,
+    healed: 0,
+  };
 
   const channelId = channelIdFor('agent-work', env);
   if (!channelId) {
@@ -152,30 +172,56 @@ export async function auditForumDupsOnce(
     }
   }
 
+  // archive — 잉여 중 *아직 active* 인 것만 (이미 archived 는 그대로). delete X.
+  const toArchive = dups.filter((d) => !d.archived);
+  let archived = 0;
+  if (doArchive && toArchive.length > 0) {
+    if (toArchive.length > MAX_ARCHIVE_PER_RUN) {
+      logger.warn(
+        `[ForumDedup] ⚠ archive 대상 ${toArchive.length} > cap ${MAX_ARCHIVE_PER_RUN} — 비정상 의심, 중단(수동 점검).`,
+      );
+    } else {
+      for (const d of toArchive) {
+        try {
+          const th = await channel.threads.fetch(d.id).catch(() => null);
+          if (th && typeof th.setArchived === 'function') {
+            await th.setArchived(true, 'forum-dedup: TASK당 1개 (KAR-150, 비파괴 archive)');
+            archived += 1;
+          }
+        } catch {
+          /* best-effort — 다음 run 재시도 */
+        }
+      }
+    }
+  }
+
   logger.log(
-    `[ForumDedup] taskIds=${byTaskId.size} dupGroups=${dupGroups} dupThreads=${dups.length} healed=${healed} (감지만 · 삭제 X)`,
+    `[ForumDedup] taskIds=${byTaskId.size} dupGroups=${dupGroups} dupThreads=${dups.length} ` +
+      `archived=${archived} healed=${healed} (${doArchive ? 'archive' : '감지만'} · delete X)`,
   );
 
-  if (dupGroups > 0) {
+  if (dupGroups > 0 && deps.notify) {
     const sample = [...byTaskId.entries()]
       .filter(([, g]) => g.length > 1)
       .slice(0, 5)
       .map(([id, g]) => `${id}×${g.length}`)
       .join(', ');
     const msg =
-      `⚠ #team-work 중복 forum-post 감지: ${dupGroups}개 TASK / 잉여 ${dups.length}개 스레드 ` +
-      `(${sample}${dupGroups > 5 ? ' …' : ''}). 자동 삭제 안 함 — 예방 누수 점검 + 필요시 수동 정리 ` +
-      `(node memo/scripts/forum-dedupe.mjs --apply --delete).`;
-    logger.warn(`[ForumDedup] ${msg}`);
-    if (deps.notify) {
-      try {
-        await deps.notify(msg);
-      } catch {
-        /* best-effort */
-      }
+      `🧹 #team-work 중복 정리: ${dupGroups}개 TASK / 잉여 ${dups.length} 중 ${archived}개 archive(접기, 비파괴) ` +
+      `(${sample}${dupGroups > 5 ? ' …' : ''}). TASK당 1개 유지.`;
+    try {
+      await deps.notify(msg);
+    } catch {
+      /* best-effort */
     }
   }
-  return { taskIds: byTaskId.size, dupGroups, dupThreads: dups.length, healed };
+  return {
+    taskIds: byTaskId.size,
+    dupGroups,
+    dupThreads: dups.length,
+    archived,
+    healed,
+  };
 }
 
 /**

@@ -21,9 +21,10 @@ function envWith(channelId: string): NodeJS.ProcessEnv {
   return env;
 }
 
-/** 페이크 forum — active/archived 스레드 + delete 호출 기록(삭제 안 됨을 검증). */
+/** 페이크 forum — archived/deleted 호출 기록 (archive 됨·delete 안 됨 검증). */
 function fakeForum(channelId: string, threads: DedupThread[]) {
   const deleted: string[] = [];
+  const archivedCalls: string[] = [];
   const mkCol = (arr: DedupThread[]) => ({
     size: arr.length,
     values: () =>
@@ -46,7 +47,12 @@ function fakeForum(channelId: string, threads: DedupThread[]) {
       fetch: async (id: string) => {
         const t = threads.find((x) => x.id === id);
         return t
-          ? { id, delete: async (_r?: string) => void deleted.push(id) }
+          ? {
+              id,
+              delete: async (_r?: string) => void deleted.push(id),
+              setArchived: async (_v: boolean, _r?: string) =>
+                void archivedCalls.push(id),
+            }
           : null;
       },
     },
@@ -54,7 +60,7 @@ function fakeForum(channelId: string, threads: DedupThread[]) {
   const client = {
     channels: { fetch: async (id: string) => (id === channelId ? channel : null) },
   };
-  return { client, deleted };
+  return { client, deleted, archivedCalls };
 }
 
 describe('planDedup (순수)', () => {
@@ -109,29 +115,56 @@ describe('planDedup (순수)', () => {
   });
 });
 
-describe('auditForumDupsOnce — 감지+heal, 절대 삭제 X', () => {
+describe('auditForumDupsOnce — 잉여 archive, 절대 delete X', () => {
   const silent = { logger: { log() {}, warn() {} } };
 
-  it('중복 감지하되 스레드는 삭제하지 않는다', async () => {
+  it('잉여 active 스레드 archive, canonical(최신)·이미archived 는 그대로, delete X', async () => {
     const env = envWith('chA');
-    const { client, deleted } = fakeForum('chA', [
-      { id: '100', name: '[TASK-KAR-148] a', archived: false },
-      { id: '200', name: '[TASK-KAR-148] a', archived: true },
-      { id: '300', name: '[TASK-KAR-148] a', archived: true },
-      { id: '10', name: '[TASK-WM-9] s', archived: false },
+    const { client, deleted, archivedCalls } = fakeForum('chA', [
+      { id: '100', name: '[TASK-KAR-148] a', archived: false }, // 잉여 active → archive
+      { id: '200', name: '[TASK-KAR-148] a', archived: true }, // 이미 archived → 무시
+      { id: '300', name: '[TASK-KAR-148] a', archived: true }, // newest = canonical
+      { id: '10', name: '[TASK-WM-9] s', archived: false }, // 단일 → 무시
     ]);
     const r = await auditForumDupsOnce(client, env, silent);
     expect(r.taskIds).toBe(2);
     expect(r.dupGroups).toBe(1);
     expect(r.dupThreads).toBe(2);
-    expect(deleted.length).toBe(0); // ★ 삭제 안 함
+    expect(r.archived).toBe(1); // 100 만 (active 잉여)
+    expect(archivedCalls).toEqual(['100']);
+    expect(deleted.length).toBe(0); // ★ delete 절대 X
   });
 
-  it('중복 발견 시 notify 호출 (삭제 대신 알림)', async () => {
+  it('archive:false = 감지만 (archive X)', async () => {
+    const env = envWith('chAF');
+    const { client, deleted, archivedCalls } = fakeForum('chAF', [
+      { id: '1', name: '[TASK-A-1] x', archived: false },
+      { id: '2', name: '[TASK-A-1] x', archived: false },
+    ]);
+    const r = await auditForumDupsOnce(client, env, { ...silent, archive: false });
+    expect(r.dupGroups).toBe(1);
+    expect(r.archived).toBe(0);
+    expect(archivedCalls.length).toBe(0);
+    expect(deleted.length).toBe(0);
+  });
+
+  it('YAWNBOT_FORUM_DEDUP_ARCHIVE=0 = 감지만', async () => {
+    const env = envWith('chENV');
+    (env as Record<string, string>).YAWNBOT_FORUM_DEDUP_ARCHIVE = '0';
+    const { client, archivedCalls } = fakeForum('chENV', [
+      { id: '1', name: '[TASK-A-1] x', archived: false },
+      { id: '2', name: '[TASK-A-1] x', archived: false },
+    ]);
+    const r = await auditForumDupsOnce(client, env, silent);
+    expect(r.dupGroups).toBe(1);
+    expect(archivedCalls.length).toBe(0);
+  });
+
+  it('중복 정리 시 notify 호출', async () => {
     const env = envWith('chN');
     const { client, deleted } = fakeForum('chN', [
       { id: '1', name: '[TASK-A-1] x', archived: false },
-      { id: '2', name: '[TASK-A-1] x', archived: true },
+      { id: '2', name: '[TASK-A-1] x', archived: false },
     ]);
     const msgs: string[] = [];
     const r = await auditForumDupsOnce(client, env, {
@@ -139,14 +172,15 @@ describe('auditForumDupsOnce — 감지+heal, 절대 삭제 X', () => {
       notify: (m) => void msgs.push(m),
     });
     expect(r.dupGroups).toBe(1);
+    expect(r.archived).toBe(1);
     expect(deleted.length).toBe(0);
     expect(msgs.length).toBe(1);
-    expect(msgs[0]).toContain('중복');
+    expect(msgs[0]).toContain('정리');
   });
 
-  it('중복 없으면 healthy (dupGroups 0, notify X)', async () => {
+  it('중복 없으면 healthy (dupGroups 0, notify X, archive X)', async () => {
     const env = envWith('chH');
-    const { client, deleted } = fakeForum('chH', [
+    const { client, deleted, archivedCalls } = fakeForum('chH', [
       { id: '1', name: '[TASK-A-1] x', archived: false },
       { id: '2', name: '[TASK-B-2] y', archived: false },
     ]);
@@ -157,6 +191,7 @@ describe('auditForumDupsOnce — 감지+heal, 절대 삭제 X', () => {
     });
     expect(r.dupGroups).toBe(0);
     expect(msgs.length).toBe(0);
+    expect(archivedCalls.length).toBe(0);
     expect(deleted.length).toBe(0);
   });
 });
