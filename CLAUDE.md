@@ -1,365 +1,80 @@
-# CLAUDE.md
+# mascari4615.github.io — AI 에이전트 작업 지침
 
-This file provides guidance for AI assistants working with this repository.
+Jekyll 블로그 + KarmoLab 앱 monorepo. 배포 = GitHub Pages `https://mascari4615.github.io`.
+구조: `_posts/` 블로그 / `apps/` 서브앱 (karmolab·discord-bots·karmolab-tauri 등) / `packages/karmolab-ai/`.
 
-## Project Overview
+## Post 규칙
 
-This is **mascari4615.github.io**, a Jekyll-based blog and personal portfolio site using the **Chirpy theme (v7.5.0)**. It is deployed to GitHub Pages at `https://mascari4615.github.io`. The repository also functions as a monorepo containing several companion applications.
+**파일명**: `YYYY-MM-DD-slug-name.md` (kebab-case). 드래프트 = `slug-name-DRAFT.md`.
 
-- **Site title**: KarmoDDrine
-- **Language**: Korean (`ko-KR`), Timezone: `Asia/Seoul`
-- **Owner**: mascari4615 (mascari4615@gmail.com)
+**Front matter 필수**: `title` / `description` / `categories` / `tags` / `date: YYYY-MM-DD. HH:MM` (마침표+공백 주의).
 
----
+**`last_modified_at`**: 내용 변경 시만 갱신 (오타·포맷 변경 X). 이전 날짜는 주석으로 보존.
 
-## Repository Structure
+**글쓰기 스타일**: 절제 (중복·자명한 내용 제거). 머리말(목적·방향) / 꼬리말(선택) / 메모(참고·키워드·도토리·기록).
 
-```
-mascari4615.github.io/
-├── _config.yml              # Main Jekyll configuration
-├── _posts/                  # Blog content (see Content Structure below)
-├── _tabs/                   # Navigation tab pages (about, archives, categories, tags, graph, works)
-├── _layouts/                # Chirpy theme HTML layouts
-├── _includes/               # Chirpy theme HTML partials
-├── _sass/                   # SCSS source files
-├── _data/                   # Locale and data files
-├── _plugins/                # Jekyll Ruby plugins
-├── _javascript/             # TypeScript/JS source (compiled to assets/js/dist/)
-├── assets/                  # Static assets (images, CSS, JS)
-├── apps/                    # Sub-applications (monorepo)
-│   ├── karmolab/            # TypeScript/Node.js dashboard app
-│   ├── karmolab-react-src/  # React frontend (Vite)
-│   ├── karmolab-tauri/      # Tauri desktop app
-│   ├── chat-overlay/        # Tauri overlay app
-│   ├── discord-bots/        # Discord bot implementations
-│   └── karmo-web-extension/ # Browser extension
-├── packages/
-│   └── karmolab-ai/         # Shared Google Cloud / Vertex AI utilities
-├── scripts/                 # Build scripts (e.g., build-post-graph.cjs)
-├── tools/                   # Release scripts
-├── .github/workflows/       # CI/CD workflows
-├── rollup.config.js         # JS bundler config
-├── purgecss.js              # CSS purging config
-├── tsconfig.json            # TypeScript config
-├── eslint.config.js         # ESLint config
-├── Gemfile                  # Ruby dependencies
-└── package.json             # Node.js dependencies and scripts
-```
+**`hidden: true`**: 목록에서 숨김, URL 직접 접근은 가능.
 
----
+**`assets/js/dist/` 편집 금지** — `_javascript/` 소스 편집 후 `npm run build:js`.
 
-## Content Structure (`_posts/`)
-
-Posts are organized hierarchically by topic:
-
-```
-_posts/
-├── computer/                # Technical / CS content
-│   ├── algorithm/           # AI, backtracking, DP, etc.
-│   ├── graphics/            # Animation, color, modeling, rendering, shader
-│   ├── programming/         # Design patterns, paradigms, workflow
-│   ├── software/            # Unity, third-party tools
-│   ├── system/              # Assembly, memory, OS, processor, Windows
-│   └── data-structure/
-├── stone/                   # Personal / creative content
-│   ├── diary/
-│   ├── library/             # Anime/manga, blog, game, music, misc
-│   └── think/               # Personal, strategy, theory
-└── works/                   # Portfolio / project documentation
-    ├── art/
-    ├── game-dev/
-    │   ├── witch-mendokusai/  # Main game project (dev-log, game-design, world)
-    │   └── maplestory-clone/
-    ├── karmo-lab/
-    └── virtual/             # VRChat / metaverse projects
-```
-
----
-
-## Post Conventions
-
-### File Naming
-
-- Published posts: `YYYY-MM-DD-slug-name.md` (kebab-case)
-- Drafts: `slug-name-DRAFT.md` or `YYYY-MM-DD-slug-name-draft.md`
-- Templates: `slug-name-TEMPLATE.md`
-
-### Front Matter
-
-```yaml
----
-title: "Post Title"
-description: "Short description of the post."
-categories: [Category1, Category2]
-tags: [tag1, tag2]
-image: "/assets/img/background/image.jpg"
-hidden: true   # omit or set false to show in listings
-
-date: YYYY-MM-DD. HH:MM
-# last_modified_at: YYYY-MM-DD. HH:MM   # Uncomment/update on content changes
----
-```
-
-- **Date format**: `YYYY-MM-DD. HH:MM` (note the period and space before time)
-- **`last_modified_at`**: Update only when content changes meaningfully. Typo fixes, ordering changes, and formatting changes do NOT count.
-- **Categories/Tags**: Use Korean or English consistently per the post's context. Category and Tag labels are always English; heading section labels are Korean.
-- **`hidden: true`**: Hides the post from list pages (used for internal/reference posts).
-
-### `last_modified_at` Tracking Pattern
-
-Previous modification dates are kept as commented-out lines with brief descriptions:
-
-```yaml
-# last_modified_at: 2024-10-22. 11:27 # Init
-# last_modified_at: 2025-03-15. 10:34 # 말머리 -> 머리말
-last_modified_at: 2025-05-02. 01:35 # 절제, 통일
-```
-
-The `_plugins/posts-lastmod-hook.rb` auto-detects `last_modified_at` from git history for posts with more than one commit.
-
-### Content Style
-
-- **머리말 (Introduction)**: Opens each post — states the topic, purpose, and direction.
-- **꼬리말 (Conclusion)**: Optional closing section.
-- **메모 (Memo)**: Raw notes; includes 참고 (references), 키워드 (keywords), 도토리 (undigested raw ideas), 기록 (historical records).
-- **Links**: Internal links as `[title](link)`, external links as `['source': 'title'](link)`.
-- **Horizontal rules**: Always follow with a blank line.
-- **Time stamps in content**: Use format `2025-05-01. 13:45`. Image filenames use `250501-134500`.
-- **Writing style**: Concise and restrained (절제). Remove redundant or obvious information. Avoid unnecessary decorative emoji in titles/categories.
-
----
-
-## Development Workflow
-
-### Prerequisites
-
-- Ruby ~3.1 (3.4 recommended)
-- Node.js 20+
-- Bundler
-
-### Setup
+## 빌드 / 검증
 
 ```bash
-bundle install
-npm install
+npm run verify        # master invariant 단일 게이트 (push 전 필수)
+npm run build         # CSS purge + JS bundle
+npm run build:graph   # 포스트 그래프 데이터
+bundle exec jekyll serve --draft  # 로컬 미리보기
 ```
 
-### Building Assets
+## master invariant (`npm run verify`)
 
-```bash
-npm run build          # PurgeCSS + Rollup (CSS + JS) in parallel
-npm run build:css      # CSS only (PurgeCSS)
-npm run build:js       # JS only (Rollup, production)
-npm run watch:js       # JS watch mode for development
-npm run build:graph    # Generate post graph data
-npm run site:prep      # Full prep: build + graph
+master 브랜치는 항상:
+- `apps/karmolab` build (typecheck 포함) 통과
+- `packages/karmolab-ai` build 통과
+- `apps/karmolab-tauri/src-tauri` cargo check 통과 + ACL audit (`acl.toml ⟷ #[command] ⟷ caps` cross-check)
+- `apps/blog` lint:js + lint:scss 통과
+- typos check 통과
+
+verify fail 시 SLO: 1시간 내 revert. pre-push hook 이 자동 호출, CI post-push audit 도 발동.
+
+## Tauri ACL (KL-063)
+
+새 command 추가 = **2곳만**: ① 구현 `#[tauri::command] fn` ② `acl.toml` 알맞은 `[[group]].commands` 1줄.
+`build.rs` 가 `acl.toml` 에서 handler + permissions 파생 — `capabilities/default.json` 은 새 그룹 신설 시만 변경.
+
+## IO 무거운 Tauri command = async 강제 (KL-043)
+
+`fs::read_dir` 다중 / external process spawn(git·claude·gh) / 수 초 작업:
+```rust
+pub async fn cmd(params) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(move || cmd_blocking(params))
+        .await.map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
 ```
+단순 파일 R/W·toggle 등 <10ms = sync OK.
 
-### Running Locally
+## KarmoLab Server Monitor 등록 (Note 12)
 
-```bash
-bundle exec jekyll serve         # Serve with live reload
-bundle exec jekyll serve --draft # Include draft posts
-bundle exec jekyll b             # Build only
-```
+새 봇·로컬 서버·dev runner 추가 시 **반드시 `apps/karmolab/data/servermonitor-config.json` `devProfiles` 에 등록** — 사용자가 터미널 명령 외울 필요 없게.
 
-### Linting
+**npm-script 형식 (선호)**: `{ id, label, app, script, deployScript?, healthUrl? }` — `program/args` 손기재 금지.
+**raw (예외)**: `{ id, label, cwd, program, args }` — `bundle exec jekyll` 같이 npm script 아닌 경우만.
 
-```bash
-npm run test           # JS + SCSS lint
-npm run lint:js        # ESLint only
-npm run lint:scss      # Stylelint only
-npm run lint:fix:scss  # Auto-fix SCSS issues
-```
+stale 자동 차단: `servermonitor-config-audit.mjs` 가 `npm run verify` 에서 script 실재 cross-check.
 
-### Sub-Application Builds
+AI 직접 조작 = `127.0.0.1:8766` HTTP (`localdev-http.json` 에서 토큰·포트 자동 로드). 봇 재기동 등을 사용자에게 안내하지 말고 이 HTTP 로 처리.
 
-Each app has its own `npm install` + `npm run build` workflow:
+## AI (Vertex / Claude)
 
-```bash
-# KarmoLab React app
-cd apps/karmolab-react-src && npm ci && npm run build
-# Requires VITE_GOOGLE_CLIENT_ID env var
-
-# KarmoLab TypeScript app
-cd apps/karmolab && npm ci && npm run build
-
-# Tauri apps: managed via GitHub Actions (karmolab-tauri.yml)
-```
-
----
-
-## CI/CD Workflows (`.github/workflows/`)
-
-| Workflow | Trigger | Description |
-|---|---|---|
-| `verify.yml` | Push to `main`/`master`, PR | **Master invariant 단일 게이트** — `npm run verify` (apps/karmolab build + packages/karmolab-ai build + apps/karmolab-tauri cargo check + apps/blog lint:js + lint:scss) + typos. branch protection 의 required status check 로 `verify (master invariant)` 등록됨 (applied). 폐기 흡수: `ai-quality.yml`, `code-quality.yml`, `karmolab-ts.yml`, `karmolab-tauri.yml`. |
-| `pages-deploy.yml` | Push to `main`/`master`, manual | Full site build and deploy to GitHub Pages |
-| `karmolab-tauri-release.yml` | Tag/manual | Tauri auto-update release pipeline |
-| `auto-merge.yml` | PR | Auto-merge after checks pass |
-| `claude.yml` | issue_comment | Claude Code Action |
-
-### Deployment Pipeline Steps
-
-1. Checkout (full history for lastmod detection)
-2. Setup Ruby 3.4 + Node.js 20
-3. `npm ci` (root dependencies)
-4. `npm run build` (CSS purge + JS bundle)
-5. `npm run build:graph` (post graph data)
-6. Build KarmoLab React app
-7. Build KarmoLab TypeScript app
-8. `bundle exec jekyll b` (production)
-9. Upload and deploy to GitHub Pages
-
----
+Vertex AI 선호 (credits 보유) — `KARMOLAB_AI_SURFACE=vertex` default. AI Studio = fallback only.
+예외: 무한 텍스트 어드벤처 (KL-032) = Claude Max OAuth default, Vertex 토글 선택 가능.
 
 ## Git Workflow
 
-본 § 가 본 레포 git workflow 의 *repo specific 보강*. **정본 = `karmoddrine/memo/rules/git.md`** (3 레포 trunk-based main 직접 push 통일 룰).
+정본 = `memo/rules/git.md`. master 직접 push default, force push 절대 금지.
+PR 생성 케이스: autopilot Draft PR / CodeRabbit 리뷰 / 다른 세션 충돌 회피 worktree / 외부 협업.
+Commit = Conventional Commits (`feat:`/`fix:`/`chore:` 등), pre-commit hook 강제.
 
-### Branches
+## 공통 원칙
 
-- `master` / `main`: Active development source. **직접 push 디폴트** (정본 정합).
-- `production`: Release branch (semantic-release). 직접 push 절대 금지 (Tag-only on master 대안 검토 — KL-NNN seed 가능).
-- Feature/fix branches: `feature/<주제>`, `fix/<주제>`, `chore/<주제>`, `refactor/<주제>` — autopilot Draft PR 흐름 또는 race 회피용 worktree
-
-### Trunk-based main 직접 push 디폴트 (3 레포 통일)
-
-`memo/rules/git.md § Git Workflow — 3 레포 모두 main 직접 push` 정본 정합. WM / github.io / memo 모두 main(master) 직접 commit + push. PR / Draft PR / CodeRabbit 강제 룰 폐기.
-
-- commit 컨펌 후 `git push` 자율
-- 응급 fix / 1~3줄 chore / refactor / docs 모두 직접 push
-- `verify.yml` CI 가 push trigger 로 자동 발동 — fail 시 SLO 1시간 revert (mandatory status check X, `§ Quality 게이트` 참조)
-- push 직전 race 회피: `safe-push.ps1 -Branch master -RepoPath ...` (정본 § push 직전 race 회피 참조)
-
-### PR 흐름 — 예외 케이스만
-
-PR 만드는 경우는 다음에 한정:
-
-- **Autopilot** (자율 개발 모드) — feature branch → Draft PR 까지만, main push 금지 (정본 § "예외 — autopilot")
-- **CodeRabbit / claude-pr-review 리뷰 받고 싶을 때** — feature branch + PR opened/ready_for_review 트리거. 평소 직접 push 흐름엔 미작동
-- **다른 세션과 파일 충돌 가능성** — worktree 격리 흐름 (정본 § main worktree — race 한정 우회)
-- **외부 협업** — fork PR / community contribution (해당 시점에만)
-
-### Commit Messages
-
-Conventional Commits are enforced via commitlint (`.husky/commit-msg`):
-
-```
-feat: add new feature
-fix: resolve a bug
-perf: performance improvement
-refactor: code restructuring (no behavior change)
-docs: documentation update
-chore: maintenance task
-style: formatting/style change
-test: add or update tests
-```
-
-- **Merge commits** are exempt from linting.
-- Semantic versioning and changelog generation run automatically on the `production` branch via `semantic-release`.
-
-### Quality 게이트 — verify post-push audit (branch protection 없음)
-
-**Branch protection 제거됨** (WM `main` 정합, TASK-KL-058). 1인 trunk-based 레포에서 mandatory status check 가 직접 push 를 dead-lock (push 전 status attach 필요) → branch protection 자체 폐기.
-
-master 직접 push 시:
-
-- `verify.yml` CI 가 push trigger 로 자동 발동 (`npm run verify`) — post-push audit
-- mandatory status check X — push 자체는 차단 안 됨 (verify 는 사후 검증)
-- **verify fail 시 SLO: 1시간 내 revert** (책임자 = 마지막 push 자). `§ master invariant` 참조
-- force push / branch 삭제 = GitHub default 보호만 (별도 protection rule 없음 — 1인 레포 책임 하 자율). force push 절대 금지는 `memo/rules/git.md` 룰로 강제
-- 로컬 `.husky/pre-push` 가 push 전 `npm run verify` 자동 호출 (1차 게이트)
-
----
-
-## master invariant — Machine-checkable Contract
-
-master 브랜치는 항상 다음을 만족:
-
-- `apps/karmolab` 의 build (typecheck 포함) 통과 (필수)
-- `packages/karmolab-ai` 의 build 통과 (필수)
-- `apps/karmolab-tauri/src-tauri` 의 `cargo check --all-targets` 통과 (필수)
-- `apps/karmolab-tauri` ACL audit (`npm run acl-audit` / `scripts/tauri-acl-audit.mjs`) 통과 (필수, KL-040 / KL-063 단일정본 재정식화). **KL-063 이후**: command↔permission-group 정본 = `apps/karmolab-tauri/src-tauri/acl.toml` *단 하나*. `build.rs` 가 거기서 `generate_handler!`(→ `$OUT_DIR/acl_handler.rs`, lib.rs include!) + `permissions/_generated/*.toml` 를 파생. 새 command 추가 = **2곳**: ① 구현 모듈 `#[tauri::command] fn` ② `acl.toml` 알맞은 `[[group]].commands` 1줄 (`capabilities/default.json` 은 *그룹 단위* 라 새 command 로 안 바뀜 — 새 *그룹* 신설 시에만 caps 1줄). audit 는 `acl.toml ⟷ #[command] ⟷ caps` 를 독립 cross-check (파생물 비검증 → codegen 버그도 포착, cargo build 선행 불요).
-- `apps/blog` 의 lint:js + lint:scss 통과 (필수, KL-031 chirpy v7.5.0 root config 흡수 완료).
-- typos check (`crate-ci/typos`) — strict 게이트 (KL-032). `_typos.toml` 이 false-positive 정의 + 데이터/외부 라이브러리 exclude. 진짜 typo 일 가능성 큰 단어들은 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
-
-검증의 단일 진실: **`npm run verify`** (`scripts/verify.mjs`). 모든 게이트가 이 한 명령만 호출.
-
-2중 게이트 (branch protection 폐기 — `§ Git Workflow > Quality 게이트` 참조):
-
-1. **로컬 pre-push** (`.husky/pre-push`) — 자동 호출. push 전 `npm run verify`. 우회: `git push --no-verify` (응급용).
-2. **CI post-push audit** (`.github/workflows/verify.yml`) — push 시 자동 트리거. `npm run verify`. fail 시 SLO 1시간 revert (mandatory status check X — 사후 검증).
-
-추가 hook:
-- **`.husky/commit-msg`** — Conventional Commits (commitlint via `apps/blog`) 강제. `apps/blog/node_modules/@commitlint` 미설치 시 silent skip — 사용자가 `cd apps/blog && npm ci` 해야 활성.
-
-위반 발견 시 SLO: 1시간 내 revert. 책임자 = 마지막 push 자.
-
-신규 자동화 룰 추가 시 분류 정합: `memo/CLAUDE-karmoddrine.md` § "자동화 가능 룰은 코드로" 참고. 텍스트 룰만 두면 클로드는 잊는다.
-
----
-
-## Code Quality Configuration
-
-| Tool | Config File | Scope |
-|---|---|---|
-| ESLint | `apps/blog/eslint.config.js` | `apps/blog/_javascript/`, `*.config.js` files |
-| Stylelint | `apps/blog/.stylelintrc.json` | `apps/blog/_sass/**/*.scss` |
-| Markdownlint | `.markdownlint.json` | Markdown posts |
-| EditorConfig | `.editorconfig` | All files |
-| TypeScript | `apps/karmolab/tsconfig.json`, `apps/blog/tsconfig.json` | sub-apps 각자 |
-| Commitlint | `apps/blog/package.json` (`commitlint` key) — `.husky/commit-msg` 가 호출 | Git commit messages |
-
-### Editor Defaults (`.editorconfig`)
-
-- Encoding: UTF-8
-- Indentation: 2 spaces
-- Quotes: single for JS/CSS/SCSS, double for YAML
-- Line endings: LF
-- No trailing whitespace (except Markdown)
-
----
-
-## Key Plugins and Features
-
-- **`_plugins/posts-lastmod-hook.rb`**: Auto-sets `last_modified_at` from git log for posts with >1 commit.
-- **`scripts/build-post-graph.cjs`**: Generates post dependency graph data → `assets/js/graph-view/`.
-- **PWA**: Offline caching enabled via Chirpy theme.
-- **Comments**: Giscus (GitHub Discussions), repo `mascari4615/blog-comments`.
-- **Analytics**: Google Analytics (`G-QRNK1L0YH7`) + GoatCounter (`mascari4615`).
-- **CDN**: `https://cdn.jsdelivr.net/gh/mascari4615/mascari4615.github.io@master`
-
----
-
-## Important Notes for AI Assistants
-
-1. **Do not modify `assets/js/dist/`** — this is compiled output from `_javascript/`. Edit source in `_javascript/` instead.
-2. **Do not add posts without proper front matter** including `title`, `description`, `categories`, `tags`, `date`.
-3. **Respect the `_drafts/` directories** — files there are works in progress and should not be published by moving them out without intent.
-4. **The `hidden: true` front matter key** suppresses posts from list pages but keeps them accessible by URL. Use it for internal/reference content.
-5. **SCSS lives in `_sass/`** — run `npm run build:css` or `npm run build` after changes to regenerate purged CSS.
-6. **Do not edit `_config.yml` lightly** — changes affect the entire site behavior and build pipeline.
-7. **Apps in `apps/` are independent projects** with their own `package.json` and build processes. They are excluded from the main Jekyll build.
-8. **Commit messages must follow Conventional Commits** — the pre-commit hook (`husky`) will reject non-conforming messages.
-9. **The `production` branch** is for releases only; normal development goes to `master`/`main` — **직접 push 디폴트** (`§ Git Workflow` 정합, 정본 = `karmoddrine/memo/rules/git.md`). PR 흐름은 autopilot / CodeRabbit 리뷰 / 외부 협업 등 예외 케이스만.
-10. **공통 작업 원칙 (레거시 금지 / 마이그레이션 자기소멸 / 커밋 전 확인 / 커밋 전 테스트 / 한 commit 한 주제 / 푸시는 지시 시에만)** — 단일 출처: `karmoddrine/memo/UMBRELLA.md` § 공통 작업 원칙 — 모든 레포. 본 레포에도 동일 적용. 충돌 시 K 가 우선.
-11. **Vertex AI is preferred over AI Studio** — the user has Vertex AI credits. When both surfaces support the same capability (text generation, embeddings), default to Vertex. Use `KARMOLAB_AI_SURFACE=vertex` as the standard. AI Studio is a fallback only. Do not propose AI Studio as the primary option. When adding new AI features, implement both surfaces via `karmolab-ai` and respect the surface env var.
-    - **KL-032 예외 (무한 텍스트 어드벤처)**: 사용자 발화 「Max x20 활용」 시드 → Claude (Max OAuth) default. provider abstraction + 위젯 토글로 Vertex 도 선택 가능 (`apps/karmolab/src/widgets/adventure/provider/`).
-12. **새 로컬 서버·dev 프로세스는 KarmoLab Server Monitor (`devProfiles`) 등록 우선** — 사용자는 `apps/karmolab-tauri` 데스크톱 앱을 상시 띄워두고 그 안의 **서버 모니터** 위젯에서 시작/종료/로그 스트림/deploy 를 한다. 새 봇·로컬 서버·dev runner 를 추가할 때는 **반드시 `apps/karmolab/data/servermonitor-config.json` 의 `devProfiles` (그리고 같은 `id` 로 `localMonitors`) 에 등록을 함께 제안**한다. 사용자가 외울 터미널 명령이 늘어나면 안 됨.
-    - **프로필 형식 = 둘 (TASK-KL-066 근본화)**:
-        - **npm-script 참조 (선호·기본)**: `{ id, label, app, script, deployScript?, healthUrl?, npmInstall? }`. `app` = 레포상대 디렉토리(=cwd, package.json 위치), `script` = npm 스크립트명. `program/args/cwd` 손기재 **금지** — `npm run <script>` 로 자동 파생되어 package.json 의 스크립트 rename 에 구조적으로 따라간다(drift 불가). deploy 버튼 = `deployScript` (예: `"deploy:yawnbot"`).
-        - **raw (npm 스크립트가 아닌 경우만)**: `{ id, label, cwd, program, args, healthUrl? }`. `program ∈ {npm,npx,bundle,ruby,node}` (현재 jekyll `bundle exec` 만). 그 외 바이너리(`cloudflared`/`python`/`cargo`)는 `package.json` script 로 감싸 **npm-script 형식**으로 등록 — raw 로 늘리지 말 것.
-    - **stale 자동 차단**: `scripts/servermonitor-config-audit.mjs` 가 모든 `{app,script}` 의 `<app>/package.json` script 실재를 `npm run verify`(master invariant 필수 게이트)에서 cross-check. 죽은 프로필은 main 진입 불가. (이 게이트 신설 계기 = `dev:dual`→`dev` rename 으로 카드가 조용히 죽은 사고.)
-    - `cwd`(raw) / `app`(script) 는 레포 루트 기준 상대 경로만. `..` 금지. Rust 측에서 canonicalize 후 루트 prefix 검증함.
-    - `npmInstall: true` / `deployScript: "..."` 를 두면 카드에 버튼이 자동 생성되고 stdout/stderr 가 카드 패널에 라이브 스트림.
-    - `.env` 파일은 `envFiles[]` 에 `relPath` 로 등록 — 사용자에게 "탐색기에서 .env 만들어주세요" 떠넘기지 말 것. 앱 내 편집기 (512KB 한도) 로 처리하게 한다.
-    - 봉제 명령 (`localdev_send_stdin`), 외부 실행 PID 발견·종료 (`localdev_list_external_pids` / `localdev_stop_external`), 재기동 후 PID reattach 등도 자동.
-    - 트레이 「개발 모드 (로컬 8899)」 토글은 KarmoLab 자체 (WebView 가 보는 페이지) 를 로컬 정적 서버로 띄울 때만. 일반 봇/서버는 `devProfiles` 가 정답.
-    - **AI 비-GUI 경로 (TASK-KL-065)**: 모든 `localdev_*` 운영 액션은 GUI 외에 **localhost HTTP** 로도 구동됨 — AI(Claude)가 데스크톱 창 클릭 없이 dev 프로필 start/stop/log/deploy 자가구동. `127.0.0.1:8766` (기본) + `Authorization: Bearer <token>` (토큰·포트 = 앱 자동 생성 `<app_local_data_dir>/localdev-http.json`). 카드와 **같은 `LocalDevState` 공유**(이중 추적 없음). 라우트는 `#[tauri::command]` 아님 → ACL 무영향. 스모크 = `apps/karmolab-tauri/scripts/localdev-http-smoke.sh`. 「GUI-only ops 떠넘기기 금지」(`memo/rules/process.md § Ops 인터페이스`) 충족 경로. 봇/서버 재기동을 사용자에게 안내하지 말고 이 HTTP 로 직접 처리.
-    - 정본: Rust `apps/karmolab-tauri/src-tauri/src/local_dev.rs`(`DevProfile::resolve`) + `local_dev_http.rs`(HTTP) · TS `apps/karmolab/src/widgets/servermonitor.ts`(`resolveProfile`) · 검증 `scripts/servermonitor-config-audit.mjs` · 본 note 12 + `TASK-KL-066`/`TASK-KL-065`.
-13. **IO 무거운 `#[tauri::command]` = `async` + `tauri::async_runtime::spawn_blocking` 강제** (TASK-KL-043, 2026-05-13).
-    - 기준: `fs::read_dir` 다중 호출 / external `std::process::Command` spawn (git, claude CLI, gh 등) / xcap + OCR + LLM 등 수 초 작업.
-    - 패턴: `pub async fn cmd(params) -> Result<T, String> { tauri::async_runtime::spawn_blocking(move || cmd_blocking(params)).await.map_err(|e| format!("spawn_blocking join 실패: {}", e))? }`
-    - 이미 마이그된 명령: `get_questlog_hub` (KL-035), `get_quest_tree`, `adventure_claude_complete`, `adventure_save_raw`, `adventure_commit_summary`, `life_screen_capture`, `desktop_install_pending_update`.
-    - Sync OK (< 10ms, 단일 파일 R/W): `toggle_quest_check`, `set_quest_status`, `set_quest_priority`, `add/delete/rename_quest_check`, `repofile_*`, `open_task_in_editor`, `create_task`, `terminal_*`, `life_get_feature_states`, `life_set_feature`, `desktop_notify`, `desktop_restart_app`.
+`memo/rules/` 정본 적용 (레거시 금지·마이그 자기소멸·한 commit 한 주제 등). 충돌 시 memo 룰 우선.

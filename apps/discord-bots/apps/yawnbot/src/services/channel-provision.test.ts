@@ -195,7 +195,7 @@ describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => 
     expect(tagNames).toContain('pending');
     expect(tagNames).toContain('done');
     expect(tagNames).toContain('WM');
-    expect(tagNames.length).toBe(12);
+    expect(tagNames.length).toBe(13);
     // emoji = { name: '<unicode>' } 형식
     const proposalTag = (ch!.availableTags ?? []).find((t) => t.name === 'proposal');
     expect(proposalTag?.emoji).toEqual({ name: '💡' });
@@ -217,7 +217,7 @@ describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => 
     expect((forumCh!.availableTags ?? []).map((t) => t.name).sort()).not.toContain(
       'orphan-tag',
     );
-    expect((forumCh!.availableTags ?? []).length).toBe(12);
+    expect((forumCh!.availableTags ?? []).length).toBe(13);
   });
 
   it('같은 이름 forum 채널이 미리 있으면 claim (생성 X) + 태그 동기', async () => {
@@ -247,7 +247,7 @@ describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => 
     expect(r.map['agent-work']).toBe('existing-forum');
     // 태그 동기로 legacy 제거 + spec 12개 박힘
     expect((existing.availableTags ?? []).map((t) => t.name)).not.toContain('legacy');
-    expect((existing.availableTags ?? []).length).toBe(12);
+    expect((existing.availableTags ?? []).length).toBe(13);
   });
 });
 

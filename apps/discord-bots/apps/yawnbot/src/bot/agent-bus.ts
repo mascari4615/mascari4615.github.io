@@ -43,6 +43,11 @@ import {
   type ForumStatus,
   type ForumDomain,
 } from './forum-post';
+import {
+  parseTaskId,
+  forumTitleForTask,
+  appendTaskForumLink,
+} from './task-forum-bridge';
 
 export interface ProposalAnnouncement {
   /** 결정적 발굴 id (proposalId) — 승인 매칭 키. */
@@ -195,6 +200,27 @@ export function lookupProposalById(
       if (!t) continue;
       const e = JSON.parse(t) as ProposalMsgEntry;
       if (e.id === id) hit = e;
+    }
+    return hit;
+  } catch {
+    return null;
+  }
+}
+
+/** threadId → 발굴 매핑 1건 (forum-tag-recovery 에서 태그 복원용). */
+export function lookupProposalByThreadId(
+  env: NodeJS.ProcessEnv,
+  threadId: string,
+): ProposalMsgEntry | null {
+  const p = proposalMsgsPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    let hit: ProposalMsgEntry | null = null;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t) as ProposalMsgEntry;
+      if (e.threadId === threadId) hit = e;
     }
     return hit;
   } catch {
@@ -504,6 +530,11 @@ export async function reconcileProposalCards(
     try {
       const state = VERDICT_STATE[v.verdict];
       let resultLine: string;
+      // TASK-YB-039: adopt 분기에서 materialize 결과의 TASK id 추출 →
+      // 같은 forum-post thread 제목 rename + kind 태그 proposal→task 토글 +
+      // bridge ledger 박음.
+      let renameTo: string | undefined;
+      let kindToggle: 'task' | undefined;
       if (v.verdict === 'adopt') {
         // 팀이 *행동*: inert seed/draft 머터리얼라이즈 트리거 (자동
         // 실행 X — 진짜 게이트 seed→ready 불변, 2026-05-19 결정).
@@ -519,6 +550,17 @@ export async function reconcileProposalCards(
         resultLine = desc
           ? `🧑‍🤝‍🧑 팀 채택 → **${desc}** 생성 (동료이 ready 승격 시 진행) · ${v.reason}`
           : `🧑‍🤝‍🧑 팀 채택 — 검토 단계로 (엔진 트랙·즉시 산출물 없음) · ${v.reason}`;
+        const taskId = parseTaskId(desc);
+        if (taskId) {
+          appendTaskForumLink(env, {
+            taskId,
+            postId: entry.threadId,
+            channelId: entry.channelId,
+            proposalId: v.id,
+          });
+          renameTo = forumTitleForTask(taskId, entry.title);
+          kindToggle = 'task';
+        }
       } else if (v.verdict === 'adopt-mods') {
         resultLine = `🧑‍🤝‍🧑 팀 수정 채택 — 합의 수정안을 새 카드로 분리 게시 · ${v.reason}`;
       } else if (v.verdict === 'reject') {
@@ -566,7 +608,9 @@ export async function reconcileProposalCards(
         {
           embedEdit: editedEmbed,
           statusTag: STATE_TO_FORUM_STATUS[state],
+          kindTag: kindToggle,
           threadMessage: resultLine,
+          setName: renameTo,
         },
       );
       markCardReflected(env, v.id);

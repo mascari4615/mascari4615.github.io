@@ -33,6 +33,13 @@ export interface HealthSignals {
    * sync regex fix (commit bbe2af42/e4cb1c58) 후에도 잔존 패턴 감지용.
    */
   brokenLoopTaskCount: number;
+  /**
+   * 최근 DORMANT_WINDOW_HRS 안의 *생산적* 활동 수 (worker push 산출 +
+   * 코어 승격/원복). skip/idle/escalate/proposal/seed 는 0 — 즉 trace 가
+   * 매 틱 "따뜻"해도(skip 기록) 실산출 0 일 수 있다. liveness ≠ productivity.
+   * 미측정(구 literal)= undefined → team-dormant 미발화(back-compat).
+   */
+  realProgressRecent?: number;
 }
 
 interface TraceEntry {
@@ -43,6 +50,9 @@ interface TraceEntry {
   task?: string;
 }
 
+// gatherHealthSignals 가 4회 호출 → 매 cycle 전체 trace parse = O(N). 6h/24h
+// window 만 보므로 tail 만 read. 누적 trace 가 커져도 cadence latency 영향 X.
+const TRACE_TAIL_LINES = 2000;
 function readTraceLines(memoRoot: string): TraceEntry[] {
   try {
     const p = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
@@ -50,6 +60,7 @@ function readTraceLines(memoRoot: string): TraceEntry[] {
     return fs
       .readFileSync(p, 'utf-8')
       .split(/\r?\n/)
+      .slice(-TRACE_TAIL_LINES)
       .filter(Boolean)
       .map((l) => {
         try {
@@ -61,6 +72,77 @@ function readTraceLines(memoRoot: string): TraceEntry[] {
   } catch {
     return [];
   }
+}
+
+/**
+ * dormancy 판정 윈도우(h). team-dormant = 이 시간 안에 실산출 0 + trace warm.
+ * 워커 interval(5분)·정상 작업 간격보다 충분히 길게(false-fire 방지) 잡되,
+ * 멀티시간 침묵은 잡도록 18h. 18h 동안 worker push 1건도 없으면 dormant.
+ */
+export const DORMANT_WINDOW_HRS = 18;
+
+/**
+ * 최근 windowHours 안의 *생산적* 활동 수 (순수, read-only). 생산적 =
+ *  ① 워커가 실제로 push 한 산출 (`worker TASK-X done agentic`)
+ *  ② 코어 승격/원복 (`core-promoted`/`core-reverted`, evolution-events)
+ * skip/idle/escalate/proposal/seed/budget = 산출 X. 이 구분이 team-dormant
+ * 신호의 근본 — trace 가 매 틱 skip 으로 "따뜻"해도 실산출은 0 일 수 있고,
+ * 기존 5개 헬스 신호(staleness/fail/error/loop/progressLog)는 그 사각을
+ * 못 잡는다 (skip≠fail · warm≠stale · proposal=progressLog 자기위장).
+ *
+ * 정본 — `agent-cadence-ops.recentRealProgressCount`(SO-2) 가 본 함수로 위임.
+ */
+export function realProgressCount(
+  memoRoot: string,
+  windowHours: number = DORMANT_WINDOW_HRS,
+  nowMs: number = Date.now(),
+): number {
+  if (!memoRoot) return 0;
+  const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
+  const TAIL = 2000;
+  let count = 0;
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  if (fs.existsSync(tracePath)) {
+    try {
+      const lines = fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; reason?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          // 워커 push 산출: "worker TASK-XXX done agentic <branch>"
+          if (/\bworker\s+TASK-[A-Z0-9-]+\s+done\s+agentic\b/.test(e.reason || '')) {
+            count += 1;
+          }
+        } catch {
+          /* 손상 라인 폐기 */
+        }
+      }
+    } catch {
+      /* IO 실패 = 0 (안전: 측정 못 함 = dormant 단정 X) */
+    }
+  }
+  const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
+  if (fs.existsSync(evoPath)) {
+    try {
+      const lines = fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/).slice(-TAIL);
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t) continue;
+        try {
+          const e = JSON.parse(t) as { ts?: string; code?: string };
+          if (!e.ts || e.ts < cutoffIso) continue;
+          if (e.code === 'core-promoted' || e.code === 'core-reverted') count += 1;
+        } catch {
+          /* skip */
+        }
+      }
+    } catch {
+      /* IO 실패 = 0 */
+    }
+  }
+  return count;
 }
 
 /**
@@ -105,6 +187,13 @@ export function gatherHealthSignals(
   }
 
   // workerFailRatio (최근 6h)
+  // status 분류:
+  //  - done             = 성공(push 확인)
+  //  - escalated        = 사용자 결정 필요로 올바르게 라우팅 = *정상 동작* (분모·분자 둘 다 제외)
+  //  - done-no-artifact = 실행했으나 산출 0 = soft fail (분자)
+  //  - error/timeout/.. = hard fail (분자)
+  // 「escalated 도 fail 카운트」 버그 fix: 봇이 결정 task 만 보아도 100% fail
+  // 신호 → surgery loop 무한 발동 (KAR-130/132/138~144 자기복제 직접 원인).
   let workerFailRatio: number | null = null;
   if (memoRoot) {
     try {
@@ -116,7 +205,9 @@ export function gatherHealthSignals(
         if (!e.ts || e.ts < cutoff6h) continue;
         const m = /^worker\s+\S+\s+(\S+)/.exec(e.reason || '');
         if (!m) continue;
-        if (m[1] === 'done') done++;
+        const status = m[1];
+        if (status === 'done') done++;
+        else if (status === 'escalated') { /* 정상 라우팅 = 분모 미포함 */ }
         else fail++;
       }
       if (done + fail > 0) workerFailRatio = fail / (done + fail);
@@ -169,7 +260,16 @@ export function gatherHealthSignals(
     }
   }
 
-  return { traceStalenessHrs, progressStale, workerFailRatio, traceErrorCount, brokenLoopTaskCount };
+  const realProgressRecent = realProgressCount(memoRoot, DORMANT_WINDOW_HRS, nowMs);
+
+  return {
+    traceStalenessHrs,
+    progressStale,
+    workerFailRatio,
+    traceErrorCount,
+    brokenLoopTaskCount,
+    realProgressRecent,
+  };
 }
 
 // ── 진단 ─────────────────────────────────────────────────────────────────────
@@ -269,6 +369,28 @@ export function diagnoseHealth(
     });
   }
 
+  // team-dormant (KAR-018 죽은-루프-부활, 2026-05-30): 봇은 매 틱 돌지만
+  // (traceStalenessHrs 낮음 = warm) DORMANT_WINDOW_HRS 동안 *실산출* 0
+  // (worker push·코어 승격 0, skip/idle 만). 기존 5개 신호가 전부 못 잡는 사각
+  // — skip≠fail(workerFailRatio null) · warm≠stale(cadence-* 미발화) ·
+  // proposal=progressLog(progress-stale 자기위장). 「침묵을 건강으로 오인」 차단:
+  // 팀이 *자기 dormancy 를 스스로* 감지해 발의/드레인하는 닫는 rung.
+  //   · realProgressRecent === undefined(구 literal) = 미측정 → 미발화(back-compat)
+  //   · traceStalenessHrs >= warn = 봇 자체가 죽음 → cadence-stale/slow 가 담당(중복 X)
+  if (
+    signals.realProgressRecent === 0 &&
+    signals.traceStalenessHrs < thresholds.traceStaleWarnHrs
+  ) {
+    issues.push({
+      severity: 'critical',
+      code: 'team-dormant',
+      detail:
+        `봇은 매 틱 돌지만 ${DORMANT_WINDOW_HRS}h 실산출(워커 push·코어 승격) 0 — ` +
+        'skip/idle 만 반복. 자가증강 루프가 자기 침묵을 건강으로 오인한 dormant 상태 ' +
+        '(방향 발의 또는 백로그 드레인 필요)',
+    });
+  }
+
   return issues;
 }
 
@@ -299,6 +421,11 @@ export function formatHealthBlock(
   }
   if (signals.brokenLoopTaskCount > 0) {
     lines.push(`· broken-loop task(6h, ≥3회 no-op): ${signals.brokenLoopTaskCount}개`);
+  }
+  if (signals.realProgressRecent !== undefined) {
+    lines.push(
+      `· 실산출(${DORMANT_WINDOW_HRS}h, worker push+코어승격): ${signals.realProgressRecent}건`,
+    );
   }
   if (issues.length === 0) {
     lines.push('→ 이상 없음');

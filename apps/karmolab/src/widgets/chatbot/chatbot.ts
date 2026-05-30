@@ -266,6 +266,8 @@ import {
                         <div class="cb-option-row" style="margin-top:2px;">
                             <input type="range" id="cbTemperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;">
                         </div>
+                        <label class="cb-model-label" style="margin-top:8px;">안전 필터</label>
+                        <select id="cbSafetyThreshold" style="font-size:var(--font-size-xs);padding:6px 8px;width:100%;"></select>
                     </div>
                 </aside>
 
@@ -499,6 +501,21 @@ import {
             if (tempSlider && tempValueEl) {
                 if (savedTemp !== undefined) { tempSlider.value = savedTemp; tempValueEl.textContent = savedTemp; }
                 tempSlider.addEventListener('input', () => { tempValueEl.textContent = tempSlider.value; Toolbox.setPref('cb_temperature', tempSlider.value); });
+            }
+
+            const safetySel = document.getElementById('cbSafetyThreshold');
+            if (safetySel instanceof HTMLSelectElement && typeof Gemini !== 'undefined') {
+                const levels = Gemini.GEMINI_SAFETY_LEVELS || [];
+                const defaultThreshold = Gemini.DEFAULT_GEMINI_SAFETY_THRESHOLD || 'BLOCK_ONLY_HIGH';
+                safetySel.innerHTML = levels
+                    .map(level => `<option value="${level.value}">${Toolbox.escapeHtml(level.label)}</option>`)
+                    .join('');
+                const savedSafety = Toolbox.getPref('cb_safety_threshold') || defaultThreshold;
+                safetySel.value = savedSafety;
+                if (!safetySel.value && levels.length > 0) safetySel.value = defaultThreshold;
+                safetySel.addEventListener('change', () => {
+                    Toolbox.setPref('cb_safety_threshold', safetySel.value);
+                });
             }
 
             // 이미지 첨부
@@ -934,6 +951,8 @@ import {
             const modelId = modelSel?.value || Gemini.getDefaultModel('gemini');
             const tempInput = document.getElementById('cbTemperature');
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
+            const safetyInput = document.getElementById('cbSafetyThreshold');
+            const safetyThreshold = safetyInput?.value || Gemini.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg();
             currentStreamAbort = new AbortController();
@@ -947,11 +966,13 @@ import {
                     chatbotUiSurfaceToPackage(apiSurface) === 'vertex'
                         ? await Gemini.callVertexChatStream(chatHistory, systemPrompt, modelId, {
                               temperature,
+                              safetyThreshold,
                               signal: currentStreamAbort.signal
                           })
                         : await Gemini.callChatStream(chatHistory, systemPrompt, modelId, {
                               webSearch: useWebSearch,
                               temperature,
+                              safetyThreshold,
                               signal: currentStreamAbort.signal
                           });
 
@@ -1051,6 +1072,8 @@ import {
             const modelId = modelSel?.value || Gemini.getDefaultModel('gemini');
             const tempInput = document.getElementById('cbTemperature');
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
+            const safetyInput = document.getElementById('cbSafetyThreshold');
+            const safetyThreshold = safetyInput?.value || Gemini.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg();
             currentStreamAbort = new AbortController();
@@ -1064,11 +1087,13 @@ import {
                     chatbotUiSurfaceToPackage(apiSurface) === 'vertex'
                         ? await Gemini.callVertexChatStream(chatHistory, systemPrompt, modelId, {
                               temperature,
+                              safetyThreshold,
                               signal: currentStreamAbort.signal
                           })
                         : await Gemini.callChatStream(chatHistory, systemPrompt, modelId, {
                               webSearch: useWebSearch,
                               temperature,
+                              safetyThreshold,
                               signal: currentStreamAbort.signal
                           });
                 let fullText = '';

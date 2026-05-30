@@ -78,6 +78,12 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
 
+      - name: Build karmolab-ai (shared package — apps/karmolab dependency)
+        working-directory: packages/karmolab-ai
+        run: |
+          npm ci
+          npm run build
+
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
         run: |

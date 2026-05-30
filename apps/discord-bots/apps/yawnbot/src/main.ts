@@ -45,10 +45,12 @@ import {
 } from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
+import { isBrainCapture, handleBrainCapture } from './bot/brain-capture';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
 import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, defaultNotify, setTeamBusNotify } from './bot/governance-adapter';
+import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
@@ -72,6 +74,7 @@ import {
 import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
+import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
 const client = new Client({
   intents: [
@@ -266,14 +269,55 @@ client.on('messageCreate', async (message) => {
     isBot && !!message.webhookId && !!characterService &&
     isTeamRoomMessage(characterService, message as any);
   if (isBot && !teamWebhook) return;
+  // 뇌 캡처 인터셉트 — DM에서 `뇌: <내용>` 형태면 외장 뇌로 저장 후 return
+  const isDM = message.channel.isDMBased();
+  const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
+  if (isDM && memoRepoPath && assistantUserId && message.author.id === assistantUserId && isBrainCapture(message.content)) {
+    await handleBrainCapture(message as any, memoRepoPath);
+    return;
+  }
+
   if (characterService) {
     await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
   if (!isBot) await handleMeme(message as any);
 });
 
+// KAR-018-LT-DIVERSITY D-2: #team-bus 메시지 → agent-bus publish (인바운드 bridge).
+// 코어 daemon 들이 subscribe 하여 ambient 판단(답/읽씹) 입력으로 사용.
+// 자기 코어 발화(isOwnAgentWebhook) = skip — daemon 이 자체 core-utter 로 이미 publish.
+// 외부 bot·사용자 메시지만 → bus 인입.
+client.on('messageCreate', async (message) => {
+  try {
+    const targetCh = agentChannelId();
+    if (!targetCh || message.channelId !== targetCh) return;
+    if (message.author.bot && isOwnAgentWebhook(message.webhookId)) return;
+    const { publishBusEvent, resolveBusRoot } = await import('./services/agent-bus.js');
+    await publishBusEvent(resolveBusRoot(), {
+      type: 'channel-msg',
+      channelId: targetCh,
+      source: message.author.bot ? 'discord:bot' : 'discord:user',
+      text: message.content || '',
+      refs: {
+        messageId: message.id,
+        author: message.author.username,
+      },
+    });
+  } catch (e) {
+    console.error(
+      '[agent-bus] inbound publish 실패',
+      e instanceof Error ? e.message : e,
+    );
+  }
+});
+
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
+
+// KAR-018-LT-DIVERSITY D-2 (outbound): agent-bus core-utter → Discord post.
+// daemon process 가 publish 한 발화 → 봇이 받아서 채널에 webhook post.
+// daemon = Discord client 무관, 본 어댑터가 thin bridge.
+let agentBusSubscription: { stop: () => void } | null = null;
 
 const app = createGithubWebhookApp(client as any, gameData as any);
 mountLocalWebhook(app, client as any);
@@ -296,6 +340,51 @@ client.once('clientReady', async () => {
       .filter((s) => s.trim().length > 0)
       .join('\n');
   });
+  // KAR-018-LT-DIVERSITY D-2 outbound: agent-bus core-utter → Discord webhook post.
+  try {
+    const { subscribeBusEvents, resolveBusRoot } = await import('./services/agent-bus.js');
+    const targetCh = agentChannelId();
+    if (targetCh && memoRepoPath && characterService) {
+      const busRoot = resolveBusRoot();
+      agentBusSubscription = subscribeBusEvents(
+        busRoot,
+        targetCh,
+        async (event) => {
+          if (event.type !== 'core-utter' || !event.coreId || !event.text) return;
+          try {
+            const core = loadCoreDef(memoRepoPath!, event.coreId);
+            if (!core || core.status !== 'active') return;
+            const card = characterService!.loadCard(core.defaultSkin);
+            if (!card) return;
+            const ch = await client.channels.fetch(targetCh);
+            if (!ch || !(ch as any).isTextBased?.()) return;
+            // KAR-018-LT-DIVERSITY: 발화에 *어떤 메시지에 대한 답*인지 자연 인용 prefix.
+            // 사용자 push back 2026-05-23: "갑자기 지혼자 이렇게 말하는데, 최소한 뭘 대상을
+            // 말하는지는 알 수 있어야 할 것 같은데" — 컨텍스트 단절 fix.
+            const refs = event.refs;
+            let prefix = '';
+            if (refs?.parentAuthor && refs?.parentSnippet) {
+              const author = refs.parentAuthor.replace(/[<>@*_`~]/g, '');
+              const snippet = refs.parentSnippet.replace(/\s+/g, ' ').trim().slice(0, 100);
+              const ellipsis = (refs.parentSnippet?.length ?? 0) > 100 ? '…' : '';
+              prefix = `> ↩ **${author}**: ${snippet}${ellipsis}\n\n`;
+            }
+            await sendAsSkin(ch as TextChannel, card, { content: prefix + event.text });
+          } catch (e) {
+            console.error('[agent-bus] outbound post 실패', e instanceof Error ? e.message : e);
+          }
+        },
+        {
+          intervalMs: 500,
+          onError: (e) => console.error('[agent-bus] outbound tail error', e.message),
+        },
+      );
+      console.log(`[agent-bus] outbound bridge ON channel=${targetCh} root=${busRoot}`);
+    }
+  } catch (e) {
+    console.error('[agent-bus] outbound init 실패', e instanceof Error ? e.message : e);
+  }
+
   console.log(`\n  ⚔️  YawnBot (Node.js)`);
   console.log(`  ─────────────────────────`);
   console.log(`  로그인: ${client.user?.tag}`);
@@ -342,6 +431,47 @@ client.once('clientReady', async () => {
         );
       }
     }
+  }
+
+  // TASK-YB-039 P6: 기존 ready/in_progress/seed TASK 들을 #team-work
+  // forum-post 로 1회 시드 (멱등 — ledger 박힌 건 skip). 채널 프로비저닝
+  // *뒤* 호출해서 agent-work channelId 신선 보장. best-effort — 실패해도
+  // boot 자체 진행.
+  try {
+    const { runTaskForumBackfillOnce } = await import('./bot/task-forum-backfill.js');
+    await runTaskForumBackfillOnce(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[TaskForumBackfill] 부팅 backfill 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  // 부팅 태그 복원: 채널 재프로비저닝으로 availableTags ID 가 새로 발급된 경우
+  // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
+  try {
+    const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
+    await recoverForumTagsOnce(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[ForumTagRecovery] 부팅 태그 복원 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
+  // TASK-YB-039 P5: md status drift → #team-work forum 태그 sync (단방향
+  // md=정본). 부팅 1회 + 주기 5분 (env override 가능). 멱등 — last-applied
+  // 캐시로 변화 없는 entry 는 API 미호출.
+  try {
+    const { reconcileTaskForumStatusOnce, startTaskForumReconciler } =
+      await import('./bot/task-forum-reconciler.js');
+    await reconcileTaskForumStatusOnce(client as any, process.env);
+    startTaskForumReconciler(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[TaskForumReconciler] 부팅 sync 실패:',
+      e instanceof Error ? e.message : e,
+    );
   }
 
   const greetingChannelIds = getDefaultChannels();
@@ -415,6 +545,7 @@ client.once('clientReady', async () => {
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
+    if (memoRepoPath) startBrainResurface(client, memoRepoPath);
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
     // sendLocalEvent = webhook-routes 정본 재사용(평행정의0). 미주입 시 trace만(graceful).
@@ -441,6 +572,14 @@ client.once('clientReady', async () => {
         resolveChannelId: () =>
           agentCh ?? getLocalChannels('agent-team')[0] ?? null,
         fallback: teamBusFallback,
+        // 2026-05-23 사용자 피드백 "텍스트랑 채팅이 너무 많고 정신없음" fix:
+        // TASK-id 추출 실패 메시지(digest·ticker·qc·등)는 메인 채널 spam X.
+        // 정보 통합 = status board 1개 메시지 (cadence INIT 후 매 tick edit).
+        // env `AGENT_NOTIFY_FALLBACK=fallback` 으로 명시적 override 가능.
+        onMissingTask:
+          process.env.AGENT_NOTIFY_FALLBACK?.trim() === 'fallback'
+            ? 'fallback'
+            : 'silent',
       }),
     );
     // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
@@ -507,6 +646,21 @@ client.once('clientReady', async () => {
           dir: skinCard.dir,
         } as unknown as CharacterCard;
         await sendAsSkin(ch, speakAs, { content: text.slice(0, 1900) });
+        // KAR-018-LT-PEER-ONLY P-1: 코어 발화 = bus 에도 publish.
+        // ambient daemon 들이 ambient listener 로 듣고 시각 있으면 자율 답.
+        // self-loop 회피 = daemon 안 source 매칭 skip (이미 박힘 source=core:<id>).
+        try {
+          const { publishBusEvent, resolveBusRoot } = await import('./services/agent-bus.js');
+          await publishBusEvent(resolveBusRoot(), {
+            type: 'core-utter',
+            channelId: cid,
+            source: `core:${coreId}`,
+            coreId,
+            text: text.slice(0, 1900),
+          });
+        } catch (busErr) {
+          console.error('[CoreSpeak] bus publish 실패', busErr instanceof Error ? busErr.message : busErr);
+        }
         return true;
       } catch (e: any) {
         console.error('[CoreSpeak]', e?.message ?? e);
@@ -558,19 +712,54 @@ client.once('clientReady', async () => {
         return null;
       }
     });
-    // 부팅 self-test: 파이프(NotifyFn→sendLocalEvent→webhook-routes→실채널)
-    // end-to-end 관측 증거 1회. 사용자가 #team-bus 채널에서 직접 확인 = behavior-verify.
-    void sendLocalEvent(
-      client as any,
-      {
-        kind: 'agent-team',
-        source: `KAR-018-W · ${agentCh ? 'dev(격리)' : 'prod(webhook-routes)'}`,
-        title: '🛰 에이전트 팀 — #team-bus 연결',
-        summary: `에이전트 팀 알림 파이프 라이브 (${agentCh ? 'dev 전용 채널 격리' : 'prod 기본 채널'}). 이후 거버넌스 escalate / 자가개선 reject / ⑦' 발굴이 이 채널로 게시됩니다. (cadence 자율 구동은 기본 ON, AGENT_CADENCE_ENABLED=0 으로 명시 시 OFF.)`,
-        level: 'info',
-      },
-      agentChOverride,
-    );
+    // TASK-KAR-018-INIT: 한 화면 status board sender 주입 (사용자 피드백
+    // "정신없음" — 매 tick edit 1개 메시지). setDashboardSink 동형 (client⊥agent-cadence).
+    // 채널 = #team-bus (agentCh 또는 webhook-routes default). pin 시도 = 권한
+    // 없으면 silent skip (best-effort).
+    {
+      const resolveTeamBus = (): string | null =>
+        agentCh ?? getLocalChannels('agent-team')[0] ?? null;
+      setStatusBoardSender({
+        send: async (channelId: string, content: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return null;
+            const m = await ch.send({ content: content.slice(0, 1900) });
+            return m.id;
+          } catch (e: any) {
+            console.error('[StatusBoard send]', e?.message ?? e);
+            return null;
+          }
+        },
+        edit: async (channelId: string, messageId: string, content: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return false;
+            await ch.messages.edit(messageId, { content: content.slice(0, 1900) });
+            return true;
+          } catch {
+            return false; // 메시지 삭제·권한 등 → send 폴백 트리거
+          }
+        },
+        pin: async (channelId: string, messageId: string) => {
+          try {
+            const ch = await client.channels.fetch(channelId).catch(() => null);
+            if (!(ch instanceof TextChannel)) return false;
+            const m = await ch.messages.fetch(messageId).catch(() => null);
+            if (!m) return false;
+            await m.pin('🛰 status board (KAR-018-INIT 한 화면 상태)');
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      });
+      // YAWNBOT_TEAM_BUS_CHANNEL_ID env 도 fallback path — cadence wiring 이
+      // 환경변수 우선이라 prod 명시 시 dev 격리 OK.
+      if (resolveTeamBus()) {
+        process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID = resolveTeamBus() || '';
+      }
+    }
     // KAR-018-PUSH-CLOSURE pre-flight — MEMO_GITHUB_PAT 가 memo push 권한 있는지
     // startup 1회 검증. 부족 시 #team-bus alert (silent fail 회피). 비차단.
     try {
@@ -733,12 +922,17 @@ async function gracefulShutdown(reason: string): Promise<void> {
   }
   setMusicDiscordClient(null);
   setTeamBusContextFetcher(null);
+  if (agentBusSubscription) {
+    agentBusSubscription.stop();
+    agentBusSubscription = null;
+  }
   stopPresenceRotation();
   stopHeartbeat();
   stopCharacterStateSnapshot();
   stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
+  stopBrainResurface();
   stopAgentCadence();
   if (cardReconcileTimer) {
     clearTimeout(cardReconcileTimer);

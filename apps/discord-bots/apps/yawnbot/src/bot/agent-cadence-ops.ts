@@ -26,6 +26,7 @@ import {
   gatherHealthSignals,
   diagnoseHealth,
   formatHealthBlock,
+  realProgressCount,
   type HealthSignals,
   type HealthIssue,
 } from './system-health';
@@ -110,13 +111,22 @@ export function summarizeTick(r: string, anchor = ''): string | null {
   if (/drift-skip/.test(s)) bits.push('미션과 안 맞는 방향 — 건너뜀');
   const evo = s.match(/\+evolution:(\d+)/);
   if (evo && Number(evo[1]) > 0) bits.push(`팀 진화 이벤트 ${evo[1]}건 기록`);
-  const surg = s.match(/\+surgery:(seed:[^+]*|escalate)/);
+  const surg = s.match(/\+surgery:(seed:[^+]*|escalate|dedupe:[^+]*)/);
   if (surg) {
-    bits.push(
-      surg[1].startsWith('seed:')
-        ? `⚕ 자기수술 진단 완료 — 과제 시드 작성`
-        : `⚕ 자기수술 — 사람 판단 필요`,
-    );
+    if (surg[1].startsWith('seed:')) bits.push(`⚕ 자기수술 진단 완료 — 과제 시드 작성`);
+    else if (surg[1] === 'escalate') bits.push(`⚕ 자기수술 — 사람 판단 필요`);
+    else if (surg[1].startsWith('dedupe:')) bits.push(`⚕ 자기수술 — 같은 진단 24h 내 처리됨, 새 시드 skip`);
+  }
+  // INIT (팀 자율 발의) — 사용자 체감 면 「자기들끼리 뭘 만들어볼까」 가시화.
+  // no-signal / below-threshold = 진짜 idle = silent (스팸 X).
+  const initProp = s.match(/\+init:proposed:(\d+)(?:\+deduped:(\d+))?/);
+  if (initProp) {
+    const n = initProp[1];
+    const ded = initProp[2];
+    bits.push(ded ? `🌱 새 발의 ${n}건 (+ 24h 중복 ${ded}건 보류)` : `🌱 새 발의 ${n}건`);
+  } else {
+    const initDed = s.match(/\+init:all-deduped:(\d+)/);
+    if (initDed) bits.push(`🌱 발의 ${initDed[1]}건 — 24h 중복으로 전부 보류`);
   }
   if (bits.length === 0) return null;
   const head = anchor.trim() || '🛰 팀 한 바퀴';
@@ -232,9 +242,56 @@ export interface SelfSurgeryDeps {
 }
 
 /**
+ * surgery dedupe — 같은 critical-issue 코드 조합으로 windowMs 내 seed 박은
+ * 이력 있으면 새 LLM 호출·seed 생성 skip (KAR-130/132/138-144 같은 자기복제
+ * 8+ 중복 차단). trace `core='surgery' & reason='surgery seed: ... (codes)'`
+ * 패턴 매칭. trace 부재·파싱 실패 = false (가용성 우선, dedupe 안 함).
+ */
+export function recentSurgeryDedupeHit(
+  env: NodeJS.ProcessEnv,
+  criticalKey: string,
+  windowMs: number,
+): { hit: boolean; lastTs?: string; count: number } {
+  const memoRoot = env.MEMO_REPO_PATH?.trim() || '';
+  if (!memoRoot || !criticalKey || windowMs <= 0) return { hit: false, count: 0 };
+  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
+  let raw = '';
+  try { raw = fs.readFileSync(tracePath, 'utf-8'); }
+  catch { return { hit: false, count: 0 }; }
+  const cutoff = Date.now() - windowMs;
+  const tail = raw.split('\n').slice(-500);
+  let count = 0;
+  let lastTs: string | undefined;
+  for (const line of tail) {
+    const t = line.trim();
+    if (!t) continue;
+    try {
+      const o = JSON.parse(t) as { ts?: string; core?: string; reason?: string };
+      if (o.core !== 'surgery') continue;
+      if (!o.reason || !o.reason.startsWith('surgery seed')) continue;
+      const ts = o.ts ? Date.parse(o.ts) : NaN;
+      if (!Number.isFinite(ts) || ts < cutoff) continue;
+      const m = o.reason.match(/\(([^)]+)\)/);
+      if (!m) continue;
+      const codes = m[1].split(',').map((s) => s.trim()).filter(Boolean).sort().join(',');
+      if (codes === criticalKey) {
+        count++;
+        lastTs = o.ts;
+      }
+    } catch { /* skip ill-formed line */ }
+  }
+  return { hit: count > 0, lastTs, count };
+}
+
+function criticalKeyOf(critical: HealthIssue[]): string {
+  return critical.map((i) => i.code).filter(Boolean).sort().join(',');
+}
+
+/**
  * 기둥4 자기수술 (1회·gated·best-effort). 헬스 신호 수집 →
  * critical 이슈 있으면 LLM 자율 진단 → task seed OR escalate.
- * shouldRunSurgery 게이트(기본 12h).
+ * shouldRunSurgery 게이트(기본 12h). dedupe 게이트(24h, force 우회 불가는 X
+ * — `force=true` 가 우회).
  */
 export async function runSelfSurgeryOnce(
   env: NodeJS.ProcessEnv,
@@ -263,6 +320,24 @@ export async function runSelfSurgeryOnce(
   if (!hasCritical) {
     recordSurgery(memoRoot);
     return 'surgery-skip';
+  }
+
+  // dedupe: 같은 critical 조합으로 24h 내 seed 박은 이력 = LLM 호출 전 skip.
+  // KAR-130/132/138-144 (worker-fail-critical 8+ 자기복제) 차단. force 우회.
+  const dedupeWindowMs = Number(env.AGENT_SURGERY_DEDUPE_MS) || 24 * 3600_000;
+  const criticalKey = criticalKeyOf(critical);
+  if (!deps.force && dedupeWindowMs > 0 && criticalKey) {
+    const dh = recentSurgeryDedupeHit(env, criticalKey, dedupeWindowMs);
+    if (dh.hit) {
+      recordSurgery(memoRoot);
+      const lastMs = dh.lastTs ? Date.parse(dh.lastTs) : Date.now();
+      const hrs = Math.max(0, Math.round((Date.now() - lastMs) / 36e5));
+      appendTrace(env, {
+        ts: new Date().toISOString(), type: 'drift', core: 'surgery',
+        reason: `surgery dedupe: ${criticalKey} (${dh.count}건 24h 내, 마지막 ~${hrs}h 전)`,
+      });
+      return `surgery:dedupe:${criticalKey}`;
+    }
   }
 
   const missionText = deps.missionText ?? readMissionText(env);
@@ -419,41 +494,10 @@ export function recentRealProgressCount(
   windowHours = 6,
   nowMs = Date.now(),
 ): number {
-  if (!memoRoot) return 0;
-  const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
-  let count = 0;
-  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
-  if (fs.existsSync(tracePath)) {
-    try {
-      for (const line of fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/)) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const e = JSON.parse(t) as { ts?: string; reason?: string };
-          if (!e.ts || e.ts < cutoffIso) continue;
-          // worker pushed done: "worker TASK-XXX done agentic <branch>"
-          if (/\bworker\s+TASK-[A-Z0-9-]+\s+done\s+agentic\b/.test(e.reason || '')) {
-            count += 1;
-          }
-        } catch { /* skip 손상 */ }
-      }
-    } catch { /* IO 실패 = 0 */ }
-  }
-  const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
-  if (fs.existsSync(evoPath)) {
-    try {
-      for (const line of fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/)) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const e = JSON.parse(t) as { ts?: string; code?: string };
-          if (!e.ts || e.ts < cutoffIso) continue;
-          if (e.code === 'core-promoted' || e.code === 'core-reverted') count += 1;
-        } catch { /* skip */ }
-      }
-    } catch { /* IO 실패 = 0 */ }
-  }
-  return count;
+  // 정본 = system-health.realProgressCount (평행 정의 0 — team-dormant 신호와
+  // 동일 측정기). SO-2 chatter 가드는 6h 윈도우, team-dormant 는 18h — windowHours
+  // 만 다르고 측정 본문(worker done-agentic + 코어 승격/원복)은 단일 출처.
+  return realProgressCount(memoRoot, windowHours, nowMs);
 }
 
 /**

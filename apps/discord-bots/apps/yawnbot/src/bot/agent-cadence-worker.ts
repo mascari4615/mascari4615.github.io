@@ -401,7 +401,8 @@ export interface WorkerConsumerDeps {
   setupWorktree?: (memoRoot: string, coreId: string, taskId: string) => WorktreeSetup;
   notify?: NotifyFn;
   speak?: CoreSpeakFn;
-  voice?: (prompt: string) => Promise<string>;
+  /** voice 콜백. legacy 1-arg `(prompt) => …` 또는 TASK-KAR-145 V2 `(user, system) => …`. */
+  voice?: ((prompt: string) => Promise<string>) | VoicedSpeakFn;
   /**
    * #team-bus 최근 N 발언 fetch (KAR-018-LT-W1). 미주입 = chat=state 비활성
    * (현행 5입력 호환). 실패 시 undefined 반환(silent X — 호출 측이 fallback).
@@ -512,11 +513,44 @@ function rememberWorkerOutcome(
   }
 }
 
+/**
+ * **TASK-KAR-145**: voiced 보고를 systemInstruction(persona/규칙) + user(상태) 로 분리.
+ * implicit cache 정렬 — skinHint 가 같은 코어면 prefix 안정 → 같은 코어 N콜 = 캐시 hit.
+ *
+ * 신규: voice 콜백 = `(p) => generateAgentText(env, p, t, {systemInstruction, tier:'lite', tag})`
+ * 형태로 만들지 말고, `voiced` 콜백을 둘로 분리하거나 caller 가 systemInstruction 미사용.
+ * 본 함수는 **여전히 단일 prompt 콜백** 호환 — caller 가 systemInstruction 분리 못 하면
+ * 자동 합쳐서 voice 에 박음(BC). 분리하려면 `voicedV2` (아래) 사용.
+ */
+export function buildVoicedWorkerSystemInstruction(skinHint?: string | null): string {
+  // 안정 prefix — skinHint 가 같으면 같음 (implicit cache 정렬).
+  const lines = [
+    '너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를',
+    '*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.',
+    '절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·',
+    '결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토',
+    '해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·',
+    '사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.',
+  ];
+  if (skinHint) lines.push(`[너의 캐릭터] 이름·말투: ${skinHint}`);
+  return lines.join('\n');
+}
+
+export function buildVoicedWorkerUserPrompt(status: string): string {
+  return `[작업상태]\n${status}`;
+}
+
+/** voice 콜백 = systemInstruction 분리 인식 가능한 V2 인터페이스. */
+export type VoicedSpeakFn = (
+  userPrompt: string,
+  systemInstruction: string,
+) => Promise<string>;
+
 export async function voicedWorkerSpeak(
   coreId: string,
   status: string,
   speak: CoreSpeakFn,
-  voice: (prompt: string) => Promise<string>,
+  voice: ((prompt: string) => Promise<string>) | VoicedSpeakFn,
   env: NodeJS.ProcessEnv = process.env,
   skinHint?: string | null,
 ): Promise<void> {
@@ -525,20 +559,14 @@ export async function voicedWorkerSpeak(
   appendWorkerRaw(env, coreId, status);
   let line = status;
   try {
-    const skinBlock = skinHint ? `\n[너의 캐릭터] 이름·말투: ${skinHint}` : '';
-    const prompt = [
-      `너는 karmoddrine 에이전트 팀의 도메인 워커다. 아래 [작업상태]를`,
-      `*너의 캐릭터 목소리*로 팀(#team-bus)에 1~2문장 짧게 보고하라.`,
-      `절대 규칙: [작업상태]에 *명시된 것만* 말한다. 거기 없는 행동·`,
-      `결과·약속을 추가·추정·과장 X (예: "PR 만들었다/완료했다/검토`,
-      `해달라" 등은 [작업상태]에 그 단어가 있을 때만). TASK id·상태·`,
-      `사유·브랜치 = 사실 그대로. 이모지/말머리 과용 X. 동료 말투.`,
-      skinBlock,
-      ``,
-      `[작업상태]`,
-      status,
-    ].join('\n');
-    const v = (await voice(prompt)).trim();
+    const system = buildVoicedWorkerSystemInstruction(skinHint);
+    const user = buildVoicedWorkerUserPrompt(status);
+    // voice 가 V2(2-arg) 면 분리해 호출. 1-arg legacy 콜백이면 합쳐서 호출 (BC).
+    const isV2 = voice.length >= 2;
+    const raw = isV2
+      ? await (voice as VoicedSpeakFn)(user, system)
+      : await (voice as (p: string) => Promise<string>)(`${system}\n\n${user}`);
+    const v = (raw || '').trim();
     if (v) line = v.slice(0, 1900);
   } catch { /* voice 실패 = raw status 그대로 */ }
   try {
@@ -651,9 +679,16 @@ export async function runWorkerConsumerOnce(
     deps.speak ??
     getCoreSpeak() ??
     (async (_cid, t) => { notify(t); return true; });
-  const voice =
-    deps.voice ??
-    ((p: string) => generateAgentText(env, p, 20_000).catch(() => ''));
+  // TASK-KAR-145: V2 voice — systemInstruction 분리 + tier='lite' + tag.
+  // implicit cache 정렬(같은 skinHint 면 system prefix 안정) + 가격 ~1/3.
+  const voice: VoicedSpeakFn =
+    (deps.voice as VoicedSpeakFn | undefined) ??
+    ((user: string, system: string) =>
+      generateAgentText(env, user, 20_000, {
+        tier: 'lite',
+        systemInstruction: system,
+        tag: 'yawnbot/voiced-worker',
+      }).catch(() => ''));
   const missionText = deps.missionText ?? (() => {
     try {
       return fs.readFileSync(path.join(memoRoot, '.claude', 'agent-mission.md'), 'utf-8').trim();
@@ -1023,8 +1058,13 @@ export async function reapWorkerInFlight(
     speakOverride ??
     getCoreSpeak() ??
     (async (_cid: string, t: string) => { notify(t); return true; });
-  const voice = (p: string): Promise<string> =>
-    generateAgentText(env, p, 20_000).catch(() => '');
+  // TASK-KAR-145: V2 voice (reaper 경로). voicedWorkerSpeak 가 2-arg detect.
+  const voice: VoicedSpeakFn = (user: string, system: string) =>
+    generateAgentText(env, user, 20_000, {
+      tier: 'lite',
+      systemInstruction: system,
+      tag: 'yawnbot/voiced-worker-reap',
+    }).catch(() => '');
 
   const workersByCoreId = new Map(defaultListWorkers(memoRoot).map((w) => [w.coreId, w]));
 

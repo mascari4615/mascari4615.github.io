@@ -1,48 +1,16 @@
-# Bundler cache
+# ── Jekyll / Ruby ────────────────────────────────────────────────────────────
 .bundle
-/vendor
+vendor/
 Gemfile.lock
-
-# Jekyll cache
-.jekyll-cache
-.jekyll-metadata
-_site
-# ad-hoc Jekyll output (e.g. jekyll build -d _site_test)
-_site_test
-
-# RubyGems
 *.gem
-
-# NPM dependencies
-node_modules
-
-# IDE configurations
-.idea
-# Bundler cache
-.bundle
-vendor
-Gemfile.lock
-
-# Jekyll cache
-.jekyll-cache
+_site/
+_site_test/
+.jekyll-cache/
 .jekyll-metadata
-_site
+_sass/vendors/
 
-# RubyGems
-*.gem
-
-# NPM dependencies
-node_modules
-
-# IDE configurations
-.idea
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
-!.vscode/blog.code-snippets
-
-# Misc
+# ── Node / env ───────────────────────────────────────────────────────────────
+node_modules/
 .env
 .env.*
 !.env.example
@@ -52,14 +20,27 @@ node_modules
 .yawnbot.env
 .yawnbot.kakao.env
 
-# Build artifacts
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/blog.code-snippets
+
+# ── Build artifacts ──────────────────────────────────────────────────────────
+# karmolab-ai
 packages/karmolab-ai/dist/
+
+# KarmoLab React (apps/karmolab)
 apps/karmolab/react-dist/
+
 # KarmoWorld scripts (built from src/world/*.ts; wiki *.md stay tracked)
 apps/karmolab/world/*.js
-# KarmoLab TS build output (apps/karmolab: npm run build)
-# Root scripts + widgets/**/*.js = esbuild output. Tracked legacy .js under widgets/ is unchanged
-# until migrated (gitignore does not apply to already-tracked files). json/md under js/ stay visible.
+
+# KarmoLab TS build output (esbuild via npm run build).
+# Root scripts + widgets/**/*.js = generated. Tracked legacy .js under widgets/ is unchanged
+# until migrated (gitignore does not apply to already-tracked files). json/md stay visible.
 apps/karmolab/js/mdd.js
 apps/karmolab/js/gemini.js
 apps/karmolab/js/toolbox.js
@@ -68,25 +49,20 @@ apps/karmolab/js/widgets-manifest.js
 apps/karmolab/js/widgets-lazy-meta.js
 apps/karmolab/js/widgets-loader.js
 apps/karmolab/js/widgets/**/*.js
-_site/
-.jekyll-cache/
-.jekyll-metadata/
-node_modules/
-vendor/
-_sass/vendors
-# Theme JS/CSS bundles (Rollup + PurgeCSS: `npm run build`)
-assets/js/dist
-# Post graph tab bundle (Rollup: `npm run build`)
+
+# Blog theme bundles (Rollup + PurgeCSS: npm run build)
+assets/js/dist/
 assets/js/graph-view/
 
-# YawnBot 런타임 dedup state (deploy git clean -fd 가 untracked 지움 → ignored 라야
-# survive). 글롭 = 새 notifier 가 같은 함정 반복 안 하게. TASK-YB-007 / YB-027 재발.
+# ── YawnBot 런타임 state ─────────────────────────────────────────────────────
+# deploy git clean -fd 가 untracked 을 삭제하므로 ignored 라야 survive.
+# 글롭 = 새 notifier 가 같은 함정 반복 안 하게. TASK-YB-007 / YB-027.
 apps/discord-bots/apps/yawnbot/data/*-state.json
 
 # 채널 프로비저닝 파생 ID 맵 (정본=channel-spec.json, 본 파일=길드별 런타임 캐시).
 apps/discord-bots/apps/yawnbot/data/provisioned-channels.*.json
 
-# Hidden system files
+# ── System / OS ──────────────────────────────────────────────────────────────
 *~
 .DS_Store
 Thumbs.db
