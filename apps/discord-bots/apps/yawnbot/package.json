@@ -26,7 +26,6 @@
   "dependencies": {
     "karmolab-ai": "file:../../../../packages/karmolab-ai",
     "@discord-bots/common": "*",
-    "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.19.2",
     "@google/generative-ai": "^0.21.0",
     "cheerio": "1.0.0-rc.12",
@@ -40,6 +39,9 @@
     "play-dl": "^1.9.7",
     "youtube-dl-exec": "^3.1.4",
     "youtubei.js": "^17.0.1"
+  },
+  "optionalDependencies": {
+    "@discordjs/opus": "^0.10.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
