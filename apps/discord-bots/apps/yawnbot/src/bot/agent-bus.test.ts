@@ -14,7 +14,9 @@ import {
   lookupProposalById,
   proposalMsgsPath,
   applyCardEmbedState,
+  extractDiscoverySource,
 } from './agent-bus';
+import type { ProposalEnvelope } from './proposal';
 
 let root: string;
 const env = () => ({ MEMO_REPO_PATH: root }) as NodeJS.ProcessEnv;
@@ -133,5 +135,62 @@ describe('applyCardEmbedState (KAR-018-LT — 사람·팀 verdict 공용 embed)'
     );
     expect(hits.length).toBe(1); // 누적 X
     expect(hits[0].value).toBe('r2'); // 최신으로 갱신
+  });
+});
+
+describe('extractDiscoverySource (LT-FORUM P4 — discovery backlink)', () => {
+  it('env payload.source → trim 된 문자열', () => {
+    const e = {
+      kind: 'env',
+      payload: {
+        id: 'e1',
+        summary: 's',
+        targetFiles: ['a.ts'],
+        source: '  agents/atlas/mem/2026-05-23.jsonl:42  ',
+      },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('agents/atlas/mem/2026-05-23.jsonl:42');
+  });
+
+  it('skill payload.source → 그대로', () => {
+    const e = {
+      kind: 'skill',
+      payload: {
+        id: 'sk1', name: 'n', summary: 's', source: 'discoveries/x.jsonl#L7', coreId: 'atlas',
+      },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('discoveries/x.jsonl#L7');
+  });
+
+  it('agent payload.source → 그대로', () => {
+    const e = {
+      kind: 'agent',
+      payload: { id: 'a1', coreId: 'c', role: 'r', name: 'n', source: 'agent-trace.jsonl:99' },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('agent-trace.jsonl:99');
+  });
+
+  it('task → 빈 문자열 (payload.source 미정의)', () => {
+    const e = {
+      kind: 'task',
+      payload: { title: 't', body: 'b', domain: 'kar' },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('');
+  });
+
+  it('objective → 빈 문자열', () => {
+    const e = {
+      kind: 'objective',
+      payload: { summary: 's', derivation: 'd', alignment: 'a' },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('');
+  });
+
+  it('source 비-문자열 → 빈 문자열 (날조 0)', () => {
+    const e = {
+      kind: 'env',
+      payload: { id: 'e1', summary: 's', targetFiles: [], source: 123 as unknown },
+    } as unknown as ProposalEnvelope;
+    expect(extractDiscoverySource(e)).toBe('');
   });
 });
