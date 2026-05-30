@@ -36,6 +36,7 @@
     "allow-claude-env",
     "allow-alarm",
     "allow-agent-team",
+    "allow-cockpit",
     "dialog:allow-open",
     "updater:default",
     {

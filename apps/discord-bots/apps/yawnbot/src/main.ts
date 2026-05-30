@@ -448,6 +448,18 @@ client.once('clientReady', async () => {
     );
   }
 
+  // 부팅 태그 복원: 채널 재프로비저닝으로 availableTags ID 가 새로 발급된 경우
+  // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
+  try {
+    const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
+    await recoverForumTagsOnce(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[ForumTagRecovery] 부팅 태그 복원 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
   // TASK-YB-039 P5: md status drift → #team-work forum 태그 sync (단방향
   // md=정본). 부팅 1회 + 주기 5분 (env override 가능). 멱등 — last-applied
   // 캐시로 변화 없는 entry 는 API 미호출.

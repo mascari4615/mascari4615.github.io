@@ -7,6 +7,7 @@ import {
   diagnoseHealth,
   formatHealthBlock,
   gatherHealthSignals,
+  realProgressCount,
   DEFAULT_HEALTH_THRESHOLDS,
   type HealthSignals,
   type HealthIssue,
@@ -91,6 +92,40 @@ describe('diagnoseHealth', () => {
   it('traceErrorCount < 5 → trace-errors 없음', () => {
     const issues = diagnoseHealth({ ...healthy, traceErrorCount: 4 });
     expect(issues.find((i) => i.code === 'trace-errors')).toBeUndefined();
+  });
+
+  // ── team-dormant (KAR-018 죽은-루프-부활) ──────────────────────
+  it('realProgressRecent=0 + warm trace(<2h) → team-dormant critical', () => {
+    const issues = diagnoseHealth({
+      ...healthy,
+      realProgressRecent: 0,
+      traceStalenessHrs: 0.5,
+    });
+    expect(issues.find((i) => i.code === 'team-dormant')?.severity).toBe('critical');
+  });
+
+  it('realProgressRecent>0 → team-dormant 미발화 (실산출 있음)', () => {
+    const issues = diagnoseHealth({
+      ...healthy,
+      realProgressRecent: 2,
+      traceStalenessHrs: 0.5,
+    });
+    expect(issues.find((i) => i.code === 'team-dormant')).toBeUndefined();
+  });
+
+  it('realProgressRecent=0 이지만 trace stale(>=2h) → cadence-* 담당, team-dormant X (중복 방지)', () => {
+    const issues = diagnoseHealth({
+      ...healthy,
+      realProgressRecent: 0,
+      traceStalenessHrs: 5,
+    });
+    expect(issues.find((i) => i.code === 'team-dormant')).toBeUndefined();
+    expect(issues.find((i) => i.code === 'cadence-slow')).toBeDefined();
+  });
+
+  it('realProgressRecent undefined(구 literal) → team-dormant 미발화 (back-compat)', () => {
+    const issues = diagnoseHealth({ ...healthy });
+    expect(issues.find((i) => i.code === 'team-dormant')).toBeUndefined();
   });
 
   it('모든 critical 신호 → 4개 이슈 모두 감지', () => {
@@ -252,5 +287,79 @@ describe('gatherHealthSignals — workerFailRatio escalated 제외', () => {
       'worker TASK-X-2 error agentic b err=oops',
     ]);
     expect(gatherHealthSignals(env()).workerFailRatio).toBe(0.5);
+  });
+});
+
+// ── realProgressCount + team-dormant 통합 (prod dormant 재현) ──────
+//
+// 2026-05-30 라이브 진단: prod trace 400/400 = 전부 type:budget skip,
+// worker push·코어 승격 0. 그런데 trace 가 warm(매 5분 skip) + 실패 0 →
+// 기존 5신호 전부 GREEN → producer/initiator 영원 잠듦. team-dormant 가
+// 그 사각(liveness≠productivity)을 닫는 rung. 본 describe 가 그 시나리오 재현.
+
+describe('realProgressCount + team-dormant 통합 (dormant 재현)', () => {
+  let root: string;
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'dormant-'));
+    fs.mkdirSync(path.join(root, '.claude', 'discoveries'), { recursive: true });
+  });
+  afterEach(() => {
+    try { fs.rmSync(root, { recursive: true, force: true }); } catch { /* ignore */ }
+  });
+  const env = () => ({ MEMO_REPO_PATH: root } as NodeJS.ProcessEnv);
+  const iso = (hAgo: number) => new Date(Date.now() - hAgo * 3_600_000).toISOString();
+  function writeTrace(entries: object[]) {
+    fs.writeFileSync(
+      path.join(root, '.claude', 'discoveries', 'agent-trace.jsonl'),
+      entries.map((e) => JSON.stringify(e)).join('\n') + '\n',
+      'utf-8',
+    );
+  }
+  function writeEvolution(entries: object[]) {
+    fs.writeFileSync(
+      path.join(root, '.claude', 'evolution-events.jsonl'),
+      entries.map((e) => JSON.stringify(e)).join('\n') + '\n',
+      'utf-8',
+    );
+  }
+
+  it('skip만 반복(warm trace, 실산출 0) → realProgressCount 0 + team-dormant 발화 (prod 재현)', () => {
+    writeTrace([
+      { ts: iso(0.1), type: 'budget', core: 'kar-worker', reason: 'SO-1 self-recall skip 1 task(s) already-fixed: TASK-KAR-018-LT-FORUM' },
+      { ts: iso(0.5), type: 'budget', core: 'producer', reason: 'producer gap-analysis idle — 측정된 능력격차 없음' },
+      { ts: iso(2), type: 'budget', core: 'kar-worker', reason: 'SO-1 self-recall skip' },
+    ]);
+    expect(realProgressCount(root)).toBe(0);
+    const signals = gatherHealthSignals(env());
+    expect(signals.realProgressRecent).toBe(0);
+    expect(signals.traceStalenessHrs).toBeLessThan(2); // warm — 봇은 살아있음
+    expect(diagnoseHealth(signals).find((i) => i.code === 'team-dormant')).toBeDefined();
+  });
+
+  it('worker push 산출 있으면 → realProgressCount>0 + team-dormant 미발화', () => {
+    writeTrace([
+      { ts: iso(0.1), type: 'budget', core: 'kar-worker', reason: 'skip' },
+      { ts: iso(2), type: 'worker', core: 'kar-worker', reason: 'worker TASK-KAR-200 done agentic feature/x' },
+    ]);
+    expect(realProgressCount(root)).toBeGreaterThan(0);
+    expect(diagnoseHealth(gatherHealthSignals(env())).find((i) => i.code === 'team-dormant')).toBeUndefined();
+  });
+
+  it('코어 승격(evolution-events)도 실산출로 카운트 (dormant 아님)', () => {
+    writeTrace([{ ts: iso(0.1), type: 'budget', core: 'x', reason: 'skip' }]);
+    writeEvolution([{ ts: iso(1), code: 'core-promoted', subject: 'triage-worker' }]);
+    expect(realProgressCount(root)).toBe(1);
+  });
+
+  it('윈도우 밖(>18h) 산출은 카운트 X → 여전히 dormant', () => {
+    writeTrace([
+      { ts: iso(0.1), type: 'budget', core: 'x', reason: 'skip' },
+      { ts: iso(30), type: 'worker', core: 'x', reason: 'worker TASK-KAR-9 done agentic b' }, // 30h 전 = 윈도우 밖
+    ]);
+    expect(realProgressCount(root)).toBe(0);
+  });
+
+  it('memoRoot 부재 → 0 (안전, dormant 단정 X는 호출측 trace staleness 가 담당)', () => {
+    expect(realProgressCount('')).toBe(0);
   });
 });

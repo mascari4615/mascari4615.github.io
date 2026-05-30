@@ -182,6 +182,10 @@ describe('runCadenceTickOnce — producer→dialogue→write-back 합성 (LT 안
 
   it('LT-12: 헬스 이슈 0이면 producer LLM 호출 없이 gap-idle', async () => {
     writeTrace('heartbeat ok');
+    // KAR-018 team-dormant(2026-05-30): "genuinely 健康" = 실산출이 *있어야* 한다.
+    // warm trace + progressLog 만으로는 dormant (skip 으로 trace 만 따뜻한 prod
+    // 사각이 정확히 그것). 18h 안 worker push 1건 박아 진짜 healthy 를 표현.
+    writeTrace('worker TASK-KAR-999 done agentic feature/x');
     const pf = JSON.parse(
       fs.readFileSync(path.join(root, '.claude', 'team-portfolio.json'), 'utf-8'),
     );
@@ -196,15 +200,20 @@ describe('runCadenceTickOnce — producer→dialogue→write-back 합성 (LT 안
       'utf-8',
     );
 
-    const r = await runCadenceTickOnce(env(), {
-      includeWorker: false,
-      producerOpts: {
-        reserve: () => true,
-        discover: async () => {
-          throw new Error('producer should not run when gap-analysis is clean');
+    // DIALOGUE_ENABLED=1 = producer 경로 비-quiet (KAR-095 quiet sledgehammer 우회 —
+    // 이 합성 테스트는 producer 게이팅 자체를 검증하므로 producer 활성 필요).
+    const r = await runCadenceTickOnce(
+      { ...env(), AGENT_CADENCE_DIALOGUE_ENABLED: '1' },
+      {
+        includeWorker: false,
+        producerOpts: {
+          reserve: () => true,
+          discover: async () => {
+            throw new Error('producer should not run when gap-analysis is clean');
+          },
         },
       },
-    });
+    );
 
     expect(analyzeAgentTeamGaps(env()).shouldRun).toBe(false);
     expect(r).toContain('idle→gap-idle');
@@ -213,21 +222,24 @@ describe('runCadenceTickOnce — producer→dialogue→write-back 합성 (LT 안
   });
 
   it('LT-12: 헬스 이슈가 있으면 gap-analysis 블록을 producer 입력으로 주입', async () => {
-    const r = await runCadenceTickOnce(env(), {
-      includeWorker: false,
-      producerOpts: {
-        reserve: () => true,
-        discover: async () =>
-          JSON.stringify({
-            kind: 'task',
-            projectId: 'wm',
-            payload: { title: '전진 기록 복구', body: 'gap issue', domain: 'WM' },
-          }),
+    const r = await runCadenceTickOnce(
+      { ...env(), AGENT_CADENCE_DIALOGUE_ENABLED: '1' },
+      {
+        includeWorker: false,
+        producerOpts: {
+          reserve: () => true,
+          discover: async () =>
+            JSON.stringify({
+              kind: 'task',
+              projectId: 'wm',
+              payload: { title: '전진 기록 복구', body: 'gap issue', domain: 'WM' },
+            }),
+        },
+        dialogueDeps: {
+          reserve: () => false,
+        },
       },
-      dialogueDeps: {
-        reserve: () => false,
-      },
-    });
+    );
 
     const gap = analyzeAgentTeamGaps(env());
     expect(gap.shouldRun).toBe(true);
