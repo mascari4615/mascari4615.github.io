@@ -26,6 +26,8 @@ import {
   lookupTaskForumLinkByTaskId,
   forumTitleForTask,
 } from './task-forum-bridge';
+import { buildForumGroundTruth } from './forum-dedup';
+import { channelIdFor } from '../services/channel-provision';
 
 /** memo 하위 TASK 디렉토리. task-status-sync.ts § TASK_DIRS 와 정합. */
 const TASK_DIRS = [
@@ -192,8 +194,20 @@ export async function runTaskForumBackfillOnce(
     skipped: 0,
     errors: 0,
   };
+  // ground-truth dedup (KAR-150): Discord 실제 스레드 = 진실. 원장이 비어/손상돼도
+  // 이미 forum 에 있는 TASK 는 재생성 X (원장 단일실패점 보강). 실패=빈 맵(원장 fallback).
+  const groundTruth = await buildForumGroundTruth(client, env).catch(
+    () => new Map<string, string>(),
+  );
+  const channelId = channelIdFor('agent-work', env);
   for (const t of tasks) {
-    if (lookupTaskForumLinkByTaskId(env, t.taskId)) {
+    const inLedger = Boolean(lookupTaskForumLinkByTaskId(env, t.taskId));
+    const gtPostId = groundTruth.get(t.taskId);
+    if (inLedger || gtPostId) {
+      // Discord 엔 있는데 원장엔 없으면 heal — 다음부턴 원장만으로도 skip.
+      if (gtPostId && !inLedger && channelId) {
+        appendTaskForumLink(env, { taskId: t.taskId, postId: gtPostId, channelId });
+      }
       stat.skipped += 1;
       continue;
     }

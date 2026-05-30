@@ -475,6 +475,32 @@ client.once('clientReady', async () => {
     );
   }
 
+  // KAR-150: "TASK당 forum-post 1개" 불변식. 예방 = backfill 이 생성 전 Discord
+  // ground-truth 확인(원장 단일실패점 보강). 여기 = 비파괴 감사 — 중복 *감지*만
+  // (원장 heal + WARN/알림). **삭제 안 함** (포스트 내 사람 소통 가능 → 삭제는 최후
+  // 수단·수동: node memo/scripts/forum-dedupe.mjs). 부팅 1회 + 주기(기본 60분).
+  try {
+    const { auditForumDupsOnce } = await import('./bot/forum-dedup.js');
+    await auditForumDupsOnce(client as any, process.env);
+    const dedupMin = parseInt(
+      process.env.YAWNBOT_FORUM_DEDUP_INTERVAL_MIN || '60',
+      10,
+    );
+    const dedupTimer = setInterval(() => {
+      void import('./bot/forum-dedup.js')
+        .then(({ auditForumDupsOnce: tick }) => tick(client as any, process.env))
+        .catch((err) =>
+          console.error(
+            '[ForumDedup] tick 실패:',
+            err instanceof Error ? err.message : err,
+          ),
+        );
+    }, Math.max(60_000, dedupMin * 60_000));
+    if (typeof dedupTimer.unref === 'function') dedupTimer.unref();
+  } catch (e) {
+    console.error('[ForumDedup] 부팅 감사 실패:', e instanceof Error ? e.message : e);
+  }
+
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {
     const channel = await client.channels.fetch(channelId).catch(() => null);
