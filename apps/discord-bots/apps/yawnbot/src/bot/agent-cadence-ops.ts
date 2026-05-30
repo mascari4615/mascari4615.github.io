@@ -26,6 +26,7 @@ import {
   gatherHealthSignals,
   diagnoseHealth,
   formatHealthBlock,
+  realProgressCount,
   type HealthSignals,
   type HealthIssue,
 } from './system-health';
@@ -493,44 +494,10 @@ export function recentRealProgressCount(
   windowHours = 6,
   nowMs = Date.now(),
 ): number {
-  if (!memoRoot) return 0;
-  const cutoffIso = new Date(nowMs - windowHours * 3_600_000).toISOString();
-  const TAIL = 2000; // 6h 윈도우 안전 margin (system-health tail-read 정합)
-  let count = 0;
-  const tracePath = path.join(memoRoot, '.claude', 'discoveries', 'agent-trace.jsonl');
-  if (fs.existsSync(tracePath)) {
-    try {
-      const lines = fs.readFileSync(tracePath, 'utf-8').split(/\r?\n/).slice(-TAIL);
-      for (const line of lines) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const e = JSON.parse(t) as { ts?: string; reason?: string };
-          if (!e.ts || e.ts < cutoffIso) continue;
-          // worker pushed done: "worker TASK-XXX done agentic <branch>"
-          if (/\bworker\s+TASK-[A-Z0-9-]+\s+done\s+agentic\b/.test(e.reason || '')) {
-            count += 1;
-          }
-        } catch { /* skip 손상 */ }
-      }
-    } catch { /* IO 실패 = 0 */ }
-  }
-  const evoPath = path.join(memoRoot, '.claude', 'evolution-events.jsonl');
-  if (fs.existsSync(evoPath)) {
-    try {
-      const lines = fs.readFileSync(evoPath, 'utf-8').split(/\r?\n/).slice(-TAIL);
-      for (const line of lines) {
-        const t = line.trim();
-        if (!t) continue;
-        try {
-          const e = JSON.parse(t) as { ts?: string; code?: string };
-          if (!e.ts || e.ts < cutoffIso) continue;
-          if (e.code === 'core-promoted' || e.code === 'core-reverted') count += 1;
-        } catch { /* skip */ }
-      }
-    } catch { /* IO 실패 = 0 */ }
-  }
-  return count;
+  // 정본 = system-health.realProgressCount (평행 정의 0 — team-dormant 신호와
+  // 동일 측정기). SO-2 chatter 가드는 6h 윈도우, team-dormant 는 18h — windowHours
+  // 만 다르고 측정 본문(worker done-agentic + 코어 승격/원복)은 단일 출처.
+  return realProgressCount(memoRoot, windowHours, nowMs);
 }
 
 /**

@@ -2,6 +2,7 @@ mod activity;
 mod adventure;
 mod agent_team;
 mod alarm;
+mod cockpit_graph;
 mod claude_env;
 #[cfg(debug_assertions)]
 mod dev_static;
@@ -27,11 +28,13 @@ use adventure::{
 use agent_team::{
     agent_team_decide_proposal, agent_team_list_agents, agent_team_list_bus,
     agent_team_list_cards, agent_team_list_objectives, agent_team_list_proposals,
-    agent_team_list_sessions, agent_team_run_cadence_tick, agent_team_run_cadence_tick_prod,
+    agent_team_list_sessions, agent_team_list_tasks, agent_team_run_cadence_tick,
+    agent_team_run_cadence_tick_prod,
 };
 use claude_env::{
     claude_env_preview_sound, claude_env_read_notify_config, claude_env_write_notify_config,
 };
+use cockpit_graph::{cockpit_get_graph_spec, cockpit_save_graph_coords, cockpit_get_activity};
 use questlog_hub::get_questlog_hub;
 use life::life_screen_capture;
 use quest_index::get_quest_tree;

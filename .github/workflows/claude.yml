@@ -229,7 +229,12 @@ jobs:
             ## 처리 흐름
 
             1. PR diff + 변경 파일 전체 분석
-            2. 이슈 분류 후 즉시 fix:
+            2. **typos 사전 검사 (필수 — graduate 차단 방지)**:
+               `npx @crate-ci/typos . 2>&1 | head -50` 실행 후 flagged 단어 확인.
+               - 진짜 오타 → 코드에서 직접 rename/fix (코멘트는 변수명 변경, 코드는 식별자 rename)
+               - 의도된 약어·식별자 (예: `ded`=deduped, `criticals`=배열명) → `_typos.toml` `[default.extend-words]` 에 추가
+               - 이 단계 빠뜨리면 verify 가 막혀 PR 이 영원히 미머지됨
+            3. 이슈 분류 후 즉시 fix:
                | 분류 | 처리 |
                |---|---|
                | bug / 논리 오류 / 보안 이슈 | PR 브랜치에 commit + fix 적용 |
@@ -237,7 +242,7 @@ jobs:
                | nitpick / 주관적 스타일 | 건너뜀 |
                | 아키텍처·설계 변경 필요 | 코드 변경 X, 코멘트만 |
                | 비전/디자인 결정 필요 | 자동 fix 절대 X, 옵션 + 추천 코멘트 |
-            3. `master invariant` (`npm run verify`) 통과 확신 없으면 fix 적용 X
+            4. `master invariant` (`npm run verify`) 통과 확신 없으면 fix 적용 X
             4. PR에 한국어 리뷰 코멘트 남기기
 
             ## 코멘트 형식

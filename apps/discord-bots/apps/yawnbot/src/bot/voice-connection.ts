@@ -191,7 +191,7 @@ export async function joinVoiceChannelSafe(
         await waitForVoiceReady(existing, VOICE_READY_TIMEOUT_MS);
       }
       return { ok: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       try {
         existing.destroy();
       } catch {
@@ -216,7 +216,7 @@ export async function joinVoiceChannelSafe(
     wireVoiceDebugOnce(connection);
     await waitForVoiceReady(connection, VOICE_READY_TIMEOUT_MS);
     return { ok: true };
-  } catch (e: any) {
+  } catch (e: unknown) {
     getVoiceConnection(guild.id)?.destroy();
     return { ok: false, error: formatVoiceJoinError(e) };
   }
