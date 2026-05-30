@@ -117,8 +117,11 @@ export function getChannelSpec(): ChannelSpec {
         )
       : [];
     specCache = { categoryName: String(raw.categoryName ?? '욘봇'), channels };
-  } catch (e: any) {
-    console.warn(`[ChannelProvision] ${SPEC_PATH} 로드 실패 — 프로비저닝 비활성:`, e?.message ?? e);
+  } catch (e: unknown) {
+    console.warn(
+      `[ChannelProvision] ${SPEC_PATH} 로드 실패 — 프로비저닝 비활성:`,
+      e instanceof Error ? e.message : String(e),
+    );
     specCache = { categoryName: '욘봇', channels: [] };
   }
   return specCache;
