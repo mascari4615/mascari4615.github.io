@@ -58,12 +58,12 @@ function fakeForum(channelId: string, threads: DedupThread[]) {
 }
 
 describe('planDedup (순수)', () => {
-  it('taskId 별 그룹화 + newest canonical, 나머지 dup, 무-id 무시', () => {
+  it('제목 [...] 키로 그룹화 + newest canonical, 나머지 dup, 무-id 무시', () => {
     const threads: DedupThread[] = [
-      { id: '100', name: '[TASK-KAR-148-] microrule', archived: false },
-      { id: '300', name: '[TASK-KAR-148-] microrule dup', archived: true },
-      { id: '200', name: '[TASK-KAR-148-] microrule dup2', archived: true },
-      { id: '50', name: '[TASK-WM-1-] single', archived: false },
+      { id: '100', name: '[TASK-KAR-148] microrule', archived: false },
+      { id: '300', name: '[TASK-KAR-148] microrule dup', archived: true },
+      { id: '200', name: '[TASK-KAR-148] microrule dup2', archived: true },
+      { id: '50', name: '[TASK-WM-1] single', archived: false },
       { id: '60', name: 'no task id thread', archived: false },
     ];
     const { byTaskId, canonical, dups, dupGroups } = planDedup(threads);
@@ -71,6 +71,20 @@ describe('planDedup (순수)', () => {
     expect(dupGroups).toBe(1);
     expect(canonical.find((c) => c.taskId === 'TASK-KAR-148')?.postId).toBe('300');
     expect(dups.map((v) => v.id).sort()).toEqual(['100', '200']);
+  });
+
+  it('하위태스크는 별개 키 — 오병합 X (KAR-150 회귀가드)', () => {
+    // 제목 [...] 안 풀 id = backfill 저장 키. SUB-A/REVIEW/짧은 id 는 distinct.
+    const threads: DedupThread[] = [
+      { id: '10', name: '[TASK-KAR-115] parent', archived: false },
+      { id: '11', name: '[TASK-KAR-115-SUB-A] sub a', archived: false },
+      { id: '12', name: '[TASK-KAR-115-SUB-B] sub b', archived: false },
+      { id: '13', name: '[TASK-KAR-115-REVIEW] review', archived: false },
+    ];
+    const { byTaskId, dups, dupGroups } = planDedup(threads);
+    expect(byTaskId.size).toBe(4); // 4 distinct (짧은 parseTaskId 면 1로 뭉침 — 버그)
+    expect(dupGroups).toBe(0);
+    expect(dups.length).toBe(0);
   });
 
   it('keep=oldest', () => {
