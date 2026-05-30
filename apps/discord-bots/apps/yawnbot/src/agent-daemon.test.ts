@@ -282,8 +282,6 @@ describe('handleTrigger', () => {
   });
 });
 
-<<<<<<< Updated upstream
-=======
 describe('!kill watcher (P-5)', () => {
   it('!kill 파일 존재 check 패턴', async () => {
     // 본 daemon 의 watcher 는 main() 안 setInterval 이라 직접 unit test 어려움
@@ -300,7 +298,6 @@ describe('!kill watcher (P-5)', () => {
   });
 });
 
->>>>>>> Stashed changes
 describe('LlmCallBudget', () => {
   it('cap 이하 = canCall true, record 누적', () => {
     const b = new LlmCallBudget(3);

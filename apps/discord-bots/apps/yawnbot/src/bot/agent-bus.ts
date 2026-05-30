@@ -220,6 +220,27 @@ export function lookupProposalById(
   }
 }
 
+/** threadId → 발굴 매핑 1건 (forum-tag-recovery 에서 태그 복원용). */
+export function lookupProposalByThreadId(
+  env: NodeJS.ProcessEnv,
+  threadId: string,
+): ProposalMsgEntry | null {
+  const p = proposalMsgsPath(env);
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    let hit: ProposalMsgEntry | null = null;
+    for (const line of fs.readFileSync(p, 'utf-8').split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t) continue;
+      const e = JSON.parse(t) as ProposalMsgEntry;
+      if (e.threadId === threadId) hit = e;
+    }
+    return hit;
+  } catch {
+    return null;
+  }
+}
+
 // ── 결정 잠금 (V-2 상태머신) ────────────────────────────────
 // 먼저 누른 결정이 확정·잠금. 머터리얼라이즈=부수효과라 1회·불가역.
 // 평행정의0 (KAR-018-Y-2): resolved 원장 경로 정본 = substrate
