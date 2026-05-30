@@ -154,3 +154,13 @@ name = "agent-team"
 identifier = "allow-agent-team"
 description = "KarmoApp 에이전트 팀 운영 GUI (TASK-KAR-116) — 읽기 전용: memo/.claude/agents/<id>/core.md + objectives.md + active-sessions.md parse. 쓰기 액션(cadence run / proposal decide)은 yawnbot HTTP 우회(Phase 2)."
 commands = ["agent_team_list_agents", "agent_team_list_objectives", "agent_team_list_sessions", "agent_team_list_cards", "agent_team_list_proposals", "agent_team_decide_proposal", "agent_team_run_cadence_tick", "agent_team_run_cadence_tick_prod", "agent_team_list_bus", "agent_team_list_tasks"]
+
+[[group]]
+name = "cockpit"
+identifier = "allow-cockpit"
+description = "Cockpit 위젯 (TASK-KL-082) — graph.json read/write(coord patch) + 5 활성 신호 수집(active-sessions/proposals/git-commits/nssm-service/ci-runs). IO heavy = async + spawn_blocking."
+commands = [
+  "cockpit_get_graph_spec",
+  "cockpit_save_graph_coords",
+  "cockpit_get_activity",
+]

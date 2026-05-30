@@ -45,6 +45,7 @@ import {
 } from './services/channel-provision';
 import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rotation';
 import { handleAssistantMessage } from './bot/assistant-handler';
+import { isBrainCapture, handleBrainCapture } from './bot/brain-capture';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
 import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
@@ -73,6 +74,7 @@ import {
 import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
+import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
 const client = new Client({
   intents: [
@@ -267,6 +269,14 @@ client.on('messageCreate', async (message) => {
     isBot && !!message.webhookId && !!characterService &&
     isTeamRoomMessage(characterService, message as any);
   if (isBot && !teamWebhook) return;
+  // 뇌 캡처 인터셉트 — DM에서 `뇌: <내용>` 형태면 외장 뇌로 저장 후 return
+  const isDM = message.channel.isDMBased();
+  const assistantUserId = process.env.ASSISTANT_USER_ID?.trim();
+  if (isDM && memoRepoPath && assistantUserId && message.author.id === assistantUserId && isBrainCapture(message.content)) {
+    await handleBrainCapture(message as any, memoRepoPath);
+    return;
+  }
+
   if (characterService) {
     await handleAssistantMessage(message as any, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getRelationship : undefined);
   }
@@ -437,6 +447,18 @@ client.once('clientReady', async () => {
     );
   }
 
+  // 부팅 태그 복원: 채널 재프로비저닝으로 availableTags ID 가 새로 발급된 경우
+  // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
+  try {
+    const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
+    await recoverForumTagsOnce(client as any, process.env);
+  } catch (e) {
+    console.error(
+      '[ForumTagRecovery] 부팅 태그 복원 실패:',
+      e instanceof Error ? e.message : e,
+    );
+  }
+
   // TASK-YB-039 P5: md status drift → #team-work forum 태그 sync (단방향
   // md=정본). 부팅 1회 + 주기 5분 (env override 가능). 멱등 — last-applied
   // 캐시로 변화 없는 entry 는 API 미호출.
@@ -523,6 +545,7 @@ client.once('clientReady', async () => {
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
+    if (memoRepoPath) startBrainResurface(client, memoRepoPath);
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
     // sendLocalEvent = webhook-routes 정본 재사용(평행정의0). 미주입 시 trace만(graceful).
@@ -909,6 +932,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
+  stopBrainResurface();
   stopAgentCadence();
   if (cardReconcileTimer) {
     clearTimeout(cardReconcileTimer);

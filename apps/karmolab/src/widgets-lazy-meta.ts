@@ -147,37 +147,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['planner/planner']
   },
   {
-    id: 'quest-log',
-    title: 'Quest Log',
+    id: 'cockpit',
+    title: 'Cockpit',
     category: 'lab',
     desktopOnly: true,
-    desc: 'memo TASK 트리 — Tauri 전용 (memo 폴더 런타임 read, 6 도메인 그룹 + parent chain + 체크박스 진행도, 2s 폴링)',
+    desc: '프로젝트 구조·상황 단일 표면 — Unity Shader Graph 식 노드 그래프 + TASK 탭 (TASK-KL-082, 통합 위젯)',
     layout: 'full',
     noHero: true,
-    icon: '<path d="M12 2l2.9 6.95 7.6.6-5.75 4.95L18.4 22 12 17.9 5.6 22l1.65-7.5L1.5 9.55l7.6-.6z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['quest-log/quest-log']
-  },
-  {
-    id: 'karmoddrine-map',
-    title: 'karmoddrine 지도',
-    category: 'lab',
-    desktopOnly: true,
-    desc: 'umbrella 전체 토폴로지 — D3 force graph (드래그/줌/hover/클릭 패널). TASK-KAR-091 Phase 1 MVP, 정적 schema',
-    layout: 'full',
-    noHero: true,
-    icon: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="5" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="6" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="5" y2="18" stroke="currentColor" stroke-width="1.3"/><line x1="12" y1="12" x2="19" y2="18" stroke="currentColor" stroke-width="1.3"/>',
-    lazyScriptPaths: ['karmoddrine-map/karmoddrine-map']
-  },
-  {
-    id: 'task-launcher',
-    title: 'TASK Launcher',
-    category: 'tool',
-    desktopOnly: true,
-    desc: 'memo TASK 파일 flat 검색 + 외부 에디터 즉시 오픈 + 새 TASK 즉석 생성 (id 자동 발급, frontmatter skeleton)',
-    layout: 'full',
-    noHero: true,
-    icon: '<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M16 16l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
-    lazyScriptPaths: ['task-launcher']
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6h4M6 10v4M18 10v4M10 18h4" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['cockpit/cockpit']
   },
   {
     id: 'terminal',
@@ -199,16 +177,6 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M3 11l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v8a3 3 0 003 3h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/>',
     lazyScriptPaths: ['claude-env']
-  },
-  {
-    id: 'agent-team',
-    title: '에이전트 팀',
-    category: 'lab',
-    desktopOnly: true,
-    desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1: roster + objectives + 활성 세션 read-only)',
-    layout: 'full',
-    icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
-    lazyScriptPaths: ['agent-team/agent-team']
   },
   {
     id: 'alarm',
@@ -249,7 +217,7 @@ window.KARMOLAB_LAZY_META = [
   /* 잡동사니 위젯 본체 */
   {
     id: 'stash',
-    title: '잡동사니',
+    title: '놀이',
     category: 'tool',
     desc: '정리 안 된 실험들이 한 상자에 살아 움직임',
     layout: 'full',
