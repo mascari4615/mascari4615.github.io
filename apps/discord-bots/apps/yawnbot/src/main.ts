@@ -55,6 +55,7 @@ import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
 import type { ClientLike } from './bot/forum-post';
+import type { RecoveryClientLike } from './bot/forum-tag-recovery';
 import {
   loadCoreDef,
   listCoreIds,
@@ -179,8 +180,8 @@ try {
   if (generativeText) {
     console.log(`[Gemini] AI 초기화 완료 (surface=${generativeText.surface})`);
   }
-} catch (e: any) {
-  console.warn('[Gemini] 초기화 실패 (선택 기능):', e?.message ?? e);
+} catch (e: unknown) {
+  console.warn('[Gemini] 초기화 실패 (선택 기능):', e instanceof Error ? e.message : String(e));
 }
 
 function buildCtx() {
@@ -425,10 +426,10 @@ client.once('clientReady', async () => {
         console.log(
           `[ChannelProvision] ${guild.name}: 카테고리「${effectiveCategoryName(spec)}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
         );
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(
           `[ChannelProvision] ${guild.name}(${guild.id}) reconcile 실패 — env 폴백:`,
-          e?.message ?? e,
+          e instanceof Error ? e.message : String(e),
         );
       }
     }
@@ -452,7 +453,7 @@ client.once('clientReady', async () => {
   // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
   try {
     const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
-    await recoverForumTagsOnce(client as any, process.env);
+    await recoverForumTagsOnce(client as unknown as RecoveryClientLike, process.env);
   } catch (e) {
     console.error(
       '[ForumTagRecovery] 부팅 태그 복원 실패:',
@@ -481,14 +482,14 @@ client.once('clientReady', async () => {
   // 수단·수동: node memo/scripts/forum-dedupe.mjs). 부팅 1회 + 주기(기본 60분).
   try {
     const { auditForumDupsOnce } = await import('./bot/forum-dedup.js');
-    await auditForumDupsOnce(client as any, process.env);
+    await auditForumDupsOnce(client, process.env);
     const dedupMin = parseInt(
       process.env.YAWNBOT_FORUM_DEDUP_INTERVAL_MIN || '60',
       10,
     );
     const dedupTimer = setInterval(() => {
       void import('./bot/forum-dedup.js')
-        .then(({ auditForumDupsOnce: tick }) => tick(client as any, process.env))
+        .then(({ auditForumDupsOnce: tick }) => tick(client, process.env))
         .catch((err) =>
           console.error(
             '[ForumDedup] tick 실패:',
@@ -507,7 +508,7 @@ client.once('clientReady', async () => {
     if (channel && channel.isTextBased()) {
       const version = process.env.npm_package_version || '1.0.0';
       const greeting = gameData.getMessage('Server_Startup_Greeting', version);
-      await channel.send(greeting).catch((e: any) => console.error('[Startup] 인사 메시지 전송 실패:', e?.message ?? e));
+      await channel.send(greeting).catch((e: unknown) => console.error('[Startup] 인사 메시지 전송 실패:', e instanceof Error ? e.message : String(e)));
     }
   }
 
@@ -689,8 +690,8 @@ client.once('clientReady', async () => {
           console.error('[CoreSpeak] bus publish 실패', busErr instanceof Error ? busErr.message : busErr);
         }
         return true;
-      } catch (e: any) {
-        console.error('[CoreSpeak]', e?.message ?? e);
+      } catch (e: unknown) {
+        console.error('[CoreSpeak]', e instanceof Error ? e.message : String(e));
         return false;
       }
     });
@@ -734,8 +735,8 @@ client.once('clientReady', async () => {
         }
         const m = await ch.send(payload);
         return m.id;
-      } catch (e: any) {
-        console.error('[Dashboard]', e?.message ?? e);
+      } catch (e: unknown) {
+        console.error('[Dashboard]', e instanceof Error ? e.message : String(e));
         return null;
       }
     });
@@ -753,8 +754,8 @@ client.once('clientReady', async () => {
             if (!(ch instanceof TextChannel)) return null;
             const m = await ch.send({ content: content.slice(0, 1900) });
             return m.id;
-          } catch (e: any) {
-            console.error('[StatusBoard send]', e?.message ?? e);
+          } catch (e: unknown) {
+            console.error('[StatusBoard send]', e instanceof Error ? e.message : String(e));
             return null;
           }
         },
@@ -912,8 +913,8 @@ async function main() {
 
   try {
     await client.login(token);
-  } catch (e: any) {
-    if (e?.code === 'TokenInvalid') {
+  } catch (e: unknown) {
+    if (e !== null && typeof e === 'object' && 'code' in e && (e as { code: unknown }).code === 'TokenInvalid') {
       console.error(
         '[YawnBot] TokenInvalid — 토큰이 만료되었거나 잘못되었습니다. Discord Developer Portal에서 Bot Token을 재발급하고 .env 의 DISCORD_TOKEN을 갱신하세요.',
       );
