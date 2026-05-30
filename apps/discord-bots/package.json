@@ -16,6 +16,7 @@
     "webhook:upsert": "npm -w apps/yawnbot run webhook:upsert",
     "start": "npm -w apps/yawnbot run start",
     "start:yawnbot": "npm -w apps/yawnbot run start",
+    "start:orchestrator": "npm -w apps/agent-orchestrator run start",
     "deploy": "npm -w apps/yawnbot run deploy",
     "deploy:yawnbot": "npm -w apps/yawnbot run deploy",
     "audit:cron": "node scripts/audit-cron-traceability.mjs"
