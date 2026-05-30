@@ -5,7 +5,6 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest",
     "start": "node dist/src/main.js",
     "deploy": "node dist/src/deploy-commands.js",
     "deploy:clear-global": "node scripts/clear-global-commands.mjs",
