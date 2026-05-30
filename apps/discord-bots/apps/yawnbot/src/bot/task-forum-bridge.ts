@@ -44,6 +44,25 @@ export function parseTaskId(s: string | null | undefined): string | null {
 }
 
 /**
+ * forum thread 제목에서 dedup 키(= 풀 TASK id) 추출. **단일 키 정본** (KAR-150).
+ *
+ * 왜: backfill 은 파일명에서 풀 id (하위태스크 포함, 예 `TASK-KAR-115-SUB-A`)를
+ * 캡처해 `forumTitleForTask` 로 제목 `[TASK-KAR-115-SUB-A] ...` 를 만든다.
+ * dedup/ground-truth 가 짧은 `parseTaskId`(`TASK-KAR-115`)로 그룹핑하면
+ * (a) 하위태스크가 한 덩어리로 뭉쳐 멀쩡한 포스트가 "중복" 오인되고
+ * (b) backfill 의 ledger 조회 키와 안 맞아 매 부팅 재생성된다 (2026-05-30 실증).
+ * → 제목 `[...]` 안의 문자열이 backfill 이 실제로 쓴 키 = 모든 소비자의 단일 키.
+ *
+ * @returns 대괄호 안 trim 문자열, 없으면 parseTaskId 폴백, 그것도 없으면 null.
+ */
+export function forumKeyFromTitle(title: string | null | undefined): string | null {
+  if (!title) return null;
+  const m = /^\s*\[([^\]]+)\]/.exec(title);
+  if (m) return m[1].trim();
+  return parseTaskId(title);
+}
+
+/**
  * forum thread 제목 100자 한도 내에서 `[TASK-YB-NNN] {body}` 조립.
  * body 가 비면 prefix 만. discord native 한도(100) 안전.
  */

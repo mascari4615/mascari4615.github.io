@@ -20,7 +20,7 @@
  */
 import { channelIdFor } from '../services/channel-provision';
 import {
-  parseTaskId,
+  forumKeyFromTitle,
   appendTaskForumLink,
   lookupTaskForumLinkByTaskId,
 } from './task-forum-bridge';
@@ -50,7 +50,9 @@ export function planDedup(
 } {
   const byTaskId = new Map<string, DedupThread[]>();
   for (const t of threads) {
-    const id = parseTaskId(t.name);
+    // 제목 `[...]` 안 = backfill 이 저장한 풀 id (단일 키 정본, KAR-150).
+    // 짧은 parseTaskId 로 그룹핑하면 하위태스크 오병합 + backfill 키 불일치.
+    const id = forumKeyFromTitle(t.name);
     if (!id) continue;
     if (!byTaskId.has(id)) byTaskId.set(id, []);
     byTaskId.get(id)!.push(t);
