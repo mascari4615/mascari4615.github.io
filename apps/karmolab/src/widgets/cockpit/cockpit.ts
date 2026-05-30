@@ -20,7 +20,7 @@ import { buildCardsTab } from './cards-tab';
 
   let canvas: GraphCanvas | null = null;
   let collector: ActivityCollector | null = null;
-  let currentTab: 'graph' | 'task' | 'team' | 'cards' = 'graph';
+  let currentTab: 'graph' | 'task' = 'graph';
   let statusEl: HTMLElement | null = null;
 
   // ── repo_root 취득 ────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ import { buildCardsTab } from './cards-tab';
   // ── 탭 전환 ──────────────────────────────────────────────────────────────
 
   function switchTab(
-    tab: 'graph' | 'task' | 'team' | 'cards',
+    tab: 'graph' | 'task',
     tabBtns: NodeListOf<HTMLElement>,
     panels: Record<string, HTMLElement>,
   ): void {
@@ -163,8 +163,6 @@ import { buildCardsTab } from './cards-tab';
     tabBar.innerHTML = `
       <div class="ck-tab active" data-tab="graph">그래프</div>
       <div class="ck-tab" data-tab="task">TASK</div>
-      <div class="ck-tab" data-tab="team">팀</div>
-      <div class="ck-tab" data-tab="cards">카드</div>
     `;
     cockpit.appendChild(tabBar);
 
@@ -178,29 +176,35 @@ import { buildCardsTab } from './cards-tab';
 
     const graphPanel = makePanel(true);
     graphPanel.style.cssText = 'position:relative;width:100%;height:100%;';
-    const taskPanel  = makePanel();
-    const teamPanel  = makePanel();
-    const cardsPanel = makePanel();
+    // Task 탭 패널 — TASK·팀·카드 섹션 세로 쌓기
+    const taskPanel = makePanel();
+    taskPanel.style.cssText = 'width:100%;height:100%;overflow-y:auto;';
+
+    const taskSection = document.createElement('div');
+    taskSection.style.cssText = 'height:100%;min-height:500px;flex-shrink:0;';
+    taskPanel.appendChild(taskSection);
+
+    const teamSection = document.createElement('div');
+    taskPanel.appendChild(teamSection);
+
+    const cardsSection = document.createElement('div');
+    taskPanel.appendChild(cardsSection);
 
     container.appendChild(cockpit);
 
     const tabBtns = tabBar.querySelectorAll<HTMLElement>('.ck-tab');
-    const panels: Record<string, HTMLElement> = { graph: graphPanel, task: taskPanel, team: teamPanel, cards: cardsPanel };
-
-    // 탭 초기화 (팀/카드는 최초 클릭 시 lazy init)
-    let teamBuilt = false;
-    let cardsBuilt = false;
+    const panels: Record<string, HTMLElement> = { graph: graphPanel, task: taskPanel };
 
     void buildGraphTab(graphPanel);
-    buildTaskTab(taskPanel);
+    buildTaskTab(taskSection);
+    buildTeamTab(teamSection);
+    buildCardsTab(cardsSection);
 
     // 탭 클릭
     tabBar.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest('[data-tab]') as HTMLElement | null;
       if (!btn) return;
-      const tab = btn.dataset.tab as 'graph' | 'task' | 'team' | 'cards';
-      if (tab === 'team' && !teamBuilt) { buildTeamTab(teamPanel); teamBuilt = true; }
-      if (tab === 'cards' && !cardsBuilt) { buildCardsTab(cardsPanel); cardsBuilt = true; }
+      const tab = btn.dataset.tab as 'graph' | 'task';
       switchTab(tab, tabBtns, panels);
     });
   }
