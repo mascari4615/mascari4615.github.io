@@ -165,7 +165,8 @@ describe('parseProposalEnvelope — fence robustness (2026-05-23 prod parse-fail
     const raw = '```json\n' + JSON.stringify(tricky);
     const e = parseProposalEnvelope(raw);
     expect(e?.kind).toBe('task');
-    expect((e?.payload as any).title).toBe('has } brace');
+    if (e?.kind !== 'task') throw new Error('kind narrowing 실패');
+    expect(e.payload.title).toBe('has } brace');
   });
 
   it('JSON 자체가 깨짐 (잘린 본문) — null (날조 0)', () => {

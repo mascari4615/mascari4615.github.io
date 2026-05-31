@@ -28,12 +28,12 @@ async function wait(ms: number): Promise<void> {
 describe('agent-bus', () => {
   describe('resolveBusRoot', () => {
     it('env override 우선', () => {
-      expect(resolveBusRoot({ LAPTOP_AGENT_BUS_ROOT: '/tmp/foo' } as any)).toBe(
-        '/tmp/foo',
-      );
+      expect(
+        resolveBusRoot({ LAPTOP_AGENT_BUS_ROOT: '/tmp/foo' } as unknown as NodeJS.ProcessEnv),
+      ).toBe('/tmp/foo');
     });
     it('default = ~/.karmoddrine/agent-bus', () => {
-      const r = resolveBusRoot({} as any);
+      const r = resolveBusRoot({} as unknown as NodeJS.ProcessEnv);
       expect(r).toContain('.karmoddrine');
       expect(r).toContain('agent-bus');
     });
