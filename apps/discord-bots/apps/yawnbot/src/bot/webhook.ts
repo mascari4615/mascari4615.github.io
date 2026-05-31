@@ -187,15 +187,15 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
       for (const channelId of channelIds) {
         const channel = await client.channels.fetch(channelId).catch(() => null);
         if (channel?.isSendable()) {
-          await channel.send({ embeds: [embed] }).catch((e: any) =>
-            console.error('[Webhook] 채널 전송 실패:', channelId, e?.message ?? e),
+          await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+            console.error('[Webhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
           );
         }
       }
 
       res.sendStatus(200);
-    } catch (err: any) {
-      console.error('[Webhook] Error:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[Webhook] Error:', err instanceof Error ? err.message : String(err));
       res.sendStatus(500);
     }
   });
