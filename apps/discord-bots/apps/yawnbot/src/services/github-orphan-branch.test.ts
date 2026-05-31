@@ -32,8 +32,8 @@ function res(status: number, json?: unknown): Response {
 
 describe('ensureOrphanBranch', () => {
   it('ref 존재(200) → no-op exists, commit/refs POST 0', async () => {
-    const calls: Array<{ url: string; opts: any }> = [];
-    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+    const calls: Array<{ url: string; opts: RequestInit }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
       calls.push({ url, opts });
       return res(200, { ref: 'refs/heads/yawnbot-character-state' });
     });
@@ -49,8 +49,8 @@ describe('ensureOrphanBranch', () => {
   });
 
   it('ref 부재(404) → empty-tree orphan 커밋 + ref 생성 → created', async () => {
-    const calls: Array<{ url: string; opts: any }> = [];
-    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+    const calls: Array<{ url: string; opts: RequestInit }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
       calls.push({ url, opts });
       if (url.includes('/git/ref/heads/')) return res(404);
       if (url.includes('/git/commits')) return res(201, { sha: 'commit_abc' });

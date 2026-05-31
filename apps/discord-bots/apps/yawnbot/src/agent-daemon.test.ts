@@ -35,7 +35,7 @@ function fakeLLM(resp: string | (() => string)): GenerativeTextClient {
     async generateFromPrompt(): Promise<string> {
       return typeof resp === 'function' ? resp() : resp;
     },
-  } as any;
+  } as unknown as GenerativeTextClient;
 }
 
 async function freshRoots(label: string): Promise<{ bus: string; memo: string }> {
@@ -416,7 +416,7 @@ describe('decideUtterance (LLM prompt 구성)', () => {
       async generateFromPrompt(): Promise<string> {
         throw new Error('quota exceeded');
       },
-    } as any;
+    } as unknown as GenerativeTextClient;
     const r = await decideUtterance(llm, core, [], {
       ts: new Date().toISOString(),
       type: 'channel-msg',

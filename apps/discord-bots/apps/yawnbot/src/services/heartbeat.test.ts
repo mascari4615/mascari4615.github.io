@@ -38,8 +38,8 @@ function res(status: number, json?: unknown): Response {
 
 describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
   it('기존 파일(GET 200) → 그 sha 로 PUT, body=base64 JSON+branch', async () => {
-    const calls: Array<{ url: string; opts: any }> = [];
-    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+    const calls: Array<{ url: string; opts: RequestInit }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
       calls.push({ url, opts });
       if (opts.method === 'GET') return res(200, { sha: 'oldsha123' });
       return res(200, { commit: { sha: 'newsha' } });
@@ -63,8 +63,8 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
   });
 
   it('브랜치 존재 + 파일 없음(Contents 404, ref 200) → 부트스트랩 X, sha 없이 PUT', async () => {
-    const calls: Array<{ url: string; opts: any }> = [];
-    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+    const calls: Array<{ url: string; opts: RequestInit }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
       calls.push({ url, opts });
       if (url.includes('/git/ref/heads/')) return res(200, { ref: 'refs/heads/x' });
       if (url.includes('/contents/') && opts.method === 'GET') return res(404);
@@ -84,8 +84,8 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
   });
 
   it('브랜치 부재(Contents 404, ref 404) → orphan 부트스트랩 후 sha 없이 PUT', async () => {
-    const calls: Array<{ url: string; opts: any }> = [];
-    const fetchImpl = vi.fn(async (url: string, opts: any) => {
+    const calls: Array<{ url: string; opts: RequestInit }> = [];
+    const fetchImpl = vi.fn(async (url: string, opts: RequestInit) => {
       calls.push({ url, opts });
       if (url.includes('/git/ref/heads/')) return res(404);
       if (url.includes('/git/commits')) return res(201, { sha: 'orphan_commit_sha' });
@@ -125,7 +125,7 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
   });
 
   it('PUT 실패(409 sha 충돌 등) → throw', async () => {
-    const fetchImpl = vi.fn(async (_u: string, opts: any) =>
+    const fetchImpl = vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(409),
     );
     await expect(
@@ -140,7 +140,7 @@ describe('writeHeartbeatOnce — Contents API GET sha → PUT', () => {
 
 describe('runHeartbeatTick — 상태 전이 alert', () => {
   const okFetch = () =>
-    vi.fn(async (_u: string, opts: any) =>
+    vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
     ) as unknown as typeof fetch;
   const failFetch = () => vi.fn(async () => res(500)) as unknown as typeof fetch;
@@ -246,7 +246,7 @@ describe('startHeartbeat — 스케줄링', () => {
   });
 
   it('즉시 1회 + interval 간격마다 tick (GET+PUT = 2 fetch/tick)', async () => {
-    const fetchImpl = vi.fn(async (_u: string, opts: any) =>
+    const fetchImpl = vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
     );
     const handle = startHeartbeat({
@@ -262,7 +262,7 @@ describe('startHeartbeat — 스케줄링', () => {
   });
 
   it('intervalMin 0 → 최소 1분 clamp', async () => {
-    const fetchImpl = vi.fn(async (_u: string, opts: any) =>
+    const fetchImpl = vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
     );
     startHeartbeat({
@@ -277,7 +277,7 @@ describe('startHeartbeat — 스케줄링', () => {
   });
 
   it('stopHeartbeat → 이후 tick 중단', async () => {
-    const fetchImpl = vi.fn(async (_u: string, opts: any) =>
+    const fetchImpl = vi.fn(async (_u: string, opts: RequestInit) =>
       opts.method === 'GET' ? res(200, { sha: 's' }) : res(200),
     );
     startHeartbeat({
