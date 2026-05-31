@@ -2,7 +2,7 @@
 // + TASK-KAR-018-THR: 재기동-중복 root fix (이름검색 dedup) ·
 //   proposal-id(pXXX) thread key · findThreadByName 분기.
 import { describe, it, expect } from 'vitest';
-import { ChannelType } from 'discord.js';
+import { ChannelType, type Client } from 'discord.js';
 import {
   extractTaskId,
   chunkForDiscord,
@@ -123,7 +123,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
     const sends: string[] = [];
     const threadSends: Record<string, string[]> = {};
     let seq = 0;
-    const channel: any = {
+    const channel = {
       type: ChannelType.GuildText,
       threads: {
         create: async ({ name }: { name: string }) => {
@@ -143,7 +143,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
         sends.push(m);
       },
     };
-    const client: any = {
+    const client = {
       channels: {
         fetch: async (id: string) => {
           if (id === 'CH') return channel;
@@ -157,7 +157,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
           };
         },
       },
-    };
+    } as unknown as Client;
     return { client, created, sends, threadSends };
   }
 
@@ -206,7 +206,7 @@ describe('makeThreadRouter 재기동-중복 root fix (TASK-KAR-018-THR)', () => 
 describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', () => {
   function makeFakeClient() {
     const sends: string[] = [];
-    const channel: any = {
+    const channel = {
       type: ChannelType.GuildText,
       threads: {
         create: async () => ({ id: 'should-not-create' }),
@@ -221,11 +221,11 @@ describe('onMissingTask: silent — 사용자 정신없음 fix (2026-05-23)', ()
         sends.push(m);
       },
     };
-    const client: any = {
+    const client = {
       channels: {
         fetch: async () => channel,
       },
-    };
+    } as unknown as Client;
     return { client, sends, channel };
   }
 

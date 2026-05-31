@@ -253,14 +253,22 @@ describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => 
 
 describe('isProvisioningEnabled — 기본 ON, =0 opt-out (prod 무관)', () => {
   it('prod 여도 기본 ON (옛 채널 폐기 — dev먼저 철회)', () => {
-    expect(isProvisioningEnabled({ YAWNBOT_ENV: 'prod' } as any)).toBe(true);
+    expect(
+      isProvisioningEnabled({ YAWNBOT_ENV: 'prod' } as unknown as NodeJS.ProcessEnv),
+    ).toBe(true);
   });
   it('dev 도 기본 ON', () => {
-    expect(isProvisioningEnabled({ YAWNBOT_ENV: 'dev' } as any)).toBe(true);
+    expect(
+      isProvisioningEnabled({ YAWNBOT_ENV: 'dev' } as unknown as NodeJS.ProcessEnv),
+    ).toBe(true);
   });
   it('YAWNBOT_CHANNEL_PROVISION=0 비상 비활성', () => {
-    expect(isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: '0' } as any)).toBe(false);
-    expect(isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: 'off' } as any)).toBe(false);
+    expect(
+      isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: '0' } as unknown as NodeJS.ProcessEnv),
+    ).toBe(false);
+    expect(
+      isProvisioningEnabled({ YAWNBOT_CHANNEL_PROVISION: 'off' } as unknown as NodeJS.ProcessEnv),
+    ).toBe(false);
   });
 });
 
@@ -280,7 +288,7 @@ describe('shouldProvisionGuild — 허용 길드 한정 (친구 서버 사고 �
     expect(shouldProvisionGuild('g3', env)).toBe(false);
   });
   it('둘 다 없으면 아무 길드도 프로비저닝 X (안전 default)', () => {
-    expect(shouldProvisionGuild('아무거나', {} as any)).toBe(false);
+    expect(shouldProvisionGuild('아무거나', {} as unknown as NodeJS.ProcessEnv)).toBe(false);
   });
 });
 
