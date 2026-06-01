@@ -162,8 +162,8 @@ export async function handleDigestCommit(
     for (const channelId of targetChannels) {
       const channel = await client.channels.fetch(channelId).catch(() => null);
       if (channel?.isSendable()) {
-        await channel.send({ embeds: [embed] }).catch((e: any) =>
-          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e?.message ?? e),
+        await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
         );
       }
     }
