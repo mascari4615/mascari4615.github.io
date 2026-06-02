@@ -5,8 +5,8 @@
  * Toolbox.register 로 등록. IIFE (Toolbox = lexical).
  */
 import { injectCockpitStyles } from './styles';
-import { loadGraphSpec, saveGraphCoords } from './graph-spec';
 import { GraphCanvas } from './graph-canvas';
+import { CockpitTauriAdapter } from './graph-tauri-adapter';
 import { ActivityCollector } from './activity-collector';
 import { buildTaskTab } from './task-tab';
 import { buildTeamTab } from './team-tab';
@@ -63,8 +63,6 @@ import { buildCardsTab } from './cards-tab';
     canvasWrap.style.cssText = 'position:absolute;inset:0;';
     graphPanel.appendChild(canvasWrap);
 
-    canvas = new GraphCanvas(canvasWrap);
-
     // 로딩 오버레이 박기 (graph.json + activity 첫 페치 동안)
     const loadingEl = document.createElement('div');
     loadingEl.className = 'ck-loading';
@@ -78,9 +76,13 @@ import { buildCardsTab } from './cards-tab';
       return;
     }
 
+    const repoRoot = (window as unknown as { __cockpitRepoRoot?: string }).__cockpitRepoRoot ?? '';
+    const tauriAdapter = new CockpitTauriAdapter(repoRoot);
+    canvas = new GraphCanvas(canvasWrap, { persistAdapter: tauriAdapter });
+
     // graph spec 로드
     loadingEl.textContent = '⏳ graph.json 로드 중 …';
-    const spec = await loadGraphSpec();
+    const spec = await tauriAdapter.load();
     if (!spec) {
       if (statusEl) statusEl.textContent = 'graph.json 로드 실패';
       loadingEl.textContent = '❌ graph.json 로드 실패';
@@ -119,7 +121,8 @@ import { buildCardsTab } from './cards-tab';
   async function reloadGraph(): Promise<void> {
     if (!canvas) return;
     if (statusEl) statusEl.textContent = '새로고침 중…';
-    const spec = await loadGraphSpec();
+    const repoRoot = (window as unknown as { __cockpitRepoRoot?: string }).__cockpitRepoRoot ?? '';
+    const spec = await new CockpitTauriAdapter(repoRoot).load();
     if (!spec) { if (statusEl) statusEl.textContent = '재로드 실패'; return; }
     canvas.setSpec(spec);
     collector?.setSpec(spec);

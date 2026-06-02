@@ -104,6 +104,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tierlist/tierlist']
   },
   {
+    id: 'karmomap',
+    title: 'KarmoMap',
+    category: 'lab',
+    desc: '세계관 관계도 — Character·Place·Item·Event·Concept 노드 + 관계 엣지로 WM lore 정리 (TASK-KL-087)',
+    layout: 'full',
+    icon: '<circle cx="6" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="17" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="6" x2="15" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="7.5" y1="8.5" x2="10.5" y2="14.5" stroke="currentColor" stroke-width="1.5"/><line x1="16.5" y1="8.5" x2="13.5" y2="14.5" stroke="currentColor" stroke-width="1.5"/>',
+    lazyScriptPaths: ['karmomap/index']
+  },
+  {
     id: 'postgraph',
     title: '글 그래프',
     category: 'lab',
