@@ -123,7 +123,7 @@ async function resourceFromYtDlpExec(url: string): Promise<AudioResource> {
   }
 
   try {
-    const probe = await demuxProbe(stdout as any);
+    const probe = await demuxProbe(stdout);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
   } catch (e: any) {
     child.kill('SIGKILL');
@@ -556,9 +556,9 @@ export async function fetchYoutubePlaylistEntries(playlistUrl: string): Promise<
 async function resourceFromYoutubei(videoId: string): Promise<AudioResource> {
   const innertube = await getInnertubeSingleton();
   const webStream = await innertube.download(videoId, { type: 'audio', quality: 'best' });
-  const nodeStream = Readable.fromWeb(webStream as any);
+  const nodeStream = Readable.fromWeb(webStream as import('node:stream/web').ReadableStream);
   try {
-    const probe = await demuxProbe(nodeStream as any);
+    const probe = await demuxProbe(nodeStream);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
   } catch (e) {
     nodeStream.destroy();
@@ -567,17 +567,17 @@ async function resourceFromYoutubei(videoId: string): Promise<AudioResource> {
 }
 
 /** play-dl 스트림 → demuxProbe로 타입 확정 후 재생. 실패 시 play-dl 타입 매핑. */
-async function resourceFromPlayDlStream(yt: { stream: NodeJS.ReadableStream; type: unknown }): Promise<AudioResource> {
+async function resourceFromPlayDlStream(yt: { stream: Readable; type: StreamType }): Promise<AudioResource> {
   try {
-    const probe = await demuxProbe(yt.stream as any);
+    const probe = await demuxProbe(yt.stream);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
   } catch (e: any) {
     console.warn('[music] demuxProbe 실패:', e?.message ?? e);
     const m = mapPlayDlTypeToStreamType(yt.type);
     if (m) {
-      return createAudioResource(yt.stream as any, { inputType: m, silencePaddingFrames: 5 });
+      return createAudioResource(yt.stream, { inputType: m, silencePaddingFrames: 5 });
     }
-    return createAudioResource(yt.stream as any, { inputType: yt.type as any, silencePaddingFrames: 5 });
+    return createAudioResource(yt.stream, { inputType: yt.type, silencePaddingFrames: 5 });
   }
 }
 
