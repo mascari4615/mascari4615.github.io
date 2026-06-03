@@ -13,10 +13,8 @@ import {
   type SendableChannels,
 } from 'discord.js';
 import cheerio from 'cheerio';
-import fs from 'fs';
 import { channelIdFor } from '../channel-provision';
-import path from 'path';
-import { PKG_ROOT } from '../../paths';
+import { createStateStore } from './state-store';
 
 const PUBLISHER_SALE_URL = 'https://assetstore.unity.com/ko-KR/publisher-sale';
 const EMBED_IMAGE_ATTACHMENT = 'atkup-publisher-og.jpg';
@@ -218,34 +216,15 @@ interface UnityFreeState {
   lastSentAt: string | null;
 }
 
-const STATE_PATH = path.join(PKG_ROOT, 'data', 'unity-free-state.json');
-
-function loadState(): UnityFreeState {
-  try {
-    if (fs.existsSync(STATE_PATH)) {
-      const raw = fs.readFileSync(STATE_PATH, 'utf-8');
-      const parsed = JSON.parse(raw) as Partial<UnityFreeState>;
-      return {
-        lastCoupon: typeof parsed.lastCoupon === 'string' ? parsed.lastCoupon : null,
-        lastAssetUrl: typeof parsed.lastAssetUrl === 'string' ? parsed.lastAssetUrl : null,
-        lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
-      };
-    }
-  } catch (err) {
-    console.warn('[UnityFree] dedup state 읽기 실패 — 새 state 로 시작:', err);
-  }
-  return { lastCoupon: null, lastAssetUrl: null, lastSentAt: null };
-}
-
-function saveState(state: UnityFreeState): void {
-  try {
-    fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
-    fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2) + '\n', 'utf-8');
-  } catch (err) {
-    // dedup 깨지더라도 알림 자체는 살림 — 권한 사고 시 안전 degrade.
-    console.warn('[UnityFree] dedup state 저장 실패:', err);
-  }
-}
+const unityFreeStore = createStateStore<UnityFreeState>({
+  fileName: 'unity-free-state.json',
+  label: 'UnityFree',
+  normalize: (parsed) => ({
+    lastCoupon: typeof parsed.lastCoupon === 'string' ? parsed.lastCoupon : null,
+    lastAssetUrl: typeof parsed.lastAssetUrl === 'string' ? parsed.lastAssetUrl : null,
+    lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
+  }),
+});
 
 function isDuplicate(state: UnityFreeState, info: PublisherSaleAssetInfo): boolean {
   if (info.couponCode != null && info.couponCode.length > 0) {
@@ -275,7 +254,7 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
     return { status: 'no_data', info: null };
   }
 
-  const state = loadState();
+  const state = unityFreeStore.load();
   if (!force && isDuplicate(state, info)) {
     return { status: 'dedup', info };
   }
@@ -287,7 +266,7 @@ async function pollOnce(client: Client, channelId: string, force: boolean): Prom
   }
 
   await sendPublisherSaleToChannel(channel, info);
-  saveState({
+  unityFreeStore.save({
     lastCoupon: info.couponCode,
     lastAssetUrl: info.assetUrl,
     lastSentAt: new Date().toISOString(),
