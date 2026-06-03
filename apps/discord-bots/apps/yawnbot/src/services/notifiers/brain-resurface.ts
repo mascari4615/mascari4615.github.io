@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
 import { channelIdFor } from '../channel-provision';
-import { PKG_ROOT } from '../../paths';
+import { createStateStore } from './state-store';
 
 const RESURFACE_INTERVAL_MS = 60 * 60 * 1000;    // 1h 폴링 (grace 판단)
 const RESURFACE_COOLDOWN_H = 22;                  // 22h 이상 지나야 다음 전송
@@ -23,31 +23,14 @@ interface BrainResurfaceState {
   recentlySurfaced: Array<{ file: string; sentAt: string }>;
 }
 
-const STATE_PATH = path.join(PKG_ROOT, 'data', 'brain-resurface-state.json');
-
-function loadState(): BrainResurfaceState {
-  try {
-    if (fs.existsSync(STATE_PATH)) {
-      const parsed = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8')) as Partial<BrainResurfaceState>;
-      return {
-        lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
-        recentlySurfaced: Array.isArray(parsed.recentlySurfaced) ? parsed.recentlySurfaced : [],
-      };
-    }
-  } catch {
-    /* 새 state 시작 */
-  }
-  return { lastSentAt: null, recentlySurfaced: [] };
-}
-
-function saveState(state: BrainResurfaceState): void {
-  try {
-    fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
-    fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2) + '\n', 'utf-8');
-  } catch (e) {
-    console.warn('[BrainResurface] state 저장 실패:', e instanceof Error ? e.message : e);
-  }
-}
+const brainStore = createStateStore<BrainResurfaceState>({
+  fileName: 'brain-resurface-state.json',
+  label: 'BrainResurface',
+  normalize: (parsed) => ({
+    lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
+    recentlySurfaced: Array.isArray(parsed.recentlySurfaced) ? parsed.recentlySurfaced : [],
+  }),
+});
 
 function parseFrontmatter(raw: string): Record<string, string> {
   const meta: Record<string, string> = {};
@@ -122,7 +105,7 @@ async function pollOnce(
   channelId: string,
   memoRepoPath: string,
 ): Promise<'sent' | 'cooldown' | 'no_items' | 'channel_unreachable' | 'off_hours'> {
-  const state = loadState();
+  const state = brainStore.load();
 
   // 22h cooldown
   if (state.lastSentAt) {
@@ -163,7 +146,7 @@ async function pollOnce(
     }),
     { file: picked, sentAt: now },
   ];
-  saveState(state);
+  brainStore.save(state);
 
   console.log(`[BrainResurface] sent: ${path.basename(picked)}`);
   return 'sent';

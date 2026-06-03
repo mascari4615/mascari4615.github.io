@@ -13,9 +13,7 @@
  */
 import { EmbedBuilder, type Client, type SendableChannels } from 'discord.js';
 import { channelIdFor } from '../channel-provision';
-import fs from 'fs';
-import path from 'path';
-import { PKG_ROOT } from '../../paths';
+import { createStateStore } from './state-store';
 import type { NewsService, NewsArticle } from '../news-service';
 import { fetchHnTopStories, buildHnEmbed } from '../sources/hacker-news';
 import { fetchGnTopStories, buildGnEmbed } from '../sources/geeknews';
@@ -63,43 +61,25 @@ interface NewsNotifierState {
   lastSentAt: string | null;
 }
 
-const STATE_PATH = path.join(PKG_ROOT, 'data', 'news-notifier-state.json');
-
-function loadState(): NewsNotifierState {
-  try {
-    if (fs.existsSync(STATE_PATH)) {
-      const parsed = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8')) as Partial<NewsNotifierState>;
-      return {
-        // 구 state (sentKeys 없음) 하위호환 — 신키는 다음 폴링부터 누적.
-        sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
-        sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
-        sentHnKeys: Array.isArray(parsed.sentHnKeys) ? parsed.sentHnKeys.filter((x) => typeof x === 'string') : [],
-        sentGnKeys: Array.isArray(parsed.sentGnKeys) ? parsed.sentGnKeys.filter((x) => typeof x === 'string') : [],
-        lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
-      };
-    }
-  } catch (err) {
-    console.warn('[News] dedup state 읽기 실패 — 새 state 로 시작:', err);
-  }
-  return { sentKeys: [], sentLinks: [], sentHnKeys: [], sentGnKeys: [], lastSentAt: null };
-}
-
-function saveState(state: NewsNotifierState): void {
-  try {
-    fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
-    const trimmed: NewsNotifierState = {
-      sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
-      sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
-      sentHnKeys: state.sentHnKeys.slice(-SENT_HN_CAP),
-      sentGnKeys: state.sentGnKeys.slice(-SENT_GN_CAP),
-      lastSentAt: state.lastSentAt,
-    };
-    fs.writeFileSync(STATE_PATH, JSON.stringify(trimmed, null, 2) + '\n', 'utf-8');
-  } catch (err) {
-    // dedup 깨지더라도 알림 자체는 살림 — 권한 사고 시 안전 degrade.
-    console.warn('[News] dedup state 저장 실패:', err);
-  }
-}
+const newsStore = createStateStore<NewsNotifierState>({
+  fileName: 'news-notifier-state.json',
+  label: 'News',
+  normalize: (parsed) => ({
+    // 구 state (sentKeys 없음) 하위호환 — 신키는 다음 폴링부터 누적.
+    sentKeys: Array.isArray(parsed.sentKeys) ? parsed.sentKeys.filter((x) => typeof x === 'string') : [],
+    sentLinks: Array.isArray(parsed.sentLinks) ? parsed.sentLinks.filter((x) => typeof x === 'string') : [],
+    sentHnKeys: Array.isArray(parsed.sentHnKeys) ? parsed.sentHnKeys.filter((x) => typeof x === 'string') : [],
+    sentGnKeys: Array.isArray(parsed.sentGnKeys) ? parsed.sentGnKeys.filter((x) => typeof x === 'string') : [],
+    lastSentAt: typeof parsed.lastSentAt === 'string' ? parsed.lastSentAt : null,
+  }),
+  trim: (state) => ({
+    sentKeys: state.sentKeys.slice(-SENT_KEYS_CAP),
+    sentLinks: state.sentLinks.slice(-SENT_LINKS_CAP),
+    sentHnKeys: state.sentHnKeys.slice(-SENT_HN_CAP),
+    sentGnKeys: state.sentGnKeys.slice(-SENT_GN_CAP),
+    lastSentAt: state.lastSentAt,
+  }),
+});
 
 export async function sendNewsArticleToChannel(channel: SendableChannels, a: NewsArticle): Promise<void> {
   await channel.send({ embeds: [buildNewsEmbed(a)] });
@@ -116,7 +96,7 @@ async function pollOnce(
     return { status: 'no_keywords', sent: 0 };
   }
 
-  const state = loadState();
+  const state = newsStore.load();
   const seenKeys = new Set(state.sentKeys);
   const seenLinks = new Set(state.sentLinks);
   const fresh: NewsArticle[] = [];
@@ -158,7 +138,7 @@ async function pollOnce(
   }
   if (sent > 0) {
     state.lastSentAt = new Date().toISOString();
-    saveState(state);
+    newsStore.save(state);
   }
   return { status: 'sent', sent };
 }
@@ -181,7 +161,7 @@ async function pollHnOnce(
     return { status: 'no_story', sent: 0 };
   }
 
-  const state = loadState();
+  const state = newsStore.load();
   const seen = new Set(state.sentHnKeys);
   const fresh = stories.filter((s) => !seen.has(String(s.id))).slice(0, maxPerPoll);
   if (fresh.length === 0) {
@@ -206,7 +186,7 @@ async function pollHnOnce(
   }
   if (sent > 0) {
     state.lastSentAt = new Date().toISOString();
-    saveState(state);
+    newsStore.save(state);
   }
   return { status: 'sent', sent };
 }
@@ -228,7 +208,7 @@ async function pollGnOnce(
     return { status: 'no_story', sent: 0 };
   }
 
-  const state = loadState();
+  const state = newsStore.load();
   const seen = new Set(state.sentGnKeys);
   const fresh = stories.filter((s) => !seen.has(s.id)).slice(0, maxPerPoll);
   if (fresh.length === 0) {
@@ -253,7 +233,7 @@ async function pollGnOnce(
   }
   if (sent > 0) {
     state.lastSentAt = new Date().toISOString();
-    saveState(state);
+    newsStore.save(state);
   }
   return { status: 'sent', sent };
 }
