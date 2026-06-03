@@ -55,6 +55,8 @@ import { checkMemoPushScope } from './services/memo-push';
 import { setProposalAnnouncer } from './bot/proposal-adapter';
 import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
 import type { ClientLike } from './bot/forum-post';
+import type { RecoveryClientLike } from './bot/forum-tag-recovery';
+import type { ForumDedupClientLike } from './bot/forum-dedup';
 import {
   loadCoreDef,
   listCoreIds,
@@ -452,7 +454,7 @@ client.once('clientReady', async () => {
   // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
   try {
     const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
-    await recoverForumTagsOnce(client as any, process.env);
+    await recoverForumTagsOnce(client as unknown as RecoveryClientLike, process.env);
   } catch (e) {
     console.error(
       '[ForumTagRecovery] 부팅 태그 복원 실패:',
@@ -481,14 +483,16 @@ client.once('clientReady', async () => {
   // 수단·수동: node memo/scripts/forum-dedupe.mjs). 부팅 1회 + 주기(기본 60분).
   try {
     const { auditForumDupsOnce } = await import('./bot/forum-dedup.js');
-    await auditForumDupsOnce(client as any, process.env);
+    await auditForumDupsOnce(client as unknown as ForumDedupClientLike, process.env);
     const dedupMin = parseInt(
       process.env.YAWNBOT_FORUM_DEDUP_INTERVAL_MIN || '60',
       10,
     );
     const dedupTimer = setInterval(() => {
       void import('./bot/forum-dedup.js')
-        .then(({ auditForumDupsOnce: tick }) => tick(client as any, process.env))
+        .then(({ auditForumDupsOnce: tick }) =>
+          tick(client as unknown as ForumDedupClientLike, process.env),
+        )
         .catch((err) =>
           console.error(
             '[ForumDedup] tick 실패:',

@@ -26,7 +26,7 @@ import {
   lookupTaskForumLinkByTaskId,
   forumTitleForTask,
 } from './task-forum-bridge';
-import { buildForumGroundTruth } from './forum-dedup';
+import { buildForumGroundTruth, type ForumDedupClientLike } from './forum-dedup';
 import { channelIdFor } from '../services/channel-provision';
 
 /** memo 하위 TASK 디렉토리. task-status-sync.ts § TASK_DIRS 와 정합. */
@@ -196,9 +196,10 @@ export async function runTaskForumBackfillOnce(
   };
   // ground-truth dedup (KAR-150): Discord 실제 스레드 = 진실. 원장이 비어/손상돼도
   // 이미 forum 에 있는 TASK 는 재생성 X (원장 단일실패점 보강). 실패=빈 맵(원장 fallback).
-  const groundTruth = await buildForumGroundTruth(client, env).catch(
-    () => new Map<string, string>(),
-  );
+  const groundTruth = await buildForumGroundTruth(
+    client as unknown as ForumDedupClientLike,
+    env,
+  ).catch(() => new Map<string, string>());
   const channelId = channelIdFor('agent-work', env);
   for (const t of tasks) {
     const inLedger = Boolean(lookupTaskForumLinkByTaskId(env, t.taskId));
