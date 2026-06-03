@@ -36,6 +36,42 @@ export interface DedupThread {
   archived: boolean;
 }
 
+// ── Discord.js 구조적 부분집합 (페이크 테스트 호환, KL-094) ──
+// `forum-tag-recovery.ts` 의 RecoveryClientLike 패턴 정합 — 본 모듈이 *실제로 만지는*
+// 필드만 명시. discord.js Client 는 `as unknown as ForumDedupClientLike` 로 주입.
+
+interface ForumThreadLike {
+  id: string;
+  name?: string;
+  archived?: boolean;
+  archivedTimestamp?: number | null;
+  setArchived?: (archived: boolean, reason?: string) => Promise<unknown>;
+}
+
+interface ForumThreadCollectionLike {
+  values(): Iterable<ForumThreadLike>;
+}
+
+interface ForumThreadManagerLike {
+  fetchActive(): Promise<{ threads: ForumThreadCollectionLike }>;
+  fetchArchived(opts: {
+    type?: 'public' | 'private';
+    before?: unknown;
+    limit?: number;
+  }): Promise<{ threads: ForumThreadCollectionLike; hasMore: boolean }>;
+  fetch(id: string): Promise<ForumThreadLike | null>;
+}
+
+interface ForumChannelLike {
+  threads: ForumThreadManagerLike;
+}
+
+export interface ForumDedupClientLike {
+  channels: {
+    fetch(id: string): Promise<ForumChannelLike | null>;
+  };
+}
+
 /**
  * 순수 — 스레드 목록을 taskId 별로 묶고 대표(canonical)/중복(dup) 계산.
  * canonical = 그룹 내 가장 최신(snowflake 최대) — backfill/reconciler 의 latest 정합.
@@ -77,7 +113,7 @@ export function planDedup(
 }
 
 /** discord.js ForumChannel 의 active+archived 전체 스레드 열거 (best-effort, 읽기전용). */
-async function listAllForumThreads(channel: any): Promise<DedupThread[]> {
+async function listAllForumThreads(channel: ForumChannelLike): Promise<DedupThread[]> {
   const out: DedupThread[] = [];
   try {
     const active = await channel.threads.fetchActive();
@@ -88,13 +124,14 @@ async function listAllForumThreads(channel: any): Promise<DedupThread[]> {
   }
   let before: unknown = undefined;
   for (let guard = 0; guard < 200; guard += 1) {
-    let page: any;
+    let page: { threads: ForumThreadCollectionLike; hasMore: boolean } | undefined;
     try {
       page = await channel.threads.fetchArchived({ type: 'public', before, limit: 100 });
     } catch {
       break;
     }
-    const vals = [...page.threads.values()];
+    if (!page) break;
+    const vals: ForumThreadLike[] = [...page.threads.values()];
     for (const t of vals) out.push({ id: t.id, name: t.name ?? '', archived: true });
     if (!page.hasMore || vals.length === 0) break;
     const last = vals[vals.length - 1];
@@ -131,7 +168,7 @@ const MAX_ARCHIVE_PER_RUN = 400;
  * env `YAWNBOT_FORUM_DEDUP_ARCHIVE=0` = 감지만. 매 run healthy log.
  */
 export async function auditForumDupsOnce(
-  client: any,
+  client: ForumDedupClientLike,
   env: NodeJS.ProcessEnv,
   deps: AuditDeps = {},
 ): Promise<AuditResult> {
@@ -230,7 +267,7 @@ export async function auditForumDupsOnce(
  * 실패(채널 미설정/fetch 실패) = 빈 맵(backfill 은 원장 fallback).
  */
 export async function buildForumGroundTruth(
-  client: any,
+  client: ForumDedupClientLike,
   env: NodeJS.ProcessEnv,
 ): Promise<Map<string, string>> {
   const channelId = channelIdFor('agent-work', env);
