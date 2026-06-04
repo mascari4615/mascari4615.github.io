@@ -84,9 +84,9 @@ export async function startDeferElapsedTicker(
     try {
       if (cancelled) return;
       await interaction.editReply({ content: null as any, embeds: [embed] } as any);
-    } catch (e: any) {
-      const code = e && typeof e === 'object' && 'code' in e ? (e as any).code : undefined;
-      if (code !== 50006) console.error('[defer ticker] editReply 실패:', e?.message ?? e);
+    } catch (e: unknown) {
+      const code = e && typeof e === 'object' && 'code' in e ? (e as Record<string, unknown>).code : undefined;
+      if (code !== 50006) console.error('[defer ticker] editReply 실패:', e instanceof Error ? e.message : String(e));
     } finally {
       inFlight--;
     }
@@ -125,8 +125,8 @@ export async function notifyDeferCompletion(
     } else {
       await interaction.followUp({ content: line, flags: MessageFlags.Ephemeral } as any);
     }
-  } catch (e: any) {
-    console.error('[notifyDeferCompletion] followUp 실패:', e?.message ?? e);
+  } catch (e: unknown) {
+    console.error('[notifyDeferCompletion] followUp 실패:', e instanceof Error ? e.message : String(e));
   }
 }
 

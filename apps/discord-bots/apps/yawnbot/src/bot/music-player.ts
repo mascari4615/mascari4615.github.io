@@ -125,10 +125,10 @@ async function resourceFromYtDlpExec(url: string): Promise<AudioResource> {
   try {
     const probe = await demuxProbe(stdout as any);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
-  } catch (e: any) {
+  } catch (e: unknown) {
     child.kill('SIGKILL');
     const hint = stderrBuf.trim() ? ` (${stderrBuf.trim().slice(0, 500)})` : '';
-    throw new Error(`${e?.message ?? e}${hint}`);
+    throw new Error(`${e instanceof Error ? e.message : String(e)}${hint}`);
   }
 }
 
@@ -571,8 +571,8 @@ async function resourceFromPlayDlStream(yt: { stream: NodeJS.ReadableStream; typ
   try {
     const probe = await demuxProbe(yt.stream as any);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
-  } catch (e: any) {
-    console.warn('[music] demuxProbe 실패:', e?.message ?? e);
+  } catch (e: unknown) {
+    console.warn('[music] demuxProbe 실패:', e instanceof Error ? e.message : String(e));
     const m = mapPlayDlTypeToStreamType(yt.type);
     if (m) {
       return createAudioResource(yt.stream as any, { inputType: m, silencePaddingFrames: 5 });
@@ -587,23 +587,23 @@ async function createYoutubeAudioResourceInner(url: string): Promise<AudioResour
 
   try {
     return await resourceFromYtDlpExec(canonical);
-  } catch (e: any) {
-    lastErrors.push(`yt-dlp: ${e?.message ?? e}`);
-    console.warn('[music] yt-dlp 실패, youtubei·play-dl 폴백:', e instanceof Error ? e.message : e);
+  } catch (e: unknown) {
+    lastErrors.push(`yt-dlp: ${e instanceof Error ? e.message : String(e)}`);
+    console.warn('[music] yt-dlp 실패, youtubei·play-dl 폴백:', e instanceof Error ? e.message : String(e));
   }
 
   try {
     const id = play.extractID(canonical);
     return await resourceFromYoutubei(id);
-  } catch (e: any) {
-    lastErrors.push(`youtubei.js: ${e?.message ?? e}`);
+  } catch (e: unknown) {
+    lastErrors.push(`youtubei.js: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   try {
     const yt = await play.stream(canonical, { discordPlayerCompatibility: true });
     return resourceFromPlayDlStream(yt);
-  } catch (e: any) {
-    lastErrors.push(`play-dl: ${e?.message ?? e}`);
+  } catch (e: unknown) {
+    lastErrors.push(`play-dl: ${e instanceof Error ? e.message : String(e)}`);
     throw new Error(lastErrors.join(' | '));
   }
 }
@@ -674,9 +674,9 @@ async function playNext(guildId: string): Promise<void> {
       })();
     }
     void syncNowPlayingUi(guildId);
-  } catch (e: any) {
-    console.error('[music] 재생 실패:', item.kind === 'youtube' ? item.url : item.title, e?.message ?? e);
+  } catch (e: unknown) {
     const reason = e instanceof Error ? e.message : String(e);
+    console.error('[music] 재생 실패:', item.kind === 'youtube' ? item.url : item.title, reason);
     const ch = s.notifyTextChannelId;
     if (
       ch &&
@@ -730,13 +730,13 @@ async function appendToMusicQueue(
     }
 
     return { ok: true, position, started: wasIdle };
-  } catch (e: any) {
+  } catch (e: unknown) {
     try {
       leaveVoiceChannel(channel.guild.id);
     } catch {
       /* ignore */
     }
-    return { ok: false, error: e?.message || String(e) };
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
 
