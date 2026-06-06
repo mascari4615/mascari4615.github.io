@@ -11,6 +11,15 @@ import type { Client } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { generateBlobTextFromEnvWithOptions } from 'karmolab-ai/node';
 import { channelIdFor } from './channel-provision';
+
+interface GitHubCommit {
+  id: string;
+  message: string;
+  added: string[];
+  modified: string[];
+  url: string;
+}
+
 const MAX_PLAIN_CHARS = 1800;
 const MAX_FETCH_CHARS = 8000;
 
@@ -72,7 +81,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
-export function isDigestCommit(commit: any): string | null {
+export function isDigestCommit(commit: GitHubCommit): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
@@ -91,7 +100,7 @@ export function isDigestCommit(commit: any): string | null {
  */
 export async function handleDigestCommit(
   client: Client,
-  commit: any,
+  commit: GitHubCommit,
   repoFullName: string,
   channelIds: string[],
 ): Promise<void> {
