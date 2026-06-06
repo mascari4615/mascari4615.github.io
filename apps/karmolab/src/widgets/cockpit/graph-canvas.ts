@@ -412,7 +412,7 @@ export class GraphCanvas {
       for (const a of list) {
         const items = this.ephemeralNodes.filter((n) => n.anchorId === a.id);
         const specY = a.y;
-        const effY = nextY ?? specY;
+        const effY: number = nextY ?? specY;
         const offsetY = effY - specY;
         let h = a.h;
         if (items.length > 0) {
