@@ -194,8 +194,8 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
       }
 
       res.sendStatus(200);
-    } catch (err: any) {
-      console.error('[Webhook] Error:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[Webhook] Error:', err instanceof Error ? err.message : String(err));
       res.sendStatus(500);
     }
   });
