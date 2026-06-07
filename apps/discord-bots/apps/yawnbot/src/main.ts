@@ -7,7 +7,7 @@ import './install-console-timestamps';
 import dns from 'node:dns';
 import { generateDependencyReport } from '@discordjs/voice';
 import sodium from 'libsodium-wrappers';
-import { Client, GatewayIntentBits, Partials, TextChannel, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, TextChannel, type Embed, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
 import { destroyAllVoiceConnections } from './bot/voice-connection';
 import { destroyAllMusicPlayers, setMusicDiscordClient, setMusicPlayFailureReporter } from './bot/music-player';
@@ -721,7 +721,7 @@ client.once('clientReady', async () => {
           const recent = await ch.messages.fetch({ limit: 30 });
           const mine = recent.find((m) => {
             if (m.author?.id !== client.user?.id) return false;
-            const e0: any = m.embeds?.[0];
+            const e0: Embed | undefined = m.embeds?.[0];
             if (!e0) return false;
             const a = e0.author?.name ?? '';
             const t = e0.title ?? '';
