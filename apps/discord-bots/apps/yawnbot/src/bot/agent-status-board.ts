@@ -27,6 +27,7 @@ import {
 } from './system-health';
 import { readLedger } from './agent-initiator';
 import { decisionsPath, parseDecisionLine } from './agent-decisions';
+import { pendingOwnerRequests } from './owner-request';
 
 export interface StatusBoardState {
   channelId?: string;
@@ -39,6 +40,8 @@ export interface StatusBoardData {
   botHealth: { status: 'ok' | 'warn' | 'critical'; lastTickHrs: number; label: string };
   /** 최근 봇 발견 약점 — initiator-ledger 의 최신 seeded TASK 1건. */
   latestFinding: { taskFile?: string; headline?: string; ts?: string } | null;
+  /** 사장 요청 대기 — owner 가 멘션/키워드로 남긴 요청 중 미처리 (TASK-YB-031, 묻힘 방지). */
+  ownerPending: { count: number; topItem?: string };
   /** 사용자 결정 대기 — open issues / 미응답 quality-check / objective 결정 등. */
   userPending: { count: number; topItem?: string };
   /** 자가증강 cycle 진척 — 코어 promotion/revert 카운트 (7d). */
@@ -228,9 +231,24 @@ export function gatherStatusBoardData(
   return {
     botHealth: gatherBotHealth(signals),
     latestFinding: gatherLatestFinding(memoRoot),
+    ownerPending: gatherOwnerPending(memoRoot),
     userPending: gatherUserPending(memoRoot, signals),
     evolution: gatherEvolution(memoRoot),
     ts: new Date(nowMs).toISOString(),
+  };
+}
+
+/**
+ * 사장 요청 대기 — owner-requests.jsonl 의 pending 건 (TASK-YB-031).
+ * topItem = 최신 요청 본문 1줄 (사장이 "그거 어떻게 됐지" 안 묻게 즉시 환기).
+ */
+function gatherOwnerPending(memoRoot: string): StatusBoardData['ownerPending'] {
+  if (!memoRoot) return { count: 0 };
+  const pending = pendingOwnerRequests(memoRoot);
+  if (pending.length === 0) return { count: 0 };
+  return {
+    count: pending.length,
+    topItem: `"${pending[0].text.slice(0, 80)}"`,
   };
 }
 
@@ -252,6 +270,13 @@ export function formatStatusBoard(data: StatusBoardData): string {
   lines.push('📊 **봇 상태** _(auto-update · 이거 1개만 보면 됨)_');
   lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push(`• **봇 작동**: ${data.botHealth.label}`);
+  // 사장 요청 = 본인이 남긴 것 → 최상단 가깝게 (묻힘 방지가 목적, TASK-YB-031).
+  if (data.ownerPending.count > 0) {
+    lines.push(`• 📌 **사장 요청 대기**: ${data.ownerPending.count}건`);
+    if (data.ownerPending.topItem) {
+      lines.push(`    ↳ ${data.ownerPending.topItem.slice(0, 200)}`);
+    }
+  }
   if (data.latestFinding) {
     const file = data.latestFinding.taskFile || '?';
     const head = (data.latestFinding.headline || '').replace(/^📜\s*/u, '');

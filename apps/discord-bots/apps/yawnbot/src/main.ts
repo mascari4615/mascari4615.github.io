@@ -314,6 +314,40 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+// TASK-YB-031: 사장(owner) 의 멘션/키워드 요청을 채널 무관하게 포착 → owner-requests.jsonl.
+// 일반 채널 요청이 agent-daemon "침묵 우선" 에 SKIP 되어 묻히던 근본 fix — board 의
+// 「사장 요청 대기」 로 즉시 환기 (사장이 "그거 어떻게 됐지" 다시 안 묻게).
+client.on('messageCreate', async (message) => {
+  try {
+    if (message.author.bot || !memoRepoPath) return;
+    if (!isOwner(message.author.id)) return;
+    const mentionedBot = !!client.user && message.mentions.has(client.user.id);
+    const { isOwnerRequest, captureOwnerRequest, stripRequestSignal } = await import(
+      './bot/owner-request.js'
+    );
+    if (!isOwnerRequest(message.content || '', mentionedBot)) return;
+    const text = stripRequestSignal(
+      message.content || '',
+      client.user ? `<@${client.user.id}>` : undefined,
+    );
+    if (!text) return;
+    const record = captureOwnerRequest(memoRepoPath, {
+      text,
+      author: message.author.username,
+      channelId: message.channelId,
+      messageId: message.id,
+    });
+    await message
+      .reply(`📌 요청 접수 — 봇 상태판 「사장 요청 대기」 에 올렸어요. \`${record.id}\``)
+      .catch(() => {});
+  } catch (e) {
+    console.error(
+      '[owner-request] 포착 실패',
+      e instanceof Error ? e.message : e,
+    );
+  }
+});
+
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 
