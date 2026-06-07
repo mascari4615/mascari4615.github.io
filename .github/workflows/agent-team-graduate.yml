@@ -62,7 +62,7 @@ jobs:
           set -euo pipefail
 
           pr=$(gh pr list --head "$HEAD_BRANCH" --state open \
-                --json number,isDraft,headRefName,headRefOid,comments --jq '.[0] // empty')
+                --json number,isDraft,headRefName,headRefOid --jq '.[0] // empty')
           if [ -z "$pr" ]; then
             echo "branch '$HEAD_BRANCH' 에 open PR 없음 — skip"; exit 0
           fi
@@ -71,7 +71,6 @@ jobs:
           isDraft=$(echo "$pr"   | jq -r '.isDraft')
           headRef=$(echo "$pr"   | jq -r '.headRefName')
           headOid=$(echo "$pr"   | jq -r '.headRefOid')
-          reviewed=$(echo "$pr"  | jq -r '[.comments[] | select(.body | contains("claude.yml § claude-pr-review"))] | length')
 
           # 가드 1 — Draft 만 졸업 대상 (ready = auto-merge.yml 담당)
           if [ "$isDraft" != "true" ]; then
@@ -82,12 +81,9 @@ jobs:
             feature/agent-team-*|fix/issue-*|feature/issue-*) ;;
             *) echo "PR #$num head '$headRef' = 화이트리스트 prefix 아님 — skip"; exit 0 ;;
           esac
-          # 가드 3 — claude-pr-review 리뷰 완료 (코멘트 푸터 존재)
-          if [ "$reviewed" -lt 1 ]; then
-            echo "PR #$num — claude-pr-review 코멘트 없음(리뷰 미완) — 상대 워크플로 완료 시 재평가, skip"
-            exit 0
-          fi
-          # 가드 4 — *현재 PR head commit* 에 verify green check-run (stale verify 자동 배제)
+          # 가드 3 (구 가드 4) — *현재 PR head commit* 에 verify green check-run (stale verify 자동 배제).
+          #   claude-pr-review 코멘트 가드 폐기 (KAR 2026-06-07): claude.yml 이 review 코멘트를
+          #   안 남겨 영구 데드락 → Draft PR 적층. verify(master invariant) green 이 단일 품질 게이트.
           verify_ok=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
             --jq '[.check_runs[] | select(.name=="verify (master invariant)" and .conclusion=="success")] | length')
           if [ "${verify_ok:-0}" -lt 1 ]; then
@@ -95,6 +91,6 @@ jobs:
             exit 0
           fi
 
-          echo "PR #$num: verify green + reviewed + 화이트리스트 prefix Draft → 졸업 (ready + squash merge)"
+          echo "PR #$num: verify green + 화이트리스트 prefix Draft → 졸업 (ready + squash merge)"
           gh pr ready "$num"
           gh pr merge "$num" --squash --delete-branch
