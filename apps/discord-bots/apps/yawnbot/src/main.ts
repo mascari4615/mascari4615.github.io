@@ -351,6 +351,35 @@ client.on('messageCreate', async (message) => {
       messageId: message.id,
     });
 
+    // YB-033: 도메인 TASK seed 자동 등록 (write 동기·빠름 + push 백그라운드로 봇 응답 지연 회피).
+    let taskId: string | null = null;
+    try {
+      const { writeOwnerRequestTask } = await import('./bot/owner-request-task.js');
+      const task = writeOwnerRequestTask(memoRepoPath, domain, text, record.id);
+      if (task) {
+        taskId = task.id;
+        void import('./services/memo-push.js')
+          .then(({ commitAndPushMemoFile }) =>
+            commitAndPushMemoFile(
+              process.env,
+              task.absPath,
+              `seed(${task.id}): 디스코드 사장 요청 자동 등록 (YB-033)`,
+            ),
+          )
+          .catch((err) =>
+            console.error(
+              '[owner-request] TASK push 실패(로컬 생성됨, 다음 sync 반영)',
+              err instanceof Error ? err.message : err,
+            ),
+          );
+      }
+    } catch (err) {
+      console.error(
+        '[owner-request] TASK seed 실패',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     // 도메인 담당 에이전트가 *자기 스킨/이름* 으로 즉답+접수 (욘 봇 기본 보이스 X).
     // setCoreSpeak 와 동일 패턴(loadCoreDef→loadCard→speakAs→sendAsSkin), 채널만 요청 위치.
     const coreId = DOMAIN_AGENT[domain];
@@ -383,7 +412,9 @@ client.on('messageCreate', async (message) => {
           dir: skinCard.dir,
         } as unknown as CharacterCard;
         await sendAsSkin(ch, speakAs, {
-          content: `${utter}\n📌 \`${record.id}\` · 「사장 요청 대기」 등록`,
+          content:
+            `${utter}\n📌 \`${record.id}\` · 「사장 요청 대기」` +
+            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
         });
         answered = true;
       }
@@ -392,7 +423,10 @@ client.on('messageCreate', async (message) => {
     }
     if (!answered) {
       await message
-        .reply(`📌 요청 접수 — 「사장 요청 대기」 에 올렸어요. \`${record.id}\``)
+        .reply(
+          `📌 요청 접수 — 「사장 요청 대기」 에 올렸어요. \`${record.id}\`` +
+            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
+        )
         .catch(() => {});
     }
   } catch (e) {
