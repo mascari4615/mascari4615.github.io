@@ -121,6 +121,17 @@ if (existsSync('apps/blog/node_modules')) {
   console.log('[verify] ! apps/blog/node_modules 없음 — lint skip (정합: cd apps/blog && npm ci)');
 }
 
+// 5. apps/discord-bots/apps/yawnbot — build (tsc 타입체크). yawnbot 이 master
+//    invariant 밖이라 타입 깨는 PR 이 verify green 으로 통과 → prod 배포(deploy-
+//    discord-bots) 가 build red 로 며칠 막혀도 안 보이던 사고(2026-06-07: GitHubCommit
+//    중복 정의 + isTextBased send 가드, KL-091/096 머지가 노출) 재발 기계 차단.
+//    루트 node_modules(workspace hoist) 있으면 실행 — verify 가 karmolab build 하므로 사실상 상존.
+if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsconfig.json')) {
+  run('yawnbot build (tsc)', 'apps/discord-bots/apps/yawnbot', 'npx tsc -p tsconfig.json');
+} else {
+  console.log('[verify] ! yawnbot build skip — node_modules/tsconfig 부재 (CI deploy-discord-bots 가 정본 게이트)');
+}
+
 // 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
 
 console.log('\n[verify] OK — master invariant 통과');
