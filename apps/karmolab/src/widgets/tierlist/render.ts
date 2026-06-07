@@ -1,21 +1,21 @@
 (function () {
-    const T: any = (window.Tierlist = window.Tierlist || {});
+    const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
 
-    let editorContainer: any = null;
-    let listContainer: any = null;
-    let statsContainer: any = null;
+    let editorContainer: HTMLElement | null = null;
+    let listContainer: HTMLElement | null = null;
+    let statsContainer: HTMLElement | null = null;
     /** 편집기: 카드 클릭으로 삭제 */
     let editorDeleteMode = false;
     let editorDeleteModeEscBound = false;
     let lastQuickDeleteBlockedToastAt = 0;
-    function setContainers({ editor, list, stats }: any) {
+    function setContainers({ editor, list, stats }: { editor?: HTMLElement | null; list?: HTMLElement | null; stats?: HTMLElement | null }) {
         if (editor !== undefined) editorContainer = editor;
         if (list !== undefined) listContainer = list;
         if (stats !== undefined) statsContainer = stats;
     }
 
     /** index.json 행: 후보 풀(catalog) vs 사이트에 올린 순위판(karmo). 미표기는 카탈로그. */
-    function publishedIndexGroup(it: any) {
+    function publishedIndexGroup(it: TlPublishedIndexItem): string {
         const g = String(it?.tierlistGroup ?? it?.group ?? '')
             .toLowerCase()
             .trim();
@@ -28,29 +28,31 @@
         try {
             if (typeof Toolbox !== 'undefined' && Toolbox.switchPage && Toolbox.switchTab) {
                 Toolbox.switchPage('tierlist', { pushHistory: false });
-                (Toolbox.switchTab as any)('tl-edit');
+                Toolbox.switchTab('tl-edit');
             }
         } catch (_) {}
     }
 
-    function optionsFromPublishedRows(rows: any, meta: any) {
+    function optionsFromPublishedRows(rows: TlPublishedIndexItem[], meta: TlCurrentMetaView): string {
         if (!rows.length) return '<option disabled>(항목 없음)</option>';
         return [...rows]
-            .sort((a: any, b: any) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
-            .map((it: any) => {
+            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .map((it) => {
                 const selected = T.state.isPublishedMode() && meta.url === it.url;
-                return `<option value="blog:${Toolbox.escapeHtml(it.url || '')}" ${selected ? 'selected' : ''}>${Toolbox.escapeHtml(it.title || it.id || 'tierlist')}</option>`;
+                const esc = Toolbox.escapeHtml ?? ((s: string) => s);
+                return `<option value="blog:${esc(it.url || '')}" ${selected ? 'selected' : ''}>${esc(it.title || it.id || 'tierlist')}</option>`;
             })
             .join('');
     }
 
-    async function buildListSelectorHtml(st: any, meta: any) {
+    async function buildListSelectorHtml(st: TlState, meta: TlCurrentMetaView): Promise<string> {
+        const esc = Toolbox.escapeHtml ?? ((s: string) => s);
         const localInst = Object.values(st.instances || {})
-            .sort((a: any, b: any) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
-            .map((l: any) => {
+            .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
+            .map((l) => {
                 const val = `local:${l.id}`;
                 const sel = !T.state.isPublishedMode() && l.id === st.currentInstanceId;
-                return `<option value="${Toolbox.escapeHtml(val)}" ${sel ? 'selected' : ''}>${Toolbox.escapeHtml(l.title || '(제목 없음)')}</option>`;
+                return `<option value="${esc(val)}" ${sel ? 'selected' : ''}>${esc(l.title || '(제목 없음)')}</option>`;
             }).join('');
         const localOptgroup = localInst
             ? `<optgroup label="로컬 순위">${localInst}</optgroup>`
@@ -60,9 +62,9 @@
         let karmoOpts = '<option disabled>(항목 없음)</option>';
         try {
             const publishedRows = await T.publish.getPublishedIndex();
-            const catalogRows: any[] = [];
-            const karmoRows: any[] = [];
-            publishedRows.forEach((it: any) => {
+            const catalogRows: TlPublishedIndexItem[] = [];
+            const karmoRows: TlPublishedIndexItem[] = [];
+            publishedRows.forEach((it) => {
                 (publishedIndexGroup(it) === 'karmo' ? karmoRows : catalogRows).push(it);
             });
             catalogOpts = optionsFromPublishedRows(catalogRows, meta);
@@ -80,8 +82,9 @@
     }
 
     function bindListSelectChange() {
-        editorContainer.querySelector('#tl-list-select')?.addEventListener('change', async (e: any) => {
-            const v = String(e.target.value || '');
+        editorContainer?.querySelector('#tl-list-select')?.addEventListener('change', async (e) => {
+            const target = e.target as HTMLSelectElement | null;
+            const v = String(target?.value || '');
             if (v.startsWith('local:')) {
                 const id = v.slice('local:'.length);
                 T.state.switchToInstance(id);
@@ -92,7 +95,7 @@
                 const rel = v.slice('blog:'.length);
                 try {
                     const items = await T.publish.getPublishedIndex();
-                    const row = items.find((x: any) => x.url === rel);
+                    const row = items.find((x) => x.url === rel);
                     const g = row ? publishedIndexGroup(row) : 'catalog';
                     await T.publish.openPublishedDirect(rel, {
                         id: row?.id || '',
@@ -100,33 +103,34 @@
                         url: rel,
                         tierlistGroup: g === 'karmo' ? 'karmo' : 'catalog',
                     });
-                } catch (err) { Toolbox.showToast('사이트 데이터 열기 실패', 'error', err); }
+                } catch (err) { Toolbox.showToast?.('사이트 데이터 열기 실패', 'error', err); }
             }
         });
     }
 
     async function renderEditor() {
         if (!editorContainer) return;
+        const esc = Toolbox.escapeHtml ?? ((s: string) => s);
 
         const st = T.state.getState();
         const meta = T.state.currentMeta();
 
         if (T.state.isPublishedCatalogMode()) {
             const snap = T.state.getPublishedCatalogSnapshot();
-            const d = snap?.data || {};
+            const d = snap?.data || {} as TlPublishedData;
             const items = d.items || {};
             const fileImages = d.images || {};
-            const keys = Object.values(items).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
+            const keys = Object.values(items).filter((i) => i.imageKey).map((i) => i.imageKey as string);
             const dbMap = await T.db.getMany(keys);
 
-            function cardHtmlCatalog(itemId: any) {
+            function cardHtmlCatalog(itemId: string): string {
                 const item = items[itemId];
                 if (!item) return '';
                 const imgData = item.imageKey ? (fileImages[item.imageKey] || dbMap[item.imageKey]) : null;
                 const inner = imgData
-                    ? `<img src="${imgData}" alt="${Toolbox.escapeHtml(item.name || '')}">`
-                    : `<div class="tl-item-text">${Toolbox.escapeHtml(item.name || '?')}</div>`;
-                const nameTag = item.name ? `<div class="tl-item-name">${Toolbox.escapeHtml(item.name)}</div>` : '';
+                    ? `<img src="${imgData}" alt="${esc(item.name || '')}">`
+                    : `<div class="tl-item-text">${esc(item.name || '?')}</div>`;
+                const nameTag = item.name ? `<div class="tl-item-name">${esc(item.name)}</div>` : '';
                 return `<div class="tl-item tl-item--static" data-item-id="${itemId}">${inner}${nameTag}</div>`;
             }
 
@@ -154,10 +158,10 @@
             editorContainer.querySelector('#tl-fork-catalog')?.addEventListener('click', async () => {
                 try {
                     await T.publish.forkPublishedCatalogToLocal();
-                    Toolbox.showToast('새 순위 인스턴스를 만들었어요');
+                    Toolbox.showToast?.('새 순위 인스턴스를 만들었어요');
                     await renderAll();
                 } catch (err) {
-                    Toolbox.showToast('만들기 실패', 'error', err);
+                    Toolbox.showToast?.('만들기 실패', 'error', err);
                 }
             });
             editorContainer.querySelector('#tl-btn-export-json')?.addEventListener('click', () => T.publish.showJsonPreview());
@@ -172,7 +176,7 @@
                 <div>열린 순위 인스턴스가 없습니다</div>
                 <div style="margin-top:12px;"><button class="tl-btn tl-btn-primary" id="tl-empty-create">새 순위 만들기</button></div>
             </div></div>`;
-            editorContainer.querySelector('#tl-empty-create')?.addEventListener('click', T.dialogs.showNewListDialog);
+            editorContainer.querySelector('#tl-empty-create')?.addEventListener('click', () => T.dialogs.showNewListDialog?.());
             return;
         }
 
@@ -187,51 +191,51 @@
             } catch (_) {}
         });
 
-        const allImageKeys = Object.values(list.items || {}).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
+        const allImageKeys = Object.values(list.items || {}).filter((i) => i.imageKey).map((i) => i.imageKey as string);
         const imgMap = await T.db.getMany(allImageKeys);
         const embeddedImages = T.state.getPublishedEmbeddedImages();
 
-        function itemUserLabelsHtml(item: any) {
-            const defs = list.userLabels || {};
+        function itemUserLabelsHtml(item: TlItem): string {
+            const defs = list!.userLabels || {};
             const ids = item.userLabelIds || [];
             if (!ids.length) return '';
             const maxShow = 3;
             const shown = ids.slice(0, maxShow);
             const more = ids.length - shown.length;
-            const pills = [];
-            shown.forEach((lid: any) => {
+            const pills: string[] = [];
+            shown.forEach((lid) => {
                 const d = defs[lid];
                 if (!d) return;
-                const bg = Toolbox.escapeHtml(d.color || '#666');
-                const nm = Toolbox.escapeHtml(d.name || '');
+                const bg = esc(d.color || '#666');
+                const nm = esc(d.name || '');
                 pills.push(`<span class="tl-item-userlabel" style="background:${bg}" title="${nm}">${nm}</span>`);
             });
             if (more > 0) {
-                const rest = ids.slice(maxShow).map((lid: any) => defs[lid]?.name || lid).join(', ');
-                pills.push(`<span class="tl-item-userlabel tl-item-userlabel--more" title="${Toolbox.escapeHtml(rest)}">+${more}</span>`);
+                const rest = ids.slice(maxShow).map((lid) => defs[lid]?.name || lid).join(', ');
+                pills.push(`<span class="tl-item-userlabel tl-item-userlabel--more" title="${esc(rest)}">+${more}</span>`);
             }
             return pills.length ? `<div class="tl-item-userlabels">${pills.join('')}</div>` : '';
         }
 
-        function itemOriginBadge(item: any) {
+        function itemOriginBadge(item: TlItem | undefined): string {
             if (!item || (item.tlOrigin !== 'custom' && !item.tlEdited)) return '';
             const isAdd = item.tlOrigin === 'custom';
             const label = isAdd ? '추가' : '수정';
             const tip = isAdd ? '직접 추가한 항목입니다.' : '후보 풀에서 가져온 뒤 이름 등을 바꾼 항목입니다.';
             const cls = isAdd ? 'tl-item-badge tl-item-badge--add' : 'tl-item-badge tl-item-badge--edit';
-            return `<span class="${cls}" title="${Toolbox.escapeHtml(tip)}">${Toolbox.escapeHtml(label)}</span>`;
+            return `<span class="${cls}" title="${esc(tip)}">${esc(label)}</span>`;
         }
 
-        function cardHtml(itemId: any) {
-            const item = list.items[itemId];
+        function cardHtml(itemId: string): string {
+            const item = list!.items[itemId];
             if (!item) return '';
             const imgData = item.imageKey
                 ? (embeddedImages[item.imageKey] || imgMap[item.imageKey])
                 : null;
             const inner = imgData
-                ? `<img src="${imgData}" alt="${Toolbox.escapeHtml(item.name || '')}">`
-                : `<div class="tl-item-text">${Toolbox.escapeHtml(item.name || '?')}</div>`;
-            const nameTag = item.name ? `<div class="tl-item-name">${Toolbox.escapeHtml(item.name)}</div>` : '';
+                ? `<img src="${imgData}" alt="${esc(item.name || '')}">`
+                : `<div class="tl-item-text">${esc(item.name || '?')}</div>`;
+            const nameTag = item.name ? `<div class="tl-item-name">${esc(item.name)}</div>` : '';
             return `<div class="tl-item" data-item-id="${itemId}">${itemOriginBadge(item)}${itemUserLabelsHtml(item)}${inner}${nameTag}</div>`;
         }
 
@@ -244,10 +248,10 @@
         const localBadge = !isPublished && list ? '<span class="tl-badge tl-badge-local">로컬 순위</span>' : '';
         const wrapClass = `${isPublished ? 'tl-wrap tl-wrap--embedded' : 'tl-wrap'} tl-wrap--toc-dock`;
 
-        const tocChips = `${(list.tiers || []).map((tier: any) => {
-            const col = Toolbox.escapeHtml(tier.color || '#ccc');
-            const lab = Toolbox.escapeHtml(tier.label || '?');
-            const tid = Toolbox.escapeHtml(tier.id);
+        const tocChips = `${(list.tiers || []).map((tier) => {
+            const col = esc(tier.color || '#ccc');
+            const lab = esc(tier.label || '?');
+            const tid = esc(tier.id);
             return `<button type="button" class="tl-dropzone tl-toc-chip" data-tier-id="${tid}" data-toc-drop="1" style="background:${col}" title="${lab} 티어 맨 뒤로">${lab}</button>`;
         }).join('')}
                 <button type="button" class="tl-dropzone tl-toc-chip tl-toc-pool" data-tier-id="_pool" data-toc-drop="1" title="미배치 풀 맨 뒤로">미배치</button>`;
@@ -271,10 +275,10 @@
             </div>
             <div class="tl-board" id="tl-editor-board">`;
 
-        (list.tiers || []).forEach((tier: any) => {
+        (list.tiers || []).forEach((tier) => {
             const rowItems = (list.rankings?.[tier.id] || []).map(cardHtml).join('');
             html += `<div class="tl-row">
-                <div class="tl-label" style="background:${tier.color};color:#000;">${Toolbox.escapeHtml(tier.label)}</div>
+                <div class="tl-label" style="background:${tier.color};color:#000;">${esc(tier.label)}</div>
                 <div class="tl-dropzone" data-tier-id="${tier.id}">${rowItems}</div>
             </div>`;
         });
@@ -289,38 +293,41 @@
 
         editorContainer.innerHTML = html;
 
-        const wrap = editorContainer.querySelector('.tl-wrap');
+        const wrap = editorContainer.querySelector('.tl-wrap') as HTMLElement | null;
+        if (!wrap) return;
         if (editorDeleteMode) wrap.classList.add('tl-delete-mode');
 
-        function toastTierlistDrop(itemId: any, tierId: any, insertIdx: any) {
-            const item = list.items[itemId];
+        function toastTierlistDrop(itemId: string, tierId: string | undefined, insertIdx: number) {
+            const item = list!.items[itemId];
             const raw = String(item?.name || '').trim();
             const disp = raw.length > 30 ? raw.slice(0, 27) + '…' : (raw || '이름 없음');
             const tocAppend = Number(insertIdx) >= 999999;
-            let dest;
+            let dest: string;
             if (tierId === '_pool') {
                 dest = tocAppend ? '미배치 풀 맨 뒤' : '미배치';
             } else {
-                const t = (list.tiers || []).find((x: any) => x.id === tierId);
+                const t = (list!.tiers || []).find((x) => x.id === tierId);
                 const lab = String(t?.label || '').trim() || '티어';
                 dest = tocAppend ? `${lab} 맨 뒤` : lab;
             }
-            Toolbox.showToast(`「${disp}」→ ${dest}`);
+            Toolbox.showToast?.(`「${disp}」→ ${dest}`);
         }
 
         T.dnd.initDnD(wrap, {
-            onDrop: ({ itemId, tierId, insertIdx }: any) => {
-                if (T.state.moveItem(itemId, tierId, insertIdx)) toastTierlistDrop(itemId, tierId, insertIdx);
+            onDrop: ({ itemId, tierId, insertIdx }) => {
+                if (tierId && T.state.moveItem(itemId, tierId, insertIdx)) toastTierlistDrop(itemId, tierId, insertIdx);
                 renderAll();
             },
-            shouldBlockDragStart(e: any) {
+            shouldBlockDragStart(e) {
                 return editorDeleteMode || !!(e.ctrlKey || e.metaKey);
             },
         });
 
-        wrap.querySelector('.tl-toc')?.addEventListener('click', (e: any) => {
-            const chip = e.target.closest('.tl-toc-chip');
-            if (!chip || e.button !== 0) return;
+        wrap.querySelector('.tl-toc')?.addEventListener('click', (e) => {
+            const me = e as MouseEvent;
+            const target = me.target as Element | null;
+            const chip = target?.closest('.tl-toc-chip');
+            if (!chip || me.button !== 0) return;
             const tid = chip.getAttribute('data-tier-id');
             if (!tid) return;
             if (tid === '_pool') {
@@ -328,32 +335,34 @@
                 return;
             }
             const board = wrap.querySelector('#tl-editor-board');
-            const dz = board && [...board.querySelectorAll('.tl-dropzone[data-tier-id]')].find((z: any) => z.getAttribute('data-tier-id') === tid && !z.classList.contains('tl-toc-chip'));
+            const dz = board && [...board.querySelectorAll('.tl-dropzone[data-tier-id]')].find((z) => z.getAttribute('data-tier-id') === tid && !z.classList.contains('tl-toc-chip'));
             dz?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
 
         wrap.addEventListener(
             'click',
-            (e: any) => {
-                const itemEl = e.target.closest('.tl-item');
+            (e) => {
+                const me = e as MouseEvent;
+                const target = me.target as Element | null;
+                const itemEl = target?.closest('.tl-item') as HTMLElement | null;
                 if (!itemEl || itemEl.classList.contains('tl-item--static')) return;
                 const itemId = itemEl.dataset.itemId;
                 if (!itemId) return;
-                const useDelete = editorDeleteMode || e.ctrlKey || e.metaKey;
+                const useDelete = editorDeleteMode || me.ctrlKey || me.metaKey;
                 if (!useDelete) return;
-                const item = list.items[itemId];
+                const item = list!.items[itemId];
                 if (item?.tlOrigin !== 'custom') {
                     const now = Date.now();
                     if (now - lastQuickDeleteBlockedToastAt > 2000) {
                         lastQuickDeleteBlockedToastAt = now;
-                        Toolbox.showToast('풀 출처 카드는 삭제할 수 없어요. 직접 추가한 카드만 삭제 모드·Ctrl+클릭으로 지울 수 있어요.', 'error');
+                        Toolbox.showToast?.('풀 출처 카드는 삭제할 수 없어요. 직접 추가한 카드만 삭제 모드·Ctrl+클릭으로 지울 수 있어요.', 'error');
                     }
                     return;
                 }
-                e.preventDefault();
-                e.stopPropagation();
+                me.preventDefault();
+                me.stopPropagation();
                 if (!T.state.removeItem(itemId)) {
-                    Toolbox.showToast('후보 풀 카드는 삭제할 수 없어요.', 'error');
+                    Toolbox.showToast?.('후보 풀 카드는 삭제할 수 없어요.', 'error');
                     return;
                 }
                 renderAll();
@@ -363,53 +372,56 @@
 
         bindListSelectChange();
 
-        editorContainer.querySelector('#tl-btn-tiers')?.addEventListener('click', T.dialogs.showTierSettingsDialog);
-        editorContainer.querySelector('#tl-btn-userlabels')?.addEventListener('click', T.dialogs.showUserLabelsManagerDialog);
-        editorContainer.querySelector('#tl-btn-add')?.addEventListener('click', T.dialogs.showAddItemDialog);
+        editorContainer.querySelector('#tl-btn-tiers')?.addEventListener('click', () => T.dialogs.showTierSettingsDialog?.());
+        editorContainer.querySelector('#tl-btn-userlabels')?.addEventListener('click', () => T.dialogs.showUserLabelsManagerDialog?.());
+        editorContainer.querySelector('#tl-btn-add')?.addEventListener('click', () => T.dialogs.showAddItemDialog?.());
         editorContainer.querySelector('#tl-btn-delete-mode')?.addEventListener('click', () => {
             editorDeleteMode = !editorDeleteMode;
             renderAll();
         });
-        editorContainer.querySelector('#tl-btn-export-img')?.addEventListener('click', T.publish.exportAsImage);
+        editorContainer.querySelector('#tl-btn-export-img')?.addEventListener('click', () => T.publish.exportAsImage());
         editorContainer.querySelector('#tl-btn-export-json')?.addEventListener('click', () => T.publish.showJsonPreview());
 
-        wrap.addEventListener('contextmenu', (e: any) => {
-            const itemEl = e.target.closest('.tl-item');
+        wrap.addEventListener('contextmenu', (e) => {
+            const me = e as MouseEvent;
+            const target = me.target as Element | null;
+            const itemEl = target?.closest('.tl-item') as HTMLElement | null;
             if (!itemEl) return;
-            e.preventDefault();
+            me.preventDefault();
             const itemId = itemEl.dataset.itemId;
-            const menu: any[] = [
-                { label: '편집', action: () => T.dialogs.showEditItemDialog(itemId) },
-                { label: '라벨…', action: () => T.dialogs.showAssignUserLabelsDialog(itemId) },
+            if (!itemId) return;
+            const menu: Array<{ label: string; danger?: boolean; action: () => void } | 'sep'> = [
+                { label: '편집', action: () => T.dialogs.showEditItemDialog?.(itemId) },
+                { label: '라벨…', action: () => T.dialogs.showAssignUserLabelsDialog?.(itemId) },
             ];
-            if (T.state.canResetItemFromPool(list, itemId)) {
+            if (T.state.canResetItemFromPool(list!, itemId)) {
                 menu.push({
                     label: '수정 초기화',
                     action: () => {
-                        T.publish.resetItemToCatalogDefault(itemId).then((ok: any) => { if (ok) renderAll(); });
+                        T.publish.resetItemToCatalogDefault(itemId).then((ok) => { if (ok) renderAll(); });
                     },
                 });
             }
-            if (T.state.isItemRemovable(list, itemId)) {
+            if (T.state.isItemRemovable(list!, itemId)) {
                 menu.push('sep');
                 menu.push({
                     label: '삭제',
                     danger: true,
                     action: () => {
                         if (!T.state.removeItem(itemId)) {
-                            Toolbox.showToast('삭제할 수 없어요.', 'error');
+                            Toolbox.showToast?.('삭제할 수 없어요.', 'error');
                             return;
                         }
                         renderAll();
                     },
                 });
             }
-            T.ui.showContextMenu(e.clientX, e.clientY, menu);
+            T.ui.showContextMenu(me.clientX, me.clientY, menu);
         });
 
         if (!editorDeleteModeEscBound) {
             editorDeleteModeEscBound = true;
-            document.addEventListener('keydown', (ev: any) => {
+            document.addEventListener('keydown', (ev) => {
                 if (ev.key !== 'Escape' || !editorDeleteMode) return;
                 editorDeleteMode = false;
                 renderAll();
@@ -419,6 +431,7 @@
 
     function renderListTab() {
         if (!listContainer) return;
+        const esc = Toolbox.escapeHtml ?? ((s: string) => s);
         const st = T.state.getState();
         const meta = T.state.currentMeta();
 
@@ -450,16 +463,16 @@
 
         listContainer.innerHTML = html;
 
-        listContainer.querySelector('#tl-list-new-cat')?.addEventListener('click', T.dialogs.showNewCatalogDialog);
-        listContainer.querySelector('#tl-list-new')?.addEventListener('click', T.dialogs.showNewListDialog);
-        listContainer.querySelector('#tl-list-import')?.addEventListener('click', T.publish.importFromJSONFilePicker);
+        listContainer.querySelector('#tl-list-new-cat')?.addEventListener('click', () => T.dialogs.showNewCatalogDialog?.());
+        listContainer.querySelector('#tl-list-new')?.addEventListener('click', () => T.dialogs.showNewListDialog?.());
+        listContainer.querySelector('#tl-list-import')?.addEventListener('click', () => T.publish.importFromJSONFilePicker());
 
         const gridEmbedCatalog = listContainer.querySelector('#tl-grid-embed-catalog');
         const gridEmbedKarmo = listContainer.querySelector('#tl-grid-embed-karmo');
         const gridLocalPools = listContainer.querySelector('#tl-grid-local-pools');
         const instGrid = listContainer.querySelector('#tl-grid-instances');
 
-        async function embedIndexCardHtml(it: any) {
+        async function embedIndexCardHtml(it: TlPublishedIndexItem): Promise<string> {
             const title = it.title || it.id || 'tierlist';
             const rel = it.url || '';
             const grp = publishedIndexGroup(it);
@@ -469,30 +482,30 @@
                 try { countLine = await T.publish.getPublishedPreviewCountLine(rel); } catch (_) { /* 무시 */ }
             }
             const metaLine = countLine
-                ? `${Toolbox.escapeHtml(countLine)} · ${Toolbox.escapeHtml(it.updatedAt || '—')}`
-                : `index.json · ${Toolbox.escapeHtml(it.updatedAt || '—')}`;
+                ? `${esc(countLine)} · ${esc(it.updatedAt || '—')}`
+                : `index.json · ${esc(it.updatedAt || '—')}`;
             const pillClass = grp === 'karmo' ? 'tl-pill-karmo' : 'tl-pill-catalog';
             const pillLabel = grp === 'karmo' ? 'Karmo 순위' : '카탈로그';
             const karmoCls = grp === 'karmo' ? ' tl-list-card-embed--karmo' : '';
-            return `<div class="tl-list-card tl-list-card-embed${karmoCls}${activeEmbed ? ' active' : ''}" data-embed-url="${Toolbox.escapeHtml(rel)}" data-embed-title="${Toolbox.escapeHtml(title)}" data-embed-id="${Toolbox.escapeHtml(it.id || '')}" data-embed-group="${Toolbox.escapeHtml(grp)}">
+            return `<div class="tl-list-card tl-list-card-embed${karmoCls}${activeEmbed ? ' active' : ''}" data-embed-url="${esc(rel)}" data-embed-title="${esc(title)}" data-embed-id="${esc(it.id || '')}" data-embed-group="${esc(grp)}">
                 <div class="tl-list-pill-row"><span class="tl-pill ${pillClass}">${pillLabel}</span></div>
-                <div class="tl-list-card-title">${Toolbox.escapeHtml(title)}</div>
+                <div class="tl-list-card-title">${esc(title)}</div>
                 <div class="tl-list-card-meta">${metaLine}</div>
             </div>`;
         }
 
         (async () => {
             let blogErr = false;
-            let blogItems = [];
+            let blogItems: TlPublishedIndexItem[] = [];
             try {
                 blogItems = await T.publish.getPublishedIndex();
             } catch (_) {
                 blogErr = true;
             }
 
-            const catalogItems: any[] = [];
-            const karmoItems: any[] = [];
-            blogItems.forEach((it: any) => {
+            const catalogItems: TlPublishedIndexItem[] = [];
+            const karmoItems: TlPublishedIndexItem[] = [];
+            blogItems.forEach((it) => {
                 (publishedIndexGroup(it) === 'karmo' ? karmoItems : catalogItems).push(it);
             });
 
@@ -512,14 +525,14 @@
                 }
             }
 
-            const catalogs = Object.values(st.catalogs || {}).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            const catalogs = Object.values(st.catalogs || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
             let catHtml = '';
-            catalogs.forEach((c: any) => {
+            catalogs.forEach((c) => {
                 const n = Object.keys(c.items || {}).length;
                 const date = new Date(c.updatedAt || Date.now());
-                catHtml += `<div class="tl-list-card tl-list-card-catalog" data-catalog-id="${Toolbox.escapeHtml(c.id)}">
+                catHtml += `<div class="tl-list-card tl-list-card-catalog" data-catalog-id="${esc(c.id)}">
                     <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">로컬 후보 풀</span></div>
-                    <div class="tl-list-card-title">${Toolbox.escapeHtml(c.title || '(이름 없음)')}</div>
+                    <div class="tl-list-card-title">${esc(c.title || '(이름 없음)')}</div>
                     <div class="tl-list-card-meta">총 ${n}개 · ${date.toLocaleDateString()} · 클릭 시 새 순위 생성</div>
                 </div>`;
             });
@@ -538,16 +551,16 @@
                 gridLocalPools.innerHTML = catHtml || emptyLocal;
             }
 
-            const instances = Object.values(st.instances || {}).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
+            const instances = Object.values(st.instances || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
             let instHtml = '';
-            instances.forEach((inst: any) => {
+            instances.forEach((inst) => {
                 const ic = Object.keys(inst.items || {}).length;
-                const rc = Object.entries(inst.rankings || {}).filter(([k]: any) => k !== '_pool').reduce((s: any, [, arr]: any) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+                const rc = Object.entries(inst.rankings || {}).filter(([k]) => k !== '_pool').reduce((s, [, arr]) => s + (Array.isArray(arr) ? arr.length : 0), 0);
                 const date = new Date(inst.updatedAt || Date.now());
                 const active = !T.state.isPublishedMode() && inst.id === st.currentInstanceId;
-                instHtml += `<div class="tl-list-card tl-list-card-instance${active ? ' active' : ''}" data-instance-id="${Toolbox.escapeHtml(inst.id)}">
+                instHtml += `<div class="tl-list-card tl-list-card-instance${active ? ' active' : ''}" data-instance-id="${esc(inst.id)}">
                     <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">순위</span></div>
-                    <div class="tl-list-card-title">${Toolbox.escapeHtml(inst.title || '(제목 없음)')}</div>
+                    <div class="tl-list-card-title">${esc(inst.title || '(제목 없음)')}</div>
                     <div class="tl-list-card-meta">아이템 ${ic} · 배치 ${rc} · ${date.toLocaleDateString()}</div>
                 </div>`;
             });
@@ -557,7 +570,7 @@
                 instGrid.innerHTML = instHtml;
             }
 
-            listContainer.querySelectorAll('.tl-list-card-embed[data-embed-url]').forEach((card: any) => {
+            listContainer!.querySelectorAll<HTMLElement>('.tl-list-card-embed[data-embed-url]').forEach((card) => {
                 card.addEventListener('click', async () => {
                     const rel = card.getAttribute('data-embed-url');
                     if (!rel) return;
@@ -571,34 +584,35 @@
                             url: rel,
                             tierlistGroup: grp === 'karmo' ? 'karmo' : 'catalog',
                         });
-                        Toolbox.showToast('사이트 JSON을 열었어요');
+                        Toolbox.showToast?.('사이트 JSON을 열었어요');
                         await renderAll();
                         goToTierlistEditTab();
                     } catch (err) {
-                        Toolbox.showToast('불러오기 실패', 'error', err);
+                        Toolbox.showToast?.('불러오기 실패', 'error', err);
                     }
                 });
             });
 
-            gridLocalPools?.querySelectorAll('.tl-list-card-catalog[data-catalog-id]').forEach((card: any) => {
+            gridLocalPools?.querySelectorAll<HTMLElement>('.tl-list-card-catalog[data-catalog-id]').forEach((card) => {
                 card.addEventListener('click', async () => {
                     const cid = card.dataset.catalogId;
                     if (!cid) return;
                     const c = T.state.getState().catalogs[cid];
                     if (!c || !Object.keys(c.items || {}).length) {
-                        Toolbox.showToast('후보가 비어 있어요. 우클릭으로 항목을 추가하세요.', 'error');
+                        Toolbox.showToast?.('후보가 비어 있어요. 우클릭으로 항목을 추가하세요.', 'error');
                         return;
                     }
                     T.state.createInstanceFromLocalCatalog(cid);
-                    Toolbox.showToast('새 순위 인스턴스를 만들었어요');
+                    Toolbox.showToast?.('새 순위 인스턴스를 만들었어요');
                     await renderAll();
                     goToTierlistEditTab();
                 });
-                card.addEventListener('contextmenu', (e: any) => {
+                card.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     const cid = card.dataset.catalogId;
+                    if (!cid) return;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
-                        { label: '항목 추가', action: () => T.dialogs.showAddCatalogItemDialog(cid) },
+                        { label: '항목 추가', action: () => T.dialogs.showAddCatalogItemDialog?.(cid) },
                         {
                             label: '삭제',
                             danger: true,
@@ -606,14 +620,14 @@
                                 if (!confirm('이 후보 풀과 이미지를 삭제할까요?')) return;
                                 T.state.deleteCatalog(cid);
                                 void renderAll();
-                                Toolbox.showToast('후보 풀 삭제됨');
+                                Toolbox.showToast?.('후보 풀 삭제됨');
                             },
                         },
                     ]);
                 });
             });
 
-            instGrid?.querySelectorAll('.tl-list-card-instance[data-instance-id]').forEach((card: any) => {
+            instGrid?.querySelectorAll<HTMLElement>('.tl-list-card-instance[data-instance-id]').forEach((card) => {
                 card.addEventListener('click', async () => {
                     const iid = card.dataset.instanceId;
                     if (!iid) return;
@@ -621,16 +635,17 @@
                     await renderAll();
                     goToTierlistEditTab();
                 });
-                card.addEventListener('contextmenu', (e: any) => {
+                card.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     const iid = card.dataset.instanceId;
+                    if (!iid) return;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
                         {
                             label: '복제',
                             action: () => {
                                 T.state.duplicateList(iid);
                                 void renderAll().then(() => goToTierlistEditTab());
-                                Toolbox.showToast('복제됨');
+                                Toolbox.showToast?.('복제됨');
                             },
                         },
                         {
@@ -640,7 +655,7 @@
                                 if (!confirm('이 순위와 이미지를 삭제할까요?')) return;
                                 T.state.deleteList(iid);
                                 void renderAll().then(() => goToTierlistEditTab());
-                                Toolbox.showToast('삭제됨');
+                                Toolbox.showToast?.('삭제됨');
                             },
                         },
                     ]);
@@ -651,6 +666,7 @@
 
     function renderStats() {
         if (!statsContainer) return;
+        const esc = Toolbox.escapeHtml ?? ((s: string) => s);
         const bundles = T.state.iterAllInstances();
 
         if (!bundles.length) {
@@ -661,10 +677,10 @@
         let totalItems = 0, totalRanked = 0;
         const tierCounts: Record<string, { count: number; color: string }> = {};
 
-        bundles.forEach(({ list: l }: any) => {
+        bundles.forEach(({ list: l }) => {
             const itemCount = Object.keys(l.items || {}).length;
             totalItems += itemCount;
-            (l.tiers || []).forEach((t: any) => {
+            (l.tiers || []).forEach((t) => {
                 const count = (l.rankings?.[t.id] || []).length;
                 totalRanked += count;
                 const key = String(t.label || t.id || '?').toUpperCase();
@@ -673,7 +689,7 @@
             });
         });
 
-        const maxCount = Math.max(1, ...Object.values(tierCounts).map((v: any) => v.count));
+        const maxCount = Math.max(1, ...Object.values(tierCounts).map((v) => v.count));
 
         let html = `<div class="tl-stats">
             <div class="tl-stat-cards">
@@ -688,8 +704,8 @@
         for (const [label, { count, color }] of Object.entries(tierCounts)) {
             const pct = Math.round((count / maxCount) * 100);
             html += `<div class="tl-bar-row">
-                <div class="tl-bar-label" style="color:${Toolbox.escapeHtml(color)}">${Toolbox.escapeHtml(label)}</div>
-                <div class="tl-bar-track"><div class="tl-bar-fill" style="width:${pct}%;background:${Toolbox.escapeHtml(color)};"><span class="tl-bar-count">${count}</span></div></div>
+                <div class="tl-bar-label" style="color:${esc(color)}">${esc(label)}</div>
+                <div class="tl-bar-track"><div class="tl-bar-fill" style="width:${pct}%;background:${esc(color)};"><span class="tl-bar-count">${count}</span></div></div>
             </div>`;
         }
 
@@ -700,7 +716,7 @@
                     <thead><tr><th>출처</th><th>제목</th><th>카테고리</th><th>아이템</th><th>배치</th><th>최근 수정</th></tr></thead>
                     <tbody>`;
 
-        function sourceLabel(l: any) {
+        function sourceLabel(l: TlListInstance): string {
             const s = l.meta?.source || 'local';
             if (s === 'from-local-catalog') return '로컬 후보 풀';
             if (s === 'from-catalog') return '사이트 후보 풀';
@@ -710,13 +726,13 @@
             return s;
         }
 
-        bundles.sort((a: any, b: any) => (b.list.updatedAt || 0) - (a.list.updatedAt || 0)).forEach(({ list: l }: any) => {
+        bundles.sort((a, b) => (b.list.updatedAt || 0) - (a.list.updatedAt || 0)).forEach(({ list: l }) => {
             const ic = Object.keys(l.items || {}).length;
-            const rc = Object.entries(l.rankings || {}).filter(([k]: any) => k !== '_pool').reduce((s: any, [, arr]: any) => s + (Array.isArray(arr) ? arr.length : 0), 0);
+            const rc = Object.entries(l.rankings || {}).filter(([k]) => k !== '_pool').reduce((s, [, arr]) => s + (Array.isArray(arr) ? arr.length : 0), 0);
             html += `<tr>
-                <td>${Toolbox.escapeHtml(sourceLabel(l))}</td>
-                <td>${Toolbox.escapeHtml(l.title || '(제목 없음)')}</td>
-                <td>${Toolbox.escapeHtml(l.category || '-')}</td>
+                <td>${esc(sourceLabel(l))}</td>
+                <td>${esc(l.title || '(제목 없음)')}</td>
+                <td>${esc(l.category || '-')}</td>
                 <td>${ic}</td>
                 <td>${rc}</td>
                 <td>${new Date(l.updatedAt || Date.now()).toLocaleDateString()}</td>
@@ -742,4 +758,3 @@
         publishedIndexGroup,
     };
 })();
-
