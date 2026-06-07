@@ -1,10 +1,17 @@
 import { spawn, execFile } from 'child_process';
-import type { ChatInputCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, Message, MessageComponentInteraction, StringSelectMenuInteraction } from 'discord.js';
 import { ActionRowBuilder, EmbedBuilder, MessageFlags, StringSelectMenuBuilder } from 'discord.js';
 import { cursorRunnerScript, resolveCursorRepoDir } from '../paths';
 import { truncateDiscordDescription } from '@discord-bots/common';
 
 const CURSOR_RUNNER_PATH = cursorRunnerScript();
+
+interface CursorOption {
+  label?: unknown;
+  title?: unknown;
+  text?: unknown;
+  description?: unknown;
+}
 
 export function getCursorMaxPromptChars() {
   return parseInt(process.env.CURSOR_MAX_PROMPT_CHARS || '2000', 10);
@@ -17,37 +24,38 @@ export async function discordAnswerCursorQuestion(
   const params = payload.params || {};
   const raw = (params.options ?? params.choices ?? []) as unknown[];
   const lines = Array.isArray(raw) ? raw : [];
-  const selectOptions = lines.slice(0, 25).map((o, i) => {
+  const selectOptions: { label: string; value: string; description?: string }[] = lines.slice(0, 25).map((o, i) => {
     if (typeof o === 'string') {
       return { label: o.slice(0, 100), value: String(i) };
     }
-    const label = String((o as any).label ?? (o as any).title ?? (o as any).text ?? `선택 ${i + 1}`).slice(0, 100);
-    const out: any = { label, value: String(i) };
-    if ((o as any).description != null) out.description = String((o as any).description).slice(0, 100);
-    return out;
+    const opt = o as CursorOption;
+    const label = String(opt.label ?? opt.title ?? opt.text ?? `선택 ${i + 1}`).slice(0, 100);
+    const entry: { label: string; value: string; description?: string } = { label, value: String(i) };
+    if (opt.description != null) entry.description = String(opt.description).slice(0, 100);
+    return entry;
   });
   if (selectOptions.length === 0) {
     return { cancelled: true };
   }
-  const heading = (params as any).title || (params as any).question || '에이전트 질문';
+  const heading = String(params['title'] ?? params['question'] ?? '에이전트 질문');
   const embed = new EmbedBuilder().setTitle('에이전트 질문').setDescription(truncateDiscordDescription(String(heading))).setColor(0x5865f2);
   const customId = `cursor_q_${String(payload.rpcId)}`;
-  const menu = new StringSelectMenuBuilder().setCustomId(customId).setPlaceholder('답을 선택하세요').addOptions(selectOptions as any);
-  const row = new ActionRowBuilder().addComponents(menu as any);
-  const reply: any = await (interaction as any).followUp({
+  const menu = new StringSelectMenuBuilder().setCustomId(customId).setPlaceholder('답을 선택하세요').addOptions(selectOptions);
+  const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu);
+  const reply = await interaction.followUp({
     embeds: [embed],
     components: [row],
     flags: MessageFlags.Ephemeral,
     fetchReply: true,
-  });
+  }) as Message;
   const uid = interaction.user.id;
   try {
     const comp = (await reply.awaitMessageComponent({
-      filter: (i: any): i is StringSelectMenuInteraction => i.user.id === uid && i.customId === customId,
+      filter: (i: MessageComponentInteraction): i is StringSelectMenuInteraction => i.user.id === uid && i.customId === customId,
       time: 600_000,
     })) as StringSelectMenuInteraction;
-    const idx = parseInt((comp as any).values[0], 10);
-    await (comp as any).update({ components: [] });
+    const idx = parseInt(comp.values[0], 10);
+    await comp.update({ components: [] });
     return { selectedIndex: idx };
   } catch {
     try {
