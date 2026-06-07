@@ -36,6 +36,7 @@ describe('formatStatusBoard — 3줄 핵심 + 펀쿨섹 합의 디자인', () =>
         headline: '📜 발의 (신프로젝트): 팀 전진 0 신호',
         ts: '2026-05-23T01:14:00Z',
       },
+      ownerPending: { count: 0 },
       userPending: { count: 0 },
       evolution: { promotedCount: 0, revertedCount: 0 },
       ts: '2026-05-23T01:14:00Z',
@@ -53,6 +54,7 @@ describe('formatStatusBoard — 3줄 핵심 + 펀쿨섹 합의 디자인', () =>
     const data: StatusBoardData = {
       botHealth: { status: 'ok', lastTickHrs: 0, label: '✓' },
       latestFinding: null,
+      ownerPending: { count: 0 },
       userPending: { count: 2, topItem: '워커 실패율 100%' },
       evolution: { promotedCount: 1, revertedCount: 0 },
       ts: '2026-05-23T01:14:00Z',
@@ -63,10 +65,27 @@ describe('formatStatusBoard — 3줄 핵심 + 펀쿨섹 합의 디자인', () =>
     expect(out).toContain('승격 1');
   });
 
+  it('사장 요청 대기 = 📌 라인 + 본문 (TASK-YB-031)', () => {
+    const data: StatusBoardData = {
+      botHealth: { status: 'ok', lastTickHrs: 0, label: '✓' },
+      latestFinding: null,
+      ownerPending: { count: 2, topItem: '"마도서 UI 좀 고쳐줘"' },
+      userPending: { count: 0 },
+      evolution: { promotedCount: 0, revertedCount: 0 },
+      ts: '2026-05-23T01:14:00Z',
+    };
+    const out = formatStatusBoard(data);
+    expect(out).toContain('📌');
+    expect(out).toContain('사장 요청 대기');
+    expect(out).toContain('2건');
+    expect(out).toContain('마도서 UI');
+  });
+
   it('finding 부재 = 「아직 발의 0건」 안내', () => {
     const data: StatusBoardData = {
       botHealth: { status: 'ok', lastTickHrs: 0, label: '✓' },
       latestFinding: null,
+      ownerPending: { count: 0 },
       userPending: { count: 0 },
       evolution: { promotedCount: 0, revertedCount: 0 },
       ts: '2026-05-23T01:14:00Z',
