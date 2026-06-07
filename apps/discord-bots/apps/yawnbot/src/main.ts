@@ -511,7 +511,7 @@ client.once('clientReady', async () => {
     if (channel && channel.isTextBased()) {
       const version = process.env.npm_package_version || '1.0.0';
       const greeting = gameData.getMessage('Server_Startup_Greeting', version);
-      await channel.send(greeting).catch((e: any) => console.error('[Startup] 인사 메시지 전송 실패:', e?.message ?? e));
+      await channel.send(greeting).catch((e: unknown) => console.error('[Startup] 인사 메시지 전송 실패:', e instanceof Error ? e.message : String(e)));
     }
   }
 
