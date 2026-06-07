@@ -108,46 +108,78 @@ export function pendingOwnerRequests(memoRoot: string): OwnerRequest[] {
     .sort((a, b) => b.ts.localeCompare(a.ts));
 }
 
-// ── LLM 자동 판정 (멘션/키워드 없는 평범한 대화 속 요청도 포착) ──────────────
-// 멘션/키워드 = fast path(비용 0). 그 외 owner 메시지 = LLM 이 "요청인가" 판정.
-// LLM 은 의존성 주입(generate fn)으로 받아 본 모듈은 karmolab-ai 비의존 = 순수.
+// ── 요청 판정 + 도메인 분류 (멘션/키워드 fast path + LLM) ────────────────────
+// 멘션/키워드 = fast path(요청 여부 즉시). 도메인은 LLM 이 판정 → 그 도메인 에이전트가
+// 자기 스킨으로 응답 (욘 봇 기본 보이스 X, 세계관 정합). LLM 은 generate fn 주입 = 순수.
 
-export type RequestClassifier = (text: string) => Promise<boolean>;
+export type RequestDomain = 'WM' | 'KL' | 'KAR' | 'YB' | 'general';
 
-/** generate(prompt)→텍스트 LLM 을 owner 요청 분류기로 래핑. */
-export function makeLlmClassifier(
+/** 도메인 → 응답 에이전트 coreId. owner 요청을 그 도메인 담당이 자기 캐릭터로 응대. */
+export const DOMAIN_AGENT: Record<RequestDomain, string> = {
+  WM: 'wm-scout', // 🧙 게임 발굴·경험
+  KL: 'kl-worker', // 🤖 KarmoLab 앱·웹
+  YB: 'echo', // 📣 yawnbot·디스코드
+  KAR: 'atlas', // 🛰 팀 인프라·조율
+  general: 'atlas', // 모호 = 조율자 디폴트
+};
+
+const ALL_DOMAINS: RequestDomain[] = ['WM', 'KL', 'KAR', 'YB', 'general'];
+
+export interface OwnerRequestClass {
+  isRequest: boolean;
+  domain: RequestDomain;
+}
+
+export type RequestClassifier = (text: string) => Promise<OwnerRequestClass>;
+
+/** generate(prompt)→텍스트 LLM 을 {요청여부 + 도메인} 분류기로 래핑. JSON 응답 파싱. */
+export function makeRequestClassifier(
   generate: (prompt: string) => Promise<string>,
 ): RequestClassifier {
-  return async (text: string): Promise<boolean> => {
+  return async (text: string): Promise<OwnerRequestClass> => {
     const prompt = [
-      '아래는 디스코드에서 사장(owner)이 보낸 메시지다.',
-      '이것이 봇/팀에게 무언가 해달라는 *요청·부탁·작업 지시*인지 판정하라.',
-      '단순 잡담·감탄·인사·정보성 질문·혼잣말 = 요청 아님.',
-      '오직 yes 또는 no 한 단어로만 답하라.',
+      '디스코드에서 사장(owner)이 보낸 메시지다. 두 가지를 판정해 JSON 으로만 답하라.',
+      '1) request: 봇/팀에게 뭔가 해달라는 요청·부탁·작업지시인가? (잡담·인사·정보질문=false)',
+      '2) domain: 요청 대상 — WM(게임) / KL(KarmoLab 앱·웹) / YB(디스코드 봇) / KAR(팀 인프라·자동화) / general(모호).',
+      '출력 예: {"request": true, "domain": "WM"}',
       '',
       `메시지: "${text.slice(0, 500)}"`,
     ].join('\n');
-    const raw = (await generate(prompt)).trim().toLowerCase();
-    return raw.startsWith('yes') || raw.startsWith('y') || raw.includes('요청');
+    try {
+      const raw = await generate(prompt);
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) return { isRequest: false, domain: 'general' };
+      const parsed = JSON.parse(match[0]) as { request?: unknown; domain?: unknown };
+      const domain = ALL_DOMAINS.includes(parsed.domain as RequestDomain)
+        ? (parsed.domain as RequestDomain)
+        : 'general';
+      return { isRequest: parsed.request === true, domain };
+    } catch {
+      return { isRequest: false, domain: 'general' };
+    }
   };
 }
 
 /**
- * owner 메시지가 요청인가 — fast path(멘션/키워드) 우선, 미매칭 시 LLM 판정.
- * classifier 없거나 메시지 너무 짧으면(<4) LLM skip = fast path 만 (비용·노이즈 가드).
+ * owner 메시지 분류 — fast path(멘션/키워드)면 요청 확정, 도메인은 LLM.
+ * classifier 없거나 너무 짧으면(<4) LLM skip → fast path 결과 + domain=general.
  */
-export async function isOwnerRequestSmart(
+export async function classifyOwnerRequest(
   content: string,
   mentionedBot: boolean,
   classifier?: RequestClassifier,
-): Promise<boolean> {
-  if (isOwnerRequest(content, mentionedBot)) return true;
+): Promise<OwnerRequestClass> {
+  const fast = isOwnerRequest(content, mentionedBot);
   const trimmed = (content || '').trim();
-  if (!classifier || trimmed.length < 4) return false;
+  if (!classifier || trimmed.length < 4) {
+    return { isRequest: fast, domain: 'general' };
+  }
   try {
-    return await classifier(trimmed);
+    const result = await classifier(trimmed);
+    // fast path 매칭이면 요청은 확정(true 보강), 도메인은 LLM 판정 사용.
+    return { isRequest: fast || result.isRequest, domain: result.domain };
   } catch {
-    return false;
+    return { isRequest: fast, domain: 'general' };
   }
 }
 
