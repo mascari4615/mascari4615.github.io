@@ -1474,7 +1474,7 @@ export function startAgentCadence(env: NodeJS.ProcessEnv): void {
   }
   // KAR-095: 서브 기능 toggle env 로 초기화 (default OFF = 安全 — prod.txt 에서 opt-in).
   // 이후 /관리자 {에이전트자동|워커자동|자기수술자동} 으로 런타임 override 가능.
-  workerAutoEnabled = env.AGENT_CADENCE_WORKER_ENABLED?.trim() !== '0';
+  workerAutoEnabled = env.AGENT_CADENCE_WORKER_ENABLED?.trim() === '1';
   surgeryAutoEnabled = env.AGENT_CADENCE_SURGERY_ENABLED?.trim() === '1';
   // cadenceAutoEnabled (dialogue/producer timer gate) = 에이전트자동 slash 전용;
   // 초기값 = true (dialogue env 는 quiet 경로로 반영 — runCadenceTickOnce 내부).
