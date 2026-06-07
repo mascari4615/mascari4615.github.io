@@ -322,10 +322,13 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !memoRepoPath) return;
     if (!isOwner(message.author.id)) return;
     const mentionedBot = !!client.user && message.mentions.has(client.user.id);
-    const { isOwnerRequest, captureOwnerRequest, stripRequestSignal } = await import(
-      './bot/owner-request.js'
-    );
-    if (!isOwnerRequest(message.content || '', mentionedBot)) return;
+    const { isOwnerRequestSmart, makeLlmClassifier, captureOwnerRequest, stripRequestSignal } =
+      await import('./bot/owner-request.js');
+    // 멘션/키워드 = fast path(LLM 0). 그 외 평범한 대화 = LLM 이 "요청?" 판정 (있을 때만).
+    const classifier = generativeText
+      ? makeLlmClassifier((prompt) => generativeText!.generateFromPrompt(prompt))
+      : undefined;
+    if (!(await isOwnerRequestSmart(message.content || '', mentionedBot, classifier))) return;
     const text = stripRequestSignal(
       message.content || '',
       client.user ? `<@${client.user.id}>` : undefined,

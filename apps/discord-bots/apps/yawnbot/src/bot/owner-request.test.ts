@@ -4,6 +4,9 @@ import os from 'os';
 import path from 'path';
 import {
   isOwnerRequest,
+  isOwnerRequestSmart,
+  makeLlmClassifier,
+  type RequestClassifier,
   stripRequestSignal,
   captureOwnerRequest,
   readOwnerRequests,
@@ -26,6 +29,47 @@ describe('isOwnerRequest — 멘션 또는 키워드 prefix', () => {
   it('멘션·키워드 없으면 일반 잡담 = 요청 아님', () => {
     expect(isOwnerRequest('그냥 잡담이야', false)).toBe(false);
     expect(isOwnerRequest('요청사항 없음', false)).toBe(false); // prefix 콜론 아님
+  });
+});
+
+describe('isOwnerRequestSmart — fast path(멘션/키워드) + LLM 판정', () => {
+  it('멘션/키워드 = LLM 없이 즉시 true, classifier 호출 안 함 (fast path)', async () => {
+    expect(await isOwnerRequestSmart('요청: x', false)).toBe(true);
+    expect(await isOwnerRequestSmart('아무거나', true)).toBe(true);
+    let called = false;
+    const spy: RequestClassifier = async () => {
+      called = true;
+      return true;
+    };
+    await isOwnerRequestSmart('요청: x', false, spy);
+    expect(called).toBe(false);
+  });
+  it('평범한 대화 = classifier 판정으로 포착 (LLM yes)', async () => {
+    const yes: RequestClassifier = async () => true;
+    const no: RequestClassifier = async () => false;
+    expect(await isOwnerRequestSmart('마도서 좀 고쳐주지', false, yes)).toBe(true);
+    expect(await isOwnerRequestSmart('오늘 날씨 좋다', false, no)).toBe(false);
+  });
+  it('classifier 없으면 평범한 대화 = false (멘션/키워드만)', async () => {
+    expect(await isOwnerRequestSmart('마도서 좀 고쳐주지', false)).toBe(false);
+  });
+  it('너무 짧은 메시지(<4) = LLM skip (비용·노이즈 가드)', async () => {
+    const yes: RequestClassifier = async () => true;
+    expect(await isOwnerRequestSmart('ㅇㅋ', false, yes)).toBe(false);
+  });
+  it('classifier throw = false (LLM 다운 시 안전)', async () => {
+    const boom: RequestClassifier = async () => {
+      throw new Error('llm down');
+    };
+    expect(await isOwnerRequestSmart('마도서 고쳐주지 좀', false, boom)).toBe(false);
+  });
+});
+
+describe('makeLlmClassifier — yes/no 파싱', () => {
+  it('yes → true, no → false', async () => {
+    expect(await makeLlmClassifier(async () => 'yes')('x')).toBe(true);
+    expect(await makeLlmClassifier(async () => 'No.')('x')).toBe(false);
+    expect(await makeLlmClassifier(async () => '  YES 요청맞음')('x')).toBe(true);
   });
 });
 

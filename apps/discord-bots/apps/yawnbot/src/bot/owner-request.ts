@@ -108,6 +108,49 @@ export function pendingOwnerRequests(memoRoot: string): OwnerRequest[] {
     .sort((a, b) => b.ts.localeCompare(a.ts));
 }
 
+// ── LLM 자동 판정 (멘션/키워드 없는 평범한 대화 속 요청도 포착) ──────────────
+// 멘션/키워드 = fast path(비용 0). 그 외 owner 메시지 = LLM 이 "요청인가" 판정.
+// LLM 은 의존성 주입(generate fn)으로 받아 본 모듈은 karmolab-ai 비의존 = 순수.
+
+export type RequestClassifier = (text: string) => Promise<boolean>;
+
+/** generate(prompt)→텍스트 LLM 을 owner 요청 분류기로 래핑. */
+export function makeLlmClassifier(
+  generate: (prompt: string) => Promise<string>,
+): RequestClassifier {
+  return async (text: string): Promise<boolean> => {
+    const prompt = [
+      '아래는 디스코드에서 사장(owner)이 보낸 메시지다.',
+      '이것이 봇/팀에게 무언가 해달라는 *요청·부탁·작업 지시*인지 판정하라.',
+      '단순 잡담·감탄·인사·정보성 질문·혼잣말 = 요청 아님.',
+      '오직 yes 또는 no 한 단어로만 답하라.',
+      '',
+      `메시지: "${text.slice(0, 500)}"`,
+    ].join('\n');
+    const raw = (await generate(prompt)).trim().toLowerCase();
+    return raw.startsWith('yes') || raw.startsWith('y') || raw.includes('요청');
+  };
+}
+
+/**
+ * owner 메시지가 요청인가 — fast path(멘션/키워드) 우선, 미매칭 시 LLM 판정.
+ * classifier 없거나 메시지 너무 짧으면(<4) LLM skip = fast path 만 (비용·노이즈 가드).
+ */
+export async function isOwnerRequestSmart(
+  content: string,
+  mentionedBot: boolean,
+  classifier?: RequestClassifier,
+): Promise<boolean> {
+  if (isOwnerRequest(content, mentionedBot)) return true;
+  const trimmed = (content || '').trim();
+  if (!classifier || trimmed.length < 4) return false;
+  try {
+    return await classifier(trimmed);
+  } catch {
+    return false;
+  }
+}
+
 /** 요청 처리완료 마킹 — 같은 id 로 addressed 레코드 append (append-wins). */
 export function markAddressed(memoRoot: string, id: string): boolean {
   const current = readOwnerRequests(memoRoot).find((record) => record.id === id);
