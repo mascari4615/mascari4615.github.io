@@ -3,14 +3,8 @@ import { EmbedBuilder, Status } from 'discord.js';
 import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
-import { isDigestCommit, handleDigestCommit } from '../services/digest-webhook';
+import { isDigestCommit, handleDigestCommit, type GitHubCommit } from '../services/digest-webhook';
 import { syncTaskStatusOnPrMerge } from '../services/task-status-sync';
-
-interface GitHubCommit {
-  id: string;
-  url: string;
-  message: string;
-}
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
   const app = express();
