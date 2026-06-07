@@ -209,7 +209,9 @@ declare global {
     escapeHtml?: (s: string) => string;
     formatTimestamp?: (ts: number | string | Date) => string;
     getToolMeta?: (id: string) => Record<string, unknown> | undefined;
-    switchPage?: (id: string) => void;
+    switchPage?: (id: string, opts?: { pushHistory?: boolean }) => void;
+    /** btn === 'string' → tabId 로 해석해 selector 로 해당 tab-btn 자동 매칭 (toolbox.ts:948). */
+    switchTab?: (btnOrTabId: HTMLElement | string, tabId?: string) => void;
     getNavLayout?: () => string;
     setNavLayout?: (v: string) => void;
     getTheme?: () => string;
