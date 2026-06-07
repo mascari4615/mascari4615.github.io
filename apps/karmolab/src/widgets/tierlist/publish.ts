@@ -1,15 +1,15 @@
 (function () {
-    const T: any = (window.Tierlist = window.Tierlist || {});
+    const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
 
-    let publishedIndexCache: any[] | null = null;
-    const publishedJsonCache = new Map<string, any>();
+    let publishedIndexCache: TlPublishedIndexItem[] | null = null;
+    const publishedJsonCache = new Map<string, TlPublishedData>();
 
     /**
      * 티어리스트 JSON(index·카탈로그)이 놓인 디렉터리 URL(끝에 슬래시 없음).
      * Jekyll: 앱은 permalink로 /karmolab/ 이지만 data 는 /apps/karmolab/data/ 에 그대로 출력됨.
      * 로컬 file://·/apps/karmolab/index.html 은 현재 문서 기준 디렉터리로 폴백.
      */
-    function karmolabPublishedDataRoot() {
+    function karmolabPublishedDataRoot(): string {
         const { origin, pathname } = location;
         const p = pathname.replace(/\/index\.html?$/i, '') || '/';
         if (p === '/karmolab' || p.startsWith('/karmolab/')) {
@@ -21,12 +21,12 @@
         return new URL('.', location.href).href.replace(/\/?$/, '');
     }
 
-    function publishedIndexUrl() {
+    function publishedIndexUrl(): string {
         const root = karmolabPublishedDataRoot();
         return new URL('data/tierlists/index.json', `${root}/`).toString();
     }
 
-    function resolvePublishedUrl(url: any) {
+    function resolvePublishedUrl(url: string | undefined | null): string {
         const s = String(url || '').trim();
         if (!s) return s;
         if (/^https?:\/\//i.test(s)) return s;
@@ -34,21 +34,22 @@
         return new URL(s, `${root}/`).toString();
     }
 
-    async function getPublishedIndex() {
+    async function getPublishedIndex(): Promise<TlPublishedIndexItem[]> {
         if (publishedIndexCache) return publishedIndexCache;
         const res = await fetch(publishedIndexUrl(), { cache: 'no-store' });
         if (!res.ok) throw new Error('index.json 로드 실패: ' + res.status);
         const items = await res.json();
-        publishedIndexCache = Array.isArray(items) ? items : [];
+        publishedIndexCache = Array.isArray(items) ? (items as TlPublishedIndexItem[]) : [];
         return publishedIndexCache;
     }
 
-    async function getPublishedJsonByUrl(relUrl: any) {
+    async function getPublishedJsonByUrl(relUrl: string): Promise<TlPublishedData> {
         const url = resolvePublishedUrl(relUrl);
-        if (publishedJsonCache.has(url)) return publishedJsonCache.get(url);
+        const cached = publishedJsonCache.get(url);
+        if (cached !== undefined) return cached;
         const r = await fetch(url, { cache: 'no-store' });
         if (!r.ok) throw new Error('JSON 로드 실패: ' + r.status);
-        const data = await r.json();
+        const data = (await r.json()) as TlPublishedData;
         publishedJsonCache.set(url, data);
         return data;
     }
@@ -59,27 +60,31 @@
         publishedJsonCache.clear();
     }
 
-    function collectRankingItemIds(list: any) {
-        const s = new Set();
-        Object.values(list.rankings || {}).forEach((arr: any) => {
-            (arr || []).forEach((id: any) => { if (id) s.add(id); });
+    function collectRankingItemIds(list: TlListInstance): Set<string> {
+        const s = new Set<string>();
+        Object.values(list.rankings || {}).forEach((arr) => {
+            (arr || []).forEach((id) => { if (id) s.add(id); });
         });
         return s;
     }
 
-    function mergeCatalogItemForHydrate(baseRaw: any, ovr: any, id: any) {
+    function mergeCatalogItemForHydrate(
+        baseRaw: TlItem | undefined,
+        ovr: Partial<TlItem> | undefined,
+        id: string
+    ): TlItem {
         const base = baseRaw
             ? { id, name: baseRaw.name || '', imageKey: baseRaw.imageKey ?? null }
             : null;
-        const hasOvr = ovr && typeof ovr === 'object' && Object.keys(ovr).length > 0;
+        const hasOvr = !!ovr && typeof ovr === 'object' && Object.keys(ovr).length > 0;
         if (!base && !hasOvr) return { id, name: '?', imageKey: null, tlOrigin: 'custom' };
         if (!base) {
-            const m = { name: '', imageKey: null, ...ovr, id };
+            const m: TlItem = { name: '', imageKey: null, ...(ovr as TlItem), id };
             m.tlOrigin = 'custom';
             delete m.tlEdited;
             return m;
         }
-        const merged = { ...base, ...(hasOvr ? ovr : {}), id };
+        const merged: TlItem = { ...base, ...(hasOvr ? ovr : {}), id };
         if (merged.tlOrigin === 'custom') {
             delete merged.tlEdited;
             return merged;
@@ -89,7 +94,7 @@
             && (merged.name || '') !== (base.name || '');
         const imgCh = hasOvr && Object.prototype.hasOwnProperty.call(ovr, 'imageKey')
             && (merged.imageKey ?? null) !== (base.imageKey ?? null);
-        const baseForLabels = { id, name: base.name, imageKey: base.imageKey };
+        const baseForLabels: TlItem = { id, name: base.name, imageKey: base.imageKey };
         const labelCh = hasOvr && normUserLabelIds(merged) !== normUserLabelIds(baseForLabels);
         /** 풀 대비 이름·이미지·라벨이 다르면 수정 뱃지(슬림에선 prune가 정본과 동일한 필드만 제거) */
         if (ovr?.tlEdited === true || nameCh || imgCh || labelCh) merged.tlEdited = true;
@@ -102,16 +107,16 @@
      * 1) 풀에 없는 id의 override·순위 제거(custom 출처만 예외)
      * 2) tlEdited 없을 때: name·imageKey는 풀 정본과 같을 때만 제거(중복). 다르면 인스턴스 표시 유지.
      */
-    function pruneSlimPayloadAgainstCatalog(data: any, catalogItems: any) {
+    function pruneSlimPayloadAgainstCatalog(data: TlPublishedData, catalogItems: Record<string, TlItem>) {
         const catIds = new Set(Object.keys(catalogItems || {}));
         const ov = data.itemOverrides;
         if (ov && typeof ov === 'object') {
-            Object.keys(ov).forEach((k: any) => {
+            Object.keys(ov).forEach((k) => {
                 if (catIds.has(k)) return;
                 if (ov[k]?.tlOrigin === 'custom') return;
                 delete ov[k];
             });
-            Object.keys(ov).forEach((k: any) => {
+            Object.keys(ov).forEach((k) => {
                 if (!catIds.has(k)) return;
                 const ovr = ov[k];
                 if (!ovr || typeof ovr !== 'object') {
@@ -120,7 +125,7 @@
                 }
                 if (ovr.tlEdited === true) return;
                 const cat = catalogItems[k];
-                const next = { ...ovr };
+                const next: Partial<TlItem> = { ...ovr };
                 if (Object.prototype.hasOwnProperty.call(next, 'name')) {
                     const cn = cat && typeof cat === 'object' ? String(cat.name ?? '') : '';
                     if (String(next.name ?? '') === cn) delete next.name;
@@ -129,17 +134,17 @@
                     const cik = cat && typeof cat === 'object' ? (cat.imageKey ?? null) : null;
                     if ((next.imageKey ?? null) === cik) delete next.imageKey;
                 }
-                const metaKeys = Object.keys(next).filter((x: any) => x !== 'id');
+                const metaKeys = Object.keys(next).filter((x) => x !== 'id');
                 if (!metaKeys.length) delete ov[k];
                 else ov[k] = next;
             });
         }
         const rk = data.list?.rankings;
         if (rk && typeof rk === 'object') {
-            Object.keys(rk).forEach((tid: any) => {
+            Object.keys(rk).forEach((tid) => {
                 const arr = rk[tid];
                 if (!Array.isArray(arr)) return;
-                rk[tid] = arr.filter((id: any) => {
+                rk[tid] = arr.filter((id) => {
                     if (!id) return false;
                     if (catIds.has(id)) return true;
                     return !!(ov && ov[id]?.tlOrigin === 'custom');
@@ -149,7 +154,7 @@
     }
 
     /** 슬림 순위 JSON(catalogRef + itemOverrides) → 풀과 합친 list + images */
-    async function hydrateSlimInstance(data: any) {
+    async function hydrateSlimInstance(data: TlPublishedData): Promise<{ list: TlListInstance; images: Record<string, string> }> {
         const rel = data.catalogRef?.url;
         if (!rel || typeof data.itemOverrides !== 'object') throw new Error('catalogRef.url 과 itemOverrides 가 필요합니다.');
         publishedJsonCache.delete(resolvePublishedUrl(rel));
@@ -158,14 +163,14 @@
         const catItems = cat.items || {};
         pruneSlimPayloadAgainstCatalog(data, catItems);
         const overrides = data.itemOverrides || {};
-        const list = JSON.parse(JSON.stringify(data.list || {}));
+        const list = JSON.parse(JSON.stringify(data.list || {})) as TlListInstance;
         /** 순위에 없어도 itemOverrides(라벨 등)만 있는 항목은 복원해야 함 */
-        const ids = new Set([
+        const ids = new Set<string>([
             ...collectRankingItemIds(list),
             ...Object.keys(overrides),
         ]);
-        const items: Record<string, any> = {};
-        ids.forEach((id: any) => {
+        const items: Record<string, TlItem> = {};
+        ids.forEach((id) => {
             const inCat = Object.prototype.hasOwnProperty.call(catItems, id);
             items[id] = mergeCatalogItemForHydrate(inCat ? catItems[id] : undefined, overrides[id], id);
             if (!inCat) {
@@ -177,16 +182,20 @@
         list.meta = { ...(list.meta || {}), catalogUrl: rel };
         T.state.reconcileListWithCatalogPayload(list, catItems);
         T.state.pruneStaleCatalogBindings(list, catItems);
-        const images = { ...(cat.images || {}), ...(data.images || {}) };
+        const images: Record<string, string> = { ...(cat.images || {}), ...(data.images || {}) };
         return { list, images };
     }
 
-    function isSlimInstancePayload(data: any) {
-        return data?.kind === 'instance' && data.catalogRef?.url && typeof data.itemOverrides === 'object' && data.list;
+    function isSlimInstancePayload(data: TlPublishedData | null | undefined): boolean {
+        return !!data
+            && data.kind === 'instance'
+            && !!data.catalogRef?.url
+            && typeof data.itemOverrides === 'object'
+            && !!data.list;
     }
 
     /** 목록 탭 임베드 카드용: JSON을 읽어 한 줄로 표시할 개수 문구 */
-    async function getPublishedPreviewCountLine(relUrl: any) {
+    async function getPublishedPreviewCountLine(relUrl: string): Promise<string> {
         if (!relUrl) return '';
         try {
             const data = await getPublishedJsonByUrl(relUrl);
@@ -195,12 +204,12 @@
                 return `총 ${n}개`;
             }
             if (isSlimInstancePayload(data)) {
-                let poolN = null;
+                let poolN: number | null = null;
                 try {
-                    const cat = await getPublishedJsonByUrl(data.catalogRef.url);
+                    const cat = await getPublishedJsonByUrl(data.catalogRef!.url!);
                     if (T.state.isCatalogPayload(cat)) poolN = Object.keys(cat.items || {}).length;
                 } catch (_) { /* 풀 URL 실패 */ }
-                const ranked = collectRankingItemIds(data.list).size;
+                const ranked = collectRankingItemIds(data.list as TlListInstance).size;
                 if (poolN != null) return `후보 풀 총 ${poolN}개 · 판 ${ranked}개`;
                 return ranked ? `판 ${ranked}개` : '';
             }
@@ -214,7 +223,7 @@
         return '';
     }
 
-    async function resolveCatalogIndexIdForUrl(catalogUrl: any) {
+    async function resolveCatalogIndexIdForUrl(catalogUrl: string): Promise<string> {
         try {
             const idx = await getPublishedIndex();
             const u = resolvePublishedUrl(catalogUrl);
@@ -226,22 +235,22 @@
         return '';
     }
 
-    function normUserLabelIds(it: any) {
+    function normUserLabelIds(it: TlItem | undefined | null): string {
         return JSON.stringify([...(it?.userLabelIds || [])].filter(Boolean).sort());
     }
 
-    function diffItemOverride(base: any, item: any) {
+    function diffItemOverride(base: TlItem | undefined, item: TlItem): Partial<TlItem> | null {
         if (!base) {
-            const o: any = {
+            const o: Partial<TlItem> = {
                 id: item.id,
                 name: item.name || '',
                 imageKey: item.imageKey ?? null,
                 tlOrigin: 'custom',
             };
-            if ((item.userLabelIds || []).length) o.userLabelIds = [...item.userLabelIds];
+            if ((item.userLabelIds || []).length) o.userLabelIds = [...(item.userLabelIds ?? [])];
             return o;
         }
-        const o: any = {};
+        const o: Partial<TlItem> = {};
         const nameCh = (item.name || '') !== (base.name || '');
         const ik = item.imageKey ?? null;
         const bk = base.imageKey ?? null;
@@ -262,10 +271,10 @@
      * 로컬 인스턴스: 풀 출처 카드 표시가 풀 정본과 다르면 tlEdited 맞춤(새로고침 뒤 뱃지 누락 방지).
      * 정본과 완전히 같으면 tlEdited 제거.
      */
-    function syncCatalogItemEditedFlags(list: any, catItems: any) {
+    function syncCatalogItemEditedFlags(list: TlListInstance, catItems: Record<string, TlItem>): boolean {
         if (!list?.items || !catItems || typeof catItems !== 'object') return false;
         let changed = false;
-        Object.keys(list.items).forEach((id: any) => {
+        Object.keys(list.items).forEach((id) => {
             const it = list.items[id];
             if (!it || it.tlOrigin === 'custom') return;
             const base = catItems[id];
@@ -288,10 +297,10 @@
     }
 
     /** meta.catalogUrl 이 있고 풀을 fetch 할 수 있으면 슬림 페이로드, 아니면 null */
-    async function tryBuildSlimInstanceExport(list: any, meta: any) {
+    async function tryBuildSlimInstanceExport(list: TlListInstance, meta: TlCurrentMetaView): Promise<TlPublishedData | null> {
         const catalogUrl = String(list.meta?.catalogUrl || '').trim();
         if (!catalogUrl) return null;
-        let cat;
+        let cat: TlPublishedData;
         try {
             cat = await getPublishedJsonByUrl(catalogUrl);
         } catch (_) {
@@ -299,17 +308,17 @@
         }
         if (!T.state.isCatalogPayload(cat)) return null;
         const catalogItems = cat.items || {};
-        const overrides: Record<string, any> = {};
+        const overrides: Record<string, Partial<TlItem>> = {};
         for (const [id, item] of Object.entries(list.items || {})) {
             const diff = diffItemOverride(catalogItems[id], item);
             if (diff) overrides[id] = diff;
         }
-        const imageKeys = new Set();
-        Object.values(overrides).forEach((o: any) => {
+        const imageKeys = new Set<string>();
+        Object.values(overrides).forEach((o) => {
             if (o && o.imageKey) imageKeys.add(o.imageKey);
         });
         const images = await T.db.getMany([...imageKeys]);
-        const listCopy = JSON.parse(JSON.stringify(list));
+        const listCopy = JSON.parse(JSON.stringify(list)) as Omit<TlListInstance, 'items'> & { items?: Record<string, TlItem> };
         delete listCopy.items;
         const refId = await resolveCatalogIndexIdForUrl(catalogUrl);
         return {
@@ -318,12 +327,12 @@
             title: meta.title || list.title,
             catalogRef: { id: refId, url: catalogUrl },
             itemOverrides: overrides,
-            list: listCopy,
+            list: listCopy as TlListInstance,
             images,
         };
     }
 
-    async function openPublishedDirect(relUrl: any, meta: any) {
+    async function openPublishedDirect(relUrl: string, meta: TlPublishedMeta | null | undefined): Promise<void> {
         const data = await getPublishedJsonByUrl(relUrl);
         if (T.state.isCatalogPayload(data)) {
             T.state.openPublished({ ...(meta || {}), url: relUrl }, data);
@@ -355,19 +364,21 @@
         await T.render.renderAll();
     }
 
-    async function buildExportPayload(): Promise<any> {
+    async function buildExportPayload(): Promise<TlPublishedData | null> {
         if (T.state.isPublishedCatalogMode()) {
             const snap = T.state.getPublishedCatalogSnapshot();
             const d = snap?.data;
             if (!d) return null;
-            const imageKeys = Object.values(d.items || {}).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
+            const imageKeys = Object.values(d.items || {})
+                .filter((i) => i.imageKey)
+                .map((i) => i.imageKey as string);
             const images = await T.db.getMany(imageKeys);
             return {
                 version: 2,
                 kind: 'catalog',
                 exportedAt: Date.now(),
                 title: snap.meta?.title || d.title || '후보 풀',
-                items: JSON.parse(JSON.stringify(d.items || {})),
+                items: JSON.parse(JSON.stringify(d.items || {})) as Record<string, TlItem>,
                 images,
             };
         }
@@ -380,19 +391,21 @@
                 return { ...slim, exportedAt: Date.now() };
             }
         } catch (_) { /* 풀 fetch 실패 시 아래 전체보내기 */ }
-        const imageKeys = Object.values(list.items || {}).filter((i: any) => i.imageKey).map((i: any) => i.imageKey);
+        const imageKeys = Object.values(list.items || {})
+            .filter((i) => i.imageKey)
+            .map((i) => i.imageKey as string);
         const images = await T.db.getMany(imageKeys);
         return {
             version: 2,
             kind: 'instance',
             exportedAt: Date.now(),
             title: meta.title || list.title,
-            list: JSON.parse(JSON.stringify(list)),
+            list: JSON.parse(JSON.stringify(list)) as TlListInstance,
             images,
         };
     }
 
-    function downloadJson(filename: any, obj: any) {
+    function downloadJson(filename: string, obj: unknown) {
         const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
         const link = document.createElement('a');
         link.download = filename;
@@ -404,7 +417,7 @@
     async function showJsonPreview() {
         const data = await buildExportPayload();
         if (!data) {
-            Toolbox.showToast('보낼 데이터가 없습니다.', 'error');
+            Toolbox.showToast?.('보낼 데이터가 없습니다.', 'error');
             return;
         }
         const jsonText = JSON.stringify(data, null, 2);
@@ -427,23 +440,24 @@
                     <button class="tl-btn" id="tl-json-close">닫기</button>
                 </div>
             `,
-            onMount: ({ dialog, close }: any) => {
-                const ta = dialog.querySelector('#tl-json-preview');
+            onMount: ({ dialog, close }) => {
+                const ta = dialog.querySelector<HTMLTextAreaElement>('#tl-json-preview');
+                if (!ta) return;
                 ta.value = jsonText;
-                dialog.querySelector('#tl-json-close').onclick = close;
-                dialog.querySelector('#tl-json-copy').onclick = async () => {
+                dialog.querySelector<HTMLButtonElement>('#tl-json-close')!.onclick = close;
+                dialog.querySelector<HTMLButtonElement>('#tl-json-copy')!.onclick = async () => {
                     try {
                         await navigator.clipboard.writeText(jsonText);
-                        Toolbox.showToast('클립보드에 복사됨');
+                        Toolbox.showToast?.('클립보드에 복사됨');
                     } catch (_) {
                         ta.focus(); ta.select(); document.execCommand('copy');
-                        Toolbox.showToast('클립보드에 복사됨');
+                        Toolbox.showToast?.('클립보드에 복사됨');
                     }
                 };
-                dialog.querySelector('#tl-json-download').onclick = () => {
-                    const base = (data.title || 'tierlist').replace(/[\\/:*?"<>|]+/g, '-');
+                dialog.querySelector<HTMLButtonElement>('#tl-json-download')!.onclick = () => {
+                    const base = String(data.title || 'tierlist').replace(/[\\/:*?"<>|]+/g, '-');
                     downloadJson(base + '.json', data);
-                    Toolbox.showToast('JSON 다운로드 시작');
+                    Toolbox.showToast?.('JSON 다운로드 시작');
                 };
             }
         });
@@ -455,19 +469,22 @@
         const boardEl = document.querySelector('#tl-editor-board');
         if (!boardEl) return;
 
-        Toolbox.showToast('이미지 생성 중...');
-        if (!(window as any).html2canvas) {
-            await new Promise((res: any, rej: any) => {
+        type Html2CanvasFn = (el: Element, opts: { backgroundColor?: string; scale?: number; useCORS?: boolean }) => Promise<HTMLCanvasElement>;
+        const win = window as Window & { html2canvas?: Html2CanvasFn };
+
+        Toolbox.showToast?.('이미지 생성 중...');
+        if (!win.html2canvas) {
+            await new Promise<void>((resolve, reject) => {
                 const s = document.createElement('script');
                 s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                s.onload = res;
-                s.onerror = rej;
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('html2canvas load failed'));
                 document.head.appendChild(s);
             });
         }
 
         try {
-            const canvas = await (window as any).html2canvas(boardEl, {
+            const canvas = await win.html2canvas!(boardEl, {
                 backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-tertiary').trim() || '#1a1a2e',
                 scale: 2,
                 useCORS: true,
@@ -476,19 +493,19 @@
             link.download = (list.title || 'tierlist') + '.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            Toolbox.showToast('이미지 저장됨');
+            Toolbox.showToast?.('이미지 저장됨');
         } catch (err) {
-            Toolbox.showToast('이미지 생성 실패', 'error', err);
+            Toolbox.showToast?.('이미지 생성 실패', 'error', err);
         }
     }
 
-    async function saveImagesMap(images: any) {
+    async function saveImagesMap(images: Record<string, string> | undefined) {
         for (const [k, url] of Object.entries(images || {})) {
             if (url) await T.db.save(k, url);
         }
     }
 
-    async function forkPublishedCatalogToLocal() {
+    async function forkPublishedCatalogToLocal(): Promise<TlListInstance | null> {
         const snap = T.state.getPublishedCatalogSnapshot();
         if (!snap?.data) return null;
         await saveImagesMap(snap.data.images);
@@ -496,7 +513,7 @@
         return inst;
     }
 
-    async function reconcileImportedInstanceList(list: any) {
+    async function reconcileImportedInstanceList(list: TlListInstance | null | undefined) {
         if (!list) return;
         const st = T.state.getState();
         if (list.catalogId && st.catalogs[list.catalogId]) {
@@ -517,7 +534,7 @@
         } catch (_) { /* 로컬 파일/오프라인 */ }
     }
 
-    async function importFromDataObject(data: any) {
+    async function importFromDataObject(data: TlPublishedData & { lists?: Record<string, TlListInstance> }) {
         clearPublishedFetchCache();
         const st = T.state.getState();
 
@@ -526,9 +543,9 @@
             st.catalogs[id] = {
                 id,
                 title: data.title || '가져온 후보 풀',
-                category: data.category || '',
+                category: typeof data.category === 'string' ? data.category : '',
                 updatedAt: Date.now(),
-                items: JSON.parse(JSON.stringify(data.items || {})),
+                items: JSON.parse(JSON.stringify(data.items || {})) as Record<string, TlItem>,
             };
             await saveImagesMap(data.images);
             T.state.closePublished?.();
@@ -537,10 +554,10 @@
             return;
         }
 
-        if (data.version >= 2 && data.lists && typeof data.lists === 'object' && Object.keys(data.lists).length) {
-            const newIds = [];
+        if ((data.version ?? 0) >= 2 && data.lists && typeof data.lists === 'object' && Object.keys(data.lists).length) {
+            const newIds: string[] = [];
             for (const [, list] of Object.entries(data.lists)) {
-                const copy = JSON.parse(JSON.stringify(list));
+                const copy = JSON.parse(JSON.stringify(list)) as TlListInstance;
                 const newId = 'tl-' + T.state.uid();
                 copy.id = newId;
                 copy.createdAt = Date.now();
@@ -570,7 +587,7 @@
                 ...(h.list.meta || {}),
                 source: 'import',
                 dirty: true,
-                catalogUrl: data.catalogRef.url,
+                catalogUrl: data.catalogRef!.url,
             };
             st.instances[newLid] = h.list;
             await saveImagesMap(h.images);
@@ -583,7 +600,7 @@
 
         if (data.kind === 'instance' && data.list) {
             const newLid = 'tl-' + T.state.uid();
-            const list = {
+            const list: TlListInstance = {
                 ...data.list,
                 id: newLid,
                 createdAt: Date.now(),
@@ -602,7 +619,7 @@
 
         if (data.list) {
             const newLid = 'tl-' + T.state.uid();
-            const list = {
+            const list: TlListInstance = {
                 ...data.list,
                 id: newLid,
                 createdAt: Date.now(),
@@ -631,11 +648,11 @@
             if (!file) return;
             try {
                 const text = await file.text();
-                const data = JSON.parse(text);
+                const data = JSON.parse(text) as TlPublishedData & { lists?: Record<string, TlListInstance> };
                 await importFromDataObject(data);
-                Toolbox.showToast('가져오기 완료');
+                Toolbox.showToast?.('가져오기 완료');
             } catch (err) {
-                Toolbox.showToast('가져오기 실패', 'error', err);
+                Toolbox.showToast?.('가져오기 실패', 'error', err);
             }
         };
         input.click();
@@ -645,7 +662,7 @@
      * 로컬 순위 편집 시: 연결된 카탈로그와 동기화하고,
      * 풀에서 사라진 id는 후보 출처 카드·override 잔여를 걷어낸다(직접 추가 custom 만 유지).
      */
-    async function syncInstanceItemOriginsWithCatalogIfNeeded() {
+    async function syncInstanceItemOriginsWithCatalogIfNeeded(): Promise<boolean> {
         if (T.state.isPublishedMode()) return false;
         const list = T.state.currentList();
         if (!list) return false;
@@ -675,16 +692,16 @@
         return changed;
     }
 
-    async function resetItemToCatalogDefault(itemId: any) {
+    async function resetItemToCatalogDefault(itemId: string): Promise<boolean> {
         if (!confirm('이름·이미지·라벨을 후보 풀 기준으로 되돌릴까요?')) return false;
         T.state.ensureWritableList?.('resetItem');
         const list = T.state.currentList();
         if (!list?.items?.[itemId]) {
-            Toolbox.showToast('항목을 찾을 수 없어요.', 'error');
+            Toolbox.showToast?.('항목을 찾을 수 없어요.', 'error');
             return false;
         }
         const st = T.state.getState();
-        let entry = null;
+        let entry: TlItem | null = null;
         if (list.catalogId && st.catalogs[list.catalogId]?.items?.[itemId]) {
             entry = st.catalogs[list.catalogId].items[itemId];
         }
@@ -698,14 +715,14 @@
             }
         }
         if (!entry) {
-            Toolbox.showToast('후보 풀에 없는 항목이거나 풀을 불러올 수 없어요.', 'error');
+            Toolbox.showToast?.('후보 풀에 없는 항목이거나 풀을 불러올 수 없어요.', 'error');
             return false;
         }
         if (!T.state.applyCatalogEntryToItem(list, itemId, entry)) {
-            Toolbox.showToast('되돌리기에 실패했어요.', 'error');
+            Toolbox.showToast?.('되돌리기에 실패했어요.', 'error');
             return false;
         }
-        Toolbox.showToast('후보 풀 기준으로 되돌렸어요.');
+        Toolbox.showToast?.('후보 풀 기준으로 되돌렸어요.');
         return true;
     }
 

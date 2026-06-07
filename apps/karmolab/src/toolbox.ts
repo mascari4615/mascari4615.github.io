@@ -945,7 +945,7 @@ const Toolbox = (() => {
         }
     }
 
-    function switchTab(btn, tabId) {
+    function switchTab(btn, tabId?) {
         if (typeof btn === 'string') {
             tabId = btn;
             btn = document.querySelector(`[data-tab-id="${tabId}"]`);
