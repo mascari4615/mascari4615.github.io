@@ -151,3 +151,23 @@ jobs:
           prerelease: false
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
+
+      - name: Prune old releases (최신 1개만 유지, tag 보존)
+        # KAR (2026-06-07): 릴리즈 무한 적층(과거 38개) 방지. updater 엔드포인트는
+        # /releases/latest/download/latest.json (항상 최신 자동 추적)이라 옛 릴리즈
+        # 불필요. release 만 삭제하고 git tag 는 보존 → 소스 롤백 경로 유지.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release list --repo "${{ github.repository }}" --limit 200 \
+            --json tagName,createdAt,isLatest \
+            --jq 'sort_by(.createdAt) | reverse | .[]
+                  | select(.isLatest | not)
+                  | select(.tagName | startswith("karmolab-v"))
+                  | .tagName' \
+            | while read -r tag; do
+                [ -z "$tag" ] && continue
+                echo "prune release: $tag (tag 보존)"
+                gh release delete "$tag" --repo "${{ github.repository }}" --yes
+              done
