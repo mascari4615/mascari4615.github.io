@@ -12,7 +12,7 @@ import { EmbedBuilder } from 'discord.js';
 import { generateBlobTextFromEnvWithOptions } from 'karmolab-ai/node';
 import { channelIdFor } from './channel-provision';
 
-interface GitHubCommit {
+export interface GitHubCommit {
   id: string;
   message: string;
   added: string[];
