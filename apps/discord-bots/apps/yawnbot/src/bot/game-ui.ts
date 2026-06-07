@@ -1,5 +1,7 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, type ButtonInteraction } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import {
+  ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags,
+  type ButtonInteraction, type ChatInputCommandInteraction, type InteractionReplyOptions, type MessageComponentInteraction,
+} from 'discord.js';
 import { formatMoney } from '../services/gamedata';
 import type { BotContext } from './slash/bot-context';
 
@@ -60,15 +62,12 @@ export async function showHelpPage(
       .setDisabled(pageIndex === pages.length - 1),
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payload: any = { embeds: [embed], components: [row] };
+  const payload: InteractionReplyOptions = { embeds: [embed], components: [row] };
   if (!isUpdate && ephemeral) {
     payload.flags = MessageFlags.Ephemeral;
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (isUpdate && 'update' in interaction) await (interaction as any).update(payload);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  else await (interaction as any).reply(payload);
+  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
+  else await interaction.reply(payload);
 }
 
 export async function handleEnhance(
@@ -163,16 +162,13 @@ export async function handleEnhance(
   // Suppress unused variable warning
   void userName;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payload: any = { embeds: [embed], components };
+  const payload: InteractionReplyOptions = { embeds: [embed], components };
   if (attachment) {
     embed.setThumbnail(`attachment://${attachment.name}`);
     payload.files = [attachment.file];
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (isUpdate && 'update' in interaction) await (interaction as any).update(payload);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  else await (interaction as any).reply(payload);
+  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
+  else await interaction.reply(payload);
 }
 
 export async function handleSell(
@@ -204,10 +200,7 @@ export async function handleSell(
       ),
     ];
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const payload: any = { embeds: [embed], components };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (isUpdate && 'update' in interaction) await (interaction as any).update(payload);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  else await (interaction as any).reply(payload);
+  const payload: InteractionReplyOptions = { embeds: [embed], components };
+  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
+  else await interaction.reply(payload);
 }
