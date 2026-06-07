@@ -322,13 +322,23 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !memoRepoPath) return;
     if (!isOwner(message.author.id)) return;
     const mentionedBot = !!client.user && message.mentions.has(client.user.id);
-    const { isOwnerRequestSmart, makeLlmClassifier, captureOwnerRequest, stripRequestSignal } =
-      await import('./bot/owner-request.js');
-    // 멘션/키워드 = fast path(LLM 0). 그 외 평범한 대화 = LLM 이 "요청?" 판정 (있을 때만).
+    const {
+      classifyOwnerRequest,
+      makeRequestClassifier,
+      captureOwnerRequest,
+      stripRequestSignal,
+      DOMAIN_AGENT,
+    } = await import('./bot/owner-request.js');
+    // 멘션/키워드 = fast path(요청 확정). 도메인은 LLM → 그 도메인 에이전트가 응답.
     const classifier = generativeText
-      ? makeLlmClassifier((prompt) => generativeText!.generateFromPrompt(prompt))
+      ? makeRequestClassifier((prompt) => generativeText!.generateFromPrompt(prompt))
       : undefined;
-    if (!(await isOwnerRequestSmart(message.content || '', mentionedBot, classifier))) return;
+    const { isRequest, domain } = await classifyOwnerRequest(
+      message.content || '',
+      mentionedBot,
+      classifier,
+    );
+    if (!isRequest) return;
     const text = stripRequestSignal(
       message.content || '',
       client.user ? `<@${client.user.id}>` : undefined,
@@ -340,9 +350,51 @@ client.on('messageCreate', async (message) => {
       channelId: message.channelId,
       messageId: message.id,
     });
-    await message
-      .reply(`📌 요청 접수 — 봇 상태판 「사장 요청 대기」 에 올렸어요. \`${record.id}\``)
-      .catch(() => {});
+
+    // 도메인 담당 에이전트가 *자기 스킨/이름* 으로 즉답+접수 (욘 봇 기본 보이스 X).
+    // setCoreSpeak 와 동일 패턴(loadCoreDef→loadCard→speakAs→sendAsSkin), 채널만 요청 위치.
+    const coreId = DOMAIN_AGENT[domain];
+    let answered = false;
+    try {
+      const ch = message.channel;
+      const cd = characterService ? loadCoreDef(memoRepoPath, coreId) : null;
+      const skinCard = cd && characterService ? characterService.loadCard(cd.defaultSkin) : null;
+      if (cd && skinCard && ch instanceof TextChannel) {
+        let utter = '받았어. 「사장 요청 대기」 에 올렸어 — 곧 챙길게.';
+        if (generativeText) {
+          try {
+            const raw = (
+              await generativeText.generateFromPrompt(
+                `너는 "${coreLabel(cd)}" 에이전트다. 사장이 방금 "${text.slice(0, 200)}" 라고 요청했다. ` +
+                  '네 캐릭터 톤으로 접수 반응을 딱 1문장(곧 챙긴다는 뉘앙스, 이모지 0~1개)으로 답하라.',
+              )
+            ).trim();
+            if (raw) utter = raw.slice(0, 280);
+          } catch {
+            /* LLM 실패 = 기본 멘트 */
+          }
+        }
+        const speakAs: CharacterCard = {
+          slug: skinCard.slug,
+          name: skinCard.name,
+          displayName: coreLabel(cd),
+          frontmatter: skinCard.frontmatter,
+          body: '',
+          dir: skinCard.dir,
+        } as unknown as CharacterCard;
+        await sendAsSkin(ch, speakAs, {
+          content: `${utter}\n📌 \`${record.id}\` · 「사장 요청 대기」 등록`,
+        });
+        answered = true;
+      }
+    } catch {
+      /* skin 응답 실패 → 아래 fallback */
+    }
+    if (!answered) {
+      await message
+        .reply(`📌 요청 접수 — 「사장 요청 대기」 에 올렸어요. \`${record.id}\``)
+        .catch(() => {});
+    }
   } catch (e) {
     console.error(
       '[owner-request] 포착 실패',
