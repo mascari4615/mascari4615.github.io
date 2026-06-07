@@ -1,5 +1,5 @@
 import { EmbedBuilder, MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
 import { formatMoney, getLevelColor } from '../../services/gamedata';
 import { handleEnhance, handleSell } from '../game-ui';
 import type { BotContext } from './bot-context';
@@ -28,7 +28,7 @@ export async function handleInfo(ctx: BotContext, interaction: ChatInputCommandI
     .setColor(getLevelColor(user.sword.level));
 
   const attachment = getImageAttachment(user.sword.imageName);
-  const payload: any = { embeds: [embed] };
+  const payload: InteractionReplyOptions = { embeds: [embed] };
   if (attachment) {
     embed.setThumbnail(`attachment://${attachment.name}`);
     payload.files = [attachment.file];
@@ -49,7 +49,7 @@ export async function handleMoney(ctx: BotContext, interaction: ChatInputCommand
 export async function handleRank(ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   const { gameData, client } = ctx;
   const all = Object.entries(gameData.users)
-    .map(([id, u]) => ({ id, money: (u as any).money, level: (u as any).sword?.level || 0 }))
+    .map(([id, u]) => ({ id, money: u.money, level: u.sword.level }))
     .sort((a, b) => b.money - a.money)
     .slice(0, 10);
   let desc = '';
@@ -148,7 +148,7 @@ export async function handleBattle(ctx: BotContext, interaction: ChatInputComman
     attachment = getImageAttachment(r.battleImage);
   }
 
-  const payload: any = { embeds: [embed] };
+  const payload: InteractionReplyOptions = { embeds: [embed] };
   if (attachment) {
     embed.setThumbnail(`attachment://${attachment.name}`);
     payload.files = [attachment.file];

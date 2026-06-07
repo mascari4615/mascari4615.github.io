@@ -62,6 +62,12 @@ export async function fetchRepoFile(
 /** 일자 digest 파일만 (digests/YYYY-MM-DD.md). INDEX.md/README.md 제외. */
 const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
 
+interface DigestCommit {
+  message?: string | null;
+  added?: string[];
+  modified?: string[];
+}
+
 /**
  * push payload 의 commit 하나가 dev-digest commit 인지 판별.
  * 조건: message 첫 줄 "chore(digests):" + **added ∪ modified** 중
@@ -72,7 +78,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
-export function isDigestCommit(commit: any): string | null {
+export function isDigestCommit(commit: DigestCommit): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
@@ -91,7 +97,7 @@ export function isDigestCommit(commit: any): string | null {
  */
 export async function handleDigestCommit(
   client: Client,
-  commit: any,
+  commit: DigestCommit,
   repoFullName: string,
   channelIds: string[],
 ): Promise<void> {

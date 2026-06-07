@@ -721,7 +721,7 @@ client.once('clientReady', async () => {
           const recent = await ch.messages.fetch({ limit: 30 });
           const mine = recent.find((m) => {
             if (m.author?.id !== client.user?.id) return false;
-            const e0: any = m.embeds?.[0];
+            const e0 = m.embeds?.[0];
             if (!e0) return false;
             const a = e0.author?.name ?? '';
             const t = e0.title ?? '';
