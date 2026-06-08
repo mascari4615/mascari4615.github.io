@@ -509,7 +509,7 @@ import {
                 safetySel.innerHTML = levels
                     .map(level => `<option value="${level.value}">${Toolbox.escapeHtml(level.label)}</option>`)
                     .join('');
-                const savedSafety = Toolbox.getPref('cb_safety_threshold') || defaultThreshold;
+                const savedSafety = Toolbox.getPref('cb_safety_threshold', '') || defaultThreshold;
                 safetySel.value = savedSafety;
                 if (!safetySel.value && levels.length > 0) safetySel.value = defaultThreshold;
                 safetySel.addEventListener('change', () => {
@@ -950,8 +950,8 @@ import {
             const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
             const tempInput = (document.getElementById('cbTemperature') as any);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
-            const safetyInput = document.getElementById('cbSafetyThreshold');
-            const safetyThreshold = safetyInput?.value || Gemini.DEFAULT_GEMINI_SAFETY_THRESHOLD;
+            const safetyInput = document.getElementById('cbSafetyThreshold') as HTMLInputElement | null;
+            const safetyThreshold = safetyInput?.value || Gemini?.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
@@ -1071,8 +1071,8 @@ import {
             const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
             const tempInput = (document.getElementById('cbTemperature') as any);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
-            const safetyInput = document.getElementById('cbSafetyThreshold');
-            const safetyThreshold = safetyInput?.value || Gemini.DEFAULT_GEMINI_SAFETY_THRESHOLD;
+            const safetyInput = document.getElementById('cbSafetyThreshold') as HTMLInputElement | null;
+            const safetyThreshold = safetyInput?.value || Gemini?.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
