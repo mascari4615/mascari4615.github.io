@@ -1,15 +1,69 @@
-// @ts-nocheck
 /**
  * imagegen - 메인 엔트리 (buildMain, UI, window._ig)
  * window.ImageGen (IG) 의 presets, config, queue, utils 사용
  */
 (function () {
     'use strict';
+
+    interface IgPresetItem { id: string; icon?: string; label: string; prompt?: string; shortLabel?: string; }
+    interface IgCharacterOption { id: string; icon?: string; label: string; prompt?: string; shortLabel?: string; }
+    interface IgVibeOption { id: string; label: string; suffix: string; desc?: string; }
+    interface IgAspectRatio { value: string; label: string; }
+    interface IgSafetyLevel { value: string; label: string; }
+    interface IgPersonGenOption { value: string; label: string; }
+    interface IgQueueItem {
+        id: number; prompt: string; options: { modelId: string };
+        status: 'pending' | 'running' | 'done' | 'error' | 'cancelled';
+        elapsed?: string | null; error?: string | null; resultItem?: ImageDBItem;
+    }
+    interface IgState {
+        sessionGallery: ImageDBItem[];
+        currentItem: ImageDBItem | null;
+        compareMode: boolean;
+        currentContextTab: string;
+        currentContextPreset: IgPresetItem | null;
+        slotValues: Record<string, string>;
+        igPresetPopup: HTMLDivElement | null;
+    }
+    interface IgFull {
+        CONTEXT_PRESETS: Record<string, IgPresetItem[]>;
+        CONTEXT_TAB_LABELS: Record<string, string>;
+        CONTEXT_TAB_ICONS: Record<string, string>;
+        VIBE_OPTIONS: IgVibeOption[];
+        ASPECT_RATIOS: IgAspectRatio[];
+        SAFETY_LEVELS: IgSafetyLevel[];
+        PERSON_GEN_OPTIONS: IgPersonGenOption[];
+        CUSTOM_INPUT_ID: string;
+        CHARACTER_PRESETS?: { char?: IgCharacterOption[] };
+        getSlotsFromPrompt: (prompt: string) => string[];
+        getCharacterOptions: () => IgCharacterOption[];
+        loadCustomCharacters: () => IgCharacterOption[];
+        saveCustomCharacters: (list: IgCharacterOption[]) => void;
+        loadCustomPresets: () => IgPresetItem[];
+        saveCustomPresets: (list: IgPresetItem[]) => void;
+        queue: IgQueueItem[];
+        enqueue: (promptText: string, isEmoji: boolean, emojiChar: string, isMascot: boolean) => void;
+        cancelQueueItem: (id: number) => void;
+        removeQueueItem: (id: number) => void;
+        clearQueue: () => void;
+        getModelDisplayName: (modelId: string) => string;
+        getPromptHistory: () => string[];
+        addPromptHistory: (text: string) => void;
+        escapeHtml: (s: string) => string;
+        showLightbox: (url: string) => void;
+        downloadImage: (url: string) => void;
+        GALLERY_SESSION_KEY: string;
+        GALLERY_SESSION_MAX: number;
+        initCore: (deps: unknown) => void;
+        loadGallerySession: () => boolean;
+    }
+
     const IG = window.ImageGen;
     if (!IG) {
         console.warn('ImageGen: window.ImageGen not found. Load config, presets, styles, core first.');
         return;
     }
+    const ig = IG as unknown as IgFull;
 
     const {
         CONTEXT_PRESETS,
@@ -39,10 +93,10 @@
         downloadImage,
         GALLERY_SESSION_KEY,
         GALLERY_SESSION_MAX
-    } = IG;
+    } = ig;
 
     /* ===== 상태 ===== */
-    const state = {
+    const state: IgState = {
         sessionGallery: [],
         currentItem: null,
         compareMode: false,
@@ -95,10 +149,10 @@
             listEl.appendChild(row);
         });
 
-        panel.querySelectorAll('.ig-q-cancel').forEach(btn => {
+        panel.querySelectorAll<HTMLButtonElement>('.ig-q-cancel').forEach(btn => {
             btn.onclick = () => cancelQueueItem(Number(btn.dataset.qid));
         });
-        panel.querySelectorAll('.ig-q-remove').forEach(btn => {
+        panel.querySelectorAll<HTMLButtonElement>('.ig-q-remove').forEach(btn => {
             btn.onclick = () => removeQueueItem(Number(btn.dataset.qid));
         });
 
@@ -111,7 +165,7 @@
         if (cancelBtn) cancelBtn.style.display = running > 0 ? '' : 'none';
     }
 
-    function renderQueueItem(q) {
+    function renderQueueItem(q: IgQueueItem) {
         const row = document.getElementById('igQ_' + q.id);
         if (!row) return;
         const infoText = q.status === 'running' ? `${q.elapsed || 0}s` : '';
@@ -124,7 +178,7 @@
 
     /* ===== updateMainPreview, showResultInPreview, hideMainLoading ===== */
     function updateMainPreview() {
-        const img = document.getElementById('igImage');
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
         const placeholder = document.getElementById('igPlaceholder');
         const loadingArea = document.getElementById('igLoadingArea');
         const loadingText = document.getElementById('igLoadingText');
@@ -139,8 +193,8 @@
         if (loadingText) loadingText.textContent = 'Dreaming...';
     }
 
-    function showResultInPreview(item) {
-        const img = document.getElementById('igImage');
+    function showResultInPreview(item: ImageDBItem) {
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
         const loadingArea = document.getElementById('igLoadingArea');
         const downloadBtn = document.getElementById('igDownloadBtn');
         const tokenDisplay = document.getElementById('igTokenDisplay');
@@ -165,8 +219,8 @@
     function updateMetaDisplay() {
         const el = document.getElementById('igMetaDisplay');
         if (!el || !state.currentItem) { if (el) el.textContent = ''; return; }
-        const model = state.currentItem.modelName || state.currentItem.model || '';
-        const prompt = state.currentItem.prompt || '';
+        const model = (state.currentItem.modelName as string | undefined) || (state.currentItem.model as string | undefined) || '';
+        const prompt = (state.currentItem.prompt as string | undefined) || '';
         const truncated = prompt.length > 60 ? prompt.slice(0, 60) + '...' : prompt;
         el.textContent = model ? `${model}  ·  ${truncated}` : truncated;
         el.title = `${model}\n${prompt}`;
@@ -191,13 +245,16 @@
         el.innerHTML = '';
         state.sessionGallery.forEach((item) => {
             const thumb = document.createElement('img');
+            const modelName = (item.modelName as string | undefined) || '';
+            const model = (item.model as string | undefined) || '';
+            const prompt = (item.prompt as string | undefined) || '';
             thumb.className = 'ig-thumb' + (item.id === state.currentItem?.id ? ' active' : '');
             thumb.src = item.url;
-            thumb.alt = item.modelName || 'Image';
-            thumb.title = `${item.modelName || item.model || ''}\n${(item.prompt || '').slice(0, 80)}`;
+            thumb.alt = modelName || 'Image';
+            thumb.title = `${modelName || model}\n${prompt.slice(0, 80)}`;
             thumb.onclick = () => {
                 state.currentItem = item;
-                const img = document.getElementById('igImage');
+                const img = document.getElementById('igImage') as HTMLImageElement | null;
                 const placeholder = document.getElementById('igPlaceholder');
                 const downloadBtn = document.getElementById('igDownloadBtn');
                 if (img) { img.src = item.url; img.style.display = ''; img.onclick = () => showLightbox(item.url); }
@@ -212,10 +269,10 @@
         el.scrollLeft = el.scrollWidth;
     }
 
-    /* ===== updateImagenOptionsVisibility, updateVibeInfo ===== */
+    /* ===== updateVertexImagenFieldsVisibility, updateImagenOptionsVisibility, updateVibeInfo ===== */
     function updateVertexImagenFieldsVisibility() {
-        const modelSel = document.getElementById('igModelSelect');
-        const apiSel = document.getElementById('igApiRoute');
+        const modelSel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
+        const apiSel = document.getElementById('igApiRoute') as HTMLSelectElement | null;
         const group = document.getElementById('igVertexImagenGroup');
         if (!group) return;
         const show = (apiSel?.value === 'vertex') && (modelSel?.value?.startsWith('imagen') || false);
@@ -223,7 +280,7 @@
     }
 
     function updateImagenOptionsVisibility() {
-        const modelSel = document.getElementById('igModelSelect');
+        const modelSel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
         const isImagen = modelSel?.value?.startsWith('imagen') || false;
         const negGroup = document.getElementById('igNegPromptGroup');
         const personGroup = document.getElementById('igPersonGenGroup');
@@ -233,7 +290,7 @@
     }
 
     function updateVibeInfo() {
-        const vibeSel = document.getElementById('igVibe');
+        const vibeSel = document.getElementById('igVibe') as HTMLSelectElement | null;
         const infoEl = document.getElementById('igVibeInfo');
         if (!vibeSel || !infoEl) return;
         const vibe = VIBE_OPTIONS.find(v => v.id === vibeSel.value);
@@ -241,7 +298,7 @@
             infoEl.innerHTML = '';
             return;
         }
-        infoEl.innerHTML = `${escapeHtml(vibe.desc)}<span class="ig-vibe-suffix">${escapeHtml(vibe.suffix)}</span>`;
+        infoEl.innerHTML = `${escapeHtml(vibe.desc ?? '')}<span class="ig-vibe-suffix">${escapeHtml(vibe.suffix)}</span>`;
     }
 
     /* ===== renderPresetButtons, getOrCreatePresetPopup, closePresetPopup ===== */
@@ -257,12 +314,12 @@
         container.appendChild(btn);
     }
 
-    function getOrCreatePresetPopup() {
+    function getOrCreatePresetPopup(): HTMLDivElement {
         if (state.igPresetPopup) return state.igPresetPopup;
-        state.igPresetPopup = document.createElement('div');
-        state.igPresetPopup.id = 'igPresetPopup';
-        state.igPresetPopup.className = 'ig-preset-popup';
-        state.igPresetPopup.innerHTML = `
+        const popup = document.createElement('div');
+        popup.id = 'igPresetPopup';
+        popup.className = 'ig-preset-popup';
+        popup.innerHTML = `
             <div class="ig-preset-panel">
                 <div class="ig-preset-popup-header">
                     <h3>📚 프리셋</h3>
@@ -271,11 +328,12 @@
                 <div class="ig-preset-popup-tabs" id="igPresetPopupTabs"></div>
                 <div class="ig-preset-popup-body" id="igPresetPopupBody"></div>
             </div>`;
-        state.igPresetPopup.onclick = (e) => { if (e.target === state.igPresetPopup) closePresetPopup(); };
-        document.body.appendChild(state.igPresetPopup);
-        const closeBtn = state.igPresetPopup.querySelector('#igPresetPopupClose');
+        popup.onclick = (e) => { if (e.target === popup) closePresetPopup(); };
+        document.body.appendChild(popup);
+        const closeBtn = popup.querySelector<HTMLButtonElement>('#igPresetPopupClose');
         if (closeBtn) closeBtn.onclick = closePresetPopup;
-        return state.igPresetPopup;
+        state.igPresetPopup = popup;
+        return popup;
     }
 
     function closePresetPopup() {
@@ -283,45 +341,45 @@
     }
 
     /* ===== applyContextPreset, showSlotSection, showAddCharacterForm, hideSlotSection ===== */
-    function applyContextPreset(item) {
+    function applyContextPreset(item: IgPresetItem) {
         if (!item || item.id === '_none') {
             state.currentContextPreset = null;
             state.slotValues = {};
             hideSlotSection();
-            const promptEl = document.getElementById('igPrompt');
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             if (promptEl) { promptEl.value = ''; promptEl.placeholder = '이미지 프롬프트를 입력하세요...'; }
             return;
         }
         state.currentContextPreset = item;
         state.slotValues = {};
-        const slots = getSlotsFromPrompt(item.prompt);
+        const slots = getSlotsFromPrompt(item.prompt ?? '');
         const hasSlots = slots.length > 0;
 
         if (hasSlots) {
             showSlotSection(item);
         } else {
             hideSlotSection();
-            const promptEl = document.getElementById('igPrompt');
-            if (promptEl) promptEl.value = item.prompt;
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
+            if (promptEl) promptEl.value = item.prompt ?? '';
         }
-        const promptEl = document.getElementById('igPrompt');
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         if (promptEl) promptEl.placeholder = hasSlots ? '추가 설명 (선택)' : '추가 설명 (선택)';
     }
 
-    function showSlotSection(contextItem) {
+    function showSlotSection(contextItem: IgPresetItem) {
         const section = document.getElementById('igSlotSection');
         if (!section) return;
         section.style.display = '';
         section.innerHTML = '';
-        const slots = getSlotsFromPrompt(contextItem.prompt);
+        const slots = getSlotsFromPrompt(contextItem.prompt ?? '');
         const charOpts = getCharacterOptions();
 
         const header = document.createElement('div');
         header.className = 'ig-slot-header';
-        header.innerHTML = `<span class="ig-slot-context">${escapeHtml(contextItem.icon + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="window._ig.openContextPreset()">컨텍스트 변경</button>`;
+        header.innerHTML = `<span class="ig-slot-context">${escapeHtml((contextItem.icon ?? '') + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="window._ig.openContextPreset()">컨텍스트 변경</button>`;
         section.appendChild(header);
 
-        function buildCharSelect(slotId, label) {
+        function buildCharSelect(slotId: string, label: string): HTMLElement {
             const opts = charOpts.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml((c.icon || '') + ' ' + c.label)}</option>`).join('');
             const row = document.createElement('div');
             row.className = 'ig-slot-row';
@@ -334,18 +392,22 @@
                 </div>
                 <input type="text" id="igSlotCustom_${slotId}" class="ig-slot-custom-input" placeholder="직접 입력 (캐릭터 설명)" style="display:none;">
             `;
-            const sel = row.querySelector('select');
-            const customInput = row.querySelector('.ig-slot-custom-input');
-            const addBtn = row.querySelector('.ig-slot-add-char');
+            const sel = row.querySelector<HTMLSelectElement>('select');
+            const customInput = row.querySelector<HTMLInputElement>('.ig-slot-custom-input');
+            const addBtn = row.querySelector<HTMLButtonElement>('.ig-slot-add-char');
 
             if (sel && state.slotValues[slotId]) {
                 const v = state.slotValues[slotId];
-                if (v === CUSTOM_INPUT_ID) { sel.value = CUSTOM_INPUT_ID; customInput.style.display = ''; customInput.value = state.slotValues[slotId + '_custom'] || ''; }
-                else sel.value = v;
+                if (v === CUSTOM_INPUT_ID) {
+                    sel.value = CUSTOM_INPUT_ID;
+                    if (customInput) { customInput.style.display = ''; customInput.value = state.slotValues[slotId + '_custom'] || ''; }
+                } else {
+                    sel.value = v;
+                }
             }
             sel?.addEventListener('change', () => {
                 const isCustom = sel.value === CUSTOM_INPUT_ID;
-                customInput.style.display = isCustom ? '' : 'none';
+                if (customInput) customInput.style.display = isCustom ? '' : 'none';
                 state.slotValues[slotId] = sel.value;
                 if (!isCustom) state.slotValues[slotId + '_custom'] = '';
             });
@@ -360,7 +422,7 @@
         });
     }
 
-    function showAddCharacterForm(slotId, currentOpts, rowEl) {
+    function showAddCharacterForm(slotId: string, currentOpts: IgCharacterOption[], rowEl: HTMLElement) {
         const form = document.createElement('div');
         form.className = 'ig-add-char-form';
         form.innerHTML = `
@@ -375,25 +437,34 @@
             </div>
         `;
         const prev = rowEl.nextElementSibling;
-        rowEl.parentNode.insertBefore(form, prev || null);
-        document.getElementById('igAcCancel').onclick = () => { form.remove(); showSlotSection(state.currentContextPreset); };
-        document.getElementById('igAcSave').onclick = () => {
-            const icon = document.getElementById('igAcIcon').value.trim() || '🎨';
-            const label = document.getElementById('igAcLabel').value.trim();
-            const prompt = document.getElementById('igAcPrompt').value.trim();
-            if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
+        rowEl.parentNode?.insertBefore(form, prev || null);
+        const cancelBtn = document.getElementById('igAcCancel') as HTMLButtonElement | null;
+        const saveBtn = document.getElementById('igAcSave') as HTMLButtonElement | null;
+        if (cancelBtn) cancelBtn.onclick = () => {
+            form.remove();
+            if (state.currentContextPreset) showSlotSection(state.currentContextPreset);
+        };
+        if (saveBtn) saveBtn.onclick = () => {
+            const iconEl = document.getElementById('igAcIcon') as HTMLInputElement | null;
+            const labelEl = document.getElementById('igAcLabel') as HTMLInputElement | null;
+            const promptTextEl = document.getElementById('igAcPrompt') as HTMLTextAreaElement | null;
+            const icon = iconEl?.value.trim() || '🎨';
+            const label = labelEl?.value.trim() ?? '';
+            const prompt = promptTextEl?.value.trim() ?? '';
+            if (!label || !prompt) { Toolbox.showToast?.('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const list = loadCustomCharacters();
             list.push({ id: 'uc_' + Date.now(), icon, label, prompt });
             saveCustomCharacters(list);
             form.remove();
-            showSlotSection(state.currentContextPreset);
-            Toolbox.showToast('캐릭터 추가됨');
+            if (state.currentContextPreset) showSlotSection(state.currentContextPreset);
+            Toolbox.showToast?.('캐릭터 추가됨');
         };
+        void currentOpts;
     }
 
     function hideSlotSection() {
         const section = document.getElementById('igSlotSection');
-        const promptEl = document.getElementById('igPrompt');
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         if (section) section.style.display = 'none';
         if (promptEl) promptEl.placeholder = '이미지 프롬프트를 입력하세요...';
         state.currentContextPreset = null;
@@ -405,39 +476,42 @@
         showPresetPopup(state.currentContextTab);
     }
 
-    function getSlotValue(slotId, opts) {
+    function getSlotValue(slotId: string, opts?: { useShortForChar?: boolean }): string {
         const useShort = opts?.useShortForChar && slotId === 'CHAR';
-        const presetId = document.getElementById('igSlot_' + slotId)?.value || state.slotValues[slotId];
+        const slotEl = document.getElementById('igSlot_' + slotId) as HTMLSelectElement | null;
+        const presetId = slotEl?.value || state.slotValues[slotId];
         if (!presetId) return '';
         if (presetId === CUSTOM_INPUT_ID) {
-            return document.getElementById('igSlotCustom_' + slotId)?.value.trim() || state.slotValues[slotId + '_custom'] || '';
+            const customEl = document.getElementById('igSlotCustom_' + slotId) as HTMLInputElement | null;
+            return customEl?.value.trim() || state.slotValues[slotId + '_custom'] || '';
         }
-        const builtin = (IG.CHARACTER_PRESETS?.char || []).find(c => c.id === presetId);
-        if (builtin) return useShort ? (builtin.shortLabel || builtin.prompt) : builtin.prompt;
+        const builtin = (ig.CHARACTER_PRESETS?.char || []).find(c => c.id === presetId);
+        if (builtin) return useShort ? (builtin.shortLabel || builtin.prompt || '') : (builtin.prompt || '');
         const custom = loadCustomCharacters().find(c => c.id === presetId);
-        if (custom) return useShort ? (custom.shortLabel || custom.label || custom.prompt) : custom.prompt;
+        if (custom) return useShort ? (custom.shortLabel || custom.label || custom.prompt || '') : (custom.prompt || '');
         return '';
     }
 
-    function buildFinalPrompt() {
+    function buildFinalPrompt(): string | null {
         if (!state.currentContextPreset) return null;
         const useShortForChar = state.currentContextTab === 'emoji' || state.currentContextTab === 'mascot';
-        let prompt = state.currentContextPreset.prompt;
+        let prompt = state.currentContextPreset.prompt ?? '';
         const slots = getSlotsFromPrompt(prompt);
         for (const slotId of slots) {
             const val = getSlotValue(slotId, { useShortForChar });
             prompt = prompt.replace(new RegExp('<' + slotId + '>', 'g'), val);
         }
-        const additional = document.getElementById('igPrompt')?.value.trim() || '';
+        const additionalEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
+        const additional = additionalEl?.value.trim() || '';
         return prompt + (additional ? '. ' + additional : '');
     }
 
     /* ===== showPresetPopup, showCustomFormInPopup ===== */
-    function showPresetPopup(tabId) {
+    function showPresetPopup(tabId: string) {
         state.currentContextTab = tabId || state.currentContextTab;
         const popup = getOrCreatePresetPopup();
-        const tabsEl = popup.querySelector('#igPresetPopupTabs');
-        const bodyEl = popup.querySelector('#igPresetPopupBody');
+        const tabsEl = popup.querySelector<HTMLElement>('#igPresetPopupTabs');
+        const bodyEl = popup.querySelector<HTMLElement>('#igPresetPopupBody');
         if (!bodyEl) return;
 
         if (tabsEl) {
@@ -453,7 +527,7 @@
 
         bodyEl.innerHTML = '';
         const rawItems = state.currentContextTab === 'custom' ? loadCustomPresets() : (CONTEXT_PRESETS[state.currentContextTab] || []);
-        const noneItem = { id: '_none', icon: '⬜', label: '없음' };
+        const noneItem: IgPresetItem = { id: '_none', icon: '⬜', label: '없음' };
         const items = [noneItem, ...rawItems];
 
         const grid = document.createElement('div');
@@ -479,7 +553,7 @@
                     presets.splice(idx - 1, 1);
                     saveCustomPresets(presets);
                     showPresetPopup(state.currentContextTab);
-                    Toolbox.showToast('프리셋 삭제됨');
+                    Toolbox.showToast?.('프리셋 삭제됨');
                 };
                 acts.appendChild(editBtn);
                 acts.appendChild(delBtn);
@@ -488,7 +562,7 @@
             card.onclick = () => {
                 applyContextPreset(item);
                 closePresetPopup();
-                Toolbox.showToast(item.id === '_none' ? '프리셋 해제됨' : '컨텍스트 적용됨');
+                Toolbox.showToast?.(item.id === '_none' ? '프리셋 해제됨' : '컨텍스트 적용됨');
             };
             grid.appendChild(card);
         });
@@ -505,7 +579,7 @@
         popup.classList.add('open');
     }
 
-    function showCustomFormInPopup(item, idx, bodyEl, tabId) {
+    function showCustomFormInPopup(item: IgPresetItem | null, idx: number, bodyEl: HTMLElement, tabId: string) {
         const form = document.createElement('div');
         form.className = 'ig-custom-form';
         form.innerHTML = `
@@ -521,31 +595,37 @@
         bodyEl.innerHTML = '';
         bodyEl.appendChild(form);
 
-        document.getElementById('igCfCancel').onclick = () => showPresetPopup(state.currentContextTab);
-        document.getElementById('igCfSave').onclick = () => {
-            const icon = document.getElementById('igCfIcon').value.trim() || '🎨';
-            const label = document.getElementById('igCfLabel').value.trim();
-            const prompt = document.getElementById('igCfPrompt').value.trim();
-            if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
+        const cancelBtn = document.getElementById('igCfCancel') as HTMLButtonElement | null;
+        const saveBtn = document.getElementById('igCfSave') as HTMLButtonElement | null;
+        if (cancelBtn) cancelBtn.onclick = () => showPresetPopup(state.currentContextTab);
+        if (saveBtn) saveBtn.onclick = () => {
+            const iconEl = document.getElementById('igCfIcon') as HTMLInputElement | null;
+            const labelEl = document.getElementById('igCfLabel') as HTMLInputElement | null;
+            const promptTextEl = document.getElementById('igCfPrompt') as HTMLTextAreaElement | null;
+            const icon = iconEl?.value.trim() || '🎨';
+            const label = labelEl?.value.trim() ?? '';
+            const prompt = promptTextEl?.value.trim() ?? '';
+            if (!label || !prompt) { Toolbox.showToast?.('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const presets = loadCustomPresets();
-            const entry = { id: item?.id || 'c_' + Date.now(), icon, label, prompt };
+            const entry: IgPresetItem = { id: item?.id || 'c_' + Date.now(), icon, label, prompt };
             if (idx >= 0 && idx < presets.length) presets[idx] = entry;
             else presets.push(entry);
             saveCustomPresets(presets);
             showPresetPopup(state.currentContextTab);
-            Toolbox.showToast(idx >= 0 ? '프리셋 수정 완료' : '프리셋 추가 완료');
+            Toolbox.showToast?.(idx >= 0 ? '프리셋 수정 완료' : '프리셋 추가 완료');
         };
+        void tabId;
     }
 
     /* ===== showApiHistory ===== */
     function showApiHistory() {
-        const history = typeof Gemini !== 'undefined' ? Gemini.getApiHistory() : [];
-        let overlay = document.getElementById('igApiHistoryOverlay');
+        const history = typeof Gemini !== 'undefined' ? (Gemini.getApiHistory?.() ?? []) : [];
+        let overlay = document.getElementById('igApiHistoryOverlay') as HTMLDivElement | null;
         if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'igApiHistoryOverlay';
-            overlay.className = 'ig-api-history-overlay';
-            overlay.innerHTML = `
+            const el = document.createElement('div');
+            el.id = 'igApiHistoryOverlay';
+            el.className = 'ig-api-history-overlay';
+            el.innerHTML = `
                 <div class="ig-api-history-panel">
                     <div class="ig-api-history-header">
                         <h3>📋 API 요청/응답 이력</h3>
@@ -556,17 +636,21 @@
                     </div>
                     <div class="ig-api-history-list" id="igApiHistoryList"></div>
                 </div>`;
-            overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove('open'); };
-            document.body.appendChild(overlay);
+            el.onclick = (e) => { if (e.target === el) el.classList.remove('open'); };
+            document.body.appendChild(el);
+            overlay = el;
 
-            document.getElementById('igApiHistoryClose').onclick = () => overlay.classList.remove('open');
-            document.getElementById('igApiHistoryClear').onclick = () => {
-                if (typeof Gemini !== 'undefined') Gemini.clearApiHistory();
+            const closeBtn = document.getElementById('igApiHistoryClose') as HTMLButtonElement | null;
+            const clearBtn = document.getElementById('igApiHistoryClear') as HTMLButtonElement | null;
+            if (closeBtn) closeBtn.onclick = () => overlay?.classList.remove('open');
+            if (clearBtn) clearBtn.onclick = () => {
+                if (typeof Gemini !== 'undefined') Gemini.clearApiHistory?.();
                 showApiHistory();
             };
         }
 
         const listEl = document.getElementById('igApiHistoryList');
+        if (!listEl) return;
         listEl.innerHTML = '';
 
         if (history.length === 0) {
@@ -576,7 +660,13 @@
                 const card = document.createElement('div');
                 card.className = 'ig-api-history-card';
                 const statusCls = entry.status >= 400 ? 'error' : 'ok';
-                const promptPreview = entry.requestBody?.contents?.[0]?.parts?.[0]?.text?.slice(0, 60) || entry.requestBody?.instances?.[0]?.prompt?.slice(0, 60) || '-';
+                const reqBody = entry.requestBody as Record<string, unknown> | undefined;
+                const contents = reqBody?.['contents'] as Array<Record<string, unknown>> | undefined;
+                const instances = reqBody?.['instances'] as Array<Record<string, unknown>> | undefined;
+                const firstPart = (contents?.[0]?.['parts'] as Array<Record<string, unknown>> | undefined)?.[0];
+                const promptPreview = (firstPart?.['text'] as string | undefined)?.slice(0, 60)
+                    || (instances?.[0]?.['prompt'] as string | undefined)?.slice(0, 60)
+                    || '-';
                 card.innerHTML = `
                     <div class="ig-api-history-card-head" data-i="${i}">
                         <span class="ig-api-history-badge ${statusCls}">${entry.status}</span>
@@ -598,8 +688,9 @@
                             <pre class="ig-api-history-pre">${escapeHtml(JSON.stringify(entry.responseBody || {}, null, 2))}</pre>
                         </div>
                     </div>`;
-                card.querySelector('.ig-api-history-card-head').onclick = () => {
-                    const body = document.getElementById('igApiBody' + i);
+                const head = card.querySelector<HTMLElement>('.ig-api-history-card-head');
+                if (head) head.onclick = () => {
+                    const body = document.getElementById('igApiBody' + i) as HTMLElement | null;
                     if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
                 };
                 listEl.appendChild(card);
@@ -622,37 +713,49 @@
     };
 
     function generate() {
-        let promptText;
+        let promptText: string;
         if (state.currentContextPreset) {
-            promptText = buildFinalPrompt();
-            if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
-            const slots = getSlotsFromPrompt(state.currentContextPreset.prompt);
+            const built = buildFinalPrompt();
+            if (!built) { Toolbox.showToast?.('프롬프트를 입력해주세요.', 'error'); return; }
+            promptText = built;
+            const slots = getSlotsFromPrompt(state.currentContextPreset.prompt ?? '');
             const allFilled = slots.every(s => {
-                const selVal = document.getElementById('igSlot_' + s)?.value || state.slotValues[s];
+                const selEl = document.getElementById('igSlot_' + s) as HTMLSelectElement | null;
+                const selVal = selEl?.value || state.slotValues[s];
                 if (!selVal) return false;
-                if (selVal === CUSTOM_INPUT_ID) return !!(document.getElementById('igSlotCustom_' + s)?.value.trim() || state.slotValues[s + '_custom']);
+                if (selVal === CUSTOM_INPUT_ID) {
+                    const customEl = document.getElementById('igSlotCustom_' + s) as HTMLInputElement | null;
+                    return !!(customEl?.value.trim() || state.slotValues[s + '_custom']);
+                }
                 return true;
             });
-            if (!allFilled) { Toolbox.showToast('모든 캐릭터 슬롯을 채워주세요.', 'error'); return; }
+            if (!allFilled) { Toolbox.showToast?.('모든 캐릭터 슬롯을 채워주세요.', 'error'); return; }
         } else {
-            const promptEl = document.getElementById('igPrompt');
-            promptText = promptEl?.value.trim();
-            if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
+            const val = promptEl?.value.trim();
+            if (!val) { Toolbox.showToast?.('프롬프트를 입력해주세요.', 'error'); return; }
+            promptText = val;
         }
-        if (!Gemini.requireApiKey()) return;
+        if (!Gemini?.requireApiKey?.()) return;
 
-        const isEmoji = state.currentContextPreset && state.currentContextTab === 'emoji';
-        const isMascot = state.currentContextPreset && state.currentContextTab === 'mascot';
+        const isEmoji = Boolean(state.currentContextPreset) && state.currentContextTab === 'emoji';
+        const isMascot = Boolean(state.currentContextPreset) && state.currentContextTab === 'mascot';
         let emojiChar = '';
-        if (isEmoji && document.getElementById('igSlot_CHAR')) {
-            const v = document.getElementById('igSlot_CHAR').value;
-            emojiChar = v === CUSTOM_INPUT_ID ? (document.getElementById('igSlotCustom_CHAR')?.value.trim() || '') : ((getCharacterOptions().find(c => c.id === v))?.label || '');
+        if (isEmoji) {
+            const slotEl = document.getElementById('igSlot_CHAR') as HTMLSelectElement | null;
+            if (slotEl) {
+                const v = slotEl.value;
+                const customEl = document.getElementById('igSlotCustom_CHAR') as HTMLInputElement | null;
+                emojiChar = v === CUSTOM_INPUT_ID
+                    ? (customEl?.value.trim() || '')
+                    : (getCharacterOptions().find(c => c.id === v)?.label || '');
+            }
         }
         enqueue(promptText, isEmoji, emojiChar, isMascot);
         const pending = queue.filter(q => q.status === 'pending').length;
         const running = queue.filter(q => q.status === 'running').length;
         if (pending + running > 1) {
-            Toolbox.showToast(`큐에 추가됨 (대기 ${pending}개)`);
+            Toolbox.showToast?.(`큐에 추가됨 (대기 ${pending}개)`);
         }
     }
 
@@ -660,7 +763,7 @@
         const running = queue.find(q => q.status === 'running');
         if (running) {
             cancelQueueItem(running.id);
-            Toolbox.showToast('현재 생성 취소됨');
+            Toolbox.showToast?.('현재 생성 취소됨');
             Mdd.linePreset('tool_run', { mood: 'idle', msg: '취소했어요!' });
         }
     }
@@ -671,27 +774,27 @@
     }
 
     function toggleCompare() {
-        if (state.sessionGallery.length < 2) { Toolbox.showToast('비교하려면 이미지가 2장 이상 필요합니다.', 'error'); return; }
+        if (state.sessionGallery.length < 2) { Toolbox.showToast?.('비교하려면 이미지가 2장 이상 필요합니다.', 'error'); return; }
         state.compareMode = !state.compareMode;
         const preview = document.getElementById('igPreview');
-        const img = document.getElementById('igImage');
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
         const placeholder = document.getElementById('igPlaceholder');
         const btn = document.getElementById('igCompareBtn');
 
-        if (state.compareMode && state.currentItem) {
+        if (state.compareMode && state.currentItem && preview) {
             const idx = state.sessionGallery.indexOf(state.currentItem);
             const prevItem = idx > 0 ? state.sessionGallery[idx - 1] : state.sessionGallery[state.sessionGallery.length - 1];
             if (img) img.style.display = 'none';
             if (placeholder) placeholder.style.display = 'none';
-            let cmp = preview.querySelector('.ig-compare');
+            let cmp = preview.querySelector<HTMLDivElement>('.ig-compare');
             if (!cmp) { cmp = document.createElement('div'); cmp.className = 'ig-compare'; preview.appendChild(cmp); }
             cmp.innerHTML = `
                 <div class="ig-compare-pane"><div class="ig-compare-label">이전</div><img src="${prevItem.url}" alt="Previous"></div>
                 <div class="ig-compare-pane"><div class="ig-compare-label">현재</div><img src="${state.currentItem.url}" alt="Current"></div>`;
             cmp.style.display = 'flex';
             if (btn) btn.textContent = '🔀 비교 해제';
-        } else {
-            const cmp = preview.querySelector('.ig-compare');
+        } else if (preview) {
+            const cmp = preview.querySelector<HTMLElement>('.ig-compare');
             if (cmp) cmp.style.display = 'none';
             if (img && state.currentItem) img.style.display = '';
             if (btn) btn.textContent = '🔀 비교';
@@ -715,17 +818,17 @@
                     item.title = text;
                     item.onclick = () => {
                         if (state.currentContextPreset) {
-                            const slots = getSlotsFromPrompt(state.currentContextPreset.prompt);
+                            const slots = getSlotsFromPrompt(state.currentContextPreset.prompt ?? '');
                             if (slots.includes('CHAR')) {
-                                const sel = document.getElementById('igSlot_CHAR');
-                                const customInput = document.getElementById('igSlotCustom_CHAR');
+                                const sel = document.getElementById('igSlot_CHAR') as HTMLSelectElement | null;
+                                const customInput = document.getElementById('igSlotCustom_CHAR') as HTMLInputElement | null;
                                 if (sel && customInput) { sel.value = CUSTOM_INPUT_ID; customInput.value = text; customInput.style.display = ''; state.slotValues.CHAR = CUSTOM_INPUT_ID; state.slotValues.CHAR_custom = text; }
                             } else {
-                                const promptEl = document.getElementById('igPrompt');
+                                const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
                                 if (promptEl) promptEl.value = text;
                             }
                         } else {
-                            const promptEl = document.getElementById('igPrompt');
+                            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
                             if (promptEl) promptEl.value = text;
                         }
                         dd.classList.remove('open');
@@ -737,34 +840,35 @@
     }
 
     async function enhancePrompt() {
-        const promptEl = document.getElementById('igPrompt');
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         const raw = promptEl?.value.trim();
-        if (!raw) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
-        if (!Gemini.requireApiKey()) return;
+        if (!raw) { Toolbox.showToast?.('프롬프트를 입력해주세요.', 'error'); return; }
+        if (!Gemini?.requireApiKey?.()) return;
 
-        const btn = document.querySelector('.ig-enhance-btn');
+        const btn = document.querySelector<HTMLButtonElement>('.ig-enhance-btn');
         const originalLabel = btn?.textContent;
         try {
             if (btn) { btn.disabled = true; btn.textContent = '⏳ 다듬는 중...'; }
             if (promptEl) promptEl.classList.add('ig-enhancing');
 
-            const enhanced = await Gemini.enhancePrompt(raw);
+            const enhanced = await Gemini?.enhancePrompt?.(raw);
             if (promptEl && enhanced) {
                 promptEl.classList.add('ig-enhanced-flash');
                 promptEl.value = enhanced;
                 setTimeout(() => promptEl.classList.remove('ig-enhanced-flash'), 600);
             }
-            Toolbox.showToast('프롬프트를 다듬었습니다.');
-        } catch (e) {
-            Toolbox.showToast(e.message || '다듬기 실패', 'error', e);
+            Toolbox.showToast?.('프롬프트를 다듬었습니다.');
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : '다듬기 실패';
+            Toolbox.showToast?.(msg, 'error', e);
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+            if (btn) { btn.disabled = false; btn.textContent = originalLabel ?? ''; }
             if (promptEl) promptEl.classList.remove('ig-enhancing');
         }
     }
 
     /* ===== buildMain ===== */
-    function buildMain(container) {
+    function buildMain(container: HTMLElement) {
         Mdd.linePreset('daily_start', { msg: '이미지 만들어볼까요?' });
 
         container.innerHTML = `
@@ -774,7 +878,7 @@
                         <label class="field-label">🔑 API 키</label>
                         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
                             <div style="font-size:var(--font-size-xs);color:var(--text-tertiary);">
-                                프로필: <strong id="igActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName() || '기본') : '-'}</strong>
+                                프로필: <strong id="igActiveProfileName" style="color:var(--text-secondary);">${typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName?.() || '기본') : '-'}</strong>
                             </div>
                             <button class="btn btn-ghost" type="button" onclick="Toolbox.switchPage('user'); Toolbox.switchTab('user-settings');">설정에서 변경</button>
                         </div>
@@ -889,8 +993,8 @@
             </div>`;
 
         requestAnimationFrame(() => {
-            const sel = document.getElementById('igModelSelect');
-            if (sel) {
+            const sel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
+            if (sel && typeof Gemini !== 'undefined' && Gemini.MODELS) {
                 const gGroup = document.createElement('optgroup');
                 gGroup.label = 'Gemini (이미지)';
                 (Gemini.MODELS.geminiImage || Gemini.MODELS.gemini).forEach(m => {
@@ -910,72 +1014,72 @@
                 });
                 sel.appendChild(iGroup);
 
-                const savedModel = Toolbox.getPref('ig_model');
+                const savedModel = Toolbox.getPref?.('ig_model', '');
                 if (savedModel) sel.value = savedModel;
-                sel.addEventListener('change', () => { Toolbox.setPref('ig_model', sel.value); updateImagenOptionsVisibility(); });
+                sel.addEventListener('change', () => { Toolbox.setPref?.('ig_model', sel.value); updateImagenOptionsVisibility(); });
                 updateImagenOptionsVisibility();
             }
 
-            const ratioSel = document.getElementById('igAspectRatio');
-            const apiSel = document.getElementById('igApiRoute');
-            const vibeSel = document.getElementById('igVibe');
-            const safetySel = document.getElementById('igSafety');
-            if (ratioSel) { const sr = Toolbox.getPref('ig_ratio'); if (sr) ratioSel.value = sr; ratioSel.addEventListener('change', () => Toolbox.setPref('ig_ratio', ratioSel.value)); }
+            const ratioSel = document.getElementById('igAspectRatio') as HTMLSelectElement | null;
+            const apiSel = document.getElementById('igApiRoute') as HTMLSelectElement | null;
+            const vibeSel = document.getElementById('igVibe') as HTMLSelectElement | null;
+            const safetySel = document.getElementById('igSafety') as HTMLSelectElement | null;
+            if (ratioSel) { const sr = Toolbox.getPref?.('ig_ratio', ''); if (sr) ratioSel.value = sr; ratioSel.addEventListener('change', () => Toolbox.setPref?.('ig_ratio', ratioSel.value)); }
             if (apiSel) {
-                const savedApi = Toolbox.getPref('ig_api_route');
+                const savedApi = Toolbox.getPref?.('ig_api_route', '');
                 if (savedApi) apiSel.value = savedApi;
                 apiSel.addEventListener('change', () => {
-                    Toolbox.setPref('ig_api_route', apiSel.value);
+                    Toolbox.setPref?.('ig_api_route', apiSel.value);
                     updateVertexImagenFieldsVisibility();
                 });
             }
 
-            const vProj = document.getElementById('igVertexProjectId');
-            const vLoc = document.getElementById('igVertexLocation');
+            const vProj = document.getElementById('igVertexProjectId') as HTMLInputElement | null;
+            const vLoc = document.getElementById('igVertexLocation') as HTMLInputElement | null;
             if (vLoc) {
-                const sl = Toolbox.getPref('ig_vertex_location');
+                const sl = Toolbox.getPref?.('ig_vertex_location', '');
                 if (sl) vLoc.value = sl;
                 else vLoc.value = 'us-central1';
-                vLoc.addEventListener('change', () => Toolbox.setPref('ig_vertex_location', vLoc.value.trim() || 'us-central1'));
+                vLoc.addEventListener('change', () => Toolbox.setPref?.('ig_vertex_location', vLoc.value.trim() || 'us-central1'));
             }
             if (vProj) {
-                const sp = Toolbox.getPref('ig_vertex_project_id');
+                const sp = Toolbox.getPref?.('ig_vertex_project_id', '');
                 if (sp) vProj.value = sp;
-                vProj.addEventListener('change', () => Toolbox.setPref('ig_vertex_project_id', vProj.value.trim()));
+                vProj.addEventListener('change', () => Toolbox.setPref?.('ig_vertex_project_id', vProj.value.trim()));
             }
             function syncIgVertexFieldsFromPrefs() {
-                const p = document.getElementById('igVertexProjectId');
-                const l = document.getElementById('igVertexLocation');
-                if (p instanceof HTMLInputElement) {
-                    const v = Toolbox.getPref('ig_vertex_project_id');
+                const p = document.getElementById('igVertexProjectId') as HTMLInputElement | null;
+                const l = document.getElementById('igVertexLocation') as HTMLInputElement | null;
+                if (p) {
+                    const v = Toolbox.getPref?.('ig_vertex_project_id', '');
                     if (typeof v === 'string') p.value = v;
                 }
-                if (l instanceof HTMLInputElement) {
-                    const v = Toolbox.getPref('ig_vertex_location');
+                if (l) {
+                    const v = Toolbox.getPref?.('ig_vertex_location', '');
                     l.value = (typeof v === 'string' && v.trim()) ? v.trim() : 'us-central1';
                 }
             }
             window.addEventListener('vertex-context-changed', syncIgVertexFieldsFromPrefs);
             updateVertexImagenFieldsVisibility();
-            if (vibeSel) { const sv = Toolbox.getPref('ig_vibe'); if (sv) vibeSel.value = sv; vibeSel.addEventListener('change', () => { Toolbox.setPref('ig_vibe', vibeSel.value); updateVibeInfo(); }); updateVibeInfo(); }
-            if (safetySel) { const ss = Toolbox.getPref('ig_safety'); if (ss) safetySel.value = ss; safetySel.addEventListener('change', () => Toolbox.setPref('ig_safety', safetySel.value)); }
+            if (vibeSel) { const sv = Toolbox.getPref?.('ig_vibe', ''); if (sv) vibeSel.value = sv; vibeSel.addEventListener('change', () => { Toolbox.setPref?.('ig_vibe', vibeSel.value); updateVibeInfo(); }); updateVibeInfo(); }
+            if (safetySel) { const ss = Toolbox.getPref?.('ig_safety', ''); if (ss) safetySel.value = ss; safetySel.addEventListener('change', () => Toolbox.setPref?.('ig_safety', safetySel.value)); }
 
             renderPresetButtons();
 
-            const qClearBtn = document.getElementById('igQueueClear');
-            if (qClearBtn) qClearBtn.onclick = () => IG.clearQueue();
+            const qClearBtn = document.getElementById('igQueueClear') as HTMLButtonElement | null;
+            if (qClearBtn) qClearBtn.onclick = () => clearQueue();
 
-            const prompt = document.getElementById('igPrompt');
+            const prompt = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             if (prompt) {
                 prompt.addEventListener('keydown', e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        window._ig.generate();
+                        window._ig?.generate();
                     }
                 });
             }
 
-            IG.initCore({
+            ig.initCore({
                 state,
                 renderQueue,
                 renderQueueItem,
@@ -986,14 +1090,15 @@
                 saveGallerySession
             });
 
-            if (IG.loadGallerySession()) {
+            if (ig.loadGallerySession()) {
                 renderSessionGallery();
                 if (state.currentItem) {
-                    const img = document.getElementById('igImage');
+                    const img = document.getElementById('igImage') as HTMLImageElement | null;
                     const placeholder = document.getElementById('igPlaceholder');
                     const downloadBtn = document.getElementById('igDownloadBtn');
                     const compareBtnR = document.getElementById('igCompareBtn');
-                    if (img) { img.src = state.currentItem.url; img.style.display = ''; img.onclick = () => showLightbox(state.currentItem.url); }
+                    const currentItem = state.currentItem;
+                    if (img) { img.src = currentItem.url; img.style.display = ''; img.onclick = () => showLightbox(currentItem.url); }
                     if (placeholder) placeholder.style.display = 'none';
                     if (downloadBtn) downloadBtn.style.display = '';
                     if (compareBtnR && state.sessionGallery.length >= 2) compareBtnR.style.display = '';
@@ -1005,9 +1110,11 @@
 
     /* ===== Toolbox.register ===== */
     Toolbox.register({
-        ...Toolbox.getLazyWidgetPublicMeta('imagegen'),
+        ...(Toolbox.getLazyWidgetPublicMeta?.('imagegen') ?? {}),
         tabs: [
             { id: 'imagegen-main', label: '생성', build: buildMain }
         ]
     });
+
+    void addPromptHistory;
 })();

@@ -83,6 +83,18 @@ declare global {
     toggleCryptoFields?: () => void;
     swapResultToInput?: () => void;
     doCrypto?: () => void;
+
+    /** imagegen.ts — HTML inline onclick 에서 호출하는 공개 API */
+    _ig?: {
+      generate: () => void;
+      cancel: () => void;
+      download: () => void;
+      toggleCompare: () => void;
+      toggleHistory: () => void;
+      enhancePrompt: () => Promise<void>;
+      openContextPreset: () => void;
+      showApiHistory: () => void;
+    };
   }
 
   /** crypto-js (vendor script-mode) — 위젯에서 사용하는 면만 명시. 그 외 면은 도구 차원에서 점진 확장. */
@@ -144,6 +156,22 @@ declare global {
         MODELS?: GeminiModelsCatalog;
         GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
         DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
+        /** imagegen / imageedit 위젯이 사용하는 키 관리 메서드 */
+        getApiKey?: (id?: string) => string | null | undefined;
+        requireApiKey?: () => string | null;
+        fetchWithRetry?: (url: string, body: unknown, options?: Record<string, unknown>) => Promise<Response>;
+        /** imagegen API 이력 */
+        getApiHistory?: () => Array<{
+          status: number;
+          type?: string;
+          ts?: string;
+          url?: string;
+          requestBody?: Record<string, unknown>;
+          responseBody?: Record<string, unknown>;
+        }>;
+        clearApiHistory?: () => void;
+        getActiveProfileName?: () => string;
+        enhancePrompt?: (prompt: string) => Promise<string>;
       };
 
   /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
