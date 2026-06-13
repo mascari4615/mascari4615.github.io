@@ -140,8 +140,11 @@ declare global {
           count: number,
           options?: Record<string, unknown>
         ) => Promise<string[]>;
+        getApiKey: (id?: string | null) => string;
+        requireApiKey: () => string | null;
+        fetchWithRetry: (url: string, body: unknown, options?: RequestInit) => Promise<Response>;
         /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
-        MODELS?: GeminiModelsCatalog;
+        MODELS: GeminiModelsCatalog;
         GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
         DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
       };
