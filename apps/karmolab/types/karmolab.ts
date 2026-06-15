@@ -229,5 +229,8 @@ export interface KarmoLabImageGenNamespace {
   GALLERY_SESSION_MAX?: number;
   PROMPT_HISTORY_KEY?: string;
   PROMPT_HISTORY_MAX?: number;
+  CHARACTER_PRESETS?: {
+    char?: Array<{ id: string; label: string; icon?: string; prompt: string; shortLabel?: string }>;
+  };
   [key: string]: unknown;
 }

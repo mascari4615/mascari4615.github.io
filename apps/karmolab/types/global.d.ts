@@ -52,6 +52,18 @@ declare global {
     /** dashboard.ts — 내 정보 탭에서 호출 */
     DashboardBuild?: (container: HTMLElement) => void;
 
+    /** imagegen 위젯 내부 함수 — HTML onclick 핸들러에서 사용 */
+    _ig?: {
+      generate: () => void;
+      cancel: () => void;
+      download: () => void;
+      toggleCompare: () => void;
+      toggleHistory: () => void;
+      enhancePrompt: () => Promise<void>;
+      openContextPreset: () => void;
+      showApiHistory: () => void;
+    };
+
     /** KarmoLab Tauri 셸에서 주입 */
     __KARMOLAB_DESKTOP__?: boolean;
     /** KarmoLab Tauri 셸에서 주입 — Cargo.toml 패키지 버전 */
@@ -144,6 +156,17 @@ declare global {
         MODELS?: GeminiModelsCatalog;
         GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
         DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
+        getApiHistory?: () => Array<{
+          status: number;
+          type?: string;
+          ts?: string;
+          url?: string;
+          requestBody?: Record<string, unknown>;
+          responseBody?: Record<string, unknown>;
+        }>;
+        clearApiHistory?: () => void;
+        getActiveProfileName?: () => string;
+        enhancePrompt?: (prompt: string) => Promise<string>;
       };
 
   /** `gemini.ts` 내부 정의 — IndexedDB 이미지 라이브러리 공유 모듈 */
@@ -221,5 +244,6 @@ declare global {
     setBgTheme?: (v: string) => void;
     getBgThemes?: () => Array<{ id: string; label: string }>;
   };
+
 
 }
