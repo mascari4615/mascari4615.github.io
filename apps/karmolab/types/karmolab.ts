@@ -229,6 +229,9 @@ export interface KarmoLabImageGenNamespace {
   GALLERY_SESSION_MAX?: number;
   PROMPT_HISTORY_KEY?: string;
   PROMPT_HISTORY_MAX?: number;
+  CHARACTER_PRESETS?: {
+    char?: Array<{ id: string; label: string; icon?: string; prompt: string; shortLabel?: string }>;
+  };
   /** imagegen/* 위젯 (config/presets/queue/utils) 이 동적으로 채우는 면 — narrow 미완 (KL-078). */
   [key: string]: any;
 }
