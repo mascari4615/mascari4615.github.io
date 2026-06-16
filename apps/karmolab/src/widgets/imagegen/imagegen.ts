@@ -53,7 +53,7 @@
 
     /* ===== renderQueue, renderQueueItem ===== */
     function renderQueue() {
-        const panel = (document.getElementById('igQueuePanel') as any);
+        const panel = document.getElementById('igQueuePanel') as HTMLDivElement | null;
         if (!panel) return;
 
         const active = queue.filter((q: any) => q.status !== 'cancelled');
@@ -63,7 +63,7 @@
         }
         panel.style.display = '';
 
-        const listEl = (document.getElementById('igQueueList') as any);
+        const listEl = document.getElementById('igQueueList') as HTMLDivElement | null;
         if (!listEl) return;
         listEl.innerHTML = '';
 
@@ -101,17 +101,17 @@
             btn.onclick = () => removeQueueItem(Number(btn.dataset.qid));
         });
 
-        const countEl = (document.getElementById('igQueueCount') as any);
+        const countEl = document.getElementById('igQueueCount') as HTMLElement | null;
         const pending = queue.filter((q: any) => q.status === 'pending').length;
         const running = queue.filter((q: any) => q.status === 'running').length;
         if (countEl) countEl.textContent = running ? `처리 중 ${running} / 대기 ${pending}` : `대기 ${pending}`;
 
-        const cancelBtn = (document.getElementById('igCancelBtn') as any);
+        const cancelBtn = document.getElementById('igCancelBtn') as HTMLButtonElement | null;
         if (cancelBtn) cancelBtn.style.display = running > 0 ? '' : 'none';
     }
 
     function renderQueueItem(q: any) {
-        const row = (document.getElementById('igQ_' + q.id) as any);
+        const row = document.getElementById('igQ_' + q.id) as HTMLDivElement | null;
         if (!row) return;
         const infoText = q.status === 'running' ? `${q.elapsed || 0}s` : '';
         const metaEl = row.querySelector('.ig-q-meta');
@@ -123,12 +123,12 @@
 
     /* ===== updateMainPreview, showResultInPreview, hideMainLoading ===== */
     function updateMainPreview() {
-        const img = (document.getElementById('igImage') as any);
-        const placeholder = (document.getElementById('igPlaceholder') as any);
-        const loadingArea = (document.getElementById('igLoadingArea') as any);
-        const loadingText = (document.getElementById('igLoadingText') as any);
-        const downloadBtn = (document.getElementById('igDownloadBtn') as any);
-        const tokenDisplay = (document.getElementById('igTokenDisplay') as any);
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
+        const placeholder = document.getElementById('igPlaceholder') as HTMLDivElement | null;
+        const loadingArea = document.getElementById('igLoadingArea') as HTMLDivElement | null;
+        const loadingText = document.getElementById('igLoadingText') as HTMLElement | null;
+        const downloadBtn = document.getElementById('igDownloadBtn') as HTMLButtonElement | null;
+        const tokenDisplay = document.getElementById('igTokenDisplay') as HTMLElement | null;
 
         if (placeholder) placeholder.style.display = 'none';
         if (img) img.style.display = 'none';
@@ -139,10 +139,10 @@
     }
 
     function showResultInPreview(item: any) {
-        const img = (document.getElementById('igImage') as any);
-        const loadingArea = (document.getElementById('igLoadingArea') as any);
-        const downloadBtn = (document.getElementById('igDownloadBtn') as any);
-        const tokenDisplay = (document.getElementById('igTokenDisplay') as any);
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
+        const loadingArea = document.getElementById('igLoadingArea') as HTMLDivElement | null;
+        const downloadBtn = document.getElementById('igDownloadBtn') as HTMLButtonElement | null;
+        const tokenDisplay = document.getElementById('igTokenDisplay') as HTMLElement | null;
 
         if (loadingArea) loadingArea.style.display = 'none';
         if (img) { img.src = item.url; img.style.display = ''; img.onclick = () => showLightbox(item.url); }
@@ -154,15 +154,15 @@
     }
 
     function hideMainLoading() {
-        const loadingArea = (document.getElementById('igLoadingArea') as any);
+        const loadingArea = document.getElementById('igLoadingArea') as HTMLDivElement | null;
         if (loadingArea) loadingArea.style.display = 'none';
-        const placeholder = (document.getElementById('igPlaceholder') as any);
+        const placeholder = document.getElementById('igPlaceholder') as HTMLDivElement | null;
         if (!state.currentItem && placeholder) placeholder.style.display = '';
     }
 
     /* ===== updateMetaDisplay ===== */
     function updateMetaDisplay() {
-        const el = (document.getElementById('igMetaDisplay') as any);
+        const el = document.getElementById('igMetaDisplay') as HTMLElement | null;
         if (!el || !state.currentItem) { if (el) el.textContent = ''; return; }
         const model = state.currentItem.modelName || state.currentItem.model || '';
         const prompt = state.currentItem.prompt || '';
@@ -185,7 +185,7 @@
     }
 
     function renderSessionGallery() {
-        const el = (document.getElementById('igGallery') as any);
+        const el = document.getElementById('igGallery') as HTMLDivElement | null;
         if (!el) return;
         el.innerHTML = '';
         state.sessionGallery.forEach((item: any) => {
@@ -196,9 +196,9 @@
             thumb.title = `${item.modelName || item.model || ''}\n${(item.prompt || '').slice(0, 80)}`;
             thumb.onclick = () => {
                 state.currentItem = item;
-                const img = (document.getElementById('igImage') as any);
-                const placeholder = (document.getElementById('igPlaceholder') as any);
-                const downloadBtn = (document.getElementById('igDownloadBtn') as any);
+                const img = document.getElementById('igImage') as HTMLImageElement | null;
+                const placeholder = document.getElementById('igPlaceholder') as HTMLDivElement | null;
+                const downloadBtn = document.getElementById('igDownloadBtn') as HTMLButtonElement | null;
                 if (img) { img.src = item.url; img.style.display = ''; img.onclick = () => showLightbox(item.url); }
                 if (placeholder) placeholder.style.display = 'none';
                 if (downloadBtn) downloadBtn.style.display = '';
@@ -213,27 +213,27 @@
 
     /* ===== updateImagenOptionsVisibility, updateVibeInfo ===== */
     function updateVertexImagenFieldsVisibility() {
-        const modelSel = (document.getElementById('igModelSelect') as any);
-        const apiSel = (document.getElementById('igApiRoute') as any);
-        const group = (document.getElementById('igVertexImagenGroup') as any);
+        const modelSel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
+        const apiSel = document.getElementById('igApiRoute') as HTMLSelectElement | null;
+        const group = document.getElementById('igVertexImagenGroup') as HTMLDivElement | null;
         if (!group) return;
         const show = (apiSel?.value === 'vertex') && (modelSel?.value?.startsWith('imagen') || false);
         group.style.display = show ? '' : 'none';
     }
 
     function updateImagenOptionsVisibility() {
-        const modelSel = (document.getElementById('igModelSelect') as any);
+        const modelSel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
         const isImagen = modelSel?.value?.startsWith('imagen') || false;
-        const negGroup = (document.getElementById('igNegPromptGroup') as any);
-        const personGroup = (document.getElementById('igPersonGenGroup') as any);
+        const negGroup = document.getElementById('igNegPromptGroup') as HTMLDivElement | null;
+        const personGroup = document.getElementById('igPersonGenGroup') as HTMLDivElement | null;
         if (negGroup) negGroup.style.display = isImagen ? '' : 'none';
         if (personGroup) personGroup.style.display = isImagen ? '' : 'none';
         updateVertexImagenFieldsVisibility();
     }
 
     function updateVibeInfo() {
-        const vibeSel = (document.getElementById('igVibe') as any);
-        const infoEl = (document.getElementById('igVibeInfo') as any);
+        const vibeSel = document.getElementById('igVibe') as HTMLSelectElement | null;
+        const infoEl = document.getElementById('igVibeInfo') as HTMLElement | null;
         if (!vibeSel || !infoEl) return;
         const vibe = VIBE_OPTIONS.find((v: any) => v.id === vibeSel.value);
         if (!vibe || vibe.id === 'none') {
@@ -245,7 +245,7 @@
 
     /* ===== renderPresetButtons, getOrCreatePresetPopup, closePresetPopup ===== */
     function renderPresetButtons() {
-        const container = (document.getElementById('igPresetBtns') as any);
+        const container = document.getElementById('igPresetBtns') as HTMLDivElement | null;
         if (!container) return;
         container.innerHTML = '';
         const btn = document.createElement('button');
@@ -287,7 +287,7 @@
             state.currentContextPreset = null;
             state.slotValues = {};
             hideSlotSection();
-            const promptEl = (document.getElementById('igPrompt') as any);
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             if (promptEl) { promptEl.value = ''; promptEl.placeholder = '이미지 프롬프트를 입력하세요...'; }
             return;
         }
@@ -300,15 +300,15 @@
             showSlotSection(item);
         } else {
             hideSlotSection();
-            const promptEl = (document.getElementById('igPrompt') as any);
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             if (promptEl) promptEl.value = item.prompt;
         }
-        const promptEl = (document.getElementById('igPrompt') as any);
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         if (promptEl) promptEl.placeholder = hasSlots ? '추가 설명 (선택)' : '추가 설명 (선택)';
     }
 
     function showSlotSection(contextItem: any) {
-        const section = (document.getElementById('igSlotSection') as any);
+        const section = document.getElementById('igSlotSection') as HTMLDivElement | null;
         if (!section) return;
         section.style.display = '';
         section.innerHTML = '';
@@ -375,11 +375,11 @@
         `;
         const prev = rowEl.nextElementSibling;
         rowEl.parentNode.insertBefore(form, prev || null);
-        (document.getElementById('igAcCancel') as any).onclick = () => { form.remove(); showSlotSection(state.currentContextPreset); };
-        (document.getElementById('igAcSave') as any).onclick = () => {
-            const icon = (document.getElementById('igAcIcon') as any).value.trim() || '🎨';
-            const label = (document.getElementById('igAcLabel') as any).value.trim();
-            const prompt = (document.getElementById('igAcPrompt') as any).value.trim();
+        (document.getElementById('igAcCancel') as HTMLButtonElement | null).onclick = () => { form.remove(); showSlotSection(state.currentContextPreset); };
+        (document.getElementById('igAcSave') as HTMLButtonElement | null).onclick = () => {
+            const icon = (document.getElementById('igAcIcon') as HTMLInputElement | null).value.trim() || '🎨';
+            const label = (document.getElementById('igAcLabel') as HTMLInputElement | null).value.trim();
+            const prompt = (document.getElementById('igAcPrompt') as HTMLTextAreaElement | null).value.trim();
             if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const list = loadCustomCharacters();
             list.push({ id: 'uc_' + Date.now(), icon, label, prompt });
@@ -391,8 +391,8 @@
     }
 
     function hideSlotSection() {
-        const section = (document.getElementById('igSlotSection') as any);
-        const promptEl = (document.getElementById('igPrompt') as any);
+        const section = document.getElementById('igSlotSection') as HTMLDivElement | null;
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         if (section) section.style.display = 'none';
         if (promptEl) promptEl.placeholder = '이미지 프롬프트를 입력하세요...';
         state.currentContextPreset = null;
@@ -406,10 +406,10 @@
 
     function getSlotValue(slotId: any, opts?: any) {
         const useShort = opts?.useShortForChar && slotId === 'CHAR';
-        const presetId = (document.getElementById('igSlot_' + slotId) as any)?.value || state.slotValues[slotId];
+        const presetId = (document.getElementById('igSlot_' + slotId) as HTMLSelectElement | null)?.value || state.slotValues[slotId];
         if (!presetId) return '';
         if (presetId === CUSTOM_INPUT_ID) {
-            return (document.getElementById('igSlotCustom_' + slotId) as any)?.value.trim() || state.slotValues[slotId + '_custom'] || '';
+            return (document.getElementById('igSlotCustom_' + slotId) as HTMLInputElement | null)?.value.trim() || state.slotValues[slotId + '_custom'] || '';
         }
         const builtin = ((IG as any)?.CHARACTER_PRESETS?.char || []).find((c: any) => c.id === presetId);
         if (builtin) return useShort ? (builtin.shortLabel || builtin.prompt) : builtin.prompt;
@@ -427,7 +427,7 @@
             const val = getSlotValue(slotId, { useShortForChar });
             prompt = prompt.replace(new RegExp('<' + slotId + '>', 'g'), val);
         }
-        const additional = (document.getElementById('igPrompt') as any)?.value.trim() || '';
+        const additional = (document.getElementById('igPrompt') as HTMLTextAreaElement | null)?.value.trim() || '';
         return prompt + (additional ? '. ' + additional : '');
     }
 
@@ -520,11 +520,11 @@
         bodyEl.innerHTML = '';
         bodyEl.appendChild(form);
 
-        (document.getElementById('igCfCancel') as any).onclick = () => showPresetPopup(state.currentContextTab);
-        (document.getElementById('igCfSave') as any).onclick = () => {
-            const icon = (document.getElementById('igCfIcon') as any).value.trim() || '🎨';
-            const label = (document.getElementById('igCfLabel') as any).value.trim();
-            const prompt = (document.getElementById('igCfPrompt') as any).value.trim();
+        (document.getElementById('igCfCancel') as HTMLButtonElement | null).onclick = () => showPresetPopup(state.currentContextTab);
+        (document.getElementById('igCfSave') as HTMLButtonElement | null).onclick = () => {
+            const icon = (document.getElementById('igCfIcon') as HTMLInputElement | null).value.trim() || '🎨';
+            const label = (document.getElementById('igCfLabel') as HTMLInputElement | null).value.trim();
+            const prompt = (document.getElementById('igCfPrompt') as HTMLTextAreaElement | null).value.trim();
             if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const presets = loadCustomPresets();
             const entry = { id: item?.id || 'c_' + Date.now(), icon, label, prompt };
@@ -539,7 +539,7 @@
     /* ===== showApiHistory ===== */
     function showApiHistory() {
         const history = typeof Gemini !== 'undefined' ? (Gemini as any).getApiHistory() : [];
-        let overlay = (document.getElementById('igApiHistoryOverlay') as any);
+        let overlay = document.getElementById('igApiHistoryOverlay') as HTMLDivElement | null;
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'igApiHistoryOverlay';
@@ -558,14 +558,14 @@
             overlay.onclick = (e: any) => { if (e.target === overlay) overlay.classList.remove('open'); };
             document.body.appendChild(overlay);
 
-            (document.getElementById('igApiHistoryClose') as any).onclick = () => overlay.classList.remove('open');
-            (document.getElementById('igApiHistoryClear') as any).onclick = () => {
+            (document.getElementById('igApiHistoryClose') as HTMLButtonElement | null).onclick = () => overlay.classList.remove('open');
+            (document.getElementById('igApiHistoryClear') as HTMLButtonElement | null).onclick = () => {
                 if (typeof Gemini !== 'undefined') (Gemini as any).clearApiHistory();
                 showApiHistory();
             };
         }
 
-        const listEl = (document.getElementById('igApiHistoryList') as any);
+        const listEl = document.getElementById('igApiHistoryList') as HTMLDivElement | null;
         listEl.innerHTML = '';
 
         if (history.length === 0) {
@@ -598,7 +598,7 @@
                         </div>
                     </div>`;
                 (card.querySelector('.ig-api-history-card-head') as any).onclick = () => {
-                    const body = (document.getElementById('igApiBody' + i) as any);
+                    const body = document.getElementById('igApiBody' + i) as HTMLDivElement | null;
                     if (body) body.style.display = body.style.display === 'none' ? 'block' : 'none';
                 };
                 listEl.appendChild(card);
@@ -627,14 +627,14 @@
             if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
             const slots = getSlotsFromPrompt(state.currentContextPreset.prompt);
             const allFilled = slots.every((s: any) => {
-                const selVal = (document.getElementById('igSlot_' + s) as any)?.value || state.slotValues[s];
+                const selVal = (document.getElementById('igSlot_' + s) as HTMLSelectElement | null)?.value || state.slotValues[s];
                 if (!selVal) return false;
-                if (selVal === CUSTOM_INPUT_ID) return !!((document.getElementById('igSlotCustom_' + s) as any)?.value.trim() || state.slotValues[s + '_custom']);
+                if (selVal === CUSTOM_INPUT_ID) return !!((document.getElementById('igSlotCustom_' + s) as HTMLInputElement | null)?.value.trim() || state.slotValues[s + '_custom']);
                 return true;
             });
             if (!allFilled) { Toolbox.showToast('모든 캐릭터 슬롯을 채워주세요.', 'error'); return; }
         } else {
-            const promptEl = (document.getElementById('igPrompt') as any);
+            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             promptText = promptEl?.value.trim();
             if (!promptText) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
         }
@@ -643,9 +643,9 @@
         const isEmoji = state.currentContextPreset && state.currentContextTab === 'emoji';
         const isMascot = state.currentContextPreset && state.currentContextTab === 'mascot';
         let emojiChar = '';
-        if (isEmoji && (document.getElementById('igSlot_CHAR') as any)) {
-            const v = (document.getElementById('igSlot_CHAR') as any).value;
-            emojiChar = v === CUSTOM_INPUT_ID ? ((document.getElementById('igSlotCustom_CHAR') as any)?.value.trim() || '') : ((getCharacterOptions().find((c: any) => c.id === v))?.label || '');
+        if (isEmoji && (document.getElementById('igSlot_CHAR') as HTMLSelectElement | null)) {
+            const v = (document.getElementById('igSlot_CHAR') as HTMLSelectElement | null).value;
+            emojiChar = v === CUSTOM_INPUT_ID ? ((document.getElementById('igSlotCustom_CHAR') as HTMLInputElement | null)?.value.trim() || '') : ((getCharacterOptions().find((c: any) => c.id === v))?.label || '');
         }
         enqueue(promptText, isEmoji, emojiChar, isMascot);
         const pending = queue.filter((q: any) => q.status === 'pending').length;
@@ -672,10 +672,10 @@
     function toggleCompare() {
         if (state.sessionGallery.length < 2) { Toolbox.showToast('비교하려면 이미지가 2장 이상 필요합니다.', 'error'); return; }
         state.compareMode = !state.compareMode;
-        const preview = (document.getElementById('igPreview') as any);
-        const img = (document.getElementById('igImage') as any);
-        const placeholder = (document.getElementById('igPlaceholder') as any);
-        const btn = (document.getElementById('igCompareBtn') as any);
+        const preview = document.getElementById('igPreview') as HTMLDivElement | null;
+        const img = document.getElementById('igImage') as HTMLImageElement | null;
+        const placeholder = document.getElementById('igPlaceholder') as HTMLDivElement | null;
+        const btn = document.getElementById('igCompareBtn') as HTMLButtonElement | null;
 
         if (state.compareMode && state.currentItem) {
             const idx = state.sessionGallery.indexOf(state.currentItem);
@@ -698,7 +698,7 @@
     }
 
     function toggleHistory() {
-        const dd = (document.getElementById('igHistoryDropdown') as any);
+        const dd = document.getElementById('igHistoryDropdown') as HTMLDivElement | null;
         if (!dd) return;
         const isOpen = dd.classList.toggle('open');
         if (isOpen) {
@@ -716,15 +716,15 @@
                         if (state.currentContextPreset) {
                             const slots = getSlotsFromPrompt(state.currentContextPreset.prompt);
                             if (slots.includes('CHAR')) {
-                                const sel = (document.getElementById('igSlot_CHAR') as any);
-                                const customInput = (document.getElementById('igSlotCustom_CHAR') as any);
+                                const sel = document.getElementById('igSlot_CHAR') as HTMLSelectElement | null;
+                                const customInput = document.getElementById('igSlotCustom_CHAR') as HTMLInputElement | null;
                                 if (sel && customInput) { sel.value = CUSTOM_INPUT_ID; customInput.value = text; customInput.style.display = ''; state.slotValues.CHAR = CUSTOM_INPUT_ID; state.slotValues.CHAR_custom = text; }
                             } else {
-                                const promptEl = (document.getElementById('igPrompt') as any);
+                                const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
                                 if (promptEl) promptEl.value = text;
                             }
                         } else {
-                            const promptEl = (document.getElementById('igPrompt') as any);
+                            const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
                             if (promptEl) promptEl.value = text;
                         }
                         dd.classList.remove('open');
@@ -736,7 +736,7 @@
     }
 
     async function enhancePrompt() {
-        const promptEl = (document.getElementById('igPrompt') as any);
+        const promptEl = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
         const raw = promptEl?.value.trim();
         if (!raw) { Toolbox.showToast('프롬프트를 입력해주세요.', 'error'); return; }
         if (!(Gemini as any).requireApiKey()) return;
@@ -888,7 +888,7 @@
             </div>`;
 
         requestAnimationFrame(() => {
-            const sel = (document.getElementById('igModelSelect') as any);
+            const sel = document.getElementById('igModelSelect') as HTMLSelectElement | null;
             if (sel) {
                 const gGroup = document.createElement('optgroup');
                 gGroup.label = 'Gemini (이미지)';
@@ -915,10 +915,10 @@
                 updateImagenOptionsVisibility();
             }
 
-            const ratioSel = (document.getElementById('igAspectRatio') as any);
-            const apiSel = (document.getElementById('igApiRoute') as any);
-            const vibeSel = (document.getElementById('igVibe') as any);
-            const safetySel = (document.getElementById('igSafety') as any);
+            const ratioSel = document.getElementById('igAspectRatio') as HTMLSelectElement | null;
+            const apiSel = document.getElementById('igApiRoute') as HTMLSelectElement | null;
+            const vibeSel = document.getElementById('igVibe') as HTMLSelectElement | null;
+            const safetySel = document.getElementById('igSafety') as HTMLSelectElement | null;
             if (ratioSel) { const sr = Toolbox.getPref('ig_ratio', ''); if (sr) ratioSel.value = sr; ratioSel.addEventListener('change', () => Toolbox.setPref('ig_ratio', ratioSel.value)); }
             if (apiSel) {
                 const savedApi = Toolbox.getPref('ig_api_route', '');
@@ -929,8 +929,8 @@
                 });
             }
 
-            const vProj = (document.getElementById('igVertexProjectId') as any);
-            const vLoc = (document.getElementById('igVertexLocation') as any);
+            const vProj = document.getElementById('igVertexProjectId') as HTMLInputElement | null;
+            const vLoc = document.getElementById('igVertexLocation') as HTMLInputElement | null;
             if (vLoc) {
                 const sl = Toolbox.getPref('ig_vertex_location', '');
                 if (sl) vLoc.value = sl;
@@ -943,8 +943,8 @@
                 vProj.addEventListener('change', () => Toolbox.setPref('ig_vertex_project_id', vProj.value.trim()));
             }
             function syncIgVertexFieldsFromPrefs() {
-                const p = (document.getElementById('igVertexProjectId') as any);
-                const l = (document.getElementById('igVertexLocation') as any);
+                const p = document.getElementById('igVertexProjectId') as HTMLInputElement | null;
+                const l = document.getElementById('igVertexLocation') as HTMLInputElement | null;
                 if (p instanceof HTMLInputElement) {
                     const v = Toolbox.getPref('ig_vertex_project_id', '');
                     if (typeof v === 'string') p.value = v;
@@ -961,10 +961,10 @@
 
             renderPresetButtons();
 
-            const qClearBtn = (document.getElementById('igQueueClear') as any);
+            const qClearBtn = document.getElementById('igQueueClear') as HTMLButtonElement | null;
             if (qClearBtn) qClearBtn.onclick = () => (IG as any).clearQueue();
 
-            const prompt = (document.getElementById('igPrompt') as any);
+            const prompt = document.getElementById('igPrompt') as HTMLTextAreaElement | null;
             if (prompt) {
                 prompt.addEventListener('keydown', (e: any) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -988,10 +988,10 @@
             if ((IG as any).loadGallerySession()) {
                 renderSessionGallery();
                 if (state.currentItem) {
-                    const img = (document.getElementById('igImage') as any);
-                    const placeholder = (document.getElementById('igPlaceholder') as any);
-                    const downloadBtn = (document.getElementById('igDownloadBtn') as any);
-                    const compareBtnR = (document.getElementById('igCompareBtn') as any);
+                    const img = document.getElementById('igImage') as HTMLImageElement | null;
+                    const placeholder = document.getElementById('igPlaceholder') as HTMLDivElement | null;
+                    const downloadBtn = document.getElementById('igDownloadBtn') as HTMLButtonElement | null;
+                    const compareBtnR = document.getElementById('igCompareBtn') as HTMLButtonElement | null;
                     if (img) { img.src = state.currentItem.url; img.style.display = ''; img.onclick = () => showLightbox(state.currentItem.url); }
                     if (placeholder) placeholder.style.display = 'none';
                     if (downloadBtn) downloadBtn.style.display = '';
