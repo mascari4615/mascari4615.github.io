@@ -15,7 +15,6 @@
  *
  * 모델·URL·Vertex 기본값 SSOT: packages/karmolab-ai (KarmoLabAI — AI Studio + Vertex)
  */
-// @ts-nocheck — large API surface; narrow types incrementally later (Toolbox/Gemini shapes)
 import {
   MODEL_CATALOG as MODELS,
   getDefaultModelId,
@@ -29,7 +28,129 @@ import {
   buildGeminiSafetySettings,
   DOC_URL_AI_STUDIO_API_KEY,
   DOC_URL_VERTEX_API_KEYS,
+  type ModelProvider,
 } from 'karmolab-ai';
+
+/* ===== 내부 타입 (Gemini IIFE 와 ImageDB IIFE 공용) ===== */
+interface ApiKeyProfile {
+    id: string;
+    name: string;
+    key: string;
+}
+
+interface ApiKeyStore {
+    activeId: string;
+    profiles: ApiKeyProfile[];
+}
+
+interface VertexChatContext {
+    projectId: string;
+    location: string;
+}
+
+interface VertexChatContextOptions {
+    projectId?: string | null;
+    location?: string | null;
+}
+
+interface ApiHistoryEntry {
+    type: string;
+    ts?: string;
+    url?: string;
+    method?: string;
+    requestBody?: unknown;
+    responseBody?: unknown;
+    status?: number;
+}
+
+interface GeminiPart {
+    text?: string;
+    inlineData?: { mimeType?: string; data: string };
+    [key: string]: unknown;
+}
+
+interface GeminiContent {
+    role?: string;
+    parts?: GeminiPart[];
+    [key: string]: unknown;
+}
+
+interface GeminiCandidate {
+    content?: GeminiContent;
+    finishReason?: string;
+    [key: string]: unknown;
+}
+
+interface GeminiUsageMetadata {
+    totalTokenCount?: number;
+    [key: string]: unknown;
+}
+
+interface GeminiResponseBody {
+    candidates?: GeminiCandidate[];
+    usageMetadata?: GeminiUsageMetadata;
+    error?: { message?: string; status?: string; [key: string]: unknown };
+    predictions?: Array<Record<string, unknown>>;
+    [key: string]: unknown;
+}
+
+interface GeminiRequestBody {
+    contents?: GeminiContent[];
+    systemInstruction?: { parts?: GeminiPart[] };
+    generationConfig?: Record<string, unknown>;
+    safetySettings?: Array<{ category: string; threshold: string }>;
+    tools?: Array<Record<string, unknown>>;
+    instances?: Array<Record<string, unknown>>;
+    parameters?: Record<string, unknown>;
+    [key: string]: unknown;
+}
+
+interface GeminiChatOptions {
+    temperature?: number;
+    maxTokens?: number;
+    safetyThreshold?: string;
+    webSearch?: boolean;
+    signal?: AbortSignal;
+}
+
+interface VertexChatOptions extends GeminiChatOptions, VertexChatContextOptions {}
+
+interface GeminiImageOptions {
+    signal?: AbortSignal;
+    aspectRatio?: string;
+    safetyThreshold?: string;
+    referenceImage?: string;
+    referenceMimeType?: string;
+}
+
+interface VertexGeminiImageOptions extends GeminiImageOptions {
+    projectId?: string;
+    location?: string;
+}
+
+interface ImagenOptions {
+    signal?: AbortSignal;
+    aspectRatio?: string;
+    safetyFilterLevel?: string;
+    negativePrompt?: string;
+    personGeneration?: string;
+}
+
+interface VertexImagenOptions extends ImagenOptions {
+    projectId?: string;
+    location?: string;
+}
+
+interface ImagenPrediction {
+    bytesBase64Encoded?: string;
+    structValue?: {
+        fields?: {
+            bytesBase64Encoded?: { stringValue?: string };
+            [key: string]: unknown;
+        };
+    };
+    [key: string]: unknown;
+}
 
 const Gemini = (() => {
     const STORAGE_KEY = 'toolbox_gemini_api_key'; // legacy single-key
@@ -38,26 +159,29 @@ const Gemini = (() => {
     const VERTEX_API_KEY_STORAGE = 'toolbox_vertex_api_key';
 
     /* ===== API 키 관리 (다중 프로필) ===== */
-    function getKeyStore() {
+    function getKeyStore(): ApiKeyStore {
         // 1) 최신 구조: { activeId, profiles: [{id,name,key}] }
         try {
-            const parsed = JSON.parse(localStorage.getItem(KEYS_STORE_KEY) || 'null');
+            const parsed: unknown = JSON.parse(localStorage.getItem(KEYS_STORE_KEY) || 'null');
             if (parsed && typeof parsed === 'object') {
-                if (Array.isArray(parsed.profiles)) {
-                    if (!parsed.profiles.length) {
-                        parsed.profiles.push({ id: 'default', name: '기본', key: '' });
+                const obj = parsed as Record<string, unknown>;
+                if (Array.isArray(obj.profiles)) {
+                    const profiles = obj.profiles as ApiKeyProfile[];
+                    if (!profiles.length) {
+                        profiles.push({ id: 'default', name: '기본', key: '' });
                     }
-                    parsed.activeId = parsed.activeId || parsed.profiles[0].id;
-                    return parsed;
+                    const activeId = (typeof obj.activeId === 'string' && obj.activeId) || profiles[0].id;
+                    return { activeId, profiles };
                 }
                 // 2) 구버전 v2: { active: 'free'|'paid', keys: { free, paid } }
-                if (parsed.keys) {
-                    const profiles = [];
-                    if (parsed.keys.free) profiles.push({ id: 'free', name: '무료', key: parsed.keys.free });
-                    if (parsed.keys.paid) profiles.push({ id: 'paid', name: '유료', key: parsed.keys.paid });
+                const keys = obj.keys as { free?: string; paid?: string } | undefined;
+                if (keys) {
+                    const profiles: ApiKeyProfile[] = [];
+                    if (keys.free) profiles.push({ id: 'free', name: '무료', key: keys.free });
+                    if (keys.paid) profiles.push({ id: 'paid', name: '유료', key: keys.paid });
                     if (!profiles.length) profiles.push({ id: 'default', name: '기본', key: '' });
-                    const activeId = profiles.find(p => p.id === parsed.active)?.id || profiles[0].id;
-                    const migrated = { activeId, profiles };
+                    const activeId = profiles.find(p => p.id === obj.active)?.id || profiles[0].id;
+                    const migrated: ApiKeyStore = { activeId, profiles };
                     localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(migrated));
                     return migrated;
                 }
@@ -66,49 +190,49 @@ const Gemini = (() => {
 
         // 3) 더 구버전: STORAGE_KEY 단일 키
         const legacy = localStorage.getItem(STORAGE_KEY) || '';
-        const baseProfile = legacy
+        const baseProfile: ApiKeyProfile = legacy
             ? { id: 'default', name: '기본', key: legacy }
             : { id: 'default', name: '기본', key: '' };
-        const store = { activeId: baseProfile.id, profiles: [baseProfile] };
+        const store: ApiKeyStore = { activeId: baseProfile.id, profiles: [baseProfile] };
         localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(store));
         return store;
     }
 
-    function saveKeyStore(store) {
+    function saveKeyStore(store: ApiKeyStore) {
         localStorage.setItem(KEYS_STORE_KEY, JSON.stringify(store));
     }
 
-    function getProfiles() {
+    function getProfiles(): ApiKeyProfile[] {
         const store = getKeyStore();
         return store.profiles || [];
     }
 
-    function getActiveProfileId() {
+    function getActiveProfileId(): string {
         const store = getKeyStore();
         return store.activeId;
     }
 
-    function setActiveProfileId(id) {
+    function setActiveProfileId(id: string) {
         const store = getKeyStore();
         if (!store.profiles?.some(p => p.id === id)) return;
         store.activeId = id;
         saveKeyStore(store);
     }
 
-    function getActiveProfileName() {
+    function getActiveProfileName(): string {
         const store = getKeyStore();
         const p = store.profiles?.find(p => p.id === store.activeId);
         return p ? p.name : '';
     }
 
-    function getApiKey(id = null) {
+    function getApiKey(id: string | null = null): string {
         const store = getKeyStore();
         const pid = id || store.activeId;
         const p = store.profiles?.find(p => p.id === pid);
         return p ? (p.key || '') : '';
     }
 
-    function setApiKey(key, id = null, nameOverride) {
+    function setApiKey(key: string, id: string | null = null, nameOverride?: string) {
         const store = getKeyStore();
         let pid = id || store.activeId;
         if (!pid) {
@@ -144,7 +268,7 @@ const Gemini = (() => {
         }
     }
 
-    function setVertexApiKey(key) {
+    function setVertexApiKey(key: string) {
         try {
             if (key) localStorage.setItem(VERTEX_API_KEY_STORAGE, key);
             else localStorage.removeItem(VERTEX_API_KEY_STORAGE);
@@ -162,7 +286,7 @@ const Gemini = (() => {
     }
 
     /* ===== 기본 모델 (catalog: karmolab-ai) ===== */
-    function getDefaultModel(provider = 'gemini') {
+    function getDefaultModel(provider: ModelProvider = 'gemini'): string {
         return getDefaultModelId(provider);
     }
 
@@ -170,69 +294,75 @@ const Gemini = (() => {
     const VERTEX_CHAT_PROJECT_PREF = 'ig_vertex_project_id';
     const VERTEX_CHAT_LOCATION_PREF = 'ig_vertex_location';
 
-    function getVertexChatContext(options = {}) {
+    function getVertexChatContext(options: VertexChatContextOptions = {}): VertexChatContext {
         const projectId = String(
-            options.projectId != null ? options.projectId : Toolbox.getPref(VERTEX_CHAT_PROJECT_PREF) || ''
+            options.projectId != null ? options.projectId : Toolbox.getPref?.(VERTEX_CHAT_PROJECT_PREF, '') || ''
         ).trim();
         const locRaw =
-            options.location != null ? options.location : Toolbox.getPref(VERTEX_CHAT_LOCATION_PREF) || DEFAULT_VERTEX_LOCATION;
+            options.location != null ? options.location : Toolbox.getPref?.(VERTEX_CHAT_LOCATION_PREF, '') || DEFAULT_VERTEX_LOCATION;
         const location = String(locRaw || DEFAULT_VERTEX_LOCATION).trim() || DEFAULT_VERTEX_LOCATION;
         return { projectId, location };
     }
 
     /* ===== API 요청/응답 히스토리 (디버깅용, 메모리만) ===== */
-    const apiHistory = [];
+    const apiHistory: ApiHistoryEntry[] = [];
     const API_HISTORY_MAX = 20;
 
-    function recordApiCall(entry) {
-        const copy = { ...entry, ts: new Date().toISOString() };
+    function recordApiCall(entry: ApiHistoryEntry) {
+        const copy: ApiHistoryEntry = { ...entry, ts: new Date().toISOString() };
         if (copy.requestBody && typeof copy.requestBody === 'object') {
             try {
-                copy.requestBody = JSON.parse(JSON.stringify(copy.requestBody));
-                copy.requestBody.contents?.forEach(c => {
-                    c.parts?.forEach(p => {
+                const reqClone = JSON.parse(JSON.stringify(copy.requestBody)) as GeminiRequestBody;
+                reqClone.contents?.forEach((c) => {
+                    c.parts?.forEach((p) => {
                         if (p.inlineData?.data) {
                             const len = String(p.inlineData.data).length;
                             p.inlineData.data = `[base64 ${len} chars]`;
                         }
                     });
                 });
+                copy.requestBody = reqClone;
             } catch (_) {}
         }
-        if (copy.responseBody && copy.responseBody.candidates) {
-            copy.responseBody = JSON.parse(JSON.stringify(copy.responseBody));
-            copy.responseBody.candidates?.forEach(c => {
-                c.content?.parts?.forEach(p => {
+        const respBody = copy.responseBody as GeminiResponseBody | undefined;
+        if (respBody && respBody.candidates) {
+            const respClone = JSON.parse(JSON.stringify(respBody)) as GeminiResponseBody;
+            respClone.candidates?.forEach((c) => {
+                c.content?.parts?.forEach((p) => {
                     if (p.inlineData?.data) p.inlineData.data = `[base64 ${p.inlineData.data.length} chars]`;
                 });
             });
+            copy.responseBody = respClone;
         }
-        if (copy.responseBody?.predictions) {
-            copy.responseBody = JSON.parse(JSON.stringify(copy.responseBody));
-            copy.responseBody.predictions?.forEach(p => {
-                if (p.bytesBase64Encoded) p.bytesBase64Encoded = `[base64 ${p.bytesBase64Encoded.length} chars]`;
+        const respBody2 = copy.responseBody as GeminiResponseBody | undefined;
+        if (respBody2?.predictions) {
+            const respClone = JSON.parse(JSON.stringify(respBody2)) as GeminiResponseBody;
+            respClone.predictions?.forEach((p) => {
+                const pred = p as ImagenPrediction;
+                if (pred.bytesBase64Encoded) pred.bytesBase64Encoded = `[base64 ${pred.bytesBase64Encoded.length} chars]`;
             });
+            copy.responseBody = respClone;
         }
         if (copy.url) copy.url = maskUrl(copy.url);
         apiHistory.unshift(copy);
         if (apiHistory.length > API_HISTORY_MAX) apiHistory.pop();
     }
 
-    function getApiHistory() { return [...apiHistory]; }
+    function getApiHistory(): ApiHistoryEntry[] { return [...apiHistory]; }
     function clearApiHistory() { apiHistory.length = 0; }
 
-    function applySafetySettings(body, threshold) {
+    function applySafetySettings(body: GeminiRequestBody, threshold: string | undefined) {
         const safetySettings = buildGeminiSafetySettings(threshold);
         if (safetySettings.length > 0) body.safetySettings = safetySettings;
     }
 
     /* ===== HTTP 헬퍼 ===== */
-    function maskKey(key) {
+    function maskKey(key: string): string {
         if (!key || key.length < 8) return '••••';
         return key.slice(0, 6) + '...' + key.slice(-4);
     }
 
-    function maskUrl(url) {
+    function maskUrl(url: string): string {
         try {
             const u = new URL(url);
             const k = u.searchParams.get('key');
@@ -241,9 +371,9 @@ const Gemini = (() => {
         } catch (_) { return url.replace(/key=[^&]+/, 'key=••••'); }
     }
 
-    async function fetchWithRetry(url, body, options = {}) {
+    async function fetchWithRetry(url: string, body: unknown, options: RequestInit = {}): Promise<Response> {
         try {
-            const fetchOpts = {
+            const fetchOpts: RequestInit = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -253,10 +383,10 @@ const Gemini = (() => {
 
             if (!response.ok) {
                 let errorDetails = '상세 정보 없음';
-                let fullError = null;
+                let fullError: GeminiResponseBody | null = null;
                 try {
-                    fullError = await response.json();
-                    errorDetails = fullError.error?.message || JSON.stringify(fullError);
+                    fullError = await response.json() as GeminiResponseBody;
+                    errorDetails = fullError?.error?.message || JSON.stringify(fullError);
                 } catch (e) {
                     errorDetails = await response.text();
                 }
@@ -284,49 +414,51 @@ const Gemini = (() => {
             }
 
             return response;
-        } catch (e) {
-            if (e.name === 'AbortError') throw new Error('요청이 취소되었습니다.');
-            if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-                throw new Error('네트워크 연결 오류. 인터넷 연결을 확인해주세요.');
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                if (e.name === 'AbortError') throw new Error('요청이 취소되었습니다.');
+                if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+                    throw new Error('네트워크 연결 오류. 인터넷 연결을 확인해주세요.');
+                }
             }
             throw e;
         }
     }
 
     /* ===== 텍스트 생성 ===== */
-    async function callText(userText, systemPrompt, modelId) {
+    async function callText(userText: string, systemPrompt: string, modelId: string | undefined) {
         const key = requireApiKey();
         if (!key) return null;
 
         const model = modelId || getDefaultModel('gemini');
         const url = buildAiStudioGenerateContentUrl(model, key);
-        const body = {
+        const body: GeminiRequestBody = {
             contents: [{ parts: [{ text: userText }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: { maxOutputTokens: 8192 }
         };
 
         const res = await fetchWithRetry(url, body);
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         if (!data.candidates || !data.candidates[0]) {
             throw new Error('응답에 결과가 없습니다: ' + JSON.stringify(data));
         }
 
         return {
-            text: data.candidates[0].content.parts[0].text,
+            text: data.candidates[0].content?.parts?.[0]?.text ?? '',
             usage: data.usageMetadata
         };
     }
 
     /* ===== 챗 (멀티턴) ===== */
-    async function callChat(history, systemPrompt, modelId, options = {}) {
+    async function callChat(history: GeminiContent[], systemPrompt: string, modelId: string | undefined, options: GeminiChatOptions = {}) {
         const key = requireApiKey();
         if (!key) return null;
 
         const model = modelId || getDefaultModel('gemini');
         const url = buildAiStudioGenerateContentUrl(model, key);
-        const body = {
+        const body: GeminiRequestBody = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -341,26 +473,26 @@ const Gemini = (() => {
         }
 
         const res = await fetchWithRetry(url, body);
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         if (!data.candidates || !data.candidates[0]?.content) {
             throw new Error('응답에 결과가 없습니다.');
         }
 
         return {
-            text: data.candidates[0].content.parts[0].text,
+            text: data.candidates[0].content?.parts?.[0]?.text ?? '',
             usage: data.usageMetadata
         };
     }
 
     /* ===== 챗 스트리밍 ===== */
-    async function callChatStream(history, systemPrompt, modelId, options = {}) {
+    async function callChatStream(history: GeminiContent[], systemPrompt: string, modelId: string | undefined, options: GeminiChatOptions = {}) {
         const key = requireApiKey();
         if (!key) return null;
 
         const model = modelId || getDefaultModel('gemini');
         const url = buildAiStudioStreamGenerateContentUrl(model, key);
-        const body = {
+        const body: GeminiRequestBody = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -371,7 +503,7 @@ const Gemini = (() => {
         applySafetySettings(body, options.safetyThreshold);
         if (options.webSearch) body.tools = [{ googleSearch: {} }];
 
-        const fetchOpts = {
+        const fetchOpts: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
@@ -381,13 +513,14 @@ const Gemini = (() => {
         const response = await fetch(url, fetchOpts);
         if (!response.ok) {
             let msg = `[HTTP ${response.status}]`;
-            try { const e = await response.json(); msg += ' ' + (e.error?.message || JSON.stringify(e)); } catch (_) {}
+            try { const e = await response.json() as GeminiResponseBody; msg += ' ' + (e.error?.message || JSON.stringify(e)); } catch (_) {}
             throw new Error(msg);
         }
 
         return {
             async *chunks() {
-                const reader = response.body.getReader();
+                const reader = response.body?.getReader();
+                if (!reader) return;
                 const decoder = new TextDecoder();
                 let buffer = '';
                 while (true) {
@@ -395,13 +528,13 @@ const Gemini = (() => {
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
-                    buffer = lines.pop();
+                    buffer = lines.pop() || '';
                     for (const line of lines) {
                         if (!line.startsWith('data: ')) continue;
                         const jsonStr = line.slice(6).trim();
                         if (!jsonStr || jsonStr === '[DONE]') continue;
                         try {
-                            const parsed = JSON.parse(jsonStr);
+                            const parsed = JSON.parse(jsonStr) as GeminiResponseBody;
                             const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                             if (text) yield { text, usage: parsed.usageMetadata || null };
                         } catch (_) {}
@@ -412,7 +545,7 @@ const Gemini = (() => {
     }
 
     /* ===== Vertex — 텍스트 / 채팅 / 스트리밍 (generateContent·streamGenerateContent) ===== */
-    async function callVertexText(userText, systemPrompt, modelId, options = {}) {
+    async function callVertexText(userText: string, systemPrompt: string, modelId: string | undefined, options: VertexChatOptions = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -429,14 +562,14 @@ const Gemini = (() => {
             method: 'generateContent',
             apiKey: key,
         });
-        const body = {
+        const body: GeminiRequestBody = {
             contents: [{ parts: [{ text: userText }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: { maxOutputTokens: 8192 },
         };
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         if (data.error) {
             throw new Error(data.error.message || data.error.status || 'Vertex API 오류');
@@ -446,12 +579,12 @@ const Gemini = (() => {
         }
 
         return {
-            text: data.candidates[0].content.parts[0].text,
+            text: data.candidates[0].content?.parts?.[0]?.text ?? '',
             usage: data.usageMetadata,
         };
     }
 
-    async function callVertexChat(history, systemPrompt, modelId, options = {}) {
+    async function callVertexChat(history: GeminiContent[], systemPrompt: string, modelId: string | undefined, options: VertexChatOptions = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -468,7 +601,7 @@ const Gemini = (() => {
             method: 'generateContent',
             apiKey: key,
         });
-        const body = {
+        const body: GeminiRequestBody = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -479,7 +612,7 @@ const Gemini = (() => {
         applySafetySettings(body, options.safetyThreshold);
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         if (data.error) {
             throw new Error(data.error.message || data.error.status || 'Vertex API 오류');
@@ -489,12 +622,12 @@ const Gemini = (() => {
         }
 
         return {
-            text: data.candidates[0].content.parts[0].text,
+            text: data.candidates[0].content?.parts?.[0]?.text ?? '',
             usage: data.usageMetadata,
         };
     }
 
-    async function callVertexChatStream(history, systemPrompt, modelId, options = {}) {
+    async function callVertexChatStream(history: GeminiContent[], systemPrompt: string, modelId: string | undefined, options: VertexChatOptions = {}) {
         const key = requireVertexApiKey();
         if (!key) return null;
 
@@ -511,7 +644,7 @@ const Gemini = (() => {
             method: 'streamGenerateContent',
             apiKey: key,
         });
-        const body = {
+        const body: GeminiRequestBody = {
             contents: history,
             systemInstruction: { parts: [{ text: systemPrompt }] },
             generationConfig: {
@@ -521,7 +654,7 @@ const Gemini = (() => {
         };
         applySafetySettings(body, options.safetyThreshold);
 
-        const fetchOpts = {
+        const fetchOpts: RequestInit = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -532,7 +665,7 @@ const Gemini = (() => {
         if (!response.ok) {
             let msg = `[HTTP ${response.status}]`;
             try {
-                const e = await response.json();
+                const e = await response.json() as GeminiResponseBody;
                 msg += ' ' + (e.error?.message || JSON.stringify(e));
             } catch (_) {}
             throw new Error(msg);
@@ -540,7 +673,8 @@ const Gemini = (() => {
 
         return {
             async *chunks() {
-                const reader = response.body.getReader();
+                const reader = response.body?.getReader();
+                if (!reader) return;
                 const decoder = new TextDecoder();
                 let buffer = '';
                 while (true) {
@@ -548,13 +682,13 @@ const Gemini = (() => {
                     if (done) break;
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
-                    buffer = lines.pop();
+                    buffer = lines.pop() || '';
                     for (const line of lines) {
                         if (!line.startsWith('data: ')) continue;
                         const jsonStr = line.slice(6).trim();
                         if (!jsonStr || jsonStr === '[DONE]') continue;
                         try {
-                            const parsed = JSON.parse(jsonStr);
+                            const parsed = JSON.parse(jsonStr) as GeminiResponseBody;
                             const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                             if (text) yield { text, usage: parsed.usageMetadata || null };
                         } catch (_) {}
@@ -572,14 +706,14 @@ const Gemini = (() => {
      * - referenceImage: data URL 또는 순수 base64(편집·업스케일 등 입력 이미지)
      * - referenceMimeType: 기본 image/png
      */
-    async function callGeminiImage(prompt, modelId, options = {}) {
+    async function callGeminiImage(prompt: string, modelId: string | undefined, options: GeminiImageOptions = {}) {
         const key = requireApiKey();
         if (!key) throw new Error('API 키가 설정되지 않았습니다.');
 
         const model = modelId || getDefaultModel('geminiImage');
         const url = buildAiStudioGenerateContentUrl(model, key);
 
-        const genConfig = {
+        const genConfig: Record<string, unknown> = {
             maxOutputTokens: 8192,
             responseModalities: ['TEXT', 'IMAGE']
         };
@@ -587,7 +721,7 @@ const Gemini = (() => {
             genConfig.imageConfig = { aspectRatio: options.aspectRatio };
         }
 
-        const parts = [{ text: prompt }];
+        const parts: GeminiPart[] = [{ text: prompt }];
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
@@ -601,7 +735,7 @@ const Gemini = (() => {
         }
 
         const threshold = options.safetyThreshold || 'BLOCK_ONLY_HIGH';
-        const body = {
+        const body: GeminiRequestBody = {
             contents: [{ parts }],
             generationConfig: genConfig,
             safetySettings: [
@@ -614,7 +748,7 @@ const Gemini = (() => {
         };
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         recordApiCall({
             type: 'geminiImage',
@@ -642,7 +776,7 @@ const Gemini = (() => {
         }
 
         const imageData = cand.content.parts.find(p => p.inlineData);
-        if (!imageData) {
+        if (!imageData?.inlineData) {
             const hasText = cand.content.parts.some(p => p.text);
             throw new Error(hasText
                 ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
@@ -662,7 +796,7 @@ const Gemini = (() => {
      * - 엔드포인트: https://aiplatform.googleapis.com/v1/publishers/google/models/${model}:generateContent?key=...
      * - Imagen 이미지는 callVertexImagen(:predict) 사용.
      */
-    async function callVertexGeminiImage(prompt, modelId, options = {}) {
+    async function callVertexGeminiImage(prompt: string, modelId: string | undefined, options: VertexGeminiImageOptions = {}) {
         const key = requireVertexApiKey();
         if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
 
@@ -681,7 +815,7 @@ const Gemini = (() => {
             apiKey: key,
         });
 
-        const genConfig = {
+        const genConfig: Record<string, unknown> = {
             maxOutputTokens: 8192,
             responseModalities: ['TEXT', 'IMAGE']
         };
@@ -689,7 +823,7 @@ const Gemini = (() => {
             genConfig.imageConfig = { aspectRatio: options.aspectRatio };
         }
 
-        const parts = [{ text: prompt }];
+        const parts: GeminiPart[] = [{ text: prompt }];
         if (options.referenceImage) {
             let b64 = options.referenceImage;
             if (typeof b64 === 'string' && b64.includes(',')) b64 = b64.split(',')[1];
@@ -703,7 +837,7 @@ const Gemini = (() => {
         }
 
         const threshold = options.safetyThreshold || 'BLOCK_ONLY_HIGH';
-        const body = {
+        const body: GeminiRequestBody = {
             contents: [{ parts }],
             generationConfig: genConfig,
             safetySettings: [
@@ -716,7 +850,7 @@ const Gemini = (() => {
         };
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         recordApiCall({
             type: 'vertexGeminiImage',
@@ -744,7 +878,7 @@ const Gemini = (() => {
         }
 
         const imageData = cand.content.parts.find(p => p.inlineData);
-        if (!imageData) {
+        if (!imageData?.inlineData) {
             const hasText = cand.content.parts.some(p => p.text);
             throw new Error(hasText
                 ? '이미지 대신 텍스트만 반환되었습니다. 이 모델은 이미지 생성이 제한되거나, 프롬프트/안전 필터로 인해 이미지가 생성되지 않았을 수 있습니다.'
@@ -765,25 +899,25 @@ const Gemini = (() => {
      * - negativePrompt: 제외할 요소 텍스트
      * - personGeneration: 'allow_adult'(기본) | 'allow_all' | 'dont_allow'
      */
-    async function callImagen(prompt, modelId, count = 1, options = {}) {
+    async function callImagen(prompt: string, modelId: string | undefined, count: number = 1, options: ImagenOptions = {}): Promise<string[]> {
         const key = requireApiKey();
         if (!key) throw new Error('API 키가 설정되지 않았습니다.');
 
         const model = modelId || getDefaultModel('imagen');
         const url = buildAiStudioPredictUrl(model, key);
 
-        const params = { sampleCount: count };
+        const params: Record<string, unknown> = { sampleCount: count };
         if (options.aspectRatio) params.aspectRatio = options.aspectRatio;
         if (options.safetyFilterLevel) params.safetyFilterLevel = options.safetyFilterLevel;
         if (options.personGeneration) params.personGeneration = options.personGeneration;
 
-        const instance = { prompt };
+        const instance: Record<string, unknown> = { prompt };
         if (options.negativePrompt) instance.negativePrompt = options.negativePrompt;
 
-        const body = { instances: [instance], parameters: params };
+        const body: GeminiRequestBody = { instances: [instance], parameters: params };
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         recordApiCall({
             type: 'imagen',
@@ -798,14 +932,15 @@ const Gemini = (() => {
             throw new Error('이미지 생성 결과가 없습니다.');
         }
 
-        return data.predictions.map(p => {
-            if (!p.bytesBase64Encoded) throw new Error('base64 이미지 데이터 없음');
-            return `data:image/png;base64,${p.bytesBase64Encoded}`;
+        return data.predictions.map((p) => {
+            const pred = p as ImagenPrediction;
+            if (!pred.bytesBase64Encoded) throw new Error('base64 이미지 데이터 없음');
+            return `data:image/png;base64,${pred.bytesBase64Encoded}`;
         });
     }
 
     /** Vertex predict 응답의 이미지 base64 추출 (JSON 또는 protobuf Struct JSON) */
-    function extractImagenPredictionBase64(p) {
+    function extractImagenPredictionBase64(p: ImagenPrediction | null | undefined): string | null {
         if (!p) return null;
         if (p.bytesBase64Encoded) return p.bytesBase64Encoded;
         const fields = p.structValue?.fields;
@@ -819,7 +954,7 @@ const Gemini = (() => {
      * - 엔드포인트: https://{location}-aiplatform.googleapis.com/v1/projects/.../models/...:predict?key=...
      * options: { signal, projectId, location, aspectRatio, safetyFilterLevel, negativePrompt, personGeneration }
      */
-    async function callVertexImagen(prompt, modelId, count = 1, options = {}) {
+    async function callVertexImagen(prompt: string, modelId: string | undefined, count: number = 1, options: VertexImagenOptions = {}): Promise<string[]> {
         const key = requireVertexApiKey();
         if (!key) throw new Error('Vertex API 키가 설정되지 않았습니다.');
 
@@ -839,18 +974,18 @@ const Gemini = (() => {
             apiKey: key,
         });
 
-        const params = { sampleCount: count };
+        const params: Record<string, unknown> = { sampleCount: count };
         if (options.aspectRatio) params.aspectRatio = options.aspectRatio;
         if (options.safetyFilterLevel) params.safetyFilterLevel = options.safetyFilterLevel;
         if (options.personGeneration) params.personGeneration = options.personGeneration;
 
-        const instance = { prompt };
+        const instance: Record<string, unknown> = { prompt };
         if (options.negativePrompt) instance.negativePrompt = options.negativePrompt;
 
-        const body = { instances: [instance], parameters: params };
+        const body: GeminiRequestBody = { instances: [instance], parameters: params };
 
         const res = await fetchWithRetry(url, body, { signal: options.signal });
-        const data = await res.json();
+        const data = await res.json() as GeminiResponseBody;
 
         recordApiCall({
             type: 'vertexImagen',
@@ -870,14 +1005,14 @@ const Gemini = (() => {
         }
 
         return data.predictions.map((p) => {
-            const b64 = extractImagenPredictionBase64(p);
+            const b64 = extractImagenPredictionBase64(p as ImagenPrediction);
             if (!b64) throw new Error('base64 이미지 데이터 없음 (필터 차단 또는 응답 형식 불일치)');
             return `data:image/png;base64,${b64}`;
         });
     }
 
     /* ===== 공통 API 키 UI 빌더 (프로필 리스트) ===== */
-    function buildApiKeyUI(idPrefix) {
+    function buildApiKeyUI(idPrefix: string) {
         const store = getKeyStore();
         const profiles = store.profiles || [];
         const activeId = store.activeId;
@@ -925,12 +1060,12 @@ const Gemini = (() => {
             </div>`;
         return {
             html,
-            init(container) {
-                const root = container || document;
-                const listEl = root.querySelector ? root.querySelector(`#${idPrefix}ApiProfileList`) : document.getElementById(`${idPrefix}ApiProfileList`);
-                const addBtn = root.querySelector ? root.querySelector(`#${idPrefix}ApiAdd`) : document.getElementById(`${idPrefix}ApiAdd`);
+            init(container?: HTMLElement | Document | null) {
+                const root: HTMLElement | Document = container || document;
+                const listEl = root.querySelector(`#${idPrefix}ApiProfileList`);
+                const addBtn = root.querySelector(`#${idPrefix}ApiAdd`);
 
-                const vertexStatusEl = root.querySelector(`#${idPrefix}VertexKeyStatus`);
+                const vertexStatusEl = root.querySelector(`#${idPrefix}VertexKeyStatus`) as HTMLElement | null;
                 const vertexEditBtn = root.querySelector(`#${idPrefix}VertexKeyEdit`);
                 const vertexClearBtn = root.querySelector(`#${idPrefix}VertexKeyClear`);
                 const vertexProjectEl = root.querySelector(`#${idPrefix}VertexProjectId`);
@@ -941,11 +1076,11 @@ const Gemini = (() => {
 
                 function syncVertexContextInputs() {
                     if (vertexProjectEl instanceof HTMLInputElement) {
-                        const v = Toolbox.getPref(VERTEX_PREF_PROJECT) || '';
+                        const v = Toolbox.getPref?.(VERTEX_PREF_PROJECT, '') || '';
                         vertexProjectEl.value = typeof v === 'string' ? v : '';
                     }
                     if (vertexLocationEl instanceof HTMLInputElement) {
-                        const v = Toolbox.getPref(VERTEX_PREF_LOCATION) || DEFAULT_VERTEX_LOCATION;
+                        const v = Toolbox.getPref?.(VERTEX_PREF_LOCATION, '') || DEFAULT_VERTEX_LOCATION;
                         vertexLocationEl.value = (typeof v === 'string' && v.trim()) ? v.trim() : DEFAULT_VERTEX_LOCATION;
                     }
                 }
@@ -962,7 +1097,7 @@ const Gemini = (() => {
                     const profiles = store.profiles || [];
                     const activeId = store.activeId;
                     if (!listEl) return;
-                    listEl.innerHTML = profiles.map(p => {
+                    listEl.innerHTML = profiles.map((p) => {
                         const hasKey = !!p.key;
                         return `
                             <div class="api-prof-row" data-id="${p.id}" style="display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:${p.id === activeId ? 'var(--accent-subtle)' : 'transparent'};">
@@ -1040,7 +1175,7 @@ const Gemini = (() => {
                 }
 
                 if (listEl) {
-                    listEl.addEventListener('input', (e) => {
+                    listEl.addEventListener('input', (e: Event) => {
                         const target = e.target;
                         if (!(target instanceof HTMLInputElement) || !target.classList.contains('api-prof-name')) return;
                         const row = target.closest('.api-prof-row');
@@ -1054,8 +1189,10 @@ const Gemini = (() => {
                         }
                     });
 
-                    listEl.addEventListener('click', (e) => {
-                        const btn = e.target.closest('button');
+                    listEl.addEventListener('click', (e: Event) => {
+                        const target = e.target;
+                        if (!(target instanceof Element)) return;
+                        const btn = target.closest('button');
                         if (!btn) return;
                         const role = btn.getAttribute('data-role');
                         const row = btn.closest('.api-prof-row');
@@ -1115,13 +1252,13 @@ const Gemini = (() => {
     }
 
     /* ===== 프롬프트 향상 ===== */
-    async function enhancePrompt(originalPrompt) {
+    async function enhancePrompt(originalPrompt: string) {
         const systemPrompt = `You are a prompt enhancement expert for AI image generation.
 Improve the given prompt to produce higher quality, more detailed, and more visually striking images.
 Keep the same subject and intent, but add details about lighting, composition, art style, colors, and atmosphere.
 Reply ONLY with the enhanced prompt in English, nothing else. Do not add any explanation.`;
 
-        const result = await callText(originalPrompt, systemPrompt);
+        const result = await callText(originalPrompt, systemPrompt, undefined);
         if (!result) throw new Error('프롬프트 향상 실패');
         return result.text.trim();
     }
@@ -1151,11 +1288,11 @@ const ImageDB = (() => {
     const STORE_NAME = 'images';
     const DB_VERSION = 1;
 
-    function open() {
+    function open(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
             const req = indexedDB.open(DB_NAME, DB_VERSION);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
+            req.onupgradeneeded = (e: IDBVersionChangeEvent) => {
+                const db = (e.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
                     const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                     store.createIndex('timestamp', 'timestamp', { unique: false });
@@ -1166,14 +1303,14 @@ const ImageDB = (() => {
         });
     }
 
-    function notify(action, detail) {
+    function notify(action: string, detail?: Record<string, unknown>) {
         window.dispatchEvent(new CustomEvent('imagedb-change', { detail: { action, ...detail } }));
     }
 
-    async function save(item) {
+    async function save(item: ImageDBItem) {
         const db = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).put(item);
                 tx.oncomplete = () => resolve();
@@ -1183,22 +1320,22 @@ const ImageDB = (() => {
         } finally { db.close(); }
     }
 
-    async function getAll() {
+    async function getAll(): Promise<ImageDBItem[]> {
         const db = await open();
         try {
-            return await new Promise((resolve, reject) => {
+            return await new Promise<ImageDBItem[]>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readonly');
                 const req = tx.objectStore(STORE_NAME).index('timestamp').getAll();
-                req.onsuccess = () => resolve(req.result.reverse());
+                req.onsuccess = () => resolve((req.result as ImageDBItem[]).reverse());
                 req.onerror = () => reject(req.error);
             });
         } finally { db.close(); }
     }
 
-    async function remove(id) {
+    async function remove(id: string) {
         const db = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).delete(id);
                 tx.oncomplete = () => resolve();
@@ -1211,7 +1348,7 @@ const ImageDB = (() => {
     async function clear() {
         const db = await open();
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 tx.objectStore(STORE_NAME).clear();
                 tx.oncomplete = () => resolve();

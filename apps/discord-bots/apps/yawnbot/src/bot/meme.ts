@@ -21,8 +21,7 @@ export async function handleMeme(message: Message): Promise<boolean> {
         .setImage(`attachment://${match}`)
         .setColor(0xffd700)
         .setFooter({ text: `Requested by ${message.author.username}`, iconURL: message.author.displayAvatarURL() });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ('send' in message.channel) await (message.channel as any).send({ embeds: [embed], files: [path.join(MEME_DIR, match)] });
+      if (message.channel.isSendable()) await message.channel.send({ embeds: [embed], files: [path.join(MEME_DIR, match)] });
       return true;
     }
   } catch {

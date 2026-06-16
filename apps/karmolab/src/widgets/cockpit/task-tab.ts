@@ -875,8 +875,8 @@ export function buildTaskTab(container: HTMLElement): void {
   searchEl.addEventListener('input', () => { selectedIdx = 0; refilter(); });
   searchEl.addEventListener('keydown', (e) => {
     if (viewMode !== 'list') return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
     else if (e.key === 'Enter') { e.preventDefault(); const t = listRoots[selectedIdx]; if (t) doOpenDrawer(t.id); }
     else if (e.key === 'Escape') {
       e.preventDefault();

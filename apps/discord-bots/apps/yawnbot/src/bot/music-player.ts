@@ -123,12 +123,12 @@ async function resourceFromYtDlpExec(url: string): Promise<AudioResource> {
   }
 
   try {
-    const probe = await demuxProbe(stdout as any);
+    const probe = await demuxProbe(stdout);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
-  } catch (e: any) {
+  } catch (e: unknown) {
     child.kill('SIGKILL');
     const hint = stderrBuf.trim() ? ` (${stderrBuf.trim().slice(0, 500)})` : '';
-    throw new Error(`${e?.message ?? e}${hint}`);
+    throw new Error(`${e instanceof Error ? e.message : String(e)}${hint}`);
   }
 }
 
@@ -556,9 +556,9 @@ export async function fetchYoutubePlaylistEntries(playlistUrl: string): Promise<
 async function resourceFromYoutubei(videoId: string): Promise<AudioResource> {
   const innertube = await getInnertubeSingleton();
   const webStream = await innertube.download(videoId, { type: 'audio', quality: 'best' });
-  const nodeStream = Readable.fromWeb(webStream as any);
+  const nodeStream = Readable.fromWeb(webStream as import('node:stream/web').ReadableStream);
   try {
-    const probe = await demuxProbe(nodeStream as any);
+    const probe = await demuxProbe(nodeStream);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
   } catch (e) {
     nodeStream.destroy();
@@ -567,17 +567,17 @@ async function resourceFromYoutubei(videoId: string): Promise<AudioResource> {
 }
 
 /** play-dl 스트림 → demuxProbe로 타입 확정 후 재생. 실패 시 play-dl 타입 매핑. */
-async function resourceFromPlayDlStream(yt: { stream: NodeJS.ReadableStream; type: unknown }): Promise<AudioResource> {
+async function resourceFromPlayDlStream(yt: { stream: Readable; type: StreamType }): Promise<AudioResource> {
   try {
-    const probe = await demuxProbe(yt.stream as any);
+    const probe = await demuxProbe(yt.stream);
     return createAudioResource(probe.stream, { inputType: probe.type, silencePaddingFrames: 5 });
-  } catch (e: any) {
-    console.warn('[music] demuxProbe 실패:', e?.message ?? e);
+  } catch (e: unknown) {
+    console.warn('[music] demuxProbe 실패:', e instanceof Error ? e.message : String(e));
     const m = mapPlayDlTypeToStreamType(yt.type);
     if (m) {
-      return createAudioResource(yt.stream as any, { inputType: m, silencePaddingFrames: 5 });
+      return createAudioResource(yt.stream, { inputType: m, silencePaddingFrames: 5 });
     }
-    return createAudioResource(yt.stream as any, { inputType: yt.type as any, silencePaddingFrames: 5 });
+    return createAudioResource(yt.stream, { inputType: yt.type, silencePaddingFrames: 5 });
   }
 }
 
@@ -587,23 +587,23 @@ async function createYoutubeAudioResourceInner(url: string): Promise<AudioResour
 
   try {
     return await resourceFromYtDlpExec(canonical);
-  } catch (e: any) {
-    lastErrors.push(`yt-dlp: ${e?.message ?? e}`);
-    console.warn('[music] yt-dlp 실패, youtubei·play-dl 폴백:', e instanceof Error ? e.message : e);
+  } catch (e: unknown) {
+    lastErrors.push(`yt-dlp: ${e instanceof Error ? e.message : String(e)}`);
+    console.warn('[music] yt-dlp 실패, youtubei·play-dl 폴백:', e instanceof Error ? e.message : String(e));
   }
 
   try {
     const id = play.extractID(canonical);
     return await resourceFromYoutubei(id);
-  } catch (e: any) {
-    lastErrors.push(`youtubei.js: ${e?.message ?? e}`);
+  } catch (e: unknown) {
+    lastErrors.push(`youtubei.js: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   try {
     const yt = await play.stream(canonical, { discordPlayerCompatibility: true });
     return resourceFromPlayDlStream(yt);
-  } catch (e: any) {
-    lastErrors.push(`play-dl: ${e?.message ?? e}`);
+  } catch (e: unknown) {
+    lastErrors.push(`play-dl: ${e instanceof Error ? e.message : String(e)}`);
     throw new Error(lastErrors.join(' | '));
   }
 }
@@ -674,8 +674,8 @@ async function playNext(guildId: string): Promise<void> {
       })();
     }
     void syncNowPlayingUi(guildId);
-  } catch (e: any) {
-    console.error('[music] 재생 실패:', item.kind === 'youtube' ? item.url : item.title, e?.message ?? e);
+  } catch (e: unknown) {
+    console.error('[music] 재생 실패:', item.kind === 'youtube' ? item.url : item.title, e instanceof Error ? e.message : String(e));
     const reason = e instanceof Error ? e.message : String(e);
     const ch = s.notifyTextChannelId;
     if (
@@ -730,13 +730,13 @@ async function appendToMusicQueue(
     }
 
     return { ok: true, position, started: wasIdle };
-  } catch (e: any) {
+  } catch (e: unknown) {
     try {
       leaveVoiceChannel(channel.guild.id);
     } catch {
       /* ignore */
     }
-    return { ok: false, error: e?.message || String(e) };
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
 

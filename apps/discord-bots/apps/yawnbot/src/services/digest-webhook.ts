@@ -11,6 +11,15 @@ import type { Client } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
 import { generateBlobTextFromEnvWithOptions } from 'karmolab-ai/node';
 import { channelIdFor } from './channel-provision';
+
+export interface GitHubCommit {
+  id: string;
+  message: string;
+  added: string[];
+  modified: string[];
+  url: string;
+}
+
 const MAX_PLAIN_CHARS = 1800;
 const MAX_FETCH_CHARS = 8000;
 
@@ -72,7 +81,7 @@ const DATED_DIGEST_RE = /^digests\/\d{4}-\d{2}-\d{2}\.md$/;
  * - 일자패턴 한정: `digests/INDEX.md`·`README.md` 오선택 차단(잘못된
  *   파일 fetch → 깨진 게시 방지).
  */
-export function isDigestCommit(commit: any): string | null {
+export function isDigestCommit(commit: GitHubCommit): string | null {
   const firstLine = String(commit?.message ?? '').split('\n', 1)[0];
   if (!firstLine.startsWith('chore(digests):')) return null;
   const added: string[] = Array.isArray(commit?.added) ? commit.added : [];
@@ -91,7 +100,7 @@ export function isDigestCommit(commit: any): string | null {
  */
 export async function handleDigestCommit(
   client: Client,
-  commit: any,
+  commit: GitHubCommit,
   repoFullName: string,
   channelIds: string[],
 ): Promise<void> {
@@ -107,10 +116,10 @@ export async function handleDigestCommit(
     let rawBody = '';
     try {
       rawBody = await fetchRepoFile(repoFullName, sha, digestFile);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(
         `[DigestWebhook] digest 본문 fetch 실패 (${repoFullName}@${sha.slice(0, 7)}/${digestFile}):`,
-        e?.message ?? e,
+        e instanceof Error ? e.message : String(e),
       );
       return;
     }
@@ -135,8 +144,8 @@ export async function handleDigestCommit(
         tag: 'yawnbot/digest',
       });
       yawnResponse = text.trim();
-    } catch (e: any) {
-      console.error('[DigestWebhook] AI 가공 실패:', e?.message ?? e);
+    } catch (e: unknown) {
+      console.error('[DigestWebhook] AI 가공 실패:', e instanceof Error ? e.message : String(e));
       // fallback: 원본 첫 500자 그대로
       yawnResponse = body.slice(0, 500) + (body.length > 500 ? '\n…' : '');
     }
@@ -162,15 +171,15 @@ export async function handleDigestCommit(
     for (const channelId of targetChannels) {
       const channel = await client.channels.fetch(channelId).catch(() => null);
       if (channel?.isSendable()) {
-        await channel.send({ embeds: [embed] }).catch((e: any) =>
-          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e?.message ?? e),
+        await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+          console.error('[DigestWebhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
         );
       }
     }
 
     console.log(`[DigestWebhook] ${dateLabel} digest 전송 완료 (${targetChannels.length} 채널)`);
-  } catch (e: any) {
-    console.error('[DigestWebhook] handleDigestCommit 예외:', e?.message ?? e);
+  } catch (e: unknown) {
+    console.error('[DigestWebhook] handleDigestCommit 예외:', e instanceof Error ? e.message : String(e));
   }
 }
 

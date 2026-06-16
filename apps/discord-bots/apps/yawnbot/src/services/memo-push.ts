@@ -310,7 +310,19 @@ export async function commitAndPushMemoFile(
       }
     }
     await git.add(cfg, rel);
-    await git.commit(cfg, rel, message);
+    try {
+      await git.commit(cfg, rel, message);
+    } catch (commitErr) {
+      const cmsg = commitErr instanceof Error ? commitErr.message : String(commitErr);
+      // KAR-097: 4 worker daemon 이 동일 파일을 동시 statusFile check 통과 후
+      // 첫 worker 가 commit 하면 나머지는 "nothing to commit" 로 fail.
+      // race 결과 = 이미 박힘 → silent skip (error log 아님).
+      if (cmsg.toLowerCase().includes('nothing to commit')) {
+        logger.log(`[memo-push] skipped:no-change (race — another worker already committed ${rel})`);
+        return { outcome: 'skipped:no-change', detail: 'nothing to commit (race with another worker)' };
+      }
+      throw commitErr;
+    }
     if (deps.dryRun) {
       const sha = await git.headSha(cfg);
       return { outcome: 'skipped:dryrun', detail: 'commit only (dryRun=true)', pushedSha: sha };

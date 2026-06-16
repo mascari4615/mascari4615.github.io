@@ -152,8 +152,11 @@ declare global {
           count: number,
           options?: Record<string, unknown>
         ) => Promise<string[]>;
+        getApiKey: (id?: string | null) => string;
+        requireApiKey: () => string | null;
+        fetchWithRetry: (url: string, body: unknown, options?: RequestInit) => Promise<Response>;
         /** `packages/karmolab-ai` MODEL_CATALOG 재노출 — `Gemini.MODELS.gemini` 등으로 위젯이 사용 */
-        MODELS?: GeminiModelsCatalog;
+        MODELS: GeminiModelsCatalog;
         GEMINI_SAFETY_LEVELS?: Array<{ value: string; label: string }>;
         DEFAULT_GEMINI_SAFETY_THRESHOLD?: string;
         getApiHistory?: () => Array<{
@@ -232,7 +235,9 @@ declare global {
     escapeHtml?: (s: string) => string;
     formatTimestamp?: (ts: number | string | Date) => string;
     getToolMeta?: (id: string) => Record<string, unknown> | undefined;
-    switchPage?: (id: string) => void;
+    switchPage?: (id: string, opts?: { pushHistory?: boolean }) => void;
+    /** btn === 'string' → tabId 로 해석해 selector 로 해당 tab-btn 자동 매칭 (toolbox.ts:948). */
+    switchTab?: (btnOrTabId: HTMLElement | string, tabId?: string) => void;
     getNavLayout?: () => string;
     setNavLayout?: (v: string) => void;
     getTheme?: () => string;

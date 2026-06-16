@@ -7,7 +7,7 @@ import './install-console-timestamps';
 import dns from 'node:dns';
 import { generateDependencyReport } from '@discordjs/voice';
 import sodium from 'libsodium-wrappers';
-import { Client, GatewayIntentBits, Partials, TextChannel, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
+import { Client, GatewayIntentBits, Partials, TextChannel, type Embed, type MessageReaction, type PartialMessageReaction, type User, type PartialUser } from 'discord.js';
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
 import { destroyAllVoiceConnections } from './bot/voice-connection';
 import { destroyAllMusicPlayers, setMusicDiscordClient, setMusicPlayFailureReporter } from './bot/music-player';
@@ -181,8 +181,8 @@ try {
   if (generativeText) {
     console.log(`[Gemini] AI 초기화 완료 (surface=${generativeText.surface})`);
   }
-} catch (e: any) {
-  console.warn('[Gemini] 초기화 실패 (선택 기능):', e?.message ?? e);
+} catch (e: unknown) {
+  console.warn('[Gemini] 초기화 실패 (선택 기능):', e instanceof Error ? e.message : String(e));
 }
 
 function buildCtx() {
@@ -314,6 +314,129 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+// TASK-YB-031: 사장(owner) 의 멘션/키워드 요청을 채널 무관하게 포착 → owner-requests.jsonl.
+// 일반 채널 요청이 agent-daemon "침묵 우선" 에 SKIP 되어 묻히던 근본 fix — board 의
+// 「사장 요청 대기」 로 즉시 환기 (사장이 "그거 어떻게 됐지" 다시 안 묻게).
+client.on('messageCreate', async (message) => {
+  try {
+    if (message.author.bot || !memoRepoPath) return;
+    if (!isOwner(message.author.id)) return;
+    const mentionedBot = !!client.user && message.mentions.has(client.user.id);
+    const {
+      classifyOwnerRequest,
+      makeRequestClassifier,
+      captureOwnerRequest,
+      stripRequestSignal,
+      DOMAIN_AGENT,
+    } = await import('./bot/owner-request.js');
+    // 멘션/키워드 = fast path(요청 확정). 도메인은 LLM → 그 도메인 에이전트가 응답.
+    const classifier = generativeText
+      ? makeRequestClassifier((prompt) => generativeText!.generateFromPrompt(prompt))
+      : undefined;
+    const { isRequest, domain } = await classifyOwnerRequest(
+      message.content || '',
+      mentionedBot,
+      classifier,
+    );
+    if (!isRequest) return;
+    const text = stripRequestSignal(
+      message.content || '',
+      client.user ? `<@${client.user.id}>` : undefined,
+    );
+    if (!text) return;
+    const record = captureOwnerRequest(memoRepoPath, {
+      text,
+      author: message.author.username,
+      channelId: message.channelId,
+      messageId: message.id,
+    });
+
+    // YB-033: 도메인 TASK seed 자동 등록 (write 동기·빠름 + push 백그라운드로 봇 응답 지연 회피).
+    let taskId: string | null = null;
+    try {
+      const { writeOwnerRequestTask } = await import('./bot/owner-request-task.js');
+      const task = writeOwnerRequestTask(memoRepoPath, domain, text, record.id);
+      if (task) {
+        taskId = task.id;
+        void import('./services/memo-push.js')
+          .then(({ commitAndPushMemoFile }) =>
+            commitAndPushMemoFile(
+              process.env,
+              task.absPath,
+              `seed(${task.id}): 디스코드 사장 요청 자동 등록 (YB-033)`,
+            ),
+          )
+          .catch((err) =>
+            console.error(
+              '[owner-request] TASK push 실패(로컬 생성됨, 다음 sync 반영)',
+              err instanceof Error ? err.message : err,
+            ),
+          );
+      }
+    } catch (err) {
+      console.error(
+        '[owner-request] TASK seed 실패',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
+    // 도메인 담당 에이전트가 *자기 스킨/이름* 으로 즉답+접수 (욘 봇 기본 보이스 X).
+    // setCoreSpeak 와 동일 패턴(loadCoreDef→loadCard→speakAs→sendAsSkin), 채널만 요청 위치.
+    const coreId = DOMAIN_AGENT[domain];
+    let answered = false;
+    try {
+      const ch = message.channel;
+      const cd = characterService ? loadCoreDef(memoRepoPath, coreId) : null;
+      const skinCard = cd && characterService ? characterService.loadCard(cd.defaultSkin) : null;
+      if (cd && skinCard && ch instanceof TextChannel) {
+        let utter = '받았어. 「사장 요청 대기」 에 올렸어 — 곧 챙길게.';
+        if (generativeText) {
+          try {
+            const raw = (
+              await generativeText.generateFromPrompt(
+                `너는 "${coreLabel(cd)}" 에이전트다. 사장이 방금 "${text.slice(0, 200)}" 라고 요청했다. ` +
+                  '네 캐릭터 톤으로 접수 반응을 딱 1문장(곧 챙긴다는 뉘앙스, 이모지 0~1개)으로 답하라.',
+              )
+            ).trim();
+            if (raw) utter = raw.slice(0, 280);
+          } catch {
+            /* LLM 실패 = 기본 멘트 */
+          }
+        }
+        const speakAs: CharacterCard = {
+          slug: skinCard.slug,
+          name: skinCard.name,
+          displayName: coreLabel(cd),
+          frontmatter: skinCard.frontmatter,
+          body: '',
+          dir: skinCard.dir,
+        } as unknown as CharacterCard;
+        await sendAsSkin(ch, speakAs, {
+          content:
+            `${utter}\n📌 \`${record.id}\` · 「사장 요청 대기」` +
+            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
+        });
+        answered = true;
+      }
+    } catch {
+      /* skin 응답 실패 → 아래 fallback */
+    }
+    if (!answered) {
+      await message
+        .reply(
+          `📌 요청 접수 — 「사장 요청 대기」 에 올렸어요. \`${record.id}\`` +
+            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
+        )
+        .catch(() => {});
+    }
+  } catch (e) {
+    console.error(
+      '[owner-request] 포착 실패',
+      e instanceof Error ? e.message : e,
+    );
+  }
+});
+
 // KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
 let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -427,10 +550,10 @@ client.once('clientReady', async () => {
         console.log(
           `[ChannelProvision] ${guild.name}: 카테고리「${effectiveCategoryName(spec)}」/ 생성 ${r.created.length} · claim ${r.claimed.length} · 재사용 ${r.reused.length}`,
         );
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(
           `[ChannelProvision] ${guild.name}(${guild.id}) reconcile 실패 — env 폴백:`,
-          e?.message ?? e,
+          e instanceof Error ? e.message : String(e),
         );
       }
     }
@@ -511,7 +634,7 @@ client.once('clientReady', async () => {
     if (channel && channel.isTextBased()) {
       const version = process.env.npm_package_version || '1.0.0';
       const greeting = gameData.getMessage('Server_Startup_Greeting', version);
-      await channel.send(greeting).catch((e: any) => console.error('[Startup] 인사 메시지 전송 실패:', e?.message ?? e));
+      await channel.send(greeting).catch((e: unknown) => console.error('[Startup] 인사 메시지 전송 실패:', e instanceof Error ? e.message : String(e)));
     }
   }
 
@@ -693,8 +816,8 @@ client.once('clientReady', async () => {
           console.error('[CoreSpeak] bus publish 실패', busErr instanceof Error ? busErr.message : busErr);
         }
         return true;
-      } catch (e: any) {
-        console.error('[CoreSpeak]', e?.message ?? e);
+      } catch (e: unknown) {
+        console.error('[CoreSpeak]', e instanceof Error ? e.message : String(e));
         return false;
       }
     });
@@ -721,7 +844,7 @@ client.once('clientReady', async () => {
           const recent = await ch.messages.fetch({ limit: 30 });
           const mine = recent.find((m) => {
             if (m.author?.id !== client.user?.id) return false;
-            const e0: any = m.embeds?.[0];
+            const e0: Embed | undefined = m.embeds?.[0];
             if (!e0) return false;
             const a = e0.author?.name ?? '';
             const t = e0.title ?? '';
@@ -738,8 +861,8 @@ client.once('clientReady', async () => {
         }
         const m = await ch.send(payload);
         return m.id;
-      } catch (e: any) {
-        console.error('[Dashboard]', e?.message ?? e);
+      } catch (e: unknown) {
+        console.error('[Dashboard]', e instanceof Error ? e.message : String(e));
         return null;
       }
     });
@@ -757,8 +880,8 @@ client.once('clientReady', async () => {
             if (!(ch instanceof TextChannel)) return null;
             const m = await ch.send({ content: content.slice(0, 1900) });
             return m.id;
-          } catch (e: any) {
-            console.error('[StatusBoard send]', e?.message ?? e);
+          } catch (e: unknown) {
+            console.error('[StatusBoard send]', e instanceof Error ? e.message : String(e));
             return null;
           }
         },
@@ -916,8 +1039,8 @@ async function main() {
 
   try {
     await client.login(token);
-  } catch (e: any) {
-    if (e?.code === 'TokenInvalid') {
+  } catch (e: unknown) {
+    if (e instanceof Error && (e as Error & { code?: string }).code === 'TokenInvalid') {
       console.error(
         '[YawnBot] TokenInvalid — 토큰이 만료되었거나 잘못되었습니다. Discord Developer Portal에서 Bot Token을 재발급하고 .env 의 DISCORD_TOKEN을 갱신하세요.',
       );

@@ -3,14 +3,8 @@ import { EmbedBuilder, Status } from 'discord.js';
 import type { Client } from 'discord.js';
 import type { GameDataService } from '../services/gamedata';
 import { getChannelsForRepo } from '../services/webhook-routes';
-import { isDigestCommit, handleDigestCommit } from '../services/digest-webhook';
+import { isDigestCommit, handleDigestCommit, type GitHubCommit } from '../services/digest-webhook';
 import { syncTaskStatusOnPrMerge } from '../services/task-status-sync';
-
-interface GitHubCommit {
-  id: string;
-  url: string;
-  message: string;
-}
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
   const app = express();
@@ -187,19 +181,18 @@ export function createGithubWebhookApp(client: Client, gameData: GameDataService
       for (const channelId of channelIds) {
         const channel = await client.channels.fetch(channelId).catch(() => null);
         if (channel?.isSendable()) {
-          await channel.send({ embeds: [embed] }).catch((e: any) =>
-            console.error('[Webhook] 채널 전송 실패:', channelId, e?.message ?? e),
+          await channel.send({ embeds: [embed] }).catch((e: unknown) =>
+            console.error('[Webhook] 채널 전송 실패:', channelId, e instanceof Error ? e.message : String(e)),
           );
         }
       }
 
       res.sendStatus(200);
-    } catch (err: any) {
-      console.error('[Webhook] Error:', err?.message ?? err);
+    } catch (err: unknown) {
+      console.error('[Webhook] Error:', err instanceof Error ? err.message : String(err));
       res.sendStatus(500);
     }
   });
 
   return app;
 }
-

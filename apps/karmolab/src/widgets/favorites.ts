@@ -40,7 +40,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
                 return true;
             })
-            .map((t) => ({ type: 'tool', toolId: t.id, label: t.title, icon: t.icon }));
+            .map((t) => ({ type: 'tool' as const, toolId: t.id, label: t.title || t.id, icon: t.icon || '' }));
         return items.length ? { group: 'Toolbox', items } : null;
     }
 
@@ -203,8 +203,8 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                                         ? `<div class="fav-icon fav-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${it.icon || ''}</svg></div>`
                                         : `<img class="fav-icon" src="${esc(getFaviconUrl(it))}" alt="" loading="lazy" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
                                     const linkAttrs = isTool
-                                        ? `href="#" class="fav-item" title="${esc(it.label)}" data-tool-id="${esc(it.toolId)}"`
-                                        : `href="${esc(it.url)}" class="fav-item" target="_blank" rel="noopener noreferrer" title="${esc(it.label)}"`;
+                                        ? `href="#" class="fav-item" title="${esc(it.label)}" data-tool-id="${esc(it.toolId || '')}"`
+                                        : `href="${esc(it.url || '')}" class="fav-item" target="_blank" rel="noopener noreferrer" title="${esc(it.label)}"`;
                                     return `
                                     <div class="fav-item-wrap" data-searchable="${esc(searchable)}">
                                         ${removeBtn}
@@ -365,7 +365,7 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
     Toolbox.register({
         id: 'favorites',
         title: '즐겨찾기',
-        category: null,  // 기타
+        category: undefined,  // 기타
         desc: '자주 가는 사이트와 도구를 모아 빠르게 접속합니다',
         layout: 'wide',
         icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
