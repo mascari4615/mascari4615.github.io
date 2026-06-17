@@ -1,3 +1,4 @@
+import type { IeHistoryItem, IeCropState, IeImageSourceMeta, IeBatchState } from './imageedit-types';
 (function () {
     /* ===== CSS ===== */
     Mdd.injectCSS('imageedit', `
@@ -478,17 +479,19 @@
     const WARN_PIXELS = 3000 * 3000;
 
     /* ===== State ===== */
-    let canvas: any, ctx: any;
-    let history: any[] = [], historyIdx = -1;
+    // canvas/ctx: definite-assignment (initialized in requestAnimationFrame before any usage)
+    let canvas!: HTMLCanvasElement;
+    let ctx!: CanvasRenderingContext2D;
+    let history: IeHistoryItem[] = [], historyIdx = -1;
     let activeTool = 'crop';
-    let cropState: any = null;
-    let cropAspect: any = null;
+    let cropState: IeCropState | null = null;
+    let cropAspect: number | null = null;
     let adjustValues = { brightness: 100, contrast: 100, saturate: 100, hue: 0, sharpen: 0 };
     /** 조정 도구 진입 시점의 픽셀 (선명도 실시간 미리보기·취소 시 복원용) */
-    let adjustSnapshot: any = null;
+    let adjustSnapshot: ImageData | null = null;
     let adjustPreviewRaf = 0;
-    let ieAdjSrcCanvas: any = null;
-    let ieAdjOffCanvas: any = null;
+    let ieAdjSrcCanvas: HTMLCanvasElement | null = null;
+    let ieAdjOffCanvas: HTMLCanvasElement | null = null;
     let jpegQuality = 0.92;
     let freeRotateDeg = 0;
     let hasPendingPreview = false;
@@ -497,14 +500,14 @@
     let rembgOutput = 'foreground';
     let rembgMaxSize = 1024;
     let rembgBusy = false;
-    let chromaColor: any = null;
+    let chromaColor: [number, number, number] | null = null;
     let chromaTolerance = 30;
     let chromaFeather = 5;
     let brushMode = 'bg';
     let brushSize = 20;
     let brushDrawing = false;
     /** 툴바·변환 미리보기 — bytesKind: file | dataUrl | null. natural = 마지막으로 디코드된 원본 픽셀 크기 */
-    let ieImageSourceMeta: any = {
+    let ieImageSourceMeta: IeImageSourceMeta = {
         displayName: '',
         sourceBytes: null,
         bytesKind: null,
@@ -515,15 +518,15 @@
     /** 이미지 로드 경쟁 시 EXIF·디코드 순서 보정 */
     let ieImageLoadGen = 0;
     /** 형식·변환 탭 — 여러 파일 일괄 처리 중 취소용 */
-    let ieCvBatchAbort: any = null;
+    let ieCvBatchAbort: AbortController | null = null;
     /** 일괄 변환 대기 파일(패널을 다시 그려도 드롭으로 채운 목록 유지) */
-    let ieCvBatchState: any = { files: [] };
+    let ieCvBatchState: IeBatchState = { files: [] };
 
     let viewPanX = 0;
     let viewPanY = 0;
     let viewZoom = 1;
     let viewDragging = false;
-    let viewDragPointerId: any = null;
+    let viewDragPointerId: number | null = null;
     let viewDragStartClientX = 0;
     let viewDragStartClientY = 0;
     let viewStartPanX = 0;
@@ -542,7 +545,7 @@
         fillAlpha: false,
         smoothing: 'high'
     };
-    let convertPreviewBlob: any = null;
+    let convertPreviewBlob: Blob | null = null;
     let convertPreviewKey = '';
 
     /* ===== Helpers ===== */
@@ -1429,8 +1432,8 @@
             ieAdjOffCanvas = document.createElement('canvas');
         }
         if (ieAdjSrcCanvas.width !== w || ieAdjSrcCanvas.height !== h) {
-            ieAdjSrcCanvas.width = ieAdjOffCanvas.width = w;
-            ieAdjSrcCanvas.height = ieAdjOffCanvas.height = h;
+            ieAdjSrcCanvas.width = ieAdjOffCanvas!.width = w;
+            ieAdjSrcCanvas.height = ieAdjOffCanvas!.height = h;
         }
     }
 
@@ -1558,11 +1561,11 @@
             const w = canvas.width;
             const h = canvas.height;
             ensureIeAdjWorkCanvases(w, h);
-            const sctx = ieAdjSrcCanvas.getContext('2d');
-            const offCtx = ieAdjOffCanvas.getContext('2d');
+            const sctx = ieAdjSrcCanvas!.getContext('2d')!;
+            const offCtx = ieAdjOffCanvas!.getContext('2d')!;
             sctx.putImageData(adjustSnapshot, 0, 0);
             offCtx.filter = buildAdjustFilterStr();
-            offCtx.drawImage(ieAdjSrcCanvas, 0, 0);
+            offCtx.drawImage(ieAdjSrcCanvas!, 0, 0);
             let id = offCtx.getImageData(0, 0, w, h);
             id = sharpenImageData(id, adjustValues.sharpen);
             ctx.putImageData(id, 0, 0);
@@ -3297,7 +3300,7 @@
         const my = e.clientY - oRect.top;
         const dx = mx - cropState.startX;
         const dy = my - cropState.startY;
-        const s = cropState.startCrop;
+        const s = cropState.startCrop!;
         const clamp = (v: any, lo: any, hi: any) => Math.max(lo, Math.min(hi, v));
 
         if (cropState.dragging === 'move') {
@@ -3398,7 +3401,7 @@
     async function exportClipboard() {
         if (!requireImage()) return;
         try {
-            const blob = await new Promise<Blob>(resolve => canvas.toBlob((b: Blob) => resolve(b), 'image/png'));
+            const blob = await new Promise<Blob>(resolve => canvas.toBlob(b => resolve(b!), 'image/png'));
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             Toolbox.showToast('클립보드에 복사됨');
         } catch (e) {
@@ -4380,8 +4383,8 @@
             </div>`;
 
         requestAnimationFrame(() => {
-            canvas = document.getElementById('ieCanvas');
-            ctx = canvas!.getContext('2d');
+            canvas = document.getElementById('ieCanvas') as HTMLCanvasElement;
+            ctx = canvas.getContext('2d')!;
             canvas!.width = 0;
             canvas!.height = 0;
 
