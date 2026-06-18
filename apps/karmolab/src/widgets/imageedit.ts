@@ -591,7 +591,7 @@
         if (redoBtn) (redoBtn as any).disabled = historyIdx >= history.length - 1;
     }
 
-    function ieFormatToolbarBytes(n: any) {
+    function ieFormatToolbarBytes(n: number | null | undefined): string {
         if (n == null || !Number.isFinite(n) || n < 0) return '';
         if (n < 1024) return n + ' B';
         if (n < 1024 * 1024) return (n / 1024).toFixed(n < 10240 ? 1 : 0) + ' KB';
@@ -599,7 +599,7 @@
     }
 
     /** data: URL 페이로드 바이트 수 근사 (base64 디코딩 길이) */
-    function ieEstimateDataUrlBytes(dataUrl: any) {
+    function ieEstimateDataUrlBytes(dataUrl: string | null | undefined): number | null {
         if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return null;
         const comma = dataUrl.indexOf(',');
         if (comma < 0) return null;
@@ -617,7 +617,7 @@
     }
 
     /** MP = 화소 수 ÷ 1,000,000 (카메라·이미지 업계 관례). 1 미만이면 소수로 표시되는 것이 정상. */
-    function ieFormatMegapixels(w: any, h: any) {
+    function ieFormatMegapixels(w: number, h: number): string {
         const px = w * h;
         const mp = px / 1e6;
         if (mp < 0.01) return px.toLocaleString() + ' px';
@@ -630,7 +630,7 @@
     }
 
     /** 툴바 표시용: 마지막 점 뒤가 짧은 영숫자 확장자일 때만 stem / 확장자 분리 */
-    function ieToolbarSplitFileName(name: any) {
+    function ieToolbarSplitFileName(name: string | null | undefined): { stem: string; extWithDot: string } {
         const s = (name || '').trim();
         if (!s) return { stem: '', extWithDot: '' };
         const dot = s.lastIndexOf('.');
@@ -641,7 +641,7 @@
     }
 
     /** 저장 파일명: 표시명(보통 원본 파일명)의 stem + 출력 확장자. OS 금지 문자 제거 */
-    function ieDownloadFilenameFromDisplayName(displayName: any, outExt: any) {
+    function ieDownloadFilenameFromDisplayName(displayName: string | null | undefined, outExt: string | null | undefined): string {
         let ext = String(outExt || 'png')
             .replace(/^\./, '')
             .replace(/[^a-z0-9]/gi, '');
@@ -654,17 +654,17 @@
         return base + '.' + ext;
     }
 
-    function ieIsJpegArrayBuffer(ab: any) {
+    function ieIsJpegArrayBuffer(ab: ArrayBuffer | null | undefined): boolean {
         if (!ab || ab.byteLength < 2) return false;
         const u8 = new Uint8Array(ab, 0, 2);
         return u8[0] === 0xff && u8[1] === 0xd8;
     }
 
-    function ieExifU16(u8: any, off: any, le: any) {
+    function ieExifU16(u8: Uint8Array, off: number, le: boolean): number {
         return le ? u8[off] | (u8[off + 1] << 8) : (u8[off] << 8) | u8[off + 1];
     }
 
-    function ieExifU32(u8: any, off: any, le: any) {
+    function ieExifU32(u8: Uint8Array, off: number, le: boolean): number {
         const a = u8[off],
             b = u8[off + 1],
             c = u8[off + 2],
@@ -674,7 +674,7 @@
             : ((a << 24) | (b << 16) | (c << 8) | d) >>> 0;
     }
 
-    function ieExifReadAscii(u8: any, off: any, maxLen: any) {
+    function ieExifReadAscii(u8: Uint8Array, off: number, maxLen: number): string {
         let s = '';
         for (let i = 0; i < maxLen && off + i < u8.length; i++) {
             const c = u8[off + i];
@@ -684,18 +684,18 @@
         return s.trim();
     }
 
-    function ieExifFmtShutter(sec: any) {
+    function ieExifFmtShutter(sec: number): string | null {
         if (!(sec > 0) || !Number.isFinite(sec)) return null;
         if (sec >= 1) return sec.toFixed(1).replace(/\.0$/, '') + ' s';
         const inv = Math.round(1 / sec);
         return inv > 0 ? '1/' + inv + ' s' : null;
     }
 
-    function ieExifReadU32BE(u8: any, o: any) {
+    function ieExifReadU32BE(u8: Uint8Array, o: number): number {
         return ((u8[o] << 24) | (u8[o + 1] << 16) | (u8[o + 2] << 8) | u8[o + 3]) >>> 0;
     }
 
-    function ieExifReadU32LE(u8: any, o: any) {
+    function ieExifReadU32LE(u8: Uint8Array, o: number): number {
         return (u8[o] | (u8[o + 1] << 8) | (u8[o + 2] << 16) | (u8[o + 3] << 24)) >>> 0;
     }
 
@@ -703,7 +703,7 @@
      * JPEG APP1 / PNG eXIf / WebP EXIF 등 페이로드에서 TIFF EXIF 추출.
      * Exif\\0\\0 + TIFF 또는 곧바로 TIFF(II/MM).
      */
-    function ieTryExifPayloadToLines(u8: any, off: any, byteLen: any) {
+    function ieTryExifPayloadToLines(u8: Uint8Array, off: number, byteLen: number): string[] | null {
         const end = Math.min(off + byteLen, u8.length);
         if (off + 8 > end) return null;
         if (
@@ -728,7 +728,7 @@
     }
 
     /** JPEG APP1(Exif) */
-    function ieParseJpegExifLines(ab: any) {
+    function ieParseJpegExifLines(ab: ArrayBuffer): string[] | null {
         if (!ieIsJpegArrayBuffer(ab)) return null;
         const u8 = new Uint8Array(ab);
         let i = 2;
@@ -753,7 +753,7 @@
     }
 
     /** PNG eXIf 청크 */
-    function ieParsePngExifLines(ab: any) {
+    function ieParsePngExifLines(ab: ArrayBuffer): string[] | null {
         const u8 = new Uint8Array(ab);
         const PNG_SIG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
         if (u8.length < 32) return null;
@@ -775,7 +775,7 @@
     }
 
     /** WebP 컨테이너의 EXIF 청크 */
-    function ieParseWebpExifLines(ab: any) {
+    function ieParseWebpExifLines(ab: ArrayBuffer): string[] | null {
         const u8 = new Uint8Array(ab);
         if (u8.length < 20) return null;
         if (u8[0] !== 0x52 || u8[1] !== 0x49 || u8[2] !== 0x46 || u8[3] !== 0x46) return null;
@@ -802,11 +802,11 @@
     }
 
     /** JPEG · PNG(eXIf) · WebP(EXIF) 순으로 시도 */
-    function ieExtractExifLinesFromArrayBuffer(ab: any) {
+    function ieExtractExifLinesFromArrayBuffer(ab: ArrayBuffer): string[] | null {
         return ieParseJpegExifLines(ab) || ieParsePngExifLines(ab) || ieParseWebpExifLines(ab);
     }
 
-    function ieParseExifTiffToLines(u8: any, t0: any) {
+    function ieParseExifTiffToLines(u8: Uint8Array, t0: number): string[] | null {
         if (t0 + 8 > u8.length) return null;
         const b0 = u8[t0],
             b1 = u8[t0 + 1];
@@ -814,8 +814,8 @@
         if (!le && !(b0 === 0x4d && b1 === 0x4d)) return null;
         if (ieExifU16(u8, t0 + 2, le) !== 0x002a) return null;
         const ifd0Off = ieExifU32(u8, t0 + 4, le);
-        const tags = {};
-        function readIFD(ifdRel: any) {
+        const tags: Record<number, string | number | null> = {};
+        function readIFD(ifdRel: number) {
             const p = t0 + ifdRel;
             if (p + 2 > u8.length) return;
             const n = ieExifU16(u8, p, le);
@@ -840,31 +840,31 @@
                 if (dataOff + total > u8.length) continue;
                 const tag = ieExifU16(u8, e, le);
                 if (type === 2) {
-                    (tags as any)[tag] = ieExifReadAscii(u8, dataOff, cnt);
+                    tags[tag] = ieExifReadAscii(u8, dataOff, cnt);
                 } else if (type === 3) {
-                    (tags as any)[tag] = ieExifU16(u8, dataOff, le);
+                    tags[tag] = ieExifU16(u8, dataOff, le);
                 } else if (type === 4) {
-                    (tags as any)[tag] = ieExifU32(u8, dataOff, le);
+                    tags[tag] = ieExifU32(u8, dataOff, le);
                 } else if (type === 5 || type === 10) {
                     const num = ieExifU32(u8, dataOff, le);
                     const den = ieExifU32(u8, dataOff + 4, le);
-                    (tags as any)[tag] = den ? num / den : null;
+                    tags[tag] = den ? num / den : null;
                 }
             }
         }
         readIFD(ifd0Off);
-        const exOff = (tags as any)[0x8769];
+        const exOff = tags[0x8769];
         if (typeof exOff === 'number' && exOff > 0) readIFD(exOff);
-        const lines = [];
-        const make = (tags as any)[0x010f] || '';
-        const model = (tags as any)[0x0110] || '';
+        const lines: string[] = [];
+        const make = tags[0x010f] || '';
+        const model = tags[0x0110] || '';
         const cam = [make, model].filter(Boolean).join(' ');
         if (cam) lines.push(cam);
-        const when = (tags as any)[0x9003] || (tags as any)[0x0132];
-        if (when) lines.push(when);
-        const ori = (tags as any)[0x0112];
-        if (ori >= 1 && ori <= 8) {
-            const om = ({
+        const when = tags[0x9003] || tags[0x0132];
+        if (when) lines.push(String(when));
+        const ori = tags[0x0112];
+        if (typeof ori === 'number' && ori >= 1 && ori <= 8) {
+            const OM_MAP: Record<number, string> = {
                 1: '0°',
                 2: '좌우 반전',
                 3: '180°',
@@ -873,25 +873,26 @@
                 6: '90° (시계)',
                 7: '90° CCW+반전',
                 8: '90° (반시계)'
-            } as any)[ori];
+            };
+            const om = OM_MAP[ori];
             if (om) lines.push('방향 · ' + om);
         }
-        const photo = [];
-        const exp = (tags as any)[0x829a];
+        const photo: string[] = [];
+        const exp = tags[0x829a];
         if (typeof exp === 'number' && exp > 0) {
             const es = ieExifFmtShutter(exp);
             if (es) photo.push(es);
         }
-        const fn = (tags as any)[0x829d];
+        const fn = tags[0x829d];
         if (typeof fn === 'number' && fn > 0) {
             const fv = fn < 10 ? fn.toFixed(1).replace(/\.0$/, '') : String(Math.round(fn * 10) / 10);
             photo.push('f/' + fv);
         }
-        const iso = (tags as any)[0x8827];
-        if (iso != null && iso > 0) photo.push('ISO ' + iso);
-        const fl = (tags as any)[0x920a];
+        const iso = tags[0x8827];
+        if (typeof iso === 'number' && iso > 0) photo.push('ISO ' + iso);
+        const fl = tags[0x920a];
         if (typeof fl === 'number' && fl > 0) photo.push(Math.round(fl) + ' mm');
-        const fl35 = (tags as any)[0xa405];
+        const fl35 = tags[0xa405];
         if (typeof fl35 === 'number' && fl35 > 0) photo.push('35mm환산 ' + fl35 + ' mm');
         if (photo.length) lines.push(photo.join(' · '));
         return lines.length ? lines : null;
