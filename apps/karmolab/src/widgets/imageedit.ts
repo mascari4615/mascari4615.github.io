@@ -3410,7 +3410,7 @@
         if (!requireImage()) return;
         try {
             const dataUrl = canvas.toDataURL('image/png');
-            await (globalThis as any).ImageDB.save({
+            await ImageDB!.save({
                 id: 'edit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
                 url: dataUrl,
                 prompt: '(이미지 편집)',
@@ -4160,7 +4160,7 @@
         d.classList.add('open');
         const grid = document.getElementById('ieLibGrid');
         grid!.innerHTML = '<div class="ie-lib-empty">로딩 중...</div>';
-        (globalThis as any).ImageDB.getAll().then((items: any) => {
+        ImageDB!.getAll().then((items: any) => {
             if (items.length === 0) {
                 grid!.innerHTML = '<div class="ie-lib-empty">라이브러리가 비어 있습니다.</div>';
                 return;
