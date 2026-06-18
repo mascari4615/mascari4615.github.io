@@ -30,6 +30,7 @@ declare global {
     RANDOMGEN_TOPIC_LABELS?: Record<string, string>;
     KARMOLAB_WIDGET_LOADER_WAIT?: Promise<unknown>[];
     KARMOLAB_WIDGET_SCRIPT_BASE?: string;
+    KARMOLAB_WORLD_SCRIPT_BASE?: string;
     KARMOLAB_LAZY_META_BY_ID?: Record<string, KarmoLabLazyWidgetStub>;
     KARMOLAB_WIDGETS_BOOT?: string[];
     KARMOLAB_LAZY_META?: KarmoLabLazyWidgetStub[];
