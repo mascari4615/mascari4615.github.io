@@ -585,10 +585,10 @@
     }
 
     function updateUndoRedoButtons() {
-        const undoBtn = document.getElementById('ieUndoBtn');
-        const redoBtn = document.getElementById('ieRedoBtn');
-        if (undoBtn) (undoBtn as any).disabled = historyIdx <= 0;
-        if (redoBtn) (redoBtn as any).disabled = historyIdx >= history.length - 1;
+        const undoBtn = document.getElementById('ieUndoBtn') as HTMLButtonElement | null;
+        const redoBtn = document.getElementById('ieRedoBtn') as HTMLButtonElement | null;
+        if (undoBtn) undoBtn.disabled = historyIdx <= 0;
+        if (redoBtn) redoBtn.disabled = historyIdx >= history.length - 1;
     }
 
     function ieFormatToolbarBytes(n: any) {
@@ -1046,7 +1046,7 @@
     }
 
     function syncIeCvBatchUiFromState() {
-        const run = document.getElementById('ieCvBatchRun');
+        const run = document.getElementById('ieCvBatchRun') as HTMLButtonElement | null;
         const status = document.getElementById('ieCvBatchStatus');
         if (status) {
             status.textContent =
@@ -1054,7 +1054,7 @@
                     ? '선택된 파일: 없음'
                     : '선택된 파일: ' + ieCvBatchState.files.length + '개';
         }
-        if (run) (run as any).disabled = ieCvBatchState.files.length === 0;
+        if (run) run.disabled = ieCvBatchState.files.length === 0;
     }
 
     function applyImageViewTransform() {
@@ -1290,25 +1290,25 @@
 
         requestAnimationFrame(() => {
             if (!hasImage()) return;
-            const wInput = document.getElementById('ieResizeW');
-            const hInput = document.getElementById('ieResizeH');
-            const lockCb = document.getElementById('ieResizeLock');
+            const wInput = document.getElementById('ieResizeW') as HTMLInputElement | null;
+            const hInput = document.getElementById('ieResizeH') as HTMLInputElement | null;
+            const lockCb = document.getElementById('ieResizeLock') as HTMLInputElement | null;
             const aspect = canvas.width / canvas.height;
-            (wInput! as any).value = canvas.width;
-            (hInput! as any).value = canvas.height;
+            wInput!.value = String(canvas.width);
+            hInput!.value = String(canvas.height);
 
             wInput!.oninput = () => {
-                if ((lockCb! as any).checked) (hInput! as any).value = Math.round(parseInt!((wInput! as any).value) / aspect) || '';
+                if (lockCb!.checked) hInput!.value = String(Math.round(parseInt(wInput!.value) / aspect) || '');
             };
             hInput!.oninput = () => {
-                if ((lockCb! as any).checked) (wInput! as any).value = Math.round(parseInt!((hInput! as any).value) * aspect) || '';
+                if (lockCb!.checked) wInput!.value = String(Math.round(parseInt(hInput!.value) * aspect) || '');
             };
 
-            container.querySelectorAll('[data-pct]').forEach((btn: any) => {
+            container.querySelectorAll('[data-pct]').forEach((btn: HTMLButtonElement) => {
                 btn.onclick = () => {
-                    const p = parseInt(btn.dataset.pct) / 100;
-                    (wInput! as any).value = Math.round(canvas.width * p);
-                    (hInput! as any).value = Math.round(canvas.height * p);
+                    const p = parseInt(btn.dataset.pct!) / 100;
+                    wInput!.value = String(Math.round(canvas.width * p));
+                    hInput!.value = String(Math.round(canvas.height * p));
                 };
             });
 
@@ -1338,8 +1338,8 @@
             document!.getElementById('ieFlipH')!.onclick = () => applyFlip('h');
             document!.getElementById('ieFlipV')!.onclick = () => applyFlip('v');
 
-            const range = document.getElementById('ieRotRange');
-            const degInput = document.getElementById('ieRotDeg');
+            const range = document.getElementById('ieRotRange') as HTMLInputElement | null;
+            const degInput = document.getElementById('ieRotDeg') as HTMLInputElement | null;
 
             const syncPreview = (deg: any) => {
                 freeRotateDeg = deg;
@@ -1350,13 +1350,13 @@
             };
 
             range!.oninput = () => {
-                const v = parseInt((range! as any).value);
-                (degInput! as any).value = v;
+                const v = parseInt(range!.value);
+                degInput!.value = String(v);
                 syncPreview(v);
             };
             degInput!.oninput = () => {
-                const v = parseInt((degInput! as any).value) || 0;
-                (range! as any).value = Math.max(-180, Math.min(180, v));
+                const v = parseInt(degInput!.value) || 0;
+                range!.value = String(Math.max(-180, Math.min(180, v)));
                 syncPreview(v);
             };
 
@@ -1366,8 +1366,8 @@
                 hasPendingPreview = false;
                 applyFreeRotate(freeRotateDeg);
                 freeRotateDeg = 0;
-                (range! as any).value = 0;
-                (degInput! as any).value = 0;
+                range!.value = '0';
+                degInput!.value = '0';
             };
         });
     }
@@ -1389,19 +1389,19 @@
 
         requestAnimationFrame(() => {
             sliders.forEach(s => {
-                const range = document.getElementById('ieAdj_' + s.id);
+                const range = document.getElementById('ieAdj_' + s.id) as HTMLInputElement | null;
                 const valEl = document.getElementById('ieAdjVal_' + s.id);
                 range!.oninput = () => {
-                    (adjustValues as any)[s.id] = parseInt!((range as any).value, 10);
-                    valEl!.textContent = (range! as any).value + s.unit;
+                    (adjustValues as Record<string, number>)[s.id] = parseInt(range!.value, 10);
+                    valEl!.textContent = range!.value + s.unit;
                     previewAdjust();
                 };
             });
             document!.getElementById('ieAdjReset')!.onclick = () => {
                 sliders.forEach(s => {
-                    (document!.getElementById('ieAdj_' + s.id) as any).value = s.val;
+                    (document!.getElementById('ieAdj_' + s.id) as HTMLInputElement).value = String(s.val);
                     document!.getElementById('ieAdjVal_' + s.id)!.textContent = s.val + s.unit;
-                    (adjustValues as any)[s.id] = s.val;
+                    (adjustValues as Record<string, number>)[s.id] = s.val;
                 });
                 previewAdjust();
             };
@@ -1607,7 +1607,7 @@
         if (!requireImage()) return;
         const activeCard = document.querySelector('.ie-filter-card.active');
         if (!activeCard) return;
-        const fId = (activeCard as any).dataset.filterId;
+        const fId = (activeCard as HTMLElement).dataset.filterId;
         const f = FILTERS.find(x => x.id === fId);
         if (!f || f.id === 'none') {
             canvas.style.filter = '';
@@ -1632,8 +1632,8 @@
 
     function applyResize() {
         if (!requireImage()) return;
-        const w = parseInt((document!.getElementById('ieResizeW') as any).value);
-        const h = parseInt((document!.getElementById('ieResizeH') as any).value);
+        const w = parseInt((document!.getElementById('ieResizeW') as HTMLInputElement).value);
+        const h = parseInt((document!.getElementById('ieResizeH') as HTMLInputElement).value);
         if (!w || !h || w < 1 || h < 1) {
             Toolbox.showToast('유효한 크기를 입력하세요.', 'error');
             return;
@@ -1783,11 +1783,11 @@
             if (chromaColor) swatch!.style.backgroundColor = `rgb(${chromaColor.join(',')})`;
 
             document!.getElementById('ieChromaTol')!.oninput = (e) => {
-                chromaTolerance = parseInt((e!.target as any).value);
+                chromaTolerance = parseInt((e!.target as HTMLInputElement).value);
                 document!.getElementById('ieChromaTolVal')!.textContent = String(chromaTolerance);
             };
             document!.getElementById('ieChromaFeather')!.oninput = (e) => {
-                chromaFeather = parseInt((e!.target as any).value);
+                chromaFeather = parseInt((e!.target as HTMLInputElement).value);
                 document!.getElementById('ieChromaFeatherVal')!.textContent = String(chromaFeather);
             };
             document!.getElementById('ieChromaApply')!.onclick = applyChromakey;
@@ -1849,12 +1849,12 @@
             bgBtn!.onclick = () => { brushMode = 'bg'; bgBtn!.classList.add('active'); fgBtn!.classList.remove('active'); };
             fgBtn!.onclick = () => { brushMode = 'fg'; fgBtn!.classList.add('active'); bgBtn!.classList.remove('active'); };
             document!.getElementById('ieBrushSize')!.oninput = (e) => {
-                brushSize = parseInt((e!.target as any).value);
+                brushSize = parseInt((e!.target as HTMLInputElement).value);
                 document!.getElementById('ieBrushSizeVal')!.textContent = brushSize + 'px';
             };
             document!.getElementById('ieBrushClear')!.onclick = () => {
-                const ov = document.getElementById('ieBrushOverlay');
-                if (ov) (ov as any).getContext('2d').clearRect(0, 0, (ov as any).width, (ov as any).height);
+                const ov = document.getElementById('ieBrushOverlay') as HTMLCanvasElement | null;
+                if (ov) ov.getContext('2d')!.clearRect(0, 0, ov.width, ov.height);
             };
             document!.getElementById('ieBrushApply')!.onclick = applyBrushSegmentation;
             if (hasImage()) initBrushOverlay();
@@ -1862,16 +1862,16 @@
     }
 
     function initBrushOverlay() {
-        const ov = document.getElementById('ieBrushOverlay');
+        const ov = document.getElementById('ieBrushOverlay') as HTMLCanvasElement | null;
         if (!ov || !hasImage()) return;
         ov.style.display = 'block';
         syncOverlaySizeToCanvas(ov);
         const bw = canvas.offsetWidth;
         const bh = canvas.offsetHeight;
-        (ov as any).width = Math.round(bw);
-        (ov as any).height = Math.round(bh);
-        const bCtx = (ov as any).getContext('2d');
-        bCtx.clearRect(0, 0, (ov as any).width, (ov as any).height);
+        ov.width = Math.round(bw);
+        ov.height = Math.round(bh);
+        const bCtx = ov.getContext('2d')!;
+        bCtx.clearRect(0, 0, ov.width, ov.height);
 
         ov.onpointerdown = (e) => {
             if (e.button !== 0) return;
@@ -1900,11 +1900,11 @@
 
     function applyBrushSegmentation() {
         if (!requireImage()) return;
-        const ov = document.getElementById('ieBrushOverlay');
+        const ov = document.getElementById('ieBrushOverlay') as HTMLCanvasElement | null;
         if (!ov) return;
-        const bCtx = (ov as any).getContext('2d');
-        const bData = bCtx.getImageData(0, 0, (ov as any).width, (ov as any).height).data;
-        const scaleX = (canvas as any).width / (ov as any).width, scaleY = (canvas as any).height / (ov as any).height;
+        const bCtx = ov.getContext('2d')!;
+        const bData = bCtx.getImageData(0, 0, ov.width, ov.height).data;
+        const scaleX = canvas.width / ov.width, scaleY = canvas.height / ov.height;
 
         const BINS = 16, SHIFT = 4, TOTAL = BINS * BINS * BINS;
         const fgH = new Float32Array(TOTAL), bgH = new Float32Array(TOTAL);
@@ -1914,7 +1914,7 @@
 
         for (let i = 0; i < bData.length; i += 4) {
             if (bData[i + 3] < 40) continue;
-            const bx = (i / 4) % (ov as any).width, by = Math.floor((i / 4) / (ov as any).width);
+            const bx = (i / 4) % ov.width, by = Math.floor((i / 4) / ov.width);
             const cx = Math.min(Math.floor(bx * scaleX), canvas.width - 1);
             const cy = Math.min(Math.floor(by * scaleY), canvas.height - 1);
             const ci = (cy * canvas.width + cx) * 4;
@@ -1959,7 +1959,7 @@
             const s = document.getElementById('ieRembgSmall'), m = document.getElementById('ieRembgMedium');
             s!.onclick = () => { rembgModel = 'isnet_quint8'; s!.classList.add('active'); m!.classList.remove('active'); };
             m!.onclick = () => { rembgModel = 'isnet_fp16'; m!.classList.add('active'); s!.classList.remove('active'); };
-            document!.getElementById('ieRembgSize')!.onchange = (e) => { rembgMaxSize = parseInt((e.target as any).value); };
+            document!.getElementById('ieRembgSize')!.onchange = (e) => { rembgMaxSize = parseInt((e.target as HTMLSelectElement).value); };
             document!.getElementById('ieRembgApply')!.onclick = applyRemoveBackground;
         });
     }
@@ -2083,7 +2083,7 @@
             } catch (we) {
                 if (stEl()) stEl!()!.textContent = '배경 제거 중... (화면 멈출 수 있음)';
                 const b = barEl(); if (b) { b.classList.remove('determinate'); b.style.width = ''; }
-                const c = document.getElementById('ieRembgCancel'); if (c) { (c as any).disabled = true; c.textContent = '취소 불가'; }
+                const c = document.getElementById('ieRembgCancel') as HTMLButtonElement | null; if (c) { c.disabled = true; c.textContent = '취소 불가'; }
                 await new Promise(r => requestAnimationFrame(() => setTimeout(r, 100)));
                 rb = await runOnMainThread(blob, rembgModel, onProg);
             }
@@ -2167,7 +2167,7 @@
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
             if (stEl()) stEl!()!.textContent = 'Gemini에 마스크 요청 중...';
-            const modelId = (document.getElementById('ieGeminiModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
+            const modelId = (document.getElementById('ieGeminiModel') as HTMLSelectElement | null)?.value || Gemini!.MODELS.geminiImage[0].id;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${key}`;
             const reqBody = {
                 contents: [{ parts: [
@@ -2193,8 +2193,8 @@
             mc!.drawImage(maskImg, 0, 0, origW, origH);
 
             lastGeminiMaskDataUrl = maskCvs.toDataURL('image/png');
-            const dlBtn = document.getElementById('ieGeminiDownloadMask');
-            if (dlBtn) (dlBtn as any).disabled = false;
+            const dlBtn = document.getElementById('ieGeminiDownloadMask') as HTMLButtonElement | null;
+            if (dlBtn) dlBtn.disabled = false;
 
             const maskData = mc!.getImageData(0, 0, origW, origH);
             const md = maskData.data;
@@ -2285,7 +2285,7 @@
     function applyLocalUpscale() {
         if (!requireImage()) return;
         if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
-        const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
+        const factor = parseInt((document.getElementById('ieUpscaleFactor') as HTMLInputElement | null)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
         const origW = canvas.width;
         const origH = canvas.height;
@@ -2319,7 +2319,7 @@
         if (!Gemini!.requireApiKey()) return;
         if (upscaleBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
 
-        const factor = parseInt((document.getElementById('ieUpscaleFactor') as any)?.value || '2', 10);
+        const factor = parseInt((document.getElementById('ieUpscaleFactor') as HTMLInputElement | null)?.value || '2', 10);
         if (factor !== 2 && factor !== 4) return;
 
         const origW = canvas.width;
@@ -2352,7 +2352,7 @@
             tmp!.getContext('2d')!.drawImage(canvas, 0, 0, dw, dh);
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
-            const modelId = (document.getElementById('ieUpscaleModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
+            const modelId = (document.getElementById('ieUpscaleModel') as HTMLSelectElement | null)?.value || Gemini!.MODELS.geminiImage[0].id;
             const ar = geminiNearestAspectRatio(dw, dh);
             const multText = factor === 4 ? 'four times' : 'two times';
             const prompt =
@@ -2412,10 +2412,10 @@
             <span class="ie-opt-label ie-rembg-note">${hasKey ? '✅ API 키 설정됨' : '⚠️ API 키 필요'}</span>
             <button class="ie-apply-btn" id="ieBggApply" ${hasKey ? '' : 'disabled'}>🎨 Gemini 배경색 변경</button>`;
         requestAnimationFrame(() => {
-            const textEl = document.getElementById('ieBggColorText');
+            const textEl = document.getElementById('ieBggColorText') as HTMLInputElement | null;
             textEl?.addEventListener('input', () => {
-                const v = (textEl as any).value.trim();
-                if (/^#[0-9a-fA-F]{6}$/.test(v)) (document!.getElementById('ieBggColor') as any).value = v;
+                const v = textEl!.value.trim();
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) (document!.getElementById('ieBggColor') as HTMLInputElement)!.value = v;
             });
             document!.getElementById('ieBggApply')!.onclick = applyGeminiBgg;
         });
@@ -2428,8 +2428,8 @@
         if (bggBusy) { Toolbox.showToast('이미 처리 중입니다.', 'error'); return; }
         bggBusy = true;
 
-        const colorText = (document.getElementById('ieBggColorText') as any)?.value?.trim();
-        const colorHex = (document.getElementById('ieBggColor') as any)?.value || '#ffffff';
+        const colorText = (document.getElementById('ieBggColorText') as HTMLInputElement | null)?.value?.trim();
+        const colorHex = (document.getElementById('ieBggColor') as HTMLInputElement | null)?.value || '#ffffff';
         const colorDesc = colorText || colorHex;
 
         const ui = showRembgOverlay();
@@ -2447,7 +2447,7 @@
             const base64 = tmp.toDataURL('image/png').split(',')[1];
 
             if (stEl()) stEl!()!.textContent = 'Gemini에 배경색 변경 요청 중...';
-            const modelId = (document.getElementById('ieBggModel') as any)?.value || Gemini!.MODELS.geminiImage[0].id;
+            const modelId = (document.getElementById('ieBggModel') as HTMLSelectElement | null)?.value || Gemini!.MODELS.geminiImage[0].id;
             const colorPrompt = /^#[0-9a-fA-F]{6}$/.test(colorDesc)
                 ? `solid color ${colorDesc}`
                 : colorDesc;
@@ -2634,25 +2634,25 @@
     }
 
     function redrawCaptionPreview() {
-        const ov = document.getElementById('ieCaptionOverlay');
+        const ov = document.getElementById('ieCaptionOverlay') as HTMLCanvasElement | null;
         if (!ov || ov.style.display !== 'block' || !hasImage()) return;
-        const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
+        const presetId = (document.querySelector('#ieCaptionPresets button.active') as HTMLButtonElement | null)?.dataset?.preset || 'impact';
         const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
-        const text = (document.getElementById('ieCaptionText') as any)?.value?.trim() || '';
-        const ovCtx = (ov as any).getContext('2d');
+        const text = (document.getElementById('ieCaptionText') as HTMLTextAreaElement | null)?.value?.trim() || '';
+        const ovCtx = ov.getContext('2d')!;
         ovCtx.drawImage(canvas, 0, 0);
         if (text) {
-            renderCaptionOnCanvas(ovCtx, preset, text, (ov as any).width, (ov as any).height, { x: captionPosX, y: captionPosY });
+            renderCaptionOnCanvas(ovCtx, preset, text, ov.width, ov.height, { x: captionPosX, y: captionPosY });
         }
     }
 
     function initCaptionOverlay() {
-        const ov = document.getElementById('ieCaptionOverlay');
+        const ov = document.getElementById('ieCaptionOverlay') as HTMLCanvasElement | null;
         if (!ov || !hasImage()) return;
         ov.style.display = 'block';
         syncOverlaySizeToCanvas(ov);
-        (ov as any).width = canvas.width;
-        (ov as any).height = canvas.height;
+        ov.width = canvas.width;
+        ov.height = canvas.height;
         redrawCaptionPreview();
         const getCanvasCoords = (e: any) => {
             const r = ov.getBoundingClientRect();
@@ -2703,7 +2703,7 @@
             presetWrap!.appendChild(btn);
         });
         presetWrap!.addEventListener('click', (e) => {
-            const btn = (e!.target as any).closest('[data-preset]');
+            const btn = (e.target as HTMLElement).closest('[data-preset]') as HTMLButtonElement | null;
             if (!btn) return;
             presetWrap!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -2720,13 +2720,13 @@
     }
     function applyCaption() {
         if (!requireImage()) return;
-        const presetId = (document.querySelector('#ieCaptionPresets button.active') as any)?.dataset?.preset || 'impact';
+        const presetId = (document.querySelector('#ieCaptionPresets button.active') as HTMLButtonElement | null)?.dataset?.preset || 'impact';
         const preset = CAPTION_PRESETS.find(p => p.id === presetId) || CAPTION_PRESETS[0];
-        const text = (document.getElementById('ieCaptionText') as any)?.value?.trim();
+        const text = (document.getElementById('ieCaptionText') as HTMLTextAreaElement | null)?.value?.trim();
         if (!text) { Toolbox.showToast('캡션 텍스트를 입력하세요.', 'error'); return; }
         pushHistory();
         renderCaptionOnCanvas(ctx, preset, text, canvas.width, canvas.height, { x: captionPosX, y: captionPosY });
-        (document!.getElementById('ieCaptionText') as any).value = '';
+        (document!.getElementById('ieCaptionText') as HTMLTextAreaElement).value = '';
         redrawCaptionPreview();
         updateSizeLabel();
         Toolbox.showToast('캡션 적용됨', 'success');
@@ -2767,22 +2767,22 @@
     }
 
     function redrawStickerPreview() {
-        const ov = document.getElementById('ieStickerOverlay');
+        const ov = document.getElementById('ieStickerOverlay') as HTMLCanvasElement | null;
         if (!ov || ov.style.display !== 'block' || !hasImage()) return;
-        const ovCtx = (ov as any).getContext('2d');
+        const ovCtx = ov.getContext('2d')!;
         ovCtx.drawImage(canvas, 0, 0);
         if (selectedStickerImg) {
-            renderStickerOnCanvas(ovCtx, selectedStickerImg, (ov as any).width, (ov as any).height, stickerPosX, stickerPosY, stickerScale);
+            renderStickerOnCanvas(ovCtx, selectedStickerImg, ov.width, ov.height, stickerPosX, stickerPosY, stickerScale);
         }
     }
 
     function initStickerOverlay() {
-        const ov = document.getElementById('ieStickerOverlay');
+        const ov = document.getElementById('ieStickerOverlay') as HTMLCanvasElement | null;
         if (!ov || !hasImage()) return;
         ov.style.display = 'block';
         syncOverlaySizeToCanvas(ov);
-        (ov as any).width = canvas.width;
-        (ov as any).height = canvas.height;
+        ov.width = canvas.width;
+        ov.height = canvas.height;
         redrawStickerPreview();
         const getCanvasCoords = (e: any) => {
             const r = ov.getBoundingClientRect();
@@ -2827,11 +2827,11 @@
                 <button class="ie-apply-btn" id="ieStickerApply">스티커 적용</button>
             </div>`;
         const grid = document.getElementById('ieStickerGrid');
-        const scaleSlider = document.getElementById('ieStickerScale');
+        const scaleSlider = document.getElementById('ieStickerScale') as HTMLInputElement | null;
         const scaleVal = document.getElementById('ieStickerScaleVal');
         scaleSlider!.oninput = () => {
-            stickerScale = (scaleSlider! as any).value / 100;
-            scaleVal!.textContent = (scaleSlider! as any).value + '%';
+            stickerScale = Number(scaleSlider!.value) / 100;
+            scaleVal!.textContent = scaleSlider!.value + '%';
             redrawStickerPreview();
         };
         function loadStickers(files: any) {
@@ -2843,7 +2843,7 @@
                 files.forEach((file, i) => {
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
-                    const btn = document.createElement('button');
+                    const btn = document.createElement('button') as HTMLButtonElement & { _stickerImg?: HTMLImageElement };
                     btn.className = 'ie-opt-btn' + (i === 0 ? ' active' : '');
                     btn.dataset.file = file;
                     btn.style.cssText = 'padding:4px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;';
@@ -2851,15 +2851,15 @@
                     btn.onclick = () => {
                         grid!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                        if ((btn as any)._stickerImg) {
-                            selectedStickerImg = (btn as any)._stickerImg;
+                        if (btn._stickerImg) {
+                            selectedStickerImg = btn._stickerImg;
                             selectedStickerFile = file;
                             redrawStickerPreview();
                         }
                     };
                     grid!.appendChild(btn);
                     img.onload = () => {
-                        (btn as any)._stickerImg = img;
+                        btn._stickerImg = img;
                         stickerImages.push(img);
                         if (i === 0) { selectedStickerImg = img; selectedStickerFile = file; }
                         redrawStickerPreview();
@@ -2945,7 +2945,7 @@
             optPanel.appendChild(fileInput);
 
             document!.getElementById('ieMaskLoadFile')!.onclick = () => fileInput.click();
-            fileInput.onchange = (e) => { if ((e!.target as any).files[0]) loadMaskFromFile!((e!.target! as any).files[0]); };
+            fileInput.onchange = (e) => { if ((e!.target as HTMLInputElement).files![0]) loadMaskFromFile!((e!.target as HTMLInputElement).files![0]); };
 
             document!.getElementById('ieMaskPaste')!.onclick = async () => {
                 try {
@@ -2962,7 +2962,7 @@
                 if (maskPreviewActive) refreshMaskSplitPreview();
             };
             document!.getElementById('ieMaskInvertCb')!.onchange = (e) => {
-                maskInvert = (e!.target as any).checked;
+                maskInvert = (e!.target as HTMLInputElement).checked;
                 updateMaskThumbPreview();
                 if (maskPreviewActive) refreshMaskSplitPreview();
             };
@@ -2970,10 +2970,10 @@
             document!.getElementById('ieMaskApplyBtn')!.onclick = applyMaskToImage;
 
             document!.getElementById('ieSelfMaskTol')!.oninput = (e) => {
-                document!.getElementById('ieSelfMaskTolVal')!.textContent = (e!.target as any).value;
+                document!.getElementById('ieSelfMaskTolVal')!.textContent = (e!.target as HTMLInputElement).value;
             };
             document!.getElementById('ieSelfMaskFeather')!.oninput = (e) => {
-                document!.getElementById('ieSelfMaskFeatherVal')!.textContent = (e!.target as any).value;
+                document!.getElementById('ieSelfMaskFeatherVal')!.textContent = (e!.target as HTMLInputElement).value;
             };
             document!.getElementById('ieSelfMaskApply')!.onclick = applySelfMask;
         });
@@ -2989,12 +2989,12 @@
                 cvs!.getContext('2d')!.drawImage(img, 0, 0);
                 maskImageData = cvs;
                 updateMaskThumbPreview();
-                const applyBtn = document.getElementById('ieMaskApplyBtn');
-                const prevBtn = document.getElementById('ieMaskPreviewBtn');
-                if (applyBtn) (applyBtn as any).disabled = false;
-                if (prevBtn) (prevBtn as any).disabled = false;
-                (document!.getElementById('ieMaskPreviewWrap') as any).style.display = 'flex';
-                (document!.getElementById('ieMaskInvertLabel') as any).style.display = 'flex';
+                const applyBtn = document.getElementById('ieMaskApplyBtn') as HTMLButtonElement | null;
+                const prevBtn = document.getElementById('ieMaskPreviewBtn') as HTMLButtonElement | null;
+                if (applyBtn) applyBtn.disabled = false;
+                if (prevBtn) prevBtn.disabled = false;
+                document!.getElementById('ieMaskPreviewWrap')!.style.display = 'flex';
+                document!.getElementById('ieMaskInvertLabel')!.style.display = 'flex';
                 Toolbox.showToast('마스크 이미지 로드 완료');
             };
             img.src = e!.target!.result as string;
@@ -3004,18 +3004,18 @@
 
     function updateMaskThumbPreview() {
         if (!maskImageData) return;
-        const preview = document.getElementById('ieMaskPreview');
+        const preview = document.getElementById('ieMaskPreview') as HTMLCanvasElement | null;
         if (!preview) return;
         const w = maskImageData.width, h = maskImageData.height;
         const scale = Math.min(60 / w, 40 / h, 1);
-        (preview as any).width = Math.round(w * scale); (preview as any).height = Math.round(h * scale);
-        const pc = (preview as any).getContext('2d');
-        pc.drawImage(maskImageData, 0, 0, (preview as any).width, (preview as any).height);
+        preview.width = Math.round(w * scale); preview.height = Math.round(h * scale);
+        const pc = preview.getContext('2d');
+        pc!.drawImage(maskImageData, 0, 0, preview.width, preview.height);
         if (maskInvert) {
-            pc.globalCompositeOperation = 'difference';
-            pc.fillStyle = '#fff';
-            pc.fillRect(0, 0, (preview as any).width, (preview as any).height);
-            pc.globalCompositeOperation = 'source-over';
+            pc!.globalCompositeOperation = 'difference';
+            pc!.fillStyle = '#fff';
+            pc!.fillRect(0, 0, preview.width, preview.height);
+            pc!.globalCompositeOperation = 'source-over';
         }
         const info = document.getElementById('ieMaskInfo');
         if (info) info.textContent = `${w}×${h}${maskInvert ? ' (반전)' : ''}`;
@@ -3023,7 +3023,7 @@
 
     function computeMaskedImageData() {
         const w = canvas.width, h = canvas.height;
-        const useAlpha = ((document.getElementById('ieMaskInterpret') as any)?.value || 'alpha') === 'alpha';
+        const useAlpha = ((document.getElementById('ieMaskInterpret') as HTMLSelectElement | null)?.value || 'alpha') === 'alpha';
         const src = ctx.getImageData(0, 0, w, h);
         const maskCvs = document.createElement('canvas');
         maskCvs.width = w; maskCvs.height = h;
@@ -3057,10 +3057,10 @@
         const inner = document.getElementById('ieMaskPreviewInner');
         const layerBefore = document.getElementById('ieMaskLayerBefore');
         const layerAfter = document.getElementById('ieMaskLayerAfter');
-        const beforeCvs = document.getElementById('ieMaskBefore');
-        const afterCvs = document.getElementById('ieMaskAfter');
+        const beforeCvs = document.getElementById('ieMaskBefore') as HTMLCanvasElement | null;
+        const afterCvs = document.getElementById('ieMaskAfter') as HTMLCanvasElement | null;
         const divider = document.getElementById('ieMaskPreviewDivider');
-        const rangeInput = document.getElementById('ieMaskPreviewRange');
+        const rangeInput = document.getElementById('ieMaskPreviewRange') as HTMLInputElement | null;
         const closeBtn = document.getElementById('ieMaskPreviewClose');
         if (!overlay || !box || !inner || !layerBefore || !layerAfter || !beforeCvs || !afterCvs || !divider || !rangeInput) return;
 
@@ -3068,11 +3068,11 @@
         canvas.style.visibility = 'hidden';
 
         const w = canvas.width, h = canvas.height;
-        (beforeCvs as any).width = w; (beforeCvs as any).height = h;
-        (afterCvs as any).width = w; (afterCvs as any).height = h;
+        beforeCvs.width = w; beforeCvs.height = h;
+        afterCvs.width = w; afterCvs.height = h;
 
-        (beforeCvs as any).getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
-        (afterCvs as any).getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
+        beforeCvs.getContext('2d')!.putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
+        afterCvs.getContext('2d')!.putImageData(computeMaskedImageData(), 0, 0);
 
         const ow = overlay.clientWidth || 400, oh = overlay.clientHeight || 300;
         const pad = 60;
@@ -3087,19 +3087,19 @@
         box.style.width = dispW + 'px';
 
         let splitPct = 50;
-        (rangeInput as any).value = 50;
+        rangeInput.value = '50';
 
         function updateSplit() {
             const pct = splitPct;
             layerBefore!.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
             layerAfter!.style.clipPath = 'inset(0 0 0 ' + pct + '%)';
             divider!.style.left = pct + '%';
-            (rangeInput! as any).value = Math.round(pct);
+            rangeInput!.value = String(Math.round(pct));
         }
         updateSplit();
 
         rangeInput.oninput = () => {
-            splitPct = parseInt((rangeInput as any).value, 10);
+            splitPct = parseInt(rangeInput.value, 10);
             updateSplit();
         };
 
@@ -3123,12 +3123,12 @@
 
     function refreshMaskSplitPreview() {
         if (!maskPreviewActive || !maskImageData) return;
-        const beforeCvs = document.getElementById('ieMaskBefore');
-        const afterCvs = document.getElementById('ieMaskAfter');
+        const beforeCvs = document.getElementById('ieMaskBefore') as HTMLCanvasElement | null;
+        const afterCvs = document.getElementById('ieMaskAfter') as HTMLCanvasElement | null;
         if (!beforeCvs || !afterCvs) return;
         const w = canvas.width, h = canvas.height;
-        (beforeCvs as any).getContext('2d').putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
-        (afterCvs as any).getContext('2d').putImageData(computeMaskedImageData(), 0, 0);
+        beforeCvs.getContext('2d')!.putImageData(ctx.getImageData(0, 0, w, h), 0, 0);
+        afterCvs.getContext('2d')!.putImageData(computeMaskedImageData(), 0, 0);
     }
 
     function destroyMaskPreview() {
@@ -3153,9 +3153,9 @@
 
     function applySelfMask() {
         if (!requireImage()) return;
-        const target = (document.getElementById('ieSelfMaskTarget') as any)?.value || 'dark';
-        const tol = parseInt((document.getElementById('ieSelfMaskTol') as any)?.value || '30', 10);
-        const feather = parseInt((document.getElementById('ieSelfMaskFeather') as any)?.value || '10', 10);
+        const target = (document.getElementById('ieSelfMaskTarget') as HTMLSelectElement | null)?.value || 'dark';
+        const tol = parseInt((document.getElementById('ieSelfMaskTol') as HTMLInputElement | null)?.value || '30', 10);
+        const feather = parseInt((document.getElementById('ieSelfMaskFeather') as HTMLInputElement | null)?.value || '10', 10);
 
         const w = canvas.width, h = canvas.height;
         const imgData = ctx.getImageData(0, 0, w, h);
@@ -3458,61 +3458,61 @@
     }
 
     function ieCvPersistFromPanel() {
-        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const maxPreset = document.getElementById('ieCvMaxPreset');
-        const maxCustom = document.getElementById('ieCvMaxCustom');
-        const q = document.getElementById('ieCvQuality');
-        const bg = document.getElementById('ieCvBg');
-        const fa = document.getElementById('ieCvFillAlpha');
-        const sm = document.getElementById('ieCvSmooth');
+        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked') as HTMLInputElement | null;
+        const maxPreset = document.getElementById('ieCvMaxPreset') as HTMLSelectElement | null;
+        const maxCustom = document.getElementById('ieCvMaxCustom') as HTMLInputElement | null;
+        const q = document.getElementById('ieCvQuality') as HTMLInputElement | null;
+        const bg = document.getElementById('ieCvBg') as HTMLInputElement | null;
+        const fa = document.getElementById('ieCvFillAlpha') as HTMLInputElement | null;
+        const sm = document.getElementById('ieCvSmooth') as HTMLSelectElement | null;
         if (!fmtEl || !maxPreset || !maxCustom || !q || !bg || !fa || !sm) return;
         saveIeConvertSettings({
-            outFmt: (fmtEl as any).value,
-            quality: parseInt((q as any).value, 10),
-            maxPreset: (maxPreset as any).value,
-            maxCustom: parseInt((maxCustom as any).value, 10) || IE_CV_DEFAULTS.maxCustom,
-            bg: (bg as any).value,
-            fillAlpha: (fa as any).checked,
-            smoothing: (sm as any).value
+            outFmt: fmtEl.value,
+            quality: parseInt(q.value, 10),
+            maxPreset: maxPreset.value,
+            maxCustom: parseInt(maxCustom.value, 10) || IE_CV_DEFAULTS.maxCustom,
+            bg: bg.value,
+            fillAlpha: fa.checked,
+            smoothing: sm.value
         });
     }
 
     function ieCvOptsFromPanel(IC: any) {
-        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const fmt = fmtEl ? (fmtEl as any).value : 'png';
-        const maxPreset = document.getElementById('ieCvMaxPreset');
-        const maxCustom = document.getElementById('ieCvMaxCustom');
-        const q = document.getElementById('ieCvQuality');
-        const bg = document.getElementById('ieCvBg');
-        const fa = document.getElementById('ieCvFillAlpha');
-        const sm = document.getElementById('ieCvSmooth');
+        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked') as HTMLInputElement | null;
+        const fmt = fmtEl ? fmtEl.value : 'png';
+        const maxPreset = document.getElementById('ieCvMaxPreset') as HTMLSelectElement | null;
+        const maxCustom = document.getElementById('ieCvMaxCustom') as HTMLInputElement | null;
+        const q = document.getElementById('ieCvQuality') as HTMLInputElement | null;
+        const bg = document.getElementById('ieCvBg') as HTMLInputElement | null;
+        const fa = document.getElementById('ieCvFillAlpha') as HTMLInputElement | null;
+        const sm = document.getElementById('ieCvSmooth') as HTMLSelectElement | null;
         const mime = fmt === 'jpeg' ? IC.MIME_JPEG : fmt === 'webp' ? IC.MIME_WEBP : IC.MIME_PNG;
         return {
             outputMime: mime,
-            quality: (parseInt(q && (q as any).value, 10) || 92) / 100,
-            maxLongSide: ieCvMaxLong(maxPreset && (maxPreset as any).value, parseInt(maxCustom && (maxCustom as any).value, 10) || 1920),
-            background: (bg && (bg as any).value) || '#ffffff',
-            fillAlpha: !!(fa && (fa as any).checked),
-            smoothing: (sm && (sm as any).value) || 'high'
+            quality: (parseInt(q?.value ?? '', 10) || 92) / 100,
+            maxLongSide: ieCvMaxLong(maxPreset?.value ?? '', parseInt(maxCustom?.value ?? '', 10) || 1920),
+            background: bg?.value || '#ffffff',
+            fillAlpha: !!(fa?.checked),
+            smoothing: (sm?.value || 'high') as 'low' | 'medium' | 'high'
         };
     }
 
     function ieCvSettingsKeyFromPanel() {
-        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const maxPreset = document.getElementById('ieCvMaxPreset');
-        const maxCustom = document.getElementById('ieCvMaxCustom');
-        const q = document.getElementById('ieCvQuality');
-        const bg = document.getElementById('ieCvBg');
-        const fa = document.getElementById('ieCvFillAlpha');
-        const sm = document.getElementById('ieCvSmooth');
+        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked') as HTMLInputElement | null;
+        const maxPreset = document.getElementById('ieCvMaxPreset') as HTMLSelectElement | null;
+        const maxCustom = document.getElementById('ieCvMaxCustom') as HTMLInputElement | null;
+        const q = document.getElementById('ieCvQuality') as HTMLInputElement | null;
+        const bg = document.getElementById('ieCvBg') as HTMLInputElement | null;
+        const fa = document.getElementById('ieCvFillAlpha') as HTMLInputElement | null;
+        const sm = document.getElementById('ieCvSmooth') as HTMLSelectElement | null;
         return JSON.stringify({
-            f: fmtEl ? (fmtEl as any).value : 'png',
-            q: q ? (q as any).value : '92',
-            mp: maxPreset ? (maxPreset as any).value : '',
-            mc: maxCustom ? (maxCustom as any).value : '',
-            bg: bg ? (bg as any).value : '',
-            fa: fa ? (fa as any).checked : false,
-            sm: sm ? (sm as any).value : 'high',
+            f: fmtEl ? fmtEl.value : 'png',
+            q: q ? q.value : '92',
+            mp: maxPreset ? maxPreset.value : '',
+            mc: maxCustom ? maxCustom.value : '',
+            bg: bg ? bg.value : '',
+            fa: fa ? fa.checked : false,
+            sm: sm ? sm.value : 'high',
             cw: canvas && canvas.width,
             ch: canvas && canvas.height
         });
@@ -3525,23 +3525,23 @@
 
     function ieCvSyncResampleRow() {
         const row = document.getElementById('ieCvResampleRow');
-        const sel = document.getElementById('ieCvMaxPreset');
+        const sel = document.getElementById('ieCvMaxPreset') as HTMLSelectElement | null;
         if (!row || !sel) return;
-        row.style.display = (sel as any).value ? 'flex' : 'none';
+        row.style.display = sel.value ? 'flex' : 'none';
     }
 
     function ieCvSyncQualityRow(IC: any) {
-        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked');
-        const fmt = fmtEl ? (fmtEl as any).value : 'png';
+        const fmtEl = document.querySelector('input[name="ieCvFmt"]:checked') as HTMLInputElement | null;
+        const fmt = fmtEl ? fmtEl.value : 'png';
         const lossy = fmt === 'jpeg' || fmt === 'webp';
         const row = document.getElementById('ieCvQlRow');
         const ql = document.getElementById('ieCvQlLabel');
-        const q = document.getElementById('ieCvQuality');
+        const q = document.getElementById('ieCvQuality') as HTMLInputElement | null;
         const qv = document.getElementById('ieCvQualityVal');
         const hint = document.getElementById('ieCvHint');
         if (!row || !q) return;
         row.style.opacity = lossy ? '1' : '0.45';
-        (q as any).disabled = !lossy;
+        q.disabled = !lossy;
         if (ql) ql.style.opacity = lossy ? '1' : '0.45';
         if (qv) qv.style.opacity = lossy ? '1' : '0.45';
         if (hint) {
@@ -3556,10 +3556,17 @@
         }
     }
 
-    function ieCvRevokeLightboxUrls(lb: any) {
+    interface IeCvLightboxEl extends HTMLElement {
+        _ieCvPreviewUrl: string;
+        _ieCvOriginalUrl: string;
+        _ieCvRevokeUrls: string[] | null;
+        _ieCvMeta: Record<string, unknown> | null;
+    }
+
+    function ieCvRevokeLightboxUrls(lb: IeCvLightboxEl) {
         const list = lb._ieCvRevokeUrls;
         if (list && list.length) {
-            list.forEach((u: any) => {
+            list.forEach((u: string) => {
                 if (u && String(u).indexOf('blob:') === 0) {
                     try {
                         URL.revokeObjectURL(u);
@@ -3615,7 +3622,7 @@
         return label + ': ' + parts.join(' · ');
     }
 
-    function ieCvLightboxUpdateMeta(lb: any, mode: any) {
+    function ieCvLightboxUpdateMeta(lb: IeCvLightboxEl, mode: string) {
         const el = lb.querySelector('#ieCvLbMeta');
         if (!el) return;
         const meta = lb._ieCvMeta;
@@ -3631,27 +3638,27 @@
         el.textContent = ieCvFormatLbMetaLine('변환 미리보기', meta.preview);
     }
 
-    function ieCvLightboxSetView(lb: any, mode: any) {
+    function ieCvLightboxSetView(lb: IeCvLightboxEl, mode: string) {
         const preview = lb._ieCvPreviewUrl;
         const original = lb._ieCvOriginalUrl;
-        const img = lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img');
+        const img = (lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img')) as HTMLImageElement | null;
         if (!img || !preview) return;
         const showOriginal = mode === 'original' && original;
         img.src = showOriginal ? original : preview;
         img.alt = showOriginal ? '변환 전(현재 편집 화면)' : '변환 미리보기';
-        lb.querySelectorAll('.ie-cv-lb-btn').forEach((b: any) => {
+        lb.querySelectorAll('.ie-cv-lb-btn').forEach((b) => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', showOriginal ? v === 'original' : v === 'preview');
         });
         ieCvLightboxUpdateMeta(lb, showOriginal ? 'original' : 'preview');
     }
 
-    function ieCvEnsureLightboxShell() {
-        let lb = document.getElementById('ieCvLightbox');
+    function ieCvEnsureLightboxShell(): IeCvLightboxEl {
+        let lb = document.getElementById('ieCvLightbox') as IeCvLightboxEl | null;
         if (!lb) {
-            lb = document.createElement('div');
-            lb.id = 'ieCvLightbox';
-            lb.className = 'ie-cv-lightbox';
+            lb = document.createElement('div') as unknown as IeCvLightboxEl;
+            (lb as HTMLElement).id = 'ieCvLightbox';
+            (lb as HTMLElement).className = 'ie-cv-lightbox';
             lb.setAttribute('role', 'dialog');
             lb.setAttribute('aria-label', '변환 미리보기');
             lb.innerHTML =
@@ -3665,17 +3672,17 @@
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
             lb.addEventListener('click', e => {
-                if ((e!.target as any).closest('.ie-cv-lightbox-bar')) return;
+                if ((e.target as HTMLElement).closest('.ie-cv-lightbox-bar')) return;
                 ieCvCloseLightbox();
             });
             lb.querySelectorAll('.ie-cv-lb-btn').forEach(btn => {
                 btn.addEventListener('click', e => {
                     e.stopPropagation();
                     const v = btn.getAttribute('data-ie-cv-view');
-                    if (v) ieCvLightboxSetView(lb, v);
+                    if (v) ieCvLightboxSetView(lb!, v);
                 });
             });
-            document.body.appendChild(lb);
+            document.body.appendChild(lb as unknown as HTMLElement);
         } else if (!lb.querySelector('.ie-cv-lightbox-bar')) {
             lb.onclick = null;
             ieCvRevokeLightboxUrls(lb);
@@ -3694,22 +3701,22 @@
                 '<div class="ie-cv-lb-meta" id="ieCvLbMeta" aria-live="polite"></div>' +
                 '</div></div>';
             lb.addEventListener('click', e => {
-                if ((e!.target as any).closest('.ie-cv-lightbox-bar')) return;
+                if ((e.target as HTMLElement).closest('.ie-cv-lightbox-bar')) return;
                 ieCvCloseLightbox();
             });
             lb.querySelectorAll('.ie-cv-lb-btn').forEach(btn => {
                 btn.addEventListener('click', e => {
                     e.stopPropagation();
                     const v = btn.getAttribute('data-ie-cv-view');
-                    if (v) ieCvLightboxSetView(lb, v);
+                    if (v) ieCvLightboxSetView(lb!, v);
                 });
             });
         }
-        return lb;
+        return lb!;
     }
 
     function ieCvCloseLightbox() {
-        const lb = document.getElementById('ieCvLightbox');
+        const lb = document.getElementById('ieCvLightbox') as IeCvLightboxEl | null;
         if (!lb) return;
         lb.classList.remove('open');
         const img = lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img');
@@ -3732,15 +3739,15 @@
     function ieCvOpenLightbox(previewUrl: any, originalUrl: any, meta: any) {
         const lb = ieCvEnsureLightboxShell();
         ieCvRevokeLightboxUrls(lb);
-        (lb as any)._ieCvPreviewUrl = previewUrl;
-        (lb as any)._ieCvOriginalUrl = originalUrl || '';
-        (lb as any)._ieCvRevokeUrls = originalUrl ? [previewUrl, originalUrl] : [previewUrl];
-        (lb as any)._ieCvMeta = meta && typeof meta === 'object' ? meta : null;
-        const img = lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img');
-        const origBtn = lb.querySelector('[data-ie-cv-view="original"]');
-        if (origBtn) (origBtn as any).style.display = originalUrl ? '' : 'none';
-        (img! as any).src = previewUrl;
-        (img! as any).alt = '변환 미리보기';
+        lb._ieCvPreviewUrl = previewUrl;
+        lb._ieCvOriginalUrl = originalUrl || '';
+        lb._ieCvRevokeUrls = originalUrl ? [previewUrl, originalUrl] : [previewUrl];
+        lb._ieCvMeta = meta && typeof meta === 'object' ? meta : null;
+        const img = (lb.querySelector('.ie-cv-lightbox-inner img') || lb.querySelector('img')) as HTMLImageElement | null;
+        const origBtn = lb.querySelector('[data-ie-cv-view="original"]') as HTMLButtonElement | null;
+        if (origBtn) origBtn.style.display = originalUrl ? '' : 'none';
+        img!.src = previewUrl;
+        img!.alt = '변환 미리보기';
         lb.querySelectorAll('.ie-cv-lb-btn').forEach(b => {
             const v = b.getAttribute('data-ie-cv-view');
             b.classList.toggle('ie-cv-lb-active', v === 'preview');
@@ -3882,9 +3889,9 @@
                     : ''
             }`;
 
-        const maxPresetEl = document.getElementById('ieCvMaxPreset');
+        const maxPresetEl = document.getElementById('ieCvMaxPreset') as HTMLSelectElement | null;
         const maxCustomEl = document.getElementById('ieCvMaxCustom');
-        (maxPresetEl! as any).value = st.maxPreset;
+        maxPresetEl!.value = st.maxPreset;
         maxCustomEl!.style.display = st.maxPreset === 'custom' ? 'inline-block' : 'none';
 
         const onChange = () => {
@@ -3898,11 +3905,11 @@
             r.addEventListener('change', onChange);
         });
         document!.getElementById('ieCvQuality')!.addEventListener('input', () => {
-            document!.getElementById('ieCvQualityVal')!.textContent = (document!.getElementById('ieCvQuality') as any).value + '%';
+            document!.getElementById('ieCvQualityVal')!.textContent = (document!.getElementById('ieCvQuality') as HTMLInputElement).value + '%';
             onChange();
         });
         maxPresetEl!.addEventListener('change', () => {
-            maxCustomEl!.style.display = (maxPresetEl! as any).value === 'custom' ? 'inline-block' : 'none';
+            maxCustomEl!.style.display = maxPresetEl!.value === 'custom' ? 'inline-block' : 'none';
             onChange();
         });
         maxCustomEl!.addEventListener('change', onChange);
@@ -3917,8 +3924,8 @@
             if (!requireImageForConvertCanvas()) return;
             const key = ieCvSettingsKeyFromPanel();
             const opts = ieCvOptsFromPanel(IC);
-            const btn = document.getElementById('ieCvPreview');
-            (btn! as any).disabled = true;
+            const btn = document.getElementById('ieCvPreview') as HTMLButtonElement | null;
+            btn!.disabled = true;
             withCanvasAsImage((img: any, srcUrl: any, pngBlob: any) => {
                 IC.convertImage(img, opts)
                     .then(blob => {
@@ -3960,7 +3967,7 @@
                         Toolbox.showToast('변환에 실패했어요.', 'error');
                     })
                     .finally(() => {
-                        (btn! as any).disabled = false;
+                        btn!.disabled = false;
                     });
             });
         };
@@ -4001,30 +4008,30 @@
         };
 
         if (Batch) {
-            const batchInput = document.getElementById('ieCvBatchInput');
-            const batchPick = document.getElementById('ieCvBatchPick');
-            const batchRun = document.getElementById('ieCvBatchRun');
-            const batchCancel = document.getElementById('ieCvBatchCancel');
+            const batchInput = document.getElementById('ieCvBatchInput') as HTMLInputElement | null;
+            const batchPick = document.getElementById('ieCvBatchPick') as HTMLButtonElement | null;
+            const batchRun = document.getElementById('ieCvBatchRun') as HTMLButtonElement | null;
+            const batchCancel = document.getElementById('ieCvBatchCancel') as HTMLButtonElement | null;
             const batchStatus = document.getElementById('ieCvBatchStatus');
             const batchIdle = () => {
                 ieCvBatchAbort = null;
                 syncIeCvBatchUiFromState();
-                (batchPick! as any).disabled = false;
-                (batchCancel! as any).disabled = true;
+                batchPick!.disabled = false;
+                batchCancel!.disabled = true;
                 batchCancel!.style.display = 'none';
-                const p = document.getElementById('ieCvPreview');
-                const d = document.getElementById('ieCvDownload');
-                if (p) (p as any).disabled = false;
-                if (d) (d as any).disabled = false;
+                const p = document.getElementById('ieCvPreview') as HTMLButtonElement | null;
+                const d = document.getElementById('ieCvDownload') as HTMLButtonElement | null;
+                if (p) p.disabled = false;
+                if (d) d.disabled = false;
             };
             batchPick!.onclick = e => {
                 e.stopPropagation();
                 batchInput!.click();
             };
             batchInput!.onchange = () => {
-                (ieCvBatchState as any).files = (batchInput! as any).files ? Array!.from((batchInput! as any).files) : [];
+                ieCvBatchState.files = batchInput!.files ? Array.from(batchInput!.files) : [];
                 syncIeCvBatchUiFromState();
-                (batchInput! as any).value = '';
+                batchInput!.value = '';
             };
             batchCancel!.onclick = e => {
                 e.stopPropagation();
@@ -4039,14 +4046,14 @@
                 const mime = opts.outputMime;
                 const recipe = Batch.recipeConvert(opts);
                 ieCvBatchAbort = new AbortController();
-                (batchRun! as any).disabled = true;
-                (batchPick! as any).disabled = true;
-                (batchCancel! as any).disabled = false;
+                batchRun!.disabled = true;
+                batchPick!.disabled = true;
+                batchCancel!.disabled = false;
                 batchCancel!.style.display = 'inline-block';
-                const prevBtn = document.getElementById('ieCvPreview');
-                const dlBtn = document.getElementById('ieCvDownload');
-                if (prevBtn) (prevBtn as any).disabled = true;
-                if (dlBtn) (dlBtn as any).disabled = true;
+                const prevBtn = document.getElementById('ieCvPreview') as HTMLButtonElement | null;
+                const dlBtn = document.getElementById('ieCvDownload') as HTMLButtonElement | null;
+                if (prevBtn) prevBtn.disabled = true;
+                if (dlBtn) dlBtn.disabled = true;
                 batchStatus!.textContent = '변환 중… 0 / ' + ieCvBatchState.files.length;
                 Batch.processFilesSequential(IC, ieCvBatchState.files, recipe, {
                     signal: ieCvBatchAbort.signal,
@@ -4125,7 +4132,7 @@
         destroyStickerOverlay();
         destroyMaskPreview();
 
-        document.querySelectorAll('.ie-tool-btn').forEach(b => b.classList.toggle('active', (b as any).dataset.tool === toolId));
+        document.querySelectorAll('.ie-tool-btn').forEach(b => b.classList.toggle('active', (b as HTMLElement).dataset.tool === toolId));
 
         const optPanel = document.getElementById('ieOptions');
         if (!optPanel) return;
@@ -4151,7 +4158,7 @@
     /* ===== Dialogs ===== */
     function showUrlDialog() {
         const d = document.getElementById('ieUrlDialog');
-        if (d) { d.classList.add('open'); (document!.getElementById('ieUrlInput') as any).value = ''; document!.getElementById('ieUrlInput')!.focus(); }
+        if (d) { d.classList.add('open'); (document!.getElementById('ieUrlInput') as HTMLInputElement).value = ''; document!.getElementById('ieUrlInput')!.focus(); }
     }
 
     function showLibDialog() {
@@ -4422,20 +4429,20 @@
             document.addEventListener('click', closeAllDropdowns);
 
             /* JPEG quality slider */
-            const jpegSlider = document.getElementById('ieJpegQuality');
+            const jpegSlider = document.getElementById('ieJpegQuality') as HTMLInputElement | null;
             const jpegVal = document.getElementById('ieJpegQualityVal');
             jpegSlider!.oninput = () => {
-                jpegQuality = parseInt((jpegSlider! as any).value) / 100;
-                jpegVal!.textContent = (jpegSlider! as any).value + '%';
+                jpegQuality = parseInt(jpegSlider!.value) / 100;
+                jpegVal!.textContent = jpegSlider!.value + '%';
             };
             jpegSlider!.onclick = (e) => e.stopPropagation();
 
             /* Import actions */
-            const fileInput = document.getElementById('ieFileInput');
+            const fileInput = document.getElementById('ieFileInput') as HTMLInputElement | null;
             document!.getElementById('ieImportFile')!.onclick = () => fileInput!.click();
             fileInput!.onchange = () => {
-                if ((fileInput! as any).files[0]) loadImageFromFile((fileInput! as any).files[0]);
-                (fileInput! as any).value = '';
+                if (fileInput!.files![0]) loadImageFromFile(fileInput!.files![0]);
+                fileInput!.value = '';
             };
             document!.getElementById('ieImportUrl')!.onclick = showUrlDialog;
             document!.getElementById('ieImportLib')!.onclick = showLibDialog;
@@ -4448,7 +4455,7 @@
 
             /* Tool buttons */
             document.querySelectorAll('.ie-tool-btn').forEach(btn => {
-                (btn as any).onclick = () => selectTool((btn as any).dataset.tool);
+                (btn as HTMLButtonElement).onclick = () => selectTool((btn as HTMLElement).dataset.tool!);
             });
 
             /* Placeholder → 단일 파일(캔버스). 일괄은 오른쪽 「여러 파일」또는 2장 이상 드롭만. */
@@ -4460,7 +4467,7 @@
             /* URL dialog */
             document!.getElementById('ieUrlCancel')!.onclick = () => document!.getElementById('ieUrlDialog')!.classList!.remove('open');
             document!.getElementById('ieUrlConfirm')!.onclick = () => {
-                const url = (document!.getElementById('ieUrlInput') as any).value.trim();
+                const url = (document!.getElementById('ieUrlInput') as HTMLInputElement).value.trim();
                 if (!url) { Toolbox.showToast('URL을 입력하세요.', 'error'); return; }
                 let disp = 'URL';
                 try {
@@ -4505,13 +4512,13 @@
                 if (e.key === 'Enter') document!.getElementById('ieUrlConfirm')!.click();
             };
             document!.getElementById('ieUrlDialog')!.onclick = (e) => {
-                if ((e!.target as any).id === 'ieUrlDialog') document!.getElementById('ieUrlDialog')!.classList!.remove('open');
+                if ((e.target as HTMLElement).id === 'ieUrlDialog') document!.getElementById('ieUrlDialog')!.classList!.remove('open');
             };
 
             /* Library dialog */
             document!.getElementById('ieLibClose')!.onclick = () => document!.getElementById('ieLibDialog')!.classList!.remove('open');
             document!.getElementById('ieLibDialog')!.onclick = (e) => {
-                if ((e!.target as any).id === 'ieLibDialog') document!.getElementById('ieLibDialog')!.classList!.remove('open');
+                if ((e.target as HTMLElement).id === 'ieLibDialog') document!.getElementById('ieLibDialog')!.classList!.remove('open');
             };
 
             /* Drag & Drop */
@@ -4632,7 +4639,7 @@
             document.addEventListener('keydown', (e) => {
                 const page = document.getElementById('page-imageedit');
                 if (!page || !page.classList.contains('active')) return;
-                const inField = !!(e!.target as any).closest(
+                const inField = !!(e.target as HTMLElement).closest(
                     'a[href], button, input, textarea, select, [contenteditable="true"]'
                 );
                 if (e.code === 'Space' && !e.repeat && !inField) {
