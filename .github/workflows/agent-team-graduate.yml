@@ -30,6 +30,9 @@ on:
   workflow_run:
     workflows: ["verify", "Claude Code"]
     types: [completed]
+  workflow_dispatch:
+    # 수동 일괄 졸업 — graduate 비활성화 기간 쌓인 Draft PR 복구용.
+    # 활성화 후 GitHub UI: Actions → Agent Team Graduate → Run workflow
 
 permissions:
   contents: write
@@ -38,7 +41,7 @@ permissions:
 jobs:
   graduate:
     # pull_request 발 run 만 (push 발 verify 는 PR 무관) — 노이즈 축소.
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       # 로컬 composite action 사용 위해 checkout (workflow_run = 기본브랜치 master 체크아웃).
@@ -94,3 +97,55 @@ jobs:
           echo "PR #$num: verify green + 화이트리스트 prefix Draft → 졸업 (ready + squash merge)"
           gh pr ready "$num"
           gh pr merge "$num" --squash --delete-branch
+
+  batch_graduate:
+    # workflow_dispatch 수동 일괄 졸업 — 화이트리스트 prefix Draft PR 중 verify green 전부 처리.
+    # graduate 비활성화 기간 쌓인 PR 복구 등 수동 실행 시 사용.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve merge token (App → PAT fallback)
+        id: tok
+        uses: ./.github/actions/resolve-merge-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.PAT_FOR_AUTO_MERGE }}
+
+      - name: Batch graduate all eligible Draft PRs
+        env:
+          GH_TOKEN: ${{ steps.tok.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          gh pr list --state open \
+            --json number,isDraft,headRefName,headRefOid \
+            --jq '[.[] | select(.isDraft==true and (.headRefName | test("^(feature/agent-team-|fix/issue-|feature/issue-)"))))]' \
+            > /tmp/prs.json
+
+          count=$(jq 'length' /tmp/prs.json)
+          echo "화이트리스트 prefix Draft PR ${count}개 검사"
+
+          if [ "$count" -eq 0 ]; then
+            echo "졸업 대상 Draft PR 없음"; exit 0
+          fi
+
+          for i in $(seq 0 $((count - 1))); do
+            num=$(jq -r ".[$i].number" /tmp/prs.json)
+            headRef=$(jq -r ".[$i].headRefName" /tmp/prs.json)
+            headOid=$(jq -r ".[$i].headRefOid" /tmp/prs.json)
+
+            verify_ok=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
+              --jq '[.check_runs[] | select(.name=="verify (master invariant)" and .conclusion=="success")] | length')
+            if [ "${verify_ok:-0}" -lt 1 ]; then
+              echo "PR #$num ($headRef) — verify green 아님, skip"
+              continue
+            fi
+
+            echo "PR #$num ($headRef): verify green → 졸업 (ready + squash merge)"
+            gh pr ready "$num"
+            gh pr merge "$num" --squash --delete-branch
+          done
