@@ -345,6 +345,7 @@ VFX를 만들기 위한 과정.
 - [Squoosh - 이미지 압축](https://squoosh.app/)
 - [Materialize](https://boundingboxsoftware.com/materialize/)
 - [NormalMap Online](https://cpetry.github.io/NormalMap-Online/)
+- [NormalMap AI - PBR 텍스처 생성기](https://normalmap.ai/?utm_source=mascari_github&utm_medium=referral&utm_campaign=backlink_2026)
 - [Line2NormalMap](https://mttl9rtv.fanbox.cc/posts/7715867?utm_campaign=manage_post_page&utm_medium=share&utm_source=twitter)
 - [Flamel(플라멜) - AI 이미지](https://flamel.app/)
 
