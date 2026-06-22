@@ -4,6 +4,7 @@ import {
     chatbotUiSurfaceToPackage,
     getChatbotApiSurfaceUi,
 } from './api-surface';
+import type { CbChatMessage, CbChatPart, CbPendingImage, CbSession } from './chatbot-types';
 
 (function () {
     /* ===== 상태 ===== */
@@ -22,11 +23,11 @@ import {
         } catch (_) { return []; }
     }
 
-    function saveSessionsIndex(index: any) {
+    function saveSessionsIndex(index: CbSession[]) {
         sessionStorage.setItem(CHATBOT_SESSIONS_INDEX_KEY, JSON.stringify(index));
     }
 
-    function createNewSession(name?: any) {
+    function createNewSession(name?: string) {
         const id = generateSessionId();
         const index = getSessionsIndex();
         index.push({ id, name: name || `대화 ${index.length + 1}`, createdAt: Date.now() });
@@ -38,17 +39,17 @@ import {
         return id;
     }
 
-    function deleteSession(id: any) {
-        let index = getSessionsIndex().filter((s: any) => s.id !== id);
+    function deleteSession(id: string) {
+        let index = getSessionsIndex().filter((s: CbSession) => s.id !== id);
         saveSessionsIndex(index);
         sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + id);
     }
 
-    let chatHistory: any[] = [];
+    let chatHistory: CbChatMessage[] = [];
     let conversationSummary = '';
-    let pendingImages: any[] = []; // { base64, mimeType }
+    let pendingImages: CbPendingImage[] = [];
 
-    function fileToBase64(file: any) {
+    function fileToBase64(file: File) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => {
@@ -61,7 +62,7 @@ import {
         });
     }
 
-    function addPendingImage(imgData: any) {
+    function addPendingImage(imgData: CbPendingImage) {
         if (pendingImages.length >= 5) { Toolbox.showToast('최대 5장까지 첨부 가능', 'error'); return; }
         pendingImages.push(imgData);
         renderAttachThumbs();
@@ -70,8 +71,8 @@ import {
     function renderAttachThumbs() {
         const area = (document.getElementById('cbAttachArea') as any);
         if (!area) return;
-        area.querySelectorAll('.cb-attach-wrap').forEach((el: any) => el.remove());
-        pendingImages.forEach((img: any, i: number) => {
+        area.querySelectorAll('.cb-attach-wrap').forEach((el) => (el as HTMLElement).remove());
+        pendingImages.forEach((img: CbPendingImage, i: number) => {
             const wrap = document.createElement('span');
             wrap.className = 'cb-attach-wrap';
             const thumb = document.createElement('img');
@@ -90,8 +91,8 @@ import {
     function saveSession() {
         if (!currentSessionId) return;
         try {
-            const toSave = chatHistory.map((msg: any) => {
-                const parts = msg.parts.map((p: any) => {
+            const toSave = chatHistory.map((msg: CbChatMessage) => {
+                const parts = msg.parts.map((p: CbChatPart) => {
                     if (p.inlineData) return { text: '[image]' };
                     return p;
                 });
@@ -105,12 +106,12 @@ import {
                 characterId,
                 savedAt: Date.now()
             }));
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.warn('Chatbot session save failed', e);
         }
     }
 
-    function loadSession(id?: any) {
+    function loadSession(id?: string | null) {
         lastLoadedSessionCharacterId = '';
         try {
             const raw = sessionStorage.getItem(CHATBOT_SESSION_PREFIX + (id || currentSessionId));
@@ -122,13 +123,13 @@ import {
                 lastLoadedSessionCharacterId = data.characterId || '';
                 return true;
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.warn('Chatbot session load failed', e);
         }
         return false;
     }
 
-    function switchSession(id: any) {
+    function switchSession(id: string) {
         saveSession();
         currentSessionId = id;
         chatHistory = [];
@@ -138,7 +139,7 @@ import {
         const msgs = (document.getElementById('cbMessages') as any);
         if (msgs) msgs.innerHTML = '';
         if (loadSession(id) && chatHistory.length > 0) {
-            chatHistory.forEach((msg: any) => {
+            chatHistory.forEach((msg: CbChatMessage) => {
                 const role = msg.role === 'user' ? 'user' : 'bot';
                 const text = msg.parts?.[0]?.text || '';
                 if (text) appendMsg(role, text, false);
@@ -160,7 +161,7 @@ import {
         if (!container) return;
         const index = getSessionsIndex();
         container.innerHTML = '';
-        index.forEach((s: any) => {
+        index.forEach((s: CbSession) => {
             const tab = document.createElement('button');
             tab.className = 'cb-session-tab' + (s.id === currentSessionId ? ' active' : '');
             tab.innerHTML = `<span class="cb-session-tab-name">${Toolbox.escapeHtml?.(s.name) ?? s.name}</span>`;
@@ -168,7 +169,7 @@ import {
                 const del = document.createElement('span');
                 del.className = 'cb-session-tab-del';
                 del.textContent = '×';
-                del.onclick = (e: any) => {
+                del.onclick = (e: MouseEvent) => {
                     e.stopPropagation();
                     deleteSession(s.id);
                     if (s.id === currentSessionId) {
@@ -184,7 +185,7 @@ import {
             tab.onclick = () => { if (s.id !== currentSessionId) switchSession(s.id); };
             const nameSpan = tab.querySelector('.cb-session-tab-name') as HTMLElement | null;
             if (nameSpan) {
-                nameSpan.ondblclick = (e: any) => {
+                nameSpan.ondblclick = (e: MouseEvent) => {
                     e.stopPropagation();
                     const input = document.createElement('input');
                     input.className = 'cb-session-tab-edit';
@@ -194,12 +195,12 @@ import {
                         const newName = input.value.trim() || s.name;
                         s.name = newName;
                         const idx = getSessionsIndex();
-                        const found = idx.find((x: any) => x.id === s.id);
+                        const found = idx.find((x: CbSession) => x.id === s.id);
                         if (found) { found.name = newName; saveSessionsIndex(idx); }
                         renderSessionTabs();
                     };
                     input.onblur = commit;
-                    input.onkeydown = (ev: any) => { if (ev.key === 'Enter') commit(); if (ev.key === 'Escape') renderSessionTabs(); };
+                    input.onkeydown = (ev: KeyboardEvent) => { if (ev.key === 'Enter') commit(); if (ev.key === 'Escape') renderSessionTabs(); };
                     nameSpan.replaceWith(input);
                     input.focus();
                     input.select();
@@ -633,7 +634,7 @@ import {
             });
             if (msgs) {
                 if (sessionLoaded && chatHistory.length > 0) {
-                    chatHistory.forEach((msg: any) => {
+                    chatHistory.forEach((msg: CbChatMessage) => {
                         const role = msg.role === 'user' ? 'user' : 'bot';
                         const text = msg.parts?.[0]?.text || '';
                         if (text) appendMsg(role, text, false);
@@ -934,8 +935,8 @@ import {
             appendMsg('user', text + (pendingImages.length ? ` [📎 이미지 ${pendingImages.length}장]` : ''));
             input.value = '';
 
-            const parts: any[] = [{ text }];
-            pendingImages.forEach((img: any) => {
+            const parts: CbChatPart[] = [{ text }];
+            pendingImages.forEach((img: CbPendingImage) => {
                 parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } });
             });
             pendingImages = [];
