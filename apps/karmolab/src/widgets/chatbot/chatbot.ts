@@ -68,7 +68,7 @@ import {
     }
 
     function renderAttachThumbs() {
-        const area = (document.getElementById('cbAttachArea') as any);
+        const area = (document.getElementById('cbAttachArea') as HTMLElement | null);
         if (!area) return;
         area.querySelectorAll('.cb-attach-wrap').forEach((el: any) => el.remove());
         pendingImages.forEach((img: any, i: number) => {
@@ -97,7 +97,7 @@ import {
                 });
                 return { role: msg.role, parts };
             });
-            const charSel = (document.getElementById('cbCharacterSelect') as any) as HTMLSelectElement | null;
+            const charSel = document.getElementById('cbCharacterSelect') as HTMLSelectElement | null;
             const characterId = charSel?.value || '';
             sessionStorage.setItem(CHATBOT_SESSION_PREFIX + currentSessionId, JSON.stringify({
                 chatHistory: toSave,
@@ -135,7 +135,7 @@ import {
         conversationSummary = '';
         pendingImages = [];
         renderAttachThumbs();
-        const msgs = (document.getElementById('cbMessages') as any);
+        const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
         if (msgs) msgs.innerHTML = '';
         if (loadSession(id) && chatHistory.length > 0) {
             chatHistory.forEach((msg: any) => {
@@ -156,7 +156,7 @@ import {
     }
 
     function renderSessionTabs() {
-        const container = (document.getElementById('cbSessionTabs') as any);
+        const container = (document.getElementById('cbSessionTabs') as HTMLElement | null);
         if (!container) return;
         const index = getSessionsIndex();
         container.innerHTML = '';
@@ -281,7 +281,7 @@ import {
                             <div class="cb-shortcut-row"><span>새 세션</span><span class="cb-shortcut-key">Ctrl + N</span></div>
                             <div class="cb-shortcut-row"><span>단축키 안내</span><span class="cb-shortcut-key">Ctrl + /</span></div>
                             <div style="margin-top:12px;text-align:center;">
-                                <button class="btn btn-ghost" onclick="(document.getElementById('cbShortcutsOverlay') as any).classList.remove('open')">닫기</button>
+                                <button class="btn btn-ghost" onclick="(document.getElementById('cbShortcutsOverlay') as HTMLElement | null).classList.remove('open')">닫기</button>
                             </div>
                         </div>
                     </div>
@@ -421,7 +421,7 @@ import {
 
         requestAnimationFrame(() => {
             // 모델 셀렉트
-            const sel = (document.getElementById('cbModelSelect') as any);
+            const sel = (document.getElementById('cbModelSelect') as HTMLSelectElement | null);
             if (sel) {
                 (Gemini as any).MODELS.gemini.forEach((m: any) => {
                     const o = document.createElement('option');
@@ -436,10 +436,10 @@ import {
             if (savedModel && sel) { sel.value = savedModel; }
             if (sel) sel.addEventListener('change', () => Toolbox.setPref('cb_model', sel.value));
 
-            const surfaceSel = (document.getElementById('cbApiSurfaceSelect') as any);
+            const surfaceSel = (document.getElementById('cbApiSurfaceSelect') as HTMLSelectElement | null);
             function syncWebSearchForApiSurface() {
                 const v = surfaceSel instanceof HTMLSelectElement ? surfaceSel.value : ChatbotApiSurfaceUi.studio;
-                const ws = (document.getElementById('cbWebSearch') as any);
+                const ws = (document.getElementById('cbWebSearch') as HTMLInputElement | null);
                 const row = ws?.closest('.cb-option-row');
                 if (ws instanceof HTMLInputElement) {
                     if (v === ChatbotApiSurfaceUi.vertex) {
@@ -465,8 +465,8 @@ import {
             }
 
             // 시스템 프롬프트 프리셋 (__none__ / 직접입력 / 명명 프리셋)
-            const presetSel = (document.getElementById('cbSystemPreset') as any);
-            const sysPromptTa = (document.getElementById('cbSystemPrompt') as any);
+            const presetSel = (document.getElementById('cbSystemPreset') as HTMLSelectElement | null);
+            const sysPromptTa = (document.getElementById('cbSystemPrompt') as HTMLTextAreaElement | null);
             const savedPreset = Toolbox.getPref('cb_preset', '');
             function applySystemPresetUi() {
                 if (!presetSel || !sysPromptTa) return;
@@ -483,7 +483,7 @@ import {
             }
             if (presetSel && sysPromptTa) {
                 if (typeof savedPreset === 'string') {
-                    const hasOpt = Array.from(presetSel.options as any[]).some((o: any) => o.value === savedPreset);
+                    const hasOpt = Array.from(presetSel.options).some((o: any) => o.value === savedPreset);
                     if (hasOpt) presetSel.value = savedPreset;
                 }
                 applySystemPresetUi();
@@ -494,8 +494,8 @@ import {
             }
 
             // Temperature 슬라이더 표시 갱신
-            const tempSlider = (document.getElementById('cbTemperature') as any);
-            const tempValueEl = (document.getElementById('cbTempValue') as any);
+            const tempSlider = (document.getElementById('cbTemperature') as HTMLInputElement | null);
+            const tempValueEl = (document.getElementById('cbTempValue') as HTMLElement | null);
             const savedTemp = Toolbox.getPref('cb_temperature', '');
             if (tempSlider && tempValueEl) {
                 if (savedTemp !== undefined) { tempSlider.value = savedTemp; tempValueEl.textContent = savedTemp; }
@@ -518,13 +518,13 @@ import {
             }
 
             // 이미지 첨부
-            const attachBtn = (document.getElementById('cbAttachBtn') as any);
-            const fileInput = (document.getElementById('cbFileInput') as any);
-            const inputArea = (document.getElementById('cbInputArea') as any);
+            const attachBtn = (document.getElementById('cbAttachBtn') as HTMLButtonElement | null);
+            const fileInput = (document.getElementById('cbFileInput') as HTMLInputElement | null);
+            const inputArea = (document.getElementById('cbInputArea') as HTMLElement | null);
             if (attachBtn && fileInput) {
                 attachBtn.onclick = () => fileInput.click();
                 fileInput.onchange = async () => {
-                    for (const f of fileInput.files) {
+                    for (const f of fileInput.files ?? []) {
                         if (f.type.startsWith('image/')) addPendingImage(await fileToBase64(f));
                     }
                     fileInput.value = '';
@@ -542,7 +542,7 @@ import {
             }
 
             // Enter 키 + 클립보드 이미지 붙여넣기
-            const chatInput = (document.getElementById('cbInput') as any);
+            const chatInput = (document.getElementById('cbInput') as HTMLTextAreaElement | null);
             if (chatInput) {
                 chatInput.addEventListener('keydown', (e: any) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -564,7 +564,7 @@ import {
             }
 
             // 음성 입력 (Web Speech API)
-            const micBtn = (document.getElementById('cbMicBtn') as any);
+            const micBtn = (document.getElementById('cbMicBtn') as HTMLButtonElement | null);
             if (micBtn) {
                 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
                 if (SpeechRecognition) {
@@ -619,7 +619,7 @@ import {
             renderSessionTabs();
 
             // 세션 데이터 먼저 로드 → 캐릭터 선택 복원에 사용
-            const msgs = (document.getElementById('cbMessages') as any);
+            const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
             const sessionLoaded = msgs && loadSession(currentSessionId);
             window.ChatbotCharacters?.initCharacterUi({
                 saveSession,
@@ -646,21 +646,21 @@ import {
             }
 
             // 대화 검색
-            const searchToggle = (document.getElementById('cbSearchToggle') as any);
-            const searchBar = (document.getElementById('cbSearchBar') as any);
-            const searchInput = (document.getElementById('cbSearchInput') as any);
-            const searchNav = (document.getElementById('cbSearchNav') as any);
-            const searchPrev = (document.getElementById('cbSearchPrev') as any);
-            const searchNext = (document.getElementById('cbSearchNext') as any);
-            const searchClose = (document.getElementById('cbSearchClose') as any);
-            if (searchToggle && searchBar && searchInput) {
+            const searchToggle = (document.getElementById('cbSearchToggle') as HTMLButtonElement | null);
+            const searchBar = (document.getElementById('cbSearchBar') as HTMLElement | null);
+            const searchInput = (document.getElementById('cbSearchInput') as HTMLInputElement | null);
+            const searchNav = (document.getElementById('cbSearchNav') as HTMLElement | null);
+            const searchPrev = (document.getElementById('cbSearchPrev') as HTMLButtonElement | null);
+            const searchNext = (document.getElementById('cbSearchNext') as HTMLButtonElement | null);
+            const searchClose = (document.getElementById('cbSearchClose') as HTMLButtonElement | null);
+            if (searchToggle && searchBar && searchInput && searchNav && searchPrev && searchNext && searchClose) {
                 let searchResults: any[] = [];
                 let searchIdx = -1;
 
                 function toggleSearch() {
-                    const open = searchBar.classList.toggle('open');
-                    if (open) { searchInput.focus(); }
-                    else { clearHighlights(); searchInput.value = ''; searchNav.textContent = ''; }
+                    const open = searchBar!.classList.toggle('open');
+                    if (open) { searchInput!.focus(); }
+                    else { clearHighlights(); searchInput!.value = ''; searchNav!.textContent = ''; }
                 }
 
                 function clearHighlights() {
@@ -676,14 +676,14 @@ import {
 
                 function doSearch() {
                     clearHighlights();
-                    const q = searchInput.value.trim();
-                    if (!q || !msgs) { searchNav.textContent = ''; return; }
+                    const q = searchInput!.value.trim();
+                    if (!q || !msgs) { searchNav!.textContent = ''; return; }
                     const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
                     const walker = document.createTreeWalker(msgs, NodeFilter.SHOW_TEXT);
                     const matches: any[] = [];
                     while (walker.nextNode()) {
                         const node = walker.currentNode;
-                        if ((node.parentElement as any)?.closest('pre, code, .cb-code-header')) continue;
+                        if (node.parentElement?.closest('pre, code, .cb-code-header')) continue;
                         if (regex.test(node.textContent || '')) matches.push(node);
                         regex.lastIndex = 0;
                     }
@@ -704,7 +704,7 @@ import {
                             lastIdx = regex.lastIndex;
                         }
                         if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
-                        (node.parentNode as any)?.replaceChild(frag, node);
+                        node.parentNode?.replaceChild(frag, node);
                     });
                     searchResults = Array.from(msgs.querySelectorAll('.cb-search-highlight'));
                     searchIdx = searchResults.length > 0 ? 0 : -1;
@@ -712,8 +712,8 @@ import {
                 }
 
                 function updateSearchNav() {
-                    if (searchResults.length === 0) { searchNav.textContent = '결과 없음'; return; }
-                    searchNav.textContent = `${searchIdx + 1} / ${searchResults.length}`;
+                    if (searchResults.length === 0) { searchNav!.textContent = '결과 없음'; return; }
+                    searchNav!.textContent = `${searchIdx + 1} / ${searchResults.length}`;
                     searchResults.forEach((el: any, i: number) => el.classList.toggle('current', i === searchIdx));
                     searchResults[searchIdx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -737,8 +737,8 @@ import {
             }
 
             // 단축키 안내 버튼
-            const shortcutsBtn = (document.getElementById('cbShortcutsBtn') as any);
-            const shortcutsOverlay = (document.getElementById('cbShortcutsOverlay') as any);
+            const shortcutsBtn = (document.getElementById('cbShortcutsBtn') as HTMLButtonElement | null);
+            const shortcutsOverlay = (document.getElementById('cbShortcutsOverlay') as HTMLElement | null);
             if (shortcutsBtn && shortcutsOverlay) {
                 shortcutsBtn.addEventListener('click', () => shortcutsOverlay.classList.toggle('open'));
                 shortcutsOverlay.addEventListener('click', (e: any) => {
@@ -748,13 +748,13 @@ import {
 
             // 글로벌 키보드 단축키 (단일 리스너)
             document.addEventListener('keydown', (e: any) => {
-                const chatEl = document.querySelector('.cb-chat') as any;
+                const chatEl = document.querySelector('.cb-chat') as HTMLElement | null;
                 if (!chatEl || chatEl.offsetParent === null) return;
 
                 if (e.ctrlKey && e.key === 'f') {
                     e.preventDefault();
-                    const sb = (document.getElementById('cbSearchBar') as any);
-                    const si = (document.getElementById('cbSearchInput') as any);
+                    const sb = (document.getElementById('cbSearchBar') as HTMLElement | null);
+                    const si = (document.getElementById('cbSearchInput') as HTMLInputElement | null);
                     if (sb && si) {
                         if (!sb.classList.contains('open')) sb.classList.add('open');
                         si.focus();
@@ -777,7 +777,7 @@ import {
             });
 
             // 랜덤 생성기 → 이야기 만들기 연동
-            const chatbotPage = (document.getElementById('page-chatbot') as any);
+            const chatbotPage = (document.getElementById('page-chatbot') as HTMLElement | null);
             if (chatbotPage) {
                 const checkStoryKeywords = function () {
                     try {
@@ -786,9 +786,9 @@ import {
                             sessionStorage.removeItem('toolbox_chatbot_story_keywords');
                             const keywords = JSON.parse(raw);
                             if (Array.isArray(keywords) && keywords.length > 0) {
-                                const input = (document.getElementById('cbInput') as any);
-                                const presetSel = (document.getElementById('cbSystemPreset') as any);
-                                const sysPromptTa = (document.getElementById('cbSystemPrompt') as any);
+                                const input = (document.getElementById('cbInput') as HTMLTextAreaElement | null);
+                                const presetSel = (document.getElementById('cbSystemPreset') as HTMLSelectElement | null);
+                                const sysPromptTa = (document.getElementById('cbSystemPrompt') as HTMLTextAreaElement | null);
                                 if (presetSel && sysPromptTa && window.ChatbotPrompt?.SYSTEM_PROMPT_PRESETS.writer) {
                                     presetSel.value = 'writer';
                                     Toolbox.setPref('cb_preset', 'writer');
@@ -831,7 +831,7 @@ import {
 
     /* ===== 헬퍼 ===== */
     function appendMsg(role: any, text: any, isError = false) {
-        const msgs = (document.getElementById('cbMessages') as any);
+        const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
         if (!msgs) return;
         const wrap = document.createElement('div');
         wrap.className = 'cb-msg-wrap';
@@ -868,7 +868,7 @@ import {
     function updateTokens(usage: any) {
         if (!usage) return;
         const total = usage.totalTokenCount || 0;
-        const display = (document.getElementById('cbTokenDisplay') as any);
+        const display = (document.getElementById('cbTokenDisplay') as HTMLElement | null);
         if (display) {
             display.textContent = `Tokens: ${total.toLocaleString()}`;
             display.style.color = 'var(--text-tertiary)';
@@ -877,7 +877,7 @@ import {
 
     /* ===== 스트리밍 봇 메시지 헬퍼 ===== */
     function appendStreamMsg() {
-        const msgs = (document.getElementById('cbMessages') as any);
+        const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
         if (!msgs) return null;
         const wrap = document.createElement('div');
         wrap.className = 'cb-msg-wrap';
@@ -916,7 +916,7 @@ import {
     /* ===== 액션 ===== */
     (window as any)._cb = {
         async send() {
-            const input = (document.getElementById('cbInput') as any);
+            const input = (document.getElementById('cbInput') as HTMLTextAreaElement | null);
             const text = input?.value.trim();
             if (!text) return;
 
@@ -932,7 +932,7 @@ import {
             }
 
             appendMsg('user', text + (pendingImages.length ? ` [📎 이미지 ${pendingImages.length}장]` : ''));
-            input.value = '';
+            if (input) input.value = '';
 
             const parts: any[] = [{ text }];
             pendingImages.forEach((img: any) => {
@@ -942,21 +942,21 @@ import {
             renderAttachThumbs();
             chatHistory.push({ role: 'user', parts });
 
-            const useMemory = (document.getElementById('cbMemory') as any)?.checked;
-            const useWebSearch = (document.getElementById('cbWebSearch') as any)?.checked;
+            const useMemory = (document.getElementById('cbMemory') as HTMLInputElement | null)?.checked;
+            const useWebSearch = (document.getElementById('cbWebSearch') as HTMLInputElement | null)?.checked;
             const systemPrompt = window.ChatbotPrompt?.assembleSystemPrompt({ useMemory, conversationSummary });
 
-            const modelSel = (document.getElementById('cbModelSelect') as any);
+            const modelSel = (document.getElementById('cbModelSelect') as HTMLSelectElement | null);
             const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
-            const tempInput = (document.getElementById('cbTemperature') as any);
+            const tempInput = (document.getElementById('cbTemperature') as HTMLInputElement | null);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
             const safetyInput = document.getElementById('cbSafetyThreshold') as HTMLInputElement | null;
             const safetyThreshold = safetyInput?.value || Gemini?.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
-            const sendBtn = (document.getElementById('cbSendBtn') as any);
-            const stopBtn = (document.getElementById('cbStopBtn') as any);
+            const sendBtn = (document.getElementById('cbSendBtn') as HTMLButtonElement | null);
+            const stopBtn = (document.getElementById('cbStopBtn') as HTMLButtonElement | null);
             if (sendBtn) sendBtn.style.display = 'none';
             if (stopBtn) stopBtn.style.display = '';
 
@@ -986,7 +986,7 @@ import {
                         requestAnimationFrame(() => {
                             renderPending = false;
                             streamEl.div.innerHTML = renderMarkdown(displayTextForStream(fullText)) + '<span class="cb-cursor-blink">▌</span>';
-                            const msgs = (document.getElementById('cbMessages') as any);
+                            const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
                             if (msgs) msgs.scrollTop = msgs.scrollHeight;
                         });
                     }
@@ -995,8 +995,8 @@ import {
                 const { responseText, imgParsed, newSummary } = parseStreamResponseText(fullText, useMemory);
                 if (newSummary !== undefined) conversationSummary = newSummary;
 
-                const autoImgOn = (document.getElementById('cbCharAutoImage') as any)?.checked;
-                const charSel = (document.getElementById('cbCharacterSelect') as any);
+                const autoImgOn = (document.getElementById('cbCharAutoImage') as HTMLInputElement | null)?.checked;
+                const charSel = (document.getElementById('cbCharacterSelect') as HTMLSelectElement | null);
                 const charForImg = charSel?.value
                     ? window.ChatbotCharacters?.getCharacterById(charSel.value)
                     : null;
@@ -1041,7 +1041,7 @@ import {
             if (lastModel?.role === 'model') {
                 chatHistory.pop();
             }
-            const msgs = (document.getElementById('cbMessages') as any);
+            const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
             if (msgs) {
                 const wraps = msgs.querySelectorAll('.cb-msg-wrap');
                 const last = wraps[wraps.length - 1];
@@ -1063,21 +1063,21 @@ import {
                 return;
             }
 
-            const useMemory = (document.getElementById('cbMemory') as any)?.checked;
-            const useWebSearch = (document.getElementById('cbWebSearch') as any)?.checked;
+            const useMemory = (document.getElementById('cbMemory') as HTMLInputElement | null)?.checked;
+            const useWebSearch = (document.getElementById('cbWebSearch') as HTMLInputElement | null)?.checked;
             const systemPrompt = window.ChatbotPrompt?.assembleSystemPrompt({ useMemory, conversationSummary });
 
-            const modelSel = (document.getElementById('cbModelSelect') as any);
+            const modelSel = (document.getElementById('cbModelSelect') as HTMLSelectElement | null);
             const modelId = modelSel?.value || (Gemini as any).getDefaultModel('gemini');
-            const tempInput = (document.getElementById('cbTemperature') as any);
+            const tempInput = (document.getElementById('cbTemperature') as HTMLInputElement | null);
             const temperature = tempInput ? parseFloat(tempInput.value) : 0.8;
             const safetyInput = document.getElementById('cbSafetyThreshold') as HTMLInputElement | null;
             const safetyThreshold = safetyInput?.value || Gemini?.DEFAULT_GEMINI_SAFETY_THRESHOLD;
 
             const streamEl = appendStreamMsg() as any;
             currentStreamAbort = new AbortController();
-            const sendBtn = (document.getElementById('cbSendBtn') as any);
-            const stopBtn = (document.getElementById('cbStopBtn') as any);
+            const sendBtn = (document.getElementById('cbSendBtn') as HTMLButtonElement | null);
+            const stopBtn = (document.getElementById('cbStopBtn') as HTMLButtonElement | null);
             if (sendBtn) sendBtn.style.display = 'none';
             if (stopBtn) stopBtn.style.display = '';
 
@@ -1106,7 +1106,7 @@ import {
                         requestAnimationFrame(() => {
                             renderPending2 = false;
                             streamEl.div.innerHTML = renderMarkdown(displayTextForStream(fullText)) + '<span class="cb-cursor-blink">▌</span>';
-                            const msgsEl = (document.getElementById('cbMessages') as any);
+                            const msgsEl = (document.getElementById('cbMessages') as HTMLElement | null);
                             if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
                         });
                     }
@@ -1114,8 +1114,8 @@ import {
                 const { responseText, imgParsed: imgParsedR, newSummary: newSummaryR } = parseStreamResponseText(fullText, useMemory);
                 if (newSummaryR !== undefined) conversationSummary = newSummaryR;
 
-                const autoImgR = (document.getElementById('cbCharAutoImage') as any)?.checked;
-                const charSelR = (document.getElementById('cbCharacterSelect') as any);
+                const autoImgR = (document.getElementById('cbCharAutoImage') as HTMLInputElement | null)?.checked;
+                const charSelR = (document.getElementById('cbCharacterSelect') as HTMLSelectElement | null);
                 const charForImgR = charSelR?.value
                     ? window.ChatbotCharacters?.getCharacterById(charSelR.value)
                     : null;
@@ -1149,7 +1149,7 @@ import {
             if (currentSessionId) {
                 try { sessionStorage.removeItem(CHATBOT_SESSION_PREFIX + currentSessionId); } catch (e: any) {}
             }
-            const msgs = (document.getElementById('cbMessages') as any);
+            const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
             if (msgs) {
                 msgs.innerHTML = '';
                 appendMsg('bot', '대화가 초기화되었습니다. 무엇을 도와드릴까요?');
@@ -1191,7 +1191,7 @@ import {
                     chatHistory = imported;
                     saveSession();
                     renderSessionTabs();
-                    const msgs = (document.getElementById('cbMessages') as any);
+                    const msgs = (document.getElementById('cbMessages') as HTMLElement | null);
                     if (msgs) {
                         msgs.innerHTML = '';
                         chatHistory.forEach(msg => {
