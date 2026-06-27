@@ -99,8 +99,9 @@ jobs:
           gh pr merge "$num" --squash --delete-branch
 
   batch_graduate:
-    # workflow_dispatch 수동 일괄 졸업 — 화이트리스트 prefix Draft PR 중 verify green 전부 처리.
+    # workflow_dispatch 수동 일괄 졸업 — 화이트리스트 prefix PR(draft·ready 모두) 중 verify green 전부 처리.
     # graduate 비활성화 기간 쌓인 PR 복구 등 수동 실행 시 사용.
+    # draft=false(ready) PR 도 포함: auto-merge.yml 비활성화 기간 중 ready 전환됐으나 머지 안 된 PR 구제.
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -114,29 +115,32 @@ jobs:
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           pat: ${{ secrets.PAT_FOR_AUTO_MERGE }}
 
-      - name: Batch graduate all eligible Draft PRs
+      - name: Batch graduate all eligible PRs (draft + ready)
         env:
           GH_TOKEN: ${{ steps.tok.outputs.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
+          # draft·ready 가리지 않고 화이트리스트 prefix 전부 수집.
+          # isDraft==true 만 선택하면 auto-merge 비활성화 기간 중 ready 전환된 PR 을 놓침.
           gh pr list --state open \
             --json number,isDraft,headRefName,headRefOid \
-            --jq '[.[] | select(.isDraft==true and (.headRefName | test("^(feature/agent-team-|fix/issue-|feature/issue-)"))))]' \
+            --jq '[.[] | select(.headRefName | test("^(feature/agent-team-|fix/issue-|feature/issue-)"))]' \
             > /tmp/prs.json
 
           count=$(jq 'length' /tmp/prs.json)
-          echo "화이트리스트 prefix Draft PR ${count}개 검사"
+          echo "화이트리스트 prefix PR ${count}개 검사 (draft+ready 포함)"
 
           if [ "$count" -eq 0 ]; then
-            echo "졸업 대상 Draft PR 없음"; exit 0
+            echo "졸업 대상 PR 없음"; exit 0
           fi
 
           for i in $(seq 0 $((count - 1))); do
             num=$(jq -r ".[$i].number" /tmp/prs.json)
             headRef=$(jq -r ".[$i].headRefName" /tmp/prs.json)
             headOid=$(jq -r ".[$i].headRefOid" /tmp/prs.json)
+            isDraft=$(jq -r ".[$i].isDraft" /tmp/prs.json)
 
             verify_ok=$(gh api "repos/${GH_REPO}/commits/${headOid}/check-runs" --paginate \
               --jq '[.check_runs[] | select(.name=="verify (master invariant)" and .conclusion=="success")] | length')
@@ -146,6 +150,9 @@ jobs:
             fi
 
             echo "PR #$num ($headRef): verify green → 졸업 (ready + squash merge)"
-            gh pr ready "$num"
+            # draft 인 경우만 ready 전환 (ready PR 에 gh pr ready 호출 시 에러 방지).
+            if [ "$isDraft" = "true" ]; then
+              gh pr ready "$num"
+            fi
             gh pr merge "$num" --squash --delete-branch
           done
