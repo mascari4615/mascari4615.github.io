@@ -6,7 +6,7 @@
  * 중복 발송. 안정적 키 = 정규화 제목. dedupKey 가 그 안정성을 보장하는지 잠금.
  */
 import { describe, it, expect } from 'vitest';
-import { dedupKey } from './news';
+import { dedupKey, parseSources } from './news';
 
 describe('dedupKey — 안정적 dedup 키 (TASK-YB-035)', () => {
   it('같은 기사의 표기 변형(공백/대소문자/유니코드)을 동일 키로 정규화', () => {
@@ -25,5 +25,28 @@ describe('dedupKey — 안정적 dedup 키 (TASK-YB-035)', () => {
   it('서로 다른 기사(다른 매체 suffix 포함)는 다른 키 — 오병합 방지', () => {
     expect(dedupKey('동일 헤드라인 - A신문')).not.toBe(dedupKey('동일 헤드라인 - B신문'));
     expect(dedupKey('기사 하나 - X')).not.toBe(dedupKey('기사 둘 - X'));
+  });
+});
+
+describe('parseSources — 소스 on/subset/off 단일 노브', () => {
+  it('미설정/빈값 = 전체 폴백 (하위호환)', () => {
+    expect(parseSources(undefined)).toEqual(new Set(['google', 'hn', 'gn']));
+    expect(parseSources('')).toEqual(new Set(['google', 'hn', 'gn']));
+    expect(parseSources('   ')).toEqual(new Set(['google', 'hn', 'gn']));
+  });
+
+  it('subset 지정 = 해당 소스만', () => {
+    expect(parseSources('google,gn')).toEqual(new Set(['google', 'gn']));
+    expect(parseSources(' GOOGLE , GN ')).toEqual(new Set(['google', 'gn']));
+  });
+
+  it('off 센티넬(none/off/-/0) = 빈 Set → 게시 비활성', () => {
+    for (const s of ['none', 'off', '-', '0', 'OFF', ' none ']) {
+      expect(parseSources(s).size).toBe(0);
+    }
+  });
+
+  it('전부 무효 토큰 = 전체 폴백 (off 와 구분)', () => {
+    expect(parseSources('bogus,xyz')).toEqual(new Set(['google', 'hn', 'gn']));
   });
 });
