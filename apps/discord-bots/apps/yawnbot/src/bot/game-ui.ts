@@ -7,6 +7,25 @@ import type { BotContext } from './slash/bot-context';
 
 type AnyInteraction = ChatInputCommandInteraction | ButtonInteraction;
 
+/**
+ * reply/update 공용 송신. `.update()` 는 InteractionUpdateOptions 를 받아
+ * InteractionReplyOptions 의 flags(Ephemeral 등)와 비호환 → update 경로는
+ * 호환 필드(embeds/components/files/content)만 추려 전달(ephemeral 은 메시지
+ * 수정엔 무의미). 호출부 3곳의 중복 분기 제거 + 타입 정합(TS2769) 단일화.
+ */
+async function replyOrUpdate(
+  interaction: AnyInteraction,
+  payload: InteractionReplyOptions,
+  isUpdate: boolean,
+): Promise<void> {
+  if (isUpdate && 'update' in interaction) {
+    const { embeds, components, files, content } = payload;
+    await (interaction as MessageComponentInteraction).update({ embeds, components, files, content });
+  } else {
+    await interaction.reply(payload);
+  }
+}
+
 /** 강화/판매/도움말 카드 — 버튼·슬래시 공용 (`ephemeral`: 나만 보기, `/도움말` 주제·게임 등) */
 export async function showHelpPage(
   ctx: BotContext,
@@ -66,8 +85,7 @@ export async function showHelpPage(
   if (!isUpdate && ephemeral) {
     payload.flags = MessageFlags.Ephemeral;
   }
-  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
-  else await interaction.reply(payload);
+  await replyOrUpdate(interaction, payload, isUpdate);
 }
 
 export async function handleEnhance(
@@ -167,8 +185,7 @@ export async function handleEnhance(
     embed.setThumbnail(`attachment://${attachment.name}`);
     payload.files = [attachment.file];
   }
-  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
-  else await interaction.reply(payload);
+  await replyOrUpdate(interaction, payload, isUpdate);
 }
 
 export async function handleSell(
@@ -201,6 +218,5 @@ export async function handleSell(
     ];
   }
   const payload: InteractionReplyOptions = { embeds: [embed], components };
-  if (isUpdate && 'update' in interaction) await (interaction as MessageComponentInteraction).update(payload);
-  else await interaction.reply(payload);
+  await replyOrUpdate(interaction, payload, isUpdate);
 }
