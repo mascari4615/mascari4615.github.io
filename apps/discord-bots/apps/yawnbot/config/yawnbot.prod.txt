@@ -33,8 +33,9 @@ GITHUB_WEBHOOK_CHANNEL_ID=1490334302003663058
 YAWNBOT_OPS_REPORT_CHANNEL_ID=1490364315545636935
 YAWNBOT_UNITY_FREE_CHANNEL_ID=1490364315545636935
 YAWNBOT_NEWS_CHANNEL_ID=1490364315545636935
-# HN 제외, google+gn만 활성 (영어 부담, 메모리룰)
-YAWNBOT_NEWS_SOURCES=google,gn
+# 뉴스 자동 게시 OFF (사용자 결정 2026-06-28). 재활성 = google,gn (HN 제외, 영어 부담).
+# off 센티넬: none/off/-/0 = 폴링 비활성. 빈값/미설정은 전체(google,hn,gn) 폴백이라 끄기 아님 주의.
+YAWNBOT_NEWS_SOURCES=off
 
 # ── 개인 식별자 (Discord 유저 ID — env 불변, dev .env 에서 자동 채움) ──
 ADMIN_IDS=391805564616704002

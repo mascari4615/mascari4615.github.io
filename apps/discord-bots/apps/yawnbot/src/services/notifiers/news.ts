@@ -243,9 +243,14 @@ let timer: ReturnType<typeof setInterval> | null = null;
 const ALL_SOURCES = ['google', 'hn', 'gn'] as const;
 type NewsSource = (typeof ALL_SOURCES)[number];
 
-function parseSources(raw: string | undefined): Set<NewsSource> {
+// 명시적 OFF 센티넬 — 뉴스 게시 전체 비활성. 빈값/미설정(=전체 폴백)과 구분.
+const OFF_SENTINELS = new Set(['none', 'off', '-', '0']);
+
+export function parseSources(raw: string | undefined): Set<NewsSource> {
   if (!raw?.trim()) return new Set(ALL_SOURCES);
-  const tokens = raw.split(',').map((s) => s.trim().toLowerCase());
+  const trimmed = raw.trim().toLowerCase();
+  if (OFF_SENTINELS.has(trimmed)) return new Set(); // 명시적 off → 폴링 비활성
+  const tokens = trimmed.split(',').map((s) => s.trim());
   const valid = tokens.filter((t): t is NewsSource => (ALL_SOURCES as readonly string[]).includes(t));
   return valid.length > 0 ? new Set(valid) : new Set(ALL_SOURCES);
 }
@@ -268,6 +273,10 @@ export function startNewsNotifier(client: Client, getNews: (slug: string) => New
   }
 
   const sources = parseSources(process.env.YAWNBOT_NEWS_SOURCES);
+  if (sources.size === 0) {
+    console.log('[News] YAWNBOT_NEWS_SOURCES=off — 뉴스 자동 게시 비활성');
+    return;
+  }
   const intervalMin = Math.max(30, parseInt(process.env.YAWNBOT_NEWS_INTERVAL_MIN || '180', 10));
   const maxAgeHours = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_AGE_HOURS || '12', 10));
   const maxPerPoll = Math.max(1, parseInt(process.env.YAWNBOT_NEWS_MAX_PER_POLL || '3', 10));
