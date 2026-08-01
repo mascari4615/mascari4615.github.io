@@ -212,9 +212,3 @@ ASSISTANT_SPONTANEOUS_MAX_MS=21600000
 IMAGE_MODEL_ID=imagen-4.0-generate-001
 # 자동 씬 이미지 생성 쿨다운 (ms). 신규 생성 시에만 소모. 기본 2분.
 ASSISTANT_IMAGE_COOLDOWN_MS=120000
-
-# ── 워커 tier3 detached spawn (KAR-094, 2026-05-22 사용자 진단) ──
-# 1 = wrapper 로 detached 스폰 (봇 죽어도 워커·claude CLI 생존, done.json 후처리).
-# 0 = 기존 attached (봇 죽으면 워커도 죽음).
-# 트레이드오프: detached 경로엔 errHash cooldown 사다리 / appendWorkerRawDiag 미포함.
-WORKER_TIER3_DETACHED=1

@@ -1,12 +1,11 @@
 /**
  * governance 순수부 행동 테스트 (KAR-018-D slice-1).
- * tracer-bullet: 예산 verdict ladder / ENV override / 드리프트 3-판정.
+ * tracer-bullet: 예산 verdict ladder / ENV override.
  */
 import { describe, it, expect } from 'vitest';
 import {
   reserveBudget,
   ceilingsFromEnv,
-  evaluateDrift,
   CONSERVATIVE_CEILINGS,
   type BudgetCeilings,
 } from './governance';
@@ -59,36 +58,5 @@ describe('ceilingsFromEnv — 보수 default + ENV override (dual-start)', () =>
     expect(ceilingsFromEnv({ AGENT_BUDGET_MS: 'abc' }).ms).toBe(
       CONSERVATIVE_CEILINGS.ms,
     );
-  });
-});
-
-describe('evaluateDrift — objectives.md ④ anchor 3-판정 (D-4)', () => {
-  it('정렬 공백 → reject (판정1)', () => {
-    const r = evaluateDrift({ alignment: '  ', flaggedNonGoal: false, higherPriorityActive: false });
-    expect(r).toMatchObject({ ok: false, judgement: 1 });
-  });
-
-  it('정렬이 §3(비목표) 참조 → 부적격 (판정1)', () => {
-    const r = evaluateDrift({ alignment: '§3', flaggedNonGoal: false, higherPriorityActive: false });
-    expect(r).toMatchObject({ ok: false, judgement: 1 });
-  });
-
-  it('유효 ref 없음 → reject (판정1)', () => {
-    const r = evaluateDrift({ alignment: '대충 정렬됨', flaggedNonGoal: false, higherPriorityActive: false });
-    expect(r).toMatchObject({ ok: false, judgement: 1 });
-  });
-
-  it('§3 비목표 자가검사 flag → block (판정2)', () => {
-    const r = evaluateDrift({ alignment: '§1 · §2.2', flaggedNonGoal: true, higherPriorityActive: false });
-    expect(r).toMatchObject({ ok: false, judgement: 2 });
-  });
-
-  it('§4 상위 활성 → pause (판정3)', () => {
-    const r = evaluateDrift({ alignment: '§2.7', flaggedNonGoal: false, higherPriorityActive: true });
-    expect(r).toMatchObject({ ok: false, judgement: 3 });
-  });
-
-  it('정렬 유효 + 비목표 X + 우선순위 정상 → ok', () => {
-    expect(evaluateDrift({ alignment: '§1 환경개선 · §2.2', flaggedNonGoal: false, higherPriorityActive: false })).toEqual({ ok: true });
   });
 });

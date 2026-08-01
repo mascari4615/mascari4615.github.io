@@ -47,26 +47,15 @@ import { startPresenceRotation, stopPresenceRotation } from './bot/presence-rota
 import { handleAssistantMessage } from './bot/assistant-handler';
 import { isBrainCapture, handleBrainCapture } from './bot/brain-capture';
 import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-room';
-import { setTeamBusContextFetcher } from './bot/team-bus-fetcher';
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, defaultNotify, setTeamBusNotify } from './bot/governance-adapter';
-import { setStatusBoardSender } from './bot/agent-status-board';
 import { checkMemoPushScope } from './services/memo-push';
-import { setProposalAnnouncer } from './bot/proposal-adapter';
-import { announceProposal, reconcileProposalCards } from './bot/agent-bus';
 import type { ClientLike } from './bot/forum-post';
 import type { RecoveryClientLike } from './bot/forum-tag-recovery';
 import type { ForumDedupClientLike } from './bot/forum-dedup';
-import {
-  loadCoreDef,
-  listCoreIds,
-  resolveProposalCore,
-  coreLabel,
-} from './services/agent-core';
+import { loadCoreDef } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
-import { startAgentCadence, stopAgentCadence, setCoreSpeak, reapMyWorkerClaims, reapWorkerInFlight } from './bot/agent-cadence';
-import { setDashboardSink } from './bot/team-dashboard';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
@@ -231,7 +220,7 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
 
 // KAR-018-Y 양방향 스레드 (발단 완료조건 #2 "escalation 승인 루프 닫힘"):
 // 워커가 TASK 스레드에 "A/B?" 물으면 사용자가 그 스레드에 답글 → 여기서
-// 결정 기록 → 다음 워커 pickup 시 buildWorkerPrompt 가 임베드(자가구동).
+// 결정을 agent-decisions 원장에 기록.
 // 별 핸들러(기존 핸들러 루프가드 비간섭). 스레드명=TASK id 만 대상.
 client.on('messageCreate', async (message) => {
   try {
@@ -314,132 +303,6 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// TASK-YB-031: 사장(owner) 의 멘션/키워드 요청을 채널 무관하게 포착 → owner-requests.jsonl.
-// 일반 채널 요청이 agent-daemon "침묵 우선" 에 SKIP 되어 묻히던 근본 fix — board 의
-// 「사장 요청 대기」 로 즉시 환기 (사장이 "그거 어떻게 됐지" 다시 안 묻게).
-client.on('messageCreate', async (message) => {
-  try {
-    if (message.author.bot || !memoRepoPath) return;
-    if (!isOwner(message.author.id)) return;
-    const mentionedBot = !!client.user && message.mentions.has(client.user.id);
-    const {
-      classifyOwnerRequest,
-      makeRequestClassifier,
-      captureOwnerRequest,
-      stripRequestSignal,
-      DOMAIN_AGENT,
-    } = await import('./bot/owner-request.js');
-    // 멘션/키워드 = fast path(요청 확정). 도메인은 LLM → 그 도메인 에이전트가 응답.
-    const classifier = generativeText
-      ? makeRequestClassifier((prompt) => generativeText!.generateFromPrompt(prompt))
-      : undefined;
-    const { isRequest, domain } = await classifyOwnerRequest(
-      message.content || '',
-      mentionedBot,
-      classifier,
-    );
-    if (!isRequest) return;
-    const text = stripRequestSignal(
-      message.content || '',
-      client.user ? `<@${client.user.id}>` : undefined,
-    );
-    if (!text) return;
-    const record = captureOwnerRequest(memoRepoPath, {
-      text,
-      author: message.author.username,
-      channelId: message.channelId,
-      messageId: message.id,
-    });
-
-    // YB-033: 도메인 TASK seed 자동 등록 (write 동기·빠름 + push 백그라운드로 봇 응답 지연 회피).
-    let taskId: string | null = null;
-    try {
-      const { writeOwnerRequestTask } = await import('./bot/owner-request-task.js');
-      const task = writeOwnerRequestTask(memoRepoPath, domain, text, record.id);
-      if (task) {
-        taskId = task.id;
-        void import('./services/memo-push.js')
-          .then(({ commitAndPushMemoFile }) =>
-            commitAndPushMemoFile(
-              process.env,
-              task.absPath,
-              `seed(${task.id}): 디스코드 사장 요청 자동 등록 (YB-033)`,
-            ),
-          )
-          .catch((err) =>
-            console.error(
-              '[owner-request] TASK push 실패(로컬 생성됨, 다음 sync 반영)',
-              err instanceof Error ? err.message : err,
-            ),
-          );
-      }
-    } catch (err) {
-      console.error(
-        '[owner-request] TASK seed 실패',
-        err instanceof Error ? err.message : err,
-      );
-    }
-
-    // 도메인 담당 에이전트가 *자기 스킨/이름* 으로 즉답+접수 (욘 봇 기본 보이스 X).
-    // setCoreSpeak 와 동일 패턴(loadCoreDef→loadCard→speakAs→sendAsSkin), 채널만 요청 위치.
-    const coreId = DOMAIN_AGENT[domain];
-    let answered = false;
-    try {
-      const ch = message.channel;
-      const cd = characterService ? loadCoreDef(memoRepoPath, coreId) : null;
-      const skinCard = cd && characterService ? characterService.loadCard(cd.defaultSkin) : null;
-      if (cd && skinCard && ch instanceof TextChannel) {
-        let utter = '받았어. 「사장 요청 대기」 에 올렸어 — 곧 챙길게.';
-        if (generativeText) {
-          try {
-            const raw = (
-              await generativeText.generateFromPrompt(
-                `너는 "${coreLabel(cd)}" 에이전트다. 사장이 방금 "${text.slice(0, 200)}" 라고 요청했다. ` +
-                  '네 캐릭터 톤으로 접수 반응을 딱 1문장(곧 챙긴다는 뉘앙스, 이모지 0~1개)으로 답하라.',
-              )
-            ).trim();
-            if (raw) utter = raw.slice(0, 280);
-          } catch {
-            /* LLM 실패 = 기본 멘트 */
-          }
-        }
-        const speakAs: CharacterCard = {
-          slug: skinCard.slug,
-          name: skinCard.name,
-          displayName: coreLabel(cd),
-          frontmatter: skinCard.frontmatter,
-          body: '',
-          dir: skinCard.dir,
-        } as unknown as CharacterCard;
-        await sendAsSkin(ch, speakAs, {
-          content:
-            `${utter}\n📌 \`${record.id}\` · 「사장 요청 대기」` +
-            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
-        });
-        answered = true;
-      }
-    } catch {
-      /* skin 응답 실패 → 아래 fallback */
-    }
-    if (!answered) {
-      await message
-        .reply(
-          `📌 요청 접수 — 「사장 요청 대기」 에 올렸어요. \`${record.id}\`` +
-            (taskId ? ` · 📋 \`${taskId}\` 작업 등록됨` : ''),
-        )
-        .catch(() => {});
-    }
-  } catch (e) {
-    console.error(
-      '[owner-request] 포착 실패',
-      e instanceof Error ? e.message : e,
-    );
-  }
-});
-
-// KAR-018-LT: 팀 verdict → 카드 reconciler 타이머 핸들 (shutdown 정리).
-let cardReconcileTimer: ReturnType<typeof setTimeout> | null = null;
-
 // KAR-018-LT-DIVERSITY D-2 (outbound): agent-bus core-utter → Discord post.
 // daemon process 가 publish 한 발화 → 봇이 받아서 채널에 webhook post.
 // daemon = Discord client 무관, 본 어댑터가 thin bridge.
@@ -450,22 +313,6 @@ mountLocalWebhook(app, client);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
-  // KAR-018-LT-W1-WIRE: 워커 prompt 에 #team-bus 최근 발언 inject seam wire.
-  // 워커 spawn 시점에 lazily 호출 — agentChannelId() 는 provisioning 완료
-  // 후에도 fresh(channelIdFor 가 매번 resolver). wire 안 되면 cadence-worker
-  // 의 fallback = undefined → 5입력 호환.
-  setTeamBusContextFetcher(async (limit) => {
-    const id = agentChannelId();
-    if (!id) return undefined;
-    const ch = await client.channels.fetch(id);
-    if (!ch || !ch.isTextBased()) return undefined;
-    const msgs = await ch.messages.fetch({ limit });
-    return Array.from(msgs.values())
-      .reverse()
-      .map((m) => `[${m.author?.username || '?'}] ${(m.content || '').slice(0, 300)}`)
-      .filter((s) => s.trim().length > 0)
-      .join('\n');
-  });
   // KAR-018-LT-DIVERSITY D-2 outbound: agent-bus core-utter → Discord webhook post.
   try {
     const { subscribeBusEvents, resolveBusRoot } = await import('./services/agent-bus.js');
@@ -736,260 +583,26 @@ client.once('clientReady', async () => {
             : 'silent',
       }),
     );
-    // KAR-018-V R-4: 발굴 = *담당 코어*가 자기 정체로 게시 (복수 동료).
-    // 도메인 라우팅(yb/디스코드 → echo, 그 외 → atlas) = 결정적·순수
-    // (agent-core). 코어 정체성 소비(평행정의0, 재정의 X) — 단일 'atlas'
-    // 하드코딩 폐기, agents/ 디렉토리가 정본. 라우팅 default=atlas =
-    // 기존 전량 atlas 행동 보존(회귀 0).
-    setProposalAnnouncer(async (a) => {
-      // LT-FORUM: 카드 substrate = #team-work forum 채널.
-      // channelIds 텍스트 라우팅 폐기 — channel-spec.json `agent-work` 키가
-      // forum 채널 단일 정본 (announceProposal 내부 createForumPost 경유).
-      const payload = a.envelope.payload as unknown as Record<
-        string,
-        unknown
-      >;
-      const coreId = resolveProposalCore(listCoreIds(memoRepoPath), {
-        domain: typeof payload.domain === 'string' ? payload.domain : undefined,
-        explicitCoreId:
-          typeof payload.coreId === 'string' ? payload.coreId : undefined,
-        text: `${a.target} ${JSON.stringify(payload)}`.slice(0, 2000),
-      });
-      const coreDef = memoRepoPath
-        ? loadCoreDef(memoRepoPath, coreId)
-        : null;
-      // 코어의 스킨(목소리/아바타) 카드 = avatar 출처. 코어 정체명은
-      // coreLabel(emoji+displayName) — 봇앱명·하드코딩 X.
-      const skinCard = coreDef
-        ? characterService?.loadCard(coreDef.defaultSkin) ?? null
-        : null;
-      await announceProposal(client, process.env, {
-        ...a,
-        agent: coreDef
-          ? {
-              name: coreLabel(coreDef),
-              avatarUrl: skinCard?.frontmatter?.avatar_url,
-              coreId: coreDef.id,
-            }
-          : { name: '🛰 Atlas', coreId: 'atlas' },
-      });
-    });
-    // KAR-018-Y-1 코어↔코어 대화: 응답 코어가 *자기 정체*(coreLabel +
-    // 스킨 아바타)로 #team-bus 에 발화 = 팀이 실제로 대화. announcer 와
-    // 동일 identity 패턴(평행정의0). dispatcher 내부 구동 — Discord
-    // 재인입 X(self-loop 안전 불변). 미배선/실패 = cadence 가 NotifyFn
-    // 폴백(무음 손실 0).
-    setCoreSpeak(async (coreId, text) => {
-      try {
-        if (!memoRepoPath || !characterService) return false;
-        const cd = loadCoreDef(memoRepoPath, coreId);
-        if (!cd) return false;
-        const skinCard = characterService.loadCard(cd.defaultSkin);
-        if (!skinCard) return false;
-        const ids = agentCh ? [agentCh] : getLocalChannels('agent-team');
-        const cid = ids[0];
-        if (!cid) return false;
-        const ch = await client.channels.fetch(cid).catch(() => null);
-        if (!(ch instanceof TextChannel)) return false;
-        const speakAs: CharacterCard = {
-          slug: skinCard.slug,
-          name: skinCard.name,
-          displayName: coreLabel(cd),
-          frontmatter: skinCard.frontmatter,
-          body: '',
-          dir: skinCard.dir,
-        } as unknown as CharacterCard;
-        await sendAsSkin(ch, speakAs, { content: text.slice(0, 1900) });
-        // KAR-018-LT-PEER-ONLY P-1: 코어 발화 = bus 에도 publish.
-        // ambient daemon 들이 ambient listener 로 듣고 시각 있으면 자율 답.
-        // self-loop 회피 = daemon 안 source 매칭 skip (이미 박힘 source=core:<id>).
-        try {
-          const { publishBusEvent, resolveBusRoot } = await import('./services/agent-bus.js');
-          await publishBusEvent(resolveBusRoot(), {
-            type: 'core-utter',
-            channelId: cid,
-            source: `core:${coreId}`,
-            coreId,
-            text: text.slice(0, 1900),
-          });
-        } catch (busErr) {
-          console.error('[CoreSpeak] bus publish 실패', busErr instanceof Error ? busErr.message : busErr);
-        }
-        return true;
-      } catch (e: unknown) {
-        console.error('[CoreSpeak]', e instanceof Error ? e.message : String(e));
-        return false;
-      }
-    });
-    // TASK-KAR-077: 대시보드 sink — ensure-or-edit 한 메시지, ID 반환.
-    // setCoreSpeak 동형(client 주입, agent-cadence ⊥ discord.js).
-    setDashboardSink(async (channelId, messageId, panel, embed) => {
-      try {
-        const ch = await client.channels.fetch(channelId).catch(() => null);
-        if (!(ch instanceof TextChannel)) return null;
-        const payload = { content: '', embeds: [embed] };
-        if (messageId) {
-          try {
-            await ch.messages.edit(messageId, payload);
-            return messageId;
-          } catch {
-            /* state 무효(삭제/소실) → self-discovery 폴백 */
-          }
-        }
-        // self-heal: state 파일이 deploy git-clean 으로 소실돼도 채널의
-        // 봇 기존 대시보드 메시지를 marker 로 찾아 edit (새 메시지 도배 X).
-        // compact = embed.author "욘봇 팀"·title 無 / detailed = title
-        // "욘봇 팀 — 상세". 멱등 — 최후에만 send.
-        try {
-          const recent = await ch.messages.fetch({ limit: 30 });
-          const mine = recent.find((m) => {
-            if (m.author?.id !== client.user?.id) return false;
-            const e0: Embed | undefined = m.embeds?.[0];
-            if (!e0) return false;
-            const a = e0.author?.name ?? '';
-            const t = e0.title ?? '';
-            return panel === 'detailed'
-              ? t.includes('욘봇 팀 — 상세')
-              : a.includes('욘봇 팀') && !t;
-          });
-          if (mine) {
-            await ch.messages.edit(mine.id, payload);
-            return mine.id;
-          }
-        } catch {
-          /* 탐색 실패 → 새 전송 */
-        }
-        const m = await ch.send(payload);
-        return m.id;
-      } catch (e: unknown) {
-        console.error('[Dashboard]', e instanceof Error ? e.message : String(e));
-        return null;
-      }
-    });
-    // TASK-KAR-018-INIT: 한 화면 status board sender 주입 (사용자 피드백
-    // "정신없음" — 매 tick edit 1개 메시지). setDashboardSink 동형 (client⊥agent-cadence).
-    // 채널 = #team-bus (agentCh 또는 webhook-routes default). pin 시도 = 권한
-    // 없으면 silent skip (best-effort).
-    {
-      const resolveTeamBus = (): string | null =>
-        agentCh ?? getLocalChannels('agent-team')[0] ?? null;
-      setStatusBoardSender({
-        send: async (channelId: string, content: string) => {
-          try {
-            const ch = await client.channels.fetch(channelId).catch(() => null);
-            if (!(ch instanceof TextChannel)) return null;
-            const m = await ch.send({ content: content.slice(0, 1900) });
-            return m.id;
-          } catch (e: unknown) {
-            console.error('[StatusBoard send]', e instanceof Error ? e.message : String(e));
-            return null;
-          }
-        },
-        edit: async (channelId: string, messageId: string, content: string) => {
-          try {
-            const ch = await client.channels.fetch(channelId).catch(() => null);
-            if (!(ch instanceof TextChannel)) return false;
-            await ch.messages.edit(messageId, { content: content.slice(0, 1900) });
-            return true;
-          } catch {
-            return false; // 메시지 삭제·권한 등 → send 폴백 트리거
-          }
-        },
-        pin: async (channelId: string, messageId: string) => {
-          try {
-            const ch = await client.channels.fetch(channelId).catch(() => null);
-            if (!(ch instanceof TextChannel)) return false;
-            const m = await ch.messages.fetch(messageId).catch(() => null);
-            if (!m) return false;
-            await m.pin('🛰 status board (KAR-018-INIT 한 화면 상태)');
-            return true;
-          } catch {
-            return false;
-          }
-        },
-      });
-      // YAWNBOT_TEAM_BUS_CHANNEL_ID env 도 fallback path — cadence wiring 이
-      // 환경변수 우선이라 prod 명시 시 dev 격리 OK.
-      if (resolveTeamBus()) {
-        process.env.YAWNBOT_TEAM_BUS_CHANNEL_ID = resolveTeamBus() || '';
-      }
-    }
-    // KAR-018-PUSH-CLOSURE pre-flight — MEMO_GITHUB_PAT 가 memo push 권한 있는지
-    // startup 1회 검증. 부족 시 #team-bus alert (silent fail 회피). 비차단.
+    // memo push pre-flight — MEMO_GITHUB_PAT 가 memo push 권한 있는지 startup
+    // 1회 검증. 소비처 = brain-capture(뇌 캡처) / task-status-sync(PR merge →
+    // TASK status). 부족 시 알림 (silent fail 회피). 비차단.
     try {
       const scope = await checkMemoPushScope(process.env);
       if (!scope.ok) {
         console.warn(`[memo-push] preflight FAIL: ${scope.error}`);
         defaultNotify(process.env)(
-          `🔐 memo-push pre-flight FAIL — ${scope.error}. KAR-018-PUSH-CLOSURE silent fail 상태 (워커 outcome / evolution ledger / surgery seed origin 미도달). 사용자 secret 또는 PAT 점검 필요.`,
+          `🔐 memo-push pre-flight FAIL — ${scope.error}. memo 자동 커밋(뇌 캡처 / TASK status sync)이 silent fail 상태. 사용자 secret 또는 PAT 점검 필요.`,
         );
       } else if (scope.canPush === false) {
         console.warn(`[memo-push] preflight: token OK but push permission missing (scopes=${scope.scopes})`);
         defaultNotify(process.env)(
-          `🔐 memo-push pre-flight: MEMO_GITHUB_PAT 인증 OK 이나 push 권한 없음 (scopes=${scope.scopes || '<empty>'}). PAT 에 repo (classic) 또는 Contents+Pull requests Write (fine-grained) 권한 보강 필요. KAR-018-PUSH-CLOSURE silent fail 회피.`,
+          `🔐 memo-push pre-flight: MEMO_GITHUB_PAT 인증 OK 이나 push 권한 없음 (scopes=${scope.scopes || '<empty>'}). PAT 에 repo (classic) 또는 Contents+Pull requests Write (fine-grained) 권한 보강 필요.`,
         );
       } else {
         console.log(`[memo-push] preflight OK: canPush=true scopes=${scope.scopes || '<fine-grained>'}`);
       }
     } catch (e) {
       console.warn(`[memo-push] preflight exception: ${e instanceof Error ? e.message : String(e)}`);
-    }
-    // KAR-018 (2026-05-21 사용자 진단): 봇 재시작 시 자기 워커 claim 자동 reap.
-    // claim 파일 TTL=6h 라 봇 사망 후 같은 task 재시도 'claim-lost' 영구 고착 방지.
-    // 단일 노트북 prod 가정 = 이 봇이 모든 worker coreId 의 유일 owner.
-    // KAR-094 후속 (2026-05-22): startup 시 detached tier3 in-flight 먼저 reap.
-    // 봇이 죽어있는 동안 wrapper 가 완료한 작업의 done.json 후처리 + 봇이 죽으면서
-    // 끊긴 in-flight 정리. 그 후 단순 claim reap (in-flight 없는 stale claim 만).
-    try {
-      const summary = await reapWorkerInFlight(process.env);
-      if (summary.total > 0) {
-        console.log(`[startup] in-flight reap: total=${summary.total} alive=${summary.alive} completed=${summary.completed.length} crashed=${summary.crashed.length}`);
-        if (summary.completed.length > 0 || summary.crashed.length > 0) {
-          defaultNotify(process.env)(
-            `🧹 봇 재시작 — 죽어있는 동안 끝난 워커 ${summary.completed.length}건 후처리 + crashed ${summary.crashed.length}건 정리 (alive ${summary.alive}건 보존).`,
-          );
-        }
-      }
-    } catch (e) {
-      console.warn(`[startup] in-flight reap exception: ${e instanceof Error ? e.message : String(e)}`);
-    }
-    try {
-      const reaped = reapMyWorkerClaims(memoRepoPath || '');
-      if (reaped.length > 0) {
-        console.log(`[startup] worker claim reap: ${reaped.length}건 — ${reaped.join(', ')}`);
-        defaultNotify(process.env)(
-          `🧹 봇 재시작 — 죽기 전 잡고 있던 워커 claim ${reaped.length}건 자동 해제: ${reaped.slice(0, 3).join(', ')}${reaped.length > 3 ? ` 외 ${reaped.length - 3}` : ''}`,
-        );
-      }
-    } catch (e) {
-      console.warn(`[startup] claim reap exception: ${e instanceof Error ? e.message : String(e)}`);
-    }
-    // ⑦ 자율 cadence (KAR-018-B). TASK-KAR-096 Phase 1a: `AGENT_HOST=orchestrator` 시 yawnbot
-    // cadence skip — agent-orchestrator daemon 이 호스트. 미설정/yawnbot = 기존(yawnbot 안 cadence).
-    if (process.env.AGENT_HOST?.trim() === 'orchestrator') {
-      console.log('[startup] AGENT_HOST=orchestrator — cadence skip (agent-orchestrator daemon 책임).');
-    } else {
-      startAgentCadence(process.env);
-    }
-    // KAR-018-LT: 팀 verdict → 원본 제안 카드 반영 reconciler. 숙의는
-    // client-less 순수(원장에만 기록) → client 쥔 여기서 카드 edit.
-    // 멱등·restart-safe(reflected 마커). self-scheduling(자기 작업 중
-    // 다음 틱 안 쌓임). cadence OFF 여도 무해(원장 비면 no-op).
-    {
-      const reconcileMs =
-        Number(process.env.AGENT_CARD_RECONCILE_MS) || 120_000;
-      const reconcileTick = async (): Promise<void> => {
-        try {
-          await reconcileProposalCards(client, process.env);
-        } catch (e) {
-          console.error(
-            '[agent-bus] 카드 verdict reconcile 오류:',
-            e instanceof Error ? e.message : e,
-          );
-        }
-        cardReconcileTimer = setTimeout(reconcileTick, reconcileMs);
-      };
-      cardReconcileTimer = setTimeout(reconcileTick, reconcileMs);
     }
     await sendStartupGreeting(client, characterService, getMemory);
     console.log(
@@ -1075,7 +688,6 @@ async function gracefulShutdown(reason: string): Promise<void> {
     await reportShutdown(opsCtx, reason);
   }
   setMusicDiscordClient(null);
-  setTeamBusContextFetcher(null);
   if (agentBusSubscription) {
     agentBusSubscription.stop();
     agentBusSubscription = null;
@@ -1087,11 +699,6 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopUnityFreeNotifier();
   stopNewsNotifier();
   stopBrainResurface();
-  stopAgentCadence();
-  if (cardReconcileTimer) {
-    clearTimeout(cardReconcileTimer);
-    cardReconcileTimer = null;
-  }
   stopProactive();
   stock.stopMarket();
   gameData.destroy();

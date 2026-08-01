@@ -6,13 +6,12 @@
  * invalid. 봇 재시작마다 모든 포스트에서 태그 소실.
  *
  * 이 모듈은 부팅 1회 실행 — 활성 스레드 전수 확인 후 손상된 태그를
- * ledger(proposal/task) 에서 재구성해 복원. 미추적 포스트는 제목 파싱으로
+ * task ledger 에서 재구성해 복원. 미추적 포스트는 제목 파싱으로
  * best-effort 복원.
  *
  * 멱등 — 태그가 이미 유효하면 skip. 실패 best-effort (throw X).
  */
 import { channelIdFor } from '../services/channel-provision';
-import { lookupProposalByThreadId } from './agent-bus';
 import { lookupTaskForumLinkByPostId } from './task-forum-bridge';
 import type { ForumKind, ForumStatus, ForumDomain, AvailableTag } from './forum-post';
 
@@ -76,21 +75,12 @@ function domainFromTaskId(taskId: string): ForumDomain {
   return 'KAR';
 }
 
-/** coreId 또는 proposal id 문자열에서 도메인 추론. */
-function domainFromStr(s: string): ForumDomain {
-  const lower = s.toLowerCase();
-  if (lower.startsWith('wm')) return 'WM';
-  if (lower.startsWith('kl')) return 'KL';
-  if (lower.startsWith('yb') || lower === 'echo') return 'YB';
-  return 'KAR';
-}
-
 /**
  * #team-work 포럼 채널의 활성 스레드 태그를 전수 점검·복원.
  *
  * - 태그가 유효(모든 IDs 가 현 availableTags 에 존재) + 3 그룹(kind·status·domain)
  *   전부 커버 = skip.
- * - 손상 스레드: proposal 원장 → task 원장 → 제목 파싱 순으로 메타 복원.
+ * - 손상 스레드: task 원장 → 제목 파싱 순으로 메타 복원.
  */
 export async function recoverForumTagsOnce(
   client: RecoveryClientLike,
@@ -137,7 +127,7 @@ export async function recoverForumTagsOnce(
       continue;
     }
 
-    // 메타 복원 — task 원장 우선(더 specific), proposal 원장, 제목 파싱 순.
+    // 메타 복원 — task 원장 우선(더 specific), 제목 파싱 폴백.
     let kind: ForumKind = 'proposal';
     let status: ForumStatus = 'pending';
     let domain: ForumDomain = 'KAR';
@@ -148,25 +138,18 @@ export async function recoverForumTagsOnce(
       domain = domainFromTaskId(taskLink.taskId);
       status = 'in-progress';
     } else {
-      const proposalEntry = lookupProposalByThreadId(env, thread.id);
-      if (proposalEntry) {
-        kind = 'proposal';
-        domain = domainFromStr(proposalEntry.coreId || proposalEntry.id);
-        status = 'pending';
-      } else {
-        // 미추적 — 제목 파싱 best-effort
-        const taskTitleMatch = /\[TASK-([A-Z]+)-\d+\]/.exec(thread.name);
-        if (taskTitleMatch) {
-          kind = 'task';
-          const prefix = taskTitleMatch[1];
-          if (prefix === 'WM') domain = 'WM';
-          else if (prefix === 'KL') domain = 'KL';
-          else if (prefix === 'YB') domain = 'YB';
-          else domain = 'KAR';
-          status = 'in-progress';
-        }
-        // else: 기본(proposal / pending / KAR) 유지
+      // 미추적 — 제목 파싱 best-effort
+      const taskTitleMatch = /\[TASK-([A-Z]+)-\d+\]/.exec(thread.name);
+      if (taskTitleMatch) {
+        kind = 'task';
+        const prefix = taskTitleMatch[1];
+        if (prefix === 'WM') domain = 'WM';
+        else if (prefix === 'KL') domain = 'KL';
+        else if (prefix === 'YB') domain = 'YB';
+        else domain = 'KAR';
+        status = 'in-progress';
       }
+      // else: 기본(proposal / pending / KAR) 유지
     }
 
     const newTagIds: string[] = [];
