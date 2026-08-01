@@ -54,7 +54,7 @@ import {
 } from './music';
 import { handleSpeak } from './speak';
 import { handleSound } from './sound';
-import { handleAdminReload, handleAdminSave, handleAdminCadenceTick, handleAdminWorkerTick, handleAdminCadenceToggle, handleAdminWorkerToggle, handleAdminSurgeryToggle, handleAdminNewsTick, handleAdminHeartbeatTick, handleAdminMemoSyncTick, handleAdminCharStateTick, handleAdminSelfSurgery } from './admin';
+import { handleAdminReload, handleAdminSave, handleAdminNewsTick, handleAdminHeartbeatTick, handleAdminMemoSyncTick, handleAdminCharStateTick } from './admin';
 import {
   handleCharacterList,
   handleCharacterSwitch,
@@ -147,12 +147,6 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         case '핑': await handlePing(ctx, interaction); break;
         case '리로드': await handleAdminReload(ctx, interaction, userId); break;
         case '저장': await handleAdminSave(ctx, interaction, userId); break;
-        case '에이전트틱': await handleAdminCadenceTick(ctx, interaction, userId); break;
-        case '워커틱': await handleAdminWorkerTick(ctx, interaction, userId); break;
-        case '에이전트자동': await handleAdminCadenceToggle(ctx, interaction, userId); break;
-        case '워커자동': await handleAdminWorkerToggle(ctx, interaction, userId); break;
-        case '자기수술자동': await handleAdminSurgeryToggle(ctx, interaction, userId); break;
-        case '자기수술': await handleAdminSelfSurgery(ctx, interaction, userId); break;
         case '에이전트': await handleCursorEdit(ctx, interaction, userId); break;
         case '뉴스틱': await handleAdminNewsTick(ctx, interaction, userId); break;
         case '하트비트': await handleAdminHeartbeatTick(ctx, interaction, userId); break;
