@@ -21,6 +21,8 @@ import { gameCommandGroup } from '../../deploy-builders/game-stock';
 import { characterCommand } from '../../deploy-builders/character';
 import { roomCommand } from '../../deploy-builders/room';
 import { handleRoom } from './room';
+import { buildCommand } from '../../deploy-builders/build';
+import { handleBuild } from './build';
 import { scheduleCommand } from '../../deploy-builders/schedule';
 import { adminCommand } from '../../deploy-builders/admin';
 import { atkupCommandGroup } from '../../deploy-builders/atkup';
@@ -487,6 +489,15 @@ export const SLASH_COMMANDS: SlashCommand[] = [
       }
     },
     autocomplete: characterSlugAutocomplete,
+  },
+  {
+    name: '빌드',
+    builder: buildCommand,
+    run: async (ctx, interaction) => {
+      // 빌드 1회 = 노트북 30~40분 점유 → 소유자만.
+      if (!(await guardOwner(ctx, interaction))) return;
+      await handleBuild(ctx, interaction);
+    },
   },
   {
     name: '방',
