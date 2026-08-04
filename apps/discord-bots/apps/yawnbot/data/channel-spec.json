@@ -33,6 +33,12 @@
 			"topic": "레포 digest 요약 (chore(digests))"
 		},
 		{
+			"_doc": "WM 노트북 빌드머신 결과 채널 (TASK-WM-197). 게시자는 봇이 아니라 laptop-ops /notify → 채널 webhook (env LAPTOP_OPS_WEBHOOK_BUILD, 노트북 .env 안에만 존재). 봇은 이 채널을 읽지도 쓰지도 않지만, 「어떤 채널이 있는가」의 정본은 이 spec 이라 선언만 남긴다.",
+			"key": "wm-build",
+			"name": "wm-build",
+			"topic": "WM 빌드 · 결과 요약과 APK 설치 링크 (노트북 빌드머신)"
+		},
+		{
 			"key": "dashboard",
 			"name": "dashboard",
 			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"
