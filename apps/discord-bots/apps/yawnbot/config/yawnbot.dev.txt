@@ -31,11 +31,3 @@ VERTEX_LOCATION=us-central1
 CURSOR_LOCAL_REPO_DIR=
 KAKAO_EXPORT_WATCH_DIR=
 
-# ── 에이전트 자율 cadence (KAR-018, 비밀 아님 — 기본 OFF) ──
-# dev 한정 ON: 워커(KAR-018-X)·생산자 자율 루프 관측용. prod 는
-# config/yawnbot.prod.txt 가 정본(별도 의식적 결정 — 비용/자율성).
-# 정본 룰: quality.md § 비밀 아닌 설정 = 가시 정본 레이어.
-# 2026-05-23 KAR-018-LT-DIVERSITY: producer/worker ON, dyadic dialogue 만 OFF.
-AGENT_CADENCE_ENABLED=1
-AGENT_DIALOGUE_DISABLED=1
-AGENT_CADENCE_INTERVAL_MS=60000
