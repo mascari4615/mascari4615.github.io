@@ -281,7 +281,7 @@ import {
                             <div class="cb-shortcut-row"><span>새 세션</span><span class="cb-shortcut-key">Ctrl + N</span></div>
                             <div class="cb-shortcut-row"><span>단축키 안내</span><span class="cb-shortcut-key">Ctrl + /</span></div>
                             <div style="margin-top:12px;text-align:center;">
-                                <button class="btn btn-ghost" onclick="(document.getElementById('cbShortcutsOverlay') as any).classList.remove('open')">닫기</button>
+                                <button class="btn btn-ghost" onclick="document.getElementById('cbShortcutsOverlay').classList.remove('open')">닫기</button>
                             </div>
                         </div>
                     </div>
@@ -290,10 +290,10 @@ import {
                         <div class="cb-chat-header-actions">
                             <button class="btn btn-ghost" id="cbShortcutsBtn" title="키보드 단축키 (Ctrl+/)">⌨️</button>
                             <button class="btn btn-ghost" id="cbSearchToggle" title="대화 검색 (Ctrl+F)">🔍</button>
-                            <button class="btn btn-ghost" onclick="(window as any)._cb.importChat()">가져오기</button>
-                            <button class="btn btn-ghost" onclick="(window as any)._cb.exportChat('txt')">TXT</button>
-                            <button class="btn btn-ghost" onclick="(window as any)._cb.exportChat('json')">JSON</button>
-                            <button class="btn btn-ghost" onclick="(window as any)._cb.clearChat()">초기화</button>
+                            <button class="btn btn-ghost" onclick="window._cb.importChat()">가져오기</button>
+                            <button class="btn btn-ghost" onclick="window._cb.exportChat('txt')">TXT</button>
+                            <button class="btn btn-ghost" onclick="window._cb.exportChat('json')">JSON</button>
+                            <button class="btn btn-ghost" onclick="window._cb.clearChat()">초기화</button>
                         </div>
                     </div>
                     <div class="cb-session-bar" id="cbSessionTabs"></div>
@@ -313,8 +313,8 @@ import {
                         <div class="cb-input-row">
                             <textarea id="cbInput" placeholder="메시지를 입력하세요... (이미지를 드래그하거나 붙여넣기 가능)"></textarea>
                             <button class="cb-mic-btn" id="cbMicBtn" title="음성 입력" aria-label="음성 입력">🎤</button>
-                            <button class="cb-send-btn" id="cbSendBtn" onclick="(window as any)._cb.send()" aria-label="메시지 전송">➤</button>
-                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="(window as any)._cb.stopStream()" aria-label="응답 중지">■ 중지</button>
+                            <button class="cb-send-btn" id="cbSendBtn" onclick="window._cb.send()" aria-label="메시지 전송">➤</button>
+                            <button class="cb-stop-btn" id="cbStopBtn" style="display:none" onclick="window._cb.stopStream()" aria-label="응답 중지">■ 중지</button>
                         </div>
                         <div class="cb-token-bar">
                             <span id="cbTokenDisplay">Tokens: 0</span>

@@ -317,7 +317,7 @@
 
         const header = document.createElement('div');
         header.className = 'ig-slot-header';
-        header.innerHTML = `<span class="ig-slot-context">${escapeHtml(contextItem.icon + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="(window as any)._ig.openContextPreset()">컨텍스트 변경</button>`;
+        header.innerHTML = `<span class="ig-slot-context">${escapeHtml(contextItem.icon + ' ' + contextItem.label)}</span><button type="button" class="btn btn-ghost" onclick="window._ig.openContextPreset()">컨텍스트 변경</button>`;
         section.appendChild(header);
 
         function buildCharSelect(slotId: any, label: any) {
@@ -863,16 +863,16 @@
                         <div class="ig-history-dropdown" id="igHistoryDropdown"></div>
                         <div class="ig-input-row">
                             <textarea id="igPrompt" placeholder="이미지 프롬프트를 입력하세요..."></textarea>
-                            <button class="btn btn-ghost" id="igHistoryBtn" onclick="(window as any)._ig.toggleHistory()" title="최근 프롬프트">📜</button>
-                            <button class="btn btn-ghost ig-enhance-btn" onclick="(window as any)._ig.enhancePrompt()">✨ 다듬기</button>
-                            <button class="btn btn-accent ig-gen-btn" id="igGenBtn" onclick="(window as any)._ig.generate()"><span>✨</span>생성</button>
-                            <button class="btn btn-danger ig-gen-btn" id="igCancelBtn" style="display:none" onclick="(window as any)._ig.cancel()"><span>✕</span>취소</button>
+                            <button class="btn btn-ghost" id="igHistoryBtn" onclick="window._ig.toggleHistory()" title="최근 프롬프트">📜</button>
+                            <button class="btn btn-ghost ig-enhance-btn" onclick="window._ig.enhancePrompt()">✨ 다듬기</button>
+                            <button class="btn btn-accent ig-gen-btn" id="igGenBtn" onclick="window._ig.generate()"><span>✨</span>생성</button>
+                            <button class="btn btn-danger ig-gen-btn" id="igCancelBtn" style="display:none" onclick="window._ig.cancel()"><span>✕</span>취소</button>
                         </div>
                         <div class="ig-actions">
                             <span id="igMetaDisplay" class="ig-meta-display"></span>
-                            <button class="btn btn-ghost" id="igCompareBtn" style="display:none;font-size:var(--font-size-xs);" onclick="(window as any)._ig.toggleCompare()">🔀 비교</button>
-                            <button class="btn btn-ghost" id="igDownloadBtn" style="display:none" onclick="(window as any)._ig.download()">⬇️ 다운로드</button>
-                            <button class="btn btn-ghost" style="font-size:var(--font-size-xs);" onclick="(window as any)._ig.showApiHistory()" title="요청/응답 raw 확인">📋 API 이력</button>
+                            <button class="btn btn-ghost" id="igCompareBtn" style="display:none;font-size:var(--font-size-xs);" onclick="window._ig.toggleCompare()">🔀 비교</button>
+                            <button class="btn btn-ghost" id="igDownloadBtn" style="display:none" onclick="window._ig.download()">⬇️ 다운로드</button>
+                            <button class="btn btn-ghost" style="font-size:var(--font-size-xs);" onclick="window._ig.showApiHistory()" title="요청/응답 raw 확인">📋 API 이력</button>
                             <span id="igTokenDisplay" class="ig-token-display"></span>
                         </div>
                         <div class="ig-gallery" id="igGallery"></div>
