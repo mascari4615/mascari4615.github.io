@@ -3,7 +3,7 @@
 // 호출처: `npm run verify` / `.husky/pre-push` / `.github/workflows/verify.yml`.
 // 정본: memo/UMBRELLA.md § 자동화 가능 룰은 코드로 — 텍스트 룰은 잊힌다.
 
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 function run(label, cwd, command) {
@@ -40,6 +40,35 @@ if (!existsSync('packages/karmolab-ai/dist')) {
 //    이전 karmolab-ts.yml + ai-quality.yml karmolab-ai-surface 흡수.
 requireDeps('apps/karmolab');
 run('apps/karmolab build', 'apps/karmolab', 'npm run build');
+
+// 2.5. 인라인 이벤트 핸들러 TS 문법 게이트 (KL-120 회귀 차단).
+//    HTML 템플릿 문자열 안의 `onclick="..."` 은 tsc/esbuild 가 *문자열*로만 보고
+//    통과시킨다 → `onclick="(window as any)._cb.send()"` 같은 게 그대로 브라우저에
+//    실려 클릭 시 SyntaxError = 버튼 무반응. 2026-06 `:any` 일괄 제거 패스가 정규식으로
+//    HTML 문자열까지 치환해 챗봇 전송·이미지생성 생성 등 15개 버튼을 죽였고,
+//    typecheck·build 어느 게이트도 이를 못 잡았다. 빌드 산출물을 직접 훑어 차단한다.
+{
+  const TS_ONLY = /\bon[a-z]+="[^"]*\b(?:as any|as unknown|as HTML[A-Za-z]*|as string|as number)\b/;
+  const hits = [];
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = `${dir}/${e.name}`;
+      if (e.isDirectory()) { if (e.name !== 'node_modules' && e.name !== 'vendor') walk(p); continue; }
+      if (!e.name.endsWith('.js')) continue;
+      readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+        if (TS_ONLY.test(line)) hits.push(`${p}:${i + 1}`);
+      });
+    }
+  };
+  if (existsSync('apps/karmolab/js')) walk('apps/karmolab/js');
+  if (hits.length) {
+    console.error(`[verify] X 인라인 핸들러에 TS 전용 문법 ${hits.length}건 — 브라우저에서 SyntaxError 로 버튼이 죽는다:`);
+    hits.forEach((h) => console.error(`  ${h}`));
+    console.error('[verify]   HTML 문자열 안에서는 캐스트를 빼라 (예: onclick="window._cb.send()").');
+    process.exit(1);
+  }
+  console.log('[verify] OK 인라인 핸들러 TS 문법 0건');
+}
 
 // 2.9. Tauri externalBin host-triple placeholder 보장 (TASK-KAR-073 / KL-052 회귀 fix).
 //      tauri.conf.json `externalBin: ["binaries/karmolab-life-ml"]` 은 sidecar 를
