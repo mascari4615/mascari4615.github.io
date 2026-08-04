@@ -217,8 +217,8 @@ window.KARMOLAB_LAZY_META = [
   /* 잡동사니 위젯 본체 */
   {
     id: 'stash',
-    title: '놀이',
-    category: 'tool',
+    title: '잡동사니',
+    category: 'play',
     desc: '정리 안 된 실험들이 한 상자에 살아 움직임',
     layout: 'full',
     icon: '<path d="M3 7h18l-2 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L3 7z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
