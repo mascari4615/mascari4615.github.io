@@ -69,7 +69,7 @@ Chat GPT.. 다시 범용적으로 ← 전문가시스템 한계 극복
 → 이미 가지고 시작하는  
 
 추론 엔진 (Executive)  
-→ 추론: inferance, chaning, 연쇄  
+→ 추론: inference, chaining, 연쇄  
 
 ### Match
 
