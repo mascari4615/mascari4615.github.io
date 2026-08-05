@@ -1520,6 +1520,11 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     .tool-page.layout-full.active { display: block; }
     .tool-page.layout-full.active > .tab-panel.active { display: block; min-height: 55vh; }
 
+    /* 폰에서 다른 도구로 갈 길 — 헤더는 항상 떠 있으니 거기에 목록 입구를 둔다.
+       도구 목록 바는 위로 흘러가 사라지고, 사이드바는 폰에서 숨겨져 있었다. */
+    .header-tools-link { display: inline-flex !important; }
+    .header-dev-link { display: none !important; }
+
     /* 마스코트가 화면 우하단에 고정이라 폰에서는 마지막 요소를 덮는다.
        마스코트를 치우는 대신(브랜드 요소) 콘텐츠 아래에 그만큼 여백을 준다. */
     .content-body { padding-bottom: 120px; }
