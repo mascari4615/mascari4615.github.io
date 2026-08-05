@@ -192,6 +192,8 @@ function buildToolPage(id) {
   html = replaceMeta(html, 'name', 'twitter:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'name', 'twitter:description', t.description);
 
+  // 상세 페이지 표식 — 앱 히어로(제목·설명)가 아래 설명 블록과 겹쳐 두 번 읽히는 것을 막는다
+  html = html.replace('<body>', '<body class="tool-detail">');
   const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};</script>`;
   html = html.replace('</head>', `    ${entry}\n    ${jsonLd(id)}\n</head>`);
 

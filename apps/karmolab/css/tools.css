@@ -518,3 +518,7 @@
     .rt-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
     .tool-seo { padding-left: 16px; padding-right: 16px; }
 }
+
+/* 도구 상세 페이지에서는 앱 히어로를 접는다 — 바로 아래 설명 블록이 같은 제목·설명을
+   더 자세히 담고 있어 폰에서 같은 문장을 두 번 읽게 된다 (TASK-KL-088). */
+body.tool-detail .tool-page-hero { display: none; }
