@@ -359,3 +359,145 @@
 .tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
 .tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); margin-bottom: 5px; }
 .tool-hub-card span { color: var(--text-tertiary); font-size: var(--font-size-xs); line-height: 1.6; }
+
+/* ═══════════════════════════════════════
+   자료표 (ref/*) — 검색 + 칩 + 눌러 복사 (TASK-KL-088)
+   ═══════════════════════════════════════ */
+
+.rt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    max-height: 620px;
+    overflow-y: auto;
+}
+.rt-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 12px 6px;
+    background: var(--bg-secondary);
+    border: none;
+    cursor: pointer;
+    transition: background var(--transition);
+    min-height: 84px;
+}
+.rt-cell:hover { background: var(--accent-subtle); }
+.rt-cell.rt-copied { background: var(--success); }
+.rt-glyph {
+    font-size: 26px;
+    line-height: 1.1;
+    color: var(--text-primary);
+    font-family: var(--font-serif);
+}
+.rt-label {
+    font-size: var(--font-size-2xs);
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.35;
+    word-break: keep-all;
+}
+.rt-sub {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+}
+.rt-swatch {
+    width: 100%;
+    height: 34px;
+    border: 1px solid var(--border);
+}
+.rt-swatch-sm { width: 26px; height: 18px; flex: none; }
+
+.rt-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    max-height: 620px;
+    overflow-y: auto;
+}
+.rt-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    background: var(--bg-secondary);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    text-align: left;
+    transition: background var(--transition);
+}
+.rt-row:last-child { border-bottom: none; }
+.rt-row:hover { background: var(--accent-subtle); }
+.rt-row.rt-copied { background: var(--success); }
+.rt-row-glyph {
+    flex: none;
+    width: 46px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--accent);
+}
+.rt-row-label {
+    flex: none;
+    width: 190px;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+}
+.rt-row-sub {
+    flex: 1;
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    min-width: 0;
+}
+@media (max-width: 560px) {
+    .rt-row { flex-wrap: wrap; gap: 6px; }
+    .rt-row-label { width: auto; }
+    .rt-row-sub { flex-basis: 100%; }
+}
+
+/* 키보드 이벤트 코드 */
+.kc-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    margin-bottom: var(--space-lg);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    outline: none;
+    cursor: default;
+}
+.kc-stage:focus { border-color: var(--accent); }
+.kc-hint { color: var(--text-tertiary); font-size: var(--font-size-sm); }
+.kc-key {
+    font-family: var(--font-mono);
+    font-size: clamp(32px, 9vw, 64px);
+    font-weight: 700;
+    color: var(--accent);
+    word-break: break-all;
+    text-align: center;
+    padding: 0 12px;
+}
+
+/* 아스키 아트 결과 */
+.aa-out {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: pre;
+    overflow: auto;
+    max-height: 620px;
+    padding: 14px;
+    margin: 0 0 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}

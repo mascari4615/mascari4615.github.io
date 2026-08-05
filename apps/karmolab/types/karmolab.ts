@@ -235,3 +235,26 @@ export interface KarmoLabImageGenNamespace {
   /** imagegen/* 위젯 (config/presets/queue/utils) 이 동적으로 채우는 면 — narrow 미완 (KL-078). */
   [key: string]: any;
 }
+
+/** 자료표(ref/*) 공용 렌더러 — `widgets/ref/reftable.ts` (TASK-KL-088) */
+export interface RefTableItem {
+  copy: string;
+  glyph: string;
+  label: string;
+  sub?: string;
+  keywords?: string;
+  group: string;
+  color?: string;
+}
+
+export interface RefTableSpec {
+  items: RefTableItem[];
+  placeholder: string;
+  copyNoun: string;
+  layout?: 'grid' | 'list';
+  note?: string;
+}
+
+export interface RefTableAPI {
+  build: (container: HTMLElement, spec: RefTableSpec) => void;
+}
