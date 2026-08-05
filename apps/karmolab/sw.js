@@ -1,50 +1,61 @@
-// TASK-KAR-115 (Phase 3 native mobile substrate) — KarmoLab PWA Service Worker.
-//
-// 보수적 path: install/activate + offline app-shell cache. dynamic widget
-// data (Tauri invoke, fetch) 는 network-first 으로 신선도 보장.
-// 사용자 비전 영역 0 (UX 톤 변경 X, 기존 layout 위 install 가능성만 추가).
-
-const CACHE_NAME = 'karmolab-shell-v1';
-const APP_SHELL = [
-  '/apps/karmolab/',
-  '/apps/karmolab/index.html',
-  '/apps/karmolab/manifest.json',
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL).catch(() => {})),
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
-    ),
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  // Tauri invoke / API / dynamic = network-first
-  const url = req.url;
-  if (url.includes('/api/') || url.includes('tauri') || req.method !== 'GET') {
-    return; // browser default
+"use strict";
+(() => {
+  // src/sw.ts
+  var ctx = self;
+  var BUILD = true ? "20260805132522" : "dev";
+  var CACHE_NAME = `karmolab-${BUILD}`;
+  var APP_SHELL = ["/karmolab/", "/apps/karmolab/manifest.json"];
+  function isFreshCritical(url, req) {
+    if (req.mode === "navigate") return true;
+    if (url.origin !== ctx.location.origin) return false;
+    return url.pathname.startsWith("/apps/karmolab/js/") || url.pathname.startsWith("/apps/karmolab/css/") || url.pathname.startsWith("/apps/karmolab/data/") || url.pathname.startsWith("/apps/karmolab/world/") || url.pathname.endsWith("/manifest.json");
   }
-  // app shell = cache-first w/ background refresh
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req).then((res) => {
-        if (res && res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, clone).catch(() => {}));
-        }
-        return res;
-      }).catch(() => cached);
-      return cached || network;
-    }),
-  );
-});
+  ctx.addEventListener("install", (event) => {
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL).catch(() => void 0)));
+  });
+  ctx.addEventListener("activate", (event) => {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))).then(() => ctx.clients.claim())
+    );
+  });
+  ctx.addEventListener("message", (event) => {
+    if (event.data === "SKIP_WAITING") void ctx.skipWaiting();
+    if (event.data === "GET_BUILD") event.source?.postMessage({ type: "BUILD", build: BUILD });
+  });
+  ctx.addEventListener("fetch", (event) => {
+    const req = event.request;
+    if (req.method !== "GET" || req.headers.has("range")) return;
+    let url;
+    try {
+      url = new URL(req.url);
+    } catch {
+      return;
+    }
+    if (!url.protocol.startsWith("http")) return;
+    if (url.pathname.includes("/api/") || url.href.includes("tauri")) return;
+    if (isFreshCritical(url, req)) {
+      event.respondWith(
+        fetch(req).then((res) => {
+          if (res && res.ok && url.origin === ctx.location.origin) {
+            const clone = res.clone();
+            void caches.open(CACHE_NAME).then((c) => c.put(req, clone).catch(() => void 0));
+          }
+          return res;
+        }).catch(() => caches.match(req).then((cached) => cached || Response.error()))
+      );
+      return;
+    }
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        const network = fetch(req).then((res) => {
+          if (res && res.ok && url.origin === ctx.location.origin) {
+            const clone = res.clone();
+            void caches.open(CACHE_NAME).then((c) => c.put(req, clone).catch(() => void 0));
+          }
+          return res;
+        }).catch(() => cached || Response.error());
+        return cached || network;
+      })
+    );
+  });
+})();
