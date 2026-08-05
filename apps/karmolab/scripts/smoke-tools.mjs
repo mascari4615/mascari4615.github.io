@@ -69,6 +69,10 @@ for (const id of ids) {
   if (!cfg) continue;
   check(cfg.title === meta.title, `${id}: title 불일치 (위젯 "${cfg.title}" vs 메타 "${meta.title}")`);
   check(cfg.category === meta.category, `${id}: category 불일치`);
+  check(
+    cfg.layout === meta.layout,
+    `${id}: layout 불일치 (위젯 "${cfg.layout}" vs 메타 "${meta.layout}") — 두 곳을 함께 고쳐야 한다`
+  );
   check(Array.isArray(cfg.tabs) && cfg.tabs.length > 0, `${id}: tabs 없음`);
   check(
     (cfg.tabs || []).every((t) => t.id && t.label && typeof t.build === 'function'),

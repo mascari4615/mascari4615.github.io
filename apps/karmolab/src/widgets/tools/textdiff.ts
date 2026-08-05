@@ -48,7 +48,7 @@
     title: '텍스트 비교',
     category: 'tool',
     desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M4 4h7v16H4zM13 4h7v16h-7z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 13h3M15 11h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {

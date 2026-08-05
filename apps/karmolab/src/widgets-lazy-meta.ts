@@ -206,7 +206,7 @@ window.KARMOLAB_LAZY_META = [
     title: 'JSON 포맷터',
     category: 'tool',
     desc: 'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/jsonfmt']
   },
@@ -287,7 +287,7 @@ window.KARMOLAB_LAZY_META = [
     title: '텍스트 비교',
     category: 'tool',
     desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M4 4h7v16H4zM13 4h7v16h-7z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 13h3M15 11h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/textdiff']
   },
@@ -296,7 +296,7 @@ window.KARMOLAB_LAZY_META = [
     title: '정규식 테스터',
     category: 'tool',
     desc: '정규표현식을 실시간으로 시험하고 매치·그룹·치환 결과를 확인합니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M12 4v16M5 8l14 8M19 8L5 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/regextest']
   },
@@ -315,7 +315,7 @@ window.KARMOLAB_LAZY_META = [
     title: '이미지 → 아스키 아트',
     category: 'tool',
     desc: '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절',
-    layout: 'full',
+    layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/asciiart']
   },
@@ -327,7 +327,7 @@ window.KARMOLAB_LAZY_META = [
     title: '특수문자 모음',
     category: 'ref',
     desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M5 7h6M8 4v6M15 5l4 4M19 5l-4 4M7 15h4M9 13v4M15 15h4M15 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/specialchar']
   },
@@ -336,7 +336,7 @@ window.KARMOLAB_LAZY_META = [
     title: 'ASCII 코드표',
     category: 'ref',
     desc: '0~127 ASCII 문자의 10진·16진·2진 값과 제어문자 의미를 한 표에서 봅니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.4"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/ascii']
   },
@@ -345,7 +345,7 @@ window.KARMOLAB_LAZY_META = [
     title: 'HTML 특수문자',
     category: 'ref',
     desc: '&amp;nbsp; &amp;lt; &amp;copy; 같은 HTML 엔티티 코드를 문자와 함께 찾아 복사합니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M9 7 4 12l5 5M15 7l5 5-5 5M13 4l-2 16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/htmlentity']
   },
@@ -354,7 +354,7 @@ window.KARMOLAB_LAZY_META = [
     title: 'HTTP 상태 코드',
     category: 'ref',
     desc: '200·301·403·404·500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표',
-    layout: 'full',
+    layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v6M12 16v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/httpstatus']
   },
@@ -363,7 +363,7 @@ window.KARMOLAB_LAZY_META = [
     title: 'CSS 색상 이름표',
     category: 'ref',
     desc: 'CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="7" r="1.2" fill="currentColor"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/colorname']
   },
