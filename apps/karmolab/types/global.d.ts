@@ -47,6 +47,7 @@ declare global {
     RefTable?: RefTableAPI;
     /** tools/hangulkey.ts — 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
     KarmoHangulKey?: { engToKor: (s: string) => string; korToEng: (s: string) => string };
+    KarmoMorse?: { encode: (text: string, korean: boolean) => string; decode: (code: string, korean: boolean) => string };
 
     /** imagegen/* 공용 네임스페이스 — config.ts 가 세션/히스토리 키를 채움 */
     ImageGen?: KarmoLabImageGenNamespace;

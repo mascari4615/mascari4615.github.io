@@ -30,6 +30,7 @@ const ids = Object.keys(seo);
 
 const registered = {};
 let hangul = null;
+let morse = null;
 
 for (const id of ids) {
   const meta = metaById[id];
@@ -79,6 +80,7 @@ for (const id of ids) {
     `${id}: tab 스펙 불완전 (id/label/build)`
   );
   if (id === 'hangulkey') hangul = win.KarmoHangulKey;
+  if (id === 'morse') morse = win.KarmoMorse;
 }
 
 /* 한영타 변환 — 조합 오토마타가 도구의 존재 이유라 값으로 확인한다 */
@@ -99,6 +101,32 @@ if (!hangul) {
     check(got === kor, `hangulkey: engToKor("${eng}") = "${got}" (기대 "${kor}")`);
     const back = hangul.korToEng(kor);
     check(back === eng, `hangulkey: korToEng("${kor}") = "${back}" (기대 "${eng}")`);
+  }
+}
+
+/* 모스 부호 — 부호표와 자모 조립이 도구의 존재 이유라 값으로 확인한다 */
+if (!morse) {
+  failures.push('morse: window.KarmoMorse 미노출');
+} else {
+  const en = [
+    ['SOS', '... --- ...'],
+    ['HELLO WORLD', '.... . .-.. .-.. --- / .-- --- .-. .-.. -..'],
+    ['K2', '-.- ..---']
+  ];
+  for (const [text, code] of en) {
+    const got = morse.encode(text, false);
+    check(got === code, `morse: encode("${text}") = "${got}" (기대 "${code}")`);
+    const back = morse.decode(code, false);
+    check(back === text, `morse: decode("${code}") = "${back}" (기대 "${text}")`);
+  }
+  /* 한글은 자모 단위로 찍히므로, 되읽을 때 완성형으로 조립되는지가 핵심.
+     단, 겹받침·된소리는 자모열이 같아 원리적으로 중의적이라(어쓰 ↔ 엇스) 왕복을 강제하지 않는다.
+     여기 목록은 갈래가 하나뿐인 낱말만 둔다. */
+  const ko = ['안녕', '한글', '모스', '값', '의사', '뷁', '학교', '읽다', '앉다', '왜', '뭐', '고맙습니다'];
+  for (const word of ko) {
+    const code = morse.encode(word, true);
+    const back = morse.decode(code, true);
+    check(back === word, `morse: 한글 왕복 "${word}" → "${code}" → "${back}"`);
   }
 }
 
