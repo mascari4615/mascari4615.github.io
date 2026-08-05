@@ -48,7 +48,7 @@ if (orphans.length) {
 }
 for (const id of ids) {
   const t = seo[id];
-  for (const field of ['heading', 'seoTitle', 'description', 'lead', 'howto', 'faq', 'related']) {
+  for (const field of ['description', 'lead', 'howto', 'faq', 'related']) {
     if (!t[field] || (Array.isArray(t[field]) && !t[field].length)) {
       console.error(`[gen-tool-pages] ${id}: 필수 필드 「${field}」 누락`);
       process.exit(1);
@@ -77,6 +77,11 @@ function toolPageUrl(id) {
   return `${SITE}${BASE_PATH}/${id}/`;
 }
 
+/** 도구 이름의 단일 정본 = 위젯 매니페스트의 title. 사이드바·페이지 제목이 갈라지지 않게 한다. */
+function heading(id) {
+  return widgetById[id].title;
+}
+
 /* ── 도구 상세 페이지 ──────────────────────────────── */
 
 function seoBlock(id) {
@@ -84,15 +89,15 @@ function seoBlock(id) {
   const related = t.related
     .map(
       (r) =>
-        `<a href="${BASE_PATH}/${r}/">${esc(seo[r].heading)}<span>${esc(seo[r].lead)}</span></a>`
+        `<a href="${BASE_PATH}/${r}/">${esc(heading(r))}<span>${esc(seo[r].lead)}</span></a>`
     )
     .join('\n          ');
 
   return `<section class="tool-seo">
         <nav class="tool-seo-crumb" aria-label="위치">
-          <a href="/karmolab/">KarmoLab</a> / <a href="${BASE_PATH}/">도구</a> / ${esc(t.heading)}
+          <a href="/karmolab/">KarmoLab</a> / <a href="${BASE_PATH}/">도구</a> / ${esc(heading(id))}
         </nav>
-        <h1>${esc(t.heading)}</h1>
+        <h1>${esc(heading(id))}</h1>
         <p class="tool-seo-lead">${esc(t.lead)}</p>
         <p>${esc(t.description)}</p>
 
@@ -124,7 +129,7 @@ function jsonLd(id) {
     {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: t.heading,
+      name: heading(id),
       url: toolPageUrl(id),
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web',
@@ -148,7 +153,7 @@ function jsonLd(id) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/karmolab/` },
         { '@type': 'ListItem', position: 2, name: '도구', item: `${SITE}${BASE_PATH}/` },
-        { '@type': 'ListItem', position: 3, name: t.heading, item: toolPageUrl(id) }
+        { '@type': 'ListItem', position: 3, name: heading(id), item: toolPageUrl(id) }
       ]
     }
   ];
@@ -159,7 +164,7 @@ function jsonLd(id) {
 
 function buildToolPage(id) {
   const t = seo[id];
-  const title = `${t.seoTitle} | KarmoLab`;
+  const title = `${heading(id)} | KarmoLab`;
   let html = shell;
 
   html = html.replace(/^---\nlayout: none\npermalink: \/karmolab\/\n---/, `---\nlayout: none\npermalink: ${BASE_PATH}/${id}/\n---`);
@@ -173,10 +178,10 @@ function buildToolPage(id) {
     `<link rel="canonical" href="${toolPageUrl(id)}">`
   );
   html = replaceMeta(html, 'name', 'description', t.description);
-  html = replaceMeta(html, 'property', 'og:title', `${t.heading} | KarmoLab`);
+  html = replaceMeta(html, 'property', 'og:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'property', 'og:description', t.description);
   html = replaceMeta(html, 'property', 'og:url', toolPageUrl(id));
-  html = replaceMeta(html, 'name', 'twitter:title', `${t.heading} | KarmoLab`);
+  html = replaceMeta(html, 'name', 'twitter:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'name', 'twitter:description', t.description);
 
   const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};</script>`;
@@ -195,7 +200,7 @@ function buildHub() {
   const cards = ids
     .map(
       (id) =>
-        `      <a class="tool-hub-card" href="${BASE_PATH}/${id}/"><strong>${esc(seo[id].heading)}</strong><span>${esc(seo[id].lead)}</span></a>`
+        `      <a class="tool-hub-card" href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}</strong><span>${esc(seo[id].lead)}</span></a>`
     )
     .join('\n');
 
@@ -207,7 +212,7 @@ function buildHub() {
     inLanguage: 'ko-KR',
     hasPart: ids.map((id) => ({
       '@type': 'SoftwareApplication',
-      name: seo[id].heading,
+      name: heading(id),
       url: toolPageUrl(id),
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web'
@@ -223,7 +228,7 @@ permalink: ${BASE_PATH}/
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>도구 — 삶을 섞고 술을 바꿀 시간 | KarmoLab</title>
+    <title>도구 | KarmoLab</title>
     <meta name="description" content="KarmoLab 의 도구 목록입니다. 각 도구는 독립된 페이지에서 바로 쓸 수 있고, 입력한 내용은 브라우저를 벗어나지 않습니다.">
     <link rel="canonical" href="${SITE}${BASE_PATH}/">
     <meta property="og:type" content="website">
