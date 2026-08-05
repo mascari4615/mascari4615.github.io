@@ -501,3 +501,20 @@
     border: 1px solid var(--border);
     color: var(--text-primary);
 }
+
+/* ═══════════════════════════════════════
+   폰 (TASK-KL-088)
+   내부 스크롤 영역이 화면을 거의 채우면, 손가락이 그 안에서만 놀고 페이지가 안 내려간다.
+   = 사용자에게는 「스크롤이 안 되는 화면」 으로 보인다. 폰에서는 표를 페이지와 함께 흐르게 둔다.
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+    .rt-grid, .rt-list, .tool-list, .td-out {
+        max-height: none;
+        overflow-y: visible;
+    }
+    .rx-highlight { max-height: 240px; }
+    /* 아스키 아트는 가로 폭이 의미라 가로 스크롤만 남긴다 */
+    .aa-out { max-height: none; overflow-y: visible; overflow-x: auto; }
+    .rt-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+    .tool-seo { padding-left: 16px; padding-right: 16px; }
+}

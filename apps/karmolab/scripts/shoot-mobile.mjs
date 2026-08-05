@@ -73,8 +73,22 @@ for (const id of ids) {
     };
   });
 
+  // 높이만 재면 「스크롤 막힘」 을 못 잡는다 — body 에 overflow:hidden 이 남아 있으면 폰에서
+  // 손가락 스크롤이 통째로 막히는데, 헤드리스는 JS 스크롤을 허용해 조용히 통과한다.
+  // 그래서 실제로 굴려 보고 결과를 확인한다.
+  const lock = await page.evaluate(() => ({
+    bodyOverflow: getComputedStyle(document.body).overflow,
+    htmlOverflow: getComputedStyle(document.documentElement).overflow
+  }));
+  await page.mouse.move(200, 500);
+  await page.mouse.wheel(0, 700);
+  await page.waitForTimeout(300);
+  const scrolled = await page.evaluate(() => window.scrollY);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(200);
+
   await page.screenshot({ path: path.join(outDir, `${id}.png`), fullPage: true });
-  report.push({ id, url, ...audit });
+  report.push({ id, url, ...audit, ...lock, scrolled });
 }
 
 await browser.close();
@@ -83,6 +97,12 @@ console.log(`\n=== 폰 점검 (iPhone 13 · 390px) · ${BASE} ===`);
 for (const r of report) {
   const overflow = r.scrollW > r.docW + 2;
   console.log(`\n[${r.id}] ${overflow ? `❌ 가로 넘침 ${r.scrollW} > ${r.docW}` : '✅ 가로 OK'} · 세로 ${r.bodyH}px`);
+  const locked = r.bodyOverflow === 'hidden' || r.htmlOverflow === 'hidden';
+  if (locked) {
+    console.log(`   ❌ 스크롤 잠김 — body:${r.bodyOverflow} html:${r.htmlOverflow} → 폰에서 손가락이 안 먹는다`);
+  } else if (r.bodyH > 700) {
+    console.log(`   ${r.scrolled > 0 ? '✅' : '❌'} 실제로 굴려봄 → ${r.scrolled}px 이동`);
+  }
   r.offenders.forEach((o) => console.log(`   밖으로: <${o.tag} class="${o.cls}"> w=${o.w} left=${o.left} right=${o.right}`));
   if (r.tiny.length) console.log(`   작은 터치(<36px): ${r.tiny.join(', ')}`);
 }

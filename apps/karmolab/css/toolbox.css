@@ -1524,6 +1524,11 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
        마스코트를 치우는 대신(브랜드 요소) 콘텐츠 아래에 그만큼 여백을 준다. */
     .content-body { padding-bottom: 120px; }
 
+    /* 문서 스크롤로 전환했으니 body 의 overflow:hidden 을 반드시 풀어야 한다.
+       이게 남아 있으면 폰 브라우저에서 손가락 스크롤이 통째로 막힌다 (헤드리스는 JS 스크롤을
+       허용해 측정에 안 걸린다 — 실제 스크롤을 시도해서 잡은 문제). */
+    html, body { overflow: visible; overflow-x: hidden; height: auto; }
+
     /* 손가락으로 누르는 크기 확보 — 30px 짜리 버튼은 폰에서 자주 빗나간다 */
     .btn { min-height: 40px; padding: 9px 14px; }
     .tool-chip { min-height: 38px; padding: 9px 14px; }
