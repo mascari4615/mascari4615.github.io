@@ -403,6 +403,29 @@ html[data-bg="minimal"] body {
     height: 15px;
 }
 
+/* 폰 전용 도구 목록 입구 — 폰 미디어쿼리에서만 켠다 (PC 는 사이드바가 그 역할).
+   손가락 기준 최소 40px 을 여기서 확보한다 (미디어쿼리는 display 만 뒤집는다). */
+.header-tools-link {
+    display: none;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.header-tools-link:hover,
+.header-tools-link:active {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    background: var(--accent-subtle);
+}
+
 .header-dev-link {
     font-size: var(--font-size-2xs);
     color: var(--text-tertiary);
