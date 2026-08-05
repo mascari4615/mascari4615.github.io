@@ -270,4 +270,21 @@ for (const id of ids) {
 }
 fs.writeFileSync(path.join(outDir, 'index.html'), buildHub(), 'utf8');
 
-console.log(`[gen-tool-pages] ${ids.length}개 도구 페이지 + 허브 생성 → ${path.relative(process.cwd(), outDir)}`);
+/* Service Worker 를 `/karmolab/sw.js` 로 서비스한다 (TASK-KL-088).
+ * SW 의 제어 범위는 자기 URL 경로로 정해진다 — `/apps/karmolab/sw.js` 에 두면 정작 앱이 사는
+ * `/karmolab/` 페이지를 제어하지 못한다. Jekyll front matter 로 위치만 옮긴다. */
+const swBuilt = path.join(root, 'sw.js');
+if (fs.existsSync(swBuilt)) {
+  const parent = path.dirname(outDir);
+  fs.mkdirSync(parent, { recursive: true });
+  fs.writeFileSync(
+    path.join(parent, 'sw.js'),
+    `---\nlayout: none\npermalink: /karmolab/sw.js\n---\n${fs.readFileSync(swBuilt, 'utf8')}`,
+    'utf8'
+  );
+} else {
+  console.error('[gen-tool-pages] sw.js 없음 — `npm run build` 를 먼저 돌려야 합니다.');
+  process.exit(1);
+}
+
+console.log(`[gen-tool-pages] ${ids.length}개 도구 페이지 + 허브 + sw.js 생성 → ${path.relative(process.cwd(), outDir)}`);

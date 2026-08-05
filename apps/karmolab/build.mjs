@@ -42,6 +42,30 @@ await esbuild.build({
   logLevel: 'info'
 });
 
+// Service Worker + 갱신 안내 (TASK-KL-088).
+// 캐시 이름에 빌드 스탬프를 박아야 새 배포가 옛 캐시를 버린다 → sw 는 소스가 아니라 빌드 산출물.
+const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+await esbuild.build({
+  entryPoints: [join(root, 'src/sw.ts')],
+  outfile: join(root, 'sw.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  define: { __KARMOLAB_BUILD__: JSON.stringify(buildStamp) },
+  logLevel: 'info'
+});
+
+await esbuild.build({
+  entryPoints: [join(root, 'src/pwa-update.ts')],
+  outfile: join(root, 'js/pwa-update.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
 // 알람 발화 풀스크린 (TASK-KL-064) — index.html #alarm-fire 조기 분기가
 // 대시보드 부트 전 로드. toolbox 비의존 self-contained iife.
 await esbuild.build({
