@@ -26,6 +26,10 @@
  *    - category: 'tool' | 'play' | 'lab' | 'desktop' | null  ('desktop'은 Tauri 앱에서만 메뉴·페이지에 표시)
  *    - desc: 한 줄 설명 (검색·즐겨찾기용)
  *    - hidden: true면 메뉴에 비표시 (user 등)
+ *    - layout: 'form'(기본·900px 카드) | 'wide'(1200px, 표·2단 편집기) | 'full'(화면 점유)
+ *      · **'full' 은 특수한 경우만** — 페이지 스크롤을 죽이므로(main-content overflow:hidden)
+ *        아래로 이어지는 내용이 있으면 잘린다. 챗봇·터미널처럼 화면을 통째로 써야 하는 위젯 전용.
+ *        도구 상세 페이지(/karmolab/t/)가 있는 위젯은 gen-tool-pages.mjs 가 'full' 을 막는다.
  *    - tabs: [{ id, label, build(container) }]
  *    - tabLayout: (선택) `'sidebar'` — 탭이 많을 때 왼쪽 세로 목록 + 오른쪽 패널 (문서 위젯 등)
  *
