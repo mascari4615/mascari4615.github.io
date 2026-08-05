@@ -71,7 +71,7 @@
     title: '특수문자 모음',
     category: 'ref',
     desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
-    layout: 'full',
+    layout: 'wide',
     icon: '<path d="M5 7h6M8 4v6M15 5l4 4M19 5l-4 4M7 15h4M9 13v4M15 15h4M15 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
