@@ -179,6 +179,10 @@ const entryPoints = [
   'src/widgets/tools/regextest.ts',
   'src/widgets/tools/colorconv.ts',
   'src/widgets/tools/asciiart.ts',
+  'src/widgets/tools/radix.ts',
+  'src/widgets/tools/textclean.ts',
+  'src/widgets/tools/ladder.ts',
+  'src/widgets/tools/palette.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/specialchar.ts',
@@ -187,6 +191,8 @@ const entryPoints = [
   'src/widgets/ref/httpstatus.ts',
   'src/widgets/ref/colorname.ts',
   'src/widgets/ref/keycode.ts',
+  'src/widgets/ref/emoji.ts',
+  'src/widgets/ref/markdown.ts',
   'src/widgets-manifest.ts',
   'src/widgets-lazy-meta.ts',
   'src/widgets-loader.ts'
