@@ -34,6 +34,13 @@ declare global {
     KARMOLAB_WIDGETS_BOOT?: string[];
     KARMOLAB_LAZY_META?: KarmoLabLazyWidgetStub[];
 
+    /** 도구 상세 페이지(/karmolab/t/&lt;id&gt;/)가 심는 진입 위젯 id — toolbox.init 이 첫 페이지로 연다 (TASK-KL-088) */
+    KARMOLAB_ENTRY_TOOL?: string;
+    /** 상세 페이지가 존재하는 도구 id 목록 — 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
+    KARMOLAB_TOOL_PAGES?: string[];
+    /** tools/hangulkey.ts — 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
+    KarmoHangulKey?: { engToKor: (s: string) => string; korToEng: (s: string) => string };
+
     /** imagegen/* 공용 네임스페이스 — config.ts 가 세션/히스토리 키를 채움 */
     ImageGen?: KarmoLabImageGenNamespace;
 

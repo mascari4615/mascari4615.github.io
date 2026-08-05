@@ -5,11 +5,14 @@
   "description": "KarmoLab TypeScript sources; build emits to js/ for Jekyll/GitHub Pages",
   "type": "module",
   "dependencies": {
-    "karmolab-ai": "file:../../packages/karmolab-ai"
+    "karmolab-ai": "file:../../packages/karmolab-ai",
+    "qrcode-generator": "^1.4.4"
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
-    "build": "npm run build:wiki && node build.mjs",
+    "build": "npm run build:wiki && node build.mjs && npm run test:tools",
+    "test:tools": "node scripts/smoke-tools.mjs",
+    "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
