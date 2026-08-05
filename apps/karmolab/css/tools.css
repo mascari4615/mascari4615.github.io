@@ -512,7 +512,8 @@
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
 }
-.pc-num {
+/* 공통 입력 규칙이 input[type=number] 로 폭 100% 를 주므로 한 단계 더 구체적으로 눌러 준다. */
+.pc-line .pc-num {
     width: 120px;
     min-width: 90px;
     flex: none;
