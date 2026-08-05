@@ -96,22 +96,11 @@ interface RefSpec {
         (el as HTMLButtonElement).onclick = () => {
           const item = list[Number((el as HTMLElement).dataset.i)];
           if (!item) return;
-          const done = (): void => {
-            Toolbox.showToast?.(`${spec.copyNoun} 복사: ${item.copy}`, 'success', undefined);
+          void Toolbox.copyText?.(item.copy, { message: `${spec.copyNoun} 복사: ${item.copy}` }).then((ok) => {
+            if (!ok) return;
             el.classList.add('rt-copied');
             setTimeout(() => el.classList.remove('rt-copied'), 600);
-          };
-          if (navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText(item.copy).then(done).catch(() => undefined);
-          } else {
-            const ta = document.createElement('textarea');
-            ta.value = item.copy;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            ta.remove();
-            done();
-          }
+          });
         };
       });
 

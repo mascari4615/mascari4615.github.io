@@ -255,12 +255,7 @@
           };
           $<HTMLButtonElement>('#ucCopy').onclick = async () => {
             if (!resultInput.value) return;
-            try {
-              await navigator.clipboard.writeText(resultInput.value);
-              Toolbox.showToast?.('결과를 복사했어요', 'success', undefined);
-            } catch {
-              Toolbox.showToast?.('복사에 실패했어요', 'error', undefined);
-            }
+            await Toolbox.copyText?.(resultInput.value, { message: '결과를 복사했어요' });
           };
 
           fillUnits();

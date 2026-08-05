@@ -39,6 +39,10 @@ declare global {
     KARMOLAB_ENTRY_TOOL?: string;
     /** 상세 페이지가 존재하는 도구 id 목록 — 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
     KARMOLAB_TOOL_PAGES?: string[];
+    /** 계측 — analytics.ts (TASK-KL-088). 입력 내용은 절대 싣지 않는다. */
+    KarmoStat?: { page: (toolId: string, title?: string) => void; use: (toolId: string, action: string) => void; disabled: boolean };
+    /** GoatCounter 카운터 (count.js 가 주입) */
+    goatcounter?: { count?: (opts: { path?: string; title?: string; event?: boolean }) => void };
     /** 자료표 공용 렌더러 — widgets/ref/reftable.ts (TASK-KL-088) */
     RefTable?: RefTableAPI;
     /** tools/hangulkey.ts — 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
@@ -237,6 +241,10 @@ declare global {
     displayResult?: (prefix: string, title: string, content: string, timeTaken: number | null, isError?: boolean) => void;
     /** 컨테이너 안에 결과 박스 (`<pre>` + 복사 버튼) 생성 */
     resultBox?: (container: HTMLElement, prefix: string) => void;
+    /** 복사 단일 seam (TASK-KL-088) — 클립보드 + 토스트 + 사용 계측. 복사한 내용은 계측에 안 실린다. */
+    copyText?: (text: string, opts?: { message?: string; action?: string; toolId?: string }) => Promise<boolean>;
+    /** 복사 외의 「결과를 얻었다」 신호 (생성·변환·저장 등) */
+    trackUse?: (action: string, toolId?: string) => void;
     /** id 의 textContent 를 클립보드로 복사 + 토스트 */
     copyResult?: (contentId: string) => void;
     /** trigger.classList.toggle('open') + 다음 형제도 토글 */

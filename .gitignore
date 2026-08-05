@@ -50,6 +50,7 @@ apps/karmolab/js/widgets-lazy-meta.js
 apps/karmolab/js/widgets-loader.js
 apps/karmolab/js/widgets/**/*.js
 apps/karmolab/js/pwa-update.js
+apps/karmolab/js/analytics.js
 apps/karmolab/sw.js
 
 # KarmoLab Jekyll 진입 페이지 — 배포 시 apps/karmolab/index.html 복사 +

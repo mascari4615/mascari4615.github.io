@@ -75,12 +75,7 @@
               (btn as HTMLButtonElement).onclick = async () => {
                 const hash = (btn.closest('.hg-row') as HTMLElement)?.dataset.hash || '';
                 if (!hash) return;
-                try {
-                  await navigator.clipboard.writeText(hash);
-                  Toolbox.showToast?.('해시를 복사했어요', 'success', undefined);
-                } catch {
-                  Toolbox.showToast?.('복사에 실패했어요', 'error', undefined);
-                }
+                await Toolbox.copyText?.(hash, { message: '해시를 복사했어요' });
               };
             });
           }
@@ -150,6 +145,7 @@
                 )
                 .join('');
               nameEl.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+              Toolbox.trackUse?.('file-checksum');
               compare();
             } catch (e) {
               nameEl.textContent = '파일을 읽지 못했어요: ' + (e instanceof Error ? e.message : String(e));

@@ -234,13 +234,7 @@
           };
           (container.querySelector('#hkCopy') as HTMLButtonElement).onclick = async () => {
             if (!output.value) return;
-            try {
-              await navigator.clipboard.writeText(output.value);
-              Toolbox.showToast?.('결과를 복사했어요', 'success', undefined);
-            } catch {
-              output.select();
-              document.execCommand('copy');
-            }
+            await Toolbox.copyText?.(output.value, { message: '결과를 복사했어요' });
           };
           input.addEventListener('input', () => run('auto'));
         }

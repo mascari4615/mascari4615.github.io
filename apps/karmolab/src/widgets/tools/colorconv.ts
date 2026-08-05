@@ -166,12 +166,7 @@
               .join('');
             container.querySelectorAll('.cc-copy-row').forEach((row) => {
               (row as HTMLElement).onclick = async () => {
-                try {
-                  await navigator.clipboard.writeText((row as HTMLElement).dataset.copy || '');
-                  Toolbox.showToast?.('복사했어요', 'success', undefined);
-                } catch {
-                  /* 무시 */
-                }
+                await Toolbox.copyText?.((row as HTMLElement).dataset.copy || '', { message: '복사했어요' });
               };
             });
 
