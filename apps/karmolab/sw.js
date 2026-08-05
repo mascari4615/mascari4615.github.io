@@ -2,7 +2,7 @@
 (() => {
   // src/sw.ts
   var ctx = self;
-  var BUILD = true ? "20260805132522" : "dev";
+  var BUILD = true ? "20260805222333" : "dev";
   var CACHE_NAME = `karmolab-${BUILD}`;
   var APP_SHELL = ["/karmolab/", "/apps/karmolab/manifest.json"];
   function isFreshCritical(url, req) {

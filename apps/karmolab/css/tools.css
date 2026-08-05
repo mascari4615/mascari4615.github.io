@@ -502,6 +502,43 @@
     color: var(--text-primary);
 }
 
+/* 사다리타기 */
+.ld-stage {
+    margin-bottom: var(--space-lg);
+    padding: 8px 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+}
+.ld-stage svg { display: block; min-width: 320px; }
+.ld-pole { stroke: var(--border); stroke-width: 2; }
+.ld-rung { stroke: var(--text-tertiary); stroke-width: 2; opacity: 0.7; }
+.ld-path {
+    fill: none;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.9;
+}
+.ld-name,
+.ld-prize {
+    font-size: 13px;
+    text-anchor: middle;
+    fill: var(--text-secondary);
+    font-family: var(--font-sans, inherit);
+}
+.ld-name { cursor: pointer; font-weight: 600; }
+.ld-name:hover { fill: var(--accent); }
+.ld-name.on { font-weight: 700; }
+.ld-prize { fill: var(--text-tertiary); }
+
+/* 텍스트 정리 — 처리 칩은 체크박스를 품는다 */
+.tool-chip input[type='checkbox'] {
+    width: auto;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
 /* ═══════════════════════════════════════
    폰 (TASK-KL-088)
    내부 스크롤 영역이 화면을 거의 채우면, 손가락이 그 안에서만 놀고 페이지가 안 내려간다.
