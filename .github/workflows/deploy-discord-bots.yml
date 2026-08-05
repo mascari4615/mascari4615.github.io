@@ -173,12 +173,17 @@ jobs:
           # PAT_FOR_AUTO_MERGE=github.io-scope 라 403). 사용자 발급·등록
           # 시 wm-worker 가 우선 사용. 미등록=빈값→기존 폴백(현 동작·회귀0).
           YB_PROD_WM_GITHUB_PAT: ${{ secrets.WM_GITHUB_PAT }}
+          # TASK-WM-201: 폰이 실행 로그를 밀어 넣을 때 쓰는 전용 토큰. 주소가 공개(터널)라
+          # 이게 없으면 누구나 로그를 밀어 넣을 수 있다. 같은 값이 WM 레포 secret
+          # WM_DEVICE_LOG_TOKEN 에도 있어야 APK 가 인증된 채로 보낸다(둘 중 하나만 바꾸면 401).
+          # 유출 시 할 수 있는 일 = 로그 밀어넣기뿐 — 다른 토큰과 절대 겸용하지 말 것.
+          YB_PROD_DEVICE_LOG_TOKEN: ${{ secrets.DEVICE_LOG_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
 
           # ③ 비밀+준-비밀 키 list. 빈 secret 라인 skip (.env load 가 빈값=undefined 라 정합).
           $keys = @(
-            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT'
+            'DISCORD_TOKEN', 'GEMINI_API_KEY', 'VERTEX_API_KEY', 'VERTEX_PROJECT_ID', 'DISCORD_SUMMARY_WEBHOOK_URL', 'MEMO_GITHUB_PAT', 'GH_TOKEN', 'GH_APP_ID', 'GH_APP_PRIVATE_KEY', 'WM_GITHUB_PAT', 'DEVICE_LOG_TOKEN'
           )
 
           # 필수 검증 — DISCORD_TOKEN 없으면 deploy fail (CLIENT_ID 등은 이제 ② 프로파일 소관)
