@@ -1476,10 +1476,11 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
        데스크톱은 화면을 꽉 채운 앱이 맞지만, 폰에서 position:fixed + 내부 스크롤이면
        ① 주소창이 자동으로 숨지 않아 화면을 계속 잡아먹고 ② 스크롤 관성·당겨서 새로고침이
        어색하며 ③ iOS 100vh 문제를 그대로 맞는다. 폰에서는 문서 스크롤이 표준이다.
-       화면을 점유해야 하는 layout-full 위젯만 예외로 기존 고정 방식을 유지한다.
+       layout-full(화면 점유형) 도 폰에서는 예외 없이 문서 스크롤로 둔다 — 예외를 두었더니
+       그 위젯들이 폰에서 아예 스크롤 불가로 갇혔다 (내부 스크롤 컨테이너가 없는 경우).
        주의: position:fixed 는 폭도 함께 묶고 있었다. 그냥 static 으로 바꾸면 flex 자식들이
        내용 폭까지 벌어져 가로가 폭발한다 — min-width:0 / max-width:100% 를 같이 줘야 한다. */
-    body:not(:has(.tool-page.layout-full.active)) .app-layout {
+    .app-layout {
         position: static;
         height: auto;
         min-height: 100vh;
@@ -1487,27 +1488,37 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
         width: 100%;
         max-width: 100%;
     }
-    body:not(:has(.tool-page.layout-full.active)) .app-body {
+    .app-body {
         min-height: 0;
         overflow: visible;
         min-width: 0;
         max-width: 100%;
     }
-    body:not(:has(.tool-page.layout-full.active)) .main-content {
+    .main-content {
         overflow: visible;
         min-width: 0;
         max-width: 100%;
     }
-    body:not(:has(.tool-page.layout-full.active)) .content-body {
+    .content-body {
         min-height: 0;
         min-width: 0;
         max-width: 100%;
     }
-    body:not(:has(.tool-page.layout-full.active)) .mobile-nav,
-    body:not(:has(.tool-page.layout-full.active)) .tool-page {
+    .mobile-nav,
+    .tool-page {
         max-width: 100%;
         min-width: 0;
     }
+
+    /* 화면 점유형 위젯도 폰에서는 세로로 흐르게 (갇힘 방지) */
+    .main-content:has(.tool-page.layout-full.active) { overflow: visible; padding-top: 0; }
+    .content-body:has(.tool-page.layout-full.active) {
+        padding: var(--space-md);
+        padding-top: calc(52px + var(--space-md));
+        min-height: 0;
+    }
+    .tool-page.layout-full.active { display: block; }
+    .tool-page.layout-full.active > .tab-panel.active { display: block; min-height: 55vh; }
 
     /* 마스코트가 화면 우하단에 고정이라 폰에서는 마지막 요소를 덮는다.
        마스코트를 치우는 대신(브랜드 요소) 콘텐츠 아래에 그만큼 여백을 준다. */
