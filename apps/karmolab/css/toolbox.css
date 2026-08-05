@@ -1472,6 +1472,53 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
    ═══════════════════════════════════════ */
 
 @media (max-width: 768px) {
+    /* ── 폰: 앱 셸 고정을 풀고 문서처럼 스크롤 (TASK-KL-088) ──
+       데스크톱은 화면을 꽉 채운 앱이 맞지만, 폰에서 position:fixed + 내부 스크롤이면
+       ① 주소창이 자동으로 숨지 않아 화면을 계속 잡아먹고 ② 스크롤 관성·당겨서 새로고침이
+       어색하며 ③ iOS 100vh 문제를 그대로 맞는다. 폰에서는 문서 스크롤이 표준이다.
+       화면을 점유해야 하는 layout-full 위젯만 예외로 기존 고정 방식을 유지한다.
+       주의: position:fixed 는 폭도 함께 묶고 있었다. 그냥 static 으로 바꾸면 flex 자식들이
+       내용 폭까지 벌어져 가로가 폭발한다 — min-width:0 / max-width:100% 를 같이 줘야 한다. */
+    body:not(:has(.tool-page.layout-full.active)) .app-layout {
+        position: static;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        width: 100%;
+        max-width: 100%;
+    }
+    body:not(:has(.tool-page.layout-full.active)) .app-body {
+        min-height: 0;
+        overflow: visible;
+        min-width: 0;
+        max-width: 100%;
+    }
+    body:not(:has(.tool-page.layout-full.active)) .main-content {
+        overflow: visible;
+        min-width: 0;
+        max-width: 100%;
+    }
+    body:not(:has(.tool-page.layout-full.active)) .content-body {
+        min-height: 0;
+        min-width: 0;
+        max-width: 100%;
+    }
+    body:not(:has(.tool-page.layout-full.active)) .mobile-nav,
+    body:not(:has(.tool-page.layout-full.active)) .tool-page {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* 마스코트가 화면 우하단에 고정이라 폰에서는 마지막 요소를 덮는다.
+       마스코트를 치우는 대신(브랜드 요소) 콘텐츠 아래에 그만큼 여백을 준다. */
+    .content-body { padding-bottom: 120px; }
+
+    /* 손가락으로 누르는 크기 확보 — 30px 짜리 버튼은 폰에서 자주 빗나간다 */
+    .btn { min-height: 40px; padding: 9px 14px; }
+    .tool-chip { min-height: 38px; padding: 9px 14px; }
+    .header-logo { min-height: 40px; }
+    input[type="text"], input[type="password"], input[type="date"], select, textarea { min-height: 42px; }
+
     .header-nav { display: none !important; }
     .main-content { margin-left: 0; }
     .header-bar {
