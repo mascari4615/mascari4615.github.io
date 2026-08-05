@@ -46,6 +46,8 @@ const Toolbox = (() => {
     // 카테고리(tool/lab/play) 로 분류 + `desktopOnly: true` 플래그로 브라우저 hide.
     const CATEGORIES = [
         { id: 'tool', label: '도구', icon: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.15a2.1 2.1 0 0 1-3-3l6.72-6.72a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
+        // TASK-KL-088: 자료 = 입력·출력이 아니라 「찾아보고 눌러 복사」 하는 표 (특수문자·코드표 등).
+        { id: 'ref', label: '자료', icon: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7h7M8 11h7M8 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' },
         { id: 'play', label: '놀이', icon: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/>' },
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];

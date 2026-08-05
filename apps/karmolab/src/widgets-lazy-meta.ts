@@ -310,6 +310,73 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/colorconv']
   },
 
+  {
+    id: 'asciiart',
+    title: '이미지 → 아스키 아트',
+    category: 'tool',
+    desc: '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절',
+    layout: 'full',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/asciiart']
+  },
+
+  /* ───── 자료 (ref) — 찾아보고 눌러 복사하는 표 (TASK-KL-088) ─────
+   * 전부 ref/reftable 의 공용 렌더러를 먼저 로드한다 (keycode 만 자체 UI). */
+  {
+    id: 'specialchar',
+    title: '특수문자 모음',
+    category: 'ref',
+    desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
+    layout: 'full',
+    icon: '<path d="M5 7h6M8 4v6M15 5l4 4M19 5l-4 4M7 15h4M9 13v4M15 15h4M15 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/specialchar']
+  },
+  {
+    id: 'ascii',
+    title: 'ASCII 코드표',
+    category: 'ref',
+    desc: '0~127 ASCII 문자의 10진·16진·2진 값과 제어문자 의미를 한 표에서 봅니다',
+    layout: 'full',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.4"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/ascii']
+  },
+  {
+    id: 'htmlentity',
+    title: 'HTML 특수문자',
+    category: 'ref',
+    desc: '&amp;nbsp; &amp;lt; &amp;copy; 같은 HTML 엔티티 코드를 문자와 함께 찾아 복사합니다',
+    layout: 'full',
+    icon: '<path d="M9 7 4 12l5 5M15 7l5 5-5 5M13 4l-2 16" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/htmlentity']
+  },
+  {
+    id: 'httpstatus',
+    title: 'HTTP 상태 코드',
+    category: 'ref',
+    desc: '200·301·403·404·500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표',
+    layout: 'full',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v6M12 16v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/httpstatus']
+  },
+  {
+    id: 'colorname',
+    title: 'CSS 색상 이름표',
+    category: 'ref',
+    desc: 'CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다',
+    layout: 'full',
+    icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="7" r="1.2" fill="currentColor"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/colorname']
+  },
+  {
+    id: 'keycode',
+    title: '키보드 이벤트 코드',
+    category: 'ref',
+    desc: '키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다',
+    layout: 'form',
+    icon: '<rect x="2" y="6" width="20" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/keycode']
+  },
+
   /* ───── 잡동사니 (Stash) — TASK-KL-034 ─────
    * 사이드바 hide (hidden: true). 「잡동사니」 위젯 안에서 inline render + 자동 작동.
    * 직접 진입 (Toolbox.switchPage) 가능. 21 개 dead 위젯 자산 보존. */

@@ -13,6 +13,7 @@ import type {
   KarmoLabImageGenNamespace,
   KarmoLabLazyWidgetStub,
   KarmoWorldNamespace,
+  RefTableAPI,
   RandomGenTopic as _RandomGenTopic
 } from './karmolab';
 
@@ -38,6 +39,8 @@ declare global {
     KARMOLAB_ENTRY_TOOL?: string;
     /** 상세 페이지가 존재하는 도구 id 목록 — 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
     KARMOLAB_TOOL_PAGES?: string[];
+    /** 자료표 공용 렌더러 — widgets/ref/reftable.ts (TASK-KL-088) */
+    RefTable?: RefTableAPI;
     /** tools/hangulkey.ts — 변환 함수 노출 (스모크 테스트 + 다른 위젯 재사용) */
     KarmoHangulKey?: { engToKor: (s: string) => string; korToEng: (s: string) => string };
 
