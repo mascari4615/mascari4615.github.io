@@ -6,6 +6,10 @@
 /* ── Design Tokens ── */
 
 :root {
+    /* 브라우저가 직접 그리는 것들(날짜 선택 달력 아이콘·숫자 증감 화살표·기본 스크롤바)에게
+       지금 테마를 알려 준다. 안 알려 주면 어두운 화면에 검은 아이콘이 얹혀 안 보인다. */
+    color-scheme: dark;
+
     /* Observatory (관측실) 다크 베이스 — body는 무채색 어두움, 카드/패널은 paper/ink 톤 유지 */
     --bg-void: #08080a;        /* night sky — body 배경, 무채색 */
     --bg-primary: #12151c;     /* paper */
@@ -91,6 +95,8 @@
 /* ── Light Theme ── */
 
 [data-theme="light"] {
+    color-scheme: light;
+
     /* Observatory paper — warm cream paper, dark ink, burnt sienna accent */
     --bg-void: #ebe1c6;        /* parchment shadow */
     --bg-primary: #f4eee0;     /* paper */
@@ -1106,7 +1112,13 @@ body:has(#page-home.active) .mdd-container .mdd-char {
 }
 .field-row { display: flex; align-items: center; justify-content: space-between; }
 
-textarea, input[type="password"], input[type="text"] {
+/* number·date·url·search 가 빠져 있어서 그 칸들만 브라우저 기본 모양(밝은 배경·낮은 높이)으로
+   튀었다. :not() 으로 뒤집으면 특이도가 부풀어 위젯의 클래스 규칙(폭 지정 등)을 이겨 버리므로,
+   타입을 그대로 열거해 특이도를 유지한다. 새 타입을 쓰면 여기 한 줄 추가. */
+textarea,
+input[type="text"], input[type="password"], input[type="number"], input[type="search"],
+input[type="url"], input[type="email"], input[type="tel"],
+input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] {
     width: 100%;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -1119,7 +1131,10 @@ textarea, input[type="password"], input[type="text"] {
     transition: all var(--transition);
     resize: vertical;
 }
-textarea:focus, input[type="password"]:focus, input[type="text"]:focus {
+textarea:focus,
+input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, input[type="search"]:focus,
+input[type="url"]:focus, input[type="email"]:focus, input[type="tel"]:focus,
+input[type="date"]:focus, input[type="time"]:focus, input[type="datetime-local"]:focus, input[type="month"]:focus {
     border-color: var(--accent);
     border-left-color: var(--accent);
     background: var(--bg-tertiary);

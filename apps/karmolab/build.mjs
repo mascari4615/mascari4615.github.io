@@ -186,6 +186,9 @@ const entryPoints = [
   'src/widgets/tools/percent.ts',
   'src/widgets/tools/interest.ts',
   'src/widgets/tools/urlparse.ts',
+  'src/widgets/tools/caseconv.ts',
+  'src/widgets/tools/jwt.ts',
+  'src/widgets/tools/cron.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/specialchar.ts',
