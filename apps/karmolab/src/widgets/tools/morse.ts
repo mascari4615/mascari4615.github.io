@@ -72,6 +72,120 @@
     return out.join(' ');
   }
 
+  /** 겹모음·겹받침 합치기 — decompose 의 역방향 */
+  const JOIN: Record<string, string> = {};
+  Object.keys(SPLIT).forEach((k) => {
+    if (SPLIT[k].length === 2) JOIN[SPLIT[k]] = k;
+  });
+
+  /**
+   * 자모 나열 → 완성형 한글.
+   *
+   * 모스는 자모 단위라 풀면 「ㅇㅏㄴㄴㅕㅇ」 이 나온다 — 원리상 맞지만 읽히지 않는다.
+   * 받침이 다음 글자의 첫소리가 될 수 있어서(안+녕), **다음 자모를 보고 나서** 확정한다.
+   */
+  function compose(jamo: string[]): string {
+    const out: string[] = [];
+    let cho = -1;
+    let jung = -1;
+    let jong = 0;
+
+    const flush = (): void => {
+      if (cho < 0) return;
+      if (jung < 0) {
+        out.push(CHO[cho]); // 홀소리 없이 끝난 닿소리는 그대로
+      } else {
+        out.push(String.fromCharCode(0xac00 + cho * 588 + jung * 28 + jong));
+      }
+      cho = -1;
+      jung = -1;
+      jong = 0;
+    };
+
+    for (let i = 0; i < jamo.length; i++) {
+      const j = jamo[i];
+      if (j === ' ') {
+        flush();
+        out.push(' ');
+        continue;
+      }
+      const isVowel = JUNG.indexOf(j) >= 0;
+
+      if (isVowel) {
+        if (jung >= 0 && jong === 0) {
+          // 겹모음 (ㅗ + ㅏ → ㅘ)
+          const merged = JOIN[JUNG[jung] + j];
+          if (merged && JUNG.indexOf(merged) >= 0) {
+            jung = JUNG.indexOf(merged);
+            continue;
+          }
+        }
+        if (jong !== 0) {
+          // 받침인 줄 알았던 게 실은 다음 글자의 첫소리였다 (안 + ㄴ + ㅕ → 안녕).
+          // 겹받침이었다면 뒷자만 넘어간다 (학 + ㄲ + ㅛ → 학교, 앉 + ㅈ + ㅏ 아님).
+          const tail = JONG[jong];
+          const pair = SPLIT[tail];
+          let moved = tail;
+          if (pair) {
+            jong = JONG.indexOf(pair[0]);
+            moved = pair[1];
+          } else {
+            jong = 0;
+          }
+          flush();
+          cho = CHO.indexOf(moved);
+          jung = JUNG.indexOf(j);
+          continue;
+        }
+        if (jung >= 0) flush();
+        if (cho < 0) {
+          out.push(j); // 첫소리 없는 홀소리
+          continue;
+        }
+        jung = JUNG.indexOf(j);
+        continue;
+      }
+
+      // 닿소리
+      if (cho < 0) {
+        cho = CHO.indexOf(j);
+        if (cho < 0) out.push(j);
+        continue;
+      }
+      if (jung < 0) {
+        // 홀소리 없이 닿소리가 겹치면 된소리다 (ㄱ + ㄱ → ㄲ). 모스에는 된소리 부호가 없다.
+        const twin = JOIN[CHO[cho] + j];
+        if (twin && CHO.indexOf(twin) >= 0) {
+          cho = CHO.indexOf(twin);
+          continue;
+        }
+        flush();
+        cho = CHO.indexOf(j);
+        continue;
+      }
+      if (jong === 0) {
+        const k = JONG.indexOf(j);
+        if (k > 0) {
+          jong = k;
+          continue;
+        }
+        flush();
+        cho = CHO.indexOf(j);
+        continue;
+      }
+      // 겹받침 (ㄹ + ㄱ → ㄺ)
+      const merged = JOIN[JONG[jong] + j];
+      if (merged && JONG.indexOf(merged) > 0) {
+        jong = JONG.indexOf(merged);
+        continue;
+      }
+      flush();
+      cho = CHO.indexOf(j);
+    }
+    flush();
+    return out.join('');
+  }
+
   function decode(code: string, korean: boolean): string {
     const table = korean ? KO : EN;
     const rev: Record<string, string> = {};
@@ -82,15 +196,18 @@
     return code
       .trim()
       .split(/\s*\/\s*/)
-      .map((word) =>
-        word
+      .map((word) => {
+        const letters = word
           .split(/\s+/)
           .filter(Boolean)
-          .map((sym) => rev[sym] ?? '?')
-          .join('')
-      )
+          .map((sym) => rev[sym] ?? '?');
+        return korean ? compose(letters) : letters.join('');
+      })
       .join(' ');
   }
+
+  // 자모 조립·부호 표가 이 도구의 존재 이유라 값으로 검증한다 (scripts/smoke-tools.mjs).
+  window.KarmoMorse = { encode, decode };
 
   Toolbox.register({
     id: 'morse',
@@ -162,7 +279,14 @@
             const out = decode(codeEl.value, korean);
             textEl.value = out;
             syncing = false;
-            setStatus(out.includes('?') ? '표에 없는 부호가 섞여 있어 ? 로 뒀어요.' : '읽었습니다.', out.includes('?') ? '' : 'ok');
+            setStatus(
+              out.includes('?')
+                ? '표에 없는 부호가 섞여 있어 ? 로 뒀어요.'
+                : korean
+                  ? '읽었습니다. 한글 모스는 자모만 보내서 「어쓰」와 「엇스」처럼 갈래가 갈리는 자리가 있어요.'
+                  : '읽었습니다.',
+              out.includes('?') ? '' : 'ok'
+            );
             Toolbox.trackUse?.('decode');
           });
 
