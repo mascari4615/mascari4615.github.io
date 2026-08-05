@@ -389,7 +389,8 @@ const Mdd = (() => {
             .mdd-char img { width:100%; height:100%; object-fit:contain; display:block; pointer-events:none; -webkit-user-drag:none; user-drag:none; }
             .mdd-bounce { animation:mdd-bounce 0.3s ease; }
             @keyframes mdd-bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 70%{transform:translateY(-3px)} }
-            @media(max-width:768px){ .mdd-container{bottom:8px;right:8px} .mdd-char{width:72px;height:79px} .mdd-bubble{font-size:var(--font-size-2xs);max-width:140px;padding:5px 8px} }
+            /* 폰에서는 마스코트를 띄우지 않는다 — 화면이 좁아 버튼·입력을 가린다 (사용자 결정 2026-08-06). PC 전용. */
+            @media(max-width:768px){ .mdd-container{display:none} }
         `);
 
         container = document.createElement('div');
