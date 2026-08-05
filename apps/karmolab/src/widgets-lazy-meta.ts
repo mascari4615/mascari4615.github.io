@@ -189,6 +189,127 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['alarm']
   },
 
+  /* ───── 실용 도구 (TASK-KL-088) ─────
+   * 검색 유입 1급 대상. 각 항목은 data/tools-seo.json 에 같은 id 의 SEO 문안이 있어야 하고,
+   * scripts/gen-tool-pages.mjs 가 /karmolab/t/<id>/ 정적 페이지를 만든다 (짝 없으면 빌드 실패). */
+  {
+    id: 'charcount',
+    title: '글자수 세기',
+    category: 'tool',
+    desc: '공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다',
+    layout: 'form',
+    icon: '<path d="M4 7V5h16v2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/charcount']
+  },
+  {
+    id: 'jsonfmt',
+    title: 'JSON 포맷터',
+    category: 'tool',
+    desc: 'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다',
+    layout: 'full',
+    icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M15 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/jsonfmt']
+  },
+  {
+    id: 'hangulkey',
+    title: '한영타 변환',
+    category: 'tool',
+    desc: '한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)',
+    layout: 'form',
+    icon: '<rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h2M11 10h2M16 10h2M7 14h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/hangulkey']
+  },
+  {
+    id: 'qrgen',
+    title: 'QR 코드 생성',
+    category: 'tool',
+    desc: 'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다',
+    layout: 'form',
+    icon: '<rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/qrgen']
+  },
+  {
+    id: 'lotto',
+    title: '로또 번호 생성',
+    category: 'tool',
+    desc: '1~45 로또 번호를 원하는 게임 수만큼 뽑습니다. 제외수·고정수·홀짝 조건 지원',
+    layout: 'form',
+    icon: '<circle cx="8" cy="9" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="15" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7v4M6 9h4" stroke="currentColor" stroke-width="1.4"/>',
+    lazyScriptPaths: ['tools/lotto']
+  },
+  {
+    id: 'timer',
+    title: '타이머 · 스톱워치',
+    category: 'tool',
+    desc: '카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 9v4l3 2M9 2h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/timer']
+  },
+  {
+    id: 'datecalc',
+    title: '날짜 계산기 · D-Day',
+    category: 'tool',
+    desc: '두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다',
+    layout: 'form',
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/datecalc']
+  },
+  {
+    id: 'unitconv',
+    title: '단위 변환',
+    category: 'tool',
+    desc: '길이·무게·넓이(평)·부피·온도·데이터·속도·시간을 서로 변환합니다',
+    layout: 'form',
+    icon: '<path d="M3 8h13l-3-3M21 16H8l3 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/unitconv']
+  },
+  {
+    id: 'hashgen',
+    title: '해시 생성기',
+    category: 'tool',
+    desc: '텍스트나 파일의 MD5·SHA-1·SHA-256·SHA-512 해시(체크섬)를 브라우저에서 계산합니다',
+    layout: 'form',
+    icon: '<path d="M9 3L7 21M17 3l-2 18M4 8h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/hashgen']
+  },
+  {
+    id: 'uuidgen',
+    title: 'UUID 생성기',
+    category: 'tool',
+    desc: 'UUID v4·v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다',
+    layout: 'form',
+    icon: '<rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h2M11 12h2M15 12h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/uuidgen']
+  },
+  {
+    id: 'textdiff',
+    title: '텍스트 비교',
+    category: 'tool',
+    desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
+    layout: 'full',
+    icon: '<path d="M4 4h7v16H4zM13 4h7v16h-7z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 13h3M15 11h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/textdiff']
+  },
+  {
+    id: 'regextest',
+    title: '정규식 테스터',
+    category: 'tool',
+    desc: '정규표현식을 실시간으로 시험하고 매치·그룹·치환 결과를 확인합니다',
+    layout: 'full',
+    icon: '<path d="M12 4v16M5 8l14 8M19 8L5 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/regextest']
+  },
+  {
+    id: 'colorconv',
+    title: '색상 변환',
+    category: 'tool',
+    desc: 'HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/colorconv']
+  },
+
   /* ───── 잡동사니 (Stash) — TASK-KL-034 ─────
    * 사이드바 hide (hidden: true). 「잡동사니」 위젯 안에서 inline render + 자동 작동.
    * 직접 진입 (Toolbox.switchPage) 가능. 21 개 dead 위젯 자산 보존. */

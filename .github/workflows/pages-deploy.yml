@@ -95,6 +95,12 @@ jobs:
           mkdir -p apps/blog/karmolab
           cp apps/karmolab/index.html apps/blog/karmolab/index.html
 
+      # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
+      # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
+      - name: Generate KarmoLab tool pages
+        working-directory: apps/karmolab
+        run: npm run gen:tool-pages
+
       - name: Build site
         working-directory: apps/blog
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"

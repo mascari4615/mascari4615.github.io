@@ -42,17 +42,17 @@ permalink: /karmolab/
       }
     })();
     </script>
-    <meta name="description" content="AI 챗봇, 이미지 생성·편집, 암호화, 랜덤 생성기 등 유틸리티와 미니게임을 모은 KarmoLab. 삶을 섞고 술을 바꿀 시간.">
-    <link rel="canonical" href="https://mascari4615.github.io/karmolab/">
+    <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
+    <link rel="canonical" href="https://blog.mascari4615.com/karmolab/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="KarmoLab">
-    <meta property="og:description" content="AI 챗봇, 이미지 생성·편집, 암호화, 랜덤 생성기 등 유틸리티와 미니게임을 모은 KarmoLab. 삶을 섞고 술을 바꿀 시간.">
-    <meta property="og:url" content="https://mascari4615.github.io/karmolab/">
-    <meta property="og:image" content="https://mascari4615.github.io/apps/karmolab/img/favicon.ico">
+    <meta property="og:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
+    <meta property="og:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
+    <meta property="og:url" content="https://blog.mascari4615.com/karmolab/">
+    <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/favicon.ico">
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="KarmoLab">
-    <meta name="twitter:description" content="AI 챗봇, 이미지 생성·편집, 암호화, 랜덤 생성기 등 유틸리티와 미니게임을 모은 KarmoLab. 삶을 섞고 술을 바꿀 시간.">
+    <meta name="twitter:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
+    <meta name="twitter:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,6 +60,7 @@ permalink: /karmolab/
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">
+    <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
     <link id="prism-css" rel="stylesheet" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
 (function(){
@@ -124,6 +125,11 @@ permalink: /karmolab/
                     <div id="sidebar-nav"></div>
                 </nav>
                 <div class="sidebar-footer">
+                    <!-- 정적 앵커 — 크롤러가 도구 상세 페이지(/karmolab/t/*)로 들어오는 입구 (TASK-KL-088) -->
+                    <a href="/karmolab/t/" class="sidebar-dev-links" title="도구 전체 목록" aria-label="도구 전체 목록">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">≡</span>
+                        <span class="sidebar-dev-links-text">도구 전체 목록</span>
+                    </a>
                     <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">i</span>
                         <span class="sidebar-dev-links-text">누가 만들었나요?</span>
@@ -139,6 +145,8 @@ permalink: /karmolab/
                     <div><div class="breadcrumb" id="breadcrumb"></div><h1 class="content-title" id="pageTitle"></h1></div>
                 </div>
                 <div class="content-body" id="tool-pages"></div>
+                <!-- KARMOLAB_TOOL_SEO — gen-tool-pages.mjs 가 도구 상세 페이지에서만 이 자리에
+                     서버 렌더 설명(h1·사용법·FAQ·관련 도구)을 채운다. /karmolab/ 본체에서는 빈 주석. -->
             </main>
         </div>
     </div>

@@ -805,6 +805,9 @@ const Toolbox = (() => {
         });
 
         const hashPage = location.hash ? location.hash.slice(1) : null;
+        // TASK-KL-088: /karmolab/t/<id>/ 도구 상세 페이지가 심는 진입 위젯.
+        // 있으면 해시·마지막 페이지보다 우선하고, URL 에 해시를 덧붙이지 않는다.
+        const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
         const isValidPage = (id) => {
             if (id === 'home' || id === 'user') return true;
@@ -813,12 +816,16 @@ const Toolbox = (() => {
             if (isDesktopOnlyTool(t) && !isDesktopApp()) return false;
             return true;
         };
-        const initialPage = (hashPage && isValidPage(hashPage))
-            ? hashPage
-            : (lastPage && isValidPage(lastPage) ? lastPage : 'home');
+        const initialPage = (entryTool && isValidPage(entryTool))
+            ? entryTool
+            : (hashPage && isValidPage(hashPage))
+                ? hashPage
+                : (lastPage && isValidPage(lastPage) ? lastPage : 'home');
 
         switchPage(initialPage, { pushHistory: false });
-        history.replaceState({ pageId: initialPage }, '', location.pathname + (location.search || '') + '#' + initialPage);
+        if (!entryTool) {
+            history.replaceState({ pageId: initialPage }, '', location.pathname + (location.search || '') + '#' + initialPage);
+        }
 
         window.addEventListener('popstate', () => {
             const pageId = pageIdFromHash();
@@ -856,6 +863,11 @@ const Toolbox = (() => {
                     <div class="landing-cta-card-title">즐겨찾기</div>
                     <div class="landing-cta-card-desc">자주 쓰는 도구를 모아봐요</div>
                 </button>
+                <a class="landing-cta-card" href="/karmolab/t/">
+                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+                    <div class="landing-cta-card-title">도구 목록</div>
+                    <div class="landing-cta-card-desc">도구마다 설명이 있는 페이지</div>
+                </a>
                 <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
                     <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
                     <div class="landing-cta-card-title">문서</div>
@@ -879,6 +891,18 @@ const Toolbox = (() => {
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
         let { pushHistory = true } = opts;
+
+        // TASK-KL-088: 도구 상세 페이지(/karmolab/t/<id>/)에서 다른 도구로 옮기면
+        // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목·
+        // 설명이 이전 도구 것으로 남아 URL 과 내용이 어긋난다.
+        const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
+        if (entryTool && pageId !== entryTool) {
+            const pages = (typeof window !== 'undefined' && window.KARMOLAB_TOOL_PAGES) || [];
+            location.href = pageId === 'home'
+                ? '/karmolab/'
+                : (pages.indexOf(pageId) >= 0 ? '/karmolab/t/' + pageId + '/' : '/karmolab/#' + pageId);
+            return;
+        }
         const base = location.pathname + (location.search || '');
         const denied = tools.find(t => t.id === pageId);
         if (denied && isDesktopOnlyTool(denied) && !isDesktopApp()) {

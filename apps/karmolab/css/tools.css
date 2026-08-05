@@ -1,0 +1,361 @@
+/* ═══════════════════════════════════════
+   실용 도구 위젯 공통 (TASK-KL-088)
+   toolbox.css 의 변수·컴포넌트 위에 얹는 레이어.
+   여기 정의된 클래스만 tools/*.ts 위젯이 쓴다.
+   ═══════════════════════════════════════ */
+
+/* ── 통계 타일 ── */
+.cc-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: var(--space-lg);
+}
+.cc-stat {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--border);
+    padding: 10px 12px;
+}
+.cc-stat-primary { border-left-color: var(--accent); }
+.cc-stat-label {
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    margin-bottom: 4px;
+}
+.cc-stat-value {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+.cc-stat-primary .cc-stat-value { color: var(--accent); }
+
+/* ── 상태 줄 ── */
+.tool-status {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.tool-status.ok { color: var(--success); }
+.tool-status.error { color: var(--error); }
+
+.tool-sublabel {
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── 레이아웃 ── */
+.tool-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+.tool-split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+}
+.tool-split-pane { display: flex; flex-direction: column; min-width: 0; }
+
+/* ── 칩 ── */
+.tool-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tool-chip {
+    padding: 6px 12px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tool-chip:hover { color: var(--accent); border-color: var(--accent-dim); }
+.tool-chip.active {
+    color: var(--accent);
+    background: var(--accent-subtle);
+    border-color: var(--accent);
+}
+
+/* ── key/value 목록 ── */
+.tool-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    max-height: 420px;
+    overflow-y: auto;
+}
+.tool-list:empty { display: none; }
+.tool-list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--font-size-xs);
+}
+.tool-list-row:last-child { border-bottom: none; }
+.tool-list-key {
+    flex: none;
+    min-width: 108px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+}
+.tool-list-val {
+    flex: 1;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    word-break: break-all;
+    min-width: 0;
+}
+.tool-list-dim { color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+.cc-copy-row { cursor: pointer; }
+.cc-copy-row:hover { background: var(--accent-subtle); }
+
+/* ── 큰 숫자 디스플레이 (타이머·D-Day) ── */
+.tool-display {
+    font-family: var(--font-mono);
+    font-size: clamp(40px, 12vw, 84px);
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    padding: 18px 0 24px;
+}
+.tool-display-done { color: var(--error); animation: pulse-dot 1s ease-in-out infinite; }
+
+/* ── 파일 드롭 ── */
+.tool-drop {
+    border: 1px dashed var(--border);
+    background: var(--bg-secondary);
+    padding: 26px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+.tool-drop.over { border-color: var(--accent); background: var(--accent-subtle); }
+
+/* ── 로또 ── */
+.lt-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+.lt-index {
+    flex: none;
+    width: 56px;
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+}
+.lt-balls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lt-ball {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+    color: #1a1a1a;
+    box-shadow: inset -2px -3px 4px rgba(0, 0, 0, 0.25);
+}
+.lt-ball-bonus { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+.lt-plus { color: var(--text-tertiary); font-weight: 700; }
+
+/* ── 텍스트 비교 ── */
+.td-out {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    max-height: 520px;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+}
+.td-row { display: flex; align-items: flex-start; gap: 0; line-height: 1.6; }
+.td-num {
+    flex: none;
+    width: 44px;
+    padding: 0 6px;
+    text-align: right;
+    color: var(--text-tertiary);
+    opacity: 0.7;
+    user-select: none;
+}
+.td-sign { flex: none; width: 18px; text-align: center; opacity: 0.8; }
+.td-text { flex: 1; white-space: pre-wrap; word-break: break-all; padding-right: 10px; }
+.td-add { background: rgba(60, 200, 120, 0.12); color: var(--success); }
+.td-del { background: rgba(240, 90, 90, 0.12); color: var(--error); }
+.td-same { color: var(--text-secondary); }
+
+/* ── 정규식 ── */
+.rx-highlight {
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    padding: 12px;
+    min-height: 90px;
+    max-height: 320px;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text-secondary);
+}
+.rx-mark {
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+/* ── 색상 ── */
+.cc-swatch-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+}
+.cc-swatch {
+    border: 1px solid var(--border);
+    padding: 14px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    font-size: var(--font-size-2xs);
+    font-weight: 600;
+    transition: transform var(--transition);
+}
+.cc-swatch:hover { transform: translateY(-2px); }
+.cc-swatch-hex { font-family: var(--font-mono); opacity: 0.9; }
+.cc-contrast {
+    padding: 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ═══════════════════════════════════════
+   도구 상세 페이지 SEO 블록 (/karmolab/t/<id>/)
+   크롤러가 첫 HTML 에서 읽고, 사용자에게도 그대로 보인다 (숨김 X).
+   ═══════════════════════════════════════ */
+.tool-seo {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 8px 20px 72px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: var(--font-size-sm);
+}
+.tool-seo h1 {
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
+    margin: 0 0 6px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+.tool-seo h2 {
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    margin: 40px 0 14px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.tool-seo p { margin: 0 0 12px; }
+.tool-seo ol, .tool-seo ul { margin: 0; padding-left: 20px; }
+.tool-seo li { margin-bottom: 8px; }
+.tool-seo .tool-seo-lead { margin-bottom: 4px; }
+.tool-seo-sep {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 44px 0 0;
+}
+.tool-seo-related {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+}
+.tool-seo-related a {
+    display: block;
+    padding: 13px 15px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    transition: background var(--transition);
+}
+.tool-seo-related a:hover { background: var(--bg-tertiary); color: var(--accent); }
+.tool-seo-related a span { display: block; color: var(--text-tertiary); margin-top: 4px; line-height: 1.55; }
+.tool-seo-faq dt { color: var(--text-primary); margin-top: 20px; font-weight: 600; }
+.tool-seo-faq dt:first-child { margin-top: 0; }
+.tool-seo-faq dd { margin: 6px 0 0; padding-left: 0; }
+.tool-seo-crumb {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+}
+.tool-seo-crumb a { color: var(--text-tertiary); text-decoration: none; }
+.tool-seo-crumb a:hover { color: var(--accent); }
+.tool-seo-note {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    line-height: 1.7;
+}
+.tool-seo-note a { color: var(--text-secondary); }
+
+/* 허브 (/karmolab/t/) */
+.tool-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+.tool-hub-card {
+    display: block;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent-dim);
+    text-decoration: none;
+    transition: all var(--transition);
+}
+.tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
+.tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); margin-bottom: 5px; }
+.tool-hub-card span { color: var(--text-tertiary); font-size: var(--font-size-xs); line-height: 1.6; }
