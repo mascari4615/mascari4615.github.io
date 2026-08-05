@@ -502,6 +502,37 @@
     color: var(--text-primary);
 }
 
+/* 퍼센트 계산기 — 질문 문장 안에 입력칸이 박힌다 */
+.pc-row { margin-bottom: var(--space-md); }
+.pc-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+.pc-num {
+    width: 120px;
+    min-width: 90px;
+    flex: none;
+    margin: 0;
+}
+.pc-text { white-space: nowrap; }
+.pc-out {
+    margin-top: 8px;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--bg-tertiary);
+    border-left: 3px solid var(--accent);
+    cursor: pointer;
+    word-break: break-all;
+}
+.pc-out:hover { background: var(--accent-subtle); }
+
 /* 사다리타기 */
 .ld-stage {
     margin-bottom: var(--space-lg);
