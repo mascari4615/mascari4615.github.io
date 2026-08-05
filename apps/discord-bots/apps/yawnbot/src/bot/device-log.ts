@@ -269,7 +269,8 @@ function viewerHtml(token: string): string {
   header { position:sticky; top:0; background:#191b25; border-bottom:1px solid #2c2f3d; padding:8px 10px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
   select, input, button { background:#22242f; color:#e6e6ef; border:1px solid #363a4a; border-radius:6px; padding:6px 8px; font:inherit; }
   button.on { background:#3d6fe0; border-color:#3d6fe0; }
-  #meta { margin-left:auto; opacity:.7; font-size:12px; }
+  #build { margin-left:auto; opacity:.85; font-size:12px; color:#8fd3ff; }
+  #meta { opacity:.7; font-size:12px; margin-left:10px; }
   #log { padding:8px 10px; white-space:pre-wrap; word-break:break-word; }
   .l { padding:2px 0; border-bottom:1px solid #1d1f2a; }
   .t { opacity:.45; }
@@ -287,6 +288,7 @@ function viewerHtml(token: string): string {
   <button id="f-err">에러만</button>
   <input id="q" placeholder="검색" size="10">
   <button id="auto" class="on">자동 갱신</button>
+  <span id="build"></span>
   <span id="meta">…</span>
 </header>
 <div id="log">불러오는 중…</div>
@@ -294,7 +296,7 @@ function viewerHtml(token: string): string {
 const TOKEN = ${tokenJson};
 const qs = (p) => { const u = new URLSearchParams(p); if (TOKEN) u.set('t', TOKEN); return u.toString(); };
 let onlyError = false, auto = true;
-const el = { log: document.getElementById('log'), meta: document.getElementById('meta'), session: document.getElementById('session'), q: document.getElementById('q') };
+const el = { log: document.getElementById('log'), meta: document.getElementById('meta'), build: document.getElementById('build'), session: document.getElementById('session'), q: document.getElementById('q') };
 
 document.getElementById('f-all').onclick = (e) => { onlyError = false; e.target.classList.add('on'); document.getElementById('f-err').classList.remove('on'); load(); };
 document.getElementById('f-err').onclick = (e) => { onlyError = true; e.target.classList.add('on'); document.getElementById('f-all').classList.remove('on'); load(); };
@@ -307,9 +309,14 @@ async function loadSessions() {
   if (!res.ok) { el.meta.textContent = '세션 조회 실패 ' + res.status; return; }
   const data = await res.json();
   const current = el.session.value;
+  // 세션 이름만으론 「어느 빌드였나」를 모른다 — 폰에 여러 빌드를 깔아 비교하는 게 목적이므로
+  // 빌드 라벨을 목록에 함께 띄운다 (WM-201: 화면 구석 표시기와 같은 글자).
   el.session.innerHTML = data.sessions.map(s =>
-    '<option value="' + s.session + '">' + s.session + (s.device ? ' · ' + s.device : '') + '</option>').join('');
+    '<option value="' + s.session + '">' + s.session +
+    (s.build ? ' · ' + s.build : '') + (s.device ? ' · ' + s.device : '') + '</option>').join('');
   if (current) el.session.value = current;
+  const picked = data.sessions.find(s => s.session === (el.session.value || ''));
+  el.build.textContent = picked && picked.build ? picked.build : '';
 }
 
 async function load() {
