@@ -6,6 +6,7 @@ import path from 'path';
 
 import {
   DEFAULT_LIMITS,
+  deleteSession,
   appendBatch,
   errorFingerprint,
   isErrorLevel,
@@ -173,6 +174,16 @@ describe('pruneSessions', () => {
     const result = pruneSessions(dir, { ...DEFAULT_LIMITS, maxTotalBytes: 700 });
     expect(result.removed).toEqual(['a1']);
     expect(listSessions(dir).map((s) => s.session)).toEqual(['b2']);
+  });
+});
+
+describe('deleteSession', () => {
+  it('시험용 세션을 지우고, 없는 세션·경로조작은 false', () => {
+    appendBatch(dir, { session: 'smoke', lines: [line('a')] });
+    expect(deleteSession(dir, 'smoke')).toBe(true);
+    expect(listSessions(dir)).toEqual([]);
+    expect(deleteSession(dir, 'smoke')).toBe(false);
+    expect(deleteSession(dir, '../evil')).toBe(false);
   });
 });
 

@@ -25,6 +25,7 @@ import {
   appendBatch,
   errorFingerprint,
   isErrorLevel,
+  deleteSession,
   listSessions,
   parseBatch,
   pruneSessions,
@@ -167,6 +168,18 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
     res
       .type('text/plain; charset=utf-8')
       .send(`# session=${session} lines=${lines.length}${levels ? ` level=${levels.join(',')}` : ''}\n${body}\n`);
+  });
+
+  // 시험용 세션 청소 — 스모크로 넣은 줄이 목록 맨 위를 계속 차지하면
+  // 「최근 = 진짜 폰」 이라는 읽기가 깨진다.
+  app.delete('/device-log/session/:name', (req: Request, res: Response) => {
+    if (!authorized(req)) {
+      res.sendStatus(401);
+      return;
+    }
+    const name = String(req.params.name ?? '');
+    const removed = deleteSession(dir, name);
+    res.status(removed ? 200 : 404).json({ ok: removed, session: name });
   });
 
   app.get('/device-log', (req: Request, res: Response) => {
