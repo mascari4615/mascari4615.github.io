@@ -183,6 +183,9 @@ const entryPoints = [
   'src/widgets/tools/textclean.ts',
   'src/widgets/tools/ladder.ts',
   'src/widgets/tools/palette.ts',
+  'src/widgets/tools/percent.ts',
+  'src/widgets/tools/interest.ts',
+  'src/widgets/tools/urlparse.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/specialchar.ts',
@@ -193,6 +196,9 @@ const entryPoints = [
   'src/widgets/ref/keycode.ts',
   'src/widgets/ref/emoji.ts',
   'src/widgets/ref/markdown.ts',
+  'src/widgets/ref/gitcmd.ts',
+  'src/widgets/ref/filetype.ts',
+  'src/widgets/ref/shortcut.ts',
   'src/widgets-manifest.ts',
   'src/widgets-lazy-meta.ts',
   'src/widgets-loader.ts'
