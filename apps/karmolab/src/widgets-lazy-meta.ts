@@ -409,6 +409,33 @@ window.KARMOLAB_LAZY_META = [
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 4l2 2M21 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/cron']
   },
+  {
+    id: 'worldclock',
+    title: '세계 시간 · 시차',
+    category: 'tool',
+    desc: '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18" stroke="currentColor" stroke-width="1.4" fill="none"/>',
+    lazyScriptPaths: ['tools/worldclock']
+  },
+  {
+    id: 'morse',
+    title: '모스 부호 변환',
+    category: 'tool',
+    desc: '글자를 모스 부호로 바꾸고 부호를 다시 글자로 읽습니다. 한글 모스와 소리·불빛 재생 지원',
+    layout: 'form',
+    icon: '<path d="M3 12h2M8 12h6M17 12h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M3 7h4M10 7h2M15 7h6M3 17h6M12 17h2M17 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/morse']
+  },
+  {
+    id: 'bmi',
+    title: 'BMI 계산기',
+    category: 'tool',
+    desc: '키와 몸무게로 체질량지수를 계산하고 대한비만학회·WHO 두 기준으로 함께 봅니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8v7M9 22l3-7 3 7M7 11h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/bmi']
+  },
 
   /* ───── 자료 (ref) — 찾아보고 눌러 복사하는 표 (TASK-KL-088) ─────
    * 전부 ref/reftable 의 공용 렌더러를 먼저 로드한다 (keycode 만 자체 UI). */
@@ -525,7 +552,6 @@ window.KARMOLAB_LAZY_META = [
   { id: 'hacker', title: '해커', category: 'play', desc: '키보드를 연타해 해커 느낌의 텍스트를 출력합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
   { id: 'hourglass', title: '모래시계', category: 'tool', desc: '모래시계 타이머를 실행합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
   { id: 'moon', title: '문페이즈', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
-  { id: 'morse', title: '모스', category: 'tool', desc: '모스 부호로 인코딩·디코딩합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['morse'] },
   { id: 'news', title: '뉴스', category: 'play', desc: '가짜 뉴스 헤드라인을 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
   { id: 'particle', title: '파티클', category: 'play', desc: '마우스로 파티클을 움직이고 클릭으로 폭발시킵니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
   { id: 'password', title: '비번', category: 'tool', desc: '랜덤 비밀번호를 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },

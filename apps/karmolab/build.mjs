@@ -123,7 +123,6 @@ const entryPoints = [
   'src/widgets/hacker.ts',
   'src/widgets/hourglass.ts',
   'src/widgets/moon.ts',
-  'src/widgets/morse.ts',
   'src/widgets/news.ts',
   'src/widgets/particle.ts',
   'src/widgets/password.ts',
@@ -189,6 +188,9 @@ const entryPoints = [
   'src/widgets/tools/caseconv.ts',
   'src/widgets/tools/jwt.ts',
   'src/widgets/tools/cron.ts',
+  'src/widgets/tools/worldclock.ts',
+  'src/widgets/tools/bmi.ts',
+  'src/widgets/tools/morse.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/specialchar.ts',

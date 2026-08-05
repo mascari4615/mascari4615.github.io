@@ -502,6 +502,20 @@
     color: var(--text-primary);
 }
 
+/* 모스 부호 신호등 */
+.ms-led {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+    transition: background 30ms, box-shadow 30ms;
+}
+.ms-led.on {
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+}
+
 /* 퍼센트 계산기 — 질문 문장 안에 입력칸이 박힌다 */
 .pc-row { margin-bottom: var(--space-md); }
 .pc-line {
