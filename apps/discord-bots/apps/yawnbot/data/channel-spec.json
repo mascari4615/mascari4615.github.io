@@ -39,6 +39,12 @@
 			"topic": "WM 빌드 · 결과 요약과 APK 설치 링크 (노트북 빌드머신)"
 		},
 		{
+			"_doc": "폰 실기 실행 로그 알림 채널 (TASK-WM-201). 전체 로그는 웹 뷰어(/device-log)에 있고, 이 채널엔 *에러급만* 접어서(같은 지문 쿨다운) 올린다. prod 매핑 미설정 시 localDefault 로 폴백하므로 채널을 안 만들어도 알림은 안 끊긴다.",
+			"key": "wm-device-log",
+			"name": "wm-device-log",
+			"topic": "WM 폰 실행 로그 — 에러 알림 (전체 로그는 /device-log 웹)"
+		},
+		{
 			"key": "dashboard",
 			"name": "dashboard",
 			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"

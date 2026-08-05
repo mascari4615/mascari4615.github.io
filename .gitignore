@@ -68,6 +68,9 @@ apps/discord-bots/apps/yawnbot/data/*-state.json
 # 채널 프로비저닝 파생 ID 맵 (정본=channel-spec.json, 본 파일=길드별 런타임 캐시).
 apps/discord-bots/apps/yawnbot/data/provisioned-channels.*.json
 
+# 폰이 밀어 넣은 실행 로그 (TASK-WM-201). 런타임 산출물 — 커밋 대상 아님.
+apps/discord-bots/apps/yawnbot/data/device-logs/
+
 # ── System / OS ──────────────────────────────────────────────────────────────
 *~
 .DS_Store
