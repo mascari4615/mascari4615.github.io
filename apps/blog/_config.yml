@@ -52,6 +52,8 @@ webmaster_verifications:
   alexa: # fill in your Alexa verification code
   yandex: # fill in your Yandex verification code
   baidu: # fill in your Baidu verification code
+  # 네이버는 jekyll-seo-tag 미지원 — _includes/head.html 이 직접 읽어 meta 를 넣는다 (TASK-KL-088)
+  naver: bc02ece3a499e1d43a65a9c6312bac2c0a8e336b
   facebook: # fill in your Facebook verification code
 
 # ↑ --------------------------
