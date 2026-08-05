@@ -1,9 +1,7 @@
 {
-  "$comment": "도구 상세 페이지(/karmolab/t/<id>/) 설명 정본 — TASK-KL-088. key = 위젯 id (widgets-lazy-meta.ts 와 1:1, 짝 없으면 gen-tool-pages.mjs 가 빌드 실패). 톤 = 담백한 사실 서술 (「무료」·「설치 없이」 류 광고 문구 X, meta keywords X — 스팸처럼 읽힘). heading=h1, lead=첫 문단, howto=사용 단계, faq=FAQPage JSON-LD 소스, related=내부 링크(도구 id).",
+  "$comment": "도구 상세 페이지(/karmolab/t/<id>/) 설명 정본 — TASK-KL-088. key = 위젯 id (widgets-lazy-meta.ts 와 1:1, 짝 없으면 gen-tool-pages.mjs 가 빌드 실패). 톤 = 담백한 사실 서술 (「무료」·「설치 없이」 류 광고 문구 X, meta keywords X — 스팸처럼 읽힘). 제목(h1·title)=위젯 매니페스트의 title 단일 정본 — 여기 중복 X. lead=첫 문단, howto=사용 단계, faq=FAQPage JSON-LD 소스, related=내부 링크(도구 id).",
   "tools": {
     "charcount": {
-      "heading": "글자수 세기",
-      "seoTitle": "글자수 세기 — 공백 포함·제외, 바이트, 원고지",
       "description": "공백 포함·제외 글자수, 단어와 문장 수, UTF-8·EUC-KR 바이트, 원고지 매수를 입력하는 동안 계산합니다. 자기소개서처럼 분량 제한이 있는 글은 제한값을 넣으면 남은 글자수를 함께 보여줍니다.",
       "lead": "공백 포함·제외 · 바이트 · 원고지 매수 · 분량 제한 게이지",
       "howto": [
@@ -37,8 +35,6 @@
       ]
     },
     "jsonfmt": {
-      "heading": "JSON 포맷터 · 검증기",
-      "seoTitle": "JSON 포맷터 — 정렬·압축·문법 검사",
       "description": "JSON 을 들여쓰기해 정렬하거나 한 줄로 압축합니다. 문법 오류가 있으면 몇 번째 줄 몇 칸인지 짚어 주고, 키 사전순 정렬과 문자열 이스케이프도 지원합니다.",
       "lead": "정렬 · 압축 · 문법 검사 · 키 사전순 정렬",
       "howto": [
@@ -68,8 +64,6 @@
       ]
     },
     "hangulkey": {
-      "heading": "한영타 변환기",
-      "seoTitle": "한영타 변환기 — dkssud ↔ 안녕 (두벌식)",
       "description": "한/영 키를 누르지 않고 잘못 친 글자를 되돌립니다. 영문을 한글로(dkssudgktpdy → 안녕하세요), 한글을 영문 자판으로 상호 변환하며 방향은 자동으로 판별합니다.",
       "lead": "dkssudgktpdy → 안녕하세요 · 양방향 · 두벌식",
       "howto": [
@@ -99,8 +93,6 @@
       ]
     },
     "qrgen": {
-      "heading": "QR 코드 생성기",
-      "seoTitle": "QR 코드 생성 — URL·WiFi·연락처 (PNG·SVG)",
       "description": "URL·텍스트·WiFi 접속 정보·연락처(vCard)를 QR 코드로 만듭니다. 색과 크기를 정해 PNG 또는 SVG 로 저장할 수 있으며, 생성은 브라우저 안에서 이뤄져 입력 내용이 전송되지 않습니다.",
       "lead": "URL · WiFi · 연락처 · 문자 → PNG·SVG",
       "howto": [
@@ -134,8 +126,6 @@
       ]
     },
     "lotto": {
-      "heading": "로또 번호 생성기",
-      "seoTitle": "로또 번호 생성기 — 제외수·고정수·홀짝 조건",
       "description": "1~45 중 6개를 무작위로 뽑습니다. 여러 게임을 한 번에, 항상 포함할 고정수와 제외할 번호, 홀짝 균형 조건을 지정할 수 있습니다.",
       "lead": "최대 20게임 · 고정수 · 제외수 · 홀짝 조건",
       "howto": [
@@ -165,8 +155,6 @@
       ]
     },
     "timer": {
-      "heading": "타이머 · 스톱워치",
-      "seoTitle": "타이머 · 스톱워치 — 알림음, 랩 기록",
       "description": "카운트다운 타이머와 랩 기록 스톱워치입니다. 1분·3분·25분 프리셋, 종료 알림음, 탭 제목 표시를 지원해 다른 탭에서 작업하는 동안에도 남은 시간이 보입니다.",
       "lead": "카운트다운 · 스톱워치 · 랩 기록 · 종료 알림음",
       "howto": [
@@ -196,8 +184,6 @@
       ]
     },
     "datecalc": {
-      "heading": "날짜 계산기 · D-Day",
-      "seoTitle": "날짜 계산기 — D-Day, 날짜 차이, 만 나이",
       "description": "두 날짜 사이의 일수, 오늘부터 며칠 후의 날짜, D-Day 까지 남은 기간, 만 나이를 한 곳에서 계산합니다. 주말을 뺀 평일 수도 함께 보여줍니다.",
       "lead": "D-Day · 날짜 차이 · 며칠 후 · 만 나이",
       "howto": [
@@ -227,8 +213,6 @@
       ]
     },
     "unitconv": {
-      "heading": "단위 변환기",
-      "seoTitle": "단위 변환 — 평·인치·파운드·온도·데이터",
       "description": "길이·무게·넓이·부피·온도·데이터·속도·시간 단위를 서로 변환합니다. 평과 제곱미터, 근·돈, 자·리 같은 한국식 단위를 포함하며 같은 분류의 전체 환산표를 함께 보여줍니다.",
       "lead": "길이 · 무게 · 평 · 부피 · 온도 · 데이터 · 속도 · 시간",
       "howto": [
@@ -258,8 +242,6 @@
       ]
     },
     "hashgen": {
-      "heading": "해시 생성기 · 파일 체크섬",
-      "seoTitle": "해시 생성기 — MD5·SHA-256, 파일 체크섬",
       "description": "텍스트의 MD5·SHA-1·SHA-256·SHA-512·SHA-3·RIPEMD-160 해시를 한 번에 계산하고, 내려받은 파일의 체크섬을 배포처가 알려준 값과 대조합니다. 파일은 업로드되지 않습니다.",
       "lead": "MD5 · SHA-1 · SHA-256 · SHA-512 · 파일 체크섬 대조",
       "howto": [
@@ -289,8 +271,6 @@
       ]
     },
     "uuidgen": {
-      "heading": "UUID 생성기",
-      "seoTitle": "UUID 생성기 — v4·v7, ULID, NanoID",
       "description": "UUID v4 와 시간순 정렬이 가능한 v7, ULID, NanoID, 랜덤 비밀번호를 원하는 개수만큼 만듭니다. 브라우저의 암호학적 난수를 사용하며 생성값은 전송되지 않습니다.",
       "lead": "UUID v4·v7 · ULID · NanoID · 랜덤 비밀번호",
       "howto": [
@@ -320,8 +300,6 @@
       ]
     },
     "textdiff": {
-      "heading": "텍스트 비교",
-      "seoTitle": "텍스트 비교 — 두 글·코드의 달라진 줄",
       "description": "두 텍스트나 코드를 줄 단위로 비교해 추가·삭제된 줄을 색으로 표시합니다. 대소문자 무시, 줄 끝 공백 무시, 바뀐 줄만 보기 옵션을 지원합니다.",
       "lead": "줄 단위 비교 · 추가 초록 · 삭제 빨강",
       "howto": [
@@ -351,8 +329,6 @@
       ]
     },
     "regextest": {
-      "heading": "정규식 테스터",
-      "seoTitle": "정규식 테스터 — 패턴 시험과 치환",
       "description": "정규표현식을 입력하면 매치되는 부분을 즉시 표시하고, 캡처 그룹과 위치를 목록으로 보여줍니다. 치환 결과 미리보기와 이메일·전화번호 같은 자주 쓰는 패턴을 제공합니다.",
       "lead": "실시간 매치 · 캡처 그룹 · 치환 미리보기 · 패턴 프리셋",
       "howto": [
@@ -382,8 +358,6 @@
       ]
     },
     "colorconv": {
-      "heading": "색상 변환 · 팔레트",
-      "seoTitle": "색상 변환 — HEX·RGB·HSL·CMYK, 대비비",
       "description": "HEX·RGB·HSL·CMYK 를 서로 변환하고, 흰 글자·검은 글자의 WCAG 대비비를 계산해 가독성을 판정합니다. 보색·삼색 조화 팔레트와 밝기 단계도 함께 만듭니다.",
       "lead": "HEX · RGB · HSL · CMYK · 대비비 · 조화 팔레트",
       "howto": [
