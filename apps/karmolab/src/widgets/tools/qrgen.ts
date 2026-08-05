@@ -245,6 +245,7 @@ import qrcode from 'qrcode-generator';
           $<HTMLButtonElement>('#qrPng').onclick = () => {
             if (!lastCanvas) return;
             download(lastCanvas.toDataURL('image/png'), 'karmolab-qr.png');
+            Toolbox.trackUse?.('save-png');
           };
           $<HTMLButtonElement>('#qrSvg').onclick = () => {
             const data = payload();
@@ -264,6 +265,7 @@ import qrcode from 'qrcode-generator';
             }
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="${sizeInput.value}" height="${sizeInput.value}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="${$<HTMLInputElement>('#qrBg').value}"/><path d="${path}" fill="${$<HTMLInputElement>('#qrFg').value}"/></svg>`;
             download('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), 'karmolab-qr.svg');
+            Toolbox.trackUse?.('save-svg');
             void lastModules;
           };
           $<HTMLButtonElement>('#qrCopy').onclick = () => {
@@ -272,6 +274,7 @@ import qrcode from 'qrcode-generator';
               if (!blob) return;
               try {
                 await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                Toolbox.trackUse?.('copy-image');
                 Toolbox.showToast?.('QR 이미지를 복사했어요', 'success', undefined);
               } catch {
                 Toolbox.showToast?.('이 브라우저는 이미지 복사를 지원하지 않아요. PNG 로 저장해 주세요.', 'warning', undefined);

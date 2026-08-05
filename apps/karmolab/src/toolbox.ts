@@ -62,6 +62,8 @@ const Toolbox = (() => {
         return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
     }
     const LAST_PAGE_KEY = 'toolbox_last_page';
+    /** 현재 열린 도구 id — 복사·사용 계측이 어느 도구인지 알기 위해 (TASK-KL-088) */
+    let currentPageId = 'home';
     const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
     const SIDEBAR_GROUP_KEY = 'toolbox_sidebar_groups';
 
@@ -931,6 +933,10 @@ const Toolbox = (() => {
             kickLazyLoad(pageId);
         }
 
+        // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
+        currentPageId = pageId;
+        window.KarmoStat?.page(pageId, toolForPage ? toolForPage.title : undefined);
+
         allPages.forEach(p => p.classList.remove('active'));
         allNav.forEach(n => n.classList.remove('active'));
         if (headerHomeBtn) headerHomeBtn.classList.remove('active');
@@ -1138,14 +1144,44 @@ const Toolbox = (() => {
 
     function copyResult(contentId) {
         const text = document.getElementById(contentId).textContent;
+        copyText(text);
+    }
+
+    /**
+     * 복사 단일 seam (TASK-KL-088) — 클립보드 API + 구형 fallback + 토스트 + 계측을 한 곳에.
+     * 위젯마다 클립보드 코드를 복제하면 「실제로 결과를 얻었다」 신호가 20 갈래로 흩어진다.
+     * 보내는 것은 현재 도구 id 와 동작 이름뿐 — 복사한 내용은 절대 싣지 않는다.
+     */
+    function copyText(text, opts = {}) {
+        if (!text) return Promise.resolve(false);
+        const { message = '클립보드에 복사됨', action = 'copy', toolId = currentPageId } = opts;
+        const done = (ok) => {
+            if (ok) {
+                showToast(message);
+                if (toolId && toolId !== 'home') window.KarmoStat?.use(toolId, action);
+            }
+            return ok;
+        };
         if (navigator.clipboard?.writeText) {
-            navigator.clipboard.writeText(text).then(() => showToast('클립보드에 복사됨'));
-        } else {
-            const ta = document.createElement('textarea');
-            ta.value = text; document.body.appendChild(ta); ta.select();
-            document.execCommand('copy'); document.body.removeChild(ta);
-            showToast('클립보드에 복사됨');
+            return navigator.clipboard.writeText(text).then(() => done(true)).catch(() => done(false));
         }
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            return Promise.resolve(done(true));
+        } catch (_) {
+            return Promise.resolve(done(false));
+        }
+    }
+
+    /** 복사 외의 「결과를 얻었다」 신호 (생성·변환·저장 등) */
+    function trackUse(action, toolId = null) {
+        const id = toolId || currentPageId;
+        if (id && id !== 'home') window.KarmoStat?.use(id, action);
     }
 
     function toggleCollapsible(trigger) {
@@ -1447,7 +1483,7 @@ const Toolbox = (() => {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
-        showToast, displayResult, copyResult, toggleCollapsible,
+        showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,
         field, resultBox, button, select,
         escapeHtml, formatTimestamp, showLightbox,
         recordUsage, getUsageStats,

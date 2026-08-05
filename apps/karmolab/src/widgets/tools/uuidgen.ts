@@ -159,13 +159,7 @@
           $<HTMLButtonElement>('#uuGen').onclick = render;
           $<HTMLButtonElement>('#uuCopy').onclick = async () => {
             if (!out.value) return;
-            try {
-              await navigator.clipboard.writeText(out.value);
-              Toolbox.showToast?.(`${out.value.split('\n').length}개를 복사했어요`, 'success', undefined);
-            } catch {
-              out.select();
-              document.execCommand('copy');
-            }
+            await Toolbox.copyText?.(out.value, { message: `${out.value.split('\n').length}개를 복사했어요` });
           };
 
           render();

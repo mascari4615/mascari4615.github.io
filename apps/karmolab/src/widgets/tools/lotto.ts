@@ -163,6 +163,7 @@
               : `${games}게임 추첨 완료 · 완전 무작위입니다.`;
             status.className = 'tool-status' + (relaxed ? '' : ' ok');
             Toolbox.incrementProgress?.('lotto_draws', games);
+            Toolbox.trackUse?.('draw');
           }
 
           $<HTMLButtonElement>('#ltDraw').onclick = run;
@@ -175,12 +176,7 @@
               })
               .join('\n');
             if (!text) return;
-            try {
-              await navigator.clipboard.writeText(text);
-              Toolbox.showToast?.('번호를 복사했어요', 'success', undefined);
-            } catch {
-              Toolbox.showToast?.('복사에 실패했어요', 'error', undefined);
-            }
+            await Toolbox.copyText?.(text, { message: '번호를 복사했어요' });
           };
 
           run();

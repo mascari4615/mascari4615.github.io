@@ -161,6 +161,7 @@
             img.onload = () => {
               image = img;
               nameEl.textContent = `${label} · ${img.naturalWidth}×${img.naturalHeight}`;
+              Toolbox.trackUse?.('convert');
               render();
             };
             img.onerror = () => {
@@ -215,18 +216,14 @@
 
           $<HTMLButtonElement>('#aaCopy').onclick = async () => {
             if (!plainText) return;
-            try {
-              await navigator.clipboard.writeText(plainText);
-              Toolbox.showToast?.('아스키 아트를 복사했어요', 'success', undefined);
-            } catch {
-              Toolbox.showToast?.('복사에 실패했어요', 'error', undefined);
-            }
+            await Toolbox.copyText?.(plainText, { message: '아스키 아트를 복사했어요' });
           };
           $<HTMLButtonElement>('#aaTxt').onclick = () => {
             if (!plainText) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([plainText], { type: 'text/plain;charset=utf-8' }));
             a.download = 'ascii-art.txt';
+            Toolbox.trackUse?.('save-txt');
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 1000);
           };
@@ -251,6 +248,7 @@
             const a = document.createElement('a');
             a.href = canvas.toDataURL('image/png');
             a.download = 'ascii-art.png';
+            Toolbox.trackUse?.('save-png');
             a.click();
           };
           $<HTMLButtonElement>('#aaSample').onclick = () => {

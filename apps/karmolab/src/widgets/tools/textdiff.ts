@@ -136,7 +136,10 @@
                   (truncated ? ` · ${MAX_LINES}줄까지만 비교했어요` : '');
           }
 
-          $<HTMLButtonElement>('#tdRun').onclick = run;
+          $<HTMLButtonElement>('#tdRun').onclick = () => {
+            run();
+            Toolbox.trackUse?.('compare');
+          };
           $<HTMLButtonElement>('#tdSwap').onclick = () => {
             const t = A.value;
             A.value = B.value;

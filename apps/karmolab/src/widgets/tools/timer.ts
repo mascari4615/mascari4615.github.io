@@ -140,6 +140,7 @@
               Notification.requestPermission().catch(() => undefined);
             }
             tick();
+            Toolbox.trackUse?.('start');
             void totalMs;
           };
           $<HTMLButtonElement>('#tmPause').onclick = () => {
@@ -256,12 +257,7 @@
             const text = laps
               .map((t, i) => `랩 ${i + 1}\t${fmt(t - (i === 0 ? 0 : laps[i - 1]), true)}\t${fmt(t, true)}`)
               .join('\n');
-            try {
-              await navigator.clipboard.writeText(text);
-              Toolbox.showToast?.('랩 기록을 복사했어요', 'success', undefined);
-            } catch {
-              Toolbox.showToast?.('복사에 실패했어요', 'error', undefined);
-            }
+            await Toolbox.copyText?.(text, { message: '랩 기록을 복사했어요' });
           };
 
           display.textContent = fmt(0, true);

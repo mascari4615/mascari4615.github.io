@@ -42,6 +42,17 @@ await esbuild.build({
   logLevel: 'info'
 });
 
+// 계측 (TASK-KL-088) — 셸이 defer 로 먼저 로드해 toolbox 가 쓸 수 있게.
+await esbuild.build({
+  entryPoints: [join(root, 'src/analytics.ts')],
+  outfile: join(root, 'js/analytics.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
 // Service Worker + 갱신 안내 (TASK-KL-088).
 // 캐시 이름에 빌드 스탬프를 박아야 새 배포가 옛 캐시를 버린다 → sw 는 소스가 아니라 빌드 산출물.
 const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
