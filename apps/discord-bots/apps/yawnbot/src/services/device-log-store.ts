@@ -364,6 +364,16 @@ export function pruneSessions(dir: string, limits: DeviceLogLimits = DEFAULT_LIM
   return { removed, bytesFreed };
 }
 
+
+/** 세션 하나 삭제 (시험용 세션 청소). 없는 세션 = false. */
+export function deleteSession(dir: string, session: string): boolean {
+  if (!isValidSession(session)) return false;
+  const file = sessionFilePath(dir, session);
+  if (!fs.existsSync(file)) return false;
+  fs.rmSync(file, { force: true });
+  return true;
+}
+
 /** 같은 에러의 반복을 접기 위한 지문 — 메시지 첫 줄 + 스택 첫 프레임. */
 export function errorFingerprint(line: DeviceLogLine): string {
   const firstMsgLine = line.msg.split('\n', 1)[0].trim().slice(0, 200);
