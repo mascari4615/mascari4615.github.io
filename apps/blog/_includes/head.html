@@ -9,6 +9,13 @@
     content="width=device-width, user-scalable=no initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
   >
 
+  <!-- 네이버 서치어드바이저 소유확인 (TASK-KL-088).
+       jekyll-seo-tag 의 webmaster_verifications 는 google/bing/yandex 등만 지원하고
+       naver 는 없으므로 여기서 직접 넣는다. 값 정본 = _config.yml. -->
+  {% if site.webmaster_verifications.naver %}
+    <meta name="naver-site-verification" content="{{ site.webmaster_verifications.naver }}">
+  {% endif %}
+
   {%- capture seo_tags -%}
     {% seo title=false %}
   {%- endcapture -%}
