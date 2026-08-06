@@ -239,6 +239,22 @@
     ]
   };
 
+  window.RefTable?.define('emoji', {
+    items: Object.keys(E).flatMap((group) =>
+      E[group].map(([glyph, label, keywords]) => ({
+        copy: glyph,
+        glyph,
+        label,
+        keywords: `${label} ${keywords}`,
+        group
+      }))
+    ),
+    placeholder: '한국어로 찾기 (예: 웃음, 따봉, 배포, 버그)',
+    copyNoun: '이모지',
+    layout: 'grid',
+    note: '누르면 이모지가 복사됩니다.'
+  });
+
   Toolbox.register({
     id: 'emoji',
     title: '이모지 찾기',
@@ -252,22 +268,7 @@
         label: '이모지',
         build: function (container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: '한국어로 찾아도 나와요.' });
-          const items = Object.keys(E).flatMap((group) =>
-            E[group].map(([glyph, label, keywords]) => ({
-              copy: glyph,
-              glyph,
-              label,
-              keywords: `${label} ${keywords}`,
-              group
-            }))
-          );
-          window.RefTable?.build(container, {
-            items,
-            placeholder: '한국어로 찾기 (예: 웃음, 따봉, 배포, 버그)',
-            copyNoun: '이모지',
-            layout: 'grid',
-            note: '누르면 이모지가 복사됩니다.'
-          });
+          window.RefTable?.build(container, window.RefTable.get('emoji')!);
         }
       }
     ]

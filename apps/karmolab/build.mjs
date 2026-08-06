@@ -191,8 +191,10 @@ const entryPoints = [
   'src/widgets/tools/worldclock.ts',
   'src/widgets/tools/bmi.ts',
   'src/widgets/tools/morse.ts',
+  'src/widgets/tools/pick.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
+  'src/widgets/ref/charmap.ts',
   'src/widgets/ref/specialchar.ts',
   'src/widgets/ref/ascii.ts',
   'src/widgets/ref/htmlentity.ts',

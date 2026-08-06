@@ -36,6 +36,20 @@ interface RefSpec {
 }
 
 (function (): void {
+  /**
+   * 표 정의를 이름표로 보관한다.
+   *
+   * 같은 표를 「문자표」 위젯의 탭과 그 표의 개별 검색 페이지에서 둘 다 그려야 하는데,
+   * 데이터를 양쪽에 복제하면 한쪽만 고쳐지는 날이 온다. 정의는 한 곳, 그리는 쪽이 꺼내 쓴다.
+   */
+  const specs: Record<string, RefSpec> = {};
+  function define(id: string, spec: RefSpec): void {
+    specs[id] = spec;
+  }
+  function get(id: string): RefSpec | undefined {
+    return specs[id];
+  }
+
   function build(container: HTMLElement, spec: RefSpec): void {
     const groups: string[] = [];
     spec.items.forEach((it) => {
@@ -122,5 +136,5 @@ interface RefSpec {
     render();
   }
 
-  window.RefTable = { build };
+  window.RefTable = { build, define, get };
 })();

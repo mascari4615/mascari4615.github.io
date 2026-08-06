@@ -1,0 +1,142 @@
+/**
+ * 추첨 · 팀 나누기 (TASK-KL-088)
+ *
+ * 「한 명 뽑기」 와 「팀 나누기」 와 「순서 정하기」 는 결국 같은 요구다 — 목록을 공정하게 섞는 것.
+ * 셋을 따로 만들면 명단을 세 번 붙여 넣어야 하니 한 화면에 둔다.
+ *
+ * 섞기는 Fisher-Yates 를 쓴다. `sort(() => Math.random() - 0.5)` 은 흔히 쓰이지만
+ * 비교 함수가 일관되지 않아 자리마다 확률이 치우친다 — 공정함이 이 도구의 존재 이유라 안 쓴다.
+ */
+(function (): void {
+  function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  Toolbox.register({
+    id: 'pick',
+    title: '추첨 · 팀 나누기',
+    category: 'tool',
+    desc: '명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게',
+    layout: 'form',
+    icon: '<circle cx="7" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    tabs: [
+      {
+        id: 'app',
+        label: '추첨',
+        build: function (container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: '원망은 저 말고 확률에게.' });
+          container.innerHTML = `
+            <div class="field-group">
+              <label class="field-label">명단 — 한 줄에 하나</label>
+              <textarea id="pkList" rows="6" spellcheck="false" placeholder="가나\n다라\n마바\n사아"></textarea>
+            </div>
+
+            <div class="field-group">
+              <div class="tool-chips" id="pkMode">
+                <button type="button" class="tool-chip active" data-mode="one">뽑기</button>
+                <button type="button" class="tool-chip" data-mode="team">팀 나누기</button>
+                <button type="button" class="tool-chip" data-mode="order">순서 정하기</button>
+              </div>
+            </div>
+
+            <div class="field-group" id="pkCountWrap">
+              <div class="tool-sublabel" id="pkCountLabel">몇 명 뽑을까요 <span id="pkCountVal" class="range-value">1명</span></div>
+              <input type="range" id="pkCount" min="1" max="10" value="1">
+            </div>
+
+            <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
+              <button class="btn btn-primary" id="pkRun">돌리기</button>
+              <button class="btn btn-ghost" id="pkCopy">결과 복사</button>
+            </div>
+
+            <div class="tool-list" id="pkResult"></div>
+            <div class="tool-status" id="pkStatus">명단을 넣고 돌리세요. 같은 사람이 두 번 뽑히지 않습니다.</div>
+          `;
+
+          const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
+          const listEl = $<HTMLTextAreaElement>('#pkList');
+          const countEl = $<HTMLInputElement>('#pkCount');
+          const countVal = $<HTMLElement>('#pkCountVal');
+          const countLabel = $<HTMLElement>('#pkCountLabel');
+          const result = $<HTMLElement>('#pkResult');
+          const status = $<HTMLElement>('#pkStatus');
+          let mode = 'one';
+
+          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const names = (): string[] => listEl.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+          const row = (k: string, v: string): string =>
+            `<div class="tool-list-row"><span class="tool-list-key">${esc(k)}</span><span class="tool-list-val">${esc(v)}</span></div>`;
+
+          function syncLabel(): void {
+            const n = parseInt(countEl.value, 10);
+            countLabel.firstChild!.textContent = mode === 'team' ? '몇 팀으로 나눌까요 ' : '몇 명 뽑을까요 ';
+            countVal.textContent = mode === 'team' ? `${n}팀` : `${n}명`;
+            $<HTMLElement>('#pkCountWrap').style.display = mode === 'order' ? 'none' : '';
+          }
+
+          function run(): void {
+            const list = names();
+            if (list.length < 2) {
+              result.innerHTML = '';
+              status.textContent = '두 명 이상 적어 주세요.';
+              status.className = 'tool-status error';
+              return;
+            }
+            const shuffled = shuffle(list);
+            const n = Math.min(parseInt(countEl.value, 10), list.length);
+
+            if (mode === 'one') {
+              result.innerHTML = shuffled.slice(0, n).map((name, i) => row(`${i + 1}번째`, name)).join('');
+              status.textContent = `${list.length}명 중 ${n}명 뽑았어요.`;
+            } else if (mode === 'team') {
+              // 나머지를 앞 팀부터 한 명씩 얹어 인원 차이를 1 이하로 유지한다.
+              const teams: string[][] = Array.from({ length: n }, () => []);
+              shuffled.forEach((name, i) => teams[i % n].push(name));
+              result.innerHTML = teams
+                .map((t, i) => row(`${i + 1}팀 (${t.length}명)`, t.join(', ')))
+                .join('');
+              status.textContent = `${list.length}명을 ${n}팀으로 나눴어요 (인원 차이 최대 1명).`;
+            } else {
+              result.innerHTML = shuffled.map((name, i) => row(`${i + 1}번`, name)).join('');
+              status.textContent = `${list.length}명 순서를 정했어요.`;
+            }
+            status.className = 'tool-status ok';
+            Toolbox.trackUse?.(mode);
+          }
+
+          container.querySelectorAll('#pkMode .tool-chip').forEach((chip) => {
+            (chip as HTMLButtonElement).onclick = () => {
+              container.querySelectorAll('#pkMode .tool-chip').forEach((c) => c.classList.remove('active'));
+              chip.classList.add('active');
+              mode = (chip as HTMLElement).dataset.mode || 'one';
+              countEl.value = mode === 'team' ? '2' : '1';
+              syncLabel();
+              run();
+            };
+          });
+          countEl.addEventListener('input', () => {
+            syncLabel();
+            run();
+          });
+          $<HTMLButtonElement>('#pkRun').onclick = run;
+          $<HTMLButtonElement>('#pkCopy').onclick = async () => {
+            const text = [...result.querySelectorAll('.tool-list-row')]
+              .map((r) => `${r.querySelector('.tool-list-key')?.textContent}: ${r.querySelector('.tool-list-val')?.textContent}`)
+              .join('\n');
+            if (!text) return;
+            await Toolbox.copyText?.(text, { message: '결과를 복사했어요' });
+          };
+
+          listEl.value = '가나\n다라\n마바\n사아';
+          syncLabel();
+          run();
+        }
+      }
+    ]
+  });
+})();
