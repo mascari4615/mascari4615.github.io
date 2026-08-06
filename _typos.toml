@@ -9,6 +9,9 @@ extend-exclude = [
   # Anime 다국어 데이터 (tier list — 일본어/한국어/외국어 줄임 다수)
   "apps/karmolab/data/tierlists/**",
 
+  # 공유 카드 이미지 목록 — 값이 전부 내용 해시(16진수)라 영어 단어로 오독된다
+  "apps/karmolab/img/og/manifest.json",
+
   # Jekyll 빌드 산출물 (gitignored 지만 typos 가 untracked 도 봄)
   "_site/**",
   "apps/blog/_site/**",
