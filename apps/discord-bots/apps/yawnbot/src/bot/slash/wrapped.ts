@@ -163,6 +163,18 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
 
   const summary = recorder.summarize(interaction.guildId, days);
   const guildName = interaction.guild?.name ?? '우리 서버';
+  const embed = buildWrappedEmbed(summary, guildName);
 
-  await interaction.reply({ embeds: [buildWrappedEmbed(summary, guildName)] });
+  // 자랑은 디스코드 밖에서 일어나야 유입이 된다 → 링크를 항상 같이 준다.
+  const url = wrappedUrl(recorder.shareKey(interaction.guildId), days);
+  if (url) embed.addFields({ name: '🔗 웹에서 보기', value: url, inline: false });
+
+  await interaction.reply({ embeds: [embed] });
+}
+
+/** 공유 키 → 웹 결산 주소. 공개 주소가 설정 안 됐으면 null (링크 생략). */
+export function wrappedUrl(shareKey: string, days: number): string | null {
+  const base = (process.env.YAWNBOT_PUBLIC_URL || '').trim().replace(/\/+$/, '');
+  if (!base) return null;
+  return days === 7 ? `${base}/w/${shareKey}` : `${base}/w/${shareKey}?days=${days}`;
 }

@@ -32,6 +32,7 @@ import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
+import { mountWrappedWeb } from './bot/wrapped-web';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
@@ -352,6 +353,8 @@ const app = createGithubWebhookApp(client, gameData);
 mountLocalWebhook(app, client);
 // TASK-WM-201 — 폰(WM Android)이 밀어 넣는 실행 로그 수신 + 웹 뷰어 + tail.
 mountDeviceLog(app, client);
+// TASK-YB-042 — 웹 결산 페이지. 자랑은 디스코드 밖에서 일어나야 유입이 된다.
+mountWrappedWeb(app, client);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
