@@ -413,7 +413,9 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
 }
 .tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
 .tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); margin-bottom: 5px; }
-.tool-hub-card span { color: var(--text-tertiary); font-size: var(--font-size-xs); line-height: 1.6; }
+/* 목록에서 어떤 도구인지 알려 주는 한 줄이다. 가장 흐린 색으로는 대비가 2.1 이라
+   정작 고르는 데 필요한 문장이 안 읽힌다(TASK-KL-089). */
+.tool-hub-card span { color: var(--text-secondary); font-size: var(--font-size-xs); line-height: 1.6; }
 
 /* ═══════════════════════════════════════
    자료표 (ref/*) — 검색 + 칩 + 눌러 복사 (TASK-KL-088)
