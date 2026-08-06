@@ -517,6 +517,134 @@ export function debugDump(
   };
 }
 
+// ────────────────────────────── 대시보드 분석 ──────────────────────────────
+
+export interface PeriodTotals {
+  messages: number;
+  chars: number;
+  activeUsers: number;
+  reactions: number;
+}
+
+export interface Analytics {
+  days: number;
+  /** 집계 범위 (KST 날짜 키) */
+  from: string;
+  to: string;
+  /** 이번 기간 / 바로 앞의 같은 길이 기간 — 늘었나 줄었나를 보려면 둘 다 필요하다 */
+  current: PeriodTotals;
+  previous: PeriodTotals;
+  /** 날짜별 (오래된 순, 빈 날도 0 으로 채움 — 끊긴 날이 보여야 리듬이 읽힌다) */
+  daily: { dayKey: string; msgs: number; users: number }[];
+  /** [요일][시각] 메시지 수. 요일 0=일 … 6=토 */
+  weekdayHour: number[][];
+  /** 사람별 전체 (많이 쓴 순) */
+  people: DebugRow[];
+  channels: { channelId: string; count: number }[];
+  emojis: { name: string; count: number }[];
+  /** 이 기간에 처음 말한 사람 / 전에도 말했던 사람 */
+  newUsers: number;
+  returningUsers: number;
+  hours: number[];
+  busiestDay: { dayKey: string; msgs: number } | null;
+}
+
+const EMPTY_TOTALS: PeriodTotals = { messages: 0, chars: 0, activeUsers: 0, reactions: 0 };
+
+/** 'YYYY-MM-DD' → 요일 (0=일). KST 날짜 문자열을 그대로 달력 날짜로 읽는다. */
+export function weekdayOf(dayKey: string): number {
+  const [y, m, d] = dayKey.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+function totalsFor(guild: GuildStat | undefined, dayKeys: string[]): PeriodTotals {
+  // 참여자는 ID 로 센다 — 닉네임은 기간 중에 바뀔 수 있어 이름으로 세면 두 명이 된다.
+  const ids = new Set<string>();
+  let messages = 0;
+  let chars = 0;
+  let reactions = 0;
+  for (const dayKey of dayKeys) {
+    const day = guild?.days[dayKey];
+    if (!day) continue;
+    for (const [userId, stat] of Object.entries(day.users)) {
+      chars += stat.chars;
+      reactions += stat.reactionsGiven;
+      if (stat.msgs > 0) ids.add(userId);
+    }
+    messages += day.hours.reduce((sum, count) => sum + count, 0);
+  }
+  return { messages, chars, reactions, activeUsers: ids.size };
+}
+
+export function buildAnalytics(
+  state: ServerStatsState,
+  guildId: string,
+  options: { days: number; now: Date },
+): Analytics {
+  const guild = state.guilds[guildId];
+  const currentKeys = recentDayKeys(options.now, options.days);
+  const previousStart = new Date(options.now.getTime() - options.days * 24 * 60 * 60 * 1000);
+  const previousKeys = recentDayKeys(previousStart, options.days);
+
+  const detail = debugDump(state, guildId, options);
+
+  // 빈 날도 0 으로 채운다 — 안 그러면 "쉰 날" 이 그래프에서 사라진다.
+  const byDay = new Map(detail.daily.map((d) => [d.dayKey, d]));
+  const daily = currentKeys
+    .slice()
+    .reverse()
+    .map((dayKey) => byDay.get(dayKey) ?? { dayKey, msgs: 0, users: 0 });
+
+  const weekdayHour = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
+  for (const dayKey of currentKeys) {
+    const day = guild?.days[dayKey];
+    if (!day) continue;
+    const weekday = weekdayOf(dayKey);
+    for (let h = 0; h < 24; h += 1) weekdayHour[weekday][h] += day.hours[h] ?? 0;
+  }
+
+  // 처음 말한 사람 = 이 기간 이전 기록에 한 번도 없던 사람.
+  const before = new Set<string>();
+  const inRange = new Set(currentKeys);
+  for (const [dayKey, day] of Object.entries(guild?.days ?? {})) {
+    if (inRange.has(dayKey)) continue;
+    if (dayKey >= currentKeys[0]) continue; // 미래 키(시계 어긋남) 무시
+    for (const [userId, stat] of Object.entries(day.users)) {
+      if (stat.msgs > 0) before.add(userId);
+    }
+  }
+  let newUsers = 0;
+  let returningUsers = 0;
+  for (const row of detail.rows) {
+    if (row.msgs === 0) continue;
+    if (before.has(row.userId)) returningUsers += 1;
+    else newUsers += 1;
+  }
+
+  const busiestDay =
+    daily.reduce<{ dayKey: string; msgs: number } | null>(
+      (best, d) => (d.msgs > 0 && (!best || d.msgs > best.msgs) ? { dayKey: d.dayKey, msgs: d.msgs } : best),
+      null,
+    );
+
+  return {
+    days: options.days,
+    from: currentKeys[currentKeys.length - 1],
+    to: currentKeys[0],
+    current: guild ? totalsFor(guild, currentKeys) : { ...EMPTY_TOTALS },
+    previous: guild ? totalsFor(guild, previousKeys) : { ...EMPTY_TOTALS },
+    daily,
+    weekdayHour,
+    people: detail.rows,
+    channels: detail.channels,
+    emojis: detail.emojis,
+    newUsers,
+    returningUsers,
+    hours: detail.hours,
+    busiestDay,
+  };
+}
+
 // ────────────────────────────── 저장소(recorder) ──────────────────────────────
 
 const STATE_FILE = 'server-stats-state.json';
@@ -588,6 +716,11 @@ export class ServerStatsRecorder {
   /** 디버그용 즉시 저장 — 20초 기다리지 않고 파일을 눈으로 확인하고 싶을 때. */
   flushNow(): void {
     this.flush();
+  }
+
+  /** 대시보드용 분석 (기간 비교·요일×시각 포함). */
+  analytics(guildId: string, days: number, now = new Date()): Analytics {
+    return buildAnalytics(this.load(), guildId, { days, now });
   }
 
   /** 웹 결산 주소용 공유 키 (없으면 생성 + 저장). */
