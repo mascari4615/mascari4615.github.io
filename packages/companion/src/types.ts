@@ -52,6 +52,15 @@ export interface Voice {
   speak(utterance: Utterance): void | Promise<void>;
   /** 아직 다 만들어지지 않은 말 조각. 구현하면 말이 흐르듯 나온다. */
   partial?(chunk: string, soFar: string, channel: string): void | Promise<void>;
+  /** 하던 말을 즉시 멈춘다 (소리·말풍선 포함). */
+  hush?(): void | Promise<void>;
+  /**
+   * 아직 답이 안 나왔을 때 내는 뜸 (「음…」).
+   *
+   * 이건 답이 아니다. 기억에도 안 남고, 대화 내역에도 안 쌓인다 — 사람이 「음」 한 것을
+   * 대화로 적어 두지 않는 것과 같다.
+   */
+  filler?(text: string, channel: string): void | Promise<void>;
   stop?(): void | Promise<void>;
 }
 
@@ -84,6 +93,19 @@ export interface ThinkInput {
   longTerm?: string | null;
   /** 누구로서 답하나. 없으면 아무도 아닌 채로. */
   character?: Character;
+  /**
+   * 지금 기분 — 시간·혼자 있던 시간·최근 대화량으로 흐른다.
+   *
+   * 코어는 내용을 해석하지 않고 그대로 넘긴다. 기분이 코드에 박히면 인격을 바꿔도
+   * 결이 안 바뀐다.
+   */
+  mood?: string;
+  /**
+   * 방금 손으로 찾아낸 것. 있으면 이걸 보고 다시 답한다.
+   *
+   * 찾아놓고 모른 채로 답하면 찾은 의미가 없다.
+   */
+  found?: readonly string[];
 }
 
 /** 두뇌. null 을 돌려주면 「할 말 없음」 = 침묵. */
@@ -97,6 +119,13 @@ export interface Brain {
    * 살아있는 느낌을 가장 많이 깎아먹는 게 그 침묵이다.
    */
   thinkStream?(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null>;
+  /**
+   * 지금 생각하던 걸 그만둔다.
+   *
+   * 사람이 말하는데 계속 떠드는 건 대화가 아니다. 말을 걸면 하던 말을 멈추고 새로
+   * 듣는 게 맞다 — 실제 대화가 그렇다.
+   */
+  abort?(): void;
 }
 
 /**
@@ -135,6 +164,8 @@ export interface CycleReport {
   decision: AttentionDecision;
   /** 두뇌가 침묵했거나 attention 이 막았으면 null. */
   utterance: Utterance | null;
+  /** 답이 늦어 뜸을 냈나. */
+  hummed?: boolean;
   /** 두뇌·표현 도중 터진 에러 (코어는 죽지 않고 여기로만 알린다). */
   error?: Error;
 }

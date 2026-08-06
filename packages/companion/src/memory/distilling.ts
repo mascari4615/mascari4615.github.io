@@ -37,6 +37,11 @@ export class DistillingMemory implements Memory {
   private known: string;
   private working = false;
 
+  /** 안에 든 진짜 기억. 옛 대화를 뒤지려면 이쪽을 봐야 한다. */
+  get inner(): Memory {
+    return this.options.inner;
+  }
+
   constructor(options: DistillingMemoryOptions) {
     this.options = { every: 30, batch: 40, ...options };
     this.known = options.notePath && existsSync(options.notePath)
@@ -59,6 +64,27 @@ export class DistillingMemory implements Memory {
 
   longTerm(): string | null {
     return this.known === '' ? null : this.known;
+  }
+
+  /**
+   * 「아는 것」에서 한 줄을 지운다. 잘못 알았거나 남기고 싶지 않은 것.
+   *
+   * 대화 쪽도 같이 지우려면 안쪽 기억의 지우기를 따로 부른다 — 여기서 한꺼번에 하지
+   * 않는 이유는, 「아는 것만 고치고 싶은 때」와 「흔적까지 지우고 싶은 때」가 다르기 때문이다.
+   */
+  forgetKnown(line: string): boolean {
+    const needle = line.trim();
+    if (needle === '' || this.known === '') return false;
+    const lines = this.known.split('\n');
+    const kept = lines.filter((l) => l.trim() !== needle && l.includes(needle) === false);
+    if (kept.length === lines.length) return false;
+    this.known = kept.join('\n').trim();
+    if (this.options.notePath) {
+      mkdirSync(dirname(this.options.notePath), { recursive: true });
+      writeFileSync(this.options.notePath, `${this.known}\n`, 'utf8');
+    }
+    this.options.log?.('아는 것에서 한 줄을 지웠다');
+    return true;
   }
 
   /** 지금 당장 한 번 졸인다 (테스트·종료 직전용). */

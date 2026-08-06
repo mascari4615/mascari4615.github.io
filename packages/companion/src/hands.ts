@@ -14,6 +14,13 @@ import { dirname } from 'node:path';
 export interface Hand {
   /** 두뇌가 부를 이름. */
   readonly name: string;
+  /**
+   * 이 손의 결과를 두뇌에게 되돌려 한 번 더 생각하게 할까.
+   *
+   * 「적어둬」 같은 일은 하고 끝이지만, 「그거 언제였지?」 는 찾아낸 것을 보고 나서야
+   * 답할 수 있다. 되돌려주지 않으면 얘는 찾아놓고도 모른 채로 답한다.
+   */
+  readonly feedsBack?: boolean;
   /** 무슨 일인지 — 이 설명이 그대로 두뇌에 전달된다. */
   readonly what: string;
   /** 무엇을 넘겨야 하는지. */
@@ -57,6 +64,8 @@ export function describeHands(hands: readonly Hand[]): string {
     '「몰라」 라고 하거나 직접 확인해 보라고 떠넘기지 마라 — 확인할 수 있는 쪽은 너다.\n' +
     '- 적어 달라고 하면 적고, 열어 달라고 하면 연다.\n' +
     '- 적어둔 줄은 사람에게 안 보인다. 적었으면 말로 또 설명하지 마라.\n' +
+    '- **지난 이야기를 물으면 반드시 찾아봐라.** 「저번에」 「예전에」 「전에 말한」 「아까」 가 나오면 ' +
+    '네 머리에 남은 건 최근 몇 마디뿐이다 — 모른다고 답하기 전에 먼저 뒤져라.\n' +
     '- 필요 없으면 안 써도 된다. 잡담에까지 끌어다 쓰지 마라.'
   );
 }
@@ -113,6 +122,35 @@ export function remindHand(schedule: (afterMs: number, text: string) => void): H
       }
       schedule(minutes * 60_000, text);
       return `${minutes}분 뒤에 알려주기로 했다: ${text}`;
+    },
+  };
+}
+
+/**
+ * 기억 찾기 — 옛 대화를 뒤진다.
+ *
+ * 두뇌에게 넘어가는 건 최근 몇 마디뿐이라, 「저번에 말한 그거」를 물으면 얘는 모른다.
+ * 뉴로사마가 「기억을 좀 찾아봐야겠다」며 실제로 뒤지는 것과 같은 자리다.
+ *
+ * 찾은 결과는 두뇌에게 **되돌려준다**(`feedsBack`). 안 그러면 찾아놓고 모른 채로 답한다.
+ */
+export function recallHand(
+  search: (keyword: string, limit: number) => readonly { role: string; text: string; at: number }[],
+): Hand {
+  return {
+    name: '기억찾기',
+    feedsBack: true,
+    what: '예전에 나눈 말 중에서 그 낱말이 든 것을 찾는다',
+    needs: '찾을 낱말',
+    async run(argument: string): Promise<string> {
+      const keyword = argument.trim();
+      if (keyword === '') throw new Error('무엇을 찾을지 안 알려줬다');
+      const hits = search(keyword, 6);
+      if (hits.length === 0) return `「${keyword}」 로 찾은 옛 대화는 없다`;
+      const lines = hits
+        .map((h) => `- ${new Date(h.at).toLocaleString('ko-KR')} ${h.role === 'said' ? '내가' : '조수님이'}: ${h.text.slice(0, 120)}`)
+        .join('\n');
+      return `「${keyword}」 로 찾은 옛 대화:\n${lines}`;
     },
   };
 }

@@ -42,8 +42,21 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
     return model !== undefined && existsSync(model) ? model : null;
   }
 
-  return {
+  const speech: Speech & { warmUp(): Promise<void> } = {
     name: 'piper(내 컴퓨터)',
+    /**
+     * 미리 한 번 돌려 둔다.
+     *
+     * 첫 호출은 모델을 올리느라 느리다 — 그 느림이 하필 **처음 말 걸었을 때** 온다.
+     * 첫인상이 제일 중요한 자리에서 제일 느린 셈이라, 창이 뜰 때 미리 데운다.
+     */
+    async warmUp(): Promise<void> {
+      try {
+        await this.synthesize('음', undefined);
+      } catch {
+        // 못 데워도 말은 한다 — 조금 느릴 뿐이다.
+      }
+    },
     // wav 다. 형식을 틀리게 알려주면 브라우저가 소리를 아예 안 낸다.
     contentType: 'audio/wav',
 
@@ -88,6 +101,7 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
       });
     },
   };
+  return speech;
 }
 
 /** 목소리 파일이 자리에 있나. */

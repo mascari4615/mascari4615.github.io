@@ -6,6 +6,12 @@
 export * from './types';
 export { Companion, type CompanionOptions } from './core';
 export { loadCharacter, loadCharacters } from './character';
+export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
+export { reflexFor, type ReflexOptions } from './reflex';
+export { pickFiller, type FillerOptions } from './filler';
+export { readRapport, type Rapport, type RapportOptions } from './rapport';
+export { fileCuriosity, wonderHand, maybeAsk, noticeCuriosity, type Curiosity } from './curiosity';
+export { readMood, avoidRepeats, recallFrom, type Mood, type MoodInput } from './mood';
 export {
   needsPermission,
   findFileHand,
@@ -20,6 +26,7 @@ export {
   describeHands,
   findRequests,
   noteHand,
+  recallHand,
   remindHand,
   useHands,
   type Hand,
