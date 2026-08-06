@@ -380,6 +380,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/pdfwatermark']
   },
   {
+    id: 'audiospeed',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '소리 속도',
+    category: 'tool',
+    desc: '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다',
+    layout: 'wide',
+    icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/audiospeed']
+  },
+  {
     id: 'audiojoin',
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -562,7 +573,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true,
     icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiojoin', 'tools/sound']
+    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiospeed', 'tools/audiojoin', 'tools/sound']
   },
   {
     id: 'filetool',
