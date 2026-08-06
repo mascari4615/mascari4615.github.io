@@ -158,7 +158,7 @@ import { pickRecordType } from './shared/video';
             cleanup();
 
             if (!made || made.size < 100) {
-              say('담긴 내용이 없어요.', 'error');
+              say('담긴 내용이 없어요. 시작하자마자 멈추면 이렇게 됩니다 — 몇 초 이상 녹화해 보세요.', 'error');
               return;
             }
             preview.src = URL.createObjectURL(made);

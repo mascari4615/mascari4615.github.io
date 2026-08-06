@@ -114,7 +114,7 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
 
           async function start(): Promise<void> {
             if (!navigator.mediaDevices?.getUserMedia) {
-              say('이 브라우저는 녹음을 지원하지 않아요.', 'error');
+              say('이 브라우저는 녹음을 지원하지 않아요. 크롬·엣지·사파리 최신 버전에서 열어 보세요.', 'error');
               return;
             }
             wav = null;
