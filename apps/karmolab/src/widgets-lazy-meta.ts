@@ -21,7 +21,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/base64', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/devtool']
   },
   {
     id: 'base64',
@@ -236,7 +236,18 @@ window.KARMOLAB_LAZY_META = [
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/text']
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/text']
+  },
+  {
+    id: 'lorem',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '더미 텍스트 생성',
+    category: 'tool',
+    desc: '화면 시안용 임시 글을 만듭니다. 한글 더미와 로렘 입숨, 문단·문장·단어 단위',
+    layout: 'form',
+    icon: '<path d="M4 6h16M4 10h16M4 14h12M4 18h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/lorem']
   },
   {
     id: 'charcount',
@@ -248,6 +259,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 7V5h16v2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/charcount']
+  },
+  {
+    id: 'csvjson',
+    hidden: true, // 「devtool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'CSV ↔ JSON 변환',
+    category: 'tool',
+    desc: '표(CSV)와 JSON 을 서로 바꿉니다. 따옴표 안 쉼표·줄바꿈도 안 깨집니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/csvjson']
   },
   {
     id: 'jsonfmt',
