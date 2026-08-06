@@ -204,14 +204,31 @@ function kinOf(id) {
   return w.bundle || w.category || '';
 }
 
+/** 묶음 부모 → 그 묶음에 속한 도구들. 부모 페이지는 그 갈래의 관문이라 전부 걸어야 한다. */
+const partsOf = {};
+for (const w of widgets) if (w.bundle && ids.includes(w.id)) (partsOf[w.bundle] ||= []).push(w.id);
+
 const extraLinks = {};
 for (const id of ids) {
+  // 묶음 부모라면 「같은 갈래 넷」이 아니라 **자기 부분 전부**를 건다.
+  // 그러지 않으면 열한 개짜리 묶음에서 셋만 갈 수 있어, 나머지는 목록 페이지 말고는 길이 없다.
+  if (partsOf[id] && partsOf[id].length) {
+    const own = partsOf[id].filter((p) => p !== id && !seo[id].related.includes(p));
+    own.forEach((p) => (inboundCount[p] += 1));
+    extraLinks[id] = own;
+    continue;
+  }
   const kin = kinOf(id);
   const taken = new Set([id, ...seo[id].related]);
+  // 묶음에 속한 도구라면 자기 묶음으로 올라가는 길을 먼저 놓는다.
+  // 그러지 않으면 묶음 부모는 부분들만 내려다볼 뿐 아무도 걸어 주지 않아 홀로 남는다.
+  const parent = widgetById[id].bundle;
+  const up = parent && ids.includes(parent) && !taken.has(parent) ? [parent] : [];
+  up.forEach((p) => taken.add(p));
   const pool = ids.filter((o) => !taken.has(o) && kinOf(o) === kin);
   // 적게 받은 것 먼저, 같으면 이름순으로 고정해 빌드마다 결과가 흔들리지 않게 한다.
   pool.sort((a, b) => inboundCount[a] - inboundCount[b] || a.localeCompare(b));
-  const picked = pool.slice(0, EXTRA_LINKS);
+  const picked = [...up, ...pool.slice(0, EXTRA_LINKS)];
   picked.forEach((p) => (inboundCount[p] += 1));
   extraLinks[id] = picked;
 }
@@ -225,9 +242,10 @@ function kinBlock(id) {
   const links = kin
     .map((k) => `<a href="${BASE_PATH}/${k}/">${esc(heading(k))}</a>`)
     .join('\n          ');
+  const label = partsOf[id] && partsOf[id].length ? '이 묶음의 도구' : '같은 갈래';
   return `
-        <nav class="tool-seo-kin" aria-label="같은 갈래 도구">
-          <span>같은 갈래</span>
+        <nav class="tool-seo-kin" aria-label="${label}">
+          <span>${label}</span>
           ${links}
         </nav>
 `;
