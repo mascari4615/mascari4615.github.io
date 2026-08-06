@@ -1479,8 +1479,24 @@ const Toolbox = (() => {
 
     function getTools() { return [...tools]; }
 
+    /**
+     * 다른 위젯의 첫 탭을 이 자리에 그린다 — 여러 도구를 한 위젯의 탭으로 묶을 때 쓰는 통로.
+     * 묶음 위젯이 부분의 화면을 복제하지 않게 해서, 고칠 곳이 언제나 한 군데로 남는다.
+     * (부분 위젯은 hidden 으로 두되 자기 주소는 유지하는 것이 기본 — 검색 유입을 잃지 않는다.)
+     */
+    function mountTool(id, container) {
+        const tool = tools.find((t) => t.id === id);
+        const tab = tool && tool.tabs && tool.tabs[0];
+        if (!tab) {
+            container.innerHTML = '<div class="tool-status error">「' + id + '」 를 불러오지 못했어요.</div>';
+            return false;
+        }
+        tab.build(container);
+        return true;
+    }
+
     return {
-        register, registerDeferred, init, initTheme, switchPage, switchTab, getTools,
+        register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,
