@@ -112,6 +112,16 @@ jobs:
       - name: Install karmolab deps
         run: cd apps/karmolab && npm ci
 
+      # 브라우저 내려받기는 매 실행 50초 넘게 먹는다(2026-08-07 실측: 54초).
+      # 잠금파일이 그대로면 같은 버전이므로 캐시로 건너뛴다. 시스템 라이브러리(--with-deps)는
+      # 캐시 대상이 아니라 매번 깔리지만 그쪽은 짧다.
+      - name: 브라우저 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
       - name: Install Chromium
         run: cd apps/karmolab && npx playwright install --with-deps chromium
 
