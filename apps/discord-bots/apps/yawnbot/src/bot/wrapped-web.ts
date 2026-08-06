@@ -196,6 +196,15 @@ export function renderWrappedPage(data: WrappedPageData): string {
           `<section class="card"><h2>🕐 하루의 리듬</h2>
              ${hoursChart(summary.hours)}
              ${summary.busiestHour ? `<p class="sub">가장 붐빈 시각 — <b>${hourLabel(summary.busiestHour.hour)}</b></p>` : ''}
+             ${
+               summary.busiestChannel
+                 ? // 디스코드 embed 는 `<#id>` 멘션을 쓰지만 브라우저는 그걸 모르는 태그로 먹어 지운다.
+                   //  웹에서는 채널 *이름* 을 글자로 넣는다.
+                   `<p class="sub">가장 붐빈 채널 — <b>${escapeHtml(
+                     data.channelNames[summary.busiestChannel.channelId] ?? summary.busiestChannel.channelId,
+                   )}</b></p>`
+                 : ''
+             }
            </section>`,
         ].join('');
 

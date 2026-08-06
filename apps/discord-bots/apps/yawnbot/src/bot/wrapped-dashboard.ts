@@ -64,6 +64,15 @@ function tile(label: string, value: string, sub: string): string {
     <div class="tile-value">${value}</div><div class="tile-sub">${sub}</div></div>`;
 }
 
+/**
+ * 값 옆에 붙는 비중 막대. 표 칸 너비에 % 를 걸면 좁은 칸에서 점처럼 줄어들어 안 보인다
+ * → 고정 폭 트랙 안을 채우게 한다.
+ */
+function shareBar(ratio: number): string {
+  const pct = Math.max(Math.round(ratio * 100), 2);
+  return `<span class="track"><i style="width:${pct}%;background:${SERIES}"></i></span>`;
+}
+
 /** 날짜별 세로 막대 — 한 계열이라 범례가 필요 없다(제목이 계열 이름). */
 function dailyChart(analytics: Analytics): string {
   const max = Math.max(...analytics.daily.map((d) => d.msgs), 1);
@@ -140,7 +149,7 @@ export function renderDashboardPage(data: DashboardData): string {
     tile('참여한 사람', num(a.current.activeUsers), delta(a.current.activeUsers, a.previous.activeUsers)),
     tile('반응', num(a.current.reactions), delta(a.current.reactions, a.previous.reactions)),
     tile('하루 평균', num(perDay), `<span class="dim">${dayCount}일 기준</span>`),
-    tile('처음 온 사람', num(a.newUsers), `<span class="dim">전에도 있던 사람 ${num(a.returningUsers)}명</span>`),
+    tile('처음 온 사람', num(a.newUsers), `<span class="dim">돌아온 사람 ${num(a.returningUsers)}</span>`),
     tile(
       '가장 바빴던 날',
       a.busiestDay ? escapeHtml(a.busiestDay.dayKey.slice(5)) : '—',
@@ -150,13 +159,14 @@ export function renderDashboardPage(data: DashboardData): string {
 
   const totalChannel = a.channels.reduce((sum, c) => sum + c.count, 0) || 1;
 
+  const topMsgs = Math.max(...a.people.map((p) => p.msgs), 1);
   const people = table(
-    ['사람', '메시지', '글자', '평균 길이', '새벽', '준 반응', '받은 반응'],
+    ['사람', '메시지', '', '평균 길이', '새벽', '준 반응', '받은 반응'],
     a.people.map((row) => [
       escapeHtml(row.name),
       num(row.msgs),
-      num(row.chars),
-      row.msgs ? num(Math.round(row.chars / row.msgs)) : '0',
+      shareBar(row.msgs / topMsgs),
+      row.msgs ? `${num(Math.round(row.chars / row.msgs))}자` : '0자',
       row.msgs ? `${Math.round((row.nightMsgs / row.msgs) * 100)}%` : '0%',
       num(row.reactionsGiven),
       num(row.reactionsGot),
@@ -169,22 +179,26 @@ export function renderDashboardPage(data: DashboardData): string {
       escapeHtml(channelNames[c.channelId] ?? c.channelId),
       num(c.count),
       `${Math.round((c.count / totalChannel) * 100)}%`,
-      `<span class="minibar" style="width:${Math.max(Math.round((c.count / totalChannel) * 100), 2)}%;background:${SERIES}"></span>`,
+      shareBar(c.count / totalChannel),
     ]),
   );
 
-  const emojis = table(
-    ['이모지', '쓰인 수'],
-    a.emojis.slice(0, 40).map((e) => [escapeHtml(e.name), num(e.count)]),
-  );
+  // 이모지는 표보다 칩이 읽기 쉽다 — 한 줄에 여럿 들어가 카드가 비지 않는다.
+  const emojis = a.emojis.length
+    ? `<div class="chips">${a.emojis
+        .slice(0, 24)
+        .map((e) => `<span class="chip"><b>${escapeHtml(e.name)}</b> ${num(e.count)}</span>`)
+        .join('')}</div>`
+    : '<p class="empty">아직 없음</p>';
 
-  const dailyTable = table(
+  // 30일이면 30줄 — 펴 두면 표가 페이지를 통째로 삼킨다(위 그래프가 이미 같은 값을 보여줌).
+  const dailyTable = `<details><summary>날짜별 표 펼치기 (${a.daily.length}일)</summary>${table(
     ['날짜', '요일', '메시지', '사람'],
     a.daily
       .slice()
       .reverse()
       .map((d) => [escapeHtml(d.dayKey), WEEKDAYS[weekdayOfKey(d.dayKey)], num(d.msgs), num(d.users)]),
-  );
+  )}</details>`;
 
   return `<!doctype html>
 <html lang="ko"><head>
@@ -213,7 +227,8 @@ export function renderDashboardPage(data: DashboardData): string {
   .tile { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 16px; }
   .tile-label { font-size: 12px; color: #8f87a8; }
   .tile-value { font-size: 27px; font-weight: 700; letter-spacing: -0.03em; margin: 4px 0 3px; }
-  .tile-sub { font-size: 12px; }
+  /* 두 줄로 접히면 타일 높이가 제각각이 된다 — 넘치면 줄이지 말고 잘라 낸다. */
+  .tile-sub { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .up { color: #0ca30c; } .down { color: #e66767; } .flat, .dim { color: #8f87a8; }
   section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 16px 18px; margin-bottom: 14px; }
   section h2 { font-size: 14px; margin: 0 0 14px; color: #d9d2ff; font-weight: 600; }
@@ -236,7 +251,22 @@ export function renderDashboardPage(data: DashboardData): string {
   th { color: #8f87a8; font-weight: 500; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.1); }
   td { border-bottom: 1px solid rgba(255,255,255,0.045); }
   th.r, td.r { text-align: right; }
-  .minibar { display: inline-block; height: 7px; border-radius: 4px; min-width: 3px; }
+  /* 고정 폭 트랙 — 표 칸이 좁아도 막대 길이가 뜻을 잃지 않는다. */
+  .track { display: inline-block; width: 64px; height: 7px; border-radius: 4px; background: rgba(255,255,255,0.08); vertical-align: middle; }
+  .track i { display: block; height: 100%; border-radius: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 999px; padding: 5px 11px; font-size: 13px; }
+  .chip b { font-weight: 400; }
+  details summary { cursor: pointer; color: #a79ec4; font-size: 13px; padding: 4px 0; user-select: none; }
+  /* 표가 잘렸다는 걸 알려 주는 그림자. 넓은 화면에서는 잘릴 일이 없는데 마지막 열을
+     덮어 버리므로, 실제로 잘리는 좁은 화면에서만 켠다. */
+  .scroll { position: relative; }
+  @media (max-width: 700px) {
+    .scroll::after {
+      content: ''; position: absolute; top: 0; right: 0; width: 24px; height: 100%;
+      background: linear-gradient(90deg, rgba(22,19,31,0), rgba(22,19,31,0.92)); pointer-events: none;
+    }
+  }
   .empty { color: #8f87a8; font-size: 13px; margin: 0; }
   .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
   .two section { margin-bottom: 0; }
