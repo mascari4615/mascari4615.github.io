@@ -249,7 +249,10 @@ export function webBody(options: WebBodyOptions = {}): Body {
           void options.speech
             .synthesize(say, query.get('v') ?? undefined)
             .then((audio) => {
-              res.writeHead(200, { 'content-type': 'audio/mpeg', 'content-length': audio.length });
+              res.writeHead(200, {
+                'content-type': options.speech?.contentType ?? 'audio/mpeg',
+                'content-length': audio.length,
+              });
               res.end(audio);
             })
             .catch((e) => {

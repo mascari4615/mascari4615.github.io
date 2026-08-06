@@ -26,6 +26,8 @@ import {
   describeHands,
   echoBrain,
   edgeSpeech,
+  piperReady,
+  piperSpeech,
   noteHand,
   remindHand,
   tactfulAttention,
@@ -96,7 +98,23 @@ const web = webBody({
   history: () => memory.recent(80),
   longTerm: () => memory.longTerm?.() ?? null,
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
-  speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
+  // 목소리 — 내 컴퓨터에서 도는 모델이 있으면 그걸 쓰고, 없으면 인터넷 목소리로.
+  speech: (() => {
+    const piperRoot = process.env.COMPANION_PIPER_DIR
+      ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
+    const local = {
+      exePath: join(piperRoot, 'piper', 'piper.exe'),
+      voices: { '욘 (내 컴퓨터)': join(piperRoot, 'alt.onnx') },
+      lengthScale: Number(process.env.COMPANION_VOICE_LENGTH ?? '1.06'),
+      log: (m) => console.log(`[목소리] ${m}`),
+    };
+    if (piperReady(local)) {
+      console.log('[목소리] 내 컴퓨터 모델을 쓴다');
+      return piperSpeech(local);
+    }
+    console.log('[목소리] 내 컴퓨터 모델이 없다 — 인터넷 목소리로 간다');
+    return edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' });
+  })(),
   // 오프라인 받아쓰기 — KarmoLab 이 이미 갖고 있던 것을 그대로 빌려 쓴다.
   characters: {
     list: () => roster,
