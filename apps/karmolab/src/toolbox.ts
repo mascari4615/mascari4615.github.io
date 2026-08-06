@@ -998,7 +998,9 @@ const Toolbox = (() => {
         page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
-        const panel = document.getElementById('panel-' + tabId);
+        // 패널을 문서 전체에서 id 로 찾으면 안 된다 — 탭 이름은 위젯마다 겹칠 수 있어서
+        // (여러 도구를 탭으로 묶으면 특히) 다른 도구 페이지의 패널을 열어 버린다. 이 페이지 안에서 찾는다.
+        const panel = page.querySelector('[data-tab-panel="' + tabId + '"]');
         buildLazyPanel(panel);
         panel?.classList.add('active');
     }
@@ -1067,7 +1069,8 @@ const Toolbox = (() => {
         tool.tabs.forEach((tab, i) => {
             const panel = document.createElement('div');
             panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
-            panel.id = 'panel-' + tab.id;
+            panel.id = 'panel-' + tool.id + '-' + tab.id;
+            panel.dataset.tabPanel = tab.id;
             panel.setAttribute('role', 'tabpanel');
             // 여러 도구를 탭으로 묶은 위젯은 전부 미리 그리면 안 본 탭까지 만들어진다
             // (무거운 화면·타이머·저장소 접근이 헛돈다). lazyTabs 면 처음 열릴 때 그린다.
