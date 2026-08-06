@@ -10,12 +10,13 @@
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
-    "build": "npm run build:wiki && node build.mjs && npm run test:tools && npm run test:bundles",
+    "build": "npm run typecheck && npm run build:wiki && node build.mjs && npm run test:tools && npm run test:bundles",
     "test:bundles": "node scripts/check-bundles.mjs",
     "test:tools": "node scripts/smoke-tools.mjs",
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
     "typecheck": "tsc --noEmit",
-    "test:live": "node scripts/smoke-live-pages.mjs",
+    "test:contrast": "node scripts/smoke-contrast.mjs",
+  "test:live": "node scripts/smoke-live-pages.mjs",
     "gen:og": "node scripts/gen-og-images.mjs"
   },
   "devDependencies": {

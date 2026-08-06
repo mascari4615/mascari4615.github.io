@@ -252,11 +252,11 @@
         .ie-opt-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
         .ie-apply-btn {
             padding:5px 16px; font-size:var(--font-size-xs); font-weight:600; border:none;
-            border-radius:var(--radius-sm); background:var(--accent); color:#fff;
+            border-radius:var(--radius-sm); background:var(--fill-strong); color:var(--fill-strong-ink);
             cursor:pointer; font-family:inherit; transition:all var(--transition);
             margin-left:0; flex:1 1 100%; width:100%; box-sizing:border-box; text-align:center;
         }
-        .ie-apply-btn:hover { background:var(--accent-hover); }
+        .ie-apply-btn:hover { background:var(--fill-strong-hover); }
 
         /* Filter grid */
         .ie-filter-grid { display:flex; gap:6px; flex-wrap:wrap; }

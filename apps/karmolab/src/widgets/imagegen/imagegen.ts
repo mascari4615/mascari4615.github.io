@@ -4,6 +4,16 @@
  */
 (function () {
     'use strict';
+    /**
+     * 방금 이 코드가 만들어 붙인 요소를 다시 집을 때 쓴다.
+     * 없으면 조용히 undefined 를 만지다 엉뚱한 곳에서 터지는 대신, 여기서 이름과 함께 멈춘다.
+     */
+    function mustEl<T extends HTMLElement>(id: string): T {
+        const found = document.getElementById(id);
+        if (found == null) throw new Error('[imagegen] 화면에 없는 요소: #' + id);
+        return found as T;
+    }
+
     const IG = window.ImageGen;
     if (!IG) {
         console.warn('ImageGen: window.ImageGen not found. Load config, presets, styles, core first.');
@@ -375,11 +385,11 @@
         `;
         const prev = rowEl.nextElementSibling;
         rowEl.parentNode.insertBefore(form, prev || null);
-        (document.getElementById('igAcCancel') as HTMLButtonElement | null).onclick = () => { form.remove(); showSlotSection(state.currentContextPreset); };
-        (document.getElementById('igAcSave') as HTMLButtonElement | null).onclick = () => {
-            const icon = (document.getElementById('igAcIcon') as HTMLInputElement | null).value.trim() || '🎨';
-            const label = (document.getElementById('igAcLabel') as HTMLInputElement | null).value.trim();
-            const prompt = (document.getElementById('igAcPrompt') as HTMLTextAreaElement | null).value.trim();
+        mustEl<HTMLButtonElement>('igAcCancel').onclick = () => { form.remove(); showSlotSection(state.currentContextPreset); };
+        mustEl<HTMLButtonElement>('igAcSave').onclick = () => {
+            const icon = mustEl<HTMLInputElement>('igAcIcon').value.trim() || '🎨';
+            const label = mustEl<HTMLInputElement>('igAcLabel').value.trim();
+            const prompt = mustEl<HTMLTextAreaElement>('igAcPrompt').value.trim();
             if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const list = loadCustomCharacters();
             list.push({ id: 'uc_' + Date.now(), icon, label, prompt });
@@ -520,11 +530,11 @@
         bodyEl.innerHTML = '';
         bodyEl.appendChild(form);
 
-        (document.getElementById('igCfCancel') as HTMLButtonElement | null).onclick = () => showPresetPopup(state.currentContextTab);
-        (document.getElementById('igCfSave') as HTMLButtonElement | null).onclick = () => {
-            const icon = (document.getElementById('igCfIcon') as HTMLInputElement | null).value.trim() || '🎨';
-            const label = (document.getElementById('igCfLabel') as HTMLInputElement | null).value.trim();
-            const prompt = (document.getElementById('igCfPrompt') as HTMLTextAreaElement | null).value.trim();
+        mustEl<HTMLButtonElement>('igCfCancel').onclick = () => showPresetPopup(state.currentContextTab);
+        mustEl<HTMLButtonElement>('igCfSave').onclick = () => {
+            const icon = mustEl<HTMLInputElement>('igCfIcon').value.trim() || '🎨';
+            const label = mustEl<HTMLInputElement>('igCfLabel').value.trim();
+            const prompt = mustEl<HTMLTextAreaElement>('igCfPrompt').value.trim();
             if (!label || !prompt) { Toolbox.showToast('이름과 프롬프트를 입력해주세요.', 'error'); return; }
             const presets = loadCustomPresets();
             const entry = { id: item?.id || 'c_' + Date.now(), icon, label, prompt };
@@ -539,9 +549,10 @@
     /* ===== showApiHistory ===== */
     function showApiHistory() {
         const history = typeof Gemini !== 'undefined' ? (Gemini as any).getApiHistory() : [];
-        let overlay = document.getElementById('igApiHistoryOverlay') as HTMLDivElement | null;
-        if (!overlay) {
-            overlay = document.createElement('div');
+        // 창을 만든 뒤 콜백에서 다시 쓰므로, 만들고 나서는 '없을 수 있음' 이 아닌 값으로 고정한다.
+        let found = document.getElementById('igApiHistoryOverlay') as HTMLDivElement | null;
+        if (found == null) {
+            const overlay = document.createElement('div');
             overlay.id = 'igApiHistoryOverlay';
             overlay.className = 'ig-api-history-overlay';
             overlay.innerHTML = `
@@ -558,14 +569,16 @@
             overlay.onclick = (e: any) => { if (e.target === overlay) overlay.classList.remove('open'); };
             document.body.appendChild(overlay);
 
-            (document.getElementById('igApiHistoryClose') as HTMLButtonElement | null).onclick = () => overlay.classList.remove('open');
-            (document.getElementById('igApiHistoryClear') as HTMLButtonElement | null).onclick = () => {
+            mustEl<HTMLButtonElement>('igApiHistoryClose').onclick = () => overlay.classList.remove('open');
+            mustEl<HTMLButtonElement>('igApiHistoryClear').onclick = () => {
                 if (typeof Gemini !== 'undefined') (Gemini as any).clearApiHistory();
                 showApiHistory();
             };
+            found = overlay;
         }
+        const overlay = found;
 
-        const listEl = document.getElementById('igApiHistoryList') as HTMLDivElement | null;
+        const listEl = mustEl<HTMLDivElement>('igApiHistoryList');
         listEl.innerHTML = '';
 
         if (history.length === 0) {
@@ -644,7 +657,7 @@
         const isMascot = state.currentContextPreset && state.currentContextTab === 'mascot';
         let emojiChar = '';
         if (isEmoji && (document.getElementById('igSlot_CHAR') as HTMLSelectElement | null)) {
-            const v = (document.getElementById('igSlot_CHAR') as HTMLSelectElement | null).value;
+            const v = mustEl<HTMLSelectElement>('igSlot_CHAR').value;
             emojiChar = v === CUSTOM_INPUT_ID ? ((document.getElementById('igSlotCustom_CHAR') as HTMLInputElement | null)?.value.trim() || '') : ((getCharacterOptions().find((c: any) => c.id === v))?.label || '');
         }
         enqueue(promptText, isEmoji, emojiChar, isMascot);
@@ -682,15 +695,16 @@
             const prevItem = idx > 0 ? state.sessionGallery[idx - 1] : state.sessionGallery[state.sessionGallery.length - 1];
             if (img) img.style.display = 'none';
             if (placeholder) placeholder.style.display = 'none';
-            let cmp = preview.querySelector('.ig-compare');
-            if (!cmp) { cmp = document.createElement('div'); cmp.className = 'ig-compare'; preview.appendChild(cmp); }
+            if (preview == null) return;
+            let cmp = preview.querySelector('.ig-compare') as HTMLDivElement | null;
+            if (cmp == null) { cmp = document.createElement('div'); cmp.className = 'ig-compare'; preview.appendChild(cmp); }
             cmp.innerHTML = `
                 <div class="ig-compare-pane"><div class="ig-compare-label">이전</div><img src="${prevItem.url}" alt="Previous"></div>
                 <div class="ig-compare-pane"><div class="ig-compare-label">현재</div><img src="${state.currentItem.url}" alt="Current"></div>`;
             cmp.style.display = 'flex';
             if (btn) btn.textContent = '🔀 비교 해제';
         } else {
-            const cmp = preview.querySelector('.ig-compare');
+            const cmp = preview?.querySelector('.ig-compare') as HTMLDivElement | null;
             if (cmp) cmp.style.display = 'none';
             if (img && state.currentItem) img.style.display = '';
             if (btn) btn.textContent = '🔀 비교';

@@ -77,3 +77,38 @@ jobs:
         # strict 게이트 (TASK-KL-032). _typos.toml 이 false-positive 정의 + 데이터/외부 라이브러리 exclude.
         # 진짜 typo 일 가능성 큰 단어들도 임시 false-positive 등록 — 점진 fix 는 KL-032 backlog.
         uses: crate-ci/typos@master
+
+  contrast:
+    # 테마별 「글씨가 안 보이는 자리」 전수 검사 (TASK-KL-090).
+    # verify 본체와 분리 — 브라우저 설치가 필요하고, 실패해도 원인이 색 하나로 뚜렷하다.
+    name: contrast (theme readability)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            apps/karmolab/package-lock.json
+            packages/karmolab-ai/package-lock.json
+
+      - name: Install karmolab-ai deps
+        run: cd packages/karmolab-ai && npm ci
+
+      - name: Build karmolab-ai (karmolab build 가 이 dist 를 불러온다)
+        run: cd packages/karmolab-ai && npm run build
+
+      - name: Install karmolab deps
+        run: cd apps/karmolab && npm ci
+
+      - name: Install Chromium
+        run: cd apps/karmolab && npx playwright install --with-deps chromium
+
+      - name: Build karmolab (검사는 빌드 결과물을 연다)
+        run: cd apps/karmolab && npm run build
+
+      - name: Contrast sweep (light/dark)
+        run: cd apps/karmolab && npm run test:contrast
