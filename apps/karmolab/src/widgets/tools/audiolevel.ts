@@ -168,10 +168,20 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
            * 큰 소리를 눌러 크고 작음의 차이를 좁힌 뒤(①) 전체를 목표까지 올린다(②).
            * 누르는 정도는 지수로 준다 — 곱셈으로 줄이면 작은 소리까지 같이 줄어 아무 소용이 없다.
            */
-          function process(buffer: AudioBuffer, ctx: AudioContext): AudioBuffer {
+          async function process(buffer: AudioBuffer, ctx: AudioContext): Promise<AudioBuffer> {
             const ratio = EVEN[parseInt(evenEl.value, 10)][0];
             const target = Math.pow(10, parseFloat(targetEl.value) / 20);
             const out = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+            // 표본 하나하나를 만지는 일이라 1시간 녹음이면 3억 번이 넘는다. 한 번에 돌면 그동안
+            // 화면이 통째로 멈춰 「먹통이 됐나」 싶어진다 — 조금씩 끊어 돌며 진행률을 보여 준다.
+            const CHUNK = 2_000_000;
+            const total = buffer.length * buffer.numberOfChannels * 2; // 두 번 훑는다
+            let done = 0;
+            const breathe = async (): Promise<void> => {
+              say(`맞추는 중… ${Math.min(99, Math.round((done / total) * 100))}%`);
+              await new Promise((r) => setTimeout(r, 0));
+            };
 
             let maxAfter = 0;
             for (let c = 0; c < buffer.numberOfChannels; c++) {
@@ -182,29 +192,35 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
                 // 부호는 그대로 두고 크기만 눌러야 소리가 뒤집히지 않는다
                 const shaped = ratio === 1 ? v : Math.sign(v) * Math.pow(Math.abs(v), ratio);
                 to[i] = shaped;
-                maxAfter = Math.max(maxAfter, Math.abs(shaped));
+                const abs = shaped < 0 ? -shaped : shaped;
+                if (abs > maxAfter) maxAfter = abs;
+                if (++done % CHUNK === 0) await breathe();
               }
             }
             // 목표를 넘지 않도록 한 번에 맞춘다 (넘으면 찌그러진다)
             const gain = maxAfter > 0 ? target / maxAfter : 1;
             for (let c = 0; c < out.numberOfChannels; c++) {
               const to = out.getChannelData(c);
-              for (let i = 0; i < to.length; i++) to[i] = Math.max(-1, Math.min(1, to[i] * gain));
+              for (let i = 0; i < to.length; i++) {
+                to[i] = Math.max(-1, Math.min(1, to[i] * gain));
+                if (++done % CHUNK === 0) await breathe();
+              }
             }
             return out;
           }
 
-          function run(): void {
+          async function run(): Promise<void> {
             if (!source) {
               say('파일을 먼저 넣어 주세요.', 'error');
               return;
             }
             const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             const ctx = new AC();
-            const out = process(source, ctx);
+            const held = source;
+            const out = await process(held, ctx);
             void ctx.close();
 
-            const before = source.getChannelData(0);
+            const before = held.getChannelData(0);
             const after = out.getChannelData(0);
             drawWave($<HTMLCanvasElement>('#alAfter'), after, '#4bb3e0');
 
@@ -245,7 +261,9 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
           [evenEl, targetEl].forEach((el) => el.addEventListener('input', labels));
           labels();
 
-          $<HTMLButtonElement>('#alRun').onclick = () => run();
+          $<HTMLButtonElement>('#alRun').onclick = () => {
+            void run().catch((err: Error) => say('맞추는 중 문제가 생겼어요: ' + err.message, 'error'));
+          };
           saveBtn.onclick = () => {
             if (!processed) return;
             const format = $<HTMLSelectElement>('#alFormat').value as 'wav' | 'mp3';
