@@ -11,6 +11,8 @@
  */
 import { fileSize as size, mmss } from './shared/media';
 
+import { seekTo } from './shared/video';
+
 (function (): void {
   interface Shot {
     time: number;
@@ -127,38 +129,23 @@ import { fileSize as size, mmss } from './shared/media';
             }
           }
 
-          /**
-           * 그 시각의 화면을 원본 크기로 꺼낸다.
-           * 함정: **이미 그 자리에 있으면 「옮겼다」 신호가 오지 않는다** — 기다리기만 하면 멈춘다.
-           * 그래서 도착해 있으면 바로 그리고, 신호가 안 와도 시간을 두고 진행한다.
-           */
-          function grab(time: number): Promise<Shot> {
-            return new Promise((resolve, reject) => {
-              const target = Math.min(Math.max(0, time), Math.max(0, duration - 0.02));
-              const canvas = document.createElement('canvas');
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return reject(new Error('canvas 없음'));
-              let timer = 0;
-              const done = (): void => {
-                window.clearTimeout(timer);
-                video.removeEventListener('seeked', done);
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                canvas.toBlob(
-                  (b) => {
-                    if (!b) return reject(new Error('사진으로 못 바꿨어요'));
-                    resolve({ time: target, blob: b, url: URL.createObjectURL(b) });
-                  },
-                  $<HTMLSelectElement>('#viFormat').value,
-                  0.92
-                );
-              };
-              if (Math.abs(video.currentTime - target) < 0.01) return done();
-              video.addEventListener('seeked', done);
-              timer = window.setTimeout(done, 3000);
-              video.currentTime = target;
+          /** 그 시각의 화면을 원본 크기로 꺼낸다. 옮겨지기 전에 그리면 엉뚱한 장면이 담긴다. */
+          async function grab(time: number): Promise<Shot> {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('canvas 없음');
+            await seekTo(video, time);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const blob = await new Promise<Blob>((resolve, reject) => {
+              canvas.toBlob(
+                (b) => (b ? resolve(b) : reject(new Error('사진으로 못 바꿨어요'))),
+                $<HTMLSelectElement>('#viFormat').value,
+                0.92
+              );
             });
+            return { time: video.currentTime, blob, url: URL.createObjectURL(blob) };
           }
 
           function load(f: File): void {

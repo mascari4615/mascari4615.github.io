@@ -8,6 +8,8 @@
  *
  * 소리는 두 갈래다: 화면 소리(탭·시스템)와 마이크. 둘 다 켜면 섞어야 하므로 오디오를 합친다.
  */
+import { pickRecordType } from './shared/video';
+
 (function (): void {
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
@@ -74,12 +76,6 @@
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
-          function pickType(): string {
-            const wanted = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
-            for (const t of wanted) if (MediaRecorder.isTypeSupported(t)) return t;
-            return '';
-          }
-
           function cleanup(): void {
             window.clearInterval(ticker);
             tracks.forEach((t) => t.stop());
@@ -132,7 +128,7 @@
               dest.stream.getAudioTracks().forEach((t) => out.addTrack(t));
             }
 
-            const mimeType = pickType();
+            const mimeType = pickRecordType();
             const chunks: Blob[] = [];
             recorder = new MediaRecorder(out, mimeType ? { mimeType } : undefined);
             recorder.ondataavailable = (ev) => {
