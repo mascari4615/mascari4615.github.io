@@ -270,6 +270,23 @@
   }
   .known-btn:hover { border-color: rgba(110, 231, 255, 0.55); }
 
+  .voice-pick {
+    position: fixed;
+    top: 14px;
+    right: 100px;
+    z-index: 2;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--edge);
+    background: rgba(17, 20, 27, 0.8);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .voice-pick:hover { border-color: rgba(110, 231, 255, 0.55); }
+
   .sheet {
     position: fixed;
     top: 56px;
@@ -327,6 +344,8 @@
     <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
     <div class="sheet-foot">대화가 쌓이면 오래된 쪽을 접어서 여기에 남긴다.</div>
   </div>
+  <select class="voice-pick" id="voicePick" title="목소리 고르기" hidden></select>
+  <audio id="player" hidden></audio>
   <div class="room">
     <div class="stage">
       <div class="bubble" id="bubble"></div>
@@ -382,20 +401,73 @@
   mute.addEventListener('click', () => {
     voiceOn = !voiceOn;
     localStorage.setItem('companion.voice', voiceOn ? 'on' : 'off');
-    if (voiceOn === false) speechSynthesis.cancel();
+    if (voiceOn === false) { speechSynthesis.cancel(); player.pause(); }
     renderMute();
   });
 
-  function speakAloud(message) {
-    if (voiceOn === false || !('speechSynthesis' in window)) return;
+  /* 서버가 만들어 준 자연스러운 목소리를 먼저 쓰고, 안 되면 브라우저 내장으로 물러선다.
+     이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이라 로봇처럼 들리기 때문이다. */
+  const player = document.getElementById('player');
+  const voicePick = document.getElementById('voicePick');
+  let serverVoices = [];
+  let chosenVoice = localStorage.getItem('companion.voiceId') || '';
+
+  function speakBuiltIn(message) {
+    if (!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(message);
     if (koVoice) utter.voice = koVoice;
     utter.lang = 'ko-KR';
     utter.rate = 1.02;
-    utter.pitch = 1.0;
     speechSynthesis.speak(utter);
   }
+
+  async function speakAloud(message) {
+    if (voiceOn === false) return;
+    if (serverVoices.length === 0) { speakBuiltIn(message); return; }
+    try {
+      const url = '/voice?text=' + encodeURIComponent(message) + (chosenVoice ? '&v=' + encodeURIComponent(chosenVoice) : '');
+      const res = await fetch(url);
+      if (res.ok === false) { speakBuiltIn(message); return; }
+      const blob = await res.blob();
+      speechSynthesis.cancel();
+      player.pause();
+      if (player.src) URL.revokeObjectURL(player.src);
+      player.src = URL.createObjectURL(blob);
+      await player.play();
+    } catch {
+      speakBuiltIn(message);
+    }
+  }
+
+  async function loadVoices() {
+    try {
+      serverVoices = await (await fetch('/voices')).json();
+    } catch {
+      serverVoices = [];
+    }
+    if (serverVoices.length === 0) return;
+    if (chosenVoice === '') chosenVoice = serverVoices[0].id;
+    voicePick.hidden = false;
+    voicePick.innerHTML = '';
+    for (const v of serverVoices) {
+      const option = document.createElement('option');
+      option.value = v.id;
+      option.textContent = v.label + ' · ' + v.gender;
+      if (v.id === chosenVoice) option.selected = true;
+      voicePick.append(option);
+    }
+  }
+
+  voicePick.addEventListener('change', () => {
+    chosenVoice = voicePick.value;
+    localStorage.setItem('companion.voiceId', chosenVoice);
+    // 고른 즉시 한 번 들려준다 — 안 들어보고는 못 고른다.
+    const previous = voiceOn;
+    voiceOn = true;
+    speakAloud('응, 이 목소리로 할게.');
+    voiceOn = previous;
+  });
 
   function append(who, message, kind) {
     log.querySelector('.empty')?.remove();
@@ -511,6 +583,7 @@
   });
 
   loadHistory();
+  loadVoices();
   text.focus();
 </script>
 </body>

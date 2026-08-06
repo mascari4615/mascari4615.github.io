@@ -25,6 +25,7 @@ import {
   clockBody,
   cooldownAttention,
   echoBrain,
+  edgeSpeech,
   loadCharacter,
   screenSense,
   webBody,
@@ -70,6 +71,8 @@ const web = webBody({
   // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
   history: () => memory.recent(80),
   longTerm: () => memory.longTerm?.() ?? null,
+  // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
+  speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
 });
 
 const bodies = [web];
