@@ -28,15 +28,51 @@ for (const id of ids) {
   await page.waitForTimeout(700);
   const state = await page.evaluate((toolId) => {
     const el = document.getElementById('page-' + toolId);
-    if (!el) return { built: false, visible: false, nodes: 0, here: location.pathname };
+    if (!el) return { built: false, visible: false, nodes: 0, reachable: false, here: location.pathname };
     const visible = getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0;
+
     return { built: true, visible, nodes: el.querySelectorAll('*').length, here: location.pathname };
   }, id);
 
-  const ok = res.status() === 200 && state.built && state.visible && state.nodes > 5;
+  // 도구 아래의 설명·FAQ 까지 사람이 실제로 닿는지 (TASK-KL-089).
+  // 화면을 꽉 쓰는 도구는 바깥 스크롤이 꺼져 이 부분이 통째로 잘린 적이 있다.
+  // 주의: 코드로 scrollIntoView 를 부르면 스크롤이 꺼져 있어도 위치가 옮겨져 **통과해 버린다**
+  // (실제로 이 검사를 그렇게 짰다가 거짓 통과를 봤다). 휠을 굴리는 방법도 마우스가 어디
+  // 있느냐에 따라 결과가 뒤집혀 못 쓴다 — 도구가 휠을 먼저 먹기 때문이다.
+  // 그래서 스크롤을 가진 영역의 *상태*로 판정한다.
+  const reach = await page.evaluate(() => {
+    const seo = document.querySelector('.tool-seo');
+    if (!seo) return { ok: true, why: '설명 블록 없음' };
+
+    // 설명을 담고 있는 스크롤 영역을 찾는다.
+    let box = seo.parentElement;
+    while (box && box !== document.body) {
+      const oy = getComputedStyle(box).overflowY;
+      if ((oy === 'auto' || oy === 'scroll' || oy === 'hidden') && box.scrollHeight > box.clientHeight + 4) break;
+      box = box.parentElement;
+    }
+    const scroller = box && box !== document.body ? box : document.scrollingElement;
+
+    // 넘치는 내용이 있는데 그 영역이 hidden 이면 사람은 아래를 볼 방법이 없다.
+    // (코드로 scrollIntoView 를 부르면 hidden 이어도 옮겨져 통과해 버리므로, 상태로 판정한다.)
+    const oy = getComputedStyle(scroller).overflowY;
+    const overflows = scroller.scrollHeight > scroller.clientHeight + 4;
+    if (overflows && oy === 'hidden') return { ok: false, why: '스크롤이 꺼져 아래를 볼 수 없음' };
+
+    scroller.scrollTop = scroller.scrollHeight;
+    const last = seo.querySelector('.tool-seo-note') || seo.lastElementChild;
+    const b = last.getBoundingClientRect();
+    return b.top < window.innerHeight && b.bottom > 0
+      ? { ok: true }
+      : { ok: false, why: '끝까지 굴려도 설명 끝이 안 보임' };
+  });
+  state.reachable = reach.ok;
+  state.why = reach.why || '';
+
+  const ok = res.status() === 200 && state.built && state.visible && state.nodes > 5 && state.reachable;
   if (!ok) {
     failures.push(
-      `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 위치=${state.here}`
+      `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""} 위치=${state.here}`
     );
     process.stdout.write('x');
   } else {
