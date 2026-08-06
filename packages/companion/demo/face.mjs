@@ -49,6 +49,7 @@ import {
   readMood,
   pickFiller,
   reflexFor,
+  driftWarning,
   reasonToSpeak,
   nudgeSense,
   readRapport,
@@ -356,7 +357,9 @@ const companion = new Companion({
       : recent;
     lastEnergy = mood.energy;
     const rapport = readRapport(wholeStory);
-    return [rapport.note, mood.note, avoidRepeats(recent), maybeAsk(curiosity)]
+    // 얘가 저도 모르게 조수 말투로 샜으면 그걸 짚어 준다. 안 짚으면 자기 말을
+    // 따라 하며 굳는다 — 기억에 남은 자기 말이 다음 재료가 되기 때문이다.
+    return [rapport.note, mood.note, driftWarning(recent), avoidRepeats(recent), maybeAsk(curiosity)]
       .filter(Boolean)
       .join('\n');
   },

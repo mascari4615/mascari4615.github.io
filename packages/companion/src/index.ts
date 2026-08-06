@@ -7,6 +7,7 @@ export * from './types';
 export { Companion, type CompanionOptions } from './core';
 export { loadCharacter, loadCharacters } from './character';
 export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
+export { checkDrift, driftWarning, type Drift, type DriftRules } from './drift';
 export { reflexFor, type ReflexOptions } from './reflex';
 export { pickFiller, type FillerOptions } from './filler';
 export { readRapport, type Rapport, type RapportOptions } from './rapport';
