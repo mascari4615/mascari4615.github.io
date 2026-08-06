@@ -12,6 +12,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { randomBytes } from 'crypto';
 import { PKG_ROOT } from '../paths';
 
 /** 하루치 유저 1명 기록. 내용은 없고 세는 값만. */
@@ -48,6 +49,11 @@ export interface GuildStat {
 export interface ServerStatsState {
   version: 1;
   guilds: Record<string, GuildStat>;
+  /**
+   * 서버ID → 공유 키. 웹 결산 페이지 주소가 `/w/<키>` 라서,
+   * 서버 ID 를 아는 것만으로는 남의 서버 결산을 열 수 없다 (주소 추측 불가).
+   */
+  shares: Record<string, string>;
 }
 
 /** 며칠치를 보관할지 — 연간 결산까지 커버. */
@@ -88,7 +94,27 @@ export function recentDayKeys(now: Date, days: number): string[] {
 }
 
 export function emptyState(): ServerStatsState {
-  return { version: 1, guilds: {} };
+  return { version: 1, guilds: {}, shares: {} };
+}
+
+/**
+ * 서버의 공유 키 — 없으면 만들어 준다. 한 번 만들면 주소가 안 바뀐다(북마크 가능).
+ * 22자 base64url ≈ 128bit → 무작위로 맞힐 수 없다.
+ */
+export function getOrCreateShareKey(state: ServerStatsState, guildId: string): string {
+  const existing = state.shares[guildId];
+  if (existing) return existing;
+  const key = randomBytes(16).toString('base64url');
+  state.shares[guildId] = key;
+  return key;
+}
+
+/** 공유 키 → 서버 ID. 모르는 키면 null. */
+export function guildIdForShareKey(state: ServerStatsState, key: string): string | null {
+  for (const [guildId, k] of Object.entries(state.shares)) {
+    if (k === key) return guildId;
+  }
+  return null;
 }
 
 /** 부분/구버전 JSON → 완전한 state. 빈 입력 normalize({}) 가 곧 기본값. */
@@ -107,7 +133,13 @@ export function normalizeState(parsed: Partial<ServerStatsState> | null | undefi
       guilds[guildId] = { days };
     }
   }
-  return { version: 1, guilds };
+  const shares: Record<string, string> = {};
+  if (parsed?.shares && typeof parsed.shares === 'object') {
+    for (const [guildId, key] of Object.entries(parsed.shares)) {
+      if (typeof key === 'string' && key) shares[guildId] = key;
+    }
+  }
+  return { version: 1, guilds, shares };
 }
 
 function normalizeDay(day: Partial<DayStat> | undefined): DayStat {
@@ -538,6 +570,23 @@ export class ServerStatsRecorder {
   /** 디버그용 즉시 저장 — 20초 기다리지 않고 파일을 눈으로 확인하고 싶을 때. */
   flushNow(): void {
     this.flush();
+  }
+
+  /** 웹 결산 주소용 공유 키 (없으면 생성 + 저장). */
+  shareKey(guildId: string): string {
+    const state = this.load();
+    const before = state.shares[guildId];
+    const key = getOrCreateShareKey(state, guildId);
+    if (!before) {
+      this.dirty = true;
+      this.flush();
+    }
+    return key;
+  }
+
+  /** 공유 키로 서버 찾기 — 모르는 키면 null. */
+  guildIdForShareKey(key: string): string | null {
+    return guildIdForShareKey(this.load(), key);
   }
 
   private scheduleFlush(): void {

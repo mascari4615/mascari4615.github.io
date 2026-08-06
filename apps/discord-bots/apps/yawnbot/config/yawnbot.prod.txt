@@ -37,6 +37,12 @@ YAWNBOT_NEWS_CHANNEL_ID=1490364315545636935
 # off 센티넬: none/off/-/0 = 폴링 비활성. 빈값/미설정은 전체(google,hn,gn) 폴백이라 끄기 아님 주의.
 YAWNBOT_NEWS_SOURCES=off
 
+# ── 웹 결산 페이지 (TASK-YB-042) ──
+# 봇이 `/결산` 답에 붙이는 링크의 앞부분. 노트북 express(4615)를 named tunnel 이
+# 이 주소로 내보낸다. 비어 있으면 링크만 생략되고 카드는 그대로 뜬다.
+# 페이지 주소는 `/w/<공유키>` — 서버 ID 로는 못 연다(키는 봇이 서버마다 따로 만듦).
+YAWNBOT_PUBLIC_URL=https://yawnbot.mascari4615.com
+
 # ── 개인 식별자 (Discord 유저 ID — env 불변, dev .env 에서 자동 채움) ──
 ADMIN_IDS=391805564616704002
 ASSISTANT_USER_ID=391805564616704002
