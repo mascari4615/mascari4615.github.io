@@ -184,29 +184,36 @@ jobs:
       # 오래된 판이 새 판을 덮어쓰는 것을 막는다 (TASK-KL-088).
       # 배포는 사이트 전체를 통째로 바꾸므로, 뒤늦게 끝난 옛 커밋의 판이 나중에 배포되면
       # 방금 나간 것들이 도로 사라진다. 실제로 오늘 새벽 그 일이 나서 손으로 취소해 왔다.
-      # 물러나는 조건은 아래 단계가 정한다 — 「내가 끝인가」가 아니라 「새 판이 오고 있는가」다.
+      # 물러나는 조건은 아래 단계가 정한다 — 「이미 더 새 판이 배포했는가」 하나뿐이다.
       # (실패가 아니다. 여기서 붉은불을 켜면 진짜 고장과 구분이 안 된다.)
-      - name: 나보다 새 판이 실제로 오고 있는가
+      - name: 나보다 새 판이 이미 배포했는가
         id: freshness
-        # 「내가 master 의 끝인가」로 물으면 안 된다 (2026-08-07 실측: 다섯 판 연속 초록인데
-        # 배포는 한 번도 안 나갔다). 빌드가 10분 걸리는 동안 다른 세션이 계속 밀어 넣으면
-        # *모든* 판이 「나는 끝이 아니다」로 물러나고, 그 새 커밋의 판도 같은 이유로 물러난다.
-        # 아무도 배포하지 않는데 전부 초록 — 진짜 고장과 구분이 안 되는 최악의 침묵이다.
+        # 이 게이트는 두 번 틀렸다. 기록해 둔다 (2026-08-07 실측).
         #
-        # 그래서 묻는 것을 바꾼다: **나보다 새 판이 지금 실제로 돌고 있나?**
-        # 돌고 있으면 그 판이 더 새 내용을 실어 가므로 물러난다(옛 판이 새 판을 덮는 것을
-        # 막는 원래 의도는 그대로다). 없으면 내가 마지막 주자다 — 끝이 아니어도 배포한다.
-        # 그래야 줄이 반드시 끝난다.
+        # ① 「내가 master 의 끝인가」 — 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
+        #    물러난다. 그 새 커밋의 판도 도착할 때쯤엔 또 끝이 아니다. 아무도 배포 안 하는데
+        #    다섯 판 연속 초록이었다.
+        # ② 「나보다 새 판이 돌고 있는가」 — 같은 이유로 굶는다. 돌고 있는 판도 자기 차례엔
+        #    또 다른 새 판을 보고 물러난다. 「앞으로 일어날 일」을 조건에 넣으면 줄이 안 끝난다.
+        #
+        # 그래서 **이미 일어난 일**만 본다: 나보다 새 판이 *실제로 배포에 성공했나?*
+        # 그랬다면 내가 나가면 사이트가 뒤로 간다 → 물러난다 (KL-088 이 막으려던 그 사고).
+        # 아니면 배포한다. 이 조건은 한 번 참이 되면 계속 참이라 굶지 않는다.
         run: |
           MINE=${{ github.run_number }}
-          NEWER=$(gh api "repos/${{ github.repository }}/actions/workflows/pages-deploy.yml/runs?branch=master&per_page=50"             --jq "[.workflow_runs[] | select(.run_number > $MINE) | select(.status != \"completed\")] | length")
-          echo "내 판 번호 = $MINE · 나보다 새로 돌고 있는 판 = $NEWER"
-          if [ "${NEWER:-0}" -gt 0 ]; then
+          REPO=${{ github.repository }}
+          NEWER=$(gh api "repos/$REPO/actions/workflows/pages-deploy.yml/runs?branch=master&status=completed&per_page=30"             --jq "[.workflow_runs[] | select(.run_number > $MINE) | .id] | .[]")
+          DEPLOYED=0
+          for id in $NEWER; do
+            OK=$(gh api "repos/$REPO/actions/runs/$id/jobs"               --jq '[.jobs[] | select(.name == "deploy") | .steps[] | select(.name | startswith("Deploy")) | select(.conclusion == "success")] | length')
+            if [ "${OK:-0}" -gt 0 ]; then DEPLOYED=1; echo "더 새 판 $id 가 이미 배포했다"; break; fi
+          done
+          if [ "$DEPLOYED" = "1" ]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::더 새 판이 돌고 있어 물러난다 — 그 판이 배포한다"
+            echo "::notice::더 새 판이 이미 배포했다 — 물러난다 (나가면 사이트가 뒤로 간다)"
           else
             echo "stale=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::내가 마지막 주자다 — 배포한다"
+            echo "::notice::나보다 새 판이 배포한 적 없다 — 배포한다"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
