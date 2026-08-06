@@ -7,7 +7,10 @@
 (function (): void {
   const PARTS: Array<[string, string]> = [
     ['pdftool', 'PDF'],
-    ['audiocut', '오디오']
+    ['audiocut', '오디오'],
+    ['pdf2img', 'PDF → 이미지'],
+    ['img2pdf', '이미지 → PDF'],
+    ['ziptool', 'ZIP']
   ];
 
   Toolbox.register({

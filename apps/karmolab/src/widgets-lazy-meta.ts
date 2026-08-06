@@ -327,6 +327,39 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/checklist']
   },
   {
+    id: 'pdf2img',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF → 이미지',
+    category: 'tool',
+    desc: 'PDF 페이지를 PNG·JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13 19l2-2 2 2 2-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdf2img']
+  },
+  {
+    id: 'img2pdf',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '이미지 → PDF',
+    category: 'tool',
+    desc: '사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/img2pdf']
+  },
+  {
+    id: 'ziptool',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'ZIP 만들기·풀기',
+    category: 'tool',
+    desc: '파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다',
+    layout: 'wide',
+    icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/ziptool']
+  },
+  {
     id: 'pdftool',
     hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -355,7 +388,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/filetool']
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/filetool']
   },
   {
     id: 'charcount',
