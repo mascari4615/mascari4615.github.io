@@ -11,12 +11,15 @@
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
 import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import {
   Companion,
+  DistillingMemory,
   InMemoryMemory,
   JsonlFileMemory,
+  brainDistiller,
   assistantBrain,
   claudeCliBrain,
   clockBody,
@@ -44,13 +47,29 @@ const memoryFile = process.env.COMPANION_MEMORY_FILE?.trim();
 const characterName = process.env.COMPANION_CHARACTER ?? '무명';
 const character = characterName === 'none' ? undefined : loadCharacter(join(root, 'characters', `${characterName}.md`));
 
-const memory = memoryFile ? new JsonlFileMemory(memoryFile) : new InMemoryMemory();
+// 기억은 기본으로 남는다 — 껐다 켤 때마다 초면이면 인격체가 아니라 도구다.
+const home = join(homedir(), '.companion');
+const conversationPath = memoryFile ?? join(home, 'conversation.jsonl');
+const notePath = join(home, '아는-것.md');
+
+const memory =
+  conversationPath === 'none'
+    ? new InMemoryMemory()
+    : new DistillingMemory({
+        inner: new JsonlFileMemory(conversationPath),
+        // 졸이는 일도 같은 두뇌가 한다. 두뇌가 못 하면(가짜 두뇌) 아는 것은 안 쌓인다.
+        distill: brainDistiller((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+        every: Number(process.env.COMPANION_DISTILL_EVERY ?? '24'),
+        notePath,
+        log: (m) => console.log(`[기억] ${m}`),
+      });
 const web = webBody({
   port,
   open: true,
   log: (m) => console.log(m),
   // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
   history: () => memory.recent(80),
+  longTerm: () => memory.longTerm?.() ?? null,
 });
 
 const bodies = [web];
@@ -91,6 +110,11 @@ console.log(
 
 process.on('SIGINT', async () => {
   await companion.stop();
+  // 끄기 전에 한 번 접는다 — 방금 나눈 말이 「아는 것」에 안 남고 사라지지 않게.
+  if (memory instanceof DistillingMemory) {
+    console.log('[기억] 접는 중…');
+    await memory.condense();
+  }
   console.log('\n동반자 꺼짐.');
   process.exit(0);
 });

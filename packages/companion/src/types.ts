@@ -78,6 +78,8 @@ export interface ThinkInput {
   sensation: Sensation;
   /** 최근 기억 (오래된 것 → 최신 순). */
   recent: readonly MemoryEntry[];
+  /** 오래 남는 앎 — 이 사람에 대해 아는 것. 없으면 없는 채로. */
+  longTerm?: string | null;
   /** 누구로서 답하나. 없으면 아무도 아닌 채로. */
   character?: Character;
 }
@@ -88,11 +90,21 @@ export interface Brain {
   think(input: ThinkInput): Promise<string | null>;
 }
 
-/** 기억. */
+/**
+ * 기억. 두 층이다.
+ *
+ * `recent` = 방금 오간 말. 시간이 지나면 밀려난다.
+ * `longTerm` = 밀려난 말에서 건져 올린 「이 사람에 대해 아는 것」. 대화가 길어져도 남는다.
+ *
+ * 두 층으로 나눈 이유: 최근 대화만 넘기면 어제 한 말을 오늘 모르고, 전부 넘기면
+ * 대화가 길어질수록 감당이 안 된다. 사람의 기억도 이 둘로 갈린다.
+ */
 export interface Memory {
   remember(entry: MemoryEntry): void | Promise<void>;
   /** 최근 limit 개, 오래된 것 → 최신 순. */
   recent(limit: number): readonly MemoryEntry[] | Promise<readonly MemoryEntry[]>;
+  /** 오래 남는 앎. 없으면 구현하지 않아도 된다. */
+  longTerm?(): string | null | Promise<string | null>;
 }
 
 /** 「지금 말 걸어도 되나」 판단 결과. */

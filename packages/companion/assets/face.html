@@ -253,6 +253,60 @@
   }
   .mute:hover { border-color: rgba(110, 231, 255, 0.55); }
 
+  .known-btn {
+    position: fixed;
+    top: 14px;
+    right: 58px;
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid var(--edge);
+    background: rgba(17, 20, 27, 0.8);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .known-btn:hover { border-color: rgba(110, 231, 255, 0.55); }
+
+  .sheet {
+    position: fixed;
+    top: 56px;
+    right: 16px;
+    z-index: 3;
+    width: min(360px, calc(100vw - 32px));
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--edge);
+    border-radius: 14px;
+    background: rgba(15, 18, 24, 0.97);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+  .sheet-head {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--edge);
+    font-size: 13px;
+    color: var(--glow);
+    letter-spacing: 0.02em;
+  }
+  .sheet-body {
+    padding: 13px 15px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+  .sheet-foot {
+    padding: 9px 15px 11px;
+    border-top: 1px solid var(--edge);
+    font-size: 11px;
+    color: var(--dim);
+  }
+
   .status {
     height: 18px;
     font-size: 12px;
@@ -267,6 +321,12 @@
 </head>
 <body>
   <button class="mute" id="mute" title="목소리 켜기/끄기" aria-label="목소리 켜기/끄기">🔇</button>
+  <button class="known-btn" id="knownBtn" title="나에 대해 아는 것">🧠</button>
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-head">이 사람에 대해 아는 것</div>
+    <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
+    <div class="sheet-foot">대화가 쌓이면 오래된 쪽을 접어서 여기에 남긴다.</div>
+  </div>
   <div class="room">
     <div class="stage">
       <div class="bubble" id="bubble"></div>
@@ -427,6 +487,27 @@
       send.disabled = false;
       text.focus();
     }
+  });
+
+  /* ── 나에 대해 아는 것 ─────────────────────────────────── */
+  const knownBtn = document.getElementById('knownBtn');
+  const sheet = document.getElementById('sheet');
+  const knownBody = document.getElementById('knownBody');
+
+  knownBtn.addEventListener('click', async () => {
+    if (sheet.hidden === false) { sheet.hidden = true; return; }
+    sheet.hidden = false;
+    knownBody.textContent = '읽는 중…';
+    try {
+      const { known } = await (await fetch('/known')).json();
+      knownBody.textContent = known && known.trim() !== '' ? known : '아직 아는 게 없다.';
+    } catch {
+      knownBody.textContent = '지금은 못 읽었다.';
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') sheet.hidden = true;
   });
 
   loadHistory();

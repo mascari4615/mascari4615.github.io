@@ -98,7 +98,8 @@ export class Companion {
     });
 
     const recent = await memory.recent(recallSize);
-    const input = { sensation, recent, character: this.options.character };
+    const longTerm = (await memory.longTerm?.()) ?? null;
+    const input = { sensation, recent, longTerm, character: this.options.character };
 
     let decision;
     try {
