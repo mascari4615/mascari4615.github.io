@@ -7,6 +7,23 @@
 use tauri::{Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
+/// 창에서 「눌러야 하는 자리」. 화면이 알려준 값을 여기 담아 둔다.
+struct HitArea(std::sync::Mutex<Vec<(f64, f64, f64, f64)>>);
+
+/**
+ * 화면이 「여기는 눌러야 한다」고 알려주는 자리.
+ *
+ * 배경이 뚫린 창은 보이지 않아도 창이라, 그 위를 지나는 클릭을 전부 삼킨다 — 뒤에 있는
+ * 프로그램을 못 누른다. 그렇다고 통째로 통과시키면 얘한테도 말을 못 건다.
+ * 그래서 눌러야 하는 자리만 화면이 알려주고, 커서가 거기 있을 때만 창이 클릭을 받는다.
+ */
+#[tauri::command]
+fn set_hit_areas(areas: Vec<(f64, f64, f64, f64)>, state: tauri::State<HitArea>) {
+    if let Ok(mut guard) = state.0.lock() {
+        *guard = areas;
+    }
+}
+
 fn main() {
     // 어디에 붙을지는 실행할 때 정한다 — 동반자가 다른 포트로 떠 있을 수 있다.
     let url = std::env::var("COMPANION_URL").unwrap_or_else(|_| "http://localhost:4615".to_string());
@@ -19,6 +36,8 @@ fn main() {
     let talk_key = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::Space);
 
     tauri::Builder::default()
+        .manage(HitArea(std::sync::Mutex::new(Vec::new())))
+        .invoke_handler(tauri::generate_handler![set_hit_areas])
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |app, shortcut, event| {
@@ -63,6 +82,42 @@ fn main() {
                 let y = screen.height - height - margin - 48.0;
                 window.set_position(tauri::LogicalPosition::new(x.max(0.0), y.max(0.0)))?;
             }
+
+            // 커서가 「눌러야 하는 자리」에 있을 때만 창이 클릭을 받는다.
+            //
+            // 화면 쪽에서 커서를 좇을 수는 없다 — 클릭을 통과시키는 동안에는 창이 마우스
+            // 움직임 자체를 못 받기 때문이다. 그래서 여기서 커서 위치를 직접 들여다본다.
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut passing_through = false;
+                loop {
+                    std::thread::sleep(std::time::Duration::from_millis(70));
+                    let Some(window) = handle.get_webview_window("companion") else { continue };
+                    let Ok(cursor) = window.cursor_position() else { continue };
+                    let Ok(origin) = window.outer_position() else { continue };
+                    let scale = window.scale_factor().unwrap_or(1.0);
+
+                    let local_x = (cursor.x - origin.x as f64) / scale;
+                    let local_y = (cursor.y - origin.y as f64) / scale;
+
+                    let inside = handle
+                        .state::<HitArea>()
+                        .0
+                        .lock()
+                        .map(|areas| {
+                            areas.iter().any(|(x, y, w, h)| {
+                                local_x >= *x && local_x <= x + w && local_y >= *y && local_y <= y + h
+                            })
+                        })
+                        .unwrap_or(false);
+
+                    // 바뀔 때만 알린다 — 매 번 부르면 창이 깜빡인다.
+                    if inside == passing_through {
+                        passing_through = !inside;
+                        let _ = window.set_ignore_cursor_events(!inside);
+                    }
+                }
+            });
 
             Ok(())
         })

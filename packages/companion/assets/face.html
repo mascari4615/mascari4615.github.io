@@ -34,15 +34,22 @@
     pointer-events: none;
   }
 
+  /* 평소에는 얘만 보인다. 나머지는 필요할 때만 나타난다 —
+     늘 떠 있는 단추·상자는 「같이 있는 존재」가 아니라 「띄워 둔 프로그램」이다. */
   .room {
     position: relative;
     height: 100%;
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: 1fr auto;
     justify-items: center;
-    gap: 12px;
-    padding: 20px 24px 24px;
+    align-items: end;
+    gap: 8px;
+    padding: 0 12px 12px;
   }
+
+  /* 조용히 나타나고 사라지는 것들 */
+  .fades { opacity: 0; transition: opacity 240ms ease; pointer-events: none; }
+  .fades.on { opacity: 1; pointer-events: auto; }
 
   .stage {
     position: relative;
@@ -56,6 +63,7 @@
   /* ── 채팅 내역 ────────────────────────────────────────── */
   .log {
     width: min(560px, 100%);
+    max-height: 34vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -443,6 +451,8 @@
      큐브·말풍선·대화만 공중에 뜬 것처럼 남는다. */
   :root.see-through, :root.see-through body { background: transparent; }
   :root.see-through body::before { display: none; }
+  /* 뚫린 창에서는 그림자·테두리가 허공에 뜬 네모로 보인다. 얘 말고는 다 지운다. */
+  :root.see-through .log { mask-image: none; }
   :root.see-through .log,
   :root.see-through .status { background: transparent; }
   :root.see-through .line .what,
@@ -479,12 +489,12 @@
 </head>
 <body>
   <!-- 창틀이 없는 창에서 붙잡고 옮길 자리. 데스크톱 앱일 때만 보인다. -->
-  <div class="grip" id="grip" data-tauri-drag-region hidden>
+  <div class="grip fades" id="grip" data-tauri-drag-region hidden>
     <span data-tauri-drag-region>⋯</span>
     <button class="grip-close" id="gripClose" title="닫기">✕</button>
   </div>
-  <button class="mute" id="mute" title="목소리 켜기/끄기" aria-label="목소리 켜기/끄기">🔇</button>
-  <button class="known-btn" id="knownBtn" title="나에 대해 아는 것">🧠</button>
+  <button class="mute fades" id="mute" title="목소리 켜기/끄기" aria-label="목소리 켜기/끄기">🔇</button>
+  <button class="known-btn fades" id="knownBtn" title="나에 대해 아는 것">🧠</button>
   <div class="sheet" id="sheet" hidden>
     <div class="sheet-head">이 사람에 대해 아는 것</div>
     <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
@@ -497,9 +507,9 @@
       <button id="askYes" class="ask-yes">응, 해</button>
     </div>
   </div>
-  <select class="who-pick" id="whoPick" title="누구로 있을지" hidden></select>
-  <select class="brain-pick" id="brainPick" title="어떤 머리를 쓸지" hidden></select>
-  <select class="voice-pick" id="voicePick" title="목소리 고르기" hidden></select>
+  <select class="who-pick fades" id="whoPick" title="누구로 있을지" hidden></select>
+  <select class="brain-pick fades" id="brainPick" title="어떤 머리를 쓸지" hidden></select>
+  <select class="voice-pick fades" id="voicePick" title="목소리 고르기" hidden></select>
   <audio id="player" hidden></audio>
   <div class="room">
     <div class="stage">
@@ -513,12 +523,12 @@
         </div>
       </div>
       <div class="shadow"></div>
-      <div class="status" id="status">가만히 있다</div>
+      <div class="status fades" id="status"></div>
     </div>
 
-    <div class="log" id="log"><div class="empty">아직 나눈 말이 없다</div></div>
+    <div class="log fades" id="log"><div class="empty">아직 나눈 말이 없다</div></div>
 
-    <form id="form" autocomplete="off">
+    <form id="form" class="fades" autocomplete="off">
       <input id="text" placeholder="말 걸기…" />
       <button id="mic" type="button" title="눌러서 말하기">🎤</button>
       <button id="send" type="submit">↵</button>
@@ -563,7 +573,8 @@
      브라우저에 내장된 음성을 쓴다 — 키도, 서버도, 네트워크도 필요 없다.
      소리는 기본으로 꺼둔다: 소리가 갑자기 나오는 건 무례하다. */
   const mute = document.getElementById('mute');
-  let voiceOn = localStorage.getItem('companion.voice') === 'on';
+  // 얘가 하는 말은 전부 소리로 나온다 — 혼잣말도, 화면 보고 하는 말도. 예외 없다.
+  const voiceOn = true;
   let koVoice = null;
 
   function pickVoice() {
@@ -573,17 +584,8 @@
   pickVoice();
   speechSynthesis.onvoiceschanged = pickVoice;
 
-  function renderMute() {
-    mute.textContent = voiceOn ? '🔊' : '🔇';
-  }
-  renderMute();
-
-  mute.addEventListener('click', () => {
-    voiceOn = !voiceOn;
-    localStorage.setItem('companion.voice', voiceOn ? 'on' : 'off');
-    if (voiceOn === false) { speechSynthesis.cancel(); player.pause(); }
-    renderMute();
-  });
+  // 소리를 끄는 자리는 없앴다. 말은 하는데 안 들리는 상태가 「조용한 고장」이었다.
+  mute.hidden = true;
 
   /* 서버가 만들어 준 자연스러운 목소리를 먼저 쓰고, 안 되면 브라우저 내장으로 물러선다.
      이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이라 로봇처럼 들리기 때문이다. */
@@ -657,10 +659,7 @@
     chosenVoice = voicePick.value;
     localStorage.setItem('companion.voiceId', chosenVoice);
     // 고른 즉시 한 번 들려준다 — 안 들어보고는 못 고른다.
-    const previous = voiceOn;
-    voiceOn = true;
     speakAloud('응, 이 목소리로 할게.');
-    voiceOn = previous;
   });
 
   function append(who, message, kind) {
@@ -737,6 +736,8 @@
   }
 
   function say(message) {
+    // 무슨 말을 했는지는 남아야 하므로, 말할 때 대화가 저절로 열렸다가 조용히 접힌다.
+    openChatFor(14);
     bubble.textContent = message;
     bubble.classList.add('on');
     setState('speaking', '말하는 중');
@@ -1044,6 +1045,79 @@
   document.getElementById('askYes').addEventListener('click', () => answer(true));
   document.getElementById('askNo').addEventListener('click', () => answer(false));
   setInterval(checkAsking, 1200);
+
+  /* ── 언제 보이고 언제 사라지나 ─────────────────────────────
+     평소에는 얘만 있다. 가까이 가면 도구가 나타나고, 말을 걸면 대화가 열린다.
+     손을 떼면 조용히 접힌다 — 늘 떠 있는 상자는 「같이 있는 존재」를 프로그램으로 만든다. */
+  const fading = [...document.querySelectorAll('.fades')];
+  let openUntil = 0;
+  let chatOpen = false;
+
+  /** 얼마 동안 대화를 열어 둔다. 이미 내가 열어 뒀으면 건드리지 않는다. */
+  let chatCloser = null;
+  function openChatFor(seconds) {
+    chatOpen = true;
+    render();
+    clearTimeout(chatCloser);
+    chatCloser = setTimeout(() => {
+      // 내가 뭔가 치고 있는 중이면 닫지 않는다.
+      if (document.activeElement === text && text.value !== '') return;
+      chatOpen = false;
+      render();
+    }, seconds * 1000);
+  }
+
+  function showUi(seconds) {
+    openUntil = Math.max(openUntil, Date.now() + seconds * 1000);
+    render();
+  }
+
+  function render() {
+    const open = chatOpen || Date.now() < openUntil;
+    for (const el of fading) {
+      // 대화 자리는 「대화 중」일 때만, 나머지 도구는 다가왔을 때.
+      const chatOnly = el === log || el === form;
+      el.classList.toggle('on', chatOnly ? chatOpen : open);
+    }
+    reportHitAreas();
+  }
+  setInterval(render, 400);
+
+  /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 —
+     안 그러면 보이지도 않는 창이 화면 한 구석의 클릭을 통째로 삼킨다. */
+  const invoke = window.__TAURI__?.core?.invoke;
+  function reportHitAreas() {
+    if (invoke === undefined) return;
+    const areas = [];
+    const add = (el) => {
+      if (el === null || el.hidden === true) return;
+      const style = getComputedStyle(el);
+      if (style.opacity === '0' || style.display === 'none') return;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) areas.push([r.x, r.y, r.width, r.height]);
+    };
+    // 얘 자신은 늘 눌린다 — 클릭해서 대화를 연다.
+    add(document.getElementById('body3d'));
+    add(cube);
+    add(ask); // 물어보는 상자는 무조건
+    for (const el of fading) if (el.classList.contains('on')) add(el);
+    invoke('set_hit_areas', { areas }).catch(() => {});
+  }
+
+  // 얘한테 커서가 닿으면 도구가 나온다.
+  const stage = document.querySelector('.stage');
+  stage?.addEventListener('pointerenter', () => showUi(6));
+  document.addEventListener('pointermove', () => showUi(4));
+
+  // 얘를 누르면 대화가 열리고, 바깥을 누르면 닫힌다.
+  stage?.addEventListener('click', () => {
+    chatOpen = true;
+    render();
+    text.focus();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { chatOpen = false; render(); }
+  });
 
   loadHistory();
   loadVoices();
