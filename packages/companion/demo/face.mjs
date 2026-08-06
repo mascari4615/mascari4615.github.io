@@ -30,6 +30,11 @@ import {
   piperReady,
   piperSpeech,
   noteHand,
+  recallHand,
+  fileCuriosity,
+  wonderHand,
+  maybeAsk,
+  noticeCuriosity,
   needsPermission,
   findFileHand,
   openHand,
@@ -41,6 +46,14 @@ import {
   tactfulAttention,
   loadCharacter,
   loadCharacters,
+  readMood,
+  pickFiller,
+  reflexFor,
+  reasonToSpeak,
+  nudgeSense,
+  readRapport,
+  avoidRepeats,
+  recallFrom,
   openPinnedWindow,
   screenSense,
   webBody,
@@ -76,8 +89,12 @@ const askFirst = {
   },
 };
 
+// 궁금한 것 — 지금 묻기엔 눈치 없는 것을 담아 뒀다가 조용할 때 하나씩 꺼낸다.
+const curiosity = fileCuriosity(join(home, '궁금한-것.md'));
+
 const hands = [
   noteHand(notePath),
+  wonderHand(curiosity),
   readNotesHand(notePath),
   clockHand(),
   findFileHand(),
@@ -123,11 +140,28 @@ const memory =
         notePath: knownPath,
         log: (m) => console.log(`[기억] ${m}`),
       });
+// 옛 대화를 뒤지는 손은 기억이 선 뒤에야 붙일 수 있다 — 뒤질 대상이 기억이기 때문이다.
+// 두뇌에 넘어가는 건 최근 몇 마디뿐이라, 이게 없으면 「저번에 그거」를 영영 모른다.
+const conversationMemory = memory instanceof DistillingMemory ? memory.inner : memory;
+const canSearch = typeof conversationMemory?.search === 'function';
+
 // 상주 창으로 띄울 때는 여기서 브라우저를 열지 않는다 — 아래에서 창째로 띄운다.
 const desktop = process.env.COMPANION_DESKTOP !== '0';
 // 지킴이가 창을 따로 띄우는 경우처럼, 브라우저를 아예 열면 안 되는 자리도 있다.
 // (이 구분이 없으면 되살아날 때마다 브라우저 창이 하나씩 쌓인다.)
 const openBrowserToo = process.env.COMPANION_OPEN !== '0' && desktop === false;
+
+// 화면에서 본 창 제목 — 바뀌면 말 걸 이유가 된다.
+let lastWindowTitle = null;
+let shownWindowTitle = null;
+
+// 마지막으로 낸 뜸과 그때의 기운 — 같은 뜸을 연달아 내지 않게.
+let lastHum = null;
+let lastReflex = null;
+let lastEnergy = 0.5;
+
+// 사람이 마지막으로 말을 건 시각. 화면 보기가 그 위로 끼어들지 않게 쓰인다.
+let lastSpokenToAt = 0;
 
 const web = webBody({
   port,
@@ -136,6 +170,14 @@ const web = webBody({
   // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
   history: () => memory.recent(80),
   longTerm: () => memory.longTerm?.() ?? null,
+  // 잘못 알았거나 남기고 싶지 않은 것을 지운다. 깊게 지우면 대화 흔적까지 없앤다.
+  forget: (what, alsoConversation) => {
+    const known = memory.forgetKnown?.(what) === true;
+    const conversation = alsoConversation && typeof conversationMemory?.forget === 'function'
+      ? conversationMemory.forget(what)
+      : 0;
+    return { known, conversation };
+  },
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
   // 목소리 — 내 컴퓨터 것과 인터넷 것을 한 목록에 같이 올린다. 어느 쪽이 취향인지는
   // 코드가 아니라 사람이 정한다.
@@ -155,7 +197,12 @@ const web = webBody({
       log: (m) => console.log(`[목소리] ${m}`),
     };
     const engines = [];
-    if (piperReady(local)) engines.push({ label: '내 컴퓨터', speech: piperSpeech(local) });
+    if (piperReady(local)) {
+      const localSpeech = piperSpeech(local);
+      // 첫 호출이 느린 게 하필 처음 말 걸었을 때 온다 — 미리 데워 둔다.
+      localSpeech.warmUp?.().then(() => console.log('[목소리] 미리 데워 뒀다'));
+      engines.push({ label: '내 컴퓨터', speech: localSpeech });
+    }
     engines.push({
       label: '인터넷',
       speech: edgeSpeech({
@@ -229,11 +276,35 @@ if (clockMs > 0) {
   const clock = clockBody({ everyMs: clockMs });
   bodies.push({ name: clock.name, sense: clock.sense, voice: web.voice });
 }
+// 스스로 말 걸기 — 시간이 아니라 이유로 깨운다. 이유가 없으면 조용하다.
+if (process.env.COMPANION_NUDGE !== '0') {
+  bodies.push({
+    name: 'nudge',
+    sense: nudgeSense({
+      everyMs: Number(process.env.COMPANION_NUDGE_MS ?? '300000'),
+      reason: () => reasonToSpeak({
+        sinceTalkedMs: lastSpokenToAt === 0 ? null : Date.now() - lastSpokenToAt,
+        wondering: curiosity.next(),
+        windowTitle: lastWindowTitle,
+        lastWindowTitle: shownWindowTitle,
+        hour: new Date().getHours(),
+      }),
+      log: (m) => console.log(`[먼저] ${m}`),
+    }),
+    voice: web.voice,
+  });
+}
+
 if (screenMs > 0) {
   // 화면을 보는 눈도 같은 방식으로 붙는다 — 눈은 여기, 입은 웹 창.
   bodies.push({
     name: 'screen',
-    sense: screenSense({ everyMs: screenMs, log: (m) => console.log(m) }),
+    sense: screenSense({
+      everyMs: screenMs,
+      // 사람이 방금 말을 걸었으면 이번 차례는 건너뛴다 — 화면 보기가 대답을 늦춘다.
+      okToLook: () => Date.now() - lastSpokenToAt > 30_000,
+      log: (m) => console.log(m),
+    }),
     voice: web.voice,
   });
 }
@@ -244,6 +315,51 @@ const companion = new Companion({
   memory,
   character,
   hands,
+  // 내가 말을 걸면 하던 말을 멈춘다 — 계속 떠드는 건 대화가 아니다.
+  interruptChannels: ['web'],
+  // 생각 없이 답해도 되는 말은 여기서 끝낸다 — 즉답이고 할당량도 안 먹는다.
+  reflex: (sensation) => {
+    if (sensation.channel !== 'web') return null;
+    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex });
+    if (quick !== null) lastReflex = quick;
+    return quick;
+  },
+  // 답이 늦으면 먼저 뜸을 낸다. 같은 지연도 뜸이 있으면 절반쯤으로 느껴진다.
+  filler: () => {
+    const hum = pickFiller({ energy: lastEnergy, last: lastHum });
+    lastHum = hum;
+    return hum;
+  },
+  fillerAfterMs: Number(process.env.COMPANION_FILLER_MS ?? '700'),
+  // 옛 대화는 **매번 자동으로** 찾아 붙인다. 두뇌더러 필요하면 찾으라고 하는 방식은
+  // 안내를 조여도, 인격을 빼도 안 썼다(실측 2회). 판단에 안 맡긴다.
+  recall: canSearch ? recallFrom((word, limit) => conversationMemory.search(word, limit)) : undefined,
+  // 기분 — 시간대·혼자 있던 시간·최근 대화량으로 흐른다. 매번 같은 결로 말하지 않게.
+  mood: (recent) => {
+    const lastTalk = [...recent].reverse().find((e) => e.role === 'sensed' && e.channel === 'web');
+    const hourAgo = Date.now() - 60 * 60_000;
+    const turns = recent.filter((e) => e.role === 'sensed' && e.channel === 'web' && e.at > hourAgo).length;
+    const mood = readMood({
+      hour: new Date().getHours(),
+      sinceTalkedMs: lastTalk ? Date.now() - lastTalk.at : null,
+      recentTurns: turns,
+    });
+    // 이 사람이 꺼낸 얘기 중 아직 모르는 것을 자동으로 담아 둔다.
+    // 두뇌더러 궁금해하라고 시키는 방식은 안 먹혔다(실측) — 판단에 안 맡긴다.
+    const last = [...recent].reverse().find((e) => e.role === 'sensed' && e.channel === 'web');
+    if (last) noticeCuriosity(last.text, memory.longTerm?.() ?? null, curiosity);
+    // 가끔 담아 둔 궁금증을 하나 꺼낸다 — 매번 꺼내면 취조가 된다.
+    // 사이가 얼마나 가까워졌는지도 함께 넘긴다 — 첫날과 백일째가 같으면 관계가 아니다.
+    // 며칠에 걸쳐 얼마나 만났는지를 봐야 하므로 대화를 넉넉히 읽는다.
+    const wholeStory = typeof conversationMemory?.recent === 'function'
+      ? conversationMemory.recent(4000)
+      : recent;
+    lastEnergy = mood.energy;
+    const rapport = readRapport(wholeStory);
+    return [rapport.note, mood.note, avoidRepeats(recent), maybeAsk(curiosity)]
+      .filter(Boolean)
+      .join('\n');
+  },
   attention: tactfulAttention({
     bypassChannels: ['web'],
     cooldownMs,
@@ -251,6 +367,11 @@ const companion = new Companion({
     awayAfterMs: Number(process.env.COMPANION_AWAY_MS ?? '900000'),
   }),
   onCycle: (report) => {
+    if (report.sensation.channel === 'web') lastSpokenToAt = Date.now();
+    // 화면에서 읽은 창 제목을 기억해 둔다 — 바뀌었는지 알아야 말 걸 이유가 생긴다.
+    const seen = report.sensation.meta?.windowTitle;
+    if (typeof seen === 'string' && seen !== '') lastWindowTitle = seen;
+    if (report.sensation.channel === 'nudge') shownWindowTitle = lastWindowTitle;
     if (report.error) console.error(`[에러] ${report.error.message}`);
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
     else console.log(`[참음] ${report.decision.reason}`);

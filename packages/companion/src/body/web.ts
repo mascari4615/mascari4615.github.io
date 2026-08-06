@@ -19,6 +19,13 @@ export interface WebBodyOptions {
   history?: () => readonly MemoryEntry[] | Promise<readonly MemoryEntry[]>;
   /** 「이 사람에 대해 아는 것」 — 창에서 펼쳐 볼 수 있게. */
   longTerm?: () => string | null | Promise<string | null>;
+  /**
+   * 잘못 알았거나 남기고 싶지 않은 것을 지운다.
+   *
+   * 사람이 지울 수 없는 기억은 기억이 아니라 기록이다. 보여주기만 하고 못 고치면
+   * 굳은 것을 평생 안고 간다.
+   */
+  forget?: (what: string, alsoConversation: boolean) => { known: boolean; conversation: number };
   /** 목소리를 만들어 주는 쪽. 없으면 브라우저 내장 목소리로 말한다. */
   speech?: Speech;
   /** 오프라인 받아쓰기. 없으면 브라우저 받아쓰기로 물러선다. */
@@ -65,6 +72,15 @@ export function webBody(options: WebBodyOptions = {}): Body {
   let server: Server | null = null;
   /** 감각을 코어로 밀어 넣는 통로 — 받아쓴 말도 여기로 들어간다. */
   let senseEmit: ((sensation: Sensation) => void) | null = null;
+
+  /**
+   * 말을 건 시각과 첫 소리가 나간 시각.
+   *
+   * 실시간 대화의 핵심 지표는 「첫 소리까지 걸린 시간」이고, 0.3초가 대화와 기계를
+   * 가르는 선이라고 한다. 우리는 그걸 재지도 않고 있었다 — 못 재는 것은 못 고친다.
+   */
+  let askedAt: number | null = null;
+  const firstSound: number[] = [];
 
   function broadcast(event: Record<string, unknown>): void {
     const payload = `data: ${JSON.stringify(event)}\n\n`;
@@ -115,6 +131,18 @@ export function webBody(options: WebBodyOptions = {}): Body {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('{"known":null}');
             });
+          return;
+        }
+
+        // 잘못 알게 된 것을 지운다.
+        if (url.startsWith('/known/forget?') && req.method === 'POST') {
+          const q = new URLSearchParams(url.slice(url.indexOf('?') + 1));
+          const what = q.get('what') ?? '';
+          const deep = q.get('deep') === '1';
+          const result = options.forget?.(what, deep) ?? { known: false, conversation: 0 };
+          log(`잊었다: ${what.slice(0, 40)} (아는 것 ${result.known ? 'O' : 'X'} · 대화 ${result.conversation}줄)`);
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(result));
           return;
         }
 
@@ -235,6 +263,16 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
+        // 얼마나 빨리 대답하나 — 재지 않으면 못 고친다.
+        if (url === '/stats') {
+          const sorted = [...firstSound].sort((a, b) => a - b);
+          const middle = sorted.length === 0 ? null : sorted[Math.floor(sorted.length / 2)];
+          const worst = sorted.length === 0 ? null : sorted[sorted.length - 1];
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ 샘플수: sorted.length, 첫소리중앙값ms: middle, 최악ms: worst }));
+          return;
+        }
+
         // 어떤 머리를 쓸 수 있나 / 지금 무엇인가.
         if (url === '/brains') {
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
@@ -312,6 +350,13 @@ export function webBody(options: WebBodyOptions = {}): Body {
             res.writeHead(404).end();
             return;
           }
+          if (askedAt !== null) {
+            const took = Date.now() - askedAt;
+            askedAt = null;
+            firstSound.push(took);
+            if (firstSound.length > 50) firstSound.shift();
+            log(`첫 소리까지 ${(took / 1000).toFixed(1)}초`);
+          }
           void options.speech
             .synthesize(say, query.get('v') ?? undefined)
             .then((audio) => {
@@ -360,7 +405,8 @@ export function webBody(options: WebBodyOptions = {}): Body {
             res.writeHead(text === '' ? 400 : 204).end();
             if (text === '') return;
             broadcast({ type: 'heard', text });
-            emit({ channel, kind: 'text', text, at: Date.now() });
+            askedAt = Date.now();
+            emit({ channel, kind: 'text', text, at: askedAt });
           });
           return;
         }
@@ -386,6 +432,14 @@ export function webBody(options: WebBodyOptions = {}): Body {
     name: `${channel}:voice`,
     partial(chunk: string, soFar: string, from: string) {
       broadcast({ type: 'partial', chunk, soFar, channel: from });
+    },
+    filler(text: string, from: string) {
+      // 뜸은 대화가 아니다 — 소리만 내고 대화 내역에는 안 쌓는다.
+      broadcast({ type: 'filler', text, channel: from });
+    },
+    hush() {
+      // 이미 나가고 있던 소리와 말풍선을 즉시 멈춘다.
+      broadcast({ type: 'hush' });
     },
     speak(utterance: Utterance) {
       // channel 을 같이 보낸다 — 화면이 「나한테 한 말」과 「혼잣말」을 구분해 그린다.

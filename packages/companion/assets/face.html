@@ -30,7 +30,7 @@
   <div class="sheet" id="sheet" hidden>
     <div class="sheet-head">이 사람에 대해 아는 것</div>
     <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
-    <div class="sheet-foot">대화가 쌓이면 오래된 쪽을 접어서 여기에 남긴다.</div>
+    <div class="sheet-foot">틀렸거나 남기기 싫은 줄은 ✕ 로 지운다. 대화 흔적까지 지우려면 Shift 누른 채로.</div>
   </div>
 
   <audio id="player" hidden></audio>
@@ -250,6 +250,8 @@
   let spokenUpTo = 0;
 
   function streamInto(soFar, channel) {
+    // 진짜 말이 시작되면 뜸 표시는 걷는다.
+    bubble.classList.remove('aside');
     if (streamLine === null) {
       log.querySelector('.empty')?.remove();
       streamLine = document.createElement('div');
@@ -311,6 +313,20 @@
       setState('thinking', '생각하는 중…');
     } else if (data.type === 'looking') {
       setState('looking', '내 화면을 보는 중…');
+    } else if (data.type === 'hush') {
+      // 내가 말을 걸었으니 하던 말은 그만. 소리도 말풍선도 바로 멈춘다.
+      speechQueue = Promise.resolve();
+      spokenUpTo = 0;
+      streamLine = null;
+      try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
+      speechSynthesis.cancel();
+      bubble.classList.remove('on');
+    } else if (data.type === 'filler') {
+      // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다 — 대화엔 안 남긴다.
+      bubble.textContent = data.text;
+      bubble.classList.add('on', 'aside');
+      setState('thinking', '');
+      speakAloud(data.text, false);
     } else if (data.type === 'partial') {
       streamInto(data.soFar, data.channel);
     } else if (data.type === 'speak') {
@@ -355,13 +371,48 @@
   const sheet = document.getElementById('sheet');
   const knownBody = document.getElementById('knownBody');
 
+  /* 아는 것을 한 줄씩 지울 수 있게 그린다.
+     보여주기만 하고 못 고치면, 잘못 알게 된 것을 평생 안고 간다. */
+  function renderKnown(known) {
+    knownBody.innerHTML = '';
+    const lines = String(known ?? '').split('
+').map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      knownBody.textContent = '아직 아는 게 없다.';
+      return;
+    }
+    for (const line of lines) {
+      const row = document.createElement('div');
+      row.className = 'known-line';
+      const text = document.createElement('span');
+      text.textContent = line;
+      const drop = document.createElement('button');
+      drop.className = 'known-drop';
+      drop.textContent = '✕';
+      drop.title = '이건 잊어 (Shift = 대화 흔적까지)';
+      drop.addEventListener('click', async (e) => {
+        const deep = e.shiftKey;
+        row.style.opacity = '0.4';
+        try {
+          await fetch(`/known/forget?what=${encodeURIComponent(line)}&deep=${deep ? '1' : '0'}`, { method: 'POST' });
+          const { known: after } = await (await fetch('/known')).json();
+          renderKnown(after);
+        } catch {
+          row.style.opacity = '1';
+        }
+      });
+      row.append(text, drop);
+      knownBody.append(row);
+    }
+  }
+
   knownBtn.addEventListener('click', async () => {
     if (sheet.hidden === false) { sheet.hidden = true; return; }
     sheet.hidden = false;
     knownBody.textContent = '읽는 중…';
     try {
       const { known } = await (await fetch('/known')).json();
-      knownBody.textContent = known && known.trim() !== '' ? known : '아직 아는 게 없다.';
+      renderKnown(known);
     } catch {
       knownBody.textContent = '지금은 못 읽었다.';
     }

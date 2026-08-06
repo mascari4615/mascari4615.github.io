@@ -37,6 +37,8 @@ export interface ClaudeCliBrainOptions {
  * 파일로 옮기든 지우든 우리가 통제할 수 있다.
  */
 export interface SwitchableBrain extends Brain, PlainThinker {
+  /** 손이 늘면 알려 준다 — 안 알려주면 있어도 안 쓴다. */
+  setHandsNote(note: string): void;
   /** 지금 어떤 모델을 쓰나. */
   currentModel(): string;
   /** 다른 모델로 갈아탄다. */
@@ -48,19 +50,45 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
   const timeoutMs = options.timeoutMs ?? 120_000;
   // 실행 중에 갈아탈 수 있어야 한다 — 어떤 머리를 쓸지는 껐다 켜서 정할 일이 아니다.
   let model = options.model ?? process.env.COMPANION_MODEL?.trim() ?? 'haiku';
+  // 손은 나중에 늘 수 있다(기억이 선 뒤에 붙는 것도 있다). 그때 알려 줄 자리.
+  let handsNote = options.handsNote;
   // 빈 폴더 = 주워 읽을 지침 파일이 없다.
   const sandbox = mkdtempSync(join(tmpdir(), 'companion-brain-'));
   const configDir = mkdtempSync(join(tmpdir(), 'companion-config-'));
 
-  /** 부를 때마다 자격을 새로 옮기고, 못 옮기면 이 사람 설정 그대로 쓴다(느리지만 된다). */
+  // 지금 돌고 있는 생각들. 말이 끊기면 통째로 멈춘다.
+  const thinking = new Set<{ kill: () => void }>();
+
+  // 자격을 마지막으로 옮긴 시각. 매번 덮어쓰면 그때마다 인증을 다시 하는 셈이 된다.
+  let copiedAt = 0;
+  let usable = false;
+
+  /**
+   * 필요할 때만 자격을 새로 옮긴다.
+   *
+   * 처음엔 부를 때마다 덮어썼다. 자격이 갱신돼도 낡은 사본을 쓰지 않게 하려던 것인데,
+   * 파일이 매번 바뀌니 CLI 가 매번 처음부터 다시 준비했다. 자격은 그렇게 자주 바뀌지
+   * 않는다 — 가끔만 새로 옮기고, 그 사이엔 그대로 쓴다.
+   */
   function isolated(): string | undefined {
-    return refreshIsolatedConfig(configDir) ? configDir : undefined;
+    const stale = Date.now() - copiedAt > 10 * 60_000;
+    if (stale) {
+      usable = refreshIsolatedConfig(configDir);
+      copiedAt = Date.now();
+    }
+    return usable ? configDir : undefined;
   }
 
   return {
     get name() { return `claude-cli(격리·${model})`; },
     currentModel: () => model,
     useModel(next) { model = next; },
+    setHandsNote(note) { handsNote = note; },
+    abort() {
+      // 하던 생각을 진짜로 멈춘다. 안 멈추면 사람이 말을 걸어도 뒤늦게 옛 답이 튀어나온다.
+      for (const running of thinking) running.kill();
+      thinking.clear();
+    },
     /** 대화 맥락 없이 한 번 묻는다 — 기억을 졸일 때처럼. */
     ask(prompt: string): Promise<string | null> {
       return run(command, prompt, sandbox, timeoutMs, false, undefined, model, isolated());
@@ -77,7 +105,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, options.handsNote));
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, handsNote), thinking);
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
@@ -90,7 +118,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, options.handsNote));
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote), thinking);
     },
   };
 }
@@ -135,6 +163,7 @@ function run(
   model?: string,
   configDir?: string,
   systemPrompt?: string,
+  running?: Set<{ kill: () => void }>,
 ): Promise<string | null> {
   return new Promise((resolve, reject) => {
     // 그림을 읽어야 할 때만 파일 접근을 연다. 그마저도 빈 임시 폴더 안이다.
@@ -148,12 +177,23 @@ function run(
     // 조각을 받아 갈 사람이 있을 때만 흐르는 형식으로 부른다.
     if (onDelta) args.push('--output-format', 'stream-json', '--verbose', '--include-partial-messages');
 
+    if (process.env.COMPANION_TIME === '1') {
+      process.stderr.write(`[두뇌인자] ${JSON.stringify(args)} · 시스템 ${systemPrompt?.length ?? 0}자 · 본문 ${prompt.length}자 · cwd ${cwd}
+`);
+    }
+    const startedAt = Date.now();
+    let readyAt: number | null = null;
+    let firstWordAt: number | null = null;
+
     const child = spawn(command, args, {
       cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
       env: configDir ? { ...process.env, CLAUDE_CONFIG_DIR: configDir } : process.env,
     });
+
+    const handle = { kill: () => { try { child.kill(); } catch { /* 이미 죽었으면 그만 */ } } };
+    running?.add(handle);
 
     let stdout = '';
     let stderr = '';
@@ -174,8 +214,10 @@ function run(
         if (line === '') continue;
         try {
           const event = JSON.parse(line);
+          if (event?.type === 'system' && readyAt === null) readyAt = Date.now();
           const delta = event?.event?.delta;
           if (event?.type === 'stream_event' && event.event?.type === 'content_block_delta' && typeof delta?.text === 'string') {
+            if (firstWordAt === null) firstWordAt = Date.now();
             streamed += delta.text;
             onDelta(delta.text);
           }
@@ -198,6 +240,15 @@ function run(
 
     child.on('close', (code) => {
       clearTimeout(timer);
+      // 어디서 시간이 새는지 밖에서 볼 수 있게. 「느리다」는 느낌만으로는 못 고친다.
+      if (process.env.COMPANION_TIME === '1') {
+        const since = (at: number | null) => (at === null ? '-' : `${at - startedAt}ms`);
+        process.stderr.write(
+          `[두뇌] 켜짐 ${since(readyAt)} · 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms · 글자 ${(onDelta ? streamed : stdout).length}
+`,
+        );
+      }
+      running?.delete(handle);
       // 흐르는 형식일 땐 stdout 이 JSON 뭉치라 그대로 쓰면 안 된다 — 모아둔 조각이 답이다.
       const text = (onDelta ? streamed : stdout).trim();
       if (code === 0) {
@@ -218,6 +269,12 @@ function buildSystem(input: ThinkInput, handsNote?: string): string {
   if (handsNote?.trim()) parts.push(handsNote.trim());
   if (input.longTerm?.trim()) parts.push(`이 사람에 대해 아는 것:
 ${input.longTerm.trim()}`);
+  if (input.mood?.trim()) parts.push(input.mood.trim());
+  if (input.found && input.found.length > 0) {
+    parts.push(
+      `방금 찾아본 것:\n${input.found.join('\n')}\n\n이걸 보고 답해라. 찾아봤다는 말은 굳이 하지 마라.`,
+    );
+  }
   parts.push('너는 개발 도구가 아니다. 무엇이냐고 물으면 위에 적힌 대로 답한다.');
   return parts.join('\n\n');
 }

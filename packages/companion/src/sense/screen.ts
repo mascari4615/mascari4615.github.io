@@ -11,6 +11,13 @@ export interface ScreenSenseOptions {
   everyMs: number;
   /** 켜자마자 한 번 볼까. */
   immediate?: boolean;
+  /**
+   * 지금 화면을 봐도 되나 — false 면 이번 차례를 건너뛴다.
+   *
+   * 화면 보기는 무겁다(찍고, 옮기고, 그림을 읽는다). 사람이 방금 말을 걸었는데 그게
+   * 끼어들면 대답이 그만큼 늦는다. 사람이 먼저다.
+   */
+  okToLook?: () => boolean;
   log?: (message: string) => void;
 }
 
@@ -34,6 +41,7 @@ export function screenSense(options: ScreenSenseOptions = { everyMs: 90_000 }): 
   async function look(emit: (sensation: Sensation) => void): Promise<void> {
     // 앞의 촬영이 안 끝났으면 건너뛴다 — 밀린 화면이 쌓이면 「지금」이 아니게 된다.
     if (busy) return;
+    if (options.okToLook?.() === false) return;
     busy = true;
     try {
       const title = await capture(shotPath);
