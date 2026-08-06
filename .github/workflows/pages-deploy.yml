@@ -157,3 +157,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # 기본 10분. GitHub 쪽 배포 대기열이 밀리면 그 안에 못 끝나고 스스로 취소해 버린다 —
+          # 20:25 이후 배포가 전부 이렇게 죽었다(꾸러미를 38MB 로 줄인 뒤에도 같은 증상).
+          # 밀리는 건 우리가 못 고치므로, 기다려 주는 시간을 늘려 완주시킨다.
+          timeout: 1800000
