@@ -1,3 +1,13 @@
+//! **폐기 예정 — 정본은 `packages/companion` 으로 옮겼다 (TASK-KAR-201, 2026-08-06).**
+//!
+//! 여기 있던 것(화면·음성 입력 → 페르소나 → claude → 기록)은 전부 그쪽에 있고,
+//! 인격·기억·목소리·창까지 그쪽이 갖는다. 이 모듈이 남긴 기록은
+//! `packages/companion/scripts/import-old-log.mjs` 로 이미 옮겼다.
+//!
+//! 아직 지우지 않은 이유는 `CaptureResult` 의 companion 칸을 KarmoLab 화면이
+//! 읽고 있어서다 — 그 화면까지 함께 손봐야 안전하게 뜯어낼 수 있다.
+//! 새 기능을 여기에 붙이지 말 것.
+//!
 //! sub-G companion — sub-F (화면) / sub-B (음성) 입력 → 페르소나 → claude → log append.
 //!
 //! 7 layer (TASK-LIFE-001-G):

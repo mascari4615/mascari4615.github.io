@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
+import type { Whisper } from '../sense/whisper';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 
@@ -20,6 +21,8 @@ export interface WebBodyOptions {
   longTerm?: () => string | null | Promise<string | null>;
   /** 목소리를 만들어 주는 쪽. 없으면 브라우저 내장 목소리로 말한다. */
   speech?: Speech;
+  /** 오프라인 받아쓰기. 없으면 브라우저 받아쓰기로 물러선다. */
+  ears?: Whisper;
 }
 
 /**
@@ -38,6 +41,8 @@ export function webBody(options: WebBodyOptions = {}): Body {
 
   const clients = new Set<ServerResponse>();
   let server: Server | null = null;
+  /** 감각을 코어로 밀어 넣는 통로 — 받아쓴 말도 여기로 들어간다. */
+  let senseEmit: ((sensation: Sensation) => void) | null = null;
 
   function broadcast(event: Record<string, unknown>): void {
     const payload = `data: ${JSON.stringify(event)}\n\n`;
@@ -53,6 +58,7 @@ export function webBody(options: WebBodyOptions = {}): Body {
   const sense: Sense = {
     name: `${channel}:sense`,
     start(emit: (sensation: Sensation) => void) {
+      senseEmit = emit;
       server = createServer((req, res) => {
         const url = req.url ?? '/';
 
@@ -86,6 +92,43 @@ export function webBody(options: WebBodyOptions = {}): Body {
             .catch(() => {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('{"known":null}');
+            });
+          return;
+        }
+
+        // 오프라인 받아쓰기가 쓸 수 있는 상태인가.
+        if (url === '/ears') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ offline: options.ears?.available() === true }));
+          return;
+        }
+
+        // 듣기 시작 / 끝. 끝내면 받아쓴 글이 그대로 감각으로 들어간다.
+        if ((url === '/ears/start' || url === '/ears/stop') && req.method === 'POST') {
+          const ears = options.ears;
+          if (ears === undefined || ears.available() === false) {
+            res.writeHead(404).end();
+            return;
+          }
+          const listening = url.endsWith('/start');
+          const work = listening
+            ? ears.startRecording().then(() => null)
+            : ears.stopRecording();
+          void work
+            .then((heard) => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ ok: true, text: heard }));
+              if (listening) {
+                broadcast({ type: 'listening' });
+              } else if (heard !== null && heard.trim() !== '') {
+                broadcast({ type: 'heard', text: heard });
+                senseEmit?.({ channel, kind: 'text', text: heard.trim(), at: Date.now() });
+              }
+            })
+            .catch((e: unknown) => {
+              log(`듣지 못했다: ${e instanceof Error ? e.message : String(e)}`);
+              res.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ ok: false }));
             });
           return;
         }
@@ -221,7 +264,10 @@ function openBrowser(url: string): void {
  * 작은 창을 화면 오른쪽 아래에 띄우고 다른 창 위에 고정한다. 실패해도 그냥 평범한
  * 브라우저로 열린다 — 상주에 실패했다고 말을 못 하게 되진 않는다.
  */
-export function openPinnedWindow(url: string, size?: { width?: number; height?: number }): Promise<string> {
+export function openPinnedWindow(
+  url: string,
+  size?: { width?: number; height?: number; transparent?: boolean },
+): Promise<string> {
   const script = join(dirname(__filename), '..', '..', 'assets', 'pin-window.ps1');
   return import('node:child_process').then(
     ({ execFile }) =>
@@ -231,13 +277,16 @@ export function openPinnedWindow(url: string, size?: { width?: number; height?: 
           resolve('이 운영체제에선 평범한 브라우저로 열었다');
           return;
         }
+        const transparent = size?.transparent === true;
+        const target = transparent ? `${url}${url.includes('?') ? '&' : '?'}t=1` : url;
         execFile(
           'powershell',
           [
             '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
-            '-Url', url,
+            '-Url', target,
             '-Width', String(size?.width ?? 420),
             '-Height', String(size?.height ?? 640),
+            ...(transparent ? ['-Transparent'] : []),
           ],
           { timeout: 40_000, windowsHide: true, encoding: 'utf8' },
           (error, stdout) => {
