@@ -156,7 +156,18 @@ const web = webBody({
     };
     const engines = [];
     if (piperReady(local)) engines.push({ label: '내 컴퓨터', speech: piperSpeech(local) });
-    engines.push({ label: '인터넷', speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }) });
+    engines.push({
+      label: '인터넷',
+      speech: edgeSpeech({
+        rate: process.env.COMPANION_VOICE_RATE ?? '-4%',
+        // 밝고 높은 결 = 애니 쪽. 낮고 느린 결 = 나른한 쪽. 취향은 골라 쓰라고 둘 다 둔다.
+        tones: {
+          '밝게': { rate: '+8%', pitch: '+22Hz' },
+          '아주 밝게': { rate: '+16%', pitch: '+45Hz' },
+          '나른하게': { rate: '-14%', pitch: '-12Hz' },
+        },
+      }),
+    });
     console.log(`[목소리] ${engines.map((e) => e.label).join(' + ')}`);
     return anySpeech(engines);
   })(),

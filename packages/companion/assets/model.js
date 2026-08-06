@@ -60,6 +60,21 @@ const BONE_PAIRS = {
 };
 
 /**
+ * 기분 → 빌려온 동작 이름.
+ *
+ * 묶음에는 46편이 들어 있지만 여기 적은 것만 굽는다. 굽는 값이 창을 열 때 한 번씩
+ * 드는 비용이라, 안 쓸 동작까지 굽지 않는다. 다른 편을 보려면 `?clip=<이름>`.
+ */
+const MOOD_CLIPS = {
+  idle: 'Idle_Loop',
+  speaking: 'Idle_Talking_Loop',
+  thinking: 'Spell_Simple_Idle_Loop',
+  // 「듣는 중」은 일부러 따로 두지 않는다. 남은 동작들은 죄다 뭔가를 **들고 있는**
+  // 자세라, 아무것도 안 들고 하면 보이지 않는 물건을 쥔 사람이 된다(실측 —
+  // 횃불 동작을 얹었더니 허공을 잡고 있었다). 듣는 티는 몸을 살짝 기울여서 낸다.
+};
+
+/**
  * 짝지은 뼈들을 찾아 「기준 자세」까지 적어 둔다.
  *
  * 같은 이름이 여러 개면 **맨 위 토막**을 쓴다. 위 토막을 돌리면 아래 토막이 따라오지만,
@@ -319,6 +334,32 @@ export async function mountModel(canvas, modelName, onFail) {
   pivot.add(model);
   scene.add(pivot);
 
+  // 바닥 그림자 — 실제 빛 계산이 아니라 발밑에 깔아 둔 둥근 얼룩 한 장이다.
+  // 이게 없으면 몸이 허공에 붕 떠 보인다. 진짜 그림자를 켜면 배경이 뚫린 창에서
+  // 바닥이 없어 그림자가 맺힐 데도 없다 — 그래서 「바닥인 척하는 얼룩」이 맞다.
+  const smudge = document.createElement('canvas');
+  smudge.width = 128;
+  smudge.height = 128;
+  const smudgeInk = smudge.getContext('2d');
+  const blur = smudgeInk.createRadialGradient(64, 64, 0, 64, 64, 64);
+  blur.addColorStop(0, 'rgba(20, 16, 30, 0.45)');
+  blur.addColorStop(0.55, 'rgba(20, 16, 30, 0.18)');
+  blur.addColorStop(1, 'rgba(20, 16, 30, 0)');
+  smudgeInk.fillStyle = blur;
+  smudgeInk.fillRect(0, 0, 128, 128);
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.62, 0.62),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.CanvasTexture(smudge),
+      transparent: true,
+      depthWrite: false,
+    }),
+  );
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = -0.5; // 발바닥 높이 (키를 1로 맞춰 뒀다)
+  shadow.renderOrder = -1;
+  scene.add(shadow);
+
   // 전신을 담는다. 0 = 발바닥, 1 = 정수리 (키를 1로 맞춰 뒀다).
   // 위아래로 조금씩 여백을 둬서 정수리·발끝이 화면 끝에 닿지 않게 한다.
   const viewTop = 1.06;
@@ -361,7 +402,12 @@ export async function mountModel(canvas, modelName, onFail) {
 
     if (pairs.length >= 8) {
       const mixer = new THREE.AnimationMixer(gltf.scene);
-      const wanted = { idle: 'Idle_Loop', talking: 'Idle_Talking_Loop' };
+      // 기분마다 다른 동작. 빌려온 묶음에 46편이 들어 있는데 두 편만 쓰고 있었다.
+      // 서 있는 동작만 쓴다 — 앉기·엎드리기는 이 창에서 몸이 화면 밖으로 나간다.
+      const wanted = { ...MOOD_CLIPS };
+      // 한 편만 따로 보고 싶을 때: `?clip=Dance_Loop`
+      const only = new URLSearchParams(location.search).get('clip');
+      if (only !== null) wanted.idle = only;
       const baked = {};
       for (const [key, clipName] of Object.entries(wanted)) {
         const clip = gltf.animations.find((a) => a.name === clipName);
@@ -415,8 +461,11 @@ export async function mountModel(canvas, modelName, onFail) {
   // 눈 깜빡임 — 사람은 3~5초에 한 번 깜빡인다. 일정한 간격으로 깜빡이면 기계처럼
   // 보이므로 매번 다음 때를 새로 뽑는다.
   const BLINK_SHUT = 0.07; // 감는 데 걸리는 시간(초). 뜨는 것도 같은 시간.
-  let blinkNext = 0.2;
+  let blinkNext = 1.5 + Math.random() * 2;
   let blinkFrom = -1;
+  // 딴생각에 잠기는 때 / 돌아올 때.
+  let breakNext = 35 + Math.random() * 40;
+  let breakBack = 0;
 
   function resize() {
     const w = canvas.clientWidth || 1;
@@ -431,6 +480,19 @@ export async function mountModel(canvas, modelName, onFail) {
   renderer.setAnimationLoop(() => {
     const t = clock.getElapsedTime();
     const dt = clock.getDelta();
+
+    // 빈 시간 연기 — 아무 일도 없을 때 계속 같은 동작만 돌면 화면보호기처럼 보인다.
+    // 가끔 잠깐 딴생각에 잠겼다가 돌아온다.
+    if (clips !== null && state.mood === 'idle') {
+      if (breakBack > 0 && t > breakBack) {
+        breakBack = 0;
+        switchTo(clips.idle);
+      } else if (breakBack === 0 && t > breakNext && clips.thinking !== undefined) {
+        switchTo(clips.thinking);
+        breakBack = t + 4;
+        breakNext = t + 40 + Math.random() * 50;
+      }
+    }
 
     // 구워 둔 동작을 이 판의 자세로 펴 놓는다.
     if (current !== null) {
@@ -493,8 +555,8 @@ export async function mountModel(canvas, modelName, onFail) {
       if (t >= blinkNext) {
         blinkFrom = t;
         // 생각 중일 때는 조금 더 자주 깜빡인다 — 눈이 바쁜 게 생각하는 티다.
-        const rest = 0.05;
-        blinkNext = t + rest;
+        const rest = state.mood === 'thinking' ? 1.2 : 2.5;
+        blinkNext = t + rest + Math.random() * 3;
       }
       let closed = 0;
       if (blinkFrom >= 0) {
@@ -551,7 +613,7 @@ export async function mountModel(canvas, modelName, onFail) {
     setMood(mood) {
       state.mood = mood || 'idle';
       if (clips === null) return;
-      switchTo(state.mood === 'speaking' ? (clips.talking ?? clips.idle) : clips.idle);
+      switchTo(clips[state.mood] ?? clips.idle);
     },
     /** -1(왼쪽) ~ 1(오른쪽). */
     lookAt(x) { state.look = Math.max(-1, Math.min(1, x)); },
