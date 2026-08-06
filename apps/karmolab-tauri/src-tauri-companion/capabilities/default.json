@@ -1,8 +1,10 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "동반자 창이 스스로 할 수 있는 것. 닫기·옮기기·앞으로 꺼내기만 연다 — 창틀이 없어서 그 일을 화면 안에서 해야 하기 때문이다.",
-  "windows": ["companion"],
+  "description": "동반자 창이 스스로 할 수 있는 것. 창 내용은 우리 서버(localhost)에서 불러오는데, Tauri 는 그것을 「바깥 주소」로 보고 모든 기능을 막는다 — 그래서 그 주소를 여기 적어야 열린다.",
+  "windows": [
+    "companion"
+  ],
   "permissions": [
     "core:default",
     "core:window:allow-close",
@@ -12,5 +14,11 @@
     "core:window:allow-hide",
     "core:window:allow-show",
     "core:event:default"
-  ]
+  ],
+  "remote": {
+    "urls": [
+      "http://localhost:*",
+      "http://127.0.0.1:*"
+    ]
+  }
 }
