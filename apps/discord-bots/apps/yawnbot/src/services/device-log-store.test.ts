@@ -84,6 +84,11 @@ describe('appendBatch / tailSession', () => {
     expect(raw).toHaveLength(3);
   });
 
+  it('첫 배치만 created 를 참으로 준다 (기기가 막 붙은 순간)', () => {
+    expect(appendBatch(dir, { session: 's1', lines: [line('a')] }).created).toBe(true);
+    expect(appendBatch(dir, { session: 's1', lines: [line('b')] }).created).toBe(false);
+  });
+
   it('tail 은 마지막 N 줄을 시간순으로 준다', () => {
     appendBatch(dir, { session: 's1', lines: Array.from({ length: 50 }, (_, i) => line(`m${i}`)) });
     const tail = tailSession(dir, 's1', { limit: 3 });

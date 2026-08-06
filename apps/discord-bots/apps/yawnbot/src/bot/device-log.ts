@@ -109,6 +109,21 @@ export function mountDeviceLog(app: Application, client: Client | null): void {
       counters.lines += result.written;
       counters.lastAt = Date.now();
 
+      // 기기가 *처음* 붙는 순간은 한 번뿐이라 놓치면 다시 안 온다 — 그때만 알린다.
+      if (client && result.created) {
+        void sendLocalEvent(client, {
+          kind: NOTIFY_KIND,
+          source: 'wm/device-log-relay',
+          level: 'info',
+          title: `📱 기기가 붙었다 — ${parsed.batch.session}`,
+          summary: '폰이 로그를 보내기 시작했다. 웹 화면은 이 실행으로 자동으로 넘어간다.',
+          fields: [
+            { name: '기기', value: parsed.batch.device || '?', inline: true },
+            { name: '빌드', value: parsed.batch.build || '?', inline: true },
+          ],
+        }).catch(() => {});
+      }
+
       const errorLines = parsed.batch.lines.filter((l) => isErrorLevel(l.level));
       counters.errors += errorLines.length;
       if (client && errorLines.length > 0) {
