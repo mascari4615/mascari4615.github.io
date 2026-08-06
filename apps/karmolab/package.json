@@ -42,7 +42,7 @@
     "verify:tonight": "node scripts/verify-tonight.mjs",
     "test:live": "node scripts/smoke-live-pages.mjs",
     "gen:og": "node scripts/gen-og-images.mjs",
-    "test:behavior": "npm run test:gif && npm run test:video && npm run test:trim && npm run test:voice && npm run test:pdfc && npm run test:level && npm run test:v2i && npm run test:mp3 && npm run test:p2t && npm run test:exif && npm run test:fsplit && npm run test:psign && npm run test:t2p && npm run test:qr && npm run test:imerge && npm run test:favicon && npm run test:pass && npm run test:grad && npm run test:paste && npm run test:table && npm run test:workdays && npm run test:t2i && npm run test:redact && npm run test:pdfredact && npm run test:textredact && npm run test:aspeed && npm run test:vrot && npm run test:pnum && npm run test:pcrop && npm run test:iresize && npm run test:afade && npm run test:sub && npm run test:ics",
+    "test:behavior": "npm run test:gif && npm run test:video && npm run test:trim && npm run test:voice && npm run test:pdfc && npm run test:level && npm run test:v2i && npm run test:mp3 && npm run test:p2t && npm run test:exif && npm run test:fsplit && npm run test:psign && npm run test:t2p && npm run test:qr && npm run test:imerge && npm run test:favicon && npm run test:pass && npm run test:grad && npm run test:paste && npm run test:table && npm run test:workdays && npm run test:t2i && npm run test:redact && npm run test:pdfredact && npm run test:textredact && npm run test:aspeed && npm run test:vrot && npm run test:pnum && npm run test:pcrop && npm run test:iresize && npm run test:afade && npm run test:sub && npm run test:ics && npm run test:barcode",
     "audit:labels": "node scripts/audit-input-labels.mjs",
     "audit:cards": "node scripts/audit-share-cards.mjs",
     "audit:cards:fresh": "node scripts/gen-og-images.mjs --check",
@@ -71,7 +71,8 @@
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
-    "test:ics": "node scripts/test-icsmake.mjs"
+    "test:ics": "node scripts/test-icsmake.mjs",
+    "test:barcode": "node scripts/test-barcode.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

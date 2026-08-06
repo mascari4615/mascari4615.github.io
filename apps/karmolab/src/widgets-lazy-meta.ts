@@ -1073,6 +1073,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/radix']
   },
   {
+    id: 'barcode',
+    title: '바코드 만들기',
+    category: 'tool',
+    desc: '재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/barcode']
+  },
+  {
     id: 'icsmake',
     title: '일정 파일 만들기',
     category: 'tool',
