@@ -10,6 +10,7 @@ import type { Application, Request, Response } from 'express';
 import type { Client } from 'discord.js';
 import { getServerStatsRecorder, type DebugDump, type ServerSummary } from '../services/server-stats';
 import { renderDashboardPage } from './wrapped-dashboard';
+import { renderDevPage } from './wrapped-dev';
 
 /** 카드에 실을 값 — HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
 export interface WrappedPageData {
@@ -477,6 +478,68 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
         basePath: `/w/${key}/board`,
       }),
     );
+  });
+
+  // 개발 콘솔 — 기준 시각을 바꿔가며 볼 수 있어 「월요일 아침」을 기다리지 않아도 된다.
+  app.get('/w/:key/dev', (req: Request, res: Response) => {
+    const recorder = getServerStatsRecorder();
+    const key = String(req.params.key ?? '');
+    const guildId = recorder.guildIdForShareKey(key);
+    if (!guildId) {
+      res.status(404).type('text/html; charset=utf-8').send('<h1>없는 결산이에요</h1>');
+      return;
+    }
+    const days = parseDays(req.query.days);
+    const atInput = typeof req.query.at === 'string' ? req.query.at.trim() : '';
+    // 입력은 KST 벽시계로 읽는다 — QA 가 머릿속으로 시차를 계산하지 않게.
+    const parsed = atInput ? new Date(`${atInput}${atInput.length <= 16 ? ':00' : ''}+09:00`) : null;
+    const at = parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
+
+    const guild = client?.guilds.cache.get(guildId) ?? null;
+    const detail = recorder.debug(guildId, days, at);
+    const channelNames: Record<string, string> = {};
+    for (const { channelId } of detail.channels) {
+      const channel = guild?.channels.cache.get(channelId);
+      channelNames[channelId] = channel && 'name' in channel ? `#${channel.name}` : channelId;
+    }
+    const weekly = recorder.weeklyOf(guildId);
+    if (weekly) {
+      const ch = guild?.channels.cache.get(weekly.channelId);
+      channelNames[weekly.channelId] = ch && 'name' in ch ? `#${ch.name}` : weekly.channelId;
+    }
+
+    const state = recorder.load();
+    res.type('text/html; charset=utf-8').send(
+      renderDevPage({
+        guildName: guild?.name ?? '우리 서버',
+        guildId,
+        shareKey: key,
+        at,
+        atInput,
+        days,
+        summary: recorder.summarize(guildId, days, at),
+        analytics: recorder.analytics(guildId, days, at),
+        detail,
+        weekly,
+        channelNames,
+        guildDayCounts: Object.entries(state.guilds).map(([id, g]) => ({
+          guildId: id,
+          days: Object.keys(g.days).length,
+        })),
+      }),
+    );
+  });
+
+  // 저장 주기를 기다리지 않고 즉시 파일로 떨군다 (읽기 외 유일한 동작).
+  app.post('/w/:key/dev/flush', (req: Request, res: Response) => {
+    const recorder = getServerStatsRecorder();
+    const guildId = recorder.guildIdForShareKey(String(req.params.key ?? ''));
+    if (!guildId) {
+      res.status(404).json({ error: 'unknown share key' });
+      return;
+    }
+    recorder.flushNow();
+    res.json({ ok: true, mtime: recorder.debug(guildId, 1).stateFileMtime });
   });
 
   app.get('/w/:key/data', (req: Request, res: Response) => {
