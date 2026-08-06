@@ -25,27 +25,37 @@ import { applyToon } from '/toon.js';
  *    부드럽게 휘라고 여섯 토막으로 쪼갠 것이 그대로 나왔다. 이름으로 찾으면 그중
  *    아무거나(맨 끝 토막) 잡혀서, 돌려도 손끝만 까딱했다.
  * 3. 넓적다리 이름이 이 몸에선 `tight`(오타)로 굳어 있다. 저쪽은 `thigh` 다.
+ *
+ * 값은 `[이 몸의 뼈, 빌린 각을 얼마나 먹일지]`.
+ *
+ * 두 번째 숫자가 필요한 이유: 빌려온 동작은 **어른 사람 몸**의 것이고 이 몸은 머리가
+ * 크고 팔이 판자인 2등신이다. 어른의 「팔을 옆으로 내린다」를 100% 먹이면 판자 팔이
+ * 몸통을 파고들고, 거기 붙어 있는 옷까지 딸려 들어가 치마가 찢어진 것처럼 보인다(실측).
+ * 넓적다리도 같다 — 다리를 벌리면 뻣뻣한 치마가 쪼개진다.
+ *
+ * 그래서 어디를 얼마나 따라갈지 뼈마다 정한다. 목·머리는 그대로(표정이 사니까),
+ * 팔다리는 덜 먹인다. **이 숫자들이 이 몸의 「연기 톤」이다** — 만지면 인상이 바뀐다.
  */
 const BONE_PAIRS = {
-  'DEF-hips': 'ORG-hips',
-  'DEF-spine001': 'ORG-spine',
-  'DEF-spine003': 'ORG-chest',
-  'DEF-neck': 'DEF-neck',
-  'DEF-head': 'DEF-head',
-  'DEF-shoulderL': 'DEF-shoulderL',
-  'DEF-shoulderR': 'DEF-shoulderR',
-  'DEF-upper_armL': 'DEF-upper_armL',
-  'DEF-upper_armR': 'DEF-upper_armR',
-  'DEF-forearmL': 'DEF-forearmL',
-  'DEF-forearmR': 'DEF-forearmR',
-  'DEF-handL': 'DEF-handL',
-  'DEF-handR': 'DEF-handR',
-  'DEF-thighL': 'DEF-tightL',
-  'DEF-thighR': 'DEF-tightR',
-  'DEF-shinL': 'DEF-shinL',
-  'DEF-shinR': 'DEF-shinR',
-  'DEF-footL': 'DEF-footL',
-  'DEF-footR': 'DEF-footR',
+  'DEF-hips': ['ORG-hips', 0.55],
+  'DEF-spine001': ['ORG-spine', 0.8],
+  'DEF-spine003': ['ORG-chest', 0.8],
+  'DEF-neck': ['DEF-neck', 1],
+  'DEF-head': ['DEF-head', 1],
+  'DEF-shoulderL': ['DEF-shoulderL', 0.5],
+  'DEF-shoulderR': ['DEF-shoulderR', 0.5],
+  'DEF-upper_armL': ['DEF-upper_armL', 0.72],
+  'DEF-upper_armR': ['DEF-upper_armR', 0.72],
+  'DEF-forearmL': ['DEF-forearmL', 0.85],
+  'DEF-forearmR': ['DEF-forearmR', 0.85],
+  'DEF-handL': ['DEF-handL', 1],
+  'DEF-handR': ['DEF-handR', 1],
+  'DEF-thighL': ['DEF-tightL', 0.12],
+  'DEF-thighR': ['DEF-tightR', 0.12],
+  'DEF-shinL': ['DEF-shinL', 0.3],
+  'DEF-shinR': ['DEF-shinR', 0.3],
+  'DEF-footL': ['DEF-footL', 0.5],
+  'DEF-footR': ['DEF-footR', 0.5],
 };
 
 /**
@@ -85,7 +95,7 @@ function pairBones(model, sourceRoot) {
   const skipped = new Set((new URLSearchParams(location.search).get('skip') ?? '').split(',').filter(Boolean));
 
   const pairs = [];
-  for (const [sourceName, targetName] of Object.entries(BONE_PAIRS)) {
+  for (const [sourceName, [targetName, strength]] of Object.entries(BONE_PAIRS)) {
     const source = sourceBones.get(sourceName);
     const target = targetBones.get(targetName);
     if (source === undefined || target === undefined) continue;
@@ -93,6 +103,7 @@ function pairBones(model, sourceRoot) {
     pairs.push({
       source,
       target,
+      strength,
       sourceRestInverse: worldQuat(source).invert(),
       targetRest: worldQuat(target),
       targetRestLocal: target.quaternion.clone(),
@@ -100,7 +111,7 @@ function pairBones(model, sourceRoot) {
   }
   // 위에 달린 뼈부터 계산해야 한다 — 아래 뼈는 위 뼈가 움직인 결과 위에서 자기 각을 잡는다.
   pairs.sort((a, b) => depth(a.target) - depth(b.target));
-  return { pairs, targetBones };
+  return pairs;
 }
 
 /**
@@ -127,17 +138,24 @@ function bakeClip(clip, pairs, sourceRoot, mixer, fps = 30) {
   const sourceWorld = new THREE.Quaternion();
   const parentWorld = new THREE.Quaternion();
   const wanted = new THREE.Quaternion();
+  const eased = new THREE.Quaternion();
 
   for (let frame = 0; frame < frames; frame += 1) {
     mixer.setTime(frame * step);
     sourceRoot.updateMatrixWorld(true);
 
     for (let i = 0; i < pairs.length; i += 1) {
-      const { source, target, sourceRestInverse, targetRest } = pairs[i];
+      const { source, target, strength, sourceRestInverse, targetRest } = pairs[i];
       source.matrixWorld.decompose(pos, sourceWorld, scl);
 
       // 저쪽이 기준 자세에서 돌아간 만큼(세계 기준) → 이쪽 기준 자세 위에 얹는다
       wanted.copy(sourceWorld).multiply(sourceRestInverse).multiply(targetRest);
+      // 이 뼈가 남의 각을 얼마나 따라갈지. 1 이면 그대로, 0 이면 제 자세 그대로.
+      // (섞을 때 따로 그릇을 쓴다 — 같은 그릇에 담으면 자기 자신 쪽으로 섞여 제자리에 남는다.)
+      if (strength < 1) {
+        eased.copy(targetRest).slerp(wanted, strength);
+        wanted.copy(eased);
+      }
 
       // 세계 기준 각을 이 뼈가 실제로 들고 있어야 할 「제 부모 기준」 각으로 되돌린다
       if (target.parent !== null) {
@@ -326,8 +344,7 @@ export async function mountModel(canvas, modelName, onFail) {
   let pairs = [];
   if (new URLSearchParams(location.search).get('anim') !== '0') try {
     const gltf = await new GLTFLoader().loadAsync('/anim/cc0-animations.glb');
-    const paired = pairBones(model, gltf.scene);
-    pairs = paired.pairs;
+    pairs = pairBones(model, gltf.scene);
     console.log(`[3D] 짝지은 뼈 ${pairs.length}/${Object.keys(BONE_PAIRS).length}:`,
       pairs.map((p) => `${p.source.name}→${p.target.name}`).join(' '));
 
