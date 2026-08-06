@@ -500,7 +500,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'draw',
-    title: '뽑기',
+    title: '랜덤 뽑기',
     category: 'tool',
     desc: '로또 번호·사다리타기·추첨과 팀 나누기를 한 곳에서',
     layout: 'wide',
@@ -759,7 +759,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'aspect',
     hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
-    title: '비율 계산기',
+    title: '화면 비율 계산기',
     category: 'tool',
     desc: '가로·세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함',
     layout: 'form',
@@ -1117,7 +1117,7 @@ window.KARMOLAB_LAZY_META = [
   { id: 'fontgacha', title: '폰트가챠', category: 'play', desc: '가챠로 폰트를 바꿉니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
   { id: 'hacker', title: '해커', category: 'play', desc: '키보드를 연타해 해커 느낌의 텍스트를 출력합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
   { id: 'hourglass', title: '모래시계', category: 'tool', desc: '모래시계 타이머를 실행합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
-  { id: 'moon', title: '문페이즈', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
+  { id: 'moon', title: '달 위상', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
   { id: 'news', title: '뉴스', category: 'play', desc: '가짜 뉴스 헤드라인을 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
   { id: 'particle', title: '파티클', category: 'play', desc: '마우스로 파티클을 움직이고 클릭으로 폭발시킵니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
   { id: 'password', title: '비번', category: 'tool', desc: '4자리 비밀번호를 힌트 보며 맞히는 놀이', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },

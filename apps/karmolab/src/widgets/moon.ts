@@ -1,7 +1,7 @@
 (function (): void {
   Toolbox.register({
     id: 'moon',
-    title: '문페이즈',
+    title: '달 위상',
     category: 'tool',
     desc: '오늘의 달 위상을 확인합니다',
     layout: 'form',

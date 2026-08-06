@@ -14,7 +14,7 @@
 
   Toolbox.register({
     id: 'draw',
-    title: '뽑기',
+    title: '랜덤 뽑기',
     category: 'tool',
     desc: '로또 번호·사다리타기·추첨과 팀 나누기를 한 곳에서',
     layout: 'wide',
