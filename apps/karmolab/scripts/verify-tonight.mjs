@@ -12,7 +12,8 @@ import { execFileSync } from 'node:child_process';
 const TOOLS = [
   'video2gif', 'videotrim', 'videocompress', 'video2img', 'video2audio', 'screenrec',
   'voicerec', 'videotool', 'pdfcompress', 'pdf2text', 'pdfsign', 'text2pdf',
-  'audiolevel', 'exifclean', 'filesplit'
+  'audiolevel', 'exifclean', 'filesplit', 'imgmerge', 'favicon', 'qrread',
+  'passgen', 'qr', 'pdf', 'sound', 'filetool'
 ];
 
 console.log(`[verify-tonight] ${TOOLS.length}개 도구 페이지를 확인합니다…`);
