@@ -100,6 +100,7 @@ const entryPoints = [
   'src/widgets/randomgen/randomgen-name.ts',
   'src/widgets/randomgen/randomgen-topics.ts',
   'src/widgets/randomgen/randomgen.ts',
+  'src/widgets/laptop.ts',
   'src/widgets/toast.ts',
   'src/widgets/imageedit.ts',
   'src/widgets/crypto.ts',
