@@ -19,7 +19,40 @@ import { applyToon } from '/toon.js';
  * `DEF-*` 로 그대로 겹친다(실측). 그래서 이 몸에 없는 뼈를 가리키는 줄만 버리면 된다.
  * 그 정리를 안 하면 없는 뼈를 찾다가 동작 전체가 조용히 안 돈다.
  */
-function fitClip(clip, bonesByName) {
+/**
+ * 남의 동작을 이 몸에 맞게 고쳐 넣는다.
+ *
+ * 이름이 같다고 그대로 먹이면 안 된다. 두 뼈대는 **가만히 서 있을 때의 자세**가
+ * 서로 다르기 때문이다 — 같은 「고개 숙임」이라도 기준이 다르면 목이 꺾이고 소품이
+ * 팽이처럼 돈다(실측). 유니티가 이 모델을 「휴머노이드」로 두고 쓰는 이유도 같다.
+ *
+ * 그래서 클립의 각도를 그대로 쓰지 않고, **저쪽 기본 자세로부터 얼마나 움직였는지**만
+ * 뽑아서 이쪽 기본 자세 위에 얹는다.
+ */
+function retargetTrack(track, sourceRest, targetRest) {
+  const boneName = track.name.slice(0, track.name.lastIndexOf('.'));
+  const src = sourceRest.get(boneName);
+  const dst = targetRest.get(boneName);
+  if (src === undefined || dst === undefined) return track;
+
+  const srcInverse = src.clone().invert();
+  const out = track.clone();
+  const q = new THREE.Quaternion();
+  for (let i = 0; i < out.values.length; i += 4) {
+    q.set(out.values[i], out.values[i + 1], out.values[i + 2], out.values[i + 3]);
+    // 저쪽 기본 자세 기준의 「움직인 만큼」
+    q.premultiply(srcInverse);
+    // 그 움직임을 이쪽 기본 자세 위에 얹는다
+    q.premultiply(dst);
+    out.values[i] = q.x;
+    out.values[i + 1] = q.y;
+    out.values[i + 2] = q.z;
+    out.values[i + 3] = q.w;
+  }
+  return out;
+}
+
+function fitClip(clip, bonesByName, sourceRest, targetRest) {
   const kept = clip.tracks.filter((track) => {
     const dot = track.name.lastIndexOf('.');
     const boneName = track.name.slice(0, dot);
@@ -39,7 +72,7 @@ function fitClip(clip, bonesByName) {
 
   if (kept.length === 0) return null;
   const fitted = clip.clone();
-  fitted.tracks = kept;
+  fitted.tracks = kept.map((track) => retargetTrack(track, sourceRest, targetRest));
   return fitted;
 }
 
@@ -143,12 +176,22 @@ export async function mountModel(canvas, modelName, onFail) {
   const actions = {};
   try {
     const gltf = await new GLTFLoader().loadAsync('/anim/cc0-animations.glb');
+
+    // 두 뼈대의 「가만히 있을 때 자세」를 각각 적어 둔다. 이 둘이 다르기 때문에
+    // 각도를 그대로 옮기면 목이 꺾이고 소품이 돈다.
+    const sourceRest = new Map();
+    gltf.scene.traverse((node) => {
+      if (node.isBone === true) sourceRest.set(node.name, node.quaternion.clone());
+    });
+    const targetRest = new Map();
+    for (const [name, bone] of byName) targetRest.set(name, bone.quaternion.clone());
+
     mixer = new THREE.AnimationMixer(model);
     const wanted = { idle: 'Idle_Loop', talking: 'Idle_Talking_Loop' };
     for (const [key, clipName] of Object.entries(wanted)) {
       const source = gltf.animations.find((a) => a.name === clipName);
       if (source === undefined) continue;
-      const fitted = fitClip(source, bonesByName);
+      const fitted = fitClip(source, bonesByName, sourceRest, targetRest);
       if (fitted === null) continue;
       const action = mixer.clipAction(fitted);
       action.setLoop(THREE.LoopRepeat, Infinity);
