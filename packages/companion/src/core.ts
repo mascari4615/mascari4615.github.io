@@ -1,3 +1,4 @@
+import { findRequests, useHands, type Hand } from './hands';
 import type {
   Attention,
   Body,
@@ -28,6 +29,11 @@ export interface CompanionOptions {
    * 없으면 그 판단을 시험할 방법도 없다.
    */
   now?: () => number;
+  /**
+   * 말 말고 실제로 할 수 있는 일. 두뇌가 말 속에 표시를 남기면 코어가 걸러서 실행한다.
+   * 표시는 사람에게 보이지 않는다 — 손을 쓴 흔적이 대화를 어지럽히지 않게.
+   */
+  hands?: readonly Hand[];
   /** 한 바퀴 돌 때마다 호출 — 로그·테스트 훅. */
   onCycle?: (report: CycleReport) => void;
 }
@@ -131,6 +137,19 @@ export class Companion {
     } catch (e) {
       onCycle?.({ sensation, decision, utterance: null, error: asError(e) });
       return;
+    }
+
+    // 말 속의 손 표시를 걷어내고, 걷어낸 일들을 실제로 한다.
+    if (text !== null && this.options.hands && this.options.hands.length > 0) {
+      const { clean, requests } = findRequests(text);
+      if (requests.length > 0) {
+        void useHands(this.options.hands, requests, (m) => onCycle?.({
+          sensation,
+          decision: { respond: false, reason: m },
+          utterance: null,
+        }));
+        text = clean;
+      }
     }
 
     if (text === null || text.trim() === '') {

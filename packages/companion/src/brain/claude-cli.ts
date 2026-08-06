@@ -13,6 +13,8 @@ export interface PlainThinker {
 export interface ClaudeCliBrainOptions {
   command?: string;
   timeoutMs?: number;
+  /** 할 수 있는 일 목록을 알려 주는 문장 (`describeHands` 가 만든다). */
+  handsNote?: string;
   /**
    * 어떤 모델로 말할까. 동반자는 깊이보다 빠르기다 — 곁에 있는 사람이 30초 뒤에
    * 대답하면 곁에 있는 게 아니다. 구독 할당량도 덜 먹는다.
@@ -65,7 +67,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null, undefined, model, isolated());
+      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated());
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
@@ -78,7 +80,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated());
+      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated());
     },
   };
 }
@@ -194,10 +196,13 @@ function run(
   });
 }
 
-function buildPrompt(input: ThinkInput, imageInSandbox: string | null): string {
+function buildPrompt(input: ThinkInput, imageInSandbox: string | null, handsNote?: string): string {
+  const hands = handsNote?.trim() ? `${handsNote.trim()}
+
+` : '';
   const persona = input.character?.instruction.trim() ? `${input.character.instruction.trim()}\n\n` : '';
   const known = input.longTerm?.trim() ? `이 사람에 대해 아는 것:\n${input.longTerm.trim()}\n\n` : '';
-  const head = `${persona}${known}`;
+  const head = `${persona}${hands}${known}`;
   const history = input.recent.slice(0, -1).map(renderEntry).join('\n');
   const past = history === '' ? '' : `지금까지 오간 말:\n${history}\n\n`;
   const look =
