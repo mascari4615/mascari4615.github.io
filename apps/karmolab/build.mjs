@@ -230,6 +230,7 @@ const entryPoints = [
   'src/widgets/tools/qr.ts',
   'src/widgets/tools/imgmerge.ts',
   'src/widgets/tools/favicon.ts',
+  'src/widgets/tools/passgen.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
