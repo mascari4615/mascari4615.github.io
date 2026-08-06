@@ -204,6 +204,14 @@ import { pickRecordType } from './shared/video';
             };
             draw();
 
+            // 다른 탭으로 가면 브라우저가 화면 그리기를 멈춘다 — 그 사이 구간이 정지 화면으로 담긴다.
+            // 막을 방법이 없으므로 **일어난 사실을 알린다**. 모르고 받아 가는 게 제일 나쁘다.
+            let leftTab = false;
+            const onHide = (): void => {
+              if (document.hidden) leftTab = true;
+            };
+            document.addEventListener('visibilitychange', onHide);
+
             const stop = (): void => {
               cancelAnimationFrame(raf);
               video.pause();
@@ -214,11 +222,12 @@ import { pickRecordType } from './shared/video';
 
             const watch = window.setInterval(() => {
               const left = Math.max(0, duration - video.currentTime);
-              say(`다시 담는 중… ${mmss(left)} 남음 (영상을 재생하며 담습니다)`);
+              say(`다시 담는 중… ${mmss(left)} 남음 — 이 탭을 보이는 채로 두세요`);
             }, 300);
 
             made = await finished;
             window.clearInterval(watch);
+            document.removeEventListener('visibilitychange', onHide);
             video.onended = null;
             runBtn.disabled = false;
             stopBtn.style.display = 'none';
@@ -239,7 +248,9 @@ import { pickRecordType } from './shared/video';
               stat('변화', made.size < sourceSize ? `${pct}% 줄어듦` : `${pct}% 늘어남`) +
               stat('크기', `${w}×${h}`);
             // 이미 잘 눌린 영상은 다시 담으면 커진다 — 그때 줄었다고 말하면 거짓이 된다
-            if (made.size >= sourceSize) {
+            if (leftTab) {
+              say('처리 중에 다른 탭에 다녀오셨네요 — 그동안 화면이 멈춘 채로 담겼을 수 있습니다. 결과를 꼭 확인하고, 이상하면 이 탭을 보이는 채로 다시 해 주세요.', 'error');
+            } else if (made.size >= sourceSize) {
               say(`줄지 않았어요 (${size(sourceSize)} → ${size(made.size)}). 이미 잘 압축된 영상입니다. 화면 크기나 화질을 낮추면 줄지만 흐려집니다.`, 'error');
             } else {
               say(`${size(sourceSize)} → ${size(made.size)} (${pct}% 줄었어요). 확인하고 받으세요.`, 'ok');
