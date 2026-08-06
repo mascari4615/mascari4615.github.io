@@ -193,9 +193,11 @@ const entryPoints = [
   'src/widgets/tools/morse.ts',
   'src/widgets/tools/pick.ts',
   'src/widgets/tools/color.ts',
+  'src/widgets/tools/text.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/charmap.ts',
+  'src/widgets/ref/reference.ts',
   'src/widgets/ref/specialchar.ts',
   'src/widgets/ref/ascii.ts',
   'src/widgets/ref/htmlentity.ts',
