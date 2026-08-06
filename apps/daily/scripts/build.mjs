@@ -191,15 +191,9 @@ ${all
 `;
 writeFileSync(join(dist, 'index.html'), hub);
 
-// 검색 로봇이 판마다 따로 찾아오게 — 주소가 늘면 유입 경로도 늘어난다.
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[`${SITE}${BASE}/`, ...all.map((p) => `${SITE}${BASE}/${p.path}/`), ...topics.map((t) => `${SITE}${BASE}/${t.id}/past/`)]
-  .map((u) => `  <url><loc>${u}</loc><changefreq>daily</changefreq></url>`)
-  .join('\n')}
-</urlset>
-`;
-writeFileSync(join(dist, 'sitemap.xml'), sitemap);
+// 사이트맵은 따로 안 만든다 — 블로그 루트의 것이 이 폴더의 html 을 이미 자동으로 거둬 간다
+// (실측: /sitemap.xml 에 /daily/, /daily/pokemon/, /daily/lol/ 이 들어 있었다).
+// 여기서 하나 더 찍으면 아무도 안 읽는 파일이 남는다.
 
 for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
