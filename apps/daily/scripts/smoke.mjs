@@ -148,6 +148,19 @@ async function pastPage(topicId) {
 await pastPage('pokemon');
 await pastPage('lol');
 
+/** 공유 카드 그림은 *주소가 적혀 있다*고 있는 게 아니다 — 실제로 받아져야 카드가 펼쳐진다. */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  for (const path of ['', 'pokemon/', 'pokemon/silhouette/', 'lol/past/']) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'domcontentloaded' });
+    const src = await page.getAttribute('meta[property="og:image"]', 'content');
+    const res = await fetch(src.replace('https://blog.mascari4615.com/daily', base));
+    check(`[공유카드] /${path} 그림이 실제로 받아진다`, res.ok, `${res.status} ${src?.split('/').pop()}`);
+  }
+  await ctx.close();
+}
+
 // 허브
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
 const page = await ctx.newPage();

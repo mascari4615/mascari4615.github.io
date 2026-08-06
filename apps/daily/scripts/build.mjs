@@ -57,7 +57,7 @@ function pagesOf(topic) {
 
 const all = topics.flatMap((topic) => pagesOf(topic).map((page) => ({ topic, ...page })));
 
-function head({ title, desc, url, up }) {
+function head({ title, desc, url, up, image }) {
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -70,7 +70,10 @@ function head({ title, desc, url, up }) {
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="${SITE}${BASE}/img/og/${image ?? 'hub'}.png?v=${stamp}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <link rel="stylesheet" href="${up}style.css?v=${stamp}">
 </head>
 <body>`;
@@ -103,7 +106,7 @@ for (const page of all) {
 
   const shot = page.mode === 'silhouette' ? '<div class="shot"><img alt="오늘의 실루엣"></div>' : '';
 
-  const html = `${head({ title: `${page.label} 맞히기`, desc: page.desc, url, up })}
+  const html = `${head({ title: `${page.label} 맞히기`, desc: page.desc, url, up, image: page.path.replace("/", "-") })}
 <div class="wrap" id="app" data-topic="${esc(topic.id)}" data-mode="${page.mode}" data-stamp="${stamp}"
      data-data="${up}data/${esc(topic.id)}.json" data-others="${esc(JSON.stringify(others))}">
   <div class="top">
@@ -141,6 +144,7 @@ for (const topic of topics) {
     desc: `오늘의 ${topic.title} 맞히기의 지난 30일 정답. 오늘 답은 들어 있지 않습니다.`,
     url,
     up: '../../',
+    image: topic.id,
   })}
 <div class="wrap" id="past" data-topic="${esc(topic.id)}" data-stamp="${stamp}" data-data="../../data/${esc(topic.id)}.json">
   <div class="top">
@@ -164,6 +168,7 @@ const hub = `${head({
   desc: `매일 새 문제 ${all.length}판. ${topics.map((t) => t.title).join(' · ')} — 속성 힌트와 실루엣으로 맞히고 결과를 자랑하세요.`,
   url: `${SITE}${BASE}/`,
   up: '',
+  image: 'hub',
 })}
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
@@ -197,5 +202,9 @@ ${[`${SITE}${BASE}/`, ...all.map((p) => `${SITE}${BASE}/${p.path}/`), ...topics.
 writeFileSync(join(dist, 'sitemap.xml'), sitemap);
 
 for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+
+// 공유 카드 그림 (scripts/gen-og.mjs 가 만들어 커밋해 둔 것 — 배포에선 만들지 않는다).
+mkdirSync(join(dist, 'img/og'), { recursive: true });
+for (const f of readdirSync(join(app, 'img/og'))) copyFileSync(join(app, 'img/og', f), join(dist, 'img/og', f));
 
 console.log(`dist/ 생성 — 판 ${all.length}개 (${all.map((p) => p.path).join(', ')}), 도장 ${stamp}`);
