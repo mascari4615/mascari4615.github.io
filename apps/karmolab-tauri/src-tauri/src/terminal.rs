@@ -23,7 +23,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{ChildStdin, Command, Stdio};
 use std::sync::Mutex;
 use std::thread;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -126,10 +126,28 @@ fn initial_cwd() -> String {
         .unwrap_or_else(|| ".".to_string())
 }
 
+/// async + spawn_blocking (KL-084 / KL-043) — 외부 프로세스 spawn 명령.
+/// 차단 구간 = ① `pick_shell()` 의 `where pwsh.exe` (별도 프로세스 status 대기)
+/// ② 셸 자체 `cmd.spawn()`. 둘 다 수십~수백 ms 라 UI 스레드에서 돌리면 안 됨.
+///
+/// `State<'_, TerminalState>` 는 `'static` 이 아니라 클로저로 move 할 수 없으므로
+/// 파라미터에서 빼고 블로킹 안에서 `AppHandle::state()` 로 획득한다
+/// (`lib.rs` 의 `.manage(TerminalState::default())` 가 등록 정본).
+/// 프론트는 `invoke('terminal_start')` 를 인자 없이 호출하므로 시그니처 변경 영향 X.
 #[tauri::command]
-pub fn terminal_start(
+pub async fn terminal_start(app: AppHandle) -> Result<TerminalStartResult, String> {
+    let app_for_block = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app_for_block.state::<TerminalState>();
+        terminal_start_blocking(app_for_block.clone(), &state)
+    })
+    .await
+    .map_err(|e| format!("spawn_blocking join 실패: {}", e))?
+}
+
+fn terminal_start_blocking(
     app: AppHandle,
-    state: State<'_, TerminalState>,
+    state: &TerminalState,
 ) -> Result<TerminalStartResult, String> {
     let mut inner = state.inner.lock().map_err(|e| format!("state lock 실패: {}", e))?;
     if inner.child_id.is_some() {
