@@ -10,7 +10,8 @@
  *  - 색 대응은 오차 확산(Floyd–Steinberg)으로 뿌려 띠(banding)를 줄인다
  *  - 안 변한 픽셀은 투명으로 남겨 용량을 줄인다 (프레임 간 차이만 기록)
  *
- * 다른 위젯이 쓰는 진입점 = `window.KarmoGif.encode(...)`.
+ * 다른 위젯이 쓰는 진입점 = `window.KarmoGif.encodeAsync(...)` (장 사이에 숨 쉴 틈을 준다).
+ * 시험·짧은 작업용 = `encode(...)` — 결과 파일은 둘이 완전히 같다.
  */
 (function (): void {
   interface Frame {
@@ -180,7 +181,7 @@
     onProgress?: (ratio: number) => void;
   }
 
-  function encode(opts: EncodeOptions): Blob {
+  function start(opts: EncodeOptions): { step: (fi: number) => Blob | null; count: number } {
     const { width, height, frames } = opts;
     const maxColors = Math.max(4, Math.min(255, opts.maxColors ?? 128)); // 1칸은 투명색 몫
     const dither = opts.dither !== false;
@@ -244,7 +245,12 @@
     }
 
     let prev: Uint8ClampedArray | null = null;
-    frames.forEach((frame, fi) => {
+    /**
+     * 한 장을 엮는다. 이 안이 무겁다 — 480×360 한 장이 17만 픽셀이고, 픽셀마다 가까운 색을
+     * 찾고 오차를 뿌린다. 장수가 많으면 통째로 돌 때 화면이 얼어붙으므로,
+     * **한 장 단위로 쪼개** 두고 부르는 쪽이 중간에 숨 쉴 틈을 넣을 수 있게 한다.
+     */
+    const encodeFrame = (frame: Frame, fi: number): void => {
       const indices = new Uint8Array(width * height);
       // 오차 확산용 작업 버퍼 (원본을 건드리면 다음 프레임 비교가 망가진다)
       const work = dither ? new Float32Array(width * height * 3) : null;
@@ -324,11 +330,45 @@
 
       prev = frame.data;
       opts.onProgress?.((fi + 1) / frames.length);
-    });
+    };
 
-    sink.byte(0x3b);
-    return new Blob([sink.toUint8() as unknown as BlobPart], { type: 'image/gif' });
+    return {
+      /** 한 장씩 진행한다. 다 끝나면 `null` 대신 완성된 파일을 돌려준다. */
+      step(fi: number): Blob | null {
+        if (fi < frames.length) {
+          encodeFrame(frames[fi], fi);
+          return null;
+        }
+        sink.byte(0x3b);
+        return new Blob([sink.toUint8() as unknown as BlobPart], { type: 'image/gif' });
+      },
+      count: frames.length
+    };
   }
 
-  (window as unknown as { KarmoGif: { encode: typeof encode } }).KarmoGif = { encode };
+  /** 한 번에 다 엮는다. 장수가 적을 때(그리고 시험할 때) 쓰기 좋다. */
+  function encode(opts: EncodeOptions): Blob {
+    const job = start(opts);
+    for (let i = 0; i < job.count; i++) job.step(i);
+    return job.step(job.count) as Blob;
+  }
+
+  /**
+   * 장 사이에 숨 쉴 틈을 준다. 장수가 많으면 한 번에 도는 동안 화면이 통째로 멈춰
+   * 「먹통이 됐나」 싶어지기 때문이다. 결과 파일은 위와 완전히 같다.
+   */
+  async function encodeAsync(opts: EncodeOptions): Promise<Blob> {
+    const job = start(opts);
+    for (let i = 0; i < job.count; i++) {
+      job.step(i);
+      // 네 장마다 한 번씩 — 매번 쉬면 오히려 느려진다
+      if (i % 4 === 3) await new Promise((r) => setTimeout(r, 0));
+    }
+    return job.step(job.count) as Blob;
+  }
+
+  (window as unknown as { KarmoGif: { encode: typeof encode; encodeAsync: typeof encodeAsync } }).KarmoGif = {
+    encode,
+    encodeAsync
+  };
 })();
