@@ -53,7 +53,10 @@ export function applyToon(root, options = {}) {
         gradientMap: gradient,
         transparent: material?.transparent ?? false,
         alphaTest: material?.alphaTest ?? 0,
-        side: THREE.FrontSide,
+        // 원래 재질의 「앞뒤 다 그리기」를 그대로 물려받는다. 앞면만 그리게 바꾸면
+        // 손으로 만든 낮은 폴리곤 모델에서 뒤집힌 면이 통째로 사라져 구멍이 뚫리고,
+        // 그 구멍으로 뒤에 깔린 바깥선이 비쳐 치마에 시커먼 삼각형이 생긴다(실측).
+        side: material?.side ?? THREE.FrontSide,
       });
       if (toon.map) toon.map.colorSpace = THREE.SRGBColorSpace;
       return toon;
