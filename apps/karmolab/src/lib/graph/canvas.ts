@@ -1,17 +1,33 @@
 /**
- * graph-canvas.ts — SVG 무한 캔버스 (pan/zoom + 노드/edge + 드래그 + 미니맵) (TASK-KL-082 단위 B/C/D/E).
+ * lib/graph/canvas.ts — SVG 무한 캔버스 (pan/zoom + 노드/edge + 드래그 + 미니맵).
  *
  * Unity Shader Graph / Animator 스타일.
  * - 1개 <g transform="matrix(s 0 0 s tx ty)"> 안에 전체 콘텐츠.
  * - 노드: <g class="ck-node" data-id="…"> rect + text + ports.
- * - edge: 베지어 path (cx = (x1+x2)/2).
+ * - edge: 베지어 path — 두 박스의 가장 가까운 면 쌍 자동 선택.
  * - 드래그: mousedown → mousemove → mouseup → debounce save.
  * - 미니맵: 우하단 200×150 overlay SVG.
- * - Ephemeral 노드: activity-collector 가 발행한 임시 노드 (anchor bbox grid).
+ * - Ephemeral 노드: 외부(수집기)가 발행하는 임시 노드 (anchor bbox stack).
+ *
+ * 출처 = `widgets/cockpit/graph-canvas.ts` (TASK-KL-082, 1066줄).
+ * TASK-KL-087 단위 0 에서 cockpit 결합 3개를 seam 으로 바꿔 이주:
+ *   ① Tauri invoke 직접 호출 → `GraphPersistAdapter.save()`
+ *   ② KIND_COLORS 하드코딩(domain/app/canon/…) → `options.kindColors` 주입
+ *   ③ 색상 하드코딩(#131720 등) → `options.theme` (기본값 = 이주 전 값 그대로)
+ * 렌더 로직·좌표 계산·이벤트는 손대지 않았다 (cockpit 회귀 0 목표).
  */
 
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef, EphemeralAnchor, EdgeKindDef } from './graph-spec';
-import { saveGraphCoords } from './graph-spec';
+import type {
+  GraphSpec,
+  GraphNode,
+  GraphEdge,
+  GroupDef,
+  EphemeralAnchor,
+  EdgeKindDef,
+} from './spec';
+import type { GraphPersistAdapter } from './adapter';
+import { NULL_PERSIST_ADAPTER } from './adapter';
+import { injectGraphCanvasStyles } from './styles';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -36,10 +52,36 @@ export interface ActiveSets {
   edge_ids_animated: Set<string>;
 }
 
+/** 캔버스 색상 — 전부 선택. 미지정 시 cockpit 원본 값(어두운 톤). */
+export interface GraphCanvasTheme {
+  nodeFill?: string;
+  nodeText?: string;
+  childText?: string;
+  edgeDotFill?: string;
+  edgeDefaultColor?: string;
+  ephemeralFill?: string;
+  ephemeralStroke?: string;
+  ephemeralText?: string;
+  anchorFill?: string;
+  anchorStroke?: string;
+  anchorText?: string;
+  minimapBg?: string;
+  minimapBorder?: string;
+}
+
+export interface GraphCanvasOptions {
+  /** 좌표 영속 seam. 미지정 = 저장 안 함. */
+  persistAdapter?: GraphPersistAdapter;
+  /** node.kind → 색. 미지정 kind 는 defaultKindColor. */
+  kindColors?: Record<string, string>;
+  defaultKindColor?: string;
+  /** spec._edge_kinds 에 없는 edge.kind 의 fallback 정의. */
+  edgeKinds?: Record<string, EdgeKindDef>;
+  theme?: GraphCanvasTheme;
+}
+
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
-const PORT_R = 5;
-const PORT_OFFSET_X = 12;  // 노드 좌우 끝에서 포트까지 거리
 const MINIMAP_W = 200;
 const MINIMAP_H = 150;
 const SAVE_DEBOUNCE_MS = 400;
@@ -48,14 +90,29 @@ const GROUP_HEADER_H = 20;   // 그룹 프레임 헤더 높이
 const NODE_HEADER_H = 30;    // children 있는 노드의 헤더 영역 높이
 const NODE_CHILD_ROW_H = 18; // 자식 항목 한 줄 높이
 const NODE_CHILD_PAD = 6;    // 자식 영역 상하 패딩
-const KIND_COLORS: Record<string, string> = {
-  domain:   '#a78bfa',
-  app:      '#60a5fa',
-  canon:    '#34d399',
-  external: '#f87171',
-  agent:    '#22d3ee',
-  runtime:  '#fbbf24',
+
+const DEFAULT_KIND_COLOR = '#94a3b8';
+
+const DEFAULT_THEME: Required<GraphCanvasTheme> = {
+  nodeFill: '#131720',
+  nodeText: '#e2e8f0',
+  childText: 'rgba(226,232,240,0.65)',
+  edgeDotFill: '#0a0c10',
+  edgeDefaultColor: '#64748b',
+  ephemeralFill: '#0f1520',
+  ephemeralStroke: '#22d3ee60',
+  ephemeralText: '#22d3ee',
+  anchorFill: 'rgba(34,211,238,0.04)',
+  anchorStroke: 'rgba(34,211,238,0.35)',
+  anchorText: 'rgba(34,211,238,0.85)',
+  minimapBg: 'rgba(10,12,16,0.85)',
+  minimapBorder: 'rgba(255,255,255,0.08)',
 };
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+/** clipPath DOM id 충돌 방지 — 한 문서에 캔버스 2개 이상 뜰 수 있다. */
+let instanceSeq = 0;
 
 // ─── GraphCanvas ──────────────────────────────────────────────────────────────
 
@@ -99,10 +156,43 @@ export class GraphCanvas {
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSaves: Map<string, { x: number; y: number; kind: 'node' | 'anchor' | 'group' }> = new Map();
 
-  constructor(container: HTMLElement) {
+  // ── 주입된 seam ────────────────────────────────────────────────────────────
+  private persist: GraphPersistAdapter;
+  private kindColors: Record<string, string>;
+  private defaultKindColor: string;
+  private edgeKindFallback: Record<string, EdgeKindDef>;
+  private theme: Required<GraphCanvasTheme>;
+  private uid: string;
+
+  constructor(container: HTMLElement, options: GraphCanvasOptions = {}) {
     this.container = container;
+    this.persist = options.persistAdapter ?? NULL_PERSIST_ADAPTER;
+    this.kindColors = options.kindColors ?? {};
+    this.defaultKindColor = options.defaultKindColor ?? DEFAULT_KIND_COLOR;
+    this.edgeKindFallback = options.edgeKinds ?? {};
+    this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
+    instanceSeq += 1;
+    this.uid = `g${instanceSeq}`;
+    injectGraphCanvasStyles();
     this.buildDOM();
     this.bindEvents();
+  }
+
+  /** node.kind → 색. 주입된 맵에 없으면 기본색. */
+  private colorForKind(kind: string): string {
+    return this.kindColors[kind] ?? this.defaultKindColor;
+  }
+
+  /** edge.kind → 스타일 정의. spec 우선, 없으면 주입 fallback, 없으면 기본. */
+  private edgeKindFor(kind: string): EdgeKindDef {
+    return (
+      this.spec?._edge_kinds?.[kind] ??
+      this.edgeKindFallback[kind] ?? {
+        color: this.theme.edgeDefaultColor,
+        style: 'solid',
+        arrow: true,
+      }
+    );
   }
 
   // ── DOM 구성 ────────────────────────────────────────────────────────────────
@@ -116,15 +206,16 @@ export class GraphCanvas {
     this.container.style.background = 'var(--ck-canvas-bg, transparent)';
 
     // 메인 SVG
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
+    this.svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
     this.svg.style.cssText = 'width:100%;height:100%;cursor:grab;';
-    this.svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    this.svg.setAttribute('xmlns', SVG_NS);
 
-    // defs (마커·필터)
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    // defs (마커·필터) — id 는 전역 고정. 캔버스가 여러 개여도 정의가 동일하므로
+    // url(#ck-glow) 가 어느 쪽을 잡아도 결과가 같다 (CSS 가 이 id 를 참조한다).
+    const defs = document.createElementNS(SVG_NS, 'defs');
     defs.innerHTML = `
       <marker id="ck-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L6,3 z" fill="#64748b"/>
+        <path d="M0,0 L0,6 L6,3 z" fill="${this.theme.edgeDefaultColor}"/>
       </marker>
       <filter id="ck-glow" x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="3" result="blur"/>
@@ -134,34 +225,34 @@ export class GraphCanvas {
     this.svg.appendChild(defs);
 
     // world group (pan/zoom matrix)
-    this.world = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    this.world = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     this.world.setAttribute('class', 'ck-world');
     this.svg.appendChild(this.world);
 
-    this.groupLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    this.groupLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     this.groupLayer.setAttribute('class', 'ck-groups');
     this.world.appendChild(this.groupLayer);
 
-    this.edgeLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    this.edgeLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     this.edgeLayer.setAttribute('class', 'ck-edges');
     this.world.appendChild(this.edgeLayer);
 
-    this.nodeLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    this.nodeLayer = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     this.nodeLayer.setAttribute('class', 'ck-nodes');
     this.world.appendChild(this.nodeLayer);
 
     this.container.appendChild(this.svg);
 
     // 미니맵
-    this.minimapSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
+    this.minimapSvg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
     this.minimapSvg.style.cssText = `
       position:absolute; bottom:16px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
-      background:rgba(10,12,16,0.85); border:1px solid rgba(255,255,255,0.08);
+      background:${this.theme.minimapBg}; border:1px solid ${this.theme.minimapBorder};
       border-radius:4px; pointer-events:all; cursor:pointer;
     `;
     this.container.appendChild(this.minimapSvg);
-    this.minimapViewport = document.createElementNS('http://www.w3.org/2000/svg', 'rect') as SVGRectElement;
+    this.minimapViewport = document.createElementNS(SVG_NS, 'rect') as SVGRectElement;
     this.minimapViewport.setAttribute('fill', 'rgba(100,160,255,0.1)');
     this.minimapViewport.setAttribute('stroke', 'rgba(100,160,255,0.5)');
     this.minimapViewport.setAttribute('stroke-width', '1');
@@ -361,6 +452,16 @@ export class GraphCanvas {
     this.render();
   }
 
+  /** 현재 스펙 (드래그 좌표 반영본). 전체 저장이 필요한 어댑터용. */
+  getSpec(): GraphSpec | null {
+    if (!this.spec) return null;
+    for (const n of this.spec.nodes) {
+      const c = this.nodeCoords.get(n.id);
+      if (c) { n.x = c.x; n.y = c.y; }
+    }
+    return this.spec;
+  }
+
   setEphemeralNodes(nodes: EphemeralNodeRender[]): void {
     this.ephemeralNodes = nodes;
     // anchor 박스 자동 확장 (items 따라 dynamic height) 위해 group 재렌더.
@@ -377,7 +478,8 @@ export class GraphCanvas {
     this.applyHighlights();
   }
 
-  private render(): void {
+  /** 전체 재렌더 — 노드/엣지를 외부에서 추가·삭제한 뒤 호출. */
+  render(): void {
     if (!this.spec) return;
     this.groupLayer.innerHTML = '';
     this.edgeLayer.innerHTML = '';
@@ -434,22 +536,22 @@ export class GraphCanvas {
     for (const a of this.spec.ephemeral_anchors ?? []) {
       const eff = layout.get(a.id);
       if (!eff) continue;
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(eff.x));
       rect.setAttribute('y', String(eff.y));
       rect.setAttribute('width', String(eff.w));
       rect.setAttribute('height', String(eff.h));
       rect.setAttribute('rx', '4');
-      rect.setAttribute('fill', 'rgba(34,211,238,0.04)');
-      rect.setAttribute('stroke', 'rgba(34,211,238,0.35)');
+      rect.setAttribute('fill', this.theme.anchorFill);
+      rect.setAttribute('stroke', this.theme.anchorStroke);
       rect.setAttribute('stroke-width', '1');
       rect.setAttribute('stroke-dasharray', '4 3');
       this.groupLayer.appendChild(rect);
 
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(SVG_NS, 'text');
       text.setAttribute('x', String(eff.x + 8));
       text.setAttribute('y', String(eff.y + 14));
-      text.setAttribute('fill', 'rgba(34,211,238,0.85)');
+      text.setAttribute('fill', this.theme.anchorText);
       text.setAttribute('font-size', '10');
       text.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
       text.textContent = '⚡ ' + a.label;
@@ -497,7 +599,7 @@ export class GraphCanvas {
       const box = this.computeGroupBox(g);
 
       // ── 바디 (전체 프레임) ────────────────────────────────────────────────
-      const bodyRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const bodyRect = document.createElementNS(SVG_NS, 'rect');
       bodyRect.setAttribute('class', 'ck-group');
       bodyRect.dataset.groupId = g.id;
       bodyRect.setAttribute('x', String(box.x));
@@ -512,11 +614,12 @@ export class GraphCanvas {
       this.groupLayer.appendChild(bodyRect);
 
       // ── 헤더 바 (Unity 스타일) ─────────────────────────────────────────────
-      // clipPath 로 상단 rx 살리면서 헤더만 클리핑
-      const clipId = `ck-clip-${g.id}`;
-      const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      // clipPath 로 상단 rx 살리면서 헤더만 클리핑.
+      // id 에 인스턴스 uid 를 섞는다 — 캔버스 2개가 같은 group id 를 쓰면 충돌.
+      const clipId = `ck-clip-${this.uid}-${g.id}`;
+      const clipPath = document.createElementNS(SVG_NS, 'clipPath');
       clipPath.setAttribute('id', clipId);
-      const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const clipRect = document.createElementNS(SVG_NS, 'rect');
       clipRect.setAttribute('x', String(box.x));
       clipRect.setAttribute('y', String(box.y));
       clipRect.setAttribute('width', String(box.w));
@@ -525,7 +628,7 @@ export class GraphCanvas {
       clipPath.appendChild(clipRect);
       this.groupLayer.appendChild(clipPath);
 
-      const headerRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const headerRect = document.createElementNS(SVG_NS, 'rect');
       headerRect.setAttribute('class', 'ck-group');
       headerRect.dataset.groupId = g.id;
       headerRect.setAttribute('x', String(box.x));
@@ -538,7 +641,7 @@ export class GraphCanvas {
       this.groupLayer.appendChild(headerRect);
 
       // ── 헤더 레이블 ───────────────────────────────────────────────────────
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(SVG_NS, 'text');
       text.setAttribute('class', 'ck-group-label');
       text.dataset.groupId = g.id;
       text.setAttribute('x', String(box.x + 8));
@@ -565,26 +668,26 @@ export class GraphCanvas {
     const children = node.children ?? [];
     const effH = this.getNodeEffectiveH(node);
 
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+    const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
     g.setAttribute('class', 'ck-node');
     g.dataset.id = node.id;
     g.setAttribute('transform', `translate(${coords.x},${coords.y})`);
     g.style.cursor = 'grab';
 
-    const kindColor = KIND_COLORS[node.kind] ?? '#94a3b8';
+    const kindColor = this.colorForKind(node.kind);
 
     // 배경 rect
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const rect = document.createElementNS(SVG_NS, 'rect');
     rect.setAttribute('width', String(node.w));
     rect.setAttribute('height', String(effH));
     rect.setAttribute('rx', '4');
-    rect.setAttribute('fill', '#131720');
+    rect.setAttribute('fill', this.theme.nodeFill);
     rect.setAttribute('stroke', kindColor + '60');
     rect.setAttribute('stroke-width', '1.5');
     g.appendChild(rect);
 
     // 좌측 색띠
-    const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    const bar = document.createElementNS(SVG_NS, 'rect');
     bar.setAttribute('x', '0');
     bar.setAttribute('y', '0');
     bar.setAttribute('width', '3');
@@ -595,10 +698,10 @@ export class GraphCanvas {
 
     if (children.length === 0) {
       // 자식 없음 — 기존 스타일: 레이블 수직 중앙
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(SVG_NS, 'text');
       text.setAttribute('x', '12');
       text.setAttribute('y', String(node.h / 2 + 4));
-      text.setAttribute('fill', '#e2e8f0');
+      text.setAttribute('fill', this.theme.nodeText);
       text.setAttribute('font-size', '11');
       text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
       text.setAttribute('pointer-events', 'none');
@@ -609,7 +712,7 @@ export class GraphCanvas {
       const headerH = NODE_HEADER_H;
 
       // 헤더 배경
-      const headerRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const headerRect = document.createElementNS(SVG_NS, 'rect');
       headerRect.setAttribute('x', '0');
       headerRect.setAttribute('y', '0');
       headerRect.setAttribute('width', String(node.w));
@@ -620,10 +723,10 @@ export class GraphCanvas {
       g.appendChild(headerRect);
 
       // 헤더 레이블
-      const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const title = document.createElementNS(SVG_NS, 'text');
       title.setAttribute('x', '12');
       title.setAttribute('y', String(headerH / 2 + 4));
-      title.setAttribute('fill', '#e2e8f0');
+      title.setAttribute('fill', this.theme.nodeText);
       title.setAttribute('font-size', '11');
       title.setAttribute('font-weight', '600');
       title.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
@@ -632,7 +735,7 @@ export class GraphCanvas {
       g.appendChild(title);
 
       // 구분선
-      const sep = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      const sep = document.createElementNS(SVG_NS, 'line');
       sep.setAttribute('x1', '3');
       sep.setAttribute('y1', String(headerH));
       sep.setAttribute('x2', String(node.w));
@@ -646,7 +749,7 @@ export class GraphCanvas {
         const cy = headerH + NODE_CHILD_PAD + i * NODE_CHILD_ROW_H + NODE_CHILD_ROW_H / 2 + 4;
 
         // 불릿 도트
-        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const dot = document.createElementNS(SVG_NS, 'circle');
         dot.setAttribute('cx', '14');
         dot.setAttribute('cy', String(cy - 3));
         dot.setAttribute('r', '2');
@@ -654,10 +757,10 @@ export class GraphCanvas {
         dot.setAttribute('pointer-events', 'none');
         g.appendChild(dot);
 
-        const row = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const row = document.createElementNS(SVG_NS, 'text');
         row.setAttribute('x', '22');
         row.setAttribute('y', String(cy));
-        row.setAttribute('fill', 'rgba(226,232,240,0.65)');
+        row.setAttribute('fill', this.theme.childText);
         row.setAttribute('font-size', '10');
         row.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
         row.setAttribute('pointer-events', 'none');
@@ -678,26 +781,26 @@ export class GraphCanvas {
     for (const en of this.ephemeralNodes) {
       const offY = layout.get(en.anchorId)?.offsetY ?? 0;
       const effY = en.y + offY;
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g') as SVGGElement;
+      const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
       g.setAttribute('class', 'ck-node ck-node-ephemeral');
       g.dataset.id = en.id;
       g.setAttribute('transform', `translate(${en.x},${effY})`);
       g.style.opacity = '0.85';
 
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('width', String(en.w));
       rect.setAttribute('height', String(en.h));
       rect.setAttribute('rx', '4');
-      rect.setAttribute('fill', '#0f1520');
-      rect.setAttribute('stroke', '#22d3ee60');
+      rect.setAttribute('fill', this.theme.ephemeralFill);
+      rect.setAttribute('stroke', this.theme.ephemeralStroke);
       rect.setAttribute('stroke-width', '1');
       rect.setAttribute('stroke-dasharray', '4 2');
       g.appendChild(rect);
 
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const text = document.createElementNS(SVG_NS, 'text');
       text.setAttribute('x', '8');
       text.setAttribute('y', String(en.h / 2 + 4));
-      text.setAttribute('fill', '#22d3ee');
+      text.setAttribute('fill', this.theme.ephemeralText);
       text.setAttribute('font-size', '10');
       text.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
       text.setAttribute('pointer-events', 'none');
@@ -705,7 +808,7 @@ export class GraphCanvas {
       const maxChars = Math.max(4, Math.floor((en.w - 16) / 6.2));
       text.textContent = en.label.length > maxChars ? en.label.slice(0, maxChars - 1) + '…' : en.label;
       // 호버 시 풀 라벨 표시
-      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      const title = document.createElementNS(SVG_NS, 'title');
       title.textContent = en.label;
       g.appendChild(title);
       g.appendChild(text);
@@ -738,14 +841,13 @@ export class GraphCanvas {
     const b2 = this.getNodeBox(id2);
     if (!b1 || !b2) return [path];
     const { p1, p2 } = this.chooseAnchors(b1, b2);
-    const kind = this.spec?._edge_kinds?.[edge.kind] ?? { color: '#64748b' };
-    const color = kind.color ?? '#64748b';
+    const color = this.edgeKindFor(edge.kind).color ?? this.theme.edgeDefaultColor;
     const mkDot = (x: number, y: number) => {
-      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const c = document.createElementNS(SVG_NS, 'circle');
       c.setAttribute('cx', String(x));
       c.setAttribute('cy', String(y));
       c.setAttribute('r', '3.5');
-      c.setAttribute('fill', '#0a0c10');
+      c.setAttribute('fill', this.theme.edgeDotFill);
       c.setAttribute('stroke', color);
       c.setAttribute('stroke-width', '1.5');
       c.setAttribute('pointer-events', 'none');
@@ -831,14 +933,14 @@ export class GraphCanvas {
     const c1 = offset(side1, p1);
     const c2 = offset(side2, p2);
 
-    const kind = this.spec?._edge_kinds?.[edge.kind] ?? { color: '#64748b', style: 'solid', arrow: true };
+    const kind = this.edgeKindFor(edge.kind);
 
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('class', 'ck-edge');
     path.dataset.edgeId = edge.id;
     path.setAttribute('d', `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', kind.color ?? '#64748b');
+    path.setAttribute('stroke', kind.color ?? this.theme.edgeDefaultColor);
     path.setAttribute('stroke-width', '1.5');
     path.setAttribute('stroke-opacity', '0.7');
 
@@ -925,7 +1027,7 @@ export class GraphCanvas {
     // 그룹 배경
     for (const g of this.spec.groups) {
       const { mx, my } = toMm(g.bbox.x, g.bbox.y);
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(mx));
       rect.setAttribute('y', String(my));
       rect.setAttribute('width', String(g.bbox.w * ms));
@@ -940,8 +1042,8 @@ export class GraphCanvas {
     for (const node of this.spec.nodes) {
       const c = this.nodeCoords.get(node.id) ?? { x: node.x, y: node.y };
       const { mx, my } = toMm(c.x, c.y);
-      const kindColor = KIND_COLORS[node.kind] ?? '#94a3b8';
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const kindColor = this.colorForKind(node.kind);
+      const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(mx));
       rect.setAttribute('y', String(my));
       rect.setAttribute('width', String(Math.max(2, node.w * ms)));
@@ -954,7 +1056,7 @@ export class GraphCanvas {
     // ephemeral 노드
     for (const en of this.ephemeralNodes) {
       const { mx, my } = toMm(en.x, en.y);
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      const rect = document.createElementNS(SVG_NS, 'rect');
       rect.setAttribute('x', String(mx));
       rect.setAttribute('y', String(my));
       rect.setAttribute('width', String(Math.max(2, en.w * ms)));
@@ -996,7 +1098,7 @@ export class GraphCanvas {
 
   // ── 노드 유효 높이 (children 포함) ─────────────────────────────────────────
 
-  private getNodeEffectiveH(node: import('./graph-spec').GraphNode): number {
+  private getNodeEffectiveH(node: GraphNode): number {
     const ch = node.children ?? [];
     if (ch.length === 0) return node.h;
     return NODE_HEADER_H + 1 + NODE_CHILD_PAD + ch.length * NODE_CHILD_ROW_H + NODE_CHILD_PAD;
@@ -1010,6 +1112,18 @@ export class GraphCanvas {
 
   // ── 저장 디바운스 ────────────────────────────────────────────────────────────
 
+  private flushSaves(): void {
+    const updates = Array.from(this.pendingSaves.entries()).map(([key, v]) => ({
+      id: key.split(':').slice(1).join(':'),
+      x: v.x,
+      y: v.y,
+      kind: v.kind,
+    }));
+    this.pendingSaves.clear();
+    this.saveTimer = null;
+    void this.persist.save(updates);
+  }
+
   private scheduleSave(id: string, kind: 'node' | 'anchor' | 'group' = 'node'): void {
     // 노드면 현재 nodeCoords 에서 최신 좌표 끌어옴 — 같은 노드 N회 호출 시 마지막 좌표 우선.
     if (kind === 'node') {
@@ -1017,34 +1131,14 @@ export class GraphCanvas {
       if (c) this.pendingSaves.set(`node:${id}`, { x: c.x, y: c.y, kind });
     }
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      const updates = Array.from(this.pendingSaves.entries()).map(([key, v]) => ({
-        id: key.split(':').slice(1).join(':'),
-        x: v.x,
-        y: v.y,
-        kind: v.kind,
-      }));
-      this.pendingSaves.clear();
-      this.saveTimer = null;
-      void saveGraphCoords(updates);
-    }, SAVE_DEBOUNCE_MS);
+    this.saveTimer = setTimeout(() => this.flushSaves(), SAVE_DEBOUNCE_MS);
   }
 
   /** 그룹 드래그 시 anchor/group 좌표 patch 큐잉 (kind 명시). */
   private scheduleSaveRaw(id: string, x: number, y: number, kind: 'anchor' | 'group'): void {
     this.pendingSaves.set(`${kind}:${id}`, { x, y, kind });
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      const updates = Array.from(this.pendingSaves.entries()).map(([key, v]) => ({
-        id: key.split(':').slice(1).join(':'),
-        x: v.x,
-        y: v.y,
-        kind: v.kind,
-      }));
-      this.pendingSaves.clear();
-      this.saveTimer = null;
-      void saveGraphCoords(updates);
-    }, SAVE_DEBOUNCE_MS);
+    this.saveTimer = setTimeout(() => this.flushSaves(), SAVE_DEBOUNCE_MS);
   }
 
   // ── 공개 헬퍼 ───────────────────────────────────────────────────────────────

@@ -5,8 +5,8 @@
  * Toolbox.register 로 등록. IIFE (Toolbox = lexical).
  */
 import { injectCockpitStyles } from './styles';
-import { loadGraphSpec, saveGraphCoords } from './graph-spec';
-import { GraphCanvas } from './graph-canvas';
+import { GraphCanvas } from '../../lib/graph/canvas';
+import { cockpitGraphAdapter, COCKPIT_KIND_COLORS } from './graph-tauri-adapter';
 import { ActivityCollector } from './activity-collector';
 import { buildTaskTab } from './task-tab';
 import { buildTeamTab } from './team-tab';
@@ -63,7 +63,10 @@ import { buildCardsTab } from './cards-tab';
     canvasWrap.style.cssText = 'position:absolute;inset:0;';
     graphPanel.appendChild(canvasWrap);
 
-    canvas = new GraphCanvas(canvasWrap);
+    canvas = new GraphCanvas(canvasWrap, {
+      persistAdapter: cockpitGraphAdapter,
+      kindColors: COCKPIT_KIND_COLORS,
+    });
 
     // 로딩 오버레이 박기 (graph.json + activity 첫 페치 동안)
     const loadingEl = document.createElement('div');
@@ -80,7 +83,7 @@ import { buildCardsTab } from './cards-tab';
 
     // graph spec 로드
     loadingEl.textContent = '⏳ graph.json 로드 중 …';
-    const spec = await loadGraphSpec();
+    const spec = await cockpitGraphAdapter.load();
     if (!spec) {
       if (statusEl) statusEl.textContent = 'graph.json 로드 실패';
       loadingEl.textContent = '❌ graph.json 로드 실패';
@@ -119,7 +122,7 @@ import { buildCardsTab } from './cards-tab';
   async function reloadGraph(): Promise<void> {
     if (!canvas) return;
     if (statusEl) statusEl.textContent = '새로고침 중…';
-    const spec = await loadGraphSpec();
+    const spec = await cockpitGraphAdapter.load();
     if (!spec) { if (statusEl) statusEl.textContent = '재로드 실패'; return; }
     canvas.setSpec(spec);
     collector?.setSpec(spec);
