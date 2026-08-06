@@ -78,7 +78,17 @@ export interface GraphCanvasOptions {
   /** spec._edge_kinds 에 없는 edge.kind 의 fallback 정의. */
   edgeKinds?: Record<string, EdgeKindDef>;
   theme?: GraphCanvasTheme;
+  /**
+   * 노드를 *클릭* 했을 때 (드래그가 아니라 — 이동 4px 미만).
+   * 편집 UI 를 붙이는 위젯용 seam. cockpit 은 안 쓴다(읽기 전용 뷰).
+   */
+  onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
+  /** 빈 배경 클릭 — 선택 해제용. */
+  onBackgroundClick?: () => void;
 }
+
+/** 클릭과 드래그를 가르는 이동 거리 (px). */
+const CLICK_SLOP = 4;
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
 
@@ -163,6 +173,11 @@ export class GraphCanvas {
   private edgeKindFallback: Record<string, EdgeKindDef>;
   private theme: Required<GraphCanvasTheme>;
   private uid: string;
+  private onNodeClick?: (nodeId: string, ev: MouseEvent) => void;
+  private onBackgroundClick?: () => void;
+
+  /** mousedown 지점 — mouseup 때 이동량으로 클릭/드래그를 가른다. */
+  private pressOrigin: { x: number; y: number; nodeId: string | null } | null = null;
 
   constructor(container: HTMLElement, options: GraphCanvasOptions = {}) {
     this.container = container;
@@ -171,6 +186,8 @@ export class GraphCanvas {
     this.defaultKindColor = options.defaultKindColor ?? DEFAULT_KIND_COLOR;
     this.edgeKindFallback = options.edgeKinds ?? {};
     this.theme = { ...DEFAULT_THEME, ...(options.theme ?? {}) };
+    this.onNodeClick = options.onNodeClick;
+    this.onBackgroundClick = options.onBackgroundClick;
     instanceSeq += 1;
     this.uid = `g${instanceSeq}`;
     injectGraphCanvasStyles();
@@ -284,6 +301,7 @@ export class GraphCanvas {
       const target = e.target as Element;
       const nodeEl = target.closest('.ck-node') as SVGGElement | null;
       const groupEl = target.closest('.ck-group') as SVGRectElement | null;
+      this.pressOrigin = { x: e.clientX, y: e.clientY, nodeId: nodeEl?.dataset.id ?? null };
       if (nodeEl) {
         const nodeId = nodeEl.dataset.id ?? '';
         if (!nodeId) return;
@@ -414,7 +432,17 @@ export class GraphCanvas {
       }
     });
 
-    window.addEventListener('mouseup', () => {
+    window.addEventListener('mouseup', (e) => {
+      // 드래그 상태를 지우기 *전에* 클릭 판정 — 이동이 slop 미만이면 클릭.
+      const origin = this.pressOrigin;
+      this.pressOrigin = null;
+      if (origin) {
+        const moved = Math.hypot(e.clientX - origin.x, e.clientY - origin.y);
+        if (moved < CLICK_SLOP) {
+          if (origin.nodeId) this.onNodeClick?.(origin.nodeId, e);
+          else if (this.panning) this.onBackgroundClick?.();
+        }
+      }
       this.dragging = null;
       this.draggingGroup = null;
       this.panning = null;
@@ -1142,6 +1170,24 @@ export class GraphCanvas {
   }
 
   // ── 공개 헬퍼 ───────────────────────────────────────────────────────────────
+
+  /** 현재 화면 중앙에 해당하는 world 좌표 — 새 노드를 "보이는 곳" 에 놓을 때. */
+  viewCenterWorld(): { x: number; y: number } {
+    const svgW = this.svg.clientWidth || 800;
+    const svgH = this.svg.clientHeight || 600;
+    return {
+      x: (svgW / 2 - this.state.tx) / this.state.scale,
+      y: (svgH / 2 - this.state.ty) / this.state.scale,
+    };
+  }
+
+  /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
+  setSelectedNode(nodeId: string | null): void {
+    this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
+      const g = el as SVGGElement;
+      g.classList.toggle('is-selected', !!nodeId && g.dataset.id === nodeId);
+    });
+  }
 
   /** 뷰를 world bbox 에 맞게 fit. */
   fitView(): void {

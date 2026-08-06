@@ -184,6 +184,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['planner/planner']
   },
   {
+    id: 'karmomap',
+    title: 'KarmoMap — 세계관 관계도',
+    category: 'lab',
+    desc: '인물·장소·물건·사건·개념을 놓고 관련/상위/포함/대립/선후로 잇는 세계관 전용 마인드맵 (TASK-KL-087)',
+    layout: 'full',
+    noHero: true,
+    icon: '<circle cx="6" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="18" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 7.1 15.6 8.6M7.2 8.3l1.4 7.3M11.4 17.1l5.3-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['karmomap/karmomap']
+  },
+  {
     id: 'cockpit',
     title: 'Cockpit',
     category: 'lab',
