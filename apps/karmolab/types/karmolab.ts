@@ -40,6 +40,8 @@ export interface RandomGenTopic {
 
 /** Lazy-load widget stub; paths are under `widgets/` without `.js` */
 export interface KarmoLabLazyWidgetStub {
+  /** 이 도구가 탭으로 들어간 묶음 위젯 id — 이름으로 부르면 묶음의 그 탭으로 간다 (KL-088) */
+  bundle?: string;
   id: string;
   title: string;
   category: string;

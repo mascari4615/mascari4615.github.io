@@ -26,6 +26,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'crypto',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '암호화 / 복호화',
     category: 'tool',
     desc: '텍스트를 AES, Base64, URL 인코딩으로 암호화·복호화합니다',
@@ -70,6 +71,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'imagegen',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 생성',
     category: 'tool',
     desc: 'AI로 이미지를 생성합니다',
@@ -99,6 +101,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'imageedit',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 편집',
     category: 'tool',
     desc: '편집·형식·해상도 변환(PNG·JPEG·WebP 등)을 한 화면에서',
@@ -109,6 +112,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'imagelib',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 라이브러리',
     category: 'tool',
     desc: '생성한 이미지를 저장하고 관리합니다',
@@ -226,6 +230,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'charcount',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '글자수 세기',
     category: 'tool',
     desc: '공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다',
@@ -236,6 +241,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'jsonfmt',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'JSON 포맷터',
     category: 'tool',
     desc: 'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다',
@@ -246,6 +252,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'hangulkey',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '한영타 변환',
     category: 'tool',
     desc: '한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)',
@@ -274,6 +281,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'lotto',
     hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '로또 번호 생성',
     category: 'tool',
     desc: '1~45 로또 번호를 원하는 게임 수만큼 뽑습니다. 제외수·고정수·홀짝 조건 지원',
@@ -284,6 +292,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'timer',
     hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '타이머 · 스톱워치',
     category: 'tool',
     desc: '카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다',
@@ -303,6 +312,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'datecalc',
     hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '날짜 계산기 · D-Day',
     category: 'tool',
     desc: '두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다',
@@ -313,6 +323,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'unitconv',
     hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '단위 변환',
     category: 'tool',
     desc: '길이·무게·넓이(평)·부피·온도·데이터·속도·시간을 서로 변환합니다',
@@ -323,6 +334,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'hashgen',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '해시 생성기',
     category: 'tool',
     desc: '텍스트나 파일의 MD5·SHA-1·SHA-256·SHA-512 해시(체크섬)를 브라우저에서 계산합니다',
@@ -333,6 +345,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'uuidgen',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'UUID 생성기',
     category: 'tool',
     desc: 'UUID v4·v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다',
@@ -343,6 +356,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'textdiff',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '텍스트 비교',
     category: 'tool',
     desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
@@ -353,6 +367,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'regextest',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '정규식 테스터',
     category: 'tool',
     desc: '정규표현식을 실시간으로 시험하고 매치·그룹·치환 결과를 확인합니다',
@@ -372,6 +387,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'colorconv',
     hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '색상 변환',
     category: 'tool',
     desc: 'HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다',
@@ -383,6 +399,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'asciiart',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 → 아스키 아트',
     category: 'tool',
     desc: '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절',
@@ -393,6 +410,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'radix',
     hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '진법 변환',
     category: 'tool',
     desc: '2·8·10·16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께',
@@ -403,6 +421,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'textclean',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '텍스트 정리',
     category: 'tool',
     desc: '여러 줄 텍스트를 정렬·중복 제거·공백 정리·번호 매기기로 한 번에 다듬습니다',
@@ -413,6 +432,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'ladder',
     hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '사다리타기',
     category: 'tool',
     desc: '이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다',
@@ -423,6 +443,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'palette',
     hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 색상 추출',
     category: 'tool',
     desc: '사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사',
@@ -442,6 +463,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'percent',
     hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '퍼센트 계산기',
     category: 'tool',
     desc: '할인율·증감률·비율을 질문 문장 그대로 채워 넣어 계산합니다',
@@ -452,6 +474,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'interest',
     hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이자 계산기',
     category: 'tool',
     desc: '예금·적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영',
@@ -462,6 +485,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'urlparse',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'URL 인코딩 · 분해',
     category: 'tool',
     desc: '한글이 깨진 주소를 되돌리고, 쿼리 파라미터를 펼쳐 보고, 추적 파라미터를 지웁니다',
@@ -472,6 +496,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'caseconv',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '표기법 변환',
     category: 'tool',
     desc: 'camelCase·snake_case·kebab-case·PascalCase 를 서로 바꿉니다. 여러 줄 한 번에',
@@ -482,6 +507,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'jwt',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'JWT 디코더',
     category: 'tool',
     desc: 'JWT 토큰의 헤더·페이로드를 풀어 보고 만료 시각과 남은 시간을 확인합니다',
@@ -492,6 +518,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'cron',
     hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '크론 표현식 읽기',
     category: 'tool',
     desc: '크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다',
@@ -502,6 +529,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'worldclock',
     hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '세계 시간 · 시차',
     category: 'tool',
     desc: '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영',
@@ -521,6 +549,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'pick',
     hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '추첨 · 팀 나누기',
     category: 'tool',
     desc: '명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게',
@@ -531,6 +560,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'bmi',
     hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'BMI 계산기',
     category: 'tool',
     desc: '키와 몸무게로 체질량지수를 계산하고 대한비만학회·WHO 두 기준으로 함께 봅니다',
@@ -562,6 +592,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'specialchar',
     hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'charmap', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '특수문자 모음',
     category: 'ref',
     desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
@@ -572,6 +603,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'ascii',
     hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'charmap', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'ASCII 코드표',
     category: 'ref',
     desc: '0~127 ASCII 문자의 10진·16진·2진 값과 제어문자 의미를 한 표에서 봅니다',
@@ -582,6 +614,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'htmlentity',
     hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'charmap', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'HTML 특수문자',
     category: 'ref',
     desc: '&amp;nbsp; &amp;lt; &amp;copy; 같은 HTML 엔티티 코드를 문자와 함께 찾아 복사합니다',
@@ -592,6 +625,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'httpstatus',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'HTTP 상태 코드',
     category: 'ref',
     desc: '200·301·403·404·500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표',
@@ -602,6 +636,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'colorname',
     hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'CSS 색상 이름표',
     category: 'ref',
     desc: 'CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다',
@@ -612,6 +647,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'keycode',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '키보드 이벤트 코드',
     category: 'ref',
     desc: '키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다',
@@ -622,6 +658,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'emoji',
     hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'charmap', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이모지 찾기',
     category: 'ref',
     desc: '한국어로 검색해서 이모지를 찾고 눌러서 복사합니다. 표정·손짓·기호 등 분류별',
@@ -632,6 +669,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'markdown',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '마크다운 문법표',
     category: 'ref',
     desc: '제목·표·코드블록·체크박스 등 마크다운 문법을 찾아 그대로 복사합니다 (GFM 기준)',
@@ -642,6 +680,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'gitcmd',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'git 명령어 모음',
     category: 'ref',
     desc: '하려는 일로 git 명령어를 찾습니다. 되돌릴 수 없는 명령은 따로 표시',
@@ -652,6 +691,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'filetype',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '파일 확장자표',
     category: 'ref',
     desc: '확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지·문서·압축·코드 등',
@@ -662,6 +702,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'shortcut',
     hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '단축키 모음',
     category: 'ref',
     desc: '윈도우·맥·브라우저·VS Code 단축키 중 알면 실제로 쓰게 되는 것만 모았습니다',

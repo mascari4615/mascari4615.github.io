@@ -33,6 +33,7 @@ function parseManifest() {
     const pathsRaw = block.match(/lazyScriptPaths: \[([^\]]*)\]/s)?.[1] || '';
     out[id] = {
       hidden: /\n\s*hidden: true/.test(block),
+      bundle: block.match(/\n\s*bundle: '([^']+)'/)?.[1] || null,
       paths: [...pathsRaw.matchAll(/'([^']+)'/g)].map((m) => m[1])
     };
   }
@@ -70,6 +71,9 @@ for (const file of bundleFiles) {
     if (!manifest[part]) {
       failures.push(`${bundleId}: 탭 '${part}' 가 매니페스트에 없다`);
       continue;
+    }
+    if (manifest[part].bundle !== bundleId) {
+      failures.push(`${bundleId}: 부분 '${part}' 의 매니페스트 bundle 이 '${manifest[part].bundle}' 다 — 이름으로 불렀을 때 엉뚱한 곳으로 간다`);
     }
     if (!manifest[part].hidden) {
       failures.push(`${bundleId}: 부분 '${part}' 가 hidden 이 아니다 — 사이드바에 두 번 뜬다`);
