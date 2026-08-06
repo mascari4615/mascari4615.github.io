@@ -346,6 +346,18 @@ function buildToolPage(id) {
     `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','dashboard'];</script>`
   );
 
+  // 페이지의 큰제목은 하나여야 한다 (TASK-KL-089).
+  // 셸에는 큰제목이 둘 더 있다 — 첫 화면 인사말 「KarmoLab」과, 자바스크립트가 채우는 헤더 제목
+  // (이쪽은 화면에 아예 안 나온다). 상세 페이지의 주제는 그 도구 하나인데 큰제목이 셋이면
+  // 검색엔진이 무엇에 대한 문서인지 흐리게 읽는다. 생김새는 클래스가 정하므로 태그만 바꾼다.
+  for (const [before, after] of [
+    ['<h1 class="intro-title">KarmoLab</h1>', '<div class="intro-title">KarmoLab</div>'],
+    ['<h1 class="content-title" id="pageTitle"></h1>', '<div class="content-title" id="pageTitle"></div>']
+  ]) {
+    if (!html.includes(before)) throw new Error(`셸에서 큰제목을 못 찾음 — index.html 확인: ${before.slice(0, 40)}`);
+    html = html.replace(before, after);
+  }
+
   // 암호 계산 라이브러리는 그것을 쓰는 도구의 페이지에만 싣는다 (TASK-KL-089).
   // 앱 첫 화면은 어느 도구로든 갈 수 있어 미리 받아 두지만, 상세 페이지는 갈 곳이 정해져 있다.
   if (!CRYPTO_TOOLS.has(id)) {
