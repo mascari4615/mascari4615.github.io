@@ -10,6 +10,8 @@
  * 자리 잡기가 핵심이다 — 좌표를 숫자로 입력하게 하면 아무도 못 쓴다. 미리보기 위를 눌러
  * 옮기고 크기를 조절하며, 화면에서 본 그대로 들어간다(화면 배율을 실제 쪽 크기로 되돌려 얹는다).
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface PdfPage {
     getViewport: (o: { scale: number }) => { width: number; height: number };
@@ -317,6 +319,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type === 'application/pdf');
 
           $<HTMLButtonElement>('#psClearPad').onclick = () => {
             resetPad();

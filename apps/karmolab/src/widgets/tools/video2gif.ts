@@ -9,6 +9,8 @@
  */
 import { seekTo } from './shared/video';
 
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface GifApi {
     encodeAsync: (o: {
@@ -255,6 +257,8 @@ import { seekTo } from './shared/video';
             const f = e.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { load(files[0]); }, (f) => f.type.startsWith('video/'));
 
           [startEl, endEl, widthEl, fpsEl, colorsEl].forEach((el) => el.addEventListener('input', refresh));
           // 손잡이를 옮기면 그 자리를 바로 보여 준다 — 눈으로 확인 못 하면 구간 고르기가 감이 안 온다

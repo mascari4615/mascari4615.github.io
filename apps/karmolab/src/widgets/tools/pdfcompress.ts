@@ -8,6 +8,8 @@
  * 숨기지 않는다 — 글자를 더는 선택·검색할 수 없다. 대신 스캔 문서(원래 그림)에는 손해가 거의 없다.
  * 그래서 넣자마자 **글자가 들어 있는 PDF인지 먼저 알려 주고**, 첫 쪽 미리보기로 화질을 눈으로 고르게 한다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface TextContent {
     items: Array<{ str?: string }>;
@@ -271,6 +273,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type === 'application/pdf');
           [qualityEl, scaleEl].forEach((el) => el.addEventListener('input', refreshLabels));
           refreshLabels();
 

@@ -5,6 +5,8 @@
  * 각 장의 비율이 제각각이라 **A4 에 그냥 늘려 넣으면 찌그러진다** — 비율을 지킨 채
  * 가운데 맞춰 넣고, 원본 크기를 그대로 쓰고 싶으면 그 선택지도 둔다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface PDFLib {
     PDFDocument: {
@@ -177,6 +179,8 @@
             drop.classList.remove('over');
             if (e.dataTransfer?.files) add(e.dataTransfer.files);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { add(files); }, (f) => f.type.startsWith('image/'));
           margin.addEventListener('input', () => {
             $<HTMLElement>('#i2MarginVal').textContent = margin.value + 'pt';
           });

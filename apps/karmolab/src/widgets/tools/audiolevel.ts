@@ -10,6 +10,7 @@
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
 import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   /** 소리의 「체감 크기」. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
@@ -258,6 +259,8 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type.startsWith('audio/') || f.type.startsWith('video/'));
           [evenEl, targetEl].forEach((el) => el.addEventListener('input', labels));
           labels();
 

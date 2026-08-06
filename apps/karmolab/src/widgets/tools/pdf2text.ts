@@ -8,6 +8,8 @@
  * 그리고 스캔 문서라 글자가 아예 없으면 **빈 결과를 성공처럼 내놓지 않고** 그렇다고 말한다 —
  * 그게 이 도구에서 가장 흔한 헛걸음이다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface TextItem {
     str?: string;
@@ -242,6 +244,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type === 'application/pdf');
 
           $<HTMLButtonElement>('#ptRun').onclick = () => {
             void run().catch((err: Error) => say('뽑는 중 문제가 생겼어요: ' + err.message, 'error'));
