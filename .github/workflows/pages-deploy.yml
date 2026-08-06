@@ -107,6 +107,24 @@ jobs:
         env:
           JEKYLL_ENV: "production"
 
+      # 글 속 사진 743MB 를 배포 꾸러미에서 뺀다. Pages 는 사이트 전체를 매번 통째로 올려 펼치므로,
+      # 도구 파일 한 줄만 고쳐도 이 무게를 다시 물었다 — 배포 단계가 5분 → 10분 → 타임아웃으로 늘었다.
+      # 사진은 `_config.yml` 의 cdn 주소(img.mascari4615.com)에서 나오므로 결과물에 있을 이유가 없다.
+      # 저장소 원본은 그대로다. 되돌리려면 이 단계만 지우고 cdn 을 비우면 된다.
+      # exclude 로는 안 된다 — 이 저장소가 자기 테마라 사진이 테마 파일로 복사된다(_config.yml 참고).
+      - name: Drop post images from artifact (served from R2)
+        run: |
+          SITE="apps/blog/_site${{ steps.pages.outputs.base_path }}"
+          # 빼기 전에, 화면이 아직 옛 경로를 가리키는 곳이 없는지 본다. 실제로 한 건 있었다 —
+          # 글에 슬래시가 두 번 찍힌 오타가 있으면 테마가 외부 주소로 착각해 사진 주소를 안 붙이고,
+          # 그 사진만 조용히 깨진다. 200 응답만 봐서는 절대 안 잡히므로 여기서 막는다.
+          LEFT=$(grep -rl '"/assets/img/post' "$SITE" --include=*.html || true)
+          if [ -n "$LEFT" ]; then
+            echo "::error::사진 주소가 안 붙은 페이지가 있다 (빼면 깨진다):"; echo "$LEFT"; exit 1
+          fi
+          rm -rf "$SITE/assets/img/post"
+          du -sh "$SITE"
+
       - name: Merge KarmoLab output to site
         run: |
           mkdir -p apps/blog/_site/apps/karmolab
