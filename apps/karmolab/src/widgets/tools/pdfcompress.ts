@@ -64,11 +64,11 @@
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">화질 <span id="pcQualityVal" class="range-value">70</span></div>
-                    <input type="range" id="pcQuality" min="30" max="95" value="70">
+                    <input type="range" id="pcQuality" aria-label="화질" min="30" max="95" value="70">
                   </div>
                   <div>
                     <div class="tool-sublabel">해상도 <span id="pcScaleVal" class="range-value">보통</span></div>
-                    <input type="range" id="pcScale" min="1" max="4" step="1" value="2">
+                    <input type="range" id="pcScale" aria-label="해상도" min="1" max="4" step="1" value="2">
                   </div>
                 </div>
               </div>

@@ -45,7 +45,7 @@ import { seekTo } from './shared/video';
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">형식</div>
-                    <select id="viFormat">
+                    <select id="viFormat" aria-label="저장 형식">
                       <option value="image/png">PNG — 글자·도형이 또렷함</option>
                       <option value="image/jpeg">JPG — 사진에 작음</option>
                       <option value="image/webp">WebP — 가장 작음</option>
@@ -53,7 +53,7 @@ import { seekTo } from './shared/video';
                   </div>
                   <div>
                     <div class="tool-sublabel">몇 초마다 <span id="viEveryVal" class="range-value">2.0초</span></div>
-                    <input type="range" id="viEvery" min="5" max="300" step="5" value="20">
+                    <input type="range" id="viEvery" aria-label="몇 초마다" min="5" max="300" step="5" value="20">
                   </div>
                 </div>
               </div>

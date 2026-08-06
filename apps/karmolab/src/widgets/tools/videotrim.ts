@@ -46,8 +46,8 @@ import { seekTo, pickRecordType } from './shared/video';
 
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-sublabel">구간 — <span id="vtRangeLabel" class="range-value">0:00.0 ~ 0:00.0 (0.0초)</span></div>
-                <input type="range" id="vtStart" min="0" max="1000" value="0" step="1">
-                <input type="range" id="vtEnd" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
+                <input type="range" id="vtStart" aria-label="구간 시작" min="0" max="1000" value="0" step="1">
+                <input type="range" id="vtEnd" aria-label="구간 끝" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
                 <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                   <button class="btn btn-ghost btn-sm" id="vtHere">지금 위치를 시작점으로</button>
                   <button class="btn btn-ghost btn-sm" id="vtHereEnd">지금 위치를 끝점으로</button>

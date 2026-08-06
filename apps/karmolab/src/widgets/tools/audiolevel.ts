@@ -74,11 +74,11 @@ import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">고르게 <span id="alEvenVal" class="range-value">보통</span></div>
-                    <input type="range" id="alEven" min="0" max="3" step="1" value="2">
+                    <input type="range" id="alEven" aria-label="고르게 하는 정도" min="0" max="3" step="1" value="2">
                   </div>
                   <div>
                     <div class="tool-sublabel">목표 크기 <span id="alTargetVal" class="range-value">-1.0 dB</span></div>
-                    <input type="range" id="alTarget" min="-12" max="-1" step="1" value="-1">
+                    <input type="range" id="alTarget" aria-label="목표 크기" min="-12" max="-1" step="1" value="-1">
                   </div>
                 </div>
               </div>
