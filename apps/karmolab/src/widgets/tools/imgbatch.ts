@@ -39,7 +39,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">형식</div>
-                  <select id="ibFormat">
+                  <select id="ibFormat" aria-label="형식">
                     <option value="image/jpeg">JPG</option>
                     <option value="image/png">PNG</option>
                     <option value="image/webp">WebP — 같은 화질에 가장 작음</option>
@@ -47,12 +47,12 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">긴 변 최대 <span id="ibMaxVal" class="range-value">1600px</span></div>
-                  <input type="range" id="ibMax" min="200" max="4000" step="100" value="1600">
+                  <input type="range" id="ibMax" aria-label="긴 변 최대" min="200" max="4000" step="100" value="1600">
                 </div>
               </div>
               <div style="margin-top:10px;">
                 <div class="tool-sublabel">화질 <span id="ibQualityVal" class="range-value">85</span></div>
-                <input type="range" id="ibQuality" min="40" max="100" value="85">
+                <input type="range" id="ibQuality" aria-label="화질" min="40" max="100" value="85">
               </div>
             </div>
 
