@@ -30,6 +30,13 @@ import {
   piperReady,
   piperSpeech,
   noteHand,
+  needsPermission,
+  findFileHand,
+  openHand,
+  windowsHand,
+  clockHand,
+  readNotesHand,
+  fileInfoHand,
   remindHand,
   tactfulAttention,
   loadCharacter,
@@ -42,10 +49,41 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// 손 — 말 말고 실제로 할 수 있는 일. 둘 다 되돌릴 수 있거나 흔적만 남기는 일이다.
+// 손 — 말 말고 실제로 할 수 있는 일.
+//
+// 되돌릴 수 있거나 보기만 하는 일은 그냥 하고, 화면을 가로채는 일(열기)은 먼저 묻는다.
+// 아무거나 실행하게 열어두지 않고 할 수 있는 일을 하나씩 쥐여주는 방식은 그대로다.
 const home = join(homedir(), '.companion');
+const notePath = join(home, '적어둔-것.md');
+
+// 물어보고 기다리는 자리. 화면이 대답을 줄 때까지 붙잡아 둔다.
+const waiting = new Map();
+let asking = null;
+const askFirst = {
+  confirm(what) {
+    return new Promise((resolve) => {
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      asking = { id, what };
+      waiting.set(id, resolve);
+      // 아무도 대답 안 하면 30초 뒤 「아니오」로 본다 — 영원히 매달려 있지 않게.
+      setTimeout(() => {
+        if (waiting.delete(id)) {
+          if (asking?.id === id) asking = null;
+          resolve(false);
+        }
+      }, 30_000).unref?.();
+    });
+  },
+};
+
 const hands = [
-  noteHand(join(home, '적어둔-것.md')),
+  noteHand(notePath),
+  readNotesHand(notePath),
+  clockHand(),
+  findFileHand(),
+  windowsHand(),
+  fileInfoHand(),
+  needsPermission(openHand(), askFirst),
   remindHand((afterMs, what) => {
     setTimeout(() => {
       companion.feed({ channel: 'web', kind: 'text', text: `(알림) 아까 알려달라고 한 것: ${what}`, at: Date.now() });
@@ -72,7 +110,7 @@ let character = wanted === 'none' ? undefined : (roster.find((c) => c.name === w
 
 // 기억은 기본으로 남는다 — 껐다 켤 때마다 초면이면 인격체가 아니라 도구다.
 const conversationPath = memoryFile ?? join(home, 'conversation.jsonl');
-const notePath = join(home, '아는-것.md');
+const knownPath = join(home, '아는-것.md');
 
 const memory =
   conversationPath === 'none'
@@ -82,7 +120,7 @@ const memory =
         // 졸이는 일도 같은 두뇌가 한다. 두뇌가 못 하면(가짜 두뇌) 아는 것은 안 쌓인다.
         distill: brainDistiller((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
         every: Number(process.env.COMPANION_DISTILL_EVERY ?? '24'),
-        notePath,
+        notePath: knownPath,
         log: (m) => console.log(`[기억] ${m}`),
       });
 // 상주 창으로 띄울 때는 여기서 브라우저를 열지 않는다 — 아래에서 창째로 띄운다.
@@ -136,6 +174,17 @@ const web = webBody({
               'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx'),
   },
   // 어떤 머리를 쓸지도 창에서 고른다. 빠른 쪽·깊은 쪽이 필요한 때가 다르다.
+  permission: {
+    pending: () => asking,
+    answer: (id, yes) => {
+      const resolve = waiting.get(id);
+      if (resolve === undefined) return false;
+      waiting.delete(id);
+      if (asking?.id === id) asking = null;
+      resolve(yes);
+      return true;
+    },
+  },
   brains: {
     list: () => ['haiku', 'sonnet', 'opus'],
     current: () => (brain.currentModel ? brain.currentModel() : '(고정)'),

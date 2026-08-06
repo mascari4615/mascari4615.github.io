@@ -29,13 +29,14 @@ function stepRamp(steps) {
  *
  * @param root 모델
  * @param options.steps 음영 단계 수 (적을수록 만화 같다)
- * @param options.outline 바깥선 두께 (0 이면 선 없음)
+ * @param options.outline 바깥선 두께 — **화면 높이 대비 비율**. 0 이면 선 없음
  * @param options.outlineColor 바깥선 색
  */
 export function applyToon(root, options = {}) {
   const steps = options.steps ?? 3;
-  const outline = options.outline ?? 0.012;
-  const outlineColor = new THREE.Color(options.outlineColor ?? 0x0b0d12);
+  const outline = options.outline ?? 0.006;
+  // 새까만 선은 그림에서 튄다. 몸 색을 아주 어둡게 깐 먹색이 그림처럼 앉는다.
+  const outlineColor = new THREE.Color(options.outlineColor ?? 0x2b1f33);
   const gradient = stepRamp(steps);
 
   const outlines = [];
@@ -63,6 +64,11 @@ export function applyToon(root, options = {}) {
 
     // 바깥선 = 같은 모양을 조금 부풀려 뒤집어 씌운 껍데기. 안쪽 면만 그리면
     // 몸 뒤로 삐져나온 가장자리만 보여서 선처럼 남는다.
+    //
+    // 부풀리는 양은 **화면 기준**이다. 모델 기준으로 밀면 그 모델이 몇 단위짜리로
+    // 만들어졌는지에 따라 선이 실오라기가 되거나 몸을 통째로 삼킨다 — 이 모델에서는
+    // 후자였고, 자세가 바뀌자 시커먼 조각이 치마 밖으로 삐져나왔다(실측). 화면 기준으로
+    // 밀면 모델 크기·카메라 거리와 무관하게 늘 같은 굵기로 보인다.
     const shell = node.clone();
     shell.material = new THREE.ShaderMaterial({
       uniforms: { thickness: { value: outline }, lineColor: { value: outlineColor } },
@@ -76,8 +82,12 @@ export function applyToon(root, options = {}) {
           #include <skinnormal_vertex>
           #include <begin_vertex>
           #include <skinning_vertex>
-          vec3 pushed = transformed + normalize(objectNormal) * thickness * 100.0;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pushed, 1.0);
+          vec4 seen = modelViewMatrix * vec4(transformed, 1.0);
+          vec3 seenNormal = normalize(normalMatrix * objectNormal);
+          gl_Position = projectionMatrix * seen;
+          // 가로가 세로보다 넓으면 x 쪽이 더 늘어난다 — 그만큼 줄여야 굵기가 고르다.
+          float wide = projectionMatrix[1][1] / projectionMatrix[0][0];
+          gl_Position.xy += vec2(seenNormal.x / wide, seenNormal.y) * thickness * gl_Position.w;
         }
       `,
       fragmentShader: `
@@ -85,9 +95,7 @@ export function applyToon(root, options = {}) {
         void main() { gl_FragColor = vec4(lineColor, 1.0); }
       `,
       side: THREE.BackSide,
-      skinning: true,
     });
-    shell.material.skinning = true;
     // 껍데기는 원래 몸과 같은 뼈를 따라야 한다 — 안 그러면 몸만 움직이고 선은 제자리다.
     if (node.isSkinnedMesh === true && shell.isSkinnedMesh === true) {
       shell.bind(node.skeleton, node.bindMatrix);

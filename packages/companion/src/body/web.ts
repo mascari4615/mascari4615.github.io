@@ -35,6 +35,11 @@ export interface WebBodyOptions {
    */
   models?: Readonly<Record<string, string>>;
   /** 어떤 머리를 쓸 수 있는지 + 지금 무엇인지 + 바꾸기. */
+  /** 되돌리기 어려운 일을 하기 전에 화면에 물어보는 자리. */
+  permission?: {
+    pending: () => { id: string; what: string } | null;
+    answer: (id: string, yes: boolean) => boolean;
+  };
   brains?: {
     list: () => readonly string[];
     current: () => string;
@@ -190,6 +195,19 @@ export function webBody(options: WebBodyOptions = {}): Body {
           res.writeHead(ok ? 200 : 404, { 'content-type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ ok, current: options.characters?.current() ?? null }));
           if (ok) broadcast({ type: 'character', name: want });
+          return;
+        }
+
+        // 지금 물어볼 게 있나 / 대답.
+        if (url === '/permission') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(options.permission?.pending() ?? null));
+          return;
+        }
+        if (url.startsWith('/permission/answer?') && req.method === 'POST') {
+          const q = new URLSearchParams(url.slice(url.indexOf('?') + 1));
+          const ok = options.permission?.answer(q.get('id') ?? '', q.get('yes') === '1') === true;
+          res.writeHead(ok ? 200 : 404).end();
           return;
         }
 

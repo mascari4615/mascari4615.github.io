@@ -7,6 +7,16 @@ export * from './types';
 export { Companion, type CompanionOptions } from './core';
 export { loadCharacter, loadCharacters } from './character';
 export {
+  needsPermission,
+  findFileHand,
+  openHand,
+  windowsHand,
+  clockHand,
+  readNotesHand,
+  fileInfoHand,
+  type AskFirst,
+} from './hands/desktop';
+export {
   describeHands,
   findRequests,
   noteHand,
