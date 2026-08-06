@@ -16,6 +16,7 @@
     ['pdfsign', 'PDF 서명'],
     ['pdfwatermark', 'PDF 워터마크'],
     ['pdf2text', 'PDF → 글자'],
+    ['text2pdf', '글 → PDF'],
     ['pdf2img', 'PDF → 이미지'],
     ['img2pdf', '이미지 → PDF'],
     ['audiocut', '소리 자르기'],

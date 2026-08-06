@@ -223,6 +223,7 @@ const entryPoints = [
   'src/widgets/tools/exifclean.ts',
   'src/widgets/tools/filesplit.ts',
   'src/widgets/tools/pdfsign.ts',
+  'src/widgets/tools/text2pdf.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',

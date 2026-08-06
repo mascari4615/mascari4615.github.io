@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
-    "build": "npm run typecheck && npm run build:wiki && node build.mjs && npm run test:tools && npm run test:bundles && npm run test:names && npm run test:gif && npm run test:video && npm run test:trim && npm run test:voice && npm run test:pdfc && npm run test:level && npm run test:v2i && npm run test:mp3 && npm run test:p2t && npm run test:exif && npm run test:fsplit && npm run test:psign",
+    "build": "npm run typecheck && npm run build:wiki && node build.mjs && npm run test:tools && npm run test:bundles && npm run test:names && npm run test:gif && npm run test:video && npm run test:trim && npm run test:voice && npm run test:pdfc && npm run test:level && npm run test:v2i && npm run test:mp3 && npm run test:p2t && npm run test:exif && npm run test:fsplit && npm run test:psign && npm run test:t2p",
     "test:bundles": "node scripts/check-bundles.mjs",
     "test:names": "node scripts/check-input-names.mjs",
     "test:gif": "node scripts/test-gif.mjs",
@@ -25,6 +25,7 @@
     "test:exif": "node scripts/test-exifclean.mjs",
     "test:fsplit": "node scripts/test-filesplit.mjs",
     "test:psign": "node scripts/test-pdfsign.mjs",
+    "test:t2p": "node scripts/test-text2pdf.mjs",
     "test:tools": "node scripts/smoke-tools.mjs",
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
     "typecheck": "tsc --noEmit",
