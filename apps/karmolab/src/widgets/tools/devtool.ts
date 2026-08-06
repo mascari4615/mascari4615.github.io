@@ -15,7 +15,8 @@
     ['uuidgen', 'UUID'],
     ['cron', '크론'],
     ['urlparse', 'URL'],
-    ['crypto', '암호화']
+    ['crypto', '암호화'],
+    ['base64', 'Base64']
   ];
 
   Toolbox.register({
