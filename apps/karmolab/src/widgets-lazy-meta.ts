@@ -1073,6 +1073,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/radix']
   },
   {
+    id: 'icsmake',
+    title: '일정 파일 만들기',
+    category: 'tool',
+    desc: '모임·공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v5M9.5 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/icsmake']
+  },
+  {
     id: 'subtitle',
     title: '자막 시간 맞추기',
     category: 'tool',
