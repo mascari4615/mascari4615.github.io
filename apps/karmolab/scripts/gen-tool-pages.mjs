@@ -102,6 +102,25 @@ function heading(id) {
   return widgetById[id].title;
 }
 
+/* ── 무거운 라이브러리는 쓰는 페이지에만 (TASK-KL-089) ── */
+
+/** 암호 계산 라이브러리(CryptoJS)를 실제로 쓰는 도구 — 묶음으로 들어와도 되도록 부모까지 포함. */
+const CRYPTO_TOOLS = (() => {
+  const users = ['crypto', 'hashgen'];
+  const set = new Set(users);
+  for (const u of users) {
+    const b = widgetById[u] && widgetById[u].bundle;
+    if (b) set.add(b);
+  }
+  return set;
+})();
+
+const CRYPTO_TAG = '<script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>\n';
+if (!shell.includes(CRYPTO_TAG)) {
+  console.error('[gen-tool-pages] 셸에서 암호 라이브러리 태그를 못 찾음 — index.html 구조 확인');
+  process.exit(1);
+}
+
 /* ── 후원·제휴 자리 (TASK-KL-089) ──────────────────── */
 
 /**
@@ -248,6 +267,12 @@ function buildToolPage(id) {
     bootTag,
     `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','user','dashboard'];</script>`
   );
+
+  // 암호 계산 라이브러리는 그것을 쓰는 도구의 페이지에만 싣는다 (TASK-KL-089).
+  // 앱 첫 화면은 어느 도구로든 갈 수 있어 미리 받아 두지만, 상세 페이지는 갈 곳이 정해져 있다.
+  if (!CRYPTO_TOOLS.has(id)) {
+    html = html.replace(CRYPTO_TAG, '');
+  }
 
   // 상세 페이지는 세리프 글꼴을 부르지 않는다 (TASK-KL-089).
   // 세리프는 홈의 큰 제목과 도구 히어로 제목에 쓰이는데, 상세 페이지에서는 히어로가 숨겨져
