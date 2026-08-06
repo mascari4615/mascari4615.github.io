@@ -21,7 +21,7 @@
 
   Toolbox.register({
     id: 'aspect',
-    title: '비율 계산기',
+    title: '화면 비율 계산기',
     category: 'tool',
     desc: '가로·세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함',
     layout: 'form',
