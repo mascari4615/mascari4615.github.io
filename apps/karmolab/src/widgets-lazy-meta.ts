@@ -490,6 +490,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/videotrim']
   },
   {
+    id: 'video2img',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상에서 사진 뽑기',
+    category: 'tool',
+    desc: '영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 9l6-3v9l-6-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><rect x="7" y="12" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="var(--bg, #111)"/><path d="M7 18l3-3 2 2 2.5-2.5L19 18" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/video2img']
+  },
+  {
     id: 'screenrec',
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -519,7 +530,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
-    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2img', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
   },
   {
     id: 'charcount',
