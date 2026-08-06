@@ -15,7 +15,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['life/life']
   },
   {
+    id: 'devtool',
+    title: '개발 도구',
+    category: 'tool',
+    desc: 'JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서',
+    layout: 'wide',
+    icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/devtool']
+  },
+  {
     id: 'crypto',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '암호화 / 복호화',
     category: 'tool',
     desc: '텍스트를 AES, Base64, URL 인코딩으로 암호화·복호화합니다',
@@ -213,6 +223,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'jsonfmt',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'JSON 포맷터',
     category: 'tool',
     desc: 'JSON 을 보기 좋게 정렬하거나 한 줄로 압축하고, 문법 오류의 줄·칸 위치를 찾아줍니다',
@@ -299,6 +310,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'hashgen',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '해시 생성기',
     category: 'tool',
     desc: '텍스트나 파일의 MD5·SHA-1·SHA-256·SHA-512 해시(체크섬)를 브라우저에서 계산합니다',
@@ -308,6 +320,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'uuidgen',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'UUID 생성기',
     category: 'tool',
     desc: 'UUID v4·v7, ULID, NanoID, 안전한 비밀번호를 원하는 개수만큼 만듭니다',
@@ -327,6 +340,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'regextest',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '정규식 테스터',
     category: 'tool',
     desc: '정규표현식을 실시간으로 시험하고 매치·그룹·치환 결과를 확인합니다',
@@ -434,6 +448,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'urlparse',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'URL 인코딩 · 분해',
     category: 'tool',
     desc: '한글이 깨진 주소를 되돌리고, 쿼리 파라미터를 펼쳐 보고, 추적 파라미터를 지웁니다',
@@ -453,6 +468,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'jwt',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'JWT 디코더',
     category: 'tool',
     desc: 'JWT 토큰의 헤더·페이로드를 풀어 보고 만료 시각과 남은 시간을 확인합니다',
@@ -462,6 +478,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'cron',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '크론 표현식 읽기',
     category: 'tool',
     desc: '크론 표현식을 우리말로 풀고 다음 실행 시각을 실제로 계산해 보여줍니다',

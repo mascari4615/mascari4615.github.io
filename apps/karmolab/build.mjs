@@ -197,6 +197,7 @@ const entryPoints = [
   'src/widgets/tools/calc.ts',
   'src/widgets/tools/time.ts',
   'src/widgets/tools/draw.ts',
+  'src/widgets/tools/devtool.ts',
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/charmap.ts',
