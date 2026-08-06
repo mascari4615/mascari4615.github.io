@@ -135,8 +135,13 @@
   }
   .bubble.on { opacity: 1; transform: translateY(0) scale(1); }
 
-  /* ── 큐브 ─────────────────────────────────────────────── */
-  .field { perspective: 700px; height: 200px; display: grid; place-items: center; }
+  /* ── 몸 ───────────────────────────────────────────────── */
+  .field { position: relative; perspective: 700px; height: 200px; display: grid; place-items: center; }
+
+  /* 3D 몸이 뜨면 큐브는 물러난다. 못 뜨면 큐브가 그대로 남는다. */
+  .body3d { width: 100%; height: 100%; display: block; }
+  .body3d[hidden] { display: none; }
+  .cube.retired { display: none; }
 
   .cube {
     position: relative;
@@ -454,6 +459,7 @@
     <div class="stage">
       <div class="bubble" id="bubble"></div>
       <div class="field">
+        <canvas class="body3d" id="body3d" hidden></canvas>
         <div class="cube" id="cube">
           <div class="f"></div><div class="bk"></div>
           <div class="r"></div><div class="l"></div>
@@ -473,6 +479,14 @@
     </form>
   </div>
 
+<script type="importmap">
+{
+  "imports": {
+    "three": "/lib/three/build/three.module.js",
+    "three/addons/": "/lib/three/examples/jsm/"
+  }
+}
+</script>
 <script>
   // 뚫린 창(데스크톱 앱)으로 떠 있으면 바탕을 비운다.
   const inDesktopWindow = typeof window.__TAURI__ !== 'undefined';
@@ -635,8 +649,9 @@
   }
 
   function setState(state, label) {
-    cube.className = 'cube' + (state ? ' ' + state : '');
+    cube.className = 'cube' + (state ? ' ' + state : '') + (body3d !== null ? ' retired' : '');
     status.textContent = label;
+    body3d?.setMood(state);
   }
 
   /* ── 말이 만들어지는 대로 ─────────────────────────────────
@@ -893,10 +908,36 @@
     }
   });
 
+  /* ── 3D 몸 ─────────────────────────────────────────────
+     모델이 뜨면 큐브를 물리고, 못 뜨면 큐브가 그대로 남는다. */
+  let body3d = null;
+
+  async function loadBody() {
+    try {
+      const { mountModel } = await import('/model.js');
+      const canvas = document.getElementById('body3d');
+      canvas.hidden = false;
+      body3d = await mountModel(canvas, '욘', (e) => {
+        console.warn('3D 몸을 못 세웠다:', e);
+        canvas.hidden = true;
+      });
+      if (body3d !== null) cube.classList.add('retired');
+      else canvas.hidden = true;
+    } catch (e) {
+      console.warn('3D 몸을 못 불렀다:', e);
+    }
+  }
+
+  // 커서를 따라 아주 조금 몸을 돌린다.
+  window.addEventListener('pointermove', (e) => {
+    body3d?.lookAt((e.clientX / innerWidth) * 2 - 1);
+  });
+
   loadHistory();
   loadVoices();
   loadWho();
   probeEars();
+  loadBody();
   text.focus();
 </script>
 </body>

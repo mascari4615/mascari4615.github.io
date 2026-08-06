@@ -29,6 +29,11 @@ export interface WebBodyOptions {
     current: () => string | null;
     switchTo: (name: string) => boolean;
   };
+  /**
+   * 몸으로 쓸 3D 모델. `{ 이름: 파일경로 }` — 창이 `/model/<이름>` 으로 받아 간다.
+   * 모델 파일이 게임 저장소 안에 있으므로, 복사해 두 벌로 만들지 않고 그 자리에서 읽는다.
+   */
+  models?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -99,6 +104,39 @@ export function webBody(options: WebBodyOptions = {}): Body {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('{"known":null}');
             });
+          return;
+        }
+
+        if (url === '/model.js') {
+          serveFile(res, join(packageRoot, 'assets', 'model.js'), 'text/javascript; charset=utf-8', log);
+          return;
+        }
+
+        // 3D 를 그리는 데 필요한 라이브러리. 바깥에서 받아오지 않는다 — 인터넷이
+        // 끊겨도, 저쪽 주소가 사라져도 얘는 계속 보여야 한다.
+        // 파일 하나만 내주면 그 안의 「옆 파일 불러오기」가 전부 깨진다. 폴더째 낸다.
+        if (url.startsWith('/lib/three/')) {
+          const base = join(packageRoot, 'node_modules', 'three');
+          const wanted = join(base, decodeURIComponent(url.slice('/lib/three/'.length).split('?')[0] ?? ''));
+          // 폴더 밖으로 빠져나가는 주소는 거절한다.
+          if (wanted.startsWith(base) === false) {
+            res.writeHead(403).end();
+            return;
+          }
+          serveFile(res, wanted, 'text/javascript; charset=utf-8', log);
+          return;
+        }
+
+        // 모델 파일 자체 (게임 저장소 안의 것을 그 자리에서 읽는다).
+        if (url.startsWith('/model/')) {
+          const name = decodeURIComponent(url.slice('/model/'.length).split('?')[0] ?? '');
+          const path = options.models?.[name];
+          if (path === undefined) {
+            res.writeHead(404).end();
+            return;
+          }
+          const type = path.toLowerCase().endsWith('.png') ? 'image/png' : 'application/octet-stream';
+          serveFile(res, path, type, log);
           return;
         }
 
@@ -264,9 +302,23 @@ export function webBody(options: WebBodyOptions = {}): Body {
  * 화면은 별도 .html 파일이다 — 코드 문자열 안에 UI 를 섞어 넣으면 나중에 손볼 때
  * 문법 강조도 못 받고 캐스팅 사고도 조용히 통과한다.
  */
+/** dist/body → 패키지 뿌리. */
+const packageRoot = join(dirname(__filename), '..', '..');
+
 function loadPage(): string {
-  const here = dirname(__filename); // dist/body
-  return readFileSync(join(here, '..', '..', 'assets', 'face.html'), 'utf8');
+  return readFileSync(join(packageRoot, 'assets', 'face.html'), 'utf8');
+}
+
+/** 파일 하나를 그대로 내려보낸다. 없으면 404 — 못 찾았다고 창이 죽지는 않게. */
+function serveFile(res: ServerResponse, path: string, contentType: string, log: (m: string) => void): void {
+  try {
+    const body = readFileSync(path);
+    res.writeHead(200, { 'content-type': contentType, 'content-length': body.length });
+    res.end(body);
+  } catch (e) {
+    log(`못 읽었다 (${path}): ${e instanceof Error ? e.message : String(e)}`);
+    res.writeHead(404).end();
+  }
 }
 
 function openBrowser(url: string): void {
