@@ -393,6 +393,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/imgbatch']
   },
   {
+    id: 'filehash',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '파일 검사값 확인',
+    category: 'tool',
+    desc: '내려받은 파일의 체크섬을 계산하고 배포처가 적어 둔 값과 맞춰 봅니다',
+    layout: 'wide',
+    icon: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/filehash']
+  },
+  {
     id: 'pdftool',
     hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -421,7 +432,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filetool']
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/filetool']
   },
   {
     id: 'charcount',

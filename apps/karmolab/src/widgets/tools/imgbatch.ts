@@ -165,7 +165,10 @@
             render();
             const before = files.reduce((a, f) => a + f.size, 0);
             const after = results.reduce((a, r) => a + r.blob.size, 0);
-            say(`${results.length}장 · ${size(before)} → ${size(after)} (${Math.round((1 - after / before) * 100)}% 줄었어요). 줄을 누르면 그 장만 받습니다.`, 'ok');
+            // 작은 PNG 를 JPG 로 바꾸면 오히려 커진다 — 「-559% 줄었어요」 같은 말이 나오면 안 된다
+            const pct = Math.round(Math.abs(1 - after / before) * 100);
+            const verdict = after < before ? `${pct}% 줄었어요` : after > before ? `${pct}% 커졌어요` : '그대로예요';
+            say(`${results.length}장 · ${size(before)} → ${size(after)} (${verdict}). 줄을 누르면 그 장만 받습니다.`, 'ok');
             Toolbox.trackUse?.('convert');
           }
 
