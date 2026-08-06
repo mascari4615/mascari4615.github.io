@@ -219,6 +219,7 @@ const entryPoints = [
   'src/widgets/tools/screenrec.ts',
   'src/widgets/tools/voicerec.ts',
   'src/widgets/tools/pdfcompress.ts',
+  'src/widgets/tools/pdf2text.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',

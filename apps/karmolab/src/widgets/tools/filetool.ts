@@ -14,6 +14,7 @@
     ['pdftool', 'PDF 합치기·나누기'],
     ['pdfcompress', 'PDF 용량 줄이기'],
     ['pdfwatermark', 'PDF 워터마크'],
+    ['pdf2text', 'PDF → 글자'],
     ['pdf2img', 'PDF → 이미지'],
     ['img2pdf', '이미지 → PDF'],
     ['audiocut', '소리 자르기'],
