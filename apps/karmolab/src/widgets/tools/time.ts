@@ -18,6 +18,7 @@
     category: 'tool',
     desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
     layout: 'wide',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     tabs: PARTS.map(([id, label]) => ({
       id,

@@ -18,6 +18,7 @@
     category: 'tool',
     desc: '로또 번호·사다리타기·추첨과 팀 나누기를 한 곳에서',
     layout: 'wide',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: PARTS.map(([id, label]) => ({
       id,

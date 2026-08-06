@@ -21,6 +21,7 @@
     category: 'ref',
     desc: '특수문자·이모지·HTML 엔티티·ASCII 를 한 곳에서 찾아 눌러 복사합니다',
     layout: 'wide',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 9h2M7 13h4M13 9h4M15 13h2M7 17h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: TABS.map(([id, label]) => ({
       id,

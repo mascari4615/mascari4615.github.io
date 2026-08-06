@@ -24,6 +24,7 @@
     category: 'tool',
     desc: 'JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서',
     layout: 'wide',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: PARTS.map(([id, label]) => ({
       id,

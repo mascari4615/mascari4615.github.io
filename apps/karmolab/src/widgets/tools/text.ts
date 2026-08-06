@@ -20,6 +20,7 @@
     category: 'tool',
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
     tabs: PARTS.map(([id, label]) => ({
       id,

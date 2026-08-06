@@ -20,6 +20,7 @@
     category: 'tool',
     desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
     layout: 'form',
+    lazyTabs: true, // 안 본 탭은 만들지 않는다
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: PARTS.map(([id, label]) => ({
       id,

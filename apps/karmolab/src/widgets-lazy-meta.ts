@@ -69,6 +69,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'imagegen',
+    hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이미지 생성',
     category: 'tool',
     desc: 'AI로 이미지를 생성합니다',
@@ -87,7 +88,17 @@ window.KARMOLAB_LAZY_META = [
     ]
   },
   {
+    id: 'image',
+    title: '이미지',
+    category: 'tool',
+    desc: '편집·형식 변환, 색 추출, 아스키 아트, AI 생성과 보관함을 한 곳에서',
+    layout: 'full',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/palette', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+  },
+  {
     id: 'imageedit',
+    hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이미지 편집',
     category: 'tool',
     desc: '편집·형식·해상도 변환(PNG·JPEG·WebP 등)을 한 화면에서',
@@ -97,6 +108,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'imagelib',
+    hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이미지 라이브러리',
     category: 'tool',
     desc: '생성한 이미지를 저장하고 관리합니다',
@@ -370,6 +382,7 @@ window.KARMOLAB_LAZY_META = [
 
   {
     id: 'asciiart',
+    hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이미지 → 아스키 아트',
     category: 'tool',
     desc: '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절',
