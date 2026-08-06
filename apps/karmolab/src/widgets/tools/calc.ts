@@ -16,7 +16,8 @@
     ['aspect', '비율'],
     ['grade', '학점'],
     ['vat', '부가세'],
-    ['bytesize', '용량']
+    ['bytesize', '용량'],
+    ['bizno', '사업자번호']
   ];
 
   Toolbox.register({
