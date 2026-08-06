@@ -105,6 +105,41 @@ function heading(id) {
   return widgetById[id].title;
 }
 
+/* ── 후원·제휴 자리 (TASK-KL-089) ──────────────────── */
+
+/**
+ * 도구 페이지에 자리 하나를 미리 잡아 둔다. 채울 것이 없으면 아무것도 그리지 않는다 —
+ * 빈 상자나 「준비 중」 표시는 도구를 쓰러 온 사람에게 방해만 되기 때문이다.
+ * 도구 본체 위에는 절대 놓지 않는다. 이 자리는 설명 블록 안, 다 쓰고 읽는 데 있다.
+ */
+const sponsorSlots = (() => {
+  const file = path.join(root, 'data/sponsor.json');
+  if (!fs.existsSync(file)) return [];
+  return JSON.parse(fs.readFileSync(file, 'utf8')).slots || [];
+})();
+
+function sponsorBlock(id) {
+  const slot = sponsorSlots.find((s) => {
+    if (Array.isArray(s.only) && !s.only.includes(id)) return false;
+    if (Array.isArray(s.except) && s.except.includes(id)) return false;
+    return true;
+  });
+  if (!slot) return '';
+
+  const label = esc(slot.label || '후원');
+  const body = `<strong>${esc(slot.title)}</strong>${slot.body ? `<span>${esc(slot.body)}</span>` : ''}`;
+  const inner = slot.url
+    ? `<a class="tool-sponsor-link" href="${esc(slot.url)}" rel="sponsored noopener" target="_blank">${body}</a>`
+    : `<div class="tool-sponsor-link">${body}</div>`;
+
+  return `
+        <aside class="tool-sponsor" aria-label="${label}">
+          <span class="tool-sponsor-label">${label}</span>
+          ${inner}
+        </aside>
+`;
+}
+
 /* ── 도구 상세 페이지 ──────────────────────────────── */
 
 function seoBlock(id) {
@@ -138,7 +173,7 @@ function seoBlock(id) {
         <div class="tool-seo-related">
           ${related}
         </div>
-
+${sponsorBlock(id)}
         <p class="tool-seo-note">
           입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.
           <a href="${BASE_PATH}/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
