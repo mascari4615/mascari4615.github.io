@@ -97,6 +97,9 @@ jobs:
         run: |
           mkdir -p apps/blog/karmolab
           cp apps/karmolab/index.html apps/blog/karmolab/index.html
+          # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
+          mkdir -p apps/blog/karmolab/bot
+          cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
 
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.

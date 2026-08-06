@@ -91,6 +91,12 @@ export interface SlashCommand {
   run: (ctx: BotContext, interaction: ChatInputCommandInteraction) => Promise<void>;
   /** 슬래시 옵션 autocomplete (해당 커맨드만). 없으면 빈 응답. */
   autocomplete?: (ctx: BotContext, interaction: AutocompleteInteraction) => Promise<void>;
+  /**
+   * 남의 서버에서도 쓸 수 있는 명령 (TASK-YB-042).
+   * true 면 `YAWNBOT_ALLOWED_GUILD_IDS` 허용 목록을 타지 않는다 — 초대받은 서버에서
+   * 동작해야 하는 것들만. 사적인 기능은 표시하지 않는다(기본 = 본진 전용).
+   */
+  public?: boolean;
 }
 
 const ephemeral = (content: string): InteractionReplyOptions => ({ content, flags: MessageFlags.Ephemeral });
@@ -182,6 +188,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
             ),
         ),
     run: async (ctx, interaction) => { await handleHelp(ctx, interaction); },
+    public: true,
   },
   {
     name: '게임',
@@ -616,6 +623,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
             .setDescriptionLocalizations(enUS('Raw counters & save state (ephemeral, debug)')),
         ),
     run: async (ctx, interaction) => { await handleWrapped(ctx, interaction); },
+    public: true,
   },
   {
     name: 'atkup',

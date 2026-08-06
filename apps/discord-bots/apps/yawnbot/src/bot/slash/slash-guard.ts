@@ -1,6 +1,7 @@
 import { MessageFlags } from 'discord.js';
 import type { Interaction } from 'discord.js';
 import { parseCommaSeparatedEnv } from '@discord-bots/common';
+import { SLASH_BY_NAME } from './registry';
 
 function allowedGuildIdSet(): Set<string> | null {
   const raw = process.env.YAWNBOT_ALLOWED_GUILD_IDS ?? process.env.YAWNBOT_SLASH_GUILD_IDS;
@@ -22,7 +23,12 @@ function allowedSlashChannelIdSet(): Set<string> | null {
 export async function guardSlashInteraction(interaction: Interaction): Promise<boolean> {
   if (!interaction.isChatInputCommand()) return true;
 
-  const guildAllow = allowedGuildIdSet();
+  // 공개 명령(`public: true`)은 허용 목록을 타지 않는다 — 남의 서버에 초대됐을 때
+  // 쓰라고 만든 것들이라, 여기서 막으면 초대 자체가 무의미해진다 (TASK-YB-042).
+  // 사적인 기능(관리자·AI·집 안 살림)은 계속 본진에서만 돈다.
+  const isPublicCommand = SLASH_BY_NAME.get(interaction.commandName)?.public === true;
+
+  const guildAllow = isPublicCommand ? null : allowedGuildIdSet();
   if (guildAllow) {
     if (!interaction.guildId || !guildAllow.has(interaction.guildId)) {
       await interaction
@@ -35,7 +41,7 @@ export async function guardSlashInteraction(interaction: Interaction): Promise<b
     }
   }
 
-  const chAllow = allowedSlashChannelIdSet();
+  const chAllow = isPublicCommand ? null : allowedSlashChannelIdSet();
   if (chAllow) {
     const ch = interaction.channelId;
     if (!ch || !chAllow.has(ch)) {
