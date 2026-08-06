@@ -10,6 +10,8 @@ export interface SpeechVoice {
 /** 글을 소리로 바꾸는 자리. 다른 엔진을 쓰려면 이것만 새로 구현하면 된다. */
 export interface Speech {
   readonly name: string;
+  /** 만들어 내는 소리의 형식. 안 알려주면 mp3 로 본다. */
+  readonly contentType?: string;
   voices(): Promise<readonly SpeechVoice[]>;
   synthesize(text: string, voiceId?: string): Promise<Buffer>;
 }

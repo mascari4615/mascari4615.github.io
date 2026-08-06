@@ -39,4 +39,5 @@ export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
 export { webBody, openPinnedWindow, type WebBodyOptions } from './body/web';
 
+export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
 export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';
