@@ -435,6 +435,38 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/filetool']
   },
   {
+    id: 'video2gif',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 → GIF',
+    category: 'tool',
+    desc: '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif'] // 압축기가 먼저 있어야 한다
+  },
+  {
+    id: 'video2audio',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상에서 소리 추출',
+    category: 'tool',
+    desc: '영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 10l5-3v10l-5-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 14c0-2 1.5-3 2.5-3s2.5 1 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/video2audio']
+  },
+  {
+    id: 'videotool',
+    title: '영상 도구',
+    category: 'tool',
+    desc: '영상을 GIF 로 만들고 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/video2audio', 'tools/videotool']
+  },
+  {
     id: 'charcount',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
