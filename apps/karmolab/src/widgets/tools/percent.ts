@@ -75,12 +75,21 @@
 
           rowsEl.innerHTML = ROWS.map((row, ri) => {
             let ni = 0;
+            // 화면에서는 문장 사이에 숫자칸이 끼워져 있어 무엇을 넣는지 눈으로 보인다.
+            // 화면낭독기는 그 문장을 대신 읽어 주지 않으므로 칸마다 이어 준다 (TASK-KL-089).
+            // 빈칸을 빼고 이으면 「의 % 는?」처럼 조사만 남아 문장이 안 읽힌다. 빈칸을 표시해 둔다.
+            const sentence = row.parts
+              .map((p) => (p === null ? '몇' : p))
+              .join('')
+              .replace(/\s+/g, ' ')
+              .trim();
+            const blanks = row.parts.filter((p) => p === null).length;
             const line = row.parts
-              .map((p) =>
-                p === null
-                  ? `<input type="number" class="pc-num" data-row="${ri}" data-n="${ni++}" step="any" value="${row.defaults[ni - 1]}">`
-                  : `<span class="pc-text">${p}</span>`
-              )
+              .map((p) => {
+                if (p !== null) return `<span class="pc-text">${p}</span>`;
+                const label = blanks > 1 ? `${sentence} — ${ni + 1}번째 값` : sentence;
+                return `<input type="number" class="pc-num" aria-label="${label}" data-row="${ri}" data-n="${ni++}" step="any" value="${row.defaults[ni - 1]}">`;
+              })
               .join('');
             return `<div class="field-group pc-row">
                       <div class="pc-line">${line}</div>
