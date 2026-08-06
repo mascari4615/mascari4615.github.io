@@ -209,6 +209,8 @@ const entryPoints = [
   'src/widgets/tools/audiojoin.ts',
   'src/widgets/tools/imgbatch.ts',
   'src/widgets/tools/filehash.ts',
+  'src/widgets/tools/pdf.ts',
+  'src/widgets/tools/sound.ts',
   'src/widgets/tools/filetool.ts',
   'src/widgets/tools/gifenc.ts', // 위젯이 아니라 GIF 압축기 — video2gif 가 먼저 부른다
   'src/widgets/tools/video2gif.ts',
