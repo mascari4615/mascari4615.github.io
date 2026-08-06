@@ -1,37 +1,21 @@
 {
-  "unlinked": 56,
+  "unlinked": 39,
   "nameless": 0,
   "perTool": {
     "charcount": {
       "unlinked": 1,
       "nameless": 0
     },
-    "jsonfmt": {
-      "unlinked": 2,
-      "nameless": 0
-    },
     "hangulkey": {
       "unlinked": 1,
       "nameless": 0
     },
-    "lotto": {
-      "unlinked": 2,
-      "nameless": 0
-    },
-    "datecalc": {
-      "unlinked": 2,
-      "nameless": 0
-    },
-    "regextest": {
-      "unlinked": 2,
-      "nameless": 0
-    },
     "colorconv": {
-      "unlinked": 2,
+      "unlinked": 1,
       "nameless": 0
     },
     "radix": {
-      "unlinked": 2,
+      "unlinked": 1,
       "nameless": 0
     },
     "palette": {
@@ -51,23 +35,11 @@
       "nameless": 0
     },
     "color": {
-      "unlinked": 2,
+      "unlinked": 1,
       "nameless": 0
     },
     "text": {
       "unlinked": 1,
-      "nameless": 0
-    },
-    "time": {
-      "unlinked": 2,
-      "nameless": 0
-    },
-    "draw": {
-      "unlinked": 2,
-      "nameless": 0
-    },
-    "devtool": {
-      "unlinked": 2,
       "nameless": 0
     },
     "epoch": {
