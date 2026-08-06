@@ -1073,6 +1073,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/radix']
   },
   {
+    id: 'subtitle',
+    title: '자막 시간 맞추기',
+    category: 'tool',
+    desc: '어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/subtitle']
+  },
+  {
     id: 'textredact',
     title: '글자 가리개',
     category: 'tool',
