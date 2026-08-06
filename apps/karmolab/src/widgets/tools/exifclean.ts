@@ -9,6 +9,8 @@
  *
  * 무엇이 들어 있었는지 먼저 보여 준다. 「지웠다」는 말만으로는 사람이 안심하지 못한다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface Info {
     date?: string;
@@ -257,6 +259,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
+          acceptPastedFiles(container, (files) => { void load(files[0]); });
 
           $<HTMLButtonElement>('#exRun').onclick = () => {
             if (!raw) return;

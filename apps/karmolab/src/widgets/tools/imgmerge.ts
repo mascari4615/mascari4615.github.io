@@ -8,6 +8,7 @@
  * 나머지를 맞추고, 남는 자리는 배경색으로 채운다. 순서는 넣은 순서대로 두되 끌어서 바꿀 수 있다.
  */
 import { fileSize as size } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   interface Shot {
@@ -217,6 +218,8 @@ import { fileSize as size } from './shared/media';
             drop.classList.remove('over');
             if (e.dataTransfer?.files) void add(e.dataTransfer.files);
           });
+          // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
+          acceptPastedFiles(container, (files) => { void add(files); });
           ['#imDir', '#imFit', '#imBg'].forEach((s) => $<HTMLElement>(s).addEventListener('change', render));
           gapEl.addEventListener('input', render);
 
