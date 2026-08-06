@@ -190,7 +190,7 @@
             const spec = $<HTMLInputElement>('#ptRange').value.trim();
             const pages = spec ? parseRange(spec, doc.numPages) : Array.from({ length: doc.numPages }, (_, i) => i + 1);
             if (!pages.length) {
-              say('그 범위에 해당하는 쪽이 없어요.', 'error');
+              say(`그 범위에 해당하는 쪽이 없어요. 이 PDF 는 ${doc.numPages}쪽이니 그 안에서 적어 주세요 (예: 1-3, 5).`, 'error');
               return;
             }
             const mark = $<HTMLInputElement>('#ptMark').checked;
