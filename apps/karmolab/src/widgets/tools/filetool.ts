@@ -14,7 +14,9 @@
     ['pdfwatermark', 'PDF 워터마크'],
     ['audiojoin', '오디오 잇기'],
     ['imgbatch', '이미지 일괄'],
-    ['filehash', '파일 검사값']
+    ['filehash', '파일 검사값'],
+    ['voicerec', '녹음'],
+    ['pdfcompress', 'PDF 줄이기']
   ];
 
   Toolbox.register({

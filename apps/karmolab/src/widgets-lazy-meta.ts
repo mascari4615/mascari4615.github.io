@@ -426,13 +426,24 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiocut']
   },
   {
+    id: 'pdfcompress',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 용량 줄이기',
+    category: 'tool',
+    desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/pdfcompress']
+  },
+  {
     id: 'filetool',
     title: '파일 도구',
     category: 'tool',
     desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/filetool']
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/voicerec', 'tools/pdfcompress', 'tools/filetool']
   },
   {
     id: 'video2gif',
@@ -468,14 +479,36 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/videotrim']
   },
   {
+    id: 'screenrec',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '화면 녹화',
+    category: 'tool',
+    desc: '화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="10.5" r="3" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/screenrec']
+  },
+  {
+    id: 'voicerec',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '목소리 녹음',
+    category: 'tool',
+    desc: '마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/voicerec']
+  },
+  {
     id: 'videotool',
     title: '영상 도구',
     category: 'tool',
-    desc: '영상을 GIF 로 만들고, 구간을 자르고, 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    desc: '영상을 GIF 로 만들고, 구간을 자르고, 소리를 뽑고, 화면을 녹화합니다. 영상이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
-    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2audio', 'tools/videotool']
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
   },
   {
     id: 'charcount',
