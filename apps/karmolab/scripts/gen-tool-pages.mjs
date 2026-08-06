@@ -413,7 +413,8 @@ permalink: ${BASE_PATH}/
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>도구 | KarmoLab</title>
+    <!-- 상세 페이지와 같은 규칙: 이름 뒤에 무엇이 있는지 붙여 검색 결과에서 판단되게 한다. -->
+    <title>도구 전체 — 텍스트 · 이미지 · 계산 · 개발 | KarmoLab</title>
     <meta name="description" content="KarmoLab 의 도구 목록입니다. 각 도구는 독립된 페이지에서 바로 쓸 수 있고, 입력한 내용은 브라우저를 벗어나지 않습니다.">
     <link rel="canonical" href="${SITE}${BASE_PATH}/">
     <meta property="og:type" content="website">
@@ -426,7 +427,9 @@ permalink: ${BASE_PATH}/
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- 굵기는 실제 쓰는 것만 (TASK-KL-089). 가는 굵기(300)는 어디에도 안 쓰이는데,
+         한글 글꼴은 조각이 수백 개라 굵기 하나가 목록을 92KB 불린다. -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
     <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('toolbox_theme') || 'dark');</script>
