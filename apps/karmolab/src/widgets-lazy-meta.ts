@@ -426,6 +426,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiocut']
   },
   {
+    id: 'filesplit',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '큰 파일 나누기·합치기',
+    category: 'tool',
+    desc: '큰 파일을 여러 조각으로 나누고 다시 합칩니다. 압축하지 않아 원본과 완전히 같습니다',
+    layout: 'wide',
+    icon: '<path d="M4 12h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 3"/><rect x="4" y="3" width="16" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="4" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/filesplit']
+  },
+  {
     id: 'exifclean',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -476,7 +487,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF·소리·이미지 파일을 다룹니다. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/voicerec', 'tools/pdfcompress', 'tools/pdf2text', 'tools/audiolevel', 'tools/exifclean', 'tools/filetool']
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/voicerec', 'tools/pdfcompress', 'tools/pdf2text', 'tools/audiolevel', 'tools/exifclean', 'tools/filesplit', 'tools/filetool']
   },
   {
     id: 'video2gif',

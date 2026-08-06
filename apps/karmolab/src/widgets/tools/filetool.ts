@@ -24,6 +24,7 @@
     ['imgbatch', '이미지 일괄 변환'],
     ['exifclean', '사진 정보 지우기'],
     ['ziptool', 'ZIP 묶기·풀기'],
+    ['filesplit', '큰 파일 나누기'],
     ['filehash', '파일 검사값']
   ];
 
