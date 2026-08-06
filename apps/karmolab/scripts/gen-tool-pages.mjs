@@ -362,6 +362,13 @@ function buildToolPage(id) {
     html = html.replace(before, after);
   }
 
+  // 랜덤 생성기 전용 스타일은 상세 페이지에서 뺀다 (TASK-KL-089).
+  // 그 위젯은 앱 첫 화면에만 있고 상세 페이지가 없다. 뽑기 계열 도구(로또·사다리·추첨)도
+  // 이 스타일을 쓰지 않는 것을 다섯 페이지에서 확인했다 — 해당 요소가 하나도 안 나온다.
+  const RANDOMGEN_CSS = '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">';
+  if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
+  html = html.replace(RANDOMGEN_CSS, '');
+
   // 암호 계산 라이브러리는 그것을 쓰는 도구의 페이지에만 싣는다 (TASK-KL-089).
   // 앱 첫 화면은 어느 도구로든 갈 수 있어 미리 받아 두지만, 상세 페이지는 갈 곳이 정해져 있다.
   if (!CRYPTO_TOOLS.has(id)) {
