@@ -121,32 +121,32 @@
 .life-feature-row {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 14px; border-radius: 8px;
-  background: var(--card-bg, rgba(255,255,255,0.04));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
 }
 .life-feature-info { flex: 1; min-width: 0; }
 .life-feature-label { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .life-feature-badge {
   font-size: 0.65rem; font-weight: 500; padding: 1px 5px; border-radius: 3px;
-  background: var(--badge-bg, rgba(255,255,255,0.1)); color: var(--text-muted, #aaa);
+  background: var(--bg-tertiary); color: var(--text-secondary);
   letter-spacing: 0.03em;
 }
-.life-feature-sub { font-size: 0.75rem; color: var(--text-muted, #aaa); margin-top: 2px; }
+.life-feature-sub { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 2px; }
 .life-feature-hotkey {
   display: inline-block; font-size: 0.7rem; margin-top: 4px;
   padding: 1px 6px; border-radius: 4px;
-  background: var(--kbd-bg, rgba(255,255,255,0.07));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-hover);
   font-family: monospace; letter-spacing: 0.02em;
 }
 .life-feature-spacer { flex: 1; }
 .life-feature-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.life-feature-status { font-size: 0.72rem; color: var(--text-muted, #aaa); white-space: nowrap; }
+.life-feature-status { font-size: 0.72rem; color: var(--text-tertiary); white-space: nowrap; }
 .life-toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; }
 .life-toggle-switch input { opacity: 0; width: 0; height: 0; }
 .life-toggle-slider {
   position: absolute; inset: 0; border-radius: 11px;
-  background: var(--toggle-off, rgba(255,255,255,0.15));
+  background: var(--bg-active);
   transition: background 0.2s;
 }
 .life-toggle-slider::before {

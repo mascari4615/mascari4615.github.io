@@ -157,7 +157,7 @@ export class GraphCanvas {
     this.minimapSvg.style.cssText = `
       position:absolute; bottom:16px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
-      background:rgba(10,12,16,0.85); border:1px solid rgba(255,255,255,0.08);
+      background:var(--glass-strong); border:1px solid var(--border);
       border-radius:4px; pointer-events:all; cursor:pointer;
     `;
     this.container.appendChild(this.minimapSvg);
@@ -412,7 +412,7 @@ export class GraphCanvas {
       for (const a of list) {
         const items = this.ephemeralNodes.filter((n) => n.anchorId === a.id);
         const specY = a.y;
-        const effY = nextY ?? specY;
+        const effY: number = nextY ?? specY;
         const offsetY = effY - specY;
         let h = a.h;
         if (items.length > 0) {
