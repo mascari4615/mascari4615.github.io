@@ -534,6 +534,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiolevel']
   },
   {
+    id: 'pdfcrop',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 여백 자르기',
+    category: 'tool',
+    desc: '스캔본·논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다',
+    layout: 'wide',
+    icon: '<path d="M7 3v14h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 7h14v14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdfcrop']
+  },
+  {
     id: 'pdfpagenum',
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -574,7 +585,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/pdfpagenum', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
+    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcrop', 'tools/pdfpagenum', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
   },
   {
     id: 'sound',
