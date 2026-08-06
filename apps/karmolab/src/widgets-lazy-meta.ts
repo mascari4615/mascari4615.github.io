@@ -360,6 +360,39 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/ziptool']
   },
   {
+    id: 'pdfwatermark',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 워터마크',
+    category: 'tool',
+    desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/pdfwatermark']
+  },
+  {
+    id: 'audiojoin',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '오디오 이어붙이기',
+    category: 'tool',
+    desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/audiojoin']
+  },
+  {
+    id: 'imgbatch',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '이미지 일괄 변환',
+    category: 'tool',
+    desc: '사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="6" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 14l3.5-3.5 2.5 2.5 3-3 4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M7 3h11a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/imgbatch']
+  },
+  {
     id: 'pdftool',
     hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -388,7 +421,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/filetool']
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filetool']
   },
   {
     id: 'charcount',

@@ -10,7 +10,10 @@
     ['audiocut', '오디오'],
     ['pdf2img', 'PDF → 이미지'],
     ['img2pdf', '이미지 → PDF'],
-    ['ziptool', 'ZIP']
+    ['ziptool', 'ZIP'],
+    ['pdfwatermark', 'PDF 워터마크'],
+    ['audiojoin', '오디오 잇기'],
+    ['imgbatch', '이미지 일괄']
   ];
 
   Toolbox.register({
