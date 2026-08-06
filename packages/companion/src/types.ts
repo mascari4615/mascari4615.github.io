@@ -50,6 +50,8 @@ export interface Sense {
 export interface Voice {
   readonly name: string;
   speak(utterance: Utterance): void | Promise<void>;
+  /** 아직 다 만들어지지 않은 말 조각. 구현하면 말이 흐르듯 나온다. */
+  partial?(chunk: string, soFar: string, channel: string): void | Promise<void>;
   stop?(): void | Promise<void>;
 }
 
@@ -88,6 +90,13 @@ export interface ThinkInput {
 export interface Brain {
   readonly name: string;
   think(input: ThinkInput): Promise<string | null>;
+  /**
+   * 말이 만들어지는 대로 조각을 흘려보낸다. 구현하면 코어가 이쪽을 쓴다.
+   *
+   * 다 만들어진 뒤에 한꺼번에 내놓으면 몇 초 동안 아무 일도 안 일어나는 것처럼 보인다 —
+   * 살아있는 느낌을 가장 많이 깎아먹는 게 그 침묵이다.
+   */
+  thinkStream?(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null>;
 }
 
 /**

@@ -23,10 +23,11 @@ import {
   assistantBrain,
   claudeCliBrain,
   clockBody,
-  cooldownAttention,
   echoBrain,
   edgeSpeech,
+  tactfulAttention,
   loadCharacter,
+  openPinnedWindow,
   screenSense,
   webBody,
 } from '../dist/index.js';
@@ -64,9 +65,12 @@ const memory =
         notePath,
         log: (m) => console.log(`[기억] ${m}`),
       });
+// 상주 창으로 띄울 때는 여기서 브라우저를 열지 않는다 — 아래에서 창째로 띄운다.
+const desktop = process.env.COMPANION_DESKTOP !== '0';
+
 const web = webBody({
   port,
-  open: true,
+  open: desktop === false,
   log: (m) => console.log(m),
   // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
   history: () => memory.recent(80),
@@ -96,7 +100,12 @@ const companion = new Companion({
   brain,
   memory,
   character,
-  attention: cooldownAttention({ cooldownMs, bypassChannels: ['web'] }),
+  attention: tactfulAttention({
+    bypassChannels: ['web'],
+    cooldownMs,
+    stuckAfterMs: Number(process.env.COMPANION_STUCK_MS ?? '25000'),
+    awayAfterMs: Number(process.env.COMPANION_AWAY_MS ?? '900000'),
+  }),
   onCycle: (report) => {
     if (report.error) console.error(`[에러] ${report.error.message}`);
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
@@ -105,6 +114,12 @@ const companion = new Companion({
 });
 
 await companion.start();
+if (desktop) {
+  openPinnedWindow(`http://localhost:${port}`, {
+    width: Number(process.env.COMPANION_WIDTH ?? '420'),
+    height: Number(process.env.COMPANION_HEIGHT ?? '640'),
+  }).then((how) => console.log(`[창] ${how}`));
+}
 console.log(
   `두뇌=${brain.name} · 인격=${character?.name ?? '없음'} · ` +
     `화면보기=${screenMs > 0 ? `${screenMs / 1000}초마다` : '끔'} · ` +

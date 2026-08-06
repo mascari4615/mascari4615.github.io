@@ -114,9 +114,20 @@ export class Companion {
       return;
     }
 
+    const target = body ?? this.bodyByChannel.get(sensation.channel) ?? null;
+
     let text: string | null;
     try {
-      text = await brain.think(input);
+      // 흘려보낼 수 있는 두뇌 + 받아줄 수 있는 입이 둘 다 있을 때만 흐르게 한다.
+      if (brain.thinkStream && target?.voice.partial) {
+        let soFar = '';
+        text = await brain.thinkStream(input, (chunk) => {
+          soFar += chunk;
+          void target.voice.partial?.(chunk, soFar, sensation.channel);
+        });
+      } else {
+        text = await brain.think(input);
+      }
     } catch (e) {
       onCycle?.({ sensation, decision, utterance: null, error: asError(e) });
       return;
@@ -131,7 +142,6 @@ export class Companion {
     const utterance: Utterance = { text: text.trim(), channel: sensation.channel, at: now() };
     await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at });
 
-    const target = body ?? this.bodyByChannel.get(sensation.channel) ?? null;
     try {
       await target?.voice.speak(utterance);
     } catch (e) {
