@@ -236,7 +236,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/text']
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/text']
   },
   {
     id: 'lorem',
@@ -248,6 +248,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 6h16M4 10h16M4 14h12M4 18h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/lorem']
+  },
+  {
+    id: 'replace',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '찾아 바꾸기',
+    category: 'tool',
+    desc: '텍스트에서 찾아 바꿉니다. 바꾸기 전에 걸린 곳을 미리 보여줍니다',
+    layout: 'wide',
+    icon: '<circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14.5 14.5 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/replace']
   },
   {
     id: 'charcount',
@@ -340,7 +351,29 @@ window.KARMOLAB_LAZY_META = [
     desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/time']
+    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/timecalc', 'tools/time']
+  },
+  {
+    id: 'birth',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '생일 정보',
+    category: 'tool',
+    desc: '생년월일로 만 나이·띠·별자리·태어난 요일·다음 생일까지 남은 날을 한 번에',
+    layout: 'form',
+    icon: '<path d="M4 20h16v-7H4zM6 13V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 7V5M12 7V4M15 7V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/birth']
+  },
+  {
+    id: 'timecalc',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '시간 더하기·빼기',
+    category: 'tool',
+    desc: '시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/timecalc']
   },
   {
     id: 'datecalc',
@@ -415,7 +448,18 @@ window.KARMOLAB_LAZY_META = [
     desc: 'HEX·RGB·HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.45"/><circle cx="8" cy="9" r="1.1" fill="currentColor"/>',
-    lazyScriptPaths: ['ref/reftable', 'tools/colorconv', 'tools/palette', 'ref/colorname', 'tools/color']
+    lazyScriptPaths: ['ref/reftable', 'tools/colorconv', 'tools/palette', 'ref/colorname', 'tools/contrast', 'tools/color']
+  },
+  {
+    id: 'contrast',
+    hidden: true, // 「color」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '색 대비 검사',
+    category: 'tool',
+    desc: '글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/contrast']
   },
   {
     id: 'colorconv',
@@ -491,7 +535,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
     layout: 'form',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/calc']
+    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/calc']
   },
   {
     id: 'numword',
@@ -503,6 +547,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 8h6M7 5v11M14 5h4a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/numword']
+  },
+  {
+    id: 'aspect',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '비율 계산기',
+    category: 'tool',
+    desc: '가로·세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함',
+    layout: 'form',
+    icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/aspect']
   },
   {
     id: 'percent',

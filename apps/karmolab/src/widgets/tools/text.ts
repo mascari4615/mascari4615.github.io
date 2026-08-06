@@ -12,7 +12,8 @@
     ['textdiff', '비교'],
     ['caseconv', '표기법'],
     ['hangulkey', '한영타'],
-    ['lorem', '더미 텍스트']
+    ['lorem', '더미 텍스트'],
+    ['replace', '찾아 바꾸기']
   ];
 
   Toolbox.register({
