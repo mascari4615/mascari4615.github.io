@@ -9,6 +9,8 @@
  */
 import { seekTo, pickRecordType } from './shared/video';
 
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
@@ -223,6 +225,8 @@ import { seekTo, pickRecordType } from './shared/video';
             const f = ev.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { load(files[0]); }, (f) => f.type.startsWith('video/'));
 
           [startEl, endEl].forEach((el) => el.addEventListener('input', refresh));
           startEl.addEventListener('input', () => {

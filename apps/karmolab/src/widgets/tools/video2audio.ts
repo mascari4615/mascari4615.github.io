@@ -8,6 +8,7 @@
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   Toolbox.register({
@@ -97,6 +98,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             const f = e.dataTransfer?.files?.[0];
             if (f) void decode(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void decode(files[0]); }, (f) => f.type.startsWith('video/'));
 
           $<HTMLButtonElement>('#vaRun').onclick = () => {
             if (!buffer || !file) {

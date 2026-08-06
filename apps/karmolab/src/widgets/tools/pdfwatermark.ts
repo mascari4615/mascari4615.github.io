@@ -6,6 +6,8 @@
  *
  * 한글은 PDF 기본 글꼴에 없어 그대로 그리면 오류가 난다. 글자를 그림으로 그려 얹는 방식을 쓴다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface PDFLib {
     PDFDocument: {
@@ -191,6 +193,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) pick(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { pick(files[0]); }, (f) => f.type === 'application/pdf');
           $<HTMLInputElement>('#pwOpacity').addEventListener('input', (e) => {
             $<HTMLElement>('#pwOpacityVal').textContent = (e.target as HTMLInputElement).value + '%';
           });

@@ -10,6 +10,7 @@
  * 뽑은 장은 눌러 하나씩 받거나 ZIP 으로 한 번에 받는다.
  */
 import { fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 import { seekTo } from './shared/video';
 
@@ -197,6 +198,8 @@ import { seekTo } from './shared/video';
             const f = e.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { load(files[0]); }, (f) => f.type.startsWith('video/'));
           everyEl.addEventListener('input', () => {
             $<HTMLElement>('#viEveryVal').textContent = (parseInt(everyEl.value, 10) / 10).toFixed(1) + '초';
           });

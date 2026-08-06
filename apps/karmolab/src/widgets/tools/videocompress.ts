@@ -11,6 +11,7 @@
  * 이미 잘 눌린 영상은 오히려 커질 수 있는데, 그때 줄었다고 우기지 않는다.
  */
 import { fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 import { pickRecordType } from './shared/video';
 
 (function (): void {
@@ -273,6 +274,8 @@ import { pickRecordType } from './shared/video';
             const f = e.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type.startsWith('video/'));
           [scaleEl, rateEl].forEach((el) => el.addEventListener('input', refresh));
 
           runBtn.onclick = () => {
