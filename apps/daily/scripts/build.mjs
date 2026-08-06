@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
 const dist = join(app, 'dist');
-const SITE = 'https://mascari4615.github.io';
+// 정본 주소는 커스텀 도메인이다 — github.io 는 여기로 301 한다. 검색 주소가 갈리면 유입이 쪼개진다.
+const SITE = 'https://blog.mascari4615.com';
 const BASE = '/daily';
 
 // 캐시가 옛 파일을 붙들지 못하게 주소에 도장을 찍는다 (블로그 루트 서비스워커가 cache-first 다).
