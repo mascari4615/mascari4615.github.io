@@ -976,9 +976,19 @@ body:has(#page-home.active) .mdd-container .mdd-char {
     margin-bottom: var(--space-lg);
     padding: 0 var(--space-xs);
     position: relative;
+    /* 여러 도구를 탭으로 묶으면서 탭이 8개까지 늘었다. 좁은 화면에서 줄바꿈되면 글자가
+       세로로 쪼개지고, 그냥 두면 뒤쪽 탭이 잘려 손이 닿지 않는다 → 옆으로 밀어서 본다. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
+.tab-row::-webkit-scrollbar { display: none; }
+.tab-row--sidebar { overflow-x: visible; }
 .tab-row::after { display: none; }
 .tab-btn {
+    flex: none;
+    white-space: nowrap;
     padding: 10px 18px; font-size: var(--font-size-xs); font-weight: 700;
     color: var(--text-tertiary); background: transparent; border: none;
     border-bottom: 2px solid transparent; cursor: pointer;
