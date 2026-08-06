@@ -451,7 +451,7 @@ window.KARMOLAB_LAZY_META = [
     id: 'filetool',
     title: '파일 도구',
     category: 'tool',
-    desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
+    desc: 'PDF·소리·이미지 파일을 다룹니다. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/voicerec', 'tools/pdfcompress', 'tools/audiolevel', 'tools/filetool']
