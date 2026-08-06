@@ -36,7 +36,12 @@ script_includes:
       {% endif %}
 
       {% if page.image %}
-        {% capture src %}src="{{ page.image.path | default: page.image }}"{% endcapture %}
+        {% assign img_src = page.image.path | default: page.image %}
+        {%- comment -%}
+          사진은 저장소가 아니라 사진 전용 주소에서 나온다 — media-url 을 거쳐야 그 주소가 붙는다.
+          여기를 그냥 두면 미리보기 그림만 옛 경로를 가리켜 조용히 깨진다.
+        {%- endcomment -%}
+        {% capture src %}src="{% include media-url.html src=img_src subpath=page.media_subpath %}"{% endcapture %}
         {% capture class %}class="preview-img{% if page.image.no_bg %}{{ ' no-bg' }}{% endif %}"{% endcapture %}
         {% capture alt %}alt="{{ page.image.alt | xml_escape | default: "Preview Image" }}"{% endcapture %}
 
