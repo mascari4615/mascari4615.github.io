@@ -1,0 +1,119 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  answerOf,
+  compareField,
+  compareItem,
+  dailyIndex,
+  findItem,
+  isWin,
+  kstDayKey,
+  kstDayNumber,
+  puzzleNumber,
+  shareRow,
+  shareText,
+  suggest,
+} from './engine.mjs';
+
+const topic = {
+  id: 'test',
+  title: '시험',
+  fields: [
+    { key: 'gen', label: '세대', kind: 'number' },
+    { key: 'types', label: '타입', kind: 'set' },
+    { key: 'color', label: '색', kind: 'category' },
+    { key: 'weight', label: '무게', kind: 'number', nearRatio: 0.2 },
+  ],
+  items: [
+    { name: '가', gen: 1, types: ['풀', '독'], color: '초록', weight: 10 },
+    { name: '나', gen: 2, types: ['불꽃'], color: '빨강', weight: 100 },
+    { name: '다', gen: 3, types: ['독', '물'], color: '파랑', weight: 11 },
+  ],
+};
+
+test('하루 경계는 한국 시각이다', () => {
+  // UTC 로 8월 6일 오후 3시 = KST 8월 7일 자정 → 이미 다음 문제.
+  assert.equal(kstDayKey(new Date('2026-08-06T14:59:00Z')), '2026-08-06');
+  assert.equal(kstDayKey(new Date('2026-08-06T15:00:00Z')), '2026-08-07');
+  assert.equal(
+    kstDayNumber(new Date('2026-08-06T15:00:00Z')) - kstDayNumber(new Date('2026-08-06T14:59:00Z')),
+    1,
+  );
+});
+
+test('문제 번호는 1부터 하루에 하나씩 오른다', () => {
+  assert.equal(puzzleNumber(new Date('2026-01-01T00:00:00+09:00')), 1);
+  assert.equal(puzzleNumber(new Date('2026-01-10T23:59:00+09:00')), 10);
+});
+
+test('같은 날은 늘 같은 정답이다', () => {
+  const a = answerOf(topic, new Date('2026-08-07T01:00:00+09:00'));
+  const b = answerOf(topic, new Date('2026-08-07T23:00:00+09:00'));
+  assert.equal(a.name, b.name);
+});
+
+test('한 주기 안에서는 정답이 겹치지 않는다', () => {
+  // 이게 순열을 쓰는 이유다. 해시로 찍었으면 여기서 중복이 난다.
+  const n = 233;
+  const seen = new Set();
+  for (let d = 0; d < n; d += 1) seen.add(dailyIndex('lol', d, n));
+  assert.equal(seen.size, n);
+});
+
+test('주기가 넘어가면 순서가 새로 섞인다', () => {
+  const n = 3;
+  const first = [0, 1, 2].map((d) => dailyIndex('test', d, n));
+  const second = [3, 4, 5].map((d) => dailyIndex('test', d, n));
+  assert.notDeepEqual(first, second);
+});
+
+test('숫자는 위·아래를 알려주고, 가까우면 노랑이다', () => {
+  const f = topic.fields[0];
+  assert.deepEqual(compareField(f, 1, 1), { state: 'exact', dir: null });
+  assert.deepEqual(compareField(f, 1, 3), { state: 'wrong', dir: 'up' });
+  assert.deepEqual(compareField(f, 5, 3), { state: 'wrong', dir: 'down' });
+  const w = topic.fields[3];
+  assert.deepEqual(compareField(w, 90, 100), { state: 'near', dir: 'up' }); // 20% 안
+  assert.deepEqual(compareField(w, 10, 100), { state: 'wrong', dir: 'up' });
+});
+
+test('여러 값 속성은 하나만 겹쳐도 노랑이다', () => {
+  const f = topic.fields[1];
+  assert.equal(compareField(f, ['풀', '독'], ['독', '풀']).state, 'exact'); // 순서 무관
+  assert.equal(compareField(f, ['풀'], ['풀', '독']).state, 'near'); // 개수 다르면 부분일치
+  assert.equal(compareField(f, ['불꽃'], ['풀', '독']).state, 'wrong');
+});
+
+test('한 줄 비교와 승리 판정', () => {
+  const answer = topic.items[0];
+  assert.equal(isWin(compareItem(topic, answer, answer)), true);
+  assert.equal(isWin(compareItem(topic, topic.items[1], answer)), false);
+});
+
+test('공유 글에 정답 이름이 안 들어간다', () => {
+  const answer = topic.items[0];
+  const rows = [compareItem(topic, topic.items[1], answer), compareItem(topic, answer, answer)];
+  const text = shareText({ title: '시험', puzzleNo: 7, rows, won: true, maxGuesses: 8, url: 'https://x' });
+  assert.match(text, /시험 #7 2\/8/);
+  assert.equal(shareRow(rows[1]), '🟩🟩🟩🟩');
+  for (const item of topic.items) assert.ok(!text.includes(item.name), `${item.name} 가 샜다`);
+});
+
+test('못 맞히면 X 로 남는다', () => {
+  const text = shareText({ title: '시험', puzzleNo: 1, rows: [], won: false, maxGuesses: 8 });
+  assert.match(text, /X\/8/);
+});
+
+test('자동완성은 앞글자를 먼저 주고 이미 낸 답을 뺀다', () => {
+  const items = [{ name: '리자몽' }, { name: '몽몽이' }, { name: '리자드' }];
+  assert.deepEqual(suggest(items, '리').map((i) => i.name), ['리자몽', '리자드']);
+  assert.deepEqual(suggest(items, '몽').map((i) => i.name), ['몽몽이', '리자몽']);
+  assert.deepEqual(suggest(items, '리', { exclude: ['리자몽'] }).map((i) => i.name), ['리자드']);
+  assert.deepEqual(suggest(items, ''), []);
+});
+
+test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다', () => {
+  const items = [{ name: 'Aatrox' }];
+  assert.equal(findItem(items, ' aatrox ')?.name, 'Aatrox');
+  assert.equal(findItem(items, '없음'), null);
+});

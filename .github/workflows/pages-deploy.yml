@@ -11,6 +11,7 @@ on:
       - apps/blog/**
       - apps/karmolab/**
       - apps/karmolab-react-src/**
+      - apps/daily/**
       - packages/karmolab-ai/**
       - .github/workflows/pages-deploy.yml
 
@@ -118,6 +119,16 @@ jobs:
           # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
           mkdir -p apps/blog/karmolab/bot
           cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
+
+      # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
+      # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
+      - name: Build daily guess game
+        working-directory: apps/daily
+        run: npm run build
+      - name: Prepare daily Jekyll pages
+        run: |
+          mkdir -p apps/blog/daily
+          cp -r apps/daily/dist/. apps/blog/daily/
 
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
