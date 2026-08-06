@@ -1,7 +1,9 @@
 /**
  * 정적 페이지 생성 (TASK-KAR-202) — 번들러 없음, 의존성 없음.
- * data/*.json 을 훑어 주제마다 페이지 하나 + 허브 하나를 만든다.
+ * data/*.json 을 훑어 **주제 × 모드**마다 페이지 하나 + 허브 하나를 만든다.
  * **주제를 늘릴 때 이 파일은 안 고친다** — 표를 넣으면 페이지가 생긴다.
+ *
+ * 모드는 데이터가 아니라 *행동*이라 여기 산다. 그림이 다 있는 주제엔 실루엣판이 자동으로 붙는다.
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,7 +28,36 @@ const topics = readdirSync(join(app, 'data'))
 
 if (!topics.length) throw new Error('data/ 에 주제 표가 하나도 없다');
 
-function head({ title, desc, url, extra = '' }) {
+/** 한 주제가 낼 수 있는 판들. 실루엣은 그림이 있어야 성립한다. */
+function pagesOf(topic) {
+  const list = [
+    {
+      mode: 'classic',
+      path: topic.id,
+      depth: 1,
+      label: `오늘의 ${topic.title}`,
+      short: '속성',
+      lede: `${topic.subtitle ?? ''} 속성이 맞으면 초록, 비슷하면 노랑. 숫자는 ▲▼ 로 방향을 알려준다.`,
+      desc: `${topic.title} ${topic.items.length}개 중 오늘의 하나를 ${topic.maxGuesses ?? 8}번 안에 맞혀 보세요. 매일 새 문제.`,
+    },
+  ];
+  if (topic.items.every((i) => i.img)) {
+    list.push({
+      mode: 'silhouette',
+      path: `${topic.id}/silhouette`,
+      depth: 2,
+      label: `${topic.title} 실루엣`,
+      short: '실루엣',
+      lede: '까맣게 칠한 그림 하나. 틀릴 때마다 조금씩 밝아진다.',
+      desc: `까맣게 칠한 ${topic.title} 그림을 6번 안에 맞혀 보세요. 틀릴수록 밝아집니다. 매일 새 문제.`,
+    });
+  }
+  return list;
+}
+
+const all = topics.flatMap((topic) => pagesOf(topic).map((page) => ({ topic, ...page })));
+
+function head({ title, desc, url, up }) {
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -40,28 +71,48 @@ function head({ title, desc, url, extra = '' }) {
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(url)}">
 <meta name="twitter:card" content="summary">
-<link rel="stylesheet" href="${extra}style.css?v=${stamp}">
+<link rel="stylesheet" href="${up}style.css?v=${stamp}">
 </head>
 <body>`;
 }
 
 const foot = (hub = false) => `<div class="foot">하루에 하나. 자정(KST)에 새 문제.<br>
-${hub ? '' : `<a href="${BASE}/">다른 주제</a> · `}<a href="/karmolab/">KarmoLab</a></div>`;
+${hub ? '' : `<a href="${BASE}/">다른 판 보기</a> · `}<a href="/karmolab/">KarmoLab</a></div>`;
 
-// ── 주제별 페이지 ──
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(join(dist, 'data'), { recursive: true });
 
-for (const topic of topics) {
-  const url = `${SITE}${BASE}/${topic.id}/`;
-  const desc = `${topic.title} ${topic.items.length}개 중 오늘의 하나를 ${topic.maxGuesses ?? 8}번 안에 맞혀 보세요. 매일 새 문제.`;
-  const html = `${head({ title: `오늘의 ${topic.title} 맞히기`, desc, url, extra: '../' })}
-<div class="wrap" id="app" data-topic="${esc(topic.id)}" data-stamp="${stamp}">
+for (const page of all) {
+  const { topic } = page;
+  const up = '../'.repeat(page.depth);
+  const url = `${SITE}${BASE}/${page.path}/`;
+
+  // 끝낸 사람을 그냥 보내지 않는다 — 오늘 아직 안 푼 판을 건넨다.
+  // 같은 계열 게임끼리 서로 보내는 것이 이런 물건의 가장 큰 유입 경로다.
+  const others = all
+    .filter((o) => o.path !== page.path)
+    .map((o) => ({ href: `${BASE}/${o.path}/`, label: o.label, emoji: o.topic.emoji, topic: o.topic.id, mode: o.mode }));
+
+  const tabs = pagesOf(topic)
+    .map((m) =>
+      m.mode === page.mode
+        ? `<span class="tab on">${esc(m.short)}</span>`
+        : `<a class="tab" href="${BASE}/${m.path}/">${esc(m.short)}</a>`,
+    )
+    .join('');
+
+  const shot = page.mode === 'silhouette' ? '<div class="shot"><img alt="오늘의 실루엣"></div>' : '';
+
+  const html = `${head({ title: `${page.label} 맞히기`, desc: page.desc, url, up })}
+<div class="wrap" id="app" data-topic="${esc(topic.id)}" data-mode="${page.mode}" data-stamp="${stamp}"
+     data-data="${up}data/${esc(topic.id)}.json" data-others="${esc(JSON.stringify(others))}">
   <div class="top">
-    <h1>${esc(topic.emoji ?? '')} 오늘의 ${esc(topic.title)}</h1>
-    <div><span class="no"></span> <a class="home" href="${BASE}/">주제</a></div>
+    <h1>${esc(topic.emoji ?? '')} ${esc(page.label)}</h1>
+    <div><span class="no"></span> <a class="home" href="${BASE}/">전체</a></div>
   </div>
-  <p class="lede">${esc(topic.subtitle ?? '')} 속성이 맞으면 초록, 비슷하면 노랑. 숫자는 ▲▼ 로 방향을 알려준다.</p>
+  <div class="tabs">${tabs}<span class="streak"></span></div>
+  <p class="lede">${esc(page.lede)}</p>
+  ${shot}
   <div class="guessbar">
     <input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 입력…">
     <div class="sug" role="listbox"></div>
@@ -71,31 +122,33 @@ for (const topic of topics) {
   <div class="done" hidden></div>
   ${foot()}
 </div>
-<script type="module" src="../app.mjs?v=${stamp}"></script>
+<script type="module" src="${up}app.mjs?v=${stamp}"></script>
 </body></html>
 `;
-  mkdirSync(join(dist, topic.id), { recursive: true });
-  writeFileSync(join(dist, topic.id, 'index.html'), html);
-  writeFileSync(join(dist, 'data', `${topic.id}.json`), JSON.stringify(topic));
+  mkdirSync(join(dist, page.path), { recursive: true });
+  writeFileSync(join(dist, page.path, 'index.html'), html);
 }
+
+for (const topic of topics) writeFileSync(join(dist, 'data', `${topic.id}.json`), JSON.stringify(topic));
 
 // ── 허브 ──
 const hub = `${head({
   title: '오늘의 하나 맞히기',
-  desc: `매일 새 문제. ${topics.map((t) => t.title).join(' · ')} — 속성 힌트로 좁혀 맞히고 결과를 자랑하세요.`,
+  desc: `매일 새 문제 ${all.length}판. ${topics.map((t) => t.title).join(' · ')} — 속성 힌트와 실루엣으로 맞히고 결과를 자랑하세요.`,
   url: `${SITE}${BASE}/`,
+  up: '',
 })}
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
-  <p class="lede">주제를 고르면 오늘의 문제가 하나. 속성 힌트로 좁혀 나간다. 매일 자정(KST)에 바뀐다.</p>
+  <p class="lede">판을 고르면 오늘의 문제가 하나. 매일 자정(KST)에 바뀐다.</p>
   <div class="cards">
-${topics
+${all
   .map(
-    (t) => `    <a class="card" href="${BASE}/${t.id}/">
-      <div class="em">${esc(t.emoji ?? '🎯')}</div>
-      <h2>오늘의 ${esc(t.title)}</h2>
-      <p>${esc(t.subtitle ?? '')}</p>
-      <div class="cnt">${t.items.length.toLocaleString('ko-KR')}개 중 하나 · ${t.maxGuesses ?? 8}번 안에</div>
+    (p) => `    <a class="card" href="${BASE}/${p.path}/">
+      <div class="em">${esc(p.topic.emoji ?? '🎯')}</div>
+      <h2>${esc(p.label)}</h2>
+      <p>${esc(p.mode === 'silhouette' ? '그림만 보고 맞히기' : p.topic.subtitle ?? '')}</p>
+      <div class="cnt">${p.topic.items.length.toLocaleString('ko-KR')}개 중 하나</div>
     </a>`,
   )
   .join('\n')}
@@ -106,6 +159,16 @@ ${topics
 `;
 writeFileSync(join(dist, 'index.html'), hub);
 
+// 검색 로봇이 판마다 따로 찾아오게 — 주소가 늘면 유입 경로도 늘어난다.
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[`${SITE}${BASE}/`, ...all.map((p) => `${SITE}${BASE}/${p.path}/`)]
+  .map((u) => `  <url><loc>${u}</loc><changefreq>daily</changefreq></url>`)
+  .join('\n')}
+</urlset>
+`;
+writeFileSync(join(dist, 'sitemap.xml'), sitemap);
+
 for (const f of ['engine.mjs', 'app.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
-console.log(`dist/ 생성 — 주제 ${topics.length}개 (${topics.map((t) => t.id).join(', ')}), 도장 ${stamp}`);
+console.log(`dist/ 생성 — 판 ${all.length}개 (${all.map((p) => p.path).join(', ')}), 도장 ${stamp}`);
