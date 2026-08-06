@@ -82,7 +82,7 @@
                     <button class="btn btn-ghost" id="jfSample">샘플</button>
                   </div>
                 </div>
-                <textarea id="jfInput" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
+                <textarea id="jfInput" aria-label="JSON 입력" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
                 <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
                   <button class="btn btn-primary" id="jfFormat">정렬</button>
                   <button class="btn btn-secondary" id="jfMinify">압축</button>

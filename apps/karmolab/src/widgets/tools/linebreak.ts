@@ -70,7 +70,7 @@
                 </div>
                 <div>
                   <label class="field-label">결과</label>
-                  <textarea id="lbOut" rows="10" spellcheck="false" readonly></textarea>
+                  <textarea id="lbOut" aria-label="정리된 결과" rows="10" spellcheck="false" readonly></textarea>
                 </div>
               </div>
             </div>
@@ -85,7 +85,7 @@
 
             <div class="field-group" id="lbWidthWrap" style="display:none;">
               <div class="tool-sublabel">한 줄 길이 <span id="lbWidthVal" class="range-value">60자</span></div>
-              <input type="range" id="lbWidth" min="20" max="120" value="60">
+              <input type="range" id="lbWidth" aria-label="한 줄 길이" min="20" max="120" value="60">
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
