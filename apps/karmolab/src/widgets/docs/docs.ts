@@ -584,6 +584,7 @@
     { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: 'discord-bots 워크스페이스 README (GitHub).' },
     { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: '데스크톱 앱 폴더 README (GitHub).' },
     { id: 'docs-project-commands', label: '프로젝트 명령', source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: '블로그·KarmoLab·앱 전체 명령을 모아 뒀어요. 복사해서 쓰기 좋게!' },
+    { id: 'docs-laptop', label: '노트북', source: { kind: 'local', path: 'laptop.md' }, mddPreset: 'tool_run', mddMsg: '집에서 도는 노트북으로 가는 문 — 파일 공유·빌드 이야기예요.' },
     { id: 'docs-local-dev', label: '데스크톱·로컬', source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: 'Tauri 앱에서만 쓰는 로컬 데브 러너 안내예요.' },
     { id: 'docs-servermonitor-deploy-log-design', label: '로컬 · deploy 로그', source: { kind: 'local', path: 'servermonitor-deploy-log-stream.md' }, mddPreset: 'tool_run', mddMsg: '서버 모니터 deploy·npm i 로그 스트림 — 이벤트·커맨드는 본문 참고.' },
   ];
