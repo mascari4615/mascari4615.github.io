@@ -484,7 +484,9 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
   app.get('/w/:key/dev', (req: Request, res: Response) => {
     const recorder = getServerStatsRecorder();
     const key = String(req.params.key ?? '');
-    const guildId = recorder.guildIdForShareKey(key);
+    // 개발 콘솔은 *개발 키* 로만 열린다. 카드 공유 키로는 못 연다 —
+    // 카드는 남에게 주라고 만든 주소라, 같은 열쇠면 공유하는 순간 속까지 열린다.
+    const guildId = recorder.guildIdForDevKey(key);
     if (!guildId) {
       res.status(404).type('text/html; charset=utf-8').send('<h1>없는 결산이에요</h1>');
       return;
@@ -533,7 +535,7 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
   // 저장 주기를 기다리지 않고 즉시 파일로 떨군다 (읽기 외 유일한 동작).
   app.post('/w/:key/dev/flush', (req: Request, res: Response) => {
     const recorder = getServerStatsRecorder();
-    const guildId = recorder.guildIdForShareKey(String(req.params.key ?? ''));
+    const guildId = recorder.guildIdForDevKey(String(req.params.key ?? ''));
     if (!guildId) {
       res.status(404).json({ error: 'unknown share key' });
       return;

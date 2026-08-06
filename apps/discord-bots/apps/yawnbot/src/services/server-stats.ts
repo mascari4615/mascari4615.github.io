@@ -55,6 +55,13 @@ export interface ServerStatsState {
    */
   shares: Record<string, string>;
   /**
+   * 서버ID → 개발 콘솔 키. 공유 키와 **다른** 값이다.
+   * 카드 주소는 자랑하려고 남에게 주는 것이고, 콘솔은 서버 안을 들여다보는 자리다.
+   * 하나로 묶으면 카드를 공유하는 순간 콘솔까지 열린다 — 그래서 열쇠를 둘로 나눈다.
+   * 이 키는 디스코드에서 서버 관리 권한이 있는 사람만, 나만 보이는 답으로 받아 간다.
+   */
+  devKeys: Record<string, string>;
+  /**
    * 서버ID → 주간 자동 게시 설정. 켠 서버만 들어 있다 (기본 = 꺼짐).
    * 명령을 쳐야만 나오는 결산은 습관이 안 된다 — 월요일 아침에 먼저 와야 한다.
    */
@@ -106,7 +113,24 @@ export function recentDayKeys(now: Date, days: number): string[] {
 }
 
 export function emptyState(): ServerStatsState {
-  return { version: 1, guilds: {}, shares: {}, weekly: {} };
+  return { version: 1, guilds: {}, shares: {}, weekly: {}, devKeys: {} };
+}
+
+/** 개발 콘솔 키 — 없으면 만든다. 공유 키와 절대 같은 값이 되지 않는다(따로 뽑는다). */
+export function getOrCreateDevKey(state: ServerStatsState, guildId: string): string {
+  const existing = state.devKeys[guildId];
+  if (existing) return existing;
+  const key = randomBytes(16).toString('base64url');
+  state.devKeys[guildId] = key;
+  return key;
+}
+
+/** 개발 콘솔 키 → 서버 ID. 공유 키를 넣어도 여기선 안 열린다. */
+export function guildIdForDevKey(state: ServerStatsState, key: string): string | null {
+  for (const [guildId, k] of Object.entries(state.devKeys)) {
+    if (k === key) return guildId;
+  }
+  return null;
 }
 
 /** 월요일(KST) 아침 게시 기준. 시각은 「이후 아무 때나」 — 봇이 꺼져 있었어도 켜지면 따라잡는다. */
@@ -201,7 +225,13 @@ export function normalizeState(parsed: Partial<ServerStatsState> | null | undefi
       }
     }
   }
-  return { version: 1, guilds, shares, weekly };
+  const devKeys: Record<string, string> = {};
+  if (parsed?.devKeys && typeof parsed.devKeys === 'object') {
+    for (const [guildId, key] of Object.entries(parsed.devKeys)) {
+      if (typeof key === 'string' && key) devKeys[guildId] = key;
+    }
+  }
+  return { version: 1, guilds, shares, weekly, devKeys };
 }
 
 function normalizeDay(day: Partial<DayStat> | undefined): DayStat {
@@ -800,6 +830,23 @@ export class ServerStatsRecorder {
   /** 공유 키로 서버 찾기 — 모르는 키면 null. */
   guildIdForShareKey(key: string): string | null {
     return guildIdForShareKey(this.load(), key);
+  }
+
+  /** 개발 콘솔 키 (없으면 생성 + 저장). 공유 키와 다른 값이다. */
+  devKey(guildId: string): string {
+    const state = this.load();
+    const before = state.devKeys[guildId];
+    const key = getOrCreateDevKey(state, guildId);
+    if (!before) {
+      this.dirty = true;
+      this.flush();
+    }
+    return key;
+  }
+
+  /** 개발 콘솔 키로 서버 찾기 — 공유 키를 넣으면 null. */
+  guildIdForDevKey(key: string): string | null {
+    return guildIdForDevKey(this.load(), key);
   }
 
   /** 주간 자동 게시 켜기/끄기. 켜면 그 채널로 월요일마다 간다. */

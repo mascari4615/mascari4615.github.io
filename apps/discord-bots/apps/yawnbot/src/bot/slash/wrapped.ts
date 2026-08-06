@@ -4,7 +4,7 @@
  * 자랑하려고 스샷을 찍게 만드는 게 목적이라, 숫자 나열이 아니라 **칭호**로 읽히게 짠다.
  * (이미지 카드 렌더는 다음 단계 — 지금은 embed 로 루프부터 검증.)
  */
-import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { EmbedBuilder, MessageFlags, PermissionFlagsBits } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';
 import {
@@ -169,7 +169,18 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
     // 눈으로 파일을 확인할 수 있게 즉시 저장한 뒤 덤프한다 (20초 대기 X).
     recorder.flushNow();
     const text = buildDebugText(recorder.debug(interaction.guildId, days), days);
-    await interaction.reply({ content: '```\n' + text.slice(0, 1900) + '\n```', flags: MessageFlags.Ephemeral });
+
+    // 개발 콘솔 주소는 *서버를 관리하는 사람에게만*, 그것도 나만 보이는 답으로 준다.
+    // 이 주소는 카드 공유 키와 다른 열쇠라, 카드를 남에게 줘도 콘솔은 안 열린다.
+    const canManage = interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild) ?? false;
+    const devUrl = canManage ? devConsoleUrl(recorder.devKey(interaction.guildId), days) : null;
+
+    await interaction.reply({
+      content:
+        '```\n' + text.slice(0, 1700) + '\n```' +
+        (devUrl ? `\n🔧 개발 콘솔 (나만 보임 · 공유 금지): ${devUrl}` : ''),
+      flags: MessageFlags.Ephemeral,
+    });
     return;
   }
 
@@ -189,4 +200,11 @@ export function wrappedUrl(shareKey: string, days: number): string | null {
   const base = (process.env.YAWNBOT_PUBLIC_URL || '').trim().replace(/\/+$/, '');
   if (!base) return null;
   return days === 7 ? `${base}/w/${shareKey}` : `${base}/w/${shareKey}?days=${days}`;
+}
+
+/** 개발 콘솔 주소 — 공유 키가 아니라 *개발 키* 로 만든다. */
+export function devConsoleUrl(devKey: string, days: number): string | null {
+  const base = (process.env.YAWNBOT_PUBLIC_URL || '').trim().replace(/\/+$/, '');
+  if (!base) return null;
+  return `${base}/w/${devKey}/dev?days=${days}`;
 }
