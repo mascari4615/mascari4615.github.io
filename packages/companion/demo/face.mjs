@@ -10,6 +10,9 @@
  *   COMPANION_COOLDOWN_MS=45000    혼잣말 참는 간격
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
 import {
   Companion,
   InMemoryMemory,
@@ -19,8 +22,12 @@ import {
   clockBody,
   cooldownAttention,
   echoBrain,
+  loadCharacter,
+  screenSense,
   webBody,
 } from '../dist/index.js';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const brainName = process.env.COMPANION_BRAIN ?? 'claude';
 const brain =
@@ -28,9 +35,14 @@ const brain =
   : brainName === 'assistant' ? assistantBrain()
   : echoBrain;
 const port = Number(process.env.COMPANION_PORT ?? '4615');
-const clockMs = Number(process.env.COMPANION_CLOCK_MS ?? '60000');
-const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '45000');
+const clockMs = Number(process.env.COMPANION_CLOCK_MS ?? '0');
+const screenMs = Number(process.env.COMPANION_SCREEN_MS ?? '120000');
+const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '90000');
 const memoryFile = process.env.COMPANION_MEMORY_FILE?.trim();
+
+// 인격 = 파일 하나. 비우면(COMPANION_CHARACTER=none) 아무도 아닌 채로 답한다.
+const characterName = process.env.COMPANION_CHARACTER ?? '무명';
+const character = characterName === 'none' ? undefined : loadCharacter(join(root, 'characters', `${characterName}.md`));
 
 const memory = memoryFile ? new JsonlFileMemory(memoryFile) : new InMemoryMemory();
 const web = webBody({
@@ -48,11 +60,20 @@ if (clockMs > 0) {
   const clock = clockBody({ everyMs: clockMs });
   bodies.push({ name: clock.name, sense: clock.sense, voice: web.voice });
 }
+if (screenMs > 0) {
+  // 화면을 보는 눈도 같은 방식으로 붙는다 — 눈은 여기, 입은 웹 창.
+  bodies.push({
+    name: 'screen',
+    sense: screenSense({ everyMs: screenMs, log: (m) => console.log(m) }),
+    voice: web.voice,
+  });
+}
 
 const companion = new Companion({
   bodies,
   brain,
   memory,
+  character,
   attention: cooldownAttention({ cooldownMs, bypassChannels: ['web'] }),
   onCycle: (report) => {
     if (report.error) console.error(`[에러] ${report.error.message}`);
@@ -62,7 +83,11 @@ const companion = new Companion({
 });
 
 await companion.start();
-console.log(`두뇌=${brain.name} · 혼잣말=${clockMs > 0 ? `${clockMs / 1000}초마다` : '끔'} · 끝내려면 Ctrl+C`);
+console.log(
+  `두뇌=${brain.name} · 인격=${character?.name ?? '없음'} · ` +
+    `화면보기=${screenMs > 0 ? `${screenMs / 1000}초마다` : '끔'} · ` +
+    `혼잣말=${clockMs > 0 ? `${clockMs / 1000}초마다` : '끔'} · 끝내려면 Ctrl+C`,
+);
 
 process.on('SIGINT', async () => {
   await companion.stop();

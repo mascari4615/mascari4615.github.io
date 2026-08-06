@@ -161,6 +161,15 @@ if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsc
   console.log('[verify] ! yawnbot build skip — node_modules/tsconfig 부재 (CI deploy-discord-bots 가 정본 게이트)');
 }
 
+// 5.5. packages/companion — build + 단위 (TASK-KAR-201). 동반자 코어는 어떤 앱도
+//      import 하지 않으므로, 관문에 안 걸어두면 깨져도 아무 빌드가 빨개지지 않는다
+//      (= 조용히 죽는다). 자기 node_modules 를 갖는 독립 패키지라 있을 때만 실행.
+if (existsSync('packages/companion/node_modules')) {
+  run('packages/companion build+test', 'packages/companion', 'npm test');
+} else {
+  console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
+}
+
 // 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
 
 console.log('\n[verify] OK — master invariant 통과');

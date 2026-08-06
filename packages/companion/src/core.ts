@@ -2,6 +2,7 @@ import type {
   Attention,
   Body,
   Brain,
+  Character,
   CycleReport,
   Memory,
   Sensation,
@@ -16,6 +17,11 @@ export interface CompanionOptions {
   attention: Attention;
   /** 두뇌에 넘길 최근 기억 개수. */
   recallSize?: number;
+  /**
+   * 누구인가. 코어는 내용을 해석하지 않고 두뇌에 그대로 넘긴다 — 인격이 코어에
+   * 스며들면 「인격을 바꾸려면 코어를 고쳐야 하는」 구조가 되기 때문이다.
+   */
+  character?: Character;
   /**
    * 지금이 몇 시인지. 코어가 `Date.now()` 를 직접 부르지 않는 이유는, 시각이 판단 근거이기
    * 때문이다 — attention 이 「방금 말했나」를 기억의 시각으로 재므로, 시계를 주입할 수
@@ -92,7 +98,7 @@ export class Companion {
     });
 
     const recent = await memory.recent(recallSize);
-    const input = { sensation, recent };
+    const input = { sensation, recent, character: this.options.character };
 
     let decision;
     try {

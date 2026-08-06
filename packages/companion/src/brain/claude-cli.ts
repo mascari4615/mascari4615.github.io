@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { copyFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -8,8 +8,6 @@ import type { Brain, MemoryEntry, ThinkInput } from '../types';
 export interface ClaudeCliBrainOptions {
   command?: string;
   timeoutMs?: number;
-  /** 이 문장이 대화 앞에 붙는다. 인격을 꽂는 자리 — 기본은 비어 있다. */
-  instruction?: string;
 }
 
 /**
@@ -35,14 +33,35 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain {
   return {
     name: 'claude-cli(격리)',
     think(input: ThinkInput): Promise<string | null> {
-      return run(command, buildPrompt(input, options.instruction), sandbox, timeoutMs);
+      // 그림이 딸려 왔으면 샌드박스 안으로 들여놓는다 — 두뇌가 볼 수 있는 곳은 여기뿐이다.
+      let localImage: string | null = null;
+      const source = typeof input.sensation.meta?.imagePath === 'string' ? input.sensation.meta.imagePath : null;
+      if (source !== null) {
+        try {
+          localImage = join(sandbox, 'now.png');
+          copyFileSync(source, localImage);
+        } catch {
+          localImage = null;
+        }
+      }
+      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null);
     },
   };
 }
 
-function run(command: string, prompt: string, cwd: string, timeoutMs: number): Promise<string | null> {
+function run(
+  command: string,
+  prompt: string,
+  cwd: string,
+  timeoutMs: number,
+  needsFileAccess: boolean,
+): Promise<string | null> {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, ['--print', '--no-session-persistence'], {
+    // 그림을 읽어야 할 때만 파일 접근을 연다. 그마저도 빈 임시 폴더 안이다.
+    const args = needsFileAccess
+      ? ['--print', '--no-session-persistence', '--dangerously-skip-permissions']
+      : ['--print', '--no-session-persistence'];
+    const child = spawn(command, args, {
       cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
@@ -79,11 +98,15 @@ function run(command: string, prompt: string, cwd: string, timeoutMs: number): P
   });
 }
 
-function buildPrompt(input: ThinkInput, instruction?: string): string {
-  const head = instruction?.trim() ? `${instruction.trim()}\n\n` : '';
+function buildPrompt(input: ThinkInput, imageInSandbox: string | null): string {
+  const head = input.character?.instruction.trim() ? `${input.character.instruction.trim()}\n\n` : '';
   const history = input.recent.slice(0, -1).map(renderEntry).join('\n');
   const past = history === '' ? '' : `지금까지 오간 말:\n${history}\n\n`;
-  return `${head}${past}방금 [${input.sensation.channel}] 에서 들어온 것:\n${input.sensation.text}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
+  const look =
+    imageInSandbox === null
+      ? ''
+      : `\n\n지금 이 사람 화면을 찍은 그림이 now.png 에 있다. 먼저 읽어서 보고 말해라. 화면 설명을 늘어놓지 말고, 본 것에 대해 한 마디만.`;
+  return `${head}${past}방금 [${input.sensation.channel}] 에서 들어온 것:\n${input.sensation.text}${look}\n\n여기에 이어서 한 마디만 해라. 설명이나 머리말 없이 그 한 마디만.`;
 }
 
 function renderEntry(entry: MemoryEntry): string {

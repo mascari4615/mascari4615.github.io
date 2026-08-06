@@ -5,6 +5,9 @@
  */
 export * from './types';
 export { Companion, type CompanionOptions } from './core';
+export { loadCharacter } from './character';
+
+export { screenSense, type ScreenSenseOptions } from './sense/screen';
 
 export { InMemoryMemory } from './memory/in-memory';
 export { JsonlFileMemory } from './memory/jsonl-file';
