@@ -42,11 +42,11 @@ import { pickRecordType } from './shared/video';
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">화면 크기 <span id="vcScaleVal" class="range-value">절반</span></div>
-                    <input type="range" id="vcScale" min="1" max="4" step="1" value="2">
+                    <input type="range" id="vcScale" aria-label="화면 크기" min="1" max="4" step="1" value="2">
                   </div>
                   <div>
                     <div class="tool-sublabel">화질 <span id="vcRateVal" class="range-value">보통</span></div>
-                    <input type="range" id="vcRate" min="1" max="4" step="1" value="2">
+                    <input type="range" id="vcRate" aria-label="화질" min="1" max="4" step="1" value="2">
                   </div>
                 </div>
                 <div class="tool-chips" style="margin-top:10px;">

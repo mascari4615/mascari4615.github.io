@@ -52,8 +52,8 @@ import { seekTo } from './shared/video';
 
               <div class="field-group" style="margin-top:var(--space-lg);">
                 <div class="tool-sublabel">구간 — <span id="vgRangeLabel" class="range-value">0:00.0 ~ 0:00.0 (0.0초)</span></div>
-                <input type="range" id="vgStart" min="0" max="1000" value="0" step="1">
-                <input type="range" id="vgEnd" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
+                <input type="range" id="vgStart" aria-label="구간 시작" min="0" max="1000" value="0" step="1">
+                <input type="range" id="vgEnd" aria-label="구간 끝" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
                 <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
                   <button class="btn btn-ghost btn-sm" id="vgHere">지금 위치를 시작점으로</button>
                   <button class="btn btn-ghost btn-sm" id="vgHereEnd">지금 위치를 끝점으로</button>
@@ -65,17 +65,17 @@ import { seekTo } from './shared/video';
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">가로 크기 <span id="vgWidthVal" class="range-value">480px</span></div>
-                    <input type="range" id="vgWidth" min="120" max="960" step="20" value="480">
+                    <input type="range" id="vgWidth" aria-label="가로 크기" min="120" max="960" step="20" value="480">
                   </div>
                   <div>
                     <div class="tool-sublabel">초당 장수 <span id="vgFpsVal" class="range-value">12</span></div>
-                    <input type="range" id="vgFps" min="4" max="24" step="1" value="12">
+                    <input type="range" id="vgFps" aria-label="초당 장수" min="4" max="24" step="1" value="12">
                   </div>
                 </div>
                 <div class="tool-grid-2" style="margin-top:10px;">
                   <div>
                     <div class="tool-sublabel">색 수 <span id="vgColorsVal" class="range-value">128</span></div>
-                    <input type="range" id="vgColors" min="16" max="255" step="1" value="128">
+                    <input type="range" id="vgColors" aria-label="색 수" min="16" max="255" step="1" value="128">
                   </div>
                   <div class="tool-chips" style="align-content:end;">
                     <label class="tool-chip"><input type="checkbox" id="vgDither" checked> 색 뿌리기 (얼룩 줄임)</label>

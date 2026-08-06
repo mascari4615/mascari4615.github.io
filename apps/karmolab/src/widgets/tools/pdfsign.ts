@@ -68,11 +68,11 @@
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">쪽 <span id="psPageVal" class="range-value">1 / 1</span></div>
-                    <input type="range" id="psPage" min="1" max="1" value="1">
+                    <input type="range" id="psPage" aria-label="쪽" min="1" max="1" value="1">
                   </div>
                   <div>
                     <div class="tool-sublabel">서명 크기 <span id="psSizeVal" class="range-value">30%</span></div>
-                    <input type="range" id="psSize" min="8" max="70" value="30">
+                    <input type="range" id="psSize" aria-label="서명 크기" min="8" max="70" value="30">
                   </div>
                 </div>
               </div>
