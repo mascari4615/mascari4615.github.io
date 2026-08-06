@@ -38,10 +38,10 @@
     position: relative;
     height: 100%;
     display: grid;
-    grid-template-rows: 1fr auto;
-    align-items: center;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     justify-items: center;
-    padding: 24px;
+    gap: 12px;
+    padding: 20px 24px 24px;
   }
 
   .stage {
@@ -51,6 +51,56 @@
     align-content: center;
     gap: 8px;
     width: min(560px, 100%);
+  }
+
+  /* ── 채팅 내역 ────────────────────────────────────────── */
+  .log {
+    width: min(560px, 100%);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 4px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--edge) transparent;
+    mask-image: linear-gradient(to bottom, transparent, #000 18px);
+  }
+  .log::-webkit-scrollbar { width: 6px; }
+  .log::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 3px; }
+
+  .line { display: flex; flex-direction: column; gap: 3px; max-width: 82%; }
+  .line .who { font-size: 11px; color: var(--dim); letter-spacing: 0.03em; }
+  .line .what {
+    padding: 9px 13px;
+    border-radius: 13px;
+    border: 1px solid var(--edge);
+    background: #14171f;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .line.me { align-self: flex-end; align-items: flex-end; }
+  .line.me .what {
+    background: #16232b;
+    border-color: rgba(110, 231, 255, 0.28);
+  }
+
+  .line.them { align-self: flex-start; }
+
+  /* 혼잣말 = 나한테 한 말이 아니다. 흐리게, 기울여서. */
+  .line.alone .what {
+    background: transparent;
+    border-style: dashed;
+    color: var(--dim);
+    font-style: italic;
+  }
+
+  .log .empty {
+    margin: auto;
+    color: var(--dim);
+    font-size: 13px;
   }
 
   /* ── 말풍선 ───────────────────────────────────────────── */
@@ -213,6 +263,8 @@
       <div class="status" id="status">가만히 있다</div>
     </div>
 
+    <div class="log" id="log"><div class="empty">아직 나눈 말이 없다</div></div>
+
     <form id="form" autocomplete="off">
       <input id="text" placeholder="말 걸기…" />
       <button id="send" type="submit">↵</button>
@@ -226,8 +278,40 @@
   const form = document.getElementById('form');
   const text = document.getElementById('text');
   const send = document.getElementById('send');
+  const log = document.getElementById('log');
 
   let idleTimer = null;
+
+  function append(who, message, kind) {
+    log.querySelector('.empty')?.remove();
+    const line = document.createElement('div');
+    line.className = 'line ' + kind;
+    const label = document.createElement('div');
+    label.className = 'who';
+    label.textContent = who;
+    const body = document.createElement('div');
+    body.className = 'what';
+    body.textContent = message;
+    line.append(label, body);
+    log.append(line);
+    // 이미 위로 올려 읽는 중이면 방해하지 않는다.
+    const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
+    if (nearBottom) log.scrollTop = log.scrollHeight;
+  }
+
+  async function loadHistory() {
+    try {
+      const entries = await (await fetch('/history')).json();
+      for (const entry of entries) {
+        if (entry.role === 'sensed' && entry.channel === 'web') append('나', entry.text, 'me');
+        else if (entry.role === 'said') append(entry.channel === 'web' ? '동반자' : '동반자 (혼잣말)', entry.text, entry.channel === 'web' ? 'them' : 'them alone');
+        // 시계 tick 자체(느낀 것)는 대화가 아니라 배경이므로 안 그린다.
+      }
+      log.scrollTop = log.scrollHeight;
+    } catch {
+      // 지난 대화를 못 불러와도 새 대화는 된다.
+    }
+  }
 
   function setState(state, label) {
     cube.className = 'cube' + (state ? ' ' + state : '');
@@ -250,8 +334,13 @@
   const events = new EventSource('/events');
   events.onmessage = (e) => {
     const data = JSON.parse(e.data);
-    if (data.type === 'heard') setState('thinking', '생각하는 중…');
-    else if (data.type === 'speak') say(data.text);
+    if (data.type === 'heard') {
+      setState('thinking', '생각하는 중…');
+    } else if (data.type === 'speak') {
+      const alone = data.channel !== 'web';
+      append(alone ? '동반자 (혼잣말)' : '동반자', data.text, alone ? 'them alone' : 'them');
+      say(data.text);
+    }
   };
   events.onerror = () => setState('', '연결이 끊겼다 — 서버 확인');
 
@@ -267,6 +356,7 @@
     if (message === '') return;
     text.value = '';
     send.disabled = true;
+    append('나', message, 'me');
     setState('thinking', '생각하는 중…');
     try {
       await fetch('/say', {
@@ -280,6 +370,7 @@
     }
   });
 
+  loadHistory();
   text.focus();
 </script>
 </body>

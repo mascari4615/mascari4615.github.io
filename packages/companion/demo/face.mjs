@@ -33,7 +33,13 @@ const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '45000');
 const memoryFile = process.env.COMPANION_MEMORY_FILE?.trim();
 
 const memory = memoryFile ? new JsonlFileMemory(memoryFile) : new InMemoryMemory();
-const web = webBody({ port, open: true, log: (m) => console.log(m) });
+const web = webBody({
+  port,
+  open: true,
+  log: (m) => console.log(m),
+  // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
+  history: () => memory.recent(80),
+});
 
 const bodies = [web];
 if (clockMs > 0) {
