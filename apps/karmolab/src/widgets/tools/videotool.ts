@@ -7,7 +7,8 @@
 (function (): void {
   const PARTS: Array<[string, string]> = [
     ['video2gif', 'GIF 만들기'],
-    ['videotrim', '자르기'],
+    ['videotrim', '구간 자르기'],
+    ['videocompress', '용량 줄이기'],
     ['video2img', '사진 뽑기'],
     ['video2audio', '소리 추출'],
     ['screenrec', '화면 녹화']
