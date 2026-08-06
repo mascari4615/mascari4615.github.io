@@ -121,8 +121,8 @@
       ],
       "related": [
         "qrread",
-        "urlparse",
-        "colorconv"
+        "favicon",
+        "urlparse"
       ]
     },
     "lotto": {
@@ -2116,9 +2116,9 @@
         }
       ],
       "related": [
-        "asciiart",
-        "filetype",
-        "palette"
+        "pdfcompress",
+        "pdfsign",
+        "text2pdf"
       ]
     },
     "audiocut": {
@@ -2343,9 +2343,9 @@
         }
       ],
       "related": [
-        "palette",
-        "ziptool",
-        "asciiart"
+        "imgmerge",
+        "favicon",
+        "exifclean"
       ]
     },
     "filehash": {
@@ -2535,8 +2535,8 @@
       ],
       "related": [
         "videotrim",
-        "video2audio",
-        "imgbatch"
+        "video2img",
+        "videocompress"
       ]
     },
     "video2audio": {
@@ -2562,8 +2562,8 @@
         }
       ],
       "related": [
-        "videotrim",
-        "video2gif",
+        "videocompress",
+        "audiolevel",
         "audiocut"
       ]
     },
@@ -2620,9 +2620,9 @@
         }
       ],
       "related": [
+        "videocompress",
         "video2gif",
-        "video2audio",
-        "audiocut"
+        "video2img"
       ]
     },
     "screenrec": {
@@ -2653,8 +2653,8 @@
         }
       ],
       "related": [
+        "videocompress",
         "videotrim",
-        "video2gif",
         "voicerec"
       ]
     },
@@ -2867,9 +2867,9 @@
         }
       ],
       "related": [
+        "text2pdf",
         "pdftool",
-        "pdfcompress",
-        "pdf2img"
+        "pdfcompress"
       ]
     },
     "exifclean": {
