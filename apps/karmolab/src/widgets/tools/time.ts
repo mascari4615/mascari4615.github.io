@@ -9,7 +9,8 @@
   const PARTS: Array<[string, string]> = [
     ['datecalc', '날짜 · D-Day'],
     ['timer', '타이머'],
-    ['worldclock', '세계 시차']
+    ['worldclock', '세계 시차'],
+    ['epoch', '타임스탬프']
   ];
 
   Toolbox.register({
