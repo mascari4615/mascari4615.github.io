@@ -57,16 +57,15 @@ function fingerprint(id) {
   const lead = id === 'default' ? DEFAULT_CARD.lead : seo[id].lead;
   return crypto
     .createHash('sha1')
-    .update(JSON.stringify({ v: 1, title: w.title, icon: w.icon, lead }))
+    .update(JSON.stringify({ v: 2, title: w.title, icon: w.icon, lead }))
     .digest('hex')
     .slice(0, 12);
 }
 
-/** 아직 자기 카드가 없는 도구가 기대는 브랜드 공용 카드 — 렌즈(도구함) 아이콘. */
+/** 아직 자기 카드가 없는 도구가 기대는 공용 카드 — 문구는 앱이 쓰는 것과 같은 정본. */
 const DEFAULT_CARD = {
-  // 하단 워드마크가 이미 KarmoLab 이므로 제목은 같은 말을 반복하지 않는다.
-  title: '도구 모음',
-  lead: '텍스트 · 이미지 · 계산 · 개발 도구를 한곳에서',
+  title: '삶을 섞고 술을 바꿀 시간',
+  lead: '손에 잡히는 도구들이 있는 작업실',
   icon: '<path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
 };
 
@@ -78,41 +77,27 @@ function cardHtml(id) {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: ${WIDTH}px; height: ${HEIGHT}px; }
   body {
-    background: radial-gradient(1100px 700px at 78% -12%, #1b2130 0%, #0d1016 46%, #08080a 100%);
+    background: #0b0d12;
     color: #f2f2ee;
     font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif;
     display: flex; flex-direction: column; justify-content: space-between;
-    padding: 76px 84px 64px; position: relative; overflow: hidden;
-  }
-  /* 관측소 창으로 든 빛 — 브랜드 액센트를 배경에 아주 옅게 깔아 단조로움을 없앤다 */
-  body::after {
-    content: ''; position: absolute; right: -180px; top: -180px;
-    width: 620px; height: 620px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,168,73,0.13) 0%, rgba(212,168,73,0) 68%);
+    padding: 84px 88px 72px;
   }
   .icon {
-    width: 108px; height: 108px; color: #d4a849;
-    border: 2px solid rgba(212,168,73,0.34); border-radius: 26px;
-    background: rgba(212,168,73,0.07);
-    display: flex; align-items: center; justify-content: center; margin-bottom: 42px;
+    width: 96px; height: 96px; color: #d4a849;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 44px;
   }
-  .icon svg { width: 62px; height: 62px; }
+  .icon svg { width: 96px; height: 96px; }
   h1 {
     font-size: 78px; font-weight: 700; line-height: 1.16; letter-spacing: -0.02em;
     max-width: 17ch;
   }
   p {
-    margin-top: 26px; font-size: 33px; line-height: 1.5; color: #9a9a94;
+    margin-top: 28px; font-size: 33px; line-height: 1.5; color: #9a9a94;
     max-width: 34ch;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-  footer {
-    display: flex; align-items: baseline; gap: 18px;
-    font-size: 30px; letter-spacing: 0.01em;
-  }
-  .mark { color: #d4a849; font-weight: 700; }
-  .host { color: #55555a; font-size: 26px; }
-  .rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(212,168,73,0.34), rgba(212,168,73,0)); }
+  footer { font-size: 30px; font-weight: 700; color: #d4a849; }
 </style></head>
 <body>
   <div>
@@ -120,7 +105,7 @@ function cardHtml(id) {
     <h1>${esc(w.title)}</h1>
     <p>${esc(lead)}</p>
   </div>
-  <footer><span class="mark">KarmoLab</span><span class="rule"></span><span class="host">설치 없이 브라우저에서</span></footer>
+  <footer>KarmoLab</footer>
 </body></html>`;
 }
 
