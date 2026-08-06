@@ -75,6 +75,7 @@ import { handleNewsKeywordList, handleNewsKeywordAdd, handleNewsKeywordDelete } 
 import { handleGallery } from './gallery';
 import { handleProfile } from './profile';
 import { handleAtkupUnity } from './atkup';
+import { handleWrapped } from './wrapped';
 import { CharacterService } from '../../services/character-service';
 
 /** toJSON() 만 요구하는 구조 타입 — SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
@@ -585,6 +586,28 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         .setDescription('이미지 생성 비용 대시보드 (모델별/일별 집계)')
         .setDescriptionLocalizations(enUS('Image generation cost dashboard')),
     run: async (ctx, interaction) => { await handleCost(ctx, interaction); },
+  },
+  {
+    name: '결산',
+    builder: () =>
+      new SlashCommandBuilder()
+        .setName('결산')
+        .setNameLocalizations(enUS('wrapped'))
+        .setDescription('우리 서버 결산 카드 — 수다왕·인기상·새벽 유령')
+        .setDescriptionLocalizations(enUS('Server wrapped card'))
+        .addIntegerOption((option) =>
+          option
+            .setName('기간')
+            .setNameLocalizations(enUS('range'))
+            .setDescription('며칠치를 볼지 (기본: 7일)')
+            .setDescriptionLocalizations(enUS('How many days (default: 7)'))
+            .addChoices(
+              { name: '최근 7일', value: 7 },
+              { name: '최근 30일', value: 30 },
+              { name: '올해 (365일)', value: 365 },
+            ),
+        ),
+    run: async (ctx, interaction) => { await handleWrapped(ctx, interaction); },
   },
   {
     name: 'atkup',

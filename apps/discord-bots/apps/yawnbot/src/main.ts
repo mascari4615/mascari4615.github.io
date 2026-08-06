@@ -66,6 +66,7 @@ import {
 } from './services/character-state-snapshot';
 import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
+import { getServerStatsRecorder } from './services/server-stats';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
@@ -217,6 +218,44 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
   await handleReaction(buildCtx(), reaction, user).catch((e) =>
     console.error('[ReactionAdd]', e instanceof Error ? e.message : e),
   );
+});
+
+// TASK-YB-042 서버 결산: 사람 메시지·반응만 센다 (내용 저장 X, 길이·시각·이모지만).
+// 별 핸들러 = 기존 핸들러 흐름 비간섭. 집계 실패가 봇을 절대 막지 않는다.
+client.on('messageCreate', (message) => {
+  try {
+    if (message.author.bot || !message.guildId) return;
+    getServerStatsRecorder().onMessage({
+      guildId: message.guildId,
+      userId: message.author.id,
+      userName: message.member?.displayName || message.author.username,
+      channelId: message.channelId,
+      content: message.content || '',
+      at: message.createdAt,
+    });
+  } catch (e) {
+    console.warn('[ServerStats] 메시지 집계 실패:', e instanceof Error ? e.message : e);
+  }
+});
+
+client.on('messageReactionAdd', (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
+  try {
+    const guildId = reaction.message.guildId;
+    if (!guildId || user.bot) return;
+    const author = reaction.message.author;
+    getServerStatsRecorder().onReaction({
+      guildId,
+      giverId: user.id,
+      giverName: user.username ?? user.id,
+      // 봇 발화가 받은 반응은 「인기상」에서 뺀다 — 사람 경쟁이라야 자랑거리가 된다.
+      authorId: author && !author.bot ? author.id : null,
+      authorName: author && !author.bot ? author.username : null,
+      emojiName: reaction.emoji.name ?? '',
+      at: new Date(),
+    });
+  } catch (e) {
+    console.warn('[ServerStats] 반응 집계 실패:', e instanceof Error ? e.message : e);
+  }
 });
 
 // KAR-018-Y 양방향 스레드 (발단 완료조건 #2 "escalation 승인 루프 닫힘"):
@@ -706,6 +745,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stock.stopMarket();
   gameData.destroy();
   characterService?.commitIfDirty();
+  getServerStatsRecorder().flush();
   shutdownMemory();
   destroyAllMusicPlayers();
   destroyAllVoiceConnections();
