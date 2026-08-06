@@ -4,10 +4,15 @@
  * 자랑하려고 스샷을 찍게 만드는 게 목적이라, 숫자 나열이 아니라 **칭호**로 읽히게 짠다.
  * (이미지 카드 렌더는 다음 단계 — 지금은 embed 로 루프부터 검증.)
  */
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { BotContext } from './bot-context';
-import { getServerStatsRecorder, type RankedUser, type ServerSummary } from '../../services/server-stats';
+import {
+  getServerStatsRecorder,
+  type DebugDump,
+  type RankedUser,
+  type ServerSummary,
+} from '../../services/server-stats';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 const SPARK = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
@@ -97,6 +102,48 @@ export function buildWrappedEmbed(summary: ServerSummary, guildName: string): Em
   return embed;
 }
 
+/**
+ * 원시 수치 창 — 카드가 이상할 때 "집계가 틀렸나 표시가 틀렸나"를 가른다.
+ * 표시용 가공을 최소로 하고, 저장 상태(파일 존재·마지막 저장 시각)까지 같이 보여준다.
+ */
+export function buildDebugText(dump: DebugDump, days: number): string {
+  const lines: string[] = [];
+  lines.push(`■ 범위 ${days}일 · 오늘(KST) = ${dump.todayKey}`);
+  lines.push(`■ 기록 있는 날 ${dump.dayKeys.length}개: ${dump.dayKeys.slice(0, 8).join(', ') || '(없음)'}`);
+  lines.push(
+    `■ 저장: ${dump.stateFileExists ? `있음 (마지막 ${dump.stateFileMtime})` : '아직 없음 (첫 저장 전)'}` +
+      ` · 미저장 변경 ${dump.dirty ? '있음' : '없음'}`,
+  );
+  lines.push('');
+
+  if (!dump.rows.length) {
+    lines.push('아직 잡힌 사람 없음. 아무 채널에나 한 마디 하고 다시 쳐 보세요.');
+  } else {
+    lines.push('사람      메시지  글자   새벽  준반응  받은반응');
+    for (const row of dump.rows.slice(0, 15)) {
+      const name = row.name.length > 8 ? `${row.name.slice(0, 7)}…` : row.name;
+      lines.push(
+        [
+          name.padEnd(9),
+          String(row.msgs).padStart(6),
+          String(row.chars).padStart(6),
+          String(row.nightMsgs).padStart(5),
+          String(row.reactionsGiven).padStart(7),
+          String(row.reactionsGot).padStart(9),
+        ].join(''),
+      );
+    }
+  }
+
+  lines.push('');
+  lines.push(`■ 시각별: ${dump.hours.map((c, h) => (c ? `${h}시:${c}` : null)).filter(Boolean).join(' ') || '(없음)'}`);
+  lines.push(
+    `■ 채널별: ${dump.channels.slice(0, 6).map((c) => `${c.channelId}:${c.count}`).join(' ') || '(없음)'}`,
+  );
+
+  return lines.join('\n');
+}
+
 export async function handleWrapped(_ctx: BotContext, interaction: ChatInputCommandInteraction): Promise<void> {
   if (!interaction.guildId) {
     await interaction.reply({ content: '서버 안에서 써 주세요 — 서버 단위 결산이에요.' });
@@ -104,7 +151,17 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
   }
 
   const days = interaction.options.getInteger('기간') ?? 7;
-  const summary = getServerStatsRecorder().summarize(interaction.guildId, days);
+  const recorder = getServerStatsRecorder();
+
+  if (interaction.options.getBoolean('자세히')) {
+    // 눈으로 파일을 확인할 수 있게 즉시 저장한 뒤 덤프한다 (20초 대기 X).
+    recorder.flushNow();
+    const text = buildDebugText(recorder.debug(interaction.guildId, days), days);
+    await interaction.reply({ content: '```\n' + text.slice(0, 1900) + '\n```', flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  const summary = recorder.summarize(interaction.guildId, days);
   const guildName = interaction.guild?.name ?? '우리 서버';
 
   await interaction.reply({ embeds: [buildWrappedEmbed(summary, guildName)] });
