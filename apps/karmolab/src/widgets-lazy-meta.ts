@@ -193,7 +193,17 @@ window.KARMOLAB_LAZY_META = [
    * 검색 유입 1급 대상. 각 항목은 data/tools-seo.json 에 같은 id 의 SEO 문안이 있어야 하고,
    * scripts/gen-tool-pages.mjs 가 /karmolab/t/<id>/ 정적 페이지를 만든다 (짝 없으면 빌드 실패). */
   {
+    id: 'text',
+    title: '텍스트 도구',
+    category: 'tool',
+    desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
+    layout: 'wide',
+    icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/text']
+  },
+  {
     id: 'charcount',
+    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '글자수 세기',
     category: 'tool',
     desc: '공백 포함·제외 글자수, 바이트, 단어·문장·원고지 매수를 실시간으로 셉니다',
@@ -212,6 +222,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'hangulkey',
+    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '한영타 변환',
     category: 'tool',
     desc: '한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)',
@@ -284,6 +295,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'textdiff',
+    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '텍스트 비교',
     category: 'tool',
     desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
@@ -340,6 +352,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'textclean',
+    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '텍스트 정리',
     category: 'tool',
     desc: '여러 줄 텍스트를 정렬·중복 제거·공백 정리·번호 매기기로 한 번에 다듬습니다',
@@ -395,6 +408,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'caseconv',
+    hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '표기법 변환',
     category: 'tool',
     desc: 'camelCase·snake_case·kebab-case·PascalCase 를 서로 바꿉니다. 여러 줄 한 번에',
@@ -460,6 +474,15 @@ window.KARMOLAB_LAZY_META = [
   /* ───── 자료 (ref) — 찾아보고 눌러 복사하는 표 (TASK-KL-088) ─────
    * 전부 ref/reftable 의 공용 렌더러를 먼저 로드한다 (keycode 만 자체 UI). */
   {
+    id: 'reference',
+    title: '참고표',
+    category: 'ref',
+    desc: 'git 명령어·마크다운·HTTP 상태·단축키·파일 확장자·키 코드를 한 곳에서 찾아봅니다',
+    layout: 'wide',
+    icon: '<path d="M4 5a2 2 0 0 1 2-2h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M4 18a2 2 0 0 1 2-2h13" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h7M8 11h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/gitcmd', 'ref/markdown', 'ref/httpstatus', 'ref/shortcut', 'ref/filetype', 'ref/keycode', 'ref/reference']
+  },
+  {
     id: 'charmap',
     title: '문자표',
     category: 'ref',
@@ -500,6 +523,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'httpstatus',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'HTTP 상태 코드',
     category: 'ref',
     desc: '200·301·403·404·500 등 HTTP 응답 코드의 뜻과 쓰는 상황을 정리한 표',
@@ -519,6 +543,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'keycode',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '키보드 이벤트 코드',
     category: 'ref',
     desc: '키를 누르면 event.key · event.code · keyCode 값을 그 자리에서 보여줍니다',
@@ -538,6 +563,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'markdown',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '마크다운 문법표',
     category: 'ref',
     desc: '제목·표·코드블록·체크박스 등 마크다운 문법을 찾아 그대로 복사합니다 (GFM 기준)',
@@ -547,6 +573,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'gitcmd',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'git 명령어 모음',
     category: 'ref',
     desc: '하려는 일로 git 명령어를 찾습니다. 되돌릴 수 없는 명령은 따로 표시',
@@ -556,6 +583,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'filetype',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '파일 확장자표',
     category: 'ref',
     desc: '확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지·문서·압축·코드 등',
@@ -565,6 +593,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'shortcut',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '단축키 모음',
     category: 'ref',
     desc: '윈도우·맥·브라우저·VS Code 단축키 중 알면 실제로 쓰게 되는 것만 모았습니다',
