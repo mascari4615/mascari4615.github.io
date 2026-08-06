@@ -301,6 +301,7 @@ function viewerHtml(token: string): string {
   <button id="f-err">에러만</button>
   <input id="q" placeholder="검색" size="10">
   <button id="auto" class="on">자동 갱신</button>
+  <button id="latest">최신으로</button>
   <span id="build"></span>
   <span id="meta">…</span>
 </header>
@@ -308,20 +309,21 @@ function viewerHtml(token: string): string {
 <script>
 const TOKEN = ${tokenJson};
 const qs = (p) => { const u = new URLSearchParams(p); if (TOKEN) u.set('t', TOKEN); return u.toString(); };
-let onlyError = false, auto = true;
+let onlyError = false, auto = true, pinned = false;
 const el = { log: document.getElementById('log'), meta: document.getElementById('meta'), build: document.getElementById('build'), session: document.getElementById('session'), q: document.getElementById('q') };
 
 document.getElementById('f-all').onclick = (e) => { onlyError = false; e.target.classList.add('on'); document.getElementById('f-err').classList.remove('on'); load(); };
 document.getElementById('f-err').onclick = (e) => { onlyError = true; e.target.classList.add('on'); document.getElementById('f-all').classList.remove('on'); load(); };
 document.getElementById('auto').onclick = (e) => { auto = !auto; e.target.classList.toggle('on', auto); };
+document.getElementById('latest').onclick = async () => { pinned = false; await loadSessions(); await load(); };
 el.q.oninput = () => load();
-el.session.onchange = () => load();
+el.session.onchange = () => { pinned = true; load(); };
 
 async function loadSessions() {
   const res = await fetch('/device-log/sessions?' + qs({}));
   if (!res.ok) { el.meta.textContent = '세션 조회 실패 ' + res.status; return; }
   const data = await res.json();
-  const current = el.session.value;
+  const current = pinned ? el.session.value : '';
   // 세션 이름만으론 「어느 빌드였나」를 모른다 — 폰에 여러 빌드를 깔아 비교하는 게 목적이므로
   // 빌드 라벨을 목록에 함께 띄운다 (WM-201: 화면 구석 표시기와 같은 글자).
   el.session.innerHTML = data.sessions.map(s =>
