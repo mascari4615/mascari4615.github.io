@@ -10,6 +10,7 @@
     ['audiocut', '자르기'],
     ['audiolevel', '크기 맞추기'],
     ['audiospeed', '속도'],
+    ['audiofade', '페이드'],
     ['audiojoin', '잇기']
   ];
 

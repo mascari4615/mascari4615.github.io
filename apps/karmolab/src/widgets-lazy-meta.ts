@@ -391,6 +391,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiospeed']
   },
   {
+    id: 'audiofade',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '소리 페이드',
+    category: 'tool',
+    desc: '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다',
+    layout: 'wide',
+    icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/audiofade']
+  },
+  {
     id: 'audiojoin',
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -595,7 +606,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true,
     icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiospeed', 'tools/audiojoin', 'tools/sound']
+    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiospeed', 'tools/audiofade', 'tools/audiojoin', 'tools/sound']
   },
   {
     id: 'filetool',
