@@ -247,6 +247,38 @@
     50% { box-shadow: 0 0 0 7px rgba(255, 110, 140, 0); }
   }
 
+  .grip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 14px;
+    color: var(--dim);
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    cursor: grab;
+    user-select: none;
+  }
+  .grip:active { cursor: grabbing; }
+  .grip-close {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--dim);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .grip-close:hover { border-color: var(--edge); color: #ff8098; }
+
   .mute {
     position: fixed;
     top: 14px;
@@ -298,13 +330,14 @@
   }
   .voice-pick:hover { border-color: rgba(110, 231, 255, 0.55); }
 
+  /* 아래쪽 대화 자리에만 겹친다 — 좁은 창에서 큐브까지 덮으면 얘가 안 보인다. */
   .sheet {
     position: fixed;
-    top: 56px;
-    right: 16px;
+    left: 12px;
+    right: 12px;
+    bottom: 68px;
     z-index: 3;
-    width: min(360px, calc(100vw - 32px));
-    max-height: 60vh;
+    max-height: min(42vh, 260px);
     display: flex;
     flex-direction: column;
     border: 1px solid var(--edge);
@@ -342,6 +375,24 @@
     letter-spacing: 0.02em;
   }
 
+  /* 투명 모드 — 창 자체가 뚫린 창(데스크톱 앱)일 때. 바탕을 비우면 뒤가 그대로 보이고
+     큐브·말풍선·대화만 공중에 뜬 것처럼 남는다. */
+  :root.see-through, :root.see-through body { background: transparent; }
+  :root.see-through body::before { display: none; }
+  :root.see-through .log,
+  :root.see-through .status { background: transparent; }
+  :root.see-through .line .what,
+  :root.see-through .bubble,
+  :root.see-through input,
+  :root.see-through button,
+  :root.see-through .sheet {
+    /* 도려낸 바탕 위에 뜨는 것들은 조금 더 진하게 — 안 그러면 글자가 읽히지 않는다. */
+    background: rgba(13, 15, 20, 0.86);
+    backdrop-filter: blur(6px);
+  }
+  :root.see-through .bubble::after { background: rgba(13, 15, 20, 0.86); }
+  :root.see-through .cube > div { background: linear-gradient(150deg, #171b24, #10131a); }
+
   /* 화면 구석에 상주하는 좁은 창 — 큐브가 자리를 다 먹지 않게 줄인다. */
   @media (max-height: 720px) {
     .field { height: 132px; }
@@ -363,6 +414,11 @@
 </style>
 </head>
 <body>
+  <!-- 창틀이 없는 창에서 붙잡고 옮길 자리. 데스크톱 앱일 때만 보인다. -->
+  <div class="grip" id="grip" data-tauri-drag-region hidden>
+    <span data-tauri-drag-region>⋯</span>
+    <button class="grip-close" id="gripClose" title="닫기">✕</button>
+  </div>
   <button class="mute" id="mute" title="목소리 켜기/끄기" aria-label="목소리 켜기/끄기">🔇</button>
   <button class="known-btn" id="knownBtn" title="나에 대해 아는 것">🧠</button>
   <div class="sheet" id="sheet" hidden>
@@ -396,6 +452,21 @@
   </div>
 
 <script>
+  // 뚫린 창(데스크톱 앱)으로 떠 있으면 바탕을 비운다.
+  const inDesktopWindow = typeof window.__TAURI__ !== 'undefined';
+  if (inDesktopWindow || new URLSearchParams(location.search).get('t') === '1') {
+    document.documentElement.classList.add('see-through');
+  }
+  if (inDesktopWindow) {
+    // 창틀이 없으므로 붙잡을 자리와 닫는 단추를 직접 만든다.
+    const grip = document.getElementById('grip');
+    grip.hidden = false;
+    document.body.style.paddingTop = '26px';
+    document.getElementById('gripClose').addEventListener('click', () => {
+      window.__TAURI__.window.getCurrentWindow().close();
+    });
+  }
+
   const cube = document.getElementById('cube');
   const bubble = document.getElementById('bubble');
   const status = document.getElementById('status');
@@ -671,6 +742,13 @@
     if (e.key === 'Escape') sheet.hidden = true;
   });
 
+  // 딴 데를 건드리면 닫힌다 — 열어둔 걸 잊고 얘를 가리고 있는 일이 없게.
+  document.addEventListener('pointerdown', (e) => {
+    if (sheet.hidden) return;
+    if (sheet.contains(e.target) || knownBtn.contains(e.target)) return;
+    sheet.hidden = true;
+  });
+
   /* ── 귀 ────────────────────────────────────────────────
      브라우저에 있는 받아쓰기를 쓴다. 얼굴과 입만 있고 귀가 없으면 대화가 아니다.
      말을 마치면 알아서 보낸다 — 다 말하고 버튼을 또 누르게 만들지 않는다. */
@@ -679,9 +757,14 @@
   let recognizer = null;
   let listening = false;
 
+  // 데스크톱 창에서도 단축키가 듣게 하려면, 브라우저 받아쓰기가 없어도 이 자리는 살아야 한다.
+  if (inDesktopWindow) {
+    window.__TAURI__.event.listen('companion://talk', () => { void toggleListening(); });
+  }
+
   if (Recognizer === undefined) {
     mic.disabled = true;
-    mic.title = '이 브라우저는 받아쓰기를 지원하지 않는다';
+    mic.title = '받아쓰기를 준비하는 중…';
   } else {
     recognizer = new Recognizer();
     recognizer.lang = 'ko-KR';
@@ -706,14 +789,59 @@
       if (settled && heard.trim() !== '') form.requestSubmit();
     };
 
-    mic.addEventListener('click', () => {
-      if (listening) { recognizer.stop(); return; }
-      try { recognizer.start(); } catch { /* 이미 켜져 있으면 무시 */ }
-    });
+    if (inDesktopWindow) mic.title = '눌러서 말하기 (어디서든 Ctrl+Alt+Space)';
+  }
+
+  mic.addEventListener('click', () => { void toggleListening(); });
+
+  /* 오프라인 받아쓰기가 있으면 그쪽을 쓴다 — 인터넷도 필요 없고 창이 앞에 없어도 된다.
+     없으면 브라우저 받아쓰기로 물러선다. */
+  let offlineEars = false;
+  let offlineListening = false;
+
+  async function toggleListening() {
+    if (offlineEars) { await toggleOffline(); return; }
+    if (recognizer === null) return;
+    if (listening) { recognizer.stop(); return; }
+    try { recognizer.start(); } catch { /* 이미 켜져 있으면 무시 */ }
+  }
+
+  async function toggleOffline() {
+    const where = offlineListening ? '/ears/stop' : '/ears/start';
+    const starting = offlineListening === false;
+    offlineListening = starting;
+    mic.classList.toggle('listening', starting);
+    setState(starting ? 'listening' : 'thinking', starting ? '듣는 중' : '받아적는 중…');
+    try {
+      const res = await fetch(where, { method: 'POST' });
+      if (res.ok === false) throw new Error('실패');
+      if (starting === false) {
+        const { text } = await res.json();
+        if (text === null || String(text).trim() === '') setState('', '아무 말도 안 들렸다');
+      }
+    } catch {
+      offlineListening = false;
+      mic.classList.remove('listening');
+      setState('', '못 들었다');
+    }
+  }
+
+  async function probeEars() {
+    try {
+      const { offline } = await (await fetch('/ears')).json();
+      offlineEars = offline === true;
+      if (offlineEars) {
+        mic.disabled = false;
+        mic.title = '눌러서 말하기 — 오프라인 받아쓰기' + (inDesktopWindow ? ' (어디서든 Ctrl+Alt+Space)' : '');
+      }
+    } catch {
+      offlineEars = false;
+    }
   }
 
   loadHistory();
   loadVoices();
+  probeEars();
   text.focus();
 </script>
 </body>

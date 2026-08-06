@@ -30,6 +30,7 @@ import {
   openPinnedWindow,
   screenSense,
   webBody,
+  whisperEars,
 } from '../dist/index.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -77,6 +78,14 @@ const web = webBody({
   longTerm: () => memory.longTerm?.() ?? null,
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
   speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
+  // 오프라인 받아쓰기 — KarmoLab 이 이미 갖고 있던 것을 그대로 빌려 쓴다.
+  ears: whisperEars({
+    exePath: process.env.COMPANION_EARS_EXE
+      ?? join(root, '..', '..', 'apps', 'karmolab-tauri', 'target', 'release', 'karmolab-life-ml.exe'),
+    modelDir: process.env.COMPANION_WHISPER_MODEL
+      ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'whisper-small'),
+    log: (m) => console.log(`[귀] ${m}`),
+  }),
 });
 
 const bodies = [web];
@@ -118,6 +127,7 @@ if (desktop) {
   openPinnedWindow(`http://localhost:${port}`, {
     width: Number(process.env.COMPANION_WIDTH ?? '420'),
     height: Number(process.env.COMPANION_HEIGHT ?? '640'),
+    transparent: process.env.COMPANION_TRANSPARENT !== '0',
   }).then((how) => console.log(`[창] ${how}`));
 }
 console.log(
