@@ -13,7 +13,8 @@
     ['ziptool', 'ZIP'],
     ['pdfwatermark', 'PDF 워터마크'],
     ['audiojoin', '오디오 잇기'],
-    ['imgbatch', '이미지 일괄']
+    ['imgbatch', '이미지 일괄'],
+    ['filehash', '파일 검사값']
   ];
 
   Toolbox.register({

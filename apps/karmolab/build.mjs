@@ -207,6 +207,7 @@ const entryPoints = [
   'src/widgets/tools/pdfwatermark.ts',
   'src/widgets/tools/audiojoin.ts',
   'src/widgets/tools/imgbatch.ts',
+  'src/widgets/tools/filehash.ts',
   'src/widgets/tools/filetool.ts',
   'src/widgets/tools/checklist.ts',
   'src/widgets/tools/linebreak.ts',
