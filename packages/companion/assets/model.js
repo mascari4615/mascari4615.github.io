@@ -9,6 +9,23 @@
  */
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { applyToon } from '/toon.js';
+
+/**
+ * 남한테서 가져온 동작을 이 몸에 얹는다.
+ *
+ * 보통은 뼈 이름이 달라 다시 짜 맞춰야 하는데, 이 둘은 같은 계열 골격이라 이름이
+ * `DEF-*` 로 그대로 겹친다(실측). 그래서 이 몸에 없는 뼈를 가리키는 줄만 버리면 된다.
+ * 그 정리를 안 하면 없는 뼈를 찾다가 동작 전체가 조용히 안 돈다.
+ */
+function fitClip(clip, bonesByName) {
+  const kept = clip.tracks.filter((track) => bonesByName.has(track.name.split('.')[0]));
+  if (kept.length === 0) return null;
+  const fitted = clip.clone();
+  fitted.tracks = kept;
+  return fitted;
+}
 
 export async function mountModel(canvas, modelName, onFail) {
   let renderer;
@@ -55,6 +72,14 @@ export async function mountModel(canvas, modelName, onFail) {
       if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
     }
   });
+
+  // 그림처럼 칠한다 — 사실적인 음영은 조명 하나만 어긋나도 인형처럼 보인다.
+  try {
+    const { outlineCount } = applyToon(model, { steps: 3, outline: 0.004 });
+    console.log('[3D] 만화식으로 칠했다 · 바깥선', outlineCount, '겹');
+  } catch (e) {
+    console.warn('[3D] 만화식 칠하기 실패 — 원래 재질로 간다:', e);
+  }
 
   // 클립이 하나도 없는 모델이다(실측). 대신 뼈를 직접 움직인다 — 남의 동작을
   // 억지로 씌우면 이 골격과 안 맞아 어긋나 보인다.
@@ -104,6 +129,47 @@ export async function mountModel(canvas, modelName, onFail) {
   camera.position.set(0, 0.35, 3.1);
   camera.lookAt(0, 0.15, 0);
 
+  // ── 가져온 동작 얹기 ──────────────────────────────────────────────────
+  // 클립이 붙으면 얘가 실제로 서 있고 말하는 몸짓을 한다. 못 붙으면 위의 뼈 움직임만
+  // 남는다 — 그래도 숨은 쉬므로 물건처럼 보이진 않는다.
+  const bonesByName = new Map();
+  model.traverse((node) => { if (node.isBone === true) bonesByName.set(node.name, node); });
+
+  let mixer = null;
+  const actions = {};
+  try {
+    const gltf = await new GLTFLoader().loadAsync('/anim/cc0-animations.glb');
+    mixer = new THREE.AnimationMixer(model);
+    const wanted = { idle: 'Idle_Loop', talking: 'Idle_Talking_Loop' };
+    for (const [key, clipName] of Object.entries(wanted)) {
+      const source = gltf.animations.find((a) => a.name === clipName);
+      if (source === undefined) continue;
+      const fitted = fitClip(source, bonesByName);
+      if (fitted === null) continue;
+      const action = mixer.clipAction(fitted);
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      actions[key] = action;
+    }
+    if (Object.keys(actions).length === 0) {
+      mixer = null;
+      console.warn('[3D] 가져온 동작이 이 뼈대와 안 맞는다 — 뼈만 움직인다');
+    } else {
+      actions.idle?.play();
+      console.log('[3D] 동작 얹음:', Object.keys(actions).join(', '));
+    }
+  } catch (e) {
+    console.warn('[3D] 동작을 못 불렀다 — 뼈만 움직인다:', e);
+  }
+
+  /** 지금 기분에 맞는 동작으로 부드럽게 갈아탄다. */
+  let playing = actions.idle ?? null;
+  function switchTo(next) {
+    if (next === undefined || next === null || next === playing) return;
+    next.reset().play();
+    if (playing !== null) playing.crossFadeTo(next, 0.35, false);
+    playing = next;
+  }
+
   const state = { mood: 'idle', look: 0 };
   const clock = new THREE.Clock();
 
@@ -119,6 +185,7 @@ export async function mountModel(canvas, modelName, onFail) {
 
   renderer.setAnimationLoop(() => {
     const t = clock.getElapsedTime();
+    mixer?.update(clock.getDelta());
 
     // 숨. 늘 있다 — 멈춰 있으면 물건처럼 보인다.
     const breath = Math.sin(t * 1.7) * 0.012;
@@ -140,7 +207,7 @@ export async function mountModel(canvas, modelName, onFail) {
 
     // 뼈를 직접 움직인다. 몸통 전체를 돌리는 것과 달리 사람처럼 보이는 건 이쪽이다.
     // 폭을 좁게 잡는다 — 크게 돌리면 목이 꺾인 인형이 된다.
-    if (bones.head !== null) {
+    if (bones.head !== null && (mixer === null || state.look !== 0 || state.mood !== 'idle')) {
       const base = rest.get(bones.head);
       bones.head.rotation.y = base.y + state.look * 0.34 + (state.mood === 'listening' ? 0.12 : 0);
       bones.head.rotation.x = base.x
@@ -149,11 +216,11 @@ export async function mountModel(canvas, modelName, onFail) {
         + Math.sin(t * 1.3) * 0.015; // 가만히 있을 때도 아주 조금 움직인다
       bones.head.rotation.z = base.z + (state.mood === 'thinking' ? Math.sin(t * 1.9) * 0.05 : 0);
     }
-    if (bones.neck !== null) {
+    if (bones.neck !== null && mixer === null) {
       const base = rest.get(bones.neck);
       bones.neck.rotation.y = base.y + state.look * 0.14;
     }
-    if (bones.spine !== null) {
+    if (bones.spine !== null && mixer === null) {
       const base = rest.get(bones.spine);
       bones.spine.rotation.x = base.x + Math.sin(t * 1.7) * 0.02; // 숨
       bones.spine.rotation.y = base.y + state.look * 0.08;
@@ -163,7 +230,10 @@ export async function mountModel(canvas, modelName, onFail) {
   });
 
   return {
-    setMood(mood) { state.mood = mood || 'idle'; },
+    setMood(mood) {
+      state.mood = mood || 'idle';
+      switchTo(state.mood === 'speaking' ? (actions.talking ?? actions.idle) : actions.idle);
+    },
     /** -1(왼쪽) ~ 1(오른쪽). */
     lookAt(x) { state.look = Math.max(-1, Math.min(1, x)); },
   };

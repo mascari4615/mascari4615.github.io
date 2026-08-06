@@ -107,8 +107,20 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
-        if (url === '/model.js') {
-          serveFile(res, join(packageRoot, 'assets', 'model.js'), 'text/javascript; charset=utf-8', log);
+        // 가져온 동작 파일 (CC0 — 출처는 assets/anim/출처.md).
+        if (url.startsWith('/anim/')) {
+          const base = join(packageRoot, 'assets', 'anim');
+          const wanted = join(base, decodeURIComponent(url.slice('/anim/'.length).split('?')[0] ?? ''));
+          if (wanted.startsWith(base) === false) {
+            res.writeHead(403).end();
+            return;
+          }
+          serveFile(res, wanted, 'model/gltf-binary', log);
+          return;
+        }
+
+        if (url === '/model.js' || url === '/toon.js') {
+          serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;
         }
 
