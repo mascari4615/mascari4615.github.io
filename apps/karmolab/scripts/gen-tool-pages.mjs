@@ -232,6 +232,12 @@ function buildToolPage(id) {
     '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
     `<link rel="canonical" href="${toolPageUrl(id)}">`
   );
+  // 상세 페이지는 세리프 글꼴을 부르지 않는다 (TASK-KL-089).
+  // 세리프는 홈의 큰 제목과 도구 히어로 제목에 쓰이는데, 상세 페이지에서는 히어로가 숨겨져
+  // 사실상 안 쓰인다. 그런데 한글 세리프는 글꼴 목록만 185KB 를 더 부른다 — 검색으로 들어온
+  // 사람이 가장 먼저 기다리는 것이 이 목록이라 그만큼 늦어진다. 홈은 그대로 두고 여기서만 뺀다.
+  html = html.replace(/&family=Noto\+Serif\+KR:wght@[0-9;]+/, '');
+
   html = replaceMeta(html, 'name', 'description', t.description);
   html = replaceMeta(html, 'property', 'og:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'property', 'og:description', t.description);
