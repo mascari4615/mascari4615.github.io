@@ -127,16 +127,31 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
-        // 모델 파일 자체 (게임 저장소 안의 것을 그 자리에서 읽는다).
+        // 모델과 그 옆에 있는 그림들 (게임 저장소 안의 것을 그 자리에서 읽는다).
+        //
+        // 모델 파일 하나만 내주면 살이 없는 회색 덩어리가 뜬다 — 색·무늬는 옆에 따로
+        // 놓인 그림 파일이고, 모델은 그걸 이름으로만 가리키기 때문이다. 그래서 모델이
+        // 있는 폴더를 통째로 열어 준다.
         if (url.startsWith('/model/')) {
-          const name = decodeURIComponent(url.slice('/model/'.length).split('?')[0] ?? '');
-          const path = options.models?.[name];
-          if (path === undefined) {
+          const rest = decodeURIComponent(url.slice('/model/'.length).split('?')[0] ?? '');
+          const slash = rest.indexOf('/');
+          const name = slash < 0 ? rest : rest.slice(0, slash);
+          const modelPath = options.models?.[name];
+          if (modelPath === undefined) {
             res.writeHead(404).end();
             return;
           }
-          const type = path.toLowerCase().endsWith('.png') ? 'image/png' : 'application/octet-stream';
-          serveFile(res, path, type, log);
+          if (slash < 0) {
+            serveFile(res, modelPath, 'application/octet-stream', log);
+            return;
+          }
+          const folder = dirname(modelPath);
+          const sibling = join(folder, rest.slice(slash + 1));
+          if (sibling.startsWith(folder) === false) {
+            res.writeHead(403).end();
+            return;
+          }
+          serveFile(res, sibling, sibling.toLowerCase().endsWith('.png') ? 'image/png' : 'application/octet-stream', log);
           return;
         }
 

@@ -35,10 +35,55 @@ export async function mountModel(canvas, modelName, onFail) {
 
   let model;
   try {
-    model = await new FBXLoader().loadAsync(`/model/${encodeURIComponent(modelName)}`);
+    const loader = new FBXLoader();
+    // 색·무늬는 모델 옆에 따로 놓인 그림 파일이다. 그 폴더를 알려주지 않으면
+    // 회색 덩어리가 뜬다.
+    loader.setResourcePath(`/model/${encodeURIComponent(modelName)}/`);
+    model = await loader.loadAsync(`/model/${encodeURIComponent(modelName)}`);
   } catch (e) {
     onFail?.(e);
     return null;
+  }
+
+  // 빛을 안 받는 재질이면 아무리 비춰도 새까맣게 남는다 — 빛 받는 재질로 바꿔준다.
+  model.traverse((node) => {
+    if (node.isMesh !== true) return;
+    node.frustumCulled = false;
+    for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+      if (material === undefined || material === null) continue;
+      material.side = THREE.DoubleSide;
+      if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+    }
+  });
+
+  // 클립이 하나도 없는 모델이다(실측). 대신 뼈를 직접 움직인다 — 남의 동작을
+  // 억지로 씌우면 이 골격과 안 맞아 어긋나 보인다.
+  // 이 골격은 진짜 뼈 옆에 `ORG-`·`MCH-`·`DEF-` 같은 보조 사본을 함께 들고 있다(실측).
+  // 이름에 들어있다고 아무거나 잡으면 화면에 아무 변화가 없는 사본을 돌리게 된다.
+  const helper = /^(org|mch|def|vis|tweak)[-_.]/i;
+  const found = new Map();
+  model.traverse((node) => {
+    if (node.isBone !== true) return;
+    const n = node.name.toLowerCase();
+    if (helper.test(n)) return;
+    if (found.has(n) === false) found.set(n, node);
+  });
+  const pick = (...names) => {
+    for (const name of names) {
+      const bone = found.get(name);
+      if (bone !== undefined) return bone;
+    }
+    return null;
+  };
+  const bones = {
+    head: pick('head'),
+    neck: pick('neck'),
+    spine: pick('chest', 'spine', 'torso'),
+  };
+  console.log('[3D] 잡은 뼈:', Object.entries(bones).map(([k, v]) => `${k}=${v?.name ?? '없음'}`).join(' '));
+  const rest = new Map();
+  for (const bone of Object.values(bones)) {
+    if (bone !== null) rest.set(bone, bone.rotation.clone());
   }
 
   // 모델마다 크기·중심이 제각각이라, 실제 크기를 재서 화면에 맞춘다.
@@ -92,6 +137,27 @@ export async function mountModel(canvas, modelName, onFail) {
     const nod = state.mood === 'speaking' ? Math.sin(t * 9.0) * 0.045 : 0;
     const tilt = state.mood === 'thinking' ? 0.07 : 0;
     pivot.rotation.x += (nod + tilt - pivot.rotation.x) * 0.12;
+
+    // 뼈를 직접 움직인다. 몸통 전체를 돌리는 것과 달리 사람처럼 보이는 건 이쪽이다.
+    // 폭을 좁게 잡는다 — 크게 돌리면 목이 꺾인 인형이 된다.
+    if (bones.head !== null) {
+      const base = rest.get(bones.head);
+      bones.head.rotation.y = base.y + state.look * 0.34 + (state.mood === 'listening' ? 0.12 : 0);
+      bones.head.rotation.x = base.x
+        + (state.mood === 'speaking' ? Math.sin(t * 8.2) * 0.06 : 0)
+        + (state.mood === 'thinking' ? 0.10 : 0)
+        + Math.sin(t * 1.3) * 0.015; // 가만히 있을 때도 아주 조금 움직인다
+      bones.head.rotation.z = base.z + (state.mood === 'thinking' ? Math.sin(t * 1.9) * 0.05 : 0);
+    }
+    if (bones.neck !== null) {
+      const base = rest.get(bones.neck);
+      bones.neck.rotation.y = base.y + state.look * 0.14;
+    }
+    if (bones.spine !== null) {
+      const base = rest.get(bones.spine);
+      bones.spine.rotation.x = base.x + Math.sin(t * 1.7) * 0.02; // 숨
+      bones.spine.rotation.y = base.y + state.look * 0.08;
+    }
 
     renderer.render(scene, camera);
   });
