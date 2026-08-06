@@ -476,8 +476,17 @@ function buildHub() {
     })
     .join(String.fromCharCode(10));
 
-  const ld = {
-    '@context': 'https://schema.org',
+  // 화면에는 「KarmoLab / 도구」 경로가 있는데 기계가 읽는 쪽에는 없었다 (TASK-KL-089).
+  // 도구 상세 페이지에는 넣어 두었으므로 목록 페이지만 빠져 있던 셈이다.
+  const crumb = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/karmolab/` },
+      { '@type': 'ListItem', position: 2, name: '도구', item: `${SITE}${BASE_PATH}/` }
+    ]
+  };
+
+  const collection = {
     '@type': 'CollectionPage',
     name: 'KarmoLab 도구',
     url: `${SITE}${BASE_PATH}/`,
@@ -490,6 +499,8 @@ function buildHub() {
       operatingSystem: 'Web'
     }))
   };
+
+  const ld = { '@context': 'https://schema.org', '@graph': [collection, crumb] };
 
   return `---
 layout: none
