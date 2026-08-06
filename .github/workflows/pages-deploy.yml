@@ -22,10 +22,13 @@ permissions:
   pages: write
   id-token: write
 
-# Allow one concurrent deployment
+# 배포는 한 번에 하나. 단 **돌던 것을 끊지 않는다** —
+# 여러 세션이 몇 분 간격으로 밀어 넣는데 배포가 5~10분이라, 끊는 설정에서는
+# 배포가 끝까지 가는 일 자체가 드물었다 (실측: 연속 3건이 완주 못 하고 취소).
+# 끊지 않으면 돌던 것은 끝나고, 대기 중이던 것만 최신 것으로 교체된다.
 concurrency:
   group: "pages"
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
