@@ -119,19 +119,32 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             return out;
           }
 
-          function join(): AudioBuffer | null {
+          /**
+           * 표본을 하나하나 옮기는 일이라 긴 음원 여러 개면 수억 번이 된다.
+           * 한 번에 돌면 그동안 화면이 통째로 멈춰 「먹통이 됐나」 싶어지므로,
+           * **파일 하나를 옮길 때마다** 숨 쉴 틈을 주고 어디까지 왔는지 알려 준다.
+           */
+          async function join(): Promise<AudioBuffer | null> {
             if (!items.length) return null;
             const rate = Math.max(...items.map((i) => i.buffer.sampleRate));
             const ch = Math.max(...items.map((i) => i.buffer.numberOfChannels));
             const gapLen = Math.round((parseInt(gap.value, 10) / 10) * rate);
             const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             const ctx = new AC();
-            const parts = items.map((i) => resample(i.buffer, rate, ch, ctx));
+            const parts: AudioBuffer[] = [];
+            for (let i = 0; i < items.length; i++) {
+              say(`맞추는 중… ${i + 1}/${items.length}`);
+              await new Promise((r) => setTimeout(r, 0));
+              parts.push(resample(items[i].buffer, rate, ch, ctx));
+            }
             const total = parts.reduce((a, b) => a + b.length, 0) + gapLen * (parts.length - 1);
             const out = ctx.createBuffer(ch, total, rate);
             const fade = $<HTMLInputElement>('#ajFade').checked ? Math.floor(rate * 0.02) : 0;
             let off = 0;
-            parts.forEach((part, pi) => {
+            for (let pi = 0; pi < parts.length; pi++) {
+              const part = parts[pi];
+              say(`잇는 중… ${pi + 1}/${parts.length}`);
+              await new Promise((r) => setTimeout(r, 0));
               for (let c = 0; c < ch; c++) {
                 const from = part.getChannelData(c);
                 const to = out.getChannelData(c);
@@ -145,7 +158,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
                 }
               }
               off += part.length + (pi < parts.length - 1 ? gapLen : 0);
-            });
+            }
             void ctx.close();
             return out;
           }
@@ -169,7 +182,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             render();
           });
           $<HTMLButtonElement>('#ajRun').onclick = () => {
-            const out = join();
+            void (async () => {
+            const out = await join();
             if (!out) {
               say('음원을 먼저 넣어 주세요.', 'error');
               return;
@@ -187,6 +201,7 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
                 Toolbox.trackUse?.('join');
               })
               .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+            })().catch((err: Error) => say('잇는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
           $<HTMLButtonElement>('#ajClear').onclick = () => {
             items = [];
