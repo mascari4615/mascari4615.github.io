@@ -15,6 +15,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['life/life']
   },
   {
+    id: 'passgen',
+    title: '비밀번호 만들기·확인',
+    category: 'tool',
+    desc: '안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/passgen']
+  },
+  {
     id: 'devtool',
     title: '개발 도구',
     category: 'tool',
