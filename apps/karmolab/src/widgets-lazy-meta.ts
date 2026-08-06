@@ -1007,6 +1007,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/radix']
   },
   {
+    id: 'textredact',
+    title: '글자 가리개',
+    category: 'tool',
+    desc: '로그·문서에서 주민번호·전화·카드번호를 찾아 지웁니다. 무엇을 찾았는지 보여 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 5h16M4 9h16M4 13h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="14" y="15" width="7" height="4" rx="1" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/textredact']
+  },
+  {
     id: 'textclean',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
