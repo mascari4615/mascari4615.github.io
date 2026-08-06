@@ -6,6 +6,7 @@
  * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   Toolbox.register({
@@ -201,6 +202,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             const f = e.dataTransfer?.files?.[0];
             if (f) void load(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type.startsWith('audio/'));
           [startEl, endEl].forEach((el) => el.addEventListener('input', refresh));
 
           $<HTMLButtonElement>('#acPreview').onclick = () => {

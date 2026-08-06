@@ -5,6 +5,8 @@
  * PDF 는 벡터라 **원하는 배율로 다시 그릴 수 있다** — 2배로 그리면 인쇄에도 쓸 만한 그림이 나온다.
  * 파일은 브라우저 밖으로 나가지 않는다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface PdfPage {
     getViewport: (o: { scale: number }) => { width: number; height: number };
@@ -60,11 +62,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">배율 <span id="p2ScaleVal" class="range-value">2배</span></div>
-                  <input type="range" id="p2Scale" min="1" max="4" step="0.5" value="2">
+                  <input type="range" id="p2Scale" aria-label="배율" min="1" max="4" step="0.5" value="2">
                 </div>
                 <div>
                   <div class="tool-sublabel">형식</div>
-                  <select id="p2Format">
+                  <select id="p2Format" aria-label="형식">
                     <option value="image/png">PNG — 글자가 또렷함</option>
                     <option value="image/jpeg">JPG — 용량이 작음</option>
                   </select>
@@ -175,6 +177,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) pick(f);
           });
+          // 캡처나 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { pick(files[0]); }, (f) => f.type === 'application/pdf');
           scale.addEventListener('input', () => {
             $<HTMLElement>('#p2ScaleVal').textContent = scale.value + '배';
           });
