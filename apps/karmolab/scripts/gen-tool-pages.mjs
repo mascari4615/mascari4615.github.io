@@ -206,13 +206,56 @@ function buildToolPage(id) {
 
 /* ── 허브 페이지 ───────────────────────────────────── */
 
+/**
+ * 도구를 묶음별로 나눈다.
+ *
+ * 도구가 40개를 넘으면서 한 줄로 늘어놓으면 읽히지 않는다. 앱에서 묶어 놓은 그대로
+ * 소제목을 달아 나눈다 — 목록의 순서가 실제 화면의 구조와 어긋나지 않게 한다.
+ * 묶음 정의는 위젯 소스에서 읽는다 (여기 손으로 적으면 갈라진다).
+ */
+function groupIds() {
+  const bundles = [];
+  const claimed = new Set();
+  for (const dir of ['tools', 'ref']) {
+    for (const file of fs.readdirSync(path.join(root, 'src/widgets', dir))) {
+      if (!file.endsWith('.ts')) continue;
+      const bundleId = file.slice(0, -3);
+      const src = fs
+        .readFileSync(path.join(root, 'src/widgets', dir, file), 'utf8')
+        .split(String.fromCharCode(13, 10))
+        .join(String.fromCharCode(10));
+      const raw = src.match(/const (?:PARTS|TABS): Array<\[string, string\]> = \[([\s\S]*?)\n  \];/);
+      if (!raw) continue;
+      const parts = [...raw[1].matchAll(/\['([^']+)', '[^']*'\]/g)]
+        .map((m) => m[1])
+        .filter((x) => ids.includes(x));
+      if (parts.length < 2) continue;
+      const title = src.match(/\n    title: '([^']+)'/);
+      bundles.push({ title: title ? title[1] : bundleId, parts, bundleId });
+      parts.forEach((x) => claimed.add(x));
+    }
+  }
+  // 묶음 자신이 페이지를 가지면 소제목이 그 링크가 된다 → 낱개 목록에서는 뺀다.
+  bundles.forEach((b) => claimed.add(b.bundleId));
+  const rest = ids.filter((id) => !claimed.has(id));
+  bundles.sort((a, b) => b.parts.length - a.parts.length);
+  if (rest.length) bundles.push({ title: '그 밖에', parts: rest, bundleId: null });
+  return bundles;
+}
+
 function buildHub() {
-  const cards = ids
-    .map(
-      (id) =>
-        `      <a class="tool-hub-card" href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}</strong><span>${esc(seo[id].lead)}</span></a>`
-    )
-    .join('\n');
+  const card = (id) =>
+    `        <a class="tool-hub-card" href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}</strong><span>${esc(seo[id].lead)}</span></a>`;
+  const cards = groupIds()
+    .map((g) => {
+      const head =
+        g.bundleId && ids.includes(g.bundleId)
+          ? `      <h2 class="tool-hub-group"><a href="${BASE_PATH}/${g.bundleId}/">${esc(g.title)}</a></h2>`
+          : `      <h2 class="tool-hub-group">${esc(g.title)}</h2>`;
+      const grid = g.parts.map(card).join(String.fromCharCode(10));
+      return [head, '      <div class="tool-hub-grid">', grid, '      </div>'].join(String.fromCharCode(10));
+    })
+    .join(String.fromCharCode(10));
 
   const ld = {
     '@context': 'https://schema.org',
@@ -260,9 +303,7 @@ permalink: ${BASE_PATH}/
       <nav class="tool-seo-crumb" aria-label="위치"><a href="/karmolab/">KarmoLab</a> / 도구</nav>
       <h1>도구</h1>
       <p class="tool-seo-lead">삶을 섞고 술을 바꿀 시간.</p>
-      <div class="tool-hub-grid">
 ${cards}
-      </div>
       <p class="tool-seo-note">
         각 도구의 계산은 브라우저 안에서만 이뤄지며 입력한 내용은 저장·전송되지 않습니다.
         <a href="/karmolab/">KarmoLab 전체 보기</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>
