@@ -6,47 +6,9 @@
  * 내보내기는 WAV 로 한다 — 압축 형식으로 다시 인코딩하려면 무거운 코덱이 필요하고,
  * 그 무게를 「자르기」 하나 때문에 지우기엔 크다. 대신 원본 품질이 그대로 남는다.
  */
+import { toWav, fileSize as size, mmss } from './shared/media';
+
 (function (): void {
-  /** AudioBuffer → WAV (16bit PCM). 헤더를 직접 쓰는 게 코덱을 들이는 것보다 가볍다. */
-  function toWav(buffer: AudioBuffer): Blob {
-    const numCh = buffer.numberOfChannels;
-    const len = buffer.length * numCh * 2 + 44;
-    const view = new DataView(new ArrayBuffer(len));
-    const writeStr = (off: number, s: string): void => {
-      for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
-    };
-    writeStr(0, 'RIFF');
-    view.setUint32(4, len - 8, true);
-    writeStr(8, 'WAVE');
-    writeStr(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numCh, true);
-    view.setUint32(24, buffer.sampleRate, true);
-    view.setUint32(28, buffer.sampleRate * numCh * 2, true);
-    view.setUint16(32, numCh * 2, true);
-    view.setUint16(34, 16, true);
-    writeStr(36, 'data');
-    view.setUint32(40, len - 44, true);
-
-    const chans: Float32Array[] = [];
-    for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
-    let off = 44;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let c = 0; c < numCh; c++) {
-        const s = Math.max(-1, Math.min(1, chans[c][i]));
-        view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-        off += 2;
-      }
-    }
-    return new Blob([view], { type: 'audio/wav' });
-  }
-
-  const mmss = (sec: number): string => {
-    const s = Math.max(0, Math.floor(sec));
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  };
-
   Toolbox.register({
     id: 'audiocut',
     title: '오디오 자르기',
@@ -60,7 +22,7 @@
         label: '오디오',
         build: function (container: HTMLElement): void {
           container.innerHTML = `
-            <div class="tool-drop" id="acDrop">
+            <div class="tool-drop" id="acDrop" role="button" tabindex="0">
               <input type="file" id="acFile" accept="audio/*" hidden>
               음원 파일을 끌어다 놓거나 눌러서 고르세요
             </div>
@@ -217,6 +179,14 @@
           }
 
           drop.onclick = () => fileInput.click();
+          // 파일 고르는 칸은 감춰 두고 이 상자를 누르게 되어 있다. 마우스가 없으면 길이 막히므로
+          // 키보드에서도 열리게 한다 (TASK-KL-089).
+          drop.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInput.click();
+            }
+          });
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };

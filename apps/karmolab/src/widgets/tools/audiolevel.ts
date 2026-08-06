@@ -1,0 +1,255 @@
+/**
+ * 소리 크기 맞추기 (TASK-KL-088)
+ *
+ * 강의 녹음이나 회의 녹음은 「어떤 대목은 안 들리고 어떤 대목은 귀가 아픈」 상태가 되기 쉽다.
+ * 볼륨을 올리는 것만으로는 안 된다 — 큰 데가 먼저 찌그러지기 때문이다.
+ *
+ * 그래서 두 단계로 한다:
+ *  ① **고르게(압축)** — 큰 소리만 눌러 큰 데와 작은 데의 차이를 좁힌다
+ *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
+ * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
+ */
+import { toWav, fileSize as size, mmss } from './shared/media';
+
+(function (): void {
+  /** 소리의 「체감 크기」. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
+  function rms(data: Float32Array): number {
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+    return Math.sqrt(sum / Math.max(1, data.length));
+  }
+
+  function peakOf(data: Float32Array): number {
+    let p = 0;
+    for (let i = 0; i < data.length; i++) p = Math.max(p, Math.abs(data[i]));
+    return p;
+  }
+
+  const db = (v: number): string => (v <= 0.00001 ? '-∞' : `${(20 * Math.log10(v)).toFixed(1)}`);
+
+  /** 파형을 그린다. 숫자만으로는 「고르게 됐다」가 안 와닿는다. */
+  function drawWave(canvas: HTMLCanvasElement, data: Float32Array, color: string): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = (canvas.width = canvas.clientWidth || 600);
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(0, h / 2 - 0.5, w, 1);
+    ctx.fillStyle = color;
+    const step = Math.max(1, Math.floor(data.length / w));
+    for (let x = 0; x < w; x++) {
+      let max = 0;
+      for (let i = x * step; i < (x + 1) * step && i < data.length; i++) max = Math.max(max, Math.abs(data[i]));
+      const bar = Math.max(1, max * h * 0.94);
+      ctx.fillRect(x, (h - bar) / 2, 1, bar);
+    }
+  }
+
+  Toolbox.register({
+    id: 'audiolevel',
+    title: '소리 크기 맞추기',
+    category: 'tool',
+    desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M4 14V10M8 17V7M12 19V5M16 16V8M20 13v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    tabs: [
+      {
+        id: 'app',
+        label: '크기 맞추기',
+        build: function (container: HTMLElement): void {
+          container.innerHTML = `
+            <div class="tool-drop" id="alDrop">
+              <input type="file" id="alFile" accept="audio/*,video/*" hidden>
+              음원이나 영상을 끌어다 놓거나 눌러서 고르세요
+            </div>
+
+            <div id="alEditor" style="display:none; margin-top:var(--space-lg);">
+              <div class="tool-sublabel">원래 소리</div>
+              <canvas id="alBefore" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
+              <div class="tool-sublabel" style="margin-top:10px;">맞춘 소리</div>
+              <canvas id="alAfter" height="70" style="width:100%; height:70px; border-radius:8px; background:var(--surface-2, #1a1a1a); display:block;"></canvas>
+
+              <div class="field-group" style="margin-top:var(--space-lg);">
+                <div class="tool-grid-2">
+                  <div>
+                    <div class="tool-sublabel">고르게 <span id="alEvenVal" class="range-value">보통</span></div>
+                    <input type="range" id="alEven" min="0" max="3" step="1" value="2">
+                  </div>
+                  <div>
+                    <div class="tool-sublabel">목표 크기 <span id="alTargetVal" class="range-value">-1.0 dB</span></div>
+                    <input type="range" id="alTarget" min="-12" max="-1" step="1" value="-1">
+                  </div>
+                </div>
+              </div>
+
+              <div class="cc-stats" id="alStats"></div>
+
+              <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
+                <button class="btn btn-primary" id="alRun">크기 맞추기</button>
+                <button class="btn btn-ghost" id="alSave" disabled>WAV 로 받기</button>
+              </div>
+
+              <div id="alResult" style="display:none;">
+                <div class="tool-sublabel">맞춘 소리 들어 보기</div>
+                <audio id="alPreview" controls style="width:100%;"></audio>
+              </div>
+            </div>
+
+            <div class="tool-status" id="alStatus">파일은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+          `;
+
+          const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
+          const drop = $<HTMLElement>('#alDrop');
+          const fileInput = $<HTMLInputElement>('#alFile');
+          const editor = $<HTMLElement>('#alEditor');
+          const stats = $<HTMLElement>('#alStats');
+          const status = $<HTMLElement>('#alStatus');
+          const evenEl = $<HTMLInputElement>('#alEven');
+          const targetEl = $<HTMLInputElement>('#alTarget');
+          const saveBtn = $<HTMLButtonElement>('#alSave');
+
+          const EVEN: Array<[number, string]> = [
+            [1, '안 함'],
+            [0.7, '약하게'],
+            [0.5, '보통'],
+            [0.32, '강하게']
+          ];
+
+          let fileName = '';
+          let source: AudioBuffer | null = null;
+          let made: Blob | null = null;
+
+          const say = (m: string, kind = ''): void => {
+            status.textContent = m;
+            status.className = 'tool-status' + (kind ? ' ' + kind : '');
+          };
+          const stat = (l: string, v: string, primary = false): string =>
+            `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
+
+          function labels(): void {
+            $<HTMLElement>('#alEvenVal').textContent = EVEN[parseInt(evenEl.value, 10)][1];
+            $<HTMLElement>('#alTargetVal').textContent = `${parseFloat(targetEl.value).toFixed(1)} dB`;
+          }
+
+          async function load(f: File): Promise<void> {
+            fileName = f.name;
+            made = null;
+            saveBtn.disabled = true;
+            $<HTMLElement>('#alResult').style.display = 'none';
+            say(`${f.name} · ${size(f.size)} 를 읽는 중…`);
+            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            const ctx = new AC();
+            try {
+              source = await ctx.decodeAudioData(await f.arrayBuffer());
+            } catch {
+              say('이 파일의 소리는 브라우저가 해독하지 못했어요. mp3·wav·m4a·mp4 는 대체로 됩니다.', 'error');
+              void ctx.close();
+              return;
+            }
+            void ctx.close();
+            editor.style.display = '';
+            const ch0 = source.getChannelData(0);
+            drawWave($<HTMLCanvasElement>('#alBefore'), ch0, '#7a8894');
+            drawWave($<HTMLCanvasElement>('#alAfter'), new Float32Array(0), '#4bb3e0');
+            stats.innerHTML =
+              stat('길이', mmss(source.duration), true) +
+              stat('가장 큰 소리', `${db(peakOf(ch0))} dB`) +
+              stat('체감 크기', `${db(rms(ch0))} dB`);
+            say('설정을 고르고 크기 맞추기를 누르세요.', 'ok');
+          }
+
+          /**
+           * 큰 소리를 눌러 크고 작음의 차이를 좁힌 뒤(①) 전체를 목표까지 올린다(②).
+           * 누르는 정도는 지수로 준다 — 곱셈으로 줄이면 작은 소리까지 같이 줄어 아무 소용이 없다.
+           */
+          function process(buffer: AudioBuffer, ctx: AudioContext): AudioBuffer {
+            const ratio = EVEN[parseInt(evenEl.value, 10)][0];
+            const target = Math.pow(10, parseFloat(targetEl.value) / 20);
+            const out = ctx.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+            let maxAfter = 0;
+            for (let c = 0; c < buffer.numberOfChannels; c++) {
+              const from = buffer.getChannelData(c);
+              const to = out.getChannelData(c);
+              for (let i = 0; i < from.length; i++) {
+                const v = from[i];
+                // 부호는 그대로 두고 크기만 눌러야 소리가 뒤집히지 않는다
+                const shaped = ratio === 1 ? v : Math.sign(v) * Math.pow(Math.abs(v), ratio);
+                to[i] = shaped;
+                maxAfter = Math.max(maxAfter, Math.abs(shaped));
+              }
+            }
+            // 목표를 넘지 않도록 한 번에 맞춘다 (넘으면 찌그러진다)
+            const gain = maxAfter > 0 ? target / maxAfter : 1;
+            for (let c = 0; c < out.numberOfChannels; c++) {
+              const to = out.getChannelData(c);
+              for (let i = 0; i < to.length; i++) to[i] = Math.max(-1, Math.min(1, to[i] * gain));
+            }
+            return out;
+          }
+
+          function run(): void {
+            if (!source) {
+              say('파일을 먼저 넣어 주세요.', 'error');
+              return;
+            }
+            const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            const ctx = new AC();
+            const out = process(source, ctx);
+            void ctx.close();
+
+            const before = source.getChannelData(0);
+            const after = out.getChannelData(0);
+            drawWave($<HTMLCanvasElement>('#alAfter'), after, '#4bb3e0');
+
+            made = toWav(out);
+            $<HTMLAudioElement>('#alPreview').src = URL.createObjectURL(made);
+            $<HTMLElement>('#alResult').style.display = '';
+            saveBtn.disabled = false;
+
+            // 「고르게 됐다」는 큰 소리와 체감 크기의 **간격이 좁아진 것**으로 재는 게 정확하다
+            const spanBefore = 20 * Math.log10(peakOf(before) / Math.max(1e-6, rms(before)));
+            const spanAfter = 20 * Math.log10(peakOf(after) / Math.max(1e-6, rms(after)));
+            stats.innerHTML =
+              stat('체감 크기', `${db(rms(before))} → ${db(rms(after))} dB`, true) +
+              stat('가장 큰 소리', `${db(peakOf(before))} → ${db(peakOf(after))} dB`) +
+              stat('들쭉날쭉', `${spanBefore.toFixed(1)} → ${spanAfter.toFixed(1)} dB`) +
+              stat('용량', size(made.size));
+            say(`맞췄어요. 들쭉날쭉한 정도가 ${spanBefore.toFixed(1)} 에서 ${spanAfter.toFixed(1)} dB 로 좁아졌습니다.`, 'ok');
+            Toolbox.trackUse?.('level');
+          }
+
+          drop.onclick = () => fileInput.click();
+          fileInput.onchange = () => {
+            if (fileInput.files?.[0]) void load(fileInput.files[0]);
+          };
+          drop.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            drop.classList.add('over');
+          });
+          drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+          drop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            drop.classList.remove('over');
+            const f = e.dataTransfer?.files?.[0];
+            if (f) void load(f);
+          });
+          [evenEl, targetEl].forEach((el) => el.addEventListener('input', labels));
+          labels();
+
+          $<HTMLButtonElement>('#alRun').onclick = () => run();
+          saveBtn.onclick = () => {
+            if (!made) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(made);
+            a.download = fileName.replace(/\.[^.]+$/, '') + '-크기맞춤.wav';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            say('내려받았어요.', 'ok');
+          };
+        }
+      }
+    ]
+  });
+})();

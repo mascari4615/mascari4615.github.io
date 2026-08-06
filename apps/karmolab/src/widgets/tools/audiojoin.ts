@@ -5,45 +5,9 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
+import { toWav, fileSize as size, mmss } from './shared/media';
+
 (function (): void {
-  function toWav(buffer: AudioBuffer): Blob {
-    const numCh = buffer.numberOfChannels;
-    const len = buffer.length * numCh * 2 + 44;
-    const view = new DataView(new ArrayBuffer(len));
-    const w = (off: number, s: string): void => {
-      for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
-    };
-    w(0, 'RIFF');
-    view.setUint32(4, len - 8, true);
-    w(8, 'WAVE');
-    w(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numCh, true);
-    view.setUint32(24, buffer.sampleRate, true);
-    view.setUint32(28, buffer.sampleRate * numCh * 2, true);
-    view.setUint16(32, numCh * 2, true);
-    view.setUint16(34, 16, true);
-    w(36, 'data');
-    view.setUint32(40, len - 44, true);
-    const chans: Float32Array[] = [];
-    for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
-    let off = 44;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let c = 0; c < numCh; c++) {
-        const s = Math.max(-1, Math.min(1, chans[c][i]));
-        view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-        off += 2;
-      }
-    }
-    return new Blob([view], { type: 'audio/wav' });
-  }
-
-  const mmss = (sec: number): string => {
-    const s = Math.max(0, Math.floor(sec));
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  };
-
   Toolbox.register({
     id: 'audiojoin',
     title: '오디오 이어붙이기',
@@ -66,7 +30,7 @@
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-sublabel">사이 무음 <span id="ajGapVal" class="range-value">0.0초</span></div>
-              <input type="range" id="ajGap" min="0" max="30" value="0">
+              <input type="range" id="ajGap" aria-label="사이 무음" min="0" max="30" value="0">
               <div class="tool-chips" style="margin-top:10px;">
                 <label class="tool-chip"><input type="checkbox" id="ajFade" checked> 이음매 페이드 (딸깍 소리 방지)</label>
               </div>

@@ -16,7 +16,8 @@
     ['imgbatch', '이미지 일괄'],
     ['filehash', '파일 검사값'],
     ['voicerec', '녹음'],
-    ['pdfcompress', 'PDF 줄이기']
+    ['pdfcompress', 'PDF 줄이기'],
+    ['audiolevel', '소리 크기']
   ];
 
   Toolbox.register({
