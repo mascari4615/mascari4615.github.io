@@ -346,6 +346,10 @@
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
     overflow: hidden;
   }
+  /* `hidden` 은 브라우저가 display:none 으로 숨기는데, 아래에서 display 를 정하면
+     그게 이겨서 숨겨지지 않는다. 접히는 것들은 이 줄이 있어야 실제로 접힌다. */
+  .sheet[hidden], .grip[hidden] { display: none; }
+
   .sheet-head {
     padding: 12px 15px;
     border-bottom: 1px solid var(--edge);

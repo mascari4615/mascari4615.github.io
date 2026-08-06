@@ -6,6 +6,15 @@
 export * from './types';
 export { Companion, type CompanionOptions } from './core';
 export { loadCharacter } from './character';
+export {
+  describeHands,
+  findRequests,
+  noteHand,
+  remindHand,
+  useHands,
+  type Hand,
+  type HandRequest,
+} from './hands';
 
 export { screenSense, type ScreenSenseOptions } from './sense/screen';
 export { whisperEars, type Whisper, type WhisperOptions } from './sense/whisper';

@@ -23,8 +23,11 @@ import {
   assistantBrain,
   claudeCliBrain,
   clockBody,
+  describeHands,
   echoBrain,
   edgeSpeech,
+  noteHand,
+  remindHand,
   tactfulAttention,
   loadCharacter,
   openPinnedWindow,
@@ -35,9 +38,20 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// 손 — 말 말고 실제로 할 수 있는 일. 둘 다 되돌릴 수 있거나 흔적만 남기는 일이다.
+const home = join(homedir(), '.companion');
+const hands = [
+  noteHand(join(home, '적어둔-것.md')),
+  remindHand((afterMs, what) => {
+    setTimeout(() => {
+      companion.feed({ channel: 'web', kind: 'text', text: `(알림) 아까 알려달라고 한 것: ${what}`, at: Date.now() });
+    }, afterMs).unref?.();
+  }),
+];
+
 const brainName = process.env.COMPANION_BRAIN ?? 'claude';
 const brain =
-  brainName === 'claude' ? claudeCliBrain()
+  brainName === 'claude' ? claudeCliBrain({ handsNote: describeHands(hands) })
   : brainName === 'assistant' ? assistantBrain()
   : echoBrain;
 const port = Number(process.env.COMPANION_PORT ?? '4615');
@@ -51,7 +65,6 @@ const characterName = process.env.COMPANION_CHARACTER ?? '무명';
 const character = characterName === 'none' ? undefined : loadCharacter(join(root, 'characters', `${characterName}.md`));
 
 // 기억은 기본으로 남는다 — 껐다 켤 때마다 초면이면 인격체가 아니라 도구다.
-const home = join(homedir(), '.companion');
 const conversationPath = memoryFile ?? join(home, 'conversation.jsonl');
 const notePath = join(home, '아는-것.md');
 
@@ -68,10 +81,13 @@ const memory =
       });
 // 상주 창으로 띄울 때는 여기서 브라우저를 열지 않는다 — 아래에서 창째로 띄운다.
 const desktop = process.env.COMPANION_DESKTOP !== '0';
+// 지킴이가 창을 따로 띄우는 경우처럼, 브라우저를 아예 열면 안 되는 자리도 있다.
+// (이 구분이 없으면 되살아날 때마다 브라우저 창이 하나씩 쌓인다.)
+const openBrowserToo = process.env.COMPANION_OPEN !== '0' && desktop === false;
 
 const web = webBody({
   port,
-  open: desktop === false,
+  open: openBrowserToo,
   log: (m) => console.log(m),
   // 창을 새로 열면 지난 대화를 그대로 되찾는다 — 화면은 기억을 따로 안 들고 있는다.
   history: () => memory.recent(80),
@@ -109,6 +125,7 @@ const companion = new Companion({
   brain,
   memory,
   character,
+  hands,
   attention: tactfulAttention({
     bypassChannels: ['web'],
     cooldownMs,
