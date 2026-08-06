@@ -30,6 +30,7 @@ import {
   remindHand,
   tactfulAttention,
   loadCharacter,
+  loadCharacters,
   openPinnedWindow,
   screenSense,
   webBody,
@@ -60,9 +61,11 @@ const screenMs = Number(process.env.COMPANION_SCREEN_MS ?? '120000');
 const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '90000');
 const memoryFile = process.env.COMPANION_MEMORY_FILE?.trim();
 
-// 인격 = 파일 하나. 비우면(COMPANION_CHARACTER=none) 아무도 아닌 채로 답한다.
-const characterName = process.env.COMPANION_CHARACTER ?? '무명';
-const character = characterName === 'none' ? undefined : loadCharacter(join(root, 'characters', `${characterName}.md`));
+// 인격 = 폴더 안의 파일들. 고정이 아니라 창에서 갈아끼운다.
+const charactersDir = join(root, 'characters');
+const roster = loadCharacters(charactersDir);
+const wanted = process.env.COMPANION_CHARACTER ?? '욘';
+let character = wanted === 'none' ? undefined : (roster.find((c) => c.name === wanted) ?? roster[0]);
 
 // 기억은 기본으로 남는다 — 껐다 켤 때마다 초면이면 인격체가 아니라 도구다.
 const conversationPath = memoryFile ?? join(home, 'conversation.jsonl');
@@ -95,6 +98,17 @@ const web = webBody({
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
   speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
   // 오프라인 받아쓰기 — KarmoLab 이 이미 갖고 있던 것을 그대로 빌려 쓴다.
+  characters: {
+    list: () => roster,
+    current: () => companion.character?.name ?? null,
+    switchTo: (name) => {
+      const found = roster.find((c) => c.name === name);
+      if (found === undefined) return false;
+      companion.setCharacter(found);
+      console.log(`[인격] ${found.name} 이(가) 됐다`);
+      return true;
+    },
+  },
   ears: whisperEars({
     exePath: process.env.COMPANION_EARS_EXE
       ?? join(root, '..', '..', 'apps', 'karmolab-tauri', 'target', 'release', 'karmolab-life-ml.exe'),
