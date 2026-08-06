@@ -226,6 +226,8 @@ declare global {
     getTools: () => Array<{ id: string; hidden?: boolean; category?: string; title?: string; icon?: string }>;
     /** 다른 위젯의 첫 탭을 이 자리에 그린다 (묶음 위젯이 부분을 재사용) */
     mountTool: (id: string, container: HTMLElement) => boolean;
+    /** 이 도구가 들어간 묶음 위젯 id (없으면 null) */
+    findBundleFor: (id: string) => string | null;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;

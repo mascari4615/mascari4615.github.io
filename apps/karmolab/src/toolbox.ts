@@ -898,6 +898,24 @@ const Toolbox = (() => {
         return h || 'home';
     }
 
+    /**
+     * 이 도구가 어느 묶음의 탭으로 들어가 있는지 (없으면 null).
+     *
+     * 여러 도구를 탭으로 묶으면서 부분은 사이드바에서 숨겼다. 그런데 검색·즐겨찾기·안내 링크는
+     * 여전히 부분 이름으로 부른다 — 그때 「없는 화면」 이 되면 안 된다. 묶음으로 보내고 그 탭을 연다.
+     *
+     * 소속은 매니페스트에서 읽는다. 묶음은 필요할 때 로드되므로 등록된 탭 목록으로는
+     * 아직 안 연 묶음을 알 수 없다 (열어본 뒤에만 되는 반쪽 동작이 된다).
+     * 도구 상세 페이지에서는 그 도구만 로드되고 묶음이 없으므로, 여기서 나온 묶음이
+     * 실제로 로드돼 있을 때만 옮긴다.
+     */
+    function findBundleFor(id) {
+        const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
+        const bundleId = meta[id] && meta[id].bundle;
+        if (!bundleId) return null;
+        return tools.some((t) => t.id === bundleId) ? bundleId : null;
+    }
+
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
         let { pushHistory = true } = opts;
@@ -911,6 +929,13 @@ const Toolbox = (() => {
             location.href = pageId === 'home'
                 ? '/karmolab/'
                 : (pages.indexOf(pageId) >= 0 ? '/karmolab/t/' + pageId + '/' : '/karmolab/#' + pageId);
+            return;
+        }
+        // 묶음의 탭으로 들어간 도구를 이름으로 부르면, 묶음을 열고 그 탭을 편다.
+        const bundleId = findBundleFor(pageId);
+        if (bundleId) {
+            switchPage(bundleId, opts);
+            switchTab(pageId);
             return;
         }
         const base = location.pathname + (location.search || '');
@@ -1519,7 +1544,7 @@ const Toolbox = (() => {
     }
 
     return {
-        register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool,
+        register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,

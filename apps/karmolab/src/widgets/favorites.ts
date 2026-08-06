@@ -35,7 +35,9 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         const tools = typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [];
         const items: FavoriteItem[] = tools
             .filter((t) => {
-                if (t.hidden) return false;
+                // 묶음의 탭으로 들어간 도구는 사이드바에선 숨겼지만 검색에서는 찾을 수 있어야 한다
+                // (부르면 묶음의 그 탭이 열린다).
+                if (t.hidden && !Toolbox.findBundleFor?.(t.id)) return false;
                 // 데스크톱 전용 (desktopOnly 또는 legacy category=desktop) = 브라우저 hide
                 if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
                 return true;
