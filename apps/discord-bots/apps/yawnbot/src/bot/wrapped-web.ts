@@ -161,6 +161,116 @@ function detailSection(data: WrappedPageData): string {
   </details>`;
 }
 
+/**
+ * 「이미지로 저장」 — 화면을 캡처하는 대신 캔버스에 **다시 그린다**.
+ * 화면 캡처 방식(html2canvas 류)은 외부 라이브러리가 필요하고 글꼴·그림자에서 자주 깨진다.
+ * 숫자만 넘겨 직접 그리면 의존성 0에 결과가 항상 같다 — 자랑용이라 이게 중요하다.
+ */
+function imageScript(data: WrappedPageData): string {
+  const { summary, guildName } = data;
+  if (summary.totalMessages === 0) return '';
+
+  // JSON 을 <script> 안에 넣을 때 `<` 를 그대로 두면 닉네임에 `</script>` 를 넣어
+  // 스크립트 블록을 탈출할 수 있다 (실제로 시험이 잡아낸 구멍). 유니코드 escape 로 막는다.
+  const payload = JSON.stringify({
+    title: `${guildName} 결산`,
+    range: `최근 ${summary.days}일`,
+    total: summary.totalMessages,
+    people: summary.activeUsers,
+    chars: summary.totalChars,
+    talkers: summary.topTalkers.map((t) => ({ name: t.name, value: t.value })),
+    nightOwl: summary.nightOwl ? { name: summary.nightOwl.name, pct: Math.round(summary.nightOwl.ratio * 100) } : null,
+    emojis: summary.topEmojis,
+    hours: summary.hours,
+  })
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\u003e');
+
+  return `<script>
+  var CARD = ${payload};
+  var btn = document.getElementById('save-image');
+  if (btn) btn.addEventListener('click', function () {
+    var W = 1080, H = 1350, S = 2; // 세로 카드 — SNS 에 그대로 올라가는 비율
+    var c = document.createElement('canvas');
+    c.width = W * S; c.height = H * S;
+    var g = c.getContext('2d');
+    g.scale(S, S);
+    var F = '600 __px system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif';
+    var font = function (size, weight) { return F.replace('600', weight || '600').replace('__', size); };
+
+    var bg = g.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#2a2140'); bg.addColorStop(1, '#12101a');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+    g.fillStyle = '#a79ec4'; g.font = font(30);
+    g.fillText(CARD.range, 80, 128);
+    g.fillStyle = '#f4f1ea'; g.font = font(60, '700');
+    g.fillText('🎁 ' + CARD.title, 80, 205);
+
+    g.fillStyle = '#ffc86b'; g.font = font(190, '800');
+    g.fillText(String(CARD.total.toLocaleString('ko-KR')), 80, 420);
+    g.fillStyle = '#e6dfd2'; g.font = font(34);
+    g.fillText('개의 메시지 · ' + CARD.people + '명 · ' + CARD.chars.toLocaleString('ko-KR') + '자', 80, 480);
+
+    var y = 590;
+    g.fillStyle = '#d9d2ff'; g.font = font(32, '600');
+    g.fillText('🏆 수다왕', 80, y); y += 26;
+    var medals = ['🥇', '🥈', '🥉'];
+    CARD.talkers.slice(0, 3).forEach(function (t, i) {
+      y += 66;
+      g.fillStyle = '#f4f1ea'; g.font = font(40);
+      g.fillText(medals[i] + '  ' + t.name, 80, y);
+      g.fillStyle = '#ffc86b'; g.font = font(40, '700');
+      var label = t.value.toLocaleString('ko-KR') + '개';
+      g.fillText(label, W - 80 - g.measureText(label).width, y);
+    });
+
+    y += 90;
+    if (CARD.nightOwl) {
+      g.fillStyle = '#d9d2ff'; g.font = font(32, '600');
+      g.fillText('🦉 새벽 유령', 80, y); y += 60;
+      g.fillStyle = '#f4f1ea'; g.font = font(42, '700');
+      g.fillText(CARD.nightOwl.name, 80, y);
+      g.fillStyle = '#a79ec4'; g.font = font(30);
+      g.fillText('말한 것의 ' + CARD.nightOwl.pct + '%가 새벽', 80, y + 46);
+      y += 120;
+    }
+
+    if (CARD.emojis.length) {
+      g.fillStyle = '#d9d2ff'; g.font = font(32, '600');
+      g.fillText('😂 이 서버의 표정', 80, y); y += 66;
+      g.fillStyle = '#f4f1ea'; g.font = font(44);
+      g.fillText(CARD.emojis.map(function (e) { return e.name + ' ×' + e.count; }).join('   '), 80, y);
+      y += 90;
+    }
+
+    // 하루의 리듬 — 24개 막대
+    var bw = (W - 160) / 24, max = Math.max.apply(null, CARD.hours) || 1;
+    var base = H - 150;
+    CARD.hours.forEach(function (v, i) {
+      var h = Math.round((v / max) * 150);
+      var grad = g.createLinearGradient(0, base - h, 0, base);
+      grad.addColorStop(0, '#ffc86b'); grad.addColorStop(1, '#b98bff');
+      g.fillStyle = grad;
+      g.fillRect(80 + i * bw + 2, base - h, bw - 4, Math.max(h, 3));
+    });
+    g.fillStyle = '#8f87a8'; g.font = font(26);
+    g.fillText('0시', 80, base + 44);
+    g.fillText('23시', W - 80 - g.measureText('23시').width, base + 44);
+    g.fillStyle = '#6f688a'; g.font = font(24);
+    g.fillText('메시지 내용은 저장하지 않습니다 · 욘봇', 80, H - 48);
+
+    c.toBlob(function (blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '결산.png';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }, 'image/png');
+  });
+</script>`;
+}
+
 export function renderWrappedPage(data: WrappedPageData): string {
   const { summary, guildName } = data;
   const title = `${guildName} 결산`;
@@ -227,11 +337,14 @@ export function renderWrappedPage(data: WrappedPageData): string {
   header { text-align: center; margin-bottom: 4px; }
   h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.02em; }
   .range { color: #a79ec4; font-size: 13px; }
+  .header-links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
   .board-link {
-    display: inline-block; margin-top: 10px; padding: 7px 14px; border-radius: 999px;
-    font-size: 13px; text-decoration: none; color: #f4f1ea;
+    display: inline-block; padding: 7px 14px; border-radius: 999px;
+    font-size: 13px; text-decoration: none; color: #f4f1ea; cursor: pointer;
     background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+    font-family: inherit;
   }
+  .board-link:hover { background: rgba(255,255,255,0.12); }
   .card {
     width: min(420px, 100%); background: rgba(255,255,255,0.045);
     border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px 20px;
@@ -280,7 +393,10 @@ export function renderWrappedPage(data: WrappedPageData): string {
 <header>
   <h1>🎁 ${escapeHtml(title)}</h1>
   <div class="range">최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일</div>
-  ${data.boardPath ? `<a class="board-link" href="${escapeHtml(data.boardPath)}">📊 대시보드 열기</a>` : ''}
+  <div class="header-links">
+    ${data.boardPath ? `<a class="board-link" href="${escapeHtml(data.boardPath)}">📊 대시보드 열기</a>` : ''}
+    ${summary.totalMessages > 0 ? '<button type="button" class="board-link" id="save-image">🖼 이미지로 저장</button>' : ''}
+  </div>
 </header>
 ${body}
 ${detailSection(data)}
@@ -288,6 +404,7 @@ ${detailSection(data)}
   메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
   욘봇이 만든 결산 · <a href="https://mascari4615.github.io/karmolab/">KarmoLab</a>
 </footer>
+${imageScript(data)}
 </body></html>`;
 }
 

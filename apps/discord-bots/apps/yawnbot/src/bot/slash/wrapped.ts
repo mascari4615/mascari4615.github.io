@@ -153,6 +153,18 @@ export async function handleWrapped(_ctx: BotContext, interaction: ChatInputComm
   const days = interaction.options.getInteger('기간') ?? 7;
   const recorder = getServerStatsRecorder();
 
+  // 매주 자동으로 받을지 — 켠 사람이 명령을 친 그 채널로 간다.
+  const auto = interaction.options.getBoolean('매주');
+  if (auto !== null) {
+    recorder.setWeekly(interaction.guildId, auto ? interaction.channelId : null);
+    await interaction.reply({
+      content: auto
+        ? '📬 매주 월요일 아침, 이 채널로 지난 한 주 결산을 보냅니다.'
+        : '📭 주간 자동 결산을 껐습니다.',
+    });
+    return;
+  }
+
   if (interaction.options.getBoolean('자세히')) {
     // 눈으로 파일을 확인할 수 있게 즉시 저장한 뒤 덤프한다 (20초 대기 X).
     recorder.flushNow();

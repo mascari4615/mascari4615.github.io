@@ -68,6 +68,7 @@ import {
 import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
 import { getServerStatsRecorder } from './services/server-stats';
+import { startWeeklyWrapped, stopWeeklyWrapped } from './services/notifiers/weekly-wrapped';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
@@ -591,6 +592,8 @@ client.once('clientReady', async () => {
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
+    // TASK-YB-042: 켠 서버에만 간다 (기본 꺼짐) — memo 저장소와 무관하므로 조건 없이 시작.
+    startWeeklyWrapped(client);
     if (memoRepoPath) startBrainResurface(client, memoRepoPath);
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
@@ -743,6 +746,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
+  stopWeeklyWrapped();
   stopBrainResurface();
   stopProactive();
   stock.stopMarket();
