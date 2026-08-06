@@ -1,0 +1,50 @@
+# `companion` — 인격을 모르는 동반자 코어
+
+TASK-KAR-201. **여기엔 캐릭터가 없다.** 욘도, 말투도, 이름도 없다. 인격은 나중에 꽂는 부품이다.
+
+## 한 문장
+
+「무언가를 느꼈다 → 지금 말할까 → 무슨 말 → 어디로 내보낸다」 이 한 바퀴만 코어가 알고, 나머지는 전부 갈아끼운다.
+
+## 갈아끼우는 자리 5개
+
+| 자리 | 책임 | 지금 있는 것 |
+| --- | --- | --- |
+| `Sense` | 느낌 → 코어로 | 터미널 입력 · 웹 창 입력 · 시계 tick |
+| `Attention` | 「지금 말 걸어도 되나」 (두뇌 부르기 **전** = 비용도 수다도 같이 줄어든다) | always · never · cooldown |
+| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo(키 불요) · assistant(`karmolab-ai` 위임) |
+| `Memory` | 느낀 것·말한 것을 한 타임라인에 | 메모리 · JSONL 파일 |
+| `Voice` | 말 → 밖으로 | 터미널 출력 · 웹 창 말풍선 |
+
+**몸(Body) = Sense + Voice 한 쌍.** 디스코드도 화면도 「몸 하나」일 뿐이다 — 본체가 아니다.
+
+두뇌를 고르는 것도 여기가 아니다. `ASSISTANT_AI_PROVIDER` 로 gemini / claude-cli / codex-cli / openai / ollama / openrouter 중 고르고, `ASSISTANT_AI_FALLBACK_CHAIN` 으로 실패 시 다음 것을 시도한다 (`karmolab-ai` 가 이미 하던 일).
+
+## 굴려보기
+
+```bash
+npm install && npm test          # 단위 7개
+
+# 눈에 보이는 몸 — 브라우저가 열리고 큐브가 나타난다
+COMPANION_BRAIN=assistant ASSISTANT_AI_PROVIDER=claude-cli node demo/face.mjs
+
+# 터미널만 (글자만)
+node demo/run.mjs                                        # 가짜 두뇌 — 키 없이 루프만 확인
+COMPANION_BRAIN=assistant ASSISTANT_AI_PROVIDER=claude-cli node demo/run.mjs   # 진짜 두뇌
+COMPANION_CLOCK_MS=2000 COMPANION_MEMORY_FILE=./memory.jsonl node demo/run.mjs # 몸 2개 + 남는 기억
+```
+
+환경변수: `COMPANION_BRAIN`(echo|assistant) · `COMPANION_CLOCK_MS` · `COMPANION_COOLDOWN_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_VERBOSE`.
+
+## 이 프로토타입이 증명하려는 단 하나
+
+**몸을 늘려도 `src/core.ts` 는 안 바뀐다.** 터미널(사람이 말을 건다)과 시계(스스로 깨어난다)는 성격이 정반대인데 코어 수정 0으로 함께 붙는다. 디스코드·화면도 같은 자리에 들어온다.
+
+## 레퍼런스
+
+- [AIRI](https://github.com/moeru-ai/airi) — 코어 하나에 몸(디스코드·텔레그램·마인크래프트)이 플러그인으로 붙는 구조를 그대로 참고
+- [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) — 설정만 고쳐 부품 교체(코드 무수정) 방식
+
+## 아직 없는 것 (사용자 피드백 후 결정)
+
+인격을 꽂는 6번째 자리 · 디스코드/화면 몸 · 목소리(TTS) · 요약되는 장기 기억 · Rust 선행 구현(`karmolab-tauri` 의 `life/companion/`)과 기억 합치기.
