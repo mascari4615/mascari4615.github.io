@@ -74,7 +74,7 @@
                 <div class="field-row" style="margin-bottom:8px;">
                   <label class="field-label" style="margin:0;">입력</label>
                   <div style="display:flex; gap:6px;">
-                    <select id="jfIndent" style="width:auto; padding:4px 24px 4px 8px; font-size:var(--font-size-xs);">
+                    <select id="jfIndent" aria-label="들여쓰기" style="width:auto; padding:4px 24px 4px 8px; font-size:var(--font-size-xs);">
                       <option value="2">들여쓰기 2칸</option>
                       <option value="4">들여쓰기 4칸</option>
                       <option value="tab">탭</option>
@@ -96,7 +96,7 @@
                   <label class="field-label" style="margin:0;">결과</label>
                   <button class="btn btn-ghost" id="jfCopy">복사</button>
                 </div>
-                <textarea id="jfOutput" class="mono-input" readonly style="min-height:340px;"></textarea>
+                <textarea id="jfOutput" aria-label="정리된 결과" class="mono-input" readonly style="min-height:340px;"></textarea>
                 <div id="jfStatus" class="tool-status" style="margin-top:10px;">JSON 을 입력하고 정렬을 눌러보세요.</div>
               </div>
             </div>

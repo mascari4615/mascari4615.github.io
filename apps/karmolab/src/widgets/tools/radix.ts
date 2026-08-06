@@ -81,7 +81,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">밑 <span id="rxCustomVal" class="range-value">36</span></div>
-                  <input type="range" id="rxCustomBase" min="2" max="36" value="36">
+                  <input type="range" id="rxCustomBase" aria-label="임의 진법의 밑" min="2" max="36" value="36">
                 </div>
                 <div>
                   <div class="tool-sublabel">값</div>
