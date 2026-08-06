@@ -333,6 +333,10 @@ function buildToolPage(id) {
   // 사용자 위젯도 뺀다. 설정 화면을 미리 준비하면서 AI·코드 색칠 라이브러리까지 함께
   // 받아 오는데(107KB), 검색으로 들어온 사람에게 설정 화면은 필요 없다.
   // 대신 헤더의 사용자 단추도 이 페이지에서는 숨긴다 — 눌러도 아무 일 없는 단추를 두지 않으려고.
+  //
+  // 즐겨찾기도 뺀다. 이 위젯 하나가 링크 목록을 통째로 그려 화면 뒤에 5만 자를 쌓는데,
+  // 정작 이 페이지에 보이는 글은 2천 자다. 검색엔진이 읽을 때 무엇에 대한 문서인지 흐려지고,
+  // 처음 온 사람에게 남의 즐겨찾기 목록은 쓸모도 없다. 홈에서는 그대로 쓸 수 있다.
   html = html.replace(
     /<script defer src="\/apps\/karmolab\/js\/widgets\/randomgen\/randomgen-[a-z]+\.js"><\/script>\s*/g,
     ''
@@ -343,7 +347,7 @@ function buildToolPage(id) {
   if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음 — index.html 확인');
   html = html.replace(
     bootTag,
-    `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','dashboard'];</script>`
+    `<script>window.KARMOLAB_WIDGETS_BOOT=['dashboard'];</script>`
   );
 
   // 페이지의 큰제목은 하나여야 한다 (TASK-KL-089).
