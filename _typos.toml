@@ -31,6 +31,8 @@ thr = "thr"          # 동일 (소문자 케이스)
 ded = "ded"          # agent-cadence-ops.ts: deduped 약어 변수명
 Ded = "Ded"          # 동일 (대문자 케이스)
 criticals = "criticals" # agent-team 코드: critical 항목 배열 식별자
+seeked = "seeked"    # HTML 미디어 이벤트 이름(video.addEventListener('seeked')) — 웹 표준 식별자라 고칠 수 없다.
+                     # 2026-08-07: 이것 때문에 master 게이트가 연속으로 빨갰다(고칠 수 없는 단어를 오타로 셌다).
 
 # === WM 코드 식별자가 devlog 포스트에 인용 (역사적, 변경 불가, TASK-KAR-073) ===
 # apps/blog/_posts/.../wm-devlog-*.md 가 WM C#(Data.Criterias / RuntimeCriteria)
