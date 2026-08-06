@@ -307,6 +307,26 @@ table.past b { font-size: 14px; }
 .card p { margin: 0; color: var(--ink-2); font-size: 13px; }
 .card .cnt { color: var(--ink-3); font-size: 12px; margin-top: 8px; }
 
+.hub-note { color: var(--accent); font-size: 13.5px; margin: -8px 0 14px; font-weight: 600; }
+.card.done-today { opacity: 0.62; }
+.done-mark { display: block; color: var(--exact); font-weight: 700; margin-bottom: 2px; }
+.done-mark.miss { color: var(--ink-3); }
+
+.how {
+  margin-top: 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.how summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.how ol { margin: 10px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 13.5px; }
+.how li { margin-bottom: 5px; }
+.how p { color: var(--ink-3); font-size: 12.5px; margin: 10px 0 0; }
+
+.past-links { margin-top: 16px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
+.past-links a { color: var(--ink-2); }
+
 @media (max-width: 420px) {
   .cell .k { font-size: 9px; }
   .cell .v { font-size: 11px; }
