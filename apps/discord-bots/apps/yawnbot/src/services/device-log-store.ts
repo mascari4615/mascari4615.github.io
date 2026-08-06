@@ -140,6 +140,8 @@ export function sessionFilePath(dir: string, session: string): string {
 
 export interface AppendResult {
   written: number;
+  /** 이 배치로 세션 파일이 *처음* 만들어졌는가 (= 기기가 막 붙었다). */
+  created: boolean;
   /** 세션 파일이 상한을 넘어 거절됨. */
   full: boolean;
   bytes: number;
@@ -159,7 +161,7 @@ export function appendBatch(
   const existed = fs.existsSync(file);
   const sizeBefore = existed ? fs.statSync(file).size : 0;
   if (sizeBefore >= limits.maxSessionBytes) {
-    return { written: 0, full: true, bytes: sizeBefore };
+    return { written: 0, full: true, created: false, bytes: sizeBefore };
   }
 
   const chunks: string[] = [];
@@ -180,11 +182,16 @@ export function appendBatch(
     chunks.push(JSON.stringify({ kind: 'log', ...line }));
   }
   if (chunks.length === 0) {
-    return { written: 0, full: false, bytes: sizeBefore };
+    return { written: 0, full: false, created: false, bytes: sizeBefore };
   }
   const payload = chunks.join('\n') + '\n';
   fs.appendFileSync(file, payload, 'utf-8');
-  return { written: batch.lines.length, full: false, bytes: sizeBefore + Buffer.byteLength(payload) };
+  return {
+    written: batch.lines.length,
+    full: false,
+    created: !existed,
+    bytes: sizeBefore + Buffer.byteLength(payload),
+  };
 }
 
 export interface SessionInfo {
