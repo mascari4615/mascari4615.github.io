@@ -85,6 +85,21 @@ function toolPageUrl(id) {
   return `${SITE}${BASE_PATH}/${id}/`;
 }
 
+/**
+ * 도구별 공유 카드 (TASK-KL-089). 실물은 저장소에 커밋돼 있고 배포는 복사만 한다.
+ *
+ * 카드는 폰트가 있는 개발 머신에서 찍으므로, 도구를 추가하고 `npm run gen:og` 를 아직 안 돌린
+ * 상태로 배포가 돌 수 있다. 그때 빌드를 세우는 대신 브랜드 공용 카드로 떨어뜨린다 —
+ * 없는 그림을 가리켜 카드가 통째로 비는 것이 가장 나쁜 결말이기 때문이다.
+ */
+const OG_DIR = path.join(root, 'img/og');
+const missingOg = [];
+function ogImageUrl(id) {
+  const has = fs.existsSync(path.join(OG_DIR, `${id}.jpg`));
+  if (!has) missingOg.push(id);
+  return `${SITE}/apps/karmolab/img/og/${has ? id : 'default'}.jpg`;
+}
+
 /** 도구 이름의 단일 정본 = 위젯 매니페스트의 title. 사이드바·페이지 제목이 갈라지지 않게 한다. */
 function heading(id) {
   return widgetById[id].title;
@@ -191,6 +206,11 @@ function buildToolPage(id) {
   html = replaceMeta(html, 'property', 'og:url', toolPageUrl(id));
   html = replaceMeta(html, 'name', 'twitter:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'name', 'twitter:description', t.description);
+  // 도구별 공유 카드 (TASK-KL-089, `scripts/gen-og-images.mjs` 산출물).
+  // 셸의 기본값은 파비콘(.ico)이라 메신저·SNS 가 그림 없는 카드를 띄운다 — 도구마다 갈아끼운다.
+  // (트위터는 twitter:image 가 없으면 og:image 를 쓰므로 큰 카드 지정만으로 충분하다.)
+  html = replaceMeta(html, 'property', 'og:image', ogImageUrl(id));
+  html = replaceMeta(html, 'name', 'twitter:card', 'summary_large_image');
 
   // 상세 페이지 표식 — 앱 히어로(제목·설명)가 아래 설명 블록과 겹쳐 두 번 읽히는 것을 막는다
   html = html.replace('<body>', '<body class="tool-detail">');
@@ -288,7 +308,9 @@ permalink: ${BASE_PATH}/
     <meta property="og:title" content="도구 | KarmoLab">
     <meta property="og:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <meta property="og:url" content="${SITE}${BASE_PATH}/">
+    <meta property="og:image" content="${SITE}/apps/karmolab/img/og/default.jpg">
     <meta property="og:locale" content="ko_KR">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -341,6 +363,14 @@ if (fs.existsSync(swBuilt)) {
 } else {
   console.error('[gen-tool-pages] sw.js 없음 — `npm run build` 를 먼저 돌려야 합니다.');
   process.exit(1);
+}
+
+if (missingOg.length) {
+  const uniq = [...new Set(missingOg)];
+  console.warn(
+    `[gen-tool-pages] 공유 카드 없는 도구 ${uniq.length}개 — 브랜드 기본 카드로 나갑니다: ${uniq.join(', ')}\n` +
+      '  → 개발 머신에서 `npm run gen:og` 후 img/og/ 를 커밋하면 도구별 카드가 붙습니다.'
+  );
 }
 
 console.log(`[gen-tool-pages] ${ids.length}개 도구 페이지 + 허브 + sw.js 생성 → ${path.relative(process.cwd(), outDir)}`);
