@@ -13,7 +13,9 @@
     ['caseconv', '표기법'],
     ['hangulkey', '한영타'],
     ['lorem', '더미 텍스트'],
-    ['replace', '찾아 바꾸기']
+    ['replace', '찾아 바꾸기'],
+    ['slug', '슬러그'],
+    ['listdiff', '목록 비교']
   ];
 
   Toolbox.register({
