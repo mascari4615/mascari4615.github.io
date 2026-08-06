@@ -13,67 +13,148 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { applyToon } from '/toon.js';
 
 /**
- * 남한테서 가져온 동작을 이 몸에 얹는다.
+ * 빌려온 동작을 이 몸에 옮겨 붙이는 짝 표.
  *
- * 보통은 뼈 이름이 달라 다시 짜 맞춰야 하는데, 이 둘은 같은 계열 골격이라 이름이
- * `DEF-*` 로 그대로 겹친다(실측). 그래서 이 몸에 없는 뼈를 가리키는 줄만 버리면 된다.
- * 그 정리를 안 하면 없는 뼈를 찾다가 동작 전체가 조용히 안 돈다.
+ * 왼쪽 = 빌려온 골격의 뼈, 오른쪽 = 이 몸의 뼈. 「이름이 같으니 그냥 먹이면 된다」가
+ * 세 번 실패한 이유가 여기 다 있다(실측):
+ *
+ * 1. 이름이 실제로는 거의 안 겹친다. 276개 대 53개 중 정확히 겹치는 건 17개뿐이고,
+ *    **몸통이 통째로 빠진다** — 저쪽 허리·등은 `DEF-` 인데 이 몸의 허리·등은 `ORG-` 다.
+ *    몸통이 안 잡히면 숨·상체 흔들림이 전부 죽는다.
+ * 2. 이 몸의 뼈는 **같은 이름이 여섯 개씩 겹쳐 있다.** 편집 프로그램에서 팔 하나를
+ *    부드럽게 휘라고 여섯 토막으로 쪼갠 것이 그대로 나왔다. 이름으로 찾으면 그중
+ *    아무거나(맨 끝 토막) 잡혀서, 돌려도 손끝만 까딱했다.
+ * 3. 넓적다리 이름이 이 몸에선 `tight`(오타)로 굳어 있다. 저쪽은 `thigh` 다.
  */
-/**
- * 남의 동작을 이 몸에 맞게 고쳐 넣는다.
- *
- * 이름이 같다고 그대로 먹이면 안 된다. 두 뼈대는 **가만히 서 있을 때의 자세**가
- * 서로 다르기 때문이다 — 같은 「고개 숙임」이라도 기준이 다르면 목이 꺾이고 소품이
- * 팽이처럼 돈다(실측). 유니티가 이 모델을 「휴머노이드」로 두고 쓰는 이유도 같다.
- *
- * 그래서 클립의 각도를 그대로 쓰지 않고, **저쪽 기본 자세로부터 얼마나 움직였는지**만
- * 뽑아서 이쪽 기본 자세 위에 얹는다.
- */
-function retargetTrack(track, sourceRest, targetRest) {
-  const boneName = track.name.slice(0, track.name.lastIndexOf('.'));
-  const src = sourceRest.get(boneName);
-  const dst = targetRest.get(boneName);
-  if (src === undefined || dst === undefined) return track;
+const BONE_PAIRS = {
+  'DEF-hips': 'ORG-hips',
+  'DEF-spine001': 'ORG-spine',
+  'DEF-spine003': 'ORG-chest',
+  'DEF-neck': 'DEF-neck',
+  'DEF-head': 'DEF-head',
+  'DEF-shoulderL': 'DEF-shoulderL',
+  'DEF-shoulderR': 'DEF-shoulderR',
+  'DEF-upper_armL': 'DEF-upper_armL',
+  'DEF-upper_armR': 'DEF-upper_armR',
+  'DEF-forearmL': 'DEF-forearmL',
+  'DEF-forearmR': 'DEF-forearmR',
+  'DEF-handL': 'DEF-handL',
+  'DEF-handR': 'DEF-handR',
+  'DEF-thighL': 'DEF-tightL',
+  'DEF-thighR': 'DEF-tightR',
+  'DEF-shinL': 'DEF-shinL',
+  'DEF-shinR': 'DEF-shinR',
+  'DEF-footL': 'DEF-footL',
+  'DEF-footR': 'DEF-footR',
+};
 
-  const srcInverse = src.clone().invert();
-  const out = track.clone();
-  const q = new THREE.Quaternion();
-  for (let i = 0; i < out.values.length; i += 4) {
-    q.set(out.values[i], out.values[i + 1], out.values[i + 2], out.values[i + 3]);
-    // 저쪽 기본 자세 기준의 「움직인 만큼」
-    q.premultiply(srcInverse);
-    // 그 움직임을 이쪽 기본 자세 위에 얹는다
-    q.premultiply(dst);
-    out.values[i] = q.x;
-    out.values[i + 1] = q.y;
-    out.values[i + 2] = q.z;
-    out.values[i + 3] = q.w;
+/**
+ * 짝지은 뼈들을 찾아 「기준 자세」까지 적어 둔다.
+ *
+ * 같은 이름이 여러 개면 **맨 위 토막**을 쓴다. 위 토막을 돌리면 아래 토막이 따라오지만,
+ * 아래 토막을 돌리면 팔은 그대로 있고 손끝만 움직인다.
+ */
+function pairBones(model, sourceRoot) {
+  const first = (root) => {
+    const map = new Map();
+    root.traverse((node) => {
+      if (node.isBone === true && map.has(node.name) === false) map.set(node.name, node);
+    });
+    return map;
+  };
+  const targetBones = first(model);
+  const sourceBones = first(sourceRoot);
+
+  model.updateMatrixWorld(true);
+  sourceRoot.updateMatrixWorld(true);
+
+  const pos = new THREE.Vector3();
+  const scl = new THREE.Vector3();
+  const worldQuat = (node) => {
+    const q = new THREE.Quaternion();
+    node.matrixWorld.decompose(pos, q, scl);
+    return q;
+  };
+  const depth = (node) => {
+    let d = 0;
+    for (let n = node; n.parent !== null; n = n.parent) d += 1;
+    return d;
+  };
+
+  const pairs = [];
+  for (const [sourceName, targetName] of Object.entries(BONE_PAIRS)) {
+    const source = sourceBones.get(sourceName);
+    const target = targetBones.get(targetName);
+    if (source === undefined || target === undefined) continue;
+    pairs.push({
+      source,
+      target,
+      sourceRestInverse: worldQuat(source).invert(),
+      targetRest: worldQuat(target),
+      targetRestLocal: target.quaternion.clone(),
+    });
   }
-  return out;
+  // 위에 달린 뼈부터 계산해야 한다 — 아래 뼈는 위 뼈가 움직인 결과 위에서 자기 각을 잡는다.
+  pairs.sort((a, b) => depth(a.target) - depth(b.target));
+  return { pairs, targetBones };
 }
 
-function fitClip(clip, bonesByName, sourceRest, targetRest) {
-  const kept = clip.tracks.filter((track) => {
-    const dot = track.name.lastIndexOf('.');
-    const boneName = track.name.slice(0, dot);
-    const what = track.name.slice(dot + 1);
+/**
+ * 클립 한 편을 미리 구워 둔다 — 매 판 프레임마다 이 몸의 뼈가 어떤 각이어야 하는지.
+ *
+ * 각도를 **세계 기준**으로 옮긴다: 저쪽 뼈가 제 기준 자세에서 얼마나 돌았는지를 세계
+ * 기준으로 뽑아, 이쪽 뼈의 기준 자세 위에 그대로 얹는다. 두 골격은 뼈가 매달린 순서도
+ * 개수도 다르기 때문에(저쪽은 허리가 넷, 이쪽은 셋) 뼈 자기 기준으로 옮기면 어긋난다 —
+ * 세계 기준으로 옮기면 중간 뼈가 빠져 있어도 팔은 팔이 있어야 할 방향을 본다.
+ *
+ * 굽는 건 창을 열 때 한 번뿐이라, 매 판에는 적어 둔 각을 사이사이 이어 쓰기만 한다.
+ */
+function bakeClip(clip, pairs, sourceRoot, mixer, fps = 30) {
+  const frames = Math.max(2, Math.round(clip.duration * fps));
+  const step = clip.duration / (frames - 1);
+  const values = pairs.map(() => new Float32Array(frames * 4));
 
-    if (bonesByName.has(boneName) === false) return false;
+  const action = mixer.clipAction(clip);
+  mixer.stopAllAction();
+  action.reset().play();
 
-    // `root` 는 몸 전체가 어느 쪽을 보고 서는지를 정하는 자리다. 남의 클립에서
-    // 그걸 그대로 가져오면, 이미 제 방향으로 서 있는 몸이 한 번 더 돌아가 하늘을
-    // 보고 눕는다(실측). 방향은 우리 모델 것을 쓰고, 동작만 빌린다.
-    if (boneName === 'root') return false;
+  const pos = new THREE.Vector3();
+  const scl = new THREE.Vector3();
+  const sourceWorld = new THREE.Quaternion();
+  const parentWorld = new THREE.Quaternion();
+  const wanted = new THREE.Quaternion();
 
-    // 위치·크기 트랙도 버린다. 두 골격은 팔다리 길이가 달라서, 남의 뼈 위치를
-    // 그대로 먹이면 사지가 늘어나거나 몸에서 떨어져 나온다. 회전만 빌린다.
-    return what === 'quaternion';
-  });
+  for (let frame = 0; frame < frames; frame += 1) {
+    mixer.setTime(frame * step);
+    sourceRoot.updateMatrixWorld(true);
 
-  if (kept.length === 0) return null;
-  const fitted = clip.clone();
-  fitted.tracks = kept.map((track) => retargetTrack(track, sourceRest, targetRest));
-  return fitted;
+    for (let i = 0; i < pairs.length; i += 1) {
+      const { source, target, sourceRestInverse, targetRest } = pairs[i];
+      source.matrixWorld.decompose(pos, sourceWorld, scl);
+
+      // 저쪽이 기준 자세에서 돌아간 만큼(세계 기준) → 이쪽 기준 자세 위에 얹는다
+      wanted.copy(sourceWorld).multiply(sourceRestInverse).multiply(targetRest);
+
+      // 세계 기준 각을 이 뼈가 실제로 들고 있어야 할 「제 부모 기준」 각으로 되돌린다
+      if (target.parent !== null) {
+        target.parent.matrixWorld.decompose(pos, parentWorld, scl);
+        wanted.premultiply(parentWorld.invert());
+      }
+
+      target.quaternion.copy(wanted);
+      // 아래 뼈가 이 결과 위에서 계산되도록 바로 반영한다
+      target.updateMatrixWorld(true);
+
+      values[i].set([wanted.x, wanted.y, wanted.z, wanted.w], frame * 4);
+    }
+  }
+
+  mixer.stopAllAction();
+  mixer.uncacheAction(clip);
+  // 구우면서 뼈를 실제로 움직였으니 원래 자세로 되돌린다.
+  for (const pair of pairs) pair.target.quaternion.copy(pair.targetRestLocal);
+
+  return { name: clip.name, frames, step, duration: clip.duration, values };
 }
 
 export async function mountModel(canvas, modelName, onFail) {
@@ -183,10 +264,10 @@ export async function mountModel(canvas, modelName, onFail) {
   pivot.add(model);
   scene.add(pivot);
 
-  // 상체만 본다 — 좁고 세로로 긴 창에서 전신을 담으면 얼굴이 콩알이 된다.
-  // 0.5 = 허리 위, 1.0 = 정수리.
-  const viewTop = 1.02;
-  const viewBottom = 0.42;
+  // 전신을 담는다. 0 = 발바닥, 1 = 정수리 (키를 1로 맞춰 뒀다).
+  // 위아래로 조금씩 여백을 둬서 정수리·발끝이 화면 끝에 닿지 않게 한다.
+  const viewTop = 1.06;
+  const viewBottom = -0.06;
   const viewHeight = viewTop - viewBottom;
   const viewCenterY = (viewTop + viewBottom) / 2 - 0.5; // 모델 중심 기준
 
