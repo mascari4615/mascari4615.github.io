@@ -11,6 +11,7 @@
     ['pdftool', '합치기·나누기'],
     ['pdfcompress', '용량 줄이기'],
     ['pdfsign', '서명 넣기'],
+    ['pdfredact', 'PDF 가리개'],
     ['pdfwatermark', '워터마크'],
     ['pdf2text', 'PDF → 글자'],
     ['text2pdf', '글 → PDF'],

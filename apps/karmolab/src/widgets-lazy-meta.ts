@@ -523,6 +523,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiolevel']
   },
   {
+    id: 'pdfredact',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 가리개',
+    category: 'tool',
+    desc: 'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다',
+    layout: 'wide',
+    icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="12" width="7" height="3.5" rx="0.8" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/pdfredact']
+  },
+  {
     id: 'pdfcompress',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -541,7 +552,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
+    lazyScriptPaths: ['tools/pdftool', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
   },
   {
     id: 'sound',
