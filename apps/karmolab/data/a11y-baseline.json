@@ -1,5 +1,5 @@
 {
-  "unlinked": 39,
+  "unlinked": 36,
   "nameless": 0,
   "perTool": {
     "charcount": {
@@ -7,14 +7,6 @@
       "nameless": 0
     },
     "hangulkey": {
-      "unlinked": 1,
-      "nameless": 0
-    },
-    "colorconv": {
-      "unlinked": 1,
-      "nameless": 0
-    },
-    "radix": {
       "unlinked": 1,
       "nameless": 0
     },
@@ -31,10 +23,6 @@
       "nameless": 0
     },
     "pick": {
-      "unlinked": 1,
-      "nameless": 0
-    },
-    "color": {
       "unlinked": 1,
       "nameless": 0
     },

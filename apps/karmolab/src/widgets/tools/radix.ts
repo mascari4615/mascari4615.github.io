@@ -85,7 +85,7 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">값</div>
-                  <input type="text" class="rx-in" data-base="36" spellcheck="false">
+                  <input type="text" class="rx-in" data-base="36" spellcheck="false" aria-label="임의 진법의 값">
                 </div>
               </div>
             </div>
