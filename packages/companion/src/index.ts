@@ -13,6 +13,7 @@ export { alwaysRespond, neverRespond, cooldownAttention, type CooldownOptions } 
 
 export { echoBrain, silentBrain } from './brain/echo';
 export { assistantBrain, type AssistantBrainOptions } from './brain/assistant';
+export { claudeCliBrain, type ClaudeCliBrainOptions } from './brain/claude-cli';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';

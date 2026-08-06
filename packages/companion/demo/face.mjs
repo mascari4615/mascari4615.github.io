@@ -1,8 +1,9 @@
 /**
  * 얼굴 데모 — 브라우저 창에 큐브로 나타난다.
  *
- *   node demo/face.mjs                     가짜 두뇌 (키 없이 움직임만 확인)
- *   COMPANION_BRAIN=assistant node demo/face.mjs   진짜 두뇌
+ *   node demo/face.mjs                        격리된 claude CLI (기본)
+ *   COMPANION_BRAIN=echo node demo/face.mjs   가짜 두뇌 (움직임만 확인)
+ *   COMPANION_BRAIN=assistant …               공용 provider 라우터 (세션·지침 공유 주의)
  *
  *   COMPANION_PORT=4615            주소
  *   COMPANION_CLOCK_MS=60000       이 간격으로 스스로 깨어나 혼잣말 (0 = 끔)
@@ -14,13 +15,18 @@ import {
   InMemoryMemory,
   JsonlFileMemory,
   assistantBrain,
+  claudeCliBrain,
   clockBody,
   cooldownAttention,
   echoBrain,
   webBody,
 } from '../dist/index.js';
 
-const brain = (process.env.COMPANION_BRAIN ?? 'echo') === 'assistant' ? assistantBrain() : echoBrain;
+const brainName = process.env.COMPANION_BRAIN ?? 'claude';
+const brain =
+  brainName === 'claude' ? claudeCliBrain()
+  : brainName === 'assistant' ? assistantBrain()
+  : echoBrain;
 const port = Number(process.env.COMPANION_PORT ?? '4615');
 const clockMs = Number(process.env.COMPANION_CLOCK_MS ?? '60000');
 const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '45000');
