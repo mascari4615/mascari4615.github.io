@@ -5,6 +5,8 @@
  * 내 파일의 값을 비교해야 한다. 그런데 그 값을 **눈으로 대조하면 반드시 놓친다** — 64자리다.
  * 그래서 기대값을 붙여 넣으면 기계가 맞춰 준다. 파일은 브라우저 밖으로 나가지 않는다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   const ALGOS: Array<[string, string]> = [
     ['SHA-256', 'SHA-256 — 가장 널리 쓰임'],
@@ -33,7 +35,7 @@
         label: '검사값',
         build: function (container: HTMLElement): void {
           container.innerHTML = `
-            <div class="tool-drop" id="fhDrop">
+            <div class="tool-drop" id="fhDrop" role="button" tabindex="0">
               <input type="file" id="fhFile" hidden>
               파일을 끌어다 놓거나 눌러서 고르세요
             </div>
@@ -114,6 +116,14 @@
           }
 
           drop.onclick = () => fileInput.click();
+          // 파일 고르는 칸은 감춰 두고 이 상자를 누르게 되어 있다. 마우스가 없으면 길이 막히므로
+          // 키보드에서도 열리게 한다 (TASK-KL-089).
+          drop.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInput.click();
+            }
+          });
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void run(fileInput.files[0]);
           };
@@ -128,6 +138,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) void run(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void run(files[0]); }, () => true);
           expect.addEventListener('input', render);
         }
       }

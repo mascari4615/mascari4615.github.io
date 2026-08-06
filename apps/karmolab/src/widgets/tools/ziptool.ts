@@ -5,6 +5,8 @@
  * 회사 컴퓨터나 남의 기기에서 특히 막힌다. 브라우저만으로 되는 자리를 둔다.
  * 안을 훑어보는 것만으로 끝날 때가 많으므로 **풀기 전에 목록을 먼저 보여준다.**
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface ZipEntry {
     name: string;
@@ -196,6 +198,8 @@
             drop.classList.remove('over');
             if (e.dataTransfer?.files) accept(e.dataTransfer.files);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { accept(files); }, () => true);
           container.querySelectorAll('#zpMode .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {
               container.querySelectorAll('#zpMode .tool-chip').forEach((c) => c.classList.remove('active'));

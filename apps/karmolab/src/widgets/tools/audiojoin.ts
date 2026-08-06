@@ -6,6 +6,7 @@
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   Toolbox.register({
@@ -177,6 +178,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             drop.classList.remove('over');
             if (e.dataTransfer?.files) void add(e.dataTransfer.files);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void add(files); }, (f) => f.type.startsWith('audio/'));
           gap.addEventListener('input', () => {
             $<HTMLElement>('#ajGapVal').textContent = (parseInt(gap.value, 10) / 10).toFixed(1) + '초';
             render();

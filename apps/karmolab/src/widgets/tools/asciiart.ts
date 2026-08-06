@@ -5,6 +5,8 @@
  *  1) 글자는 세로로 길다 — 가로:세로 비를 보정하지 않으면 그림이 위아래로 늘어난다 (CHAR_ASPECT)
  *  2) 밝기 = 단순 평균이 아니라 시감 가중(0.299/0.587/0.114). 평균을 쓰면 초록이 지나치게 밝게 잡힌다
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   /** 진한 → 옅은 순. 폭이 넓을수록 계조가 부드럽다. */
   const RAMPS: Record<string, string> = {
@@ -196,6 +198,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) loadFile(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { loadFile(files[0]); }, (f) => f.type.startsWith('image/'));
           document.addEventListener('paste', (e) => {
             const page = container.closest('.tool-page');
             if (page && !page.classList.contains('active')) return;

@@ -5,6 +5,8 @@
  * 계약서·이력서처럼 올리면 안 되는 것이 대부분이다.
  * 여기서는 파일이 브라우저 밖으로 나가지 않는다. 무거운 라이브러리는 이 탭을 처음 열 때만 받는다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   interface PDFLib {
     PDFDocument: {
@@ -222,6 +224,8 @@
             drop.classList.remove('over');
             if (e.dataTransfer?.files) void addFiles(e.dataTransfer.files);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { void addFiles(files); }, (f) => f.type === 'application/pdf');
 
           container.querySelectorAll('#pdMode .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {
