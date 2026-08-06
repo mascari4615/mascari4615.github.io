@@ -16,7 +16,8 @@
     ['cron', '크론'],
     ['urlparse', 'URL'],
     ['crypto', '암호화'],
-    ['base64', 'Base64']
+    ['base64', 'Base64'],
+    ['csvjson', 'CSV ↔ JSON']
   ];
 
   Toolbox.register({
