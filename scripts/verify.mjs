@@ -170,6 +170,13 @@ if (existsSync('packages/companion/node_modules')) {
   console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
 }
 
+// 5.7. apps/daily — 「오늘의 하나 맞히기」 규칙 시험 (TASK-KAR-202). 의존성 0 이라
+//      npm ci 도 필요 없다. 어떤 앱도 이걸 import 하지 않으므로 여기 안 걸면 규칙이
+//      깨져도 아무 빌드가 안 빨개진다 — 매일 도는 물건이라 조용한 고장이 제일 나쁘다.
+if (existsSync('apps/daily/engine.test.mjs')) {
+  run('apps/daily 규칙 시험', 'apps/daily', 'node --test');
+}
+
 // 6. typos — CI 의 verify.yml 별 step (crate-ci/typos action) 이 책임. local 은 binary 미설치 가정 → skip.
 
 console.log('\n[verify] OK — master invariant 통과');

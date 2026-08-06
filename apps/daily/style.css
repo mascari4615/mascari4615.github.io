@@ -1,0 +1,231 @@
+/* 오늘의 하나 맞히기 (TASK-KAR-202) — 주제와 무관한 껍데기. 주제별 색은 --accent 하나로만 바뀐다. */
+:root {
+  --bg: #0e1117;
+  --panel: #161b24;
+  --panel-2: #1d2430;
+  --line: #2b3341;
+  --ink: #e8ecf3;
+  --ink-2: #a6b0c0;
+  --ink-3: #6f7b8d;
+  --accent: #ffc86b;
+  --exact: #2f7d4f;
+  --near: #8a6d1f;
+  --wrong: #333b49;
+  --radius: 12px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+a { color: var(--accent); }
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 14px 64px;
+}
+
+/* ── 머리 ── */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.top h1 {
+  font-size: 20px;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.top .no {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.home {
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.home:hover { color: var(--ink); border-color: var(--ink-3); }
+
+.lede {
+  color: var(--ink-2);
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* ── 입력 ── */
+.guessbar { position: relative; margin-bottom: 8px; }
+.guessbar input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 16px; /* 16px 밑이면 아이폰이 화면을 확대해 버린다 */
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  outline: none;
+}
+.guessbar input:focus { border-color: var(--accent); }
+.guessbar input::placeholder { color: var(--ink-3); }
+
+.sug {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+.sug:empty { display: none; }
+.sug button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.sug button img { width: 28px; height: 28px; object-fit: contain; }
+.sug button[aria-selected='true'],
+.sug button:hover { background: rgba(255, 255, 255, 0.07); }
+
+.left {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 0 2px 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 추측 표 ── */
+.rows { display: flex; flex-direction: column; gap: 8px; }
+.row {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px;
+  animation: pop 0.18s ease-out;
+}
+@keyframes pop { from { transform: translateY(-4px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .row { animation: none; } }
+
+.row .who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+.row .who img { width: 30px; height: 30px; object-fit: contain; }
+
+.cells {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 4px;
+}
+.cell {
+  border-radius: 8px;
+  padding: 6px 3px;
+  text-align: center;
+  min-width: 0;
+}
+.cell .k {
+  display: block;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.62);
+  letter-spacing: 0.02em;
+}
+.cell .v {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  word-break: keep-all;
+  font-variant-numeric: tabular-nums;
+}
+.cell.exact { background: var(--exact); }
+.cell.near { background: var(--near); }
+.cell.wrong { background: var(--wrong); }
+/* 색만으로 알려주지 않는다 — 화살표·물결이 같은 뜻을 글자로 실어 나른다. */
+.cell .mark { font-size: 11px; opacity: 0.9; }
+
+/* ── 끝난 뒤 ── */
+.done {
+  margin-top: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.done h2 { margin: 0 0 4px; font-size: 17px; }
+.done .ans { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+.done .ans img { width: 84px; height: 84px; object-fit: contain; }
+.done .ans b { font-size: 20px; }
+.done .grid {
+  font-size: 15px;
+  line-height: 1.35;
+  letter-spacing: 2px;
+  margin: 10px 0;
+}
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #16202c;
+  cursor: pointer;
+}
+.btn:active { transform: translateY(1px); }
+.next { color: var(--ink-3); font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+
+.foot { margin-top: 34px; color: var(--ink-3); font-size: 12px; text-align: center; }
+.foot a { color: var(--ink-2); }
+
+/* ── 허브 ── */
+.cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.card:hover { border-color: var(--accent); }
+.card .em { font-size: 26px; }
+.card h2 { margin: 6px 0 2px; font-size: 17px; }
+.card p { margin: 0; color: var(--ink-2); font-size: 13px; }
+.card .cnt { color: var(--ink-3); font-size: 12px; margin-top: 8px; }
+
+@media (max-width: 420px) {
+  .cell .k { font-size: 9px; }
+  .cell .v { font-size: 11px; }
+}
