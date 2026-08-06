@@ -104,7 +104,7 @@ const web = webBody({
       ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
     const local = {
       exePath: join(piperRoot, 'piper', 'piper.exe'),
-      voices: { '욘 (내 컴퓨터)': join(piperRoot, 'alt.onnx') },
+      voices: { '내 컴퓨터': join(piperRoot, 'ko-espeak.onnx') },
       lengthScale: Number(process.env.COMPANION_VOICE_LENGTH ?? '1.06'),
       log: (m) => console.log(`[목소리] ${m}`),
     };
