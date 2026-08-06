@@ -998,6 +998,8 @@ const Toolbox = (() => {
         page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
+        // 탭 줄은 좁은 화면에서 옆으로 밀린다 — 고른 탭이 화면 밖이면 끌어다 보여준다.
+        btn.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
         // 패널을 문서 전체에서 id 로 찾으면 안 된다 — 탭 이름은 위젯마다 겹칠 수 있어서
         // (여러 도구를 탭으로 묶으면 특히) 다른 도구 페이지의 패널을 열어 버린다. 이 페이지 안에서 찾는다.
         const panel = page.querySelector('[data-tab-panel="' + tabId + '"]');
