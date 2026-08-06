@@ -66,24 +66,24 @@
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <label class="field-label">문구</label>
-              <input type="text" id="pwText" value="사본 · 제출용" spellcheck="false">
+              <input type="text" id="pwText" aria-label="넣을 문구" value="사본 · 제출용" spellcheck="false">
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">진하기 <span id="pwOpacityVal" class="range-value">15%</span></div>
-                  <input type="range" id="pwOpacity" min="5" max="60" value="15">
+                  <input type="range" id="pwOpacity" aria-label="진하기" min="5" max="60" value="15">
                 </div>
                 <div>
                   <div class="tool-sublabel">크기 <span id="pwSizeVal" class="range-value">60%</span></div>
-                  <input type="range" id="pwSize" min="20" max="95" value="60">
+                  <input type="range" id="pwSize" aria-label="크기" min="20" max="95" value="60">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
                   <div class="tool-sublabel">기울기</div>
-                  <select id="pwAngle">
+                  <select id="pwAngle" aria-label="기울기">
                     <option value="45">대각선 (45°)</option>
                     <option value="0">가로</option>
                     <option value="90">세로</option>
@@ -91,7 +91,7 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">색</div>
-                  <input type="text" id="pwColor" value="#e02020" spellcheck="false">
+                  <input type="text" id="pwColor" aria-label="색" value="#e02020" spellcheck="false">
                 </div>
               </div>
             </div>

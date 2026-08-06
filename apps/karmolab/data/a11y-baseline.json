@@ -1,5 +1,5 @@
 {
-  "unlinked": 83,
+  "unlinked": 71,
   "nameless": 0,
   "perTool": {
     "charcount": {
@@ -30,10 +30,6 @@
       "unlinked": 2,
       "nameless": 0
     },
-    "asciiart": {
-      "unlinked": 4,
-      "nameless": 0
-    },
     "radix": {
       "unlinked": 2,
       "nameless": 0
@@ -44,10 +40,6 @@
     },
     "palette": {
       "unlinked": 1,
-      "nameless": 0
-    },
-    "interest": {
-      "unlinked": 3,
       "nameless": 0
     },
     "worldclock": {
@@ -156,10 +148,6 @@
     },
     "ziptool": {
       "unlinked": 1,
-      "nameless": 0
-    },
-    "pdfwatermark": {
-      "unlinked": 5,
       "nameless": 0
     },
     "audiojoin": {
