@@ -9,6 +9,7 @@
     ['voicerec', '녹음'],
     ['audiocut', '자르기'],
     ['audiolevel', '크기 맞추기'],
+    ['audiospeed', '속도'],
     ['audiojoin', '잇기']
   ];
 
