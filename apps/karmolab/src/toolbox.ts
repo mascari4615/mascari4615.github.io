@@ -932,8 +932,9 @@ const Toolbox = (() => {
             return;
         }
         // 묶음의 탭으로 들어간 도구를 이름으로 부르면, 묶음을 열고 그 탭을 편다.
+        // 단 도구 상세 페이지는 그 도구 하나를 보여주는 자리다 - 여기서 묶음으로 튕기면 빈 화면이 된다.
         const bundleId = findBundleFor(pageId);
-        if (bundleId) {
+        if (bundleId && !entryTool) {
             switchPage(bundleId, opts);
             switchTab(pageId);
             return;
