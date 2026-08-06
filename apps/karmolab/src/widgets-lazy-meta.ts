@@ -428,6 +428,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/morse']
   },
   {
+    id: 'pick',
+    title: '추첨 · 팀 나누기',
+    category: 'tool',
+    desc: '명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게',
+    layout: 'form',
+    icon: '<circle cx="7" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 20a5 5 0 0 1 10 0M12 20a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pick']
+  },
+  {
     id: 'bmi',
     title: 'BMI 계산기',
     category: 'tool',
@@ -440,7 +449,17 @@ window.KARMOLAB_LAZY_META = [
   /* ───── 자료 (ref) — 찾아보고 눌러 복사하는 표 (TASK-KL-088) ─────
    * 전부 ref/reftable 의 공용 렌더러를 먼저 로드한다 (keycode 만 자체 UI). */
   {
+    id: 'charmap',
+    title: '문자표',
+    category: 'ref',
+    desc: '특수문자·이모지·HTML 엔티티·ASCII 를 한 곳에서 찾아 눌러 복사합니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 9h2M7 13h4M13 9h4M15 13h2M7 17h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/specialchar', 'ref/emoji', 'ref/htmlentity', 'ref/ascii', 'ref/charmap']
+  },
+  {
     id: 'specialchar',
+    hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '특수문자 모음',
     category: 'ref',
     desc: '화살표·별·도형·수학기호 등 자판에 없는 특수문자를 눌러서 복사합니다',
@@ -450,6 +469,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'ascii',
+    hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'ASCII 코드표',
     category: 'ref',
     desc: '0~127 ASCII 문자의 10진·16진·2진 값과 제어문자 의미를 한 표에서 봅니다',
@@ -459,6 +479,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'htmlentity',
+    hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'HTML 특수문자',
     category: 'ref',
     desc: '&amp;nbsp; &amp;lt; &amp;copy; 같은 HTML 엔티티 코드를 문자와 함께 찾아 복사합니다',
@@ -495,6 +516,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'emoji',
+    hidden: true, // 「문자표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이모지 찾기',
     category: 'ref',
     desc: '한국어로 검색해서 이모지를 찾고 눌러서 복사합니다. 표정·손짓·기호 등 분류별',

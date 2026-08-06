@@ -66,6 +66,20 @@
     ['¶', '문단', '기타'], ['†', '단검표', '기타'], ['‡', '겹단검표', '기타'], ['№', '넘버', '기타']
   ];
 
+  window.RefTable?.define('specialchar', {
+    items: RAW.map(([glyph, label, group]) => ({
+      copy: glyph,
+      glyph,
+      label,
+      sub: 'U+' + glyph.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0'),
+      group
+    })),
+    placeholder: '이름이나 기호로 찾기 (예: 화살표, 하트, ㎡)',
+    copyNoun: '특수문자',
+    layout: 'grid',
+    note: '누르면 클립보드로 복사됩니다.'
+  });
+
   Toolbox.register({
     id: 'specialchar',
     title: '특수문자 모음',
@@ -79,19 +93,7 @@
         label: '특수문자',
         build: function (container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: '자판에 없는 글자, 여기 다 모아뒀어요.' });
-          window.RefTable?.build(container, {
-            items: RAW.map(([glyph, label, group]) => ({
-              copy: glyph,
-              glyph,
-              label,
-              sub: 'U+' + glyph.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0'),
-              group
-            })),
-            placeholder: '이름이나 기호로 찾기 (예: 화살표, 하트, ㎡)',
-            copyNoun: '특수문자',
-            layout: 'grid',
-            note: '누르면 클립보드로 복사됩니다.'
-          });
+          window.RefTable?.build(container, window.RefTable.get('specialchar')!);
         }
       }
     ]

@@ -18,6 +18,28 @@
     return String.fromCharCode(code);
   }
 
+  const asciiItems = [];
+  for (let code = 0; code <= 127; code++) {
+    const printable = code > 32 && code < 127;
+    const group = code < 32 || code === 127 ? '제어문자' : code < 48 || (code > 57 && code < 65) || (code > 90 && code < 97) || code > 122 ? '기호' : code < 58 ? '숫자' : code < 91 ? '대문자' : '소문자';
+    asciiItems.push({
+      copy: printable ? String.fromCharCode(code) : String(code),
+      glyph: printable ? String.fromCharCode(code) : String(code),
+      label: nameOf(code),
+      sub: `${code} · 0x${code.toString(16).toUpperCase().padStart(2, '0')} · ${code.toString(2).padStart(8, '0')}`,
+      keywords: `${code} ${code.toString(16)} ${nameOf(code)}`,
+      group
+    });
+  }
+
+  window.RefTable?.define('ascii', {
+    items: asciiItems,
+    placeholder: '문자·10진·16진·이름으로 찾기 (예: 65, 0x41, LF)',
+    copyNoun: '값',
+    layout: 'list',
+    note: '출력 가능한 문자는 문자를, 제어문자는 10진 값을 복사합니다.'
+  });
+
   Toolbox.register({
     id: 'ascii',
     title: 'ASCII 코드표',
@@ -31,26 +53,7 @@
         label: 'ASCII',
         build: function (container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: '0번부터 127번까지, 컴퓨터 글자의 뿌리예요.' });
-          const items = [];
-          for (let code = 0; code <= 127; code++) {
-            const printable = code > 32 && code < 127;
-            const group = code < 32 || code === 127 ? '제어문자' : code < 48 || (code > 57 && code < 65) || (code > 90 && code < 97) || code > 122 ? '기호' : code < 58 ? '숫자' : code < 91 ? '대문자' : '소문자';
-            items.push({
-              copy: printable ? String.fromCharCode(code) : String(code),
-              glyph: printable ? String.fromCharCode(code) : String(code),
-              label: nameOf(code),
-              sub: `${code} · 0x${code.toString(16).toUpperCase().padStart(2, '0')} · ${code.toString(2).padStart(8, '0')}`,
-              keywords: `${code} ${code.toString(16)} ${nameOf(code)}`,
-              group
-            });
-          }
-          window.RefTable?.build(container, {
-            items,
-            placeholder: '문자·10진·16진·이름으로 찾기 (예: 65, 0x41, LF)',
-            copyNoun: '값',
-            layout: 'list',
-            note: '출력 가능한 문자는 문자를, 제어문자는 10진 값을 복사합니다.'
-          });
+          window.RefTable?.build(container, window.RefTable.get('ascii')!);
         }
       }
     ]

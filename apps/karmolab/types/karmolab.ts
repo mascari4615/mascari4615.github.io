@@ -257,4 +257,7 @@ export interface RefTableSpec {
 
 export interface RefTableAPI {
   build: (container: HTMLElement, spec: RefTableSpec) => void;
+  /** 표 정의를 이름표로 보관 — 문자표 탭과 개별 페이지가 같은 정의를 나눠 쓴다 */
+  define: (id: string, spec: RefTableSpec) => void;
+  get: (id: string) => RefTableSpec | undefined;
 }

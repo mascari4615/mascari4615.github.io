@@ -95,6 +95,21 @@
     ['✗', '&#10007;', '엑스', '도형']
   ];
 
+  window.RefTable?.define('htmlentity', {
+    items: ENTITIES.map(([ch, entity, name, group]) => ({
+      copy: entity,
+      glyph: ch,
+      label: entity,
+      sub: name,
+      keywords: `${entity} ${name} ${ch}`,
+      group
+    })),
+    placeholder: '엔티티·이름·문자로 찾기 (예: nbsp, 화살표, ©)',
+    copyNoun: '엔티티',
+    layout: 'grid',
+    note: '누르면 엔티티 코드가 복사됩니다 (문자 자체가 아니라 마크업에 넣는 형태).'
+  });
+
   Toolbox.register({
     id: 'htmlentity',
     title: 'HTML 특수문자',
@@ -108,20 +123,7 @@
         label: '엔티티',
         build: function (container: HTMLElement): void {
           Mdd.linePreset('tool_run', { msg: '마크업에 그대로 붙이는 코드예요.' });
-          window.RefTable?.build(container, {
-            items: ENTITIES.map(([ch, entity, name, group]) => ({
-              copy: entity,
-              glyph: ch,
-              label: entity,
-              sub: name,
-              keywords: `${entity} ${name} ${ch}`,
-              group
-            })),
-            placeholder: '엔티티·이름·문자로 찾기 (예: nbsp, 화살표, ©)',
-            copyNoun: '엔티티',
-            layout: 'grid',
-            note: '누르면 엔티티 코드가 복사됩니다 (문자 자체가 아니라 마크업에 넣는 형태).'
-          });
+          window.RefTable?.build(container, window.RefTable.get('htmlentity')!);
         }
       }
     ]
