@@ -99,13 +99,6 @@ jobs:
           npm ci
           npm run build
 
-      # KarmoLab 빌드 관문에 브라우저로 도는 검사가 들어 있다 (GIF 압축·영상 자르기·녹음·PDF).
-      # 러너에는 브라우저가 없어 이 줄이 없으면 빌드가 그 자리에서 죽는다 — 실제로 죽었다.
-      # 검사를 빼는 대신 브라우저를 깔아 CI 에서도 같은 관문이 돌게 한다.
-      - name: Install browser for KarmoLab checks
-        working-directory: apps/karmolab
-        run: npx --yes playwright install --with-deps chromium
-
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
         run: |
@@ -186,7 +179,28 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      # 오래된 판이 새 판을 덮어쓰는 것을 막는다 (TASK-KL-088).
+      # 배포는 사이트 전체를 통째로 바꾸므로, 뒤늦게 끝난 옛 커밋의 판이 나중에 배포되면
+      # 방금 나간 것들이 도로 사라진다. 실제로 오늘 새벽 그 일이 나서 손으로 취소해 왔다.
+      # 내 커밋이 이미 master 의 끝이 아니면 조용히 물러난다 — 최신 판이 어차피 배포한다.
+      # (실패가 아니다. 여기서 붉은불을 켜면 진짜 고장과 구분이 안 된다.)
+      - name: 내가 아직 master 의 끝인가
+        id: freshness
+        run: |
+          TIP=$(gh api "repos/${{ github.repository }}/commits/master" --jq .sha)
+          echo "내 커밋 = ${{ github.sha }}"
+          echo "master 끝 = $TIP"
+          if [ "$TIP" != "${{ github.sha }}" ]; then
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::더 새로운 커밋이 있어 이 판은 배포하지 않는다 — 그 판이 배포한다"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Deploy to GitHub Pages
+        if: steps.freshness.outputs.stale != 'true'
         id: deployment
         # 대기 시간은 못 늘린다 — `timeout` 을 30분으로 줘 봤지만 이 액션이 10분을 최대치로
         # 못 박아 놔서 그대로 10분에 끊겼다(로그에 timeout: 1800000 이 찍히고도 정확히 10분).
