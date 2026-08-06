@@ -155,9 +155,11 @@
     --glow-text: none;
     --glow-box: none;
     /* 라이트에선 흰 카드가 회백 바닥과 3%밖에 차이 안 나므로 그림자가 계층을 만든다 */
-    --shadow-float: 0 1px 2px rgba(28, 27, 25, 0.07), 0 1px 0 rgba(28, 27, 25, 0.04);
+    --shadow-float: 0 1px 2px rgba(28, 27, 25, 0.06), 0 6px 16px -6px rgba(28, 27, 25, 0.14);
 
-    --header-shell-glass: color-mix(in srgb, var(--glass) 35%, transparent);
+    /* 다크처럼 옅은 유리로 두면, 밝은 화면에선 아래 그림이 번져 얼룩덜룩해진다.
+       라이트에선 거의 불투명한 종이 한 장으로 덮는다. */
+    --header-shell-glass: color-mix(in srgb, var(--glass) 94%, transparent);
 }
 [data-theme="light"] .spinner { border-color: rgba(0,0,0,0.08); border-top-color: var(--accent); }
 [data-theme="light"] select {
