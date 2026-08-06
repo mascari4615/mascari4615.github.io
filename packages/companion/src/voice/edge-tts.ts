@@ -30,6 +30,14 @@ export interface EdgeSpeechOptions {
    * 한국어도 읽으므로, 취향에 맞는 걸 찾을 여지가 그만큼 넓어진다.
    */
   includeMultilingual?: boolean;
+  /**
+   * 같은 목소리를 다른 결로 갈라 쓴다 — `{ 이름: { rate, pitch } }`.
+   *
+   * 한국어 애니 톤 목소리는 공개된 게 없다(조사 결과). 진짜로 그 톤을 내려면 원하는
+   * 목소리 샘플을 받아 흉내 내게 해야 하고, 그건 샘플이 있어야 시작된다. 그 전까지는
+   * 높낮이와 빠르기를 올려 밝은 결을 만든다 — 흉내는 아니지만 결은 확실히 달라진다.
+   */
+  tones?: Readonly<Record<string, { rate?: string; pitch?: string }>>;
 }
 
 /**
@@ -59,19 +67,35 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
       const seen = new Set<string>();
       cachedVoices = wanted
         .filter((v) => (seen.has(v.ShortName) ? false : (seen.add(v.ShortName), true)))
-        .map((v) => ({
-          id: v.ShortName,
-          label: prettyName(v.ShortName),
-          gender: v.Gender === 'Female' ? '여성' : '남성',
-        }))
+        .flatMap((v) => {
+          const base = {
+            id: v.ShortName,
+            label: prettyName(v.ShortName),
+            gender: v.Gender === 'Female' ? '여성' : '남성',
+          };
+          const extra = Object.keys(options.tones ?? {}).map((tone) => ({
+            id: `${v.ShortName}@${tone}`,
+            label: `${base.label} (${tone})`,
+            gender: base.gender,
+          }));
+          return [base, ...extra];
+        })
         .sort((a, b) => a.label.localeCompare(b.label));
       return cachedVoices;
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
+      // `이름@결` 형태면 그 결의 빠르기·높낮이를 쓴다.
+      const at = (voiceId ?? '').lastIndexOf('@');
+      const name = at < 0 ? (voiceId || defaultVoice) : (voiceId as string).slice(0, at);
+      const tone = at < 0 ? undefined : options.tones?.[(voiceId as string).slice(at + 1)];
+
       const tts = new MsEdgeTTS();
-      await tts.setMetadata(voiceId || defaultVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-      const { audioStream } = tts.toStream(text, { rate, pitch });
+      await tts.setMetadata(name, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const { audioStream } = tts.toStream(text, {
+        rate: tone?.rate ?? rate,
+        pitch: tone?.pitch ?? pitch,
+      });
       return await new Promise<Buffer>((resolve, reject) => {
         const chunks: Buffer[] = [];
         audioStream.on('data', (chunk: Buffer) => chunks.push(chunk));
