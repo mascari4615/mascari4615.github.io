@@ -50,7 +50,16 @@ for (const id of ids) {
         registered[cfg.id] = cfg;
       },
       showToast: () => undefined,
-      incrementProgress: () => 0
+      incrementProgress: () => 0,
+      // 앱에서는 위젯이 매니페스트의 공개 필드를 그대로 펴서 등록에 쓴다.
+      // 하네스가 이것을 흉내내지 않으면, 이 함수를 (물음표 없이) 부르는 멀쩡한 위젯이
+      // 여기서만 죽어 도구 결함처럼 보인다 — 실제 구현과 같은 값을 돌려준다.
+      getLazyWidgetPublicMeta: (wid) => {
+        const m = metaById[wid];
+        if (!m) return { id: wid };
+        const { lazyScriptPaths: _paths, ...rest } = m;
+        return rest;
+      }
     },
     Mdd: { linePreset: () => true },
     document: { createElement: () => ({ style: {}, classList: { add() {}, remove() {} } }) },
