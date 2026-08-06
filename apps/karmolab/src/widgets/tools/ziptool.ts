@@ -50,7 +50,7 @@
 
             <div class="field-group" id="zpLevelWrap" style="margin-top:var(--space-lg);">
               <div class="tool-sublabel">압축 세기 <span id="zpLevelVal" class="range-value">보통</span></div>
-              <input type="range" id="zpLevel" min="0" max="9" value="6">
+              <input type="range" id="zpLevel" aria-label="압축 세기" min="0" max="9" value="6">
             </div>
 
             <div class="tool-list" id="zpList"></div>
@@ -149,7 +149,11 @@
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             const before = files.reduce((s, f) => s + f.size, 0);
-            say(`${files.length}개 · ${size(before)} → ${size(blob.size)} (${Math.round((1 - blob.size / before) * 100)}% 줄었어요)`, 'ok');
+            // 사진·영상처럼 이미 눌린 파일은 묶으면 오히려 커진다. 그때 「-3% 줄었어요」라고 하면
+            // 숫자도 말도 틀린다 — 늘었으면 늘었다고 적는다.
+            const pct = Math.round(Math.abs(1 - blob.size / before) * 100);
+            const verdict = blob.size < before ? `${pct}% 줄었어요` : blob.size > before ? `${pct}% 커졌어요 — 이미 압축된 파일이라 그렇습니다` : '크기는 그대로예요';
+            say(`${files.length}개 · ${size(before)} → ${size(blob.size)} (${verdict})`, 'ok');
             Toolbox.trackUse?.('make');
           }
 
