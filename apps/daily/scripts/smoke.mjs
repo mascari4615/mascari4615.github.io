@@ -148,6 +148,24 @@ async function pastPage(topicId) {
 await pastPage('pokemon');
 await pastPage('lol');
 
+/**
+ * 표를 못 받는 상황을 일부러 만든다. 예전엔 빈 화면이 떴고, 낯선 사람은 그걸 「고장」으로 읽는다.
+ * 새 방어는 정상 경로가 아니라 *망가진 경로*에서 확인해야 의미가 있다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.route('**/data/*.json*', (route) => route.abort());
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.done h2');
+  const text = await page.locator('.done').innerText();
+  check('표를 못 받으면 이유를 말한다', /못 불러왔/.test(text), text.split('\n')[0]);
+  check('다시 시도 단추가 있다', (await page.locator('.done .btn').count()) === 1);
+  check('빈 입력칸을 남겨 두지 않는다', await page.locator('.guessbar').isHidden());
+  await page.screenshot({ path: join(shots, 'fetch-fail.png'), fullPage: true });
+  await ctx.close();
+}
+
 /** 공유 카드 그림은 *주소가 적혀 있다*고 있는 게 아니다 — 실제로 받아져야 카드가 펼쳐진다. */
 {
   const ctx = await browser.newContext();

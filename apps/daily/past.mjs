@@ -13,7 +13,16 @@ const topicId = root.dataset.topic;
 const stamp = root.dataset.stamp || '';
 const DAYS = 30;
 
-const topic = await (await fetch(`${root.dataset.data}?v=${stamp}`)).json();
+let topic;
+try {
+  const res = await fetch(`${root.dataset.data}?v=${stamp}`);
+  if (!res.ok) throw new Error(`서버가 ${res.status} 로 답했어요`);
+  topic = await res.json();
+} catch (err) {
+  // 조용히 빈 표를 남기지 않는다 — 빈 화면은 「고장」으로 읽힌다.
+  root.querySelector('.past-note').textContent = `목록을 못 불러왔어요 (${err.message}). 새로고침해 보세요.`;
+  throw err;
+}
 const today = kstDayNumber();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
