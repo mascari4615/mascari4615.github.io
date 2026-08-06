@@ -12,7 +12,8 @@
     ['httpstatus', 'HTTP 상태'],
     ['shortcut', '단축키'],
     ['filetype', '파일 확장자'],
-    ['keycode', '키 코드']
+    ['keycode', '키 코드'],
+    ['regexref', '정규식']
   ];
 
   Toolbox.register({

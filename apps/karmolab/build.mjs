@@ -206,6 +206,7 @@ const entryPoints = [
   // 자료표 (TASK-KL-088)
   'src/widgets/ref/reftable.ts',
   'src/widgets/ref/charmap.ts',
+  'src/widgets/ref/regexref.ts',
   'src/widgets/ref/reference.ts',
   'src/widgets/ref/specialchar.ts',
   'src/widgets/ref/ascii.ts',
