@@ -655,12 +655,35 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'qrgen',
+    hidden: true, // 「QR 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'QR 코드 생성',
     category: 'tool',
     desc: 'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다',
     layout: 'form',
     icon: '<rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" stroke="currentColor" stroke-width="1.6" fill="none"/>',
     lazyScriptPaths: ['tools/qrgen']
+  },
+  {
+    id: 'qrread',
+    hidden: true, // 「QR 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'QR 코드 읽기',
+    category: 'tool',
+    desc: '그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/qrread']
+  },
+  {
+    id: 'qr',
+    title: 'QR 도구',
+    category: 'tool',
+    desc: 'QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다',
+    layout: 'wide',
+    lazyTabs: true, // 해독기가 무겁다 — 연 탭만 만든다
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/qrgen', 'tools/qrread', 'tools/qr']
   },
   {
     id: 'draw',
