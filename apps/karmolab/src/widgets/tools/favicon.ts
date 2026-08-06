@@ -10,6 +10,7 @@
  * 그리고 **붙일 코드까지 준다**. 파일만 받아서는 어디에 어떻게 넣는지가 또 막힌다.
  */
 import { fileSize as size } from './shared/media';
+import { acceptPastedFiles } from './shared/paste';
 
 (function (): void {
   // 왜 이 크기들인지: 탭·북마크(16·32), 윈도우 타일(48), 애플 홈 화면(180), 안드로이드(192·512)
@@ -225,6 +226,8 @@ import { fileSize as size } from './shared/media';
             const f = e.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 화면 캡처를 바로 붙여넣는 것이 가장 잦은 쓰임이다
+          acceptPastedFiles(container, (files) => { load(files[0]); });
           [padEl, $<HTMLSelectElement>('#fvBg'), $<HTMLInputElement>('#fvRound')].forEach((el) =>
             el.addEventListener('input', refresh)
           );
