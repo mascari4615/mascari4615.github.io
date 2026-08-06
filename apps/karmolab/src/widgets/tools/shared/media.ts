@@ -43,6 +43,58 @@ export function toWav(buffer: AudioBuffer): Blob {
   return new Blob([view], { type: 'audio/wav' });
 }
 
+interface Mp3Encoder {
+  encodeBuffer: (l: Int16Array, r?: Int16Array) => Int8Array;
+  flush: () => Int8Array;
+}
+
+/**
+ * AudioBuffer → MP3.
+ *
+ * WAV 는 품질 손실이 없지만 1분에 10MB가 넘는다 — 메일로 보내거나 메신저에 올릴 때 그게 걸림돌이다.
+ * 그래서 MP3 를 함께 낸다. 압축기는 **그 자리에서 처음 쓸 때만** 받아 온다(150KB) — 안 쓰는 사람이
+ * 그 무게를 지지 않도록.
+ */
+export async function toMp3(buffer: AudioBuffer, kbps = 128): Promise<Blob> {
+  await Toolbox.ensureScript?.('vendor/lame.min');
+  const lame = (window as unknown as { lamejs?: { Mp3Encoder: new (ch: number, rate: number, kbps: number) => Mp3Encoder } }).lamejs;
+  if (!lame) throw new Error('MP3 압축기를 불러오지 못했습니다');
+
+  const channels = Math.min(2, buffer.numberOfChannels);
+  const encoder = new lame.Mp3Encoder(channels, buffer.sampleRate, kbps);
+
+  // MP3 는 16비트 정수를 받는다. 범위를 안 자르면 큰 소리에서 넘쳐 잡음이 된다.
+  const toInt16 = (src: Float32Array): Int16Array => {
+    const out = new Int16Array(src.length);
+    for (let i = 0; i < src.length; i++) {
+      const s = Math.max(-1, Math.min(1, src[i]));
+      out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    return out;
+  };
+
+  const left = toInt16(buffer.getChannelData(0));
+  const right = channels > 1 ? toInt16(buffer.getChannelData(1)) : null;
+
+  const parts: Int8Array[] = [];
+  const block = 1152; // MP3 한 덩어리 크기 — 이 단위로 넣어야 압축기가 제대로 돈다
+  for (let i = 0; i < left.length; i += block) {
+    const chunk = right
+      ? encoder.encodeBuffer(left.subarray(i, i + block), right.subarray(i, i + block))
+      : encoder.encodeBuffer(left.subarray(i, i + block));
+    if (chunk.length) parts.push(chunk);
+  }
+  const tail = encoder.flush();
+  if (tail.length) parts.push(tail);
+
+  return new Blob(parts as unknown as BlobPart[], { type: 'audio/mpeg' });
+}
+
+/** 고른 형식으로 소리를 낸다. 부르는 쪽이 형식마다 갈라 쓰지 않게 한 자리에 둔다. */
+export async function encodeAudio(buffer: AudioBuffer, format: 'wav' | 'mp3'): Promise<Blob> {
+  return format === 'mp3' ? toMp3(buffer) : toWav(buffer);
+}
+
 /** 사람이 읽는 용량. 소수 자리를 크기에 맞춰 줄여 눈에 덜 시끄럽게 한다. */
 export function fileSize(n: number): string {
   if (n >= 1048576) return `${(n / 1048576).toFixed(2)}MB`;

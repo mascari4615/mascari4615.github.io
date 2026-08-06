@@ -7,7 +7,7 @@
  * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv·avi). 그때는 실패를 숨기지 않고
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
-import { toWav, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
 (function (): void {
   Toolbox.register({
@@ -30,8 +30,16 @@ import { toWav, fileSize as size, mmss } from './shared/media';
 
             <div class="cc-stats" id="vaStats"></div>
 
+            <div class="field-group" style="margin-top:var(--space-lg);">
+              <label class="field-label" for="vaFormat">저장 형식</label>
+              <select id="vaFormat">
+                <option value="mp3">MP3 — 작아서 보내기 좋음</option>
+                <option value="wav">WAV — 품질 손실 없음, 용량 큼</option>
+              </select>
+            </div>
+
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="vaRun">소리만 뽑아 받기 (WAV)</button>
+              <button class="btn btn-primary" id="vaRun">소리만 뽑아 받기</button>
             </div>
             <div class="tool-status" id="vaStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
           `;
@@ -95,14 +103,21 @@ import { toWav, fileSize as size, mmss } from './shared/media';
               say('영상을 먼저 넣어 주세요.', 'error');
               return;
             }
-            const blob = toWav(buffer);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = file.name.replace(/\.[^.]+$/, '') + '.wav';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${mmss(buffer.duration)} · ${size(blob.size)} 로 받았어요.`, 'ok');
-            Toolbox.trackUse?.('extract');
+            const format = $<HTMLSelectElement>('#vaFormat').value as 'wav' | 'mp3';
+            const held = buffer;
+            const name = file.name;
+            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '음원으로 만드는 중…');
+            void encodeAudio(held, format)
+              .then((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = name.replace(/\.[^.]+$/, '') + '.' + format;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                say(`${mmss(held.duration)} · ${size(blob.size)} 로 받았어요.`, 'ok');
+                Toolbox.trackUse?.('extract');
+              })
+              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
         }
       }

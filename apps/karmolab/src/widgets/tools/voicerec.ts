@@ -9,7 +9,7 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
-import { toWav, fileSize as size, mmss } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
 
 (function (): void {
   Toolbox.register({
@@ -28,7 +28,11 @@ import { toWav, fileSize as size, mmss } from './shared/media';
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <button class="btn btn-primary" id="vrStart">녹음 시작</button>
               <button class="btn btn-ghost" id="vrStop" disabled>멈추기</button>
-              <button class="btn btn-ghost" id="vrSave" disabled>WAV 로 받기</button>
+              <button class="btn btn-ghost" id="vrSave" disabled>내려받기</button>
+              <select id="vrFormat" aria-label="저장 형식">
+                <option value="mp3">MP3 — 작음</option>
+                <option value="wav">WAV — 손실 없음</option>
+              </select>
             </div>
 
             <div class="tool-display" id="vrClock">0:00</div>
@@ -57,6 +61,8 @@ import { toWav, fileSize as size, mmss } from './shared/media';
           let recorder: MediaRecorder | null = null;
           let stream: MediaStream | null = null;
           let wav: Blob | null = null;
+          // 저장 형식을 나중에 고르므로 소리 자체를 들고 있어야 한다 (WAV 로만 갖고 있으면 MP3 를 못 만든다)
+          let recorded: AudioBuffer | null = null;
           let raf = 0;
           let ticker = 0;
           let startedAt = 0;
@@ -112,6 +118,7 @@ import { toWav, fileSize as size, mmss } from './shared/media';
               return;
             }
             wav = null;
+            recorded = null;
             peak = 0;
             saveBtn.disabled = true;
             $<HTMLElement>('#vrResult').style.display = 'none';
@@ -165,7 +172,8 @@ import { toWav, fileSize as size, mmss } from './shared/media';
               say('담긴 소리가 없어요. 마이크가 맞게 골라졌는지 확인해 주세요.', 'error');
               return;
             }
-            wav = toWav(buffer);
+            recorded = buffer;
+            wav = toWav(buffer); // 미리 듣기는 손실 없는 쪽으로 들려준다
             preview.src = URL.createObjectURL(wav);
             $<HTMLElement>('#vrResult').style.display = '';
             saveBtn.disabled = false;
@@ -197,14 +205,20 @@ import { toWav, fileSize as size, mmss } from './shared/media';
             recorder = null;
           };
           saveBtn.onclick = () => {
-            if (!wav) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(wav);
-            const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-            a.download = `녹음-${stamp}.wav`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            if (!recorded) return;
+            const format = $<HTMLSelectElement>('#vrFormat').value as 'wav' | 'mp3';
+            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            void encodeAudio(recorded, format)
+              .then((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+                a.download = `녹음-${stamp}.${format}`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
+              })
+              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
         }
       }

@@ -9,7 +9,7 @@
  *  ② **키우기(정규화)** — 그 뒤에 전체를 목표 크기까지 올린다
  * 순서가 반대면 찌그러진다. 처리 전후를 **숫자와 파형으로 나란히** 보여 주고, 귀로도 비교하게 한다.
  */
-import { toWav, fileSize as size, mmss } from './shared/media';
+import { toWav, encodeAudio, fileSize as size, mmss } from './shared/media';
 
 (function (): void {
   /** 소리의 「체감 크기」. 순간 최대값이 아니라 평균 에너지라 사람이 느끼는 크기에 가깝다. */
@@ -87,7 +87,11 @@ import { toWav, fileSize as size, mmss } from './shared/media';
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
                 <button class="btn btn-primary" id="alRun">크기 맞추기</button>
-                <button class="btn btn-ghost" id="alSave" disabled>WAV 로 받기</button>
+                <button class="btn btn-ghost" id="alSave" disabled>내려받기</button>
+                <select id="alFormat" aria-label="저장 형식">
+                  <option value="mp3">MP3 — 작음</option>
+                  <option value="wav">WAV — 손실 없음</option>
+                </select>
               </div>
 
               <div id="alResult" style="display:none;">
@@ -119,6 +123,7 @@ import { toWav, fileSize as size, mmss } from './shared/media';
           let fileName = '';
           let source: AudioBuffer | null = null;
           let made: Blob | null = null;
+          let processed: AudioBuffer | null = null;
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -203,6 +208,8 @@ import { toWav, fileSize as size, mmss } from './shared/media';
             const after = out.getChannelData(0);
             drawWave($<HTMLCanvasElement>('#alAfter'), after, '#4bb3e0');
 
+            // 미리 듣기는 손실 없는 쪽으로. 저장 형식은 받을 때 고른다(소리 자체를 들고 있어야 한다).
+            processed = out;
             made = toWav(out);
             $<HTMLAudioElement>('#alPreview').src = URL.createObjectURL(made);
             $<HTMLElement>('#alResult').style.display = '';
@@ -240,13 +247,20 @@ import { toWav, fileSize as size, mmss } from './shared/media';
 
           $<HTMLButtonElement>('#alRun').onclick = () => run();
           saveBtn.onclick = () => {
-            if (!made) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + '-크기맞춤.wav';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            if (!processed) return;
+            const format = $<HTMLSelectElement>('#alFormat').value as 'wav' | 'mp3';
+            const name = fileName.replace(/\.[^.]+$/, '') + '-크기맞춤.' + format;
+            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            void encodeAudio(processed, format)
+              .then((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = name;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
+              })
+              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
         }
       }
