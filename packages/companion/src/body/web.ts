@@ -15,6 +15,8 @@ export interface WebBodyOptions {
    * 기억 부품을 그대로 넘기면 된다 — 화면이 기억을 따로 들고 있지 않게.
    */
   history?: () => readonly MemoryEntry[] | Promise<readonly MemoryEntry[]>;
+  /** 「이 사람에 대해 아는 것」 — 창에서 펼쳐 볼 수 있게. */
+  longTerm?: () => string | null | Promise<string | null>;
 }
 
 /**
@@ -67,6 +69,20 @@ export function webBody(options: WebBodyOptions = {}): Body {
             .catch(() => {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('[]');
+            });
+          return;
+        }
+
+        // 얘가 나를 뭘 안다고 생각하는지 — 감추면 기분 나쁜 종류의 정보다.
+        if (url === '/known') {
+          void Promise.resolve(options.longTerm?.() ?? null)
+            .then((known) => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ known }));
+            })
+            .catch(() => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end('{"known":null}');
             });
           return;
         }

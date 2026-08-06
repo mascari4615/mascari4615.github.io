@@ -11,12 +11,18 @@ export { screenSense, type ScreenSenseOptions } from './sense/screen';
 
 export { InMemoryMemory } from './memory/in-memory';
 export { JsonlFileMemory } from './memory/jsonl-file';
+export {
+  DistillingMemory,
+  brainDistiller,
+  type Distiller,
+  type DistillingMemoryOptions,
+} from './memory/distilling';
 
 export { alwaysRespond, neverRespond, cooldownAttention, type CooldownOptions } from './attention/index';
 
 export { echoBrain, silentBrain } from './brain/echo';
 export { assistantBrain, type AssistantBrainOptions } from './brain/assistant';
-export { claudeCliBrain, type ClaudeCliBrainOptions } from './brain/claude-cli';
+export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker } from './brain/claude-cli';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';

@@ -5,6 +5,11 @@ import { join } from 'node:path';
 
 import type { Brain, MemoryEntry, ThinkInput } from '../types';
 
+/** 대화 밖에서 두뇌를 한 번 쓰고 싶을 때 (예: 기억 졸이기). */
+export interface PlainThinker {
+  ask(prompt: string): Promise<string | null>;
+}
+
 export interface ClaudeCliBrainOptions {
   command?: string;
   timeoutMs?: number;
@@ -24,7 +29,7 @@ export interface ClaudeCliBrainOptions {
  * 기억은 CLI 가 몰래 들고 있는 게 아니라 우리 `Memory` 부품이 소유한다 — 그래야 기억을
  * 파일로 옮기든 지우든 우리가 통제할 수 있다.
  */
-export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain {
+export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & PlainThinker {
   const command = options.command ?? process.env.CLAUDE_CLI_COMMAND?.trim() ?? 'claude';
   const timeoutMs = options.timeoutMs ?? 120_000;
   // 빈 폴더 = 주워 읽을 지침 파일이 없다.
@@ -32,6 +37,10 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain {
 
   return {
     name: 'claude-cli(격리)',
+    /** 대화 맥락 없이 한 번 묻는다 — 기억을 졸일 때처럼. */
+    ask(prompt: string): Promise<string | null> {
+      return run(command, prompt, sandbox, timeoutMs, false);
+    },
     think(input: ThinkInput): Promise<string | null> {
       // 그림이 딸려 왔으면 샌드박스 안으로 들여놓는다 — 두뇌가 볼 수 있는 곳은 여기뿐이다.
       let localImage: string | null = null;
@@ -99,7 +108,9 @@ function run(
 }
 
 function buildPrompt(input: ThinkInput, imageInSandbox: string | null): string {
-  const head = input.character?.instruction.trim() ? `${input.character.instruction.trim()}\n\n` : '';
+  const persona = input.character?.instruction.trim() ? `${input.character.instruction.trim()}\n\n` : '';
+  const known = input.longTerm?.trim() ? `이 사람에 대해 아는 것:\n${input.longTerm.trim()}\n\n` : '';
+  const head = `${persona}${known}`;
   const history = input.recent.slice(0, -1).map(renderEntry).join('\n');
   const past = history === '' ? '' : `지금까지 오간 말:\n${history}\n\n`;
   const look =
