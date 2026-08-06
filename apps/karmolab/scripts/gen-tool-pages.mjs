@@ -185,7 +185,53 @@ function sponsorBlock(id) {
 `;
 }
 
+/* ── 서로 잇기 (TASK-KL-089) ───────────────────────── */
+
+/**
+ * 손으로 적은 `related` 만으로는 도구끼리 고르게 이어지지 않는다. 실측해 보니 87개 중 42개가
+ * 다른 도구 페이지에서 들어오는 링크가 하나 이하였고, 아예 없는 것도 여럿이었다.
+ * 목록 페이지에만 걸려 있으면 크롤러가 늦게 찾아가고, 사람도 옆 도구로 건너갈 길이 없다.
+ *
+ * 그래서 같은 갈래(묶음 → 없으면 분류)의 도구를 몇 개 더 붙이되, **아직 적게 받은 쪽을 먼저**
+ * 고른다. 그래야 인기 있는 몇 개로 링크가 쏠리지 않고 전체가 함께 발견된다.
+ */
+const EXTRA_LINKS = 4;
+const inboundCount = Object.fromEntries(ids.map((id) => [id, 0]));
+for (const id of ids) for (const r of seo[id].related) if (r in inboundCount) inboundCount[r] += 1;
+
+function kinOf(id) {
+  const w = widgetById[id];
+  return w.bundle || w.category || '';
+}
+
+const extraLinks = {};
+for (const id of ids) {
+  const kin = kinOf(id);
+  const taken = new Set([id, ...seo[id].related]);
+  const pool = ids.filter((o) => !taken.has(o) && kinOf(o) === kin);
+  // 적게 받은 것 먼저, 같으면 이름순으로 고정해 빌드마다 결과가 흔들리지 않게 한다.
+  pool.sort((a, b) => inboundCount[a] - inboundCount[b] || a.localeCompare(b));
+  const picked = pool.slice(0, EXTRA_LINKS);
+  picked.forEach((p) => (inboundCount[p] += 1));
+  extraLinks[id] = picked;
+}
+
 /* ── 도구 상세 페이지 ──────────────────────────────── */
+
+/** 같은 갈래 도구로 건너갈 길 — 이름만 담백하게 건다. */
+function kinBlock(id) {
+  const kin = extraLinks[id];
+  if (!kin || !kin.length) return '';
+  const links = kin
+    .map((k) => `<a href="${BASE_PATH}/${k}/">${esc(heading(k))}</a>`)
+    .join('\n          ');
+  return `
+        <nav class="tool-seo-kin" aria-label="같은 갈래 도구">
+          <span>같은 갈래</span>
+          ${links}
+        </nav>
+`;
+}
 
 function seoBlock(id) {
   const t = seo[id];
@@ -218,7 +264,7 @@ function seoBlock(id) {
         <div class="tool-seo-related">
           ${related}
         </div>
-${sponsorBlock(id)}
+${kinBlock(id)}${sponsorBlock(id)}
         <p class="tool-seo-note">
           입력한 내용은 브라우저 안에서만 처리되며 어디에도 저장·전송되지 않습니다.
           <a href="${BASE_PATH}/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a> · <a href="https://github.com/Mascari4615" rel="me">만든 사람</a>

@@ -340,6 +340,19 @@
 }
 .tool-seo-note a { color: var(--text-secondary); }
 
+/* 같은 갈래 도구로 건너갈 길 (TASK-KL-089) — 본문 흐름을 끊지 않게 한 줄로 눕힌다. */
+.tool-seo-kin {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: baseline;
+    font-size: var(--font-size-xs);
+}
+.tool-seo-kin span { color: var(--text-tertiary); }
+.tool-seo-kin a { color: var(--text-secondary); text-decoration: none; }
+.tool-seo-kin a:hover { color: var(--accent); }
+
 /* 후원·광고 자리 (TASK-KL-089) — 도구를 다 쓰고 읽는 자리에만 놓는다.
    도구 본체와 헷갈리지 않게 라벨을 달고, 화면을 잡아끄는 색·움직임은 쓰지 않는다. */
 .tool-sponsor { margin: 32px 0 0; }
