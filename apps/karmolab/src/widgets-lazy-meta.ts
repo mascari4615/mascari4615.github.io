@@ -236,7 +236,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/slug', 'tools/listdiff', 'tools/jamo', 'tools/wordfreq', 'tools/text']
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/slug', 'tools/listdiff', 'tools/jamo', 'tools/wordfreq', 'tools/linebreak', 'tools/checklist', 'tools/text']
   },
   {
     id: 'lorem',
@@ -303,6 +303,28 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<path d="M4 20V10M10 20V4M16 20v-7M22 20v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/wordfreq']
+  },
+  {
+    id: 'linebreak',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '줄바꿈 정리',
+    category: 'tool',
+    desc: 'PDF·웹에서 복사한 글의 끊긴 줄을 잇거나 원하는 길이로 다시 나눕니다',
+    layout: 'wide',
+    icon: '<path d="M4 6h16M4 12h10a3 3 0 0 1 0 6h-3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M13 15l-2 3 2 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/linebreak']
+  },
+  {
+    id: 'checklist',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '체크리스트',
+    category: 'tool',
+    desc: '할 일 목록을 만들고 주소 하나로 공유합니다. 계정도 서버도 없이',
+    layout: 'form',
+    icon: '<path d="M4 7l2 2 4-4M4 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7h7M13 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/checklist']
   },
   {
     id: 'charcount',
@@ -406,7 +428,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/timecalc', 'tools/time']
+    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/timecalc', 'tools/pace', 'tools/time']
   },
   {
     id: 'birth',
@@ -429,6 +451,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/timecalc']
+  },
+  {
+    id: 'pace',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '러닝 페이스 계산',
+    category: 'tool',
+    desc: '페이스와 속도를 서로 바꾸고 목표 기록에 필요한 페이스를 역산합니다',
+    layout: 'wide',
+    icon: '<circle cx="17" cy="5" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 21l2-6-3-2 1-4 3 2 2 1M9 12l-2 3-3 1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/pace']
   },
   {
     id: 'datecalc',
@@ -601,7 +634,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
     layout: 'form',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/grade', 'tools/vat', 'tools/bytesize', 'tools/bizno', 'tools/calc']
+    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/grade', 'tools/vat', 'tools/bytesize', 'tools/bizno', 'tools/loan', 'tools/cssunit', 'tools/calc']
   },
   {
     id: 'numword',
@@ -668,6 +701,28 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6V4h8v2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h5M7 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/bizno']
+  },
+  {
+    id: 'loan',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '대출 상환표',
+    category: 'tool',
+    desc: '원리금균등·원금균등·만기일시 상환을 비교하고 달별 원금·이자를 봅니다',
+    layout: 'wide',
+    icon: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 20v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/loan']
+  },
+  {
+    id: 'cssunit',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'CSS 단위 변환',
+    category: 'tool',
+    desc: 'px·rem·em·pt·% 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히',
+    layout: 'form',
+    icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M19 14v6M17 16l2-2 2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/cssunit']
   },
   {
     id: 'percent',

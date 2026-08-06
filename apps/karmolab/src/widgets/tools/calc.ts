@@ -17,7 +17,9 @@
     ['grade', '학점'],
     ['vat', '부가세'],
     ['bytesize', '용량'],
-    ['bizno', '사업자번호']
+    ['bizno', '사업자번호'],
+    ['loan', '대출 상환'],
+    ['cssunit', 'CSS 단위']
   ];
 
   Toolbox.register({
