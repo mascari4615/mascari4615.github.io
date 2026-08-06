@@ -684,3 +684,12 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
 /* 도구 상세 페이지에서는 앱 히어로를 접는다 — 바로 아래 설명 블록이 같은 제목·설명을
    더 자세히 담고 있어 폰에서 같은 문장을 두 번 읽게 된다 (TASK-KL-088). */
 body.tool-detail .tool-page-hero { display: none; }
+
+/* 화면을 꽉 채우는 도구(layout-full)의 상세 페이지 — TASK-KL-089.
+   앱에서는 이런 도구가 창을 가득 쓰도록 바깥 스크롤을 끈다. 그런데 상세 페이지에는
+   도구 아래에 설명·FAQ 가 붙으므로, 스크롤이 꺼져 있으면 그 부분이 통째로 잘려
+   사람에게도 크롤러에게도 안 보인다. 상세 페이지에서만 도구 몫의 높이를 정해 주고
+   나머지를 아래로 흐르게 한다. */
+body.tool-detail .main-content:has(.tool-page.layout-full.active) { overflow: hidden auto; }
+body.tool-detail .content-body:has(.tool-page.layout-full.active) { flex: 0 0 auto; }
+body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px; }

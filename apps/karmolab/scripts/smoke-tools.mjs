@@ -61,8 +61,37 @@ for (const id of ids) {
         return rest;
       }
     },
-    Mdd: { linePreset: () => true },
-    document: { createElement: () => ({ style: {}, classList: { add() {}, remove() {} } }) },
+    // Mdd 는 화면 연출용이라 이 검사와 관계가 없다. 그런데 위젯이 부르는 함수를 하나라도
+    // 빠뜨리면 멀쩡한 위젯이 여기서만 죽어 도구 결함처럼 보인다(실제로 두 번 그랬다).
+    // 무엇을 부르든 조용히 받아 주고, 이 검사는 등록이 되는지에만 집중한다.
+    Mdd: new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === 'getRelationshipTitle' ? () => '' : prop === 'getAffection' ? () => 0 : () => true)
+      }
+    ),
+    document: (() => {
+      const el = () => ({
+        style: {},
+        classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
+        appendChild() {},
+        setAttribute() {},
+        addEventListener() {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        dataset: {}
+      });
+      return {
+        createElement: el,
+        createElementNS: el,
+        getElementById: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        addEventListener() {},
+        head: el(),
+        body: el()
+      };
+    })(),
     navigator: { clipboard: {} },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'x' },
     location: { hash: '' }

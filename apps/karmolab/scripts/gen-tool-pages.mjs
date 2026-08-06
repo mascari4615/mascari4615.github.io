@@ -56,12 +56,9 @@ for (const id of ids) {
   }
   // layout:'full' 은 페이지 스크롤을 죽인다(.main-content overflow:hidden) → 아래 설명 블록이
   // 화면 밖으로 잘려 크롤러에게도 사용자에게도 안 보인다. 상세 페이지가 있는 도구는 쓸 수 없다.
-  if (widgetById[id].layout === 'full') {
-    console.error(
-      `[gen-tool-pages] ${id}: layout 'full' 은 상세 페이지에서 설명이 잘린다 — 'wide' 또는 'form' 을 쓸 것`
-    );
-    process.exit(1);
-  }
+  // (layout:'full' 은 한때 여기서 막았다. 앱에서 그런 도구는 바깥 스크롤을 꺼서 아래 설명이
+  //  잘렸기 때문이다. TASK-KL-089 에서 상세 페이지에 한해 도구 몫의 높이를 정하고 나머지를
+  //  흐르게 고쳤으므로 — `tools.css` 의 body.tool-detail 규칙 — 더 막지 않는다.)
   const badRelated = t.related.filter((r) => !seo[r]);
   if (badRelated.length) {
     console.error(`[gen-tool-pages] ${id}: related 가 가리키는 도구 페이지 없음 — ${badRelated.join(', ')}`);
