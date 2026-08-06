@@ -199,6 +199,7 @@ const entryPoints = [
   'src/widgets/tools/draw.ts',
   'src/widgets/tools/devtool.ts',
   'src/widgets/tools/image.ts',
+  'src/widgets/tools/numword.ts',
   'src/widgets/tools/csvjson.ts',
   'src/widgets/tools/lorem.ts',
   'src/widgets/tools/base64.ts',
