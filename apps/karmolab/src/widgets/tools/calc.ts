@@ -13,7 +13,10 @@
     ['unitconv', '단위'],
     ['radix', '진법'],
     ['numword', '숫자 ↔ 한글'],
-    ['aspect', '비율']
+    ['aspect', '비율'],
+    ['grade', '학점'],
+    ['vat', '부가세'],
+    ['bytesize', '용량']
   ];
 
   Toolbox.register({

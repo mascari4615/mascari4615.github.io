@@ -236,7 +236,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/text']
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/slug', 'tools/listdiff', 'tools/text']
   },
   {
     id: 'lorem',
@@ -259,6 +259,28 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14.5 14.5 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
     lazyScriptPaths: ['tools/replace']
+  },
+  {
+    id: 'slug',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '슬러그 만들기',
+    category: 'tool',
+    desc: '제목을 주소에 쓸 형태로 바꿉니다. 한글은 로마자로 옮겨 적습니다',
+    layout: 'form',
+    icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/slug']
+  },
+  {
+    id: 'listdiff',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '목록 비교',
+    category: 'tool',
+    desc: '두 명단에서 공통·한쪽에만 있는 항목을 가려냅니다. 순서와 무관',
+    layout: 'wide',
+    icon: '<circle cx="9" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/listdiff']
   },
   {
     id: 'charcount',
@@ -535,7 +557,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
     layout: 'form',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/calc']
+    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/grade', 'tools/vat', 'tools/bytesize', 'tools/calc']
   },
   {
     id: 'numword',
@@ -558,6 +580,39 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',
     lazyScriptPaths: ['tools/aspect']
+  },
+  {
+    id: 'grade',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '학점 계산기',
+    category: 'tool',
+    desc: '과목별 학점과 성적으로 평점을 계산합니다. 목표 학점에 필요한 성적도 함께',
+    layout: 'wide',
+    icon: '<path d="M12 4 2 9l10 5 10-5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/grade']
+  },
+  {
+    id: 'vat',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '부가세 계산기',
+    category: 'tool',
+    desc: '공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로',
+    layout: 'form',
+    icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/vat']
+  },
+  {
+    id: 'bytesize',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '용량 단위 변환',
+    category: 'tool',
+    desc: 'KB·MB·GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다',
+    layout: 'form',
+    icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',
+    lazyScriptPaths: ['tools/bytesize']
   },
   {
     id: 'percent',
