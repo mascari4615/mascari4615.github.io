@@ -242,6 +242,7 @@ const entryPoints = [
   'src/widgets/tools/videorotate.ts',
   'src/widgets/tools/pdfpagenum.ts',
   'src/widgets/tools/pdfcrop.ts',
+  'src/widgets/tools/imgresize.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
