@@ -442,6 +442,10 @@ export interface DebugDump {
   hours: number[];
   /** 채널별 메시지 수 (많은 순) */
   channels: { channelId: string; count: number }[];
+  /** 이모지 전체 (많은 순) — 카드는 3개만 보여주지만 여기선 다 준다 */
+  emojis: { name: string; count: number }[];
+  /** 날짜별 추이 (오래된 순) — 요일·흐름을 보려면 이게 있어야 한다 */
+  daily: { dayKey: string; msgs: number; users: number }[];
   /** 아직 파일에 안 쓴 변경이 있나 */
   dirty: boolean;
   /** state 파일 경로 + 존재 여부 + 마지막 저장 시각 */
@@ -461,9 +465,19 @@ export function debugDump(
   const rows = new Map<string, DebugRow>();
   const hours = Array.from({ length: 24 }, () => 0);
   const channels = new Map<string, number>();
+  const emojis = new Map<string, number>();
+  const daily: { dayKey: string; msgs: number; users: number }[] = [];
 
   for (const [dayKey, day] of Object.entries(guild?.days ?? {})) {
     if (!inRange.has(dayKey)) continue;
+    daily.push({
+      dayKey,
+      msgs: day.hours.reduce((sum, count) => sum + count, 0),
+      users: Object.values(day.users).filter((u) => u.msgs > 0).length,
+    });
+    for (const [name, count] of Object.entries(day.emojis)) {
+      emojis.set(name, (emojis.get(name) ?? 0) + count);
+    }
     for (const [userId, stat] of Object.entries(day.users)) {
       const row = rows.get(userId) ?? {
         userId,
@@ -496,6 +510,10 @@ export function debugDump(
     channels: [...channels.entries()]
       .sort((a, b) => b[1] - a[1])
       .map(([channelId, count]) => ({ channelId, count })),
+    emojis: [...emojis.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, count]) => ({ name, count })),
+    daily: daily.sort((a, b) => a.dayKey.localeCompare(b.dayKey)),
   };
 }
 

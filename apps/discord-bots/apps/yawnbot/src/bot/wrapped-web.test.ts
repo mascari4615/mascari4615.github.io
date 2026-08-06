@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderWrappedPage } from './wrapped-web';
-import { emptyState, recordMessage, summarize, getOrCreateShareKey, guildIdForShareKey } from '../services/server-stats';
+import { debugDump, emptyState, recordMessage, summarize, getOrCreateShareKey, guildIdForShareKey } from '../services/server-stats';
 
 const NOW = new Date('2026-08-06T12:00:00Z');
 
@@ -13,11 +13,23 @@ function page(seed: boolean) {
         content: '안녕 🎉', at: new Date('2026-08-05T05:00:00Z'),
       });
     }
+    recordMessage(state, {
+      guildId: 'g1', userId: 'u2', userName: '링', channelId: 'c2',
+      content: '나도', at: new Date('2026-08-04T05:00:00Z'),
+    });
   }
   return renderWrappedPage({
     guildName: '카르모 서버',
     days: 7,
     summary: summarize(state, 'g1', { days: 7, now: NOW }),
+    detail: {
+      ...debugDump(state, 'g1', { days: 7, now: NOW }),
+      dirty: false,
+      statePath: 'C:/secret/path/server-stats-state.json',
+      stateFileExists: true,
+      stateFileMtime: '2026-08-06T12:00:00.000Z',
+    },
+    channelNames: { c1: '#잡담', c2: '#작업로그' },
     generatedAt: NOW.toISOString(),
   });
 }
@@ -63,5 +75,36 @@ describe('웹 결산 페이지', () => {
 
   it('프라이버시 약속이 페이지에도 박혀 있다', () => {
     expect(page(true)).toContain('저장하지 않습니다');
+  });
+});
+
+describe('자세히 절', () => {
+  it('같은 페이지 안에 접힌 채로 있다', () => {
+    const html = page(true);
+    expect(html).toContain('<details');
+    expect(html).toContain('자세히 보기');
+    expect(html).not.toContain('<details open');
+  });
+
+  it('전원·채널·날짜·시각·이모지 표가 다 있다', () => {
+    const html = page(true);
+    for (const heading of ['사람별', '채널별', '날짜별', '시각별', '이모지', '집계 상태']) {
+      expect(html).toContain(heading);
+    }
+  });
+
+  it('채널을 ID 가 아니라 이름으로 보여준다', () => {
+    const html = page(true);
+    expect(html).toContain('#잡담');
+    expect(html).toContain('#작업로그');
+  });
+
+  it('카드에 안 나오던 사람도 표에는 나온다', () => {
+    // 카드는 top3 만 — 표는 전원이라야 "자세히"다.
+    expect(page(true)).toContain('링');
+  });
+
+  it('봇 머신의 파일 경로는 페이지에 안 나온다', () => {
+    expect(page(true)).not.toContain('C:/secret/path');
   });
 });
