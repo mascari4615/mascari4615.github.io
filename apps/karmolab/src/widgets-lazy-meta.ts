@@ -457,14 +457,25 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/video2audio']
   },
   {
+    id: 'videotrim',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 자르기',
+    category: 'tool',
+    desc: '영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M6 4v13a3 3 0 1 0 2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 4v13a3 3 0 1 1-2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M9 9h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/videotrim']
+  },
+  {
     id: 'videotool',
     title: '영상 도구',
     category: 'tool',
-    desc: '영상을 GIF 로 만들고 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    desc: '영상을 GIF 로 만들고, 구간을 자르고, 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
-    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/video2audio', 'tools/videotool']
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2audio', 'tools/videotool']
   },
   {
     id: 'charcount',

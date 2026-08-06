@@ -7,6 +7,7 @@
 (function (): void {
   const PARTS: Array<[string, string]> = [
     ['video2gif', 'GIF 만들기'],
+    ['videotrim', '자르기'],
     ['video2audio', '소리 추출']
   ];
 
@@ -14,7 +15,7 @@
     id: 'videotool',
     title: '영상 도구',
     category: 'tool',
-    desc: '영상을 GIF 로 만들고 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    desc: '영상을 GIF 로 만들고, 구간을 자르고, 소리만 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     lazyTabs: true,
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',

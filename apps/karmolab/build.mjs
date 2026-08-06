@@ -213,6 +213,7 @@ const entryPoints = [
   'src/widgets/tools/gifenc.ts', // 위젯이 아니라 GIF 압축기 — video2gif 가 먼저 부른다
   'src/widgets/tools/video2gif.ts',
   'src/widgets/tools/video2audio.ts',
+  'src/widgets/tools/videotrim.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
   'src/widgets/tools/linebreak.ts',
