@@ -58,3 +58,10 @@ jobs:
       - name: 값을 넣으면 답이 나오는지
         if: always()
         run: npm run test:behavior
+
+      # 화면낭독기가 입력칸 이름을 읽을 수 있는지. 아직 이어지지 않은 칸이 남아 있어
+      # 한 번에 다 잇지는 못했다 — 적어도 더 늘지 않게 기준치로 잠가 둔다.
+      # (남은 개수는 data/a11y-baseline.json 이 정본. 고칠 때마다 낮춰 적는다.)
+      - name: 입력칸에 이름이 이어져 있는지
+        if: always()
+        run: npm run audit:labels

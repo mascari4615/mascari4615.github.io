@@ -1,5 +1,5 @@
 {
-  "unlinked": 108,
+  "unlinked": 83,
   "nameless": 0,
   "perTool": {
     "charcount": {
@@ -14,24 +14,12 @@
       "unlinked": 1,
       "nameless": 0
     },
-    "qrgen": {
-      "unlinked": 5,
-      "nameless": 0
-    },
     "lotto": {
       "unlinked": 2,
       "nameless": 0
     },
     "datecalc": {
       "unlinked": 2,
-      "nameless": 0
-    },
-    "unitconv": {
-      "unlinked": 4,
-      "nameless": 0
-    },
-    "uuidgen": {
-      "unlinked": 4,
       "nameless": 0
     },
     "regextest": {
@@ -152,18 +140,6 @@
     },
     "colorblind": {
       "unlinked": 2,
-      "nameless": 0
-    },
-    "loan": {
-      "unlinked": 4,
-      "nameless": 0
-    },
-    "cssunit": {
-      "unlinked": 4,
-      "nameless": 0
-    },
-    "pace": {
-      "unlinked": 4,
       "nameless": 0
     },
     "linebreak": {

@@ -73,21 +73,21 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">대출 금액</div>
-                  <input type="number" id="loP" value="100000000" step="1000000" min="0">
+                  <input type="number" id="loP" value="100000000" step="1000000" min="0" aria-label="대출 금액">
                 </div>
                 <div>
                   <div class="tool-sublabel">연 이자율 (%)</div>
-                  <input type="number" id="loR" value="4.5" step="0.1" min="0">
+                  <input type="number" id="loR" value="4.5" step="0.1" min="0" aria-label="연 이자율 (%)">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
                   <div class="tool-sublabel">기간 (개월)</div>
-                  <input type="number" id="loM" value="360" step="12" min="1">
+                  <input type="number" id="loM" value="360" step="12" min="1" aria-label="기간 (개월)">
                 </div>
                 <div>
                   <div class="tool-sublabel">상환 방식</div>
-                  <select id="loType">
+                  <select id="loType" aria-label="상환 방식">
                     <option value="ep">원리금균등 — 매달 같은 금액</option>
                     <option value="pp">원금균등 — 점점 줄어듦</option>
                     <option value="bu">만기일시 — 이자만 내다 한 번에</option>

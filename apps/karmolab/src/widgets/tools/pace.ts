@@ -40,11 +40,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">페이스 (분:초 / km)</div>
-                  <input type="text" id="paPace" value="6:00" spellcheck="false">
+                  <input type="text" id="paPace" value="6:00" spellcheck="false" aria-label="페이스 (분:초 / km)">
                 </div>
                 <div>
                   <div class="tool-sublabel">속도 (km/h)</div>
-                  <input type="number" id="paSpeed" value="10" step="0.1" min="0.1">
+                  <input type="number" id="paSpeed" value="10" step="0.1" min="0.1" aria-label="속도 (km/h)">
                 </div>
               </div>
             </div>
@@ -57,11 +57,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">거리</div>
-                  <select id="paDist"></select>
+                  <select id="paDist" aria-label="거리"></select>
                 </div>
                 <div>
                   <div class="tool-sublabel">목표 기록 (시:분:초)</div>
-                  <input type="text" id="paGoal" value="0:50:00" spellcheck="false">
+                  <input type="text" id="paGoal" aria-label="목표 기록 (시:분:초)" value="0:50:00" spellcheck="false">
                 </div>
               </div>
             </div>
