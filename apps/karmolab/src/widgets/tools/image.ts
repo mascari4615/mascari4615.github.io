@@ -8,6 +8,7 @@
 (function (): void {
   const PARTS: Array<[string, string]> = [
     ['imageedit', '편집 · 변환'],
+    ['text2img', '글자 카드'],
     ['asciiart', '아스키 아트'],
     ['imagegen', 'AI 생성'],
     ['imagelib', '보관함']
