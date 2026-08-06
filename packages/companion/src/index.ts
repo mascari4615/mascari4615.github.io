@@ -5,7 +5,7 @@
  */
 export * from './types';
 export { Companion, type CompanionOptions } from './core';
-export { loadCharacter } from './character';
+export { loadCharacter, loadCharacters } from './character';
 export {
   describeHands,
   findRequests,

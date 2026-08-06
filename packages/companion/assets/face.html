@@ -330,6 +330,23 @@
   }
   .voice-pick:hover { border-color: rgba(110, 231, 255, 0.55); }
 
+  .who-pick {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--edge);
+    background: rgba(17, 20, 27, 0.8);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .who-pick:hover { border-color: rgba(110, 231, 255, 0.55); }
+
   /* 아래쪽 대화 자리에만 겹친다 — 좁은 창에서 큐브까지 덮으면 얘가 안 보인다. */
   .sheet {
     position: fixed;
@@ -430,6 +447,7 @@
     <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
     <div class="sheet-foot">대화가 쌓이면 오래된 쪽을 접어서 여기에 남긴다.</div>
   </div>
+  <select class="who-pick" id="whoPick" title="누구로 있을지" hidden></select>
   <select class="voice-pick" id="voicePick" title="목소리 고르기" hidden></select>
   <audio id="player" hidden></audio>
   <div class="room">
@@ -843,8 +861,41 @@
     }
   }
 
+  /* ── 누구로 있을지 ─────────────────────────────────────
+     인격은 고정이 아니다. 폴더에 파일을 하나 더 넣으면 후보가 하나 는다. */
+  const whoPick = document.getElementById('whoPick');
+
+  async function loadWho() {
+    try {
+      const { list, current } = await (await fetch('/characters')).json();
+      if (!Array.isArray(list) || list.length === 0) return;
+      whoPick.hidden = false;
+      whoPick.innerHTML = '';
+      for (const name of list) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        if (name === current) option.selected = true;
+        whoPick.append(option);
+      }
+    } catch {
+      // 못 읽으면 고르는 자리를 안 띄운다 — 지금 인격 그대로 간다.
+    }
+  }
+
+  whoPick.addEventListener('change', async () => {
+    const name = whoPick.value;
+    try {
+      const res = await fetch('/characters/switch?name=' + encodeURIComponent(name), { method: 'POST' });
+      if (res.ok) setState('', `${name} 이(가) 됐다`);
+    } catch {
+      setState('', '못 바꿨다');
+    }
+  });
+
   loadHistory();
   loadVoices();
+  loadWho();
   probeEars();
   text.focus();
 </script>

@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { basename, extname } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { basename, extname, join } from 'node:path';
 
 import type { Character } from './types';
 
@@ -16,4 +16,18 @@ export function loadCharacter(path: string): Character {
   const nameLine = match ? /^name:\s*(.+)$/m.exec(match[1]) : null;
   const name = nameLine?.[1]?.trim() || basename(path, extname(path));
   return { name, instruction: body };
+}
+
+/**
+ * 한 폴더 안의 인격들을 전부 읽는다.
+ *
+ * 인격은 고정이 아니다 — 파일을 하나 더 넣으면 그만큼 후보가 는다. 누구로 있을지는
+ * 코드가 아니라 폴더가 정한다.
+ */
+export function loadCharacters(folder: string): Character[] {
+  if (existsSync(folder) === false) return [];
+  return readdirSync(folder)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => loadCharacter(join(folder, f)))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }

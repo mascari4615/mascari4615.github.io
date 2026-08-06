@@ -23,6 +23,12 @@ export interface WebBodyOptions {
   speech?: Speech;
   /** 오프라인 받아쓰기. 없으면 브라우저 받아쓰기로 물러선다. */
   ears?: Whisper;
+  /** 누가 될 수 있는지 + 지금 누구인지 + 바꾸기. 없으면 창에 고르는 자리가 안 뜬다. */
+  characters?: {
+    list: () => readonly { name: string }[];
+    current: () => string | null;
+    switchTo: (name: string) => boolean;
+  };
 }
 
 /**
@@ -93,6 +99,26 @@ export function webBody(options: WebBodyOptions = {}): Body {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('{"known":null}');
             });
+          return;
+        }
+
+        // 누가 될 수 있나 / 지금 누구인가.
+        if (url === '/characters') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            list: options.characters?.list().map((c) => c.name) ?? [],
+            current: options.characters?.current() ?? null,
+          }));
+          return;
+        }
+
+        // 다른 사람으로 바꾼다. 기억은 그대로다.
+        if (url.startsWith('/characters/switch?') && req.method === 'POST') {
+          const want = new URLSearchParams(url.slice(url.indexOf('?') + 1)).get('name') ?? '';
+          const ok = options.characters?.switchTo(want) === true;
+          res.writeHead(ok ? 200 : 404, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok, current: options.characters?.current() ?? null }));
+          if (ok) broadcast({ type: 'character', name: want });
           return;
         }
 

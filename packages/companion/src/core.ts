@@ -81,6 +81,19 @@ export class Companion {
     await this.queue;
   }
 
+  /** 지금 누구인가. */
+  get character(): Character | undefined {
+    return this.options.character;
+  }
+
+  /**
+   * 누구인지 바꾼다. 기억은 그대로 둔다 — 인격이 바뀌었다고 함께 지낸 시간까지
+   * 없던 일이 되지는 않는다.
+   */
+  setCharacter(character: Character | undefined): void {
+    this.options.character = character;
+  }
+
   /** 몸 없이 감각 하나를 직접 밀어넣는다 — 테스트와 외부 트리거용. */
   feed(sensation: Sensation): Promise<void> {
     const body = this.bodyByChannel.get(sensation.channel) ?? null;
