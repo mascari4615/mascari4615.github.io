@@ -233,6 +233,7 @@ const entryPoints = [
   'src/widgets/tools/passgen.ts',
   'src/widgets/tools/gradient.ts',
   'src/widgets/tools/tableconv.ts',
+  'src/widgets/tools/workdays.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
