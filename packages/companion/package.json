@@ -17,8 +17,10 @@
     "demo": "npm run build && node demo/run.mjs"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "karmolab-ai": "file:../karmolab-ai",
-    "msedge-tts": "^2.0.7"
+    "msedge-tts": "^2.0.7",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

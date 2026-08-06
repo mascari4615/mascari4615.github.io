@@ -109,6 +109,12 @@ const web = webBody({
       return true;
     },
   },
+  // 3D 몸 — 게임 저장소 안의 메시를 그 자리에서 읽는다 (복사본 X).
+  models: {
+    '욘': process.env.COMPANION_MODEL_YON
+      ?? join(root, '..', '..', '..', 'WitchMendokusai', 'Assets', '_WitchMendokusai',
+              'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx'),
+  },
   ears: whisperEars({
     exePath: process.env.COMPANION_EARS_EXE
       ?? join(root, '..', '..', 'apps', 'karmolab-tauri', 'target', 'release', 'karmolab-life-ml.exe'),
