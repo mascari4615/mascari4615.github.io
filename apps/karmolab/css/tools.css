@@ -341,6 +341,18 @@
 .tool-seo-note a { color: var(--text-secondary); }
 
 /* 허브 (/karmolab/t/) */
+/* 도구 목록 소제목 — 앱에서 묶어 놓은 그대로 나눈다 */
+.tool-hub-group {
+    margin: 32px 0 12px;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+}
+.tool-hub-group:first-of-type { margin-top: 8px; }
+.tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
+.tool-hub-group a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
 .tool-hub-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
