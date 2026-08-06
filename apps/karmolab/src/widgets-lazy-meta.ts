@@ -301,7 +301,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/regextest']
   },
   {
+    id: 'color',
+    title: '색상 도구',
+    category: 'tool',
+    desc: 'HEX·RGB·HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.45"/><circle cx="8" cy="9" r="1.1" fill="currentColor"/>',
+    lazyScriptPaths: ['ref/reftable', 'tools/colorconv', 'tools/palette', 'ref/colorname', 'tools/color']
+  },
+  {
     id: 'colorconv',
+    hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '색상 변환',
     category: 'tool',
     desc: 'HEX·RGB·HSL·CMYK 를 서로 변환하고, 대비비(가독성)와 조화 팔레트를 함께 봅니다',
@@ -348,6 +358,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'palette',
+    hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이미지 색상 추출',
     category: 'tool',
     desc: '사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사',
@@ -498,6 +509,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'colorname',
+    hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'CSS 색상 이름표',
     category: 'ref',
     desc: 'CSS 표준 색상 이름 148개와 HEX 값을 눈으로 비교하고 눌러서 복사합니다',
