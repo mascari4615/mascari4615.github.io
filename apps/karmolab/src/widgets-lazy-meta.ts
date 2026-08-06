@@ -622,7 +622,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'git 명령어·마크다운·HTTP 상태·단축키·파일 확장자·키 코드를 한 곳에서 찾아봅니다',
     layout: 'wide',
     icon: '<path d="M4 5a2 2 0 0 1 2-2h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M4 18a2 2 0 0 1 2-2h13" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h7M8 11h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['ref/reftable', 'ref/gitcmd', 'ref/markdown', 'ref/httpstatus', 'ref/shortcut', 'ref/filetype', 'ref/keycode', 'ref/reference']
+    lazyScriptPaths: ['ref/reftable', 'ref/gitcmd', 'ref/markdown', 'ref/httpstatus', 'ref/shortcut', 'ref/filetype', 'ref/keycode', 'ref/regexref', 'ref/reference']
   },
   {
     id: 'charmap',
@@ -720,6 +720,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 15V9l3 3 3-3v6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 9v4M15 12l2 2 2-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['ref/reftable', 'ref/markdown']
+  },
+  {
+    id: 'regexref',
+    hidden: true, // 「참고표」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'reference', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '정규식 치트시트',
+    category: 'ref',
+    desc: '정규식 기호와 자주 쓰는 패턴을 하려는 일로 찾아 복사합니다',
+    layout: 'wide',
+    icon: '<path d="M12 4v16M6 8l12 8M18 8 6 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['ref/reftable', 'ref/regexref']
   },
   {
     id: 'gitcmd',
