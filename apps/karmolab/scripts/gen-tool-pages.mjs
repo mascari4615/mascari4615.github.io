@@ -254,7 +254,10 @@ function buildToolPage(id) {
   // 상세 페이지는 그 도구 하나만 보여 준다 (TASK-KL-089).
   // 그런데 앱 첫 화면용 위젯(서버 감시·활동·문서·링크·랜덤 생성기)까지 늘 함께 실려 왔다.
   // 검색으로 들어온 사람에게는 한 번도 쓰이지 않는 것들이라 기다림만 늘린다.
-  // 즐겨찾기·사용자·대시보드는 헤더와 사이드바가 기대하므로 남긴다.
+  //
+  // 사용자 위젯도 뺀다. 설정 화면을 미리 준비하면서 AI·코드 색칠 라이브러리까지 함께
+  // 받아 오는데(107KB), 검색으로 들어온 사람에게 설정 화면은 필요 없다.
+  // 대신 헤더의 사용자 단추도 이 페이지에서는 숨긴다 — 눌러도 아무 일 없는 단추를 두지 않으려고.
   html = html.replace(
     /<script defer src="\/apps\/karmolab\/js\/widgets\/randomgen\/randomgen-[a-z]+\.js"><\/script>\s*/g,
     ''
@@ -265,7 +268,7 @@ function buildToolPage(id) {
   if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음 — index.html 확인');
   html = html.replace(
     bootTag,
-    `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','user','dashboard'];</script>`
+    `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','dashboard'];</script>`
   );
 
   // 암호 계산 라이브러리는 그것을 쓰는 도구의 페이지에만 싣는다 (TASK-KL-089).
