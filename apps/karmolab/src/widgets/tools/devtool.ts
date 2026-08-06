@@ -18,6 +18,7 @@
     ['crypto', '암호화'],
     ['base64', 'Base64'],
     ['csvjson', 'CSV ↔ JSON'],
+    ['tableconv', '표 바꾸기'],
     ['json2ts', 'JSON → 타입']
   ];
 
