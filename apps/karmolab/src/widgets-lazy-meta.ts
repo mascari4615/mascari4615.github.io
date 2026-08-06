@@ -240,7 +240,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/qrgen']
   },
   {
+    id: 'draw',
+    title: '뽑기',
+    category: 'tool',
+    desc: '로또 번호·사다리타기·추첨과 팀 나누기를 한 곳에서',
+    layout: 'wide',
+    icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/lotto', 'tools/ladder', 'tools/pick', 'tools/draw']
+  },
+  {
     id: 'lotto',
+    hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '로또 번호 생성',
     category: 'tool',
     desc: '1~45 로또 번호를 원하는 게임 수만큼 뽑습니다. 제외수·고정수·홀짝 조건 지원',
@@ -250,6 +260,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'timer',
+    hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '타이머 · 스톱워치',
     category: 'tool',
     desc: '카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다',
@@ -258,7 +269,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/timer']
   },
   {
+    id: 'time',
+    title: '시간',
+    category: 'tool',
+    desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/time']
+  },
+  {
     id: 'datecalc',
+    hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '날짜 계산기 · D-Day',
     category: 'tool',
     desc: '두 날짜 사이 일수, D-Day, 며칠 후 날짜, 만 나이를 계산합니다',
@@ -268,6 +289,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'unitconv',
+    hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '단위 변환',
     category: 'tool',
     desc: '길이·무게·넓이(평)·부피·온도·데이터·속도·시간을 서로 변환합니다',
@@ -343,6 +365,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'radix',
+    hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '진법 변환',
     category: 'tool',
     desc: '2·8·10·16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께',
@@ -362,6 +385,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'ladder',
+    hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '사다리타기',
     category: 'tool',
     desc: '이름과 결과를 넣으면 사다리를 그리고, 누른 사람의 경로를 따라 내려가며 짝을 정합니다',
@@ -380,7 +404,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/palette']
   },
   {
+    id: 'calc',
+    title: '계산기',
+    category: 'tool',
+    desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
+    layout: 'form',
+    icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/calc']
+  },
+  {
     id: 'percent',
+    hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '퍼센트 계산기',
     category: 'tool',
     desc: '할인율·증감률·비율을 질문 문장 그대로 채워 넣어 계산합니다',
@@ -390,6 +424,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'interest',
+    hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '이자 계산기',
     category: 'tool',
     desc: '예금·적금 만기 금액과 대출 월 상환액을 계산합니다. 이자소득세 15.4% 반영',
@@ -436,6 +471,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'worldclock',
+    hidden: true, // 「시간」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '세계 시간 · 시차',
     category: 'tool',
     desc: '도시별 현재 시각과 서울과의 시차를 봅니다. 서머타임 자동 반영',
@@ -454,6 +490,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pick',
+    hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: '추첨 · 팀 나누기',
     category: 'tool',
     desc: '명단에서 무작위로 뽑고, 팀을 나누고, 순서를 정합니다. 중복 없이 공정하게',
@@ -463,6 +500,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'bmi',
+    hidden: true, // 「계산기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     title: 'BMI 계산기',
     category: 'tool',
     desc: '키와 몸무게로 체질량지수를 계산하고 대한비만학회·WHO 두 기준으로 함께 봅니다',
