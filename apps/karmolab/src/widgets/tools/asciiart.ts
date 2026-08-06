@@ -43,11 +43,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">가로 글자 수 <span id="aaWidthVal" class="range-value">100자</span></div>
-                  <input type="range" id="aaWidth" min="20" max="300" step="2" value="100">
+                  <input type="range" id="aaWidth" aria-label="가로 글자 수" min="20" max="300" step="2" value="100">
                 </div>
                 <div>
                   <div class="tool-sublabel">문자 세트</div>
-                  <select id="aaRamp">
+                  <select id="aaRamp" aria-label="문자 세트">
                     <option value="detail">촘촘하게 (@%#*+=-:.)</option>
                     <option value="block">블록 (█▓▒░)</option>
                     <option value="simple">단순 (#+-.)</option>
@@ -59,11 +59,11 @@
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
                   <div class="tool-sublabel">밝기 <span id="aaBrightVal" class="range-value">0</span></div>
-                  <input type="range" id="aaBright" min="-100" max="100" value="0">
+                  <input type="range" id="aaBright" aria-label="밝기" min="-100" max="100" value="0">
                 </div>
                 <div>
                   <div class="tool-sublabel">대비 <span id="aaContrastVal" class="range-value">0</span></div>
-                  <input type="range" id="aaContrast" min="-100" max="100" value="0">
+                  <input type="range" id="aaContrast" aria-label="대비" min="-100" max="100" value="0">
                 </div>
               </div>
               <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
