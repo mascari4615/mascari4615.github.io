@@ -98,6 +98,13 @@ jobs:
           npm ci
           npm run build
 
+      # KarmoLab 빌드 관문에 브라우저로 도는 검사가 들어 있다 (GIF 압축·영상 자르기·녹음·PDF).
+      # 러너에는 브라우저가 없어 이 줄이 없으면 빌드가 그 자리에서 죽는다 — 실제로 죽었다.
+      # 검사를 빼는 대신 브라우저를 깔아 CI 에서도 같은 관문이 돌게 한다.
+      - name: Install browser for KarmoLab checks
+        working-directory: apps/karmolab
+        run: npx --yes playwright install --with-deps chromium
+
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
         run: |
