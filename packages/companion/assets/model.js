@@ -167,23 +167,49 @@ export async function mountModel(canvas, modelName, onFail) {
   };
   console.log('[3D] 잡은 뼈:', Object.entries(bones).map(([k, v]) => `${k}=${v?.name ?? '없음'}`).join(' '));
 
-  // 모델마다 크기·중심이 제각각이라, 실제 크기를 재서 화면에 맞춘다.
+  // 화면에 맞추기 — 고정값으로 잡으면 모델이 바뀔 때마다 잘리거나 콩알만 해진다.
+  // 실제 크기를 재서, 창 비율까지 보고 카메라를 물린다.
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
-  const tallest = Math.max(size.x, size.y, size.z) || 1;
-  const scale = 1.6 / tallest;
+  const height = size.y || 1;
+
+  // 키를 1로 맞춰 두면 아래 계산이 모델과 무관해진다.
+  const scale = 1 / height;
   model.scale.setScalar(scale);
-  model.position.sub(center.multiplyScalar(scale));
-  // 얼굴이 보이게 위쪽을 잡는다 — 전신을 다 보여주면 좁은 창에서 얼굴이 콩알만 해진다.
-  model.position.y -= 0.35;
+  model.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
 
   const pivot = new THREE.Group();
   pivot.add(model);
   scene.add(pivot);
 
-  camera.position.set(0, 0.35, 3.1);
-  camera.lookAt(0, 0.15, 0);
+  // 상체만 본다 — 좁고 세로로 긴 창에서 전신을 담으면 얼굴이 콩알이 된다.
+  // 0.5 = 허리 위, 1.0 = 정수리.
+  const viewTop = 1.02;
+  const viewBottom = 0.42;
+  const viewHeight = viewTop - viewBottom;
+  const viewCenterY = (viewTop + viewBottom) / 2 - 0.5; // 모델 중심 기준
+
+  const camera2 = camera; // 이름만 짧게
+  function frame() {
+    const w = canvas.clientWidth || 1;
+    const h = canvas.clientHeight || 1;
+    const aspect = w / h;
+    const fov = (camera2.fov * Math.PI) / 180;
+
+    // 보고 싶은 높이가 화면에 다 들어오는 거리. 창이 좁으면 가로가 먼저 넘치므로
+    // 가로 기준 거리도 같이 재서 더 먼 쪽을 쓴다 — 그래야 안 잘린다.
+    const forHeight = viewHeight / 2 / Math.tan(fov / 2);
+    const widthNeeded = Math.max(size.x, size.z) * scale;
+    const forWidth = widthNeeded / 2 / (Math.tan(fov / 2) * aspect);
+    const distance = Math.max(forHeight, forWidth) * 1.12; // 여유
+
+    camera2.position.set(0, viewCenterY, distance);
+    camera2.lookAt(0, viewCenterY, 0);
+    camera2.near = Math.max(0.01, distance - 2);
+    camera2.far = distance + 4;
+    camera2.updateProjectionMatrix();
+  }
 
   // ── 가져온 동작 얹기 ──────────────────────────────────────────────────
   // 클립이 붙으면 얘가 실제로 서 있고 말하는 몸짓을 한다. 못 붙으면 위의 뼈 움직임만
@@ -253,7 +279,7 @@ export async function mountModel(canvas, modelName, onFail) {
     const h = canvas.clientHeight || 1;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+    frame();
   }
   resize();
   new ResizeObserver(resize).observe(canvas);
