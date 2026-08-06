@@ -102,6 +102,35 @@ function heading(id) {
   return widgetById[id].title;
 }
 
+/**
+ * 검색 결과에 뜨는 한 줄 (TASK-KL-089).
+ *
+ * 이름만 걸어 두면 「글자수 세기」처럼 무엇을 해 주는지가 안 보인다. 이름 뒤에 lead 를 붙여
+ * 「공백 포함·제외」 같은 실제로 찾는 말이 결과에 함께 뜨게 한다.
+ * 한국어 검색 결과는 대략 서른 글자 남짓에서 잘리므로, 넘칠 것 같으면 이름만 남긴다
+ * (억지로 자르면 말이 중간에 끊겨 더 나빠진다).
+ */
+const TITLE_BUDGET = 34;
+function pageTitle(id) {
+  const name = heading(id);
+  const suffix = ' | KarmoLab';
+  const lead = (seo[id].lead || '').trim();
+  // lead 는 「A · B · C」 꼴이라, 앞의 한두 조각만 써도 무엇을 하는지 드러난다.
+  // 이름에 이미 든 말은 뺀다 — 「타이머 · 스톱워치 — 카운트다운 · 스톱워치」처럼 같은 말이
+  // 두 번 나오면 정작 새 정보가 들어갈 자리를 잡아먹는다.
+  const parts = lead
+    .split('·')
+    .map((s) => s.trim())
+    .filter((s) => s && !name.includes(s));
+  for (const take of [2, 1]) {
+    const tail = parts.slice(0, take).join(' · ');
+    if (!tail) continue;
+    const candidate = `${name} — ${tail}${suffix}`;
+    if (candidate.length <= TITLE_BUDGET + suffix.length) return candidate;
+  }
+  return `${name}${suffix}`;
+}
+
 /* ── 무거운 라이브러리는 쓰는 페이지에만 (TASK-KL-089) ── */
 
 /** 암호 계산 라이브러리(CryptoJS)를 실제로 쓰는 도구 — 묶음으로 들어와도 되도록 부모까지 포함. */
@@ -238,7 +267,7 @@ function jsonLd(id) {
 
 function buildToolPage(id) {
   const t = seo[id];
-  const title = `${heading(id)} | KarmoLab`;
+  const title = pageTitle(id);
   let html = shell;
 
   html = html.replace(/^---\nlayout: none\npermalink: \/karmolab\/\n---/, `---\nlayout: none\npermalink: ${BASE_PATH}/${id}/\n---`);
