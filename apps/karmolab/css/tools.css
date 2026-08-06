@@ -335,10 +335,12 @@
     padding-top: 16px;
     border-top: 1px solid var(--border);
     font-size: var(--font-size-xs);
-    color: var(--text-tertiary);
+    /* 입력이 기기를 벗어나지 않는다는 안내다. 가장 흐린 색으로는 대비가 2.7 이라 잘 안 읽혀
+       정작 읽혀야 할 문장이 묻힌다(TASK-KL-089). */
+    color: var(--text-secondary);
     line-height: 1.7;
 }
-.tool-seo-note a { color: var(--text-secondary); }
+.tool-seo-note a { color: var(--text-primary); }
 
 /* 같은 갈래 도구로 건너갈 길 (TASK-KL-089) — 본문 흐름을 끊지 않게 한 줄로 눕힌다. */
 .tool-seo-kin {
@@ -349,7 +351,8 @@
     align-items: baseline;
     font-size: var(--font-size-xs);
 }
-.tool-seo-kin span { color: var(--text-tertiary); }
+/* 가장 흐린 색은 본문 배경 대비가 2.7 로 읽기 힘들다(기준 4.5). 한 단계 올린다. */
+.tool-seo-kin span { color: var(--text-secondary); }
 .tool-seo-kin a { color: var(--text-secondary); text-decoration: none; }
 .tool-seo-kin a:hover { color: var(--accent); }
 
