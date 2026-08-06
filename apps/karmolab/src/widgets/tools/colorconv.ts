@@ -100,7 +100,7 @@
               <label class="field-label">색 선택</label>
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <input type="color" id="ccColor" aria-label="색 선택" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
-                <input type="text" id="ccHex" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
+                <input type="text" id="ccHex" aria-label="색 코드 (HEX)" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
                 <button class="btn btn-ghost" id="ccRandom">랜덤</button>
               </div>
             </div>
