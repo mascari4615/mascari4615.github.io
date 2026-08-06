@@ -30,6 +30,7 @@
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",
+    "verify:tonight": "node scripts/verify-tonight.mjs",
     "test:live": "node scripts/smoke-live-pages.mjs",
     "gen:og": "node scripts/gen-og-images.mjs",
     "test:behavior": "node scripts/smoke-tool-behavior.mjs"
