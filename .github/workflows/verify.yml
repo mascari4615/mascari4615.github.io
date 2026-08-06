@@ -25,6 +25,14 @@ on:
 permissions:
   contents: read
 
+# ★ 같은 브랜치의 앞 검사는 취소한다 (2026-08-07).
+#   verify 는 한 판에 평균 4분이고, 세션들이 몇 분 간격으로 master 에 밀어 실행이 겹겹이 쌓인다.
+#   낡은 커밋의 결과는 아무도 안 보므로 최신 것만 돌면 된다 — 배포(pages)와 달리 **끊어도 안전한
+#   검사**라 여기서는 cancel-in-progress 를 켠다(배포 쪽은 일부러 꺼 둔 것과 대비).
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     name: verify (master invariant)
