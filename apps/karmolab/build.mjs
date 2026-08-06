@@ -152,6 +152,7 @@ const entryPoints = [
   'src/widgets/planner/planner.ts',
   'src/widgets/life/life.ts',
   'src/widgets/cockpit/cockpit.ts',
+  'src/widgets/karmomap/karmomap.ts',
   'src/widgets/terminal/terminal.ts',
   'src/widgets/tierlist/dialogs.ts',
   'src/widgets/tierlist/dnd.ts',

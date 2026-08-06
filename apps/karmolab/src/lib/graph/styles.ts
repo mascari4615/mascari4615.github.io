@@ -24,6 +24,12 @@ const CSS = `
   animation: ck-pulse 2s ease-in-out infinite;
 }
 
+/* ── 선택 표시 (편집 UI 용 — 활성 하이라이트와 별개) ────────────────────────── */
+.ck-node.is-selected > rect:first-of-type {
+  stroke: #f0abfc !important;
+  stroke-width: 2.5 !important;
+}
+
 /* ── edge flow 애니메이션 ─────────────────────────────────────────────────── */
 @keyframes ck-flow {
   to { stroke-dashoffset: -24; }
