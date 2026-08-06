@@ -87,7 +87,7 @@
 
             <div class="field-group" id="pdAngleWrap" style="display:none;">
               <div class="tool-sublabel">돌릴 각도</div>
-              <select id="pdAngle">
+              <select id="pdAngle" aria-label="돌릴 각도">
                 <option value="90">오른쪽 90°</option>
                 <option value="180">180°</option>
                 <option value="270">왼쪽 90°</option>

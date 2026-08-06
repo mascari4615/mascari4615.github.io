@@ -34,11 +34,11 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
                 <div class="tool-grid-2">
                   <div>
                     <div class="tool-sublabel">시작 <span id="acStartVal" class="range-value">0:00</span></div>
-                    <input type="range" id="acStart" min="0" max="100" value="0" step="0.1">
+                    <input type="range" id="acStart" aria-label="시작 지점" min="0" max="100" value="0" step="0.1">
                   </div>
                   <div>
                     <div class="tool-sublabel">끝 <span id="acEndVal" class="range-value">0:00</span></div>
-                    <input type="range" id="acEnd" min="0" max="100" value="100" step="0.1">
+                    <input type="range" id="acEnd" aria-label="끝 지점" min="0" max="100" value="100" step="0.1">
                   </div>
                 </div>
                 <div class="tool-chips" style="margin-top:10px;">

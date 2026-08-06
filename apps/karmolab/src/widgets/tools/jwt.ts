@@ -62,7 +62,7 @@
 
             <div id="jwRawWrap" style="display:none; margin-top:var(--space-lg);">
               <label class="field-label">원본 JSON</label>
-              <textarea id="jwRaw" rows="8" spellcheck="false" readonly></textarea>
+              <textarea id="jwRaw" aria-label="JWT 토큰 입력" rows="8" spellcheck="false" readonly></textarea>
             </div>
 
             <div class="tool-status" id="jwStatus">JWT 는 암호화가 아니라 서명된 평문입니다 — 토큰을 가진 사람은 누구나 내용을 읽을 수 있습니다.</div>

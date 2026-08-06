@@ -129,10 +129,10 @@
             <div class="field-group">
               <label class="field-label">날짜 더하기 / 빼기</label>
               <div class="tool-grid-2">
-                <input type="date" id="daBase">
+                <input type="date" id="daBase" aria-label="기준 날짜">
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="daAmount" inputmode="numeric" value="100" placeholder="숫자">
-                  <select id="daUnit" style="width:auto;">
+                  <select id="daUnit" aria-label="단위" style="width:auto;">
                     <option value="day">일</option>
                     <option value="week">주</option>
                     <option value="month">개월</option>
@@ -201,7 +201,7 @@
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">생년월일</label>
-              <input type="date" id="agBirth">
+              <input type="date" id="agBirth" aria-label="생년월일">
             </div>
             <div class="tool-display" id="agResult">-</div>
             <div class="cc-stats" id="agStats"></div>
