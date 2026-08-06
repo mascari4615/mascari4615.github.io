@@ -5,7 +5,7 @@
  * 그대로 이어 붙일 수 없다 — 44.1kHz 와 48kHz 를 섞으면 뒤쪽이 빨라지거나 느려진다.
  * 가장 높은 표본율에 맞추고 채널도 통일한 뒤 잇는다. 사이에 무음을 넣는 선택지도 둔다.
  */
-import { toWav, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
 (function (): void {
   Toolbox.register({
@@ -38,7 +38,8 @@ import { toWav, fileSize as size, mmss } from './shared/media';
 
             <div class="cc-stats" id="ajStats"></div>
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="ajRun">이어붙여 내려받기 (WAV)</button>
+              <button class="btn btn-primary" id="ajRun">이어붙여 내려받기</button>
+              <select id="ajFormat" aria-label="저장 형식"><option value="mp3">MP3 — 작음</option><option value="wav">WAV — 손실 없음</option></select>
               <button class="btn btn-ghost" id="ajClear">비우기</button>
             </div>
             <div class="tool-status" id="ajStatus">표본율이 다르면 가장 높은 쪽에 맞춰 이어 줍니다.</div>
@@ -173,13 +174,19 @@ import { toWav, fileSize as size, mmss } from './shared/media';
               say('음원을 먼저 넣어 주세요.', 'error');
               return;
             }
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(toWav(out));
-            a.download = '이어붙인-음원.wav';
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${mmss(out.duration)} 로 이어 내려받았어요.`, 'ok');
-            Toolbox.trackUse?.('join');
+            const format = $<HTMLSelectElement>('#ajFormat').value as 'wav' | 'mp3';
+            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            void encodeAudio(out, format)
+              .then((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = '이어붙인-음원.' + format;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                say(`${mmss(out.duration)} · ${size(blob.size)} 로 이어 내려받았어요.`, 'ok');
+                Toolbox.trackUse?.('join');
+              })
+              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
           $<HTMLButtonElement>('#ajClear').onclick = () => {
             items = [];

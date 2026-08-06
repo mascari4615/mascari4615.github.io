@@ -3,10 +3,9 @@
  *
  * 벨소리나 인용 구간을 만들려고 음원을 사이트에 올리면 저작물이 남의 서버에 남는다.
  * 브라우저는 이미 오디오를 해독할 수 있으므로(Web Audio) 잘라 내는 일은 밖으로 나갈 필요가 없다.
- * 내보내기는 WAV 로 한다 — 압축 형식으로 다시 인코딩하려면 무거운 코덱이 필요하고,
- * 그 무게를 「자르기」 하나 때문에 지우기엔 크다. 대신 원본 품질이 그대로 남는다.
+ * 내보내기는 MP3(작아서 보내기 좋음)와 WAV(손실 없음) 중 고른다. MP3 압축기는 그때만 받아 온다.
  */
-import { toWav, fileSize as size, mmss } from './shared/media';
+import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
 (function (): void {
   Toolbox.register({
@@ -50,7 +49,8 @@ import { toWav, fileSize as size, mmss } from './shared/media';
               <div class="cc-stats" id="acStats"></div>
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
                 <button class="btn btn-ghost" id="acPreview">구간 듣기</button>
-                <button class="btn btn-primary" id="acSave">잘라서 내려받기 (WAV)</button>
+                <button class="btn btn-primary" id="acSave">잘라서 내려받기</button>
+                <select id="acFormat" aria-label="저장 형식"><option value="mp3">MP3 — 작음</option><option value="wav">WAV — 손실 없음</option></select>
               </div>
             </div>
 
@@ -219,14 +219,19 @@ import { toWav, fileSize as size, mmss } from './shared/media';
           $<HTMLButtonElement>('#acSave').onclick = () => {
             const out = slice();
             if (!out) return;
-            const blob = toWav(out);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${fileName}-자름.wav`;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say(`${mmss(out.duration)} 구간을 WAV 로 내려받았어요.`, 'ok');
-            Toolbox.trackUse?.('cut');
+            const format = $<HTMLSelectElement>('#acFormat').value as 'wav' | 'mp3';
+            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            void encodeAudio(out, format)
+              .then((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${fileName}-자름.${format}`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+                say(`${mmss(out.duration)} 구간을 ${size(blob.size)} 로 내려받았어요.`, 'ok');
+                Toolbox.trackUse?.('cut');
+              })
+              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
           };
 
           window.addEventListener('resize', drawWave);
