@@ -473,7 +473,42 @@ export async function mountModel(canvas, modelName, onFail) {
     renderer.render(scene, camera);
   });
 
+  /**
+   * 얘가 화면에서 실제로 차지하는 네모.
+   *
+   * 그림판은 창만큼 넓지만 얘는 그 안 일부만 채운다. 그림판 전체를 「누를 자리」로
+   * 넘기면 보이지 않는 빈 곳까지 클릭을 삼킨다 — 뒤에 있는 프로그램을 못 누르게 된다.
+   */
+  const corner = new THREE.Vector3();
+  function screenBox() {
+    const box = new THREE.Box3().setFromObject(model);
+    if (box.isEmpty()) return null;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < 8; i += 1) {
+      corner.set(
+        i & 1 ? box.max.x : box.min.x,
+        i & 2 ? box.max.y : box.min.y,
+        i & 4 ? box.max.z : box.min.z,
+      );
+      pivot.localToWorld(corner);
+      corner.project(camera);
+      const x = (corner.x * 0.5 + 0.5) * w;
+      const y = (-corner.y * 0.5 + 0.5) * h;
+      minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+    }
+    const rect = canvas.getBoundingClientRect();
+    // 화면 밖으로 삐져나간 부분은 잘라낸다.
+    const left = Math.max(0, minX), top = Math.max(0, minY);
+    const right = Math.min(w, maxX), bottom = Math.min(h, maxY);
+    if (right <= left || bottom <= top) return null;
+    return { x: rect.x + left, y: rect.y + top, width: right - left, height: bottom - top };
+  }
+
   return {
+    screenBox,
     setMood(mood) {
       state.mood = mood || 'idle';
       if (clips === null) return;

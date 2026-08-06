@@ -20,8 +20,23 @@ struct HitArea(std::sync::Mutex<Vec<(f64, f64, f64, f64)>>);
 #[tauri::command]
 fn set_hit_areas(areas: Vec<(f64, f64, f64, f64)>, state: tauri::State<HitArea>) {
     if let Ok(mut guard) = state.0.lock() {
+        // 개수가 바뀔 때만 알린다 — 「알려주고 있나」를 밖에서 확인할 수 있어야 한다.
+        if guard.len() != areas.len() {
+            eprintln!("[창] 누를 자리 {}개: {:?}", areas.len(), areas);
+        }
         *guard = areas;
     }
+}
+
+/**
+ * 그냥 끈다.
+ *
+ * 창을 닫는 정식 길이 막히면(권한·시점 문제) 닫기 단추가 아무 일도 안 한 것처럼 보인다.
+ * 실제로 그랬다. 눌렀는데 안 꺼지는 것보다 나쁜 건 없으므로 확실한 길을 하나 더 둔다.
+ */
+#[tauri::command]
+fn quit(app: tauri::AppHandle) {
+    app.exit(0);
 }
 
 fn main() {
@@ -37,7 +52,7 @@ fn main() {
 
     tauri::Builder::default()
         .manage(HitArea(std::sync::Mutex::new(Vec::new())))
-        .invoke_handler(tauri::generate_handler![set_hit_areas])
+        .invoke_handler(tauri::generate_handler![set_hit_areas, quit])
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |app, shortcut, event| {
@@ -110,6 +125,10 @@ fn main() {
                             })
                         })
                         .unwrap_or(false);
+
+                    if std::env::var("COMPANION_DEBUG_HIT").is_ok() {
+                        eprintln!("[창] 커서 {:.0},{:.0} · 창 {:?} · 배율 {} · 안쪽 {}", cursor.x, cursor.y, origin, scale, inside);
+                    }
 
                     // 바뀔 때만 알린다 — 매 번 부르면 창이 깜빡인다.
                     if inside == passing_through {
