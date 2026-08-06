@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
+import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 
 export interface WebBodyOptions {
@@ -17,6 +18,8 @@ export interface WebBodyOptions {
   history?: () => readonly MemoryEntry[] | Promise<readonly MemoryEntry[]>;
   /** 「이 사람에 대해 아는 것」 — 창에서 펼쳐 볼 수 있게. */
   longTerm?: () => string | null | Promise<string | null>;
+  /** 목소리를 만들어 주는 쪽. 없으면 브라우저 내장 목소리로 말한다. */
+  speech?: Speech;
 }
 
 /**
@@ -83,6 +86,41 @@ export function webBody(options: WebBodyOptions = {}): Body {
             .catch(() => {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end('{"known":null}');
+            });
+          return;
+        }
+
+        // 고를 수 있는 목소리 목록.
+        if (url === '/voices') {
+          void Promise.resolve(options.speech?.voices() ?? [])
+            .then((voices) => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify(voices));
+            })
+            .catch(() => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end('[]');
+            });
+          return;
+        }
+
+        // 소리 한 토막. 실패하면 브라우저가 내장 목소리로 물러선다(404 로 알린다).
+        if (url.startsWith('/voice?')) {
+          const query = new URLSearchParams(url.slice(url.indexOf('?') + 1));
+          const say = (query.get('text') ?? '').trim();
+          if (options.speech === undefined || say === '') {
+            res.writeHead(404).end();
+            return;
+          }
+          void options.speech
+            .synthesize(say, query.get('v') ?? undefined)
+            .then((audio) => {
+              res.writeHead(200, { 'content-type': 'audio/mpeg', 'content-length': audio.length });
+              res.end(audio);
+            })
+            .catch((e) => {
+              log(`목소리를 못 만들었다: ${e instanceof Error ? e.message : String(e)}`);
+              res.writeHead(404).end();
             });
           return;
         }

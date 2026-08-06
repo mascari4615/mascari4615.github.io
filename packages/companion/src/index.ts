@@ -27,3 +27,5 @@ export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker } from '.
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
 export { webBody, type WebBodyOptions } from './body/web';
+
+export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';
