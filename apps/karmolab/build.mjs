@@ -235,6 +235,7 @@ const entryPoints = [
   'src/widgets/tools/tableconv.ts',
   'src/widgets/tools/workdays.ts',
   'src/widgets/tools/text2img.ts',
+  'src/widgets/tools/redact.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',

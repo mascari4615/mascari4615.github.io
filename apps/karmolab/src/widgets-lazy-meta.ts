@@ -116,7 +116,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서',
     layout: 'full',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/text2img', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/text2img', 'tools/redact', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
     id: 'imageedit',
@@ -961,6 +961,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 10h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/text2img']
+  },
+  {
+    id: 'redact',
+    hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '가리개',
+    category: 'tool',
+    desc: '캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="6" y="9" width="7" height="4" rx="1" fill="currentColor"/><path d="M15 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/redact']
   },
   {
     id: 'asciiart',
