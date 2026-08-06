@@ -215,6 +215,7 @@ const entryPoints = [
   'src/widgets/tools/video2audio.ts',
   'src/widgets/tools/videotrim.ts',
   'src/widgets/tools/video2img.ts',
+  'src/widgets/tools/videocompress.ts',
   'src/widgets/tools/screenrec.ts',
   'src/widgets/tools/voicerec.ts',
   'src/widgets/tools/pdfcompress.ts',

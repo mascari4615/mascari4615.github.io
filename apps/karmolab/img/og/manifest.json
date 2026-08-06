@@ -74,8 +74,8 @@
   "linebreak": "67eaeb8cb193",
   "checklist": "061f950ecade",
   "pdftool": "3d6dd1adca8a",
-  "audiocut": "97cd5615eb64",
-  "filetool": "9d1428de4cf9",
+  "audiocut": "219ff7e39835",
+  "filetool": "85f46390c0d6",
   "pdf2img": "9e094e42946a",
   "img2pdf": "04c4918d9811",
   "ziptool": "672ad3c42561",
@@ -88,12 +88,13 @@
   "imageedit": "0d7d441263e0",
   "memo": "f133ec8130df",
   "video2gif": "f04f66ba0547",
-  "video2audio": "d7f1084545fe",
-  "videotool": "c0c8eeccd8ce",
+  "video2audio": "0eead2f25688",
+  "videotool": "4f5136c71330",
   "videotrim": "9181f7f45e16",
   "screenrec": "eae0183db710",
-  "voicerec": "2f7a5d726b74",
+  "voicerec": "6c4a1b311139",
   "pdfcompress": "1d19a2355e9f",
   "audiolevel": "02f8e355d8bb",
-  "video2img": "2a7a2be6a653"
+  "video2img": "2a7a2be6a653",
+  "videocompress": "0d27aabf9a92"
 }

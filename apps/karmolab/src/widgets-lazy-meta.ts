@@ -490,6 +490,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/videotrim']
   },
   {
+    id: 'videocompress',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 용량 줄이기',
+    category: 'tool',
+    desc: '영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 9.5 8 12l2.5 2.5M13.5 9.5 16 12l-2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/videocompress']
+  },
+  {
     id: 'video2img',
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -530,7 +541,7 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
-    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/video2img', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/videocompress', 'tools/video2img', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
   },
   {
     id: 'charcount',
