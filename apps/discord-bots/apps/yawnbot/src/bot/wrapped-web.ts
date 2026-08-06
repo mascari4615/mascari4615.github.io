@@ -9,6 +9,7 @@
 import type { Application, Request, Response } from 'express';
 import type { Client } from 'discord.js';
 import { getServerStatsRecorder, type DebugDump, type ServerSummary } from '../services/server-stats';
+import { renderDashboardPage } from './wrapped-dashboard';
 
 /** 카드에 실을 값 — HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
 export interface WrappedPageData {
@@ -19,6 +20,8 @@ export interface WrappedPageData {
   detail: DebugDump;
   /** 채널 ID → 사람이 읽는 이름. 모르면 ID 그대로. */
   channelNames: Record<string, string>;
+  /** 분석판 주소 (`/w/<키>/board`). 없으면 버튼을 안 그린다. */
+  boardPath?: string;
   generatedAt: string;
 }
 
@@ -215,6 +218,11 @@ export function renderWrappedPage(data: WrappedPageData): string {
   header { text-align: center; margin-bottom: 4px; }
   h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.02em; }
   .range { color: #a79ec4; font-size: 13px; }
+  .board-link {
+    display: inline-block; margin-top: 10px; padding: 7px 14px; border-radius: 999px;
+    font-size: 13px; text-decoration: none; color: #f4f1ea;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  }
   .card {
     width: min(420px, 100%); background: rgba(255,255,255,0.045);
     border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px 20px;
@@ -263,6 +271,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
 <header>
   <h1>🎁 ${escapeHtml(title)}</h1>
   <div class="range">최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일</div>
+  ${data.boardPath ? `<a class="board-link" href="${escapeHtml(data.boardPath)}">📊 대시보드 열기</a>` : ''}
 </header>
 ${body}
 ${detailSection(data)}
@@ -301,6 +310,7 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
       summary: recorder.summarize(guildId, days),
       detail,
       channelNames,
+      boardPath: `/w/${key}/board`,
       generatedAt: new Date().toISOString(),
     };
   };
@@ -312,6 +322,35 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
       return;
     }
     res.type('text/html; charset=utf-8').send(renderWrappedPage(data));
+  });
+
+  // 분석판 — 카드가 요약이면 이쪽은 방문 통계 도구 감각의 대시보드.
+  app.get('/w/:key/board', (req: Request, res: Response) => {
+    const recorder = getServerStatsRecorder();
+    const key = String(req.params.key ?? '');
+    const guildId = recorder.guildIdForShareKey(key);
+    if (!guildId) {
+      res.status(404).type('text/html; charset=utf-8').send('<h1>없는 결산이에요</h1><p>링크를 다시 확인해 주세요.</p>');
+      return;
+    }
+    const days = parseDays(req.query.days);
+    const guild = client?.guilds.cache.get(guildId) ?? null;
+    const analytics = recorder.analytics(guildId, days);
+
+    const channelNames: Record<string, string> = {};
+    for (const { channelId } of analytics.channels) {
+      const channel = guild?.channels.cache.get(channelId);
+      channelNames[channelId] = channel && 'name' in channel ? `#${channel.name}` : channelId;
+    }
+
+    res.type('text/html; charset=utf-8').send(
+      renderDashboardPage({
+        guildName: guild?.name ?? '우리 서버',
+        analytics,
+        channelNames,
+        basePath: `/w/${key}/board`,
+      }),
+    );
   });
 
   app.get('/w/:key/data', (req: Request, res: Response) => {
