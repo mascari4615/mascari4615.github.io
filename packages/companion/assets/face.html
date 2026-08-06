@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>동반자</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --glow: #6ee7ff;
+    --face: #171b24;
+    --edge: #2b3242;
+    --ink: #e7ecf5;
+    --dim: #6b7488;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Pretendard", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  /* 방 한가운데 위에서 떨어지는 빛 하나. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 38%, rgba(110, 231, 255, 0.09), transparent 70%);
+    pointer-events: none;
+  }
+
+  .room {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: center;
+    justify-items: center;
+    padding: 24px;
+  }
+
+  .stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 8px;
+    width: min(560px, 100%);
+  }
+
+  /* ── 말풍선 ───────────────────────────────────────────── */
+  .bubble {
+    position: relative;
+    max-width: 460px;
+    padding: 14px 18px;
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    background: rgba(23, 27, 36, 0.92);
+    line-height: 1.65;
+    font-size: 15px;
+    white-space: pre-wrap;
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+    transition: opacity 220ms ease, transform 220ms cubic-bezier(0.2, 1.3, 0.4, 1);
+    pointer-events: none;
+    min-height: 0;
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    background: rgba(23, 27, 36, 0.92);
+    border-right: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
+    transform: rotate(45deg);
+  }
+  .bubble.on { opacity: 1; transform: translateY(0) scale(1); }
+
+  /* ── 큐브 ─────────────────────────────────────────────── */
+  .field { perspective: 700px; height: 200px; display: grid; place-items: center; }
+
+  .cube {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    transform-style: preserve-3d;
+    animation: spin 14s linear infinite, breathe 3.4s ease-in-out infinite;
+  }
+
+  .cube > div {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(150deg, var(--face), #10131a);
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 0 24px rgba(110, 231, 255, 0.07);
+  }
+  .f  { transform: translateZ(42px); }
+  .bk { transform: rotateY(180deg) translateZ(42px); }
+  .r  { transform: rotateY(90deg) translateZ(42px); }
+  .l  { transform: rotateY(-90deg) translateZ(42px); }
+  .u  { transform: rotateX(90deg) translateZ(42px); }
+  .d  { transform: rotateX(-90deg) translateZ(42px); }
+
+  /* 앞면에만 있는 작은 빛 = 눈이 아니라 「켜져 있음」 표시. */
+  .f::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: var(--glow);
+    box-shadow: 0 0 14px var(--glow);
+    animation: blink 5.5s ease-in-out infinite;
+  }
+
+  .shadow {
+    width: 90px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    filter: blur(7px);
+    animation: shadowBreathe 3.4s ease-in-out infinite;
+  }
+
+  @keyframes spin { to { transform: rotateX(-18deg) rotateY(360deg); } }
+  @keyframes breathe { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+  @keyframes shadowBreathe { 0%, 100% { transform: scale(1); opacity: 0.55; } 50% { transform: scale(0.86); opacity: 0.35; } }
+  @keyframes blink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: 0.15; } }
+
+  /* 듣는 중 — 이쪽으로 기울여 멈춘다. */
+  .cube.listening { animation: lean 900ms ease-out forwards, breathe 2.2s ease-in-out infinite; }
+  @keyframes lean { to { transform: rotateX(14deg) rotateY(-22deg); } }
+
+  /* 생각 중 — 빨라지고 빛이 뛴다. */
+  .cube.thinking { animation: spin 1.4s linear infinite, breathe 1.1s ease-in-out infinite; }
+  .cube.thinking .f::after { animation: pulse 700ms ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; scale: 1; } 50% { opacity: 0.35; scale: 0.6; } }
+
+  /* 말하는 중 — 말 리듬에 맞춰 튄다. */
+  .cube.speaking { animation: spin 9s linear infinite, talk 260ms ease-in-out infinite; }
+  @keyframes talk { 0%, 100% { translate: 0 -2px; scale: 1; } 50% { translate: 0 -13px; scale: 1.05; } }
+
+  /* ── 입력 ─────────────────────────────────────────────── */
+  form {
+    display: flex;
+    gap: 8px;
+    width: min(560px, 100%);
+    margin-top: 8px;
+  }
+  input {
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: #11141b;
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 160ms ease;
+  }
+  input:focus { border-color: rgba(110, 231, 255, 0.55); }
+  input::placeholder { color: var(--dim); }
+  button {
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: #11141b;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease;
+  }
+  button:hover { border-color: rgba(110, 231, 255, 0.55); color: var(--glow); }
+  button:disabled { opacity: 0.45; cursor: default; }
+
+  .status {
+    height: 18px;
+    font-size: 12px;
+    color: var(--dim);
+    letter-spacing: 0.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cube, .cube.listening, .cube.thinking, .cube.speaking, .shadow, .f::after { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="room">
+    <div class="stage">
+      <div class="bubble" id="bubble"></div>
+      <div class="field">
+        <div class="cube" id="cube">
+          <div class="f"></div><div class="bk"></div>
+          <div class="r"></div><div class="l"></div>
+          <div class="u"></div><div class="d"></div>
+        </div>
+      </div>
+      <div class="shadow"></div>
+      <div class="status" id="status">가만히 있다</div>
+    </div>
+
+    <form id="form" autocomplete="off">
+      <input id="text" placeholder="말 걸기…" />
+      <button id="send" type="submit">↵</button>
+    </form>
+  </div>
+
+<script>
+  const cube = document.getElementById('cube');
+  const bubble = document.getElementById('bubble');
+  const status = document.getElementById('status');
+  const form = document.getElementById('form');
+  const text = document.getElementById('text');
+  const send = document.getElementById('send');
+
+  let idleTimer = null;
+
+  function setState(state, label) {
+    cube.className = 'cube' + (state ? ' ' + state : '');
+    status.textContent = label;
+  }
+
+  function say(message) {
+    bubble.textContent = message;
+    bubble.classList.add('on');
+    setState('speaking', '말하는 중');
+    clearTimeout(idleTimer);
+    // 말이 길수록 오래 떠 있는다 — 읽을 시간을 준다.
+    const holdMs = Math.min(20000, 2500 + message.length * 90);
+    idleTimer = setTimeout(() => {
+      bubble.classList.remove('on');
+      setState('', '가만히 있다');
+    }, holdMs);
+  }
+
+  const events = new EventSource('/events');
+  events.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'heard') setState('thinking', '생각하는 중…');
+    else if (data.type === 'speak') say(data.text);
+  };
+  events.onerror = () => setState('', '연결이 끊겼다 — 서버 확인');
+
+  text.addEventListener('focus', () => {
+    if (cube.classList.contains('thinking') === false && cube.classList.contains('speaking') === false) {
+      setState('listening', '듣는 중');
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = text.value.trim();
+    if (message === '') return;
+    text.value = '';
+    send.disabled = true;
+    setState('thinking', '생각하는 중…');
+    try {
+      await fetch('/say', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text: message }),
+      });
+    } finally {
+      send.disabled = false;
+      text.focus();
+    }
+  });
+
+  text.focus();
+</script>
+</body>
+</html>

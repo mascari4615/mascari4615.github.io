@@ -1,0 +1,26 @@
+{
+  "name": "companion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "동반자 코어 — 감각·판단·두뇌·기억·표현 5개 자리를 갈아끼우는 뼈대. 인격 없음 (TASK-KAR-201)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test \"test/*.test.mjs\"",
+    "demo": "npm run build && node demo/run.mjs"
+  },
+  "dependencies": {
+    "karmolab-ai": "file:../karmolab-ai"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "~5.9.0"
+  }
+}
