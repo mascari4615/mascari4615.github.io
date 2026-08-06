@@ -11,14 +11,14 @@ import { seekTo } from './shared/video';
 
 (function (): void {
   interface GifApi {
-    encode: (o: {
+    encodeAsync: (o: {
       width: number;
       height: number;
       frames: Array<{ data: Uint8ClampedArray; delayMs: number }>;
       maxColors?: number;
       dither?: boolean;
       onProgress?: (r: number) => void;
-    }) => Blob;
+    }) => Promise<Blob>;
   }
 
   const size = (n: number): string =>
@@ -224,12 +224,13 @@ import { seekTo } from './shared/video';
             say('GIF 로 엮는 중…');
             // 브라우저가 화면을 한 번 갱신할 틈을 준다 (안 그러면 위 문구가 안 보인 채 멈춘 듯 보인다)
             await new Promise((r) => setTimeout(r, 30));
-            made = gif.encode({
+            made = await gif.encodeAsync({
               width: w,
               height: h,
               frames,
               maxColors: parseInt(colorsEl.value, 10),
-              dither: ditherEl.checked
+              dither: ditherEl.checked,
+              onProgress: (r) => say(`GIF 로 엮는 중… ${Math.round(r * 100)}%`)
             });
 
             preview.src = URL.createObjectURL(made);
