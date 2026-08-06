@@ -157,7 +157,7 @@ export class GraphCanvas {
     this.minimapSvg.style.cssText = `
       position:absolute; bottom:16px; right:16px;
       width:${MINIMAP_W}px; height:${MINIMAP_H}px;
-      background:rgba(10,12,16,0.85); border:1px solid rgba(255,255,255,0.08);
+      background:var(--glass-strong); border:1px solid var(--border);
       border-radius:4px; pointer-events:all; cursor:pointer;
     `;
     this.container.appendChild(this.minimapSvg);

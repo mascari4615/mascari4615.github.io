@@ -465,10 +465,12 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
 const TASK_TAB_STYLE_ID = 'ck-task-tab-styles';
 const TASK_TAB_CSS = `
 .ckt-wrap {
-  --bg: #0b0d12; --bg2: #0f1218; --paper: #12151c;
-  --ink: #f2f2ee; --ink2: #9a9a94; --ink3: #55555a;
-  --line: #1f242d; --line2: #2a3040; --line3: #3d4557;
-  --accent: #d4a849; --accent2: #7fa6d4;
+  /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
+     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+  --bg: var(--bg-void); --bg2: var(--bg-primary); --paper: var(--bg-secondary);
+  --ink: var(--text-primary); --ink2: var(--text-secondary); --ink3: var(--text-tertiary);
+  --line: var(--bg-tertiary); --line2: var(--bg-hover); --line3: var(--bg-active);
+  --accent2: var(--secondary);
   background: var(--bg); color: var(--ink);
   font-family: 'Noto Sans KR', system-ui, sans-serif;
   height: 100%; display: flex; flex-direction: column;
@@ -600,7 +602,7 @@ const TASK_TAB_CSS = `
   gap: 10px; padding: 9px 14px; border-bottom: 1px dashed var(--line);
   cursor: pointer; align-items: center;
 }
-.ckt-qrow--sub { padding-left: 26px; background: rgba(255,255,255,0.01); }
+.ckt-qrow--sub { padding-left: 26px; background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
 .ckt-qrow-prefix { font-size: 12px; line-height: 1; }

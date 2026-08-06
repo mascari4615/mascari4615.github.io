@@ -133,12 +133,21 @@
           const paletteEl = $<HTMLElement>('#ccPalette');
           const shadesEl = $<HTMLElement>('#ccShades');
 
+          // 견본 글자색은 견본 자기 밝기로 정한다 — 흰 글자로 고정하면 노란색 같은
+          // 밝은 견본에서 이름과 코드가 안 보인다 (테마와 무관하게 안 보였다).
+          function swatchInk(hex: string): string {
+            const rgb = hexToRgb(hex);
+            if (rgb == null) return '#fff';
+            return luminance(rgb) > 0.45 ? '#12100c' : '#fff';
+          }
+
           function swatches(list: Array<{ hex: string; label: string }>): string {
             return list
-              .map(
-                (s) =>
-                  `<button type="button" class="cc-swatch" data-hex="${s.hex}" style="background:${s.hex}" title="${s.hex}"><span>${s.label}</span><span class="cc-swatch-hex">${s.hex.toUpperCase()}</span></button>`
-              )
+              .map((s) => {
+                const ink = swatchInk(s.hex);
+                const shadow = ink === '#fff' ? '0 1px 3px rgba(0,0,0,0.55)' : 'none';
+                return `<button type="button" class="cc-swatch" data-hex="${s.hex}" style="background:${s.hex};color:${ink};text-shadow:${shadow}" title="${s.hex}"><span>${s.label}</span><span class="cc-swatch-hex">${s.hex.toUpperCase()}</span></button>`;
+              })
               .join('');
           }
 
