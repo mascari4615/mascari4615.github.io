@@ -132,6 +132,12 @@ export function webBody(options: WebBodyOptions = {}): Body {
 
         // 3D 몸을 이루는 조각들. **여기 안 적으면 그 파일만 조용히 404 가 되고,
         // 몸 전체가 안 뜬다** — 새 조각을 만들 때마다 이 줄을 같이 늘려야 한다.
+        // 배치·모양은 따로 둔 파일에서 온다 — 화면 뼈대와 섞어 두면 어느 쪽을 고치는지
+        // 매번 헤맨다.
+        if (url === '/ui.css') {
+          serveFile(res, join(packageRoot, 'assets', 'ui.css'), 'text/css; charset=utf-8', log);
+          return;
+        }
         if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js') {
           serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;

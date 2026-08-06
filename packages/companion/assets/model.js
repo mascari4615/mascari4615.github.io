@@ -464,6 +464,7 @@ export async function mountModel(canvas, modelName, onFail) {
   let blinkNext = 1.5 + Math.random() * 2;
   let blinkFrom = -1;
   // 딴생각에 잠기는 때 / 돌아올 때.
+  let lastAt = 0;
   let breakNext = 35 + Math.random() * 40;
   let breakBack = 0;
 
@@ -478,8 +479,12 @@ export async function mountModel(canvas, modelName, onFail) {
   new ResizeObserver(resize).observe(canvas);
 
   renderer.setAnimationLoop(() => {
+    // 시간은 한 번만 물어본다. 흐른 시간을 따로 물어보면 **0 이 돌아온다** — 앞서
+    // 물어본 그 순간에 시계가 이미 정산돼 버리기 때문이다. 그걸 모르고 쓰면 동작을
+    // 갈아타는 중간값이 영원히 안 움직여, 기분이 바뀌어도 자세가 그대로다(실측).
     const t = clock.getElapsedTime();
-    const dt = clock.getDelta();
+    const dt = t - lastAt;
+    lastAt = t;
 
     // 빈 시간 연기 — 아무 일도 없을 때 계속 같은 동작만 돌면 화면보호기처럼 보인다.
     // 가끔 잠깐 딴생각에 잠겼다가 돌아온다.
