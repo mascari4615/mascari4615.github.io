@@ -6,15 +6,22 @@ TASK-KAR-201. **여기엔 캐릭터가 없다.** 욘도, 말투도, 이름도 �
 
 「무언가를 느꼈다 → 지금 말할까 → 무슨 말 → 어디로 내보낸다」 이 한 바퀴만 코어가 알고, 나머지는 전부 갈아끼운다.
 
-## 갈아끼우는 자리 5개
+## 갈아끼우는 자리 6개
 
 | 자리 | 책임 | 지금 있는 것 |
 | --- | --- | --- |
-| `Sense` | 느낌 → 코어로 | 터미널 입력 · 웹 창 입력 · 시계 tick |
+| `Sense` | 느낌 → 코어로 | 터미널 입력 · 웹 창 입력 · **화면 보기** · 시계 tick |
 | `Attention` | 「지금 말 걸어도 되나」 (두뇌 부르기 **전** = 비용도 수다도 같이 줄어든다) | always · never · cooldown |
-| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo(키 불요) · assistant(`karmolab-ai` 위임) |
+| `Brain` | 재료 → 할 말 (`null` = 침묵) | echo(키 불요) · **claude-cli(격리, 그림도 읽음)** · assistant(`karmolab-ai` 위임) |
 | `Memory` | 느낀 것·말한 것을 한 타임라인에 | 메모리 · JSONL 파일 |
-| `Voice` | 말 → 밖으로 | 터미널 출력 · 웹 창 말풍선 |
+| `Voice` | 말 → 밖으로 | 터미널 출력 · 웹 창 말풍선 + 소리내어 말하기 |
+| `Character` | 누구인가 | `characters/*.md` 파일 하나 (기본 `무명` = 이름 없음, 말버릇만) |
+
+인격은 **코어를 통과만 한다** — 코어는 그 안을 들여다보지 않는다. 인격을 바꾸려고 코드를 고쳐야 하는 구조를 만들지 않으려는 것이다.
+
+### 두뇌 격리가 필요했던 이유
+
+공용 provider 라우터의 claude 경로는 두 가지를 몰래 끌고 온다: ① 실행한 폴더 상위의 지침 파일 ② 다른 봇과 공유하는 고정 대화 세션. 실측으로 우리 대화에 없던 낱말이 답에 나왔다. `claudeCliBrain` 은 빈 임시 폴더에서 세션 없이 부른다. 그림을 읽어야 할 때만 그 폴더 안에 한해 파일 접근을 연다.
 
 **몸(Body) = Sense + Voice 한 쌍.** 디스코드도 화면도 「몸 하나」일 뿐이다 — 본체가 아니다.
 
@@ -34,7 +41,9 @@ COMPANION_BRAIN=assistant ASSISTANT_AI_PROVIDER=claude-cli node demo/run.mjs   #
 COMPANION_CLOCK_MS=2000 COMPANION_MEMORY_FILE=./memory.jsonl node demo/run.mjs # 몸 2개 + 남는 기억
 ```
 
-환경변수: `COMPANION_BRAIN`(echo|assistant) · `COMPANION_CLOCK_MS` · `COMPANION_COOLDOWN_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_VERBOSE`.
+환경변수: `COMPANION_BRAIN`(claude|echo|assistant) · `COMPANION_CHARACTER`(파일명 또는 `none`) · `COMPANION_SCREEN_MS` · `COMPANION_CLOCK_MS` · `COMPANION_COOLDOWN_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_PORT`.
+
+**목소리**는 창 오른쪽 위 버튼으로 켠다. 브라우저 내장 음성이라 키도 서버도 필요 없고, 기본은 꺼져 있다 — 소리가 갑자기 나오는 건 무례하니까.
 
 ## 이 프로토타입이 증명하려는 단 하나
 

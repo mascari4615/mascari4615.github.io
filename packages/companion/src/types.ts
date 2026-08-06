@@ -60,12 +60,26 @@ export interface Body {
   readonly voice: Voice;
 }
 
+/**
+ * 인격 — 누구인가. **코어는 이 안을 들여다보지 않는다.** 통째로 두뇌에 넘길 뿐이다.
+ *
+ * 비워두면 아무도 아닌 채로 답한다. 파일 하나 갈아끼우면 다른 사람이 된다.
+ */
+export interface Character {
+  /** 화면에 표시할 이름. */
+  name: string;
+  /** 두뇌에 그대로 넘어가는 지침 본문. */
+  instruction: string;
+}
+
 /** 두뇌가 받는 재료. */
 export interface ThinkInput {
   /** 방금 느낀 것. */
   sensation: Sensation;
   /** 최근 기억 (오래된 것 → 최신 순). */
   recent: readonly MemoryEntry[];
+  /** 누구로서 답하나. 없으면 아무도 아닌 채로. */
+  character?: Character;
 }
 
 /** 두뇌. null 을 돌려주면 「할 말 없음」 = 침묵. */
