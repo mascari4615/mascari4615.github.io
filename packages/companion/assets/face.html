@@ -278,6 +278,8 @@
     user-select: none;
   }
   .grip:active { cursor: grabbing; }
+  /* 흐려져 있어도 닫기는 눌린다 — 손이 닿는데 안 먹는 게 제일 답답하다. */
+  .grip.fades { pointer-events: auto; }
   .grip-close {
     width: 22px;
     height: 22px;
@@ -554,8 +556,16 @@
     const grip = document.getElementById('grip');
     grip.hidden = false;
     document.body.style.paddingTop = '26px';
-    document.getElementById('gripClose').addEventListener('click', () => {
-      window.__TAURI__.window.getCurrentWindow().close();
+    document.getElementById('gripClose').addEventListener('click', async () => {
+      // 정식으로 닫아 보고, 안 되면 그냥 끈다. 눌렀는데 안 꺼지는 일은 없어야 한다.
+      try {
+        await window.__TAURI__.window.getCurrentWindow().close();
+      } catch (e) {
+        console.warn('창을 못 닫았다 — 그냥 끈다:', e);
+      }
+      try {
+        await window.__TAURI__.core.invoke('quit');
+      } catch { /* 이미 꺼졌으면 그만 */ }
     });
   }
 
@@ -1085,9 +1095,9 @@
 
   /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 —
      안 그러면 보이지도 않는 창이 화면 한 구석의 클릭을 통째로 삼킨다. */
-  const invoke = window.__TAURI__?.core?.invoke;
+  let hitAreaComplained = false;
   function reportHitAreas() {
-    if (invoke === undefined) return;
+    if (inDesktopWindow === false) return;
     const areas = [];
     const add = (el) => {
       if (el === null || el.hidden === true) return;
@@ -1096,12 +1106,20 @@
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) areas.push([r.x, r.y, r.width, r.height]);
     };
-    // 얘 자신은 늘 눌린다 — 클릭해서 대화를 연다.
-    add(document.getElementById('body3d'));
-    add(cube);
+    // 얘 자신은 늘 눌린다 — 클릭해서 대화를 열고, 잡아끌어 옮긴다.
+    // 그림판이 아니라 **얘가 실제로 차지하는 자리**만 넘긴다.
+    const body = body3d?.screenBox?.();
+    if (body) areas.push([body.x, body.y, body.width, body.height]);
+    else add(cube);
     add(ask); // 물어보는 상자는 무조건
     for (const el of fading) if (el.classList.contains('on')) add(el);
-    invoke('set_hit_areas', { areas }).catch(() => {});
+    // 떼어내 부르면 안 먹는다 — 붙여서 부른다. 실패는 삼키지 말고 남긴다.
+    window.__TAURI__.core.invoke('set_hit_areas', { areas }).catch((e) => {
+      if (hitAreaComplained === false) {
+        hitAreaComplained = true;
+        console.warn('누를 자리를 못 알려줬다:', e);
+      }
+    });
   }
 
   // 얘한테 커서가 닿으면 도구가 나온다.
@@ -1109,12 +1127,37 @@
   stage?.addEventListener('pointerenter', () => showUi(6));
   document.addEventListener('pointermove', () => showUi(4));
 
-  // 얘를 누르면 대화가 열리고, 바깥을 누르면 닫힌다.
-  stage?.addEventListener('click', () => {
+  /* 얘를 잡아끌면 창이 따라온다.
+     창틀이 없으니 붙잡을 데가 얘 몸뿐이다. 살짝 누른 것과 끌고 간 것을 구분해서,
+     제자리에서 뗐으면 대화를 열고 옮겼으면 옮기기만 한다. */
+  let grabbed = null;
+  const appWindow = inDesktopWindow ? window.__TAURI__.window.getCurrentWindow() : null;
+
+  stage?.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    grabbed = { x: e.clientX, y: e.clientY, moved: false };
+  });
+
+  stage?.addEventListener('pointermove', (e) => {
+    if (grabbed === null || grabbed.moved) return;
+    // 손이 떨려 몇 픽셀 움직인 것까지 「옮긴다」로 보면 눌러도 대화가 안 열린다.
+    if (Math.abs(e.clientX - grabbed.x) + Math.abs(e.clientY - grabbed.y) < 4) return;
+    grabbed.moved = true;
+    // 여기서부터는 창 옮기기를 운영체제에 넘긴다 — 화면이 좌표를 따라 계산하면 끊긴다.
+    appWindow?.startDragging().catch(() => {});
+  });
+
+  const release = () => {
+    if (grabbed === null) return;
+    const wasClick = grabbed.moved === false;
+    grabbed = null;
+    if (wasClick === false) return;
     chatOpen = true;
     render();
     text.focus();
-  });
+  };
+  stage?.addEventListener('pointerup', release);
+  stage?.addEventListener('pointercancel', release);
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { chatOpen = false; render(); }
   });
