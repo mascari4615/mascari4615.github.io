@@ -54,6 +54,18 @@ export interface ServerStatsState {
    * 서버 ID 를 아는 것만으로는 남의 서버 결산을 열 수 없다 (주소 추측 불가).
    */
   shares: Record<string, string>;
+  /**
+   * 서버ID → 주간 자동 게시 설정. 켠 서버만 들어 있다 (기본 = 꺼짐).
+   * 명령을 쳐야만 나오는 결산은 습관이 안 된다 — 월요일 아침에 먼저 와야 한다.
+   */
+  weekly: Record<string, WeeklySchedule>;
+}
+
+export interface WeeklySchedule {
+  /** 게시할 채널 — 켠 사람이 명령을 친 그 채널. */
+  channelId: string;
+  /** 마지막으로 올린 날 (KST). 같은 주에 두 번 올리지 않기 위한 표식. */
+  lastPostedDayKey: string | null;
 }
 
 /** 며칠치를 보관할지 — 연간 결산까지 커버. */
@@ -94,7 +106,45 @@ export function recentDayKeys(now: Date, days: number): string[] {
 }
 
 export function emptyState(): ServerStatsState {
-  return { version: 1, guilds: {}, shares: {} };
+  return { version: 1, guilds: {}, shares: {}, weekly: {} };
+}
+
+/** 월요일(KST) 아침 게시 기준. 시각은 「이후 아무 때나」 — 봇이 꺼져 있었어도 켜지면 따라잡는다. */
+export const WEEKLY_POST_WEEKDAY = 1; // 0=일, 1=월
+export const WEEKLY_POST_HOUR = 10;
+
+/**
+ * 지금 주간 결산을 올려야 하는 서버들.
+ * 시각이 정확히 맞아떨어질 때만 보내면 봇이 잠깐 꺼진 주는 통째로 건너뛴다
+ * → 「월요일 10시 이후이고, 이번 주에 아직 안 보냈으면」 으로 판단한다.
+ */
+export function dueWeeklyPosts(
+  state: ServerStatsState,
+  now: Date,
+): { guildId: string; channelId: string }[] {
+  const dayKey = kstDayKey(now);
+  const weekday = weekdayOf(dayKey);
+  const hour = kstHour(now);
+  const due: { guildId: string; channelId: string }[] = [];
+
+  for (const [guildId, schedule] of Object.entries(state.weekly)) {
+    if (!schedule?.channelId) continue;
+    // 이번 주 월요일의 날짜 키 — 이걸 표식으로 삼으면 주 단위로 정확히 한 번이 된다.
+    const daysSinceMonday = (weekday + 6) % 7;
+    if (daysSinceMonday === 0 && hour < WEEKLY_POST_HOUR) continue; // 월요일 아침 전
+    const mondayKey = kstDayKey(new Date(now.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000));
+    if (schedule.lastPostedDayKey === mondayKey) continue; // 이번 주 몫은 이미 보냄
+    due.push({ guildId, channelId: schedule.channelId });
+  }
+  return due;
+}
+
+/** 이번 주 몫을 보냈다고 표시. 기준일 = 이번 주 월요일. */
+export function markWeeklyPosted(state: ServerStatsState, guildId: string, now: Date): void {
+  const schedule = state.weekly[guildId];
+  if (!schedule) return;
+  const daysSinceMonday = (weekdayOf(kstDayKey(now)) + 6) % 7;
+  schedule.lastPostedDayKey = kstDayKey(new Date(now.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000));
 }
 
 /**
@@ -139,7 +189,19 @@ export function normalizeState(parsed: Partial<ServerStatsState> | null | undefi
       if (typeof key === 'string' && key) shares[guildId] = key;
     }
   }
-  return { version: 1, guilds, shares };
+  const weekly: Record<string, WeeklySchedule> = {};
+  if (parsed?.weekly && typeof parsed.weekly === 'object') {
+    for (const [guildId, raw] of Object.entries(parsed.weekly)) {
+      const s = raw as Partial<WeeklySchedule> | undefined;
+      if (s && typeof s.channelId === 'string' && s.channelId) {
+        weekly[guildId] = {
+          channelId: s.channelId,
+          lastPostedDayKey: typeof s.lastPostedDayKey === 'string' ? s.lastPostedDayKey : null,
+        };
+      }
+    }
+  }
+  return { version: 1, guilds, shares, weekly };
 }
 
 function normalizeDay(day: Partial<DayStat> | undefined): DayStat {
@@ -738,6 +800,30 @@ export class ServerStatsRecorder {
   /** 공유 키로 서버 찾기 — 모르는 키면 null. */
   guildIdForShareKey(key: string): string | null {
     return guildIdForShareKey(this.load(), key);
+  }
+
+  /** 주간 자동 게시 켜기/끄기. 켜면 그 채널로 월요일마다 간다. */
+  setWeekly(guildId: string, channelId: string | null): void {
+    const state = this.load();
+    if (channelId) state.weekly[guildId] = { channelId, lastPostedDayKey: null };
+    else delete state.weekly[guildId];
+    this.dirty = true;
+    this.flush();
+  }
+
+  weeklyOf(guildId: string): WeeklySchedule | null {
+    return this.load().weekly[guildId] ?? null;
+  }
+
+  /** 지금 보내야 할 주간 결산 목록. */
+  dueWeekly(now = new Date()): { guildId: string; channelId: string }[] {
+    return dueWeeklyPosts(this.load(), now);
+  }
+
+  markWeeklyPosted(guildId: string, now = new Date()): void {
+    markWeeklyPosted(this.load(), guildId, now);
+    this.dirty = true;
+    this.flush();
   }
 
   private scheduleFlush(): void {

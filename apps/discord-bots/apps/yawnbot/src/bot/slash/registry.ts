@@ -617,6 +617,13 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         )
         .addBooleanOption((option) =>
           option
+            .setName('매주')
+            .setNameLocalizations(enUS('weekly'))
+            .setDescription('월요일 아침마다 이 채널로 자동 게시 (켜기/끄기)')
+            .setDescriptionLocalizations(enUS('Post automatically every Monday morning')),
+        )
+        .addBooleanOption((option) =>
+          option
             .setName('자세히')
             .setNameLocalizations(enUS('raw'))
             .setDescription('원시 수치 + 저장 상태 (나만 보임 · 디버그용)')
