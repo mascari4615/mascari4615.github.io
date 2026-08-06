@@ -121,8 +121,8 @@
       ],
       "related": [
         "qrread",
-        "shylink",
-        "urlparse"
+        "urlparse",
+        "colorconv"
       ]
     },
     "lotto": {
