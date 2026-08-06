@@ -12,6 +12,7 @@
     ['worldclock', '세계 시차'],
     ['epoch', '타임스탬프'],
     ['birth', '생일'],
+    ['workdays', '영업일'],
     ['timecalc', '시간 더하기'],
     ['pace', '러닝 페이스']
   ];

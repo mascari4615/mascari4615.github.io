@@ -785,7 +785,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/timecalc', 'tools/pace', 'tools/time']
+    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/workdays', 'tools/timecalc', 'tools/pace', 'tools/time']
   },
   {
     id: 'birth',
@@ -797,6 +797,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 20h16v-7H4zM6 13V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 7V5M12 7V4M15 7V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/birth']
+  },
+  {
+    id: 'workdays',
+    hidden: true, // 「시간 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영업일 계산',
+    category: 'tool',
+    desc: '주말과 공휴일을 뺀 영업일을 셉니다. 어떤 날을 뺐는지 보여 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9 15l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/workdays']
   },
   {
     id: 'timecalc',
