@@ -68,6 +68,49 @@ a { color: var(--accent); }
   margin: 0 0 16px;
 }
 
+/* ── 모드 탭 + 연속 기록 ── */
+.tabs { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; }
+.tab {
+  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.tab:hover { color: var(--ink); border-color: var(--ink-3); }
+.tab.on { background: var(--panel-2); color: var(--ink); border-color: var(--ink-3); }
+.streak { margin-left: auto; font-size: 13px; color: var(--ink-2); }
+.streak b { color: var(--accent); }
+
+/* ── 실루엣 ── */
+.shot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 12px;
+  min-height: 210px;
+}
+.shot img {
+  max-width: 100%;
+  max-height: 230px;
+  object-fit: contain;
+  /* 처음엔 완전히 까맣다. app.mjs 가 틀린 횟수에 따라 걷어낸다. */
+  filter: brightness(0);
+  transition: filter 0.35s ease-out;
+}
+@media (prefers-reduced-motion: reduce) { .shot img { transition: none; } }
+
+.row.solo { display: flex; align-items: center; justify-content: space-between; }
+.row.solo .who { margin-bottom: 0; }
+.row.solo .verdict { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.row.solo.ok .verdict { background: var(--exact); color: #fff; }
+.row.solo.no .verdict { background: var(--wrong); color: var(--ink-2); }
+
 /* ── 입력 ── */
 .guessbar { position: relative; margin-bottom: 8px; }
 .guessbar input {
@@ -204,6 +247,30 @@ a { color: var(--accent); }
 }
 .btn:active { transform: translateY(1px); }
 .next { color: var(--ink-3); font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.tally { color: var(--ink-2); font-size: 13px; margin: 6px 0 12px; font-variant-numeric: tabular-nums; }
+
+/* 끝난 사람에게 건네는 다음 판 — 이 자리가 이 물건에서 가장 값진 자리다. */
+.more {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.more span { width: 100%; color: var(--ink-3); font-size: 12px; }
+.more a {
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+.more a:hover { border-color: var(--accent); }
 
 .foot { margin-top: 34px; color: var(--ink-3); font-size: 12px; text-align: center; }
 .foot a { color: var(--ink-2); }

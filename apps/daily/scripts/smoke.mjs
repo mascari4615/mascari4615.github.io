@@ -30,16 +30,18 @@ mkdirSync(shots, { recursive: true });
 
 const browser = await pw.chromium.launch();
 
-async function playTopic(topicId, { width, height, tag }) {
+async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
-  const answer = answerOf(topic);
+  const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
   const decoy = topic.items.find((i) => i.name !== answer.name);
+  const path = mode === 'classic' ? topicId : `${topicId}/${mode}`;
+  const cellsPerRow = mode === 'silhouette' ? 0 : topic.fields.length;
 
   const ctx = await browser.newContext({ viewport: { width, height } });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(`${base}/${topicId}/`, { waitUntil: 'networkidle' });
+  await page.goto(`${base}/${path}/`, { waitUntil: 'networkidle' });
 
   check(`[${tag}] 문제 번호가 찍힌다`, /^#\d+$/.test((await page.locator('.no').textContent()).trim()));
 
@@ -49,10 +51,10 @@ async function playTopic(topicId, { width, height, tag }) {
   await page.click(`.sug button:has-text("${decoy.name}")`);
   await page.waitForSelector('.row');
   const cellCount = await page.locator('.row').first().locator('.cell').count();
-  check(`[${tag}] 추측 한 줄이 속성 칸을 다 그린다`, cellCount === topic.fields.length, `${cellCount}칸`);
+  check(`[${tag}] 추측 한 줄이 속성 칸을 다 그린다`, cellCount === cellsPerRow, `${cellCount}칸`);
   check(`[${tag}] 아직 안 끝났다`, await page.locator('.done').isHidden());
 
-  await page.screenshot({ path: join(shots, `${topicId}-${tag}-playing.png`), fullPage: true });
+  await page.screenshot({ path: join(shots, `${topicId}-${mode}-${tag}-playing.png`), fullPage: true });
 
   // 정답을 넣는다.
   await page.fill('.guessbar input', answer.name);
@@ -66,7 +68,7 @@ async function playTopic(topicId, { width, height, tag }) {
   const grid = await page.locator('.done .grid').innerText();
   check(`[${tag}] 공유 격자에 이름이 안 샌다`, !grid.includes(answer.name) && /🟩/.test(grid));
 
-  await page.screenshot({ path: join(shots, `${topicId}-${tag}-done.png`), fullPage: true });
+  await page.screenshot({ path: join(shots, `${topicId}-${mode}-${tag}-done.png`), fullPage: true });
 
   // 새로고침해도 오늘 진행이 남아야 한다.
   await page.reload({ waitUntil: 'networkidle' });
@@ -78,12 +80,51 @@ async function playTopic(topicId, { width, height, tag }) {
   check(`[${tag}] 가로로 안 넘친다`, over <= 0, `넘침 ${over}px`);
   check(`[${tag}] 콘솔 오류 0`, errors.length === 0, errors.join(' | '));
 
+  // 끝난 사람에게 다음 판을 건네는 자리 — 이게 없으면 방문자가 한 판만 두고 나간다.
+  check(`[${tag}] 다음 판을 건넨다`, (await page.locator('.done .more a').count()) > 0);
+  check(`[${tag}] 연속 기록이 붙는다`, /연속/.test(await page.locator('.done .tally').innerText()));
+
+  await ctx.close();
+}
+
+/** 실루엣은 「처음엔 안 보이다가 틀릴수록 밝아진다」가 전부다 — 그게 실제로 일어나는지 본다. */
+async function playSilhouette(topicId) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const answer = answerOf(topic, new Date(), 'silhouette');
+  const decoy = topic.items.find((i) => i.name !== answer.name);
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  await page.goto(`${base}/${topicId}/silhouette/`, { waitUntil: 'networkidle' });
+
+  const bright = () =>
+    page.$eval('.shot img', (el) => Number((el.style.filter.match(/brightness\(([\d.]+)\)/) ?? [0, 0])[1]));
+  const before = await bright();
+  check(`[실루엣:${topicId}] 처음엔 거의 안 보인다`, before < 0.2, `밝기 ${before}`);
+  check(`[실루엣:${topicId}] 속성 표는 안 보여 준다`, (await page.locator('.cells').count()) === 0);
+
+  await page.fill('.guessbar input', decoy.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${decoy.name}")`);
+  await page.waitForSelector('.row');
+  const after = await bright();
+  check(`[실루엣:${topicId}] 틀리면 조금 밝아진다`, after > before, `${before} → ${after}`);
+
+  await page.screenshot({ path: join(shots, `${topicId}-silhouette-playing.png`), fullPage: true });
+
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  check(`[실루엣:${topicId}] 맞히면 그림이 다 드러난다`, (await page.$eval('.shot img', (el) => el.style.filter)) === 'none');
+  await page.screenshot({ path: join(shots, `${topicId}-silhouette-done.png`), fullPage: true });
   await ctx.close();
 }
 
 await playTopic('pokemon', { width: 1000, height: 900, tag: 'desktop' });
 await playTopic('pokemon', { width: 360, height: 780, tag: 'mobile' });
 await playTopic('lol', { width: 360, height: 780, tag: 'mobile' });
+await playSilhouette('pokemon');
+await playSilhouette('lol');
 
 // 허브
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });

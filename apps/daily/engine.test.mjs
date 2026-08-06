@@ -5,7 +5,10 @@ import {
   compareField,
   compareItem,
   dailyIndex,
+  emptyStats,
   findItem,
+  liveStreak,
+  updateStats,
   isWin,
   kstDayKey,
   kstDayNumber,
@@ -110,6 +113,49 @@ test('자동완성은 앞글자를 먼저 주고 이미 낸 답을 뺀다', () =
   assert.deepEqual(suggest(items, '몽').map((i) => i.name), ['몽몽이', '리자몽']);
   assert.deepEqual(suggest(items, '리', { exclude: ['리자몽'] }).map((i) => i.name), ['리자드']);
   assert.deepEqual(suggest(items, ''), []);
+});
+
+test('모드가 다르면 같은 날에도 정답이 다르다', () => {
+  // 하루 두 판을 두는 의미가 여기서 나온다.
+  const at = new Date('2026-08-07T10:00:00+09:00');
+  const a = answerOf(topic, at);
+  const b = answerOf(topic, at, 'silhouette');
+  const many = { ...topic, items: Array.from({ length: 50 }, (_, i) => ({ name: `x${i}` })) };
+  assert.notEqual(answerOf(many, at).name, answerOf(many, at, 'silhouette').name);
+  assert.equal(typeof a.name + typeof b.name, 'stringstring');
+});
+
+test('소금 없는 정답은 예전과 같은 값이다', () => {
+  // 씨앗 모양을 바꾸면 이미 두고 있던 사람의 오늘 정답이 바뀐다 — 회귀 차단.
+  assert.equal(dailyIndex('test', 100, 3), dailyIndex('test', 100, 3, ''));
+});
+
+test('연속 기록은 어제 푼 경우에만 이어진다', () => {
+  let s = emptyStats();
+  s = updateStats(s, { won: true, guesses: 3, dayNumber: 10 });
+  assert.equal(s.streak, 1);
+  s = updateStats(s, { won: true, guesses: 2, dayNumber: 11 });
+  assert.equal(s.streak, 2);
+  s = updateStats(s, { won: true, guesses: 5, dayNumber: 20 }); // 하루 건너뜀
+  assert.equal(s.streak, 1);
+  assert.equal(s.best, 2);
+  assert.equal(s.played, 3);
+  assert.deepEqual(s.dist, { 3: 1, 2: 1, 5: 1 });
+});
+
+test('못 맞히면 연속이 끊기고, 같은 날은 두 번 안 센다', () => {
+  let s = updateStats(emptyStats(), { won: true, guesses: 1, dayNumber: 5 });
+  s = updateStats(s, { won: false, guesses: 8, dayNumber: 6 });
+  assert.equal(s.streak, 0);
+  assert.equal(s.wins, 1);
+  const again = updateStats(s, { won: false, guesses: 8, dayNumber: 6 });
+  assert.equal(again.played, s.played, '새로고침으로 두 번 세면 안 된다');
+});
+
+test('오늘을 아직 안 풀었어도 어제까지의 연속은 살아 있다', () => {
+  const s = updateStats(emptyStats(), { won: true, guesses: 2, dayNumber: 30 });
+  assert.equal(liveStreak(s, 31), 1, '오늘이 끝나야 끊긴다');
+  assert.equal(liveStreak(s, 32), 0, '하루 걸렀으면 죽었다');
 });
 
 test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다', () => {
