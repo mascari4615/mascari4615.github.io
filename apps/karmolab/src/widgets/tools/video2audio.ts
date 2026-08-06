@@ -7,49 +7,9 @@
  * 주의: 브라우저가 해독하지 못하는 코덱이 있다(특히 일부 mkv·avi). 그때는 실패를 숨기지 않고
  * 어떤 파일이 되는지 알려 준다 — 「아무 일도 안 일어남」이 제일 나쁜 결과다.
  */
+import { toWav, fileSize as size, mmss } from './shared/media';
+
 (function (): void {
-  /** AudioBuffer → WAV. 브라우저에 저장 기능이 없어 직접 엮는다. */
-  function toWav(buffer: AudioBuffer): Blob {
-    const numCh = buffer.numberOfChannels;
-    const len = buffer.length * numCh * 2 + 44;
-    const view = new DataView(new ArrayBuffer(len));
-    const w = (off: number, s: string): void => {
-      for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
-    };
-    w(0, 'RIFF');
-    view.setUint32(4, len - 8, true);
-    w(8, 'WAVE');
-    w(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numCh, true);
-    view.setUint32(24, buffer.sampleRate, true);
-    view.setUint32(28, buffer.sampleRate * numCh * 2, true);
-    view.setUint16(32, numCh * 2, true);
-    view.setUint16(34, 16, true);
-    w(36, 'data');
-    view.setUint32(40, len - 44, true);
-    const chans: Float32Array[] = [];
-    for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
-    let off = 44;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let c = 0; c < numCh; c++) {
-        const s = Math.max(-1, Math.min(1, chans[c][i]));
-        view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-        off += 2;
-      }
-    }
-    return new Blob([view], { type: 'audio/wav' });
-  }
-
-  const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
-
-  const mmss = (sec: number): string => {
-    const s = Math.max(0, Math.floor(sec));
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  };
-
   Toolbox.register({
     id: 'video2audio',
     title: '영상에서 소리 추출',

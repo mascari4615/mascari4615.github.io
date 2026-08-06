@@ -9,48 +9,9 @@
  *    입력 크기를 실시간으로 그린다. 조용하면 조용하다고 알려 준다.
  *  - 저장은 WAV. 다른 도구(오디오 자르기·잇기)에 바로 물릴 수 있고 품질 손실이 없다.
  */
+import { toWav, fileSize as size, mmss } from './shared/media';
+
 (function (): void {
-  const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
-
-  const mmss = (sec: number): string => {
-    const s = Math.max(0, Math.floor(sec));
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  };
-
-  function toWav(buffer: AudioBuffer): Blob {
-    const numCh = buffer.numberOfChannels;
-    const len = buffer.length * numCh * 2 + 44;
-    const view = new DataView(new ArrayBuffer(len));
-    const w = (off: number, s: string): void => {
-      for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
-    };
-    w(0, 'RIFF');
-    view.setUint32(4, len - 8, true);
-    w(8, 'WAVE');
-    w(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numCh, true);
-    view.setUint32(24, buffer.sampleRate, true);
-    view.setUint32(28, buffer.sampleRate * numCh * 2, true);
-    view.setUint16(32, numCh * 2, true);
-    view.setUint16(34, 16, true);
-    w(36, 'data');
-    view.setUint32(40, len - 44, true);
-    const chans: Float32Array[] = [];
-    for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
-    let off = 44;
-    for (let i = 0; i < buffer.length; i++) {
-      for (let c = 0; c < numCh; c++) {
-        const s = Math.max(-1, Math.min(1, chans[c][i]));
-        view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true);
-        off += 2;
-      }
-    }
-    return new Blob([view], { type: 'audio/wav' });
-  }
-
   Toolbox.register({
     id: 'voicerec',
     title: '목소리 녹음',
