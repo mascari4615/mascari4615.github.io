@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { buildWrappedEmbed, sparkline, hourLabel } from './wrapped';
-import { emptyState, recordMessage, recordReaction, summarize } from '../../services/server-stats';
+import { buildWrappedEmbed, buildDebugText, sparkline, hourLabel } from './wrapped';
+import { debugDump, emptyState, recordMessage, recordReaction, summarize } from '../../services/server-stats';
 
 const NOW = new Date('2026-08-06T12:00:00Z');
 
-function seededSummary() {
+function seededState() {
   const state = emptyState();
   const say = (userId: string, name: string, count: number, at: string, channelId = 'c1') => {
     for (let i = 0; i < count; i += 1) {
@@ -18,7 +18,11 @@ function seededSummary() {
     guildId: 'g1', giverId: 'u2', giverName: '링', authorId: 'u1', authorName: '욘',
     emojiName: '👍', at: new Date('2026-08-05T05:00:00Z'),
   });
-  return summarize(state, 'g1', { days: 7, now: NOW });
+  return state;
+}
+
+function seededSummary() {
+  return summarize(seededState(), 'g1', { days: 7, now: NOW });
 }
 
 describe('스파크라인', () => {
@@ -61,6 +65,32 @@ describe('결산 카드', () => {
     const embed = buildWrappedEmbed(empty, '새 서버').toJSON();
     expect(embed.description).toContain('지금부터');
     expect(embed.fields ?? []).toHaveLength(0);
+  });
+
+  it('디버그 창은 원시 수치와 저장 상태를 같이 보여준다', () => {
+    const dump = {
+      ...debugDump(seededState(), 'g1', { days: 7, now: NOW }),
+      dirty: true,
+      statePath: 'C:/x/server-stats-state.json',
+      stateFileExists: false,
+      stateFileMtime: null,
+    };
+    const text = buildDebugText(dump, 7);
+    expect(text).toContain('오늘(KST) = 2026-08-06');
+    expect(text).toContain('아직 없음 (첫 저장 전)');
+    expect(text).toContain('미저장 변경 있음');
+    expect(text).toContain('욘');
+  });
+
+  it('아무도 안 잡혔으면 뭘 하라고 알려준다', () => {
+    const dump = {
+      ...debugDump(emptyState(), 'g1', { days: 7, now: NOW }),
+      dirty: false,
+      statePath: 'x',
+      stateFileExists: false,
+      stateFileMtime: null,
+    };
+    expect(buildDebugText(dump, 7)).toContain('한 마디 하고 다시');
   });
 
   it('푸터에 프라이버시 약속이 박혀 있다', () => {

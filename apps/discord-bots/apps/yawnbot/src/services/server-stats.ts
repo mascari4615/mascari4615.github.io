@@ -387,6 +387,86 @@ export function summarize(
   };
 }
 
+// ────────────────────────────── 디버그 ──────────────────────────────
+
+export interface DebugRow {
+  userId: string;
+  name: string;
+  msgs: number;
+  chars: number;
+  nightMsgs: number;
+  reactionsGiven: number;
+  reactionsGot: number;
+}
+
+export interface DebugDump {
+  /** 이 서버에 기록이 있는 날짜 키 (최신순) */
+  dayKeys: string[];
+  /** 오늘(KST) 날짜 키 — 방금 보낸 메시지가 여기 잡혀야 정상 */
+  todayKey: string;
+  /** 요청 범위 안의 유저별 원시 수치 (많이 쓴 순) */
+  rows: DebugRow[];
+  /** 시각별 메시지 수 (0~23시) */
+  hours: number[];
+  /** 채널별 메시지 수 (많은 순) */
+  channels: { channelId: string; count: number }[];
+  /** 아직 파일에 안 쓴 변경이 있나 */
+  dirty: boolean;
+  /** state 파일 경로 + 존재 여부 + 마지막 저장 시각 */
+  statePath: string;
+  stateFileExists: boolean;
+  stateFileMtime: string | null;
+}
+
+/** 원시 수치 덤프 — 카드가 이상할 때 "집계 자체가 틀렸나 표시가 틀렸나"를 가른다. */
+export function debugDump(
+  state: ServerStatsState,
+  guildId: string,
+  options: { days: number; now: Date },
+): Omit<DebugDump, 'dirty' | 'statePath' | 'stateFileExists' | 'stateFileMtime'> {
+  const guild = state.guilds[guildId];
+  const inRange = new Set(recentDayKeys(options.now, options.days));
+  const rows = new Map<string, DebugRow>();
+  const hours = Array.from({ length: 24 }, () => 0);
+  const channels = new Map<string, number>();
+
+  for (const [dayKey, day] of Object.entries(guild?.days ?? {})) {
+    if (!inRange.has(dayKey)) continue;
+    for (const [userId, stat] of Object.entries(day.users)) {
+      const row = rows.get(userId) ?? {
+        userId,
+        name: stat.name,
+        msgs: 0,
+        chars: 0,
+        nightMsgs: 0,
+        reactionsGiven: 0,
+        reactionsGot: 0,
+      };
+      row.name = stat.name || row.name;
+      row.msgs += stat.msgs;
+      row.chars += stat.chars;
+      row.nightMsgs += stat.nightMsgs;
+      row.reactionsGiven += stat.reactionsGiven;
+      row.reactionsGot += stat.reactionsGot;
+      rows.set(userId, row);
+    }
+    for (let h = 0; h < 24; h += 1) hours[h] += day.hours[h] ?? 0;
+    for (const [channelId, count] of Object.entries(day.channels)) {
+      channels.set(channelId, (channels.get(channelId) ?? 0) + count);
+    }
+  }
+
+  return {
+    dayKeys: Object.keys(guild?.days ?? {}).sort().reverse(),
+    todayKey: kstDayKey(options.now),
+    rows: [...rows.values()].sort((a, b) => b.msgs - a.msgs || a.userId.localeCompare(b.userId)),
+    hours,
+    channels: [...channels.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([channelId, count]) => ({ channelId, count })),
+  };
+}
+
 // ────────────────────────────── 저장소(recorder) ──────────────────────────────
 
 const STATE_FILE = 'server-stats-state.json';
@@ -438,6 +518,26 @@ export class ServerStatsRecorder {
 
   summarize(guildId: string, days: number, now = new Date()): ServerSummary {
     return summarize(this.load(), guildId, { days, now });
+  }
+
+  /** 원시 수치 + 저장 상태. 카드가 이상할 때 여기부터 본다. */
+  debug(guildId: string, days: number, now = new Date()): DebugDump {
+    const dump = debugDump(this.load(), guildId, { days, now });
+    let stateFileExists = false;
+    let stateFileMtime: string | null = null;
+    try {
+      const stat = fs.statSync(this.statePath);
+      stateFileExists = true;
+      stateFileMtime = stat.mtime.toISOString();
+    } catch {
+      // 아직 한 번도 저장 안 됨 = 정상(첫 flush 전).
+    }
+    return { ...dump, dirty: this.dirty, statePath: this.statePath, stateFileExists, stateFileMtime };
+  }
+
+  /** 디버그용 즉시 저장 — 20초 기다리지 않고 파일을 눈으로 확인하고 싶을 때. */
+  flushNow(): void {
+    this.flush();
   }
 
   private scheduleFlush(): void {

@@ -602,10 +602,18 @@ export const SLASH_COMMANDS: SlashCommand[] = [
             .setDescription('며칠치를 볼지 (기본: 7일)')
             .setDescriptionLocalizations(enUS('How many days (default: 7)'))
             .addChoices(
+              { name: '오늘', value: 1 },
               { name: '최근 7일', value: 7 },
               { name: '최근 30일', value: 30 },
               { name: '올해 (365일)', value: 365 },
             ),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName('자세히')
+            .setNameLocalizations(enUS('raw'))
+            .setDescription('원시 수치 + 저장 상태 (나만 보임 · 디버그용)')
+            .setDescriptionLocalizations(enUS('Raw counters & save state (ephemeral, debug)')),
         ),
     run: async (ctx, interaction) => { await handleWrapped(ctx, interaction); },
   },
