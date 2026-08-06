@@ -76,8 +76,8 @@ function head({ title, desc, url, up }) {
 <body>`;
 }
 
-const foot = (hub = false) => `<div class="foot">하루에 하나. 자정(KST)에 새 문제.<br>
-${hub ? '' : `<a href="${BASE}/">다른 판 보기</a> · `}<a href="/karmolab/">KarmoLab</a></div>`;
+const foot = (hub = false, past = null) => `<div class="foot">하루에 하나. 자정(KST)에 새 문제.<br>
+${past ? `<a href="${BASE}/${past}/past/">지난 문제</a> · ` : ''}${hub ? '' : `<a href="${BASE}/">다른 판 보기</a> · `}<a href="/karmolab/">KarmoLab</a></div>`;
 
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(join(dist, 'data'), { recursive: true });
@@ -120,7 +120,7 @@ for (const page of all) {
   <p class="left"></p>
   <div class="rows"></div>
   <div class="done" hidden></div>
-  ${foot()}
+  ${foot(false, topic.id)}
 </div>
 <script type="module" src="${up}app.mjs?v=${stamp}"></script>
 </body></html>
@@ -130,6 +130,33 @@ for (const page of all) {
 }
 
 for (const topic of topics) writeFileSync(join(dist, 'data', `${topic.id}.json`), JSON.stringify(topic));
+
+// ── 지난 문제 ──
+// 정답이 결정론적이라 페이지는 하나면 된다 — 목록은 브라우저가 그날그날 다시 센다.
+// (배포 때 굳혀 두면 다음 배포까지 멈춘 목록이 남는다.)
+for (const topic of topics) {
+  const url = `${SITE}${BASE}/${topic.id}/past/`;
+  const html = `${head({
+    title: `${topic.title} 지난 문제 정답 모아보기`,
+    desc: `오늘의 ${topic.title} 맞히기의 지난 30일 정답. 오늘 답은 들어 있지 않습니다.`,
+    url,
+    up: '../../',
+  })}
+<div class="wrap" id="past" data-topic="${esc(topic.id)}" data-stamp="${stamp}" data-data="../../data/${esc(topic.id)}.json">
+  <div class="top">
+    <h1>${esc(topic.emoji ?? '')} ${esc(topic.title)} 지난 문제</h1>
+    <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
+  </div>
+  <p class="lede past-note"></p>
+  <table class="past"><tbody></tbody></table>
+  ${foot()}
+</div>
+<script type="module" src="../../past.mjs?v=${stamp}"></script>
+</body></html>
+`;
+  mkdirSync(join(dist, topic.id, 'past'), { recursive: true });
+  writeFileSync(join(dist, topic.id, 'past', 'index.html'), html);
+}
 
 // ── 허브 ──
 const hub = `${head({
@@ -162,13 +189,13 @@ writeFileSync(join(dist, 'index.html'), hub);
 // 검색 로봇이 판마다 따로 찾아오게 — 주소가 늘면 유입 경로도 늘어난다.
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[`${SITE}${BASE}/`, ...all.map((p) => `${SITE}${BASE}/${p.path}/`)]
+${[`${SITE}${BASE}/`, ...all.map((p) => `${SITE}${BASE}/${p.path}/`), ...topics.map((t) => `${SITE}${BASE}/${t.id}/past/`)]
   .map((u) => `  <url><loc>${u}</loc><changefreq>daily</changefreq></url>`)
   .join('\n')}
 </urlset>
 `;
 writeFileSync(join(dist, 'sitemap.xml'), sitemap);
 
-for (const f of ['engine.mjs', 'app.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
 console.log(`dist/ 생성 — 판 ${all.length}개 (${all.map((p) => p.path).join(', ')}), 도장 ${stamp}`);

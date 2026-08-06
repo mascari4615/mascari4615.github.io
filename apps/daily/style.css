@@ -272,6 +272,21 @@ a { color: var(--accent); }
 }
 .more a:hover { border-color: var(--accent); }
 
+/* ── 지난 문제 ── */
+table.past { width: 100%; border-collapse: collapse; }
+table.past th, table.past td {
+  border-bottom: 1px solid var(--line);
+  padding: 8px 6px;
+  text-align: left;
+  vertical-align: middle;
+}
+table.past th { width: 96px; font-weight: 500; }
+table.past .d { display: block; font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+table.past .n { display: block; font-size: 11px; color: var(--ink-3); }
+table.past .mo { display: block; font-size: 10.5px; color: var(--ink-3); }
+table.past img { width: 34px; height: 34px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
+table.past b { font-size: 14px; }
+
 .foot { margin-top: 34px; color: var(--ink-3); font-size: 12px; text-align: center; }
 .foot a { color: var(--ink-2); }
 

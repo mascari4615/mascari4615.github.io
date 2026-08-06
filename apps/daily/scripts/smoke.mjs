@@ -126,6 +126,28 @@ await playTopic('lol', { width: 360, height: 780, tag: 'mobile' });
 await playSilhouette('pokemon');
 await playSilhouette('lol');
 
+/** 지난 문제 — 오늘 답이 새면 게임이 끝장난다. 그것만은 기계가 지켜야 한다. */
+async function pastPage(topicId) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(`${base}/${topicId}/past/`, { waitUntil: 'networkidle' });
+  const text = await page.locator('#past').innerText();
+
+  check(`[지난:${topicId}] 어제 답이 보인다`, text.includes(answerOf(topic, new Date(Date.now() - 86400000)).name));
+  check(`[지난:${topicId}] ★ 오늘 답은 안 보인다`, !text.includes(answerOf(topic).name));
+  check(
+    `[지난:${topicId}] 실루엣 답도 따로 나온다`,
+    text.includes(answerOf(topic, new Date(Date.now() - 86400000), 'silhouette').name),
+  );
+  check(`[지난:${topicId}] 줄이 여러 날 쌓인다`, (await page.locator('table.past tbody tr').count()) > 5);
+  await page.screenshot({ path: join(shots, `${topicId}-past.png`), fullPage: true });
+  await ctx.close();
+}
+
+await pastPage('pokemon');
+await pastPage('lol');
+
 // 허브
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
 const page = await ctx.newPage();
