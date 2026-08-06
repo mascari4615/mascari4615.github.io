@@ -81,11 +81,15 @@ function pairBones(model, sourceRoot) {
     return d;
   };
 
+  // 실험용: 주소 뒤 `?skip=DEF-thighL,DEF-shinL` 로 특정 뼈를 짝에서 빼고 비교한다.
+  const skipped = new Set((new URLSearchParams(location.search).get('skip') ?? '').split(',').filter(Boolean));
+
   const pairs = [];
   for (const [sourceName, targetName] of Object.entries(BONE_PAIRS)) {
     const source = sourceBones.get(sourceName);
     const target = targetBones.get(targetName);
     if (source === undefined || target === undefined) continue;
+    if (skipped.has(sourceName)) continue;
     pairs.push({
       source,
       target,
@@ -172,7 +176,9 @@ function bakeClip(clip, pairs, sourceRoot, mixer, fps = 30) {
 export async function mountModel(canvas, modelName, onFail) {
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    // `preserveDrawingBuffer` = 그린 그림을 한 판 뒤에도 읽을 수 있게 둔다. 창이 스스로
+    // 제 모습을 찍어 낼 수 있어야 「자세가 이상하다」를 사람 눈 없이도 확인한다.
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
   } catch (e) {
     onFail?.(e);
     return null;
@@ -217,7 +223,7 @@ export async function mountModel(canvas, modelName, onFail) {
 
   // 그림처럼 칠한다 — 사실적인 음영은 조명 하나만 어긋나도 인형처럼 보인다.
   try {
-    const outlineWidth = Number(new URLSearchParams(location.search).get('outline') ?? '0.004');
+    const outlineWidth = Number(new URLSearchParams(location.search).get('outline') ?? '0.006');
     const { outlineCount } = applyToon(model, { steps: 3, outline: outlineWidth });
     console.log('[3D] 만화식으로 칠했다 · 바깥선', outlineCount, '겹');
   } catch (e) {

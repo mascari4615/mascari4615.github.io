@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "companion-window",
+  "version": "0.1.0",
+  "identifier": "com.karmolab.companion",
+  "build": {
+    "frontendDist": "../src-tauri-companion/empty"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}

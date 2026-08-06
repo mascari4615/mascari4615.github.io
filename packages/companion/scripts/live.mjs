@@ -43,7 +43,11 @@ function supervise() {
   if (existsSync(windowExe)) {
     // 서버가 먼저 서야 창이 붙는다.
     setTimeout(() => {
-      window = keepAlive('창', windowExe, [], { cwd: dirname(windowExe) });
+      window = keepAlive('창', windowExe, [], { cwd: dirname(windowExe) }, () => {
+        // 창을 닫으면 뒤에서 도는 것도 같이 정리한다 — 보이지 않는 것만 남겨두지 않는다.
+        face.stop();
+        process.exit(0);
+      });
     }, 3000);
   } else {
     console.log(`창 프로그램이 없다 (${windowExe}) — 화면은 브라우저로 열면 된다.`);
@@ -62,7 +66,7 @@ function supervise() {
  * 죽으면 다시 띄운다. 계속 죽으면 간격을 늘린다 — 망가진 걸 초당 수십 번
  * 되살리는 건 살려두는 게 아니라 두들기는 것이다.
  */
-function keepAlive(label, command, args, options) {
+function keepAlive(label, command, args, options, onCleanExit) {
   let child = null;
   let stopped = false;
   let backoffMs = 1000;
@@ -74,6 +78,13 @@ function keepAlive(label, command, args, options) {
     child = spawn(command, args, { ...options, stdio: 'inherit', windowsHide: true });
     child.on('exit', (code) => {
       if (stopped) return;
+      // 사람이 닫기 단추를 누른 것과 프로그램이 죽은 것은 다르다. 깨끗하게 끝났으면
+      // 되살리지 않는다 — 안 그러면 닫아도 곧바로 다시 떠서 「안 꺼진다」가 된다.
+      if (code === 0 && onCleanExit !== undefined) {
+        console.log(`${label}을(를) 조수님이 닫았다 — 다시 띄우지 않는다`);
+        onCleanExit();
+        return;
+      }
       // 오래 살아 있었으면 일시적인 사고로 보고 간격을 되돌린다.
       backoffMs = Date.now() - lastStart > 60_000 ? 1000 : Math.min(backoffMs * 2, 60_000);
       console.log(`${label}이(가) 멈췄다 (코드 ${code}) — ${Math.round(backoffMs / 1000)}초 뒤 다시 띄운다`);

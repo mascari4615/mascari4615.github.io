@@ -367,6 +367,27 @@
     font-size: 12px;
     cursor: pointer;
   }
+  .ask {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 68px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 15px;
+    border: 1px solid rgba(255, 200, 110, 0.5);
+    border-radius: 14px;
+    background: rgba(24, 20, 14, 0.96);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  }
+  .ask[hidden] { display: none; }
+  .ask-what { font-size: 13px; line-height: 1.6; word-break: break-word; }
+  .ask-row { display: flex; gap: 8px; justify-content: flex-end; }
+  .ask-row button { padding: 7px 14px; font-size: 13px; }
+  .ask-yes { border-color: rgba(255, 200, 110, 0.6); color: #ffc86e; }
+
   .brain-pick:hover { border-color: rgba(110, 231, 255, 0.55); color: var(--ink); }
 
   /* 아래쪽 대화 자리에만 겹친다 — 좁은 창에서 큐브까지 덮으면 얘가 안 보인다. */
@@ -468,6 +489,13 @@
     <div class="sheet-head">이 사람에 대해 아는 것</div>
     <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
     <div class="sheet-foot">대화가 쌓이면 오래된 쪽을 접어서 여기에 남긴다.</div>
+  </div>
+  <div class="ask" id="ask" hidden>
+    <div class="ask-what" id="askWhat"></div>
+    <div class="ask-row">
+      <button id="askNo">아니</button>
+      <button id="askYes" class="ask-yes">응, 해</button>
+    </div>
   </div>
   <select class="who-pick" id="whoPick" title="누구로 있을지" hidden></select>
   <select class="brain-pick" id="brainPick" title="어떤 머리를 쓸지" hidden></select>
@@ -980,6 +1008,42 @@
       setState('', '못 바꿨다');
     }
   });
+
+  /* ── 물어보기 ──────────────────────────────────────────
+     되돌리기 어려운 일은 얘가 혼자 하지 않는다. 여기서 승낙을 받는다. */
+  const ask = document.getElementById('ask');
+  const askWhat = document.getElementById('askWhat');
+  let askingId = null;
+
+  async function checkAsking() {
+    try {
+      const pending = await (await fetch('/permission')).json();
+      if (pending === null) {
+        if (askingId !== null) { ask.hidden = true; askingId = null; }
+        return;
+      }
+      if (pending.id === askingId) return;
+      askingId = pending.id;
+      askWhat.textContent = `이거 해도 될까? — ${pending.what}`;
+      ask.hidden = false;
+    } catch {
+      // 못 물어보면 조용히 넘어간다.
+    }
+  }
+
+  async function answer(yes) {
+    if (askingId === null) return;
+    const id = askingId;
+    ask.hidden = true;
+    askingId = null;
+    try {
+      await fetch(`/permission/answer?id=${encodeURIComponent(id)}&yes=${yes ? '1' : '0'}`, { method: 'POST' });
+    } catch { /* 이미 지나간 물음이면 그만 */ }
+  }
+
+  document.getElementById('askYes').addEventListener('click', () => answer(true));
+  document.getElementById('askNo').addEventListener('click', () => answer(false));
+  setInterval(checkAsking, 1200);
 
   loadHistory();
   loadVoices();
