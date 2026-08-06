@@ -1369,7 +1369,21 @@ const Toolbox = (() => {
         localStorage.setItem(PRISM_THEME_KEY, themeId);
         document.getElementById('prism-theme-inject')?.remove();
         const oldLink = document.getElementById('prism-css');
-        const url = t.url + '?v=' + Date.now();
+
+        // 이미 그 테마가 걸려 있으면 다시 받지 않는다 (TASK-KL-089).
+        // 시작할 때도 이 함수를 부르는데, 그때마다 주소 끝에 시각을 붙여 새로 받는 바람에
+        // 셸이 부른 것과 합쳐 같은 파일을 두 번 받고 있었다.
+        const already = (oldLink as HTMLLinkElement | null)?.getAttribute('href') || '';
+        if (already.split('?')[0].endsWith(t.url.split('/').pop() || ' ')) {
+            if (!silent) showToast('코드 테마: ' + t.label);
+            return;
+        }
+
+        // 주소 뒤에 시각을 붙이지 않는다 (TASK-KL-088, slot-D 지적).
+        // 이 파일들은 우리가 직접 담아 둔 것이라 우리가 바꿀 때만 바뀐다. 그런데 시각을 붙이면
+        // 브라우저가 저장해 둔 것을 못 써서 방문마다 다시 받았다. 빌드 번호도 마찬가지다 —
+        // 파일은 그대로인데 배포할 때마다 새 주소가 된다. 떼면 평범한 캐시가 그대로 듣는다.
+        const url = t.url;
         const newLink = document.createElement('link');
         newLink.rel = 'stylesheet';
         newLink.href = url;

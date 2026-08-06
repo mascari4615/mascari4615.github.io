@@ -1,7 +1,8 @@
 (function() {
     async function loadFromTxt(): Promise<void> {
         try {
-            const res = await fetch('/assets/js/mathjax-config.json?t=' + Date.now());
+            // 시각을 붙이지 않는다 — 저장소에 담긴 파일이라 우리가 바꿀 때만 바뀐다 (KL-088)
+            const res = await fetch('/assets/js/mathjax-config.json');
             if (!res.ok) throw new Error('데이터 파일 로드에 실패했습니다.');
             (document.getElementById('cryptoInput') as HTMLTextAreaElement).value = (await res.text()).trim();
             Toolbox.showToast!('데이터 로드 완료');
