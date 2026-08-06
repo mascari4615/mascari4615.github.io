@@ -1,0 +1,60 @@
+name: "KarmoLab 라이브 점검"
+
+# 왜 따로 두는가 (TASK-KL-089)
+#
+# 도구 페이지에는 검사가 세 층 있다.
+#   1) 위젯이 등록되는가        — `test:tools`   (배포 전, pages-deploy 안에서 이미 돈다)
+#   2) 페이지를 열면 화면이 뜨는가 — `test:live`
+#   3) 값을 넣으면 답이 나오는가   — `test:behavior`
+# 그런데 2·3 은 **배포된 주소**를 열어 봐야 하므로 배포 전 빌드에 넣을 수 없었고, 그 결과
+# 아무 데서도 안 돌고 있었다(손으로 부를 때만 도는 검사 = 없는 검사).
+#
+# 그래서 배포가 끝난 뒤에 따로 돈다. 배포 워크플로 자체는 건드리지 않는다 — 그쪽이 실패해도
+# 이 점검은 독립적으로 결과를 남기고, 반대로 이 점검이 실패해도 배포를 되돌리지는 않는다.
+
+on:
+  workflow_run:
+    workflows: ["Build and Deploy"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tools:
+        description: "확인할 도구 id (비우면 전부)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # 배포가 성공했을 때만 의미가 있다. 실패한 배포 뒤에 도는 것은 옛 화면을 재는 셈이다.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/karmolab
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 의존 설치
+        run: npm ci --no-audit --no-fund
+
+      - name: 브라우저 준비
+        run: npx playwright install --with-deps chromium
+
+      # GitHub Pages 는 배포 완료 신호 뒤에도 잠깐 옛 파일을 줄 수 있다.
+      - name: 반영 대기
+        run: sleep 45
+
+      - name: 화면이 뜨는지 (전 도구)
+        run: npm run test:live -- ${{ github.event.inputs.tools }}
+
+      - name: 값을 넣으면 답이 나오는지
+        if: always()
+        run: npm run test:behavior
