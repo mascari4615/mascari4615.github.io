@@ -5,8 +5,8 @@
  * 각 신호를 graph spec 의 live.source 에 매핑해 node_ids_active / edge_ids_animated 산출.
  */
 
-import type { GraphSpec, LiveSpec } from './graph-spec';
-import type { ActiveSets, EphemeralNodeRender } from './graph-canvas';
+import type { GraphSpec, LiveSpec } from '../../lib/graph/spec';
+import type { ActiveSets, EphemeralNodeRender } from '../../lib/graph/canvas';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -213,7 +213,7 @@ export class ActivityCollector {
     return result;
   }
 
-  private anchorItems(anchor: import('./graph-spec').EphemeralAnchor, snap: ActivitySnapshot): Array<{ id: string; label: string }> {
+  private anchorItems(anchor: import('../../lib/graph/spec').EphemeralAnchor, snap: ActivitySnapshot): Array<{ id: string; label: string }> {
     if (!anchor) return [];
     switch (anchor.source.kind) {
       case 'active-sessions':

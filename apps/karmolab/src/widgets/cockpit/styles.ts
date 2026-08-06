@@ -93,32 +93,8 @@ const CSS = `
   pointer-events: none;
 }
 
-/* ── 노드 활성 하이라이트 ──────────────────────────────────────────────────── */
-.ck-node.is-active > rect:first-of-type {
-  stroke: #22d3ee !important;
-  stroke-width: 2 !important;
-  filter: url(#ck-glow);
-}
-
-/* pulse 애니메이션 */
-@keyframes ck-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.ck-node.is-active {
-  animation: ck-pulse 2s ease-in-out infinite;
-}
-
-/* ── edge flow 애니메이션 ─────────────────────────────────────────────────── */
-@keyframes ck-flow {
-  to { stroke-dashoffset: -24; }
-}
-.ck-edge.is-flowing {
-  stroke-dasharray: 8 4 !important;
-  stroke-dashoffset: 0;
-  animation: ck-flow 0.8s linear infinite;
-  stroke-opacity: 1 !important;
-}
+/* 노드 활성 하이라이트 / edge flow 애니메이션 = 캔버스 소관 →
+   lib/graph/styles.ts 로 이주 (TASK-KL-087). 캔버스가 스스로 주입한다. */
 
 /* ── 로딩 오버레이 ───────────────────────────────────────────────────────────── */
 .ck-loading {
