@@ -426,6 +426,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/audiocut']
   },
   {
+    id: 'favicon',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '파비콘 만들기',
+    category: 'tool',
+    desc: '그림 한 장으로 사이트 아이콘 여러 크기와 ico 를 만듭니다. 붙일 코드까지 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.3" opacity="0.6"/><circle cx="6" cy="7" r="0.9" fill="currentColor"/><path d="M9 15l2-2.5L13 15l2-3 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/favicon']
+  },
+  {
     id: 'imgmerge',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -540,7 +551,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '사진 변환·이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/imgbatch', 'tools/imgmerge', 'tools/exifclean', 'tools/ziptool', 'tools/filesplit', 'tools/filehash', 'tools/filetool']
+    lazyScriptPaths: ['tools/imgbatch', 'tools/imgmerge', 'tools/favicon', 'tools/exifclean', 'tools/ziptool', 'tools/filesplit', 'tools/filehash', 'tools/filetool']
   },
   {
     id: 'video2gif',
