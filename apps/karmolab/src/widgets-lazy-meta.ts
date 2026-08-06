@@ -327,6 +327,37 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/checklist']
   },
   {
+    id: 'pdftool',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 편집',
+    category: 'tool',
+    desc: 'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdftool']
+  },
+  {
+    id: 'audiocut',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '오디오 자르기',
+    category: 'tool',
+    desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/audiocut']
+  },
+  {
+    id: 'filetool',
+    title: '파일 도구',
+    category: 'tool',
+    desc: 'PDF 합치기·페이지 편집과 오디오 자르기. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/filetool']
+  },
+  {
     id: 'charcount',
     hidden: true, // 「텍스트 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
