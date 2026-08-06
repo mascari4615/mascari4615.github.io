@@ -73,6 +73,14 @@ describe('웹 결산 페이지', () => {
     expect(page(false)).toContain('아직 셀 게 없어요');
   });
 
+  it('채널은 디스코드 멘션이 아니라 이름 글자로 나온다', () => {
+    const html = page(true);
+    // `<#id>` 로 넣으면 브라우저가 모르는 태그로 먹어 줄이 통째로 사라진다.
+    expect(html).toContain('가장 붐빈 채널');
+    expect(html).toContain('#잡담');
+    expect(html).not.toContain('<#c1>');
+  });
+
   it('프라이버시 약속이 페이지에도 박혀 있다', () => {
     expect(page(true)).toContain('저장하지 않습니다');
   });

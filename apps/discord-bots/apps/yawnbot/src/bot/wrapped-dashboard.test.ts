@@ -112,6 +112,20 @@ describe('대시보드 페이지', () => {
     expect(html).toContain('#작업로그');
   });
 
+  it('날짜별 표는 접혀 있다 — 30일이면 페이지를 삼킨다', () => {
+    const html = render(seeded(), 30);
+    expect(html).toContain('날짜별 표 펼치기');
+    expect(html).not.toContain('<details open');
+  });
+
+  it('비중 막대는 고정 폭 트랙 안에 있다 (좁은 칸에서 점이 되지 않게)', () => {
+    expect(render()).toContain('class="track"');
+  });
+
+  it('이모지는 표가 아니라 칩으로 눕는다', () => {
+    expect(render()).toContain('class="chips"');
+  });
+
   it('빈 서버도 페이지가 뜬다', () => {
     const html = render(emptyState(), 7);
     expect(html).toContain('대시보드');
