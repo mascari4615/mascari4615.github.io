@@ -24,6 +24,7 @@
     ['audiolevel', '소리 크기 맞추기'],
     ['voicerec', '목소리 녹음'],
     ['imgbatch', '이미지 일괄 변환'],
+    ['imgmerge', '사진 이어 붙이기'],
     ['exifclean', '사진 정보 지우기'],
     ['ziptool', 'ZIP 묶기·풀기'],
     ['filesplit', '큰 파일 나누기'],

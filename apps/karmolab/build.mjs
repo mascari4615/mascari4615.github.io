@@ -226,6 +226,7 @@ const entryPoints = [
   'src/widgets/tools/text2pdf.ts',
   'src/widgets/tools/qrread.ts',
   'src/widgets/tools/qr.ts',
+  'src/widgets/tools/imgmerge.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
