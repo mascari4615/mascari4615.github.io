@@ -232,6 +232,23 @@ function buildToolPage(id) {
     '<link rel="canonical" href="https://blog.mascari4615.com/karmolab/">',
     `<link rel="canonical" href="${toolPageUrl(id)}">`
   );
+  // 상세 페이지는 그 도구 하나만 보여 준다 (TASK-KL-089).
+  // 그런데 앱 첫 화면용 위젯(서버 감시·활동·문서·링크·랜덤 생성기)까지 늘 함께 실려 왔다.
+  // 검색으로 들어온 사람에게는 한 번도 쓰이지 않는 것들이라 기다림만 늘린다.
+  // 즐겨찾기·사용자·대시보드는 헤더와 사이드바가 기대하므로 남긴다.
+  html = html.replace(
+    /<script defer src="\/apps\/karmolab\/js\/widgets\/randomgen\/randomgen-[a-z]+\.js"><\/script>\s*/g,
+    ''
+  );
+  // 매니페스트 파일이 뒤늦게(defer) 원래 목록을 다시 씌우므로, 그 파일을 부르는 자리를
+  // 짧은 목록으로 바꾼다 — 인라인으로 먼저 정해 봐야 defer 가 이긴다.
+  const bootTag = '<script defer src="/apps/karmolab/js/widgets-manifest.js"></script>';
+  if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음 — index.html 확인');
+  html = html.replace(
+    bootTag,
+    `<script>window.KARMOLAB_WIDGETS_BOOT=['favorites','user','dashboard'];</script>`
+  );
+
   // 상세 페이지는 세리프 글꼴을 부르지 않는다 (TASK-KL-089).
   // 세리프는 홈의 큰 제목과 도구 히어로 제목에 쓰이는데, 상세 페이지에서는 히어로가 숨겨져
   // 사실상 안 쓰인다. 그런데 한글 세리프는 글꼴 목록만 185KB 를 더 부른다 — 검색으로 들어온
