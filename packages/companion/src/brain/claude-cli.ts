@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
-import { copyFileSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { Brain, MemoryEntry, ThinkInput } from '../types';
@@ -13,6 +13,11 @@ export interface PlainThinker {
 export interface ClaudeCliBrainOptions {
   command?: string;
   timeoutMs?: number;
+  /**
+   * 어떤 모델로 말할까. 동반자는 깊이보다 빠르기다 — 곁에 있는 사람이 30초 뒤에
+   * 대답하면 곁에 있는 게 아니다. 구독 할당량도 덜 먹는다.
+   */
+  model?: string;
 }
 
 /**
@@ -32,14 +37,21 @@ export interface ClaudeCliBrainOptions {
 export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & PlainThinker {
   const command = options.command ?? process.env.CLAUDE_CLI_COMMAND?.trim() ?? 'claude';
   const timeoutMs = options.timeoutMs ?? 120_000;
+  const model = options.model ?? process.env.COMPANION_MODEL?.trim() ?? 'haiku';
   // 빈 폴더 = 주워 읽을 지침 파일이 없다.
   const sandbox = mkdtempSync(join(tmpdir(), 'companion-brain-'));
+  const configDir = mkdtempSync(join(tmpdir(), 'companion-config-'));
+
+  /** 부를 때마다 자격을 새로 옮기고, 못 옮기면 이 사람 설정 그대로 쓴다(느리지만 된다). */
+  function isolated(): string | undefined {
+    return refreshIsolatedConfig(configDir) ? configDir : undefined;
+  }
 
   return {
-    name: 'claude-cli(격리)',
+    name: `claude-cli(격리·${model})`,
     /** 대화 맥락 없이 한 번 묻는다 — 기억을 졸일 때처럼. */
     ask(prompt: string): Promise<string | null> {
-      return run(command, prompt, sandbox, timeoutMs, false);
+      return run(command, prompt, sandbox, timeoutMs, false, undefined, model, isolated());
     },
     think(input: ThinkInput): Promise<string | null> {
       // 그림이 딸려 왔으면 샌드박스 안으로 들여놓는다 — 두뇌가 볼 수 있는 곳은 여기뿐이다.
@@ -53,9 +65,52 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null);
+      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null, undefined, model, isolated());
+    },
+    thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
+      let localImage: string | null = null;
+      const source = typeof input.sensation.meta?.imagePath === 'string' ? input.sensation.meta.imagePath : null;
+      if (source !== null) {
+        try {
+          localImage = join(sandbox, 'now.png');
+          copyFileSync(source, localImage);
+        } catch {
+          localImage = null;
+        }
+      }
+      return run(command, buildPrompt(input, localImage), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated());
     },
   };
+}
+
+/**
+ * 이 사람의 Claude Code 설정과 떼어놓은 자리를 만든다.
+ *
+ * 왜 필요한가 — 설정을 그대로 물려받으면 세션 시작 훅이 매 답변마다 돈다. 이 컴퓨터에선
+ * 그게 12.6초였다. 곁에 있는 사람이 매번 그만큼 뜸을 들이면 곁에 있는 게 아니다.
+ * 계정만 옮기고 훅·MCP·프로젝트 이력은 두고 온다 (실측 18초 → 3초).
+ *
+ * 자격은 갱신되므로 부를 때마다 새로 복사한다 — 낡은 사본으로 만료되는 일이 없게.
+ */
+function refreshIsolatedConfig(configDir: string): boolean {
+  const home = process.env.CLAUDE_CONFIG_DIR?.trim() || join(homedir(), '.claude');
+  const credentials = join(home, '.credentials.json');
+  if (existsSync(credentials) === false) return false;
+  try {
+    copyFileSync(credentials, join(configDir, '.credentials.json'));
+    const settingsPath = join(homedir(), '.claude.json');
+    if (existsSync(settingsPath)) {
+      const full = JSON.parse(readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
+      const slim: Record<string, unknown> = {};
+      for (const key of ['oauthAccount', 'userID', 'hasCompletedOnboarding', 'installMethod', 'firstStartTime']) {
+        if (full[key] !== undefined) slim[key] = full[key];
+      }
+      writeFileSync(join(configDir, '.claude.json'), JSON.stringify(slim), 'utf8');
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function run(
@@ -64,23 +119,54 @@ function run(
   cwd: string,
   timeoutMs: number,
   needsFileAccess: boolean,
+  onDelta?: (chunk: string) => void,
+  model?: string,
+  configDir?: string,
 ): Promise<string | null> {
   return new Promise((resolve, reject) => {
     // 그림을 읽어야 할 때만 파일 접근을 연다. 그마저도 빈 임시 폴더 안이다.
-    const args = needsFileAccess
-      ? ['--print', '--no-session-persistence', '--dangerously-skip-permissions']
-      : ['--print', '--no-session-persistence'];
+    const args = ['--print', '--no-session-persistence'];
+    if (model) args.push('--model', model);
+    if (needsFileAccess) args.push('--dangerously-skip-permissions');
+    // 조각을 받아 갈 사람이 있을 때만 흐르는 형식으로 부른다.
+    if (onDelta) args.push('--output-format', 'stream-json', '--verbose', '--include-partial-messages');
+
     const child = spawn(command, args, {
       cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
+      env: configDir ? { ...process.env, CLAUDE_CONFIG_DIR: configDir } : process.env,
     });
 
     let stdout = '';
     let stderr = '';
+    let streamed = '';
+    let pending = '';
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
-    child.stdout.on('data', (d) => { stdout += d; });
+    child.stdout.on('data', (d) => {
+      stdout += d;
+      if (onDelta === undefined) return;
+      // 흐르는 형식은 한 줄에 하나씩 JSON 이 온다. 줄이 끊겨 도착할 수 있어 모았다 자른다.
+      pending += d;
+      let cut = pending.indexOf('\n');
+      while (cut >= 0) {
+        const line = pending.slice(0, cut).trim();
+        pending = pending.slice(cut + 1);
+        cut = pending.indexOf('\n');
+        if (line === '') continue;
+        try {
+          const event = JSON.parse(line);
+          const delta = event?.event?.delta;
+          if (event?.type === 'stream_event' && event.event?.type === 'content_block_delta' && typeof delta?.text === 'string') {
+            streamed += delta.text;
+            onDelta(delta.text);
+          }
+        } catch {
+          // 못 읽는 줄은 넘긴다 — 마지막에 모아둔 것으로 답을 만든다.
+        }
+      }
+    });
     child.stderr.on('data', (d) => { stderr += d; });
 
     const timer = setTimeout(() => {
@@ -95,7 +181,8 @@ function run(
 
     child.on('close', (code) => {
       clearTimeout(timer);
-      const text = stdout.trim();
+      // 흐르는 형식일 땐 stdout 이 JSON 뭉치라 그대로 쓰면 안 된다 — 모아둔 조각이 답이다.
+      const text = (onDelta ? streamed : stdout).trim();
       if (code === 0) {
         resolve(text === '' ? null : text);
         return;

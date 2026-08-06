@@ -19,6 +19,7 @@ export {
 } from './memory/distilling';
 
 export { alwaysRespond, neverRespond, cooldownAttention, type CooldownOptions } from './attention/index';
+export { tactfulAttention, windowsIdleMs, type TactOptions } from './attention/tact';
 
 export { echoBrain, silentBrain } from './brain/echo';
 export { assistantBrain, type AssistantBrainOptions } from './brain/assistant';
@@ -26,6 +27,6 @@ export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker } from '.
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
-export { webBody, type WebBodyOptions } from './body/web';
+export { webBody, openPinnedWindow, type WebBodyOptions } from './body/web';
 
 export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';

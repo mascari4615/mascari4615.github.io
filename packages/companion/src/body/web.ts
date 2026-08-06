@@ -179,6 +179,9 @@ export function webBody(options: WebBodyOptions = {}): Body {
 
   const voice: Voice = {
     name: `${channel}:voice`,
+    partial(chunk: string, soFar: string, from: string) {
+      broadcast({ type: 'partial', chunk, soFar, channel: from });
+    },
     speak(utterance: Utterance) {
       // channel 을 같이 보낸다 — 화면이 「나한테 한 말」과 「혼잣말」을 구분해 그린다.
       broadcast({ type: 'speak', text: utterance.text, at: utterance.at, channel: utterance.channel });
@@ -209,4 +212,43 @@ function openBrowser(url: string): void {
       // 브라우저를 못 열어도 몸은 살아있다 — 주소를 직접 열면 된다.
     }
   });
+}
+
+/**
+ * 탭이 아니라 화면 위에 상주하는 창으로 띄운다.
+ *
+ * 탭 하나로 있으면 「열어보는 것」이지 「거기 있는 것」이 아니다. 주소창도 탭도 없는
+ * 작은 창을 화면 오른쪽 아래에 띄우고 다른 창 위에 고정한다. 실패해도 그냥 평범한
+ * 브라우저로 열린다 — 상주에 실패했다고 말을 못 하게 되진 않는다.
+ */
+export function openPinnedWindow(url: string, size?: { width?: number; height?: number }): Promise<string> {
+  const script = join(dirname(__filename), '..', '..', 'assets', 'pin-window.ps1');
+  return import('node:child_process').then(
+    ({ execFile }) =>
+      new Promise<string>((resolve) => {
+        if (process.platform !== 'win32') {
+          openBrowser(url);
+          resolve('이 운영체제에선 평범한 브라우저로 열었다');
+          return;
+        }
+        execFile(
+          'powershell',
+          [
+            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
+            '-Url', url,
+            '-Width', String(size?.width ?? 420),
+            '-Height', String(size?.height ?? 640),
+          ],
+          { timeout: 40_000, windowsHide: true, encoding: 'utf8' },
+          (error, stdout) => {
+            if (error) {
+              openBrowser(url);
+              resolve('창으로 못 띄워서 평범한 브라우저로 열었다');
+              return;
+            }
+            resolve(stdout.trim().split('\n').pop()?.trim() ?? '열었다');
+          },
+        );
+      }),
+  );
 }
