@@ -11,7 +11,8 @@
     ['interest', '이자'],
     ['bmi', 'BMI'],
     ['unitconv', '단위'],
-    ['radix', '진법']
+    ['radix', '진법'],
+    ['numword', '숫자 ↔ 한글']
   ];
 
   Toolbox.register({
