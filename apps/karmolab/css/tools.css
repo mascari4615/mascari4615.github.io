@@ -514,6 +514,18 @@
     color: var(--text-primary);
 }
 
+/* 색 대비 미리보기 */
+.co-preview {
+    border: 1px solid var(--border);
+    padding: 22px 18px;
+    margin-bottom: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.co-sample-lg { font-size: clamp(20px, 4vw, 28px); font-weight: 700; line-height: 1.4; }
+.co-sample-sm { font-size: var(--font-size-sm); line-height: 1.7; }
+
 /* 모스 부호 신호등 */
 .ms-led {
     width: 16px;

@@ -9,7 +9,8 @@
   const PARTS: Array<[string, string]> = [
     ['colorconv', '변환'],
     ['palette', '이미지에서 추출'],
-    ['colorname', 'CSS 색 이름']
+    ['colorname', 'CSS 색 이름'],
+    ['contrast', '대비 검사']
   ];
 
   Toolbox.register({

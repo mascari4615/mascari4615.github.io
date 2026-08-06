@@ -12,7 +12,8 @@
     ['bmi', 'BMI'],
     ['unitconv', '단위'],
     ['radix', '진법'],
-    ['numword', '숫자 ↔ 한글']
+    ['numword', '숫자 ↔ 한글'],
+    ['aspect', '비율']
   ];
 
   Toolbox.register({
