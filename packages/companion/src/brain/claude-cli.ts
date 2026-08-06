@@ -36,10 +36,18 @@ export interface ClaudeCliBrainOptions {
  * 기억은 CLI 가 몰래 들고 있는 게 아니라 우리 `Memory` 부품이 소유한다 — 그래야 기억을
  * 파일로 옮기든 지우든 우리가 통제할 수 있다.
  */
-export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & PlainThinker {
+export interface SwitchableBrain extends Brain, PlainThinker {
+  /** 지금 어떤 모델을 쓰나. */
+  currentModel(): string;
+  /** 다른 모델로 갈아탄다. */
+  useModel(name: string): void;
+}
+
+export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableBrain {
   const command = options.command ?? process.env.CLAUDE_CLI_COMMAND?.trim() ?? 'claude';
   const timeoutMs = options.timeoutMs ?? 120_000;
-  const model = options.model ?? process.env.COMPANION_MODEL?.trim() ?? 'haiku';
+  // 실행 중에 갈아탈 수 있어야 한다 — 어떤 머리를 쓸지는 껐다 켜서 정할 일이 아니다.
+  let model = options.model ?? process.env.COMPANION_MODEL?.trim() ?? 'haiku';
   // 빈 폴더 = 주워 읽을 지침 파일이 없다.
   const sandbox = mkdtempSync(join(tmpdir(), 'companion-brain-'));
   const configDir = mkdtempSync(join(tmpdir(), 'companion-config-'));
@@ -50,7 +58,9 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
   }
 
   return {
-    name: `claude-cli(격리·${model})`,
+    get name() { return `claude-cli(격리·${model})`; },
+    currentModel: () => model,
+    useModel(next) { model = next; },
     /** 대화 맥락 없이 한 번 묻는다 — 기억을 졸일 때처럼. */
     ask(prompt: string): Promise<string | null> {
       return run(command, prompt, sandbox, timeoutMs, false, undefined, model, isolated());
@@ -67,7 +77,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated());
+      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, options.handsNote));
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
@@ -80,7 +90,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): Brain & Pla
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated());
+      return run(command, buildPrompt(input, localImage, options.handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, options.handsNote));
     },
   };
 }
@@ -124,10 +134,15 @@ function run(
   onDelta?: (chunk: string) => void,
   model?: string,
   configDir?: string,
+  systemPrompt?: string,
 ): Promise<string | null> {
   return new Promise((resolve, reject) => {
     // 그림을 읽어야 할 때만 파일 접근을 연다. 그마저도 빈 임시 폴더 안이다.
     const args = ['--print', '--no-session-persistence'];
+    // 인격은 **시스템 자리**에 넣는다. 대화 본문에 적어 두면 이 도구의 기본 성격
+    // (「저는 코딩을 돕는 Claude입니다」)이 그대로 남아, 누구냐고 물으면 그쪽이 나온다.
+    // 실측: 인격을 본문에 넣었더니 「캐릭터 롤플레이는 할 수 없다」고 답했다.
+    if (systemPrompt) args.push('--system-prompt', systemPrompt);
     if (model) args.push('--model', model);
     if (needsFileAccess) args.push('--dangerously-skip-permissions');
     // 조각을 받아 갈 사람이 있을 때만 흐르는 형식으로 부른다.
@@ -196,13 +211,20 @@ function run(
   });
 }
 
-function buildPrompt(input: ThinkInput, imageInSandbox: string | null, handsNote?: string): string {
-  const hands = handsNote?.trim() ? `${handsNote.trim()}
+/** 시스템 자리에 들어갈 것 — 누구이고, 무엇을 할 수 있고, 이 사람에 대해 뭘 아는가. */
+function buildSystem(input: ThinkInput, handsNote?: string): string {
+  const parts = [];
+  if (input.character?.instruction.trim()) parts.push(input.character.instruction.trim());
+  if (handsNote?.trim()) parts.push(handsNote.trim());
+  if (input.longTerm?.trim()) parts.push(`이 사람에 대해 아는 것:
+${input.longTerm.trim()}`);
+  parts.push('너는 개발 도구가 아니다. 무엇이냐고 물으면 위에 적힌 대로 답한다.');
+  return parts.join('\n\n');
+}
 
-` : '';
-  const persona = input.character?.instruction.trim() ? `${input.character.instruction.trim()}\n\n` : '';
-  const known = input.longTerm?.trim() ? `이 사람에 대해 아는 것:\n${input.longTerm.trim()}\n\n` : '';
-  const head = `${persona}${hands}${known}`;
+function buildPrompt(input: ThinkInput, imageInSandbox: string | null, handsNote?: string): string {
+  // 누구인지·무엇을 할 수 있는지는 시스템 자리로 갔다. 여기엔 지금 오간 말만 담는다.
+  const head = '';
   const history = input.recent.slice(0, -1).map(renderEntry).join('\n');
   const past = history === '' ? '' : `지금까지 오간 말:\n${history}\n\n`;
   const look =

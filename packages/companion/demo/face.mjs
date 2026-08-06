@@ -25,6 +25,7 @@ import {
   clockBody,
   describeHands,
   echoBrain,
+  anySpeech,
   edgeSpeech,
   piperReady,
   piperSpeech,
@@ -98,23 +99,24 @@ const web = webBody({
   history: () => memory.recent(80),
   longTerm: () => memory.longTerm?.() ?? null,
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
-  // 목소리 — 내 컴퓨터에서 도는 모델이 있으면 그걸 쓰고, 없으면 인터넷 목소리로.
+  // 목소리 — 내 컴퓨터 것과 인터넷 것을 한 목록에 같이 올린다. 어느 쪽이 취향인지는
+  // 코드가 아니라 사람이 정한다.
   speech: (() => {
     const piperRoot = process.env.COMPANION_PIPER_DIR
       ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
     const local = {
       exePath: join(piperRoot, 'piper', 'piper.exe'),
-      voices: { '내 컴퓨터': join(piperRoot, 'ko-espeak.onnx') },
+      voices: { 'kss': join(piperRoot, 'ko-espeak.onnx') },
       lengthScale: Number(process.env.COMPANION_VOICE_LENGTH ?? '1.06'),
       log: (m) => console.log(`[목소리] ${m}`),
     };
-    if (piperReady(local)) {
-      console.log('[목소리] 내 컴퓨터 모델을 쓴다');
-      return piperSpeech(local);
-    }
-    console.log('[목소리] 내 컴퓨터 모델이 없다 — 인터넷 목소리로 간다');
-    return edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' });
+    const engines = [];
+    if (piperReady(local)) engines.push({ label: '내 컴퓨터', speech: piperSpeech(local) });
+    engines.push({ label: '인터넷', speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }) });
+    console.log(`[목소리] ${engines.map((e) => e.label).join(' + ')}`);
+    return anySpeech(engines);
   })(),
+
   // 오프라인 받아쓰기 — KarmoLab 이 이미 갖고 있던 것을 그대로 빌려 쓴다.
   characters: {
     list: () => roster,
@@ -132,6 +134,18 @@ const web = webBody({
     '욘': process.env.COMPANION_MODEL_YON
       ?? join(root, '..', '..', '..', 'WitchMendokusai', 'Assets', '_WitchMendokusai',
               'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx'),
+  },
+  // 어떤 머리를 쓸지도 창에서 고른다. 빠른 쪽·깊은 쪽이 필요한 때가 다르다.
+  brains: {
+    list: () => ['haiku', 'sonnet', 'opus'],
+    current: () => (brain.currentModel ? brain.currentModel() : '(고정)'),
+    switchTo: (name) => {
+      if (brain.useModel === undefined) return false;
+      if (['haiku', 'sonnet', 'opus'].includes(name) === false) return false;
+      brain.useModel(name);
+      console.log(`[머리] ${name} 로 바꿨다`);
+      return true;
+    },
   },
   ears: whisperEars({
     exePath: process.env.COMPANION_EARS_EXE
