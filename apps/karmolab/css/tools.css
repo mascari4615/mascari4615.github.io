@@ -340,6 +340,33 @@
 }
 .tool-seo-note a { color: var(--text-secondary); }
 
+/* 후원·광고 자리 (TASK-KL-089) — 도구를 다 쓰고 읽는 자리에만 놓는다.
+   도구 본체와 헷갈리지 않게 라벨을 달고, 화면을 잡아끄는 색·움직임은 쓰지 않는다. */
+.tool-sponsor { margin: 32px 0 0; }
+.tool-sponsor-label {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+.tool-sponsor-link {
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid var(--bg-tertiary);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    text-decoration: none;
+    line-height: 1.5;
+}
+a.tool-sponsor-link:hover { border-color: var(--accent); }
+.tool-sponsor-link span {
+    display: block;
+    margin-top: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
 /* 허브 (/karmolab/t/) */
 /* 도구 목록 소제목 — 앱에서 묶어 놓은 그대로 나눈다 */
 .tool-hub-group {
