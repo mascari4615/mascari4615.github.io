@@ -87,13 +87,16 @@ const result = await page.evaluate(async () => {
   host.querySelector('#alRun').click();
   await wait(() => !host.querySelector('#alSave').disabled, 20000, '처리가 끝나지 않았다');
 
-  // 결과 파일을 직접 잰다
+  // 결과 파일을 직접 잰다.
+  // 이 시험이 보는 것은 **소리 처리 계산**이므로 손실 없는 쪽으로 받는다 (MP3 길은 test-mp3 가 본다).
+  // 저장은 형식을 만드느라 비동기다 — 누르자마자 읽으면 아직 아무것도 없다.
+  host.querySelector('#alFormat').value = 'wav';
   let outBlob = null;
   const orig = URL.createObjectURL;
   URL.createObjectURL = (b) => { if (b && b.type === 'audio/wav') outBlob = b; return orig(b); };
   host.querySelector('#alSave').click();
+  await wait(() => outBlob !== null, 15000, '결과 파일을 얻지 못했다');
   URL.createObjectURL = orig;
-  if (!outBlob) return { ok: false, why: '결과 파일을 얻지 못했다' };
 
   const ctx = new AudioContext();
   const buf = await ctx.decodeAudioData(await outBlob.arrayBuffer());
