@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
-import type { Body, Sensation, Sense, Utterance, Voice } from '../types';
+import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 
 export interface WebBodyOptions {
   channel?: string;
@@ -10,6 +10,11 @@ export interface WebBodyOptions {
   /** 켜질 때 브라우저를 자동으로 연다. */
   open?: boolean;
   log?: (message: string) => void;
+  /**
+   * 창을 새로 열었을 때 채워 넣을 지난 대화. 없으면 빈 채로 시작한다.
+   * 기억 부품을 그대로 넘기면 된다 — 화면이 기억을 따로 들고 있지 않게.
+   */
+  history?: () => readonly MemoryEntry[] | Promise<readonly MemoryEntry[]>;
 }
 
 /**
@@ -49,6 +54,20 @@ export function webBody(options: WebBodyOptions = {}): Body {
         if (url === '/' || url.startsWith('/?')) {
           res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
           res.end(loadPage());
+          return;
+        }
+
+        // 새로 연 창이 지난 대화를 되찾는 자리 — 새로고침해도 채팅이 비지 않게.
+        if (url === '/history') {
+          void Promise.resolve(options.history?.() ?? [])
+            .then((entries) => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify(entries));
+            })
+            .catch(() => {
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end('[]');
+            });
           return;
         }
 
@@ -107,7 +126,8 @@ export function webBody(options: WebBodyOptions = {}): Body {
   const voice: Voice = {
     name: `${channel}:voice`,
     speak(utterance: Utterance) {
-      broadcast({ type: 'speak', text: utterance.text, at: utterance.at });
+      // channel 을 같이 보낸다 — 화면이 「나한테 한 말」과 「혼잣말」을 구분해 그린다.
+      broadcast({ type: 'speak', text: utterance.text, at: utterance.at, channel: utterance.channel });
     },
   };
 
