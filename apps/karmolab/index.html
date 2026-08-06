@@ -16,6 +16,10 @@ permalink: /karmolab/
     <!-- KAR-115 PWA (Phase 3 native mobile substrate) -->
     <link rel="manifest" href="/apps/karmolab/manifest.json">
     <meta name="theme-color" content="#0f0f12">
+    <!-- 이 앱은 어두운 화면이 기본이다. 이걸 안 알려 주면 브라우저가 CSS 가 오기 전까지 흰 바탕을
+         칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. 「dark light」 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다 — 실측으로 확인해 하나만 적는다.
+         밝은 테마로 바꾼 사람은 CSS 가 오면 그쪽이 이긴다(toolbox.css 가 light 를 다시 지정한다). -->
+    <meta name="color-scheme" content="dark">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
@@ -47,12 +51,21 @@ permalink: /karmolab/
     <meta name="twitter:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
     <meta name="twitter:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
+    <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
+    <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
     <script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- 굵기는 실제 쓰는 것만 부른다. 한글 글꼴은 조각이 수백 개라 굵기 하나가 목록 크기를
-         크게 불린다 — 안 쓰는 300 과 세리프의 중간 굵기를 빼서 목록이 278KB 줄었다. -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+         크게 불린다 — 안 쓰는 300 과 세리프의 중간 굵기를 빼서 목록이 278KB 줄었다.
+         Inter 도 뺐다: 글꼴 순서가 'Noto Sans KR' 먼저라 영문·숫자까지 한글 글꼴이 덮는다.
+         브라우저가 실제로 받는 목록을 확인해 보니 Inter 는 한 글자도 안 쓰이고 있었다. -->
+    <!-- 글꼴 목록은 남의 서버에서 오는데 69KB 나 되고, 평소처럼 걸면 그것이 다 올 때까지
+         화면에 아무것도 안 그려진다 — 실측으로 첫 그림이 1280ms 였다. 「인쇄용」으로 받아 화면
+         그리기를 막지 않게 하면 740ms 다. 그동안은 컴퓨터 글꼴로 보이는데, 그 글꼴은 폭을
+         웹글꼴에 맞춰 뒀으므로(tools.css) 바뀔 때 글이 밀리지 않는다(밀림 0.008 → 0.017, 기준 0.1). -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
@@ -84,6 +97,29 @@ permalink: /karmolab/
     </script>
 </head>
 <body>
+    <!-- KARMOLAB_ROOT_INTRO — 스크립트를 실행하지 않는 크롤러만 보는 자리 (TASK-KL-089).
+         이 페이지는 블로그의 모든 글에서 링크되는데, 스크립트를 안 돌리면 87자밖에 안 보였다.
+         사람 화면은 그대로 두고(noscript 라 눈에 안 띈다) 크롤러에게만 무엇이 있는 곳인지와
+         대표 도구로 가는 길을 준다. 도구 상세·목록 페이지에는 이미 제 설명이 있으므로 생성기가 뺀다. -->
+    <noscript>
+      <section class="root-intro">
+        <h2>KarmoLab</h2>
+        <p>
+          글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다룹니다. 넣은 내용은 이 브라우저를
+          벗어나지 않고, 도구마다 자기 주소가 있어 바로 열 수 있습니다.
+        </p>
+        <ul>
+          <li><a href="/karmolab/t/">도구 전체 목록</a></li>
+          <li><a href="/karmolab/t/charcount/">글자수 세기 — 공백 포함·제외 · 원고지 매수</a></li>
+          <li><a href="/karmolab/t/pdftool/">PDF 편집 — 합치기 · 페이지 빼내기 · 돌리기</a></li>
+          <li><a href="/karmolab/t/imageedit/">이미지 편집 — 자르기 · 크기·형식 변환</a></li>
+          <li><a href="/karmolab/t/jsonfmt/">JSON 포맷터 — 정렬 · 압축 · 문법 검사</a></li>
+          <li><a href="/karmolab/t/unitconv/">단위 변환 — 길이 · 무게 · 평 · 온도</a></li>
+          <li><a href="/karmolab/t/timer/">타이머 · 스톱워치 — 카운트다운 · 랩 기록</a></li>
+          <li><a href="/karmolab/t/qrgen/">QR 코드 생성 — URL · WiFi · 연락처</a></li>
+        </ul>
+      </section>
+    </noscript>
     <div class="status-toast" id="statusToast"></div>
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
