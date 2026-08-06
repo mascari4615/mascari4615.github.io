@@ -146,6 +146,24 @@ export async function mountModel(canvas, modelName, onFail) {
     head: pick('DEF-head', 'head'),
     neck: pick('DEF-neck', 'neck'),
     spine: pick('DEF-spine.003', 'DEF-chest', 'DEF-spine', 'chest', 'spine'),
+    armL: pick('DEF-upper_arm.L'),
+    armR: pick('DEF-upper_arm.R'),
+  };
+  // 기준 자세를 적어 둔다. 매 판마다 여기서부터 다시 계산해야 흔들림이 쌓이지 않는다.
+  const restPose = new Map();
+  for (const bone of Object.values(bones)) {
+    if (bone !== null) restPose.set(bone, bone.quaternion.clone());
+  }
+  const spin = new THREE.Quaternion();
+  const axis = new THREE.Vector3();
+  /** 기준 자세에서 그만큼만 돌린다. */
+  const turn = (bone, x, y, z) => {
+    const base = restPose.get(bone);
+    if (base === undefined) return;
+    bone.quaternion.copy(base);
+    if (x !== 0) bone.quaternion.multiply(spin.setFromAxisAngle(axis.set(1, 0, 0), x));
+    if (y !== 0) bone.quaternion.multiply(spin.setFromAxisAngle(axis.set(0, 1, 0), y));
+    if (z !== 0) bone.quaternion.multiply(spin.setFromAxisAngle(axis.set(0, 0, 1), z));
   };
   console.log('[3D] 잡은 뼈:', Object.entries(bones).map(([k, v]) => `${k}=${v?.name ?? '없음'}`).join(' '));
 
@@ -174,7 +192,17 @@ export async function mountModel(canvas, modelName, onFail) {
 
   let mixer = null;
   const actions = {};
-  try {
+  // 빌려온 동작은 기본으로 끈다.
+  //
+  // 세 번 고쳐도 목이 꺾이거나 소품이 돌았다. 두 뼈대는 이름만 같을 뿐 뼈가 감긴
+  // 방향과 기본 자세가 달라서, 각도를 실행 중에 계산으로 맞추는 것으로는 안 된다 —
+  // 유니티가 「휴머노이드」라는 중간 단계를 두는 이유가 이것이다.
+  //
+  // 제대로 하려면 한 번 구워서 넣어야 한다(Blender 에서 이 골격에 맞춰 다시 저장).
+  // 그건 따로 할 일이고, 그때까지 억지로 얹어 이상하게 두지 않는다.
+  // 켜 보려면 주소 뒤에 `?anim=1`.
+  const useBorrowed = new URLSearchParams(location.search).get('anim') === '1';
+  if (useBorrowed) try {
     const gltf = await new GLTFLoader().loadAsync('/anim/cc0-animations.glb');
 
     // 두 뼈대의 「가만히 있을 때 자세」를 각각 적어 둔다. 이 둘이 다르기 때문에
@@ -252,15 +280,30 @@ export async function mountModel(canvas, modelName, onFail) {
     const tilt = state.mood === 'thinking' ? 0.07 : 0;
     pivot.rotation.x += (nod + tilt - pivot.rotation.x) * 0.12;
 
-    // 클립이 뼈를 놓은 다음, 그 위에 조금 더 얹는다. 대입하면 클립이 지워지고
-    // 얹으면 둘이 같이 산다 — 서서 움직이면서 이쪽도 볼 수 있게.
-    if (bones.head !== null) {
-      bones.head.rotation.y += state.look * 0.30 + (state.mood === 'listening' ? 0.10 : 0);
-      bones.head.rotation.x += (state.mood === 'thinking' ? 0.08 : 0) + Math.sin(t * 1.3) * 0.012;
-      bones.head.rotation.z += state.mood === 'thinking' ? Math.sin(t * 1.9) * 0.04 : 0;
+    // 빌려온 동작이 없으므로, 살아 보이게 하는 건 전부 이 몇 줄이다.
+    // 매번 기준 자세에서 다시 계산한다 — 더하기만 하면 조금씩 밀려 결국 꺾인다.
+    if (mixer === null) {
+      const sway = Math.sin(t * 0.9) * 0.02;              // 무게중심이 아주 조금 오간다
+      const breathe = Math.sin(t * 1.7);                   // 숨
+      const look = state.look;
+
+      turn(bones.spine, breathe * 0.018, sway, 0);
+      turn(bones.neck, breathe * -0.01, look * 0.13, 0);
+      turn(
+        bones.head,
+        (state.mood === 'thinking' ? 0.06 : 0) + Math.sin(t * 1.31) * 0.014
+          + (state.mood === 'speaking' ? Math.sin(t * 7.4) * 0.03 : 0),
+        look * 0.26 + (state.mood === 'listening' ? 0.09 : 0) + Math.sin(t * 0.53) * 0.02,
+        state.mood === 'thinking' ? 0.06 : Math.sin(t * 0.71) * 0.012,
+      );
+      // 팔은 몸통 흔들림을 조금 늦게 따라간다 — 그래야 뻣뻣해 보이지 않는다.
+      const lag = Math.sin(t * 0.9 - 0.6) * 0.03;
+      turn(bones.armL, 0, 0, lag);
+      turn(bones.armR, 0, 0, -lag);
+    } else {
+      if (bones.head !== null) bones.head.rotation.y += state.look * 0.24;
+      if (bones.neck !== null) bones.neck.rotation.y += state.look * 0.10;
     }
-    if (bones.neck !== null) bones.neck.rotation.y += state.look * 0.12;
-    if (bones.spine !== null && mixer === null) bones.spine.rotation.x += Math.sin(t * 1.7) * 0.02;
 
     renderer.render(scene, camera);
   });
