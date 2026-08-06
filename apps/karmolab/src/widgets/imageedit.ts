@@ -17,8 +17,8 @@
         }
         .ie-tb-btn:hover { color:var(--text-primary); border-color:var(--accent); }
         .ie-tb-btn:disabled { opacity:0.35; cursor:not-allowed; }
-        .ie-tb-btn.accent { background:var(--accent); color:#fff; border-color:var(--accent); }
-        .ie-tb-btn.accent:hover { background:var(--accent-hover); }
+        .ie-tb-btn.accent { background:var(--fill-strong); color:var(--fill-strong-ink); border-color:var(--fill-strong); }
+        .ie-tb-btn.accent:hover { background:var(--fill-strong-hover); border-color:var(--fill-strong-hover); }
         .ie-toolbar .ie-spacer { flex:1; }
         .ie-size-label {
             font-size:var(--font-size-2xs); color:var(--text-tertiary); font-family:monospace;
