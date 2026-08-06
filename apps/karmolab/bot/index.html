@@ -177,10 +177,10 @@
   </p>
   <div class="showcase">
     <ul class="beats">
-      <li><b>칭호로 읽힌다</b><span>수다왕 · 인기상 · 리액션 요정 · 새벽 유령. 숫자를 늘어놓지 않는다.</span></li>
-      <li><b>웹에서 열린다</b><span>디스코드 밖에서도 볼 수 있는 주소가 함께 나온다. 주소는 서버마다 다르고, 아는 사람만 연다.</span></li>
-      <li><b>더 깊이 볼 수도 있다</b><span>대시보드에는 요일×시각 격자, 날짜별 추이, 사람·채널별 표가 있다. 지난 기간과 견줘 늘었는지 줄었는지도 같이.</span></li>
-      <li><b>기간을 고른다</b><span>오늘 · 7일 · 30일 · 올해.</span></li>
+      <li><b>칭호</b><span>수다왕 · 인기상 · 리액션 요정 · 새벽 유령</span></li>
+      <li><b>웹 주소</b><span>디스코드 밖에서 열람 · 서버마다 다른 비밀 주소</span></li>
+      <li><b>대시보드</b><span>요일×시각 격자 · 날짜별 추이 · 사람·채널별 표 · 지난 기간 대비 증감</span></li>
+      <li><b>기간</b><span>오늘 · 7일 · 30일 · 올해</span></li>
     </ul>
     <div class="preview" aria-label="결산 카드 미리보기">
       <p class="preview-title">🎁 우리 서버 결산 · 최근 7일</p>
@@ -215,7 +215,7 @@
   <ul class="rules">
     <li><span class="mark">세는 것</span><span>메시지 개수 · 글자 수 · 보낸 시각 · 채널 · 이모지 이름 · 반응 수</span></li>
     <li><span class="mark">안 세는 것</span><span>메시지 본문 · 첨부 파일 · DM · 음성 대화</span></li>
-    <li><span class="mark">주소</span><span>결산 웹 주소는 서버마다 다른 비밀 키다. 서버 ID 를 알아도 열리지 않는다.</span></li>
+    <li><span class="mark">주소</span><span>서버마다 다른 비밀 키 · 서버 ID 로는 열람 불가</span></li>
   </ul>
 </div></section>
 
@@ -255,47 +255,47 @@
     {
       title: '서버 결산',
       featured: true,
-      blurb: '한 주·한 달·한 해 동안 오간 이야기를 카드와 대시보드로 정리한다.',
+      blurb: '주간·월간·연간 요약 · 카드 + 대시보드',
       commands: ['/결산']
     },
     {
       title: '음악',
-      blurb: '음성 채널에 들어와 틀어 준다. 대기열·건너뛰기·반복까지.',
+      blurb: '음성 채널 재생 · 대기열 · 건너뛰기 · 반복',
       commands: ['/music play', '/music queue', '/music loop']
     },
     {
       title: '말 걸기',
-      blurb: '멘션하거나 DM 하면 대답한다. 성격이 다른 캐릭터를 골라 붙일 수 있다.',
+      blurb: '멘션·DM 응답 · 캐릭터 교체',
       commands: ['/yawn', '/캐릭터']
     },
     {
       title: '그림',
-      blurb: '설명을 주면 그려 온다. 만든 것들은 갤러리에 쌓인다.',
+      blurb: '설명 → 그림 생성 · 갤러리 보관',
       commands: ['/이미지', '/갤러리']
     },
     {
       title: '읽어 주기',
-      blurb: '글자를 음성으로 읽고, 짧은 효과음도 낸다.',
+      blurb: '글자 → 음성 · 효과음',
       commands: ['/말해', '/사운드']
     },
     {
       title: '알림',
-      blurb: '관심 있는 키워드의 소식과 무료 배포 소식을 골라 물어다 준다.',
+      blurb: '키워드 소식 · 무료 배포 소식',
       commands: ['/뉴스키워드']
     },
     {
       title: '미니게임',
-      blurb: '검 강화, 주식, 사다리, 슬롯, 레이드 — 방이 심심할 때 쓰는 것들.',
+      blurb: '검 강화 · 주식 · 사다리 · 슬롯 · 레이드',
       commands: ['/게임', '/주식', '/레이드']
     },
     {
       title: '기억',
-      blurb: '기념일과 일정을 기억해 뒀다가 그날 먼저 말해 준다.',
+      blurb: '기념일 · 일정 · 당일 알림',
       commands: ['/일정', '/기념일', '/프로필']
     },
     {
       title: '길 안내',
-      blurb: '뭘 할 수 있는지 서버 안에서 바로 물어볼 수 있다.',
+      blurb: '기능 목록 · 서버 안에서 조회',
       commands: ['/도움말']
     }
   ];
