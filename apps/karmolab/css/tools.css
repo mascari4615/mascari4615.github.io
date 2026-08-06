@@ -685,6 +685,9 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
    더 자세히 담고 있어 폰에서 같은 문장을 두 번 읽게 된다 (TASK-KL-088). */
 body.tool-detail .tool-page-hero { display: none; }
 
+/* 상세 페이지에서는 사용자 위젯을 싣지 않는다(TASK-KL-089) — 눌러도 아무 일 없는 단추를 숨긴다. */
+body.tool-detail #userPageBtn { display: none; }
+
 /* 화면을 꽉 채우는 도구(layout-full)의 상세 페이지 — TASK-KL-089.
    앱에서는 이런 도구가 창을 가득 쓰도록 바깥 스크롤을 끈다. 그런데 상세 페이지에는
    도구 아래에 설명·FAQ 가 붙으므로, 스크롤이 꺼져 있으면 그 부분이 통째로 잘려
