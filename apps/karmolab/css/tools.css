@@ -526,6 +526,19 @@
 .co-sample-lg { font-size: clamp(20px, 4vw, 28px); font-weight: 700; line-height: 1.4; }
 .co-sample-sm { font-size: var(--font-size-sm); line-height: 1.7; }
 
+/* 색각 시뮬레이터 */
+.cb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: var(--space-lg); }
+.cb-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 10px; }
+.cb-swatches { display: flex; height: 54px; margin-bottom: 8px; }
+.cb-swatches span { flex: 1; }
+.cb-label { font-size: var(--font-size-xs); color: var(--text-primary); font-weight: 600; }
+.cb-verdict { font-size: var(--font-size-2xs); margin-top: 3px; color: var(--text-tertiary); }
+.cb-verdict.bad { color: var(--error); }
+.cb-verdict.good { color: var(--success); }
+
+/* 단어 빈도 막대 */
+.wf-bar { display: inline-block; height: 8px; background: var(--accent); opacity: 0.55; vertical-align: middle; margin-right: 6px; max-width: 60%; }
+
 /* 모스 부호 신호등 */
 .ms-led {
     width: 16px;
