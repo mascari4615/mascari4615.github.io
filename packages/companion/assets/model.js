@@ -20,7 +20,23 @@ import { applyToon } from '/toon.js';
  * 그 정리를 안 하면 없는 뼈를 찾다가 동작 전체가 조용히 안 돈다.
  */
 function fitClip(clip, bonesByName) {
-  const kept = clip.tracks.filter((track) => bonesByName.has(track.name.split('.')[0]));
+  const kept = clip.tracks.filter((track) => {
+    const dot = track.name.lastIndexOf('.');
+    const boneName = track.name.slice(0, dot);
+    const what = track.name.slice(dot + 1);
+
+    if (bonesByName.has(boneName) === false) return false;
+
+    // `root` 는 몸 전체가 어느 쪽을 보고 서는지를 정하는 자리다. 남의 클립에서
+    // 그걸 그대로 가져오면, 이미 제 방향으로 서 있는 몸이 한 번 더 돌아가 하늘을
+    // 보고 눕는다(실측). 방향은 우리 모델 것을 쓰고, 동작만 빌린다.
+    if (boneName === 'root') return false;
+
+    // 위치·크기 트랙도 버린다. 두 골격은 팔다리 길이가 달라서, 남의 뼈 위치를
+    // 그대로 먹이면 사지가 늘어나거나 몸에서 떨어져 나온다. 회전만 빌린다.
+    return what === 'quaternion';
+  });
+
   if (kept.length === 0) return null;
   const fitted = clip.clone();
   fitted.tracks = kept;
@@ -81,35 +97,24 @@ export async function mountModel(canvas, modelName, onFail) {
     console.warn('[3D] 만화식 칠하기 실패 — 원래 재질로 간다:', e);
   }
 
-  // 클립이 하나도 없는 모델이다(실측). 대신 뼈를 직접 움직인다 — 남의 동작을
-  // 억지로 씌우면 이 골격과 안 맞아 어긋나 보인다.
-  // 이 골격은 진짜 뼈 옆에 `ORG-`·`MCH-`·`DEF-` 같은 보조 사본을 함께 들고 있다(실측).
-  // 이름에 들어있다고 아무거나 잡으면 화면에 아무 변화가 없는 사본을 돌리게 된다.
-  const helper = /^(org|mch|def|vis|tweak)[-_.]/i;
-  const found = new Map();
-  model.traverse((node) => {
-    if (node.isBone !== true) return;
-    const n = node.name.toLowerCase();
-    if (helper.test(n)) return;
-    if (found.has(n) === false) found.set(n, node);
-  });
+  // 살을 실제로 움직이는 건 `DEF-` 뼈다. 조종용 뼈(`head` 같은 것)는 편집 프로그램
+  // 안에서만 그 뼈들을 끌고 다니고, 밖으로 내보낸 파일에는 그 연결이 남지 않는다 —
+  // 그래서 조종용 뼈를 돌리면 화면에서는 아무 일도 안 일어난다(그렇게 만들어 놨었다).
+  const byName = new Map();
+  model.traverse((node) => { if (node.isBone === true) byName.set(node.name, node); });
   const pick = (...names) => {
     for (const name of names) {
-      const bone = found.get(name);
+      const bone = byName.get(name);
       if (bone !== undefined) return bone;
     }
     return null;
   };
   const bones = {
-    head: pick('head'),
-    neck: pick('neck'),
-    spine: pick('chest', 'spine', 'torso'),
+    head: pick('DEF-head', 'head'),
+    neck: pick('DEF-neck', 'neck'),
+    spine: pick('DEF-spine.003', 'DEF-chest', 'DEF-spine', 'chest', 'spine'),
   };
   console.log('[3D] 잡은 뼈:', Object.entries(bones).map(([k, v]) => `${k}=${v?.name ?? '없음'}`).join(' '));
-  const rest = new Map();
-  for (const bone of Object.values(bones)) {
-    if (bone !== null) rest.set(bone, bone.rotation.clone());
-  }
 
   // 모델마다 크기·중심이 제각각이라, 실제 크기를 재서 화면에 맞춘다.
   const box = new THREE.Box3().setFromObject(model);
@@ -132,8 +137,7 @@ export async function mountModel(canvas, modelName, onFail) {
   // ── 가져온 동작 얹기 ──────────────────────────────────────────────────
   // 클립이 붙으면 얘가 실제로 서 있고 말하는 몸짓을 한다. 못 붙으면 위의 뼈 움직임만
   // 남는다 — 그래도 숨은 쉬므로 물건처럼 보이진 않는다.
-  const bonesByName = new Map();
-  model.traverse((node) => { if (node.isBone === true) bonesByName.set(node.name, node); });
+  const bonesByName = byName;
 
   let mixer = null;
   const actions = {};
@@ -205,26 +209,15 @@ export async function mountModel(canvas, modelName, onFail) {
     const tilt = state.mood === 'thinking' ? 0.07 : 0;
     pivot.rotation.x += (nod + tilt - pivot.rotation.x) * 0.12;
 
-    // 뼈를 직접 움직인다. 몸통 전체를 돌리는 것과 달리 사람처럼 보이는 건 이쪽이다.
-    // 폭을 좁게 잡는다 — 크게 돌리면 목이 꺾인 인형이 된다.
-    if (bones.head !== null && (mixer === null || state.look !== 0 || state.mood !== 'idle')) {
-      const base = rest.get(bones.head);
-      bones.head.rotation.y = base.y + state.look * 0.34 + (state.mood === 'listening' ? 0.12 : 0);
-      bones.head.rotation.x = base.x
-        + (state.mood === 'speaking' ? Math.sin(t * 8.2) * 0.06 : 0)
-        + (state.mood === 'thinking' ? 0.10 : 0)
-        + Math.sin(t * 1.3) * 0.015; // 가만히 있을 때도 아주 조금 움직인다
-      bones.head.rotation.z = base.z + (state.mood === 'thinking' ? Math.sin(t * 1.9) * 0.05 : 0);
+    // 클립이 뼈를 놓은 다음, 그 위에 조금 더 얹는다. 대입하면 클립이 지워지고
+    // 얹으면 둘이 같이 산다 — 서서 움직이면서 이쪽도 볼 수 있게.
+    if (bones.head !== null) {
+      bones.head.rotation.y += state.look * 0.30 + (state.mood === 'listening' ? 0.10 : 0);
+      bones.head.rotation.x += (state.mood === 'thinking' ? 0.08 : 0) + Math.sin(t * 1.3) * 0.012;
+      bones.head.rotation.z += state.mood === 'thinking' ? Math.sin(t * 1.9) * 0.04 : 0;
     }
-    if (bones.neck !== null && mixer === null) {
-      const base = rest.get(bones.neck);
-      bones.neck.rotation.y = base.y + state.look * 0.14;
-    }
-    if (bones.spine !== null && mixer === null) {
-      const base = rest.get(bones.spine);
-      bones.spine.rotation.x = base.x + Math.sin(t * 1.7) * 0.02; // 숨
-      bones.spine.rotation.y = base.y + state.look * 0.08;
-    }
+    if (bones.neck !== null) bones.neck.rotation.y += state.look * 0.12;
+    if (bones.spine !== null && mixer === null) bones.spine.rotation.x += Math.sin(t * 1.7) * 0.02;
 
     renderer.render(scene, camera);
   });
