@@ -74,7 +74,7 @@
             z-index:10;
         }
         /* 편집 탭 + 하단 도크일 때만: 전역 토스트를 위로 (공용 toolbox.css 미변경) */
-        body:has(#page-tierlist.active #panel-tl-edit.active .tl-toc--dock) #statusToast.status-toast {
+        body:has(#page-tierlist.active [data-tab-panel="tl-edit"].active .tl-toc--dock) #statusToast.status-toast {
             bottom: calc(96px + 28px + env(safe-area-inset-bottom, 0px));
         }
         .tl-toc-hint { font-size:11px; font-weight:700; color:var(--text-tertiary); margin-right:4px; width:100%; margin-bottom:2px; }
