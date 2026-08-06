@@ -7,6 +7,8 @@
  *
  * 파일은 브라우저 밖으로 나가지 않는다. GIF 압축까지 여기서 직접 한다(`gifenc`).
  */
+import { seekTo } from './shared/video';
+
 (function (): void {
   interface GifApi {
     encode: (o: {
@@ -178,30 +180,13 @@
             video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
           }
 
-          /**
-           * 지정 시각의 화면 한 장을 가져온다. 옮겨지기 전에 그리면 엉뚱한 장면이 담긴다.
-           *
-           * 함정: **이미 그 자리에 있으면 「옮겼다」 신호가 오지 않는다.** 손잡이를 끌면 그 자리를
-           * 미리 보여 주느라 이미 옮겨져 있어, 바로 이어서 누르면 오지 않을 신호를 영원히 기다린다
-           * — 오류도 없이 그냥 멈춘다. 그래서 ① 이미 도착했으면 바로 그리고 ② 그래도 안 오면 포기한다.
-           */
-          function grab(time: number, canvas: HTMLCanvasElement): Promise<ImageData> {
-            return new Promise((resolve, reject) => {
-              const ctx = canvas.getContext('2d', { willReadFrequently: true });
-              if (!ctx) return reject(new Error('canvas 없음'));
-              const target = Math.min(Math.max(0, time), Math.max(0, duration - 0.02));
-              let timer = 0;
-              const done = (): void => {
-                window.clearTimeout(timer);
-                video.removeEventListener('seeked', done);
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
-              };
-              if (Math.abs(video.currentTime - target) < 0.01) return done();
-              video.addEventListener('seeked', done);
-              timer = window.setTimeout(done, 3000);
-              video.currentTime = target;
-            });
+          /** 지정 시각의 화면 한 장을 가져온다. 옮겨지기 전에 그리면 엉뚱한 장면이 담긴다. */
+          async function grab(time: number, canvas: HTMLCanvasElement): Promise<ImageData> {
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            if (!ctx) throw new Error('canvas 없음');
+            await seekTo(video, time);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return ctx.getImageData(0, 0, canvas.width, canvas.height);
           }
 
           async function run(): Promise<void> {

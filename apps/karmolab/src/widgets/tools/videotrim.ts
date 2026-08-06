@@ -7,6 +7,8 @@
  * 그래서 이 도구는 고른 구간을 실제로 재생하며 담는다 — 즉 **자르는 데 그 구간만큼 시간이 걸린다**.
  * 이건 우회가 아니라 브라우저에서 가능한 유일한 길이라, 숨기지 않고 남은 시간을 보여 준다.
  */
+import { seekTo, pickRecordType } from './shared/video';
+
 (function (): void {
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
@@ -138,36 +140,6 @@
             video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
           }
 
-          /** 브라우저가 담을 수 있는 형식 중 가장 나은 것을 고른다. */
-          function pickType(): string {
-            const wanted = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
-            for (const t of wanted) if (MediaRecorder.isTypeSupported(t)) return t;
-            return '';
-          }
-
-          /**
-           * 그 시각으로 옮기고 옮겨질 때까지 기다린다.
-           *
-           * 함정: **이미 그 자리에 있으면 「옮겼다」 신호가 오지 않는다.** 손잡이를 끌면 그 자리를
-           * 미리 보여 주느라 이미 옮겨져 있으므로, 바로 이어서 누르면 오지 않을 신호를 영원히
-           * 기다린다 — 오류도 안 나고 아무 일도 안 일어난다. 실제로 그렇게 멈췄다.
-           * 그래서 ① 이미 도착했으면 즉시 넘어가고 ② 그래도 안 오면 시간을 두고 포기한다.
-           */
-          function seekTo(t: number): Promise<void> {
-            return new Promise((resolve) => {
-              if (Math.abs(video.currentTime - t) < 0.01) return resolve();
-              let timer = 0;
-              const done = (): void => {
-                window.clearTimeout(timer);
-                video.removeEventListener('seeked', done);
-                resolve();
-              };
-              video.addEventListener('seeked', done);
-              timer = window.setTimeout(done, 3000);
-              video.currentTime = t;
-            });
-          }
-
           async function run(): Promise<void> {
             const s = startSec(), e = endSec();
             const span = e - s;
@@ -189,7 +161,7 @@
             if (!$<HTMLInputElement>('#vtAudio').checked) {
               stream.getAudioTracks().forEach((t) => stream.removeTrack(t));
             }
-            const mimeType = pickType();
+            const mimeType = pickRecordType();
             const chunks: Blob[] = [];
             recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
             recorder.ondataavailable = (ev) => {
@@ -200,7 +172,7 @@
               (recorder as MediaRecorder).onstop = () => resolve(new Blob(chunks, { type: mimeType || 'video/webm' }));
             });
 
-            await seekTo(s);
+            await seekTo(video, s);
             runBtn.disabled = true;
             stopBtn.style.display = '';
             recorder.start(200);
