@@ -22,6 +22,7 @@
     ['audiolevel', '소리 크기 맞추기'],
     ['voicerec', '목소리 녹음'],
     ['imgbatch', '이미지 일괄 변환'],
+    ['exifclean', '사진 정보 지우기'],
     ['ziptool', 'ZIP 묶기·풀기'],
     ['filehash', '파일 검사값']
   ];
