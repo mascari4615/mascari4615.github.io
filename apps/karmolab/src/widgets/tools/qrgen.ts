@@ -27,7 +27,7 @@ import qrcode from 'qrcode-generator';
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">종류</label>
-              <select id="qrKind">
+              <select id="qrKind" aria-label="만들 종류">
                 <option value="text">텍스트 / URL</option>
                 <option value="wifi">WiFi 접속 정보</option>
                 <option value="contact">연락처 (vCard)</option>
@@ -47,7 +47,7 @@ import qrcode from 'qrcode-generator';
                 <input type="text" id="qrWifiPass" placeholder="비밀번호">
               </div>
               <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-                <select id="qrWifiEnc" style="flex:1;">
+                <select id="qrWifiEnc" style="flex:1;" aria-label="보안 방식">
                   <option value="WPA">WPA / WPA2</option>
                   <option value="WEP">WEP</option>
                   <option value="nopass">비밀번호 없음</option>
@@ -81,7 +81,7 @@ import qrcode from 'qrcode-generator';
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">오류 정정 수준</div>
-                  <select id="qrLevel">
+                  <select id="qrLevel" aria-label="오류 정정 수준">
                     <option value="L">L — 7% (가장 단순)</option>
                     <option value="M" selected>M — 15% (권장)</option>
                     <option value="Q">Q — 25%</option>
@@ -90,17 +90,17 @@ import qrcode from 'qrcode-generator';
                 </div>
                 <div>
                   <div class="tool-sublabel">크기 <span id="qrSizeVal" class="range-value">320px</span></div>
-                  <input type="range" id="qrSize" min="128" max="1024" step="32" value="320">
+                  <input type="range" id="qrSize" aria-label="크기 (픽셀)" min="128" max="1024" step="32" value="320">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
                   <div class="tool-sublabel">전경색</div>
-                  <input type="color" id="qrFg" value="#000000" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
+                  <input type="color" id="qrFg" aria-label="전경색" value="#000000" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
                 <div>
                   <div class="tool-sublabel">배경색</div>
-                  <input type="color" id="qrBg" value="#ffffff" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
+                  <input type="color" id="qrBg" aria-label="배경색" value="#ffffff" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
               </div>
             </div>
