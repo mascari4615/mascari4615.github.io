@@ -83,7 +83,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">최상위 타입 이름</div>
-                  <input type="text" id="jtName" value="Root" spellcheck="false">
+                  <input type="text" id="jtName" aria-label="최상위 타입 이름" value="Root" spellcheck="false">
                 </div>
                 <div>
                   <div class="tool-sublabel">&nbsp;</div>
@@ -93,11 +93,11 @@
             </div>
             <div class="field-group">
               <label class="field-label">JSON</label>
-              <textarea id="jtIn" rows="9" spellcheck="false"></textarea>
+              <textarea id="jtIn" aria-label="넣을 JSON" rows="9" spellcheck="false"></textarea>
             </div>
             <div class="field-group">
               <label class="field-label">TypeScript</label>
-              <textarea id="jtOut" rows="12" spellcheck="false" readonly></textarea>
+              <textarea id="jtOut" aria-label="만들어진 타입 선언" rows="12" spellcheck="false" readonly></textarea>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <button class="btn btn-ghost" id="jtCopy">복사</button>

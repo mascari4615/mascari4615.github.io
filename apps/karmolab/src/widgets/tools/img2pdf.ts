@@ -50,7 +50,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">종이</div>
-                  <select id="i2Paper">
+                  <select id="i2Paper" aria-label="종이">
                     <option value="a4">A4</option>
                     <option value="letter">레터</option>
                     <option value="b5">B5</option>
@@ -59,7 +59,7 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">방향</div>
-                  <select id="i2Orient">
+                  <select id="i2Orient" aria-label="방향">
                     <option value="auto">사진에 맞춰 자동</option>
                     <option value="portrait">세로</option>
                     <option value="landscape">가로</option>
@@ -68,7 +68,7 @@
               </div>
               <div style="margin-top:10px;">
                 <div class="tool-sublabel">여백 <span id="i2MarginVal" class="range-value">20pt</span></div>
-                <input type="range" id="i2Margin" min="0" max="72" value="20">
+                <input type="range" id="i2Margin" aria-label="여백" min="0" max="72" value="20">
               </div>
             </div>
 

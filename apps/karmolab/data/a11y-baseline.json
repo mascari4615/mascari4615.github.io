@@ -1,5 +1,5 @@
 {
-  "unlinked": 71,
+  "unlinked": 56,
   "nameless": 0,
   "perTool": {
     "charcount": {
@@ -32,10 +32,6 @@
     },
     "radix": {
       "unlinked": 2,
-      "nameless": 0
-    },
-    "textclean": {
-      "unlinked": 3,
       "nameless": 0
     },
     "palette": {
@@ -76,10 +72,6 @@
     },
     "epoch": {
       "unlinked": 1,
-      "nameless": 0
-    },
-    "lorem": {
-      "unlinked": 3,
       "nameless": 0
     },
     "csvjson": {
@@ -126,10 +118,6 @@
       "unlinked": 2,
       "nameless": 0
     },
-    "json2ts": {
-      "unlinked": 3,
-      "nameless": 0
-    },
     "colorblind": {
       "unlinked": 2,
       "nameless": 0
@@ -142,20 +130,12 @@
       "unlinked": 2,
       "nameless": 0
     },
-    "img2pdf": {
-      "unlinked": 3,
-      "nameless": 0
-    },
     "ziptool": {
       "unlinked": 1,
       "nameless": 0
     },
     "audiojoin": {
       "unlinked": 1,
-      "nameless": 0
-    },
-    "imgbatch": {
-      "unlinked": 3,
       "nameless": 0
     }
   }
