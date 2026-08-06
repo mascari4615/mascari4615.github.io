@@ -328,8 +328,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdf2img',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF → 이미지',
     category: 'tool',
     desc: 'PDF 페이지를 PNG·JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지',
@@ -339,8 +339,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'img2pdf',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 → PDF',
     category: 'tool',
     desc: '사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다',
@@ -361,8 +361,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdfwatermark',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 워터마크',
     category: 'tool',
     desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
@@ -372,8 +372,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiojoin',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '오디오 이어붙이기',
     category: 'tool',
     desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
@@ -405,8 +405,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdftool',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 편집',
     category: 'tool',
     desc: 'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다',
@@ -416,8 +416,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiocut',
-    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '오디오 자르기',
     category: 'tool',
     desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
@@ -439,7 +439,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'text2pdf',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '글을 PDF 로',
     category: 'tool',
     desc: '적은 글을 A4 PDF 로 만듭니다. 한글도 깨지지 않고, 글이 브라우저를 벗어나지 않습니다',
@@ -450,7 +450,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'pdfsign',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 에 서명 넣기',
     category: 'tool',
     desc: '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다',
@@ -483,7 +483,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'pdf2text',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 에서 글자 뽑기',
     category: 'tool',
     desc: 'PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다',
@@ -494,7 +494,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'audiolevel',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '소리 크기 맞추기',
     category: 'tool',
     desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
@@ -505,7 +505,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'pdfcompress',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 용량 줄이기',
     category: 'tool',
     desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
@@ -514,13 +514,33 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/pdfcompress']
   },
   {
+    id: 'pdf',
+    title: 'PDF 도구',
+    category: 'tool',
+    desc: 'PDF 를 합치고 나누고 줄이고, 서명·워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
+  },
+  {
+    id: 'sound',
+    title: '소리 도구',
+    category: 'tool',
+    desc: '녹음하고 자르고 크기를 맞추고 잇습니다. MP3·WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true,
+    icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiojoin', 'tools/sound']
+  },
+  {
     id: 'filetool',
     title: '파일 도구',
     category: 'tool',
-    desc: 'PDF·소리·이미지 파일을 다룹니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: '사진 변환·이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/pdftool', 'tools/audiocut', 'tools/pdf2img', 'tools/img2pdf', 'tools/ziptool', 'tools/pdfwatermark', 'tools/audiojoin', 'tools/imgbatch', 'tools/filehash', 'tools/voicerec', 'tools/pdfcompress', 'tools/pdf2text', 'tools/audiolevel', 'tools/exifclean', 'tools/filesplit', 'tools/pdfsign', 'tools/text2pdf', 'tools/imgmerge', 'tools/filetool']
+    lazyScriptPaths: ['tools/imgbatch', 'tools/imgmerge', 'tools/exifclean', 'tools/ziptool', 'tools/filesplit', 'tools/filehash', 'tools/filetool']
   },
   {
     id: 'video2gif',
@@ -591,7 +611,7 @@ window.KARMOLAB_LAZY_META = [
   {
     id: 'voicerec',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
-    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '목소리 녹음',
     category: 'tool',
     desc: '마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다',

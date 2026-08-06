@@ -75,7 +75,7 @@
   "checklist": "061f950ecade",
   "pdftool": "3d6dd1adca8a",
   "audiocut": "219ff7e39835",
-  "filetool": "85f46390c0d6",
+  "filetool": "9f169e89abb7",
   "pdf2img": "9e094e42946a",
   "img2pdf": "04c4918d9811",
   "ziptool": "672ad3c42561",
@@ -104,5 +104,7 @@
   "text2pdf": "bbfcc1bb314d",
   "qrread": "353a99fdd905",
   "qr": "67c5f80fde95",
-  "imgmerge": "191b80da968f"
+  "imgmerge": "191b80da968f",
+  "pdf": "e147adcfaa9c",
+  "sound": "9e49b6232f4b"
 }

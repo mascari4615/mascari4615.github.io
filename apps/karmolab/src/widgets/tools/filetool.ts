@@ -11,18 +11,6 @@
    * (「PDF」 처럼 대상만 적으면 무슨 일을 하는 자리인지 알 수 없다).
    */
   const PARTS: Array<[string, string]> = [
-    ['pdftool', 'PDF 합치기·나누기'],
-    ['pdfcompress', 'PDF 용량 줄이기'],
-    ['pdfsign', 'PDF 서명'],
-    ['pdfwatermark', 'PDF 워터마크'],
-    ['pdf2text', 'PDF → 글자'],
-    ['text2pdf', '글 → PDF'],
-    ['pdf2img', 'PDF → 이미지'],
-    ['img2pdf', '이미지 → PDF'],
-    ['audiocut', '소리 자르기'],
-    ['audiojoin', '소리 잇기'],
-    ['audiolevel', '소리 크기 맞추기'],
-    ['voicerec', '목소리 녹음'],
     ['imgbatch', '이미지 일괄 변환'],
     ['imgmerge', '사진 이어 붙이기'],
     ['exifclean', '사진 정보 지우기'],
@@ -35,7 +23,7 @@
     id: 'filetool',
     title: '파일 도구',
     category: 'tool',
-    desc: 'PDF·소리·이미지 파일을 다룹니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: '사진 변환·이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
     icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
