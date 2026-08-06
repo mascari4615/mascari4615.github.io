@@ -23,6 +23,13 @@ export interface EdgeSpeechOptions {
   rate?: string;
   pitch?: string;
   locale?: string;
+  /**
+   * 여러 언어를 하는 목소리도 목록에 넣는다.
+   *
+   * 한국어 전용 목소리는 셋뿐이라 고를 게 사실상 없다. 여러 언어를 하는 목소리들은
+   * 한국어도 읽으므로, 취향에 맞는 걸 찾을 여지가 그만큼 넓어진다.
+   */
+  includeMultilingual?: boolean;
 }
 
 /**
@@ -46,13 +53,18 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
     async voices(): Promise<readonly SpeechVoice[]> {
       if (cachedVoices !== null) return cachedVoices;
       const all = await new MsEdgeTTS().getVoices();
-      cachedVoices = all
-        .filter((v) => v.Locale === locale)
+      const wanted = all.filter(
+        (v) => v.Locale === locale || (options.includeMultilingual !== false && /Multilingual/i.test(v.ShortName)),
+      );
+      const seen = new Set<string>();
+      cachedVoices = wanted
+        .filter((v) => (seen.has(v.ShortName) ? false : (seen.add(v.ShortName), true)))
         .map((v) => ({
           id: v.ShortName,
           label: prettyName(v.ShortName),
           gender: v.Gender === 'Female' ? '여성' : '남성',
-        }));
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
       return cachedVoices;
     },
 

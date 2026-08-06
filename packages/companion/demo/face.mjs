@@ -144,8 +144,14 @@ const web = webBody({
       ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
     const local = {
       exePath: join(piperRoot, 'piper', 'piper.exe'),
-      voices: { 'kss': join(piperRoot, 'ko-espeak.onnx') },
-      lengthScale: Number(process.env.COMPANION_VOICE_LENGTH ?? '1.06'),
+      // 같은 모델이라도 말 속도가 다르면 다른 사람처럼 들린다. 로컬 한국어 목소리가
+      // 하나뿐이라 고를 게 없던 것을, 결이 다른 셋으로 갈라 둔다.
+      voices: {
+        '느긋한': join(piperRoot, 'ko-espeak.onnx'),
+        '보통': join(piperRoot, 'ko-espeak.onnx'),
+        '또렷한': join(piperRoot, 'ko-espeak.onnx'),
+      },
+      lengthScaleFor: { '느긋한': 1.22, '보통': 1.05, '또렷한': 0.92 },
       log: (m) => console.log(`[목소리] ${m}`),
     };
     const engines = [];

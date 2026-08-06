@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { applyToon } from '/toon.js';
+import { paintableFace } from '/face-paint.js';
 
 /**
  * 빌려온 동작을 이 몸에 옮겨 붙이는 짝 표.
@@ -248,6 +249,16 @@ export async function mountModel(canvas, modelName, onFail) {
     console.warn('[3D] 만화식 칠하기 실패 — 원래 재질로 간다:', e);
   }
 
+  // 얼굴 — 만화식으로 칠한 **뒤에** 손대야 한다. 앞서 하면 칠하기가 그림을 다시 물어와
+  // 덧칠한 것이 통째로 사라진다.
+  let face = null;
+  try {
+    face = await paintableFace(model, { debug: new URLSearchParams(location.search).get('facedebug') === '1' });
+    console.log('[3D] 얼굴', face === null ? '못 잡음 — 표정 없이 간다' : '잡음 (깜빡임·입)');
+  } catch (e) {
+    console.warn('[3D] 얼굴을 못 잡았다 — 표정 없이 간다:', e);
+  }
+
   // 살을 실제로 움직이는 건 `DEF-` 뼈다. 조종용 뼈(`head` 같은 것)는 편집 프로그램
   // 안에서만 그 뼈들을 끌고 다니고, 밖으로 내보낸 파일에는 그 연결이 남지 않는다 —
   // 그래서 조종용 뼈를 돌리면 화면에서는 아무 일도 안 일어난다(그렇게 만들어 놨었다).
@@ -398,8 +409,14 @@ export async function mountModel(canvas, modelName, onFail) {
     fade = 0;
   }
 
-  const state = { mood: 'idle', look: 0 };
+  const state = { mood: 'idle', look: 0, speakUntil: 0 };
   const clock = new THREE.Clock();
+
+  // 눈 깜빡임 — 사람은 3~5초에 한 번 깜빡인다. 일정한 간격으로 깜빡이면 기계처럼
+  // 보이므로 매번 다음 때를 새로 뽑는다.
+  const BLINK_SHUT = 0.07; // 감는 데 걸리는 시간(초). 뜨는 것도 같은 시간.
+  let blinkNext = 0.2;
+  let blinkFrom = -1;
 
   function resize() {
     const w = canvas.clientWidth || 1;
@@ -470,6 +487,28 @@ export async function mountModel(canvas, modelName, onFail) {
       if (bones.neck !== null) bones.neck.quaternion.multiply(spin.setFromAxisAngle(axis.set(0, 1, 0), state.look * 0.10));
     }
 
+    // ── 얼굴 ────────────────────────────────────────────────────────────
+    // 몸이 아무리 잘 움직여도 눈이 안 깜빡이면 인형으로 보인다. 화면의 7할이 머리다.
+    if (face !== null) {
+      if (t >= blinkNext) {
+        blinkFrom = t;
+        // 생각 중일 때는 조금 더 자주 깜빡인다 — 눈이 바쁜 게 생각하는 티다.
+        const rest = 0.05;
+        blinkNext = t + rest;
+      }
+      let closed = 0;
+      if (blinkFrom >= 0) {
+        const into = t - blinkFrom;
+        if (into >= BLINK_SHUT * 2) blinkFrom = -1;
+        else closed = into < BLINK_SHUT ? into / BLINK_SHUT : 1 - (into - BLINK_SHUT) / BLINK_SHUT;
+      }
+      face.setBlink(closed);
+
+      // 입은 말하는 동안만 움직인다. 말이 끝나는 때를 알면 그때까지, 모르면 기분으로.
+      const talking = state.speakUntil > Date.now() || state.mood === 'speaking';
+      face.setMouth(talking ? 0.35 + 0.45 * Math.abs(Math.sin(t * 11)) : 0);
+    }
+
     renderer.render(scene, camera);
   });
 
@@ -516,5 +555,10 @@ export async function mountModel(canvas, modelName, onFail) {
     },
     /** -1(왼쪽) ~ 1(오른쪽). */
     lookAt(x) { state.look = Math.max(-1, Math.min(1, x)); },
+    /**
+     * 이만큼 동안 입을 움직인다. 소리의 실제 길이를 알 때 쓴다 — 기분으로만 움직이면
+     * 소리는 끝났는데 입이 계속 나불거리거나, 그 반대가 된다.
+     */
+    speakFor(ms) { state.speakUntil = Date.now() + Math.max(0, ms); },
   };
 }

@@ -546,6 +546,19 @@
 }
 </script>
 <script>
+  /** 창 안에서 벌어진 일을 밖으로 흘린다 — 조용히 사라지는 실패를 없애려고. */
+  function tell(message) {
+    try {
+      fetch('/log', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: String(message) }),
+      }).catch(() => {});
+    } catch { /* 기록 못 남겨도 하던 일은 계속 */ }
+  }
+  window.addEventListener('error', (e) => tell(`에러: ${e.message}`));
+  window.addEventListener('unhandledrejection', (e) => tell(`처리 안 된 실패: ${e.reason}`));
+
   // 뚫린 창(데스크톱 앱)으로 떠 있으면 바탕을 비운다.
   const inDesktopWindow = typeof window.__TAURI__ !== 'undefined';
   if (inDesktopWindow || new URLSearchParams(location.search).get('t') === '1') {
@@ -1144,7 +1157,8 @@
     if (Math.abs(e.clientX - grabbed.x) + Math.abs(e.clientY - grabbed.y) < 4) return;
     grabbed.moved = true;
     // 여기서부터는 창 옮기기를 운영체제에 넘긴다 — 화면이 좌표를 따라 계산하면 끊긴다.
-    appWindow?.startDragging().catch(() => {});
+    if (appWindow === null) { tell('끌기: 데스크톱 창이 아니다'); return; }
+    appWindow.startDragging().catch((e) => tell(`끌기 실패: ${e}`));
   });
 
   const release = () => {

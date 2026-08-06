@@ -130,7 +130,9 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
-        if (url === '/model.js' || url === '/toon.js') {
+        // 3D 몸을 이루는 조각들. **여기 안 적으면 그 파일만 조용히 404 가 되고,
+        // 몸 전체가 안 뜬다** — 새 조각을 만들 때마다 이 줄을 같이 늘려야 한다.
+        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js') {
           serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;
         }
@@ -195,6 +197,22 @@ export function webBody(options: WebBodyOptions = {}): Body {
           res.writeHead(ok ? 200 : 404, { 'content-type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({ ok, current: options.characters?.current() ?? null }));
           if (ok) broadcast({ type: 'character', name: want });
+          return;
+        }
+
+        // 창에서 벌어진 일을 밖에서 볼 수 있게. 화면 속 실패는 조용히 사라지기 때문에
+        // 「눌렀는데 아무 일도 안 난다」의 원인을 찾을 방법이 없었다.
+        if (url === '/log' && req.method === 'POST') {
+          let raw = '';
+          req.on('data', (chunk) => { raw += chunk; if (raw.length > 8000) req.destroy(); });
+          req.on('end', () => {
+            try {
+              log(`[창] ${String(JSON.parse(raw).message ?? '').slice(0, 500)}`);
+            } catch {
+              // 못 읽는 기록은 버린다
+            }
+            res.writeHead(204).end();
+          });
           return;
         }
 

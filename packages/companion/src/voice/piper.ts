@@ -15,6 +15,8 @@ export interface PiperSpeechOptions {
   defaultVoice?: string;
   /** 말 길이 배수. 1보다 크면 느긋해진다. */
   lengthScale?: number;
+  /** 목소리마다 다른 말 길이 — 같은 모델을 결이 다른 여럿으로 갈라 쓴다. */
+  lengthScaleFor?: Readonly<Record<string, number>>;
   log?: (message: string) => void;
 }
 
@@ -57,7 +59,8 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
 
       const out = join(scratch, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.wav`);
       const args = ['--model', model, '--output_file', out];
-      if (options.lengthScale !== undefined) args.push('--length_scale', String(options.lengthScale));
+      const scale = (voiceId ? options.lengthScaleFor?.[voiceId] : undefined) ?? options.lengthScale;
+      if (scale !== undefined) args.push('--length_scale', String(scale));
 
       return new Promise<Buffer>((resolve, reject) => {
         const child = execFile(
