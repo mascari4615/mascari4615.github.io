@@ -113,5 +113,7 @@
   "tableconv": "002b48257326",
   "workdays": "89e4b53753ee",
   "text2img": "0afa318caab4",
-  "redact": "3167bb93d389"
+  "redact": "3167bb93d389",
+  "hub": "e3dc70f15f30",
+  "pdfredact": "4cfd66f6032e"
 }
