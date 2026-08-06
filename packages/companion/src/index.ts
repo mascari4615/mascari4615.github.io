@@ -33,11 +33,12 @@ export { tactfulAttention, windowsIdleMs, type TactOptions } from './attention/t
 
 export { echoBrain, silentBrain } from './brain/echo';
 export { assistantBrain, type AssistantBrainOptions } from './brain/assistant';
-export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker } from './brain/claude-cli';
+export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker, type SwitchableBrain } from './brain/claude-cli';
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
 export { webBody, openPinnedWindow, type WebBodyOptions } from './body/web';
 
+export { anySpeech } from './voice/any';
 export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
 export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';

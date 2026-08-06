@@ -34,6 +34,12 @@ export interface WebBodyOptions {
    * 모델 파일이 게임 저장소 안에 있으므로, 복사해 두 벌로 만들지 않고 그 자리에서 읽는다.
    */
   models?: Readonly<Record<string, string>>;
+  /** 어떤 머리를 쓸 수 있는지 + 지금 무엇인지 + 바꾸기. */
+  brains?: {
+    list: () => readonly string[];
+    current: () => string;
+    switchTo: (name: string) => boolean;
+  };
 }
 
 /**
@@ -187,6 +193,24 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
+        // 어떤 머리를 쓸 수 있나 / 지금 무엇인가.
+        if (url === '/brains') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            list: options.brains?.list() ?? [],
+            current: options.brains?.current() ?? null,
+          }));
+          return;
+        }
+
+        if (url.startsWith('/brains/switch?') && req.method === 'POST') {
+          const want = new URLSearchParams(url.slice(url.indexOf('?') + 1)).get('name') ?? '';
+          const ok = options.brains?.switchTo(want) === true;
+          res.writeHead(ok ? 200 : 404, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok, current: options.brains?.current() ?? null }));
+          return;
+        }
+
         // 오프라인 받아쓰기가 쓸 수 있는 상태인가.
         if (url === '/ears') {
           res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
@@ -249,8 +273,10 @@ export function webBody(options: WebBodyOptions = {}): Body {
           void options.speech
             .synthesize(say, query.get('v') ?? undefined)
             .then((audio) => {
+              const speech = options.speech;
+              const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
               res.writeHead(200, {
-                'content-type': options.speech?.contentType ?? 'audio/mpeg',
+                'content-type': perVoice ? perVoice(query.get('v') ?? undefined) : (speech?.contentType ?? 'audio/mpeg'),
                 'content-length': audio.length,
               });
               res.end(audio);

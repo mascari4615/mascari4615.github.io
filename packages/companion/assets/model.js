@@ -154,7 +154,19 @@ function bakeClip(clip, pairs, sourceRoot, mixer, fps = 30) {
   // 구우면서 뼈를 실제로 움직였으니 원래 자세로 되돌린다.
   for (const pair of pairs) pair.target.quaternion.copy(pair.targetRestLocal);
 
-  return { name: clip.name, frames, step, duration: clip.duration, values };
+  // 실제로 움직이는지 재 둔다. 0 이면 구운 게 정지 화면이라는 뜻 — 이 값이 없으면
+  // 「붙었다」와 「붙었는데 안 움직인다」를 화면만 보고는 구분 못 한다.
+  const a = new THREE.Quaternion();
+  const b = new THREE.Quaternion();
+  let widest = 0;
+  const half = Math.floor(frames / 2) * 4;
+  for (const v of values) {
+    a.set(v[0], v[1], v[2], v[3]);
+    b.set(v[half], v[half + 1], v[half + 2], v[half + 3]);
+    widest = Math.max(widest, 2 * Math.acos(Math.min(1, Math.abs(a.dot(b)))) * 180 / Math.PI);
+  }
+
+  return { name: clip.name, frames, step, duration: clip.duration, values, widest };
 }
 
 export async function mountModel(canvas, modelName, onFail) {
@@ -205,7 +217,8 @@ export async function mountModel(canvas, modelName, onFail) {
 
   // 그림처럼 칠한다 — 사실적인 음영은 조명 하나만 어긋나도 인형처럼 보인다.
   try {
-    const { outlineCount } = applyToon(model, { steps: 3, outline: 0.004 });
+    const outlineWidth = Number(new URLSearchParams(location.search).get('outline') ?? '0.004');
+    const { outlineCount } = applyToon(model, { steps: 3, outline: outlineWidth });
     console.log('[3D] 만화식으로 칠했다 · 바깥선', outlineCount, '겹');
   } catch (e) {
     console.warn('[3D] 만화식 칠하기 실패 — 원래 재질로 간다:', e);
@@ -214,8 +227,14 @@ export async function mountModel(canvas, modelName, onFail) {
   // 살을 실제로 움직이는 건 `DEF-` 뼈다. 조종용 뼈(`head` 같은 것)는 편집 프로그램
   // 안에서만 그 뼈들을 끌고 다니고, 밖으로 내보낸 파일에는 그 연결이 남지 않는다 —
   // 그래서 조종용 뼈를 돌리면 화면에서는 아무 일도 안 일어난다(그렇게 만들어 놨었다).
+  //
+  // 이름이 여러 개 겹치면 **맨 위 토막**을 쓴다. 아래 토막을 돌리면 팔은 그대로 있고
+  // 손끝만 까딱한다. 그리고 이 파일에는 점이 들어간 이름(`DEF-upper_arm.L`)이 없다 —
+  // 불러오면서 점이 지워져 `DEF-upper_armL` 이 된다. 점을 넣어 찾으면 조용히 못 찾는다.
   const byName = new Map();
-  model.traverse((node) => { if (node.isBone === true) byName.set(node.name, node); });
+  model.traverse((node) => {
+    if (node.isBone === true && byName.has(node.name) === false) byName.set(node.name, node);
+  });
   const pick = (...names) => {
     for (const name of names) {
       const bone = byName.get(name);
@@ -226,9 +245,10 @@ export async function mountModel(canvas, modelName, onFail) {
   const bones = {
     head: pick('DEF-head', 'head'),
     neck: pick('DEF-neck', 'neck'),
-    spine: pick('DEF-spine.003', 'DEF-chest', 'DEF-spine', 'chest', 'spine'),
-    armL: pick('DEF-upper_arm.L'),
-    armR: pick('DEF-upper_arm.R'),
+    // 이 몸의 몸통은 `DEF-` 가 아니라 `ORG-` 다.
+    spine: pick('ORG-chest', 'ORG-spine', 'DEF-chest', 'chest', 'spine'),
+    armL: pick('DEF-upper_armL'),
+    armR: pick('DEF-upper_armR'),
   };
   // 기준 자세를 적어 둔다. 매 판마다 여기서부터 다시 계산해야 흔들림이 쌓이지 않는다.
   const restPose = new Map();
@@ -293,63 +313,66 @@ export async function mountModel(canvas, modelName, onFail) {
   }
 
   // ── 가져온 동작 얹기 ──────────────────────────────────────────────────
-  // 클립이 붙으면 얘가 실제로 서 있고 말하는 몸짓을 한다. 못 붙으면 위의 뼈 움직임만
-  // 남는다 — 그래도 숨은 쉬므로 물건처럼 보이진 않는다.
-  const bonesByName = byName;
-
-  let mixer = null;
-  const actions = {};
-  // 빌려온 동작은 기본으로 끈다.
-  //
-  // 세 번 고쳐도 목이 꺾이거나 소품이 돌았다. 두 뼈대는 이름만 같을 뿐 뼈가 감긴
-  // 방향과 기본 자세가 달라서, 각도를 실행 중에 계산으로 맞추는 것으로는 안 된다 —
-  // 유니티가 「휴머노이드」라는 중간 단계를 두는 이유가 이것이다.
-  //
-  // 제대로 하려면 한 번 구워서 넣어야 한다(Blender 에서 이 골격에 맞춰 다시 저장).
-  // 그건 따로 할 일이고, 그때까지 억지로 얹어 이상하게 두지 않는다.
-  // 켜 보려면 주소 뒤에 `?anim=1`.
-  const useBorrowed = new URLSearchParams(location.search).get('anim') === '1';
-  if (useBorrowed) try {
+  // 붙으면 얘가 실제로 서 있고 말하는 몸짓을 한다. 못 붙으면 아래의 손수 만든
+  // 뼈 움직임만 남는다 — 그래도 숨은 쉬므로 물건처럼 보이진 않는다.
+  // 꺼 보려면 주소 뒤에 `?anim=0`.
+  let clips = null;
+  let pairs = [];
+  if (new URLSearchParams(location.search).get('anim') !== '0') try {
     const gltf = await new GLTFLoader().loadAsync('/anim/cc0-animations.glb');
+    const paired = pairBones(model, gltf.scene);
+    pairs = paired.pairs;
+    console.log(`[3D] 짝지은 뼈 ${pairs.length}/${Object.keys(BONE_PAIRS).length}:`,
+      pairs.map((p) => `${p.source.name}→${p.target.name}`).join(' '));
 
-    // 두 뼈대의 「가만히 있을 때 자세」를 각각 적어 둔다. 이 둘이 다르기 때문에
-    // 각도를 그대로 옮기면 목이 꺾이고 소품이 돈다.
-    const sourceRest = new Map();
-    gltf.scene.traverse((node) => {
-      if (node.isBone === true) sourceRest.set(node.name, node.quaternion.clone());
-    });
-    const targetRest = new Map();
-    for (const [name, bone] of byName) targetRest.set(name, bone.quaternion.clone());
-
-    mixer = new THREE.AnimationMixer(model);
-    const wanted = { idle: 'Idle_Loop', talking: 'Idle_Talking_Loop' };
-    for (const [key, clipName] of Object.entries(wanted)) {
-      const source = gltf.animations.find((a) => a.name === clipName);
-      if (source === undefined) continue;
-      const fitted = fitClip(source, bonesByName, sourceRest, targetRest);
-      if (fitted === null) continue;
-      const action = mixer.clipAction(fitted);
-      action.setLoop(THREE.LoopRepeat, Infinity);
-      actions[key] = action;
-    }
-    if (Object.keys(actions).length === 0) {
-      mixer = null;
-      console.warn('[3D] 가져온 동작이 이 뼈대와 안 맞는다 — 뼈만 움직인다');
+    if (pairs.length >= 8) {
+      const mixer = new THREE.AnimationMixer(gltf.scene);
+      const wanted = { idle: 'Idle_Loop', talking: 'Idle_Talking_Loop' };
+      const baked = {};
+      for (const [key, clipName] of Object.entries(wanted)) {
+        const clip = gltf.animations.find((a) => a.name === clipName);
+        if (clip !== undefined) baked[key] = bakeClip(clip, pairs, gltf.scene, mixer);
+      }
+      if (baked.idle !== undefined) {
+        clips = baked;
+        console.log('[3D] 동작 구움:', Object.entries(baked)
+          .map(([k, c]) => `${k}(${c.frames}장, 최대 흔들림 ${c.widest.toFixed(1)}°)`).join(' '));
+      }
     } else {
-      actions.idle?.play();
-      console.log('[3D] 동작 얹음:', Object.keys(actions).join(', '));
+      console.warn('[3D] 짝지은 뼈가 너무 적다 — 손수 만든 움직임으로 간다');
     }
   } catch (e) {
-    console.warn('[3D] 동작을 못 불렀다 — 뼈만 움직인다:', e);
+    console.warn('[3D] 동작을 못 불렀다 — 손수 만든 움직임으로 간다:', e);
   }
 
-  /** 지금 기분에 맞는 동작으로 부드럽게 갈아탄다. */
-  let playing = actions.idle ?? null;
+  // ── 구워 둔 동작 되짚기 ────────────────────────────────────────────────
+  // 프레임 사이는 이어서 채운다. 동작을 갈아탈 때는 두 자세를 잠깐 섞는다.
+  const poseA = pairs.map(() => new THREE.Quaternion());
+  const poseB = pairs.map(() => new THREE.Quaternion());
+  const between = new THREE.Quaternion();
+
+  function readPose(clip, time, into) {
+    const wrapped = ((time % clip.duration) + clip.duration) % clip.duration;
+    const x = wrapped / clip.step;
+    const i0 = Math.min(clip.frames - 1, Math.floor(x));
+    const i1 = (i0 + 1) % clip.frames;
+    const blend = x - i0;
+    for (let i = 0; i < into.length; i += 1) {
+      const v = clip.values[i];
+      into[i].set(v[i0 * 4], v[i0 * 4 + 1], v[i0 * 4 + 2], v[i0 * 4 + 3]);
+      between.set(v[i1 * 4], v[i1 * 4 + 1], v[i1 * 4 + 2], v[i1 * 4 + 3]);
+      into[i].slerp(between, blend);
+    }
+  }
+
+  let current = clips?.idle ?? null;
+  let previous = null;
+  let fade = 1; // 1 = 갈아타기 끝남
   function switchTo(next) {
-    if (next === undefined || next === null || next === playing) return;
-    next.reset().play();
-    if (playing !== null) playing.crossFadeTo(next, 0.35, false);
-    playing = next;
+    if (next === undefined || next === null || next === current) return;
+    previous = current;
+    current = next;
+    fade = 0;
   }
 
   const state = { mood: 'idle', look: 0 };
@@ -367,7 +390,18 @@ export async function mountModel(canvas, modelName, onFail) {
 
   renderer.setAnimationLoop(() => {
     const t = clock.getElapsedTime();
-    mixer?.update(clock.getDelta());
+    const dt = clock.getDelta();
+
+    // 구워 둔 동작을 이 판의 자세로 펴 놓는다.
+    if (current !== null) {
+      readPose(current, t, poseA);
+      if (fade < 1 && previous !== null) {
+        fade = Math.min(1, fade + dt / 0.35);
+        readPose(previous, t, poseB);
+        for (let i = 0; i < poseA.length; i += 1) poseA[i].slerp(poseB[i], 1 - fade);
+      }
+      for (let i = 0; i < pairs.length; i += 1) pairs[i].target.quaternion.copy(poseA[i]);
+    }
 
     // 숨. 늘 있다 — 멈춰 있으면 물건처럼 보인다.
     const breath = Math.sin(t * 1.7) * 0.012;
@@ -387,9 +421,9 @@ export async function mountModel(canvas, modelName, onFail) {
     const tilt = state.mood === 'thinking' ? 0.07 : 0;
     pivot.rotation.x += (nod + tilt - pivot.rotation.x) * 0.12;
 
-    // 빌려온 동작이 없으므로, 살아 보이게 하는 건 전부 이 몇 줄이다.
+    // 빌려온 동작이 못 붙은 경우, 살아 보이게 하는 건 전부 이 몇 줄이다.
     // 매번 기준 자세에서 다시 계산한다 — 더하기만 하면 조금씩 밀려 결국 꺾인다.
-    if (mixer === null) {
+    if (current === null) {
       const sway = Math.sin(t * 0.9) * 0.02;              // 무게중심이 아주 조금 오간다
       const breathe = Math.sin(t * 1.7);                   // 숨
       const look = state.look;
@@ -408,8 +442,9 @@ export async function mountModel(canvas, modelName, onFail) {
       turn(bones.armL, 0, 0, lag);
       turn(bones.armR, 0, 0, -lag);
     } else {
-      if (bones.head !== null) bones.head.rotation.y += state.look * 0.24;
-      if (bones.neck !== null) bones.neck.rotation.y += state.look * 0.10;
+      // 빌려온 동작 위에 시선만 얹는다 — 동작이 잡아 준 자세를 덮지 않고 더한다.
+      if (bones.head !== null) bones.head.quaternion.multiply(spin.setFromAxisAngle(axis.set(0, 1, 0), state.look * 0.24));
+      if (bones.neck !== null) bones.neck.quaternion.multiply(spin.setFromAxisAngle(axis.set(0, 1, 0), state.look * 0.10));
     }
 
     renderer.render(scene, camera);
@@ -418,7 +453,8 @@ export async function mountModel(canvas, modelName, onFail) {
   return {
     setMood(mood) {
       state.mood = mood || 'idle';
-      switchTo(state.mood === 'speaking' ? (actions.talking ?? actions.idle) : actions.idle);
+      if (clips === null) return;
+      switchTo(state.mood === 'speaking' ? (clips.talking ?? clips.idle) : clips.idle);
     },
     /** -1(왼쪽) ~ 1(오른쪽). */
     lookAt(x) { state.look = Math.max(-1, Math.min(1, x)); },
