@@ -70,3 +70,48 @@ test('가장 최근 것 하나만 짚는다 — 잔소리가 길면 그게 또 �
   assert.equal(note.includes('도와드리겠습니다'), false);
   assert.match(note, /말씀해/);
 });
+
+// ── 회피가 굳는 것 ──────────────────────────────────────────────────
+
+import { avoidanceWarning } from '../dist/index.js';
+
+const 말 = (text, at) => ({ role: 'said', channel: 'web', text, at });
+
+test('한 번 모른다고 한 건 솔직한 것이다 — 짚지 않는다', () => {
+  assert.equal(avoidanceWarning([말('음… 그건 잘 모르겠어', 1), 말('소파에서 잤어', 2)]), '');
+});
+
+test('연달아 모른다고만 하면 벽이다 — 짚는다', () => {
+  const note = avoidanceWarning([
+    말('음… 잘 모르는데', 1),
+    말('그것도 모르겠어…', 2),
+    말('게임은 정말 모르는데', 3),
+  ]);
+  assert.match(note, /넘겼다/);
+  assert.match(note, /되묻거나/);
+});
+
+test('내용이 있으면 짚지 않는다', () => {
+  assert.equal(avoidanceWarning([
+    말('소파에서 잤어', 1),
+    말('그 폴더 얘기라면 어제도 했잖아', 2),
+    말('나는 그냥 옆에 있을게', 3),
+  ]), '');
+});
+
+test('한 마디밖에 안 했으면 판단하지 않는다', () => {
+  assert.equal(avoidanceWarning([말('모르겠어', 1)]), '');
+});
+
+test('「그렇구나」 만 하는 것도 회피로 본다', () => {
+  const note = avoidanceWarning([말('그렇구나', 1), 말('그렇군', 2)]);
+  assert.match(note, /넘겼다/);
+});
+
+test('사람이 한 말은 세지 않는다 — 얘가 회피했는지를 보는 것이다', () => {
+  assert.equal(avoidanceWarning([
+    { role: 'sensed', channel: 'web', text: '나도 모르겠어', at: 1 },
+    { role: 'sensed', channel: 'web', text: '진짜 모르겠다', at: 2 },
+    말('그건 어제 얘기한 거잖아', 3),
+  ]), '');
+});

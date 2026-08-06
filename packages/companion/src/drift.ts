@@ -72,3 +72,33 @@ export function driftWarning(recent: readonly MemoryEntry[], rules: DriftRules =
 
   return `방금 네가 한 말이 결에서 벗어났다 (${problems.join(', ')}): 「${last.text.slice(0, 40)}…」. 그 말투를 따라가지 마라.`;
 }
+
+/**
+ * 회피가 굳었나 — 「모른다」 「그렇구나」 만 반복하는 것.
+ *
+ * 표류 감시(위)는 **말투**가 새는 걸 잡는다. 그런데 말투는 멀쩡한데 **내용이 텅 빈** 경우가
+ * 따로 있다. 레퍼런스가 「무난한 메꿈」이라 부르는 것 — 확신이 없을 때 바꿔 말하기 + 뻔한
+ * 감정 + 무난한 마무리로 때우는 패턴이다.
+ *
+ * 실측(13→14회차): 개발 얘기를 여섯 번 물었더니 네 번이 「나도 잘 모르는데…」였다. 말투는
+ * 인격 그대로였으니 표류 감시엔 안 걸린다. 한 번은 솔직한 거고, 세 번 이어지면 벽이다.
+ */
+const 회피표시: readonly RegExp[] = [
+  /(모르|몰라|모르겠)/,
+  /^(그렇구나|그렇군|그래\.?$|음\.?$|아\.?$)/,
+  /(잘 몰라|잘 모르)/,
+];
+
+export function avoidanceWarning(recent: readonly MemoryEntry[], howMany = 3): string {
+  const mine = recent.filter((e) => e.role === 'said').slice(-howMany);
+  if (mine.length < 2) return '';
+
+  const dodged = mine.filter((e) => 회피표시.some((p) => p.test(e.text)));
+  if (dodged.length < 2) return '';
+
+  return (
+    `최근 ${mine.length}번 중 ${dodged.length}번을 「모른다」 식으로 넘겼다. ` +
+    '한 번은 솔직한 거지만 이어지면 벽이다. 모르면 모르는 대로 ' +
+    '되묻거나, 곁에서 본 것만이라도 말하거나, 딴 얘기로 이어라.'
+  );
+}
