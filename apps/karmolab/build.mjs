@@ -244,6 +244,7 @@ const entryPoints = [
   'src/widgets/tools/pdfcrop.ts',
   'src/widgets/tools/imgresize.ts',
   'src/widgets/tools/audiofade.ts',
+  'src/widgets/tools/subtitle.ts',
   'src/widgets/tools/audiolevel.ts',
   'src/widgets/tools/videotool.ts',
   'src/widgets/tools/checklist.ts',
