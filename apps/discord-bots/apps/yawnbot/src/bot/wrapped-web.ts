@@ -8,13 +8,17 @@
  */
 import type { Application, Request, Response } from 'express';
 import type { Client } from 'discord.js';
-import { getServerStatsRecorder, type ServerSummary } from '../services/server-stats';
+import { getServerStatsRecorder, type DebugDump, type ServerSummary } from '../services/server-stats';
 
 /** 카드에 실을 값 — HTML 과 JSON 이 같은 모양을 쓰도록 한 번 만든다. */
 export interface WrappedPageData {
   guildName: string;
   days: number;
   summary: ServerSummary;
+  /** 「자세히」 절 — 전원 표·채널별·날짜별. 카드는 top3 만 보여주므로 여기서 전부 편다. */
+  detail: DebugDump;
+  /** 채널 ID → 사람이 읽는 이름. 모르면 ID 그대로. */
+  channelNames: Record<string, string>;
   generatedAt: string;
 }
 
@@ -63,6 +67,95 @@ function hoursChart(hours: number[]): string {
     })
     .join('');
   return `<div class="hours">${bars}</div><div class="hours-axis"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>23시</span></div>`;
+}
+
+function table(headers: string[], rows: string[][]): string {
+  if (!rows.length) return '<p class="empty">아직 없음</p>';
+  const head = headers.map((h, i) => `<th${i ? ' class="r"' : ''}>${escapeHtml(h)}</th>`).join('');
+  const body = rows
+    .map((cells) => '<tr>' + cells.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('') + '</tr>')
+    .join('');
+  return `<div class="scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function num(value: number): string {
+  return value.toLocaleString('ko-KR');
+}
+
+/**
+ * 「자세히」 절 — 카드가 요약이라면 여기는 원본이다.
+ * `<details>` 로 접어 둔다: 자랑용 스샷에는 안 걸리고, 궁금하면 펼친다.
+ */
+function detailSection(data: WrappedPageData): string {
+  const { detail, channelNames } = data;
+
+  const people = table(
+    ['사람', '메시지', '글자', '평균길이', '새벽', '준 반응', '받은 반응'],
+    detail.rows.map((row) => [
+      escapeHtml(row.name),
+      num(row.msgs),
+      num(row.chars),
+      row.msgs ? num(Math.round(row.chars / row.msgs)) : '0',
+      row.nightMsgs ? `${num(row.nightMsgs)} <span class="dim">(${Math.round((row.nightMsgs / row.msgs) * 100)}%)</span>` : '0',
+      num(row.reactionsGiven),
+      num(row.reactionsGot),
+    ]),
+  );
+
+  const totalChannelMsgs = detail.channels.reduce((sum, c) => sum + c.count, 0) || 1;
+  const channels = table(
+    ['채널', '메시지', '비중'],
+    detail.channels.map((c) => [
+      escapeHtml(channelNames[c.channelId] ?? c.channelId),
+      num(c.count),
+      `${Math.round((c.count / totalChannelMsgs) * 100)}%`,
+    ]),
+  );
+
+  const maxDaily = Math.max(...detail.daily.map((d) => d.msgs), 1);
+  const daily = table(
+    ['날짜', '메시지', '사람', ''],
+    detail.daily
+      .slice()
+      .reverse()
+      .map((d) => [
+        escapeHtml(d.dayKey),
+        num(d.msgs),
+        num(d.users),
+        `<span class="minibar" style="width:${Math.max(Math.round((d.msgs / maxDaily) * 100), 2)}%"></span>`,
+      ]),
+  );
+
+  const hours = table(
+    ['시각', '메시지'],
+    detail.hours
+      .map((count, hour) => ({ count, hour }))
+      .filter((h) => h.count > 0)
+      .map((h) => [hourLabel(h.hour), num(h.count)]),
+  );
+
+  const emojis = table(
+    ['이모지', '쓰인 수'],
+    detail.emojis.slice(0, 40).map((e) => [escapeHtml(e.name), num(e.count)]),
+  );
+
+  const meta = [
+    `기록이 있는 날 <b>${detail.dayKeys.length}일</b> · 오늘(KST) ${escapeHtml(detail.todayKey)}`,
+    detail.stateFileExists
+      ? `마지막 저장 ${escapeHtml(detail.stateFileMtime ?? '')}`
+      : '아직 파일로 저장된 적 없음 (첫 저장 전)',
+    `아직 저장 안 된 변경 ${detail.dirty ? '있음' : '없음'}`,
+  ];
+
+  return `<details class="card detail">
+    <summary>📋 자세히 보기</summary>
+    <h3>사람별 (${detail.rows.length}명)</h3>${people}
+    <h3>채널별</h3>${channels}
+    <h3>날짜별</h3>${daily}
+    <h3>시각별</h3>${hours}
+    <h3>이모지</h3>${emojis}
+    <h3>집계 상태</h3><p class="sub">${meta.join('<br>')}</p>
+  </details>`;
 }
 
 export function renderWrappedPage(data: WrappedPageData): string {
@@ -143,6 +236,26 @@ export function renderWrappedPage(data: WrappedPageData): string {
   .hours .bar { flex: 1; height: 100%; display: flex; align-items: flex-end; }
   .hours .bar i { display: block; width: 100%; background: linear-gradient(180deg, #ffc86b, #b98bff); border-radius: 2px; }
   .hours-axis { display: flex; justify-content: space-between; color: #8f87a8; font-size: 11px; margin-top: 6px; }
+  /* 표는 카드보다 넓어야 읽힌다 — 자랑용 카드 폭에 억지로 맞추지 않는다. */
+  details.detail { padding: 0; width: min(560px, 100%); }
+  details.detail summary {
+    cursor: pointer; padding: 16px 20px; font-size: 14px; color: #d9d2ff; font-weight: 600;
+    list-style: none; user-select: none;
+  }
+  details.detail summary::-webkit-details-marker { display: none; }
+  details.detail summary::after { content: ' ▾'; color: #8f87a8; }
+  details.detail[open] summary::after { content: ' ▴'; }
+  details.detail > *:not(summary) { padding: 0 20px; }
+  details.detail > *:last-child { padding-bottom: 18px; }
+  details.detail h3 { font-size: 12px; color: #8f87a8; margin: 16px 0 7px; text-transform: none; font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 5px 6px; text-align: left; white-space: nowrap; }
+  th { color: #8f87a8; font-weight: 500; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+  td { border-bottom: 1px solid rgba(255,255,255,0.04); }
+  th.r, td.r { text-align: right; }
+  .dim { color: #8f87a8; }
+  .minibar { display: inline-block; height: 7px; background: linear-gradient(90deg, #b98bff, #ffc86b); border-radius: 4px; min-width: 3px; }
   footer { color: #6f688a; font-size: 12px; text-align: center; max-width: 420px; line-height: 1.6; }
   footer a { color: #a79ec4; }
 </style>
@@ -152,6 +265,7 @@ export function renderWrappedPage(data: WrappedPageData): string {
   <div class="range">최근 ${summary.days}일 · 기록된 날 ${summary.daysWithData}일</div>
 </header>
 ${body}
+${detailSection(data)}
 <footer>
   메시지 내용은 저장하지 않습니다 — 길이·시각·이모지만 셉니다.<br>
   욘봇이 만든 결산 · <a href="https://mascari4615.github.io/karmolab/">KarmoLab</a>
@@ -172,10 +286,21 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
     const guildId = recorder.guildIdForShareKey(key);
     if (!guildId) return null;
     const days = parseDays(daysRaw);
+    const guild = client?.guilds.cache.get(guildId) ?? null;
+    const detail = recorder.debug(guildId, days);
+
+    const channelNames: Record<string, string> = {};
+    for (const { channelId } of detail.channels) {
+      const channel = guild?.channels.cache.get(channelId);
+      channelNames[channelId] = channel && 'name' in channel ? `#${channel.name}` : channelId;
+    }
+
     return {
-      guildName: client?.guilds.cache.get(guildId)?.name ?? '우리 서버',
+      guildName: guild?.name ?? '우리 서버',
       days,
       summary: recorder.summarize(guildId, days),
+      detail,
+      channelNames,
       generatedAt: new Date().toISOString(),
     };
   };
@@ -195,6 +320,8 @@ export function mountWrappedWeb(app: Application, client: Client | null): void {
       res.status(404).json({ error: 'unknown share key' });
       return;
     }
-    res.json(data);
+    // 봇 머신의 파일 경로는 밖으로 내보내지 않는다 (페이지에도 안 쓴다).
+    const { statePath: _statePath, ...detail } = data.detail;
+    res.json({ ...data, detail });
   });
 }
