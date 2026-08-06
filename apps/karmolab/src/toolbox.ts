@@ -32,6 +32,8 @@
  *        도구 상세 페이지(/karmolab/t/)가 있는 위젯은 gen-tool-pages.mjs 가 'full' 을 막는다.
  *    - tabs: [{ id, label, build(container) }]
  *    - tabLayout: (선택) `'sidebar'` — 탭이 많을 때 왼쪽 세로 목록 + 오른쪽 패널 (문서 위젯 등)
+ *    - lazyTabs: (선택) true — 첫 탭 외에는 처음 열릴 때 그린다. 여러 도구를 탭으로 묶은
+ *      위젯에 쓴다 (전부 미리 그리면 안 본 화면·타이머·저장소 접근이 헛돈다)
  *
  * 마스코트 연동:
  *   Mdd.setMood('happy')   — 감정 변경
@@ -996,7 +998,17 @@ const Toolbox = (() => {
         page.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         btn.setAttribute('aria-selected', 'true');
-        document.getElementById('panel-' + tabId)?.classList.add('active');
+        const panel = document.getElementById('panel-' + tabId);
+        buildLazyPanel(panel);
+        panel?.classList.add('active');
+    }
+
+    /** lazyTabs 위젯의 아직 안 그린 탭 — 처음 열릴 때 그린다 (buildToolPage 참고). */
+    function buildLazyPanel(panel) {
+        if (!panel || !panel._lazyBuild) return;
+        const build = panel._lazyBuild;
+        panel._lazyBuild = null;
+        build(panel);
     }
 
     /* ===== Page Builder ===== */
@@ -1057,7 +1069,13 @@ const Toolbox = (() => {
             panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
             panel.id = 'panel-' + tab.id;
             panel.setAttribute('role', 'tabpanel');
-            tab.build(panel);
+            // 여러 도구를 탭으로 묶은 위젯은 전부 미리 그리면 안 본 탭까지 만들어진다
+            // (무거운 화면·타이머·저장소 접근이 헛돈다). lazyTabs 면 처음 열릴 때 그린다.
+            if (tool.lazyTabs === true && i > 0) {
+                panel._lazyBuild = tab.build;
+            } else {
+                tab.build(panel);
+            }
             panelsHost.appendChild(panel);
         });
 
