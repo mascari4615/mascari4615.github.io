@@ -526,6 +526,11 @@
 .co-sample-lg { font-size: clamp(20px, 4vw, 28px); font-weight: 700; line-height: 1.4; }
 .co-sample-sm { font-size: var(--font-size-sm); line-height: 1.7; }
 
+/* 체크리스트 */
+.cl-row { cursor: pointer; user-select: none; }
+.cl-done .tool-list-val { text-decoration: line-through; color: var(--text-tertiary); }
+.cl-done .tool-list-key { color: var(--success); }
+
 /* 색각 시뮬레이터 */
 .cb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: var(--space-lg); }
 .cb-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 10px; }
