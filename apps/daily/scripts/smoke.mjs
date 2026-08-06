@@ -165,7 +165,23 @@ await pastPage('lol');
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
 const page = await ctx.newPage();
 await page.goto(`${base}/`, { waitUntil: 'networkidle' });
-check('허브가 주제를 다 건다', (await page.locator('.card').count()) >= 2);
+check('허브가 판을 다 건다', (await page.locator('.card').count()) >= 4);
+check('허브에 하는 법이 있다', (await page.locator('.how li').count()) >= 3);
+check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past-links a').count()) >= 2);
+
+// 한 판 끝낸 사람이 허브로 돌아오면, 다 푼 판이 표시돼야 한다 (같은 판을 또 누르는 낭비 차단).
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'pokemon.json'), 'utf8'));
+  const answer = answerOf(topic);
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  check('허브가 오늘 푼 판을 표시한다', (await page.locator('.card.done-today').count()) === 1);
+  check('허브가 남은 판 수를 말한다', /남은 판 3개/.test(await page.locator('.hub-note').innerText()));
+}
 await page.screenshot({ path: join(shots, 'hub.png'), fullPage: true });
 await ctx.close();
 

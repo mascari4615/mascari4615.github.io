@@ -173,10 +173,11 @@ const hub = `${head({
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
   <p class="lede">판을 고르면 오늘의 문제가 하나. 매일 자정(KST)에 바뀐다.</p>
+  <p class="hub-note"></p>
   <div class="cards">
 ${all
   .map(
-    (p) => `    <a class="card" href="${BASE}/${p.path}/">
+    (p) => `    <a class="card" href="${BASE}/${p.path}/" data-topic="${esc(p.topic.id)}" data-mode="${p.mode}">
       <div class="em">${esc(p.topic.emoji ?? '🎯')}</div>
       <h2>${esc(p.label)}</h2>
       <p>${esc(p.mode === 'silhouette' ? '그림만 보고 맞히기' : p.topic.subtitle ?? '')}</p>
@@ -185,8 +186,20 @@ ${all
   )
   .join('\n')}
   </div>
+  <details class="how">
+    <summary>어떻게 하는 거예요?</summary>
+    <ol>
+      <li>아무거나 하나 떠올려 이름을 넣는다. 몰라도 된다 — 아무거나로 시작한다.</li>
+      <li><b>속성 판</b>은 칸이 초록이면 맞음, 노랑이면 비슷함, ▲▼ 는 정답이 더 크다·작다.</li>
+      <li><b>실루엣 판</b>은 까만 그림이 틀릴 때마다 조금씩 밝아진다.</li>
+      <li>맞히면 결과가 이모지 격자로 나온다 — <b>정답 이름은 안 들어간다.</b> 그대로 자랑하면 된다.</li>
+    </ol>
+    <p>답은 매일 자정(한국 시각)에 바뀐다. 로그인 없음, 기록은 이 기기에만 남는다.</p>
+  </details>
+  <div class="past-links">지난 문제: ${topics.map((t) => `<a href="${BASE}/${t.id}/past/">${esc(t.title)}</a>`).join(' · ')}</div>
   ${foot(true)}
 </div>
+<script type="module" src="hub.mjs?v=${stamp}"></script>
 </body></html>
 `;
 writeFileSync(join(dist, 'index.html'), hub);
@@ -195,7 +208,7 @@ writeFileSync(join(dist, 'index.html'), hub);
 // (실측: /sitemap.xml 에 /daily/, /daily/pokemon/, /daily/lol/ 이 들어 있었다).
 // 여기서 하나 더 찍으면 아무도 안 읽는 파일이 남는다.
 
-for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'hub.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
 // 공유 카드 그림 (scripts/gen-og.mjs 가 만들어 커밋해 둔 것 — 배포에선 만들지 않는다).
 mkdirSync(join(dist, 'img/og'), { recursive: true });
