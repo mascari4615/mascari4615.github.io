@@ -13,6 +13,7 @@
   const PARTS: Array<[string, string]> = [
     ['pdftool', 'PDF 합치기·나누기'],
     ['pdfcompress', 'PDF 용량 줄이기'],
+    ['pdfsign', 'PDF 서명'],
     ['pdfwatermark', 'PDF 워터마크'],
     ['pdf2text', 'PDF → 글자'],
     ['pdf2img', 'PDF → 이미지'],
