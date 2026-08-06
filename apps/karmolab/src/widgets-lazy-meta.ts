@@ -1138,5 +1138,16 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     icon: '<path d="M3 7h18l-2 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L3 7z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     lazyScriptPaths: ['stash']
+  },
+
+  /* 노트북(집에서 24시간 도는 기계)으로 가는 문 — 파일 공유·빌드 현황 */
+  {
+    id: 'laptop',
+    title: '노트북',
+    category: 'lab',
+    desc: '집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문',
+    layout: 'form',
+    icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['laptop']
   }
 ] as KarmoLabLazyWidgetStub[];
