@@ -28,8 +28,36 @@ const mode = root.dataset.mode || 'classic';
 const stamp = root.dataset.stamp || '';
 const others = JSON.parse(root.dataset.others || '[]');
 
+/**
+ * 표를 못 받으면 지금까지는 **아무 말 없는 빈 화면**이 됐다. 낯선 사람은 그걸 「고장난 사이트」로
+ * 읽고 그냥 닫는다. 무슨 일이 났는지 말하고 다시 시도할 길을 준다.
+ */
+function fatal(message) {
+  root.querySelector('.rows')?.replaceChildren();
+  root.querySelector('.guessbar')?.setAttribute('hidden', '');
+  const box = document.createElement('div');
+  box.className = 'done';
+  box.innerHTML = `<h2>문제를 못 불러왔어요</h2><div class="tally">${message}</div>`;
+  const retry = document.createElement('button');
+  retry.className = 'btn';
+  retry.type = 'button';
+  retry.textContent = '다시 시도';
+  retry.addEventListener('click', () => location.reload());
+  box.append(retry);
+  root.querySelector('.done')?.replaceWith(box);
+}
+
 // 표 주소는 페이지가 알려 준다 — 속성판(/daily/<주제>/)과 실루엣판(/daily/<주제>/silhouette/)의 깊이가 다르다.
-const topic = await (await fetch(`${root.dataset.data}?v=${stamp}`)).json();
+let topic;
+try {
+  const res = await fetch(`${root.dataset.data}?v=${stamp}`);
+  if (!res.ok) throw new Error(`서버가 ${res.status} 로 답했어요`);
+  topic = await res.json();
+  if (!topic?.items?.length) throw new Error('표가 비어 있어요');
+} catch (err) {
+  fatal(`${err.message}. 인터넷이 끊겼거나 잠깐 말썽일 수 있어요.`);
+  throw err;
+}
 const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
 const maxGuesses = mode === 'silhouette' ? 6 : topic.maxGuesses ?? 8;
 const puzzleNo = puzzleNumber();
@@ -223,7 +251,7 @@ function renderSuggestions() {
   $sug.innerHTML = list
     .map(
       (item, i) =>
-        `<button type="button" data-i="${i}" aria-selected="false">${item.img && mode !== 'silhouette' ? `<img src="${esc(item.img)}" alt="" loading="lazy">` : ''}<span>${esc(item.name)}</span></button>`,
+        `<button type="button" role="option" id="sug-${i}" data-i="${i}" aria-selected="false">${item.img && mode !== 'silhouette' ? `<img src="${esc(item.img)}" alt="" loading="lazy">` : ''}<span>${esc(item.name)}</span></button>`,
     )
     .join('');
   [...$sug.children].forEach((b, i) => b.addEventListener('click', () => submit(list[i].name)));
@@ -238,6 +266,8 @@ $input.addEventListener('keydown', (e) => {
     if (!buttons.length) return;
     cursor = (cursor + (e.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
     buttons.forEach((b, i) => b.setAttribute('aria-selected', String(i === cursor)));
+    // 화면 낭독기가 「지금 어느 항목」인지 알려면 이 연결이 있어야 한다.
+    $input.setAttribute('aria-activedescendant', `sug-${cursor}`);
   } else if (e.key === 'Enter') {
     e.preventDefault();
     const pick = cursor >= 0 ? buttons[cursor] : buttons[0];
