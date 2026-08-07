@@ -256,6 +256,41 @@ const KarmoAccount = {
     apiBase: API_BASE,
 };
 
+/* ===== 흔적 남기기 (TASK-KL-098 Cycle 2) =====
+ *
+ * 도구가 열렸다는 것을 서버에 알린다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도
+ * 사이트의 자국이다. 이게 있어야 「어느 도구가 실제로 쓰이는가」를 사이트가 스스로 말한다.
+ *
+ * 실패하면 아무 일도 안 한다. 숫자 하나 못 센 것과 도구가 안 되는 것은 전혀 다른 무게다.
+ */
+
+/** 이 페이지가 지금 어느 도구를 보여 주고 있나. 도구가 아니면 null. */
+function currentToolId(): string | null {
+    // 도구 상세 페이지: /karmolab/t/<id>/
+    const detail = /^\/karmolab\/t\/([a-z0-9][a-z0-9-]*)\/?$/.exec(location.pathname);
+    if (detail) return detail[1];
+
+    // 앱 안: #<도구id>. 홈·계정 화면 등은 도구가 아니다.
+    const hash = location.hash.replace(/^#/, '');
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(hash)) return null;
+    if (hash === 'home' || hash === 'user' || hash === 'linktree' || hash === 'plaza') return null;
+    return hash;
+}
+
+/** 한 번 알린 도구는 이 화면에서 다시 안 알린다 (서버도 한 번 더 거르지만, 안 보내면 더 낫다). */
+const tracedTools = new Set<string>();
+
+function traceCurrentTool(): void {
+    const toolId = currentToolId();
+    if (!toolId || tracedTools.has(toolId)) return;
+    tracedTools.add(toolId);
+    void call('/kl/trace/tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toolId }),
+    });
+}
+
 declare global {
     interface Window {
         KarmoAccount: typeof KarmoAccount;
@@ -265,8 +300,13 @@ declare global {
 window.KarmoAccount = KarmoAccount;
 
 watchLocalChanges();
+window.addEventListener('hashchange', traceCurrentTool);
 // 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
-if (document.readyState === 'complete') void refresh();
-else window.addEventListener('load', () => void refresh());
+function start(): void {
+    void refresh();
+    traceCurrentTool();
+}
+if (document.readyState === 'complete') start();
+else window.addEventListener('load', start);
 
 export {};

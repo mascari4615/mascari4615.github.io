@@ -17,9 +17,17 @@ import crypto from 'crypto';
 import {
   getKarmolabAccountStore,
   emptyRecords,
+  type Account,
   type AccountRecords,
   type KarmolabAccountStore,
 } from '../services/karmolab-accounts';
+import {
+  getKarmolabTraceStore,
+  KarmolabTraceStore,
+  isValidToolId,
+  REQUEST_MAX_LEN,
+  REQUEST_DAILY_LIMIT,
+} from '../services/karmolab-traces';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
 const SESSION_COOKIE = 'kl_session';
@@ -168,10 +176,39 @@ export function karmolabOauthConfig(env: NodeJS.ProcessEnv = process.env): {
 }
 
 /**
+ * 이 사람이 주인인가 — 요청에 답을 달거나 상태를 바꿀 수 있는 사람.
+ * 봇이 이미 쓰는 `ADMIN_IDS`(디스코드 id 목록)를 그대로 본다. 새 설정을 만들지 않는다.
+ */
+function isAdminAccount(account: Account | null, env: NodeJS.ProcessEnv = process.env): boolean {
+  const discordId = account?.identities.discord?.discordId;
+  if (!discordId) return false;
+  return String(env.ADMIN_IDS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .includes(discordId);
+}
+
+/**
+ * 방문자를 가리키는 열쇠를 만든다 — 주소는 저장하지 않고 섞어서만 쓴다.
+ * cloudflared 를 거쳐 오므로 원래 주소는 `x-forwarded-for` 의 맨 앞에 있다.
+ */
+function visitorKeyFor(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const first = Array.isArray(forwarded) ? forwarded[0] : String(forwarded ?? '').split(',')[0];
+  const ip = (first || req.socket.remoteAddress || 'unknown').trim();
+  return KarmolabTraceStore.visitorKey(ip, String(req.headers['user-agent'] ?? ''));
+}
+
+/**
  * @param store 시험에서 임시 저장소를 넣기 위한 자리. 안 주면 실제 저장소를 쓴다.
  *   (이게 없으면 라우트를 HTTP 로 찔러 보는 시험이 운영 데이터 파일을 건드린다.)
  */
-export function registerKarmolabApi(app: Application, store: KarmolabAccountStore = getKarmolabAccountStore()): void {
+export function registerKarmolabApi(
+  app: Application,
+  store: KarmolabAccountStore = getKarmolabAccountStore(),
+  traces: KarmolabTraceStore = getKarmolabTraceStore(),
+): void {
 
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
   app.use('/kl', (req: Request, res: Response, next: NextFunction) => {
@@ -180,7 +217,7 @@ export function registerKarmolabApi(app: Application, store: KarmolabAccountStor
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,OPTIONS');
       res.setHeader('Access-Control-Max-Age', '86400');
     }
     // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
@@ -214,7 +251,9 @@ export function registerKarmolabApi(app: Application, store: KarmolabAccountStor
     // identify 만 받는다. 이메일·서버 목록은 필요 없고, 안 받는 것이 제일 확실한 보호다.
     url.searchParams.set('scope', 'identify');
     url.searchParams.set('state', state);
-    url.searchParams.set('prompt', 'none');
+    // `prompt=none` 은 안 쓴다. 이미 허락한 사람의 클릭 한 번을 줄여 주지만, **한 번도 허락한
+    // 적 없는 사람**에게 어떻게 도는지는 디스코드 문서가 말하지 않는다 (오류로 튕기는지 화면을
+    // 띄우는지). 잘못 짚으면 신규 로그인이 전부 깨진다 — 얻는 것(클릭 1회)보다 잃는 것이 크다.
     res.redirect(url.toString());
   });
 
@@ -324,6 +363,94 @@ export function registerKarmolabApi(app: Application, store: KarmolabAccountStor
     }
     const merged = store.mergeRecordsForAccount(account.id, sanitizeRecords(req.body));
     res.json({ records: merged });
+  });
+
+  // ── 흔적 원장 (Cycle 2) — 남의 자국이 보이는 자리 ────────────────────────
+  //
+  // 여기 숫자는 전부 실제로 일어난 일이다. 초반에는 작을 것이고, 작은 게 맞다.
+  // 지어낸 수를 넣는 순간 이 자리 전체가 못 믿을 것이 된다.
+
+  /** 도구가 열렸다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도 사이트의 자국이다. */
+  app.post('/kl/trace/tool', (req: Request, res: Response) => {
+    const toolId = (req.body ?? {}).toolId;
+    if (!isValidToolId(toolId)) {
+      res.status(400).json({ error: 'bad_tool_id' });
+      return;
+    }
+    const counted = traces.recordToolOpen(toolId, visitorKeyFor(req));
+    res.json({ counted });
+  });
+
+  /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
+  app.get('/kl/tools/stats', (_req: Request, res: Response) => {
+    res.json({ tools: traces.toolStats(), pulse: traces.pulse() });
+  });
+
+  /** 도구 요청·투표판 — 사람이 흔적을 *남기는* 자리. 보는 건 로그인 없이 된다. */
+  app.get('/kl/requests', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    res.json({
+      requests: traces.publicRequests(account?.id ?? null),
+      signedIn: Boolean(account),
+      isAdmin: isAdminAccount(account),
+      maxLength: REQUEST_MAX_LEN,
+    });
+  });
+
+  app.post('/kl/requests', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const text = String((req.body ?? {}).text ?? '').trim();
+    if (text.length < 2 || text.length > REQUEST_MAX_LEN) {
+      res.status(400).json({ error: 'bad_text', maxLength: REQUEST_MAX_LEN });
+      return;
+    }
+    if (traces.requestsTodayBy(account.id) >= REQUEST_DAILY_LIMIT) {
+      // 막을 때는 왜 막혔는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
+      res.status(429).json({ error: 'daily_limit', limit: REQUEST_DAILY_LIMIT });
+      return;
+    }
+    traces.addRequest({ text, accountId: account.id, handle: account.handle });
+    traces.flush();
+    res.json({ requests: traces.publicRequests(account.id) });
+  });
+
+  app.post('/kl/requests/:id/vote', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const voted = traces.toggleVote(String(req.params.id ?? ''), account.id);
+    if (voted === null) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ voted, requests: traces.publicRequests(account.id) });
+  });
+
+  /** 주인이 답을 달거나 상태를 바꾼다. 답이 돌아오는 곳이라야 사람이 또 쓴다. */
+  app.patch('/kl/requests/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!isAdminAccount(account)) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    const body = req.body ?? {};
+    const updated = traces.updateRequest(String(req.params.id ?? ''), {
+      status: body.status,
+      reply: body.reply,
+    });
+    if (!updated) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ requests: traces.publicRequests(account?.id ?? null) });
   });
 
   /**
