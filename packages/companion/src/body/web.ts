@@ -189,7 +189,7 @@ export function webBody(options: WebBodyOptions = {}): Body {
           serveFile(res, join(packageRoot, 'assets', 'ui.css'), 'text/css; charset=utf-8', log);
           return;
         }
-        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js') {
+        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js' || url === '/say-chunks.js') {
           serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;
         }
