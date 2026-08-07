@@ -56,6 +56,11 @@ export interface Gallery {
   ownerOnly: boolean;
   /** 글에 제목이 있는가. 요청판처럼 한 줄짜리는 제목이 없다. */
   titled: boolean;
+  /**
+   * 말머리 — 갤러리 안에서 글을 한 번 더 가르는 이름들 (디시·아카의 말머리/카테고리).
+   * 갤러리마다 다르다. 만든 사람이 정한다. 없으면 말머리 없이 쓴다.
+   */
+  tags: string[];
 }
 
 /**
@@ -65,11 +70,11 @@ export interface Gallery {
  * 아래는 씨앗일 뿐이고, 저장소에 없으면 한 번 심는다.
  */
 export const SEED_GALLERIES: Gallery[] = [
-  { id: 'free', label: '자유', desc: '무슨 이야기든', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
-  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
-  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
-  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false },
-  { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true },
+  { id: 'free', label: '자유', desc: '무슨 이야기든', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['잡담', '질문', '정보'] },
+  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['도구', '계정', '기타'] },
+  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['만든 것', '찾은 것'] },
+  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false, tags: [] },
+  { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true, tags: [] },
 ];
 
 export type BoardId = string;
@@ -93,6 +98,9 @@ export const GALLERY_LABEL_MAX = 20;
 export const GALLERY_DESC_MAX = 60;
 /** 한 사람이 하루에 만들 수 있는 갤러리 수 — 빈 갤러리가 늘어나면 목록이 죽는다. */
 export const GALLERY_DAILY_LIMIT = 3;
+export const TAG_MAX_LEN = 10;
+/** 말머리가 너무 많으면 고르는 것이 일이 된다. */
+export const TAG_MAX_COUNT = 8;
 
 export type PostSort = 'recent' | 'top';
 
@@ -135,6 +143,8 @@ export interface Post {
   bumpedAt: string;
   /** 주인이 목록 맨 위에 고정했나. */
   pinned: boolean;
+  /** 말머리 — 그 갤러리가 가진 것 중 하나. 안 골랐으면 null. */
+  tag: string | null;
 }
 
 interface TracesState {
@@ -219,6 +229,7 @@ export interface PublicPost {
   replyCount: number;
   status: Post['status'];
   pinned: boolean;
+  tag: string | null;
   replies: PublicReply[];
   votedByMe: boolean;
   likedByMe: boolean;
@@ -234,7 +245,8 @@ export interface PublicPost {
  */
 /** 처음부터 있어야 하는 갤러리를 채워 넣는다 (없을 때만 — 사람이 고친 것은 안 덮는다). */
 function withSeeds(existing: Gallery[]): Gallery[] {
-  const out = [...existing];
+  // 말머리 칸은 나중에 생겼다 — 없으면 빈 목록으로 채운다.
+  const out = existing.map((g) => ({ ...g, tags: Array.isArray(g.tags) ? g.tags : [] }));
   for (const seed of SEED_GALLERIES) {
     if (!out.some((g) => g.id === seed.id)) out.push({ ...seed });
   }
@@ -263,6 +275,7 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
     })),
     bumpedAt: raw.bumpedAt ?? createdAt,
     pinned: raw.pinned === true,
+    tag: typeof raw.tag === 'string' ? raw.tag : null,
   };
 }
 
@@ -393,7 +406,7 @@ export class KarmolabTraceStore {
   }
 
   addPost(
-    input: { board: BoardId; title?: string | null; text: string; accountId: string; handle: string },
+    input: { board: BoardId; title?: string | null; text: string; accountId: string; handle: string; tag?: string | null },
     now: Date = new Date(),
   ): Post {
     const at = now.toISOString();
@@ -413,6 +426,7 @@ export class KarmolabTraceStore {
       replies: [],
       bumpedAt: at,
       pinned: false,
+      tag: input.tag ?? null,
     };
     this.state.posts.unshift(post);
     this.markDirty();
@@ -552,6 +566,7 @@ export class KarmolabTraceStore {
       replyCount: post.replies.length,
       status: post.status,
       pinned: post.pinned,
+      tag: post.tag,
       replies: post.replies.map((r) => ({
         id: r.id,
         text: r.text,
@@ -582,11 +597,12 @@ export class KarmolabTraceStore {
    *  - `top`: 좋아요 + 답글이 많은 순 (지난 이야기 중 볼 만한 것)
    *  - 그 외: 마지막 움직임 순 (대화가 살아 있는 것이 위)
    */
-  publicPosts(board: BoardId, viewerAccountId: string | null, sort: PostSort = 'recent'): PublicPost[] {
+  publicPosts(board: BoardId, viewerAccountId: string | null, sort: PostSort = 'recent', tag: string | null = null): PublicPost[] {
     const score = (p: Post): number => p.likerAccountIds.length * 2 + p.replies.length;
     const voteStyle = this.gallery(board)?.voteStyle === true;
     return this.state.posts
       .filter((p) => p.board === board)
+      .filter((p) => !tag || p.tag === tag)
       .sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
         if (voteStyle) return b.voterAccountIds.length - a.voterAccountIds.length || b.createdAt.localeCompare(a.createdAt);
@@ -629,6 +645,7 @@ export class KarmolabTraceStore {
       voteStyle: false,
       ownerOnly: false,
       titled: true,
+      tags: [],
     };
     this.state.galleries.push(gallery);
     this.markDirty();
@@ -646,6 +663,26 @@ export class KarmolabTraceStore {
     if (!isOwner && gallery.createdByHandle !== handle) return 'not_allowed';
     if (this.state.posts.some((p) => p.board === id)) return 'not_empty';
     this.state.galleries = this.state.galleries.filter((g) => g.id !== id);
+    this.markDirty();
+    return 'ok';
+  }
+
+  /**
+   * 갤러리의 말머리를 정한다 — 만든 사람이나 주인만.
+   * 이미 그 말머리로 쓴 글이 있어도 지울 수 있다. 그 글의 말머리는 그대로 남되 거르는 줄에서만
+   * 사라진다 (글을 건드리는 것보다 낫다).
+   */
+  setGalleryTags(id: string, tags: string[], handle: string, isOwner: boolean): 'ok' | 'not_found' | 'not_allowed' {
+    const gallery = this.state.galleries.find((g) => g.id === id);
+    if (!gallery) return 'not_found';
+    if (!isOwner && gallery.createdByHandle !== handle) return 'not_allowed';
+    const cleaned: string[] = [];
+    for (const raw of tags) {
+      const tag = String(raw ?? '').trim().slice(0, TAG_MAX_LEN);
+      if (tag && !cleaned.includes(tag)) cleaned.push(tag);
+      if (cleaned.length >= TAG_MAX_COUNT) break;
+    }
+    gallery.tags = cleaned;
     this.markDirty();
     return 'ok';
   }
@@ -687,10 +724,24 @@ export class KarmolabTraceStore {
     return { posts, replies };
   }
 
-  /** 첫 화면에 띄울 최근 글 — 판을 가리지 않고 마지막 움직임 순. */
+  /** 갤러리를 가리지 않는 최근 글 — 첫 화면·커뮤니티 홈이 쓴다. */
   recentPosts(limit: number, viewerAccountId: string | null): PublicPost[] {
     return [...this.state.posts]
       .sort((a, b) => b.bumpedAt.localeCompare(a.bumpedAt))
+      .slice(0, limit)
+      .map((p) => this.toPublic(p, viewerAccountId));
+  }
+
+  /**
+   * 베스트 — 갤러리를 가리지 않고 **반응이 모인 글**.
+   * (아카의 「베스트 라이브」 자리: 추천이 몰린 글만 따로 모은다.)
+   * 반응이 아예 없는 글은 안 넣는다 — 그냥 최근 글과 같아지면 그 자리가 뜻을 잃는다.
+   */
+  bestPosts(limit: number, viewerAccountId: string | null): PublicPost[] {
+    const score = (p: Post): number => p.likerAccountIds.length * 2 + p.voterAccountIds.length + p.replies.length;
+    return this.state.posts
+      .filter((p) => score(p) > 0)
+      .sort((a, b) => score(b) - score(a) || b.bumpedAt.localeCompare(a.bumpedAt))
       .slice(0, limit)
       .map((p) => this.toPublic(p, viewerAccountId));
   }
