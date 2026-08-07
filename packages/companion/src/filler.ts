@@ -25,6 +25,17 @@ export interface FillerOptions {
 }
 
 /** 지금 낼 뜸 하나. */
+/**
+ * 뜸으로 쓰일 수 있는 말 전부.
+ *
+ * **미리 만들어 두려고** 밖으로 내놓는다. 흉내 낸 목소리는 소리 하나에 1~2초가 걸리고
+ * 한 번에 하나씩만 만든다 — 뜸이 그 줄에 서면 진짜 대답이 뒤에서 기다린다. 기다림을
+ * 메우라고 만든 것이 기다림을 만든다(실측 4~6초). 몇 마디 안 되니 미리 만들어 둔다.
+ */
+export function 모든뜸(): readonly string[] {
+  return Object.values(뜸).flat();
+}
+
 export function pickFiller(options: FillerOptions = {}): string {
   const energy = options.energy ?? 0.5;
   const pool = energy < 0.35 ? 뜸.나른함 : energy > 0.75 ? 뜸.깨어있음 : 뜸.보통;
