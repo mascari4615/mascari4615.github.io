@@ -238,6 +238,12 @@ import qrcode from 'qrcode-generator';
             el.addEventListener('input', render);
             el.addEventListener('change', render);
           });
+
+          /* 열자마자 **QR 한 장이 이미 그려져 있게** 한다 (TASK-KL-133).
+             빈 칸만 있으면 「여기 뭘 넣으라는 거지」로 시작한다 — 결과를 먼저 보여 주면
+             무엇을 하는 도구인지 한 번에 안다. 사람이 치는 순간 그 값으로 바뀐다. */
+          $<HTMLTextAreaElement>('#qrText').value = 'https://blog.mascari4615.com/karmolab/';
+          render();
           sizeInput.addEventListener('input', () => {
             sizeVal.textContent = sizeInput.value + 'px';
           });

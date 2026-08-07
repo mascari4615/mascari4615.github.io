@@ -138,6 +138,11 @@
         .user-acct-value { font-size:var(--font-size-xs); color:var(--text-primary); }
         .user-acct-row input { flex:1 1 160px; min-width:0; }
         .user-acct-hint { flex:1 1 100%; font-size:11px; color:var(--text-tertiary); line-height:1.55; }
+        .user-acct-codes { flex:1 1 100%; margin-top:8px; }
+        .user-acct-codelist { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
+            gap:6px; margin:8px 0; padding-left:20px; }
+        .user-acct-codelist li { font-family:var(--font-mono); font-size:var(--font-size-xs);
+            color:var(--text-primary); letter-spacing:.04em; }
         .user-acct-danger { border-top:1px solid var(--border); padding-top:14px; }
         .user-account-btn-danger { background:transparent; color:#dc2626; border-color:rgba(220,38,38,.45); }
         html[data-theme="dark"] .user-account-btn-danger { color:#fca5a5; border-color:rgba(252,165,165,.45); }
@@ -348,6 +353,20 @@
                 <a class="user-account-btn user-account-btn-quiet" href="${base}/kl/me/export" download>JSON 으로</a>
                 <span class="user-acct-hint">계정 · 도전과제 · 연속기록 · 커뮤니티에 남긴 것 전부.</span>
             </div>
+            <div class="user-acct-row">
+                <span class="user-acct-label">복구 코드</span>
+                <span class="user-acct-value" data-recovery-left>세는 중…</span>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-recovery-new>새로 만들기</button>
+                <span class="user-acct-hint">디스코드 계정을 잃어도 이 코드로 들어올 수 있습니다.
+                    <b>만들 때 한 번만 보입니다</b> — 서버도 원문을 모릅니다. 새로 만들면 옛 코드는 못 씁니다.</span>
+                <div class="user-acct-codes" data-recovery-out hidden></div>
+            </div>
+            <div class="user-acct-row">
+                <span class="user-acct-label">다른 기기 로그인</span>
+                <span class="user-acct-value" data-link-out>—</span>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>코드 받기</button>
+                <span class="user-acct-hint">디스코드 로그인이 어려운 기기(티비 등)에서 이 코드를 넣으면 들어와집니다. 5분간 · 한 번만.</span>
+            </div>
             <div class="user-acct-row user-acct-danger">
                 <span class="user-acct-label">계정 지우기</span>
                 <button type="button" class="user-account-btn user-account-btn-danger" data-delete>지우기</button>
@@ -396,6 +415,60 @@
                 const body = (await res.json()) as { revoked?: number };
                 Toolbox.showToast?.(res.ok ? `${body.revoked ?? 0}곳을 끊었어요` : '지금은 안 되네요');
                 if (sessionSlot) sessionSlot.textContent = '이 기기 하나';
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+
+        const leftSlot = box.querySelector('[data-recovery-left]');
+        void (async () => {
+            try {
+                const res = await fetch(`${base}/kl/me/recovery-codes`, { credentials: 'include' });
+                if (!res.ok || !leftSlot) return;
+                const body = (await res.json()) as { left?: number };
+                leftSlot.textContent = body.left ? `${body.left}장 남음` : '아직 없음';
+            } catch {
+                if (leftSlot) leftSlot.textContent = '지금은 못 봤어요';
+            }
+        })();
+
+        box.querySelector('[data-recovery-new]')?.addEventListener('click', async () => {
+            if (!confirm('새로 만들면 지금까지의 복구 코드는 못 쓰게 됩니다. 계속할까요?')) return;
+            try {
+                const res = await fetch(`${base}/kl/me/recovery-codes`, { method: 'POST', credentials: 'include' });
+                if (!res.ok) {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                    return;
+                }
+                const body = (await res.json()) as { codes: string[] };
+                const out = box.querySelector<HTMLElement>('[data-recovery-out]');
+                if (!out) return;
+                // 여기서 못 옮겨 적으면 영영 못 본다 — 그 사실을 화면에도 적는다.
+                out.hidden = false;
+                out.innerHTML =
+                    '<p class="user-acct-hint"><b>지금 한 번만 보입니다.</b> 안전한 곳에 옮겨 적어 두세요.</p>' +
+                    `<ol class="user-acct-codelist">${body.codes.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ol>` +
+                    '<button type="button" class="user-account-btn user-account-btn-quiet" data-copy-codes>전부 복사</button>';
+                out.querySelector('[data-copy-codes]')?.addEventListener('click', () => {
+                    void navigator.clipboard?.writeText(body.codes.join('\n'));
+                    Toolbox.showToast?.('복사했어요');
+                });
+                if (leftSlot) leftSlot.textContent = `${body.codes.length}장 남음`;
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+
+        box.querySelector('[data-link-new]')?.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`${base}/kl/me/link-code`, { method: 'POST', credentials: 'include' });
+                if (!res.ok) {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                    return;
+                }
+                const body = (await res.json()) as { code: string };
+                const out = box.querySelector('[data-link-out]');
+                if (out) out.textContent = `${body.code} (5분)`;
             } catch {
                 Toolbox.showToast?.('지금은 안 되네요');
             }

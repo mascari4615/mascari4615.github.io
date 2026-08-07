@@ -46,6 +46,14 @@ export interface Account {
   identities: { discord?: AccountIdentityDiscord };
   records: AccountRecords;
   recordsUpdatedAt: string | null;
+  /**
+   * 복구 코드 — **들어오는 문이 하나뿐이면 그 문이 잠기는 날 계정을 통째로 잃는다.**
+   * 디스코드 계정을 잃거나 정지당하면 지금은 되찾을 방법이 하나도 없다.
+   *
+   * 원문은 저장하지 않는다. 되돌릴 수 없게 섞은 값만 둔다 — 이 파일이 새어 나가도
+   * 그것으로는 아무도 로그인하지 못한다. 원문은 만들 때 딱 한 번 보여 준다.
+   */
+  recoveryCodes?: { hash: string; usedAt: string | null }[];
 }
 
 interface Session {
@@ -71,6 +79,28 @@ export const SESSION_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
 /** 보이는 이름 상한. 길면 목록이 깨지고, 긴 이름은 대개 장난이다. */
 export const DISPLAY_NAME_MAX = 24;
+
+/** 한 번에 만들어 주는 복구 코드 수. 적으면 금세 떨어지고, 많으면 아무도 안 챙긴다. */
+export const RECOVERY_CODE_COUNT = 8;
+
+/** 다른 기기 로그인 코드가 살아 있는 시간. 짧아야 한다 — 화면에 떠 있는 동안만 쓰는 것이다. */
+export const LINK_CODE_TTL_MS = 5 * 60 * 1000;
+
+/** 사람이 옮겨 적을 코드 — 헷갈리는 글자(0/O, 1/I/l)는 뺀다. */
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+function randomCode(length: number): string {
+  const bytes = crypto.randomBytes(length);
+  let out = '';
+  for (let i = 0; i < length; i += 1) out += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+  return out;
+}
+
+/** 코드를 되돌릴 수 없게 섞는다. 사람이 적는 것이라 대소문자·붙임표는 무시한다. */
+function hashCode(raw: string): string {
+  const normalized = String(raw ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return crypto.createHash('sha256').update(`karmolab-code:${normalized}`).digest('hex');
+}
 
 export function emptyRecords(): AccountRecords {
   return { achievements: [], badges: [], progress: {}, streaks: {} };
@@ -154,6 +184,9 @@ export interface PublicProfile {
 
 export class KarmolabAccountStore {
   private state: AccountsState;
+
+  /** 다른 기기 로그인 코드 — 메모리에만. 몇 분짜리라 다시 뜨면 사라지는 게 맞다. */
+  private readonly linkCodes = new Map<string, { accountId: string; expiresAt: number }>();
 
   constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE)) {
     this.state = this.load();
@@ -356,7 +389,77 @@ export class KarmolabAccountStore {
     return account;
   }
 
-  /** 브라우저가 보낸 기록을 서버 기록과 합쳐 저장한다. 반환값 = 합쳐진 결과(브라우저가 이걸로 맞춘다). */
+  /**
+   * 복구 코드를 새로 만든다 (있던 것은 전부 버린다).
+   * @returns 사람에게 보여 줄 원문. **이때 한 번만** 볼 수 있다 — 서버에는 안 남는다.
+   */
+  issueRecoveryCodes(accountId: string): string[] | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const plain: string[] = [];
+    const stored: { hash: string; usedAt: string | null }[] = [];
+    for (let i = 0; i < RECOVERY_CODE_COUNT; i += 1) {
+      // 네 자씩 끊어 적어야 사람이 안 틀린다.
+      const code = `${randomCode(4)}-${randomCode(4)}`;
+      plain.push(code);
+      stored.push({ hash: hashCode(code), usedAt: null });
+    }
+    account.recoveryCodes = stored;
+    this.save();
+    return plain;
+  }
+
+  /** 아직 안 쓴 복구 코드가 몇 장 남았나. */
+  recoveryCodesLeft(accountId: string): number {
+    const account = this.state.accounts[accountId];
+    return (account?.recoveryCodes ?? []).filter((c) => c.usedAt === null).length;
+  }
+
+  /**
+   * 복구 코드로 들어온다. **한 장은 한 번만** 쓴다 — 다시 쓸 수 있으면 적어 둔 종이가
+   * 영구 열쇠가 되고, 그건 비밀번호를 종이에 적어 두는 것과 같다.
+   */
+  consumeRecoveryCode(raw: unknown): Account | null {
+    const hash = hashCode(String(raw ?? ''));
+    if (!hash) return null;
+    for (const account of Object.values(this.state.accounts)) {
+      const entry = (account.recoveryCodes ?? []).find((c) => c.hash === hash && c.usedAt === null);
+      if (!entry) continue;
+      entry.usedAt = new Date().toISOString();
+      this.save();
+      return account;
+    }
+    return null;
+  }
+
+  /**
+   * 다른 기기에서 로그인할 짧은 코드를 낸다 (지금 로그인한 기기에서 만든다).
+   *
+   * **저장하지 않는다** — 몇 분만 사는 것이고, 봇이 다시 뜨면 사라지는 게 맞다.
+   * 디스코드 로그인이 안 되는 기기(티비·남의 컴퓨터)에서 들어오는 길이다.
+   */
+  issueLinkCode(accountId: string, now: Date = new Date()): { code: string; expiresAt: string } | null {
+    if (!this.state.accounts[accountId]) return null;
+    for (const [code, entry] of this.linkCodes) {
+      if (entry.expiresAt <= now.getTime()) this.linkCodes.delete(code);
+    }
+    const code = `${randomCode(3)}-${randomCode(3)}`;
+    const expiresAt = now.getTime() + LINK_CODE_TTL_MS;
+    this.linkCodes.set(hashCode(code), { accountId, expiresAt });
+    return { code, expiresAt: new Date(expiresAt).toISOString() };
+  }
+
+  /** 그 코드로 들어온다. 한 번 쓰면 사라진다. */
+  consumeLinkCode(raw: unknown, now: Date = new Date()): Account | null {
+    const key = hashCode(String(raw ?? ''));
+    const entry = this.linkCodes.get(key);
+    if (!entry) return null;
+    this.linkCodes.delete(key);
+    if (entry.expiresAt <= now.getTime()) return null;
+    return this.state.accounts[entry.accountId] ?? null;
+  }
+
+  /** 브라우저가 보낸 기록을 서버 기록과 합쳐 저장한다.  /** 브라우저가 보낸 기록을 서버 기록과 합쳐 저장한다. 반환값 = 합쳐진 결과(브라우저가 이걸로 맞춘다). */
   mergeRecordsForAccount(accountId: string, incoming: AccountRecords): AccountRecords {
     const account = this.state.accounts[accountId];
     if (!account) throw new Error(`없는 계정: ${accountId}`);

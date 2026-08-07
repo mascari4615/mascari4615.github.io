@@ -685,6 +685,186 @@ describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
   });
 });
 
+describe('다른 길로 들어오기 — 복구 코드 · 기기 코드', () => {
+  it('복구 코드는 만들 때 딱 한 번 보이고, 서버에는 원문이 안 남는다', async () => {
+    const { cookie } = signIn();
+    const made = await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
+    const body = (await made.json()) as { codes: string[] };
+    expect(body.codes).toHaveLength(8);
+
+    const asked = await fetch(`${baseUrl}/kl/me/recovery-codes`, { headers: { Cookie: cookie } });
+    const left = (await asked.json()) as { left: number; codes?: unknown };
+    expect(left.left).toBe(8);
+    expect(left.codes).toBeUndefined();
+  });
+
+  it('복구 코드로 디스코드 없이 들어올 수 있고, 한 장은 한 번만 쓴다', async () => {
+    const { cookie } = signIn();
+    const made = await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
+    const { codes } = (await made.json()) as { codes: string[] };
+
+    const first = await fetch(`${baseUrl}/kl/auth/recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: codes[0] }),
+    });
+    expect(first.status).toBe(200);
+    expect(first.headers.get('set-cookie')).toContain('kl_session=');
+
+    const again = await fetch(`${baseUrl}/kl/auth/recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: codes[0] }),
+    });
+    expect(again.status).toBe(401);
+
+    const left = await fetch(`${baseUrl}/kl/me/recovery-codes`, { headers: { Cookie: cookie } });
+    expect(((await left.json()) as { left: number }).left).toBe(7);
+  });
+
+  it('대소문자·붙임표가 달라도 같은 코드로 본다 — 사람이 옮겨 적는 것이다', async () => {
+    const { cookie } = signIn();
+    const made = await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
+    const { codes } = (await made.json()) as { codes: string[] };
+    const messy = codes[1].toLowerCase().replace('-', ' ');
+    const res = await fetch(`${baseUrl}/kl/auth/recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: messy }),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('아무 코드나 대면 안 들어와진다', async () => {
+    const res = await fetch(`${baseUrl}/kl/auth/recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: 'AAAA-AAAA' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('새로 만들면 옛 코드는 못 쓴다', async () => {
+    const { cookie } = signIn();
+    const first = (await (
+      await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } })
+    ).json()) as { codes: string[] };
+    await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST', headers: { Cookie: cookie } });
+    const res = await fetch(`${baseUrl}/kl/auth/recovery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: first.codes[0] }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('기기 코드로 다른 기기에서 들어오고, 한 번 쓰면 사라진다', async () => {
+    const { cookie } = signIn();
+    const made = await fetch(`${baseUrl}/kl/me/link-code`, { method: 'POST', headers: { Cookie: cookie } });
+    const { code } = (await made.json()) as { code: string };
+    expect(code).toMatch(/^[A-Z0-9]{3}-[A-Z0-9]{3}$/);
+
+    const used = await fetch(`${baseUrl}/kl/auth/link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    expect(used.status).toBe(200);
+    expect(used.headers.get('set-cookie')).toContain('kl_session=');
+
+    const again = await fetch(`${baseUrl}/kl/auth/link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    expect(again.status).toBe(401);
+  });
+
+  it('로그인 안 하면 코드를 못 만든다', async () => {
+    expect((await fetch(`${baseUrl}/kl/me/recovery-codes`, { method: 'POST' })).status).toBe(401);
+    expect((await fetch(`${baseUrl}/kl/me/link-code`, { method: 'POST' })).status).toBe(401);
+  });
+});
+
+describe('계정 — 이름·내려받기·지우기', () => {
+  function signInOther2(): { cookie: string; handle: string } {
+    const account = store.upsertFromDiscord({ discordId: '77', username: 'nam', displayName: '남', avatarUrl: null });
+    const { token } = store.createSession(account.id);
+    return { cookie: `kl_session=${encodeURIComponent(token)}`, handle: account.handle };
+  }
+
+  it('보이는 이름을 바꿀 수 있다 — 주소는 그대로 (남이 걸어 둔 링크가 깨지면 안 된다)', async () => {
+    const { cookie, handle } = signIn();
+    const res = await fetch(`${baseUrl}/kl/me`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ displayName: '새 이름' }),
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { account: { displayName: string; handle: string } };
+    expect(body.account.displayName).toBe('새 이름');
+    expect(body.account.handle).toBe(handle);
+  });
+
+  it('빈 이름으로는 못 바꾼다', async () => {
+    const { cookie } = signIn();
+    const res = await fetch(`${baseUrl}/kl/me`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ displayName: '   ' }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('내 것을 내려받을 수 있고, 그 안에 디스코드 id 가 없다', async () => {
+    const { cookie } = signIn();
+    await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ board: 'free', title: '내 글', text: '내용' }),
+    });
+    const res = await fetch(`${baseUrl}/kl/me/export`, { headers: { Cookie: cookie } });
+    expect(res.status).toBe(200);
+    const raw = await res.text();
+    expect(raw).not.toContain('"42"');
+    const body = JSON.parse(raw) as { account: { handle: string }; community: unknown };
+    expect(body.account.handle).toBeTruthy();
+    expect(body.community).toBeTruthy();
+  });
+
+  it('계정을 지우면 로그인이 끊기고, 남긴 글은 남되 누가 썼는지는 지워진다', async () => {
+    const { cookie } = signIn();
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ board: 'free', title: '남는 글', text: '답글이 달릴 글' }),
+    });
+    const id = ((await posted.json()) as { id: string }).id;
+    const other = signInOther2();
+    await fetch(`${baseUrl}/kl/posts/${id}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: other.cookie },
+      body: JSON.stringify({ text: '남의 답글' }),
+    });
+
+    expect((await fetch(`${baseUrl}/kl/me`, { method: 'DELETE', headers: { Cookie: cookie } })).status).toBe(200);
+    expect((await (await fetch(`${baseUrl}/kl/me`, { headers: { Cookie: cookie } })).json()) as unknown).toEqual({
+      account: null,
+    });
+
+    const detail = await fetch(`${baseUrl}/kl/posts/${id}`);
+    const body = (await detail.json()) as { post: { authorHandle: string; replies: Array<{ text: string }> } };
+    expect(body.post.authorHandle).toBe('지운 계정');
+    expect(body.post.replies[0].text).toBe('남의 답글');
+  });
+
+  it('로그인 안 하면 이 자리들은 전부 401 — 남의 것을 못 만진다', async () => {
+    expect((await fetch(`${baseUrl}/kl/me/export`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/kl/me/sessions`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/kl/me`, { method: 'DELETE' })).status).toBe(401);
+  });
+});
+
 describe('갤러리 만들기 — HTTP', () => {
   it('로그인해야 만든다', async () => {
     const res = await fetch(`${baseUrl}/kl/boards`, {
