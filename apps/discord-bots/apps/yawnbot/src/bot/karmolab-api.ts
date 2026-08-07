@@ -435,6 +435,65 @@ export function registerKarmolabApi(
     res.json({ account: store.publicProfile(updated) });
   });
 
+  /**
+   * 복구 코드 새로 만들기 — **원문은 이 답에서 딱 한 번만** 나온다.
+   * 들어오는 문이 디스코드 하나뿐이면 그 문이 잠기는 날 계정을 통째로 잃는다.
+   */
+  app.post('/kl/me/recovery-codes', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const codes = store.issueRecoveryCodes(account.id);
+    res.json({ codes, note: '지금 한 번만 보입니다. 안전한 곳에 옮겨 적어 두세요.' });
+  });
+
+  /** 남은 복구 코드 장 수 (원문은 안 준다 — 서버도 모른다). */
+  app.get('/kl/me/recovery-codes', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ left: store.recoveryCodesLeft(account.id) });
+  });
+
+  /** 복구 코드로 들어온다. 디스코드 없이 계정을 되찾는 유일한 길이다. */
+  app.post('/kl/auth/recovery', (req: Request, res: Response) => {
+    const account = store.consumeRecoveryCode((req.body ?? {}).code);
+    if (!account) {
+      // 왜 틀렸는지(없는 코드인지 이미 쓴 코드인지) 안 알려 준다 — 알려 주면 찍어 보는 데 쓰인다.
+      res.status(401).json({ error: 'bad_code' });
+      return;
+    }
+    const { token, expiresAt } = store.createSession(account.id);
+    setSessionCookie(res, token, expiresAt - Date.now());
+    res.json({ account: store.publicProfile(account), left: store.recoveryCodesLeft(account.id) });
+  });
+
+  /** 다른 기기에서 쓸 짧은 로그인 코드 (지금 로그인한 기기에서 만든다). */
+  app.post('/kl/me/link-code', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json(store.issueLinkCode(account.id));
+  });
+
+  /** 그 코드로 이 기기에 로그인한다. */
+  app.post('/kl/auth/link', (req: Request, res: Response) => {
+    const account = store.consumeLinkCode((req.body ?? {}).code);
+    if (!account) {
+      res.status(401).json({ error: 'bad_code' });
+      return;
+    }
+    const { token, expiresAt } = store.createSession(account.id);
+    setSessionCookie(res, token, expiresAt - Date.now());
+    res.json({ account: store.publicProfile(account) });
+  });
+
   /** 지금 살아 있는 내 로그인들. 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
   app.get('/kl/me/sessions', (req: Request, res: Response) => {
     const token = readCookie(req, SESSION_COOKIE);
