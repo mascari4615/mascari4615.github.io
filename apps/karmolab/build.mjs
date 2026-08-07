@@ -53,6 +53,31 @@ await esbuild.build({
   logLevel: 'info'
 });
 
+// 계정 (TASK-KL-098) — 기록이 브라우저 밖에 남는 자리 + 헤더의 로그인 자리.
+// 이 항목이 빠지면 페이지가 부르는 파일이 아예 안 만들어져 404 가 된다. 실제로 한 번
+// 다른 작업과 합쳐지며 조용히 사라져 로그인이 통째로 죽었다 — 그래서 아래 시험이 지킨다
+// (`scripts/audit-scripts.mjs`: 페이지가 부르는 파일이 다 만들어지는가).
+await esbuild.build({
+  entryPoints: [join(root, 'src/account.ts')],
+  outfile: join(root, 'js/account.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
+// 공개 프로필 페이지 (TASK-KL-098) — `/karmolab/u/?h=<핸들>`.
+await esbuild.build({
+  entryPoints: [join(root, 'src/profile.ts')],
+  outfile: join(root, 'js/profile.js'),
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  logLevel: 'info'
+});
+
 // Service Worker + 갱신 안내 (TASK-KL-088).
 // 캐시 이름에 빌드 스탬프를 박아야 새 배포가 옛 캐시를 버린다 → sw 는 소스가 아니라 빌드 산출물.
 const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
