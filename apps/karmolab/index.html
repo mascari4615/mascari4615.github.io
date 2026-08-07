@@ -41,6 +41,11 @@ permalink: /karmolab/
     </script>
     <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="canonical" href="https://blog.mascari4615.com/karmolab/">
+    <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
+         기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
+         도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
+         그 둘 다 검색 결과에서 제 크기로 안 쓰인다. 「색인하지 마라」와는 반대 방향의 표시다. -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta property="og:type" content="website">
     <meta property="og:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
     <meta property="og:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
@@ -50,6 +55,25 @@ permalink: /karmolab/
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
     <meta name="twitter:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
+    <!-- KARMOLAB_ROOT_LD — 검색엔진이 읽는 구조 설명 (TASK-KL-089).
+         이 페이지는 블로그의 모든 글에서 링크되는데 여기에만 구조 설명이 없었다 — 도구 상세와
+         목록에는 있다. 그래서 검색 결과에서 이름·주소만 나가고, 이 안에서 도구를 찾을 수 있다는
+         사실이 전달되지 않았다. 찾기 주소(`/karmolab/t/?q=…`)는 실제로 동작하는 것을 쓴다:
+         목록 페이지가 그 값을 읽어 그 상태에서 시작한다(없는 주소를 적으면 무시당한다). -->
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebSite","@id":"https://blog.mascari4615.com/karmolab/#site","name":"KarmoLab",
+       "url":"https://blog.mascari4615.com/karmolab/","inLanguage":"ko-KR",
+       "potentialAction":{"@type":"SearchAction",
+         "target":{"@type":"EntryPoint","urlTemplate":"https://blog.mascari4615.com/karmolab/t/?q={search_term_string}"},
+         "query-input":"required name=search_term_string"}},
+      {"@type":"CollectionPage","@id":"https://blog.mascari4615.com/karmolab/#page",
+       "url":"https://blog.mascari4615.com/karmolab/","isPartOf":{"@id":"https://blog.mascari4615.com/karmolab/#site"},
+       "name":"KarmoLab","inLanguage":"ko-KR",
+       "about":"글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다루는 곳",
+       "hasPart":{"@type":"CollectionPage","name":"도구 전체","url":"https://blog.mascari4615.com/karmolab/t/"}}
+    ]}
+    </script>
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
     <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
@@ -194,6 +218,24 @@ permalink: /karmolab/
             </main>
         </div>
     </div>
+    <!-- 방문 기록 (TASK-KL-089).
+         블로그 글에는 이 줄이 있는데 도구 쪽에는 없어서, 도구 페이지 124장과 이 첫 화면의
+         방문이 **하나도 세어지지 않고 있었다**. 어느 도구로 사람이 오는지 알 수 없으면
+         무엇을 더 만들지도, 무엇이 통했는지도 알 수 없다.
+         아래 analytics.js 는 이 스크립트가 만든 `window.goatcounter` 를 쓴다 — 그것이 없으면
+         조용히 아무것도 안 한다. 즉 이 줄이 빠지면 기록 전체가 사라진다.
+         (도구를 옮겨 다닐 때의 기록은 analytics.js 가 맡고, 처음 연 도구는 이 줄이 센다.) -->
+    <script>
+    /* 기록기는 화면이 다 뜬 뒤에 부른다. 바로 부르면 남의 서버에서 받아 실행하는 동안
+       주 스레드가 더 잡힌다(실측 +88ms). 방문 수는 조금 늦게 세어도 값이 같다. */
+    addEventListener('load', function () {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', 'https://mascari4615.goatcounter.com/count');
+      document.head.appendChild(s);
+    });
+    </script>
     <script defer src="/apps/karmolab/js/analytics.js"></script>
     <script defer src="/apps/karmolab/js/toolbox.js"></script>
     <script defer src="/apps/karmolab/js/mdd.js"></script>
