@@ -69,7 +69,7 @@
                 </div>
                 <div>
                   <label class="field-label">결과</label>
-                  <textarea id="tcOut" rows="10" spellcheck="false" readonly></textarea>
+                  <textarea id="tcOut" aria-label="정리된 결과" rows="10" spellcheck="false" readonly></textarea>
                 </div>
               </div>
             </div>
@@ -90,7 +90,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">정렬</div>
-                  <select id="tcSort">
+                  <select id="tcSort" aria-label="정렬">
                     <option value="">그대로</option>
                     <option value="asc">가나다·ABC 순</option>
                     <option value="desc">역순</option>
@@ -100,7 +100,7 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">대소문자</div>
-                  <select id="tcCase">
+                  <select id="tcCase" aria-label="대소문자">
                     <option value="">그대로</option>
                     <option value="upper">전부 대문자</option>
                     <option value="lower">전부 소문자</option>

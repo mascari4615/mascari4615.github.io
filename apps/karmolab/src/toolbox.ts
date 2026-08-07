@@ -58,6 +58,12 @@ const Toolbox = (() => {
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
+    /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
+     *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
+    function getCategories() {
+        return CATEGORIES.map((c) => ({ ...c }));
+    }
+
     /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
     function getToolMeta(id) {
         const t = tools.find(x => x.id === id);
@@ -850,10 +856,152 @@ const Toolbox = (() => {
 
     /* ===== Landing Page Builder ===== */
 
+    /* ═══════ 첫 화면 장식 (Y2K 하프톤 도형) — TASK-KL-097 ═══════
+     *
+     * 페이지를 **열 때마다** 새로 뽑는다. 만들어 둔 그림을 박아 두면 백 번 들어와도 같은 화면이다.
+     * 도형이 일곱 개뿐이라 열 때 계산해도 티가 안 난다. 바깥에서 받아 오는 그림 파일은 0 —
+     * 전부 수식에서 나온 인라인 SVG 다.
+     *
+     * 규칙 셋(전부 실제로 어긋나 봤고 그래서 넣은 것들):
+     *   ① 글 읽는 한가운데는 비운다 — 처음엔 제목 위에 얹혀 읽기 힘들었다.
+     *   ② 화면을 구역으로 나눠 한 구역에 하나씩 — 그냥 무작위로 뿌리면 한쪽에 몰린다.
+     *   ③ 멀수록 작고·뿌옇고·느리다. 그리고 **제일 가까운 것이 제일 흐리다**(렌즈 바로 앞).
+     *
+     * `?seed=숫자` = 그 배치를 그대로 재현 (마음에 든 화면을 붙잡거나 검사할 때).
+     * `?px=4` = 표현 하나로 고정 · `?px=none` = 장식 끔.
+     */
+    const DECOR_FIELDS = {
+        sparkle: (x, y) => 1 - (Math.sqrt(Math.abs(x)) + Math.sqrt(Math.abs(y))),
+        flower: (x, y) => { const r = Math.hypot(x, y), t = Math.atan2(y, x); return .58 + .30 * Math.cos(6 * t) - r; },
+        ring: (x, y) => .20 - Math.abs(Math.hypot(x, y) - .66),
+        blob: (x, y) => { const r = Math.hypot(x, y), t = Math.atan2(y, x); return .70 + .14 * Math.sin(3 * t + 1) - r; },
+        cross: (x, y) => { const a = Math.abs(x), b = Math.abs(y); return .78 - Math.max(a, b) - 1.1 * Math.min(a, b); },
+        burst: (x, y) => { const r = Math.hypot(x, y), t = Math.atan2(y, x); return .44 + .34 * Math.abs(Math.cos(4 * t)) - r; },
+    };
+    const DECOR_ZONES = [
+        { x: [2, 16], y: [8, 22], band: 'mid' },
+        { x: [80, 93], y: [8, 22], band: 'far' },
+        { x: [1, 12], y: [42, 58], band: 'near' },
+        { x: [8, 22], y: [74, 88], band: 'far' },
+        { x: [44, 58], y: [82, 92], band: 'far' },
+    ];
+    const DECOR_BANDS = {
+        far: { z: [38, 58], blur: [2.4, 4.0], op: [.40, .52], dur: [54, 74], amp: [12, 22] },
+        mid: { z: [62, 88], blur: [0.8, 1.6], op: [.62, .76], dur: [38, 52], amp: [18, 32] },
+        near: { z: [100, 132], blur: [0, 0.3], op: [.88, 1.0], dur: [28, 38], amp: [24, 42] },
+    };
+    const DECOR_DEFS = `<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+<linearGradient id="kdg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--decor-a)"/><stop offset="45%" stop-color="var(--decor-b)"/><stop offset="100%" stop-color="var(--decor-c)"/></linearGradient>
+<linearGradient id="kdg2" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="var(--decor-c)"/><stop offset="50%" stop-color="var(--decor-d)"/><stop offset="100%" stop-color="var(--decor-e)"/></linearGradient>
+<linearGradient id="kdg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--decor-d)"/><stop offset="55%" stop-color="var(--decor-e)"/><stop offset="100%" stop-color="var(--decor-c)"/></linearGradient>
+<linearGradient id="kdgloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".12"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<pattern id="kdstripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="8" fill="#ffffff" opacity=".8"/></pattern>
+<filter id="kdgrain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 -0.55"/><feComposite operator="in" in2="SourceGraphic"/></filter>
+<filter id="kdjelly" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#2a1d6b" flood-opacity=".35"/></filter>
+</defs></svg>`;
+
+    function buildHomeDecor() {
+        const q = new URLSearchParams(location.search);
+        const force = q.get('px');
+        const wrap = document.createElement('div');
+        wrap.className = 'home-decor';
+        wrap.setAttribute('aria-hidden', 'true');
+        if (force === 'none') return wrap;
+        // 도구 상세 페이지에도 이 셸이 쓰인다. 거기선 첫 화면이 안 보이므로 그리지 않는다
+        // (안 보이는 것을 계산하는 값은 그대로 나간다).
+        if (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) return wrap;
+
+        const seed0 = (q.get('seed') | 0) || (Date.now() % 2147483647);
+        let s = seed0;
+        const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+        const rng = (a, b) => a + rnd() * (b - a);
+        const pick = (a) => a[Math.floor(rnd() * a.length)];
+        const names = Object.keys(DECOR_FIELDS);
+        const grads = ['kdg1', 'kdg2', 'kdg3'];
+        const kinds = ['halftone', 'grain', 'jelly', 'stripe', 'outline', 'misprint'];
+
+        const svg = (z, inner) => `<svg width="${z}" height="${z}">${inner}</svg>`;
+        function halftone(n, z, g) {
+            // 점 간격은 화면 기준으로 잡는다 — 크기에 비례해 늘리면 렌즈 앞 큰 것이 점 몇 개로 뭉개진다
+            const N = Math.max(22, Math.min(70, Math.round(z / 5.5))), cell = z / N, o = [];
+            for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
+                const x = (gx + .5) / N * 2 - 1, y = (gy + .5) / N * 2 - 1, v = DECOR_FIELDS[n](x, y);
+                if (v <= 0) continue;
+                const r = Math.min(1, v / 0.34) * cell * 0.58;
+                if (r < cell * 0.10) continue;
+                o.push(`<circle cx="${((gx + .5) * cell).toFixed(1)}" cy="${((gy + .5) * cell).toFixed(1)}" r="${r.toFixed(2)}"/>`);
+            }
+            return svg(z, `<g fill="url(#${g})">${o.join('')}</g>`);
+        }
+        function outlinePath(n, z) {
+            const p = [], steps = 200;
+            for (let i = 0; i < steps; i++) {
+                const t = i / steps * Math.PI * 2;
+                let lo = 0, hi = 1.6;
+                for (let k = 0; k < 22; k++) {
+                    const m = (lo + hi) / 2;
+                    if (DECOR_FIELDS[n](Math.cos(t) * m, Math.sin(t) * m) > 0) lo = m; else hi = m;
+                }
+                p.push([(Math.cos(t) * lo * .5 + .5) * z, (Math.sin(t) * lo * .5 + .5) * z]);
+            }
+            return 'M' + p.map((c) => c[0].toFixed(1) + ' ' + c[1].toFixed(1)).join('L') + 'Z';
+        }
+        let clipId = 0;
+        function draw(kind, n, z, g) {
+            const d = () => outlinePath(n, z);
+            switch (kind) {
+                case 'halftone': return halftone(n, z, g);
+                case 'grain': { const p = d(); return svg(z, `<path d="${p}" fill="url(#${g})"/><path d="${p}" fill="#14121f" filter="url(#kdgrain)" opacity=".55"/>`); }
+                case 'jelly': { const p = d(); return svg(z, `<path d="${p}" fill="url(#${g})" filter="url(#kdjelly)"/><path d="${p}" fill="url(#kdgloss)" opacity=".85" transform="translate(${z * .06},${z * .05}) scale(.86)"/>`); }
+                case 'stripe': { const id = 'kdc' + (clipId++); return svg(z, `<defs><clipPath id="${id}"><path d="${d()}"/></clipPath></defs><g clip-path="url(#${id})"><rect width="${z}" height="${z}" fill="url(#${g})"/><rect width="${z}" height="${z}" fill="url(#kdstripe)"/></g>`); }
+                case 'outline': { const p = d(); return svg(z, `<path d="${p}" fill="none" stroke="url(#${g})" stroke-width="4"/><path d="${p}" fill="none" stroke="url(#${g})" stroke-width="1.5" opacity=".6" transform="translate(${z * .5},${z * .5}) scale(.78) translate(${-z * .5},${-z * .5})"/>`); }
+                default: { const p = d(); return svg(z, `<g style="mix-blend-mode:multiply"><path d="${p}" fill="#ec4899" opacity=".72" transform="translate(-3,-3)"/><path d="${p}" fill="#22d3ee" opacity=".72" transform="translate(3,3)"/><path d="${p}" fill="#6d5bd0" opacity=".55"/></g>`); }
+            }
+        }
+        const KIND_BY_NUM = { '2': 'grain', '3': 'jelly', '4': 'halftone', '6': 'stripe', '7': 'outline', '8': 'misprint' };
+        const kindOf = () => KIND_BY_NUM[force] || pick(kinds);
+
+        const css = [], html = [];
+        let idx = 0;
+        function add(z, blur, op, dur, amp, pos, extra) {
+            const cls = 'kd' + (idx++);
+            const ax = rng(amp[0], amp[1]).toFixed(0), ay = rng(amp[0], amp[1]).toFixed(0);
+            const rot = rng(5, 20).toFixed(0), dir = rnd() < .5 ? 1 : -1;
+            const secs = rng(dur[0], dur[1]).toFixed(1), delay = (-rnd() * secs).toFixed(1);
+            css.push(`@keyframes ${cls}{0%{transform:translate(0,0) rotate(0deg)}`
+                + `25%{transform:translate(${ax}px,${-ay}px) rotate(${rot * dir}deg)}`
+                + `50%{transform:translate(${ax / 2}px,${ay}px) rotate(0deg)}`
+                + `75%{transform:translate(${-ax}px,${ay / 2}px) rotate(${-rot * dir}deg)}`
+                + `100%{transform:translate(0,0) rotate(0deg)}}`);
+            html.push(`<div class="home-decor-item${extra ? ' ' + extra : ''}" style="${pos};opacity:${op};`
+                + `filter:blur(${blur}px);animation:${cls} ${secs}s ease-in-out ${delay}s infinite">`
+                + draw(kindOf(), pick(names), z, pick(grads)) + '</div>');
+        }
+
+        // 렌즈 바로 앞 — 화면보다 크고 잘리고 초점이 나갔다. 흐리므로 글을 안 가린다.
+        const corners = ['left:-22%;top:34%', 'right:-24%;top:30%', 'left:-18%;top:-26%', 'right:-20%;top:-24%'];
+        add(Math.round(rng(1050, 1320)), rng(13, 19).toFixed(0), rng(.40, .52).toFixed(2), [110, 130], [24, 40], pick(corners), 'home-decor-lens');
+        // 또렷한 닻 — 좌우 중 한쪽 바깥에 걸친다
+        add(Math.round(rng(300, 380)), 0, rng(.86, .96).toFixed(2), [62, 76], [20, 34], rnd() < .5 ? 'right:-3%;top:26%' : 'left:-4%;top:22%');
+        for (const zn of DECOR_ZONES) {
+            const b = DECOR_BANDS[zn.band];
+            add(Math.round(rng(b.z[0], b.z[1])), rng(b.blur[0], b.blur[1]).toFixed(2), rng(b.op[0], b.op[1]).toFixed(2),
+                b.dur, b.amp, `left:${rng(zn.x[0], zn.x[1]).toFixed(1)}%;top:${rng(zn.y[0], zn.y[1]).toFixed(1)}%`);
+        }
+
+        const style = document.createElement('style');
+        style.textContent = css.join('\n');
+        document.head.appendChild(style);
+        wrap.innerHTML = DECOR_DEFS + html.join('');
+        wrap.dataset.seed = String(seed0);
+        return wrap;
+    }
+
     function buildLanding() {
         const landing = document.createElement('div');
         landing.className = 'landing-page';
         landing.id = 'page-home';
+        landing.appendChild(buildHomeDecor());
 
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
@@ -1369,7 +1517,21 @@ const Toolbox = (() => {
         localStorage.setItem(PRISM_THEME_KEY, themeId);
         document.getElementById('prism-theme-inject')?.remove();
         const oldLink = document.getElementById('prism-css');
-        const url = t.url + '?v=' + Date.now();
+
+        // 이미 그 테마가 걸려 있으면 다시 받지 않는다 (TASK-KL-089).
+        // 시작할 때도 이 함수를 부르는데, 그때마다 주소 끝에 시각을 붙여 새로 받는 바람에
+        // 셸이 부른 것과 합쳐 같은 파일을 두 번 받고 있었다.
+        const already = (oldLink as HTMLLinkElement | null)?.getAttribute('href') || '';
+        if (already.split('?')[0].endsWith(t.url.split('/').pop() || ' ')) {
+            if (!silent) showToast('코드 테마: ' + t.label);
+            return;
+        }
+
+        // 주소 뒤에 시각을 붙이지 않는다 (TASK-KL-088, slot-D 지적).
+        // 이 파일들은 우리가 직접 담아 둔 것이라 우리가 바꿀 때만 바뀐다. 그런데 시각을 붙이면
+        // 브라우저가 저장해 둔 것을 못 써서 방문마다 다시 받았다. 빌드 번호도 마찬가지다 —
+        // 파일은 그대로인데 배포할 때마다 새 주소가 된다. 떼면 평범한 캐시가 그대로 듣는다.
+        const url = t.url;
         const newLink = document.createElement('link');
         newLink.rel = 'stylesheet';
         newLink.href = url;
@@ -1546,6 +1708,7 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,

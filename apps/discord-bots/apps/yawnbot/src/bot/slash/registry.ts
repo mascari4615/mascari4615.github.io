@@ -75,6 +75,7 @@ import { handleNewsKeywordList, handleNewsKeywordAdd, handleNewsKeywordDelete } 
 import { handleGallery } from './gallery';
 import { handleProfile } from './profile';
 import { handleAtkupUnity } from './atkup';
+import { handleWrapped } from './wrapped';
 import { CharacterService } from '../../services/character-service';
 
 /** toJSON() 만 요구하는 구조 타입 — SlashCommandBuilder 및 subcommand/options-only 변종 공통. */
@@ -90,6 +91,12 @@ export interface SlashCommand {
   run: (ctx: BotContext, interaction: ChatInputCommandInteraction) => Promise<void>;
   /** 슬래시 옵션 autocomplete (해당 커맨드만). 없으면 빈 응답. */
   autocomplete?: (ctx: BotContext, interaction: AutocompleteInteraction) => Promise<void>;
+  /**
+   * 남의 서버에서도 쓸 수 있는 명령 (TASK-YB-042).
+   * true 면 `YAWNBOT_ALLOWED_GUILD_IDS` 허용 목록을 타지 않는다 — 초대받은 서버에서
+   * 동작해야 하는 것들만. 사적인 기능은 표시하지 않는다(기본 = 본진 전용).
+   */
+  public?: boolean;
 }
 
 const ephemeral = (content: string): InteractionReplyOptions => ({ content, flags: MessageFlags.Ephemeral });
@@ -181,6 +188,7 @@ export const SLASH_COMMANDS: SlashCommand[] = [
             ),
         ),
     run: async (ctx, interaction) => { await handleHelp(ctx, interaction); },
+    public: true,
   },
   {
     name: '게임',
@@ -585,6 +593,44 @@ export const SLASH_COMMANDS: SlashCommand[] = [
         .setDescription('이미지 생성 비용 대시보드 (모델별/일별 집계)')
         .setDescriptionLocalizations(enUS('Image generation cost dashboard')),
     run: async (ctx, interaction) => { await handleCost(ctx, interaction); },
+  },
+  {
+    name: '결산',
+    builder: () =>
+      new SlashCommandBuilder()
+        .setName('결산')
+        .setNameLocalizations(enUS('wrapped'))
+        .setDescription('우리 서버 결산 카드 — 수다왕·인기상·새벽 유령')
+        .setDescriptionLocalizations(enUS('Server wrapped card'))
+        .addIntegerOption((option) =>
+          option
+            .setName('기간')
+            .setNameLocalizations(enUS('range'))
+            .setDescription('며칠치를 볼지 (기본: 7일)')
+            .setDescriptionLocalizations(enUS('How many days (default: 7)'))
+            .addChoices(
+              { name: '오늘', value: 1 },
+              { name: '최근 7일', value: 7 },
+              { name: '최근 30일', value: 30 },
+              { name: '올해 (365일)', value: 365 },
+            ),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName('매주')
+            .setNameLocalizations(enUS('weekly'))
+            .setDescription('월요일 아침마다 이 채널로 자동 게시 (켜기/끄기)')
+            .setDescriptionLocalizations(enUS('Post automatically every Monday morning')),
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName('자세히')
+            .setNameLocalizations(enUS('raw'))
+            .setDescription('원시 수치 + 저장 상태 (나만 보임 · 디버그용)')
+            .setDescriptionLocalizations(enUS('Raw counters & save state (ephemeral, debug)')),
+        ),
+    run: async (ctx, interaction) => { await handleWrapped(ctx, interaction); },
+    public: true,
   },
   {
     name: 'atkup',

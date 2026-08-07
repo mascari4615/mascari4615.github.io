@@ -6,6 +6,8 @@
  * 넓은 배경 하나가 결과를 독식하지 않고 사진 안의 서로 다른 색이 골고루 남는다.
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
+import { acceptPastedFiles } from './shared/paste';
+
 (function (): void {
   type RGB = [number, number, number];
 
@@ -74,7 +76,7 @@
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-sublabel">뽑을 색 개수 <span id="plCountVal" class="range-value">8색</span></div>
-              <input type="range" id="plCount" min="2" max="6" value="3">
+              <input type="range" id="plCount" aria-label="뽑을 색 개수" min="2" max="6" value="3">
             </div>
 
             <div id="plPreviewWrap" style="display:none; margin-bottom:var(--space-lg);">
@@ -194,6 +196,8 @@
             const f = e.dataTransfer?.files?.[0];
             if (f) load(f);
           });
+          // 파일을 바로 붙여넣는 것이 잦다
+          acceptPastedFiles(container, (files) => { load(files[0]); }, (f) => f.type.startsWith('image/'));
           // 스크린샷을 바로 붙여 넣는 흐름이 실제로 제일 많다.
           container.addEventListener('paste', (e) => {
             const items = (e as ClipboardEvent).clipboardData?.items;

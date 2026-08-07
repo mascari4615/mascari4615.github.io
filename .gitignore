@@ -51,11 +51,19 @@ apps/karmolab/js/widgets-loader.js
 apps/karmolab/js/widgets/**/*.js
 apps/karmolab/js/pwa-update.js
 apps/karmolab/js/analytics.js
+# TASK-KL-098 — 계정·공개 프로필 (build.mjs 산출물)
+apps/karmolab/js/account.js
+apps/karmolab/js/profile.js
 apps/karmolab/sw.js
 
 # KarmoLab Jekyll 진입 페이지 — 배포 시 apps/karmolab/index.html 복사 +
 # scripts/gen-tool-pages.mjs 가 t/<id>/ 도구 페이지를 찍는 자리 (TASK-KL-088)
 apps/blog/karmolab/
+
+# 「오늘의 하나 맞히기」 — 배포 시 apps/daily/dist/ 가 복사되는 자리 (TASK-KAR-202)
+apps/blog/daily/
+apps/daily/dist/
+apps/daily/.cache/
 
 # Blog theme bundles (Rollup + PurgeCSS: npm run build)
 assets/js/dist/

@@ -54,16 +54,17 @@
   const STYLE_ID = 'kl-task-launcher-styles';
   const CSS = `
 .kl-task-launcher {
-  --bg: #0b0d12;
-  --bg-2: #0f1218;
-  --paper: #12151c;
-  --ink: #f2f2ee;
-  --ink-2: #9a9a94;
-  --ink-3: #55555a;
-  --line: #1f242d;
-  --line-2: #2a3040;
-  --accent: #d4a849;
-  --accent-2: #7fa6d4;
+  /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
+     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+  --bg: var(--bg-void);
+  --bg-2: var(--bg-primary);
+  --paper: var(--bg-secondary);
+  --ink: var(--text-primary);
+  --ink-2: var(--text-secondary);
+  --ink-3: var(--text-tertiary);
+  --line: var(--bg-tertiary);
+  --line-2: var(--bg-hover);
+  --accent-2: var(--secondary);
   --mag-project: #9ec4a8;
   --mag-learn: #b7a3d6;
   background: var(--bg); color: var(--ink); font-family: 'Noto Sans KR', sans-serif;

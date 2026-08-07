@@ -16,6 +16,10 @@ concurrency:
 # 루프 가드: bump 스텝의 커밋 메시지에 [skip ci] (아래 line) → 그 version-bump
 # push 는 paths 매칭돼도 GitHub Actions 가 run 자체를 skip. workflow_dispatch
 # 는 수동 강제(escape hatch) 로 유지.
+#
+# trigger-audit: self-exempt — 이 워크플로는 자기 파일 변경으로 돌면 안 된다. 실행 자체가
+# 부수효과(버전 patch bump + 릴리스 생성)라, 문구 한 줄 고친 커밋이 릴리스를 찍어 버린다.
+# 일반 게이트 워크플로의 「자기 파일도 트리거에」 규칙(memo/scripts/workflow-trigger-audit.mjs)의 예외.
 on:
   workflow_dispatch:
     inputs:

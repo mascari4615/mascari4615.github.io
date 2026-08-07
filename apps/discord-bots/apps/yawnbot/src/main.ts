@@ -32,6 +32,8 @@ import { dispatchSlashCommand, dispatchAutocomplete } from './bot/slash/router';
 import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
+import { mountWrappedWeb } from './bot/wrapped-web';
+import { registerKarmolabApi } from './bot/karmolab-api';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
@@ -66,6 +68,8 @@ import {
 } from './services/character-state-snapshot';
 import { startMemoSync, stopMemoSync } from './services/memo-sync';
 import { startUnityFreeNotifier, stopUnityFreeNotifier } from './services/notifiers/unity-free';
+import { getServerStatsRecorder } from './services/server-stats';
+import { startWeeklyWrapped, stopWeeklyWrapped } from './services/notifiers/weekly-wrapped';
 import { startNewsNotifier, stopNewsNotifier } from './services/notifiers/news';
 import { startBrainResurface, stopBrainResurface } from './services/notifiers/brain-resurface';
 
@@ -219,6 +223,44 @@ client.on('messageReactionAdd', async (reaction: MessageReaction | PartialMessag
   );
 });
 
+// TASK-YB-042 서버 결산: 사람 메시지·반응만 센다 (내용 저장 X, 길이·시각·이모지만).
+// 별 핸들러 = 기존 핸들러 흐름 비간섭. 집계 실패가 봇을 절대 막지 않는다.
+client.on('messageCreate', (message) => {
+  try {
+    if (message.author.bot || !message.guildId) return;
+    getServerStatsRecorder().onMessage({
+      guildId: message.guildId,
+      userId: message.author.id,
+      userName: message.member?.displayName || message.author.username,
+      channelId: message.channelId,
+      content: message.content || '',
+      at: message.createdAt,
+    });
+  } catch (e) {
+    console.warn('[ServerStats] 메시지 집계 실패:', e instanceof Error ? e.message : e);
+  }
+});
+
+client.on('messageReactionAdd', (reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) => {
+  try {
+    const guildId = reaction.message.guildId;
+    if (!guildId || user.bot) return;
+    const author = reaction.message.author;
+    getServerStatsRecorder().onReaction({
+      guildId,
+      giverId: user.id,
+      giverName: user.username ?? user.id,
+      // 봇 발화가 받은 반응은 「인기상」에서 뺀다 — 사람 경쟁이라야 자랑거리가 된다.
+      authorId: author && !author.bot ? author.id : null,
+      authorName: author && !author.bot ? author.username : null,
+      emojiName: reaction.emoji.name ?? '',
+      at: new Date(),
+    });
+  } catch (e) {
+    console.warn('[ServerStats] 반응 집계 실패:', e instanceof Error ? e.message : e);
+  }
+});
+
 // KAR-018-Y 양방향 스레드 (발단 완료조건 #2 "escalation 승인 루프 닫힘"):
 // 워커가 TASK 스레드에 "A/B?" 물으면 사용자가 그 스레드에 답글 → 여기서
 // 결정을 agent-decisions 원장에 기록.
@@ -313,6 +355,10 @@ const app = createGithubWebhookApp(client, gameData);
 mountLocalWebhook(app, client);
 // TASK-WM-201 — 폰(WM Android)이 밀어 넣는 실행 로그 수신 + 웹 뷰어 + tail.
 mountDeviceLog(app, client);
+// TASK-YB-042 — 웹 결산 페이지. 자랑은 디스코드 밖에서 일어나야 유입이 된다.
+mountWrappedWeb(app, client);
+// TASK-KL-098 — KarmoLab 계정·기록·공개 프로필. 도구 사이트의 기록이 브라우저 밖에 남는 자리.
+registerKarmolabApi(app);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
@@ -549,6 +595,8 @@ client.once('clientReady', async () => {
     startScheduleReminder(client, characterService, getSchedule);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
+    // TASK-YB-042: 켠 서버에만 간다 (기본 꺼짐) — memo 저장소와 무관하므로 조건 없이 시작.
+    startWeeklyWrapped(client);
     if (memoRepoPath) startBrainResurface(client, memoRepoPath);
     setBudgetReserve(buildGovernanceReserve(process.env)); // ④ 거버넌스 (KAR-018-D slice-2) — 이벤트·cadence 공통 reserve seam + 전역 !kill
     // KAR-018-W: 에이전트 팀 #team-bus 실 Discord 게시 배선 (전 엔진 단일 seam).
@@ -701,11 +749,13 @@ async function gracefulShutdown(reason: string): Promise<void> {
   stopMemoSync();
   stopUnityFreeNotifier();
   stopNewsNotifier();
+  stopWeeklyWrapped();
   stopBrainResurface();
   stopProactive();
   stock.stopMarket();
   gameData.destroy();
   characterService?.commitIfDirty();
+  getServerStatsRecorder().flush();
   shutdownMemory();
   destroyAllMusicPlayers();
   destroyAllVoiceConnections();

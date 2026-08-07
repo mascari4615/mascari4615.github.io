@@ -2,7 +2,7 @@
   Toolbox.register({
     id: 'password',
     title: '비번',
-    desc: '랜덤 비밀번호를 생성합니다',
+    desc: '4자리 비밀번호를 힌트 보며 맞히는 놀이',
     layout: 'form',
     icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="16" r="1" fill="currentColor"/>',
     tabs: [
@@ -25,7 +25,7 @@
                             <button class="btn btn-ghost" id="pwReset">포기(새 게임)</button>
                         </div>
 
-                        <div id="pwLogs" style="flex:1; background:rgba(0,0,0,0.3); border-radius:8px; padding:15px; overflow-y:auto; font-size:var(--font-size-sm); font-family:monospace; display:flex; flex-direction:column; gap:8px;">
+                        <div id="pwLogs" style="flex:1; background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; padding:15px; overflow-y:auto; font-size:var(--font-size-sm); font-family:monospace; display:flex; flex-direction:column; gap:8px;">
                         </div>
                     </div>
                 `;
@@ -129,7 +129,7 @@
 
             const logEntry = document.createElement('div');
             logEntry.style.padding = '10px';
-            logEntry.style.background = 'rgba(255,255,255,0.03)';
+            logEntry.style.background = 'var(--bg-tertiary)';
             logEntry.style.borderRadius = '6px';
             logEntry.style.borderLeft = strike === 4 ? '3px solid var(--success)' : '3px solid #444';
 
@@ -146,7 +146,7 @@
                                 <div style="display:flex; gap:6px;">${tilesHtml}</div>
                                 <span style="color:var(--text-secondary); font-size:var(--font-size-xs); font-weight:bold; letter-spacing:1px;">${strike}S ${ball}B</span>
                             </div>
-                            <div style="color:var(--text-tertiary); font-size:var(--font-size-xs); background:rgba(0,0,0,0.2); padding:8px; border-radius:4px;">💡 ${hintMsg}</div>
+                            <div style="color:var(--text-tertiary); font-size:var(--font-size-xs); background:var(--bg-tertiary); padding:8px; border-radius:4px;">💡 ${hintMsg}</div>
                         `;
             }
 

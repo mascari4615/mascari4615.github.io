@@ -1,0 +1,27 @@
+# 동반자 창 (TASK-KAR-201).
+#
+# 브라우저 창으로는 배경을 못 뚫는다 — 창틀·최소화/닫기 단추가 남고, 색을 도려내는
+# 방식은 이 컴퓨터에서 먹히지 않았다. Tauri 는 투명·창틀없음·항상위를 창 설정으로
+# 그냥 지원하므로 우회 없이 근본으로 간다.
+#
+# 이 워크스페이스의 멤버로 두는 이유는 무게다. 메인 앱이 쓰는 Tauri 의존성이 이미
+# 같은 target 에 컴파일돼 있어, 따로 떼면 처음부터 다 다시 빌드해야 한다.
+#
+# 창 안의 내용은 `packages/companion` 이 띄우는 화면을 그대로 불러온다 — 표면을
+# 두 번 만들지 않는다.
+[package]
+name = "companion-window"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-global-shortcut = "2"
+serde_json = "1"
+
+[[bin]]
+name = "companion-window"
+path = "src/main.rs"

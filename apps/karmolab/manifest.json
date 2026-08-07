@@ -1,14 +1,14 @@
 {
   "name": "KarmoLab",
   "short_name": "KarmoLab",
-  "description": "Karmoddrine agent team companion — Hermes/OpenClaw 동등 이상",
-  "start_url": "/apps/karmolab/",
+  "description": "손에 잡히는 도구들이 있는 작업실. 글·이미지·계산·개발 도구를 브라우저 안에서 다룹니다.",
+  "start_url": "/karmolab/",
   "display": "standalone",
   "background_color": "#0f0f12",
   "theme_color": "#0f0f12",
   "orientation": "portrait-primary",
   "lang": "ko-KR",
-  "scope": "/apps/karmolab/",
+  "scope": "/karmolab/",
   "icons": [
     {
       "src": "/apps/karmolab/img/icon-192.png",
@@ -23,5 +23,31 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"]
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "글자수 세기",
+      "short_name": "글자수",
+      "url": "/karmolab/t/charcount/",
+      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "PDF 편집",
+      "short_name": "PDF",
+      "url": "/karmolab/t/pdftool/",
+      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "QR 코드 생성",
+      "short_name": "QR",
+      "url": "/karmolab/t/qrgen/",
+      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "이미지 편집",
+      "short_name": "이미지",
+      "url": "/karmolab/t/imageedit/",
+      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
 }

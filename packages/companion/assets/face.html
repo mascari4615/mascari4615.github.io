@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>동반자</title>
+<link rel="stylesheet" href="/ui.css" />
+</head>
+<body>
+  <!-- 물어보는 자리 — 되돌리기 어려운 일을 하기 전 -->
+  <div class="ask" id="ask" hidden>
+    <div class="ask-what" id="askWhat"></div>
+    <div class="ask-row">
+      <button id="askNo">아니</button>
+      <button id="askYes" class="ask-yes">응, 해</button>
+    </div>
+  </div>
+
+  <!-- 얘를 우클릭하면 나오는 것. 평소엔 없다. -->
+  <div class="menu" id="menu" hidden>
+    <label>누구<select id="whoPick"></select></label>
+    <label>머리<select id="brainPick"></select></label>
+    <label>목소리<select id="voicePick"></select></label>
+    <!-- 소리 조절. 곁에 두는 존재라 「지금 좀 작게」가 자주 필요하다. -->
+    <label>소리 크기<input id="volPick" type="range" min="0" max="100" step="5" /></label>
+    <label>말 빠르기<input id="ratePick" type="range" min="60" max="160" step="5" /></label>
+    <label>몸 크기<input id="sizePick" type="range" min="60" max="200" step="5" /></label>
+    <hr />
+    <button class="item" id="boxesBtn">차지하는 자리 보기</button>
+    <button class="item" id="knownBtn">나에 대해 아는 것</button>
+    <button class="item danger" id="gripClose">끄기</button>
+  </div>
+
+  <!-- 아는 것 -->
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-head">이 사람에 대해 아는 것</div>
+    <div class="sheet-body" id="knownBody">아직 아는 게 없다.</div>
+    <div class="sheet-foot">틀렸거나 남기기 싫은 줄은 ✕ 로 지운다. 대화 흔적까지 지우려면 Shift 누른 채로.</div>
+  </div>
+
+  <audio id="player" hidden></audio>
+  <div class="grip" id="grip" hidden><span></span></div>
+  <button class="mute" id="mute" hidden></button>
+  <div class="status" id="status"></div>
+
+  <div class="room">
+    <!-- 얘가 하는 말 -->
+    <div class="bubble" id="bubble"></div>
+
+    <!-- 얘 -->
+    <div class="stage">
+      <div class="field">
+        <canvas class="body3d" id="body3d" hidden></canvas>
+        <div class="cube" id="cube"><div></div></div>
+      </div>
+    </div>
+    <div class="shadow"></div>
+
+    <!-- 말 걸기 — 얘를 누르면 열린다 -->
+    <div class="talk" id="talk">
+      <div class="log" id="log"><div class="empty"></div></div>
+      <form id="form" autocomplete="off">
+        <input id="text" placeholder="말 걸기…" />
+        <button id="mic" type="button" title="눌러서 말하기">🎤</button>
+        <button id="send" type="submit">↵</button>
+      </form>
+    </div>
+  </div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/lib/three/build/three.module.js",
+    "three/addons/": "/lib/three/examples/jsm/"
+  }
+}
+</script>
+<script>
+  /** 창 안에서 벌어진 일을 밖으로 흘린다 — 조용히 사라지는 실패를 없애려고. */
+  function tell(message) {
+    try {
+      fetch('/log', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: String(message) }),
+      }).catch(() => {});
+    } catch { /* 기록 못 남겨도 하던 일은 계속 */ }
+  }
+  window.addEventListener('error', (e) => tell(`에러: ${e.message}`));
+  window.addEventListener('unhandledrejection', (e) => tell(`처리 안 된 실패: ${e.reason}`));
+
+  /* ── 뚫어낼 색을 칠한다 ─────────────────────────────────────
+     창은 스스로 투명해질 수 없다. 대신 윈도우가 **딱 한 색**을 뚫어 준다 — 그 색을
+     칠하는 건 페이지 몫이다. 안 칠하면 브라우저가 바탕을 흰색으로 칠하고, 뚫을 픽셀이
+     하나도 없어서 창이 통째로 하얘진다(실측: 「흰 화면만 보여」). 어떤 색인지는 창을
+     띄운 쪽이 주소로 알려 준다 — 양쪽이 각자 색을 정하면 또 어긋난다. */
+  const 뚫을색 = new URLSearchParams(location.search).get('t');
+  if (뚫을색 !== null && /^[0-9a-fA-F]{6}$/.test(뚫을색)) {
+    document.documentElement.style.background = `#${뚫을색}`;
+    document.body.style.background = `#${뚫을색}`;
+    tell(`바탕을 #${뚫을색} 로 칠했다 — 이 색이 뚫린다`);
+  }
+
+  // 뚫린 창(데스크톱 앱)으로 떠 있으면 바탕을 비운다.
+  const inDesktopWindow = typeof window.__TAURI__ !== 'undefined';
+  if (inDesktopWindow) {
+    document.getElementById('gripClose').addEventListener('click', async () => {
+      // 정식으로 닫아 보고, 안 되면 그냥 끈다. 눌렀는데 안 꺼지는 일은 없어야 한다.
+      try {
+        await window.__TAURI__.window.getCurrentWindow().close();
+      } catch (e) {
+        console.warn('창을 못 닫았다 — 그냥 끈다:', e);
+      }
+      try {
+        await window.__TAURI__.core.invoke('quit');
+      } catch { /* 이미 꺼졌으면 그만 */ }
+    });
+  }
+
+  /* ── 화면 전체로 편 창 ─────────────────────────────────────
+     창을 화면만큼 키웠으니, 얘가 사는 자리를 화면 안에서 옮겨 다니게 한다.
+     끌면 창이 아니라 **얘가** 움직인다 — 잘릴 테두리가 없으니 애초에 잘릴 것도 없다. */
+  const 전체화면 = new URLSearchParams(location.search).get('full') === '1';
+  if (전체화면) document.body.classList.add('full');
+  const 방자리 = {
+    x: Number(localStorage.getItem('companion.roomX') ?? '0') || null,
+    y: Number(localStorage.getItem('companion.roomY') ?? '0') || null,
+  };
+  function 방자리적용() {
+    if (전체화면 === false) return;
+    // 처음엔 오른쪽 아래 — 늘 그 자리에 있던 대로.
+    const x = 방자리.x ?? innerWidth - 240;
+    const y = 방자리.y ?? Math.max(0, innerHeight - 660);
+    // 화면 밖으로 도망가지 못하게 붙잡는다.
+    방자리.x = Math.min(innerWidth - 40, Math.max(40, x));
+    방자리.y = Math.min(innerHeight - 120, Math.max(0, y));
+    document.body.style.setProperty('--방x', `${방자리.x}px`);
+    document.body.style.setProperty('--방y', `${방자리.y}px`);
+  }
+  방자리적용();
+  addEventListener('resize', 방자리적용);
+  /* 차지하는 자리 보기 — 투명한 창은 무엇이 어디를 먹는지 눈으로 볼 수가 없다.
+     「보기엔 그대로인데」를 각자 짐작으로 따지지 않으려면 눈에 보여야 한다. */
+  if (localStorage.getItem('companion.showBoxes') === '1') document.body.classList.add('showboxes');
+  document.getElementById('boxesBtn')?.addEventListener('click', () => {
+    const 켬 = document.body.classList.toggle('showboxes');
+    localStorage.setItem('companion.showBoxes', 켬 ? '1' : '0');
+  });
+  // **실제로 어떻게 떴는지 창이 직접 말한다.** 띄우는 쪽이 「이렇게 해 달라」고 한 값은
+  // 됐다는 증거가 아니다 — 요청과 결과를 같은 것으로 셌다가 「된 것 같은데?」를 들었다.
+  tell(`창 ${innerWidth}×${innerHeight} · 전체화면 ${전체화면 ? 'O' : 'X'} · 화면 ${screen.width}×${screen.height}`);
+  // 얘가 사는 자리가 실제로 어디에 얼마만 하게 놓였는지도 같이 말한다 — 창만 커지고
+  // 안쪽 배치가 그대로면 보이는 건 하나도 안 달라진다.
+  setTimeout(() => {
+    const r = document.querySelector('.room')?.getBoundingClientRect();
+    if (r) tell(`얘 자리 ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}×${Math.round(r.height)}`);
+  }, 800);
+
+  const cube = document.getElementById('cube');
+  const bubble = document.getElementById('bubble');
+  const status = document.getElementById('status');
+  const form = document.getElementById('form');
+  const text = document.getElementById('text');
+  const send = document.getElementById('send');
+  const log = document.getElementById('log');
+
+  let idleTimer = null;
+
+  /* ── 목소리 ─────────────────────────────────────────────
+     브라우저에 내장된 음성을 쓴다 — 키도, 서버도, 네트워크도 필요 없다.
+     소리는 기본으로 꺼둔다: 소리가 갑자기 나오는 건 무례하다. */
+  const mute = document.getElementById('mute');
+  // 얘가 하는 말은 전부 소리로 나온다 — 혼잣말도, 화면 보고 하는 말도. 예외 없다.
+  const voiceOn = true;
+  let koVoice = null;
+
+  function pickVoice() {
+    const voices = speechSynthesis.getVoices();
+    koVoice = voices.find((v) => v.lang && v.lang.toLowerCase().startsWith('ko')) || null;
+  }
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+
+  // 소리를 끄는 자리는 없앴다. 말은 하는데 안 들리는 상태가 「조용한 고장」이었다.
+  mute.hidden = true;
+
+  /* 서버가 만들어 준 자연스러운 목소리를 먼저 쓰고, 안 되면 브라우저 내장으로 물러선다.
+     이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이라 로봇처럼 들리기 때문이다. */
+  const player = document.getElementById('player');
+  const voicePick = document.getElementById('voicePick');
+
+  /* ── 소리 조절 ───────────────────────────────────────────
+     크기와 빠르기는 **창 안에서** 바뀐다. 서버에 다시 만들어 달라고 하지 않는다 —
+     이미 받아 둔 소리에 그대로 먹으므로 즉시 반영되고, 말하는 중에 바꿔도 끊기지 않는다.
+     끄고 켜도 남는다: 매번 다시 맞추게 하면 조절 기능이 없는 것과 비슷하다. */
+  const volPick = document.getElementById('volPick');
+  const ratePick = document.getElementById('ratePick');
+  const 소리 = {
+    크기: Number(localStorage.getItem('companion.volume') ?? '85'),
+    빠르기: Number(localStorage.getItem('companion.rate') ?? '100'),
+  };
+  function 소리적용() {
+    player.volume = Math.min(1, Math.max(0, 소리.크기 / 100));
+    player.playbackRate = Math.min(2, Math.max(0.5, 소리.빠르기 / 100));
+    volPick.value = String(소리.크기);
+    ratePick.value = String(소리.빠르기);
+  }
+  volPick.addEventListener('input', () => {
+    소리.크기 = Number(volPick.value);
+    localStorage.setItem('companion.volume', String(소리.크기));
+    소리적용();
+  });
+  ratePick.addEventListener('input', () => {
+    소리.빠르기 = Number(ratePick.value);
+    localStorage.setItem('companion.rate', String(소리.빠르기));
+    소리적용();
+  });
+  소리적용();
+
+  /* 몸 크기 — 창이 작고 얘가 늘 거기 있으니 「좀 더 크게/작게」가 자주 필요하다.
+     3D 몸이 아직 안 섰을 수도 있으므로 값만 들고 있다가, 서면 그때 먹인다. */
+  const sizePick = document.getElementById('sizePick');
+  let 몸크기 = Number(localStorage.getItem('companion.bodySize') ?? '100');
+  // 막대 위치는 지금 바로 맞춰 둔다. 몸은 나중에 서므로 그건 설 때 먹인다 —
+  // 여기서 몸을 건드리면 아직 만들어지지도 않은 것을 부르게 된다.
+  sizePick.value = String(몸크기);
+  /** 얘가 사는 상자를 몸 크기만큼. 화면보다 커지지는 않게. */
+  function 상자크기() {
+    if (전체화면 === false) return;
+    const 배 = Math.max(0.6, Math.min(2.5, 몸크기 / 100));
+    document.body.style.setProperty('--방폭', `${Math.min(innerWidth - 40, Math.round(420 * 배))}px`);
+    document.body.style.setProperty('--방높이', `${Math.min(innerHeight - 40, Math.round(620 * 배))}px`);
+  }
+  /**
+   * 몸 크기 = **얘가 사는 상자 크기**.
+   *
+   * 처음엔 카메라를 당겨 크게 만들었는데, 당기면 크게 보이는 대신 **화면 밖으로 잘린다** —
+   * 확대는 곧 잘라내기다(실측: 「여전히 모델은 짤려」). 상자가 커지면 그 안의 그림판도
+   * 같이 커지고, 카메라는 늘 하던 대로 몸 전체를 담으므로 **커지되 안 잘린다.**
+   */
+  function 몸크기적용() {
+    sizePick.value = String(몸크기);
+    상자크기();
+    tell(`몸 크기 ${몸크기}%`);
+  }
+  sizePick.addEventListener('input', () => {
+    몸크기 = Number(sizePick.value);
+    localStorage.setItem('companion.bodySize', String(몸크기));
+    몸크기적용();
+  });
+  // 몸이 서기 전에도 상자는 먼저 잡아 둔다 — 이제 몸에 기대지 않는다.
+  몸크기적용();
+  addEventListener('resize', 상자크기);
+  let serverVoices = [];
+  let chosenVoice = localStorage.getItem('companion.voiceId') || '';
+
+  function speakBuiltIn(message) {
+    // 물러설 자리 자체가 없을 수도 있다. 조용히 돌아가면 「소리가 없다」만 남는다.
+    if (!('speechSynthesis' in window)) { tell('물러설 목소리도 없다 — 이 창엔 내장 목소리가 없다'); return; }
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(message);
+    if (koVoice) utter.voice = koVoice;
+    utter.lang = 'ko-KR';
+    utter.rate = 1.02;
+    speechSynthesis.speak(utter);
+  }
+
+  /* 문장이 여러 개 이어질 수 있으므로 줄 세워 차례로 읽는다 — 뒤 문장이 앞 문장을
+     끊어버리면 말이 뚝뚝 끊긴다. */
+  let speechQueue = Promise.resolve();
+
+  /* 말한 횟수와 소리 낸 횟수. 어긋나면 「어떤 말은 자막으로만」 상태다.
+     이번에 흘러나오지 않은 말이 통째로 소리 없이 지나가고 있었는데, 아무 표시가
+     없어서 사람이 눈치챌 때까지 몰랐다. 세면 안다. */
+  const 발화 = { 말함: 0, 소리냄: 0 };
+
+  /* 지금이 몇 번째 말인가.
+     한 번의 대답 안에서 문장이 여러 개면 차례로 읽는 게 맞다. 그런데 **새 대답이
+     오면** 앞 대답의 남은 문장들은 이미 지난 말이다 — 그걸 다 읽고 나서야 새 말을
+     하니 대화가 몇 초씩 밀렸다. 새 말이 오면 세대를 올리고, 지난 세대의 줄 선
+     문장은 제 차례가 와도 그냥 지나간다. */
+  let 세대 = 0;
+  function 새말() {
+    세대 += 1;
+    speechQueue = Promise.resolve();
+    try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
+    speechSynthesis.cancel();
+  }
+
+  function speakAloud(message, queued) {
+    발화.소리냄 += 1;
+    if (voiceOn === false) return;
+    const 내세대 = 세대;
+    const job = () => (내세대 === 세대 ? playOne(message) : undefined);
+    speechQueue = queued ? speechQueue.then(job, job) : (player.pause(), job());
+  }
+
+  async function playOne(message) {
+    if (voiceOn === false) return;
+    if (serverVoices.length === 0) { speakBuiltIn(message); return; }
+    try {
+      const url = '/voice?text=' + encodeURIComponent(message) + (chosenVoice ? '&v=' + encodeURIComponent(chosenVoice) : '');
+      const res = await fetch(url);
+      if (res.ok === false) { speakBuiltIn(message); return; }
+      const blob = await res.blob();
+      speechSynthesis.cancel();
+      if (player.src) URL.revokeObjectURL(player.src);
+      player.src = URL.createObjectURL(blob);
+      소리적용(); // src 를 갈면 빠르기가 되돌아가는 브라우저가 있다
+      await player.play();
+      // 소리가 나는 동안만 입이 움직이게 한다. 기분만 보고 움직이면 소리는 끝났는데
+      // 입이 계속 나불거리거나, 짧은 말에 입이 안 열린 채로 지나간다.
+      if (Number.isFinite(player.duration)) body3d?.speakFor(player.duration * 1000);
+      // 이 소리가 끝나야 다음 문장을 읽는다.
+      await new Promise((done) => {
+        player.onended = done;
+        player.onerror = done;
+      });
+      body3d?.speakFor(0);
+    } catch (e) {
+      // **왜 소리가 안 나는지 밖에서 알 수 있어야 한다.**
+      //
+      // 예전엔 여기서 조용히 내장 목소리로 물러섰다. 내장 목소리에 한국어가 없으면
+      // 아무 소리도 안 나는데, 기록에는 아무것도 안 남아서 「말은 하는데 소리가 없다」로만
+      // 보였다. 창을 브라우저에서 제 창으로 옮기면 소리 정책이 달라진다 — 그때 이 자리가
+      // 조용하면 원인을 못 찾는다.
+      tell(`소리를 못 냈다: ${e && e.name ? e.name : ''} ${e && e.message ? e.message : String(e)}`);
+      speakBuiltIn(message);
+    }
+  }
+
+  async function loadVoices() {
+    try {
+      serverVoices = await (await fetch('/voices')).json();
+    } catch {
+      serverVoices = [];
+    }
+    if (serverVoices.length === 0) return;
+    if (chosenVoice === '') chosenVoice = serverVoices[0].id;
+    voicePick.hidden = false;
+    voicePick.innerHTML = '';
+    for (const v of serverVoices) {
+      const option = document.createElement('option');
+      option.value = v.id;
+      option.textContent = v.label + ' · ' + v.gender;
+      if (v.id === chosenVoice) option.selected = true;
+      voicePick.append(option);
+    }
+  }
+
+  voicePick.addEventListener('change', () => {
+    chosenVoice = voicePick.value;
+    localStorage.setItem('companion.voiceId', chosenVoice);
+    // 고른 즉시 한 번 들려준다 — 안 들어보고는 못 고른다.
+    speakAloud('응, 이 목소리로 할게.');
+  });
+
+  function append(who, message, kind) {
+    log.querySelector('.empty')?.remove();
+    const line = document.createElement('div');
+    line.className = 'line ' + kind;
+    const label = document.createElement('div');
+    label.className = 'who';
+    label.textContent = who;
+    const body = document.createElement('div');
+    body.className = 'what';
+    body.textContent = message;
+    line.append(label, body);
+    log.append(line);
+    // 이미 위로 올려 읽는 중이면 방해하지 않는다.
+    const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 120;
+    if (nearBottom) log.scrollTop = log.scrollHeight;
+  }
+
+  async function loadHistory() {
+    try {
+      const entries = await (await fetch('/history')).json();
+      for (const entry of entries) {
+        if (entry.role === 'sensed' && entry.channel === 'web') append('나', entry.text, 'me');
+        else if (entry.role === 'said') append(entry.channel === 'web' ? '동반자' : '동반자 (혼잣말)', entry.text, entry.channel === 'web' ? 'them' : 'them alone');
+        // 시계 tick 자체(느낀 것)는 대화가 아니라 배경이므로 안 그린다.
+      }
+      log.scrollTop = log.scrollHeight;
+    } catch {
+      // 지난 대화를 못 불러와도 새 대화는 된다.
+    }
+  }
+
+  // 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다.
+  function setState(state) {
+    body3d?.setMood(state);
+  }
+
+  /* ── 말이 만들어지는 대로 ─────────────────────────────────
+     다 만들어질 때까지 기다리면 몇 초 동안 아무 일도 안 일어나는 것처럼 보인다.
+     조각이 오는 대로 말풍선과 대화 내역에 채우고, 문장이 끝나면 그 문장부터 소리낸다. */
+  let streamLine = null;
+  let spokenUpTo = 0;
+
+  function streamInto(soFar, channel) {
+    // 진짜 말이 시작되면 뜸 표시는 걷는다.
+    bubble.classList.remove('aside');
+    if (streamLine === null) {
+      log.querySelector('.empty')?.remove();
+      streamLine = document.createElement('div');
+      streamLine.className = 'line ' + (channel !== 'web' ? 'them alone' : 'them');
+      const label = document.createElement('div');
+      label.className = 'who';
+      label.textContent = channel === 'screen' ? '동반자 (화면을 보고)' : channel !== 'web' ? '동반자 (혼잣말)' : '동반자';
+      const body = document.createElement('div');
+      body.className = 'what';
+      streamLine.append(label, body);
+      log.append(streamLine);
+      spokenUpTo = 0;
+      새말(); // 새 대답이 흘러나오기 시작했다 — 앞 대답의 남은 문장은 버린다
+    }
+    streamLine.querySelector('.what').textContent = soFar;
+    bubble.textContent = soFar;
+    bubble.classList.add('on');
+    // **새로 나온 글자를 따라간다.** 안 그러면 말풍선이 첫 줄에 멈춰 있고 뒷말은
+    // 잘린 채로 안 보인다 — 막대를 숨겨 놔서 잘린 줄도 몰랐다.
+    bubble.scrollTop = bubble.scrollHeight;
+    setState('speaking', '말하는 중');
+    const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 160;
+    if (nearBottom) log.scrollTop = log.scrollHeight;
+
+    // 문장이 끝난 데까지만 소리낸다 — 반 토막 문장을 읽으면 어색하다.
+    const done = /^[\s\S]*[.!?…。！？\n]/.exec(soFar.slice(spokenUpTo));
+    if (done && done[0].trim().length > 6) {
+      const sentence = done[0].trim();
+      spokenUpTo += done[0].length;
+      speakAloud(sentence, true);
+    }
+  }
+
+  function say(message, aside) {
+    bubble.classList.toggle('aside', aside === true);
+    // 무슨 말을 했는지는 남아야 하므로, 말할 때 대화가 저절로 열렸다가 조용히 접힌다.
+    openChatFor(16);
+    bubble.textContent = message;
+    bubble.classList.add('on');
+    bubble.scrollTop = bubble.scrollHeight;
+    setState('speaking', '말하는 중');
+    // 흘러나오는 동안 이미 읽은 부분은 다시 읽지 않는다.
+    const rest = message.slice(spokenUpTo).trim();
+    if (streamLine !== null) {
+      streamLine = null;
+      if (rest !== '') speakAloud(rest, true);
+      spokenUpTo = 0;
+      return;
+    }
+    // **여기서 소리를 안 내고 있었다.**
+    //
+    // 흘러나오지 *않은* 말은 화면에만 뜨고 입은 다물었다 — 반사 대답, 혼잣말, 화면을
+    // 보고 하는 말이 전부 이 길이다. 곁에 있는 존재가 어떤 말은 소리로 하고 어떤 말은
+    // 자막으로만 하면 그건 반쪽이다. **모든 말은 소리로 나간다.**
+    if (message.trim() !== '') speakAloud(message, true);
+    spokenUpTo = 0;
+    clearTimeout(idleTimer);
+    // 말이 길수록 오래 떠 있는다 — 읽을 시간을 준다.
+    const holdMs = Math.min(20000, 2500 + message.length * 90);
+    idleTimer = setTimeout(() => {
+      bubble.classList.remove('on');
+      setState('', '가만히 있다');
+    }, holdMs);
+  }
+
+  const events = new EventSource('/events');
+  events.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'heard') {
+      setState('thinking', '생각하는 중…');
+    } else if (data.type === 'looking') {
+      setState('looking', '내 화면을 보는 중…');
+    } else if (data.type === 'hush') {
+      // 내가 말을 걸었으니 하던 말은 그만. 소리도 말풍선도 바로 멈춘다.
+      새말();
+      spokenUpTo = 0;
+      streamLine = null;
+      bubble.classList.remove('on');
+    } else if (data.type === 'filler') {
+      // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다 — 대화엔 안 남긴다.
+      bubble.textContent = data.text;
+      bubble.classList.add('on', 'aside');
+      setState('thinking', '');
+      speakAloud(data.text, false);
+    } else if (data.type === 'partial') {
+      streamInto(data.soFar, data.channel);
+    } else if (data.type === 'face') {
+      /* 얼굴 신호. 생김새(3D 모델)는 다른 세션 몫이라 여기서는 **받아 두기만** 한다 —
+         모델 쪽이 window.onCompanionFace 를 달면 그대로 이어진다. 화면에는 아주 옅게만. */
+      document.body.dataset.face = data.expression;
+      try { window.onCompanionFace?.(data.expression); } catch (e) { /* 얼굴 때문에 말이 막히면 안 된다 */ }
+    } else if (data.type === 'speak') {
+      발화.말함 += 1;
+      // 흘러나오던 중이면 그 대답의 이어짐이라 세대를 안 올린다. 새 대답이면 올린다.
+      if (streamLine === null) 새말();
+      const alone = data.channel !== 'web';
+      const who = data.channel === 'screen' ? '동반자 (화면을 보고)' : alone ? '동반자 (혼잣말)' : '동반자';
+      // 흘러나오는 중이었다면 그 줄이 이미 화면에 있다 — 또 붙이지 않는다.
+      if (streamLine === null) append(who, data.text, alone ? 'them alone' : 'them');
+      else streamLine.querySelector('.what').textContent = data.text;
+      say(data.text);
+    }
+  };
+  events.onerror = () => setState('', '연결이 끊겼다 — 서버 확인');
+
+  text.addEventListener('focus', () => {
+    if (cube.classList.contains('thinking') === false && cube.classList.contains('speaking') === false) {
+      setState('listening', '듣는 중');
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = text.value.trim();
+    if (message === '') return;
+    text.value = '';
+    send.disabled = true;
+    append('나', message, 'me');
+    setState('thinking', '생각하는 중…');
+    try {
+      await fetch('/say', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text: message }),
+      });
+    } finally {
+      send.disabled = false;
+      text.focus();
+    }
+  });
+
+  /* ── 나에 대해 아는 것 ─────────────────────────────────── */
+  const knownBtn = document.getElementById('knownBtn');
+  const sheet = document.getElementById('sheet');
+  const knownBody = document.getElementById('knownBody');
+
+  /* 아는 것을 한 줄씩 지울 수 있게 그린다.
+     보여주기만 하고 못 고치면, 잘못 알게 된 것을 평생 안고 간다. */
+  function renderKnown(known) {
+    knownBody.innerHTML = '';
+    const lines = String(known ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      knownBody.textContent = '아직 아는 게 없다.';
+      return;
+    }
+    for (const line of lines) {
+      const row = document.createElement('div');
+      row.className = 'known-line';
+      const text = document.createElement('span');
+      text.textContent = line;
+      const drop = document.createElement('button');
+      drop.className = 'known-drop';
+      drop.textContent = '✕';
+      drop.title = '이건 잊어 (Shift = 대화 흔적까지)';
+      drop.addEventListener('click', async (e) => {
+        const deep = e.shiftKey;
+        row.style.opacity = '0.4';
+        try {
+          await fetch(`/known/forget?what=${encodeURIComponent(line)}&deep=${deep ? '1' : '0'}`, { method: 'POST' });
+          const { known: after } = await (await fetch('/known')).json();
+          renderKnown(after);
+        } catch {
+          row.style.opacity = '1';
+        }
+      });
+      row.append(text, drop);
+      knownBody.append(row);
+    }
+  }
+
+  knownBtn.addEventListener('click', async () => {
+    if (sheet.hidden === false) { sheet.hidden = true; return; }
+    sheet.hidden = false;
+    knownBody.textContent = '읽는 중…';
+    try {
+      const { known } = await (await fetch('/known')).json();
+      renderKnown(known);
+    } catch {
+      knownBody.textContent = '지금은 못 읽었다.';
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') sheet.hidden = true;
+  });
+
+  // 딴 데를 건드리면 닫힌다 — 열어둔 걸 잊고 얘를 가리고 있는 일이 없게.
+  document.addEventListener('pointerdown', (e) => {
+    if (sheet.hidden) return;
+    if (sheet.contains(e.target) || knownBtn.contains(e.target)) return;
+    sheet.hidden = true;
+  });
+
+  /* ── 귀 ────────────────────────────────────────────────
+     브라우저에 있는 받아쓰기를 쓴다. 얼굴과 입만 있고 귀가 없으면 대화가 아니다.
+     말을 마치면 알아서 보낸다 — 다 말하고 버튼을 또 누르게 만들지 않는다. */
+  const mic = document.getElementById('mic');
+  const Recognizer = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognizer = null;
+  let listening = false;
+
+  // 데스크톱 창에서도 단축키가 듣게 하려면, 브라우저 받아쓰기가 없어도 이 자리는 살아야 한다.
+  if (inDesktopWindow) {
+    window.__TAURI__.event.listen('companion://talk', () => { void toggleListening(); });
+  }
+
+  if (Recognizer === undefined) {
+    mic.disabled = true;
+    mic.title = '받아쓰기를 준비하는 중…';
+  } else {
+    recognizer = new Recognizer();
+    recognizer.lang = 'ko-KR';
+    recognizer.interimResults = true;
+    recognizer.continuous = false;
+
+    recognizer.onstart = () => { listening = true; mic.classList.add('listening'); setState('listening', '듣는 중'); };
+    recognizer.onend = () => { listening = false; mic.classList.remove('listening'); };
+    recognizer.onerror = (e) => {
+      listening = false;
+      mic.classList.remove('listening');
+      setState('', e.error === 'not-allowed' ? '마이크가 막혀 있다' : '못 알아들었다');
+    };
+    recognizer.onresult = (e) => {
+      let heard = '';
+      let settled = false;
+      for (const result of e.results) {
+        heard += result[0].transcript;
+        if (result.isFinal) settled = true;
+      }
+      text.value = heard;
+      if (settled && heard.trim() !== '') form.requestSubmit();
+    };
+
+    if (inDesktopWindow) mic.title = '눌러서 말하기 (어디서든 Ctrl+Alt+Space)';
+  }
+
+  mic.addEventListener('click', () => { void toggleListening(); });
+
+  /* 오프라인 받아쓰기가 있으면 그쪽을 쓴다 — 인터넷도 필요 없고 창이 앞에 없어도 된다.
+     없으면 브라우저 받아쓰기로 물러선다. */
+  let offlineEars = false;
+  let offlineListening = false;
+
+  async function toggleListening() {
+    if (offlineEars) { await toggleOffline(); return; }
+    if (recognizer === null) return;
+    if (listening) { recognizer.stop(); return; }
+    try { recognizer.start(); } catch { /* 이미 켜져 있으면 무시 */ }
+  }
+
+  async function toggleOffline() {
+    const where = offlineListening ? '/ears/stop' : '/ears/start';
+    const starting = offlineListening === false;
+    offlineListening = starting;
+    mic.classList.toggle('listening', starting);
+    setState(starting ? 'listening' : 'thinking', starting ? '듣는 중' : '받아적는 중…');
+    try {
+      const res = await fetch(where, { method: 'POST' });
+      if (res.ok === false) throw new Error('실패');
+      if (starting === false) {
+        const { text } = await res.json();
+        if (text === null || String(text).trim() === '') setState('', '아무 말도 안 들렸다');
+      }
+    } catch {
+      offlineListening = false;
+      mic.classList.remove('listening');
+      setState('', '못 들었다');
+    }
+  }
+
+  async function probeEars() {
+    try {
+      const { offline } = await (await fetch('/ears')).json();
+      offlineEars = offline === true;
+      if (offlineEars) {
+        mic.disabled = false;
+        mic.title = '눌러서 말하기 — 오프라인 받아쓰기' + (inDesktopWindow ? ' (어디서든 Ctrl+Alt+Space)' : '');
+      }
+    } catch {
+      offlineEars = false;
+    }
+  }
+
+  /* ── 누구로 있을지 ─────────────────────────────────────
+     인격은 고정이 아니다. 폴더에 파일을 하나 더 넣으면 후보가 하나 는다. */
+  const whoPick = document.getElementById('whoPick');
+
+  async function loadWho() {
+    try {
+      const { list, current } = await (await fetch('/characters')).json();
+      if (!Array.isArray(list) || list.length === 0) return;
+      whoPick.hidden = false;
+      whoPick.innerHTML = '';
+      for (const name of list) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        if (name === current) option.selected = true;
+        whoPick.append(option);
+      }
+    } catch {
+      // 못 읽으면 고르는 자리를 안 띄운다 — 지금 인격 그대로 간다.
+    }
+  }
+
+  whoPick.addEventListener('change', async () => {
+    const name = whoPick.value;
+    try {
+      const res = await fetch('/characters/switch?name=' + encodeURIComponent(name), { method: 'POST' });
+      if (res.ok) setState('', `${name} 이(가) 됐다`);
+    } catch {
+      setState('', '못 바꿨다');
+    }
+  });
+
+  /* ── 3D 몸 ─────────────────────────────────────────────
+     모델이 뜨면 큐브를 물리고, 못 뜨면 큐브가 그대로 남는다. */
+  let body3d = null;
+
+  async function loadBody() {
+    try {
+      const { mountModel } = await import('/model.js');
+      const canvas = document.getElementById('body3d');
+      canvas.hidden = false;
+      body3d = await mountModel(canvas, '욘', (e) => {
+        // **밖에서 알아야 한다.** 몸이 안 서면 조절 막대도 전부 헛돈다 —
+        // 「몸 크기 적용 안 돼」의 원인이 크기 쪽이 아니라 여기일 수 있다.
+        tell(`3D 몸을 못 세웠다: ${e && e.message ? e.message : String(e)}`);
+        canvas.hidden = true;
+      });
+      tell(body3d === null ? '3D 몸이 안 섰다 — 큐브로 지낸다' : '3D 몸이 섰다');
+      if (body3d !== null) {
+        몸크기적용(); // 껐다 켜도 아까 맞춰 둔 크기로 선다
+        cube.classList.add('retired');
+        // 3D 몸은 제 그림자를 발밑에 직접 깐다 — 큐브 시절의 그림자를 남겨 두면 둘이 겹친다.
+        document.querySelector('.shadow')?.remove();
+      }
+      else canvas.hidden = true;
+    } catch (e) {
+      // **삼키지 않는다.** 여기 `console.warn` 만 있어서, 몸 크기 코드가 엉뚱한 자리에
+      // 들어가 함수가 안 보이던 것을 아무도 몰랐다 — 창은 멀쩡했고 기록도 조용했다.
+      // 이 자리는 몸 세우기 전체를 감싸므로, 조용하면 실패가 통째로 사라진다.
+      tell(`3D 몸을 못 불렀다: ${e && e.message ? e.message : String(e)}`);
+    }
+  }
+
+  // 커서를 따라 아주 조금 몸을 돌린다.
+  window.addEventListener('pointermove', (e) => {
+    body3d?.lookAt((e.clientX / innerWidth) * 2 - 1);
+  });
+
+  /* ── 어떤 머리를 쓸지 ─────────────────────────────────── */
+  const brainPick = document.getElementById('brainPick');
+
+  async function loadBrains() {
+    try {
+      const { list, current } = await (await fetch('/brains')).json();
+      if (!Array.isArray(list) || list.length === 0) return;
+      brainPick.hidden = false;
+      brainPick.innerHTML = '';
+      for (const name of list) {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        if (name === current) option.selected = true;
+        brainPick.append(option);
+      }
+    } catch {
+      // 못 읽으면 고르는 자리를 안 띄운다 — 지금 머리 그대로 간다.
+    }
+  }
+
+  brainPick.addEventListener('change', async () => {
+    try {
+      const res = await fetch('/brains/switch?name=' + encodeURIComponent(brainPick.value), { method: 'POST' });
+      if (res.ok) setState('', `${brainPick.value} 로 바꿨다`);
+    } catch {
+      setState('', '못 바꿨다');
+    }
+  });
+
+  /* ── 물어보기 ──────────────────────────────────────────
+     되돌리기 어려운 일은 얘가 혼자 하지 않는다. 여기서 승낙을 받는다. */
+  const ask = document.getElementById('ask');
+  const askWhat = document.getElementById('askWhat');
+  let askingId = null;
+
+  async function checkAsking() {
+    try {
+      const pending = await (await fetch('/permission')).json();
+      if (pending === null) {
+        if (askingId !== null) { ask.hidden = true; askingId = null; }
+        return;
+      }
+      if (pending.id === askingId) return;
+      askingId = pending.id;
+      askWhat.textContent = `이거 해도 될까? — ${pending.what}`;
+      ask.hidden = false;
+    } catch {
+      // 못 물어보면 조용히 넘어간다.
+    }
+  }
+
+  async function answer(yes) {
+    if (askingId === null) return;
+    const id = askingId;
+    ask.hidden = true;
+    askingId = null;
+    try {
+      await fetch(`/permission/answer?id=${encodeURIComponent(id)}&yes=${yes ? '1' : '0'}`, { method: 'POST' });
+    } catch { /* 이미 지나간 물음이면 그만 */ }
+  }
+
+  document.getElementById('askYes').addEventListener('click', () => answer(true));
+  document.getElementById('askNo').addEventListener('click', () => answer(false));
+  setInterval(checkAsking, 1200);
+
+  /* ── 언제 보이고 언제 사라지나 ─────────────────────────────
+     화면에 상시로 있는 것은 얘와 말풍선뿐이다.
+     - 말을 걸려면 얘를 누른다 → 얼굴 아래에 대화가 열린다.
+     - 설정은 얘를 우클릭했을 때만 나온다.
+     - 아무 데도 안 건드리면 조용히 접힌다. */
+  const talk = document.getElementById('talk');
+  const menu = document.getElementById('menu');
+  let chatOpen = false;
+  let closer = null;
+
+  function render() {
+    talk.classList.toggle('on', chatOpen);
+    reportHitAreas();
+  }
+
+  function openChatFor(seconds) {
+    chatOpen = true;
+    render();
+    clearTimeout(closer);
+    closer = setTimeout(() => {
+      // 뭔가 치고 있는 중이면 닫지 않는다.
+      if (document.activeElement === text && text.value !== '') return;
+      chatOpen = false;
+      render();
+    }, seconds * 1000);
+  }
+
+  function closeMenu() {
+    menu.hidden = true;
+    reportHitAreas();
+  }
+
+  /* 어디를 눌러야 하는지 창에게 알려준다. 알려준 자리 밖은 클릭이 그대로 뒤로 지나간다 —
+     안 그러면 보이지도 않는 창이 화면 한 구석의 클릭을 통째로 삼킨다. */
+  let hitAreaComplained = false;
+  function reportHitAreas() {
+    if (inDesktopWindow === false) return;
+    const areas = [];
+    const add = (el) => {
+      if (el === null || el === undefined || el.hidden === true) return;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) areas.push([r.x, r.y, r.width, r.height]);
+    };
+    // 얘 자신은 늘 눌린다 — 그림판이 아니라 얘가 실제로 차지하는 자리만.
+    const body = body3d?.screenBox?.();
+    if (body) areas.push([body.x, body.y, body.width, body.height]);
+    if (chatOpen) add(talk);
+    add(menu);
+    add(sheet);
+    add(ask);
+    window.__TAURI__.core.invoke('set_hit_areas', { areas }).catch((e) => {
+      if (hitAreaComplained === false) {
+        hitAreaComplained = true;
+        // **화면 전체로 편 창에서는 이게 치명적이다.** 누를 자리를 못 알려주면 창이
+        // 화면 전체의 클릭을 삼켜 컴퓨터를 못 쓰게 된다. 조용히 넘길 실패가 아니다.
+        tell(`누를 자리를 못 알려줬다 — 클릭이 막힐 수 있다: ${e && e.message ? e.message : String(e)}`);
+      }
+    });
+  }
+  setInterval(reportHitAreas, 500);
+
+  /* 소리 없이 지나간 말이 있으면 알린다. 모든 소통은 소리가 기본이라, 자막만 나간
+     말은 고장이다. 조용히 지나가면 또 사람이 알려 줄 때까지 모른다. */
+  let 마지막어긋남 = 0;
+  setInterval(() => {
+    const 벌어짐 = 발화.말함 - 발화.소리냄;
+    if (벌어짐 <= 0 || 벌어짐 === 마지막어긋남) return;
+    마지막어긋남 = 벌어짐;
+    tell(`소리 없이 지나간 말이 있다 — 말함 ${발화.말함} · 소리 ${발화.소리냄}`);
+  }, 5000);
+
+  const stage = document.querySelector('.stage');
+
+  /* 얘를 잡아끌면 창이 따라온다. 창틀이 없으니 붙잡을 데가 얘 몸뿐이다.
+     살짝 누른 것과 끌고 간 것을 구분해서, 제자리에서 뗐으면 대화를 연다. */
+  let grabbed = null;
+  const appWindow = inDesktopWindow ? window.__TAURI__.window.getCurrentWindow() : null;
+
+  stage?.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    closeMenu();
+    grabbed = { x: e.clientX, y: e.clientY, moved: false };
+  });
+
+  stage?.addEventListener('pointermove', (e) => {
+    if (grabbed === null) return;
+    if (grabbed.moved === false) {
+      if (Math.abs(e.clientX - grabbed.x) + Math.abs(e.clientY - grabbed.y) < 4) return;
+      grabbed.moved = true;
+      document.body.classList.add('dragging');
+      // 화면 전체로 편 창에서는 **창을 끌지 않는다.** 창은 화면을 다 덮고 있으니
+      // 끌어봐야 갈 데가 없다 — 대신 얘가 화면 안에서 옮겨 다닌다.
+      if (전체화면 === false) {
+        if (appWindow !== null) appWindow.startDragging().catch((err) => tell(`끌기 실패: ${err}`));
+        return;
+      }
+      grabbed.from = { x: 방자리.x ?? 0, y: 방자리.y ?? 0, px: e.clientX, py: e.clientY };
+    }
+    if (전체화면 === false || grabbed.from === undefined) return;
+    방자리.x = grabbed.from.x + (e.clientX - grabbed.from.px);
+    방자리.y = grabbed.from.y + (e.clientY - grabbed.from.py);
+    방자리적용();
+  });
+
+  /* 닿으면 반응한다. 만져도 아무 일이 없으면 그건 화면에 붙은 그림이다.
+     제자리에서 뗐으면 쿡 찌른 것, 끌고 갔으면 붙잡아 흔든 것. */
+  const touched = (kind) => fetch(`/touch?kind=${kind}`, { method: 'POST' }).catch(() => {});
+
+  const release = () => {
+    if (grabbed === null) return;
+    const wasClick = grabbed.moved === false;
+    grabbed = null;
+    document.body.classList.remove('dragging');
+    if (전체화면 && 방자리.x !== null) {
+      localStorage.setItem('companion.roomX', String(Math.round(방자리.x)));
+      localStorage.setItem('companion.roomY', String(Math.round(방자리.y)));
+    }
+    touched(wasClick ? 'poke' : 'drag');
+    if (wasClick === false) return;
+    openChatFor(60);
+    text.focus();
+  };
+  stage?.addEventListener('pointerup', release);
+  stage?.addEventListener('pointercancel', release);
+
+  // 우클릭 = 설정. 화면 밖으로 안 넘치게 자리를 잡는다.
+  stage?.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    menu.hidden = false;
+    const box = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(6, Math.min(e.clientX, innerWidth - box.width - 6))}px`;
+    menu.style.top = `${Math.max(6, Math.min(e.clientY, innerHeight - box.height - 6))}px`;
+    reportHitAreas();
+  });
+
+  document.addEventListener('pointerdown', (e) => {
+    if (menu.hidden === false && menu.contains(e.target) === false && stage?.contains(e.target) === false) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    closeMenu();
+    sheet.hidden = true;
+    chatOpen = false;
+    render();
+  });
+
+  loadHistory();
+  loadVoices();
+  loadWho();
+  loadBrains();
+  probeEars();
+  loadBody();
+  text.focus();
+</script>
+</body>
+</html>
+
+</body>
+</html>

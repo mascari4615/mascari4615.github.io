@@ -9,7 +9,10 @@
   const PARTS: Array<[string, string]> = [
     ['colorconv', '변환'],
     ['palette', '이미지에서 추출'],
-    ['colorname', 'CSS 색 이름']
+    ['colorname', 'CSS 색 이름'],
+    ['gradient', '그라데이션'],
+    ['contrast', '대비 검사'],
+    ['colorblind', '색각']
   ];
 
   Toolbox.register({

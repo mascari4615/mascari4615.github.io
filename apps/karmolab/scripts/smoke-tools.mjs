@@ -50,10 +50,48 @@ for (const id of ids) {
         registered[cfg.id] = cfg;
       },
       showToast: () => undefined,
-      incrementProgress: () => 0
+      incrementProgress: () => 0,
+      // 앱에서는 위젯이 매니페스트의 공개 필드를 그대로 펴서 등록에 쓴다.
+      // 하네스가 이것을 흉내내지 않으면, 이 함수를 (물음표 없이) 부르는 멀쩡한 위젯이
+      // 여기서만 죽어 도구 결함처럼 보인다 — 실제 구현과 같은 값을 돌려준다.
+      getLazyWidgetPublicMeta: (wid) => {
+        const m = metaById[wid];
+        if (!m) return { id: wid };
+        const { lazyScriptPaths: _paths, ...rest } = m;
+        return rest;
+      }
     },
-    Mdd: { linePreset: () => true },
-    document: { createElement: () => ({ style: {}, classList: { add() {}, remove() {} } }) },
+    // Mdd 는 화면 연출용이라 이 검사와 관계가 없다. 그런데 위젯이 부르는 함수를 하나라도
+    // 빠뜨리면 멀쩡한 위젯이 여기서만 죽어 도구 결함처럼 보인다(실제로 두 번 그랬다).
+    // 무엇을 부르든 조용히 받아 주고, 이 검사는 등록이 되는지에만 집중한다.
+    Mdd: new Proxy(
+      {},
+      {
+        get: (_t, prop) => (prop === 'getRelationshipTitle' ? () => '' : prop === 'getAffection' ? () => 0 : () => true)
+      }
+    ),
+    document: (() => {
+      const el = () => ({
+        style: {},
+        classList: { add() {}, remove() {}, toggle() {}, contains: () => false },
+        appendChild() {},
+        setAttribute() {},
+        addEventListener() {},
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        dataset: {}
+      });
+      return {
+        createElement: el,
+        createElementNS: el,
+        getElementById: () => null,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        addEventListener() {},
+        head: el(),
+        body: el()
+      };
+    })(),
     navigator: { clipboard: {} },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'x' },
     location: { hash: '' }

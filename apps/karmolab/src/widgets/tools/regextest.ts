@@ -37,7 +37,7 @@
                 <span style="color:var(--text-tertiary); font-family:var(--font-mono);">/</span>
                 <input type="text" id="rxPattern" class="mono-input" placeholder="[a-z]+" style="flex:1;">
                 <span style="color:var(--text-tertiary); font-family:var(--font-mono);">/</span>
-                <input type="text" id="rxFlags" class="mono-input" value="gm" style="width:70px;">
+                <input type="text" id="rxFlags" aria-label="플래그" class="mono-input" value="gm" style="width:70px;">
               </div>
               <div class="tool-chips" style="margin-top:10px;">
                 ${PRESETS.map((p, i) => `<button type="button" class="tool-chip rx-preset" data-i="${i}">${p.label}</button>`).join('')}
@@ -48,7 +48,7 @@
             <div class="tool-split">
               <div class="tool-split-pane">
                 <label class="field-label">테스트 문자열</label>
-                <textarea id="rxInput" class="mono-input" style="min-height:180px;"></textarea>
+                <textarea id="rxInput" aria-label="검사할 글" class="mono-input" style="min-height:180px;"></textarea>
                 <label class="field-label" style="margin-top:12px;">치환 (선택) — $1, $&lt;name&gt; 사용 가능</label>
                 <input type="text" id="rxReplace" class="mono-input" placeholder="[$&]">
               </div>

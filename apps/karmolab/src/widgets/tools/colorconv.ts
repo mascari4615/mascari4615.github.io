@@ -99,8 +99,8 @@
             <div class="field-group">
               <label class="field-label">색 선택</label>
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <input type="color" id="ccColor" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
-                <input type="text" id="ccHex" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
+                <input type="color" id="ccColor" aria-label="색 선택" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
+                <input type="text" id="ccHex" aria-label="색 코드 (HEX)" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
                 <button class="btn btn-ghost" id="ccRandom">랜덤</button>
               </div>
             </div>
@@ -133,12 +133,21 @@
           const paletteEl = $<HTMLElement>('#ccPalette');
           const shadesEl = $<HTMLElement>('#ccShades');
 
+          // 견본 글자색은 견본 자기 밝기로 정한다 — 흰 글자로 고정하면 노란색 같은
+          // 밝은 견본에서 이름과 코드가 안 보인다 (테마와 무관하게 안 보였다).
+          function swatchInk(hex: string): string {
+            const rgb = hexToRgb(hex);
+            if (rgb == null) return '#fff';
+            return luminance(rgb) > 0.45 ? '#12100c' : '#fff';
+          }
+
           function swatches(list: Array<{ hex: string; label: string }>): string {
             return list
-              .map(
-                (s) =>
-                  `<button type="button" class="cc-swatch" data-hex="${s.hex}" style="background:${s.hex}" title="${s.hex}"><span>${s.label}</span><span class="cc-swatch-hex">${s.hex.toUpperCase()}</span></button>`
-              )
+              .map((s) => {
+                const ink = swatchInk(s.hex);
+                const shadow = ink === '#fff' ? '0 1px 3px rgba(0,0,0,0.55)' : 'none';
+                return `<button type="button" class="cc-swatch" data-hex="${s.hex}" style="background:${s.hex};color:${ink};text-shadow:${shadow}" title="${s.hex}"><span>${s.label}</span><span class="cc-swatch-hex">${s.hex.toUpperCase()}</span></button>`;
+              })
               .join('');
           }
 

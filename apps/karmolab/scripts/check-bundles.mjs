@@ -102,3 +102,30 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(`[check-bundles] 묶음 ${bundleCount}개 · 부분 ${Object.keys(seenPart).length}개 정합 OK`);
+
+/* ── 이어짐 확인 (TASK-KL-088, 묶음을 셋으로 나눈 뒤 추가) ─────────────────────
+ * 묶음을 나누거나 이름을 바꾸면 두 곳이 조용히 끊긴다:
+ *  ① 도구가 가리키는 묶음이 사라짐 → 그 도구를 부르면 아무 데도 못 간다
+ *  ② 관련 도구 링크가 페이지 없는 것을 가리킴 → 그 자리만 비어 나간다
+ * 둘 다 화면은 멀쩡해 보인다. 그래서 여기서 함께 본다.
+ */
+{
+  const metaSrc = read('src/widgets-lazy-meta.ts');
+  const seoTools = JSON.parse(read('data/tools-seo.json')).tools;
+  const ids = new Set([...metaSrc.matchAll(/id: '([a-z0-9]+)'/g)].map((m) => m[1]));
+
+  const ghostBundles = [...new Set([...metaSrc.matchAll(/bundle: '([a-z0-9]+)'/g)].map((m) => m[1]))].filter(
+    (b) => !ids.has(b)
+  );
+  const danglingRelated = [];
+  for (const [id, t] of Object.entries(seoTools)) {
+    for (const r of t.related || []) if (!seoTools[r]) danglingRelated.push(`${id} → ${r}`);
+  }
+
+  if (ghostBundles.length || danglingRelated.length) {
+    if (ghostBundles.length) console.error('[check-bundles] 없는 묶음을 가리키는 도구: ' + ghostBundles.join(', '));
+    if (danglingRelated.length) console.error('[check-bundles] 페이지 없는 관련 링크: ' + danglingRelated.join(', '));
+    process.exit(1);
+  }
+  console.log('[check-bundles] 묶음 참조와 관련 링크가 모두 이어져 있다');
+}
