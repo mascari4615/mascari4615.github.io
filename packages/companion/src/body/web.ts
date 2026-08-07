@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
+import { touchKindFromWire, touchSensation } from '../touch';
+import { Backchannel } from '../backchannel';
+import { Face, expressionFrom, stripExpression } from '../expression';
+import { 평소 } from '../feeling';
+import { withTone, type Tone } from '../voice/feeling-tone';
 import type { Whisper } from '../sense/whisper';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
@@ -28,6 +33,24 @@ export interface WebBodyOptions {
   forget?: (what: string, alsoConversation: boolean) => { known: boolean; conversation: number };
   /** 목소리를 만들어 주는 쪽. 없으면 브라우저 내장 목소리로 말한다. */
   speech?: Speech;
+  /**
+   * 지금 마음이 어느 결인가. 소리를 만들 때마다 물어본다.
+   *
+   * 몸이 마음을 들고 있지 않는 게 중요하다 — 물어보기만 한다. 안 주면 늘 하던 목소리다.
+   */
+  tone?: () => Tone | null;
+  /** 지금 마음. 얼굴을 유도하는 데 쓴다. 안 주면 늘 평온이다. */
+  feeling?: () => import('../feeling').Feeling;
+  /** 맞장구 설정. 안 주면 기본값으로 친다. */
+  backchannel?: import('../backchannel').BackchannelOptions;
+  /** 발동 기록을 사람이 읽는 글로. */
+  tally?: () => string;
+  /** 잘못된 것들을 사람이 읽는 글로. */
+  troubles?: () => string;
+  /** 설정을 사람이 읽는 글로. */
+  settings?: () => string;
+  /** 설정을 바꾼다. 안 받아들인 것들을 돌려준다. */
+  putSettings?: (next: unknown) => string[];
   /** 오프라인 받아쓰기. 없으면 브라우저 받아쓰기로 물러선다. */
   ears?: Whisper;
   /** 누가 될 수 있는지 + 지금 누구인지 + 바꾸기. 없으면 창에 고르는 자리가 안 뜬다. */
@@ -357,13 +380,15 @@ export function webBody(options: WebBodyOptions = {}): Body {
             if (firstSound.length > 50) firstSound.shift();
             log(`첫 소리까지 ${(took / 1000).toFixed(1)}초`);
           }
+          // 지금 마음을 목소리 결로 얹는다. 브라우저는 결을 모른다 — 알 필요도 없다.
+          const 목소리 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
           void options.speech
-            .synthesize(say, query.get('v') ?? undefined)
+            .synthesize(say, 목소리)
             .then((audio) => {
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
               res.writeHead(200, {
-                'content-type': perVoice ? perVoice(query.get('v') ?? undefined) : (speech?.contentType ?? 'audio/mpeg'),
+                'content-type': perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg'),
                 'content-length': audio.length,
               });
               res.end(audio);
@@ -406,8 +431,63 @@ export function webBody(options: WebBodyOptions = {}): Body {
             if (text === '') return;
             broadcast({ type: 'heard', text });
             askedAt = Date.now();
+            // 아직 말하는 중이면 짧게 받아 준다 — 벽에 대고 말하는 기분이 안 들게.
+            // 맞장구는 말이 아니라서 뜸과 같은 길로 나간다(대화에 안 쌓인다).
+            const 받는소리 = backchannel.heard(askedAt);
+            if (받는소리 !== null) broadcast({ type: 'filler', text: 받는소리, channel });
             emit({ channel, kind: 'text', text, at: askedAt });
           });
+          return;
+        }
+
+        // 만든 게 실제로 도는지 보는 창구. 사람이 열어 봐도 읽히는 글로 준다.
+        // 손댈 수 있는 설정 — 읽고(GET) 바꾸고(POST). 재시작 없이 먹는다.
+        if (url === '/settings') {
+          if (req.method === 'POST') {
+            let raw = '';
+            req.on('data', (chunk) => { raw += chunk; if (raw.length > 20_000) req.destroy(); });
+            req.on('end', () => {
+              let 안된것: string[] = ['설정을 못 읽었다'];
+              try {
+                안된것 = options.putSettings?.(JSON.parse(raw)) ?? ['설정을 받을 자리가 없다'];
+              } catch { /* 위 기본값 그대로 */ }
+              const body = Buffer.from(JSON.stringify({ 안된것 }), 'utf8');
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'content-length': body.length });
+              res.end(body);
+            });
+            return;
+          }
+          const 글 = options.settings?.() ?? '설정이 없다.';
+          const body = Buffer.from(글, 'utf8');
+          res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
+          res.end(body);
+          return;
+        }
+
+        // 무엇이 잘못됐나 — 발동 기록의 짝이다.
+        if (url === '/troubles') {
+          const 글 = options.troubles?.() ?? '아직 걸린 게 없다.';
+          const body = Buffer.from(글, 'utf8');
+          res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
+          res.end(body);
+          return;
+        }
+
+        if (url === '/tally') {
+          const 글 = options.tally?.() ?? '아직 세는 게 없다.';
+          const body = Buffer.from(글, 'utf8');
+          res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8', 'content-length': body.length });
+          res.end(body);
+          return;
+        }
+
+        // 브라우저 → 서버: 얘 몸에 닿은 것. 말이 아니라서 통로를 따로 둔다.
+        if (url.startsWith('/touch') && req.method === 'POST') {
+          const wire = new URL(url, 'http://x').searchParams.get('kind') ?? 'poke';
+          const kind = touchKindFromWire(wire);
+          res.writeHead(kind === null ? 400 : 204).end();
+          if (kind === null) return;
+          emit(touchSensation(kind));
           return;
         }
 
@@ -428,12 +508,19 @@ export function webBody(options: WebBodyOptions = {}): Body {
     },
   };
 
+  // 얼굴 신호. 생김새는 다른 세션 몫이라 여기서는 **신호만** 만들어 흘린다.
+  const face = new Face();
+  const backchannel = new Backchannel(options.backchannel);
+
   const voice: Voice = {
     name: `${channel}:voice`,
     partial(chunk: string, soFar: string, from: string) {
       broadcast({ type: 'partial', chunk, soFar, channel: from });
     },
     filler(text: string, from: string) {
+      // 한 뭉치에 소리는 하나다. 맞장구가 이미 나갔으면 뜸은 삼킨다 —
+      // 안 그러면 「음. 응? 그게… 어…」가 연달아 나간다(실측).
+      if (backchannel.mayFiller() === false) return;
       // 뜸은 대화가 아니다 — 소리만 내고 대화 내역에는 안 쌓는다.
       broadcast({ type: 'filler', text, channel: from });
     },
@@ -442,8 +529,19 @@ export function webBody(options: WebBodyOptions = {}): Body {
       broadcast({ type: 'hush' });
     },
     speak(utterance: Utterance) {
+      // 말 앞에 붙은 얼굴 표를 뽑아 따로 흘리고, 말에서는 지운다.
+      // 안 지우면 얘가 「대괄호 놀람 대괄호」를 소리 내어 읽는다.
+      // 답이 나갔으니 이어 말하기 뭉치는 끝났다.
+      backchannel.answered();
+      const { text, tagged } = stripExpression(utterance.text);
+      const 얼굴 = face.changeTo(expressionFrom({
+        feeling: options.feeling?.() ?? 평소,
+        text,
+        tagged,
+      }));
+      if (얼굴 !== null) broadcast({ type: 'face', expression: 얼굴 });
       // channel 을 같이 보낸다 — 화면이 「나한테 한 말」과 「혼잣말」을 구분해 그린다.
-      broadcast({ type: 'speak', text: utterance.text, at: utterance.at, channel: utterance.channel });
+      broadcast({ type: 'speak', text, at: utterance.at, channel: utterance.channel });
     },
   };
 
@@ -508,7 +606,14 @@ export function openPinnedWindow(
           return;
         }
         const transparent = size?.transparent === true;
-        const target = transparent ? `${url}${url.includes('?') ? '&' : '?'}t=1` : url;
+        // 뚫어낼 색은 **여기 한 곳**에서만 정한다.
+        //
+        // 예전엔 창 띄우는 스크립트가 「페이지가 칠하는 색」이라며 값을 박아 뒀는데,
+        // 페이지는 그 색을 한 번도 칠한 적이 없었다 — 바탕이 투명이라 브라우저가 흰색으로
+        // 칠했고, 뚫을 픽셀이 없으니 창이 통째로 하얬다(실측: 「흰 화면만 보여」).
+        // 계약이 한쪽에만 있으면 이렇게 조용히 깨진다. 색을 한 곳에서 정해 양쪽에 넘긴다.
+        const KEY = 'FF00FE';
+        const target = transparent ? `${url}${url.includes('?') ? '&' : '?'}t=${KEY}` : url;
         execFile(
           'powershell',
           [
@@ -516,7 +621,7 @@ export function openPinnedWindow(
             '-Url', target,
             '-Width', String(size?.width ?? 420),
             '-Height', String(size?.height ?? 640),
-            ...(transparent ? ['-Transparent'] : []),
+            ...(transparent ? ['-Transparent', '-KeyColor', KEY] : []),
           ],
           { timeout: 40_000, windowsHide: true, encoding: 'utf8' },
           (error, stdout) => {

@@ -4,6 +4,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { splitTone, 기분빠르기, type Tone } from './feeling-tone';
 import type { Speech, SpeechVoice } from './edge-tts';
 
 export interface PiperSpeechOptions {
@@ -37,7 +38,9 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
   const scratch = mkdtempSync(join(tmpdir(), 'companion-voice-'));
 
   function modelFor(voiceId?: string): string | null {
-    const wanted = voiceId && options.voices[voiceId] ? voiceId : fallback;
+    // `이름@결` 이면 결을 떼고 모델을 찾는다 — 안 그러면 결이 붙는 순간 목소리가 사라진다.
+    const bare = voiceId === undefined ? undefined : splitTone(voiceId).name;
+    const wanted = bare && options.voices[bare] ? bare : fallback;
     const model = options.voices[wanted];
     return model !== undefined && existsSync(model) ? model : null;
   }
@@ -72,7 +75,15 @@ export function piperSpeech(options: PiperSpeechOptions): Speech {
 
       const out = join(scratch, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.wav`);
       const args = ['--model', model, '--output_file', out];
-      const scale = (voiceId ? options.lengthScaleFor?.[voiceId] : undefined) ?? options.lengthScale;
+      // 결은 그 목소리 고유의 빠르기를 **덮어쓰지 않고 곱한다.**
+      //
+      // 처음엔 덮어썼는데, 「느긋한」처럼 원래 느린 목소리에서는 처진 결이 거의 티가 안 났다
+      // (실측: 없음 99KB vs 처짐 101KB — 1.5% 차이). 결은 그 목소리가 원래 가진 결에서
+      // 얼마나 벗어나느냐지, 모든 목소리를 같은 속도로 만드는 게 아니다.
+      const { name: bare, tone } = voiceId === undefined ? { name: undefined, tone: null } : splitTone(voiceId);
+      const 바탕 = (bare ? options.lengthScaleFor?.[bare] : undefined) ?? options.lengthScale ?? 1;
+      const 곱 = tone !== null && tone in 기분빠르기 ? 기분빠르기[tone as Tone] : 1;
+      const scale = 곱 === 1 && 바탕 === 1 ? undefined : 바탕 * 곱;
       if (scale !== undefined) args.push('--length_scale', String(scale));
 
       return new Promise<Buffer>((resolve, reject) => {

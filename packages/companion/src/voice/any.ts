@@ -1,3 +1,4 @@
+import { splitTone } from './feeling-tone';
 import type { Speech, SpeechVoice } from './edge-tts';
 
 /**
@@ -41,9 +42,12 @@ export function anySpeech(engines: readonly { label: string; speech: Speech }[])
       const first = engines[0];
       return first === undefined ? null : { speech: first.speech };
     }
-    const speech = owner.get(voiceId);
+    // 결(`@들뜸`)은 어느 엔진 것인지와 무관하다 — 떼고 찾아서, 안쪽에 다시 붙여 준다.
+    const { name, tone } = splitTone(voiceId);
+    const speech = owner.get(name);
     if (speech === undefined) return null;
-    return { speech, inner: voiceId.slice(voiceId.indexOf(':') + 1) };
+    const inner = name.slice(name.indexOf(':') + 1);
+    return { speech, inner: tone === null ? inner : `${inner}@${tone}` };
   }
 
   return {

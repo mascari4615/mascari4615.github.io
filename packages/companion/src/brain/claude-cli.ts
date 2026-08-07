@@ -16,6 +16,10 @@ export interface ClaudeCliBrainOptions {
   /** 할 수 있는 일 목록을 알려 주는 문장 (`describeHands` 가 만든다). */
   handsNote?: string;
   /**
+   * 늘 붙는 설명 — 할 수 있는 일의 문법. 상황 재료와 자리 다툼을 시키지 않는다.
+   */
+  alwaysNote?: string;
+  /**
    * 어떤 모델로 말할까. 동반자는 깊이보다 빠르기다 — 곁에 있는 사람이 30초 뒤에
    * 대답하면 곁에 있는 게 아니다. 구독 할당량도 덜 먹는다.
    */
@@ -105,7 +109,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, handsNote), thinking);
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, undefined, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking);
     },
     thinkStream(input: ThinkInput, onDelta: (chunk: string) => void): Promise<string | null> {
       let localImage: string | null = null;
@@ -118,7 +122,7 @@ export function claudeCliBrain(options: ClaudeCliBrainOptions = {}): SwitchableB
           localImage = null;
         }
       }
-      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote), thinking);
+      return run(command, buildPrompt(input, localImage, handsNote), sandbox, timeoutMs, localImage !== null, onDelta, model, isolated(), buildSystem(input, handsNote, options.alwaysNote), thinking);
     },
   };
 }
@@ -263,10 +267,16 @@ function run(
 }
 
 /** 시스템 자리에 들어갈 것 — 누구이고, 무엇을 할 수 있고, 이 사람에 대해 뭘 아는가. */
-function buildSystem(input: ThinkInput, handsNote?: string): string {
+function buildSystem(input: ThinkInput, handsNote?: string, alwaysNote?: string): string {
   const parts = [];
   if (input.character?.instruction.trim()) parts.push(input.character.instruction.trim());
   if (handsNote?.trim()) parts.push(handsNote.trim());
+  // **늘 있어야 하는 것은 예산 밖이다.**
+  //
+  // 「말 앞에 얼굴 표를 달 수 있다」 같은 건 지금 상황이 아니라 **할 수 있는 일의 설명**이다.
+  // 그걸 기분·사이 같은 상황 재료와 한 통에 넣고 자리 다툼을 시켰더니 다섯 번 중 세 번
+  // 밀려서 두뇌에 아예 안 갔다(실측 35회차). 정적인 것과 동적인 것은 갈라야 한다.
+  if (alwaysNote?.trim()) parts.push(alwaysNote.trim());
   if (input.longTerm?.trim()) parts.push(`이 사람에 대해 아는 것:
 ${input.longTerm.trim()}`);
   if (input.mood?.trim()) parts.push(input.mood.trim());

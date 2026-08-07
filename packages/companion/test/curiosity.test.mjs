@@ -99,10 +99,12 @@ test('사람이 꺼낸 새 얘기를 자동으로 담아 둔다', () => {
   assert.match(store.next(), /마녀|게임|만드는/);
 });
 
-test('무슨 얘기였는지 알 수 있게 문장째 담는다 — 낱말만 담으면 나중에 못 알아본다', () => {
-  const store = tempStore();
-  noticeCuriosity('나 요즘 마녀 나오는 게임 만드는 중이야', null, store);
-  assert.match(store.next(), /조수님이 「나 요즘 마녀/);
+test('씨앗은 짧게 담는다 — 문장째 담으면 꺼낼 때 그 문장을 읊는다 (31회차에 뒤집었다)', () => {
+  const 곳 = [];
+  const store = { wonder: (x) => 곳.push(x), next: () => 곳[0] ?? null, asked: () => {}, size: () => 곳.length };
+  const 씨앗 = noticeCuriosity('어제 그 셰이더 결국 못 고쳤어', null, store);
+  assert.match(씨앗, /셰이더/);
+  assert.equal(씨앗.includes('어제 그'), false, '문장을 물고 있으면 안 된다');
 });
 
 test('이미 아는 얘기는 궁금해하지 않는다', () => {
