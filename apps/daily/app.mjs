@@ -49,6 +49,17 @@ function fatal(message) {
   root.querySelector('.done')?.replaceWith(box);
 }
 
+/**
+ * 표가 오기 전까지 입력칸은 **먹통**이다 — 글자를 쳐도 아무 일도 안 일어난다.
+ * 느린 회선에서는 그 몇 초가 「고장난 사이트」로 읽힌다. 기다리는 중이라고 말해 둔다.
+ */
+const $ready = root.querySelector('.guessbar input');
+const readyPlaceholder = $ready?.placeholder ?? '';
+if ($ready) {
+  $ready.disabled = true;
+  $ready.placeholder = '문제 불러오는 중…';
+}
+
 // 표 주소는 페이지가 알려 준다 — 속성판(/daily/<주제>/)과 실루엣판(/daily/<주제>/silhouette/)의 깊이가 다르다.
 let topic;
 try {
@@ -56,6 +67,10 @@ try {
   if (!res.ok) throw new Error(`서버가 ${res.status} 로 답했어요`);
   topic = await res.json();
   if (!topic?.items?.length) throw new Error('표가 비어 있어요');
+  if ($ready) {
+    $ready.disabled = false;
+    $ready.placeholder = readyPlaceholder;
+  }
 } catch (err) {
   fatal(`${err.message}. 인터넷이 끊겼거나 잠깐 말썽일 수 있어요.`);
   throw err;

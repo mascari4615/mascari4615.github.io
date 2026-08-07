@@ -236,6 +236,26 @@ await pastPage('genshin');
 }
 
 /**
+ * 표가 오기 전 몇 초. 그동안 입력칸은 먹통인데 아무 말도 안 했다 — 느린 회선에서는 「고장」으로 읽힌다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  // 표를 일부러 늦춘다.
+  await page.route('**/data/*.json*', async (route) => {
+    await new Promise((r) => setTimeout(r, 2500));
+    await route.continue();
+  });
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'domcontentloaded' });
+  const waiting = await page.$eval('.guessbar input', (e) => ({ off: e.disabled, ph: e.placeholder }));
+  check('표를 받는 동안 기다리라고 말한다', waiting.off && /불러오는 중/.test(waiting.ph), waiting.ph);
+  await page.waitForFunction(() => !document.querySelector('.guessbar input').disabled, { timeout: 15000 });
+  const ready = await page.$eval('.guessbar input', (e) => e.placeholder);
+  check('다 받으면 원래대로 돌아온다', /입력/.test(ready), ready);
+  await ctx.close();
+}
+
+/**
  * 자정을 넘겨 창을 열어 둔 사람은 어제 문제를 계속 풀고 있다 — 화면이 아무 말도 안 했다.
  * 시계를 하루 앞으로 당겨 실제로 알려 주는지 본다.
  */
