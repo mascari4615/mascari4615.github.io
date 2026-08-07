@@ -1147,6 +1147,11 @@ const Toolbox = (() => {
                     <div class="landing-cta-card-title">도구 목록</div>
                     <div class="landing-cta-card-desc">도구마다 설명이 있는 페이지</div>
                 </a>
+                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('community')">
+                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></div>
+                    <div class="landing-cta-card-title">커뮤니티</div>
+                    <div class="landing-cta-card-desc">이야기 나누고 도구를 요청해요</div>
+                </button>
                 <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
                     <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
                     <div class="landing-cta-card-title">문서</div>
@@ -1157,7 +1162,59 @@ const Toolbox = (() => {
         `;
         landing.appendChild(cta);
 
+        /* TASK-KL-098 — 첫 화면에서 **사람이 보이는** 유일한 자리.
+         * 도구만 늘어선 화면에는 아무도 없는 것처럼 보인다. 최근 이야기 몇 줄이 떠 있어야
+         * 「누가 있구나」가 전해진다. 값은 전부 실측이고, 서버에 못 닿거나 글이 없으면
+         * 이 자리는 통째로 안 그려진다 (빈 상자는 죽은 화면으로 읽힌다). */
+        const feed = document.createElement('div');
+        feed.className = 'landing-feed';
+        feed.id = 'homeCommunityFeed';
+        landing.appendChild(feed);
+        fillHomeCommunityFeed(feed);
+
         return landing;
+    }
+
+    /** 첫 화면의 커뮤니티 줄 — 최근 이야기 셋. 실패하면 아무것도 안 그린다 (fail-open). */
+    async function fillHomeCommunityFeed(slot) {
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        if (!base) return;
+        let posts = [];
+        try {
+            const response = await fetch(base + '/kl/posts?kind=talk', { credentials: 'include' });
+            if (!response.ok) return;
+            const data = await response.json();
+            posts = data.posts || [];
+        } catch (_) {
+            return;
+        }
+        if (posts.length === 0 || !slot.isConnected) return;
+
+        const rows = posts.slice(0, 3).map((p) => {
+            const heading = p.title || String(p.text || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+            const replies = (p.replies && p.replies.length)
+                ? '<span class="landing-feed-replies">답글 ' + p.replies.length + '</span>' : '';
+            return '<button type="button" class="landing-feed-row" data-post="' + escapeHtml(p.id) + '">'
+                + '<span class="landing-feed-title">' + escapeHtml(heading) + '</span>'
+                + '<span class="landing-feed-meta">@' + escapeHtml(p.authorHandle) + ' ' + replies + '</span>'
+                + '</button>';
+        }).join('');
+
+        slot.innerHTML = '<div class="landing-feed-head">'
+            + '<span class="landing-feed-name">커뮤니티에서 오가는 이야기</span>'
+            + '<button type="button" class="landing-feed-more" data-open-community>전체 보기 →</button>'
+            + '</div><div class="landing-feed-rows">' + rows + '</div>';
+
+        const more = slot.querySelector('[data-open-community]');
+        if (more) more.onclick = () => switchPage('community');
+        slot.querySelectorAll('[data-post]').forEach((button) => {
+            button.onclick = () => {
+                const search = new URLSearchParams(location.search);
+                search.set('p', button.dataset.post || '');
+                history.pushState({}, '', location.pathname + '?' + search.toString() + '#community');
+                switchPage('community', { pushHistory: false });
+            };
+        });
     }
 
     /* ===== Navigation ===== */
