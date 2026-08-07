@@ -373,18 +373,19 @@ export function webBody(options: WebBodyOptions = {}): Body {
             res.writeHead(404).end();
             return;
           }
-          if (askedAt !== null) {
-            const took = Date.now() - askedAt;
-            askedAt = null;
-            firstSound.push(took);
-            if (firstSound.length > 50) firstSound.shift();
-            log(`첫 소리까지 ${(took / 1000).toFixed(1)}초`);
-          }
+          // **여기서 「첫 소리까지」를 세지 않는다.**
+          //
+          // 예전엔 이 자리에서 셌는데, 그건 소리를 **만들기 시작한** 때다. 목소리를 흉내
+          // 내는 쪽으로 바꾸자 만드는 데만 2~3초가 걸렸는데 기록은 그대로 0.7초였다 —
+          // 지표가 거짓말을 하면 느려진 걸 아무도 모른다. 진짜 첫 소리는 창이 소리를
+          // 내기 시작한 때고, 그건 창만 안다(아래 `/played`).
+          const 만들기시작 = Date.now();
           // 지금 마음을 목소리 결로 얹는다. 브라우저는 결을 모른다 — 알 필요도 없다.
           const 목소리 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
           void options.speech
             .synthesize(say, 목소리)
             .then((audio) => {
+              log(`소리 만드는 데 ${((Date.now() - 만들기시작) / 1000).toFixed(1)}초`);
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
               res.writeHead(200, {
@@ -401,6 +402,20 @@ export function webBody(options: WebBodyOptions = {}): Body {
         }
 
         // 서버 → 브라우저: 몸의 상태를 계속 흘려보낸다.
+        /* 창이 **실제로 소리를 내기 시작한** 때를 알려 주는 자리.
+           서버는 소리를 만들어 보낸 것까지만 안다. 창이 그걸 언제 트는지는 창만 안다 —
+           재생이 막히거나(소리 정책) 앞 소리가 아직 나가는 중이면 한참 뒤일 수 있다. */
+        if (url === '/played' && req.method === 'POST') {
+          res.writeHead(204).end();
+          if (askedAt === null) return; // 사람이 말 건 turn 이 아니면 잴 것도 없다
+          const took = Date.now() - askedAt;
+          askedAt = null;
+          firstSound.push(took);
+          if (firstSound.length > 50) firstSound.shift();
+          log(`첫 소리까지 ${(took / 1000).toFixed(1)}초`);
+          return;
+        }
+
         if (url === '/events') {
           res.writeHead(200, {
             'content-type': 'text/event-stream; charset=utf-8',

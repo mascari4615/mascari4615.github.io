@@ -310,7 +310,12 @@ export class Companion {
       if (brain.thinkStream && target?.voice.partial) {
         let soFar = '';
         text = await brain.thinkStream(input, (chunk) => {
-          stopHumming(); // 진짜 말이 나오기 시작했으면 뜸은 그만
+          // **글자가 나온 것과 소리가 난 것은 다르다.**
+          //
+          // 예전엔 여기서 뜸을 껐다. 글자는 금방 흐르기 시작하지만 소리는 만드는 데
+          // 시간이 걸린다 — 목소리를 흉내 내는 쪽으로 바꾸자 그 사이가 2초로 벌어졌고,
+          // 그 2초를 메우라고 만든 뜸이 정작 그때 꺼져 있었다. 뜸은 **소리가 실제로 날
+          // 때까지** 살려 둔다. 이미 소리가 나가는 중이면 창이 알아서 삼킨다.
           soFar += chunk;
           void target.voice.partial?.(chunk, soFar, sensation.channel);
         });
