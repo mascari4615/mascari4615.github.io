@@ -1994,14 +1994,17 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     overflow-x: hidden;
 }
 
+/* 아래 링크는 5개다 — 세로로 쌓는다.
+   예전엔 링크마다 position:absolute 로 같은 자리(left:9px, top:50%)에 놓여서
+   다섯 개가 통째로 포개져 있었다 (옆줄을 펼치면 글자가 겹쳐 보였다). */
 .sidebar-footer {
     flex-shrink: 0;
     padding: var(--space-sm);
     border-top: 1px solid var(--border);
     display: flex;
-    align-items: center;
-    min-height: 40px;
-    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
 }
 
 .sidebar-dev-links {
@@ -2012,13 +2015,14 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-    position: absolute;
-    left: 9px;
-    top: 50%;
-    transform: translateY(-50%);
+    /* 아이콘 중심을 위쪽 nav-icon 열(옆줄 왼쪽에서 28px)과 같은 세로선에:
+       footer padding 8px + 9px + 아이콘 22px/2 = 28px */
+    padding: 3px 4px 3px 9px;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.sidebar-dev-links:hover { color: var(--accent); }
+.sidebar-dev-links:hover { color: var(--accent); background: var(--accent-subtle); }
 
 .sidebar-dev-links-icon {
     display: none;
