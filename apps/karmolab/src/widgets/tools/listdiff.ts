@@ -47,7 +47,7 @@
               </div>
             </div>
 
-            <textarea id="ldOut" rows="8" spellcheck="false" readonly></textarea>
+            <textarea id="ldOut" aria-label="비교 결과" rows="8" spellcheck="false" readonly></textarea>
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
               <button class="btn btn-ghost" id="ldCopy">결과 복사</button>
             </div>

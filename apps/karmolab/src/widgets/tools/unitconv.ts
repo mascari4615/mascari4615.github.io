@@ -180,13 +180,13 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">입력</div>
-                  <input type="text" id="ucValue" inputmode="decimal" value="1">
-                  <select id="ucFrom" style="margin-top:8px;"></select>
+                  <input type="text" id="ucValue" aria-label="바꿀 값" inputmode="decimal" value="1">
+                  <select id="ucFrom" aria-label="바꿀 단위" style="margin-top:8px;"></select>
                 </div>
                 <div>
                   <div class="tool-sublabel">결과</div>
-                  <input type="text" id="ucResult" readonly>
-                  <select id="ucTo" style="margin-top:8px;"></select>
+                  <input type="text" id="ucResult" aria-label="바뀐 값" readonly>
+                  <select id="ucTo" aria-label="바꿀 대상 단위" style="margin-top:8px;"></select>
                 </div>
               </div>
               <div style="display:flex; gap:6px; margin-top:10px;">

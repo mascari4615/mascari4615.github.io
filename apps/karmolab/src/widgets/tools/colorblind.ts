@@ -63,11 +63,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">색 1</div>
-                  <input type="text" id="cbA" value="#e05252" spellcheck="false">
+                  <input type="text" id="cbA" aria-label="색 1" value="#e05252" spellcheck="false">
                 </div>
                 <div>
                   <div class="tool-sublabel">색 2</div>
-                  <input type="text" id="cbB" value="#4caf50" spellcheck="false">
+                  <input type="text" id="cbB" aria-label="색 2" value="#4caf50" spellcheck="false">
                 </div>
               </div>
             </div>

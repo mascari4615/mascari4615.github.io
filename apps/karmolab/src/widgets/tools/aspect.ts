@@ -37,11 +37,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">가로</div>
-                  <input type="number" id="asW" value="1920" min="1" step="1">
+                  <input type="number" id="asW" aria-label="가로" value="1920" min="1" step="1">
                 </div>
                 <div>
                   <div class="tool-sublabel">세로</div>
-                  <input type="number" id="asH" value="1080" min="1" step="1">
+                  <input type="number" id="asH" aria-label="세로" value="1080" min="1" step="1">
                 </div>
               </div>
             </div>

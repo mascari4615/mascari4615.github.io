@@ -47,11 +47,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">시작 시각</div>
-                  <input type="time" id="tcStart" value="09:40">
+                  <input type="time" id="tcStart" aria-label="시작 시각" value="09:40">
                 </div>
                 <div>
                   <div class="tool-sublabel">걸리는 시간 — 1:25 / 85m / 1.5h</div>
-                  <input type="text" id="tcDur" value="1:25" spellcheck="false">
+                  <input type="text" id="tcDur" aria-label="걸리는 시간" value="1:25" spellcheck="false">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">

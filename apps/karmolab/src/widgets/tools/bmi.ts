@@ -47,11 +47,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">키 (cm)</div>
-                  <input type="number" id="bmH" value="170" step="0.1" min="50" max="250">
+                  <input type="number" id="bmH" aria-label="키 (cm)" value="170" step="0.1" min="50" max="250">
                 </div>
                 <div>
                   <div class="tool-sublabel">몸무게 (kg)</div>
-                  <input type="number" id="bmW" value="65" step="0.1" min="10" max="300">
+                  <input type="number" id="bmW" aria-label="몸무게 (kg)" value="65" step="0.1" min="10" max="300">
                 </div>
               </div>
             </div>

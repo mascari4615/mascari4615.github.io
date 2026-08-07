@@ -78,11 +78,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">기준 도시</div>
-                  <select id="wcBase"></select>
+                  <select id="wcBase" aria-label="기준 도시"></select>
                 </div>
                 <div>
                   <div class="tool-sublabel">기준 시각 — 비우면 지금</div>
-                  <input type="datetime-local" id="wcWhen">
+                  <input type="datetime-local" id="wcWhen" aria-label="기준 시각">
                 </div>
               </div>
             </div>

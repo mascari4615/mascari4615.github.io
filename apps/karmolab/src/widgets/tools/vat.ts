@@ -29,11 +29,11 @@
             </div>
             <div class="field-group">
               <label class="field-label" id="vaLabel">공급가액</label>
-              <input type="number" id="vaAmount" value="1000000" step="1000" min="0">
+              <input type="number" id="vaAmount" aria-label="공급가액" value="1000000" step="1000" min="0">
             </div>
             <div class="field-group">
               <div class="tool-sublabel">세율 (%)</div>
-              <input type="number" id="vaRate" value="10" step="0.1" min="0">
+              <input type="number" id="vaRate" aria-label="세율 (%)" value="10" step="0.1" min="0">
             </div>
 
             <div class="cc-stats" id="vaStats"></div>
