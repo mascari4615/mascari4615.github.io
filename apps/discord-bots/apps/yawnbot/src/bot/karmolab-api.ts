@@ -18,6 +18,9 @@ import crypto from 'crypto';
 import {
   getKarmolabAccountStore,
   emptyRecords,
+  // 이름 바꾸기 라우트가 쓴다. 이 줄이 빠져 있어서 봇이 통째로 컴파일이 안 됐다 —
+  // 내가 KL-112 에서 훅만 골라 담다가 라우트는 담고 이 한 줄을 빠뜨린 탓이다.
+  DISPLAY_NAME_MAX,
   type Account,
   type AccountRecords,
   type KarmolabAccountStore,
@@ -750,10 +753,18 @@ export function registerKarmolabApi(
     res.json({ posts });
   });
 
-  /** 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다. */
+  /**
+   * 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다.
+   *
+   * **사람만 센다 (TASK-KL-113).** 도구 열림에서 같은 구멍을 막고 나서 훑어 보니 여기도
+   * 안 거르고 있었다. 글마다 붙는 조회수는 글쓴이가 보는 숫자다 — 검색봇이 훑고 간 것을
+   * 「사람이 읽었다」로 보여 주면, 아무도 안 읽었는데 읽혔다고 믿게 만든다.
+   */
   app.get('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    traces.recordPostView(String(req.params.id ?? ''), visitorKeyFor(req));
+    if (classifyVisitor(req.headers['user-agent']) === 'human') {
+      traces.recordPostView(String(req.params.id ?? ''), visitorKeyFor(req));
+    }
     const post = traces.publicPost(String(req.params.id ?? ''), account?.id ?? null);
     if (!post) {
       res.status(404).json({ error: 'not_found' });
