@@ -89,7 +89,10 @@ export interface WebBodyOptions {
  * 밖으로 나가는 신호(SSE)로 몸의 상태를 알린다 — 듣는 중 / 생각 중 / 말하는 중 / 가만히.
  * 의존성 0: 기본 http + SSE 만 쓴다.
  */
-export function webBody(options: WebBodyOptions = {}): Body {
+/** 창 몸 — 보통 몸에 더해, 알아챈 것을 밖에서 밀어 넣는 자리를 하나 더 갖는다. */
+export type WebBody = Body & { 알아챔: (무엇: string) => void };
+
+export function webBody(options: WebBodyOptions = {}): WebBody {
   const channel = options.channel ?? 'web';
   const port = options.port ?? 4615;
   const log = options.log ?? (() => {});
@@ -120,6 +123,22 @@ export function webBody(options: WebBodyOptions = {}): Body {
    */
   const 만든소리 = new Map<string, { audio: Buffer; type: string }>();
   const 소리캐시최대 = 60;
+
+  /**
+   * 얘가 뭘 알아챘는지 **창에 띄운다** — 그리고 기록에도 남긴다.
+   *
+   * 조수님 요청(77회차): 「얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.」 여태 인식은
+   * 전부 터미널로만 나갔다. 밖에서만 보이는 인식은 조수님한테는 없는 인식이다 — 「듣고는
+   * 있나? 보고는 있나?」를 물어볼 수밖에 없었다.
+   *
+   * 한 자리에서 둘 다 한다. 따로 부르게 두면 어느 한쪽만 부르는 자리가 반드시 생긴다.
+   */
+  function 알아챔(무엇: string): void {
+    const 글 = 무엇.trim();
+    if (글 === '') return;
+    log(`[알아챔] ${글}`);
+    broadcast({ type: 'notice', text: 글 });
+  }
 
   function broadcast(event: Record<string, unknown>): void {
     const payload = `data: ${JSON.stringify(event)}\n\n`;
@@ -383,6 +402,7 @@ export function webBody(options: WebBodyOptions = {}): Body {
               res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
               res.end(JSON.stringify({ ok: true, text: heard }));
               if (listening) {
+                알아챔('귀를 열었다');
                 broadcast({ type: 'listening' });
               } else {
                 /* 귀를 늘 열어 두면 받아쓰기가 잡음에 그럴듯한 글을 붙인다. 그대로 넘기면
@@ -393,7 +413,7 @@ export function webBody(options: WebBodyOptions = {}): Body {
                   broadcast({ type: 'heard', text: heard as string });
                   senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
                 } else {
-                  log(`[귀] ${이유}`);
+                  알아챔(`안 받은 소리 — ${이유}`);
                 }
               }
             })
@@ -676,7 +696,9 @@ export function webBody(options: WebBodyOptions = {}): Body {
     },
   };
 
-  return { name: channel, sense, voice };
+  /* 알아챈 것을 밖에서도 밀어 넣을 수 있게 내준다 — 인식은 여기서만 일어나지 않는다
+     (자리 판단·사건 담기·재료 밀림은 전부 바깥에 있다). */
+  return { name: channel, sense, voice, 알아챔 };
 }
 
 /**

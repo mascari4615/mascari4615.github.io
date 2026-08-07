@@ -77,8 +77,13 @@
 }
 </script>
 <script>
-  /** 창 안에서 벌어진 일을 밖으로 흘린다 — 조용히 사라지는 실패를 없애려고. */
+  /** 창 안에서 벌어진 일을 밖으로 흘린다 — 조용히 사라지는 실패를 없애려고.
+   *
+   * **그리고 대화창에도 띄운다.** 여태 이건 터미널로만 나갔다 — 얘가 뭘 알아챘는지
+   * 조수님은 볼 길이 없었고, 「듣고는 있나? 보고는 있나?」를 물어볼 수밖에 없었다.
+   * 알아챈 것은 말이 아니므로 소리는 안 낸다. 흐리게, 대화 사이에 끼워 둔다. */
   function tell(message) {
+    try { window.알아챈것?.(String(message)); } catch { /* 화면에 못 띄워도 기록은 남긴다 */ }
     try {
       fetch('/log', {
         method: 'POST',
@@ -397,6 +402,19 @@
     speakAloud('응, 이 목소리로 할게.');
   });
 
+  /* ── 알아챈 것 ─────────────────────────────────────────
+     조수님 요청(77회차): 「얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.」
+     귀가 열린 것, 창이 바뀐 것, 받아쓴 글을 막은 것, 사건을 담은 것 — 전부 여태
+     터미널에만 있었다. 밖에서만 보이는 인식은 없는 인식이나 마찬가지다. */
+  let 마지막알아챔 = '';
+  function 알아챈것(무엇) {
+    const 글 = String(무엇 ?? '').trim();
+    if (글 === '' || 글 === 마지막알아챔) return; // 같은 걸 연달아 도배하지 않는다
+    마지막알아챔 = 글;
+    append('알아챔', 글, 'notice');
+  }
+  window.알아챈것 = 알아챈것;
+
   function append(who, message, kind) {
     log.querySelector('.empty')?.remove();
     const line = document.createElement('div');
@@ -518,7 +536,10 @@
   const events = new EventSource('/events');
   events.onmessage = (e) => {
     const data = JSON.parse(e.data);
-    if (data.type === 'heard') {
+    if (data.type === 'notice') {
+      알아챈것(data.text);
+    } else if (data.type === 'heard') {
+      알아챈것(`들었다: ${data.text ?? ''}`);
       setState('thinking', '생각하는 중…');
     } else if (data.type === 'looking') {
       setState('looking', '내 화면을 보는 중…');
