@@ -109,6 +109,16 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
     !(await page.content()).includes('jekyll-theme-chirpy'),
     cards === 0 ? '블로그 페이지가 이 주소를 먹었다' : '우리 허브가 맞다',
   );
+  /**
+   * 블로그 사이드바 입구 — 200 만 봐서는 「빈 안내 페이지에 머무는지」를 모른다.
+   * 이 자리는 한 번 게임 허브를 통째로 덮은 적이 있어서, 실제로 넘어가는지까지 본다.
+   */
+  const site = BASE.replace(/\/daily$/, '');
+  await page.goto(`${site}/daily-go/`, { waitUntil: 'networkidle' });
+  await page.waitForURL((u) => u.pathname === '/daily/', { timeout: 8000 }).catch(() => {});
+  check('[입구] 사이드바 입구가 게임으로 넘긴다', new URL(page.url()).pathname === '/daily/', page.url());
+  check('[입구] 넘어간 곳이 게임 허브다', (await page.locator('.card').count()) > 0);
+
   check('[전체] 콘솔 오류 0', errors.length === 0, errors.join(' | '));
   // 스샷은 곁다리다 — 이게 늦는다고 검사 전체를 죽이면 안 된다 (한 번 그렇게 죽었다).
   await page
