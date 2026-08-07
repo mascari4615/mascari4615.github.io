@@ -11,9 +11,24 @@ import { discoverEntryPoints } from './scripts/entry-points.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = __dirname;
 
+/**
+ * 내보내는 코드를 줄인다 (TASK-KL-128).
+ *
+ * 그동안 하나도 안 줄이고 내보내고 있었다 — 주석과 들여쓰기까지 그대로 사용자 회선으로 갔다.
+ * 위젯만 3.3MB, 셸 스크립트가 76KB 다. 압축이 걸려 있어도 푸는 시간과 해석하는 시간은 남는다.
+ *
+ * 다만 **이름까지 줄이면 안 되는 파일**이 있다: `toolbox.js`·`mdd.js`·`gemini.js` 는 묶지 않고
+ * 내보내 화면이 `<script>` 로 그냥 읽는다. 그래서 맨 바깥에 선언한 이름(`Toolbox` 등)이 곧
+ * 전역 이름이다 — 이걸 짧게 바꾸면 다른 파일이 그 이름을 못 찾는다. 그 셋은 **빈칸과 문법만**
+ * 줄이고 이름은 그대로 둔다. 나머지는 IIFE 로 감싸 나가므로 바깥에서 이름을 볼 일이 없다.
+ */
+const SAFE_MINIFY = { minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: false };
+const FULL_MINIFY = { minify: true };
+
 await esbuild.build({
   entryPoints: [join(root, 'src/mdd.ts')],
   outfile: join(root, 'js/mdd.js'),
+  ...SAFE_MINIFY,
   bundle: false,
   format: 'esm',
   platform: 'browser',
@@ -24,6 +39,7 @@ await esbuild.build({
 await esbuild.build({
   entryPoints: [join(root, 'src/gemini.ts')],
   outfile: join(root, 'js/gemini.js'),
+  ...SAFE_MINIFY,
   bundle: true,
   format: 'esm',
   platform: 'browser',
@@ -36,6 +52,7 @@ await esbuild.build({
 await esbuild.build({
   entryPoints: [join(root, 'src/toolbox.ts')],
   outfile: join(root, 'js/toolbox.js'),
+  ...SAFE_MINIFY,
   bundle: false,
   format: 'esm',
   platform: 'browser',
@@ -52,6 +69,7 @@ const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 await esbuild.build({
   entryPoints: [join(root, 'src/sw.ts')],
   outfile: join(root, 'sw.js'),
+  ...FULL_MINIFY,
   bundle: true,
   format: 'iife',
   platform: 'browser',
@@ -82,6 +100,7 @@ for (const rel of entryPoints) {
   await esbuild.build({
     entryPoints: [join(root, rel)],
     outfile: join(root, outfile),
+    ...FULL_MINIFY,
     bundle: true,
     format: 'iife',
     platform: 'browser',
@@ -101,6 +120,7 @@ for (const rel of worldEntryPoints) {
   await esbuild.build({
     entryPoints: [join(root, rel)],
     outfile: join(root, outfile),
+    ...FULL_MINIFY,
     bundle: true,
     format: 'iife',
     platform: 'browser',
