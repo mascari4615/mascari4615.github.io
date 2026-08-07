@@ -4,12 +4,18 @@
  *
  *   node scripts/smoke-live.mjs [주소]
  */
+import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const app = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.argv[2] ?? 'https://blog.mascari4615.com/daily';
-const mod = await import(pathToFileURL(join(app, '../karmolab/node_modules/playwright/index.js')).href);
+// 내 기계에서는 이웃 앱의 playwright 를 빌려 쓴다. CI 에는 그 이웃이 없으니 어디 있는지 알려 준다.
+// (이게 없어서 이 검사는 여태 **내 기계에서만** 돌 수 있었다 — 내가 안 돌리면 아무도 안 봤다.)
+const pwPath = process.env.DAILY_PLAYWRIGHT
+  ? join(app, process.env.DAILY_PLAYWRIGHT)
+  : join(app, '../karmolab/node_modules/playwright/index.js');
+const mod = await import(pathToFileURL(pwPath).href);
 const pw = mod.chromium ? mod : mod.default;
 const { answerOf, findItem } = await import(pathToFileURL(join(app, 'engine.mjs')).href);
 
@@ -18,6 +24,9 @@ const check = (name, ok, note = '') => {
   checks.push(ok);
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${note ? `  — ${note}` : ''}`);
 };
+
+// 빨개졌을 때 무엇이 어떻게 보였는지가 유일한 단서다 — 폴더가 없으면 스샷이 조용히 안 남는다.
+mkdirSync(join(app, `.cache/shots`), { recursive: true });
 
 const browser = await pw.chromium.launch();
 
