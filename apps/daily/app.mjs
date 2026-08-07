@@ -396,7 +396,10 @@ function finish() {
   const text = shareText({
     // 연습이면 날짜를 박는다 — 안 그러면 어제 것을 올려도 오늘 결과처럼 보인다.
     // (문제 번호는 다르지만 사람은 번호를 기억하지 않는다.)
-    title: `${topic.emoji ?? ''} ${topic.title}${mode === 'silhouette' ? ' 실루엣' : ''}${practice ? ` ${dayKey}` : ''}`.trim(),
+    // 이름은 **화면에 적힌 그대로** 쓴다. 여태 따로 조립해서 「🔴 포켓몬」이 나갔는데,
+    // 페이지 제목은 「🔴 오늘의 포켓몬」이었다 — 처음 보는 사람은 이게 매일 하는 놀이인 줄 모른다.
+    // 제목에서 가져오면 둘이 어긋날 일이 없다.
+    title: `${root.querySelector('.top h1').textContent.trim()}${practice ? ` ${dayKey}` : ''}`,
     puzzleNo,
     rows,
     won,

@@ -331,6 +331,13 @@ await pastPage('genshin');
   await page.click('.done .btn');
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   check('연습 결과에 날짜가 박힌다', copied.includes(dayKey), copied.split('\n')[0]);
+  /**
+   * 올리는 글의 첫 줄은 **화면에 적힌 이름 그대로**여야 한다.
+   * 따로 조립해서 제목은 「오늘의 포켓몬」인데 공유글은 「포켓몬」으로 나갔었다 —
+   * 처음 보는 사람은 그게 매일 하는 놀이인 줄 모른다.
+   */
+  const h1 = (await page.locator('.top h1').innerText()).trim();
+  check('★ 공유글 첫 줄이 화면 제목과 같다', copied.startsWith(h1), `${copied.split('\n')[0]} ← 「${h1}」`);
 
   // ★ 오늘·미래 날짜로는 연습이 안 열려야 한다 (열리면 오늘 답이 샌다).
   const todayKey = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
