@@ -551,10 +551,45 @@ describe('판·좋아요·조회 — HTTP', () => {
       body: JSON.stringify({ board: 'free', title: 'a', text: 'x' }),
     });
     const id = ((await created.json()) as { id: string }).id;
-    await fetch(`${baseUrl}/kl/posts/${id}`, { headers: { 'User-Agent': 'probe-1' } });
-    const again = await fetch(`${baseUrl}/kl/posts/${id}`, { headers: { 'User-Agent': 'probe-2' } });
+    // 사람 브라우저 둘. 「probe-1」 같은 이름은 이제 사람으로 안 센다 (TASK-KL-113).
+    await fetch(`${baseUrl}/kl/posts/${id}`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36',
+      },
+    });
+    const again = await fetch(`${baseUrl}/kl/posts/${id}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1 Safari/605.1' },
+    });
     const body = (await again.json()) as { post: { views: number } };
     expect(body.post.views).toBeGreaterThanOrEqual(2);
+  });
+
+  /**
+   * 조회수는 글쓴이가 보는 숫자다. 검색봇이 훑고 간 것을 「사람이 읽었다」로 보여 주면
+   * 아무도 안 읽었는데 읽혔다고 믿게 만든다 (TASK-KL-113).
+   */
+  it('로봇이 연 것은 조회수에 안 들어간다', async () => {
+    const { cookie } = signIn();
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ board: 'free', title: '로봇 시험', text: 'x' }),
+    });
+    const id = ((await created.json()) as { id: string }).id;
+    for (const ua of [
+      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/126.0 Safari/537.36',
+      'curl/8.4.0',
+    ]) {
+      await fetch(`${baseUrl}/kl/posts/${id}`, { headers: { 'User-Agent': ua } });
+    }
+    const seen = await fetch(`${baseUrl}/kl/posts/${id}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1 Safari/605.1' },
+    });
+    const body = (await seen.json()) as { post: { views: number } };
+    // 마지막 한 번(사람)만 세어야 한다.
+    expect(body.post.views, '로봇이 연 것이 조회수에 들어갔다').toBe(1);
   });
 
   it('첫 화면용 최근 글을 준다', async () => {
