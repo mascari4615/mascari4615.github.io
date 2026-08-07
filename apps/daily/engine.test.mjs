@@ -5,6 +5,7 @@ import {
   compareField,
   compareItem,
   dailyIndex,
+  describeRow,
   emptyStats,
   findItem,
   liveStreak,
@@ -178,6 +179,22 @@ test('졌어도 연속은 이어진다 — 온 것 자체가 기록이다', () =
   assert.equal(s.streak, 2);
   assert.equal(liveStreak(s, 5), 2, '오늘이 끝나야 끊긴다');
   assert.equal(liveStreak(s, 6), 0);
+});
+
+test('한 줄을 말로도 알려 준다 — 색과 화살표는 눈에만 보인다', () => {
+  const answer = topic.items[0]; // 가: 1세대, 풀·독, 초록, 10
+  const cells = compareItem(topic, topic.items[2], answer); // 다: 3세대, 독·물, 파랑, 11
+  const said = describeRow(topic.fields, cells, '다');
+  assert.match(said, /^다: /);
+  assert.match(said, /세대 3, 정답은 더 작음/);
+  assert.match(said, /타입 독, 물 일부 맞음/);
+  assert.match(said, /색 파랑 틀림/);
+  assert.match(said, /무게 11, 정답은 더 작음 \(가까움\)/); // 20% 안이라 노랑
+});
+
+test('맞은 칸은 맞았다고 말한다', () => {
+  const answer = topic.items[0];
+  assert.match(describeRow(topic.fields, compareItem(topic, answer, answer), '가'), /세대 1 맞음/);
 });
 
 test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다', () => {

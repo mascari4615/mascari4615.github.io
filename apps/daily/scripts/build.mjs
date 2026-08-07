@@ -150,8 +150,8 @@ for (const page of all) {
   </div>
   <div class="seeds"></div>
   <p class="left"></p>
-  <div class="rows"></div>
-  <div class="done" hidden></div>
+  <div class="rows" aria-live="polite" aria-label="추측 기록"></div>
+  <div class="done" role="status" hidden></div>
   ${foot(false, topic.id)}
 </div>
 <script type="module" src="${up}app.mjs?v=${stamp}"></script>
