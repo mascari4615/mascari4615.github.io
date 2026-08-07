@@ -85,7 +85,9 @@
     "audit:live": "node scripts/audit-live-essentials.mjs",
     "audit:pages": "node scripts/audit-tool-pages-fresh.mjs",
     "dev": "node scripts/dev.mjs",
-    "test:md": "node scripts/test-community-markdown.mjs"
+    "test:md": "node scripts/test-community-markdown.mjs",
+    "gen:community": "node scripts/gen-community-pages.mjs",
+    "gen:shell-pages": "node scripts/gen-shell-pages.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

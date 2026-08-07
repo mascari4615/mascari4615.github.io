@@ -41,6 +41,29 @@ try {
   process.exit(1);
 }
 
+/* 셸에 얹어 찍는 것은 도구만이 아니다 (TASK-KL-129) — 봇 소개·프로필도 같은 셸을 쓴다.
+ * 그쪽만 검사에서 빠져 있으면 셸을 고쳤을 때 여기서는 통과하고 **배포에 가서 죽는다**.
+ * 같은 자리에 함께 찍어 본다. */
+const shellOut = path.join(tmp, 'shell');
+try {
+  execFileSync(process.execPath, [path.join(root, 'scripts/gen-shell-pages.mjs'), '--out', shellOut], {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+} catch (e) {
+  console.error('[audit-tool-pages] 지금 셸로는 봇 소개·프로필을 못 찍는다 — 이대로 밀어넣으면 배포가 멈춘다.\n');
+  console.error(String(e.stderr || e.stdout || e.message).trim().split('\n').slice(0, 12).join('\n'));
+  fs.rmSync(tmp, { recursive: true, force: true });
+  process.exit(1);
+}
+const shellPages = ['bot', 'u'].filter((n) => fs.existsSync(path.join(shellOut, n, 'index.html')));
+if (shellPages.length < 2) {
+  console.error(`[audit-tool-pages] 셸 페이지가 반만 찍혔다 — ${shellPages.join(', ') || '한 장도 없음'}`);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  process.exit(1);
+}
+
 /** 조용히 반쪽만 찍히는 경우를 막는다 — 「돌긴 돌았다」는 통과 조건이 아니다. */
 const pages = fs.existsSync(out)
   ? fs.readdirSync(out).filter((n) => fs.existsSync(path.join(out, n, 'index.html'))).length
@@ -53,4 +76,4 @@ if (!hub || pages < 50) {
   console.error(stdout.trim().split('\n').slice(-5).join('\n'));
   process.exit(1);
 }
-console.log(`[audit-tool-pages] 지금 셸로 도구 ${pages}장 + 목록을 찍을 수 있다`);
+console.log(`[audit-tool-pages] 지금 셸로 도구 ${pages}장 + 목록 + 셸 페이지 ${shellPages.length}장을 찍을 수 있다`);
