@@ -34,7 +34,7 @@ import { loadPacks } from './pack-store';
         id: 'app',
         label: '놀이터',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '하루 한 판씩이에요. 오늘 건 하셨어요?' });
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '하루 한 판씩이에요. 오늘 건 하셨어요?' });
           container.innerHTML = `
             <p class="pl-lead">하루 한 판씩. 하나 하다 다른 것으로 바로 건너가세요.</p>
             <section class="pl-course" id="plCourse"></section>

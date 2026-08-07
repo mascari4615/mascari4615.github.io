@@ -31,7 +31,7 @@ import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type 
         id: 'app',
         label: '내 표',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '좋아하는 걸로 표를 만들면 놀이가 그걸로 돌아가요!' });
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '좋아하는 걸로 표를 만들면 놀이가 그걸로 돌아가요!' });
           container.innerHTML = `
             <p class="pk-lead">놀이에 쓸 표를 직접 만드세요. 스프레드시트에서 긁어다 붙여넣으면 됩니다 —
               첫 줄은 칸 이름, 첫 칸은 이름, 「그림」 칸이 있으면 그림 주소로 씁니다.</p>

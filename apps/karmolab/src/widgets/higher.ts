@@ -55,7 +55,7 @@ import { onPageActive, takePick } from './pack-pick';
         id: 'app',
         label: '놀기',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '한 번 틀리면 끝이에요. 조심조심.' });
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '한 번 틀리면 끝이에요. 조심조심.' });
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-sublabel">무엇으로 겨룰까요</div>
