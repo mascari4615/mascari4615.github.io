@@ -611,7 +611,10 @@ export function webBody(options: WebBodyOptions = {}): Body {
          열쇠가 안 맞아 한 번도 안 맞는다(65회차에 그렇게 무용지물이었다). 목록 첫
          번째가 곧 기본이므로 그걸 물어본다. */
       void Promise.resolve(options.speech?.voices?.())
-        .then((목록) => 뜸미리만들기(목록?.[0]?.id))
+        // **결까지 붙여서 만들어야 한다.** 요청 쪽은 지금 마음의 결을 붙여 보내므로,
+        // 결 없이 만들어 두면 또 열쇠가 어긋난다 — 같은 함정을 두 번 밟았다.
+        // 결은 때에 따라 바뀌므로 못 맞힌 것은 첫 요청 때 뒤에서 만들어 둔다.
+        .then((목록) => 뜸미리만들기(withTone(목록?.[0]?.id, options.tone?.() ?? null)))
         .catch(() => 뜸미리만들기());
         if (options.open) openBrowser(url);
       });
