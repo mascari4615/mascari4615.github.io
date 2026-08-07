@@ -103,3 +103,4 @@ export * from './while-away';
 export * from './what-landed';
 export * from './wish';
 export * from './pressure';
+export * from './heard';

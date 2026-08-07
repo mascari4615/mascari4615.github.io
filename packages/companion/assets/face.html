@@ -26,6 +26,7 @@
     <label>말 빠르기<input id="ratePick" type="range" min="60" max="160" step="5" /></label>
     <label>몸 크기<input id="sizePick" type="range" min="60" max="200" step="5" /></label>
     <hr />
+    <button class="item" id="alwaysEarsBtn">늘 듣기</button>
     <button class="item" id="boxesBtn">차지하는 자리 보기</button>
     <button class="item" id="knownBtn">나에 대해 아는 것</button>
     <button class="item danger" id="gripClose">끄기</button>
@@ -314,6 +315,7 @@
     세대 += 1;
     speechQueue = Promise.resolve();
     try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
+    입알림(false); // 끊겼어도 입은 닫힌 것이다 — 안 알리면 귀가 영영 막힌다
     speechSynthesis.cancel();
   }
 
@@ -341,6 +343,7 @@
       if (player.src) URL.revokeObjectURL(player.src);
       player.src = URL.createObjectURL(blob);
       소리적용(); // src 를 갈면 빠르기가 되돌아가는 브라우저가 있다
+      입알림(true); // 귀를 막는다 — 안 그러면 제 목소리를 제가 받아쓴다
       await player.play();
       // **소리가 실제로 나기 시작한 때를 알린다.** 서버는 만들어 보낸 것까지만 안다 —
       // 재생이 막히거나 앞 소리가 아직 나가는 중이면 여기까지 한참 걸린다. 그 시간이
@@ -354,6 +357,7 @@
         player.onended = done;
         player.onerror = done;
       });
+      입알림(false); // 여기서부터 꼬리 여운만큼 더 닫혀 있다
       body3d?.speakFor(0);
     } catch (e) {
       // **왜 소리가 안 나는지 밖에서 알 수 있어야 한다.**
@@ -720,6 +724,99 @@
     }
   }
 
+  /* ── 늘 듣기 ────────────────────────────────────────────
+     버튼을 눌러야 듣는 건 반쪽이다 — 얘만 말하고 사람은 버튼을 누른다. 곁에 있는 존재는
+     부르면 돌아본다. 그래서 마이크를 계속 열어 두고 **소리 크기**만 지켜보다가, 사람이
+     말하기 시작하면 알아서 받아쓰기를 켠다.
+
+     언제 열고 닫을지는 따로 뺐다(`/listen-gate.js`) — 소리 장치 없이 시험할 수 있어야
+     한다. 여기는 **소리를 재서 그 규칙에 먹이는 일**만 한다. */
+  let 듣는문만들기 = null;
+  import('/listen-gate.js')
+    .then((m) => { 듣는문만들기 = () => new m.듣는문(); tell('늘 듣기 규칙을 불렀다'); })
+    .catch((e) => tell(`늘 듣기 규칙을 못 불렀다 — 버튼으로만 말할 수 있다: ${e}`));
+
+  let 늘듣기 = localStorage.getItem('companion.alwaysEars') !== '0';
+  let 문 = null;
+  let 소리재기 = null;
+  let 말한ms = 0;
+
+  /** 얘가 말하는 중인지 문에 알려 준다 — 제 목소리를 제가 받아쓰면 혼자 떠든다. */
+  function 입알림(말하는중) {
+    문?.입(말하는중, performance.now());
+  }
+
+  async function 늘듣기켜기() {
+    if (늘듣기 === false || offlineEars === false || 듣는문만들기 === null || 소리재기 !== null) return;
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (e) {
+      // **조용히 안 넘어간다.** 마이크가 막히면 늘 듣기는 통째로 없는 기능이 된다.
+      tell(`늘 듣기를 못 켰다 — 마이크가 막혀 있다: ${e?.name ?? e}`);
+      늘듣기 = false;
+      return;
+    }
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const 분석 = ctx.createAnalyser();
+    분석.fftSize = 1024;
+    ctx.createMediaStreamSource(stream).connect(분석);
+    const 통 = new Float32Array(분석.fftSize);
+    문 = 듣는문만들기();
+
+    소리재기 = setInterval(() => {
+      분석.getFloatTimeDomainData(통);
+      let 합 = 0;
+      for (let i = 0; i < 통.length; i += 1) 합 += 통[i] * 통[i];
+      const 크기 = Math.sqrt(합 / 통.length);
+      const 지금 = performance.now();
+      // 문이 열린 동안 **말소리가 실제로 난 시간**을 센다. 서버는 이 값으로 받아쓰기가
+      // 지어낸 글을 막는다 — 글자만 보고는 못 막는다(조용한 3초에 「안녕하세요」가 나왔다).
+      if (문.열림 && 크기 >= (문.설정?.문턱 ?? 0.045)) 말한ms += 50;
+      const 바뀜 = 문.들었다(크기, 지금);
+      if (바뀜 === '열림') { 말한ms = 0; void 저절로듣기(true); }
+      else if (바뀜 === '닫힘') { void 저절로듣기(false); }
+    }, 50);
+    tell('늘 듣기를 켰다 — 부르면 돌아본다');
+  }
+
+  /** 문이 열리고 닫힐 때 실제로 받아쓰기를 켜고 끈다. 버튼 누르기와 같은 길을 쓴다. */
+  async function 저절로듣기(시작) {
+    if (offlineListening === 시작) return;
+    offlineListening = 시작;
+    mic.classList.toggle('listening', 시작);
+    setState(시작 ? 'listening' : 'thinking', 시작 ? '듣는 중' : '받아적는 중…');
+    try {
+      const 어디 = 시작 ? '/ears/start' : `/ears/stop?${encodeURIComponent('말한ms')}=${Math.round(말한ms)}`;
+      const res = await fetch(어디, { method: 'POST' });
+      if (res.ok === false) throw new Error('실패');
+      if (시작 === false) await res.json();
+    } catch (e) {
+      offlineListening = false;
+      mic.classList.remove('listening');
+      tell(`저절로 듣다가 놓쳤다: ${e?.message ?? e}`);
+    }
+  }
+
+  /* 늘 듣기 켜고 끄기 — 마이크를 계속 열어 두는 건 사람이 정할 일이다. */
+  const alwaysEarsBtn = document.getElementById('alwaysEarsBtn');
+  function 늘듣기표시() {
+    alwaysEarsBtn.textContent = `늘 듣기: ${늘듣기 ? '켬' : '끔'}`;
+  }
+  alwaysEarsBtn.addEventListener('click', () => {
+    늘듣기 = !늘듣기;
+    localStorage.setItem('companion.alwaysEars', 늘듣기 ? '1' : '0');
+    늘듣기표시();
+    if (늘듣기) void 늘듣기켜기();
+    else {
+      if (소리재기 !== null) { clearInterval(소리재기); 소리재기 = null; }
+      문 = null;
+      void 저절로듣기(false);
+      tell('늘 듣기를 껐다 — 이제 버튼을 눌러야 듣는다');
+    }
+  });
+  늘듣기표시();
+
   async function probeEars() {
     try {
       const { offline } = await (await fetch('/ears')).json();
@@ -728,6 +825,7 @@
         mic.disabled = false;
         mic.title = '눌러서 말하기 — 오프라인 받아쓰기' + (inDesktopWindow ? ' (어디서든 Ctrl+Alt+Space)' : '');
       }
+      void 늘듣기켜기();
     } catch {
       offlineEars = false;
     }
