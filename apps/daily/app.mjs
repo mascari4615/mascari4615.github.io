@@ -732,7 +732,7 @@ function renderSuggestions() {
     list
     .map(
       (item, i) =>
-        `<button type="button" role="option" id="sug-${i}" data-i="${i}" aria-selected="false">${item.img && mode !== 'silhouette' ? `<img src="${esc(item.img)}" alt="" loading="lazy">` : ''}<span>${esc(item.name)}</span></button>`,
+        `<button type="button" role="option" id="sug-${i}" data-i="${i}" data-name="${esc(item.name)}" aria-selected="false">${item.img && mode !== 'silhouette' ? `<img src="${esc(item.img)}" alt="" loading="lazy">` : ''}<span>${esc(item.name)}</span></button>`,
     )
     .join(''),
   );
@@ -742,7 +742,11 @@ function renderSuggestions() {
 
 $input.addEventListener('input', renderSuggestions);
 $input.addEventListener('keydown', (e) => {
-  const buttons = [...$sug.children];
+  /* 고를 수 있는 것만 센다 (TASK-KL-089).
+   * 이 자리에는 「그런 이름은 없어요」 같은 **안내문**도 들어온다. 그때 자식을 통째로 세면
+   * 안내문이 첫 후보 행세를 하고, Enter 가 그 안에서 이름을 찾다가 죽었다 —
+   * 오타를 치고 엔터를 누르면 아무 일도 안 일어나는 것으로 보였다(콘솔에만 예외). */
+  const buttons = [...$sug.querySelectorAll('button[role="option"]')];
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault();
     if (!buttons.length) return;
@@ -753,7 +757,7 @@ $input.addEventListener('keydown', (e) => {
   } else if (e.key === 'Enter') {
     e.preventDefault();
     const pick = cursor >= 0 ? buttons[cursor] : buttons[0];
-    if (pick) submit(pick.querySelector('span').textContent);
+    if (pick) submit(pick.dataset.name);
   } else if (e.key === 'Escape') {
     setSug('');
   }
