@@ -40,10 +40,14 @@ function ready() {
   return loading;
 }
 
-/** 페이지 하나를 봤다. `path` 는 지금 주소 그대로 (연습 여부는 물음표 뒤라 안 실린다). */
-export async function countPage() {
+/**
+ * 페이지 하나를 봤다.
+ * 연습 판은 주소가 물음표 뒤로 갈려서 그냥 두면 오늘 판 방문과 합산된다 —
+ * 그러면 「몇 명이 오늘 판을 열었나」가 부풀어 깔때기를 못 믿는다. 따로 센다.
+ */
+export async function countPage(path) {
   const count = await ready();
-  if (count) count({ path: location.pathname, title: document.title });
+  if (count) count({ path: path ?? location.pathname, title: document.title });
 }
 
 /**
