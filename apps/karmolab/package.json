@@ -14,6 +14,7 @@
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
+    "check:live-version": "node scripts/check-live-version.mjs",
     "test:bundles": "node scripts/check-bundles.mjs",
     "audit:script-paths": "node scripts/audit-script-paths.mjs",
     "audit:vendor-globals": "node scripts/audit-vendor-globals.mjs",
