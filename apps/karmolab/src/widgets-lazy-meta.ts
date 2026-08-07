@@ -928,6 +928,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['quest']
   },
   {
+    id: 'packs',
+    title: '내 표 만들기',
+    category: 'tool',
+    desc: '놀이에 쓸 표를 직접 만듭니다 — 스프레드시트에서 붙여넣기 한 판이면 됩니다',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M9 9v11" stroke="currentColor" stroke-width="1.4"/><path d="M15 13h4M17 11v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['packs']
+  },
+  {
     id: 'twenty',
     title: '스무고개',
     category: 'tool',
