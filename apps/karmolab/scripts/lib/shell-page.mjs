@@ -111,7 +111,16 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   // 랜덤 생성기 전용 스타일은 정적 페이지에서 뺀다 (TASK-KL-089).
   // 그 위젯은 앱 첫 화면에만 있고 상세 페이지가 없다. 뽑기 계열 도구(로또·사다리·추첨)도
   // 이 스타일을 쓰지 않는 것을 다섯 페이지에서 확인했다 — 해당 요소가 하나도 안 나온다.
-  const RANDOMGEN_CSS = '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">';
+  /* 도구 상세 페이지는 **첫 그림부터** 도구 스타일이 필요하다 — 셸에서는 그리기를 안 막게
+     걸어 뒀지만(첫 화면에서는 쓰임 0%), 여기서는 도로 막는 쪽으로 되돌린다.
+     안 그러면 글이 먼저 나왔다가 스타일이 와서 자리가 튄다 (TASK-KL-128 ④-c). */
+  const TOOLS_CSS_DEFERRED =
+    '<link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print" onload="this.media=&#39;all&#39;">';
+  if (!html.includes(TOOLS_CSS_DEFERRED)) throw new Error('셸에서 도구 스타일 자리를 못 찾음 — index.html 확인');
+  html = html.replace(TOOLS_CSS_DEFERRED, '<link rel="stylesheet" href="/apps/karmolab/css/tools.css">');
+
+  const RANDOMGEN_CSS =
+    '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print" onload="this.media=&#39;all&#39;">';
   if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
   html = html.replace(RANDOMGEN_CSS, '');
 
