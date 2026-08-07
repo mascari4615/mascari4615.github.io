@@ -8,6 +8,7 @@ import {
   emptyStats,
   findItem,
   liveStreak,
+  touchDay,
   updateStats,
   isWin,
   kstDayKey,
@@ -156,6 +157,27 @@ test('오늘을 아직 안 풀었어도 어제까지의 연속은 살아 있다'
   const s = updateStats(emptyStats(), { won: true, guesses: 2, dayNumber: 30 });
   assert.equal(liveStreak(s, 31), 1, '오늘이 끝나야 끊긴다');
   assert.equal(liveStreak(s, 32), 0, '하루 걸렀으면 죽었다');
+});
+
+test('연속은 판이 아니라 하루 단위다 — 아무 판이나 하나면 이어진다', () => {
+  // 판마다 세면 판이 늘수록 끊기기 쉬워진다. 매일 와도 안 쌓이면 장치가 헛돈다.
+  let s = touchDay(null, 10);
+  assert.equal(s.streak, 1);
+  s = touchDay(s, 10); // 같은 날 다른 판 — 또 세지 않는다
+  assert.equal(s.streak, 1);
+  assert.equal(s.days, 1);
+  s = touchDay(s, 11);
+  assert.equal(s.streak, 2);
+  s = touchDay(s, 15); // 사흘 걸렀다
+  assert.equal(s.streak, 1);
+  assert.equal(s.best, 2);
+});
+
+test('졌어도 연속은 이어진다 — 온 것 자체가 기록이다', () => {
+  const s = touchDay(touchDay(null, 3), 4);
+  assert.equal(s.streak, 2);
+  assert.equal(liveStreak(s, 5), 2, '오늘이 끝나야 끊긴다');
+  assert.equal(liveStreak(s, 6), 0);
 });
 
 test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다', () => {

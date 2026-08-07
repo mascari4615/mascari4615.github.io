@@ -163,6 +163,23 @@ export function updateStats(stats, { won, guesses, dayNumber }) {
   return next;
 }
 
+/**
+ * **사이트 전체 연속** — 그날 아무 판이나 하나 끝내면 이어진다.
+ *
+ * 판마다 따로 세면 판이 늘수록 연속이 끊기기 쉬워진다 (6판이면 6판을 매일 다 풀어야 한다).
+ * 매일 오게 만드는 장치인데 매일 와도 안 쌓이면 장치가 헛돈다. 그래서 하루 단위로 센다.
+ * 이겼는지 졌는지는 안 본다 — 온 것 자체가 연속이다.
+ */
+export function touchDay(streak, dayNumber) {
+  const next = { days: 0, streak: 0, best: 0, lastDay: null, ...(streak ?? {}) };
+  if (next.lastDay === dayNumber) return next;
+  next.days += 1;
+  next.streak = next.lastDay === dayNumber - 1 ? next.streak + 1 : 1;
+  next.best = Math.max(next.best, next.streak);
+  next.lastDay = dayNumber;
+  return next;
+}
+
 /** 어제까지 이어 오다 오늘을 아직 안 푼 상태면 연속은 살아 있다 (오늘이 끝나야 끊긴다). */
 export function liveStreak(stats, dayNumber) {
   if (!stats?.lastDay) return 0;
