@@ -731,7 +731,8 @@ function openBrowser(url: string): void {
       : process.platform === 'darwin' ? ['open', [url]]
       : ['xdg-open', [url]];
     try {
-      spawn(command[0] as string, command[1] as string[], { detached: true, stdio: 'ignore' }).unref();
+      // windowsHide 를 안 걸면 윈도우에서 **검은 콘솔 창이 툭 튀어나온다** (조수님이 겪었다).
+      spawn(command[0] as string, command[1] as string[], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
     } catch {
       // 브라우저를 못 열어도 몸은 살아있다 — 주소를 직접 열면 된다.
     }
@@ -830,6 +831,8 @@ function openOwnWindow(
       const child = spawn(exe, [], {
         detached: true,
         stdio: 'ignore',
+        // 창을 띄우는 건 저쪽 실행 파일 몫이다. 여기서 콘솔 창까지 뜨면 안 된다.
+        windowsHide: true,
         // 주소·크기는 환경으로 넘긴다 — 저쪽이 그렇게 읽는다.
         env: {
           ...process.env,

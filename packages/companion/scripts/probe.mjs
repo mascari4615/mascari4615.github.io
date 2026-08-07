@@ -39,6 +39,8 @@ const 서버 = spawn(process.execPath, [join(뿌리, 'demo', 'face.mjs')], {
   cwd: 뿌리,
   env: { ...process.env, COMPANION_PORT: String(포트), COMPANION_DESKTOP: '0', COMPANION_OPEN: '0' },
   stdio: ['ignore', 'pipe', 'pipe'],
+  // 안 걸면 찔러 볼 때마다 검은 콘솔 창이 뜬다 — 조수님 화면 한가운데에.
+  windowsHide: true,
 });
 let 뱉은것 = '';
 서버.stdout.on('data', (d) => { 뱉은것 += d; });
