@@ -1,0 +1,126 @@
+/**
+ * 공개 프로필 페이지 (TASK-KL-098 Cycle 1) — `/karmolab/u/?h=<핸들>`.
+ *
+ * 「북적북적」이 실제로 보이는 첫 자리다. 로그인 없이 남이 열 수 있어야 의미가 있으므로
+ * 이 페이지는 계정 쿠키를 안 쓴다 (`credentials` 를 안 붙인다).
+ *
+ * 왜 `?h=` 인가: 이 사이트는 정적으로 올라간다 — `/karmolab/u/<핸들>/` 같은 주소는 핸들마다
+ * 파일이 하나씩 있어야 성립한다. 사람이 생길 때마다 배포할 수는 없으므로 Cycle 1 은 물음표
+ * 주소로 간다. 나중에 서버가 프로필 HTML 을 직접 내보내면 예쁜 주소로 옮긴다.
+ *
+ * 이 파일은 별도 스크립트다 — 페이지 안에 직접 쓴 스크립트는 한 글자만 틀려도 화면이
+ * 통째로 비고 로그도 안 남는다. 빌드와 타입 검사를 받는 자리에 둔다.
+ */
+interface PublicProfile {
+    handle: string;
+    displayName: string;
+    avatarPath: string | null;
+    joinedAt: string;
+    achievements: string[];
+    badges: string[];
+    streaks: Record<string, { current: number; longest: number }>;
+    updatedAt: string | null;
+}
+
+const API_BASE = 'https://yawnbot.mascari4615.com';
+
+/** 트랙 id → 사람이 읽는 이름. 모르는 id 는 id 그대로 (지어내지 않는다). */
+const STREAK_LABELS: Record<string, string> = {
+    daily_review: '일일 리뷰',
+    exercise: '운동',
+};
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function formatDate(iso: string): string {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '';
+    // 사이트 전체가 KST 기준으로 말한다.
+    return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(date);
+}
+
+function renderMessage(root: HTMLElement, title: string, detail: string): void {
+    root.innerHTML = `
+        <div class="profile-empty">
+            <h1>${escapeHtml(title)}</h1>
+            <p>${escapeHtml(detail)}</p>
+            <p><a href="/karmolab/">KarmoLab 으로 돌아가기</a></p>
+        </div>`;
+}
+
+function renderProfile(root: HTMLElement, profile: PublicProfile): void {
+    document.title = `${profile.displayName} — KarmoLab`;
+
+    const streakEntries = Object.entries(profile.streaks).sort((a, b) => b[1].longest - a[1].longest);
+    const avatar = profile.avatarPath ? `${API_BASE}${profile.avatarPath}` : null;
+
+    const streaksHtml = streakEntries.length
+        ? `<table class="profile-table">
+               <thead><tr><th>연속 기록</th><th>지금</th><th>최장</th></tr></thead>
+               <tbody>${streakEntries
+                   .map(
+                       ([id, s]) =>
+                           `<tr><td>${escapeHtml(STREAK_LABELS[id] ?? id)}</td><td>${s.current}일</td><td>${s.longest}일</td></tr>`,
+                   )
+                   .join('')}</tbody>
+           </table>`
+        : '<p class="profile-note">아직 이어 온 기록이 없습니다.</p>';
+
+    root.innerHTML = `
+        <article class="profile-card">
+            <header class="profile-head">
+                ${avatar ? `<img class="profile-avatar" src="${escapeHtml(avatar)}" alt="">` : '<div class="profile-avatar profile-avatar-blank">◍</div>'}
+                <div>
+                    <h1 class="profile-name">${escapeHtml(profile.displayName)}</h1>
+                    <p class="profile-handle">@${escapeHtml(profile.handle)}</p>
+                    <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
+                </div>
+            </header>
+            <section class="profile-stats">
+                <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>도전과제</span></div>
+                <div class="profile-stat"><strong>${profile.badges.length}</strong><span>뱃지</span></div>
+                <div class="profile-stat"><strong>${streakEntries.length}</strong><span>연속 기록 트랙</span></div>
+            </section>
+            ${streaksHtml}
+            <footer class="profile-foot">
+                <a href="/karmolab/">KarmoLab 에서 도구 보기</a>
+            </footer>
+        </article>`;
+}
+
+async function main(): Promise<void> {
+    const root = document.getElementById('profileRoot');
+    if (!root) return;
+
+    const handle = new URLSearchParams(location.search).get('h') ?? '';
+    if (!handle) {
+        renderMessage(root, '프로필 주소가 아니에요', '주소 끝에 ?h=핸들 이 있어야 합니다.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}`);
+        if (response.status === 404) {
+            renderMessage(root, '그런 사람이 없어요', `@${handle} 는 아직 없는 프로필입니다.`);
+            return;
+        }
+        if (!response.ok) throw new Error(`상태 ${response.status}`);
+        const data = (await response.json()) as { profile?: PublicProfile };
+        if (!data.profile) throw new Error('프로필이 비어 있음');
+        renderProfile(root, data.profile);
+    } catch (error) {
+        console.warn('[profile] 프로필을 못 불러왔다:', error);
+        // 서버가 잠깐 죽은 것과 「없는 사람」은 다르다. 섞어서 말하지 않는다.
+        renderMessage(root, '지금은 프로필을 못 보여드려요', '잠시 뒤에 다시 열어 주세요.');
+    }
+}
+
+void main();
+
+export {};
