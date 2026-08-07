@@ -104,8 +104,15 @@ permalink: /karmolab/
     <link rel="stylesheet" href="/apps/karmolab/css/shell-critical.css">
     <link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css" media="print" onload="this.media=&#39;all&#39;">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css"></noscript>
-    <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">
-    <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
+    <!-- 도구 화면용 스타일은 **첫 화면에서 한 줄도 안 쓰인다** (실측 0%) — 그런데 통째로
+         화면 그리기를 막고 있었다 (TASK-KL-128 ④-c). 첫 화면은 앱 셸이고, 이 둘은 그 안에서
+         도구를 열었을 때부터 필요하다. 그리기를 막지 않게 걸어 두고 바로 이어서 켠다 —
+         받는 것은 그대로라 도구를 열 때쯤이면 이미 와 있다.
+         도구 상세 페이지(/karmolab/t/…)는 첫 그림부터 이 스타일이 필요하므로
+         `scripts/lib/shell-page.mjs` 가 그 장에서만 도로 막는 쪽으로 바꾼다. -->
+    <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print" onload="this.media=&#39;all&#39;">
+    <link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print" onload="this.media=&#39;all&#39;">
+    <noscript><link rel="stylesheet" href="/apps/karmolab/css/randomgen.css"><link rel="stylesheet" href="/apps/karmolab/css/tools.css"></noscript>
     <link id="prism-css" rel="stylesheet" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
     <script>
 (function(){
@@ -308,6 +315,8 @@ permalink: /karmolab/
     <script defer fetchpriority="low" src="/apps/karmolab/js/palette.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/toolbox.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/mdd.js"></script>
+    <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/badapple/boot.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
