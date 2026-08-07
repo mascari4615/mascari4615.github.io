@@ -23,10 +23,10 @@ const topics = readdirSync(join(app, 'data'))
   .map((f) => JSON.parse(readFileSync(join(app, 'data', f), 'utf8')));
 
 const cards = [
-  { name: 'hub', emoji: '🎯', title: '오늘의 하나 맞히기', sub: '매일 자정, 새 문제 하나', tail: `${topics.map((t) => t.title).join(' · ')}` },
+  { name: 'hub', emoji: '🎯', title: '오늘의 하나 맞히기', sub: '한 판 1분 · 매일 자정 새 문제', tail: `${topics.map((t) => t.title).join(' · ')}` },
   ...topics.flatMap((t) => [
-    { name: t.id, emoji: t.emoji ?? '🎯', title: `오늘의 ${t.title}`, sub: '속성 힌트로 좁혀 맞히기', tail: `${t.items.length.toLocaleString('ko-KR')}개 중 하나 · 8번 안에` },
-    { name: `${t.id}-silhouette`, emoji: t.emoji ?? '🎯', title: `${t.title} 실루엣`, sub: '까만 그림, 틀릴수록 밝아진다', tail: '6번 안에' },
+    { name: t.id, emoji: t.emoji ?? '🎯', title: `오늘의 ${t.title}`, sub: '속성 힌트로 좁혀 맞히기', tail: `${t.items.length.toLocaleString('ko-KR')}개 중 하나 · 보통 서너 번` },
+    { name: `${t.id}-silhouette`, emoji: t.emoji ?? '🎯', title: `${t.title} 실루엣`, sub: '까만 그림, 틀릴수록 밝아진다', tail: '6번 안에 · 한 판 1분' },
   ]),
 ];
 
