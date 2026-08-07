@@ -6,7 +6,8 @@
  *
  * **오늘 것은 절대 안 보여 준다.** 오늘 답이 여기 있으면 게임이 성립하지 않는다.
  */
-import { dailyIndex, kstDayNumber, puzzleNumber, EPOCH_DAY_NUMBER } from './engine.mjs';
+import { kstDayNumber, puzzleNumber, EPOCH_DAY_NUMBER } from './engine.mjs';
+import { modesOf, pastRow } from './past-row.mjs';
 import { countPage, countEvent } from './count.mjs';
 
 const root = document.getElementById('past');
@@ -26,32 +27,9 @@ try {
 }
 const today = kstDayNumber();
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const dateLabel = (dayNumber) => new Date(dayNumber * 86400000).toISOString().slice(0, 10);
-
-const modes = [{ key: '', label: '속성' }];
-if (topic.items.every((i) => i.img)) modes.push({ key: 'silhouette', label: '실루엣' });
-
+const modes = modesOf(topic);
 const oldest = Math.max(EPOCH_DAY_NUMBER, 0);
-
-function rowFor(d) {
-  const answers = modes.map((m) => topic.items[dailyIndex(topic.id, d, topic.items.length, m.key)]);
-  return (
-    `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span></th>` +
-    answers
-      .map(
-        (a, i) =>
-          // 답은 단추 안에 있다 — 가려 둔 동안에도 눌러서 열 수 있어야 하고, 키보드로도 되어야 한다.
-          `<td><span class="mo">${esc(modes[i].label)}</span>` +
-          `<button type="button" class="a">${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button>` +
-          // 답만 읽고 나가지 않게 — 그날 그 판을 지금 풀 수 있다. 판마다 따로 걸어야 한다:
-          // 하나만 걸면 실루엣 답은 보여 주면서 실루엣은 못 풀게 된다.
-          `<a class="play" href="../${modes[i].key ? `${modes[i].key}/` : ''}?d=${dateLabel(d)}">풀어보기</a></td>`,
-      )
-      .join('') +
-    '</tr>'
-  );
-}
+const rowFor = (d) => pastRow(topic, d, modes);
 
 /**
  * 30일에서 끊지 않는다 — 끊긴 만큼 연습할 날도, 검색에 걸릴 글도 사라진다.
@@ -59,7 +37,21 @@ function rowFor(d) {
  */
 const tbody = root.querySelector('tbody');
 const $more = root.querySelector('.past-more');
-let cursor = today - 1;
+
+/**
+ * 줄 대부분은 **배포할 때 이미 박혀 있다** (검색 로봇은 자바스크립트를 안 돌려 주는 쪽이 많다).
+ * 여기서 할 일은 두 가지뿐이다: 배포 뒤로 지나간 날을 위에 얹고, 「더 보기」로 옛날을 잇는다.
+ */
+const baked = [...tbody.querySelectorAll('tr[data-day]')].map((tr) => Number(tr.dataset.day));
+const newestBaked = baked.length ? Math.max(...baked) : null;
+let cursor = baked.length ? Math.min(...baked) - 1 : today - 1;
+
+if (newestBaked !== null && newestBaked < today - 1) {
+  // 배포 뒤로 하루 이상 지났다 — 그 사이 날들을 맨 위에 얹는다.
+  const html = [];
+  for (let d = today - 1; d > newestBaked; d -= 1) html.push(rowFor(d));
+  tbody.insertAdjacentHTML('afterbegin', html.join(''));
+}
 
 function appendChunk() {
   const stop = Math.max(oldest, cursor - DAYS + 1);
@@ -114,10 +106,13 @@ tbody.addEventListener('click', (e) => {
   if (cell) cell.classList.add('on');
 });
 
-if (cursor < oldest) {
+if (!tbody.querySelector('tr[data-day]') && cursor < oldest) {
   tbody.innerHTML = '<tr><td>아직 지난 문제가 없다.</td></tr>';
   $more.replaceChildren();
   root.querySelector('.past-reveal').remove(); // 가릴 답이 없다
+} else if (cursor < oldest) {
+  // 박혀 있는 줄로 이미 첫 문제까지 닿았다 — 더 볼 게 없다.
+  $more.replaceChildren();
 } else {
   $more.innerHTML = '<button type="button"></button>';
   $more.querySelector('button').addEventListener('click', () => {
@@ -125,7 +120,13 @@ if (cursor < oldest) {
     countEvent(`daily/${topicId}/지난문제/더보기`);
     appendChunk();
   });
-  appendChunk();
+  // 박혀 있는 줄이 이미 30일치다 — 처음부터 또 30일을 얹지 않는다.
+  // 다만 박힌 게 하나도 없으면(옛 HTML 이 캐시에 남은 경우) 여기서 처음 30일을 그린다.
+  if (baked.length) {
+    $more.querySelector('button').textContent = `${Math.min(DAYS, cursor - oldest + 1)}일 더 보기 (남은 ${cursor - oldest + 1}일)`;
+  } else {
+    appendChunk();
+  }
 }
 
 countPage();

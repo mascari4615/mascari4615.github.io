@@ -213,6 +213,26 @@ async function pastPage(topicId) {
   const allOpen = await page.$$eval('table.past .a', (els) => els.every((e) => getComputedStyle(e).filter === 'none'));
   check(`[지난:${topicId}] 「답 모두 보기」로 다 열린다`, allOpen);
 
+  /**
+   * 검색 로봇은 자바스크립트를 안 돌려 주는 쪽이 많다 — 답이 HTML **원문**에 있어야 한다.
+   * 브라우저로 보면 어느 쪽이든 똑같이 보이므로, 위 검사들은 이걸 못 잡는다. 원문을 직접 본다.
+   */
+  const raw = await (await fetch(`${base}/${topicId}/past/`)).text();
+  const past = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const yesterday = new Date(Date.now() - 86400000);
+  const bakedRows = (raw.match(/<tr data-day=/g) ?? []).length;
+  check(`[지난:${topicId}] ★ 답이 HTML 원문에 박혀 있다`, bakedRows >= 30, `${bakedRows}줄`);
+  check(
+    `[지난:${topicId}] 원문에 어제 답이 들어 있다`,
+    raw.includes(answerOf(past, yesterday).name),
+    answerOf(past, yesterday).name,
+  );
+  // 박아 넣다가 오늘 답까지 넣으면 게임이 끝장난다 — 원문에서 직접 확인한다.
+  const todayName = answerOf(past, new Date()).name;
+  const todaySil = answerOf(past, new Date(), 'silhouette').name;
+  const todayLabel2 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  check(`[지난:${topicId}] ★ 원문에 오늘 줄은 없다`, !raw.includes(`>${todayLabel2}<`), `${todayLabel2} / ${todayName} · ${todaySil}`);
+
   await page.screenshot({ path: join(shots, `${topicId}-past.png`), fullPage: true });
   await ctx.close();
 }

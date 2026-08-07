@@ -8,6 +8,8 @@
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { kstDayNumber, EPOCH_DAY_NUMBER } from '../engine.mjs';
+import { modesOf, pastRow } from '../past-row.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
@@ -238,10 +240,19 @@ for (const page of all) {
 for (const topic of topics) writeFileSync(join(dist, 'data', `${topic.id}.json`), JSON.stringify(topic));
 
 // ── 지난 문제 ──
-// 정답이 결정론적이라 페이지는 하나면 된다 — 목록은 브라우저가 그날그날 다시 센다.
-// (배포 때 굳혀 두면 다음 배포까지 멈춘 목록이 남는다.)
+// 답을 **HTML 에 미리 박는다.** 여태 브라우저가 다 그렸는데, 검색 로봇은 자바스크립트를
+// 안 돌려 주는 쪽이 많다 — 로봇 눈엔 답이 하나도 없는 빈 표였다. 이 페이지의 값은 거기 있다.
+// 오늘 것은 절대 안 박는다. 배포 뒤로 지나간 날은 브라우저가 위에 얹는다(past.mjs).
+const PAST_BAKED = 30;
 for (const topic of topics) {
   const url = `${SITE}${BASE}/${topic.id}/past/`;
+  // 어제까지만. 오늘 답이 HTML 에 들어가는 순간 게임이 끝장난다.
+  const newest = kstDayNumber() - 1;
+  const modes = modesOf(topic);
+  const rows = [];
+  for (let d = newest; d >= Math.max(EPOCH_DAY_NUMBER, newest - PAST_BAKED + 1); d -= 1) {
+    rows.push(pastRow(topic, d, modes));
+  }
   const html = `${head({
     title: `${topic.title} 지난 문제 정답 모아보기`,
     desc: `오늘의 ${topic.title} 맞히기의 지난 30일 정답. 오늘 답은 들어 있지 않습니다.`,
@@ -256,7 +267,7 @@ for (const topic of topics) {
   </div>
   <p class="lede past-note"></p>
   <div class="past-reveal"><button type="button" aria-pressed="false">답 모두 보기</button></div>
-  <div class="past-scroll"><table class="past hide"><tbody></tbody></table></div>
+  <div class="past-scroll"><table class="past hide"><tbody>${rows.join('')}</tbody></table></div>
   <div class="past-more"></div>
   ${foot()}
 </div>
@@ -324,7 +335,7 @@ writeFileSync(join(dist, 'index.html'), hub);
 // (실측: /sitemap.xml 에 /daily/, /daily/pokemon/, /daily/lol/ 이 들어 있었다).
 // 여기서 하나 더 찍으면 아무도 안 읽는 파일이 남는다.
 
-for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'hub.mjs', 'count.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'past-row.mjs', 'hub.mjs', 'count.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
 // 공유 카드 그림 (scripts/gen-og.mjs 가 만들어 커밋해 둔 것 — 배포에선 만들지 않는다).
 mkdirSync(join(dist, 'img/og'), { recursive: true });
