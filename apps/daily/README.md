@@ -44,6 +44,8 @@ npm run serve       # dist/ 를 배포와 같은 주소(/daily/)로 띄운다
 node scripts/smoke.mjs   # 브라우저 한 판 (스샷 = .cache/shots/)
 npm run fetch:lol        # 표 갱신 (Data Dragon — 새 챔피언 나올 때)
 npm run fetch:pokemon    # 표 갱신 (PokéAPI — 오래 걸림, .cache/ 에 캐시)
+node scripts/fetch-genshin.mjs  # 표 갱신 (yatta.moe — 한국어 자료)
+node scripts/gen-og.mjs         # 공유 카드 그림 다시 만들기 (주제·문구 바뀌면)
 ```
 
 ## 주제 하나 더 넣기
@@ -93,4 +95,4 @@ npm run fetch:pokemon    # 표 갱신 (PokéAPI — 오래 걸림, .cache/ 에 �
 
 ## 안 한 것 (일부러)
 
-로그인 · 서버 저장 · 전체 랭킹 · 과거 문제 아카이브. 사람이 온 뒤에 붙인다.
+로그인 · 서버 저장 · 전체 랭킹. 사람이 온 뒤에 붙인다.
