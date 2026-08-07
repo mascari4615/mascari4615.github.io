@@ -710,6 +710,33 @@ for (const withShare of [true, false]) {
   check('저장이 막힌 것을 말해 준다', /기록을 못 남기고/.test(await page.locator('.warn').innerText()));
   check('경고는 한 번만 뜬다', (await page.locator('.warn').count()) === 1);
   await page.screenshot({ path: join(shots, 'storage-blocked.png'), fullPage: true });
+
+  /**
+   * 허브와 지난 문제도 열려야 한다 — **여태 게임 판만 이 상태로 열어 봤다.**
+   * 허브는 제일 많이 들어오는 페이지인데, 저장소를 건드리다 터지면 낯선 사람이 보는
+   * 첫 화면이 빈 종이가 된다. 읽기가 아예 막힌(더 센) 경우까지 같이 본다.
+   */
+  const dead = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const dpage = await dead.newPage();
+  const boom = [];
+  dpage.on('pageerror', (e) => boom.push(e.message));
+  await dpage.addInitScript(() => {
+    // 사생활 모드 중에는 localStorage 를 **읽기만 해도** 던지는 브라우저가 있다.
+    Object.defineProperty(window, 'localStorage', {
+      get() {
+        throw new Error('SecurityError');
+      },
+    });
+  });
+  // 껍데기가 HTML 에 이미 있는 것으로는 부족하다 — **자바스크립트가 채우는 자리**를 봐야
+  // 조용히 죽은 것을 잡는다 (허브의 시작 단추, 지난 문제 줄, 게임의 입력칸).
+  for (const [path, must] of [['', '.hub-jump a'], ['pokemon/past/', 'table.past tbody tr'], ['pokemon/', '.guessbar input:not([disabled])']]) {
+    await dpage.goto(`${base}/${path}`, { waitUntil: 'networkidle' });
+    const alive = (await dpage.locator(must).count()) > 0;
+    check(`저장소가 아예 막혀도 /${path} 가 열린다`, alive, alive ? '' : `${must} 없음`);
+  }
+  check('저장소가 막혀도 콘솔 오류 0', boom.length === 0, boom.join(' | '));
+  await dead.close();
   await ctx.close();
 }
 
