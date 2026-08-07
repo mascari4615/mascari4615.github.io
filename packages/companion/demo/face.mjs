@@ -291,7 +291,11 @@ let lastSpokenToAt = 0;
 
 const web = webBody({
   // 마음이 목소리에 닿는 자리. 처지면 느리고 낮게, 들뜨면 빠르고 높게.
-  tone: () => toneOf(heart.state),
+  /* 밤엔 목소리도 밤답게.
+     결은 지금까지 **기분에서만** 왔다. 그런데 사람은 기분과 상관없이 밤엔 낮춰 말한다.
+     조용한 시간엔 마음이 어떻든 누그러진 결로 말한다 — 「조용히 있어 달라」고 부탁받은
+     동안도 마찬가지다. 결 자체는 이미 있던 것을 쓴다(밤 전용 결을 새로 만들면 칸만 는다). */
+  tone: () => (quiet.inQuietHours || quiet.hushed ? '누그러짐' : toneOf(heart.state)),
   // 만든 게 실제로 도는지 볼 수 있게. /tally 로 연다.
   tally: () => tallyReport(tally),
   troubles: () => troublesReport(troubles),
@@ -632,7 +636,11 @@ const companion = new Companion({
     // 힘들어 보이면 가벼운 재료를 **한 자리에서** 끈다. 재료마다 따로 붙이면 새것을 넣을
     // 때마다 빠뜨리고, 그게 바로 「길어질수록 안전장치가 흐려지는」 모양이다.
     const 조심 = readTender(wholeStory);
-    return composeIngredients([
+    /* 두뇌에 실제로 뭐가 들어가는지 눈으로 본다 (`COMPANION_SHOW_MATERIAL=1`).
+       「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
+       발동 기록은 무엇이 실렸는지만 알려 주지 그 글이 어떻게 생겼는지는 안 보여 준다. */
+    const 보여줄까 = process.env.COMPANION_SHOW_MATERIAL === '1';
+    const 만든것 = composeIngredients([
       /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
          2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
@@ -736,6 +744,11 @@ const companion = new Companion({
          보였다. 재료가 는 만큼만 늘린다(420자·5줄 → 520자·6줄). 더 늘리면 29회차에
          고쳤던 「재료 과밀」로 되돌아간다. */
     ], { maxChars: 520, maxLines: 6, mark: (name, fate) => tally.mark(name, fate) });
+    if (보여줄까) {
+      console.log('[재료]');
+      for (const 줄 of 만든것.split('\n')) console.log(`  · ${줄}`);
+    }
+    return 만든것;
   },
   attention: tactfulAttention({
     // 닿은 것은 나한테 직접 한 짓이다 — 「지금 바쁘신 것 같아 참았다」가 말이 안 된다.
