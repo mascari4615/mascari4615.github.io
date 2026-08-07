@@ -1,0 +1,219 @@
+---
+layout: none
+permalink: /karmolab/higher/
+---
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>높은 쪽 고르기 — 둘 중 뭐가 더 클까 | KarmoLab</title>
+<meta name="description" content="둘 중 어느 쪽이 더 큰지 고르는 연승 놀이. 포켓몬 키·몸무게, 롤 챔피언 체력·방어, 원신 등급·출시로 겨룹니다. 한 번 틀리면 끝, 최고 연승만 남습니다.">
+<link rel="canonical" href="https://blog.mascari4615.com/karmolab/higher/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="높은 쪽 고르기 — 둘 중 뭐가 더 클까">
+<meta property="og:description" content="한 번 틀리면 끝. 최고 연승은 몇까지 갈까요.">
+<meta property="og:url" content="https://blog.mascari4615.com/karmolab/higher/">
+<meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 1.6rem 1rem 3rem;
+  background: #0f0f12; color: #f2f2ee;
+  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+main { max-width: 40rem; margin: 0 auto; }
+.crumb { font-size: 0.78rem; color: #8b8b85; margin-bottom: 0.7rem; }
+.crumb a { color: inherit; }
+h1 { font-size: 1.45rem; margin: 0 0 0.15rem; letter-spacing: -0.02em; }
+.lead { color: #b9b9b2; font-size: 0.88rem; margin: 0 0 1.2rem; }
+
+.picks { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.1rem; }
+.picks button {
+  font: inherit; font-size: 0.88rem; min-height: 40px; padding: 0 0.85rem; cursor: pointer;
+  background: transparent; color: #b9b9b2; border: 1px solid #33333d; border-radius: 999px;
+}
+.picks button[aria-pressed='true'] { background: #d4a849; color: #17171c; border-color: #d4a849; font-weight: 700; }
+
+.ask { text-align: center; font-size: 1.05rem; margin: 0 0 0.8rem; color: #b9b9b2; }
+.ask b { color: #f2f2ee; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.side {
+  background: #17171c; border: 1px solid #26262e; border-radius: 14px; padding: 0.9rem 0.6rem;
+  text-align: center; cursor: pointer; min-height: 190px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.4rem;
+}
+.side:disabled { cursor: default; }
+.side img { width: 96px; height: 96px; object-fit: contain; }
+.side .nm { font-weight: 700; font-size: 0.98rem; }
+.side .vl { font-size: 1.15rem; color: #d4a849; min-height: 1.5rem; font-weight: 700; }
+.side.win { border-color: #7fd08a; }
+.side.lose { border-color: #e08b8b; }
+
+.score { display: flex; justify-content: space-between; align-items: center; margin: 1rem 0 0; font-size: 0.92rem; color: #b9b9b2; }
+.score b { color: #f2f2ee; font-size: 1.1rem; }
+.msg { text-align: center; margin: 0.9rem 0 0; min-height: 1.7rem; }
+.ok { color: #7fd08a; } .no { color: #e08b8b; }
+.again { display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.8rem; }
+.again button {
+  font: inherit; min-height: 44px; padding: 0 1.1rem; cursor: pointer; border-radius: 10px; border: 0;
+  background: #d4a849; color: #17171c; font-weight: 700;
+}
+.again button.ghost { background: transparent; color: #b9b9b2; border: 1px solid #33333d; font-weight: 400; }
+.boards { margin-top: 2rem; font-size: 0.86rem; color: #8b8b85; }
+.boards ul { padding-left: 1.1rem; }
+footer { margin-top: 2rem; font-size: 0.8rem; color: #8b8b85; }
+footer a { color: #b9b9b2; }
+@media (max-width: 380px) { .side img { width: 76px; height: 76px; } }
+</style>
+</head>
+<body>
+<main>
+  <nav class="crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">높은 쪽 고르기</span></nav>
+  <h1>높은 쪽 고르기</h1>
+  <p class="lead">둘 중 어느 쪽이 더 큰지만 고르면 됩니다. 한 번 틀리면 끝.</p>
+
+  <div class="picks" id="picks" role="group" aria-label="판 고르기"></div>
+
+  <p class="ask" id="ask">불러오는 중…</p>
+  <div class="pair">
+    <button class="side" id="a" type="button"></button>
+    <button class="side" id="b" type="button"></button>
+  </div>
+
+  <p class="score"><span>연승 <b id="streak">0</b></span><span>최고 <b id="best">0</b></span></p>
+  <p class="msg" id="msg" aria-live="polite"></p>
+  <div class="again" id="again" hidden>
+    <button type="button" id="retry">다시</button>
+    <button type="button" class="ghost" id="share">결과 복사</button>
+  </div>
+
+  <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게 판을 적어 둔다.
+       (scripts/build.mjs 가 표에서 찍어 넣는다 — 손으로 고치지 말 것) -->
+  <section class="boards">
+    <h2>지금 있는 판</h2>
+    <ul id="boards">
+      <li>🌠 원신 캐릭터 — 116개 · 견줄 것: 출시</li>
+      <li>⚔️ 롤 챔피언 — 173개 · 견줄 것: 체력 · 방어 · 공격</li>
+      <li>🔴 포켓몬 — 1025개 · 견줄 것: 세대 · 키 · 몸무게</li>
+    </ul>
+    <p>더 놀 것 — <a href="/karmolab/quest/">오늘의 문제</a> · <a href="/karmolab/t/">도구 전체</a></p>
+  </section>
+
+  <footer>
+    점수는 이 브라우저에만 남습니다. 표는 <a href="/daily/">오늘의 하나 맞히기</a>와 같은 것을 씁니다.
+  </footer>
+</main>
+
+<script id="boards-data">window.HIGHER_BOARDS=[{"t":"genshin","title":"원신 캐릭터","e":"🌠"},{"t":"lol","title":"롤 챔피언","e":"⚔️"},{"t":"pokemon","title":"포켓몬","e":"🔴"}];</script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var BOARDS = window.HIGHER_BOARDS || [];
+  var KEY = 'karmolab_higher_best';
+  var board = null, field = null, left = null, right = null, streak = 0, locked = false;
+
+  function best(topic, put) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    if (put === undefined) return all[topic] || 0;
+    if (put > (all[topic] || 0)) { all[topic] = put; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
+    return all[topic] || 0;
+  }
+  var pick = function (arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+
+  function paintSide(el, item, showValue) {
+    el.className = 'side';
+    el.disabled = false;
+    el.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = item.i; img.alt = ''; img.loading = 'lazy';
+    var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = item.n;
+    var vl = document.createElement('div'); vl.className = 'vl';
+    vl.textContent = showValue ? fmt(item.v[field.key]) : '?';
+    el.appendChild(img); el.appendChild(nm); el.appendChild(vl);
+  }
+  function fmt(v) { return String(v) + (field.unit ? ' ' + field.unit : ''); }
+
+  function nextRound() {
+    locked = false;
+    $('again').hidden = true;
+    var pool = board.items.filter(function (x) { return x.v[field.key] !== undefined; });
+    do {
+      left = pick(pool); right = pick(pool);
+    } while (left === right || left.v[field.key] === right.v[field.key]);
+    // 「출시이(가)」 처럼 조사가 어색해지는 것을 피한다 — 속성 이름을 앞에 떼어 놓는다.
+    $('ask').innerHTML = '<b>' + field.label + '</b> — 어느 쪽이 더 클까요?';
+    paintSide($('a'), left, false);
+    paintSide($('b'), right, false);
+    $('msg').textContent = '';
+  }
+
+  function answer(sideEl, chosen, other) {
+    if (locked) return;
+    locked = true;
+    var win = chosen.v[field.key] > other.v[field.key];
+    paintSide($('a'), left, true);
+    paintSide($('b'), right, true);
+    $('a').disabled = true; $('b').disabled = true;
+    sideEl.classList.add(win ? 'win' : 'lose');
+    if (win) {
+      streak++;
+      $('streak').textContent = streak;
+      $('msg').textContent = '맞았습니다';
+      $('msg').className = 'msg ok';
+      setTimeout(nextRound, 850);
+    } else {
+      $('msg').textContent = '아깝습니다 — ' + streak + '연승에서 끝났습니다';
+      $('msg').className = 'msg no';
+      $('best').textContent = best(board.topic, streak);
+      $('again').hidden = false;
+    }
+  }
+
+  $('a').addEventListener('click', function () { answer($('a'), left, right); });
+  $('b').addEventListener('click', function () { answer($('b'), right, left); });
+  $('retry').addEventListener('click', function () { streak = 0; $('streak').textContent = '0'; nextRound(); });
+  $('share').addEventListener('click', function () {
+    var text = 'KarmoLab 높은 쪽 고르기 — ' + board.title + ' / ' + field.label + '\n' + streak + '연승 (최고 ' + best(board.topic) + ')\nblog.mascari4615.com/karmolab/higher/';
+    navigator.clipboard.writeText(text).then(function () { $('share').textContent = '복사했습니다'; });
+  });
+
+  function load(topic) {
+    return fetch('/karmolab/higher/' + topic + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        board = j; board.topic = topic;
+        field = pick(j.fields);
+        streak = 0;
+        $('streak').textContent = '0';
+        $('best').textContent = best(topic);
+        nextRound();
+      })
+      .catch(function () { $('ask').textContent = '표를 못 불러왔습니다. 잠시 뒤 새로고침 해 주세요.'; });
+  }
+
+  BOARDS.forEach(function (b, i) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = (b.e ? b.e + ' ' : '') + b.title;
+    btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    btn.addEventListener('click', function () {
+      [].forEach.call($('picks').children, function (c) { c.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      load(b.t);
+    });
+    $('picks').appendChild(btn);
+  });
+  if (BOARDS.length) load(BOARDS[0].t);
+  else $('ask').textContent = '판이 없습니다.';
+})();
+</script>
+</body>
+</html>
