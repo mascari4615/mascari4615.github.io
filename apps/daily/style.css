@@ -95,6 +95,15 @@ a { color: var(--accent); }
 .streak { margin-left: auto; font-size: 13px; color: var(--ink-2); }
 .streak b { color: var(--accent); }
 
+/* 저장이 막혔을 때 — 조용히 넘기면 새로고침 한 번에 진행이 사라지고 이유를 모른다. */
+.warn {
+  background: rgba(120, 40, 40, 0.9);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
 /* 자정을 넘겨 창을 열어 둔 사람에게 — 지금 보는 게 어제 문제라고 말해 준다. */
 .newday {
   display: flex;

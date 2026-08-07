@@ -564,6 +564,35 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 저장이 막힌 브라우저 — 사생활 모드이거나 공간이 다 찼을 때 실제로 일어난다.
+ * 조용히 넘기면 새로고침 한 번에 오늘 진행이 사라지고, 본인은 이유를 모른 채 다시 둔다.
+ */
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'lol.json'), 'utf8'));
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => {
+    // 읽기는 되고 쓰기만 막힌 상태를 흉내 낸다 (사생활 모드에서 흔한 모양).
+    Storage.prototype.setItem = function blocked() {
+      throw new Error('QuotaExceededError');
+    };
+  });
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+  check('저장이 막혀도 게임은 열린다', await page.locator('.guessbar input').isVisible());
+
+  const first = topic.items[0].name;
+  await page.fill('.guessbar input', first);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${first}")`);
+  await page.waitForSelector('.row');
+  await page.waitForSelector('.warn', { timeout: 5000 });
+  check('저장이 막힌 것을 말해 준다', /기록을 못 남기고/.test(await page.locator('.warn').innerText()));
+  check('경고는 한 번만 뜬다', (await page.locator('.warn').count()) === 1);
+  await page.screenshot({ path: join(shots, 'storage-blocked.png'), fullPage: true });
+  await ctx.close();
+}
+
+/**
  * 아주 좁은 화면 — 폰(360px)에서 글자를 200% 로 키우면 논리 폭이 180px 이 된다.
  * 시력이 약한 사람이 실제로 쓰는 설정이고, 여기서 허브가 34px 넘쳤다.
  */

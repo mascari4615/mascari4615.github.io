@@ -120,8 +120,28 @@ const read = (key, fallback) => {
     return fallback;
   }
 };
+/**
+ * 저장이 안 되면 **새로고침 한 번에 오늘 진행이 사라진다.** 지금까지는 조용히 넘겼다 —
+ * 본인은 왜 사라졌는지 모른 채 다시 처음부터 두게 된다.
+ * 사생활 모드거나 저장 공간이 다 찼을 때 실제로 일어난다. 한 번만 말해 준다.
+ */
+let warnedStorage = false;
 const write = (key, value) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* 사생활 모드 */ }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    if (warnedStorage) return;
+    warnedStorage = true;
+    root
+      .querySelector('.tabs')
+      ?.insertAdjacentElement(
+        'afterend',
+        el(
+          '<p class="warn">이 브라우저에 기록을 못 남기고 있어요 — 새로고침하면 오늘 진행이 사라집니다. ' +
+            '(사생활 모드이거나 저장 공간이 찼을 때 그래요.)</p>',
+        ),
+      );
+  }
 };
 
 /** 저장은 오늘 것만 의미가 있다 — 날이 바뀌면 통째로 버린다. */
