@@ -50,6 +50,13 @@
           Mdd.linePreset?.('tool_run', { msg: '도구를 열어서 푸는 거예요. 머리 안 써도 돼요.' });
           container.innerHTML = `
             <p class="qs-lead">하루에 하나. 머리로 짜내지 말고 도구를 열어서 푸세요.</p>
+            <!-- 오늘 성적은 **연습을 하든 말든** 이 자리에 남는다 (TASK-KL-089).
+                 예전에는 연습을 시작하면 오늘 결과도 「결과 복사」도 화면에서 통째로 사라져,
+                 연습을 그만두면 오늘 것을 자랑할 길이 없었다. -->
+            <div class="qs-today" id="qsToday" hidden>
+              <span id="qsTodayText"></span>
+              <button type="button" class="btn btn-ghost" id="qsShare">결과 복사</button>
+            </div>
             <section class="qs-card">
               <div class="qs-day" id="qsDay"></div>
               <p class="qs-q" id="qsQ">문제를 불러오는 중…</p>
@@ -64,7 +71,6 @@
               <p class="tool-status" id="qsMsg" aria-live="polite"></p>
               <p class="qs-tries" id="qsTries"></p>
               <div class="qs-after" id="qsAfter" style="display:none; gap:6px; flex-wrap:wrap;">
-                <button type="button" class="btn btn-ghost" id="qsShare">결과 복사</button>
                 <button type="button" class="btn btn-primary" id="qsMore">다른 문제 하나 더</button>
               </div>
             </section>
@@ -134,6 +140,19 @@
             ($('qsTool') as HTMLButtonElement).textContent = '이 문제에 쓰는 도구 열기';
           }
 
+          /** 오늘 성적 줄 — 기록이 있으면 켜 두고, 연습을 하든 말든 안 끈다. */
+          function paintToday(): void {
+            const st = load()[dayLabel()];
+            if (!st) {
+              $('qsToday').hidden = true;
+              return;
+            }
+            $('qsToday').hidden = false;
+            $('qsTodayText').textContent = st.win
+              ? `오늘 #${dayNo() + 1} — 🟩 ${st.tries}번 만에 맞혔습니다`
+              : `오늘 #${dayNo() + 1} — 🟥 다섯 번을 다 썼습니다`;
+          }
+
           function finish(win: boolean): void {
             done = true;
             ans().disabled = true;
@@ -142,6 +161,7 @@
             const st = load();
             st[dayLabel()] = { win, tries };
             save(st);
+            paintToday();
           }
 
           /* 오늘 것을 끝내면 할 게 없어 그냥 나가게 된다 — 지난 문제를 연습으로 더 풀게 한다. */
@@ -170,6 +190,7 @@
                 all = j.puzzles;
                 current = all[dayNo() % all.length];
                 paint(current);
+                paintToday();
                 const st = load()[dayLabel()];
                 if (st) {
                   tries = st.tries;
