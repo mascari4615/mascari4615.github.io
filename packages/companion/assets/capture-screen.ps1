@@ -33,9 +33,14 @@ $full.Dispose()
 
 $title = ''
 try {
+  # CharSet.Unicode is not optional here. Without it this binds to the old
+  # byte-based call, and every non-ASCII character in the title comes back as
+  # "?" -- Korean window titles turn into rows of question marks, and the
+  # companion then decides what you are doing from garbage. (Measured: a browser
+  # window reported as "Microsoft? Edge".)
   Add-Type -Namespace Win32 -Name Native -MemberDefinition @'
 [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
-[DllImport("user32.dll")] public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int count);
 '@
   $sb = New-Object System.Text.StringBuilder 512
   [void][Win32.Native]::GetWindowText([Win32.Native]::GetForegroundWindow(), $sb, 512)

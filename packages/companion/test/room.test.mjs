@@ -61,3 +61,26 @@ test('모르는 자리엔 아무 말도 안 얹는다 — 늘 붙으면 재료�
   assert.equal(자리결('알 수 없는 창'), '');
   assert.equal(자리결(null), '');
 });
+
+// ── 실제로 오는 제목 (실측) ──────────────────────────────────────────
+
+test('터미널도 만드는 중이다 — 실제로 오는 제목은 이쪽이 태반이었다', () => {
+  assert.equal(어떤자리('claude · resume'), '만드는중');
+  assert.equal(어떤자리('Windows PowerShell'), '만드는중');
+});
+
+test('브라우저 제목은 사이에 뭐가 낀다 — 앞에 붙임표를 요구하면 안 걸린다', () => {
+  assert.equal(어떤자리('KarmoLab 외 페이지 1개 - 개인 - Microsoft Edge'), '읽는중');
+});
+
+test('그래도 통화가 먼저다 — 브라우저로 하는 통화가 흔하다', () => {
+  assert.equal(어떤자리('Zoom Meeting - 개인 - Microsoft Edge'), '통화');
+});
+
+test('영상 보는 중이 만드는 중보다 먼저다 — 브라우저로 본다', () => {
+  assert.equal(어떤자리('무한도전 - YouTube - Chrome'), '보는중');
+});
+
+test('디스코드 제목은 「#방 | 서버 - Discord」로 온다 — 붙임표를 요구하면 안 걸린다', () => {
+  assert.equal(어떤자리('#ㅗ | 홈플러스 기아 - Discord'), '통화');
+});

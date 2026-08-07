@@ -31,11 +31,30 @@ interface 짚기 {
  * 게임으로 세면 그대로 사고다.
  */
 const 갈래표: readonly 짚기[] = [
-  { 자리: '통화', 낱말: ['zoom', 'meet.google', 'microsoft teams', 'webex', '통화 중', 'discord - ', 'gather'] },
-  { 자리: '보는중', 낱말: ['youtube', 'netflix', 'twitch', 'laftel', 'watcha', 'tving', '- vlc', 'mpv'] },
-  { 자리: '노는중', 낱말: ['steam', 'unity', 'godot', 'league of legends', 'minecraft'] },
-  { 자리: '만드는중', 낱말: ['visual studio code', 'vscode', 'intellij', 'rider', 'blender', 'photoshop', 'aseprite', 'obsidian', 'figma'] },
-  { 자리: '읽는중', 낱말: ['- chrome', '- edge', '- whale', '- firefox', 'notion', 'stack overflow', 'github'] },
+  // 디스코드는 제목이 「#방이름 | 서버이름 - Discord」로 온다(실측). 앞에 붙임표를
+  // 요구하면 안 걸린다. 다만 디스코드는 통화만 하는 게 아니라 글도 읽는 자리라,
+  // **통화 중일 때만** 막고 싶은데 제목으로는 그걸 못 가른다 — 지금은 통화로 본다.
+  // 잘못 막는 쪽이 잘못 끼어드는 쪽보다 낫다.
+  { 자리: '통화', 낱말: ['zoom', 'meet.google', 'microsoft teams', 'webex', '통화 중', 'discord', 'gather'] },
+  { 자리: '보는중', 낱말: ['youtube', 'netflix', 'twitch', 'laftel', 'watcha', 'tving', 'vlc', 'mpv', '- pot'] },
+  { 자리: '노는중', 낱말: ['steam', 'league of legends', 'minecraft', 'valorant', '로스트아크'] },
+  {
+    자리: '만드는중',
+    // **터미널도 만드는 중이다.** 처음엔 편집기 이름만 넣었는데, 실제로 오는 제목은
+    // 「claude · resume」 같은 터미널 창이 태반이었다 — 33번 재는 동안 한 번도 안
+    // 걸렸다(실측). 이름을 늘리는 게 아니라 *실제로 오는 제목*을 봐야 했다.
+    낱말: [
+      'visual studio code', 'vscode', 'intellij', 'rider', 'unity', 'godot', 'blender',
+      'photoshop', 'aseprite', 'obsidian', 'figma',
+      'claude', 'powershell', 'cmd.exe', 'terminal', 'wsl', 'git bash', 'nvim', 'vim',
+    ],
+  },
+  {
+    자리: '읽는중',
+    // 브라우저 제목은 「… - 개인 - Microsoft Edge」처럼 사이에 뭐가 낀다. 앞에 붙임표를
+    // 요구하면 거의 안 걸린다 — 이름만 본다.
+    낱말: ['chrome', 'edge', 'whale', 'firefox', 'notion', 'stack overflow', 'github'],
+  },
 ];
 
 /** 이 창 제목이 어떤 자리인가. 모르면 null. */
