@@ -18,6 +18,8 @@
  * 글 주소 = `/karmolab/?p=<글id>#community`. 앱이 한 페이지라 물음표로 글을 가리킨다.
  * 뒤로 가기로 목록↔글을 오간다.
  */
+import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './community-markdown';
+
 (function (): void {
     interface Board {
         id: string;
@@ -118,6 +120,36 @@
         .c-write textarea { min-height:110px; resize:vertical; }
         .c-write-foot { display:flex; justify-content:space-between; align-items:center; gap:10px; }
         .c-write-hint { font-size:11px; color:var(--text-tertiary); }
+        /* 작성기 — 기호를 몰라도 단추로 다 되게. */
+        .c-compose-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+        .c-fmts { display:flex; gap:4px; flex-wrap:wrap; }
+        .c-fmt { padding:4px 9px; border-radius:var(--radius); border:1px solid var(--border);
+            background:transparent; color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer; }
+        .c-fmt:hover { color:var(--text-primary); border-color:var(--accent); }
+        .c-modes { display:flex; gap:2px; }
+        .c-mode { padding:4px 10px; border:0; background:none; border-radius:var(--radius);
+            color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }
+        .c-mode[data-on="1"] { color:var(--text-primary); font-weight:700; background:var(--bg-tertiary); }
+        .c-preview { min-height:110px; padding:10px 12px; border:1px dashed var(--border);
+            border-radius:var(--radius); background:var(--bg-primary); }
+
+        /* 서식 있는 글 — 본문·답글·미리보기가 같은 모양을 쓴다. */
+        .md { white-space:normal; }
+        .md p { margin:0 0 10px; }
+        .md p:last-child { margin-bottom:0; }
+        .md h3, .md h4, .md h5 { margin:16px 0 8px; color:var(--text-primary); }
+        .md h3 { font-size:18px; } .md h4 { font-size:16px; } .md h5 { font-size:14px; }
+        .md ul, .md ol { margin:0 0 10px; padding-left:22px; }
+        .md li { margin:2px 0; }
+        .md blockquote { margin:0 0 10px; padding:6px 12px; border-left:3px solid var(--accent);
+            background:var(--bg-tertiary); color:var(--text-secondary); }
+        .md code { padding:1px 5px; border-radius:4px; background:var(--bg-tertiary);
+            font-family:var(--font-mono, monospace); font-size:.92em; }
+        .md pre { margin:0 0 10px; padding:12px 14px; border-radius:var(--radius);
+            background:var(--bg-tertiary); overflow-x:auto; }
+        .md pre code { padding:0; background:none; }
+        .md hr { border:0; border-top:1px solid var(--border); margin:14px 0; }
+        .md a { color:var(--accent); }
         .c-signin { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between;
             padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); margin-bottom:18px; }
@@ -183,12 +215,7 @@
         }
     `);
 
-    const esc = (v: unknown): string =>
-        String(v ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    const esc = escapeMd;
 
     function relativeTime(iso: string): string {
         const then = new Date(iso).getTime();
@@ -203,10 +230,7 @@
         return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeZone: 'Asia/Seoul' }).format(new Date(then));
     }
 
-    function preview(text: string, max = 90): string {
-        const line = text.replace(/\s+/g, ' ').trim();
-        return line.length > max ? `${line.slice(0, max)}…` : line;
-    }
+    const preview = plainPreview;
 
     /** 글쓴이 얼굴. 없으면 빈 동그라미 — 이름만 늘어선 목록은 사람이 안 보인다. */
     function face(handle: string): string {
@@ -278,6 +302,150 @@
             .join('')}</div>`;
     }
 
+    /* ===== 글쓰기 =====
+     *
+     * 요즘 작성기가 공통으로 갖는 것을 따랐다 (레퍼런스: GitHub·Discourse 계열 편집기 조사):
+     * 서식 단추 · 쓰기/미리보기 · 초안 자동 저장 · 단축키 · 남은 글자 수 · 칸이 글에 맞춰 늘어남.
+     * 기억해야 쓸 수 있는 편집기는 안 쓰이므로, 기호를 몰라도 단추로 다 되게 했다.
+     */
+
+    /** 초안은 판마다 따로 둔다. 새로고침하거나 실수로 닫아도 쓰던 글이 남는다. */
+    function draftKey(board: string): string {
+        return `karmolab_community_draft_${board}`;
+    }
+    function loadDraft(board: string): { title: string; text: string } {
+        try {
+            const raw = localStorage.getItem(draftKey(board));
+            if (!raw) return { title: '', text: '' };
+            const parsed = JSON.parse(raw) as { title?: string; text?: string };
+            return { title: parsed.title ?? '', text: parsed.text ?? '' };
+        } catch {
+            return { title: '', text: '' };
+        }
+    }
+    function saveDraft(board: string, draft: { title: string; text: string }): void {
+        try {
+            if (!draft.title && !draft.text) localStorage.removeItem(draftKey(board));
+            else localStorage.setItem(draftKey(board), JSON.stringify(draft));
+        } catch {
+            /* 저장 공간이 꽉 찼으면 넘긴다 — 글쓰기를 막을 이유는 없다 */
+        }
+    }
+
+    /** 서식 단추 — [이름, 앞에 붙일 것, 뒤에 붙일 것, 도움말, 단축키] */
+    const FORMAT_BUTTONS: Array<[string, string, string, string, string]> = [
+        ['굵게', '**', '**', '굵게 (Ctrl+B)', 'b'],
+        ['기울임', '*', '*', '기울임 (Ctrl+I)', 'i'],
+        ['코드', '`', '`', '코드', ''],
+        ['링크', '[', '](주소)', '링크 (Ctrl+K)', 'k'],
+        ['인용', '> ', '', '인용', ''],
+        ['목록', '- ', '', '목록', ''],
+        ['제목', '## ', '', '제목', ''],
+    ];
+
+    function composerHtml(data: ListResponse, isRequest: boolean): string {
+        const draft = loadDraft(data.board);
+        const tools = FORMAT_BUTTONS.map(
+            ([label, , , title]) =>
+                `<button type="button" class="c-fmt" data-fmt="${esc(label)}" title="${esc(title)}">${esc(label)}</button>`,
+        ).join('');
+
+        return `<form class="c-write" data-write>
+            ${isRequest ? '' : `<input type="text" name="cTitle" data-title maxlength="${data.titleMaxLength}" placeholder="제목" aria-label="글 제목" value="${esc(draft.title)}" required>`}
+            <div class="c-compose-bar">
+                <div class="c-fmts">${isRequest ? '' : tools}</div>
+                <div class="c-modes">
+                    <button type="button" class="c-mode" data-mode="write" data-on="1">쓰기</button>
+                    <button type="button" class="c-mode" data-mode="preview" data-on="0">미리보기</button>
+                </div>
+            </div>
+            <textarea name="cText" data-text maxlength="${data.maxLength}" aria-label="${isRequest ? '도구 요청' : '글 본문'}"
+                placeholder="${isRequest ? '어떤 도구가 있었으면 하나요?' : '무슨 이야기든. **굵게** *기울임* `코드` > 인용 - 목록'}" required>${esc(draft.text)}</textarea>
+            <div class="c-preview md" data-preview hidden></div>
+            <div class="c-write-foot">
+                <span class="c-write-hint"><span data-count>0</span>/${data.maxLength}${
+                    data.myHandle ? ` · @${esc(data.myHandle)} 로 올라갑니다` : ''
+                } · Ctrl+Enter 로 올리기</span>
+                <span>
+                    <button type="button" class="c-act" data-cancel>접기</button>
+                    <button type="submit" class="btn btn-primary">올리기</button>
+                </span>
+            </div>
+        </form>`;
+    }
+
+    /** 작성기 안의 손놀림 — 서식 단추·미리보기·초안·단축키·칸 높이. */
+    function wireComposer(form: HTMLFormElement, board: string, submit: () => void): void {
+        const title = form.querySelector<HTMLInputElement>('[data-title]');
+        const text = form.querySelector<HTMLTextAreaElement>('[data-text]');
+        const previewBox = form.querySelector<HTMLElement>('[data-preview]');
+        const counter = form.querySelector<HTMLElement>('[data-count]');
+        if (!text) return;
+
+        /** 칸이 글에 맞춰 늘어난다 — 긴 글을 좁은 창으로 들여다보게 하지 않는다. */
+        const grow = (): void => {
+            text.style.height = 'auto';
+            text.style.height = `${Math.min(text.scrollHeight + 2, 520)}px`;
+        };
+        const sync = (): void => {
+            if (counter) counter.textContent = String(text.value.length);
+            saveDraft(board, { title: title?.value ?? '', text: text.value });
+            grow();
+        };
+        text.addEventListener('input', sync);
+        title?.addEventListener('input', sync);
+        sync();
+
+        /** 고른 글자를 기호로 감싼다. 아무것도 안 골랐으면 기호만 넣고 사이에 커서를 둔다. */
+        const wrap = (before: string, after: string): void => {
+            const start = text.selectionStart ?? 0;
+            const end = text.selectionEnd ?? 0;
+            const picked = text.value.slice(start, end);
+            const lineStart = before.endsWith(' ');
+            const insert = lineStart ? `${before}${picked}` : `${before}${picked}${after}`;
+            text.setRangeText(insert, start, end, 'end');
+            if (!picked && !lineStart) text.setSelectionRange(start + before.length, start + before.length);
+            text.focus();
+            sync();
+        };
+
+        form.querySelectorAll<HTMLButtonElement>('[data-fmt]').forEach((button) => {
+            const found = FORMAT_BUTTONS.find(([label]) => label === button.dataset.fmt);
+            if (found) button.addEventListener('click', () => wrap(found[1], found[2]));
+        });
+
+        form.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const wantPreview = button.dataset.mode === 'preview';
+                form.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => {
+                    b.dataset.on = (b.dataset.mode === 'preview') === wantPreview ? '1' : '0';
+                });
+                if (previewBox) {
+                    previewBox.innerHTML = text.value.trim()
+                        ? renderMarkdown(text.value)
+                        : '<p class="c-write-hint">아직 쓴 글이 없습니다.</p>';
+                    previewBox.hidden = !wantPreview;
+                }
+                text.hidden = wantPreview;
+                if (!wantPreview) text.focus();
+            });
+        });
+
+        text.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                submit();
+                return;
+            }
+            if (!(event.ctrlKey || event.metaKey)) return;
+            const shortcut = FORMAT_BUTTONS.find(([, , , , key]) => key && key === event.key.toLowerCase());
+            if (shortcut) {
+                event.preventDefault();
+                wrap(shortcut[1], shortcut[2]);
+            }
+        });
+    }
+
     function renderList(data: ListResponse): void {
         if (!host) return;
         const isRequest = data.board === 'request';
@@ -292,20 +460,7 @@
         let writer = '';
         if (!data.signedIn) writer = signInBlock('로그인하면 글을 쓰고 답글을 달 수 있습니다.');
         else if (!data.canWrite) writer = '<p class="c-empty-row">이 판은 주인만 씁니다.</p>';
-        else if (writerOpen) {
-            writer = `<form class="c-write" data-write>
-                ${isRequest ? '' : `<input type="text" name="cTitle" data-title maxlength="${data.titleMaxLength}" placeholder="제목" aria-label="글 제목" required>`}
-                <textarea name="cText" data-text maxlength="${data.maxLength}" aria-label="${isRequest ? '도구 요청' : '글 본문'}"
-                    placeholder="${isRequest ? '어떤 도구가 있었으면 하나요?' : '무슨 이야기든'}" required></textarea>
-                <div class="c-write-foot">
-                    <span class="c-write-hint">${esc(data.myHandle ? `@${data.myHandle} 로 올라갑니다` : '')}</span>
-                    <span>
-                        <button type="button" class="c-act" data-cancel>접기</button>
-                        <button type="submit" class="btn btn-primary">올리기</button>
-                    </span>
-                </div>
-            </form>`;
-        }
+        else if (writerOpen) writer = composerHtml(data, isRequest);
 
         const rows = data.posts.length
             ? data.posts
@@ -366,28 +521,40 @@
             void render();
         });
 
-        host.querySelector<HTMLFormElement>('[data-write]')?.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const form = event.currentTarget as HTMLFormElement;
-            const title = form.querySelector<HTMLInputElement>('[data-title]')?.value ?? '';
-            const text = form.querySelector<HTMLTextAreaElement>('[data-text]')?.value ?? '';
-            const button = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-            if (button) button.disabled = true;
-            const created = (await api('/kl/posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ board: data.board, title, text }),
-            })) as { id?: string } | null;
-            if (button) button.disabled = false;
-            if (!created?.id) {
-                // 하루 상한에 걸린 경우도 여기로 온다 — 왜 막혔는지 사람 말로 알린다.
-                Toolbox.showToast?.('못 올렸어요. 하루에 올릴 수 있는 개수를 넘었거나, 잠시 연결이 끊겼습니다.');
-                return;
-            }
-            writerOpen = false;
-            // 방금 쓴 글로 바로 들어간다 — 올리고 목록만 보면 내 글이 어디 갔나 찾게 된다.
-            go({ p: created.id });
-        });
+        const writeForm = host.querySelector<HTMLFormElement>('[data-write]');
+        if (writeForm) {
+            const send = async (): Promise<void> => {
+                const title = writeForm.querySelector<HTMLInputElement>('[data-title]')?.value ?? '';
+                const text = writeForm.querySelector<HTMLTextAreaElement>('[data-text]')?.value ?? '';
+                if (!text.trim()) {
+                    Toolbox.showToast?.('내용을 적어 주세요.');
+                    return;
+                }
+                const button = writeForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+                if (button) button.disabled = true;
+                const created = (await api('/kl/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ board: data.board, title, text }),
+                })) as { id?: string } | null;
+                if (button) button.disabled = false;
+                if (!created?.id) {
+                    // 하루 상한에 걸린 경우도 여기로 온다 — 왜 막혔는지 사람 말로 알린다.
+                    Toolbox.showToast?.('못 올렸어요. 하루에 올릴 수 있는 개수를 넘었거나, 잠시 연결이 끊겼습니다.');
+                    return;
+                }
+                // 올라갔으니 초안은 지운다. 안 지우면 다음에 열 때 이미 올린 글이 또 들어 있다.
+                saveDraft(data.board, { title: '', text: '' });
+                writerOpen = false;
+                // 방금 쓴 글로 바로 들어간다 — 올리고 목록만 보면 내 글이 어디 갔나 찾게 된다.
+                go({ p: created.id });
+            };
+            writeForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                void send();
+            });
+            wireComposer(writeForm, data.board, () => void send());
+        }
     }
 
     /* ===== 글 하나 ===== */
@@ -397,7 +564,7 @@
         return `<li class="c-reply" data-child="${reply.parentId ? '1' : '0'}" data-owner="${reply.byOwner ? '1' : '0'}">
             <div class="c-reply-head">${face(reply.authorHandle)}<span>@${esc(reply.authorHandle)}</span>
                 ${reply.byOwner ? '<span class="c-tag">주인</span>' : ''}<span class="c-dot">${relativeTime(reply.createdAt)}</span></div>
-            <div class="c-reply-body">${esc(reply.text)}</div>
+            <div class="c-reply-body md">${renderMarkdown(reply.text)}</div>
             <div class="c-reply-foot">
                 <button type="button" class="c-linkbtn" data-reply-like="${esc(reply.id)}" data-on="${reply.likedByMe ? '1' : '0'}"
                     ${data.signedIn ? '' : 'disabled'}>좋아요${reply.likes ? ` ${reply.likes}` : ''}</button>
@@ -450,7 +617,7 @@
                 <div class="c-post-meta">${face(post.authorHandle)}<span>@${esc(post.authorHandle)}</span>
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
                     <span class="c-dot">조회 ${post.views}</span></div>
-                ${post.title ? `<div class="c-post-body">${esc(post.text)}</div>` : ''}
+                ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
                 <div class="c-actions">
                     <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled'}>
                         좋아요 ${post.likes}</button>
@@ -570,6 +737,14 @@
                 textarea?.focus();
             }),
         );
+
+        // 답글도 Ctrl+Enter 로 보낸다 — 짧은 말을 쓰려고 마우스를 잡게 하지 않는다.
+        textarea?.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                host?.querySelector<HTMLFormElement>('[data-reply-form]')?.requestSubmit();
+            }
+        });
 
         host.querySelector<HTMLFormElement>('[data-reply-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
