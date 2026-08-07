@@ -11,6 +11,8 @@
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
 import { mountCourseNext } from './play-course';
+import { getPack, loadPacks, type Pack } from './pack-store';
+import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
   interface Item {
@@ -212,14 +214,42 @@ import { mountCourseNext } from './play-course';
             }
           }
 
+          /**
+           * 사람이 만든 표를 이 놀이의 모양으로 옮긴다 (TASK-KL-089).
+           * 여기서 겨룰 수 있는 칸은 **숫자 칸**뿐이다 — 「분류」로는 어느 쪽이 더 큰지 물을 수 없다.
+           * 값이 두 개도 안 되는 칸은 빼고, 하나도 안 남으면 그 표는 이 놀이에 안 걸린다.
+           */
+          function packBoard(p: Pack): Board | null {
+            const nums = p.fields.filter(
+              (f) => f.kind === 'number' && p.items.filter((it) => typeof it[f.key] === 'number').length >= 2
+            );
+            if (!nums.length) return null;
+            return {
+              title: p.title,
+              emoji: p.emoji,
+              fields: nums.map((f) => ({ key: f.key, label: f.label, unit: f.unit })),
+              items: p.items.map((it) => {
+                const v: Record<string, number> = {};
+                for (const f of nums) if (typeof it[f.key] === 'number') v[f.key] = it[f.key] as number;
+                return { n: it.name, i: String(it.img || ''), v };
+              })
+            };
+          }
+
           function load(id: string): void {
             boardId = id;
             /* 판마다 그림의 결이 다르다 — 포켓몬은 96px 도트라 키우면 뭉개진다. 도트는 도트답게
              * 각지게 늘리고(그게 원래 모양이다), 초상화인 롤·원신은 그냥 매끄럽게 둔다. */
             const pair = container.querySelector<HTMLElement>('.hi-pair');
             if (pair) pair.dataset.board = id;
-            fetch(`/apps/karmolab/data/higher-${id}.json`)
-              .then((r) => r.json())
+            const mine = id.indexOf('pack:') === 0 ? getPack(id.slice(5)) : null;
+            const src: Promise<Board> = mine
+              ? (() => {
+                  const bd = packBoard(mine);
+                  return bd ? Promise.resolve(bd) : Promise.reject(new Error('no-number'));
+                })()
+              : fetch(`/apps/karmolab/data/higher-${id}.json`).then((r) => r.json());
+            src
               .then((j: Board) => {
                 board = j;
                 field = null; // 첫 기준도 nextRound 가 뽑는다 — 뽑는 자리를 두 곳에 두지 않는다
@@ -229,75 +259,49 @@ import { mountCourseNext } from './play-course';
                 $('hiBest').textContent = String(bestOf(id));
                 nextRound(false);
               })
-              .catch(() => {
-                $('hiAsk').textContent = '표를 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.';
+              .catch((err) => {
+                $('hiAsk').textContent =
+                  err && err.message === 'no-number'
+                    ? '이 표에는 견줄 숫자 칸이 없습니다 — 「내 표 만들기」에서 나이·키 같은 숫자 칸을 넣어 주세요.'
+                    : '표를 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.';
               });
           }
 
-          BOARDS.forEach((b, i) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = `${b.emoji} ${b.title}`;
-            btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
-            btn.addEventListener('click', () => {
-              [...$('hiBoards').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
-              btn.setAttribute('aria-pressed', 'true');
-              load(b.id);
-            });
-            $('hiBoards').appendChild(btn);
-          });
+          /* 사람이 만든 표도 판으로 나란히 선다 — 숫자 칸이 있는 것만(그래야 겨룰 수 있다).
+           * 표는 놀다가도 새로 생긴다. 그래서 목록은 **화면이 보일 때마다** 다시 그린다. */
+          let boards: Array<{ id: string; title: string; emoji: string }> = [];
 
-          $('hiA').addEventListener('click', () => answer($('hiA'), left!, right!));
-          $('hiB').addEventListener('click', () => answer($('hiB'), right!, left!));
-          function retry(): void {
-            streak = 0;
-            left = null;
-            $('hiStreak').textContent = '0';
-            nextRound(false);
+          function paintBoards(active: string): void {
+            boards = BOARDS.concat(
+              loadPacks()
+                .filter((p) => p.fields.some((f) => f.kind === 'number'))
+                .map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji }))
+            );
+            $('hiBoards').innerHTML = '';
+            boards.forEach((b) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.textContent = `${b.emoji} ${b.title}`;
+              btn.setAttribute('aria-pressed', String(b.id === active));
+              btn.addEventListener('click', () => {
+                [...$('hiBoards').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
+                btn.setAttribute('aria-pressed', 'true');
+                load(b.id);
+              });
+              $('hiBoards').appendChild(btn);
+            });
           }
-          $('hiRetry').addEventListener('click', retry);
 
-          /* 손으로만 놀 수 있었다 (TASK-KL-089).
-           * 한 번에 한 판씩 몇십 번을 누르는 놀이인데 좌우 화살표가 아무 일도 안 했다 —
-           * 마우스에서 손을 못 뗀다. ← → 로 고르고, 끝난 뒤에는 Enter 로 다시 시작한다.
-           * 글자를 치는 중(입력칸 안)에는 안 가로챈다 — 여기엔 입력칸이 없지만 앱 어디서든 안전하게. */
-          const keys = (e: KeyboardEvent): void => {
-            /* 「지금 보이는 화면인가」는 **페이지 칸**에게 물어야 한다. 그냥 위로 훑으면
-             * 탭 속살(panel)에도 같은 표시가 붙어 있어서, 딴 화면에 가 있어도 참이 나온다 —
-             * 그렇게 놀이터에서 누른 화살표가 이 놀이의 연승을 올렸다(실측). */
-            const page = container.closest('.tool-page');
-            if (!container.isConnected || !page || !page.classList.contains('active')) return;
-            const t = e.target as HTMLElement | null;
-            if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-              if (locked || !left || !right) return;
-              e.preventDefault();
-              const goLeft = e.key === 'ArrowLeft';
-              answer($(goLeft ? 'hiA' : 'hiB'), goLeft ? left : right, goLeft ? right : left);
-              return;
-            }
-            if (e.key === 'Enter' && $('hiAgain').style.display === 'flex') {
-              e.preventDefault();
-              retry();
-            }
-          };
-          addEventListener('keydown', keys);
-          Toolbox.onDispose?.(() => removeEventListener('keydown', keys));
-          $('hiShare').addEventListener('click', () => {
-            /* 주소는 **이 놀이가 실제로 사는 곳**이어야 한다. 앱 안으로 옮긴 뒤에도 도구
-             * 상세 주소(/karmolab/t/higher/)를 퍼뜨리고 있었는데 그 페이지는 만들지 않는다 —
-             * 자랑을 받은 사람이 누르면 없는 곳으로 갔다.
-             * 기준도 빼야 한다. 이제 판마다 바뀌므로 마지막 판 것 하나만 적으면 거짓말이 된다. */
-            const b = BOARDS.filter((x) => x.id === boardId)[0];
-            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''}\n${streak}연승 (최고 ${bestOf(
-              boardId
-            )})\nblog.mascari4615.com/karmolab/#higher`;
-            void navigator.clipboard.writeText(text).then(() => {
-              $('hiShare').textContent = '복사했습니다';
-            });
-          });
+          /** 「내 표」가 밀어 준 판이 있으면 그걸로, 없으면 있던 대로. */
+          function useHandoff(fallback: string): void {
+            const pick = takePick();
+            const id = pick && getPack(pick) ? 'pack:' + pick : fallback;
+            paintBoards(id);
+            if (id !== fallback || !boardId) load(id);
+          }
 
-          load(BOARDS[0].id);
+          onPageActive(container, () => useHandoff(boardId || BOARDS[0].id));
+          useHandoff(BOARDS[0].id);
         }
       }
     ]
