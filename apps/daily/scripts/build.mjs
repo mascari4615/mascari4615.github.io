@@ -236,7 +236,7 @@ for (const page of all) {
   <p class="lede">${esc(page.lede)}</p>
   ${shot}
   <div class="guessbar">
-    <input type="text" role="combobox" aria-expanded="true" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 · 첫 자음만 쳐도 돼요">
+    <input type="text" role="combobox" aria-expanded="false" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 · 첫 자음만 쳐도 돼요">
     <div class="sug" id="sug-list" role="listbox" aria-label="추천 이름"></div>
   </div>
   <div class="seeds"></div>

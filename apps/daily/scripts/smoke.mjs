@@ -640,6 +640,20 @@ for (const withShare of [true, false]) {
   await page.keyboard.press('ArrowDown');
   const active = await page.evaluate(() => document.activeElement?.getAttribute('aria-activedescendant'));
   check('화살표로 고른 항목이 낭독기에 이어진다', !!active, active ?? '(없음)');
+
+  /**
+   * 「펼쳐짐」은 정말 펼쳐졌을 때만이어야 한다. 여태 참으로 박혀 있어서, 목록이 비어 있어도
+   * 화면 낭독기에는 늘 펼쳐진 것으로 들렸다. 지금 어느 항목인지 가리키는 표식도
+   * 목록이 사라진 뒤 그대로 남아 없는 것을 가리켰다.
+   */
+  const opened = await page.getAttribute('.guessbar input', 'aria-expanded');
+  check('목록이 떠 있으면 펼쳐졌다고 한다', opened === 'true', String(opened));
+  await page.keyboard.press('Escape');
+  const closed = await page.evaluate(() => {
+    const el = document.querySelector('.guessbar input');
+    return { open: el.getAttribute('aria-expanded'), at: el.getAttribute('aria-activedescendant') };
+  });
+  check('★ 목록을 닫으면 닫혔다고 한다', closed.open === 'false' && closed.at === null, JSON.stringify(closed));
   await page.fill('.guessbar input', answer.name);
   await page.waitForSelector('.sug button');
   await page.keyboard.press('Enter');
