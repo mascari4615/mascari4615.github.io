@@ -360,8 +360,26 @@ function finish() {
   // 끝난 사람을 그냥 보내지 않는다 — 오늘 아직 안 푼 판을 바로 건넨다.
   // 오늘 판을 끝낸 사람이 지금 할 수 있는 것을 준다. 「내일 또」만 남기면 그대로 나간다.
   const yesterdayKey = kstDayKey(new Date(Date.now() - 86400000));
+  /**
+   * 연습을 하나 끝내면 그다음이 없었다 — 「오늘 문제」로만 보냈다.
+   * 지난 문제를 이어 푸는 사람에게는 **그 전날**이 가장 자연스러운 다음 수다.
+   * 1번 문제 이전으로는 안 간다 (없는 날이라 번호가 음수로 찍힌다).
+   */
+  const dayBefore = practice ? kstDayKey(new Date(at.getTime() - 86400000)) : null;
+  const canGoBefore = dayBefore && practiceDate(dayBefore) !== null;
   const extra = practice
-    ? [{ href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode }]
+    ? [
+        ...(canGoBefore
+          ? [{
+              href: `${location.pathname}?d=${dayBefore}`,
+              label: `${dayBefore} 판 풀기`,
+              emoji: '⏪',
+              key: `daily:${topicId}:${mode}:p:${dayBefore}`,
+              day: dayBefore,
+            }]
+          : []),
+        { href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode },
+      ]
     : [{ href: `${location.pathname}?d=${yesterdayKey}`, label: '어제 문제 풀기', emoji: '📅', key: `daily:${topicId}:${mode}:p:${yesterdayKey}`, day: yesterdayKey }];
   const open = extra.concat(others).filter((o) => {
     // 이미 끝낸 것은 안 건넨다 — 다 푼 판을 또 누르게 하는 게 이 자리의 가장 흔한 낭비다.

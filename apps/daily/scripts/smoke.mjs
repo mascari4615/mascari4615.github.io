@@ -235,6 +235,13 @@ await pastPage('genshin');
     await page.evaluate(() => !localStorage.getItem('daily:pokemon:classic')),
   );
 
+  // 연습을 하나 끝내면 그다음이 있어야 이어 푼다 — 그 전날이 가장 자연스러운 다음 수다.
+  const chain = await page.locator('.done .more a[href*="?d="]').first().getAttribute('href');
+  const before = new Date(new Date(`${dayKey}T12:00:00+09:00`).getTime() - 86400000 + 9 * 3600 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  check('연습이 그 전날로 이어진다', chain?.endsWith(before), `${chain} (기대 …${before})`);
+
   // ★ 오늘·미래 날짜로는 연습이 안 열려야 한다 (열리면 오늘 답이 샌다).
   const todayKey = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   await page.goto(`${base}/pokemon/?d=${todayKey}`, { waitUntil: 'networkidle' });
