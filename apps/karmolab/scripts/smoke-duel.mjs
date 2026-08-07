@@ -53,6 +53,15 @@ function solveInPage(팔레트) {
     };
     return btns.findIndex((b) => hex(getComputedStyle(b).color) === want);
   }
+  const 셈 = order.match(/^(\d+)\+(\d+)!$/);
+  if (셈) {
+    const want = String(Number(셈[1]) + Number(셈[2]));
+    return texts.indexOf(want);
+  }
+  const 같은 = order.match(/^(\S+) 찾기!$/);
+  if (같은) return texts.indexOf(같은[1]);
+  const 거꾸로 = order.match(/^(\S+) 거꾸로!$/);
+  if (거꾸로) return texts.indexOf([...거꾸로[1]].reverse().join(''));
   if (order === '큰 쪽!') {
     const nums = texts.map(Number);
     return nums.indexOf(Math.max(...nums));
@@ -139,6 +148,32 @@ try {
   check('판정이 산다', sa.me >= 1, `푸는 쪽이 한 판도 못 이겼다 (A ${sa.me}:${sa.foe})`);
   check('판 수', sa.me + sa.foe <= 5, `이긴 판 합계 ${sa.me + sa.foe}`);
   check('상대 이름', sa.foeName === '나' && sb.foeName === '가', `A가 본 이름 ${sa.foeName} · B가 본 이름 ${sb.foeName}`);
+  // ⑤ 「아무나랑」 — 링크 없이도 둘이 만나는가. 대기방에서 만나 **둘만의 방으로 옮겨** 붙어야 한다.
+  const c = await browser.newPage();
+  const d = await browser.newPage();
+  for (const [who, p] of [
+    ['C', c],
+    ['D', d]
+  ]) {
+    p.on('pageerror', (e) => failures.push(`${who} 쪽 페이지 오류: ${e.message}`));
+  }
+  await c.goto(TOOL, { waitUntil: 'domcontentloaded' });
+  await d.goto(TOOL, { waitUntil: 'domcontentloaded' });
+  await c.waitForSelector('#duMatch', { timeout: 30000 });
+  await d.waitForSelector('#duMatch', { timeout: 30000 });
+  await c.click('#duMatch');
+  await d.click('#duMatch');
+  const met = await Promise.all(
+    [c, d].map((p) =>
+      p
+        .waitForFunction(() => document.querySelectorAll('.du-choice').length > 0, { timeout: CONNECT_MS })
+        .then(() => true)
+        .catch(() => false)
+    )
+  );
+  check('아무나랑 · 만남', met[0] && met[1], `C ${met[0]} · D ${met[1]}`);
+  const 방 = await Promise.all([c, d].map((p) => p.evaluate(() => location.hash)));
+  check('대기방에 안 남음', 방.every((h) => !/lobby/.test(h)), `주소: ${방.join(' · ')}`);
 } catch (e) {
   if (!cantRun) failures.push(`검사가 끝까지 못 갔다: ${e.message}`);
 } finally {
@@ -154,4 +189,4 @@ if (failures.length > 0) {
   for (const f of failures) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다 — 링크 · 연결 · 다섯 판 · 점수 일치');
+console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다 — 링크 · 연결 · 다섯 판 · 점수 일치 · 아무나랑');

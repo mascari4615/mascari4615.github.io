@@ -23,7 +23,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
   const LIMIT_STEP = 400; // 판마다 이만큼 짧아진다 — 마지막은 2.4초
   const APP_ID = 'karmolab-duel';
 
-  type Kind = 'chosung' | 'bigger' | 'color';
+  type Kind = 'chosung' | 'bigger' | 'color' | 'sum' | 'same' | 'reverse';
   interface Round {
     kind: Kind;
     order: string; // 한 단어 명령
@@ -65,7 +65,8 @@ import { joinRoom, selfId } from 'trystero/nostr';
   /** 판을 미리 다 만들어 상대에게 통째로 보낸다 — 양쪽이 각자 뽑으면 다른 문제가 뜬다. */
   function makeRound(i: number): Round {
     const limitMs = LIMIT_START - i * LIMIT_STEP;
-    const kind: Kind = (['chosung', 'bigger', 'color'] as Kind[])[Math.floor(Math.random() * 3)];
+    const 갈래: Kind[] = ['chosung', 'bigger', 'color', 'sum', 'same', 'reverse'];
+    const kind: Kind = 갈래[Math.floor(Math.random() * 갈래.length)];
     if (kind === 'chosung') {
       const [초성, 정답, 미끼] = pick(초성판);
       const choices = shuffle([정답, ...미끼]);
@@ -77,6 +78,46 @@ import { joinRoom, selfId } from 'trystero/nostr';
       const choices = [...nums].map(String);
       const max = Math.max(...[...nums]);
       return { kind, order: '큰 쪽!', choices, answer: choices.indexOf(String(max)), limitMs };
+    }
+    if (kind === 'sum') {
+      // 셈: 두 수를 더한 값 고르기. 미끼는 정답 언저리라 대충 보면 걸린다.
+      const a = Math.floor(Math.random() * 40) + 5;
+      const b = Math.floor(Math.random() * 40) + 5;
+      const 정답 = a + b;
+      const 후보 = new Set<number>([정답]);
+      while (후보.size < 4) 후보.add(정답 + (Math.floor(Math.random() * 11) - 5) || 정답 + 6);
+      const choices = shuffle([...후보]).map(String);
+      return { kind, order: `${a}+${b}!`, choices, answer: choices.indexOf(String(정답)), limitMs };
+    }
+    if (kind === 'same') {
+      // 같은 것: 명령에 뜬 글자와 똑같은 칸 고르기. 미끼는 한 글자만 다르다.
+      const 씨앗 = pick(초성판)[1];
+      const 흔들기 = (w: string): string => {
+        const i = Math.floor(Math.random() * w.length);
+        const 대체 = '가나다라마바사아자차'[Math.floor(Math.random() * 10)];
+        return w.slice(0, i) + 대체 + w.slice(i + 1);
+      };
+      const 미끼 = new Set<string>();
+      let 헛돌이 = 0;
+      while (미끼.size < 3 && 헛돌이++ < 40) {
+        const w = 흔들기(씨앗);
+        if (w !== 씨앗) 미끼.add(w);
+      }
+      const choices = shuffle([씨앗, ...미끼]);
+      return { kind, order: `${씨앗} 찾기!`, choices, answer: choices.indexOf(씨앗), limitMs };
+    }
+    if (kind === 'reverse') {
+      // 거꾸로: 명령에 뜬 글자를 뒤집은 것 고르기.
+      const 씨앗 = pick(초성판)[1];
+      const 정답 = [...씨앗].reverse().join('');
+      const 미끼 = new Set<string>();
+      let 헛돌이 = 0;
+      while (미끼.size < 3 && 헛돌이++ < 40) {
+        const w = shuffle([...씨앗]).join('');
+        if (w !== 정답) 미끼.add(w);
+      }
+      const choices = shuffle([정답, ...미끼]);
+      return { kind, order: `${씨앗} 거꾸로!`, choices, answer: choices.indexOf(정답), limitMs };
     }
     /* 색깔(스트룹): 「글자 말고 **칠해진 색**」을 고른다. 정답 칸만 부른 색으로 칠하고,
      * 글자는 일부러 다른 색 이름을 적는다 — 글자를 읽으면 오히려 틀린다. */
@@ -127,6 +168,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:var(--space-lg) 0;">
               <button class="btn btn-primary" id="duMake">대결 링크 만들기</button>
+              <button class="btn btn-ghost" id="duMatch">아무나랑</button>
               <button class="btn btn-ghost" id="duAgain" style="display:none;">한 판 더</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
                 이름 <input type="text" id="duName" maxlength="10" placeholder="누군가" style="width:100px;" aria-label="대결에 쓸 이름">
@@ -366,8 +408,33 @@ import { joinRoom, selfId } from 'trystero/nostr';
           const joined = location.hash.match(/r=([A-Za-z0-9_-]{6,})/);
           if (joined) {
             $<HTMLElement>('#duMake').style.display = 'none';
+            $<HTMLElement>('#duMatch').style.display = 'none';
             connect(joined[1], false);
           }
+
+          /* 「아무나랑」 — 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
+           * 대기방에서 그대로 놀면 나중에 온 사람들에게까지 판이 새어 나간다. 방 이름을 두 사람의
+           * 번호로 만들면 양쪽이 따로 계산해도 같은 이름이 나온다(주고받을 필요가 없다). */
+          let 짝지음 = false;
+          function 아무나랑(): void {
+            $<HTMLElement>('#duMake').style.display = 'none';
+            $<HTMLElement>('#duMatch').style.display = 'none';
+            say('상대를 찾는 중… 누가 들어오면 바로 시작합니다.');
+            const lobby = joinRoom({ appId: APP_ID }, 'lobby');
+            lobby.onPeerJoin = (peerId: string): void => {
+              if (짝지음) return;
+              짝지음 = true;
+              const 방 = 'p' + [selfId, peerId].sort().join('').replace(/[^A-Za-z0-9]/g, '').slice(0, 24);
+              void lobby.leave();
+              connect(방, selfId < peerId); // 번호가 앞선 쪽이 판을 돌린다 — 양쪽이 같은 답을 낸다
+            };
+            // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
+            window.setTimeout(() => {
+              if (!짝지음) say('아직 아무도 안 왔어요. 기다리는 사이 링크를 만들어 친구를 부르는 편이 빠릅니다.');
+            }, 45000);
+          }
+
+          $<HTMLButtonElement>('#duMatch').onclick = 아무나랑;
 
           $<HTMLButtonElement>('#duMake').onclick = () => {
             const roomId = selfId.slice(0, 10) + Math.random().toString(36).slice(2, 6);
@@ -375,6 +442,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
             $<HTMLInputElement>('#duUrl').value = url;
             $<HTMLElement>('#duShare').style.display = '';
             $<HTMLElement>('#duMake').style.display = 'none';
+            $<HTMLElement>('#duMatch').style.display = 'none';
             connect(roomId, true);
             void Toolbox.copyText?.(url, { message: '링크를 복사했어요 — 보내면 바로 붙습니다' });
             Toolbox.trackUse?.('share');
