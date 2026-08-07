@@ -1,0 +1,209 @@
+---
+layout: none
+permalink: /karmolab/quest/
+---
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>오늘의 문제 — 도구로 푸는 하루 한 문제 | KarmoLab</title>
+<meta name="description" content="하루에 한 문제. 머리로 짜내는 대신 KarmoLab 도구를 열어서 풉니다. 진법·모스 부호·Base64·해시·단위처럼 실제로 쓰이는 것들로 냅니다.">
+<link rel="canonical" href="https://blog.mascari4615.com/karmolab/quest/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="오늘의 문제 — 도구로 푸는 하루 한 문제">
+<meta property="og:description" content="하루에 한 문제. 도구를 열어서 풉니다.">
+<meta property="og:url" content="https://blog.mascari4615.com/karmolab/quest/">
+<meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 2rem 1.1rem 3rem;
+  background: #0f0f12; color: #f2f2ee;
+  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+}
+main { max-width: 34rem; margin: 0 auto; }
+.crumb { font-size: 0.78rem; color: #8b8b85; margin-bottom: 0.8rem; }
+.crumb a { color: inherit; }
+h1 { font-size: 1.5rem; margin: 0 0 0.2rem; letter-spacing: -0.02em; }
+.lead { color: #b9b9b2; font-size: 0.9rem; margin: 0 0 1.6rem; }
+.card { background: #17171c; border: 1px solid #26262e; border-radius: 14px; padding: 1.2rem; }
+.day { font-size: 0.75rem; color: #d4a849; letter-spacing: 0.04em; }
+.q { font-size: 1.18rem; font-weight: 700; margin: 0.4rem 0 1rem; }
+.row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+input[type=text] {
+  flex: 1 1 11rem; min-width: 0; font-size: 16px; padding: 0.6rem 0.7rem;
+  background: #0f0f12; color: #f2f2ee; border: 1px solid #33333d; border-radius: 9px; min-height: 44px;
+}
+button {
+  font: inherit; font-size: 0.95rem; min-height: 44px; padding: 0 1rem; cursor: pointer;
+  background: #d4a849; color: #17171c; border: 0; border-radius: 9px; font-weight: 700;
+}
+button.ghost { background: transparent; color: #b9b9b2; border: 1px solid #33333d; font-weight: 400; }
+.tool { display: inline-block; margin-top: 0.9rem; font-size: 0.9rem; color: #d4a849; }
+.msg { margin-top: 0.9rem; min-height: 1.6rem; font-size: 0.95rem; }
+.ok { color: #7fd08a; } .no { color: #e08b8b; }
+.hint { margin-top: 0.5rem; font-size: 0.85rem; color: #8b8b85; }
+.tries { letter-spacing: 0.18em; font-size: 1.1rem; }
+.past { margin-top: 2.2rem; }
+.past h2 { font-size: 0.95rem; color: #b9b9b2; }
+.past ol { padding-left: 1.1rem; color: #8b8b85; font-size: 0.88rem; }
+.past a { color: #b9b9b2; }
+footer { margin-top: 2.4rem; font-size: 0.8rem; color: #8b8b85; }
+footer a { color: #b9b9b2; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">오늘의 문제</span></nav>
+  <h1>오늘의 문제</h1>
+  <p class="lead">하루에 하나. 머리로 짜내지 말고 <a href="/karmolab/t/">도구</a>를 열어서 푸세요.</p>
+
+  <section class="card">
+    <div class="day" id="day"></div>
+    <p class="q" id="q">문제를 불러오는 중…</p>
+    <form class="row" id="form" autocomplete="off">
+      <input type="text" id="ans" aria-label="답" placeholder="답을 적으세요">
+      <button type="submit">맞히기</button>
+      <button type="button" class="ghost" id="hintBtn">힌트</button>
+    </form>
+    <a class="tool" id="tool" href="/karmolab/t/">이 문제에 쓰는 도구 열기 →</a>
+    <p class="hint" id="hint" hidden></p>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <p class="tries" id="tries"></p>
+    <button type="button" class="ghost" id="share" hidden>결과 복사</button>
+  </section>
+
+  <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게, 문제를 전부 적어 둔다.
+       정답은 지문(해시)만 두므로 여기 적어도 답은 안 샌다. -->
+  <section class="past">
+    <h2>지금까지 나온 문제</h2>
+    <ol id="all">
+      <li>255를 16진법으로 쓰면? — <a href="/karmolab/t/radix/">도구 열기</a></li>
+      <li>모스 부호 「... --- ...」 는 무슨 글자? — <a href="/karmolab/t/morse/">도구 열기</a></li>
+      <li>Base64 「7JWI64WV」 를 풀면? — <a href="/karmolab/t/base64/">도구 열기</a></li>
+      <li>abc 의 SHA-1 값은 a9993e 로 시작합니다. 그다음 두 글자는? — <a href="/karmolab/t/hashgen/">도구 열기</a></li>
+      <li>타임스탬프 1000000000 은 몇 년도? — <a href="/karmolab/t/epoch/">도구 열기</a></li>
+      <li>5cm 는 몇 inch? (소수 넷째 자리까지) — <a href="/karmolab/t/unitconv/">도구 열기</a></li>
+      <li>1234 를 한글로 읽으면? — <a href="/karmolab/t/numword/">도구 열기</a></li>
+      <li>1GB(1000 기준)는 몇 바이트? — <a href="/karmolab/t/bytesize/">도구 열기</a></li>
+    </ol>
+  </section>
+
+  <footer>
+    답은 이 브라우저 안에서만 대조합니다 — 어디로도 보내지 않습니다.
+    <a href="/karmolab/t/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var P = null;
+  var KEY = 'karmolab_quest';
+
+  /* 오늘이 며칠째인가 — 한국 시간 기준으로 센다.
+     기준일부터 하루에 하나씩, 문제를 다 쓰면 처음으로 돌아온다. */
+  var EPOCH = Date.UTC(2026, 7, 8); // 2026-08-08 (KST 자정)
+  function todayIndex(n) {
+    var nowKst = new Date(Date.now() + 9 * 3600e3);
+    var d = Date.UTC(nowKst.getUTCFullYear(), nowKst.getUTCMonth(), nowKst.getUTCDate());
+    return Math.max(0, Math.floor((d - EPOCH) / 86400e3)) % n;
+  }
+  function dayLabel() {
+    var k = new Date(Date.now() + 9 * 3600e3);
+    return k.getUTCFullYear() + '. ' + (k.getUTCMonth() + 1) + '. ' + k.getUTCDate() + '.';
+  }
+  var norm = function (s) { return s.toLowerCase().replace(/[\s,]/g, ''); };
+  async function fingerprint(s) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(norm(s)));
+    return [].map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, '0'); }).join('').slice(0, 16);
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var tries = 0, done = false;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function save(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+
+  function paint(p) {
+    $('day').textContent = dayLabel();
+    $('q').textContent = p.q;
+    $('tool').href = '/karmolab/t/' + p.tool + '/';
+    $('hint').textContent = p.hint;
+  }
+
+  function finish(win) {
+    done = true;
+    $('ans').disabled = true;
+    $('share').hidden = false;
+    var st = load();
+    st[dayLabel()] = { win: win, tries: tries };
+    save(st);
+  }
+
+  fetch('/karmolab/quest/puzzles.json')
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      P = j.puzzles;
+      var today = P[todayIndex(P.length)];
+      paint(today);
+
+      // 아래 목록은 이미 페이지에 박혀 있다(scripts/verify.mjs 가 표에서 찍어 넣는다).
+      // 여기서 또 그리면 두 번 나온다 — 안 그린다.
+
+      var st = load()[dayLabel()];
+      if (st) {
+        tries = st.tries;
+        $('msg').textContent = st.win ? '오늘 문제는 맞혔습니다.' : '오늘은 여기까지.';
+        $('msg').className = 'msg ' + (st.win ? 'ok' : 'no');
+        $('tries').textContent = (st.win ? '🟩' : '🟥').repeat(1);
+        finish(st.win);
+      }
+
+      $('form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (done) return;
+        var v = $('ans').value.trim();
+        if (!v) return;
+        tries++;
+        var f = await fingerprint(v);
+        if (today.a.indexOf(f) !== -1) {
+          $('msg').textContent = '맞았습니다 — ' + tries + '번 만에.';
+          $('msg').className = 'msg ok';
+          $('tries').textContent = '🟩';
+          finish(true);
+        } else if (tries >= 5) {
+          $('msg').textContent = '다섯 번을 다 썼습니다. 내일 또 하나 나옵니다.';
+          $('msg').className = 'msg no';
+          $('tries').textContent = '🟥';
+          finish(false);
+        } else {
+          $('msg').textContent = '아닙니다 (' + tries + '/5) — 도구를 열어서 확인해 보세요.';
+          $('msg').className = 'msg no';
+          $('ans').select();
+        }
+      });
+
+      $('hintBtn').addEventListener('click', function () { $('hint').hidden = false; });
+
+      $('share').addEventListener('click', function () {
+        var st2 = load()[dayLabel()] || {};
+        var text = 'KarmoLab 오늘의 문제 ' + dayLabel() + '\n' + (st2.win ? '🟩 ' + st2.tries + '/5' : '🟥 5/5') + '\nblog.mascari4615.com/karmolab/quest/';
+        navigator.clipboard.writeText(text).then(function () { $('share').textContent = '복사했습니다'; });
+      });
+    })
+    .catch(function () {
+      $('q').textContent = '문제를 못 불러왔습니다. 잠시 뒤 새로고침 해 주세요.';
+    });
+})();
+</script>
+</body>
+</html>
