@@ -242,7 +242,9 @@ html { background-color: var(--bg-void); }
 body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
-    background-color: var(--bg-void);
+    /* 바탕색은 html 만 갖는다. body 에도 주면 **판때기를 덮는다** — 뒤로 깐 것(z-index:-1)은
+       그리는 순서상 body 의 바탕색보다 먼저 칠해지기 때문이다. 실제로 격자가 통째로
+       사라졌다 (TASK-KL-101). */
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -282,53 +284,78 @@ body:has(> .app-layout) {
     /* 격자는 두 겹이다 — 굵은 칸(48px) 안에 가는 칸(12px). 모눈 종이·제도 용지가 그렇게
        생겼고, 한 겹만 있으면 「무늬」로 보이지 「종이」로 안 보인다 (TASK-KL-097). */
     background-image:
-        var(--holo-sweep),
-        var(--holo-bloom),
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
     /* 판때기가 곧 화면이므로 비율로 적으면 된다 — 화면 단위(vh/svh/lvh) 없음이 핵심이다. */
-    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
-    background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
-    background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
+    background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat;
+    background-position: 0 0, 0 0, 0 0, 0 0, center;
 }
+
+/* 분위기층은 **따로 겹친다** (TASK-KL-101).
+   예전엔 격자와 분위기를 한 규칙에 쌓아 두고, 테마마다 그림 목록만 갈아 끼웠다. 그런데
+   크기·반복 목록은 그대로 남아서 층 수가 어긋났다 — 오로라는 화면만 한 타원이 48px 로
+   잘려 바둑판처럼 깔렸고, 격자는 테마마다 통째로 사라졌다. 사실상 관측실 말고는 다 고장.
+   층을 갈라 두면 테마는 **자기 그림과 자기 크기만** 적으면 되고, 격자는 늘 남는다. */
+.app-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--holo-sweep), var(--holo-bloom);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* 아래 테마들은 **분위기층만** 바꾼다. 격자·vignette 는 위에서 늘 깔린다. */
 
 /* 배경 테마: 블루 매젠타 */
-html[data-bg="blue-magenta"] .app-bg { background-image:
-    radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.18) 0px, transparent 50%),
-    radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.14) 0px, transparent 45%),
-    radial-gradient(at 0% 80%, rgba(99, 102, 241, 0.1) 0px, transparent 40%),
-    radial-gradient(at 70% 70%, rgba(192, 38, 211, 0.08) 0px, transparent 55%);
+html[data-bg="blue-magenta"] .app-bg::before {
+    background-image:
+        radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.20) 0px, transparent 50%),
+        radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.16) 0px, transparent 45%),
+        radial-gradient(at 0% 80%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
+        radial-gradient(at 70% 70%, rgba(192, 38, 211, 0.10) 0px, transparent 55%);
+    background-size: 100% 100%;
 }
 
-/* 배경 테마: 메쉬 도트 */
-html[data-bg="mesh-dots"] .app-bg {
+/* 배경 테마: 메쉬 도트 — 유일하게 **되풀이되는** 분위기층이라 크기를 제가 적는다 */
+html[data-bg="mesh-dots"] .app-bg::before {
     background-image:
-        radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.12) 0px, transparent 1px),
-        radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.1) 0px, transparent 1px),
-        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.06) 0px, transparent 1px);
+        radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.30) 0px, transparent 2px),
+        radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.26) 0px, transparent 2px),
+        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.18) 0px, transparent 2px);
     background-size: 48px 48px, 64px 64px, 80px 80px;
+    background-repeat: repeat;
+    background-position: 0 0;
 }
 
 /* 배경 테마: 오로라 */
-html[data-bg="aurora"] .app-bg {
+html[data-bg="aurora"] .app-bg::before {
     background-image:
-        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.14) 0px, transparent 50%),
-        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.16) 0px, transparent 45%),
-        radial-gradient(ellipse 70% 50% at 50% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 55%);
+        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.18) 0px, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.20) 0px, transparent 45%),
+        radial-gradient(ellipse 70% 50% at 50% 50%, rgba(99, 102, 241, 0.14) 0px, transparent 55%);
+    background-size: 100% 100%;
 }
 
 /* 배경 테마: 은은한 */
-html[data-bg="subtle"] .app-bg {
+html[data-bg="subtle"] .app-bg::before {
     background-image:
-        radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 70%);
+        radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.12) 0px, transparent 70%);
+    background-size: 100% 100%;
 }
 
-/* 배경 테마: 미니멀 */
+/* 배경 테마: 미니멀 — 분위기도 격자도 없이 종이만 */
+html[data-bg="minimal"] .app-bg::before { background-image: none; }
 html[data-bg="minimal"] .app-bg {
-    background-image: none;
+    background-image: radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
+    background-size: auto;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .app-layout {
@@ -931,7 +958,16 @@ html[data-intro="off"] .intro-overlay {
 /* ── 첫 화면 장식 (Y2K 하프톤 도형, TASK-KL-097) ──
    누를 수 없게 두고 글보다 뒤에 깐다 — 장식이 버튼을 가로채면 그건 고장이다.
    도형·자리·크기·움직임은 toolbox.ts 가 열 때마다 새로 뽑는다. */
-.home-decor { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+/* 도형 자리는 이 상자의 **비율**로 잡혀 있다. 그래서 상자가 화면을 그대로 따라가면(inset:0)
+   폰에서 주소창이 접힐 때마다 상자가 늘고 도형이 **뚝 하고 옮겨 간다**. 눈에 그대로 보인다.
+   배경 판때기와 반대로, 이쪽은 「딱 맞음」보다 「안 흔들림」이 중요하다 — 화면이 가장 클 때의
+   높이(lvh)로 못 박으면 주소창이 접히든 펴지든 자리가 그대로다. 주소창이 보일 때는 아래가
+   조금 잘릴 뿐인데, 어차피 가려져 있던 자리다 (TASK-KL-101). */
+.home-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; z-index: 0; overflow: hidden; }
+/* 도구 화면에서는 한 겹 물러난다. 지우지 않는 이유: 화면을 옮길 때마다 세계가 바뀌면
+   앱이 아니라 문서 여러 장이 된다. 흐리게 두면 이어지면서도 글을 안 방해한다. */
+html[data-view="tool"] .home-decor { opacity: 0.35; transition: opacity .45s ease; }
+html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; }
 /* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
    서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
 .home-decor-item {
@@ -2872,9 +2908,12 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .karmolab-update-banner-restart {
     background: var(--success, #22c55e);
 }
+/* 닫는 단추도 손가락으로 눌러야 한다 (TASK-KL-129).
+   24px 라 폰에서 정확히 짚기 어려웠다 — 새로고침 안내를 못 닫으면 그 줄이 화면에 남는다.
+   보이는 크기(글자·바탕)는 그대로 두고 **눌리는 자리만** 넓힌다. */
 .karmolab-update-banner-close {
     flex-shrink: 0; align-self: flex-start;
-    width: 24px; height: 24px;
+    width: 32px; height: 32px;
     background: transparent; color: var(--text-tertiary);
     border: none; border-radius: var(--radius-sm);
     font-size: 16px; line-height: 1; cursor: pointer;
