@@ -31,6 +31,7 @@ export function saveTable(outPath, topic) {
     return;
   }
 
+
   const hour = kstHour();
   console.log(`${label} — ⚠ 항목이 ${was} → ${topic.items.length} 로 바뀌었다.`);
   console.log('   그날 이후의 정답 순서가 통째로 다시 섞인다 (순열이 항목 수를 씨앗으로 쓴다).');
@@ -40,4 +41,8 @@ export function saveTable(outPath, topic) {
   } else {
     console.log('   지금은 자정 직후라 영향받는 사람이 거의 없다 — 갱신하기 좋은 때다.');
   }
+
+  // 항목이 바뀌었으면 새로 들어온 것의 그림이 살아 있는지 봐야 한다 — 깨진 그림 하나면
+  // 그게 정답인 날 실루엣 판이 통째로 안 풀린다. 도구가 있어도 안 부르면 없는 것과 같다.
+  console.log('   → 다음: npm run check:images (새 항목 그림) · npm run gen:og (카드에 개수가 적힌다)');
 }
