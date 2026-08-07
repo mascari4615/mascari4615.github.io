@@ -88,6 +88,9 @@
         .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 16px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; }
         .settings-row label { font-size:var(--font-size-sm); font-weight:500; color:var(--text-primary); white-space:nowrap; flex-shrink:0; }
         .settings-row .settings-control { min-width:140px; }
+        /* 견본처럼 폭이 필요한 것은 한 줄에 나란히 두지 않고 아래로 편다 */
+        .settings-row-stack { display:block; }
+        .settings-row-stack label { display:block; margin-bottom:10px; }
         .settings-section { margin-bottom:24px; }
         .settings-section h3 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; }
         .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
@@ -118,6 +121,17 @@
             color:var(--bg-primary); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; white-space:nowrap; }
         .user-account-btn:hover { filter:brightness(1.08); }
         .user-account-btn-quiet { background:transparent; color:var(--text-secondary); border-color:var(--border); }
+        .user-act-lead { margin:0 0 10px; font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .user-acts { display:flex; flex-direction:column; border:1px solid var(--border);
+            border-radius:var(--radius-lg); background:var(--bg-secondary); overflow:hidden; }
+        .user-act-row { display:flex; align-items:center; gap:12px; padding:10px 14px;
+            border-top:1px solid var(--border); text-decoration:none; color:inherit; }
+        .user-act-row:first-child { border-top:0; }
+        .user-act-row:hover { background:var(--bg-tertiary); }
+        .user-act-title { flex:1; min-width:0; font-size:var(--font-size-xs); color:var(--text-primary);
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .user-act-meta { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); }
+        .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
     `);
 
     function buildOverview(container: HTMLElement): void {
@@ -165,9 +179,80 @@
                     </div>
                 </div>
                 <div class="user-account-slot" id="userAccountSlot"></div>
+                <div id="userServerSlot"></div>
             </div>`;
 
         renderAccountSlot(container.querySelector('#userAccountSlot'));
+        watchServerSlot(container.querySelector('#userServerSlot'));
+    }
+
+    /**
+     * 서버가 들고 있는 내 것 (TASK-KL-098).
+     *
+     * 지금까지 「내 정보」는 **이 브라우저 안의 것**만 보여 줬다. 그런데 내가 쓴 글·답글은
+     * 서버에 있고, 그건 남의 공개 프로필에서만 볼 수 있었다 — 내 것을 남의 화면으로 봐야 했다.
+     *
+     * 로그인 안 했거나 서버에 못 닿으면 **아무것도 안 그린다**. 여기 없는 게 정상인 상태다.
+     */
+    function watchServerSlot(slot: Element | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+        // 로그인 상태는 처음엔 「아직 모름」이다. 한 번만 물어보면 늘 「없음」으로 끝난다.
+        let drawnFor: string | null = null;
+        account.subscribe((state) => {
+            const handle = state.account?.handle ?? null;
+            if (!handle) {
+                drawnFor = null;
+                slot.innerHTML = '';
+                return;
+            }
+            if (drawnFor === handle) return;
+            drawnFor = handle;
+            void renderServerSlot(slot, handle);
+        });
+    }
+
+    async function renderServerSlot(slot: Element, handle: string): Promise<void> {
+        const account = window.KarmoAccount;
+        const base = account?.apiBase;
+        if (!account || !base || !slot.isConnected) return;
+
+        let activity: { posts?: unknown[]; replies?: unknown[] } | null = null;
+        try {
+            const response = await fetch(`${base}/kl/u/${encodeURIComponent(handle)}/activity`, {
+                credentials: 'include',
+            });
+            if (!response.ok) return;
+            activity = (await response.json()) as { posts?: unknown[]; replies?: unknown[] };
+        } catch {
+            return;
+        }
+        if (!slot.isConnected || !activity) return;
+
+        const posts = Array.isArray(activity.posts) ? activity.posts : [];
+        const replies = Array.isArray(activity.replies) ? activity.replies : [];
+        if (posts.length === 0 && replies.length === 0) return;
+
+        const rows = posts
+            .slice(0, 5)
+            .map((raw) => {
+                const p = raw as { id?: string; title?: string | null; text?: string; votes?: number; replyCount?: number };
+                const heading = p.title || String(p.text ?? '').replace(/\s+/g, ' ').slice(0, 40);
+                return `<a class="user-act-row" href="/karmolab/?p=${encodeURIComponent(String(p.id ?? ''))}#community">
+                            <span class="user-act-title">${escapeHtml(heading)}</span>
+                            <span class="user-act-meta">답글 ${p.replyCount ?? 0}</span>
+                        </a>`;
+            })
+            .join('');
+
+        slot.innerHTML = `
+            <div class="user-section">
+                <h3>🗣 커뮤니티에 남긴 것</h3>
+                <p class="user-act-lead">글 ${posts.length}개 · 답글 ${replies.length}개 — 이건 기기를 바꿔도 남습니다.</p>
+                <div class="user-acts">${rows}</div>
+                <a class="user-act-more" href="/karmolab/u/?h=${encodeURIComponent(handle)}">남에게 보이는 내 프로필 →</a>
+            </div>`;
     }
 
     /**
@@ -497,11 +582,18 @@
                             ${prismThemes.map((t) => `<option value="${t.id}" ${t.id === prismTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
                         </select>
                     </div>
-                    <div class="settings-row">
-                        <label for="setBgTheme">배경 테마</label>
-                        <select id="setBgTheme" class="settings-control">
-                            ${bgThemes.map((t) => `<option value="${t.id}" ${t.id === bgTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
-                        </select>
+                    <div class="settings-row settings-row-stack">
+                        <label>배경 테마</label>
+                        <!-- 이름만 늘어놓으면 무엇을 고르는지 알 수 없다. 견본은 진짜 배경과
+                             **같은 스타일 규칙**을 물려받아 그려진다 — 테마를 손보면 견본도 같이
+                             바뀐다 (값을 두 벌 적지 않는다). -->
+                        <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="배경 테마">
+                            ${bgThemes.map((t) => `
+                                <button type="button" class="bg-swatch" data-bg="${t.id}"
+                                        aria-pressed="${t.id === bgTheme}" title="${t.label}">
+                                    <span class="bg-swatch-name">${t.label}</span>
+                                </button>`).join('')}
+                        </div>
                     </div>
                     <div class="settings-code-preview">
                         <pre class="language-javascript"><code class="language-javascript">function hello() {
@@ -548,12 +640,16 @@
             Toolbox.setPrismTheme?.(target.value);
         });
 
-        container.querySelector<HTMLSelectElement>('#setBgTheme')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setBgTheme?.(target.value);
-            const label = bgThemes.find((t) => t.id === target.value)?.label || target.value;
-            Toolbox.showToast?.('배경: ' + label);
+        const bgPicker = container.querySelector<HTMLElement>('#setBgTheme');
+        bgPicker?.addEventListener('click', (e: Event) => {
+            const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('.bg-swatch');
+            if (!btn) return;
+            const id = btn.dataset.bg || '';
+            Toolbox.setBgTheme?.(id);
+            bgPicker.querySelectorAll<HTMLElement>('.bg-swatch').forEach((el) => {
+                el.setAttribute('aria-pressed', String(el === btn));
+            });
+            Toolbox.showToast?.('배경: ' + (bgThemes.find((t) => t.id === id)?.label || id));
         });
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
