@@ -21,7 +21,7 @@ const check = (name, ok, note = '') => {
 
 const browser = await pw.chromium.launch();
 
-for (const topicId of ['pokemon', 'lol']) {
+for (const topicId of ['pokemon', 'lol', 'genshin']) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
   const page = await ctx.newPage();
   const errors = [];
