@@ -11,6 +11,8 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
 (function (): void {
     const STORAGE_KEY = 'toolbox_favorites';
     const VIEW_KEY = 'toolbox_fav_view';
+    /** 즐겨찾기에 **직접 담은** 도구 id 목록. 없으면 도구는 한 칸도 안 뜬다 (기본 = 빈 목록). */
+    const TOOLS_KEY = 'toolbox_fav_tools';
     const FAVICON_IMG_ONERROR = 'this.onerror=null;this.src=' + JSON.stringify(FAVICON_FALLBACK);
     const FAVICON_API = 'https://www.google.com/s2/favicons?domain=';
     const KARMOLAB_FAVICON = '/apps/karmolab/img/favicon.ico';
@@ -46,8 +48,10 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
      * 묶음 자신(예: `pdf`)은 항목에서 뺀다 — 소제목이 그 자리이고, 부분을 누르면 어차피
      * 묶음이 그 탭으로 열린다. 남겨 두면 같은 것이 제목과 항목에 두 번 나온다.
      */
-    function getToolboxToolGroups(): FavoriteGroup[] {
-        const tools = typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [];
+    function getToolboxToolGroups(picked: Set<string>): FavoriteGroup[] {
+        if (!picked.size) return [];
+        const tools = (typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [])
+            .filter((t) => picked.has(t.id));
         const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
         /* 묶음 소속은 **지연 메타**에서 직접 읽는다. Toolbox.findBundleFor 는 그 묶음이 이미
          * 로드됐을 때만 답하는데, 즐겨찾기는 첫 화면이라 대부분 아직 안 로드돼 있다 —
@@ -108,6 +112,61 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
             .map((b) => ({ group: b.title, items: b.items }));
     }
 
+    type PickableTool = { id: string; title: string; icon: string; desc: string; group: string };
+
+    /**
+     * 「도구 담기」 고르는 칸에 뿌릴 목록. 화면에 뜨는 규칙은 위 그룹 만들기와 **같은 필터**를
+     * 쓴다 — 여기서만 보이고 담으면 안 뜨는 도구가 생기지 않게.
+     */
+    function listPickableTools(): PickableTool[] {
+        const tools = typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [];
+        const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
+        const bundleOf = (id: string): string | null => meta[id]?.bundle || null;
+        const isBundleParent = new Set(
+            Object.keys(meta)
+                .map((id) => bundleOf(id))
+                .filter((b): b is string => !!b)
+        );
+        const cats = Toolbox.getCategories?.() || [];
+        const catLabel = new Map<string, string>(cats.map((c) => [c.id, c.label] as [string, string]));
+        return tools
+            .filter((t) => {
+                if (t.id === 'favorites') return false;
+                if (t.hidden && !bundleOf(t.id)) return false;
+                if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
+                if (isBundleParent.has(t.id)) return false;
+                return true;
+            })
+            .map((t) => {
+                const b = bundleOf(t.id);
+                return {
+                    id: t.id,
+                    title: t.title || t.id,
+                    icon: t.icon || '',
+                    desc: String(Toolbox.getToolMeta?.(t.id)?.desc || ''),
+                    group: b
+                        ? meta[b]?.title || b
+                        : catLabel.get(t.category || '') || '그 밖에'
+                };
+            })
+            .sort((a, b) => a.group.localeCompare(b.group, 'ko') || a.title.localeCompare(b.title, 'ko'));
+    }
+
+    function loadPickedTools(): Set<string> {
+        try {
+            const raw = localStorage.getItem(TOOLS_KEY);
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) return new Set(arr.filter((x): x is string => typeof x === 'string'));
+            }
+        } catch (_) {}
+        return new Set();
+    }
+
+    function savePickedTools(ids: Set<string>): void {
+        try { localStorage.setItem(TOOLS_KEY, JSON.stringify([...ids])); } catch (_) {}
+    }
+
     function getFaviconUrl(item: FavoriteItem): string {
         if (item.icon) return item.icon;
         const base = typeof location !== 'undefined' ? location.href : 'https://example.org/';
@@ -149,7 +208,10 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
 
     function buildGroups(defaultGroups: FavoriteGroup[], customGroups: FavoriteGroup[] | null): FavoriteGroup[] {
         const merged: FavoriteGroup[] = [];
-        merged.push(...getToolboxToolGroups());
+        /* 도구는 **담은 것만** 뜬다 (TASK-KL-147). 예전엔 등록된 도구 전부를 자동으로 부어
+         * 넣어서, 「자주 가는 곳」이 도구 127개 밑으로 밀려 있었다. 즐겨찾기 = 고른 것.
+         * (TASK-KL-147) */
+        merged.push(...getToolboxToolGroups(loadPickedTools()));
         /* 같은 이름이면 한 칸에 합친다. 도구 갈래 이름(「도구」)과 즐겨찾기 기본 그룹 이름이
          * 겹치는데, 그냥 밀어 넣으면 같은 제목의 칸이 화면에 두 번 뜬다 (TASK-KL-096). */
         const into = (name: string, items: FavoriteItem[]): void => {
@@ -213,6 +275,26 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         .fav-top-row .landing-search-wrap .landing-search { width:100%; padding:9px 12px 9px 36px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
         .fav-top-row .landing-search-wrap .landing-search:focus { outline:none; border-color:var(--accent); }
         .fav-top-row .landing-search-wrap .landing-search::placeholder { color:var(--text-tertiary); }
+        .fav-add-kind { display:flex; gap:6px; margin-bottom:var(--space-md); }
+        .fav-add-kind .fav-kind-btn { flex:1; padding:7px 10px; font-size:var(--font-size-xs); background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); border-radius:4px; cursor:pointer; transition:var(--transition); }
+        .fav-add-kind .fav-kind-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+        .fav-add-kind .fav-kind-btn.active { background:var(--accent-subtle); border-color:var(--accent); color:var(--accent); }
+        .fav-add-pane[data-pane="tool"] { display:flex; flex-direction:column; gap:10px; }
+        /* display:flex 는 hidden 속성을 이긴다 — 안 적으면 두 갈래가 동시에 뜬다 */
+        .fav-add-modal [data-pane][hidden] { display:none; }
+        .fav-tool-search { width:100%; box-sizing:border-box; padding:8px 12px; font-size:var(--font-size-xs); background:var(--bg-primary); border:1px solid var(--border); border-radius:4px; color:var(--text-primary); }
+        .fav-tool-list { display:flex; flex-direction:column; gap:4px; max-height:min(46vh, 340px); overflow-y:auto; }
+        .fav-tool-row { display:flex; align-items:center; gap:10px; width:100%; padding:8px 10px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:4px; cursor:pointer; text-align:left; transition:var(--transition); color:var(--text-primary); }
+        .fav-tool-row:hover { background:var(--bg-hover); border-color:var(--border-hover); }
+        .fav-tool-row.on { border-color:var(--accent); background:var(--accent-subtle); }
+        .fav-tool-ico svg { width:18px; height:18px; stroke:var(--text-secondary); display:block; }
+        .fav-tool-row.on .fav-tool-ico svg { stroke:var(--accent); }
+        .fav-tool-text { display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+        .fav-tool-name { font-size:var(--font-size-xs); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .fav-tool-group { font-size:var(--font-size-2xs); color:var(--text-tertiary); }
+        .fav-tool-mark { font-size:var(--font-size-sm); color:var(--text-tertiary); flex-shrink:0; }
+        .fav-tool-row.on .fav-tool-mark { color:var(--accent); }
+        .fav-tool-empty { padding:16px; text-align:center; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .fav-grid.fav-grid-card { grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:16px; }
         .fav-grid.fav-grid-card .fav-item { padding:16px 12px; }
         .fav-grid.fav-grid-card .fav-icon { width:60px; height:60px; border-radius:12px; }
@@ -223,12 +305,44 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
     function buildFavorites(container: HTMLElement): void {
         Mdd.linePreset('home_hub', { msg: '자주 가는 곳을 모아뒀어요~ 클릭해서 가봐요!' });
 
+        /* 도구를 담고 빼면 화면을 통째로 다시 그린다 — 그리면 열려 있던 창이 같이 사라지므로,
+         * 「어느 갈래를 보고 있었나 · 뭘 치고 있었나」를 여기 적어 뒀다가 그린 뒤 되돌린다. */
+        let pendingOpen: { kind: 'site' | 'tool'; q: string } | null = null;
+
+        function renderToolPicker(query: string): string {
+            const esc = Toolbox.escapeHtml ?? ((s: string) => s);
+            const picked = loadPickedTools();
+            const q = query.trim().toLowerCase();
+            const rows = listPickableTools().filter(
+                (t) => !q || (t.title + ' ' + t.group + ' ' + t.desc + ' ' + t.id).toLowerCase().includes(q)
+            );
+            if (!rows.length) return `<div class="fav-tool-empty">찾는 도구가 없어요</div>`;
+            return rows
+                .map((t) => {
+                    const on = picked.has(t.id);
+                    return `
+                    <button type="button" class="fav-tool-row ${on ? 'on' : ''}" data-pick="${esc(t.id)}">
+                        <span class="fav-tool-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg></span>
+                        <span class="fav-tool-text">
+                            <span class="fav-tool-name">${esc(t.title)}</span>
+                            <span class="fav-tool-group">${esc(t.group)}</span>
+                        </span>
+                        <span class="fav-tool-mark">${on ? '✓' : '+'}</span>
+                    </button>`;
+                })
+                .join('');
+        }
+
         function render(): void {
             const customNow = loadFavorites();
             const groupsNow = buildGroups(DEFAULT_ITEMS, customNow);
             const esc = Toolbox.escapeHtml ?? ((s: string) => s);
             const viewMode = getViewMode();
             const isCard = viewMode === 'card';
+            const reopen = pendingOpen;
+            pendingOpen = null;
+            const openKind: 'site' | 'tool' = reopen?.kind ?? 'site';
+            const openQuery = reopen?.q ?? '';
 
             container.innerHTML = `
                 <div class="fav-layout">
@@ -255,7 +369,9 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                                     const isTool = it.type === 'tool';
                                     const metaDesc = (it.toolId && Toolbox.getToolMeta?.(it.toolId)?.desc) || '';
                                     const searchable = [it.label, g.group, it.url || '', it.toolId || '', metaDesc].join(' ').toLowerCase();
-                                    const removeBtn = it.isCustom && it.url
+                                    const removeBtn = isTool
+                                        ? `<button type="button" class="fav-remove" data-tool="${esc(it.toolId || '')}" title="빼기">×</button>`
+                                        : it.isCustom && it.url
                                         ? `<button type="button" class="fav-remove" data-group="${esc(g.group)}" data-url="${esc(it.url)}" title="삭제">×</button>`
                                         : '';
                                     const iconHtml = isTool
@@ -284,7 +400,15 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 <div class="fav-add-modal-backdrop" id="fav-add-modal">
                     <div class="fav-add-modal" onclick="event.stopPropagation()">
                         <h3>즐겨찾기 추가</h3>
-                        <div class="fav-add-form">
+                        <div class="fav-add-kind">
+                            <button type="button" class="fav-kind-btn ${openKind === 'site' ? 'active' : ''}" data-kind="site">사이트</button>
+                            <button type="button" class="fav-kind-btn ${openKind === 'tool' ? 'active' : ''}" data-kind="tool">도구</button>
+                        </div>
+                        <div class="fav-add-pane" data-pane="tool" ${openKind === 'tool' ? '' : 'hidden'}>
+                            <input type="text" class="input fav-tool-search" id="fav-tool-search" placeholder="도구 이름 검색..." autocomplete="off" value="${esc(openQuery)}">
+                            <div class="fav-tool-list" id="fav-tool-list">${renderToolPicker(openQuery)}</div>
+                        </div>
+                        <div class="fav-add-form" data-pane="site" ${openKind === 'site' ? '' : 'hidden'}>
                             <div class="form-group">
                                 <label for="fav-url">URL</label>
                                 <input type="url" id="fav-url" placeholder="https://example.com" class="input">
@@ -324,6 +448,53 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
             }
             if (modal) {
                 modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('open'); };
+            }
+
+            const toolSearch = container.querySelector<HTMLInputElement>('#fav-tool-search');
+            const toolList = container.querySelector<HTMLElement>('#fav-tool-list');
+
+            function showKind(kind: 'site' | 'tool'): void {
+                container.querySelectorAll<HTMLButtonElement>('.fav-kind-btn').forEach((b) => {
+                    b.classList.toggle('active', b.dataset.kind === kind);
+                });
+                container.querySelectorAll<HTMLElement>('.fav-add-modal [data-pane]').forEach((p) => {
+                    p.hidden = p.dataset.pane !== kind;
+                });
+            }
+            container.querySelectorAll<HTMLButtonElement>('.fav-kind-btn').forEach((b) => {
+                b.onclick = () => showKind((b.dataset.kind as 'site' | 'tool') || 'site');
+            });
+
+            function wireToolRows(): void {
+                container.querySelectorAll<HTMLButtonElement>('.fav-tool-row').forEach((row) => {
+                    row.onclick = () => {
+                        const id = row.dataset.pick;
+                        if (!id) return;
+                        const picked = loadPickedTools();
+                        if (picked.has(id)) picked.delete(id);
+                        else picked.add(id);
+                        savePickedTools(picked);
+                        Toolbox.showToast?.(picked.has(id) ? '담았어요' : '뺐어요');
+                        pendingOpen = { kind: 'tool', q: toolSearch?.value ?? '' };
+                        render();
+                    };
+                });
+            }
+            wireToolRows();
+
+            if (toolSearch && toolList) {
+                toolSearch.oninput = () => {
+                    toolList.innerHTML = renderToolPicker(toolSearch.value);
+                    wireToolRows();
+                };
+            }
+
+            if (reopen) {
+                modal?.classList.add('open');
+                if (reopen.kind === 'tool' && toolSearch) {
+                    toolSearch.focus();
+                    toolSearch.setSelectionRange(toolSearch.value.length, toolSearch.value.length);
+                }
             }
 
             container.querySelector<HTMLButtonElement>('#fav-add-btn')!.onclick = () => {
@@ -367,6 +538,15 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                 btn.onclick = (e: MouseEvent) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const toolId = btn.dataset.tool;
+                    if (toolId) {
+                        const picked = loadPickedTools();
+                        picked.delete(toolId);
+                        savePickedTools(picked);
+                        Toolbox.showToast?.('뺐어요');
+                        render();
+                        return;
+                    }
                     const group = btn.dataset.group;
                     const url = btn.dataset.url;
                     const data = loadFavorites() || [];
