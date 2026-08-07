@@ -35,7 +35,10 @@ html, body {
   position: relative;
   height: 100%;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  /* 말풍선 · 얘 · 지금 뭐 하는 중 · 말 걸기. **네 칸이다.**
+     80회차에 「지금 뭐 하는 중」을 넣으면서 칸을 안 늘려서 대화창과 같은 칸에 겹쳐 놓았다
+     (둘 다 grid-row: 3). 화면이 이상해 보인 게 그것이다. */
+  grid-template-rows: auto 1fr auto auto;
   justify-items: center;
   align-items: center;
   padding: 6px 10px 10px;
@@ -96,7 +99,7 @@ html, body {
 /* ── 말 걸기 ─────────────────────────────────────────
    평소엔 없다. 얘를 누르면 나타난다. */
 .talk {
-  grid-row: 3;
+  grid-row: 4;
   width: 100%;
   display: grid;
   gap: 6px;
