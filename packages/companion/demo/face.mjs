@@ -34,6 +34,8 @@ import {
   tossBackRetryNote,
   안하는이유,
   안돌려줬나,
+  받을길이,
+  짧게받았나,
   되물은비율,
   갓알게된것,
   InMemoryMemory,
@@ -315,6 +317,13 @@ function 공돌려줄자리인가() {
   if (이유 !== null) (console.log(`[공] 안 돌려준다 — ${이유}`), web.알아챔(`공은 안 돌려준다 — ${이유}`));
   return 이유 === null;
 }
+/** 지금이 받아 줄 자리인가 — 재료 쪽과 관문 쪽이 **같은 자리에서** 판단하게. */
+function 받을자리인가() {
+  const 최근 = conversationMemory.recent(40);
+  const 목록 = Array.isArray(최근) ? 최근 : [];
+  const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
+  return 받을길이({ 방금, recent: 목록 }) !== '';
+}
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const 시작한때 = Date.now();
 let 첫turn인가 = true;
@@ -572,14 +581,22 @@ const mouth = mouthGate({
        **자리 판단은 여기서 다시 한다.** 재료 만들 때 정한 값을 모듈 변수로 넘겨 뒀더니
        그 사이 다른 바퀴(화면 곁눈질 등)가 덮어써서 관문이 한 번도 안 걸렸다(실측: 재료는
        7번 실렸는데 관문은 0번). 같은 값을 두 곳에서 들고 있으면 반드시 어긋난다. */
-    ?? 안돌려줬나(text, 공돌려줄자리인가()),
+    ?? 안돌려줬나(text, 공돌려줄자리인가())
+    /* 길게 털어놨는데 한마디로 끊은 것도 여기서 잡는다. **시켜 놓고 안 세면 재료만 얹고
+       끝난다** — 실측으로 얘 답은 사람이 1자를 쓰든 50자를 쓰든 가운데값 6~7자였다. */
+    ?? 짧게받았나(text, 받을자리인가()),
+  /* 아쉬울 뿐인 것과 해로운 것을 가른다. 지어낸 사실·조수 말투는 버리는 게 맞지만,
+     짧거나 안 되물은 말은 얼버무림보다 낫다 — 막는 자리가 답을 더 나쁘게 만들면 안 된다. */
+  아쉬울뿐인가: (why) => /한마디로 끊었다|되묻지 않았다/.test(why),
   // 왜 다시 시키는지에 따라 시키는 말이 다르다 — 「결에서 벗어났다」와 「알맹이가 없다」는
   // 고칠 데가 다르다.
   retry: (why) => {
     // **다시 시켰다는 것 자체가 안 보였다.** 걸러진 것만 기록에 남아서, 「다시 시켰는데
     // 또 안 됐다」와 「애초에 안 걸렸다」를 구분할 수가 없었다.
     console.log(`[입] 다시 시킨다 — ${why}`);
-    const 말 = why.includes('식어 가는데') ? tossBackRetryNote()
+    const 말 = why.includes('한마디로 끊었다')
+        ? '조수님이 길게 털어놨거나 감정을 실어 말했다. **한마디로 끊지 마라** — 되받아 주고 하나는 되물어라. 두세 마디면 된다.'
+      : why.includes('식어 가는데') ? tossBackRetryNote()
       : why.includes('안 하고') ? claimRetryNote(why)
       : why.includes('안 보고') ? madeUpRetryNote(why)
       : why.includes('알맹이 없는') ? hollowRetryNote(why)
@@ -727,6 +744,8 @@ const companion = new Companion({
       // 「기억하는 척」이 되고 재료만 먹는다.
       // 여러 마디에 걸쳐야 보이는 것. 지금 얘기와 이어질 때만 나온다.
       { name: '보아온것', weight: 11, text: 되새김노트(되새긴것, 방금한말) },
+      // 짧은 건 인격이지만 **안 변하는 건 고장이다**(83회차 실측: 사람이 뭘 쓰든 가운데값 7자).
+      { name: '받는길이', weight: 14, text: 받을길이({ 방금: 방금한말, recent: wholeStory }) },
       { name: '그때그일', weight: 10, text: (() => {
         그때그일.learn(recent);
         return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());

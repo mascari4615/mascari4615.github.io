@@ -182,3 +182,27 @@ test('진짜 관문을 core 에 물리면 새는 말이 안 나간다', async ()
   await companion.feed({ channel: 'web', kind: 'text', text: '안녕', at: Date.now() });
   assert.deepEqual(said, ['응… 왜.']);
 });
+
+test('아쉬울 뿐인 이유로 걸린 말은 버리지 않는다 — 막는 자리가 답을 더 나쁘게 만들면 안 된다', async () => {
+  const 적힌것 = [];
+  const gate = mouthGate({
+    alsoRetryWhen: (t) => (t.length < 12 ? '받아 줄 자리인데 한마디로 끊었다' : null),
+    아쉬울뿐인가: (why) => why.includes('한마디로 끊었다'),
+    retry: async () => '응',            // 다시 시켜도 여전히 짧다
+    fallbacks: ['…'],
+    log: (m) => 적힌것.push(m),
+  });
+  // 실측: 「뭐가 재밌었어?」(11자)가 걸려서 「…」로 떨어졌다
+  assert.equal(await gate('뭐가 재밌었어?'), '뭐가 재밌었어?');
+  assert.match(적힌것.join(' '), /원래 말이 얼버무림보다는 낫다/);
+});
+
+test('해로운 이유는 그대로 버린다 — 지어낸 말을 들려주느니 「…」가 낫다', async () => {
+  const gate = mouthGate({
+    alsoRetryWhen: (t) => (t.includes('지어냄') ? '안 보고 지어냈다' : null),
+    아쉬울뿐인가: (why) => why.includes('한마디로 끊었다'),
+    retry: async () => '또 지어냄',
+    fallbacks: ['…'],
+  });
+  assert.equal(await gate('지어냄'), '…');
+});
