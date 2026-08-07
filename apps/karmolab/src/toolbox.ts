@@ -1023,6 +1023,9 @@ const Toolbox = (() => {
         const narrow = typeof window !== 'undefined' && window.innerWidth <= 768;
         const k = narrow ? 0.55 : 1;      // 크기 배수
         const seed0 = (q.get('seed') | 0) || (Date.now() % 2147483647);
+    /** 앞서 단 손 감지를 끊는 손잡이 — 첫 화면을 다시 그릴 때 옛 것이 남지 않게 */
+    let decorStop = null;
+
         let s = seed0;
         const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
         const rng = (a, b) => a + rnd() * (b - a);
@@ -1131,8 +1134,13 @@ const Toolbox = (() => {
             let tx = 0, ty = 0, queued = false;
             const apply = () => {
                 queued = false;
-                wrap.style.setProperty('--px', tx.toFixed(1) + 'px');
-                wrap.style.setProperty('--py', ty.toFixed(1) + 'px');
+                cx0 += (tx - cx0) * 0.12;
+                cy0 += (ty - cy0) * 0.12;
+                wrap.style.setProperty('--px', cx0.toFixed(1) + 'px');
+                wrap.style.setProperty('--py', cy0.toFixed(1) + 'px');
+                if (Math.abs(tx - cx0) > 0.2 || Math.abs(ty - cy0) > 0.2) {
+                    if (!queued) { queued = true; requestAnimationFrame(apply); }
+                }
             };
             const track = (x, y) => {
                 tx = ((x / window.innerWidth) * 2 - 1) * -reach;
@@ -1142,11 +1150,21 @@ const Toolbox = (() => {
             /* 가까운 것은 **물에 뜬 꽃잎**처럼 군다 (TASK-KL-101).
              *
              * 시차만 주면 손가락 위치에 딱 붙어 같이 평행 이동한다 — 종이에 그려 놓고 종이를
+            /* 첫 화면은 다시 그려질 수 있다(도구를 갔다 오면). 그때마다 듣는 귀를 새로 달면
+             * 옛 귀가 남아 손을 한 번 움직여도 여러 번 계산한다 — 눈에는 안 보이고 느려지기만
+             * 한다. 앞서 단 것을 끊고 새로 단다 (TASK-KL-101). */
+            decorStop?.abort();
+            decorStop = new AbortController();
+            const bye = { signal: decorStop.signal, passive: true };
              * 미는 느낌이다. 물 위의 꽃잎은 손이 **지나갈 때 밀려났다가 천천히 제자리로**
              * 돌아온다. 그래서 가까운 것에는 위치가 아니라 **힘**을 준다:
              *   지나가면 밀어내는 힘 → 매 프레임 제자리로 당기는 힘(용수철) + 물의 저항(감쇠).
              * 먼 것은 그대로 시차다 — 멀리 있는 것은 손이 닿지 않는다.
              */
+            /* 부드러움은 **여기서** 만든다. 예전에는 CSS 전환에 맡겼는데, 모든 도형이
+             * 밀림 계산을 받게 되면서 그 전환을 꺼 버려 규칙이 죽어 있었다(잰 값 0s).
+             * 목표값으로 조금씩 따라가면 전환 없이도 같은 부드러움이 나온다. */
+            let cx0 = 0, cy0 = 0;
             /* 깊이는 **인라인 값**에서 읽는다. 이 상자는 아직 화면에 안 붙어 있어서
              * 계산된 값을 물으면 빈 문자열이 온다 — 처음엔 그래서 한 개도 안 잡혔다. */
             const drifters = [...wrap.querySelectorAll('.home-decor-item')]
@@ -1161,8 +1179,8 @@ const Toolbox = (() => {
             const measure = () => {
                 for (const d of drifters) {
                     const b = d.el.getBoundingClientRect();
-                    d.cx = b.left + b.width / 2 - d.ox;   // 밀린 만큼 빼야 「원래 자리」다
-                    d.cy = b.top + b.height / 2 - d.oy;
+                    d.cx = d.el.offsetLeft + d.el.offsetWidth / 2;
+                    d.cy = d.el.offsetTop + d.el.offsetHeight / 2;
                     d.r = Math.min(b.width, b.height) / 2;   // 도형의 반지름(표면까지)
                 }
             };
@@ -1170,7 +1188,7 @@ const Toolbox = (() => {
              * 있어서, 그때 재면 전부 0 이 나오고 「아무리 스쳐도 안 밀리는」 상태가 된다.
              * (실제로 그랬다 — 꽃잎은 잡혔는데 밀린 거리가 계속 0 이었다.) */
             let measured = false;
-            window.addEventListener('resize', () => { measured = false; }, { passive: true });
+            window.addEventListener('resize', () => { measured = false; }, bye);
 
             /* 닿는 거리는 **도형 표면 기준**이다 (TASK-KL-101).
                중심까지의 거리로 재면 큰 도형은 화면 어디서 움직여도 걸린다 — 화면을 통째로
@@ -1178,6 +1196,8 @@ const Toolbox = (() => {
             const MARGIN = narrow ? 55 : 85;
             const PUSH = narrow ? 14 : 20;      // 바짝 붙었을 때 밀어내는 세기
             const VMAX = narrow ? 1.6 : 2.4;    // 한 프레임에 밀릴 수 있는 최대 (밀리는 속도의 천장)
+                    /* 원래 자리는 **배치 좌표**로 잰다. 화면 좌표로 재면 그 순간의 떠다니는
+                     * 움직임까지 섞여, 잰 시점에 따라 중심이 수십 px 씩 달라진다. */
             let alive = false;
             function step() {
                 let moving = false;
@@ -1234,15 +1254,15 @@ const Toolbox = (() => {
                 if (!alive) { alive = true; requestAnimationFrame(step); }
             };
 
-            window.addEventListener('pointermove', (e) => { track(e.clientX, e.clientY); shove(e.clientX, e.clientY); }, { passive: true });
+            window.addEventListener('pointermove', (e) => { track(e.clientX, e.clientY); shove(e.clientX, e.clientY); }, bye);
             window.addEventListener('touchmove', (e) => {
                 const t = e.touches && e.touches[0];
                 if (t) { track(t.clientX, t.clientY); shove(t.clientX, t.clientY); }
-            }, { passive: true });
+            }, bye);
             // 손을 떼거나 창을 벗어나면 제자리로 — 안 그러면 마지막 자리에 굳는다
             const home = () => { tx = 0; ty = 0; if (!queued) { queued = true; requestAnimationFrame(apply); } };
-            window.addEventListener('touchend', home, { passive: true });
-            window.addEventListener('pointerleave', home, { passive: true });
+            window.addEventListener('touchend', home, bye);
+            window.addEventListener('pointerleave', home, bye);
         }
         return wrap;
     }
@@ -1809,6 +1829,17 @@ const Toolbox = (() => {
     function getBgTheme() {
         const saved = localStorage.getItem(BG_THEME_KEY);
         if (saved && BG_THEMES.some(t => t.id === saved)) return saved;
+        syncThemeColor();
+    }
+
+    /** 주소창·넘겨 스크롤한 자리의 색을 **지금 바탕색 그대로** 맞춘다 (TASK-KL-101).
+     *  값을 손으로 적지 않고 CSS 에서 읽는다 — 두 벌로 적으면 테마를 손볼 때 한쪽만 바뀐다.
+     *  안 맞추면 밝은 테마에서 스크롤 끝에 검은 띠가 보인다(폰에서 그렇게 나가고 있었다). */
+    function syncThemeColor() {
+        const meta = document.getElementById('themeColorMeta');
+        if (!meta) return;
+        const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-void').trim();
+        if (bg) meta.setAttribute('content', bg);
         return 'observatory';
     }
 
@@ -1907,6 +1938,7 @@ const Toolbox = (() => {
     }
 
     function getPref(key, fallback) {
+        syncThemeColor();   // 첫 화면이 그려질 때도 한 번 맞춘다
         const v = getPrefs()[key];
         return v !== undefined ? v : fallback;
     }
