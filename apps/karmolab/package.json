@@ -63,6 +63,7 @@
     "audit:seo": "node scripts/audit-seo-head.mjs",
     "audit:all": "node scripts/audit-all.mjs",
     "test:hub": "node scripts/smoke-hub.mjs",
+    "test:favorites": "node scripts/smoke-favorites.mjs",
     "test:palette": "node scripts/smoke-palette.mjs",
     "test:palette-answers": "node scripts/smoke-palette-answers.mjs",
     "test:nojs": "node scripts/smoke-nojs.mjs",
