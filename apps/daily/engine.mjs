@@ -166,8 +166,9 @@ export function shareRow(cells) {
 /**
  * 공유 글. 항목 이름은 절대 안 넣는다 — 넣는 순간 스포일러라 아무도 못 올린다.
  */
-export function shareText({ title, puzzleNo, rows, won, maxGuesses, url }) {
-  const score = won ? `${rows.length}/${maxGuesses}` : `X/${maxGuesses}`;
+export function shareText({ title, puzzleNo, rows, won, maxGuesses, url, tries }) {
+  // 몇 번 뒀는지는 줄 수로 세지 않는다 — 실루엣은 한 줄에 눕혀 그리므로 줄 수와 시도 수가 다르다.
+  const score = won ? `${tries ?? rows.length}/${maxGuesses}` : `X/${maxGuesses}`;
   return [
     `${title} #${puzzleNo} ${score}`,
     '',
