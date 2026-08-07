@@ -25,11 +25,15 @@ import {
   getKarmolabTraceStore,
   KarmolabTraceStore,
   isValidToolId,
-  isPostKind,
+  isBoardId,
+  isPostSort,
+  isOwnerOnlyBoard,
   maxLenFor,
   dailyLimitFor,
+  BOARDS,
   TITLE_MAX_LEN,
   REPLY_MAX_LEN,
+  type BoardId,
 } from '../services/karmolab-traces';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
@@ -394,28 +398,41 @@ export function registerKarmolabApi(
     res.json({ tools: traces.toolStats(), pulse: traces.pulse() });
   });
 
-  /**
-   * 글판 — 이야기(게시판)와 도구 요청이 같은 자리를 쓴다. `kind` 하나만 다르다.
-   * 보는 건 로그인 없이, 쓰는 건 로그인해야.
-   */
+  /** 어떤 판이 있고 각 판에 글이 몇 개인가 — 목록 위의 판 고르는 줄이 쓴다. */
+  app.get('/kl/boards', (_req: Request, res: Response) => {
+    const counts = traces.boardCounts();
+    res.json({ boards: BOARDS.map((b) => ({ ...b, count: counts[b.id] ?? 0 })) });
+  });
+
+  /** 판 하나의 글 목록. 보는 건 로그인 없이 된다. */
   app.get('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    const kind = isPostKind(req.query.kind) ? req.query.kind : 'talk';
+    const board: BoardId = isBoardId(req.query.board) ? req.query.board : 'free';
+    const sort = isPostSort(req.query.sort) ? req.query.sort : 'recent';
     res.json({
-      kind,
-      posts: traces.publicPosts(kind, account?.id ?? null),
+      board,
+      sort,
+      posts: traces.publicPosts(board, account?.id ?? null, sort),
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
-      maxLength: maxLenFor(kind),
+      canWrite: Boolean(account) && (!isOwnerOnlyBoard(board) || isAdminAccount(account)),
+      maxLength: maxLenFor(board),
       titleMaxLength: TITLE_MAX_LEN,
       replyMaxLength: REPLY_MAX_LEN,
     });
   });
 
-  /** 글 하나 — 커뮤니티의 글 상세 화면. 주소로 바로 열리므로 로그인 없이 보인다. */
+  /** 첫 화면에 띄우는 최근 글 — 판을 가리지 않는다. */
+  app.get('/kl/recent', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    res.json({ posts: traces.recentPosts(3, account?.id ?? null) });
+  });
+
+  /** 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다. */
   app.get('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    traces.recordPostView(String(req.params.id ?? ''), visitorKeyFor(req));
     const post = traces.publicPost(String(req.params.id ?? ''), account?.id ?? null);
     if (!post) {
       res.status(404).json({ error: 'not_found' });
@@ -437,29 +454,40 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    const kind = isPostKind(body.kind) ? body.kind : 'talk';
+    const board: BoardId = isBoardId(body.board) ? body.board : 'free';
+    // 공지는 주인만 쓴다. 막을 거면 서버가 막아야 한다 — 화면에서 숨기는 것은 잠금이 아니다.
+    if (isOwnerOnlyBoard(board) && !isAdminAccount(account)) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
     const text = String(body.text ?? '').trim();
     const title = String(body.title ?? '').trim();
 
     // 한 글자짜리 글도 글이다 (「ㅋ」). 막을 것은 빈 글뿐이다.
-    if (text.length < 1 || text.length > maxLenFor(kind)) {
-      res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(kind) });
+    if (text.length < 1 || text.length > maxLenFor(board)) {
+      res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(board) });
       return;
     }
-    // 이야기는 제목이 있어야 목록이 읽힌다. 요청은 한 줄이라 제목이 없다.
-    if (kind === 'talk' && (title.length < 1 || title.length > TITLE_MAX_LEN)) {
+    // 요청은 한 줄이라 제목이 없다. 나머지 판은 제목이 있어야 목록이 읽힌다.
+    if (board !== 'request' && (title.length < 1 || title.length > TITLE_MAX_LEN)) {
       res.status(400).json({ error: 'bad_title', maxLength: TITLE_MAX_LEN });
       return;
     }
-    if (traces.postsTodayBy(account.id, kind) >= dailyLimitFor(kind)) {
+    if (traces.postsTodayBy(account.id, board) >= dailyLimitFor(board)) {
       // 막을 때는 왜 막혔는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
-      res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(kind) });
+      res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(board) });
       return;
     }
 
-    traces.addPost({ kind, title: kind === 'talk' ? title : null, text, accountId: account.id, handle: account.handle });
+    const created = traces.addPost({
+      board,
+      title: board === 'request' ? null : title,
+      text,
+      accountId: account.id,
+      handle: account.handle,
+    });
     traces.flush();
-    res.json({ posts: traces.publicPosts(kind, account.id) });
+    res.json({ id: created.id });
   });
 
   app.post('/kl/posts/:id/vote', (req: Request, res: Response) => {
@@ -477,14 +505,31 @@ export function registerKarmolabApi(
     res.json({ voted });
   });
 
-  /** 답글 — 게시판이 게시판인 이유. 달리면 그 글이 목록 위로 올라온다. */
+  /** 좋아요 — 표와 다르다. 표는 「만들어 줘」, 좋아요는 「좋다」. */
+  app.post('/kl/posts/:id/like', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const liked = traces.toggleLike(String(req.params.id ?? ''), account.id);
+    if (liked === null) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ liked });
+  });
+
+  /** 답글 — 게시판이 게시판인 이유. `parentId` 를 주면 그 답글에 달리는 답글이다. */
   app.post('/kl/posts/:id/replies', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    const text = String((req.body ?? {}).text ?? '').trim();
+    const body = req.body ?? {};
+    const text = String(body.text ?? '').trim();
     if (text.length < 1 || text.length > REPLY_MAX_LEN) {
       res.status(400).json({ error: 'bad_text', maxLength: REPLY_MAX_LEN });
       return;
@@ -494,9 +539,45 @@ export function registerKarmolabApi(
       accountId: account.id,
       handle: account.handle,
       byOwner: isAdminAccount(account),
+      parentId: typeof body.parentId === 'string' ? body.parentId : null,
     });
     if (!reply) {
       res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
+  });
+
+  app.post('/kl/posts/:id/replies/:replyId/like', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const liked = traces.toggleReplyLike(String(req.params.id ?? ''), String(req.params.replyId ?? ''), account.id);
+    if (liked === null) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ liked });
+  });
+
+  app.delete('/kl/posts/:id/replies/:replyId', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const removed = traces.deleteReply(
+      String(req.params.id ?? ''),
+      String(req.params.replyId ?? ''),
+      account.id,
+      isAdminAccount(account),
+    );
+    if (!removed) {
+      res.status(403).json({ error: 'not_allowed' });
       return;
     }
     traces.flush();
@@ -519,14 +600,15 @@ export function registerKarmolabApi(
     res.json({ ok: true });
   });
 
-  /** 주인이 요청의 진행 상태를 바꾼다. */
+  /** 주인이 진행 상태·고정을 바꾼다. */
   app.patch('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!isAdminAccount(account)) {
       res.status(403).json({ error: 'not_allowed' });
       return;
     }
-    const updated = traces.updatePost(String(req.params.id ?? ''), { status: (req.body ?? {}).status });
+    const body = req.body ?? {};
+    const updated = traces.updatePost(String(req.params.id ?? ''), { status: body.status, pinned: body.pinned });
     if (!updated) {
       res.status(404).json({ error: 'not_found' });
       return;
@@ -580,6 +662,7 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ profile: store.publicProfile(account) });
+    // 커뮤니티 활동도 프로필의 일부다 — 「이 사람이 여기서 무엇을 했나」.
+    res.json({ profile: { ...store.publicProfile(account), activity: traces.activityOf(account.handle) } });
   });
 }
