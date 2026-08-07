@@ -148,7 +148,8 @@
   let chosenVoice = localStorage.getItem('companion.voiceId') || '';
 
   function speakBuiltIn(message) {
-    if (!('speechSynthesis' in window)) return;
+    // 물러설 자리 자체가 없을 수도 있다. 조용히 돌아가면 「소리가 없다」만 남는다.
+    if (!('speechSynthesis' in window)) { tell('물러설 목소리도 없다 — 이 창엔 내장 목소리가 없다'); return; }
     speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(message);
     if (koVoice) utter.voice = koVoice;
@@ -188,7 +189,14 @@
         player.onerror = done;
       });
       body3d?.speakFor(0);
-    } catch {
+    } catch (e) {
+      // **왜 소리가 안 나는지 밖에서 알 수 있어야 한다.**
+      //
+      // 예전엔 여기서 조용히 내장 목소리로 물러섰다. 내장 목소리에 한국어가 없으면
+      // 아무 소리도 안 나는데, 기록에는 아무것도 안 남아서 「말은 하는데 소리가 없다」로만
+      // 보였다. 창을 브라우저에서 제 창으로 옮기면 소리 정책이 달라진다 — 그때 이 자리가
+      // 조용하면 원인을 못 찾는다.
+      tell(`소리를 못 냈다: ${e && e.name ? e.name : ''} ${e && e.message ? e.message : String(e)}`);
       speakBuiltIn(message);
     }
   }

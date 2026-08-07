@@ -673,6 +673,13 @@ function openOwnWindow(
         // 주소·크기는 환경으로 넘긴다 — 저쪽이 그렇게 읽는다.
         env: {
           ...process.env,
+          // **소리가 나려면 이게 있어야 한다.**
+          //
+          // 창 안의 브라우저는 사람이 먼저 누르기 전에는 소리를 안 낸다. 브라우저로 띄우던
+          // 시절엔 이 정책을 끄는 깃발을 붙여 줬는데, 제 창으로 옮기면서 그게 빠졌다 —
+          // 말은 하는데 소리가 없었다. 창 프로그램은 이 이름의 환경값을 그대로 제 안의
+          // 브라우저에 넘긴다. 다시 굽지 않아도 되는 자리라 여기서 준다.
+          WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--autoplay-policy=no-user-gesture-required',
           COMPANION_URL: url,
           COMPANION_WIDTH: String(size?.width ?? 420),
           COMPANION_HEIGHT: String(size?.height ?? 640),
