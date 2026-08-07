@@ -12,6 +12,7 @@
  * 새 패키지는 안 쓴다 (cors·cookie-parser 미도입) — 쿠키 한 줄 읽고 헤더 세 줄 다는 일에
  * 의존성을 늘리지 않는다.
  */
+import express from 'express';
 import type { Application, Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import {
@@ -40,6 +41,7 @@ import {
 } from '../services/karmolab-traces';
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { backupInfo } from '../services/karmolab-backup';
+import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
 const SESSION_COOKIE = 'kl_session';
@@ -835,6 +837,138 @@ export function registerKarmolabApi(
    */
   /* ===== 알림 (공용) =====
    * 커뮤니티만의 기능이 아니다. 도구·계정·봇 무엇이든 같은 자리에 알림을 넣는다. */
+
+  /* ===== 검색 · 활동 · 질서 · 그림 ===== */
+
+  /** 갤러리를 가리지 않는 검색 — 「그 글 어디 있더라」를 찾는 자리. */
+  app.get('/kl/search', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const q = typeof req.query.q === 'string' ? req.query.q : '';
+    res.json({ q, posts: q.trim() ? traces.searchPosts(q, account?.id ?? null) : [] });
+  });
+
+  /** 이 사람이 쓴 글과 답글 — 공개 프로필의 「활동」. */
+  app.get('/kl/u/:handle/activity', (req: Request, res: Response) => {
+    const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const target = store.byHandle(String(req.params.handle ?? ''));
+    if (!target) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({
+      handle: target.handle,
+      posts: traces.postsBy(target.handle, viewer?.id ?? null),
+      replies: traces.repliesBy(target.handle),
+      counts: traces.activityOf(target.handle),
+    });
+  });
+
+  /**
+   * 신고 — 지우지 않는다. 주인이 볼 목록에 올릴 뿐이다.
+   * 신고 한 번으로 글이 사라지면 그것 자체가 남을 지우는 단추가 된다.
+   */
+  app.post('/kl/reports', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const ok = traces.report({
+      postId: String(body.postId ?? ''),
+      replyId: typeof body.replyId === 'string' ? body.replyId : null,
+      byAccountId: account.id,
+      reason: String(body.reason ?? ''),
+    });
+    if (!ok) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    // 주인에게 바로 알린다 — 목록을 들여다볼 사람이 한 명뿐이라 알림이 없으면 안 본다.
+    for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
+      const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
+      if (!admin) continue;
+      notes.notify({
+        accountId: admin.id,
+        source: 'moderation',
+        title: '신고가 들어왔어요',
+        body: String(body.reason ?? '').slice(0, 60),
+        url: `/karmolab/?p=${encodeURIComponent(String(body.postId ?? ''))}#community`,
+        groupKey: 'reports',
+      });
+    }
+    notes.flush();
+    res.json({ ok: true });
+  });
+
+  /** 주인이 보는 신고 목록. */
+  app.get('/kl/reports', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!isAdminAccount(account)) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    res.json({ reports: traces.openReports() });
+  });
+
+  app.post('/kl/reports/:id/resolve', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!isAdminAccount(account)) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    if (!traces.resolveReport(String(req.params.id ?? ''))) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
+  });
+
+  /**
+   * 그림 올리기. 브라우저가 글자로 바꿔 보내고 서버가 파일로 떨군다.
+   * 몸통이 커서 이 자리만 상한을 따로 준다 (기본값이면 큰 사진이 통째로 막힌다).
+   */
+  app.post('/kl/uploads', express.json({ limit: '6mb' }), (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const raw = String((req.body ?? {}).data ?? '');
+    // `data:image/png;base64,....` 도 그냥 base64 도 받는다.
+    const base64 = raw.includes(',') ? raw.slice(raw.indexOf(',') + 1) : raw;
+    let bytes: Buffer;
+    try {
+      bytes = Buffer.from(base64, 'base64');
+    } catch {
+      res.status(400).json({ error: 'bad_data' });
+      return;
+    }
+    const outcome = saveImage(bytes, account.id);
+    if (outcome.ok === false) {
+      res.status(outcome.reason === 'daily_limit' ? 429 : 400).json({
+        error: outcome.reason,
+        maxBytes: UPLOAD_MAX_BYTES,
+      });
+      return;
+    }
+    res.json(outcome.saved);
+  });
+
+  /** 올린 그림 보여주기. 이름에 경로가 섞이면 읽지 않는다. */
+  app.get('/kl/img/:id', (req: Request, res: Response) => {
+    const found = readImage(String(req.params.id ?? ''));
+    if (!found) {
+      res.status(404).end();
+      return;
+    }
+    res.setHeader('Content-Type', found.mime);
+    // 그림은 안 바뀐다 (이름에 임의 글자가 들어 있다) — 오래 캐시해도 된다.
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    res.end(found.bytes);
+  });
 
   app.get('/kl/notifications', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));

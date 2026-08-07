@@ -88,10 +88,52 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                 <div class="profile-stat"><strong>${streakEntries.length}</strong><span>연속 기록 트랙</span></div>
             </section>
             ${streaksHtml}
+            <div id="profileActivity"></div>
             <footer class="profile-foot">
                 <a href="/karmolab/">KarmoLab 에서 도구 보기</a>
             </footer>
         </article>`;
+}
+
+/** 이 사람이 쓴 글·답글 — 「무엇을 했나」가 없으면 프로필은 빈 명함이다. */
+async function loadActivity(handle: string): Promise<void> {
+    const root = document.getElementById('profileActivity');
+    if (!root) return;
+    try {
+        const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}/activity`);
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+            posts: Array<{ id: string; title: string | null; text: string; replyCount: number; createdAt: string }>;
+            replies: Array<{ postId: string; postTitle: string; text: string; createdAt: string }>;
+            counts: { posts: number; replies: number };
+        };
+        if (data.counts.posts === 0 && data.counts.replies === 0) return;
+
+        const link = (postId: string): string => `/karmolab/?p=${encodeURIComponent(postId)}#community`;
+        const posts = data.posts
+            .map(
+                (p) =>
+                    `<li><a href="${link(p.id)}">${escapeHtml(p.title ?? p.text.slice(0, 40))}</a>` +
+                    `${p.replyCount ? ` <span class="profile-dim">답글 ${p.replyCount}</span>` : ''}</li>`,
+            )
+            .join('');
+        const replies = data.replies
+            .map(
+                (r) =>
+                    `<li><a href="${link(r.postId)}">${escapeHtml(r.text.slice(0, 40))}</a>` +
+                    ` <span class="profile-dim">— ${escapeHtml(r.postTitle)}</span></li>`,
+            )
+            .join('');
+
+        root.innerHTML = `
+            <section class="profile-act">
+                <h2>커뮤니티 활동 <span class="profile-dim">글 ${data.counts.posts} · 답글 ${data.counts.replies}</span></h2>
+                ${posts ? `<h3>쓴 글</h3><ul class="profile-list">${posts}</ul>` : ''}
+                ${replies ? `<h3>단 답글</h3><ul class="profile-list">${replies}</ul>` : ''}
+            </section>`;
+    } catch {
+        /* 활동을 못 받아도 프로필 자체는 보인다 */
+    }
 }
 
 async function main(): Promise<void> {
@@ -114,6 +156,7 @@ async function main(): Promise<void> {
         const data = (await response.json()) as { profile?: PublicProfile };
         if (!data.profile) throw new Error('프로필이 비어 있음');
         renderProfile(root, data.profile);
+        void loadActivity(data.profile.handle);
     } catch (error) {
         console.warn('[profile] 프로필을 못 불러왔다:', error);
         // 서버가 잠깐 죽은 것과 「없는 사람」은 다르다. 섞어서 말하지 않는다.

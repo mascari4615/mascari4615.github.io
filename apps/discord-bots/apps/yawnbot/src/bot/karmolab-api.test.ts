@@ -608,3 +608,134 @@ describe('갤러리 만들기 — HTTP', () => {
     expect((await fetch(`${baseUrl}/kl/boards/free`, { method: 'DELETE', headers: { Cookie: cookie } })).status).toBe(403);
   });
 });
+
+describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
+  it('갤러리를 가리지 않고 찾는다 — 답글에 적힌 말도', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ board: 'qna', title: '단축키 질문', text: '어떻게 하나요' }),
+    });
+    const id = ((await created.json()) as { id: string }).id;
+    await fetch(`${baseUrl}/kl/posts/${id}/replies`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ text: '컨트롤 케이 누르세요' }),
+    });
+
+    const byTitle = (await (await fetch(`${baseUrl}/kl/search?q=단축키`)).json()) as { posts: unknown[] };
+    expect(byTitle.posts).toHaveLength(1);
+    const byReply = (await (await fetch(`${baseUrl}/kl/search?q=컨트롤`)).json()) as { posts: unknown[] };
+    expect(byReply.posts).toHaveLength(1);
+    const none = (await (await fetch(`${baseUrl}/kl/search?q=없는말`)).json()) as { posts: unknown[] };
+    expect(none.posts).toHaveLength(0);
+  });
+
+  it('빈 검색어는 전부를 쏟아내지 않는다', async () => {
+    const body = (await (await fetch(`${baseUrl}/kl/search?q=`)).json()) as { posts: unknown[] };
+    expect(body.posts).toHaveLength(0);
+  });
+
+  it('사람마다 쓴 글·답글을 모아 준다', async () => {
+    const { cookie, handle } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ board: 'free', title: '내 글', text: 'x' }),
+    });
+    const id = ((await created.json()) as { id: string }).id;
+    await fetch(`${baseUrl}/kl/posts/${id}/replies`, { method: 'POST', headers, body: JSON.stringify({ text: '내 답글' }) });
+
+    const res = await fetch(`${baseUrl}/kl/u/${handle}/activity`);
+    const body = (await res.json()) as {
+      posts: Array<{ title: string }>;
+      replies: Array<{ text: string; postTitle: string }>;
+      counts: { posts: number; replies: number };
+    };
+    expect(body.posts[0].title).toBe('내 글');
+    expect(body.replies[0]).toMatchObject({ text: '내 답글', postTitle: '내 글' });
+    expect(body.counts).toEqual({ posts: 1, replies: 1 });
+    expect((await fetch(`${baseUrl}/kl/u/없는사람/activity`)).status).toBe(404);
+  });
+
+  it('신고는 글을 안 지운다 — 주인 목록에만 올린다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ board: 'free', title: '신고 대상', text: 'x' }),
+    });
+    const id = ((await created.json()) as { id: string }).id;
+
+    expect(
+      (await fetch(`${baseUrl}/kl/reports`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status,
+    ).toBe(401);
+
+    const reported = await fetch(`${baseUrl}/kl/reports`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ postId: id, reason: '광고' }),
+    });
+    expect(reported.status).toBe(200);
+    // 글은 그대로 있어야 한다
+    expect((await fetch(`${baseUrl}/kl/posts/${id}`)).status).toBe(200);
+    // 주인이 아니면 목록을 못 본다
+    expect((await fetch(`${baseUrl}/kl/reports`, { headers: { Cookie: cookie } })).status).toBe(403);
+
+    const before = process.env.ADMIN_IDS;
+    process.env.ADMIN_IDS = '42';
+    try {
+      const list = (await (await fetch(`${baseUrl}/kl/reports`, { headers: { Cookie: cookie } })).json()) as {
+        reports: Array<{ id: string; reason: string }>;
+      };
+      expect(list.reports[0].reason).toBe('광고');
+      const resolved = await fetch(`${baseUrl}/kl/reports/${list.reports[0].id}/resolve`, {
+        method: 'POST',
+        headers: { Cookie: cookie },
+      });
+      expect(resolved.status).toBe(200);
+    } finally {
+      if (before === undefined) delete process.env.ADMIN_IDS;
+      else process.env.ADMIN_IDS = before;
+    }
+  });
+
+  it('그림이 아닌 것은 안 받는다 — 확장자가 아니라 바이트로 본다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    const notImage = Buffer.from('<script>alert(1)</script>').toString('base64');
+    const res = await fetch(`${baseUrl}/kl/uploads`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ data: `data:image/png;base64,${notImage}` }),
+    });
+    expect(res.status).toBe(400);
+    expect((await res.json()) as { error: string }).toMatchObject({ error: 'not_image' });
+  });
+
+  it('진짜 그림은 저장되고 다시 받아진다', async () => {
+    const { cookie } = signIn();
+    // 1×1 투명 PNG
+    const png =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const res = await fetch(`${baseUrl}/kl/uploads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ data: png }),
+    });
+    expect(res.status).toBe(200);
+    const saved = (await res.json()) as { url: string; mime: string };
+    expect(saved.mime).toBe('image/png');
+    const fetched = await fetch(`${baseUrl}${saved.url}`);
+    expect(fetched.status).toBe(200);
+    expect(fetched.headers.get('content-type')).toBe('image/png');
+  });
+
+  it('이상한 그림 이름으로는 아무것도 못 읽는다', async () => {
+    expect((await fetch(`${baseUrl}/kl/img/..%2F..%2Fpackage.json`)).status).toBe(404);
+  });
+});
