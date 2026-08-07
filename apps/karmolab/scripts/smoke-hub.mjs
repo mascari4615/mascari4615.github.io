@@ -309,7 +309,18 @@ const homeState = homeMissing ? null : await home.evaluate(() => {
   const toHub = [...document.querySelectorAll('a[href*="/karmolab/t/"]')].filter(
     (a) => a.getBoundingClientRect().height > 0
   );
+  /* 배경 판때기는 **뒤에 깔린다**(z-index 음수). 그런데 뒤에 깐 것은 그리는 순서상
+     body 의 바탕색보다 **먼저** 칠해진다 — body 가 불투명한 색을 가지면 판때기가 통째로
+     덮여 격자·홀로그램이 사라진다. 실제로 그렇게 나갔다 (TASK-KL-101).
+     화면은 「어두운 색이 깔린 정상」처럼 보여서 눈으로도 안 잡혔다. */
+  const bgEl = document.querySelector('.app-bg');
+  const bgZ = bgEl ? parseInt(getComputedStyle(bgEl).zIndex, 10) : 0;
+  const bodyPaint = getComputedStyle(document.body).backgroundColor;
+  const bodyOpaque = !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(bodyPaint);
+
   return {
+    bgMissing: !bgEl,
+    bgBuried: !!bgEl && bgZ < 0 && bodyOpaque,
     landingVisible: (landing?.getBoundingClientRect().height || 0) > 100,
     navItems: document.querySelectorAll('.nav-item').length,
     hubLinks: toHub.length,
@@ -317,6 +328,8 @@ const homeState = homeMissing ? null : await home.evaluate(() => {
   };
 });
 if (homeState) {
+  if (homeState.bgMissing) problems.push('배경 판때기(.app-bg)가 없다 — 격자·홀로그램이 통째로 안 나온다');
+  if (homeState.bgBuried) problems.push('배경 판때기가 body 바탕색에 덮인다 — 격자가 안 보인다 (body 는 바탕색을 갖지 마라)');
   if (!homeState.landingVisible) problems.push('첫 화면에 아무것도 안 그려진다');
   if (!homeState.hubLinks) problems.push('첫 화면에서 도구 목록으로 갈 길이 없다');
   if (homeState.navItems < 10) problems.push(`사이드바가 비었다 (항목 ${homeState.navItems}개)`);
