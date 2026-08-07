@@ -49,7 +49,7 @@
 /* ── 통계 타일 ── */
 .cc-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
     gap: 8px;
     margin-bottom: var(--space-lg);
 }
@@ -58,6 +58,8 @@
     border: 1px solid var(--border);
     border-left: 2px solid var(--border);
     padding: 10px 12px;
+    /* 아래 글자 크기가 이 칸의 폭을 보고 정해지게 한다 (TASK-KL-128). */
+    container-type: inline-size;
 }
 .cc-stat-primary { border-left-color: var(--accent); }
 .cc-stat-label {
@@ -68,11 +70,16 @@
     font-family: var(--font-mono);
     margin-bottom: 4px;
 }
+/* 큰 수가 칸을 넘으면 줄이 바뀌면서 「82,406,712」와 「원」이 위아래로 갈라졌다 — 한 값이
+   두 덩이로 보인다(TASK-KL-128). 값은 절대 줄을 안 바꾸고, 대신 칸이 좁으면 글자가 줄어든다.
+   `cqi` = 이 칸의 폭 1%. 넉넉할 때는 원래 크기 그대로다. */
 .cc-stat-value {
-    font-size: var(--font-size-lg);
+    font-size: min(var(--font-size-lg), 11cqi);
     font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .cc-stat-primary .cc-stat-value { color: var(--accent); }
 
@@ -465,20 +472,26 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
 .tool-hub-group a { color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border); }
 .tool-hub-group a:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
+/* 목록은 **훑는 화면**이다 (TASK-KL-128). 카드 한 장이 84px 이라 폰에서 한 화면에 아홉 장쯤
+   들어갔는데, 도구는 125가지다 — 원하는 것에 닿기까지 스크롤이 너무 길었다. 한 장을 낮추고
+   칸을 좁혀 한 화면에 들어가는 수를 늘린다. 설명은 지우지 않는다(고르는 데 필요한 문장이다).
+   참고한 곳: 10015.io(아이콘+이름+한 문장), Linear·Raycast(빽빽한 목록·한 줄 자르기). */
 .tool-hub-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
-    margin-top: 16px;
+    /* 칸을 더 좁히면 한 화면에 더 들어가지만, 설명이 잘려 나가 고르는 데 필요한 말이 사라진다.
+       높이만 낮추고 폭은 그대로 둔다 — 줄어드는 것은 빈칸이지 정보가 아니다. */
+    grid-template-columns: repeat(auto-fill, minmax(244px, 1fr));
+    gap: 7px;
+    margin-top: 14px;
 }
 .tool-hub-card {
     /* 목록에는 카드가 백 장이 넘는다. 화면 밖에 있는 것까지 처음부터 다 배치하느라
        느린 기기에서 주 스레드가 길게 잡혔다. 화면에 가까워질 때 그리게 미룬다 —
        보이는 모습은 그대로다. 미룬 동안 쓸 크기를 알려 줘야 스크롤 막대가 안 튄다. */
     content-visibility: auto;
-    contain-intrinsic-size: auto 84px;
+    contain-intrinsic-size: auto 56px;
     display: block;
-    padding: 16px;
+    padding: 10px 13px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     border-left: 2px solid var(--accent-dim);
@@ -486,10 +499,23 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
     transition: all var(--transition);
 }
 .tool-hub-card:hover { border-left-color: var(--accent); transform: translateY(-2px); }
-.tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); margin-bottom: 5px; }
+/* 줄간격은 본문 기준(1.8)을 물려받는데, 한 줄짜리 제목에는 그게 위아래 빈칸이 된다.
+   카드 한 장에서 12px 가 그냥 빈칸이었다 (TASK-KL-128). */
+.tool-hub-card strong { display: block; color: var(--text-primary); font-size: var(--font-size-sm); line-height: 1.35; margin-bottom: 2px; }
 /* 목록에서 어떤 도구인지 알려 주는 한 줄이다. 가장 흐린 색으로는 대비가 2.1 이라
-   정작 고르는 데 필요한 문장이 안 읽힌다(TASK-KL-089). */
-.tool-hub-card span { color: var(--text-secondary); font-size: var(--font-size-xs); line-height: 1.6; }
+   정작 고르는 데 필요한 문장이 안 읽힌다(TASK-KL-089).
+   **한 줄로 자른다** (TASK-KL-128): 어떤 설명은 두 줄, 어떤 것은 한 줄이라 카드 높이가
+   제각각이었고 격자가 들쭉날쭉했다. 길이가 아니라 **줄 수**가 어질러 보이게 만든다.
+   잘린 뒷부분은 도구를 열면 다 보이고, 마우스를 올려도 뜬다(title). */
+.tool-hub-card span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* ═══════════════════════════════════════
    자료표 (ref/*) — 검색 + 칩 + 눌러 복사 (TASK-KL-088)
@@ -874,6 +900,20 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     text-decoration: none;
 }
 .tool-hub-toc a:hover { border-color: var(--accent); color: var(--accent); }
+/* 폰에서는 분류가 열여섯 개라 다섯 줄을 차지했다 — 목록이 시작하기도 전에 화면 절반이 없어진다.
+   한 줄로 두고 옆으로 밀어 본다 (TASK-KL-128). 줄 끝을 흐리게 해서 더 있다는 것을 알린다. */
+@media (max-width: 640px) {
+    .tool-hub-toc {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin-inline: calc(-1 * var(--space-md, 16px));
+        padding-inline: var(--space-md, 16px);
+        mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+    }
+    .tool-hub-toc::-webkit-scrollbar { display: none; }
+    .tool-hub-toc a { flex: 0 0 auto; }
+}
 
 /* 화면에 보이는 이동 경로 — 도구 한 장에 떨어진 사람이 위로 올라갈 길 (TASK-KL-089).
    제목보다 앞서 보이면 안 되므로 작고 흐리게. 좁은 화면에서는 줄바꿈으로 흐른다. */
