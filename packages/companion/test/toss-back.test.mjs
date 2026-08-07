@@ -65,3 +65,23 @@ test('몇 번 중 몇 번 되물었는지 센다 — 얹어 놓고 됐다고 하
   assert.equal(r.전체, 2);
   assert.equal(r.되물음, 1);
 });
+
+// ── 입 앞 관문으로 옮기기 ────────────────────────────────────────────
+
+test('공을 돌려줄 자리인데 안 돌려줬으면 잡는다', async () => {
+  const { 안돌려줬나 } = await import('../dist/index.js');
+  assert.notEqual(안돌려줬나('그렇구나.', true), null);
+  assert.equal(안돌려줬나('그래서 어떻게 됐어?', true), null);
+});
+
+test('돌려줄 자리가 아니면 안 잡는다 — 아무 때나 되물으면 취조다', async () => {
+  const { 안돌려줬나 } = await import('../dist/index.js');
+  assert.equal(안돌려줬나('그렇구나.', false), null);
+});
+
+test('다시 시킬 땐 그 한 가지만 말한다 — 재료로는 묻혔다', async () => {
+  const { tossBackRetryNote } = await import('../dist/index.js');
+  const note = tossBackRetryNote();
+  assert.match(note, /되물어라/);
+  assert.match(note, /새 주제를 꺼내지 말고/);
+});

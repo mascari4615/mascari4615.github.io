@@ -75,3 +75,30 @@ export function 되물은비율(said: readonly MemoryEntry[]): { 전체: number;
   const 말들 = said.filter((e) => e.role === 'said');
   return { 전체: 말들.length, 되물음: 말들.filter((e) => 묻는말인가(e.text)).length };
 }
+
+
+/**
+ * 다시 시킬 때 넘길 말 — **재료로는 안 밀렸다.**
+ *
+ * 재료로 한 줄 얹어 봤더니 큰 머리로 바꿔도, 인격을 빼도 **0/3 이었다**(실측). 여섯 줄
+ * 중 한 줄로는 안 되는 것이다. 그래서 입 앞 관문으로 옮긴다 — 이미 지어낸 말과 빈말을
+ * 거기서 막고 있고, 거기서는 **그 한 가지만** 말하므로 묻히지 않는다.
+ *
+ * 한 번만 다시 시킨다. 두 번 시키면 억지로 물음표를 붙인 말이 나온다.
+ */
+export function tossBackRetryNote(): string {
+  return (
+    '대화가 식어 가는데 답만 하고 끝냈다. **방금 나온 얘기에서 한 가지를 골라 되물어라.** ' +
+    '새 주제를 꺼내지 말고, 하던 얘기를 이어 가는 물음이어야 한다. 짧아도 된다.'
+  );
+}
+
+/**
+ * 지금 말이 공을 안 돌려줬나. 돌려줬으면 null.
+ *
+ * **공을 돌려줄 자리일 때만** 본다 — 아무 때나 되물으라고 하면 취조가 된다.
+ */
+export function 안돌려줬나(said: string, 돌려줄자리인가: boolean): string | null {
+  if (돌려줄자리인가 === false) return null;
+  return 묻는말인가(said) ? null : '대화가 식어 가는데 되묻지 않았다';
+}
