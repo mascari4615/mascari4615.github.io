@@ -35,6 +35,8 @@ const SCREENS = [
   // 처음에 홈 표식을 빼먹어서 「안 그려졌다」고 잘못 일렀다. 둘 다 적는다.
   { hash: 'community', name: '커뮤니티', need: '.c-feed-row, .c-gal-card, .c-boards, .c-table, .c-fail, .c-invite' },
   { hash: 'user', name: '내 정보', need: '.user-layout' },
+  // 「내 정보」에서 떼어 낸 화면 (TASK-KL-139). 헤더 톱니의 유일한 목적지라 안 그려지면 설정이 통째로 사라진다.
+  { hash: 'settings', name: '환경 설정', need: '.settings-layout' },
 ];
 
 const browser = await chromium.launch();
