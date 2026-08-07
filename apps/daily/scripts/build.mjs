@@ -238,6 +238,11 @@ for (const page of all) {
   <div class="guessbar">
     <input type="text" role="combobox" aria-expanded="false" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 · 첫 자음만 쳐도 돼요">
     <div class="sug" id="sug-list" role="listbox" aria-label="추천 이름"></div>
+    <button type="button" class="browse-open" aria-expanded="false" aria-controls="browse-list">훑어보기</button>
+    <div class="browse" id="browse-list" hidden>
+      <p class="browse-help">이름이 기억 안 나면 여기서 고르세요. 위 칸에 아무거나 치면 같이 걸러집니다.</p>
+      <div class="browse-grid" role="listbox" aria-label="전체 목록"></div>
+    </div>
   </div>
   <div class="seeds"></div>
   <p class="left"></p>

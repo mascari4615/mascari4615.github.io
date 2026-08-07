@@ -529,3 +529,55 @@ table.past .play:hover { border-color: var(--accent); }
   .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .row .who { font-size: 13px; }
 }
+
+/* 이름이 기억 안 날 때 훑어서 고르기 (TASK-KL-089).
+   추천은 **치기 시작해야** 뜬다 — 한 글자도 생각 안 나면 시작조차 못 했다. */
+.browse-open {
+  margin-top: 8px;
+  font: inherit;
+  font-size: 13px;
+  min-height: 36px;
+  padding: 0 12px;
+  cursor: pointer;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.browse-open[aria-expanded='true'] { color: var(--ink); border-color: var(--ink-2); }
+.browse {
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.browse-help { margin: 0; padding: 10px 12px; font-size: 12.5px; color: var(--ink-2); }
+.browse-grid {
+  max-height: 46vh;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 4px;
+  padding: 8px;
+}
+.browse-grid button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  padding: 6px 8px;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  /* 천 개가 넘는 판이 있다 — 화면에 가까워질 때만 그린다 */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 40px;
+}
+.browse-grid button:hover, .browse-grid button:focus-visible { border-color: var(--line); background: var(--bg-2, rgba(255,255,255,0.04)); }
+.browse-grid img { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; }
+.browse-empty { padding: 10px 12px; margin: 0; font-size: 13px; color: var(--ink-2); }
