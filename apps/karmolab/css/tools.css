@@ -933,3 +933,32 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .tool-hub-quest { margin: 0.2rem 0 1rem; font-size: 0.92rem; }
 .tool-hub-quest a { color: var(--accent, #a99bf5); text-decoration: none; }
 .tool-hub-quest a:hover, .tool-hub-quest a:focus-visible { text-decoration: underline; }
+
+/* 높은 쪽 고르기 (TASK-KL-089) — 색·모서리는 KarmoLab 토큰만 쓴다. 놀이도 KarmoLab 이다. */
+.hi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.hi-chips button {
+  font: inherit; font-size: var(--font-size-2xs); min-height: 38px; padding: 0 12px; cursor: pointer;
+  background: var(--bg-primary); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.hi-chips button:hover { color: var(--text-primary); border-color: var(--border-hover); }
+.hi-chips button[aria-pressed='true'] { background: var(--accent-dim); color: var(--accent); border-color: var(--border-strong); font-weight: 700; }
+
+.hi-ask { text-align: center; font-size: var(--font-size-md); color: var(--text-secondary); margin: 4px 0 10px; }
+.hi-ask b { color: var(--text-primary); }
+.hi-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hi-side {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl);
+  padding: 14px 8px; min-height: 190px; cursor: pointer; color: inherit; font: inherit;
+}
+.hi-side:hover:not(:disabled) { border-color: var(--border-hover); }
+.hi-side:disabled { cursor: default; }
+.hi-side img { width: 96px; height: 96px; object-fit: contain; }
+.hi-nm { font-weight: 700; font-size: var(--font-size-sm); }
+.hi-vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
+.hi-side.is-win { border-color: var(--success); }
+.hi-side.is-lose { border-color: var(--error); }
+.hi-score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
+.hi-score b { color: var(--text-primary); font-size: var(--font-size-md); }
+@media (max-width: 380px) { .hi-side img { width: 76px; height: 76px; } }

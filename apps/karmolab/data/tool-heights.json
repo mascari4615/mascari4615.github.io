@@ -175,6 +175,10 @@
     "narrow": 843,
     "wide": 901
   },
+  "higher": {
+    "narrow": 466,
+    "wide": 574
+  },
   "htmlentity": {
     "narrow": 3064,
     "wide": 972

@@ -132,8 +132,6 @@ jobs:
       # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」(/karmolab/higher/) · 「오늘의 문제」(/karmolab/quest/).
       # 둘 다 의존성 0. 표가 어긋나면 아래 단계가 그 자리에서 배포를 세운다.
       # 주소는 파일 앞머리의 permalink 가 정한다 — 여기서는 Jekyll 이 볼 자리로 옮기기만 한다.
-      - name: Build higher-lower game
-        run: node apps/higher/scripts/build.mjs
       - name: Build playground hub
         run: node apps/play/scripts/build.mjs
       - name: Verify daily quest table
@@ -142,7 +140,6 @@ jobs:
         run: |
           mkdir -p apps/blog/higher apps/blog/quest
           cp apps/higher/index.html apps/blog/higher/index.html
-          cp apps/higher/data/*.json apps/blog/higher/
           cp apps/quest/index.html apps/blog/quest/index.html
           cp apps/quest/data/puzzles.json apps/blog/quest/puzzles.json
           mkdir -p apps/blog/play
