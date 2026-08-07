@@ -60,6 +60,13 @@ jobs:
       - name: 브라우저 준비
         run: npx playwright install --with-deps chromium
 
+      # 여기 검사 중 몇 개는 **빌드 결과물**을 읽는다 (공유 카드 대조 등).
+      # 그게 없으면 「js/widgets-lazy-meta.js 없음 — npm run build 를 먼저 돌려야 합니다」로
+      # 멈춘다. 라이브를 보는 검사라 빌드가 필요 없다고 여겼는데, 라이브와 **대조할 기준**이
+      # 빌드 산출물이었다 (2026-08-07: 다섯 판 연속 빨강의 두 원인 중 하나).
+      - name: 대조 기준 만들기 (빌드 산출물)
+        run: npm run build
+
       # GitHub Pages 는 배포 완료 신호 뒤에도 잠깐 옛 파일을 줄 수 있다.
       - name: 반영 대기
         run: sleep 45
@@ -112,6 +119,11 @@ jobs:
         if: always()
         run: npm run test:answers
 
+      # 기대값을 손으로 적지 않고 넓게 보는 쪽 — 글자를 넣으면 화면이 바뀌는가.
+      - name: 글자를 넣으면 반응하는지
+        if: always()
+        run: npm run test:typing
+
       # 화면낭독기가 입력칸 이름을 읽을 수 있는지. 기준치는 data/a11y-baseline.json 이 정본이고
       # 지금은 0 이라, 이름 없는 칸이 하나라도 새로 생기면 여기서 걸린다.
       - name: 입력칸에 이름이 이어져 있는지
@@ -132,6 +144,12 @@ jobs:
 
       # 카드에는 제목과 소개가 그려져 있다. 문구만 고치고 다시 안 찍으면 옛 글이 나가는데,
       # 파일이 있는지만 보는 위 검사로는 안 잡힌다. 그림 없이 파일 비교만 하므로 여기서도 돈다.
+      - name: 안 쓰는데 첫 화면을 막는 스타일
+        if: always()
+        run: npm run audit:blocking-css
+      - name: 후원 자리가 규칙대로 뜨는지
+        if: always()
+        run: npm run audit:sponsor
       - name: 공유 카드가 지금 문구와 맞는지
         if: always()
         run: npm run audit:cards:fresh
