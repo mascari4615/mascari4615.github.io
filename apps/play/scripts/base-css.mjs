@@ -49,7 +49,13 @@ h1 { font-size: var(--font-size-lg); margin: 0 0 0.2rem; letter-spacing: -0.01em
 .play-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 1.2rem; }
 
 /* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json */
-.play-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs); }
+.play-strip {
+  display: flex; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs);
+  /* 놀이가 늘면 줄이 두 줄로 흘러 화면 위를 먹는다 — 한 줄로 두고 넘치면 옆으로 굴린다. */
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.play-strip::-webkit-scrollbar { display: none; }
+.play-strip a, .play-strip-now { white-space: nowrap; flex: 0 0 auto; }
 .play-strip a, .play-strip-now {
   display: inline-flex; align-items: center; min-height: 34px; padding: 0 0.7rem;
   border: 1px solid var(--border); border-radius: var(--radius-lg);

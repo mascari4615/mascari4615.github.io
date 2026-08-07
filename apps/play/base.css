@@ -90,6 +90,25 @@ permalink: /karmolab/play/base.css
     --grid-color: rgba(242, 242, 238, 0.015);
     --vignette: rgba(0, 0, 0, 0.5);   /* 바닥 가장자리 어둠 */
 
+    /* Y2K 그라데이션 (TASK-KL-097) — **토큰으로만** 낸다.
+       곳곳에 그라데이션 문자열을 박으면 다음 톤 조정 때 전부 찾아 고쳐야 한다.
+       ① holo-sweep = 보라→분홍→청록이 화면을 **대각으로** 가로지르는 홀로그램 쓸기.
+          띠 한 겹으로 뒀더니 색이 멈추는 선이 보였다 — 대각으로 화면을 다 덮으면 경계가 없다.
+       ② holo-bloom = 위쪽에서 번지는 빛. 쓸기 혼자면 위아래가 허전하다.
+       ③ chrome-grad = 로고·주요 버튼 같은 **작은 면적**에만.
+       주의: 이 넷은 라이트 블록에도 같은 이름으로 있어야 한다. 한쪽만 있으면 그 테마에서
+       배경이 통째로 안 그려지고 버튼이 투명해진다(실제로 다크가 그렇게 깨져 있었다). */
+    --holo-sweep: linear-gradient(112deg,
+        rgba(109, 91, 208, 0.34) 0%,
+        rgba(180, 110, 200, 0.22) 18%,
+        rgba(14, 13, 20, 0) 34%,
+        rgba(14, 13, 20, 0) 58%,
+        rgba(80, 170, 210, 0.18) 74%,
+        rgba(120, 100, 230, 0.28) 100%);
+    --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(120, 100, 230, 0.30), transparent 70%);
+    --chrome-grad: linear-gradient(135deg, #c9bdff 0%, #a99bf5 32%, #ffffff 54%, #a99bf5 78%, #8b7ce8 100%);
+    --chrome-grad-hover: linear-gradient(135deg, #ddd5ff 0%, #c0b5f8 32%, #ffffff 54%, #c0b5f8 78%, #a99bf5 100%);
+
     /* 넓게 칠하는 버튼 전용. 다크에선 강조색 그대로가 가장 밝게 빛난다. */
     --fill-strong: var(--accent);
     --fill-strong-hover: var(--accent-hover);
@@ -125,7 +144,13 @@ h1 { font-size: var(--font-size-lg); margin: 0 0 0.2rem; letter-spacing: -0.01em
 .play-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 1.2rem; }
 
 /* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json */
-.play-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs); }
+.play-strip {
+  display: flex; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs);
+  /* 놀이가 늘면 줄이 두 줄로 흘러 화면 위를 먹는다 — 한 줄로 두고 넘치면 옆으로 굴린다. */
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.play-strip::-webkit-scrollbar { display: none; }
+.play-strip a, .play-strip-now { white-space: nowrap; flex: 0 0 auto; }
 .play-strip a, .play-strip-now {
   display: inline-flex; align-items: center; min-height: 34px; padding: 0 0.7rem;
   border: 1px solid var(--border); border-radius: var(--radius-lg);

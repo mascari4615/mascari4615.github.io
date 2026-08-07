@@ -24,9 +24,9 @@ permalink: /karmolab/higher/
      아래에는 이 놀이에만 있는 부품(카드 두 장·점수 줄)만 둔다. -->
 <link rel="stylesheet" href="/karmolab/play/base.css">
 <style>
-.hi-ask { text-align: center; font-size: var(--font-size-md); color: var(--text-secondary); margin: 4px 0 10px; }
-.hi-ask b { color: var(--text-primary); }
-.hi-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ask { text-align: center; font-size: var(--font-size-md); color: var(--text-secondary); margin: 4px 0 10px; }
+.ask b { color: var(--text-primary); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .side {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl);
@@ -42,16 +42,22 @@ permalink: /karmolab/higher/
 .score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
 .score b { color: var(--text-primary); font-size: var(--font-size-md); }
 .msg { text-align: center; margin: 10px 0 0; min-height: 1.7em; }
+/* [hidden] 이 이겨야 한다 — 안 그러면 끝나지도 않았는데 「다시」가 떠 있다. */
+.again[hidden] { display: none; }
 .again { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
 .boards { margin-top: 2rem; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .boards ul { padding-left: 1.1rem; }
+.boards summary { cursor: pointer; color: var(--text-tertiary); list-style: none; min-height: 34px; display: flex; align-items: center; }
+.boards summary::-webkit-details-marker { display: none; }
+.boards summary::before { content: "＋ "; }
+.boards details[open] summary::before { content: "− "; }
 @media (max-width: 380px) { .side img { width: 76px; height: 76px; } }
 </style>
 </head>
 <body>
 <main>
   <nav class="play-crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">높은 쪽 고르기</span></nav>
-  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><span class="play-strip-now" aria-current="page">📈 높은 쪽 고르기</span><a href="/karmolab/quest/">🧩 오늘의 문제</a><a class="play-strip-all" href="/karmolab/play/">놀이터</a></nav><!-- /PLAY_STRIP -->
+  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><span class="play-strip-now" aria-current="page">📈 높은 쪽 고르기</span><a href="/karmolab/quest/">🧩 오늘의 문제</a><a class="play-strip-all" href="/karmolab/play/" title="놀이터 전체">＋</a></nav><!-- /PLAY_STRIP -->
   <h1>높은 쪽 고르기</h1>
   <p class="play-lead">둘 중 어느 쪽이 더 큰지만 고르면 됩니다. 한 번 틀리면 끝.</p>
 
@@ -73,13 +79,15 @@ permalink: /karmolab/higher/
   <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게 판을 적어 둔다.
        (scripts/build.mjs 가 표에서 찍어 넣는다 — 손으로 고치지 말 것) -->
   <section class="boards">
-    <h2>지금 있는 판</h2>
+    <details>
+    <summary>지금 있는 판</summary>
     <ul id="boards">
       <li>🌠 원신 캐릭터 — 116개 · 견줄 것: 출시</li>
       <li>⚔️ 롤 챔피언 — 173개 · 견줄 것: 체력 · 방어 · 공격</li>
       <li>🔴 포켓몬 — 1025개 · 견줄 것: 세대 · 키 · 몸무게</li>
     </ul>
     <p>더 놀 것 — <a href="/karmolab/quest/">오늘의 문제</a> · <a href="/karmolab/t/">도구 전체</a></p>
+    </details>
   </section>
 
   <footer class="play-foot">
