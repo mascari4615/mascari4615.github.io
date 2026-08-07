@@ -77,8 +77,6 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     status: string;
     title: string;
     md_path: string;
-    discord_post_id?: string;
-    discord_channel_id?: string;
   };
 
   const REFRESH_INTERVAL_MS = 5000;
@@ -349,42 +347,25 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         rows.length === filtered.length ? String(rows.length) : `${filtered.length}/${rows.length}`;
       if (filtered.length === 0) {
         tasksList.innerHTML =
-          '<div style="opacity:.55;font-size:.82rem;padding:.5rem">진행 중 TASK 없음 (ledger 비었거나 검색 매치 0).</div>';
+          '<div style="opacity:.55;font-size:.82rem;padding:.5rem">진행 중 TASK 없음 (검색 매치 0).</div>';
         return;
       }
       tasksList.innerHTML = filtered
         .map((t) => {
           const sv = taskStatusVisual(t.status);
           const dv = taskDomain(t.task_id);
-          const discordLink = t.discord_post_id
-            ? `<a href="#" class="at-task-discord" data-post="${escapeHtml(t.discord_post_id)}" data-ch="${escapeHtml(t.discord_channel_id || '')}" style="font-size:.72rem;opacity:.7;text-decoration:none">🔗 디코</a>`
-            : '<span style="font-size:.72rem;opacity:.4">디코 미연결</span>';
           return `
             <div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
               <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
                 <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
                 <strong style="font-family:monospace;font-size:.82rem">${escapeHtml(t.task_id)}</strong>
                 <span style="background:${sv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${sv.emoji} ${escapeHtml(sv.label)}</span>
-                <span style="margin-left:auto">${discordLink}</span>
               </div>
               <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${escapeHtml(t.title)}</div>
               <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${escapeHtml(t.md_path)}</div>
             </div>`;
         })
         .join('');
-      // 디코 링크 click → discord:// 또는 https 우회 (Discord deep link)
-      tasksList.querySelectorAll<HTMLAnchorElement>('.at-task-discord').forEach((a) => {
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          const post = a.dataset.post || '';
-          const ch = a.dataset.ch || '';
-          if (!post || !ch) return;
-          // Discord forum-post = thread → URL `https://discord.com/channels/<guild>/<channelOrThreadId>`
-          // forum-post 의 starter msg id == thread id == postId.
-          // guild id 추적 불요 — discord.com 이 자동 라우팅 (channelId 가 unique).
-          window.open(`https://discord.com/channels/@me/${post}`, '_blank');
-        });
-      });
     }
 
     tasksSearch.addEventListener('input', () => renderTasks(cachedTasks));

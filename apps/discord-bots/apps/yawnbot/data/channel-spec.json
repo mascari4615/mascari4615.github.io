@@ -48,31 +48,6 @@
 			"key": "dashboard",
 			"name": "dashboard",
 			"topic": "에이전트 팀 현황 대시보드 — edit-in-place (KAR-077)"
-		},
-		{
-			"_doc": "에이전트 팀 작업 카드 substrate (TASK-KAR-018-LT-FORUM + TASK-YB-039). 1포스트=1흐름객체 (proposal→task→done). 태그 13개 / 3 그룹: kind(4) + status(5) + domain(4). kind+status 둘 다 exclusive 토글 (forum-post.ts § kindTag/statusTag). 'task' kind = backfill 된 TASK + 채택된 proposal 의 졸업 form. announceProposal·worker-report·verdict·backfill 가 이 채널 사용, #team-bus 텍스트는 hb·digest 그대로 (P5 진짜 후속).",
-			"key": "agent-work",
-			"name": "team-work",
-			"type": "GuildForum",
-			"topic": "에이전트 팀 작업 카드 — 1포스트=1흐름객체 (TASK-KAR-018-LT-FORUM)",
-			"forum": {
-				"defaultAutoArchiveDuration": 1440,
-				"availableTags": [
-					{ "name": "proposal", "emoji": "💡" },
-					{ "name": "task", "emoji": "📋" },
-					{ "name": "worker-report", "emoji": "🤖" },
-					{ "name": "discovery", "emoji": "🔍" },
-					{ "name": "pending", "emoji": "🟡" },
-					{ "name": "in-progress", "emoji": "⏳" },
-					{ "name": "approved", "emoji": "✅" },
-					{ "name": "rejected", "emoji": "❌" },
-					{ "name": "done", "emoji": "🏁" },
-					{ "name": "WM", "emoji": "🧙" },
-					{ "name": "KAR", "emoji": "🛰" },
-					{ "name": "YB", "emoji": "📣" },
-					{ "name": "KL", "emoji": "🧪" }
-				]
-			}
 		}
 	]
 }

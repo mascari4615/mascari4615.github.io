@@ -17,6 +17,7 @@ import {
   isProvisioningEnabled,
   shouldProvisionGuild,
   allowedGuildIds,
+  type ChannelSpec,
   type GuildLike,
   type ChannelLike,
 } from './channel-provision';
@@ -178,61 +179,74 @@ describe('reconcileGuildChannels — 멱등 desired-state', () => {
   });
 });
 
-describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => {
-  it('agent-work entry = GuildForum 타입으로 생성 + availableTags 박힘', async () => {
+describe('reconcileGuildChannels — GuildForum (범용 forum 지원)', () => {
+  // 실 channel-spec.json 에는 forum 채널이 없다 (TASK-YB-043 에서 #team-work 폐지).
+  // forum 프로비저닝 자체는 범용 기능이라 남아 있으므로, 여기서만 쓰는 fixture 로
+  // 검증한다 — 정본 spec 의 채널 구성 변화에 이 테스트가 끌려다니지 않게.
+  const forumSpec: ChannelSpec = {
+    categoryName: spec.categoryName,
+    channels: [
+      {
+        key: 'fixture-forum',
+        name: 'fixture-forum',
+        type: 'GuildForum',
+        topic: 'forum 프로비저닝 fixture',
+        forum: {
+          defaultAutoArchiveDuration: 1440,
+          availableTags: [
+            { name: 'alpha', emoji: '💡' },
+            { name: 'beta', emoji: '🔍' },
+            { name: 'gamma', emoji: '🏁' },
+          ],
+        },
+      },
+    ],
+  };
+  const TAG_COUNT = forumSpec.channels[0].forum!.availableTags!.length;
+
+  it('forum entry = GuildForum 타입으로 생성 + availableTags 박힘', async () => {
     const guild = fakeGuild(newGuildId());
-    const r = await reconcileGuildChannels(guild, spec, PROD);
-    expect(r.created).toContain('agent-work');
-    // cache 에서 실제 채널 객체 찾아 검증
-    const ch = guild.channels.cache.find((c) => c.id === r.map['agent-work']);
+    const r = await reconcileGuildChannels(guild, forumSpec, PROD);
+    expect(r.created).toContain('fixture-forum');
+    const ch = guild.channels.cache.find((c) => c.id === r.map['fixture-forum']);
     expect(ch).toBeDefined();
     expect(ch!.type).toBe(ChannelType.GuildForum);
-    // spec 의 12개 태그가 그대로 박힘 (discord.js 형식 변환: emoji → { name })
     const tagNames = (ch!.availableTags ?? []).map((t) => t.name).sort();
-    expect(tagNames).toContain('proposal');
-    expect(tagNames).toContain('worker-report');
-    expect(tagNames).toContain('discovery');
-    expect(tagNames).toContain('pending');
-    expect(tagNames).toContain('done');
-    expect(tagNames).toContain('WM');
-    expect(tagNames.length).toBe(13);
+    expect(tagNames).toEqual(['alpha', 'beta', 'gamma']);
     // emoji = { name: '<unicode>' } 형식
-    const proposalTag = (ch!.availableTags ?? []).find((t) => t.name === 'proposal');
-    expect(proposalTag?.emoji).toEqual({ name: '💡' });
+    const alphaTag = (ch!.availableTags ?? []).find((t) => t.name === 'alpha');
+    expect(alphaTag?.emoji).toEqual({ name: '💡' });
   });
 
   it('두 번째 reconcile: forum 채널도 reused (멱등 + 태그 드리프트 sync)', async () => {
     const guild = fakeGuild(newGuildId());
-    await reconcileGuildChannels(guild, spec, PROD);
+    await reconcileGuildChannels(guild, forumSpec, PROD);
     // 외부에서 사용자가 태그 임의 제거 (드리프트 시뮬)
     const forumCh = guild.channels.cache.find(
       (c) => c.type === ChannelType.GuildForum,
     );
     expect(forumCh).toBeDefined();
     forumCh!.availableTags = [{ name: 'orphan-tag' }];
-    const r2 = await reconcileGuildChannels(guild, spec, PROD);
+    const r2 = await reconcileGuildChannels(guild, forumSpec, PROD);
     expect(r2.created).toEqual([]);
-    expect(r2.reused).toContain('agent-work');
+    expect(r2.reused).toContain('fixture-forum');
     // setAvailableTags 가 호출돼 spec 정합으로 복원
     expect((forumCh!.availableTags ?? []).map((t) => t.name).sort()).not.toContain(
       'orphan-tag',
     );
-    expect((forumCh!.availableTags ?? []).length).toBe(13);
+    expect((forumCh!.availableTags ?? []).length).toBe(TAG_COUNT);
   });
 
   it('같은 이름 forum 채널이 미리 있으면 claim (생성 X) + 태그 동기', async () => {
     const gid = newGuildId();
     const seed: ChannelLike[] = [
-      { id: 'cat-x', name: spec.categoryName, type: ChannelType.GuildCategory, parentId: null },
+      { id: 'cat-x', name: forumSpec.categoryName, type: ChannelType.GuildCategory, parentId: null },
       {
         id: 'existing-forum',
-        name: 'team-work',
+        name: 'fixture-forum',
         type: ChannelType.GuildForum,
         parentId: 'cat-x',
         availableTags: [{ name: 'legacy' }],
-        setAvailableTags: async function (this: ChannelLike, tags) {
-          this.availableTags = [...tags];
-        } as ChannelLike['setAvailableTags'],
       },
     ];
     // setAvailableTags 의 this 바인딩 보정 — seed 채널 객체 자체에 박음
@@ -241,13 +255,13 @@ describe('reconcileGuildChannels — GuildForum (TASK-KAR-018-LT-FORUM)', () => 
       existing.availableTags = [...tags];
     };
     const guild = fakeGuild(gid, seed);
-    const r = await reconcileGuildChannels(guild, spec, PROD);
-    expect(r.claimed).toContain('agent-work');
-    expect(r.created).not.toContain('agent-work');
-    expect(r.map['agent-work']).toBe('existing-forum');
-    // 태그 동기로 legacy 제거 + spec 12개 박힘
+    const r = await reconcileGuildChannels(guild, forumSpec, PROD);
+    expect(r.claimed).toContain('fixture-forum');
+    expect(r.created).not.toContain('fixture-forum');
+    expect(r.map['fixture-forum']).toBe('existing-forum');
+    // 태그 동기로 legacy 제거 + spec 태그 박힘
     expect((existing.availableTags ?? []).map((t) => t.name)).not.toContain('legacy');
-    expect((existing.availableTags ?? []).length).toBe(13);
+    expect((existing.availableTags ?? []).length).toBe(TAG_COUNT);
   });
 });
 
