@@ -10,6 +10,8 @@
  * 화려한 것보다 「지금 무슨 이야기가 오가는지」가 한눈에 보이는 것이 먼저다.
  *
  * 주소: 목록 `/karmolab/c/` · 글 `/karmolab/c/?p=<글id>`.
+ * 화면 안의 링크는 **상대 주소**로 적는다 — 그래야 배포된 주소에서도, 내 컴퓨터에서 폴더째
+ * 띄워 볼 때도 똑같이 열린다 (절대 주소로 적었더니 로컬 확인이 통째로 막혔다).
  * 정적으로 올라가는 사이트라 글마다 파일을 만들 수 없다 — 물음표 주소가 지금의 정답이다.
  */
 type PostKind = 'talk' | 'request';
@@ -126,7 +128,7 @@ function renderList(data: ListResponse, kind: PostKind): void {
     const tabs = (['talk', 'request'] as PostKind[])
         .map(
             (k) =>
-                `<a class="c-tab" href="/karmolab/c/${k === 'talk' ? '' : '?kind=request'}" data-on="${k === kind ? '1' : '0'}">${KIND_LABEL[k]}</a>`,
+                `<a class="c-tab" href="./${k === 'talk' ? '' : '?kind=request'}" data-on="${k === kind ? '1' : '0'}">${KIND_LABEL[k]}</a>`,
         )
         .join('');
 
@@ -148,7 +150,7 @@ function renderList(data: ListResponse, kind: PostKind): void {
                   const heading = p.kind === 'talk' ? (p.title ?? '(제목 없음)') : preview(p.text);
                   return `<li class="c-row">
                       ${p.kind === 'request' ? `<span class="c-votes" title="표">${p.votes}</span>` : ''}
-                      <a class="c-row-main" href="/karmolab/c/?p=${encodeURIComponent(p.id)}">
+                      <a class="c-row-main" href="./?p=${encodeURIComponent(p.id)}">
                           <span class="c-row-title">${escapeHtml(heading)}${
                               p.kind === 'request' && p.status !== 'open'
                                   ? `<span class="c-tag">${STATUS_LABEL[p.status]}</span>`
@@ -225,7 +227,7 @@ function renderDetail(data: DetailResponse): void {
                <button type="button" class="c-btn c-btn-main" id="cSignIn">디스코드로 시작하기</button></div>`;
 
     root.innerHTML = `
-        <div class="c-crumb"><a href="/karmolab/c/${post.kind === 'request' ? '?kind=request' : ''}">← ${KIND_LABEL[post.kind]}</a></div>
+        <div class="c-crumb"><a href="./${post.kind === 'request' ? '?kind=request' : ''}">← ${KIND_LABEL[post.kind]}</a></div>
         <article class="c-post">
             <h1 class="c-post-title">${escapeHtml(post.title ?? preview(post.text, 60))}${
                 post.kind === 'request' && post.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[post.status]}</span>` : ''
@@ -267,7 +269,7 @@ function renderDetail(data: DetailResponse): void {
             alert('못 지웠어요.');
             return;
         }
-        location.href = `/karmolab/c/${post.kind === 'request' ? '?kind=request' : ''}`;
+        location.href = `./${post.kind === 'request' ? '?kind=request' : ''}`;
     });
 
     document.getElementById('cReply')?.addEventListener('submit', async (event) => {
@@ -302,7 +304,7 @@ async function route(): Promise<void> {
         if (!raw) {
             // 「없는 글」과 「서버가 죽음」을 구별할 수 없으므로 둘 다 담아 말한다.
             root.innerHTML = `<div class="c-empty"><h2>그 글을 못 찾았어요</h2>
-                <p>지워졌거나, 잠시 연결이 끊겼습니다.</p><p><a href="/karmolab/c/">목록으로</a></p></div>`;
+                <p>지워졌거나, 잠시 연결이 끊겼습니다.</p><p><a href="./">목록으로</a></p></div>`;
             return;
         }
         renderDetail(raw as DetailResponse);
