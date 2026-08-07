@@ -6,6 +6,8 @@
 import * as esbuild from 'esbuild';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
 import { discoverEntryPoints } from './scripts/entry-points.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -112,6 +114,39 @@ for (const rel of entryPoints) {
     target: ['es2020'],
     logLevel: 'info'
   });
+}
+
+
+/**
+ * 위젯 메타를 **가벼운 것 / 무거운 것** 두 벌로 낸다 (TASK-KL-128 ③).
+ *
+ * 도구 한 개짜리 화면도 위젯 169개 메타를 통째로 받는다 — 원본 93KB. 그런데 그 안에서
+ * 아이콘 그림이 41KB, 설명이 8KB 다. 첫 그림에 필요한 것은 **이름·분류·어디서 불러올지**뿐이고,
+ * 아이콘·설명은 옆줄·찾기창이 그려질 때 필요하다.
+ *
+ * 그래서 한 벌 더 낸다: `widgets-index.js` = 같은 배열에서 아이콘·설명만 뺀 것.
+ * **손으로 적는 곳은 그대로 한 곳(`src/widgets-lazy-meta.ts`)** — 여기서 기계가 갈라낸다.
+ */
+{
+  const NL = String.fromCharCode(10);
+  const metaPath = join(root, 'js/widgets-lazy-meta.js');
+  const src = readFileSync(metaPath, 'utf8');
+  const sandbox = { window: {} };
+  runInNewContext(src, sandbox);
+  const full = sandbox.window.KARMOLAB_LAZY_META;
+  if (!Array.isArray(full) || !full.length) {
+    console.error('[build] 위젯 메타를 못 읽었다 — widgets-lazy-meta.js 모양 확인');
+    process.exit(1);
+  }
+  const lite = full.map(({ icon, desc, ...rest }) => rest);
+  writeFileSync(
+    join(root, 'js/widgets-index.js'),
+    '/* `build.mjs` 가 `widgets-lazy-meta.js` 에서 아이콘·설명만 빼서 만든다 — 손으로 고치지 마라 (TASK-KL-128). */' + NL +
+      'window.KARMOLAB_LAZY_META=' + JSON.stringify(lite) + ';window.KARMOLAB_META_LITE=1;' + NL,
+    'utf8'
+  );
+  const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + 'KB';
+  console.log(`[build] 위젯 메타 ${full.length}개 — 전체 ${kb(src)} · 가벼운 것 ${kb(readFileSync(join(root, 'js/widgets-index.js'), 'utf8'))}`);
 }
 
 const worldEntryPoints = [

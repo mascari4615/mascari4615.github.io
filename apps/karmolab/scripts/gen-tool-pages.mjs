@@ -613,6 +613,12 @@ function buildToolPage(id) {
     html = html.replace(CRYPTO_TAG_RE, '');
   }
 
+  // 도구 한 장짜리 화면은 위젯 메타를 **가벼운 것**으로 바꿔 받는다 (TASK-KL-128 ③).
+  // 원본 93KB → 26KB. 아이콘·설명은 화면이 다 그려진 뒤에 따라온다(셸의 인라인 스크립트가 판단).
+  const FULL_META = '/apps/karmolab/js/widgets-lazy-meta.js';
+  if (!html.includes(FULL_META)) throw new Error('셸에서 위젯 메타 자리를 못 찾음 — index.html 확인');
+  html = html.replace('src="' + FULL_META + '"', 'src="/apps/karmolab/js/widgets-index.js"');
+
   // 예전에는 여기서 세리프 글꼴을 부르는 대목을 지웠다 — 상세 페이지에선 안 쓰이는데 남의 서버
   // 글꼴 목록이 그것 때문에 185KB 늘었기 때문이다. 지금은 지울 필요가 없다 (TASK-KL-128):
   // 글꼴을 우리가 굽고 나서는 `@font-face` 를 적어 두는 것 자체가 0바이트다. 브라우저는 그 글꼴을
@@ -987,11 +993,22 @@ ${cards}
        * 이름·설명·주소가 저절로 같다. 하나도 없으면 이 줄은 나타나지 않는다. */
       var mine = document.querySelector('.tool-hub-mine');
       var mineGrid = mine && mine.querySelector('.tool-hub-mine-grid');
+      var PIN_KEY = 'toolbox_pinned_tools';
       function readList(key) {
         try {
           var arr = JSON.parse(localStorage.getItem(key) || '[]');
           return Array.isArray(arr) ? arr.filter(function (x) { return typeof x === 'string'; }) : [];
         } catch (e) { return []; }
+      }
+      /* 「즐겨찾기」에 꽂지 않는 이유 (TASK-KL-129 — 켜 보고 알았다).
+       * 그 화면은 **모든 도구를 자동으로 담는다**(실측 202개). 거기에 핀을 하나 더 꽂아 봐야
+       * 이미 다 들어 있어 아무 표시도 안 난다 — 「내가 고른 것」이라는 뜻이 성립하지 않는다.
+       * 그래서 이 줄은 제 목록을 따로 든다. 뜻이 다른 두 가지를 한 칸에 밀어 넣지 않는다. */
+      function readFavIds() { return readList(PIN_KEY); }
+      function setFav(id, on) {
+        var pins = readList(PIN_KEY).filter(function (x) { return x !== id; });
+        if (on) pins.push(id);
+        try { localStorage.setItem(PIN_KEY, JSON.stringify(pins)); } catch (e) { /* 저장이 막혀 있어도 화면은 돈다 */ }
       }
       if (mineGrid) {
         var byId = {};
@@ -1003,16 +1020,61 @@ ${cards}
           var id = parts[parts.length - 1];
           if (id) byId[id] = c;
         });
-        var picked = [], seen = {};
-        readList('toolbox_favorites').concat(readList('toolbox_recent_tools')).forEach(function (id) {
-          if (seen[id] || !byId[id] || picked.length >= 8) return;
-          seen[id] = 1;
-          picked.push(byId[id]);
-        });
-        if (picked.length) {
-          picked.forEach(function (c) { mineGrid.appendChild(c.cloneNode(true)); });
-          mine.hidden = false;
+        /* 별을 카드마다 하나씩 단다 — 훑다가 마음에 들면 그 자리에서 「내 것」이 된다.
+         * 예전에는 첫 화면까지 가야 켤 수 있어서, 맨 위 줄을 사람이 직접 채울 길이 없었다. */
+        function starOf(id) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'tool-hub-star';
+          b.setAttribute('data-tool', id);
+          b.textContent = '★';
+          b.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var on = b.getAttribute('aria-pressed') !== 'true';
+            setFav(id, on);
+            paintStars();
+            fillMine();
+          });
+          return b;
         }
+        cards.forEach(function (c) {
+          var parts = (c.getAttribute('href') || '').split('/').filter(Boolean);
+          var id = parts[parts.length - 1];
+          if (id && !c.querySelector('.tool-hub-star')) c.appendChild(starOf(id));
+        });
+
+        function paintStars() {
+          var on = {};
+          readFavIds().forEach(function (id) { on[id] = 1; });
+          [].slice.call(document.querySelectorAll('.tool-hub-star')).forEach(function (b) {
+            var id = b.getAttribute('data-tool');
+            var yes = !!on[id];
+            b.setAttribute('aria-pressed', yes ? 'true' : 'false');
+            b.title = yes ? '내 것에서 빼기' : '내 것으로 두기';
+            b.setAttribute('aria-label', (yes ? '내 것에서 빼기: ' : '내 것으로 두기: ') + id);
+          });
+        }
+
+        function fillMine() {
+          mineGrid.textContent = '';
+          var picked = [], seen = {};
+          readFavIds().concat(readList('toolbox_recent_tools')).forEach(function (id) {
+            if (seen[id] || !byId[id] || picked.length >= 8) return;
+            seen[id] = 1;
+            picked.push(byId[id]);
+          });
+          picked.forEach(function (c) {
+            var copy = c.cloneNode(true);
+            var star = copy.querySelector('.tool-hub-star');
+            if (star) star.remove();   // 사본에서는 별을 뺀다 — 같은 별이 두 개면 어느 쪽이 참인지 흐리다
+            mineGrid.appendChild(copy);
+          });
+          mine.hidden = picked.length === 0;
+        }
+
+        paintStars();
+        fillMine();
       }
 
       input.addEventListener('input', function () {
