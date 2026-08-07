@@ -5,6 +5,7 @@
   "scripts": {
     "verify": "node scripts/verify.mjs",
     "acl-audit": "node scripts/tauri-acl-audit.mjs",
+    "indexnow": "node scripts/indexnow-submit.mjs",
     "servermonitor-audit": "node scripts/servermonitor-config-audit.mjs"
   }
 }
