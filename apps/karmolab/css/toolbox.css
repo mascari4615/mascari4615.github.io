@@ -242,7 +242,9 @@ html { background-color: var(--bg-void); }
 body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
-    background-color: var(--bg-void);
+    /* 바탕색은 html 만 갖는다. body 에도 주면 **판때기를 덮는다** — 뒤로 깐 것(z-index:-1)은
+       그리는 순서상 body 의 바탕색보다 먼저 칠해지기 때문이다. 실제로 격자가 통째로
+       사라졌다 (TASK-KL-101). */
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -931,7 +933,12 @@ html[data-intro="off"] .intro-overlay {
 /* ── 첫 화면 장식 (Y2K 하프톤 도형, TASK-KL-097) ──
    누를 수 없게 두고 글보다 뒤에 깐다 — 장식이 버튼을 가로채면 그건 고장이다.
    도형·자리·크기·움직임은 toolbox.ts 가 열 때마다 새로 뽑는다. */
-.home-decor { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+/* 도형 자리는 이 상자의 **비율**로 잡혀 있다. 그래서 상자가 화면을 그대로 따라가면(inset:0)
+   폰에서 주소창이 접힐 때마다 상자가 늘고 도형이 **뚝 하고 옮겨 간다**. 눈에 그대로 보인다.
+   배경 판때기와 반대로, 이쪽은 「딱 맞음」보다 「안 흔들림」이 중요하다 — 화면이 가장 클 때의
+   높이(lvh)로 못 박으면 주소창이 접히든 펴지든 자리가 그대로다. 주소창이 보일 때는 아래가
+   조금 잘릴 뿐인데, 어차피 가려져 있던 자리다 (TASK-KL-101). */
+.home-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; z-index: 0; overflow: hidden; }
 /* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
    서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
 .home-decor-item {
