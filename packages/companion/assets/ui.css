@@ -294,6 +294,10 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
 
 /* 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다. */
 .status, .grip, .mute, .known-btn, .who-pick, .brain-pick, .voice-pick, .shadow, .cube { display: none !important; }
+/* **지금 뭐 하는 중은 전체화면에서도 보여야 한다.** 여태 글로 알리던 자리(.status)가
+   여기서 통째로 숨겨져 있었다 — 조수님이 실제로 쓰는 모드가 이쪽이라, 얘가 뭘 하는지
+   알릴 길이 사실상 없었다. */
+body.full .doing { display: inline-flex !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .bubble, .talk { transition: none; }
@@ -335,3 +339,28 @@ body.showboxes .room::before {
   position: absolute; left: 0; top: -16px;
   font-size: 11px; color: #6ee7ff;
 }
+
+
+/* ── 지금 뭐 하는 중 ─────────────────────────────────────
+   조수님: 「얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음.」 아이콘 하나를 얘 발밑에
+   늘 둔다. 아무것도 안 할 때는 아주 옅게 — 있는 줄도 모르게, 그러나 사라지지는 않게.
+   그래야 「멈춘 건가」와 「가만히 있는 중인가」가 갈린다. */
+.doing {
+  grid-row: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(12, 16, 20, 0.55);
+  backdrop-filter: blur(6px);
+  font-size: 11px;
+  color: var(--dim);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.doing .ico { font-size: 13px; line-height: 1; }
+.doing .lab:empty { display: none; }
+.doing.idle { opacity: .28; }
