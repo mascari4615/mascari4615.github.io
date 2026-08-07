@@ -108,6 +108,9 @@ permalink: /karmolab/higher/
   var BOARDS = window.HIGHER_BOARDS || [];
   var KEY = 'karmolab_higher_best';
   var board = null, field = null, left = null, right = null, streak = 0, locked = false;
+  /* 공유에 「3연승」 숫자만 있으면 눈에 안 띈다 — 워들이 퍼지는 이유는 이모지 격자다.
+   * 맞힌 판은 초록, 끝낸 판은 빨강으로 자취를 남겨 그대로 붙여 넣게 한다 (TASK-KL-089). */
+  var trail = [];
 
   function best(topic, put) {
     var all = {};
@@ -197,6 +200,7 @@ permalink: /karmolab/higher/
     sideEl.classList.add(win ? 'win' : 'lose');
     if (win) {
       streak++;
+      trail.push('🟩');
       $('streak').textContent = streak;
       /* 최고 기록은 **질 때만** 갱신하고 있었다 (TASK-KL-089).
        * 그래서 12연승을 하는 중에도 화면의 「최고」는 0 이었다 — 신기록을 세우는 순간을
@@ -215,6 +219,7 @@ permalink: /karmolab/higher/
       /* 얼마나 아까웠는지 보여 준다 — 「한 끗 차이였다」가 다시 하게 만든다. */
       var gap = Math.abs(chosen.v[field.key] - other.v[field.key]);
       var close = gap <= Math.max(1, Math.abs(other.v[field.key]) * 0.05);
+      trail.push('🟥');
       $('msg').textContent = (close ? '한 끗 차이였습니다 — ' : '아깝습니다 — ')
         + fmt(gap) + ' 차이 · ' + streak + '연승에서 끝났습니다';
       $('msg').className = 'msg play-no';
@@ -225,9 +230,20 @@ permalink: /karmolab/higher/
 
   $('a').addEventListener('click', function () { answer($('a'), left, right); });
   $('b').addEventListener('click', function () { answer($('b'), right, left); });
-  $('retry').addEventListener('click', function () { streak = 0; $('streak').textContent = '0'; nextRound(); });
+  $('retry').addEventListener('click', function () {
+    streak = 0;
+    trail = [];
+    left = null;
+    $('streak').textContent = '0';
+    nextRound(false);
+  });
   $('share').addEventListener('click', function () {
-    var text = 'KarmoLab 높은 쪽 고르기 — ' + board.title + ' / ' + field.label + '\n' + streak + '연승 (최고 ' + best(board.topic) + ')\nblog.mascari4615.com/karmolab/higher/';
+    /* 자취를 함께 붙인다 — 「3연승」 숫자만으로는 눈에 안 띈다. 🟩🟩🟩🟥 는 한눈에 읽힌다. */
+    var text =
+      'KarmoLab 높은 쪽 고르기 — ' + board.title + ' / ' + (field ? field.label : '') + '\n' +
+      trail.join('') + '\n' +
+      streak + '연승 (최고 ' + best(board.topic) + ')\n' +
+      'blog.mascari4615.com/karmolab/higher/';
     navigator.clipboard.writeText(text).then(function () { $('share').textContent = '복사했습니다'; });
   });
 
