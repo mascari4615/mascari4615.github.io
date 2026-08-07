@@ -669,6 +669,56 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.guessbar')) setSug('');
 });
 
+/* ── 훑어서 고르기 ──────────────────────────────────
+ * 추천 이름은 **치기 시작해야** 뜬다. 그런데 이름이 한 글자도 생각 안 나면 칠 수가 없어서
+ * 시작조차 못 한다 — 포켓몬 1025마리를 다 외우는 사람은 없다.
+ * 전체를 훑어보고 눌러서 낼 수 있게 한다. 위 칸에 뭔가 쳐 두면 그것으로 함께 걸러진다.
+ */
+const $browseOpen = root.querySelector('.browse-open');
+const $browse = root.querySelector('.browse');
+const $browseGrid = root.querySelector('.browse-grid');
+
+function renderBrowse() {
+  if (!$browseGrid || $browse.hidden) return;
+  /* 걸러내기는 추천 목록이 쓰는 것과 **같은 함수**를 쓴다 (첫 자음 검색까지 그대로 따라간다).
+   * 칸이 비었을 때만 여기서 전부를 늘어놓는다 — 그때는 추천이 아무것도 안 주기 때문이다. */
+  const q = $input.value.trim();
+  const list = q
+    ? suggest(topic.items, q, { limit: topic.items.length, exclude: state.guesses })
+    : topic.items.filter((it) => !state.guesses.some((g) => findItem([it], g)));
+  $browseGrid.innerHTML = list.length
+    ? list
+        .map(
+          (it) =>
+            `<button type="button" role="option" aria-selected="false" data-name="${esc(it.name)}">${
+              it.img && mode !== 'silhouette' ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : ''
+            }<span>${esc(it.name)}</span></button>`,
+        )
+        .join('')
+    : '<p class="browse-empty">걸러진 것이 없어요. 위 칸을 비우거나 다른 말로 찾아보세요.</p>';
+  [...$browseGrid.querySelectorAll('button')].forEach((b) =>
+    b.addEventListener('click', () => {
+      submit(b.dataset.name);
+      // 낸 것은 목록에서 빠져야 한다 — 안 그러면 같은 것을 또 누른다.
+      renderBrowse();
+    }),
+  );
+}
+
+if ($browseOpen) {
+  $browseOpen.addEventListener('click', () => {
+    const open = $browse.hidden;
+    $browse.hidden = !open;
+    $browseOpen.setAttribute('aria-expanded', String(open));
+    $browseOpen.textContent = open ? '접기' : '훑어보기';
+    if (open) {
+      setSug(''); // 추천 목록과 겹쳐 뜨지 않게
+      renderBrowse();
+    }
+  });
+  $input.addEventListener('input', renderBrowse);
+}
+
 // ── 되살리기 (새로고침해도 오늘 진행은 남는다) ──
 /**
  * 실루엣 판만 큰 그림을 쓴다 — 거기선 그림이 전부라 도트 그림으로는 못 푼다.
