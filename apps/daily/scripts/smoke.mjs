@@ -643,6 +643,51 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * **판을 이어서 두는 흐름** — 사람이 실제로 하는 그대로. 각 판은 따로 봤지만 옮겨 다니는 건 안 봤다.
+ * 다음 판 링크를 눌러 옮겨도 연속이 그대로인지, 남은 판이 하나씩 줄어드는지가 여기서만 갈린다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+
+  const finishHere = async () => {
+    const topicId = await page.getAttribute('#app', 'data-topic');
+    const mode = await page.getAttribute('#app', 'data-mode');
+    const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+    const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
+    await page.fill('.guessbar input', answer.name);
+    await page.waitForSelector('.sug button');
+    await page.click(`.sug button:has-text("${answer.name}")`);
+    await page.waitForSelector('.done:not([hidden])');
+    return `${topicId}/${mode}`;
+  };
+
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  const played = [await finishHere()];
+
+  // 다음 판 링크를 눌러 두 판 더 — 「오늘 것」만 따라간다(어제 판·전체 보기는 건너뛴다).
+  for (let i = 0; i < 2; i += 1) {
+    const next = await page.$$eval('.done .more a', (els) =>
+      els.map((e) => e.getAttribute('href')).find((h) => !h.includes('?d=') && h !== '/daily/'),
+    );
+    if (!next) break;
+    await page.goto(`${base}${next.replace('/daily', '')}`, { waitUntil: 'networkidle' });
+    played.push(await finishHere());
+  }
+
+  check('판을 이어서 셋을 뒀다', played.length === 3, played.join(' → '));
+  check('옮겨 다녀도 연속은 하루 하나다', /연속 1일/.test(await page.locator('.done .tally').innerText()));
+  check('이어 두는 동안 콘솔 오류 0', errors.length === 0, errors.join(' | '));
+
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  check('허브가 푼 만큼 줄여 센다', /남은 판 3개/.test(await page.locator('.hub-note').innerText()), await page.locator('.hub-note').innerText());
+  check('허브가 푼 판 셋을 표시한다', (await page.locator('.card.done-today').count()) === 3);
+  await ctx.close();
+}
+
+/**
  * **지는 판** — 여기까지 온 적이 한 번도 없었다. 안 돈 경로에 사고가 몰린다.
  * 다 틀렸을 때 정답을 알려 주는지, 격자가 X 로 남는지, 기록에 실패로 들어가는지 본다.
  */
