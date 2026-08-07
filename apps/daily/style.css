@@ -402,7 +402,8 @@ table.past .play:hover { border-color: var(--accent); }
 .group-t a { display: inline-flex; align-items: center; min-height: 28px; padding: 0 6px; color: var(--ink-2); }
 .card h3 { margin: 0 0 2px; font-size: 15px; }
 
-.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+/* 최소 폭을 화면보다 크게 잡으면 좁은 화면에서 넘친다 — 200% 확대(논리 폭 180px)에서 실제로 넘쳤다. */
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
 .card {
   display: block;
   text-decoration: none;
