@@ -988,6 +988,8 @@ const Toolbox = (() => {
         { x: [8, 22], y: [74, 88], band: 'far' },
         { x: [44, 58], y: [82, 92], band: 'far' },
     ];
+    /** 거리 3단이 그대로 시차 배수가 된다 — 멀수록 조금 밀린다 (TASK-KL-101) */
+    const DECOR_DEPTH = { far: 0.18, mid: 0.34, near: 0.55 };
     const DECOR_BANDS = {
         far: { z: [38, 58], blur: [2.4, 4.0], op: [.40, .52], dur: [54, 74], amp: [12, 22] },
         mid: { z: [62, 88], blur: [0.8, 1.6], op: [.62, .76], dur: [38, 52], amp: [18, 32] },
@@ -1072,7 +1074,11 @@ const Toolbox = (() => {
 
         const css = [], html = [];
         let idx = 0;
-        function add(z, blur, op, dur, amp, pos, extra) {
+        /* depth = 손가락·커서를 따라 얼마나 밀릴지. **가까운 것이 많이** 밀린다 —
+         * 창밖을 보며 지나갈 때 가까운 것이 빨리 흐르는 그 원리다 (TASK-KL-101).
+         * 중요: 떠다니는 움직임과 **자리를 나눠 쓴다**. 둘 다 transform 이라 한 요소에 겹치면
+         * 서로 덮어쓴다. 바깥 상자가 시차, 안쪽 상자가 떠다니기를 맡는다. */
+        function add(z, blur, op, dur, amp, pos, extra, depth) {
             const cls = 'kd' + (idx++);
             const ax = rng(amp[0], amp[1]).toFixed(0), ay = rng(amp[0], amp[1]).toFixed(0);
             const rot = rng(5, 20).toFixed(0), dir = rnd() < .5 ? 1 : -1;
@@ -1083,20 +1089,22 @@ const Toolbox = (() => {
                 + `75%{transform:translate(${-ax}px,${ay / 2}px) rotate(${-rot * dir}deg)}`
                 + `100%{transform:translate(0,0) rotate(0deg)}}`);
             html.push(`<div class="home-decor-item${extra ? ' ' + extra : ''}" style="${pos};opacity:${op};`
-                + `filter:blur(${blur}px);animation:${cls} ${secs}s ease-in-out ${delay}s infinite">`
-                + draw(kindOf(), pick(names), z, pick(grads)) + '</div>');
+                + `filter:blur(${blur}px);--depth:${depth}">`
+                + `<div class="home-decor-float" style="animation:${cls} ${secs}s ease-in-out ${delay}s infinite">`
+                + draw(kindOf(), pick(names), z, pick(grads)) + '</div></div>');
         }
 
         // 렌즈 바로 앞 — 화면보다 크고 잘리고 초점이 나갔다. 흐리므로 글을 안 가린다.
         const corners = ['left:-22%;top:34%', 'right:-24%;top:30%', 'left:-18%;top:-26%', 'right:-20%;top:-24%'];
-        add(Math.round(rng(1050, 1320) * k), rng(13, 19).toFixed(0), rng(.40, .52).toFixed(2), [110, 130], [24, 40], pick(corners), 'home-decor-lens');
+        add(Math.round(rng(1050, 1320) * k), rng(13, 19).toFixed(0), rng(.40, .52).toFixed(2), [110, 130], [24, 40], pick(corners), 'home-decor-lens', 1);
         // 또렷한 닻 — 좌우 중 한쪽 바깥에 걸친다
-        add(Math.round(rng(300, 380) * k), 0, rng(.86, .96).toFixed(2), [62, 76], [20, 34], rnd() < .5 ? 'right:-3%;top:26%' : 'left:-4%;top:22%');
+        add(Math.round(rng(300, 380) * k), 0, rng(.86, .96).toFixed(2), [62, 76], [20, 34], rnd() < .5 ? 'right:-3%;top:26%' : 'left:-4%;top:22%', null, 0.62);
         // 폰은 화면이 좁아 같은 개수를 뿌리면 빽빽하다 — 구역을 줄인다
         for (const zn of (narrow ? DECOR_ZONES.slice(0, 3) : DECOR_ZONES)) {
             const b = DECOR_BANDS[zn.band];
             add(Math.round(rng(b.z[0], b.z[1]) * k), rng(b.blur[0], b.blur[1]).toFixed(2), rng(b.op[0], b.op[1]).toFixed(2),
-                b.dur, b.amp, `left:${rng(zn.x[0], zn.x[1]).toFixed(1)}%;top:${rng(zn.y[0], zn.y[1]).toFixed(1)}%`);
+                b.dur, b.amp, `left:${rng(zn.x[0], zn.x[1]).toFixed(1)}%;top:${rng(zn.y[0], zn.y[1]).toFixed(1)}%`,
+                null, DECOR_DEPTH[zn.band]);
         }
 
         const style = document.createElement('style');
@@ -1104,6 +1112,40 @@ const Toolbox = (() => {
         document.head.appendChild(style);
         wrap.innerHTML = DECOR_DEFS + html.join('');
         wrap.dataset.seed = String(seed0);
+
+        /* 손가락·커서를 따라 도형이 조금 밀린다 (TASK-KL-101).
+         *
+         * 값은 **한 곳(감싸는 상자)에만** 쓴다. 도형마다 스타일을 건드리면 도형 수만큼 일이
+         * 늘고, 그때마다 브라우저가 배치를 다시 잰다. 각 도형은 제 depth 를 곱해 알아서 밀린다.
+         * 화면을 다시 그리는 일은 프레임당 한 번으로 묶는다(rAF) — 손가락 좌표는 그보다 훨씬
+         * 자주 들어온다.
+         *
+         * 움직임을 줄여 달라고 한 사람에게는 아예 안 건다. 「덜 움직이게」가 아니라 안 움직인다. */
+        const calm = typeof window !== 'undefined'
+            && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (!calm) {
+            const reach = narrow ? 26 : 44;   // 최대 몇 px 까지 밀릴지 (폰은 손가락이 가리므로 작게)
+            let tx = 0, ty = 0, queued = false;
+            const apply = () => {
+                queued = false;
+                wrap.style.setProperty('--px', tx.toFixed(1) + 'px');
+                wrap.style.setProperty('--py', ty.toFixed(1) + 'px');
+            };
+            const track = (x, y) => {
+                tx = ((x / window.innerWidth) * 2 - 1) * -reach;
+                ty = ((y / window.innerHeight) * 2 - 1) * -reach;
+                if (!queued) { queued = true; requestAnimationFrame(apply); }
+            };
+            window.addEventListener('pointermove', (e) => track(e.clientX, e.clientY), { passive: true });
+            window.addEventListener('touchmove', (e) => {
+                const t = e.touches && e.touches[0];
+                if (t) track(t.clientX, t.clientY);
+            }, { passive: true });
+            // 손을 떼거나 창을 벗어나면 제자리로 — 안 그러면 마지막 자리에 굳는다
+            const home = () => { tx = 0; ty = 0; if (!queued) { queued = true; requestAnimationFrame(apply); } };
+            window.addEventListener('touchend', home, { passive: true });
+            window.addEventListener('pointerleave', home, { passive: true });
+        }
         return wrap;
     }
 
@@ -1907,6 +1949,10 @@ const Toolbox = (() => {
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
+        // 로더도 이 해석기를 쓴다 (KL-103). 예전에는 로더가 제 규칙으로 주소를 만들어서
+        // 앞머리(vendor/·root/·world/)를 모른 채 늘 js/widgets/ 밑을 찾았다 — 실서비스에서
+        // 도구 셋이 라이브러리를 못 받고 있었다. 규칙을 두 벌 두지 않는다.
+        resolveScriptPath,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,
         field, resultBox, button, select,
         escapeHtml, formatTimestamp, showLightbox,
