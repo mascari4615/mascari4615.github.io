@@ -18,6 +18,8 @@ import {
   Companion,
   DistillingMemory,
   clonedSpeech,
+  EpisodeStore,
+  episodeNote,
   KnownStamps,
   말걸어도되나,
   자리결,
@@ -218,6 +220,10 @@ const memory =
 
 /* 「아는 것」의 줄마다 **언제부터 알던 것인지**를 따로 들고 있는다.
    목록 자체에 날짜를 섞어 적으면 다음에 졸일 때 그 날짜까지 재료가 되어 굳는다. */
+/* 감정이 실린 순간만 따로 남긴다 — 졸인 사실 목록에서는 사건이 통째로 사라진다.
+   「지난주에 발표 망했다고 속상해했다」가 「발표를 했다」로 줄거나 아예 빠진다. */
+const 그때그일 = new EpisodeStore({ path: join(home, '그때-그-일.json') });
+
 const 언제알았나 = new KnownStamps({ path: join(home, '아는-것-언제.json') });
 언제알았나.sync(memory.longTerm?.() ?? null);
 // 옛 대화를 뒤지는 손은 기억이 선 뒤에야 붙일 수 있다 — 뒤질 대상이 기억이기 때문이다.
@@ -632,6 +638,12 @@ const companion = new Companion({
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
       // 말을 걸기로 한 뒤에도 자리에 맞게 굴어야 한다 — 만드는 중인 사람에게 긴
       // 얘기를 늘어놓으면, 말 건 것 자체는 괜찮아도 방해가 된다.
+      // 이어지는 옛 일이 있으면 꺼낸다. 없으면 아무 말도 안 얹는다 — 늘 붙이면
+      // 「기억하는 척」이 되고 재료만 먹는다.
+      { name: '그때그일', weight: 10, text: (() => {
+        그때그일.learn(recent);
+        return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());
+      })() },
       { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을

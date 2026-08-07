@@ -1,0 +1,179 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+
+import type { MemoryEntry } from '../types';
+
+/**
+ * 그때 그 일 — 감정이 실린 순간만 따로 남긴다.
+ *
+ * 기억 쪽 레퍼런스가 공통으로 짚는 것: **감정이 실린 일은 오래 남고, 나머지는 흐려진다.**
+ * 사람 기억이 그렇고, 그래서 오래 쓰는 동반자도 그렇게 만든다.
+ *
+ * 우리 기억은 두 겹이었다 — 최근 몇 마디, 그리고 졸여서 만든 **사실 목록**. 사실 목록은
+ * 오래 쓸모 있는 것만 남기라고 시켰더니 **사건이 통째로 사라졌다.** 「지난주에 발표
+ * 망했다고 속상해했다」가 「발표를 했다」로 줄거나 아예 빠진다. 그런데 사람이 다시
+ * 꺼내고 싶은 건 사실이 아니라 그 순간이다.
+ *
+ * 그래서 세 번째 겹을 둔다. **감정이 실린 순간만** 그대로 남긴다 — 졸이지 않고, 말한
+ * 그대로. 몇 개 안 되므로 오래 들고 있어도 무겁지 않다.
+ *
+ * 좁게 잡는다. 아무 말이나 사건으로 세면 「오늘 점심 뭐 먹었어」가 다음 달에 튀어나온다.
+ */
+
+export interface Episode {
+  /** 그때 한 말, 그대로. */
+  said: string;
+  at: number;
+  /** 얼마나 감정이 실렸나. 자리가 모자랄 때 무엇을 버릴지 정한다. */
+  기운: number;
+}
+
+/** 감정이 실렸다는 표시들. */
+const 실린말 = [
+  '진짜', '너무', '완전', '엄청', '개', '미치', '大',
+  '속상', '슬프', '슬퍼', '화나', '짜증', '억울', '무섭', '두렵', '싫어', '싫다',
+  '기쁘', '행복', '신나', '좋아', '설레', '뿌듯', '고맙', '감동',
+  '망했', '망함', '큰일', '드디어', '해냈', '됐다', '성공', '실패', '포기',
+];
+
+/** 이 말이 얼마나 사건 같은가. 0 이면 그냥 지나가는 말. */
+export function 기운재기(text: string): number {
+  const 말 = text.trim();
+  if (말.length < 6) return 0; // 「응」 「ㅇㅇ」 같은 건 사건이 아니다
+  let 점수 = 0;
+  for (const 표시 of 실린말) if (말.includes(표시)) 점수 += 2;
+  점수 += Math.min(2, (말.match(/[!?]/g) ?? []).length);
+  // 물음표만 잔뜩인 건 감정이 아니라 질문이다.
+  if (/[?]/.test(말) && 점수 <= 2) 점수 = 0;
+  // 길게 털어놓은 말은 그 자체로 사건일 때가 많다.
+  if (말.length > 40) 점수 += 1;
+  return 점수;
+}
+
+export interface EpisodeStoreOptions {
+  /** 남겨 둘 파일. */
+  path?: string;
+  /** 몇 개까지 들고 있을까. */
+  keep?: number;
+  /** 이 점수 아래는 사건으로 안 센다. */
+  문턱?: number;
+}
+
+export class EpisodeStore {
+  private 목록: Episode[] = [];
+  private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | '문턱'>> & EpisodeStoreOptions;
+
+  constructor(options: EpisodeStoreOptions = {}) {
+    this.options = { keep: 40, 문턱: 3, ...options };
+    if (options.path !== undefined && existsSync(options.path)) {
+      try {
+        const raw = JSON.parse(readFileSync(options.path, 'utf8')) as Episode[];
+        if (Array.isArray(raw)) this.목록 = raw.filter((e) => typeof e?.said === 'string');
+      } catch {
+        // 깨진 파일 때문에 대화가 멈추면 안 된다.
+      }
+    }
+  }
+
+  get all(): readonly Episode[] {
+    return this.목록;
+  }
+
+  /**
+   * 오간 말에서 사건을 줍는다.
+   *
+   * **사람이 한 말만 센다.** 얘가 한 말을 사건으로 세면 제가 흥분한 걸 사람의 일로
+   * 기억한다 — 같은 뿌리를 이미 네 번 밟았다(16·23·48·53회차).
+   */
+  learn(entries: readonly MemoryEntry[]): number {
+    let 담은수 = 0;
+    for (const e of entries) {
+      if (e.role !== 'sensed' || e.channel !== 'web') continue;
+      const 기운 = 기운재기(e.text);
+      if (기운 < this.options.문턱) continue;
+      if (this.목록.some((있던것) => 있던것.said === e.text.trim())) continue;
+      this.목록.push({ said: e.text.trim(), at: e.at, 기운 });
+      담은수 += 1;
+    }
+    if (담은수 === 0) return 0;
+    // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
+    // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
+    if (this.목록.length > this.options.keep) {
+      this.목록.sort((a, b) => b.기운 - a.기운 || b.at - a.at);
+      this.목록 = this.목록.slice(0, this.options.keep);
+    }
+    this.목록.sort((a, b) => a.at - b.at);
+    this.save();
+    return 담은수;
+  }
+
+  /** 지금 이 말과 이어지는 옛 일. 없으면 null. */
+  related(now말: string, 최소겹침 = 2): Episode | null {
+    const 낱말 = 뽑기(now말);
+    if (낱말.length === 0) return null;
+    let 가장 = null as Episode | null;
+    let 가장점수 = 0;
+    for (const e of this.목록) {
+      const 그때 = new Set(뽑기(e.said));
+      const 겹침 = 낱말.filter((w) => 그때.has(w)).length;
+      if (겹침 >= 최소겹침 && 겹침 > 가장점수) { 가장 = e; 가장점수 = 겹침; }
+    }
+    return 가장;
+  }
+
+  forget(조각: string): boolean {
+    const 전 = this.목록.length;
+    this.목록 = this.목록.filter((e) => e.said.includes(조각) === false);
+    if (this.목록.length === 전) return false;
+    this.save();
+    return true;
+  }
+
+  private save(): void {
+    if (this.options.path === undefined) return;
+    try {
+      mkdirSync(dirname(this.options.path), { recursive: true });
+      writeFileSync(this.options.path, JSON.stringify(this.목록, null, 1), 'utf8');
+    } catch {
+      // 못 남겨도 이번 판에서는 안다.
+    }
+  }
+}
+
+/**
+ * 견줄 만한 낱말만 남긴다.
+ *
+ * **앞 두 글자로 견준다.** 한국어는 같은 말이 「속상해 / 속상하다 / 속상했어」로 계속
+ * 모양을 바꾼다 — 통째로 견주면 같은 일을 얘기하는데도 하나도 안 겹친다(실측). 앞
+ * 두 글자는 대개 그대로 남는다. 조사·한 글자 말은 아무 데나 겹치므로 버린다.
+ */
+function 뽑기(text: string): string[] {
+  return (text.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? [])
+    .map((w) => w.replace(/(은|는|이|가|을|를|에|의|도|만|로|와|과)$/, ''))
+    .filter((w) => w.length >= 2)
+    .map((w) => w.slice(0, 2));
+}
+
+/** 얼마나 지난 일인지 사람이 쓰는 말로. */
+export function 언제쯤(at: number, now: number): string {
+  const 날 = Math.floor((now - at) / (24 * 60 * 60_000));
+  if (날 >= 30) return '한참 전에';
+  if (날 >= 7) return '지난주쯤';
+  if (날 >= 2) return `${날}일 전에`;
+  if (날 >= 1) return '어제';
+  return '아까';
+}
+
+/**
+ * 두뇌에 얹을 한 줄 — **이어지는 옛 일이 있을 때만.**
+ *
+ * 늘 붙이면 「기억하는 척」이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
+ */
+export function episodeNote(store: EpisodeStore, 지금말: string, now: number): string {
+  const 그때 = store.related(지금말);
+  if (그때 === null) return '';
+  return (
+    `${언제쯤(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +
+    '이어지는 얘기면 그때 일을 아는 티를 내라 — 다만 캐묻지는 마라.'
+  );
+}
