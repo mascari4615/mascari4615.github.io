@@ -24,6 +24,8 @@ import {
   말걸어도되나,
   자리결,
   tossBackNote,
+  tossBackRetryNote,
+  안돌려줬나,
   되물은비율,
   갓알게된것,
   InMemoryMemory,
@@ -265,6 +267,8 @@ const quiet = new Quiet({
 // 흔들리는 마음 — 사건이 밀고 시간이 되돌린다.
 const heart = new Heart();
 let 직전에한말 = null;
+// 이번 turn 이 공을 돌려줄 자리인가 — 재료를 만들 때 정하고 입 앞 관문이 쓴다.
+let 공돌려줄자리 = false;
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const 시작한때 = Date.now();
 let 첫turn인가 = true;
@@ -515,11 +519,19 @@ const mouth = mouthGate({
   // 텅 빈 대꾸도 다시 시킨다 — 짧은 건 인격이지만 **연달아** 알맹이가 없으면 벽이다.
   alsoRetryWhen: (text) => unbackedClaim(text, 쓴손)
     ?? madeUpFact(text, 찾은것, conversationMemory.recent(12))
-    ?? hollowReason(text, conversationMemory.recent(40)),
+    ?? hollowReason(text, conversationMemory.recent(40))
+    /* 공을 안 돌려준 것도 여기서 잡는다. **재료로는 안 밀렸다** — 큰 머리로 바꿔도,
+       인격을 빼도 0/3 이었다(실측). 여섯 줄 중 한 줄로는 안 되고, 여기서는 그 한 가지만
+       말하므로 묻히지 않는다. 돌려줄 자리인지는 재료를 만들 때 이미 가렸다. */
+    ?? 안돌려줬나(text, 공돌려줄자리),
   // 왜 다시 시키는지에 따라 시키는 말이 다르다 — 「결에서 벗어났다」와 「알맹이가 없다」는
   // 고칠 데가 다르다.
   retry: (why) => {
-    const 말 = why.includes('안 하고') ? claimRetryNote(why)
+    // **다시 시켰다는 것 자체가 안 보였다.** 걸러진 것만 기록에 남아서, 「다시 시켰는데
+    // 또 안 됐다」와 「애초에 안 걸렸다」를 구분할 수가 없었다.
+    console.log(`[입] 다시 시킨다 — ${why}`);
+    const 말 = why.includes('식어 가는데') ? tossBackRetryNote()
+      : why.includes('안 하고') ? claimRetryNote(why)
       : why.includes('안 보고') ? madeUpRetryNote(why)
       : why.includes('알맹이 없는') ? hollowRetryNote(why)
       : retryNote(why);
@@ -667,7 +679,12 @@ const companion = new Companion({
       })() },
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
-      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
+      { name: '공돌려주기', weight: 13, text: (() => {
+        const 얹을말 = tossBackNote({ recent, 방금: 방금한말 });
+        // 입 앞 관문이 같은 판단을 두 번 하지 않게, 여기서 정한 걸 넘겨 둔다.
+        공돌려줄자리 = 얹을말 !== '';
+        return 얹을말;
+      })() },
       { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
