@@ -142,14 +142,52 @@ async function common(page, id, label) {
     }));
     say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
     say(stay.왼쪽값보임 && stay.오른값가림, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
+  }
 
-    /* 폰에서 연타하면 새 그림을 보기도 전에 두 번째 손가락이 답으로 먹혔다 — 판이 두 번 넘어간다. */
-    const before = await page.evaluate(() => Number(document.getElementById('streak').textContent));
-    await page.click('.side');
-    await page.click('.side').catch(() => {});
-    await page.waitForTimeout(500);
-    const now = await page.evaluate(() => Number(document.getElementById('streak').textContent));
-    say(now - before <= 1, `higher: 연타에 판이 ${now - before}번 넘어갔다 — 원치 않는 답이 들어간다`);
+  /* 아래 둘은 **이겼든 졌든 돌아야 한다** (TASK-KL-089).
+   * 위 검사를 「이겼을 때만」으로 묶어 두었더니, 첫 판을 지는 날에는 통째로 건너뛰었다 —
+   * 그 사이에 진짜 사고(진짜 클릭이 씹히는 것)가 지나갔는데도 검사는 초록이었다. */
+  if (await page.evaluate(() => !document.getElementById('again').hidden)) {
+    await page.click('#retry');
+    await page.waitForTimeout(700);
+  }
+
+  /* 손가락이 튀면 판이 두 번 넘어가 원치 않는 답이 들어간다.
+   * 도구의 click 은 버튼이 살아나길 기다려 주므로 그걸로는 연타를 못 만든다 — 그 자리에서 곧바로 부른다. */
+  {
+    const tap = await page.evaluate(() => {
+      const was = Number(document.getElementById('streak').textContent);
+      const a = document.getElementById('a');
+      a.click();
+      a.click();
+      a.click();
+      return { was, now: Number(document.getElementById('streak').textContent) };
+    });
+    say(tap.now - tap.was <= 1, `higher: 손가락이 튀니 판이 ${tap.now - tap.was}번 넘어갔다 — 원치 않는 답이 들어간다`);
+    await page.waitForTimeout(1400);
+    if (await page.evaluate(() => !document.getElementById('again').hidden)) {
+      await page.click('#retry');
+      await page.waitForTimeout(700);
+    }
+  }
+
+  /* 반대 방향 — 연타를 막으려다 새 그림을 보고 바로 누른 진짜 클릭까지 먹은 적이 있다.
+   * 스무 판을 다 맞혔는데 연승이 10 이었다. 네 번 눌러 네 번 다 먹히는지 본다. */
+  {
+    let counted = 0;
+    for (let i = 0; i < 4; i++) {
+      const s0 = await page.evaluate(() => Number(document.getElementById('streak').textContent));
+      await page.click('.side');
+      await page.waitForTimeout(1250);
+      const s1 = await page.evaluate(() => Number(document.getElementById('streak').textContent));
+      const over = await page.evaluate(() => !document.getElementById('again').hidden);
+      if (s1 !== s0 || over) counted++;
+      if (over) {
+        await page.click('#retry');
+        await page.waitForTimeout(700);
+      }
+    }
+    say(counted === 4, `higher: 네 번 눌렀는데 ${counted}번만 먹혔다 — 새 판 직후 클릭이 씹힌다`);
   }
 
   await page.close();
