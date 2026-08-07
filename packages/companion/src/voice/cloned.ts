@@ -1,4 +1,5 @@
 import type { Speech, SpeechVoice } from './edge-tts';
+import { 기분빠르기, type Tone } from './feeling-tone';
 
 /**
  * 흉내 낸 목소리 — 참고 음성 몇 초로 그 사람처럼 말하게 한다.
@@ -51,7 +52,15 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
       return [{ id: 'cloned', label, gender: '흉내' }];
     },
 
-    async synthesize(text: string): Promise<Buffer> {
+    async synthesize(text: string, voiceId?: string): Promise<Buffer> {
+      /* **결을 빠르기로 옮긴다.**
+         이 목소리는 높낮이를 못 바꾸지만 빠르기는 바꿀 수 있다. 결을 무시하면 마음이
+         어떻든 늘 같은 속도로 말하고, 밤에 누그러뜨리는 것도 안 들린다 — 결을 붙여
+         놓고 듣는 쪽이 안 받으면 붙인 적 없는 것과 같다.
+         이름 뒤의 `@결` 을 읽는다. 없으면 늘 하던 속도. */
+      const 결 = (voiceId ?? '').split('@')[1] as Tone | undefined;
+      // 기분빠르기는 「늘어지는 정도」라 방향이 반대다 — 1.15 는 느리게, 여기선 나눠 준다.
+      const 빠르기 = 결 !== undefined && 결 in 기분빠르기 ? 1 / 기분빠르기[결] : 1.0;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
@@ -68,7 +77,7 @@ export function clonedSpeech(options: ClonedSpeechOptions): Speech & { alive(): 
             // 문장을 잘게 쪼개 이어 붙이면 첫 소리가 빨리 나온다.
             text_split_method: 'cut5',
             batch_size: 1,
-            speed_factor: 1.0,
+            speed_factor: Number(빠르기.toFixed(3)),
           }),
           signal: controller.signal,
         });

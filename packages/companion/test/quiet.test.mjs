@@ -151,7 +151,21 @@ test('조용 중이면 답은 하되 짧게 — 벙어리가 되라는 게 아�
 test('밤과 부탁을 다르게 말한다', () => {
   const { q, 시각 } = 만들기({ fromHour: 23, toHour: 7 });
   시각(2);
-  assert.match(quietNote(q), /조용한 시간/);
+  assert.match(quietNote(q), /밤이라 먼저 말 걸지 않는다/);
   q.hushFor(30 * 분);
   assert.match(quietNote(q), /조수님이 조용히 있으라고/);
+});
+
+test('그냥 밤일 때는 짧게 답하라고 시키지 않는다 — 그러면 대화가 통째로 죽는다', () => {
+  const { q, 시각 } = 만들기({ fromHour: 23, toHour: 7 });
+  시각(2);
+  const 말 = quietNote(q);
+  assert.equal(말.includes('아주 짧게'), false);
+  assert.match(말, /평소처럼 제대로 답하라/);
+});
+
+test('부탁받았을 때는 여전히 짧게 — 그건 사람이 그러라고 한 것이다', () => {
+  const { q } = 만들기({ fromHour: 23, toHour: 7 });
+  q.hushFor(30 * 분);
+  assert.match(quietNote(q), /아주 짧게/);
 });
