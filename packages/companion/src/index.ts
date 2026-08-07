@@ -105,3 +105,4 @@ export * from './wish';
 export * from './pressure';
 export * from './heard';
 export * from './room-learn';
+export * from './memory/reflect';
