@@ -25,6 +25,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['user']
   },
   {
+    id: 'status',
+    title: '상태 · 변경 기록',
+    category: 'tool',
+    hidden: true,
+    desc: '지금 잘 돌고 있는지와 최근에 무엇이 바뀌었는지 — 전부 실측',
+    layout: 'form',
+    icon: '<path d="M3 12h4l2.5-7 4 14L16 12h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['status']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',
@@ -386,6 +396,16 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 7l2 2 4-4M4 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7h7M13 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/checklist']
+  },
+  {
+    // 놀이라 묶음에 안 넣는다 — 목록에서 바로 보여야 사람이 들어온다 (TASK-KL-131).
+    id: 'ghosttype',
+    title: '유령 타자 대결',
+    category: 'tool',
+    desc: '타자 기록이 주소 하나가 되고, 그 주소를 연 사람은 내 유령과 나란히 달립니다. 아무 글이나 걸 수 있고 주소는 만료되지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M12 3a6 6 0 0 0-6 6v10l2-1.6 2 1.6 2-1.6 2 1.6 2-1.6 2 1.6V9a6 6 0 0 0-6-6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M10 10h.01M14 10h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/ghosttype']
   },
   {
     // 묶음에 넣지 않는다 — 다른 PDF 도구가 「한 파일을 고친다」면 이건 「두 판본을 견준다」라
