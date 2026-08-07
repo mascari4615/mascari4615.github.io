@@ -218,18 +218,24 @@ const hub = `${head({
   <p class="lede">판을 고르면 오늘의 문제가 하나. 매일 자정(KST)에 바뀐다.</p>
   <div class="hub-jump"></div>
   <p class="hub-note"></p>
-  <div class="cards">
-${all
+${topics
   .map(
-    (p) => `    <a class="card" href="${BASE}/${p.path}/" data-topic="${esc(p.topic.id)}" data-mode="${p.mode}">
-      <div class="em">${esc(p.topic.emoji ?? '🎯')}</div>
-      <h2>${esc(p.label)}</h2>
-      <p>${esc(p.mode === 'silhouette' ? '그림만 보고 맞히기' : p.topic.subtitle ?? '')}</p>
-      <div class="cnt">${p.topic.items.length.toLocaleString('ko-KR')}개 중 하나</div>
-    </a>`,
+    (t) => `  <section class="group">
+    <h2 class="group-t">${esc(t.emoji ?? '🎯')} ${esc(t.title)} <span>${t.items.length.toLocaleString('ko-KR')}개 중 하나 · 지난 문제는 <a href="${BASE}/${t.id}/past/">여기</a></span></h2>
+    <div class="cards">
+${pagesOf(t)
+  .map(
+    (p) => `      <a class="card" href="${BASE}/${p.path}/" data-topic="${esc(t.id)}" data-mode="${p.mode}">
+        <h3>${esc(p.short === '실루엣' ? '실루엣' : '속성 맞히기')}</h3>
+        <p>${esc(p.mode === 'silhouette' ? '까만 그림, 틀릴수록 밝아진다' : '초록·노랑·▲▼ 힌트로 좁힌다')}</p>
+        <div class="cnt"></div>
+      </a>`,
   )
   .join('\n')}
-  </div>
+    </div>
+  </section>`,
+  )
+  .join('\n')}
   <details class="how">
     <summary>어떻게 하는 거예요?</summary>
     <ol>
@@ -240,7 +246,6 @@ ${all
     </ol>
     <p>답은 매일 자정(한국 시각)에 바뀐다. 로그인 없음, 기록은 이 기기에만 남는다.</p>
   </details>
-  <div class="past-links">지난 문제: ${topics.map((t) => `<a href="${BASE}/${t.id}/past/">${esc(t.title)}</a>`).join(' · ')}</div>
   ${foot(true)}
 </div>
 <script type="module" src="hub.mjs?v=${stamp}"></script>
