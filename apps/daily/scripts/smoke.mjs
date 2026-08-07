@@ -236,6 +236,39 @@ await pastPage('genshin');
 }
 
 /**
+ * 결과가 퍼져야 사람이 온다. 폰에는 기기 공유 창이 있으니 한 번에 끝나야 하고,
+ * 없는 기기에서는 복사로 돌아가야 한다 — 두 갈래를 다 확인한다.
+ */
+for (const withShare of [true, false]) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'pokemon.json'), 'utf8'));
+  const answer = answerOf(topic);
+  const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+  const page = await ctx.newPage();
+  await page.addInitScript((on) => {
+    window.__shared = null;
+    if (on) navigator.share = (data) => { window.__shared = data; return Promise.resolve(); };
+    else delete navigator.share;
+  }, withShare);
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answer.name}")`);
+  await page.waitForSelector('.done .btn');
+
+  const label = await page.locator('.done .btn').innerText();
+  check(`[공유:${withShare ? '기기' : '복사'}] 단추 이름이 맞다`, withShare ? /공유/.test(label) : /복사/.test(label), label);
+  await page.click('.done .btn');
+  if (withShare) {
+    const shared = await page.evaluate(() => window.__shared?.text ?? null);
+    check('[공유:기기] 기기 공유 창으로 바로 넘긴다', !!shared && shared.includes('🟩') && !shared.includes(answer.name));
+  } else {
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    check('[공유:복사] 공유 창이 없으면 복사로 돌아간다', copied.includes('🟩') && !copied.includes(answer.name));
+  }
+  await ctx.close();
+}
+
+/**
  * 표가 오기 전 몇 초. 그동안 입력칸은 먹통인데 아무 말도 안 했다 — 느린 회선에서는 「고장」으로 읽힌다.
  */
 {

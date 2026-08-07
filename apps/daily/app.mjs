@@ -299,8 +299,22 @@ function finish() {
     el(`<div class="tally">${stats.played}판 · ${Math.round((stats.wins / Math.max(1, stats.played)) * 100)}% 맞힘 · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
   );
 
-  const btn = el('<button class="btn" type="button">결과 복사하기</button>');
+  /**
+   * 이 물건은 결과가 퍼져야 사람이 온다. 그런데 지금까지는 **복사 → 앱 열기 → 붙여넣기** 셋이었다.
+   * 폰에는 기기 공유 창이 있으니 한 번으로 끝낸다. 없는 기기(대부분의 PC)에서는 복사로 돌아간다.
+   */
+  const canShare = typeof navigator.share === 'function';
+  const btn = el(`<button class="btn" type="button">${canShare ? '결과 공유하기' : '결과 복사하기'}</button>`);
   btn.addEventListener('click', async () => {
+    if (canShare) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (err) {
+        // 사용자가 공유 창을 그냥 닫은 것뿐이면 아무 말도 하지 않는다.
+        if (err?.name === 'AbortError') return;
+      }
+    }
     try {
       await navigator.clipboard.writeText(text);
       btn.textContent = '복사됨! 아무 데나 붙여넣기';
