@@ -365,6 +365,7 @@ a { color: var(--accent); }
   padding: 8px 14px;
 }
 .more a:hover { border-color: var(--accent); }
+.more .more-all { background: none; border-style: dashed; color: var(--ink-2); }
 
 /* ── 지난 문제 ── */
 table.past { width: 100%; border-collapse: collapse; }
