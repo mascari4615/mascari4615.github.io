@@ -1,5 +1,7 @@
 /**
- * User Page — 내 정보, 도전과제, 뱃지
+ * 내 정보 — 프로필 · 성과 · 활동 · 계정 (TASK-KL-139).
+ *
+ * 환경 설정(테마·API 키·저장소)은 여기 없다 → `widgets/settings.ts`.
  */
 (function (): void {
     const PROGRESS_KEY = 'pet_strokes';
@@ -35,8 +37,6 @@
         streaks?: Record<string, UserStreak>;
     };
 
-    type StorageItemStat = { key: string; bytes: number; valLen: number };
-
     const DEFS: {
         achievements: UserAchievement[];
         badges: UserBadge[];
@@ -67,15 +67,7 @@
 
     Mdd.injectCSS('user-page', `
         .user-layout { display:flex; flex-direction:column; gap:24px; }
-        .user-header { display:flex; align-items:center; gap:20px; padding:24px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-lg); }
-        .user-avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%); display:flex; align-items:center; justify-content:center; font-size:36px; }
-        .user-info { flex:1; }
-        .user-info h2 { font-size:18px; font-weight:600; margin:0 0 4px 0; color:var(--text-primary); }
-        .user-info p { font-size:var(--font-size-sm); color:var(--text-secondary); margin:0; }
-        .user-quick-stats { display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; }
-        .user-quick-stat { font-size:var(--font-size-sm); color:var(--text-secondary); }
-        .user-quick-stat strong { color:var(--accent); margin-right:4px; }
-        .user-section h3 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+        .user-section h3{ font-size:14px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
         .user-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
         .user-item { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; text-align:center; transition:opacity 0.2s; }
         .user-item.locked { opacity:0.5; filter:grayscale(0.8); }
@@ -85,30 +77,7 @@
         .user-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
         .user-link { font-size:var(--font-size-sm); color:var(--accent); text-decoration:none; }
         .user-link:hover { text-decoration:underline; }
-        .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 16px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; }
-        .settings-row label { font-size:var(--font-size-sm); font-weight:500; color:var(--text-primary); white-space:nowrap; flex-shrink:0; }
-        .settings-row .settings-control { min-width:140px; }
-        /* 견본처럼 폭이 필요한 것은 한 줄에 나란히 두지 않고 아래로 편다 */
-        .settings-row-stack { display:block; }
-        .settings-row-stack label { display:block; margin-bottom:10px; }
-        .settings-section { margin-bottom:24px; }
-        .settings-section h3 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; }
-        .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
-        .settings-danger .btn-ghost { color:var(--error); }
-        .settings-code-preview { margin-top:12px; font-size:var(--font-size-xs); }
-        .settings-code-preview pre { margin:0; border-radius:var(--radius-md); overflow-x:auto; }
-        .settings-code-preview pre code { padding:12px 14px; line-height:1.5; display:block; font-size:var(--font-size-xs); }
-        .storage-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-        .storage-card { background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 20px; min-width:140px; }
-        .storage-card-value { font-size:22px; font-weight:700; color:var(--accent); font-family:monospace; }
-        .storage-card-label { font-size:var(--font-size-xs); color:var(--text-secondary); margin-top:4px; }
-        .storage-table { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
-        .storage-table th, .storage-table td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
-        .storage-table th { background:var(--bg-secondary); color:var(--text-secondary); font-weight:600; }
-        .storage-table td:last-child, .storage-table th:last-child { text-align:right; font-family:monospace; }
-        .storage-table .storage-key { font-family:monospace; font-size:var(--font-size-xs); color:var(--text-primary); word-break:break-all; }
-        .storage-table .storage-desc { font-size:var(--font-size-xs); color:var(--text-tertiary); max-width:200px; }
-        /* 계정 자리 (TASK-KL-098) — 서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
+        /* 계정 자리 (TASK-KL-098)— 서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
         .user-account-slot:empty { display:none; }
         .user-account-card { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
             margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; background:var(--bg-secondary); }
@@ -148,26 +117,61 @@
         html[data-theme="dark"] .user-account-btn-danger { color:#fca5a5; border-color:rgba(252,165,165,.45); }
         .user-account-btn-danger:hover { background:rgba(220,38,38,.12); }
         .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
+
+        /* 신원 배지 (TASK-KL-139) — 「내 정보」의 나와 「계정」의 나는 한 사람이다.
+           두 칸으로 나뉘어 있으면 로그인한 뒤에도 위쪽에는 여전히 남이 서 있다. */
+        .user-id { display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+            padding:22px 24px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-lg); }
+        .user-id-avatar { width:72px; height:72px; border-radius:50%; flex:0 0 auto; overflow:hidden;
+            background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+            display:flex; align-items:center; justify-content:center; font-size:36px; }
+        .user-id-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+        .user-id-main { flex:1 1 220px; min-width:0; }
+        .user-id-main h2 { font-size:20px; font-weight:600; margin:0 0 4px; color:var(--text-primary); }
+        .user-id-sub { font-size:var(--font-size-sm); color:var(--text-secondary); margin:0 0 4px; }
+        .user-id-sub a { color:var(--accent); text-decoration:none; }
+        .user-id-sub a:hover { text-decoration:underline; }
+        .user-id-mascot { font-size:var(--font-size-xs); color:var(--text-tertiary); margin:0; }
+        .user-id-actions { display:flex; gap:8px; flex:0 0 auto; }
+        .user-stats { display:flex; gap:10px; flex-wrap:wrap; }
+        .user-stat { flex:1 1 100px; min-width:96px; padding:12px 14px; text-align:center;
+            background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); }
+        .user-stat b { display:block; font-size:20px; font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
+        .user-stat span { display:block; margin-top:2px; font-size:var(--font-size-xs); color:var(--text-secondary); }
     `);
 
-    function buildOverview(container: HTMLElement): void {
+    /**
+     * 프로필 (TASK-KL-139).
+     *
+     * 예전에는 이 화면 맨 위에 「Toolbox 사용자 👤」가 서 있고, **그 아래 따로** 계정 칸이 있었다.
+     * 로그인을 해도 위쪽은 여전히 남이었다 — 한 사람을 두 칸으로 그리면 둘 중 하나는 늘 거짓말이다.
+     * 이제 신원 배지는 하나뿐이고, 로그인하면 그 배지가 곧 내 계정이다.
+     */
+    function buildProfile(container: HTMLElement): void {
+        container.innerHTML = `
+            <div class="user-layout">
+                <div id="userIdentity"></div>
+                <div class="user-stats" id="userStats"></div>
+                <div id="userServerSlot"></div>
+            </div>`;
+
+        renderStats(container.querySelector<HTMLElement>('#userStats'));
+        mountIdentity(container.querySelector<HTMLElement>('#userIdentity'));
+        watchServerSlot(container.querySelector('#userServerSlot'));
+    }
+
+    function renderStats(slot: HTMLElement | null): void {
+        if (!slot) return;
         const data = (Toolbox.getUserData?.() as UserData | undefined) ?? {};
-        const achievements = data.achievements ?? [];
-        const badges = data.badges ?? [];
         const progress = data.progress ?? {};
         const petStrokes = progress[PROGRESS_KEY] ?? 0;
         const usageStats = Toolbox.getUsageStats?.() ?? {};
         let totalChat = 0, totalImage = 0;
-        const usageValues = Object.values(usageStats) as Array<{ chatCount?: number; imageCount?: number }>;
-        usageValues.forEach((s) => {
+        (Object.values(usageStats) as Array<{ chatCount?: number; imageCount?: number }>).forEach((s) => {
             totalChat += s.chatCount ?? 0;
             totalImage += s.imageCount ?? 0;
         });
 
-        const achCount = achievements.length;
-        const badgeCount = badges.length;
-        const totalA = DEFS.achievements.length;
-        const totalB = DEFS.badges.length;
         const streaks = data.streaks ?? {};
         const streakIds = Object.keys(streaks);
         let maxStreakCurrent = 0;
@@ -176,30 +180,67 @@
             if (typeof sc === 'number' && sc > maxStreakCurrent) maxStreakCurrent = sc;
         });
 
-        container.innerHTML = `
-            <div class="user-layout">
-                <div class="user-header">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-info">
-                        <h2>Toolbox 사용자</h2>
-                        <p>마스코트 관계: <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong> · 호감도 ${Mdd.getAffection()}</p>
-                        <div class="user-quick-stats">
-                            <span class="user-quick-stat"><strong>${achCount}/${totalA}</strong> 도전과제</span>
-                            <span class="user-quick-stat"><strong>${badgeCount}/${totalB}</strong> 뱃지</span>
-                            <span class="user-quick-stat"><strong>${streakIds.length}</strong> 스트릭 트랙</span>
-                            <span class="user-quick-stat"><strong>${maxStreakCurrent}</strong> 최고 연속(일)</span>
-                            <span class="user-quick-stat"><strong>${petStrokes.toLocaleString()}</strong> 쓰담</span>
-                            <span class="user-quick-stat"><strong>${totalChat}</strong> 채팅</span>
-                            <span class="user-quick-stat"><strong>${totalImage}</strong> 이미지</span>
-                        </div>
-                    </div>
+        const cells: Array<[string, string]> = [
+            [`${(data.achievements ?? []).length}/${DEFS.achievements.length}`, '도전과제'],
+            [`${(data.badges ?? []).length}/${DEFS.badges.length}`, '뱃지'],
+            [String(maxStreakCurrent), '최고 연속(일)'],
+            [petStrokes.toLocaleString(), '쓰담'],
+            [String(totalChat), '채팅'],
+            [String(totalImage), '이미지'],
+        ];
+        slot.innerHTML = cells.map(([value, label]) => `<div class="user-stat"><b>${value}</b><span>${label}</span></div>`).join('');
+    }
+
+    /**
+     * 신원 배지 — 로그인 여부에 따라 **같은 자리**가 달라진다 (칸이 새로 생기지 않는다).
+     *
+     * 서버에 못 닿으면 이름·마스코트만 남고 단추가 사라진다. 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     */
+    function mountIdentity(slot: HTMLElement | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) {
+            paintIdentity(slot, null);
+            return;
+        }
+        account.subscribe((state) => {
+            if (!slot.isConnected) return;
+            paintIdentity(slot, state);
+        });
+    }
+
+    type AccountState = { account: { handle: string; displayName: string; avatarPath: string | null; joinedAt: string; profileUrl: string } | null; reachable: boolean; loading: boolean };
+
+    function paintIdentity(slot: HTMLElement, state: AccountState | null): void {
+        const account = window.KarmoAccount;
+        const me = state?.account ?? null;
+        const canOffer = !!state && !state.loading && state.reachable;
+        const avatar = me && account ? account.avatarUrl(me.avatarPath) : null;
+
+        const sub = me
+            ? `@${escapeHtml(me.handle)} · <a href="${escapeHtml(me.profileUrl)}">남에게 보이는 프로필</a>`
+            : canOffer
+              ? '지금 기록은 이 브라우저에만 있습니다 — 계정을 만들면 기기를 바꿔도 남습니다.'
+              : '이 브라우저에 기록 중';
+
+        slot.innerHTML = `
+            <div class="user-id">
+                <div class="user-id-avatar">${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : '👤'}</div>
+                <div class="user-id-main">
+                    <h2>${escapeHtml(me ? me.displayName : 'Toolbox 사용자')}</h2>
+                    <p class="user-id-sub">${sub}</p>
+                    <p class="user-id-mascot">마스코트 관계: <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong> · 호감도 ${Mdd.getAffection()}</p>
                 </div>
-                <div class="user-account-slot" id="userAccountSlot"></div>
-                <div id="userServerSlot"></div>
+                <div class="user-id-actions">
+                    ${me ? '<button type="button" class="user-account-btn user-account-btn-quiet" data-signout>로그아웃</button>' : ''}
+                    ${!me && canOffer ? '<button type="button" class="user-account-btn" data-signin>디스코드로 시작하기</button>' : ''}
+                </div>
             </div>`;
 
-        renderAccountSlot(container.querySelector('#userAccountSlot'));
-        watchServerSlot(container.querySelector('#userServerSlot'));
+        slot.querySelector('[data-signin]')?.addEventListener('click', () => account?.signIn());
+        slot.querySelector('[data-signout]')?.addEventListener('click', () => {
+            void account?.signOut();
+        });
     }
 
     /**
@@ -272,22 +313,34 @@
     }
 
     /**
-     * 계정 자리 (TASK-KL-098).
+     * 계정 탭 (TASK-KL-098 → KL-135).
      *
      * 서버에 못 닿으면 **아무것도 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
      * 로그인은 기록을 옮기는 일이지 기능을 여는 일이 아니므로, 없어도 화면이 멀쩡해야 한다.
      */
-    function renderAccountSlot(slot: Element | null): void {
+    function buildAccount(container: HTMLElement): void {
+        container.innerHTML = '<div class="user-layout"><div id="userAccountSlot" class="user-account-slot"></div></div>';
+        const slot = container.querySelector<HTMLElement>('#userAccountSlot');
         if (!slot) return;
         const account = window.KarmoAccount;
-        if (!account) return;
+        if (!account) {
+            slot.innerHTML = '<p class="user-act-lead">계정 기능이 지금 꺼져 있습니다. 도구는 그대로 씁니다.</p>';
+            return;
+        }
 
+        let drawnFor: string | null = null;
         account.subscribe((state) => {
             if (!slot.isConnected) return;
-            if (state.loading || !state.reachable) {
-                slot.innerHTML = '';
+            if (state.loading) return;
+            if (!state.reachable) {
+                drawnFor = null;
+                slot.innerHTML = '<p class="user-act-lead">계정 서버에 지금 못 닿았습니다. 잠시 뒤에 다시 열어 주세요 — 도구는 그대로 씁니다.</p>';
                 return;
             }
+            const key = state.account ? `in:${state.account.handle}:${state.account.displayName}` : 'out';
+            if (drawnFor === key) return;
+            drawnFor = key;
+
             if (!state.account) {
                 slot.innerHTML = `
                     <div class="user-account-card">
@@ -507,221 +560,67 @@
         }
     }
 
+    /**
+     * 성과 (TASK-KL-139) — 도전과제·뱃지·스트릭은 「내가 쌓은 것」 하나의 이야기다.
+     * 탭 셋으로 흩어 두면 어느 탭에 뭐가 있었는지를 사람이 외워야 한다 (Steam 도 한 화면이다).
+     */
     function buildAchievements(container: HTMLElement): void {
-        Mdd.linePreset('achievement', { msg: '도전과제 보여줄게요~' });
+        Mdd.linePreset('achievement', { msg: '지금까지 쌓은 거 보여줄게요~' });
         renderAchievements(container);
     }
 
     function renderAchievements(container: HTMLElement): void {
         const data = (Toolbox.getUserData?.() as UserData | undefined) ?? {};
         const achievements = data.achievements ?? [];
-        const all = [...DEFS.achievements];
-
-        container.innerHTML = `
-            <div class="user-layout">
-                <div class="user-section">
-                    <h3>🏆 도전과제 (${achievements.length}/${all.length})</h3>
-                    <div class="user-grid">
-                        ${all.map(a => {
-                            const unlocked = achievements.includes(a.id);
-                            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${a.desc}">
-                                <div class="user-item-icon">${unlocked ? a.icon : '🔒'}</div>
-                                <div class="user-item-title">${a.title}</div>
-                                <div class="user-item-desc">${a.desc}</div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function buildStreaks(container: HTMLElement): void {
-        Mdd.linePreset('daily_start', { msg: '스트릭 현황이에요~' });
-        renderStreaks(container);
-    }
-
-    function renderStreaks(container: HTMLElement): void {
-        const data = (Toolbox.getUserData?.() as UserData | undefined) ?? {};
-        const streaks = data.streaks ?? {};
-        const ids = Object.keys(streaks);
-        const labels = STREAK_TRACK_LABELS;
-
-        container.innerHTML = `
-            <div class="user-layout">
-                <div class="user-section">
-                    <h3>🔥 스트릭 (${ids.length} 트랙)</h3>
-                    ${ids.length === 0 ? '<p style="font-size:var(--font-size-sm);color:var(--text-secondary);margin:0 0 12px 0;">아직 기록이 없어요. 플래너(React)에서 오늘 완료를 눌러보세요.</p>' : ''}
-                    <div class="user-grid">
-                        ${ids.map((id) => {
-                            const s = streaks[id];
-                            if (!s) return '';
-                            const label = labels[id] || id;
-                            const safeLabel = Toolbox.escapeHtml ? Toolbox.escapeHtml(label) : label;
-                            const safeId = Toolbox.escapeHtml ? Toolbox.escapeHtml(id) : id;
-                            return `<div class="user-item" title="${safeId}">
-                                <div class="user-item-icon">🔥</div>
-                                <div class="user-item-title">${safeLabel}</div>
-                                <div class="user-item-desc">현재 ${s.current ?? 0}일 · 최장 ${s.longest ?? 0}일 · ${Toolbox.escapeHtml ? Toolbox.escapeHtml(s.lastActivityDate || '—') : (s.lastActivityDate || '—')}</div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    function buildBadges(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '뱃지 보여줄게요~' });
-        renderBadges(container);
-    }
-
-    function renderBadges(container: HTMLElement): void {
-        const data = (Toolbox.getUserData?.() as UserData | undefined) ?? {};
         const badges = data.badges ?? [];
-        const all = [...DEFS.badges];
+        const streaks = data.streaks ?? {};
+        const streakIds = Object.keys(streaks);
+
+        const achGrid = DEFS.achievements.map((a) => {
+            const unlocked = achievements.includes(a.id);
+            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${escapeHtml(a.desc)}">
+                <div class="user-item-icon">${unlocked ? a.icon : '🔒'}</div>
+                <div class="user-item-title">${escapeHtml(a.title)}</div>
+                <div class="user-item-desc">${escapeHtml(a.desc)}</div>
+            </div>`;
+        }).join('');
+
+        const badgeGrid = DEFS.badges.map((b) => {
+            const unlocked = badges.includes(b.id);
+            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${escapeHtml(b.desc)}">
+                <div class="user-item-icon">${unlocked ? b.icon : '🔒'}</div>
+                <div class="user-item-title">${escapeHtml(b.title)}</div>
+                <div class="user-item-desc">${escapeHtml(b.desc)}</div>
+            </div>`;
+        }).join('');
+
+        const streakGrid = streakIds.map((id) => {
+            const s = streaks[id];
+            if (!s) return '';
+            return `<div class="user-item" title="${escapeHtml(id)}">
+                <div class="user-item-icon">🔥</div>
+                <div class="user-item-title">${escapeHtml(STREAK_TRACK_LABELS[id] || id)}</div>
+                <div class="user-item-desc">현재 ${s.current ?? 0}일 · 최장 ${s.longest ?? 0}일 · ${escapeHtml(s.lastActivityDate || '—')}</div>
+            </div>`;
+        }).join('');
 
         container.innerHTML = `
             <div class="user-layout">
                 <div class="user-section">
-                    <h3>🎖️ 뱃지 (${badges.length}/${all.length})</h3>
-                    <div class="user-grid">
-                        ${all.map(b => {
-                            const unlocked = badges.includes(b.id);
-                            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${b.desc}">
-                                <div class="user-item-icon">${unlocked ? b.icon : '🔒'}</div>
-                                <div class="user-item-title">${b.title}</div>
-                                <div class="user-item-desc">${b.desc}</div>
-                            </div>`;
-                        }).join('')}
-                    </div>
+                    <h3>🏆 도전과제 (${achievements.length}/${DEFS.achievements.length})</h3>
+                    <div class="user-grid">${achGrid}</div>
                 </div>
-                <div class="user-actions">
-                    <button class="btn btn-danger" id="userReset">🗑️ 유저 데이터 초기화</button>
+                <div class="user-section">
+                    <h3>🎖️ 뱃지 (${badges.length}/${DEFS.badges.length})</h3>
+                    <div class="user-grid">${badgeGrid}</div>
+                </div>
+                <div class="user-section">
+                    <h3>🔥 스트릭 (${streakIds.length} 트랙)</h3>
+                    ${streakIds.length === 0
+                        ? '<p style="font-size:var(--font-size-sm);color:var(--text-secondary);margin:0;">아직 기록이 없어요. 플래너에서 오늘 완료를 눌러보세요.</p>'
+                        : `<div class="user-grid">${streakGrid}</div>`}
                 </div>
             </div>`;
-
-        container.querySelector<HTMLButtonElement>('#userReset')?.addEventListener('click', () => {
-            if (!confirm('모든 도전과제, 뱃지, 진행도를 초기화합니다. 계속할까요?')) return;
-            localStorage.removeItem('toolbox_user_data');
-            renderBadges(container);
-            Toolbox.showToast?.('유저 데이터 초기화 완료');
-        });
-    }
-
-    /** 키별 용도 설명 (Toolbox 관련) */
-    const STORAGE_DESC: Record<string, string> = {
-        'toolbox_theme': '테마 (라이트/다크)',
-        'toolbox_nav_layout': '네비게이션 레이아웃 (상단/사이드바)',
-        'toolbox_sidebar_groups': '사이드바 그룹 접힘 상태',
-        'toolbox_prism_theme': '코드 하이라이트 테마',
-        'toolbox_last_page': '마지막 접속 페이지',
-        'toolbox_widget_prefs': '위젯별 설정 (모델, 프리셋 등)',
-        'toolbox_usage_stats': 'AI 사용량 통계 (채팅/이미지)',
-        'toolbox_user_data': '유저 데이터 (도전과제, 뱃지, 진행도)',
-        'toolbox_gemini_api_key': 'Gemini API 키 (구버전)',
-        'toolbox_gemini_api_keys_v2': 'Gemini API 키 목록 (AI Studio)',
-        'toolbox_vertex_api_key': 'Vertex AI (Google Cloud) API 키',
-        'toolbox_memos': '메모 위젯',
-        'toolbox_tierlists': '티어리스트',
-        'toolbox_imagegen_custom_presets': '이미지 생성 커스텀 프리셋',
-        'toolbox_ig_prompt_history': '이미지 생성 프롬프트 기록',
-        'toolbox_chatbot_sessions_index': '챗봇 세션 인덱스',
-        'karmolab_chatbot_characters_v1': '챗봇 캐릭터 카드 목록 (JSON 배열; karmochat_character_v1 내보내기와 별개로 localStorage에 저장)',
-        'mdd_affection': '마스코트 호감도',
-        'mdd_story_progress': '마스코트 스토리 진행',
-    };
-
-    function getStorageStats(storage: Storage): { totalBytes: number; items: StorageItemStat[] } {
-        let totalBytes = 0;
-        const items: StorageItemStat[] = [];
-        try {
-            for (let i = 0; i < storage.length; i++) {
-                const key = storage.key(i);
-                if (key == null) continue;
-                const val = storage.getItem(key) ?? '';
-                const bytes = (key.length + val.length) * 2;
-                totalBytes += bytes;
-                items.push({ key, bytes, valLen: val.length });
-            }
-        } catch (_) {}
-        items.sort((a, b) => b.bytes - a.bytes);
-        return { totalBytes, items };
-    }
-
-    function formatBytes(bytes: number): string {
-        if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
-        if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-        return bytes + ' B';
-    }
-
-    function buildStorage(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '저장소 상태 보여줄게요~' });
-        renderStorage(container);
-    }
-
-    function renderStorage(container: HTMLElement): void {
-        const ls = getStorageStats(localStorage);
-        const ss = getStorageStats(sessionStorage);
-        const totalBytes = ls.totalBytes + ss.totalBytes;
-
-        function getDesc(key: string): string {
-            if (STORAGE_DESC[key]) return STORAGE_DESC[key] ?? '';
-            if (key.startsWith('toolbox_chatbot_session')) return '챗봇 대화 내용';
-            if (key.startsWith('toolbox_')) return 'KarmoLab';
-            if (key.startsWith('mdd_')) return '마스코트';
-            return '';
-        }
-        const lsRows = ls.items.map(({ key, bytes }) => {
-            const desc = getDesc(key);
-            return `<tr><td class="storage-key">${escapeHtml(key)}</td><td class="storage-desc">${escapeHtml(desc)}</td><td>${formatBytes(bytes)}</td></tr>`;
-        }).join('');
-        const ssRows = ss.items.map(({ key, bytes }) => {
-            const desc = getDesc(key);
-            return `<tr><td class="storage-key">${escapeHtml(key)}</td><td class="storage-desc">${escapeHtml(desc)}</td><td>${formatBytes(bytes)}</td></tr>`;
-        }).join('');
-
-        container.innerHTML = `
-            <div class="user-layout">
-                <div class="storage-summary">
-                    <div class="storage-card">
-                        <div class="storage-card-value">${formatBytes(totalBytes)}</div>
-                        <div class="storage-card-label">총 저장 용량</div>
-                    </div>
-                    <div class="storage-card">
-                        <div class="storage-card-value">${formatBytes(ls.totalBytes)}</div>
-                        <div class="storage-card-label">localStorage (영구)</div>
-                    </div>
-                    <div class="storage-card">
-                        <div class="storage-card-value">${formatBytes(ss.totalBytes)}</div>
-                        <div class="storage-card-label">sessionStorage (탭 종료 시 삭제)</div>
-                    </div>
-                </div>
-                <p style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin-bottom:16px;">
-                    브라우저별 localStorage 한도는 보통 5~10MB입니다. UTF-16 기준으로 키+값 길이×2 바이트로 계산합니다.
-                </p>
-                <div class="settings-section">
-                    <h3>localStorage (${ls.items.length}개)</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="storage-table">
-                            <thead><tr><th>키</th><th>용도</th><th>크기</th></tr></thead>
-                            <tbody>${lsRows || '<tr><td colspan="3" style="color:var(--text-tertiary);">비어 있음</td></tr>'}</tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h3>sessionStorage (${ss.items.length}개)</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="storage-table">
-                            <thead><tr><th>키</th><th>용도</th><th>크기</th></tr></thead>
-                            <tbody>${ssRows || '<tr><td colspan="3" style="color:var(--text-tertiary);">비어 있음</td></tr>'}</tbody>
-                        </table>
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:flex-end;">
-                    <button type="button" class="btn-ghost" id="storageRefresh">🔄 새로고침</button>
-                </div>
-            </div>`;
-
-        container.querySelector<HTMLButtonElement>('#storageRefresh')?.addEventListener('click', () => renderStorage(container));
     }
 
     function escapeHtml(s: string | null | undefined): string {
@@ -733,153 +632,16 @@
             .replace(/"/g, '&quot;');
     }
 
-    function buildSettings(container: HTMLElement): void {
-        Mdd.linePreset('tool_run', { msg: '설정 바꿀 거야?' });
-        renderSettings(container);
-    }
-
-    async function renderSettings(container: HTMLElement): Promise<void> {
-        // KL-054: gemini/prism = eager 제거 → user(boot 위젯) 설정 진입 시 로드.
-        try {
-            await Toolbox.ensureScript?.('root/gemini');
-            await Toolbox.ensureScript?.('vendor/prism.min');
-        } catch (_) {
-            /* typeof 가드가 부재 시 안전 폴백 */
-        }
-
-        const theme = Toolbox.getTheme?.() ?? 'dark';
-        const prismTheme = Toolbox.getPrismTheme?.() ?? '';
-        const prismThemes = Toolbox.getPrismThemes?.() ?? [];
-        const bgTheme = Toolbox.getBgTheme?.() ?? '';
-        const bgThemes = Toolbox.getBgThemes?.() ?? [];
-        const navLayout = Toolbox.getNavLayout?.() ?? 'header';
-        const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
-
-        container.innerHTML = `
-            <div class="user-layout">
-                <div class="settings-section">
-                    <h3>🎨 표시</h3>
-                    <div class="settings-row">
-                        <label for="setNavLayout">네비게이션</label>
-                        <select id="setNavLayout" class="settings-control">
-                            <option value="header" ${navLayout === 'header' ? 'selected' : ''}>상단 메뉴</option>
-                            <option value="sidebar" ${navLayout === 'sidebar' ? 'selected' : ''}>사이드바</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="setTheme">테마</label>
-                        <select id="setTheme" class="settings-control">
-                            <option value="dark" ${theme === 'dark' ? 'selected' : ''}>다크</option>
-                            <option value="light" ${theme === 'light' ? 'selected' : ''}>라이트</option>
-                        </select>
-                    </div>
-                    <div class="settings-row">
-                        <label for="setPrism">코드 하이라이트</label>
-                        <select id="setPrism" class="settings-control">
-                            ${prismThemes.map((t) => `<option value="${t.id}" ${t.id === prismTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="settings-row settings-row-stack">
-                        <label>배경 테마</label>
-                        <!-- 이름만 늘어놓으면 무엇을 고르는지 알 수 없다. 견본은 진짜 배경과
-                             **같은 스타일 규칙**을 물려받아 그려진다 — 테마를 손보면 견본도 같이
-                             바뀐다 (값을 두 벌 적지 않는다). -->
-                        <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="배경 테마">
-                            ${bgThemes.map((t) => `
-                                <button type="button" class="bg-swatch" data-bg="${t.id}"
-                                        aria-pressed="${t.id === bgTheme}" title="${t.label}">
-                                    <span class="bg-swatch-name">${t.label}</span>
-                                </button>`).join('')}
-                        </div>
-                    </div>
-                    <div class="settings-code-preview">
-                        <pre class="language-javascript"><code class="language-javascript">function hello() {
-  const name = "World";
-  return \`Hello, \${name}!\`;
-}</code></pre>
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h3>🔑 API</h3>
-                    ${apiUI.html}
-                </div>
-                <div class="settings-section">
-                    <h3>⚠️ 위험 구역</h3>
-                    <div class="settings-row settings-danger">
-                        <label>유저 데이터 초기화</label>
-                        <button type="button" class="btn btn-danger" id="setResetUser">🗑️ 초기화</button>
-                    </div>
-                    <div class="settings-row settings-danger">
-                        <label>사용량 기록 초기화</label>
-                        <button type="button" class="btn btn-danger" id="setResetUsage">🗑️ 초기화</button>
-                    </div>
-                </div>
-            </div>`;
-
-        container.querySelector<HTMLSelectElement>('#setNavLayout')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setNavLayout?.(target.value);
-            const label = target.value === 'sidebar' ? '사이드바' : '상단 메뉴';
-            Toolbox.showToast?.('네비게이션: ' + label);
-        });
-
-        container.querySelector<HTMLSelectElement>('#setTheme')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setTheme?.(target.value);
-            Toolbox.showToast?.('테마: ' + (target.value === 'dark' ? '다크' : '라이트'));
-        });
-
-        container.querySelector<HTMLSelectElement>('#setPrism')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setPrismTheme?.(target.value);
-        });
-
-        const bgPicker = container.querySelector<HTMLElement>('#setBgTheme');
-        bgPicker?.addEventListener('click', (e: Event) => {
-            const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('.bg-swatch');
-            if (!btn) return;
-            const id = btn.dataset.bg || '';
-            Toolbox.setBgTheme?.(id);
-            bgPicker.querySelectorAll<HTMLElement>('.bg-swatch').forEach((el) => {
-                el.setAttribute('aria-pressed', String(el === btn));
-            });
-            Toolbox.showToast?.('배경: ' + (bgThemes.find((t) => t.id === id)?.label || id));
-        });
-
-        const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
-        if (previewCode && typeof Prism !== 'undefined') Prism.highlightElement(previewCode);
-
-        if (typeof Gemini !== 'undefined') {
-            Gemini.buildApiKeyUI('set').init(container);
-        }
-
-        container.querySelector<HTMLButtonElement>('#setResetUser')?.addEventListener('click', () => {
-            if (!confirm('모든 도전과제, 뱃지, 진행도를 초기화합니다. 계속할까요?')) return;
-            localStorage.removeItem('toolbox_user_data');
-            Toolbox.showToast?.('유저 데이터 초기화 완료');
-            renderSettings(container);
-        });
-
-        container.querySelector<HTMLButtonElement>('#setResetUsage')?.addEventListener('click', () => {
-            if (!confirm('모든 사용량 기록을 삭제합니다. 계속할까요?')) return;
-            localStorage.removeItem('toolbox_usage_stats');
-            Toolbox.showToast?.('사용량 기록 초기화 완료');
-        });
-    }
-
+    /* 탭 구성 (TASK-KL-139) — 계정이 있는 사이트들의 공통 골격을 따른다:
+     * 프로필(나) · 성과(내가 쌓은 것) · 활동(내가 쓴 만큼) · 계정(로그인·내 것 다루기).
+     * 환경 설정은 여기 없다 — 그건 「나」가 아니라 「이 브라우저」다 (#settings). */
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('user'),
         tabs: [
-            { id: 'user-overview', label: '요약', build: buildOverview },
-            { id: 'user-usage', label: '사용량', build: buildUsage },
-            { id: 'user-achievements', label: '도전과제', build: buildAchievements },
-            { id: 'user-streaks', label: '스트릭', build: buildStreaks },
-            { id: 'user-badges', label: '뱃지', build: buildBadges },
-            { id: 'user-storage', label: '저장소', build: buildStorage },
-            { id: 'user-settings', label: '설정', build: buildSettings },
+            { id: 'user-overview', label: '프로필', build: buildProfile },
+            { id: 'user-achievements', label: '성과', build: buildAchievements },
+            { id: 'user-usage', label: '활동', build: buildUsage },
+            { id: 'user-account', label: '계정', build: buildAccount },
         ]
     });
 })();

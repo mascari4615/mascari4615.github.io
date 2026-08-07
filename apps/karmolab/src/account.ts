@@ -273,7 +273,7 @@ function currentToolId(): string | null {
     // 앱 안: #<도구id>. 홈·계정 화면 등은 도구가 아니다.
     const hash = location.hash.replace(/^#/, '');
     if (!/^[a-z0-9][a-z0-9-]*$/.test(hash)) return null;
-    if (hash === 'home' || hash === 'user' || hash === 'linktree' || hash === 'plaza') return null;
+    if (hash === 'home' || hash === 'user' || hash === 'settings' || hash === 'linktree' || hash === 'plaza') return null;
     return hash;
 }
 
@@ -354,31 +354,88 @@ function mountHeaderAccount(): void {
             .header-account-signin { padding:5px 12px; border-radius:999px; border:1px solid var(--accent);
                 background:transparent; color:var(--accent); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; }
             .header-account-signin:hover { background:var(--accent); color:var(--bg-primary); }
+            .header-account { position:relative; }
+            .header-account-menu { position:absolute; top:40px; right:0; min-width:190px; z-index:60;
+                background:var(--bg-secondary); border:1px solid var(--border); border-radius:10px;
+                box-shadow:0 8px 24px rgba(0,0,0,.35); overflow:hidden; }
+            .header-account-menu button, .header-account-menu a { display:block; width:100%; padding:9px 13px;
+                background:none; border:0; border-top:1px solid var(--border); text-align:left;
+                font:inherit; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; text-decoration:none; }
+            .header-account-menu > :first-child { border-top:0; }
+            .header-account-menu button:hover, .header-account-menu a:hover { background:var(--bg-tertiary); }
+            .header-account-menu .header-account-menu-out { color:#dc2626; }
+            html[data-theme="dark"] .header-account-menu .header-account-menu-out { color:#fca5a5; }
         `;
         document.head.appendChild(style);
     }
 
-    KarmoAccount.subscribe((state) => {
+    /* 아바타를 누르면 메뉴가 열린다 (TASK-KL-139).
+     *
+     * 예전에는 누르면 곧장 「내 정보」로 갔다. 그래서 **로그아웃하는 길이 화면 안쪽 한 곳뿐**이었다 —
+     * 계정이 있는 사이트에서 로그아웃은 어느 화면에서든 두 번 눌러 닿아야 한다(GitHub·Discord 둘 다
+     * 아바타 메뉴에 둔다). 환경 설정도 여기 둔다: 「나」에서 떼어 낸 화면이라 갈 길이 있어야 한다. */
+    let menuOpen = false;
+
+    const paint = (state: AccountState): void => {
         if (state.loading || !state.reachable) {
+            menuOpen = false;
             slot.innerHTML = '';
             return;
         }
         if (!state.account) {
+            menuOpen = false;
             slot.innerHTML = '<button type="button" class="header-account-signin" id="klHeaderSignIn">시작하기</button>';
             slot.querySelector('#klHeaderSignIn')?.addEventListener('click', () => KarmoAccount.signIn());
             return;
         }
         const me = state.account;
         const avatar = KarmoAccount.avatarUrl(me.avatarPath);
+        const safeName = me.displayName.replace(/[<>&"]/g, '');
         slot.innerHTML = `
-            <button type="button" class="header-account-btn" id="klHeaderMe" title="내 정보">
+            <button type="button" class="header-account-btn" id="klHeaderMe" title="내 계정"
+                    aria-haspopup="menu" aria-expanded="${menuOpen}">
                 ${avatar ? `<img src="${avatar}" alt="">` : '<span class="header-account-blank">◍</span>'}
-                <span class="header-account-name">${me.displayName.replace(/[<>&"]/g, '')}</span>
-            </button>`;
-        slot.querySelector('#klHeaderMe')?.addEventListener('click', () => {
-            Toolbox?.switchPage?.('user');
+                <span class="header-account-name">${safeName}</span>
+            </button>` +
+            (menuOpen
+                ? `<div class="header-account-menu" role="menu">
+                       <button type="button" role="menuitem" data-go="user">내 정보</button>
+                       <a role="menuitem" href="${me.profileUrl}">남에게 보이는 프로필</a>
+                       <button type="button" role="menuitem" data-go="settings">환경 설정</button>
+                       <button type="button" role="menuitem" class="header-account-menu-out" data-signout>로그아웃</button>
+                   </div>`
+                : '');
+
+        slot.querySelector('#klHeaderMe')?.addEventListener('click', (event) => {
+            /* 이 클릭이 문서까지 올라가면 **바로 아래 「바깥 클릭이면 닫는다」가 자기 자신을 닫는다**.
+             * 다시 그리면서 눌린 단추가 문서에서 떨어져 나가, 그 검사에는 「바깥」으로 보이기 때문이다.
+             * (실측: 메뉴가 열렸다가 같은 클릭에 도로 닫혀 영영 안 보였다.) */
+            event.stopPropagation();
+            menuOpen = !menuOpen;
+            paint(state);
         });
+        slot.querySelectorAll<HTMLButtonElement>('[data-go]').forEach((button) => {
+            button.addEventListener('click', () => {
+                menuOpen = false;
+                Toolbox?.switchPage?.(button.dataset.go ?? 'user');
+                paint(state);
+            });
+        });
+        slot.querySelector('[data-signout]')?.addEventListener('click', () => {
+            menuOpen = false;
+            void KarmoAccount.signOut();
+        });
+    };
+
+    // 바깥을 누르면 닫힌다 — 열어 둔 채로 다른 걸 누르면 방해가 된다.
+    document.addEventListener('click', (event) => {
+        if (!menuOpen) return;
+        if (slot.contains(event.target as Node)) return;
+        menuOpen = false;
+        paint(state);
     });
+
+    KarmoAccount.subscribe(paint);
 }
 
 /* ===== 알림 종 (공용) =====
@@ -508,7 +565,10 @@ function mountBell(): void {
             (unread ? `<span class="kl-bell-dot">${unread > 99 ? '99+' : unread}</span>` : '') +
             `</button>${panel}`;
 
-        slot!.querySelector('#klBell')?.addEventListener('click', () => {
+        slot!.querySelector('#klBell')?.addEventListener('click', (event) => {
+            // 같은 이유로 여기서도 막는다 — 안 막으면 아래 「바깥 클릭이면 닫는다」가 이 클릭을
+            // 바깥으로 보고 방금 연 것을 도로 닫는다 (다시 그리면서 눌린 단추가 떨어져 나가므로).
+            event.stopPropagation();
             open = !open;
             paint();
             if (open) void load();

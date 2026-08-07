@@ -19,10 +19,21 @@ window.KARMOLAB_LAZY_META = [
     title: '내 정보',
     category: 'tool',
     hidden: true,
-    desc: '사용량, 도전과제, 뱃지 등 내 정보를 확인합니다',
+    desc: '프로필 · 성과 · 활동 · 계정',
     layout: 'form',
     icon: '<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',
     lazyScriptPaths: ['user']
+  },
+  {
+    // 환경 설정 = 「이 브라우저」의 것이다. 「나」(내 정보)와 한 화면에 두지 않는다 (TASK-KL-139).
+    id: 'settings',
+    title: '환경 설정',
+    category: 'tool',
+    hidden: true,
+    desc: '테마 · API 키 · 이 브라우저에 저장된 것',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['settings']
   },
   {
     id: 'status',
