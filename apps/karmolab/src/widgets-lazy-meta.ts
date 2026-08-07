@@ -443,6 +443,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'img2pdf',
+    accepts: ['image/*'], // 다른 도구가 만든 그림을 받는다 (TASK-KL-133)
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '이미지 → PDF',
@@ -565,6 +566,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'imgmerge',
+    accepts: ['image/*'], // 다른 도구가 만든 그림을 받는다 (TASK-KL-133)
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '사진 이어 붙이기',
@@ -610,6 +612,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'exifclean',
+    accepts: ['image/jpeg'], // 다른 도구가 만든 그림을 받는다 (TASK-KL-133)
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '사진 정보 지우기',
@@ -1190,6 +1193,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'imgresize',
+    accepts: ['image/*'], // 다른 도구가 만든 그림을 받는다 (TASK-KL-133)
     hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '사진 크기 맞추기',
