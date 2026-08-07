@@ -1,0 +1,55 @@
+---
+layout: none
+permalink: /apps/karmolab/badapple/load/
+---
+<!-- 부하가 곧 화면 (TASK-KL-131 ③). 선은 우리가 그린 게 아니라 기계가 실제로 바빴던 값이다. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BadApple — 부하가 곧 화면</title>
+<style>
+	:root { color-scheme: light dark; }
+	body {
+		margin: 0;
+		padding: 24px;
+		font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+		background: Canvas;
+		color: CanvasText;
+	}
+	h1 { font-size: 1.25rem; margin: 0 0 4px; }
+	.bl-lede { opacity: .7; font-size: .875rem; margin: 0 0 20px; max-width: 62ch; line-height: 1.6; }
+	.bl-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+	button { padding: 8px 14px; font: inherit; cursor: pointer; }
+	button:disabled { opacity: .4; cursor: default; }
+	#blReadout { font-size: .8125rem; opacity: .8; }
+	#blGraph {
+		display: block;
+		width: 100%;
+		height: 220px;
+		border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+		border-radius: 8px;
+	}
+	.bl-legend { display: flex; gap: 18px; font-size: .75rem; opacity: .7; margin-top: 10px; }
+</style>
+
+<h1>부하가 곧 화면</h1>
+<p class="bl-lede">
+	아래 선은 그림을 옮겨 그린 게 아니다. 컴퓨터를 실제로 태우고, <strong>얼마나 바빴는지를 되재서</strong>
+	나온 값이다. 점선(시킨 값)과 실선(실제)이 겹치면 하드웨어가 그림을 따라갔다는 뜻이다.
+	태우는 일은 따로 떼어 돌린다 — 그리는 쪽이 같이 멈추면 무엇 때문에 안 나오는지 알 수 없다.
+</p>
+
+<div class="bl-controls">
+	<button id="blStart" type="button">태우기 시작</button>
+	<button id="blStop" type="button" disabled>멈춤</button>
+	<span id="blReadout">아직 안 태우는 중.</span>
+</div>
+
+<canvas id="blGraph"></canvas>
+
+<div class="bl-legend">
+	<span>┄ 시킨 값</span>
+	<span>── 실제로 바빴던 비율</span>
+</div>
+
+<script src="/apps/karmolab/js/badapple/load-demo.js"></script>

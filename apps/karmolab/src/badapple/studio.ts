@@ -1,0 +1,150 @@
+/**
+ * 굽는 화면 — 영상 한 편을 흑백 격자 파일(.bab)로 굽고, 그 자리에서 바로 틀어 본다.
+ *
+ * 영상 파일은 여기 없다. 쓰는 사람이 자기 것을 고른다 — 브라우저 안에서만 처리하고
+ * 아무 데도 안 올린다. (그래서 남의 영상을 이 저장소에 담을 일도 없다.)
+ *
+ * 미리보기가 두 종류인 이유: 이 시스템의 핵심 주장이 「같은 그림을 서로 다른 표면이
+ * 동시에 나눠 그린다」다. 글자판 하나만 보여 주면 그냥 아스키 아트 도구로 보인다.
+ */
+import { decode, encode, Player, sampleVideo, TextSurface, DomTilesSurface } from 'badapple';
+import { CLIP_STORAGE_KEY } from './shared';
+
+(function (): void {
+	const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
+
+	let player: Player | null = null;
+	let raf = 0;
+	let baked: Uint8Array | null = null;
+
+	function status(message: string): void {
+		$('baStatus').textContent = message;
+	}
+
+	/**
+	 * 구운 것을 홈이 이어받을 자리에 놓는다.
+	 *
+	 * 저장 공간에는 한도가 있고(보통 5MB), 글자로 바꿔 담으면 3분의 4 로 불어난다.
+	 * 넘치면 브라우저가 **오류를 던지고 아무것도 안 담는다** — 그걸 안 잡으면 굽기 자체가 실패한
+	 * 것처럼 보인다. 그래서 못 담아도 굽는 것은 계속되고, 화면에 사실대로 적는다.
+	 */
+	function handOverToHome(bytes: Uint8Array): boolean {
+		try {
+			let binary = '';
+			for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i] as number);
+			localStorage.setItem(CLIP_STORAGE_KEY, btoa(binary));
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	function stop(): void {
+		if (raf) cancelAnimationFrame(raf);
+		raf = 0;
+		player?.dispose();
+		player = null;
+	}
+
+	/** 구운 것을 튼다. 시계는 화면 갱신에 맞춰 넣는다 — 재생기는 시계를 스스로 안 만든다. */
+	function playBaked(bytes: Uint8Array): void {
+		stop();
+		const clip = decode(bytes);
+		player = new Player(clip, { loop: true });
+
+		// ① 글자판 — 자리를 신고하지 않으므로 전체 그림을 통째로 받는다 (거울)
+		const pre = $('baText');
+		player.stage.add(
+			new TextSurface({
+				cols: clip.width,
+				rows: clip.height,
+				on: '█',
+				off: ' ',
+				write: (text) => {
+					pre.textContent = text;
+				}
+			})
+		);
+
+		// ② 화면에 실제로 있는 것들 — 자리를 신고하므로 그림의 자기 구역만 받는다 (모자이크).
+		// 선택자를 안 준다: 무엇을 액정으로 쓸지는 화면을 재서 스스로 고른다.
+		if ($<HTMLInputElement>('baOverlay').checked) {
+			player.stage.add(new DomTilesSurface({ subdivide: { cols: 8, rows: 8 } }));
+		}
+
+		player.play(performance.now());
+		const loop = (now: number): void => {
+			player?.tick(now);
+			raf = requestAnimationFrame(loop);
+		};
+		raf = requestAnimationFrame(loop);
+		status(`재생 중 — ${clip.width}×${clip.height} · ${clip.frameCount}장 · 초당 ${clip.fps}장`);
+	}
+
+	async function bake(file: File): Promise<void> {
+		stop();
+		const video = document.createElement('video');
+		video.muted = true;
+		video.playsInline = true;
+		video.src = URL.createObjectURL(file);
+
+		await new Promise<void>((resolve, reject) => {
+			video.addEventListener('loadedmetadata', () => resolve(), { once: true });
+			video.addEventListener('error', () => reject(new Error('이 영상을 브라우저가 못 읽는다')), { once: true });
+		});
+
+		const width = Number($<HTMLInputElement>('baWidth').value) || 64;
+		const height = Number($<HTMLInputElement>('baHeight').value) || 48;
+		const fps = Number($<HTMLInputElement>('baFps').value) || 15;
+
+		status('굽는 중… 0%');
+		const sampled = await sampleVideo(video, {
+			width,
+			height,
+			fps,
+			threshold: Number($<HTMLInputElement>('baThreshold').value) || 128,
+			invert: $<HTMLInputElement>('baInvert').checked,
+			onProgress: (done, total) => {
+				if (done % 5 === 0 || done === total) status(`굽는 중… ${Math.round((done / total) * 100)}%`);
+			}
+		});
+
+		URL.revokeObjectURL(video.src);
+
+		baked = encode(sampled.frames, { width: sampled.width, height: sampled.height, fps: sampled.fps });
+		const raw = sampled.frames.length * Math.ceil((width * height) / 8);
+		const handed = handOverToHome(baked);
+		status(
+			`다 구웠다 — ${(baked.length / 1024).toFixed(1)}KB (안 줄였으면 ${(raw / 1024).toFixed(1)}KB)` +
+				(handed ? ' · 이제 홈에서도 이게 나온다' : ' · 홈에 넘기기엔 너무 커서 이 화면에서만 나온다')
+		);
+		$<HTMLButtonElement>('baSave').disabled = false;
+		playBaked(baked);
+	}
+
+	$('baPick').addEventListener('click', () => $<HTMLInputElement>('baFile').click());
+	$('baFile').addEventListener('change', (event) => {
+		const file = (event.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		bake(file).catch((error: unknown) => status(error instanceof Error ? error.message : '굽다 실패했다'));
+	});
+
+	$('baSave').addEventListener('click', () => {
+		if (!baked) return;
+		const url = URL.createObjectURL(new Blob([baked as unknown as BlobPart], { type: 'application/octet-stream' }));
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'clip.bab';
+		a.click();
+		URL.revokeObjectURL(url);
+	});
+
+	$('baStop').addEventListener('click', () => {
+		stop();
+		status('멈췄다.');
+	});
+
+	$('baOverlay').addEventListener('change', () => {
+		if (baked) playBaked(baked);
+	});
+})();

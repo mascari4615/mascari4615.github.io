@@ -1,0 +1,91 @@
+---
+layout: none
+permalink: /apps/karmolab/badapple/
+---
+<!-- 굽는 화면 (TASK-KL-131). 영상은 담지 않는다 — 쓰는 사람이 자기 파일을 고르고, 브라우저 밖으로 안 나간다. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>BadApple — 무엇이든 화면으로</title>
+<style>
+	:root { color-scheme: light dark; }
+	body {
+		margin: 0;
+		padding: 24px;
+		font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+		background: Canvas;
+		color: CanvasText;
+	}
+	h1 { font-size: 1.25rem; margin: 0 0 4px; }
+	.ba-lede { opacity: .7; font-size: .875rem; margin: 0 0 20px; max-width: 60ch; line-height: 1.6; }
+	.ba-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+	label { display: flex; flex-direction: column; gap: 4px; font-size: .75rem; opacity: .8; }
+	input[type="number"] { width: 5.5rem; padding: 6px 8px; font: inherit; }
+	button { padding: 8px 14px; font: inherit; cursor: pointer; }
+	button:disabled { opacity: .4; cursor: default; }
+	.ba-check { flex-direction: row; align-items: center; gap: 6px; }
+	#baStatus { font-size: .8125rem; opacity: .8; margin-bottom: 16px; min-height: 1.2em; }
+	#baText {
+		font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+		font-size: 7px;
+		line-height: .8;
+		letter-spacing: 0;
+		white-space: pre;
+		overflow-x: auto;
+		margin: 0 0 24px;
+	}
+	/* 아래 칸들은 「화면에 실제로 있는 것」 역할이다 — 재생기가 이걸 재서 액정으로 쓴다.
+	   생김새는 아무래도 좋다. 재생기는 위치만 읽지 이 스타일을 모른다. */
+	.ba-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+	.ba-tile {
+		border: 1px solid color-mix(in srgb, CanvasText 25%, transparent);
+		border-radius: 8px;
+		padding: 14px 10px;
+		font-size: .75rem;
+		opacity: .85;
+	}
+</style>
+
+<h1>BadApple — 무엇이든 화면으로</h1>
+<p class="ba-lede">
+	영상을 흑백 격자로 구워서, 화면이 아닌 것들에 나눠 그린다. 아래 글자판과 칸들은 서로 다른 표면인데
+	같은 그림을 동시에 받는다. 고른 영상은 이 브라우저 밖으로 나가지 않는다.
+</p>
+
+<div class="ba-controls">
+	<input type="file" id="baFile" accept="video/*" hidden>
+	<button id="baPick" type="button">영상 고르기</button>
+	<label>가로 칸<input type="number" id="baWidth" value="64" min="8" max="320"></label>
+	<label>세로 칸<input type="number" id="baHeight" value="48" min="8" max="320"></label>
+	<label>초당 장<input type="number" id="baFps" value="15" min="1" max="60"></label>
+	<label>밝기 기준<input type="number" id="baThreshold" value="128" min="0" max="255"></label>
+	<label class="ba-check"><input type="checkbox" id="baInvert"> 밝고 어두움 뒤집기</label>
+	<label class="ba-check"><input type="checkbox" id="baOverlay" checked> 아래 칸에도 그리기</label>
+	<button id="baSave" type="button" disabled>파일로 받기</button>
+	<button id="baStop" type="button">멈춤</button>
+</div>
+
+<div id="baStatus">영상을 고르면 굽기 시작한다.</div>
+
+<pre id="baText" aria-hidden="true"></pre>
+
+<div class="ba-grid">
+	<div class="ba-tile">칸 1</div>
+	<div class="ba-tile">칸 2</div>
+	<div class="ba-tile">칸 3</div>
+	<div class="ba-tile">칸 4</div>
+	<div class="ba-tile">칸 5</div>
+	<div class="ba-tile">칸 6</div>
+	<div class="ba-tile">칸 7</div>
+	<div class="ba-tile">칸 8</div>
+	<div class="ba-tile">칸 9</div>
+	<div class="ba-tile">칸 10</div>
+	<div class="ba-tile">칸 11</div>
+	<div class="ba-tile">칸 12</div>
+	<div class="ba-tile">칸 13</div>
+	<div class="ba-tile">칸 14</div>
+	<div class="ba-tile">칸 15</div>
+	<div class="ba-tile">칸 16</div>
+</div>
+
+<script src="/apps/karmolab/js/badapple/studio.js"></script>
