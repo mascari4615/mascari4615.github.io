@@ -128,6 +128,7 @@ import {
   readRapport,
   asksAboutSelf,
   composeIngredients,
+  밀린생각,
   stripExpression,
   tangentFor,
   rutWarning,
@@ -254,6 +255,10 @@ const playing = new Playing();
 // 조용히 있기 — 「좀 있다 얘기해」라고 말할 수 있게. 밤(23~7시)도 조용한 시간이다.
 // 발동 기록 — 만든 게 실제로 도는지 센다. 「도는지 모름」과 「스무 번 중 0번」은 다른 말이다.
 const tally = new Tally({ path: join(home, '발동-기록.json') });
+/* 밀린 재료는 증발하지 않고 쌓인다 — 다음 turn 에 더 세게 겨룬다 (72회차).
+   재료 만드는 자리가 쉰 곳인데 한 turn 에 실리는 건 여섯 줄뿐이라, 무게가 어중간한
+   재료는 매 turn 독립 추첨에서 **영영** 안 실렸다. 만들어 놓고 안 붙인 것과 같았다. */
+const 밀린것 = new 밀린생각();
 // 잘못된 것 모으기 — 로그는 아무도 안 본다. 조수님이 볼 수 있어야 고쳐진다.
 const troubles = new Troubles({ path: join(home, '잘못된-것.json') });
 // 손댈 수 있는 설정 — 재시작 없이 먹는다. 파일이 정본이라 손으로 열어 고쳐도 된다.
@@ -678,7 +683,7 @@ const companion = new Companion({
        「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
        발동 기록은 무엇이 실렸는지만 알려 주지 그 글이 어떻게 생겼는지는 안 보여 준다. */
     const 보여줄까 = process.env.COMPANION_SHOW_MATERIAL === '1';
-    const 만든것 = composeIngredients([
+    const 만든것 = composeIngredients(밀린것.덧입히기([
       /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
          2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
@@ -784,7 +789,12 @@ const companion = new Companion({
          새 재료를 넣을 때마다 예전 것이 **조용히** 밀렸고, 그건 발동 기록을 봐야만
          보였다. 재료가 는 만큼만 늘린다(420자·5줄 → 520자·6줄). 더 늘리면 29회차에
          고쳤던 「재료 과밀」로 되돌아간다. */
-    ], { maxChars: 520, maxLines: 6, mark: (name, fate) => tally.mark(name, fate) });
+    ]), { maxChars: 520, maxLines: 6, mark: (name, fate) => { tally.mark(name, fate); 밀린것.적기(name, fate); } });
+    /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
+       참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
+    밀린것.다음턴();
+    const 참는것 = 밀린것.요약();
+    if (참는것 !== '') console.log(`[참음] ${참는것}`);
     if (보여줄까) {
       console.log('[재료]');
       for (const 줄 of 만든것.split('\n')) console.log(`  · ${줄}`);
