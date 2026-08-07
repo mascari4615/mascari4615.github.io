@@ -234,6 +234,11 @@
 
 /* ── Body & Layout ── */
 
+/* 넘겨 스크롤(바운스)하면 body 밖이 잠깐 보인다. html 에 색이 없으면 브라우저가 제 기본색을
+   칠하는데, 이 앱은 어두운 화면이 기본이라 알려 뒀으므로 밝은 테마에서도 **검은 띠**가 번쩍인다.
+   바탕색은 화면 전체의 것이니 html 이 갖는 게 맞다 (TASK-KL-101). */
+html { background-color: var(--bg-void); }
+
 body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
@@ -273,7 +278,10 @@ html[data-bg="observatory"] body {
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    /* 화면 전체를 덮는 두 층은 **비율이 아니라 화면 단위**로 잡는다 (TASK-KL-101).
+       비율(100%)은 화면 높이에 매달려 있어서, 폰 주소창이 접혀 높이가 변할 때마다 배경이
+       다시 잡힌다 — 스크롤 중에 배경 크기가 출렁이는 것으로 보였다. svh 로 못 박으면 안 흔들린다. */
+    background-size: 100vw 100svh, 100vw 100svh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
     background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
 }
