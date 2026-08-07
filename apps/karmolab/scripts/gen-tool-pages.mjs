@@ -14,6 +14,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// 셸을 정적 페이지로 만드는 손질은 한 벌뿐이다 (TASK-KL-129) — 목록·봇 소개·프로필도 같은 것을 쓴다.
+import { loadShell, shellCommon, replaceMeta, scriptFile, esc } from './lib/shell-page.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
@@ -27,12 +29,7 @@ const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 
 
 /* ── 입력 로드 ─────────────────────────────────────── */
 
-/* 셸은 **줄 끝을 맞춰서** 읽는다 (TASK-KL-129).
- * 아래 손질은 전부 「여러 줄이 이 순서로 있다」를 찾아 바꾼다. 그런데 이 파일이 윈도우에서
- * 한 번 저장되면 줄 끝이 CRLF 로 바뀌고(깃은 되돌려 저장하므로 diff 에는 안 보인다),
- * 그 순간 앞머리 치환부터 전부 못 찾아 **생성기가 통째로 죽는다 = 배포 정지**.
- * 여기서 한 번 맞춰 두면 어느 기계에서 저장했든 같은 결과가 나온다. */
-const shell = fs.readFileSync(path.join(root, 'index.html'), 'utf8').split('\r\n').join('\n');
+const shell = loadShell(root);
 const seo = JSON.parse(fs.readFileSync(path.join(root, 'data/tools-seo.json'), 'utf8')).tools;
 
 /* 준비물은 **한 장도 쓰기 전에** 다 확인한다.
@@ -103,16 +100,6 @@ for (const id of ids) {
 }
 
 /* ── 유틸 ──────────────────────────────────────────── */
-
-const esc = (s) =>
-  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-/** head 의 한 줄짜리 meta/link 를 값만 갈아끼운다 (셸 구조 변화에 둔감하게 attr 매칭). */
-function replaceMeta(html, attr, name, content) {
-  const re = new RegExp(`(<meta\\s+${attr}="${name}"\\s+content=")[^"]*(">)`);
-  if (!re.test(html)) throw new Error(`셸에서 meta ${attr}="${name}" 를 못 찾음 — index.html 구조 변경 확인`);
-  return html.replace(re, `$1${esc(content)}$2`);
-}
 
 function toolPageUrl(id) {
   return `${SITE}${BASE_PATH}/${id}/`;
@@ -568,101 +555,6 @@ function jsonLd(id) {
 /** 미리 받을 파일이 실제로 없던 경로 — 다 만든 뒤 한 번에 알린다. */
 const missingBoot = new Set();
 
-/**
- * 앱 셸에서 **정적으로 찍는 페이지**의 공통 손질 (TASK-KL-129).
- *
- * 도구 상세 125장과 도구 목록 한 장이 같은 손질을 쓴다. 예전에는 목록만 셸 밖에서 손으로 짠
- * 문서였다 — 그래서 거기만 머리띠도, 옆줄도, 테마 단추도, ⌘K 도 없었다. 같은 곳인데 다른
- * 집처럼 보였다. 이제 둘 다 여기를 지난다: 한쪽만 고쳐져 갈라지는 일이 없다.
- *
- * 여기서 하는 일 = 「이 셸을 이 주소의 한 장으로 만든다」 (앞머리·부팅 목록·큰제목·안 쓰는 스타일).
- * 무엇을 보여 줄지(제목·설명·본문)는 부르는 쪽이 정한다.
- */
-function shellCommon(html, { permalink, lastModified, bootPaths }) {
-  // 사이트맵에 실릴 변경일도 여기서 박는다 (jekyll-sitemap 이 front matter 의 이 값을 읽는다).
-  html = html.replace(
-    /^---\nlayout: none\npermalink: \/karmolab\/\n---/,
-    `---\nlayout: none\npermalink: ${permalink}\nlast_modified_at: ${lastModified}\n---`
-  );
-  if (!html.startsWith(`---\nlayout: none\npermalink: ${permalink}`)) {
-    throw new Error('셸 front matter 치환 실패 — index.html 앞머리 확인');
-  }
-
-  // 첫 화면용 뽑기 위젯은 정적 페이지에서 쓰이지 않는다.
-  html = html.replace(
-    /<script defer src="\/apps\/karmolab\/js\/widgets\/randomgen\/randomgen-[a-z]+\.js"><\/script>\s*/g,
-    ''
-  );
-  // 매니페스트 파일이 뒤늦게(defer) 원래 목록을 다시 씌우므로, 그 파일을 부르는 자리를
-  // 짧은 목록으로 바꾼다 — 인라인으로 먼저 정해 봐야 defer 가 이긴다.
-  const bootTag = '<script defer src="/apps/karmolab/js/widgets-manifest.js"></script>';
-  if (!html.includes(bootTag)) throw new Error('셸에서 위젯 매니페스트 자리를 못 찾음 — index.html 확인');
-  html = html.replace(
-    bootTag,
-    `<script>window.KARMOLAB_WIDGETS_BOOT=${JSON.stringify(bootPaths)};</script>`
-  );
-  html = html.replace(
-    '</head>',
-    bootPaths.map((p) => `    <link rel="preload" as="script" href="/apps/karmolab/${scriptFile(p)}">
-`).join('') + '</head>'
-  );
-
-  // 페이지의 큰제목은 하나여야 한다 (TASK-KL-089).
-  // 셸에는 큰제목이 둘 더 있다 — 첫 화면 인사말 「KarmoLab」과, 자바스크립트가 채우는 헤더 제목
-  // (이쪽은 화면에 아예 안 나온다). 정적 페이지의 주제는 제 본문인데 큰제목이 셋이면
-  // 검색엔진이 무엇에 대한 문서인지 흐리게 읽는다. 생김새는 클래스가 정하므로 태그만 바꾼다.
-  // 태그를 **통째 문자열로** 찾다가, 셸에 속성 하나(id) 가 붙자 생성기가 통째로 멈췄다.
-  // 클래스만 보고 태그 이름을 바꾼다 — 속성이 늘어도 계속 맞는다.
-  for (const cls of ['intro-title', 'content-title']) {
-    const re = new RegExp(`<h1([^>]*\\bclass="${cls}"[^>]*)>([\\s\\S]*?)</h1>`);
-    if (!re.test(html)) throw new Error(`셸에서 큰제목을 못 찾음 — index.html 확인: class="${cls}"`);
-    html = html.replace(re, '<div$1>$2</div>');
-  }
-
-  // 랜덤 생성기 전용 스타일은 정적 페이지에서 뺀다 (TASK-KL-089).
-  // 그 위젯은 앱 첫 화면에만 있고 상세 페이지가 없다. 뽑기 계열 도구(로또·사다리·추첨)도
-  // 이 스타일을 쓰지 않는 것을 다섯 페이지에서 확인했다 — 해당 요소가 하나도 안 나온다.
-  const RANDOMGEN_CSS = '<link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">';
-  if (!html.includes(RANDOMGEN_CSS)) throw new Error('셸에서 랜덤 생성기 스타일 자리를 못 찾음 — index.html 확인');
-  html = html.replace(RANDOMGEN_CSS, '');
-
-  /* 앱 첫 화면용 크롤러 안내는 여기서 뺀다 — 정적 페이지에는 이미 자기 설명이 있고,
-   * 같은 글이 126장에 똑같이 박히면 페이지끼리 닮아 보여 되레 손해다. */
-  {
-    const before = html;
-    html = html.replace(/\s*<!-- KARMOLAB_ROOT_INTRO[\s\S]*?<\/noscript>/, '');
-    if (html === before) throw new Error('셸에서 첫 화면 안내 블록을 못 찾음 — index.html 확인');
-  }
-
-  /* 앱 첫 화면용 구조 설명도 뺀다 (TASK-KL-089).
-   * 그것은 「여기가 KarmoLab 이고 안에서 도구를 찾을 수 있다」는 말이라, 그대로 복사되면
-   * 각 장이 자기를 첫 화면이라고 주장하게 된다. 정적 페이지는 제 설명을 따로 박는다. */
-  {
-    const before = html;
-    html = html.replace(/\s*<!-- KARMOLAB_ROOT_LD[\s\S]*?<\/script>/, '');
-    if (html === before) throw new Error('셸에서 첫 화면 구조 설명 블록을 못 찾음 — index.html 확인');
-  }
-
-  /* 코드 색칠 스타일은 첫 화면을 막지 않게 한다 (TASK-KL-089).
-   * 재 보니 도구 125장 중 색칠을 쓰는 페이지가 **하나도 없다** — 그 기능을 쓰는 위젯은
-   * 대화 도구 하나뿐이고, 거기엔 도구 페이지가 없다. 그런데 스타일 링크는 모든 장의 머리에
-   * 있어서, 매번 첫 화면을 막는 자리를 하나씩 차지했다(0% 사용).
-   * 태그 자체는 남긴다 — 색 테마를 고르는 코드가 이 자리를 찾기 때문이다. 나중에 색칠이
-   * 실제로 실려 오면 그때 켜 준다(안 그러면 코드가 흑백으로 나오는 조용한 고장이 된다). */
-  {
-    const before = html;
-    html = html.replace(
-      /(<link id="prism-css" rel="stylesheet" href="[^"]*")>/,
-      '$1 media="print">\n' +
-        '    <script>(function(){var el=document.getElementById("prism-css");' +
-        'if(!el)return;var t=setInterval(function(){if(window.Prism){el.media="all";clearInterval(t)}},400);' +
-        'setTimeout(function(){clearInterval(t)},30000)})()</script>'
-    );
-    if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
-  }
-
-  return html;
-}
 
 function buildToolPage(id) {
   const t = seo[id];
@@ -1158,13 +1050,6 @@ fs.writeFileSync(
  * 그 항목이 통째로 빠진 채 나갔다. 버리지 말고 제대로 찾는 것이 맞다.
  * (규약이 늘면 정본과 여기 둘 다 고쳐야 한다 — 갈라져 있는 것이 원래 문제였다.)
  */
-function scriptFile(p) {
-  if (typeof p !== 'string') return `js/widgets/${p}.js`;
-  if (p.startsWith('world/')) return `world/${p.slice('world/'.length)}.js`;
-  if (p.startsWith('vendor/')) return `js/vendor/${p.slice('vendor/'.length)}.js`;
-  if (p.startsWith('root/')) return `js/${p.slice('root/'.length)}.js`;
-  return `js/widgets/${p}.js`;
-}
 
 const swBuilt = path.join(root, 'sw.js');
 if (fs.existsSync(swBuilt)) {
