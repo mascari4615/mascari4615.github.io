@@ -24,6 +24,7 @@ import {
   KnownStamps,
   말걸어도되나,
   자리결,
+  어떤자리,
   tossBackNote,
   tossBackRetryNote,
   안하는이유,
@@ -235,7 +236,7 @@ const memory =
 const 그때그일 = new EpisodeStore({
   path: join(home, '그때-그-일.json'),
   물어보기: 기운묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
-  log: (m) => console.log(`[그때] ${m}`),
+  log: (m) => { console.log(`[그때] ${m}`); web?.알아챔?.(`기억에 담았다 — ${m}`); },
 });
 
 const 언제알았나 = new KnownStamps({ path: join(home, '아는-것-언제.json') });
@@ -289,7 +290,7 @@ function 공돌려줄자리인가() {
   const 이유 = 안하는이유({ recent: 목록, 방금 });
   // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
   // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
-  if (이유 !== null) console.log(`[공] 안 돌려준다 — ${이유}`);
+  if (이유 !== null) (console.log(`[공] 안 돌려준다 — ${이유}`), web.알아챔(`공은 안 돌려준다 — ${이유}`));
   return 이유 === null;
 }
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
@@ -802,7 +803,7 @@ const companion = new Companion({
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     밀린것.다음턴();
     const 참는것 = 밀린것.요약();
-    if (참는것 !== '') console.log(`[밀림] ${참는것}`);
+    if (참는것 !== '') { console.log(`[밀림] ${참는것}`); web.알아챔(`하고 싶었는데 못 한 말 — ${참는것}`); }
     if (보여줄까) {
       console.log('[재료]');
       for (const 줄 of 만든것.split('\n')) console.log(`  · ${줄}`);
@@ -841,6 +842,12 @@ const companion = new Companion({
     // 화면에서 읽은 창 제목을 기억해 둔다 — 바뀌었는지 알아야 말 걸 이유가 생긴다.
     const seen = report.sensation.meta?.windowTitle;
     if (typeof seen === 'string' && seen !== '') {
+      /* 창이 바뀐 걸 알아챈 것도 인식이다 — 여태 아무 데도 안 보였다.
+         **바뀐 때만** 알린다. 같은 창을 보고 있는 동안 매번 알리면 대화가 덮인다. */
+      if (seen !== lastWindowTitle) {
+        const 자리 = 어떤자리(seen);
+        web.알아챔(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${자리 === null ? ' (무슨 자리인지 모르겠다)' : ` (${자리})`}`);
+      }
       lastWindowTitle = seen;
       watching.saw(seen, report.sensation.at);
     }
