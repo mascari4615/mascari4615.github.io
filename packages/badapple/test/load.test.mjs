@@ -7,7 +7,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LoadSurface, LoadDriver } from '../dist/surfaces/load.js';
+import { LoadSurface, LoadDriver, bandFor } from '../dist/surfaces/load.js';
 
 /** 격자 하나를 표면에 먹인다. `on(x, y)` 이 true 면 켜진 칸. */
 function feed(surface, cols, rows, on) {
@@ -63,6 +63,46 @@ test('기계를 아예 멈춰 세우지는 않는다 — 천장이 1 미만이�
 	await driver.run(1);
 	assert.ok(asked[0] < 1, `천장이 1 이면 다른 일이 못 끼어든다 (${asked[0]})`);
 	assert.ok(asked[0] > 0.5, `너무 낮으면 그래프에서 안 보인다 (${asked[0]})`);
+});
+
+test('바탕이 깔려 있으면 그 위에 그린다 — 태우는 양은 차이만큼만', async () => {
+	const surface = new LoadSurface({ cols: 2, rows: 4 });
+	feed(surface, 2, 4, (x) => x === 1); // 한 줄은 비고, 한 줄은 꽉
+
+	const asked = [];
+	const driver = new LoadDriver(surface, {
+		sliceMs: 0,
+		baseline: 0.4,
+		ceiling: 0.9,
+		burn: (fraction) => asked.push(Number(fraction.toFixed(3)))
+	});
+	await driver.run(2);
+
+	// 빈 줄은 바탕 그대로(태울 것 없음), 꽉 찬 줄은 천장까지 = 0.9 - 0.4.
+	assert.deepEqual(asked, [0, 0.5]);
+});
+
+test('바탕이 천장에 가까우면 한 줄도 안 태우고 물러난다', async () => {
+	const surface = new LoadSurface({ cols: 4, rows: 4 });
+	feed(surface, 4, 4, () => true);
+
+	let burned = 0;
+	const driver = new LoadDriver(surface, {
+		sliceMs: 0,
+		baseline: 0.95,
+		ceiling: 0.75,
+		burn: () => (burned += 1)
+	});
+	const drawn = await driver.run(4);
+
+	assert.equal(drawn, 0, '자리가 없으면 0 줄이어야 한다');
+	assert.equal(burned, 0, '자리가 없는데 태우면 안 된다');
+});
+
+test('그릴 자리가 있는지 따로 물어볼 수 있다', () => {
+	assert.deepEqual(bandFor(0.1, 0.75), { low: 0.1, high: 0.75 });
+	assert.equal(bandFor(0.7, 0.75), null, '5% 밖에 안 남으면 모양이 안 남는다');
+	assert.equal(bandFor(0.99, 0.75), null, '바탕이 천장보다 높으면 그릴 수 없다');
 });
 
 test('멈추라면 멈춘다', async () => {

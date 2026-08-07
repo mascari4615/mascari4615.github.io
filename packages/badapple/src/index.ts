@@ -23,9 +23,11 @@ export { DomTilesSurface, type DomTilesOptions } from './surfaces/dom-tiles.js';
 export { measureCandidates, pickTileGroup, type DiscoverOptions, type Measured } from './surfaces/discover.js';
 export { TextSurface, type TextSurfaceOptions } from './surfaces/text.js';
 export {
+	bandFor,
 	busyBurn,
 	LoadDriver,
 	LoadSurface,
+	type Band,
 	type Burn,
 	type LoadDriverOptions,
 	type LoadSurfaceOptions
