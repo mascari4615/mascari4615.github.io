@@ -16,6 +16,7 @@ on:
       - apps/quest/**
       - apps/play/**
       - packages/karmolab-ai/**
+      - packages/badapple/**
       - .github/workflows/pages-deploy.yml
 
   # Allows you to run this workflow manually from the Actions tab
@@ -101,6 +102,12 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      # 이 꾸러미는 자기 개발 의존성도 잠금 파일도 없다 (`npm ci` 로는 못 짓는다).
+      # 짓지 않으면 앱 쪽에서 「모듈을 못 찾는다」로 배포가 통째로 선다 — 실제로 섰다.
+      - name: Build badapple (shared package - apps/karmolab dependency)
+        working-directory: packages/badapple
+        run: npx -y -p typescript@5 tsc -p tsconfig.json
 
       - name: Build KarmoLab JavaScript (TypeScript)
         working-directory: apps/karmolab
