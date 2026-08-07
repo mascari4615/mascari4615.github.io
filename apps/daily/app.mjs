@@ -490,6 +490,74 @@ function distChart() {
   return el(`<div class="dist"><div class="dist-t">몇 번 만에 맞혔나</div>${rows}</div>`);
 }
 
+/** 오늘(KST) — 다른 놀이들이 저장에 쓰는 것과 같은 모양이어야 한다. 여기서 갈리면 다 어긋난다. */
+function courseDay(d = new Date()) {
+  const k = new Date(d.getTime() + 9 * 3600e3);
+  return `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
+}
+
+/** 그 놀이를 오늘 끝냈나 — 각 놀이가 남긴 것만 읽는다(새 판정 기준 없음). */
+function courseDone(id) {
+  try {
+    if (id === 'daily') {
+      return Object.keys(localStorage).some((k) => {
+        if (!/^daily:[^:]+:[^:]+$/.test(k)) return false;
+        const v = read(k, null);
+        return !!v && (v.status === 'won' || v.status === 'lost');
+      });
+    }
+    if (id === 'quest') return !!(read('karmolab_quest', {}) || {})[courseDay()];
+    if (id === 'higher') {
+      const h = read('karmolab_higher_day', null);
+      return !!h && h.day === courseDay() && (h.rounds || 0) > 0;
+    }
+  } catch { /* 사생활 모드 */ }
+  return false;
+}
+
+/** 도장이 이어진 날 수. 셋 다 끝냈을 때만 오늘을 적는다. */
+function courseRun(stamp) {
+  const box = read('karmolab_course', {}) || {};
+  const days = Array.isArray(box.days) ? box.days : [];
+  if (stamp && days[days.length - 1] !== courseDay()) {
+    days.push(courseDay());
+    if (days.length > 400) days.splice(0, days.length - 400);
+    write('karmolab_course', { days });
+  }
+  let run = 0;
+  const cur = new Date();
+  for (;;) {
+    if (days.indexOf(courseDay(cur)) < 0) break;
+    run++;
+    cur.setTime(cur.getTime() - 86400000);
+  }
+  return run;
+}
+
+/** 끝 화면에 코스 줄을 붙인다 — 남은 놀이가 있으면 거기로 가는 길까지. */
+function mountCourse() {
+  const line = el('<div class="pc-line" hidden></div>');
+  $done.append(line);
+  fetch('/apps/karmolab/data/games.json')
+    .then((r) => r.json())
+    .then((j) => {
+      const games = j.games || [];
+      if (!games.length) return;
+      const left = games.filter((g) => g.id !== 'daily' && !courseDone(g.id));
+      line.hidden = false;
+      if (!left.length) {
+        line.innerHTML = `<span class="pc-tag">오늘의 코스</span><span>셋 다 끝냈습니다 — ${courseRun(true)}일 연속</span>`;
+        return;
+      }
+      const n = left[0];
+      line.innerHTML =
+        `<span class="pc-tag">오늘의 코스</span><span>${left.length}개 남았습니다</span>` +
+        `<a class="pc-go" href="${esc(n.url)}">${esc(n.emoji ?? '🎮')} ${esc(n.title)} 하러 가기 →</a>`;
+      line.querySelector('.pc-go').addEventListener('pointerdown', () => countEvent(`daily/코스/${n.id}`));
+    })
+    .catch(() => line.remove());
+}
+
 function finish() {
   const won = state.status === 'won';
   const rows = shareRows();
@@ -610,6 +678,12 @@ function finish() {
       a.addEventListener('pointerdown', () => countEvent(`daily/${topicId}/${mode}/다음판/${kind}`));
     }
   }
+
+  /* 오늘의 코스 (TASK-KL-089) — 놀이 셋을 하루 한 줄로 묶는 그것.
+   * 이 놀이는 KarmoLab 앱 밖에 따로 살아서 그 화면의 셈을 가져다 쓸 수 없다. 대신 **같은 것**을
+   * 본다: 목록은 같은 표(games.json), 판정은 각 놀이가 이 브라우저에 남긴 것.
+   * 연습 판에서는 안 붙인다 — 오늘 것을 끝낸 게 아니다. 목록을 못 받으면 이 줄만 없다. */
+  if (!practice) mountCourse();
 
   const next = el(`<div class="next">다음 문제까지 ${untilNextKst()}</div>`);
   $done.append(next);
