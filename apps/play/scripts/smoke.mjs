@@ -72,6 +72,8 @@ const say = (ok, what) => {
   else {
     failures.push(what);
     process.stdout.write('x');
+    // LOUD=1 로 돌리면 어디서 틀어졌는지 그 자리에서 말한다 (한 줄씩 좇을 때 쓴다).
+    if (process.env.LOUD) console.error('\n  ! ' + what);
   }
 };
 
@@ -89,7 +91,7 @@ async function common(page, id, label) {
     return {
       줄: st ? Math.round(st.getBoundingClientRect().height) : 0,
       지금: now ? now.textContent.trim() : '',
-      바탕: getComputedStyle(document.body).backgroundColor,
+      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       켜진칩: now ? getComputedStyle(now).color : '',
       링크: [...(st ? st.querySelectorAll('a') : [])].length
     };
@@ -97,7 +99,9 @@ async function common(page, id, label) {
   say(r.줄 > 0 && r.줄 <= 44, `${id}: 놀이 전환 줄이 한 줄이 아니다 (${r.줄}px) — 화면 위를 먹는다`);
   say(r.지금.includes(label), `${id}: 지금 놀이 표시가 「${r.지금}」 — 「${label}」 이어야 한다`);
   say(r.링크 >= 2, `${id}: 다른 놀이로 가는 길이 ${r.링크}개뿐이다`);
-  // KarmoLab 값 — 바탕 #0e0d14, 브랜드 #a99bf5
+  /* KarmoLab 값 — 바탕 #0e0d14, 브랜드 #a99bf5.
+   * 바탕은 body 가 아니라 **문서 뿌리**가 칠한다: 앱이 화면에 딱 붙는 깔개를 따로 두면서
+   * body 는 투명이 됐다(폰 주소창이 접힐 때 검은 띠가 나던 것을 고치며 그렇게 됐다). */
   say(r.바탕 === 'rgb(14, 13, 20)', `${id}: 바탕색이 KarmoLab 값이 아니다 (${r.바탕})`);
   say(r.켜진칩 === 'rgb(169, 155, 245)', `${id}: 켜진 칩이 브랜드색이 아니다 (${r.켜진칩})`);
 }
@@ -113,7 +117,7 @@ async function common(page, id, label) {
   {
     const frame = await page.evaluate(() => ({
       헤더: !!document.querySelector('.app-header, header'),
-      바탕: getComputedStyle(document.body).backgroundColor,
+      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       제목카드: !!document.querySelector('#page-higher .tool-hero')
     }));
     say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
@@ -217,22 +221,31 @@ async function common(page, id, label) {
   {
     const frame = await page.evaluate(() => ({
       헤더: !!document.querySelector('.app-header, header'),
-      바탕: getComputedStyle(document.body).backgroundColor,
+      바탕: [document.documentElement, document.body].map((e) => getComputedStyle(e).backgroundColor).find((c) => c && c !== 'rgba(0, 0, 0, 0)'),
       제목카드: !!document.querySelector('#page-quest .tool-hero')
     }));
     say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
     say(frame.바탕 === 'rgb(14, 13, 20)', `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕})`);
     say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
   }
-  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), 도구: document.getElementById('qsTool').getAttribute('href') }));
+  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), 도구단추: !!document.getElementById('qsTool') }));
   say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
-  say(/^\/karmolab\/t\/[a-z0-9-]+\/$/.test(q.도구 || ''), `quest: 이 문제에 쓰는 도구 주소가 이상하다 (${q.도구})`);
+  say(q.도구단추, 'quest: 이 문제에 쓰는 도구를 여는 단추가 없다');
   const head = await page.evaluate(() => ({
     회차: document.getElementById('qsDay').textContent,
     초점: document.activeElement?.id
   }));
   say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
   say(head.초점 === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
+
+  // 도구는 딴 페이지가 아니라 **문제 밑에서** 펴져야 한다 — 그게 이 놀이의 약속이다.
+  await page.click('#qsTool');
+  await page.waitForTimeout(2000);
+  const tool = await page.evaluate(() => {
+    const s = document.getElementById('qsSlot');
+    return { 펴짐: !!s && !s.hidden, 알맹이: (s?.querySelectorAll('input, select, textarea').length || 0) };
+  });
+  say(tool.펴짐 && tool.알맹이 > 0, 'quest: 도구가 그 자리에서 안 펴진다 — 답을 얻으러 화면을 떠나야 한다');
 
   await page.fill('#qsAns', '틀린답');
   await page.click('#qsForm button[type=submit]');
@@ -279,6 +292,57 @@ async function common(page, id, label) {
   await page.close();
 }
 
+/* ── 스무고개 · 내 표 ──────────────────────────────
+ * 놀이가 늘었는데 검사가 안 따라오면, 죽은 놀이가 조용히 배포된다 — 실제로 「높은 쪽 고르기」의
+ * 누르는 배선이 두 회차 동안 없어진 채 나갔다. 새 놀이도 **한 판을 실제로 굴려** 본다.
+ */
+{
+  const page = await browser.newPage();
+  await page.goto(`${BASE}/karmolab/#twenty`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1600);
+  const first = await page.evaluate(() => ({
+    질문: (document.getElementById('twQ')?.textContent || '').trim(),
+    후보: (document.getElementById('twLeft')?.textContent || '').trim(),
+    단추: document.querySelectorAll('#twRow [data-say]').length
+  }));
+  say(first.질문.length > 4 && !/불러오는|못 불러/.test(first.질문), `twenty: 첫 질문이 안 떴다 (${first.질문.slice(0, 20)})`);
+  say(first.단추 === 3, `twenty: 대답 단추가 ${first.단추}개다 — 예·아니오·모르겠어요 셋이어야 한다`);
+  say(/\d/.test(first.후보), `twenty: 남은 후보 수가 안 보인다 (${first.후보})`);
+  // 대답하면 후보가 실제로 줄어야 한다 — 안 줄면 묻기만 하고 아무 일도 안 하는 놀이다.
+  const before = Number(first.후보.replace(/\D+/g, ''));
+  await page.click('#twRow [data-say=yes]');
+  await page.waitForTimeout(600);
+  const next = await page.evaluate(() => ({
+    질문: (document.getElementById('twQ')?.textContent || '').trim(),
+    후보: Number((document.getElementById('twLeft')?.textContent || '').replace(/\D+/g, '')),
+    센수: (document.getElementById('twCount')?.textContent || '').trim()
+  }));
+  say(next.후보 > 0 && next.후보 < before, `twenty: 대답해도 후보가 안 줄었다 (${before} → ${next.후보})`);
+  say(next.질문 !== first.질문, 'twenty: 같은 질문을 또 묻는다');
+  say(/2/.test(next.센수), `twenty: 몇 번째 질문인지가 안 올라간다 (${next.센수})`);
+
+  // 내 표 — UGC 가 이 놀이들의 재료다. 만들고 곧바로 놀이 목록에 서는지까지 본다.
+  await page.goto(`${BASE}/karmolab/#packs`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1400);
+  await page.click('#pkSample');
+  await page.click('#pkSave');
+  await page.waitForTimeout(500);
+  const made = await page.evaluate(() => ({
+    말: (document.getElementById('pkMsg')?.textContent || '').trim(),
+    개수: document.querySelectorAll('.pk-item').length
+  }));
+  say(made.개수 === 1 && /만들었습니다/.test(made.말), `packs: 표가 안 만들어졌다 (${made.말})`);
+  await page.click('.pk-item [data-go=twenty]');
+  await page.waitForTimeout(1600);
+  const mine = await page.evaluate(() => ({
+    고른칩: (document.querySelector('#twTopics button[aria-pressed=true]')?.textContent || '').trim(),
+    질문: (document.getElementById('twQ')?.textContent || '').trim()
+  }));
+  say(/우리 집 동물/.test(mine.고른칩), `packs: 내 표로 안 넘어간다 (${mine.고른칩})`);
+  say(mine.질문.length > 4 && !/불러오는|못 불러/.test(mine.질문), `packs: 내 표로 질문이 안 나온다 (${mine.질문})`);
+  await page.close();
+}
+
 await browser.close();
 if (!LIVE) server.close();
 process.stdout.write('\n');
@@ -288,4 +352,4 @@ if (failures.length) {
   failures.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
-console.log('[play-smoke] 놀이 셋 — 전환 줄·색·놀이 규칙 전부 성하다');
+console.log('[play-smoke] 놀이 다섯 — 전환 줄·색·놀이 규칙·내 표까지 전부 성하다');
