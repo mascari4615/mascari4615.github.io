@@ -18,6 +18,8 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'imgmerge',
+    // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
+    accepts: ['image/*'],
     title: '사진 이어 붙이기',
     category: 'tool',
     desc: '여러 장을 세로나 가로로 한 장에 이어 붙입니다. 사진이 브라우저를 벗어나지 않습니다',
@@ -208,6 +210,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files) void add(fileInput.files);
           };
+
+          /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type.startsWith('image/')) {
+              void add([new File([handed.blob], handed.name || '넘겨받은-그림', { type: handed.blob.type })] as unknown as FileList);
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -252,6 +263,8 @@ import { acceptPastedFiles } from './shared/paste';
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(`${shots.length}장을 ${cv.width}×${cv.height} · ${size(made.size)} 로 이어 받았어요.`, 'ok');
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'imgmerge' });
               Toolbox.trackUse?.('merge');
             }, 'image/png');
           };

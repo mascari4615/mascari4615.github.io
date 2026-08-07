@@ -162,7 +162,9 @@ const Toolbox = (() => {
         /* 줄은 기준 요소 **안**이 아니라 **바로 밑**에 놓는다 (TASK-KL-133).
          * 안에 넣었더니 도구가 상태 글을 갈아 끼우는 순간(textContent) 같이 지워졌다 —
          * 만들어 놓고 곧바로 사라져서, 화면에는 한 번도 안 보였다. */
-        anchor.parentElement.querySelectorAll('.tool-next-row').forEach(n => n.remove());
+        /* 놓아둘 수 있는 결과는 **하나뿐**이다. 그러니 화면에 남은 옛 줄도 전부 걷는다 —
+         * 안 걷으면 앞 도구의 탭에 낡은 줄이 남아, 눌렀을 때 없는 것을 넘기려 든다. */
+        document.querySelectorAll('.tool-next-row').forEach(n => n.remove());
         const targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
         if (!item || !targets.length) return;
         offerResult(item);

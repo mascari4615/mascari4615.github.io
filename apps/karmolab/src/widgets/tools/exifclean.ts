@@ -154,6 +154,8 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'exifclean',
+    // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
+    accepts: ['image/jpeg'],
     title: '사진 정보 지우기',
     category: 'tool',
     desc: '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다',
@@ -248,6 +250,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type.startsWith('image/')) {
+              void load(new File([handed.blob], handed.name || '넘겨받은-그림', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -272,6 +283,8 @@ import { acceptPastedFiles } from './shared/paste';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             say(`정보를 지워 받았어요 (${size(raw.length)} → ${size(cleaned.length)}). 그림 자체는 그대로입니다.`, 'ok');
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'exifclean' });
             Toolbox.trackUse?.('strip');
           };
         }

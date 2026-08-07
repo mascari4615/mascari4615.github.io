@@ -169,6 +169,8 @@ import { acceptPastedFiles } from './shared/paste';
               a.click();
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say('전 페이지에 문구를 얹어 내려받았어요.', 'ok');
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfwatermark' });
               Toolbox.trackUse?.('watermark');
             } catch (e) {
               say('처리 중 문제가 생겼어요: ' + (e as Error).message, 'error');
