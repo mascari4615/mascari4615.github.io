@@ -413,6 +413,36 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 키보드만으로 한 판. 마우스 없이 오는 사람이 어디서 막히는지는 여기서만 갈린다.
+ * 특히 판이 끝나면 입력칸이 사라지는데 포커스가 거기 남으면, 없어진 자리에 갇힌다.
+ */
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'lol.json'), 'utf8'));
+  const answer = answerOf(topic);
+  const ctx = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+
+  check('열면 입력칸에 바로 커서가 간다', await page.evaluate(() => document.activeElement?.tagName === 'INPUT'));
+  await page.keyboard.type(answer.name.slice(0, 2));
+  await page.waitForSelector('.sug button');
+  await page.keyboard.press('ArrowDown');
+  const active = await page.evaluate(() => document.activeElement?.getAttribute('aria-activedescendant'));
+  check('화살표로 고른 항목이 낭독기에 이어진다', !!active, active ?? '(없음)');
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('.done:not([hidden])');
+
+  const where = await page.evaluate(() => (document.activeElement?.closest('.done') ? '결과' : document.activeElement?.tagName));
+  check('★ 끝나면 포커스가 결과로 간다', where === '결과', String(where));
+  await page.keyboard.press('Tab');
+  const next = await page.evaluate(() => document.activeElement?.textContent?.trim()?.slice(0, 12) ?? '');
+  check('결과에서 Tab 한 번이면 공유 단추다', /복사|공유/.test(next), next);
+  await ctx.close();
+}
+
+/**
  * 없는 이름을 치면 아무 반응도 없었다 — 오타가 났는데 화면이 침묵하면 고장으로 읽힌다.
  * 이미 낸 답도 목록에서 빠지므로 같은 침묵이 났다.
  */

@@ -375,6 +375,14 @@ function finish() {
   $input.closest('.guessbar').hidden = true;
   $left.hidden = true;
   paintShot();
+
+  /**
+   * 판이 끝나면 입력칸이 사라지는데 **포커스는 거기 남는다.**
+   * 마우스로 보는 사람은 모르지만, 키보드·화면 낭독기로 오는 사람은 없어진 자리에 갇혀
+   * 결과에 닿지 못한다. 결과 상자로 옮겨 주고, 화면은 흔들지 않는다.
+   */
+  $done.setAttribute('tabindex', '-1');
+  $done.focus({ preventScroll: true });
 }
 
 function updateLeft() {
