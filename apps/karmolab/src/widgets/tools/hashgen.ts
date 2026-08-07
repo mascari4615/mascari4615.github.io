@@ -81,6 +81,9 @@
           }
           input.addEventListener('input', render);
           upper.addEventListener('change', render);
+          /* 빈 칸으로 시작하면 무엇이 나오는 도구인지 안 보인다 — 예시 한 줄을 넣어
+             결과를 먼저 보여 준다. 치는 순간 그 값으로 바뀐다 (TASK-KL-133). */
+          input.value = 'KarmoLab';
           render();
         }
       },
