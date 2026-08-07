@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
@@ -254,6 +254,30 @@ fs.watchFile(path.join(here, 'index.html'), { interval: 300 }, (cur, prev) => {
   notify({ type: 'reload', file: 'index.html' });
 });
 
+/* 이 서버 자신이 바뀌면 **스스로 다시 뜬다** (TASK-KL-129).
+ *
+ * 남의 코드는 다 지켜보면서 정작 제 코드는 안 봤다. 그래서 서버를 고쳐 놓고도 돌던 것은 옛
+ * 코드라, 고친 사람도 쓰는 사람도 「고쳤는데 왜 그대로지」를 겪었다(주소 못 찾는 것을 고친 날
+ * 바로 그랬다). 새로 띄우고 이 프로세스는 물러난다 — 사람이 기억할 일이 아니다. */
+fs.watchFile(fileURLToPath(import.meta.url), { interval: 500 }, (cur, prev) => {
+  if (cur.mtimeMs === prev.mtimeMs) return;
+  console.log('[dev] 개발 서버 자신이 바뀌었다 → 다시 뜬다');
+  notify({ type: 'reload', file: 'scripts/dev.mjs' });
+  server.close();
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), String(PORT)], {
+    cwd: here,
+    stdio: 'inherit',
+    // 새 것을 **떼어 놓는다**. 안 그러면 이쪽이 물러날 때 같이 사라져, 「다시 뜬다」고 찍어 놓고
+    // 아무것도 안 도는 상태가 된다(실제로 그랬다 — 서버가 통째로 죽어 있었다).
+    detached: true,
+  });
+  child.unref();
+  // 새 것이 자리를 잡을 틈을 준다. 자리는 안 비면 새 쪽이 기다렸다 다시 잡는다(아래 재시도).
+  child.on('spawn', () => setTimeout(() => process.exit(0), 400));
+  // 새로 못 떴으면 지금 것이라도 계속 돈다 — 조용히 아무것도 안 도는 것이 제일 나쁘다.
+  child.on('error', (e) => console.error('[dev] 다시 뜨기 실패 — 지금 것으로 계속한다:', e.message));
+});
+
 /** 같은 공유기 안에서 폰이 찾아올 수 있는 주소. 127.0.0.1 로만 열면 폰에서는 안 보인다 —
  *  모바일 화면을 진짜 폰으로 보려면 이게 있어야 한다 (TASK-KL-101). */
 function lanAddress() {
@@ -265,6 +289,18 @@ function lanAddress() {
   }
   return null;
 }
+
+/* 자리가 아직 안 비었으면 **잠깐 기다렸다 다시 잡는다** (TASK-KL-129).
+ * 스스로 다시 뜰 때 앞 프로세스가 물러나는 데 한 박자가 걸린다 — 그 틈에 한 번 튕기고
+ * 끝나면 서버가 아예 안 뜬 채로 남는다(실제로 그랬다: 다시 뜬다고 찍고는 죽어 있었다). */
+server.on('error', (e) => {
+  if (e.code !== 'EADDRINUSE') throw e;
+  if ((server.__tries = (server.__tries || 0) + 1) > 20) {
+    console.error(`[dev] ${PORT} 번 자리가 안 비워진다 — 다른 서버가 쓰고 있는지 봐라`);
+    process.exit(1);
+  }
+  setTimeout(() => server.listen(PORT, '0.0.0.0'), 250);
+});
 
 server.listen(PORT, '0.0.0.0', () => {
   const lan = lanAddress();
