@@ -125,17 +125,93 @@ const Toolbox = (() => {
      */
     let handoffItem = null;
 
+    /* 넘길 것은 **화면을 옮겨도 살아남아야 한다** (TASK-KL-133).
+     *
+     * 도구 상세 페이지(`/karmolab/t/<id>/`)에서 「이어서」를 누르면 그건 다른 주소로 가는
+     * 진짜 이동이라, 기억에만 들고 있으면 그 순간 파일이 사라진다 — 눌렀더니 빈손으로
+     * 도착했다(실제로 그랬다). 파일을 잃는 단추는 없는 단추보다 나쁘다.
+     * 그래서 브라우저 저장소(IndexedDB)에 한 칸 놓아둔다. 파일 자체를 그대로 담을 수 있는
+     * 유일한 자리다(localStorage 는 글자만 담는다). 집어 가면 지운다.
+     */
+    const HANDOFF_DB = 'karmolab-handoff';
+    const HANDOFF_KEY = 'current';
+
+    function handoffStore(mode) {
+        return new Promise((resolve, reject) => {
+            if (typeof indexedDB === 'undefined') return reject(new Error('저장소 없음'));
+            const req = indexedDB.open(HANDOFF_DB, 1);
+            req.onupgradeneeded = () => req.result.createObjectStore('items');
+            req.onerror = () => reject(req.error);
+            req.onsuccess = () => {
+                const db = req.result;
+                resolve(db.transaction('items', mode).objectStore('items'));
+            };
+        });
+    }
+
+    function handoffSave(item) {
+        return handoffStore('readwrite')
+            .then((s) => s.put(item, HANDOFF_KEY))
+            .catch(() => { /* 저장소가 막혀 있어도 같은 화면 안에서는 그대로 돈다 */ });
+    }
+
+    function handoffLoad() {
+        return handoffStore('readonly')
+            .then((s) => new Promise((resolve) => {
+                const r = s.get(HANDOFF_KEY);
+                r.onsuccess = () => resolve(r.result || null);
+                r.onerror = () => resolve(null);
+            }))
+            .catch(() => null);
+    }
+
+    function handoffClear() {
+        return handoffStore('readwrite')
+            .then((s) => s.delete(HANDOFF_KEY))
+            .catch(() => {});
+    }
+
     /** 방금 만든 것을 놓아둔다. `{ blob, name, from }` */
     function offerResult(item) {
         if (!item || !item.blob) return;
         handoffItem = { blob: item.blob, name: item.name || '결과', from: item.from || null, at: Date.now() };
+        void handoffSave(handoffItem);
     }
 
-    /** 놓인 것을 집어 간다 — 한 번만. 없으면 null. */
+    /** 놓인 것을 집어 간다 — 한 번만. 없으면 null. (같은 화면 안에서 쓰는 빠른 길) */
     function takeResult() {
         const it = handoffItem;
         handoffItem = null;
+        if (it) void handoffClear();
         return it;
+    }
+
+    /**
+     * 놓인 것이 **이 도구가 받을 수 있는 것이면** 건네준다 — 한 번만.
+     *
+     * 기억에 있으면 그 자리에서, 없으면 저장소에서 찾아 준다(화면을 옮겨 온 경우).
+     * 도구는 언제 오든 같은 방식으로 받는다: `Toolbox.onHandoff(['application/pdf'], (file) => …)`.
+     */
+    function onHandoff(kinds, cb) {
+        const ok = (type) => (kinds || []).some((k) => (k.endsWith('/*') ? String(type).startsWith(k.slice(0, -1)) : type === k));
+        const hand = (it) => {
+            if (!it || !it.blob || !ok(it.blob.type)) return false;
+            cb(new File([it.blob], it.name || '넘겨받은', { type: it.blob.type }));
+            return true;
+        };
+        const mem = handoffItem;
+        if (mem && ok(mem.blob.type)) {
+            handoffItem = null;
+            void handoffClear();
+            hand(mem);
+            return;
+        }
+        void handoffLoad().then((it) => {
+            /* 오래된 것은 안 집는다 — 어제 만든 파일이 오늘 연 도구에 갑자기 들어오면
+             * 그건 이어 붙이기가 아니라 유령이다. 화면을 옮기는 데 드는 시간만 허용한다. */
+            if (!it || Date.now() - (it.at || 0) > 5 * 60 * 1000) return;
+            if (hand(it)) void handoffClear();
+        });
     }
 
     function peekResult() {
@@ -2578,7 +2654,7 @@ const Toolbox = (() => {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
         onDispose,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
-        offerNext, offerResult, takeResult, peekResult, toolsAccepting,
+        offerNext, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,

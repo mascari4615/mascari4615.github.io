@@ -268,10 +268,7 @@ import { acceptPastedFiles } from './shared/paste';
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 「PDF 를 합쳤다 → 이어서 용량 줄이기」에서 사람이 파일을 다시 고르지 않게 하는 자리다.
            * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
-          const handed = Toolbox.takeResult?.();
-          if (handed && handed.blob && handed.blob.type === 'application/pdf') {
-            void load(new File([handed.blob], handed.name || '넘겨받은.pdf', { type: 'application/pdf' }));
-          }
+            Toolbox.onHandoff?.(['application/pdf'], (f: File) => void load(f));
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -284,7 +281,7 @@ import { acceptPastedFiles } from './shared/paste';
             if (f) void load(f);
           });
           // 캡처나 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f) => f.type === 'application/pdf');
+          acceptPastedFiles(container, (files) => { void load(files[0]); }, (f: File) => f.type === 'application/pdf');
           [qualityEl, scaleEl].forEach((el) => el.addEventListener('input', refreshLabels));
           refreshLabels();
 
