@@ -28,6 +28,34 @@ const topics = readdirSync(join(app, 'data'))
 
 if (!topics.length) throw new Error('data/ 에 주제 표가 하나도 없다');
 
+/**
+ * 표 검사 — 여기서 막지 않으면 화면에서 이상하게 드러난다.
+ * 실제로 두 번 당했다: 롤은 이벤트 스킨판이 같은 이름으로 또 들어왔고,
+ * 원신은 여행자가 원소·성별별로 12개였다. 이름이 겹치면 정답이 여럿이라 놀이가 성립하지 않는다.
+ */
+for (const topic of topics) {
+  const die = (why) => {
+    throw new Error(`표 「${topic.id}」 ${why}`);
+  };
+  if (!topic.id || !topic.title) die('에 id 나 title 이 없다');
+  if (!topic.fields?.length) die('에 속성이 하나도 없다');
+  for (const f of topic.fields) {
+    if (!['number', 'set', 'category'].includes(f.kind)) die(`의 속성 ${f.key} 종류가 이상하다: ${f.kind}`);
+  }
+  if (!topic.items?.length) die('에 항목이 없다');
+
+  const seen = new Set();
+  for (const item of topic.items) {
+    if (!item.name) die('에 이름 없는 항목이 있다');
+    const key = item.name.trim().toLowerCase();
+    if (seen.has(key)) die(`에 같은 이름이 두 번 있다: ${item.name} (정답이 여럿이 된다)`);
+    seen.add(key);
+    for (const f of topic.fields) {
+      if (item[f.key] === undefined || item[f.key] === null) die(`의 ${item.name} 에 ${f.label}(${f.key}) 이 비어 있다`);
+    }
+  }
+}
+
 /** 한 주제가 낼 수 있는 판들. 실루엣은 그림이 있어야 성립한다. */
 function pagesOf(topic) {
   const list = [

@@ -125,6 +125,8 @@ await playTopic('pokemon', { width: 360, height: 780, tag: 'mobile' });
 await playTopic('lol', { width: 360, height: 780, tag: 'mobile' });
 await playSilhouette('pokemon');
 await playSilhouette('lol');
+await playTopic('genshin', { width: 360, height: 780, tag: 'mobile' });
+await playSilhouette('genshin');
 
 /** 지난 문제 — 오늘 답이 새면 게임이 끝장난다. 그것만은 기계가 지켜야 한다. */
 async function pastPage(topicId) {
@@ -147,6 +149,26 @@ async function pastPage(topicId) {
 
 await pastPage('pokemon');
 await pastPage('lol');
+await pastPage('genshin');
+
+/**
+ * 그림이 *실제로 받아지는지* 본다.
+ * 실루엣은 그림이 전부인데, 밝기만 보는 검사는 그림이 깨져도 통과한다 (실제로 통과했다).
+ * 주소가 적혀 있는 것과 화면에 뜨는 것은 다른 일이다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  for (const topicId of ['pokemon', 'lol', 'genshin']) {
+    const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+    const sample = [0, Math.floor(topic.items.length / 2), topic.items.length - 1].map((i) => topic.items[i].img);
+    await page.setContent(sample.map((src) => `<img src="${src}">`).join(''));
+    await page.waitForLoadState('networkidle');
+    const widths = await page.$$eval('img', (els) => els.map((e) => e.naturalWidth));
+    check(`[그림:${topicId}] 표의 그림이 실제로 받아진다`, widths.every((w) => w > 0), widths.join('/'));
+  }
+  await ctx.close();
+}
 
 /**
  * 표를 못 받는 상황을 일부러 만든다. 예전엔 빈 화면이 떴고, 낯선 사람은 그걸 「고장」으로 읽는다.
@@ -198,7 +220,13 @@ check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past
   await page.waitForSelector('.done:not([hidden])');
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
   check('허브가 오늘 푼 판을 표시한다', (await page.locator('.card.done-today').count()) === 1);
-  check('허브가 남은 판 수를 말한다', /남은 판 3개/.test(await page.locator('.hub-note').innerText()));
+  // 판 수를 박지 않는다 — 주제가 늘 때마다 시험이 깨지면 시험을 안 믿게 된다.
+  const total = await page.locator('.card[data-topic]').count();
+  check(
+    '허브가 남은 판 수를 말한다',
+    new RegExp(`남은 판 ${total - 1}개`).test(await page.locator('.hub-note').innerText()),
+    `전체 ${total}판`,
+  );
 }
 await page.screenshot({ path: join(shots, 'hub.png'), fullPage: true });
 await ctx.close();
