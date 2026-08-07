@@ -163,6 +163,17 @@ def main():
     _, ko_common = split_sets(mine | ks_x_1001_hangul())
     print(f'[gen-fonts] 라틴·기호 {len(latin)}자 · 한글 본문용 {len(ko_common)}자 · 한글 제목용 {len(ko_ours)}자')
 
+    # 세리프의 라틴은 **로고와 인트로 글자에만** 쓰인다 (실측: 도구 화면 11곳이 전부 「KarmoLab」).
+    # 그 11곳을 위해 375자를 담으면 46KB 다. 담는 글자를 실제로 쓰는 쪽에 맞추면 14KB —
+    # 32KB 가 매 화면에서 빠진다. 넉넉히 영문 대소문자·숫자·기본 문장부호까지 담아 두고,
+    # 그 밖의 글자가 세리프로 나올 일이 생기면 컴퓨터 세리프(Georgia)가 받는다.
+    serif_latin = set('KarmoLab')
+    serif_latin |= {chr(c) for c in range(0x41, 0x5B)}
+    serif_latin |= {chr(c) for c in range(0x61, 0x7B)}
+    serif_latin |= set('0123456789 .,-!?:;()')
+    serif_latin |= {'·', '—', '–', '…', "'", '"'}
+    serif_latin &= latin | set('KarmoLab')
+
     # 조각 나누기 — 라틴/기호와 한글을 따로 굽는다. 영문만 있는 화면은 한글 뭉치를 안 받는다.
     #
     # 한글을 「우리 화면 글자 / 그 밖의 상용 글자」로 한 번 더 갈라서 담은 글자를 정확히 적어
@@ -172,7 +183,7 @@ def main():
     # 그래서 한 덩이로 둔다. (나뉜 쪽이 왜 다 받아지는지는 아직 모른다 — 알아내면 다시 나눠라.)
     pools = {
         'sans':  [('latin', latin), ('ko', ko_common)],
-        'serif': [('latin', latin), ('ko', ko_ours)],
+        'serif': [('latin', serif_latin), ('ko', ko_ours)],
         'mono':  [('latin', latin)],
     }
 
