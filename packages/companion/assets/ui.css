@@ -132,6 +132,16 @@ html, body {
 .line.me .what { background: rgba(20, 38, 48, 0.86); border-color: rgba(110, 231, 255, 0.28); }
 .line.them { align-self: flex-start; }
 .line.alone .what { border-style: dashed; color: var(--dim); font-style: italic; }
+
+/* 알아챈 것 — 말이 아니다. 얘가 뭘 보고 듣고 담았는지 대화 사이에 흐리게 끼운다.
+   조수님이 「인식할 땐 채팅창에 무조건 떴으면 좋겠다」고 했다(77회차). 말과 같은 무게로
+   그리면 대화를 덮어 버리므로, 가운데에 작고 옅게 놓아 눈이 그냥 스치게 한다. */
+.line.notice { align-self: center; max-width: 94%; }
+.line.notice .who { display: block; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); opacity: .55; text-align: center; margin-bottom: 2px; }
+.line.notice .what {
+  background: none; border: 0; padding: 1px 6px;
+  font-size: 11px; line-height: 1.4; color: var(--dim); opacity: .72; text-align: center;
+}
 .log .empty { display: none; }
 
 form { display: flex; gap: 6px; }
