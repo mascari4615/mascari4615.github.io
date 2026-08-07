@@ -284,53 +284,78 @@ body:has(> .app-layout) {
     /* 격자는 두 겹이다 — 굵은 칸(48px) 안에 가는 칸(12px). 모눈 종이·제도 용지가 그렇게
        생겼고, 한 겹만 있으면 「무늬」로 보이지 「종이」로 안 보인다 (TASK-KL-097). */
     background-image:
-        var(--holo-sweep),
-        var(--holo-bloom),
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
     /* 판때기가 곧 화면이므로 비율로 적으면 된다 — 화면 단위(vh/svh/lvh) 없음이 핵심이다. */
-    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
-    background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
-    background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
+    background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat;
+    background-position: 0 0, 0 0, 0 0, 0 0, center;
 }
+
+/* 분위기층은 **따로 겹친다** (TASK-KL-101).
+   예전엔 격자와 분위기를 한 규칙에 쌓아 두고, 테마마다 그림 목록만 갈아 끼웠다. 그런데
+   크기·반복 목록은 그대로 남아서 층 수가 어긋났다 — 오로라는 화면만 한 타원이 48px 로
+   잘려 바둑판처럼 깔렸고, 격자는 테마마다 통째로 사라졌다. 사실상 관측실 말고는 다 고장.
+   층을 갈라 두면 테마는 **자기 그림과 자기 크기만** 적으면 되고, 격자는 늘 남는다. */
+.app-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--holo-sweep), var(--holo-bloom);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* 아래 테마들은 **분위기층만** 바꾼다. 격자·vignette 는 위에서 늘 깔린다. */
 
 /* 배경 테마: 블루 매젠타 */
-html[data-bg="blue-magenta"] .app-bg { background-image:
-    radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.18) 0px, transparent 50%),
-    radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.14) 0px, transparent 45%),
-    radial-gradient(at 0% 80%, rgba(99, 102, 241, 0.1) 0px, transparent 40%),
-    radial-gradient(at 70% 70%, rgba(192, 38, 211, 0.08) 0px, transparent 55%);
+html[data-bg="blue-magenta"] .app-bg::before {
+    background-image:
+        radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.20) 0px, transparent 50%),
+        radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.16) 0px, transparent 45%),
+        radial-gradient(at 0% 80%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
+        radial-gradient(at 70% 70%, rgba(192, 38, 211, 0.10) 0px, transparent 55%);
+    background-size: 100% 100%;
 }
 
-/* 배경 테마: 메쉬 도트 */
-html[data-bg="mesh-dots"] .app-bg {
+/* 배경 테마: 메쉬 도트 — 유일하게 **되풀이되는** 분위기층이라 크기를 제가 적는다 */
+html[data-bg="mesh-dots"] .app-bg::before {
     background-image:
-        radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.12) 0px, transparent 1px),
-        radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.1) 0px, transparent 1px),
-        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.06) 0px, transparent 1px);
+        radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.30) 0px, transparent 2px),
+        radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.26) 0px, transparent 2px),
+        radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.18) 0px, transparent 2px);
     background-size: 48px 48px, 64px 64px, 80px 80px;
+    background-repeat: repeat;
+    background-position: 0 0;
 }
 
 /* 배경 테마: 오로라 */
-html[data-bg="aurora"] .app-bg {
+html[data-bg="aurora"] .app-bg::before {
     background-image:
-        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.14) 0px, transparent 50%),
-        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.16) 0px, transparent 45%),
-        radial-gradient(ellipse 70% 50% at 50% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 55%);
+        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.18) 0px, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.20) 0px, transparent 45%),
+        radial-gradient(ellipse 70% 50% at 50% 50%, rgba(99, 102, 241, 0.14) 0px, transparent 55%);
+    background-size: 100% 100%;
 }
 
 /* 배경 테마: 은은한 */
-html[data-bg="subtle"] .app-bg {
+html[data-bg="subtle"] .app-bg::before {
     background-image:
-        radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 70%);
+        radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.12) 0px, transparent 70%);
+    background-size: 100% 100%;
 }
 
-/* 배경 테마: 미니멀 */
+/* 배경 테마: 미니멀 — 분위기도 격자도 없이 종이만 */
+html[data-bg="minimal"] .app-bg::before { background-image: none; }
 html[data-bg="minimal"] .app-bg {
-    background-image: none;
+    background-image: radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
+    background-size: auto;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
 .app-layout {
