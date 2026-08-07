@@ -26,6 +26,27 @@ npm run build:graph   # 포스트 그래프 데이터
 bundle exec jekyll serve --draft  # 로컬 미리보기
 ```
 
+## KarmoLab 화면 작업 = `npm run dev` (배포 기다리지 마라, KL-100)
+
+**KarmoLab 의 화면·스타일·위젯을 고칠 때 배포를 기다리거나 새로고침하지 마라.**
+
+```bash
+cd apps/karmolab && npm run dev   # http://127.0.0.1:8813/apps/karmolab/index.html
+```
+
+- **스타일** — 저장 즉시 반영. 새로고침 없음(화면 상태 유지)
+- **위젯** — 저장하면 그 번들만 다시 받아 **갈아 끼운다**. 입력하던 값·열어 둔 탭이 살아 있다
+- **셸**(`src/toolbox.ts`·`widgets-loader`·`index.html`) — 이때만 자동 새로고침
+- 서버모니터 「KarmoLab (핫리로드)」 카드로도 기동 (`devProfiles: karmolab-dev`)
+
+받쳐 주는 것: `Toolbox.register()` 가 **같은 id 재등록 = 교체**로 동작한다. 위젯이 타이머·전역
+리스너를 걸면 `build` 안에서 `Toolbox.onDispose(fn)` 로 뒷정리를 맡겨라 — 안 맡기면 갈아 끼울
+때마다 쌓인다(DOM 리스너는 노드와 함께 죽으므로 적을 필요 없다).
+
+**셸(`index.html`)을 고쳤으면 `npm run audit:pages`** — 도구 상세 127장은 셸에서 배포 때
+찍힌다. 셸 모양이 달라져 생성기가 멈추면 **배포가 통째로 막힌다**(2026-08-07 세 시간 막혔다).
+`npm run verify` 에도 물려 있다.
+
 ## master invariant (`npm run verify`)
 
 master 브랜치는 항상:

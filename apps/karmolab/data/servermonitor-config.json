@@ -76,6 +76,14 @@
             "npmInstall": true
         },
         {
+            "id": "karmolab-dev",
+            "label": "KarmoLab (핫리로드)",
+            "app": "apps/karmolab",
+            "script": "dev",
+            "healthUrl": "http://127.0.0.1:8813/apps/karmolab/index.html",
+            "npmInstall": true
+        },
+        {
             "id": "karmolab-tauri-dev",
             "label": "KarmoLab Tauri Dev (dual)",
             "app": "apps/karmolab-tauri",
