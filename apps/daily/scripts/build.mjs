@@ -251,7 +251,7 @@ writeFileSync(join(dist, 'index.html'), hub);
 // (실측: /sitemap.xml 에 /daily/, /daily/pokemon/, /daily/lol/ 이 들어 있었다).
 // 여기서 하나 더 찍으면 아무도 안 읽는 파일이 남는다.
 
-for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'hub.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+for (const f of ['engine.mjs', 'app.mjs', 'past.mjs', 'hub.mjs', 'count.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
 // 공유 카드 그림 (scripts/gen-og.mjs 가 만들어 커밋해 둔 것 — 배포에선 만들지 않는다).
 mkdirSync(join(dist, 'img/og'), { recursive: true });

@@ -5,6 +5,7 @@
  * 다 푼 판을 다시 누르게 만드는 게 이 화면의 가장 흔한 낭비다.
  */
 import { kstDayKey, liveStreak, kstDayNumber } from './engine.mjs';
+import { countPage } from './count.mjs';
 
 const dayKey = kstDayKey();
 const dayNumber = kstDayNumber();
@@ -38,3 +39,5 @@ if (note && (left < document.querySelectorAll('.card[data-topic]').length || bes
   parts.push(left ? `오늘 남은 판 ${left}개` : '오늘 다 풀었다 — 내일 또');
   note.textContent = parts.join(' · ');
 }
+
+countPage();

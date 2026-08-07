@@ -23,6 +23,7 @@ import {
   suggest,
   updateStats,
 } from './engine.mjs';
+import { countPage, countEvent } from './count.mjs';
 
 const root = document.getElementById('app');
 const topicId = root.dataset.topic;
@@ -309,6 +310,7 @@ function finish() {
     if (canShare) {
       try {
         await navigator.share({ text });
+        countEvent(`daily/${topicId}/공유/기기`);
         return;
       } catch (err) {
         // 사용자가 공유 창을 그냥 닫은 것뿐이면 아무 말도 하지 않는다.
@@ -317,6 +319,7 @@ function finish() {
     }
     try {
       await navigator.clipboard.writeText(text);
+      countEvent(`daily/${topicId}/공유/복사`);
       btn.textContent = '복사됨! 아무 데나 붙여넣기';
     } catch {
       btn.textContent = '복사 실패 — 길게 눌러 직접 복사';
@@ -404,6 +407,8 @@ function submit(name) {
       streak = touchDay(streak, dayNumber);
       write(streakKey, streak);
     }
+    // 「열어만 봤다」와 「끝까지 뒀다」를 가르는 유일한 신호. 이름·정답은 안 실린다.
+    countEvent(`daily/${topicId}/${mode}/${state.status === 'won' ? '맞힘' : '실패'}${practice ? '/연습' : ''}`);
     renderStreak();
     finish();
   }
@@ -459,6 +464,7 @@ updateLeft();
 renderSeeds();
 renderStreak();
 watchMidnight();
+countPage();
 paintShot();
 if (state.status !== 'playing') finish();
 $input.focus({ preventScroll: true });
