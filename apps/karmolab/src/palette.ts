@@ -543,6 +543,21 @@ const KarmoPalette = (() => {
   }
 
   /** 첫 화면이 실제로 보일 때 포커스를 준다. 화면 밖에서 포커스를 주면 페이지가 튄다. */
+    } else {
+      /* 눈에 보이는 닫기 (TASK-KL-101).
+       * 지금까지 닫는 길은 Esc 키와 바깥 누르기뿐이었다. 폰에는 Esc 가 없고, 화면이 좁아
+       * 바깥이 거의 안 보인다 — 열고 나면 **검색을 해야만 빠져나올 수 있었다.**
+       * 키보드에만 있는 조작은 폰에서는 없는 기능이다. */
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'kp-close';
+      closeBtn.setAttribute('aria-label', '찾기 닫기');
+      closeBtn.title = '닫기 (Esc)';
+      closeBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      closeBtn.addEventListener('click', () => close());
+      inputWrap.appendChild(closeBtn);
   function focusInline(): void {
     if (!inline) return;
     // 손가락으로 쓰는 화면에서는 자동 포커스가 키보드를 밀어 올려 화면을 반쯤 덮는다.
