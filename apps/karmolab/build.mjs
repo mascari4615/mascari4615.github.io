@@ -51,9 +51,17 @@ await esbuild.build({
   treeShaking: false
 });
 
+// 이 판(배포)의 표식 — 위젯 묶음 주소에 붙여 「한 번 받은 것은 그대로」로 둘 수 있게 한다.
+// 서비스 워커가 쓰는 값과 **같은 값**이어야 한다 (아래 sw 빌드와 같은 변수를 쓴다).
+const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+// 이 판 표식을 파일로도 남긴다 — 도구 페이지 생성기가 **같은 값**으로 미리받기 주소를 만든다.
+// (두 값이 어긋나면 같은 위젯을 두 번 받는다. 실측으로 그랬다.)
+writeFileSync(join(root, '.build-stamp'), buildStamp, 'utf8');
+
 await esbuild.build({
   entryPoints: [join(root, 'src/toolbox.ts')],
   outfile: join(root, 'js/toolbox.js'),
+  define: { __KARMOLAB_BUILD__: JSON.stringify(buildStamp) },
   ...SAFE_MINIFY,
   bundle: false,
   format: 'esm',
@@ -72,7 +80,6 @@ await esbuild.build({
 // 정본(`css/toolbox.css`)은 읽기만 한다 — 누가 그걸 고쳐도 다음 빌드에 그대로 반영된다.
 await import('./scripts/split-css.mjs');
 
-const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 await esbuild.build({
   entryPoints: [join(root, 'src/sw.ts')],
   outfile: join(root, 'sw.js'),
@@ -107,6 +114,9 @@ for (const rel of entryPoints) {
   await esbuild.build({
     entryPoints: [join(root, rel)],
     outfile: join(root, outfile),
+    // 판 표식은 **모든 번들이 같은 값**을 봐야 한다 — 로더와 셸이 다른 주소를 만들면
+    // 같은 위젯을 두 번 받는다(실측으로 그랬다).
+    define: { __KARMOLAB_BUILD__: JSON.stringify(buildStamp) },
     ...FULL_MINIFY,
     bundle: true,
     format: 'iife',
