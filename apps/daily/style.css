@@ -84,6 +84,30 @@ a { color: var(--accent); }
 .streak { margin-left: auto; font-size: 13px; color: var(--ink-2); }
 .streak b { color: var(--accent); }
 
+/* 자정을 넘겨 창을 열어 둔 사람에게 — 지금 보는 게 어제 문제라고 말해 준다. */
+.newday {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: var(--near);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  margin-bottom: 12px;
+}
+.newday button {
+  margin-left: auto;
+  background: var(--ink);
+  color: #16202c;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ── 실루엣 ── */
 .shot {
   display: flex;
