@@ -939,6 +939,10 @@ html[data-intro="off"] .intro-overlay {
    높이(lvh)로 못 박으면 주소창이 접히든 펴지든 자리가 그대로다. 주소창이 보일 때는 아래가
    조금 잘릴 뿐인데, 어차피 가려져 있던 자리다 (TASK-KL-101). */
 .home-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; z-index: 0; overflow: hidden; }
+/* 도구 화면에서는 한 겹 물러난다. 지우지 않는 이유: 화면을 옮길 때마다 세계가 바뀌면
+   앱이 아니라 문서 여러 장이 된다. 흐리게 두면 이어지면서도 글을 안 방해한다. */
+html[data-view="tool"] .home-decor { opacity: 0.35; transition: opacity .45s ease; }
+html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; }
 /* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
    서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
 .home-decor-item {

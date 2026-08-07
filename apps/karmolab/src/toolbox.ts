@@ -1284,11 +1284,22 @@ const Toolbox = (() => {
         return wrap;
     }
 
+    /** 장식 한 장을 껍데기에 붙인다. 다시 부르면 앞의 것을 걷고 새로 뽑는다
+     *  (도형은 열 때마다 새로 뽑히는 것이 원래 규칙이다). */
+    function mountHomeDecor() {
+        document.querySelector('.home-decor')?.remove();
+        document.body.appendChild(buildHomeDecor());
+    }
+
     function buildLanding() {
         const landing = document.createElement('div');
         landing.className = 'landing-page';
         landing.id = 'page-home';
-        landing.appendChild(buildHomeDecor());
+        /* 장식은 **첫 화면 것이 아니라 이 앱의 것**이다 (TASK-KL-101).
+           첫 화면 안에 넣어 두면 도구로 가는 순간 통째로 사라진다 — 도구를 여닫을 때마다
+           세계가 바뀌는 셈이다. 껍데기(body) 에 한 장 붙여 두면 어느 화면에서나 그대로
+           떠 있고, 화면 사이를 오가도 도형이 이어진다. 위치는 어차피 화면 기준이다. */
+        mountHomeDecor();
 
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
@@ -1479,6 +1490,9 @@ const Toolbox = (() => {
 
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
         currentPageId = pageId;
+        /* 지금 어느 화면인지 뿌리에 적어 둔다 — 장식은 도구 화면에서 한 겹 물러난다.
+           첫 화면에선 주인공이고, 도구 화면에선 읽는 것을 방해하면 안 된다 (TASK-KL-101). */
+        document.documentElement.setAttribute('data-view', pageId === 'home' ? 'home' : 'tool');
         window.KarmoStat?.page(pageId, toolForPage ? toolForPage.title : undefined);
         // TASK-KL-099 — 「최근」 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
         // 화면마다 따로 적을 필요가 없다 (팔레트·메뉴·주소·즐겨찾기 전부 여기를 지난다).
