@@ -874,3 +874,62 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     text-decoration: none;
 }
 .tool-hub-toc a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* 화면에 보이는 이동 경로 — 도구 한 장에 떨어진 사람이 위로 올라갈 길 (TASK-KL-089).
+   제목보다 앞서 보이면 안 되므로 작고 흐리게. 좁은 화면에서는 줄바꿈으로 흐른다. */
+.tool-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  margin: 0 0 0.6rem;
+  font-size: var(--font-size-2xs);
+  line-height: 1.5;
+  color: var(--text-tertiary, #8b8b85);
+}
+.tool-crumb a {
+  color: inherit;
+  text-decoration: none;
+  /* 손가락으로 누를 만한 크기 — 글씨는 작아도 누르는 자리는 작지 않게 */
+  padding: 0.25rem 0;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+.tool-crumb a:hover,
+.tool-crumb a:focus-visible { color: var(--text-primary, #f2f2ee); text-decoration: underline; }
+.tool-crumb i { font-style: normal; opacity: 0.55; }
+.tool-crumb [aria-current='page'] { color: var(--text-secondary, #b9b9b2); }
+
+/* 도구 페이지에서 바로 다른 도구 찾기 (TASK-KL-089).
+   설명 블록 안에 있고, 도구 본체를 가리지 않는다. 폰에서는 칸이 한 줄을 다 쓴다. */
+.tool-seo-find {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0.25rem;
+}
+.tool-seo-find label {
+  flex: 1 0 100%;
+  font-size: var(--font-size-2xs);
+  color: var(--text-tertiary, #8b8b85);
+}
+.tool-seo-find input[type='search'] {
+  flex: 1 1 12rem;
+  min-width: 0;
+  /* 폰에서 눌러도 화면이 확대되지 않게 16px 아래로 내리지 않는다 */
+  font-size: 16px;
+  padding: 0.5rem 0.65rem;
+  min-height: 40px;
+}
+.tool-seo-find button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 0.9rem;
+}
+
+/* 목록 맨 위에서 오늘의 문제로 (TASK-KL-089) */
+.tool-hub-quest { margin: 0.2rem 0 1rem; font-size: 0.92rem; }
+.tool-hub-quest a { color: var(--accent, #d4a849); text-decoration: none; }
+.tool-hub-quest a:hover, .tool-hub-quest a:focus-visible { text-decoration: underline; }
