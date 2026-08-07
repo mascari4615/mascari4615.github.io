@@ -177,6 +177,9 @@ permalink: /karmolab/
                 <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크">누가 만들었나요?</a>
                 <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
                      눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
+                <!-- 알림 종 (TASK-KL-098) — 공용이다. 커뮤니티만이 아니라 도구·계정·봇이 보낸 것도 여기 뜬다.
+                     js/account.js 가 채운다. 서버에 못 닿거나 로그인 안 했으면 안 그려진다. -->
+                <div class="header-bell" id="headerBell"></div>
                 <div class="header-account" id="headerAccount"></div>
                 <button type="button" class="header-btn user-btn" id="userPageBtn" title="내 정보" aria-label="내 정보">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>

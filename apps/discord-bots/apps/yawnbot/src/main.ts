@@ -34,6 +34,7 @@ import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
+import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
@@ -53,9 +54,6 @@ import { isTeamRoomMessage, setBudgetReserve, agentChannelId } from './bot/team-
 import { isOwnAgentWebhook, sendAsSkin } from './bot/agent-webhook';
 import { buildGovernanceReserve, defaultNotify, setTeamBusNotify } from './bot/governance-adapter';
 import { checkMemoPushScope } from './services/memo-push';
-import type { ClientLike } from './bot/forum-post';
-import type { RecoveryClientLike } from './bot/forum-tag-recovery';
-import type { ForumDedupClientLike } from './bot/forum-dedup';
 import { loadCoreDef } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
@@ -359,6 +357,8 @@ mountDeviceLog(app, client);
 mountWrappedWeb(app, client);
 // TASK-KL-098 — KarmoLab 계정·기록·공개 프로필. 도구 사이트의 기록이 브라우저 밖에 남는 자리.
 registerKarmolabApi(app);
+// TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
+startBackupLoop();
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
@@ -455,74 +455,9 @@ client.once('clientReady', async () => {
     }
   }
 
-  // TASK-YB-039 P6: 기존 ready/in_progress/seed TASK 들을 #team-work
-  // forum-post 로 1회 시드 (멱등 — ledger 박힌 건 skip). 채널 프로비저닝
-  // *뒤* 호출해서 agent-work channelId 신선 보장. best-effort — 실패해도
-  // boot 자체 진행.
-  try {
-    const { runTaskForumBackfillOnce } = await import('./bot/task-forum-backfill.js');
-    await runTaskForumBackfillOnce(client as unknown as ClientLike, process.env);
-  } catch (e) {
-    console.error(
-      '[TaskForumBackfill] 부팅 backfill 실패:',
-      e instanceof Error ? e.message : e,
-    );
-  }
-
-  // 부팅 태그 복원: 채널 재프로비저닝으로 availableTags ID 가 새로 발급된 경우
-  // 기존 포스트의 appliedTags 가 stale ID 참조 → 태그 소실. 1회 전수 점검·복원.
-  try {
-    const { recoverForumTagsOnce } = await import('./bot/forum-tag-recovery.js');
-    await recoverForumTagsOnce(client as unknown as RecoveryClientLike, process.env);
-  } catch (e) {
-    console.error(
-      '[ForumTagRecovery] 부팅 태그 복원 실패:',
-      e instanceof Error ? e.message : e,
-    );
-  }
-
-  // TASK-YB-039 P5: md status drift → #team-work forum 태그 sync (단방향
-  // md=정본). 부팅 1회 + 주기 5분 (env override 가능). 멱등 — last-applied
-  // 캐시로 변화 없는 entry 는 API 미호출.
-  try {
-    const { reconcileTaskForumStatusOnce, startTaskForumReconciler } =
-      await import('./bot/task-forum-reconciler.js');
-    await reconcileTaskForumStatusOnce(client as unknown as ClientLike, process.env);
-    startTaskForumReconciler(client as unknown as ClientLike, process.env);
-  } catch (e) {
-    console.error(
-      '[TaskForumReconciler] 부팅 sync 실패:',
-      e instanceof Error ? e.message : e,
-    );
-  }
-
-  // KAR-150: "TASK당 forum-post 1개" 불변식. 예방 = backfill 이 생성 전 Discord
-  // ground-truth 확인(원장 단일실패점 보강). 여기 = 비파괴 감사 — 중복 *감지*만
-  // (원장 heal + WARN/알림). **삭제 안 함** (포스트 내 사람 소통 가능 → 삭제는 최후
-  // 수단·수동: node memo/scripts/forum-dedupe.mjs). 부팅 1회 + 주기(기본 60분).
-  try {
-    const { auditForumDupsOnce } = await import('./bot/forum-dedup.js');
-    await auditForumDupsOnce(client as unknown as ForumDedupClientLike, process.env);
-    const dedupMin = parseInt(
-      process.env.YAWNBOT_FORUM_DEDUP_INTERVAL_MIN || '60',
-      10,
-    );
-    const dedupTimer = setInterval(() => {
-      void import('./bot/forum-dedup.js')
-        .then(({ auditForumDupsOnce: tick }) =>
-          tick(client as unknown as ForumDedupClientLike, process.env),
-        )
-        .catch((err) =>
-          console.error(
-            '[ForumDedup] tick 실패:',
-            err instanceof Error ? err.message : err,
-          ),
-        );
-    }, Math.max(60_000, dedupMin * 60_000));
-    if (typeof dedupTimer.unref === 'function') dedupTimer.unref();
-  } catch (e) {
-    console.error('[ForumDedup] 부팅 감사 실패:', e instanceof Error ? e.message : e);
-  }
+  // TASK-YB-043: #team-work forum 으로의 TASK 투영 폐지. TASK 정리 표면 =
+  // KarmoLab 앱(agent_team_list_tasks — memo md 를 직접 읽는다) 단일.
+  // backfill / status reconciler / tag recovery / dedup 감사 전부 제거.
 
   const greetingChannelIds = getDefaultChannels();
   for (const channelId of greetingChannelIds) {

@@ -583,6 +583,16 @@ export class KarmolabTraceStore {
     };
   }
 
+  /** 글의 날것 — 알림 보낼 때 글쓴이 계정 id 가 필요하다 (공개 모양에는 없다). */
+  rawPost(postId: string): Post | null {
+    return this.state.posts.find((p) => p.id === postId) ?? null;
+  }
+
+  /** 그 답글을 쓴 사람의 계정 id — 대댓글 알림이 쓴다. */
+  replyAuthorAccountId(postId: string, replyId: string): string | null {
+    return this.state.posts.find((p) => p.id === postId)?.replies.find((r) => r.id === replyId)?.authorAccountId ?? null;
+  }
+
   /** 글 하나 — 커뮤니티의 글 상세 화면이 쓴다. */
   publicPost(postId: string, viewerAccountId: string | null): PublicPost | null {
     const post = this.state.posts.find((p) => p.id === postId);

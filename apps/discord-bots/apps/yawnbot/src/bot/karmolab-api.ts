@@ -38,6 +38,8 @@ import {
   TITLE_MAX_LEN,
   REPLY_MAX_LEN,
 } from '../services/karmolab-traces';
+import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
+import { backupInfo } from '../services/karmolab-backup';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
 const SESSION_COOKIE = 'kl_session';
@@ -223,6 +225,7 @@ export function registerKarmolabApi(
   app: Application,
   store: KarmolabAccountStore = getKarmolabAccountStore(),
   traces: KarmolabTraceStore = getKarmolabTraceStore(),
+  notes: KarmolabNotificationStore = getKarmolabNotificationStore(),
 ): void {
 
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
@@ -265,7 +268,14 @@ export function registerKarmolabApi(
   /** 브라우저가 「계정 기능이 지금 되나」를 물어보는 자리. 서버가 죽으면 이 요청이 실패하고, 브라우저는 조용히 예전처럼 동작한다. */
   app.get('/kl/health', (_req: Request, res: Response) => {
     const config = karmolabOauthConfig();
-    res.json({ ok: true, login: config.ready ? 'discord' : 'disabled', ...store.stats() });
+    // 「살아 있나」만으로는 부족하다 — 백업이 언제 돌았는지 안 보이면 안 도는 것을 모른다.
+    res.json({
+      ok: true,
+      login: config.ready ? 'discord' : 'disabled',
+      ...store.stats(),
+      backup: backupInfo(),
+      pulse: traces.pulse(),
+    });
   });
 
   app.get('/kl/auth/discord', (req: Request, res: Response) => {
@@ -661,12 +671,29 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    const liked = traces.toggleLike(String(req.params.id ?? ''), account.id);
+    const postId = String(req.params.id ?? '');
+    const liked = traces.toggleLike(postId, account.id);
     if (liked === null) {
       res.status(404).json({ error: 'not_found' });
       return;
     }
     traces.flush();
+
+    // 누를 때만 알린다 (취소는 안 알린다 — 그건 알릴 일이 아니다).
+    const target = liked ? traces.rawPost(postId) : null;
+    if (target) {
+      notes.notify({
+        accountId: target.authorAccountId,
+        actorAccountId: account.id,
+        source: 'community',
+        title: '내 글을 좋아했어요',
+        body: `${target.title ?? target.text.slice(0, 30)} — @${account.handle}`,
+        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        groupKey: `post-like:${postId}`,
+      });
+      notes.flush();
+    }
+
     res.json({ liked });
   });
 
@@ -683,18 +710,51 @@ export function registerKarmolabApi(
       res.status(400).json({ error: 'bad_text', maxLength: REPLY_MAX_LEN });
       return;
     }
-    const reply = traces.addReply(String(req.params.id ?? ''), {
+    const postId = String(req.params.id ?? '');
+    const target = traces.rawPost(postId);
+    const parentId = typeof body.parentId === 'string' ? body.parentId : null;
+    const parentAuthorId = parentId ? traces.replyAuthorAccountId(postId, parentId) : null;
+
+    const reply = traces.addReply(postId, {
       text,
       accountId: account.id,
       handle: account.handle,
       byOwner: isAdminAccount(account),
-      parentId: typeof body.parentId === 'string' ? body.parentId : null,
+      parentId,
     });
     if (!reply) {
       res.status(404).json({ error: 'not_found' });
       return;
     }
     traces.flush();
+
+    /* 알림 — 답글이 달렸는데 글쓴이가 모르면 그 사람은 안 돌아온다.
+       한 글의 답글은 같은 열쇠라 「답글 3개」로 묶인다. 내가 내 글에 단 것은 안 보낸다. */
+    if (target) {
+      notes.notify({
+        accountId: target.authorAccountId,
+        actorAccountId: account.id,
+        source: 'community',
+        title: `내 글에 답글이 달렸어요`,
+        body: `${target.title ?? target.text.slice(0, 30)} — @${account.handle}`,
+        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        groupKey: `post-reply:${postId}`,
+      });
+    }
+    // 대댓글이면 그 답글을 쓴 사람에게도 (글쓴이와 같으면 위에서 이미 갔으므로 묶음이 처리한다).
+    if (parentAuthorId) {
+      notes.notify({
+        accountId: parentAuthorId,
+        actorAccountId: account.id,
+        source: 'community',
+        title: '내 답글에 답글이 달렸어요',
+        body: `@${account.handle}: ${text.slice(0, 40)}`,
+        url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
+        groupKey: `reply-reply:${parentId}`,
+      });
+    }
+    notes.flush();
+
     res.json({ ok: true });
   });
 
@@ -773,6 +833,31 @@ export function registerKarmolabApi(
    * 넘기면 사이트를 쓴 것만으로 디스코드 계정이 남에게 공개된다 — 본인이 그러겠다고 한 적이 없다.
    * 받아 온 것은 잠깐 들고 있는다 (프로필 한 장에 여러 번 뜨는 그림을 매번 다시 받지 않게).
    */
+  /* ===== 알림 (공용) =====
+   * 커뮤니티만의 기능이 아니다. 도구·계정·봇 무엇이든 같은 자리에 알림을 넣는다. */
+
+  app.get('/kl/notifications', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      // 로그인 안 한 사람에게도 200 — 화면이 오류로 깨지면 안 된다.
+      res.json({ items: [], unread: 0, signedIn: false });
+      return;
+    }
+    res.json({ items: notes.listFor(account.id), unread: notes.unreadCount(account.id), signedIn: true });
+  });
+
+  app.post('/kl/notifications/read', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const id = typeof (req.body ?? {}).id === 'string' ? (req.body as { id: string }).id : undefined;
+    const changed = notes.markRead(account.id, id);
+    notes.flush();
+    res.json({ changed, unread: notes.unreadCount(account.id) });
+  });
+
   app.get('/kl/u/:handle/avatar', async (req: Request, res: Response) => {
     const account = store.byHandle(String(req.params.handle ?? ''));
     if (!account?.avatarUrl) {
