@@ -140,15 +140,56 @@ const Toolbox = (() => {
 
     const lazyLoadPromises = new Map();
 
+    /* ── 위젯이 걸어 둔 것을 거두는 자리 (TASK-KL-100) ──
+     * 도구를 다시 그릴 때 DOM 리스너는 노드가 갈리며 같이 죽지만 **타이머는 안 죽는다**.
+     * 거두지 않으면 다시 그릴 때마다 쌓여서, 나중엔 같은 일을 여러 번 하는 화면이 된다.
+     * 위젯은 build 안에서 `Toolbox.onDispose(fn)` 로 자기 뒷정리를 맡긴다. */
+    const disposers = new Map();     // toolId → fn[]
+    let buildingTool = null;         // 지금 build 중인 도구 (onDispose 가 누구 것인지 알려면 필요)
+
+    function onDispose(fn) {
+        if (typeof fn !== 'function' || !buildingTool) return;
+        const list = disposers.get(buildingTool) || [];
+        list.push(fn);
+        disposers.set(buildingTool, list);
+    }
+
+    /** 위젯 그리기는 **전부 이걸 거친다** — 그래야 onDispose 가 누구 것인지 안다.
+     *  한 군데라도 빼먹으면 그 위젯만 뒷정리가 안 되고, 그건 눈에 안 보인다. */
+    function runBuild(toolId, fn) {
+        const prev = buildingTool;
+        buildingTool = toolId;
+        try { return fn(); } finally { buildingTool = prev; }
+    }
+
+    function disposeTool(id) {
+        const list = disposers.get(id);
+        if (!list) return;
+        disposers.delete(id);
+        for (const fn of list) {
+            try { fn(); } catch (err) { console.warn('[KarmoLab] 뒷정리 실패 —', id, err); }
+        }
+    }
+
+    /**
+     * 같은 id 로 다시 등록하면 **갈아 끼운다** (TASK-KL-100).
+     *
+     * 예전에는 이미 있으면 조용히 무시하고 끝냈다. 그래서 위젯 코드를 새로 실행해도 화면은
+     * 옛 코드 그대로였고, 고친 것을 보려면 새로고침(= 상태 전부 날림)밖에 없었다.
+     * 교체 배선은 이미 있었다 — 지연 등록이 실제 등록으로 바뀔 때 쓰던 그 길이다. 그 길을
+     * 재등록에도 열어 주는 것이 이 함수의 전부다.
+     */
     function register(config) {
-        const deferredIdx = tools.findIndex(t => t.id === config.id && t._deferred);
-        if (deferredIdx >= 0) {
-            tools[deferredIdx] = { ...config, _deferred: false };
-            rebuildToolPageIfInDom(config.id);
+        const idx = tools.findIndex(t => t.id === config.id);
+        if (idx < 0) {
+            tools.push(config);
             return;
         }
-        if (tools.some(t => t.id === config.id)) return;
-        tools.push(config);
+        const wasDeferred = !!tools[idx]._deferred;
+        // 옛 것이 걸어 둔 타이머·리스너를 먼저 거둔다. 순서가 뒤면 새 것이 건 것까지 거둔다.
+        if (!wasDeferred) disposeTool(config.id);
+        tools[idx] = wasDeferred ? { ...config, _deferred: false } : config;
+        rebuildToolPageIfInDom(config.id);
     }
 
     /** 등록된 위젯의 첫 tab.build 를 임의 container 에 inline 호출 (잡동사니 위젯 등 페이지 안 페이지). */
@@ -158,7 +199,7 @@ const Toolbox = (() => {
         const tab = tool.tabs[0];
         if (typeof tab.build !== 'function') return false;
         try {
-            tab.build(container);
+            runBuild(id, () => tab.build(container));
             return true;
         } catch (err) {
             console.warn('[KarmoLab] renderInline fail —', id, err);
@@ -190,6 +231,9 @@ const Toolbox = (() => {
         if (!tool || !tool.tabs) return;
         const old = document.getElementById('page-' + pageId);
         if (!old) return;
+        // 다시 그리기 **직전**이 뒷정리 자리다. 재등록 말고 다른 길로 다시 그려도 여기를 지난다
+        // — 한쪽에만 두면 그 길로 올 때마다 타이머가 쌓인다 (TASK-KL-100).
+        disposeTool(pageId);
         const wasActive = old.classList.contains('active');
         const nu = buildToolPage(tool);
         if (wasActive) nu.classList.add('active');
@@ -1185,8 +1229,9 @@ const Toolbox = (() => {
     function buildLazyPanel(panel) {
         if (!panel || !panel._lazyBuild) return;
         const build = panel._lazyBuild;
+        const owner = panel._lazyOwner;
         panel._lazyBuild = null;
-        build(panel);
+        runBuild(owner, () => build(panel));
     }
 
     /* ===== Page Builder ===== */
@@ -1252,8 +1297,9 @@ const Toolbox = (() => {
             // (무거운 화면·타이머·저장소 접근이 헛돈다). lazyTabs 면 처음 열릴 때 그린다.
             if (tool.lazyTabs === true && i > 0) {
                 panel._lazyBuild = tab.build;
+                panel._lazyOwner = tool.id;
             } else {
-                tab.build(panel);
+                runBuild(tool.id, () => tab.build(panel));
             }
             panelsHost.appendChild(panel);
         });
@@ -1702,12 +1748,13 @@ const Toolbox = (() => {
             container.innerHTML = '<div class="tool-status error">「' + id + '」 를 불러오지 못했어요.</div>';
             return false;
         }
-        tab.build(container);
+        runBuild(id, () => tab.build(container));
         return true;
     }
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        onDispose,
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,

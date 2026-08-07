@@ -12,31 +12,19 @@
  * - 커스텀: 각 모듈에서 topics.push({ id, label, group, generator: () => string | { name, sub } })
  */
 import type { RandomGenTopic } from '../../../types/karmolab';
+import topicsData from '../../../js/widgets/randomgen/topics.json';
 
 (function () {
-  const base = (function () {
-    const s = document.currentScript as HTMLScriptElement | null;
-    if (s && s.src) {
-      try {
-        return s.src.replace(/[^/]+$/, '');
-      } catch {
-        /* noop */
-      }
-    }
-    return (location.origin || '') + '/apps/karmolab/js/widgets/randomgen/';
-  })();
 
-  let data: RandomGenTopic[] = [];
-  try {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', base + 'topics.json', false);
-    xhr.send(null);
-    if (xhr.status === 200) {
-      data = JSON.parse(xhr.responseText) as RandomGenTopic[];
-    }
-  } catch (e) {
-    console.warn('randomgen: topics.json 로드 실패', e);
-  }
+  /*
+   * ★★ 주제 목록은 **파일에 같이 실어 둔다** (예전에는 여기서 통째로 멈춰 섰다).
+   *
+   *   여기 있던 코드는 `XMLHttpRequest` 를 **동기**로 열어 topics.json(18KB)을 받았다.
+   *   동기 요청은 받아올 때까지 **화면 전체를 세운다** — 느린 회선에서 그 시간이 통째로
+   *   「눌러도 반응 없는 시간」이 된다(실측: 이 파일 하나가 286ms). 브라우저도 폐기 경고를 낸다.
+   *   빌드할 때 자료를 같이 묶으면 요청 자체가 사라진다 — 기다릴 것이 없다.
+   */
+  const data = topicsData as RandomGenTopic[];
 
   window.RANDOMGEN_TOPICS = data;
 })();

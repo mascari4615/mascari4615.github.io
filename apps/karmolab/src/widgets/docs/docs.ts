@@ -834,11 +834,7 @@
   }
 
   Toolbox.register({
-    id: 'docs',
-    title: '문서',
-    desc: 'KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차',
-    layout: 'wide',
-    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    ...Toolbox.getLazyWidgetPublicMeta!('docs'),
     tabs: [
       {
         id: 'docs',

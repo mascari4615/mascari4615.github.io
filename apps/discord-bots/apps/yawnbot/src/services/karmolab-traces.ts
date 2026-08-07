@@ -340,6 +340,13 @@ export class KarmolabTraceStore {
     return post;
   }
 
+  /** 글 하나 — 커뮤니티의 글 상세 화면이 쓴다. */
+  publicPost(postId: string, viewerAccountId: string | null): PublicPost | null {
+    const post = this.state.posts.find((p) => p.id === postId);
+    if (!post) return null;
+    return this.publicPosts(post.kind, viewerAccountId).find((p) => p.id === postId) ?? null;
+  }
+
   /**
    * 목록. 종류마다 서는 기준이 다르다 —
    * 요청은 **표 많은 순**(뭘 원하는지 보려는 목록), 이야기는 **마지막 움직임 순**(대화니까).

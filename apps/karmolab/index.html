@@ -77,7 +77,6 @@ permalink: /karmolab/
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
     <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
-    <script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- 굵기는 실제 쓰는 것만 부른다. 한글 글꼴은 조각이 수백 개라 굵기 하나가 목록 크기를
@@ -162,6 +161,7 @@ permalink: /karmolab/
                 <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록">≡ 도구</a>
                 <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산">◈ 봇</a>
                 <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤">◉ 오늘의</a>
+                <a href="/karmolab/c/" class="header-tools-link" title="이야기 · 도구 요청">◈ 커뮤니티</a>
                 <a href="#plaza" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('plaza');return false}" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청">◇ 광장</a>
                 <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크">누가 만들었나요?</a>
                 <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
@@ -270,15 +270,15 @@ permalink: /karmolab/
     <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
          자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
     <script defer src="/apps/karmolab/js/account.js"></script>
+    <!-- 명령 팔레트 (TASK-KL-099) — 첫 화면의 본체이자 ⌘K 로 뜨는 그것.
+         toolbox 가 첫 화면을 그릴 때 window.KarmoPalette 를 찾으므로 그보다 먼저 둔다.
+         defer 는 문서 순서대로 실행되므로 이 줄의 위치가 곧 순서다.
+         이 한 줄이 빌드 목록이기도 하다 — build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
+    <script defer src="/apps/karmolab/js/palette.js"></script>
     <script defer src="/apps/karmolab/js/toolbox.js"></script>
     <script defer src="/apps/karmolab/js/mdd.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
-    <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-topics.js"></script>
-    <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-time.js"></script>
-    <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-number.js"></script>
-    <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-name.js"></script>
-    <script defer src="/apps/karmolab/js/widgets/randomgen/randomgen-color.js"></script>
     <script defer src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
     <script defer src="/apps/karmolab/js/widgets-loader.js"></script>

@@ -15,6 +15,58 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['life/life']
   },
   {
+    id: 'user',
+    title: '내 정보',
+    category: 'tool',
+    hidden: true,
+    desc: '사용량, 도전과제, 뱃지 등 내 정보를 확인합니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',
+    lazyScriptPaths: ['user']
+  },
+  {
+    id: 'servermonitor',
+    title: '서버 모니터',
+    category: 'tool',
+    desktopOnly: true,
+    desc: '로컬 URL·프로세스·.env (데스크톱)',
+    layout: 'form',
+    icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    lazyScriptPaths: ['servermonitor']
+  },
+  {
+    id: 'activity',
+    title: '활동 기록',
+    category: 'lab',
+    desktopOnly: true,
+    desc: '내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)',
+    layout: 'form',
+    icon: '<rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 16v-3M11 16v-7M15 16v-5M19 16v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['activity']
+  },
+  {
+    id: 'docs',
+    title: '문서',
+    category: 'tool',
+    desc: 'KarmoLab 소개·로드맵·가이드 + 캐릭터·시스템 위키 — 사이드바 그룹 내비게이션, 본문 + 목차',
+    layout: 'wide',
+    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    lazyScriptPaths: ['docs/docs']
+  },
+  {
+    id: 'randomgen',
+    title: '랜덤 생성기',
+    category: 'play',
+    desc: '창작용 키워드·주제를 랜덤으로 뽑습니다',
+    layout: 'wide',
+    icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="16" y1="3" x2="22" y2="3"/><line x1="19" y1="0" x2="19" y2="6"/>',
+    /* 순서가 중요하다 — 주제 목록이 먼저 서고, 생성기들이 거기에 얹고, 본체가 마지막이다 */
+    lazyScriptPaths: [
+      'randomgen/randomgen-topics', 'randomgen/randomgen-time', 'randomgen/randomgen-number',
+      'randomgen/randomgen-name', 'randomgen/randomgen-color', 'randomgen/randomgen'
+    ]
+  },
+  {
     id: 'passgen',
     title: '비밀번호 만들기·확인',
     category: 'tool',
@@ -30,7 +82,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
     id: 'base64',
@@ -52,7 +104,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '텍스트를 AES, Base64, URL 인코딩으로 암호화·복호화합니다',
     layout: 'form',
     icon: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>',
-    lazyScriptPaths: ['crypto']
+    lazyScriptPaths: ['vendor/crypto-js.min', 'crypto']
   },
   {
     id: 'memo',

@@ -408,6 +408,23 @@ export function registerKarmolabApi(
     });
   });
 
+  /** 글 하나 — 커뮤니티의 글 상세 화면. 주소로 바로 열리므로 로그인 없이 보인다. */
+  app.get('/kl/posts/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const post = traces.publicPost(String(req.params.id ?? ''), account?.id ?? null);
+    if (!post) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({
+      post,
+      signedIn: Boolean(account),
+      isAdmin: isAdminAccount(account),
+      myHandle: account?.handle ?? null,
+      replyMaxLength: REPLY_MAX_LEN,
+    });
+  });
+
   app.post('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
