@@ -485,6 +485,17 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     body.tool-hub-page .tool-hub-toc { margin-inline: 0; padding-inline: 0; }
 }
 
+/* 늘 쓰는 것 — 목록 맨 위 (TASK-KL-129). 이 브라우저가 아는 사람에게만 보인다.
+   분류 묶음과 같은 생김새를 쓰되, 「내 것」이라는 표시로 왼쪽에 선 하나만 더 둔다. */
+.tool-hub-mine[hidden] { display: none; }
+.tool-hub-mine {
+    margin: 18px 0 26px;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent);
+}
+.tool-hub-mine-title { margin-top: 0; color: var(--accent); }
+.tool-hub-mine-grid { margin-top: 10px; }
+
 /* 도구 목록 소제목 — 앱에서 묶어 놓은 그대로 나눈다 */
 .tool-hub-group {
     margin: 32px 0 12px;
@@ -1183,3 +1194,16 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     .gt-lane { grid-template-columns: 3.4rem 1fr 3.6rem; }
     .gt-share input { flex-basis: 100%; }
 }
+
+/* 한 판을 끝낸 자리에 붙는 코스 줄 (TASK-KL-089) — 그 순간이 다음 놀이로 건너갈 자리다. */
+.pc-line {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 10px 0 0; padding: 9px 12px;
+    color: var(--text-secondary); font-size: var(--font-size-2xs);
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+}
+.pc-line[hidden] { display: none; }
+.pc-tag { padding: 1px 8px; color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px; }
+.pc-go { margin-left: auto; color: var(--accent); text-decoration: none; }
+.pc-go:hover { text-decoration: underline; }
