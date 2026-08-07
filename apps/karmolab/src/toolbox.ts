@@ -876,12 +876,22 @@ const Toolbox = (() => {
             panel.hidden = true;
             const inner = document.createElement('div');
             inner.className = 'header-nav-panel-inner';
-            catTools.forEach(tool => addNavItem(inner, tool));
+            /* 메뉴 속 항목은 **열 때 만든다** (TASK-KL-128 런타임).
+             * 이 판은 마우스를 올려야 나온다 — 그런데 부팅 때 도구 43개 줄(각각 그림 하나)을
+             * 미리 만들어 두고 있었다. 옆줄 차림까지 더하면 86줄이 안 보이는 채로 만들어졌다.
+             * 안 보여도 브라우저는 스타일을 계산하고 자리를 잡는다. 한 번만 만들고 다음부터는 그대로 쓴다. */
+            let innerFilled = false;
+            function fillPanelOnce() {
+                if (innerFilled) return;
+                innerFilled = true;
+                catTools.forEach(tool => addNavItem(inner, tool));
+            }
             panel.appendChild(inner);
 
             trigger.appendChild(labelSpan);
 
             function openThis() {
+                fillPanelOnce();
                 clearMegaMenuTimer();
                 closeAllHeaderNavExcept(wrap);
                 wrap.classList.add('is-open');
@@ -959,8 +969,22 @@ const Toolbox = (() => {
                     + '<span class="sidebar-group-label">' + label + '</span>';
                 const body = document.createElement('div');
                 body.className = 'sidebar-group-body' + (isOpen ? ' open' : '');
-                catTools.forEach(tool => addNavItem(body, tool));
+                /* 옆줄 항목도 **필요할 때 만든다** (TASK-KL-128 런타임).
+                 * 머리띠 차림에서는 이 옆줄 자체가 안 보이는데, 부팅 때 도구 줄을 다 만들고
+                 * 있었다. 접힌 무리는 열 때, 펴 둔 무리는 화면이 한가해진 뒤에 채운다 —
+                 * 어느 쪽이든 사람이 보기 전에는 다 채워져 있다. */
+                let bodyFilled = false;
+                function fillBodyOnce() {
+                    if (bodyFilled) return;
+                    bodyFilled = true;
+                    catTools.forEach(tool => addNavItem(body, tool));
+                }
+                if (isOpen) {
+                    const idle = window.requestIdleCallback || function (f) { setTimeout(f, 200); };
+                    idle(fillBodyOnce);
+                }
                 trigger.onclick = () => {
+                    fillBodyOnce();
                     const open = body.classList.toggle('open');
                     trigger.classList.toggle('open', open);
                     trigger.setAttribute('aria-expanded', String(open));
@@ -1531,8 +1555,11 @@ const Toolbox = (() => {
     function toolCountsOnce() {
         if (toolCountsPromise) return toolCountsPromise;
         const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
+         * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
+         * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
+        if (!base) return Promise.resolve({});
         toolCountsPromise = (async () => {
-            if (!base) return {};
             try {
                 const response = await fetch(base + '/kl/tools/stats');
                 if (!response.ok) return {};
@@ -1552,8 +1579,24 @@ const Toolbox = (() => {
      *
      * 한 번도 안 열린 도구에는 아무것도 안 쓴다. 「0번 열렸어요」는 재미가 아니라 낙인이다.
      */
+    /** 계정 스크립트를 기다린다 — 도구 화면은 그것보다 먼저 그려진다. 안 오면 그냥 포기한다. */
+    function whenApiBase(timeoutMs = 6000) {
+        const has = () => Boolean(typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase);
+        if (has()) return Promise.resolve(true);
+        return new Promise((resolve) => {
+            const started = Date.now();
+            const tick = () => {
+                if (has()) return resolve(true);
+                if (Date.now() - started > timeoutMs) return resolve(false);
+                setTimeout(tick, 200);
+            };
+            tick();
+        });
+    }
+
     async function fillToolCount(slot, toolId) {
         if (!slot) return;
+        if (!(await whenApiBase())) return;
         const counts = await toolCountsOnce();
         const row = counts[toolId];
         if (!row || !row.total || !slot.isConnected) return;
