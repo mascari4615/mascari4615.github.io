@@ -7,7 +7,8 @@
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
+import { stripHtml, STRIP_CSS } from '../../play/scripts/strip.mjs';
 import { kstDayNumber, EPOCH_DAY_NUMBER } from '../engine.mjs';
 import { modesOf, pastRow } from '../past-row.mjs';
 import { assertDenied } from './lib-pwa-deny.mjs';
@@ -232,6 +233,7 @@ for (const page of all) {
     <h1>${esc(topic.emoji ?? '')} ${esc(page.label)}</h1>
     <div><span class="no"></span> <a class="home" href="${BASE}/">전체</a></div>
   </div>
+  ${stripHtml('daily')}
   <div class="tabs">${tabs}<span class="streak"></span></div>
   <p class="lede">${esc(page.lede)}</p>
   ${shot}

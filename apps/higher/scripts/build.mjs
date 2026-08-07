@@ -16,6 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stampStrip } from '../../play/scripts/strip.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SRC = path.join(root, '../daily/data');
@@ -82,13 +83,21 @@ if (fs.existsSync(htmlPath)) {
   const list = boards
     .map((b) => `      <li>${esc(b.emoji)} ${esc(b.title)} — ${b.n}개 · 견줄 것: ${esc(b.fields.join(' · '))}</li>`)
     .join('\n');
-  const before = html;
+  /* 박을 것이 셋이다 — 판 목록·놀이 전환 줄·판 이름표. 셋을 다 고친 **뒤에 한 번** 저장한다.
+   * (예전에는 중간에 한 번 저장하고 마지막 것만 「달라졌으면 저장」이라 다른 둘이 묻혔다.) */
+  const original = html;
   html = html.replace(/(<ul id="boards">)[\s\S]*?(<\/ul>)/, `$1\n${list}\n    $2`);
-  if (html === before && !/<ul id="boards">/.test(html)) problems.push('페이지에서 판 목록 자리를 못 찾았다');
-  if (html !== before) fs.writeFileSync(htmlPath, html, 'utf8');
+  if (!/<ul id="boards">/.test(html)) problems.push('페이지에서 판 목록 자리를 못 찾았다');
+
+  // 놀이끼리 오가는 줄 — 목록은 apps/play/games.json 하나뿐이다.
+  const stamped = stampStrip(html, 'higher');
+  if (!stamped.ok) problems.push('페이지에서 놀이 전환 줄 자리를 못 찾았다 (PLAY_STRIP 표식)');
+  else html = stamped.html;
+
   const meta = `window.HIGHER_BOARDS=${JSON.stringify(boards.map((b) => ({ t: b.topic, title: b.title, e: b.emoji })))};`;
-  const h2 = html.replace(/(<script id="boards-data">)[\s\S]*?(<\/script>)/, `$1${meta}$2`);
-  if (h2 !== html) fs.writeFileSync(htmlPath, h2, 'utf8');
+  html = html.replace(/(<script id="boards-data">)[\s\S]*?(<\/script>)/, `$1${meta}$2`);
+
+  if (html !== original) fs.writeFileSync(htmlPath, html, 'utf8');
 }
 
 if (problems.length) {

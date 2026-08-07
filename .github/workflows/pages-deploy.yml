@@ -14,6 +14,7 @@ on:
       - apps/daily/**
       - apps/higher/**
       - apps/quest/**
+      - apps/play/**
       - packages/karmolab-ai/**
       - .github/workflows/pages-deploy.yml
 
@@ -130,6 +131,8 @@ jobs:
       # 주소는 파일 앞머리의 permalink 가 정한다 — 여기서는 Jekyll 이 볼 자리로 옮기기만 한다.
       - name: Build higher-lower game
         run: node apps/higher/scripts/build.mjs
+      - name: Build playground hub
+        run: node apps/play/scripts/build.mjs
       - name: Verify daily quest table
         run: node apps/quest/scripts/verify.mjs
       - name: Prepare game pages
@@ -139,6 +142,8 @@ jobs:
           cp apps/higher/data/*.json apps/blog/higher/
           cp apps/quest/index.html apps/blog/quest/index.html
           cp apps/quest/data/puzzles.json apps/blog/quest/puzzles.json
+          mkdir -p apps/blog/play
+          cp apps/play/index.html apps/blog/play/index.html
 
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.

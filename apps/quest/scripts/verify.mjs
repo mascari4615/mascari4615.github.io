@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stampStrip } from '../../play/scripts/strip.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const strip = (s) => s.replace(/^---[\s\S]*?---\n/, '');
@@ -49,10 +50,18 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const list = puzzles
   .map((p) => `      <li>${esc(p.q)} — <a href="/karmolab/t/${p.tool}/">도구 열기</a></li>`)
   .join('\n');
-const before = html;
+/* 놀이끼리 오가는 줄 (apps/play/games.json 이 정본). */
+{
+  const stamped = stampStrip(html, 'quest');
+  if (!stamped.ok) problems.push('페이지에서 놀이 전환 줄 자리를 못 찾았다 (PLAY_STRIP 표식)');
+  else html = stamped.html;
+}
+/* 박을 것이 둘이다 — 문제 목록과 놀이 전환 줄. 둘 다 고친 **뒤에 한 번** 저장한다.
+ * (「직전 값과 달라졌으면 저장」으로 두면 먼저 고친 쪽이 묻힌다.) */
+const original = fs.readFileSync(htmlPath, 'utf8');
 html = html.replace(/(<ol id="all">)[\s\S]*?(<\/ol>)/, `$1\n${list}\n    $2`);
-if (html === before && !/<ol id="all">/.test(html)) problems.push('페이지에서 문제 목록 자리를 못 찾았다');
-if (html !== before) fs.writeFileSync(htmlPath, html, 'utf8');
+if (!/<ol id="all">/.test(html)) problems.push('페이지에서 문제 목록 자리를 못 찾았다');
+if (html !== original) fs.writeFileSync(htmlPath, html, 'utf8');
 
 if (problems.length) {
   console.error(`[quest] 표가 어긋났다 ${problems.length}건`);

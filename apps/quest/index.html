@@ -57,11 +57,20 @@ button.ghost { background: transparent; color: #b9b9b2; border: 1px solid #33333
 .past a { color: #b9b9b2; }
 footer { margin-top: 2.4rem; font-size: 0.8rem; color: #8b8b85; }
 footer a { color: #b9b9b2; }
+.play-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; font-size: 0.82rem; }
+.play-strip a, .play-strip-now {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 0.7rem;
+  border: 1px solid #33333d; border-radius: 999px; text-decoration: none; color: #b9b9b2;
+}
+.play-strip a:hover, .play-strip a:focus-visible { color: #f2f2ee; border-color: #8b8b85; }
+.play-strip-now { background: #d4a849; color: #17171c; border-color: #d4a849; font-weight: 700; }
+.play-strip-all { color: #8b8b85; }
 </style>
 </head>
 <body>
 <main>
   <nav class="crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">오늘의 문제</span></nav>
+  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><a href="/karmolab/higher/">📈 높은 쪽 고르기</a><span class="play-strip-now" aria-current="page">🧩 오늘의 문제</span><a class="play-strip-all" href="/karmolab/play/">놀이터</a></nav><!-- /PLAY_STRIP -->
   <h1>오늘의 문제</h1>
   <p class="lead">하루에 하나. 머리로 짜내지 말고 <a href="/karmolab/t/">도구</a>를 열어서 푸세요.</p>
 
