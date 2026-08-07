@@ -1110,3 +1110,76 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .qs-today > span { flex: 1 1 auto; }
 /* display:flex 는 hidden 속성을 이긴다 — 안 적으면 기록도 없는데 빈 줄이 떠 있다. */
 .qs-today[hidden] { display: none; }
+
+/* 오늘의 코스 — 놀이 셋을 하루 한 줄로 묶는 자리 (TASK-KL-089). */
+.pl-course {
+    margin: 0 0 14px; padding: 14px 16px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+}
+.pl-course-head { display: flex; align-items: center; gap: 10px; }
+.pl-course-head strong { font-size: var(--font-size-sm); }
+.pl-course-left { margin-left: auto; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+.pl-stamp {
+    margin-left: auto; padding: 2px 10px;
+    color: var(--accent); border: 1px solid var(--accent);
+    border-radius: 999px; font-size: var(--font-size-2xs);
+}
+.pl-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pl-step {
+    padding: 3px 10px; font-size: var(--font-size-2xs);
+    color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px;
+}
+.pl-step.is-done { color: var(--accent); border-color: var(--border-strong); }
+.pl-course-note { margin: 10px 0 0; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+
+/* ── 유령 타자 대결 (TASK-KL-131) ── */
+.gt-banner {
+    border: 1px solid var(--accent);
+    background: var(--accent-subtle);
+    padding: 10px 12px;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-lg);
+}
+.gt-track { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--space-lg); }
+.gt-lane { display: grid; grid-template-columns: 4.5rem 1fr 4.5rem; align-items: center; gap: 8px; }
+.gt-lane-off { opacity: 0.4; }
+.gt-lane-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gt-rail {
+    position: relative;
+    height: 30px;
+    border-bottom: 1px dashed var(--border);
+    background: var(--bg-secondary);
+}
+.gt-runner { position: absolute; bottom: 2px; left: 0; font-size: 20px; line-height: 1; transition: left 90ms linear; }
+.gt-lane-stat { font-size: var(--font-size-xs); color: var(--text-secondary); font-family: var(--font-mono); text-align: right; }
+.gt-text {
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    padding: 14px;
+    font-size: var(--font-size-md);
+    line-height: 1.9;
+    word-break: keep-all;
+}
+.gt-text .gt-ok { color: var(--success); }
+.gt-text .gt-bad { color: var(--error); background: rgba(240, 90, 90, 0.16); }
+.gt-text .gt-cur { border-bottom: 2px solid var(--accent); }
+.gt-text .gt-ghost-at { box-shadow: inset 0 -3px 0 var(--text-tertiary); }
+.gt-result { border: 1px solid var(--border); background: var(--bg-secondary); padding: 14px; margin-top: 12px; }
+.gt-verdict { font-size: var(--font-size-md); margin-bottom: 6px; }
+.gt-win { color: var(--success); }
+.gt-lose { color: var(--error); }
+.gt-score { font-family: var(--font-mono); color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: 12px; }
+.gt-share { display: flex; gap: 6px; flex-wrap: wrap; }
+.gt-share input { flex: 1 1 16rem; min-width: 0; font-family: var(--font-mono); font-size: var(--font-size-xs); }
+.gt-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+@media (max-width: 560px) {
+    .gt-lane { grid-template-columns: 3.4rem 1fr 3.6rem; }
+    .gt-share input { flex-basis: 100%; }
+}
