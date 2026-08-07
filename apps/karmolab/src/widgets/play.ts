@@ -7,6 +7,8 @@
  * 목록은 손으로 적지 않는다. `apps/play/games.json` 하나가 관문·전환 줄·이 화면을 전부 먹인다
  * (`apps/play/scripts/build.mjs` 가 이 앱의 data/ 로 실어 준다). 두 벌로 적으면 그날부터 갈라진다.
  */
+import { courseRun, courseSteps } from './play-course';
+
 (function (): void {
   interface Game {
     id: string;
@@ -114,77 +116,18 @@
             return '';
           }
 
-          /* ── 오늘의 코스 (TASK-KL-089) ─────────────────────────────
-           * 놀이가 셋인데 서로 남남이었다 — 하나 하고 나가면 나머지 둘은 있는 줄도 몰랐다.
-           * 셋을 하루 한 줄로 묶는다: 셋 다 끝내면 그날 도장이 찍히고, 도장이 이어지면 연속이 된다.
-           *
-           * 새 판정 기준을 만들지 않는다 — 각 놀이가 이미 이 브라우저에 남긴 것만 읽는다.
-           * 도장(karmolab_course)만 여기서 쓴다. 못 읽거나 못 쓰면 코스만 조용히 빠진다. */
-          const COURSE_KEY = 'karmolab_course';
-          const kstDate = (d: Date): string =>
-            `${d.getUTCFullYear()}. ${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`;
-
-          function doneToday(id: string): boolean {
-            try {
-              if (id === 'daily') {
-                return Object.keys(localStorage).some((k) => {
-                  if (!/^daily:[^:]+:[^:]+$/.test(k)) return false;
-                  const v = read(k);
-                  return !!v && (v.status === 'won' || v.status === 'lost');
-                });
-              }
-              if (id === 'quest') return !!(read('karmolab_quest') || {})[dayLabel()];
-              if (id === 'higher') {
-                const h = read('karmolab_higher_day');
-                return !!h && h.day === dayLabel() && (h.rounds || 0) > 0;
-              }
-            } catch {
-              /* 사생활 모드 */
-            }
-            return false;
-          }
-
-          /** 도장 찍기 + 연속 세기. 어제까지 이어졌으면 +1, 끊겼으면 오늘부터 1. */
-          function stamp(): { days: string[]; run: number } {
-            let box: { days?: string[] } = {};
-            try {
-              box = JSON.parse(localStorage.getItem(COURSE_KEY) || '{}');
-            } catch {
-              box = {};
-            }
-            const days: string[] = Array.isArray(box.days) ? box.days : [];
-            const today = dayLabel();
-            if (days[days.length - 1] !== today) {
-              days.push(today);
-              if (days.length > 400) days.splice(0, days.length - 400);
-              try {
-                localStorage.setItem(COURSE_KEY, JSON.stringify({ days }));
-              } catch {
-                /* 못 남겨도 오늘 화면은 맞다 */
-              }
-            }
-            // 뒤에서부터 하루씩 거슬러 세는 것이 곧 연속이다.
-            let run = 0;
-            const cur = new Date(Date.now() + 9 * 3600e3);
-            for (;;) {
-              if (days.indexOf(kstDate(cur)) < 0) break;
-              run++;
-              cur.setUTCDate(cur.getUTCDate() - 1);
-            }
-            return { days, run };
-          }
-
+          /* 오늘의 코스 — 셈은 놀이들과 **같은 한 벌**을 쓴다 (play-course).
+           * 여기와 놀이 안에 따로 적으면 그날부터 서로 다른 코스를 말한다. */
           function paintCourse(list: Game[]): void {
             const box = container.querySelector<HTMLElement>('#plCourse')!;
-            const state = list.map((g) => ({ g, ok: doneToday(g.id) }));
-            const left = state.filter((s) => !s.ok).length;
+            const state = courseSteps(list);
+            const left = state.filter((s) => !s.done).length;
             const all = left === 0;
-            const run = all ? stamp().run : 0;
+            const run = all ? courseRun(true) : 0;
 
             const marks = state
               .map(
-                (s) =>
-                  `<span class="pl-step${s.ok ? ' is-done' : ''}">${s.ok ? '●' : '○'} ${esc(s.g.title)}</span>`,
+                (s) => `<span class="pl-step${s.done ? ' is-done' : ''}">${s.done ? '●' : '○'} ${esc(s.title)}</span>`,
               )
               .join('');
             box.innerHTML =
