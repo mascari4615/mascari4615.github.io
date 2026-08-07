@@ -17,6 +17,7 @@
  */
 import http from 'node:http';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { execFile } from 'node:child_process';
@@ -220,7 +221,22 @@ fs.watchFile(path.join(here, 'index.html'), { interval: 300 }, (cur, prev) => {
   notify({ type: 'reload', file: 'index.html' });
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[dev] http://127.0.0.1:${PORT}/apps/karmolab/index.html`);
+/** 같은 공유기 안에서 폰이 찾아올 수 있는 주소. 127.0.0.1 로만 열면 폰에서는 안 보인다 —
+ *  모바일 화면을 진짜 폰으로 보려면 이게 있어야 한다 (TASK-KL-101). */
+function lanAddress() {
+  const nets = os.networkInterfaces();
+  for (const list of Object.values(nets)) {
+    for (const n of list || []) {
+      if (n.family === 'IPv4' && !n.internal) return n.address;
+    }
+  }
+  return null;
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+  const lan = lanAddress();
+  console.log(`[dev] 이 컴퓨터  http://127.0.0.1:${PORT}/apps/karmolab/index.html`);
+  if (lan) console.log(`[dev] 폰에서    http://${lan}:${PORT}/apps/karmolab/index.html  (같은 와이파이)`);
+  else console.log('[dev] 폰에서 볼 주소를 못 찾았다 — 유선/무선이 다 꺼져 있나 확인해라');
   console.log('[dev] 스타일·위젯은 그 자리에서 갈아 끼운다. 셸이 바뀔 때만 새로고침한다.');
 });
