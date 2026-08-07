@@ -1153,13 +1153,14 @@ const Toolbox = (() => {
                 .filter((el) => parseFloat(el.style.getPropertyValue('--depth')) >= 0.5)
                 .map((el) => {
                     el.classList.add('home-decor-drift');
-                    return { el, ox: 0, oy: 0, vx: 0, vy: 0, cx: 0, cy: 0 };
+                    return { el, ox: 0, oy: 0, vx: 0, vy: 0, cx: 0, cy: 0, r: 0 };
                 });
             const measure = () => {
                 for (const d of drifters) {
                     const b = d.el.getBoundingClientRect();
                     d.cx = b.left + b.width / 2 - d.ox;   // 밀린 만큼 빼야 「원래 자리」다
                     d.cy = b.top + b.height / 2 - d.oy;
+                    d.r = Math.min(b.width, b.height) / 2;   // 도형의 반지름(표면까지)
                 }
             };
             /* 자리는 **손이 처음 움직일 때** 잰다. 이 상자는 만들어질 때 아직 화면에 안 붙어
@@ -1168,9 +1169,12 @@ const Toolbox = (() => {
             let measured = false;
             window.addEventListener('resize', () => { measured = false; }, { passive: true });
 
-            const REACH = narrow ? 210 : 340;   // 이 거리 안에 들어와야 밀린다
-            const PUSH = narrow ? 90 : 130;     // 가장 가까울 때 밀어내는 세기
-            const LIMIT = narrow ? 90 : 150;    // 아무리 밀려도 여기까지 (화면 밖으로 안 나가게)
+            /* 닿는 거리는 **도형 표면 기준**이다 (TASK-KL-101).
+               중심까지의 거리로 재면 큰 도형은 화면 어디서 움직여도 걸린다 — 화면을 통째로
+               잡아 끄는 느낌이 그래서 났다. 표면에서 이만큼 안으로 들어와야 밀린다. */
+            const MARGIN = narrow ? 55 : 85;
+            const PUSH = narrow ? 34 : 48;      // 바짝 붙었을 때 밀어내는 세기
+            const LIMIT = narrow ? 46 : 72;     // 아무리 밀려도 여기까지
             let alive = false;
             function step() {
                 let moving = false;
@@ -1205,8 +1209,11 @@ const Toolbox = (() => {
                 for (const d of drifters) {
                     const dx = d.cx + d.ox - x, dy = d.cy + d.oy - y;
                     const dist = Math.hypot(dx, dy);
-                    if (dist > REACH || dist < 0.001) continue;
-                    const power = (1 - dist / REACH) ** 2 * PUSH * 0.16;   // 가까울수록 급격히 세게
+                    if (dist < 0.001) continue;
+                    const surface = dist - d.r;              // 도형 표면까지 남은 거리
+                    if (surface > MARGIN) continue;          // 아직 멀다 — 아무 일도 없다
+                    const near = 1 - Math.max(0, surface) / MARGIN;
+                    const power = near ** 2 * PUSH * 0.16;   // 바짝 붙을수록 급격히 세게
                     d.vx += (dx / dist) * power;
                     d.vy += (dy / dist) * power;
                 }
