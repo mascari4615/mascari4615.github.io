@@ -732,7 +732,13 @@ function finish() {
     if (!document.hidden) next.textContent = `다음 문제까지 ${untilNextKst()}`;
   });
 
+  /* 결과는 **추측 줄 위**에 놓는다 (TASK-KL-089).
+   * 여덟 판을 두고 나면 줄이 여덟이라, 끝나는 순간 결과가 화면 한참 아래에 생겼다 —
+   * 폰에서는 스크롤해야 「맞았는지 졌는지」를 볼 수 있었다(실측: 결과가 화면 밖).
+   * 판이 끝난 사람이 가장 보고 싶은 것이 결과다. 그 자리로 옮기고, 눈에 들어오게 데려간다. */
+  $rows.insertAdjacentElement('beforebegin', $done);
   $done.hidden = false;
+  $done.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   $input.closest('.guessbar').hidden = true;
   $left.hidden = true;
   paintShot();
