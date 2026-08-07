@@ -283,6 +283,71 @@ function showLegend() {
   );
 }
 
+/* ── 지금까지 좁혀진 것 (TASK-KL-089) ──────────────
+ * 여덟 번을 쓰는 놀이인데, 지금까지 알아낸 것이 줄마다 흩어져 있다. 세 번째 추측쯤 되면
+ * 「세대는 1보다 크고, 진화는 2단계고, 키는 0.7 위였지…」를 사람이 매번 다시 읽어야 한다.
+ * 그건 놀이의 재미가 아니라 잡일이다. 알아낸 것을 한 줄로 모아 준다.
+ *
+ * 새 정보를 만들지 않는다 — 이미 화면에 있는 줄들을 합치기만 한다(정답이 새지 않는다).
+ */
+function narrowLine() {
+  if (mode !== 'classic' || !state.guesses.length) return '';
+  const rows = state.guesses
+    .map((name) => findItem(topic.items, name))
+    .filter(Boolean)
+    .map((g) => compareItem(topic, g, answer));
+
+  const parts = [];
+  topic.fields.forEach((field, i) => {
+    const cells = rows.map((r) => r[i]);
+    const exact = cells.find((c) => c.state === 'exact');
+    if (exact) {
+      const v = Array.isArray(exact.value) ? exact.value.join('·') : exact.value;
+      // 맞힌 값에도 단위를 붙인다 — 「진화 2」 보다 「진화 2단계」 가 읽힌다.
+      parts.push(`${field.label} ${v}${field.kind === 'number' && field.unit ? field.unit : ''}`);
+      return;
+    }
+    if (field.kind === 'number') {
+      // ▲ 는 「정답이 더 크다」 — 그 값보다 위. ▼ 는 아래.
+      let lo = null;
+      let hi = null;
+      cells.forEach((c) => {
+        if (c.dir === 'up') lo = lo === null ? c.value : Math.max(lo, c.value);
+        if (c.dir === 'down') hi = hi === null ? c.value : Math.min(hi, c.value);
+      });
+      const unit = field.unit || '';
+      if (lo !== null && hi !== null) parts.push(`${field.label} ${lo}${unit} ~ ${hi}${unit} 사이`);
+      else if (lo !== null) parts.push(`${field.label} ${lo}${unit} 위`);
+      else if (hi !== null) parts.push(`${field.label} ${hi}${unit} 아래`);
+      return;
+    }
+    // 카테고리·집합은 「아닌 것」이 쌓인다 — 너무 길어지지 않게 넷까지만 보여 준다.
+    const no = [];
+    cells.forEach((c) => {
+      if (c.state !== 'wrong') return;
+      (Array.isArray(c.value) ? c.value : [c.value]).forEach((v) => {
+        if (v !== undefined && v !== '' && no.indexOf(v) < 0) no.push(v);
+      });
+    });
+    if (no.length) parts.push(`${field.label} 아님: ${no.slice(0, 4).join('·')}${no.length > 4 ? '…' : ''}`);
+  });
+  return parts.join(' · ');
+}
+
+function renderNarrow() {
+  const text = narrowLine();
+  let box = root.querySelector('.narrow');
+  if (!text) {
+    if (box) box.remove();
+    return;
+  }
+  if (!box) {
+    box = el('<p class="narrow" aria-live="polite"></p>');
+    $rows.insertAdjacentElement('beforebegin', box);
+  }
+  box.innerHTML = `<span class="narrow-tag">지금까지</span>${esc(text)}`;
+}
+
 function renderRow(guess) {
   const cells = compareItem(topic, guess, answer);
   const img = guess.img ? `<img src="${esc(guess.img)}" alt="" loading="lazy">` : '';
@@ -546,6 +611,7 @@ function finish() {
 
 function updateLeft() {
   $left.textContent = triesLabel(state.guesses.length, maxGuesses);
+  renderNarrow();
 }
 
 /**
