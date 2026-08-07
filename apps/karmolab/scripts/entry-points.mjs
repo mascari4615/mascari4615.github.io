@@ -121,10 +121,15 @@ export function discoverEntryPoints(root, skip = new Set()) {
     }
   }
 
+  /* 빌드가 **만들어 내는** 파일은 소스가 없는 게 정상이다 (TASK-KL-128).
+   * `widgets-index.js` 는 `build.mjs` 가 `widgets-lazy-meta.js` 에서 아이콘·설명을 빼서 만든다.
+   * 이 예외가 없으면 「부르는데 소스가 없다」로 빌드가 선다 — 그런데 그건 진짜 사고가 아니다. */
+  const GENERATED = new Set(['src/widgets-index.ts']);
+
   const found = [];
   const missing = [];
   for (const rel of [...rels].sort()) {
-    if (skip.has(rel)) continue;
+    if (skip.has(rel) || GENERATED.has(rel)) continue;
     if (fs.existsSync(path.join(root, rel))) found.push(rel);
     else missing.push(rel);
   }
