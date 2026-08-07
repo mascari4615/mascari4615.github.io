@@ -160,8 +160,9 @@
      따로 뺐다 — 「언제 입을 여나」는 조용히 틀리면 아무도 모르는 자리다.
      못 불러오면 예전처럼 문장 끝까지 기다린다(늦을 뿐 안 깨진다). */
   let 읽을토막 = null;
+  let 표정떼기 = (t) => t;
   import('/say-chunks.js')
-    .then((m) => { 읽을토막 = m.읽을토막; tell('말 끊는 규칙을 불렀다'); })
+    .then((m) => { 읽을토막 = m.읽을토막; 표정떼기 = m.표정떼기; tell('말 끊는 규칙을 불렀다'); })
     .catch((e) => tell(`말 끊는 규칙을 못 불렀다 — 문장 끝까지 기다리게 된다: ${e}`));
 
   /** 긴 말을 읽기 좋은 토막들로. 규칙이 없으면 통째로 하나. */
@@ -319,6 +320,10 @@
   function speakAloud(message, queued) {
     발화.소리냄 += 1;
     if (voiceOn === false) return;
+    // **얼굴 표는 소리로 읽지 않는다.** 화면 쪽은 떼고 그리는데 소리 쪽엔 떼는 자리가
+    // 없어서, 얘가 「대괄호 졸림 대괄호」를 읽고 있었다(실측).
+    message = 표정떼기(message);
+    if (message === '') return;
     const 내세대 = 세대;
     const job = () => (내세대 === 세대 ? playOne(message) : undefined);
     speechQueue = queued ? speechQueue.then(job, job) : (player.pause(), job());

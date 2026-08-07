@@ -78,3 +78,23 @@ test('첫 토막 뒤로는 평소 문턱으로 돌아간다', () => {
   const 첫 = 읽을토막(글, { 첫토막: true });
   assert.equal(읽을토막(글.slice(첫.먹은길이)), null, '뒤 토막은 더 기다린다');
 });
+
+// ── 얼굴 표 떼기 ─────────────────────────────────────────────────────
+
+test('얼굴 표는 소리로 읽지 않는다 — 「대괄호 졸림 대괄호」를 읽고 있었다', async () => {
+  const { 표정떼기 } = await import('../assets/say-chunks.js');
+  assert.equal(표정떼기('[졸림] …졸려…'), '…졸려…');
+  assert.equal(표정떼기('음, [놀람] 그게 진짜야?'), '음, 그게 진짜야?');
+});
+
+test('사람이 쓴 대괄호는 안 뗀다 — 하려던 말이 사라지면 안 된다', async () => {
+  const { 표정떼기 } = await import('../assets/say-chunks.js');
+  assert.equal(표정떼기('[중요한 회의 자료] 이거 봐'), '[중요한 회의 자료] 이거 봐');
+  assert.equal(표정떼기('배열은 [1, 2, 3] 이야'), '배열은 [1, 2, 3] 이야');
+});
+
+test('표가 없으면 그대로 둔다', async () => {
+  const { 표정떼기 } = await import('../assets/say-chunks.js');
+  assert.equal(표정떼기('그냥 평범한 말'), '그냥 평범한 말');
+  assert.equal(표정떼기(''), '');
+});
