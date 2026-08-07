@@ -91,9 +91,16 @@
         .st-row { display:flex; align-items:flex-start; gap:9px; padding:4px 0; }
         .st-tag { flex:0 0 auto; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:700;
             border:1px solid var(--border); color:var(--text-tertiary); }
-        .st-tag[data-tone="new"] { color:#7dd3fc; border-color:rgba(125,211,252,.4); }
-        .st-tag[data-tone="fix"] { color:#fca5a5; border-color:rgba(252,165,165,.4); }
-        .st-tag[data-tone="perf"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
+        /* 이 세 색은 어두운 판을 보고 고른 파스텔이었는데 테마와 상관없이 늘 쓰였다.
+           흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 「새로 생김」·「고침」·「빨라짐」이
+           사실상 안 읽혔다(기준 2.2). 밝은 쪽을 기본으로 두고, 어두운 판에서만 원래
+           파스텔로 돌린다 — 두 테마가 각자 자기 바탕에 맞는 색을 갖는다. */
+        .st-tag[data-tone="new"] { color:#0369a1; border-color:rgba(3,105,161,.35); }
+        .st-tag[data-tone="fix"] { color:#b91c1c; border-color:rgba(185,28,28,.35); }
+        .st-tag[data-tone="perf"] { color:#a16207; border-color:rgba(161,98,7,.35); }
+        html[data-theme="dark"] .st-tag[data-tone="new"] { color:#7dd3fc; border-color:rgba(125,211,252,.4); }
+        html[data-theme="dark"] .st-tag[data-tone="fix"] { color:#fca5a5; border-color:rgba(252,165,165,.4); }
+        html[data-theme="dark"] .st-tag[data-tone="perf"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
         .st-text { font-size:var(--font-size-sm); color:var(--text-secondary); line-height:1.55; }
         .st-note { margin:0; font-size:11px; color:var(--text-tertiary); line-height:1.6; }
         .st-fail { padding:14px 16px; border:1px dashed var(--border); border-radius:var(--radius-lg);
