@@ -88,7 +88,7 @@ import { onPageActive, takePick } from './pack-pick';
         id: 'app',
         label: '스무고개',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '하나만 마음에 정해 보세요. 제가 맞혀 볼게요.' });
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '하나만 마음에 정해 보세요. 제가 맞혀 볼게요.' });
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-sublabel">무엇을 생각할까요</div>

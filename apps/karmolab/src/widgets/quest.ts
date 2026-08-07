@@ -129,7 +129,7 @@ import { mountCourseNext } from './play-course';
         id: 'app',
         label: '오늘의 문제',
         build: function (container: HTMLElement): void {
-          Mdd.linePreset?.('tool_run', { msg: '도구를 열어서 푸는 거예요. 머리 안 써도 돼요.' });
+          if (typeof Mdd !== 'undefined') Mdd.linePreset?.('tool_run', { msg: '도구를 열어서 푸는 거예요. 머리 안 써도 돼요.' });
           container.innerHTML = `
             <p class="qs-lead">하루에 하나. 머리로 짜내지 말고 도구를 열어서 푸세요.</p>
             <!-- 오늘 성적은 **연습을 하든 말든** 이 자리에 남는다 (TASK-KL-089).
