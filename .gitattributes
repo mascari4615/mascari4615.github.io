@@ -53,3 +53,11 @@ Assets/Plugins/FMOD/**/Info.plist text eol=lf
 *.dylib binary
 *.exe binary
 # (*.bundle 은 WM FMOD 가 text eol=lf 로 의도 — global binary 지정 X)
+
+# 여러 세션이 뒤에만 덧붙이는 파일 = union 병합 (KAR-204).
+# 이런 파일은 「같은 자리를 서로 다르게 고친」 적이 없다 — 각자 자기 줄을 끝에 붙일 뿐이다.
+# 그런데 기본 병합기는 그걸 충돌로 본다. 실제로 2026-08-08 전달이 세션 버스 한 파일 때문에
+# 막혔고, 그때마다 사람이 손으로 푸는 동안 남의 줄이 사라지는 사고가 반복됐다.
+# union = 양쪽 줄을 다 남긴다. 로그성 파일에선 중복이 손실보다 낫다.
+.claude/session-bus.md merge=union
+.claude/discoveries/*.jsonl merge=union
