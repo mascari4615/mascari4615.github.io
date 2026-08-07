@@ -60,6 +60,7 @@ permalink: /karmolab/quest/
     <p class="msg" id="msg" aria-live="polite"></p>
     <p class="tries" id="tries"></p>
     <button type="button" class="play-ghost" id="share" hidden>결과 복사</button>
+    <button type="button" class="play-go" id="more" hidden>다른 문제 하나 더</button>
   </section>
 
   <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게, 문제를 전부 적어 둔다.
@@ -110,7 +111,7 @@ permalink: /karmolab/quest/
   }
 
   var $ = function (id) { return document.getElementById(id); };
-  var tries = 0, done = false;
+  var tries = 0, done = false, practice = false, current = null;
 
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; }
@@ -128,17 +129,43 @@ permalink: /karmolab/quest/
     done = true;
     $('ans').disabled = true;
     $('share').hidden = false;
+    /* 오늘 것을 끝내면 할 게 없어서 그냥 나가게 된다 (TASK-KL-089).
+     * 지난 문제를 연습으로 더 풀 수 있게 한다 — 오늘 기록은 이미 남았으므로 건드리지 않는다. */
+    if (P && P.length > 1) $('more').hidden = false;
+    if (practice) return; // 연습판은 기록하지 않는다 — 오늘 성적이 흐려진다
     var st = load();
     st[dayLabel()] = { win: win, tries: tries };
     save(st);
+  }
+
+  /* 연습으로 다른 문제 하나 — 오늘 것과 겹치지 않게 고른다. */
+  function practiceRound() {
+    var todayId = P[todayIndex(P.length)].id;
+    var pool = P.filter(function (x) { return x.id !== todayId && x.id !== (current && current.id); });
+    if (!pool.length) return;
+    current = pool[Math.floor(Math.random() * pool.length)];
+    practice = true;
+    done = false;
+    tries = 0;
+    $('ans').disabled = false;
+    $('ans').value = '';
+    $('ans').focus();
+    $('share').hidden = true;
+    $('more').hidden = true;
+    $('hint').hidden = true;
+    $('tries').textContent = '';
+    $('msg').textContent = '연습 문제입니다 — 오늘 기록에는 안 들어갑니다.';
+    $('msg').className = 'msg';
+    paint(current);
+    $('day').textContent = '연습';
   }
 
   fetch('/karmolab/quest/puzzles.json')
     .then(function (r) { return r.json(); })
     .then(function (j) {
       P = j.puzzles;
-      var today = P[todayIndex(P.length)];
-      paint(today);
+      current = P[todayIndex(P.length)];
+      paint(current);
 
       // 아래 목록은 이미 페이지에 박혀 있다(scripts/verify.mjs 가 표에서 찍어 넣는다).
       // 여기서 또 그리면 두 번 나온다 — 안 그린다.
@@ -159,7 +186,7 @@ permalink: /karmolab/quest/
         if (!v) return;
         tries++;
         var f = await fingerprint(v);
-        if (today.a.indexOf(f) !== -1) {
+        if (current.a.indexOf(f) !== -1) {
           $('msg').textContent = '맞았습니다 — ' + tries + '번 만에.';
           $('msg').className = 'msg play-ok';
           $('tries').textContent = '🟩';
@@ -177,6 +204,7 @@ permalink: /karmolab/quest/
       });
 
       $('hintBtn').addEventListener('click', function () { $('hint').hidden = false; });
+      $('more').addEventListener('click', practiceRound);
 
       $('share').addEventListener('click', function () {
         var st2 = load()[dayLabel()] || {};
