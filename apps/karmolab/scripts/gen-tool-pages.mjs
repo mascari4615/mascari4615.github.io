@@ -45,6 +45,16 @@ for (const [file, label] of [
 const fakeWindow = {};
 new Function('window', fs.readFileSync(lazyMetaPath, 'utf8'))(fakeWindow);
 const widgets = fakeWindow.KARMOLAB_LAZY_META || [];
+
+/* 이 페이지들이 **어느 빌드로 찍혔는지** 를 남긴다.
+ * 다른 세션이 앱을 다시 빌드하면 내 로컬 페이지는 그 순간 낡아, 열어 보면 도구가 안 뜬다.
+ * 그런데 겉으로는 「도구가 깨졌다」처럼 보여서, 한 번은 없는 결함을 쫓느라 한참을 썼다. */
+const BUILD_PRINT = (() => {
+  let h = 0;
+  const src = fs.readFileSync(lazyMetaPath, 'utf8');
+  for (let i = 0; i < src.length; i++) h = (Math.imul(31, h) + src.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+})();
 const widgetById = Object.fromEntries(widgets.map((w) => [w.id, w]));
 
 /* ── 교차 검증 (짝 없으면 빌드 실패) ───────────────────── */
@@ -128,7 +138,15 @@ function heading(id) {
  * 한국어 검색 결과는 대략 서른 글자 남짓에서 잘리므로, 넘칠 것 같으면 이름만 남긴다
  * (억지로 자르면 말이 중간에 끊겨 더 나빠진다).
  */
-const TITLE_BUDGET = 34;
+/* 글자수가 아니라 **폭**으로 잰다 (TASK-KL-089).
+ * 검색 결과가 자르는 기준은 글자수가 아니라 가로 폭이다. 한글은 영문·숫자보다 두 배 가까이
+ * 넓어서, 글자수로 재면 한글이 많은 제목은 통과했는데 실제로는 잘리고(9개가 그랬다) 영문이
+ * 많은 제목은 멀쩡한데도 짧게 깎였다.
+ * 아래 두 값은 브라우저로 실제 폭을 재서 맞춘 것이다 — 제목 125개에서 오차가 가장 큰 것도 4.3%.
+ * 한도 570px = 흔히 잘리는 600px 에서 그 오차만큼 물러선 값. */
+const TITLE_PX_LIMIT = 570;
+const WIDE = /[ᄀ-ᇿ　-〿가-힣一-鿿＀-￯]/;
+const titleWidth = (s) => [...s].reduce((n, ch) => n + (WIDE.test(ch) ? 18 : 10.25), 0);
 function pageTitle(id) {
   const name = heading(id);
   const suffix = ' | KarmoLab';
@@ -148,7 +166,7 @@ function pageTitle(id) {
     const tail = parts.slice(0, take).join(' · ');
     if (!tail) continue;
     const candidate = `${name} — ${tail}${suffix}`;
-    if (candidate.length <= TITLE_BUDGET + suffix.length) return candidate;
+    if (titleWidth(candidate) <= TITLE_PX_LIMIT) return candidate;
   }
   return `${name}${suffix}`;
 }
@@ -166,6 +184,22 @@ const CRYPTO_TOOLS = (() => {
   return set;
 })();
 
+/* 셸에 손으로 박아 둔 도구 링크가 아직 살아 있는가 (TASK-KL-089).
+ * 첫 화면에는 스크립트를 안 돌리는 크롤러만 보는 자리가 있고, 거기에 대표 도구 일곱 개가
+ * **손으로** 적혀 있다. 도구 하나가 이름을 바꾸면 그 링크는 죽는데 — 사람 화면에는 안 보이는
+ * 자리라 아무도 모른다. 크롤러만 죽은 링크를 밟는, 가장 늦게 들키는 종류의 고장이다.
+ * 만들 때 멈춰서 절대 배포로 못 나가게 한다. */
+{
+  const known = new Set(ids);
+  const dead = [...shell.matchAll(/href="\/karmolab\/t\/([a-z0-9-]+)\//g)]
+    .map((m) => m[1])
+    .filter((id) => !known.has(id));
+  if (dead.length) {
+    console.error(`[gen-tool-pages] 셸에 적힌 도구 링크가 죽었다 — ${[...new Set(dead)].join(', ')} (index.html 의 크롤러용 목록을 고쳐라)`);
+    process.exit(1);
+  }
+}
+
 const CRYPTO_TAG = '<script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>\n';
 if (!shell.includes(CRYPTO_TAG)) {
   console.error('[gen-tool-pages] 셸에서 암호 라이브러리 태그를 못 찾음 — index.html 구조 확인');
@@ -180,6 +214,13 @@ if (!shell.includes(CRYPTO_TAG)) {
  * 도구 본체 위에는 절대 놓지 않는다. 이 자리는 설명 블록 안, 다 쓰고 읽는 데 있다.
  */
 const sponsorSlots = (() => {
+  /* 시험용 자리 (TASK-KL-089).
+   * 이 자리는 평소 비어 있어서 **코드가 한 번도 안 돈다** — 사고가 고이는 전형적인 곳이다.
+   * 게다가 채우는 순간이 하필 돈이 걸린 순간이라, 그때 처음 굴러가면 곤란하다.
+   * 그래서 검사가 이 스위치로 가짜 자리를 하나 넣어 매번 실제로 굴려 본다. */
+  if (process.env.KARMOLAB_SPONSOR_PREVIEW) {
+    return [{ label: '후원', title: '자리 점검용', body: '검사할 때만 뜬다', url: 'https://example.com/' }];
+  }
   const file = path.join(root, 'data/sponsor.json');
   if (!fs.existsSync(file)) return [];
   return JSON.parse(fs.readFileSync(file, 'utf8')).slots || [];
@@ -463,7 +504,19 @@ function jsonLd(id) {
       description: t.description,
       inLanguage: 'ko-KR',
       isPartOf: { '@type': 'WebSite', name: 'KarmoLab', url: `${SITE}/karmolab/` },
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' }
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
+      /* 아래 넷은 지어내지 않고 이미 가진 사실만 옮긴다 (TASK-KL-089).
+       * 그림은 도구마다 찍어 둔 공유 카드, 바뀐 날은 사이트맵에 쓰는 값과 같은 것,
+       * 할 수 있는 일은 한 줄 소개를 조각낸 것, 만든 이는 이 사이트다.
+       * (별점 같은 건 없으므로 적지 않는다 — 없는 것을 적으면 통째로 무시당한다.) */
+      image: `${SITE}/apps/karmolab/img/og/${id}.jpg`,
+      dateModified: modified[id].date,
+      featureList: (seo[id].lead || '')
+        .split(' · ')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      author: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/karmolab/` },
+      publisher: { '@type': 'Organization', name: 'KarmoLab', url: `${SITE}/karmolab/` }
     },
     {
       '@context': 'https://schema.org',
@@ -480,7 +533,11 @@ function jsonLd(id) {
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'KarmoLab', item: `${SITE}/karmolab/` },
         { '@type': 'ListItem', position: 2, name: '도구', item: `${SITE}${BASE_PATH}/` },
-        { '@type': 'ListItem', position: 3, name: heading(id), item: toolPageUrl(id) }
+        // 분류가 있으면 그 자리도 넣는다 — 화면에 보이는 이동 경로와 같아야 한다.
+        ...(GROUP_OF[id]
+          ? [{ '@type': 'ListItem', position: 3, name: GROUP_OF[id].title, item: `${SITE}${BASE_PATH}/#${GROUP_OF[id].anchor}` }]
+          : []),
+        { '@type': 'ListItem', position: GROUP_OF[id] ? 4 : 3, name: heading(id), item: toolPageUrl(id) }
       ]
     }
   ];
@@ -488,6 +545,9 @@ function jsonLd(id) {
     .map((b) => `<script type="application/ld+json">${JSON.stringify(b)}</script>`)
     .join('\n    ');
 }
+
+/** 미리 받을 파일이 실제로 없던 경로 — 다 만든 뒤 한 번에 알린다. */
+const missingBoot = new Set();
 
 function buildToolPage(id) {
   const t = seo[id];
@@ -532,15 +592,33 @@ function buildToolPage(id) {
   // 대시보드는 홈으로 갈 때 그때 받으면 된다.
   // 홈은 이 페이지 안에서 바뀌는 화면이 아니라 **다른 주소로 가는 이동**이라, 대시보드는
   // 여기서 받을 이유가 없다. 그 페이지가 자기 것을 받는다.
-  const bootPaths = widgetById[id]?.lazyScriptPaths?.length ? widgetById[id].lazyScriptPaths : ['dashboard'];
+  /* 부팅 목록에서 **받아 봐야 없는 것**은 뺀다 (TASK-KL-089).
+   * 이 목록을 읽는 쪽은 앞머리가 무엇이든 `js/widgets/<경로>.js` 하나로만 찾는다. 그래서
+   * `root/gemini` 같은 항목은 매번 404 를 내고 그냥 넘어간다 — 화면은 멀쩡해 보이니 아무도
+   * 모른 채였다(이미지 편집 페이지가 그랬다). 어차피 못 받는 항목이니 목록에서 빼면
+   * 헛걸음 하나가 사라진다. 정말 필요해질 때는 앱이 제 규칙으로 따로 받아 온다. */
+  const declared = widgetById[id]?.lazyScriptPaths?.length ? widgetById[id].lazyScriptPaths : ['dashboard'];
+  const bootPaths = declared.filter((p) => {
+    const ok = fs.existsSync(path.join(root, scriptFile(p)));
+    if (!ok) missingBoot.add(`${id}: ${p}`);
+    return ok;
+  });
   html = html.replace(
     bootTag,
     `<script>window.KARMOLAB_WIDGETS_BOOT=${JSON.stringify(bootPaths)};</script>`
   );
-  // 그 도구 파일을 미리 받기 시작한다 — 앞의 스크립트가 다 끝나기를 기다리지 않는다.
+  /* 그 도구 파일을 미리 받기 시작한다 — 앞의 스크립트가 다 끝나기를 기다리지 않는다.
+   *
+   * 주소를 만드는 규칙은 **앱이 실제로 쓰는 규칙과 같아야 한다** (TASK-KL-089).
+   * 여기서는 무조건 `js/widgets/<경로>.js` 로 붙이고 있었는데, 앱은 앞머리가 world/·vendor/·root/
+   * 이면 다른 곳에서 찾는다. 그래서 이미지 편집 페이지는 없는 주소를 미리 받으려다 매번
+   * 404 를 냈다 — 화면은 멀쩡해서 몇 주를 몰랐다.
+   * 없는 파일이면 아예 안 적는다(미리 받을 것이 없으니). 그리고 그 사실을 알린다 —
+   * 조용히 넘기면 진짜로 빠진 파일도 같이 묻힌다. */
   html = html.replace(
     '</head>',
-    bootPaths.map((p) => `    <link rel="preload" as="script" href="/apps/karmolab/js/widgets/${p}.js">\n`).join('') + '</head>'
+    bootPaths.map((p) => `    <link rel="preload" as="script" href="/apps/karmolab/${scriptFile(p)}">
+`).join('') + '</head>'
   );
 
   // 페이지의 큰제목은 하나여야 한다 (TASK-KL-089).
@@ -579,11 +657,24 @@ function buildToolPage(id) {
    * (중앙 76자, 110장 중 89장이 90자 미만) 그 자리를 비워 뒀다. 한 줄 소개에는 「BMI」 「진법」
    * 처럼 사람들이 실제로 치는 말이 들어 있는데 그게 검색용 설명에는 안 들어가고 있었다.
    * 짧을 때만, 넘치지 않을 때만 뒤에 붙인다. 공유 카드용 문구는 그대로 둔다 — 거기는 짧은 게 낫다. */
-  const SNIPPET_MAX = 155;
-  const searchDescription =
-    t.description.length < 110 && `${t.description} ${t.lead}`.length <= SNIPPET_MAX
-      ? `${t.description} ${t.lead}`
-      : t.description;
+  /* 여기도 글자수가 아니라 **폭**으로 잰다 (TASK-KL-089 — 제목에서 겪은 것과 같은 부류).
+   * 155자 기준으로 붙이고 있었는데, 한글 155자는 검색 결과 두 줄을 한참 넘는다. 실제로 재 보니
+   * 125장 중 52장이 두 줄에 안 들어갔고, 잘려 나간 자리가 하필 「BMI」 「진법」처럼 사람들이
+   * 실제로 치는 말을 모아 둔 뒷부분이었다 — 붙여 놓고 안 보여 주고 있었던 셈이다.
+   * 아래 두 값은 브라우저로 실제 폭을 재서 맞춘 어림값(설명 125개 최대 오차 4.8%).
+   * 한도 1120px = 데스크톱 두 줄(한 줄 약 600px)에서 그 오차만큼 물러선 값. */
+  const SNIPPET_PX = 1120;
+  const snippetWidth = (s) => [...s].reduce((n, ch) => n + (/[ᄀ-ᇿ　-〿가-힣一-鿿＀-￯]/.test(ch) ? 12 : 7.5), 0);
+  /* 전부 붙이거나 하나도 안 붙이거나로 두면, 한 줄 소개가 조금 긴 도구는 뒷말을 통째로 잃고
+   * 설명이 예순 몇 자로 얇아진다(그래서 다섯 장이 그랬다). 들어가는 조각까지만 붙인다. */
+  const searchDescription = (t.lead || '')
+    .split(' · ')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .reduce((acc, piece) => {
+      const next = `${acc}${acc.endsWith('.') || acc === t.description ? ' ' : ' · '}${piece}`;
+      return snippetWidth(next) <= SNIPPET_PX ? next : acc;
+    }, t.description);
   html = replaceMeta(html, 'name', 'description', searchDescription);
   html = replaceMeta(html, 'property', 'og:title', `${heading(id)} | KarmoLab`);
   html = replaceMeta(html, 'property', 'og:description', t.description);
@@ -620,9 +711,37 @@ function buildToolPage(id) {
     if (html === before) throw new Error('셸에서 첫 화면 안내 블록을 못 찾음 — index.html 확인');
   }
 
+  /* 앱 첫 화면용 구조 설명도 뺀다 (TASK-KL-089).
+   * 그것은 「여기가 KarmoLab 이고 안에서 도구를 찾을 수 있다」는 말이라, 도구 상세 125장에
+   * 그대로 복사되면 각 장이 자기를 목록 페이지라고 주장하게 된다. 상세에는 이미 제 설명이
+   * 셋(도구·자주 묻는 것·위치) 있으므로 여기서 지운다. */
+  {
+    const before = html;
+    html = html.replace(/\s*<!-- KARMOLAB_ROOT_LD[\s\S]*?<\/script>/, '');
+    if (html === before) throw new Error('셸에서 첫 화면 구조 설명 블록을 못 찾음 — index.html 확인');
+  }
+
+  /* 코드 색칠 스타일은 첫 화면을 막지 않게 한다 (TASK-KL-089).
+   * 재 보니 도구 125장 중 색칠을 쓰는 페이지가 **하나도 없다** — 그 기능을 쓰는 위젯은
+   * 대화 도구 하나뿐이고, 거기엔 도구 페이지가 없다. 그런데 스타일 링크는 모든 장의 머리에
+   * 있어서, 매번 첫 화면을 막는 자리를 하나씩 차지했다(0% 사용).
+   * 태그 자체는 남긴다 — 색 테마를 고르는 코드가 이 자리를 찾기 때문이다. 나중에 색칠이
+   * 실제로 실려 오면 그때 켜 준다(안 그러면 코드가 흑백으로 나오는 조용한 고장이 된다). */
+  {
+    const before = html;
+    html = html.replace(
+      /(<link id="prism-css" rel="stylesheet" href="[^"]*")>/,
+      '$1 media="print">\n' +
+        '    <script>(function(){var el=document.getElementById("prism-css");' +
+        'if(!el)return;var t=setInterval(function(){if(window.Prism){el.media="all";clearInterval(t)}},400);' +
+        'setTimeout(function(){clearInterval(t)},30000)})()</script>'
+    );
+    if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
+  }
+
   // 상세 페이지 표식 — 앱 히어로(제목·설명)가 아래 설명 블록과 겹쳐 두 번 읽히는 것을 막는다
   html = html.replace('<body>', '<body class="tool-detail">');
-  const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};</script>`;
+  const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};window.KARMOLAB_BUILD_PRINT=${JSON.stringify(BUILD_PRINT)};</script>`;
   html = html.replace('</head>', `    ${entry}\n    ${jsonLd(id)}\n${reserveSpace(id)}</head>`);
 
   /* 첫 화면을 도구가 통째로 차지하는데 그 도구는 스크립트로만 그려진다. 그래서 느린 기기에서는
@@ -630,7 +749,7 @@ function buildToolPage(id) {
    * 제목과 한 줄 소개를 미리 박아 두면 스크립트를 기다리지 않고 바로 읽힌다. */
   html = html.replace(
     '<div class="content-body" id="tool-pages">',
-    `<header class="tool-head">\n            <h1>${esc(heading(id))}</h1>\n            <p>${esc(seo[id].lead)}</p>\n          </header>\n                <div class="content-body" id="tool-pages">`
+    `${crumbLine(id)}<header class="tool-head">\n            <h1>${esc(heading(id))}</h1>\n            <p>${esc(seo[id].lead)}</p>\n          </header>\n                <div class="content-body" id="tool-pages">`
   );
 
   const anchor = html.match(/<!-- KARMOLAB_TOOL_SEO[\s\S]*?-->/);
@@ -641,6 +760,18 @@ function buildToolPage(id) {
 }
 
 /* ── 허브 페이지 ───────────────────────────────────── */
+
+/* 목록 페이지가 마지막으로 바뀐 날 (TASK-KL-089).
+ * 사이트맵을 실제로 받아 보니 도구 125장에는 변경일이 있는데 **목록만 없었다**. 검색엔진은
+ * 그 값으로 다시 올 때를 정하므로, 없으면 도구를 새로 얹어도 목록을 늦게 다시 본다.
+ * 목록의 내용은 도구가 늘거나 바뀔 때 함께 바뀌므로, 그 중 가장 최근 날짜를 쓴다. */
+function hubModified() {
+  const dates = Object.values(modified)
+    .map((m) => m && m.date)
+    .filter(Boolean)
+    .sort();
+  return dates[dates.length - 1] || new Date().toISOString().slice(0, 10);
+}
 
 /**
  * 도구를 묶음별로 나눈다.
@@ -679,6 +810,49 @@ function groupIds() {
   return bundles;
 }
 
+
+/* 어느 분류에 속하는지 (TASK-KL-089).
+ * 목록 페이지는 도구를 분류로 묶어 보여 주는데, 정작 도구 페이지에는 그 분류가 어디에도
+ * 안 적혀 있었다. 사람에겐 「여기가 어디쯤인지」가 없고, 검색엔진에겐 목록의 그 자리로 가는
+ * 길이 없다. 묶음 정의는 목록과 같은 것을 쓴다 — 손으로 적으면 둘이 갈라진다. */
+const GROUP_OF = (() => {
+  const map = {};
+  groupIds().forEach((g, i) => {
+    const at = { title: g.title, anchor: anchorOf(g), bundleId: g.bundleId };
+    g.parts.forEach((x) => (map[x] = at));
+    if (g.bundleId) map[g.bundleId] = at;
+  });
+  return map;
+})();
+
+/* 화면에 보이는 이동 경로 (TASK-KL-089).
+ * 검색엔진용 이동 경로는 있는데 화면에는 없었다. 그러면 ① 도구 한 장에 떨어진 사람이 위로
+ * 올라갈 길이 없고 ② 적어 둔 경로가 화면에 없는 것을 말하는 셈이 된다.
+ * 분류 이름은 목록의 그 자리로 바로 보낸다 — 비슷한 도구를 거기서 이어서 만난다. */
+function crumbLine(id) {
+  const g = GROUP_OF[id];
+  const parts = [
+    `<a href="/karmolab/">KarmoLab</a>`,
+    `<a href="${BASE_PATH}/">도구</a>`,
+    ...(g ? [`<a href="${BASE_PATH}/#${g.anchor}">${esc(g.title)}</a>`] : []),
+    `<span aria-current="page">${esc(heading(id))}</span>`
+  ];
+  return `<nav class="tool-crumb" aria-label="위치">${parts.join('<i aria-hidden="true">›</i>')}</nav>
+          `;
+}
+
+/* 분류를 가리키는 표식은 **순서가 아니라 이름**에서 뽑는다 (TASK-KL-089).
+ * 예전에는 위에서부터 g1·g2… 로 붙였다. 그런데 분류는 도구가 많은 순서로 늘어놓으므로,
+ * 도구 하나만 더 얹어도 순서가 바뀌고 표식이 통째로 밀린다 — 도구 페이지의 이동 경로도,
+ * 목록 맨 위 목차도, 남이 걸어 둔 링크도 그때부터 엉뚱한 분류를 가리킨다.
+ * 묶음이 제 이름을 가지면 그것을 쓰고, 없으면 제목에서 한 번 정해지는 값을 만들어 쓴다. */
+function anchorOf(g) {
+  if (g.bundleId) return `c-${g.bundleId}`;
+  let h = 0;
+  for (const ch of g.title) h = (Math.imul(31, h) + ch.codePointAt(0)) | 0;
+  return `c-${(h >>> 0).toString(36)}`;
+}
+
 function buildHub() {
   const card = (id) =>
     `        <a class="tool-hub-card"${ALIASES[id] ? ` data-alias="${esc(ALIASES[id])}"` : ''} href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}${
@@ -687,10 +861,9 @@ function buildHub() {
   // 목록이 모바일에서 열두 화면을 넘는다. 분류로 바로 뛸 수 있게 표식을 달고 위에 목차를 놓는다.
   // 순수 링크라 스크립트가 없어도 그대로 동작한다.
   const groupList = groupIds();
-  const anchorOf = (g, i) => `g${i + 1}`;
   const cards = groupList
     .map((g, gi) => {
-      const anchor = anchorOf(g, gi);
+      const anchor = anchorOf(g);
       const head =
         g.bundleId && ids.includes(g.bundleId)
           // 분류마다 몇 개인지 붙인다 — 열여섯 개짜리와 두 개짜리가 섞여 있어 훑을 때 도움이 된다.
@@ -704,7 +877,7 @@ function buildHub() {
 
   const toc =
     '      <nav class="tool-hub-toc" aria-label="분류 바로가기">' +
-    groupList.map((g, i) => `<a href="#${anchorOf(g, i)}">${esc(g.title)}</a>`).join('') +
+    groupList.map((g) => `<a href="#${anchorOf(g)}">${esc(g.title)}</a>`).join('') +
     '</nav>';
 
   // 화면에는 「KarmoLab / 도구」 경로가 있는데 기계가 읽는 쪽에는 없었다 (TASK-KL-089).
@@ -736,6 +909,7 @@ function buildHub() {
   return `---
 layout: none
 permalink: ${BASE_PATH}/
+last_modified_at: ${hubModified()}
 ---
 <!DOCTYPE html>
 <html lang="ko">
@@ -744,9 +918,13 @@ permalink: ${BASE_PATH}/
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- 어두운 화면이 기본이다. 안 알려 주면 CSS 가 오기 전까지 흰 바탕이 번쩍인다. -->
     <meta name="color-scheme" content="dark">
+    <!-- 방문 기록 — 화면이 다 뜬 뒤에 부른다(도구 페이지와 같은 방식). -->
+    <script>addEventListener("load",function(){var s=document.createElement("script");s.async=true;s.src="https://gc.zgo.at/count.js";s.setAttribute("data-goatcounter","https://mascari4615.goatcounter.com/count");document.head.appendChild(s)})</script>
     <!-- 상세 페이지와 같은 규칙: 이름 뒤에 무엇이 있는지 붙여 검색 결과에서 판단되게 한다. -->
     <title>도구 전체 — 텍스트 · 이미지 · 계산 · 개발 | KarmoLab</title>
     <meta name="description" content="KarmoLab 의 도구 ${ids.length}가지. 각 도구는 독립된 페이지에서 바로 쓸 수 있고, 입력한 내용은 브라우저를 벗어나지 않습니다.">
+    <!-- 검색 결과에서 그림·문구를 제 크기로 쓰게 허용 (TASK-KL-089 — 셸과 같은 표시) -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="${SITE}${BASE_PATH}/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="도구 전체 — 텍스트 · 이미지 · 계산 · 개발 | KarmoLab">
@@ -909,9 +1087,36 @@ for (const id of ids) {
 }
 fs.writeFileSync(path.join(outDir, 'index.html'), buildHub(), 'utf8');
 
+/* 도구 이름만 담은 작은 목록 (TASK-KL-089).
+ * 없는 도구 주소로 들어온 사람에게 「혹시 이거였나요」를 보여 주려고 쓴다. 도구 하나가
+ * 이름을 바꾸거나 사라지면 예전 링크·예전 검색 결과가 전부 그 주소로 오는데, 지금은 통째로
+ * 버려진다(들어와도 도구로 가는 링크가 하나뿐인 「없는 쪽」이 뜬다).
+ * 설명·자주 묻는 것이 든 큰 파일 대신 이름과 다른 이름만 담아 몇 KB로 끝낸다. */
+fs.writeFileSync(
+  path.join(outDir, 'tools.json'),
+  `---\nlayout: none\npermalink: ${BASE_PATH}/tools.json\n---\n` +
+    JSON.stringify(ids.map((id) => [id, heading(id), ALIASES[id] || ''])),
+  'utf8'
+);
+
 /* Service Worker 를 `/karmolab/sw.js` 로 서비스한다 (TASK-KL-088).
  * SW 의 제어 범위는 자기 URL 경로로 정해진다 — `/apps/karmolab/sw.js` 에 두면 정작 앱이 사는
  * `/karmolab/` 페이지를 제어하지 못한다. Jekyll front matter 로 위치만 옮긴다. */
+/**
+ * 경로 하나를 실제 파일 자리로 바꾼다 — **앱의 규약과 같아야 한다** (TASK-KL-088).
+ * 정본은 `src/toolbox.ts` 의 resolveScriptPath. 여기서 무조건 `js/widgets/` 로 붙이는 바람에
+ * `root/gemini` 같은 항목이 「없는 파일」로 걸러졌고, 이미지 편집 페이지는 자기 부팅 목록에서
+ * 그 항목이 통째로 빠진 채 나갔다. 버리지 말고 제대로 찾는 것이 맞다.
+ * (규약이 늘면 정본과 여기 둘 다 고쳐야 한다 — 갈라져 있는 것이 원래 문제였다.)
+ */
+function scriptFile(p) {
+  if (typeof p !== 'string') return `js/widgets/${p}.js`;
+  if (p.startsWith('world/')) return `world/${p.slice('world/'.length)}.js`;
+  if (p.startsWith('vendor/')) return `js/vendor/${p.slice('vendor/'.length)}.js`;
+  if (p.startsWith('root/')) return `js/${p.slice('root/'.length)}.js`;
+  return `js/widgets/${p}.js`;
+}
+
 const swBuilt = path.join(root, 'sw.js');
 if (fs.existsSync(swBuilt)) {
   const parent = path.dirname(outDir);
@@ -934,4 +1139,7 @@ if (missingOg.length) {
   );
 }
 
+if (missingBoot.size) {
+  console.warn(`[gen-tool-pages] 부팅 목록에서 뺀 항목 ${missingBoot.size}건 — 파일이 없다: ${[...missingBoot].join(', ')}`);
+}
 console.log(`[gen-tool-pages] ${ids.length}개 도구 페이지 + 허브 + sw.js 생성 → ${path.relative(process.cwd(), outDir)}`);
