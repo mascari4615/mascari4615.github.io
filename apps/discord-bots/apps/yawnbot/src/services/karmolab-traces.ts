@@ -16,6 +16,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { PKG_ROOT } from '../paths';
+import type { VisitorKind } from './karmolab-visitor-kind';
 
 /** 도구 하나의 쓰임. 날짜별로 나눠 둬야 「요즘 뜨는 도구」를 뒤에 붙일 수 있다. */
 interface ToolTrace {
@@ -61,6 +62,16 @@ export interface Gallery {
    * 갤러리마다 다르다. 만든 사람이 정한다. 없으면 말머리 없이 쓴다.
    */
   tags: string[];
+  /**
+   * 이슈식 갤러리 — 깃허브 이슈처럼 「글마다 번호와 상태가 있고, 언젠가 닫힌다」 (사용자 요청).
+   *
+   * 왜 스위치 하나인가: 이야기 갤러리와 이슈 갤러리는 **다른 게시판이 아니라 같은 게시판의
+   * 다른 쓰임**이다. 글·답글·말머리·좋아요는 그대로고, 달라지는 건 「이 글이 끝났는가」를
+   * 함께 들고 다니느냐뿐이다. 따로 만들면 두 벌을 영원히 같이 고쳐야 한다.
+   *
+   * 켜면: 글마다 번호(#3) · 상태(열림/할 예정/됐음/안 함) · 열림만 보기 · 닫으며 남기는 한 줄.
+   */
+  issueStyle: boolean;
 }
 
 /**
@@ -70,11 +81,11 @@ export interface Gallery {
  * 아래는 씨앗일 뿐이고, 저장소에 없으면 한 번 심는다.
  */
 export const SEED_GALLERIES: Gallery[] = [
-  { id: 'free', label: '자유', desc: '무슨 이야기든', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['잡담', '질문', '정보'] },
-  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['도구', '계정', '기타'] },
-  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['만든 것', '찾은 것'] },
-  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false, tags: [] },
-  { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true, tags: [] },
+  { id: 'free', label: '자유', desc: '무슨 이야기든', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['잡담', '질문', '정보'], issueStyle: false },
+  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['도구', '계정', '기타'], issueStyle: false },
+  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['만든 것', '찾은 것'], issueStyle: false },
+  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false, tags: [], issueStyle: true },
+  { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true, tags: [], issueStyle: false },
 ];
 
 export type BoardId = string;
@@ -101,6 +112,8 @@ export const GALLERY_DAILY_LIMIT = 3;
 export const TAG_MAX_LEN = 10;
 /** 말머리가 너무 많으면 고르는 것이 일이 된다. */
 export const TAG_MAX_COUNT = 8;
+/** 상태를 바꾸며 남기는 한 줄. 길어지면 그건 답글로 쓸 말이다. */
+export const STATUS_NOTE_MAX = 120;
 
 export type PostSort = 'recent' | 'top';
 
@@ -145,6 +158,17 @@ export interface Post {
   pinned: boolean;
   /** 말머리 — 그 갤러리가 가진 것 중 하나. 안 골랐으면 null. */
   tag: string | null;
+  /**
+   * 갤러리 안에서의 번호 (#3). 이슈식 갤러리에서 「그 3번 말이야」라고 부를 수 있게 한다.
+   * **한 번 준 번호는 안 바뀐다** — 글이 지워져도 뒤 글이 당겨 오지 않는다. 번호가 움직이면
+   * 어제 남긴 「#3 참고」가 오늘 다른 글을 가리키게 된다.
+   */
+  seq: number;
+  /** 상태를 바꾸며 남긴 한 줄 (닫는 이유·만들어진 것). 안 남겼으면 null. */
+  statusNote: string | null;
+  /** 상태를 바꾼 시각·사람. 「언제 닫혔나」가 안 보이면 닫힌 글은 그냥 사라진 글처럼 읽힌다. */
+  statusAt: string | null;
+  statusBy: string | null;
 }
 
 export interface Report {
@@ -167,9 +191,9 @@ export interface Report {
  * 있다가 날이 바뀌면 버린다 — 오늘 몇 명인지 세는 데는 오늘 것만 있으면 된다.
  */
 interface VisitTrace {
-  /** 지금까지 방문 수 (같은 사람의 연속 조작은 30분에 한 번만 센다). */
+  /** 지금까지 방문 수 — **사람만** (같은 사람의 연속 조작은 30분에 한 번만 센다). */
   total: number;
-  /** 날짜별 방문 수. */
+  /** 날짜별 방문 수 (사람만). */
   days: Record<string, number>;
   /** 날짜별 다녀간 사람 수 (같은 사람은 하루 한 번). */
   people: Record<string, number>;
@@ -177,6 +201,13 @@ interface VisitTrace {
   day: string;
   /** 오늘 이미 센 사람들의 열쇠. 봇이 다시 떠도 오늘 수가 두 배가 되지 않게 저장한다. */
   todayKeys: string[];
+  /**
+   * 누가 왔나 종류별 누적 — 사람 · 검색엔진 · AI · 알 수 없음.
+   * 봇 방문을 버리지 않고 **나눠서** 센다. 버리면 사실이 사라지고, 섞으면 사람 수가 거짓이 된다.
+   */
+  kinds: Record<VisitorKind, number>;
+  /** 날짜별 종류. 「요즘 AI 가 부쩍 긁어 간다」 같은 것이 이 칸에서만 보인다. */
+  kindDays: Record<string, Partial<Record<VisitorKind, number>>>;
 }
 
 interface TracesState {
@@ -186,6 +217,11 @@ interface TracesState {
   galleries: Gallery[];
   reports: Report[];
   visits: VisitTrace;
+  /**
+   * 갤러리별로 **마지막까지 준 번호**. 지금 남아 있는 글에서 최댓값을 구하면 안 된다 —
+   * 3번 글을 지우는 순간 다음 글이 다시 3번을 받고, 어제 남긴 「#3 참고」가 다른 글을 가리킨다.
+   */
+  seqByBoard: Record<BoardId, number>;
 }
 
 const STATE_FILE = 'karmolab-traces-state.json';
@@ -264,6 +300,10 @@ export interface PublicPost {
   status: Post['status'];
   pinned: boolean;
   tag: string | null;
+  seq: number;
+  statusNote: string | null;
+  statusAt: string | null;
+  statusBy: string | null;
   replies: PublicReply[];
   votedByMe: boolean;
   likedByMe: boolean;
@@ -284,7 +324,11 @@ function withSeeds(existing: Gallery[]): Gallery[] {
   const out = existing.map((g) => {
     const seed = SEED_GALLERIES.find((x) => x.id === g.id);
     const tags = Array.isArray(g.tags) && g.tags.length > 0 ? g.tags : (seed && g.builtin ? [...seed.tags] : []);
-    return { ...g, tags };
+    // 이슈식 칸도 나중에 생겼다. 처음부터 있던 갤러리는 씨앗이 정한 값을 받는다
+    // (요청판은 원래 「열림 → 만들어짐」으로 살아 왔다 — 이름만 이제 붙는다).
+    const issueStyle =
+      typeof g.issueStyle === 'boolean' ? g.issueStyle : seed && g.builtin ? seed.issueStyle : false;
+    return { ...g, tags, issueStyle };
   });
   for (const seed of SEED_GALLERIES) {
     if (!out.some((g) => g.id === seed.id)) out.push({ ...seed });
@@ -315,7 +359,36 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
     bumpedAt: raw.bumpedAt ?? createdAt,
     pinned: raw.pinned === true,
     tag: typeof raw.tag === 'string' ? raw.tag : null,
+    // 번호는 나중에 생겼다. 옛 글은 0 으로 두고 아래 `numberOldPosts` 가 한 번에 매긴다 —
+    // 여기서 매기면 글마다 따로 매겨져 같은 번호가 여러 개 나온다.
+    seq: typeof raw.seq === 'number' ? raw.seq : 0,
+    statusNote: typeof raw.statusNote === 'string' ? raw.statusNote : null,
+    statusAt: typeof raw.statusAt === 'string' ? raw.statusAt : null,
+    statusBy: typeof raw.statusBy === 'string' ? raw.statusBy : null,
   };
+}
+
+/**
+ * 번호가 없던 옛 글에 번호를 매긴다 (갤러리마다 1부터, 오래된 글이 1번).
+ *
+ * 한 번만 도는 일이다 — 매기고 나면 그 값은 파일에 남아 다시는 안 바뀐다.
+ * 새 글은 「그 갤러리의 가장 큰 번호 + 1」을 받으므로, 여기서 겹치지 않게 매겨 두면 끝이다.
+ */
+function numberOldPosts(posts: Post[]): Post[] {
+  const needs = posts.filter((p) => !p.seq);
+  if (needs.length === 0) return posts;
+  const nextByBoard = new Map<BoardId, number>();
+  for (const post of posts) {
+    if (!post.seq) continue;
+    nextByBoard.set(post.board, Math.max(nextByBoard.get(post.board) ?? 0, post.seq));
+  }
+  // 오래된 것부터 1번. 목록은 새 글이 앞이므로 뒤에서부터 훑는다.
+  for (const post of [...needs].reverse()) {
+    const next = (nextByBoard.get(post.board) ?? 0) + 1;
+    post.seq = next;
+    nextByBoard.set(post.board, next);
+  }
+  return posts;
 }
 
 /**
@@ -329,20 +402,33 @@ function emptyVisits(from?: Partial<VisitTrace>): VisitTrace {
     people: from?.people ?? {},
     day: typeof from?.day === 'string' ? from.day : '',
     todayKeys: Array.isArray(from?.todayKeys) ? from.todayKeys : [],
+    kinds: { human: 0, search: 0, ai: 0, unknown: 0, ...(from?.kinds ?? {}) },
+    kindDays: from?.kindDays ?? {},
   };
 }
 
 /** 오늘 열쇠를 몇 개까지 들고 있을지. 넘치면 세는 것만 멈추고 방문 수는 계속 센다. */
 const VISITOR_KEYS_CAP = 50000;
 
+/** 「지금 보고 있다」로 치는 시간. 이보다 오래 소식이 없으면 나간 것으로 본다. */
+const PRESENCE_WINDOW_MS = 5 * 60 * 1000;
+
 export class KarmolabTraceStore {
   private state: TracesState;
   private dirty = false;
   /** `<방문자열쇠>:<도구>` → 마지막으로 센 시각. 메모리에만 둔다 (재시작하면 한 번 더 세도 무해). */
   private readonly recentOpens = new Map<string, number>();
+  /** 지금 보고 있는 사람들 — 열쇠 → 마지막 소식 시각. **저장하지 않는다** (「지금」은 과거가 없다). */
+  private readonly presence = new Map<string, number>();
 
   constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE)) {
     this.state = this.load();
+    // 번호 카운터가 이미 나간 번호보다 뒤에 있으면 안 된다 — 그러면 다음 글이 남의 번호를
+    // 다시 받는다. 카운터가 없던 옛 파일에서 특히 그렇다.
+    for (const post of this.state.posts) {
+      const known = this.state.seqByBoard[post.board] ?? 0;
+      if (post.seq > known) this.state.seqByBoard[post.board] = post.seq;
+    }
   }
 
   private load(): TracesState {
@@ -352,16 +438,25 @@ export class KarmolabTraceStore {
         return {
           version: 1,
           tools: parsed.tools ?? {},
-          posts: (parsed.posts ?? []).map(migratePost),
+          posts: numberOldPosts((parsed.posts ?? []).map(migratePost)),
           galleries: withSeeds(parsed.galleries ?? []),
           reports: parsed.reports ?? [],
           visits: emptyVisits(parsed.visits),
+          seqByBoard: parsed.seqByBoard ?? {},
         };
       }
     } catch (error) {
       console.error('[karmolab-traces] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]), reports: [], visits: emptyVisits() };
+    return {
+      version: 1,
+      tools: {},
+      posts: [],
+      galleries: withSeeds([]),
+      reports: [],
+      visits: emptyVisits(),
+      seqByBoard: {},
+    };
   }
 
   /**
@@ -436,14 +531,27 @@ export class KarmolabTraceStore {
    *
    * @returns 실제로 셌으면 true.
    */
-  recordVisit(visitorKey: string, now: Date = new Date()): boolean {
+  recordVisit(visitorKey: string, kind: VisitorKind = 'human', now: Date = new Date()): boolean {
+    const day = kstDay(now);
+    const visits = this.state.visits;
+
     const dedupeKey = `visit:${visitorKey}`;
     const last = this.recentOpens.get(dedupeKey);
     if (last !== undefined && now.getTime() - last < DEDUPE_WINDOW_MS) return false;
     this.recentOpens.set(dedupeKey, now.getTime());
 
-    const day = kstDay(now);
-    const visits = this.state.visits;
+    // 종류는 **버리지 않고 전부** 센다. 봇 방문도 실제로 일어난 일이다.
+    visits.kinds[kind] = (visits.kinds[kind] ?? 0) + 1;
+    const bucket = visits.kindDays[day] ?? {};
+    bucket[kind] = (bucket[kind] ?? 0) + 1;
+    visits.kindDays[day] = bucket;
+    for (const old of Object.keys(visits.kindDays).sort().slice(0, -DAY_RETENTION)) delete visits.kindDays[old];
+
+    // 아래 「방문 · 사람」 수에는 **사람만** 들어간다. 봇을 섞으면 공개한 수가 거짓말이 된다.
+    if (kind !== 'human') {
+      this.markDirty();
+      return false;
+    }
 
     // 날이 바뀌면 어제 사람들 열쇠는 버린다. 오늘 몇 명인지 세는 데 어제 것은 필요 없다.
     if (visits.day !== day) {
@@ -460,10 +568,10 @@ export class KarmolabTraceStore {
     }
 
     // 오래된 날은 칸을 버린다 (합계는 `total` 에 남는다).
-    for (const bucket of [visits.days, visits.people]) {
-      const keep = Object.keys(bucket).sort().slice(-DAY_RETENTION);
-      if (keep.length < Object.keys(bucket).length) {
-        for (const key of Object.keys(bucket)) if (!keep.includes(key)) delete bucket[key];
+    for (const dayBucket of [visits.days, visits.people]) {
+      const keep = Object.keys(dayBucket).sort().slice(-DAY_RETENTION);
+      if (keep.length < Object.keys(dayBucket).length) {
+        for (const key of Object.keys(dayBucket)) if (!keep.includes(key)) delete dayBucket[key];
       }
     }
 
@@ -471,13 +579,35 @@ export class KarmolabTraceStore {
     return true;
   }
 
-  /** 방문 집계 — 블로그의 Total / Today 와 같은 것. */
+  /**
+   * 지금 보고 있다고 알려 온다 (몇 분에 한 번씩).
+   *
+   * **저장하지 않는다** — 메모리에만 둔다. 「지금」은 과거가 되면 아무 뜻이 없고,
+   * 봇이 다시 뜨면 0에서 시작하는 게 맞다 (그때는 정말 아무도 안 보고 있으니까).
+   */
+  touchPresence(visitorKey: string, now: Date = new Date()): number {
+    this.presence.set(visitorKey, now.getTime());
+    return this.presenceCount(now);
+  }
+
+  /** 지금 몇 명이 보고 있나. 오래된 것은 훑어 버린다. */
+  presenceCount(now: Date = new Date()): number {
+    const cutoff = now.getTime() - PRESENCE_WINDOW_MS;
+    for (const [key, at] of this.presence) if (at < cutoff) this.presence.delete(key);
+    return this.presence.size;
+  }
+
+  /** 방문 집계 — 블로그의 Total / Today 와 같은 것. 아래 수는 전부 **사람만**이다. */
   visitStats(now: Date = new Date()): {
     total: number;
     today: number;
     peopleToday: number;
+    /** 지금 보고 있는 사람 수. */
+    online: number;
     /** 최근 14일 (오래된 날 → 오늘). 작은 막대 그래프용. */
     recentDays: { day: string; visits: number; people: number }[];
+    /** 누가 왔나 — 사람 · 검색엔진 · AI · 알 수 없음 (누적 / 오늘). */
+    kinds: { total: Record<VisitorKind, number>; today: Record<VisitorKind, number> };
   } {
     const visits = this.state.visits;
     const today = kstDay(now);
@@ -486,11 +616,96 @@ export class KarmolabTraceStore {
       const day = kstDay(new Date(now.getTime() - i * 24 * 60 * 60 * 1000));
       recentDays.push({ day, visits: visits.days[day] ?? 0, people: visits.people[day] ?? 0 });
     }
+    const todayKinds = visits.kindDays[today] ?? {};
     return {
       total: visits.total,
       today: visits.days[today] ?? 0,
       peopleToday: visits.people[today] ?? 0,
+      online: this.presenceCount(now),
       recentDays,
+      kinds: {
+        total: { ...visits.kinds },
+        today: {
+          human: todayKinds.human ?? 0,
+          search: todayKinds.search ?? 0,
+          ai: todayKinds.ai ?? 0,
+          unknown: todayKinds.unknown ?? 0,
+        },
+      },
+    };
+  }
+
+  /**
+   * 주간 결산 — 「이번 주 KarmoLab」.
+   *
+   * **새로 저장하는 것이 하나도 없다.** 이미 날짜별로 세고 있는 값에서 그때그때 계산한다 —
+   * 결산을 따로 쌓아 두면 원본과 어긋나는 순간부터 아무도 어느 쪽이 맞는지 모른다.
+   *
+   * 지난 7일과 그 전 7일을 나란히 놓는다. 「많다/적다」는 혼자서는 뜻이 없고 늘 비교값이 있어야 한다.
+   */
+  weeklyRecap(now: Date = new Date()): {
+    from: string;
+    to: string;
+    visits: { now: number; before: number };
+    people: { now: number; before: number };
+    toolOpens: { now: number; before: number };
+    /** 이번 주 많이 열린 도구 셋. */
+    topTools: { toolId: string; opens: number }[];
+    /** 지난주엔 한 번도 안 열렸는데 이번 주에 열린 도구. */
+    newTools: string[];
+    posts: number;
+    replies: number;
+    /** 이번 주 가장 많은 표를 받은 글 (없으면 null). */
+    topPost: { id: string; title: string | null; text: string; votes: number } | null;
+  } {
+    const dayAt = (offset: number) => kstDay(new Date(now.getTime() - offset * 24 * 60 * 60 * 1000));
+    const thisWeek: string[] = [];
+    const lastWeek: string[] = [];
+    for (let i = 0; i < 7; i += 1) thisWeek.push(dayAt(i));
+    for (let i = 7; i < 14; i += 1) lastWeek.push(dayAt(i));
+
+    const sum = (bucket: Record<string, number>, days: string[]) =>
+      days.reduce((total, day) => total + (bucket[day] ?? 0), 0);
+
+    const visits = this.state.visits;
+    const opensIn = (days: string[]) => {
+      let total = 0;
+      for (const trace of Object.values(this.state.tools)) total += sum(trace.days, days);
+      return total;
+    };
+
+    const toolsThisWeek: { toolId: string; opens: number }[] = [];
+    const newTools: string[] = [];
+    for (const [toolId, trace] of Object.entries(this.state.tools)) {
+      const opens = sum(trace.days, thisWeek);
+      if (opens === 0) continue;
+      toolsThisWeek.push({ toolId, opens });
+      if (sum(trace.days, lastWeek) === 0) newTools.push(toolId);
+    }
+    toolsThisWeek.sort((a, b) => b.opens - a.opens);
+
+    const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).getTime();
+    const freshPosts = this.state.posts.filter((p) => new Date(p.createdAt).getTime() >= since);
+    let replies = 0;
+    for (const post of this.state.posts) {
+      replies += post.replies.filter((r) => new Date(r.createdAt).getTime() >= since).length;
+    }
+    const ranked = [...freshPosts].sort((a, b) => b.voterAccountIds.length - a.voterAccountIds.length);
+    const best = ranked[0];
+
+    return {
+      from: thisWeek[thisWeek.length - 1],
+      to: thisWeek[0],
+      visits: { now: sum(visits.days, thisWeek), before: sum(visits.days, lastWeek) },
+      people: { now: sum(visits.people, thisWeek), before: sum(visits.people, lastWeek) },
+      toolOpens: { now: opensIn(thisWeek), before: opensIn(lastWeek) },
+      topTools: toolsThisWeek.slice(0, 3),
+      newTools: newTools.slice(0, 5),
+      posts: freshPosts.length,
+      replies,
+      topPost: best
+        ? { id: best.id, title: best.title, text: best.text.slice(0, 80), votes: best.voterAccountIds.length }
+        : null,
     };
   }
 
@@ -551,6 +766,10 @@ export class KarmolabTraceStore {
       bumpedAt: at,
       pinned: false,
       tag: input.tag ?? null,
+      seq: this.nextSeq(input.board),
+      statusNote: null,
+      statusAt: null,
+      statusBy: null,
     };
     this.state.posts.unshift(post);
     this.markDirty();
@@ -648,16 +867,44 @@ export class KarmolabTraceStore {
   }
 
   /** 주인이 상태·고정을 바꾼다. 준 것만 바꾼다. */
-  updatePost(postId: string, patch: { status?: unknown; pinned?: unknown }): Post | null {
+  updatePost(
+    postId: string,
+    patch: { status?: unknown; pinned?: unknown; statusNote?: unknown; by?: string | null },
+    now: Date = new Date(),
+  ): Post | null {
     const post = this.state.posts.find((p) => p.id === postId);
     if (!post) return null;
     const allowed: Post['status'][] = ['open', 'planned', 'done', 'declined'];
     if (typeof patch.status === 'string' && allowed.includes(patch.status as Post['status'])) {
+      const changed = post.status !== patch.status;
       post.status = patch.status as Post['status'];
+      if (changed) {
+        // 「언제·누가」가 없으면 닫힌 글은 그냥 사라진 글처럼 읽힌다.
+        post.statusAt = now.toISOString();
+        post.statusBy = patch.by ?? null;
+      }
+    }
+    if (typeof patch.statusNote === 'string') {
+      const note = patch.statusNote.trim().slice(0, STATUS_NOTE_MAX);
+      post.statusNote = note.length > 0 ? note : null;
     }
     if (typeof patch.pinned === 'boolean') post.pinned = patch.pinned;
     this.markDirty();
     return post;
+  }
+
+  /**
+   * 갤러리 성격 바꾸기 — 지금은 「이슈식으로 쓸래」 하나뿐이다.
+   *
+   * 껐다 켜도 글은 안 다친다. 상태·번호는 원래 모든 글이 들고 있고, 이슈식은 그걸
+   * **화면에 보여줄지**를 정할 뿐이다. 그래서 잘못 켜도 되돌리면 그만이다.
+   */
+  setGalleryStyle(boardId: BoardId, patch: { issueStyle?: unknown }): Gallery | null {
+    const gallery = this.state.galleries.find((g) => g.id === boardId);
+    if (!gallery) return null;
+    if (typeof patch.issueStyle === 'boolean') gallery.issueStyle = patch.issueStyle;
+    this.markDirty();
+    return gallery;
   }
 
   /**
@@ -691,6 +938,10 @@ export class KarmolabTraceStore {
       status: post.status,
       pinned: post.pinned,
       tag: post.tag,
+      seq: post.seq,
+      statusNote: post.statusNote,
+      statusAt: post.statusAt,
+      statusBy: post.statusBy,
       replies: post.replies.map((r) => ({
         id: r.id,
         text: r.text,
@@ -806,6 +1057,21 @@ export class KarmolabTraceStore {
   }
 
   /** 글 하나 — 커뮤니티의 글 상세 화면이 쓴다. */
+  /**
+   * 이 갤러리의 다음 번호. **줬으면 되돌리지 않는다** — 글을 지워도 그 번호는 영영 비어 있다.
+   * 빈 번호가 보이는 편이, 남이 남긴 「#3 참고」가 엉뚱한 글을 가리키는 것보다 낫다.
+   */
+  private nextSeq(board: BoardId): number {
+    const next = (this.state.seqByBoard[board] ?? 0) + 1;
+    this.state.seqByBoard[board] = next;
+    return next;
+  }
+
+  /** 글 하나 — 권한을 따질 때 「이 글이 어느 갤러리 것인가」를 알아야 한다. */
+  post(postId: string): Post | null {
+    return this.state.posts.find((p) => p.id === postId) ?? null;
+  }
+
   publicPost(postId: string, viewerAccountId: string | null): PublicPost | null {
     const post = this.state.posts.find((p) => p.id === postId);
     return post ? this.toPublic(post, viewerAccountId) : null;
@@ -868,6 +1134,7 @@ export class KarmolabTraceStore {
       ownerOnly: false,
       titled: true,
       tags: [],
+      issueStyle: false,
     };
     this.state.galleries.push(gallery);
     this.markDirty();

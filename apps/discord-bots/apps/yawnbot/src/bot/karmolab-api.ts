@@ -42,6 +42,7 @@ import {
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
+import { classifyVisitor } from '../services/karmolab-visitor-kind';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
 const SESSION_COOKIE = 'kl_session';
@@ -432,8 +433,31 @@ export function registerKarmolabApi(
    * 로그인과 무관하고, 주소는 저장하지 않는다 (되돌릴 수 없게 섞은 열쇠만 오늘치).
    */
   app.post('/kl/trace/visit', (req: Request, res: Response) => {
-    const counted = traces.recordVisit(visitorKeyFor(req));
-    res.json({ counted });
+    // 누가 왔는지 가려서 센다 — 검색봇·AI 를 사람으로 세면 공개해 놓은 수가 거짓말이 된다.
+    // 버리지는 않는다. 종류별로 나눠서 그대로 공개한다.
+    const kind = classifyVisitor(req.headers['user-agent']);
+    const counted = traces.recordVisit(visitorKeyFor(req), kind);
+    res.json({ counted, kind });
+  });
+
+  /**
+   * 「지금 보고 있어요」 — 몇 분에 한 번씩 알려 온다.
+   *
+   * 저장하지 않는다. 사람만 센다 (봇은 화면을 보고 있는 게 아니다).
+   */
+  app.post('/kl/presence', (req: Request, res: Response) => {
+    const kind = classifyVisitor(req.headers['user-agent']);
+    const online =
+      kind === 'human' ? traces.touchPresence(visitorKeyFor(req)) : traces.presenceCount();
+    res.json({ online });
+  });
+
+  /**
+   * 주간 결산 — 「이번 주 KarmoLab」. 통계 페이지에 함께 붙는다.
+   * 새로 저장하는 값은 없다. 이미 세고 있는 것에서 그때그때 계산한다.
+   */
+  app.get('/kl/recap', (_req: Request, res: Response) => {
+    res.json({ recap: traces.weeklyRecap() });
   });
 
   /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
@@ -534,6 +558,33 @@ export function registerKarmolabApi(
     }
     traces.flush();
     res.json({ ok: true });
+  });
+
+  /**
+   * 갤러리 성격 바꾸기 — 「이슈식으로 쓸래」 (사용자: "원한다면 갤러리를 깃허브 이슈 식으로").
+   *
+   * 만든 사람과 주인만. 껐다 켜도 글은 안 다친다 — 상태·번호는 원래 모든 글이 들고 있고,
+   * 이슈식은 그걸 화면에 보여줄지를 정할 뿐이다.
+   */
+  app.patch('/kl/boards/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const boardId = String(req.params.id ?? '');
+    const gallery = traces.gallery(boardId);
+    if (!gallery) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (!isAdminAccount(account) && gallery.createdByHandle !== account.handle) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    const updated = traces.setGalleryStyle(boardId, { issueStyle: (req.body ?? {}).issueStyle });
+    traces.flush();
+    res.json({ ok: true, gallery: updated });
   });
 
   /** 갤러리를 지운다 — 빈 갤러리만. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다. */
@@ -824,12 +875,26 @@ export function registerKarmolabApi(
   /** 주인이 진행 상태·고정을 바꾼다. */
   app.patch('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    if (!isAdminAccount(account)) {
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    // 주인뿐 아니라 **그 갤러리를 만든 사람**도 닫을 수 있어야 한다. 안 그러면 남이 만든
+    // 이슈 갤러리는 아무도 못 닫고, 열린 글만 쌓이다 죽는다.
+    const target = traces.post(String(req.params.id ?? ''));
+    const gallery = target ? traces.gallery(target.board) : null;
+    const allowed = isAdminAccount(account) || (gallery?.createdByHandle === account.handle);
+    if (!allowed) {
       res.status(403).json({ error: 'not_allowed' });
       return;
     }
     const body = req.body ?? {};
-    const updated = traces.updatePost(String(req.params.id ?? ''), { status: body.status, pinned: body.pinned });
+    const updated = traces.updatePost(String(req.params.id ?? ''), {
+      status: body.status,
+      pinned: body.pinned,
+      statusNote: body.statusNote,
+      by: account.handle,
+    });
     if (!updated) {
       res.status(404).json({ error: 'not_found' });
       return;
