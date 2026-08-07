@@ -718,7 +718,12 @@ function buildToolPage(id) {
   {
     const before = html;
     html = html.replace(/\s*<!-- KARMOLAB_ROOT_LD[\s\S]*?<\/script>/, '');
-    if (html === before) throw new Error('셸에서 첫 화면 구조 설명 블록을 못 찾음 — index.html 확인');
+    if (html === before) {
+      // 지우는 일인데 지울 게 없으면 목적은 이미 이뤄진 것이다. 여기서 빨간불을 켜면
+      // **저장소 전체 배포가 멈춘다** — 2026-08-07 실측으로 몇 시간 동안 그렇게 멈춰 있었고,
+      // 다른 작업(그날의 /daily 변경 여덟 건)까지 같이 묶였다. 알리되 막지는 않는다.
+      console.warn('[gen-tool-pages] 첫 화면 구조 설명 블록이 index.html 에 없다 — 뺄 것이 없어 그냥 지나간다');
+    }
   }
 
   /* 코드 색칠 스타일은 첫 화면을 막지 않게 한다 (TASK-KL-089).
