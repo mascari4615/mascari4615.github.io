@@ -139,6 +139,13 @@ jobs:
 
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
+      # TASK-KL-098: 커뮤니티 글의 정적 페이지(/karmolab/c/<글id>/).
+      # 화면이 스크립트로 그리는 글은 검색엔진이 못 읽어 **하나도 색인되지 않는다**.
+      # 서버(노트북)에 못 닿으면 그냥 건너뛴다 — 노트북이 꺼졌다고 사이트 배포가 막히면 안 된다.
+      - name: Generate KarmoLab community pages
+        working-directory: apps/karmolab
+        run: npm run gen:community
+
       - name: Generate KarmoLab tool pages
         working-directory: apps/karmolab
         run: npm run gen:tool-pages

@@ -73,6 +73,7 @@
     "test:pcrop": "node scripts/test-pdfcrop.mjs",
     "test:iresize": "node scripts/test-imgresize.mjs",
     "test:answers": "node scripts/smoke-tool-behavior.mjs",
+    "test:pdfdiff": "node scripts/smoke-pdfdiff.mjs",
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
@@ -84,7 +85,8 @@
     "audit:live": "node scripts/audit-live-essentials.mjs",
     "audit:pages": "node scripts/audit-tool-pages-fresh.mjs",
     "dev": "node scripts/dev.mjs",
-    "test:md": "node scripts/test-community-markdown.mjs"
+    "test:md": "node scripts/test-community-markdown.mjs",
+    "gen:community": "node scripts/gen-community-pages.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
