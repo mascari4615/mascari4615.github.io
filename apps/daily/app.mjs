@@ -65,19 +65,45 @@ if ($ready) {
   $ready.placeholder = '문제 불러오는 중…';
 }
 
+/* 내가 만든 표로 노는 판 (TASK-KL-089).
+ * 그 표는 **이 브라우저에만** 있다 — 배포 때 만들 수 없으니 여기서 읽는다. 어느 표인지는
+ * 주소(`?pack=…`)가 정하고, 없으면 만들어 둔 것 중 첫 번째를 연다.
+ * 칸의 종류는 표가 스스로 말한다(만들 때 값을 보고 정해 뒀다) — 여기서 다시 추측하지 않는다. */
+function myPack() {
+  let list = [];
+  try {
+    list = JSON.parse(localStorage.getItem('karmolab_packs') || '[]');
+  } catch { /* 사생활 모드 */ }
+  if (!Array.isArray(list) || !list.length) return null;
+  const want = new URLSearchParams(location.search).get('pack');
+  const p = (want && list.find((x) => x.id === want)) || list[0];
+  if (!p || !Array.isArray(p.items) || p.items.length < 4) return null;
+  document.querySelector('.top h1').textContent = `${p.emoji || '🎲'} ${p.title}`;
+  return { title: p.title, emoji: p.emoji, maxGuesses: 8, fields: p.fields, items: p.items };
+}
+
 // 표 주소는 페이지가 알려 준다 — 속성판(/daily/<주제>/)과 실루엣판(/daily/<주제>/silhouette/)의 깊이가 다르다.
 let topic;
 try {
-  const res = await fetch(`${root.dataset.data}?v=${stamp}`);
-  if (!res.ok) throw new Error(`서버가 ${res.status} 로 답했어요`);
-  topic = await res.json();
+  if (root.dataset.pack === '1') {
+    topic = myPack();
+    if (!topic) throw new Error('이 브라우저에 만들어 둔 표가 없어요');
+  } else {
+    const res = await fetch(`${root.dataset.data}?v=${stamp}`);
+    if (!res.ok) throw new Error(`서버가 ${res.status} 로 답했어요`);
+    topic = await res.json();
+  }
   if (!topic?.items?.length) throw new Error('표가 비어 있어요');
   if ($ready) {
     $ready.disabled = false;
     $ready.placeholder = readyPlaceholder;
   }
 } catch (err) {
-  fatal(`${err.message}. 인터넷이 끊겼거나 잠깐 말썽일 수 있어요.`);
+  fatal(
+    root.dataset.pack === '1'
+      ? `${err.message}. KarmoLab 의 「내 표 만들기」에서 하나 만들어 보세요.`
+      : `${err.message}. 인터넷이 끊겼거나 잠깐 말썽일 수 있어요.`,
+  );
   throw err;
 }
 /**
