@@ -45,4 +45,18 @@ jobs:
           fi
           ID2=$(echo "$OUT2" | jq -r .id)
           gh api -X DELETE "repos/${{ github.repository }}/releases/$ID2"
-          echo "둘 다 됐다 — 권한 문제가 아니다"
+
+          echo "--- 이번엔 초안이 아니라 **진짜로 내보내기** (태그가 새로 생긴다)"
+          TAG3="probe-token-live-$(date +%s)"
+          OUT3=$(gh api -X POST "repos/${{ github.repository }}/releases" \
+            -f tag_name="$TAG3" -f name="probe live" -F draft=false -F generate_release_notes=true 2>&1)
+          CODE3=$?
+          echo "$OUT3"
+          if [ $CODE3 -ne 0 ]; then
+            echo "::error::초안은 되는데 진짜 릴리스는 안 된다 — 막는 것은 태그 만들기다"
+            exit 1
+          fi
+          ID3=$(echo "$OUT3" | jq -r .id)
+          gh api -X DELETE "repos/${{ github.repository }}/releases/$ID3"
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$TAG3" || true
+          echo "셋 다 됐다 — 권한 문제가 아니다"
