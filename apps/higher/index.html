@@ -141,16 +141,42 @@ footer a { color: #b9b9b2; }
   }
   function fmt(v) { return String(v) + (field.unit ? ' ' + field.unit : ''); }
 
-  function nextRound() {
+  /* 값을 세어 올린다 (TASK-KL-089).
+   * 숫자가 툭 나타나면 맞았는지 틀렸는지가 한 박자에 끝나 버린다. 0 부터 올라가면
+   * 「넘을까 말까」를 눈으로 보게 된다 — 이 놀이의 재미가 거기 있다.
+   * 화면 움직임을 싫어하는 설정이면 바로 보여 준다. */
+  var CALM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el, target) {
+    if (CALM) { el.textContent = fmt(target); return; }
+    var dur = 700, t0 = performance.now();
+    var dec = String(target).indexOf('.') >= 0 ? String(target).split('.')[1].length : 0;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur);
+      var eased = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt((target * eased).toFixed(dec) * 1);
+      if (k < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(target);
+    })(t0);
+  }
+
+  /* 이긴 쪽은 자리에 남는다 (TASK-KL-089).
+   * 처음에는 매판 둘 다 새로 뽑았다. 그러면 판이 매번 끊겨서 「계속 이어 간다」는 맛이 없다 —
+   * 이 놀이가 재미있는 이유는 **방금 본 그 값과 견주는 것**이다. 왼쪽에 남은 것의 값은
+   * 이미 알고 있으니, 다음 상대만 새로 온다.
+   * 처음 한 판만 둘 다 뽑는다. 값이 같으면 견줄 수 없으니 다시 뽑는다. */
+  function nextRound(keepLeft) {
     locked = false;
     $('again').hidden = true;
     var pool = board.items.filter(function (x) { return x.v[field.key] !== undefined; });
+    if (!keepLeft || !left) left = pick(pool);
+    var tries = 0;
     do {
-      left = pick(pool); right = pick(pool);
-    } while (left === right || left.v[field.key] === right.v[field.key]);
+      right = pick(pool);
+      tries++;
+    } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
     // 「출시이(가)」 처럼 조사가 어색해지는 것을 피한다 — 속성 이름을 앞에 떼어 놓는다.
     $('ask').innerHTML = '<b>' + field.label + '</b> — 어느 쪽이 더 클까요?';
-    paintSide($('a'), left, false);
+    paintSide($('a'), left, true); // 남아 있는 쪽은 값이 이미 밝혀져 있다
     paintSide($('b'), right, false);
     $('msg').textContent = '';
   }
@@ -159,16 +185,19 @@ footer a { color: #b9b9b2; }
     if (locked) return;
     locked = true;
     var win = chosen.v[field.key] > other.v[field.key];
-    paintSide($('a'), left, true);
-    paintSide($('b'), right, true);
     $('a').disabled = true; $('b').disabled = true;
+    countUp($('b').querySelector('.vl'), right.v[field.key]); // 새로 온 쪽만 세어 올린다
     sideEl.classList.add(win ? 'win' : 'lose');
     if (win) {
       streak++;
       $('streak').textContent = streak;
       $('msg').textContent = '맞았습니다';
       $('msg').className = 'msg ok';
-      setTimeout(nextRound, 850);
+      // 이긴 쪽이 다음 판의 왼쪽으로 남는다 — 방금 본 값과 계속 견주게 된다.
+      setTimeout(function () {
+        left = right.v[field.key] > left.v[field.key] ? right : left;
+        nextRound(true);
+      }, 1100);
     } else {
       $('msg').textContent = '아깝습니다 — ' + streak + '연승에서 끝났습니다';
       $('msg').className = 'msg no';
