@@ -837,6 +837,47 @@ for (const [topicId, mode, limit] of [['lol', 'classic', 8], ['lol', 'silhouette
   await ctx.close();
 }
 
+/**
+ * 카드는 자기가 여는 놀이를 보여 줘야 한다.
+ * 실루엣 카드에 초록·노랑 격자가 붙어 있었다 — 그건 속성 판 그림이라 다른 놀이를 광고하는 셈이었다.
+ * 문구가 아니라 **찍힌 그림의 픽셀**을 본다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  const greenRatio = async (name) => {
+    const url = `${base}/img/og/${name}.png`;
+    return page.evaluate(
+      (src) =>
+        new Promise((done) => {
+          const img = new Image();
+          img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = img.width;
+            c.height = img.height;
+            const g = c.getContext('2d');
+            g.drawImage(img, 0, 0);
+            const { data } = g.getImageData(0, 400, img.width, 230); // 그림·격자가 앉는 띠
+            let hit = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              // 속성 판의 「맞음」 초록 — 녹색이 뚜렷이 앞서는 픽셀만 센다.
+              if (data[i + 1] > 90 && data[i + 1] - data[i] > 40 && data[i + 1] - data[i + 2] > 20) hit += 1;
+            }
+            done(hit / (data.length / 4));
+          };
+          img.src = src;
+        }),
+      url,
+    );
+  };
+  await page.goto(`${base}/`, { waitUntil: 'domcontentloaded' }); // 캔버스로 읽으려면 같은 출처의 페이지가 필요하다
+  const classic = await greenRatio('pokemon');
+  const sil = await greenRatio('pokemon-silhouette');
+  check('[공유카드] 속성 카드엔 초록 격자가 있다', classic > 0.004, `${(classic * 100).toFixed(2)}%`);
+  check('[공유카드] ★ 실루엣 카드엔 속성 격자가 없다', sil < classic / 3, `${(sil * 100).toFixed(2)}%`);
+  await ctx.close();
+}
+
 // 허브
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } });
 const page = await ctx.newPage();
