@@ -105,6 +105,13 @@ test('공유 글에 정답 이름이 안 들어간다', () => {
   for (const item of topic.items) assert.ok(!text.includes(item.name), `${item.name} 가 샜다`);
 });
 
+test('시도 수는 줄 수가 아니라 따로 받는다', () => {
+  // 실루엣은 한 줄에 눕혀 그린다 — 줄 수로 세면 3번 두고도 1/6 으로 찍힌다 (실제로 그랬다).
+  const rows = [[{ state: 'wrong' }, { state: 'wrong' }, { state: 'exact' }]];
+  assert.match(shareText({ title: 'x', puzzleNo: 1, rows, won: true, maxGuesses: 6, tries: 3 }), /3\/6/);
+  assert.match(shareText({ title: 'x', puzzleNo: 1, rows, won: true, maxGuesses: 6 }), /1\/6/, '안 주면 줄 수로 센다');
+});
+
 test('못 맞히면 X 로 남는다', () => {
   const text = shareText({ title: '시험', puzzleNo: 1, rows: [], won: false, maxGuesses: 8 });
   assert.match(text, /X\/8/);

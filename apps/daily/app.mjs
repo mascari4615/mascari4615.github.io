@@ -266,8 +266,16 @@ function watchMidnight() {
 
 function shareRows() {
   if (mode === 'silhouette') {
-    // 실루엣은 칸이 없다 — 몇 번 만에 갔는지만 남긴다.
-    return state.guesses.map((name, i) => [{ state: i === state.guesses.length - 1 && state.status === 'won' ? 'exact' : 'wrong' }]);
+    /**
+     * 실루엣은 속성 칸이 없다 — 몇 번 만에 갔는지가 전부다.
+     * 그걸 세로로 한 칸씩 늘어놓으면 자랑할 그림이 안 나온다(⬛ 하나씩 여섯 줄).
+     * **가로 한 줄**로 눕힌다 — 워들 격자가 눈에 걸리는 건 그 모양 때문이다.
+     */
+    return [
+      state.guesses.map((_, i) => ({
+        state: i === state.guesses.length - 1 && state.status === 'won' ? 'exact' : 'wrong',
+      })),
+    ];
   }
   return state.guesses.map((name) => compareItem(topic, findItem(topic.items, name), answer));
 }
@@ -307,6 +315,7 @@ function finish() {
     rows,
     won,
     maxGuesses,
+    tries: state.guesses.length,
     url: location.origin + location.pathname + location.search,
   }).replace('\n\n', live > 1 ? `\n🔥 ${live}일 연속\n\n` : '\n\n');
 
