@@ -255,7 +255,8 @@ for (const topic of topics) {
     <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
   </div>
   <p class="lede past-note"></p>
-  <table class="past"><tbody></tbody></table>
+  <div class="past-reveal"><button type="button" aria-pressed="false">답 모두 보기</button></div>
+  <table class="past hide"><tbody></tbody></table>
   <div class="past-more"></div>
   ${foot()}
 </div>
