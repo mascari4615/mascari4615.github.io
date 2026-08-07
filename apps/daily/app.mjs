@@ -496,6 +496,12 @@ function courseDay(d = new Date()) {
   return `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
 }
 
+/**
+ * 코스가 **셀 줄 아는** 놀이. 놀이터 목록에는 이보다 더 들어온다 — 읽는 법이 없는 놀이를
+ * 코스에 넣으면 영영 안 끝나는 칸이 되어 완주가 불가능해진다. (KarmoLab 쪽 play-course 와 같은 규칙.)
+ */
+const COURSE_COUNTED = ['daily', 'higher', 'quest'];
+
 /** 그 놀이를 오늘 끝냈나 — 각 놀이가 남긴 것만 읽는다(새 판정 기준 없음). */
 function courseDone(id) {
   try {
@@ -543,7 +549,7 @@ function mountCourse() {
     .then((j) => {
       const games = j.games || [];
       if (!games.length) return;
-      const left = games.filter((g) => g.id !== 'daily' && !courseDone(g.id));
+      const left = games.filter((g) => COURSE_COUNTED.includes(g.id) && g.id !== 'daily' && !courseDone(g.id));
       line.hidden = false;
       if (!left.length) {
         line.innerHTML = `<span class="pc-tag">오늘의 코스</span><span>셋 다 끝냈습니다 — ${courseRun(true)}일 연속</span>`;
