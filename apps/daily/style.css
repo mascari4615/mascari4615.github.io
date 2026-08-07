@@ -394,6 +394,8 @@ a { color: var(--accent); }
 .more .more-all { background: none; border-style: dashed; color: var(--ink-2); }
 
 /* ── 지난 문제 ── */
+/* 글자를 크게 키우면 표가 화면보다 넓어진다 — 페이지 전체가 옆으로 밀리는 대신 표 안에서만 밀린다. */
+.past-scroll { overflow-x: auto; }
 table.past { width: 100%; border-collapse: collapse; }
 table.past th, table.past td {
   border-bottom: 1px solid var(--line);
@@ -401,8 +403,10 @@ table.past th, table.past td {
   text-align: left;
   vertical-align: middle;
 }
-table.past th { width: 96px; font-weight: 500; }
-table.past .d { display: block; font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+table.past th { width: 84px; font-weight: 500; }
+table.past th, table.past td { vertical-align: top; }
+/* 날짜가 「2026-08-」/「06」 으로 쪼개지면 못 읽는다 — 한 줄로 붙여 둔다. */
+table.past .d { display: block; font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.past .n { display: block; font-size: 11px; color: var(--ink-3); }
 table.past .mo { display: block; font-size: 10.5px; color: var(--ink-3); }
 table.past img { width: 34px; height: 34px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
@@ -448,7 +452,8 @@ table.past .a:focus-visible { outline: 2px solid var(--accent); outline-offset: 
 .past-reveal button:hover { color: var(--ink); border-color: var(--accent); }
 .past-reveal button[aria-pressed='true'] { color: var(--ink); border-color: var(--ink-3); }
 
-table.past .play { display: inline-flex; align-items: center; min-height: 36px; margin-top: 4px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+/* 판마다 하나씩 — 답 밑에 붙는다. */
+table.past .play { display: flex; width: fit-content; align-items: center; min-height: 36px; margin-top: 2px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
 table.past .play:hover { border-color: var(--accent); }
 .tab.practice { background: var(--near); color: #fff; border-color: transparent; }
 

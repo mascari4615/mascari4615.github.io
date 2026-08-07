@@ -256,7 +256,7 @@ for (const topic of topics) {
   </div>
   <p class="lede past-note"></p>
   <div class="past-reveal"><button type="button" aria-pressed="false">답 모두 보기</button></div>
-  <table class="past hide"><tbody></tbody></table>
+  <div class="past-scroll"><table class="past hide"><tbody></tbody></table></div>
   <div class="past-more"></div>
   ${foot()}
 </div>
