@@ -420,6 +420,45 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * **하루가 지나 다시 왔을 때** — 이 게임의 심장인데 한 번도 안 돌려봤다.
+ * 어제 푼 흔적이 남아 있으면 오늘 문제를 못 풀고, 연속이 안 이어지면 매일 오는 뜻이 없다.
+ * 시계를 하루 감아서 본다.
+ */
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'lol.json'), 'utf8'));
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+
+  // 어제로 시계를 맞추고 한 판 끝낸다.
+  const yesterday = Date.now() - 86400000;
+  await page.clock.install({ time: yesterday });
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+  const yAnswer = answerOf(topic, new Date(yesterday));
+  await page.fill('.guessbar input', yAnswer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${yAnswer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  check('[다음날] 어제 한 판을 끝냈다', (await page.locator('.done').innerText()).includes(yAnswer.name));
+
+  // 하루를 넘기고 다시 연다.
+  await page.clock.setSystemTime(Date.now());
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+  check('[다음날] 어제 흔적이 안 남는다', (await page.locator('.row').count()) === 0);
+  check('[다음날] 다시 풀 수 있다', await page.locator('.guessbar').isVisible());
+  check('[다음날] 어제까지의 연속이 이어진다', /연속/.test(await page.locator('.streak').innerText()));
+
+  const answer = answerOf(topic);
+  check('[다음날] 문제가 어제와 다르다', answer.name !== yAnswer.name, `${yAnswer.name} → ${answer.name}`);
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  const streak = await page.locator('.done .tally').innerText();
+  check('[다음날] 연속이 2일이 된다', /연속 2일/.test(streak), streak);
+  await ctx.close();
+}
+
+/**
  * 검색이 이걸 「글 한 장」이 아니라 「무료로 바로 하는 웹 게임」으로 읽어야 한다.
  * 표시는 적어 두는 것보다 *깨지지 않는 것*이 중요하다 — 실제로 파싱되는지 본다.
  */
