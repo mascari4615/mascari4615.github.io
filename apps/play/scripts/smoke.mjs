@@ -211,23 +211,33 @@ async function common(page, id, label) {
 /* ── 오늘의 문제 ── */
 {
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/karmolab/quest/`, { waitUntil: 'networkidle' });
+  // 이 놀이도 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/karmolab/#quest).
+  await page.goto(`${BASE}/karmolab/#quest`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
-  await common(page, 'quest', '오늘의 문제');
-  const q = await page.evaluate(() => ({ 문제: document.getElementById('q').textContent.trim(), 도구: document.getElementById('tool').getAttribute('href') }));
+  {
+    const frame = await page.evaluate(() => ({
+      헤더: !!document.querySelector('.app-header, header'),
+      바탕: getComputedStyle(document.body).backgroundColor,
+      제목카드: !!document.querySelector('#page-quest .tool-hero')
+    }));
+    say(frame.헤더, 'quest: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
+    say(frame.바탕 === 'rgb(14, 13, 20)', `quest: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕})`);
+    say(!frame.제목카드, 'quest: 도구 제목 카드가 딸려 왔다');
+  }
+  const q = await page.evaluate(() => ({ 문제: document.getElementById('qsQ').textContent.trim(), 도구: document.getElementById('qsTool').getAttribute('href') }));
   say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
   say(/^\/karmolab\/t\/[a-z0-9-]+\/$/.test(q.도구 || ''), `quest: 이 문제에 쓰는 도구 주소가 이상하다 (${q.도구})`);
   const head = await page.evaluate(() => ({
-    회차: document.getElementById('day').textContent,
-    초점: document.activeElement.id
+    회차: document.getElementById('qsDay').textContent,
+    초점: document.activeElement?.id
   }));
   say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
-  say(head.초점 === 'ans', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
+  say(head.초점 === 'qsAns', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
 
-  await page.fill('#ans', '틀린답');
-  await page.click('button[type=submit]');
+  await page.fill('#qsAns', '틀린답');
+  await page.click('#qsForm button[type=submit]');
   await page.waitForTimeout(600);
-  const said = await page.evaluate(() => (document.getElementById('msg')?.textContent || ''));
+  const said = await page.evaluate(() => (document.getElementById('qsMsg')?.textContent || ''));
   say(/아닙니다|다 썼/.test(said), `quest: 틀린 답에 아무 말이 없다 (${said})`);
   await page.close();
 }

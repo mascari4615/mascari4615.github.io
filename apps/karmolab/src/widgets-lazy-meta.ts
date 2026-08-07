@@ -875,6 +875,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/lotto', 'tools/ladder', 'tools/pick', 'tools/draw']
   },
   {
+    id: 'quest',
+    title: '오늘의 문제',
+    category: 'tool',
+    desc: '도구를 열어야 풀리는 하루 한 문제 — 진법·모스·해시·단위',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M9 8a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor"/>',
+    lazyScriptPaths: ['quest']
+  },
+  {
     id: 'higher',
     title: '높은 쪽 고르기',
     category: 'tool',

@@ -24,7 +24,7 @@ const seen = new Set();
 const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
   '/karmolab/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
-  '/karmolab/quest/': path.join(apps, 'quest/index.html')
+  '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js')
 };
 
 for (const g of list) {
