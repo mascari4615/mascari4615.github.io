@@ -21,6 +21,22 @@ export {};
 
 declare global {
   interface Window {
+    /** 명령 팔레트 (TASK-KL-099) — 첫 화면에 박히고, 다른 화면에서는 ⌘K 로 떠오른다. */
+    KarmoPalette?: {
+      /** 첫 화면 안에 입력+목록을 박는다 */
+      mountInline: (container: HTMLElement) => void;
+      /** 첫 화면이 보이게 된 뒤 입력에 포커스 (손가락 화면에서는 건너뛴다) */
+      focusInline: () => void;
+      open: () => void;
+      close: () => void;
+      toggle: () => void;
+      isOpen: () => boolean;
+      /** 도구를 열 때마다 — 「최근」 목록이 여기서 쌓인다 */
+      noteOpen: (id: string) => void;
+      /** 지연 로드로 도구가 늘어난 뒤 인덱스를 다시 만든다 */
+      refresh: () => void;
+      getRecent: () => string[];
+    };
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
     KarmoWorld?: KarmoWorldNamespace;

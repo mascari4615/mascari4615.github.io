@@ -51,6 +51,8 @@ apps/karmolab/js/widgets-loader.js
 apps/karmolab/js/widgets/**/*.js
 apps/karmolab/js/pwa-update.js
 apps/karmolab/js/analytics.js
+# TASK-KL-099 — 명령 팔레트 (build.mjs 산출물)
+apps/karmolab/js/palette.js
 # TASK-KL-098 — 계정·공개 프로필 (build.mjs 산출물)
 apps/karmolab/js/account.js
 apps/karmolab/js/profile.js
