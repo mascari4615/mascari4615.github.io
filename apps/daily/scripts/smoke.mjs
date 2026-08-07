@@ -6,7 +6,7 @@
  *
  * playwright 는 이웃 앱(apps/karmolab)의 것을 빌려 쓴다. 이 앱은 의존성 0 을 유지한다.
  */
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startServer } from './serve.mjs';
@@ -31,6 +31,9 @@ const check = (name, ok, note = '') => {
 
 const server = await startServer(0);
 const base = `http://127.0.0.1:${server.address().port}/daily`;
+// 스샷 폴더는 **이번 회차 것만** 있어야 한다. 예전 회차 잔해가 섞여 있으면 눈으로 볼 때
+// 이미 고친 화면을 보고 「이상 없음」이라 판정하게 된다 (실제로 그랬다).
+rmSync(shots, { recursive: true, force: true });
 mkdirSync(shots, { recursive: true });
 
 const browser = await pw.chromium.launch();
@@ -678,6 +681,8 @@ for (const withShare of [true, false]) {
     if (over > 0) spill.push(`/${path} ${over}px`);
   }
   check('글자를 크게 키워도 가로로 안 넘친다', spill.length === 0, spill.join(' · ') || '폭 180px 에서 전부 0');
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.screenshot({ path: join(shots, 'narrow-hub.png'), fullPage: true });
 
   /**
    * 넘침 0 만으로는 부족하다 — 실제로 속성 칸이 20px 로 쪼그라들어 **글자가 한 자씩 세로로
@@ -698,6 +703,7 @@ for (const withShare of [true, false]) {
     cell.width >= 40 && label.height < 24,
     `칸 ${Math.round(cell.width)}px · 라벨 ${Math.round(label.height)}px`,
   );
+  await page.screenshot({ path: join(shots, 'narrow-play.png'), fullPage: true });
   await ctx.close();
 }
 
