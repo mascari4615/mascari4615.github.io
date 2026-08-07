@@ -153,6 +153,9 @@ jobs:
       # 먼저 돌면 「그 자리에 파일이 없다」고 옳게 멈춘다(실제로 그렇게 배포가 섰다).
       - name: Build playground hub
         run: node apps/play/scripts/build.mjs
+      # 놀이가 실제로 되는지 브라우저로 본다 — 카드가 세로로 쌓인 채 배포된 적이 있다.
+      - name: Smoke play games
+        run: node apps/play/scripts/smoke.mjs
       - name: Copy playground hub
         run: |
           mkdir -p apps/blog/play
