@@ -559,6 +559,23 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 아주 좁은 화면 — 폰(360px)에서 글자를 200% 로 키우면 논리 폭이 180px 이 된다.
+ * 시력이 약한 사람이 실제로 쓰는 설정이고, 여기서 허브가 34px 넘쳤다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 180, height: 700 } });
+  const page = await ctx.newPage();
+  const spill = [];
+  for (const path of ['', 'pokemon/', 'pokemon/silhouette/', 'pokemon/past/']) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'networkidle' });
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    if (over > 0) spill.push(`/${path} ${over}px`);
+  }
+  check('글자를 크게 키워도 가로로 안 넘친다', spill.length === 0, spill.join(' · ') || '폭 180px 에서 전부 0');
+  await ctx.close();
+}
+
+/**
  * 손가락 자리 — 재 보니 15~35px 짜리가 일곱이었다. 작으면 잘못 눌리고, 잘못 눌리면 떠난다.
  * 눈으로는 「작아 보이지 않아서」 안 잡힌다. 그래서 잰다.
  */
