@@ -1098,3 +1098,15 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     padding: 1px 8px; font-size: var(--font-size-2xs);
     color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px;
 }
+
+/* 오늘 성적 줄 — 연습을 시작해도 이 줄은 안 사라진다 (TASK-KL-089). */
+.qs-today {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 0 0 12px; padding: 10px 14px;
+    color: var(--text-secondary); font-size: var(--font-size-xs);
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+}
+.qs-today > span { flex: 1 1 auto; }
+/* display:flex 는 hidden 속성을 이긴다 — 안 적으면 기록도 없는데 빈 줄이 떠 있다. */
+.qs-today[hidden] { display: none; }
