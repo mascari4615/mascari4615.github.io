@@ -12,115 +12,103 @@
 <meta property="og:description" content="도구를 쓰는 사람들이 이야기하는 곳.">
 <meta property="og:url" content="https://blog.mascari4615.com/karmolab/c/">
 <meta property="og:locale" content="ko_KR">
-<!-- 글마다 다른 내용이 스크립트로 채워진다. 빈 껍데기가 색인되면 사이트 전체 평가가 깎이므로
-     지금은 목록만 열고 글은 안 연다. 서버가 글 HTML 을 직접 내보내게 되면 그때 연다. -->
+<!-- 글마다 다른 내용이 스크립트로 채워진다. 목록은 열고, 글 하나는 아직 안 연다
+     (빈 껍데기가 색인되면 사이트 전체 평가가 깎인다). 서버가 글 HTML 을 직접
+     내보내게 되면 그때 연다. -->
 <meta name="robots" content="index, follow">
 <link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+<!-- 여기는 KarmoLab 이다. 도구 화면과 **같은 껍데기·같은 색**을 쓴다 (TASK-KL-098).
+     위젯 틀에서만 나왔을 뿐, 다른 사이트가 아니다. -->
+<link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
+<link rel="stylesheet" href="/apps/karmolab/css/tools.css">
+<script>
+/* 테마·바탕을 첫 그림 전에 정한다 — 안 그러면 흰 화면이 번쩍인 뒤 바뀐다 (본체와 같은 규칙). */
+(function(){
+  var t=localStorage.getItem('toolbox_theme')||'dark';
+  var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
+  document.documentElement.setAttribute('data-theme',t);
+  document.documentElement.setAttribute('data-bg',bg);
+  document.documentElement.setAttribute('data-nav','header');
+  document.documentElement.setAttribute('data-intro','off');
+})();
+</script>
 <style>
-  :root {
-    --bg: #0f0f12;
-    --panel: #171a22;
-    --panel-2: #1d212b;
-    --line: rgba(255, 255, 255, 0.09);
-    --text: #e8e8ef;
-    --muted: #a0a4b4;
-    --dim: #767b8c;
-    --accent: #b9a2ff;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    line-height: 1.65;
-    font-size: 15px;
-  }
-  a { color: inherit; text-decoration: none; }
-  a:hover { color: var(--accent); }
-
-  .c-shell { max-width: 760px; margin: 0 auto; padding: 0 16px 64px; }
-  .c-top {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    padding: 18px 0; border-bottom: 1px solid var(--line); margin-bottom: 22px;
-  }
-  .c-brand { font-weight: 700; letter-spacing: -0.01em; }
-  .c-top nav { display: flex; gap: 14px; margin-left: auto; font-size: 13px; color: var(--muted); }
+  /* 커뮤니티 전용 — 색·글꼴·테두리는 전부 KarmoLab 토큰을 쓴다 (여기서 새 색을 만들지 않는다). */
+  .c-main { max-width: 820px; margin: 0 auto; padding: 28px 20px 72px; }
+  .c-head { margin-bottom: 20px; }
+  .c-head h1 { margin: 0; font-size: 22px; color: var(--text-primary); }
+  .c-head p { margin: 4px 0 0; font-size: var(--font-size-xs); color: var(--text-secondary); }
 
   .c-tabs { display: flex; gap: 6px; margin-bottom: 18px; }
-  .c-tab {
-    padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
-    font-size: 13px; color: var(--muted);
-  }
+  .c-tab { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
+           font-size: var(--font-size-xs); color: var(--text-secondary); text-decoration: none; }
+  .c-tab:hover { color: var(--text-primary); }
   .c-tab[data-on="1"] { border-color: var(--accent); color: var(--accent); }
 
   .c-write { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
   .c-write input, .c-write textarea {
-    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--panel); color: var(--text); font: inherit;
+    width: 100%; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+    background: var(--bg-secondary); color: var(--text-primary); font: inherit;
   }
   .c-write textarea { min-height: 92px; resize: vertical; }
-  .c-write input:focus, .c-write textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .c-write-foot { display: flex; justify-content: flex-end; }
-  .c-btn {
-    padding: 8px 18px; border-radius: 8px; border: 1px solid var(--line);
-    background: transparent; color: var(--text); font: inherit; cursor: pointer;
-  }
+  .c-btn { padding: 8px 18px; border-radius: var(--radius); border: 1px solid var(--border);
+           background: transparent; color: var(--text-primary); font: inherit; cursor: pointer; }
   .c-btn-main { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-  .c-btn-main:hover { background: var(--accent); color: var(--bg); }
-  .c-signin {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-between;
-    padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px;
-    background: var(--panel); margin-bottom: 22px;
-  }
-  .c-signin p { margin: 0; color: var(--muted); font-size: 14px; }
+  .c-btn-main:hover { background: var(--accent); color: var(--bg-primary); }
+  .c-signin { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: space-between;
+              padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg);
+              background: var(--bg-secondary); margin-bottom: 22px; }
+  .c-signin p { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); }
 
-  .c-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  .c-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 13px 4px; border-bottom: 1px solid var(--line);
-  }
-  .c-votes {
-    flex: 0 0 auto; min-width: 38px; text-align: center; padding: 4px 0;
-    border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--muted);
-  }
-  .c-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .c-row-title { font-weight: 600; }
-  .c-row-sub { font-size: 13px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .c-row-meta {
-    flex: 0 0 auto; display: flex; gap: 10px; align-items: center;
-    font-size: 12px; color: var(--dim); white-space: nowrap;
-  }
-  .c-replies-count, .c-replies span { color: var(--muted); }
-  .c-empty-row { padding: 28px 4px; color: var(--muted); font-size: 14px; }
+  .c-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+  .c-row { display: flex; align-items: center; gap: 12px; padding: 13px 4px; border-bottom: 1px solid var(--border); }
+  .c-votes { flex: 0 0 auto; min-width: 38px; text-align: center; padding: 4px 0;
+             border: 1px solid var(--border); border-radius: var(--radius); font-size: var(--font-size-xs);
+             color: var(--text-secondary); }
+  .c-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-decoration: none; }
+  .c-row-title { font-weight: 600; color: var(--text-primary); }
+  .c-row-main:hover .c-row-title { color: var(--accent); }
+  .c-row-sub { font-size: var(--font-size-xs); color: var(--text-tertiary);
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .c-row-meta { flex: 0 0 auto; display: flex; gap: 10px; align-items: center;
+                font-size: var(--font-size-xs); color: var(--text-tertiary); white-space: nowrap; }
+  .c-empty-row { padding: 28px 4px; color: var(--text-secondary); font-size: var(--font-size-sm); }
 
-  .c-crumb { margin-bottom: 14px; font-size: 13px; color: var(--muted); }
-  .c-post { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 20px; }
-  .c-post-title { margin: 0; font-size: 21px; line-height: 1.4; }
-  .c-post-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px; font-size: 12px; color: var(--dim); }
-  .c-post-body { margin-top: 16px; white-space: pre-wrap; word-break: break-word; }
-  .c-vote {
-    margin-top: 16px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line);
-    background: transparent; color: var(--muted); font: inherit; cursor: pointer;
-  }
+  .c-crumb { margin-bottom: 14px; font-size: var(--font-size-xs); color: var(--text-secondary); }
+  .c-crumb a { color: inherit; text-decoration: none; }
+  .c-crumb a:hover { color: var(--accent); }
+  .c-post { border: 1px solid var(--border); border-radius: var(--radius-lg);
+            background: var(--bg-secondary); padding: 20px; }
+  .c-post-title { margin: 0; font-size: 21px; line-height: 1.4; color: var(--text-primary); }
+  .c-post-meta { display: flex; gap: 12px; align-items: center; margin-top: 8px;
+                 font-size: var(--font-size-xs); color: var(--text-tertiary); }
+  .c-post-body { margin-top: 16px; white-space: pre-wrap; word-break: break-word; color: var(--text-primary); }
+  .c-vote { margin-top: 16px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border);
+            background: transparent; color: var(--text-secondary); font: inherit; cursor: pointer; }
   .c-vote[data-voted="1"] { border-color: var(--accent); color: var(--accent); }
   .c-vote[disabled] { cursor: default; opacity: .6; }
 
-  .c-section { margin: 28px 0 12px; font-size: 15px; }
+  .c-section { margin: 28px 0 12px; font-size: var(--font-size-sm); color: var(--text-primary); }
   ul.c-replies { list-style: none; margin: 0 0 22px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-  .c-reply { border-left: 2px solid var(--line); background: var(--panel-2); border-radius: 0 8px 8px 0; padding: 10px 14px; }
+  .c-reply { border-left: 2px solid var(--border); background: var(--bg-tertiary);
+             border-radius: 0 var(--radius) var(--radius) 0; padding: 10px 14px; }
   .c-reply[data-owner="1"] { border-left-color: var(--accent); }
-  .c-reply-head { font-size: 12px; color: var(--dim); }
-  .c-reply-body { margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
+  .c-reply-head { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+  .c-reply-body { margin-top: 4px; white-space: pre-wrap; word-break: break-word; color: var(--text-primary); }
 
-  .c-tag {
-    display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
-    border: 1px solid var(--line); font-size: 11px; color: var(--muted); vertical-align: middle;
-  }
-  .c-linkbtn { background: none; border: none; padding: 0; color: var(--dim); font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
-  .c-linkbtn:hover { color: var(--text); }
-  .c-empty { padding: 56px 0; text-align: center; color: var(--muted); }
-  .c-empty h2 { color: var(--text); font-size: 19px; margin: 0 0 8px; }
+  .c-tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+           border: 1px solid var(--border); font-size: 11px; color: var(--text-secondary); vertical-align: middle; }
+  .c-linkbtn { background: none; border: none; padding: 0; color: var(--text-tertiary); font: inherit;
+               font-size: var(--font-size-xs); text-decoration: underline; cursor: pointer; }
+  .c-linkbtn:hover { color: var(--text-primary); }
+  .c-empty { padding: 56px 0; text-align: center; color: var(--text-secondary); }
+  .c-empty h2 { color: var(--text-primary); font-size: 19px; margin: 0 0 8px; }
 
   @media (max-width: 560px) {
     .c-row { flex-wrap: wrap; }
@@ -129,19 +117,39 @@
 </style>
 </head>
 <body>
-  <div class="c-shell">
-    <header class="c-top">
-      <a class="c-brand" href="/karmolab/">KarmoLab</a>
-      <nav>
-        <a href="/karmolab/c/">커뮤니티</a>
-        <a href="/karmolab/t/">도구</a>
-        <a href="/karmolab/">작업실</a>
-      </nav>
+  <div class="app-layout">
+    <!-- 본체와 같은 머리띠. 도구 화면에서 여기로 와도 자리가 안 바뀐다. -->
+    <header class="header-bar" id="headerBar">
+      <div class="header-bar-left">
+        <a class="header-logo" href="/karmolab/" title="작업실로"><span class="header-logo-text">KarmoLab</span></a>
+      </div>
+      <nav class="header-nav" role="navigation" aria-label="주요 이동"></nav>
+      <div class="header-bar-right">
+        <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록">≡ 도구</a>
+        <a href="/karmolab/c/" class="header-tools-link" title="이야기 · 도구 요청">◈ 커뮤니티</a>
+        <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산">◈ 봇</a>
+        <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기">◉ 오늘의</a>
+        <!-- 계정 자리 — js/account.js 가 채운다. 서버에 못 닿으면 비워 둔다. -->
+        <div class="header-account" id="headerAccount"></div>
+        <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환">
+          <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
     </header>
-    <main id="communityRoot">
-      <p class="c-empty-row">불러오는 중…</p>
-    </main>
+    <div class="app-body">
+      <main class="main-content" role="main">
+        <div class="c-main">
+          <div class="c-head">
+            <h1>커뮤니티</h1>
+            <p>도구를 쓰는 사람들이 이야기하는 곳.</p>
+          </div>
+          <div id="communityRoot"><p class="c-empty-row">불러오는 중…</p></div>
+        </div>
+      </main>
+    </div>
   </div>
+  <script defer src="/apps/karmolab/js/account.js"></script>
   <script defer src="/apps/karmolab/js/community.js"></script>
 </body>
 </html>

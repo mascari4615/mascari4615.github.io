@@ -9,6 +9,9 @@
  * 목록은 **마지막 움직임 순**(대화가 살아 있는 것이 위), 글 하나마다 주소, 그 안에 답글 스레드.
  * 화려한 것보다 「지금 무슨 이야기가 오가는지」가 한눈에 보이는 것이 먼저다.
  *
+ * **여기는 KarmoLab 이다.** 도구 화면과 같은 껍데기(머리띠·테마·색)를 쓰고, 본문 구조만 다르다.
+ * 위젯 틀에서 나온 것이지 딴 사이트로 나간 것이 아니다.
+ *
  * 주소: 목록 `/karmolab/c/` · 글 `/karmolab/c/?p=<글id>`.
  * 화면 안의 링크는 **상대 주소**로 적는다 — 그래야 배포된 주소에서도, 내 컴퓨터에서 폴더째
  * 띄워 볼 때도 똑같이 열린다 (절대 주소로 적었더니 로컬 확인이 통째로 막혔다).
@@ -320,6 +323,23 @@ async function route(): Promise<void> {
     renderList(raw as ListResponse, kind);
 }
 
+/**
+ * 머리띠의 테마 단추. 본체(toolbox.js)를 통째로 안 싣는 대신 같은 열쇠를 쓴다 —
+ * 여기서 바꾼 테마가 도구 화면으로 넘어가도 그대로 유지되어야 한 사이트로 느껴진다.
+ */
+function wireThemeToggle(): void {
+    document.getElementById('themeToggle')?.addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        try {
+            localStorage.setItem('toolbox_theme', next);
+        } catch {
+            /* 저장 못 해도 이번 화면에는 적용된다 */
+        }
+    });
+}
+
+wireThemeToggle();
 // 뒤로 가기로 목록↔글을 오갈 수 있어야 커뮤니티답다.
 window.addEventListener('popstate', () => void route());
 void route();
