@@ -154,9 +154,13 @@
     }
 
     /** 도구 id → 사람이 읽는 이름. 모르면 id 그대로 (지어내지 않는다). */
-    function toolTitle(toolId: string): string {
+    function toolTitle(toolId: string): string | null {
         const meta = (window.KARMOLAB_LAZY_META ?? []).find((m) => m.id === toolId);
-        return meta?.title ?? toolId;
+        return meta?.title ?? null;
+    }
+    /** 이름을 아는 것만. 모르는 id 를 그대로 내보내면 내부 사정이 새어 나온 것처럼 보인다. */
+    function namedTools(ids: string[]): string[] {
+        return ids.map((id) => toolTitle(id)).filter((t): t is string => Boolean(t));
     }
 
     async function api(path: string): Promise<unknown | null> {
@@ -273,6 +277,13 @@
                         )
                         .join('')}
                 </div>
+                ${
+                    // 가려내기는 나중에 붙였다. 그 전 방문은 종류를 모른다 — 그 사실을 안 적으면
+                    // 위의 「방문 N」과 여기 합계가 안 맞는 것이 오류처럼 보인다.
+                    (visits?.total ?? 0) > sum
+                        ? `<p class="plaza-section-note">가려내기는 나중에 시작했습니다 — 그 전 방문 ${num((visits?.total ?? 0) - sum)}번은 종류를 모릅니다.</p>`
+                        : ''
+                }
                 <p class="plaza-section-note plaza-caveat">가려내는 근거는 접속하는 쪽이 스스로 밝히는 이름 하나뿐입니다.
                     감추고 들어오면 못 알아봅니다 — 그런 것은 「알 수 없음」으로 가고 사람 수에는 안 들어갑니다.
                     더 잡아내겠다고 방문자를 뒤쫓는 기술은 쓰지 않습니다.</p>
@@ -306,15 +317,21 @@
             lines.push(`<div class="plaza-row"><span class="plaza-row-name">도구 열림</span><span class="plaza-row-value">${num(recap.toolOpens.now)}번 ${delta(recap.toolOpens.now, recap.toolOpens.before)}</span></div>`);
         }
         if (recap.topTools.length > 0) {
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많이 쓴 도구</span><span class="plaza-row-value">${recap.topTools.map((t) => escapeHtml(toolTitle(t.toolId))).join(' · ')}</span></div>`);
+            const named = namedTools(recap.topTools.map((t) => t.toolId));
+            if (named.length > 0) {
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많이 쓴 도구</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+            }
         }
         if (recap.newTools.length > 0) {
-            lines.push(`<div class="plaza-row"><span class="plaza-row-name">이번 주에 처음 쓰인 도구</span><span class="plaza-row-value">${recap.newTools.map((id) => escapeHtml(toolTitle(id))).join(' · ')}</span></div>`);
+            const named = namedTools(recap.newTools);
+            if (named.length > 0) {
+                lines.push(`<div class="plaza-row"><span class="plaza-row-name">이번 주에 처음 쓰인 도구</span><span class="plaza-row-value">${named.map(escapeHtml).join(' · ')}</span></div>`);
+            }
         }
         if (recap.posts > 0 || recap.replies > 0) {
             lines.push(`<div class="plaza-row"><span class="plaza-row-name">커뮤니티</span><span class="plaza-row-value">새 글 ${num(recap.posts)} · 답글 ${num(recap.replies)}</span></div>`);
         }
-        if (recap.topPost) {
+        if (recap.topPost && recap.topPost.votes > 0) {
             const heading = recap.topPost.title || recap.topPost.text;
             lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많은 표</span><span class="plaza-row-value">${escapeHtml(heading)} (${num(recap.topPost.votes)}표)</span></div>`);
         }
@@ -351,7 +368,7 @@
                 (t, index) => `
                 <div class="plaza-tool">
                     <div class="plaza-tool-rank">${from + index + 1}</div>
-                    <a class="plaza-tool-name" href="/karmolab/t/${encodeURIComponent(t.toolId)}/">${escapeHtml(toolTitle(t.toolId))}</a>
+                    <a class="plaza-tool-name" href="/karmolab/t/${encodeURIComponent(t.toolId)}/">${escapeHtml(toolTitle(t.toolId) ?? t.toolId)}</a>
                     <div class="plaza-tool-bar"><i style="width:${Math.max(2, Math.round((t.recent / max) * 100))}%"></i></div>
                     <div class="plaza-tool-count">${num(t.recent)}회 / ${num(t.total)}</div>
                 </div>`,
