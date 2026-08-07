@@ -1,0 +1,20 @@
+{
+  "name": "badapple",
+  "version": "0.1.0",
+  "private": true,
+  "description": "무엇이든 화면으로 쓴다 — 영상 한 편을 흑백 프레임 묶음으로 굽고, 아무 표면에나 꽂아 재생하는 공통 시스템 (원본 밈 = Bad Apple!!, 다만 어떤 영상이든 넣는다)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test \"test/*.test.mjs\"",
+    "encode": "node tools/encode.mjs"
+  }
+}
