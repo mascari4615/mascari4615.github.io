@@ -44,6 +44,8 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'pdfcompress',
     title: 'PDF 용량 줄이기',
     category: 'tool',
+    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133) — 「이어서」 줄이 이 표시를 보고 고른다.
+    accepts: ['application/pdf'],
     desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -262,6 +264,14 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 「PDF 를 합쳤다 → 이어서 용량 줄이기」에서 사람이 파일을 다시 고르지 않게 하는 자리다.
+           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+          const handed = Toolbox.takeResult?.();
+          if (handed && handed.blob && handed.blob.type === 'application/pdf') {
+            void load(new File([handed.blob], handed.name || '넘겨받은.pdf', { type: 'application/pdf' }));
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
