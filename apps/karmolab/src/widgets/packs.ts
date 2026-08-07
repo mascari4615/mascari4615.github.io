@@ -83,6 +83,7 @@ import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type 
                   `<span>${p.items.length}개 · 칸 ${p.fields.map((f) => esc(f.label)).join('·')}</span></div>` +
                   `<div class="pk-acts">` +
                   `<button type="button" class="btn btn-ghost" data-go="twenty">스무고개로</button>` +
+                  `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">하나 맞히기로</a>` +
                   `<button type="button" class="btn btn-ghost" data-go="higher">높은 쪽으로</button>` +
                   `<button type="button" class="btn btn-ghost" data-share="1">주소 복사</button>` +
                   `<button type="button" class="btn btn-ghost" data-del="1">지우기</button>` +
