@@ -23,6 +23,20 @@ const CACHE_NAME = `karmolab-${BUILD}`;
 
 const APP_SHELL = ['/karmolab/', '/apps/karmolab/manifest.json'];
 
+/**
+ * 설치할 때 미리 받아 두는 것 — **바뀔 일이 드물고 무거운 것만** (TASK-KL-128).
+ *
+ * 글꼴은 우리가 구워 둔 것이라 배포마다 바뀌지 않는다. 그런데 첫 화면에서는 일부러 늦게
+ * 부르므로(화면 그리기와 회선을 다투지 않게), 두 번째 화면에서야 오는 경우가 많았다.
+ * 설치가 끝난 뒤 한가할 때 받아 두면 그 기다림이 없어진다. 실패해도 그냥 넘어간다 —
+ * 미리 받는 것이 안 됐다고 앱이 안 뜨면 안 된다.
+ */
+const PRECACHE_IDLE = [
+  '/apps/karmolab/fonts/sans-latin.woff2',
+  '/apps/karmolab/fonts/sans-ko.woff2',
+  '/apps/karmolab/css/fonts.css'
+];
+
 /** 신선도가 중요한 것 — 앱 코드와 데이터 */
 function isFreshCritical(url: URL, req: Request): boolean {
   if (req.mode === 'navigate') return true;
@@ -37,16 +51,29 @@ function isFreshCritical(url: URL, req: Request): boolean {
 }
 
 ctx.addEventListener('install', (event: ExtendableEvent) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL).catch(() => undefined)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(APP_SHELL).catch(() => undefined);
+      // 글꼴은 설치를 붙잡지 않는다 — 없어도 화면은 컴퓨터 글꼴로 멀쩡히 뜬다.
+      void Promise.all(PRECACHE_IDLE.map((u) => cache.add(u).catch(() => undefined)));
+    })
+  );
   // skipWaiting 없음 — 사용자가 「지금 갱신」을 누를 때까지 기다린다.
 });
 
 ctx.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
-      .then(() => ctx.clients.claim())
+    (async () => {
+      // 화면 이동을 이 워커가 가로채면, 워커가 깨어나는 동안 요청이 멈춰 있다. 「미리 보내기」를
+      // 켜면 브라우저가 워커를 깨우는 것과 **동시에** 서버로 요청을 보낸다 (TASK-KL-128).
+      // 우리는 화면 HTML 을 network-first 로 주므로, 그 기다림이 그대로 이동 시간이었다.
+      if (ctx.registration.navigationPreload) {
+        await ctx.registration.navigationPreload.enable().catch(() => undefined);
+      }
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+      await ctx.clients.claim();
+    })()
   );
 });
 
@@ -70,8 +97,12 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
 
   if (isFreshCritical(url, req)) {
     // network-first: 항상 최신을 먼저 시도하고, 끊겼을 때만 캐시로 버틴다.
+    // 화면 이동이면 브라우저가 이미 보내 둔 응답(미리 보내기)을 먼저 쓴다 — 워커가 깨어나는
+    // 동안 흘린 시간을 되찾는다. 안 켜졌거나 없으면 평소대로 우리가 받아 온다.
+    const preloaded = req.mode === 'navigate' ? event.preloadResponse : undefined;
     event.respondWith(
-      fetch(req)
+      Promise.resolve(preloaded)
+        .then((pre) => (pre as Response | undefined) || fetch(req))
         .then((res) => {
           if (res && res.ok && url.origin === ctx.location.origin) {
             const clone = res.clone();
