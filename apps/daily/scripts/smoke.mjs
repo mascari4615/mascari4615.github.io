@@ -269,11 +269,27 @@ await pastPage('genshin');
   const all2 = await page.evaluate(() => window.__c ?? []);
   const evented = all2.filter((h) => h.event);
   check('판이 끝난 것도 보낸다', evented.some((h) => /맞힘/.test(h.path)), evented.map((h) => h.path).join(', '));
+  // 방문과 끝남 사이가 비면 「열고 그냥 나간 사람」을 못 센다.
+  check('첫 수도 보낸다 (깔때기 가운데)', evented.some((h) => /첫수/.test(h.path)), evented.map((h) => h.path).join(', '));
   check(
     '★ 보내는 값에 정답이 안 실린다',
     !JSON.stringify(all2).includes(answer.name),
     answer.name,
   );
+  // 시작점 단추가 실제로 먹히는지도 계측으로만 알 수 있다 — 「직접」과 갈라 센다.
+  {
+    const p2 = await ctx.newPage();
+    await p2.route('**/gc.zgo.at/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'text/javascript', body: 'window.goatcounter={count(o){window.__c=(window.__c||[]).concat([o])}};' }),
+    );
+    await p2.goto('http://daily.test/daily/lol/', { waitUntil: 'networkidle' });
+    await p2.click('.seeds button');
+    await p2.waitForSelector('.row');
+    const hits = await p2.evaluate(() => (window.__c ?? []).filter((h) => h.event).map((h) => h.path));
+    check('시작점으로 시작한 것과 직접 친 것을 갈라 센다', hits.some((h) => /첫수\/시작점/.test(h)), hits.join(', '));
+    await p2.close();
+  }
+
   await ctx.close();
   await b2.close();
 }
