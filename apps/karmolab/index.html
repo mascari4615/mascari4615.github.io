@@ -23,6 +23,9 @@ permalink: /karmolab/
          칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. 「dark light」 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다 — 실측으로 확인해 하나만 적는다.
          밝은 테마로 바꾼 사람은 CSS 가 오면 그쪽이 이긴다(toolbox.css 가 light 를 다시 지정한다). -->
     <meta name="color-scheme" content="dark">
+    <!-- 표준 이름이 먼저다. apple- 접두 쪽은 Edge/Chrome 이 「낡았다」고 콘솔에 찍지만,
+         구형 iOS Safari 는 아직 그것만 읽는다 — 둘 다 남긴다 (2026-08-08). -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
