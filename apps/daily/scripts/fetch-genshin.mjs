@@ -4,7 +4,7 @@
  *
  *   node scripts/fetch-genshin.mjs
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { saveTable } from './lib-table.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -48,6 +48,4 @@ const topic = {
   items,
 };
 
-mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, `${JSON.stringify(topic)}\n`);
-console.log(`원신 캐릭터 ${items.length}명 → data/genshin.json`);
+saveTable(OUT, topic);

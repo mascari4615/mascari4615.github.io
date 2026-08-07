@@ -4,7 +4,7 @@
  *
  *   node scripts/fetch-lol.mjs
  */
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { saveTable } from './lib-table.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -70,6 +70,5 @@ const topic = {
   items,
 };
 
-mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, `${JSON.stringify(topic)}\n`);
-console.log(`롤 챔피언 ${items.length}명 → data/lol.json (${version})`);
+saveTable(OUT, topic);
+console.log(`출처 Data Dragon ${version}`);
