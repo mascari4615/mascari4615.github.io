@@ -65,6 +65,11 @@ for (const topic of topics) {
     seen.add(key);
     for (const f of topic.fields) {
       if (item[f.key] === undefined || item[f.key] === null) die(`의 ${item.name} 에 ${f.label}(${f.key}) 이 비어 있다`);
+      // 0 은 「없음」의 다른 이름인 경우가 많다 — 롤 신규 챔피언 여섯이 난이도 0 으로 와서
+      // 「난이도 0」 이라는 거짓 힌트가 떴다. 숫자 속성이 0 이면 원본이 안 채운 것으로 본다.
+      if (f.kind === 'number' && item[f.key] === 0) {
+        die(`의 ${item.name} 에 ${f.label} 이 0 이다 — 원본이 안 채운 값일 가능성이 크다 (힌트가 거짓말을 한다)`);
+      }
     }
   }
 }

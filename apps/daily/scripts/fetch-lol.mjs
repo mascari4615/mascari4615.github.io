@@ -42,9 +42,11 @@ const items = [...canonical.values()]
     // 자원 표기가 비어 있는 챔피언이 있다 (자원을 안 쓰는 애들). 빈칸으로 두면 비교가 이상해진다.
     resource: (c.partype ?? '').trim() || '없음',
     range: Number(c.stats?.attackrange) >= 300 ? '원거리' : '근거리',
-    difficulty: Number(c.info?.difficulty ?? 0),
-    attack: Number(c.info?.attack ?? 0),
-    defense: Number(c.info?.defense ?? 0),
+    // 라이엇이 안 채워 주는 값(info.attack/defense/difficulty)은 안 쓴다 — 신규 챔피언 여섯이
+    // 0 으로 비어 있어서 「난이도 0」 같은 거짓 힌트가 떴다. stats 는 전원 채워져 있다.
+    hp: Math.round(Number(c.stats?.hp ?? 0)),
+    armor: Math.round(Number(c.stats?.armor ?? 0)),
+    damage: Math.round(Number(c.stats?.attackdamage ?? 0)),
   }))
   .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 
@@ -60,10 +62,10 @@ const topic = {
   fields: [
     { key: 'roles', label: '역할', kind: 'set' },
     { key: 'resource', label: '자원', kind: 'category' },
-    { key: 'range', label: '공격', kind: 'category' },
-    { key: 'difficulty', label: '난이도', kind: 'number', near: 1 },
-    { key: 'attack', label: '공격력', kind: 'number', near: 1 },
-    { key: 'defense', label: '방어력', kind: 'number', near: 1 },
+    { key: 'range', label: '사거리', kind: 'category' },
+    { key: 'hp', label: '체력', kind: 'number', near: 25 },
+    { key: 'armor', label: '방어', kind: 'number', near: 3 },
+    { key: 'damage', label: '공격', kind: 'number', near: 3 },
   ],
   items,
 };
