@@ -205,6 +205,8 @@ declare global {
     getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
     /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */
     ensureScript?: (path: string) => Promise<void>;
+    /** KL-103 — 앞머리(world/·vendor/·root/) 규약을 실제 URL 로 푸는 **단일** 해석기. 로더도 이걸 쓴다. */
+    resolveScriptPath?: (rawPath: string) => string;
     register: (config: {
       id: string;
       title: string;

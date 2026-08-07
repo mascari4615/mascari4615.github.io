@@ -90,10 +90,25 @@
     return;
   }
 
+  /**
+   * 주소는 **앱과 같은 해석기로** 만든다 (TASK-KL-103).
+   *
+   * 예전에는 여기서 `base + 이름 + '.js'` 로 직접 붙였다. base 는 항상 `js/widgets/` 라,
+   * 앞머리가 `vendor/`·`root/`·`world/` 인 항목은 있지도 않은 `js/widgets/vendor/…` 를
+   * 받으러 갔다. 실패해도 그냥 넘어가게(onerror = done) 돼 있어서 **화면은 멀쩡했고**,
+   * 버튼을 눌러야 죽었다 — 암호화·개발 도구·이미지 편집 셋이 실서비스에서 그 상태였다.
+   *
+   * 같은 규칙을 두 벌 적어 두면 한쪽만 바뀌는 날이 온다. 앱이 쓰는 그것을 그대로 부른다.
+   */
+  function scriptUrl(rawPath: string): string {
+    const r = typeof Toolbox !== 'undefined' && Toolbox.resolveScriptPath;
+    return r ? r(rawPath) : base + rawPath + '.js';
+  }
+
   list.forEach(function (path) {
     const s = document.createElement('script');
     s.async = false;
-    s.src = base + path + '.js';
+    s.src = scriptUrl(path);
     s.onload = done;
     s.onerror = done;
     document.body.appendChild(s);
