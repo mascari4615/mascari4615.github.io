@@ -467,7 +467,8 @@ updateLeft();
 renderSeeds();
 renderStreak();
 watchMidnight();
-countPage();
+// 연습 방문을 오늘 판과 합치면 「오늘 몇 명이 열었나」가 부풀어 깔때기를 못 믿는다.
+countPage(practice ? `${location.pathname}연습/` : undefined);
 paintShot();
 if (state.status !== 'playing') finish();
 $input.focus({ preventScroll: true });

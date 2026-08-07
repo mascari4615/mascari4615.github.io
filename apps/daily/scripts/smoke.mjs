@@ -276,6 +276,20 @@ await pastPage('genshin');
     !JSON.stringify(all2).includes(answer.name),
     answer.name,
   );
+  // 연습 방문을 오늘 판과 합치면 「오늘 몇 명이 열었나」가 부풀어 깔때기를 못 믿는다.
+  {
+    const p3 = await ctx.newPage();
+    await p3.route('**/gc.zgo.at/**', (route) =>
+      route.fulfill({ status: 200, contentType: 'text/javascript', body: 'window.goatcounter={count(o){window.__c=(window.__c||[]).concat([o])}};' }),
+    );
+    const yKey = new Date(Date.now() - 86400000 + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    await p3.goto(`http://daily.test/daily/pokemon/?d=${yKey}`, { waitUntil: 'networkidle' });
+    await p3.waitForFunction(() => (window.__c ?? []).length > 0, { timeout: 10000 }).catch(() => {});
+    const paths = await p3.evaluate(() => (window.__c ?? []).map((h) => h.path));
+    check('연습 방문은 오늘 판과 따로 센다', paths.some((p) => /연습/.test(p)), paths.join(', '));
+    await p3.close();
+  }
+
   // 시작점 단추가 실제로 먹히는지도 계측으로만 알 수 있다 — 「직접」과 갈라 센다.
   {
     const p2 = await ctx.newPage();
