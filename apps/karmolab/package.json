@@ -6,7 +6,8 @@
   "type": "module",
   "dependencies": {
     "karmolab-ai": "file:../../packages/karmolab-ai",
-    "qrcode-generator": "^1.4.4"
+    "qrcode-generator": "^1.4.4",
+    "trystero": "^0.25.3"
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
@@ -78,6 +79,7 @@
     "test:answers": "node scripts/smoke-tool-behavior.mjs",
     "test:pdfdiff": "node scripts/smoke-pdfdiff.mjs",
     "test:ghosttype": "node scripts/smoke-ghosttype.mjs",
+    "test:duel": "node scripts/smoke-duel.mjs",
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
