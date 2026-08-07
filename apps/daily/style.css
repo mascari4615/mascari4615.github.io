@@ -658,3 +658,16 @@ table.past .play:hover { border-color: var(--accent); }
   border-radius: 999px;
 }
 .pc-go { margin-left: auto; color: var(--accent); }
+
+/* 지난 문제에서 「내가 푼 날」 표시 (TASK-KL-089) — 놓친 날을 눈으로 바로 고르게. */
+.mine {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.mine.win { color: var(--accent); }
