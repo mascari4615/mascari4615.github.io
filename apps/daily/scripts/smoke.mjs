@@ -1263,7 +1263,19 @@ await ctx.close();
   await fpage.click('.past-reveal button');
   await fpage.waitForTimeout(2000);
   const shown = await fpage.$$eval('table.past img', (els) => els.filter((e) => e.naturalWidth > 0).length);
-  check('★ 열면 그때 그림이 온다', pastKB > 0 && shown > 0, `${pastKB.toFixed(0)}KB · ${shown}장`);
+  const total = await fpage.locator('table.past img').count();
+  // 한꺼번에 예순 장을 쏟으면 안 된다 — 열어도 **눈에 들어온 것만** 받아야 한다 (예전엔 1.1MB).
+  check(
+    '★ 열어도 보이는 것만 받는다',
+    pastKB > 0 && shown > 0 && shown < total / 2,
+    `${pastKB.toFixed(0)}KB · ${shown}/${total}장`,
+  );
+
+  // 내려가면 그때 이어서 받아야 한다 — 안 받으면 아래쪽은 빈 자리로 남는다.
+  await fpage.mouse.wheel(0, 8000);
+  await fpage.waitForTimeout(1800);
+  const more = await fpage.$$eval('table.past img', (els) => els.filter((e) => e.naturalWidth > 0).length);
+  check('★ 내려가면 이어서 받는다', more > shown, `${shown} → ${more}장`);
   await fresh.close();
 
   // 실루엣만 큰 그림을 쓴다 — 거기선 그림이 전부라 도트로는 못 푼다.
