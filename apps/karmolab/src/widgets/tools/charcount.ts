@@ -48,7 +48,7 @@
             <div class="field-group">
               <label class="field-label">글자수 제한</label>
               <div style="display:flex; gap:8px; align-items:center;">
-                <select id="ccLimitPreset" style="flex:1;">
+                <select id="ccLimitPreset" aria-label="글자수 제한" style="flex:1;">
                   ${LIMIT_PRESETS.map((p, i) => `<option value="${p.value}"${i === 0 ? ' selected' : ''}>${p.label}</option>`).join('')}
                 </select>
                 <input type="text" id="ccLimitCustom" inputmode="numeric" placeholder="직접 입력" style="width:120px;">
