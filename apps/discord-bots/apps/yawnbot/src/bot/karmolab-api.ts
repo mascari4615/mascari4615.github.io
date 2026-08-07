@@ -25,15 +25,16 @@ import {
   getKarmolabTraceStore,
   KarmolabTraceStore,
   isValidToolId,
-  isBoardId,
   isPostSort,
-  isOwnerOnlyBoard,
+  isValidGalleryId,
+  slugifyGalleryId,
   maxLenFor,
   dailyLimitFor,
-  BOARDS,
+  GALLERY_LABEL_MAX,
+  GALLERY_DESC_MAX,
+  GALLERY_DAILY_LIMIT,
   TITLE_MAX_LEN,
   REPLY_MAX_LEN,
-  type BoardId,
 } from '../services/karmolab-traces';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
@@ -417,30 +418,110 @@ export function registerKarmolabApi(
   });
 
   /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수 · 마지막 글 · 마지막 시각). */
-  app.get('/kl/boards', (_req: Request, res: Response) => {
+  app.get('/kl/boards', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const summaries = traces.boardSummaries();
     res.json({
-      boards: BOARDS.map((b) => {
-        const found = summaries[b.id] ?? { count: 0, lastTitle: null, lastAt: null };
-        return { ...b, count: found.count, lastTitle: found.lastTitle, lastAt: found.lastAt };
+      boards: traces.galleries().map((g) => {
+        const found = summaries[g.id] ?? { count: 0, lastTitle: null, lastAt: null };
+        return {
+          ...g,
+          count: found.count,
+          lastTitle: found.lastTitle,
+          lastAt: found.lastAt,
+          // 지울 수 있는 사람에게만 지우기 단추를 보여 주려고 (막는 것은 아래 라우트가 한다).
+          canDelete:
+            !g.builtin &&
+            found.count === 0 &&
+            Boolean(account) &&
+            (isAdminAccount(account) || g.createdByHandle === account?.handle),
+        };
       }),
+      signedIn: Boolean(account),
+      labelMaxLength: GALLERY_LABEL_MAX,
+      descMaxLength: GALLERY_DESC_MAX,
     });
+  });
+
+  /** 갤러리를 만든다 — 로그인한 사람이면 누구나. */
+  app.post('/kl/boards', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const label = String(body.label ?? '').trim();
+    const desc = String(body.desc ?? '').trim();
+    // 주소를 안 적었으면 이름에서 만들어 본다 (한글 이름이면 못 만드니 그때만 직접 받는다).
+    const id = String(body.id ?? '').trim() || slugifyGalleryId(label);
+
+    if (label.length < 1 || label.length > GALLERY_LABEL_MAX) {
+      res.status(400).json({ error: 'bad_label', maxLength: GALLERY_LABEL_MAX });
+      return;
+    }
+    if (desc.length > GALLERY_DESC_MAX) {
+      res.status(400).json({ error: 'bad_desc', maxLength: GALLERY_DESC_MAX });
+      return;
+    }
+    if (!isValidGalleryId(id)) {
+      res.status(400).json({ error: 'bad_id' });
+      return;
+    }
+    if (traces.gallery(id)) {
+      res.status(409).json({ error: 'already_exists' });
+      return;
+    }
+    if (traces.galleriesTodayBy(account.handle) >= GALLERY_DAILY_LIMIT) {
+      res.status(429).json({ error: 'daily_limit', limit: GALLERY_DAILY_LIMIT });
+      return;
+    }
+
+    const created = traces.addGallery({ id, label, desc, handle: account.handle });
+    if (!created) {
+      res.status(409).json({ error: 'already_exists' });
+      return;
+    }
+    traces.flush();
+    res.json({ id: created.id });
+  });
+
+  /** 갤러리를 지운다 — 빈 갤러리만. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다. */
+  app.delete('/kl/boards/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const outcome = traces.deleteGallery(String(req.params.id ?? ''), account.handle, isAdminAccount(account));
+    if (outcome !== 'ok') {
+      res.status(outcome === 'not_found' ? 404 : outcome === 'not_empty' ? 409 : 403).json({ error: outcome });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
   });
 
   /** 판 하나의 글 목록. 보는 건 로그인 없이 된다. */
   app.get('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    const board: BoardId = isBoardId(req.query.board) ? req.query.board : 'free';
+    const requested = typeof req.query.board === 'string' ? req.query.board : 'free';
+    const gallery = traces.gallery(requested);
+    if (!gallery) {
+      res.status(404).json({ error: 'no_such_gallery' });
+      return;
+    }
     const sort = isPostSort(req.query.sort) ? req.query.sort : 'recent';
     res.json({
-      board,
+      board: gallery.id,
+      gallery,
       sort,
-      posts: traces.publicPosts(board, account?.id ?? null, sort),
+      posts: traces.publicPosts(gallery.id, account?.id ?? null, sort),
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
-      canWrite: Boolean(account) && (!isOwnerOnlyBoard(board) || isAdminAccount(account)),
-      maxLength: maxLenFor(board),
+      canWrite: Boolean(account) && (!gallery.ownerOnly || isAdminAccount(account)),
+      maxLength: maxLenFor(gallery),
       titleMaxLength: TITLE_MAX_LEN,
       replyMaxLength: REPLY_MAX_LEN,
     });
@@ -477,9 +558,13 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    const board: BoardId = isBoardId(body.board) ? body.board : 'free';
+    const gallery = traces.gallery(String(body.board ?? 'free'));
+    if (!gallery) {
+      res.status(404).json({ error: 'no_such_gallery' });
+      return;
+    }
     // 공지는 주인만 쓴다. 막을 거면 서버가 막아야 한다 — 화면에서 숨기는 것은 잠금이 아니다.
-    if (isOwnerOnlyBoard(board) && !isAdminAccount(account)) {
+    if (gallery.ownerOnly && !isAdminAccount(account)) {
       res.status(403).json({ error: 'not_allowed' });
       return;
     }
@@ -487,24 +572,24 @@ export function registerKarmolabApi(
     const title = String(body.title ?? '').trim();
 
     // 한 글자짜리 글도 글이다 (「ㅋ」). 막을 것은 빈 글뿐이다.
-    if (text.length < 1 || text.length > maxLenFor(board)) {
-      res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(board) });
+    if (text.length < 1 || text.length > maxLenFor(gallery)) {
+      res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(gallery) });
       return;
     }
-    // 요청은 한 줄이라 제목이 없다. 나머지 판은 제목이 있어야 목록이 읽힌다.
-    if (board !== 'request' && (title.length < 1 || title.length > TITLE_MAX_LEN)) {
+    // 한 줄짜리 갤러리(요청판)는 제목이 없다. 나머지는 제목이 있어야 목록이 읽힌다.
+    if (gallery.titled && (title.length < 1 || title.length > TITLE_MAX_LEN)) {
       res.status(400).json({ error: 'bad_title', maxLength: TITLE_MAX_LEN });
       return;
     }
-    if (traces.postsTodayBy(account.id, board) >= dailyLimitFor(board)) {
+    if (traces.postsTodayBy(account.id, gallery.id) >= dailyLimitFor(gallery)) {
       // 막을 때는 왜 막혔는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
-      res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(board) });
+      res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(gallery) });
       return;
     }
 
     const created = traces.addPost({
-      board,
-      title: board === 'request' ? null : title,
+      board: gallery.id,
+      title: gallery.titled ? title : null,
       text,
       accountId: account.id,
       handle: account.handle,

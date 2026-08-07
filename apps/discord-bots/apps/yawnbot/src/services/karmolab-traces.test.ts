@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { KarmolabTraceStore, kstDay, isValidToolId, isBoardId } from './karmolab-traces';
+import { KarmolabTraceStore, kstDay, isValidToolId, isValidGalleryId, slugifyGalleryId } from './karmolab-traces';
 
 let tmpDir: string;
 let statePath: string;
@@ -214,11 +214,58 @@ describe('글판 — 이야기·도구 요청', () => {
 });
 
 describe('판(게시판)', () => {
-  it('아는 판만 받는다', () => {
-    expect(isBoardId('free')).toBe(true);
-    expect(isBoardId('request')).toBe(true);
-    expect(isBoardId('없는판')).toBe(false);
-    expect(isBoardId(3)).toBe(false);
+  it('갤러리 주소로 쓸 수 있는 모양만 받는다', () => {
+    expect(isValidGalleryId('free')).toBe(true);
+    expect(isValidGalleryId('my-gallery')).toBe(true);
+    expect(isValidGalleryId('한글')).toBe(false);
+    expect(isValidGalleryId('a')).toBe(false); // 너무 짧다
+    expect(isValidGalleryId('-nope')).toBe(false);
+    expect(isValidGalleryId(3)).toBe(false);
+  });
+
+  it('이름에서 주소를 만든다', () => {
+    expect(slugifyGalleryId('Tool Talk')).toBe('tool-talk');
+    expect(slugifyGalleryId('한글이름')).toBe(''); // 못 만들면 사람이 직접 적어야 한다
+  });
+
+  it('처음부터 있는 갤러리는 늘 있다', () => {
+    expect(store.galleries().map((g) => g.id)).toEqual(
+      expect.arrayContaining(['free', 'qna', 'show', 'request', 'notice']),
+    );
+    expect(store.gallery('free')?.builtin).toBe(true);
+    expect(store.gallery('request')?.voteStyle).toBe(true);
+    expect(store.gallery('notice')?.ownerOnly).toBe(true);
+  });
+
+  it('갤러리를 만들고, 같은 주소는 두 번 안 만들어진다', () => {
+    const made = store.addGallery({ id: 'my-gal', label: '내 갤', desc: '설명', handle: 'kim' });
+    expect(made?.id).toBe('my-gal');
+    expect(made?.builtin).toBe(false);
+    expect(made?.createdByHandle).toBe('kim');
+    expect(store.addGallery({ id: 'my-gal', label: '또', desc: '', handle: 'lee' })).toBeNull();
+  });
+
+  it('빈 갤러리만 지운다 — 글이 있으면 그 글들이 갈 곳을 잃는다', () => {
+    store.addGallery({ id: 'my-gal', label: '내 갤', desc: '', handle: 'kim' });
+    expect(store.deleteGallery('my-gal', 'lee', false)).toBe('not_allowed'); // 남
+    store.addPost({ board: 'my-gal', title: 'a', text: 'x', accountId: 'u1', handle: 'kim' });
+    expect(store.deleteGallery('my-gal', 'kim', false)).toBe('not_empty');
+    expect(store.deleteGallery('free', 'kim', true)).toBe('not_allowed'); // 처음부터 있던 것
+    expect(store.deleteGallery('없는갤', 'kim', true)).toBe('not_found');
+  });
+
+  it('하루에 만든 갤러리 수를 센다', () => {
+    const day = new Date('2026-08-07T01:00:00Z');
+    store.addGallery({ id: 'g-one', label: 'a', desc: '', handle: 'kim' }, day);
+    store.addGallery({ id: 'g-two', label: 'b', desc: '', handle: 'kim' }, day);
+    expect(store.galleriesTodayBy('kim', day)).toBe(2);
+    expect(store.galleriesTodayBy('lee', day)).toBe(0);
+  });
+
+  it('다시 켜도 만든 갤러리가 남는다', () => {
+    store.addGallery({ id: 'keep-me', label: '남아라', desc: '', handle: 'kim' });
+    store.flush();
+    expect(new KarmolabTraceStore(statePath).gallery('keep-me')?.label).toBe('남아라');
   });
 
   it('판마다 글 수를 센다 — 판 고르는 줄에 실제 수를 띄우려고', () => {

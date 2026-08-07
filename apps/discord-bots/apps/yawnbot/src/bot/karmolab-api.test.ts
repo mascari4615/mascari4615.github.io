@@ -527,3 +527,84 @@ describe('판·좋아요·조회 — HTTP', () => {
     expect(body.posts[0].board).toBe('qna');
   });
 });
+
+describe('갤러리 만들기 — HTTP', () => {
+  it('로그인해야 만든다', async () => {
+    const res = await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: '몰래' }),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('이름만 주면 주소를 만들어 준다', async () => {
+    const { cookie } = signIn();
+    const res = await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ label: 'Tool Talk', desc: '도구 이야기' }),
+    });
+    expect(res.status).toBe(200);
+    expect((await res.json()) as { id: string }).toMatchObject({ id: 'tool-talk' });
+
+    const listed = await fetch(`${baseUrl}/kl/boards`);
+    const body = (await listed.json()) as { boards: Array<{ id: string; label: string; builtin: boolean }> };
+    expect(body.boards.find((b) => b.id === 'tool-talk')).toMatchObject({ label: 'Tool Talk', builtin: false });
+  });
+
+  it('한글 이름은 주소를 못 만드니 직접 받아야 한다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    const auto = await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ label: '도구방' }),
+    });
+    expect(auto.status).toBe(400);
+    expect((await auto.json()) as { error: string }).toMatchObject({ error: 'bad_id' });
+
+    const manual = await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ label: '도구방', id: 'toolroom' }),
+    });
+    expect(manual.status).toBe(200);
+  });
+
+  it('같은 주소는 두 번 안 만들어진다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    await fetch(`${baseUrl}/kl/boards`, { method: 'POST', headers, body: JSON.stringify({ label: 'dup' }) });
+    const again = await fetch(`${baseUrl}/kl/boards`, { method: 'POST', headers, body: JSON.stringify({ label: 'dup' }) });
+    expect(again.status).toBe(409);
+  });
+
+  it('없는 갤러리의 글 목록은 404 — 조용히 자유 갤러리를 보여 주지 않는다', async () => {
+    expect((await fetch(`${baseUrl}/kl/posts?board=nope-nope`)).status).toBe(404);
+  });
+
+  it('만든 갤러리에 글을 쓰고, 빈 갤러리만 지운다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    await fetch(`${baseUrl}/kl/boards`, { method: 'POST', headers, body: JSON.stringify({ label: 'mine' }) });
+
+    // 비어 있으면 지워진다
+    expect((await fetch(`${baseUrl}/kl/boards/mine`, { method: 'DELETE', headers: { Cookie: cookie } })).status).toBe(200);
+
+    await fetch(`${baseUrl}/kl/boards`, { method: 'POST', headers, body: JSON.stringify({ label: 'mine2' }) });
+    await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ board: 'mine2', title: '첫 글', text: 'x' }),
+    });
+    const blocked = await fetch(`${baseUrl}/kl/boards/mine2`, { method: 'DELETE', headers: { Cookie: cookie } });
+    expect(blocked.status).toBe(409);
+    expect((await blocked.json()) as { error: string }).toMatchObject({ error: 'not_empty' });
+  });
+
+  it('처음부터 있던 갤러리는 아무도 못 지운다', async () => {
+    const { cookie } = signIn();
+    expect((await fetch(`${baseUrl}/kl/boards/free`, { method: 'DELETE', headers: { Cookie: cookie } })).status).toBe(403);
+  });
+});

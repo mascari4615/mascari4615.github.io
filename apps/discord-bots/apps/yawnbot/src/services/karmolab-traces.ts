@@ -41,29 +41,58 @@ interface ToolTrace {
  *
  * 판을 늘리는 일은 이 표에 한 줄 넣는 것이 전부다.
  */
-export const BOARDS = [
-  { id: 'free', label: '자유', desc: '무슨 이야기든' },
-  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳' },
-  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳' },
-  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구' },
-  { id: 'notice', label: '공지', desc: '주인이 알리는 것' },
-] as const;
-
-export type BoardId = (typeof BOARDS)[number]['id'];
-
-export function isBoardId(raw: unknown): raw is BoardId {
-  return typeof raw === 'string' && BOARDS.some((b) => b.id === raw);
+export interface Gallery {
+  id: string;
+  label: string;
+  desc: string;
+  /** 만든 사람. 처음부터 있던 갤러리는 null. */
+  createdByHandle: string | null;
+  createdAt: string;
+  /** 처음부터 있던 갤러리 — 아무도 못 지운다. */
+  builtin: boolean;
+  /** 표가 주인공인 갤러리 (목록이 표 순으로 선다). 도구 요청판이 그렇다. */
+  voteStyle: boolean;
+  /** 주인만 글을 쓸 수 있는 갤러리 (공지). */
+  ownerOnly: boolean;
+  /** 글에 제목이 있는가. 요청판처럼 한 줄짜리는 제목이 없다. */
+  titled: boolean;
 }
 
-/** 표가 주인공인 판인가 (목록이 표 순으로 선다). */
-export function isVoteBoard(board: BoardId): boolean {
-  return board === 'request';
+/**
+ * 처음부터 있는 갤러리.
+ *
+ * 이제 갤러리는 **데이터**다 — 사람이 새로 만들 수 있다 (디시·아카의 갤러리·채널처럼).
+ * 아래는 씨앗일 뿐이고, 저장소에 없으면 한 번 심는다.
+ */
+export const SEED_GALLERIES: Gallery[] = [
+  { id: 'free', label: '자유', desc: '무슨 이야기든', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
+  { id: 'qna', label: '질문', desc: '막히는 것을 물어보는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
+  { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true },
+  { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false },
+  { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true },
+];
+
+export type BoardId = string;
+
+/** 갤러리 주소로 쓸 수 있는 모양인가. 주소에 들어가므로 영소문자·숫자·붙임표만. */
+export function isValidGalleryId(raw: unknown): raw is string {
+  return typeof raw === 'string' && /^[a-z0-9][a-z0-9-]{1,20}$/.test(raw);
 }
 
-/** 주인만 쓸 수 있는 판인가. */
-export function isOwnerOnlyBoard(board: BoardId): boolean {
-  return board === 'notice';
+/** 이름에서 주소를 만든다. 한글 이름이면 못 만드니 그때는 사람이 직접 적게 한다. */
+export function slugifyGalleryId(label: string): string {
+  return String(label ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 21);
 }
+
+export const GALLERY_LABEL_MAX = 20;
+export const GALLERY_DESC_MAX = 60;
+/** 한 사람이 하루에 만들 수 있는 갤러리 수 — 빈 갤러리가 늘어나면 목록이 죽는다. */
+export const GALLERY_DAILY_LIMIT = 3;
 
 export type PostSort = 'recent' | 'top';
 
@@ -112,6 +141,7 @@ interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
   posts: Post[];
+  galleries: Gallery[];
 }
 
 const STATE_FILE = 'karmolab-traces-state.json';
@@ -138,12 +168,12 @@ export const REPLY_MAX_LEN = 1000;
 export const REQUEST_DAILY_LIMIT = 5;
 export const TALK_DAILY_LIMIT = 10;
 
-export function maxLenFor(board: BoardId): number {
-  return board === 'request' ? REQUEST_MAX_LEN : TALK_MAX_LEN;
+export function maxLenFor(gallery: Gallery): number {
+  return gallery.titled ? TALK_MAX_LEN : REQUEST_MAX_LEN;
 }
 
-export function dailyLimitFor(board: BoardId): number {
-  return board === 'request' ? REQUEST_DAILY_LIMIT : TALK_DAILY_LIMIT;
+export function dailyLimitFor(gallery: Gallery): number {
+  return gallery.titled ? TALK_DAILY_LIMIT : REQUEST_DAILY_LIMIT;
 }
 
 /** 오늘(KST) 날짜 문자열. 사이트 전체가 KST 로 말한다. */
@@ -202,8 +232,17 @@ export interface PublicPost {
  * 파일을 한 번에 갈아엎지 않는 이유는, 갈아엎다 중간에 죽으면 글이 통째로 날아가기 때문이다.
  * 읽을 때마다 채우면 언제 죽어도 잃는 것이 없다.
  */
+/** 처음부터 있어야 하는 갤러리를 채워 넣는다 (없을 때만 — 사람이 고친 것은 안 덮는다). */
+function withSeeds(existing: Gallery[]): Gallery[] {
+  const out = [...existing];
+  for (const seed of SEED_GALLERIES) {
+    if (!out.some((g) => g.id === seed.id)) out.push({ ...seed });
+  }
+  return out;
+}
+
 function migratePost(raw: Partial<Post> & { kind?: string }): Post {
-  const board: BoardId = isBoardId(raw.board) ? raw.board : raw.kind === 'request' ? 'request' : 'free';
+  const board: BoardId = isValidGalleryId(raw.board) ? raw.board : raw.kind === 'request' ? 'request' : 'free';
   const createdAt = raw.createdAt ?? new Date().toISOString();
   return {
     id: raw.id ?? crypto.randomUUID(),
@@ -241,12 +280,17 @@ export class KarmolabTraceStore {
     try {
       if (fs.existsSync(this.statePath)) {
         const parsed = JSON.parse(fs.readFileSync(this.statePath, 'utf-8')) as Partial<TracesState>;
-        return { version: 1, tools: parsed.tools ?? {}, posts: (parsed.posts ?? []).map(migratePost) };
+        return {
+          version: 1,
+          tools: parsed.tools ?? {},
+          posts: (parsed.posts ?? []).map(migratePost),
+          galleries: withSeeds(parsed.galleries ?? []),
+        };
       }
     } catch (error) {
       console.error('[karmolab-traces] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, tools: {}, posts: [] };
+    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]) };
   }
 
   /**
@@ -362,7 +406,7 @@ export class KarmolabTraceStore {
       authorAccountId: input.accountId,
       createdAt: at,
       // 올린 사람은 이미 원하는 사람이다. 자기 요청에 또 눌러야 하면 첫 표가 어색하게 0 이 된다.
-      voterAccountIds: isVoteBoard(input.board) ? [input.accountId] : [],
+      voterAccountIds: this.gallery(input.board)?.voteStyle ? [input.accountId] : [],
       likerAccountIds: [],
       views: 0,
       status: 'open',
@@ -540,15 +584,70 @@ export class KarmolabTraceStore {
    */
   publicPosts(board: BoardId, viewerAccountId: string | null, sort: PostSort = 'recent'): PublicPost[] {
     const score = (p: Post): number => p.likerAccountIds.length * 2 + p.replies.length;
+    const voteStyle = this.gallery(board)?.voteStyle === true;
     return this.state.posts
       .filter((p) => p.board === board)
       .sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-        if (isVoteBoard(board)) return b.voterAccountIds.length - a.voterAccountIds.length || b.createdAt.localeCompare(a.createdAt);
+        if (voteStyle) return b.voterAccountIds.length - a.voterAccountIds.length || b.createdAt.localeCompare(a.createdAt);
         if (sort === 'top') return score(b) - score(a) || b.bumpedAt.localeCompare(a.bumpedAt);
         return b.bumpedAt.localeCompare(a.bumpedAt);
       })
       .map((p) => this.toPublic(p, viewerAccountId));
+  }
+
+  /** 갤러리 전부 (만든 순서 — 처음부터 있던 것이 앞). */
+  galleries(): Gallery[] {
+    return [...this.state.galleries];
+  }
+
+  gallery(id: string): Gallery | null {
+    return this.state.galleries.find((g) => g.id === id) ?? null;
+  }
+
+  /** 오늘 이 사람이 갤러리를 몇 개 만들었나 — 빈 갤러리가 늘어나면 목록이 죽는다. */
+  galleriesTodayBy(handle: string, now: Date = new Date()): number {
+    const today = kstDay(now);
+    return this.state.galleries.filter(
+      (g) => g.createdByHandle === handle && kstDay(new Date(g.createdAt)) === today,
+    ).length;
+  }
+
+  /** 갤러리를 만든다. 같은 주소가 있으면 null. */
+  addGallery(
+    input: { id: string; label: string; desc: string; handle: string },
+    now: Date = new Date(),
+  ): Gallery | null {
+    if (this.state.galleries.some((g) => g.id === input.id)) return null;
+    const gallery: Gallery = {
+      id: input.id,
+      label: input.label,
+      desc: input.desc,
+      createdByHandle: input.handle,
+      createdAt: now.toISOString(),
+      builtin: false,
+      voteStyle: false,
+      ownerOnly: false,
+      titled: true,
+    };
+    this.state.galleries.push(gallery);
+    this.markDirty();
+    return gallery;
+  }
+
+  /**
+   * 갤러리를 지운다 — **빈 갤러리만**. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다.
+   * 만든 사람이나 주인만 지운다. 처음부터 있던 갤러리는 아무도 못 지운다.
+   */
+  deleteGallery(id: string, handle: string, isOwner: boolean): 'ok' | 'not_found' | 'not_allowed' | 'not_empty' {
+    const gallery = this.state.galleries.find((g) => g.id === id);
+    if (!gallery) return 'not_found';
+    if (gallery.builtin) return 'not_allowed';
+    if (!isOwner && gallery.createdByHandle !== handle) return 'not_allowed';
+    if (this.state.posts.some((p) => p.board === id)) return 'not_empty';
+    this.state.galleries = this.state.galleries.filter((g) => g.id !== id);
+    this.markDirty();
+    return 'ok';
   }
 
   /** 갤러리마다 글이 몇 개인지 — 고르는 줄에 실제 수를 띄운다. */
