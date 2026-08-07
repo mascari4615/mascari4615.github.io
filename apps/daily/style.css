@@ -581,3 +581,14 @@ table.past .play:hover { border-color: var(--accent); }
 .browse-grid button:hover, .browse-grid button:focus-visible { border-color: var(--line); background: var(--bg-2, rgba(255,255,255,0.04)); }
 .browse-grid img { width: 26px; height: 26px; object-fit: contain; flex: 0 0 auto; }
 .browse-empty { padding: 10px 12px; margin: 0; font-size: 13px; color: var(--ink-2); }
+
+/* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json (TASK-KL-089).
+   놀이가 셋이 되면서 하나 끝내면 거기서 끊겼다. 어디서든 다른 놀이로 건너가게 한다. */
+.play-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; font-size: 13px; }
+.play-strip a, .play-strip-now {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px;
+  border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--ink-2);
+}
+.play-strip a:hover, .play-strip a:focus-visible { color: var(--ink); border-color: var(--ink-2); }
+.play-strip-now { background: var(--hit, #d4a849); color: #17171c; border-color: var(--hit, #d4a849); font-weight: 700; }
+.play-strip-all { opacity: 0.75; }

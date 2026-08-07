@@ -1,0 +1,8 @@
+{
+  "$comment": "놀이 목록의 단일 정본 (TASK-KL-089). 새 놀이를 더할 때 여기 한 줄만 넣으면 모든 놀이의 전환 줄과 관문에 함께 나온다 — 페이지마다 손으로 적으면 곧 갈라진다. url 은 실제로 있는 주소여야 하고, 검사가 만들 때 확인한다.",
+  "games": [
+    { "id": "daily", "title": "하나 맞히기", "emoji": "🎯", "url": "/daily/", "lead": "속성 힌트로 좁혀 오늘의 하나를 맞힌다" },
+    { "id": "higher", "title": "높은 쪽 고르기", "emoji": "📈", "url": "/karmolab/higher/", "lead": "둘 중 큰 쪽만 고른다 — 한 번 틀리면 끝" },
+    { "id": "quest", "title": "오늘의 문제", "emoji": "🧩", "url": "/karmolab/quest/", "lead": "도구를 열어야 풀리는 하루 한 문제" }
+  ]
+}
