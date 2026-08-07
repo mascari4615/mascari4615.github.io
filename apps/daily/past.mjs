@@ -85,11 +85,38 @@ try {
   revealed = localStorage.getItem(REVEAL_KEY) === '1';
 } catch { /* 사생활 모드 */ }
 
-/** 열린 칸의 그림만 실제로 받아 온다 — 가려진 동안에는 주소만 들고 있는다. */
+/**
+ * 열린 칸의 그림만, 그것도 **눈에 들어올 때** 받아 온다.
+ *
+ * 가려진 동안에는 그림이 아무 뜻도 없어서 주소만 들고 있는다. 그런데 「답 모두 보기」를
+ * 한 번 누르면 예순 장이 한꺼번에 쏟아졌다 (롤은 그것만 1.1MB). 그 상태는 기억되므로
+ * 다시 올 때마다 또 낸다. 실제로 화면에 들어온 것만 받게 한다.
+ */
+function loadNow(img) {
+  if (!img?.dataset?.src) return;
+  img.src = img.dataset.src;
+  delete img.dataset.src;
+}
+
+const watcher =
+  typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver(
+        (entries, obs) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            loadNow(e.target);
+            obs.unobserve(e.target);
+          }
+        },
+        { rootMargin: '300px' }, // 스크롤보다 조금 앞서 받아 둔다
+      )
+    : null;
+
+/** 아직 안 받은 그림들을 감시에 올린다 (없으면 그냥 다 받는다 — 오래된 브라우저). */
 function loadShown(scope = table) {
   for (const img of scope.querySelectorAll('img[data-src]')) {
-    img.src = img.dataset.src;
-    delete img.dataset.src;
+    if (watcher) watcher.observe(img);
+    else loadNow(img);
   }
 }
 
@@ -114,7 +141,8 @@ tbody.addEventListener('click', (e) => {
   const cell = e.target.closest('td');
   if (!cell) return;
   cell.classList.add('on');
-  loadShown(cell); // 이 칸만 그림을 받는다
+  // 누른 칸은 이미 눈앞이라 기다릴 것 없이 바로 받는다.
+  for (const img of cell.querySelectorAll('img[data-src]')) loadNow(img);
 });
 
 if (!tbody.querySelector('tr[data-day]') && cursor < oldest) {
