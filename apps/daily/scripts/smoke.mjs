@@ -609,6 +609,26 @@ for (const withShare of [true, false]) {
     if (over > 0) spill.push(`/${path} ${over}px`);
   }
   check('글자를 크게 키워도 가로로 안 넘친다', spill.length === 0, spill.join(' · ') || '폭 180px 에서 전부 0');
+
+  /**
+   * 넘침 0 만으로는 부족하다 — 실제로 속성 칸이 20px 로 쪼그라들어 **글자가 한 자씩 세로로
+   * 쌓인 적이 있다.** 넘치지는 않으니 검사는 통과했고 화면은 못 읽는 상태였다.
+   * 그래서 칸 너비와 라벨 높이를 잰다: 라벨이 두 줄 이상이면 뭉개진 것이다.
+   */
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'lol.json'), 'utf8'));
+  const first = topic.items[0].name;
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+  await page.fill('.guessbar input', first);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${first}")`);
+  await page.waitForSelector('.row .cell');
+  const cell = await (await page.$('.row .cell')).boundingBox();
+  const label = await (await page.$('.row .cell .k')).boundingBox();
+  check(
+    '좁은 화면에서도 속성 칸이 읽힌다',
+    cell.width >= 40 && label.height < 24,
+    `칸 ${Math.round(cell.width)}px · 라벨 ${Math.round(label.height)}px`,
+  );
   await ctx.close();
 }
 

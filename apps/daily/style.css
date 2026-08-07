@@ -473,3 +473,17 @@ table.past .play:hover { border-color: var(--accent); }
   .cell .k { font-size: 9px; }
   .cell .v { font-size: 11px; }
 }
+
+/*
+ * 아주 좁은 화면 (폰 + 글자 200% 확대 = 논리 폭 180px 쯤).
+ * 속성 여섯을 한 줄에 욱여넣으면 칸이 20px 남짓이 되어 **글자가 한 자씩 세로로 쌓인다** —
+ * 가로 넘침은 0 이라 「안 넘친다」 검사만으로는 멀쩡해 보이는데 실제로는 못 읽는다.
+ * 줄을 나눠 담는다.
+ */
+@media (max-width: 300px) {
+  .cells { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 210px) {
+  .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row .who { font-size: 13px; }
+}
