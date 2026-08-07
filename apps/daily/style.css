@@ -617,3 +617,20 @@ table.past .play:hover { border-color: var(--accent); }
   border: 1px solid var(--line);
   border-radius: 999px;
 }
+
+/* 아직 될 수 있는 것 — 좁힌 보람이 보이게 (TASK-KL-089).
+   누르면 훑어보기가 그 후보만 걸러서 열린다. */
+.narrow-left {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 9px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.narrow-left:hover { border-color: var(--accent); }
+

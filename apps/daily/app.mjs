@@ -334,6 +334,24 @@ function narrowLine() {
   return parts.join(' · ');
 }
 
+/* ── 아직 될 수 있는 것 (TASK-KL-089) ──────────────
+ * 「173개 중 하나」로 시작하는데, 세 번 치고 나면 **몇 개가 남았는지**를 아무도 안 알려 준다.
+ * 좁아지는 게 이 놀이의 재미인데 좁아진 게 안 보였다 — 훑어보기는 여전히 173개를 늘어놓는다.
+ *
+ * 새 정보를 만들지 않는다. 「그 후보가 정답이었다면 지금까지 나온 줄이 똑같이 나오나」를
+ * 화면에 이미 있는 것으로만 따진다 — 사람이 손으로 할 수 있는 그 계산을 대신할 뿐이다.
+ */
+function possibleItems() {
+  if (mode !== 'classic' || !state.guesses.length) return null;
+  const guessed = state.guesses.map((name) => findItem(topic.items, name)).filter(Boolean);
+  if (!guessed.length) return null;
+  const seen = guessed.map((g) => compareItem(topic, g, answer));
+  const same = (a, b) => a.state === b.state && (a.dir || '') === (b.dir || '');
+  return topic.items.filter((cand) =>
+    guessed.every((g, i) => compareItem(topic, g, cand).every((c, j) => same(c, seen[i][j]))),
+  );
+}
+
 function renderNarrow() {
   /* 판이 끝나면 치운다 (TASK-KL-089).
    * 이미 정답을 알았는데 「세대 1 위 · 키 0.7m 위…」가 그대로 떠 있으면 군더더기다 —
@@ -349,7 +367,12 @@ function renderNarrow() {
     box = el('<p class="narrow" aria-live="polite"></p>');
     $rows.insertAdjacentElement('beforebegin', box);
   }
-  box.innerHTML = `<span class="narrow-tag">지금까지</span>${esc(text)}`;
+  /* 세기만 하고 **이름은 안 댄다.** 힌트 폭이 넓어서 한 판만 지나도 후보가 서넛으로 줄 때가
+   * 있는데, 그때 그 목록을 열어 주면 눌러서 끝나는 단추가 된다 — 맞히는 재미를 대신 써 버린다.
+   * 남은 수는 「얼마나 좁혔나」만 말한다. 누구인지는 여전히 사람이 찾는다. */
+  const left = possibleItems();
+  const chip = left && left.length ? `<span class="narrow-left">후보 ${left.length}개</span>` : '';
+  box.innerHTML = `<span class="narrow-tag">지금까지</span><span class="narrow-text">${esc(text)}</span>${chip}`;
 }
 
 function renderRow(guess) {
@@ -753,7 +776,7 @@ function renderBrowse() {
   /* 걸러내기는 추천 목록이 쓰는 것과 **같은 함수**를 쓴다 (첫 자음 검색까지 그대로 따라간다).
    * 칸이 비었을 때만 여기서 전부를 늘어놓는다 — 그때는 추천이 아무것도 안 주기 때문이다. */
   const q = $input.value.trim();
-  const list = q
+  let list = q
     ? suggest(topic.items, q, { limit: topic.items.length, exclude: state.guesses })
     : topic.items.filter((it) => !state.guesses.some((g) => findItem([it], g)));
   $browseGrid.innerHTML = list.length
@@ -816,15 +839,22 @@ function browseKeys(e) {
   items[to].focus();
 }
 
+/** 훑어보기를 편다. */
+function openBrowse() {
+  if (!$browse) return;
+  $browse.hidden = false;
+  $browseOpen.setAttribute('aria-expanded', 'true');
+  $browseOpen.textContent = '접기';
+  setSug(''); // 추천 목록과 겹쳐 뜨지 않게
+  renderBrowse();
+  $browse.scrollIntoView({ block: 'nearest' });
+}
+
 if ($browseOpen) {
   document.addEventListener('keydown', browseKeys);
   $browseOpen.addEventListener('click', () => {
     if (!$browse.hidden) return closeBrowse();
-    $browse.hidden = false;
-    $browseOpen.setAttribute('aria-expanded', 'true');
-    $browseOpen.textContent = '접기';
-    setSug(''); // 추천 목록과 겹쳐 뜨지 않게
-    renderBrowse();
+    openBrowse();
   });
   $input.addEventListener('input', renderBrowse);
 }
