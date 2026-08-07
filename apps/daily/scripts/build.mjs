@@ -148,6 +148,7 @@ for (const page of all) {
     <input type="text" role="combobox" aria-expanded="true" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 입력…">
     <div class="sug" id="sug-list" role="listbox" aria-label="추천 이름"></div>
   </div>
+  <div class="seeds"></div>
   <p class="left"></p>
   <div class="rows"></div>
   <div class="done" hidden></div>
