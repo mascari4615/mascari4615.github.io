@@ -484,6 +484,36 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 하루가 지난 뒤의 지난 문제 — **한 번도 안 돌아 본 길**이다.
+ *
+ * 이 표는 배포할 때 「어제까지」로 굳어 박힌다. 다음 배포 전에 날이 바뀌면, 박힌 것의
+ * 맨 위는 이틀 전이 되고 그 사이 하루는 브라우저가 얹어야 한다. 매일 배포하는 동안에는
+ * 이 길로 아무도 안 지나가므로, 여기가 깨져 있어도 한동안 아무도 모른다.
+ *
+ * 시계를 이틀 감아 두고 연다: 새로 생긴 이틀이 위에 얹히고, 오늘 줄은 여전히 없어야 하며,
+ * 같은 날이 두 번 그려져도 안 된다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.clock.install({ time: Date.now() + 2 * 86400000 });
+  await page.goto(`${base}/pokemon/past/`, { waitUntil: 'networkidle' });
+
+  const days = await page.$$eval('table.past tbody tr', (els) => els.map((e) => Number(e.dataset.day)));
+  const label = await page.$$eval('table.past .d', (els) => els.map((e) => e.textContent));
+  const todayLabel = new Date(Date.now() + 2 * 86400000 + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  check('[이틀 뒤] 그 사이 날들이 위에 얹힌다', days.length >= 32, `${days.length}줄`);
+  check('[이틀 뒤] 같은 날이 두 번 안 그려진다', new Set(days).size === days.length, `${days.length}줄 중 ${new Set(days).size}가지`);
+  check('[이틀 뒤] 위에서 아래로 하루씩 내려간다', days.every((d, i) => i === 0 || days[i - 1] - d === 1), `${days[0]} → ${days[days.length - 1]}`);
+  check('[이틀 뒤] ★ 그래도 오늘 줄은 없다', !label.includes(todayLabel), `오늘 ${todayLabel} · 맨 위 ${label[0]}`);
+
+  // 얹은 줄도 진짜 줄이어야 한다 — 답과 「풀어보기」가 붙어 있는지 맨 윗줄로 확인한다.
+  const top = page.locator('table.past tbody tr').first();
+  check('[이틀 뒤] 얹은 줄에도 답과 풀어보기가 있다', (await top.locator('.a').count()) === 2 && (await top.locator('.play').count()) === 2);
+  await ctx.close();
+}
+
+/**
  * 연습 저장 자리는 날짜마다 하나씩 생긴다. 안 치우면 한도에 닿는 순간 오늘 진행이 조용히 안 저장된다.
  */
 {
