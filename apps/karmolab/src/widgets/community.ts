@@ -470,6 +470,28 @@
         const reload = (): void => {
             void render();
         };
+
+        /**
+         * 누르면 **그 자리에서 바로** 바뀐다. 서버 확인은 뒤에서 한다.
+         *
+         * 좋아요 같은 것은 눌렀는데 반응이 없으면 두 번 누르게 된다. 그래서 숫자와 눌림 표시를
+         * 먼저 바꾸고 요청을 보낸다. 실패하면 되돌리고 그때만 알린다 — 잘 되는 흔한 경우에
+         * 아무 소리도 안 나는 것이 맞다.
+         */
+        const optimisticToggle = async (button: HTMLElement, path: string, label: (n: number) => string): Promise<void> => {
+            const wasOn = button.dataset.on === '1';
+            const shown = Number(/\d+/.exec(button.textContent ?? '')?.[0] ?? '0');
+            const next = wasOn ? shown - 1 : shown + 1;
+            button.dataset.on = wasOn ? '0' : '1';
+            button.textContent = label(next);
+
+            const ok = await api(path, { method: 'POST' });
+            if (ok) return;
+            button.dataset.on = wasOn ? '1' : '0';
+            button.textContent = label(shown);
+            Toolbox.showToast?.('지금은 안 되네요. 잠시 뒤에 다시 눌러 주세요.');
+        };
+
         const act = async (path: string, method = 'POST'): Promise<void> => {
             const ok = await api(path, { method });
             if (!ok) {
@@ -482,8 +504,14 @@
         host.querySelector('[data-back]')?.addEventListener('click', () =>
             go({ p: null, board: post.board === 'free' ? null : post.board }),
         );
-        host.querySelector('[data-like]')?.addEventListener('click', () => void act(`/kl/posts/${encodeURIComponent(post.id)}/like`));
-        host.querySelector('[data-vote]')?.addEventListener('click', () => void act(`/kl/posts/${encodeURIComponent(post.id)}/vote`));
+        const likeBtn = host.querySelector<HTMLElement>('[data-like]');
+        likeBtn?.addEventListener('click', () =>
+            void optimisticToggle(likeBtn, `/kl/posts/${encodeURIComponent(post.id)}/like`, (n) => `좋아요 ${n}`),
+        );
+        const voteBtn = host.querySelector<HTMLElement>('[data-vote]');
+        voteBtn?.addEventListener('click', () =>
+            void optimisticToggle(voteBtn, `/kl/posts/${encodeURIComponent(post.id)}/vote`, (n) => `표 ${n}`),
+        );
         host.querySelector('[data-pin]')?.addEventListener('click', async () => {
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}`, {
                 method: 'PATCH',
@@ -517,7 +545,11 @@
 
         host.querySelectorAll<HTMLButtonElement>('[data-reply-like]').forEach((b) =>
             b.addEventListener('click', () =>
-                void act(`/kl/posts/${encodeURIComponent(post.id)}/replies/${encodeURIComponent(b.dataset.replyLike ?? '')}/like`),
+                void optimisticToggle(
+                    b,
+                    `/kl/posts/${encodeURIComponent(post.id)}/replies/${encodeURIComponent(b.dataset.replyLike ?? '')}/like`,
+                    (n) => (n > 0 ? `좋아요 ${n}` : '좋아요'),
+                ),
             ),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-reply-del]').forEach((b) =>
@@ -559,9 +591,17 @@
         });
     }
 
+    /**
+     * 화면을 다시 그린다.
+     *
+     * **지우고 시작하지 않는다.** 예전에는 누를 때마다 「불러오는 중」으로 비웠다가 다시 채워서
+     * 화면이 번쩍였다 (사용자: "뭐 누를떄 마다 '불러오는 중' 하고 ui 깜빡이는거 마음에 안들어").
+     * 이미 뭔가 그려져 있으면 그대로 두고, 새 내용이 준비됐을 때 한 번에 갈아 끼운다.
+     * 「불러오는 중」은 **아무것도 없는 첫 순간에만** 나온다.
+     */
     async function render(): Promise<void> {
         if (!host) return;
-        host.innerHTML = '<p class="c-empty-row">불러오는 중…</p>';
+        if (host.childElementCount === 0) host.innerHTML = '<p class="c-empty-row">불러오는 중…</p>';
 
         if (boards.length === 0) {
             const raw = (await api('/kl/boards')) as { boards?: Board[] } | null;
@@ -586,14 +626,16 @@
             return;
         }
 
-        const raw = await api(`/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}`);
+        // 목록과 판 숫자를 **같이** 받는다. 하나씩 기다리면 그만큼 화면이 늦게 바뀐다.
+        const [raw, freshBoards] = await Promise.all([
+            api(`/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}`),
+            api('/kl/boards') as Promise<{ boards?: Board[] } | null>,
+        ]);
         if (!raw) {
             host.innerHTML = `<div class="c-empty"><h3>지금은 커뮤니티를 못 여네요</h3>
                 <p>잠시 뒤에 다시 열어 주세요.</p></div>`;
             return;
         }
-        // 글 수가 바뀌었을 수 있으니 판 숫자를 같이 새로 받는다.
-        const freshBoards = (await api('/kl/boards')) as { boards?: Board[] } | null;
         if (freshBoards?.boards) boards = freshBoards.boards;
         renderList(raw as ListResponse);
     }
