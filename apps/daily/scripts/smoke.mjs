@@ -96,7 +96,9 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   check(`[${tag}] 콘솔 오류 0`, errors.length === 0, errors.join(' | '));
 
   // 끝난 사람에게 다음 판을 건네는 자리 — 이게 없으면 방문자가 한 판만 두고 나간다.
-  check(`[${tag}] 다음 판을 건넨다`, (await page.locator('.done .more a').count()) > 0);
+  const moreLinks = await page.locator('.done .more a').count();
+  // 여섯을 쏟으면 아무것도 안 고른다 — 셋 + 전체 보기.
+  check(`[${tag}] 다음 판을 셋만 건넨다`, moreLinks > 0 && moreLinks <= 4, `${moreLinks}개`);
   check(`[${tag}] 연속 기록이 붙는다`, /연속/.test(await page.locator('.done .tally').innerText()));
   // 끝낸 사람이 지금 할 수 있는 것 — 「내일 또」만 남기면 그대로 나간다.
   check(`[${tag}] 어제 문제로 이어 준다`, (await page.locator('.done .more a[href*="?d="]').count()) === 1);

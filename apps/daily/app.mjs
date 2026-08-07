@@ -352,17 +352,27 @@ function finish() {
   const extra = practice
     ? [{ href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode }]
     : [{ href: `${location.pathname}?d=${yesterdayKey}`, label: '어제 문제 풀기', emoji: '📅', key: `daily:${topicId}:${mode}:p:${yesterdayKey}`, day: yesterdayKey }];
-  const todo = extra.concat(others).filter((o) => {
+  const open = extra.concat(others).filter((o) => {
     // 이미 끝낸 것은 안 건넨다 — 다 푼 판을 또 누르게 하는 게 이 자리의 가장 흔한 낭비다.
     const s = read(o.key ?? `daily:${o.topic}:${o.mode}`, null);
     return !(s && s.day === (o.day ?? dayKey) && s.status !== 'playing');
   });
+
+  /**
+   * 여섯 개를 쏟아 놓으면 아무것도 안 고른다. 셋만 건넨다.
+   * 가까운 것부터: 어제 판 → **같은 주제의 다른 모드**(방금 하던 것과 맥락이 같다) → 나머지.
+   */
+  const near = open.filter((o) => o.topic === topicId && !o.day);
+  const rest = open.filter((o) => o.topic !== topicId && !o.day);
+  const yesterday = open.filter((o) => o.day);
+  const todo = [...yesterday, ...near, ...rest].slice(0, 3);
+
   if (todo.length) {
     $done.append(
       el(
-        `<div class="more"><span>오늘 아직 안 푼 판</span>${todo
+        `<div class="more"><span>${open.length > todo.length ? '이어서 한 판 더' : '오늘 아직 안 푼 판'}</span>${todo
           .map((o) => `<a href="${esc(o.href)}">${esc(o.emoji ?? '🎯')} ${esc(o.label)}</a>`)
-          .join('')}</div>`,
+          .join('')}${open.length > todo.length ? `<a class="more-all" href="/daily/">전체 보기</a>` : ''}</div>`,
       ),
     );
   }
