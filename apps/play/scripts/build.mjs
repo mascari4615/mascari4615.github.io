@@ -25,7 +25,8 @@ const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
   '/karmolab/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
   '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
-  '/karmolab/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js')
+  '/karmolab/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
+  '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js')
 };
 
 for (const g of list) {
