@@ -33,6 +33,8 @@ import {
   GALLERY_LABEL_MAX,
   GALLERY_DESC_MAX,
   GALLERY_DAILY_LIMIT,
+  TAG_MAX_COUNT,
+  TAG_MAX_LEN,
   TITLE_MAX_LEN,
   REPLY_MAX_LEN,
 } from '../services/karmolab-traces';
@@ -486,6 +488,32 @@ export function registerKarmolabApi(
     res.json({ id: created.id });
   });
 
+  /** 갤러리의 말머리를 정한다 — 만든 사람이나 주인만. */
+  app.put('/kl/boards/:id/tags', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const raw = (req.body ?? {}).tags;
+    if (!Array.isArray(raw)) {
+      res.status(400).json({ error: 'bad_tags', maxCount: TAG_MAX_COUNT, maxLength: TAG_MAX_LEN });
+      return;
+    }
+    const outcome = traces.setGalleryTags(
+      String(req.params.id ?? ''),
+      raw.map((t: unknown) => String(t)),
+      account.handle,
+      isAdminAccount(account),
+    );
+    if (outcome !== 'ok') {
+      res.status(outcome === 'not_found' ? 404 : 403).json({ error: outcome });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
+  });
+
   /** 갤러리를 지운다 — 빈 갤러리만. 글이 있는데 지우면 그 글들이 갈 곳을 잃는다. */
   app.delete('/kl/boards/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -512,11 +540,15 @@ export function registerKarmolabApi(
       return;
     }
     const sort = isPostSort(req.query.sort) ? req.query.sort : 'recent';
+    // 말머리로 거르기 — 그 갤러리가 가진 말머리일 때만. 없는 말머리를 주면 통째로 빈 목록이 되어
+    // 「글이 없다」로 잘못 읽힌다.
+    const tag = typeof req.query.tag === 'string' && gallery.tags.includes(req.query.tag) ? req.query.tag : null;
     res.json({
       board: gallery.id,
       gallery,
       sort,
-      posts: traces.publicPosts(gallery.id, account?.id ?? null, sort),
+      tag,
+      posts: traces.publicPosts(gallery.id, account?.id ?? null, sort, tag),
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
@@ -530,7 +562,13 @@ export function registerKarmolabApi(
   /** 첫 화면에 띄우는 최근 글 — 판을 가리지 않는다. */
   app.get('/kl/recent', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    res.json({ posts: traces.recentPosts(3, account?.id ?? null) });
+    const limit = Math.min(Math.max(1, Number(req.query.limit ?? 3) || 3), 20);
+    // `kind=best` = 반응이 모인 글만 (아카의 「베스트 라이브」 자리).
+    const posts =
+      req.query.kind === 'best'
+        ? traces.bestPosts(limit, account?.id ?? null)
+        : traces.recentPosts(limit, account?.id ?? null);
+    res.json({ posts });
   });
 
   /** 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다. */
@@ -587,12 +625,15 @@ export function registerKarmolabApi(
       return;
     }
 
+    // 말머리는 그 갤러리가 가진 것 중에서만. 아무 글자나 받으면 거르는 줄이 쓰레기로 찬다.
+    const tag = typeof body.tag === 'string' && gallery.tags.includes(body.tag) ? body.tag : null;
     const created = traces.addPost({
       board: gallery.id,
       title: gallery.titled ? title : null,
       text,
       accountId: account.id,
       handle: account.handle,
+      tag,
     });
     traces.flush();
     res.json({ id: created.id });
