@@ -675,6 +675,9 @@ window.KARMOLAB_LAZY_META = [
     id: 'pdfcompress',
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    // 다른 도구가 만든 PDF 를 받는다 (TASK-KL-133). 이 표시는 위젯이 아직 안 실렸을 때도
+    // 보여야 한다 — 「이어서」 줄은 결과가 나온 그 순간에 갈 곳을 고르기 때문이다.
+    accepts: ['application/pdf'],
     title: 'PDF 용량 줄이기',
     category: 'tool',
     desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
