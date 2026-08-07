@@ -634,3 +634,27 @@ table.past .play:hover { border-color: var(--accent); }
 }
 .narrow-left:hover { border-color: var(--accent); }
 
+
+/* 오늘의 코스 줄 — 끝낸 그 자리에서 다음 놀이로 (TASK-KL-089).
+   KarmoLab 안의 두 놀이에 붙는 줄과 같은 생김새다(거기 tools.css 의 .pc-line). */
+.pc-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.pc-line[hidden] { display: none; }
+.pc-tag {
+  padding: 1px 8px;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.pc-go { margin-left: auto; color: var(--accent); }
