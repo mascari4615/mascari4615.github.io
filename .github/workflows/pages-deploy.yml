@@ -112,9 +112,13 @@ jobs:
         run: |
           mkdir -p apps/blog/karmolab
           cp apps/karmolab/index.html apps/blog/karmolab/index.html
-          # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
-          mkdir -p apps/blog/karmolab/bot
-          cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
+
+      # TASK-KL-129: 봇 소개(/karmolab/bot/)·프로필(/karmolab/u/)을 **앱 셸에 얹어** 찍는다.
+      # 예전에는 원본을 그대로 복사했다 — 그러면 도구를 쓰다 그리로 갈 때 머리띠도 옆줄도
+      # 테마 단추도 ⌘K 도 없는 다른 집으로 떨어졌다. 내용의 주인은 여전히 원본 문서다.
+      - name: Generate KarmoLab shell pages (bot · profile)
+        working-directory: apps/karmolab
+        run: npm run gen:shell-pages
 
       # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
