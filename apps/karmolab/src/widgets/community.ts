@@ -29,6 +29,19 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         /** 마지막 글 제목·시각 — 갤러리가 살아 있는지 보여 주는 값. */
         lastTitle: string | null;
         lastAt: string | null;
+        builtin: boolean;
+        createdByHandle: string | null;
+        voteStyle: boolean;
+        ownerOnly: boolean;
+        titled: boolean;
+        canDelete: boolean;
+    }
+
+    interface BoardsResponse {
+        boards: Board[];
+        signedIn: boolean;
+        labelMaxLength: number;
+        descMaxLength: number;
     }
 
     interface Reply {
@@ -64,6 +77,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     interface ListResponse {
         board: string;
+        gallery: Board;
         sort: 'recent' | 'top';
         posts: Post[];
         signedIn: boolean;
@@ -182,6 +196,17 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-gal-last { margin-top:6px; padding-top:6px; border-top:1px solid var(--border);
             font-size:11px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .c-gal-quiet { color:var(--text-tertiary); }
+        .c-gal-wrap { position:relative; }
+        .c-gal-wrap .c-gal { width:100%; }
+        .c-gal-del { position:absolute; top:8px; right:8px; width:20px; height:20px; line-height:1;
+            border:1px solid var(--border); border-radius:50%; background:var(--bg-primary);
+            color:var(--text-tertiary); cursor:pointer; font-size:12px; }
+        .c-gal-del:hover { color:var(--accent); border-color:var(--accent); }
+
+        /* 갤러리 안 — 여기가 어딘지가 제일 크게 보여야 한다. */
+        .c-gal-head { margin-bottom:14px; }
+        .c-gal-head h2 { margin:6px 0 2px; font-size:24px; color:var(--text-primary); }
+        .c-gal-head p { margin:0; font-size:var(--font-size-xs); color:var(--text-secondary); }
 
         /* 목록 — 국내 게시판(디시·아카) 골격: 번호·제목·글쓴이·날짜·조회·추천이 한 줄에 선다.
            조밀해야 한 화면에 많이 들어오고, 그래야 「사람이 오가는 곳」으로 읽힌다. */
@@ -515,32 +540,119 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
      * 디시·아카가 그렇듯 **갤러리를 고르고 들어가는 것**이 커뮤니티의 첫 동작이다.
      * 글 목록부터 들이밀면 「어디에 뭐가 있는지」를 영영 모른다.
      */
+    /** 갤러리 만들기 칸을 펼쳐 두었나. */
+    let galleryFormOpen = false;
+    let boardsMeta: { signedIn: boolean; labelMaxLength: number; descMaxLength: number } = {
+        signedIn: false,
+        labelMaxLength: 20,
+        descMaxLength: 60,
+    };
+
     function renderGalleryHome(): void {
         if (!host) return;
         const cards = boards
             .map(
-                (b) => `<button type="button" class="c-gal" data-gal="${esc(b.id)}">
-                    <span class="c-gal-name"><b>${esc(b.label)}</b><em>${b.count}</em></span>
-                    <span class="c-gal-desc">${esc(b.desc)}</span>
-                    <span class="c-gal-last ${b.lastTitle ? '' : 'c-gal-quiet'}">${
-                        b.lastTitle ? `${esc(plainPreview(b.lastTitle, 30))} · ${relativeTime(b.lastAt ?? '')}` : '아직 글이 없습니다'
-                    }</span>
-                </button>`,
+                (b) => `<div class="c-gal-wrap">
+                    <button type="button" class="c-gal" data-gal="${esc(b.id)}">
+                        <span class="c-gal-name"><b>${esc(b.label)}</b><em>${b.count}</em>${
+                            b.builtin ? '' : '<span class="c-tag">사용자</span>'
+                        }</span>
+                        <span class="c-gal-desc">${esc(b.desc || (b.createdByHandle ? `@${b.createdByHandle} 가 만듦` : ''))}</span>
+                        <span class="c-gal-last ${b.lastTitle ? '' : 'c-gal-quiet'}">${
+                            b.lastTitle ? `${esc(plainPreview(b.lastTitle, 28))} · ${relativeTime(b.lastAt ?? '')}` : '아직 글이 없습니다'
+                        }</span>
+                    </button>
+                    ${b.canDelete ? `<button type="button" class="c-gal-del" data-gal-del="${esc(b.id)}" title="빈 갤러리 지우기">×</button>` : ''}
+                </div>`,
             )
             .join('');
 
+        const maker = !boardsMeta.signedIn
+            ? signInBlock('로그인하면 갤러리를 만들 수 있습니다.')
+            : galleryFormOpen
+              ? `<form class="c-write" data-gal-form>
+                     <input type="text" name="galLabel" data-gal-label maxlength="${boardsMeta.labelMaxLength}"
+                         placeholder="갤러리 이름 (예: 도구 이야기)" aria-label="갤러리 이름" required>
+                     <input type="text" name="galDesc" data-gal-desc maxlength="${boardsMeta.descMaxLength}"
+                         placeholder="한 줄 설명 (없어도 됩니다)" aria-label="갤러리 설명">
+                     <input type="text" name="galId" data-gal-id maxlength="21"
+                         placeholder="주소 (영소문자·숫자·붙임표. 비우면 이름에서 만듭니다)" aria-label="갤러리 주소">
+                     <div class="c-write-foot">
+                         <span class="c-write-hint">만들면 누구나 글을 쓸 수 있습니다 · 빈 갤러리는 다시 지울 수 있어요</span>
+                         <span>
+                             <button type="button" class="c-act" data-gal-cancel>접기</button>
+                             <button type="submit" class="btn btn-primary">만들기</button>
+                         </span>
+                     </div>
+                 </form>`
+              : '';
+
         host.innerHTML = `<div class="c-wrap">
             <div class="c-head"><h2>커뮤니티</h2><span>갤러리를 고르세요</span></div>
+            <div class="c-bar"><span></span>${
+                boardsMeta.signedIn && !galleryFormOpen ? '<button type="button" class="c-newbtn" data-gal-new>갤러리 만들기</button>' : '<span></span>'
+            }</div>
+            ${maker}
             <div class="c-galleries">${cards}</div>
         </div>`;
+
+        wireSignIn();
 
         host.querySelectorAll<HTMLButtonElement>('[data-gal]').forEach((b) =>
             b.addEventListener('click', () => go({ board: b.dataset.gal ?? null, p: null, page: null, q: null })),
         );
+        host.querySelector('[data-gal-new]')?.addEventListener('click', () => {
+            galleryFormOpen = true;
+            void render();
+        });
+        host.querySelector('[data-gal-cancel]')?.addEventListener('click', () => {
+            galleryFormOpen = false;
+            void render();
+        });
+
+        host.querySelectorAll<HTMLButtonElement>('[data-gal-del]').forEach((b) =>
+            b.addEventListener('click', async () => {
+                if (!confirm('이 갤러리를 지웁니다. 계속할까요?')) return;
+                const ok = await api(`/kl/boards/${encodeURIComponent(b.dataset.galDel ?? '')}`, { method: 'DELETE' });
+                if (!ok) {
+                    Toolbox.showToast?.(toastFor('갤러리를 못 지웠어요'));
+                    return;
+                }
+                boards = [];
+                void render();
+            }),
+        );
+
+        host.querySelector<HTMLFormElement>('[data-gal-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget as HTMLFormElement;
+            const label = form.querySelector<HTMLInputElement>('[data-gal-label]')?.value.trim() ?? '';
+            const desc = form.querySelector<HTMLInputElement>('[data-gal-desc]')?.value.trim() ?? '';
+            const id = form.querySelector<HTMLInputElement>('[data-gal-id]')?.value.trim() ?? '';
+            if (!label) return;
+            const button = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+            if (button) button.disabled = true;
+            const created = (await api('/kl/boards', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ label, desc, id }),
+            })) as { id?: string } | null;
+            if (button) button.disabled = false;
+            if (!created?.id) {
+                // 한글 이름이면 주소를 못 만든다 — 그 경우를 콕 집어 말해 준다.
+                const why = lastFailure?.code === 'bad_id' ? '주소를 직접 적어 주세요 (영소문자·숫자·붙임표)' : null;
+                Toolbox.showToast?.(why ?? toastFor('갤러리를 못 만들었어요'));
+                return;
+            }
+            galleryFormOpen = false;
+            boards = [];
+            // 만들었으면 바로 그 갤러리로 — 만들고 목록만 보면 어디 생겼나 찾게 된다.
+            go({ board: created.id, p: null, page: null, q: null });
+        });
     }
 
     function renderBoards(active: string): string {
-        return `<div class="c-boards"><button type="button" class="c-board" data-board-home>← 갤러리</button>${boards
+        return `<div class="c-boards">${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
@@ -782,9 +894,16 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             pages.push(`<button type="button" class="c-page" data-page="${page + 1}" ${page === pageCount ? 'disabled' : ''}>›</button>`);
         }
 
-        const board = boards.find((b) => b.id === data.board);
+        // 어느 갤러리에 들어와 있는지가 제일 크게 보여야 한다 — 안 그러면 여기가 어딘지 모른다.
+        const gallery = data.gallery;
         host.innerHTML = `<div class="c-wrap">
-            <div class="c-head"><h2>커뮤니티</h2><span>${esc(board?.desc ?? '도구를 쓰는 사람들이 모이는 자리')}</span></div>
+            <div class="c-gal-head">
+                <button type="button" class="c-linkbtn" data-board-home>← 갤러리 목록</button>
+                <h2>${esc(gallery.label)}</h2>
+                <p>${esc(gallery.desc)}${
+                    gallery.createdByHandle ? ` · @${esc(gallery.createdByHandle)} 가 만든 갤러리` : ''
+                } · 글 ${gallery.count ?? data.posts.length}</p>
+            </div>
             ${renderBoards(data.board)}
             <div class="c-bar">${sorts}${
                 data.signedIn && data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
@@ -1102,12 +1221,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         if (host.childElementCount === 0) host.innerHTML = '<p class="c-empty-row">불러오는 중…</p>';
 
         if (boards.length === 0) {
-            const raw = (await api('/kl/boards')) as { boards?: Board[] } | null;
+            const raw = (await api('/kl/boards')) as BoardsResponse | null;
             if (!raw?.boards) {
                 offline();
                 return;
             }
             boards = raw.boards;
+            boardsMeta = { signedIn: raw.signedIn, labelMaxLength: raw.labelMaxLength, descMaxLength: raw.descMaxLength };
         }
 
         const postId = param('p');
@@ -1124,8 +1244,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
         if (!param('board')) {
-            const freshHome = (await api('/kl/boards')) as { boards?: Board[] } | null;
-            if (freshHome?.boards) boards = freshHome.boards;
+            const freshHome = (await api('/kl/boards')) as BoardsResponse | null;
+            if (freshHome?.boards) {
+                boards = freshHome.boards;
+                boardsMeta = {
+                    signedIn: freshHome.signedIn,
+                    labelMaxLength: freshHome.labelMaxLength,
+                    descMaxLength: freshHome.descMaxLength,
+                };
+            }
             renderGalleryHome();
             return;
         }
@@ -1133,7 +1260,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         // 목록과 갤러리 숫자를 **같이** 받는다. 하나씩 기다리면 그만큼 화면이 늦게 바뀐다.
         const [raw, freshBoards] = await Promise.all([
             api(`/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}`),
-            api('/kl/boards') as Promise<{ boards?: Board[] } | null>,
+            api('/kl/boards') as Promise<BoardsResponse | null>,
         ]);
         if (!raw) {
             offline();
