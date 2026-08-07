@@ -662,8 +662,14 @@ document.addEventListener('click', (e) => {
 });
 
 // ── 되살리기 (새로고침해도 오늘 진행은 남는다) ──
+/**
+ * 실루엣 판만 큰 그림을 쓴다 — 거기선 그림이 전부라 도트 그림으로는 못 푼다.
+ * 목록·자동완성·추측 줄은 전부 작은 것이다 (한 장에 300배 차이가 난다).
+ * 어디서 큰 것을 얻는지는 **표가 규칙으로 알려 준다** — 주소 만드는 법을 코드가 알면 주제에 묶인다.
+ */
+const bigArt = (item) => (topic.art && item?.img ? item.img.replace(topic.art.from, topic.art.to) : item?.img);
 if ($shot && answer.img) {
-  $shot.querySelector('img').src = answer.img;
+  $shot.querySelector('img').src = bigArt(answer);
   watchShot();
 }
 if (state.guesses.length) showLegend();
