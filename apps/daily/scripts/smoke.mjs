@@ -714,6 +714,28 @@ await page.screenshot({ path: join(shots, 'hub.png'), fullPage: true });
   check('다른 판에서도 같은 연속이 보인다', /1/.test(shown), shown);
 }
 
+/**
+ * 오늘 판을 다 푼 사람에게도 갈 곳이 있어야 한다 — 「내일 또」만 남기면 그대로 나간다.
+ * (상태를 바꾸는 검사라 이 블록의 **맨 끝**에 둔다. 앞에 끼우면 뒤 검사가 굶는다 — 두 번 그랬다.)
+ */
+{
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    for (const el of document.querySelectorAll('.card[data-topic]')) {
+      localStorage.setItem(
+        `daily:${el.dataset.topic}:${el.dataset.mode}`,
+        JSON.stringify({ day, guesses: ['x'], status: 'won' }),
+      );
+    }
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  const allDone = await page.locator('.hub-jump a').innerText();
+  check('다 푼 사람에겐 어제 판을 건넨다', /어제 판/.test(allDone), allDone);
+  check('그 링크가 어제 날짜를 가리킨다', /\?d=\d{4}-\d{2}-\d{2}$/.test(await page.locator('.hub-jump a').getAttribute('href')));
+  check('다 풀었다고 말해 준다', /다 풀었다/.test(await page.locator('.hub-note').innerText()));
+}
+
 await ctx.close();
 
 await browser.close();
