@@ -243,7 +243,6 @@ body {
     font-family: var(--font-sans);
     font-size: var(--font-size-md);
     background-color: var(--bg-void);
-    background-attachment: fixed;
     color: var(--text-primary);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -266,11 +265,20 @@ body:has(> .app-layout) {
    예전엔 `:not([data-bg])` 와 `="observatory"` 둘만 받았다. 그래서 값이 한 번
    `undefined` 로 적히자 어느 쪽에도 안 걸려 **배경이 통째로 사라졌다** — 다크는 검은
    순색, 라이트는 흰 순색. 아래 다른 테마들이 이 위에 덮는다 (TASK-KL-101). */
-body {
-    /* 앞의 두 층 = 홀로그램 (TASK-KL-097). body 배경은 attachment:fixed 라 화면에 붙어
-       있고 글은 그 위로 지나간다 — 읽는 자리를 안 물들이면서 첫인상만 맡는다.
-       새 요소로 만들지 않은 이유: 도구 목록·상세 페이지도 이 body 를 쓰므로 저절로 따라온다.
-       두 층 다 화면 전체 크기다 — 크기를 줄이면 끝나는 선이 다시 보인다. */
+.app-bg {
+    /* 배경은 **화면에 딱 맞는 판때기 한 장**에 그린다 (TASK-KL-101).
+       예전엔 body 에 attachment:fixed 로 붙이고 높이를 화면 단위(svh/lvh)로 적었다.
+       그건 「화면이 이만할 것」이라는 추측이고, 폰은 주소창이 접혔다 펴졌다 하며 그
+       추측을 계속 배신한다 — 모자라면 검은 띠, 넘치면 스크롤 중 출렁임. 두 번 다 겪었다.
+       position:fixed + inset:0 은 추측이 아니라 **브라우저가 재 준 화면 그 자체**다.
+       그래서 크기를 비율(100%)로만 적을 수 있고, 화면 단위가 한 개도 안 남는다.
+       판때기는 셸(index.html)에 있으므로 도구 목록·상세 페이지도 그대로 따라온다. */
+    position: fixed;
+    inset: 0;
+    /* -1 = 다른 모든 것의 **뒤**. 0 으로 두면 자리를 잡은 요소라서, 껍데기 없이 글만 있는
+       문서(도구 상세)에서는 글 위로 올라와 화면을 덮는다. */
+    z-index: -1;
+    pointer-events: none;
     /* 격자는 두 겹이다 — 굵은 칸(48px) 안에 가는 칸(12px). 모눈 종이·제도 용지가 그렇게
        생겼고, 한 겹만 있으면 「무늬」로 보이지 「종이」로 안 보인다 (TASK-KL-097). */
     background-image:
@@ -281,22 +289,14 @@ body {
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-    /* 화면 전체를 덮는 두 층은 **비율이 아니라 화면 단위**로 잡되, 폰에서 가장 커졌을 때를
-       기준으로 잡는다 (TASK-KL-101).
-       비율(100%)은 화면 높이에 매달려 있어 주소창이 접힐 때마다 배경이 다시 잡힌다 — 스크롤
-       중에 배경이 출렁이는 것으로 보였다. 그래서 svh(주소창 **보일 때**의 높이)로 못 박았는데,
-       이번엔 반대로 모자랐다: 이 배경은 화면에 붙어 있는데(attachment:fixed) 주소창이 접히면
-       화면이 그보다 커진다 — 남는 위아래가 안 칠해져 **검은 띠**로 보인다. lvh(주소창이
-       접혔을 때의 높이)로 잡으면 두 상태 다 덮으면서, 값 자체는 안 흔들린다.
-       앞줄 100vh = lvh 를 모르는 브라우저용(폰에서 vh 는 이미 접힌 높이다). */
-    background-size: 100vw 100vh, 100vw 100vh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
-    background-size: 100vw 100lvh, 100vw 100lvh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    /* 판때기가 곧 화면이므로 비율로 적으면 된다 — 화면 단위(vh/svh/lvh) 없음이 핵심이다. */
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
     background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
 }
 
 /* 배경 테마: 블루 매젠타 */
-html[data-bg="blue-magenta"] body { background-image:
+html[data-bg="blue-magenta"] .app-bg { background-image:
     radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.18) 0px, transparent 50%),
     radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.14) 0px, transparent 45%),
     radial-gradient(at 0% 80%, rgba(99, 102, 241, 0.1) 0px, transparent 40%),
@@ -304,7 +304,7 @@ html[data-bg="blue-magenta"] body { background-image:
 }
 
 /* 배경 테마: 메쉬 도트 */
-html[data-bg="mesh-dots"] body {
+html[data-bg="mesh-dots"] .app-bg {
     background-image:
         radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.12) 0px, transparent 1px),
         radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.1) 0px, transparent 1px),
@@ -313,7 +313,7 @@ html[data-bg="mesh-dots"] body {
 }
 
 /* 배경 테마: 오로라 */
-html[data-bg="aurora"] body {
+html[data-bg="aurora"] .app-bg {
     background-image:
         radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.14) 0px, transparent 50%),
         radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.16) 0px, transparent 45%),
@@ -321,13 +321,13 @@ html[data-bg="aurora"] body {
 }
 
 /* 배경 테마: 은은한 */
-html[data-bg="subtle"] body {
+html[data-bg="subtle"] .app-bg {
     background-image:
         radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 70%);
 }
 
 /* 배경 테마: 미니멀 */
-html[data-bg="minimal"] body {
+html[data-bg="minimal"] .app-bg {
     background-image: none;
 }
 
