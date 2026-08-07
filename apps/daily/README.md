@@ -58,6 +58,7 @@ npm run smoke:live    # **배포된 사이트**에서 한 판씩
 
 npm run fetch:all     # 표 셋 갱신 — 한국 시각 자정 직후에 (아래 § 참고)
 npm run check:fresh   # 표가 원본과 어긋났는지 대조 (네트워크)
+npm run check:images  # 표의 그림이 전부 살아 있는지 (1300여 장, 표 갱신 뒤 한 번)
 npm run gen:og        # 공유 카드 그림 다시 만들기 (주제·문구 바뀌면)
 ```
 
