@@ -26,7 +26,9 @@ export function pastRow(topic, day, modes = modesOf(topic)) {
       return (
         `<td><span class="mo">${esc(m.label)}</span>` +
         // 답은 단추 안에 있다 — 가려 둔 동안에도 눌러서 열 수 있어야 하고, 키보드로도 되어야 한다.
-        `<button type="button" class="a">${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button>` +
+        // 그림 주소는 **data- 로만** 둔다. 답은 흐리게 가려져 있어서, 열기 전에는 그림이
+        // 아무 뜻도 없는데 무게만 나간다 (롤은 한 장 훑는 데 1.3MB 였다). 열 때 채운다.
+        `<button type="button" class="a">${a.img ? `<img data-src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button>` +
         // 답만 읽고 나가지 않게 — 그날 그 판을 지금 풀 수 있다. 판마다 따로 걸어야 한다:
         // 하나만 걸면 실루엣 답은 보여 주면서 실루엣은 못 풀게 된다.
         `<a class="play" href="../${m.key ? `${m.key}/` : ''}?d=${date}">풀어보기</a></td>`

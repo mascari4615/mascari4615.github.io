@@ -85,8 +85,17 @@ try {
   revealed = localStorage.getItem(REVEAL_KEY) === '1';
 } catch { /* 사생활 모드 */ }
 
+/** 열린 칸의 그림만 실제로 받아 온다 — 가려진 동안에는 주소만 들고 있는다. */
+function loadShown(scope = table) {
+  for (const img of scope.querySelectorAll('img[data-src]')) {
+    img.src = img.dataset.src;
+    delete img.dataset.src;
+  }
+}
+
 function paintReveal() {
   table.classList.toggle('hide', !revealed);
+  if (revealed) loadShown();
   $reveal.textContent = revealed ? '답 가리기' : '답 모두 보기';
   $reveal.setAttribute('aria-pressed', String(revealed));
 }
@@ -103,7 +112,9 @@ paintReveal();
 // 한 칸만 열기 — 다 열지 않고 하루치만 확인하고 싶은 경우.
 tbody.addEventListener('click', (e) => {
   const cell = e.target.closest('td');
-  if (cell) cell.classList.add('on');
+  if (!cell) return;
+  cell.classList.add('on');
+  loadShown(cell); // 이 칸만 그림을 받는다
 });
 
 if (!tbody.querySelector('tr[data-day]') && cursor < oldest) {

@@ -1244,10 +1244,18 @@ await ctx.close();
     if (!/\.(png|jpg|jpeg|webp)/i.test(r.url())) return;
     try { pastKB += (await r.body()).length / 1024; } catch { /* 취소된 요청 */ }
   });
-  await fpage.goto(`${base}/pokemon/past/`, { waitUntil: 'networkidle' });
-  await fpage.mouse.wheel(0, 4000);
+  // 롤이 가장 무거웠다 — 한 장 훑는 데 1.36MB. 포켓몬만 재면 이 사고를 못 본다.
+  await fpage.goto(`${base}/lol/past/`, { waitUntil: 'networkidle' });
+  await fpage.mouse.wheel(0, 6000);
   await fpage.waitForTimeout(1500);
-  check('★ 지난 문제 그림이 가볍다', pastKB > 0 && pastKB < 120, `${pastKB.toFixed(0)}KB (예전 460KB)`);
+  // 답이 가려져 있는 동안 그림은 아무 뜻도 없다 — 한 장도 안 받아야 한다.
+  check('★ 가려진 동안엔 그림을 안 받는다', pastKB === 0, `${pastKB.toFixed(0)}KB (예전 1359KB)`);
+
+  // 열면 그때 받아 와야 한다 — 안 받아 오면 열어도 빈 자리만 남는다.
+  await fpage.click('.past-reveal button');
+  await fpage.waitForTimeout(2000);
+  const shown = await fpage.$$eval('table.past img', (els) => els.filter((e) => e.naturalWidth > 0).length);
+  check('★ 열면 그때 그림이 온다', pastKB > 0 && shown > 0, `${pastKB.toFixed(0)}KB · ${shown}장`);
   await fresh.close();
 
   // 실루엣만 큰 그림을 쓴다 — 거기선 그림이 전부라 도트로는 못 푼다.
