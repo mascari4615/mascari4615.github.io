@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path';
 import {
   Companion,
   DistillingMemory,
+  clonedSpeech,
   KnownStamps,
   갓알게된것,
   InMemoryMemory,
@@ -307,7 +308,7 @@ const web = webBody({
   // 목소리는 서버에서 만든다 — 이 컴퓨터에 깔린 한국어 목소리는 옛날 것 하나뿐이다.
   // 목소리 — 내 컴퓨터 것과 인터넷 것을 한 목록에 같이 올린다. 어느 쪽이 취향인지는
   // 코드가 아니라 사람이 정한다.
-  speech: (() => {
+  speech: await (async () => {
     const piperRoot = process.env.COMPANION_PIPER_DIR
       ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
     const local = {
@@ -329,6 +330,22 @@ const web = webBody({
       localSpeech.warmUp?.().then(() => console.log('[목소리] 미리 데워 뒀다'));
       engines.push({ label: '내 컴퓨터', speech: localSpeech });
     }
+    /* 흉내 낸 목소리 — 참고 음성을 바꾸면 목소리 자체가 바뀐다.
+       이 컴퓨터에서 도는 별도 프로그램이 떠 있을 때만 목록에 나온다. 안 떠 있는데
+       목록에만 있으면, 골랐다가 아무 소리도 안 나는 게 제일 나쁘다.
+       세우는 법 = `node memo/scripts/setup-cloned-voice.mjs`, 띄우면 목록에 저절로 붙는다. */
+    const 흉내 = clonedSpeech({
+      refAudioPath: process.env.COMPANION_CLONE_REF
+        ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'tsukuyomi', 'ref.wav'),
+      refText: process.env.COMPANION_CLONE_REF_TEXT
+        ?? 'また、東寺のように、五大明王と呼ばれる、主要な明王の中央に配されることも多い。',
+      label: '흉내 낸 목소리',
+    });
+    if (await 흉내.alive()) {
+      engines.push({ label: '흉내', speech: 흉내 });
+      console.log('[목소리] 흉내 낸 목소리도 쓸 수 있다');
+    }
+
     engines.push({
       label: '인터넷',
       // 손으로 적어 둔 결(「밝게」·「나른하게」)은 걷어냈다. 목록만 네 배로 부풀리고
