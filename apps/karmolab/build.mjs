@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { execFileSync } from 'node:child_process';
 import { discoverEntryPoints } from './scripts/entry-points.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -57,6 +58,24 @@ const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 // 이 판 표식을 파일로도 남긴다 — 도구 페이지 생성기가 **같은 값**으로 미리받기 주소를 만든다.
 // (두 값이 어긋나면 같은 위젯을 두 번 받는다. 실측으로 그랬다.)
 writeFileSync(join(root, '.build-stamp'), buildStamp, 'utf8');
+
+/* 「올린 것이 진짜 사람 화면에 닿았나」를 기계가 물어볼 수 있게 표식을 **주소로** 내놓는다
+ * (TASK-KL-124). 여태는 올렸다는 사실까지만 알았다 — 실제로 옛 판이 계속 서빙되는 걸
+ * 한참 뒤에 눈으로 발견한 적이 있다. 이 파일이 있으면 배포 뒤에 한 번 물어보면 끝난다.
+ * 시각 표식만으로는 「어느 커밋인지」를 알 수 없어 커밋도 같이 적는다. */
+const buildCommit = (() => {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  } catch {
+    return 'unknown'; // git 이 없는 곳에서 빌드해도 빌드는 계속돼야 한다
+  }
+})();
+writeFileSync(
+  join(root, 'build.json'),
+  JSON.stringify({ stamp: buildStamp, commit: buildCommit, builtAt: new Date().toISOString() }, null, 2) + '\n',
+  'utf8',
+);
 
 await esbuild.build({
   entryPoints: [join(root, 'src/toolbox.ts')],

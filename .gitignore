@@ -97,3 +97,5 @@ apps/karmolab/css/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9
 
 # 판 표식 — `build.mjs` 가 남기고 생성기가 읽는다 (TASK-KL-128).
 apps/karmolab/.build-stamp
+# 「올린 것이 실제로 서빙되나」를 물어보려고 빌드가 내놓는 표식 (TASK-KL-124)
+apps/karmolab/build.json
