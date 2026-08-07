@@ -22,6 +22,7 @@ import {
   puzzleNumber,
   shareRow,
   shareText,
+  streakLine,
   suggest,
   triesLabel,
   updateStats,
@@ -203,7 +204,8 @@ if (practice) {
 
 function renderStreak() {
   const live = liveStreak(streak ?? {}, dayNumber);
-  $streak.innerHTML = live > 0 ? `🔥 <b>${live}</b>일 연속` : '';
+  // 살아 있으면 숫자를 진하게, 끊겼으면 끊겼다고 말한다 (허브와 같은 말).
+  $streak.innerHTML = live > 0 ? `🔥 <b>${live}</b>일 연속` : esc(streakLine(streak, dayNumber));
 }
 
 // ── 실루엣: 틀릴수록 밝아진다 ──────────────────────────────────────────────

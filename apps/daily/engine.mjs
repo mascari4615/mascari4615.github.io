@@ -243,6 +243,22 @@ export function liveStreak(stats, dayNumber) {
 }
 
 /**
+ * 연속 기록 한 줄 — **끊겼으면 끊겼다고 말한다.**
+ *
+ * 지금까지는 살아 있으면 🔥, 죽으면 그냥 사라졌다. 매일 오던 사람이 하루 걸러서 왔는데
+ * 불꽃만 조용히 없어지면, 본인은 기록이 사라진 줄도 왜 사라졌는지도 모른다.
+ * 자기 기록이니 자기가 알아야 한다.
+ */
+export function streakLine(streak, dayNumber) {
+  const live = liveStreak(streak ?? {}, dayNumber);
+  if (live > 0) return `🔥 ${live}일 연속`;
+  const best = streak?.best ?? 0;
+  if (!best) return '';
+  const missed = streak?.lastDay ? dayNumber - streak.lastDay - 1 : 0;
+  return `연속이 끊겼어요 (최고 ${best}일${missed > 0 ? ` · ${missed}일 걸렀다` : ''}) — 오늘 한 판이면 다시 1일`;
+}
+
+/**
  * 「그날로 못 가는 이유」 — 못 가는 것 자체는 규칙이 정하지만, **왜인지 말해 줘야** 한다.
  *
  * 지금까지는 `?d=` 가 열 수 없는 날이면 아무 말 없이 오늘 판이 열렸다. 지난 문제 목록이

@@ -18,6 +18,7 @@ import {
   puzzleNumber,
   shareRow,
   shareText,
+  streakLine,
   suggest,
   triesLabel,
   whyNoPractice,
@@ -275,4 +276,13 @@ test('그날로 못 가면 왜인지 말해 준다', () => {
   assert.equal(whyNoPractice('2025-12-31', now), 'before');
   assert.equal(whyNoPractice('어제', now), 'bad');
   assert.equal(whyNoPractice('2026-13-40', now), 'bad');
+});
+
+test('연속이 끊기면 끊겼다고 말한다', () => {
+  // 불꽃만 조용히 사라지면 본인은 기록이 왜 없어졌는지 모른다 — 자기 기록이니 자기가 알아야 한다.
+  assert.equal(streakLine({ streak: 3, best: 5, lastDay: 100 }, 100), '🔥 3일 연속');
+  assert.equal(streakLine({ streak: 3, best: 5, lastDay: 99 }, 100), '🔥 3일 연속', '오늘이 끝나야 끊긴다');
+  assert.match(streakLine({ streak: 3, best: 5, lastDay: 96 }, 100), /끊겼어요 \(최고 5일 · 3일 걸렀다\)/);
+  assert.equal(streakLine(null, 100), '', '한 번도 안 온 사람에겐 아무 말도 안 한다');
+  assert.equal(streakLine({ streak: 0, best: 0, lastDay: null }, 100), '');
 });
