@@ -855,34 +855,85 @@ const $browseOpen = root.querySelector('.browse-open');
 const $browse = root.querySelector('.browse');
 const $browseGrid = root.querySelector('.browse-grid');
 
-function renderBrowse() {
-  if (!$browseGrid || $browse.hidden) return;
-  /* 걸러내기는 추천 목록이 쓰는 것과 **같은 함수**를 쓴다 (첫 자음 검색까지 그대로 따라간다).
-   * 칸이 비었을 때만 여기서 전부를 늘어놓는다 — 그때는 추천이 아무것도 안 주기 때문이다. */
-  const q = $input.value.trim();
-  let list = q
-    ? suggest(topic.items, q, { limit: topic.items.length, exclude: state.guesses })
-    : topic.items.filter((it) => !state.guesses.some((g) => findItem([it], g)));
-  $browseGrid.innerHTML = list.length
-    ? list
-        .map(
-          (it) =>
-            `<button type="button" role="option" aria-selected="false" data-name="${esc(it.name)}">${
-              it.img && mode !== 'silhouette' ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : ''
-            }<span>${esc(it.name)}</span></button>`,
-        )
-        .join('')
-    : '<p class="browse-empty">걸러진 것이 없어요. 위 칸을 비우거나 다른 말로 찾아보세요.</p>';
-  // Tab 한 번에 목록을 지나가게 둔다 — 안에서는 화살표로 옮긴다(첫 항목만 Tab 대상).
-  const items = [...$browseGrid.querySelectorAll('button')];
-  items.forEach((b, i) => {
-    b.setAttribute('tabindex', i === 0 ? '0' : '-1');
+/* 한 번에 몇 개까지 그릴까 (TASK-KL-089).
+ * 1,025마리를 통째로 그리면 **보급형 폰에서 1.4초가 멈춘다**(CPU 4배 느리게 실측) —
+ * 그림도 천 장을 걸어 둔다. 사람이 실제로 보는 건 맨 위 몇 줄이다. 먼저 이만큼만 그리고,
+ * 바닥에 닿으면 이어 붙인다. 걸러서 몇 개만 남는 흔한 경우에는 애초에 한 번에 다 그려진다. */
+const BROWSE_CHUNK = 120;
+let browseList = [];
+let browseShown = 0;
+let browseEye = null;
+
+/** 목록 조각 하나를 이어 붙인다. */
+function browseAppend() {
+  const slice = browseList.slice(browseShown, browseShown + BROWSE_CHUNK);
+  if (!slice.length) return;
+  const frag = document.createElement('div');
+  frag.innerHTML = slice
+    .map(
+      (it) =>
+        `<button type="button" role="option" aria-selected="false" data-name="${esc(it.name)}">${
+          it.img && mode !== 'silhouette' ? `<img src="${esc(it.img)}" alt="" loading="lazy">` : ''
+        }<span>${esc(it.name)}</span></button>`,
+    )
+    .join('');
+  for (const b of [...frag.children]) {
+    // Tab 한 번에 목록을 지나가게 둔다 — 안에서는 화살표로 옮긴다(첫 항목만 Tab 대상).
+    b.setAttribute('tabindex', browseShown === 0 && b === frag.children[0] ? '0' : '-1');
     b.addEventListener('click', () => {
       submit(b.dataset.name);
       // 낸 것은 목록에서 빠져야 한다 — 안 그러면 같은 것을 또 누른다.
       renderBrowse();
     });
-  });
+    $browseGrid.append(b);
+  }
+  browseShown += slice.length;
+  // 다 그렸으면 바닥 감시도 거둔다 — 남겨 두면 스크롤할 때마다 헛일을 한다.
+  if (browseShown >= browseList.length && browseEye) {
+    browseEye.disconnect();
+    browseEye = null;
+    $browseGrid.querySelector('.browse-more')?.remove();
+  }
+}
+
+function renderBrowse() {
+  if (!$browseGrid || $browse.hidden) return;
+  /* 걸러내기는 추천 목록이 쓰는 것과 **같은 함수**를 쓴다 (첫 자음 검색까지 그대로 따라간다).
+   * 칸이 비었을 때만 여기서 전부를 늘어놓는다 — 그때는 추천이 아무것도 안 주기 때문이다. */
+  const q = $input.value.trim();
+  browseList = q
+    ? suggest(topic.items, q, { limit: topic.items.length, exclude: state.guesses })
+    : topic.items.filter((it) => !state.guesses.some((g) => findItem([it], g)));
+  browseShown = 0;
+  if (browseEye) {
+    browseEye.disconnect();
+    browseEye = null;
+  }
+  $browseGrid.innerHTML = browseList.length
+    ? ''
+    : '<p class="browse-empty">걸러진 것이 없어요. 위 칸을 비우거나 다른 말로 찾아보세요.</p>';
+  if (!browseList.length) return;
+  browseAppend();
+  if (browseShown < browseList.length) {
+    // 바닥에 닿는 것을 알려 줄 표식 하나. 스크롤 값을 재지 않으므로 어느 상자에서나 맞다.
+    const more = el('<div class="browse-more" aria-hidden="true"></div>');
+    $browseGrid.append(more);
+    browseEye = new IntersectionObserver(
+      (rows) => {
+        if (rows.some((r) => r.isIntersecting)) {
+          $browseGrid.querySelector('.browse-more')?.remove();
+          browseAppend();
+          if (browseShown < browseList.length) {
+            $browseGrid.append(more);
+          }
+        }
+      },
+      // 스크롤은 **목록 상자**가 한다 (바깥 .browse 는 overflow:hidden 이라 거기로 걸면
+      // 표식이 영영 화면 안에 있는 것으로 보여 한 조각도 더 안 붙었다 — 실측).
+      { root: $browseGrid, rootMargin: '200px' },
+    );
+    browseEye.observe(more);
+  }
 }
 
 /* 키보드로 들어가면 못 나온다 (TASK-KL-089).
