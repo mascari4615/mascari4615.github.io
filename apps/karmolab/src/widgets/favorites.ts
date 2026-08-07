@@ -31,19 +31,81 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         return false;
     }
 
-    function getToolboxToolsGroup(): FavoriteGroup | null {
+    /**
+     * 도구를 **주제별로** 나눈다 (TASK-KL-096).
+     *
+     * 예전에는 백 개가 넘는 도구를 「Toolbox」 한 덩어리에 통째로 쏟아 놨다. 이름을 이미 아는
+     * 사람만 쓸 수 있는 화면이다 — 도구 전체 목록(/karmolab/t/)은 같은 도구를 열다섯 주제로
+     * 나눠 보여 주는데 즐겨찾기만 안 나뉘어 있었다.
+     *
+     * **분류를 여기서 새로 적지 않는다.** 목록 페이지가 쓰는 것과 같은 두 곳에서 읽는다:
+     *   ① 묶음 위젯 소속 (지연 메타의 `bundle`) — 「PDF 도구」·「소리 도구」 같은 주제
+     *   ② 묶음이 없으면 도구가 등록할 때 밝힌 갈래 (`category` → Toolbox.getCategories 의 이름)
+     * 손으로 한 벌 더 적어 두면 그날부터 목록과 즐겨찾기가 서로 다른 분류를 말하게 된다.
+     *
+     * 묶음 자신(예: `pdf`)은 항목에서 뺀다 — 소제목이 그 자리이고, 부분을 누르면 어차피
+     * 묶음이 그 탭으로 열린다. 남겨 두면 같은 것이 제목과 항목에 두 번 나온다.
+     */
+    function getToolboxToolGroups(): FavoriteGroup[] {
         const tools = typeof Toolbox !== 'undefined' && Toolbox.getTools ? Toolbox.getTools() : [];
-        const items: FavoriteItem[] = tools
+        const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
+        /* 묶음 소속은 **지연 메타**에서 직접 읽는다. Toolbox.findBundleFor 는 그 묶음이 이미
+         * 로드됐을 때만 답하는데, 즐겨찾기는 첫 화면이라 대부분 아직 안 로드돼 있다 —
+         * 그걸 쓰면 거의 다 「그 밖에」로 떨어져 나뉜 척만 하는 화면이 된다. */
+        const bundleOf = (id: string): string | null => meta[id]?.bundle || null;
+        const isBundleParent = new Set(
+            Object.keys(meta)
+                .map((id) => bundleOf(id))
+                .filter((b): b is string => !!b)
+        );
+
+        const cats = Toolbox.getCategories?.() || [];
+        const catLabel = new Map<string, string>(cats.map((c) => [c.id, c.label] as [string, string]));
+        const catOrder = cats.map((c) => c.id);
+        const ETC = '그 밖에';
+
+        type Bucket = { title: string; fromBundle: boolean; catRank: number; items: FavoriteItem[] };
+        const buckets = new Map<string, Bucket>();
+
+        tools
             .filter((t) => {
                 // 묶음의 탭으로 들어간 도구는 사이드바에선 숨겼지만 검색에서는 찾을 수 있어야 한다
                 // (부르면 묶음의 그 탭이 열린다).
-                if (t.hidden && !Toolbox.findBundleFor?.(t.id)) return false;
+                if (t.hidden && !bundleOf(t.id)) return false;
                 // 데스크톱 전용 (desktopOnly 또는 legacy category=desktop) = 브라우저 hide
                 if ((t.desktopOnly === true || t.category === 'desktop') && !Toolbox.isDesktopApp?.()) return false;
+                if (isBundleParent.has(t.id)) return false;
                 return true;
             })
-            .map((t) => ({ type: 'tool' as const, toolId: t.id, label: t.title || t.id, icon: t.icon || '' }));
-        return items.length ? { group: 'Toolbox', items } : null;
+            .forEach((t) => {
+                const b = bundleOf(t.id);
+                const key = b ? `b:${b}` : `c:${t.category || ''}`;
+                let bucket = buckets.get(key);
+                if (!bucket) {
+                    const title = b
+                        ? meta[b]?.title || tools.find((x) => x.id === b)?.title || b
+                        : catLabel.get(t.category || '') || ETC;
+                    bucket = {
+                        title,
+                        fromBundle: !!b,
+                        catRank: b ? -1 : catOrder.indexOf(t.category || ''),
+                        items: []
+                    };
+                    buckets.set(key, bucket);
+                }
+                bucket.items.push({ type: 'tool' as const, toolId: t.id, label: t.title || t.id, icon: t.icon || '' });
+            });
+
+        // 순서: 주제 묶음이 먼저(큰 것부터 — 목록 페이지와 같은 규칙), 그다음 갈래, 「그 밖에」는 맨 끝.
+        return [...buckets.values()]
+            .sort((a, b) => {
+                if (a.fromBundle !== b.fromBundle) return a.fromBundle ? -1 : 1;
+                if (a.fromBundle) return b.items.length - a.items.length;
+                const ra = a.catRank < 0 ? 99 : a.catRank;
+                const rb = b.catRank < 0 ? 99 : b.catRank;
+                return ra - rb;
+            })
+            .map((b) => ({ group: b.title, items: b.items }));
     }
 
     function getFaviconUrl(item: FavoriteItem): string {
@@ -87,22 +149,17 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
 
     function buildGroups(defaultGroups: FavoriteGroup[], customGroups: FavoriteGroup[] | null): FavoriteGroup[] {
         const merged: FavoriteGroup[] = [];
-        const toolboxGroup = getToolboxToolsGroup();
-        if (toolboxGroup) merged.push(toolboxGroup);
-        defaultGroups.forEach(g => merged.push({
-            group: g.group,
-            items: g.items.map(it => ({ ...it, isCustom: false }))
-        }));
+        merged.push(...getToolboxToolGroups());
+        /* 같은 이름이면 한 칸에 합친다. 도구 갈래 이름(「도구」)과 즐겨찾기 기본 그룹 이름이
+         * 겹치는데, 그냥 밀어 넣으면 같은 제목의 칸이 화면에 두 번 뜬다 (TASK-KL-096). */
+        const into = (name: string, items: FavoriteItem[]): void => {
+            const existing = merged.find((m) => m.group === name);
+            if (existing) existing.items.push(...items);
+            else merged.push({ group: name, items });
+        };
+        defaultGroups.forEach((g) => into(g.group, g.items.map((it) => ({ ...it, isCustom: false }))));
         if (customGroups && Array.isArray(customGroups)) {
-            customGroups.forEach((cg) => {
-                const existing = merged.find((m) => m.group === cg.group);
-                const customItems = (cg.items || []).map((it) => ({ ...it, isCustom: true }));
-                if (existing) {
-                    existing.items.push(...customItems);
-                } else {
-                    merged.push({ group: cg.group, items: customItems });
-                }
-            });
+            customGroups.forEach((cg) => into(cg.group, (cg.items || []).map((it) => ({ ...it, isCustom: true }))));
         }
         return merged;
     }

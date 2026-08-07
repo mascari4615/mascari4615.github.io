@@ -58,6 +58,12 @@ const Toolbox = (() => {
         { id: 'lab', label: '실험실 · 개발중', icon: '<path d="M9 3h6v5l4 4v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7l4-4V3z"/><path d="M9 3h6"/>' },
     ];
 
+    /** 갈래 목록 (id·label·icon) — 화면 여러 곳이 같은 이름을 써야 하므로 여기서만 정의한다.
+     *  손으로 라벨을 한 벌 더 적으면 메뉴와 즐겨찾기가 서로 다른 이름으로 갈라진다. */
+    function getCategories() {
+        return CATEGORIES.map((c) => ({ ...c }));
+    }
+
     /** 위젯별 메타데이터 (category, desc, hidden, desktopOnly 등) — 각 위젯 register에서 정의 */
     function getToolMeta(id) {
         const t = tools.find(x => x.id === id);
@@ -1560,6 +1566,7 @@ const Toolbox = (() => {
 
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
+        getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
         showToast, displayResult, copyResult, copyText, trackUse, toggleCollapsible,
