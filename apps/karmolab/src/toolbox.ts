@@ -1685,9 +1685,11 @@ const Toolbox = (() => {
             // TASK-KL-099 — 첫 화면이 실제로 보이게 된 다음에 포커스를 준다. 그리기 전에
             // 주면 화면이 튄다. 최근 목록도 이때 다시 그린다 — 도구를 쓰고 돌아왔으면
             // 그것이 맨 위여야 한다.
+            /* 첫 화면에 들어서자마자 찾는 칸을 잡지 않는다 (TASK-KL-129, 사용자 요청).
+             * 잡으면 목록이 곧바로 펼쳐져, 접어 둔 뜻이 없어진다 — 아직 아무것도 안 물어봤는데
+             * 답이 먼저 나와 화면 절반을 차지한다. 칠 마음이 있는 사람은 누르거나 ⌘K 를 쓴다. */
             requestAnimationFrame(() => {
                 window.KarmoPalette?.refresh();
-                window.KarmoPalette?.focusInline();
             });
             if (typeof Mdd !== 'undefined') {
                 Mdd.linePreset('home_hub');
