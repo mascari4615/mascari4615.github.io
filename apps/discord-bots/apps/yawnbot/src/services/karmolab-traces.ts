@@ -551,11 +551,30 @@ export class KarmolabTraceStore {
       .map((p) => this.toPublic(p, viewerAccountId));
   }
 
-  /** 판마다 글이 몇 개인지 — 목록 위 판 고르는 줄에 실제 수를 띄운다. */
+  /** 갤러리마다 글이 몇 개인지 — 고르는 줄에 실제 수를 띄운다. */
   boardCounts(): Record<string, number> {
     const counts: Record<string, number> = {};
     for (const post of this.state.posts) counts[post.board] = (counts[post.board] ?? 0) + 1;
     return counts;
+  }
+
+  /**
+   * 갤러리 한 줄 요약 — 목록 화면이 쓴다.
+   * 글 수만 있으면 어느 갤러리가 살아 있는지 모른다. **마지막 글 제목과 시각**이 있어야
+   * 「여기 지금 뭐가 오가나」가 보인다.
+   */
+  boardSummaries(): Record<string, { count: number; lastTitle: string | null; lastAt: string | null }> {
+    const out: Record<string, { count: number; lastTitle: string | null; lastAt: string | null }> = {};
+    for (const post of this.state.posts) {
+      const entry = out[post.board] ?? { count: 0, lastTitle: null, lastAt: null };
+      entry.count += 1;
+      if (!entry.lastAt || post.bumpedAt > entry.lastAt) {
+        entry.lastAt = post.bumpedAt;
+        entry.lastTitle = post.title ?? post.text.slice(0, 40);
+      }
+      out[post.board] = entry;
+    }
+    return out;
   }
 
   /** 이 사람이 쓴 글·답글 수 — 공개 프로필의 「활동」. */
