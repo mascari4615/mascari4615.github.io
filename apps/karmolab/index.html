@@ -234,6 +234,12 @@ permalink: /karmolab/
                         <span class="sidebar-dev-links-icon" aria-hidden="true">◉</span>
                         <span class="sidebar-dev-links-text">오늘의 하나 맞히기</span>
                     </a>
+                    <!-- 상태 · 변경 기록 (TASK-KL-098). 「지금 잘 도나」와 「무엇이 바뀌었나」를
+                         밝히는 자리가 없으면, 조용히 망가져도 아무도 모르는 사이트가 된다. -->
+                    <a href="#status" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('status');return false}" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">◇</span>
+                        <span class="sidebar-dev-links-text">상태 · 변경 기록</span>
+                    </a>
                     <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">i</span>
                         <span class="sidebar-dev-links-text">누가 만들었나요?</span>
