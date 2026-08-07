@@ -10,7 +10,10 @@
  */
 
 import type { Paint, Rect, Surface, SurfaceShape } from '../surface.js';
-import { measureCandidates, pickTileGroup, subdivisionFor } from './discover.js';
+import { measureCandidates, pickTileGroups, subdivisionFor } from './discover.js';
+
+/** 화면 배치를 다시 재는 간격 (밀리초). 매 프레임 훑으면 그리는 시간보다 재는 시간이 커진다. */
+const RESCAN_MS = 400;
 
 export interface DomTilesOptions {
 	/**
@@ -64,17 +67,30 @@ export class DomTilesSurface implements Surface {
 	private cells: { rect: Rect; cols: number; rows: number }[] = [];
 	private cols = 0;
 	private rows = 0;
+	/** 마지막으로 화면을 다시 훑은 시각. 매 프레임 훑지 않으려고 들고 있다. */
+	private measuredAt = 0;
+	private cachedShape: SurfaceShape | null | undefined = undefined;
+	/** 칸을 화면 격자에 대응시킬 때 쓰는 기준 자리 — 잴 때 한 번 구해 두고 칠할 때 다시 쓴다. */
+	private span = { left: 0, top: 0, width: 1, height: 1 };
 
 	constructor(private readonly options: DomTilesOptions) {}
 
 	measure(): SurfaceShape | null {
+		// 화면을 **매 프레임 다시 훑지 않는다.** 배치는 초당 열댓 번씩 바뀌는 것이 아니다 —
+		// 창 크기가 바뀌거나 스크롤하거나 도구가 열릴 때 바뀐다. 그런데 그때를 일일이 알아채려
+		// 하면 결국 화면 쪽에 매달리게 되므로, 그냥 짧은 간격으로 다시 잰다.
+		const now = Date.now();
+		if (this.cachedShape !== undefined && now - this.measuredAt < RESCAN_MS) return this.cachedShape;
+		this.measuredAt = now;
+
 		const root = this.options.root ?? document;
 		const found = this.options.selector
 			? visibleRects(Array.from(root.querySelectorAll(this.options.selector)))
-			: pickTileGroup(measureCandidates(root), { viewportArea: (window.innerWidth || 1) * (window.innerHeight || 1) }).map(
-					(item) => ({ element: null, rect: item.rect })
-				);
+			: pickTileGroups(measureCandidates(root), {
+					viewportArea: (window.innerWidth || 1) * (window.innerHeight || 1)
+				}).map((item) => ({ element: null, rect: item.rect }));
 		if (found.length === 0) {
+			this.cachedShape = null;
 			this.cells = [];
 			return null;
 		}
@@ -114,12 +130,14 @@ export class DomTilesSurface implements Surface {
 			cols: Math.max(1, Math.round((item.rect.width / boundsWidth) * this.cols)),
 			rows: Math.max(1, Math.round((item.rect.height / boundsHeight) * this.rows))
 		}));
+		this.span = { left, top, width: boundsWidth, height: boundsHeight };
 
-		return {
+		this.cachedShape = {
 			cols: this.cols,
 			rows: this.rows,
 			rect: { x: left, y: top, width: boundsWidth, height: boundsHeight }
 		};
+		return this.cachedShape;
 	}
 
 	paint(paint: Paint): void {
@@ -133,20 +151,12 @@ export class DomTilesSurface implements Surface {
 		const on = this.options.onColor ?? style.color ?? '#000';
 		const off = this.options.offColor;
 
-		// 각 타일이 전체 격자에서 차지하는 시작 칸을 다시 계산한다 — 잰 직후라 자리는 그대로다.
-		let left = Infinity;
-		let top = Infinity;
-		let right = -Infinity;
-		let bottom = -Infinity;
-		for (const cell of this.cells) {
-			left = Math.min(left, cell.rect.x);
-			top = Math.min(top, cell.rect.y);
-			right = Math.max(right, cell.rect.x + cell.rect.width);
-			bottom = Math.max(bottom, cell.rect.y + cell.rect.height);
-		}
-		const boundsWidth = Math.max(1, right - left);
-		const boundsHeight = Math.max(1, bottom - top);
+		// 기준 자리는 잴 때 구해 둔 것을 쓴다 — 칠할 때마다 다시 구할 이유가 없다.
+		const { left, top, width: boundsWidth, height: boundsHeight } = this.span;
 
+		// 칸을 하나씩 칠하지 않는다. 실루엣은 켜진 칸이 가로로 길게 이어져서, **이어진 만큼
+		// 한 번에** 칠하면 그리기 호출이 몇 배로 줄어든다 (같은 그림, 같은 결과).
+		ctx.fillStyle = on;
 		for (const cell of this.cells) {
 			const startCol = Math.floor(((cell.rect.x - left) / boundsWidth) * paint.cols);
 			const startRow = Math.floor(((cell.rect.y - top) / boundsHeight) * paint.rows);
@@ -154,16 +164,41 @@ export class DomTilesSurface implements Surface {
 			const cellHeight = cell.rect.height / cell.rows;
 
 			for (let gy = 0; gy < cell.rows; gy++) {
-				for (let gx = 0; gx < cell.cols; gx++) {
-					const lit = paint.at(startCol + gx, startRow + gy);
-					if (!lit && !off) continue;
-					ctx.fillStyle = lit ? on : (off as string);
-					ctx.fillRect(
-						cell.rect.x + gx * cellWidth,
-						cell.rect.y + gy * cellHeight,
-						Math.ceil(cellWidth),
-						Math.ceil(cellHeight)
-					);
+				let runStart = -1;
+				for (let gx = 0; gx <= cell.cols; gx++) {
+					const lit = gx < cell.cols && paint.at(startCol + gx, startRow + gy);
+					if (lit && runStart < 0) runStart = gx;
+					else if (!lit && runStart >= 0) {
+						ctx.fillRect(
+							cell.rect.x + runStart * cellWidth,
+							cell.rect.y + gy * cellHeight,
+							Math.ceil((gx - runStart) * cellWidth),
+							Math.ceil(cellHeight)
+						);
+						runStart = -1;
+					}
+				}
+			}
+		}
+
+		// 꺼진 칸에도 색을 칠하라고 한 경우에만 한 번 더 돈다 (평소엔 안 쓴다).
+		if (off) {
+			ctx.fillStyle = off;
+			for (const cell of this.cells) {
+				const startCol = Math.floor(((cell.rect.x - left) / boundsWidth) * paint.cols);
+				const startRow = Math.floor(((cell.rect.y - top) / boundsHeight) * paint.rows);
+				const cellWidth = cell.rect.width / cell.cols;
+				const cellHeight = cell.rect.height / cell.rows;
+				for (let gy = 0; gy < cell.rows; gy++) {
+					for (let gx = 0; gx < cell.cols; gx++) {
+						if (paint.at(startCol + gx, startRow + gy)) continue;
+						ctx.fillRect(
+							cell.rect.x + gx * cellWidth,
+							cell.rect.y + gy * cellHeight,
+							Math.ceil(cellWidth),
+							Math.ceil(cellHeight)
+						);
+					}
 				}
 			}
 		}
@@ -174,6 +209,9 @@ export class DomTilesSurface implements Surface {
 		this.layer = null;
 		this.ctx = null;
 		this.cells = [];
+		// 재 둔 것을 버린다 — 다시 붙었을 때 옛 배치로 그리면 화면이 그 사이 바뀌었을 수 있다.
+		this.cachedShape = undefined;
+		this.measuredAt = 0;
 	}
 
 	private ensureLayer(): CanvasRenderingContext2D | null {
