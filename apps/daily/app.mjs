@@ -562,7 +562,7 @@ function submit(name, how = '직접') {
   renderSeeds();
   paintShot();
   $input.value = '';
-  $sug.innerHTML = '';
+  setSug('');
   if (state.status !== 'playing') {
     if (!practice) {
       // 연습은 기록에 안 들어간다 — 지난 문제를 몰아 풀어 연속을 만들 수 있으면 기록이 뜻을 잃는다.
@@ -580,9 +580,24 @@ function submit(name, how = '직접') {
 
 // ── 자동완성 ──
 let cursor = -1;
+/**
+ * 추천 목록을 갈아 끼우는 **한 곳**.
+ *
+ * 입력칸의 `aria-expanded` 가 「true」로 박혀 있었다 — 목록이 비어 있어도 화면 낭독기에는
+ * 늘 「펼쳐짐」으로 들린다. 지금 어느 항목인지 가리키는 표식도 목록이 사라진 뒤 그대로 남아
+ * 없는 것을 가리켰다. 열고 닫는 일을 한 곳으로 모아 둘이 어긋날 수 없게 한다.
+ */
+function setSug(html) {
+  $sug.innerHTML = html;
+  const open = $sug.children.length > 0;
+  $input.setAttribute('aria-expanded', String(open));
+  if (!open) $input.removeAttribute('aria-activedescendant');
+}
+
 function renderSuggestions() {
   const list = suggest(topic.items, $input.value, { exclude: state.guesses });
   cursor = -1;
+  $input.removeAttribute('aria-activedescendant');
 
   /**
    * 없는 이름을 치면 지금까지는 **아무 반응도 없었다** — 오타가 났는데 화면이 침묵하니
@@ -590,16 +605,18 @@ function renderSuggestions() {
    */
   if ($input.value.trim() && !list.length) {
     const already = findItem(topic.items, $input.value);
-    $sug.innerHTML = `<p class="sug-none">${already ? `「${esc(already.name)}」는 이미 냈어요.` : '그런 이름은 없어요. 철자를 확인해 보세요.'}</p>`;
+    setSug(`<p class="sug-none">${already ? `「${esc(already.name)}」는 이미 냈어요.` : '그런 이름은 없어요. 철자를 확인해 보세요.'}</p>`);
     return list;
   }
 
-  $sug.innerHTML = list
+  setSug(
+    list
     .map(
       (item, i) =>
         `<button type="button" role="option" id="sug-${i}" data-i="${i}" aria-selected="false">${item.img && mode !== 'silhouette' ? `<img src="${esc(item.img)}" alt="" loading="lazy">` : ''}<span>${esc(item.name)}</span></button>`,
     )
-    .join('');
+    .join(''),
+  );
   [...$sug.children].forEach((b, i) => b.addEventListener('click', () => submit(list[i].name)));
   return list;
 }
@@ -619,11 +636,11 @@ $input.addEventListener('keydown', (e) => {
     const pick = cursor >= 0 ? buttons[cursor] : buttons[0];
     if (pick) submit(pick.querySelector('span').textContent);
   } else if (e.key === 'Escape') {
-    $sug.innerHTML = '';
+    setSug('');
   }
 });
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('.guessbar')) $sug.innerHTML = '';
+  if (!e.target.closest('.guessbar')) setSug('');
 });
 
 // ── 되살리기 (새로고침해도 오늘 진행은 남는다) ──
