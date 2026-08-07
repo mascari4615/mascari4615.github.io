@@ -148,11 +148,15 @@
     /* 다크의 50% 검정 vignette 를 그대로 쓰면 흰 바닥 가장자리가 때 탄 회색이 된다 */
     --vignette: rgba(109, 91, 208, 0.06);
 
-    /* 위쪽 오로라 띠 — 흰 종이 위라 다크보다 옅게 깐다. 진하면 카드가 물든다. */
-    --aurora-top: linear-gradient(180deg,
-        rgba(163, 148, 240, 0.30) 0%,
-        rgba(201, 194, 240, 0.15) 45%,
-        rgba(255, 255, 255, 0) 100%);
+    /* 홀로그램 쓸기 — 흰 종이 위라 다크보다 옅게 깐다. 진하면 카드가 물든다. */
+    --holo-sweep: linear-gradient(112deg,
+        rgba(150, 132, 246, 0.30) 0%,
+        rgba(215, 168, 240, 0.22) 18%,
+        rgba(255, 255, 255, 0) 34%,
+        rgba(255, 255, 255, 0) 58%,
+        rgba(160, 215, 240, 0.20) 74%,
+        rgba(140, 120, 245, 0.26) 100%);
+    --holo-bloom: radial-gradient(ellipse 120% 60% at 50% -20%, rgba(160, 142, 248, 0.28), transparent 70%);
     /* 흰 바탕에서는 크롬을 밝게 두면 글자가 안 읽힌다 — 중간 톤에서 흰 하이라이트만 스친다. */
     --chrome-grad: linear-gradient(135deg, #8a7ae8 0%, #6d5bd0 30%, #b9a8f0 52%, #6d5bd0 76%, #5847bb 100%);
     --chrome-grad-hover: linear-gradient(135deg, #9b8cf0 0%, #7b69dc 30%, #cdc0f7 52%, #7b69dc 76%, #6d5bd0 100%);
@@ -211,17 +215,19 @@ body:has(> .app-layout) {
 /* 배경 테마: 관측실 (기본) — 그리드 + 어두운 vignette만 (채도 0, 최소 톤) */
 html:not([data-bg]) body,
 html[data-bg="observatory"] body {
-    /* 맨 앞 층 = 위쪽 오로라 띠 (TASK-KL-097). body 배경은 attachment:fixed 라 화면 위에
-       붙어 있고 글은 그 아래로 지나간다 — 읽는 자리를 안 물들이면서 첫인상만 맡는다.
-       띠를 새 요소로 만들지 않은 이유: 도구 목록·상세 페이지도 이 body 를 쓰므로 저절로 따라온다. */
+    /* 앞의 두 층 = 홀로그램 (TASK-KL-097). body 배경은 attachment:fixed 라 화면에 붙어
+       있고 글은 그 위로 지나간다 — 읽는 자리를 안 물들이면서 첫인상만 맡는다.
+       새 요소로 만들지 않은 이유: 도구 목록·상세 페이지도 이 body 를 쓰므로 저절로 따라온다.
+       두 층 다 화면 전체 크기다 — 크기를 줄이면 끝나는 선이 다시 보인다. */
     background-image:
-        var(--aurora-top),
+        var(--holo-sweep),
+        var(--holo-bloom),
         linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-    background-size: 100% 260px, 48px 48px, 48px 48px, auto;
-    background-repeat: no-repeat, repeat, repeat, no-repeat;
-    background-position: top center, 0 0, 0 0, center;
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px, auto;
+    background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
+    background-position: center, center, 0 0, 0 0, center;
 }
 
 /* 배경 테마: 블루 매젠타 */
