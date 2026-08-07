@@ -36,7 +36,9 @@ const BARE = new Set(['minimal']);
 const USES_DEFAULT = new Set(['observatory']);
 
 for (const id of ids) {
-  const before = new RegExp(`html\\[data-bg="${id}"\\][^{]*\\.app-bg::before\\s*\\{`).test(css);
+  // 선택자를 여럿 묶어 쓸 수 있다(진짜 배경 + 설정의 견본이 **같은 값**을 쓴다).
+  // 그래서 `{` 바로 앞이 아니라 묶음 **안에** 있는지를 본다.
+  const before = new RegExp(`html\\[data-bg="${id}"\\][^{]*\\.app-bg::before[^{]*\\{`).test(css);
   const base = new RegExp(`html\\[data-bg="${id}"\\][^{]*\\.app-bg\\s*\\{`).test(css);
 
   if (!before && !USES_DEFAULT.has(id) && !BARE.has(id)) {

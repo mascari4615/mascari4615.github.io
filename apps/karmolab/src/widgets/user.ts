@@ -88,6 +88,9 @@
         .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 16px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; }
         .settings-row label { font-size:var(--font-size-sm); font-weight:500; color:var(--text-primary); white-space:nowrap; flex-shrink:0; }
         .settings-row .settings-control { min-width:140px; }
+        /* 견본처럼 폭이 필요한 것은 한 줄에 나란히 두지 않고 아래로 편다 */
+        .settings-row-stack { display:block; }
+        .settings-row-stack label { display:block; margin-bottom:10px; }
         .settings-section { margin-bottom:24px; }
         .settings-section h3 { font-size:14px; color:var(--text-secondary); margin-bottom:12px; }
         .settings-danger { border-color:var(--error-subtle); background:var(--error-subtle); }
@@ -497,11 +500,18 @@
                             ${prismThemes.map((t) => `<option value="${t.id}" ${t.id === prismTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
                         </select>
                     </div>
-                    <div class="settings-row">
-                        <label for="setBgTheme">배경 테마</label>
-                        <select id="setBgTheme" class="settings-control">
-                            ${bgThemes.map((t) => `<option value="${t.id}" ${t.id === bgTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
-                        </select>
+                    <div class="settings-row settings-row-stack">
+                        <label>배경 테마</label>
+                        <!-- 이름만 늘어놓으면 무엇을 고르는지 알 수 없다. 견본은 진짜 배경과
+                             **같은 스타일 규칙**을 물려받아 그려진다 — 테마를 손보면 견본도 같이
+                             바뀐다 (값을 두 벌 적지 않는다). -->
+                        <div class="settings-bg-picker" id="setBgTheme" role="group" aria-label="배경 테마">
+                            ${bgThemes.map((t) => `
+                                <button type="button" class="bg-swatch" data-bg="${t.id}"
+                                        aria-pressed="${t.id === bgTheme}" title="${t.label}">
+                                    <span class="bg-swatch-name">${t.label}</span>
+                                </button>`).join('')}
+                        </div>
                     </div>
                     <div class="settings-code-preview">
                         <pre class="language-javascript"><code class="language-javascript">function hello() {
@@ -548,12 +558,16 @@
             Toolbox.setPrismTheme?.(target.value);
         });
 
-        container.querySelector<HTMLSelectElement>('#setBgTheme')?.addEventListener('change', (e: Event) => {
-            const target = e.target as HTMLSelectElement | null;
-            if (!target) return;
-            Toolbox.setBgTheme?.(target.value);
-            const label = bgThemes.find((t) => t.id === target.value)?.label || target.value;
-            Toolbox.showToast?.('배경: ' + label);
+        const bgPicker = container.querySelector<HTMLElement>('#setBgTheme');
+        bgPicker?.addEventListener('click', (e: Event) => {
+            const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('.bg-swatch');
+            if (!btn) return;
+            const id = btn.dataset.bg || '';
+            Toolbox.setBgTheme?.(id);
+            bgPicker.querySelectorAll<HTMLElement>('.bg-swatch').forEach((el) => {
+                el.setAttribute('aria-pressed', String(el === btn));
+            });
+            Toolbox.showToast?.('배경: ' + (bgThemes.find((t) => t.id === id)?.label || id));
         });
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
