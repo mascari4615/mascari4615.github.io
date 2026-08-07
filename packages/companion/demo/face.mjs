@@ -25,6 +25,7 @@ import {
   자리결,
   tossBackNote,
   tossBackRetryNote,
+  안하는이유,
   안돌려줬나,
   되물은비율,
   갓알게된것,
@@ -272,7 +273,11 @@ function 공돌려줄자리인가() {
   const 최근 = conversationMemory.recent(12);
   const 목록 = Array.isArray(최근) ? 최근 : [];
   const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
-  return tossBackNote({ recent: 목록, 방금 }) !== '';
+  const 이유 = 안하는이유({ recent: 목록, 방금 });
+  // **왜 안 하는지 남긴다.** 「빔」만 보이면 네 갈래 중 어디서 빠졌는지 몰라 실험을
+  // 다시 돌려야 한다 — 오늘 하루 같은 벽에 세 번 부딪혔다.
+  if (이유 !== null) console.log(`[공] 안 돌려준다 — ${이유}`);
+  return 이유 === null;
 }
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const 시작한때 = Date.now();
