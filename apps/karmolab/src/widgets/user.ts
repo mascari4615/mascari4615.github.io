@@ -121,6 +121,17 @@
             color:var(--bg-primary); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; white-space:nowrap; }
         .user-account-btn:hover { filter:brightness(1.08); }
         .user-account-btn-quiet { background:transparent; color:var(--text-secondary); border-color:var(--border); }
+        .user-act-lead { margin:0 0 10px; font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .user-acts { display:flex; flex-direction:column; border:1px solid var(--border);
+            border-radius:var(--radius-lg); background:var(--bg-secondary); overflow:hidden; }
+        .user-act-row { display:flex; align-items:center; gap:12px; padding:10px 14px;
+            border-top:1px solid var(--border); text-decoration:none; color:inherit; }
+        .user-act-row:first-child { border-top:0; }
+        .user-act-row:hover { background:var(--bg-tertiary); }
+        .user-act-title { flex:1; min-width:0; font-size:var(--font-size-xs); color:var(--text-primary);
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .user-act-meta { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); }
+        .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
     `);
 
     function buildOverview(container: HTMLElement): void {
@@ -168,9 +179,80 @@
                     </div>
                 </div>
                 <div class="user-account-slot" id="userAccountSlot"></div>
+                <div id="userServerSlot"></div>
             </div>`;
 
         renderAccountSlot(container.querySelector('#userAccountSlot'));
+        watchServerSlot(container.querySelector('#userServerSlot'));
+    }
+
+    /**
+     * 서버가 들고 있는 내 것 (TASK-KL-098).
+     *
+     * 지금까지 「내 정보」는 **이 브라우저 안의 것**만 보여 줬다. 그런데 내가 쓴 글·답글은
+     * 서버에 있고, 그건 남의 공개 프로필에서만 볼 수 있었다 — 내 것을 남의 화면으로 봐야 했다.
+     *
+     * 로그인 안 했거나 서버에 못 닿으면 **아무것도 안 그린다**. 여기 없는 게 정상인 상태다.
+     */
+    function watchServerSlot(slot: Element | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+        // 로그인 상태는 처음엔 「아직 모름」이다. 한 번만 물어보면 늘 「없음」으로 끝난다.
+        let drawnFor: string | null = null;
+        account.subscribe((state) => {
+            const handle = state.account?.handle ?? null;
+            if (!handle) {
+                drawnFor = null;
+                slot.innerHTML = '';
+                return;
+            }
+            if (drawnFor === handle) return;
+            drawnFor = handle;
+            void renderServerSlot(slot, handle);
+        });
+    }
+
+    async function renderServerSlot(slot: Element, handle: string): Promise<void> {
+        const account = window.KarmoAccount;
+        const base = account?.apiBase;
+        if (!account || !base || !slot.isConnected) return;
+
+        let activity: { posts?: unknown[]; replies?: unknown[] } | null = null;
+        try {
+            const response = await fetch(`${base}/kl/u/${encodeURIComponent(handle)}/activity`, {
+                credentials: 'include',
+            });
+            if (!response.ok) return;
+            activity = (await response.json()) as { posts?: unknown[]; replies?: unknown[] };
+        } catch {
+            return;
+        }
+        if (!slot.isConnected || !activity) return;
+
+        const posts = Array.isArray(activity.posts) ? activity.posts : [];
+        const replies = Array.isArray(activity.replies) ? activity.replies : [];
+        if (posts.length === 0 && replies.length === 0) return;
+
+        const rows = posts
+            .slice(0, 5)
+            .map((raw) => {
+                const p = raw as { id?: string; title?: string | null; text?: string; votes?: number; replyCount?: number };
+                const heading = p.title || String(p.text ?? '').replace(/\s+/g, ' ').slice(0, 40);
+                return `<a class="user-act-row" href="/karmolab/?p=${encodeURIComponent(String(p.id ?? ''))}#community">
+                            <span class="user-act-title">${escapeHtml(heading)}</span>
+                            <span class="user-act-meta">답글 ${p.replyCount ?? 0}</span>
+                        </a>`;
+            })
+            .join('');
+
+        slot.innerHTML = `
+            <div class="user-section">
+                <h3>🗣 커뮤니티에 남긴 것</h3>
+                <p class="user-act-lead">글 ${posts.length}개 · 답글 ${replies.length}개 — 이건 기기를 바꿔도 남습니다.</p>
+                <div class="user-acts">${rows}</div>
+                <a class="user-act-more" href="/karmolab/u/?h=${encodeURIComponent(handle)}">남에게 보이는 내 프로필 →</a>
+            </div>`;
     }
 
     /**

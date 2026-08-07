@@ -79,6 +79,8 @@
         .st-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--text-tertiary); }
         .st-dot[data-up="1"] { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.18); }
         .st-dot[data-up="0"] { background:#f87171; box-shadow:0 0 0 3px rgba(248,113,113,.18); }
+        .st-feed { color:var(--accent); text-decoration:none; }
+        .st-feed:hover { text-decoration:underline; }
         .st-link { background:none; border:0; padding:0; font:inherit; font-size:11px;
             color:var(--accent); cursor:pointer; }
         .st-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
@@ -207,7 +209,8 @@
                 <div>
                     <div class="st-sec-head">
                         <h3 class="st-sec-title">변경 기록</h3>
-                        <span class="st-sec-note">새 기능 · 고침 · 빨라짐만</span>
+                        <span class="st-sec-note">새 기능 · 고침 · 빨라짐만 ·
+                            <a class="st-feed" href="/karmolab/changes.xml">구독 (RSS)</a></span>
                     </div>
                     <div id="stChanges"></div>
                 </div>

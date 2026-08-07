@@ -539,6 +539,85 @@ describe('판·좋아요·조회 — HTTP', () => {
   });
 });
 
+describe('이슈식 갤러리 — 닫기 권한과 알림', () => {
+  /** 두 번째 사람 — 갤러리 주인과 글쓴이가 달라야 알림이 뜻을 갖는다. */
+  function signInOther(): { cookie: string; handle: string } {
+    const account = store.upsertFromDiscord({
+      discordId: '99',
+      username: 'other',
+      displayName: '다른 사람',
+      avatarUrl: null,
+    });
+    const { token } = store.createSession(account.id);
+    return { cookie: `kl_session=${encodeURIComponent(token)}`, handle: account.handle };
+  }
+
+  it('갤러리를 만든 사람은 자기 갤러리 글을 닫을 수 있다 — 아무도 못 닫으면 열린 글만 쌓인다', async () => {
+    const owner = signIn();
+    const made = await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: owner.cookie },
+      body: JSON.stringify({ id: 'todo', label: '할 일', desc: '해야 할 것' }),
+    });
+    expect(made.status).toBe(200);
+
+    // 이슈식으로 바꾼다 (만든 사람이므로 통과해야 한다)
+    const styled = await fetch(`${baseUrl}/kl/boards/todo`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: owner.cookie },
+      body: JSON.stringify({ issueStyle: true }),
+    });
+    expect(styled.status).toBe(200);
+
+    const writer = signInOther();
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: writer.cookie },
+      body: JSON.stringify({ board: 'todo', title: '고쳐 주세요', text: '이게 안 돼요' }),
+    });
+    const id = ((await posted.json()) as { id: string }).id;
+
+    // 주인이 아니어도, 갤러리를 만든 사람이면 닫을 수 있다
+    const closed = await fetch(`${baseUrl}/kl/posts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: owner.cookie },
+      body: JSON.stringify({ status: 'done', statusNote: '고쳤어요' }),
+    });
+    expect(closed.status).toBe(200);
+
+    // 글쓴이에게 알림이 가 있어야 한다 — 안 가면 요청한 사람은 영영 모른다
+    const bell = await fetch(`${baseUrl}/kl/notifications`, { headers: { Cookie: writer.cookie } });
+    const inbox = (await bell.json()) as { items: Array<{ title: string; body: string | null }> };
+    expect(inbox.items.length).toBeGreaterThan(0);
+    expect(inbox.items[0].title).toContain('고쳐 주세요');
+    expect(inbox.items[0].body).toBe('고쳤어요');
+  });
+
+  it('상관없는 사람은 못 닫는다', async () => {
+    const owner = signIn();
+    await fetch(`${baseUrl}/kl/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: owner.cookie },
+      body: JSON.stringify({ id: 'todo2', label: '할 일2', desc: '해야 할 것' }),
+    });
+    const stranger = signInOther();
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: stranger.cookie },
+      body: JSON.stringify({ board: 'todo2', title: '글', text: '내용' }),
+    });
+    const id = ((await posted.json()) as { id: string }).id;
+
+    // 자기 글이어도 상태는 못 바꾼다 — 상태는 갤러리를 맡은 사람의 판단이다
+    const denied = await fetch(`${baseUrl}/kl/posts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: stranger.cookie },
+      body: JSON.stringify({ status: 'done' }),
+    });
+    expect(denied.status).toBe(403);
+  });
+});
+
 describe('갤러리 만들기 — HTTP', () => {
   it('로그인해야 만든다', async () => {
     const res = await fetch(`${baseUrl}/kl/boards`, {
