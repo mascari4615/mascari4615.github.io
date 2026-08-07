@@ -282,9 +282,24 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-search input { padding:5px 10px; border-radius:var(--radius); border:1px solid var(--border);
             background:var(--bg-secondary); color:var(--text-primary); font:inherit; font-size:11px; width:150px; }
 
+        .c-imgbar { display:flex; align-items:center; gap:8px; }
+        .c-search-all { margin-bottom:16px; }
+        .c-search-all input { width:100%; padding:9px 12px; font-size:var(--font-size-xs); }
+        .md img { max-width:100%; height:auto; border-radius:var(--radius); display:block; margin:8px 0; }
+
+        /* 폰 — 표를 그대로 두면 칸이 눌려 아무것도 안 읽힌다. 줄 하나로 접는다. */
         @media (max-width: 620px) {
-            .c-num, .c-when, .c-cnt { display:none; }
-            .c-who { width:96px; }
+            .c-table thead { display:none; }
+            .c-table, .c-table tbody, .c-table tr, .c-table td { display:block; width:auto; }
+            .c-table tbody tr { padding:10px 2px; border-bottom:1px solid var(--border); }
+            .c-table tbody td { border:0; padding:0; text-align:left; white-space:normal; }
+            .c-num { display:none; }
+            .c-td-title { padding-left:0 !important; max-width:none; }
+            .c-title-btn .t { white-space:normal; }
+            .c-who, .c-when, .c-cnt { display:inline-block; font-size:11px; color:var(--text-tertiary); margin-top:4px; }
+            .c-who { width:auto; margin-right:8px; }
+            .c-when::before, .c-cnt::before { content:'· '; }
+            .c-when, .c-cnt { width:auto; margin-right:6px; }
         }
 
         /* 글 하나 */
@@ -584,6 +599,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     let bestFeed: Post[] = [];
     let recentFeed: Post[] = [];
+    let searchHits: Post[] = [];
 
     function renderGalleryHome(): void {
         if (!host) return;
@@ -643,6 +659,17 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         host.innerHTML = `<div class="c-wrap">
             <div class="c-head"><h2>커뮤니티</h2><span>도구를 쓰는 사람들이 모이는 자리</span></div>
+            <form class="c-search c-search-all" data-search-all>
+                <input type="text" name="cSearchAll" data-q-all placeholder="갤러리 전체에서 찾기 (제목·본문·답글)"
+                    aria-label="커뮤니티 전체 검색" value="${esc(param('q') ?? '')}">
+                <button type="submit" class="c-page">찾기</button>
+            </form>
+            ${
+                param('q')
+                    ? `<section class="c-feed"><h3>「${esc(param('q') ?? '')}」 찾은 글 ${searchHits.length}</h3>
+                        <div class="c-feed-rows">${feedRows(searchHits, '찾은 글이 없습니다.')}</div></section>`
+                    : ''
+            }
             <div class="c-feeds">
                 <section class="c-feed">
                     <h3>베스트</h3>
@@ -670,6 +697,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 go({ board: b.dataset.feedBoard ?? null, p: b.dataset.feedPost ?? null, page: null, q: null }),
             ),
         );
+        host.querySelector<HTMLFormElement>('[data-search-all]')?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const value =
+                (event.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[data-q-all]')?.value.trim() ?? '';
+            go({ q: value || null, board: null, p: null, page: null });
+        });
         host.querySelector('[data-gal-new]')?.addEventListener('click', () => {
             galleryFormOpen = true;
             void render();
@@ -797,6 +830,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             <textarea name="cText" data-text maxlength="${data.maxLength}" aria-label="${isRequest ? '도구 요청' : '글 본문'}"
                 placeholder="${isRequest ? '어떤 도구가 있었으면 하나요?' : '무슨 이야기든. **굵게** *기울임* `코드` > 인용 - 목록'}" required>${esc(draft.text)}</textarea>
             <div class="c-preview md" data-preview hidden></div>
+            <div class="c-imgbar">
+                <button type="button" class="c-fmt" data-img-pick>그림 넣기</button>
+                <span class="c-write-hint">붙여넣기(Ctrl+V)·끌어놓기도 됩니다</span>
+                <input type="file" accept="image/*" data-img-input hidden>
+            </div>
             <div class="c-write-foot">
                 <span class="c-write-hint"><span data-count>0</span>/${data.maxLength}${
                     data.myHandle ? ` · @${esc(data.myHandle)} 로 올라갑니다` : ''
@@ -866,6 +904,61 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             });
         });
 
+        /* 그림 — 「자랑」 갤러리인데 그림을 못 올리면 반쪽이다.
+           올린 뒤에는 글 안에 마크다운 그림 줄을 끼워 넣는다 (본문과 같은 자리에 산다). */
+        const uploadImage = async (file: File): Promise<void> => {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result ?? ''));
+                reader.onerror = () => reject(new Error('read failed'));
+                reader.readAsDataURL(file);
+            }).catch(() => '');
+            if (!dataUrl) return;
+
+            const mark = `\n![올리는 중…]()\n`;
+            const at = text.selectionStart ?? text.value.length;
+            text.setRangeText(mark, at, at, 'end');
+            sync();
+
+            const saved = (await api('/kl/uploads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: dataUrl }),
+            })) as { url?: string } | null;
+
+            const base = window.KarmoAccount?.apiBase ?? '';
+            text.value = text.value.replace(
+                mark,
+                saved?.url ? `\n![그림](${base}${saved.url})\n` : '\n',
+            );
+            sync();
+            if (!saved?.url) Toolbox.showToast?.(toastFor('그림을 못 올렸어요'));
+        };
+
+        const picker = form.querySelector<HTMLInputElement>('[data-img-input]');
+        form.querySelector('[data-img-pick]')?.addEventListener('click', () => picker?.click());
+        picker?.addEventListener('change', () => {
+            const file = picker.files?.[0];
+            if (file) void uploadImage(file);
+            picker.value = '';
+        });
+        text.addEventListener('paste', (event) => {
+            const file = [...(event.clipboardData?.items ?? [])]
+                .filter((i) => i.type.startsWith('image/'))
+                .map((i) => i.getAsFile())
+                .find(Boolean);
+            if (!file) return;
+            event.preventDefault();
+            void uploadImage(file);
+        });
+        text.addEventListener('dragover', (event) => event.preventDefault());
+        text.addEventListener('drop', (event) => {
+            const file = event.dataTransfer?.files?.[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            event.preventDefault();
+            void uploadImage(file);
+        });
+
         text.addEventListener('keydown', (event) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
@@ -898,6 +991,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         else if (writerOpen) writer = composerHtml(data, isRequest);
 
         // 검색·페이지는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
+        // 이 갤러리 안에서만 거른다. 갤러리를 가리지 않는 검색은 홈의 검색칸이 맡는다.
         const query = (param('q') ?? '').trim().toLowerCase();
         const filtered = query
             ? data.posts.filter((p) =>
@@ -1164,6 +1258,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                         좋아요 ${post.likes}</button>
                     ${isRequest ? `<button type="button" class="c-act" data-vote data-on="${post.votedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled'}>표 ${post.votes}</button>` : ''}
                     ${canDelete ? '<button type="button" class="c-act" data-delete>지우기</button>' : ''}
+                    ${data.signedIn && !post.mine ? '<button type="button" class="c-act" data-report>신고</button>' : ''}
                     ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? '고정 풀기' : '고정'}</button>` : ''}
                     ${data.isAdmin && isRequest ? '<button type="button" class="c-act" data-plan>만들 예정</button><button type="button" class="c-act" data-done>만들었음</button>' : ''}
                 </div>
@@ -1240,6 +1335,18 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         };
         host.querySelector('[data-plan]')?.addEventListener('click', () => void setStatus('planned'));
         host.querySelector('[data-done]')?.addEventListener('click', () => void setStatus('done'));
+
+        host.querySelector('[data-report]')?.addEventListener('click', async () => {
+            // 신고해도 글은 안 사라진다. 그 사실을 먼저 말해 준다 — 안 그러면 「지우기」로 오해한다.
+            const reason = prompt('무엇이 문제인가요? (주인에게만 전해집니다. 글은 바로 사라지지 않습니다)');
+            if (reason === null) return;
+            const ok = await api('/kl/reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: post.id, reason }),
+            });
+            Toolbox.showToast?.(ok ? '전했어요. 주인이 확인합니다.' : toastFor('신고를 못 보냈어요'));
+        });
 
         host.querySelector('[data-delete]')?.addEventListener('click', async () => {
             if (!confirm('이 글을 지웁니다. 계속할까요?')) return;
@@ -1350,6 +1457,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             ]);
             bestFeed = best?.posts ?? [];
             recentFeed = recent?.posts ?? [];
+            // 홈에서 찾기를 누르면 갤러리를 가리지 않고 찾는다.
+            const q = (param('q') ?? '').trim();
+            searchHits = q
+                ? (((await api(`/kl/search?q=${encodeURIComponent(q)}`)) as { posts?: Post[] } | null)?.posts ?? [])
+                : [];
             if (freshHome?.boards) {
                 boards = freshHome.boards;
                 boardsMeta = {

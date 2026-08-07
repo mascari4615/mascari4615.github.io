@@ -296,6 +296,12 @@ export class KarmolabAccountStore {
     return account.records;
   }
 
+  /** 디스코드 id 로 계정 찾기 — 주인에게 알림 보낼 때 쓴다. */
+  accountForDiscordId(discordId: string): Account | null {
+    const id = this.state.identityIndex[`discord:${discordId}`];
+    return id ? (this.state.accounts[id] ?? null) : null;
+  }
+
   byHandle(handle: string): Account | null {
     const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
     return id ? (this.state.accounts[id] ?? null) : null;

@@ -147,11 +147,22 @@ export interface Post {
   tag: string | null;
 }
 
+export interface Report {
+  id: string;
+  postId: string;
+  replyId: string | null;
+  byAccountId: string;
+  reason: string;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
 interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
   posts: Post[];
   galleries: Gallery[];
+  reports: Report[];
 }
 
 const STATE_FILE = 'karmolab-traces-state.json';
@@ -298,12 +309,13 @@ export class KarmolabTraceStore {
           tools: parsed.tools ?? {},
           posts: (parsed.posts ?? []).map(migratePost),
           galleries: withSeeds(parsed.galleries ?? []),
+          reports: parsed.reports ?? [],
         };
       }
     } catch (error) {
       console.error('[karmolab-traces] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]) };
+    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]), reports: [] };
   }
 
   /**
@@ -581,6 +593,94 @@ export class KarmolabTraceStore {
       likedByMe: viewerAccountId ? post.likerAccountIds.includes(viewerAccountId) : false,
       mine: viewerAccountId !== null && post.authorAccountId === viewerAccountId,
     };
+  }
+
+  /**
+   * 갤러리를 가리지 않는 검색.
+   *
+   * 지금까지는 보고 있는 갤러리 안에서만 걸렀다 — 「그 글 어디 있더라」를 못 찾는다.
+   * 제목·본문·글쓴이·답글까지 본다. 답글까지 보는 이유: 사람은 답글에 적힌 말을 기억한다.
+   */
+  searchPosts(query: string, viewerAccountId: string | null, limit = 40): PublicPost[] {
+    const needle = String(query ?? '').trim().toLowerCase();
+    if (needle.length < 1) return [];
+    return this.state.posts
+      .filter((p) => {
+        const hay = `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.tag ?? ''} ${p.replies
+          .map((r) => r.text)
+          .join(' ')}`.toLowerCase();
+        return hay.includes(needle);
+      })
+      .sort((a2, b) => b.bumpedAt.localeCompare(a2.bumpedAt))
+      .slice(0, limit)
+      .map((p) => this.toPublic(p, viewerAccountId));
+  }
+
+  /** 이 사람이 쓴 글 — 프로필의 「쓴 글」. */
+  postsBy(handle: string, viewerAccountId: string | null, limit = 30): PublicPost[] {
+    return this.state.posts
+      .filter((p) => p.authorHandle === handle)
+      .sort((a2, b) => b.createdAt.localeCompare(a2.createdAt))
+      .slice(0, limit)
+      .map((p) => this.toPublic(p, viewerAccountId));
+  }
+
+  /** 이 사람이 단 답글 — 어느 글에 달았는지까지 같이 준다. */
+  repliesBy(handle: string, limit = 30): Array<{ postId: string; postTitle: string; text: string; createdAt: string }> {
+    const out: Array<{ postId: string; postTitle: string; text: string; createdAt: string }> = [];
+    for (const post of this.state.posts) {
+      for (const reply of post.replies) {
+        if (reply.authorHandle !== handle) continue;
+        out.push({
+          postId: post.id,
+          postTitle: post.title ?? post.text.slice(0, 30),
+          text: reply.text,
+          createdAt: reply.createdAt,
+        });
+      }
+    }
+    return out.sort((a2, b) => b.createdAt.localeCompare(a2.createdAt)).slice(0, limit);
+  }
+
+  /**
+   * 신고 — 사람이 늘면 반드시 필요해진다.
+   * 지우지는 않는다. **주인이 볼 목록에 올릴 뿐이다** — 신고 한 번으로 글이 사라지면
+   * 그것 자체가 남을 지우는 단추가 된다.
+   */
+  report(input: { postId: string; replyId?: string | null; byAccountId: string; reason: string }, now: Date = new Date()): boolean {
+    const post = this.state.posts.find((p) => p.id === input.postId);
+    if (!post) return false;
+    if (input.replyId && !post.replies.some((r) => r.id === input.replyId)) return false;
+    // 같은 사람이 같은 것을 여러 번 신고해도 한 줄이다.
+    const already = this.state.reports.some(
+      (r) => r.postId === input.postId && (r.replyId ?? null) === (input.replyId ?? null) && r.byAccountId === input.byAccountId,
+    );
+    if (already) return true;
+    this.state.reports.unshift({
+      id: crypto.randomUUID(),
+      postId: input.postId,
+      replyId: input.replyId ?? null,
+      byAccountId: input.byAccountId,
+      reason: String(input.reason ?? '').trim().slice(0, 100),
+      createdAt: now.toISOString(),
+      resolvedAt: null,
+    });
+    this.markDirty();
+    return true;
+  }
+
+  /** 아직 안 본 신고 (주인용). */
+  openReports(): Report[] {
+    return this.state.reports.filter((r) => r.resolvedAt === null);
+  }
+
+  /** 신고를 봤다고 표시 (주인용). 글은 안 건드린다 — 지우는 것은 따로 누른다. */
+  resolveReport(id: string, now: Date = new Date()): boolean {
+    const found = this.state.reports.find((r) => r.id === id);
+    if (!found || found.resolvedAt) return false;
+    found.resolvedAt = now.toISOString();
+    this.markDirty();
+    return true;
   }
 
   /** 글의 날것 — 알림 보낼 때 글쓴이 계정 id 가 필요하다 (공개 모양에는 없다). */

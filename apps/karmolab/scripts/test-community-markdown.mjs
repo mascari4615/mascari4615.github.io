@@ -83,3 +83,26 @@ if (failed) {
   process.exit(1);
 }
 console.log('[test-community-markdown] 서식·안전 검사 통과 (위험한 입력이 태그로 안 나간다)');
+
+/* ── 그림 ─────────────────────────────────────────────── */
+
+check('그림이 나온다', renderMarkdown('![고양이](https://x.com/a.png)').includes('<img src="https://x.com/a.png"'));
+check('그림에 늦은 로딩', renderMarkdown('![a](https://x.com/a.png)').includes('loading="lazy"'));
+check(
+  '그림이 링크보다 먼저 잡힌다',
+  !renderMarkdown('![a](https://x.com/a.png)').includes('<a href'),
+  renderMarkdown('![a](https://x.com/a.png)'),
+);
+check('javascript 그림은 안 나온다', !renderMarkdown('![a](javascript:alert(1))').includes('<img'));
+check('data 그림도 안 나온다', !renderMarkdown('![a](data:text/html,<script>x</script>)').includes('<img'));
+check(
+  '그림 설명에 따옴표가 들어가도 속성이 안 깨진다',
+  !renderMarkdown('![a" onerror="alert(1)](https://x.com/a.png)').includes('onerror="alert'),
+  renderMarkdown('![a" onerror="alert(1)](https://x.com/a.png)'),
+);
+
+if (failed) {
+  console.error(`[test-community-markdown] 그림 검사 실패 ${failed}건`);
+  process.exit(1);
+}
+console.log('[test-community-markdown] 그림 검사도 통과');
