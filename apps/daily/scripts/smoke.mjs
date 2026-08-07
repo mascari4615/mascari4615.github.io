@@ -190,6 +190,27 @@ async function pastPage(topicId) {
     !dates.includes(todayLabel) && dates.every((d) => d < todayLabel),
     `가장 최근 ${dates[0]}`,
   );
+  // 답이 「풀어보기」 옆에 그대로 있으면 연습이 성립하지 않는다 — 가려져 있어야 한다.
+  const blurred = await page.$eval('table.past .a', (el) => getComputedStyle(el).filter);
+  check(`[지난:${topicId}] ★ 답이 가려져 있다`, /blur\(\s*[1-9]/.test(blurred), blurred);
+  // 글자 자체는 남아야 한다 — 답을 찾아 들어온 사람도, 검색 엔진도 잃지 않는다.
+  const named = await page.$eval('table.past .a b', (el) => el.textContent.trim());
+  check(`[지난:${topicId}] 가려도 글자는 남는다`, named.length > 0, named);
+
+  // 이 두 개는 상태를 바꾼다 — 뒤에 검사를 붙이려면 이 아래에.
+  await page.click('table.past tbody td .a');
+  // 흐림이 걷히는 데 시간이 걸린다 — 바로 재면 중간값(blur(3px))이 잡힌다.
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('table.past .a')).filter === 'none');
+  check(
+    `[지난:${topicId}] 누르면 그 칸만 열린다`,
+    (await page.$eval('table.past .a', (el) => getComputedStyle(el).filter)) === 'none' &&
+      (await page.locator('table.past td.on').count()) === 1,
+  );
+  await page.click('.past-reveal button');
+  await page.waitForFunction(() => [...document.querySelectorAll('table.past .a')].every((e) => getComputedStyle(e).filter === 'none')).catch(() => {});
+  const allOpen = await page.$$eval('table.past .a', (els) => els.every((e) => getComputedStyle(e).filter === 'none'));
+  check(`[지난:${topicId}] 「답 모두 보기」로 다 열린다`, allOpen);
+
   await page.screenshot({ path: join(shots, `${topicId}-past.png`), fullPage: true });
   await ctx.close();
 }

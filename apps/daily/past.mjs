@@ -43,7 +43,9 @@ function rowFor(d) {
     answers
       .map(
         (a, i) =>
-          `<td><span class="mo">${esc(modes[i].label)}</span>${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></td>`,
+          // 답은 단추 안에 있다 — 가려 둔 동안에도 눌러서 열 수 있어야 하고, 키보드로도 되어야 한다.
+          `<td><span class="mo">${esc(modes[i].label)}</span>` +
+          `<button type="button" class="a">${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button></td>`,
       )
       .join('') +
     '</tr>'
@@ -70,11 +72,51 @@ function appendChunk() {
 }
 
 root.querySelector('.past-note').textContent =
-  `오늘(#${puzzleNumber()}) 답은 여기 없다 — 내일 이 자리에 올라온다. 놓친 날은 「풀어보기」로 지금 풀 수 있다.`;
+  `오늘(#${puzzleNumber()}) 답은 여기 없다 — 내일 이 자리에 올라온다. 놓친 날은 「풀어보기」로 지금 풀 수 있어서, ` +
+  '답은 흐리게 가려 뒀다 (누르면 열린다).';
+
+/**
+ * 답을 가려 둔다.
+ *
+ * 지금까지는 「풀어보기」 단추 **바로 옆에 그날 답**이 적혀 있었다 — 풀러 가려고 눈을 옮기는
+ * 동안 답이 먼저 눈에 들어온다. 연습 기능이 스스로를 망치고 있었다.
+ *
+ * 글자는 그대로 두고 흐리게만 한다 — 답을 찾아 검색해 들어온 사람도, 검색 엔진도 잃지 않는다.
+ * 하나만 보고 싶으면 그 칸을 누르고, 다 보고 싶으면 위 단추를 누른다. 고른 것은 기억한다.
+ */
+const table = root.querySelector('table.past');
+const $reveal = root.querySelector('.past-reveal button');
+const REVEAL_KEY = 'daily:past:reveal';
+let revealed = false;
+try {
+  revealed = localStorage.getItem(REVEAL_KEY) === '1';
+} catch { /* 사생활 모드 */ }
+
+function paintReveal() {
+  table.classList.toggle('hide', !revealed);
+  $reveal.textContent = revealed ? '답 가리기' : '답 모두 보기';
+  $reveal.setAttribute('aria-pressed', String(revealed));
+}
+$reveal.addEventListener('click', () => {
+  revealed = !revealed;
+  try {
+    localStorage.setItem(REVEAL_KEY, revealed ? '1' : '0');
+  } catch { /* 사생활 모드 */ }
+  paintReveal();
+  countEvent(`daily/${topicId}/지난문제/${revealed ? '답보기' : '답가리기'}`);
+});
+paintReveal();
+
+// 한 칸만 열기 — 다 열지 않고 하루치만 확인하고 싶은 경우.
+tbody.addEventListener('click', (e) => {
+  const cell = e.target.closest('td');
+  if (cell) cell.classList.add('on');
+});
 
 if (cursor < oldest) {
   tbody.innerHTML = '<tr><td>아직 지난 문제가 없다.</td></tr>';
   $more.replaceChildren();
+  root.querySelector('.past-reveal').remove(); // 가릴 답이 없다
 } else {
   $more.innerHTML = '<button type="button"></button>';
   $more.querySelector('button').addEventListener('click', () => {
