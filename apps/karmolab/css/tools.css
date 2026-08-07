@@ -1248,3 +1248,66 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 /* 좌우 화살표로도 고를 수 있다는 표시 — 조용히 옆에만 (TASK-KL-089). */
 .hi-keys { margin-left: 8px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 @media (pointer: coarse) { .hi-keys { display: none; } }
+
+/* ── 번개 대결 (TASK-KL-132) ── */
+.du-stage { border: 1px solid var(--border); background: var(--bg-secondary); padding: 18px; }
+.du-order {
+    text-align: center;
+    font-size: clamp(24px, 6vw, 40px);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    min-height: 1.4em;
+    margin-bottom: 16px;
+}
+.du-order-live { color: var(--accent); }
+.du-order.du-ok { color: var(--success); }
+.du-order.du-no { color: var(--error); }
+.du-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 120px; }
+.du-choice {
+    padding: 18px 10px;
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    border: 1px solid var(--border);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    min-height: 60px;
+}
+.du-choice:hover:enabled { border-color: var(--accent); }
+.du-choice.du-right { border-color: var(--success); box-shadow: inset 0 0 0 2px var(--success); }
+.du-choice.du-wrong { border-color: var(--error); box-shadow: inset 0 0 0 2px var(--error); }
+.du-timerbar { height: 6px; background: var(--bg-primary); border: 1px solid var(--border); margin-top: 14px; }
+.du-timerfill { height: 100%; width: 0%; background: var(--accent); }
+.du-scores { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.du-score { display: flex; align-items: baseline; gap: 8px; }
+.du-score b { font-size: var(--font-size-lg); font-family: var(--font-mono); }
+.du-who { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.du-round { font-size: var(--font-size-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
+.du-share { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-lg); }
+.du-share input { flex: 1 1 16rem; min-width: 0; font-family: var(--font-mono); font-size: var(--font-size-xs); }
+@media (max-width: 480px) {
+    .du-share input { flex-basis: 100%; }
+}
+
+/* ═══ 스무고개 (TASK-KL-089) — 방향을 뒤집은 놀이. KarmoLab 토큰만 쓴다. ═══ */
+.tw-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 12px 0; }
+.tw-card {
+    padding: 18px; background: var(--bg-secondary);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+}
+.tw-head {
+    display: flex; justify-content: space-between;
+    color: var(--text-tertiary); font-size: var(--font-size-2xs); margin-bottom: 6px;
+}
+.tw-q { font-size: var(--font-size-md); font-weight: 700; margin: 0 0 14px; line-height: 1.5; }
+.tw-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tw-row[hidden] { display: none; }
+.tw-guess[hidden] { display: none; }
+.tw-face { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.tw-face img { width: clamp(72px, 20vw, 120px); height: auto; aspect-ratio: 1; object-fit: contain; }
+.tw-face strong { font-size: var(--font-size-lg); }
+.tw-after { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.tw-after[hidden] { display: none; }
+.tw-log { margin-top: 12px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+.tw-log summary { cursor: pointer; }
+.tw-log ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.8; }

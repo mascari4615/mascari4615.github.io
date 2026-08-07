@@ -208,7 +208,6 @@ import { mountCourseNext } from './play-course';
               $('hiAgain').style.display = 'flex';
               markToday(streak);
               // 끝낸 그 자리에서 오늘 남은 놀이를 말해 준다 — 여기서 안 하면 그냥 창을 닫는다.
-              $('hiCourse').hidden = false;
               mountCourseNext($('hiCourse'), 'higher');
             }
           }

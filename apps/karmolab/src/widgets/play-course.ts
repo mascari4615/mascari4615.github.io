@@ -101,6 +101,9 @@ export function courseRun(stamp: boolean): number {
 /**
  * 한 판을 끝낸 자리에 붙이는 줄 — 「오늘 남은 놀이」와 거기로 가는 단추.
  * 남은 것이 없으면 완주를 말한다. 목록을 못 받으면 아무것도 안 붙인다(빈 상자 X).
+ *
+ * **보이고 말고는 이 함수가 정한다.** 부르는 쪽이 먼저 켜 두면, 할 말이 없어 그냥 돌아갈 때
+ * 빈 띠만 덩그러니 남는다(코스 밖 놀이에서 실제로 그랬다).
  */
 export function mountCourseNext(slot: HTMLElement, meId: string): void {
   fetch('/apps/karmolab/data/games.json')
@@ -113,12 +116,14 @@ export function mountCourseNext(slot: HTMLElement, meId: string): void {
       const meDone = steps.every((s) => s.done);
 
       if (meDone) {
+        slot.hidden = false;
         slot.innerHTML = `<span class="pc-tag">오늘의 코스</span><span>셋 다 끝냈습니다 — ${courseRun(
           true
         )}일 연속</span>`;
         return;
       }
       if (!left.length) return; // 남은 것이 나뿐 — 할 말이 없다
+      slot.hidden = false;
       const next = left[0];
       const emoji = (j.games.filter((g) => g.id === next.id)[0] || {}).emoji || '';
       slot.innerHTML =
