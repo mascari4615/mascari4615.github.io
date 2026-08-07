@@ -89,6 +89,20 @@ const statsKey = `daily:${topicId}:${mode}:stats`;
 // 연속은 판별이 아니라 **사이트 전체** 하루 단위다 — 판이 늘어도 끊기지 않는다.
 const streakKey = 'daily:streak';
 
+/**
+ * 연습 판은 날짜마다 저장 자리를 하나씩 만든다. 두면 주제·모드·날짜만큼 무한히 쌓이고,
+ * 브라우저 저장 한도에 닿는 순간 **오늘 진행이 조용히 저장 안 된다**. 오래된 것부터 버린다.
+ */
+function sweepPractice(keep = 40) {
+  try {
+    const keys = Object.keys(localStorage).filter((k) => /^daily:.+:p:\d{4}-\d{2}-\d{2}$/.test(k));
+    if (keys.length <= keep) return;
+    keys.sort(); // 끝이 날짜라 사전순 = 오래된 것부터
+    for (const k of keys.slice(0, keys.length - keep)) localStorage.removeItem(k);
+  } catch { /* 사생활 모드 */ }
+}
+sweepPractice();
+
 const read = (key, fallback) => {
   try {
     return JSON.parse(localStorage.getItem(key)) ?? fallback;

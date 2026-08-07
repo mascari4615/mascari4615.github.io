@@ -8,8 +8,9 @@
   --ink-2: #a6b0c0;
   --ink-3: #6f7b8d;
   --accent: #ffc86b;
-  --exact: #2f7d4f;
-  --near: #8a6d1f;
+  /* 대비를 재서 고른 값 — 흰 글씨 기준 5.4:1 / 5.2:1 (재기 전 값은 4.25 / 4.13 으로 기준 미달이었다). */
+  --exact: #286b43;
+  --near: #775e1a;
   --wrong: #333b49;
   --radius: 12px;
   color-scheme: dark;
@@ -234,7 +235,7 @@ a { color: var(--accent); }
 .cell .k {
   display: block;
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.82); /* 0.62 였을 때 초록·노랑 칸에서 3:1 도 못 넘었다 */
   letter-spacing: 0.02em;
 }
 .cell .v {

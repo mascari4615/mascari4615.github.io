@@ -215,6 +215,28 @@ await pastPage('genshin');
   await ctx.close();
 }
 
+/**
+ * 연습 저장 자리는 날짜마다 하나씩 생긴다. 안 치우면 한도에 닿는 순간 오늘 진행이 조용히 안 저장된다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'domcontentloaded' });
+  const after = await page.evaluate(() => {
+    for (let i = 0; i < 90; i += 1) {
+      const d = `2026-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`;
+      localStorage.setItem(`daily:junk${i}:classic:p:${d}`, '{}');
+    }
+    return localStorage.length;
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const left = await page.evaluate(() =>
+    Object.keys(localStorage).filter((k) => /:p:\d{4}-\d{2}-\d{2}$/.test(k)).length,
+  );
+  check('오래된 연습 저장은 스스로 치운다', left <= 40, `${after}개 → ${left}개`);
+  await ctx.close();
+}
+
 /** 지난 문제 목록에서 그날 판으로 바로 갈 수 있어야 한다. */
 {
   const ctx = await browser.newContext();
