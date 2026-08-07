@@ -41,21 +41,12 @@ apps/karmolab/world/*.js
 # KarmoLab TS build output (esbuild via npm run build).
 # Root scripts + widgets/**/*.js = generated. Tracked legacy .js under widgets/ is unchanged
 # until migrated (gitignore does not apply to already-tracked files). json/md stay visible.
-apps/karmolab/js/mdd.js
-apps/karmolab/js/gemini.js
-apps/karmolab/js/toolbox.js
-apps/karmolab/js/alarm-fire.js
-apps/karmolab/js/widgets-manifest.js
-apps/karmolab/js/widgets-lazy-meta.js
-apps/karmolab/js/widgets-loader.js
-apps/karmolab/js/widgets/**/*.js
-apps/karmolab/js/pwa-update.js
-apps/karmolab/js/analytics.js
-# TASK-KL-099 — 명령 팔레트 (build.mjs 산출물)
-apps/karmolab/js/palette.js
-# TASK-KL-098 — 계정·공개 프로필 (build.mjs 산출물)
-apps/karmolab/js/account.js
-apps/karmolab/js/profile.js
+# KarmoLab 의 js 는 전부 빌드 산출물이다 (소스는 apps/karmolab/src). 하나씩 적어 두었더니
+# 새 파일을 만들 때마다 빠뜨렸고, 다른 작업이 이 목록을 덮으며 지워지기도 했다 (TASK-KL-098).
+# 규칙 하나로 바꾼다 — 남이 만든 vendor 와 손으로 쓴 스크립트만 예외로 남긴다.
+apps/karmolab/js/**/*.js
+!apps/karmolab/js/vendor/**
+!apps/karmolab/js/split_script.cjs
 apps/karmolab/sw.js
 
 # KarmoLab Jekyll 진입 페이지 — 배포 시 apps/karmolab/index.html 복사 +
