@@ -48,8 +48,13 @@ html, body {
   grid-row: 1;
   position: relative;
   max-width: 94%;
-  max-height: 34vh;
+  /* 말이 길면 잘렸다. 자리를 넓히고, 넘칠 땐 넘친다는 걸 **보이게** 한다 —
+     막대를 숨겨 놔서 잘린 줄도 모르고 지나갔다. 위쪽이 흐려지면 「더 있다」가 읽힌다. */
+  max-height: 46vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
   padding: 11px 14px;
   border-radius: 14px;
   border: 1px solid var(--edge);
@@ -182,6 +187,14 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
   padding: 4px 6px;
   font-size: 12px;
   color: var(--dim);
+}
+/* 조절 막대 — 고르는 자리와 같은 폭에 맞춘다. 기본 모양은 어두운 판 위에서 안 보인다. */
+.menu input[type="range"] {
+  width: 100%;
+  height: 18px;
+  accent-color: var(--accent);
+  background: transparent;
+  cursor: pointer;
 }
 .menu select {
   width: 100%;
