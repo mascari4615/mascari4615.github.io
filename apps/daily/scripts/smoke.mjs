@@ -275,6 +275,22 @@ await pastPage('genshin');
   await page.goto(`${base}/pokemon/?d=${dayKey}`, { waitUntil: 'networkidle' });
   check('연습 판임을 알려 준다', /연습/.test(await page.locator('.tabs').innerText()));
 
+  /**
+   * 판 바꾸는 단추는 날짜를 들고 가야 한다 — 안 그러면 지난 날을 풀다 「실루엣」을 누른 순간
+   * 말없이 오늘 판으로 튕긴다. 주소만 보지 말고 실제로 눌러서 어디에 닿는지 본다.
+   */
+  const tabHref = await page.locator('.tabs a.tab').first().getAttribute('href');
+  check('연습 중엔 판을 바꿔도 날이 안 바뀐다', tabHref?.endsWith(`?d=${dayKey}`), tabHref);
+  await page.locator('.tabs a.tab').first().click();
+  await page.waitForLoadState('networkidle');
+  check(
+    '★ 눌러서 간 곳도 그날 판이다',
+    /연습/.test(await page.locator('.tabs').innerText()) &&
+      (await page.locator('.tab.practice').innerText()).includes(dayKey),
+    page.url(),
+  );
+  await page.goto(`${base}/pokemon/?d=${dayKey}`, { waitUntil: 'networkidle' });
+
   await page.fill('.guessbar input', past.name);
   await page.waitForSelector('.sug button');
   await page.click(`.sug button:has-text("${past.name}")`);

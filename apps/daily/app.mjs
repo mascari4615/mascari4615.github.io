@@ -171,6 +171,12 @@ root.querySelector('.no').textContent = `#${puzzleNo}`;
 if (practice) {
   root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습 · ${dayKey}</span>`);
   root.querySelector('.lede').textContent = `${dayKey} 의 문제입니다. 연습이라 기록에는 안 들어갑니다.`;
+  // 판 바꾸는 단추가 날짜를 안 들고 갔다 — 지난 날을 풀다 「실루엣」을 누르면 말없이 **오늘 판**으로
+  // 튕겼다. 지난 문제 목록이 판마다 여기로 보내는 만큼, 눌러서 날이 바뀌면 안 된다.
+  for (const a of root.querySelectorAll('.tabs a.tab')) {
+    a.href = `${a.getAttribute('href')}?d=${dayKey}`;
+  }
+  // 끝난 뒤 건네는 「다른 판」도 마찬가지다 — 그건 오늘 판을 권하는 자리라 날짜를 안 붙인다.
 }
 
 function renderStreak() {
