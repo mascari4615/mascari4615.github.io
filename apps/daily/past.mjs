@@ -7,6 +7,7 @@
  * **오늘 것은 절대 안 보여 준다.** 오늘 답이 여기 있으면 게임이 성립하지 않는다.
  */
 import { dailyIndex, kstDayNumber, puzzleNumber, EPOCH_DAY_NUMBER } from './engine.mjs';
+import { countPage } from './count.mjs';
 
 const root = document.getElementById('past');
 const topicId = root.dataset.topic;
@@ -79,3 +80,5 @@ if (cursor < oldest) {
   $more.querySelector('button').addEventListener('click', appendChunk);
   appendChunk();
 }
+
+countPage();

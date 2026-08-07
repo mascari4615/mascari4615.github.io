@@ -236,6 +236,49 @@ await pastPage('genshin');
 }
 
 /**
+ * 계측이 실제로 신호를 보내는지 — 안 붙으면 조용히 0 이 되고, 우리는 「아무도 안 온다」로 읽는다.
+ * 내 기계(127.0.0.1)에서는 일부러 꺼 두므로, 가짜 도메인으로 들어가 켜진 쪽을 확인한다.
+ * 함께 확인할 것 하나 더: **보내는 값에 정답이 실리면 안 된다** (실리면 그걸 보고 답을 안다).
+ */
+{
+  const port = server.address().port;
+  const b2 = await pw.chromium.launch({ args: [`--host-resolver-rules=MAP daily.test 127.0.0.1:${port}`] });
+  const ctx = await b2.newContext();
+  const page = await ctx.newPage();
+  const sent = [];
+  await page.route('**/gc.zgo.at/**', (route) => {
+    sent.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: 'text/javascript', body: 'window.goatcounter={count(o){window.__c=(window.__c||[]).concat([o])}};' });
+  });
+  await page.route('**/mascari4615.goatcounter.com/**', (route) => {
+    sent.push(route.request().url());
+    return route.fulfill({ status: 200, body: '' });
+  });
+
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'pokemon.json'), 'utf8'));
+  const answer = answerOf(topic);
+  await page.goto(`http://daily.test/daily/pokemon/`, { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => Array.isArray(window.__c) && window.__c.length > 0, { timeout: 10000 }).catch(() => {});
+  const pageHits = await page.evaluate(() => window.__c ?? []);
+  check('계측이 방문을 실제로 보낸다', pageHits.some((h) => h.path === '/daily/pokemon/'), JSON.stringify(pageHits[0] ?? null));
+
+  await page.fill('.guessbar input', answer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  const all2 = await page.evaluate(() => window.__c ?? []);
+  const evented = all2.filter((h) => h.event);
+  check('판이 끝난 것도 보낸다', evented.some((h) => /맞힘/.test(h.path)), evented.map((h) => h.path).join(', '));
+  check(
+    '★ 보내는 값에 정답이 안 실린다',
+    !JSON.stringify(all2).includes(answer.name),
+    answer.name,
+  );
+  await ctx.close();
+  await b2.close();
+}
+
+/**
  * 결과가 퍼져야 사람이 온다. 폰에는 기기 공유 창이 있으니 한 번에 끝나야 하고,
  * 없는 기기에서는 복사로 돌아가야 한다 — 두 갈래를 다 확인한다.
  */
