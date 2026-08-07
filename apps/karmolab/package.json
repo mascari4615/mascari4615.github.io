@@ -78,7 +78,8 @@
     "audit:blocking-css": "node scripts/audit-blocking-css.mjs",
     "audit:sponsor": "node scripts/audit-sponsor-slot.mjs",
     "audit:live": "node scripts/audit-live-essentials.mjs",
-    "audit:pages": "node scripts/audit-tool-pages-fresh.mjs"
+    "audit:pages": "node scripts/audit-tool-pages-fresh.mjs",
+    "dev": "node scripts/dev.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
