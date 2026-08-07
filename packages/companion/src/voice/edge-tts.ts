@@ -31,14 +31,6 @@ export interface EdgeSpeechOptions {
    * 한국어도 읽으므로, 취향에 맞는 걸 찾을 여지가 그만큼 넓어진다.
    */
   includeMultilingual?: boolean;
-  /**
-   * 같은 목소리를 다른 결로 갈라 쓴다 — `{ 이름: { rate, pitch } }`.
-   *
-   * 한국어 애니 톤 목소리는 공개된 게 없다(조사 결과). 진짜로 그 톤을 내려면 원하는
-   * 목소리 샘플을 받아 흉내 내게 해야 하고, 그건 샘플이 있어야 시작된다. 그 전까지는
-   * 높낮이와 빠르기를 올려 밝은 결을 만든다 — 흉내는 아니지만 결은 확실히 달라진다.
-   */
-  tones?: Readonly<Record<string, { rate?: string; pitch?: string }>>;
 }
 
 /**
@@ -68,19 +60,11 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
       const seen = new Set<string>();
       cachedVoices = wanted
         .filter((v) => (seen.has(v.ShortName) ? false : (seen.add(v.ShortName), true)))
-        .flatMap((v) => {
-          const base = {
-            id: v.ShortName,
-            label: prettyName(v.ShortName),
-            gender: v.Gender === 'Female' ? '여성' : '남성',
-          };
-          const extra = Object.keys(options.tones ?? {}).map((tone) => ({
-            id: `${v.ShortName}@${tone}`,
-            label: `${base.label} (${tone})`,
-            gender: base.gender,
-          }));
-          return [base, ...extra];
-        })
+        .map((v) => ({
+          id: v.ShortName,
+          label: prettyName(v.ShortName),
+          gender: v.Gender === 'Female' ? '여성' : '남성',
+        }))
         .sort((a, b) => a.label.localeCompare(b.label));
       return cachedVoices;
     },
@@ -90,8 +74,9 @@ export function edgeSpeech(options: EdgeSpeechOptions = {}): Speech {
       const at = (voiceId ?? '').lastIndexOf('@');
       const name = at < 0 ? (voiceId || defaultVoice) : (voiceId as string).slice(0, at);
       const 결이름 = at < 0 ? null : (voiceId as string).slice(at + 1);
-      // 손으로 적어 둔 결이 먼저고, 없으면 기분 결을 쓴다.
-      const tone = 결이름 === null ? undefined : (options.tones?.[결이름] ?? 기분결[결이름 as Tone]);
+      // 결은 그때그때 마음에서 온다. 손으로 적어 두는 자리는 없앴다 — 목록만 부풀리고
+      // 고를 이유가 없었다.
+      const tone = 결이름 === null ? undefined : 기분결[결이름 as Tone];
 
       const tts = new MsEdgeTTS();
       await tts.setMetadata(name, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
