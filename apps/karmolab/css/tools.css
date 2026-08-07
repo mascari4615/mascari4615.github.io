@@ -1039,3 +1039,30 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .qs-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .qs-tries { letter-spacing: 0.18em; font-size: var(--font-size-md); min-height: 1.4em; }
 .qs-after { display: flex; }
+
+/* ── PDF 판본 대조 (TASK-KL-129) ── */
+.pd-out { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
+.pd-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 12px; }
+.pd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: var(--font-size-sm); }
+.pd-badge { font-size: var(--font-size-2xs); padding: 2px 8px; border: 1px solid var(--border); color: var(--text-secondary); }
+.pd-badge.pd-chg { border-color: var(--accent); color: var(--accent); }
+.pd-badge.pd-same { color: var(--success); border-color: var(--success); }
+.pd-badge.pd-add { color: var(--success); border-color: var(--success); }
+.pd-badge.pd-del { color: var(--error); border-color: var(--error); }
+.pd-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pd-pane { min-width: 0; }
+.pd-pane canvas { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--border); }
+.pd-lines {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    max-height: 240px;
+    overflow: auto;
+}
+.pd-line { padding: 1px 6px; white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+.pd-line.pd-add { background: rgba(60, 200, 120, 0.12); color: var(--success); }
+.pd-line.pd-del { background: rgba(240, 90, 90, 0.12); color: var(--error); }
+.pd-more { padding: 4px 6px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+@media (max-width: 640px) {
+    .pd-pair { grid-template-columns: 1fr; }
+}
