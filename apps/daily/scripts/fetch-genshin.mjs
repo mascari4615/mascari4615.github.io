@@ -10,31 +10,11 @@ import { fileURLToPath } from 'node:url';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '../data/genshin.json');
 
-const ELEMENT = { Ice: '얼음', Wind: '바람', Electric: '번개', Water: '물', Fire: '불', Rock: '바위', Grass: '풀' };
-const WEAPON = {
-  WEAPON_SWORD_ONE_HAND: '한손검',
-  WEAPON_CLAYMORE: '양손검',
-  WEAPON_POLE: '창',
-  WEAPON_BOW: '활',
-  WEAPON_CATALYST: '법구',
-};
-const REGION = {
-  MONDSTADT: '몬드', LIYUE: '리월', INAZUMA: '이나즈마', SUMERU: '수메르',
-  FONTAINE: '폰타인', NATLAN: '나타', SNEZHNAYA: '스네즈나야', FATUI: '스네즈나야',
-};
-const BODY = { GIRL: '소녀', LADY: '여성', MALE: '남성', BOY: '소년', LOLI: '아이' };
+import { ELEMENT, WEAPON, REGION, BODY, playableGenshin, fetchGenshinList } from './rules-genshin.mjs';
 
-const raw = await (await fetch('https://gi.yatta.moe/api/v2/kr/avatar')).json();
+const list = await fetchGenshinList();
 
-// 여행자는 한 이름에 원소 6 × 성별 2 = 12항목이다. 이름이 같은데 답이 여럿이면 게임이 성립하지
-// 않는다 (이름으로 맞히는 놀이다). 그래서 이름이 유일하지 않은 항목은 통째로 뺀다.
-const nameCount = {};
-for (const c of Object.values(raw.data.items)) nameCount[c.name] = (nameCount[c.name] ?? 0) + 1;
-
-const items = Object.values(raw.data.items)
-  // 원소가 없는 항목은 속성 비교가 성립하지 않아 뺀다.
-  .filter((c) => ELEMENT[c.element] && WEAPON[c.weaponType] && c.icon && c.release)
-  .filter((c) => nameCount[c.name] === 1)
+const items = playableGenshin(list)
   .map((c) => ({
     name: c.name,
     img: `https://gi.yatta.moe/assets/UI/${c.icon}.png`,
@@ -55,6 +35,8 @@ const topic = {
   emoji: '🌠',
   source: 'yatta.moe (ambr)',
   maxGuesses: 8,
+  // 표가 언제 만들어졌는지 — 빌드가 이걸 보고 「너무 오래됐다」를 말한다.
+  fetchedAt: new Date().toISOString().slice(0, 10),
   fields: [
     { key: 'element', label: '원소', kind: 'category' },
     { key: 'weapon', label: '무기', kind: 'category' },

@@ -32,6 +32,7 @@ test('같은 이름이 두 번 든 표는 빌드가 막는다', () => {
     id: 'zzprobe',
     title: '중복시험',
     maxGuesses: 4,
+    fetchedAt: new Date().toISOString().slice(0, 10),
     fields: [{ key: 'n', label: '수', kind: 'number' }],
     items: [{ name: '같은이름', n: 1 }, { name: '같은이름', n: 2 }],
   });
@@ -43,10 +44,25 @@ test('속성이 빈 항목이 있으면 빌드가 막는다', () => {
     id: 'zzprobe',
     title: '빈칸시험',
     maxGuesses: 4,
+    fetchedAt: new Date().toISOString().slice(0, 10),
     fields: [{ key: 'n', label: '수', kind: 'number' }],
     items: [{ name: '하나', n: 1 }, { name: '둘' }],
   });
   assert.match(err ?? '', /비어 있다/);
+});
+
+test('너무 오래된 표는 빌드가 막는다', () => {
+  // 표는 조용히 낡는다 — 새 챔피언이 나와도 우리 표엔 없고, 아무 신호도 안 온다.
+  const err = buildWith({
+    id: 'zzprobe',
+    title: '낡음시험',
+    maxGuesses: 4,
+    fetchedAt: '2020-01-01',
+    fields: [{ key: 'n', label: '수', kind: 'number' }],
+    items: [{ name: '하나', n: 1 }, { name: '둘', n: 2 }],
+  });
+  assert.match(err ?? '', /표가 \d+일 됐다/);
+  assert.match(err ?? '', /fetch-zzprobe/, '고치는 법까지 말해야 한다');
 });
 
 test('표를 한 장 넣으면 코드 수정 없이 페이지가 생긴다', () => {
@@ -59,6 +75,7 @@ test('표를 한 장 넣으면 코드 수정 없이 페이지가 생긴다', () 
       subtitle: '있는지 보려는 것',
       emoji: '🧪',
       maxGuesses: 4,
+    fetchedAt: new Date().toISOString().slice(0, 10),
       fields: [{ key: 'n', label: '수', kind: 'number' }],
       items: [{ name: '하나', n: 1 }, { name: '둘', n: 2 }],
     }),
