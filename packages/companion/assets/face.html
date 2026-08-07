@@ -171,12 +171,14 @@
     if (읽을토막 === null) return [글];
     const 조각들 = [];
     let 남은 = 글;
+    let 처음 = true;
     // 마지막 토막은 규칙상 안 떨어지므로(뒤에 남는 게 없다) 남는 것을 따로 담는다.
     while (남은.trim() !== '') {
-      const 토막 = 읽을토막(남은, { 남길것: 1 });
+      const 토막 = 읽을토막(남은, { 남길것: 1, 첫토막: 처음 });
       if (토막 === null) { 조각들.push(남은.trim()); break; }
       조각들.push(토막.토막);
       남은 = 남은.slice(토막.먹은길이);
+      처음 = false;
     }
     return 조각들;
   }
@@ -459,7 +461,9 @@
        한국어는 「어, 그거 나도 봤는데,」처럼 쉼표가 먼저 오는 일이 잦아서, 마침표만
        기다리면 첫 소리가 통째로 늦어진다. 규칙은 따로 뺀 파일에 있다(시험 가능하게).
        못 불러왔으면 예전처럼 문장 끝까지 기다린다 — 늦을 뿐 안 깨진다. */
-    const 토막 = 읽을토막 === null ? null : 읽을토막(soFar.slice(spokenUpTo), { 남길것: 1 });
+    const 토막 = 읽을토막 === null
+      ? null
+      : 읽을토막(soFar.slice(spokenUpTo), { 남길것: 1, 첫토막: spokenUpTo === 0 });
     if (토막) {
       spokenUpTo += 토막.먹은길이;
       speakAloud(토막.토막, true);
