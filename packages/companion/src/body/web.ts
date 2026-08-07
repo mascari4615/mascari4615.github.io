@@ -439,7 +439,9 @@ export function webBody(options: WebBodyOptions = {}): Body {
           void options.speech
             .synthesize(say, 목소리)
             .then((audio) => {
-              log(`소리 만드는 데 ${((Date.now() - 만들기시작) / 1000).toFixed(1)}초`);
+              // **무엇을 만드느라 걸렸는지 같이 남긴다.** 시간만 남기면 「9.2초」를 보고도
+              // 길이 탓인지 겹친 탓인지 딴 탓인지 못 가른다 — 실제로 한 회차를 그렇게 썼다.
+              log(`소리 만드는 데 ${((Date.now() - 만들기시작) / 1000).toFixed(1)}초 · ${say.length}자 「${say.slice(0, 24)}」`);
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
               const type = perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg');
@@ -604,8 +606,13 @@ export function webBody(options: WebBodyOptions = {}): Body {
         const url = `http://localhost:${port}`;
         log(`웹 몸 = ${url}`);
       /* **뜸을 미리 만들어 둔다.** 이걸 안 해 두면 첫 대답이 뜸 뒤에서 기다린다 —
-         소리를 한 번에 하나씩만 만들기 때문이다. 조용히, 실패해도 그냥 넘어간다. */
-      void 뜸미리만들기();
+         소리를 한 번에 하나씩만 만들기 때문이다. 조용히, 실패해도 그냥 넘어간다.
+         **창이 고를 목소리로** 만든다. 「목소리 없음」으로 만들면 창이 보내는 이름과
+         열쇠가 안 맞아 한 번도 안 맞는다(65회차에 그렇게 무용지물이었다). 목록 첫
+         번째가 곧 기본이므로 그걸 물어본다. */
+      void Promise.resolve(options.speech?.voices?.())
+        .then((목록) => 뜸미리만들기(목록?.[0]?.id))
+        .catch(() => 뜸미리만들기());
         if (options.open) openBrowser(url);
       });
     },
