@@ -990,7 +990,11 @@ window.KARMOLAB_LAZY_META = [
     desc: '텍스트나 파일의 MD5·SHA-1·SHA-256·SHA-512 해시(체크섬)를 브라우저에서 계산합니다',
     layout: 'form',
     icon: '<path d="M9 3L7 21M17 3l-2 18M4 8h16M3 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/hashgen']
+    // 해시 라이브러리를 **자기가** 부른다 (TASK-KL-104). 예전에는 셸이 그것을 늘 먼저
+    // 받아 뒀기에 안 적어도 됐는데, 그 eager 로드를 뺀 뒤로 이 도구의 제 주소
+    // (`/karmolab/t/hashgen/`)에서만 「라이브러리를 불러오지 못했어요」가 떴다. 앱 안에서는
+    // 묶음(개발 도구)이 대신 받아 줘서 멀쩡해 보였다 — 그래서 오래 안 들켰다.
+    lazyScriptPaths: ['vendor/crypto-js.min', 'tools/hashgen']
   },
   {
     id: 'uuidgen',
