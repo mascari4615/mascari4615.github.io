@@ -24,7 +24,8 @@ const seen = new Set();
 const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
   '/karmolab/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
-  '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js')
+  '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
+  '/karmolab/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js')
 };
 
 for (const g of list) {
@@ -40,7 +41,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const cards = list
   .map(
     (g) =>
-      `      <a class="play-card" href="${esc(g.url)}"><span class="play-emoji">${esc(g.emoji)}</span><strong>${esc(g.title)}</strong><span>${esc(g.lead)}</span></a>`
+      `      <a class="play-card" data-play="${esc(g.id)}" href="${esc(g.url)}"><span class="play-emoji">${esc(g.emoji)}</span><strong>${esc(g.title)}</strong><span>${esc(g.lead)}</span></a>`
   )
   .join('\n');
 
@@ -143,9 +144,10 @@ ${cards}
   }
 
   [].forEach.call(document.querySelectorAll('.play-card'), function (card) {
-    var id = (card.getAttribute('href') || '').indexOf('/daily/') === 0 ? 'daily'
-      : card.getAttribute('href').indexOf('quest') >= 0 ? 'quest' : 'higher';
-    if (!lines[id]) return;
+    /* 카드가 제 이름표를 달고 있다. 예전엔 주소를 보고 되짚었는데, 짚는 규칙의 마지막 갈래가
+       「그 밖에는 전부 높은 쪽」이라 새 놀이가 늘자 남의 기록을 달고 나왔다. */
+    var id = card.getAttribute('data-play');
+    if (!id || !lines[id]) return;
     var tag = document.createElement('span');
     tag.className = 'play-mine';
     tag.textContent = lines[id];
