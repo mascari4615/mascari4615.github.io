@@ -80,9 +80,14 @@
     --transition-fast: 100ms ease;
     --transition-slow: 350ms ease;
 
-    --font-sans: 'Noto Sans KR', 'Inter', 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-serif: 'Noto Serif KR', Georgia, 'Times New Roman', serif;
-    --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Liberation Mono', monospace;
+    /* Inter 를 뺐다(TASK-KL-089). 앞의 'KarmoSans' 이 영문·숫자까지 덮어 도달하지 않는
+       자리였고, 웹글꼴도 더 이상 부르지 않는다. 남겨 두면 Inter 가 설치된 기기에서만
+       다른 글씨체로 보여 사람마다 화면이 갈린다. */
+    /* 이름이 Karmo* 인 것은 **우리가 구운 글꼴**이다 (TASK-KL-128, `scripts/gen-fonts.py`).
+       담지 않은 글자는 그 다음 후보로 흘러간다 — 그래서 뒤의 컴퓨터 글꼴 목록을 그대로 둔다. */
+    --font-sans: 'KarmoSans', 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'KarmoSerif', Georgia, 'Times New Roman', serif;
+    --font-mono: 'KarmoMono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Liberation Mono', monospace;
 
     /* 격자 두 겹 — 굵은 칸은 또렷하게, 가는 칸은 아주 옅게 (모눈 종이) */
     --grid-color: rgba(210, 205, 245, 0.075);
@@ -949,6 +954,26 @@ html[data-intro="off"] .intro-overlay {
     display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
     padding: var(--space-xl) 0 0; text-align: center;
 }
+/* 첫 화면의 커뮤니티 줄 (TASK-KL-098) — 사람이 보이는 자리.
+   서버에 못 닿거나 글이 없으면 비어 있으므로, 빈 상태에서는 자리 자체를 안 만든다. */
+.landing-feed { max-width: 560px; margin: var(--space-xl) auto 0; text-align: left; }
+.landing-feed:empty { display: none; }
+.landing-feed-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.landing-feed-name { font-size: var(--font-size-xs); font-weight: 700; color: var(--text-secondary); }
+.landing-feed-more { background: none; border: none; padding: 0; cursor: pointer;
+    color: var(--accent); font: inherit; font-size: var(--font-size-xs); }
+.landing-feed-rows { border: 1px solid var(--border); border-radius: var(--radius-lg);
+    background: var(--bg-secondary); overflow: hidden; }
+.landing-feed-row { display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--border);
+    cursor: pointer; font: inherit; text-align: left; }
+.landing-feed-row:first-child { border-top: 0; }
+.landing-feed-row:hover { background: var(--bg-tertiary); }
+.landing-feed-title { flex: 1; min-width: 0; font-size: var(--font-size-xs); color: var(--text-primary);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.landing-feed-row:hover .landing-feed-title { color: var(--accent); }
+.landing-feed-meta { flex: 0 0 auto; font-size: 11px; color: var(--text-tertiary); display: flex; gap: 8px; }
+
 .landing-cta-grid {
     display: flex;
     flex-wrap: wrap;
@@ -1083,6 +1108,20 @@ a.landing-cta-card:hover { color: inherit; }
 /* 손가락으로 쓰는 화면에는 그 키가 없다. 없는 것을 알려 주면 거짓말이 된다. */
 @media (hover: none) { .kp-kbd { display: none; } }
 
+/* 찾기 닫기 (TASK-KL-101) — 폰에는 Esc 가 없다. 누르는 크기부터 확보한다. */
+.kp-close {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    margin-right: -6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; background: none; cursor: pointer;
+    color: var(--text-tertiary);
+    border-radius: var(--radius-md);
+    transition: color var(--transition), background var(--transition);
+}
+.kp-close svg { width: 18px; height: 18px; }
+.kp-close:hover, .kp-close:focus-visible { color: var(--text-primary); background: var(--bg-hover); }
+
 .kp-list { overflow-y: auto; overscroll-behavior: contain; }
 .kp-inline .kp-list { max-height: min(46vh, 420px); }
 .kp-overlay .kp-list { max-height: min(60vh, 520px); }
@@ -1098,6 +1137,8 @@ a.landing-cta-card:hover { color: inherit; }
 
 .kp-row {
     display: flex; align-items: center; gap: var(--space-md);
+    /* 자식 줄의 세로 이음선이 이 줄을 기준으로 그려진다 (.kp-row-child::before) */
+    position: relative;
     /* 손가락 표적 44px — 좁히면 옆줄이 눌린다. */
     padding: 11px var(--space-md);
     min-height: 44px;
@@ -1166,6 +1207,36 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .kp-browse-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .kp-browse-n { font-family: var(--font-mono); color: var(--text-tertiary); }
+
+/* 갈래를 펼친 뒤 되돌아가는 줄. 이게 없으면 한 번 들어간 사람이 갇힌다. */
+.kp-back {
+    display: flex; align-items: center; gap: 6px;
+    width: 100%;
+    background: none; border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px var(--space-md);
+    color: var(--text-tertiary);
+    font-family: inherit;
+    font-size: var(--font-size-2xs);
+    cursor: pointer;
+    text-align: left;
+}
+.kp-back:hover { color: var(--accent); }
+
+/* 묶음 안의 탭 — 부모 바로 밑에 한 칸 들여 붙는다. 한 덩어리로 읽히게. */
+.kp-row-child {
+    padding-left: calc(var(--space-md) + 22px);
+}
+.kp-row-child .kp-row-title { font-weight: 400; color: var(--text-secondary); }
+.kp-row-child .kp-icon { opacity: 0.55; }
+/* 부모와 이어져 있다는 표시 — 들여쓰기만으로는 목록이 그냥 어긋나 보인다. */
+.kp-row-child::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-md) + 8px);
+    top: 0; bottom: 0;
+    border-left: 1px solid var(--border);
+}
 
 /* 화면 낭독기에만 읽히는 줄 — 결과 수가 바뀐 것을 알린다. */
 .kp-live {
@@ -1955,8 +2026,16 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     /* 헤더 아이콘과 폰 내비 항목도 누르는 크기를 받는다. 「작지만 예쁜」 자리라 빠뜨리기 쉬운데,
        폰에서 제일 자주 빗나가는 것이 이 둘이다. */
     .header-btn, .theme-toggle, .header-logo { min-width: 40px; min-height: 40px; }
-    /* 글자가 한 자면(「홈」·「봇」) 폭이 33px 로 좁아진다 — 높이만 채워선 안 되고 폭도 받쳐야 한다 */
-    .mobile-nav .nav-item { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 5px 12px; }
+    /* 글자가 한 자면(「홈」·「봇」) 폭이 33px 로 좁아진다 — 높이만 채워선 안 되고 폭도 받쳐야 한다.
+       `flex: 0 0 auto` 가 핵심이다: 이게 없으면 항목이 줄어들어 **상자는 안 겹치는데 글자가
+       넘쳐** 서로 침범한다. 상자 좌표만 재면 「겹침 0」으로 통과하므로 눈으로만 보이던 문제다.
+       줄은 원래 가로로 넘치게 돼 있으니(overflow-x:auto) 안 줄여도 된다. */
+    .mobile-nav .nav-item {
+        flex: 0 0 auto;
+        min-width: 40px; min-height: 40px;
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 5px 12px;
+    }
     /* 다른 세션이 얹은 것들도 같은 기준을 받는다 — 폰에서 누르는 크기는 만든 사람이 아니라
        화면이 정한다. 세로만 모자랐다(계정 30px · 팔레트 칩 35px). */
     .header-account-signin, .kp-browse-chip { min-height: 40px; }

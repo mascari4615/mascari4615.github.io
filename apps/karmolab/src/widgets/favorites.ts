@@ -218,22 +218,6 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         .fav-grid.fav-grid-card .fav-icon { width:60px; height:60px; border-radius:12px; }
         .fav-grid.fav-grid-card .fav-icon-svg svg { width:40px; height:40px; }
         .fav-grid.fav-grid-card .fav-label { font-size:var(--font-size-xs); }
-        /* 커뮤니티 입구 (TASK-KL-098) — 첫 화면에서 사람이 보이는 유일한 자리다. */
-        #homeCommunityCard:empty { display:none; }
-        .home-c-card { border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary);
-            padding:14px 16px; margin-bottom:22px; }
-        .home-c-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-        .home-c-name { font-weight:700; font-size:var(--font-size-sm); color:var(--text-primary); }
-        .home-c-more { background:none; border:none; padding:0; cursor:pointer; color:var(--accent);
-            font:inherit; font-size:var(--font-size-xs); }
-        .home-c-rows { display:flex; flex-direction:column; }
-        .home-c-row { display:flex; align-items:center; gap:12px; padding:7px 0; text-decoration:none;
-            border-top:1px solid var(--border); }
-        .home-c-row:first-child { border-top:0; }
-        .home-c-title { flex:1; min-width:0; font-size:var(--font-size-xs); color:var(--text-primary);
-            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .home-c-row:hover .home-c-title { color:var(--accent); }
-        .home-c-meta { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; }
     `);
 
     function buildFavorites(container: HTMLElement): void {
@@ -263,10 +247,6 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                             </button>
                         </div>
                     </div>
-                    <!-- 커뮤니티 입구 (TASK-KL-098). 도구만 있는 첫 화면에는 사람이 안 보인다 —
-                         여기 최근 이야기가 떠 있어야 「누가 있구나」가 전해진다. 숫자·제목은 전부 실측이고,
-                         서버에 못 닿거나 글이 없으면 카드가 조용히 사라진다 (빈 칸을 남기지 않는다). -->
-                    <div id="homeCommunityCard"></div>
                     ${groupsNow.map((g) => `
                         <div class="fav-group" data-fav-group="${esc(g.group)}">
                             <div class="fav-group-title">${esc(g.group)}</div>
@@ -439,69 +419,6 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
         }
 
         render();
-        void fillCommunityCard(container);
-    }
-
-    /**
-     * 첫 화면의 커뮤니티 입구 (TASK-KL-098).
-     *
-     * 도구만 늘어선 첫 화면에는 사람이 안 보인다. 최근 이야기 몇 줄이 여기 떠 있어야
-     * 「누가 있구나」가 전해지고, 커뮤니티로 들어가는 길이 생긴다.
-     *
-     * 규칙 둘:
-     *  - 지어낸 값 0. 제목·답글 수는 서버가 준 실측이다.
-     *  - 서버에 못 닿거나 글이 하나도 없으면 **카드를 안 그린다**. 빈 상자는 죽은 화면으로 읽힌다.
-     */
-    async function fillCommunityCard(container: HTMLElement): Promise<void> {
-        const slot = container.querySelector<HTMLElement>('#homeCommunityCard');
-        const base = window.KarmoAccount?.apiBase;
-        if (!slot || !base) return;
-
-        let posts: Array<{ id: string; title: string | null; text: string; authorHandle: string; replies: unknown[] }> = [];
-        try {
-            const response = await fetch(`${base}/kl/posts?kind=talk`, { credentials: 'include' });
-            if (!response.ok) return;
-            const data = (await response.json()) as { posts?: typeof posts };
-            posts = data.posts ?? [];
-        } catch {
-            return;
-        }
-        if (posts.length === 0 || !slot.isConnected) return;
-
-        const esc = Toolbox.escapeHtml ?? ((v: string) => v);
-        const rows = posts
-            .slice(0, 3)
-            .map((p) => {
-                const heading = p.title ?? p.text.replace(/\s+/g, ' ').trim().slice(0, 40);
-                const replies = p.replies.length ? `<span class="home-c-replies">답글 ${p.replies.length}</span>` : '';
-                return `<a class="home-c-row" href="?p=${encodeURIComponent(p.id)}#community" data-post="${esc(p.id)}">
-                    <span class="home-c-title">${esc(heading)}</span>
-                    <span class="home-c-meta">@${esc(p.authorHandle)} ${replies}</span>
-                </a>`;
-            })
-            .join('');
-
-        slot.innerHTML = `
-            <div class="home-c-card">
-                <div class="home-c-head">
-                    <span class="home-c-name">커뮤니티</span>
-                    <button type="button" class="home-c-more" data-open-community>전체 보기 →</button>
-                </div>
-                <div class="home-c-rows">${rows}</div>
-            </div>`;
-
-        slot.querySelector('[data-open-community]')?.addEventListener('click', () => {
-            Toolbox.switchPage?.('community');
-        });
-        slot.querySelectorAll<HTMLAnchorElement>('[data-post]').forEach((link) => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                const search = new URLSearchParams(location.search);
-                search.set('p', link.dataset.post ?? '');
-                history.pushState({}, '', `${location.pathname}?${search.toString()}#community`);
-                Toolbox.switchPage?.('community');
-            });
-        });
     }
 
     Toolbox.register({
