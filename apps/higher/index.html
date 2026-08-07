@@ -40,7 +40,7 @@ permalink: /karmolab/higher/
 .side.win { border-color: var(--success); }
 .side.lose { border-color: var(--error); }
 .swap {
-  font: inherit; font-size: var(--font-size-2xs); margin-left: 6px; padding: 0 8px; min-height: 28px;
+  font: inherit; font-size: var(--font-size-2xs); margin-left: 6px; padding: 0 10px; min-height: 32px;
   cursor: pointer; color: var(--text-tertiary); background: transparent;
   border: 1px solid var(--border); border-radius: var(--radius-lg); vertical-align: middle;
 }
@@ -155,7 +155,11 @@ permalink: /karmolab/higher/
    * 이미 알고 있으니, 다음 상대만 새로 온다.
    * 처음 한 판만 둘 다 뽑는다. 값이 같으면 견줄 수 없으니 다시 뽑는다. */
   function nextRound(keepLeft) {
-    locked = false;
+    /* 새 판이 뜨자마자 손가락이 한 번 더 닿는 일이 잦다 (TASK-KL-089).
+     * 폰에서 두 번 빠르게 누르면 두 판이 넘어가 **원치 않는 답**이 들어갔다(연승이 운으로 끊긴다).
+     * 판이 바뀌고 나서 잠깐은 안 받는다 — 사람이 새 그림을 보기도 전이니 어차피 고른 게 아니다. */
+    locked = true;
+    setTimeout(function () { locked = false; }, 260);
     $('again').hidden = true;
     var pool = board.items.filter(function (x) { return x.v[field.key] !== undefined; });
     if (!keepLeft || !left) left = pick(pool);
