@@ -60,8 +60,18 @@ const browser = await chromium.launch();
 const out = { ...prev };
 const failed = [];
 
+/**
+ * 한 번 실패했다고 포기하지 않는다 (TASK-KL-107).
+ *
+ * 이 측정은 여러 작업이 같은 서버를 두드리는 동안 돌아서, 가끔 한 도구가 제때 안 그려진다.
+ * 그런데 실패가 한 건만 나도 **기록 전체를 안 쓰고 끝냈다** — 126개를 다 재고도 아무것도
+ * 안 남는다. 실제로 돌릴 때마다 *다른* 도구가 실패했다(pdfcompress → filehash). 도구가
+ * 고장 난 게 아니라 재는 쪽이 흔들린 것이다. 진짜 고장이면 몇 번을 다시 해도 실패한다.
+ */
+const TRIES = 3;
+
 /** 한 도구를 두 폭에서 열고 도구 자리의 높이를 잰다. */
-async function measure(ctx, id, key) {
+async function measure(ctx, id, key, attempt = 1) {
   const page = await ctx.newPage();
   try {
     // 페이지에는 이미 「이만큼 비워 둬라」가 박혀 있고 그것이 **최소** 높이다. 끄지 않고 재면
@@ -81,7 +91,14 @@ async function measure(ctx, id, key) {
     if (!h) throw new Error('도구 자리를 못 찾았다');
     out[id] = { ...(out[id] || {}), [key]: h };
   } catch (e) {
-    failed.push(`${id}(${key}): ${String(e.message).slice(0, 50)}`);
+    await page.close();
+    if (attempt < TRIES) {
+      // 조금 쉬었다 다시 — 서버가 다른 작업에 밀린 순간이면 그 사이 풀린다.
+      await new Promise((r) => setTimeout(r, 800 * attempt));
+      return measure(ctx, id, key, attempt + 1);
+    }
+    failed.push(`${id}(${key}): ${String(e.message).slice(0, 50)} (${TRIES}번 다시 해도 같음)`);
+    return;
   }
   await page.close();
 }
