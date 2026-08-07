@@ -267,7 +267,8 @@ body:has(> .app-layout) {
    예전엔 `:not([data-bg])` 와 `="observatory"` 둘만 받았다. 그래서 값이 한 번
    `undefined` 로 적히자 어느 쪽에도 안 걸려 **배경이 통째로 사라졌다** — 다크는 검은
    순색, 라이트는 흰 순색. 아래 다른 테마들이 이 위에 덮는다 (TASK-KL-101). */
-.app-bg {
+.app-bg,
+.bg-swatch {
     /* 배경은 **화면에 딱 맞는 판때기 한 장**에 그린다 (TASK-KL-101).
        예전엔 body 에 attachment:fixed 로 붙이고 높이를 화면 단위(svh/lvh)로 적었다.
        그건 「화면이 이만할 것」이라는 추측이고, 폰은 주소창이 접혔다 펴졌다 하며 그
@@ -300,7 +301,8 @@ body:has(> .app-layout) {
    크기·반복 목록은 그대로 남아서 층 수가 어긋났다 — 오로라는 화면만 한 타원이 48px 로
    잘려 바둑판처럼 깔렸고, 격자는 테마마다 통째로 사라졌다. 사실상 관측실 말고는 다 고장.
    층을 갈라 두면 테마는 **자기 그림과 자기 크기만** 적으면 되고, 격자는 늘 남는다. */
-.app-bg::before {
+.app-bg::before,
+.bg-swatch::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -313,7 +315,8 @@ body:has(> .app-layout) {
 /* 아래 테마들은 **분위기층만** 바꾼다. 격자·vignette 는 위에서 늘 깔린다. */
 
 /* 배경 테마: 블루 매젠타 */
-html[data-bg="blue-magenta"] .app-bg::before {
+html[data-bg="blue-magenta"] .app-bg::before,
+.bg-swatch[data-bg="blue-magenta"]::before {
     background-image:
         radial-gradient(at 20% 30%, rgba(59, 130, 246, 0.20) 0px, transparent 50%),
         radial-gradient(at 80% 20%, rgba(217, 70, 239, 0.16) 0px, transparent 45%),
@@ -323,7 +326,8 @@ html[data-bg="blue-magenta"] .app-bg::before {
 }
 
 /* 배경 테마: 메쉬 도트 — 유일하게 **되풀이되는** 분위기층이라 크기를 제가 적는다 */
-html[data-bg="mesh-dots"] .app-bg::before {
+html[data-bg="mesh-dots"] .app-bg::before,
+.bg-swatch[data-bg="mesh-dots"]::before {
     background-image:
         radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.30) 0px, transparent 2px),
         radial-gradient(circle at 70% 60%, rgba(217, 70, 239, 0.26) 0px, transparent 2px),
@@ -334,7 +338,8 @@ html[data-bg="mesh-dots"] .app-bg::before {
 }
 
 /* 배경 테마: 오로라 */
-html[data-bg="aurora"] .app-bg::before {
+html[data-bg="aurora"] .app-bg::before,
+.bg-swatch[data-bg="aurora"]::before {
     background-image:
         radial-gradient(ellipse 80% 50% at 10% 20%, rgba(34, 197, 94, 0.18) 0px, transparent 50%),
         radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59, 130, 246, 0.20) 0px, transparent 45%),
@@ -343,19 +348,58 @@ html[data-bg="aurora"] .app-bg::before {
 }
 
 /* 배경 테마: 은은한 */
-html[data-bg="subtle"] .app-bg::before {
+html[data-bg="subtle"] .app-bg::before,
+.bg-swatch[data-bg="subtle"]::before {
     background-image:
         radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.12) 0px, transparent 70%);
     background-size: 100% 100%;
 }
 
 /* 배경 테마: 미니멀 — 분위기도 격자도 없이 종이만 */
-html[data-bg="minimal"] .app-bg::before { background-image: none; }
-html[data-bg="minimal"] .app-bg {
+html[data-bg="minimal"] .app-bg::before,
+.bg-swatch[data-bg="minimal"]::before { background-image: none; }
+html[data-bg="minimal"] .app-bg,
+.bg-swatch[data-bg="minimal"] {
     background-image: radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
     background-size: auto;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+/* 배경 견본 — 위 규칙을 그대로 물려받아 **진짜 배경과 같은 그림**을 보여 준다.
+   값을 두 벌 적지 않는 것이 핵심이다: 테마를 손보면 견본도 같이 바뀐다.
+   물려받은 「화면에 붙어라」만 여기서 되돌린다 (TASK-KL-101). */
+.bg-swatch {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    pointer-events: auto;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    background-color: var(--bg-void);
+    transition: border-color .18s ease, transform .18s ease;
+}
+.bg-swatch:hover { transform: translateY(-2px); }
+.bg-swatch[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+.bg-swatch-name {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 4px 6px;
+    font-size: var(--font-size-2xs, 12px);
+    color: var(--text-primary);
+    background: linear-gradient(to top, var(--bg-void), transparent);
+    text-align: center;
+}
+.settings-bg-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 10px;
+    width: 100%;
 }
 
 .app-layout {
@@ -1216,6 +1260,10 @@ a.landing-cta-card:hover { color: inherit; }
 
 .kp-list { overflow-y: auto; overscroll-behavior: contain; }
 .kp-inline .kp-list { max-height: min(46vh, 420px); }
+/* 첫 화면에서는 누르기 전까지 접혀 있다 (TASK-KL-129) — 아직 안 물어본 답이 화면 절반을
+   차지하지 않게. 누르면 그 자리에서 펼쳐진다. */
+.kp-inline.kp-collapsed .kp-list,
+.kp-inline.kp-collapsed .kp-live { display: none; }
 .kp-overlay .kp-list { max-height: min(60vh, 520px); }
 
 .kp-section {
