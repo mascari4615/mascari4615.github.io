@@ -708,6 +708,16 @@ const Toolbox = (() => {
             mobileNav.appendChild(m);
         }
 
+        /* TASK-KL-099 — 손가락으로 쓰는 화면에는 ⌘K 가 없다. 팔레트를 부를 길이 아예
+         * 없으면 좁은 화면 사람만 160개짜리 가로 목록에 남겨진다. 이미 있는 줄의 맨 앞에
+         * 세워서 새 떠다니는 버튼을 만들지 않는다. */
+        const mFind = document.createElement('a');
+        mFind.className = 'nav-item nav-item-find';
+        mFind.textContent = '찾기';
+        mFind.setAttribute('role', 'button');
+        mFind.onclick = () => window.KarmoPalette?.open();
+        mobileNav.appendChild(mFind);
+
         // Mobile home button
         const mHome = document.createElement('a');
         mHome.className = 'nav-item active';
@@ -896,6 +906,28 @@ const Toolbox = (() => {
         setupUpdateBannerListener();
         setupUpdateCompletedToast();
         installWindowControls();
+        installPaletteShortcut();
+    }
+
+    /* TASK-KL-099 — 어디서든 ⌘K / Ctrl+K 로 찾는 창을 부른다.
+     * 헤더에 상시 검색창을 두지 않는 대신, 첫 화면에서 배운 그 표면을 다시 띄운다. */
+    function installPaletteShortcut() {
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'k' || e.key === 'K')) {
+                // 브라우저 기본(주소창 검색)을 뺏는다 — 이 앱 안에서는 이쪽이 맞는 동작이다.
+                e.preventDefault();
+                window.KarmoPalette?.toggle();
+                return;
+            }
+            // 첫 화면에 이미 입력이 박혀 있다 — 거기서 또 창을 띄우면 같은 것이 두 겹이 된다.
+            if (e.key === '/' && currentPageId !== 'home' && !window.KarmoPalette?.isOpen()) {
+                const t = e.target;
+                const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+                if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable)) return;
+                e.preventDefault();
+                window.KarmoPalette?.open();
+            }
+        });
     }
 
     /* ===== Landing Page Builder ===== */
@@ -1056,6 +1088,17 @@ const Toolbox = (() => {
         `;
         landing.appendChild(hero);
 
+        /* TASK-KL-099 — 첫 화면의 본체는 찾는 입력이다. 도구가 160개인데 예전에는 이 자리에
+         * 카드 3장과 「상단 메뉴에서 카테고리를 열고 도구를 선택하세요」만 있었다 — 찾는 일을
+         * 사람에게 떠넘기는 화면이었다. 카드는 그대로 두되(사용자 요청), 주인공 자리는 입력이
+         * 갖는다: 카드 셋은 정해진 세 곳으로 가고, 입력은 160개 전부로 간다. */
+        const palette = document.createElement('div');
+        palette.className = 'landing-palette';
+        landing.appendChild(palette);
+        if (typeof window !== 'undefined' && window.KarmoPalette) {
+            window.KarmoPalette.mountInline(palette);
+        }
+
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
         cta.innerHTML = `
@@ -1076,7 +1119,7 @@ const Toolbox = (() => {
                     <div class="landing-cta-card-desc">API 레퍼런스 & 가이드</div>
                 </button>
             </div>
-            <p class="landing-cta-hint">상단 메뉴에서 카테고리를 열고 도구를 선택하세요</p>
+            <p class="landing-cta-hint">찾는 것이 있으면 위에 이름을 치세요 · 아무 화면에서나 <kbd>Ctrl</kbd>+<kbd>K</kbd></p>
         `;
         landing.appendChild(cta);
 
@@ -1110,7 +1153,7 @@ const Toolbox = (() => {
 
     function switchPage(pageId, opts = {}) {
         closeAllHeaderNav();
-        let { pushHistory = true } = opts;
+        let { pushHistory = true, skipRecent = false } = opts;
 
         // TASK-KL-088: 도구 상세 페이지(/karmolab/t/<id>/)에서 다른 도구로 옮기면
         // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목·
@@ -1127,7 +1170,12 @@ const Toolbox = (() => {
         // 단 도구 상세 페이지는 그 도구 하나를 보여주는 자리다 - 여기서 묶음으로 튕기면 빈 화면이 된다.
         const bundleId = findBundleFor(pageId);
         if (bundleId && !entryTool) {
-            switchPage(bundleId, opts);
+            // TASK-KL-099 — 「최근」 에는 *사람이 고른 이름* 이 남아야 한다.
+            // 「글자수 세기」를 골랐는데 최근에 「텍스트 도구」가 뜨면, 다음에 그 이름을
+            // 찾을 수 없다 (실제로 검사가 이걸 잡았다). 묶음으로 옮기기 **전에** 적고,
+            // 뒤이은 묶음 호출은 안 적게 막는다.
+            window.KarmoPalette?.noteOpen(pageId);
+            switchPage(bundleId, { ...opts, skipRecent: true });
             switchTab(pageId);
             return;
         }
@@ -1156,6 +1204,9 @@ const Toolbox = (() => {
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
         currentPageId = pageId;
         window.KarmoStat?.page(pageId, toolForPage ? toolForPage.title : undefined);
+        // TASK-KL-099 — 「최근」 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
+        // 화면마다 따로 적을 필요가 없다 (팔레트·메뉴·주소·즐겨찾기 전부 여기를 지난다).
+        if (!skipRecent) window.KarmoPalette?.noteOpen(pageId);
 
         allPages.forEach(p => p.classList.remove('active'));
         allNav.forEach(n => n.classList.remove('active'));
@@ -1169,6 +1220,13 @@ const Toolbox = (() => {
             document.getElementById('pageTitle').textContent = 'KarmoLab';
             if (breadcrumb) breadcrumb.innerHTML = '';
             try { localStorage.setItem(LAST_PAGE_KEY, 'home'); } catch (_) {}
+            // TASK-KL-099 — 첫 화면이 실제로 보이게 된 다음에 포커스를 준다. 그리기 전에
+            // 주면 화면이 튄다. 최근 목록도 이때 다시 그린다 — 도구를 쓰고 돌아왔으면
+            // 그것이 맨 위여야 한다.
+            requestAnimationFrame(() => {
+                window.KarmoPalette?.refresh();
+                window.KarmoPalette?.focusInline();
+            });
             if (typeof Mdd !== 'undefined') {
                 Mdd.linePreset('home_hub');
             }
