@@ -39,7 +39,15 @@ import { mountCourseNext } from './play-course';
 
   /* 날짜에서 나오는 난수 — 같은 날이면 누구에게나 같은 문제가 나온다(서버 없이 맞추는 법). */
   function seeded(n: number): () => number {
-    let x = (n * 2654435761) >>> 0;
+    /* 날 번호를 그대로 씨앗에 쓰면 이웃한 날끼리 첫 값이 닮는다 — 갈래를 그 첫 값으로
+     * 고르므로 「시간 → 분」이 사흘 내리 나왔다(실측: 열 날 중 넷). 한 번 흩어 준다. */
+    let x = (n + 0x9e3779b9) >>> 0;
+    x ^= x >>> 16;
+    x = Math.imul(x, 0x21f0aaad) >>> 0;
+    x ^= x >>> 15;
+    x = Math.imul(x, 0x735a2d97) >>> 0;
+    x ^= x >>> 15;
+    x = x >>> 0 || 1;
     return () => {
       x ^= x << 13;
       x >>>= 0;
@@ -57,10 +65,47 @@ import { mountCourseNext } from './play-course';
    * 두 주 만에 재방송이 된다. 유형은 그대로 두고 숫자만 그날 것으로 뽑으면 바닥이 없다.
    * 표 문제와 하루씩 번갈아 나오므로, 손으로 쓴 문제의 결도 안 사라진다.
    */
+  /**
+   * 그날의 갈래 — **앞서 나온 갈래와 겹치면 옮긴다.**
+   *
+   * 씨앗을 흩어도 우연은 뭉친다: 「시간 → 분」이 사흘 내리 나왔다(실측). 그런데 바로 앞 것과만
+   * 견주면 밀린 값이 또 겹쳐서 셋이 이어졌다 — 앞의 **정해진 갈래**를 좇아 올라가며 정해야 한다.
+   * 멀리 갈수록 값이 안 바뀌므로 여덟 걸음이면 충분하다(만든 문제는 하루 걸러 나온다).
+   */
+  function kindOf(day: number): number {
+    const raw = (d: number): number => Math.floor(seeded(d)() * 4);
+    const start = Math.max(1, day - 16);
+    let prev = -1;
+    let k = raw(start);
+    for (let d = start; d <= day; d += 2) {
+      k = raw(d);
+      if (k === prev) k = (k + 1) % 4;
+      prev = k;
+    }
+    return k;
+  }
+
+  /** 받침을 보고 을/를을 고른다 — 「2570 을」이 아니라 「2570을」. */
+  function eul(word: string): string {
+    const digit = /[0-9]$/.test(word);
+    const last = digit ? '0123456789'.indexOf(word[word.length - 1]) : -1;
+    // 숫자는 읽는 소리로 받침을 판단한다 (0 영·1 일·3 삼·6 육·7 칠·8 팔 = 받침 있음)
+    const hasBatchim = digit ? [true, true, false, true, false, false, true, true, true, false][last] : true;
+    return word + (hasBatchim ? '을' : '를');
+  }
+
+  /** 받침을 보고 은/는을 고른다 — 「56킬로그램는」은 사람이 쓰는 말이 아니다. */
+  function neun(word: string): string {
+    const last = word.charCodeAt(word.length - 1);
+    const hangul = last >= 0xac00 && last <= 0xd7a3;
+    return word + (hangul && (last - 0xac00) % 28 !== 0 ? '은' : '는');
+  }
+
   function madeToday(day: number): Puzzle {
     const rnd = seeded(day);
     const pickOf = <T,>(arr: T[]): T => arr[Math.floor(rnd() * arr.length)];
-    const kind = Math.floor(rnd() * 4);
+    rnd(); // 갈래를 정할 때 쓴 몫 — 아래 값들이 그것과 같은 흐름을 타지 않게 한 번 흘린다
+    const kind = kindOf(day);
     const norm2 = (v: string): string => v.toLowerCase().replace(/[\s,]/g, '');
 
     if (kind === 0) {
@@ -68,9 +113,9 @@ import { mountCourseNext } from './play-course';
       const base = pickOf([2, 8, 16]);
       return {
         id: `g${day}`,
-        q: `${n} 을 ${base}진법으로 쓰면?`,
+        q: `${eul(String(n))} ${base}진법으로 쓰면?`,
         tool: 'radix',
-        hint: `진법 변환기에 ${n} 을 넣고 ${base}진법 칸을 보세요`,
+        hint: `진법 변환기에 ${eul(String(n))} 넣고 ${base}진법 칸을 보세요`,
         ok: (v) => norm2(v).replace(/^0[bxo]/, '') === n.toString(base)
       };
     }
@@ -85,7 +130,8 @@ import { mountCourseNext } from './play-course';
       const want = f(n);
       return {
         id: `g${day}`,
-        q: `${n}${from === '섭씨' ? '도' : ' ' + from} 는 몇 ${to} 인가요? (소수 첫째 자리까지)`,
+        // 「46 킬로미터 는」처럼 띄어 놓으면 사람이 쓰는 말이 아니다 — 붙여 적는다.
+        q: `${from === '섭씨' ? `섭씨 ${n}도는` : `${n}${neun(from)}`} 몇 ${to}인가요? (소수 첫째 자리까지)`,
         tool: 'unitconv',
         hint: `단위 변환에서 ${from} → ${to} 로 ${n} 을 넣어 보세요`,
         // 반올림 자리를 하나 어긋나게 적어도 맞다고 본다 — 도구가 보여 주는 자릿수가 제각각이다.
