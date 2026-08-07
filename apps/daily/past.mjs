@@ -37,15 +37,16 @@ const oldest = Math.max(EPOCH_DAY_NUMBER, 0);
 function rowFor(d) {
   const answers = modes.map((m) => topic.items[dailyIndex(topic.id, d, topic.items.length, m.key)]);
   return (
-    `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span>` +
-    // 답만 읽고 나가지 않게 — 그날 문제를 지금 풀 수 있다.
-    `<a class="play" href="../?d=${dateLabel(d)}">풀어보기</a></th>` +
+    `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span></th>` +
     answers
       .map(
         (a, i) =>
           // 답은 단추 안에 있다 — 가려 둔 동안에도 눌러서 열 수 있어야 하고, 키보드로도 되어야 한다.
           `<td><span class="mo">${esc(modes[i].label)}</span>` +
-          `<button type="button" class="a">${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button></td>`,
+          `<button type="button" class="a">${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></button>` +
+          // 답만 읽고 나가지 않게 — 그날 그 판을 지금 풀 수 있다. 판마다 따로 걸어야 한다:
+          // 하나만 걸면 실루엣 답은 보여 주면서 실루엣은 못 풀게 된다.
+          `<a class="play" href="../${modes[i].key ? `${modes[i].key}/` : ''}?d=${dateLabel(d)}">풀어보기</a></td>`,
       )
       .join('') +
     '</tr>'

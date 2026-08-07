@@ -773,6 +773,17 @@ for (const [topicId, mode, limit] of [['lol', 'classic', 8], ['lol', 'silhouette
   await page.goto(`${base}/pokemon/past/`, { waitUntil: 'networkidle' });
   const links = await page.$$eval('table.past .play', (els) => els.map((e) => e.getAttribute('href')));
   check('지난 문제에서 풀어보기로 간다', links.length > 5 && links.every((h) => /\?d=\d{4}-\d{2}-\d{2}$/.test(h)), `${links.length}개`);
+  // 실루엣 답을 보여 주면서 실루엣은 못 풀게 두면 안 된다 — 판마다 하나씩 걸려 있어야 한다.
+  // 날짜가 두 줄로 쪼개지면 못 읽는다 — 실제 높이로 잰다.
+  const dh = await page.$eval('table.past .d', (e) => e.getBoundingClientRect().height);
+  check('지난 문제 날짜가 한 줄로 읽힌다', dh < 26, `${Math.round(dh)}px`);
+  const rows = await page.locator('table.past tbody tr').count();
+  check('★ 실루엣 판도 그날로 갈 수 있다', links.filter((h) => h.includes('silhouette/')).length === rows, `${rows}줄 중 ${links.filter((h) => h.includes('silhouette/')).length}개`);
+
+  // 링크가 진짜 그날 그 판을 여는지 — 주소만 맞고 안 열리면 소용없다.
+  const sil = links.find((h) => h.includes('silhouette/'));
+  await page.goto(new URL(sil, `${base}/pokemon/past/`).href, { waitUntil: 'networkidle' });
+  check('★ 그 링크가 실루엣 연습 판을 연다', (await page.locator('.tab.practice').count()) === 1 && (await page.locator('.shot').count()) === 1);
   await ctx.close();
 }
 
