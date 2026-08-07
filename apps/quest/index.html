@@ -108,6 +108,15 @@ permalink: /karmolab/quest/
     var d = Date.UTC(nowKst.getUTCFullYear(), nowKst.getUTCMonth(), nowKst.getUTCDate());
     return Math.max(0, Math.floor((d - EPOCH) / 86400e3)) % n;
   }
+  /* 오늘이 몇 번째 문제인가 (TASK-KL-089).
+   * 공유 문구에 「🟩 1/5」만 있어서 남들과 견줄 수가 없었다 — 같은 날 같은 문제를 풀었는지조차
+   * 알 수 없다. 워들류가 회차 번호를 다는 이유다. 기준일부터 며칠째인지를 센다. */
+  function puzzleNo() {
+    var kst = new Date(Date.now() + 9 * 3600e3);
+    var d = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate());
+    return Math.max(0, Math.floor((d - EPOCH) / 86400e3)) + 1;
+  }
+
   function dayLabel() {
     var k = new Date(Date.now() + 9 * 3600e3);
     return k.getUTCFullYear() + '. ' + (k.getUTCMonth() + 1) + '. ' + k.getUTCDate() + '.';
@@ -127,7 +136,7 @@ permalink: /karmolab/quest/
   function save(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
 
   function paint(p) {
-    $('day').textContent = dayLabel();
+    $('day').textContent = '#' + puzzleNo() + ' · ' + dayLabel();
     $('q').textContent = p.q;
     $('tool').href = '/karmolab/t/' + p.tool + '/';
     $('hint').textContent = p.hint;
@@ -220,7 +229,7 @@ permalink: /karmolab/quest/
 
       $('share').addEventListener('click', function () {
         var st2 = load()[dayLabel()] || {};
-        var text = 'KarmoLab 오늘의 문제 ' + dayLabel() + '\n' + (st2.win ? '🟩 ' + st2.tries + '/5' : '🟥 5/5') + '\nblog.mascari4615.com/karmolab/quest/';
+        var text = 'KarmoLab 오늘의 문제 #' + puzzleNo() + '\n' + (st2.win ? '🟩 ' + st2.tries + '/5' : '🟥 5/5') + '\nblog.mascari4615.com/karmolab/quest/';
         navigator.clipboard.writeText(text).then(function () { $('share').textContent = '복사했습니다'; });
       });
     })
