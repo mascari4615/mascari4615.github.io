@@ -30,11 +30,17 @@
 
   /** 종일 일정은 날짜만 적고, 끝 날짜는 하루 뒤로 적어야 그 날까지 잡힌다 */
   function dayStamp(local: string, plusDays = 0): string {
-    const d = new Date(local.slice(0, 10) + 'T00:00:00+09:00');
-    if (isNaN(d.getTime())) return '';
-    d.setDate(d.getDate() + plusDays);
+    // 종일 일정은 규격상 **시간대가 없는 달력 날짜**다. 예전 판은 한국시간으로 파싱해 놓고
+    // 현지 게터(getFullYear/getMonth/getDate)로 뽑아, UTC 기계(CI)에서 하루가 밀렸다 —
+    // 로컬은 통과하고 CI 만 빨간 전형(2026-08-07: DTSTART 20260831/DTEND 20260903 로 어긋남).
+    // 시간대를 아예 태우지 않는다: 숫자로 읽고 UTC 로 계산해 UTC 로 출력.
+    const [y, m, d] = local.slice(0, 10).split('-').map(Number);
+    if (!y || !m || !d) return '';
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    if (isNaN(dt.getTime())) return '';
+    dt.setUTCDate(dt.getUTCDate() + plusDays);
     const p = (n: number): string => String(n).padStart(2, '0');
-    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+    return `${dt.getUTCFullYear()}${p(dt.getUTCMonth() + 1)}${p(dt.getUTCDate())}`;
   }
 
   Toolbox.register({
