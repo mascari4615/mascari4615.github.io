@@ -35,7 +35,9 @@ const rows = [];
 for (let d = today - 1; d >= Math.max(EPOCH_DAY_NUMBER, today - DAYS); d -= 1) {
   const answers = modes.map((m) => topic.items[dailyIndex(topic.id, d, topic.items.length, m.key)]);
   rows.push(
-    `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span></th>` +
+    `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span>` +
+      // 답만 읽고 나가지 않게 — 그날 문제를 지금 풀 수 있다.
+      `<a class="play" href="../?d=${dateLabel(d)}">풀어보기</a></th>` +
       answers
         .map(
           (a, i) =>
@@ -47,5 +49,5 @@ for (let d = today - 1; d >= Math.max(EPOCH_DAY_NUMBER, today - DAYS); d -= 1) {
 }
 
 root.querySelector('.past-note').textContent =
-  `오늘(#${puzzleNumber()}) 답은 여기 없다 — 내일 이 자리에 올라온다.`;
+  `오늘(#${puzzleNumber()}) 답은 여기 없다 — 내일 이 자리에 올라온다. 놓친 날은 「풀어보기」로 지금 풀 수 있다.`;
 root.querySelector('tbody').innerHTML = rows.join('') || '<tr><td>아직 지난 문제가 없다.</td></tr>';

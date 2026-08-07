@@ -59,12 +59,32 @@ try {
   fatal(`${err.message}. 인터넷이 끊겼거나 잠깐 말썽일 수 있어요.`);
   throw err;
 }
-const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
+/**
+ * 연습 — 놓친 날의 문제를 지금 푼다 (`?d=YYYY-MM-DD`).
+ *
+ * 오늘 판을 다 풀고 나면 할 게 없었다. 지난 문제 목록은 답만 보여 줄 뿐 놀 수는 없었고,
+ * 「오늘의 정답」을 검색해 들어온 사람도 읽고 나가는 것 말고는 할 일이 없었다.
+ * 정답이 날짜에서 결정론적으로 나오므로 서버 없이 그날로 되돌아갈 수 있다.
+ *
+ * **오늘과 미래는 안 된다** — 오늘 답이 새면 놀이가 끝장난다.
+ */
+function practiceAt() {
+  const raw = new URLSearchParams(location.search).get('d');
+  if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  const at = new Date(`${raw}T12:00:00+09:00`);
+  if (Number.isNaN(at.getTime())) return null;
+  return kstDayNumber(at) < kstDayNumber() ? at : null;
+}
+
+const practice = practiceAt();
+const at = practice ?? new Date();
+const answer = answerOf(topic, at, mode === 'classic' ? '' : mode);
 const maxGuesses = mode === 'silhouette' ? 6 : topic.maxGuesses ?? 8;
-const puzzleNo = puzzleNumber();
-const dayKey = kstDayKey();
+const puzzleNo = puzzleNumber(at);
+const dayKey = kstDayKey(at);
 const dayNumber = kstDayNumber();
-const storeKey = `daily:${topicId}:${mode}`;
+// 연습 판은 저장 자리를 따로 쓴다 — 오늘 판의 진행을 덮으면 안 된다.
+const storeKey = practice ? `daily:${topicId}:${mode}:p:${dayKey}` : `daily:${topicId}:${mode}`;
 const statsKey = `daily:${topicId}:${mode}:stats`;
 // 연속은 판별이 아니라 **사이트 전체** 하루 단위다 — 판이 늘어도 끊기지 않는다.
 const streakKey = 'daily:streak';
@@ -103,6 +123,10 @@ const $streak = root.querySelector('.streak');
 const $shot = root.querySelector('.shot');
 
 root.querySelector('.no').textContent = `#${puzzleNo}`;
+if (practice) {
+  root.querySelector('.tabs')?.insertAdjacentHTML('afterbegin', `<span class="tab practice">연습 · ${dayKey}</span>`);
+  root.querySelector('.lede').textContent = `${dayKey} 의 문제입니다. 연습이라 기록에는 안 들어갑니다.`;
+}
 
 function renderStreak() {
   const live = liveStreak(streak ?? {}, dayNumber);
@@ -230,7 +254,7 @@ function finish() {
   $done.append(btn);
 
   // 끝난 사람을 그냥 보내지 않는다 — 오늘 아직 안 푼 판을 바로 건넨다.
-  const todo = others.filter((o) => {
+  const todo = (practice ? [{ href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode }] : []).concat(others).filter((o) => {
     const s = read(`daily:${o.topic}:${o.mode}`, null);
     return !(s && s.day === dayKey && s.status !== 'playing');
   });
@@ -296,10 +320,13 @@ function submit(name) {
   $input.value = '';
   $sug.innerHTML = '';
   if (state.status !== 'playing') {
-    stats = updateStats(stats, { won: state.status === 'won', guesses: state.guesses.length, dayNumber });
-    write(statsKey, stats);
-    streak = touchDay(streak, dayNumber);
-    write(streakKey, streak);
+    if (!practice) {
+      // 연습은 기록에 안 들어간다 — 지난 문제를 몰아 풀어 연속을 만들 수 있으면 기록이 뜻을 잃는다.
+      stats = updateStats(stats, { won: state.status === 'won', guesses: state.guesses.length, dayNumber });
+      write(statsKey, stats);
+      streak = touchDay(streak, dayNumber);
+      write(streakKey, streak);
+    }
     renderStreak();
     finish();
   }
