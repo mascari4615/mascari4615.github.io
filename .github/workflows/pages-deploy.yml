@@ -115,6 +115,11 @@ jobs:
           # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
           mkdir -p apps/blog/karmolab/bot
           cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
+          # TASK-KL-098: 공개 프로필(/karmolab/u/?h=<핸들>) — 남이 로그인 없이 여는 자리.
+          # ★ 이 세 줄은 지금까지 세 번 사라졌다. 이 파일을 통째로 다시 쓸 때 같이 지워진다.
+          #   없어지면 프로필 주소가 404 가 된다 (배포 뒤 audit-live-essentials 가 잡는다).
+          mkdir -p apps/blog/karmolab/u
+          cp apps/karmolab/u/index.html apps/blog/karmolab/u/index.html
 
       # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
