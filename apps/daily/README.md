@@ -42,6 +42,7 @@ Pokedle 트래픽의 3분의 1이 LoLdle 교차 링크에서 왔다. 그래서 *
 | `app.mjs` | 화면과 저장만. 규칙 판단 안 함 |
 | `scripts/build.mjs` | `data/*.json` → `dist/` (허브 + 주제별 페이지). 번들러 없음 |
 | `scripts/fetch-*.mjs` | 공개 API → 표. 한 번 돌리고 결과를 커밋한다 |
+| `scripts/lib-table.mjs` | 표를 저장하는 한 곳 — 항목 수가 바뀌면 그 뜻을 말해 준다 |
 | `scripts/smoke.mjs` | **진짜 브라우저에서 한 판 끝까지 둔다** (playwright 는 이웃 앱 것을 빌려 씀) |
 
 의존성 0 · 빌드 도구 0 은 의도다. 첫 화면이 빨라야 낯선 사람이 안 닫는다.
@@ -49,15 +50,15 @@ Pokedle 트래픽의 3분의 1이 LoLdle 교차 링크에서 왔다. 그래서 *
 ## 명령
 
 ```bash
-npm test            # 규칙 시험
-npm run build       # 시험 + dist/ 생성
-npm run serve       # dist/ 를 배포와 같은 주소(/daily/)로 띄운다
-node scripts/smoke.mjs   # 브라우저 한 판 (스샷 = .cache/shots/)
-npm run fetch:lol        # 표 갱신 (Data Dragon — 새 챔피언 나올 때)
-npm run fetch:pokemon    # 표 갱신 (PokéAPI — 오래 걸림, .cache/ 에 캐시)
-node scripts/fetch-genshin.mjs  # 표 갱신 (yatta.moe — 한국어 자료)
-node scripts/gen-og.mjs         # 공유 카드 그림 다시 만들기 (주제·문구 바뀌면)
-node scripts/check-freshness.mjs # 표가 원본과 어긋났는지 대조 (네트워크)
+npm test              # 규칙 시험 (빠름, 의존성 0)
+npm run build         # 시험 + dist/ 생성
+npm run serve         # dist/ 를 배포와 같은 주소(/daily/)로 띄운다
+npm run smoke         # 브라우저에서 한 판씩 (스샷 = .cache/shots/)
+npm run smoke:live    # **배포된 사이트**에서 한 판씩
+
+npm run fetch:all     # 표 셋 갱신 — 한국 시각 자정 직후에 (아래 § 참고)
+npm run check:fresh   # 표가 원본과 어긋났는지 대조 (네트워크)
+npm run gen:og        # 공유 카드 그림 다시 만들기 (주제·문구 바뀌면)
 ```
 
 ## 주제 하나 더 넣기
@@ -78,7 +79,7 @@ node scripts/check-freshness.mjs # 표가 원본과 어긋났는지 대조 (네�
 
 - 표마다 `fetchedAt` 이 박힌다. **180일 넘으면 빌드가 선다** (150일부터 경고).
   멈추기만 하고 방법을 안 알려 주면 방해일 뿐이라, 메시지에 고치는 명령까지 적는다.
-- `node scripts/check-freshness.mjs` — 원본에 물어 실제 항목 수를 대조한다. 배포에선 안 돈다
+- `npm run check:fresh` — 원본에 물어 실제 항목 수를 대조한다. 배포에선 안 돈다
   (바깥 서버가 잠깐 말썽인 것으로 배포를 세울 이유가 없다).
 - 세는 규칙은 표 만들 때와 **같은 파일**을 쓴다 (`scripts/rules-*.mjs`). 따로 적었더니
   116 대 118 로 갈려 거짓 경보가 났다.
