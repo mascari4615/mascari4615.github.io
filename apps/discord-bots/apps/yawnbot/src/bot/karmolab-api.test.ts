@@ -181,18 +181,50 @@ describe('계정 API — HTTP', () => {
     }
   });
 
+  // 사람 브라우저가 스스로 밝히는 이름. 「kl-test」 같은 이름은 이제 사람으로 안 센다.
+  const HUMAN_UA =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+
   it('흔적 — 도구 열림은 로그인 없이 세고, 같은 사람 새로고침은 안 센다', async () => {
-    const headers = { 'Content-Type': 'application/json', 'User-Agent': 'kl-test' };
+    const headers = { 'Content-Type': 'application/json', 'User-Agent': HUMAN_UA };
     const body = JSON.stringify({ toolId: 'charcount' });
     const first = await fetch(`${baseUrl}/kl/trace/tool`, { method: 'POST', headers, body });
-    expect(await first.json()).toEqual({ counted: true });
+    expect(await first.json()).toEqual({ counted: true, kind: 'human' });
     const second = await fetch(`${baseUrl}/kl/trace/tool`, { method: 'POST', headers, body });
-    expect(await second.json()).toEqual({ counted: false });
+    expect(await second.json()).toEqual({ counted: false, kind: 'human' });
 
     const stats = await fetch(`${baseUrl}/kl/tools/stats`);
     const data = (await stats.json()) as { tools: Array<{ toolId: string; total: number }>; pulse: { opensTotal: number } };
     expect(data.tools).toEqual([{ toolId: 'charcount', total: 1, recent: 1 }]);
     expect(data.pulse.opensTotal).toBe(1);
+  });
+
+  /**
+   * 이 수는 첫 화면에 「이번 주에 많이 쓴 도구」로 **공개된다.** 로봇이 만든 순위를 사람에게
+   * 보여 주면 자랑이 아니라 거짓말이다. 실제로 우리 점검이 도구를 한 바퀴 돌 때마다 전부
+   * +1 이 되어, 도구 130개가 똑같이 48번씩 열린 것으로 찍혀 있었다 (TASK-KL-112).
+   */
+  it('흔적 — 로봇이 연 것은 도구 사용 수에 안 들어간다', async () => {
+    const body = JSON.stringify({ toolId: 'jsonfmt' });
+    const 로봇들 = [
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/126.0 Safari/537.36',
+      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'python-requests/2.31.0',
+    ];
+    for (const ua of 로봇들) {
+      const res = await fetch(`${baseUrl}/kl/trace/tool`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': ua },
+        body,
+      });
+      const seen = (await res.json()) as { counted: boolean; kind: string };
+      expect(seen.counted, `${ua} 가 사람으로 세어졌다`).toBe(false);
+      expect(seen.kind).not.toBe('human');
+    }
+
+    const stats = await fetch(`${baseUrl}/kl/tools/stats`);
+    const data = (await stats.json()) as { tools: Array<{ toolId: string }> };
+    expect(data.tools.some((t) => t.toolId === 'jsonfmt'), '로봇만 연 도구가 순위에 올라왔다').toBe(false);
   });
 
   it('흔적 — 이상한 도구 이름은 400', async () => {
