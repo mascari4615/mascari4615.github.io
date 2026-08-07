@@ -182,6 +182,7 @@ for (const topic of topics) {
   </div>
   <p class="lede past-note"></p>
   <table class="past"><tbody></tbody></table>
+  <div class="past-more"></div>
   ${foot()}
 </div>
 <script type="module" src="../../past.mjs?v=${stamp}"></script>

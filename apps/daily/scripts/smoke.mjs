@@ -154,7 +154,22 @@ async function pastPage(topicId) {
     `[지난:${topicId}] 실루엣 답도 따로 나온다`,
     text.includes(answerOf(topic, new Date(Date.now() - 86400000), 'silhouette').name),
   );
-  check(`[지난:${topicId}] 줄이 여러 날 쌓인다`, (await page.locator('table.past tbody tr').count()) > 5);
+  const first = await page.locator('table.past tbody tr').count();
+  check(`[지난:${topicId}] 줄이 여러 날 쌓인다`, first > 5, `${first}줄`);
+
+  // 30일에서 끊기면 연습할 날도 검색에 걸릴 글도 거기서 끝난다 — 이어서 더 볼 수 있어야 한다.
+  await page.click('.past-more button');
+  const more = await page.locator('table.past tbody tr').count();
+  check(`[지난:${topicId}] 더 보기로 이어진다`, more > first, `${first} → ${more}줄`);
+  // 진짜 규칙은 「오늘 줄이 없다」이다. 이름으로 보면 과거의 *다른 모드* 답과 우연히 겹쳐
+  // 헛걸린다 — 그건 정보가 새는 게 아니라 순열이 모드마다 따로 도는 결과다.
+  const todayLabel = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const dates = await page.$$eval('table.past .d', (els) => els.map((e) => e.textContent));
+  check(
+    `[지난:${topicId}] ★ 더 봐도 오늘 줄은 없다`,
+    !dates.includes(todayLabel) && dates.every((d) => d < todayLabel),
+    `가장 최근 ${dates[0]}`,
+  );
   await page.screenshot({ path: join(shots, `${topicId}-past.png`), fullPage: true });
   await ctx.close();
 }
@@ -252,7 +267,13 @@ await pastPage('genshin');
     }
     return localStorage.length;
   });
-  await page.reload({ waitUntil: 'domcontentloaded' });
+  // 앱이 돌기 전에 세면 「안 치웠다」로 헛걸린다 — 치워질 때까지 기다린다.
+  await page.reload({ waitUntil: 'networkidle' });
+  await page
+    .waitForFunction(() => Object.keys(localStorage).filter((k) => /:p:\d{4}-\d{2}-\d{2}$/.test(k)).length <= 40, {
+      timeout: 10000,
+    })
+    .catch(() => {});
   const left = await page.evaluate(() =>
     Object.keys(localStorage).filter((k) => /:p:\d{4}-\d{2}-\d{2}$/.test(k)).length,
   );
