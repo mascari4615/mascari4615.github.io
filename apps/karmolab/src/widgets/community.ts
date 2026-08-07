@@ -35,6 +35,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         ownerOnly: boolean;
         titled: boolean;
         canDelete: boolean;
+        tags: string[];
     }
 
     interface BoardsResponse {
@@ -69,6 +70,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         replyCount: number;
         status: 'open' | 'planned' | 'done' | 'declined';
         pinned: boolean;
+        tag: string | null;
         replies: Reply[];
         votedByMe: boolean;
         likedByMe: boolean;
@@ -78,6 +80,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     interface ListResponse {
         board: string;
         gallery: Board;
+        tag: string | null;
         sort: 'recent' | 'top';
         posts: Post[];
         signedIn: boolean;
@@ -182,6 +185,37 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); margin-bottom:18px; }
         .c-signin p { margin:0; color:var(--text-secondary); font-size:var(--font-size-sm); }
+
+        /* 커뮤니티 홈 — 아카의 「베스트 라이브」 자리를 본떴다. 갤러리 목록만 있으면 「지금 뭐가
+           오가나」가 안 보이고, 사람은 빈 곳으로 읽는다. 반응이 모인 글과 새 글을 먼저 보여 준다. */
+        .c-feeds { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; margin-bottom:22px; }
+        .c-feed h3 { margin:0 0 8px; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:700; }
+        .c-feed-rows { border:1px solid var(--border); border-radius:var(--radius-lg);
+            background:var(--bg-secondary); overflow:hidden; }
+        .c-feed-row { display:flex; align-items:center; gap:7px; width:100%; padding:8px 12px;
+            background:none; border:0; border-top:1px solid var(--border); cursor:pointer; font:inherit;
+            text-align:left; font-size:var(--font-size-xs); }
+        .c-feed-row:first-child { border-top:0; }
+        .c-feed-row:hover { background:var(--bg-tertiary); }
+        .c-feed-gal { flex:0 0 auto; padding:1px 7px; border-radius:999px; background:var(--accent-dim);
+            color:var(--accent); font-size:10px; }
+        .c-feed-tag { flex:0 0 auto; font-size:10px; color:var(--text-tertiary); }
+        .c-feed-title { flex:1; min-width:0; color:var(--text-primary);
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .c-feed-row:hover .c-feed-title { color:var(--accent); }
+        .c-feed-meta { flex:0 0 auto; font-size:10px; color:var(--text-tertiary); }
+        .c-feed-empty { margin:0; padding:18px 12px; font-size:var(--font-size-xs); color:var(--text-tertiary); }
+        .c-gal-title { margin:0; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:700; }
+
+        /* 말머리 — 갤러리 안에서 글을 한 번 더 가른다 (디시·아카의 말머리). */
+        .c-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+        .c-tagchip { padding:4px 10px; border-radius:var(--radius); border:1px solid var(--border);
+            background:transparent; color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }
+        .c-tagchip:hover { color:var(--text-primary); }
+        .c-tagchip[data-on="1"] { border-color:var(--accent); color:var(--accent); }
+        .c-headword { flex:0 0 auto; color:var(--text-tertiary); font-size:11px; }
+        .c-write select { padding:8px 10px; border-radius:var(--radius); border:1px solid var(--border);
+            background:var(--bg-primary); color:var(--text-primary); font:inherit; }
 
         /* 갤러리 목록 — 어느 갤러리가 살아 있나. 글 수만으로는 모른다, 마지막 글이 있어야 안다. */
         .c-galleries { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
@@ -548,6 +582,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         descMaxLength: 60,
     };
 
+    let bestFeed: Post[] = [];
+    let recentFeed: Post[] = [];
+
     function renderGalleryHome(): void {
         if (!host) return;
         const cards = boards
@@ -587,9 +624,36 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                  </form>`
               : '';
 
+        const feedRows = (posts: Post[], empty: string): string =>
+            posts.length
+                ? posts
+                      .map((p) => {
+                          const gal = boards.find((b) => b.id === p.board);
+                          const heading = p.title ?? plainPreview(p.text, 44);
+                          return `<button type="button" class="c-feed-row" data-feed-post="${esc(p.id)}" data-feed-board="${esc(p.board)}">
+                              <span class="c-feed-gal">${esc(gal?.label ?? p.board)}</span>
+                              ${p.tag ? `<span class="c-feed-tag">${esc(p.tag)}</span>` : ''}
+                              <span class="c-feed-title">${esc(heading)}</span>
+                              ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
+                              <span class="c-feed-meta">${p.likes ? `♥ ${p.likes} · ` : ''}${relativeTime(p.bumpedAt)}</span>
+                          </button>`;
+                      })
+                      .join('')
+                : `<p class="c-feed-empty">${esc(empty)}</p>`;
+
         host.innerHTML = `<div class="c-wrap">
-            <div class="c-head"><h2>커뮤니티</h2><span>갤러리를 고르세요</span></div>
-            <div class="c-bar"><span></span>${
+            <div class="c-head"><h2>커뮤니티</h2><span>도구를 쓰는 사람들이 모이는 자리</span></div>
+            <div class="c-feeds">
+                <section class="c-feed">
+                    <h3>베스트</h3>
+                    <div class="c-feed-rows">${feedRows(bestFeed, '아직 반응이 모인 글이 없습니다.')}</div>
+                </section>
+                <section class="c-feed">
+                    <h3>새 글</h3>
+                    <div class="c-feed-rows">${feedRows(recentFeed, '아직 글이 없습니다.')}</div>
+                </section>
+            </div>
+            <div class="c-bar"><h3 class="c-gal-title">갤러리 ${boards.length}</h3>${
                 boardsMeta.signedIn && !galleryFormOpen ? '<button type="button" class="c-newbtn" data-gal-new>갤러리 만들기</button>' : '<span></span>'
             }</div>
             ${maker}
@@ -599,7 +663,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         wireSignIn();
 
         host.querySelectorAll<HTMLButtonElement>('[data-gal]').forEach((b) =>
-            b.addEventListener('click', () => go({ board: b.dataset.gal ?? null, p: null, page: null, q: null })),
+            b.addEventListener('click', () => go({ board: b.dataset.gal ?? null, p: null, page: null, q: null, tag: null })),
+        );
+        host.querySelectorAll<HTMLButtonElement>('[data-feed-post]').forEach((b) =>
+            b.addEventListener('click', () =>
+                go({ board: b.dataset.feedBoard ?? null, p: b.dataset.feedPost ?? null, page: null, q: null }),
+            ),
         );
         host.querySelector('[data-gal-new]')?.addEventListener('click', () => {
             galleryFormOpen = true;
@@ -647,7 +716,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             galleryFormOpen = false;
             boards = [];
             // 만들었으면 바로 그 갤러리로 — 만들고 목록만 보면 어디 생겼나 찾게 된다.
-            go({ board: created.id, p: null, page: null, q: null });
+            go({ board: created.id, p: null, page: null, q: null, tag: null });
         });
     }
 
@@ -709,6 +778,14 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         ).join('');
 
         return `<form class="c-write" data-write>
+            ${
+                data.gallery.tags.length
+                    ? `<select name="cTag" data-tagpick aria-label="말머리">
+                           <option value="">말머리 없음</option>
+                           ${data.gallery.tags.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+                       </select>`
+                    : ''
+            }
             ${isRequest ? '' : `<input type="text" name="cTitle" data-title maxlength="${data.titleMaxLength}" placeholder="제목" aria-label="글 제목" value="${esc(draft.title)}" required>`}
             <div class="c-compose-bar">
                 <div class="c-fmts">${isRequest ? '' : tools}</div>
@@ -868,6 +945,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                           <td class="c-td-title">
                               <button type="button" class="c-title-btn" data-post="${esc(p.id)}">
                                   ${isRequest && p.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[p.status]}</span>` : ''}
+                                  ${p.tag ? `<span class="c-headword">[${esc(p.tag)}]</span>` : ''}
                                   <span class="t">${esc(heading)}</span>
                                   ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
                               </button>
@@ -905,6 +983,19 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 } · 글 ${gallery.count ?? data.posts.length}</p>
             </div>
             ${renderBoards(data.board)}
+            ${
+                data.gallery.tags.length
+                    ? `<div class="c-tags">
+                        <button type="button" class="c-tagchip" data-tag="" data-on="${data.tag ? '0' : '1'}">전체</button>
+                        ${data.gallery.tags
+                            .map(
+                                (t) =>
+                                    `<button type="button" class="c-tagchip" data-tag="${esc(t)}" data-on="${data.tag === t ? '1' : '0'}">${esc(t)}</button>`,
+                            )
+                            .join('')}
+                       </div>`
+                    : ''
+            }
             <div class="c-bar">${sorts}${
                 data.signedIn && data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
             }</div>
@@ -937,7 +1028,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
             b.addEventListener('click', () => {
                 writerOpen = false;
-                go({ board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null), sort: null, p: null, page: null, q: null });
+                go({ board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null), sort: null, p: null, page: null, q: null, tag: null });
             }),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) =>
@@ -945,6 +1036,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         );
         host.querySelectorAll<HTMLButtonElement>('[data-post]').forEach((b) =>
             b.addEventListener('click', () => go({ p: b.dataset.post ?? null })),
+        );
+        host.querySelectorAll<HTMLButtonElement>('[data-tag]').forEach((b) =>
+            b.addEventListener('click', () => go({ tag: b.dataset.tag || null, page: null })),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-page]').forEach((b) =>
             b.addEventListener('click', () => go({ page: b.dataset.page === '1' ? null : (b.dataset.page ?? null) })),
@@ -977,7 +1071,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 const created = (await api('/kl/posts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ board: data.board, title, text }),
+                    body: JSON.stringify({
+                        board: data.board,
+                        title,
+                        text,
+                        tag: writeForm.querySelector<HTMLSelectElement>('[data-tagpick]')?.value || null,
+                    }),
                 })) as { id?: string } | null;
                 if (button) button.disabled = false;
                 if (!created?.id) {
@@ -1053,7 +1152,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.innerHTML = `<div class="c-wrap">
             <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? '목록')}</button></div>
             <article class="c-post">
-                <h2 class="c-post-title">${esc(post.title ?? preview(post.text, 60))}
+                <h2 class="c-post-title">${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
                     ${isRequest && post.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[post.status]}</span>` : ''}
                     ${post.pinned ? '<span class="c-tag">고정</span>' : ''}</h2>
                 <div class="c-post-meta">${face(post.authorHandle)}<span>@${esc(post.authorHandle)}</span>
@@ -1244,7 +1343,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
         if (!param('board')) {
-            const freshHome = (await api('/kl/boards')) as BoardsResponse | null;
+            const [freshHome, best, recent] = await Promise.all([
+                api('/kl/boards') as Promise<BoardsResponse | null>,
+                api('/kl/recent?kind=best&limit=6') as Promise<{ posts?: Post[] } | null>,
+                api('/kl/recent?limit=6') as Promise<{ posts?: Post[] } | null>,
+            ]);
+            bestFeed = best?.posts ?? [];
+            recentFeed = recent?.posts ?? [];
             if (freshHome?.boards) {
                 boards = freshHome.boards;
                 boardsMeta = {
@@ -1259,7 +1364,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         // 목록과 갤러리 숫자를 **같이** 받는다. 하나씩 기다리면 그만큼 화면이 늦게 바뀐다.
         const [raw, freshBoards] = await Promise.all([
-            api(`/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}`),
+            api(
+                `/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}` +
+                    (param('tag') ? `&tag=${encodeURIComponent(param('tag') ?? '')}` : ''),
+            ),
             api('/kl/boards') as Promise<BoardsResponse | null>,
         ]);
         if (!raw) {
