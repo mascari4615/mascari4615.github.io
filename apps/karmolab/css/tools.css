@@ -1035,7 +1035,20 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .qs-q { font-size: var(--font-size-md); font-weight: 700; margin: 6px 0 14px; }
 .qs-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .qs-row input[type='text'] { flex: 1 1 11rem; min-width: 0; font-size: 16px; min-height: 44px; }
-.qs-tool { display: inline-block; margin-top: 12px; font-size: var(--font-size-xs); color: var(--accent); }
+.qs-tool {
+    display: inline-block; margin-top: 12px; padding: 6px 12px;
+    font-size: var(--font-size-xs); color: var(--accent);
+    background: transparent; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl); cursor: pointer;
+}
+.qs-tool:hover:not(:disabled) { border-color: var(--accent); }
+.qs-tool:disabled { opacity: .6; cursor: default; }
+/* 도구가 문제 밑에서 펴지는 자리 — 문제 카드 안이라 한 겹 더 들어가 보이게 한다. */
+.qs-slot {
+    margin-top: 12px; padding: 14px;
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+}
 .qs-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .qs-tries { letter-spacing: 0.18em; font-size: var(--font-size-md); min-height: 1.4em; }
 .qs-after { display: flex; }
