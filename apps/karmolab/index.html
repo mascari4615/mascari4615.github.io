@@ -105,7 +105,10 @@ permalink: /karmolab/
   /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
      여기서 안 정하고 스크립트가 다 돈 뒤에 정하면 첫 화면이 한 번 번쩍인다(실제로 그랬다). */
   var lp=localStorage.getItem('toolbox_last_page');
-  document.documentElement.setAttribute('data-intro',(!lp||lp==='home')?'on':'off');
+  /* 도구 상세 페이지(/karmolab/t/…)는 이 셸을 그대로 쓴다. 거기서도 켜면 검색으로 도구에
+     바로 들어온 사람이 브랜드 스플래시를 맞는다 — 그 사람은 도구를 보러 온 것이다. */
+  var isShellRoot=location.pathname.indexOf('/karmolab/t/')===-1;
+  document.documentElement.setAttribute('data-intro',(isShellRoot&&(!lp||lp==='home'))?'on':'off');
   var pt=localStorage.getItem('toolbox_prism_theme');
   var pb='/apps/karmolab/js/vendor/prism/themes-cdn/',pe='/apps/karmolab/js/vendor/prism/themes-ext/';
   var m={tomorrow:pb+'prism-tomorrow.min.css',okaidia:pb+'prism-okaidia.min.css',twilight:pb+'prism-twilight.min.css',prism:pb+'prism.min.css',coy:pb+'prism-coy.min.css',dracula:pe+'prism-dracula.min.css','one-dark':pe+'prism-one-dark.min.css',nord:pe+'prism-nord.min.css','material-dark':pe+'prism-material-dark.min.css','vsc-dark-plus':pe+'prism-vsc-dark-plus.min.css',ghcolors:pe+'prism-ghcolors.min.css','one-light':pe+'prism-one-light.min.css','material-light':pe+'prism-material-light.min.css'};
