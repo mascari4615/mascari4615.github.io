@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
@@ -597,6 +597,12 @@ export function openPinnedWindow(
   size?: { width?: number; height?: number; transparent?: boolean },
 ): Promise<string> {
   const script = join(dirname(__filename), '..', '..', 'assets', 'pin-window.ps1');
+  // **제 창이 있으면 그걸로 뜬다.** 브라우저 창으로는 창틀·최소화·닫기 단추를 없앨 수
+  // 없고, 배경을 진짜로 뚫을 수도 없다(색 하나를 뚫는 옛 수법은 그림을 GPU 가 그리는
+  // 창에서는 먹지 않는다). 곁에 있는 존재가 제목 표시줄을 달고 있으면 창이지 존재가
+  // 아니다. 이 배선이 한때 있다가 사라져 브라우저 창으로만 뜨고 있었다.
+  const own = ownWindowExe();
+  if (own !== null && size?.transparent !== false) return openOwnWindow(own, url, size);
   return import('node:child_process').then(
     ({ execFile }) =>
       new Promise<string>((resolve) => {
@@ -635,4 +641,48 @@ export function openPinnedWindow(
         );
       }),
   );
+}
+
+/**
+ * 얘 전용 창 프로그램. 없으면 null — 그럼 브라우저 창으로 물러선다.
+ *
+ * 아직 배포용으로 굽지 않아서 개발 산출물 자리에 있다. 릴리스 자리를 먼저 보고,
+ * 없으면 개발 자리를 본다 — 나중에 구우면 손 안 대고 그쪽을 쓴다.
+ */
+function ownWindowExe(): string | null {
+  if (process.platform !== 'win32') return null;
+  const 뿌리 = join(dirname(__filename), '..', '..', '..', '..', 'apps', 'karmolab-tauri', 'target');
+  for (const 자리 of ['release', 'debug']) {
+    const exe = join(뿌리, 자리, 'companion-window.exe');
+    if (existsSync(exe)) return exe;
+  }
+  return null;
+}
+
+/** 제 창으로 띄운다. 창틀도 없고 배경도 진짜로 뚫린다. */
+function openOwnWindow(
+  exe: string,
+  url: string,
+  size?: { width?: number; height?: number },
+): Promise<string> {
+  return import('node:child_process').then(({ spawn }) => {
+    try {
+      const child = spawn(exe, [], {
+        detached: true,
+        stdio: 'ignore',
+        // 주소·크기는 환경으로 넘긴다 — 저쪽이 그렇게 읽는다.
+        env: {
+          ...process.env,
+          COMPANION_URL: url,
+          COMPANION_WIDTH: String(size?.width ?? 420),
+          COMPANION_HEIGHT: String(size?.height ?? 640),
+        },
+      });
+      child.unref();
+      return '제 창으로 떴다 (창틀 없음·배경 뚫림)';
+    } catch (e) {
+      openBrowser(url);
+      return `제 창을 못 띄워서 평범한 브라우저로 열었다: ${e instanceof Error ? e.message : String(e)}`;
+    }
+  });
 }
