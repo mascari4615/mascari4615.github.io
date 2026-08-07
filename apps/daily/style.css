@@ -238,6 +238,22 @@ a { color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 
+/* 첫 줄이 뜬 자리에서 읽는 법을 알려 준다 — 규칙은 위에 있고 결과는 아래에 뜬다. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0 2px 8px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.legend .c { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.legend .c.exact { background: var(--exact); }
+.legend .c.near { background: var(--near); }
+.legend .c.wrong { background: var(--wrong); }
+.legend .m { margin-left: 4px; }
+
 /* ── 추측 표 ── */
 .rows { display: flex; flex-direction: column; gap: 8px; }
 .row {

@@ -206,6 +206,25 @@ function markOf(field, cell) {
   return cell.state === 'near' ? '≈' : '';
 }
 
+/**
+ * 첫 줄이 뜬 그 자리에서 읽는 법을 알려 준다.
+ * 규칙은 화면 맨 위에 한 줄 적혀 있지만, 결과는 그보다 아래에 뜬다 — 처음 온 사람은
+ * 초록·노랑·▲ 를 보고도 무슨 뜻인지 모른 채 다음 수를 못 둔다. 눈이 가 있는 곳에 둔다.
+ * 속성 판에만 붙인다 (실루엣은 「정답/아님」이라 설명할 게 없다).
+ */
+function showLegend() {
+  if (mode !== 'classic' || root.querySelector('.legend')) return;
+  $rows.insertAdjacentElement(
+    'beforebegin',
+    el(
+      '<p class="legend"><span class="c exact"></span>맞음' +
+        '<span class="c near"></span>비슷' +
+        '<span class="c wrong"></span>아님' +
+        '<span class="m">▲ 정답이 더 큼 · ▼ 더 작음</span></p>',
+    ),
+  );
+}
+
 function renderRow(guess) {
   const cells = compareItem(topic, guess, answer);
   const img = guess.img ? `<img src="${esc(guess.img)}" alt="" loading="lazy">` : '';
@@ -467,6 +486,7 @@ function submit(name, how = '직접') {
   // 첫 수는 그 깔때기의 첫 칸이고, 시작점 단추가 실제로 먹히는지도 여기서만 갈린다.
   if (state.guesses.length === 0 && !practice) countEvent(`daily/${topicId}/${mode}/첫수/${how}`);
   state.guesses.push(item.name);
+  showLegend();
   const cells = renderRow(item);
   const won = mode === 'silhouette' ? item.name === answer.name : isWin(cells);
   if (won) state.status = 'won';
@@ -545,6 +565,7 @@ if ($shot && answer.img) {
   $shot.querySelector('img').src = answer.img;
   watchShot();
 }
+if (state.guesses.length) showLegend();
 for (const name of state.guesses) {
   const item = findItem(topic.items, name);
   if (item) renderRow(item);
