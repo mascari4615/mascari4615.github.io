@@ -459,7 +459,7 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
     color: var(--text-secondary);
 }
 
-/* 허브 (/karmolab/t/) — 셸 안의 한 화면이다 (TASK-KL-129).
+/* 허브 (/karmolab/t/) — 셸 안의 한 화면이다 (TASK-KL-130).
    예전엔 셸 밖 문서라 제 여백을 직접 들고 있었다. 이제 본문 자리(content-body) 안에
    들어가므로 위쪽 여백은 그쪽이 준다 — 여기서 또 주면 제목이 한참 아래로 밀린다.
    폭은 상세(720px)보다 넓게 잡는다: 여기는 읽는 글이 아니라 **훑는 격자**라
@@ -1040,7 +1040,7 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .qs-tries { letter-spacing: 0.18em; font-size: var(--font-size-md); min-height: 1.4em; }
 .qs-after { display: flex; }
 
-/* ── PDF 판본 대조 (TASK-KL-129) ── */
+/* ── PDF 판본 대조 (TASK-KL-130) ── */
 .pd-out { margin-top: 12px; display: flex; flex-direction: column; gap: 14px; }
 .pd-card { border: 1px solid var(--border); background: var(--bg-secondary); padding: 12px; }
 .pd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: var(--font-size-sm); }
@@ -1065,4 +1065,23 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pd-more { padding: 4px 6px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 @media (max-width: 640px) {
     .pd-pair { grid-template-columns: 1fr; }
+}
+
+/* ═══ 놀이터 (TASK-KL-089) — 놀이 셋으로 갈리는 자리. 색·모서리는 KarmoLab 토큰만 쓴다. ═══ */
+.pl-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }
+.pl-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.pl-card {
+    display: grid; grid-template-columns: 2.2rem 1fr; grid-template-rows: auto auto; gap: 2px 12px;
+    padding: 16px; text-decoration: none; color: inherit;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-xl); transition: border-color .15s, transform .15s;
+}
+.pl-card:hover, .pl-card:focus-visible { border-color: var(--accent); transform: translateY(-2px); }
+.pl-emoji { grid-row: 1 / span 2; font-size: 1.7rem; align-self: center; }
+.pl-card strong { font-size: var(--font-size-sm); }
+.pl-lead-sm { color: var(--text-tertiary); font-size: var(--font-size-2xs); line-height: 1.5; }
+.pl-mine {
+    grid-column: 2; justify-self: start; margin-top: 6px;
+    padding: 1px 8px; font-size: var(--font-size-2xs);
+    color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px;
 }

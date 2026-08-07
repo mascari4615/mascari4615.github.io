@@ -115,11 +115,6 @@ jobs:
           # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
           mkdir -p apps/blog/karmolab/bot
           cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
-          # TASK-KL-098: 공개 프로필(/karmolab/u/?h=<핸들>) — 남이 로그인 없이 여는 자리.
-          # ★ 이 세 줄은 지금까지 세 번 사라졌다. 이 파일을 통째로 다시 쓸 때 같이 지워진다.
-          #   없어지면 프로필 주소가 404 가 된다 (배포 뒤 audit-live-essentials 가 잡는다).
-          mkdir -p apps/blog/karmolab/u
-          cp apps/karmolab/u/index.html apps/blog/karmolab/u/index.html
 
       # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
@@ -131,22 +126,16 @@ jobs:
           mkdir -p apps/blog/daily
           cp -r apps/daily/dist/. apps/blog/daily/
 
-      # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」(/karmolab/higher/) · 「오늘의 문제」(/karmolab/quest/).
-      # 둘 다 의존성 0. 표가 어긋나면 아래 단계가 그 자리에서 배포를 세운다.
-      # 주소는 파일 앞머리의 permalink 가 정한다 — 여기서는 Jekyll 이 볼 자리로 옮기기만 한다.
-      - name: Build higher-lower game
-        run: node apps/higher/scripts/build.mjs
-      - name: Verify daily quest table
-        run: node apps/quest/scripts/verify.mjs
-      - name: Prepare game pages
+      # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」·「오늘의 문제」는 KarmoLab 앱 안으로 들어갔다
+      # (`/karmolab/#higher` · `/karmolab/#quest`). 알맹이(위젯 js·문제 표)는 앱 빌드와
+      # 아래 rsync 가 실어 나른다. 여기서는 이미 밖에 나가 있던 옛 주소만 살려 둔다 —
+      # 두 파일 다 새 자리로 넘겨보내는 한 장짜리다.
+      - name: Prepare moved-game redirects
         run: |
-          mkdir -p apps/blog/higher apps/blog/quest
+          mkdir -p apps/blog/higher apps/blog/quest apps/blog/play
           cp apps/higher/index.html apps/blog/higher/index.html
-          cp apps/higher/data/*.json apps/blog/higher/
-          mkdir -p apps/blog/play
-          cp apps/play/base.css apps/blog/play/base.css
           cp apps/quest/index.html apps/blog/quest/index.html
-          cp apps/quest/data/puzzles.json apps/blog/quest/puzzles.json
+          cp apps/play/base.css apps/blog/play/base.css
 
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
