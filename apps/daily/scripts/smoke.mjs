@@ -152,6 +152,22 @@ await pastPage('lol');
 await pastPage('genshin');
 
 /**
+ * 실루엣 판에서 그림이 끝내 안 오는 경우. 까만 상자만 남으면 「원래 이런 놀이」와 구분이 안 된다.
+ * 새 방어는 정상 경로가 아니라 망가진 경로에서 확인해야 의미가 있다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.route('**/*.png', (route) => route.abort());
+  await page.goto(`${base}/pokemon/silhouette/`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.shot-note.bad', { timeout: 10000 });
+  const note = await page.locator('.shot-note').innerText();
+  check('실루엣 그림이 안 오면 말해 준다', /못 받았/.test(note), note.slice(0, 30));
+  await page.screenshot({ path: join(shots, 'shot-broken.png'), fullPage: true });
+  await ctx.close();
+}
+
+/**
  * 그림이 *실제로 받아지는지* 본다.
  * 실루엣은 그림이 전부인데, 밝기만 보는 검사는 그림이 깨져도 통과한다 (실제로 통과했다).
  * 주소가 적혀 있는 것과 화면에 뜨는 것은 다른 일이다.
