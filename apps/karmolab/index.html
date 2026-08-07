@@ -329,14 +329,59 @@ permalink: /karmolab/
          이 한 줄이 빌드 목록이기도 하다 — build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/palette.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/toolbox.js"></script>
-    <script defer fetchpriority="low" src="/apps/karmolab/js/mdd.js"></script>
     <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
-    <script defer fetchpriority="low" src="/apps/karmolab/js/badapple/boot.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-index.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-loader.js"></script>
+    <!-- 마스코트·액정놀이는 **화면을 다 그린 뒤에** 부른다 (TASK-KL-128 런타임).
+         둘 다 첫 그림에 안 쓰이는데 합쳐서 압축 10KB 를 부팅에 얹고 있었다.
+
+         그냥 미루면 첫 화면이 죽는다 — 마스코트를 **안 감싸고 부르는 곳**이 위젯 여러 곳에
+         있어서 「Mdd 가 없다」로 멈춘다(실제로 그렇게 죽었다). 호출부를 전부 고치는 대신,
+         **먼저 자리만 만들어 둔다**: 아직 안 온 동안의 부름은 줄을 세워 두었다가, 진짜가
+         도착하면 그대로 다시 불러 준다. 그래서 놓치는 대사도 없다. -->
+    <script>
+    (function () {
+      var q = [];
+      var api = ['setMood', 'say', 'bounce', 'injectCSS', 'linePreset', 'addAffection',
+                 'showGuide', 'showNextGuide', 'openStoryLog'];
+      var stub = {};
+      api.forEach(function (n) { stub[n] = function () { q.push([n, [].slice.call(arguments)]); }; });
+      /* 값으로 읽는 것들은 빈 값으로 답한다 — 없는 것보다 낫다. */
+      stub.getAffection = function () { return 0; };
+      stub.getRelationshipTitle = function () { return ''; };
+      stub.getStoryProgress = function () { return { seen: [], chapter: 0 }; };
+      stub.getStoryLog = function () { return []; };
+      stub.LINE_PRESETS = {}; stub.STORY_EVENTS = {}; stub.GUIDE_MESSAGES = {};
+      window.Mdd = stub;
+
+      function pullRest() {
+        var mdd = document.createElement('script');
+        mdd.src = '/apps/karmolab/js/mdd.js';
+        mdd.onload = function () {
+          /* 진짜가 오면 `Mdd` 는 그쪽을 가리킨다(스크립트 맨 바깥 선언이 이긴다).
+             줄 세워 둔 부름을 그대로 다시 흘려보낸다. */
+          try {
+            var real = (typeof Mdd !== 'undefined') ? Mdd : null;
+            if (real && real !== stub) {
+              q.forEach(function (c) { try { if (real[c[0]]) real[c[0]].apply(real, c[1]); } catch (e) {} });
+            }
+          } catch (e) { /* 없으면 그냥 둔다 */ }
+          q.length = 0;
+        };
+        document.body.appendChild(mdd);
+
+        var ba = document.createElement('script');
+        ba.src = '/apps/karmolab/js/badapple/boot.js';
+        document.body.appendChild(ba);
+      }
+      var idle = window.requestIdleCallback || function (f) { setTimeout(f, 300); };
+      if (document.readyState === 'complete') idle(pullRest);
+      else addEventListener('load', function () { idle(pullRest); });
+    })();
+    </script>
     <!-- 도구 한 장짜리 화면은 처음에 **가벼운 목록**만 받는다 (TASK-KL-128 ③) — 위젯 171개의
          이름·분류·불러올 곳만, 93KB 대신 26KB. 아이콘 그림과 설명은 옆줄·찾기창이 실제로
          그려질 때 필요한 것이라, 화면이 다 그려지고 한가해진 뒤에 따라온다.
