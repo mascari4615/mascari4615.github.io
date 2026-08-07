@@ -177,6 +177,7 @@ permalink: /karmolab/quest/
     $('day').textContent = '연습';
   }
 
+  function start() {
   fetch('/karmolab/quest/puzzles.json')
     .then(function (r) { return r.json(); })
     .then(function (j) {
@@ -234,8 +235,33 @@ permalink: /karmolab/quest/
       });
     })
     .catch(function () {
-      $('q').textContent = '문제를 못 불러왔습니다. 잠시 뒤 새로고침 해 주세요.';
+      /* 못 불러왔을 때 손으로 새로고침하라고만 했다 (TASK-KL-089).
+       * 잠깐 끊긴 것뿐인데 사람에게 일을 시키는 셈이다 — 그 자리에서 다시 받게 한다. */
+      $('q').textContent = '문제를 못 불러왔습니다.';
+      $('msg').textContent = '인터넷이 잠깐 끊겼을 수 있어요.';
+      $('msg').className = 'msg play-no';
+      var again = document.getElementById('reload');
+      if (!again) {
+        again = document.createElement('button');
+        again.type = 'button';
+        again.id = 'reload';
+        again.className = 'play-go';
+        again.textContent = '다시 받기';
+        again.addEventListener('click', function () {
+          again.disabled = true;
+          again.textContent = '받는 중…';
+          $('q').textContent = '문제를 불러오는 중…';
+          $('msg').textContent = '';
+          setTimeout(function () {
+            again.remove();
+            start();
+          }, 300);
+        });
+        $('form').insertAdjacentElement('afterend', again);
+      }
     });
+  }
+  start();
 })();
 </script>
 </body>
