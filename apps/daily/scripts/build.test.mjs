@@ -94,3 +94,22 @@ test('표를 한 장 넣으면 코드 수정 없이 페이지가 생긴다', () 
     assert.ok(!existsSync(join(app, 'dist/zzprobe')), '시험 주제가 dist 에 남았다');
   }
 });
+
+/**
+ * 루트 서비스워커가 우리 주소를 담으면 방문자에게 **어제 문제가 계속 나온다.**
+ * 지금은 제대로 빠져 있다 — 빠져 있는 지금 잠근다. 진짜 설정 파일은 안 건드리고 글로만 시험한다.
+ */
+test('서비스워커 캐시에서 빠져 있어야 빌드가 지나간다', async () => {
+  const { deniedPaths, assertDenied } = await import('./lib-pwa-deny.mjs');
+  const yaml = `pwa:\n  cache:\n    deny_paths:\n      # - "/example"\n      - "/karmolab"\n      # 주석\n      - "/daily"\n\npaginate: 8\n`;
+  assert.deepEqual(deniedPaths(yaml), ['/karmolab', '/daily']);
+  assert.doesNotThrow(() => assertDenied(yaml, '/daily'));
+  assert.throws(() => assertDenied(yaml.replace('      - "/daily"\n', ''), '/daily'), /어제 문제가 계속/);
+  assert.throws(() => assertDenied('pwa:\n  cache:\n', '/daily'), /없음/, '아예 목록이 없어도 막는다');
+});
+
+test('진짜 설정 파일에도 우리 주소가 들어 있다', async () => {
+  // 글로만 시험하면 진짜 파일 모양이 바뀌었을 때 검사가 헛돈다 — 진짜 파일로도 한 번 본다.
+  const { assertDenied } = await import('./lib-pwa-deny.mjs');
+  assertDenied(readFileSync(join(app, '../blog/_config.yml'), 'utf8'), '/daily');
+});
