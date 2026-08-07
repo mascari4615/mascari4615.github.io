@@ -98,8 +98,8 @@
               <textarea id="cjCsv" rows="7" spellcheck="false" placeholder="이름,나이&#10;홍길동,30"></textarea>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="cjToJson">CSV → JSON</button>
-              <button class="btn btn-primary" id="cjToCsv">JSON → CSV</button>
+              <!-- 방향 단추를 없앴다. **고친 쪽이 곧 방향**이다 — CSV 를 고치면 JSON 이,
+                   JSON 을 고치면 CSV 가 따라온다 (TASK-KL-133). -->
               <button class="btn btn-ghost" id="cjCopy">JSON 복사</button>
             </div>
             <div class="field-group">
@@ -120,7 +120,7 @@
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           }
 
-          $<HTMLButtonElement>('#cjToJson').onclick = () => {
+          function toJson(): void {
             const rows = parseCsv(csv.value.trim(), delim());
             if (rows.length < 2) {
               say('열 이름 줄과 자료 줄이 최소 한 줄씩 필요해요.', 'error');
@@ -136,9 +136,9 @@
             json.value = JSON.stringify(out, null, 2);
             say(`${out.length}행 · ${head.length}열 을 JSON 으로 바꿨어요.`, 'ok');
             Toolbox.trackUse?.('to-json');
-          };
+          }
 
-          $<HTMLButtonElement>('#cjToCsv').onclick = () => {
+          function toCsvSide(): void {
             let data: unknown;
             try {
               data = JSON.parse(json.value);
@@ -153,13 +153,26 @@
             csv.value = toCsv(data as Array<Record<string, unknown>>, delim());
             say(`${(data as unknown[]).length}행을 CSV 로 바꿨어요.`, 'ok');
             Toolbox.trackUse?.('to-csv');
-          };
+          }
 
           $<HTMLButtonElement>('#cjCopy').onclick = () => {
             if (json.value) void Toolbox.copyText?.(json.value, { message: 'JSON 을 복사했어요' });
           };
 
+          /* 프로그램이 값을 넣을 때는 input 이 안 울리므로 두 쪽이 서로를 되받아 도는 일은 없다.
+             표가 클수록 무거우니 손이 멎은 뒤에 한 번만 한다 (TASK-KL-133). */
+          let timer: ReturnType<typeof setTimeout> | null = null;
+          const soon = (fn: () => void) => () => {
+            if (timer !== null) clearTimeout(timer);
+            timer = setTimeout(fn, 200);
+          };
+          csv.addEventListener('input', soon(toJson));
+          json.addEventListener('input', soon(toCsvSide));
+          $<HTMLSelectElement>('#cjDelim').addEventListener('change', toJson);
+          $<HTMLInputElement>('#cjCoerce').addEventListener('change', toJson);
+
           csv.value = '이름,나이,메모\n홍길동,30,"쉼표, 들어간 값"\n김철수,25,보통';
+          toJson();
         }
       }
     ]
