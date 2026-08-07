@@ -1500,14 +1500,17 @@ body:has(#page-home.active) .mdd-container .mdd-char {
 
 .tool-page-hero {
     text-align: center;
-    padding: var(--space-xl) 0 var(--space-lg);
-    margin-bottom: var(--space-lg);
+    /* 도구 화면의 머리는 **작아야 한다** (TASK-KL-133). 제목·설명·횟수가 첫 화면의 4분의 1을
+       먹고 있었다. 도구를 쓰러 온 사람의 첫 물음은 「입력칸이 어디냐」다 — 이름은 이미 알고
+       눌러서 왔다. 그래서 브랜드 제목(첫 화면)과 달리 여기서는 줄인다. */
+    padding: var(--space-md) 0 var(--space-sm);
+    margin-bottom: var(--space-md);
     border-bottom: 1px solid var(--border);
 }
 .tool-page-hero-title {
     font-family: var(--font-serif);
-    font-size: 40px; font-weight: 900; letter-spacing: -0.02em;
-    line-height: 1; color: var(--text-primary); margin-bottom: 10px;
+    font-size: 26px; font-weight: 900; letter-spacing: -0.02em;
+    line-height: 1.1; color: var(--text-primary); margin-bottom: 6px;
 }
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
@@ -1685,8 +1688,10 @@ body:has(#page-home.active) .mdd-container .mdd-char {
    ═══════════════════════════════════════ */
 
 .field-group {
-    margin-bottom: var(--space-lg);
-    padding: var(--space-md);
+    /* 항목 하나에 카드 하나 + 큰 여백이라 세로가 한없이 길어졌다 — QR 만들기는 결과가
+       첫 화면 밖으로 밀려나 있었다. 카드는 두되 숨 쉬는 정도만 (TASK-KL-133). */
+    margin-bottom: var(--space-sm);
+    padding: 12px 14px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     border-left: 2px solid var(--accent);
@@ -1783,6 +1788,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
     letter-spacing: 0.02em;
 }
 .btn:active { transform: scale(0.97); }
+/* 못 누르는 단추는 **못 누르게 생겨야 한다**. 여태 기본 단추에만 흐림이 걸려 있어서, 곁들이
+   단추(내려받기 등)는 비활성일 때도 멀쩡한 글자로 보였다 — 눌러 보고서야 안 되는 걸 안다.
+   (TASK-KL-133) */
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled:active { transform: none; }
 
 .btn-primary {
     width: 100%;
