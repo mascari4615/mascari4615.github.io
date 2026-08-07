@@ -108,15 +108,16 @@ export class EpisodeStore {
   }
 
   /** 지금 이 말과 이어지는 옛 일. 없으면 null. */
-  related(now말: string, 최소겹침 = 2): Episode | null {
+  related(now말: string, 최소겹침 = 2, now = Date.now()): Episode | null {
     const 낱말 = 뽑기(now말);
     if (낱말.length === 0) return null;
     let 가장 = null as Episode | null;
-    let 가장점수 = 0;
+    let 가장점수 = -1;
     for (const e of this.목록) {
-      const 그때 = new Set(뽑기(e.said));
-      const 겹침 = 낱말.filter((w) => 그때.has(w)).length;
-      if (겹침 >= 최소겹침 && 겹침 > 가장점수) { 가장 = e; 가장점수 = 겹침; }
+      const 겹침 = 겹치는수(낱말, e.said);
+      if (겹침 < 최소겹침) continue;
+      const 점수 = 떠오름점수(e, 낱말.length, 겹침, now);
+      if (점수 > 가장점수) { 가장 = e; 가장점수 = 점수; }
     }
     return 가장;
   }
@@ -154,6 +155,38 @@ function 뽑기(text: string): string[] {
     .map((w) => w.slice(0, 2));
 }
 
+/** 이 옛 일이 지금 말과 몇 낱말이나 겹치나. */
+export function 겹치는수(지금낱말: readonly string[], 그때말: string): number {
+  const 그때 = new Set(뽑기(그때말));
+  return 지금낱말.filter((w) => 그때.has(w)).length;
+}
+
+/** 오래된 일이 절반쯤 흐려지는 데 걸리는 날. */
+const 반감기 = 14;
+
+/**
+ * 어느 옛 일이 지금 떠오르나 — **겹침만으로 고르면 안 된다.**
+ *
+ * 여태 겹치는 낱말 수가 가장 많은 것 하나를 골랐다. 그런데 똑같이 두 개씩 겹치면 목록에서
+ * **먼저 만난 것**이 이겼고, 목록은 시간순이라 결국 **가장 오래되고 사소한 일**이 이겼다.
+ * 큰일을 따로 남겨 두고도 정작 꺼낼 때는 그 큰일이 진 것이다.
+ *
+ * 레퍼런스(Generative Agents, UIST 2023)가 같은 자리를 셋으로 나눈다 — **이어짐 · 큰일 ·
+ * 최근**. 셋을 더해서 고른다. 우리도 그렇게 한다. 다만 무게는 우리 쪽 사정에 맞춘다.
+ *
+ * - **이어짐이 가장 세다.** 안 겹치는 얘기가 튀어나오는 게 제일 이상하다. 겹친 수를 그대로
+ *   쓰면 말이 길수록 이기므로, 지금 말의 낱말 수로 나눠 견준다.
+ * - **큰일이 최근을 이긴다.** 사람은 오래된 큰일을 어제 점심보다 더 잘 꺼낸다. 그래서
+ *   최근은 셋 중 가장 약하게만 얹는다 — 비기는 자리를 가르는 정도.
+ */
+export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: number, now: number): number {
+  const 이어짐 = Math.min(1, 겹침 / Math.max(2, 지금낱말수));
+  const 큰일 = Math.min(1, e.기운 / 6);
+  const 지난날 = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
+  const 최근 = 0.5 ** (지난날 / 반감기);
+  return 0.5 * 이어짐 + 0.35 * 큰일 + 0.15 * 최근;
+}
+
 /** 얼마나 지난 일인지 사람이 쓰는 말로. */
 export function 언제쯤(at: number, now: number): string {
   const 날 = Math.floor((now - at) / (24 * 60 * 60_000));
@@ -170,7 +203,7 @@ export function 언제쯤(at: number, now: number): string {
  * 늘 붙이면 「기억하는 척」이 되고, 재료만 먹는다. 진짜로 겹칠 때만 꺼낸다.
  */
 export function episodeNote(store: EpisodeStore, 지금말: string, now: number): string {
-  const 그때 = store.related(지금말);
+  const 그때 = store.related(지금말, 2, now);
   if (그때 === null) return '';
   return (
     `${언제쯤(그때.at, now)} 조수님이 이런 말을 했다: 「${그때.said.slice(0, 60)}」. ` +
