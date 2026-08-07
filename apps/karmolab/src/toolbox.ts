@@ -1284,11 +1284,22 @@ const Toolbox = (() => {
         return wrap;
     }
 
+    /** 장식 한 장을 껍데기에 붙인다. 다시 부르면 앞의 것을 걷고 새로 뽑는다
+     *  (도형은 열 때마다 새로 뽑히는 것이 원래 규칙이다). */
+    function mountHomeDecor() {
+        document.querySelector('.home-decor')?.remove();
+        document.body.appendChild(buildHomeDecor());
+    }
+
     function buildLanding() {
         const landing = document.createElement('div');
         landing.className = 'landing-page';
         landing.id = 'page-home';
-        landing.appendChild(buildHomeDecor());
+        /* 장식은 **첫 화면 것이 아니라 이 앱의 것**이다 (TASK-KL-101).
+           첫 화면 안에 넣어 두면 도구로 가는 순간 통째로 사라진다 — 도구를 여닫을 때마다
+           세계가 바뀌는 셈이다. 껍데기(body) 에 한 장 붙여 두면 어느 화면에서나 그대로
+           떠 있고, 화면 사이를 오가도 도형이 이어진다. 위치는 어차피 화면 기준이다. */
+        mountHomeDecor();
 
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
@@ -1309,6 +1320,16 @@ const Toolbox = (() => {
         if (typeof window !== 'undefined' && window.KarmoPalette) {
             window.KarmoPalette.mountInline(palette);
         }
+
+        /* TASK-KL-098 — 「사람이 있다」를 말이 아니라 **숫자**로 보여 주는 자리.
+         * 서버는 도구가 열릴 때마다 세고 있었는데(지금까지 수천 번) 그 수를 화면 어디에도
+         * 안 내놨다 — 모으기만 하고 안 쓰면 없는 것과 같다. 값은 전부 실측이고 지어낸 수는
+         * 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는 통째로 안 그려진다. */
+        const pulse = document.createElement('div');
+        pulse.className = 'landing-pulse';
+        pulse.id = 'homePulse';
+        landing.appendChild(pulse);
+        fillHomePulse(pulse);
 
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
@@ -1355,6 +1376,113 @@ const Toolbox = (() => {
         fillHomeCommunityFeed(feed);
 
         return landing;
+    }
+
+    /**
+     * 도구별 열린 횟수 — 한 화면에서 **한 번만** 받아 온다.
+     * 도구를 옮길 때마다 새로 물으면, 그 요청 자체가 「도구를 열었다」를 세는 서버를 계속 두드린다.
+     */
+    let toolCountsPromise = null;
+    function toolCountsOnce() {
+        if (toolCountsPromise) return toolCountsPromise;
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        toolCountsPromise = (async () => {
+            if (!base) return {};
+            try {
+                const response = await fetch(base + '/kl/tools/stats');
+                if (!response.ok) return {};
+                const data = await response.json();
+                const map = {};
+                for (const row of data.tools || []) map[row.toolId] = row;
+                return map;
+            } catch (_) {
+                return {};
+            }
+        })();
+        return toolCountsPromise;
+    }
+
+    /**
+     * 도구 이름 밑에 「지금까지 N번 열렸어요」 (사용자 요청 — "그냥 재밌잖아 그런거").
+     *
+     * 한 번도 안 열린 도구에는 아무것도 안 쓴다. 「0번 열렸어요」는 재미가 아니라 낙인이다.
+     */
+    async function fillToolCount(slot, toolId) {
+        if (!slot) return;
+        const counts = await toolCountsOnce();
+        const row = counts[toolId];
+        if (!row || !row.total || !slot.isConnected) return;
+        const n = (value) => Number(value || 0).toLocaleString('ko-KR');
+        slot.innerHTML = '지금까지 <b>' + n(row.total) + '</b>번 열렸어요'
+            + (row.recent ? ' · 최근 7일 <b>' + n(row.recent) + '</b>번' : '');
+    }
+
+    /** 도구 id 로 사람이 읽는 이름 찾기. 등록된 것 우선, 없으면 지연 메타. 둘 다 없으면 null. */
+    function toolTitleFor(id) {
+        const registered = tools.find((t) => t.id === id);
+        if (registered && registered.title) return registered.title;
+        const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
+        return (meta[id] && meta[id].title) || null;
+    }
+
+    /**
+     * 첫 화면의 실사용 줄 — 오늘 몇 번 열렸나 + 이번 주에 많이 쓴 도구.
+     *
+     * 왜 실측만 쓰나: 이 자리에 한 번이라도 지어낸 수를 넣으면 옆의 진짜 수까지 못 믿을 것이
+     * 된다. 그래서 서버에 못 닿거나 아직 한 번도 안 열렸으면 **아무것도 안 그린다** —
+     * 「0번 열림」이 떠 있는 화면은 북적이는 게 아니라 죽은 화면으로 읽힌다.
+     */
+    async function fillHomePulse(slot) {
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        if (!base) return;
+        let data;
+        try {
+            const response = await fetch(base + '/kl/tools/stats');
+            if (!response.ok) return;
+            data = await response.json();
+        } catch (_) {
+            return;
+        }
+        if (!slot.isConnected) return;
+
+        const pulse = (data && data.pulse) || {};
+        const visits = (data && data.visits) || {};
+        if (!pulse.opensTotal && !visits.total) return;
+        const n = (value) => Number(value || 0).toLocaleString('ko-KR');
+
+        // 이름을 못 찾는 도구는 뺀다 — 화면에 id 가 그대로 뜨면 내부 사정이 새어 나온 것처럼 보인다.
+        const top = (data.tools || [])
+            .map((t) => ({ id: t.toolId, title: toolTitleFor(t.toolId), recent: t.recent, total: t.total }))
+            .filter((t) => t.title && t.recent > 0)
+            .slice(0, 6);
+
+        /* 블로그의 Total / Today 와 같은 줄 (사용자 요청). 방문이 먼저고 도구 열림이 그다음이다 —
+         * 첫 화면만 보고 간 사람도 다녀간 사람인데, 도구 열림만 세면 그 사람은 없는 셈이 된다. */
+        const parts = [];
+        if (visits.total) {
+            parts.push('지금까지 <b>' + n(visits.total) + '</b>명 다녀갔어요'
+                + (visits.today ? ' · 오늘 <b>' + n(visits.today) + '</b>' : ''));
+        }
+        if (pulse.opensTotal) {
+            parts.push('도구는 <b>' + n(pulse.opensTotal) + '</b>번 열렸고요'
+                + (pulse.toolsUsed ? ' (<b>' + n(pulse.toolsUsed) + '</b>개가 실제로 쓰였어요)' : ''));
+        }
+
+        const chips = top.map((t) =>
+            '<button type="button" class="landing-pulse-chip" data-tool="' + escapeHtml(t.id) + '">'
+            + '<span class="landing-pulse-chip-name">' + escapeHtml(t.title) + '</span>'
+            + '<span class="landing-pulse-chip-n">' + n(t.recent) + '</span>'
+            + '</button>').join('');
+
+        slot.innerHTML = '<p class="landing-pulse-line">' + parts.join(' · ')
+            + ' <button type="button" class="landing-pulse-all" data-open-plaza>전부 보기 →</button></p>'
+            + (chips ? '<div class="landing-pulse-tools"><span class="landing-pulse-label">이번 주에 많이 쓴 도구</span>' + chips + '</div>' : '');
+
+        const all = slot.querySelector('[data-open-plaza]');
+        if (all) all.onclick = () => switchPage('plaza');
+        slot.querySelectorAll('[data-tool]').forEach((button) => {
+            button.onclick = () => switchPage(button.dataset.tool || 'home');
+        });
     }
 
     /** 첫 화면의 커뮤니티 줄 — 최근 이야기 셋. 실패하면 아무것도 안 그린다 (fail-open). */
@@ -1479,6 +1607,9 @@ const Toolbox = (() => {
 
         // TASK-KL-088: 도구 열림 = 페이지뷰. 도구 상세 페이지와 같은 경로로 기록해 합산되게 한다.
         currentPageId = pageId;
+        /* 지금 어느 화면인지 뿌리에 적어 둔다 — 장식은 도구 화면에서 한 겹 물러난다.
+           첫 화면에선 주인공이고, 도구 화면에선 읽는 것을 방해하면 안 된다 (TASK-KL-101). */
+        document.documentElement.setAttribute('data-view', pageId === 'home' ? 'home' : 'tool');
         window.KarmoStat?.page(pageId, toolForPage ? toolForPage.title : undefined);
         // TASK-KL-099 — 「최근」 은 여기서 쌓인다. 도구를 여는 길이 이 함수 하나뿐이라
         // 화면마다 따로 적을 필요가 없다 (팔레트·메뉴·주소·즐겨찾기 전부 여기를 지난다).
@@ -1581,8 +1712,10 @@ const Toolbox = (() => {
             hero.className = 'tool-page-hero';
             hero.innerHTML =
                 `<h1 class="tool-page-hero-title">${tool.title}</h1>` +
-                (tool.desc ? `<p class="tool-page-hero-desc">${tool.desc}</p>` : '');
+                (tool.desc ? `<p class="tool-page-hero-desc">${tool.desc}</p>` : '') +
+                `<p class="tool-page-hero-count" data-count-for="${escapeHtml(tool.id)}"></p>`;
             div.appendChild(hero);
+            fillToolCount(hero.querySelector('[data-count-for]'), tool.id);
         }
 
         let panelsHost: HTMLElement = div;

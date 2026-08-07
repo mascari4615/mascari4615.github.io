@@ -157,12 +157,35 @@ export interface Report {
   resolvedAt: string | null;
 }
 
+/**
+ * 사이트를 다녀간 자국 (블로그의 Total / Today 와 같은 것).
+ *
+ * 도구 열림과 따로 센다 — 첫 화면만 보고 나간 사람도 다녀간 사람이고, 그 수가 곧
+ * 「이 사이트에 사람이 오나」다. 도구 열림만 세면 첫 화면은 영원히 아무도 안 온 곳이 된다.
+ *
+ * 주소는 저장하지 않는다. 같은 사람인지 알아볼 열쇠(되돌릴 수 없게 섞은 것)만 오늘치를 들고
+ * 있다가 날이 바뀌면 버린다 — 오늘 몇 명인지 세는 데는 오늘 것만 있으면 된다.
+ */
+interface VisitTrace {
+  /** 지금까지 방문 수 (같은 사람의 연속 조작은 30분에 한 번만 센다). */
+  total: number;
+  /** 날짜별 방문 수. */
+  days: Record<string, number>;
+  /** 날짜별 다녀간 사람 수 (같은 사람은 하루 한 번). */
+  people: Record<string, number>;
+  /** `todayKeys` 가 어느 날 것인가. 날이 바뀌면 통째로 버린다. */
+  day: string;
+  /** 오늘 이미 센 사람들의 열쇠. 봇이 다시 떠도 오늘 수가 두 배가 되지 않게 저장한다. */
+  todayKeys: string[];
+}
+
 interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
   posts: Post[];
   galleries: Gallery[];
   reports: Report[];
+  visits: VisitTrace;
 }
 
 const STATE_FILE = 'karmolab-traces-state.json';
@@ -295,6 +318,23 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
   };
 }
 
+/**
+ * 방문 자국의 빈 값 — 예전 상태 파일에는 이 칸이 아예 없다.
+ * 없는 칸을 그대로 두면 첫 방문에서 터진다. 없으면 0부터 시작하는 게 맞다(지어내지 않는다).
+ */
+function emptyVisits(from?: Partial<VisitTrace>): VisitTrace {
+  return {
+    total: typeof from?.total === 'number' ? from.total : 0,
+    days: from?.days ?? {},
+    people: from?.people ?? {},
+    day: typeof from?.day === 'string' ? from.day : '',
+    todayKeys: Array.isArray(from?.todayKeys) ? from.todayKeys : [],
+  };
+}
+
+/** 오늘 열쇠를 몇 개까지 들고 있을지. 넘치면 세는 것만 멈추고 방문 수는 계속 센다. */
+const VISITOR_KEYS_CAP = 50000;
+
 export class KarmolabTraceStore {
   private state: TracesState;
   private dirty = false;
@@ -315,12 +355,13 @@ export class KarmolabTraceStore {
           posts: (parsed.posts ?? []).map(migratePost),
           galleries: withSeeds(parsed.galleries ?? []),
           reports: parsed.reports ?? [],
+          visits: emptyVisits(parsed.visits),
         };
       }
     } catch (error) {
       console.error('[karmolab-traces] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]), reports: [] };
+    return { version: 1, tools: {}, posts: [], galleries: withSeeds([]), reports: [], visits: emptyVisits() };
   }
 
   /**
@@ -385,6 +426,72 @@ export class KarmolabTraceStore {
     this.state.tools[toolId] = trace;
     this.markDirty();
     return true;
+  }
+
+  /**
+   * 누가 사이트에 왔다 (도구를 열든 안 열든).
+   *
+   * 같은 사람의 이동은 30분에 한 번만 센다 — 안 그러면 화면을 옮길 때마다 방문 수가 오른다.
+   * 그 수는 「사람이 왔다」가 아니라 「내가 링크를 잘 걸었다」밖에 안 말해 준다.
+   *
+   * @returns 실제로 셌으면 true.
+   */
+  recordVisit(visitorKey: string, now: Date = new Date()): boolean {
+    const dedupeKey = `visit:${visitorKey}`;
+    const last = this.recentOpens.get(dedupeKey);
+    if (last !== undefined && now.getTime() - last < DEDUPE_WINDOW_MS) return false;
+    this.recentOpens.set(dedupeKey, now.getTime());
+
+    const day = kstDay(now);
+    const visits = this.state.visits;
+
+    // 날이 바뀌면 어제 사람들 열쇠는 버린다. 오늘 몇 명인지 세는 데 어제 것은 필요 없다.
+    if (visits.day !== day) {
+      visits.day = day;
+      visits.todayKeys = [];
+    }
+
+    visits.total += 1;
+    visits.days[day] = (visits.days[day] ?? 0) + 1;
+
+    if (!visits.todayKeys.includes(visitorKey)) {
+      if (visits.todayKeys.length < VISITOR_KEYS_CAP) visits.todayKeys.push(visitorKey);
+      visits.people[day] = (visits.people[day] ?? 0) + 1;
+    }
+
+    // 오래된 날은 칸을 버린다 (합계는 `total` 에 남는다).
+    for (const bucket of [visits.days, visits.people]) {
+      const keep = Object.keys(bucket).sort().slice(-DAY_RETENTION);
+      if (keep.length < Object.keys(bucket).length) {
+        for (const key of Object.keys(bucket)) if (!keep.includes(key)) delete bucket[key];
+      }
+    }
+
+    this.markDirty();
+    return true;
+  }
+
+  /** 방문 집계 — 블로그의 Total / Today 와 같은 것. */
+  visitStats(now: Date = new Date()): {
+    total: number;
+    today: number;
+    peopleToday: number;
+    /** 최근 14일 (오래된 날 → 오늘). 작은 막대 그래프용. */
+    recentDays: { day: string; visits: number; people: number }[];
+  } {
+    const visits = this.state.visits;
+    const today = kstDay(now);
+    const recentDays: { day: string; visits: number; people: number }[] = [];
+    for (let i = 13; i >= 0; i -= 1) {
+      const day = kstDay(new Date(now.getTime() - i * 24 * 60 * 60 * 1000));
+      recentDays.push({ day, visits: visits.days[day] ?? 0, people: visits.people[day] ?? 0 });
+    }
+    return {
+      total: visits.total,
+      today: visits.days[today] ?? 0,
+      peopleToday: visits.people[today] ?? 0,
+      recentDays,
+    };
   }
 
   /** 공개 집계. 한 번도 안 열린 도구는 아예 안 나온다 — 0 을 줄줄이 보여줄 이유가 없다. */
