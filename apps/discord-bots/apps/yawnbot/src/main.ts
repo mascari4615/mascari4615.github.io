@@ -33,6 +33,7 @@ import { createGithubWebhookApp } from './bot/webhook';
 import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
+import { registerKarmolabApi } from './bot/karmolab-api';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
 import { getDefaultChannels, hasAnyRoute } from './services/webhook-routes';
@@ -356,6 +357,8 @@ mountLocalWebhook(app, client);
 mountDeviceLog(app, client);
 // TASK-YB-042 — 웹 결산 페이지. 자랑은 디스코드 밖에서 일어나야 유입이 된다.
 mountWrappedWeb(app, client);
+// TASK-KL-098 — KarmoLab 계정·기록·공개 프로필. 도구 사이트의 기록이 브라우저 밖에 남는 자리.
+registerKarmolabApi(app);
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);

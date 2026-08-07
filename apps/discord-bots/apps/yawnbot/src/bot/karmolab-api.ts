@@ -1,0 +1,376 @@
+/**
+ * KarmoLab 계정 API (TASK-KL-098 Cycle 1) — yawnbot Express 위에 얹는다.
+ *
+ * 왜 여기인가: 노트북에서 24/7 도는 Express 가 이미 있고 `yawnbot.mascari4615.com` 으로
+ * 밖에 열려 있다. 계정 하나 때문에 새 서버·새 요금제를 들이는 것보다, 살아 있는 것 위에
+ * 얹는 쪽이 근본이다.
+ *
+ * 도메인이 다르다 (`blog.mascari4615.com` → `yawnbot.mascari4615.com`). 그래서:
+ *  - 쿠키는 `SameSite=None; Secure` 여야 브라우저가 보낸다 (둘 다 https 라 성립).
+ *  - CORS 를 직접 답한다. 아무 데나 열지 않고 **아는 출처만** 허용한다.
+ *
+ * 새 패키지는 안 쓴다 (cors·cookie-parser 미도입) — 쿠키 한 줄 읽고 헤더 세 줄 다는 일에
+ * 의존성을 늘리지 않는다.
+ */
+import type { Application, Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
+import {
+  getKarmolabAccountStore,
+  emptyRecords,
+  type AccountRecords,
+  type KarmolabAccountStore,
+} from '../services/karmolab-accounts';
+
+/** 쿠키 이름. 짧고 우리 것임이 드러나게. */
+const SESSION_COOKIE = 'kl_session';
+
+/**
+ * 이 API 를 부를 수 있는 출처.
+ * 로컬 개발 주소를 같이 두는 이유: 배포해야만 로그인을 시험할 수 있으면 확인 루프가 죽는다.
+ */
+const ALLOWED_ORIGINS = new Set([
+  'https://blog.mascari4615.com',
+  'http://localhost:8899',
+  'http://127.0.0.1:8899',
+  'http://localhost:4000',
+]);
+
+/** 로그인 후 되돌아갈 수 있는 곳 — 열린 리디렉트(아무 주소로나 튕겨 보내기)를 막는다. */
+function safeReturnUrl(raw: unknown): string {
+  const fallback = 'https://blog.mascari4615.com/karmolab/';
+  const value = typeof raw === 'string' ? raw : '';
+  if (!value) return fallback;
+  try {
+    const url = new URL(value);
+    return ALLOWED_ORIGINS.has(url.origin) ? url.toString() : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function readCookie(req: Request, name: string): string | null {
+  const header = req.headers.cookie;
+  if (!header) return null;
+  for (const part of header.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq < 0) continue;
+    if (part.slice(0, eq).trim() !== name) continue;
+    return decodeURIComponent(part.slice(eq + 1).trim());
+  }
+  return null;
+}
+
+function setSessionCookie(res: Response, token: string, maxAgeMs: number): void {
+  res.append(
+    'Set-Cookie',
+    `${SESSION_COOKIE}=${encodeURIComponent(token)}; Max-Age=${Math.floor(maxAgeMs / 1000)}; Path=/; HttpOnly; Secure; SameSite=None`,
+  );
+}
+
+function clearSessionCookie(res: Response): void {
+  res.append('Set-Cookie', `${SESSION_COOKIE}=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None`);
+}
+
+/** 들어온 몸통을 기록 모양으로 다듬는다 — 남이 아무거나 보낼 수 있는 자리다. */
+function sanitizeRecords(raw: unknown): AccountRecords {
+  const out = emptyRecords();
+  if (!raw || typeof raw !== 'object') return out;
+  const body = raw as Record<string, unknown>;
+
+  const asIdList = (value: unknown): string[] =>
+    Array.isArray(value)
+      ? [...new Set(value.filter((v): v is string => typeof v === 'string' && v.length > 0 && v.length <= 64))].slice(0, 500)
+      : [];
+
+  out.achievements = asIdList(body.achievements);
+  out.badges = asIdList(body.badges);
+
+  if (body.progress && typeof body.progress === 'object') {
+    for (const [key, value] of Object.entries(body.progress as Record<string, unknown>)) {
+      if (key.length > 64) continue;
+      const n = Number(value);
+      // 음수·NaN·무한대는 기록이 아니다. 위쪽 한계는 두지 않는다 — 쓰다듬기 50만 회가 실제 목표다.
+      if (!Number.isFinite(n) || n < 0) continue;
+      out.progress[key] = Math.floor(n);
+      if (Object.keys(out.progress).length >= 200) break;
+    }
+  }
+
+  if (body.streaks && typeof body.streaks === 'object') {
+    for (const [key, value] of Object.entries(body.streaks as Record<string, unknown>)) {
+      if (key.length > 64 || !value || typeof value !== 'object') continue;
+      const s = value as Record<string, unknown>;
+      const current = Number(s.current);
+      const longest = Number(s.longest);
+      const last = typeof s.lastActivityDate === 'string' ? s.lastActivityDate.slice(0, 10) : null;
+      out.streaks[key] = {
+        current: Number.isFinite(current) && current >= 0 ? Math.floor(current) : 0,
+        longest: Number.isFinite(longest) && longest >= 0 ? Math.floor(longest) : 0,
+        lastActivityDate: last && /^\d{4}-\d{2}-\d{2}$/.test(last) ? last : null,
+      };
+      if (Object.keys(out.streaks).length >= 100) break;
+    }
+  }
+
+  return out;
+}
+
+/**
+ * 로그인 왕복에 쓰는 일회용 표.
+ * 왜 필요한가: 이게 없으면 남이 만든 링크로 사람을 로그인 흐름에 밀어 넣을 수 있다(CSRF).
+ * 메모리에만 둔다 — 봇이 재시작하면 진행 중이던 로그인만 한 번 실패하고, 다시 누르면 된다.
+ */
+const pendingLogins = new Map<string, { returnUrl: string; expiresAt: number }>();
+const LOGIN_STATE_TTL_MS = 10 * 60 * 1000;
+
+/** 프로필 그림을 잠깐 들고 있는 자리 — 같은 그림을 매번 디스코드에서 다시 받지 않으려고. */
+const avatarCache = new Map<string, { body: Buffer; contentType: string; expiresAt: number }>();
+const AVATAR_TTL_MS = 60 * 60 * 1000;
+
+function issueLoginState(returnUrl: string): string {
+  const now = Date.now();
+  for (const [key, value] of pendingLogins) {
+    if (value.expiresAt <= now) pendingLogins.delete(key);
+  }
+  const state = crypto.randomBytes(16).toString('base64url');
+  pendingLogins.set(state, { returnUrl, expiresAt: now + LOGIN_STATE_TTL_MS });
+  return state;
+}
+
+function consumeLoginState(state: unknown): string | null {
+  if (typeof state !== 'string') return null;
+  const entry = pendingLogins.get(state);
+  if (!entry) return null;
+  pendingLogins.delete(state);
+  if (entry.expiresAt <= Date.now()) return null;
+  return entry.returnUrl;
+}
+
+function discordAvatarUrl(user: { id: string; avatar: string | null }): string | null {
+  if (!user.avatar) return null;
+  const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+  return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+}
+
+/** OAuth 설정이 다 있는가. 없으면 라우트는 살아 있되 「아직 안 켰다」고 정직하게 답한다. */
+export function karmolabOauthConfig(env: NodeJS.ProcessEnv = process.env): {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  ready: boolean;
+} {
+  const clientId = String(env.CLIENT_ID ?? '').trim();
+  const clientSecret = String(env.DISCORD_CLIENT_SECRET ?? '').trim();
+  const redirectUri = String(
+    env.KARMOLAB_OAUTH_REDIRECT_URI ?? 'https://yawnbot.mascari4615.com/kl/auth/discord/callback',
+  ).trim();
+  return { clientId, clientSecret, redirectUri, ready: Boolean(clientId && clientSecret && redirectUri) };
+}
+
+/**
+ * @param store 시험에서 임시 저장소를 넣기 위한 자리. 안 주면 실제 저장소를 쓴다.
+ *   (이게 없으면 라우트를 HTTP 로 찔러 보는 시험이 운영 데이터 파일을 건드린다.)
+ */
+export function registerKarmolabApi(app: Application, store: KarmolabAccountStore = getKarmolabAccountStore()): void {
+
+  // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
+  app.use('/kl', (req: Request, res: Response, next: NextFunction) => {
+    const origin = req.headers.origin;
+    if (typeof origin === 'string' && ALLOWED_ORIGINS.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,OPTIONS');
+      res.setHeader('Access-Control-Max-Age', '86400');
+    }
+    // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
+    res.setHeader('Vary', 'Origin');
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+
+  /** 브라우저가 「계정 기능이 지금 되나」를 물어보는 자리. 서버가 죽으면 이 요청이 실패하고, 브라우저는 조용히 예전처럼 동작한다. */
+  app.get('/kl/health', (_req: Request, res: Response) => {
+    const config = karmolabOauthConfig();
+    res.json({ ok: true, login: config.ready ? 'discord' : 'disabled', ...store.stats() });
+  });
+
+  app.get('/kl/auth/discord', (req: Request, res: Response) => {
+    const config = karmolabOauthConfig();
+    const returnUrl = safeReturnUrl(req.query.return);
+    if (!config.ready) {
+      // 「눌렀는데 아무 일도 안 남」이 제일 나쁘다. 왜 안 되는지 눈에 보이게 되돌려 보낸다.
+      res.redirect(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}kl_login=unconfigured`);
+      return;
+    }
+    const state = issueLoginState(returnUrl);
+    const url = new URL('https://discord.com/api/oauth2/authorize');
+    url.searchParams.set('client_id', config.clientId);
+    url.searchParams.set('redirect_uri', config.redirectUri);
+    url.searchParams.set('response_type', 'code');
+    // identify 만 받는다. 이메일·서버 목록은 필요 없고, 안 받는 것이 제일 확실한 보호다.
+    url.searchParams.set('scope', 'identify');
+    url.searchParams.set('state', state);
+    url.searchParams.set('prompt', 'none');
+    res.redirect(url.toString());
+  });
+
+  app.get('/kl/auth/discord/callback', async (req: Request, res: Response) => {
+    const config = karmolabOauthConfig();
+    const returnUrl = consumeLoginState(req.query.state);
+    if (!returnUrl) {
+      res.status(400).type('text/html; charset=utf-8').send('<h1>로그인 요청이 만료됐어요</h1><p>처음부터 다시 눌러 주세요.</p>');
+      return;
+    }
+    const sep = returnUrl.includes('?') ? '&' : '?';
+    const code = typeof req.query.code === 'string' ? req.query.code : '';
+    if (!code || !config.ready) {
+      res.redirect(`${returnUrl}${sep}kl_login=failed`);
+      return;
+    }
+
+    try {
+      const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: config.clientId,
+          client_secret: config.clientSecret,
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: config.redirectUri,
+        }),
+      });
+      if (!tokenRes.ok) {
+        console.error('[karmolab-api] 디스코드 토큰 교환 실패:', tokenRes.status, await tokenRes.text());
+        res.redirect(`${returnUrl}${sep}kl_login=failed`);
+        return;
+      }
+      const token = (await tokenRes.json()) as { access_token?: string };
+      if (!token.access_token) {
+        res.redirect(`${returnUrl}${sep}kl_login=failed`);
+        return;
+      }
+
+      const userRes = await fetch('https://discord.com/api/users/@me', {
+        headers: { Authorization: `Bearer ${token.access_token}` },
+      });
+      if (!userRes.ok) {
+        console.error('[karmolab-api] 디스코드 사용자 조회 실패:', userRes.status);
+        res.redirect(`${returnUrl}${sep}kl_login=failed`);
+        return;
+      }
+      const user = (await userRes.json()) as {
+        id: string;
+        username: string;
+        global_name?: string | null;
+        avatar: string | null;
+      };
+
+      const account = store.upsertFromDiscord({
+        discordId: user.id,
+        username: user.username,
+        displayName: user.global_name || user.username,
+        avatarUrl: discordAvatarUrl(user),
+      });
+      const session = store.createSession(account.id);
+      setSessionCookie(res, session.token, session.expiresAt - Date.now());
+      res.redirect(`${returnUrl}${sep}kl_login=ok`);
+    } catch (error) {
+      console.error('[karmolab-api] 로그인 처리 중 오류:', error);
+      res.redirect(`${returnUrl}${sep}kl_login=failed`);
+    }
+  });
+
+  app.post('/kl/auth/logout', (req: Request, res: Response) => {
+    store.destroySession(readCookie(req, SESSION_COOKIE));
+    clearSessionCookie(res);
+    res.json({ ok: true });
+  });
+
+  /** 지금 누구로 로그인돼 있나 + 서버에 있는 내 기록. 로그인 안 했으면 200 에 `account: null`. */
+  app.get('/kl/me', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.json({ account: null });
+      return;
+    }
+    res.json({
+      account: {
+        handle: account.handle,
+        displayName: account.displayName,
+        // 내 화면에서도 디스코드 주소를 안 쓴다 — 화면에 박힌 주소는 그대로 복사돼 남에게 간다.
+        avatarPath: account.avatarUrl ? `/kl/u/${encodeURIComponent(account.handle)}/avatar` : null,
+        joinedAt: account.createdAt,
+        profileUrl: `https://blog.mascari4615.com/karmolab/u/?h=${encodeURIComponent(account.handle)}`,
+      },
+      records: account.records,
+      recordsUpdatedAt: account.recordsUpdatedAt,
+    });
+  });
+
+  /**
+   * 브라우저에 쌓인 기록을 올린다. 서버가 가진 것과 **합쳐서** 돌려준다 (덮어쓰기 X).
+   * 그래서 이 호출은 몇 번을 다시 보내도 결과가 같다 — 실패 후 재시도가 안전하다.
+   */
+  app.put('/kl/me/records', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const merged = store.mergeRecordsForAccount(account.id, sanitizeRecords(req.body));
+    res.json({ records: merged });
+  });
+
+  /**
+   * 프로필 그림 — 디스코드에서 서버가 대신 받아 보낸다.
+   *
+   * 왜 대신 받나: 디스코드 그림 주소에는 그 사람의 디스코드 id 가 박혀 있다. 주소를 그대로
+   * 넘기면 사이트를 쓴 것만으로 디스코드 계정이 남에게 공개된다 — 본인이 그러겠다고 한 적이 없다.
+   * 받아 온 것은 잠깐 들고 있는다 (프로필 한 장에 여러 번 뜨는 그림을 매번 다시 받지 않게).
+   */
+  app.get('/kl/u/:handle/avatar', async (req: Request, res: Response) => {
+    const account = store.byHandle(String(req.params.handle ?? ''));
+    if (!account?.avatarUrl) {
+      res.status(404).end();
+      return;
+    }
+    const cached = avatarCache.get(account.avatarUrl);
+    if (cached && cached.expiresAt > Date.now()) {
+      res.setHeader('Content-Type', cached.contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.end(cached.body);
+      return;
+    }
+    try {
+      const upstream = await fetch(account.avatarUrl);
+      if (!upstream.ok) {
+        res.status(404).end();
+        return;
+      }
+      const body = Buffer.from(await upstream.arrayBuffer());
+      const contentType = upstream.headers.get('content-type') ?? 'image/png';
+      avatarCache.set(account.avatarUrl, { body, contentType, expiresAt: Date.now() + AVATAR_TTL_MS });
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.end(body);
+    } catch (error) {
+      console.error('[karmolab-api] 프로필 그림 가져오기 실패:', error);
+      res.status(502).end();
+    }
+  });
+
+  /** 공개 프로필 — 로그인 없이 남이 본다. 「북적북적」이 실제로 보이는 첫 자리. */
+  app.get('/kl/u/:handle', (req: Request, res: Response) => {
+    const account = store.byHandle(String(req.params.handle ?? ''));
+    if (!account) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ profile: store.publicProfile(account) });
+  });
+}
