@@ -65,6 +65,11 @@ await esbuild.build({
 
 // Service Worker + 갱신 안내 (TASK-KL-088).
 // 캐시 이름에 빌드 스탬프를 박아야 새 배포가 옛 캐시를 버린다 → sw 는 소스가 아니라 빌드 산출물.
+
+// 셸 스타일을 「막는 것 / 뒤로 뺀 것」 두 벌로 뽑는다 (TASK-KL-128 ④-b).
+// 정본(`css/toolbox.css`)은 읽기만 한다 — 누가 그걸 고쳐도 다음 빌드에 그대로 반영된다.
+await import('./scripts/split-css.mjs');
+
 const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
 await esbuild.build({
   entryPoints: [join(root, 'src/sw.ts')],
