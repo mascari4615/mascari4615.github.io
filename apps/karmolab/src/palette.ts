@@ -57,6 +57,12 @@ const FAVORITES_KEY = 'toolbox_favorites';
 const PINNED_KEY = 'toolbox_pinned_tools';
 const RECENT_MAX = 8;
 const RESULT_MAX = 40;
+/* 첫 화면에 박힌 드롭다운은 **스크롤이 안 생겨야 한다** (TASK-KL-136, 사용자 요청).
+ * 그래서 높이를 CSS 로 자르는 대신 **줄 수를 여기서 자른다** — 잘라낸 것은 「전체 목록에서
+ * 찾아보기 →」가 받는다. 잘라 놓고 안에서 또 스크롤하게 두면 잘린 줄도 못 보고 화면도 길다.
+ * ⌘K 로 뜨는 쪽은 그대로다 — 그건 찾으려고 연 창이라 길어도 된다. */
+const INLINE_ROW_MAX = 5;
+const INLINE_RESULT_MAX = 8;
 
 const CHO_TABLE = [
   'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
@@ -180,6 +186,8 @@ const KarmoPalette = (() => {
   let entries: Entry[] = [];
   let aliasMap: Record<string, string> = {};
   let aliasLoaded = false;
+  /** 이번 주에 많이 쓴 도구 id — 실측이다. toolbox 가 통계를 받아 넘겨준다 (TASK-KL-136). */
+  let popularIds: string[] = [];
 
   /* ── 최근 쓴 도구 ─────────────────────────────────────────── */
 
@@ -340,8 +348,10 @@ const KarmoPalette = (() => {
       const h = scoreOf(e, q);
       if (h) hits.push(h);
     }
+    /* 자르는 일은 부르는 쪽이 한다 (TASK-KL-136) — 자리마다 담을 수 있는 줄 수가 다르고,
+     * 여기서 미리 자르면 「몇 개 중 몇 개」의 앞 숫자가 진짜 개수가 아니게 된다. */
     hits.sort((a, b) => b.score - a.score || a.entry.title.localeCompare(b.entry.title, 'ko-KR'));
-    return hits.slice(0, RESULT_MAX);
+    return hits;
   }
 
   /* ── 화면 ─────────────────────────────────────────────────── */
@@ -449,9 +459,31 @@ const KarmoPalette = (() => {
     if (inst.mode === 'overlay') close();
   }
 
-  /** 빈 입력일 때 보여 주는 것 — 내 것 → 최근 → 즐겨찾기 → 둘러보기. */
+  /**
+   * 빈 입력일 때 보여 주는 것 — 이번 주 인기 → 내 것 → 최근 → 즐겨찾기 → 둘러보기.
+   *
+   * 첫 화면에서는 **줄이 스크롤 없이 다 보여야 한다** (TASK-KL-136). 그래서 줄로 나가는
+   * 세 가지(내 것·최근·즐겨찾기)는 합쳐서 `INLINE_ROW_MAX` 줄까지만 나간다 — 앞의 것이
+   * 자리를 다 쓰면 뒤의 것은 이번 화면에 안 나온다. 칩으로 나가는 둘(인기·둘러보기)은
+   * 한 줄씩이라 그 셈에서 빠진다.
+   */
   function renderResting(inst: Instance): void {
     const seen = new Set<string>();
+    const rowBudget = inst.mode === 'inline' ? INLINE_ROW_MAX : 8 + RECENT_MAX + 8;
+    const left = (): number => Math.max(0, rowBudget - inst.rows.length);
+
+    /* 이번 주에 많이 쓴 도구 (TASK-KL-136, 사용자 요청 — 첫 화면 칩 줄에서 여기로 옮겼다).
+     * 도구로 가는 길이 화면 여기저기 흩어져 있으면 어디를 봐야 하는지 매번 고르게 된다.
+     * 실측이 없으면(서버에 못 닿거나 이번 주에 아무도 안 썼으면) 이 자리는 안 생긴다. */
+    /* 넷까지다 — 여섯이면 넓은 화면에서도 칩이 두 줄로 접힌다(실측). 한 줄이 규칙이다. */
+    const popular = popularIds
+      .map(byId)
+      .filter((e): e is Entry => !!e)
+      .slice(0, 4);
+    if (popular.length) {
+      inst.list.appendChild(sectionEl('이번 주에 많이 쓴 도구'));
+      inst.list.appendChild(toolChips(inst, popular));
+    }
 
     /* 도구 목록에서 별로 꽂아 둔 것 (TASK-KL-129).
      * 사람이 **직접 고른** 것이라 저절로 쌓이는 「최근」보다 앞에 온다.
@@ -459,7 +491,7 @@ const KarmoPalette = (() => {
     const pinned = getPinnedToolIds()
       .map(byId)
       .filter((e): e is Entry => !!e)
-      .slice(0, 8);
+      .slice(0, left());
     if (pinned.length) {
       inst.list.appendChild(sectionEl('내 것'));
       pinned.forEach((e) => {
@@ -472,7 +504,7 @@ const KarmoPalette = (() => {
       .filter((id) => !seen.has(id))
       .map(byId)
       .filter((e): e is Entry => !!e)
-      .slice(0, RECENT_MAX);
+      .slice(0, Math.min(RECENT_MAX, left()));
     if (recent.length) {
       inst.list.appendChild(sectionEl('최근'));
       recent.forEach((e) => {
@@ -484,7 +516,7 @@ const KarmoPalette = (() => {
     const favs = getFavoriteToolIds()
       .map(byId)
       .filter((e): e is Entry => !!e && !seen.has(e.id))
-      .slice(0, 8);
+      .slice(0, Math.min(8, left()));
     if (favs.length) {
       inst.list.appendChild(sectionEl('즐겨찾기'));
       favs.forEach((e) => {
@@ -502,6 +534,23 @@ const KarmoPalette = (() => {
     setActive(inst, inst.rows.length ? 0 : -1);
   }
 
+  /** 도구 칩 한 줄 — 줄(row)보다 훨씬 낮아서 좁은 자리에 여럿 담긴다 (TASK-KL-136). */
+  function toolChips(inst: Instance, list: Entry[]): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className = 'kp-browse kp-browse-tools';
+    wrap.setAttribute('role', 'presentation');
+    list.forEach((e) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'kp-browse-chip';
+      b.textContent = e.title;
+      b.title = e.desc || e.title;
+      b.addEventListener('click', () => choose(inst, e.id));
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
   /** 갈래 칩 한 줄 — 「여기에 이만큼 있다」 + 그 갈래로 들어가는 문. */
   function browseChips(inst: Instance): HTMLElement {
     const cats = typeof Toolbox !== 'undefined' && Toolbox.getCategories ? Toolbox.getCategories() : [];
@@ -516,6 +565,14 @@ const KarmoPalette = (() => {
       b.className = 'kp-browse-chip';
       b.innerHTML = esc(c.label) + ' <span class="kp-browse-n">' + n + '</span>';
       b.addEventListener('click', () => {
+        /* 갈래 하나가 123줄인 것도 있다 — 첫 화면에 박힌 칸에 그걸 펼치면 화면이 통째로
+         * 목록이 된다 (TASK-KL-136). 펼치는 일은 **떠오르는 창**이 맡는다: 거기는 찾으려고
+         * 연 창이라 길어도 되고 스크롤도 제자리다. 첫 화면 칸은 짧게 유지된다. */
+        if (inst.mode === 'inline') {
+          open();
+          if (overlay) renderCategory(overlay, c.id, c.label);
+          return;
+        }
         inst.input.value = '';
         renderCategory(inst, c.id, c.label);
       });
@@ -590,7 +647,11 @@ const KarmoPalette = (() => {
       answers.forEach((a) => addAnswerRow(inst, a));
     }
 
-    const hits = search(q);
+    /* 첫 화면 칸은 결과도 짧게 자른다 (TASK-KL-136) — 40줄이 나오면 그 자리에서 스크롤이
+     * 생기고, 화면이 아래로 한참 길어진다. 잘린 것은 아래 「전체 목록에서 찾아보기 →」가 받는다. */
+    const cap = inst.mode === 'inline' ? INLINE_RESULT_MAX : RESULT_MAX;
+    const all = search(q);
+    const hits = all.slice(0, cap);
     if (!hits.length && !answers.length) {
       // 안 나왔을 때 막다른 길로 끝내지 않는다 — 목록 페이지가 별칭·본문까지 훑는다.
       const empty = document.createElement('div');
@@ -624,6 +685,27 @@ const KarmoPalette = (() => {
       if (answers.length) inst.list.appendChild(sectionEl('도구'));
       extra.forEach((e) => addRow(inst, e, null));
       hits.forEach((h) => addRow(inst, h.entry, h.range));
+    }
+    /* 잘라낸 것이 있으면 **말해 준다** — 안 그러면 「이게 전부」로 읽힌다 (TASK-KL-136).
+     * 첫 화면 칸에서는 ⌘K 창이 이어받고, 그 창마저 넘치면 전체 목록 페이지로 보낸다. */
+    if (all.length > hits.length) {
+      const query = inst.input.value;
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'kp-more';
+      more.textContent = '결과 ' + all.length + '개 중 ' + hits.length + '개 · 더 보기 →';
+      more.addEventListener('click', () => {
+        if (inst.mode === 'inline') {
+          open();
+          if (overlay) {
+            overlay.input.value = query;
+            render(overlay);
+          }
+          return;
+        }
+        location.href = '/karmolab/t/?q=' + encodeURIComponent(query);
+      });
+      inst.list.appendChild(more);
     }
     setActive(inst, 0);
     announce(inst);
@@ -867,6 +949,18 @@ const KarmoPalette = (() => {
     else open();
   }
 
+  /**
+   * 이번 주에 많이 쓴 도구를 넘겨받는다 (TASK-KL-136). 실측 통계를 받아 오는 곳은
+   * `toolbox.fillHomePulse` 한 곳이다 — 같은 것을 여기서 또 물으면 「도구를 열었다」를 세는
+   * 서버를 두 번 두드리게 된다. 쉬는 화면(빈 입력)일 때만 다시 그린다.
+   */
+  function setPopular(ids: string[]): void {
+    popularIds = Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : [];
+    if (!entries.length) buildIndex();
+    if (inline && !inline.input.value) render(inline);
+    if (overlay && !overlay.input.value) render(overlay);
+  }
+
   /** 도구가 새로 등록되면(지연 로드) 인덱스를 다시 만든다. */
   function refresh(): void {
     buildIndex();
@@ -874,7 +968,7 @@ const KarmoPalette = (() => {
     if (overlay) render(overlay);
   }
 
-  return { mountInline, focusInline, open, close, toggle, isOpen, noteOpen, refresh, getRecent };
+  return { mountInline, focusInline, open, close, toggle, isOpen, noteOpen, refresh, getRecent, setPopular };
 })();
 
 (window as unknown as { KarmoPalette: typeof KarmoPalette }).KarmoPalette = KarmoPalette;
