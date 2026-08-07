@@ -267,8 +267,13 @@ const quiet = new Quiet({
 // 흔들리는 마음 — 사건이 밀고 시간이 되돌린다.
 const heart = new Heart();
 let 직전에한말 = null;
-// 이번 turn 이 공을 돌려줄 자리인가 — 재료를 만들 때 정하고 입 앞 관문이 쓴다.
-let 공돌려줄자리 = false;
+/** 지금이 공을 돌려줄 자리인가 — 재료 쪽과 관문 쪽이 **같은 자리에서** 판단하게. */
+function 공돌려줄자리인가() {
+  const 최근 = conversationMemory.recent(12);
+  const 목록 = Array.isArray(최근) ? 최근 : [];
+  const 방금 = [...목록].reverse().find((e) => e.role === 'sensed' && e.channel === 'web')?.text ?? '';
+  return tossBackNote({ recent: 목록, 방금 }) !== '';
+}
 // 켜진 뒤 첫 turn 인가 — 끊김은 그때 한 번만 본다.
 const 시작한때 = Date.now();
 let 첫turn인가 = true;
@@ -522,8 +527,11 @@ const mouth = mouthGate({
     ?? hollowReason(text, conversationMemory.recent(40))
     /* 공을 안 돌려준 것도 여기서 잡는다. **재료로는 안 밀렸다** — 큰 머리로 바꿔도,
        인격을 빼도 0/3 이었다(실측). 여섯 줄 중 한 줄로는 안 되고, 여기서는 그 한 가지만
-       말하므로 묻히지 않는다. 돌려줄 자리인지는 재료를 만들 때 이미 가렸다. */
-    ?? 안돌려줬나(text, 공돌려줄자리),
+       말하므로 묻히지 않는다.
+       **자리 판단은 여기서 다시 한다.** 재료 만들 때 정한 값을 모듈 변수로 넘겨 뒀더니
+       그 사이 다른 바퀴(화면 곁눈질 등)가 덮어써서 관문이 한 번도 안 걸렸다(실측: 재료는
+       7번 실렸는데 관문은 0번). 같은 값을 두 곳에서 들고 있으면 반드시 어긋난다. */
+    ?? 안돌려줬나(text, 공돌려줄자리인가()),
   // 왜 다시 시키는지에 따라 시키는 말이 다르다 — 「결에서 벗어났다」와 「알맹이가 없다」는
   // 고칠 데가 다르다.
   retry: (why) => {
@@ -679,12 +687,7 @@ const companion = new Companion({
       })() },
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
-      { name: '공돌려주기', weight: 13, text: (() => {
-        const 얹을말 = tossBackNote({ recent, 방금: 방금한말 });
-        // 입 앞 관문이 같은 판단을 두 번 하지 않게, 여기서 정한 걸 넘겨 둔다.
-        공돌려줄자리 = 얹을말 !== '';
-        return 얹을말;
-      })() },
+      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
       { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
