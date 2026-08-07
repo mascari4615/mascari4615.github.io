@@ -762,25 +762,65 @@ function renderBrowse() {
         )
         .join('')
     : '<p class="browse-empty">걸러진 것이 없어요. 위 칸을 비우거나 다른 말로 찾아보세요.</p>';
-  [...$browseGrid.querySelectorAll('button')].forEach((b) =>
+  // Tab 한 번에 목록을 지나가게 둔다 — 안에서는 화살표로 옮긴다(첫 항목만 Tab 대상).
+  const items = [...$browseGrid.querySelectorAll('button')];
+  items.forEach((b, i) => {
+    b.setAttribute('tabindex', i === 0 ? '0' : '-1');
     b.addEventListener('click', () => {
       submit(b.dataset.name);
       // 낸 것은 목록에서 빠져야 한다 — 안 그러면 같은 것을 또 누른다.
       renderBrowse();
-    }),
-  );
+    });
+  });
+}
+
+/* 키보드로 들어가면 못 나온다 (TASK-KL-089).
+ * 훑어보기를 열면 버튼이 1025개다. Tab 으로 하나씩 넘어가니 스무 번을 눌러도 목록 안이었다 —
+ * 키보드만 쓰는 사람에게는 갇히는 것과 같다. Esc 로 닫고 초점을 열었던 버튼에 돌려준다.
+ * 목록 안은 화살표로 옮긴다(그래서 Tab 한 번이면 목록 전체를 지나간다). */
+function closeBrowse() {
+  $browse.hidden = true;
+  $browseOpen.setAttribute('aria-expanded', 'false');
+  $browseOpen.textContent = '훑어보기';
+  $browseOpen.focus();
+}
+
+function browseKeys(e) {
+  if (!$browse || $browse.hidden) return;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeBrowse();
+    return;
+  }
+  if (!e.target.closest || !e.target.closest('.browse-grid')) return;
+  const items = [...$browseGrid.querySelectorAll('button')];
+  const i = items.indexOf(e.target);
+  if (i < 0) return;
+  // 한 줄에 몇 개가 들어가는지는 화면 폭이 정한다 — 실제 너비로 센다.
+  const perRow = Math.max(1, Math.round($browseGrid.clientWidth / (items[0].offsetWidth || 1)));
+  const to =
+    e.key === 'ArrowRight' ? i + 1
+    : e.key === 'ArrowLeft' ? i - 1
+    : e.key === 'ArrowDown' ? i + perRow
+    : e.key === 'ArrowUp' ? i - perRow
+    : e.key === 'Home' ? 0
+    : e.key === 'End' ? items.length - 1
+    : -1;
+  if (to < 0 || to >= items.length) return;
+  e.preventDefault();
+  items.forEach((b, n) => b.setAttribute('tabindex', n === to ? '0' : '-1'));
+  items[to].focus();
 }
 
 if ($browseOpen) {
+  document.addEventListener('keydown', browseKeys);
   $browseOpen.addEventListener('click', () => {
-    const open = $browse.hidden;
-    $browse.hidden = !open;
-    $browseOpen.setAttribute('aria-expanded', String(open));
-    $browseOpen.textContent = open ? '접기' : '훑어보기';
-    if (open) {
-      setSug(''); // 추천 목록과 겹쳐 뜨지 않게
-      renderBrowse();
-    }
+    if (!$browse.hidden) return closeBrowse();
+    $browse.hidden = false;
+    $browseOpen.setAttribute('aria-expanded', 'true');
+    $browseOpen.textContent = '접기';
+    setSug(''); // 추천 목록과 겹쳐 뜨지 않게
+    renderBrowse();
   });
   $input.addEventListener('input', renderBrowse);
 }
