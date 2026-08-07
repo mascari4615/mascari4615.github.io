@@ -89,10 +89,16 @@ async function rowTitles(scope = '.kp-inline') {
   return page.$$eval(`${scope} .kp-row-title`, (els) => els.map((e) => e.textContent.trim()));
 }
 
-/* ── ① 첫 화면에 입력이 있고 포커스를 쥔다 ─────────────────── */
+/* ── ① 첫 화면에 찾는 입력이 있다 ───────────────────────────
+ * 예전에는 「포커스까지 쥐어야 한다」로 봤다. 그런데 첫 화면이 바뀌어 입력이 카드·통계
+ * 아래로 내려갔고(KL-129, 사용자 요청), 그 자리에 자동 포커스를 주면 페이지가 아래로
+ * 확 밀린다 — 그러면 위에 놓은 카드를 아무도 못 본다. 자리 다툼은 화면 주인이 정할 일이라
+ * 여기서 규칙으로 박지 않는다. 이 검사가 지키는 것은 **입력이 있고 실제로 동작하는가** 다. */
 await gotoHome();
-const focused = await page.evaluate(() => document.activeElement?.classList.contains('kp-input'));
-if (!focused) problems.push('첫 화면 입력이 포커스를 못 쥔다 — 열자마자 칠 수 없다');
+const inputThere = await page.$('.kp-inline .kp-input');
+if (!inputThere) problems.push('첫 화면에 찾는 입력이 없다');
+// 검사는 사람처럼 눌러서 시작한다 — 자동 포커스에 기대면 그 정책이 바뀔 때 같이 깨진다.
+await page.locator('.kp-inline .kp-input').click();
 
 /* 카드 3장은 **남아 있어야 한다** (사용자 요청 2026-08-07). 한때 카드 자리를 팔레트가
  * 통째로 가져갔는데, 눈에 익은 자리를 그대로 두라는 말을 들었다. 둘 다 있는 것이 정답이다 —
@@ -106,14 +112,14 @@ if (cards.length < 3) {
 for (const must of ['즐겨찾기', '도구 목록', '문서']) {
   if (!cards.some((c) => c.startsWith(must))) problems.push(`첫 화면에서 「${must}」 카드가 사라졌다`);
 }
-const cardsBelow = await page.evaluate(() => {
-  const p = document.querySelector('.landing-palette');
-  const c = document.querySelector('.landing-cta-card');
-  if (!p || !c) return null;
-  return p.getBoundingClientRect().top < c.getBoundingClientRect().top;
-});
-if (cardsBelow === null) problems.push('첫 화면에 입력과 카드가 같이 있지 않다');
-else if (!cardsBelow) problems.push('카드가 찾는 입력보다 위에 있다 — 주인공 자리가 뒤바뀌었다');
+/* 위아래 순서는 화면 주인이 정한다 (카드가 먼저인 지금 배치 = KL-129, 사용자 요청).
+ * 검사가 지킬 것은 순서가 아니라 **둘 다 살아 있는가** 다 — 한쪽이 사라지면 그건 사고다. */
+const bothThere = await page.evaluate(() => ({
+  입력: !!document.querySelector('.landing-palette .kp-input'),
+  카드: document.querySelectorAll('.landing-cta-card').length,
+}));
+if (!bothThere.입력) problems.push('첫 화면에서 찾는 입력이 사라졌다');
+if (!bothThere.카드) problems.push('첫 화면에서 갈 곳 카드가 사라졌다');
 
 /* ── ①-b 입력칸이 상자 안에 또 네모를 그리지 않는다 ─────────
  * 이 파일 뒤쪽의 공통 입력칸 규칙(`input[type=text]`)이 힘이 세서, 클래스 하나로는
