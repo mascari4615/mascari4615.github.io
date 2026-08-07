@@ -330,6 +330,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-invite-list li { padding:4px 12px; border:1px dashed var(--border); border-radius:999px;
             font-size:11px; color:var(--text-secondary); }
         .c-invite .c-newbtn { margin-top:12px; }
+        .c-codeform { display:flex; gap:6px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+        .c-codeform input { flex:0 1 200px; min-width:0; text-transform:uppercase; letter-spacing:.06em; }
         .c-empty-row { padding:32px 4px; color:var(--text-secondary); font-size:var(--font-size-sm); text-align:center; }
 
         /* 아래 줄 — 검색과 페이지. */
@@ -635,13 +637,57 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     let tagEditOpen = false;
 
     function signInBlock(text: string): string {
+        /* 들어오는 길이 디스코드 하나뿐이면, 그 계정을 잃은 사람은 **영영 못 들어온다**.
+           복구 코드·기기 코드로 들어오는 길을 같은 자리에 둔다 (TASK-KL-098). */
         return `<div class="c-signin"><p>${text}</p>
-            <button type="button" class="btn btn-primary" data-signin>디스코드로 시작하기</button></div>`;
+            <button type="button" class="btn btn-primary" data-signin>디스코드로 시작하기</button>
+            <button type="button" class="c-linkbtn" data-code-open>코드로 들어오기</button>
+            <form class="c-codeform" data-code-form hidden>
+                <input type="text" data-code-input maxlength="12" autocomplete="one-time-code"
+                    placeholder="복구 코드 또는 기기 코드" aria-label="로그인 코드">
+                <button type="submit" class="btn btn-primary">들어가기</button>
+            </form></div>`;
     }
 
     function wireSignIn(): void {
         host?.querySelectorAll<HTMLButtonElement>('[data-signin]').forEach((b) =>
             b.addEventListener('click', () => window.KarmoAccount?.signIn()),
+        );
+        host?.querySelectorAll<HTMLButtonElement>('[data-code-open]').forEach((b) =>
+            b.addEventListener('click', () => {
+                const form = b.parentElement?.querySelector<HTMLFormElement>('[data-code-form]');
+                if (!form) return;
+                form.hidden = false;
+                b.hidden = true;
+                form.querySelector<HTMLInputElement>('[data-code-input]')?.focus();
+            }),
+        );
+        host?.querySelectorAll<HTMLFormElement>('[data-code-form]').forEach((form) =>
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const value = form.querySelector<HTMLInputElement>('[data-code-input]')?.value ?? '';
+                const base = window.KarmoAccount?.apiBase;
+                if (!base || !value.trim()) return;
+                /* 어느 쪽 코드인지 사람에게 고르게 하지 않는다 — 받은 사람은 그게 무슨 종류인지
+                   모른다. 짧은 것(기기)부터 대 보고, 아니면 복구 코드로 대 본다. */
+                for (const path of ['/kl/auth/link', '/kl/auth/recovery']) {
+                    try {
+                        const res = await fetch(`${base}${path}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: value.trim() }),
+                        });
+                        if (res.ok) {
+                            location.reload();
+                            return;
+                        }
+                    } catch {
+                        /* 다음 것을 대 본다 */
+                    }
+                }
+                Toolbox.showToast?.(toastFor('그 코드로는 못 들어가요'));
+            }),
         );
     }
 
