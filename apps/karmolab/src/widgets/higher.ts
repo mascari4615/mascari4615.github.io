@@ -162,6 +162,12 @@
             ($('hiB') as HTMLButtonElement).disabled = true;
             countUp($('hiB').querySelector('.hi-vl') as HTMLElement, right!.v[field.key]);
             el.classList.add(win ? 'is-win' : 'is-lose');
+            /* 지면 내가 고른 쪽만 빨개졌다 — 더 큰 쪽이 어디였는지는 값을 견줘 봐야 알았다.
+             * 끝나는 순간이야말로 「아, 저쪽이었구나」가 눈에 들어와야 하는 자리다. */
+            if (!win) {
+              const bigger = chosen === left ? $('hiB') : $('hiA');
+              bigger.classList.add('is-win');
+            }
             if (win) {
               streak++;
               $('hiStreak').textContent = String(streak);
@@ -220,10 +226,14 @@
             nextRound(false);
           });
           $('hiShare').addEventListener('click', () => {
+            /* 주소는 **이 놀이가 실제로 사는 곳**이어야 한다. 앱 안으로 옮긴 뒤에도 도구
+             * 상세 주소(/karmolab/t/higher/)를 퍼뜨리고 있었는데 그 페이지는 만들지 않는다 —
+             * 자랑을 받은 사람이 누르면 없는 곳으로 갔다.
+             * 기준도 빼야 한다. 이제 판마다 바뀌므로 마지막 판 것 하나만 적으면 거짓말이 된다. */
             const b = BOARDS.filter((x) => x.id === boardId)[0];
-            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''} / ${field ? field.label : ''}\n${streak}연승 (최고 ${bestOf(
+            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''}\n${streak}연승 (최고 ${bestOf(
               boardId
-            )})\nblog.mascari4615.com/karmolab/t/higher/`;
+            )})\nblog.mascari4615.com/karmolab/#higher`;
             void navigator.clipboard.writeText(text).then(() => {
               $('hiShare').textContent = '복사했습니다';
             });
