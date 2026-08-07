@@ -210,6 +210,8 @@
             a.href = URL.createObjectURL(out);
             a.download = '문서.pdf';
             a.click();
+            // 만든 것을 이어서 쓸 수 있게 내놓는다 (TASK-KL-133) — 받을 도구가 없으면 줄이 안 생긴다.
+            Toolbox.offerNext?.(status, { blob: out, name: a.download, from: 'text2pdf' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             say(`${pages.length}쪽 PDF 로 받았어요. 글자를 선택·검색할 수는 없습니다 (글자를 그림으로 그려 넣기 때문).`, 'ok');
             Toolbox.trackUse?.('make');

@@ -220,6 +220,8 @@ import { fileSize as size } from './shared/media';
               a.href = URL.createObjectURL(blob);
               a.download = '글자카드.png';
               a.click();
+              // 만든 것을 이어서 쓸 수 있게 내놓는다 (TASK-KL-133) — 받을 도구가 없으면 줄이 안 생긴다.
+              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'text2img' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(`${canvas.width}×${canvas.height} · ${size(blob.size)} 로 받았어요.`, 'ok');
               Toolbox.trackUse?.('save');
