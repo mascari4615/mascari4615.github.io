@@ -111,6 +111,21 @@ export function compareItem(topic, guess, answer) {
   }));
 }
 
+/**
+ * 한 줄을 말로 옮긴다 — 색과 ▲▼ 로만 알려 주면 화면 낭독기 쓰는 사람에게는 아무 말도 안 한 것이다.
+ * (눈으로 보는 표와 같은 내용이어야 한다. 여기서 갈리면 두 사람이 다른 놀이를 하게 된다.)
+ */
+export function describeRow(fields, cells, name) {
+  const parts = cells.map((c, i) => {
+    const label = fields[i].label;
+    const value = Array.isArray(c.value) ? c.value.join(', ') : c.value;
+    if (c.state === 'exact') return `${label} ${value} 맞음`;
+    if (c.dir) return `${label} ${value}, 정답은 더 ${c.dir === 'up' ? '큼' : '작음'}${c.state === 'near' ? ' (가까움)' : ''}`;
+    return `${label} ${value} ${c.state === 'near' ? '일부 맞음' : '틀림'}`;
+  });
+  return `${name}: ${parts.join(', ')}`;
+}
+
 export function isWin(cells) {
   return cells.length > 0 && cells.every((c) => c.state === 'exact');
 }

@@ -9,6 +9,7 @@
 import {
   answerOf,
   compareItem,
+  describeRow,
   emptyStats,
   findItem,
   isWin,
@@ -217,7 +218,12 @@ function renderRow(guess) {
     })
     .join('');
   $rows.prepend(
-    el(`<div class="row"><div class="who">${img}<span>${esc(guess.name)}</span></div><div class="cells" style="--cols:${topic.fields.length}">${html}</div></div>`),
+    el(
+      `<div class="row"><div class="who">${img}<span>${esc(guess.name)}</span></div>` +
+        // 색과 ▲▼ 는 눈에만 보인다 — 같은 내용을 말로도 남긴다.
+        `<p class="sr">${esc(describeRow(topic.fields, cells, guess.name))}</p>` +
+        `<div class="cells" aria-hidden="true" style="--cols:${topic.fields.length}">${html}</div></div>`,
+    ),
   );
   return cells;
 }

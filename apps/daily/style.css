@@ -18,6 +18,9 @@
 
 * { box-sizing: border-box; }
 
+/* 눈에는 안 보이지만 화면 낭독기는 읽는 글. 색·화살표로만 알려 주면 안 되는 내용을 여기 담는다. */
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
 body {
   margin: 0;
   background: var(--bg);
