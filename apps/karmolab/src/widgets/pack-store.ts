@@ -75,15 +75,15 @@ export function getPack(id: string): Pack | null {
  */
 export function parseTable(text: string): { fields: PackField[]; items: PackItem[]; problems: string[] } {
   const problems: string[] = [];
-  const rows = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => (l.indexOf('\t') >= 0 ? l.split('\t') : l.split(',')).map((c) => c.trim()));
-  if (rows.length < 2) {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) {
     problems.push('첫 줄에 칸 이름, 그 아래에 항목을 한 줄씩 넣어 주세요.');
     return { fields: [], items: [], problems };
   }
+  // 탭이 있으면 탭으로 나눈다(스프레드시트에서 긁으면 그렇다). 아니면 쉼표.
+  const tabbed = lines[0].indexOf('\t') >= 0;
+  const rows = lines.map((l) => (tabbed ? l.split('\t').map((c) => c.trim()) : splitCsv(l)));
+
   const head = rows[0];
   const body = rows.slice(1).filter((r) => r[0]);
   if (!body.length) problems.push('항목이 하나도 없습니다.');
@@ -94,12 +94,16 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
     if (i === 0 || i === imgAt) return; // 첫 칸은 이름, 그림 칸은 칸이 아니다
     const vals = body.map((r) => (r[i] || '').trim()).filter(Boolean);
     if (!vals.length) return;
-    const allNum = vals.every((v) => v !== '' && !isNaN(Number(v)));
+    const num = vals.map(numberish);
+    const allNum = num.every((n) => n !== null);
     const anySet = vals.some((v) => v.indexOf(',') >= 0 || v.indexOf('·') >= 0);
+    // 「1.2m」처럼 단위를 붙여 적는 게 사람의 기본값이다 — 단위는 떼어 칸의 것으로 삼는다.
+    const unit = allNum ? (num.find((n) => n && n.unit)?.unit ?? '') : '';
     fields.push({
       key: 'f' + i,
       label: label || `칸 ${i}`,
-      kind: allNum ? 'number' : anySet ? 'set' : 'category'
+      kind: allNum ? 'number' : anySet ? 'set' : 'category',
+      ...(unit ? { unit } : {})
     });
   });
   if (!fields.length) problems.push('이름 말고 견줄 칸이 하나는 있어야 합니다 (예: 종류·나이·키).');
@@ -116,12 +120,61 @@ export function parseTable(text: string): { fields: PackField[]; items: PackItem
       const i = Number(f.key.slice(1));
       const raw = (r[i] || '').trim();
       if (!raw) continue;
-      it[f.key] = f.kind === 'number' ? Number(raw) : f.kind === 'set' ? raw.split(/[,·]/).map((s) => s.trim()).filter(Boolean) : raw;
+      if (f.kind === 'number') {
+        const n = numberish(raw);
+        if (n) it[f.key] = n.value;
+      } else if (f.kind === 'set') {
+        it[f.key] = raw.split(/[,·]/).map((x) => x.trim()).filter(Boolean);
+      } else {
+        it[f.key] = raw;
+      }
     }
     items.push(it);
   }
   if (items.length < 4) problems.push('항목이 넷은 넘어야 놀이가 됩니다.');
   return { fields, items, problems };
+}
+
+/**
+ * 쉼표로 나누되 **따옴표 안의 쉼표는 값의 일부**다.
+ * 엑셀·구글 시트에서 CSV 로 내보내면 「"개, 큰개"」 처럼 나오는데, 그냥 쉼표로 자르면
+ * 값이 한 칸씩 밀리고 이름에 따옴표가 남는다(실측: 이름이 「"멍멍이"」 로 저장됐다).
+ */
+function splitCsv(line: string): string[] {
+  const out: string[] = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"'; // 값 안의 따옴표는 두 번 적는 것이 규약이다
+          i++;
+        } else inQ = false;
+      } else cur += c;
+      continue;
+    }
+    if (c === '"') inQ = true;
+    else if (c === ',') {
+      out.push(cur.trim());
+      cur = '';
+    } else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+/**
+ * 「3」·「1.2m」·「5 kg」·「12개」를 숫자로 읽는다. 숫자가 아니면 null.
+ * 사람은 단위를 붙여 적는다 — 그걸 글자로 취급하면 「높은 쪽 고르기」에서 그 칸이 통째로 빠진다.
+ */
+function numberish(v: string): { value: number; unit: string } | null {
+  const m = /^(-?\d+(?:[.,]\d+)?)\s*([^\d\s].*)?$/.exec(v.trim());
+  if (!m) return null;
+  const value = Number(m[1].replace(',', '.'));
+  if (!isFinite(value)) return null;
+  return { value, unit: (m[2] || '').trim() };
 }
 
 /* ── 남에게 주기 ────────────────────────────────
