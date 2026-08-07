@@ -242,18 +242,40 @@ export function liveStreak(stats, dayNumber) {
   return stats.lastDay === dayNumber || stats.lastDay === dayNumber - 1 ? stats.streak : 0;
 }
 
-/** 자동완성 — 앞글자 우선, 그 다음 포함. 이미 낸 답은 뺀다. */
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+
+/** 한글 한 덩이의 첫 자음. 한글이 아니면 그대로 둔다(영문·숫자도 섞여 찾아지게). */
+function choseong(text) {
+  let out = '';
+  for (const ch of text) {
+    const code = ch.codePointAt(0) - 0xac00;
+    out += code >= 0 && code <= 11171 ? CHO[Math.floor(code / 588)] : ch;
+  }
+  return out;
+}
+
+/** 「ㅍㅋㅊ」처럼 첫 자음만 친 것인가. 자음 하나만 쳤을 때도 여기에 든다. */
+const isChoseongQuery = (q) => q.length > 0 && [...q].every((c) => CHO.includes(c));
+
+/**
+ * 자동완성 — 앞글자 우선, 그 다음 포함. 이미 낸 답은 뺀다.
+ *
+ * 첫 자음만 쳐도 찾아진다 (「ㅍㅋㅊ」 → 피카츄). 고를 것이 1025개나 되는 판에서
+ * 이름을 끝까지 치게 하면 그 자체가 문턱이다 — 한국어를 쓰는 사람은 대개 이렇게 친다.
+ */
 export function suggest(items, query, { limit = 8, exclude = [] } = {}) {
   const q = nameKey(query);
   if (!q) return [];
+  const cho = isChoseongQuery(q);
   const taken = new Set(exclude.map(nameKey));
   const starts = [];
   const contains = [];
   for (const item of items) {
     const name = nameKey(item.name);
     if (taken.has(name)) continue;
-    if (name.startsWith(q)) starts.push(item);
-    else if (name.includes(q)) contains.push(item);
+    const hay = cho ? choseong(name) : name;
+    if (hay.startsWith(q)) starts.push(item);
+    else if (hay.includes(q)) contains.push(item);
     if (starts.length >= limit) break;
   }
   return [...starts, ...contains].slice(0, limit);

@@ -251,3 +251,16 @@ test('남은 기회를 말이 되게 적는다', () => {
   assert.equal(triesLabel(6, 6), '6번 다 썼다');
   assert.equal(triesLabel(9, 6), '6번 다 썼다', '넘겨 세어도 음수는 안 나온다');
 });
+
+test('첫 자음만 쳐도 찾아진다', () => {
+  const items = [{ name: '피카츄' }, { name: '파이리' }, { name: '누누와 윌럼프' }, { name: 'Mr. Mime' }];
+  assert.deepEqual(suggest(items, 'ㅍㅋㅊ').map((i) => i.name), ['피카츄']);
+  // 자음 하나만 쳐도 (IME 가 조합 중일 때 실제로 이렇게 들어온다) 후보가 나온다.
+  // 앞에서 걸린 것이 먼저, 가운데서 걸린 것(윌럼프의 ㅍ)이 뒤.
+  assert.deepEqual(suggest(items, 'ㅍ').map((i) => i.name), ['피카츄', '파이리', '누누와 윌럼프']);
+  // 띄어쓰기는 무시한다 — 사람은 대개 붙여 친다.
+  assert.deepEqual(suggest(items, 'ㄴㄴㅇㅇㄹㅍ').map((i) => i.name), ['누누와 윌럼프']);
+  // 첫 자음이 아닌 보통 검색은 그대로여야 한다.
+  assert.deepEqual(suggest(items, '피카').map((i) => i.name), ['피카츄']);
+  assert.deepEqual(suggest(items, 'mime').map((i) => i.name), ['Mr. Mime']);
+});
