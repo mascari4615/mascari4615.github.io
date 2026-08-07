@@ -1,4 +1,5 @@
 import { execFile, execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -106,12 +107,14 @@ export function windowsHand(): Hand {
     what: '지금 열려 있는 창들을 본다',
     needs: '(없음)',
     async run(): Promise<string> {
+      // PowerShell 5.1 은 출력이 콘솔 코드페이지라 그대로 읽으면 한글이 깨진다.
+      // 앞에 출력 인코딩을 UTF-8 로 박아야 Node 쪽 utf8 읽기와 맞는다.
       const out = execFileSync(
         'powershell',
         [
           '-NoProfile',
           '-Command',
-          "Get-Process | Where-Object { $_.MainWindowTitle -ne '' } | Select-Object -First 15 -ExpandProperty MainWindowTitle",
+          "[Console]::OutputEncoding = [Text.Encoding]::UTF8; Get-Process | Where-Object { $_.MainWindowTitle -ne '' } | Select-Object -First 15 -ExpandProperty MainWindowTitle",
         ],
         { timeout: 15_000, windowsHide: true, encoding: 'utf8' },
       );
@@ -142,12 +145,10 @@ export function readNotesHand(path: string): Hand {
     needs: '(없음)',
     async run(): Promise<string> {
       if (existsSync(path) === false) return '아직 적어 둔 게 없다';
-      const lines = execFileSync('powershell', ['-NoProfile', '-Command', `Get-Content -Tail 15 -Encoding utf8 '${path}'`], {
-        timeout: 10_000,
-        windowsHide: true,
-        encoding: 'utf8',
-      });
-      const body = lines.trim();
+      // **파일은 그냥 읽는다.** PowerShell 을 거치면 그 출력이 UTF-8 이 아니라서(콘솔
+      // 코드페이지) 한글이 통째로 깨져 온다 — 실측(43회차)에서 손은 제대로 쓰였는데
+      // 결과가 쓰레기라 두뇌가 820자 영어를 뱉었다. 남의 프로그램을 부를 이유가 없다.
+      const body = readFileSync(path, 'utf8').split(/\r?\n/).slice(-15).join('\n').trim();
       return body === '' ? '아직 적어 둔 게 없다' : `적어 둔 것:\n${body}`;
     },
   };

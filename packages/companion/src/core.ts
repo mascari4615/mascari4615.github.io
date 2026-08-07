@@ -8,6 +8,7 @@ import type {
   Memory,
   MemoryEntry,
   Sensation,
+  ThinkInput,
   Utterance,
 } from './types';
 
@@ -43,6 +44,13 @@ export interface CompanionOptions {
    */
   interruptChannels?: readonly string[];
   /**
+   * 끊어도 되는지 **내용까지** 보고 정한다. 안 주면 통로만 본다(예전 그대로).
+   *
+   * 통로만 보면 「응」 한마디에도 하던 말이 잘린다 — 맞장구는 말을 끊으려는 게 아니라
+   * 듣고 있다는 신호다(47회차).
+   */
+  urgentWhen?: (sensation: Sensation) => boolean;
+  /**
    * 지금 기분을 한 줄로 만들어 주는 쪽. 없으면 기분 없이 간다.
    *
    * 「대화가 매번 똑같다」가 동반자 앱 이탈 1위 이유다(조사). 기억을 잘해도 매번 같은
@@ -56,7 +64,17 @@ export interface CompanionOptions {
    * 인격을 빼도 마찬가지였다(실측). 찾을지 말지를 판단에 맡기지 않고 매번 찾아서
    * 재료로 얹는다. 없으면 빈 손으로 돌아올 뿐이라 손해가 없다.
    */
-  recall?: (sensation: Sensation, recent: readonly MemoryEntry[]) => readonly string[];
+  /**
+   * 두뇌를 부르기 **전에** 미리 찾아 두는 자리.
+   *
+   * 옛 대화를 뒤지는 데 쓰다가, 손도 여기로 온다(43회차) — 두뇌더러 표를 적어 손을 부르라고
+   * 하면 인격과 부딪혀 아예 안 쓴다. 그래서 **판단을 두뇌에 안 맡기고** 여기서 미리 쓴다.
+   * 손은 시간이 걸리므로 기다릴 수 있어야 한다.
+   */
+  recall?: (
+    sensation: Sensation,
+    recent: readonly MemoryEntry[],
+  ) => readonly string[] | Promise<readonly string[]>;
   /**
    * 답이 늦어질 때 낼 뜸을 골라 준다. 없으면 뜸을 안 낸다.
    *
@@ -71,6 +89,21 @@ export interface CompanionOptions {
    * 기계 같다.
    */
   reflex?: (sensation: Sensation) => string | null;
+  /**
+   * 입 앞의 관문 — 말하기 전에 한 번 거친다. null 을 돌려주면 그 말은 안 한다.
+   *
+   * 기억에 남기기도 **전에** 부른다. 안 할 말을 기억에 남기면 다음 번 재료가 되어 굳는다.
+   */
+  beforeSpeak?: (
+    text: string,
+    context: {
+      sensation: Sensation;
+      input: ThinkInput;
+      usedHands: readonly string[];
+      /** 이번에 미리 찾아본 것 — 「안 보고 지어낸 값」을 가리려면 이게 있어야 한다. */
+      found: readonly string[];
+    },
+  ) => string | null | Promise<string | null>;
   filler?: () => string | null;
   /** 이만큼 지나도 답이 안 나오면 뜸을 낸다. 빨리 오면 안 낸다. */
   fillerAfterMs?: number;
@@ -153,7 +186,8 @@ export class Companion {
 
   private enqueue(body: Body | null, sensation: Sensation): Promise<void> {
     const interrupts = this.options.interruptChannels ?? [];
-    const urgent = interrupts.includes(sensation.channel);
+    const urgent = interrupts.includes(sensation.channel)
+      && (this.options.urgentWhen?.(sensation) ?? true);
 
     if (urgent && this.inFlight !== null) {
       // 하던 말은 버린다. 이미 나간 소리도 멈춘다.
@@ -216,7 +250,7 @@ export class Companion {
       longTerm,
       character: this.options.character,
       mood: this.options.mood?.(recent),
-      found: this.options.recall?.(sensation, recent),
+      found: await this.options.recall?.(sensation, recent),
     };
 
     let decision;
@@ -239,7 +273,7 @@ export class Companion {
     const knee = this.options.reflex?.(sensation) ?? null;
     if (knee !== null && knee !== '') {
       const at = (this.options.now ?? Date.now)();
-      await memory.remember({ role: 'said', channel: sensation.channel, text: knee, at });
+      await memory.remember({ role: 'said', channel: sensation.channel, text: knee, at, via: 'reflex' });
       try {
         await target?.voice.speak({ text: knee, channel: sensation.channel, at });
       } catch (e) {
@@ -299,9 +333,14 @@ export class Companion {
     }
 
     // 말 속의 손 표시를 걷어내고, 걷어낸 일들을 실제로 한다.
+    //
+    // **무슨 손을 썼는지 기억해 둔다.** 입 앞 관문이 「안 한 걸 했다고 말하는지」를 보려면
+    // 이걸 알아야 한다 — 표는 여기서 이미 걷어내지므로 뒤에서는 알 길이 없다.
+    const 쓴손: string[] = [];
     const hands = this.options.hands ?? [];
     if (text !== null && hands.length > 0) {
       const { clean, requests } = findRequests(text);
+      쓴손.push(...requests.map((r) => r.name));
       if (requests.length > 0) {
         const note = (m: string) => onCycle?.({
           sensation, decision: { respond: false, reason: m }, utterance: null,
@@ -333,9 +372,27 @@ export class Companion {
       return;
     }
 
+    // 입 앞의 관문 — 말하기 **전에** 한 번 거친다.
+    //
+    // 표류 감시는 새고 나서 다음 번에 짚어 준다. 그건 이미 조수님이 그 말을 들은 뒤다.
+    // 여기서 막으면 애초에 그 말이 나가지 않는다. 관문이 없으면 그냥 지나간다.
+    if (this.options.beforeSpeak !== undefined) {
+      try {
+        const 거른것 = await this.options.beforeSpeak(text.trim(), { sensation, input, usedHands: 쓴손, found: input.found ?? [] });
+        if (거른것 === null || 거른것.trim() === '') {
+          onCycle?.({ sensation, decision: { respond: false, reason: '입 앞에서 걸렀다' }, utterance: null });
+          return;
+        }
+        text = 거른것;
+      } catch (e) {
+        // 관문이 고장 나도 입을 막지는 않는다 — 말 못 하는 것보다 새는 편이 낫다.
+        onCycle?.({ sensation, decision, utterance: null, error: asError(e) });
+      }
+    }
+
     const now = this.options.now ?? Date.now;
     const utterance: Utterance = { text: text.trim(), channel: sensation.channel, at: now() };
-    await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at });
+    await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at, via: 'brain' });
 
     try {
       await target?.voice.speak(utterance);
