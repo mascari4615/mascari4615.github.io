@@ -428,3 +428,34 @@ describe('계정 API — HTTP', () => {
     }
   });
 });
+
+describe('글 하나 — 커뮤니티 상세', () => {
+  it('주소로 바로 열리고, 로그인 없이 보이며, 답글이 함께 온다', async () => {
+    const { cookie } = signIn();
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ kind: 'talk', title: '첫 글', text: '안녕하세요' }),
+    });
+    const id = ((await created.json()) as { posts: Array<{ id: string }> }).posts[0].id;
+    await fetch(`${baseUrl}/kl/posts/${id}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ text: '반가워요' }),
+    });
+
+    const anon = await fetch(`${baseUrl}/kl/posts/${id}`);
+    expect(anon.status).toBe(200);
+    const body = (await anon.json()) as {
+      post: { title: string; replies: Array<{ text: string }> };
+      signedIn: boolean;
+    };
+    expect(body.post.title).toBe('첫 글');
+    expect(body.post.replies.map((r) => r.text)).toEqual(['반가워요']);
+    expect(body.signedIn).toBe(false);
+  });
+
+  it('없는 글은 404 — 「서버가 죽음」과 구별되어야 한다', async () => {
+    expect((await fetch(`${baseUrl}/kl/posts/없는글`)).status).toBe(404);
+  });
+});
