@@ -43,6 +43,10 @@ export function doneToday(id: string): boolean {
       const h = READ('karmolab_higher_day');
       return !!h && h.day === courseDay() && (h.rounds || 0) > 0;
     }
+    if (id === 'twenty') {
+      const t = READ('karmolab_twenty_day');
+      return !!t && t.day === courseDay() && (t.rounds || 0) > 0;
+    }
   } catch {
     /* 사생활 모드 */
   }
@@ -56,7 +60,7 @@ export function doneToday(id: string): boolean {
  * 그대로 코스로 삼으면, 읽을 줄 모르는 놀이가 **영영 안 끝나는 칸**이 되어 코스가 통째로
  * 완주 불가가 된다. 그래서 코스는 여기 적힌 것만 센다 — 새 놀이는 읽는 법을 더한 날 합류한다.
  */
-const COUNTED = ['daily', 'higher', 'quest'];
+const COUNTED = ['daily', 'higher', 'quest', 'twenty'];
 
 /** 놀이 목록(games.json)을 받아 오늘 상태를 붙여 돌려준다. 셀 줄 모르는 놀이는 빼고. */
 export function courseSteps(games: Array<{ id: string; title: string; url: string }>): CourseStep[] {

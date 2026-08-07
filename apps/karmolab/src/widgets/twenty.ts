@@ -35,13 +35,39 @@ import { mountCourseNext } from './play-course';
   interface Ask {
     text: string;
     hit: (it: Item) => boolean;
+    /** 사람이 답하기 얼마나 어려운가 (0 = 눈에 보이는 것, 1 = 수치를 외워야 하는 것). */
+    hard: number;
   }
+
+  /**
+   * 「몸무게가 28kg 보다 큰가요?」로 시작하면 사람이 답을 못 한다 — 포켓몬 몸무게를 외운
+   * 사람은 없다(첫 질문이 실제로 그거였다). 눈에 보이는 것(타입·색·원소·무기)이 먼저고,
+   * 세대·등급처럼 어렴풋이 아는 것이 그다음, 정확한 수치는 맨 뒤다.
+   */
+  const HARD: Record<string, number> = {
+    height: 1,
+    weight: 1,
+    hp: 1,
+    armor: 1,
+    damage: 1,
+    gen: 0.35,
+    year: 0.35,
+    stage: 0.2,
+    rank: 0.15
+  };
 
   const TOPICS: Array<{ id: string; title: string; emoji: string }> = [
     { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
     { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
     { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' }
   ];
+  /** 「세대이(가)」는 사람이 쓰는 말이 아니다 — 받침을 보고 이/가를 고른다. */
+  function ga(word: string): string {
+    const last = word.charCodeAt(word.length - 1);
+    const hangul = last >= 0xac00 && last <= 0xd7a3;
+    return word + (hangul && (last - 0xac00) % 28 !== 0 ? '이' : '가');
+  }
+
   const MAX_ASK = 20;
   const DAY_KEY = 'karmolab_twenty_day';
 
@@ -94,6 +120,9 @@ import { mountCourseNext } from './play-course';
           let cur: Ask | null = null;
           let guessing: Item | null = null;
           const history: string[] = [];
+          /* 이미 물어본 질문은 다시 안 묻는다. 기록(history)에는 대답까지 붙어 있어서
+           * 그걸로 견주면 **영영 안 걸린다** — 같은 질문이 세 번 나왔다(실측). 질문만 따로 센다. */
+          const askedText = new Set<string>();
           const refused: string[] = []; // 「아니에요」를 들은 추측 — 다시 내밀지 않는다
 
           const esc = (s: string): string =>
@@ -116,7 +145,8 @@ import { mountCourseNext } from './play-course';
                 if (mid === nums[0]) continue; // 다 같은 값 — 못 가른다
                 const shown = Number.isInteger(mid) ? String(mid) : mid.toFixed(1);
                 out.push({
-                  text: `${f.label}이(가) ${shown}${f.unit || ''} 보다 큰가요?`,
+                  text: `${ga(f.label)} ${shown}${f.unit || ''} 보다 큰가요?`,
+                  hard: HARD[f.key] ?? 0.5,
                   hit: (it) => typeof it[f.key] === 'number' && (it[f.key] as number) > mid
                 });
                 continue;
@@ -133,8 +163,9 @@ import { mountCourseNext } from './play-course';
                 out.push({
                   text:
                     kind === 'set'
-                      ? `${f.label}에 「${v}」 가 있나요?`
-                      : `${f.label}이(가) 「${v}」 인가요?`,
+                      ? `${f.label}에 「${v}」 이(가) 있나요?`.replace('이(가)', ga(v).slice(v.length))
+                      : `${ga(f.label)} 「${v}」 인가요?`,
+                  hard: HARD[f.key] ?? 0,
                   hit: (it) => {
                     const x = it[f.key];
                     return Array.isArray(x) ? x.map(String).indexOf(v) >= 0 : String(x) === v;
@@ -145,19 +176,24 @@ import { mountCourseNext } from './play-course';
             return out;
           }
 
-          /** 후보를 가장 반으로 가르는 질문. 반으로 가를수록 남은 수가 빨리 준다. */
+          /**
+           * 후보를 반으로 가르되, **사람이 답할 수 있는** 질문을 먼저 고른다.
+           * 잘 가르는 정도만 보면 늘 수치 질문이 이긴다(경계를 딱 반으로 놓을 수 있으니까) —
+           * 그런데 답을 못 하면 아무리 잘 가르는 질문도 쓸모가 없다.
+           * 어려운 질문은 후보가 몇 안 남아 정말 필요할 때 저절로 올라온다(벌점이 후보 수에 비례).
+           */
           function bestAsk(): Ask | null {
             if (!topic) return null;
-            const cand = asksFor(pool, topic.fields).filter((a) => history.indexOf(a.text) < 0);
+            const cand = asksFor(pool, topic.fields).filter((a) => !askedText.has(a.text));
             let best: Ask | null = null;
-            let bestGap = Infinity;
+            let bestCost = Infinity;
             for (const a of cand) {
               let yes = 0;
               for (const it of pool) if (a.hit(it)) yes++;
               if (yes === 0 || yes === pool.length) continue;
-              const gap = Math.abs(pool.length / 2 - yes);
-              if (gap < bestGap) {
-                bestGap = gap;
+              const cost = Math.abs(pool.length / 2 - yes) + a.hard * pool.length * 0.42;
+              if (cost < bestCost) {
+                bestCost = cost;
                 best = a;
               }
             }
@@ -235,6 +271,7 @@ import { mountCourseNext } from './play-course';
             if (!cur) return;
             const q = cur;
             asked++;
+            askedText.add(q.text);
             history.push(`${q.text} → ${kind === 'yes' ? '예' : kind === 'no' ? '아니오' : '모르겠어요'}`);
             if (kind !== 'skip') {
               const keep = pool.filter((it) => (kind === 'yes' ? q.hit(it) : !q.hit(it)));
@@ -285,6 +322,7 @@ import { mountCourseNext } from './play-course';
             topicId = id;
             asked = 0;
             history.length = 0;
+            askedText.clear();
             refused.length = 0;
             guessing = null;
             $('twLog').hidden = true;
