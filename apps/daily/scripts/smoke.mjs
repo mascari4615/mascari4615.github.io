@@ -412,6 +412,42 @@ for (const withShare of [true, false]) {
   await ctx.close();
 }
 
+/**
+ * **지는 판** — 여기까지 온 적이 한 번도 없었다. 안 돈 경로에 사고가 몰린다.
+ * 다 틀렸을 때 정답을 알려 주는지, 격자가 X 로 남는지, 기록에 실패로 들어가는지 본다.
+ */
+for (const [topicId, mode, limit] of [['lol', 'classic', 8], ['lol', 'silhouette', 6]]) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
+  const wrongs = topic.items.filter((i) => i.name !== answer.name).slice(0, limit);
+  const path = mode === 'classic' ? topicId : `${topicId}/${mode}`;
+
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(`${base}/${path}/`, { waitUntil: 'networkidle' });
+  for (const w of wrongs) {
+    await page.fill('.guessbar input', w.name);
+    await page.waitForSelector('.sug button');
+    await page.click(`.sug button:has-text("${w.name}")`);
+  }
+  await page.waitForSelector('.done:not([hidden])', { timeout: 10000 });
+  const text = await page.locator('.done').innerText();
+  check(`[지는판:${mode}] 실패라고 말한다`, /오늘은 실패/.test(text), text.split('\n')[0]);
+  check(`[지는판:${mode}] 그래도 정답은 알려 준다`, text.includes(answer.name), answer.name);
+  check(`[지는판:${mode}] 입력칸을 닫는다`, await page.locator('.guessbar').isHidden());
+  check(`[지는판:${mode}] 다음 판을 건넨다`, (await page.locator('.done .more a').count()) > 0);
+  check(`[지는판:${mode}] 콘솔 오류 0`, errors.length === 0, errors.join(' | '));
+  if (mode === 'silhouette') {
+    // 져도 그림은 드러나야 한다 — 못 맞힌 사람이야말로 「뭐였는데?」를 봐야 한다.
+    const f = await page.$eval('.shot img', (e) => e.style.filter);
+    check('[지는판:silhouette] 져도 그림이 드러난다', f === 'none', f || '(빈값)');
+  }
+  await page.screenshot({ path: join(shots, `${topicId}-${mode}-lost.png`), fullPage: true });
+  await ctx.close();
+}
+
 /** 지난 문제 목록에서 그날 판으로 바로 갈 수 있어야 한다. */
 {
   const ctx = await browser.newContext();
