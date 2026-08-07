@@ -1,16 +1,16 @@
 {
   "tools": {
     "charcount": {
-      "print": "a9jm9t",
-      "date": "2026-08-06"
+      "print": "41wrwk",
+      "date": "2026-08-07"
     },
     "jsonfmt": {
       "print": "2mka26",
       "date": "2026-08-06"
     },
     "hangulkey": {
-      "print": "ec74xr",
-      "date": "2026-08-06"
+      "print": "1q03ifw",
+      "date": "2026-08-07"
     },
     "qrgen": {
       "print": "1we5h3r",
@@ -502,6 +502,10 @@
     },
     "pdfdiff": {
       "print": "1ndkzc7",
+      "date": "2026-08-07"
+    },
+    "ghosttype": {
+      "print": "165bd3n",
       "date": "2026-08-07"
     }
   }
