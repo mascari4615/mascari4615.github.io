@@ -613,11 +613,6 @@ function buildToolPage(id) {
     html = html.replace(CRYPTO_TAG_RE, '');
   }
 
-  // 도구 한 장짜리 화면은 위젯 메타를 **가벼운 것**으로 바꿔 받는다 (TASK-KL-128 ③).
-  // 원본 93KB → 26KB. 아이콘·설명은 화면이 다 그려진 뒤에 따라온다(셸의 인라인 스크립트가 판단).
-  const FULL_META = '/apps/karmolab/js/widgets-lazy-meta.js';
-  if (!html.includes(FULL_META)) throw new Error('셸에서 위젯 메타 자리를 못 찾음 — index.html 확인');
-  html = html.replace('src="' + FULL_META + '"', 'src="/apps/karmolab/js/widgets-index.js"');
 
   // 예전에는 여기서 세리프 글꼴을 부르는 대목을 지웠다 — 상세 페이지에선 안 쓰이는데 남의 서버
   // 글꼴 목록이 그것 때문에 185KB 늘었기 때문이다. 지금은 지울 필요가 없다 (TASK-KL-128):
