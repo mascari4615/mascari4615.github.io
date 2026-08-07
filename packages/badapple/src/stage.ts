@@ -145,16 +145,26 @@ export class Stage {
 				right = Math.max(right, item.rect.x + item.rect.width);
 				bottom = Math.max(bottom, item.rect.y + item.rect.height);
 			}
-			const boundsWidth = Math.max(1, right - left);
-			const boundsHeight = Math.max(1, bottom - top);
+			const spanWidth = Math.max(1, right - left);
+			const spanHeight = Math.max(1, bottom - top);
+
+			// 그림을 칸 영역에 **늘려 맞추지 않는다.** 늘리면 화면이 가로로 넓을 때 그림이
+			// 옆으로 퍼져 사람 실루엣이 뚱뚱해진다. 대신 원본 비율을 지킨 채 영역 안에 넣고,
+			// 남는 가장자리는 그냥 빈다 (영화 볼 때 위아래 검은 띠와 같은 원리).
+			const scale = Math.min(spanWidth / frame.width, spanHeight / frame.height);
+			const drawWidth = frame.width * scale;
+			const drawHeight = frame.height * scale;
+			const padX = (spanWidth - drawWidth) / 2;
+			const padY = (spanHeight - drawHeight) / 2;
 
 			for (const item of mosaic) {
-				// 화면상 비율 → 원본 그림에서의 구역.
+				// 화면상 자리 → 원본 그림에서의 구역. 비율을 지킨 그림 자리 기준으로 환산한다.
+				// 그림 밖으로 나간 칸은 알아서 꺼진 것으로 읽힌다 (`at` 이 범위를 본다).
 				const region: Rect = {
-					x: ((item.rect.x - left) / boundsWidth) * frame.width,
-					y: ((item.rect.y - top) / boundsHeight) * frame.height,
-					width: (item.rect.width / boundsWidth) * frame.width,
-					height: (item.rect.height / boundsHeight) * frame.height
+					x: ((item.rect.x - left - padX) / Math.max(1, drawWidth)) * frame.width,
+					y: ((item.rect.y - top - padY) / Math.max(1, drawHeight)) * frame.height,
+					width: (item.rect.width / Math.max(1, drawWidth)) * frame.width,
+					height: (item.rect.height / Math.max(1, drawHeight)) * frame.height
 				};
 				try {
 					item.entry.surface.paint(makePaint(frame, region, item.shape.cols, item.shape.rows));
