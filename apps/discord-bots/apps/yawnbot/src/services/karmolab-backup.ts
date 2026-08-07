@@ -100,7 +100,10 @@ export function runBackup(now: Date = new Date()): string | null {
     // 마지막 사본과 내용이 같으면 새로 안 만든다.
     if (existing.some((name) => name.endsWith(`-${mark}`))) return null;
 
-    const stamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 15);
+    // 이름 = YYYYMMDD-HHMMSS-<지문>. 아래 `listBackups` 가 찾는 모양과 **정확히** 같아야 한다 —
+    // 한 번 어긋나서 사본은 쌓이는데 하나도 안 세어졌고, 오래된 것도 안 지워졌다.
+    const iso = now.toISOString();
+    const stamp = `${iso.slice(0, 10).replace(/-/g, '')}-${iso.slice(11, 19).replace(/:/g, '')}`;
     const folder = path.join(backupRoot(), `${stamp}-${mark}`);
     try {
         fs.mkdirSync(folder, { recursive: true });
