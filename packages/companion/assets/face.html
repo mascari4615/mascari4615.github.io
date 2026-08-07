@@ -273,10 +273,25 @@
      이번에 흘러나오지 않은 말이 통째로 소리 없이 지나가고 있었는데, 아무 표시가
      없어서 사람이 눈치챌 때까지 몰랐다. 세면 안다. */
   const 발화 = { 말함: 0, 소리냄: 0 };
+
+  /* 지금이 몇 번째 말인가.
+     한 번의 대답 안에서 문장이 여러 개면 차례로 읽는 게 맞다. 그런데 **새 대답이
+     오면** 앞 대답의 남은 문장들은 이미 지난 말이다 — 그걸 다 읽고 나서야 새 말을
+     하니 대화가 몇 초씩 밀렸다. 새 말이 오면 세대를 올리고, 지난 세대의 줄 선
+     문장은 제 차례가 와도 그냥 지나간다. */
+  let 세대 = 0;
+  function 새말() {
+    세대 += 1;
+    speechQueue = Promise.resolve();
+    try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
+    speechSynthesis.cancel();
+  }
+
   function speakAloud(message, queued) {
     발화.소리냄 += 1;
     if (voiceOn === false) return;
-    const job = () => playOne(message);
+    const 내세대 = 세대;
+    const job = () => (내세대 === 세대 ? playOne(message) : undefined);
     speechQueue = queued ? speechQueue.then(job, job) : (player.pause(), job());
   }
 
@@ -397,6 +412,7 @@
       streamLine.append(label, body);
       log.append(streamLine);
       spokenUpTo = 0;
+      새말(); // 새 대답이 흘러나오기 시작했다 — 앞 대답의 남은 문장은 버린다
     }
     streamLine.querySelector('.what').textContent = soFar;
     bubble.textContent = soFar;
@@ -458,11 +474,9 @@
       setState('looking', '내 화면을 보는 중…');
     } else if (data.type === 'hush') {
       // 내가 말을 걸었으니 하던 말은 그만. 소리도 말풍선도 바로 멈춘다.
-      speechQueue = Promise.resolve();
+      새말();
       spokenUpTo = 0;
       streamLine = null;
-      try { player.pause(); } catch { /* 이미 멈췄으면 그만 */ }
-      speechSynthesis.cancel();
       bubble.classList.remove('on');
     } else if (data.type === 'filler') {
       // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다 — 대화엔 안 남긴다.
@@ -479,6 +493,8 @@
       try { window.onCompanionFace?.(data.expression); } catch (e) { /* 얼굴 때문에 말이 막히면 안 된다 */ }
     } else if (data.type === 'speak') {
       발화.말함 += 1;
+      // 흘러나오던 중이면 그 대답의 이어짐이라 세대를 안 올린다. 새 대답이면 올린다.
+      if (streamLine === null) 새말();
       const alone = data.channel !== 'web';
       const who = data.channel === 'screen' ? '동반자 (화면을 보고)' : alone ? '동반자 (혼잣말)' : '동반자';
       // 흘러나오는 중이었다면 그 줄이 이미 화면에 있다 — 또 붙이지 않는다.
