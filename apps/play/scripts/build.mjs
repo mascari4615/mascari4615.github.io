@@ -165,4 +165,12 @@ if (problems.length) {
 }
 
 fs.writeFileSync(path.join(here, 'index.html'), html, 'utf8');
+
+/* 앱 안의 놀이터 화면(`/karmolab/#play`)도 같은 목록을 본다 — 여기서 실어 준다.
+ * 앱 쪽에 한 벌 더 적어 두면 그날부터 관문과 앱이 서로 다른 놀이를 말한다. */
+fs.writeFileSync(
+  path.join(apps, 'karmolab/data/games.json'),
+  JSON.stringify({ $comment: 'apps/play/games.json 에서 만들어진다 — 여기를 고치지 마라.', games: list }, null, 2) + '\n',
+  'utf8'
+);
 console.log(`[play] 관문 만듦 — 놀이 ${list.length}개 (${list.map((g) => g.title).join(' · ')})`);

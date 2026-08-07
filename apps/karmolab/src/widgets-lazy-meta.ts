@@ -388,6 +388,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/checklist']
   },
   {
+    // 묶음에 넣지 않는다 — 다른 PDF 도구가 「한 파일을 고친다」면 이건 「두 판본을 견준다」라
+    // 하는 일의 결이 다르고, 목록에서 바로 보여야 하는 도구다 (TASK-KL-130).
+    id: 'pdfdiff',
+    title: 'PDF 판본 대조',
+    category: 'tool',
+    desc: '문서 두 판본에서 바뀐 자리만 형광으로 짚어 줍니다. 글자와 그림을 함께 보아 표·도장이 밀린 것도 잡습니다',
+    layout: 'wide',
+    icon: '<path d="M9 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 8h3M7 12h2M14 8h3M14 12h3M14 16h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdfdiff']
+  },
+  {
     id: 'pdf2img',
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
@@ -884,6 +895,17 @@ window.KARMOLAB_LAZY_META = [
     icon:
       '<path d="M9 8a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor"/>',
     lazyScriptPaths: ['quest']
+  },
+  {
+    id: 'play',
+    title: '놀이터',
+    category: 'tool',
+    desc: '하루 한 판씩 — 하나 맞히기 · 높은 쪽 고르기 · 오늘의 문제',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<rect x="3" y="7" width="18" height="11" rx="4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7.5 11v3M6 12.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="12" r="1.1" fill="currentColor"/><circle cx="18" cy="14.5" r="1.1" fill="currentColor"/>',
+    lazyScriptPaths: ['play']
   },
   {
     id: 'higher',
