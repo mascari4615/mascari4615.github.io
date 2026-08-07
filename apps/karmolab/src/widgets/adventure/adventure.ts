@@ -57,7 +57,7 @@ import { attachImageRef } from './turn-loop';
     /* ===== 헤더 ===== */
     const heading = el('h3', {
       textContent: '무한 텍스트 어드벤처',
-      style: { margin: '0', color: 'var(--accent, #d4a849)' },
+      style: { margin: '0', color: 'var(--accent, #a99bf5)' },
     });
     wrap.appendChild(heading);
 
@@ -241,7 +241,7 @@ import { attachImageRef } from './turn-loop';
             textContent: '이어가기',
             style: {
               padding: '4px 12px',
-              background: 'var(--accent, #d4a849)',
+              background: 'var(--accent, #a99bf5)',
               color: '#000',
               border: 'none',
               borderRadius: 'var(--radius-sm, 4px)',
@@ -326,7 +326,7 @@ import { attachImageRef } from './turn-loop';
         textContent: '모험 시작',
         style: {
           padding: '8px 16px',
-          background: 'var(--accent, #d4a849)',
+          background: 'var(--accent, #a99bf5)',
           color: '#000',
           border: 'none',
           borderRadius: 'var(--radius-sm, 4px)',
@@ -403,7 +403,7 @@ import { attachImageRef } from './turn-loop';
         textContent: '전송',
         style: {
           padding: '0 16px',
-          background: 'var(--accent, #d4a849)',
+          background: 'var(--accent, #a99bf5)',
           color: '#000',
           border: 'none',
           borderRadius: 'var(--radius-sm, 4px)',
@@ -554,7 +554,7 @@ import { attachImageRef } from './turn-loop';
             textContent: '[END] 박힘 — 모험 종료. (θ 단계 후 정수 추출 자동)',
             style: {
               fontSize: '13px',
-              color: 'var(--accent, #d4a849)',
+              color: 'var(--accent, #a99bf5)',
               padding: '8px',
               background: 'var(--bg-tertiary, #1f1f1f)',
               borderRadius: 'var(--radius-sm, 4px)',

@@ -41,7 +41,7 @@
       .lap-door { display:flex; align-items:center; gap:14px; padding:14px 16px; text-decoration:none;
         background:var(--bg-secondary); border:1px solid var(--border, var(--border-color));
         border-radius:var(--radius-md); color:inherit; }
-      .lap-door:hover { border-color:var(--accent, #d4a849); }
+      .lap-door:hover { border-color:var(--accent, #a99bf5); }
       .lap-door-icon { font-size:1.5rem; flex:0 0 auto; }
       .lap-door-title { font-size:.98rem; color:var(--text-primary, #e8e8e8); }
       .lap-door-desc { font-size:.8rem; color:var(--text-tertiary, #8a867e); margin-top:3px; line-height:1.5; }

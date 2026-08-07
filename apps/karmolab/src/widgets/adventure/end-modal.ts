@@ -46,7 +46,7 @@ const STYLE = {
   bgTertiary: 'var(--bg-tertiary, #1f1f1f)',
   textPrimary: 'var(--text-primary, #e8e8e8)',
   textTertiary: 'var(--text-tertiary, #888)',
-  accent: 'var(--accent, #d4a849)',
+  accent: 'var(--accent, #a99bf5)',
   border: 'var(--border-color, #333)',
   radiusSm: 'var(--radius-sm, 4px)',
   radiusMd: 'var(--radius-md, 6px)',

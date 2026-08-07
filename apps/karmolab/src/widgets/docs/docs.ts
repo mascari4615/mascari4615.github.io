@@ -682,7 +682,7 @@
         const edge = label ? ' -.->|' + label.replace(/[|]/g, '/') + '| ' : ' -.-> ';
         mmdLines.push('  ' + selfId + edge + targetId);
       }
-      mmdLines.push('  classDef self fill:#d4a849,stroke:#a08020,color:#000;');
+      mmdLines.push('  classDef self fill:#a99bf5,stroke:#7b69dc,color:#000;');
       const safe = mmdLines.join('\n').replace(/&/g, '&amp;').replace(/</g, '&lt;');
       parts.push('<div class="mermaid">' + safe + '</div>');
       parts.push('');

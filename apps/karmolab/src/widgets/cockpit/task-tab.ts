@@ -58,7 +58,7 @@ const DOMAIN_IMAGE: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   seed:   '#55555a',
   ready:  '#7fa6d4',
-  active: '#d4a849',
+  active: '#a99bf5',
   hold:   '#a08060',
   done:   '#9ec4a8',
   sealed: '#b7a3d6',
@@ -258,7 +258,7 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
       const sc = STATUS_COLORS[t.status] ?? '#55555a';
       const isActive = t.status === 'active';
       const prefix = isActive
-        ? '<span class="ckt-qrow-prefix" style="color:#d4a849">✦</span>'
+        ? '<span class="ckt-qrow-prefix" style="color:#a99bf5">✦</span>'
         : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
       const indentCls = t.parent ? ' ckt-qrow--sub' : '';
       return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(t.id)}">

@@ -931,5 +931,5 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 
 /* 목록 맨 위에서 오늘의 문제로 (TASK-KL-089) */
 .tool-hub-quest { margin: 0.2rem 0 1rem; font-size: 0.92rem; }
-.tool-hub-quest a { color: var(--accent, #d4a849); text-decoration: none; }
+.tool-hub-quest a { color: var(--accent, #a99bf5); text-decoration: none; }
 .tool-hub-quest a:hover, .tool-hub-quest a:focus-visible { text-decoration: underline; }

@@ -50,7 +50,7 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
       .kt-term .kt-bar .kt-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex-shrink: 0; }
       .kt-term .kt-bar.kt-running .kt-status-dot { background: var(--success, #22c55e); }
       .kt-term .kt-bar .kt-shell { color: var(--text-tertiary, #888); font-family: var(--font-mono, "JetBrains Mono", monospace); }
-      .kt-term .kt-bar .kt-cwd { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent, #d4a849); font-family: var(--font-mono, "JetBrains Mono", monospace); }
+      .kt-term .kt-bar .kt-cwd { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--accent, #a99bf5); font-family: var(--font-mono, "JetBrains Mono", monospace); }
       .kt-term .kt-bar button { background: var(--bg-secondary, #2a2a2a); color: inherit; border: 1px solid var(--border, #444); border-radius: 3px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
       .kt-term .kt-bar button:hover { background: var(--bg-tertiary, #333); }
       .kt-term .kt-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -63,8 +63,8 @@ import { isDesktop, invoke, listen } from '../../tauri-bridge';
       .kt-term .kt-form { display: flex; gap: 6px; }
       .kt-term .kt-form input { flex: 1; background: #0d0d0d; color: var(--text-primary, #e8e8e8); border: 1px solid var(--border, #333); border-radius: 3px; padding: 6px 10px; font-family: var(--font-mono, "JetBrains Mono", monospace); font-size: 12.5px; }
       .kt-term .kt-form input:disabled { opacity: 0.5; }
-      .kt-term .kt-form input:focus { outline: none; border-color: var(--accent, #d4a849); }
-      .kt-term .kt-form button { background: var(--accent, #d4a849); color: #000; border: none; border-radius: 3px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: 600; }
+      .kt-term .kt-form input:focus { outline: none; border-color: var(--accent, #a99bf5); }
+      .kt-term .kt-form button { background: var(--accent, #a99bf5); color: #000; border: none; border-radius: 3px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: 600; }
       .kt-term .kt-form button:disabled { opacity: 0.4; cursor: not-allowed; }
       .kt-term .kt-disabled { padding: 28px; text-align: center; color: var(--text-tertiary, #888); font-size: 13px; }
     `;
