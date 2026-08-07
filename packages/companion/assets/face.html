@@ -310,6 +310,10 @@
       player.src = URL.createObjectURL(blob);
       소리적용(); // src 를 갈면 빠르기가 되돌아가는 브라우저가 있다
       await player.play();
+      // **소리가 실제로 나기 시작한 때를 알린다.** 서버는 만들어 보낸 것까지만 안다 —
+      // 재생이 막히거나 앞 소리가 아직 나가는 중이면 여기까지 한참 걸린다. 그 시간이
+      // 사람이 실제로 기다린 시간이다.
+      fetch('/played', { method: 'POST' }).catch(() => {});
       // 소리가 나는 동안만 입이 움직이게 한다. 기분만 보고 움직이면 소리는 끝났는데
       // 입이 계속 나불거리거나, 짧은 말에 입이 안 열린 채로 지나간다.
       if (Number.isFinite(player.duration)) body3d?.speakFor(player.duration * 1000);
@@ -481,6 +485,10 @@
       streamLine = null;
       bubble.classList.remove('on');
     } else if (data.type === 'filler') {
+      // **이미 소리가 나가는 중이면 뜸은 삼킨다.** 뜸은 비어 있는 시간을 메우는 것이라,
+      // 소리가 나는 중에 끼어들면 말을 자르는 꼴이다. 서버는 소리가 나는지 모르므로
+      // 여기서 가른다.
+      if (player.paused === false) return;
       // 답이 늦을 때 나는 뜸. 말풍선에 흐리게 띄우고 바로 소리 낸다 — 대화엔 안 남긴다.
       bubble.textContent = data.text;
       bubble.classList.add('on', 'aside');
