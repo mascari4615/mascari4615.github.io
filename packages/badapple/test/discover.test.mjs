@@ -7,7 +7,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pickTileGroup } from '../dist/surfaces/discover.js';
+import { pickTileGroup, subdivisionFor } from '../dist/surfaces/discover.js';
 
 const VIEW = 1280 * 800;
 
@@ -58,6 +58,31 @@ test('몇 개 안 되면 격자로 안 친다', () => {
 
 test('아무것도 없으면 빈 손으로 돌아온다 — 터지지 않는다', () => {
 	assert.deepEqual(pickTileGroup([], { viewportArea: VIEW }), []);
+});
+
+test('칸이 적으면 잘게, 많으면 성글게 쪼갠다 — 해상도가 비슷하게 남는다', () => {
+	// 첫 화면처럼 큰 버튼 몇 개뿐일 때와 도구 목록처럼 빽빽할 때.
+	const sparse = subdivisionFor(3, 2);
+	const dense = subdivisionFor(24, 16);
+
+	assert.ok(sparse.cols > dense.cols, `적을수록 잘게 쪼개야 한다 (${sparse.cols} vs ${dense.cols})`);
+
+	// 둘 다 전체 해상도가 비슷한 자리에 떨어져야 한다 — 한쪽만 뭉개지면 실패다.
+	const sparseTotal = 3 * sparse.cols;
+	const denseTotal = 24 * dense.cols;
+	assert.ok(sparseTotal >= 40 && sparseTotal <= 80, `적은 쪽 해상도가 벗어났다 (${sparseTotal})`);
+	assert.ok(denseTotal >= 40 && denseTotal <= 80, `많은 쪽 해상도가 벗어났다 (${denseTotal})`);
+});
+
+test('칸이 아주 많아도 쪼갬이 1 밑으로 안 내려간다', () => {
+	const huge = subdivisionFor(500, 400);
+	assert.ok(huge.cols >= 1 && huge.rows >= 1);
+});
+
+test('칸이 하나뿐이어도 터지지 않는다', () => {
+	const single = subdivisionFor(0, 0);
+	assert.ok(single.cols >= 1 && single.rows >= 1);
+	assert.ok(single.cols <= 24, '쓸데없이 잘게 쪼개지 않는다');
 });
 
 test('도구가 늘면 더 많은 칸을 쓴다 (개편에 저절로 따라온다)', () => {

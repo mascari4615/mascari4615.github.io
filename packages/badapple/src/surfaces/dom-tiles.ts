@@ -10,7 +10,7 @@
  */
 
 import type { Paint, Rect, Surface, SurfaceShape } from '../surface.js';
-import { measureCandidates, pickTileGroup } from './discover.js';
+import { measureCandidates, pickTileGroup, subdivisionFor } from './discover.js';
 
 export interface DomTilesOptions {
 	/**
@@ -21,7 +21,10 @@ export interface DomTilesOptions {
 	selector?: string;
 	/** 어디서 찾을지. 기본 `document`. */
 	root?: ParentNode & { querySelectorAll: Element['querySelectorAll'] };
-	/** 타일 하나를 몇 칸으로 쪼갤지. 타일 수가 적어도 이걸로 해상도를 번다. 기본 6×6. */
+	/**
+	 * 타일 하나를 몇 칸으로 쪼갤지. **안 주는 것이 기본**이다 — 안 주면 놓인 칸 수를 보고 정한다.
+	 * 칸이 다섯 개뿐인 화면과 백 개인 화면이 같은 값을 쓰면 한쪽은 반드시 뭉갠다.
+	 */
 	subdivide?: { cols: number; rows: number };
 	/** 켜진 칸 색. 기본은 글자색을 따라간다 (어두운/밝은 테마 양쪽에서 보이게). */
 	onColor?: string;
@@ -76,30 +79,33 @@ export class DomTilesSurface implements Surface {
 			return null;
 		}
 
-		const sub = this.options.subdivide ?? { cols: 6, rows: 6 };
-
 		// 고른 것들을 감싸는 사각형 안에서, 각 타일이 차지하는 자리를 **칸 단위**로 환산한다.
 		// 그래야 무대에게 「나는 이만한 격자다」 하나로 말할 수 있다.
 		let left = Infinity;
 		let top = Infinity;
 		let right = -Infinity;
 		let bottom = -Infinity;
+		let minWidth = Infinity;
+		let minHeight = Infinity;
 		for (const item of found) {
 			left = Math.min(left, item.rect.x);
 			top = Math.min(top, item.rect.y);
 			right = Math.max(right, item.rect.x + item.rect.width);
 			bottom = Math.max(bottom, item.rect.y + item.rect.height);
+			minWidth = Math.min(minWidth, item.rect.width);
+			minHeight = Math.min(minHeight, item.rect.height);
 		}
 		const boundsWidth = Math.max(1, right - left);
 		const boundsHeight = Math.max(1, bottom - top);
 
+		// 칸 하나를 몇으로 쪼갤지. 안 주면 **놓인 칸 수를 보고 정한다** — 큰 버튼 다섯 개짜리
+		// 화면과 도구 백 개짜리 화면이 비슷한 해상도로 나오게. 고정으로 박으면 한쪽이 반드시 흐리다.
+		// (실제로 첫 화면에서 큰 버튼 5개만 잡혀 그림이 뭉갰다.)
+		const sub =
+			this.options.subdivide ??
+			subdivisionFor(Math.round(boundsWidth / minWidth), Math.round(boundsHeight / minHeight));
+
 		// 가장 작은 타일이 자기 몫(sub.cols × sub.rows)을 갖도록 전체 격자 크기를 정한다.
-		let minWidth = Infinity;
-		let minHeight = Infinity;
-		for (const item of found) {
-			minWidth = Math.min(minWidth, item.rect.width);
-			minHeight = Math.min(minHeight, item.rect.height);
-		}
 		this.cols = Math.max(sub.cols, Math.min(320, Math.round((boundsWidth / minWidth) * sub.cols)));
 		this.rows = Math.max(sub.rows, Math.min(320, Math.round((boundsHeight / minHeight) * sub.rows)));
 
