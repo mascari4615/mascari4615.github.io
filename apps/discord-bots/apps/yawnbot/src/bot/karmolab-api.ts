@@ -25,8 +25,11 @@ import {
   getKarmolabTraceStore,
   KarmolabTraceStore,
   isValidToolId,
-  REQUEST_MAX_LEN,
-  REQUEST_DAILY_LIMIT,
+  isPostKind,
+  maxLenFor,
+  dailyLimitFor,
+  TITLE_MAX_LEN,
+  REPLY_MAX_LEN,
 } from '../services/karmolab-traces';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
@@ -217,7 +220,7 @@ export function registerKarmolabApi(
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
       res.setHeader('Access-Control-Max-Age', '86400');
     }
     // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
@@ -386,39 +389,58 @@ export function registerKarmolabApi(
     res.json({ tools: traces.toolStats(), pulse: traces.pulse() });
   });
 
-  /** 도구 요청·투표판 — 사람이 흔적을 *남기는* 자리. 보는 건 로그인 없이 된다. */
-  app.get('/kl/requests', (req: Request, res: Response) => {
+  /**
+   * 글판 — 이야기(게시판)와 도구 요청이 같은 자리를 쓴다. `kind` 하나만 다르다.
+   * 보는 건 로그인 없이, 쓰는 건 로그인해야.
+   */
+  app.get('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const kind = isPostKind(req.query.kind) ? req.query.kind : 'talk';
     res.json({
-      requests: traces.publicRequests(account?.id ?? null),
+      kind,
+      posts: traces.publicPosts(kind, account?.id ?? null),
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
-      maxLength: REQUEST_MAX_LEN,
+      myHandle: account?.handle ?? null,
+      maxLength: maxLenFor(kind),
+      titleMaxLength: TITLE_MAX_LEN,
+      replyMaxLength: REPLY_MAX_LEN,
     });
   });
 
-  app.post('/kl/requests', (req: Request, res: Response) => {
+  app.post('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    const text = String((req.body ?? {}).text ?? '').trim();
-    if (text.length < 2 || text.length > REQUEST_MAX_LEN) {
-      res.status(400).json({ error: 'bad_text', maxLength: REQUEST_MAX_LEN });
+    const body = req.body ?? {};
+    const kind = isPostKind(body.kind) ? body.kind : 'talk';
+    const text = String(body.text ?? '').trim();
+    const title = String(body.title ?? '').trim();
+
+    // 한 글자짜리 글도 글이다 (「ㅋ」). 막을 것은 빈 글뿐이다.
+    if (text.length < 1 || text.length > maxLenFor(kind)) {
+      res.status(400).json({ error: 'bad_text', maxLength: maxLenFor(kind) });
       return;
     }
-    if (traces.requestsTodayBy(account.id) >= REQUEST_DAILY_LIMIT) {
+    // 이야기는 제목이 있어야 목록이 읽힌다. 요청은 한 줄이라 제목이 없다.
+    if (kind === 'talk' && (title.length < 1 || title.length > TITLE_MAX_LEN)) {
+      res.status(400).json({ error: 'bad_title', maxLength: TITLE_MAX_LEN });
+      return;
+    }
+    if (traces.postsTodayBy(account.id, kind) >= dailyLimitFor(kind)) {
       // 막을 때는 왜 막혔는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
-      res.status(429).json({ error: 'daily_limit', limit: REQUEST_DAILY_LIMIT });
+      res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(kind) });
       return;
     }
-    traces.addRequest({ text, accountId: account.id, handle: account.handle });
+
+    traces.addPost({ kind, title: kind === 'talk' ? title : null, text, accountId: account.id, handle: account.handle });
     traces.flush();
-    res.json({ requests: traces.publicRequests(account.id) });
+    res.json({ posts: traces.publicPosts(kind, account.id) });
   });
 
-  app.post('/kl/requests/:id/vote', (req: Request, res: Response) => {
+  app.post('/kl/posts/:id/vote', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!account) {
       res.status(401).json({ error: 'not_signed_in' });
@@ -430,27 +452,65 @@ export function registerKarmolabApi(
       return;
     }
     traces.flush();
-    res.json({ voted, requests: traces.publicRequests(account.id) });
+    res.json({ voted });
   });
 
-  /** 주인이 답을 달거나 상태를 바꾼다. 답이 돌아오는 곳이라야 사람이 또 쓴다. */
-  app.patch('/kl/requests/:id', (req: Request, res: Response) => {
+  /** 답글 — 게시판이 게시판인 이유. 달리면 그 글이 목록 위로 올라온다. */
+  app.post('/kl/posts/:id/replies', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const text = String((req.body ?? {}).text ?? '').trim();
+    if (text.length < 1 || text.length > REPLY_MAX_LEN) {
+      res.status(400).json({ error: 'bad_text', maxLength: REPLY_MAX_LEN });
+      return;
+    }
+    const reply = traces.addReply(String(req.params.id ?? ''), {
+      text,
+      accountId: account.id,
+      handle: account.handle,
+      byOwner: isAdminAccount(account),
+    });
+    if (!reply) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
+  });
+
+  /** 지우기 — 쓴 사람 본인이나 주인만. 남의 글을 지울 수 있으면 게시판이 못 산다. */
+  app.delete('/kl/posts/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const removed = traces.deletePost(String(req.params.id ?? ''), account.id, isAdminAccount(account));
+    if (!removed) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    traces.flush();
+    res.json({ ok: true });
+  });
+
+  /** 주인이 요청의 진행 상태를 바꾼다. */
+  app.patch('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     if (!isAdminAccount(account)) {
       res.status(403).json({ error: 'not_allowed' });
       return;
     }
-    const body = req.body ?? {};
-    const updated = traces.updateRequest(String(req.params.id ?? ''), {
-      status: body.status,
-      reply: body.reply,
-    });
+    const updated = traces.updatePost(String(req.params.id ?? ''), { status: (req.body ?? {}).status });
     if (!updated) {
       res.status(404).json({ error: 'not_found' });
       return;
     }
     traces.flush();
-    res.json({ requests: traces.publicRequests(account?.id ?? null) });
+    res.json({ ok: true });
   });
 
   /**

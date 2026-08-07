@@ -291,6 +291,60 @@ function traceCurrentTool(): void {
     });
 }
 
+/* ===== 헤더의 계정 자리 (TASK-KL-098 Cycle 3) =====
+ *
+ * 로그인 상태가 화면 어디에도 안 보이면 「내 정보」를 아는 사람만 로그인한다.
+ * 헤더는 모든 화면에 있으므로 여기 붙인다.
+ *
+ * 서버에 못 닿으면 **아무것도 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+ */
+function mountHeaderAccount(): void {
+    const slot = document.getElementById('headerAccount');
+    if (!slot) return;
+
+    if (!document.getElementById('kl-account-style')) {
+        const style = document.createElement('style');
+        style.id = 'kl-account-style';
+        style.textContent = `
+            .header-account { display:flex; align-items:center; }
+            .header-account:empty { display:none; }
+            .header-account-btn { display:flex; align-items:center; gap:7px; padding:4px 10px 4px 4px;
+                border:1px solid var(--border); border-radius:999px; background:transparent; cursor:pointer;
+                color:var(--text-secondary); font-size:var(--font-size-xs); max-width:170px; }
+            .header-account-btn:hover { color:var(--text-primary); border-color:var(--accent); }
+            .header-account-btn img, .header-account-blank { width:22px; height:22px; border-radius:50%; flex:0 0 auto; }
+            .header-account-blank { display:grid; place-items:center; background:var(--bg-tertiary); font-size:11px; }
+            .header-account-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .header-account-signin { padding:5px 12px; border-radius:999px; border:1px solid var(--accent);
+                background:transparent; color:var(--accent); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; }
+            .header-account-signin:hover { background:var(--accent); color:var(--bg-primary); }
+        `;
+        document.head.appendChild(style);
+    }
+
+    KarmoAccount.subscribe((state) => {
+        if (state.loading || !state.reachable) {
+            slot.innerHTML = '';
+            return;
+        }
+        if (!state.account) {
+            slot.innerHTML = '<button type="button" class="header-account-signin" id="klHeaderSignIn">시작하기</button>';
+            slot.querySelector('#klHeaderSignIn')?.addEventListener('click', () => KarmoAccount.signIn());
+            return;
+        }
+        const me = state.account;
+        const avatar = KarmoAccount.avatarUrl(me.avatarPath);
+        slot.innerHTML = `
+            <button type="button" class="header-account-btn" id="klHeaderMe" title="내 정보">
+                ${avatar ? `<img src="${avatar}" alt="">` : '<span class="header-account-blank">◍</span>'}
+                <span class="header-account-name">${me.displayName.replace(/[<>&"]/g, '')}</span>
+            </button>`;
+        slot.querySelector('#klHeaderMe')?.addEventListener('click', () => {
+            Toolbox?.switchPage?.('user');
+        });
+    });
+}
+
 declare global {
     interface Window {
         KarmoAccount: typeof KarmoAccount;
@@ -303,6 +357,7 @@ watchLocalChanges();
 window.addEventListener('hashchange', traceCurrentTool);
 // 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
 function start(): void {
+    mountHeaderAccount();
     void refresh();
     traceCurrentTool();
 }

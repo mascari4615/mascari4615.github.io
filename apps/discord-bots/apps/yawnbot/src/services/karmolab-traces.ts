@@ -25,23 +25,47 @@ interface ToolTrace {
   lastOpenedAt: string;
 }
 
-export interface ToolRequest {
+/**
+ * 글 한 편.
+ *
+ * 게시판(이야기)과 도구 요청을 **한 종류로 둔다** — 둘 다 「누가 쓴 글 + 사람들의 반응」이고,
+ * 따로 만들면 목록·표·답글·권한을 두 벌씩 갖게 된다. 다른 건 `kind` 하나뿐이다.
+ * (이야기는 답글이 주인공, 요청은 표가 주인공 — 화면이 그 차이를 낸다.)
+ */
+export type PostKind = 'talk' | 'request';
+
+export interface PostReply {
   id: string;
+  text: string;
+  authorHandle: string;
+  authorAccountId: string;
+  createdAt: string;
+  /** 주인이 단 답인가 — 화면에서 다르게 보여 주려고. */
+  byOwner: boolean;
+}
+
+export interface Post {
+  id: string;
+  kind: PostKind;
+  /** 이야기에만 있는 제목. 요청은 한 줄이라 제목이 없다. */
+  title: string | null;
   text: string;
   authorHandle: string;
   authorAccountId: string;
   createdAt: string;
   /** 투표한 계정 id. 사람 수를 세려면 목록이어야 한다 (숫자만 두면 두 번 눌러도 못 막는다). */
   voterAccountIds: string[];
+  /** 요청에만 쓰는 진행 상태. 이야기는 늘 open. */
   status: 'open' | 'planned' | 'done' | 'declined';
-  /** 주인이 남기는 한 줄 답. 답이 돌아오는 곳이라야 사람이 또 쓴다. */
-  reply: string | null;
+  replies: PostReply[];
+  /** 마지막 움직임 — 답글이 달리면 갱신된다. 이야기 목록은 이 순서로 선다. */
+  bumpedAt: string;
 }
 
 interface TracesState {
   version: 1;
   tools: Record<string, ToolTrace>;
-  requests: ToolRequest[];
+  posts: Post[];
 }
 
 const STATE_FILE = 'karmolab-traces-state.json';
@@ -52,11 +76,33 @@ const DAY_RETENTION = 60;
 /** 같은 사람이 한 도구를 계속 눌러도 이 시간 안에는 한 번만 센다. */
 const DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 
-/** 요청 글 길이 상한. 게시판이 아니라 한 줄 요청이다. */
+/** 도구 요청 = 한 줄. 길어지면 요청이 아니라 이야기다. */
 export const REQUEST_MAX_LEN = 200;
 
-/** 한 계정이 하루에 올릴 수 있는 요청 수. */
+/** 이야기 본문 상한. 긴 글도 쓰게 두되 소설은 아니다. */
+export const TALK_MAX_LEN = 4000;
+
+/** 이야기 제목 상한. */
+export const TITLE_MAX_LEN = 80;
+
+/** 답글 상한. */
+export const REPLY_MAX_LEN = 1000;
+
+/** 한 계정이 하루에 올릴 수 있는 글 수 (종류별로 따로 센다). */
 export const REQUEST_DAILY_LIMIT = 5;
+export const TALK_DAILY_LIMIT = 10;
+
+export function maxLenFor(kind: PostKind): number {
+  return kind === 'request' ? REQUEST_MAX_LEN : TALK_MAX_LEN;
+}
+
+export function dailyLimitFor(kind: PostKind): number {
+  return kind === 'request' ? REQUEST_DAILY_LIMIT : TALK_DAILY_LIMIT;
+}
+
+export function isPostKind(raw: unknown): raw is PostKind {
+  return raw === 'talk' || raw === 'request';
+}
 
 /** 오늘(KST) 날짜 문자열. 사이트 전체가 KST 로 말한다. */
 export function kstDay(now: Date = new Date()): string {
@@ -76,14 +122,17 @@ export interface ToolStat {
   recent: number;
 }
 
-export interface PublicRequest {
+export interface PublicPost {
   id: string;
+  kind: PostKind;
+  title: string | null;
   text: string;
   authorHandle: string;
   createdAt: string;
+  bumpedAt: string;
   votes: number;
-  status: ToolRequest['status'];
-  reply: string | null;
+  status: Post['status'];
+  replies: Array<{ id: string; text: string; authorHandle: string; createdAt: string; byOwner: boolean }>;
   /** 지금 보는 사람이 이미 눌렀나. 로그인 안 했으면 false. */
   votedByMe: boolean;
 }
@@ -102,12 +151,12 @@ export class KarmolabTraceStore {
     try {
       if (fs.existsSync(this.statePath)) {
         const parsed = JSON.parse(fs.readFileSync(this.statePath, 'utf-8')) as Partial<TracesState>;
-        return { version: 1, tools: parsed.tools ?? {}, requests: parsed.requests ?? [] };
+        return { version: 1, tools: parsed.tools ?? {}, posts: parsed.posts ?? [] };
       }
     } catch (error) {
       console.error('[karmolab-traces] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, tools: {}, requests: [] };
+    return { version: 1, tools: {}, posts: [] };
   }
 
   /**
@@ -201,70 +250,126 @@ export class KarmolabTraceStore {
     return { toolsUsed: Object.keys(this.state.tools).length, opensTotal, opensToday };
   }
 
-  /** 오늘 이 계정이 몇 개 올렸나 — 도배 방지. */
-  requestsTodayBy(accountId: string, now: Date = new Date()): number {
+  /** 오늘 이 계정이 이 종류를 몇 개 올렸나 — 도배 방지. */
+  postsTodayBy(accountId: string, kind: PostKind, now: Date = new Date()): number {
     const today = kstDay(now);
-    return this.state.requests.filter((r) => r.authorAccountId === accountId && kstDay(new Date(r.createdAt)) === today)
-      .length;
+    return this.state.posts.filter(
+      (p) => p.authorAccountId === accountId && p.kind === kind && kstDay(new Date(p.createdAt)) === today,
+    ).length;
   }
 
-  addRequest(input: { text: string; accountId: string; handle: string }, now: Date = new Date()): ToolRequest {
-    const request: ToolRequest = {
+  addPost(
+    input: { kind: PostKind; title?: string | null; text: string; accountId: string; handle: string },
+    now: Date = new Date(),
+  ): Post {
+    const at = now.toISOString();
+    const post: Post = {
+      id: crypto.randomUUID(),
+      kind: input.kind,
+      title: input.kind === 'talk' ? (input.title ?? null) : null,
+      text: input.text,
+      authorHandle: input.handle,
+      authorAccountId: input.accountId,
+      createdAt: at,
+      // 올린 사람은 이미 원하는 사람이다. 자기 요청에 또 눌러야 하면 첫 표가 어색하게 0 이 된다.
+      voterAccountIds: input.kind === 'request' ? [input.accountId] : [],
+      status: 'open',
+      replies: [],
+      bumpedAt: at,
+    };
+    this.state.posts.unshift(post);
+    this.markDirty();
+    return post;
+  }
+
+  /** 투표는 껐다 켰다 한다. @returns 지금 눌린 상태인가. null = 없는 글. */
+  toggleVote(postId: string, accountId: string): boolean | null {
+    const post = this.state.posts.find((p) => p.id === postId);
+    if (!post) return null;
+    const index = post.voterAccountIds.indexOf(accountId);
+    if (index >= 0) post.voterAccountIds.splice(index, 1);
+    else post.voterAccountIds.push(accountId);
+    this.markDirty();
+    return index < 0;
+  }
+
+  /**
+   * 답글을 단다. 답글이 달리면 글이 목록 위로 올라온다 — 대화가 이어지는 곳이
+   * 아래로 가라앉으면 아무도 안 본다.
+   */
+  addReply(
+    postId: string,
+    input: { text: string; accountId: string; handle: string; byOwner: boolean },
+    now: Date = new Date(),
+  ): PostReply | null {
+    const post = this.state.posts.find((p) => p.id === postId);
+    if (!post) return null;
+    const reply: PostReply = {
       id: crypto.randomUUID(),
       text: input.text,
       authorHandle: input.handle,
       authorAccountId: input.accountId,
       createdAt: now.toISOString(),
-      // 올린 사람은 이미 원하는 사람이다. 자기 요청에 또 눌러야 하면 첫 표가 어색하게 0 이 된다.
-      voterAccountIds: [input.accountId],
-      status: 'open',
-      reply: null,
+      byOwner: input.byOwner,
     };
-    this.state.requests.unshift(request);
+    post.replies.push(reply);
+    post.bumpedAt = reply.createdAt;
     this.markDirty();
-    return request;
+    return reply;
   }
 
-  /** 투표는 껐다 켰다 한다. @returns 지금 눌린 상태인가. null = 없는 요청. */
-  toggleVote(requestId: string, accountId: string): boolean | null {
-    const request = this.state.requests.find((r) => r.id === requestId);
-    if (!request) return null;
-    const index = request.voterAccountIds.indexOf(accountId);
-    if (index >= 0) request.voterAccountIds.splice(index, 1);
-    else request.voterAccountIds.push(accountId);
+  /** 쓴 사람 본인이나 주인만 지운다. @returns 지웠나. */
+  deletePost(postId: string, accountId: string, isOwner: boolean): boolean {
+    const index = this.state.posts.findIndex((p) => p.id === postId);
+    if (index < 0) return false;
+    if (!isOwner && this.state.posts[index].authorAccountId !== accountId) return false;
+    this.state.posts.splice(index, 1);
     this.markDirty();
-    return index < 0;
+    return true;
   }
 
-  /** 주인이 답·상태를 고친다. 준 것만 바꾼다 (빠뜨린 항목은 그대로). */
-  updateRequest(requestId: string, patch: { status?: unknown; reply?: unknown }): ToolRequest | null {
-    const request = this.state.requests.find((r) => r.id === requestId);
-    if (!request) return null;
-    const allowed: ToolRequest['status'][] = ['open', 'planned', 'done', 'declined'];
-    if (typeof patch.status === 'string' && allowed.includes(patch.status as ToolRequest['status'])) {
-      request.status = patch.status as ToolRequest['status'];
-    }
-    if (typeof patch.reply === 'string') {
-      const reply = patch.reply.trim().slice(0, REQUEST_MAX_LEN);
-      request.reply = reply.length ? reply : null;
+  /** 주인이 요청의 진행 상태를 바꾼다. 준 것만 바꾼다. */
+  updatePost(postId: string, patch: { status?: unknown }): Post | null {
+    const post = this.state.posts.find((p) => p.id === postId);
+    if (!post) return null;
+    const allowed: Post['status'][] = ['open', 'planned', 'done', 'declined'];
+    if (typeof patch.status === 'string' && allowed.includes(patch.status as Post['status'])) {
+      post.status = patch.status as Post['status'];
     }
     this.markDirty();
-    return request;
+    return post;
   }
 
-  /** 표 많은 순. 같으면 새 것 먼저 — 오래된 것이 위를 영원히 차지하지 않게. */
-  publicRequests(viewerAccountId: string | null): PublicRequest[] {
-    return [...this.state.requests]
-      .sort((a, b) => b.voterAccountIds.length - a.voterAccountIds.length || b.createdAt.localeCompare(a.createdAt))
-      .map((r) => ({
-        id: r.id,
-        text: r.text,
-        authorHandle: r.authorHandle,
-        createdAt: r.createdAt,
-        votes: r.voterAccountIds.length,
-        status: r.status,
-        reply: r.reply,
-        votedByMe: viewerAccountId ? r.voterAccountIds.includes(viewerAccountId) : false,
+  /**
+   * 목록. 종류마다 서는 기준이 다르다 —
+   * 요청은 **표 많은 순**(뭘 원하는지 보려는 목록), 이야기는 **마지막 움직임 순**(대화니까).
+   */
+  publicPosts(kind: PostKind, viewerAccountId: string | null): PublicPost[] {
+    return this.state.posts
+      .filter((p) => p.kind === kind)
+      .sort((a, b) =>
+        kind === 'request'
+          ? b.voterAccountIds.length - a.voterAccountIds.length || b.createdAt.localeCompare(a.createdAt)
+          : b.bumpedAt.localeCompare(a.bumpedAt),
+      )
+      .map((p) => ({
+        id: p.id,
+        kind: p.kind,
+        title: p.title,
+        text: p.text,
+        authorHandle: p.authorHandle,
+        createdAt: p.createdAt,
+        bumpedAt: p.bumpedAt,
+        votes: p.voterAccountIds.length,
+        status: p.status,
+        replies: p.replies.map((r) => ({
+          id: r.id,
+          text: r.text,
+          authorHandle: r.authorHandle,
+          createdAt: r.createdAt,
+          byOwner: r.byOwner,
+        })),
+        votedByMe: viewerAccountId ? p.voterAccountIds.includes(viewerAccountId) : false,
       }));
   }
 }
