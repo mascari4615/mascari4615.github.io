@@ -609,7 +609,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
   position: relative;
   color: var(--ink);
-  font-family: 'Noto Sans KR', system-ui, sans-serif;
+  font-family: 'KarmoSans', system-ui, sans-serif;
   /* 외부 body backdrop(observatory) 통과 — 자체 background/그리드는 KarmoLab 안에서 중복이므로 제거 */
   background: transparent;
   /* layout-full 안에서 화면 전체를 채우고 자체 스크롤 */
@@ -620,8 +620,8 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   /* contain: paint 금지 — drawer/sleep-prompt overlay가 fixed인데 contain이 fixed positioning containment block을 만들어 viewport 추적이 깨짐 */
 }
 .kl-quest-log *, .kl-quest-log *::before, .kl-quest-log *::after { box-sizing: border-box; margin: 0; padding: 0; }
-.kl-quest-log .serif { font-family: 'Noto Serif KR', serif; }
-.kl-quest-log .mono { font-family: 'JetBrains Mono', monospace; }
+.kl-quest-log .serif { font-family: 'KarmoSerif', serif; }
+.kl-quest-log .mono { font-family: 'KarmoMono', monospace; }
 .kl-quest-log ::selection { background: var(--accent); color: var(--bg); }
 
 .kl-quest-log .wrap { max-width: none; margin: 0; padding: 24px 28px 48px; position: relative; z-index: 1; }
@@ -631,7 +631,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   padding-bottom: 14px; border-bottom: 1px solid var(--line-2); margin-bottom: 22px;
 }
 .kl-quest-log header.hd h1 {
-  margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 900;
+  margin: 0; font-family: 'KarmoSerif', serif; font-weight: 900;
   font-size: clamp(28px, 3.6vw, 44px); line-height: 1; letter-spacing: -0.02em;
 }
 .kl-quest-log header.hd h1 em { font-style: italic; font-weight: 500; color: var(--ink-2); }
@@ -652,19 +652,19 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .stat-toggle.on .k,
 .kl-quest-log .stat-toggle.on .v small { color: var(--bg); opacity: 0.85; }
 .kl-quest-log .stat .k {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
 }
 .kl-quest-log .stat .v {
-  font-family: 'Noto Serif KR', serif; font-weight: 700;
+  font-family: 'KarmoSerif', serif; font-weight: 700;
   font-size: 22px; line-height: 1; letter-spacing: -0.01em;
 }
-.kl-quest-log .stat .v small { font-family: 'JetBrains Mono', monospace; font-weight: 400; font-size: 13.5px; color: var(--ink-2); margin-left: 3px; }
+.kl-quest-log .stat .v small { font-family: 'KarmoMono', monospace; font-weight: 400; font-size: 13.5px; color: var(--ink-2); margin-left: 3px; }
 .kl-quest-log .stat.accent .v { color: var(--accent); }
 
 /* ── chip (drawer status switcher) ── */
 .kl-quest-log .chip {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2);
   padding: 5px 10px; border: 1px solid var(--line-2); background: transparent;
   cursor: pointer; transition: all 140ms; display: inline-flex; align-items: center; gap: 6px;
@@ -691,15 +691,15 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: baseline;
 }
 .kl-quest-log .col-head h3 {
-  margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 700;
+  margin: 0; font-family: 'KarmoSerif', serif; font-weight: 700;
   font-size: 20px; letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 8px;
 }
 .kl-quest-log .col-head h3 .idx {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   font-weight: 400; color: var(--ink-3); letter-spacing: 0.18em;
 }
 .kl-quest-log .col-head .sub {
-  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  font-family: 'KarmoMono', monospace; font-size: 12.5px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2);
   text-align: right;
 }
@@ -713,7 +713,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .col-head .bar-meta {
   grid-column: 1 / -1;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3);
   display: flex; justify-content: space-between; margin-top: 4px;
 }
@@ -736,13 +736,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .kl-quest-log .sky .coord {
   position: absolute; left: 12px; top: 12px; z-index: 3;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   color: var(--ink-2); letter-spacing: 0.15em; line-height: 1.7;
 }
 .kl-quest-log .sky .coord .k { color: var(--ink-3); }
 .kl-quest-log .sky .tag {
   position: absolute; right: 12px; bottom: 12px; z-index: 3;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   color: var(--ink-2); letter-spacing: 0.18em; text-transform: uppercase;
   padding: 3px 7px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08);
 }
@@ -757,27 +757,27 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .obs:hover { background: var(--bg-2); }
 .kl-quest-log .obs.selected { background: var(--bg-2); outline: 1px solid var(--line-2); }
 .kl-quest-log .obs .obs-id {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: 11px;
   color: var(--accent); letter-spacing: 0.05em; flex-shrink: 0; white-space: nowrap;
 }
 .kl-quest-log .obs .obs-name {
-  font-family: 'Noto Serif KR', serif; font-size: 13.5px; color: var(--ink); font-weight: 500;
+  font-family: 'KarmoSerif', serif; font-size: 13.5px; color: var(--ink); font-weight: 500;
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   letter-spacing: -0.01em;
 }
-.kl-quest-log .obs[data-status="fire"] .obs-name::before { content: '✦ '; color: var(--accent); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+.kl-quest-log .obs[data-status="fire"] .obs-name::before { content: '✦ '; color: var(--accent); font-size: 11px; font-family: 'KarmoMono', monospace; }
 .kl-quest-log .obs[data-status="done"] .obs-name,
 .kl-quest-log .obs[data-status="sealed"] .obs-name { text-decoration: line-through; color: var(--ink-3); text-decoration-thickness: 1px; }
 .kl-quest-log .obs .obs-prog {
   display: flex; align-items: center; gap: 5px; margin-left: auto; flex-shrink: 0;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-3);
+  font-family: 'KarmoMono', monospace; font-size: 10.5px; color: var(--ink-3);
 }
 .kl-quest-log .obs .obs-bw { width: 40px; height: 3px; background: var(--line); border-radius: 2px; flex-shrink: 0; }
 .kl-quest-log .obs .obs-bf { display: block; height: 100%; background: var(--ink-2); border-radius: 2px; }
 .kl-quest-log .obs[data-status="fire"] .obs-bf { background: var(--accent); }
 .kl-quest-log .obs[data-status="done"] .obs-bf { background: var(--ink); width: 100% !important; }
 .kl-quest-log .obs .mag {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
   padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
@@ -785,7 +785,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
 .kl-quest-log .empty {
   padding: 32px 0; text-align: center; color: var(--ink-3);
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase;
 }
 .kl-quest-log .empty::before, .kl-quest-log .empty::after { content: '— '; opacity: 0.6; }
@@ -812,13 +812,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   position: sticky; top: 0; background: var(--paper); z-index: 2;
 }
 .kl-quest-log .drawer-head .crumb {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
 }
 .kl-quest-log .drawer-head .crumb b { color: var(--ink); }
 .kl-quest-log .drawer-close {
   background: transparent; border: 1px solid var(--line-2); color: var(--ink-2);
-  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  font-family: 'KarmoMono', monospace; font-size: 14px;
   width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .kl-quest-log .drawer-close:hover { border-color: var(--ink); color: var(--ink); }
@@ -826,13 +826,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .drawer-body { padding: 28px 28px 40px; }
 .kl-quest-log .drawer-body .lane-pill {
   display: inline-flex; align-items: center; gap: 8px;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2);
   padding: 5px 10px; border: 1px solid var(--line-2);
 }
 .kl-quest-log .drawer-body .lane-pill .sw { width: 6px; height: 6px; border-radius: 50%; }
 .kl-quest-log .drawer-body h2 {
-  margin: 16px 0 10px; font-family: 'Noto Serif KR', serif; font-weight: 700;
+  margin: 16px 0 10px; font-family: 'KarmoSerif', serif; font-weight: 700;
   font-size: 32px; line-height: 1.1; letter-spacing: -0.02em;
 }
 .kl-quest-log .drawer-body h2 em { font-style: italic; font-weight: 400; color: var(--ink-2); }
@@ -844,12 +844,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .drawer-body .progress-wrap .lbl {
   display: flex; justify-content: space-between; align-items: baseline;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
   margin-bottom: 8px;
 }
 .kl-quest-log .drawer-body .progress-wrap .lbl b {
-  font-family: 'Noto Serif KR', serif; font-size: 20px; color: var(--ink); letter-spacing: -0.01em;
+  font-family: 'KarmoSerif', serif; font-size: 20px; color: var(--ink); letter-spacing: -0.01em;
   font-weight: 700;
 }
 .kl-quest-log .drawer-body .progress-wrap .bar {
@@ -860,7 +860,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .drawer-body .progress-wrap .ticks {
   display: flex; justify-content: space-between; margin-top: 4px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   color: var(--ink-3); letter-spacing: 0.18em;
 }
 
@@ -889,13 +889,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .featured .f-sky .coord {
   position: absolute; left: 14px; top: 14px; z-index: 3;
-  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  font-family: 'KarmoMono', monospace; font-size: 12.5px;
   color: var(--ink-2); letter-spacing: 0.15em; line-height: 1.8;
 }
 .kl-quest-log .featured .f-sky .coord .k { color: var(--ink-3); }
 .kl-quest-log .featured .f-sky .tag {
   position: absolute; right: 14px; bottom: 14px; z-index: 3;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   color: var(--ink); letter-spacing: 0.2em; text-transform: uppercase;
   padding: 4px 9px; background: rgba(0,0,0,0.55); border: 1px solid var(--line-3);
 }
@@ -904,21 +904,21 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   pointer-events: none;
 }
 .kl-quest-log .featured .f-sky .overlay-title .cst {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase;
 }
 .kl-quest-log .featured .f-sky .overlay-title .name {
-  font-family: 'Noto Serif KR', serif; font-style: italic; font-weight: 500;
+  font-family: 'KarmoSerif', serif; font-style: italic; font-weight: 500;
   font-size: 30px; color: var(--ink); line-height: 1.05; margin-top: 4px;
   letter-spacing: -0.01em; text-shadow: 0 2px 20px rgba(0,0,0,0.8);
 }
 .kl-quest-log .featured .f-meta { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .kl-quest-log .featured .f-meta .eye {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-family: 'KarmoMono', monospace; font-size: 12px;
   letter-spacing: 0.28em; color: var(--accent); text-transform: uppercase;
 }
 .kl-quest-log .featured .f-meta h2 {
-  margin: 0; font-family: 'Noto Serif KR', serif; font-weight: 900;
+  margin: 0; font-family: 'KarmoSerif', serif; font-weight: 900;
   font-size: 40px; line-height: 0.98; letter-spacing: -0.02em;
 }
 .kl-quest-log .featured .f-meta h2 em { font-style: italic; font-weight: 500; color: var(--ink-2); display: block; font-size: 0.5em; margin-top: 6px; letter-spacing: 0.05em; }
@@ -932,11 +932,11 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .featured .f-meta .mini-stats .s { background: var(--paper); padding: 10px 12px; }
 .kl-quest-log .featured .f-meta .mini-stats .s .k {
-  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  font-family: 'KarmoMono', monospace; font-size: 11.5px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
 }
 .kl-quest-log .featured .f-meta .mini-stats .s .v {
-  font-family: 'Noto Serif KR', serif; font-weight: 700;
+  font-family: 'KarmoSerif', serif; font-weight: 700;
   font-size: 20px; line-height: 1.2; letter-spacing: -0.01em;
 }
 .kl-quest-log .featured .f-meta .mini-stats .s.accent .v { color: var(--accent); }
@@ -962,7 +962,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .featured .f-right .log-head {
   display: flex; justify-content: space-between; align-items: baseline;
   padding-bottom: 8px; border-bottom: 1px solid var(--line-2); margin-bottom: 4px;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
 }
 .kl-quest-log .featured .f-right .log-head b { color: var(--ink); font-weight: 500; }
@@ -1013,7 +1013,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   color: var(--bg); font-size: 13px; font-weight: 700;
 }
 .kl-quest-log .check-label {
-  font-family: 'Noto Serif KR', serif; font-size: 16px; line-height: 1.45;
+  font-family: 'KarmoSerif', serif; font-size: 16px; line-height: 1.45;
   color: var(--ink); letter-spacing: -0.005em;
 }
 .kl-quest-log .check-row.done .check-label { color: var(--ink-3); text-decoration: line-through; text-decoration-color: var(--line-3); }
@@ -1031,26 +1031,26 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .check-edit:hover { color: var(--accent); }
 .kl-quest-log .check-delete:hover { color: #d4504e; }
 .kl-quest-log .check-edit-input {
-  font-family: 'Noto Serif KR', serif; font-size: 16px; line-height: 1.45;
+  font-family: 'KarmoSerif', serif; font-size: 16px; line-height: 1.45;
   background: var(--paper); color: var(--ink); border: 1px solid var(--accent);
   outline: none; padding: 2px 6px; flex: 1; min-width: 0;
 }
 
 .kl-quest-log .add-check input {
   flex: 1; background: var(--paper); border: none; outline: none;
-  padding: 9px 12px; font-family: 'Noto Sans KR', sans-serif; font-size: 15px; color: var(--ink);
+  padding: 9px 12px; font-family: 'KarmoSans', sans-serif; font-size: 15px; color: var(--ink);
 }
 .kl-quest-log .add-check input::placeholder { color: var(--ink-3); }
 .kl-quest-log .add-check button {
   background: var(--bg); border: none; color: var(--ink);
-  padding: 9px 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  padding: 9px 14px; font-family: 'KarmoMono', monospace; font-size: 13px;
   letter-spacing: 0.22em; cursor: pointer;
 }
 .kl-quest-log .add-check button:hover { background: var(--accent); color: var(--bg); }
 
 /* ── status switcher ── */
 .kl-quest-log .status-toggle {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.2em;
+  font-family: 'KarmoMono', monospace; font-size: 13px; letter-spacing: 0.2em;
   background: var(--paper); color: var(--ink-2); cursor: pointer;
   transition: all 140ms;
 }
@@ -1066,19 +1066,19 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .child-row:hover { background: var(--bg-2); }
 .kl-quest-log .cr-status {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.22em;
+  font-family: 'KarmoMono', monospace; font-size: 12px; letter-spacing: 0.22em;
   color: var(--ink-3); text-align: center; padding: 2px 5px; border: 1px solid var(--line-2);
 }
 .kl-quest-log .cr-status.fire { color: var(--accent); border-color: var(--accent); }
 .kl-quest-log .cr-status.sealed { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.kl-quest-log .cr-title { font-family: 'Noto Serif KR', serif; font-size: 16.5px; color: var(--ink); }
+.kl-quest-log .cr-title { font-family: 'KarmoSerif', serif; font-size: 16.5px; color: var(--ink); }
 .kl-quest-log .cr-right { display: flex; align-items: center; }
 
 /* ── seal button ── */
 .kl-quest-log .seal-btn {
   margin-top: 22px; width: 100%; background: var(--ink); color: var(--bg);
   border: none; padding: 14px; cursor: pointer;
-  font-family: 'JetBrains Mono', monospace; font-size: 13.5px;
+  font-family: 'KarmoMono', monospace; font-size: 13.5px;
   letter-spacing: 0.3em; text-transform: uppercase; transition: background 140ms;
 }
 .kl-quest-log .seal-btn:hover { background: var(--accent); }
@@ -1100,13 +1100,13 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px dashed var(--line-2);
 }
 .kl-quest-log .overview-head h1 {
-  font-family: 'Noto Serif KR', serif; font-weight: 900;
+  font-family: 'KarmoSerif', serif; font-weight: 900;
   font-size: clamp(22px, 2.6vw, 28px); line-height: 1; letter-spacing: -0.02em;
   color: var(--ink);
 }
 .kl-quest-log .overview-head h1 em { font-style: italic; font-weight: 500; color: var(--ink-2); }
 .kl-quest-log .overview-head .meta {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: 11px;
   letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3);
 }
 
@@ -1114,11 +1114,11 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-section:last-child { margin-bottom: 0; }
 .kl-quest-log .overview-section h2 {
   margin: 0 0 10px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; font-weight: 500;
+  font-family: 'KarmoMono', monospace; font-size: 11.5px; font-weight: 500;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent);
 }
 .kl-quest-log .overview-section h2 small {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px;
   letter-spacing: 0.16em; color: var(--ink-3); text-transform: uppercase;
   margin-left: 8px; font-weight: 400;
 }
@@ -1140,12 +1140,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   margin-bottom: 6px;
 }
 .kl-quest-log .overview-domain-name {
-  font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 15px;
+  font-family: 'KarmoSerif', serif; font-weight: 700; font-size: 15px;
   color: var(--ink); letter-spacing: -0.01em;
 }
 .kl-quest-log .overview-domain-icon { margin-right: 4px; font-size: 14px; }
 .kl-quest-log .overview-domain-pct {
-  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+  font-family: 'KarmoMono', monospace; font-size: 13px; font-weight: 700;
   color: var(--accent); letter-spacing: 0.04em;
 }
 .kl-quest-log .overview-domain-bar {
@@ -1158,7 +1158,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .overview-domain-counts {
   display: flex; gap: 12px; flex-wrap: wrap;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px;
   letter-spacing: 0.16em; text-transform: uppercase;
 }
 .kl-quest-log .overview-domain-counts .k { color: var(--ink-3); }
@@ -1177,11 +1177,11 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .overview-next-item:last-child { border-bottom: none; }
 .kl-quest-log .overview-next-item .icon { font-size: 14px; text-align: center; }
 .kl-quest-log .overview-next-item .id {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: 11px;
   letter-spacing: 0.08em; color: var(--accent);
 }
 .kl-quest-log .overview-next-item .title {
-  font-family: 'Noto Serif KR', serif; font-size: 14.5px; color: var(--ink); line-height: 1.4;
+  font-family: 'KarmoSerif', serif; font-size: 14.5px; color: var(--ink); line-height: 1.4;
 }
 .kl-quest-log .overview-next-item[data-status="active"] .title::before {
   content: '✦'; color: var(--accent); margin-right: 6px;
@@ -1202,29 +1202,29 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed var(--line-2);
 }
 .kl-quest-log .overview-commit-bucket-name {
-  font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 13.5px; color: var(--ink);
+  font-family: 'KarmoSerif', serif; font-weight: 700; font-size: 13.5px; color: var(--ink);
 }
 .kl-quest-log .overview-commit-bucket-count {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  font-family: 'KarmoMono', monospace; font-size: 12px; font-weight: 700;
   color: var(--accent); letter-spacing: 0.04em;
 }
 .kl-quest-log .overview-commit-bucket-list {
   list-style: none; padding: 0; margin: 0;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; line-height: 1.6;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px; line-height: 1.6;
 }
 .kl-quest-log .overview-commit-bucket-list li {
   color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .kl-quest-log .overview-commit-bucket-list li .hash { color: var(--accent); margin-right: 6px; }
 .kl-quest-log .overview-commit-bucket .empty {
-  font-family: 'Noto Serif KR', serif; font-style: italic;
+  font-family: 'KarmoSerif', serif; font-style: italic;
   font-size: 11.5px; color: var(--ink-3);
 }
 
 /* hold by domain */
 .kl-quest-log .overview-hold-row {
   display: flex; gap: 18px; flex-wrap: wrap;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: 11px;
   letter-spacing: 0.14em; text-transform: uppercase;
 }
 .kl-quest-log .overview-hold {
@@ -1238,7 +1238,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 /* loading state */
 .kl-quest-log .overview-loading {
   padding: 18px 16px; text-align: center;
-  font-family: 'Noto Serif KR', serif; font-style: italic;
+  font-family: 'KarmoSerif', serif; font-style: italic;
   font-size: 13px; color: var(--ink-3);
 }
 
@@ -1252,12 +1252,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
   display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
 }
 .kl-quest-log .ql-control-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px;
   letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3);
   width: 56px; flex-shrink: 0;
 }
 .kl-quest-log .ql-chip {
-  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  font-family: 'KarmoMono', monospace; font-size: 11.5px;
   letter-spacing: 0.10em; color: var(--ink-3);
   padding: 4px 10px; border: 1px dashed var(--line-3); background: transparent;
   cursor: pointer; transition: all 140ms;
@@ -1269,12 +1269,12 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .ql-chip-num {
   display: inline-block; background: var(--accent); color: var(--bg);
-  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700;
+  font-family: 'KarmoMono', monospace; font-size: 9.5px; font-weight: 700;
   padding: 1px 5px; margin-right: 5px;
   border-radius: 2px; letter-spacing: 0;
 }
 .kl-quest-log .ql-chip-hint {
-  font-family: 'Noto Sans KR', sans-serif; font-size: 10.5px;
+  font-family: 'KarmoSans', sans-serif; font-size: 10.5px;
   color: var(--ink-3); margin-left: 6px; font-style: italic;
 }
 
@@ -1282,7 +1282,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 .kl-quest-log .mag-cluster { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap; }
 .kl-quest-log .pri {
   display: inline-block;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  font-family: 'KarmoMono', monospace; font-size: 10.5px;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
   padding: 2px 5px; border: 1px solid var(--line-2); white-space: nowrap; flex-shrink: 0;
 }
@@ -1296,7 +1296,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 }
 .kl-quest-log .obs--sub-mid::after, .kl-quest-log .obs--sub-last::after {
   position: absolute; left: 4px; top: 14px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  font-family: 'KarmoMono', monospace; font-size: 11px;
   color: var(--ink-3); letter-spacing: 0; white-space: pre;
   pointer-events: none;
 }
@@ -1975,7 +1975,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                 <div class="mini-stats">
                   <div class="s accent"><div class="k">FIRE</div><div class="v">${wmFire}</div></div>
                   <div class="s"><div class="k">SEALED</div><div class="v">${wmSealedCount}</div></div>
-                  <div class="s"><div class="k">COVERAGE</div><div class="v">${wmProg}<span style="font-family:'JetBrains Mono',monospace;font-weight:400;font-size:13.5px;color:var(--ink-2);margin-left:2px;">%</span></div></div>
+                  <div class="s"><div class="k">COVERAGE</div><div class="v">${wmProg}<span style="font-family:'KarmoMono',monospace;font-weight:400;font-size:13.5px;color:var(--ink-2);margin-left:2px;">%</span></div></div>
                 </div>
               </div>
             </div>
@@ -2136,7 +2136,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
 
         ${isLeaf(node) ? `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
+            <div style="font-family:'KarmoMono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
               CHECKLIST · ${node.checks.filter((c) => c.done).length} / ${node.checks.length}
             </div>
             <div class="checklist">
@@ -2157,7 +2157,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
           </div>
         ` : `
           <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--line-2);">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
+            <div style="font-family:'KarmoMono',monospace;font-size:13px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">
               SUB-AREAS · ${node.children!.length}
             </div>
             <div class="children-list">
@@ -2168,7 +2168,7 @@ const _questUnlisten = new WeakMap<HTMLElement, () => void>();
                   <div class="child-row" data-child="${c.id}">
                     <span class="cr-status ${cs}">${cs.toUpperCase()}</span>
                     <span class="cr-title">${esc(c.title)}</span>
-                    <span class="cr-right">${starsHTML(cp / 100)} <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-3);margin-left:6px;">${cp}%</span></span>
+                    <span class="cr-right">${starsHTML(cp / 100)} <span style="font-family:'KarmoMono',monospace;font-size:13px;color:var(--ink-3);margin-left:6px;">${cp}%</span></span>
                   </div>
                 `;
               }).join('')}

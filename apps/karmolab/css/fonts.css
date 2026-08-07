@@ -1,0 +1,7 @@
+/* 이 파일은 `scripts/gen-fonts.py` 가 만든다 — 손으로 고치지 마라 (TASK-KL-128). */
+/* 굵기는 한 파일 안의 축으로 들어 있다: 400/500/700 을 따로 안 받는다. */
+@font-face{font-family:'KarmoSans';font-style:normal;font-weight:100 900;font-display:swap;src:url('/apps/karmolab/fonts/sans-latin.woff2') format('woff2');unicode-range:U+0000-2BFF,U+FE00-FE0F,U+FF00-FFEF}
+@font-face{font-family:'KarmoSans';font-style:normal;font-weight:100 900;font-display:swap;src:url('/apps/karmolab/fonts/sans-ko.woff2') format('woff2');unicode-range:U+1100-11FF,U+3130-318F,U+4E00-9FFF,U+AC00-D7A3}
+@font-face{font-family:'KarmoSerif';font-style:normal;font-weight:100 900;font-display:swap;src:url('/apps/karmolab/fonts/serif-latin.woff2') format('woff2');unicode-range:U+0000-2BFF,U+FE00-FE0F,U+FF00-FFEF}
+@font-face{font-family:'KarmoSerif';font-style:normal;font-weight:100 900;font-display:swap;src:url('/apps/karmolab/fonts/serif-ko.woff2') format('woff2');unicode-range:U+1100-11FF,U+3130-318F,U+4E00-9FFF,U+AC00-D7A3}
+@font-face{font-family:'KarmoMono';font-style:normal;font-weight:100 900;font-display:swap;src:url('/apps/karmolab/fonts/mono-latin.woff2') format('woff2');unicode-range:U+0000-2BFF,U+FE00-FE0F,U+FF00-FFEF}

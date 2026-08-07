@@ -54,7 +54,7 @@
     document.body.style.cssText =
       'margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;' +
       'justify-content:center;gap:28px;background:#0a0a0a;color:#fff;' +
-      "font-family:'Inter','Noto Sans KR',system-ui,sans-serif;user-select:none;" +
+      "font-family:'Inter','KarmoSans',system-ui,sans-serif;user-select:none;" +
       'overflow:hidden;';
     document.body.innerHTML =
       '<div id="af-now" style="font-size:14vw;font-weight:800;letter-spacing:2px;' +
