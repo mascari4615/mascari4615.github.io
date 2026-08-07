@@ -1147,15 +1147,15 @@ const Toolbox = (() => {
                 ty = ((y / window.innerHeight) * 2 - 1) * -reach;
                 if (!queued) { queued = true; requestAnimationFrame(apply); }
             };
-            /* 가까운 것은 **물에 뜬 꽃잎**처럼 군다 (TASK-KL-101).
-             *
-             * 시차만 주면 손가락 위치에 딱 붙어 같이 평행 이동한다 — 종이에 그려 놓고 종이를
             /* 첫 화면은 다시 그려질 수 있다(도구를 갔다 오면). 그때마다 듣는 귀를 새로 달면
              * 옛 귀가 남아 손을 한 번 움직여도 여러 번 계산한다 — 눈에는 안 보이고 느려지기만
              * 한다. 앞서 단 것을 끊고 새로 단다 (TASK-KL-101). */
             decorStop?.abort();
             decorStop = new AbortController();
             const bye = { signal: decorStop.signal, passive: true };
+            /* 가까운 것은 **물에 뜬 꽃잎**처럼 군다 (TASK-KL-101).
+             *
+             * 시차만 주면 손가락 위치에 딱 붙어 같이 평행 이동한다 — 종이에 그려 놓고 종이를
              * 미는 느낌이다. 물 위의 꽃잎은 손이 **지나갈 때 밀려났다가 천천히 제자리로**
              * 돌아온다. 그래서 가까운 것에는 위치가 아니라 **힘**을 준다:
              *   지나가면 밀어내는 힘 → 매 프레임 제자리로 당기는 힘(용수철) + 물의 저항(감쇠).
