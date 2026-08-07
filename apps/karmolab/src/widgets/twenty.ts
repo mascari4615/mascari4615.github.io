@@ -13,6 +13,7 @@
  * 따로 두면 그날부터 서로 다른 세상을 말한다.
  */
 import { mountCourseNext } from './play-course';
+import { getPack, loadPacks } from './pack-store';
 
 (function (): void {
   type Val = string | string[] | number;
@@ -308,7 +309,7 @@ import { mountCourseNext } from './play-course';
 
           $('twAgain').addEventListener('click', () => start(topicId));
           $('twShare').addEventListener('click', () => {
-            const t = TOPICS.filter((x) => x.id === topicId)[0];
+            const t = chips.filter((x) => x.id === topicId)[0];
             const text =
               `KarmoLab 스무고개 — ${t ? t.title : ''}\n` +
               `${asked}번 만에${guessing ? '' : ''} ${$('twQ').textContent === '맞혔습니다!' ? '맞힘' : '못 맞힘'}\n` +
@@ -318,6 +319,7 @@ import { mountCourseNext } from './play-course';
             });
           });
 
+          /** 내 표는 받아 올 곳이 없다 — 이 브라우저에 있는 것을 그대로 쓴다. */
           function start(id: string): void {
             topicId = id;
             asked = 0;
@@ -333,8 +335,11 @@ import { mountCourseNext } from './play-course';
             $('twQ').textContent = '표를 불러오는 중…';
             $('twRow').hidden = true;
             $('twGuess').hidden = true;
-            fetch(`/daily/data/${id}.json`)
-              .then((r) => r.json())
+            const mine = id.indexOf('pack:') === 0 ? getPack(id.slice(5)) : null;
+            const src: Promise<Topic> = mine
+              ? Promise.resolve({ fields: mine.fields as unknown as Field[], items: mine.items as unknown as Item[] })
+              : fetch(`/daily/data/${id}.json`).then((r) => r.json());
+            src
               .then((j: Topic) => {
                 topic = j;
                 pool = j.items.slice();
@@ -346,7 +351,11 @@ import { mountCourseNext } from './play-course';
               });
           }
 
-          TOPICS.forEach((t, i) => {
+          /* 사람이 만든 표도 주제 칩으로 나란히 선다 — 우리 표와 남의 표를 놀이가 안 가린다. */
+          const chips: Array<{ id: string; title: string; emoji: string }> = TOPICS.concat(
+            loadPacks().map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji }))
+          );
+          chips.forEach((t, i) => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = `${t.emoji} ${t.title}`;
@@ -359,7 +368,21 @@ import { mountCourseNext } from './play-course';
             $('twTopics').appendChild(btn);
           });
 
-          start(TOPICS[0].id);
+          /* 「내 표」 화면에서 보내 준 표가 있으면 그것으로 시작한다 (한 번만 쓰고 지운다 —
+           * 안 지우면 다음에 그냥 들어와도 계속 그 표가 열린다). */
+          let first = TOPICS[0].id;
+          try {
+            const pick = localStorage.getItem('karmolab_pack_pick');
+            if (pick && getPack(pick)) {
+              first = 'pack:' + pick;
+              localStorage.removeItem('karmolab_pack_pick');
+            }
+          } catch {
+            /* 사생활 모드 */
+          }
+          const at = chips.findIndex((c) => c.id === first);
+          [...$('twTopics').children].forEach((c, i) => c.setAttribute('aria-pressed', String(i === at)));
+          start(first);
         }
       }
     ]
