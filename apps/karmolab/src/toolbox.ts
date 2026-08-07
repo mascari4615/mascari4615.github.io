@@ -891,9 +891,9 @@ const Toolbox = (() => {
         near: { z: [100, 132], blur: [0, 0.3], op: [.88, 1.0], dur: [28, 38], amp: [24, 42] },
     };
     const DECOR_DEFS = `<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
-<linearGradient id="kdg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ec4899"/><stop offset="45%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient>
-<linearGradient id="kdg2" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="50%" stop-color="#f0abfc"/><stop offset="100%" stop-color="#6d5bd0"/></linearGradient>
-<linearGradient id="kdg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0abfc"/><stop offset="55%" stop-color="#6d5bd0"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient>
+<linearGradient id="kdg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--decor-a)"/><stop offset="45%" stop-color="var(--decor-b)"/><stop offset="100%" stop-color="var(--decor-c)"/></linearGradient>
+<linearGradient id="kdg2" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="var(--decor-c)"/><stop offset="50%" stop-color="var(--decor-d)"/><stop offset="100%" stop-color="var(--decor-e)"/></linearGradient>
+<linearGradient id="kdg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--decor-d)"/><stop offset="55%" stop-color="var(--decor-e)"/><stop offset="100%" stop-color="var(--decor-c)"/></linearGradient>
 <linearGradient id="kdgloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/><stop offset="45%" stop-color="#ffffff" stop-opacity=".12"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
 <pattern id="kdstripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="8" fill="#ffffff" opacity=".8"/></pattern>
 <filter id="kdgrain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 -0.55"/><feComposite operator="in" in2="SourceGraphic"/></filter>
@@ -907,6 +907,9 @@ const Toolbox = (() => {
         wrap.className = 'home-decor';
         wrap.setAttribute('aria-hidden', 'true');
         if (force === 'none') return wrap;
+        // 도구 상세 페이지에도 이 셸이 쓰인다. 거기선 첫 화면이 안 보이므로 그리지 않는다
+        // (안 보이는 것을 계산하는 값은 그대로 나간다).
+        if (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) return wrap;
 
         const seed0 = (q.get('seed') | 0) || (Date.now() % 2147483647);
         let s = seed0;
