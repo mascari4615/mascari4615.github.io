@@ -312,7 +312,9 @@ function finish() {
   const rows = shareRows();
   const live = liveStreak(streak ?? {}, dayNumber);
   const text = shareText({
-    title: `${topic.emoji ?? ''} ${topic.title}${mode === 'silhouette' ? ' 실루엣' : ''}`.trim(),
+    // 연습이면 날짜를 박는다 — 안 그러면 어제 것을 올려도 오늘 결과처럼 보인다.
+    // (문제 번호는 다르지만 사람은 번호를 기억하지 않는다.)
+    title: `${topic.emoji ?? ''} ${topic.title}${mode === 'silhouette' ? ' 실루엣' : ''}${practice ? ` ${dayKey}` : ''}`.trim(),
     puzzleNo,
     rows,
     won,
