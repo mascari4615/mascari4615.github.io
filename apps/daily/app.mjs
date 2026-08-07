@@ -381,13 +381,16 @@ function renderSeeds() {
   box.innerHTML = `<span>뭘 칠지 모르겠으면</span>${picks
     .map((p, i) => `<button type="button" data-seed="${i}">${esc(p.name)}</button>`)
     .join('')}`;
-  [...box.querySelectorAll('button')].forEach((b, i) => b.addEventListener('click', () => submit(picks[i].name)));
+  [...box.querySelectorAll('button')].forEach((b, i) => b.addEventListener('click', () => submit(picks[i].name, '시작점')));
 }
 
-function submit(name) {
+function submit(name, how = '직접') {
   if (state.status !== 'playing') return;
   const item = findItem(topic.items, name);
   if (!item || state.guesses.includes(item.name)) return;
+  // 방문과 끝남만 세면 가운데가 깜깜하다 — 열고 한 수도 안 두고 나가는 사람이 몇인지 모른다.
+  // 첫 수는 그 깔때기의 첫 칸이고, 시작점 단추가 실제로 먹히는지도 여기서만 갈린다.
+  if (state.guesses.length === 0 && !practice) countEvent(`daily/${topicId}/${mode}/첫수/${how}`);
   state.guesses.push(item.name);
   const cells = renderRow(item);
   const won = mode === 'silhouette' ? item.name === answer.name : isWin(cells);
