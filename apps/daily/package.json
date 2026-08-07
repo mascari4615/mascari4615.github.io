@@ -7,9 +7,14 @@
   "scripts": {
     "test": "node --test",
     "build": "npm test && node scripts/build.mjs",
+    "serve": "node scripts/serve.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:live": "node scripts/smoke-live.mjs",
     "fetch:lol": "node scripts/fetch-lol.mjs",
     "fetch:pokemon": "node scripts/fetch-pokemon.mjs",
-    "serve": "node scripts/serve.mjs",
-    "shoot": "node scripts/shoot.mjs"
+    "fetch:genshin": "node scripts/fetch-genshin.mjs",
+    "fetch:all": "npm run fetch:lol && npm run fetch:genshin && npm run fetch:pokemon",
+    "check:fresh": "node scripts/check-freshness.mjs",
+    "gen:og": "node scripts/gen-og.mjs"
   }
 }
