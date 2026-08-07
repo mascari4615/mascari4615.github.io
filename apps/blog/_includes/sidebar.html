@@ -37,6 +37,18 @@
         </li>
         <!-- .nav-item -->
       {% endfor %}
+      {% comment %}
+        도구 목록으로 바로 가는 길 (TASK-KL-089).
+        글 530장 가운데 도구를 링크하는 글이 딱 하나였다. 검색엔진은 링크를 타고 다니므로
+        도구 125장이 사실상 구석에 있었다. 모든 글에 뜼는 이 자리에서 바로 보내면 한 다리 가까워진다.
+        주석을 HTML 로 두면 530장에 그대로 실려 나간다 — 빌드할 때 사라지는 주석을 쓴다.
+      {% endcomment %}
+      <li class="nav-item{% if page.url contains '/karmolab/t/' %} active{% endif %}">
+        <a href="{{ '/karmolab/t/' | relative_url }}" class="nav-link" title="글·이미지·계산·개발에 쓰는 도구">
+          <i class="fa-fw fas fa-screwdriver-wrench"></i>
+          <span>도구</span>
+        </a>
+      </li>
       <li class="nav-item">
         <a href="{{ '/karmolab/' | relative_url }}" class="nav-link" title="유틸리티, 미니게임, AI 도구">
           <i class="fa-fw fas fa-flask"></i>

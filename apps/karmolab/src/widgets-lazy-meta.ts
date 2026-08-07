@@ -15,13 +15,22 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['life/life']
   },
   {
+    id: 'passgen',
+    title: '비밀번호 만들기·확인',
+    category: 'tool',
+    desc: '안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.4" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/passgen']
+  },
+  {
     id: 'devtool',
     title: '개발 도구',
     category: 'tool',
     desc: 'JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M9 6 3 12l6 6M15 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/devtool']
+    lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
     id: 'base64',
@@ -107,7 +116,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서',
     layout: 'full',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
+    lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
     id: 'imageedit',
@@ -246,7 +255,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '글자수 세기·줄 정리·두 글 비교·표기법 변환·한영타 되돌리기를 한 곳에서',
     layout: 'wide',
     icon: '<path d="M4 5h16M4 5v2M20 5v2M12 5v14M9 19h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M4 12h4M4 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/>',
-    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/text']
+    lazyScriptPaths: ['tools/charcount', 'tools/textclean', 'tools/textdiff', 'tools/caseconv', 'tools/hangulkey', 'tools/lorem', 'tools/replace', 'tools/slug', 'tools/listdiff', 'tools/jamo', 'tools/wordfreq', 'tools/linebreak', 'tools/checklist', 'tools/text']
   },
   {
     id: 'lorem',
@@ -258,6 +267,463 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 6h16M4 10h16M4 14h12M4 18h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/lorem']
+  },
+  {
+    id: 'replace',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '찾아 바꾸기',
+    category: 'tool',
+    desc: '텍스트에서 찾아 바꿉니다. 바꾸기 전에 걸린 곳을 미리 보여줍니다',
+    layout: 'wide',
+    icon: '<circle cx="10" cy="10" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14.5 14.5 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/replace']
+  },
+  {
+    id: 'slug',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '슬러그 만들기',
+    category: 'tool',
+    desc: '제목을 주소에 쓸 형태로 바꿉니다. 한글은 로마자로 옮겨 적습니다',
+    layout: 'form',
+    icon: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/slug']
+  },
+  {
+    id: 'listdiff',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '목록 비교',
+    category: 'tool',
+    desc: '두 명단에서 공통·한쪽에만 있는 항목을 가려냅니다. 순서와 무관',
+    layout: 'wide',
+    icon: '<circle cx="9" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="6" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/listdiff']
+  },
+  {
+    id: 'jamo',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '한글 자모 분해',
+    category: 'tool',
+    desc: '글자를 초성·중성·종성으로 쪼개고 자모를 글자로 되돌립니다. 초성 추출 포함',
+    layout: 'wide',
+    icon: '<path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/jamo']
+  },
+  {
+    id: 'wordfreq',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '단어 빈도 분석',
+    category: 'tool',
+    desc: '글에서 자주 쓴 낱말을 세어 보여줍니다. 한국어 조사 떼기 지원',
+    layout: 'wide',
+    icon: '<path d="M4 20V10M10 20V4M16 20v-7M22 20v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/wordfreq']
+  },
+  {
+    id: 'linebreak',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '줄바꿈 정리',
+    category: 'tool',
+    desc: 'PDF·웹에서 복사한 글의 끊긴 줄을 잇거나 원하는 길이로 다시 나눕니다',
+    layout: 'wide',
+    icon: '<path d="M4 6h16M4 12h10a3 3 0 0 1 0 6h-3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M13 15l-2 3 2 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/linebreak']
+  },
+  {
+    id: 'checklist',
+    hidden: true, // 「text」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'text', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '체크리스트',
+    category: 'tool',
+    desc: '할 일 목록을 만들고 주소 하나로 공유합니다. 계정도 서버도 없이',
+    layout: 'form',
+    icon: '<path d="M4 7l2 2 4-4M4 14l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7h7M13 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/checklist']
+  },
+  {
+    id: 'pdf2img',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF → 이미지',
+    category: 'tool',
+    desc: 'PDF 페이지를 PNG·JPG 로 바꿉니다. 배율을 올리면 인쇄용 해상도까지',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="13" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13 19l2-2 2 2 2-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdf2img']
+  },
+  {
+    id: 'img2pdf',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '이미지 → PDF',
+    category: 'tool',
+    desc: '사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/img2pdf']
+  },
+  {
+    id: 'ziptool',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'ZIP 만들기·풀기',
+    category: 'tool',
+    desc: '파일을 ZIP 으로 묶고, 받은 ZIP 의 목록을 보고 풀어 냅니다',
+    layout: 'wide',
+    icon: '<path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 3v2h2V3M11 7v2h2V7M11 11v2h2v-2" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="15" width="3" height="4" rx="0.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/ziptool']
+  },
+  {
+    id: 'pdfwatermark',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 워터마크',
+    category: 'tool',
+    desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/pdfwatermark']
+  },
+  {
+    id: 'audiospeed',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '소리 속도',
+    category: 'tool',
+    desc: '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다',
+    layout: 'wide',
+    icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/audiospeed']
+  },
+  {
+    id: 'audiofade',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '소리 페이드',
+    category: 'tool',
+    desc: '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다',
+    layout: 'wide',
+    icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
+    lazyScriptPaths: ['tools/audiofade']
+  },
+  {
+    id: 'audiojoin',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '오디오 이어붙이기',
+    category: 'tool',
+    desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/audiojoin']
+  },
+  {
+    id: 'imgbatch',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '이미지 일괄 변환',
+    category: 'tool',
+    desc: '사진 여러 장의 크기와 형식을 한 번에 바꿔 ZIP 으로 받습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="6" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 14l3.5-3.5 2.5 2.5 3-3 4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M7 3h11a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/imgbatch']
+  },
+  {
+    id: 'filehash',
+    hidden: true, // 「filetool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '파일 검사값 확인',
+    category: 'tool',
+    desc: '내려받은 파일의 체크섬을 계산하고 배포처가 적어 둔 값과 맞춰 봅니다',
+    layout: 'wide',
+    icon: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/filehash']
+  },
+  {
+    id: 'pdftool',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 편집',
+    category: 'tool',
+    desc: 'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdftool']
+  },
+  {
+    id: 'audiocut',
+    hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '오디오 자르기',
+    category: 'tool',
+    desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/audiocut']
+  },
+  {
+    id: 'favicon',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '파비콘 만들기',
+    category: 'tool',
+    desc: '그림 한 장으로 사이트 아이콘 여러 크기와 ico 를 만듭니다. 붙일 코드까지 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.3" opacity="0.6"/><circle cx="6" cy="7" r="0.9" fill="currentColor"/><path d="M9 15l2-2.5L13 15l2-3 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/favicon']
+  },
+  {
+    id: 'imgmerge',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '사진 이어 붙이기',
+    category: 'tool',
+    desc: '여러 장을 세로나 가로로 한 장에 이어 붙입니다. 사진이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="13" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 7l2-2 2 2M7 17l2-2 2 2" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/imgmerge']
+  },
+  {
+    id: 'text2pdf',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '글을 PDF 로',
+    category: 'tool',
+    desc: '적은 글을 A4 PDF 로 만듭니다. 한글도 깨지지 않고, 글이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/text2pdf']
+  },
+  {
+    id: 'pdfsign',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 에 서명 넣기',
+    category: 'tool',
+    desc: '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16c1.5-3 2.5 1 4-1s2 .5 3-1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdfsign']
+  },
+  {
+    id: 'filesplit',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '큰 파일 나누기·합치기',
+    category: 'tool',
+    desc: '큰 파일을 여러 조각으로 나누고 다시 합칩니다. 압축하지 않아 원본과 완전히 같습니다',
+    layout: 'wide',
+    icon: '<path d="M4 12h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="3 3"/><rect x="4" y="3" width="16" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="4" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="13" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    lazyScriptPaths: ['tools/filesplit']
+  },
+  {
+    id: 'exifclean',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'filetool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '사진 정보 지우기',
+    category: 'tool',
+    desc: '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6l1.5-2h5L16 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M18.5 4.5 5.5 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/exifclean']
+  },
+  {
+    id: 'pdf2text',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 에서 글자 뽑기',
+    category: 'tool',
+    desc: 'PDF 의 글자를 줄·문단을 살려 뽑아냅니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdf2text']
+  },
+  {
+    id: 'audiolevel',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '소리 크기 맞추기',
+    category: 'tool',
+    desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M4 14V10M8 17V7M12 19V5M16 16V8M20 13v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/audiolevel']
+  },
+  {
+    id: 'pdfcrop',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 여백 자르기',
+    category: 'tool',
+    desc: '스캔본·논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다',
+    layout: 'wide',
+    icon: '<path d="M7 3v14h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 7h14v14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdfcrop']
+  },
+  {
+    id: 'pdfpagenum',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 쪽 번호',
+    category: 'tool',
+    desc: 'PDF 에 쪽 번호를 넣습니다. 표지는 건너뛰고 본문부터 1로 셀 수 있습니다',
+    layout: 'wide',
+    icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdfpagenum']
+  },
+  {
+    id: 'pdfredact',
+    hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 가리개',
+    category: 'tool',
+    desc: 'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다',
+    layout: 'wide',
+    icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="12" width="7" height="3.5" rx="0.8" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/pdfredact']
+  },
+  {
+    id: 'pdfcompress',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'PDF 용량 줄이기',
+    category: 'tool',
+    desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/pdfcompress']
+  },
+  {
+    id: 'pdf',
+    title: 'PDF 도구',
+    category: 'tool',
+    desc: 'PDF 를 합치고 나누고 줄이고, 서명·워터마크를 넣습니다. 문서가 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true, // 처리기가 무겁다 — 연 탭만 만든다
+    icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 13h7M8.5 16.5h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/pdftool', 'tools/pdfcrop', 'tools/pdfpagenum', 'tools/pdfredact', 'tools/pdfcompress', 'tools/pdfsign', 'tools/pdfwatermark', 'tools/pdf2text', 'tools/text2pdf', 'tools/pdf2img', 'tools/img2pdf', 'tools/pdf']
+  },
+  {
+    id: 'sound',
+    title: '소리 도구',
+    category: 'tool',
+    desc: '녹음하고 자르고 크기를 맞추고 잇습니다. MP3·WAV 로 저장하며 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true,
+    icon: '<path d="M4 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/voicerec', 'tools/audiocut', 'tools/audiolevel', 'tools/audiospeed', 'tools/audiofade', 'tools/audiojoin', 'tools/sound']
+  },
+  {
+    id: 'filetool',
+    title: '파일 도구',
+    category: 'tool',
+    desc: '사진 변환·이어 붙이기, 위치정보 지우기, ZIP, 큰 파일 나누기. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M4 6a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/imgbatch', 'tools/imgmerge', 'tools/favicon', 'tools/exifclean', 'tools/ziptool', 'tools/filesplit', 'tools/filehash', 'tools/filetool']
+  },
+  {
+    id: 'video2gif',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 → GIF',
+    category: 'tool',
+    desc: '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif'] // 압축기가 먼저 있어야 한다
+  },
+  {
+    id: 'video2audio',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상에서 소리 추출',
+    category: 'tool',
+    desc: '영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 10l5-3v10l-5-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 14c0-2 1.5-3 2.5-3s2.5 1 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/video2audio']
+  },
+  {
+    id: 'videotrim',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 자르기',
+    category: 'tool',
+    desc: '영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<path d="M6 4v13a3 3 0 1 0 2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 4v13a3 3 0 1 1-2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M9 9h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/videotrim']
+  },
+  {
+    id: 'videorotate',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 돌리기',
+    category: 'tool',
+    desc: '누워서 찍힌 영상을 세웁니다. 돌리면 가로세로도 함께 바뀝니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M17 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.5 5.5L17 8l2.5 2.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/videorotate']
+  },
+  {
+    id: 'videocompress',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상 용량 줄이기',
+    category: 'tool',
+    desc: '영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 9.5 8 12l2.5 2.5M13.5 9.5 16 12l-2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/videocompress']
+  },
+  {
+    id: 'video2img',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영상에서 사진 뽑기',
+    category: 'tool',
+    desc: '영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M15 9l6-3v9l-6-3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><rect x="7" y="12" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="var(--bg, #111)"/><path d="M7 18l3-3 2 2 2.5-2.5L19 18" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/video2img']
+  },
+  {
+    id: 'screenrec',
+    hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '화면 녹화',
+    category: 'tool',
+    desc: '화면이나 창을 녹화합니다. 소리도 함께 담고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="10.5" r="3" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/screenrec']
+  },
+  {
+    id: 'voicerec',
+    hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '목소리 녹음',
+    category: 'tool',
+    desc: '마이크로 바로 녹음해 WAV 로 받습니다. 소리가 들어오는지 눈으로 보이고, 파일이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/voicerec']
+  },
+  {
+    id: 'videotool',
+    title: '영상 도구',
+    category: 'tool',
+    desc: '영상을 GIF 로 만들고, 구간을 자르고, 소리를 뽑고, 화면을 녹화합니다. 영상이 브라우저를 벗어나지 않습니다',
+    layout: 'wide',
+    lazyTabs: true, // 처리가 무겁다 — 연 탭만 만든다
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/><path d="M3 9h18" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>',
+    lazyScriptPaths: ['tools/gifenc', 'tools/video2gif', 'tools/videotrim', 'tools/videorotate', 'tools/videocompress', 'tools/video2img', 'tools/video2audio', 'tools/screenrec', 'tools/videotool']
   },
   {
     id: 'charcount',
@@ -280,6 +746,28 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<rect x="3" y="4" width="8" height="16" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h8M3 14h8" stroke="currentColor" stroke-width="1.3"/><path d="M15 6h1a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/csvjson']
+  },
+  {
+    id: 'tableconv',
+    hidden: true, // 「개발 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '표 바꾸기',
+    category: 'tool',
+    desc: '엑셀에서 복사한 표를 마크다운·CSV·JSON 으로 바꿉니다. 붙여넣기만 하면 됩니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 9h18M3 14.5h18M9 4v16M15 4v16" stroke="currentColor" stroke-width="1.3" opacity="0.8"/>',
+    lazyScriptPaths: ['tools/tableconv']
+  },
+  {
+    id: 'json2ts',
+    hidden: true, // 「devtool」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'devtool', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'JSON → 타입 선언',
+    category: 'tool',
+    desc: 'JSON 에서 TypeScript 인터페이스를 만듭니다. 배열은 모든 원소를 합쳐 봅니다',
+    layout: 'wide',
+    icon: '<path d="M9 4H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M14 8h6M17 8v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/json2ts']
   },
   {
     id: 'jsonfmt',
@@ -305,6 +793,8 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'qrgen',
+    hidden: true, // 「QR 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'QR 코드 생성',
     category: 'tool',
     desc: 'URL·텍스트·WiFi·연락처를 QR 코드로 만들고 PNG/SVG 로 저장합니다',
@@ -313,8 +803,29 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/qrgen']
   },
   {
+    id: 'qrread',
+    hidden: true, // 「QR 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'qr', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'QR 코드 읽기',
+    category: 'tool',
+    desc: '그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/qrread']
+  },
+  {
+    id: 'qr',
+    title: 'QR 도구',
+    category: 'tool',
+    desc: 'QR 코드를 만들고 읽습니다. 읽은 내용이 무엇인지도 알려 줍니다',
+    layout: 'wide',
+    lazyTabs: true, // 해독기가 무겁다 — 연 탭만 만든다
+    icon: '<rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/qrgen', 'tools/qrread', 'tools/qr']
+  },
+  {
     id: 'draw',
-    title: '뽑기',
+    title: '랜덤 뽑기',
     category: 'tool',
     desc: '로또 번호·사다리타기·추첨과 팀 나누기를 한 곳에서',
     layout: 'wide',
@@ -350,7 +861,51 @@ window.KARMOLAB_LAZY_META = [
     desc: '날짜 계산·D-Day·타이머·스톱워치·세계 시차를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3.5 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/time']
+    lazyScriptPaths: ['tools/datecalc', 'tools/timer', 'tools/worldclock', 'tools/epoch', 'tools/birth', 'tools/workdays', 'tools/timecalc', 'tools/pace', 'tools/time']
+  },
+  {
+    id: 'birth',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '생일 정보',
+    category: 'tool',
+    desc: '생년월일로 만 나이·띠·별자리·태어난 요일·다음 생일까지 남은 날을 한 번에',
+    layout: 'form',
+    icon: '<path d="M4 20h16v-7H4zM6 13V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 7V5M12 7V4M15 7V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/birth']
+  },
+  {
+    id: 'workdays',
+    hidden: true, // 「시간 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '영업일 계산',
+    category: 'tool',
+    desc: '주말과 공휴일을 뺀 영업일을 셉니다. 어떤 날을 뺐는지 보여 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9 15l2 2 4-4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/workdays']
+  },
+  {
+    id: 'timecalc',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '시간 더하기·빼기',
+    category: 'tool',
+    desc: '시각에 시간을 더하거나 근무시간을 합산합니다. 60진법 실수를 막습니다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M16 4h5M18.5 1.5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/timecalc']
+  },
+  {
+    id: 'pace',
+    hidden: true, // 「time」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'time', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '러닝 페이스 계산',
+    category: 'tool',
+    desc: '페이스와 속도를 서로 바꾸고 목표 기록에 필요한 페이스를 역산합니다',
+    layout: 'wide',
+    icon: '<circle cx="17" cy="5" r="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M14 21l2-6-3-2 1-4 3 2 2 1M9 12l-2 3-3 1" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/pace']
   },
   {
     id: 'datecalc',
@@ -425,7 +980,40 @@ window.KARMOLAB_LAZY_META = [
     desc: 'HEX·RGB·HSL 변환, 이미지에서 색 추출, CSS 색 이름표를 한 곳에서',
     layout: 'wide',
     icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z" fill="currentColor" opacity="0.45"/><circle cx="8" cy="9" r="1.1" fill="currentColor"/>',
-    lazyScriptPaths: ['ref/reftable', 'tools/colorconv', 'tools/palette', 'ref/colorname', 'tools/color']
+    lazyScriptPaths: ['ref/reftable', 'tools/colorconv', 'tools/palette', 'ref/colorname', 'tools/gradient', 'tools/contrast', 'tools/colorblind', 'tools/color']
+  },
+  {
+    id: 'gradient',
+    hidden: true, // 「색상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '그라데이션 만들기',
+    category: 'tool',
+    desc: '배경용 그라데이션을 보면서 만들고 CSS 를 가져갑니다. 가운데가 탁해지지 않게 섞습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 18 19 6" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><circle cx="7" cy="8" r="1.6" fill="currentColor" opacity="0.8"/><circle cx="17" cy="16" r="1.6" fill="currentColor" opacity="0.4"/>',
+    lazyScriptPaths: ['tools/gradient']
+  },
+  {
+    id: 'contrast',
+    hidden: true, // 「color」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '색 대비 검사',
+    category: 'tool',
+    desc: '글자색과 배경색의 대비비를 재고 접근성 기준 통과 여부를 알려줍니다',
+    layout: 'wide',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/contrast']
+  },
+  {
+    id: 'colorblind',
+    hidden: true, // 「color」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'color', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '색각 시뮬레이터',
+    category: 'tool',
+    desc: '두 색이 색각 이상에서 어떻게 보이는지 확인하고 구분 가능한지 판정합니다',
+    layout: 'wide',
+    icon: '<circle cx="9" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 7.5a5.5 5.5 0 0 0 0 9" stroke="currentColor" stroke-width="1.3"/>',
+    lazyScriptPaths: ['tools/colorblind']
   },
   {
     id: 'colorconv',
@@ -439,6 +1027,39 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/colorconv']
   },
 
+  {
+    id: 'text2img',
+    hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '글자를 그림으로',
+    category: 'tool',
+    desc: '인용구나 공지를 이미지 카드로 만듭니다. 긴 글도 잘리지 않게 크기를 맞춰 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 10h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/text2img']
+  },
+  {
+    id: 'imgresize',
+    hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '사진 크기 맞추기',
+    category: 'tool',
+    desc: '가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16l3-3 2 2 3-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h3v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/imgresize']
+  },
+  {
+    id: 'redact',
+    hidden: true, // 「이미지 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'image', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '가리개',
+    category: 'tool',
+    desc: '캡처에서 계좌번호·이름 같은 것을 지웁니다. 덮는 게 아니라 그 자리를 없앱니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="6" y="9" width="7" height="4" rx="1" fill="currentColor"/><path d="M15 15h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/redact']
+  },
   {
     id: 'asciiart',
     hidden: true, // 「이미지」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
@@ -460,6 +1081,42 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 6h4v4H4zM4 14h4v4H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8h8M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4v4M16 16v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/radix']
+  },
+  {
+    id: 'barcode',
+    title: '바코드 만들기',
+    category: 'tool',
+    desc: '재고·도서·물품 라벨용 바코드를 만듭니다. 안 읽히는 값은 미리 알려 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 5v14M7 5v14M9.5 5v14M13 5v14M16 5v14M18 5v14M20 5v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/barcode']
+  },
+  {
+    id: 'icsmake',
+    title: '일정 파일 만들기',
+    category: 'tool',
+    desc: '모임·공지를 달력에 넣을 수 있는 .ics 파일로 만듭니다. 시간대를 맞춰 적습니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13v5M9.5 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/icsmake']
+  },
+  {
+    id: 'subtitle',
+    title: '자막 시간 맞추기',
+    category: 'tool',
+    desc: '어긋난 자막을 밀거나 늘려 맞춥니다. SRT·VTT 를 서로 바꿉니다',
+    layout: 'wide',
+    icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 14h5M13 14h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/subtitle']
+  },
+  {
+    id: 'textredact',
+    title: '글자 가리개',
+    category: 'tool',
+    desc: '로그·문서에서 주민번호·전화·카드번호를 찾아 지웁니다. 무엇을 찾았는지 보여 줍니다',
+    layout: 'wide',
+    icon: '<path d="M4 5h16M4 9h16M4 13h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="14" y="15" width="7" height="4" rx="1" fill="currentColor"/>',
+    lazyScriptPaths: ['tools/textredact']
   },
   {
     id: 'textclean',
@@ -501,7 +1158,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '퍼센트·이자·BMI·단위·진법 계산을 한 곳에서',
     layout: 'form',
     icon: '<rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7h8M8 12h2M12 12h2M16 12h1M8 16h2M12 16h2M16 16h1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/calc']
+    lazyScriptPaths: ['tools/percent', 'tools/interest', 'tools/bmi', 'tools/unitconv', 'tools/radix', 'tools/numword', 'tools/aspect', 'tools/grade', 'tools/vat', 'tools/bytesize', 'tools/bizno', 'tools/loan', 'tools/cssunit', 'tools/calc']
   },
   {
     id: 'numword',
@@ -513,6 +1170,83 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<path d="M4 8h6M7 5v11M14 5h4a2 2 0 0 1 0 4h-2a2 2 0 0 0 0 4h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['tools/numword']
+  },
+  {
+    id: 'aspect',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '화면 비율 계산기',
+    category: 'tool',
+    desc: '가로·세로 비율을 유지한 채 크기를 계산합니다. 화면비 목록과 여백 계산 포함',
+    layout: 'form',
+    icon: '<rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 6l18 12" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>',
+    lazyScriptPaths: ['tools/aspect']
+  },
+  {
+    id: 'grade',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '학점 계산기',
+    category: 'tool',
+    desc: '과목별 학점과 성적으로 평점을 계산합니다. 목표 학점에 필요한 성적도 함께',
+    layout: 'wide',
+    icon: '<path d="M12 4 2 9l10 5 10-5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M6 11.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-4.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/grade']
+  },
+  {
+    id: 'vat',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '부가세 계산기',
+    category: 'tool',
+    desc: '공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로',
+    layout: 'form',
+    icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/vat']
+  },
+  {
+    id: 'bytesize',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '용량 단위 변환',
+    category: 'tool',
+    desc: 'KB·MB·GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다',
+    layout: 'form',
+    icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',
+    lazyScriptPaths: ['tools/bytesize']
+  },
+  {
+    id: 'bizno',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '사업자번호 검사',
+    category: 'tool',
+    desc: '사업자등록번호·법인등록번호가 형식상 올바른지 계산으로 확인합니다',
+    layout: 'form',
+    icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6V4h8v2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 12h5M7 16h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/bizno']
+  },
+  {
+    id: 'loan',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: '대출 상환표',
+    category: 'tool',
+    desc: '원리금균등·원금균등·만기일시 상환을 비교하고 달별 원금·이자를 봅니다',
+    layout: 'wide',
+    icon: '<path d="M3 20h18M6 20V10M11 20V6M16 20v-8M21 20v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/loan']
+  },
+  {
+    id: 'cssunit',
+    hidden: true, // 「calc」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
+    bundle: 'calc', // 이 도구를 부르면 묶음의 이 탭으로 간다
+    title: 'CSS 단위 변환',
+    category: 'tool',
+    desc: 'px·rem·em·pt·% 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히',
+    layout: 'form',
+    icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M19 14v6M17 16l2-2 2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/cssunit']
   },
   {
     id: 'percent',
@@ -799,10 +1533,10 @@ window.KARMOLAB_LAZY_META = [
   { id: 'fontgacha', title: '폰트가챠', category: 'play', desc: '가챠로 폰트를 바꿉니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['font'] },
   { id: 'hacker', title: '해커', category: 'play', desc: '키보드를 연타해 해커 느낌의 텍스트를 출력합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hacker'] },
   { id: 'hourglass', title: '모래시계', category: 'tool', desc: '모래시계 타이머를 실행합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['hourglass'] },
-  { id: 'moon', title: '문페이즈', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
+  { id: 'moon', title: '달 위상', category: 'tool', desc: '오늘의 달 위상을 확인합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['moon'] },
   { id: 'news', title: '뉴스', category: 'play', desc: '가짜 뉴스 헤드라인을 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['news'] },
   { id: 'particle', title: '파티클', category: 'play', desc: '마우스로 파티클을 움직이고 클릭으로 폭발시킵니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['particle'] },
-  { id: 'password', title: '비번', category: 'tool', desc: '랜덤 비밀번호를 생성합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
+  { id: 'password', title: '비번', category: 'tool', desc: '4자리 비밀번호를 힌트 보며 맞히는 놀이', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['password'] },
   { id: 'pet', title: '쓰다듬기', category: 'play', desc: '고양이를 쓰다듬고 호감도를 올립니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['pet'] },
   { id: 'reaction', title: '반응속도', category: 'play', desc: '반응 속도를 측정합니다', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['reaction'] },
   { id: 'shylink', title: '어그로', category: 'play', desc: '움직이는 링크를 잡는 미니게임', hidden: true, layout: 'form', icon: '', lazyScriptPaths: ['shylink'] },
@@ -820,5 +1554,16 @@ window.KARMOLAB_LAZY_META = [
     layout: 'full',
     icon: '<path d="M3 7h18l-2 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L3 7z M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     lazyScriptPaths: ['stash']
+  },
+
+  /* 노트북(집에서 24시간 도는 기계)으로 가는 문 — 파일 공유·빌드 현황 */
+  {
+    id: 'laptop',
+    title: '노트북',
+    category: 'lab',
+    desc: '집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문',
+    layout: 'form',
+    icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['laptop']
   }
 ] as KarmoLabLazyWidgetStub[];

@@ -58,11 +58,11 @@
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">기준일 (오늘)</label>
-              <input type="date" id="ddBase">
+              <input type="date" id="ddBase" aria-label="기준일">
             </div>
             <div class="field-group">
               <label class="field-label">목표일</label>
-              <input type="date" id="ddTarget">
+              <input type="date" id="ddTarget" aria-label="목표일">
               <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
                 <button class="btn btn-ghost dd-quick" data-add="7">+7일</button>
                 <button class="btn btn-ghost dd-quick" data-add="30">+30일</button>
@@ -121,18 +121,18 @@
             <div class="field-group">
               <label class="field-label">두 날짜 사이</label>
               <div class="tool-grid-2">
-                <input type="date" id="dbFrom">
-                <input type="date" id="dbTo">
+                <input type="date" id="dbFrom" aria-label="시작일">
+                <input type="date" id="dbTo" aria-label="종료일">
               </div>
               <div class="tool-status" id="dbOut" style="margin-top:10px;"></div>
             </div>
             <div class="field-group">
               <label class="field-label">날짜 더하기 / 빼기</label>
               <div class="tool-grid-2">
-                <input type="date" id="daBase">
+                <input type="date" id="daBase" aria-label="기준 날짜">
                 <div style="display:flex; gap:6px;">
                   <input type="text" id="daAmount" inputmode="numeric" value="100" placeholder="숫자">
-                  <select id="daUnit" style="width:auto;">
+                  <select id="daUnit" aria-label="단위" style="width:auto;">
                     <option value="day">일</option>
                     <option value="week">주</option>
                     <option value="month">개월</option>
@@ -201,7 +201,7 @@
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">생년월일</label>
-              <input type="date" id="agBirth">
+              <input type="date" id="agBirth" aria-label="생년월일">
             </div>
             <div class="tool-display" id="agResult">-</div>
             <div class="cc-stats" id="agStats"></div>

@@ -48,10 +48,10 @@ CDN 직접 import 는 *Tauri webview Tracking Prevention* 에서 사용자에 �
 
 다른 위젯의 실제 사용 예:
 - `widgets/docs/docs.ts` — `.docs-body .mermaid` 가 `var(--bg-tertiary)`, `var(--border)`, `var(--radius-md)` 사용.
-- `widgets/karmoddrine-dashboard/karmoddrine-dashboard.ts` — `.kd-card` 가 `var(--accent, #d4a849)` (fallback), `var(--text-primary, #e8e8e8)` 사용.
+- `widgets/karmoddrine-dashboard/karmoddrine-dashboard.ts` — `.kd-card` 가 `var(--accent, #a99bf5)` (fallback), `var(--text-primary, #e8e8e8)` 사용.
 - `widgets/quest-log/quest-log.ts` — 같은 패턴.
 
-자체 hex (`#d4a849`, `#e8e8e8` 등) 박지 말고 토큰 + fallback hex 패턴 따름.
+자체 hex (`#a99bf5`, `#e8e8e8` 등) 박지 말고 토큰 + fallback hex 패턴 따름.
 
 ## 관련
 

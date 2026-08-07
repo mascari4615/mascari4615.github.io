@@ -47,7 +47,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">게임 수 <span id="ltCountVal" class="range-value">5게임</span></div>
-                  <input type="range" id="ltCount" min="1" max="20" value="5">
+                  <input type="range" id="ltCount" aria-label="게임 수" min="1" max="20" value="5">
                 </div>
                 <div>
                   <div class="tool-sublabel">보너스 번호</div>
@@ -72,7 +72,7 @@
               </div>
               <div style="margin-top:10px;">
                 <div class="tool-sublabel">홀짝 균형</div>
-                <select id="ltParity">
+                <select id="ltParity" aria-label="홀짝 균형">
                   <option value="any">상관없음</option>
                   <option value="balanced">홀짝 2:4 ~ 4:2 (흔한 패턴)</option>
                   <option value="odd">홀수 많게</option>

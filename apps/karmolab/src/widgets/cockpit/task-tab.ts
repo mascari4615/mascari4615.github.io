@@ -58,7 +58,7 @@ const DOMAIN_IMAGE: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   seed:   '#55555a',
   ready:  '#7fa6d4',
-  active: '#d4a849',
+  active: '#a99bf5',
   hold:   '#a08060',
   done:   '#9ec4a8',
   sealed: '#b7a3d6',
@@ -258,7 +258,7 @@ function renderQuestSection(domain: string, tasks: MemoTaskNode[], domainIdx: nu
       const sc = STATUS_COLORS[t.status] ?? '#55555a';
       const isActive = t.status === 'active';
       const prefix = isActive
-        ? '<span class="ckt-qrow-prefix" style="color:#d4a849">✦</span>'
+        ? '<span class="ckt-qrow-prefix" style="color:#a99bf5">✦</span>'
         : '<span class="ckt-qrow-prefix" style="color:#33363d">◇</span>';
       const indentCls = t.parent ? ' ckt-qrow--sub' : '';
       return `<div class="ckt-qrow${indentCls}" data-task-id="${esc(t.id)}">
@@ -465,10 +465,12 @@ function showCreateModal(root: HTMLElement, onCreated: (path: string) => void): 
 const TASK_TAB_STYLE_ID = 'ck-task-tab-styles';
 const TASK_TAB_CSS = `
 .ckt-wrap {
-  --bg: #0b0d12; --bg2: #0f1218; --paper: #12151c;
-  --ink: #f2f2ee; --ink2: #9a9a94; --ink3: #55555a;
-  --line: #1f242d; --line2: #2a3040; --line3: #3d4557;
-  --accent: #d4a849; --accent2: #7fa6d4;
+  /* 앱 테마 토큰의 별명. 예전엔 다크 색을 직접 박아 라이트에서 이 판만 까맣게 남았다.
+     --accent 는 일부러 안 덮는다 — 바깥에서 내려오는 테마 강조색을 그대로 쓴다. */
+  --bg: var(--bg-void); --bg2: var(--bg-primary); --paper: var(--bg-secondary);
+  --ink: var(--text-primary); --ink2: var(--text-secondary); --ink3: var(--text-tertiary);
+  --line: var(--bg-tertiary); --line2: var(--bg-hover); --line3: var(--bg-active);
+  --accent2: var(--secondary);
   background: var(--bg); color: var(--ink);
   font-family: 'Noto Sans KR', system-ui, sans-serif;
   height: 100%; display: flex; flex-direction: column;
@@ -600,7 +602,7 @@ const TASK_TAB_CSS = `
   gap: 10px; padding: 9px 14px; border-bottom: 1px dashed var(--line);
   cursor: pointer; align-items: center;
 }
-.ckt-qrow--sub { padding-left: 26px; background: rgba(255,255,255,0.01); }
+.ckt-qrow--sub { padding-left: 26px; background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .ckt-qrow:last-child { border-bottom: none; }
 .ckt-qrow:hover { background: var(--bg2); }
 .ckt-qrow-prefix { font-size: 12px; line-height: 1; }
@@ -875,8 +877,8 @@ export function buildTaskTab(container: HTMLElement): void {
   searchEl.addEventListener('input', () => { selectedIdx = 0; refilter(); });
   searchEl.addEventListener('keydown', (e) => {
     if (viewMode !== 'list') return;
-    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = Math.min(selectedIdx + 1, listRoots.length - 1); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = Math.max(selectedIdx - 1, 0); renderList(listEl, listRoots, selectedIdx, subCountMap, cardMap); }
     else if (e.key === 'Enter') { e.preventDefault(); const t = listRoots[selectedIdx]; if (t) doOpenDrawer(t.id); }
     else if (e.key === 'Escape') {
       e.preventDefault();

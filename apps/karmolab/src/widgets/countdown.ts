@@ -20,7 +20,7 @@
                             <span style="font-size:var(--font-size-xs); color:var(--text-tertiary);">목표일:</span>
                             <input type="datetime-local" id="countdownTarget" class="input" style="width:200px; padding:6px; font-size:var(--font-size-sm);">
                         </div>
-                        <div style="margin-top:15px; font-size:var(--font-size-xs); color:var(--text-tertiary); display:grid; grid-template-columns:1fr; gap:6px; text-align:left; background:rgba(255,255,255,0.03); padding:15px; border-radius:8px; width:100%; max-width:350px;">
+                        <div style="margin-top:15px; font-size:var(--font-size-xs); color:var(--text-tertiary); display:grid; grid-template-columns:1fr; gap:6px; text-align:left; background:var(--bg-secondary); border:1px solid var(--border); padding:15px; border-radius:8px; width:100%; max-width:350px;">
                             <div style="font-weight:bold; margin-bottom:4px; color:var(--text-secondary); text-align:center;">--- 낭비 체감 가이드 (ms 전환표) ---</div>
                             <div style="display:flex; justify-content:space-between;"><span>1분</span> <span>60,000 ms</span></div>
                             <div style="display:flex; justify-content:space-between;"><span>1시간</span> <span>3,600,000 ms</span></div>

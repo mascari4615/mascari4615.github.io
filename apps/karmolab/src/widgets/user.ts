@@ -105,6 +105,19 @@
         .storage-table td:last-child, .storage-table th:last-child { text-align:right; font-family:monospace; }
         .storage-table .storage-key { font-family:monospace; font-size:var(--font-size-xs); color:var(--text-primary); word-break:break-all; }
         .storage-table .storage-desc { font-size:var(--font-size-xs); color:var(--text-tertiary); max-width:200px; }
+        /* 계정 자리 (TASK-KL-098) — 서버에 못 닿으면 통째로 안 그려지므로 빈 칸도 안 남는다. */
+        .user-account-slot:empty { display:none; }
+        .user-account-card { display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
+            margin-top:16px; padding:14px 16px; border:1px solid var(--border); border-radius:10px; background:var(--bg-secondary); }
+        .user-account-who { display:flex; align-items:center; gap:12px; min-width:0; }
+        .user-account-avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+        .user-account-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
+        .user-account-text strong { font-size:var(--font-size-sm); color:var(--text-primary); }
+        .user-account-text span { font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .user-account-btn { padding:8px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent);
+            color:var(--bg-primary); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; white-space:nowrap; }
+        .user-account-btn:hover { filter:brightness(1.08); }
+        .user-account-btn-quiet { background:transparent; color:var(--text-secondary); border-color:var(--border); }
     `);
 
     function buildOverview(container: HTMLElement): void {
@@ -151,7 +164,59 @@
                         </div>
                     </div>
                 </div>
+                <div class="user-account-slot" id="userAccountSlot"></div>
             </div>`;
+
+        renderAccountSlot(container.querySelector('#userAccountSlot'));
+    }
+
+    /**
+     * 계정 자리 (TASK-KL-098).
+     *
+     * 서버에 못 닿으면 **아무것도 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     * 로그인은 기록을 옮기는 일이지 기능을 여는 일이 아니므로, 없어도 화면이 멀쩡해야 한다.
+     */
+    function renderAccountSlot(slot: Element | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+
+        account.subscribe((state) => {
+            if (!slot.isConnected) return;
+            if (state.loading || !state.reachable) {
+                slot.innerHTML = '';
+                return;
+            }
+            if (!state.account) {
+                slot.innerHTML = `
+                    <div class="user-account-card">
+                        <div class="user-account-text">
+                            <strong>기록을 이 브라우저 밖에도 남기기</strong>
+                            <span>지금 도전과제·연속기록은 이 브라우저에만 있습니다. 계정을 만들면 기기를 바꿔도 남고, 공개 프로필 주소가 생깁니다.</span>
+                        </div>
+                        <button type="button" class="user-account-btn" id="userSignInBtn">디스코드로 시작하기</button>
+                    </div>`;
+                slot.querySelector('#userSignInBtn')?.addEventListener('click', () => account.signIn());
+                return;
+            }
+
+            const me = state.account;
+            const avatar = account.avatarUrl(me.avatarPath);
+            slot.innerHTML = `
+                <div class="user-account-card">
+                    <div class="user-account-who">
+                        ${avatar ? `<img class="user-account-avatar" src="${escapeHtml(avatar)}" alt="">` : ''}
+                        <div class="user-account-text">
+                            <strong>${escapeHtml(me.displayName)}</strong>
+                            <span>공개 프로필 · <a href="${escapeHtml(me.profileUrl)}">/karmolab/u/?h=${escapeHtml(me.handle)}</a></span>
+                        </div>
+                    </div>
+                    <button type="button" class="user-account-btn user-account-btn-quiet" id="userSignOutBtn">로그아웃</button>
+                </div>`;
+            slot.querySelector('#userSignOutBtn')?.addEventListener('click', () => {
+                void account.signOut();
+            });
+        });
     }
 
     function buildUsage(container: HTMLElement): void {

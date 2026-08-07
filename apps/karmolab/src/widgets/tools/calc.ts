@@ -12,7 +12,14 @@
     ['bmi', 'BMI'],
     ['unitconv', '단위'],
     ['radix', '진법'],
-    ['numword', '숫자 ↔ 한글']
+    ['numword', '숫자 ↔ 한글'],
+    ['aspect', '비율'],
+    ['grade', '학점'],
+    ['vat', '부가세'],
+    ['bytesize', '용량'],
+    ['bizno', '사업자번호'],
+    ['loan', '대출 상환'],
+    ['cssunit', 'CSS 단위']
   ];
 
   Toolbox.register({

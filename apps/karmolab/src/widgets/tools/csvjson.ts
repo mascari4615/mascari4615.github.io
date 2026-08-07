@@ -78,7 +78,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">구분자</div>
-                  <select id="cjDelim">
+                  <select id="cjDelim" aria-label="구분자">
                     <option value=",">쉼표 (,)</option>
                     <option value="&#9;">탭</option>
                     <option value=";">세미콜론 (;)</option>
@@ -104,7 +104,7 @@
             </div>
             <div class="field-group">
               <label class="field-label">JSON — 객체 배열</label>
-              <textarea id="cjJson" rows="9" spellcheck="false" placeholder='[{"이름":"홍길동","나이":30}]'></textarea>
+              <textarea id="cjJson" aria-label="JSON 입력" rows="9" spellcheck="false" placeholder='[{"이름":"홍길동","나이":30}]'></textarea>
             </div>
             <div class="tool-status" id="cjStatus">따옴표 안의 쉼표와 줄바꿈도 그대로 살립니다.</div>
           `;

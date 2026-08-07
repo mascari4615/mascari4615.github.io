@@ -1,0 +1,232 @@
+---
+layout: none
+permalink: /karmolab/higher/
+---
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>높은 쪽 고르기 — 둘 중 뭐가 더 클까 | KarmoLab</title>
+<meta name="description" content="둘 중 어느 쪽이 더 큰지 고르는 연승 놀이. 포켓몬 키·몸무게, 롤 챔피언 체력·방어, 원신 등급·출시로 겨룹니다. 한 번 틀리면 끝, 최고 연승만 남습니다.">
+<link rel="canonical" href="https://blog.mascari4615.com/karmolab/higher/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="높은 쪽 고르기 — 둘 중 뭐가 더 클까">
+<meta property="og:description" content="한 번 틀리면 끝. 최고 연승은 몇까지 갈까요.">
+<meta property="og:url" content="https://blog.mascari4615.com/karmolab/higher/">
+<meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<!-- 색·글씨·모서리는 KarmoLab 이 정본이다 (TASK-KL-089).
+     여기서 손으로 색을 박지 않는다 — base.css 가 KarmoLab 스타일에서 토큰을 그대로 떠 온다.
+     아래에는 이 놀이에만 있는 부품(카드 두 장·점수 줄)만 둔다. -->
+<link rel="stylesheet" href="/karmolab/play/base.css">
+<style>
+.ask { text-align: center; font-size: var(--font-size-md); color: var(--text-secondary); margin: 4px 0 10px; }
+.ask b { color: var(--text-primary); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl);
+  padding: 14px 8px; min-height: 190px; cursor: pointer; color: inherit; font: inherit;
+}
+.side:hover:not(:disabled) { border-color: var(--border-hover); }
+.side:disabled { cursor: default; }
+.side img { width: 96px; height: 96px; object-fit: contain; }
+.side .nm { font-weight: 700; font-size: var(--font-size-sm); }
+.side .vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
+.side.win { border-color: var(--success); }
+.side.lose { border-color: var(--error); }
+.score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
+.score b { color: var(--text-primary); font-size: var(--font-size-md); }
+.msg { text-align: center; margin: 10px 0 0; min-height: 1.7em; }
+/* [hidden] 이 이겨야 한다 — 안 그러면 끝나지도 않았는데 「다시」가 떠 있다. */
+.again[hidden] { display: none; }
+.again { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+.boards { margin-top: 2rem; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.boards ul { padding-left: 1.1rem; }
+.boards summary { cursor: pointer; color: var(--text-tertiary); list-style: none; min-height: 34px; display: flex; align-items: center; }
+.boards summary::-webkit-details-marker { display: none; }
+.boards summary::before { content: "＋ "; }
+.boards details[open] summary::before { content: "− "; }
+@media (max-width: 380px) { .side img { width: 76px; height: 76px; } }
+</style>
+</head>
+<body>
+<main>
+  <nav class="play-crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">높은 쪽 고르기</span></nav>
+  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><span class="play-strip-now" aria-current="page">📈 높은 쪽 고르기</span><a href="/karmolab/quest/">🧩 오늘의 문제</a><a class="play-strip-all" href="/karmolab/play/" title="놀이터 전체">＋</a></nav><!-- /PLAY_STRIP -->
+  <h1>높은 쪽 고르기</h1>
+  <p class="play-lead">둘 중 어느 쪽이 더 큰지만 고르면 됩니다. 한 번 틀리면 끝.</p>
+
+  <div class="play-chips" id="picks" role="group" aria-label="판 고르기"></div>
+
+  <p class="ask" id="ask">불러오는 중…</p>
+  <div class="pair">
+    <button class="side" id="a" type="button"></button>
+    <button class="side" id="b" type="button"></button>
+  </div>
+
+  <p class="score"><span>연승 <b id="streak">0</b></span><span>최고 <b id="best">0</b></span></p>
+  <p class="msg" id="msg" aria-live="polite"></p>
+  <div class="again" id="again" hidden>
+    <button type="button" class="play-go" id="retry">다시</button>
+    <button type="button" class="play-ghost" id="share">결과 복사</button>
+  </div>
+
+  <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게 판을 적어 둔다.
+       (scripts/build.mjs 가 표에서 찍어 넣는다 — 손으로 고치지 말 것) -->
+  <section class="boards">
+    <details>
+    <summary>지금 있는 판</summary>
+    <ul id="boards">
+      <li>🌠 원신 캐릭터 — 116개 · 견줄 것: 출시</li>
+      <li>⚔️ 롤 챔피언 — 173개 · 견줄 것: 체력 · 방어 · 공격</li>
+      <li>🔴 포켓몬 — 1025개 · 견줄 것: 세대 · 키 · 몸무게</li>
+    </ul>
+    <p>더 놀 것 — <a href="/karmolab/quest/">오늘의 문제</a> · <a href="/karmolab/t/">도구 전체</a></p>
+    </details>
+  </section>
+
+  <footer class="play-foot">
+    점수는 이 브라우저에만 남습니다. 표는 <a href="/daily/">오늘의 하나 맞히기</a>와 같은 것을 씁니다.
+  </footer>
+</main>
+
+<script id="boards-data">window.HIGHER_BOARDS=[{"t":"genshin","title":"원신 캐릭터","e":"🌠"},{"t":"lol","title":"롤 챔피언","e":"⚔️"},{"t":"pokemon","title":"포켓몬","e":"🔴"}];</script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var BOARDS = window.HIGHER_BOARDS || [];
+  var KEY = 'karmolab_higher_best';
+  var board = null, field = null, left = null, right = null, streak = 0, locked = false;
+
+  function best(topic, put) {
+    var all = {};
+    try { all = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    if (put === undefined) return all[topic] || 0;
+    if (put > (all[topic] || 0)) { all[topic] = put; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} }
+    return all[topic] || 0;
+  }
+  var pick = function (arr) { return arr[Math.floor(Math.random() * arr.length)]; };
+
+  function paintSide(el, item, showValue) {
+    el.className = 'side';
+    el.disabled = false;
+    el.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = item.i; img.alt = ''; img.loading = 'lazy';
+    var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = item.n;
+    var vl = document.createElement('div'); vl.className = 'vl';
+    vl.textContent = showValue ? fmt(item.v[field.key]) : '?';
+    el.appendChild(img); el.appendChild(nm); el.appendChild(vl);
+  }
+  function fmt(v) { return String(v) + (field.unit ? ' ' + field.unit : ''); }
+
+  /* 값을 세어 올린다 (TASK-KL-089).
+   * 숫자가 툭 나타나면 맞았는지 틀렸는지가 한 박자에 끝나 버린다. 0 부터 올라가면
+   * 「넘을까 말까」를 눈으로 보게 된다 — 이 놀이의 재미가 거기 있다.
+   * 화면 움직임을 싫어하는 설정이면 바로 보여 준다. */
+  var CALM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el, target) {
+    if (CALM) { el.textContent = fmt(target); return; }
+    var dur = 700, t0 = performance.now();
+    var dec = String(target).indexOf('.') >= 0 ? String(target).split('.')[1].length : 0;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur);
+      var eased = 1 - Math.pow(1 - k, 3);
+      el.textContent = fmt((target * eased).toFixed(dec) * 1);
+      if (k < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(target);
+    })(t0);
+  }
+
+  /* 이긴 쪽은 자리에 남는다 (TASK-KL-089).
+   * 처음에는 매판 둘 다 새로 뽑았다. 그러면 판이 매번 끊겨서 「계속 이어 간다」는 맛이 없다 —
+   * 이 놀이가 재미있는 이유는 **방금 본 그 값과 견주는 것**이다. 왼쪽에 남은 것의 값은
+   * 이미 알고 있으니, 다음 상대만 새로 온다.
+   * 처음 한 판만 둘 다 뽑는다. 값이 같으면 견줄 수 없으니 다시 뽑는다. */
+  function nextRound(keepLeft) {
+    locked = false;
+    $('again').hidden = true;
+    var pool = board.items.filter(function (x) { return x.v[field.key] !== undefined; });
+    if (!keepLeft || !left) left = pick(pool);
+    var tries = 0;
+    do {
+      right = pick(pool);
+      tries++;
+    } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
+    // 「출시이(가)」 처럼 조사가 어색해지는 것을 피한다 — 속성 이름을 앞에 떼어 놓는다.
+    $('ask').innerHTML = '<b>' + field.label + '</b> — 어느 쪽이 더 클까요?';
+    paintSide($('a'), left, true); // 남아 있는 쪽은 값이 이미 밝혀져 있다
+    paintSide($('b'), right, false);
+    $('msg').textContent = '';
+  }
+
+  function answer(sideEl, chosen, other) {
+    if (locked) return;
+    locked = true;
+    var win = chosen.v[field.key] > other.v[field.key];
+    $('a').disabled = true; $('b').disabled = true;
+    countUp($('b').querySelector('.vl'), right.v[field.key]); // 새로 온 쪽만 세어 올린다
+    sideEl.classList.add(win ? 'win' : 'lose');
+    if (win) {
+      streak++;
+      $('streak').textContent = streak;
+      $('msg').textContent = '맞았습니다';
+      $('msg').className = 'msg play-ok';
+      // 이긴 쪽이 다음 판의 왼쪽으로 남는다 — 방금 본 값과 계속 견주게 된다.
+      setTimeout(function () {
+        left = right.v[field.key] > left.v[field.key] ? right : left;
+        nextRound(true);
+      }, 1100);
+    } else {
+      $('msg').textContent = '아깝습니다 — ' + streak + '연승에서 끝났습니다';
+      $('msg').className = 'msg play-no';
+      $('best').textContent = best(board.topic, streak);
+      $('again').hidden = false;
+    }
+  }
+
+  $('a').addEventListener('click', function () { answer($('a'), left, right); });
+  $('b').addEventListener('click', function () { answer($('b'), right, left); });
+  $('retry').addEventListener('click', function () { streak = 0; $('streak').textContent = '0'; nextRound(); });
+  $('share').addEventListener('click', function () {
+    var text = 'KarmoLab 높은 쪽 고르기 — ' + board.title + ' / ' + field.label + '\n' + streak + '연승 (최고 ' + best(board.topic) + ')\nblog.mascari4615.com/karmolab/higher/';
+    navigator.clipboard.writeText(text).then(function () { $('share').textContent = '복사했습니다'; });
+  });
+
+  function load(topic) {
+    return fetch('/karmolab/higher/' + topic + '.json')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        board = j; board.topic = topic;
+        field = pick(j.fields);
+        streak = 0;
+        $('streak').textContent = '0';
+        $('best').textContent = best(topic);
+        nextRound();
+      })
+      .catch(function () { $('ask').textContent = '표를 못 불러왔습니다. 잠시 뒤 새로고침 해 주세요.'; });
+  }
+
+  BOARDS.forEach(function (b, i) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = (b.e ? b.e + ' ' : '') + b.title;
+    btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    btn.addEventListener('click', function () {
+      [].forEach.call($('picks').children, function (c) { c.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      load(b.t);
+    });
+    $('picks').appendChild(btn);
+  });
+  if (BOARDS.length) load(BOARDS[0].t);
+  else $('ask').textContent = '판이 없습니다.';
+})();
+</script>
+</body>
+</html>

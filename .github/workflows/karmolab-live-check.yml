@@ -1,0 +1,187 @@
+name: "KarmoLab 라이브 점검"
+
+# 왜 따로 두는가 (TASK-KL-089)
+#
+# 도구 페이지에는 검사가 세 층 있다.
+#   1) 위젯이 등록되는가        — `test:tools`   (배포 전, pages-deploy 안에서 이미 돈다)
+#   2) 페이지를 열면 화면이 뜨는가 — `test:live`
+#   3) 값을 넣으면 답이 나오는가   — `test:behavior`
+# 그런데 2·3 은 **배포된 주소**를 열어 봐야 하므로 배포 전 빌드에 넣을 수 없었고, 그 결과
+# 아무 데서도 안 돌고 있었다(손으로 부를 때만 도는 검사 = 없는 검사).
+#
+# 그래서 배포가 끝난 뒤에 따로 돈다. 배포 워크플로 자체는 건드리지 않는다 — 그쪽이 실패해도
+# 이 점검은 독립적으로 결과를 남기고, 반대로 이 점검이 실패해도 배포를 되돌리지는 않는다.
+
+on:
+  workflow_run:
+    workflows: ["Build and Deploy"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tools:
+        description: "확인할 도구 id (비우면 전부)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  issues: write # 점검이 실패하면 이슈로 알린다 (아래 마지막 단계)
+
+jobs:
+  check:
+    # 배포가 성공했을 때만 의미가 있다. 실패한 배포 뒤에 도는 것은 옛 화면을 재는 셈이다.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    # 로컬에서 대비 3분·이름 2분·화면 2분이 걸린다. 라이브는 왕복이 붙어 더 느리므로 넉넉히 둔다.
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/karmolab
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 의존 설치
+        run: npm ci --no-audit --no-fund
+
+      # 브라우저 내려받기는 매 실행 50초 넘게 먹는다(2026-08-07 실측: 54초).
+      # 잠금파일이 그대로면 같은 버전이므로 캐시로 건너뛴다. 시스템 라이브러리(--with-deps)는
+      # 캐시 대상이 아니라 매번 깔리지만 그쪽은 짧다.
+      - name: 브라우저 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/karmolab/package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: 브라우저 준비
+        run: npx playwright install --with-deps chromium
+
+      # 여기 검사 중 몇 개는 **빌드 결과물**을 읽는다 (공유 카드 대조 등).
+      # 그게 없으면 「js/widgets-lazy-meta.js 없음 — npm run build 를 먼저 돌려야 합니다」로
+      # 멈춘다. 라이브를 보는 검사라 빌드가 필요 없다고 여겼는데, 라이브와 **대조할 기준**이
+      # 빌드 산출물이었다 (2026-08-07: 다섯 판 연속 빨강의 두 원인 중 하나).
+      - name: 대조 기준 만들기 (빌드 산출물)
+        run: npm run build
+
+      # GitHub Pages 는 배포 완료 신호 뒤에도 잠깐 옛 파일을 줄 수 있다.
+      - name: 반영 대기
+        run: sleep 45
+
+      # 부르는 이름이 하나라도 없으면 그 검사는 조용히 안 돈다. 0.2초라 맨 앞에 둔다.
+      - name: 부르는 이름이 실제로 있는지
+        run: npm run audit:scripts
+
+      # 도구를 더할 때 같이 채워야 하는 것들(카드·자리·다른 이름). 파일만 읽어 0.1초다.
+      - name: 도구마다 딸린 것이 채워졌는지
+        if: always()
+        run: npm run audit:data
+
+      - name: 화면이 뜨는지 (전 도구)
+        run: npm run test:live -- ${{ github.event.inputs.tools }}
+
+      # 목록 페이지는 검색으로 들어온 사람이 거치는 관문이고 크롤러가 도구 전체를 찾는 통로다.
+      # 다른 검사는 상세 페이지만 봐서 여기가 비어도 몰랐다.
+      - name: 도구 목록 페이지가 성한지
+        if: always()
+        run: npm run test:hub
+
+      # 스크립트를 실행하지 않는 크롤러의 눈. 지금은 설명이 정적으로 박혀 있어 읽히는데,
+      # 그 성질이 깨지면 검색 유입이 조용히 사라진다.
+      - name: 스크립트 없이도 읽히는지
+        if: always()
+        run: npm run test:nojs
+
+      # 대표 주소·구조화 데이터·제목 겹침. 틀려도 화면은 멀쩡해 보이고, 검색에서만 조용히 사라진다.
+      - name: 실제 사이트에 있어야 하는 것이 있는지
+        if: always()
+        run: npm run audit:live
+      - name: 놀이 셋이 성한지
+        if: always()
+        working-directory: apps/karmolab
+        run: node ../play/scripts/smoke.mjs
+      - name: 검색엔진이 읽는 머리가 성한지
+        if: always()
+        run: npm run audit:seo
+
+      # 도구가 들어갈 자리를 미리 비워 두는데, 도구 내용이 바뀌면 그 값이 조용히 낡는다.
+      # 낡으면 도구가 뜰 때 아래 글이 다시 밀린다 — 화면은 멀쩡해 보인다.
+      # 이 스크립트만 기본 주소가 「내 컴퓨터」다(평소엔 로컬 사본을 재니까). 여기서는 실제 사이트를 본다.
+      - name: 비워 둔 자리가 실제와 맞는지
+        if: always()
+        run: npm run audit:heights
+        env:
+          BASE: https://blog.mascari4615.com
+
+      # 앱으로 설치할 때 쓰는 정보. 아이콘이 아예 없고 시작 주소가 어긋나 있던 적이 있는데,
+      # 눈에 안 띄는 자리라 오래 몰랐다.
+      - name: 설치 정보가 성한지
+        if: always()
+        run: npm run test:pwa
+
+      - name: 값을 넣으면 답이 나오는지
+        if: always()
+        run: npm run test:answers
+
+      # 기대값을 손으로 적지 않고 넓게 보는 쪽 — 글자를 넣으면 화면이 바뀌는가.
+      - name: 글자를 넣으면 반응하는지
+        if: always()
+        run: npm run test:typing
+
+      # 화면낭독기가 입력칸 이름을 읽을 수 있는지. 기준치는 data/a11y-baseline.json 이 정본이고
+      # 지금은 0 이라, 이름 없는 칸이 하나라도 새로 생기면 여기서 걸린다.
+      - name: 입력칸에 이름이 이어져 있는지
+        if: always()
+        run: npm run audit:labels
+
+      # 테마를 바꿨을 때 흰 바탕에 흰 글씨가 되는 자리를 찾는다.
+      # 이 검사도 만들어만 두고 아무 데서도 안 돌고 있었다.
+      - name: 밝은 테마·어두운 테마에서 글씨가 보이는지
+        if: always()
+        run: npm run test:contrast
+
+      # 도구를 추가하고 카드를 안 찍으면 그 도구만 조용히 공용 카드로 나간다.
+      # 카드는 글꼴이 있는 개발 머신에서만 만들 수 있으므로 여기서 막지 않고 이름만 알린다.
+      - name: 도구마다 공유 카드가 있는지
+        if: always()
+        run: npm run audit:cards
+
+      # 카드에는 제목과 소개가 그려져 있다. 문구만 고치고 다시 안 찍으면 옛 글이 나가는데,
+      # 파일이 있는지만 보는 위 검사로는 안 잡힌다. 그림 없이 파일 비교만 하므로 여기서도 돈다.
+      - name: 안 쓰는데 첫 화면을 막는 스타일
+        if: always()
+        run: npm run audit:blocking-css
+      - name: 후원 자리가 규칙대로 뜨는지
+        if: always()
+        run: npm run audit:sponsor
+      - name: 공유 카드가 지금 문구와 맞는지
+        if: always()
+        run: npm run audit:cards:fresh
+
+      # 여기까지 하나라도 빨갛다면 알려야 한다. 배포를 막지 않도록 만들었기 때문에,
+      # 알리지 않으면 아무도 모른 채 지나간다 — 그러면 검사를 만든 뜻이 없다.
+      # 같은 제목의 이슈가 열려 있으면 새로 만들지 않고 댓글만 단다(같은 말이 쌓이지 않게).
+      - name: 실패하면 이슈로 알린다
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'KarmoLab 라이브 점검 실패';
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `배포 뒤 점검에서 실패한 단계가 있습니다.\n\n로그: ${url}\n\n어떤 검사인지는 로그의 단계 이름을 보세요 — 화면·관문·스크립트 없이·동작·입력칸 이름·테마 대비·공유 카드.`;
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'karmolab-live-check'
+            });
+            const found = open.data.find((i) => i.title === title);
+            if (found) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: found.number, body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['karmolab-live-check']
+              });
+            }

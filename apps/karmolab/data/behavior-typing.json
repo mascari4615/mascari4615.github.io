@@ -1,0 +1,120 @@
+{
+  "note": "글자를 넣으면(필요하면 버튼까지 누르면) 다른 곳이 바뀌는 것이 확인된 도구들. 손으로 적은 검사(smoke-tool-behavior)가 안 보는 도구 중에서 고른 것이다. 파일을 넣어야 하거나 누르면 파일이 내려받아지는 도구는 일부러 뺐다. 그림을 넣어야 반응하는 도구는 data/samples/sample.png 를 넣어 본다.",
+  "tools": [
+    "ascii",
+    "barcode",
+    "bizno",
+    "calc",
+    "charmap",
+    "colorblind",
+    "colorname",
+    "contrast",
+    "cron",
+    "emoji",
+    "filetype",
+    "gitcmd",
+    "gradient",
+    "htmlentity",
+    "httpstatus",
+    "icsmake",
+    "jwt",
+    "markdown",
+    "qr",
+    "qrgen",
+    "reference",
+    "regexref",
+    "regextest",
+    "shortcut",
+    "specialchar",
+    "subtitle",
+    "tableconv",
+    "text",
+    "text2img",
+    "text2pdf",
+    "textredact",
+    "timer",
+    "worldclock",
+    "birth"
+  ],
+  "needsButton": [
+    "colorconv",
+    "textdiff",
+    "lotto",
+    "ladder",
+    "pick",
+    "json2ts",
+    "workdays"
+  ],
+  "needsFile": [
+    "filetool",
+    "palette",
+    "asciiart",
+    "imgbatch",
+    "qrread",
+    "imageedit",
+    "img2pdf",
+    "imgresize",
+    "exifclean",
+    "imgmerge",
+    "redact"
+  ],
+  "needsPdf": [
+    "pdftool",
+    "pdf2img",
+    "pdfwatermark",
+    "pdfcompress",
+    "pdf2text",
+    "pdfsign",
+    "pdfredact",
+    "pdfcrop",
+    "pdfpagenum",
+    "ziptool",
+    "filehash",
+    "filesplit"
+  ],
+  "needsAudio": [
+    "audiocut",
+    "audiojoin",
+    "audiolevel",
+    "audiospeed",
+    "audiofade",
+    "video2audio"
+  ],
+  "needsVideo": [
+    "video2gif",
+    "videotool",
+    "videotrim",
+    "video2img",
+    "videocompress",
+    "videorotate",
+    "subtitle"
+  ],
+  "clickOnly": [
+    "uuidgen",
+    "lorem",
+    [
+      "passgen",
+      "새로 만들기"
+    ]
+  ],
+  "knownBroken": {
+    "crypto": "「암호화」를 눌러도 세 방식(Base64·AES-256·URL) 모두 아무 일도 안 일어난다 — 라이브러리는 실려 있고 오류도 안 난다. 위젯 소스는 다른 세션 소유라 여기서 못 고친다."
+  },
+  "keyOnly": [
+    "keycode"
+  ],
+  "exempt": {
+    "color": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "time": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "draw": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "devtool": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "pdf": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "sound": "묶음 페이지 — 안에 든 낱개 도구를 따로 본다",
+    "moon": "보여 주기만 한다 — 넣을 것이 없다(화면에 오늘 달이 뜨는 것은 확인)",
+    "favicon": "그림을 끌어다 놓아야 시작한다 — 파일 검사 쪽에서 볼 것",
+    "memo": "새 메모를 만든 뒤에야 쓸 수 있다 — 두 걸음짜리라 이 방식으로 못 본다",
+    "checklist": "목록을 옆의 여러 줄 칸으로 받는다 — 한 줄 칸에 쳐서는 안 바뀐다",
+    "screenrec": "화면 녹화 권한이 필요하다 — 브라우저 검사로 못 본다",
+    "voicerec": "마이크 권한이 필요하다 — 브라우저 검사로 못 본다"
+  }
+}

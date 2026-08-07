@@ -53,16 +53,23 @@
           !lastPage || lastPage === 'home' || !tools.some(function (t) {
             return t.id === lastPage;
           });
+        /* 덮개는 **이미 덮여 있다** (index.html + 부트 스크립트가 첫 그림 전에 정했다).
+           여기서 하는 일은 걷는 것뿐이다. 예전엔 여기서 켰는데, 그러면 스크립트가 다 돌 때까지
+           첫 화면이 먼저 보였다가 인트로가 덮는 순서가 돼서 어색했다.
+           글자가 다 걸어 나올 시간(마지막 글자 시작 + 걷는 시간)을 준 뒤 걷는다. */
         const intro = document.getElementById('introOverlay');
         if (intro && showHome) {
-          intro.classList.remove('hidden');
+          const letters = intro.querySelectorAll('.intro-letter').length || 9;
+          // performance.now() = 페이지가 열린 뒤 흐른 시간. 스크립트가 오래 걸린 날은
+          // 글자가 이미 다 나와 있으므로 기다리지 않고 바로 걷는다.
+          const settled = letters * 55 + 620;
           setTimeout(function () {
             intro.classList.add('done');
             setTimeout(function () {
               intro.classList.add('hidden');
               intro.classList.remove('done');
-            }, 320);
-          }, 700);
+            }, 560);
+          }, Math.max(120, settled - performance.now()));
         } else if (intro) {
           intro.classList.add('hidden');
         }

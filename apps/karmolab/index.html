@@ -16,6 +16,10 @@ permalink: /karmolab/
     <!-- KAR-115 PWA (Phase 3 native mobile substrate) -->
     <link rel="manifest" href="/apps/karmolab/manifest.json">
     <meta name="theme-color" content="#0f0f12">
+    <!-- 이 앱은 어두운 화면이 기본이다. 이걸 안 알려 주면 브라우저가 CSS 가 오기 전까지 흰 바탕을
+         칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. 「dark light」 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다 — 실측으로 확인해 하나만 적는다.
+         밝은 테마로 바꾼 사람은 CSS 가 오면 그쪽이 이긴다(toolbox.css 가 light 를 다시 지정한다). -->
+    <meta name="color-scheme" content="dark">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
@@ -37,20 +41,55 @@ permalink: /karmolab/
     </script>
     <meta name="description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <link rel="canonical" href="https://blog.mascari4615.com/karmolab/">
+    <!-- 검색 결과에서 그림과 문구를 넉넉히 쓰게 허용한다 (TASK-KL-089).
+         기본값이면 그림은 작은 썸네일로 나가거나 아예 안 나가고, 문구도 짧게 잘린다.
+         도구마다 공유 카드를 따로 찍어 뒀고 설명도 두 줄에 맞춰 다듬었는데, 이 한 줄이 없으면
+         그 둘 다 검색 결과에서 제 크기로 안 쓰인다. 「색인하지 마라」와는 반대 방향의 표시다. -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <meta property="og:type" content="website">
     <meta property="og:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
     <meta property="og:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
     <meta property="og:url" content="https://blog.mascari4615.com/karmolab/">
-    <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/favicon.ico">
+    <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/default.jpg">
     <meta property="og:locale" content="ko_KR">
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="KarmoLab — 삶을 섞고 술을 바꿀 시간">
     <meta name="twitter:description" content="삶을 섞고 술을 바꿀 시간. 손에 잡히는 도구들이 있는 작업실.">
+    <!-- KARMOLAB_ROOT_LD — 검색엔진이 읽는 구조 설명 (TASK-KL-089).
+         이 페이지는 블로그의 모든 글에서 링크되는데 여기에만 구조 설명이 없었다 — 도구 상세와
+         목록에는 있다. 그래서 검색 결과에서 이름·주소만 나가고, 이 안에서 도구를 찾을 수 있다는
+         사실이 전달되지 않았다. 찾기 주소(`/karmolab/t/?q=…`)는 실제로 동작하는 것을 쓴다:
+         목록 페이지가 그 값을 읽어 그 상태에서 시작한다(없는 주소를 적으면 무시당한다). -->
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebSite","@id":"https://blog.mascari4615.com/karmolab/#site","name":"KarmoLab",
+       "url":"https://blog.mascari4615.com/karmolab/","inLanguage":"ko-KR",
+       "potentialAction":{"@type":"SearchAction",
+         "target":{"@type":"EntryPoint","urlTemplate":"https://blog.mascari4615.com/karmolab/t/?q={search_term_string}"},
+         "query-input":"required name=search_term_string"}},
+      {"@type":"CollectionPage","@id":"https://blog.mascari4615.com/karmolab/#page",
+       "url":"https://blog.mascari4615.com/karmolab/","isPartOf":{"@id":"https://blog.mascari4615.com/karmolab/#site"},
+       "name":"KarmoLab","inLanguage":"ko-KR",
+       "about":"글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다루는 곳",
+       "hasPart":{"@type":"CollectionPage","name":"도구 전체","url":"https://blog.mascari4615.com/karmolab/t/"}}
+    ]}
+    </script>
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
+    <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
+    <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
     <script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- 굵기는 실제 쓰는 것만 부른다. 한글 글꼴은 조각이 수백 개라 굵기 하나가 목록 크기를
+         크게 불린다 — 안 쓰는 300 과 세리프의 중간 굵기를 빼서 목록이 278KB 줄었다.
+         Inter 도 뺐다: 글꼴 순서가 'Noto Sans KR' 먼저라 영문·숫자까지 한글 글꼴이 덮는다.
+         브라우저가 실제로 받는 목록을 확인해 보니 Inter 는 한 글자도 안 쓰이고 있었다. -->
+    <!-- 글꼴 목록은 남의 서버에서 오는데 69KB 나 되고, 평소처럼 걸면 그것이 다 올 때까지
+         화면에 아무것도 안 그려진다 — 실측으로 첫 그림이 1280ms 였다. 「인쇄용」으로 받아 화면
+         그리기를 막지 않게 하면 740ms 다. 그동안은 컴퓨터 글꼴로 보이는데, 그 글꼴은 폭을
+         웹글꼴에 맞춰 뒀으므로(tools.css) 바뀔 때 글이 밀리지 않는다(밀림 0.008 → 0.017, 기준 0.1). -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
@@ -63,6 +102,13 @@ permalink: /karmolab/
   document.documentElement.setAttribute('data-theme',t);
   document.documentElement.setAttribute('data-bg',bg);
   document.documentElement.setAttribute('data-nav',nav);
+  /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
+     여기서 안 정하고 스크립트가 다 돈 뒤에 정하면 첫 화면이 한 번 번쩍인다(실제로 그랬다). */
+  var lp=localStorage.getItem('toolbox_last_page');
+  /* 도구 상세 페이지(/karmolab/t/…)는 이 셸을 그대로 쓴다. 거기서도 켜면 검색으로 도구에
+     바로 들어온 사람이 브랜드 스플래시를 맞는다 — 그 사람은 도구를 보러 온 것이다. */
+  var isShellRoot=location.pathname.indexOf('/karmolab/t/')===-1;
+  document.documentElement.setAttribute('data-intro',(isShellRoot&&(!lp||lp==='home'))?'on':'off');
   var pt=localStorage.getItem('toolbox_prism_theme');
   var pb='/apps/karmolab/js/vendor/prism/themes-cdn/',pe='/apps/karmolab/js/vendor/prism/themes-ext/';
   var m={tomorrow:pb+'prism-tomorrow.min.css',okaidia:pb+'prism-okaidia.min.css',twilight:pb+'prism-twilight.min.css',prism:pb+'prism.min.css',coy:pb+'prism-coy.min.css',dracula:pe+'prism-dracula.min.css','one-dark':pe+'prism-one-dark.min.css',nord:pe+'prism-nord.min.css','material-dark':pe+'prism-material-dark.min.css','vsc-dark-plus':pe+'prism-vsc-dark-plus.min.css',ghcolors:pe+'prism-ghcolors.min.css','one-light':pe+'prism-one-light.min.css','material-light':pe+'prism-material-light.min.css'};
@@ -82,6 +128,29 @@ permalink: /karmolab/
     </script>
 </head>
 <body>
+    <!-- KARMOLAB_ROOT_INTRO — 스크립트를 실행하지 않는 크롤러만 보는 자리 (TASK-KL-089).
+         이 페이지는 블로그의 모든 글에서 링크되는데, 스크립트를 안 돌리면 87자밖에 안 보였다.
+         사람 화면은 그대로 두고(noscript 라 눈에 안 띈다) 크롤러에게만 무엇이 있는 곳인지와
+         대표 도구로 가는 길을 준다. 도구 상세·목록 페이지에는 이미 제 설명이 있으므로 생성기가 뺀다. -->
+    <noscript>
+      <section class="root-intro">
+        <h2>KarmoLab</h2>
+        <p>
+          글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다룹니다. 넣은 내용은 이 브라우저를
+          벗어나지 않고, 도구마다 자기 주소가 있어 바로 열 수 있습니다.
+        </p>
+        <ul>
+          <li><a href="/karmolab/t/">도구 전체 목록</a></li>
+          <li><a href="/karmolab/t/charcount/">글자수 세기 — 공백 포함·제외 · 원고지 매수</a></li>
+          <li><a href="/karmolab/t/pdftool/">PDF 편집 — 합치기 · 페이지 빼내기 · 돌리기</a></li>
+          <li><a href="/karmolab/t/imageedit/">이미지 편집 — 자르기 · 크기·형식 변환</a></li>
+          <li><a href="/karmolab/t/jsonfmt/">JSON 포맷터 — 정렬 · 압축 · 문법 검사</a></li>
+          <li><a href="/karmolab/t/unitconv/">단위 변환 — 길이 · 무게 · 평 · 온도</a></li>
+          <li><a href="/karmolab/t/timer/">타이머 · 스톱워치 — 카운트다운 · 랩 기록</a></li>
+          <li><a href="/karmolab/t/qrgen/">QR 코드 생성 — URL · WiFi · 연락처</a></li>
+        </ul>
+      </section>
+    </noscript>
     <div class="status-toast" id="statusToast"></div>
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
@@ -91,7 +160,13 @@ permalink: /karmolab/
             <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리"></nav>
             <div class="header-bar-right">
                 <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록">≡ 도구</a>
+                <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산">◈ 봇</a>
+                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤">◉ 오늘의</a>
+                <a href="#plaza" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('plaza');return false}" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청">◇ 광장</a>
                 <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크">누가 만들었나요?</a>
+                <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
+                     눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
+                <div class="header-account" id="headerAccount"></div>
                 <button type="button" class="header-btn user-btn" id="userPageBtn" title="내 정보" aria-label="내 정보">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
                 </button>
@@ -124,6 +199,16 @@ permalink: /karmolab/
                         <span class="sidebar-dev-links-icon" aria-hidden="true">≡</span>
                         <span class="sidebar-dev-links-text">도구 전체 목록</span>
                     </a>
+                    <!-- 디스코드 봇 소개 페이지 입구 (TASK-YB-042). 링크가 없으면 주소를 아는 사람만 닿는다. -->
+                    <a href="/karmolab/bot/" class="sidebar-dev-links" title="디스코드 봇 · 서버 결산" aria-label="디스코드 봇">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">◈</span>
+                        <span class="sidebar-dev-links-text">디스코드 봇</span>
+                    </a>
+                    <!-- 매일 하나씩 맞히기 (TASK-KAR-202). 주제가 늘어도 입구는 /daily/ 하나다. -->
+                    <a href="/daily/" class="sidebar-dev-links" title="매일 하나씩 맞히기 — 포켓몬 · 롤" aria-label="오늘의 하나 맞히기">
+                        <span class="sidebar-dev-links-icon" aria-hidden="true">◉</span>
+                        <span class="sidebar-dev-links-text">오늘의 하나 맞히기</span>
+                    </a>
                     <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">i</span>
                         <span class="sidebar-dev-links-text">누가 만들었나요?</span>
@@ -131,9 +216,28 @@ permalink: /karmolab/
                 </div>
             </aside>
             <main class="main-content" role="main">
-                <div class="intro-overlay hidden" id="introOverlay" aria-hidden="true">
-                    <h1 class="intro-title">KarmoLab</h1>
+                <!-- 처음부터 덮여 있다. 예전에는 스크립트가 전부 돈 **뒤에** 이 덮개를 켰는데,
+                     그 사이에 첫 화면이 먼저 보였다가 인트로가 덮는 순서가 돼서 어색했다.
+                     이제 켤지 말지는 <head> 의 부트 스크립트가 첫 그림 전에 정한다(data-intro). -->
+                <div class="intro-overlay" id="introOverlay" aria-hidden="true">
+                    <h1 class="intro-title" id="introTitle">KarmoLab</h1>
                 </div>
+                <script>
+                (function () {
+                  // 글자를 여기서 쪼갠다 — 화면에 그려지는 그 순간부터 걸어 나오게.
+                  var t = document.getElementById('introTitle');
+                  if (!t) return;
+                  var s = t.textContent;
+                  t.textContent = '';
+                  for (var i = 0; i < s.length; i++) {
+                    var el = document.createElement('span');
+                    el.className = 'intro-letter';
+                    el.style.setProperty('--i', i);
+                    el.textContent = s[i];
+                    t.appendChild(el);
+                  }
+                })();
+                </script>
                 <div class="mobile-nav" id="mobile-nav"></div>
                 <div class="content-header" id="contentHeader" style="display:none">
                     <div><div class="breadcrumb" id="breadcrumb"></div><h1 class="content-title" id="pageTitle"></h1></div>
@@ -144,7 +248,28 @@ permalink: /karmolab/
             </main>
         </div>
     </div>
+    <!-- 방문 기록 (TASK-KL-089).
+         블로그 글에는 이 줄이 있는데 도구 쪽에는 없어서, 도구 페이지 124장과 이 첫 화면의
+         방문이 **하나도 세어지지 않고 있었다**. 어느 도구로 사람이 오는지 알 수 없으면
+         무엇을 더 만들지도, 무엇이 통했는지도 알 수 없다.
+         아래 analytics.js 는 이 스크립트가 만든 `window.goatcounter` 를 쓴다 — 그것이 없으면
+         조용히 아무것도 안 한다. 즉 이 줄이 빠지면 기록 전체가 사라진다.
+         (도구를 옮겨 다닐 때의 기록은 analytics.js 가 맡고, 처음 연 도구는 이 줄이 센다.) -->
+    <script>
+    /* 기록기는 화면이 다 뜬 뒤에 부른다. 바로 부르면 남의 서버에서 받아 실행하는 동안
+       주 스레드가 더 잡힌다(실측 +88ms). 방문 수는 조금 늦게 세어도 값이 같다. */
+    addEventListener('load', function () {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://gc.zgo.at/count.js';
+      s.setAttribute('data-goatcounter', 'https://mascari4615.goatcounter.com/count');
+      document.head.appendChild(s);
+    });
+    </script>
     <script defer src="/apps/karmolab/js/analytics.js"></script>
+    <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
+         자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
+    <script defer src="/apps/karmolab/js/account.js"></script>
     <script defer src="/apps/karmolab/js/toolbox.js"></script>
     <script defer src="/apps/karmolab/js/mdd.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)

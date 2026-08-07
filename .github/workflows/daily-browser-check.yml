@@ -1,0 +1,64 @@
+name: "daily 브라우저 검사"
+
+# 왜 따로 있나 (TASK-KAR-202)
+#
+# 배포 관문(pages-deploy)에서 도는 것은 규칙 시험뿐이다. 화면에서만 갈리는 것들 —
+# 실루엣이 틀릴수록 밝아지는지, 지난 문제에 오늘 답이 안 새는지, 손가락으로 누를 만한지,
+# 없는 이름을 쳤을 때 말해 주는지 — 은 브라우저를 띄워야 알 수 있고, 그 검사 150여 개가
+# 여태 **한 사람 기계에서만** 돌았다. 그러면 다음 사람이 뭘 깨도 배포는 초록이다.
+#
+# 배포 워크플로에 붙이지 않은 이유: 브라우저 설치가 배포를 느리게 하고, 한 번 붙였다가
+# 빼낸 이력이 있다(2026-08-07). 배포를 막지 않고 따로 돌린다 — 여기가 빨개도 사이트는 나간다.
+# 대신 빨개진 것은 반드시 보이게 둔다.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - apps/daily/**
+      - .github/workflows/daily-browser-check.yml
+  pull_request:
+    paths:
+      - apps/daily/**
+  workflow_dispatch:
+
+concurrency:
+  group: daily-browser-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      # 이 앱은 의존성 0 이다. 브라우저만 있으면 된다.
+      - name: 브라우저 설치
+        run: npx --yes playwright@1.62.1 install --with-deps chromium
+
+      - name: 규칙 시험 + 페이지 생성
+        working-directory: apps/daily
+        run: npm run build
+
+      - name: 브라우저에서 한 판씩 둔다
+        working-directory: apps/daily
+        # smoke 는 이웃 앱(apps/karmolab)의 playwright 를 빌려 쓴다. 여기엔 그게 없으니
+        # 방금 설치한 것을 쓰도록 경로를 알려 준다.
+        env:
+          DAILY_PLAYWRIGHT: node_modules/playwright/index.js
+        run: |
+          npm i --no-save playwright@1.62.1
+          node scripts/smoke.mjs
+
+      - name: 깨진 화면 남기기
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-shots
+          path: apps/daily/.cache/shots
+          retention-days: 3

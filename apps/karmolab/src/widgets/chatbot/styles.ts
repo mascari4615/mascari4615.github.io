@@ -80,10 +80,10 @@
         .cb-msg-bot p { margin:0 0 8px; } .cb-msg-bot p:last-child { margin:0; }
         .cb-msg-bot strong { font-weight:700; }
         .cb-msg-bot em { font-style:italic; }
-        .cb-msg-bot code { background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:3px; font-family:'Cascadia Code','Consolas',monospace; font-size:var(--font-size-xs); }
+        .cb-msg-bot code { background:color-mix(in srgb, var(--text-primary) 9%, transparent); padding:1px 5px; border-radius:3px; font-family:'Cascadia Code','Consolas',monospace; font-size:var(--font-size-xs); }
         .cb-msg-bot pre { border:1px solid var(--border); border-radius:var(--radius-sm); padding:0; margin:8px 0; overflow-x:auto; position:relative; }
         .cb-msg-bot pre code { background:none !important; padding:10px 12px; font-size:var(--font-size-xs); line-height:1.5; display:block; }
-        .cb-code-header { display:flex; justify-content:space-between; align-items:center; padding:4px 8px 4px 12px; background:rgba(255,255,255,0.04); border-bottom:1px solid var(--border); font-size:var(--font-size-2xs); }
+        .cb-code-header { display:flex; justify-content:space-between; align-items:center; padding:4px 8px 4px 12px; background:color-mix(in srgb, var(--text-primary) 5%, transparent); border-bottom:1px solid var(--border); font-size:var(--font-size-2xs); }
         .cb-code-lang { color:var(--text-tertiary); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
         .cb-msg-bot ul, .cb-msg-bot ol { margin:6px 0; padding-left:20px; }
         .cb-msg-bot li { margin:2px 0; }
@@ -93,7 +93,7 @@
         .cb-msg-bot table { border-collapse:collapse; margin:8px 0; font-size:var(--font-size-xs); width:100%; }
         .cb-msg-bot th, .cb-msg-bot td { border:1px solid var(--border); padding:4px 8px; text-align:left; }
         .cb-msg-bot th { background:var(--bg-primary); font-weight:600; }
-        .cb-msg-bot tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
+        .cb-msg-bot tr:nth-child(even) td { background:color-mix(in srgb, var(--text-primary) 4%, transparent); }
 
         .cb-cursor-blink { animation:cbCursorBlink 0.8s step-end infinite; color:var(--accent); }
         @keyframes cbCursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }

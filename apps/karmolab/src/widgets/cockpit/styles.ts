@@ -23,8 +23,8 @@ const CSS = `
   display: flex;
   gap: 0;
   padding: 0 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: var(--ck-tabbar-bg, rgba(0,0,0,0.25));
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
   flex-shrink: 0;
   height: 38px;
   align-items: flex-end;
@@ -65,9 +65,9 @@ const CSS = `
   align-items: center;
 }
 .ck-ctrl-btn {
-  background: rgba(13,16,24,0.85);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(226,232,240,0.7);
+  background: var(--glass-strong);
+  border: 1px solid var(--border-hover);
+  color: var(--text-secondary);
   border-radius: 4px;
   padding: 4px 10px;
   font-size: 11px;

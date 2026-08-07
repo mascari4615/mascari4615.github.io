@@ -51,17 +51,17 @@
 
             <div class="field-group">
               <label class="field-label" id="itAmountLabel">매달 넣는 금액</label>
-              <input type="number" id="itAmount" value="500000" step="10000" min="0">
+              <input type="number" id="itAmount" aria-label="원금" value="500000" step="10000" min="0">
             </div>
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">연 이자율 (%)</div>
-                  <input type="number" id="itRate" value="3.5" step="0.1" min="0">
+                  <input type="number" id="itRate" aria-label="연 이자율 (%)" value="3.5" step="0.1" min="0">
                 </div>
                 <div>
                   <div class="tool-sublabel">기간 (개월)</div>
-                  <input type="number" id="itMonths" value="12" step="1" min="1">
+                  <input type="number" id="itMonths" aria-label="기간 (개월)" value="12" step="1" min="1">
                 </div>
               </div>
             </div>

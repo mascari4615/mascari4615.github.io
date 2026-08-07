@@ -9,6 +9,7 @@
     "deploy": "node dist/src/deploy-commands.js",
     "deploy:clear-global": "node scripts/clear-global-commands.mjs",
     "test:webhook": "node scripts/webhook-test.mjs",
+    "shoot:wrapped": "node scripts/shoot-wrapped.mjs",
     "setup:env": "powershell -ExecutionPolicy Bypass -File scripts/setup-env.ps1",
     "tunnel": "node scripts/tunnel-launcher.mjs",
     "tunnel:prod": "cloudflared tunnel run yawnbot-prod",

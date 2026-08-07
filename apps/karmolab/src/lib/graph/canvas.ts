@@ -115,8 +115,8 @@ const DEFAULT_THEME: Required<GraphCanvasTheme> = {
   anchorFill: 'rgba(34,211,238,0.04)',
   anchorStroke: 'rgba(34,211,238,0.35)',
   anchorText: 'rgba(34,211,238,0.85)',
-  minimapBg: 'rgba(10,12,16,0.85)',
-  minimapBorder: 'rgba(255,255,255,0.08)',
+  minimapBg: 'var(--glass-strong)',
+  minimapBorder: 'var(--border)',
 };
 
 const SVG_NS = 'http://www.w3.org/2000/svg';

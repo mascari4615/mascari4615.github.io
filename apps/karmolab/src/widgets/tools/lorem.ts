@@ -51,7 +51,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">단위</div>
-                  <select id="loUnit">
+                  <select id="loUnit" aria-label="단위">
                     <option value="para">문단</option>
                     <option value="sent">문장</option>
                     <option value="word">단어</option>
@@ -59,7 +59,7 @@
                 </div>
                 <div>
                   <div class="tool-sublabel">개수 <span id="loCountVal" class="range-value">3개</span></div>
-                  <input type="range" id="loCount" min="1" max="20" value="3">
+                  <input type="range" id="loCount" aria-label="개수" min="1" max="20" value="3">
                 </div>
               </div>
             </div>
@@ -67,7 +67,7 @@
               <button class="btn btn-primary" id="loGen">새로 만들기</button>
               <button class="btn btn-ghost" id="loCopy">복사</button>
             </div>
-            <textarea id="loOut" rows="10" spellcheck="false" readonly></textarea>
+            <textarea id="loOut" aria-label="만들어진 글" rows="10" spellcheck="false" readonly></textarea>
             <div class="tool-status" id="loStatus">한글 화면은 한글 더미로 확인해야 줄바꿈이 맞습니다.</div>
           `;
 

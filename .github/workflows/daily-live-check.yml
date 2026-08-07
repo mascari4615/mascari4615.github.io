@@ -1,0 +1,63 @@
+name: "daily 실주소 점검"
+
+# 왜 있나 (TASK-KAR-202)
+#
+# 로컬 검사 223개는 「내가 만든 dist 가 맞다」만 본다. 「배포가 실제로 닿았다」는 실주소를
+# 열어 봐야 갈린다 — 그 검사(smoke-live)는 **내 기계에서만** 돌 수 있었고, 내가 안 돌리면
+# 아무도 안 봤다. 사이트가 조용히 죽어 있어도 알 길이 없다는 뜻이다.
+#
+# 실제로 한 번 죽였다: 블로그 탭 파일 하나가 게임 허브 주소를 가져가 무한 새로고침
+# 페이지가 앉았는데, 응답은 멀쩡히 200 이라 주소만 찔러서는 안 잡혔다.
+#
+# 여섯 시간마다 진짜 브라우저로 한 판씩 둬 본다. 빨개지면 깃허브가 메일을 보낸다.
+
+on:
+  schedule:
+    # 여섯 시간마다 (한국 시각 03:20 / 09:20 / 15:20 / 21:20)
+    - cron: '20 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      base:
+        description: '점검할 주소 (비우면 실주소)'
+        required: false
+        default: ''
+
+concurrency:
+  group: daily-live-check
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: 브라우저 설치
+        run: npx --yes playwright@1.62.1 install --with-deps chromium
+
+      - name: 실주소에서 한 판씩 둔다
+        working-directory: apps/daily
+        env:
+          DAILY_PLAYWRIGHT: node_modules/playwright/index.js
+        # 배포가 막 나가는 중이면 한 번은 헛나갈 수 있다 — 한 번 더 보고 판정한다.
+        # 두 번 다 빨간 것만 진짜다.
+        run: |
+          npm i --no-save playwright@1.62.1
+          BASE="${{ inputs.base }}"
+          if node scripts/smoke-live.mjs $BASE; then exit 0; fi
+          echo '--- 한 번 헛나갔다. 40초 뒤 다시 본다 ---'
+          sleep 40
+          node scripts/smoke-live.mjs $BASE
+
+      - name: 깨진 화면 남기기
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-live-shots
+          path: apps/daily/.cache/shots
+          retention-days: 7

@@ -7,7 +7,11 @@
  */
 (function (): void {
   const PARTS: Array<[string, string]> = [
-    ['imageedit', '편집 · 변환'],
+    ['imageedit', '편집 · 변환'],
+
+    ['text2img', '글자 카드'],
+    ['imgresize', '크기 맞추기'],
+    ['redact', '가리개'],
     ['asciiart', '아스키 아트'],
     ['imagegen', 'AI 생성'],
     ['imagelib', '보관함']

@@ -35,7 +35,6 @@ $sidebar-display: 'sidebar-display'; /* the attribute for sidebar display */
        열릴 때 함께 깔리는 #mask 가 z-index:1 인데 사이드바에는 z-index 가 없어(=auto)
        마스크가 위에 덮여 터치를 전부 가로챘다. 마스크보다 한 층 위로 올린다. */
     z-index: 2;
-
     transform: translateX(-#{v.$sidebar-width}); /* hide */
     -webkit-transform: translateX(-#{v.$sidebar-width});
 

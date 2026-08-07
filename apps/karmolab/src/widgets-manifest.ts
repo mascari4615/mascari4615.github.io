@@ -12,6 +12,7 @@ window.KARMOLAB_WIDGETS_BOOT = [
   'favorites',
   'linktree/linktree',
   'user',
+  'plaza',
   'dashboard',
   'docs/docs',
   'servermonitor',

@@ -1,7 +1,7 @@
 (function (): void {
   Toolbox.register({
     id: 'moon',
-    title: '문페이즈',
+    title: '달 위상',
     category: 'tool',
     desc: '오늘의 달 위상을 확인합니다',
     layout: 'form',
@@ -14,10 +14,10 @@
           Mdd.linePreset('achievement', { msg: '달을 바라보고 있어요...' });
           container.innerHTML = `
                     <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:380px; gap:16px; background:#020205; overflow:hidden; position:relative; border-radius:var(--radius-lg);">
-                        <div style="font-size:14px; color:var(--text-secondary); letter-spacing:4px; z-index:2; text-shadow:0 0 4px #000;">THE MOON PHASE</div>
+                        <div style="font-size:14px; color:#cfccc3; letter-spacing:4px; z-index:2; text-shadow:0 0 4px #000;">THE MOON PHASE</div>
                         <div id="moonVisual" style="font-size:140px; line-height:1; z-index:2; filter:drop-shadow(0 0 20px rgba(255,255,200,0.15)); user-select:none; cursor:default;">🌕</div>
-                        <div id="moonDesc" style="font-size:14px; color:var(--text-tertiary); z-index:2; font-family:monospace;">계산 중...</div>
-                        <div style="font-size:var(--font-size-xs); color:#555; text-align:center; max-width:80%; margin-top:10px; line-height:1.5; z-index:2;">
+                        <div id="moonDesc" style="font-size:14px; color:#9a968d; z-index:2; font-family:monospace;">계산 중...</div>
+                        <div style="font-size:var(--font-size-xs); color:#8a867e; text-align:center; max-width:80%; margin-top:10px; line-height:1.5; z-index:2;">
                             <span style="color:#aaa; font-weight:bold;">TMI 🌕</span><br>
                             달의 공전과 자전 주기는 약 27.3일로 같아 항상 같은 면만 보입니다.<br>
                             지구에서 달까지의 거리는 약 384,400km로 빛의 속도로 1.28초가 걸리며,<br>

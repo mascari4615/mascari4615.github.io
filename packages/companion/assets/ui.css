@@ -1,0 +1,327 @@
+/*
+ * 창 배치 — 「말풍선만」.
+ *
+ * 앞선 배치는 단추 다섯 개와 대화 상자와 입력칸이 늘 자리를 잡고 있었다. 뚫린 창에서
+ * 그것들은 허공에 뜬 네모로 보여서, 얘가 아니라 「띄워 둔 프로그램」이 먼저 눈에 들어왔다.
+ *
+ * 그래서 화면에 상시로 있는 것은 **얘와 말풍선뿐**이다.
+ *   - 말은 얼굴 위 말풍선으로 뜨고 잠시 뒤 사라진다.
+ *   - 말을 걸려면 얘를 누른다 → 얼굴 아래에 입력칸 하나만 열린다.
+ *   - 지난 대화는 입력칸 위로 필요한 만큼만 접혀 올라온다.
+ *   - 설정(인격·머리·목소리·아는 것·닫기)은 얘를 우클릭했을 때만.
+ */
+
+:root {
+  --ink: #e7ecf5;
+  --dim: #98a1b5;
+  --edge: rgba(150, 170, 200, 0.22);
+  --panel: rgba(14, 16, 22, 0.86);
+  --accent: #6ee7ff;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Pretendard", "Segoe UI", system-ui, sans-serif;
+  /* 창 전체는 클릭을 안 받는다. 받을 것만 아래에서 되살린다. */
+  cursor: default;
+}
+
+/* 무대 — 세로로 얼굴이 가운데, 아래쪽에 말할 자리 */
+.room {
+  position: relative;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  align-items: center;
+  padding: 6px 10px 10px;
+  gap: 6px;
+}
+
+/* ── 말풍선 ─────────────────────────────────────────────
+   길게 말해도 창을 안 넘치게, 그러나 상자처럼 보이지 않게 얇게. */
+.bubble {
+  grid-row: 1;
+  position: relative;
+  max-width: 94%;
+  /* 말이 길면 잘렸다. 자리를 넓히고, 넘칠 땐 넘친다는 걸 **보이게** 한다 —
+     막대를 숨겨 놔서 잘린 줄도 모르고 지나갔다. 위쪽이 흐려지면 「더 있다」가 읽힌다. */
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--edge);
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 200ms ease, transform 200ms cubic-bezier(0.2, 1.2, 0.4, 1);
+  pointer-events: none;
+  scrollbar-width: none;
+}
+.bubble::-webkit-scrollbar { display: none; }
+.bubble.on { opacity: 1; transform: translateY(0); }
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5px;
+  background: var(--panel);
+  border-right: 1px solid var(--edge);
+  border-bottom: 1px solid var(--edge);
+  transform: rotate(45deg);
+}
+/* 혼잣말·화면을 보고 하는 말은 나한테 한 말이 아니다 — 흐리게. */
+.bubble.aside { border-style: dashed; color: var(--dim); font-style: italic; }
+
+/* ── 얘 ─────────────────────────────────────────────── */
+.stage { grid-row: 2; display: grid; place-items: center; width: 100%; height: 100%; }
+.field { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+.body3d { width: 100%; height: 100%; display: block; }
+.body3d[hidden] { display: none; }
+
+/* ── 말 걸기 ─────────────────────────────────────────
+   평소엔 없다. 얘를 누르면 나타난다. */
+.talk {
+  grid-row: 3;
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+.talk.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* 지난 대화 — 입력칸 위로 필요한 만큼만 */
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 26vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-right: 2px;
+}
+.log::-webkit-scrollbar { display: none; }
+.line { max-width: 88%; font-size: 13px; line-height: 1.55; }
+.line .who { display: none; } /* 누가 한 말인지는 위치와 색으로 안다 */
+.line .what {
+  padding: 7px 11px;
+  border-radius: 11px;
+  border: 1px solid var(--edge);
+  background: var(--panel);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.line.me { align-self: flex-end; }
+.line.me .what { background: rgba(20, 38, 48, 0.86); border-color: rgba(110, 231, 255, 0.28); }
+.line.them { align-self: flex-start; }
+.line.alone .what { border-style: dashed; color: var(--dim); font-style: italic; }
+.log .empty { display: none; }
+
+form { display: flex; gap: 6px; }
+input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 13px;
+  border-radius: 11px;
+  border: 1px solid var(--edge);
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+input:focus { border-color: rgba(110, 231, 255, 0.5); }
+input::placeholder { color: var(--dim); }
+button {
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid var(--edge);
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
+#mic.listening { border-color: rgba(255, 110, 140, 0.7); color: #ff6e8c; }
+
+/* ── 우클릭 메뉴 ─────────────────────────────────────
+   설정은 늘 보일 필요가 없다. 필요할 때만 부른다. */
+.menu {
+  position: fixed;
+  z-index: 9;
+  min-width: 176px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+  background: rgba(12, 14, 19, 0.96);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+  display: grid;
+  gap: 2px;
+}
+.menu[hidden] { display: none; }
+.menu label {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  color: var(--dim);
+}
+/* 조절 막대 — 고르는 자리와 같은 폭에 맞춘다. 기본 모양은 어두운 판 위에서 안 보인다. */
+.menu input[type="range"] {
+  width: 100%;
+  height: 18px;
+  accent-color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+}
+.menu select {
+  width: 100%;
+  padding: 5px 7px;
+  border-radius: 8px;
+  border: 1px solid var(--edge);
+  background: rgba(20, 23, 30, 0.9);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.menu hr { border: 0; border-top: 1px solid var(--edge); margin: 4px 2px; }
+.menu .item {
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  font-size: 13px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink);
+}
+.menu .item:hover { background: rgba(110, 231, 255, 0.12); color: var(--accent); }
+.menu .item.danger:hover { background: rgba(255, 110, 140, 0.14); color: #ff8098; }
+
+/* ── 아는 것 ───────────────────────────────────────── */
+.sheet {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 8;
+  max-height: 44vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--edge);
+  border-radius: 13px;
+  background: rgba(12, 14, 19, 0.96);
+  backdrop-filter: blur(10px);
+}
+.sheet[hidden] { display: none; }
+.sheet-head { padding: 10px 13px; border-bottom: 1px solid var(--edge); font-size: 12px; color: var(--accent); }
+.sheet-body { padding: 11px 13px; overflow-y: auto; font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.known-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+}
+.known-line span { flex: 1; }
+.known-drop {
+  flex: none;
+  padding: 0 6px;
+  font-size: 11px;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.known-line:hover .known-drop { border-color: var(--edge); }
+.known-drop:hover { color: #ff8098; border-color: rgba(255, 128, 152, 0.5); }
+
+.sheet-foot { padding: 8px 13px 10px; border-top: 1px solid var(--edge); font-size: 11px; color: var(--dim); }
+
+/* ── 물어보기 ───────────────────────────────────────── */
+.ask {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 10;
+  display: grid;
+  gap: 9px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 200, 110, 0.5);
+  border-radius: 13px;
+  background: rgba(24, 20, 14, 0.96);
+  backdrop-filter: blur(10px);
+}
+.ask[hidden] { display: none; }
+.ask-what { font-size: 13px; line-height: 1.6; word-break: break-word; }
+.ask-row { display: flex; gap: 7px; justify-content: flex-end; }
+.ask-row button { padding: 6px 13px; font-size: 13px; }
+.ask-yes { border-color: rgba(255, 200, 110, 0.6); color: #ffc86e; }
+
+/* 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다. */
+.status, .grip, .mute, .known-btn, .who-pick, .brain-pick, .voice-pick, .shadow, .cube { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble, .talk { transition: none; }
+}
+
+
+/* ── 화면 전체로 편 창 ────────────────────────────────────
+   작은 창에 얹으니 말풍선·메뉴가 끝없이 잘렸다. 자리를 조금씩 넓히는 건 증상 추격이라,
+   창을 화면만큼 키우고 **얘가 사는 자리(.room)만 화면 안에서 옮겨 다니게** 했다.
+   창은 다 덮지만 얘와 눌러야 하는 자리 밖은 클릭이 그대로 지나간다. */
+body.full .room {
+  position: fixed;
+  left: var(--방x, 60%);
+  top: var(--방y, 40%);
+  /* **상자도 같이 커져야 한다.** 창만 화면만 하게 키우고 이 상자를 420×620 로 두면
+     보이는 건 하나도 안 달라진다 — 몸을 키우면 이 상자에 걸려 잘린다(실측). 몸 크기를
+     그대로 따라간다. */
+  width: var(--방폭, 420px);
+  height: var(--방높이, 620px);
+  padding: 0;
+  /* 화면 끝에 붙어도 안 잘리게, 자리를 잡는 기준을 몸 쪽으로 둔다. */
+  transform: translate(-50%, 0);
+}
+/* 화면이 넓어졌으니 말풍선도 넉넉히. 이제 잘릴 일이 거의 없다. */
+body.full .bubble { max-height: 40vh; max-width: 420px; }
+/* 끌고 다니는 동안엔 부드럽게 따라오지 않는다 — 손이 끄는 느낌이 뭉개진다. */
+body.full.dragging .room { transition: none; }
+
+
+/* ── 차지하는 자리 보기 (디버깅) ──────────────────────────
+   투명한 창은 무엇이 어디를 차지하는지 눈으로 볼 수가 없다. 켜면 테두리가 보인다. */
+body.showboxes .room { outline: 2px dashed rgba(110, 231, 255, 0.8); outline-offset: -2px; }
+body.showboxes .stage { outline: 2px dashed rgba(255, 200, 90, 0.85); }
+body.showboxes .field { outline: 2px dotted rgba(255, 120, 160, 0.85); }
+body.showboxes .bubble { outline: 2px dashed rgba(140, 255, 160, 0.85); }
+body.showboxes .body3d { outline: 2px solid rgba(255, 255, 255, 0.5); }
+body.showboxes .room::before {
+  content: "얘 자리";
+  position: absolute; left: 0; top: -16px;
+  font-size: 11px; color: #6ee7ff;
+}
