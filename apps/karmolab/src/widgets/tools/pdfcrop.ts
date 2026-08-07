@@ -56,6 +56,8 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'pdfcrop',
+    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
+    accepts: ['application/pdf'],
     title: 'PDF 여백 자르기',
     category: 'tool',
     desc: '스캔본·논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다',
@@ -261,6 +263,8 @@ import { fileSize as size } from './shared/media';
               a.href = URL.createObjectURL(blob);
               a.download = (file.name || '문서').replace(/\.[^.]+$/, '') + '-여백자름.pdf';
               a.click();
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfcrop' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(`${cropped}장을 잘랐어요 · ${size(blob.size)}. 글자는 그대로 고를 수 있습니다.`, 'ok');
               Toolbox.trackUse?.('crop');
@@ -277,6 +281,14 @@ import { fileSize as size } from './shared/media';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133). */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type === 'application/pdf') {
+              void load(new File([handed.blob], handed.name || '넘겨받은.pdf', { type: 'application/pdf' }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
