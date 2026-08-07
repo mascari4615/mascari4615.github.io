@@ -1150,10 +1150,13 @@ const Toolbox = (() => {
             /* 깊이는 **인라인 값**에서 읽는다. 이 상자는 아직 화면에 안 붙어 있어서
              * 계산된 값을 물으면 빈 문자열이 온다 — 처음엔 그래서 한 개도 안 잡혔다. */
             const drifters = [...wrap.querySelectorAll('.home-decor-item')]
-                .filter((el) => parseFloat(el.style.getPropertyValue('--depth')) >= 0.5)
                 .map((el) => {
                     el.classList.add('home-decor-drift');
-                    return { el, ox: 0, oy: 0, vx: 0, vy: 0, cx: 0, cy: 0, r: 0 };
+                    /* 깊이가 밀리는 정도를 정한다 — 가까운 것이 많이, 먼 것은 거의 안 밀린다.
+                       예전에는 가까운 것만 골라 놓고 그 안에서는 다 똑같이 밀었다. 그래서
+                       「전체가 한 덩어리로 밀리는」 느낌이 났다 (TASK-KL-101). */
+                    const depth = parseFloat(el.style.getPropertyValue('--depth')) || 0.2;
+                    return { el, depth, ox: 0, oy: 0, vx: 0, vy: 0, cx: 0, cy: 0, r: 0 };
                 });
             const measure = () => {
                 for (const d of drifters) {
@@ -1217,14 +1220,16 @@ const Toolbox = (() => {
                     const surface = dist - d.r;              // 도형 표면까지 남은 거리
                     if (surface > MARGIN) continue;          // 아직 멀다 — 아무 일도 없다
                     const near = 1 - Math.max(0, surface) / MARGIN;
-                    const power = near ** 2 * PUSH * 0.16;   // 바짝 붙을수록 급격히 세게
+                    // 바짝 붙을수록 급격히 세게 × 가까운 것일수록 더 (깊이)
+                    const power = near ** 2 * PUSH * 0.16 * d.depth;
                     d.vx += (dx / dist) * power;
                     d.vy += (dy / dist) * power;
                     /* 속도에 천장을 둔다. 손을 한 번 스쳐도 밀어내는 힘이 **프레임마다 쌓여서**,
                      * 천장이 없으면 한 번 지나갔을 뿐인데 수백 px 를 날아간다(그랬다).
                      * 여기서 「얼마나 빨리 밀리나」가 정해지고, 저항이 「얼마나 멀리 가나」를 정한다. */
                     const sp = Math.hypot(d.vx, d.vy);
-                    if (sp > VMAX) { d.vx *= VMAX / sp; d.vy *= VMAX / sp; }
+                    const cap = VMAX * d.depth;   // 천장도 깊이를 따른다
+                    if (sp > cap) { d.vx *= cap / sp; d.vy *= cap / sp; }
                 }
                 if (!alive) { alive = true; requestAnimationFrame(step); }
             };
