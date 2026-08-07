@@ -6,7 +6,8 @@
  *
  * playwright 는 이웃 앱(apps/karmolab)의 것을 빌려 쓴다. 이 앱은 의존성 0 을 유지한다.
  */
-import { readFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdirSync, rmSync, statSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startServer } from './serve.mjs';
@@ -28,6 +29,30 @@ const check = (name, ok, note = '') => {
   checks.push({ name, ok, note });
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${note ? `  — ${note}` : ''}`);
 };
+
+/**
+ * **빌드를 잊으면 옛 코드로 초록이 뜬다.**
+ *
+ * 이 검사는 `dist/` 를 그냥 띄운다. 그래서 소스를 고치고 빌드를 안 돌린 채 검사하면,
+ * 방금 고친 것이 아니라 예전 것을 재고 「다 통과」라고 말한다 — 가장 나쁜 종류의 거짓 초록이다.
+ * (오늘 이 함정을 여러 번 밟았다. 사람이 기억할 일이 아니라 기계가 볼 일이다.)
+ *
+ * 소스가 더 새로우면 여기서 알아서 다시 짓는다.
+ */
+{
+  const dist = join(app, 'dist/index.html');
+  const sources = [
+    ...['engine.mjs', 'app.mjs', 'past.mjs', 'past-row.mjs', 'hub.mjs', 'count.mjs', 'style.css'].map((f) => join(app, f)),
+    join(app, 'scripts/build.mjs'),
+    ...readdirSync(join(app, 'data')).filter((f) => f.endsWith('.json')).map((f) => join(app, 'data', f)),
+  ];
+  const newest = Math.max(...sources.map((f) => statSync(f).mtimeMs));
+  const built = existsSync(dist) ? statSync(dist).mtimeMs : 0;
+  if (newest > built) {
+    console.log('[smoke] dist 가 소스보다 낡았다 — 다시 짓는다 (안 그러면 옛 코드로 초록이 뜬다)');
+    execFileSync(process.execPath, [join(app, 'scripts/build.mjs')], { cwd: app, stdio: 'inherit' });
+  }
+}
 
 const server = await startServer(0);
 const base = `http://127.0.0.1:${server.address().port}/daily`;
