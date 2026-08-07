@@ -1855,7 +1855,16 @@ const Toolbox = (() => {
             // 뒤이은 묶음 호출은 안 적게 막는다.
             window.KarmoPalette?.noteOpen(pageId);
             switchPage(bundleId, { ...opts, skipRecent: true });
-            switchTab(pageId);
+            /* 그 탭이 **아직 없을 수 있다** (TASK-KL-133).
+             * 묶음 위젯은 열 때 받아 오므로, 주소로 바로 들어온 경우 여기서 탭 단추가 아직
+             * 안 그려져 있다 — 그러면 이 호출이 조용히 아무 일도 안 하고 첫 탭이 열린 채로
+             * 남는다. 실제로 `#크기 맞추기`·`#글 → PDF` 로 들어오면 늘 엉뚱한 탭이었다.
+             * 받아 오는 것이 끝난 뒤 한 번 더 부른다 — 이미 열려 있으면 그대로다. */
+            if (!switchTab(pageId)) {
+                void Promise.resolve(kickLazyLoad(bundleId)).then(() => {
+                    requestAnimationFrame(() => switchTab(pageId));
+                });
+            }
             return;
         }
         const base = location.pathname + (location.search || '');
@@ -1950,7 +1959,9 @@ const Toolbox = (() => {
         if (typeof btn === 'string') {
             tabId = btn;
             btn = document.querySelector(`[data-tab-id="${tabId}"]`);
-            if (!btn) return;
+            /* 그 탭 단추가 아직 없으면 **못 열었다고 알린다** — 부르는 쪽이 다시 시도할 수 있게.
+             * 묶음 위젯을 아직 받아 오는 중이면 이런 일이 생긴다 (TASK-KL-133). */
+            if (!btn) return false;
         }
         const tabRow = btn.closest('.tab-row');
         const page = btn.closest('.tool-page');
@@ -1968,6 +1979,7 @@ const Toolbox = (() => {
         const panel = page.querySelector('[data-tab-panel="' + tabId + '"]');
         buildLazyPanel(panel);
         panel?.classList.add('active');
+        return true;
     }
 
     /** lazyTabs 위젯의 아직 안 그린 탭 — 처음 열릴 때 그린다 (buildToolPage 참고). */

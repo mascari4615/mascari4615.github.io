@@ -212,6 +212,8 @@ import { mountCourseNext } from './play-course';
           let tries = 0;
           let done = false;
           let practice = false;
+          /** 이 자리에서 이미 낸 연습 문제 — 되돌아오지 않게 센다. */
+          const usedPractice = new Set<string>();
 
           const load = (): Record<string, { win: boolean; tries: number }> => {
             try {
@@ -300,9 +302,16 @@ import { mountCourseNext } from './play-course';
           /* 오늘 것을 끝내면 할 게 없어 그냥 나가게 된다 — 지난 문제를 연습으로 더 풀게 한다. */
           function practiceRound(): void {
             const todayId = current ? current.id : '';
-            const pool = all.filter((x) => x.id !== todayId && x.id !== current?.id);
+            /* 이미 낸 연습 문제는 다시 안 낸다. 매번 무작위로 뽑았더니 열 번 이어 하는 동안
+             * 두 개가 되돌아왔다(실측: 열 판에 서로 다른 문제 여덟). 표를 다 돌면 그때 비운다. */
+            let pool = all.filter((x) => x.id !== todayId && x.id !== current?.id && !usedPractice.has(x.id));
+            if (!pool.length) {
+              usedPractice.clear();
+              pool = all.filter((x) => x.id !== todayId && x.id !== current?.id);
+            }
             if (!pool.length) return;
             current = pool[Math.floor(Math.random() * pool.length)];
+            usedPractice.add(current.id);
             practice = true;
             done = false;
             tries = 0;
