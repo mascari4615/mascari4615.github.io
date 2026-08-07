@@ -202,3 +202,18 @@ test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다'
   assert.equal(findItem(items, ' aatrox ')?.name, 'Aatrox');
   assert.equal(findItem(items, '없음'), null);
 });
+
+test('띄어 쓴 이름을 붙여 쳐도 찾아진다', () => {
+  // 「누누와 윌럼프」·「미스터 마임」·「라이덴 쇼군」 처럼 띄어 쓴 이름이 22개다.
+  // 사람은 대개 붙여 친다 — 붙여 쳤다고 못 찾으면 그건 우리 잘못이다.
+  const items = [{ name: '누누와 윌럼프' }, { name: '미스터 마임' }, { name: '문도 박사' }];
+  assert.equal(findItem(items, '누누와윌럼프')?.name, '누누와 윌럼프');
+  assert.equal(suggest(items, '미스터마')[0]?.name, '미스터 마임');
+  assert.equal(suggest(items, '문도박사')[0]?.name, '문도 박사');
+  assert.equal(suggest(items, '누누')[0]?.name, '누누와 윌럼프', '띄어 쓴 채로도 그대로 찾아진다');
+});
+
+test('이미 낸 답은 띄어쓰기가 달라도 다시 안 나온다', () => {
+  const items = [{ name: '리 신' }, { name: '리븐' }];
+  assert.deepEqual(suggest(items, '리', { exclude: ['리신'] }).map((i) => i.name), ['리븐']);
+});
