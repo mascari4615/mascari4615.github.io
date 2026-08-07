@@ -100,6 +100,74 @@ describe('도구 열림 세기', () => {
   });
 });
 
+describe('방문 세기 (Total / Today)', () => {
+  it('같은 사람이 화면을 옮겨 다녀도 한 번만 센다 — 안 그러면 수가 「내가 링크를 잘 걸었다」만 말한다', () => {
+    expect(store.recordVisit('visitor-a')).toBe(true);
+    expect(store.recordVisit('visitor-a')).toBe(false);
+    const stats = store.visitStats();
+    expect(stats.total).toBe(1);
+    expect(stats.peopleToday).toBe(1);
+  });
+
+  it('다른 사람은 따로 센다', () => {
+    store.recordVisit('visitor-a');
+    store.recordVisit('visitor-b');
+    const stats = store.visitStats();
+    expect(stats.total).toBe(2);
+    expect(stats.today).toBe(2);
+    expect(stats.peopleToday).toBe(2);
+  });
+
+  it('30분이 지나면 방문은 다시 세지만 「오늘 다녀간 사람」은 그대로다 — 한 사람은 하루 한 명이다', () => {
+    const first = new Date('2026-08-08T01:00:00Z');
+    const later = new Date('2026-08-08T02:00:00Z');
+    expect(store.recordVisit('visitor-a', first)).toBe(true);
+    expect(store.recordVisit('visitor-a', later)).toBe(true);
+    const stats = store.visitStats(later);
+    expect(stats.total).toBe(2);
+    expect(stats.peopleToday).toBe(1);
+  });
+
+  it('날이 바뀌면 오늘 수는 0부터, 누적은 이어진다', () => {
+    const yesterday = new Date('2026-08-07T05:00:00Z');
+    const today = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('visitor-a', yesterday);
+    store.recordVisit('visitor-b', today);
+    const stats = store.visitStats(today);
+    expect(stats.total).toBe(2);
+    expect(stats.today).toBe(1);
+    expect(stats.peopleToday).toBe(1);
+  });
+
+  it('봇이 다시 떠도 오늘 사람 수가 두 배가 되지 않는다 — 열쇠를 저장하기 때문', () => {
+    const now = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('visitor-a', now);
+    store.flush();
+    // 재시작 = 30분 창(메모리)은 사라진다. 그래도 「오늘 이미 센 사람」은 파일에 남아 있어야 한다.
+    const reopened = new KarmolabTraceStore(statePath);
+    expect(reopened.recordVisit('visitor-a', now)).toBe(true);
+    expect(reopened.visitStats(now).peopleToday).toBe(1);
+    expect(reopened.visitStats(now).total).toBe(2);
+  });
+
+  it('이 칸이 없던 예전 상태 파일에서도 기동한다', () => {
+    fs.writeFileSync(statePath, JSON.stringify({ version: 1, tools: {}, posts: [] }), 'utf-8');
+    const reopened = new KarmolabTraceStore(statePath);
+    expect(reopened.visitStats().total).toBe(0);
+    expect(() => reopened.recordVisit('v1')).not.toThrow();
+  });
+
+  it('최근 14일을 오래된 날부터 오늘까지 빠짐없이 준다 — 빈 날도 0으로 있어야 그래프가 안 찌그러진다', () => {
+    const now = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('visitor-a', now);
+    const days = store.visitStats(now).recentDays;
+    expect(days).toHaveLength(14);
+    expect(days[13].day).toBe(kstDay(now));
+    expect(days[13].visits).toBe(1);
+    expect(days[0].visits).toBe(0);
+  });
+});
+
 describe('글판 — 이야기·도구 요청', () => {
   it('올린 사람의 첫 표가 이미 들어가 있다 — 자기 요청이 0표로 시작하면 어색하다', () => {
     store.addPost({ board: 'request', text: '엑셀을 CSV 로 바꾸는 도구', accountId: 'acc-1', handle: 'kim' });

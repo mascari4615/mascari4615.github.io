@@ -277,6 +277,17 @@ function currentToolId(): string | null {
     return hash;
 }
 
+/**
+ * 다녀갔다고 한 번 알린다 (블로그의 Total / Today 와 같은 것).
+ *
+ * 도구 열림과 따로 세는 이유: 첫 화면만 보고 나간 사람도 다녀간 사람이다. 도구 열림만 세면
+ * 첫 화면은 영원히 아무도 안 온 곳이 된다. 화면을 옮길 때마다 보내지 않고 **한 번만** 보낸다 —
+ * 서버도 30분에 한 번만 세지만, 안 보내는 편이 낫다.
+ */
+function traceVisit(): void {
+    void call('/kl/trace/visit', { method: 'POST' });
+}
+
 /** 한 번 알린 도구는 이 화면에서 다시 안 알린다 (서버도 한 번 더 거르지만, 안 보내면 더 낫다). */
 const tracedTools = new Set<string>();
 
@@ -533,6 +544,7 @@ function start(): void {
     mountHeaderAccount();
     mountBell();
     void refresh();
+    traceVisit();
     traceCurrentTool();
 }
 if (document.readyState === 'complete') start();
