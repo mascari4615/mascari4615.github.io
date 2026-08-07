@@ -29,11 +29,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">크기</div>
-                  <input type="number" id="bsValue" value="1" step="any" min="0">
+                  <input type="number" id="bsValue" aria-label="크기" value="1" step="any" min="0">
                 </div>
                 <div>
                   <div class="tool-sublabel">단위</div>
-                  <select id="bsUnit"></select>
+                  <select id="bsUnit" aria-label="단위"></select>
                 </div>
               </div>
             </div>

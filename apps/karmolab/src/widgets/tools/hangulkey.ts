@@ -195,7 +195,7 @@
                 <label class="field-label" style="margin:0;">결과</label>
                 <button class="btn btn-ghost" id="hkCopy">복사</button>
               </div>
-              <textarea id="hkOutput" readonly style="min-height:120px;"></textarea>
+              <textarea id="hkOutput" aria-label="바뀐 결과" readonly style="min-height:120px;"></textarea>
             </div>
             <div class="tool-status" id="hkNote">두벌식 자판 기준입니다. 숫자·특수문자는 그대로 둡니다.</div>
           `;

@@ -70,11 +70,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">글자색</div>
-                  <input type="text" id="coFg" value="#767676" spellcheck="false">
+                  <input type="text" id="coFg" aria-label="글자색" value="#767676" spellcheck="false">
                 </div>
                 <div>
                   <div class="tool-sublabel">배경색</div>
-                  <input type="text" id="coBg" value="#ffffff" spellcheck="false">
+                  <input type="text" id="coBg" aria-label="배경색" value="#ffffff" spellcheck="false">
                 </div>
               </div>
             </div>

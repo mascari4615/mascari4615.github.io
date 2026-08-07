@@ -46,7 +46,7 @@
 
             <div class="field-group" id="pkCountWrap">
               <div class="tool-sublabel" id="pkCountLabel">몇 명 뽑을까요 <span id="pkCountVal" class="range-value">1명</span></div>
-              <input type="range" id="pkCount" min="1" max="10" value="1">
+              <input type="range" id="pkCount" aria-label="몇 명 뽑을까요" min="1" max="10" value="1">
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">

@@ -51,7 +51,7 @@
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">생년월일</label>
-              <input type="date" id="biDate">
+              <input type="date" id="biDate" aria-label="생년월일">
             </div>
             <div class="tool-list" id="biOut"></div>
             <div class="tool-status" id="biStatus">양력 기준입니다. 띠는 통용되는 양력 1월 1일 기준으로 셉니다.</div>

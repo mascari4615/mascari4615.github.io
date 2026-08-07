@@ -73,7 +73,7 @@
           container.innerHTML = `
             <div class="field-group">
               <label class="field-label">종류</label>
-              <select id="uuKind">
+              <select id="uuKind" aria-label="종류">
                 <option value="v4">UUID v4 — 완전 무작위 (가장 일반적)</option>
                 <option value="v7">UUID v7 — 시간 정렬 가능 (DB 기본키 추천)</option>
                 <option value="ulid">ULID — 26자, 시간 정렬 + 대소문자 혼동 없음</option>
@@ -85,11 +85,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">개수 <span id="uuCountVal" class="range-value">10개</span></div>
-                  <input type="range" id="uuCount" min="1" max="100" value="10">
+                  <input type="range" id="uuCount" aria-label="개수" min="1" max="100" value="10">
                 </div>
                 <div>
                   <div class="tool-sublabel">길이 <span id="uuLenVal" class="range-value">21자</span></div>
-                  <input type="range" id="uuLen" min="6" max="64" value="21">
+                  <input type="range" id="uuLen" aria-label="길이" min="6" max="64" value="21">
                 </div>
               </div>
               <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
@@ -108,7 +108,7 @@
               <button class="btn btn-primary" id="uuGen">생성</button>
               <button class="btn btn-ghost" id="uuCopy">전체 복사</button>
             </div>
-            <textarea id="uuOut" class="mono-input" readonly style="min-height:240px;"></textarea>
+            <textarea id="uuOut" aria-label="만들어진 값" class="mono-input" readonly style="min-height:240px;"></textarea>
             <div class="tool-status">모두 브라우저의 암호학적 난수(crypto.getRandomValues)로 만들며 서버로 전송하지 않습니다.</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;

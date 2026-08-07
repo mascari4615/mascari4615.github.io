@@ -39,11 +39,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">초성만</div>
-                  <input type="text" id="jaCho" readonly spellcheck="false">
+                  <input type="text" id="jaCho" aria-label="초성만" readonly spellcheck="false">
                 </div>
                 <div>
                   <div class="tool-sublabel">자모 나열</div>
-                  <input type="text" id="jaAll" readonly spellcheck="false">
+                  <input type="text" id="jaAll" aria-label="자모 나열" readonly spellcheck="false">
                 </div>
               </div>
             </div>

@@ -25,11 +25,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">루트 글자 크기 (html)</div>
-                  <input type="number" id="cuRoot" value="16" step="1" min="1">
+                  <input type="number" id="cuRoot" aria-label="루트 글자 크기 (HTML)" value="16" step="1" min="1">
                 </div>
                 <div>
                   <div class="tool-sublabel">부모 글자 크기 (em 기준)</div>
-                  <input type="number" id="cuParent" value="16" step="1" min="1">
+                  <input type="number" id="cuParent" aria-label="부모 글자 크기 (EM 기준)" value="16" step="1" min="1">
                 </div>
               </div>
             </div>
@@ -39,11 +39,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">숫자</div>
-                  <input type="number" id="cuValue" value="24" step="any">
+                  <input type="number" id="cuValue" aria-label="바꿀 숫자" value="24" step="any">
                 </div>
                 <div>
                   <div class="tool-sublabel">단위</div>
-                  <select id="cuUnit">
+                  <select id="cuUnit" aria-label="바꿀 단위">
                     <option value="px">px</option>
                     <option value="rem">rem</option>
                     <option value="em">em</option>

@@ -53,7 +53,7 @@
             </div>
             <div class="field-group">
               <label class="field-label">사람이 읽는 시각</label>
-              <input type="datetime-local" id="epDate" step="1">
+              <input type="datetime-local" id="epDate" aria-label="사람이 읽는 시각" step="1">
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <button class="btn btn-primary" id="epNow">지금</button>

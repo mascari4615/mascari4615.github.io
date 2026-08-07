@@ -57,7 +57,7 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">이음 문자</div>
-                  <select id="slSep">
+                  <select id="slSep" aria-label="이음 문자">
                     <option value="-">하이픈 (-)</option>
                     <option value="_">밑줄 (_)</option>
                   </select>
@@ -73,7 +73,7 @@
             </div>
             <div class="field-group">
               <label class="field-label">슬러그</label>
-              <textarea id="slOut" rows="4" spellcheck="false" readonly></textarea>
+              <textarea id="slOut" aria-label="만들어진 슬러그" rows="4" spellcheck="false" readonly></textarea>
             </div>
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
               <button class="btn btn-ghost" id="slCopy">복사</button>

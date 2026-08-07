@@ -50,14 +50,19 @@ for (const name of fs.readdirSync(dir)) {
  * 내 컴퓨터에는 다른 세션이 고치는 중인(아직 커밋 안 된) 이름들이 있어서 통과했고,
  * 저장소에는 없어서 실패한 것이다. **남의 미커밋 상태에 기대 통과한 검사**였다.
  *
- * 이 검사의 값어치는 「배포 전에 눈에 띄게 하는 것」이지 남의 작업을 막는 것이 아니다.
- * 진짜 관문은 배포된 화면을 재는 `audit-input-labels.mjs` 다(기준치 0).
+ * **0 이 된 날 잠갔다 (TASK-KL-105).** 예전에는 세기만 하고 그냥 통과시켰다 — 남의 작업을
+ * 막지 않으려는 뜻이었는데, 결과는 숫자가 몇 달 동안 39에서 그대로였다. 아무도 안 막으니
+ * 아무도 안 고쳤다. 이제 0 이므로 늘어나는 순간 빨개진다. 새로 만드는 칸에 이름 한 줄
+ * 붙이는 비용은 작고, 안 붙이면 그 칸은 「편집란」으로만 읽힌다.
+ *
+ * 배포된 화면을 재는 짝은 `audit-input-labels.mjs` (기준치 0). 이쪽이 먼저·빠르게 잡고,
+ * 그쪽이 실제로 나간 화면을 확인한다.
  */
 if (offenders.length) {
-  console.warn(`[check-input-names] 이름 없는 입력칸 ${offenders.length}개 — 화면낭독기는 「편집란」으로만 읽습니다`);
-  offenders.slice(0, 15).forEach((o) => console.warn('  - ' + o));
-  if (offenders.length > 15) console.warn(`  … 그 밖 ${offenders.length - 15}개`);
-  console.warn('  고치는 법: 그 칸에 aria-label="눈에 보이는 그 설명" 을 붙이거나 <label for> 로 이어 주세요.');
-  process.exit(0);
+  console.error(`[check-input-names] 이름 없는 입력칸 ${offenders.length}개 — 화면낭독기는 「편집란」으로만 읽습니다`);
+  offenders.slice(0, 15).forEach((o) => console.error('  - ' + o));
+  if (offenders.length > 15) console.error(`  … 그 밖 ${offenders.length - 15}개`);
+  console.error('  고치는 법: 그 칸에 aria-label="눈에 보이는 그 설명" 을 붙이거나 <label for> 로 이어 주세요.');
+  process.exit(1);
 }
 console.log('[check-input-names] 도구의 입력칸이 모두 이름을 갖고 있다');

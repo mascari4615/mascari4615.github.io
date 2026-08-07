@@ -56,11 +56,11 @@
               <div class="tool-grid-2">
                 <div>
                   <div class="tool-sublabel">목표 평점</div>
-                  <input type="number" id="grTarget" value="4.0" step="0.1" min="0" max="4.5">
+                  <input type="number" id="grTarget" aria-label="목표 평점" value="4.0" step="0.1" min="0" max="4.5">
                 </div>
                 <div>
                   <div class="tool-sublabel">앞으로 들을 학점</div>
-                  <input type="number" id="grFuture" value="18" step="1" min="1">
+                  <input type="number" id="grFuture" aria-label="앞으로 들을 학점" value="18" step="1" min="1">
                 </div>
               </div>
             </div>
