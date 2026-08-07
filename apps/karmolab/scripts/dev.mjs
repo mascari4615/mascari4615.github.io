@@ -195,7 +195,8 @@ function rebuild(reason) {
   building = true;
   const before = snapshot(path.join(here, 'js'));
   const t0 = Date.now();
-  execFile(process.execPath, [path.join(here, 'build.mjs')], { cwd: here }, (err, _out, stderr) => {
+  // windowsHide 를 안 걸면 **파일 고칠 때마다 검은 콘솔 창이 툭 뜬다** — 조수님이 겪었다.
+  execFile(process.execPath, [path.join(here, 'build.mjs')], { cwd: here, windowsHide: true }, (err, _out, stderr) => {
     building = false;
     if (err) {
       console.error(`[dev] 빌드 실패 — ${reason}`);
@@ -270,6 +271,8 @@ fs.watchFile(fileURLToPath(import.meta.url), { interval: 500 }, (cur, prev) => {
   const child = spawn(process.execPath, [fileURLToPath(import.meta.url), String(PORT)], {
     cwd: here,
     stdio: 'inherit',
+    // 스스로 다시 뜰 때도 콘솔 창을 새로 띄우지 않는다.
+    windowsHide: true,
     // 새 것을 **떼어 놓는다**. 안 그러면 이쪽이 물러날 때 같이 사라져, 「다시 뜬다」고 찍어 놓고
     // 아무것도 안 도는 상태가 된다(실제로 그랬다 — 서버가 통째로 죽어 있었다).
     detached: true,
