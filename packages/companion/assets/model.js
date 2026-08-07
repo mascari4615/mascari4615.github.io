@@ -368,9 +368,6 @@ export async function mountModel(canvas, modelName, onFail) {
   const viewCenterY = (viewTop + viewBottom) / 2 - 0.5; // 모델 중심 기준
 
   const camera2 = camera; // 이름만 짧게
-  /* 얼마나 크게 보일까. 1 = 화면에 딱 맞게. 모델 자체는 안 건드린다 — 카메라를
-     당기고 미는 것뿐이라 뼈·재질·그림자가 그대로다(외형은 다른 사람 몫). */
-  let 크기배율 = 1;
   function frame() {
     const w = canvas.clientWidth || 1;
     const h = canvas.clientHeight || 1;
@@ -382,7 +379,7 @@ export async function mountModel(canvas, modelName, onFail) {
     const forHeight = viewHeight / 2 / Math.tan(fov / 2);
     const widthNeeded = Math.max(size.x, size.z) * scale;
     const forWidth = widthNeeded / 2 / (Math.tan(fov / 2) * aspect);
-    const distance = (Math.max(forHeight, forWidth) * 1.12) / 크기배율; // 여유 · 크게 볼수록 가까이
+    const distance = Math.max(forHeight, forWidth) * 1.12; // 여유
 
     camera2.position.set(0, viewCenterY, distance);
     camera2.lookAt(0, viewCenterY, 0);
@@ -630,16 +627,5 @@ export async function mountModel(canvas, modelName, onFail) {
      * 소리는 끝났는데 입이 계속 나불거리거나, 그 반대가 된다.
      */
     speakFor(ms) { state.speakUntil = Date.now() + Math.max(0, ms); },
-    /**
-     * 얼마나 크게 보일지. 100 = 화면에 딱 맞게, 크면 확대.
-     *
-     * 창이 작고 얘가 늘 거기 있으므로 「좀 더 크게/작게」는 자주 필요하다. 모델을
-     * 늘리지 않고 카메라만 움직인다 — 늘리면 발밑 그림자와 눌리는 자리가 어긋난다.
-     */
-    setSize(percent) {
-      const p = Number(percent);
-      크기배율 = Math.min(2.5, Math.max(0.5, (Number.isFinite(p) ? p : 100) / 100));
-      frame();
-    },
   };
 }

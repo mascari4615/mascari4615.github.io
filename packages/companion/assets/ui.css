@@ -298,8 +298,11 @@ body.full .room {
   position: fixed;
   left: var(--방x, 60%);
   top: var(--방y, 40%);
-  width: 420px;
-  height: 620px;
+  /* **상자도 같이 커져야 한다.** 창만 화면만 하게 키우고 이 상자를 420×620 로 두면
+     보이는 건 하나도 안 달라진다 — 몸을 키우면 이 상자에 걸려 잘린다(실측). 몸 크기를
+     그대로 따라간다. */
+  width: var(--방폭, 420px);
+  height: var(--방높이, 620px);
   padding: 0;
   /* 화면 끝에 붙어도 안 잘리게, 자리를 잡는 기준을 몸 쪽으로 둔다. */
   transform: translate(-50%, 0);
@@ -308,3 +311,17 @@ body.full .room {
 body.full .bubble { max-height: 40vh; max-width: 420px; }
 /* 끌고 다니는 동안엔 부드럽게 따라오지 않는다 — 손이 끄는 느낌이 뭉개진다. */
 body.full.dragging .room { transition: none; }
+
+
+/* ── 차지하는 자리 보기 (디버깅) ──────────────────────────
+   투명한 창은 무엇이 어디를 차지하는지 눈으로 볼 수가 없다. 켜면 테두리가 보인다. */
+body.showboxes .room { outline: 2px dashed rgba(110, 231, 255, 0.8); outline-offset: -2px; }
+body.showboxes .stage { outline: 2px dashed rgba(255, 200, 90, 0.85); }
+body.showboxes .field { outline: 2px dotted rgba(255, 120, 160, 0.85); }
+body.showboxes .bubble { outline: 2px dashed rgba(140, 255, 160, 0.85); }
+body.showboxes .body3d { outline: 2px solid rgba(255, 255, 255, 0.5); }
+body.showboxes .room::before {
+  content: "얘 자리";
+  position: absolute; left: 0; top: -16px;
+  font-size: 11px; color: #6ee7ff;
+}
