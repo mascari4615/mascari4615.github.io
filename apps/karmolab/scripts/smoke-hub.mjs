@@ -11,6 +11,10 @@
  *  - 링크가 실제로 눌리는가 (첫 카드를 눌러 그 도구 페이지로 가는지)
  *  - 분류 묶음이 남아 있는가
  *
+ * 세는 것은 **아래 목록의 카드만**이다 (TASK-KL-129). 맨 위 「내가 쓰는 것」은 같은 카드를
+ * 데려다 놓은 사본이라, 같이 세면 이 검사가 자기 발자국을 밟는다 — 검사가 도구를 한 번
+ * 눌러 보고 나면 그것이 「최근」에 남아 다음 셈이 하나 늘어난다(실제로 그렇게 빨간불이 났다).
+ *
  * 사용: node scripts/smoke-hub.mjs
  *       BASE=http://127.0.0.1:8797/apps/blog node scripts/smoke-hub.mjs
  */
@@ -36,14 +40,14 @@ const state = await page.evaluate(() => {
   const ids = links
     .map((a) => a.getAttribute('href').replace(/^\/karmolab\/t\//, '').replace(/\/$/, ''))
     .filter(Boolean);
-  const first = document.querySelector('.tool-hub-card');
+  const first = document.querySelector('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card');
   return {
     ids: [...new Set(ids)],
     groups: document.querySelectorAll('.tool-hub-group').length,
-    cards: document.querySelectorAll('.tool-hub-card').length,
+    cards: document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length,
     firstHref: first ? first.getAttribute('href') : null,
     // 목록이 화면에 실제로 보이는가 (스타일이 깨져 통째로 숨는 사고를 잡는다)
-    visibleCards: [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+    visibleCards: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
   };
 });
 
@@ -63,8 +67,8 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('PDF');
     await page.waitForTimeout(400);
     const narrowed = await page.evaluate(() => ({
-      shown: [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length,
-      total: document.querySelectorAll('.tool-hub-card').length
+      shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length,
+      total: document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card').length
     }));
     if (narrowed.shown === 0) problems.push('걸러 찾기에 「PDF」 를 넣으니 하나도 안 남는다');
     else if (narrowed.shown >= narrowed.total) problems.push('걸러 찾기가 아무것도 걸러 내지 못한다');
@@ -74,7 +78,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
       await find.fill(q);
       await page.waitForTimeout(350);
       const n = await page.evaluate(
-        () => [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+        () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
       );
       if (n < least) problems.push(`영문 이름으로 못 찾는다 (「${q}」 로 ${n}개, 적어도 ${least}개)`);
     }
@@ -83,7 +87,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('개발');
     await page.waitForTimeout(400);
     const byGroup = await page.evaluate(
-      () => [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+      () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     );
     if (byGroup < 5) problems.push(`분류 이름으로 찾기가 안 된다 (「개발」 로 ${byGroup}개만 남음)`);
     await find.fill('PDF');
@@ -93,7 +97,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     // 걸러 찾기·분류 숫자·목차가 각각 따로 갱신되므로, 하나만 손보면 조용히 어긋난다.
     const consistent = await page.evaluate(() => {
       const vis = (e) => e.getBoundingClientRect().height > 0;
-      const cards = [...document.querySelectorAll('.tool-hub-card')].filter(vis).length;
+      const cards = [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter(vis).length;
       const sum = [...document.querySelectorAll('.tool-hub-group')]
         .filter(vis)
         .reduce((s, g) => s + (parseInt(g.querySelector('.tool-hub-count')?.textContent || '0', 10) || 0), 0);
@@ -119,7 +123,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('ㄱㅈㅅ');
     await page.waitForTimeout(400);
     const byCho = await page.evaluate(() =>
-      [...document.querySelectorAll('.tool-hub-card')]
+      [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')]
         .filter((c) => c.getBoundingClientRect().height > 0)
         .map((c) => c.querySelector('strong')?.textContent || '')
     );
@@ -129,7 +133,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('글자수');
     await page.waitForTimeout(400);
     const firstHref = await page.evaluate(() => {
-      const c = [...document.querySelectorAll('.tool-hub-card')].filter((x) => x.getBoundingClientRect().height > 0)[0];
+      const c = [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((x) => x.getBoundingClientRect().height > 0)[0];
       return c ? c.getAttribute('href') : null;
     });
     await page.press('#hubFind', 'Enter');
@@ -152,7 +156,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await find.fill('');
     await page.waitForTimeout(400);
     const restored = await page.evaluate(
-      () => [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+      () => [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     );
     if (restored !== state.cards) problems.push(`비웠는데 목록이 안 돌아온다 (${restored}/${state.cards})`);
 
@@ -164,7 +168,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await page.waitForTimeout(600);
     const fromLink = await page.evaluate(() => ({
       value: document.getElementById('hubFind')?.value || '',
-      shown: [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+      shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     }));
     if (shared.status() !== 200 || fromLink.value !== 'PDF' || fromLink.shown === 0) {
       problems.push(`검색어가 붙은 주소로 들어가면 그 상태로 안 열린다 (칸="${fromLink.value}" 보이는 카드 ${fromLink.shown})`);
@@ -180,7 +184,7 @@ if (state.groups < 3) problems.push(`분류 묶음이 ${state.groups}개뿐이�
     await page.waitForTimeout(600);
     const fromKorean = await page.evaluate(() => ({
       value: document.getElementById('hubFind')?.value || '',
-      shown: [...document.querySelectorAll('.tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
+      shown: [...document.querySelectorAll('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card')].filter((c) => c.getBoundingClientRect().height > 0).length
     }));
     if (korean.status() !== 200 || fromKorean.value !== ko || fromKorean.shown === 0) {
       problems.push(`한글 검색어가 붙은 주소가 깨진다 (칸="${fromKorean.value}" 보이는 카드 ${fromKorean.shown})`);
@@ -194,7 +198,7 @@ if (state.firstHref) {
   // 「거르지 않은 목록」으로 돌아와서 누른다 — 카드 차례가 바뀌어도 흔들리지 않는다.
   await page.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 25000 });
   await page.waitForTimeout(400);
-  await page.click('.tool-hub-card');
+  await page.click('.tool-hub-grid:not(.tool-hub-mine-grid) .tool-hub-card');
   await page.waitForLoadState('networkidle');
   const landed = new URL(page.url()).pathname;
   if (!landed.startsWith(state.firstHref)) problems.push(`카드를 눌렀더니 엉뚱한 곳으로 간다 (${landed})`);

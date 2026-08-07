@@ -18,6 +18,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import vm from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -62,6 +63,41 @@ if (shellPages.length < 2) {
   console.error(`[audit-tool-pages] 셸 페이지가 반만 찍혔다 — ${shellPages.join(', ') || '한 장도 없음'}`);
   fs.rmSync(tmp, { recursive: true, force: true });
   process.exit(1);
+}
+
+/* 찍힌 페이지의 **박아 넣은 스크립트가 말이 되는가** (TASK-KL-129).
+ *
+ * 이 페이지들의 글은 생성기의 문자열 안에서 만들어진다. 그래서 거기 정규식 하나만 적어도
+ * 역슬래시가 한 번 먹혀 엉뚱한 글이 나간다 — 그리고 브라우저는 그 스크립트를 통째로 버린다.
+ * 실제로 걸러 찾기 칸까지 화면에서 사라졌는데, 서버는 200 을 주고 파일도 멀쩡해 보였다.
+ * 사람이 열어 보기 전에는 아무도 모른다. 그래서 여기서 실제로 **읽혀지는지** 본다. */
+{
+  const broken = [];
+  const check = (file) => {
+    const html = fs.readFileSync(file, 'utf8');
+    for (const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+      const code = m[1];
+      if (!code.trim()) continue;
+      if (code.includes('{%')) continue;           // Jekyll 이 나중에 채우는 자리
+      if (/\btype="application\/(ld\+)?json"/.test(m[0])) {
+        try { JSON.parse(code); } catch (e) { broken.push(`${path.basename(path.dirname(file))} · 구조 설명(JSON): ${e.message}`); }
+        continue;
+      }
+      try { new vm.Script(code); } catch (e) { broken.push(`${path.basename(path.dirname(file))} · ${e.message}`); }
+    }
+  };
+  check(path.join(out, 'index.html'));                       // 도구 목록
+  for (const n of ['bot', 'u']) check(path.join(shellOut, n, 'index.html'));
+  for (const n of fs.readdirSync(out).slice(0, 5)) {          // 도구 상세 몇 장 표본
+    const f = path.join(out, n, 'index.html');
+    if (fs.existsSync(f)) check(f);
+  }
+  if (broken.length) {
+    console.error('[audit-tool-pages] 찍힌 페이지의 스크립트가 안 읽힌다 — 그 화면은 통째로 죽는다:');
+    broken.slice(0, 6).forEach((b) => console.error('  - ' + b));
+    fs.rmSync(tmp, { recursive: true, force: true });
+    process.exit(1);
+  }
 }
 
 /** 조용히 반쪽만 찍히는 경우를 막는다 — 「돌긴 돌았다」는 통과 조건이 아니다. */
