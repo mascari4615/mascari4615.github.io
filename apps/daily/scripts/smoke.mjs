@@ -45,11 +45,16 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
 
   check(`[${tag}] 문제 번호가 찍힌다`, /^#\d+$/.test((await page.locator('.no').textContent()).trim()));
 
+  // 처음 온 사람이 빈 칸 앞에서 멈추지 않게 — 시작점 몇 개를 미리 준다.
+  const seeds = page.locator('.seeds button');
+  check(`[${tag}] 시작점을 준다`, (await seeds.count()) === 3, `${await seeds.count()}개`);
+
   // 틀린 답 하나 — 줄이 생기고 칸 수가 속성 수와 같아야 한다.
   await page.fill('.guessbar input', decoy.name.slice(0, 2));
   await page.waitForSelector('.sug button');
   await page.click(`.sug button:has-text("${decoy.name}")`);
   await page.waitForSelector('.row');
+  check(`[${tag}] 한 수 두면 시작점은 사라진다`, (await page.locator('.seeds button').count()) === 0);
   const cellCount = await page.locator('.row').first().locator('.cell').count();
   check(`[${tag}] 추측 한 줄이 속성 칸을 다 그린다`, cellCount === cellsPerRow, `${cellCount}칸`);
   check(`[${tag}] 아직 안 끝났다`, await page.locator('.done').isHidden());

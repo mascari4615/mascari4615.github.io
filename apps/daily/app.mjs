@@ -254,6 +254,28 @@ function updateLeft() {
   $left.textContent = `${state.guesses.length} / ${maxGuesses}번째 시도`;
 }
 
+/**
+ * 첫 한 수의 문턱을 없앤다.
+ * 워들은 글자판이 있어 아무나 바로 시작하지만, 이 놀이는 *이름이 떠올라야* 시작된다.
+ * 처음 온 사람이 빈 칸 앞에서 멈추는 게 이 화면에서 가장 흔한 이탈 지점이다.
+ *
+ * 예시는 날짜와 무관하게 표에서 고르게 세 개를 집는다 — 오늘 정답을 빼면
+ * 「예시에 없는 것이 정답」이라는 정보가 새기 때문에 일부러 빼지 않는다.
+ */
+function renderSeeds() {
+  const box = root.querySelector('.seeds');
+  if (!box) return;
+  if (state.guesses.length || state.status !== 'playing') {
+    box.remove();
+    return;
+  }
+  const picks = [0, 0.37, 0.71].map((r) => topic.items[Math.floor(topic.items.length * r)]).filter(Boolean);
+  box.innerHTML = `<span>뭘 칠지 모르겠으면</span>${picks
+    .map((p, i) => `<button type="button" data-seed="${i}">${esc(p.name)}</button>`)
+    .join('')}`;
+  [...box.querySelectorAll('button')].forEach((b, i) => b.addEventListener('click', () => submit(picks[i].name)));
+}
+
 function submit(name) {
   if (state.status !== 'playing') return;
   const item = findItem(topic.items, name);
@@ -265,6 +287,7 @@ function submit(name) {
   else if (state.guesses.length >= maxGuesses) state.status = 'lost';
   write(storeKey, state);
   updateLeft();
+  renderSeeds();
   paintShot();
   $input.value = '';
   $sug.innerHTML = '';
@@ -323,6 +346,7 @@ for (const name of state.guesses) {
   if (item) renderRow(item);
 }
 updateLeft();
+renderSeeds();
 renderStreak();
 paintShot();
 if (state.status !== 'playing') finish();
