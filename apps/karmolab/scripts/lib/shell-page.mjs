@@ -10,6 +10,10 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/** apps/karmolab 뿌리 (이 파일은 scripts/lib/ 안에 있다). */
+const APP_ROOT = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
 
 export const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -30,6 +34,28 @@ export function replaceMeta(html, attr, name, content) {
 }
 
 /** 위젯 이름 → 실제 파일 자리. 앱이 쓰는 규칙과 같아야 한다(두 벌이면 언젠가 갈라진다). */
+/**
+ * 이 판(배포)의 표식 — `build.mjs` 가 남긴 것을 그대로 읽는다 (TASK-KL-128 ②-b).
+ *
+ * 미리받기(preload) 주소는 앱이 실제로 부르는 주소와 **글자 그대로 같아야** 한다.
+ * 앱은 위젯 주소에 이 표식을 붙인다(`toolbox.ts` 의 withBuildTag) — 여기서 안 붙이면
+ * 같은 위젯을 두 번 받는다: 미리받기로 한 번, 앱이 한 번(실측으로 그랬다).
+ * 파일이 없으면 표식 없이 간다 — 그때는 앱도 안 붙이므로 여전히 같다.
+ */
+const BUILD_TAG = (() => {
+  try {
+    return fs.readFileSync(path.join(APP_ROOT, '.build-stamp'), 'utf8').trim();
+  } catch {
+    return '';
+  }
+})();
+
+/** 위젯 묶음 주소에만 표식을 붙인다 (vendor·world·root 는 앱도 안 붙인다). */
+export function preloadHref(p) {
+  const file = scriptFile(p);
+  return `/apps/karmolab/${file}` + (BUILD_TAG && file.startsWith('js/widgets/') ? `?b=${BUILD_TAG}` : '');
+}
+
 export function scriptFile(p) {
   if (typeof p !== 'string') return `js/widgets/${p}.js`;
   if (p.startsWith('world/')) return `world/${p.slice('world/'.length)}.js`;
@@ -66,7 +92,7 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
   );
   html = html.replace(
     '</head>',
-    bootPaths.map((p) => `    <link rel="preload" as="script" href="/apps/karmolab/${scriptFile(p)}">
+    bootPaths.map((p) => `    <link rel="preload" as="script" href="${preloadHref(p)}">
 `).join('') + '</head>'
   );
 

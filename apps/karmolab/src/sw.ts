@@ -55,7 +55,14 @@ const PRECACHE_IDLE = [
  */
 function isImmutable(url: URL): boolean {
   if (url.origin !== ctx.location.origin) return false;
-  return /\/apps\/karmolab\/(js|css)\/[^/]+\.[0-9a-f]{8}\.(js|css)$/.test(url.pathname);
+  // ① 이름에 지문이 박힌 것 (`scripts/stamp-assets.mjs`)
+  if (/\/apps\/karmolab\/(js|css)\/[^/]+\.[0-9a-f]{8}\.(js|css)$/.test(url.pathname)) return true;
+  // ② 위젯 묶음 + 이 판의 표식 (`toolbox.ts` 의 withBuildTag).
+  //    위젯 주소는 실행 중에 만들어지므로 이름에 지문을 못 박는다 — 대신 판 표식을 붙인다.
+  //    표식이 이 워커의 판과 **같을 때만** 그대로 쓴다. 다르면(옛 화면이 남아 있는 경우)
+  //    평소대로 새로 받는다 — 옛 코드를 물지 않는 것이 먼저다.
+  if (url.pathname.startsWith('/apps/karmolab/js/widgets/') && url.searchParams.get('b') === BUILD) return true;
+  return false;
 }
 
 /** 신선도가 중요한 것 — 앱 코드와 데이터 */

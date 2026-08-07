@@ -306,6 +306,22 @@ const Toolbox = (() => {
      * - `root/<x>`   → js/<x>.js          (예: `root/gemini`)
      * - 그 외        → js/widgets/<x>.js  (기존 위젯 경로 — 무변경)
      */
+    /**
+     * 이 판(배포)의 표식 (TASK-KL-128 ②-b). `build.mjs` 가 빌드 시각으로 박는다.
+     *
+     * 왜 필요한가: 위젯 묶음(`js/widgets/…`)은 주소를 **실행 중에** 만들어 내므로 파일 이름에
+     * 지문을 못 박는다(이름이 코드 안에 없다). 그래서 이름 대신 이 표식을 주소 뒤에 붙인다 —
+     * 배포마다 값이 달라지니 옛 판을 물 일이 없고, 한 판 안에서는 주소가 고정이라
+     * 서비스 워커가 「한 번 받은 것은 그대로」로 둘 수 있다. 지금은 매번 네트워크를 탄다.
+     */
+    const BUILD_TAG = typeof __KARMOLAB_BUILD__ === 'string' ? __KARMOLAB_BUILD__ : '';
+
+    /** 위젯 묶음 주소에만 판 표식을 붙인다 (vendor·world·root 는 그대로 둔다). */
+    function withBuildTag(url) {
+        if (!BUILD_TAG || url.indexOf('/js/widgets/') === -1) return url;
+        return url + (url.indexOf('?') === -1 ? '?b=' : '&b=') + BUILD_TAG;
+    }
+
     function resolveScriptPath(rawPath) {
         if (typeof rawPath === 'string' && rawPath.startsWith('world/')) {
             return getWorldScriptBase() + rawPath.slice('world/'.length) + '.js';
@@ -316,7 +332,7 @@ const Toolbox = (() => {
         if (typeof rawPath === 'string' && rawPath.startsWith('root/')) {
             return getJsScriptBase() + rawPath.slice('root/'.length) + '.js';
         }
-        return getWidgetScriptBase() + rawPath + '.js';
+        return withBuildTag(getWidgetScriptBase() + rawPath + '.js');
     }
 
     /**
@@ -1345,12 +1361,12 @@ const Toolbox = (() => {
          * 카드 3장과 「상단 메뉴에서 카테고리를 열고 도구를 선택하세요」만 있었다 — 찾는 일을
          * 사람에게 떠넘기는 화면이었다. 카드는 그대로 두되(사용자 요청), 주인공 자리는 입력이
          * 갖는다: 카드 셋은 정해진 세 곳으로 가고, 입력은 160개 전부로 간다. */
+        /* 자리를 만들어 두고 **카드 뒤에** 채운다 (TASK-KL-129, 사용자 요청).
+         * 찾는 입력은 목록을 접고 있으므로 얇다 — 갈 곳 카드가 먼저 눈에 들어오는 편이 낫다.
+         * 만드는 순서는 그대로 두고 화면 순서만 바꾼다: 팔레트가 먼저 붙어 있어야
+         * 아래 카드가 그 자리를 기준으로 들어간다. */
         const palette = document.createElement('div');
         palette.className = 'landing-palette';
-        landing.appendChild(palette);
-        if (typeof window !== 'undefined' && window.KarmoPalette) {
-            window.KarmoPalette.mountInline(palette);
-        }
 
         /* TASK-KL-098 — 「사람이 있다」를 말이 아니라 **숫자**로 보여 주는 자리.
          * 서버는 도구가 열릴 때마다 세고 있었는데(지금까지 수천 번) 그 수를 화면 어디에도
@@ -1392,9 +1408,15 @@ const Toolbox = (() => {
                     <div class="landing-cta-card-desc">API 레퍼런스 & 가이드</div>
                 </button>
             </div>
-            <p class="landing-cta-hint">찾는 것이 있으면 위에 이름을 치세요 · 아무 화면에서나 <kbd>Ctrl</kbd>+<kbd>K</kbd></p>
+            <p class="landing-cta-hint">찾는 것이 있으면 아래에 이름을 치세요 · 아무 화면에서나 <kbd>Ctrl</kbd>+<kbd>K</kbd></p>
         `;
         landing.appendChild(cta);
+
+        // 갈 곳 카드가 먼저, 찾는 입력이 그 아래.
+        landing.appendChild(palette);
+        if (typeof window !== 'undefined' && window.KarmoPalette) {
+            window.KarmoPalette.mountInline(palette);
+        }
 
         /* TASK-KL-098 — 첫 화면에서 **사람이 보이는** 유일한 자리.
          * 도구만 늘어선 화면에는 아무도 없는 것처럼 보인다. 최근 이야기 몇 줄이 떠 있어야
