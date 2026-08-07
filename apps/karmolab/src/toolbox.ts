@@ -1173,29 +1173,31 @@ const Toolbox = (() => {
                중심까지의 거리로 재면 큰 도형은 화면 어디서 움직여도 걸린다 — 화면을 통째로
                잡아 끄는 느낌이 그래서 났다. 표면에서 이만큼 안으로 들어와야 밀린다. */
             const MARGIN = narrow ? 55 : 85;
-            const PUSH = narrow ? 26 : 36;      // 바짝 붙었을 때 밀어내는 세기
-            const LIMIT = narrow ? 42 : 64;     // 아무리 밀려도 여기까지
+            const PUSH = narrow ? 14 : 20;      // 바짝 붙었을 때 밀어내는 세기
+            const VMAX = narrow ? 1.6 : 2.4;    // 한 프레임에 밀릴 수 있는 최대 (밀리는 속도의 천장)
             let alive = false;
             function step() {
                 let moving = false;
                 for (const d of drifters) {
-                    /* **제자리로 당기지 않는다.** 물에 밀린 꽃잎은 원래 자리로 안 돌아온다 —
-                     * 밀린 만큼 가서 그 자리에 머문다. 당기는 힘을 넣으면 아무리 약해도
-                     * 「밧줄에 묶인」 것처럼 보인다(그렇게 보였다). 남은 것은 물의 저항뿐이고,
-                     * 그래서 미끄러지다 스스로 선다.
-                     * 아주 미세한 되돌림만 남긴다 — 몇 분에 걸쳐 천천히 가운데로 모이는 정도라
-                     * 눈에는 안 보이고, 대신 여러 번 밀어도 한쪽 끝에 모두 붙어 버리지 않는다. */
-                    d.vx = (d.vx - d.ox * 0.00022) * 0.955;
-                    d.vy = (d.vy - d.oy * 0.00022) * 0.955;
+                    /* **돌아오지도, 묶이지도 않는다.** 물에 밀린 것은 제자리로 안 오고
+                     * 테두리에 걸리지도 않는다. 남은 것은 물의 저항뿐이라 미끄러지다 스스로 선다.
+                     * 여기서 「제자리로 당기는 힘」과 「최대 거리」를 둘 다 뺐다 — 아무리 약해도
+                     * 그 둘이 있으면 자리가 정해져 있다는 느낌이 난다. */
+                    d.vx *= 0.93;   // 물의 저항. 높이면 오래 미끄러지고, 낮추면 금방 선다
+                    d.vy *= 0.93;
                     d.ox += d.vx;
                     d.oy += d.vy;
-                    // 멀리 흘러가 화면 밖으로 사라지지 않게 테두리를 둔다
-                    const far = Math.hypot(d.ox, d.oy);
-                    if (far > LIMIT) { d.ox *= LIMIT / far; d.oy *= LIMIT / far; }
-                    if (Math.abs(d.ox) < 0.05 && Math.abs(d.oy) < 0.05 && Math.abs(d.vx) < 0.05 && Math.abs(d.vy) < 0.05) {
-                        d.ox = d.oy = d.vx = d.vy = 0;
-                        d.el.style.removeProperty('--ox');
-                        d.el.style.removeProperty('--oy');
+                    /* 화면 밖으로 나가면 반대편에서 들어온다. 안 그러면 밀어낸 만큼 화면이
+                     * 비어 간다 — 물속이라면 흘러간 자리를 다른 것이 채운다. */
+                    const cx = d.cx + d.ox, cy = d.cy + d.oy, pad = d.r + 60;
+                    if (cx < -pad) d.ox += innerWidth + pad * 2;
+                    else if (cx > innerWidth + pad) d.ox -= innerWidth + pad * 2;
+                    if (cy < -pad) d.oy += innerHeight + pad * 2;
+                    else if (cy > innerHeight + pad) d.oy -= innerHeight + pad * 2;
+                    // 값은 **0 으로 되돌리지 않는다** — 되돌리면 그 순간 원래 자리로 튄다.
+                    if (Math.abs(d.vx) < 0.02 && Math.abs(d.vy) < 0.02) {
+                        d.el.style.setProperty('--ox', d.ox.toFixed(2) + 'px');
+                        d.el.style.setProperty('--oy', d.oy.toFixed(2) + 'px');
                         continue;
                     }
                     moving = true;
@@ -1218,6 +1220,11 @@ const Toolbox = (() => {
                     const power = near ** 2 * PUSH * 0.16;   // 바짝 붙을수록 급격히 세게
                     d.vx += (dx / dist) * power;
                     d.vy += (dy / dist) * power;
+                    /* 속도에 천장을 둔다. 손을 한 번 스쳐도 밀어내는 힘이 **프레임마다 쌓여서**,
+                     * 천장이 없으면 한 번 지나갔을 뿐인데 수백 px 를 날아간다(그랬다).
+                     * 여기서 「얼마나 빨리 밀리나」가 정해지고, 저항이 「얼마나 멀리 가나」를 정한다. */
+                    const sp = Math.hypot(d.vx, d.vy);
+                    if (sp > VMAX) { d.vx *= VMAX / sp; d.vy *= VMAX / sp; }
                 }
                 if (!alive) { alive = true; requestAnimationFrame(step); }
             };
