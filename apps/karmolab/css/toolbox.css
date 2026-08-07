@@ -1946,6 +1946,21 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
        같은 세기로 한 번 더 풀어 주지 않으면 폰에서 그대로 잠긴다. */
     body:has(> .app-layout) { overflow: visible; overflow-x: hidden; }
 
+    /* 폰에서 제일 작은 글씨를 한 단 올린다 (TASK-KL-101).
+       클래스마다 고치지 않고 **토큰 한 곳**에서 올린다 — 이 값을 쓰는 자리가 서른 곳이 넘어
+       하나씩 고치면 반드시 몇 개가 남는다(첫 화면 부제·카드 설명·목록 분류 이름·도구 통계
+       라벨이 전부 12px 로 남아 있었다). 데스크톱은 그대로다. */
+    :root { --font-size-2xs: 13px; }
+
+    /* 헤더 아이콘과 폰 내비 항목도 누르는 크기를 받는다. 「작지만 예쁜」 자리라 빠뜨리기 쉬운데,
+       폰에서 제일 자주 빗나가는 것이 이 둘이다. */
+    .header-btn, .theme-toggle, .header-logo { min-width: 40px; min-height: 40px; }
+    /* 글자가 한 자면(「홈」·「봇」) 폭이 33px 로 좁아진다 — 높이만 채워선 안 되고 폭도 받쳐야 한다 */
+    .mobile-nav .nav-item { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 5px 12px; }
+    /* 다른 세션이 얹은 것들도 같은 기준을 받는다 — 폰에서 누르는 크기는 만든 사람이 아니라
+       화면이 정한다. 세로만 모자랐다(계정 30px · 팔레트 칩 35px). */
+    .header-account-signin, .kp-browse-chip { min-height: 40px; }
+
     /* 손가락으로 누르는 크기 확보 — 30px 짜리 버튼은 폰에서 자주 빗나간다 */
     .btn { min-height: 40px; padding: 9px 14px; }
     .tool-chip { min-height: 38px; padding: 9px 14px; }
