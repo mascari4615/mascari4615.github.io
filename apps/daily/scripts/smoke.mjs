@@ -1254,6 +1254,25 @@ await ctx.close();
   await page.goto(`${base}/pokemon/silhouette/`, { waitUntil: 'networkidle' });
   const shotSrc = await page.getAttribute('.shot img', 'src');
   check('실루엣은 큰 그림을 쓴다', /official-artwork/.test(shotSrc ?? ''), (shotSrc ?? '').slice(-46));
+
+  /**
+   * 답을 공개하는 순간도 큰 그림이어야 한다 — 한 장뿐인데 도트로 두면 공개가 초라하다.
+   * (목록·추측 줄은 그대로 작은 것. 큰 것을 쓰는 자리는 둘뿐이다.)
+   */
+  const topicP = JSON.parse(readFileSync(join(app, 'data', 'pokemon.json'), 'utf8'));
+  const answerP = answerOf(topicP, new Date());
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  await page.fill('.guessbar input', answerP.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${answerP.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  const ansSrc = await page.getAttribute('.done .ans img', 'src');
+  const rowSrc = await page.getAttribute('.row .who img', 'src');
+  check(
+    '★ 답 공개는 큰 그림, 추측 줄은 작은 그림',
+    /official-artwork/.test(ansSrc ?? '') && !/official-artwork/.test(rowSrc ?? ''),
+    `공개 ${(ansSrc ?? '').slice(-24)} · 줄 ${(rowSrc ?? '').slice(-24)}`,
+  );
   await ctx.close();
 }
 

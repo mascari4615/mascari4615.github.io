@@ -162,6 +162,13 @@ const el = (html) => {
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (v) => (Array.isArray(v) ? v.join('·') : typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(1)) : v);
 
+/**
+ * 큰 그림 주소는 **표가 규칙으로 알려 준다** (주소 만드는 법을 코드가 알면 주제에 묶인다).
+ * 큰 것을 쓰는 자리는 둘뿐이다: 실루엣 판, 그리고 답을 공개하는 순간.
+ * 목록·자동완성·추측 줄은 전부 작은 도트다 — 한 장에 300배 차이가 난다.
+ */
+const bigArt = (item) => (topic.art && item?.img ? item.img.replace(topic.art.from, topic.art.to) : item?.img);
+
 const $rows = root.querySelector('.rows');
 const $input = root.querySelector('input');
 const $sug = root.querySelector('.sug');
@@ -413,7 +420,8 @@ function finish() {
   $done.innerHTML = '';
   $done.append(
     el(`<h2>${won ? `${state.guesses.length}번 만에 맞혔다` : '오늘은 실패'}</h2>`),
-    el(`<div class="ans">${answer.img ? `<img src="${esc(answer.img)}" alt="">` : ''}<b>${esc(answer.name)}</b></div>`),
+    // 답을 보여 주는 순간은 한 장뿐이라 큰 그림을 쓴다 — 여기까지 도트로 두면 공개가 초라하다.
+    el(`<div class="ans">${answer.img ? `<img src="${esc(bigArt(answer))}" alt="">` : ''}<b>${esc(answer.name)}</b></div>`),
     el(`<div class="grid">${rows.map(shareRow).join('<br>')}</div>`),
     el(`<div class="tally">${stats.played}판 · ${Math.round((stats.wins / Math.max(1, stats.played)) * 100)}% 맞힘 · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
     distChart(),
@@ -667,7 +675,6 @@ document.addEventListener('click', (e) => {
  * 목록·자동완성·추측 줄은 전부 작은 것이다 (한 장에 300배 차이가 난다).
  * 어디서 큰 것을 얻는지는 **표가 규칙으로 알려 준다** — 주소 만드는 법을 코드가 알면 주제에 묶인다.
  */
-const bigArt = (item) => (topic.art && item?.img ? item.img.replace(topic.art.from, topic.art.to) : item?.img);
 if ($shot && answer.img) {
   $shot.querySelector('img').src = bigArt(answer);
   watchShot();
