@@ -285,8 +285,9 @@ for (const topic of topics) {
 <div class="wrap" id="past" data-topic="${esc(topic.id)}" data-stamp="${stamp}" data-data="../../data/${esc(topic.id)}.json">
   <div class="top">
     <h1>${esc(topic.emoji ?? '')} ${esc(topic.title)} 지난 문제</h1>
-    <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
-  </div>
+    <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
+  </div>
+  ${stripHtml('daily')}
   <p class="lede past-note"></p>
   <div class="past-reveal"><button type="button" aria-pressed="false">답 모두 보기</button></div>
   <div class="past-scroll"><table class="past hide"><tbody>${rows.join('')}</tbody></table></div>
@@ -314,7 +315,8 @@ const hub = `${head({
   }),
 })}
 <div class="wrap">
-  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
+  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
+  ${stripHtml('daily')}
   <p class="lede">판을 고르면 오늘의 문제가 하나. <b>보통 서너 번이면 맞고 1분이면 끝난다.</b> 매일 자정(KST)에 바뀐다.</p>
   <div class="hub-jump"></div>
   <p class="hub-note"></p>
