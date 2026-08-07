@@ -1181,7 +1181,7 @@ const Toolbox = (() => {
         if (!base) return;
         let posts = [];
         try {
-            const response = await fetch(base + '/kl/posts?kind=talk', { credentials: 'include' });
+            const response = await fetch(base + '/kl/recent', { credentials: 'include' });
             if (!response.ok) return;
             const data = await response.json();
             posts = data.posts || [];
@@ -1192,8 +1192,8 @@ const Toolbox = (() => {
 
         const rows = posts.slice(0, 3).map((p) => {
             const heading = p.title || String(p.text || '').replace(/\s+/g, ' ').trim().slice(0, 40);
-            const replies = (p.replies && p.replies.length)
-                ? '<span class="landing-feed-replies">답글 ' + p.replies.length + '</span>' : '';
+            const replies = p.replyCount
+                ? '<span class="landing-feed-replies">답글 ' + p.replyCount + '</span>' : '';
             return '<button type="button" class="landing-feed-row" data-post="' + escapeHtml(p.id) + '">'
                 + '<span class="landing-feed-title">' + escapeHtml(heading) + '</span>'
                 + '<span class="landing-feed-meta">@' + escapeHtml(p.authorHandle) + ' ' + replies + '</span>'
