@@ -63,13 +63,21 @@
           // performance.now() = 페이지가 열린 뒤 흐른 시간. 스크립트가 오래 걸린 날은
           // 글자가 이미 다 나와 있으므로 기다리지 않고 바로 걷는다.
           const settled = letters * 55 + 620;
-          setTimeout(function () {
-            intro.classList.add('done');
+          /* 글꼴이 인트로 **도중에** 바뀌면 제목 폭이 달라져 글자가 살짝 튄다.
+             덮개는 원래 「아직 준비 안 된 것을 가리는」 물건이니, 글꼴이 자리를 잡을 때까지
+             덮고 있는 것이 맞다. 다만 글꼴이 영영 안 오는 날도 있으므로 오래는 안 기다린다. */
+          const fontsSettled = document.fonts && document.fonts.ready
+            ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 900))])
+            : Promise.resolve();
+          void fontsSettled.then(function () {
             setTimeout(function () {
-              intro.classList.add('hidden');
-              intro.classList.remove('done');
-            }, 560);
-          }, Math.max(120, settled - performance.now()));
+              intro.classList.add('done');
+              setTimeout(function () {
+                intro.classList.add('hidden');
+                intro.classList.remove('done');
+              }, 560);
+            }, Math.max(120, settled - performance.now()));
+          });
         } else if (intro) {
           intro.classList.add('hidden');
         }

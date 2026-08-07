@@ -337,6 +337,10 @@ html[data-bg="minimal"] body {
        덮개는 화면을 덮는 물건이므로 처음부터 화면에 못 박는 것이 맞다. */
     position: fixed;
     inset: 0;
+    /* 폰 주소창이 접히면 화면 높이가 바뀐다. inset:0 만 두면 그때 덮개가 늘어나고 가운데가
+       같이 내려가 **살짝 튄다**. svh(주소창이 보일 때의 높이)로 못 박으면 접히든 펴지든
+       그대로다. 지원 안 하는 브라우저는 위의 inset:0 이 그대로 받는다 (TASK-KL-101). */
+    height: 100svh;
     z-index: 100;
     display: flex;
     align-items: center;
