@@ -40,6 +40,8 @@ type Entry = {
   alias: string;
   /** 이름의 초성 (한글만) — 「ㄱㅈㅅ」 같은 입력용 */
   cho: string;
+  /** 이 도구가 어느 묶음의 탭인지 (아니면 null). 둘러보기에서 부모 밑에 붙인다. */
+  bundle: string | null;
 };
 
 type Hit = {
@@ -164,7 +166,15 @@ const KarmoPalette = (() => {
         icon: t.icon || '',
         alias: norm(aliasMap[t.id] || ''),
         cho: toCho(norm(t.title || t.id)),
+        bundle: bundleOf(t.id),
       }));
+  }
+
+  /** 묶음 소속은 매니페스트가 안다 (toolbox 의 findBundleFor 와 같은 출처). */
+  function bundleOf(id: string): string | null {
+    const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
+    const b = meta[id] && (meta[id] as { bundle?: string }).bundle;
+    return b || null;
   }
 
   /* ── 점수 ─────────────────────────────────────────────────── */
@@ -289,9 +299,9 @@ const KarmoPalette = (() => {
     return h;
   }
 
-  function addRow(inst: Instance, e: Entry, range: [number, number] | null, badge?: string): void {
+  function addRow(inst: Instance, e: Entry, range: [number, number] | null, badge?: string, child = false): void {
     const row = document.createElement('div');
-    row.className = 'kp-row';
+    row.className = 'kp-row' + (child ? ' kp-row-child' : '');
     row.id = 'kp-row-' + inst.mode + '-' + inst.rows.length;
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', 'false');
@@ -331,42 +341,76 @@ const KarmoPalette = (() => {
       });
     }
 
-    // 아직 아무것도 안 써 본 사람에게는 최근도 즐겨찾기도 비어 있다.
-    // 그때 빈 화면을 주면 안 된다 — 갈래별 개수로 「여기에 이만큼 있다」를 보여 준다.
-    if (!recent.length && !favs.length) {
-      const cats =
-        typeof Toolbox !== 'undefined' && Toolbox.getCategories ? Toolbox.getCategories() : [];
-      inst.list.appendChild(sectionEl('둘러보기'));
-      const wrap = document.createElement('div');
-      wrap.className = 'kp-browse';
-      wrap.setAttribute('role', 'presentation');
-      cats.forEach((c) => {
-        const n = entries.filter((e) => e.category === c.id).length;
-        if (!n) return;
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'kp-browse-chip';
-        b.innerHTML = esc(c.label) + ' <span class="kp-browse-n">' + n + '</span>';
-        // 갈래를 누르면 그 갈래만 나열한다 — 「무엇이 있는지 모르겠다」의 출구.
-        b.addEventListener('click', () => {
-          inst.input.value = '';
-          renderCategory(inst, c.id, c.label);
-        });
-        wrap.appendChild(b);
-      });
-      inst.list.appendChild(wrap);
-    }
+    // 둘러보기는 **언제나** 있다. 예전에는 최근·즐겨찾기가 비었을 때만 보여 줬는데,
+    // 그러면 도구를 한 번이라도 쓴 순간 둘러볼 길이 통째로 사라졌다(실측: 최근이 생기자
+    // 칩 4개 → 0개). 「이름을 알아야만 닿는다」가 되는 지점이 바로 여기였다.
+    inst.list.appendChild(sectionEl('둘러보기'));
+    inst.list.appendChild(browseChips(inst));
 
     setActive(inst, inst.rows.length ? 0 : -1);
   }
 
+  /** 갈래 칩 한 줄 — 「여기에 이만큼 있다」 + 그 갈래로 들어가는 문. */
+  function browseChips(inst: Instance): HTMLElement {
+    const cats = typeof Toolbox !== 'undefined' && Toolbox.getCategories ? Toolbox.getCategories() : [];
+    const wrap = document.createElement('div');
+    wrap.className = 'kp-browse';
+    wrap.setAttribute('role', 'presentation');
+    cats.forEach((c) => {
+      const n = entries.filter((e) => e.category === c.id).length;
+      if (!n) return;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'kp-browse-chip';
+      b.innerHTML = esc(c.label) + ' <span class="kp-browse-n">' + n + '</span>';
+      b.addEventListener('click', () => {
+        inst.input.value = '';
+        renderCategory(inst, c.id, c.label);
+      });
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
+  /**
+   * 한 갈래 전체를 펼친다.
+   *
+   * 그냥 이름순으로 늘어놓으면 「도구」 갈래가 123줄짜리 벽이 된다 — 그중 대부분은
+   * 묶음 안의 탭이라, 부모와 떨어져 나오면 무엇의 일부인지 알 수 없다. 그래서
+   * **부모 밑에 자식을 붙여** 낸다. 눈으로 훑을 때 묶음이 한 덩어리로 읽힌다.
+   */
   function renderCategory(inst: Instance, catId: string, label: string): void {
     resetList(inst);
-    const list = entries
-      .filter((e) => e.category === catId)
-      .sort((a, b) => a.title.localeCompare(b.title, 'ko-KR'));
-    inst.list.appendChild(sectionEl(label + ' ' + list.length));
-    list.forEach((e) => addRow(inst, e, null));
+
+    // 되돌아갈 길. 이게 없으면 갈래를 한 번 누른 사람이 막다른 골목에 갇힌다
+    // (입력을 지워도 안 돌아왔다 — 실측으로 확인하고 넣었다).
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'kp-back';
+    back.innerHTML = '<span aria-hidden="true">←</span> 둘러보기';
+    back.addEventListener('click', () => render(inst));
+    inst.list.appendChild(back);
+
+    const inCat = entries.filter((e) => e.category === catId);
+    const byKo = (a: Entry, b: Entry) => a.title.localeCompare(b.title, 'ko-KR');
+    const parents = inCat.filter((e) => !e.bundle).sort(byKo);
+    const kids = new Map<string, Entry[]>();
+    inCat.forEach((e) => {
+      if (!e.bundle) return;
+      const arr = kids.get(e.bundle) || [];
+      arr.push(e);
+      kids.set(e.bundle, arr);
+    });
+
+    inst.list.appendChild(sectionEl(label + ' ' + inCat.length));
+    parents.forEach((p) => {
+      addRow(inst, p, null);
+      (kids.get(p.id) || []).sort(byKo).forEach((k) => addRow(inst, k, null, undefined, true));
+      kids.delete(p.id);
+    });
+    // 부모가 이 갈래에 없는 자식(부모가 다른 갈래인 경우) — 빠뜨리지 않는다.
+    [...kids.values()].flat().sort(byKo).forEach((k) => addRow(inst, k, null));
+
     setActive(inst, inst.rows.length ? 0 : -1);
   }
 
@@ -499,6 +543,21 @@ const KarmoPalette = (() => {
       // 여기서 한 번만 알려 주면 된다. 다른 화면에서는 헤더에 아무것도 안 띄운다.
       kbd.textContent = isMac() ? '⌘K' : 'Ctrl K';
       inputWrap.appendChild(kbd);
+    } else {
+      /* 눈에 보이는 닫기 (TASK-KL-101).
+       * 지금까지 닫는 길은 Esc 키와 바깥 누르기뿐이었다. 폰에는 Esc 가 없고, 화면이 좁아
+       * 바깥이 거의 안 보인다 — 열고 나면 **검색을 해야만 빠져나올 수 있었다.**
+       * 키보드에만 있는 조작은 폰에서는 없는 기능이다. */
+      const closeBtn = document.createElement('button');
+      closeBtn.type = 'button';
+      closeBtn.className = 'kp-close';
+      closeBtn.setAttribute('aria-label', '찾기 닫기');
+      closeBtn.title = '닫기 (Esc)';
+      closeBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      closeBtn.addEventListener('click', () => close());
+      inputWrap.appendChild(closeBtn);
     }
 
     const list = document.createElement('div');
@@ -543,21 +602,6 @@ const KarmoPalette = (() => {
   }
 
   /** 첫 화면이 실제로 보일 때 포커스를 준다. 화면 밖에서 포커스를 주면 페이지가 튄다. */
-    } else {
-      /* 눈에 보이는 닫기 (TASK-KL-101).
-       * 지금까지 닫는 길은 Esc 키와 바깥 누르기뿐이었다. 폰에는 Esc 가 없고, 화면이 좁아
-       * 바깥이 거의 안 보인다 — 열고 나면 **검색을 해야만 빠져나올 수 있었다.**
-       * 키보드에만 있는 조작은 폰에서는 없는 기능이다. */
-      const closeBtn = document.createElement('button');
-      closeBtn.type = 'button';
-      closeBtn.className = 'kp-close';
-      closeBtn.setAttribute('aria-label', '찾기 닫기');
-      closeBtn.title = '닫기 (Esc)';
-      closeBtn.innerHTML =
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-        'stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-      closeBtn.addEventListener('click', () => close());
-      inputWrap.appendChild(closeBtn);
   function focusInline(): void {
     if (!inline) return;
     // 손가락으로 쓰는 화면에서는 자동 포커스가 키보드를 밀어 올려 화면을 반쯤 덮는다.

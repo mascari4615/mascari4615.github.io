@@ -97,9 +97,14 @@ if (!focused) problems.push('첫 화면 입력이 포커스를 못 쥔다 — �
 /* 카드 3장은 **남아 있어야 한다** (사용자 요청 2026-08-07). 한때 카드 자리를 팔레트가
  * 통째로 가져갔는데, 눈에 익은 자리를 그대로 두라는 말을 들었다. 둘 다 있는 것이 정답이다 —
  * 한쪽만 남으면 둘 중 누군가의 화면이 사라진 것이므로 여기서 잡는다. */
+/* 장수는 고정이 아니다 — 다른 작업이 카드를 늘린다(커뮤니티가 그렇게 붙었다). 숫자를
+ * 박아 두면 남의 정상적인 추가가 남의 잘못으로 잡힌다. 「사라지지 않았나」만 본다. */
 const cards = await page.$$eval('.landing-cta-card', (els) => els.map((e) => e.textContent.replace(/\s+/g, ' ').trim()));
-if (cards.length !== 3) {
-  problems.push(`첫 화면 카드가 3장이 아니다 (${cards.length}장) — ${cards.join(' / ') || '없음'}`);
+if (cards.length < 3) {
+  problems.push(`첫 화면 카드가 ${cards.length}장뿐이다 — ${cards.join(' / ') || '없음'}`);
+}
+for (const must of ['즐겨찾기', '도구 목록', '문서']) {
+  if (!cards.some((c) => c.startsWith(must))) problems.push(`첫 화면에서 「${must}」 카드가 사라졌다`);
 }
 const cardsBelow = await page.evaluate(() => {
   const p = document.querySelector('.landing-palette');
@@ -194,7 +199,34 @@ if (!sections.includes('최근')) {
   if (!first.includes('글자수')) problems.push(`방금 연 도구가 최근 맨 위가 아니다 — 맨 위: ${first}`);
 }
 
-/* ── ⑨ 헤더에 상시 검색창이 없다 (사용자 거부 항목) ────────── */
+/* ── ⑨ 둘러보기가 「한 번 쓰고 나면」 사라지지 않는다 ─────────
+ * 예전에는 최근·즐겨찾기가 비었을 때만 갈래 칩을 보여 줬다. 도구를 한 번이라도 쓰면
+ * 칩이 통째로 사라져(실측 4개 → 0개), 이름을 모르는 사람은 갈 곳이 없어졌다.
+ * 위 ⑧ 에서 이미 도구를 하나 열었으므로 지금이 딱 그 상태다. */
+const chipsAfterUse = await page.$$eval('.kp-inline .kp-browse-chip', (els) => els.map((e) => e.textContent.trim()));
+if (!chipsAfterUse.length) {
+  problems.push('도구를 쓰고 나니 둘러보기 칩이 사라졌다 — 이름을 모르면 갈 곳이 없다');
+}
+
+/* ── ⑩ 갈래를 펼치면 묶음 탭까지 나오고, 되돌아갈 길이 있다 ── */
+if (chipsAfterUse.length) {
+  await page.locator('.kp-inline .kp-browse-chip').first().click();
+  await page.waitForTimeout(200);
+  const opened = await page.$$eval('.kp-inline .kp-row', (els) => els.length);
+  const children = await page.$$eval('.kp-inline .kp-row-child', (els) => els.length);
+  if (opened < 50) problems.push(`갈래를 펼쳤는데 ${opened}줄뿐이다 — 묶음 안의 도구가 빠졌다`);
+  if (!children) problems.push('묶음 탭이 부모 밑에 붙지 않았다 — 무엇의 일부인지 알 수 없다');
+
+  const back = await page.$('.kp-inline .kp-back');
+  if (!back) problems.push('갈래를 펼친 뒤 되돌아갈 길이 없다 — 막다른 골목이다');
+  else {
+    await back.click();
+    await page.waitForTimeout(200);
+    if (!(await page.$('.kp-inline .kp-browse-chip'))) problems.push('되돌아가기를 눌렀는데 안 돌아온다');
+  }
+}
+
+/* ── ⑪ 헤더에 상시 검색창이 없다 (사용자 거부 항목) ────────── */
 const headerInputs = await page.$$eval('.header-bar input, .sidebar input', (els) => els.length);
 if (headerInputs > 0) problems.push(`헤더/사이드바에 상시 입력칸이 ${headerInputs}개 생겼다 — 두지 않기로 한 것이다`);
 
@@ -206,4 +238,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[smoke-palette] 찾기·초성·Enter·⌘K·최근·숨은도구 9개 항목 OK');
+console.log('[smoke-palette] 찾기·초성·Enter·⌘K·최근·숨은도구·둘러보기·되돌아가기 11개 항목 OK');
