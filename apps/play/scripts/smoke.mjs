@@ -31,6 +31,9 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 function resolve(url) {
   const u = decodeURIComponent(url.split('?')[0]);
   if (u === '/karmolab/play/base.css') return path.join(here, 'base.css');
+  // 놀이 하나가 앱 안으로 들어갔다 — 앱 껍데기와 그 짐도 내줘야 한다.
+  if (u === '/karmolab/' || u === '/karmolab/index.html') return path.join(APPS, 'blog/karmolab/index.html');
+  if (u.startsWith('/apps/karmolab/')) return path.join(APPS, 'karmolab', u.slice('/apps/karmolab/'.length));
   if (u.startsWith('/karmolab/play')) return path.join(here, 'index.html');
   for (const [prefix, dir] of [['/karmolab/higher', 'higher'], ['/karmolab/quest', 'quest']]) {
     if (!u.startsWith(prefix)) continue;
@@ -102,18 +105,30 @@ async function common(page, id, label) {
 /* ── 높은 쪽 고르기 ── */
 {
   const page = await ctx.newPage();
-  await page.goto(`${BASE}/karmolab/higher/`, { waitUntil: 'networkidle' });
+  // 놀이가 앱 안으로 옮겨졌다 — 커뮤니티와 같은 자리(/karmolab/#higher).
+  await page.goto(`${BASE}/karmolab/#higher`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
-  await common(page, 'higher', '높은 쪽 고르기');
+  /* 이 놀이는 커뮤니티처럼 **앱 안**에 있다 — 그러니 놀이 전환 줄이 아니라
+   * 앱 틀(헤더·브랜드색) 안에 들어 있는지로 본다. */
+  {
+    const frame = await page.evaluate(() => ({
+      헤더: !!document.querySelector('.app-header, header'),
+      바탕: getComputedStyle(document.body).backgroundColor,
+      제목카드: !!document.querySelector('#page-higher .tool-hero')
+    }));
+    say(frame.헤더, 'higher: 앱 틀 밖에 있다 — 커뮤니티와 같은 자리여야 한다');
+    say(frame.바탕 === 'rgb(14, 13, 20)', `higher: 바탕색이 KarmoLab 값이 아니다 (${frame.바탕})`);
+    say(!frame.제목카드, 'higher: 도구 제목 카드가 딸려 왔다 — 놀이가 글에 파묻힌다');
+  }
   const r = await page.evaluate(() => {
-    const c = [...document.querySelectorAll('.side')];
-    const vals = [...document.querySelectorAll('.vl')].map((v) => v.textContent);
+    const c = [...document.querySelectorAll('.hi-side')];
+    const vals = [...document.querySelectorAll('.hi-vl')].map((v) => v.textContent);
     return {
       카드수: c.length,
       나란히: c.length === 2 ? Math.abs(c[0].getBoundingClientRect().top - c[1].getBoundingClientRect().top) < 5 : false,
       오른값가림: vals[1] === '?',
-      다시숨김: document.getElementById('again').getBoundingClientRect().height === 0,
-      판칩: document.querySelectorAll('.play-chips button').length
+      다시숨김: (document.getElementById('hiAgain')?.offsetHeight || 0) === 0,
+      판칩: document.querySelectorAll('.hi-chips button').length
     };
   });
   say(r.카드수 === 2, `higher: 고를 카드가 ${r.카드수}장이다`);
@@ -121,24 +136,24 @@ async function common(page, id, label) {
   say(r.오른값가림, 'higher: 새로 온 쪽의 값이 미리 보인다 — 답이 새어 놀이가 성립하지 않는다');
   say(r.다시숨김, 'higher: 끝나지도 않았는데 「다시」가 떠 있다');
   say(r.판칩 >= 2, `higher: 고를 판이 ${r.판칩}개뿐이다`);
-  await page.click('.side');
+  await page.click('.hi-side');
   await page.waitForTimeout(700);
-  const after = await page.evaluate(() => ({ 값공개: document.querySelectorAll('.vl')[1].textContent !== '?', 말: document.getElementById('msg').textContent.trim() }));
+  const after = await page.evaluate(() => ({ 값공개: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') !== '?', 말: (document.getElementById('hiMsg')?.textContent || '').trim() }));
   say(after.값공개 && after.말.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
 
   /* 이 놀이의 문법 자체 — 이긴 쪽이 자리에 남아야 방금 본 값과 계속 견줄 수 있다.
    * 매판 둘 다 새로 뽑히면 판이 끊겨서 다른 놀이가 된다. */
   if (/맞았|신기록/.test(after.말)) {
     const winner = await page.evaluate(() => {
-      const v = [...document.querySelectorAll('.vl')].map((x) => parseFloat(String(x.textContent).replace(/[^0-9.-]/g, '')));
-      const n = [...document.querySelectorAll('.nm')].map((x) => x.textContent);
+      const v = [...document.querySelectorAll('.hi-vl')].map((x) => parseFloat(String(x.textContent).replace(/[^0-9.-]/g, '')));
+      const n = [...document.querySelectorAll('.hi-nm')].map((x) => x.textContent);
       return v[0] > v[1] ? n[0] : n[1];
     });
     await page.waitForTimeout(1400);
     const stay = await page.evaluate(() => ({
-      왼쪽: document.querySelector('#a .nm').textContent,
-      왼쪽값보임: document.querySelectorAll('.vl')[0].textContent !== '?',
-      오른값가림: document.querySelectorAll('.vl')[1].textContent === '?'
+      왼쪽: (document.querySelector('#hiA .hi-nm')?.textContent || ''),
+      왼쪽값보임: (document.querySelectorAll('.hi-vl')[0]?.textContent || '') !== '?',
+      오른값가림: (document.querySelectorAll('.hi-vl')[1]?.textContent || '') === '?'
     }));
     say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
     say(stay.왼쪽값보임 && stay.오른값가림, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
@@ -147,8 +162,8 @@ async function common(page, id, label) {
   /* 아래 둘은 **이겼든 졌든 돌아야 한다** (TASK-KL-089).
    * 위 검사를 「이겼을 때만」으로 묶어 두었더니, 첫 판을 지는 날에는 통째로 건너뛰었다 —
    * 그 사이에 진짜 사고(진짜 클릭이 씹히는 것)가 지나갔는데도 검사는 초록이었다. */
-  if (await page.evaluate(() => !document.getElementById('again').hidden)) {
-    await page.click('#retry');
+  if (await page.evaluate(() => (document.getElementById('hiAgain')?.offsetHeight || 0) > 0)) {
+    await page.click('#hiRetry');
     await page.waitForTimeout(700);
   }
 
@@ -156,17 +171,17 @@ async function common(page, id, label) {
    * 도구의 click 은 버튼이 살아나길 기다려 주므로 그걸로는 연타를 못 만든다 — 그 자리에서 곧바로 부른다. */
   {
     const tap = await page.evaluate(() => {
-      const was = Number(document.getElementById('streak').textContent);
-      const a = document.getElementById('a');
+      const was = Number((document.getElementById('hiStreak')?.textContent || '0'));
+      const a = document.getElementById('hiA');
       a.click();
       a.click();
       a.click();
-      return { was, now: Number(document.getElementById('streak').textContent) };
+      return { was, now: Number((document.getElementById('hiStreak')?.textContent || '0')) };
     });
     say(tap.now - tap.was <= 1, `higher: 손가락이 튀니 판이 ${tap.now - tap.was}번 넘어갔다 — 원치 않는 답이 들어간다`);
     await page.waitForTimeout(1400);
-    if (await page.evaluate(() => !document.getElementById('again').hidden)) {
-      await page.click('#retry');
+    if (await page.evaluate(() => (document.getElementById('hiAgain')?.offsetHeight || 0) > 0)) {
+      await page.click('#hiRetry');
       await page.waitForTimeout(700);
     }
   }
@@ -176,14 +191,14 @@ async function common(page, id, label) {
   {
     let counted = 0;
     for (let i = 0; i < 4; i++) {
-      const s0 = await page.evaluate(() => Number(document.getElementById('streak').textContent));
-      await page.click('.side');
+      const s0 = await page.evaluate(() => Number((document.getElementById('hiStreak')?.textContent || '0')));
+      await page.click('.hi-side');
       await page.waitForTimeout(1250);
-      const s1 = await page.evaluate(() => Number(document.getElementById('streak').textContent));
-      const over = await page.evaluate(() => !document.getElementById('again').hidden);
+      const s1 = await page.evaluate(() => Number((document.getElementById('hiStreak')?.textContent || '0')));
+      const over = await page.evaluate(() => (document.getElementById('hiAgain')?.offsetHeight || 0) > 0);
       if (s1 !== s0 || over) counted++;
       if (over) {
-        await page.click('#retry');
+        await page.click('#hiRetry');
         await page.waitForTimeout(700);
       }
     }
@@ -212,7 +227,7 @@ async function common(page, id, label) {
   await page.fill('#ans', '틀린답');
   await page.click('button[type=submit]');
   await page.waitForTimeout(600);
-  const said = await page.evaluate(() => document.getElementById('msg').textContent);
+  const said = await page.evaluate(() => (document.getElementById('msg')?.textContent || ''));
   say(/아닙니다|다 썼/.test(said), `quest: 틀린 답에 아무 말이 없다 (${said})`);
   await page.close();
 }

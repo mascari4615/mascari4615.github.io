@@ -245,16 +245,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['planner/planner']
   },
   {
-    id: 'karmomap',
-    title: 'KarmoMap — 세계관 관계도',
-    category: 'lab',
-    desc: '인물·장소·물건·사건·개념을 놓고 관련/상위/포함/대립/선후로 잇는 세계관 전용 마인드맵 (TASK-KL-087)',
-    layout: 'full',
-    noHero: true,
-    icon: '<circle cx="6" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="18" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 7.1 15.6 8.6M7.2 8.3l1.4 7.3M11.4 17.1l5.3-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['karmomap/karmomap']
-  },
-  {
     id: 'cockpit',
     title: 'Cockpit',
     category: 'lab',
@@ -883,6 +873,17 @@ window.KARMOLAB_LAZY_META = [
     layout: 'wide',
     icon: '<circle cx="9" cy="10" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 8v4M7 10h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     lazyScriptPaths: ['tools/lotto', 'tools/ladder', 'tools/pick', 'tools/draw']
+  },
+  {
+    id: 'higher',
+    title: '높은 쪽 고르기',
+    category: 'tool',
+    desc: '둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이 — 포켓몬·롤·원신',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['higher']
   },
   {
     id: 'lotto',
