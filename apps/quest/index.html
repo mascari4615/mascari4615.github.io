@@ -174,6 +174,10 @@ permalink: /karmolab/quest/
       P = j.puzzles;
       current = P[todayIndex(P.length)];
       paint(current);
+      /* 답 칸에 바로 커서를 둔다 (TASK-KL-089).
+       * 매일 오는 놀이인데 열자마자 한 번 더 눌러야 칠 수 있었다 — 작지만 매일 겪는 마찰이다.
+       * 화면이 딸려 올라가지 않게 preventScroll 로 둔다. 이미 끝낸 날에는 옮기지 않는다. */
+      if (!load()[dayLabel()]) $('ans').focus({ preventScroll: true });
 
       // 아래 목록은 이미 페이지에 박혀 있다(scripts/verify.mjs 가 표에서 찍어 넣는다).
       // 여기서 또 그리면 두 번 나온다 — 안 그린다.
