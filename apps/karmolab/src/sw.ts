@@ -21,6 +21,15 @@ declare const __KARMOLAB_BUILD__: string;
 const BUILD = typeof __KARMOLAB_BUILD__ === 'string' ? __KARMOLAB_BUILD__ : 'dev';
 const CACHE_NAME = `karmolab-${BUILD}`;
 
+/**
+ * 지문이 박힌 파일만 담는 곳간 — **배포가 바뀌어도 안 비운다** (TASK-KL-128 ②).
+ *
+ * 다른 곳간은 배포마다 통째로 버린다(옛 코드를 물지 않으려고). 그런데 지문이 박힌 것은
+ * 주소가 곧 내용이라 옛것을 물 수가 없다 — 그래서 버릴 이유가 없다. 배포를 해도 **안 바뀐
+ * 파일은 그대로 재사용**된다. 이게 다시 왔을 때 네트워크를 안 타는 대목이다.
+ */
+const IMMUTABLE_CACHE = 'karmolab-immutable';
+
 const APP_SHELL = ['/karmolab/', '/apps/karmolab/manifest.json'];
 
 /**
@@ -37,10 +46,23 @@ const PRECACHE_IDLE = [
   '/apps/karmolab/css/fonts.css'
 ];
 
+/**
+ * 이름에 **내용 지문**이 박힌 파일인가 (TASK-KL-128 ②, `scripts/stamp-assets.mjs`).
+ *
+ * 지문이 박혔다는 것은 **그 주소의 내용이 절대 안 바뀐다**는 뜻이다 — 내용이 바뀌면 주소가
+ * 바뀌고, 새 화면은 새 주소를 부른다. 그러니 한 번 받은 것은 다시 물어볼 이유가 없다.
+ * 이것이 「새 화면이 옛 코드를 만나던」 사고(아래 머리말)를 구조적으로 없애는 대목이다.
+ */
+function isImmutable(url: URL): boolean {
+  if (url.origin !== ctx.location.origin) return false;
+  return /\/apps\/karmolab\/(js|css)\/[^/]+\.[0-9a-f]{8}\.(js|css)$/.test(url.pathname);
+}
+
 /** 신선도가 중요한 것 — 앱 코드와 데이터 */
 function isFreshCritical(url: URL, req: Request): boolean {
   if (req.mode === 'navigate') return true;
   if (url.origin !== ctx.location.origin) return false;
+  if (isImmutable(url)) return false;   // 지문이 박힌 것은 물어볼 필요가 없다
   return (
     url.pathname.startsWith('/apps/karmolab/js/') ||
     url.pathname.startsWith('/apps/karmolab/css/') ||
@@ -71,7 +93,9 @@ ctx.addEventListener('activate', (event: ExtendableEvent) => {
         await ctx.registration.navigationPreload.enable().catch(() => undefined);
       }
       const keys = await caches.keys();
-      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+      await Promise.all(
+        keys.filter((k) => k !== CACHE_NAME && k !== IMMUTABLE_CACHE).map((k) => caches.delete(k))
+      );
       await ctx.clients.claim();
     })()
   );
@@ -94,6 +118,24 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
   }
   if (!url.protocol.startsWith('http')) return;
   if (url.pathname.includes('/api/') || url.href.includes('tauri')) return;
+
+  if (isImmutable(url)) {
+    // 지문이 박힌 것 = 이 주소의 내용은 절대 안 바뀐다. 있으면 그냥 주고, 없을 때만 받아 온다.
+    // 뒤에서 다시 확인하지도 않는다 — 확인할 것이 없다.
+    event.respondWith(
+      caches.open(IMMUTABLE_CACHE).then((c) =>
+        c.match(req).then(
+          (hit) =>
+            hit ||
+            fetch(req).then((res) => {
+              if (res && res.ok) void c.put(req, res.clone()).catch(() => undefined);
+              return res;
+            })
+        )
+      )
+    );
+    return;
+  }
 
   if (isFreshCritical(url, req)) {
     // network-first: 항상 최신을 먼저 시도하고, 끊겼을 때만 캐시로 버틴다.
