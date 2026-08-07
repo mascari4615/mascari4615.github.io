@@ -493,6 +493,22 @@ function finish() {
           .join('')}${open.length > todo.length ? `<a class="more-all" href="/daily/">전체 보기</a>` : ''}</div>`,
       ),
     );
+    /**
+     * 이 자리는 **붙잡으려고** 만든 것인데, 실제로 눌리는지 잴 방법이 없었다.
+     * 어디로 가는지(어제 판 / 같은 주제 다른 모드 / 다른 주제 / 전체)만 보낸다 —
+     * 무엇이 정답인지·무엇을 골랐는지는 절대 안 보낸다.
+     */
+    for (const a of $done.querySelectorAll('.more a')) {
+      const href = a.getAttribute('href');
+      const kind = a.classList.contains('more-all')
+        ? '전체'
+        : href.includes('?d=')
+          ? '지난판'
+          : href.includes(`/${topicId}/`)
+            ? '같은주제'
+            : '다른주제';
+      a.addEventListener('pointerdown', () => countEvent(`daily/${topicId}/${mode}/다음판/${kind}`));
+    }
   }
 
   const next = el(`<div class="next">다음 문제까지 ${untilNextKst()}</div>`);

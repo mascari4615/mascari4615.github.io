@@ -387,6 +387,21 @@ await pastPage('genshin');
   const all2 = await page.evaluate(() => window.__c ?? []);
   const evented = all2.filter((h) => h.event);
   check('판이 끝난 것도 보낸다', evented.some((h) => /맞힘/.test(h.path)), evented.map((h) => h.path).join(', '));
+
+  /**
+   * 붙잡으려고 만든 자리들이 실제로 눌리는지 — 안 재면 다듬을 근거가 없다.
+   * 넘어가기 전에 보내야 하므로 누른 순간(pointerdown)에 건다.
+   */
+  await page.locator('.done .more a').first().dispatchEvent('pointerdown');
+  const afterMore = await page.evaluate(() => window.__c ?? []);
+  check('다음 판을 누른 것도 보낸다', afterMore.some((h) => h.event && /다음판/.test(h.path)),
+    afterMore.filter((h) => h.event).map((h) => h.path).join(', '));
+
+  await page.goto('http://daily.test/daily/', { waitUntil: 'networkidle' });
+  await page.locator('.hub-jump a').dispatchEvent('pointerdown');
+  const hubHits = await page.evaluate(() => window.__c ?? []);
+  check('허브 시작 단추를 누른 것도 보낸다', hubHits.some((h) => h.event && /시작단추/.test(h.path)),
+    hubHits.filter((h) => h.event).map((h) => h.path).join(', '));
   // 방문과 끝남 사이가 비면 「열고 그냥 나간 사람」을 못 센다.
   check('첫 수도 보낸다 (깔때기 가운데)', evented.some((h) => /첫수/.test(h.path)), evented.map((h) => h.path).join(', '));
   check(

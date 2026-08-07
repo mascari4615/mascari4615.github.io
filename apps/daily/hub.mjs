@@ -5,7 +5,7 @@
  * 다 푼 판을 다시 누르게 만드는 게 이 화면의 가장 흔한 낭비다.
  */
 import { kstDayKey, kstDayNumber, streakLine } from './engine.mjs';
-import { countPage } from './count.mjs';
+import { countPage, countEvent } from './count.mjs';
 
 const dayKey = kstDayKey();
 const dayNumber = kstDayNumber();
@@ -55,6 +55,14 @@ if (jump && firstUndone) {
   const group = first.closest('.group')?.querySelector('.group-t')?.firstChild?.textContent?.trim() ?? '';
   jump.innerHTML = `<a class="btn" href="${first.getAttribute('href')}?d=${yKey}">📅 어제 판 풀기 · ${group}</a>`;
 }
+
+/**
+ * 이 단추가 실제로 눌리는지 잴 방법이 없었다 — 허브에서 가장 큰 자리이고, 여기가 안 눌리면
+ * 아래 카드를 아무리 다듬어도 소용이 없다. 넘어가기 **전에** 보낸다(누른 순간이 가장 이르다).
+ */
+jump?.querySelector('a')?.addEventListener('pointerdown', () => {
+  countEvent(`daily/허브/시작단추/${left === cards.length ? '첫판' : left ? '이어서' : '어제판'}`);
+});
 
 const note = document.querySelector('.hub-note');
 if (note && (left < document.querySelectorAll('.card[data-topic]').length || streakSaid)) {
