@@ -15,6 +15,7 @@
     "fetch:genshin": "node scripts/fetch-genshin.mjs",
     "fetch:all": "npm run fetch:lol && npm run fetch:genshin && npm run fetch:pokemon",
     "check:fresh": "node scripts/check-freshness.mjs",
-    "gen:og": "node scripts/gen-og.mjs"
+    "gen:og": "node scripts/gen-og.mjs",
+    "check:images": "node scripts/check-images.mjs"
   }
 }
