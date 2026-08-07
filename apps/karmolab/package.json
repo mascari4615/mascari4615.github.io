@@ -49,6 +49,7 @@
     "test:t2i": "node scripts/test-text2img.mjs",
     "test:tools": "node scripts/smoke-tools.mjs",
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
+    "prerender": "node scripts/prerender-tools.mjs",
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",

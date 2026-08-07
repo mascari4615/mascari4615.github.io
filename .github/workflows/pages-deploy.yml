@@ -161,6 +161,17 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:tool-pages
 
+      # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다 — 스크립트 없이도 도구가 보인다.
+      # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄운다. 못 띄우면 그냥 넘어간다
+      # (미리 그리기는 있으면 좋은 것이지, 없다고 배포를 세울 일이 아니다).
+      - name: Prerender KarmoLab tool pages
+        working-directory: apps/karmolab
+        run: |
+          npm run serve:gzip &
+          sleep 4
+          npm run prerender || true
+          kill %1 || true
+
       # TASK-KL-128: 파일 이름에 내용 지문을 박고, 찍어 둔 화면들이 그 이름을 부르게 바꾼다.
       # 그래야 서비스 워커가 「한 번 받은 것은 영원히 그대로」로 둘 수 있다(재방문 = 네트워크 0).
       # 도구 페이지를 다 찍은 **뒤**에 돌아야 한다 — 바꿀 화면이 그때 생긴다.
