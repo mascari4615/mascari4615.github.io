@@ -902,6 +902,14 @@ function buildHub() {
       </div>
       <!-- 걸러서 하나도 안 남으면 목록이 통째로 사라져 막다른 곳처럼 보인다. 다음 걸음을 알려 준다. -->
       <p class="tool-hub-empty" hidden>찾는 도구가 없습니다. 다른 말로 찾아보거나, 아래에서 전체 목록을 훑어보세요.</p>
+      <!-- 늘 쓰는 것은 맨 위에 (TASK-KL-129).
+           도구가 125가지라 매번 훑어 내려가야 했다. 즐겨찾기·최근 쓴 것은 이 브라우저가 이미
+           알고 있으므로 아래 목록에서 그 카드를 그대로 데려와 앞에 놓는다 — 이름·설명·주소를
+           두 벌로 적지 않으므로 갈라지지 않는다. 처음 온 사람에게는 이 줄이 아예 없다. -->
+      <section class="tool-hub-mine" hidden aria-label="내가 쓰는 도구">
+        <h2 class="tool-hub-group tool-hub-mine-title">내가 쓰는 것</h2>
+        <div class="tool-hub-grid tool-hub-mine-grid"></div>
+      </section>
 ${toc}
 ${cards}
       <p class="tool-seo-note">
@@ -974,7 +982,42 @@ ${cards}
         if (empty) empty.hidden = !(q && hit === 0);
       }
 
+      /* 늘 쓰는 것을 맨 위로 (TASK-KL-129).
+       * 즐겨찾기 → 최근 쓴 것 차례로, 겹치면 한 번만. 아래 목록의 카드를 그대로 복제하므로
+       * 이름·설명·주소가 저절로 같다. 하나도 없으면 이 줄은 나타나지 않는다. */
+      var mine = document.querySelector('.tool-hub-mine');
+      var mineGrid = mine && mine.querySelector('.tool-hub-mine-grid');
+      function readList(key) {
+        try {
+          var arr = JSON.parse(localStorage.getItem(key) || '[]');
+          return Array.isArray(arr) ? arr.filter(function (x) { return typeof x === 'string'; }) : [];
+        } catch (e) { return []; }
+      }
+      if (mineGrid) {
+        var byId = {};
+        // 주소에서 도구 이름만 떼어 낸다. 여기서 정규식을 쓰면 안 된다 — 이 글은 생성기의
+        // 문자열 안에 있어서 역슬래시가 한 번 먹히고, 그 자리에서 **화면 전체가 죽는다**
+        // (실제로 그랬다: 걸러 찾기 칸까지 통째로 사라졌다).
+        cards.forEach(function (c) {
+          var parts = (c.getAttribute('href') || '').split('/').filter(Boolean);
+          var id = parts[parts.length - 1];
+          if (id) byId[id] = c;
+        });
+        var picked = [], seen = {};
+        readList('toolbox_favorites').concat(readList('toolbox_recent_tools')).forEach(function (id) {
+          if (seen[id] || !byId[id] || picked.length >= 8) return;
+          seen[id] = 1;
+          picked.push(byId[id]);
+        });
+        if (picked.length) {
+          picked.forEach(function (c) { mineGrid.appendChild(c.cloneNode(true)); });
+          mine.hidden = false;
+        }
+      }
+
       input.addEventListener('input', function () {
+        // 걸러 찾는 중에는 이 줄을 접는다 — 찾는 것과 상관없는 카드가 맨 위에 남으면 헷갈린다.
+        if (mine && !mine.hidden) mine.style.display = input.value.trim() ? 'none' : '';
         apply();
         // 찾은 결과를 그대로 보낼 수 있게 주소에 남긴다. 뒤로 가기도 자연스러워진다.
         // 목록 페이지의 정식 주소는 따로 박아 두었으므로 검색어가 붙어도 중복으로 세이지 않는다.
