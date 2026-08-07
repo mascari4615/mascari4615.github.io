@@ -34,8 +34,24 @@ function gh(args) {
 export function ensureGh() {
   try {
     gh(['auth', 'status']);
-  } catch {
-    console.error('[webhook-upsert] gh CLI 미설치 또는 미로그인 — npm run setup:env 를 실행해주세요.');
+    return;
+  } catch (error) {
+    /* 「못 들어갔다」에는 두 가지가 있고, 사람이 할 일이 서로 다르다.
+       하나로 뭉쳐 놓으면 만료된 토큰을 보고 「gh 를 설치하라」는 말을 듣게 된다. */
+    const output = `${error?.stdout ?? ''}${error?.stderr ?? ''}${error?.message ?? ''}`;
+    if (/ENOENT|not recognized|찾을 수 없습니다/.test(output)) {
+      console.error('[webhook-upsert] gh CLI 가 없습니다 — npm run setup:env 를 실행해 주세요.');
+    } else if (process.env.GH_TOKEN) {
+      console.error(
+        '[webhook-upsert] 토큰으로 로그인이 안 됩니다 — 만료됐거나 권한이 모자랍니다.
+' +
+          '  고치는 법: 새 토큰(admin:repo_hook 권한)을 발급해 저장소 secret `YB_PROD_GH_WEBHOOK_TOKEN` 에 넣으세요.
+' +
+          '  그때까지 웹훅 주소는 예전 값으로 남아 있습니다 (봇 배포 자체와는 무관합니다).',
+      );
+    } else {
+      console.error('[webhook-upsert] gh CLI 에 로그인돼 있지 않습니다 — gh auth login 또는 GH_TOKEN 을 주세요.');
+    }
     process.exit(1);
   }
 }
