@@ -98,7 +98,27 @@ function pagesOf(topic) {
 
 const all = topics.flatMap((topic) => pagesOf(topic).map((page) => ({ topic, ...page })));
 
-function head({ title, desc, url, up, image }) {
+/**
+ * 검색 로봇에게 「이건 무료로 바로 하는 웹 게임」이라고 말해 준다.
+ * 없으면 그냥 글 한 장으로 읽힌다 — 유입이 목적인 물건에서 그건 손해다.
+ * 사실이 아닌 것은 안 적는다(별점·후기 같은 것). 적는 건 이름·설명·주소·언어·무료뿐이다.
+ */
+function gameLd({ name, desc, url }) {
+  return `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    applicationCategory: 'GameApplication',
+    name,
+    description: desc,
+    url,
+    inLanguage: 'ko',
+    isAccessibleForFree: true,
+    operatingSystem: 'Any',
+    browserRequirements: 'JavaScript',
+  }).replace(/</g, '\\u003c')}</script>`;
+}
+
+function head({ title, desc, url, up, image, ld = '' }) {
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -116,6 +136,7 @@ function head({ title, desc, url, up, image }) {
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <link rel="stylesheet" href="${up}style.css?v=${stamp}">
+${ld}
 </head>
 <body>`;
 }
@@ -147,7 +168,14 @@ for (const page of all) {
 
   const shot = page.mode === 'silhouette' ? '<div class="shot"><img alt="오늘의 실루엣"></div>' : '';
 
-  const html = `${head({ title: `${page.label} 맞히기`, desc: page.desc, url, up, image: page.path.replace("/", "-") })}
+  const html = `${head({
+    title: `${page.label} 맞히기`,
+    desc: page.desc,
+    url,
+    up,
+    image: page.path.replace('/', '-'),
+    ld: gameLd({ name: `${page.label} 맞히기`, desc: page.desc, url }),
+  })}
 <div class="wrap" id="app" data-topic="${esc(topic.id)}" data-mode="${page.mode}" data-stamp="${stamp}"
      data-data="${up}data/${esc(topic.id)}.json" data-others="${esc(JSON.stringify(others))}">
   <div class="top">
@@ -212,6 +240,11 @@ const hub = `${head({
   url: `${SITE}${BASE}/`,
   up: '',
   image: 'hub',
+  ld: gameLd({
+    name: '오늘의 하나 맞히기',
+    desc: `매일 새 문제 ${all.length}판. ${topics.map((t) => t.title).join(' · ')}`,
+    url: `${SITE}${BASE}/`,
+  }),
 })}
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>

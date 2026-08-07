@@ -420,6 +420,33 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 검색이 이걸 「글 한 장」이 아니라 「무료로 바로 하는 웹 게임」으로 읽어야 한다.
+ * 표시는 적어 두는 것보다 *깨지지 않는 것*이 중요하다 — 실제로 파싱되는지 본다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  for (const path of ['', 'pokemon/', 'pokemon/silhouette/']) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'domcontentloaded' });
+    const parsed = await page.evaluate(() => {
+      const el = document.querySelector('script[type="application/ld+json"]');
+      if (!el) return null;
+      try {
+        return JSON.parse(el.textContent);
+      } catch {
+        return 'BROKEN';
+      }
+    });
+    check(
+      `[검색표시] /${path} 가 게임으로 읽힌다`,
+      parsed && parsed !== 'BROKEN' && parsed.applicationCategory === 'GameApplication' && !!parsed.name,
+      parsed === 'BROKEN' ? '깨진 JSON' : parsed?.name ?? '(없음)',
+    );
+  }
+  await ctx.close();
+}
+
+/**
  * 키보드만으로 한 판. 마우스 없이 오는 사람이 어디서 막히는지는 여기서만 갈린다.
  * 특히 판이 끝나면 입력칸이 사라지는데 포커스가 거기 남으면, 없어진 자리에 갇힌다.
  */
