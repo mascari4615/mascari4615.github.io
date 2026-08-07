@@ -726,6 +726,33 @@ const Toolbox = (() => {
         mHome.onclick = () => switchPage('home');
         mobileNav.appendChild(mHome);
 
+        /* 헤더의 바깥 링크(도구 목록·봇·오늘의·광장…)를 폰 내비로 옮겨 온다 (TASK-KL-101).
+         *
+         * 폰 헤더는 로고 + 아이콘 둘이 들어가면 꽉 찬다. 그런데 이 링크들이 하나씩 늘어
+         * 넷이 되면서 로고 **위에 포개졌다** — 브랜드가 뭉개진 채로 나가고 있었다.
+         * 그렇다고 헤더에서 숨기기만 하면 폰에서는 갈 길이 아예 사라진다(봇·오늘의는 위젯이
+         * 아니라 딴 주소다). 그래서 숨기는 대신 여기로 옮긴다.
+         *
+         * 목록을 여기 다시 적지 않고 **헤더에서 읽는다** — 나중에 링크가 늘어도 저절로 따라온다.
+         * 손으로 한 벌 더 적으면 그날부터 폰만 옛 목록을 보게 된다. */
+        document.querySelectorAll('.header-bar-right .header-tools-link').forEach((link) => {
+            const href = link.getAttribute('href') || '';
+            const label = (link.textContent || '').replace(/^[^\w가-힣]+/, '').trim();
+            if (!label) return;
+            const m = document.createElement('a');
+            m.className = 'nav-item nav-item-shell';
+            m.textContent = label;
+            if (href.startsWith('#')) {
+                // 앱 안의 화면 — 주소로 튀지 않고 그 자리에서 연다
+                const pageId = href.slice(1);
+                m.href = '#';
+                m.onclick = (e) => { e.preventDefault(); switchPage(pageId); };
+            } else {
+                m.href = href;
+            }
+            mobileNav.appendChild(m);
+        });
+
         function buildHeaderNavGroup(label, catTools, navParent) {
             if (!catTools.length) return;
 
@@ -987,6 +1014,12 @@ const Toolbox = (() => {
         // (안 보이는 것을 계산하는 값은 그대로 나간다).
         if (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) return wrap;
 
+        /* 폰에서는 **만들 때부터** 작게·적게 만든다 (TASK-KL-101).
+         * CSS 로 `transform: scale()` 를 걸어 줄이려 했더니 아무 일도 안 일어났다 —
+         * 떠다니는 움직임이 같은 transform 을 쓰므로 애니메이션이 이긴다. 그래서 폰에서는
+         * 데스크톱 크기 그대로 나와 큰 꽃 하나가 카드를 덮고 있었다. */
+        const narrow = typeof window !== 'undefined' && window.innerWidth <= 768;
+        const k = narrow ? 0.55 : 1;      // 크기 배수
         const seed0 = (q.get('seed') | 0) || (Date.now() % 2147483647);
         let s = seed0;
         const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
@@ -1056,12 +1089,13 @@ const Toolbox = (() => {
 
         // 렌즈 바로 앞 — 화면보다 크고 잘리고 초점이 나갔다. 흐리므로 글을 안 가린다.
         const corners = ['left:-22%;top:34%', 'right:-24%;top:30%', 'left:-18%;top:-26%', 'right:-20%;top:-24%'];
-        add(Math.round(rng(1050, 1320)), rng(13, 19).toFixed(0), rng(.40, .52).toFixed(2), [110, 130], [24, 40], pick(corners), 'home-decor-lens');
+        add(Math.round(rng(1050, 1320) * k), rng(13, 19).toFixed(0), rng(.40, .52).toFixed(2), [110, 130], [24, 40], pick(corners), 'home-decor-lens');
         // 또렷한 닻 — 좌우 중 한쪽 바깥에 걸친다
-        add(Math.round(rng(300, 380)), 0, rng(.86, .96).toFixed(2), [62, 76], [20, 34], rnd() < .5 ? 'right:-3%;top:26%' : 'left:-4%;top:22%');
-        for (const zn of DECOR_ZONES) {
+        add(Math.round(rng(300, 380) * k), 0, rng(.86, .96).toFixed(2), [62, 76], [20, 34], rnd() < .5 ? 'right:-3%;top:26%' : 'left:-4%;top:22%');
+        // 폰은 화면이 좁아 같은 개수를 뿌리면 빽빽하다 — 구역을 줄인다
+        for (const zn of (narrow ? DECOR_ZONES.slice(0, 3) : DECOR_ZONES)) {
             const b = DECOR_BANDS[zn.band];
-            add(Math.round(rng(b.z[0], b.z[1])), rng(b.blur[0], b.blur[1]).toFixed(2), rng(b.op[0], b.op[1]).toFixed(2),
+            add(Math.round(rng(b.z[0], b.z[1]) * k), rng(b.blur[0], b.blur[1]).toFixed(2), rng(b.op[0], b.op[1]).toFixed(2),
                 b.dur, b.amp, `left:${rng(zn.x[0], zn.x[1]).toFixed(1)}%;top:${rng(zn.y[0], zn.y[1]).toFixed(1)}%`);
         }
 
