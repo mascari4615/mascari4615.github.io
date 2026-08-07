@@ -1211,6 +1211,52 @@ await ctx.close();
   await ctx.close();
 }
 
+/**
+ * 그림 무게 — **폰 데이터로 놀 만한 물건인가.**
+ *
+ * 포켓몬 그림은 두 벌이다: 도트 0.5~2KB, 공식 일러스트 140~200KB (300배). 여태 목록·자동완성·
+ * 추측 줄까지 전부 큰 것을 썼다 — 두 글자만 쳐도 여덟 장이 뜨면서 1MB 넘게 나갔고,
+ * 지난 문제 한 장을 훑으면 그것만 460KB 였다. 화면은 똑같이 보이니 눈으로는 절대 안 잡힌다.
+ *
+ * 지금은 목록 쪽이 전부 도트다. 큰 것은 실루엣 판 한 장뿐이다. 다시 커지면 여기서 막는다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  let imgKB = 0;
+  page.on('response', async (r) => {
+    if (!/\.(png|jpg|jpeg|webp)/i.test(r.url())) return;
+    try { imgKB += (await r.body()).length / 1024; } catch { /* 취소된 요청 */ }
+  });
+
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  imgKB = 0;
+  await page.fill('.guessbar input', '이상');
+  await page.waitForSelector('.sug button');
+  await page.waitForTimeout(1200);
+  check('★ 자동완성 그림이 가볍다', imgKB < 60, `${imgKB.toFixed(0)}KB (예전 500KB 넘음)`);
+
+  // 앞 화면에서 받아 둔 그림이 캐시에 남으면 0KB 로 재져 검사가 헛돈다 — 새 창에서 잰다.
+  const fresh = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const fpage = await fresh.newPage();
+  let pastKB = 0;
+  fpage.on('response', async (r) => {
+    if (!/\.(png|jpg|jpeg|webp)/i.test(r.url())) return;
+    try { pastKB += (await r.body()).length / 1024; } catch { /* 취소된 요청 */ }
+  });
+  await fpage.goto(`${base}/pokemon/past/`, { waitUntil: 'networkidle' });
+  await fpage.mouse.wheel(0, 4000);
+  await fpage.waitForTimeout(1500);
+  check('★ 지난 문제 그림이 가볍다', pastKB > 0 && pastKB < 120, `${pastKB.toFixed(0)}KB (예전 460KB)`);
+  await fresh.close();
+
+  // 실루엣만 큰 그림을 쓴다 — 거기선 그림이 전부라 도트로는 못 푼다.
+  await page.goto(`${base}/pokemon/silhouette/`, { waitUntil: 'networkidle' });
+  const shotSrc = await page.getAttribute('.shot img', 'src');
+  check('실루엣은 큰 그림을 쓴다', /official-artwork/.test(shotSrc ?? ''), (shotSrc ?? '').slice(-46));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 

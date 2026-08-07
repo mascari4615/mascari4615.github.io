@@ -92,7 +92,13 @@ for (let i = 0; i < ids.length; i += 1) {
   if (!name) continue;
   items.push({
     name,
-    img: f.sprites?.other?.['official-artwork']?.front_default ?? f.sprites?.front_default ?? null,
+    /**
+     * 그림이 두 벌인 이유 — **크기가 300배 차이 난다.**
+     * 공식 일러스트는 한 장에 140~200KB 다. 목록·자동완성·추측 줄에 그걸 쓰면 두 글자만 쳐도
+     * 여덟 장이 뜨면서 1.4MB 가 나간다 — 폰 데이터로 놀 만한 물건이 아니게 된다.
+     * 작은 도트 그림은 0.5~2KB 다. 큰 그림은 **실루엣 판에서만** 쓴다 (거기선 그림이 전부다).
+     */
+    img: f.sprites?.front_default ?? f.sprites?.other?.['official-artwork']?.front_default ?? null,
     gen: romanToInt(s.generation.name),
     types: f.types.map((t) => typeKo[t.type.name] ?? t.type.name),
     color: COLOR_KO[s.color?.name] ?? s.color?.name ?? '?',
@@ -121,6 +127,12 @@ const topic = {
   emoji: '🔴',
   source: 'PokéAPI',
   maxGuesses: 8,
+  /**
+   * 큰 그림 주소를 **규칙 하나로** 적어 둔다 (실루엣 판에서만 쓴다).
+   * 항목마다 큰 주소를 하나씩 넣으면 표가 90KB 불어나는데, 실제로 쓰는 건 하루 한 장이다.
+   * 작은 그림은 0.5~2KB, 큰 그림은 140~200KB — 300배 차이라 목록에 큰 것을 쓰면 안 된다.
+   */
+  art: { from: '/sprites/pokemon/', to: '/sprites/pokemon/other/official-artwork/' },
   // 표가 언제 만들어졌는지 — 빌드가 이걸 보고 「너무 오래됐다」를 말한다.
   fetchedAt: new Date().toISOString().slice(0, 10),
   fields: [

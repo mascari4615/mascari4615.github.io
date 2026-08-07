@@ -36,7 +36,7 @@ const cards = [
       // 대신 그 판이 실제로 하는 일을 보여 준다: 까만 그림이 조금씩 밝아지는 세 컷.
       // 맨 끝도 다 안 밝힌다(0.7) — 카드가 답을 보여 주는 것처럼 읽히면 안 된다.
       // 같은 그림 세 번이어야 「하나가 밝아진다」로 읽힌다 — 다른 셋을 늘어놓으면 진화 단계처럼 보인다.
-      shots: [t.items[0].img, t.items[0].img, t.items[0].img],
+      shots: [0, 0, 0].map(() => (t.art ? t.items[0].img.replace(t.art.from, t.art.to) : t.items[0].img)),
     },
   ]),
 ];
