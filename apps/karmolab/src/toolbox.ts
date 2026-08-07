@@ -890,9 +890,10 @@ const Toolbox = (() => {
         if (sidebarNavEl) {
             function buildSidebarGroup(catId, label, catTools) {
                 if (!catTools.length) return;
+                // 「내 것」은 처음부터 펴 둔다 — 접어 두면 맨 위에 올린 뜻이 없다 (TASK-KL-129).
                 const isOpen = getSidebarGroupState()[catId] !== undefined
                     ? getSidebarGroupState()[catId]
-                    : (catId === 'tool');
+                    : (catId === 'tool' || catId === 'mine');
                 const wrap = document.createElement('div');
                 wrap.className = 'sidebar-group';
                 const trigger = document.createElement('button');
@@ -913,6 +914,26 @@ const Toolbox = (() => {
                 wrap.appendChild(trigger);
                 wrap.appendChild(body);
                 sidebarNavEl.appendChild(wrap);
+            }
+
+            /* 내가 고른 것을 옆줄 맨 위에 (TASK-KL-129).
+             *
+             * 앱 안에서 도구를 갈아탈 때 제일 자주 보는 곳이 이 옆줄인데, 여기는 127개가
+             * 분류로만 접혀 있었다 — 늘 쓰는 두세 개를 열려면 매번 그 분류를 펼쳐야 했다.
+             * 목록 페이지에서 별로 꽂아 둔 것이 있으면 맨 위에 편다.
+             * 하나도 없으면 이 칸은 아예 안 생긴다 — 빈 상자를 두지 않는다. */
+            {
+                let pinnedIds = [];
+                try {
+                    const raw = localStorage.getItem('toolbox_pinned_tools');
+                    const arr = raw ? JSON.parse(raw) : [];
+                    if (Array.isArray(arr)) pinnedIds = arr.filter(x => typeof x === 'string');
+                } catch (_) { /* 못 읽으면 없는 것으로 본다 */ }
+                // 순서는 사람이 꽂은 순서 그대로 — 가나다순으로 다시 세우면 「내가 놓은 자리」가 사라진다.
+                const pinned = pinnedIds
+                    .map(id => tools.find(t => t.id === id))
+                    .filter(t => !!t && (!isDesktopOnlyTool(t) || isDesktopApp()));
+                buildSidebarGroup('mine', '내 것', pinned);
             }
 
             CATEGORIES.forEach(cat => {
