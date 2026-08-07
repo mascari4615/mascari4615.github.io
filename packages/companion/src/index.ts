@@ -61,6 +61,7 @@ export { webBody, openPinnedWindow, type WebBodyOptions } from './body/web';
 export { anySpeech } from './voice/any';
 export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
 export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';
+export { clonedSpeech, type ClonedSpeechOptions } from './voice/cloned';
 export * from './claims';
 export * from './hands/auto';
 export * from './hands/from-file';
