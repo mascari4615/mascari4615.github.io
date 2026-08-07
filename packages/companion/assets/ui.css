@@ -288,3 +288,23 @@ button:hover { border-color: rgba(110, 231, 255, 0.5); color: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   .bubble, .talk { transition: none; }
 }
+
+
+/* ── 화면 전체로 편 창 ────────────────────────────────────
+   작은 창에 얹으니 말풍선·메뉴가 끝없이 잘렸다. 자리를 조금씩 넓히는 건 증상 추격이라,
+   창을 화면만큼 키우고 **얘가 사는 자리(.room)만 화면 안에서 옮겨 다니게** 했다.
+   창은 다 덮지만 얘와 눌러야 하는 자리 밖은 클릭이 그대로 지나간다. */
+body.full .room {
+  position: fixed;
+  left: var(--방x, 60%);
+  top: var(--방y, 40%);
+  width: 420px;
+  height: 620px;
+  padding: 0;
+  /* 화면 끝에 붙어도 안 잘리게, 자리를 잡는 기준을 몸 쪽으로 둔다. */
+  transform: translate(-50%, 0);
+}
+/* 화면이 넓어졌으니 말풍선도 넉넉히. 이제 잘릴 일이 거의 없다. */
+body.full .bubble { max-height: 40vh; max-width: 420px; }
+/* 끌고 다니는 동안엔 부드럽게 따라오지 않는다 — 손이 끄는 느낌이 뭉개진다. */
+body.full.dragging .room { transition: none; }
