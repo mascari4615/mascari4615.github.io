@@ -104,3 +104,10 @@ apps/karmolab/css/*.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9
 apps/karmolab/.build-stamp
 # 「올린 것이 실제로 서빙되나」를 물어보려고 빌드가 내놓는 표식 (TASK-KL-124)
 apps/karmolab/build.json
+
+# 세션이 잠깐 쓰고 버리는 것들 — 안 적어 두면 「안 담긴 작업」처럼 보여 남이 담아 버린다 (KAR-204).
+# 실제로 오늘 이런 임시 파일 여섯 개가 사라진 뒤에야 임시였다는 걸 알았다.
+.wt-*/
+**/.*.tmp.mjs
+apps/karmolab/.kl-*.mjs
+apps/karmolab/*.png

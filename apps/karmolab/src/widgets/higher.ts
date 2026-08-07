@@ -83,6 +83,8 @@ import { onPageActive, takePick } from './pack-pick';
           let right: Item | null = null;
           let streak = 0;
           let locked = false;
+          /** 몇 번째 불러오기인가 — 판을 빨리 바꾸면 먼저 부른 표가 나중에 도착해 덮는다. */
+          let loadSeq = 0;
           const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
           const bestOf = (id: string, put?: number): number => {
@@ -260,8 +262,10 @@ import { onPageActive, takePick } from './pack-pick';
                   return bd ? Promise.resolve(bd) : Promise.reject(new Error('no-number'));
                 })()
               : fetch(`/apps/karmolab/data/higher-${id}.json`).then((r) => r.json());
+            const mySeq = ++loadSeq;
             src
               .then((j: Board) => {
+                if (mySeq !== loadSeq) return;
                 board = j;
                 field = null; // 첫 기준도 nextRound 가 뽑는다 — 뽑는 자리를 두 곳에 두지 않는다
                 streak = 0;
@@ -272,6 +276,7 @@ import { onPageActive, takePick } from './pack-pick';
                 if (note) $('hiMsg').textContent = note;
               })
               .catch((err) => {
+                if (mySeq !== loadSeq) return;
                 $('hiAsk').textContent =
                   err && err.message === 'no-number'
                     ? '이 표에는 견줄 숫자 칸이 없습니다 — 「내 표 만들기」에서 나이·키 같은 숫자 칸을 넣어 주세요.'

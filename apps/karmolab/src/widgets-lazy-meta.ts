@@ -398,6 +398,16 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/checklist']
   },
   {
+    // 「진짜로 못 여는」 편지 — 목록에서 바로 보여야 한다 (TASK-KL-134).
+    id: 'timecapsule',
+    title: '타임캡슐 편지',
+    category: 'tool',
+    desc: '정한 날 전에는 아무도 못 여는 편지를 만듭니다. 맡아 두는 서버가 없어 잠긴 편지 자체가 주소가 됩니다',
+    layout: 'wide',
+    icon: '<rect x="4" y="9" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="12" cy="15" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['tools/timecapsule']
+  },
+  {
     // 둘이 붙는 놀이 — 목록에서 바로 보여야 한다 (TASK-KL-132).
     id: 'duel',
     title: '번개 대결',
