@@ -430,12 +430,14 @@
     const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 160;
     if (nearBottom) log.scrollTop = log.scrollHeight;
 
-    // 문장이 끝난 데까지만 소리낸다 — 반 토막 문장을 읽으면 어색하다.
-    const done = /^[\s\S]*[.!?…。！？\n]/.exec(soFar.slice(spokenUpTo));
-    if (done && done[0].trim().length > 6) {
-      const sentence = done[0].trim();
-      spokenUpTo += done[0].length;
-      speakAloud(sentence, true);
+    /* 읽어도 되는 데까지 읽는다 — **문장 끝만 기다리지 않는다.**
+       한국어는 「어, 그거 나도 봤는데,」처럼 쉼표가 먼저 오는 일이 잦아서, 마침표만
+       기다리면 첫 소리가 통째로 늦어진다. 규칙은 따로 뺀 파일에 있다(시험 가능하게).
+       못 불러왔으면 예전처럼 문장 끝까지 기다린다 — 늦을 뿐 안 깨진다. */
+    const 토막 = 읽을토막 === null ? null : 읽을토막(soFar.slice(spokenUpTo), { 남길것: 1 });
+    if (토막) {
+      spokenUpTo += 토막.먹은길이;
+      speakAloud(토막.토막, true);
     }
   }
 
