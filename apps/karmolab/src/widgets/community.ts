@@ -207,6 +207,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-feed-empty { margin:0; padding:18px 12px; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .c-gal-title { margin:0; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:700; }
 
+        /* 고르는 줄 — 무엇을 고르는 줄인지 왼쪽에 적는다. 안 적으면 갤러리와 말머리가 똑같아 보인다. */
+        .c-picker { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+        .c-picker-label { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); font-weight:700;
+            min-width:40px; }
+        .c-picker .c-boards, .c-picker .c-tags { margin-bottom:0; }
+
         /* 말머리 — 갤러리 안에서 글을 한 번 더 가른다 (디시·아카의 말머리). */
         .c-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
         .c-tagchip { padding:4px 10px; border-radius:var(--radius); border:1px solid var(--border);
@@ -569,6 +575,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     let boards: Board[] = [];
     /** 글쓰기 칸을 펼쳐 두었나 — 다시 그려도 접히지 않게 밖에 둔다. */
     let writerOpen = false;
+    /** 말머리 고치는 칸을 펼쳐 두었나. */
+    let tagEditOpen = false;
 
     function signInBlock(text: string): string {
         return `<div class="c-signin"><p>${text}</p>
@@ -754,12 +762,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     }
 
     function renderBoards(active: string): string {
-        return `<div class="c-boards">${boards
+        // 무엇을 고르는 줄인지 안 적으면 말머리 줄과 헷갈린다 — 둘 다 동그란 칩이라 똑같아 보인다.
+        return `<div class="c-picker"><span class="c-picker-label">갤러리</span><div class="c-boards">${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
             )
-            .join('')}</div>`;
+            .join('')}</div></div>`;
     }
 
     /* ===== 글쓰기 =====
@@ -976,7 +985,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     function renderList(data: ListResponse): void {
         if (!host) return;
-        const isRequest = data.board === 'request';
+        const isRequest = data.gallery.voteStyle;
+        // 말머리는 **갤러리를 만든 사람**과 주인이 정한다 (디시·아카의 갤주 자리).
+        const canEditTags = data.isAdmin || (data.myHandle !== null && data.myHandle === data.gallery.createdByHandle);
 
         const sorts = isRequest
             ? '<span class="c-write-hint">표 많은 순</span>'
@@ -1078,16 +1089,40 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             </div>
             ${renderBoards(data.board)}
             ${
-                data.gallery.tags.length
-                    ? `<div class="c-tags">
-                        <button type="button" class="c-tagchip" data-tag="" data-on="${data.tag ? '0' : '1'}">전체</button>
-                        ${data.gallery.tags
-                            .map(
-                                (t) =>
-                                    `<button type="button" class="c-tagchip" data-tag="${esc(t)}" data-on="${data.tag === t ? '1' : '0'}">${esc(t)}</button>`,
-                            )
-                            .join('')}
+                data.gallery.tags.length || canEditTags
+                    ? `<div class="c-picker">
+                        <span class="c-picker-label">말머리</span>
+                        <div class="c-tags">
+                            ${
+                                data.gallery.tags.length
+                                    ? `<button type="button" class="c-tagchip" data-tag="" data-on="${data.tag ? '0' : '1'}">전체</button>` +
+                                      data.gallery.tags
+                                          .map(
+                                              (t) =>
+                                                  `<button type="button" class="c-tagchip" data-tag="${esc(t)}" data-on="${data.tag === t ? '1' : '0'}">${esc(t)}</button>`,
+                                          )
+                                          .join('')
+                                    : '<span class="c-write-hint">아직 말머리가 없습니다</span>'
+                            }
+                            ${canEditTags ? '<button type="button" class="c-tagchip" data-tag-edit>말머리 고치기</button>' : ''}
+                        </div>
                        </div>`
+                    : ''
+            }
+            ${
+                tagEditOpen
+                    ? `<form class="c-write" data-tag-form>
+                           <input type="text" name="galTags" data-tag-input maxlength="120"
+                               placeholder="쉼표로 나눠 적으세요 (예: 잡담, 질문, 정보)" aria-label="말머리 목록"
+                               value="${esc(data.gallery.tags.join(', '))}">
+                           <div class="c-write-foot">
+                               <span class="c-write-hint">이 갤러리에서만 쓰입니다 · 최대 8개 · 지워도 이미 쓴 글은 그대로 남습니다</span>
+                               <span>
+                                   <button type="button" class="c-act" data-tag-cancel>접기</button>
+                                   <button type="submit" class="btn btn-primary">저장</button>
+                               </span>
+                           </div>
+                       </form>`
                     : ''
             }
             <div class="c-bar">${sorts}${
@@ -1134,6 +1169,34 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-tag]').forEach((b) =>
             b.addEventListener('click', () => go({ tag: b.dataset.tag || null, page: null })),
         );
+        host.querySelector('[data-tag-edit]')?.addEventListener('click', () => {
+            tagEditOpen = true;
+            void render();
+        });
+        host.querySelector('[data-tag-cancel]')?.addEventListener('click', () => {
+            tagEditOpen = false;
+            void render();
+        });
+        host.querySelector<HTMLFormElement>('[data-tag-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const raw = (event.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[data-tag-input]')?.value ?? '';
+            const tags = raw
+                .split(',')
+                .map((t) => t.trim())
+                .filter(Boolean);
+            const ok = await api(`/kl/boards/${encodeURIComponent(data.board)}/tags`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tags }),
+            });
+            if (!ok) {
+                Toolbox.showToast?.(toastFor('말머리를 못 바꿨어요'));
+                return;
+            }
+            tagEditOpen = false;
+            boards = [];
+            go({ tag: null, page: null });
+        });
         host.querySelectorAll<HTMLButtonElement>('[data-page]').forEach((b) =>
             b.addEventListener('click', () => go({ page: b.dataset.page === '1' ? null : (b.dataset.page ?? null) })),
         );

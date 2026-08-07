@@ -28,11 +28,22 @@ beforeEach(async () => {
   const app = express();
   app.use(express.json());
   registerKarmolabApi(app, store, traces);
-  await new Promise<void>((resolve) => {
-    server = app.listen(0, '127.0.0.1', resolve);
-  });
-  const address = server.address();
-  const port = typeof address === 'object' && address ? address.port : 0;
+  /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
+     `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
+  const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
+  let port = 0;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = 20000 + Math.floor(Math.random() * 20000);
+    if (UNSAFE.has(candidate)) continue;
+    const ok = await new Promise<boolean>((resolve) => {
+      server = app.listen(candidate, '127.0.0.1', () => resolve(true));
+      server.once('error', () => resolve(false));
+    });
+    if (ok) {
+      port = candidate;
+      break;
+    }
+  }
   baseUrl = `http://127.0.0.1:${port}`;
 });
 
