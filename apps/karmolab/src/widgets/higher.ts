@@ -169,7 +169,9 @@ import { mountCourseNext } from './play-course';
               right = pick(pool);
               tries++;
             } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
-            $('hiAsk').innerHTML = `<b>${field.label}</b> — 어느 쪽이 더 클까요?`;
+            $('hiAsk').innerHTML =
+              `<b>${field.label}</b> — 어느 쪽이 더 클까요?` +
+              '<span class="hi-keys">← →</span>';
             paintSide($('hiA'), left, true);
             paintSide($('hiB'), right!, false);
             $('hiMsg').textContent = '';
@@ -244,12 +246,40 @@ import { mountCourseNext } from './play-course';
 
           $('hiA').addEventListener('click', () => answer($('hiA'), left!, right!));
           $('hiB').addEventListener('click', () => answer($('hiB'), right!, left!));
-          $('hiRetry').addEventListener('click', () => {
+          function retry(): void {
             streak = 0;
             left = null;
             $('hiStreak').textContent = '0';
             nextRound(false);
-          });
+          }
+          $('hiRetry').addEventListener('click', retry);
+
+          /* 손으로만 놀 수 있었다 (TASK-KL-089).
+           * 한 번에 한 판씩 몇십 번을 누르는 놀이인데 좌우 화살표가 아무 일도 안 했다 —
+           * 마우스에서 손을 못 뗀다. ← → 로 고르고, 끝난 뒤에는 Enter 로 다시 시작한다.
+           * 글자를 치는 중(입력칸 안)에는 안 가로챈다 — 여기엔 입력칸이 없지만 앱 어디서든 안전하게. */
+          const keys = (e: KeyboardEvent): void => {
+            /* 「지금 보이는 화면인가」는 **페이지 칸**에게 물어야 한다. 그냥 위로 훑으면
+             * 탭 속살(panel)에도 같은 표시가 붙어 있어서, 딴 화면에 가 있어도 참이 나온다 —
+             * 그렇게 놀이터에서 누른 화살표가 이 놀이의 연승을 올렸다(실측). */
+            const page = container.closest('.tool-page');
+            if (!container.isConnected || !page || !page.classList.contains('active')) return;
+            const t = e.target as HTMLElement | null;
+            if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              if (locked || !left || !right) return;
+              e.preventDefault();
+              const goLeft = e.key === 'ArrowLeft';
+              answer($(goLeft ? 'hiA' : 'hiB'), goLeft ? left : right, goLeft ? right : left);
+              return;
+            }
+            if (e.key === 'Enter' && $('hiAgain').style.display === 'flex') {
+              e.preventDefault();
+              retry();
+            }
+          };
+          addEventListener('keydown', keys);
+          Toolbox.onDispose?.(() => removeEventListener('keydown', keys));
           $('hiShare').addEventListener('click', () => {
             /* 주소는 **이 놀이가 실제로 사는 곳**이어야 한다. 앱 안으로 옮긴 뒤에도 도구
              * 상세 주소(/karmolab/t/higher/)를 퍼뜨리고 있었는데 그 페이지는 만들지 않는다 —
