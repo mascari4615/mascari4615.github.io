@@ -13,8 +13,26 @@
  * 트는 영상: 굽는 화면에서 구운 게 있으면 **그것**, 없으면 기본 도형 클립.
  * 남의 영상을 담아 두지 않는다.
  */
-import { decode, DomTilesSurface, Player, TextSurface } from 'badapple';
+import { decode, DomTilesSurface, Player, Registry, TextSurface, type Surface } from 'badapple';
 import { CLIP_STORAGE_KEY } from './shared';
+
+/**
+ * 도구가 「나도 그릴게」 하고 신고하는 창구.
+ *
+ * 도구 쪽에는 재생 관련 코드가 한 줄도 안 남는 게 요점이다 — 재생이 도는지 안 도는지,
+ * 껐다 켰는지 도구는 몰라도 된다. 신고하고, 닫힐 때 돌려받은 함수 하나 부르면 끝.
+ *
+ *   const stop = window.KarmoLabBadApple?.add({ measure: …, paint: … });
+ *   Toolbox.onDispose(() => stop?.());
+ */
+declare global {
+	interface Window {
+		KarmoLabBadApple?: { add(surface: Surface): () => void };
+	}
+}
+
+const registry = new Registry();
+window.KarmoLabBadApple = { add: (surface: Surface) => registry.add(surface) };
 
 const KONAMI = [
 	'ArrowUp',
@@ -61,6 +79,8 @@ const KONAMI = [
 	function stop(): void {
 		if (raf) cancelAnimationFrame(raf);
 		raf = 0;
+		// 무대에서만 떼고 신고는 남긴다 — 다시 켜면 도구가 재신고 없이 그대로 그린다.
+		registry.unbind();
 		player?.dispose();
 		player = null;
 		document.documentElement.removeAttribute('data-badapple');
@@ -100,6 +120,9 @@ const KONAMI = [
 				}
 			})
 		);
+
+		// 신고해 둔 도구들을 이 재생에 붙인다. 도구가 먼저 켜져 있었든 나중에 열리든 상관없다.
+		registry.bindTo(player.stage);
 
 		document.documentElement.setAttribute('data-badapple', 'on');
 		player.play(performance.now());

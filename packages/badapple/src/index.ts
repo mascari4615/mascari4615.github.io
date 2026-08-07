@@ -17,6 +17,7 @@
 export { decode, encode, MAGIC, type Clip, type ClipMeta, type EncodeOptions } from './format.js';
 export { Player, type PlayerOptions } from './player.js';
 export { Stage, type Frame } from './stage.js';
+export { Registry } from './registry.js';
 export { sampleVideo, type Sampled, type SampleOptions } from './sample.js';
 export type { Paint, Rect, Surface, SurfaceShape } from './surface.js';
 export { DomTilesSurface, type DomTilesOptions } from './surfaces/dom-tiles.js';
