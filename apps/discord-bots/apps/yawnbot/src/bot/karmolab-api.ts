@@ -234,6 +234,24 @@ export function registerKarmolabApi(
     }
     // 출처마다 답이 다르므로 중간 캐시가 한 출처의 답을 다른 출처에 주면 안 된다.
     res.setHeader('Vary', 'Origin');
+
+    /* 요청마다 짧은 번호를 붙인다 (TASK-KL-098).
+     *
+     * 「안 돼요」라는 말만으로는 아무도 못 고친다. 화면에 이 번호가 보이면 사용자가 그것만
+     * 알려 줘도 로그에서 그 요청 하나를 바로 집을 수 있다. 브라우저가 이 헤더를 읽을 수 있게
+     * 내보낼 헤더 목록에도 적는다 — 안 적으면 CORS 가 가려서 화면이 못 읽는다. */
+    const requestId = crypto.randomBytes(4).toString('hex');
+    res.setHeader('X-KL-Request-Id', requestId);
+    res.setHeader('Access-Control-Expose-Headers', 'X-KL-Request-Id');
+    // 실패한 답에는 몸통에도 넣어 준다 (헤더를 못 보는 자리에서도 쓰이게).
+    const originalJson = res.json.bind(res);
+    res.json = (body: unknown) => {
+        if (res.statusCode >= 400 && body && typeof body === 'object') {
+            (body as Record<string, unknown>).requestId = requestId;
+            console.warn(`[karmolab-api] ${res.statusCode} ${req.method} ${req.path} rid=${requestId}`, body);
+        }
+        return originalJson(body);
+    };
     if (req.method === 'OPTIONS') {
       res.status(204).end();
       return;

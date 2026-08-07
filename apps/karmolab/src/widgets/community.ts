@@ -262,6 +262,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             font-size:10px; color:var(--text-secondary); vertical-align:middle; }
         .c-empty { padding:48px 0; text-align:center; color:var(--text-secondary); }
         .c-empty h3 { color:var(--text-primary); font-size:18px; margin:0 0 8px; }
+        .c-empty p { margin:4px 0; }
+        .c-err-actions { margin:18px 0 10px; }
+        .c-err-detail { margin-top:10px; font-size:11px; color:var(--text-tertiary); }
+        .c-err-detail summary { cursor:pointer; }
+        .c-err-detail code { display:block; margin:8px auto 6px; padding:8px 10px; max-width:520px;
+            background:var(--bg-tertiary); border-radius:var(--radius); word-break:break-all; text-align:left; }
 
         @media (max-width: 620px) {
             .c-row { flex-wrap:wrap; }
@@ -294,16 +300,171 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             onerror="this.outerHTML='<span class=&quot;c-face-blank&quot;></span>'">`;
     }
 
+    /**
+     * 마지막으로 실패한 부름.
+     *
+     * 「안 돼요」만 보여 주면 사용자도 나도 못 고친다 (레퍼런스: 오류 메시지는 *무엇이·왜·이제
+     * 무엇을* 을 줘야 한다). 그래서 실패할 때마다 그 자리에서 무슨 일이 있었는지 붙잡아 두고,
+     * 화면이 그것을 사람 말로 풀어서 보여 준다. 기술 정보는 접어 두되 **버리지는 않는다** —
+     * 요청 번호 하나면 서버 로그에서 그 요청을 바로 집을 수 있다.
+     */
+    interface Failure {
+        kind: 'offline' | 'unreachable' | 'server' | 'auth' | 'notfound' | 'ratelimit' | 'bad';
+        status: number;
+        code: string;
+        requestId: string;
+        path: string;
+        at: string;
+    }
+    let lastFailure: Failure | null = null;
+
+    function classify(status: number): Failure['kind'] {
+        if (status === 0) return navigator.onLine === false ? 'offline' : 'unreachable';
+        if (status === 401 || status === 403) return 'auth';
+        if (status === 404) return 'notfound';
+        if (status === 429) return 'ratelimit';
+        if (status >= 500) return 'server';
+        return 'bad';
+    }
+
     async function api(path: string, init: RequestInit = {}): Promise<unknown | null> {
         const base = window.KarmoAccount?.apiBase;
-        if (!base) return null;
-        try {
-            const response = await fetch(`${base}${path}`, { ...init, credentials: 'include' });
-            if (!response.ok) return null;
-            return await response.json();
-        } catch {
+        if (!base) {
+            lastFailure = { kind: 'unreachable', status: 0, code: 'no_api_base', requestId: '-', path, at: new Date().toISOString() };
             return null;
         }
+        try {
+            const response = await fetch(`${base}${path}`, { ...init, credentials: 'include' });
+            if (!response.ok) {
+                let code = `http_${response.status}`;
+                try {
+                    const body = (await response.clone().json()) as { error?: string };
+                    if (body.error) code = body.error;
+                } catch {
+                    /* 몸통이 JSON 이 아니면 상태 코드만 쓴다 */
+                }
+                lastFailure = {
+                    kind: classify(response.status),
+                    status: response.status,
+                    code,
+                    requestId: response.headers.get('X-KL-Request-Id') ?? '-',
+                    path,
+                    at: new Date().toISOString(),
+                };
+                return null;
+            }
+            lastFailure = null;
+            return await response.json();
+        } catch {
+            // 여기까지 오면 답 자체를 못 받았다 — 서버가 죽었거나, 터널이 끊겼거나, 내가 오프라인.
+            lastFailure = {
+                kind: navigator.onLine === false ? 'offline' : 'unreachable',
+                status: 0,
+                code: 'fetch_failed',
+                requestId: '-',
+                path,
+                at: new Date().toISOString(),
+            };
+            return null;
+        }
+    }
+
+    /** 무엇이 · 왜 · 이제 무엇을. 종류마다 다르게 말한다 — 「안 돼요」 하나로 뭉치지 않는다. */
+    const FAILURE_TEXT: Record<Failure['kind'], { title: string; why: string; todo: string }> = {
+        offline: {
+            title: '인터넷이 끊겨 있어요',
+            why: '이 컴퓨터가 지금 네트워크에 연결돼 있지 않습니다.',
+            todo: '연결을 확인한 뒤 다시 시도해 주세요.',
+        },
+        unreachable: {
+            title: '커뮤니티 서버에 못 닿았어요',
+            why: '커뮤니티는 집에 있는 작은 서버가 돌립니다. 그 서버가 꺼져 있거나 재시작 중일 수 있어요.',
+            todo: '잠시 뒤에 다시 시도해 주세요. 도구는 서버 없이도 그대로 씁니다.',
+        },
+        server: {
+            title: '서버가 이 요청을 처리하다 넘어졌어요',
+            why: '서버 쪽 문제입니다. 잘못 누른 것이 아닙니다.',
+            todo: '다시 시도해 보고, 계속 그러면 아래 요청 번호를 알려 주세요.',
+        },
+        auth: {
+            title: '이 일을 할 권한이 없어요',
+            why: '로그인이 풀렸거나, 주인만 할 수 있는 일입니다.',
+            todo: '오른쪽 위에서 다시 로그인한 뒤 시도해 주세요.',
+        },
+        notfound: {
+            title: '그건 여기 없어요',
+            why: '지워졌거나 주소가 바뀐 것 같습니다.',
+            todo: '갤러리 목록에서 다시 찾아 주세요.',
+        },
+        ratelimit: {
+            title: '오늘 올릴 수 있는 만큼 다 썼어요',
+            why: '도배를 막으려고 하루에 올릴 수 있는 개수를 정해 뒀습니다.',
+            todo: '내일 다시 올리거나, 이미 올린 글에 이어서 써 주세요.',
+        },
+        bad: {
+            title: '요청이 받아들여지지 않았어요',
+            why: '보낸 내용이 서버가 받는 모양과 맞지 않습니다.',
+            todo: '내용을 조금 고쳐서 다시 시도해 주세요.',
+        },
+    };
+
+    /** 오류 화면 — 다시 시도 단추가 있고, 기술 정보는 접어 두되 버리지 않는다. */
+    function failureHtml(fallbackTitle: string): string {
+        const failure = lastFailure ?? {
+            kind: 'unreachable' as const,
+            status: 0,
+            code: 'unknown',
+            requestId: '-',
+            path: '-',
+            at: new Date().toISOString(),
+        };
+        const text = FAILURE_TEXT[failure.kind];
+        const stamp = new Intl.DateTimeFormat('ko-KR', {
+            timeZone: 'Asia/Seoul',
+            dateStyle: 'short',
+            timeStyle: 'medium',
+        }).format(new Date(failure.at));
+        const detail = `${failure.code} · HTTP ${failure.status || '연결 실패'} · 요청 ${failure.requestId} · ${failure.path} · ${stamp} (KST)`;
+
+        return `<div class="c-empty">
+            <h3>${esc(text.title || fallbackTitle)}</h3>
+            <p>${esc(text.why)}</p>
+            <p>${esc(text.todo)}</p>
+            <div class="c-err-actions">
+                <button type="button" class="c-newbtn" data-retry>다시 시도</button>
+            </div>
+            <details class="c-err-detail">
+                <summary>자세히 (알려 주실 때 이 줄을 복사해 주세요)</summary>
+                <code data-errline>${esc(detail)}</code>
+                <button type="button" class="c-linkbtn" data-copy-err>복사</button>
+            </details>
+        </div>`;
+    }
+
+    /** 오류 화면의 단추 배선. 그린 직후에 부른다. */
+    function wireFailure(): void {
+        host?.querySelector('[data-retry]')?.addEventListener('click', () => void render());
+        host?.querySelector('[data-copy-err]')?.addEventListener('click', () => {
+            const line = host?.querySelector('[data-errline]')?.textContent ?? '';
+            void navigator.clipboard?.writeText(line).then(
+                () => Toolbox.showToast?.('복사했어요'),
+                () => Toolbox.showToast?.('복사가 안 되네요 — 글자를 직접 긁어 주세요'),
+            );
+        });
+    }
+
+    /** 커뮤니티를 못 여는 화면. 서버가 죽은 것과 「아무 글도 없다」는 다르다 — 섞어서 말하지 않는다. */
+    function offline(): void {
+        if (!host) return;
+        host.innerHTML = `<div class="c-wrap">${failureHtml('지금은 커뮤니티를 못 여네요')}</div>`;
+        wireFailure();
+    }
+
+    /** 짧은 알림에도 까닭을 한 마디 붙인다 — 「안 돼요」만으로는 다시 눌러야 할지도 모른다. */
+    function toastFor(prefix: string): string {
+        if (!lastFailure) return `${prefix}. 잠시 뒤에 다시 시도해 주세요.`;
+        const text = FAILURE_TEXT[lastFailure.kind];
+        return `${prefix} — ${text.todo} (${lastFailure.code}·${lastFailure.requestId})`;
     }
 
     /* ===== 주소가 정본 — 새로고침·뒤로 가기가 그대로 산다 ===== */
@@ -702,7 +863,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 if (button) button.disabled = false;
                 if (!created?.id) {
                     // 하루 상한에 걸린 경우도 여기로 온다 — 왜 막혔는지 사람 말로 알린다.
-                    Toolbox.showToast?.('못 올렸어요. 하루에 올릴 수 있는 개수를 넘었거나, 잠시 연결이 끊겼습니다.');
+                    Toolbox.showToast?.(toastFor('못 올렸어요'));
                     return;
                 }
                 // 올라갔으니 초안은 지운다. 안 지우면 다음에 열 때 이미 올린 글이 또 들어 있다.
@@ -818,13 +979,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             if (ok) return;
             button.dataset.on = wasOn ? '1' : '0';
             button.textContent = label(shown);
-            Toolbox.showToast?.('지금은 안 되네요. 잠시 뒤에 다시 눌러 주세요.');
+            Toolbox.showToast?.(toastFor('지금은 안 되네요'));
         };
 
         const act = async (path: string, method = 'POST'): Promise<void> => {
             const ok = await api(path, { method });
             if (!ok) {
-                Toolbox.showToast?.('지금은 안 되네요. 잠시 뒤에 다시 눌러 주세요.');
+                Toolbox.showToast?.(toastFor('지금은 안 되네요'));
                 return;
             }
             reload();
@@ -847,7 +1008,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pinned: !post.pinned }),
             });
-            if (!ok) Toolbox.showToast?.('못 바꿨어요.');
+            if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
             else reload();
         });
         const setStatus = async (status: string): Promise<void> => {
@@ -856,7 +1017,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status }),
             });
-            if (!ok) Toolbox.showToast?.('못 바꿨어요.');
+            if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
             else reload();
         };
         host.querySelector('[data-plan]')?.addEventListener('click', () => void setStatus('planned'));
@@ -866,7 +1027,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             if (!confirm('이 글을 지웁니다. 계속할까요?')) return;
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}`, { method: 'DELETE' });
             if (!ok) {
-                Toolbox.showToast?.('못 지웠어요.');
+                Toolbox.showToast?.(toastFor('못 지웠어요'));
                 return;
             }
             go({ p: null, board: post.board === 'free' ? null : post.board });
@@ -921,7 +1082,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             });
             if (button) button.disabled = false;
             if (!ok) {
-                Toolbox.showToast?.('답글을 못 달았어요.');
+                Toolbox.showToast?.(toastFor('답글을 못 달았어요'));
                 return;
             }
             reload();
@@ -943,9 +1104,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         if (boards.length === 0) {
             const raw = (await api('/kl/boards')) as { boards?: Board[] } | null;
             if (!raw?.boards) {
-                // 서버가 죽은 것과 「아무 글도 없다」는 다르다. 섞어서 말하지 않는다.
-                host.innerHTML = `<div class="c-empty"><h3>지금은 커뮤니티를 못 여네요</h3>
-                    <p>잠시 뒤에 다시 열어 주세요. 도구는 그대로 쓸 수 있습니다.</p></div>`;
+                offline();
                 return;
             }
             boards = raw.boards;
@@ -955,8 +1114,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         if (postId) {
             const raw = await api(`/kl/posts/${encodeURIComponent(postId)}`);
             if (!raw) {
-                host.innerHTML = `<div class="c-empty"><h3>그 글을 못 찾았어요</h3>
-                    <p>지워졌거나, 잠시 연결이 끊겼습니다.</p></div>`;
+                host.innerHTML = `<div class="c-wrap">${failureHtml('그 글을 못 찾았어요')}</div>`;
+                wireFailure();
                 return;
             }
             renderDetail(raw as DetailResponse);
@@ -977,8 +1136,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             api('/kl/boards') as Promise<{ boards?: Board[] } | null>,
         ]);
         if (!raw) {
-            host.innerHTML = `<div class="c-empty"><h3>지금은 커뮤니티를 못 여네요</h3>
-                <p>잠시 뒤에 다시 열어 주세요.</p></div>`;
+            offline();
             return;
         }
         if (freshBoards?.boards) boards = freshBoards.boards;
