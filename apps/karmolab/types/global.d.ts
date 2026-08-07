@@ -228,6 +228,8 @@ declare global {
     mountTool: (id: string, container: HTMLElement) => boolean;
     /** 이 도구가 들어간 묶음 위젯 id (없으면 null) */
     findBundleFor: (id: string) => string | null;
+    /** 갈래 목록 (id·label·icon) — 라벨의 단일 출처 */
+    getCategories?: () => Array<{ id: string; label: string; icon: string }>;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;
