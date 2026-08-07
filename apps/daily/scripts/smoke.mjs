@@ -111,6 +111,9 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
     // 기록이 쌓이는 게 보여야 다시 온다. 색만으로 알리지 않게 숫자와 「오늘」이 글자로 붙는다.
     const dist = await page.locator('.done .dist').innerText();
     check(`[${tag}] 몇 번 만에 맞혔는지 쌓인다`, /몇 번 만에/.test(dist) && /오늘/.test(dist), dist.replace(/\n/g, ' ').slice(0, 40));
+    // 막대는 눈에만 보인다 — 낭독기에는 문장으로 읽혀야 뜻이 통한다.
+    const said = await page.locator('.dist-row .sr').first().innerText();
+    check(`[${tag}] 기록 막대를 말로도 읽어 준다`, /만에 맞힌 적/.test(said), said);
   }
 
   await ctx.close();

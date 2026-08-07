@@ -340,7 +340,14 @@ function distChart() {
       const n = dist[t];
       const pct = Math.max(6, Math.round((n / max) * 100));
       const now = t === mine;
-      return `<div class="dist-row${now ? ' now' : ''}"><span class="k">${t}번</span><span class="track"><span class="bar" style="width:${pct}%"></span></span><span class="n">${n}${now ? ' ·오늘' : ''}</span></div>`;
+      // 눈으로는 막대가 말해 주지만, 낭독기에는 「2번 1 ·오늘」로만 읽혔다 — 문장을 따로 준다.
+      const said = `${t}번 만에 맞힌 적 ${n}번${now ? ', 오늘이 그중 하나' : ''}`;
+      return (
+        `<div class="dist-row${now ? ' now' : ''}"><span class="sr">${said}</span>` +
+        `<span class="k" aria-hidden="true">${t}번</span>` +
+        `<span class="track" aria-hidden="true"><span class="bar" style="width:${pct}%"></span></span>` +
+        `<span class="n" aria-hidden="true">${n}${now ? ' ·오늘' : ''}</span></div>`
+      );
     })
     .join('');
   return el(`<div class="dist"><div class="dist-t">몇 번 만에 맞혔나</div>${rows}</div>`);
