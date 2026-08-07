@@ -324,6 +324,8 @@ await pastPage('genshin');
   const todayKey = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   await page.goto(`${base}/pokemon/?d=${todayKey}`, { waitUntil: 'networkidle' });
   check('★ 오늘 날짜로는 연습이 안 열린다', !/연습/.test(await page.locator('.tabs').innerText()));
+  // 못 여는 날을 달고 왔으면 **왜인지 말해야** 한다 — 여태 아무 말 없이 오늘 판이 열렸다.
+  check('못 여는 날이면 왜인지 말해 준다', /오늘 날짜로는/.test(await page.locator('.warn').innerText()), await page.locator('.warn').innerText());
   await page.fill('.guessbar input', today.name);
   await page.waitForSelector('.sug button');
   await page.click(`.sug button:has-text("${today.name}")`);

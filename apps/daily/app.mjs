@@ -16,6 +16,7 @@ import {
   kstDayKey,
   kstDayNumber,
   practiceDate,
+  whyNoPractice,
   liveStreak,
   touchDay,
   puzzleNumber,
@@ -87,7 +88,8 @@ try {
  *
  * 열어도 되는 날인지는 규칙(engine)이 정한다 — 오늘·미래도, 1번 문제 이전도 안 된다.
  */
-const practice = practiceDate(new URLSearchParams(location.search).get('d'));
+const askedDay = new URLSearchParams(location.search).get('d');
+const practice = practiceDate(askedDay);
 const at = practice ?? new Date();
 const answer = answerOf(topic, at, mode === 'classic' ? '' : mode);
 const maxGuesses = mode === 'silhouette' ? 6 : topic.maxGuesses ?? 8;
@@ -177,6 +179,26 @@ if (practice) {
     a.href = `${a.getAttribute('href')}?d=${dayKey}`;
   }
   // 끝난 뒤 건네는 「다른 판」도 마찬가지다 — 그건 오늘 판을 권하는 자리라 날짜를 안 붙인다.
+} else {
+  /**
+   * 날짜를 달고 왔는데 그날을 못 여는 경우 — 여태 **아무 말 없이 오늘 판**이 열렸다.
+   * 낡은 링크를 눌렀거나 주소를 손으로 고친 사람은 다른 날을 푸는 줄도 모른다.
+   */
+  const why = whyNoPractice(askedDay);
+  if (why) {
+    const say = {
+      today: '오늘 날짜로는 연습이 안 됩니다 — 그건 지금 이 판이에요.',
+      future: '아직 안 나온 날입니다. 오늘 판을 열었어요.',
+      before: '첫 문제보다 앞선 날입니다. 오늘 판을 열었어요.',
+      bad: '주소의 날짜를 못 읽었어요. 오늘 판을 열었습니다.',
+    }[why];
+    root
+      .querySelector('.tabs')
+      ?.insertAdjacentElement(
+        'afterend',
+        el(`<p class="warn">${esc(say)} <a href="${mode === 'classic' ? './past/' : '../past/'}">지난 문제 보기</a></p>`),
+      );
+  }
 }
 
 function renderStreak() {
