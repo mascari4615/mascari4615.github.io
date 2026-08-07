@@ -177,6 +177,24 @@ function numberish(v: string): { value: number; unit: string } | null {
   return { value, unit: (m[2] || '').trim() };
 }
 
+
+/**
+ * 주소에 실려 온 표를 이 브라우저로 들인다 (주소의 `pack=…` 부분).
+ *
+ * 「내 표」 화면만 이 일을 하고 있었다. 그런데 자랑은 **놀이 화면 주소**로 나간다 —
+ * 받은 사람이 그 주소를 열면 놀이가 열리고, 정작 표는 안 들어와 남의 표로 놀게 된다.
+ * 표를 쓰는 쪽이면 어디서든 같은 문을 지나게 한다. 이미 있는 표면 다시 안 만든다.
+ */
+export function absorbFromUrl(): Pack | null {
+  const code = new URLSearchParams(location.search).get('pack');
+  if (!code) return null;
+  const p = codeToPack(code);
+  if (!p) return null;
+  const same = loadPacks().filter((x) => x.title === p.title && x.items.length === p.items.length)[0];
+  if (same) return same;
+  return putPack(p) ? p : null;
+}
+
 /* ── 남에게 주기 ────────────────────────────────
  * 서버가 없으니 표 자체를 주소에 싣는다. 유니코드를 그대로 base64 에 넣을 수 없어서
  * 한 번 바이트로 편 뒤에 담는다(이걸 안 하면 한글 표가 통째로 깨진다). */
