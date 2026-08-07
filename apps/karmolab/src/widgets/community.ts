@@ -26,6 +26,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         label: string;
         desc: string;
         count: number;
+        /** 마지막 글 제목·시각 — 갤러리가 살아 있는지 보여 주는 값. */
+        lastTitle: string | null;
+        lastAt: string | null;
     }
 
     interface Reply {
@@ -93,8 +96,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
            그래서 유리처럼 깐다: 무늬는 흐릿하게 남고 글은 또렷하다. */
         .c-wrap { display:flex; flex-direction:column; position:relative;
             max-width:940px; margin:0 auto; padding:20px 22px 26px;
-            background:color-mix(in srgb, var(--bg-primary) 82%, transparent);
-            backdrop-filter:blur(10px) saturate(1.1); -webkit-backdrop-filter:blur(10px) saturate(1.1);
+            background:color-mix(in srgb, var(--bg-primary) 62%, transparent);
+            backdrop-filter:blur(14px) saturate(1.15); -webkit-backdrop-filter:blur(14px) saturate(1.15);
             border:1px solid var(--border); border-radius:var(--radius-lg); }
         /* 유리를 못 그리는 브라우저에서는 그냥 불투명하게 — 안 읽히는 것보다 낫다. */
         @supports not (backdrop-filter: blur(1px)) { .c-wrap { background:var(--bg-primary); } }
@@ -165,6 +168,20 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); margin-bottom:18px; }
         .c-signin p { margin:0; color:var(--text-secondary); font-size:var(--font-size-sm); }
+
+        /* 갤러리 목록 — 어느 갤러리가 살아 있나. 글 수만으로는 모른다, 마지막 글이 있어야 안다. */
+        .c-galleries { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:10px; }
+        .c-gal { display:flex; flex-direction:column; gap:4px; padding:14px 16px; text-align:left;
+            border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary);
+            cursor:pointer; font:inherit; }
+        .c-gal:hover { border-color:var(--accent); }
+        .c-gal-name { display:flex; align-items:baseline; gap:8px; }
+        .c-gal-name b { font-size:var(--font-size-sm); color:var(--text-primary); }
+        .c-gal-name em { font-style:normal; font-family:monospace; font-size:11px; color:var(--text-tertiary); }
+        .c-gal-desc { font-size:11px; color:var(--text-tertiary); }
+        .c-gal-last { margin-top:6px; padding-top:6px; border-top:1px solid var(--border);
+            font-size:11px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .c-gal-quiet { color:var(--text-tertiary); }
 
         /* 목록 — 국내 게시판(디시·아카) 골격: 번호·제목·글쓴이·날짜·조회·추천이 한 줄에 선다.
            조밀해야 한 화면에 많이 들어오고, 그래야 「사람이 오가는 곳」으로 읽힌다. */
@@ -297,6 +314,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     function currentBoard(): string {
         return param('board') || 'free';
     }
+    
     function currentSort(): 'recent' | 'top' {
         return param('sort') === 'top' ? 'top' : 'recent';
     }
@@ -330,8 +348,38 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
     /* ===== 목록 ===== */
 
+    /**
+     * 갤러리 목록 — 커뮤니티의 첫 화면.
+     *
+     * 디시·아카가 그렇듯 **갤러리를 고르고 들어가는 것**이 커뮤니티의 첫 동작이다.
+     * 글 목록부터 들이밀면 「어디에 뭐가 있는지」를 영영 모른다.
+     */
+    function renderGalleryHome(): void {
+        if (!host) return;
+        const cards = boards
+            .map(
+                (b) => `<button type="button" class="c-gal" data-gal="${esc(b.id)}">
+                    <span class="c-gal-name"><b>${esc(b.label)}</b><em>${b.count}</em></span>
+                    <span class="c-gal-desc">${esc(b.desc)}</span>
+                    <span class="c-gal-last ${b.lastTitle ? '' : 'c-gal-quiet'}">${
+                        b.lastTitle ? `${esc(plainPreview(b.lastTitle, 30))} · ${relativeTime(b.lastAt ?? '')}` : '아직 글이 없습니다'
+                    }</span>
+                </button>`,
+            )
+            .join('');
+
+        host.innerHTML = `<div class="c-wrap">
+            <div class="c-head"><h2>커뮤니티</h2><span>갤러리를 고르세요</span></div>
+            <div class="c-galleries">${cards}</div>
+        </div>`;
+
+        host.querySelectorAll<HTMLButtonElement>('[data-gal]').forEach((b) =>
+            b.addEventListener('click', () => go({ board: b.dataset.gal ?? null, p: null, page: null, q: null })),
+        );
+    }
+
     function renderBoards(active: string): string {
-        return `<div class="c-boards">${boards
+        return `<div class="c-boards"><button type="button" class="c-board" data-board-home>← 갤러리</button>${boards
             .map(
                 (b) => `<button type="button" class="c-board" data-board="${esc(b.id)}" data-on="${b.id === active ? '1' : '0'}"
                     title="${esc(b.desc)}">${esc(b.label)}<span class="c-board-count">${b.count}</span></button>`,
@@ -603,6 +651,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         wireSignIn();
 
+        host.querySelector('[data-board-home]')?.addEventListener('click', () =>
+            go({ board: null, p: null, page: null, q: null }),
+        );
         host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
             b.addEventListener('click', () => {
                 writerOpen = false;
@@ -912,7 +963,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             return;
         }
 
-        // 목록과 판 숫자를 **같이** 받는다. 하나씩 기다리면 그만큼 화면이 늦게 바뀐다.
+        // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
+        if (!param('board')) {
+            const freshHome = (await api('/kl/boards')) as { boards?: Board[] } | null;
+            if (freshHome?.boards) boards = freshHome.boards;
+            renderGalleryHome();
+            return;
+        }
+
+        // 목록과 갤러리 숫자를 **같이** 받는다. 하나씩 기다리면 그만큼 화면이 늦게 바뀐다.
         const [raw, freshBoards] = await Promise.all([
             api(`/kl/posts?board=${encodeURIComponent(currentBoard())}&sort=${currentSort()}`),
             api('/kl/boards') as Promise<{ boards?: Board[] } | null>,

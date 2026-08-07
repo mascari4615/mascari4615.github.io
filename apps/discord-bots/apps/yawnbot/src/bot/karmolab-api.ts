@@ -398,10 +398,15 @@ export function registerKarmolabApi(
     res.json({ tools: traces.toolStats(), pulse: traces.pulse() });
   });
 
-  /** 어떤 판이 있고 각 판에 글이 몇 개인가 — 목록 위의 판 고르는 줄이 쓴다. */
+  /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수 · 마지막 글 · 마지막 시각). */
   app.get('/kl/boards', (_req: Request, res: Response) => {
-    const counts = traces.boardCounts();
-    res.json({ boards: BOARDS.map((b) => ({ ...b, count: counts[b.id] ?? 0 })) });
+    const summaries = traces.boardSummaries();
+    res.json({
+      boards: BOARDS.map((b) => {
+        const found = summaries[b.id] ?? { count: 0, lastTitle: null, lastAt: null };
+        return { ...b, count: found.count, lastTitle: found.lastTitle, lastAt: found.lastAt };
+      }),
+    });
   });
 
   /** 판 하나의 글 목록. 보는 건 로그인 없이 된다. */
