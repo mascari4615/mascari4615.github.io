@@ -1060,14 +1060,18 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .hi-side:hover:not(:disabled) { border-color: var(--border-hover); }
 .hi-side:disabled { cursor: default; }
-.hi-side img { width: 96px; height: 96px; object-fit: contain; }
+/* 그림이 카드의 8%(데스크톱 실측)밖에 안 됐다 — 누구인지 보라는 놀이인데 사람이 안 보였다.
+   카드 폭을 따라 커지되 너무 커지지도 않게 묶는다. */
+.hi-side img { width: clamp(96px, 26vw, 176px); height: auto; aspect-ratio: 1; object-fit: contain; }
+/* 포켓몬은 96px 도트다 — 매끄럽게 늘리면 뭉갠 것처럼 보인다. 도트는 각지게 늘려야 원래 모양이다. */
+.hi-pair[data-board='pokemon'] .hi-side img { image-rendering: pixelated; }
 .hi-nm { font-weight: 700; font-size: var(--font-size-sm); }
 .hi-vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
 .hi-side.is-win { border-color: var(--success); }
 .hi-side.is-lose { border-color: var(--error); }
 .hi-score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
 .hi-score b { color: var(--text-primary); font-size: var(--font-size-md); }
-@media (max-width: 380px) { .hi-side img { width: 76px; height: 76px; } }
+@media (max-width: 380px) { .hi-side img { width: 84px; } }
 
 /* 오늘의 문제 (TASK-KL-089) — 앱 토큰만 쓴다. 커뮤니티처럼 앱 안의 한 화면이다. */
 .qs-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }

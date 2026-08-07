@@ -215,6 +215,10 @@ import { mountCourseNext } from './play-course';
 
           function load(id: string): void {
             boardId = id;
+            /* 판마다 그림의 결이 다르다 — 포켓몬은 96px 도트라 키우면 뭉개진다. 도트는 도트답게
+             * 각지게 늘리고(그게 원래 모양이다), 초상화인 롤·원신은 그냥 매끄럽게 둔다. */
+            const pair = container.querySelector<HTMLElement>('.hi-pair');
+            if (pair) pair.dataset.board = id;
             fetch(`/apps/karmolab/data/higher-${id}.json`)
               .then((r) => r.json())
               .then((j: Board) => {
