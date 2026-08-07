@@ -269,7 +269,12 @@
      끊어버리면 말이 뚝뚝 끊긴다. */
   let speechQueue = Promise.resolve();
 
+  /* 말한 횟수와 소리 낸 횟수. 어긋나면 「어떤 말은 자막으로만」 상태다.
+     이번에 흘러나오지 않은 말이 통째로 소리 없이 지나가고 있었는데, 아무 표시가
+     없어서 사람이 눈치챌 때까지 몰랐다. 세면 안다. */
+  const 발화 = { 말함: 0, 소리냄: 0 };
   function speakAloud(message, queued) {
+    발화.소리냄 += 1;
     if (voiceOn === false) return;
     const job = () => playOne(message);
     speechQueue = queued ? speechQueue.then(job, job) : (player.pause(), job());
@@ -428,6 +433,12 @@
       spokenUpTo = 0;
       return;
     }
+    // **여기서 소리를 안 내고 있었다.**
+    //
+    // 흘러나오지 *않은* 말은 화면에만 뜨고 입은 다물었다 — 반사 대답, 혼잣말, 화면을
+    // 보고 하는 말이 전부 이 길이다. 곁에 있는 존재가 어떤 말은 소리로 하고 어떤 말은
+    // 자막으로만 하면 그건 반쪽이다. **모든 말은 소리로 나간다.**
+    if (message.trim() !== '') speakAloud(message, true);
     spokenUpTo = 0;
     clearTimeout(idleTimer);
     // 말이 길수록 오래 떠 있는다 — 읽을 시간을 준다.
@@ -467,6 +478,7 @@
       document.body.dataset.face = data.expression;
       try { window.onCompanionFace?.(data.expression); } catch (e) { /* 얼굴 때문에 말이 막히면 안 된다 */ }
     } else if (data.type === 'speak') {
+      발화.말함 += 1;
       const alone = data.channel !== 'web';
       const who = data.channel === 'screen' ? '동반자 (화면을 보고)' : alone ? '동반자 (혼잣말)' : '동반자';
       // 흘러나오는 중이었다면 그 줄이 이미 화면에 있다 — 또 붙이지 않는다.
@@ -849,6 +861,16 @@
     });
   }
   setInterval(reportHitAreas, 500);
+
+  /* 소리 없이 지나간 말이 있으면 알린다. 모든 소통은 소리가 기본이라, 자막만 나간
+     말은 고장이다. 조용히 지나가면 또 사람이 알려 줄 때까지 모른다. */
+  let 마지막어긋남 = 0;
+  setInterval(() => {
+    const 벌어짐 = 발화.말함 - 발화.소리냄;
+    if (벌어짐 <= 0 || 벌어짐 === 마지막어긋남) return;
+    마지막어긋남 = 벌어짐;
+    tell(`소리 없이 지나간 말이 있다 — 말함 ${발화.말함} · 소리 ${발화.소리냄}`);
+  }, 5000);
 
   const stage = document.querySelector('.stage');
 
