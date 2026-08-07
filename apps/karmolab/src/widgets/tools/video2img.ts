@@ -23,6 +23,8 @@ import { seekTo } from './shared/video';
 
   Toolbox.register({
     id: 'video2img',
+    // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
+    accepts: ['video/*'],
     title: '영상에서 사진 뽑기',
     category: 'tool',
     desc: '영상의 한 장면이나 일정 간격 장면을 원본 화질로 뽑습니다. 영상이 브라우저를 벗어나지 않습니다',
@@ -187,6 +189,15 @@ import { seekTo } from './shared/video';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && (handed.blob.type.startsWith('video/'))) {
+              load(new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
