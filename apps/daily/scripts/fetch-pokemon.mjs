@@ -6,6 +6,7 @@
  *   node scripts/fetch-pokemon.mjs
  */
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
+import { saveTable } from './lib-table.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -133,8 +134,7 @@ const topic = {
   items,
 };
 
-mkdirSync(dirname(OUT), { recursive: true });
 mkdirSync(dirname(CACHE), { recursive: true });
 writeFileSync(CACHE, JSON.stringify(cache));
-writeFileSync(OUT, `${JSON.stringify(topic)}\n`);
-console.log(`포켓몬 ${items.length}마리 → data/pokemon.json (새로 받은 요청 ${fetched}개)`);
+saveTable(OUT, topic);
+console.log(`새로 받은 요청 ${fetched}개`);
