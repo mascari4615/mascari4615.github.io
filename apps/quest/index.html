@@ -19,80 +19,54 @@ permalink: /karmolab/quest/
 <meta property="og:image" content="https://blog.mascari4615.com/apps/karmolab/img/og/hub.jpg">
 <meta property="og:locale" content="ko_KR">
 <link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<!-- 색·글씨·모서리는 KarmoLab 이 정본 (TASK-KL-089) — base.css 가 그 값을 그대로 떠 온다.
+     아래에는 이 놀이에만 있는 부품만 둔다. -->
+<link rel="stylesheet" href="/karmolab/play/base.css">
 <style>
-:root { color-scheme: dark; }
-* { box-sizing: border-box; }
-body {
-  margin: 0; padding: 2rem 1.1rem 3rem;
-  background: #0f0f12; color: #f2f2ee;
-  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
-  line-height: 1.7;
-}
-main { max-width: 34rem; margin: 0 auto; }
-.crumb { font-size: 0.78rem; color: #8b8b85; margin-bottom: 0.8rem; }
-.crumb a { color: inherit; }
-h1 { font-size: 1.5rem; margin: 0 0 0.2rem; letter-spacing: -0.02em; }
-.lead { color: #b9b9b2; font-size: 0.9rem; margin: 0 0 1.6rem; }
-.card { background: #17171c; border: 1px solid #26262e; border-radius: 14px; padding: 1.2rem; }
-.day { font-size: 0.75rem; color: #d4a849; letter-spacing: 0.04em; }
-.q { font-size: 1.18rem; font-weight: 700; margin: 0.4rem 0 1rem; }
+.card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.1rem; }
+.day { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: 0.04em; }
+.q { font-size: var(--font-size-md); font-weight: 700; margin: 0.4rem 0 1rem; }
 .row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-input[type=text] {
-  flex: 1 1 11rem; min-width: 0; font-size: 16px; padding: 0.6rem 0.7rem;
-  background: #0f0f12; color: #f2f2ee; border: 1px solid #33333d; border-radius: 9px; min-height: 44px;
-}
-button {
-  font: inherit; font-size: 0.95rem; min-height: 44px; padding: 0 1rem; cursor: pointer;
-  background: #d4a849; color: #17171c; border: 0; border-radius: 9px; font-weight: 700;
-}
-button.ghost { background: transparent; color: #b9b9b2; border: 1px solid #33333d; font-weight: 400; }
-.tool { display: inline-block; margin-top: 0.9rem; font-size: 0.9rem; color: #d4a849; }
-.msg { margin-top: 0.9rem; min-height: 1.6rem; font-size: 0.95rem; }
-.ok { color: #7fd08a; } .no { color: #e08b8b; }
-.hint { margin-top: 0.5rem; font-size: 0.85rem; color: #8b8b85; }
-.tries { letter-spacing: 0.18em; font-size: 1.1rem; }
-.past { margin-top: 2.2rem; }
-.past h2 { font-size: 0.95rem; color: #b9b9b2; }
-.past ol { padding-left: 1.1rem; color: #8b8b85; font-size: 0.88rem; }
-.past a { color: #b9b9b2; }
-footer { margin-top: 2.4rem; font-size: 0.8rem; color: #8b8b85; }
-footer a { color: #b9b9b2; }
-.play-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; font-size: 0.82rem; }
-.play-strip a, .play-strip-now {
-  display: inline-flex; align-items: center; min-height: 34px; padding: 0 0.7rem;
-  border: 1px solid #33333d; border-radius: 999px; text-decoration: none; color: #b9b9b2;
-}
-.play-strip a:hover, .play-strip a:focus-visible { color: #f2f2ee; border-color: #8b8b85; }
-.play-strip-now { background: #d4a849; color: #17171c; border-color: #d4a849; font-weight: 700; }
-.play-strip-all { color: #8b8b85; }
+.row input[type=text] { flex: 1 1 11rem; }
+.tool { display: inline-block; margin-top: 0.9rem; font-size: var(--font-size-xs); color: var(--accent); }
+.msg { margin-top: 0.9rem; min-height: 1.6em; font-size: var(--font-size-xs); }
+.hint { margin-top: 0.5rem; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.tries { letter-spacing: 0.18em; font-size: var(--font-size-md); }
+.past { margin-top: 2rem; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.past summary { cursor: pointer; list-style: none; min-height: 34px; display: flex; align-items: center; }
+.past summary::-webkit-details-marker { display: none; }
+.past summary::before { content: '＋ '; }
+.past details[open] summary::before { content: '− '; }
+.past ol { padding-left: 1.1rem; }
 </style>
 </head>
 <body>
 <main>
-  <nav class="crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">오늘의 문제</span></nav>
-  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><a href="/karmolab/higher/">📈 높은 쪽 고르기</a><span class="play-strip-now" aria-current="page">🧩 오늘의 문제</span><a class="play-strip-all" href="/karmolab/play/">놀이터</a></nav><!-- /PLAY_STRIP -->
+  <nav class="play-crumb"><a href="/karmolab/">KarmoLab</a> › <a href="/karmolab/t/">도구</a> › <span aria-current="page">오늘의 문제</span></nav>
+  <!-- PLAY_STRIP --><nav class="play-strip" aria-label="놀이 바꾸기"><a href="/daily/">🎯 하나 맞히기</a><a href="/karmolab/higher/">📈 높은 쪽 고르기</a><span class="play-strip-now" aria-current="page">🧩 오늘의 문제</span><a class="play-strip-all" href="/karmolab/play/" title="놀이터 전체">＋</a></nav><!-- /PLAY_STRIP -->
   <h1>오늘의 문제</h1>
-  <p class="lead">하루에 하나. 머리로 짜내지 말고 <a href="/karmolab/t/">도구</a>를 열어서 푸세요.</p>
+  <p class="play-lead">하루에 하나. 머리로 짜내지 말고 <a href="/karmolab/t/">도구</a>를 열어서 푸세요.</p>
 
   <section class="card">
     <div class="day" id="day"></div>
     <p class="q" id="q">문제를 불러오는 중…</p>
     <form class="row" id="form" autocomplete="off">
       <input type="text" id="ans" aria-label="답" placeholder="답을 적으세요">
-      <button type="submit">맞히기</button>
-      <button type="button" class="ghost" id="hintBtn">힌트</button>
+      <button type="submit" class="play-go">맞히기</button>
+      <button type="button" class="play-ghost" id="hintBtn">힌트</button>
     </form>
     <a class="tool" id="tool" href="/karmolab/t/">이 문제에 쓰는 도구 열기 →</a>
     <p class="hint" id="hint" hidden></p>
     <p class="msg" id="msg" aria-live="polite"></p>
     <p class="tries" id="tries"></p>
-    <button type="button" class="ghost" id="share" hidden>결과 복사</button>
+    <button type="button" class="play-ghost" id="share" hidden>결과 복사</button>
   </section>
 
   <!-- 스크립트를 안 돌리는 크롤러·사람도 무엇이 있는 곳인지 읽을 수 있게, 문제를 전부 적어 둔다.
        정답은 지문(해시)만 두므로 여기 적어도 답은 안 샌다. -->
   <section class="past">
-    <h2>지금까지 나온 문제</h2>
+    <details>
+    <summary>지금까지 나온 문제</summary>
     <ol id="all">
       <li>255를 16진법으로 쓰면? — <a href="/karmolab/t/radix/">도구 열기</a></li>
       <li>모스 부호 「... --- ...」 는 무슨 글자? — <a href="/karmolab/t/morse/">도구 열기</a></li>
@@ -103,9 +77,10 @@ footer a { color: #b9b9b2; }
       <li>1234 를 한글로 읽으면? — <a href="/karmolab/t/numword/">도구 열기</a></li>
       <li>1GB(1000 기준)는 몇 바이트? — <a href="/karmolab/t/bytesize/">도구 열기</a></li>
     </ol>
+    </details>
   </section>
 
-  <footer>
+  <footer class="play-foot">
     답은 이 브라우저 안에서만 대조합니다 — 어디로도 보내지 않습니다.
     <a href="/karmolab/t/">도구 전체 목록</a> · <a href="/karmolab/">KarmoLab</a>
   </footer>
@@ -172,7 +147,7 @@ footer a { color: #b9b9b2; }
       if (st) {
         tries = st.tries;
         $('msg').textContent = st.win ? '오늘 문제는 맞혔습니다.' : '오늘은 여기까지.';
-        $('msg').className = 'msg ' + (st.win ? 'ok' : 'no');
+        $('msg').className = 'msg ' + (st.win ? 'play-ok' : 'play-no');
         $('tries').textContent = (st.win ? '🟩' : '🟥').repeat(1);
         finish(st.win);
       }
@@ -186,17 +161,17 @@ footer a { color: #b9b9b2; }
         var f = await fingerprint(v);
         if (today.a.indexOf(f) !== -1) {
           $('msg').textContent = '맞았습니다 — ' + tries + '번 만에.';
-          $('msg').className = 'msg ok';
+          $('msg').className = 'msg play-ok';
           $('tries').textContent = '🟩';
           finish(true);
         } else if (tries >= 5) {
           $('msg').textContent = '다섯 번을 다 썼습니다. 내일 또 하나 나옵니다.';
-          $('msg').className = 'msg no';
+          $('msg').className = 'msg play-no';
           $('tries').textContent = '🟥';
           finish(false);
         } else {
           $('msg').textContent = '아닙니다 (' + tries + '/5) — 도구를 열어서 확인해 보세요.';
-          $('msg').className = 'msg no';
+          $('msg').className = 'msg play-no';
           $('ans').select();
         }
       });

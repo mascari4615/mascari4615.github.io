@@ -1,18 +1,20 @@
 /* 오늘의 하나 맞히기 (TASK-KAR-202) — 주제와 무관한 껍데기. 주제별 색은 --accent 하나로만 바뀐다. */
 :root {
-  --bg: #0e1117;
-  --panel: #161b24;
-  --panel-2: #1d2430;
-  --line: #2b3341;
-  --ink: #e8ecf3;
-  --ink-2: #a6b0c0;
-  --ink-3: #6f7b8d;
-  --accent: #ffc86b;
-  /* 대비를 재서 고른 값 — 흰 글씨 기준 5.4:1 / 5.2:1 (재기 전 값은 4.25 / 4.13 으로 기준 미달이었다). */
+  /* 색은 KarmoLab 이 정본이다 (TASK-KL-089) — 여기서 새로 정하지 않고 그 값을 잇는다.
+     놀이마다 제 색을 박으면 같은 사이트로 안 보인다. 이름은 이 앱이 쓰던 것을 그대로 둔다. */
+  --bg: #0e0d14;        /* KarmoLab bg-void */
+  --panel: #16151f;     /* bg-primary */
+  --panel-2: #1b1a26;   /* bg-secondary */
+  --line: #24222f;      /* bg-tertiary */
+  --ink: #f2f2ee;       /* text-primary */
+  --ink-2: #9a9a94;     /* text-secondary */
+  --ink-3: #7a7a75;     /* text-tertiary */
+  --accent: #a99bf5;    /* 브랜드 연보라 */
+  /* 맞음·비슷함·틀림은 놀이에만 있는 뜻이라 여기서 정한다 — 대비를 재서 고른 값이다. */
   --exact: #286b43;
   --near: #775e1a;
-  --wrong: #333b49;
-  --radius: 12px;
+  --wrong: #2b2937;
+  --radius: 8px;        /* KarmoLab radius-xl — 앱이 각진 쪽이라 12px 는 혼자 둥글었다 */
   color-scheme: dark;
 }
 
@@ -584,11 +586,13 @@ table.past .play:hover { border-color: var(--accent); }
 
 /* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json (TASK-KL-089).
    놀이가 셋이 되면서 하나 끝내면 거기서 끊겼다. 어디서든 다른 놀이로 건너가게 한다. */
-.play-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; font-size: 13px; }
+.play-strip { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; margin: 0 0 12px; font-size: 13px; }
+.play-strip::-webkit-scrollbar { display: none; }
+.play-strip a, .play-strip-now { white-space: nowrap; flex: 0 0 auto; }
 .play-strip a, .play-strip-now {
   display: inline-flex; align-items: center; min-height: 34px; padding: 0 11px;
   border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--ink-2);
 }
 .play-strip a:hover, .play-strip a:focus-visible { color: var(--ink); border-color: var(--ink-2); }
-.play-strip-now { background: var(--hit, #d4a849); color: #17171c; border-color: var(--hit, #d4a849); font-weight: 700; }
+.play-strip-now { background: rgba(169, 155, 245, 0.15); color: var(--accent); border-color: rgba(169, 155, 245, 0.4); font-weight: 700; }
 .play-strip-all { opacity: 0.75; }

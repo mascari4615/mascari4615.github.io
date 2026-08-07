@@ -29,7 +29,7 @@ export function stripHtml(current) {
         : `<a href="${esc(g.url)}">${esc(g.emoji)} ${esc(g.title)}</a>`,
     )
     .join('');
-  return `<nav class="play-strip" aria-label="놀이 바꾸기">${items}<a class="play-strip-all" href="/karmolab/play/">놀이터</a></nav>`;
+  return `<nav class="play-strip" aria-label="놀이 바꾸기">${items}<a class="play-strip-all" href="/karmolab/play/" title="놀이터 전체">＋</a></nav>`;
 }
 
 /** 페이지 HTML 안의 표식 자리에 줄을 박는다. 표식이 없으면 알려 준다(조용히 넘기지 않는다). */
