@@ -46,9 +46,18 @@ for (const id of SAMPLE) {
       /* 일부러 미뤄 둔 것은 뺀다 — 처음엔 안 막게 걸어 두고 다 받은 뒤에 켜는 방식이라,
        * 이 검사가 볼 때는 이미 켜져 있다. 그 표식(onload)이 남아 있으면 미뤄 둔 것이다. */
       .filter((l) => !l.hasAttribute('onload'))
-      /* 남의 서버에서 오는 것도 뺀다 — 글꼴 목록이 그렇다. 그건 글꼴 정의만 들어 있어서
-       * 브라우저가 「쓰였다」로 안 세고, 늘 0% 로 나온다(우리가 손댈 것도 아니다). */
-      .filter((l) => l.href.startsWith(location.origin))
+      /* 글꼴 정의만 들어 있는 것은 뺀다. 브라우저는 `@font-face` 를 「쓰였다」로 안 세므로
+       * 늘 0% 로 나온다 — 그건 안 쓰는 게 아니라 셀 수 없는 것이다.
+       * 예전엔 「남의 서버에서 오는 것」으로 걸렀는데, 글꼴을 우리 서버에서 주기 시작하면서
+       * (TASK-KL-128) 그 조건이 안 걸려 멀쩡한 것을 사고로 불렀다. 출처가 아니라 **내용**으로 판단한다. */
+      .filter((l) => {
+        try {
+          const rules = [...(l.sheet?.cssRules || [])];
+          return rules.length === 0 || !rules.every((r) => r instanceof CSSFontFaceRule);
+        } catch {
+          return true;   // 못 읽으면(다른 출처) 그대로 본다
+        }
+      })
       .map((l) => l.href)
   );
 
