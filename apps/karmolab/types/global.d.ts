@@ -230,6 +230,10 @@ declare global {
     findBundleFor: (id: string) => string | null;
     /** 갈래 목록 (id·label·icon) — 라벨의 단일 출처 */
     getCategories?: () => Array<{ id: string; label: string; icon: string }>;
+    /** 첫 화면 오브제 (Y2K 장식) — 셋 중 골라 켠다 */
+    getObjTheme?: () => string;
+    setObjTheme?: (id: string) => void;
+    getObjThemes?: () => Array<{ id: string; label: string }>;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;

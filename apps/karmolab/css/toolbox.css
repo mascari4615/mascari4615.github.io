@@ -838,6 +838,28 @@ html[data-bg="minimal"] body {
 }
 .landing-title .accent { color: var(--accent); }
 
+/* ── 홈 오브제 (Y2K 장식, TASK-KL-097) ──
+   셋을 다 그려 두고 여기서 하나만 보인다. 누를 수 없게 두고(pointer-events:none)
+   글보다 뒤에 깐다 — 장식이 버튼을 가로채면 그 순간 장식이 아니라 고장이다. */
+.home-obj { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.home-obj-defs { position: absolute; width: 0; height: 0; }
+.home-obj-set { display: none; position: absolute; inset: 0; }
+html[data-obj="foil"] .home-obj--foil,
+html[data-obj="wire"] .home-obj--wire,
+html[data-obj="chrome"] .home-obj--chrome { display: block; }
+
+.home-obj-sticker { position: absolute; filter: drop-shadow(0 2px 6px rgba(90, 70, 180, 0.22)); }
+.home-obj-blob {
+    position: absolute;
+    border-radius: 48% 52% 41% 59% / 58% 44% 56% 42%;
+    background: conic-gradient(from 210deg, #a78bfa, #f0abfc, #ffffff, #7dd3fc, #818cf8, #a78bfa);
+    filter: blur(1px) drop-shadow(0 18px 40px rgba(110, 90, 210, 0.28));
+}
+/* 첫 화면 글·카드는 장식 위로 */
+.landing-hero, .landing-cta { position: relative; z-index: 1; }
+/* 움직임을 줄여 달라고 한 사람에겐 장식도 조용해야 한다 */
+@media (prefers-reduced-motion: reduce) { .home-obj { opacity: 0.6; } }
+
 /* 로고와 큰 제목에만 크롬 그라데이션 (TASK-KL-097).
    @supports 로 감싼 이유: 글자에 배경을 오려 넣는 방식이라, 안 되는 브라우저에서 색을
    투명으로 두면 **제목이 통째로 사라진다**. 되는 곳에서만 투명으로 바꾼다. */

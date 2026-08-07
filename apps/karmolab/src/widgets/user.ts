@@ -405,6 +405,8 @@
         const prismThemes = Toolbox.getPrismThemes?.() ?? [];
         const bgTheme = Toolbox.getBgTheme?.() ?? '';
         const bgThemes = Toolbox.getBgThemes?.() ?? [];
+        const objTheme = Toolbox.getObjTheme?.() ?? '';
+        const objThemes = Toolbox.getObjThemes?.() ?? [];
         const navLayout = Toolbox.getNavLayout?.() ?? 'header';
         const apiUI = typeof Gemini !== 'undefined' ? Gemini.buildApiKeyUI('set') : { html: '' };
 
@@ -436,6 +438,12 @@
                         <label for="setBgTheme">배경 테마</label>
                         <select id="setBgTheme" class="settings-control">
                             ${bgThemes.map((t) => `<option value="${t.id}" ${t.id === bgTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="setObjTheme">첫 화면 오브제</label>
+                        <select id="setObjTheme" class="settings-control">
+                            ${objThemes.map((t) => `<option value="${t.id}" ${t.id === objTheme ? 'selected' : ''}>${t.label}</option>`).join('')}
                         </select>
                     </div>
                     <div class="settings-code-preview">
@@ -489,6 +497,14 @@
             Toolbox.setBgTheme?.(target.value);
             const label = bgThemes.find((t) => t.id === target.value)?.label || target.value;
             Toolbox.showToast?.('배경: ' + label);
+        });
+
+        container.querySelector<HTMLSelectElement>('#setObjTheme')?.addEventListener('change', (e: Event) => {
+            const target = e.target as HTMLSelectElement | null;
+            if (!target) return;
+            Toolbox.setObjTheme?.(target.value);
+            const label = objThemes.find((t) => t.id === target.value)?.label || target.value;
+            Toolbox.showToast?.('첫 화면 오브제: ' + label);
         });
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');

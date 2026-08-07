@@ -856,10 +856,70 @@ const Toolbox = (() => {
 
     /* ===== Landing Page Builder ===== */
 
+    /** 홈 오브제 — 셋을 다 그려 두고 CSS(`html[data-obj]`)가 하나만 보인다.
+     *  셋 다 얇은 인라인 SVG 라 안 보이는 것까지 그려도 값이 거의 안 나간다. 대신
+     *  설정에서 바꾸는 순간 바로 보인다 — 다시 그리거나 받아 오는 단계가 없다. */
+    function buildHomeObjects() {
+        const wrap = document.createElement('div');
+        wrap.className = 'home-obj';
+        wrap.setAttribute('aria-hidden', 'true');
+        const star = 'M12 1.5l2.6 6.4 6.9.5-5.3 4.5 1.7 6.7L12 16l-5.9 3.6 1.7-6.7L2.5 8.4l6.9-.5z';
+        const bloom = 'M12 2c2 3.2 4.8 4 7.5 4.2-1.4 2.6-1.4 5 0 7.6C16.8 14 14 14.8 12 18c-2-3.2-4.8-4-7.5-4.2 1.4-2.6 1.4-5 0-7.6C7.2 6 10 5.2 12 2z';
+        const spark = 'M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z';
+        const rays = Array.from({ length: 19 }, (_, i) =>
+            `<line x1="${640 + (i - 9) * 30}" y1="0" x2="${640 + (i - 9) * 300}" y2="220"/>`).join('');
+        const floors = [16, 44, 80, 126, 180].map(y => `<line x1="0" y1="${y}" x2="1280" y2="${y}"/>`).join('');
+        wrap.innerHTML = `
+            <svg class="home-obj-defs" width="0" height="0" aria-hidden="true"><defs>
+                <linearGradient id="kFoil" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#a78bfa"/><stop offset="25%" stop-color="#f0abfc"/>
+                    <stop offset="50%" stop-color="#ffffff"/><stop offset="72%" stop-color="#7dd3fc"/>
+                    <stop offset="100%" stop-color="#818cf8"/>
+                </linearGradient>
+                <linearGradient id="kFoil2" x1="1" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f0abfc"/><stop offset="40%" stop-color="#ffffff"/>
+                    <stop offset="100%" stop-color="#a78bfa"/>
+                </linearGradient>
+            </defs></svg>
+
+            <div class="home-obj-set home-obj--foil">
+                <svg class="home-obj-sticker" style="left:9%;top:20%;transform:rotate(-14deg)" width="86" height="86" viewBox="0 0 24 24"><path fill="url(#kFoil)" d="${star}"/></svg>
+                <svg class="home-obj-sticker" style="right:11%;top:15%;transform:rotate(12deg)" width="70" height="70" viewBox="0 0 24 24"><path fill="url(#kFoil2)" d="${bloom}"/></svg>
+                <svg class="home-obj-sticker" style="left:16%;bottom:16%;transform:rotate(8deg)" width="64" height="64" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="url(#kFoil)" stroke-width="2.4"/><circle cx="12" cy="12" r="5" fill="none" stroke="url(#kFoil2)" stroke-width="2"/></svg>
+                <svg class="home-obj-sticker" style="right:16%;bottom:20%;transform:rotate(-9deg)" width="78" height="78" viewBox="0 0 24 24"><path fill="url(#kFoil)" opacity=".9" d="${star}"/></svg>
+                <svg class="home-obj-sticker" style="left:44%;top:7%;transform:rotate(20deg)" width="44" height="44" viewBox="0 0 24 24"><path fill="url(#kFoil2)" d="${spark}"/></svg>
+            </div>
+
+            <div class="home-obj-set home-obj--wire">
+                <svg style="position:absolute;left:-6%;top:8%;opacity:.5" width="380" height="380" viewBox="0 0 200 200">
+                    <g fill="none" stroke="url(#kFoil)" stroke-width="1.1">
+                        <circle cx="100" cy="100" r="88"/><ellipse cx="100" cy="100" rx="88" ry="30"/>
+                        <ellipse cx="100" cy="100" rx="88" ry="58"/><ellipse cx="100" cy="100" rx="30" ry="88"/>
+                        <ellipse cx="100" cy="100" rx="58" ry="88"/></g></svg>
+                <svg style="position:absolute;right:-4%;top:26%;opacity:.45" width="300" height="300" viewBox="0 0 200 200">
+                    <g fill="none" stroke="url(#kFoil2)" stroke-width="1.2">
+                        <polygon points="100,14 178,58 178,142 100,186 22,142 22,58"/>
+                        <polygon points="100,50 148,76 148,124 100,150 52,124 52,76"/>
+                        <line x1="100" y1="14" x2="100" y2="186"/><line x1="22" y1="58" x2="178" y2="142"/>
+                        <line x1="178" y1="58" x2="22" y2="142"/></g></svg>
+                <svg style="position:absolute;left:0;right:0;bottom:0;width:100%;opacity:.42" height="220" viewBox="0 0 1280 220" preserveAspectRatio="none">
+                    <g fill="none" stroke="url(#kFoil)" stroke-width="1">${rays}${floors}</g></svg>
+            </div>
+
+            <div class="home-obj-set home-obj--chrome">
+                <div class="home-obj-blob" style="left:6%;top:22%;width:210px;height:210px;opacity:.85"></div>
+                <div class="home-obj-blob" style="right:8%;bottom:14%;width:150px;height:150px;opacity:.7;border-radius:56% 44% 62% 38%/40% 58% 42% 60%"></div>
+                <svg style="position:absolute;right:12%;top:14%;opacity:.75" width="190" height="190" viewBox="0 0 200 200">
+                    <ellipse cx="100" cy="100" rx="86" ry="34" fill="none" stroke="url(#kFoil)" stroke-width="9" transform="rotate(-24 100 100)"/></svg>
+            </div>`;
+        return wrap;
+    }
+
     function buildLanding() {
         const landing = document.createElement('div');
         landing.className = 'landing-page';
         landing.id = 'page-home';
+        landing.appendChild(buildHomeObjects());
 
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
@@ -1342,6 +1402,31 @@ const Toolbox = (() => {
 
     function getBgThemes() { return [...BG_THEMES]; }
 
+    /* ===== 홈 오브제 (Y2K 장식) — TASK-KL-097 =====
+     * 첫 화면에 얹는 장식. 셋 다 만들어 두고 **골라 켠다** — 하나를 고정으로 박으면
+     * 다른 것을 보려고 매번 코드를 고쳐야 한다. 배경 테마와 같은 자리(설정)에서 바꾼다.
+     * 그림은 전부 인라인 SVG/CSS 다 — 바깥에서 받아 오는 그림 파일 0. */
+    const OBJ_THEME_KEY = 'toolbox_home_obj';
+    const OBJ_THEMES = [
+        { id: 'foil', label: '호일 스티커' },
+        { id: 'wire', label: '와이어프레임' },
+        { id: 'chrome', label: '크롬 블롭' },
+        { id: 'none', label: '없음' },
+    ];
+
+    function getObjTheme() {
+        const saved = localStorage.getItem(OBJ_THEME_KEY);
+        if (saved && OBJ_THEMES.some(t => t.id === saved)) return saved;
+        return 'foil';
+    }
+
+    function setObjTheme(objId) {
+        document.documentElement.setAttribute('data-obj', objId);
+        try { localStorage.setItem(OBJ_THEME_KEY, objId); } catch (_) {}
+    }
+
+    function getObjThemes() { return [...OBJ_THEMES]; }
+
     /* ===== Prism 코드 테마 ===== */
     const PRISM_THEME_KEY = 'toolbox_prism_theme';
     const PRISM_BASE = '/apps/karmolab/js/vendor/prism/themes-cdn';
@@ -1409,6 +1494,7 @@ const Toolbox = (() => {
     function initTheme() {
         setTheme(getTheme());
         setBgTheme(getBgTheme());
+        setObjTheme(getObjTheme());
         setNavLayout(getNavLayout());
         const btn = document.getElementById('themeToggle');
         if (btn) btn.onclick = toggleTheme;
@@ -1577,6 +1663,7 @@ const Toolbox = (() => {
         getNavLayout, setNavLayout,
         getTheme, setTheme, toggleTheme,
         getBgTheme, setBgTheme, getBgThemes,
+        getObjTheme, setObjTheme, getObjThemes,
         getPrismTheme, setPrismTheme, getPrismThemes: () => [...PRISM_THEMES],
         getUserData, getStreaks, getProgress, setProgress, incrementProgress,
         completeAchievement, unlockBadge, hasAchievement, hasBadge,

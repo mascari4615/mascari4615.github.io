@@ -101,6 +101,7 @@ permalink: /karmolab/
   var nav=localStorage.getItem('toolbox_nav_layout')||'header';
   document.documentElement.setAttribute('data-theme',t);
   document.documentElement.setAttribute('data-bg',bg);
+  document.documentElement.setAttribute('data-obj',localStorage.getItem('toolbox_home_obj')||'foil');
   document.documentElement.setAttribute('data-nav',nav);
   var pt=localStorage.getItem('toolbox_prism_theme');
   var pb='/apps/karmolab/js/vendor/prism/themes-cdn/',pe='/apps/karmolab/js/vendor/prism/themes-ext/';
