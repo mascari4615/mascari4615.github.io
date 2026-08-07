@@ -165,8 +165,20 @@ const Toolbox = (() => {
         /* 놓아둘 수 있는 결과는 **하나뿐**이다. 그러니 화면에 남은 옛 줄도 전부 걷는다 —
          * 안 걷으면 앞 도구의 탭에 낡은 줄이 남아, 눌렀을 때 없는 것을 넘기려 든다. */
         document.querySelectorAll('.tool-next-row').forEach(n => n.remove());
-        const targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
+        let targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
         if (!item || !targets.length) return;
+        /* 갈 곳이 여덟 군데까지 나오는데 한 줄에는 다섯이 들어간다. 무엇을 앞에 둘지는
+         * **이 사람이 쓰는 것**으로 정한다 — 내가 꽂아 둔 것, 그다음 최근에 연 것.
+         * 등록 순서대로 자르면 늘 쓰는 도구가 잘려 나가고 안 쓰는 것이 남는다. */
+        const mine = getPins();
+        const recent = (window.KarmoPalette?.getRecent?.() || []);
+        const rank = (t) => {
+            const i = mine.indexOf(t.id);
+            if (i >= 0) return i;
+            const r = recent.indexOf(t.id);
+            return r >= 0 ? 100 + r : 1000;
+        };
+        targets = [...targets].sort((a, b) => rank(a) - rank(b));
         offerResult(item);
         const row = document.createElement('div');
         row.className = 'tool-next-row';

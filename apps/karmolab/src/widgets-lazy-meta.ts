@@ -652,6 +652,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdfcrop',
+    accepts: ['application/pdf'], // 다른 도구가 만든 PDF 를 받는다 (TASK-KL-133)
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 여백 자르기',
@@ -663,6 +664,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdfpagenum',
+    accepts: ['application/pdf'], // 다른 도구가 만든 PDF 를 받는다 (TASK-KL-133)
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 쪽 번호',
@@ -674,6 +676,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'pdfredact',
+    accepts: ['application/pdf'], // 다른 도구가 만든 PDF 를 받는다 (TASK-KL-133)
     hidden: true, // 「PDF 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'pdf', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: 'PDF 가리개',
