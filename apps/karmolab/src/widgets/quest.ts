@@ -58,7 +58,8 @@
                 <button type="submit" class="btn btn-primary">맞히기</button>
                 <button type="button" class="btn btn-ghost" id="qsHintBtn">힌트</button>
               </form>
-              <a class="qs-tool" id="qsTool" href="/karmolab/t/">이 문제에 쓰는 도구 열기 →</a>
+              <button type="button" class="qs-tool" id="qsTool">이 문제에 쓰는 도구 열기</button>
+              <div class="qs-slot" id="qsSlot" hidden></div>
               <p class="qs-hint" id="qsHint" hidden></p>
               <p class="tool-status" id="qsMsg" aria-live="polite"></p>
               <p class="qs-tries" id="qsTries"></p>
@@ -92,11 +93,45 @@
             }
           };
 
+          /* 「도구를 열어야 풀리는 문제」인데 도구를 열면 이 화면을 떠나야 했다 —
+           * 적던 답도 몇 번째인지도 날아갔다. 도구를 **문제 밑에서** 편다.
+           * 못 펴면(스크립트를 못 받거나 그 도구가 없으면) 그때만 도구 페이지로 보낸다. */
+          function openTool(id: string): void {
+            const slot = $('qsSlot');
+            const btn = $('qsTool') as HTMLButtonElement;
+            if (!slot.hidden) {
+              slot.hidden = true;
+              slot.innerHTML = '';
+              btn.textContent = '이 문제에 쓰는 도구 열기';
+              return;
+            }
+            btn.disabled = true;
+            btn.textContent = '도구 여는 중…';
+            void Promise.resolve(Toolbox.kickLazyLoad?.(id))
+              .catch(() => undefined)
+              .then(() => {
+                const ok = Toolbox.renderInline?.(id, slot);
+                btn.disabled = false;
+                /* 스크립트를 못 받으면 자리표(「불러오는 중…」)가 그려지고 `ok` 는 참으로 온다 —
+                 * 그것만 믿으면 영영 안 끝나는 상자가 남는다. 자리표가 보이면 못 편 것이다. */
+                if (!ok || slot.querySelector('.tb-lazy-loading')) {
+                  location.href = `/karmolab/t/${id}/`;
+                  return;
+                }
+                slot.hidden = false;
+                btn.textContent = '도구 접기';
+              });
+          }
+
           function paint(p: Puzzle): void {
             $('qsDay').textContent = practice ? '연습' : `#${dayNo() + 1} · ${dayLabel()}`;
             $('qsQ').textContent = p.q;
-            ($('qsTool') as HTMLAnchorElement).href = `/karmolab/t/${p.tool}/`;
             $('qsHint').textContent = p.hint;
+            // 문제가 바뀌면 펴 둔 도구도 그 문제의 것으로 — 남겨 두면 딴 문제의 도구가 붙어 있다.
+            const slot = $('qsSlot');
+            slot.hidden = true;
+            slot.innerHTML = '';
+            ($('qsTool') as HTMLButtonElement).textContent = '이 문제에 쓰는 도구 열기';
           }
 
           function finish(win: boolean): void {
@@ -185,6 +220,9 @@
             }
           });
 
+          $('qsTool').addEventListener('click', () => {
+            if (current) openTool(current.tool);
+          });
           $('qsHintBtn').addEventListener('click', () => {
             $('qsHint').hidden = false;
           });
