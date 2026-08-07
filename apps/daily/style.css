@@ -377,6 +377,10 @@ table.past .play:hover { border-color: var(--accent); }
 .card p { margin: 0; color: var(--ink-2); font-size: 13px; }
 .card .cnt { color: var(--ink-3); font-size: 12px; margin-top: 8px; }
 
+.hub-jump { margin: 4px 0 14px; }
+.hub-jump:empty { display: none; }
+.hub-jump .btn { display: inline-block; text-decoration: none; }
+
 .hub-note { color: var(--accent); font-size: 13.5px; margin: -8px 0 14px; font-weight: 600; }
 .card.done-today { opacity: 0.62; }
 .done-mark { display: block; color: var(--exact); font-weight: 700; margin-bottom: 2px; }

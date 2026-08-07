@@ -459,6 +459,9 @@ const page = await ctx.newPage();
 await page.goto(`${base}/`, { waitUntil: 'networkidle' });
 check('허브가 판을 다 건다', (await page.locator('.card').count()) >= 4);
 check('허브에 하는 법이 있다', (await page.locator('.how li').count()) >= 3);
+// 고를 것부터 정해야 하는 화면은 그만큼 사람을 놓친다 — 한 번에 시작할 길이 있어야 한다.
+const jump = page.locator('.hub-jump a');
+check('허브에서 한 번에 시작할 수 있다', (await jump.count()) === 1, await jump.innerText().catch(() => ''));
 check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past-links a').count()) >= 2);
 
 // 한 판 끝낸 사람이 허브로 돌아오면, 다 푼 판이 표시돼야 한다 (같은 판을 또 누르는 낭비 차단).
@@ -474,6 +477,10 @@ check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past
   check('허브가 오늘 푼 판을 표시한다', (await page.locator('.card.done-today').count()) === 1);
   // 연속은 판별이 아니라 사이트 전체 — 한 판만 풀어도 오늘이 세어진다.
   check('한 판만 풀어도 연속이 선다', /연속/.test(await page.locator('.hub-note').innerText()));
+  // 한 판 푼 뒤에는 「이어서」로 바뀌고, 이미 푼 판을 가리키지 않아야 한다.
+  const jumped = await page.locator('.hub-jump a').getAttribute('href');
+  check('시작 단추가 안 푼 판을 가리킨다', jumped !== '/daily/pokemon/', jumped ?? '(없음)');
+  check('시작 단추 문구가 상황에 맞다', /이어서/.test(await page.locator('.hub-jump a').innerText()));
   // 판 수를 박지 않는다 — 주제가 늘 때마다 시험이 깨지면 시험을 안 믿게 된다.
   const total = await page.locator('.card[data-topic]').count();
   check(
