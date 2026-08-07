@@ -36,6 +36,8 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'pdfredact',
+    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
+    accepts: ['application/pdf'],
     title: 'PDF 가리개',
     category: 'tool',
     desc: 'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다',
@@ -240,6 +242,14 @@ import { fileSize as size } from './shared/media';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133). */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type === 'application/pdf') {
+              void load(new File([handed.blob], handed.name || '넘겨받은.pdf', { type: 'application/pdf' }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -302,6 +312,8 @@ import { fileSize as size } from './shared/media';
               a.href = URL.createObjectURL(blob);
               a.download = baseName + '-가림.pdf';
               a.click();
+              // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+              Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfredact' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(
                 `${doc.numPages}쪽 · ${size(blob.size)} 로 받았어요. 가린 자리는 물론이고 글자 데이터가 통째로 없어져, 복사해도 아무것도 안 나옵니다.`,
