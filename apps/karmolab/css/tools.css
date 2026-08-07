@@ -485,6 +485,38 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     body.tool-hub-page .tool-hub-toc { margin-inline: 0; padding-inline: 0; }
 }
 
+/* 「이어서」 한 줄 (TASK-KL-133) — 방금 만든 것을 옆 도구로 넘기는 자리.
+   결과 바로 밑에 붙는다. 갈 곳이 없으면 이 줄 자체가 안 생긴다. */
+.tool-next-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+.tool-next-label {
+    font-size: var(--font-size-2xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+}
+.tool-next-btn {
+    padding: 7px 14px;
+    min-height: 32px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.tool-next-btn:hover { border-color: var(--accent); background: var(--bg-tertiary); }
+
 /* 도구 화면의 별 (TASK-KL-129) — 쓰다가 「이거 자주 쓰겠네」 싶을 때 그 자리에서 꽂는다.
    제목 옆이 아니라 오른쪽 위 — 제목을 읽는 눈길을 가로막지 않는 자리다. */
 .tool-page-hero, body.tool-detail .tool-head { position: relative; }
