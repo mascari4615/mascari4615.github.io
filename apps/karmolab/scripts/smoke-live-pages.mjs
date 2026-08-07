@@ -27,8 +27,46 @@ const LANES = 4;
 
 async function checkOne(page, id) {
   const url = `${BASE}/karmolab/t/${id}/`;
+  /* 없는 파일을 부르고 있는가 (TASK-KL-089).
+   * 실제로 한 도구가 매번 없는 스크립트를 부르고 있었다 — 목록에 적힌 경로와 빌드가 내놓는
+   * 자리가 어긋나서다. 화면은 멀쩡해 보여서 아무도 몰랐다. 방문 기록기는 남의 서버라 뺀다. */
+  /* 화면이 안 뜨면 **왜인지**도 같이 알려 준다 (TASK-KL-089).
+   * 지난번에 스크립트 차례를 바꿨다가 「Mdd is not defined」 가 나면서 위젯 등록이 끊겨
+   * 도구 칸이 통째로 안 만들어졌다. 그런데 검사는 「빈 화면」만 말해서, 원인을 손으로 찾느라
+   * 두 회차를 썼다. 오류 한 줄만 붙어 있었어도 그 자리에서 알았다. */
+  const jsErrors = [];
+  const onError = (e) => jsErrors.push(String(e.message).split('\n')[0].slice(0, 70));
+  const onConsole = (m) => {
+    if (m.type() === 'error' && !/gc\.zgo\.at|goatcounter|Failed to load resource/.test(m.text())) {
+      jsErrors.push(m.text().split('\n')[0].slice(0, 70));
+    }
+  };
+  page.on('pageerror', onError);
+  page.on('console', onConsole);
+
+  const missing = [];
+  const onResponse = (r) => {
+    if (r.status() >= 400 && !/gc\.zgo\.at|goatcounter/.test(r.url())) {
+      missing.push(`${r.status()} ${r.url().split('/').slice(-2).join('/')}`);
+    }
+  };
+  page.on('response', onResponse);
   const res = await page.goto(url, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(700);
+  /* 도구 화면이 그려질 때까지 기다린다 — 고정 시간(700ms)으로 재면 **늦게 뜨는 도구가 억울하게
+   * 걸린다.** 실제로 글자표(코드 두 덩이를 받는다)가 세 번 다 「빈 화면」으로 잡혔는데,
+   * 3초 뒤에 보면 멀쩡히 떠 있었다. 진짜로 안 뜨는 페이지는 이 기다림이 끝나고 그대로 걸린다. */
+  await page
+    .waitForFunction(
+      (toolId) => {
+        const vis = (e) => e && e.getBoundingClientRect().height > 0;
+        const own = document.getElementById('page-' + toolId);
+        return vis(own) && own.querySelectorAll('*').length >= 8;
+      },
+      id,
+      { timeout: 8000 }
+    )
+    .catch(() => {});
+  await page.waitForTimeout(300);
   const state = await page.evaluate((toolId) => {
     const el = document.getElementById('page-' + toolId);
     if (!el) return { built: false, visible: false, nodes: 0, reachable: false, here: location.pathname };
@@ -165,15 +203,20 @@ async function checkOne(page, id) {
     return hits.slice(0, 2).join(' , ');
   });
   if (wide) await page.setViewportSize(wide); // 다음 페이지는 원래 폭에서 본다
+  page.off('response', onResponse);
+  page.off('pageerror', onError);
+  page.off('console', onConsole);
+  state.jsError = [...new Set(jsErrors)].slice(0, 2).join(' , ');
+  state.missing = [...new Set(missing)].slice(0, 2).join(' , ');
 
   // 요소 하한 8개 — 실제로 재 보니 가장 단출한 도구가 10개다(사업자번호 검사).
   // 예전 기준(5개)은 껍데기만 남은 화면도 통과시켰다. 슬러그 도구를 일부러 망가뜨렸을 때
   // 요소 5개짜리 빈 화면이 그대로 초록이었다.
   const ok =
-    res.status() === 200 && state.built && state.visible && state.nodes >= 8 && state.usable && state.reachable && !state.clipped && !state.tiny && !state.unreadable && !state.zoomy;
+    res.status() === 200 && state.built && state.visible && state.nodes >= 8 && state.usable && state.reachable && !state.clipped && !state.tiny && !state.unreadable && !state.zoomy && !state.missing;
   if (!ok) {
     failures.push(
-      `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""} 위치=${state.here}`
+      `${id}: http=${res.status()} 화면생성=${state.built} 보임=${state.visible} 요소=${state.nodes} 쓸것있음=${state.usable} 설명닿음=${state.reachable}${state.why ? "(" + state.why + ")" : ""}${state.clipped ? " 잘림=" + state.clipped : ""}${state.tiny ? " 누르기작음=" + state.tiny : ""}${state.unreadable ? " 글씨작음=" + state.unreadable : ""}${state.zoomy ? " 눌러도확대=" + state.zoomy : ""}${state.missing ? " 없는파일=" + state.missing : ""}${state.jsError ? " 오류=" + state.jsError : ""} 위치=${state.here}`
     );
     process.stdout.write('x');
   } else {
@@ -182,6 +225,7 @@ async function checkOne(page, id) {
 }
 
 // 각 차선이 자기 페이지를 하나 열어 두고 목록을 나눠 가져간다.
+
 const queue = [...ids];
 await Promise.all(
   Array.from({ length: Math.min(LANES, queue.length) }, async () => {
