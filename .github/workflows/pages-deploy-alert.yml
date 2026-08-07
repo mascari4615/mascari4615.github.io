@@ -1,0 +1,119 @@
+# 배포가 빨갛게 죽으면 사람에게 알린다 (TASK-KL-129)
+#
+# 왜: 2026-08-07 15시대에 배포가 세 번 죽었는데 **아무 신호도 안 갔다**. 여섯 세션이 계속
+# 밀어넣는 중이라 다음 푸시가 앞의 실패를 덮었고, 사이트는 옛 판본 그대로 몇십 분을 서 있었다.
+# 아무도 `gh` 로 들여다보지 않으면 알 길이 없다 — 실패는 조용한 게 가장 나쁘다.
+#
+# 무엇을 하나: 배포가 끝났을 때 **결과가 실패면** 어디서 죽었는지(작업·단계)와 그 커밋 한 줄을
+# 디스코드로 보낸다. 취소(cancelled)는 안 보낸다 — 뒤 푸시가 앞 배포를 접는 것은 정상이고,
+# 그것까지 울리면 알림이 소음이 되어 진짜 빨강을 못 본다.
+#
+# 손으로도 돌릴 수 있다(run_id 를 주면 그 실행을 본다). 기본은 **안 보내고 내용만 찍는다** —
+# 알림 배선이 살아 있는지 확인하려고 남의 채널에 시험 글을 던지지 않으려고.
+#
+# 알림 자리는 이미 있는 것을 쓴다(새 secret 0) — yawnbot 감시가 쓰는 그 webhook.
+name: 배포 빨강 알림
+
+on:
+  workflow_run:
+    workflows: ['Build and Deploy']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: '살펴볼 배포 실행 id (비우면 가장 최근 실패한 배포)'
+        required: false
+      dry_run:
+        description: '보내지 않고 내용만 찍는다'
+        type: boolean
+        default: true
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  alert:
+    # 실패만. 성공·취소·건너뜀은 조용히 지나간다. (손으로 돌릴 때는 언제나 돈다.)
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 어느 배포를 볼 것인가
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIVEN: ${{ github.event.inputs.run_id }}
+          FROM_EVENT: ${{ github.event.workflow_run.id }}
+        run: |
+          RUN_ID="${FROM_EVENT:-$GIVEN}"
+          [ -n "$GIVEN" ] && RUN_ID="$GIVEN"
+          if [ -z "$RUN_ID" ]; then
+            # 손으로 돌리면서 id 를 안 준 경우 — 가장 최근에 빨갛게 죽은 배포를 본다.
+            RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/pages-deploy.yml/runs?status=failure&per_page=1" --jq '.workflow_runs[0].id // empty')
+          fi
+          if [ -z "$RUN_ID" ]; then
+            echo "::warning::볼 실행이 없다 — 최근 실패한 배포가 없다(좋은 일이다)"
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: 어디서 죽었는지 · 무슨 커밋인지
+        id: what
+        if: steps.pick.outputs.skip != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.pick.outputs.run_id }}
+        run: |
+          # 죽은 작업과 그 안의 죽은 단계 이름. 「빌드가 실패했다」보다 「어느 단계」가 훨씬 빠르다.
+          WHERE=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" \
+            --jq '[.jobs[] | select(.conclusion=="failure") | .name + " › " + ([.steps[] | select(.conclusion=="failure") | .name] | join(", "))] | join(" / ")' \
+            || echo '')
+          [ -n "$WHERE" ] || WHERE='(어느 단계인지 못 읽었다 — 실행 기록을 열어 봐라)'
+          # 커밋 메시지는 첫 줄만 — 본문까지 넣으면 알림이 길어져 무엇이 죽었는지가 묻힌다.
+          gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID" \
+            --jq '{title: (.head_commit.message | split("\n")[0]), sha: .head_sha[0:8], who: .head_commit.author.name, url: .html_url}' > run.json
+          {
+            echo "where<<EOF"; echo "$WHERE"; echo "EOF"
+            echo "title=$(jq -r .title run.json)"
+            echo "sha=$(jq -r .sha run.json)"
+            echo "who=$(jq -r .who run.json)"
+            echo "url=$(jq -r .url run.json)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 디스코드로 보낸다
+        if: steps.pick.outputs.skip != '1'
+        env:
+          ALERT_WEBHOOK: ${{ secrets.YAWNBOT_HEALTH_ALERT_WEBHOOK_URL }}
+          DRY: ${{ github.event.inputs.dry_run }}
+          WHERE: ${{ steps.what.outputs.where }}
+          TITLE: ${{ steps.what.outputs.title }}
+          SHA: ${{ steps.what.outputs.sha }}
+          WHO: ${{ steps.what.outputs.who }}
+          RUN_URL: ${{ steps.what.outputs.url }}
+        run: |
+          PAYLOAD=$(jq -nc \
+            --arg where "$WHERE" \
+            --arg title "$TITLE" \
+            --arg sha "$SHA" \
+            --arg who "$WHO" \
+            --arg run_url "$RUN_URL" \
+            '{
+              username: "배포 감시",
+              embeds: [{
+                title: "블로그·KarmoLab 배포가 죽었다",
+                description: ("죽은 자리: " + $where + "\n커밋: " + $title + " (" + $sha + " · " + $who + ")\n\n고칠 때까지 사이트는 옛 판본 그대로다."),
+                color: 15158332,
+                fields: [{ name: "실행 기록", value: $run_url, inline: false }]
+              }]
+            }')
+          echo "보낼 내용:"; echo "$PAYLOAD" | jq -r '.embeds[0].description'
+          if [ "$DRY" = "true" ]; then
+            echo "::notice::시험 실행 — 보내지 않았다 (배선은 여기까지 살아 있다)"
+            exit 0
+          fi
+          if [ -z "$ALERT_WEBHOOK" ]; then
+            echo "::warning::YAWNBOT_HEALTH_ALERT_WEBHOOK_URL 미설정 — 알림 건너뜀 (실패 자체는 위 기록에 남는다)"
+            exit 0
+          fi
+          curl -fsS -m 10 -X POST -H 'Content-Type: application/json' -d "$PAYLOAD" "$ALERT_WEBHOOK"
