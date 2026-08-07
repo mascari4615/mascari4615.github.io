@@ -478,6 +478,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiospeed',
+    accepts: ['audio/*', 'video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '소리 속도',
@@ -489,6 +490,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiofade',
+    accepts: ['audio/*', 'video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '소리 페이드',
@@ -500,6 +502,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiojoin',
+    accepts: ['audio/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '오디오 이어붙이기',
@@ -544,6 +547,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiocut',
+    accepts: ['audio/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「소리 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '오디오 자르기',
@@ -636,6 +640,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'audiolevel',
+    accepts: ['audio/*', 'video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「파일 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'sound', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '소리 크기 맞추기',
@@ -723,6 +728,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'video2gif',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상 → GIF',
@@ -734,6 +740,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'video2audio',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상에서 소리 추출',
@@ -745,6 +752,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'videotrim',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상 자르기',
@@ -756,6 +764,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'videorotate',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상 돌리기',
@@ -767,6 +776,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'videocompress',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상 용량 줄이기',
@@ -778,6 +788,7 @@ window.KARMOLAB_LAZY_META = [
   },
   {
     id: 'video2img',
+    accepts: ['video/*'], // 다른 도구가 만든 것을 받는다 (TASK-KL-133)
     hidden: true, // 「영상 도구」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'videotool', // 이 도구를 부르면 묶음의 이 탭으로 간다
     title: '영상에서 사진 뽑기',
