@@ -48,3 +48,24 @@ test('아이콘 표에 안 쓰는 갈래를 남겨 두지 않는다 — 만들�
     assert.ok(창.includes(`setState('${갈래}'`), `${갈래} 를 아무도 안 쓴다`);
   }
 });
+
+test('표시가 대화창과 같은 칸을 차지하지 않는다 — 겹쳐서 화면이 이상해졌었다', () => {
+  const 칸 = (고르개) => {
+    // 줄 첫머리에서 찾는다 — 그냥 찾으면 「body.full .doing {」 이 먼저 걸린다.
+    const i = 꾸밈.indexOf(String.fromCharCode(10) + 고르개);
+    assert.notEqual(i, -1, `${고르개} 를 못 찾았다`);
+    const 몸 = 꾸밈.slice(i, 꾸밈.indexOf('}', i));
+    return (몸.match(/grid-row:\s*(\d+)/) ?? [])[1];
+  };
+  const 표시칸 = 칸('.doing {');
+  const 대화칸 = 칸('.talk {');
+  assert.notEqual(표시칸, undefined);
+  assert.notEqual(표시칸, 대화칸, `표시와 대화창이 같은 칸(${표시칸})이면 겹쳐 그려진다`);
+});
+
+test('방에 칸이 넷 있다 — 칸보다 많은 것을 넣으면 마지막 칸에 쌓인다', () => {
+  const i = 꾸밈.indexOf('.room {');
+  const 몸 = 꾸밈.slice(i, 꾸밈.indexOf('}', i));
+  const 칸들 = (몸.match(/grid-template-rows:\s*([^;]+);/) ?? [])[1];
+  assert.equal((칸들 ?? '').trim().split(/\s+/).length, 4, `지금 칸: ${칸들}`);
+});
