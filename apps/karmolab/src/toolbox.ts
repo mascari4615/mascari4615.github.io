@@ -1491,8 +1491,10 @@ const Toolbox = (() => {
          * 첫 화면만 보고 간 사람도 다녀간 사람인데, 도구 열림만 세면 그 사람은 없는 셈이 된다. */
         const parts = [];
         if (visits.total) {
-            parts.push('지금까지 <b>' + n(visits.total) + '</b>명 다녀갔어요'
-                + (visits.today ? ' · 오늘 <b>' + n(visits.today) + '</b>' : ''));
+            // 「명」이라고 쓰면 안 된다 — 이 수는 방문 횟수지 사람 수가 아니다.
+            // 사람 수는 하루 단위로만 셀 수 있고(오늘 열쇠만 들고 있으므로), 그 값은 광장에 있다.
+            parts.push('지금까지 <b>' + n(visits.total) + '</b>번 다녀갔어요'
+                + (visits.today ? ' · 오늘 <b>' + n(visits.today) + '</b>번' : ''));
         }
         if (pulse.opensTotal) {
             parts.push('도구는 <b>' + n(pulse.opensTotal) + '</b>번 열렸고요'
