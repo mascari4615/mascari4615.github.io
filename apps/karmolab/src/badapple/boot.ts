@@ -86,7 +86,8 @@ const KONAMI = [
 
 		player = new Player(clip, { loop: true });
 		// 화면에 실제로 있는 것들을 액정으로 (모양으로 스스로 고른다).
-		player.stage.add(new DomTilesSurface({ subdivide: { cols: 6, rows: 6 } }));
+		// 쪼갬을 안 준다 — 화면마다 칸 수가 달라서, 놓인 칸 수를 보고 알아서 정하는 편이 낫다.
+		player.stage.add(new DomTilesSurface({}));
 		// 탭 제목도 같은 그림을 받는다. 한 줄뿐이라 칸마다 「얼마나 찼나」를 글자 굵기로 낸다 —
 		// 켜짐/꺼짐으로 누르면 아래가 꽉 찬 영상에서 제목이 아예 안 움직인다.
 		player.stage.add(

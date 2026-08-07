@@ -82,6 +82,31 @@ export function pickTileGroup(measured: readonly Measured[], options: DiscoverOp
 	return best;
 }
 
+/**
+ * 칸 하나를 몇 개로 쪼갤지 정한다.
+ *
+ * 왜 자동이어야 하나: 화면마다 칸 수가 전혀 다르다. 도구 목록에는 백 개가 넘게 깔리지만
+ * 첫 화면에는 큰 버튼 다섯 개뿐이다 (실제로 그랬다). 쪼갬을 고정으로 박으면 한쪽은 흐릿하고
+ * 다른 쪽은 쓸데없이 잘다. 칸이 적으면 잘게, 많으면 성글게 — 전체 해상도를 비슷하게 맞춘다.
+ *
+ * @param tilesAcross 가로로 몇 칸 놓였나
+ * @param tilesDown 세로로 몇 줄인가
+ * @param target 원하는 전체 격자 크기
+ */
+export function subdivisionFor(
+	tilesAcross: number,
+	tilesDown: number,
+	target: { cols: number; rows: number } = { cols: 56, rows: 40 }
+): { cols: number; rows: number } {
+	const across = Math.max(1, tilesAcross);
+	const down = Math.max(1, tilesDown);
+	return {
+		// 한 칸이 너무 잘아지면 그리는 값이 커지기만 하고 눈에는 차이가 없다 — 위쪽을 막는다.
+		cols: Math.max(1, Math.min(24, Math.round(target.cols / across))),
+		rows: Math.max(1, Math.min(24, Math.round(target.rows / down)))
+	};
+}
+
 /** 화면에서 잰다. 보이는 것만, 그리고 남의 자식까지 다 훑지 않게 요소 수를 제한한다. */
 export function measureCandidates(root: ParentNode, limit = 4000): Measured[] {
 	const out: Measured[] = [];
