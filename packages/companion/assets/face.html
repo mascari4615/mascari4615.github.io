@@ -24,6 +24,7 @@
     <!-- 소리 조절. 곁에 두는 존재라 「지금 좀 작게」가 자주 필요하다. -->
     <label>소리 크기<input id="volPick" type="range" min="0" max="100" step="5" /></label>
     <label>말 빠르기<input id="ratePick" type="range" min="60" max="160" step="5" /></label>
+    <label>몸 크기<input id="sizePick" type="range" min="60" max="200" step="5" /></label>
     <hr />
     <button class="item" id="knownBtn">나에 대해 아는 것</button>
     <button class="item danger" id="gripClose">끄기</button>
@@ -168,6 +169,23 @@
     소리.크기 = Number(volPick.value);
     localStorage.setItem('companion.volume', String(소리.크기));
     소리적용();
+
+  /* 몸 크기 — 창이 작고 얘가 늘 거기 있으니 「좀 더 크게/작게」가 자주 필요하다.
+     3D 몸이 아직 안 섰을 수도 있으므로 값만 들고 있다가, 서면 그때 먹인다. */
+  const sizePick = document.getElementById('sizePick');
+  let 몸크기 = Number(localStorage.getItem('companion.bodySize') ?? '100');
+  // 막대 위치는 지금 바로 맞춰 둔다. 몸은 나중에 서므로 그건 설 때 먹인다 —
+  // 여기서 몸을 건드리면 아직 만들어지지도 않은 것을 부르게 된다.
+  sizePick.value = String(몸크기);
+  function 몸크기적용() {
+    sizePick.value = String(몸크기);
+    body3d?.setSize(몸크기);
+  }
+  sizePick.addEventListener('input', () => {
+    몸크기 = Number(sizePick.value);
+    localStorage.setItem('companion.bodySize', String(몸크기));
+    몸크기적용();
+  });
   });
   ratePick.addEventListener('input', () => {
     소리.빠르기 = Number(ratePick.value);
@@ -625,6 +643,7 @@
         canvas.hidden = true;
       });
       if (body3d !== null) {
+        몸크기적용(); // 껐다 켜도 아까 맞춰 둔 크기로 선다
         cube.classList.add('retired');
         // 3D 몸은 제 그림자를 발밑에 직접 깐다 — 큐브 시절의 그림자를 남겨 두면 둘이 겹친다.
         document.querySelector('.shadow')?.remove();
