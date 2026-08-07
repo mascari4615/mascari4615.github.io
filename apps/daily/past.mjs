@@ -58,10 +58,42 @@ function appendChunk() {
   const html = [];
   for (let d = cursor; d >= stop; d -= 1) html.push(rowFor(d));
   tbody.insertAdjacentHTML('beforeend', html.join(''));
+  markPlayed();
   cursor = stop - 1;
   const left = cursor - oldest + 1;
   if (left <= 0) $more.replaceChildren();
   else $more.querySelector('button').textContent = `${Math.min(DAYS, left)}일 더 보기 (남은 ${left}일)`;
+}
+
+/* ── 내가 푼 날 표시 (TASK-KL-089) ────────────────
+ * 서른 날이 똑같이 늘어서 있어서 **어느 날을 이미 풀었는지**가 안 보였다 — 놓친 날을 찾으려면
+ * 하나씩 눌러 봐야 했다. 이 브라우저에 남은 연습 기록만 읽어 판마다 표시를 붙인다.
+ * 새로 저장하는 것은 없다. 못 읽으면 아무 표시도 안 붙는다(사생활 모드도 그냥 조용하다).
+ */
+function markPlayed(scope = tbody) {
+  let done = 0;
+  for (const cell of scope.querySelectorAll('td')) {
+    if (cell.querySelector('.mine')) continue;
+    const play = cell.querySelector('a.play');
+    const day = cell.closest('tr')?.querySelector('.d')?.textContent?.trim();
+    if (!play || !day) continue;
+    const mode = /silhouette/.test(play.getAttribute('href') || '') ? 'silhouette' : 'classic';
+    let st = null;
+    try {
+      st = JSON.parse(localStorage.getItem(`daily:${topic.id}:${mode}:p:${day}`) || 'null');
+    } catch {
+      /* 사생활 모드 */
+    }
+    if (!st || st.status === 'playing') continue;
+    const won = st.status === 'won';
+    const tag = document.createElement('span');
+    tag.className = 'mine' + (won ? ' win' : '');
+    tag.textContent = won ? `${(st.guesses || []).length}번에 맞힘` : '못 맞힘';
+    play.insertAdjacentElement('afterend', tag);
+    play.textContent = '다시 풀기';
+    done++;
+  }
+  return done;
 }
 
 root.querySelector('.past-note').textContent =
@@ -167,5 +199,8 @@ if (!tbody.querySelector('tr[data-day]') && cursor < oldest) {
     appendChunk();
   }
 }
+
+// 박혀 있던 줄에도 붙인다 — 브라우저가 새로 그린 줄만 표시되면 첫 화면이 반쪽이 된다.
+markPlayed();
 
 countPage();
