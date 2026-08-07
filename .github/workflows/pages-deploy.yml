@@ -12,6 +12,8 @@ on:
       - apps/karmolab/**
       - apps/karmolab-react-src/**
       - apps/daily/**
+      - apps/higher/**
+      - apps/quest/**
       - packages/karmolab-ai/**
       - .github/workflows/pages-deploy.yml
 
@@ -123,6 +125,21 @@ jobs:
           mkdir -p apps/blog/daily
           cp -r apps/daily/dist/. apps/blog/daily/
 
+      # TASK-KL-089: 놀이 둘 — 「높은 쪽 고르기」(/karmolab/higher/) · 「오늘의 문제」(/karmolab/quest/).
+      # 둘 다 의존성 0. 표가 어긋나면 아래 단계가 그 자리에서 배포를 세운다.
+      # 주소는 파일 앞머리의 permalink 가 정한다 — 여기서는 Jekyll 이 볼 자리로 옮기기만 한다.
+      - name: Build higher-lower game
+        run: node apps/higher/scripts/build.mjs
+      - name: Verify daily quest table
+        run: node apps/quest/scripts/verify.mjs
+      - name: Prepare game pages
+        run: |
+          mkdir -p apps/blog/higher apps/blog/quest
+          cp apps/higher/index.html apps/blog/higher/index.html
+          cp apps/higher/data/*.json apps/blog/higher/
+          cp apps/quest/index.html apps/blog/quest/index.html
+          cp apps/quest/data/puzzles.json apps/blog/quest/puzzles.json
+
       # TASK-KL-088: 도구별 정적 페이지(/karmolab/t/<id>/) + 허브(/karmolab/t/).
       # Jekyll 이 그대로 빌드하므로 jekyll-sitemap 이 자동 수집한다.
       - name: Generate KarmoLab tool pages
@@ -184,19 +201,36 @@ jobs:
       # 오래된 판이 새 판을 덮어쓰는 것을 막는다 (TASK-KL-088).
       # 배포는 사이트 전체를 통째로 바꾸므로, 뒤늦게 끝난 옛 커밋의 판이 나중에 배포되면
       # 방금 나간 것들이 도로 사라진다. 실제로 오늘 새벽 그 일이 나서 손으로 취소해 왔다.
-      # 내 커밋이 이미 master 의 끝이 아니면 조용히 물러난다 — 최신 판이 어차피 배포한다.
+      # 물러나는 조건은 아래 단계가 정한다 — 「이미 더 새 판이 배포했는가」 하나뿐이다.
       # (실패가 아니다. 여기서 붉은불을 켜면 진짜 고장과 구분이 안 된다.)
-      - name: 내가 아직 master 의 끝인가
+      - name: 나보다 새 판이 이미 배포했는가
         id: freshness
+        # 이 게이트는 두 번 틀렸다. 기록해 둔다 (2026-08-07 실측).
+        #
+        # ① 「내가 master 의 끝인가」 — 빌드가 10분인데 push 간격이 그보다 짧으면 *모든* 판이
+        #    물러난다. 그 새 커밋의 판도 도착할 때쯤엔 또 끝이 아니다. 아무도 배포 안 하는데
+        #    다섯 판 연속 초록이었다.
+        # ② 「나보다 새 판이 돌고 있는가」 — 같은 이유로 굶는다. 돌고 있는 판도 자기 차례엔
+        #    또 다른 새 판을 보고 물러난다. 「앞으로 일어날 일」을 조건에 넣으면 줄이 안 끝난다.
+        #
+        # 그래서 **이미 일어난 일**만 본다: 나보다 새 판이 *실제로 배포에 성공했나?*
+        # 그랬다면 내가 나가면 사이트가 뒤로 간다 → 물러난다 (KL-088 이 막으려던 그 사고).
+        # 아니면 배포한다. 이 조건은 한 번 참이 되면 계속 참이라 굶지 않는다.
         run: |
-          TIP=$(gh api "repos/${{ github.repository }}/commits/master" --jq .sha)
-          echo "내 커밋 = ${{ github.sha }}"
-          echo "master 끝 = $TIP"
-          if [ "$TIP" != "${{ github.sha }}" ]; then
+          MINE=${{ github.run_number }}
+          REPO=${{ github.repository }}
+          NEWER=$(gh api "repos/$REPO/actions/workflows/pages-deploy.yml/runs?branch=master&status=completed&per_page=30"             --jq "[.workflow_runs[] | select(.run_number > $MINE) | .id] | .[]")
+          DEPLOYED=0
+          for id in $NEWER; do
+            OK=$(gh api "repos/$REPO/actions/runs/$id/jobs"               --jq '[.jobs[] | select(.name == "deploy") | .steps[] | select(.name | startswith("Deploy")) | select(.conclusion == "success")] | length')
+            if [ "${OK:-0}" -gt 0 ]; then DEPLOYED=1; echo "더 새 판 $id 가 이미 배포했다"; break; fi
+          done
+          if [ "$DEPLOYED" = "1" ]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::더 새로운 커밋이 있어 이 판은 배포하지 않는다 — 그 판이 배포한다"
+            echo "::notice::더 새 판이 이미 배포했다 — 물러난다 (나가면 사이트가 뒤로 간다)"
           else
             echo "stale=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::나보다 새 판이 배포한 적 없다 — 배포한다"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
