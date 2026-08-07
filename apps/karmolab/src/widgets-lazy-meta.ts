@@ -398,6 +398,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/checklist']
   },
   {
+    // 둘이 붙는 놀이 — 목록에서 바로 보여야 한다 (TASK-KL-132).
+    id: 'duel',
+    title: '번개 대결',
+    category: 'tool',
+    desc: '몇 초짜리 미니게임으로 둘이 붙습니다. 링크 하나면 바로 시작하고, 방을 우리 서버에 두지 않습니다',
+    layout: 'wide',
+    noHero: true,
+    icon: '<path d="M13 2L5 13h6l-1 9 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/duel']
+  },
+  {
     // 놀이라 묶음에 안 넣는다 — 목록에서 바로 보여야 사람이 들어온다 (TASK-KL-131).
     id: 'ghosttype',
     title: '유령 타자 대결',
@@ -915,6 +926,17 @@ window.KARMOLAB_LAZY_META = [
     icon:
       '<path d="M9 8a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor"/>',
     lazyScriptPaths: ['quest']
+  },
+  {
+    id: 'twenty',
+    title: '스무고개',
+    category: 'tool',
+    desc: '하나를 마음에 정하면 스무 번 안에 맞힙니다 — 포켓몬·롤 챔피언·원신 캐릭터',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M9 9a3 3 0 1 1 4 2.8c-.8.3-1 .9-1 1.7v.4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['twenty']
   },
   {
     id: 'play',
