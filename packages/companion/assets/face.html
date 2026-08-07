@@ -169,6 +169,13 @@
     소리.크기 = Number(volPick.value);
     localStorage.setItem('companion.volume', String(소리.크기));
     소리적용();
+  });
+  ratePick.addEventListener('input', () => {
+    소리.빠르기 = Number(ratePick.value);
+    localStorage.setItem('companion.rate', String(소리.빠르기));
+    소리적용();
+  });
+  소리적용();
 
   /* 몸 크기 — 창이 작고 얘가 늘 거기 있으니 「좀 더 크게/작게」가 자주 필요하다.
      3D 몸이 아직 안 섰을 수도 있으므로 값만 들고 있다가, 서면 그때 먹인다. */
@@ -179,20 +186,18 @@
   sizePick.value = String(몸크기);
   function 몸크기적용() {
     sizePick.value = String(몸크기);
-    body3d?.setSize(몸크기);
+    if (body3d === null || typeof body3d.setSize !== 'function') {
+      tell(`몸 크기를 못 먹였다 (${몸크기}%) — 몸이 ${body3d === null ? '안 서 있다' : '크기를 모른다'}`);
+      return;
+    }
+    body3d.setSize(몸크기);
+    tell(`몸 크기 ${몸크기}%`);
   }
   sizePick.addEventListener('input', () => {
     몸크기 = Number(sizePick.value);
     localStorage.setItem('companion.bodySize', String(몸크기));
     몸크기적용();
   });
-  });
-  ratePick.addEventListener('input', () => {
-    소리.빠르기 = Number(ratePick.value);
-    localStorage.setItem('companion.rate', String(소리.빠르기));
-    소리적용();
-  });
-  소리적용();
   let serverVoices = [];
   let chosenVoice = localStorage.getItem('companion.voiceId') || '';
 
@@ -639,9 +644,12 @@
       const canvas = document.getElementById('body3d');
       canvas.hidden = false;
       body3d = await mountModel(canvas, '욘', (e) => {
-        console.warn('3D 몸을 못 세웠다:', e);
+        // **밖에서 알아야 한다.** 몸이 안 서면 조절 막대도 전부 헛돈다 —
+        // 「몸 크기 적용 안 돼」의 원인이 크기 쪽이 아니라 여기일 수 있다.
+        tell(`3D 몸을 못 세웠다: ${e && e.message ? e.message : String(e)}`);
         canvas.hidden = true;
       });
+      tell(body3d === null ? '3D 몸이 안 섰다 — 큐브로 지낸다' : '3D 몸이 섰다');
       if (body3d !== null) {
         몸크기적용(); // 껐다 켜도 아까 맞춰 둔 크기로 선다
         cube.classList.add('retired');
@@ -650,7 +658,10 @@
       }
       else canvas.hidden = true;
     } catch (e) {
-      console.warn('3D 몸을 못 불렀다:', e);
+      // **삼키지 않는다.** 여기 `console.warn` 만 있어서, 몸 크기 코드가 엉뚱한 자리에
+      // 들어가 함수가 안 보이던 것을 아무도 몰랐다 — 창은 멀쩡했고 기록도 조용했다.
+      // 이 자리는 몸 세우기 전체를 감싸므로, 조용하면 실패가 통째로 사라진다.
+      tell(`3D 몸을 못 불렀다: ${e && e.message ? e.message : String(e)}`);
     }
   }
 
