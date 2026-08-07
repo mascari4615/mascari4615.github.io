@@ -56,8 +56,8 @@
     "wide": 1035
   },
   "calc": {
-    "narrow": 1182,
-    "wide": 1185
+    "narrow": 1394,
+    "wide": 1365
   },
   "caseconv": {
     "narrow": 797,
@@ -155,6 +155,10 @@
     "narrow": 3793,
     "wide": 972
   },
+  "ghosttype": {
+    "narrow": 645,
+    "wide": 660
+  },
   "gitcmd": {
     "narrow": 4337,
     "wide": 973
@@ -172,8 +176,8 @@
     "wide": 794
   },
   "hashgen": {
-    "narrow": 535,
-    "wide": 630
+    "narrow": 843,
+    "wide": 901
   },
   "htmlentity": {
     "narrow": 3133,
@@ -307,6 +311,10 @@
     "narrow": 334,
     "wide": 382
   },
+  "pdfdiff": {
+    "narrow": 756,
+    "wide": 614
+  },
   "pdfpagenum": {
     "narrow": 308,
     "wide": 382
@@ -329,7 +337,7 @@
   },
   "percent": {
     "narrow": 1118,
-    "wide": 1121
+    "wide": 1301
   },
   "pick": {
     "narrow": 723,
@@ -488,11 +496,11 @@
     "wide": 689
   },
   "workdays": {
-    "narrow": 925,
-    "wide": 869
+    "narrow": 884,
+    "wide": 827
   },
   "worldclock": {
-    "narrow": 2987,
+    "narrow": 2992,
     "wide": 850
   },
   "ziptool": {
