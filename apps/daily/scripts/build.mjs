@@ -314,7 +314,7 @@ const hub = `${head({
 ${topics
   .map(
     (t) => `  <section class="group">
-    <h2 class="group-t">${esc(t.emoji ?? '🎯')} ${esc(t.title)} <span>${t.items.length.toLocaleString('ko-KR')}개 중 하나 · 지난 문제는 <a href="${BASE}/${t.id}/past/">여기</a></span></h2>
+    <h2 class="group-t">${esc(t.emoji ?? '🎯')} ${esc(t.title)} <span>${t.items.length.toLocaleString('ko-KR')}개 중 하나 · <a href="${BASE}/${t.id}/past/" aria-label="${esc(t.title)} 지난 문제">지난 문제</a></span></h2>
     <div class="cards">
 ${pagesOf(t)
   .map(
