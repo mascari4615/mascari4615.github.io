@@ -1352,3 +1352,18 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pk-meta { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
 .pk-meta span { color: var(--text-tertiary); font-size: var(--font-size-2xs); }
 .pk-acts { display: flex; gap: 6px; flex-wrap: wrap; }
+/* 놀이터 안의 「내가 만든 표」 자리 (TASK-KL-089) — 놀이의 재료로 가는 문. */
+.pl-mine {
+    /* 이 자리는 넓게 쓴다 — 안 적으면 다른 규칙이 내용 폭에 맞춰 절반만 차지했다(실측 555px). */
+    display: block; width: 100%; box-sizing: border-box;
+    margin-top: 16px; padding: 14px 16px;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xl);
+}
+.pl-mine-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pl-mine-head strong { font-size: var(--font-size-sm); }
+.pl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pl-chip {
+    padding: 3px 10px; font-size: var(--font-size-2xs);
+    color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px;
+}
+.pl-chip b { color: var(--accent); }
