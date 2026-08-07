@@ -231,7 +231,7 @@ function finish() {
     rows,
     won,
     maxGuesses,
-    url: location.origin + location.pathname,
+    url: location.origin + location.pathname + location.search,
   }).replace('\n\n', live > 1 ? `\n🔥 ${live}일 연속\n\n` : '\n\n');
 
   $done.innerHTML = '';
@@ -254,9 +254,15 @@ function finish() {
   $done.append(btn);
 
   // 끝난 사람을 그냥 보내지 않는다 — 오늘 아직 안 푼 판을 바로 건넨다.
-  const todo = (practice ? [{ href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode }] : []).concat(others).filter((o) => {
-    const s = read(`daily:${o.topic}:${o.mode}`, null);
-    return !(s && s.day === dayKey && s.status !== 'playing');
+  // 오늘 판을 끝낸 사람이 지금 할 수 있는 것을 준다. 「내일 또」만 남기면 그대로 나간다.
+  const yesterdayKey = kstDayKey(new Date(Date.now() - 86400000));
+  const extra = practice
+    ? [{ href: location.pathname, label: '오늘 문제 풀기', emoji: '📅', topic: topicId, mode }]
+    : [{ href: `${location.pathname}?d=${yesterdayKey}`, label: '어제 문제 풀기', emoji: '📅', key: `daily:${topicId}:${mode}:p:${yesterdayKey}`, day: yesterdayKey }];
+  const todo = extra.concat(others).filter((o) => {
+    // 이미 끝낸 것은 안 건넨다 — 다 푼 판을 또 누르게 하는 게 이 자리의 가장 흔한 낭비다.
+    const s = read(o.key ?? `daily:${o.topic}:${o.mode}`, null);
+    return !(s && s.day === (o.day ?? dayKey) && s.status !== 'playing');
   });
   if (todo.length) {
     $done.append(
