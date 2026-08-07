@@ -1002,6 +1002,48 @@ await page.screenshot({ path: join(shots, 'hub.png'), fullPage: true });
 
 await ctx.close();
 
+
+/**
+ * 내부 링크가 **실제로 닿는지** 본다.
+ *
+ * 이 사이트의 링크는 깊이가 제각각이다 — 속성판은 /daily/<주제>/, 실루엣판은 한 칸 더 깊고,
+ * 지난 문제는 또 다르다. 그래서 상대 경로 하나가 틀리면 조용히 404 로 간다.
+ * 오늘만 두 번 손으로 맞췄다 (모드 단추의 날짜, 안내문의 「지난 문제 보기」).
+ * 사람 눈으로 맞추는 대신 전부 눌러 본다. 자바스크립트가 나중에 꽂는 링크도 포함이다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  const pages = [
+    '',
+    'pokemon/',
+    'pokemon/silhouette/',
+    'pokemon/past/',
+    'lol/',
+    'lol/silhouette/',
+    'genshin/past/',
+    // 못 여는 날 — 여기서만 뜨는 안내문 링크가 있다. **깊이가 다른 두 판을 다 봐야 한다**:
+    // 실루엣판만 한 칸 더 깊어서, 한쪽만 보면 다른 쪽이 깨져도 안 잡힌다 (실제로 안 잡혔다).
+    'pokemon/?d=2099-01-01',
+    'pokemon/silhouette/?d=2099-01-01',
+  ];
+  const broken = [];
+  let seen = 0;
+  for (const path of pages) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'networkidle' });
+    const hrefs = await page.$$eval('a[href]', (els) => els.map((e) => e.href));
+    for (const href of [...new Set(hrefs)]) {
+      // 우리 dist 안의 것만 본다 — /karmolab 같은 이웃 앱은 이 서버에 없다(실주소 검사가 본다).
+      if (!href.startsWith(base)) continue;
+      seen += 1;
+      const res = await fetch(href, { redirect: 'follow' });
+      if (!res.ok) broken.push(`/${path} → ${href.replace(base, '')} (${res.status})`);
+    }
+  }
+  check('★ 내부 링크가 전부 닿는다', broken.length === 0, broken.join(' · ') || `${seen}개 눌러 봄`);
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 
