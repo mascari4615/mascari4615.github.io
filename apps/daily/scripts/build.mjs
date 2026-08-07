@@ -7,7 +7,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { stripHtml, STRIP_CSS } from '../../play/scripts/strip.mjs';
 import { kstDayNumber, EPOCH_DAY_NUMBER } from '../engine.mjs';
 import { modesOf, pastRow } from '../past-row.mjs';
@@ -169,7 +169,7 @@ function gameLd({ name, desc, url }) {
   }).replace(/</g, '\\u003c')}</script>`;
 }
 
-function head({ title, desc, url, up, image, ld = '' }) {
+function head({ title, desc, url, up, image, ld = '', noindex = false }) {
   return `<!doctype html>
 <html lang="ko">
 <head>
@@ -178,6 +178,7 @@ function head({ title, desc, url, up, image, ld = '' }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${esc(url)}">
+${noindex ? '<meta name="robots" content="noindex, follow">' : ''}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
@@ -285,8 +286,8 @@ for (const topic of topics) {
 <div class="wrap" id="past" data-topic="${esc(topic.id)}" data-stamp="${stamp}" data-data="../../data/${esc(topic.id)}.json">
   <div class="top">
     <h1>${esc(topic.emoji ?? '')} ${esc(topic.title)} 지난 문제</h1>
-    <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
-  </div>
+    <a class="home" href="${BASE}/${esc(topic.id)}/">오늘 풀기</a>
+  </div>
   ${stripHtml('daily')}
   <p class="lede past-note"></p>
   <div class="past-reveal"><button type="button" aria-pressed="false">답 모두 보기</button></div>
@@ -300,6 +301,49 @@ for (const topic of topics) {
   mkdirSync(join(dist, topic.id, 'past'), { recursive: true });
   writeFileSync(join(dist, topic.id, 'past', 'index.html'), html);
 }
+
+/* ── 내 표로 놀기 (TASK-KL-089) ──────────────────────────
+ * 표를 사람이 만들 수 있게 되면서, 이 놀이도 그 표로 돌아야 한다. 다만 그 표는 **그 사람의
+ * 브라우저에만** 있다 — 배포 때 만들 수 없으므로 한 장짜리 껍데기만 찍고, 알맹이는 화면이
+ * 열릴 때 그 브라우저에서 읽는다. 검색에는 안 올린다(사람마다 내용이 다른 주소다).
+ */
+const mineHtml = `${head({
+  title: '내 표로 하나 맞히기',
+  desc: '내가 만든 표로 하는 하나 맞히기. 표는 이 브라우저에만 있습니다.',
+  url: `${SITE}${BASE}/mine/`,
+  up: '../',
+  image: 'hub',
+  noindex: true,
+})}
+<div class="wrap" id="app" data-topic="mine" data-mode="classic" data-stamp="${stamp}"
+     data-pack="1" data-data="" data-others="[]">
+  <div class="top">
+    <h1>🎲 내 표로 맞히기</h1>
+    <div><span class="no"></span> <a class="home" href="/karmolab/#packs">내 표</a></div>
+  </div>
+  ${stripHtml('daily')}
+  <div class="tabs"><span class="tab on">속성</span><span class="streak"></span></div>
+  <p class="lede">내가 만든 표로 하는 판입니다. 답은 날마다 바뀝니다.</p>
+  <div class="guessbar">
+    <input type="text" role="combobox" aria-expanded="false" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="이름" placeholder="이름 · 첫 자음만 쳐도 돼요">
+    <div class="sug" id="sug-list" role="listbox" aria-label="추천 이름"></div>
+    <button type="button" class="browse-open" aria-expanded="false" aria-controls="browse-list">훑어보기</button>
+    <div class="browse" id="browse-list" hidden>
+      <p class="browse-help">이름이 기억 안 나면 여기서 고르세요. 위 칸에 아무거나 치면 같이 걸러집니다.</p>
+      <div class="browse-grid" role="listbox" aria-label="전체 목록"></div>
+    </div>
+  </div>
+  <div class="seeds"></div>
+  <p class="left"></p>
+  <div class="rows" aria-live="polite" aria-label="추측 기록"></div>
+  <div class="done" role="status" hidden></div>
+  ${foot(false)}
+</div>
+<script type="module" src="../app.mjs?v=${stamp}"></script>
+</body></html>
+`;
+mkdirSync(join(dist, 'mine'), { recursive: true });
+writeFileSync(join(dist, 'mine', 'index.html'), mineHtml);
 
 // ── 허브 ──
 const hub = `${head({
@@ -315,7 +359,7 @@ const hub = `${head({
   }),
 })}
 <div class="wrap">
-  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
+  <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
   ${stripHtml('daily')}
   <p class="lede">판을 고르면 오늘의 문제가 하나. <b>보통 서너 번이면 맞고 1분이면 끝난다.</b> 매일 자정(KST)에 바뀐다.</p>
   <div class="hub-jump"></div>
