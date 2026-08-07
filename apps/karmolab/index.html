@@ -80,6 +80,18 @@ permalink: /karmolab/
     <!-- 변경 기록 구독 (TASK-KL-098). 구독기·브라우저가 이 줄을 보고 「구독할 수 있는 곳」임을 안다 —
          주소를 아는 사람만 닿게 두면 있으나 마나다. -->
     <link rel="alternate" type="application/rss+xml" title="KarmoLab — 변경 기록" href="/karmolab/changes.xml">
+    <!-- 다음에 갈 곳을 **미리 받아 둔다** (TASK-KL-128, Speculation Rules).
+         도구가 128가지라 사람은 목록에서 하나를 고른다 — 그 순간 화면 하나를 통째로 새로
+         받아야 했다. 마우스를 올리거나 누르기 시작하면(=고를 낌새) 브라우저가 그 화면을 미리
+         받아 둔다. 그러면 누르는 순간에는 이미 와 있다.
+         `prefetch` 만 쓴다 — 미리 **실행**까지 하는 `prerender` 는 방문 수가 두 번 세이거나
+         타이머가 미리 도는 등 눈에 안 보이는 부작용이 있다. 받아만 두는 것은 그런 게 없다.
+         `moderate` = 「올려두거나 누르기 시작했을 때」. 아무것도 안 하는 사람은 아무것도 안 받는다.
+         이 기능을 모르는 브라우저는 이 덩어리를 그냥 무시한다(우리가 손댈 것 없음). -->
+    <script type="speculationrules">
+    {"prefetch":[{"where":{"and":[{"href_matches":"/karmolab/t/*"},{"not":{"href_matches":"/karmolab/t/"}}]},"eagerness":"moderate"},
+                 {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"}]}
+    </script>
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
     <link rel="apple-touch-icon" href="/apps/karmolab/img/apple-touch-icon.png">
