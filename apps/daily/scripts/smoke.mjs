@@ -11,7 +11,10 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startServer } from './serve.mjs';
-import { answerOf, findItem } from '../engine.mjs';
+import { answerOf, findItem, kstDayNumber } from '../engine.mjs';
+
+/** 오늘(한국 시각 기준 날짜 번호) — 지난 목록에 이 번호가 있으면 샌 것이다. */
+const today = () => kstDayNumber();
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
@@ -208,7 +211,14 @@ async function pastPage(topicId) {
   const text = await page.locator('#past').innerText();
 
   check(`[지난:${topicId}] 어제 답이 보인다`, text.includes(answerOf(topic, new Date(Date.now() - 86400000)).name));
-  check(`[지난:${topicId}] ★ 오늘 답은 안 보인다`, !text.includes(answerOf(topic).name));
+
+  /* 「오늘 답이라는 **글자**가 어디에도 없다」로 재면 안 된다 (TASK-KL-101).
+     모드가 여럿이라 오늘의 속성 답이 지난 어느 날의 실루엣 답과 같을 수 있다 — 그건 새는
+     것이 아닌데 검사는 빨갛게 운다. 실제로 원신에서 그 일이 나 매일 빨강이었고, 빨간 게이트는
+     곧 안 보는 게이트가 된다.
+     새는지 아닌지는 **줄이 있느냐**로 갈린다: 오늘(이후) 날짜의 줄이 목록에 있으면 샌 것이다. */
+  const days = await page.$$eval('#past tr[data-day]', (els) => els.map((e) => Number(e.dataset.day)));
+  check(`[지난:${topicId}] ★ 오늘 줄은 없다`, days.length > 0 && Math.max(...days) < today(), `가장 최근 ${Math.max(...days)} · 오늘 ${today()}`);
   check(
     `[지난:${topicId}] 실루엣 답도 따로 나온다`,
     text.includes(answerOf(topic, new Date(Date.now() - 86400000), 'silhouette').name),

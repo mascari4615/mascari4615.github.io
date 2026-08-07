@@ -17,7 +17,7 @@ const pwPath = process.env.DAILY_PLAYWRIGHT
   : join(app, '../karmolab/node_modules/playwright/index.js');
 const mod = await import(pathToFileURL(pwPath).href);
 const pw = mod.chromium ? mod : mod.default;
-const { answerOf, findItem } = await import(pathToFileURL(join(app, 'engine.mjs')).href);
+const { answerOf, findItem, kstDayNumber } = await import(pathToFileURL(join(app, 'engine.mjs')).href);
 
 const checks = [];
 const check = (name, ok, note = '') => {
@@ -94,7 +94,11 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   await page.goto(`${BASE}/pokemon/past/`, { waitUntil: 'networkidle' });
   const past = await page.locator('#past').innerText();
   check('[지난문제] 어제 답이 보인다', past.includes(yAnswer.name), yAnswer.name);
-  check('[지난문제] 오늘 답은 안 보인다', !past.includes(answerOf(topic).name));
+  /* 글자로 재면 안 된다 — 모드가 여럿이라 오늘의 속성 답이 지난 어느 날의 실루엣 답과
+     같을 수 있고, 그건 새는 게 아니다. 오늘 날짜의 **줄**이 있는지로 가른다 (TASK-KL-101). */
+  const pastDays = await page.$$eval('#past tr[data-day]', (els) => els.map((e) => Number(e.dataset.day)));
+  check('[지난문제] 오늘 줄은 없다', pastDays.length > 0 && Math.max(...pastDays) < kstDayNumber(),
+    `가장 최근 ${Math.max(...pastDays)} · 오늘 ${kstDayNumber()}`);
   check('[지난문제] 그날로 가는 길이 있다', (await page.locator('table.past .play').count()) > 5);
 
   /**
