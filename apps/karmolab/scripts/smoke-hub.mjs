@@ -202,6 +202,29 @@ if (state.firstHref) {
   problems.push('누를 카드가 하나도 없다');
 }
 
+/* ── 아래로 내려갈 수 있는가 ─────────────────────────
+ * 이 페이지는 백 가지가 넘는 목록이라 첫 화면에 다 안 들어간다. 그런데 앱 껍데기용 스크롤
+ * 잠금(body overflow:hidden)이 껍데기 없는 이 문서에도 걸려, 데스크톱에서 첫 화면 밑이
+ * 통째로 못 보게 갇혀 있었다. 여기 검사가 없어 아무도 못 잡았다.
+ * 주의: window.scrollTo 로 재면 잠겨 있어도 통과한다 — **바퀴를 실제로 굴려** 확인한다. */
+{
+  const s = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const sp = await s.newPage();
+  await sp.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
+  await sp.waitForTimeout(400);
+  const tall = await sp.evaluate(() => document.scrollingElement.scrollHeight > innerHeight + 100);
+  if (!tall) problems.push('목록이 한 화면보다 짧다 — 스크롤 검사가 아무것도 못 본다');
+  else {
+    await sp.mouse.move(640, 450);
+    await sp.mouse.wheel(0, 1200);
+    await sp.waitForTimeout(400);
+    const y = await sp.evaluate(() => document.scrollingElement.scrollTop);
+    if (y < 100) problems.push(`바퀴를 굴려도 안 내려간다 — 아래가 통째로 갇혔다 (scrollTop ${y})`);
+  }
+  await sp.close();
+  await s.close();
+}
+
 /* ── 폰에서 본 목록 ─────────────────────────────────
  * 이 페이지는 검색으로 들어온 사람이 처음 밟는 자리이고, 그 대부분이 폰이다. 도구 페이지에는
  * 이미 같은 검사가 걸려 있는데 정작 관문에는 없었다 — 실제로 분류 옆 숫자가 11px 이었다. */
