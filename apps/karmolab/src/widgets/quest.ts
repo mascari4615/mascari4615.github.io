@@ -5,6 +5,8 @@
  * 정답은 원문 대신 지문(sha-256 앞 16자)만 둔다 — 소스를 열어도 답이 안 보인다.
  * 대조는 이 브라우저 안에서만 한다.
  */
+import { mountCourseNext } from './play-course';
+
 (function (): void {
   interface Puzzle {
     id: string;
@@ -70,6 +72,7 @@
               <p class="qs-hint" id="qsHint" hidden></p>
               <p class="tool-status" id="qsMsg" aria-live="polite"></p>
               <p class="qs-tries" id="qsTries"></p>
+              <p class="pc-line" id="qsCourse" hidden></p>
               <div class="qs-after" id="qsAfter" style="display:none; gap:6px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-primary" id="qsMore">다른 문제 하나 더</button>
               </div>
@@ -157,6 +160,11 @@
             done = true;
             ans().disabled = true;
             $('qsAfter').style.display = 'flex';
+            if (!practice) {
+              // 오늘 것을 끝낸 그 자리에서 남은 놀이를 말해 준다 (연습은 오늘 것이 아니다).
+              $('qsCourse').hidden = false;
+              mountCourseNext($('qsCourse'), 'quest');
+            }
             if (practice) return; // 연습은 오늘 성적을 흐리지 않는다
             const st = load();
             st[dayLabel()] = { win, tries };

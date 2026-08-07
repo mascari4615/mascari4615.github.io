@@ -10,6 +10,8 @@
  *
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
+import { mountCourseNext } from './play-course';
+
 (function (): void {
   interface Item {
     n: string;
@@ -64,6 +66,7 @@
             </div>
             <p class="hi-score"><span>연승 <b id="hiStreak">0</b></span><span>최고 <b id="hiBest">0</b></span></p>
             <p class="tool-status" id="hiMsg" aria-live="polite"></p>
+            <p class="pc-line" id="hiCourse" hidden></p>
             <div id="hiAgain" style="display:none; gap:6px; flex-wrap:wrap;">
               <button class="btn btn-primary" id="hiRetry">다시</button>
               <button class="btn btn-ghost" id="hiShare">결과 복사</button>
@@ -153,6 +156,7 @@
             if (!board) return;
             locked = false;
             $('hiAgain').style.display = 'none';
+            $('hiCourse').hidden = true;
             const usable = board.fields.filter((f) => board!.items.filter((x) => x.v[f.key] !== undefined).length >= 2);
             const others = usable.filter((f) => f !== field);
             field = others.length ? pick(others) : usable[0] || field;
@@ -201,6 +205,9 @@
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
               markToday(streak);
+              // 끝낸 그 자리에서 오늘 남은 놀이를 말해 준다 — 여기서 안 하면 그냥 창을 닫는다.
+              $('hiCourse').hidden = false;
+              mountCourseNext($('hiCourse'), 'higher');
             }
           }
 
