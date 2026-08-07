@@ -1149,6 +1149,41 @@ await ctx.close();
   await ctx.close();
 }
 
+/**
+ * 접근성 바닥 — **지금 0건이라서 지금 잠근다.**
+ *
+ * 이런 것들은 하나씩 슬금슬금 들어오고, 눈으로 보는 사람에게는 끝까지 아무 표도 안 난다:
+ * alt 없는 그림, 이름 없는 단추(아이콘만 든 것), 건너뛴 제목 단계, 이름표 없는 입력칸.
+ * 지금은 네 페이지 다 깨끗하다. 깨끗한 김에 기계에 맡긴다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  const sins = [];
+  for (const path of ['', 'pokemon/', 'pokemon/silhouette/', 'pokemon/past/']) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'networkidle' });
+    const r = await page.evaluate(() => {
+      const noAlt = [...document.querySelectorAll('img')].filter((e) => !e.hasAttribute('alt')).length;
+      const nameless = [...document.querySelectorAll('button, a')].filter(
+        (e) => !(e.getAttribute('aria-label') || e.textContent.trim() || e.querySelector('img[alt]:not([alt=""])')),
+      ).length;
+      const heads = [...document.querySelectorAll('h1,h2,h3,h4')].map((e) => Number(e.tagName[1]));
+      let skip = null;
+      for (let i = 1; i < heads.length; i += 1) if (heads[i] - heads[i - 1] > 1) skip = `${heads[i - 1]}→${heads[i]}`;
+      const noLabel = [...document.querySelectorAll('input')].filter((e) => !e.getAttribute('aria-label') && !e.labels?.length).length;
+      return { noAlt, nameless, skip, noLabel, lang: document.documentElement.lang, h1: document.querySelectorAll('h1').length };
+    });
+    if (r.noAlt) sins.push(`/${path} alt 없는 그림 ${r.noAlt}`);
+    if (r.nameless) sins.push(`/${path} 이름 없는 단추·링크 ${r.nameless}`);
+    if (r.skip) sins.push(`/${path} 제목 단계 건너뜀 ${r.skip}`);
+    if (r.noLabel) sins.push(`/${path} 이름표 없는 입력칸 ${r.noLabel}`);
+    if (r.lang !== 'ko') sins.push(`/${path} 언어 표시 ${r.lang || '없음'}`);
+    if (r.h1 !== 1) sins.push(`/${path} h1 ${r.h1}개`);
+  }
+  check('★ 접근성 바닥이 지켜진다', sins.length === 0, sins.join(' · ') || '네 페이지 전부 깨끗');
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 
