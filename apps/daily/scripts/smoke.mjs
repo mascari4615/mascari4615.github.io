@@ -436,7 +436,7 @@ for (const withShare of [true, false]) {
     const box = await e.boundingBox();
     if (box && box.height < 44) small.push(`.sug button ${Math.round(box.height)}px<44`);
   }
-  await measure(`${base}/`, [['.hub-jump a', 44], ['.how summary', 40], ['.past-links a', 36]]);
+  await measure(`${base}/`, [['.hub-jump a', 44], ['.how summary', 40], ['.group-t a', 28]]);
   await measure(`${base}/pokemon/past/`, [['table.past .play', 36], ['.past-more button', 44]]);
   check('누르는 자리가 다 손가락만 하다', small.length === 0, small.join(' · ') || '전부 기준 이상');
   await ctx.close();
@@ -543,11 +543,13 @@ const ctx = await browser.newContext({ viewport: { width: 1000, height: 800 } })
 const page = await ctx.newPage();
 await page.goto(`${base}/`, { waitUntil: 'networkidle' });
 check('허브가 판을 다 건다', (await page.locator('.card').count()) >= 4);
+const groups = await page.locator('.group').count();
+check('허브가 주제로 묶어 보여 준다', groups >= 3, groups + '묶음');
 check('허브에 하는 법이 있다', (await page.locator('.how li').count()) >= 3);
 // 고를 것부터 정해야 하는 화면은 그만큼 사람을 놓친다 — 한 번에 시작할 길이 있어야 한다.
 const jump = page.locator('.hub-jump a');
 check('허브에서 한 번에 시작할 수 있다', (await jump.count()) === 1, await jump.innerText().catch(() => ''));
-check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past-links a').count()) >= 2);
+check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.group-t a').count()) >= 2);
 
 // 한 판 끝낸 사람이 허브로 돌아오면, 다 푼 판이 표시돼야 한다 (같은 판을 또 누르는 낭비 차단).
 {

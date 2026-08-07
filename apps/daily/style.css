@@ -391,7 +391,15 @@ table.past .play:hover { border-color: var(--accent); }
 .foot a { color: var(--ink-2); }
 
 /* ── 허브 ── */
-.cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+/* 판이 주제 × 모드라 평면으로 늘어놓으면 주제가 늘수록 어지럽다 — 주제로 묶어 구조가 보이게. */
+.group { margin-bottom: 18px; }
+.group-t { font-size: 15px; margin: 0 0 8px; letter-spacing: -0.01em; }
+.group-t span { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+/* 본문 안 인라인 링크라 44 는 과하지만 15px 은 손가락으로 못 누른다 — 28 로. */
+.group-t a { display: inline-flex; align-items: center; min-height: 28px; padding: 0 6px; color: var(--ink-2); }
+.card h3 { margin: 0 0 2px; font-size: 15px; }
+
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .card {
   display: block;
   text-decoration: none;

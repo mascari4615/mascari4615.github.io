@@ -40,7 +40,8 @@ for (const card of document.querySelectorAll('.card[data-topic]')) {
 const jump = document.querySelector('.hub-jump');
 const firstUndone = [...document.querySelectorAll('.card[data-topic]')].find((c) => !c.classList.contains('done-today'));
 if (jump && firstUndone) {
-  const name = firstUndone.querySelector('h2').textContent.trim();
+  const group = firstUndone.closest('.group')?.querySelector('.group-t')?.firstChild?.textContent?.trim() ?? '';
+  const name = `${group} ${firstUndone.querySelector('h3').textContent.trim()}`.trim();
   jump.innerHTML = `<a class="btn" href="${firstUndone.getAttribute('href')}">${left === document.querySelectorAll('.card[data-topic]').length ? '오늘 한 판 시작' : '남은 판 이어서'} · ${name}</a>`;
 }
 
