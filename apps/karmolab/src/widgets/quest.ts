@@ -13,7 +13,10 @@ import { mountCourseNext } from './play-course';
     q: string;
     tool: string;
     hint: string;
-    a: string[];
+    /** 표에 적힌 문제 — 답은 지문(sha-256 앞 16자)으로만 둔다. */
+    a?: string[];
+    /** 그날 만들어진 문제 — 답을 그 자리에서 견준다. */
+    ok?: (v: string) => boolean;
   }
 
   const KEY = 'karmolab_quest';
@@ -32,6 +35,83 @@ import { mountCourseNext } from './play-course';
   async function fingerprint(s: string): Promise<string> {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(norm(s)));
     return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  }
+
+  /* 날짜에서 나오는 난수 — 같은 날이면 누구에게나 같은 문제가 나온다(서버 없이 맞추는 법). */
+  function seeded(n: number): () => number {
+    let x = (n * 2654435761) >>> 0;
+    return () => {
+      x ^= x << 13;
+      x >>>= 0;
+      x ^= x >> 17;
+      x ^= x << 5;
+      x >>>= 0;
+      return x / 4294967296;
+    };
+  }
+
+  /**
+   * 그날 만들어지는 문제 (TASK-KL-089).
+   *
+   * 표에 적어 둔 문제는 열여섯 개뿐이라 **열여섯 밤이면 처음으로 돌아온다** — 매일 오는 놀이가
+   * 두 주 만에 재방송이 된다. 유형은 그대로 두고 숫자만 그날 것으로 뽑으면 바닥이 없다.
+   * 표 문제와 하루씩 번갈아 나오므로, 손으로 쓴 문제의 결도 안 사라진다.
+   */
+  function madeToday(day: number): Puzzle {
+    const rnd = seeded(day);
+    const pickOf = <T,>(arr: T[]): T => arr[Math.floor(rnd() * arr.length)];
+    const kind = Math.floor(rnd() * 4);
+    const norm2 = (v: string): string => v.toLowerCase().replace(/[\s,]/g, '');
+
+    if (kind === 0) {
+      const n = 100 + Math.floor(rnd() * 3900);
+      const base = pickOf([2, 8, 16]);
+      return {
+        id: `g${day}`,
+        q: `${n} 을 ${base}진법으로 쓰면?`,
+        tool: 'radix',
+        hint: `진법 변환기에 ${n} 을 넣고 ${base}진법 칸을 보세요`,
+        ok: (v) => norm2(v).replace(/^0[bxo]/, '') === n.toString(base)
+      };
+    }
+    if (kind === 1) {
+      const n = 1 + Math.floor(rnd() * 60);
+      const [from, to, f] = pickOf<[string, string, (x: number) => number]>([
+        ['킬로미터', '마일', (x) => x / 1.609344],
+        ['킬로그램', '파운드', (x) => x * 2.2046226],
+        ['섭씨', '화씨', (x) => (x * 9) / 5 + 32],
+        ['인치', '센티미터', (x) => x * 2.54]
+      ]);
+      const want = f(n);
+      return {
+        id: `g${day}`,
+        q: `${n}${from === '섭씨' ? '도' : ' ' + from} 는 몇 ${to} 인가요? (소수 첫째 자리까지)`,
+        tool: 'unitconv',
+        hint: `단위 변환에서 ${from} → ${to} 로 ${n} 을 넣어 보세요`,
+        // 반올림 자리를 하나 어긋나게 적어도 맞다고 본다 — 도구가 보여 주는 자릿수가 제각각이다.
+        ok: (v) => Math.abs(parseFloat(norm2(v)) - want) < 0.15
+      };
+    }
+    if (kind === 2) {
+      const mb = pickOf([2, 4, 8, 16, 32, 64, 128]);
+      return {
+        id: `g${day}`,
+        q: `${mb} MB 는 몇 KB 인가요? (1 MB = 1024 KB)`,
+        tool: 'bytesize',
+        hint: `용량 변환에 ${mb} MB 를 넣고 KB 를 보세요`,
+        ok: (v) => parseFloat(norm2(v).replace(/kb$/, '')) === mb * 1024
+      };
+    }
+    const h = Math.floor(rnd() * 20) + 1;
+    const m = pickOf([5, 10, 15, 20, 25, 40, 50]);
+    const total = h * 60 + m;
+    return {
+      id: `g${day}`,
+      q: `${h}시간 ${m}분은 모두 몇 분인가요?`,
+      tool: 'timecalc',
+      hint: `시간 계산기로 ${h}시간 ${m}분을 분으로 바꿔 보세요`,
+      ok: (v) => parseFloat(norm2(v).replace(/분$/, '')) === total
+    };
   }
 
   Toolbox.register({
@@ -174,7 +254,7 @@ import { mountCourseNext } from './play-course';
 
           /* 오늘 것을 끝내면 할 게 없어 그냥 나가게 된다 — 지난 문제를 연습으로 더 풀게 한다. */
           function practiceRound(): void {
-            const todayId = all[dayNo() % all.length].id;
+            const todayId = current ? current.id : '';
             const pool = all.filter((x) => x.id !== todayId && x.id !== current?.id);
             if (!pool.length) return;
             current = pool[Math.floor(Math.random() * pool.length)];
@@ -196,7 +276,9 @@ import { mountCourseNext } from './play-course';
               .then((r) => r.json())
               .then((j: { puzzles: Puzzle[] }) => {
                 all = j.puzzles;
-                current = all[dayNo() % all.length];
+                // 하루는 손으로 쓴 문제, 하루는 그날 만든 문제 — 표가 다 돌아도 재방송이 안 된다.
+                const d = dayNo();
+                current = d % 2 === 1 ? madeToday(d) : all[Math.floor(d / 2) % all.length];
                 paint(current);
                 paintToday();
                 const st = load()[dayLabel()];
@@ -234,8 +316,8 @@ import { mountCourseNext } from './play-course';
             const v = ans().value.trim();
             if (!v) return;
             tries++;
-            const f = await fingerprint(v);
-            if (current.a.indexOf(f) !== -1) {
+            const hit = current.ok ? current.ok(v) : (current.a || []).indexOf(await fingerprint(v)) !== -1;
+            if (hit) {
               $('qsMsg').textContent = `맞았습니다 — ${tries}번 만에.`;
               $('qsTries').textContent = '🟩';
               finish(true);
