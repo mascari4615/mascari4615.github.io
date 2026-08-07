@@ -21,6 +21,13 @@
       "emoji": "🧩",
       "url": "/karmolab/#quest",
       "lead": "도구를 열어야 풀리는 하루 한 문제"
+    },
+    {
+      "id": "ghosttype",
+      "title": "유령 타자 대결",
+      "emoji": "👻",
+      "url": "/karmolab/#ghosttype",
+      "lead": "앞선 사람의 유령과 나란히 달린다 — 기록이 주소가 된다"
     }
   ]
 }

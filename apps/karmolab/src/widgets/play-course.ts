@@ -49,9 +49,20 @@ export function doneToday(id: string): boolean {
   return false;
 }
 
-/** 놀이 목록(games.json)을 받아 오늘 상태를 붙여 돌려준다. */
+/**
+ * 코스가 **셀 줄 아는** 놀이 — 「오늘 했나」를 읽는 법이 위 doneToday 에 적힌 것들.
+ *
+ * 놀이터 목록에는 이보다 더 들어올 수 있다(새 놀이가 늘 먼저 목록에 붙는다). 그때 목록을
+ * 그대로 코스로 삼으면, 읽을 줄 모르는 놀이가 **영영 안 끝나는 칸**이 되어 코스가 통째로
+ * 완주 불가가 된다. 그래서 코스는 여기 적힌 것만 센다 — 새 놀이는 읽는 법을 더한 날 합류한다.
+ */
+const COUNTED = ['daily', 'higher', 'quest'];
+
+/** 놀이 목록(games.json)을 받아 오늘 상태를 붙여 돌려준다. 셀 줄 모르는 놀이는 빼고. */
 export function courseSteps(games: Array<{ id: string; title: string; url: string }>): CourseStep[] {
-  return games.map((g) => ({ id: g.id, title: g.title, url: g.url, done: doneToday(g.id) }));
+  return games
+    .filter((g) => COUNTED.indexOf(g.id) >= 0)
+    .map((g) => ({ id: g.id, title: g.title, url: g.url, done: doneToday(g.id) }));
 }
 
 /**
@@ -97,6 +108,7 @@ export function mountCourseNext(slot: HTMLElement, meId: string): void {
     .then((j: { games: Array<{ id: string; title: string; url: string; emoji?: string }> }) => {
       if (!slot.isConnected) return;
       const steps = courseSteps(j.games);
+      if (!steps.some((s) => s.id === meId)) return; // 코스 밖의 놀이는 코스를 말하지 않는다
       const left = steps.filter((s) => !s.done && s.id !== meId);
       const meDone = steps.every((s) => s.done);
 
