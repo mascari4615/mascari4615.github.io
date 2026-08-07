@@ -52,6 +52,8 @@ import { fileSize as size } from './shared/media';
 
   Toolbox.register({
     id: 'imgresize',
+    // 다른 도구가 만든 그림을 그대로 받는다 (TASK-KL-133)
+    accepts: ['image/*'],
     title: '사진 크기 맞추기',
     category: 'tool',
     desc: '가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다',
@@ -241,6 +243,15 @@ import { fileSize as size } from './shared/media';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type.startsWith('image/')) {
+              load(new File([handed.blob], handed.name || '넘겨받은-그림', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -284,6 +295,8 @@ import { fileSize as size } from './shared/media';
             a.click();
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             say(`${size(made.size)} 로 받았어요.`, 'ok');
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'imgresize' });
           };
         }
       }
