@@ -321,6 +321,9 @@ table.past .n { display: block; font-size: 11px; color: var(--ink-3); }
 table.past .mo { display: block; font-size: 10.5px; color: var(--ink-3); }
 table.past img { width: 34px; height: 34px; object-fit: contain; vertical-align: middle; margin-right: 6px; }
 table.past b { font-size: 14px; }
+table.past .play { display: inline-block; margin-top: 4px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+table.past .play:hover { border-color: var(--accent); }
+.tab.practice { background: var(--near); color: #fff; border-color: transparent; }
 
 .foot { margin-top: 34px; color: var(--ink-3); font-size: 12px; text-align: center; }
 .foot a { color: var(--ink-2); }

@@ -173,6 +173,57 @@ await pastPage('genshin');
 }
 
 /**
+ * 연습 — 놓친 날 문제를 지금 푼다. 오늘 답이 새면 놀이가 끝장나므로 그 선만은 기계가 지킨다.
+ */
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'pokemon.json'), 'utf8'));
+  const yesterday = new Date(Date.now() - 86400000);
+  const dayKey = new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const past = answerOf(topic, yesterday);
+  const today = answerOf(topic);
+
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  await page.goto(`${base}/pokemon/?d=${dayKey}`, { waitUntil: 'networkidle' });
+  check('연습 판임을 알려 준다', /연습/.test(await page.locator('.tabs').innerText()));
+
+  await page.fill('.guessbar input', past.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${past.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  check('그날 정답으로 맞혀진다', (await page.locator('.done').innerText()).includes(past.name), past.name);
+  check(
+    '연습은 기록에 안 들어간다',
+    await page.evaluate(() => !localStorage.getItem('daily:streak')),
+  );
+  check(
+    '연습이 오늘 진행을 안 덮는다',
+    await page.evaluate(() => !localStorage.getItem('daily:pokemon:classic')),
+  );
+
+  // ★ 오늘·미래 날짜로는 연습이 안 열려야 한다 (열리면 오늘 답이 샌다).
+  const todayKey = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  await page.goto(`${base}/pokemon/?d=${todayKey}`, { waitUntil: 'networkidle' });
+  check('★ 오늘 날짜로는 연습이 안 열린다', !/연습/.test(await page.locator('.tabs').innerText()));
+  await page.fill('.guessbar input', today.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${today.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  check('그 자리는 오늘 판 그대로다', (await page.locator('.done').innerText()).includes(today.name));
+  await ctx.close();
+}
+
+/** 지난 문제 목록에서 그날 판으로 바로 갈 수 있어야 한다. */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  await page.goto(`${base}/pokemon/past/`, { waitUntil: 'networkidle' });
+  const links = await page.$$eval('table.past .play', (els) => els.map((e) => e.getAttribute('href')));
+  check('지난 문제에서 풀어보기로 간다', links.length > 5 && links.every((h) => /\?d=\d{4}-\d{2}-\d{2}$/.test(h)), `${links.length}개`);
+  await ctx.close();
+}
+
+/**
  * 그림이 *실제로 받아지는지* 본다.
  * 실루엣은 그림이 전부인데, 밝기만 보는 검사는 그림이 깨져도 통과한다 (실제로 통과했다).
  * 주소가 적혀 있는 것과 화면에 뜨는 것은 다른 일이다.
