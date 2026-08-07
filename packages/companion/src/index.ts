@@ -93,6 +93,7 @@ export * from './self-image';
 export * from './settings';
 export * from './stated';
 export * from './memory/known-stamps';
+export * from './room';
 export * from './voice/feeling-tone';
 export * from './watching';
 export * from './while-away';
