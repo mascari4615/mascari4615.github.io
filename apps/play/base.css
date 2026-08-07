@@ -1,0 +1,172 @@
+---
+layout: none
+permalink: /karmolab/play/base.css
+---
+/* 이 파일은 만들어진 것이다 — 손으로 고치지 마라 (apps/play/scripts/base-css.mjs).
+   색·글씨 크기는 KarmoLab(css/toolbox.css)에서 그대로 떠 온다. */
+
+:root {
+    /* 브라우저가 직접 그리는 것들(날짜 선택 달력 아이콘·숫자 증감 화살표·기본 스크롤바)에게
+       지금 테마를 알려 준다. 안 알려 주면 어두운 화면에 검은 아이콘이 얹혀 안 보인다. */
+    color-scheme: dark;
+
+    /* 밤의 종이 — body는 보라 기운의 어두움, 카드/패널은 paper/ink 톤 유지 (TASK-KL-097) */
+    --bg-void: #0e0d14;        /* night sky */
+    --bg-primary: #16151f;     /* paper */
+    --bg-secondary: #1b1a26;   /* paper-2 */
+    --bg-tertiary: #24222f;    /* line */
+    --bg-hover: #302d40;       /* line-2 */
+    --bg-active: #423e56;      /* line-3 */
+
+    --glass: rgba(22, 21, 31, 0.96);
+    --glass-hover: rgba(27, 26, 38, 0.98);
+    --glass-strong: rgba(14, 13, 20, 0.98);
+    /* 유리를 옅게 열어 둘수록 흐림이 세야 「유리」로 읽힌다 — 약하면 그냥 반투명 판이다. */
+    --glass-blur: blur(22px) saturate(160%);
+
+    --text-primary: #f2f2ee;   /* ink */
+    --text-secondary: #9a9a94; /* ink-2 */
+    /* 흐린 라벨("키 (cm)" 같은 것)이 카드 위에서 2.1:1 까지 떨어져 56곳이 읽기 힘들었다.
+       흐림은 유지하되 읽히는 선까지만 올린다. */
+    --text-tertiary: #7a7a75;  /* ink-3 */
+
+    /* Typography tokens */
+    --font-size-2xs: 12px;
+    --font-size-xs: 14px;
+    --font-size-sm: 16px;
+    --font-size-md: 18px;
+    --font-size-lg: 22px;
+
+    /* 브랜드 = 연보라 (TASK-KL-097). 황동 금색은 폐기 — 두 테마가 같은 색을 공유한다. */
+    --accent: #a99bf5;         /* 연보라 글로우 — 어두운 바탕에서 뜨게 밝게 */
+    --accent-hover: #c0b5f8;
+    --accent-dim: rgba(169, 155, 245, 0.15);
+    --accent-subtle: rgba(169, 155, 245, 0.08);
+    --accent-glow: rgba(169, 155, 245, 0.30);
+
+    --secondary: #7fa6d4;      /* cool starlight */
+    --secondary-hover: #95b7df;
+    --secondary-subtle: rgba(127, 166, 212, 0.08);
+    --secondary-glow: rgba(127, 166, 212, 0.25);
+
+    --success: #22C55E;
+    --success-subtle: rgba(34, 197, 94, 0.08);
+    --error: #ED4245;
+    --error-subtle: rgba(237, 66, 69, 0.08);
+    --warning: #F59E0B;
+    --warning-subtle: rgba(245, 158, 11, 0.08);
+
+    --border: rgba(242, 242, 238, 0.06);
+    --border-hover: rgba(242, 242, 238, 0.12);
+    --border-strong: rgba(169, 155, 245, 0.4);
+
+    /* Observatory: 직각에 가까운 라디우스 (종이/도감 톤) */
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+
+    /* 위젯 내부 툴 사이드바 폭 (이미지 편집 등; 앱 메인 내비와 무관) */
+    --sidebar-width: 224px;
+    --sidebar-collapsed-width: 56px;
+    --transition: 180ms ease;
+    --transition-fast: 100ms ease;
+    --transition-slow: 350ms ease;
+
+    /* Inter 를 뺐다(TASK-KL-089). 앞의 'Noto Sans KR' 이 영문·숫자까지 덮어 도달하지 않는
+       자리였고, 웹글꼴도 더 이상 부르지 않는다. 남겨 두면 Inter 가 설치된 기기에서만
+       다른 글씨체로 보여 사람마다 화면이 갈린다. */
+    --font-sans: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Noto Serif KR', Georgia, 'Times New Roman', serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Liberation Mono', monospace;
+
+    --grid-color: rgba(242, 242, 238, 0.015);
+    --vignette: rgba(0, 0, 0, 0.5);   /* 바닥 가장자리 어둠 */
+
+    /* 넓게 칠하는 버튼 전용. 다크에선 강조색 그대로가 가장 밝게 빛난다. */
+    --fill-strong: var(--accent);
+    --fill-strong-hover: var(--accent-hover);
+    --fill-strong-ink: var(--bg-void);
+    --glow-text: none;
+    --glow-box: none;
+    --shadow-float: 0 1px 0 rgba(0, 0, 0, 0.25);
+
+    /* 헤더 줄 + 메가메뉴 패널 동일 표면 (토스형: 위아래 한 장의 글래스) */
+    --header-shell-glass: color-mix(in srgb, var(--glass) 35%, transparent);
+    /* 메가 패널 max-height와 헤더 ::after 확장 높이를 반드시 동일하게 */
+    --header-mega-max-h: min(44vh, 320px);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 1.6rem 1rem 3rem;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  font-size: var(--font-size-sm);
+}
+main { max-width: 40rem; margin: 0 auto; }
+a { color: var(--accent); }
+
+.play-crumb { font-size: var(--font-size-2xs); color: var(--text-tertiary); margin-bottom: 0.7rem; }
+.play-crumb a { color: inherit; text-decoration: none; }
+.play-crumb a:hover, .play-crumb a:focus-visible { color: var(--text-primary); text-decoration: underline; }
+
+h1 { font-size: var(--font-size-lg); margin: 0 0 0.2rem; letter-spacing: -0.01em; }
+.play-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 1.2rem; }
+
+/* 놀이끼리 오가는 줄 — 목록 정본은 apps/play/games.json */
+.play-strip { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0 0 1rem; font-size: var(--font-size-2xs); }
+.play-strip a, .play-strip-now {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 0.7rem;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  text-decoration: none; color: var(--text-secondary); background: var(--bg-primary);
+}
+.play-strip a:hover, .play-strip a:focus-visible { color: var(--text-primary); border-color: var(--border-hover); }
+.play-strip-now { background: var(--accent-dim); color: var(--accent); border-color: var(--border-strong); font-weight: 700; }
+.play-strip-all { background: transparent; }
+
+/* 판·주제를 고르는 칩 */
+.play-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.1rem; }
+.play-chips button {
+  font: inherit; font-size: var(--font-size-2xs); min-height: 38px; padding: 0 0.85rem; cursor: pointer;
+  background: var(--bg-primary); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.play-chips button:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.play-chips button[aria-pressed='true'] { background: var(--accent-dim); color: var(--accent); border-color: var(--border-strong); font-weight: 700; }
+
+.play-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+
+button.play-go, .play-go {
+  font: inherit; font-size: var(--font-size-xs); min-height: 44px; padding: 0 1.1rem; cursor: pointer;
+  background: var(--accent); color: var(--bg-void); border: 0; border-radius: var(--radius-lg); font-weight: 700;
+}
+button.play-ghost {
+  font: inherit; font-size: var(--font-size-xs); min-height: 44px; padding: 0 1.1rem; cursor: pointer;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+button.play-ghost:hover { color: var(--text-primary); border-color: var(--border-hover); }
+
+input[type='text'], input[type='search'] {
+  font-size: 16px; /* 폰에서 눌러도 화면이 확대되지 않게 */
+  padding: 0.55rem 0.7rem; min-height: 44px; min-width: 0;
+  background: var(--bg-void); color: var(--text-primary);
+  border: 1px solid var(--border-hover); border-radius: var(--radius-lg);
+}
+input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.play-ok { color: var(--success); }
+.play-no { color: var(--error); }
+.play-foot { margin-top: 2rem; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.play-foot a { color: var(--text-secondary); }

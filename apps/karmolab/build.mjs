@@ -191,6 +191,7 @@ const entryPoints = [
   'src/widgets/tools/jsonfmt.ts',
   'src/widgets/tools/hangulkey.ts',
   'src/widgets/tools/qrgen.ts',
+  'src/widgets/tools/higher.ts',
   'src/widgets/tools/lotto.ts',
   'src/widgets/tools/timer.ts',
   'src/widgets/tools/datecalc.ts',
