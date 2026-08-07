@@ -40,7 +40,13 @@ const WANT = [
   ['블로그에서 도구로 가는 길', '/', /href="[^"]*\/karmolab\/t\/"/, '글 수백 장에서 도구로 가는 길이 사라진다'],
   ['없는 도구 주소 건지기', '/karmolab/t/그런도구없음/', /karmolab-rescue/, '옛 링크로 온 사람이 그냥 버려진다'],
   ['놀이 — 높은 쪽 고르기', '/karmolab/higher/', /id="picks"/, '목록에서 링크만 걸리고 열면 없다'],
-  ['놀이 — 오늘의 문제', '/karmolab/quest/', /id="all"/, '목록에서 링크만 걸리고 열면 없다']
+  ['놀이 — 오늘의 문제', '/karmolab/quest/', /id="all"/, '목록에서 링크만 걸리고 열면 없다'],
+  // TASK-KL-098 — 아래 셋은 실제로 한 번 통째로 사라진 적이 있다. 다른 작업이 같은 파일을
+  // 다시 쓰면서 줄이 없어졌고, 내 컴퓨터를 보는 검사는 전부 초록이었다.
+  ['로그인·기록 스크립트', '/karmolab/', /js\/account\.js/, '로그인·헤더·광장이 통째로 죽는다 (한 번 그랬다)'],
+  ['그 스크립트가 실제로 받아진다', '/apps/karmolab/js/account.js', /KarmoAccount/, '부르기는 하는데 파일이 안 만들어져 404 다'],
+  ['광장 입구', '/karmolab/', /Toolbox\.switchPage\('plaza'\)/, '이야기·도구 요청으로 가는 길이 없어진다'],
+  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다']
 ];
 
 for (const [what, where, re, hurt] of WANT) {
