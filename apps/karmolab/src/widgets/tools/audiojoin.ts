@@ -174,10 +174,7 @@ import { acceptPastedFiles } from './shared/paste';
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
-            const handed = Toolbox.takeResult?.();
-            if (handed && handed.blob && (handed.blob.type.startsWith('audio/'))) {
-              void add([new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type })]);
-            }
+              Toolbox.onHandoff?.(['audio/*'], (f: File) => void add([f]));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -190,7 +187,7 @@ import { acceptPastedFiles } from './shared/paste';
             if (e.dataTransfer?.files) void add(e.dataTransfer.files);
           });
           // 파일을 바로 붙여넣는 것이 잦다
-          acceptPastedFiles(container, (files) => { void add(files); }, (f) => f.type.startsWith('audio/'));
+          acceptPastedFiles(container, (files) => { void add(files); }, (f: File) => f.type.startsWith('audio/'));
           gap.addEventListener('input', () => {
             $<HTMLElement>('#ajGapVal').textContent = (parseInt(gap.value, 10) / 10).toFixed(1) + '초';
             render();
