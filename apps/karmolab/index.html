@@ -138,6 +138,10 @@ permalink: /karmolab/
     </script>
 </head>
 <body>
+    <!-- 배경 판때기. 화면에 딱 맞게 붙어 있고(fixed + inset:0) 아무것도 안 받는다.
+         body 배경으로 두면 「화면이 이만할 것」이라는 추측(vh/svh/lvh)이 필요한데, 폰 주소창이
+         접혔다 펴질 때마다 그 추측이 어긋나 검은 띠가 났다 (TASK-KL-101). -->
+    <div class="app-bg" aria-hidden="true"></div>
     <!-- KARMOLAB_ROOT_INTRO — 스크립트를 실행하지 않는 크롤러만 보는 자리 (TASK-KL-089).
          이 페이지는 블로그의 모든 글에서 링크되는데, 스크립트를 안 돌리면 87자밖에 안 보였다.
          사람 화면은 그대로 두고(noscript 라 눈에 안 띈다) 크롤러에게만 무엇이 있는 곳인지와
