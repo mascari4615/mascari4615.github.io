@@ -19,6 +19,9 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SITE = 'https://blog.mascari4615.com';
 const BASE_PATH = '/karmolab/t';
 
+/* 검사(--audit)로 돌 때는 기록 파일을 건드리지 않는다 — 검사가 결과를 바꾸면
+   그건 검사가 아니다(다음 검사가 통과해 버린다). */
+const NO_STATE = process.env.KARMOLAB_GEN_NO_STATE === '1';
 const outArgIndex = process.argv.indexOf('--out');
 const outDir = path.resolve(root, outArgIndex >= 0 ? process.argv[outArgIndex + 1] : '../blog/karmolab/t');
 
@@ -282,7 +285,7 @@ for (const id of Object.keys(seen)) {
     seenChanged = true;
   }
 }
-if (seenChanged) {
+if (seenChanged && !NO_STATE) {
   seenFile.seen = seen;
   fs.writeFileSync(SEEN_PATH, `${JSON.stringify(seenFile, null, 2)}\n`);
 }
@@ -332,7 +335,7 @@ for (const id of Object.keys(modified)) {
     modifiedChanged = true;
   }
 }
-if (modifiedChanged) {
+if (modifiedChanged && !NO_STATE) {
   modifiedFile.tools = modified;
   fs.writeFileSync(MODIFIED_PATH, `${JSON.stringify(modifiedFile, null, 2)}\n`);
 }
@@ -635,12 +638,12 @@ function buildToolPage(id) {
   // 셸에는 큰제목이 둘 더 있다 — 첫 화면 인사말 「KarmoLab」과, 자바스크립트가 채우는 헤더 제목
   // (이쪽은 화면에 아예 안 나온다). 상세 페이지의 주제는 그 도구 하나인데 큰제목이 셋이면
   // 검색엔진이 무엇에 대한 문서인지 흐리게 읽는다. 생김새는 클래스가 정하므로 태그만 바꾼다.
-  for (const [before, after] of [
-    ['<h1 class="intro-title">KarmoLab</h1>', '<div class="intro-title">KarmoLab</div>'],
-    ['<h1 class="content-title" id="pageTitle"></h1>', '<div class="content-title" id="pageTitle"></div>']
-  ]) {
-    if (!html.includes(before)) throw new Error(`셸에서 큰제목을 못 찾음 — index.html 확인: ${before.slice(0, 40)}`);
-    html = html.replace(before, after);
+  // 태그를 **통째 문자열로** 찾다가, 셸에 속성 하나(id) 가 붙자 생성기가 통째로 멈췄다.
+  // 클래스만 보고 태그 이름을 바꾼다 — 속성이 늘어도 계속 맞는다.
+  for (const cls of ['intro-title', 'content-title']) {
+    const re = new RegExp(`<h1([^>]*\\bclass="${cls}"[^>]*)>([\\s\\S]*?)</h1>`);
+    if (!re.test(html)) throw new Error(`셸에서 큰제목을 못 찾음 — index.html 확인: class="${cls}"`);
+    html = html.replace(re, '<div$1>$2</div>');
   }
 
   // 랜덤 생성기 전용 스타일은 상세 페이지에서 뺀다 (TASK-KL-089).

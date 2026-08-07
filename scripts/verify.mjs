@@ -41,6 +41,13 @@ if (!existsSync('packages/karmolab-ai/dist')) {
 requireDeps('apps/karmolab');
 run('apps/karmolab build', 'apps/karmolab', 'npm run build');
 
+// 2.1. 도구 페이지가 앱 셸과 갈라졌는지 (KL-097).
+//    도구 상세 127장은 index.html 에서 **만들어진 것**이다. 단일 출처는 이미 있는데,
+//    셸을 고치고 다시 안 찍어도 아무도 안 잡았다 — 실제로 인트로 규칙과 브랜드 글자 규칙을
+//    고친 날 125장이 옛 셸인 채로 남아 있었다. 페이지가 멀쩡히 열려서 눈으로는 안 보인다.
+//    임시 자리에 다시 만들어 대조한다(작업 트리를 안 건드리고, 남의 미커밋 변경도 안 잡는다).
+run('도구 페이지 최신 여부', 'apps/karmolab', 'node scripts/audit-tool-pages-fresh.mjs');
+
 // 2.5. 인라인 이벤트 핸들러 TS 문법 게이트 (KL-120 회귀 차단).
 //    HTML 템플릿 문자열 안의 `onclick="..."` 은 tsc/esbuild 가 *문자열*로만 보고
 //    통과시킨다 → `onclick="(window as any)._cb.send()"` 같은 게 그대로 브라우저에
