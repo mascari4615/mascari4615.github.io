@@ -135,6 +135,7 @@ import {
   readRapport,
   asksAboutSelf,
   composeIngredients,
+  드묾덧입히기,
   밀린생각,
   stripExpression,
   tangentFor,
@@ -713,7 +714,10 @@ const companion = new Companion({
        「대화가 되는 느낌이 아니다」가 **모델 탓인지 재료 탓인지**는 재료를 봐야 갈린다 —
        발동 기록은 무엇이 실렸는지만 알려 주지 그 글이 어떻게 생겼는지는 안 보여 준다. */
     const 보여줄까 = process.env.COMPANION_SHOW_MATERIAL === '1';
-    const 만든것 = composeIngredients(밀린것.덧입히기([
+    /* 드물게 켜지는 재료는 켜졌을 때 이겨야 한다(82회차). 얼마나 드문지는 우리가 정하지
+       않고 **발동 기록이 이미 센 값**을 쓴다. 밀린 것(72회차)과 겹쳐 얹는다 — 하나는
+       「참은 만큼」, 하나는 「드문 만큼」이라 서로 다른 것을 잰다. */
+    const 만든것 = composeIngredients(드묾덧입히기(밀린것.덧입히기([
       /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
          2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
@@ -821,7 +825,7 @@ const companion = new Companion({
          새 재료를 넣을 때마다 예전 것이 **조용히** 밀렸고, 그건 발동 기록을 봐야만
          보였다. 재료가 는 만큼만 늘린다(420자·5줄 → 520자·6줄). 더 늘리면 29회차에
          고쳤던 「재료 과밀」로 되돌아간다. */
-    ]), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
+    ]), (name) => tally.get(name)), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     밀린것.다음턴();
