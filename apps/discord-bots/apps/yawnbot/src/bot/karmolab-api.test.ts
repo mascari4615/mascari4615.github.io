@@ -193,100 +193,203 @@ describe('계정 API — HTTP', () => {
     expect(res.status).toBe(400);
   });
 
-  it('요청판 — 보는 건 로그인 없이, 쓰는 건 로그인해야', async () => {
-    const anon = await fetch(`${baseUrl}/kl/requests`);
-    const anonBody = (await anon.json()) as { requests: unknown[]; signedIn: boolean };
+  it('글판 — 보는 건 로그인 없이, 쓰는 건 로그인해야', async () => {
+    const anon = await fetch(`${baseUrl}/kl/posts?kind=request`);
+    const anonBody = (await anon.json()) as { posts: unknown[]; signedIn: boolean; kind: string };
     expect(anon.status).toBe(200);
     expect(anonBody.signedIn).toBe(false);
+    expect(anonBody.kind).toBe('request');
 
-    const denied = await fetch(`${baseUrl}/kl/requests`, {
+    const denied = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: '엑셀 변환 도구 만들어 주세요' }),
+      body: JSON.stringify({ kind: 'request', text: '엑셀 변환 도구 만들어 주세요' }),
     });
     expect(denied.status).toBe(401);
 
     const { cookie } = signIn();
-    const posted = await fetch(`${baseUrl}/kl/requests`, {
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify({ text: '엑셀 변환 도구 만들어 주세요' }),
+      body: JSON.stringify({ kind: 'request', text: '엑셀 변환 도구 만들어 주세요' }),
     });
-    const list = (await posted.json()) as { requests: Array<{ text: string; votes: number; votedByMe: boolean }> };
-    expect(list.requests[0].text).toBe('엑셀 변환 도구 만들어 주세요');
-    expect(list.requests[0].votes).toBe(1);
+    const list = (await posted.json()) as { posts: Array<{ text: string; votes: number }> };
+    expect(list.posts[0].text).toBe('엑셀 변환 도구 만들어 주세요');
+    expect(list.posts[0].votes).toBe(1);
   });
 
-  it('요청판 — 빈 글·너무 긴 글은 안 들어간다', async () => {
+  it('게시판 — 이야기는 제목이 있어야 올라간다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+
+    const noTitle = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ kind: 'talk', text: '제목 없이 본문만' }),
+    });
+    expect(noTitle.status).toBe(400);
+
+    const ok = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ kind: 'talk', title: '첫 글', text: '안녕하세요' }),
+    });
+    const body = (await ok.json()) as { posts: Array<{ title: string; votes: number }> };
+    expect(body.posts[0].title).toBe('첫 글');
+    expect(body.posts[0].votes).toBe(0);
+  });
+
+  it('게시판 — 답글을 달면 그 글이 위로 올라온다', async () => {
+    const { cookie } = signIn();
+    const headers = { 'Content-Type': 'application/json', Cookie: cookie };
+    await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ kind: 'talk', title: '먼저', text: 'x' }),
+    });
+    const second = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ kind: 'talk', title: '나중', text: 'y' }),
+    });
+    const afterPost = (await second.json()) as { posts: Array<{ id: string; title: string }> };
+    expect(afterPost.posts.map((p) => p.title)).toEqual(['나중', '먼저']);
+    const firstId = afterPost.posts.filter((p) => p.title === '먼저')[0].id;
+
+    const reply = await fetch(`${baseUrl}/kl/posts/${firstId}/replies`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ text: '반가워요' }),
+    });
+    expect(reply.status).toBe(200);
+
+    const listed = await fetch(`${baseUrl}/kl/posts?kind=talk`, { headers: { Cookie: cookie } });
+    const listBody = (await listed.json()) as { posts: Array<{ title: string; replies: unknown[] }> };
+    expect(listBody.posts.map((p) => p.title)).toEqual(['먼저', '나중']);
+    expect(listBody.posts[0].replies).toHaveLength(1);
+  });
+
+  it('게시판 — 답글도 로그인해야 달린다', async () => {
+    const { cookie } = signIn();
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ kind: 'talk', title: '글', text: 'x' }),
+    });
+    const id = ((await created.json()) as { posts: Array<{ id: string }> }).posts[0].id;
+    const denied = await fetch(`${baseUrl}/kl/posts/${id}/replies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: '몰래 답글' }),
+    });
+    expect(denied.status).toBe(401);
+  });
+
+  it('글판 — 빈 글·너무 긴 글은 안 들어간다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     expect(
-      (await fetch(`${baseUrl}/kl/requests`, { method: 'POST', headers, body: JSON.stringify({ text: ' ' }) })).status,
+      (
+        await fetch(`${baseUrl}/kl/posts`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ kind: 'request', text: ' ' }),
+        })
+      ).status,
     ).toBe(400);
     expect(
       (
-        await fetch(`${baseUrl}/kl/requests`, {
+        await fetch(`${baseUrl}/kl/posts`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ text: 'ㄱ'.repeat(500) }),
+          body: JSON.stringify({ kind: 'request', text: 'ㄱ'.repeat(500) }),
         })
       ).status,
     ).toBe(400);
   });
 
-  it('요청판 — 하루 상한을 넘기면 왜 막혔는지 말해 준다', async () => {
+  it('글판 — 하루 상한을 넘기면 왜 막혔는지 말해 준다', async () => {
     const { cookie } = signIn();
     const headers = { 'Content-Type': 'application/json', Cookie: cookie };
     for (let i = 0; i < 5; i += 1) {
-      const res = await fetch(`${baseUrl}/kl/requests`, {
+      const res = await fetch(`${baseUrl}/kl/posts`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ text: `요청 ${i}` }),
+        body: JSON.stringify({ kind: 'request', text: `요청 ${i}` }),
       });
       expect(res.status).toBe(200);
     }
-    const blocked = await fetch(`${baseUrl}/kl/requests`, {
+    const blocked = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ text: '여섯 번째' }),
+      body: JSON.stringify({ kind: 'request', text: '여섯 번째' }),
     });
     expect(blocked.status).toBe(429);
     expect((await blocked.json()) as { error: string }).toMatchObject({ error: 'daily_limit' });
+
+    // 이야기는 따로 센다 — 요청 상한에 걸렸다고 글도 못 쓰면 안 된다.
+    const talk = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ kind: 'talk', title: '글은 된다', text: '본문' }),
+    });
+    expect(talk.status).toBe(200);
   });
 
-  it('요청판 — 투표는 로그인 필요하고, 두 번 누르면 취소된다', async () => {
+  it('글판 — 투표는 로그인 필요하고, 두 번 누르면 취소된다', async () => {
     const { cookie } = signIn();
-    const posted = await fetch(`${baseUrl}/kl/requests`, {
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify({ text: '테스트 요청' }),
+      body: JSON.stringify({ kind: 'request', text: '테스트 요청' }),
     });
-    const created = (await posted.json()) as { requests: Array<{ id: string }> };
-    const id = created.requests[0].id;
+    const id = ((await posted.json()) as { posts: Array<{ id: string }> }).posts[0].id;
 
-    expect((await fetch(`${baseUrl}/kl/requests/${id}/vote`, { method: 'POST' })).status).toBe(401);
+    expect((await fetch(`${baseUrl}/kl/posts/${id}/vote`, { method: 'POST' })).status).toBe(401);
 
-    const off = await fetch(`${baseUrl}/kl/requests/${id}/vote`, { method: 'POST', headers: { Cookie: cookie } });
+    const off = await fetch(`${baseUrl}/kl/posts/${id}/vote`, { method: 'POST', headers: { Cookie: cookie } });
     expect((await off.json()) as { voted: boolean }).toMatchObject({ voted: false });
-    const on = await fetch(`${baseUrl}/kl/requests/${id}/vote`, { method: 'POST', headers: { Cookie: cookie } });
+    const on = await fetch(`${baseUrl}/kl/posts/${id}/vote`, { method: 'POST', headers: { Cookie: cookie } });
     expect((await on.json()) as { voted: boolean }).toMatchObject({ voted: true });
 
-    expect((await fetch(`${baseUrl}/kl/requests/없는id/vote`, { method: 'POST', headers: { Cookie: cookie } })).status).toBe(404);
+    expect(
+      (await fetch(`${baseUrl}/kl/posts/없는id/vote`, { method: 'POST', headers: { Cookie: cookie } })).status,
+    ).toBe(404);
   });
 
-  it('요청판 — 주인이 아니면 답을 못 단다', async () => {
+  it('글판 — 남의 글은 못 지운다', async () => {
     const { cookie } = signIn();
-    const posted = await fetch(`${baseUrl}/kl/requests`, {
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify({ text: '테스트 요청' }),
+      body: JSON.stringify({ kind: 'talk', title: '내 글', text: 'x' }),
     });
-    const id = ((await posted.json()) as { requests: Array<{ id: string }> }).requests[0].id;
+    const id = ((await posted.json()) as { posts: Array<{ id: string }> }).posts[0].id;
 
-    const denied = await fetch(`${baseUrl}/kl/requests/${id}`, {
+    const other = store.upsertFromDiscord({ discordId: '77', username: 'other', displayName: '남', avatarUrl: null });
+    const otherCookie = `kl_session=${encodeURIComponent(store.createSession(other.id).token)}`;
+    expect(
+      (await fetch(`${baseUrl}/kl/posts/${id}`, { method: 'DELETE', headers: { Cookie: otherCookie } })).status,
+    ).toBe(403);
+
+    expect((await fetch(`${baseUrl}/kl/posts/${id}`, { method: 'DELETE', headers: { Cookie: cookie } })).status).toBe(
+      200,
+    );
+  });
+
+  it('글판 — 주인이 아니면 요청 상태를 못 바꾼다', async () => {
+    const { cookie } = signIn();
+    const posted = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({ kind: 'request', text: '테스트 요청' }),
+    });
+    const id = ((await posted.json()) as { posts: Array<{ id: string }> }).posts[0].id;
+
+    const denied = await fetch(`${baseUrl}/kl/posts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },
-      body: JSON.stringify({ reply: '아무나 답 달기' }),
+      body: JSON.stringify({ status: 'planned' }),
     });
     expect(denied.status).toBe(403);
 
@@ -294,14 +397,15 @@ describe('계정 API — HTTP', () => {
     const before = process.env.ADMIN_IDS;
     process.env.ADMIN_IDS = '42';
     try {
-      const allowed = await fetch(`${baseUrl}/kl/requests/${id}`, {
+      const allowed = await fetch(`${baseUrl}/kl/posts/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Cookie: cookie },
-        body: JSON.stringify({ reply: '다음 주에 만들게요', status: 'planned' }),
+        body: JSON.stringify({ status: 'planned' }),
       });
-      const body = (await allowed.json()) as { requests: Array<{ reply: string; status: string }> };
-      expect(body.requests[0].reply).toBe('다음 주에 만들게요');
-      expect(body.requests[0].status).toBe('planned');
+      expect(allowed.status).toBe(200);
+      const listed = await fetch(`${baseUrl}/kl/posts?kind=request`);
+      const body = (await listed.json()) as { posts: Array<{ status: string }> };
+      expect(body.posts[0].status).toBe('planned');
     } finally {
       if (before === undefined) delete process.env.ADMIN_IDS;
       else process.env.ADMIN_IDS = before;
