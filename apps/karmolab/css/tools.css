@@ -1084,12 +1084,16 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 }
 .qs-tool:hover:not(:disabled) { border-color: var(--accent); }
 .qs-tool:disabled { opacity: .6; cursor: default; }
-/* 도구가 문제 밑에서 펴지는 자리 — 문제 카드 안이라 한 겹 더 들어가 보이게 한다. */
+/* 도구가 문제 밑에서 펴지는 자리 — 문제 카드 안이라 한 겹 더 들어가 보이게 한다.
+   높이를 묶어 **제 안에서** 스크롤하게 한다: 안 묶으면 진법 도구 하나가 1,043px 로 펴져
+   답 적는 칸이 화면 위로 밀려났다(폰 실측). 도구에서 답을 얻고 고개만 들면 칸이 있어야 한다. */
 .qs-slot {
     margin-top: 12px; padding: 14px;
+    max-height: 46vh; overflow: auto; overscroll-behavior: contain;
     background: var(--bg-primary); border: 1px solid var(--border);
     border-radius: var(--radius-xl);
 }
+@media (max-width: 640px) { .qs-slot { max-height: 44vh; } }
 .qs-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
 .qs-tries { letter-spacing: 0.18em; font-size: var(--font-size-md); min-height: 1.4em; }
 .qs-after { display: flex; }
