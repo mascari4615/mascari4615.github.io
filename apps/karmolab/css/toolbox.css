@@ -21,7 +21,8 @@
     --glass: rgba(22, 21, 31, 0.96);
     --glass-hover: rgba(27, 26, 38, 0.98);
     --glass-strong: rgba(14, 13, 20, 0.98);
-    --glass-blur: blur(14px);
+    /* 유리를 옅게 열어 둘수록 흐림이 세야 「유리」로 읽힌다 — 약하면 그냥 반투명 판이다. */
+    --glass-blur: blur(22px) saturate(160%);
 
     --text-primary: #f2f2ee;   /* ink */
     --text-secondary: #9a9a94; /* ink-2 */
@@ -171,9 +172,9 @@
     /* 라이트에선 카드와 바닥이 둘 다 순백이므로 그림자와 선이 계층을 통째로 맡는다 */
     --shadow-float: 0 1px 2px rgba(26, 26, 31, 0.06), 0 6px 16px -6px rgba(45, 35, 90, 0.16);
 
-    /* 다크처럼 옅은 유리로 두면, 밝은 화면에선 아래 그림이 번져 얼룩덜룩해진다.
-       라이트에선 거의 불투명한 종이 한 장으로 덮는다. */
-    --header-shell-glass: color-mix(in srgb, var(--glass) 94%, transparent);
+    /* 예전엔 거의 불투명한 종이(94%)로 덮었다 — 그때 바탕이 얼룩덜룩해서 비치면 지저분했다.
+       지금 바탕은 매끈한 홀로그램 한 장이라 그 이유가 사라졌다. 비치게 열어 둔다 (KL-097). */
+    --header-shell-glass: color-mix(in srgb, var(--glass) 52%, transparent);
 }
 [data-theme="light"] .spinner { border-color: rgba(0,0,0,0.08); border-top-color: var(--accent); }
 [data-theme="light"] select {
@@ -574,8 +575,12 @@ html[data-bg="minimal"] body {
     z-index: 0;
     background: var(--header-shell-glass);
     backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    /* 유리 아래끝 = 단색 선 대신 빛이 맺힌 가장자리 (KL-097).
+       옅게 열어 두면 단색 1px 선이 유리에 얹힌 자국처럼 겉돈다. */
+    border-bottom: 1px solid transparent;
+    border-image: linear-gradient(90deg,
+        transparent 0%, var(--accent-dim) 22%, var(--accent-glow) 50%, var(--accent-dim) 78%, transparent 100%) 1;
     pointer-events: none;
 }
 .header-bar:has(.header-nav-group.is-open)::after {
