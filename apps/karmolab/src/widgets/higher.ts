@@ -127,13 +127,22 @@
             }</span>`;
           }
 
-          /* 이긴 쪽은 자리에 남는다 — 방금 본 값과 계속 견주게 되는 것이 이 놀이의 문법이다. */
+          /* 이긴 쪽은 자리에 남는다 — 방금 본 값과 계속 견주게 되는 것이 이 놀이의 문법이다.
+           *
+           * 겨루는 기준은 **판마다 새로 뽑는다**. 예전에는 표를 열 때 한 번 뽑고 끝이라,
+           * 열 판을 이어 가도 계속 「키」였고 「다시」를 눌러도 그대로였다 — 같은 질문을
+           * 반복하는 놀이가 된다. 남은 쪽의 값도 새 기준으로 다시 보여 주므로 견주는 데 지장 없다. */
           function nextRound(keepLeft?: boolean): void {
-            if (!board || !field) return;
+            if (!board) return;
             locked = false;
             $('hiAgain').style.display = 'none';
+            const usable = board.fields.filter((f) => board!.items.filter((x) => x.v[f.key] !== undefined).length >= 2);
+            const others = usable.filter((f) => f !== field);
+            field = others.length ? pick(others) : usable[0] || field;
+            if (!field) return;
             const pool = board.items.filter((x) => x.v[field!.key] !== undefined);
-            if (!keepLeft || !left) left = pick(pool);
+            // 남기려던 쪽이 새 기준의 값을 안 가진 경우가 있다 — 그때는 그 쪽도 새로 뽑는다.
+            if (!keepLeft || !left || left.v[field.key] === undefined) left = pick(pool);
             let tries = 0;
             do {
               right = pick(pool);
@@ -162,7 +171,10 @@
                 nextRound(true);
               }, 1100);
             } else {
-              $('hiMsg').textContent = `아깝습니다 — ${streak}연승에서 끝났습니다`;
+              // 첫 판에 지면 「0연승에서 끝났습니다」가 된다 — 아깝지도 않은데 아깝다고 말한다.
+              $('hiMsg').textContent = streak
+                ? `아깝습니다 — ${streak}연승에서 끝났습니다`
+                : '아쉽네요. 한 번 더 해 보세요.';
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
             }
@@ -174,7 +186,7 @@
               .then((r) => r.json())
               .then((j: Board) => {
                 board = j;
-                field = pick(j.fields);
+                field = null; // 첫 기준도 nextRound 가 뽑는다 — 뽑는 자리를 두 곳에 두지 않는다
                 streak = 0;
                 left = null;
                 $('hiStreak').textContent = '0';
