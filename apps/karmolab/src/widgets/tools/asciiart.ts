@@ -99,6 +99,37 @@ import { acceptPastedFiles } from './shared/paste';
           let image: HTMLImageElement | null = null;
           let plainText = '';
 
+          /**
+           * 재생이 켜지면 이 도구도 **자기 문자 세트로** 한 조각을 그린다 (TASK-KL-131).
+           *
+           * 재생기가 도는지 여기서는 모른다 — 신고만 해 두면 창구가 알아서 붙였다 뗀다.
+           * 이미지를 넣어 쓰는 중이면 `null` 을 답해 빠진다: 남의 작업물을 덮으면 안 된다.
+           */
+          const idlePlaceholder = out.textContent ?? '';
+          const stopDrawing = window.KarmoLabBadApple?.add({
+            measure: () => {
+              if (image) return null; // 쓰는 중 — 이번 판은 빠진다
+              const cols = Math.max(20, Math.min(160, parseInt(widthInput.value, 10) || 100));
+              return { cols, rows: Math.max(8, Math.round(cols * CHAR_ASPECT * 0.75)) };
+            },
+            paint: (p) => {
+              const ramp = RAMPS[$<HTMLSelectElement>('#aaRamp').value] || RAMPS.detail;
+              const on = ramp[0] ?? '#';
+              const off = ramp[ramp.length - 1] ?? ' ';
+              const lines: string[] = [];
+              for (let y = 0; y < p.rows; y++) {
+                let line = '';
+                for (let x = 0; x < p.cols; x++) line += p.at(x, y) ? on : off;
+                lines.push(line);
+              }
+              out.textContent = lines.join('\n');
+            },
+            restore: () => {
+              if (!image) out.textContent = idlePlaceholder;
+            }
+          });
+          Toolbox.onDispose?.(() => stopDrawing?.());
+
           function render(): void {
             if (!image) return;
             const cols = parseInt(widthInput.value, 10);
