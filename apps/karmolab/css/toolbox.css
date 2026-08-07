@@ -935,32 +935,86 @@ html[data-intro="off"] .intro-overlay {
     letter-spacing: 0.04em;
 }
 
-/* ── 첫 화면 = 명령 팔레트 자리 (TASK-KL-099) ──
-   예전의 카드 3장(.landing-cta-card 일가)은 지웠다. 화면의 제일 좋은 자리를 먹으면서
-   세 곳으로만 갈 수 있었고, 그 아래 안내는 「메뉴에서 찾으세요」였다. 지금 이 자리는
-   160개 전부로 간다. 스타일도 같이 지운다 — 안 쓰는 규칙을 남기면 다음 사람이 살아 있는
-   줄 안다. */
+/* ── 첫 화면 — 찾는 입력 + 카드 3장 (TASK-KL-099) ──
+   둘 다 있다. 입력이 먼저 오고(160개 전부로 간다), 카드는 그 아래에서 정해진 세 곳으로
+   간다. 카드를 작게 줄이지는 않았다 — 눈에 익은 자리를 그대로 두라는 요청이다.
+   대신 카드 안내 문구가 「메뉴에서 찾으세요」였던 것만 바꿨다: 이제 그 일은 위가 한다. */
 
-.landing-cta {
-    display: flex; flex-direction: column; align-items: stretch;
-    padding: 0; width: 100%;
-}
-.landing-cta-hint {
-    font-size: var(--font-size-xs); color: var(--text-tertiary);
-    letter-spacing: 0.02em; text-align: center;
-}
-
-/* 목록·문서로 가는 길은 사라지지 않는다 — 다만 주인공 자리는 내준다. */
-.landing-foot {
-    margin-top: var(--space-lg);
-    text-align: center;
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
+.landing-palette {
+    display: flex; justify-content: center;
+    width: 100%;
     position: relative; z-index: 1;
 }
-.landing-foot a { color: var(--text-tertiary); text-decoration: none; }
-.landing-foot a:hover { color: var(--accent); text-decoration: underline; }
-.landing-foot-sep { margin: 0 var(--space-sm); opacity: 0.5; }
+
+.landing-cta {
+    display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
+    padding: var(--space-xl) 0 0; text-align: center;
+}
+.landing-cta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-md);
+}
+.landing-cta-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 18px 16px 16px;
+    min-width: 200px;
+    max-width: 220px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--transition), background var(--transition);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.landing-cta-card:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--text-tertiary);
+}
+.landing-cta-card:hover .landing-cta-card-icon { color: var(--accent); }
+.landing-cta-card:hover .landing-cta-card-title { color: var(--accent); }
+a.landing-cta-card:hover { color: inherit; }
+.landing-cta-card-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    transition: all var(--transition);
+}
+.landing-cta-card-icon svg { width: 100%; height: 100%; }
+.landing-cta-card-title {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+}
+.landing-cta-card-desc {
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+.landing-cta-hint {
+    font-size: var(--font-size-2xs); color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+}
+/* 안내 문구 속의 키 이름 — 위 입력칸 오른쪽의 그것과 같은 모양으로 읽히게 한다. */
+.landing-cta-hint kbd {
+    font-family: var(--font-mono);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1px 5px;
+    margin: 0 1px;
+}
 
 /* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
    한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것

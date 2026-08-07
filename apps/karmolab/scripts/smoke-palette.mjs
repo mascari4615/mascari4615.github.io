@@ -94,8 +94,21 @@ await gotoHome();
 const focused = await page.evaluate(() => document.activeElement?.classList.contains('kp-input'));
 if (!focused) problems.push('첫 화면 입력이 포커스를 못 쥔다 — 열자마자 칠 수 없다');
 
-const oldCta = await page.$('.landing-cta-card');
-if (oldCta) problems.push('옛 카드 3장이 아직 첫 화면에 있다 — 팔레트로 안 바뀌었다');
+/* 카드 3장은 **남아 있어야 한다** (사용자 요청 2026-08-07). 한때 카드 자리를 팔레트가
+ * 통째로 가져갔는데, 눈에 익은 자리를 그대로 두라는 말을 들었다. 둘 다 있는 것이 정답이다 —
+ * 한쪽만 남으면 둘 중 누군가의 화면이 사라진 것이므로 여기서 잡는다. */
+const cards = await page.$$eval('.landing-cta-card', (els) => els.map((e) => e.textContent.replace(/\s+/g, ' ').trim()));
+if (cards.length !== 3) {
+  problems.push(`첫 화면 카드가 3장이 아니다 (${cards.length}장) — ${cards.join(' / ') || '없음'}`);
+}
+const cardsBelow = await page.evaluate(() => {
+  const p = document.querySelector('.landing-palette');
+  const c = document.querySelector('.landing-cta-card');
+  if (!p || !c) return null;
+  return p.getBoundingClientRect().top < c.getBoundingClientRect().top;
+});
+if (cardsBelow === null) problems.push('첫 화면에 입력과 카드가 같이 있지 않다');
+else if (!cardsBelow) problems.push('카드가 찾는 입력보다 위에 있다 — 주인공 자리가 뒤바뀌었다');
 
 /* ── ①-b 입력칸이 상자 안에 또 네모를 그리지 않는다 ─────────
  * 이 파일 뒤쪽의 공통 입력칸 규칙(`input[type=text]`)이 힘이 세서, 클래스 하나로는
