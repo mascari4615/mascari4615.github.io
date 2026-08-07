@@ -1260,6 +1260,10 @@ a.landing-cta-card:hover { color: inherit; }
 
 .kp-list { overflow-y: auto; overscroll-behavior: contain; }
 .kp-inline .kp-list { max-height: min(46vh, 420px); }
+/* 첫 화면에서는 누르기 전까지 접혀 있다 (TASK-KL-129) — 아직 안 물어본 답이 화면 절반을
+   차지하지 않게. 누르면 그 자리에서 펼쳐진다. */
+.kp-inline.kp-collapsed .kp-list,
+.kp-inline.kp-collapsed .kp-live { display: none; }
 .kp-overlay .kp-list { max-height: min(60vh, 520px); }
 
 .kp-section {
