@@ -267,6 +267,9 @@ permalink: /karmolab/
     });
     </script>
     <script defer src="/apps/karmolab/js/analytics.js"></script>
+    <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
+         자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
+    <script defer src="/apps/karmolab/js/account.js"></script>
     <script defer src="/apps/karmolab/js/toolbox.js"></script>
     <script defer src="/apps/karmolab/js/mdd.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
