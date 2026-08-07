@@ -881,14 +881,19 @@ const Toolbox = (() => {
             buildSidebarGroup('misc', '기타', sidebarUncategorized);
         }
 
+        /* TASK-KL-129: 본문이 이미 HTML 에 박혀 있는 페이지(도구 목록)에서는 화면을 앱이 안 그린다.
+         * 첫 화면과 도구 126장의 빈 껍데기를 만들어 봐야 적혀 있던 목록 위에 덮이거나
+         * 안 보이는 채로 쌓이기만 한다 — 여기서 고른 도구는 그 도구의 **제 주소로 옮겨 간다**. */
+        const staticBody = typeof window !== 'undefined' && !!window.KARMOLAB_ENTRY_STATIC;
+
         // Build landing page
-        toolPages.appendChild(buildLanding());
+        if (!staticBody) toolPages.appendChild(buildLanding());
 
         // Build tool pages (가나다순)
         const sortedTools = [...tools].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
         sortedTools.forEach(tool => {
             if (!hiddenSet.has(tool.id) && (!isDesktopOnlyTool(tool) || isDesktopApp())) addMobileNavItem(tool);
-            if (!isDesktopOnlyTool(tool) || isDesktopApp()) toolPages.appendChild(buildToolPage(tool));
+            if (!staticBody && (!isDesktopOnlyTool(tool) || isDesktopApp())) toolPages.appendChild(buildToolPage(tool));
         });
 
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
@@ -913,6 +918,18 @@ const Toolbox = (() => {
             if (isDesktopOnlyTool(t) && !isDesktopApp()) return false;
             return true;
         };
+        /* TASK-KL-129: 본문이 **이미 HTML 에 박혀 있는** 페이지(도구 목록 등).
+         * 셸의 머리띠·옆줄·테마·⌘K 는 그대로 쓰되, 화면은 앱이 그리지 않는다 —
+         * 여기서 첫 화면을 그리면 적혀 있던 목록 위에 홈이 덮인다(실제로 그랬다). */
+        if (staticBody) {
+            injectDesktopBadge();
+            setupUpdateBannerListener();
+            setupUpdateCompletedToast();
+            installWindowControls();
+            installPaletteShortcut();
+            return;
+        }
+
         const initialPage = (entryTool && isValidPage(entryTool))
             ? entryTool
             : (hashPage && isValidPage(hashPage))
@@ -1014,7 +1031,7 @@ const Toolbox = (() => {
         if (force === 'none') return wrap;
         // 도구 상세 페이지에도 이 셸이 쓰인다. 거기선 첫 화면이 안 보이므로 그리지 않는다
         // (안 보이는 것을 계산하는 값은 그대로 나간다).
-        if (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) return wrap;
+        if (typeof window !== 'undefined' && (window.KARMOLAB_ENTRY_TOOL || window.KARMOLAB_ENTRY_STATIC)) return wrap;
 
         /* 폰에서는 **만들 때부터** 작게·적게 만든다 (TASK-KL-101).
          * CSS 로 `transform: scale()` 를 걸어 줄이려 했더니 아무 일도 안 일어났다 —
@@ -1410,7 +1427,10 @@ const Toolbox = (() => {
         // 그 도구의 *자기 URL* 로 실제 이동한다. 같은 경로에 해시만 바꾸면 페이지 제목·
         // 설명이 이전 도구 것으로 남아 URL 과 내용이 어긋난다.
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
-        if (entryTool && pageId !== entryTool) {
+        /* TASK-KL-129: 도구 목록처럼 본문이 박혀 있는 페이지도 마찬가지다 — 여기엔 도구를 그릴
+         * 자리가 없다(위젯을 하나도 안 실었다). 고른 도구의 제 주소로 실제로 옮겨 간다. */
+        const entryStatic = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_STATIC) || null;
+        if ((entryTool && pageId !== entryTool) || entryStatic) {
             const pages = (typeof window !== 'undefined' && window.KARMOLAB_TOOL_PAGES) || [];
             location.href = pageId === 'home'
                 ? '/karmolab/'
@@ -1808,6 +1828,7 @@ const Toolbox = (() => {
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem(THEME_KEY, theme);
+        syncThemeColor();
     }
 
     function toggleTheme() {
@@ -1829,7 +1850,7 @@ const Toolbox = (() => {
     function getBgTheme() {
         const saved = localStorage.getItem(BG_THEME_KEY);
         if (saved && BG_THEMES.some(t => t.id === saved)) return saved;
-        syncThemeColor();
+        return 'observatory';
     }
 
     /** 주소창·넘겨 스크롤한 자리의 색을 **지금 바탕색 그대로** 맞춘다 (TASK-KL-101).
@@ -1840,7 +1861,6 @@ const Toolbox = (() => {
         if (!meta) return;
         const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-void').trim();
         if (bg) meta.setAttribute('content', bg);
-        return 'observatory';
     }
 
     function setBgTheme(bgId) {
