@@ -13,7 +13,7 @@
  * 따로 두면 그날부터 서로 다른 세상을 말한다.
  */
 import { mountCourseNext } from './play-course';
-import { getPack, loadPacks } from './pack-store';
+import { absorbFromUrl, getPack, loadPacks, packToCode } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
@@ -311,16 +311,21 @@ import { onPageActive, takePick } from './pack-pick';
           $('twAgain').addEventListener('click', () => start(topicId));
           $('twShare').addEventListener('click', () => {
             const t = chips.filter((x) => x.id === topicId)[0];
+            /* 내 표로 논 결과를 자랑하면 받은 사람에게는 그 표가 없다 — 열어도 남의 표로 놀게 된다.
+             * 그래서 내 표일 때는 **표를 실은 주소**를 준다. 그러면 누르는 순간 표까지 따라온다. */
+            const mine = topicId.indexOf('pack:') === 0 ? getPack(topicId.slice(5)) : null;
+            const url = mine
+              ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#twenty`
+              : 'blog.mascari4615.com/karmolab/#twenty';
             const text =
               `KarmoLab 스무고개 — ${t ? t.title : ''}\n` +
-              `${asked}번 만에${guessing ? '' : ''} ${$('twQ').textContent === '맞혔습니다!' ? '맞힘' : '못 맞힘'}\n` +
-              'blog.mascari4615.com/karmolab/#twenty';
+              `${asked}번 만에 ${$('twQ').textContent === '맞혔습니다!' ? '맞힘' : '못 맞힘'}\n` +
+              url;
             void navigator.clipboard.writeText(text).then(() => {
               $('twShare').textContent = '복사했습니다';
             });
           });
 
-          /** 내 표는 받아 올 곳이 없다 — 이 브라우저에 있는 것을 그대로 쓴다. */
           function start(id: string): void {
             topicId = id;
             asked = 0;
@@ -374,7 +379,8 @@ import { onPageActive, takePick } from './pack-pick';
           }
 
           function useHandoff(fallback: string): void {
-            const pick = takePick();
+            const got = absorbFromUrl();
+            const pick = got ? got.id : takePick();
             const id = pick && getPack(pick) ? 'pack:' + pick : fallback;
             paintChips(id);
             if (id !== fallback || !topic) start(id);

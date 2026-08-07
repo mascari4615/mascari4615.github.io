@@ -11,7 +11,7 @@
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
 import { mountCourseNext } from './play-course';
-import { getPack, loadPacks, type Pack } from './pack-store';
+import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
@@ -294,11 +294,66 @@ import { onPageActive, takePick } from './pack-pick';
 
           /** 「내 표」가 밀어 준 판이 있으면 그걸로, 없으면 있던 대로. */
           function useHandoff(fallback: string): void {
-            const pick = takePick();
+            const got = absorbFromUrl();
+            const pick = got ? got.id : takePick();
             const id = pick && getPack(pick) ? 'pack:' + pick : fallback;
             paintBoards(id);
             if (id !== fallback || !boardId) load(id);
           }
+
+          $('hiA').addEventListener('click', () => answer($('hiA'), left!, right!));
+          $('hiB').addEventListener('click', () => answer($('hiB'), right!, left!));
+          function retry(): void {
+            streak = 0;
+            left = null;
+            $('hiStreak').textContent = '0';
+            nextRound(false);
+          }
+          $('hiRetry').addEventListener('click', retry);
+
+          /* 손으로만 놀 수 있었다 (TASK-KL-089).
+           * 한 번에 한 판씩 몇십 번을 누르는 놀이인데 좌우 화살표가 아무 일도 안 했다.
+           * ← → 로 고르고, 끝난 뒤에는 Enter 로 다시 시작한다. */
+          const keys = (e: KeyboardEvent): void => {
+            /* 「지금 보이는 화면인가」는 **페이지 칸**에게 물어야 한다. 위로 훑기만 하면
+             * 탭 속살에도 같은 표시가 있어서, 딴 화면에서 누른 화살표가 이 놀이를 움직였다(실측). */
+            const page = container.closest('.tool-page');
+            if (!container.isConnected || !page || !page.classList.contains('active')) return;
+            const t = e.target as HTMLElement | null;
+            if (t && /^(INPUT|TEXTAREA)$/.test(t.tagName)) return;
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+              if (locked || !left || !right) return;
+              e.preventDefault();
+              const goLeft = e.key === 'ArrowLeft';
+              answer($(goLeft ? 'hiA' : 'hiB'), goLeft ? left : right, goLeft ? right : left);
+              return;
+            }
+            if (e.key === 'Enter' && $('hiAgain').style.display === 'flex') {
+              e.preventDefault();
+              retry();
+            }
+          };
+          addEventListener('keydown', keys);
+          Toolbox.onDispose?.(() => removeEventListener('keydown', keys));
+
+          $('hiShare').addEventListener('click', () => {
+            /* 주소는 **이 놀이가 실제로 사는 곳**이어야 한다. 도구 상세 주소를 퍼뜨리던 시절엔
+             * 자랑을 받은 사람이 없는 곳으로 갔다. 기준(몸무게 따위)도 안 적는다 — 판마다 바뀐다.
+             *
+             * 내 표로 논 판이면 **표를 실은 주소**를 준다. 안 그러면 받은 사람에게는 그 표가 없어
+             * 열어도 남의 표로 놀게 된다 — 자랑이 자랑이 안 된다. */
+            const b = boards.filter((x) => x.id === boardId)[0];
+            const mine = boardId.indexOf('pack:') === 0 ? getPack(boardId.slice(5)) : null;
+            const url = mine
+              ? `blog.mascari4615.com/karmolab/?pack=${packToCode(mine)}#higher`
+              : 'blog.mascari4615.com/karmolab/#higher';
+            const text = `KarmoLab 높은 쪽 고르기 — ${b ? b.title : ''}\n${streak}연승 (최고 ${bestOf(
+              boardId
+            )})\n${url}`;
+            void navigator.clipboard.writeText(text).then(() => {
+              $('hiShare').textContent = '복사했습니다';
+            });
+          });
 
           onPageActive(container, () => useHandoff(boardId || BOARDS[0].id));
           useHandoff(BOARDS[0].id);
