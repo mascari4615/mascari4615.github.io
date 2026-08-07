@@ -20,6 +20,7 @@ import {
   shareText,
   suggest,
   triesLabel,
+  whyNoPractice,
 } from './engine.mjs';
 
 const topic = {
@@ -263,4 +264,15 @@ test('첫 자음만 쳐도 찾아진다', () => {
   // 첫 자음이 아닌 보통 검색은 그대로여야 한다.
   assert.deepEqual(suggest(items, '피카').map((i) => i.name), ['피카츄']);
   assert.deepEqual(suggest(items, 'mime').map((i) => i.name), ['Mr. Mime']);
+});
+
+test('그날로 못 가면 왜인지 말해 준다', () => {
+  const now = new Date('2026-08-07T12:00:00+09:00');
+  assert.equal(whyNoPractice(null, now), null, '날짜를 안 달고 왔으면 애초에 연습이 아니다');
+  assert.equal(whyNoPractice('2026-08-06', now), null, '열 수 있는 날은 아무 말도 안 한다');
+  assert.equal(whyNoPractice('2026-08-07', now), 'today');
+  assert.equal(whyNoPractice('2026-08-08', now), 'future');
+  assert.equal(whyNoPractice('2025-12-31', now), 'before');
+  assert.equal(whyNoPractice('어제', now), 'bad');
+  assert.equal(whyNoPractice('2026-13-40', now), 'bad');
 });

@@ -242,6 +242,27 @@ export function liveStreak(stats, dayNumber) {
   return stats.lastDay === dayNumber || stats.lastDay === dayNumber - 1 ? stats.streak : 0;
 }
 
+/**
+ * 「그날로 못 가는 이유」 — 못 가는 것 자체는 규칙이 정하지만, **왜인지 말해 줘야** 한다.
+ *
+ * 지금까지는 `?d=` 가 열 수 없는 날이면 아무 말 없이 오늘 판이 열렸다. 지난 문제 목록이
+ * 판마다 이 주소로 사람을 보내는 만큼, 링크가 낡거나 손으로 고쳐진 경우가 생긴다 —
+ * 그때 조용히 다른 날을 풀게 두면 본인은 끝까지 모른다.
+ *
+ * 열 수 있으면 null. 아니면 왜인지 한 낱말로.
+ */
+export function whyNoPractice(raw, now = new Date()) {
+  if (raw === null || raw === undefined || raw === '') return null; // 애초에 연습이 아니다
+  if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return 'bad';
+  const at = new Date(`${raw}T12:00:00+09:00`);
+  if (Number.isNaN(at.getTime())) return 'bad';
+  const day = kstDayNumber(at);
+  if (day > kstDayNumber(now)) return 'future';
+  if (day === kstDayNumber(now)) return 'today';
+  if (day < EPOCH_DAY_NUMBER) return 'before';
+  return null;
+}
+
 const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
 
 /** 한글 한 덩이의 첫 자음. 한글이 아니면 그대로 둔다(영문·숫자도 섞여 찾아지게). */
