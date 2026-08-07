@@ -15,7 +15,12 @@ import { answerOf, findItem } from '../engine.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
 const shots = join(app, '.cache/shots');
-const pwModule = await import(pathToFileURL(join(app, '../karmolab/node_modules/playwright/index.js')).href);
+// 내 기계에서는 이웃 앱(apps/karmolab)의 playwright 를 빌려 쓴다 — 이 앱은 의존성 0 을 지킨다.
+// CI 에는 그 이웃이 없으므로 어디 있는지 환경변수로 알려 준다.
+const pwPath = process.env.DAILY_PLAYWRIGHT
+  ? join(app, process.env.DAILY_PLAYWRIGHT)
+  : join(app, '../karmolab/node_modules/playwright/index.js');
+const pwModule = await import(pathToFileURL(pwPath).href);
 const pw = pwModule.chromium ? pwModule : pwModule.default; // CJS 라 default 로 들어오는 경우가 있다
 
 const checks = [];
