@@ -108,3 +108,4 @@ export * from './room-learn';
 export * from './memory/reflect';
 export * from './rarity';
 export * from './length';
+export * from './head-size';
