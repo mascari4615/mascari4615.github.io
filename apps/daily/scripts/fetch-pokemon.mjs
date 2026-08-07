@@ -126,7 +126,7 @@ const topic = {
     { key: 'gen', label: '세대', kind: 'number', near: 1 },
     { key: 'types', label: '타입', kind: 'set' },
     { key: 'color', label: '색', kind: 'category' },
-    { key: 'stage', label: '진화', kind: 'number' },
+    { key: 'stage', label: '진화', kind: 'number', unit: '단계' },
     { key: 'height', label: '키', kind: 'number', nearRatio: 0.25, unit: 'm' },
     { key: 'weight', label: '몸무게', kind: 'number', nearRatio: 0.25, unit: 'kg' },
   ],
