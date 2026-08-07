@@ -335,7 +335,11 @@ function narrowLine() {
 }
 
 function renderNarrow() {
-  const text = narrowLine();
+  /* 판이 끝나면 치운다 (TASK-KL-089).
+   * 이미 정답을 알았는데 「세대 1 위 · 키 0.7m 위…」가 그대로 떠 있으면 군더더기다 —
+   * 끝난 화면에는 결과와 다음에 할 것만 남는 게 맞다. */
+  const over = state.status !== 'playing';
+  const text = over ? '' : narrowLine();
   let box = root.querySelector('.narrow');
   if (!text) {
     if (box) box.remove();
