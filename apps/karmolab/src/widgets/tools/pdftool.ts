@@ -44,13 +44,21 @@ import { acceptPastedFiles } from './shared/paste';
     return out;
   }
 
-  function download(bytes: Uint8Array, name: string): void {
+  /**
+   * 내려받게 하고, **같은 것을 옆 도구에도 놓아둔다** (TASK-KL-133).
+   *
+   * 예전에는 여기서 끝이었다 — 이어서 용량을 줄이려면 받은 파일을 찾아 다른 도구를 열고
+   * 다시 집어넣어야 했다. 방금 만든 것은 이미 이 화면 안에 있으므로 그냥 넘긴다.
+   * `after` 는 「이어서」 줄을 붙일 자리다. 받을 도구가 하나도 없으면 그 줄은 안 생긴다.
+   */
+  function download(bytes: Uint8Array, name: string, after?: HTMLElement | null): void {
     const blob = new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    if (after) Toolbox.offerNext?.(after, { blob, name, from: 'pdftool' });
   }
 
   Toolbox.register({
@@ -169,7 +177,7 @@ import { acceptPastedFiles } from './shared/paste';
                   const copied = await outDoc.copyPages(src, idx);
                   copied.forEach((p) => outDoc.addPage(p));
                 }
-                download(await outDoc.save(), '합친-PDF.pdf');
+                download(await outDoc.save(), '합친-PDF.pdf', status);
                 say(`${files.length}개 파일을 합쳐 내려받았어요.`, 'ok');
               } else {
                 const src = await L.PDFDocument.load(await files[0].file.arrayBuffer(), { ignoreEncryption: true });
@@ -183,7 +191,7 @@ import { acceptPastedFiles } from './shared/paste';
                   const outDoc = await L.PDFDocument.create();
                   const copied = await outDoc.copyPages(src, picked);
                   copied.forEach((p) => outDoc.addPage(p));
-                  download(await outDoc.save(), '빼낸-페이지.pdf');
+                  download(await outDoc.save(), '빼낸-페이지.pdf', status);
                   say(`${picked.length}쪽을 빼내 내려받았어요.`, 'ok');
                 } else if (mode === 'remove') {
                   const keep = Array.from({ length: total }, (_, i) => i).filter((i) => !picked.includes(i));
@@ -194,13 +202,13 @@ import { acceptPastedFiles } from './shared/paste';
                   const outDoc = await L.PDFDocument.create();
                   const copied = await outDoc.copyPages(src, keep);
                   copied.forEach((p) => outDoc.addPage(p));
-                  download(await outDoc.save(), '페이지-지운-PDF.pdf');
+                  download(await outDoc.save(), '페이지-지운-PDF.pdf', status);
                   say(`${picked.length}쪽을 지우고 ${keep.length}쪽을 남겼어요.`, 'ok');
                 } else {
                   const angle = parseInt($<HTMLSelectElement>('#pdAngle').value, 10);
                   const pages = src.getPages();
                   picked.forEach((i) => pages[i].setRotation(L.degrees((pages[i].getRotation().angle + angle) % 360)));
-                  download(await src.save(), '돌린-PDF.pdf');
+                  download(await src.save(), '돌린-PDF.pdf', status);
                   say(`${picked.length}쪽을 ${angle}° 돌려 내려받았어요.`, 'ok');
                 }
               }

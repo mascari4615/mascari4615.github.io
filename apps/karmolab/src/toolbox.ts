@@ -113,6 +113,76 @@ const Toolbox = (() => {
         });
     }
 
+    /* ── 결과를 옆 도구로 넘긴다 (TASK-KL-133) ──────────────────
+     *
+     * 도구가 127개인데 서로를 몰랐다. PDF 를 합친 뒤 압축하려면 받은 파일을 찾아 다른 도구를
+     * 열고 다시 집어넣어야 했다 — 사람은 한 가지 일을 하는데 도구가 세 번 끊었다.
+     * 이 앱의 도구는 전부 브라우저 안에서 도니까, 방금 만든 것은 이미 여기 있다. 그걸 그냥 넘긴다.
+     *
+     * 놓는 쪽은 `offer`, 받는 쪽은 열릴 때 `take` 로 한 번만 집어 간다(두 번 집히면 같은 파일이
+     * 두 번 들어온다). 어느 도구가 받을 수 있는지는 도구가 등록할 때 밝힌 형식(`accepts`)에서
+     * 고른다 — 짝을 손으로 적어 두면 도구가 늘 때마다 그 표가 낡는다.
+     */
+    let handoffItem = null;
+
+    /** 방금 만든 것을 놓아둔다. `{ blob, name, from }` */
+    function offerResult(item) {
+        if (!item || !item.blob) return;
+        handoffItem = { blob: item.blob, name: item.name || '결과', from: item.from || null, at: Date.now() };
+    }
+
+    /** 놓인 것을 집어 간다 — 한 번만. 없으면 null. */
+    function takeResult() {
+        const it = handoffItem;
+        handoffItem = null;
+        return it;
+    }
+
+    function peekResult() {
+        return handoffItem;
+    }
+
+    /** 이 형식을 받을 수 있다고 밝힌 도구들 (자기 자신은 뺀다 — 넘길 이유가 없다). */
+    function toolsAccepting(type, exceptId) {
+        const t = String(type || '');
+        return tools.filter(x =>
+            x.id !== exceptId &&
+            Array.isArray(x.accepts) &&
+            x.accepts.some(a => a === t || (a.endsWith('/*') && t.startsWith(a.slice(0, -1)))) &&
+            (!isDesktopOnlyTool(x) || isDesktopApp())
+        );
+    }
+
+    /**
+     * 결과 아래 「이어서」 한 줄. 갈 곳이 없으면 아무것도 안 그린다 —
+     * 눌러도 아무 일 없는 줄을 두지 않는다.
+     */
+    function offerNext(anchor, item) {
+        if (!anchor || !anchor.parentElement) return;
+        /* 줄은 기준 요소 **안**이 아니라 **바로 밑**에 놓는다 (TASK-KL-133).
+         * 안에 넣었더니 도구가 상태 글을 갈아 끼우는 순간(textContent) 같이 지워졌다 —
+         * 만들어 놓고 곧바로 사라져서, 화면에는 한 번도 안 보였다. */
+        anchor.parentElement.querySelectorAll('.tool-next-row').forEach(n => n.remove());
+        const targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
+        if (!item || !targets.length) return;
+        offerResult(item);
+        const row = document.createElement('div');
+        row.className = 'tool-next-row';
+        const label = document.createElement('span');
+        label.className = 'tool-next-label';
+        label.textContent = '이어서';
+        row.appendChild(label);
+        targets.slice(0, 4).forEach(t => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'tool-next-btn';
+            b.textContent = t.title || t.id;
+            b.onclick = () => switchPage(t.id);
+            row.appendChild(b);
+        });
+        anchor.insertAdjacentElement('afterend', row);
+    }
+
     /** 도구 화면의 별 — 쓰던 자리에서 바로 꽂는다 (목록까지 안 가도 되게). */
     function mountPinStar(host, toolId) {
         if (!host || host.querySelector('.tool-pin-star')) return;
@@ -1987,7 +2057,37 @@ const Toolbox = (() => {
             panelsHost.appendChild(panel);
         });
 
+        appendToolFooter(div, tool);
         return div;
+    }
+
+    /**
+     * 도구를 다 쓴 사람에게 **다음 자리**를 알려 준다 (TASK-KL-098).
+     *
+     * 도구 상세 페이지 128장은 검색으로 들어오는 정문인데, 거기서 이 사이트의 나머지로 가는
+     * 길이 하나도 없었다 — 도구 하나 쓰고 닫으면 끝이다. 그 사람은 커뮤니티가 있는 줄도,
+     * 숫자를 다 열어 둔 줄도 모른다.
+     *
+     * 도구 화면 맨 아래에만 둔다. 위쪽은 도구의 자리다 — 일하러 온 사람을 붙잡지 않는다.
+     */
+    function appendToolFooter(page, tool) {
+        if (tool.noHero === true) return;
+        const footer = document.createElement('div');
+        footer.className = 'tool-page-next';
+        footer.innerHTML =
+            '<div class="tool-page-next-head">여기도 있어요</div>' +
+            '<div class="tool-page-next-links">' +
+            '<button type="button" class="tool-page-next-link" data-next="community">' +
+            '<b>커뮤니티</b><span>안 되는 것·있었으면 하는 도구를 남기는 곳</span></button>' +
+            '<button type="button" class="tool-page-next-link" data-next="plaza">' +
+            '<b>광장</b><span>이 사이트의 숫자를 전부 열어 둔 곳</span></button>' +
+            '<a class="tool-page-next-link" href="/karmolab/t/">' +
+            '<b>도구 전체</b><span>비슷한 일을 하는 다른 도구들</span></a>' +
+            '</div>';
+        footer.querySelectorAll('[data-next]').forEach((button) => {
+            button.onclick = () => switchPage(button.dataset.next);
+        });
+        page.appendChild(footer);
     }
 
     /* ===== Shared Helpers ===== */
@@ -2450,6 +2550,8 @@ const Toolbox = (() => {
     return {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
         onDispose,
+        // 결과를 옆 도구로 넘기기 (TASK-KL-133)
+        offerNext, offerResult, takeResult, peekResult, toolsAccepting,
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,
