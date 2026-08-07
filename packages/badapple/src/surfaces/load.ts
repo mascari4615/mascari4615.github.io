@@ -88,6 +88,35 @@ export interface LoadDriverOptions {
 	floor?: number;
 	/** 최대 부하 — 1 로 두면 기계가 다른 일을 못 한다. 기본 0.75. */
 	ceiling?: number;
+	/**
+	 * 이미 깔려 있는 부하 (0~1). 기계가 놀고 있지 않으면 그 위에 그려야 한다.
+	 *
+	 * 안 주면 0 으로 본다 — 그러면 바탕이 조금만 있어도 그림 위쪽이 잘려 모양이 안 남는다.
+	 * 주면 **바탕과 천장 사이 남은 자리**에 그림을 눌러 담고, 태우는 양은 그 차이만큼만 낸다.
+	 */
+	baseline?: number;
+}
+
+/** 그림이 들어갈 자리. 자리가 안 나오면 `null` — 그때는 그리지 말아야 한다. */
+export interface Band {
+	low: number;
+	high: number;
+}
+
+/**
+ * 바탕 위에 남은 자리를 구한다.
+ *
+ * 여기가 「조용한 기계에서만 된다」를 없애는 자리다. 바탕이 30% 면 30~천장 사이에 그리면 되고,
+ * 바탕이 천장에 가까우면 **그릴 자리가 없다고 말해야 한다** — 억지로 그리면 전부 100% 에 붙어
+ * 나와서, 코드가 멀쩡한데도 「안 따라간다」로 보인다 (실제로 그렇게 헤맸다).
+ *
+ * @param minBand 이만큼은 벌어져야 모양이 남는다. 기본 0.25.
+ */
+export function bandFor(baseline: number, ceiling: number, minBand = 0.25): Band | null {
+	const low = Math.max(0, Math.min(1, baseline));
+	const high = Math.max(0, Math.min(1, ceiling));
+	if (high - low < minBand) return null;
+	return { low, high };
 }
 
 /**
@@ -114,15 +143,22 @@ export class LoadDriver {
 
 	/** @param columns 몇 줄 흘려보낼지. 안 주면 멈출 때까지. */
 	async run(columns?: number): Promise<number> {
-		const floor = this.options.floor ?? 0.05;
+		const baseline = this.options.baseline ?? 0;
 		const ceiling = this.options.ceiling ?? 0.75;
+		// 바탕이 이미 바닥보다 높으면 바탕이 곧 바닥이다.
+		const band = bandFor(Math.max(baseline, this.options.floor ?? 0.05), ceiling);
+		// 자리가 없는데 태우면 전부 천장에 붙어 나와서, 멀쩡한 코드가 틀린 것처럼 보인다.
+		// 그래서 한 줄도 안 태우고 0 을 낸다 — 부르는 쪽이 「지금은 못 그린다」를 알 수 있게.
+		if (!band) return 0;
+
 		this.running = true;
 
 		let drawn = 0;
 		while (this.running && (columns === undefined || drawn < columns)) {
 			const height = this.surface.nextColumn();
-			const fraction = floor + (ceiling - floor) * Math.max(0, Math.min(1, height));
-			await this.options.burn(fraction, this.options.sliceMs);
+			// 그림이 놓일 자리는 **전체 부하** 기준이고, 태울 양은 거기서 바탕을 뺀 나머지다.
+			const target = band.low + (band.high - band.low) * Math.max(0, Math.min(1, height));
+			await this.options.burn(Math.max(0, target - baseline), this.options.sliceMs);
 			drawn += 1;
 		}
 		this.running = false;
