@@ -14,6 +14,7 @@
  */
 import { mountCourseNext } from './play-course';
 import { getPack, loadPacks } from './pack-store';
+import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
   type Val = string | string[] | number;
@@ -351,38 +352,36 @@ import { getPack, loadPacks } from './pack-store';
               });
           }
 
-          /* 사람이 만든 표도 주제 칩으로 나란히 선다 — 우리 표와 남의 표를 놀이가 안 가린다. */
-          const chips: Array<{ id: string; title: string; emoji: string }> = TOPICS.concat(
-            loadPacks().map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji }))
-          );
-          chips.forEach((t, i) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = `${t.emoji} ${t.title}`;
-            btn.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
-            btn.addEventListener('click', () => {
-              [...$('twTopics').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
-              btn.setAttribute('aria-pressed', 'true');
-              start(t.id);
-            });
-            $('twTopics').appendChild(btn);
-          });
+          /* 사람이 만든 표도 주제 칩으로 나란히 선다 — 우리 표와 남의 표를 놀이가 안 가린다.
+           * 표는 놀다가도 새로 생기므로 목록은 화면이 보일 때마다 다시 그린다. */
+          let chips: Array<{ id: string; title: string; emoji: string }> = [];
 
-          /* 「내 표」 화면에서 보내 준 표가 있으면 그것으로 시작한다 (한 번만 쓰고 지운다 —
-           * 안 지우면 다음에 그냥 들어와도 계속 그 표가 열린다). */
-          let first = TOPICS[0].id;
-          try {
-            const pick = localStorage.getItem('karmolab_pack_pick');
-            if (pick && getPack(pick)) {
-              first = 'pack:' + pick;
-              localStorage.removeItem('karmolab_pack_pick');
-            }
-          } catch {
-            /* 사생활 모드 */
+          function paintChips(active: string): void {
+            chips = TOPICS.concat(loadPacks().map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji })));
+            $('twTopics').innerHTML = '';
+            chips.forEach((t) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.textContent = `${t.emoji} ${t.title}`;
+              btn.setAttribute('aria-pressed', String(t.id === active));
+              btn.addEventListener('click', () => {
+                [...$('twTopics').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
+                btn.setAttribute('aria-pressed', 'true');
+                start(t.id);
+              });
+              $('twTopics').appendChild(btn);
+            });
           }
-          const at = chips.findIndex((c) => c.id === first);
-          [...$('twTopics').children].forEach((c, i) => c.setAttribute('aria-pressed', String(i === at)));
-          start(first);
+
+          function useHandoff(fallback: string): void {
+            const pick = takePick();
+            const id = pick && getPack(pick) ? 'pack:' + pick : fallback;
+            paintChips(id);
+            if (id !== fallback || !topic) start(id);
+          }
+
+          onPageActive(container, () => useHandoff(topicId || TOPICS[0].id));
+          useHandoff(TOPICS[0].id);
         }
       }
     ]
