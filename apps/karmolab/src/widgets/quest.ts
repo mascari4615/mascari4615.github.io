@@ -242,7 +242,6 @@ import { mountCourseNext } from './play-course';
             $('qsAfter').style.display = 'flex';
             if (!practice) {
               // 오늘 것을 끝낸 그 자리에서 남은 놀이를 말해 준다 (연습은 오늘 것이 아니다).
-              $('qsCourse').hidden = false;
               mountCourseNext($('qsCourse'), 'quest');
             }
             if (practice) return; // 연습은 오늘 성적을 흐리지 않는다

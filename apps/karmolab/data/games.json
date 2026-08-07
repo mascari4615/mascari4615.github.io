@@ -23,6 +23,13 @@
       "lead": "도구를 열어야 풀리는 하루 한 문제"
     },
     {
+      "id": "twenty",
+      "title": "스무고개",
+      "emoji": "🔮",
+      "url": "/karmolab/#twenty",
+      "lead": "하나를 마음에 정하면 스무 번 안에 맞힌다"
+    },
+    {
       "id": "ghosttype",
       "title": "유령 타자 대결",
       "emoji": "👻",
