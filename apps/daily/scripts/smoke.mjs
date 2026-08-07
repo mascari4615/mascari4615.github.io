@@ -1114,6 +1114,24 @@ await ctx.close();
     }
   }
   check('★ 내부 링크가 전부 닿는다', broken.length === 0, broken.join(' · ') || `${seen}개 눌러 봄`);
+
+  /**
+   * 링크 글자는 그 자체로 뜻이 있어야 한다.
+   * 허브에 「지난 문제는 <여기>」가 있었다 — 화면 낭독기로 링크만 훑으면 「여기, 여기, 여기」로
+   * 들리고, 검색 엔진에도 그 링크가 무엇인지 아무 단서가 안 남는다.
+   */
+  const vague = [];
+  for (const path of pages) {
+    await page.goto(`${base}/${path}`, { waitUntil: 'networkidle' });
+    const bad = await page.$$eval('a', (els) =>
+      els
+        .map((e) => ({ text: (e.getAttribute('aria-label') || e.textContent || '').trim(), href: e.getAttribute('href') }))
+        .filter((a) => ['여기', '이곳', '링크', '클릭', '보기', '더보기'].includes(a.text))
+        .map((a) => `${a.text}(${a.href})`),
+    );
+    if (bad.length) vague.push(`/${path}: ${bad.join(', ')}`);
+  }
+  check('★ 뜻 없는 링크 글자가 없다', vague.length === 0, vague.join(' · ') || '「여기」류 0개');
   await ctx.close();
 }
 
