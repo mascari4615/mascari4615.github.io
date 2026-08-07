@@ -115,6 +115,9 @@ export const TAG_MAX_COUNT = 8;
 /** 상태를 바꾸며 남기는 한 줄. 길어지면 그건 답글로 쓸 말이다. */
 export const STATUS_NOTE_MAX = 120;
 
+/** 계정을 지운 사람의 글에 남는 이름. 이 이름으로는 아무도 로그인할 수 없다(주소 규칙 밖). */
+export const DELETED_HANDLE = '지운 계정';
+
 export type PostSort = 'recent' | 'top';
 
 export function isPostSort(raw: unknown): raw is PostSort {
@@ -853,6 +856,50 @@ export class KarmolabTraceStore {
     this.state.posts.splice(index, 1);
     this.markDirty();
     return true;
+  }
+
+  /**
+   * 계정이 지워질 때 — 그 사람이 남긴 글·답글·표·좋아요에서 사람을 떼어낸다.
+   *
+   * 글 자체는 안 지운다. 답글이 달린 글을 통째로 지우면 **남의 답글이 뜻을 잃는다** —
+   * 대화는 혼자 만든 것이 아니다. 대신 누가 썼는지를 지운다: 이름은 「지운 계정」이 되고
+   * 계정과 이어 주던 열쇠는 빈 값이 된다(다시 이어 붙일 수 없다).
+   *
+   * 표와 좋아요는 뺀다 — 없는 사람의 표가 계속 세어지면 그 수가 거짓이 된다.
+   *
+   * @returns 손댄 글 수.
+   */
+  forgetAuthor(accountId: string): number {
+    if (!accountId) return 0;
+    let touched = 0;
+    for (const post of this.state.posts) {
+      let changed = false;
+      if (post.authorAccountId === accountId) {
+        post.authorAccountId = '';
+        post.authorHandle = DELETED_HANDLE;
+        changed = true;
+      }
+      for (const reply of post.replies) {
+        if (reply.authorAccountId !== accountId) continue;
+        reply.authorAccountId = '';
+        reply.authorHandle = DELETED_HANDLE;
+        changed = true;
+      }
+      const votesBefore = post.voterAccountIds.length;
+      const likesBefore = post.likerAccountIds.length;
+      post.voterAccountIds = post.voterAccountIds.filter((id) => id !== accountId);
+      post.likerAccountIds = post.likerAccountIds.filter((id) => id !== accountId);
+      for (const reply of post.replies) {
+        reply.likerAccountIds = reply.likerAccountIds.filter((id) => id !== accountId);
+      }
+      if (votesBefore !== post.voterAccountIds.length || likesBefore !== post.likerAccountIds.length) changed = true;
+      if (changed) touched += 1;
+    }
+    // 신고도 함께 지운다 — 신고한 사람이 없어졌는데 신고만 남으면 아무도 확인할 수 없다.
+    const reportsBefore = this.state.reports.length;
+    this.state.reports = this.state.reports.filter((r) => r.byAccountId !== accountId);
+    if (touched > 0 || reportsBefore !== this.state.reports.length) this.markDirty();
+    return touched;
   }
 
   /** 답글도 본인이나 주인만 지운다. 달린 대댓글도 같이 사라진다. */

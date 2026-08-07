@@ -18,6 +18,9 @@ import crypto from 'crypto';
 import {
   getKarmolabAccountStore,
   emptyRecords,
+  // 이름 바꾸기 라우트가 쓴다. 이 줄이 빠져 있어서 봇이 통째로 컴파일이 안 됐다 —
+  // 내가 KL-112 에서 훅만 골라 담다가 라우트는 담고 이 한 줄을 빠뜨린 탓이다.
+  DISPLAY_NAME_MAX,
   type Account,
   type AccountRecords,
   type KarmolabAccountStore,
@@ -412,20 +415,126 @@ export function registerKarmolabApi(
     res.json({ records: merged });
   });
 
+  /**
+   * 보이는 이름 바꾸기.
+   *
+   * 계정의 정본은 우리 쪽이고 디스코드는 들어오는 문 하나다 — 문에 적힌 이름을 평생 달고
+   * 다닐 이유가 없다. 주소(handle)는 안 바꾼다: 남이 걸어 둔 링크가 깨진다.
+   */
+  app.patch('/kl/me', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const updated = store.setDisplayName(account.id, (req.body ?? {}).displayName);
+    if (!updated) {
+      res.status(400).json({ error: 'bad_name', maxLength: DISPLAY_NAME_MAX });
+      return;
+    }
+    res.json({ account: store.publicProfile(updated) });
+  });
+
+  /** 지금 살아 있는 내 로그인들. 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
+  app.get('/kl/me/sessions', (req: Request, res: Response) => {
+    const token = readCookie(req, SESSION_COOKIE);
+    const account = store.accountForSession(token);
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ sessions: store.sessionsFor(account.id, token) });
+  });
+
+  /** 지금 쓰는 것만 남기고 나머지 로그인을 끊는다 (기기를 잃어버렸을 때의 유일한 수단). */
+  app.post('/kl/me/sessions/revoke-others', (req: Request, res: Response) => {
+    const token = readCookie(req, SESSION_COOKIE);
+    const account = store.accountForSession(token);
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ revoked: store.revokeOtherSessions(account.id, token) });
+  });
+
+  /**
+   * 내 것 전부 내려받기.
+   *
+   * 「기록이 남는다」는 약속은, 그 기록을 **가지고 나갈 수 있을 때** 비로소 약속이 된다.
+   * 못 가지고 나가는 기록은 맡긴 것이 아니라 잡힌 것이다.
+   */
+  app.get('/kl/me/export', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const activity = traces.activityOf(account.handle);
+    res.setHeader('Content-Disposition', `attachment; filename="karmolab-${account.handle}.json"`);
+    res.json({
+      exportedAt: new Date().toISOString(),
+      account: {
+        handle: account.handle,
+        displayName: account.displayName,
+        joinedAt: account.createdAt,
+        // 디스코드 id 는 안 넣는다 — 이 파일이 남에게 넘어가도 계정이 드러나면 안 된다.
+        loginMethods: Object.keys(account.identities),
+      },
+      records: account.records,
+      community: activity,
+    });
+  });
+
+  /**
+   * 계정 지우기. **되돌릴 수 없다.**
+   *
+   * 계정·기록·로그인은 사라진다. 이미 남긴 글은 남기되 **누가 썼는지를 지운다** —
+   * 답글이 달린 글을 통째로 지우면 남의 답글이 뜻을 잃는다. 대화는 혼자 만든 것이 아니다.
+   * 그 사실을 부르는 쪽(화면)에서 먼저 밝히고 확인을 받는다.
+   */
+  app.delete('/kl/me', (req: Request, res: Response) => {
+    const token = readCookie(req, SESSION_COOKIE);
+    const account = store.accountForSession(token);
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const touched = traces.forgetAuthor(account.id);
+    traces.flush();
+    store.deleteAccount(account.id);
+    clearSessionCookie(res);
+    res.json({ ok: true, postsKept: touched });
+  });
+
   // ── 흔적 원장 (Cycle 2) — 남의 자국이 보이는 자리 ────────────────────────
   //
   // 여기 숫자는 전부 실제로 일어난 일이다. 초반에는 작을 것이고, 작은 게 맞다.
   // 지어낸 수를 넣는 순간 이 자리 전체가 못 믿을 것이 된다.
 
-  /** 도구가 열렸다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도 사이트의 자국이다. */
+  /**
+   * 도구가 열렸다. 로그인과 무관하다 — 그냥 지나간 사람의 자국도 사이트의 자국이다.
+   *
+   * **사람만 센다 (TASK-KL-112).** 바로 아래 방문 세는 자리는 처음부터 봇을 가려냈는데
+   * 여기만 안 가려냈다. 그래서 같은 하루에 「다녀간 사람 17」 과 「도구 열림 5,545」 라는
+   * 말이 안 되는 두 수가 나란히 떴다. 우리 점검이 도구 전체를 한 바퀴 돌 때마다 138개가
+   * 통째로 +1 되고 있었던 것이다 — 실제로 도구 130개가 **똑같이 48번**이었다.
+   *
+   * 그 수는 첫 화면에 「이번 주에 많이 쓴 도구」로 공개된다. 로봇이 만든 순위를 사람에게
+   * 보여 주면 그건 자랑이 아니라 거짓말이다. 방문 쪽과 같은 잣대를 쓴다.
+   */
   app.post('/kl/trace/tool', (req: Request, res: Response) => {
     const toolId = (req.body ?? {}).toolId;
     if (!isValidToolId(toolId)) {
       res.status(400).json({ error: 'bad_tool_id' });
       return;
     }
+    const kind = classifyVisitor(req.headers['user-agent']);
+    if (kind !== 'human') {
+      res.json({ counted: false, kind });
+      return;
+    }
     const counted = traces.recordToolOpen(toolId, visitorKeyFor(req));
-    res.json({ counted });
+    res.json({ counted, kind });
   });
 
   /**
@@ -644,10 +753,18 @@ export function registerKarmolabApi(
     res.json({ posts });
   });
 
-  /** 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다. */
+  /**
+   * 글 하나. 주소로 바로 열리므로 로그인 없이 보이고, 열릴 때 조회수를 센다.
+   *
+   * **사람만 센다 (TASK-KL-113).** 도구 열림에서 같은 구멍을 막고 나서 훑어 보니 여기도
+   * 안 거르고 있었다. 글마다 붙는 조회수는 글쓴이가 보는 숫자다 — 검색봇이 훑고 간 것을
+   * 「사람이 읽었다」로 보여 주면, 아무도 안 읽었는데 읽혔다고 믿게 만든다.
+   */
   app.get('/kl/posts/:id', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    traces.recordPostView(String(req.params.id ?? ''), visitorKeyFor(req));
+    if (classifyVisitor(req.headers['user-agent']) === 'human') {
+      traces.recordPostView(String(req.params.id ?? ''), visitorKeyFor(req));
+    }
     const post = traces.publicPost(String(req.params.id ?? ''), account?.id ?? null);
     if (!post) {
       res.status(404).json({ error: 'not_found' });

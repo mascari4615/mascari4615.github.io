@@ -69,6 +69,9 @@ const STATE_FILE = 'karmolab-accounts-state.json';
 /** 로그인 유지 기간. 도구 사이트는 어쩌다 한 번 오는 곳이라 짧으면 매번 다시 로그인이 된다. */
 export const SESSION_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
+/** 보이는 이름 상한. 길면 목록이 깨지고, 긴 이름은 대개 장난이다. */
+export const DISPLAY_NAME_MAX = 24;
+
 export function emptyRecords(): AccountRecords {
   return { achievements: [], badges: [], progress: {}, streaks: {} };
 }
@@ -284,6 +287,73 @@ export class KarmolabAccountStore {
     if (!token || !this.state.sessions[token]) return;
     delete this.state.sessions[token];
     this.save();
+  }
+
+  /**
+   * 보이는 이름 바꾸기.
+   *
+   * 지금까지 이름은 디스코드에서 온 것으로 **고정**이었다. 그런데 계정의 정본은 우리 쪽이고
+   * 디스코드는 들어오는 문 하나일 뿐이다 — 문에 적힌 이름을 평생 달고 다닐 이유가 없다.
+   * 주소(handle)는 안 바꾼다: 남이 링크로 걸어 둔 자리가 깨진다.
+   */
+  setDisplayName(accountId: string, raw: unknown): Account | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const name = String(raw ?? '').replace(/\s+/g, ' ').trim().slice(0, DISPLAY_NAME_MAX);
+    if (!name) return null;
+    account.displayName = name;
+    this.save();
+    return account;
+  }
+
+  /** 지금 살아 있는 내 로그인들 — 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
+  sessionsFor(accountId: string, currentToken: string | null = null): { createdAt: string; current: boolean }[] {
+    const now = Date.now();
+    return Object.entries(this.state.sessions)
+      .filter(([, session]) => session.accountId === accountId && session.expiresAt > now)
+      .map(([token, session]) => ({
+        createdAt: new Date(session.createdAt).toISOString(),
+        current: token === currentToken,
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  /**
+   * 지금 쓰는 것만 남기고 나머지 로그인을 전부 끊는다.
+   * (기기를 잃어버렸거나 남의 컴퓨터에서 로그인한 채 나왔을 때 쓸 유일한 수단이다.)
+   * @returns 끊은 개수.
+   */
+  revokeOtherSessions(accountId: string, keepToken: string | null): number {
+    let removed = 0;
+    for (const [token, session] of Object.entries(this.state.sessions)) {
+      if (session.accountId !== accountId || token === keepToken) continue;
+      delete this.state.sessions[token];
+      removed += 1;
+    }
+    if (removed > 0) this.save();
+    return removed;
+  }
+
+  /**
+   * 계정을 지운다. **되돌릴 수 없다.**
+   *
+   * 계정·기록·로그인은 전부 사라진다. 이미 남긴 글은 이 함수가 안 건드린다 — 답글이 달린
+   * 글을 통째로 지우면 그 답글들이 뜻을 잃는다. 글 쪽 처리는 부르는 쪽이 따로 한다
+   * (거기서 글쓴이를 「지운 계정」으로 바꾼다).
+   */
+  deleteAccount(accountId: string): Account | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    delete this.state.accounts[accountId];
+    delete this.state.handleIndex[account.handle.toLowerCase()];
+    for (const [key, id] of Object.entries(this.state.identityIndex)) {
+      if (id === accountId) delete this.state.identityIndex[key];
+    }
+    for (const [token, session] of Object.entries(this.state.sessions)) {
+      if (session.accountId === accountId) delete this.state.sessions[token];
+    }
+    this.save();
+    return account;
   }
 
   /** 브라우저가 보낸 기록을 서버 기록과 합쳐 저장한다. 반환값 = 합쳐진 결과(브라우저가 이걸로 맞춘다). */

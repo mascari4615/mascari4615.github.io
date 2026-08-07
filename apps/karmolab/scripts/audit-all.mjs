@@ -18,6 +18,7 @@ const CHECKS = [
   ['부르는 이름·파일이 실재하는지', 'audit:scripts'],
   ['도구마다 딸린 것이 채워졌는지', 'audit:data'],
   ['화면이 뜨는지 (전 도구)', 'test:live'],
+  ['도구 아닌 화면들 (광장·상태·커뮤니티·내 정보)', 'test:platform'],
   ['도구 목록이 성한지', 'test:hub'],
   ['스크립트 없이도 읽히는지', 'test:nojs'],
   ['검색엔진이 읽는 머리', 'audit:seo'],
