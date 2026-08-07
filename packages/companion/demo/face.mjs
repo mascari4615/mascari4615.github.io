@@ -23,8 +23,10 @@ import {
   기운묻기,
   KnownStamps,
   말걸어도되나,
-  자리결,
+  자리결로,
   어떤자리,
+  자리배움,
+  자리묻기,
   tossBackNote,
   tossBackRetryNote,
   안하는이유,
@@ -268,6 +270,14 @@ const tally = new Tally({ path: join(home, '발동-기록.json') });
    재료 만드는 자리가 쉰 곳인데 한 turn 에 실리는 건 여섯 줄뿐이라, 무게가 어중간한
    재료는 매 turn 독립 추첨에서 **영영** 안 실렸다. 만들어 놓고 안 붙인 것과 같았다. */
 const 밀린것 = new 밀린생각();
+/* 자리를 배운다 — 표가 모르는 창은 두뇌에게 물어 적어 둔다(78회차).
+   지금 떠 있는 창을 세어 보니 아홉 중 여섯이 「모름」이었다. 표를 늘리는 건 답이 아니다 —
+   사람이 쓰는 프로그램은 사람마다 다르다. 같은 창은 한 번만 물어보므로 값이 곧 0 에 준다. */
+const 자리앎 = new 자리배움({
+  path: join(home, '무슨-자리.json'),
+  물어보기: 자리묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  log: (m) => { console.log(`[자리] ${m}`); web?.알아챔?.(m); },
+});
 // 잘못된 것 모으기 — 로그는 아무도 안 본다. 조수님이 볼 수 있어야 고쳐진다.
 const troubles = new Troubles({ path: join(home, '잘못된-것.json') });
 // 손댈 수 있는 설정 — 재시작 없이 먹는다. 파일이 정본이라 손으로 열어 고쳐도 된다.
@@ -707,7 +717,7 @@ const companion = new Companion({
       /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
          무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
       { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
-      { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
+      { name: '자리', weight: 11, text: 자리결로(자리앎.읽기(lastWindowTitle)) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
@@ -845,7 +855,7 @@ const companion = new Companion({
       /* 창이 바뀐 걸 알아챈 것도 인식이다 — 여태 아무 데도 안 보였다.
          **바뀐 때만** 알린다. 같은 창을 보고 있는 동안 매번 알리면 대화가 덮인다. */
       if (seen !== lastWindowTitle) {
-        const 자리 = 어떤자리(seen);
+        const 자리 = 자리앎.읽기(seen);
         web.알아챔(`창이 바뀌었다 — 「${seen.slice(0, 50)}」${자리 === null ? ' (무슨 자리인지 모르겠다)' : ` (${자리})`}`);
       }
       lastWindowTitle = seen;
@@ -855,6 +865,7 @@ const companion = new Companion({
     /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
+    void 자리앎.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
     else console.log(`[참음] ${report.decision.reason}`);

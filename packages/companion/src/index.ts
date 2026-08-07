@@ -104,3 +104,4 @@ export * from './what-landed';
 export * from './wish';
 export * from './pressure';
 export * from './heard';
+export * from './room-learn';
