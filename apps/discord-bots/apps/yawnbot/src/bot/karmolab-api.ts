@@ -1043,4 +1043,23 @@ export function registerKarmolabApi(
     // 커뮤니티 활동도 프로필의 일부다 — 「이 사람이 여기서 무엇을 했나」.
     res.json({ profile: { ...store.publicProfile(account), activity: traces.activityOf(account.handle) } });
   });
+  /* 라우트보다 **뒤**에 있어야 잡는다. 여기로 오는 오류는 **반드시 CORS 헤더를 달고** 나가야 한다.
+   * 안 그러면 브라우저가 진짜 이유(너무 큼·잘못된 몸통) 대신 「CORS 막힘」만 보여 준다. */
+  app.use('/kl', (error: Error & { status?: number; type?: string }, req: Request, res: Response, next: NextFunction) => {
+    if (res.headersSent) {
+      next(error);
+      return;
+    }
+    const origin = req.headers.origin;
+    if (typeof origin === 'string' && ALLOWED_ORIGINS.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    const tooBig = error.status === 413 || error.type === 'entity.too.large';
+    res.status(tooBig ? 413 : 400).json({
+      error: tooBig ? 'too_big' : 'bad_request',
+      maxBytes: UPLOAD_MAX_BYTES,
+    });
+  });
+
 }

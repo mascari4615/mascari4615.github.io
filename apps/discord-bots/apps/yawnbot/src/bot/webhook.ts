@@ -8,7 +8,13 @@ import { syncTaskStatusOnPrMerge } from '../services/task-status-sync';
 
 export function createGithubWebhookApp(client: Client, gameData: GameDataService) {
   const app = express();
-  app.use(express.json());
+  /* 몸통 읽기.
+   *
+   * **그림 올리는 자리만 건너뛴다** (TASK-KL-098). 기본 상한(100kb)이 여기서 먼저 걸리면
+   * 413 이 나가는데, 그 오류 응답에는 CORS 헤더가 안 붙는다 — 브라우저는 그것을 「CORS 막힘」
+   * 으로 보고하고, 진짜 원인(너무 큼)은 화면 어디에도 안 나온다. 실제로 그렇게 한 번 헤맸다.
+   * 그 자리는 자기 상한을 스스로 건다 (karmolab-api 의 `/kl/uploads`). */
+  app.use((req, res, next) => (req.path === '/kl/uploads' ? next() : express.json()(req, res, next)));
 
   // YB-020 Step 2 — gateway 가 살아있어도 dispatch 가 멈춘 zombie 상태 관측용.
   // discord.js 는 op0 dispatch 마다 'raw' emit. 503 판정엔 안 쓰고 (조용한
