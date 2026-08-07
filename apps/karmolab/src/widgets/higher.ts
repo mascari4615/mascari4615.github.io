@@ -97,6 +97,23 @@
             }
             return all[id] || 0;
           };
+          /* 오늘 이 놀이를 했는지 (TASK-KL-089 — 「오늘의 코스」).
+           * 최고 기록만으로는 **오늘 했는지**를 알 수 없다(작년에 세운 10연승이 그대로 남는다).
+           * 놀이터가 코스를 세려면 「오늘 한 판 끝냈다」가 있어야 한다 — 그 한 줄을 여기서 남긴다. */
+          const markToday = (last: number): void => {
+            const k = new Date(Date.now() + 9 * 3600e3);
+            const day = `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
+            try {
+              const raw = JSON.parse(localStorage.getItem('karmolab_higher_day') || '{}');
+              const cur = raw.day === day ? raw : { day, rounds: 0, best: 0 };
+              cur.rounds = (cur.rounds || 0) + 1;
+              cur.best = Math.max(cur.best || 0, last);
+              localStorage.setItem('karmolab_higher_day', JSON.stringify(cur));
+            } catch {
+              /* 사생활 모드 — 코스에만 안 세어지고 놀이는 그대로다 */
+            }
+          };
+
           const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
           const fmt = (v: number): string => String(v) + (field && field.unit ? ' ' + field.unit : '');
 
@@ -183,6 +200,7 @@
                 : '아쉽네요. 한 번 더 해 보세요.';
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
+              markToday(streak);
             }
           }
 
