@@ -79,6 +79,8 @@
         .st-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--text-tertiary); }
         .st-dot[data-up="1"] { background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.18); }
         .st-dot[data-up="0"] { background:#f87171; box-shadow:0 0 0 3px rgba(248,113,113,.18); }
+        .st-feed { color:var(--accent); text-decoration:none; }
+        .st-feed:hover { text-decoration:underline; }
         .st-link { background:none; border:0; padding:0; font:inherit; font-size:11px;
             color:var(--accent); cursor:pointer; }
         .st-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
@@ -91,9 +93,16 @@
         .st-row { display:flex; align-items:flex-start; gap:9px; padding:4px 0; }
         .st-tag { flex:0 0 auto; padding:1px 8px; border-radius:999px; font-size:10px; font-weight:700;
             border:1px solid var(--border); color:var(--text-tertiary); }
-        .st-tag[data-tone="new"] { color:#7dd3fc; border-color:rgba(125,211,252,.4); }
-        .st-tag[data-tone="fix"] { color:#fca5a5; border-color:rgba(252,165,165,.4); }
-        .st-tag[data-tone="perf"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
+        /* 이 세 색은 어두운 판을 보고 고른 파스텔이었는데 테마와 상관없이 늘 쓰였다.
+           흰 바탕에서는 대비가 1.4~1.9 밖에 안 돼 「새로 생김」·「고침」·「빨라짐」이
+           사실상 안 읽혔다(기준 2.2). 밝은 쪽을 기본으로 두고, 어두운 판에서만 원래
+           파스텔로 돌린다 — 두 테마가 각자 자기 바탕에 맞는 색을 갖는다. */
+        .st-tag[data-tone="new"] { color:#0369a1; border-color:rgba(3,105,161,.35); }
+        .st-tag[data-tone="fix"] { color:#b91c1c; border-color:rgba(185,28,28,.35); }
+        .st-tag[data-tone="perf"] { color:#a16207; border-color:rgba(161,98,7,.35); }
+        html[data-theme="dark"] .st-tag[data-tone="new"] { color:#7dd3fc; border-color:rgba(125,211,252,.4); }
+        html[data-theme="dark"] .st-tag[data-tone="fix"] { color:#fca5a5; border-color:rgba(252,165,165,.4); }
+        html[data-theme="dark"] .st-tag[data-tone="perf"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
         .st-text { font-size:var(--font-size-sm); color:var(--text-secondary); line-height:1.55; }
         .st-note { margin:0; font-size:11px; color:var(--text-tertiary); line-height:1.6; }
         .st-fail { padding:14px 16px; border:1px dashed var(--border); border-radius:var(--radius-lg);
@@ -200,7 +209,8 @@
                 <div>
                     <div class="st-sec-head">
                         <h3 class="st-sec-title">변경 기록</h3>
-                        <span class="st-sec-note">새 기능 · 고침 · 빨라짐만</span>
+                        <span class="st-sec-note">새 기능 · 고침 · 빨라짐만 ·
+                            <a class="st-feed" href="/karmolab/changes.xml">구독 (RSS)</a></span>
                     </div>
                     <div id="stChanges"></div>
                 </div>

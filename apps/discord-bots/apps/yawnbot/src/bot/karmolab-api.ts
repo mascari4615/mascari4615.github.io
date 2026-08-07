@@ -889,12 +889,34 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
+    const before = target?.status;
     const updated = traces.updatePost(String(req.params.id ?? ''), {
       status: body.status,
       pinned: body.pinned,
       statusNote: body.statusNote,
       by: account.handle,
     });
+
+    /* 「내가 남긴 말이 어떻게 됐나」를 글쓴이가 다시 들어와서 확인해야 한다면, 대부분은
+     * 영영 모른다. 요청이 만들어졌는데 요청한 사람이 그걸 모르는 게 제일 아깝다.
+     * 그래서 상태가 **실제로 바뀐 때만** 알린다 (같은 상태로 다시 눌러도 안 보낸다). */
+    if (updated && before && updated.status !== before) {
+      const gallery = traces.gallery(updated.board);
+      const closingWord: Record<string, string> = gallery?.voteStyle
+        ? { open: '다시 받는 중이에요', planned: '만들 예정이에요', done: '만들었어요', declined: '이번엔 안 만들기로 했어요' }
+        : { open: '다시 열렸어요', planned: '할 예정이에요', done: '됐어요', declined: '안 하기로 했어요' };
+      const what = updated.title || updated.text.slice(0, 40);
+      notes.notify({
+        accountId: updated.authorAccountId,
+        source: 'community',
+        title: `올리신 「${what}」 — ${closingWord[updated.status] ?? '상태가 바뀌었어요'}`,
+        body: updated.statusNote,
+        url: `/karmolab/?p=${encodeURIComponent(updated.id)}#community`,
+        groupKey: `post-status:${updated.id}`,
+        actorAccountId: account.id,
+      });
+      notes.flush();
+    }
     if (!updated) {
       res.status(404).json({ error: 'not_found' });
       return;

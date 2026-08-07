@@ -1,0 +1,225 @@
+---
+layout: none
+permalink: /karmolab/changes.xml
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>KarmoLab — 변경 기록</title>
+    <link>https://blog.mascari4615.com/karmolab/</link>
+    <atom:link href="https://blog.mascari4615.com/karmolab/changes.xml" rel="self" type="application/rss+xml"/>
+    <description>KarmoLab 에서 새로 생기고 고쳐지고 빨라진 것들</description>
+    <language>ko</language>
+    <lastBuildDate>Sat, 08 Aug 2026 00:00:00 GMT</lastBuildDate>
+    <item>
+      <title>[빨라짐] 첫 화면이 도구용 스타일을 통째로 기다리고 있었다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-81a81f47</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>첫 화면이 도구용 스타일을 통째로 기다리고 있었다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 도구를 쓰던 자리에서 바로 「내 것」에</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-1a9eb95e</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>도구를 쓰던 자리에서 바로 「내 것」에</description>
+    </item>
+    <item>
+      <title>[새로 생김] 내 표 만들기 — 놀이의 재료를 사람이 만든다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d3b0a511</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>내 표 만들기 — 놀이의 재료를 사람이 만든다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 지금 보는 사람 · 사람/검색봇/AI 나눠 세기 · 주간 결산 · 이슈식 갤러리</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3e277c15</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>지금 보는 사람 · 사람/검색봇/AI 나눠 세기 · 주간 결산 · 이슈식 갤러리</description>
+    </item>
+    <item>
+      <title>[새로 생김] 번개 대결 — 링크 하나로 붙는 몇 초짜리 1:1</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-106a1668</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>번개 대결 — 링크 하나로 붙는 몇 초짜리 1:1</description>
+    </item>
+    <item>
+      <title>[새로 생김] 무엇이든 화면으로 쓰는 공통 시스템</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-751747cc</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>무엇이든 화면으로 쓰는 공통 시스템</description>
+    </item>
+    <item>
+      <title>[고침] 스무고개 — 답할 수 있는 질문부터, 같은 질문은 두 번 안 묻는다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-01b6a664</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>스무고개 — 답할 수 있는 질문부터, 같은 질문은 두 번 안 묻는다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 옆줄 맨 위에 「내 것」</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-e97dddae</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>옆줄 맨 위에 「내 것」</description>
+    </item>
+    <item>
+      <title>[새로 생김] 새 놀이 「스무고개」 — 이번엔 여기가 맞힌다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-a5ec2ba9</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>새 놀이 「스무고개」 — 이번엔 여기가 맞힌다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 첫 화면 — 갈 곳이 먼저, 목록은 누를 때 펼친다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-fb9ad7d0</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>첫 화면 — 갈 곳이 먼저, 목록은 누를 때 펼친다</description>
+    </item>
+    <item>
+      <title>[빨라짐] 위젯 묶음도 한 번 받으면 그대로 쓴다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-916348e3</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>위젯 묶음도 한 번 받으면 그대로 쓴다</description>
+    </item>
+    <item>
+      <title>[고침] 높은 쪽 고르기 — 그림이 카드의 8%였다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d175a1ae</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>높은 쪽 고르기 — 그림이 카드의 8%였다</description>
+    </item>
+    <item>
+      <title>[고침] 오늘의 문제 — 편 도구가 답 적을 칸을 밀어냈다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-a8acfdbc</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오늘의 문제 — 편 도구가 답 적을 칸을 밀어냈다</description>
+    </item>
+    <item>
+      <title>[고침] 첫 화면이 방문 횟수를 「명」이라고 적고 있었다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-354b8d14</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>첫 화면이 방문 횟수를 「명」이라고 적고 있었다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 높은 쪽 고르기 — 화살표로도 논다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-57685934</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>높은 쪽 고르기 — 화살표로도 논다</description>
+    </item>
+    <item>
+      <title>[빨라짐] 도구 한 장짜리 화면이 위젯 171개 그림을 통째로 받고 있었다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-3974dba3</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>도구 한 장짜리 화면이 위젯 171개 그림을 통째로 받고 있었다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 오늘의 문제 — 그날 만들어지는 문제를 하루 걸러 낸다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-65f065ee</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오늘의 문제 — 그날 만들어지는 문제를 하루 걸러 낸다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 네 번째 놀이를 놀이터에 싣고, 코스가 안 깨지게 한다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-ad50e4fe</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>네 번째 놀이를 놀이터에 싣고, 코스가 안 깨지게 한다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 사이트의 숫자를 전부 공개한다 — 광장 · 방문 Total/Today · 도구마다 열린 횟수</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-700ed0a8</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>사이트의 숫자를 전부 공개한다 — 광장 · 방문 Total/Today · 도구마다 열린 횟수</description>
+    </item>
+    <item>
+      <title>[새로 생김] 늘 쓰는 도구를 목록 맨 위에</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-c5bb7520</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>늘 쓰는 도구를 목록 맨 위에</description>
+    </item>
+    <item>
+      <title>[빨라짐] 파일 이름에 내용 지문 — 다시 오면 네트워크를 안 탄다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-df9ee68f</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>파일 이름에 내용 지문 — 다시 오면 네트워크를 안 탄다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 유령 타자 대결 — 내 기록이 주소가 되고, 받은 사람은 그 유령과 달린다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d0a60838</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>유령 타자 대결 — 내 기록이 주소가 되고, 받은 사람은 그 유령과 달린다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 코스를 놀이 안까지 — 한 판 끝낸 자리에서 다음으로</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-4d01cffa</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>코스를 놀이 안까지 — 한 판 끝낸 자리에서 다음으로</description>
+    </item>
+    <item>
+      <title>[고침] 개발 서버가 제 코드 바뀌면 스스로 다시 뜬다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-d9f1833e</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>개발 서버가 제 코드 바뀌면 스스로 다시 뜬다</description>
+    </item>
+    <item>
+      <title>[새로 생김] 오늘의 코스 — 놀이 셋을 하루 한 줄로 묶는다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-450d3947</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오늘의 코스 — 놀이 셋을 하루 한 줄로 묶는다</description>
+    </item>
+    <item>
+      <title>[고침] 높은 쪽 고르기 — 자랑을 퍼뜨리던 주소가 없는 곳이었다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-1e37d4ef</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>높은 쪽 고르기 — 자랑을 퍼뜨리던 주소가 없는 곳이었다</description>
+    </item>
+    <item>
+      <title>[고침] 새로고침 안내를 폰에서 못 닫던 것</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-f187929a</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>새로고침 안내를 폰에서 못 닫던 것</description>
+    </item>
+    <item>
+      <title>[빨라짐] 눌러야 나타나는 것이 글 나오기를 막고 있었다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-edce0f15</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>눌러야 나타나는 것이 글 나오기를 막고 있었다</description>
+    </item>
+    <item>
+      <title>[고침] 그림 올리기가 CORS 로 보이던 진짜 이유 + 말머리 고치는 자리</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-669a3594</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>그림 올리기가 CORS 로 보이던 진짜 이유 + 말머리 고치는 자리</description>
+    </item>
+    <item>
+      <title>[새로 생김] 오늘의 문제 — 오늘 성적은 연습을 해도 안 사라진다</title>
+      <link>https://blog.mascari4615.com/karmolab/#status</link>
+      <guid isPermaLink="false">karmolab-change-b12475f0</guid>
+      <pubDate>Sat, 08 Aug 2026 00:00:00 GMT</pubDate>
+      <description>오늘의 문제 — 오늘 성적은 연습을 해도 안 사라진다</description>
+    </item>
+  </channel>
+</rss>
