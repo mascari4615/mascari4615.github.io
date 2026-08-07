@@ -79,18 +79,13 @@ if (shellPages.length < 2) {
       const code = m[1];
       if (!code.trim()) continue;
       if (code.includes('{%')) continue;           // Jekyll 이 나중에 채우는 자리
-      // ★ `type` 을 보고 갈라야 한다. 자바스크립트가 아닌 블록(구조 설명 JSON, 미리받기
-      //   규칙, 모듈 지도…)을 자바스크립트로 읽으면 멀쩡한 페이지가 「깨졌다」로 잡힌다 —
-      //   실제로 미리받기 규칙을 넣은 날 도구 페이지 128 장이 통째로 빨갛게 나왔다.
-      //   브라우저도 type 을 보고 코드로 실행할지 정한다. 검사도 같은 기준이어야 한다.
-      const type = (m[0].match(/\btype=["']([^"']+)["']/) || [, ''])[1].toLowerCase();
-      const 자바스크립트 = !type || /^(text|application)\/(java|ecma)script$/.test(type) || type === 'module';
-      if (!자바스크립트) {
-        const JSON블록 = type.endsWith('json') || type === 'speculationrules' || type === 'importmap';
-        if (JSON블록) {
-          try { JSON.parse(code); } catch (e) { broken.push(`${path.basename(path.dirname(file))} · 데이터 블록(${type}): ${e.message}`); }
-        }
-        continue; // 그 밖의 type = 브라우저도 실행 안 한다 (템플릿 등)
+      /* 자바스크립트가 아닌 자리도 있다 — 구조 설명(JSON), 그리고 브라우저에게 「이 주소를 미리
+       * 받아 둬라」를 알려 주는 미리읽기 규칙(speculationrules). 둘 다 내용은 JSON 이다.
+       * 이걸 자바스크립트로 읽으려 하면 첫 중괄호를 코드 묶음으로 보고 곧바로 실패한다 —
+       * 실제로 그래서 멀쩡한 페이지 여섯 장이 「스크립트가 안 읽힌다」로 잡혔다. */
+      if (/\btype="speculationrules"/.test(m[0]) || /\btype="application\/(ld\+)?json"/.test(m[0])) {
+        try { JSON.parse(code); } catch (e) { broken.push(`${path.basename(path.dirname(file))} · 구조 설명(JSON): ${e.message}`); }
+        continue;
       }
       try { new vm.Script(code); } catch (e) { broken.push(`${path.basename(path.dirname(file))} · ${e.message}`); }
     }
