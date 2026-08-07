@@ -216,6 +216,7 @@ const hub = `${head({
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
   <p class="lede">판을 고르면 오늘의 문제가 하나. 매일 자정(KST)에 바뀐다.</p>
+  <div class="hub-jump"></div>
   <p class="hub-note"></p>
   <div class="cards">
 ${all
