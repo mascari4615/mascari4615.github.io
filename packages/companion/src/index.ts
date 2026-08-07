@@ -92,6 +92,7 @@ export * from './tangent';
 export * from './self-image';
 export * from './settings';
 export * from './stated';
+export * from './memory/known-stamps';
 export * from './voice/feeling-tone';
 export * from './watching';
 export * from './while-away';

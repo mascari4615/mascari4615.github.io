@@ -17,6 +17,8 @@ import { dirname, join } from 'node:path';
 import {
   Companion,
   DistillingMemory,
+  KnownStamps,
+  갓알게된것,
   InMemoryMemory,
   JsonlFileMemory,
   landingNote,
@@ -210,6 +212,11 @@ const memory =
         notePath: knownPath,
         log: (m) => console.log(`[기억] ${m}`),
       });
+
+/* 「아는 것」의 줄마다 **언제부터 알던 것인지**를 따로 들고 있는다.
+   목록 자체에 날짜를 섞어 적으면 다음에 졸일 때 그 날짜까지 재료가 되어 굳는다. */
+const 언제알았나 = new KnownStamps({ path: join(home, '아는-것-언제.json') });
+언제알았나.sync(memory.longTerm?.() ?? null);
 // 옛 대화를 뒤지는 손은 기억이 선 뒤에야 붙일 수 있다 — 뒤질 대상이 기억이기 때문이다.
 // 두뇌에 넘어가는 건 최근 몇 마디뿐이라, 이게 없으면 「저번에 그거」를 영영 모른다.
 const conversationMemory = memory instanceof DistillingMemory ? memory.inner : memory;
@@ -591,6 +598,16 @@ const companion = new Companion({
     // 때마다 빠뜨리고, 그게 바로 「길어질수록 안전장치가 흐려지는」 모양이다.
     const 조심 = readTender(wholeStory);
     return composeIngredients([
+      /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
+         2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
+         아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
+      { name: '갓안것', weight: 12, text: (() => {
+        // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
+        // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
+        const 아는것 = memory.longTerm?.() ?? null;
+        언제알았나.sync(아는것);
+        return 갓알게된것(아는것, 언제알았나, Date.now());
+      })() },
       // 늘 있어야 하는 것 — 지금 어떤 상태인가.
       // 틀렸다고 하면 그게 가장 먼저다 — 우기는 것보다 나쁜 게 없다.
       { name: '고침', weight: 13, text: (() => {
