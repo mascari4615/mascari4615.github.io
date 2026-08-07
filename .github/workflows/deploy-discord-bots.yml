@@ -343,10 +343,18 @@ jobs:
           GH_TOKEN: ${{ secrets.YB_PROD_GH_WEBHOOK_TOKEN }}
         run: |
           $ErrorActionPreference = 'Continue'
+          # 이 단계는 **배포의 곁가지**다 (웹훅 주소 등록). 여기서 실패했다고 배포를 빨갛게
+          # 만들면, 앞으로 모든 배포가 빨간 채로 남아 **진짜 실패를 아무도 못 알아본다.**
+          # 그렇다고 조용히 넘기지도 않는다 — 경고와 요약에 남겨 눈에 띄게 둔다 (KL-098).
           if ([string]::IsNullOrEmpty($env:GH_TOKEN)) {
-            Write-Warning "YB_PROD_GH_WEBHOOK_TOKEN 누락 — webhook upsert skip (deploy 자체는 성공). secret 등록 후 다음 deploy 부터 작동 (TASK-YB-005)."
+            Write-Output "::warning title=웹훅 주소 등록 건너뜀::YB_PROD_GH_WEBHOOK_TOKEN 이 없습니다. 봇 배포 자체는 정상입니다."
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 건너뜀 — secret ``YB_PROD_GH_WEBHOOK_TOKEN`` 없음 (봇 배포는 정상)"
             exit 0
           }
           & npm run webhook:upsert
-          if ($LASTEXITCODE -ne 0) { Write-Warning "webhook upsert 실패 (deploy 자체는 성공) — gh auth / token scope 확인 필요" }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "::warning title=웹훅 주소 등록 실패::토큰이 만료됐거나 권한이 모자랍니다. admin:repo_hook 권한으로 새로 발급해 secret YB_PROD_GH_WEBHOOK_TOKEN 을 바꿔 주세요. 봇 배포 자체는 정상입니다."
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ 웹훅 주소 등록 실패 — 토큰 만료/권한 부족. 새 토큰을 ``YB_PROD_GH_WEBHOOK_TOKEN`` 에 넣어 주세요 (봇 배포는 정상)"
+            exit 0
+          }
           # cloudflared named tunnel (yawnbot.mascari4615.com) 은 별도 영구 service (KarmoLab Server Monitor 의 yawnbot-tunnel-prod 카드 또는 NSSM)
