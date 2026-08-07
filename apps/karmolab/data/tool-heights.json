@@ -4,11 +4,11 @@
     "wide": 972
   },
   "asciiart": {
-    "narrow": 885,
+    "narrow": 886,
     "wide": 768
   },
   "aspect": {
-    "narrow": 1003,
+    "narrow": 1053,
     "wide": 893
   },
   "audiocut": {
@@ -32,8 +32,8 @@
     "wide": 418
   },
   "barcode": {
-    "narrow": 967,
-    "wide": 889
+    "narrow": 952,
+    "wide": 883
   },
   "base64": {
     "narrow": 703,
@@ -48,11 +48,11 @@
     "wide": 497
   },
   "bmi": {
-    "narrow": 746,
-    "wide": 763
+    "narrow": 841,
+    "wide": 760
   },
   "bytesize": {
-    "narrow": 988,
+    "narrow": 993,
     "wide": 1035
   },
   "calc": {
@@ -60,67 +60,67 @@
     "wide": 1185
   },
   "caseconv": {
-    "narrow": 784,
+    "narrow": 797,
     "wide": 864
   },
   "charcount": {
-    "narrow": 971,
-    "wide": 836
+    "narrow": 1339,
+    "wide": 916
   },
   "charmap": {
-    "narrow": 6505,
+    "narrow": 6661,
     "wide": 1036
   },
   "checklist": {
-    "narrow": 953,
-    "wide": 977
+    "narrow": 1047,
+    "wide": 974
   },
   "color": {
-    "narrow": 1434,
+    "narrow": 1446,
     "wide": 1192
   },
   "colorblind": {
-    "narrow": 749,
+    "narrow": 757,
     "wide": 499
   },
   "colorconv": {
-    "narrow": 1455,
+    "narrow": 1467,
     "wide": 1162
   },
   "colorname": {
-    "narrow": 5296,
+    "narrow": 5538,
     "wide": 972
   },
   "contrast": {
-    "narrow": 841,
-    "wide": 741
+    "narrow": 829,
+    "wide": 735
   },
   "cron": {
-    "narrow": 945,
+    "narrow": 948,
     "wide": 888
   },
   "crypto": {
-    "narrow": 630,
+    "narrow": 637,
     "wide": 836
   },
   "cssunit": {
-    "narrow": 1305,
+    "narrow": 1313,
     "wide": 1186
   },
   "csvjson": {
-    "narrow": 1085,
+    "narrow": 1088,
     "wide": 1145
   },
   "datecalc": {
-    "narrow": 907,
-    "wide": 968
+    "narrow": 1147,
+    "wide": 927
   },
   "devtool": {
     "narrow": 1080,
     "wide": 728
   },
   "draw": {
-    "narrow": 1222,
+    "narrow": 1228,
     "wide": 987
   },
   "emoji": {
@@ -148,7 +148,7 @@
     "wide": 624
   },
   "filetool": {
-    "narrow": 640,
+    "narrow": 641,
     "wide": 670
   },
   "filetype": {
@@ -160,11 +160,11 @@
     "wide": 973
   },
   "grade": {
-    "narrow": 1230,
-    "wide": 1194
+    "narrow": 1218,
+    "wide": 1188
   },
   "gradient": {
-    "narrow": 1129,
+    "narrow": 1136,
     "wide": 1026
   },
   "hangulkey": {
@@ -172,11 +172,11 @@
     "wide": 794
   },
   "hashgen": {
-    "narrow": 843,
-    "wide": 901
+    "narrow": 535,
+    "wide": 630
   },
   "htmlentity": {
-    "narrow": 3064,
+    "narrow": 3133,
     "wide": 972
   },
   "httpstatus": {
@@ -184,23 +184,23 @@
     "wide": 972
   },
   "icsmake": {
-    "narrow": 1569,
-    "wide": 1442
+    "narrow": 1556,
+    "wide": 1437
   },
   "imageedit": {
     "narrow": 548,
     "wide": 559
   },
   "img2pdf": {
-    "narrow": 635,
+    "narrow": 638,
     "wide": 630
   },
   "imgbatch": {
-    "narrow": 576,
+    "narrow": 577,
     "wide": 606
   },
   "imgmerge": {
-    "narrow": 739,
+    "narrow": 744,
     "wide": 644
   },
   "imgresize": {
@@ -208,15 +208,15 @@
     "wide": 418
   },
   "interest": {
-    "narrow": 917,
-    "wide": 853
+    "narrow": 1014,
+    "wide": 850
   },
   "jamo": {
-    "narrow": 927,
+    "narrow": 930,
     "wide": 846
   },
   "json2ts": {
-    "narrow": 1111,
+    "narrow": 1114,
     "wide": 1163
   },
   "jsonfmt": {
@@ -232,7 +232,7 @@
     "wide": 522
   },
   "ladder": {
-    "narrow": 1065,
+    "narrow": 1069,
     "wide": 950
   },
   "linebreak": {
@@ -240,19 +240,19 @@
     "wide": 712
   },
   "listdiff": {
-    "narrow": 1357,
-    "wide": 1063
+    "narrow": 1345,
+    "wide": 1058
   },
   "loan": {
-    "narrow": 2038,
-    "wide": 1131
+    "narrow": 2011,
+    "wide": 1090
   },
   "lorem": {
-    "narrow": 810,
+    "narrow": 812,
     "wide": 844
   },
   "lotto": {
-    "narrow": 1176,
+    "narrow": 1182,
     "wide": 957
   },
   "markdown": {
@@ -276,7 +276,7 @@
     "wide": 812
   },
   "pace": {
-    "narrow": 930,
+    "narrow": 938,
     "wide": 873
   },
   "palette": {
@@ -284,15 +284,15 @@
     "wide": 491
   },
   "passgen": {
-    "narrow": 864,
-    "wide": 803
+    "narrow": 849,
+    "wide": 797
   },
   "pdf": {
     "narrow": 568,
     "wide": 572
   },
   "pdf2img": {
-    "narrow": 590,
+    "narrow": 593,
     "wide": 608
   },
   "pdf2text": {
@@ -324,7 +324,7 @@
     "wide": 508
   },
   "pdfwatermark": {
-    "narrow": 752,
+    "narrow": 755,
     "wide": 713
   },
   "percent": {
@@ -336,19 +336,19 @@
     "wide": 867
   },
   "qr": {
-    "narrow": 1109,
+    "narrow": 1114,
     "wide": 1103
   },
   "qrgen": {
-    "narrow": 1071,
-    "wide": 1089
+    "narrow": 1068,
+    "wide": 1073
   },
   "qrread": {
     "narrow": 318,
     "wide": 352
   },
   "radix": {
-    "narrow": 1108,
+    "narrow": 1111,
     "wide": 1219
   },
   "redact": {
@@ -368,7 +368,7 @@
     "wide": 808
   },
   "replace": {
-    "narrow": 954,
+    "narrow": 958,
     "wide": 965
   },
   "screenrec": {
@@ -380,7 +380,7 @@
     "wide": 972
   },
   "slug": {
-    "narrow": 772,
+    "narrow": 776,
     "wide": 843
   },
   "sound": {
@@ -388,31 +388,31 @@
     "wide": 653
   },
   "specialchar": {
-    "narrow": 6441,
+    "narrow": 6597,
     "wide": 972
   },
   "subtitle": {
-    "narrow": 1180,
-    "wide": 1215
+    "narrow": 1178,
+    "wide": 1207
   },
   "tableconv": {
-    "narrow": 993,
+    "narrow": 995,
     "wide": 1073
   },
   "text": {
-    "narrow": 1017,
-    "wide": 866
+    "narrow": 979,
+    "wide": 854
   },
   "text2img": {
-    "narrow": 1369,
-    "wide": 1984
+    "narrow": 1360,
+    "wide": 1978
   },
   "text2pdf": {
-    "narrow": 1163,
-    "wide": 1031
+    "narrow": 1149,
+    "wide": 1026
   },
   "textclean": {
-    "narrow": 1453,
+    "narrow": 1459,
     "wide": 1015
   },
   "textdiff": {
@@ -420,23 +420,23 @@
     "wide": 589
   },
   "textredact": {
-    "narrow": 1192,
+    "narrow": 1195,
     "wide": 1144
   },
   "time": {
-    "narrow": 867,
-    "wide": 845
+    "narrow": 809,
+    "wide": 804
   },
   "timecalc": {
-    "narrow": 1109,
-    "wide": 1114
+    "narrow": 1206,
+    "wide": 1112
   },
   "timer": {
     "narrow": 618,
     "wide": 729
   },
   "unitconv": {
-    "narrow": 1084,
+    "narrow": 1087,
     "wide": 1045
   },
   "urlparse": {
@@ -448,8 +448,8 @@
     "wide": 879
   },
   "vat": {
-    "narrow": 946,
-    "wide": 931
+    "narrow": 1040,
+    "wide": 928
   },
   "video2audio": {
     "narrow": 423,
@@ -488,11 +488,11 @@
     "wide": 689
   },
   "workdays": {
-    "narrow": 939,
-    "wide": 875
+    "narrow": 925,
+    "wide": 869
   },
   "worldclock": {
-    "narrow": 2887,
+    "narrow": 2987,
     "wide": 850
   },
   "ziptool": {

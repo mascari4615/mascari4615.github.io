@@ -869,7 +869,7 @@ function buildHub() {
   const card = (id) =>
     `        <a class="tool-hub-card"${ALIASES[id] ? ` data-alias="${esc(ALIASES[id])}"` : ''} href="${BASE_PATH}/${id}/"><strong>${esc(heading(id))}${
       isNew(id) ? '<em class="tool-hub-new">새로 나옴</em>' : ''
-    }</strong><span>${esc(seo[id].lead)}</span></a>`;
+    }</strong><span title="${esc(seo[id].lead)}">${esc(seo[id].lead)}</span></a>`;
   // 목록이 모바일에서 열두 화면을 넘는다. 분류로 바로 뛸 수 있게 표식을 달고 위에 목차를 놓는다.
   // 순수 링크라 스크립트가 없어도 그대로 동작한다.
   const groupList = groupIds();
