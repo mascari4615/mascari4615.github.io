@@ -578,13 +578,7 @@
     }
 
     Toolbox.register({
-        id: 'user',
-        title: '내 정보',
-        category: 'tool',
-        desc: '사용량, 도전과제, 뱃지 등 내 정보를 확인합니다',
-        hidden: true,
-        layout: 'form',
-        icon: '<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',
+        ...Toolbox.getLazyWidgetPublicMeta!('user'),
         tabs: [
             { id: 'user-overview', label: '요약', build: buildOverview },
             { id: 'user-usage', label: '사용량', build: buildUsage },
