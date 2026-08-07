@@ -96,6 +96,7 @@ export * from './memory/episodes';
 export * from './memory/known-stamps';
 export * from './garbled';
 export * from './room';
+export * from './toss-back';
 export * from './voice/feeling-tone';
 export * from './watching';
 export * from './while-away';

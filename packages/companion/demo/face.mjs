@@ -23,6 +23,8 @@ import {
   KnownStamps,
   말걸어도되나,
   자리결,
+  tossBackNote,
+  되물은비율,
   갓알게된것,
   InMemoryMemory,
   JsonlFileMemory,
@@ -297,7 +299,18 @@ const web = webBody({
      동안도 마찬가지다. 결 자체는 이미 있던 것을 쓴다(밤 전용 결을 새로 만들면 칸만 는다). */
   tone: () => (quiet.inQuietHours || quiet.hushed ? '누그러짐' : toneOf(heart.state)),
   // 만든 게 실제로 도는지 볼 수 있게. /tally 로 연다.
-  tally: () => tallyReport(tally),
+  tally: () => {
+    /* 「되묻게 했다」는 만든 사람 말이고 **몇 번 중 몇 번인가**가 결과다. 재료만 얹어
+       놓고 됐다고 하지 않으려고 같이 센다 — 오늘만 그런 자리를 셋 찾았다. */
+    const 최근 = typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(200) : [];
+    const 되물음 = 되물은비율(Array.isArray(최근) ? 최근 : []);
+    const 줄 = 되물음.전체 === 0
+      ? '되물음 — 잰 말 없음'
+      : `되물음 ${되물음.되물음}/${되물음.전체} (${Math.round((되물음.되물음 / 되물음.전체) * 100)}%)`;
+    return `${줄}
+
+${tallyReport(tally)}`;
+  },
   troubles: () => troublesReport(troubles),
   settings: () => settingsReport(settings),
   putSettings: (next) => settings.put(next),
@@ -652,6 +665,9 @@ const companion = new Companion({
         그때그일.learn(recent);
         return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());
       })() },
+      /* 공을 돌려주기 — 답만 하면 대답이지 대화가 아니다.
+         무겁게 둔다. 밀리면 그냥 「대화가 식어 가는 채로」 끝난다. */
+      { name: '공돌려주기', weight: 13, text: tossBackNote({ recent, 방금: 방금한말 }) },
       { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
