@@ -92,6 +92,15 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   check(`[${tag}] 몇 번 만에 맞혔는지 말한다`, /2번 만에/.test(doneText), doneText.split('\n')[0]);
   const grid = await page.locator('.done .grid').innerText();
   check(`[${tag}] 공유 격자에 이름이 안 샌다`, !grid.includes(answer.name) && /🟩/.test(grid));
+  if (mode === 'classic') {
+    /**
+     * 올린 격자와 방금 본 화면의 **위아래가 같아야 한다.**
+     * 화면은 새 추측을 위에 쌓는데 격자는 첫 수부터 아래로 그리고 있었다 — 뒤집혀 있었다.
+     * 지금은 맞힌 수가 마지막이므로, 격자 맨 윗줄이 전부 초록이어야 한다.
+     */
+    const lines = grid.split(String.fromCharCode(10)).filter((l) => l.trim());
+    check(`[${tag}] ★ 격자 위아래가 화면과 같다`, [...lines[0]].every((c) => c === '🟩'), lines.join(' / '));
+  }
 
   await page.screenshot({ path: join(shots, `${topicId}-${mode}-${tag}-done.png`), fullPage: true });
 

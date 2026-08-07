@@ -349,7 +349,12 @@ function shareRows() {
       })),
     ];
   }
-  return state.guesses.map((name) => compareItem(topic, findItem(topic.items, name), answer));
+  /**
+   * 화면은 새 추측을 **위에** 쌓는다 (입력칸이 위에 있으니 방금 둔 수가 눈앞에 있어야 한다).
+   * 그런데 격자는 첫 수부터 아래로 그리고 있었다 — 올린 그림이 방금 본 화면과 위아래가
+   * 뒤집혀 있었다는 뜻이다. 올리는 사람은 자기 화면과 대조하므로, 격자를 화면에 맞춘다.
+   */
+  return state.guesses.map((name) => compareItem(topic, findItem(topic.items, name), answer)).reverse();
 }
 
 /**
