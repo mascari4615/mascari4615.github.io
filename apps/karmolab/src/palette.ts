@@ -85,6 +85,97 @@ function isChoQuery(q: string): boolean {
   return /^[ㄱ-ㅎ]+$/.test(q);
 }
 
+/* ── 바로 답하기 (TASK-KL-110) ────────────────────────────────
+ *
+ * 도구를 쓰는 길은 늘 넷이었다: 찾고 → 열고 → 넣고 → 읽는다. 그런데 자주 묻는 것 중에는
+ * **한 줄이면 끝나는** 질문이 많다 — 24px 이 몇 rem 인지, 1024KB 가 몇 MB 인지, 이 색의
+ * RGB 값이 뭔지. 그걸 위해 매번 도구를 여는 것은 네 걸음을 걷는 일이다.
+ *
+ * 그래서 친 그대로가 질문이면 목록 맨 위에 답을 놓는다. Enter 를 치면 그 답이 복사된다
+ * (값을 본 다음 하는 일은 대개 붙여넣기다). 도구가 필요하면 그 아래 줄이 그대로 있다.
+ *
+ * **작게 시작한다** — 셋뿐이다. 여기서 쓸모가 확인되면 늘린다. 답을 내는 규칙이 도구와
+ * 어긋나면 그게 더 나쁘므로(같은 질문에 두 답), 도구와 값이 같은지 검사로 묶어 둔다.
+ */
+type Answer = { label: string; value: string; hint?: string; toolId: string };
+
+/** 숫자를 사람이 읽기 좋게 — 끝의 0 은 지운다 (1.5000 → 1.5) */
+function num(n: number): string {
+  if (!isFinite(n)) return '';
+  const r = Math.round(n * 10000) / 10000;
+  return String(r);
+}
+
+/** px ↔ rem (뿌리 글자 크기 16 기준 — cssunit 도구의 기본값과 같다) */
+function answerCssUnit(q: string): Answer[] {
+  const m = /^(-?\d+(?:\.\d+)?)\s*(px|rem|em)\b(?:\s*(?:to|→|>)\s*(px|rem|em))?$/i.exec(q.trim());
+  if (!m) return [];
+  const v = parseFloat(m[1]);
+  const from = m[2].toLowerCase();
+  const to = (m[3] || '').toLowerCase();
+  const ROOT = 16;
+  const px = from === 'px' ? v : v * ROOT;
+  const all: Record<string, string> = { px: num(px) + 'px', rem: num(px / ROOT) + 'rem', em: num(px / ROOT) + 'em' };
+  if (to && to !== from) return [{ label: `${m[1]}${from} → ${to}`, value: all[to], hint: '뿌리 16px 기준', toolId: 'cssunit' }];
+  return Object.keys(all)
+    .filter((u) => u !== from)
+    .map((u) => ({ label: `${m[1]}${from} → ${u}`, value: all[u], hint: '뿌리 16px 기준', toolId: 'cssunit' }));
+}
+
+/** 바이트 크기 — 1024 배(KiB 계열)와 1000 배(KB 계열)를 함께 보여 준다 */
+function answerByteSize(q: string): Answer[] {
+  const m = /^(-?\d+(?:\.\d+)?)\s*(b|kb|mb|gb|tb|kib|mib|gib|tib)$/i.exec(q.trim());
+  if (!m) return [];
+  const v = parseFloat(m[1]);
+  const unit = m[2].toLowerCase();
+  const bin = ['b', 'kib', 'mib', 'gib', 'tib'];
+  const dec = ['b', 'kb', 'mb', 'gb', 'tb'];
+  const isBin = bin.indexOf(unit) >= 0;
+  const idx = isBin ? bin.indexOf(unit) : dec.indexOf(unit);
+  const bytes = v * Math.pow(isBin ? 1024 : 1000, idx);
+  const out: Answer[] = [];
+  const label = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const labelBin = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  for (let i = 1; i < 5; i++) {
+    const d = bytes / Math.pow(1000, i);
+    // 친 단위 그대로를 답이라고 내밀지 않는다 — 「1024kb → 1024 KB」 는 답이 아니라 메아리다.
+    if (label[i].toLowerCase() !== unit && d >= 0.001 && d < 10000) {
+      out.push({ label: `${m[1]}${unit} → ${label[i]}`, value: num(d) + ' ' + label[i], toolId: 'bytesize' });
+    }
+    const b = bytes / Math.pow(1024, i);
+    if (labelBin[i].toLowerCase() !== unit && b >= 0.001 && b < 10000) {
+      out.push({ label: `${m[1]}${unit} → ${labelBin[i]}`, value: num(b) + ' ' + labelBin[i], toolId: 'bytesize' });
+    }
+  }
+  return out.slice(0, 4);
+}
+
+/** 색 — #hex 를 RGB 로 (반대 방향은 색 도구가 더 잘 한다) */
+function answerColor(q: string): Answer[] {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(q.trim());
+  if (!m) return [];
+  let hex = m[1];
+  if (hex.length === 3) hex = hex.split('').map((c) => c + c).join('');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return [{ label: `#${hex.toLowerCase()} → RGB`, value: `rgb(${r}, ${g}, ${b})`, toolId: 'colorconv' }];
+}
+
+const ANSWER_PROVIDERS = [answerCssUnit, answerByteSize, answerColor];
+
+function answersFor(q: string): Answer[] {
+  const out: Answer[] = [];
+  for (const p of ANSWER_PROVIDERS) {
+    try {
+      out.push(...p(q));
+    } catch (_) {
+      /* 한 규칙이 넘어져도 나머지 찾기는 계속돼야 한다 */
+    }
+  }
+  return out.slice(0, 4);
+}
+
 const KarmoPalette = (() => {
   let entries: Entry[] = [];
   let aliasMap: Record<string, string> = {};
@@ -260,7 +351,8 @@ const KarmoPalette = (() => {
     input: HTMLInputElement;
     list: HTMLElement;
     mode: 'inline' | 'overlay';
-    rows: Array<{ el: HTMLElement; id: string }>;
+    /** id 가 있으면 도구 줄, copy 가 있으면 답 줄 (TASK-KL-110) */
+    rows: Array<{ el: HTMLElement; id?: string; copy?: string }>;
     active: number;
     restoreFocus: Element | null;
   };
@@ -324,6 +416,37 @@ const KarmoPalette = (() => {
     row.addEventListener('click', () => choose(inst, e.id));
     inst.list.appendChild(row);
     inst.rows.push({ el: row, id: e.id });
+  }
+
+  /**
+   * 답 한 줄 (TASK-KL-110). 도구 줄과 같은 모양이되 값이 주인공이라 크게 놓는다.
+   * 누르거나 Enter 를 치면 **복사**된다 — 값을 본 다음 하는 일은 대개 붙여넣기다.
+   */
+  function addAnswerRow(inst: Instance, a: Answer): void {
+    const row = document.createElement('div');
+    row.className = 'kp-row kp-row-answer';
+    row.id = 'kp-row-' + inst.mode + '-' + inst.rows.length;
+    row.setAttribute('role', 'option');
+    row.setAttribute('aria-selected', 'false');
+    row.innerHTML =
+      '<span class="kp-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>' +
+      '<span class="kp-row-text">' +
+      '<span class="kp-answer-value">' + esc(a.value) + '</span>' +
+      '<span class="kp-row-desc">' + esc(a.label) + (a.hint ? ' · ' + esc(a.hint) : '') + '</span>' +
+      '</span>' +
+      '<span class="kp-row-badge">Enter 복사</span>';
+    row.addEventListener('mousemove', () => setActive(inst, inst.rows.findIndex((r) => r.el === row)));
+    row.addEventListener('click', () => copyAnswer(inst, a.value));
+    inst.list.appendChild(row);
+    inst.rows.push({ el: row, copy: a.value });
+  }
+
+  function copyAnswer(inst: Instance, value: string): void {
+    if (typeof Toolbox !== 'undefined' && Toolbox.copyText) {
+      void Toolbox.copyText(value, { message: '복사했어요 — ' + value });
+    }
+    if (inst.mode === 'overlay') close();
   }
 
   /** 빈 입력일 때 보여 주는 것 — 내 것 → 최근 → 즐겨찾기 → 둘러보기. */
@@ -459,8 +582,16 @@ const KarmoPalette = (() => {
       return;
     }
 
+    // 답이 있으면 맨 위에 (TASK-KL-110). 도구 줄은 그대로 아래에 남는다 —
+    // 더 손보고 싶으면 그리로 가면 된다.
+    const answers = answersFor(q);
+    if (answers.length) {
+      inst.list.appendChild(sectionEl('답'));
+      answers.forEach((a) => addAnswerRow(inst, a));
+    }
+
     const hits = search(q);
-    if (!hits.length) {
+    if (!hits.length && !answers.length) {
       // 안 나왔을 때 막다른 길로 끝내지 않는다 — 목록 페이지가 별칭·본문까지 훑는다.
       const empty = document.createElement('div');
       empty.className = 'kp-empty';
@@ -472,7 +603,28 @@ const KarmoPalette = (() => {
       return;
     }
 
-    hits.forEach((h) => addRow(inst, h.entry, h.range));
+    /* 답을 낸 그 도구는 **반드시** 아래에 세운다.
+     * 「24px to rem」 같은 식은 도구 이름과 안 겹쳐서 찾기에는 하나도 안 걸린다 — 그러면
+     * 답만 덩그러니 남고 「더 손보러 갈 길」이 막힌다(검사가 이걸 잡았다). 답은 한 줄짜리
+     * 질문에만 대답하므로, 더 하고 싶은 사람에게는 도구가 필요하다. */
+    const extra: Entry[] = [];
+    const shown = new Set(hits.map((h) => h.entry.id));
+    for (const a of answers) {
+      if (shown.has(a.toolId)) continue;
+      const e = byId(a.toolId);
+      if (e) {
+        shown.add(a.toolId);
+        extra.push(e);
+      }
+    }
+
+    if (hits.length || extra.length) {
+      // 답이 위에 있으면 그 아래 도구 줄에 이름표를 달아 준다 — 안 그러면 답과 도구가
+      // 한 덩어리로 보여, 첫 줄을 눌렀을 때 무엇이 일어날지 헷갈린다.
+      if (answers.length) inst.list.appendChild(sectionEl('도구'));
+      extra.forEach((e) => addRow(inst, e, null));
+      hits.forEach((h) => addRow(inst, h.entry, h.range));
+    }
     setActive(inst, 0);
     announce(inst);
   }
@@ -515,6 +667,14 @@ const KarmoPalette = (() => {
     if (typeof Toolbox !== 'undefined') Toolbox.switchPage(id);
   }
 
+  /** 지금 짚은 줄을 실행한다 — 도구면 열고, 답이면 복사한다. */
+  function activate(inst: Instance, i: number): void {
+    const r = inst.rows[i];
+    if (!r) return;
+    if (r.copy !== undefined) copyAnswer(inst, r.copy);
+    else if (r.id) choose(inst, r.id);
+  }
+
   function onKey(inst: Instance, e: KeyboardEvent): void {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -525,7 +685,7 @@ const KarmoPalette = (() => {
     } else if (e.key === 'Enter') {
       if (inst.active >= 0 && inst.rows[inst.active]) {
         e.preventDefault();
-        choose(inst, inst.rows[inst.active].id);
+        activate(inst, inst.active);
       }
     } else if (e.key === 'Escape') {
       if (inst.mode === 'overlay') {

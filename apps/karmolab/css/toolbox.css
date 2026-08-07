@@ -1316,6 +1316,17 @@ a.landing-cta-card:hover { color: inherit; }
     color: var(--accent);
     font-weight: 700;
 }
+/* 답 줄 — 값이 주인공이라 이름표보다 크게 놓는다 (TASK-KL-110) */
+.kp-row-answer .kp-icon { color: var(--accent); }
+.kp-answer-value {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kp-row-answer.is-active .kp-answer-value { color: var(--accent); }
+
 .kp-row-badge {
     flex: 0 0 auto;
     font-family: var(--font-mono);
