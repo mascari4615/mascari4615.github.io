@@ -194,7 +194,13 @@ permalink: /karmolab/higher/
     if (win) {
       streak++;
       $('streak').textContent = streak;
-      $('msg').textContent = '맞았습니다';
+      /* 최고 기록은 **질 때만** 갱신하고 있었다 (TASK-KL-089).
+       * 그래서 12연승을 하는 중에도 화면의 「최고」는 0 이었다 — 신기록을 세우는 순간을
+       * 화면이 모른 척한다. 넘어서는 그 판에 바로 올리고, 그때만 다르게 말해 준다. */
+      var wasBest = best(board.topic);
+      var isRecord = streak > wasBest;
+      if (isRecord) $('best').textContent = best(board.topic, streak);
+      $('msg').textContent = isRecord && streak > 1 ? '신기록! ' + streak + '연승' : '맞았습니다';
       $('msg').className = 'msg play-ok';
       // 이긴 쪽이 다음 판의 왼쪽으로 남는다 — 방금 본 값과 계속 견주게 된다.
       setTimeout(function () {
