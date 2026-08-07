@@ -324,15 +324,9 @@ const web = webBody({
     }
     engines.push({
       label: '인터넷',
-      speech: edgeSpeech({
-        rate: process.env.COMPANION_VOICE_RATE ?? '-4%',
-        // 밝고 높은 결 = 애니 쪽. 낮고 느린 결 = 나른한 쪽. 취향은 골라 쓰라고 둘 다 둔다.
-        tones: {
-          '밝게': { rate: '+8%', pitch: '+22Hz' },
-          '아주 밝게': { rate: '+16%', pitch: '+45Hz' },
-          '나른하게': { rate: '-14%', pitch: '-12Hz' },
-        },
-      }),
+      // 손으로 적어 둔 결(「밝게」·「나른하게」)은 걷어냈다. 목록만 네 배로 부풀리고
+      // 고를 이유가 없었다 — 결은 그때그때 마음에서 나온다.
+      speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
     });
     console.log(`[목소리] ${engines.map((e) => e.label).join(' + ')}`);
     return anySpeech(engines);
