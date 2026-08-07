@@ -5,7 +5,7 @@
  *
  * 모드는 데이터가 아니라 *행동*이라 여기 산다. 그림이 다 있는 주제엔 실루엣판이 자동으로 붙는다.
  */
-import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -68,6 +68,34 @@ for (const topic of topics) {
     }
   }
 }
+
+/**
+ * 블로그 쪽에서 같은 주소를 쓰는 페이지가 있으면 **우리 페이지가 통째로 덮인다.**
+ *
+ * 실제로 당했다 (2026-08-07): 사이드바 입구를 `_tabs/daily.md` 로 만들었더니 Jekyll 이
+ * 그걸 `/daily/` 로 내보냈고, 게임 허브가 사라지고 그 자리에 자기 자신으로 넘기는
+ * 무한 새로고침 페이지가 앉았다. 페이지는 멀쩡히 200 이라 주소만 찔러서는 절대 안 잡힌다.
+ *
+ * 그래서 만들기 전에 본다. 남의 파일은 안 고치고, 겹친다는 사실만 말한다.
+ */
+function checkBlogCollision() {
+  const tabs = join(app, '../blog/_tabs');
+  if (!existsSync(tabs)) return;
+  const mine = new Set(['daily', ...topics.map((t) => t.id)]);
+  for (const file of readdirSync(tabs).filter((f) => f.endsWith('.md'))) {
+    const text = readFileSync(join(tabs, file), 'utf8');
+    const explicit = text.match(/^permalink:\s*(\S+)/m)?.[1];
+    // permalink 가 없으면 Jekyll 이 파일 이름을 주소로 쓴다 — 그게 이 사고의 원인이었다.
+    const path = (explicit ?? `/${file.replace(/\.md$/, '')}/`).replace(/^\/|\/$/g, '');
+    if (mine.has(path)) {
+      throw new Error(
+        `블로그 탭 「${file}」 이 우리 주소 /${path}/ 를 가져간다 — 그 페이지가 통째로 덮인다. ` +
+          `그 파일 앞머리에 permalink 를 따로 박아라 (예: /${path}-go/).`,
+      );
+    }
+  }
+}
+checkBlogCollision();
 
 /** 한 주제가 낼 수 있는 판들. 실루엣은 그림이 있어야 성립한다. */
 function pagesOf(topic) {
