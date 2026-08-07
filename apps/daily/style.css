@@ -312,6 +312,25 @@ a { color: var(--accent); }
 .next { color: var(--ink-3); font-size: 13px; margin-top: 10px; font-variant-numeric: tabular-nums; }
 .tally { color: var(--ink-2); font-size: 13px; margin: 6px 0 12px; font-variant-numeric: tabular-nums; }
 
+/* 몇 번 만에 맞혔나 — 양을 견주는 일이라 가로 막대. 색은 한 가지고, 숫자를 늘 같이 적는다. */
+.dist { margin: 4px 0 14px; text-align: left; }
+.dist[hidden] { display: none; }
+.dist-t { color: var(--ink-3); font-size: 12px; margin-bottom: 6px; text-align: center; }
+.dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12.5px; }
+.dist-row .k { width: 34px; flex: none; color: var(--ink-3); text-align: right; font-variant-numeric: tabular-nums; }
+/* 막대는 제 칸(track) 안에서만 자란다 — 안 그러면 옆 숫자 자리를 먹어 글자가 세로로 눌린다. */
+.dist-row .track { flex: 1 1 auto; min-width: 0; }
+.dist-row .bar {
+  display: block;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--wrong);
+  min-width: 8px;
+}
+.dist-row.now .bar { background: var(--exact); }
+.dist-row .n { flex: none; min-width: 52px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dist-row.now .n { color: var(--ink); font-weight: 700; }
+
 /* 끝난 사람에게 건네는 다음 판 — 이 자리가 이 물건에서 가장 값진 자리다. */
 .more {
   display: flex;

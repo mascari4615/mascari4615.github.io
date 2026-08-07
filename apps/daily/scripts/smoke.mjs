@@ -95,6 +95,11 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   check(`[${tag}] 연속 기록이 붙는다`, /연속/.test(await page.locator('.done .tally').innerText()));
   // 끝낸 사람이 지금 할 수 있는 것 — 「내일 또」만 남기면 그대로 나간다.
   check(`[${tag}] 어제 문제로 이어 준다`, (await page.locator('.done .more a[href*="?d="]').count()) === 1);
+  if (mode === 'classic') {
+    // 기록이 쌓이는 게 보여야 다시 온다. 색만으로 알리지 않게 숫자와 「오늘」이 글자로 붙는다.
+    const dist = await page.locator('.done .dist').innerText();
+    check(`[${tag}] 몇 번 만에 맞혔는지 쌓인다`, /몇 번 만에/.test(dist) && /오늘/.test(dist), dist.replace(/\n/g, ' ').slice(0, 40));
+  }
 
   await ctx.close();
 }
