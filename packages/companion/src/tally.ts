@@ -24,6 +24,8 @@ import { dirname } from 'node:path';
 export type Fate = '실림' | '밀림' | '꺼짐' | '빔';
 
 export interface Marks {
+  /** 마지막으로 안 실렸을 때 왜 안 실렸나. 실리면 지워진다. */
+  마지막왜?: string;
   실림: number;
   밀림: number;
   꺼짐: number;
@@ -60,9 +62,12 @@ export class Tally {
   }
 
   /** 한 번 세다. */
-  mark(name: string, fate: Fate): void {
+  mark(name: string, fate: Fate, 왜?: string): void {
     const m = this.marks.get(name) ?? 빈것();
     m[fate] += 1;
+    // 마지막으로 왜 안 실렸는지. 실린 순간에는 지운다 — 낡은 이유가 남아 헷갈린다.
+    if (fate === '실림') delete m.마지막왜;
+    else if (왜 !== undefined && 왜 !== '') m.마지막왜 = 왜;
     if (fate === '실림') m.lastAt = (this.options.now ?? (() => Date.now()))();
     this.marks.set(name, m);
 
@@ -122,7 +127,10 @@ export function tallyReport(tally: Tally): string {
   return 줄들
     .map(({ name, m, 지나감 }) => {
       const 상태 = m.실림 === 0 ? '● 한 번도 안 실림' : `실림 ${m.실림}`;
-      return `${name.padEnd(8)} ${상태.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})`;
+      // 왜 안 실렸는지를 같이 보여 준다 — 숫자만 보고는 조건 탓인지 만들 게 없어서인지 모른다.
+      const 왜 = m.마지막왜 === undefined ? '' : `
+${' '.repeat(10)}↳ ${m.마지막왜}`;
+      return `${name.padEnd(8)} ${상태.padEnd(16)} (지나감 ${지나감} · 밀림 ${m.밀림} · 꺼짐 ${m.꺼짐} · 빔 ${m.빔})${왜}`;
     })
     .join('\n');
 }
