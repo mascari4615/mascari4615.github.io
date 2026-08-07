@@ -8,6 +8,7 @@
     "badapple": "file:../../packages/badapple",
     "karmolab-ai": "file:../../packages/karmolab-ai",
     "qrcode-generator": "^1.4.4",
+    "tlock-js": "^0.9.0",
     "trystero": "^0.25.3"
   },
   "scripts": {
@@ -48,6 +49,7 @@
     "test:t2i": "node scripts/test-text2img.mjs",
     "test:tools": "node scripts/smoke-tools.mjs",
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
+    "prerender": "node scripts/prerender-tools.mjs",
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",
@@ -85,6 +87,7 @@
     "test:pdfdiff": "node scripts/smoke-pdfdiff.mjs",
     "test:ghosttype": "node scripts/smoke-ghosttype.mjs",
     "test:duel": "node scripts/smoke-duel.mjs",
+    "test:timecapsule": "node scripts/smoke-timecapsule.mjs",
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
