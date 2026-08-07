@@ -57,6 +57,9 @@
     </div>
     <div class="shadow"></div>
 
+    <!-- 지금 뭐 하는 중인지 — 아이콘 하나로. 얘는 계속 떠 있는데 뭘 하는지 알 길이 없었다. -->
+    <div class="doing" id="doing" title="지금 뭐 하는 중"><span class="ico" id="doingIco">·</span><span class="lab" id="doingLab"></span></div>
+
     <!-- 말 걸기 — 얘를 누르면 열린다 -->
     <div class="talk" id="talk">
       <div class="log" id="log"><div class="empty"></div></div>
@@ -406,12 +409,17 @@
      조수님 요청(77회차): 「얘가 뭔갈 인식할 땐 채팅창에 무조건 떴으면 좋겠음.」
      귀가 열린 것, 창이 바뀐 것, 받아쓴 글을 막은 것, 사건을 담은 것 — 전부 여태
      터미널에만 있었다. 밖에서만 보이는 인식은 없는 인식이나 마찬가지다. */
+  const glob되새김 = (글) => 글.startsWith('되새겼다') || 글.includes('자리인지');
+  /** 아이콘 옆에 붙일 짧은 말 — 긴 건 대화창에서 읽으면 된다. */
+  const 짧은말 = (글) => 글.split(' — ')[0].slice(0, 14);
   let 마지막알아챔 = '';
   function 알아챈것(무엇) {
     const 글 = String(무엇 ?? '').trim();
     if (글 === '' || 글 === 마지막알아챔) return; // 같은 걸 연달아 도배하지 않는다
     마지막알아챔 = 글;
     append('알아챔', 글, 'notice');
+    // 대화창을 안 열어 뒀어도 뭔가 하고 있다는 건 보여야 한다.
+    잠깐(글.startsWith('기억에 담았다') || glob되새김(글) ? '🧠' : 글.includes('귀') || 글.includes('들었다') ? '🎧' : '✨', 짧은말(글));
   }
   window.알아챈것 = 알아챈것;
 
@@ -447,8 +455,47 @@
   }
 
   // 상태 글씨는 안 쓴다 — 얘 움직임이 곧 상태다.
-  function setState(state) {
+  /* ── 지금 뭐 하는 중 ───────────────────────────────────
+     조수님: 「얘 계속 떠 있긴 한데, 뭐하는지 솔직히 모르겠음.」 맞는 말이었다 —
+     **이 함수는 받은 글을 그대로 버리고 있었다.** 3D 기분만 넘기고 끝. 게다가 글을
+     띄우던 자리(.status)는 전체화면에서 통째로 숨겨져 있었다. 부르는 데는 열 군데가
+     넘는데 보이는 데가 없었으니, 만들어 놓고 안 붙인 것과 같다.
+
+     아이콘 하나로 얘 발밑에 늘 띄운다. 글자는 작게 곁들인다 — 아이콘만으로는
+     「👀 가 화면 보는 건가 나를 보는 건가」가 안 갈린다. */
+  const 하는일아이콘 = {
+    listening: '🎧', thinking: '💭', speaking: '💬', looking: '👀', '': '·',
+  };
+  let 되돌릴때 = null;
+
+  function setState(state, 말) {
     body3d?.setMood(state);
+    그리기(하는일아이콘[state] ?? '·', 말 ?? '');
+  }
+
+  /** 뭔가 안 되고 있다는 말인가 — 그건 가만히 있는 것과 절대 같아 보이면 안 된다. */
+  const 탈났나 = (말) => /끊겼|막혀|못 |안 들렸|실패|없다/.test(말 ?? '');
+
+  function 그리기(아이콘, 말) {
+    const ico = document.getElementById('doingIco');
+    const lab = document.getElementById('doingLab');
+    if (ico === null || lab === null) return;
+    const 글 = 말 ?? '';
+    /* **탈난 것을 가만히 있는 것처럼 그리면 안 된다.** 「연결이 끊겼다」가 옅은 점으로
+       뜨면 조수님 눈에는 그냥 조용한 얘로 보인다 — 지금 이 회차가 고치려는 바로 그
+       문제를 새로 만드는 셈이다. */
+    const 탈 = 탈났나(글);
+    ico.textContent = 탈 ? '⚠' : 아이콘;
+    lab.textContent = 글;
+    // 정말 아무 일도 없을 때만 옅게. 그래야 「멈춘 건가」와 「가만히 있는 중」이 갈린다.
+    document.getElementById('doing')?.classList.toggle('idle', 탈 === false && 아이콘 === '·' && (글 === '' || 글 === '가만히 있다'));
+  }
+
+  /** 잠깐 하고 지나가는 일 — 몇 초 띄웠다가 하던 표시로 돌아간다. */
+  function 잠깐(아이콘, 말, ms = 3500) {
+    그리기(아이콘, 말);
+    clearTimeout(되돌릴때);
+    되돌릴때 = setTimeout(() => 그리기('·', ''), ms);
   }
 
   /* ── 말이 만들어지는 대로 ─────────────────────────────────
