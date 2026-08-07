@@ -928,10 +928,15 @@ html[data-intro="off"] .intro-overlay {
 .home-decor-item {
     position: absolute;
     will-change: transform;
-    transform: translate3d(calc(var(--px, 0px) * var(--depth, 0)), calc(var(--py, 0px) * var(--depth, 0)), 0);
+    transform: translate3d(
+        calc(var(--px, 0px) * var(--depth, 0) + var(--ox, 0px)),
+        calc(var(--py, 0px) * var(--depth, 0) + var(--oy, 0px)), 0);
     /* 손가락을 따라 딱 붙으면 기계 같다. 아주 짧게 뒤따라오면 무게가 생긴다. */
     transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+/* 가까운 것은 **밀려났다가 스스로 돌아온다** — 물에 뜬 꽃잎처럼 (TASK-KL-101).
+   그 움직임은 매 프레임 계산해서 넣으므로, 뒤따라오는 전환을 걸면 두 번 미끄러져 흐물거린다. */
+.home-decor-item.home-decor-drift { transition: none; }
 .home-decor-float { will-change: transform; }
 .landing-hero, .landing-cta { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { .home-decor-item { animation: none !important; } }

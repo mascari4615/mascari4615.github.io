@@ -1136,10 +1136,77 @@ const Toolbox = (() => {
                 ty = ((y / window.innerHeight) * 2 - 1) * -reach;
                 if (!queued) { queued = true; requestAnimationFrame(apply); }
             };
-            window.addEventListener('pointermove', (e) => track(e.clientX, e.clientY), { passive: true });
+            /* 가까운 것은 **물에 뜬 꽃잎**처럼 군다 (TASK-KL-101).
+             *
+             * 시차만 주면 손가락 위치에 딱 붙어 같이 평행 이동한다 — 종이에 그려 놓고 종이를
+             * 미는 느낌이다. 물 위의 꽃잎은 손이 **지나갈 때 밀려났다가 천천히 제자리로**
+             * 돌아온다. 그래서 가까운 것에는 위치가 아니라 **힘**을 준다:
+             *   지나가면 밀어내는 힘 → 매 프레임 제자리로 당기는 힘(용수철) + 물의 저항(감쇠).
+             * 먼 것은 그대로 시차다 — 멀리 있는 것은 손이 닿지 않는다.
+             */
+            /* 깊이는 **인라인 값**에서 읽는다. 이 상자는 아직 화면에 안 붙어 있어서
+             * 계산된 값을 물으면 빈 문자열이 온다 — 처음엔 그래서 한 개도 안 잡혔다. */
+            const drifters = [...wrap.querySelectorAll('.home-decor-item')]
+                .filter((el) => parseFloat(el.style.getPropertyValue('--depth')) >= 0.5)
+                .map((el) => {
+                    el.classList.add('home-decor-drift');
+                    return { el, ox: 0, oy: 0, vx: 0, vy: 0, cx: 0, cy: 0 };
+                });
+            const measure = () => {
+                for (const d of drifters) {
+                    const b = d.el.getBoundingClientRect();
+                    d.cx = b.left + b.width / 2 - d.ox;   // 밀린 만큼 빼야 「원래 자리」다
+                    d.cy = b.top + b.height / 2 - d.oy;
+                }
+            };
+            /* 자리는 **손이 처음 움직일 때** 잰다. 이 상자는 만들어질 때 아직 화면에 안 붙어
+             * 있어서, 그때 재면 전부 0 이 나오고 「아무리 스쳐도 안 밀리는」 상태가 된다.
+             * (실제로 그랬다 — 꽃잎은 잡혔는데 밀린 거리가 계속 0 이었다.) */
+            let measured = false;
+            window.addEventListener('resize', () => { measured = false; }, { passive: true });
+
+            const REACH = narrow ? 190 : 300;   // 이 거리 안에 들어와야 밀린다
+            const PUSH = narrow ? 34 : 58;      // 가장 가까울 때 밀어내는 세기
+            let alive = false;
+            function step() {
+                let moving = false;
+                for (const d of drifters) {
+                    // 제자리로 당기는 힘 + 물의 저항. 둘의 비율이 「물에 뜬」 느낌을 만든다.
+                    d.vx = (d.vx - d.ox * 0.055) * 0.9;
+                    d.vy = (d.vy - d.oy * 0.055) * 0.9;
+                    d.ox += d.vx;
+                    d.oy += d.vy;
+                    if (Math.abs(d.ox) < 0.05 && Math.abs(d.oy) < 0.05 && Math.abs(d.vx) < 0.05 && Math.abs(d.vy) < 0.05) {
+                        d.ox = d.oy = d.vx = d.vy = 0;
+                        d.el.style.removeProperty('--ox');
+                        d.el.style.removeProperty('--oy');
+                        continue;
+                    }
+                    moving = true;
+                    d.el.style.setProperty('--ox', d.ox.toFixed(2) + 'px');
+                    d.el.style.setProperty('--oy', d.oy.toFixed(2) + 'px');
+                }
+                // 다 가라앉으면 멈춘다 — 가만히 있는 화면에서 프레임을 태우지 않는다
+                if (moving) requestAnimationFrame(step);
+                else alive = false;
+            }
+            const shove = (x, y) => {
+                if (!measured) { measure(); measured = true; }
+                for (const d of drifters) {
+                    const dx = d.cx + d.ox - x, dy = d.cy + d.oy - y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > REACH || dist < 0.001) continue;
+                    const power = (1 - dist / REACH) ** 2 * PUSH * 0.16;
+                    d.vx += (dx / dist) * power;
+                    d.vy += (dy / dist) * power;
+                }
+                if (!alive) { alive = true; requestAnimationFrame(step); }
+            };
+
+            window.addEventListener('pointermove', (e) => { track(e.clientX, e.clientY); shove(e.clientX, e.clientY); }, { passive: true });
             window.addEventListener('touchmove', (e) => {
                 const t = e.touches && e.touches[0];
-                if (t) track(t.clientX, t.clientY);
+                if (t) { track(t.clientX, t.clientY); shove(t.clientX, t.clientY); }
             }, { passive: true });
             // 손을 떼거나 창을 벗어나면 제자리로 — 안 그러면 마지막 자리에 굳는다
             const home = () => { tx = 0; ty = 0; if (!queued) { queued = true; requestAnimationFrame(apply); } };
