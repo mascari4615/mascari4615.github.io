@@ -172,7 +172,8 @@ const Toolbox = (() => {
         label.className = 'tool-next-label';
         label.textContent = '이어서';
         row.appendChild(label);
-        targets.slice(0, 4).forEach(t => {
+        // 다섯이 한 줄에 들어간다. 더 늘면 줄이 두 겹이 되어 결과보다 커진다.
+        targets.slice(0, 5).forEach(t => {
             const b = document.createElement('button');
             b.type = 'button';
             b.className = 'tool-next-btn';
