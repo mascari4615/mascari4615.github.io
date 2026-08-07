@@ -279,6 +279,31 @@ function shareRows() {
   return state.guesses.map((name) => compareItem(topic, findItem(topic.items, name), answer));
 }
 
+/**
+ * 몇 번 만에 맞혔는지 쌓인 모양 — 워들에서 사람을 다시 오게 하는 화면이 이거다.
+ * 「1판 100%」 한 줄로는 기록이 쌓이는 게 안 보인다.
+ *
+ * 형태는 가로 막대다(양을 비교하는 일이라). 색은 한 가지에 오늘 것만 진하게 —
+ * 색만으로 알리지 않으려고 숫자를 항상 같이 적고, 오늘 줄에는 「오늘」이라고 쓴다.
+ */
+function distChart() {
+  const dist = stats.dist ?? {};
+  const tries = Object.keys(dist).map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  if (!tries.length) return el('<div class="dist" hidden></div>');
+  const max = Math.max(...tries.map((t) => dist[t]));
+  const mine = state.status === 'won' ? state.guesses.length : null;
+  const rows = Array.from({ length: maxGuesses }, (_, i) => i + 1)
+    .filter((t) => dist[t])
+    .map((t) => {
+      const n = dist[t];
+      const pct = Math.max(6, Math.round((n / max) * 100));
+      const now = t === mine;
+      return `<div class="dist-row${now ? ' now' : ''}"><span class="k">${t}번</span><span class="track"><span class="bar" style="width:${pct}%"></span></span><span class="n">${n}${now ? ' ·오늘' : ''}</span></div>`;
+    })
+    .join('');
+  return el(`<div class="dist"><div class="dist-t">몇 번 만에 맞혔나</div>${rows}</div>`);
+}
+
 function finish() {
   const won = state.status === 'won';
   const rows = shareRows();
@@ -298,6 +323,7 @@ function finish() {
     el(`<div class="ans">${answer.img ? `<img src="${esc(answer.img)}" alt="">` : ''}<b>${esc(answer.name)}</b></div>`),
     el(`<div class="grid">${rows.map(shareRow).join('<br>')}</div>`),
     el(`<div class="tally">${stats.played}판 · ${Math.round((stats.wins / Math.max(1, stats.played)) * 100)}% 맞힘 · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
+    distChart(),
   );
 
   /**
