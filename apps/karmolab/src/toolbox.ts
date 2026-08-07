@@ -1124,7 +1124,10 @@ const Toolbox = (() => {
         const calm = typeof window !== 'undefined'
             && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
         if (!calm) {
-            const reach = narrow ? 26 : 44;   // 최대 몇 px 까지 밀릴지 (폰은 손가락이 가리므로 작게)
+            /* 시차는 **아주 약하게**만 남긴다. 세게 주면 화면 전체가 손을 따라 평행 이동해서
+               「종이를 미는」 느낌이 된다 — 물에 뜬 것과 정반대다. 여기서는 멀리 있는 것이
+               아주 조금 흐르는 정도로만 쓴다 (TASK-KL-101). */
+            const reach = narrow ? 7 : 12;
             let tx = 0, ty = 0, queued = false;
             const apply = () => {
                 queued = false;
@@ -1165,17 +1168,24 @@ const Toolbox = (() => {
             let measured = false;
             window.addEventListener('resize', () => { measured = false; }, { passive: true });
 
-            const REACH = narrow ? 190 : 300;   // 이 거리 안에 들어와야 밀린다
-            const PUSH = narrow ? 34 : 58;      // 가장 가까울 때 밀어내는 세기
+            const REACH = narrow ? 210 : 340;   // 이 거리 안에 들어와야 밀린다
+            const PUSH = narrow ? 90 : 130;     // 가장 가까울 때 밀어내는 세기
+            const LIMIT = narrow ? 90 : 150;    // 아무리 밀려도 여기까지 (화면 밖으로 안 나가게)
             let alive = false;
             function step() {
                 let moving = false;
                 for (const d of drifters) {
-                    // 제자리로 당기는 힘 + 물의 저항. 둘의 비율이 「물에 뜬」 느낌을 만든다.
-                    d.vx = (d.vx - d.ox * 0.055) * 0.9;
-                    d.vy = (d.vy - d.oy * 0.055) * 0.9;
+                    /* 제자리로 당기는 힘은 **아주 약하게**, 물의 저항도 낮게.
+                     * 그래야 밀린 뒤 곧장 돌아오지 않고 그 방향으로 한참 미끄러지다 잦아든다 —
+                     * 물에 뜬 것·미생물이 그렇게 움직인다. 당기는 힘을 세게 주면 튕겨 나갔다
+                     * 돌아오는 고무줄이 된다. */
+                    d.vx = (d.vx - d.ox * 0.010) * 0.972;
+                    d.vy = (d.vy - d.oy * 0.010) * 0.972;
                     d.ox += d.vx;
                     d.oy += d.vy;
+                    // 멀리 흘러가 화면 밖으로 사라지지 않게 테두리를 둔다
+                    const far = Math.hypot(d.ox, d.oy);
+                    if (far > LIMIT) { d.ox *= LIMIT / far; d.oy *= LIMIT / far; }
                     if (Math.abs(d.ox) < 0.05 && Math.abs(d.oy) < 0.05 && Math.abs(d.vx) < 0.05 && Math.abs(d.vy) < 0.05) {
                         d.ox = d.oy = d.vx = d.vy = 0;
                         d.el.style.removeProperty('--ox');
@@ -1196,7 +1206,7 @@ const Toolbox = (() => {
                     const dx = d.cx + d.ox - x, dy = d.cy + d.oy - y;
                     const dist = Math.hypot(dx, dy);
                     if (dist > REACH || dist < 0.001) continue;
-                    const power = (1 - dist / REACH) ** 2 * PUSH * 0.16;
+                    const power = (1 - dist / REACH) ** 2 * PUSH * 0.16;   // 가까울수록 급격히 세게
                     d.vx += (dx / dist) * power;
                     d.vy += (dy / dist) * power;
                 }
