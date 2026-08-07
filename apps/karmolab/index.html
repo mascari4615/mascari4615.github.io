@@ -15,7 +15,10 @@ permalink: /karmolab/
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- KAR-115 PWA (Phase 3 native mobile substrate) -->
     <link rel="manifest" href="/apps/karmolab/manifest.json">
-    <meta name="theme-color" content="#0f0f12">
+    <!-- 브라우저가 주소창과 **넘겨 스크롤한 자리**를 이 색으로 칠한다. 어두운 색으로 박아 두면
+         밝은 테마에서도 스크롤 끝에 검은 띠가 보인다 — 폰에서 그렇게 나가고 있었다.
+         아래 부트 스크립트가 지금 테마에 맞춰 바꾼다 (TASK-KL-101). -->
+    <meta name="theme-color" id="themeColorMeta" content="#0f0f12">
     <!-- 이 앱은 어두운 화면이 기본이다. 이걸 안 알려 주면 브라우저가 CSS 가 오기 전까지 흰 바탕을
          칠해, 느린 회선에서 흰 화면이 번쩍인 뒤 검게 바뀐다. 「dark light」 로 둘 다 적으면 브라우저가 OS 설정을 따라 흰 바탕을 칠한다 — 실측으로 확인해 하나만 적는다.
          밝은 테마로 바꾼 사람은 CSS 가 오면 그쪽이 이긴다(toolbox.css 가 light 를 다시 지정한다). -->
@@ -24,7 +27,7 @@ permalink: /karmolab/
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KarmoLab">
     <!-- KAR-115 PWA + KL-088 갱신 안내 — 등록·업데이트 배너는 js/pwa-update.js 가 담당 -->
-    <script defer src="/apps/karmolab/js/pwa-update.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/pwa-update.js"></script>
     <title>KarmoLab</title>
     <!-- TASK-KL-064: 알람 발화 모드. Rust 스케줄러가 띄우는 label "alarm"
          WebviewWindow 가 #alarm-fire 로 이 페이지를 연다. 대시보드 부트 대신
@@ -103,6 +106,10 @@ permalink: /karmolab/
   var bg=localStorage.getItem('toolbox_bg_theme')||'observatory';
   var nav=localStorage.getItem('toolbox_nav_layout')||'header';
   document.documentElement.setAttribute('data-theme',t);
+  /* 주소창·넘겨 스크롤한 자리의 색을 테마에 맞춘다. 여기서 안 맞추면 밝은 테마에서
+     스크롤 끝에 검은 띠가 보인다. 값은 CSS 의 바탕색과 같아야 한다(--bg-void). */
+  var tcm=document.getElementById('themeColorMeta');
+  if(tcm) tcm.setAttribute('content', t==='light' ? '#ffffff' : '#0e0d14');
   document.documentElement.setAttribute('data-bg',bg);
   document.documentElement.setAttribute('data-nav',nav);
   /* 인트로를 켤지 **첫 그림 전에** 정한다. 도구를 보던 사람에게는 인트로가 방해다.
@@ -270,22 +277,22 @@ permalink: /karmolab/
       document.head.appendChild(s);
     });
     </script>
-    <script defer src="/apps/karmolab/js/analytics.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/analytics.js"></script>
     <!-- 계정 (TASK-KL-098) — 도전과제·연속기록이 이 브라우저 밖에도 남게 하고, 헤더의 로그인
          자리를 채운다. 서버(yawnbot)가 죽어 있으면 아무 일도 안 하고 지금까지와 똑같이 동작한다. -->
-    <script defer src="/apps/karmolab/js/account.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/account.js"></script>
     <!-- 명령 팔레트 (TASK-KL-099) — 첫 화면의 본체이자 ⌘K 로 뜨는 그것.
          toolbox 가 첫 화면을 그릴 때 window.KarmoPalette 를 찾으므로 그보다 먼저 둔다.
          defer 는 문서 순서대로 실행되므로 이 줄의 위치가 곧 순서다.
          이 한 줄이 빌드 목록이기도 하다 — build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
-    <script defer src="/apps/karmolab/js/palette.js"></script>
-    <script defer src="/apps/karmolab/js/toolbox.js"></script>
-    <script defer src="/apps/karmolab/js/mdd.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/palette.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/toolbox.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/mdd.js"></script>
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
          · user(ensureScript) 가 첫 사용 시 로드. -->
-    <script defer src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-lazy-meta.js"></script>
     <script defer src="/apps/karmolab/js/widgets-manifest.js"></script>
-    <script defer src="/apps/karmolab/js/widgets-loader.js"></script>
+    <script defer fetchpriority="low" src="/apps/karmolab/js/widgets-loader.js"></script>
     {% if jekyll.environment == 'production' and site.pwa.enabled and site.pwa.cache.enabled %}
     <!-- Chirpy SW는 루트(/sw.min.js)에 있으나 layout:none 페이지는 app.min.js를 쓰지 않아 등록되지 않았음 → 방문 시 동일 출처·허용 URL을 런타임 캐시(오프라인/앱용). -->
     <script>

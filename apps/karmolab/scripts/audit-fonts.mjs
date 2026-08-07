@@ -43,7 +43,12 @@ for (const rel of ['index.html', 'scripts/gen-tool-pages.mjs']) {
   const calls = text.split('\n').filter((l) => /(?:href|src)=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com/.test(l));
   if (calls.length) bad.push(`${rel} 이 다시 남의 글꼴 서버를 부른다 (${calls.length}줄)`);
   // 부르는 줄이 통째로 사라지면 화면은 멀쩡하고(컴퓨터 글꼴) 글꼴만 조용히 안 온다 — 그것도 잡는다.
-  if (!text.includes('css/fonts.css')) bad.push(`${rel} 이 글꼴 목록(css/fonts.css)을 안 부른다`);
+  // 단, **자기 머리말을 직접 짜는 파일에만** 묻는다. 도구 페이지 생성기는 셸(index.html)을
+  // 그대로 물려받는 쪽으로 바뀔 수 있고(TASK-KL-129), 그때는 여기에 글꼴 줄이 없는 게 맞다.
+  const ownsHead = /<link rel="stylesheet" href="\/apps\/karmolab\/css\/toolbox\.css">/.test(text);
+  if (ownsHead && !text.includes('css/fonts.css')) {
+    bad.push(`${rel} 이 자기 머리말을 짜면서 글꼴 목록(css/fonts.css)은 안 부른다`);
+  }
 }
 
 const toolbox = path.join(root, 'css/toolbox.css');
