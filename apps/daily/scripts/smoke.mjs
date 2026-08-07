@@ -413,6 +413,31 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 없는 이름을 치면 아무 반응도 없었다 — 오타가 났는데 화면이 침묵하면 고장으로 읽힌다.
+ * 이미 낸 답도 목록에서 빠지므로 같은 침묵이 났다.
+ */
+{
+  const topic = JSON.parse(readFileSync(join(app, 'data', 'lol.json'), 'utf8'));
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  await page.goto(`${base}/lol/`, { waitUntil: 'networkidle' });
+
+  await page.fill('.guessbar input', '없는이름zzz');
+  await page.waitForSelector('.sug-none', { timeout: 5000 });
+  check('없는 이름을 치면 없다고 말한다', /없어요/.test(await page.locator('.sug-none').innerText()));
+
+  const first = topic.items[0].name;
+  await page.fill('.guessbar input', first);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${first}")`);
+  await page.waitForSelector('.row');
+  await page.fill('.guessbar input', first);
+  await page.waitForSelector('.sug-none', { timeout: 5000 });
+  check('이미 낸 이름은 이미 냈다고 말한다', /이미 냈어요/.test(await page.locator('.sug-none').innerText()));
+  await ctx.close();
+}
+
+/**
  * 손가락 자리 — 재 보니 15~35px 짜리가 일곱이었다. 작으면 잘못 눌리고, 잘못 눌리면 떠난다.
  * 눈으로는 「작아 보이지 않아서」 안 잡힌다. 그래서 잰다.
  */

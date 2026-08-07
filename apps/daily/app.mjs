@@ -441,6 +441,17 @@ let cursor = -1;
 function renderSuggestions() {
   const list = suggest(topic.items, $input.value, { exclude: state.guesses });
   cursor = -1;
+
+  /**
+   * 없는 이름을 치면 지금까지는 **아무 반응도 없었다** — 오타가 났는데 화면이 침묵하니
+   * 「고장인가? 내가 틀렸나?」를 알 수 없다. 이미 낸 답도 목록에서 빠지므로 같은 침묵이 난다.
+   */
+  if ($input.value.trim() && !list.length) {
+    const already = findItem(topic.items, $input.value);
+    $sug.innerHTML = `<p class="sug-none">${already ? `「${esc(already.name)}」는 이미 냈어요.` : '그런 이름은 없어요. 철자를 확인해 보세요.'}</p>`;
+    return list;
+  }
+
   $sug.innerHTML = list
     .map(
       (item, i) =>
