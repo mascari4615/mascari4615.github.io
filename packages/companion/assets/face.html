@@ -156,6 +156,31 @@
     if (r) tell(`얘 자리 ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}×${Math.round(r.height)}`);
   }, 800);
 
+  /* 어디까지 왔을 때 소리를 낼지 정하는 규칙. 화면 안에 박아 두면 시험을 못 해서
+     따로 뺐다 — 「언제 입을 여나」는 조용히 틀리면 아무도 모르는 자리다.
+     못 불러오면 예전처럼 문장 끝까지 기다린다(늦을 뿐 안 깨진다). */
+  let 읽을토막 = null;
+  import('/say-chunks.js')
+    .then((m) => { 읽을토막 = m.읽을토막; tell('말 끊는 규칙을 불렀다'); })
+    .catch((e) => tell(`말 끊는 규칙을 못 불렀다 — 문장 끝까지 기다리게 된다: ${e}`));
+
+  /** 긴 말을 읽기 좋은 토막들로. 규칙이 없으면 통째로 하나. */
+  function 토막내기(message) {
+    const 글 = String(message ?? '').trim();
+    if (글 === '') return [];
+    if (읽을토막 === null) return [글];
+    const 조각들 = [];
+    let 남은 = 글;
+    // 마지막 토막은 규칙상 안 떨어지므로(뒤에 남는 게 없다) 남는 것을 따로 담는다.
+    while (남은.trim() !== '') {
+      const 토막 = 읽을토막(남은, { 남길것: 1 });
+      if (토막 === null) { 조각들.push(남은.trim()); break; }
+      조각들.push(토막.토막);
+      남은 = 남은.slice(토막.먹은길이);
+    }
+    return 조각들;
+  }
+
   const cube = document.getElementById('cube');
   const bubble = document.getElementById('bubble');
   const status = document.getElementById('status');
@@ -462,7 +487,11 @@
     // 흘러나오지 *않은* 말은 화면에만 뜨고 입은 다물었다 — 반사 대답, 혼잣말, 화면을
     // 보고 하는 말이 전부 이 길이다. 곁에 있는 존재가 어떤 말은 소리로 하고 어떤 말은
     // 자막으로만 하면 그건 반쪽이다. **모든 말은 소리로 나간다.**
-    if (message.trim() !== '') speakAloud(message, true);
+    /* **긴 말은 토막 내서 차례로 만든다.**
+       한 번에 만들면 첫 소리가 그만큼 늦다 — 실측에서 한 대답에 8.2초가 찍혔다.
+       앞 토막이 나가는 동안 뒤 토막이 만들어지므로, 기다리는 시간은 첫 토막 것만 든다.
+       규칙을 못 불러왔으면 예전처럼 통째로 (늦을 뿐 안 깨진다). */
+    for (const 조각 of 토막내기(message)) speakAloud(조각, true);
     spokenUpTo = 0;
     clearTimeout(idleTimer);
     // 말이 길수록 오래 떠 있는다 — 읽을 시간을 준다.
