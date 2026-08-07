@@ -7,7 +7,7 @@
  * **오늘 것은 절대 안 보여 준다.** 오늘 답이 여기 있으면 게임이 성립하지 않는다.
  */
 import { dailyIndex, kstDayNumber, puzzleNumber, EPOCH_DAY_NUMBER } from './engine.mjs';
-import { countPage } from './count.mjs';
+import { countPage, countEvent } from './count.mjs';
 
 const root = document.getElementById('past');
 const topicId = root.dataset.topic;
@@ -77,7 +77,11 @@ if (cursor < oldest) {
   $more.replaceChildren();
 } else {
   $more.innerHTML = '<button type="button"></button>';
-  $more.querySelector('button').addEventListener('click', appendChunk);
+  $more.querySelector('button').addEventListener('click', () => {
+    // 지난 문제를 「더 보는」 사람이 있는지 — 없으면 30일에서 끊어도 된다는 뜻이다.
+    countEvent(`daily/${topicId}/지난문제/더보기`);
+    appendChunk();
+  });
   appendChunk();
 }
 
