@@ -107,3 +107,4 @@ export * from './heard';
 export * from './room-learn';
 export * from './memory/reflect';
 export * from './rarity';
+export * from './length';
