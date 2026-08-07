@@ -196,6 +196,9 @@ import { onPageActive, takePick } from './pack-pick';
             if (win) {
               streak++;
               $('hiStreak').textContent = String(streak);
+              /* 최고 기록은 **오를 때마다** 남긴다. 예전에는 지는 순간에만 적어서, 이기고 있는
+               * 중에 판을 바꾸거나 창을 닫으면 그 연승이 통째로 사라졌다(실측: 2연승 → 최고 0). */
+              $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiMsg').textContent = '맞았습니다';
               setTimeout(() => {
                 left = right!.v[field!.key] > left!.v[field!.key] ? right : left;
@@ -237,6 +240,14 @@ import { onPageActive, takePick } from './pack-pick';
           }
 
           function load(id: string): void {
+            /* 쌓던 연승이 있는데 판을 바꾸면 **말없이 0** 이 됐다 — 실수로 눌러도 그냥 잃었다.
+             * 기록은 이미 남아 있으니(이길 때마다 적는다) 그 사실을 말해 주고, 오늘 한 판으로도 센다. */
+            let note = '';
+            if (streak > 0 && boardId && boardId !== id) {
+              markToday(streak);
+              // 새 판을 다 그린 **뒤에** 말해야 한다 — 먼저 적으면 새 판이 그리면서 지운다(실측).
+              note = `판을 바꿔 ${streak}연승은 여기서 끝냅니다 — 최고 기록에는 남겼어요.`;
+            }
             boardId = id;
             /* 판마다 그림의 결이 다르다 — 포켓몬은 96px 도트라 키우면 뭉개진다. 도트는 도트답게
              * 각지게 늘리고(그게 원래 모양이다), 초상화인 롤·원신은 그냥 매끄럽게 둔다. */
@@ -258,6 +269,7 @@ import { onPageActive, takePick } from './pack-pick';
                 $('hiStreak').textContent = '0';
                 $('hiBest').textContent = String(bestOf(id));
                 nextRound(false);
+                if (note) $('hiMsg').textContent = note;
               })
               .catch((err) => {
                 $('hiAsk').textContent =
