@@ -87,15 +87,45 @@ export interface TouchReplyOptions {
  * 몇 번째냐에 따라 결이 옮겨 간다 — 처음 / 몇 번 / 계속. 계속 만지면 대꾸가 짧고 시들해지는
  * 게 자연스럽다.
  */
+/**
+ * 최근에 쓴 대꾸들 — **바로 앞것만 피하면 셋을 뱅뱅 돈다.**
+ *
+ * 88회차에 오간 말을 통째로 셌다. 얘가 한 말 320개 중 **145개가 글자 그대로 반복**이었고,
+ * 가장 많은 것이 「…계속할 거야?」 18번, 「아프진 않은데… 그만.」 16번이었다. 전부 여기서
+ * 나온 고정 대꾸다.
+ *
+ * 원인은 단순했다. 피하는 게 **딱 하나**(바로 앞것)뿐이라, 후보가 셋인 자리에서 둘을 계속
+ * 번갈아 쓴다. 사람이 찌를 때마다 같은 말을 듣는다.
+ *
+ * 그래서 **쓴 것을 갈래마다 기억해 두고, 안 쓴 것부터 고른다.** 다 썼으면 비우고 다시
+ * 돈다 — 그러면 적어도 한 바퀴는 다른 말이 나온다.
+ */
+const 쓴것 = new Map<string, Set<string>>();
+
+/** 시험에서 앞판이 안 새게. */
+export function 대꾸기억지우기(): void {
+  쓴것.clear();
+}
+
 export function touchReply(kind: TouchKind, options: TouchReplyOptions = {}): string {
   const times = Math.max(1, options.times ?? 1);
   const roll = options.roll ?? Math.random;
   const 단계 = times <= 1 ? 0 : times <= 4 ? 1 : 2;
   const 후보 = 대꾸[kind][단계];
 
-  const 다른것 = 후보.filter((c) => c !== options.last);
-  const 고를것 = 다른것.length > 0 ? 다른것 : 후보;
-  return 고를것[Math.floor(roll() * 고를것.length) % 고를것.length];
+  const 열쇠 = `${kind}:${단계}`;
+  const 이미 = 쓴것.get(열쇠) ?? new Set<string>();
+  let 고를것 = 후보.filter((c) => 이미.has(c) === false && c !== options.last);
+  if (고를것.length === 0) {
+    // 한 바퀴 다 돌았다. 비우고 다시 — 다만 바로 앞것은 그래도 피한다.
+    이미.clear();
+    고를것 = 후보.filter((c) => c !== options.last);
+    if (고를것.length === 0) 고를것 = [...후보];
+  }
+  const 고른것 = 고를것[Math.floor(roll() * 고를것.length) % 고를것.length];
+  이미.add(고른것);
+  쓴것.set(열쇠, 이미);
+  return 고른것;
 }
 
 /**

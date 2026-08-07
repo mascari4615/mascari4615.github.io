@@ -204,6 +204,14 @@ declare global {
 
   /** toolbox.js — global lexical binding (not necessarily window.Toolbox) */
   var Toolbox: {
+    /** 결과를 옆 도구로 넘기기 (TASK-KL-133) — 놓아두기 · 건네받기 · 「이어서」 줄 */
+    offerNext?: (anchor: HTMLElement | null, item: { blob: Blob; name?: string; from?: string }) => void;
+    offerResult?: (item: { blob: Blob; name?: string; from?: string }) => void;
+    takeResult?: () => { blob: Blob; name?: string; from?: string } | null;
+    peekResult?: () => { blob: Blob; name?: string; from?: string } | null;
+    toolsAccepting?: (type: string, exceptId?: string) => Array<{ id: string; title?: string }>;
+    /** 놓인 것이 이 도구가 받을 수 있는 것이면 건네준다 — 한 번만. 화면을 옮겨 와도 받는다. */
+    onHandoff?: (kinds: string[], cb: (file: File) => void) => void;
     registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
     getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
     /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */

@@ -125,6 +125,8 @@ import { onPageActive, takePick } from './pack-pick';
           /* 이미 물어본 질문은 다시 안 묻는다. 기록(history)에는 대답까지 붙어 있어서
            * 그걸로 견주면 **영영 안 걸린다** — 같은 질문이 세 번 나왔다(실측). 질문만 따로 센다. */
           const askedText = new Set<string>();
+          /** 몇 번째 불러오기인가 — 늦게 온 표를 버리는 표식. */
+          let loadSeq = 0;
           const refused: string[] = []; // 「아니에요」를 들은 추측 — 다시 내밀지 않는다
 
           const esc = (s: string): string =>
@@ -186,7 +188,13 @@ import { onPageActive, takePick } from './pack-pick';
            */
           function bestAsk(): Ask | null {
             if (!topic) return null;
-            const cand = asksFor(pool, topic.fields).filter((a) => !askedText.has(a.text));
+            const all = asksFor(pool, topic.fields).filter((a) => !askedText.has(a.text));
+            /* 첫 질문이 「세대가 5 보다 큰가요?」였다(실사이트). 세대를 아는 건 팬뿐이고,
+             * 처음 온 사람은 첫 판에서 막힌다. 후보가 많은 초반에는 **눈에 보이는 것**만 묻는다 —
+             * 어려운 것은 후보가 줄어 정말 필요할 때 열린다. 그런 질문이 없으면 그때는 전부에서 고른다. */
+            const ceiling = pool.length > 200 ? 0 : pool.length > 40 ? 0.4 : 1;
+            const easy = all.filter((a) => a.hard <= ceiling);
+            const cand = easy.length ? easy : all;
             let best: Ask | null = null;
             let bestCost = Infinity;
             for (const a of cand) {
@@ -345,13 +353,18 @@ import { onPageActive, takePick } from './pack-pick';
             const src: Promise<Topic> = mine
               ? Promise.resolve({ fields: mine.fields as unknown as Field[], items: mine.items as unknown as Item[] })
               : fetch(`/daily/data/${id}.json`).then((r) => r.json());
+            /* 주제를 빨리 바꾸면 **먼저 부른 표가 나중에 도착해** 방금 고른 주제를 덮었다
+             * (실측: 원신을 골랐는데 세 번째 질문이 포켓몬 표에서 나왔다). 늦게 온 답은 버린다. */
+            const mySeq = ++loadSeq;
             src
               .then((j: Topic) => {
+                if (mySeq !== loadSeq) return;
                 topic = j;
                 pool = j.items.slice();
                 nextAsk();
               })
               .catch(() => {
+                if (mySeq !== loadSeq) return;
                 $('twQ').textContent = '표를 못 불러왔습니다.';
                 $('twMsg').textContent = '인터넷이 잠깐 끊겼을 수 있어요.';
               });
