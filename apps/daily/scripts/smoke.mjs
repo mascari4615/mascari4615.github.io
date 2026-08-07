@@ -64,6 +64,11 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   check(`[${tag}] 추측 한 줄이 속성 칸을 다 그린다`, cellCount === cellsPerRow, `${cellCount}칸`);
   check(`[${tag}] 아직 안 끝났다`, await page.locator('.done').isHidden());
   if (mode === 'classic') {
+    // 규칙은 화면 위에 있고 결과는 아래에 뜬다 — 눈이 가 있는 자리에도 읽는 법이 있어야 한다.
+    const legend = await page.locator('.legend').innerText();
+    check(`[${tag}] 결과 옆에 읽는 법이 뜬다`, /맞음/.test(legend) && /▲/.test(legend), legend.replace(/\n/g, ' '));
+  }
+  if (mode === 'classic') {
     // 색과 ▲▼ 는 눈에만 보인다 — 같은 내용이 말로도 남아야 화면 낭독기가 읽는다.
     const said = await page.locator('.row .sr').first().innerText();
     check(`[${tag}] 결과를 말로도 남긴다`, said.startsWith(`${decoy.name}:`) && /맞음|틀림|더 /.test(said), said.slice(0, 40));
