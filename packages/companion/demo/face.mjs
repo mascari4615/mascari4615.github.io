@@ -20,6 +20,9 @@ import {
   clonedSpeech,
   EpisodeStore,
   episodeNote,
+  되새김,
+  되새김노트,
+  되새김묻기,
   기운묻기,
   KnownStamps,
   말걸어도되나,
@@ -273,6 +276,14 @@ const 밀린것 = new 밀린생각();
 /* 자리를 배운다 — 표가 모르는 창은 두뇌에게 물어 적어 둔다(78회차).
    지금 떠 있는 창을 세어 보니 아홉 중 여섯이 「모름」이었다. 표를 늘리는 건 답이 아니다 —
    사람이 쓰는 프로그램은 사람마다 다르다. 같은 창은 한 번만 물어보므로 값이 곧 0 에 준다. */
+/* 되새김 — 오간 말에서 **바로 안 보이는 것**을 스스로 짚는다(79회차).
+   여태 기억은 셋 다 「일어난 일」이었다. 그 위에 얹히는 것, 「그래서 뭐가 보이나」가 없었다.
+   근거를 못 대는 것은 버린다 — 되새김은 헛것이 가장 잘 나오는 자리다. */
+const 되새긴것 = new 되새김({
+  path: join(home, '보아-온-것.json'),
+  물어보기: 되새김묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  log: (m) => { console.log(`[되새김] ${m}`); web?.알아챔?.(`되새겼다 — ${m}`); },
+});
 const 자리앎 = new 자리배움({
   path: join(home, '무슨-자리.json'),
   물어보기: 자리묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
@@ -710,6 +721,8 @@ const companion = new Companion({
       // 얘기를 늘어놓으면, 말 건 것 자체는 괜찮아도 방해가 된다.
       // 이어지는 옛 일이 있으면 꺼낸다. 없으면 아무 말도 안 얹는다 — 늘 붙이면
       // 「기억하는 척」이 되고 재료만 먹는다.
+      // 여러 마디에 걸쳐야 보이는 것. 지금 얘기와 이어질 때만 나온다.
+      { name: '보아온것', weight: 11, text: 되새김노트(되새긴것, 방금한말) },
       { name: '그때그일', weight: 10, text: (() => {
         그때그일.learn(recent);
         return 방금한말 === '' ? '' : episodeNote(그때그일, 방금한말, Date.now());
@@ -866,6 +879,12 @@ const companion = new Companion({
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
     void 자리앎.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
+    /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는
+       영영 「일어난 일」만 안다. 여기는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
+    void Promise.resolve(conversationMemory.recent(60)).then((es) => {
+      if (되새긴것.셈(es) === false) return undefined;
+      return 되새긴것.되새기기(es);
+    }).catch((e) => console.error(`[되새김] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
     else console.log(`[참음] ${report.decision.reason}`);
