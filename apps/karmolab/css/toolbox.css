@@ -823,6 +823,7 @@ html[data-intro="off"] .intro-overlay {
 }
 
 .header-btn.user-btn,
+.header-btn.settings-btn,
 .theme-toggle {
     width: 36px; height: 36px; padding: 0;
     border: none;
@@ -835,15 +836,18 @@ html[data-intro="off"] .intro-overlay {
     color: var(--text-secondary);
 }
 .header-btn.user-btn:hover,
+.header-btn.settings-btn:hover,
 .theme-toggle:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
 }
-.header-btn.user-btn.active {
+.header-btn.user-btn.active,
+.header-btn.settings-btn.active {
     background: var(--accent-dim);
     color: var(--accent);
 }
 .header-btn.user-btn svg,
+.header-btn.settings-btn svg,
 .theme-toggle .theme-icon {
     width: 18px; height: 18px;
 }
@@ -954,30 +958,13 @@ html[data-intro="off"] .intro-overlay {
 
 /* ── Hero ── */
 
+/* 찾는 칸이 주인공이다 (TASK-KL-136) — 머리 부분은 이름 한 줄 + 한 마디로 줄이고,
+   그 밑에 바로 칸이 온다. 예전엔 머리 아래 밑줄 장식까지 있어 칸이 한참 아래였다. */
 .landing-hero {
-    padding: var(--space-2xl) 0 var(--space-xl);
-    margin-bottom: var(--space-xl);
+    padding: var(--space-2xl) 0 var(--space-md);
+    margin-bottom: var(--space-md);
     position: relative;
     text-align: center;
-}
-.landing-hero::after {
-    content: '';
-    display: block;
-    width: 48px;
-    height: 2px;
-    margin: var(--space-lg) auto 0;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0.6;
-}
-
-.landing-subtitle {
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    font-weight: 600;
-    font-family: var(--font-mono);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: var(--space-sm);
 }
 
 .landing-title {
@@ -1009,9 +996,28 @@ html[data-intro="off"] .intro-overlay {
    조금 잘릴 뿐인데, 어차피 가려져 있던 자리다 (TASK-KL-101). */
 .home-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; pointer-events: none; z-index: 0; overflow: hidden; }
 /* 도구 화면에서는 한 겹 물러난다. 지우지 않는 이유: 화면을 옮길 때마다 세계가 바뀌면
-   앱이 아니라 문서 여러 장이 된다. 흐리게 두면 이어지면서도 글을 안 방해한다. */
+   앱이 아니라 문서 여러 장이 된다. 흐리게 두면 이어지면서도 글을 안 방해한다.
+   옅어지기만 하면 **같은 자리에서 색만 빠진** 것으로 보인다 — 물러났다는 말은 거리다.
+   그래서 무대를 화면 한가운데 기준으로 줄인다: 모든 도형이 가운데로 모이며 작아진다
+   = 카메라가 뒤로 빠진 그림. 홈으로 오면 1 로 돌아오고, 자리 값 자체는 손대지 않으므로
+   되돌릴 상태가 없다 (KL-149).
+   **왜 무대(안쪽 상자)냐** — ① 도형 각각은 transform 을 이미 두 겹 쓴다(시차·떠다니기),
+   거기 얹으면 서로 덮어써서 아무 일도 안 일어난다. ② 바깥 상자는 화면을 잘라 내는 틀이라
+   같이 줄이면 **잘리는 선이 화면 안쪽으로 들어와** 도형이 허공에서 직선으로 잘린다.
+   틀은 화면에 고정, 무대만 물러난다. */
 html[data-view="tool"] .home-decor { opacity: 0.35; transition: opacity .45s ease; }
 html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; }
+.home-decor-stage {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+    will-change: transform;
+    transition: transform .55s cubic-bezier(.22, .61, .36, 1);
+}
+html[data-view="tool"] .home-decor-stage { transform: scale(0.84); }
+html[data-view="home"] .home-decor-stage { transform: scale(1); }
+/* 움직임을 줄여 달라고 한 사람에게는 미끄러지지 않고 바로 놓인다 */
+@media (prefers-reduced-motion: reduce) { .home-decor-stage { transition: none; } }
 /* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
    서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
 .home-decor-item {
@@ -1056,10 +1062,10 @@ html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; 
     letter-spacing: 0.04em;
 }
 
-/* ── 첫 화면 — 찾는 입력 + 카드 3장 (TASK-KL-099) ──
-   둘 다 있다. 입력이 먼저 오고(160개 전부로 간다), 카드는 그 아래에서 정해진 세 곳으로
-   간다. 카드를 작게 줄이지는 않았다 — 눈에 익은 자리를 그대로 두라는 요청이다.
-   대신 카드 안내 문구가 「메뉴에서 찾으세요」였던 것만 바꿨다: 이제 그 일은 위가 한다. */
+/* ── 첫 화면 — 찾는 칸이 주인공, 카드는 그 아래 한 줄 (TASK-KL-099 → KL-136) ──
+   순서: 이름 → **찾는 칸** → 갈 곳 카드 한 줄 → 방문 수(Today/Total).
+   카드는 아이콘+이름 한 줄짜리로 줄였다 — 설명 줄을 달면 다섯 장이 두 줄을 먹고, 그만큼
+   찾는 칸이 아래로 밀린다. 각 카드가 무엇인지는 들어가면 그 화면이 스스로 말한다. */
 
 .landing-palette {
     display: flex; justify-content: center;
@@ -1069,69 +1075,43 @@ html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; 
 
 .landing-cta {
     display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
-    padding: var(--space-xl) 0 0; text-align: center;
+    padding: var(--space-lg) 0 0; text-align: center;
 }
-/* 첫 화면의 실사용 줄 (TASK-KL-098) — 이 사이트가 실제로 쓰이고 있다는 증거.
+/* 첫 화면의 방문 수 (TASK-KL-098 → KL-136) — 블로그와 같은 Today / Total 두 칸.
    값이 없으면 자리 자체가 안 생긴다 (`:empty`) — 「0번」이 떠 있으면 죽은 화면으로 읽힌다. */
-.landing-pulse { max-width: 620px; margin: var(--space-md) auto 0; text-align: center;
+.landing-pulse { max-width: 620px; margin: var(--space-lg) auto 0;
     position: relative; z-index: 1; }
 .landing-pulse:empty { display: none; }
-.landing-pulse-line { margin: 0; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.landing-pulse-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: center; gap: var(--space-md);
+    font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.landing-pulse-stat { display: inline-flex; align-items: baseline; gap: 6px; }
+.landing-pulse-k { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-tertiary); }
 .landing-pulse-line b { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
-.landing-pulse-all { background:none; border:0; padding:0; margin-left:2px; font:inherit;
+.landing-pulse-all { background:none; border:0; padding:0; font:inherit;
     font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }
-.landing-pulse-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-    gap: 6px; margin-top: 10px; }
-.landing-pulse-label { font-size: 11px; color: var(--text-tertiary); margin-right: 2px; }
-.landing-pulse-chip { display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
-    background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer;
-    font: inherit; font-size: 11px; transition: border-color var(--transition), color var(--transition); }
-.landing-pulse-chip:hover { border-color: var(--accent); color: var(--text-primary); }
-.landing-pulse-chip-n { color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-
-/* 첫 화면의 커뮤니티 줄 (TASK-KL-098) — 사람이 보이는 자리.
-   서버에 못 닿거나 글이 없으면 비어 있으므로, 빈 상태에서는 자리 자체를 안 만든다. */
-.landing-feed { max-width: 560px; margin: var(--space-xl) auto 0; text-align: left; }
-.landing-feed:empty { display: none; }
-.landing-feed-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.landing-feed-name { font-size: var(--font-size-xs); font-weight: 700; color: var(--text-secondary); }
-.landing-feed-more { background: none; border: none; padding: 0; cursor: pointer;
-    color: var(--accent); font: inherit; font-size: var(--font-size-xs); }
-.landing-feed-rows { border: 1px solid var(--border); border-radius: var(--radius-lg);
-    background: var(--bg-secondary); overflow: hidden; }
-.landing-feed-row { display: flex; align-items: center; gap: 12px; width: 100%;
-    padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--border);
-    cursor: pointer; font: inherit; text-align: left; }
-.landing-feed-row:first-child { border-top: 0; }
-.landing-feed-row:hover { background: var(--bg-tertiary); }
-.landing-feed-title { flex: 1; min-width: 0; font-size: var(--font-size-xs); color: var(--text-primary);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.landing-feed-row:hover .landing-feed-title { color: var(--accent); }
-.landing-feed-meta { flex: 0 0 auto; font-size: 11px; color: var(--text-tertiary); display: flex; gap: 8px; }
 
 .landing-cta-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--space-md);
+    gap: var(--space-sm);
 }
 .landing-cta-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
-    padding: 18px 16px 16px;
-    min-width: 200px;
-    max-width: 220px;
+    padding: 9px 14px;
     cursor: pointer;
     text-decoration: none;
     color: inherit;
     transition: border-color var(--transition), background var(--transition);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
     position: relative;
-    border-radius: var(--radius-sm);
-    text-align: left;
+    border-radius: 999px;
     font-family: inherit;
     appearance: none;
     -webkit-appearance: none;
@@ -1144,36 +1124,18 @@ html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; 
 .landing-cta-card:hover .landing-cta-card-title { color: var(--accent); }
 a.landing-cta-card:hover { color: inherit; }
 .landing-cta-card-icon {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
     color: var(--text-tertiary);
-    margin-bottom: 4px;
-    transition: all var(--transition);
+    transition: color var(--transition);
 }
-.landing-cta-card-icon svg { width: 100%; height: 100%; }
+.landing-cta-card-icon svg { width: 100%; height: 100%; display: block; }
 .landing-cta-card-title {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: 0.01em;
-}
-.landing-cta-card-desc {
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    line-height: 1.5;
-    letter-spacing: 0.01em;
-}
-.landing-cta-hint {
-    font-size: var(--font-size-2xs); color: var(--text-tertiary);
-    letter-spacing: 0.02em;
-}
-/* 안내 문구 속의 키 이름 — 위 입력칸 오른쪽의 그것과 같은 모양으로 읽히게 한다. */
-.landing-cta-hint kbd {
-    font-family: var(--font-mono);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 1px 5px;
-    margin: 0 1px;
 }
 
 /* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
@@ -1259,7 +1221,10 @@ a.landing-cta-card:hover { color: inherit; }
 .kp-close:hover, .kp-close:focus-visible { color: var(--text-primary); background: var(--bg-hover); }
 
 .kp-list { overflow-y: auto; overscroll-behavior: contain; }
-.kp-inline .kp-list { max-height: min(46vh, 420px); }
+/* 첫 화면에 박힌 칸은 **스크롤이 없다** (TASK-KL-136, 사용자 요청). 높이로 자르는 대신
+   줄 수를 palette.ts 가 자른다 — 자르고 안에서 또 스크롤하면 잘린 줄은 보지도 못한 채
+   화면만 길어진다. 갈래 펼치기·결과 전부 보기는 ⌘K 창이 받는다(그쪽은 스크롤 OK). */
+.kp-inline .kp-list { max-height: none; overflow: visible; }
 /* 첫 화면에서는 누르기 전까지 접혀 있다 (TASK-KL-129) — 아직 안 물어본 답이 화면 절반을
    차지하지 않게. 누르면 그 자리에서 펼쳐진다. */
 .kp-inline.kp-collapsed .kp-list,
@@ -1358,6 +1323,24 @@ a.landing-cta-card:hover { color: inherit; }
 }
 .kp-browse-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .kp-browse-n { font-family: var(--font-mono); color: var(--text-tertiary); }
+/* 이번 주에 많이 쓴 도구 (TASK-KL-136) — 갈래 칩과 같은 모양이되 도구로 바로 간다.
+   줄(row)로 냈으면 44px × 6 = 264px 를 먹는다. 칩이면 한 줄이다. */
+.kp-browse-tools .kp-browse-chip { border-color: var(--accent-dim); color: var(--text-primary); }
+.kp-browse-tools .kp-browse-chip:hover { border-color: var(--accent); }
+
+/* 잘라낸 결과가 있다고 알리는 줄 (TASK-KL-136). 누르면 ⌘K 창이 같은 검색어로 열린다. */
+.kp-more {
+    display: block; width: 100%;
+    background: none; border: none;
+    border-top: 1px solid var(--border);
+    padding: 10px var(--space-md);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: var(--font-size-2xs);
+    cursor: pointer;
+    text-align: center;
+}
+.kp-more:hover { background: var(--bg-hover); }
 
 /* 갈래를 펼친 뒤 되돌아가는 줄. 이게 없으면 한 번 들어간 사람이 갇힌다. */
 .kp-back {
@@ -1994,17 +1977,14 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     overflow-x: hidden;
 }
 
-/* 아래 링크는 5개다 — 세로로 쌓는다.
-   예전엔 링크마다 position:absolute 로 같은 자리(left:9px, top:50%)에 놓여서
-   다섯 개가 통째로 포개져 있었다 (옆줄을 펼치면 글자가 겹쳐 보였다). */
 .sidebar-footer {
     flex-shrink: 0;
     padding: var(--space-sm);
     border-top: 1px solid var(--border);
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
+    align-items: center;
+    min-height: 40px;
+    position: relative;
 }
 
 .sidebar-dev-links {
@@ -2015,14 +1995,13 @@ html[data-nav="sidebar"]:has(.sidebar:hover) .main-content {
     align-items: center;
     gap: 6px;
     white-space: nowrap;
-    /* 아이콘 중심을 위쪽 nav-icon 열(옆줄 왼쪽에서 28px)과 같은 세로선에:
-       footer padding 8px + 9px + 아이콘 22px/2 = 28px */
-    padding: 3px 4px 3px 9px;
-    border-radius: 4px;
-    overflow: hidden;
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.sidebar-dev-links:hover { color: var(--accent); background: var(--accent-subtle); }
+.sidebar-dev-links:hover { color: var(--accent); }
 
 .sidebar-dev-links-icon {
     display: none;

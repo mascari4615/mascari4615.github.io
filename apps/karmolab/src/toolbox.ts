@@ -70,6 +70,8 @@ const Toolbox = (() => {
         return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
     }
     const LAST_PAGE_KEY = 'toolbox_last_page';
+    /** 도구가 아니라 **사이트 자신**인 화면 (TASK-KL-139). 도구용 장치(다음 자리 안내 등)를 안 붙인다. */
+    const SYSTEM_PAGES = new Set(['user', 'settings', 'status']);
 
     /* ── 내가 고른 도구 (TASK-KL-129) ────────────────────────────
      * 별 하나가 네 곳을 같이 바꾼다: 도구 목록 · 찾는 창 · 옆줄 · 도구 화면.
@@ -1217,6 +1219,7 @@ const Toolbox = (() => {
         });
 
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
+        document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
 
         window.addEventListener('gemini-active-profile-changed', () => {
             const name = typeof Gemini !== 'undefined' ? (Gemini.getActiveProfileName() || '기본') : '-';
@@ -1232,7 +1235,7 @@ const Toolbox = (() => {
         const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
         const isValidPage = (id) => {
-            if (id === 'home' || id === 'user') return true;
+            if (id === 'home' || SYSTEM_PAGES.has(id)) return true;
             const t = tools.find(x => x.id === id);
             if (!t) return false;
             if (isDesktopOnlyTool(t) && !isDesktopApp()) return false;
@@ -1454,7 +1457,10 @@ const Toolbox = (() => {
         const style = document.createElement('style');
         style.textContent = css.join('\n');
         document.head.appendChild(style);
-        wrap.innerHTML = DECOR_DEFS + html.join('');
+        /* 도형은 **무대** 안에 넣는다. 바깥 상자는 화면 크기로 잘라 내는 틀이고, 무대는
+         * 화면을 옮길 때 통째로 뒤로 물러나는 판이다 (다른 화면 = scale 축소, CSS 쪽).
+         * 무대는 inset:0 이라 상자와 크기가 같다 — 도형의 % 자리 값은 그대로다 (KL-149). */
+        wrap.innerHTML = DECOR_DEFS + '<div class="home-decor-stage">' + html.join('') + '</div>';
         wrap.dataset.seed = String(seed0);
 
         /* 손가락·커서를 따라 도형이 조금 밀린다 (TASK-KL-101).
@@ -1625,10 +1631,11 @@ const Toolbox = (() => {
            떠 있고, 화면 사이를 오가도 도형이 이어진다. 위치는 어차피 화면 기준이다. */
         mountHomeDecor();
 
+        /* 이름을 두 번 쓰지 않는다 (사용자 요청 — 「두 줄 넘어간 것들을 한 줄로」).
+         * 예전엔 작은 「KarmoLab」 위에 큰 「KarmoLab」이 또 있었다 — 같은 말이 두 줄이었다. */
         const hero = document.createElement('div');
         hero.className = 'landing-hero';
         hero.innerHTML = `
-            <p class="landing-subtitle">KarmoLab</p>
             <h1 class="landing-title">KarmoLab</h1>
             <p class="landing-tagline">삶을 섞고 술을 바꿀 시간</p>
         `;
@@ -1636,74 +1643,56 @@ const Toolbox = (() => {
 
         /* TASK-KL-099 — 첫 화면의 본체는 찾는 입력이다. 도구가 160개인데 예전에는 이 자리에
          * 카드 3장과 「상단 메뉴에서 카테고리를 열고 도구를 선택하세요」만 있었다 — 찾는 일을
-         * 사람에게 떠넘기는 화면이었다. 카드는 그대로 두되(사용자 요청), 주인공 자리는 입력이
-         * 갖는다: 카드 셋은 정해진 세 곳으로 가고, 입력은 160개 전부로 간다. */
-        /* 자리를 만들어 두고 **카드 뒤에** 채운다 (TASK-KL-129, 사용자 요청).
-         * 찾는 입력은 목록을 접고 있으므로 얇다 — 갈 곳 카드가 먼저 눈에 들어오는 편이 낫다.
-         * 만드는 순서는 그대로 두고 화면 순서만 바꾼다: 팔레트가 먼저 붙어 있어야
-         * 아래 카드가 그 자리를 기준으로 들어간다. */
+         * 사람에게 떠넘기는 화면이었다.
+         * 찾는 칸이 **주인공 자리**에 온다 (사용자 요청 — 「구글같이 검색창이 메인」).
+         * 제목 바로 밑이 그 자리다. 갈 곳 카드는 그 아래 한 줄로 깔린다. */
         const palette = document.createElement('div');
         palette.className = 'landing-palette';
-
-        /* TASK-KL-098 — 「사람이 있다」를 말이 아니라 **숫자**로 보여 주는 자리.
-         * 서버는 도구가 열릴 때마다 세고 있었는데(지금까지 수천 번) 그 수를 화면 어디에도
-         * 안 내놨다 — 모으기만 하고 안 쓰면 없는 것과 같다. 값은 전부 실측이고 지어낸 수는
-         * 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는 통째로 안 그려진다. */
-        const pulse = document.createElement('div');
-        pulse.className = 'landing-pulse';
-        pulse.id = 'homePulse';
-        landing.appendChild(pulse);
-        fillHomePulse(pulse);
-
-        const cta = document.createElement('div');
-        cta.className = 'landing-cta';
-        cta.innerHTML = `
-            <div class="landing-cta-grid">
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
-                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
-                    <div class="landing-cta-card-title">즐겨찾기</div>
-                    <div class="landing-cta-card-desc">자주 쓰는 도구를 모아봐요</div>
-                </button>
-                <a class="landing-cta-card" href="/karmolab/t/">
-                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
-                    <div class="landing-cta-card-title">도구 목록</div>
-                    <div class="landing-cta-card-desc">도구마다 설명이 있는 페이지</div>
-                </a>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('community')">
-                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></div>
-                    <div class="landing-cta-card-title">커뮤니티</div>
-                    <div class="landing-cta-card-desc">이야기 나누고 도구를 요청해요</div>
-                </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('play')">
-                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></div>
-                    <div class="landing-cta-card-title">놀이터</div>
-                    <div class="landing-cta-card-desc">하루 한 판씩 — 맞히기 · 고르기 · 풀기</div>
-                </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
-                    <div class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
-                    <div class="landing-cta-card-title">문서</div>
-                    <div class="landing-cta-card-desc">API 레퍼런스 & 가이드</div>
-                </button>
-            </div>
-            <p class="landing-cta-hint">찾는 것이 있으면 아래에 이름을 치세요 · 아무 화면에서나 <kbd>Ctrl</kbd>+<kbd>K</kbd></p>
-        `;
-        landing.appendChild(cta);
-
-        // 갈 곳 카드가 먼저, 찾는 입력이 그 아래.
         landing.appendChild(palette);
         if (typeof window !== 'undefined' && window.KarmoPalette) {
             window.KarmoPalette.mountInline(palette);
         }
 
-        /* TASK-KL-098 — 첫 화면에서 **사람이 보이는** 유일한 자리.
-         * 도구만 늘어선 화면에는 아무도 없는 것처럼 보인다. 최근 이야기 몇 줄이 떠 있어야
-         * 「누가 있구나」가 전해진다. 값은 전부 실측이고, 서버에 못 닿거나 글이 없으면
-         * 이 자리는 통째로 안 그려진다 (빈 상자는 죽은 화면으로 읽힌다). */
-        const feed = document.createElement('div');
-        feed.className = 'landing-feed';
-        feed.id = 'homeCommunityFeed';
-        landing.appendChild(feed);
-        fillHomeCommunityFeed(feed);
+        /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
+         * 카드마다 제목+설명 두 줄이던 것을 아이콘+이름 한 줄로 줄였다 — 다섯 장이 한 줄에
+         * 들어가야 「검색창이 주인공」이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
+        const cta = document.createElement('div');
+        cta.className = 'landing-cta';
+        cta.innerHTML = `
+            <div class="landing-cta-grid">
+                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+                    <span class="landing-cta-card-title">즐겨찾기</span>
+                </button>
+                <a class="landing-cta-card" href="/karmolab/t/">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+                    <span class="landing-cta-card-title">도구 목록</span>
+                </a>
+                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('community')">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></span>
+                    <span class="landing-cta-card-title">커뮤니티</span>
+                </button>
+                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('play')">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
+                    <span class="landing-cta-card-title">놀이터</span>
+                </button>
+                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
+                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+                    <span class="landing-cta-card-title">문서</span>
+                </button>
+            </div>
+        `;
+        landing.appendChild(cta);
+
+        /* TASK-KL-098 — 「사람이 있다」를 말이 아니라 **숫자**로 보여 주는 자리.
+         * 값은 전부 실측이고 지어낸 수는 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는
+         * 통째로 안 그려진다. 문장이 아니라 Today / Total 두 칸이다 (사용자 요청) — 문장으로
+         * 쓰면 폭에 따라 두 줄이 되고, 세 가지 수를 한 줄에 우겨 넣게 된다. */
+        const pulse = document.createElement('div');
+        pulse.className = 'landing-pulse';
+        pulse.id = 'homePulse';
+        landing.appendChild(pulse);
+        fillHomePulse(pulse);
 
         return landing;
     }
@@ -1775,7 +1764,15 @@ const Toolbox = (() => {
     }
 
     /**
-     * 첫 화면의 실사용 줄 — 오늘 몇 번 열렸나 + 이번 주에 많이 쓴 도구.
+     * 첫 화면의 방문 수 — 블로그와 같은 **Today / Total** 두 칸 (TASK-KL-136, 사용자 요청).
+     *
+     * 문장으로 쓰던 것을 칸으로 바꿨다: 「지금까지 N번 다녀갔어요 · 오늘 M번 · 도구는 K번
+     * 열렸고요(L개가 실제로 쓰였어요)」는 폭이 좁아지는 순간 두 줄이 되고, 무엇이 무엇인지도
+     * 읽어야 안다. 도구 열림 수는 광장(`전부 보기 →`)에 그대로 있다 — 첫 화면에 세 종류의
+     * 수를 늘어놓지 않는다.
+     *
+     * 「이번 주에 많이 쓴 도구」는 **찾는 칸 안쪽**으로 옮겼다 (사용자 요청). 통계를 받아 오는
+     * 곳은 여기 하나뿐이므로, 여기서 받아 팔레트에 건네준다.
      *
      * 왜 실측만 쓰나: 이 자리에 한 번이라도 지어낸 수를 넣으면 옆의 진짜 수까지 못 믿을 것이
      * 된다. 그래서 서버에 못 닿거나 아직 한 번도 안 열렸으면 **아무것도 안 그린다** —
@@ -1792,90 +1789,37 @@ const Toolbox = (() => {
         } catch (_) {
             return;
         }
-        if (!slot.isConnected) return;
-
         const pulse = (data && data.pulse) || {};
         const visits = (data && data.visits) || {};
+
+        /* 이번 주에 많이 쓴 도구는 찾는 칸 안으로 (TASK-KL-136). 첫 화면이 안 붙어 있어도
+         * (도구 상세에서 이 함수가 돌 때) 팔레트는 있을 수 있으므로 화면 확인보다 먼저 넘긴다.
+         * 이름을 못 찾는 도구는 뺀다 — 화면에 id 가 그대로 뜨면 내부 사정이 새어 나온 것처럼 보인다. */
+        const top = (data.tools || [])
+            .filter((t) => t.recent > 0 && toolTitleFor(t.toolId))
+            .slice(0, 6)
+            .map((t) => t.toolId);
+        if (top.length && typeof window !== 'undefined' && window.KarmoPalette) {
+            window.KarmoPalette.setPopular(top);
+        }
+
+        if (!slot.isConnected) return;
         if (!pulse.opensTotal && !visits.total) return;
         const n = (value) => Number(value || 0).toLocaleString('ko-KR');
 
-        // 이름을 못 찾는 도구는 뺀다 — 화면에 id 가 그대로 뜨면 내부 사정이 새어 나온 것처럼 보인다.
-        const top = (data.tools || [])
-            .map((t) => ({ id: t.toolId, title: toolTitleFor(t.toolId), recent: t.recent, total: t.total }))
-            .filter((t) => t.title && t.recent > 0)
-            .slice(0, 6);
-
-        /* 블로그의 Total / Today 와 같은 줄 (사용자 요청). 방문이 먼저고 도구 열림이 그다음이다 —
-         * 첫 화면만 보고 간 사람도 다녀간 사람인데, 도구 열림만 세면 그 사람은 없는 셈이 된다. */
-        const parts = [];
-        if (visits.total) {
-            // 「명」이라고 쓰면 안 된다 — 이 수는 방문 횟수지 사람 수가 아니다.
-            // 사람 수는 하루 단위로만 셀 수 있고(오늘 열쇠만 들고 있으므로), 그 값은 광장에 있다.
-            parts.push('지금까지 <b>' + n(visits.total) + '</b>번 다녀갔어요'
-                + (visits.today ? ' · 오늘 <b>' + n(visits.today) + '</b>번' : ''));
-        }
-        if (pulse.opensTotal) {
-            parts.push('도구는 <b>' + n(pulse.opensTotal) + '</b>번 열렸고요'
-                + (pulse.toolsUsed ? ' (<b>' + n(pulse.toolsUsed) + '</b>개가 실제로 쓰였어요)' : ''));
-        }
-
-        const chips = top.map((t) =>
-            '<button type="button" class="landing-pulse-chip" data-tool="' + escapeHtml(t.id) + '">'
-            + '<span class="landing-pulse-chip-name">' + escapeHtml(t.title) + '</span>'
-            + '<span class="landing-pulse-chip-n">' + n(t.recent) + '</span>'
-            + '</button>').join('');
-
-        slot.innerHTML = '<p class="landing-pulse-line">' + parts.join(' · ')
-            + ' <button type="button" class="landing-pulse-all" data-open-plaza>전부 보기 →</button></p>'
-            + (chips ? '<div class="landing-pulse-tools"><span class="landing-pulse-label">이번 주에 많이 쓴 도구</span>' + chips + '</div>' : '');
+        /* 블로그의 Today / Total 두 칸 (사용자 요청). 방문 수만 낸다 —
+         * 「명」이라고 쓰면 안 된다: 이 수는 방문 횟수지 사람 수가 아니다. 사람 수는 하루
+         * 단위로만 셀 수 있고(오늘 열쇠만 들고 있으므로), 그 값은 광장에 있다. */
+        if (!visits.total) return;
+        slot.innerHTML = '<p class="landing-pulse-line">'
+            + '<span class="landing-pulse-stat"><span class="landing-pulse-k">Today</span>'
+            + '<b>' + n(visits.today) + '</b></span>'
+            + '<span class="landing-pulse-stat"><span class="landing-pulse-k">Total</span>'
+            + '<b>' + n(visits.total) + '</b></span>'
+            + '<button type="button" class="landing-pulse-all" data-open-plaza>전부 보기 →</button></p>';
 
         const all = slot.querySelector('[data-open-plaza]');
         if (all) all.onclick = () => switchPage('plaza');
-        slot.querySelectorAll('[data-tool]').forEach((button) => {
-            button.onclick = () => switchPage(button.dataset.tool || 'home');
-        });
-    }
-
-    /** 첫 화면의 커뮤니티 줄 — 최근 이야기 셋. 실패하면 아무것도 안 그린다 (fail-open). */
-    async function fillHomeCommunityFeed(slot) {
-        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        if (!base) return;
-        let posts = [];
-        try {
-            const response = await fetch(base + '/kl/recent', { credentials: 'include' });
-            if (!response.ok) return;
-            const data = await response.json();
-            posts = data.posts || [];
-        } catch (_) {
-            return;
-        }
-        if (posts.length === 0 || !slot.isConnected) return;
-
-        const rows = posts.slice(0, 3).map((p) => {
-            const heading = p.title || String(p.text || '').replace(/\s+/g, ' ').trim().slice(0, 40);
-            const replies = p.replyCount
-                ? '<span class="landing-feed-replies">답글 ' + p.replyCount + '</span>' : '';
-            return '<button type="button" class="landing-feed-row" data-post="' + escapeHtml(p.id) + '">'
-                + '<span class="landing-feed-title">' + escapeHtml(heading) + '</span>'
-                + '<span class="landing-feed-meta">@' + escapeHtml(p.authorHandle) + ' ' + replies + '</span>'
-                + '</button>';
-        }).join('');
-
-        slot.innerHTML = '<div class="landing-feed-head">'
-            + '<span class="landing-feed-name">커뮤니티에서 오가는 이야기</span>'
-            + '<button type="button" class="landing-feed-more" data-open-community>전체 보기 →</button>'
-            + '</div><div class="landing-feed-rows">' + rows + '</div>';
-
-        const more = slot.querySelector('[data-open-community]');
-        if (more) more.onclick = () => switchPage('community');
-        slot.querySelectorAll('[data-post]').forEach((button) => {
-            button.onclick = () => {
-                const search = new URLSearchParams(location.search);
-                search.set('p', button.dataset.post || '');
-                history.pushState({}, '', location.pathname + '?' + search.toString() + '#community');
-                switchPage('community', { pushHistory: false });
-            };
-        });
     }
 
     /* ===== Navigation ===== */
@@ -2014,6 +1958,8 @@ const Toolbox = (() => {
 
         const userBtn = document.getElementById('userPageBtn');
         if (userBtn) userBtn.classList.toggle('active', pageId === 'user');
+        const settingsBtn = document.getElementById('settingsPageBtn');
+        if (settingsBtn) settingsBtn.classList.toggle('active', pageId === 'settings');
 
         const tool = tools.find(t => t.id === pageId);
         if (tool) {
@@ -2175,6 +2121,11 @@ const Toolbox = (() => {
      */
     function appendToolFooter(page, tool) {
         if (tool.noHero === true) return;
+        /* 시스템 화면에는 안 붙인다 (TASK-KL-139). 여기 온 사람은 도구를 쓰러 온 게 아니라
+         * 자기 것·자기 설정을 보러 왔다 — 계정 아래에 「여기도 있어요」를 깔면 자기 화면이
+         * 아니라 광고판이 된다. (`hidden` 으로 거르면 안 된다: base64 처럼 **검색 유입 주소를
+         * 살려 둔 채 목록에서만 숨긴** 진짜 도구가 같이 걸린다.) */
+        if (SYSTEM_PAGES.has(tool.id)) return;
         const footer = document.createElement('div');
         footer.className = 'tool-page-next';
         footer.innerHTML =
