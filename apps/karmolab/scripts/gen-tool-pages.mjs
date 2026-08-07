@@ -660,12 +660,10 @@ function buildToolPage(id) {
     html = html.replace(CRYPTO_TAG_RE, '');
   }
 
-  // 상세 페이지는 세리프 글꼴을 부르지 않는다 (TASK-KL-089).
-  // 세리프는 홈의 큰 제목과 도구 히어로 제목에 쓰이는데, 상세 페이지에서는 히어로가 숨겨져
-  // 사실상 안 쓰인다. 그런데 한글 세리프는 글꼴 목록만 185KB 를 더 부른다 — 검색으로 들어온
-  // 사람이 가장 먼저 기다리는 것이 이 목록이라 그만큼 늦어진다. 홈은 그대로 두고 여기서만 뺀다.
-  // 글꼴을 부르는 줄이 둘이다 — 화면 그리기를 막지 않는 쪽과, 스크립트가 없을 때 쓰는 쪽. 둘 다 손본다.
-  html = html.replace(/&family=Noto\+Serif\+KR:wght@[0-9;]+/g, '');
+  // 예전에는 여기서 세리프 글꼴을 부르는 대목을 지웠다 — 상세 페이지에선 안 쓰이는데 남의 서버
+  // 글꼴 목록이 그것 때문에 185KB 늘었기 때문이다. 지금은 지울 필요가 없다 (TASK-KL-128):
+  // 글꼴을 우리가 굽고 나서는 `@font-face` 를 적어 두는 것 자체가 0바이트다. 브라우저는 그 글꼴을
+  // **실제로 쓰는 글자가 화면에 있을 때만** 파일을 받는다. 안 쓰면 안 받는다.
 
   /* 검색 결과에 실리는 설명은 대략 155자까지 보인다. 그런데 우리 설명은 절반쯤 되는 것이 많아
    * (중앙 76자, 110장 중 89장이 90자 미만) 그 자리를 비워 뒀다. 한 줄 소개에는 「BMI」 「진법」
@@ -954,16 +952,15 @@ last_modified_at: ${hubModified()}
     <meta property="og:locale" content="ko_KR">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- 굵기는 실제 쓰는 것만 (TASK-KL-089). 가는 굵기(300)는 어디에도 안 쓰이는데,
-         한글 글꼴은 조각이 수백 개라 굵기 하나가 목록을 92KB 불린다. -->
-    <!-- 글꼴 목록은 남의 서버에서 오는데 69KB 나 되고, 평소처럼 걸면 그것이 다 올 때까지
-         화면에 아무것도 안 그려진다 — 실측으로 첫 그림이 1280ms 였다. 「인쇄용」으로 받아 화면
-         그리기를 막지 않게 하면 740ms 다. 그동안은 컴퓨터 글꼴로 보이는데, 그 글꼴은 폭을
-         웹글꼴에 맞춰 뒀으므로(tools.css) 바뀔 때 글이 밀리지 않는다(밀림 0.008 → 0.017, 기준 0.1). -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <!-- 글꼴은 우리 서버에서, 우리가 쓰는 글자만 (TASK-KL-128). 만드는 곳 = scripts/gen-fonts.py -->
+    <script>/* 글꼴은 **화면이 다 그려지고 한가해진 뒤** 부른다 (TASK-KL-128).
+       글꼴은 내용이 아니라 꾸밈이다 — 먼저 오려고 회선을 다투면 정작 글이 늦게 나온다.
+       평소처럼 걸었더니 첫 그림이 284→760ms 였다(실측). 그동안은 컴퓨터 글꼴로 보이는데,
+       그 글꼴은 폭을 맞춰 뒀으므로(tools.css) 바뀔 때 글이 밀리지 않는다. */
+    (function(){function go(){var l=document.createElement("link");l.rel="stylesheet";l.href="/apps/karmolab/css/fonts.css";document.head.appendChild(l);}
+     var idle=window.requestIdleCallback||function(f){setTimeout(f,200);};
+     if(document.readyState==="complete")idle(go);else addEventListener("load",function(){idle(go);});})();</script>
+    <noscript><link rel="stylesheet" href="/apps/karmolab/css/fonts.css"></noscript>
     <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
     <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('toolbox_theme') || 'dark');</script>

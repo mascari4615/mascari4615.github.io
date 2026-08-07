@@ -2478,10 +2478,10 @@
 
     /* ===== Caption Tool ===== */
     const CAPTION_PRESETS = [
-        { id: 'impact', label: '흰 테두리 검정', icon: '⬛', font: 'Impact, "Noto Sans KR", Arial Black, sans-serif', fontSize: 0.07, fillStyle: '#000000', strokeStyle: '#FFFFFF', lineWidth: 4, position: 'bottom', uppercase: true, maxLines: 3 },
-        { id: 'subtitle', label: '자막 스타일', icon: '🟡', font: '"Noto Sans KR", sans-serif', fontWeight: 'bold', fontSize: 0.055, fillStyle: '#FFFF00', strokeStyle: '#000000', lineWidth: 3, position: 'bottom', bgBar: 'rgba(0,0,0,0.5)', maxLines: 3 },
+        { id: 'impact', label: '흰 테두리 검정', icon: '⬛', font: 'Impact, "KarmoSans", Arial Black, sans-serif', fontSize: 0.07, fillStyle: '#000000', strokeStyle: '#FFFFFF', lineWidth: 4, position: 'bottom', uppercase: true, maxLines: 3 },
+        { id: 'subtitle', label: '자막 스타일', icon: '🟡', font: '"KarmoSans", sans-serif', fontWeight: 'bold', fontSize: 0.055, fillStyle: '#FFFF00', strokeStyle: '#000000', lineWidth: 3, position: 'bottom', bgBar: 'rgba(0,0,0,0.5)', maxLines: 3 },
         { id: 'bubble', label: '만화 말풍선', icon: '💬', font: '"Comic Sans MS", "나눔손글씨 붓", cursive', fontSize: 0.06, fillStyle: '#000000', bubbleStyle: { fill: '#FFFFFF', stroke: '#000000', strokeWidth: 2, padding: 16 }, position: 'center', maxLines: 4 },
-        { id: 'bar', label: '심플 하단바', icon: '▬', font: '"Noto Sans KR", sans-serif', fontSize: 0.05, fillStyle: '#FFFFFF', barBg: 'rgba(0,0,0,0.7)', padding: 20, position: 'bottom', maxLines: 2 }
+        { id: 'bar', label: '심플 하단바', icon: '▬', font: '"KarmoSans", sans-serif', fontSize: 0.05, fillStyle: '#FFFFFF', barBg: 'rgba(0,0,0,0.7)', padding: 20, position: 'bottom', maxLines: 2 }
     ];
     (function ensureCaptionFonts() {
         if (document.getElementById('ie-caption-fonts')) return;
@@ -2713,7 +2713,7 @@
         textEl!.addEventListener('input', () => redrawCaptionPreview());
         textEl!.addEventListener('keyup', () => redrawCaptionPreview());
         if (document.fonts && document.fonts.load) {
-            document.fonts.load('16px "Noto Sans KR"').catch(() => {});
+            document.fonts.load('16px "KarmoSans"').catch(() => {});
         }
         document!.getElementById('ieCaptionApply')!.onclick = applyCaption;
         if (hasImage()) initCaptionOverlay();

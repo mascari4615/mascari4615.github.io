@@ -67,7 +67,7 @@
   --accent-2: var(--secondary);
   --mag-project: #9ec4a8;
   --mag-learn: #b7a3d6;
-  background: var(--bg); color: var(--ink); font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg); color: var(--ink); font-family: 'KarmoSans', sans-serif;
   height: 100%; display: flex; flex-direction: column; padding: 24px; gap: 16px; overflow: hidden;
 }
 .kl-task-launcher .header { display: flex; gap: 12px; align-items: center; }
@@ -101,14 +101,14 @@
 }
 .kl-task-launcher .chip {
   background: var(--bg-2); color: var(--ink-2); border: 1px solid var(--line-2);
-  border-radius: 3px; padding: 4px 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  border-radius: 3px; padding: 4px 10px; font-size: 11px; font-family: 'KarmoMono', monospace;
   text-transform: uppercase; cursor: pointer; transition: background 0.12s, color 0.12s;
 }
 .kl-task-launcher .chip:hover { background: var(--line-2); }
 .kl-task-launcher .chip.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.kl-task-launcher .row .id { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); }
+.kl-task-launcher .row .id { font-family: 'KarmoMono', monospace; font-size: 12px; color: var(--accent-2); }
 .kl-task-launcher .row .status {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase;
+  font-family: 'KarmoMono', monospace; font-size: 11px; text-transform: uppercase;
   text-align: center; padding: 2px 6px; border: 1px solid currentColor; border-radius: 3px;
 }
 .kl-task-launcher .row .title { font-size: 14px; }
