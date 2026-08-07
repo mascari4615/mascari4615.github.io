@@ -31,23 +31,51 @@ const dateLabel = (dayNumber) => new Date(dayNumber * 86400000).toISOString().sl
 const modes = [{ key: '', label: '속성' }];
 if (topic.items.every((i) => i.img)) modes.push({ key: 'silhouette', label: '실루엣' });
 
-const rows = [];
-for (let d = today - 1; d >= Math.max(EPOCH_DAY_NUMBER, today - DAYS); d -= 1) {
+const oldest = Math.max(EPOCH_DAY_NUMBER, 0);
+
+function rowFor(d) {
   const answers = modes.map((m) => topic.items[dailyIndex(topic.id, d, topic.items.length, m.key)]);
-  rows.push(
+  return (
     `<tr><th scope="row"><span class="d">${dateLabel(d)}</span><span class="n">#${d - EPOCH_DAY_NUMBER + 1}</span>` +
-      // 답만 읽고 나가지 않게 — 그날 문제를 지금 풀 수 있다.
-      `<a class="play" href="../?d=${dateLabel(d)}">풀어보기</a></th>` +
-      answers
-        .map(
-          (a, i) =>
-            `<td><span class="mo">${esc(modes[i].label)}</span>${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></td>`,
-        )
-        .join('') +
-      '</tr>',
+    // 답만 읽고 나가지 않게 — 그날 문제를 지금 풀 수 있다.
+    `<a class="play" href="../?d=${dateLabel(d)}">풀어보기</a></th>` +
+    answers
+      .map(
+        (a, i) =>
+          `<td><span class="mo">${esc(modes[i].label)}</span>${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<b>${esc(a.name)}</b></td>`,
+      )
+      .join('') +
+    '</tr>'
   );
+}
+
+/**
+ * 30일에서 끊지 않는다 — 끊긴 만큼 연습할 날도, 검색에 걸릴 글도 사라진다.
+ * 다만 한 번에 다 그리면 첫 화면이 무거워지므로 30일씩 이어 붙인다.
+ */
+const tbody = root.querySelector('tbody');
+const $more = root.querySelector('.past-more');
+let cursor = today - 1;
+
+function appendChunk() {
+  const stop = Math.max(oldest, cursor - DAYS + 1);
+  const html = [];
+  for (let d = cursor; d >= stop; d -= 1) html.push(rowFor(d));
+  tbody.insertAdjacentHTML('beforeend', html.join(''));
+  cursor = stop - 1;
+  const left = cursor - oldest + 1;
+  if (left <= 0) $more.replaceChildren();
+  else $more.querySelector('button').textContent = `${Math.min(DAYS, left)}일 더 보기 (남은 ${left}일)`;
 }
 
 root.querySelector('.past-note').textContent =
   `오늘(#${puzzleNumber()}) 답은 여기 없다 — 내일 이 자리에 올라온다. 놓친 날은 「풀어보기」로 지금 풀 수 있다.`;
-root.querySelector('tbody').innerHTML = rows.join('') || '<tr><td>아직 지난 문제가 없다.</td></tr>';
+
+if (cursor < oldest) {
+  tbody.innerHTML = '<tr><td>아직 지난 문제가 없다.</td></tr>';
+  $more.replaceChildren();
+} else {
+  $more.innerHTML = '<button type="button"></button>';
+  $more.querySelector('button').addEventListener('click', appendChunk);
+  appendChunk();
+}
