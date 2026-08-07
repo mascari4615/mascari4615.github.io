@@ -45,6 +45,10 @@ function resolve(url) {
   return null;
 }
 
+/* 실제 주소가 주어지면 거기를 본다 (BASE). 배포가 도는 잡에는 브라우저가 없어서,
+ * 이 검사는 브라우저가 있는 **배포 후 점검**에서 돈다. BASE 가 없을 때만 여기서 서버를 띄운다. */
+const LIVE = process.env.BASE || '';
+
 const server = http.createServer((req, res) => {
   const f = resolve(req.url);
   if (!f || !fs.existsSync(f)) {
@@ -55,10 +59,10 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'text/plain; charset=utf-8' });
   res.end(/^---/.test(body) ? strip(body) : body);
 });
-await new Promise((r) => server.listen(PORT, r));
+if (!LIVE) await new Promise((r) => server.listen(PORT, r));
 
 const { chromium } = await import(pathToFileURL(path.join(APPS, 'karmolab/node_modules/playwright/index.mjs')).href);
-const BASE = `http://127.0.0.1:${PORT}`;
+const BASE = LIVE || `http://127.0.0.1:${PORT}`;
 const failures = [];
 const say = (ok, what) => {
   if (ok) process.stdout.write('.');
@@ -160,7 +164,7 @@ async function common(page, id, label) {
 }
 
 await browser.close();
-server.close();
+if (!LIVE) server.close();
 process.stdout.write('\n');
 
 if (failures.length) {

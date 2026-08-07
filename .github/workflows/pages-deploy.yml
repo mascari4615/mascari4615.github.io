@@ -115,9 +115,6 @@ jobs:
           # TASK-YB-042: 디스코드 봇 소개 페이지(/karmolab/bot/) — 봇 초대 입구.
           mkdir -p apps/blog/karmolab/bot
           cp apps/karmolab/bot/index.html apps/blog/karmolab/bot/index.html
-          # TASK-KL-098: 공개 프로필(/karmolab/u/?h=<핸들>) — 남이 로그인 없이 여는 자리.
-          mkdir -p apps/blog/karmolab/u
-          cp apps/karmolab/u/index.html apps/blog/karmolab/u/index.html
 
       # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
@@ -156,9 +153,6 @@ jobs:
       # 먼저 돌면 「그 자리에 파일이 없다」고 옳게 멈춘다(실제로 그렇게 배포가 섰다).
       - name: Build playground hub
         run: node apps/play/scripts/build.mjs
-      # 놀이가 실제로 되는지 브라우저로 본다 — 카드가 세로로 쌓인 채 배포된 적이 있다.
-      - name: Smoke play games
-        run: node apps/play/scripts/smoke.mjs
       - name: Copy playground hub
         run: |
           mkdir -p apps/blog/play

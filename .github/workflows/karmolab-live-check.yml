@@ -99,6 +99,10 @@ jobs:
       - name: 실제 사이트에 있어야 하는 것이 있는지
         if: always()
         run: npm run audit:live
+      - name: 놀이 셋이 성한지
+        if: always()
+        working-directory: apps/karmolab
+        run: node ../play/scripts/smoke.mjs
       - name: 검색엔진이 읽는 머리가 성한지
         if: always()
         run: npm run audit:seo
