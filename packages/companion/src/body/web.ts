@@ -10,6 +10,7 @@ import { 평소 } from '../feeling';
 import { 모든뜸 } from '../filler';
 import { withTone, type Tone } from '../voice/feeling-tone';
 import type { Whisper } from '../sense/whisper';
+import { 안넘긴이유 } from '../heard';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
 
@@ -231,7 +232,7 @@ export function webBody(options: WebBodyOptions = {}): Body {
           serveFile(res, join(packageRoot, 'assets', 'ui.css'), 'text/css; charset=utf-8', log);
           return;
         }
-        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js' || url === '/say-chunks.js') {
+        if (url === '/model.js' || url === '/toon.js' || url === '/face-paint.js' || url === '/say-chunks.js' || url === '/listen-gate.js') {
           serveFile(res, join(packageRoot, 'assets', url.slice(1)), 'text/javascript; charset=utf-8', log);
           return;
         }
@@ -364,13 +365,16 @@ export function webBody(options: WebBodyOptions = {}): Body {
         }
 
         // 듣기 시작 / 끝. 끝내면 받아쓴 글이 그대로 감각으로 들어간다.
-        if ((url === '/ears/start' || url === '/ears/stop') && req.method === 'POST') {
+        if ((url.split('?')[0] === '/ears/start' || url.split('?')[0] === '/ears/stop') && req.method === 'POST') {
+          /* 창이 잰 **말소리가 있던 시간**. 받아쓰기가 조용한 구간에 그럴듯한 글을 지어내도
+             이 값이 작으면 무슨 글이든 안 넘긴다 — 글로 막는 데는 바닥이 있다(실측). */
+          const 말한ms = Number(new URL(url, 'http://x').searchParams.get('말한ms'));
           const ears = options.ears;
           if (ears === undefined || ears.available() === false) {
             res.writeHead(404).end();
             return;
           }
-          const listening = url.endsWith('/start');
+          const listening = url.split('?')[0].endsWith('/start');
           const work = listening
             ? ears.startRecording().then(() => null)
             : ears.stopRecording();
@@ -380,9 +384,17 @@ export function webBody(options: WebBodyOptions = {}): Body {
               res.end(JSON.stringify({ ok: true, text: heard }));
               if (listening) {
                 broadcast({ type: 'listening' });
-              } else if (heard !== null && heard.trim() !== '') {
-                broadcast({ type: 'heard', text: heard });
-                senseEmit?.({ channel, kind: 'text', text: heard.trim(), at: Date.now() });
+              } else {
+                /* 귀를 늘 열어 두면 받아쓰기가 잡음에 그럴듯한 글을 붙인다. 그대로 넘기면
+                   아무도 말 안 걸었는데 얘가 혼자 대꾸한다. 거르는 자리는 **여기**다 —
+                   글을 두뇌에 넘기는 건 서버라, 창에서 걸러 봐야 이미 늦는다. */
+                const 이유 = 안넘긴이유(heard, Number.isFinite(말한ms) ? 말한ms : null);
+                if (이유 === null) {
+                  broadcast({ type: 'heard', text: heard as string });
+                  senseEmit?.({ channel, kind: 'text', text: (heard as string).trim(), at: Date.now() });
+                } else {
+                  log(`[귀] ${이유}`);
+                }
               }
             })
             .catch((e: unknown) => {
