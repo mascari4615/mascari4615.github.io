@@ -10,17 +10,14 @@ const dayKey = kstDayKey();
 const dayNumber = kstDayNumber();
 let left = 0;
 let best = 0;
+try { best = liveStreak(JSON.parse(localStorage.getItem('daily:streak')) ?? {}, dayNumber); } catch { /* 깨진 저장본 */ }
 
 for (const card of document.querySelectorAll('.card[data-topic]')) {
   const { topic, mode } = card.dataset;
   let saved = null;
-  let stats = null;
   try {
     saved = JSON.parse(localStorage.getItem(`daily:${topic}:${mode}`));
-    stats = JSON.parse(localStorage.getItem(`daily:${topic}:${mode}:stats`));
   } catch { /* 깨진 저장본은 없던 셈 */ }
-
-  best = Math.max(best, liveStreak(stats ?? {}, dayNumber));
 
   const done = saved && saved.day === dayKey && saved.status !== 'playing';
   if (done) {

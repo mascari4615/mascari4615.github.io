@@ -15,6 +15,7 @@ import {
   kstDayKey,
   kstDayNumber,
   liveStreak,
+  touchDay,
   puzzleNumber,
   shareRow,
   shareText,
@@ -65,6 +66,8 @@ const dayKey = kstDayKey();
 const dayNumber = kstDayNumber();
 const storeKey = `daily:${topicId}:${mode}`;
 const statsKey = `daily:${topicId}:${mode}:stats`;
+// 연속은 판별이 아니라 **사이트 전체** 하루 단위다 — 판이 늘어도 끊기지 않는다.
+const streakKey = 'daily:streak';
 
 const read = (key, fallback) => {
   try {
@@ -81,6 +84,7 @@ const write = (key, value) => {
 const saved = read(storeKey, null);
 const state = saved && saved.day === dayKey ? saved : { day: dayKey, guesses: [], status: 'playing' };
 let stats = read(statsKey, emptyStats());
+let streak = read(streakKey, null);
 
 const el = (html) => {
   const t = document.createElement('template');
@@ -101,7 +105,7 @@ const $shot = root.querySelector('.shot');
 root.querySelector('.no').textContent = `#${puzzleNo}`;
 
 function renderStreak() {
-  const live = liveStreak(stats, dayNumber);
+  const live = liveStreak(streak ?? {}, dayNumber);
   $streak.innerHTML = live > 0 ? `🔥 <b>${live}</b>일 연속` : '';
 }
 
@@ -196,7 +200,7 @@ function shareRows() {
 function finish() {
   const won = state.status === 'won';
   const rows = shareRows();
-  const live = liveStreak(stats, dayNumber);
+  const live = liveStreak(streak ?? {}, dayNumber);
   const text = shareText({
     title: `${topic.emoji ?? ''} ${topic.title}${mode === 'silhouette' ? ' 실루엣' : ''}`.trim(),
     puzzleNo,
@@ -211,7 +215,7 @@ function finish() {
     el(`<h2>${won ? `${state.guesses.length}번 만에 맞혔다` : '오늘은 실패'}</h2>`),
     el(`<div class="ans">${answer.img ? `<img src="${esc(answer.img)}" alt="">` : ''}<b>${esc(answer.name)}</b></div>`),
     el(`<div class="grid">${rows.map(shareRow).join('<br>')}</div>`),
-    el(`<div class="tally">${stats.played}판 · ${Math.round((stats.wins / Math.max(1, stats.played)) * 100)}% 맞힘 · 연속 ${live} (최고 ${stats.best})</div>`),
+    el(`<div class="tally">${stats.played}판 · ${Math.round((stats.wins / Math.max(1, stats.played)) * 100)}% 맞힘 · 연속 ${live}일 (최고 ${streak?.best ?? live}일)</div>`),
   );
 
   const btn = el('<button class="btn" type="button">결과 복사하기</button>');
@@ -294,6 +298,8 @@ function submit(name) {
   if (state.status !== 'playing') {
     stats = updateStats(stats, { won: state.status === 'won', guesses: state.guesses.length, dayNumber });
     write(statsKey, stats);
+    streak = touchDay(streak, dayNumber);
+    write(streakKey, streak);
     renderStreak();
     finish();
   }

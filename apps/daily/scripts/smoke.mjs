@@ -241,6 +241,11 @@ check('허브에서 지난 문제로 갈 수 있다', (await page.locator('.past
   await page.waitForSelector('.done:not([hidden])');
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
   check('허브가 오늘 푼 판을 표시한다', (await page.locator('.card.done-today').count()) === 1);
+  // 연속은 판별이 아니라 사이트 전체 — 한 판만 풀어도 오늘이 세어진다.
+  check('한 판만 풀어도 연속이 선다', /연속/.test(await page.locator('.hub-note').innerText()));
+  const other = await page.$eval('.card:not(.done-today)', (a) => a.getAttribute('href'));
+  await page.goto(`${base}${other.replace('/daily', '')}`, { waitUntil: 'networkidle' });
+  check('다른 판에서도 같은 연속이 보인다', /1/.test(await page.locator('.streak').innerText()), await page.locator('.streak').innerText());
   // 판 수를 박지 않는다 — 주제가 늘 때마다 시험이 깨지면 시험을 안 믿게 된다.
   const total = await page.locator('.card[data-topic]').count();
   check(
