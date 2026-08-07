@@ -115,6 +115,39 @@ function paintShot() {
   img.style.filter = done ? 'none' : `brightness(${(1 - step) * 0.85}) blur(${step * 7}px) contrast(${1 + step})`;
 }
 
+/**
+ * 실루엣 판은 **그림이 전부**다. 그림이 아직 안 왔거나 끝내 못 오면, 지금까지는
+ * 까만 상자만 남아 「원래 이런 놀이인가?」와 구분이 안 됐다 — 못 푸는 판인 줄도 모른다.
+ * 오는 중이면 오는 중이라 말하고, 못 오면 못 온다고 말한다.
+ */
+function watchShot() {
+  if (!$shot) return;
+  const img = $shot.querySelector('img');
+  const say = (text, bad = false) => {
+    let note = $shot.querySelector('.shot-note');
+    if (!note) {
+      note = document.createElement('div');
+      note.className = 'shot-note';
+      $shot.append(note);
+    }
+    note.textContent = text;
+    note.classList.toggle('bad', bad);
+  };
+  const clear = () => $shot.querySelector('.shot-note')?.remove();
+
+  if (img.complete && img.naturalWidth > 0) return;
+  say('그림 받는 중…');
+  img.addEventListener('load', clear, { once: true });
+  img.addEventListener(
+    'error',
+    () => {
+      say('그림을 못 받았어요 — 이 판은 그림이 있어야 풀려요. 새로고침해 보세요.', true);
+      $shot.classList.add('broken');
+    },
+    { once: true },
+  );
+}
+
 function markOf(field, cell) {
   if (cell.state === 'exact') return '';
   if (field.kind === 'number') return cell.dir === 'up' ? '▲' : '▼';
@@ -281,7 +314,10 @@ document.addEventListener('click', (e) => {
 });
 
 // ── 되살리기 (새로고침해도 오늘 진행은 남는다) ──
-if ($shot && answer.img) $shot.querySelector('img').src = answer.img;
+if ($shot && answer.img) {
+  $shot.querySelector('img').src = answer.img;
+  watchShot();
+}
 for (const name of state.guesses) {
   const item = findItem(topic.items, name);
   if (item) renderRow(item);

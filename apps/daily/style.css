@@ -105,6 +105,26 @@ a { color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { .shot img { transition: none; } }
 
+/* 그림이 오는 중인지 끝내 못 왔는지 말해 준다 — 까만 상자만 두면 규칙인 줄 안다. */
+.shot { position: relative; }
+.shot-note {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  font-size: 12.5px;
+  color: var(--ink-3);
+  background: rgba(14, 17, 23, 0.82);
+  border-radius: 999px;
+  padding: 4px 12px;
+  white-space: nowrap;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shot-note.bad { color: var(--ink); background: rgba(120, 40, 40, 0.9); white-space: normal; }
+.shot.broken img { display: none; }
+
 .row.solo { display: flex; align-items: center; justify-content: space-between; }
 .row.solo .who { margin-bottom: 0; }
 .row.solo .verdict { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
