@@ -281,10 +281,16 @@ body {
         linear-gradient(to right, var(--grid-color-fine) 1px, transparent 1px),
         linear-gradient(to bottom, var(--grid-color-fine) 1px, transparent 1px),
         radial-gradient(ellipse at 50% 50%, transparent 20%, var(--vignette) 100%);
-    /* 화면 전체를 덮는 두 층은 **비율이 아니라 화면 단위**로 잡는다 (TASK-KL-101).
-       비율(100%)은 화면 높이에 매달려 있어서, 폰 주소창이 접혀 높이가 변할 때마다 배경이
-       다시 잡힌다 — 스크롤 중에 배경 크기가 출렁이는 것으로 보였다. svh 로 못 박으면 안 흔들린다. */
-    background-size: 100vw 100svh, 100vw 100svh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    /* 화면 전체를 덮는 두 층은 **비율이 아니라 화면 단위**로 잡되, 폰에서 가장 커졌을 때를
+       기준으로 잡는다 (TASK-KL-101).
+       비율(100%)은 화면 높이에 매달려 있어 주소창이 접힐 때마다 배경이 다시 잡힌다 — 스크롤
+       중에 배경이 출렁이는 것으로 보였다. 그래서 svh(주소창 **보일 때**의 높이)로 못 박았는데,
+       이번엔 반대로 모자랐다: 이 배경은 화면에 붙어 있는데(attachment:fixed) 주소창이 접히면
+       화면이 그보다 커진다 — 남는 위아래가 안 칠해져 **검은 띠**로 보인다. lvh(주소창이
+       접혔을 때의 높이)로 잡으면 두 상태 다 덮으면서, 값 자체는 안 흔들린다.
+       앞줄 100vh = lvh 를 모르는 브라우저용(폰에서 vh 는 이미 접힌 높이다). */
+    background-size: 100vw 100vh, 100vw 100vh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
+    background-size: 100vw 100lvh, 100vw 100lvh, 48px 48px, 48px 48px, 12px 12px, 12px 12px, auto;
     background-repeat: no-repeat, no-repeat, repeat, repeat, repeat, repeat, no-repeat;
     background-position: center, center, 0 0, 0 0, 0 0, 0 0, center;
 }
