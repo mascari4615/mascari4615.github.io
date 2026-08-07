@@ -174,6 +174,21 @@ try {
   check('아무나랑 · 만남', met[0] && met[1], `C ${met[0]} · D ${met[1]}`);
   const 방 = await Promise.all([c, d].map((p) => p.evaluate(() => location.hash)));
   check('대기방에 안 남음', 방.every((h) => !/lobby/.test(h)), `주소: ${방.join(' · ')}`);
+  // ⑥ 유령과 — 혼자 와도 논다. 상대 없이 다섯 판이 끝나고 승부가 나야 한다.
+  const e1 = await browser.newPage();
+  e1.on('pageerror', (err) => failures.push(`E 쪽 페이지 오류: ${err.message}`));
+  await e1.goto(TOOL, { waitUntil: 'domcontentloaded' });
+  await e1.waitForSelector('#duGhost', { timeout: 30000 });
+  await e1.click('#duGhost');
+  const 혼자끝 = await playUntilEnd(e1, Date.now() + 60000, true, 팔레트);
+  check('유령과 · 승부', 혼자끝, '혼자서 다섯 판이 안 끝났다');
+  const se = await e1.evaluate(() => ({
+    me: Number(document.querySelector('#duMeScore')?.textContent || -1),
+    foe: Number(document.querySelector('#duFoeScore')?.textContent || -1),
+    name: document.querySelector('#duFoeName')?.textContent || ''
+  }));
+  check('유령 이름', se.name === '유령', `상대 이름: ${se.name}`);
+  check('유령도 점수를 낸다', se.me + se.foe >= 1 && se.me + se.foe <= 5, `${se.me}:${se.foe}`);
 } catch (e) {
   if (!cantRun) failures.push(`검사가 끝까지 못 갔다: ${e.message}`);
 } finally {
@@ -189,4 +204,4 @@ if (failures.length > 0) {
   for (const f of failures) console.log('  - ' + f);
   process.exit(1);
 }
-console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다 — 링크 · 연결 · 다섯 판 · 점수 일치 · 아무나랑');
+console.log('[smoke-duel] 창 둘이 붙어 한 판을 끝냈다 — 링크 · 연결 · 다섯 판 · 점수 일치 · 아무나랑 · 유령');
