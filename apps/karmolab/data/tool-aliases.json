@@ -125,6 +125,7 @@
     "audiofade": "audio fade in out 페이드 소리 서서히",
     "subtitle": "subtitle srt vtt 자막 싱크",
     "icsmake": "ics calendar event 일정 캘린더 초대",
-    "barcode": "barcode ean code128 바코드"
+    "barcode": "barcode ean code128 바코드",
+    "pdfdiff": "pdf diff compare 비교 대조 판본 계약서 개정 버전 차이"
   }
 }
