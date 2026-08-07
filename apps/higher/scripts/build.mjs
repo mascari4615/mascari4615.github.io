@@ -51,9 +51,12 @@ for (const file of fs.readdirSync(SRC).filter((f) => f.endsWith('.json'))) {
     if (Object.keys(vals).length) items.push({ n: it.name, i: it.img, v: vals });
   }
 
-  /* 값이 죄다 같은 속성은 뺀다 — 「어느 쪽이 큰가」에 답이 없다. */
+  /* 값이 죄다 같은 속성은 뺀다 — 「어느 쪽이 큰가」에 답이 없다.
+   * 다만 문턱을 5가지로 뒀더니 **원신 판이 「출시 연도」 하나만 남았다**(등급이 4·5 두 가지라
+   * 걸러졌다). 두 가지뿐이어도 「어느 쪽이 5성인가」는 바로 알아보는 물음이라 놀이가 된다 —
+   * 같은 값끼리 뽑히면 어차피 다시 뽑으므로, 두 가지부터 받는다. */
   const fields = numeric
-    .filter((f) => new Set(items.map((x) => x.v[f.key]).filter((v) => v !== undefined)).size >= 5)
+    .filter((f) => new Set(items.map((x) => x.v[f.key]).filter((v) => v !== undefined)).size >= 2)
     .map((f) => ({ key: f.key, label: f.label, unit: f.unit || '' }));
   if (!fields.length) {
     problems.push(`${topic}: 견줄 만큼 값이 벌어진 속성이 없다`);
