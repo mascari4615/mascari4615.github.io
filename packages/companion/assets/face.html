@@ -116,6 +116,29 @@
     });
   }
 
+  /* ── 화면 전체로 편 창 ─────────────────────────────────────
+     창을 화면만큼 키웠으니, 얘가 사는 자리를 화면 안에서 옮겨 다니게 한다.
+     끌면 창이 아니라 **얘가** 움직인다 — 잘릴 테두리가 없으니 애초에 잘릴 것도 없다. */
+  const 전체화면 = new URLSearchParams(location.search).get('full') === '1';
+  if (전체화면) document.body.classList.add('full');
+  const 방자리 = {
+    x: Number(localStorage.getItem('companion.roomX') ?? '0') || null,
+    y: Number(localStorage.getItem('companion.roomY') ?? '0') || null,
+  };
+  function 방자리적용() {
+    if (전체화면 === false) return;
+    // 처음엔 오른쪽 아래 — 늘 그 자리에 있던 대로.
+    const x = 방자리.x ?? innerWidth - 240;
+    const y = 방자리.y ?? Math.max(0, innerHeight - 660);
+    // 화면 밖으로 도망가지 못하게 붙잡는다.
+    방자리.x = Math.min(innerWidth - 40, Math.max(40, x));
+    방자리.y = Math.min(innerHeight - 120, Math.max(0, y));
+    document.body.style.setProperty('--방x', `${방자리.x}px`);
+    document.body.style.setProperty('--방y', `${방자리.y}px`);
+  }
+  방자리적용();
+  addEventListener('resize', 방자리적용);
+
   const cube = document.getElementById('cube');
   const bubble = document.getElementById('bubble');
   const status = document.getElementById('status');
@@ -789,7 +812,9 @@
     window.__TAURI__.core.invoke('set_hit_areas', { areas }).catch((e) => {
       if (hitAreaComplained === false) {
         hitAreaComplained = true;
-        console.warn('누를 자리를 못 알려줬다:', e);
+        // **화면 전체로 편 창에서는 이게 치명적이다.** 누를 자리를 못 알려주면 창이
+        // 화면 전체의 클릭을 삼켜 컴퓨터를 못 쓰게 된다. 조용히 넘길 실패가 아니다.
+        tell(`누를 자리를 못 알려줬다 — 클릭이 막힐 수 있다: ${e && e.message ? e.message : String(e)}`);
       }
     });
   }
@@ -809,11 +834,23 @@
   });
 
   stage?.addEventListener('pointermove', (e) => {
-    if (grabbed === null || grabbed.moved) return;
-    if (Math.abs(e.clientX - grabbed.x) + Math.abs(e.clientY - grabbed.y) < 4) return;
-    grabbed.moved = true;
-    if (appWindow === null) return;
-    appWindow.startDragging().catch((err) => tell(`끌기 실패: ${err}`));
+    if (grabbed === null) return;
+    if (grabbed.moved === false) {
+      if (Math.abs(e.clientX - grabbed.x) + Math.abs(e.clientY - grabbed.y) < 4) return;
+      grabbed.moved = true;
+      document.body.classList.add('dragging');
+      // 화면 전체로 편 창에서는 **창을 끌지 않는다.** 창은 화면을 다 덮고 있으니
+      // 끌어봐야 갈 데가 없다 — 대신 얘가 화면 안에서 옮겨 다닌다.
+      if (전체화면 === false) {
+        if (appWindow !== null) appWindow.startDragging().catch((err) => tell(`끌기 실패: ${err}`));
+        return;
+      }
+      grabbed.from = { x: 방자리.x ?? 0, y: 방자리.y ?? 0, px: e.clientX, py: e.clientY };
+    }
+    if (전체화면 === false || grabbed.from === undefined) return;
+    방자리.x = grabbed.from.x + (e.clientX - grabbed.from.px);
+    방자리.y = grabbed.from.y + (e.clientY - grabbed.from.py);
+    방자리적용();
   });
 
   /* 닿으면 반응한다. 만져도 아무 일이 없으면 그건 화면에 붙은 그림이다.
@@ -824,6 +861,11 @@
     if (grabbed === null) return;
     const wasClick = grabbed.moved === false;
     grabbed = null;
+    document.body.classList.remove('dragging');
+    if (전체화면 && 방자리.x !== null) {
+      localStorage.setItem('companion.roomX', String(Math.round(방자리.x)));
+      localStorage.setItem('companion.roomY', String(Math.round(방자리.y)));
+    }
     touched(wasClick ? 'poke' : 'drag');
     if (wasClick === false) return;
     openChatFor(60);

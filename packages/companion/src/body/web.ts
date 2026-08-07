@@ -665,6 +665,13 @@ function openOwnWindow(
   url: string,
   size?: { width?: number; height?: number },
 ): Promise<string> {
+  // **창을 화면 전체로 편다.**
+  //
+  // 작은 창에 얹으니 말풍선·메뉴가 끝없이 잘렸다. 자리를 조금씩 넓히는 건 증상 추격이다 —
+  // 애초에 자를 테두리를 없앤다. 창은 화면을 다 덮되 **몸과 눌러야 하는 자리 밖은 클릭이
+  // 그대로 지나가므로**(창이 스스로 알려 준다) 평소엔 없는 것과 같다. 얘를 끌면 창이 아니라
+  // **몸이 화면 안에서** 옮겨 다닌다.
+  const 화면 = 작업영역();
   return import('node:child_process').then(({ spawn }) => {
     try {
       const child = spawn(exe, [], {
@@ -680,16 +687,46 @@ function openOwnWindow(
           // 말은 하는데 소리가 없었다. 창 프로그램은 이 이름의 환경값을 그대로 제 안의
           // 브라우저에 넘긴다. 다시 굽지 않아도 되는 자리라 여기서 준다.
           WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--autoplay-policy=no-user-gesture-required',
-          COMPANION_URL: url,
-          COMPANION_WIDTH: String(size?.width ?? 420),
-          COMPANION_HEIGHT: String(size?.height ?? 640),
+          // 화면 크기를 못 재면 옛날처럼 작은 창으로 뜬다 — 잘리긴 해도 말은 한다.
+          COMPANION_URL: 화면 === null ? url : `${url}${url.includes('?') ? '&' : '?'}full=1`,
+          COMPANION_WIDTH: String(화면?.width ?? size?.width ?? 420),
+          COMPANION_HEIGHT: String(화면?.height ?? size?.height ?? 640),
+          COMPANION_MARGIN: '0',
         },
       });
       child.unref();
-      return '제 창으로 떴다 (창틀 없음·배경 뚫림)';
+      return 화면 === null
+        ? '제 창으로 떴다 (창틀 없음·배경 뚫림 · 화면 크기를 못 재서 작은 창)'
+        : `제 창으로 떴다 (화면 전체 ${화면.width}×${화면.height} · 창틀 없음·배경 뚫림)`;
     } catch (e) {
       openBrowser(url);
       return `제 창을 못 띄워서 평범한 브라우저로 열었다: ${e instanceof Error ? e.message : String(e)}`;
     }
   });
+}
+
+/**
+ * 작업 영역 크기 (작업표시줄 뺀 자리). 못 재면 null.
+ *
+ * 한 번만 묻는다 — 창을 띄울 때뿐이라 값이 비싸지 않다. 화면이 바뀌면 다시 띄우면 된다.
+ */
+function 작업영역(): { width: number; height: number } | null {
+  if (process.platform !== 'win32') return null;
+  try {
+    const { execFileSync } = require('node:child_process') as typeof import('node:child_process');
+    const out = execFileSync(
+      'powershell',
+      [
+        '-NoProfile',
+        '-Command',
+        "Add-Type -AssemblyName System.Windows.Forms; $w = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea; \"$($w.Width)x$($w.Height)\"",
+      ],
+      { timeout: 15_000, windowsHide: true, encoding: 'utf8' },
+    ).trim();
+    const m = /^(\d+)x(\d+)$/.exec(out);
+    if (m === null) return null;
+    return { width: Number(m[1]), height: Number(m[2]) };
+  } catch {
+    return null;
+  }
 }
