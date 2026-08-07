@@ -22,6 +22,7 @@ import {
   shareRow,
   shareText,
   suggest,
+  triesLabel,
   updateStats,
 } from './engine.mjs';
 import { countPage, countEvent } from './count.mjs';
@@ -482,7 +483,7 @@ function finish() {
 }
 
 function updateLeft() {
-  $left.textContent = `${state.guesses.length} / ${maxGuesses}번째 시도`;
+  $left.textContent = triesLabel(state.guesses.length, maxGuesses);
 }
 
 /**

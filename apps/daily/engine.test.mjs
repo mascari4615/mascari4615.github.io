@@ -19,6 +19,7 @@ import {
   shareRow,
   shareText,
   suggest,
+  triesLabel,
 } from './engine.mjs';
 
 const topic = {
@@ -239,4 +240,14 @@ test('띄어 쓴 이름을 붙여 쳐도 찾아진다', () => {
 test('이미 낸 답은 띄어쓰기가 달라도 다시 안 나온다', () => {
   const items = [{ name: '리 신' }, { name: '리븐' }];
   assert.deepEqual(suggest(items, '리', { exclude: ['리신'] }).map((i) => i.name), ['리븐']);
+});
+
+
+test('남은 기회를 말이 되게 적는다', () => {
+  // 「0번째 시도」는 말이 안 된다 — 실제로 그렇게 떠 있었다.
+  assert.equal(triesLabel(0, 8), '8번 안에 맞히기');
+  assert.equal(triesLabel(1, 8), '1번 썼다 · 7번 남음');
+  assert.equal(triesLabel(5, 6), '5번 썼다 · 마지막 한 번');
+  assert.equal(triesLabel(6, 6), '6번 다 썼다');
+  assert.equal(triesLabel(9, 6), '6번 다 썼다', '넘겨 세어도 음수는 안 나온다');
 });
