@@ -821,7 +821,7 @@ const companion = new Companion({
          새 재료를 넣을 때마다 예전 것이 **조용히** 밀렸고, 그건 발동 기록을 봐야만
          보였다. 재료가 는 만큼만 늘린다(420자·5줄 → 520자·6줄). 더 늘리면 29회차에
          고쳤던 「재료 과밀」로 되돌아간다. */
-    ]), { maxChars: 520, maxLines: 6, mark: (name, fate) => { tally.mark(name, fate); 밀린것.적기(name, fate); } });
+    ]), { maxChars: 520, maxLines: 6, 자리: `「${방금한말.slice(0, 24)}」`, mark: (name, fate, 왜) => { tally.mark(name, fate, 왜); 밀린것.적기(name, fate); } });
     /* 이 turn 의 겨룸이 끝났다. 밀린 것은 다음 turn 에 더 세게 나온다.
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     밀린것.다음턴();

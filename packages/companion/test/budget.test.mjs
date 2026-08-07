@@ -95,3 +95,38 @@ test('늘 있어야 하는 설명은 재료로 넣지 않는다 — 상황과 �
   const 빡빡할때 = pickIngredients(재료들, { maxChars: 400, maxLines: 5 });
   assert.equal(빡빡할때.some((x) => x.name === '능력설명'), false, '빡빡하면 밀린다 — 그래서 재료로 두면 안 된다');
 });
+
+// ── 왜 안 실렸나 (81회차) ──────────────────────────────────────────
+
+test('안 실린 이유를 같이 알려 준다 — 「안 실렸다」만 남기면 못 고친다', () => {
+  const 남은것 = [];
+  pickIngredients(
+    [
+      { name: '꺼진것', text: '가나다', weight: 9, when: false },
+      { name: '빈것', text: '   ', weight: 9 },
+      { name: '큰것', text: '가'.repeat(30), weight: 9 },
+      { name: '밀린것', text: '나'.repeat(30), weight: 1 },
+    ],
+    { maxChars: 30, maxLines: 1, 자리: '「너 뭐 좋아해?」', mark: (name, fate, 왜) => 남은것.push([name, fate, 왜]) },
+  );
+  const 이유 = Object.fromEntries(남은것.map(([n, , w]) => [n, w]));
+  assert.match(이유['꺼진것'], /조건이 안 켜졌다/);
+  assert.match(이유['빈것'], /만들 게 없었다/);
+  assert.match(이유['밀린것'], /자리가 모자랐다/);
+  assert.equal(이유['큰것'], '', '실린 것에는 이유가 없다');
+});
+
+test('이유에 그 turn 이 뭐였는지 붙는다 — 없으면 어느 순간이었는지 되짚을 수가 없다', () => {
+  const 남은것 = [];
+  pickIngredients([{ name: '꺼진것', text: '가', weight: 1, when: false }], {
+    자리: '「너 뭐 좋아해?」',
+    mark: (name, fate, 왜) => 남은것.push(왜),
+  });
+  assert.match(남은것[0], /너 뭐 좋아해/);
+});
+
+test('자리를 안 주면 이유만 남는다 — 부르는 쪽이 안 줘도 안 깨진다', () => {
+  const 남은것 = [];
+  pickIngredients([{ name: '빈것', text: '', weight: 1 }], { mark: (n, f, 왜) => 남은것.push(왜) });
+  assert.equal(남은것[0], '만들 게 없었다');
+});
