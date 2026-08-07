@@ -63,6 +63,8 @@ async function playTopic(topicId, { width, height, tag, mode = 'classic' }) {
   const cellCount = await page.locator('.row').first().locator('.cell').count();
   check(`[${tag}] 추측 한 줄이 속성 칸을 다 그린다`, cellCount === cellsPerRow, `${cellCount}칸`);
   check(`[${tag}] 아직 안 끝났다`, await page.locator('.done').isHidden());
+  // 「0번째 시도」 같은 말이 안 되는 문구가 다시 앉지 않게 — 실제로 뜬 글을 본다.
+  check(`[${tag}] 남은 기회를 말이 되게 적는다`, /^1번 썼다 · \d+번 남음$/.test(await page.locator('.left').innerText()), await page.locator('.left').innerText());
   if (mode === 'classic') {
     // 규칙은 화면 위에 있고 결과는 아래에 뜬다 — 눈이 가 있는 자리에도 읽는 법이 있어야 한다.
     const legend = await page.locator('.legend').innerText();

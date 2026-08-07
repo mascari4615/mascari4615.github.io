@@ -158,6 +158,20 @@ export function isWin(cells) {
 
 const CELL_EMOJI = { exact: '🟩', near: '🟨', wrong: '⬛' };
 
+/**
+ * 몇 번 남았는지 한 줄로.
+ *
+ * 예전엔 「0 / 8번째 시도」 였다 — 「0번째 시도」는 말이 안 되고, 한 수 둔 뒤의
+ * 「1 / 8번째 시도」도 쓴 수인지 지금 두는 수인지 안 갈린다. 사람이 궁금한 건 **몇 번 남았나**다.
+ */
+export function triesLabel(used, max) {
+  const left = Math.max(0, max - used);
+  if (used === 0) return `${max}번 안에 맞히기`;
+  if (left === 0) return `${max}번 다 썼다`;
+  if (left === 1) return `${used}번 썼다 · 마지막 한 번`;
+  return `${used}번 썼다 · ${left}번 남음`;
+}
+
 /** 격자 한 줄 — 정답을 흘리지 않는다. 이게 공유의 전부다. */
 export function shareRow(cells) {
   return cells.map((c) => CELL_EMOJI[c.state] ?? '⬛').join('');
