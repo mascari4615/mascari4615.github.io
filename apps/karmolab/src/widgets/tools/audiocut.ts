@@ -11,6 +11,8 @@ import { acceptPastedFiles } from './shared/paste';
 (function (): void {
   Toolbox.register({
     id: 'audiocut',
+    // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
+    accepts: ['audio/*'],
     title: '오디오 자르기',
     category: 'tool',
     desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
@@ -191,6 +193,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && (handed.blob.type.startsWith('audio/'))) {
+              void load(new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -230,6 +241,8 @@ import { acceptPastedFiles } from './shared/paste';
                 a.href = URL.createObjectURL(blob);
                 a.download = `${fileName}-자름.${format}`;
                 a.click();
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiocut' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
                 say(`${mmss(out.duration)} 구간을 ${size(blob.size)} 로 내려받았어요.`, 'ok');
                 Toolbox.trackUse?.('cut');

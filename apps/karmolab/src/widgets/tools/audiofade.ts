@@ -21,6 +21,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
 
   Toolbox.register({
     id: 'audiofade',
+    // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
+    accepts: ['audio/*', 'video/*'],
     title: '소리 페이드',
     category: 'tool',
     desc: '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다',
@@ -202,6 +204,15 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && (handed.blob.type.startsWith('audio/') || handed.blob.type.startsWith('video/'))) {
+              void load(new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -238,6 +249,8 @@ import { encodeAudio, fileSize as size, mmss } from './shared/media';
             a.href = URL.createObjectURL(outBlob);
             a.download = `${baseName}-페이드.wav`;
             a.click();
+            // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+            Toolbox.offerNext?.(status, { blob: outBlob, name: a.download, from: 'audiofade' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
             say(`${size(outBlob.size)} 로 받았어요.`, 'ok');
           };

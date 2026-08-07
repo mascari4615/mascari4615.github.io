@@ -11,6 +11,8 @@ import { acceptPastedFiles } from './shared/paste';
 (function (): void {
   Toolbox.register({
     id: 'audiojoin',
+    // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
+    accepts: ['audio/*'],
     title: '오디오 이어붙이기',
     category: 'tool',
     desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
@@ -168,6 +170,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files) void add(fileInput.files);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && (handed.blob.type.startsWith('audio/'))) {
+              void add([new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type })]);
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -199,6 +210,8 @@ import { acceptPastedFiles } from './shared/paste';
                 a.href = URL.createObjectURL(blob);
                 a.download = '이어붙인-음원.' + format;
                 a.click();
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiojoin' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
                 say(`${mmss(out.duration)} · ${size(blob.size)} 로 이어 내려받았어요.`, 'ok');
                 Toolbox.trackUse?.('join');

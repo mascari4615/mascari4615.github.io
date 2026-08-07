@@ -49,6 +49,8 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'audiolevel',
+    // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
+    accepts: ['audio/*', 'video/*'],
     title: '소리 크기 맞추기',
     category: 'tool',
     desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
@@ -248,6 +250,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) void load(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && (handed.blob.type.startsWith('audio/') || handed.blob.type.startsWith('video/'))) {
+              void load(new File([handed.blob], handed.name || '넘겨받은', { type: handed.blob.type }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
@@ -278,6 +289,8 @@ import { acceptPastedFiles } from './shared/paste';
                 a.href = URL.createObjectURL(blob);
                 a.download = name;
                 a.click();
+                // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
+                Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiolevel' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
                 say(`${size(blob.size)} 로 내려받았어요.`, 'ok');
               })
