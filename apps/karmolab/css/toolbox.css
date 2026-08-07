@@ -2908,9 +2908,12 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .karmolab-update-banner-restart {
     background: var(--success, #22c55e);
 }
+/* 닫는 단추도 손가락으로 눌러야 한다 (TASK-KL-129).
+   24px 라 폰에서 정확히 짚기 어려웠다 — 새로고침 안내를 못 닫으면 그 줄이 화면에 남는다.
+   보이는 크기(글자·바탕)는 그대로 두고 **눌리는 자리만** 넓힌다. */
 .karmolab-update-banner-close {
     flex-shrink: 0; align-self: flex-start;
-    width: 24px; height: 24px;
+    width: 32px; height: 32px;
     background: transparent; color: var(--text-tertiary);
     border: none; border-radius: var(--radius-sm);
     font-size: 16px; line-height: 1; cursor: pointer;
