@@ -57,9 +57,64 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   const canonical = await page.getAttribute('link[rel=canonical]', 'href');
   check(`[${topicId}] 정규 주소가 배포 주소와 같다`, canonical === `${BASE}/${topicId}/`, canonical);
 
-  await page.screenshot({ path: join(app, `.cache/shots/live-${topicId}.png`), fullPage: true });
+  await page.screenshot({ path: join(app, `.cache/shots/live-${topicId}.png`), fullPage: true, timeout: 8000 }).catch(() => {});
   await ctx.close();
   console.log(`  → 오늘의 정답: ${answer.name}`);
+}
+
+/**
+ * 기본 흐름 말고 **다른 판들도 실제로 살아 있는지** — 로컬에서 되는 것과 배포된 것은 다른 일이다.
+ * 실루엣·지난 문제·연습은 여태 배포 뒤 확인이 없었다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+
+  await page.goto(`${BASE}/pokemon/silhouette/`, { waitUntil: 'networkidle' });
+  const dark = await page.$eval('.shot img', (el) => el.style.filter);
+  check('[실루엣] 처음엔 까맣다', /brightness\(0/.test(dark), dark);
+  const shown = await page.$eval('.shot img', (el) => el.complete && el.naturalWidth > 0);
+  check('[실루엣] 그림이 실제로 받아진다', shown);
+
+  const topic = await (await fetch(`${BASE}/data/pokemon.json`)).json();
+  const yKey = new Date(Date.now() - 86400000 + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  const yAnswer = answerOf(topic, new Date(Date.now() - 86400000));
+
+  await page.goto(`${BASE}/pokemon/past/`, { waitUntil: 'networkidle' });
+  const past = await page.locator('#past').innerText();
+  check('[지난문제] 어제 답이 보인다', past.includes(yAnswer.name), yAnswer.name);
+  check('[지난문제] 오늘 답은 안 보인다', !past.includes(answerOf(topic).name));
+  check('[지난문제] 그날로 가는 길이 있다', (await page.locator('table.past .play').count()) > 5);
+
+  await page.goto(`${BASE}/pokemon/?d=${yKey}`, { waitUntil: 'networkidle' });
+  check('[연습] 어제 판이 열린다', /연습/.test(await page.locator('.tabs').innerText()));
+  await page.fill('.guessbar input', yAnswer.name);
+  await page.waitForSelector('.sug button');
+  await page.click(`.sug button:has-text("${yAnswer.name}")`);
+  await page.waitForSelector('.done:not([hidden])');
+  check('[연습] 그날 정답으로 맞혀진다', (await page.locator('.done').innerText()).includes(yAnswer.name));
+
+  /**
+   * ★ 허브가 **우리 허브인지**. 블로그 쪽에 같은 주소를 쓰는 페이지가 생기면 통째로 덮인다 —
+   * 실제로 사이드바 입구를 만들다 `/daily/` 를 덮어써서 무한 새로고침 페이지가 됐다.
+   * 200 만 보면 절대 안 잡힌다.
+   */
+  await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+  const cards = await page.locator('.card').count();
+  check('[허브] 판을 다 건다', cards >= 6, `${cards}장`);
+  check(
+    '[허브] ★ 다른 페이지에 덮이지 않았다',
+    !(await page.content()).includes('jekyll-theme-chirpy'),
+    cards === 0 ? '블로그 페이지가 이 주소를 먹었다' : '우리 허브가 맞다',
+  );
+  check('[전체] 콘솔 오류 0', errors.length === 0, errors.join(' | '));
+  // 스샷은 곁다리다 — 이게 늦는다고 검사 전체를 죽이면 안 된다 (한 번 그렇게 죽었다).
+  await page
+    .screenshot({ path: join(app, '.cache/shots/live-hub.png'), fullPage: true, timeout: 8000 })
+    .catch(() => console.log('  (허브 스샷은 건너뛴다)'));
+  await ctx.close();
 }
 
 await browser.close();
