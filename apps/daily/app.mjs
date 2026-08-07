@@ -227,6 +227,28 @@ function untilNextKst() {
   return `${Math.floor(ms / 3600000)}시간 ${Math.floor((ms % 3600000) / 60000)}분 ${Math.floor((ms % 60000) / 1000)}초`;
 }
 
+/**
+ * 자정을 넘겨 창을 열어 둔 사람은 **어제 문제를 계속 풀고 있다** — 화면은 아무 말도 안 한다.
+ * 다 풀고 나면 「다음 문제까지 0시간 0분」에서 멈추고, 새로 시작해도 어제 답으로 채점된다.
+ * 날이 바뀌면 말해 주고, 새 문제로 갈 길을 준다. 저절로 넘기지는 않는다 — 두던 판이 날아간다.
+ */
+function watchMidnight() {
+  if (practice) return;
+  const startedOn = dayNumber;
+  const timer = setInterval(() => {
+    if (kstDayNumber() === startedOn) return;
+    clearInterval(timer);
+    if (root.querySelector('.newday')) return;
+    const bar = el(
+      '<div class="newday">자정이 지나 <b>새 문제</b>가 나왔어요. 지금 화면은 어제 문제입니다.<button type="button">새 문제 열기</button></div>',
+    );
+    bar.querySelector('button').addEventListener('click', () => {
+      location.href = location.pathname;
+    });
+    root.querySelector('.tabs')?.after(bar);
+  }, 15000);
+}
+
 function shareRows() {
   if (mode === 'silhouette') {
     // 실루엣은 칸이 없다 — 몇 번 만에 갔는지만 남긴다.
@@ -401,6 +423,7 @@ for (const name of state.guesses) {
 updateLeft();
 renderSeeds();
 renderStreak();
+watchMidnight();
 paintShot();
 if (state.status !== 'playing') finish();
 $input.focus({ preventScroll: true });

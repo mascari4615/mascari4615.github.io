@@ -216,6 +216,24 @@ await pastPage('genshin');
 }
 
 /**
+ * 자정을 넘겨 창을 열어 둔 사람은 어제 문제를 계속 풀고 있다 — 화면이 아무 말도 안 했다.
+ * 시계를 하루 앞으로 당겨 실제로 알려 주는지 본다.
+ */
+{
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  // 시계를 통째로 가짜로 갈아야 한다 — Date.now 만 바꾸면 new Date() 가 그대로 진짜 시각을 본다.
+  await page.clock.install();
+  await page.goto(`${base}/pokemon/`, { waitUntil: 'networkidle' });
+  check('평소엔 새 문제 안내가 없다', (await page.locator('.newday').count()) === 0);
+  await page.clock.runFor('25:00:00'); // 하루 넘게 감기 — 15초마다 도는 감시가 알아채야 한다
+  await page.waitForSelector('.newday', { timeout: 15000 });
+  check('자정이 지나면 어제 문제라고 말해 준다', /새 문제/.test(await page.locator('.newday').innerText()));
+  await page.screenshot({ path: join(shots, 'newday.png'), fullPage: true });
+  await ctx.close();
+}
+
+/**
  * 연습 저장 자리는 날짜마다 하나씩 생긴다. 안 치우면 한도에 닿는 순간 오늘 진행이 조용히 안 저장된다.
  */
 {
