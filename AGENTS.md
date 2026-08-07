@@ -8,6 +8,20 @@ This file provides context and operating rules for AI coding agents working in t
 - Main site: Korean blog/portfolio deployed to GitHub Pages
 - Companion apps: KarmoLab, React app, Tauri app, Discord bots, browser extension
 
+## KarmoLab UI work: use the hot-reload dev server (KL-100)
+
+`cd apps/karmolab && npm run dev` → http://127.0.0.1:8813/apps/karmolab/index.html
+
+Do **not** wait for a deploy to see UI changes. Styles apply instantly with no reload;
+widgets are hot-swapped (open tabs and typed input survive); only shell changes
+(`src/toolbox.ts`, `widgets-loader`, `index.html`) trigger a reload.
+
+Widgets that start timers or global listeners must hand cleanup to `Toolbox.onDispose(fn)`
+inside `build` — otherwise they pile up on every swap.
+
+If you change `index.html`, run `npm run audit:pages`: the 127 tool detail pages are
+generated from that shell at deploy time, and a shape change there can stop deploys entirely.
+
 ## Important Working Boundaries
 
 - Do not edit compiled output under `assets/js/dist/`. Edit source files in `_javascript/` instead.
