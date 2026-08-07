@@ -19,7 +19,7 @@
       "id": "quest",
       "title": "오늘의 문제",
       "emoji": "🧩",
-      "url": "/karmolab/quest/",
+      "url": "/karmolab/#quest",
       "lead": "도구를 열어야 풀리는 하루 한 문제"
     }
   ]

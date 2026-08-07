@@ -459,7 +459,32 @@ a.tool-sponsor-link:hover { border-color: var(--accent); }
     color: var(--text-secondary);
 }
 
-/* 허브 (/karmolab/t/) */
+/* 허브 (/karmolab/t/) — 셸 안의 한 화면이다 (TASK-KL-129).
+   예전엔 셸 밖 문서라 제 여백을 직접 들고 있었다. 이제 본문 자리(content-body) 안에
+   들어가므로 위쪽 여백은 그쪽이 준다 — 여기서 또 주면 제목이 한참 아래로 밀린다.
+   폭은 상세(720px)보다 넓게 잡는다: 여기는 읽는 글이 아니라 **훑는 격자**라
+   좁히면 한 줄에 두 칸밖에 안 들어가고 스크롤만 길어진다. */
+body.tool-hub-page .tool-seo.tool-hub {
+    max-width: 1120px;
+    padding: 0 0 48px;
+    /* 폭을 **화면에서 받아 온다** — 안 그러면 카드 설명(한 줄로 자른 글, KL-128)의
+       「안 잘렸을 때 길이」가 폭이 돼 버린다. 폰에서 목록이 685px 로 벌어져 페이지 전체가
+       옆으로 밀렸다. 폭이 정해지면 카드 설명은 제자리에서 잘린다(원래 그러라고 만든 것이다). */
+    width: 100%;
+    min-width: 0;
+}
+/* 목록 페이지에는 앱이 그리는 화면이 없다 — 본문 자리가 화면 높이를 잡고 있을 이유가 없다.
+   (안 그러면 목록이 짧을 때 아래에 빈 화면 하나가 그대로 남는다.) */
+body.tool-hub-page .content-body { min-height: 0; min-width: 0; }
+/* 이동 경로 — 상세와 같은 생김새를 쓴다. 목록에서는 바로 위 여백을 본문 자리가 준다. */
+body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
+/* 분류 칩 줄은 폰에서 화면 끝까지 닿으라고 좌우로 삐져나와 있었다(음수 margin, KL-128).
+   셸 밖 문서일 때는 그 바깥이 그냥 여백이었지만, 셸 안에서는 삐져나온 16px 가 그대로
+   가로 넘침이 된다. 칸 안에서만 옆으로 민다 — 한 줄로 미는 동작은 그대로다. */
+@media (max-width: 640px) {
+    body.tool-hub-page .tool-hub-toc { margin-inline: 0; padding-inline: 0; }
+}
+
 /* 도구 목록 소제목 — 앱에서 묶어 놓은 그대로 나눈다 */
 .tool-hub-group {
     margin: 32px 0 12px;
@@ -1002,3 +1027,15 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .hi-score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
 .hi-score b { color: var(--text-primary); font-size: var(--font-size-md); }
 @media (max-width: 380px) { .hi-side img { width: 76px; height: 76px; } }
+
+/* 오늘의 문제 (TASK-KL-089) — 앱 토큰만 쓴다. 커뮤니티처럼 앱 안의 한 화면이다. */
+.qs-lead { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 0 0 14px; }
+.qs-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; max-width: 34rem; }
+.qs-day { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: 0.04em; }
+.qs-q { font-size: var(--font-size-md); font-weight: 700; margin: 6px 0 14px; }
+.qs-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.qs-row input[type='text'] { flex: 1 1 11rem; min-width: 0; font-size: 16px; min-height: 44px; }
+.qs-tool { display: inline-block; margin-top: 12px; font-size: var(--font-size-xs); color: var(--accent); }
+.qs-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.qs-tries { letter-spacing: 0.18em; font-size: var(--font-size-md); min-height: 1.4em; }
+.qs-after { display: flex; }
