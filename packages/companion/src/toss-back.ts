@@ -21,7 +21,14 @@ import type { MemoryEntry } from './types';
 export function 묻는말인가(text: string): boolean {
   const 말 = text.trim();
   if (말 === '') return false;
-  return /[?？]\s*$/.test(말) || /(뭐야|뭔데|어때|어땠|있어\?|없어\?|할래|갈래|맞아\?)\s*$/.test(말);
+  /* **물음표 없이 묻는 말이 훨씬 흔하다.** 라이브에서 「뭐가 재밌었는데.」가 묻는 말로
+     안 잡혀서 짧다는 이유로 걸러졌다 — 공을 돌려주는 가장 좋은 답이었는데. 한국말은
+     끝맺음으로 묻는다. */
+  if (/[?？]\s*$/.test(말)) return true;
+  if (/(뭐야|뭔데|어때|어땠|할래|갈래)\s*[.…]?\s*$/.test(말)) return true;
+  // 「~는데」 「~을까」 「~야?」 처럼 끝나면서 앞에 묻는 낱말이 있으면 묻는 말이다.
+  const 묻는낱말 = /(뭐|무슨|어디|언제|누구|왜|어떻|어느|얼마)/;
+  return 묻는낱말.test(말) && /(는데|은데|ㄴ데|을까|ㄹ까|나요|니|냐|어|야)\s*[.…]?\s*$/.test(말);
 }
 
 export interface TossBackInput {
