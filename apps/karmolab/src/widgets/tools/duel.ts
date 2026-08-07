@@ -173,6 +173,17 @@ import { joinRoom, selfId } from 'trystero/nostr';
           let sendScore: Send | null = null;
           let sendHello: Send | null = null;
 
+          /** 입력칸이 비어 있으면 적어 둔 이름이라도 쓴다. */
+          function 내이름(): string {
+            const typed = nameInput.value.trim();
+            if (typed) return typed;
+            try {
+              return (localStorage.getItem('karmolab.duel.name') || '').trim() || '누군가';
+            } catch {
+              return '누군가';
+            }
+          }
+
           function paintScores(): void {
             $<HTMLElement>('#duMeScore').textContent = String(myScore);
             $<HTMLElement>('#duFoeScore').textContent = String(foeScore);
@@ -311,7 +322,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
             }).send as Send;
 
             r0.onPeerJoin = (): void => {
-              sendHello?.({ name: nameInput.value.trim() || '누군가' });
+              sendHello?.({ name: 내이름() });
               if (!asHost) {
                 say('붙었다! 곧 시작합니다.');
                 return;
@@ -342,6 +353,15 @@ import { joinRoom, selfId } from 'trystero/nostr';
           } catch {
             /* 못 읽어도 그만 */
           }
+          /* 적는 즉시 적어 둔다 — 위젯이 다시 짜이면(핫리로드·주소 바뀜) 입력칸이 비워져서
+           * 이름 없이 붙는 일이 실제로 있었다. 다시 짜여도 위에서 되살아난다. */
+          nameInput.addEventListener('input', () => {
+            try {
+              localStorage.setItem('karmolab.duel.name', nameInput.value.trim());
+            } catch {
+              /* 못 적어도 그만 */
+            }
+          });
 
           const joined = location.hash.match(/r=([A-Za-z0-9_-]{6,})/);
           if (joined) {
