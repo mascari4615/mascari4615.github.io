@@ -288,6 +288,31 @@ function traceVisit(): void {
     void call('/kl/trace/visit', { method: 'POST' });
 }
 
+/** 「지금 보고 있어요」를 얼마나 자주 알릴지. 서버는 5분 창으로 센다. */
+const PRESENCE_PING_MS = 90_000;
+
+/**
+ * 지금 이 화면을 보고 있다고 알린다.
+ *
+ * 누적 방문 수는 과거를 말하고, 이것만이 **지금**을 말한다 — 「나 말고도 누가 있다」는
+ * 그 수 하나로 전해진다.
+ *
+ * 탭이 뒤로 가 있으면 안 보낸다. 열어 두고 잊은 창까지 「보고 있는 사람」으로 세면
+ * 그 수는 곧 아무 뜻이 없어진다.
+ */
+function startPresence(): void {
+    const ping = () => {
+        if (document.visibilityState !== 'visible') return;
+        void call('/kl/presence', { method: 'POST' });
+    };
+    ping();
+    setInterval(ping, PRESENCE_PING_MS);
+    // 다시 앞으로 오면 바로 한 번 — 5분 창 밖으로 밀려나 있었을 수 있다.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') ping();
+    });
+}
+
 /** 한 번 알린 도구는 이 화면에서 다시 안 알린다 (서버도 한 번 더 거르지만, 안 보내면 더 낫다). */
 const tracedTools = new Set<string>();
 
@@ -545,6 +570,7 @@ function start(): void {
     mountBell();
     void refresh();
     traceVisit();
+    startPresence();
     traceCurrentTool();
 }
 if (document.readyState === 'complete') start();

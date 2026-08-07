@@ -28,7 +28,24 @@
         total: number;
         today: number;
         peopleToday: number;
+        online?: number;
         recentDays: { day: string; visits: number; people: number }[];
+        kinds?: {
+            total: Record<string, number>;
+            today: Record<string, number>;
+        };
+    }
+    interface Recap {
+        from: string;
+        to: string;
+        visits: { now: number; before: number };
+        people: { now: number; before: number };
+        toolOpens: { now: number; before: number };
+        topTools: { toolId: string; opens: number }[];
+        newTools: string[];
+        posts: number;
+        replies: number;
+        topPost: { id: string; title: string | null; text: string; votes: number } | null;
     }
     interface Board {
         id: string;
@@ -97,6 +114,29 @@
         .plaza-open h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
         .plaza-open ul { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; }
         .plaza-open li { font-size:var(--font-size-xs); color:var(--text-secondary); line-height:1.55; }
+
+        /* 지금 보고 있는 사람 — 유일하게 「지금」을 말하는 줄이라 눈에 띄어야 한다. */
+        .plaza-online { display:inline-flex; align-items:center; gap:8px; align-self:flex-start;
+            padding:7px 14px; border:1px solid var(--border); border-radius:999px;
+            background:var(--bg-secondary); font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .plaza-online b { color:var(--text-primary); }
+        .plaza-online-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; flex:0 0 auto;
+            box-shadow:0 0 0 3px rgba(74,222,128,.18); animation:plaza-blink 2.4s ease-in-out infinite; }
+        @keyframes plaza-blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+        @media (prefers-reduced-motion: reduce) { .plaza-online-dot { animation:none; } }
+
+        .plaza-kind-bar { flex:0 0 90px; height:6px; border-radius:3px; background:var(--bg-tertiary);
+            overflow:hidden; }
+        .plaza-kind-bar i { display:block; height:100%; background:var(--accent); }
+        .plaza-kind-bar i[data-kind="search"] { background:var(--text-tertiary); }
+        .plaza-kind-bar i[data-kind="ai"] { background:#a78bfa; }
+        .plaza-kind-bar i[data-kind="unknown"] { background:var(--bg-hover); }
+        .plaza-row-today { color:var(--text-tertiary); font-size:10px; margin-left:4px; }
+        .plaza-caveat { margin-top:8px; line-height:1.6; }
+
+        .plaza-up { color:#4ade80; font-weight:700; }
+        .plaza-down { color:#f87171; font-weight:700; }
+        .plaza-flat { color:var(--text-tertiary); }
 
         .plaza-note { font-size:var(--font-size-xs); color:var(--text-secondary); }
     `);
@@ -172,6 +212,119 @@
                 <p class="plaza-section-note">막대 하나가 하루입니다. 맨 오른쪽이 오늘 · 가장 높은 날 ${num(max)}번</p>
                 <div class="plaza-spark">${bars}</div>
                 <div class="plaza-spark-axis"><span>${escapeHtml(days[0].day)}</span><span>오늘</span></div>
+            </section>`;
+    }
+
+    /* ===== 지금 보고 있는 사람 ===== */
+
+    /**
+     * 누적 수는 과거를 말하고, 이 수만이 **지금**을 말한다.
+     * 0명이면 안 그린다 — 「지금 0명이 보고 있어요」는 오는 사람을 쫓아내는 문장이다.
+     * (내가 보고 있으면 최소 1이므로, 0이 뜨는 건 서버가 아직 나를 못 센 순간뿐이다.)
+     */
+    function renderOnline(visits: Visits | null): string {
+        const online = visits?.online ?? 0;
+        if (online <= 0) return '';
+        const others = online - 1;
+        const line =
+            others > 0
+                ? `지금 <b>${num(online)}명</b>이 함께 보고 있어요`
+                : `지금은 혼자 보고 계세요`;
+        return `<div class="plaza-online"><span class="plaza-online-dot"></span><span>${line}</span></div>`;
+    }
+
+    /* ===== 누가 왔나 (사람 · 검색엔진 · AI) ===== */
+
+    const KIND_LABEL: Record<string, string> = {
+        human: '사람',
+        search: '검색엔진',
+        ai: 'AI',
+        unknown: '알 수 없음',
+    };
+
+    /**
+     * 사람 · 검색엔진 · AI 를 나눠서 공개한다 (사용자: "크롤러로 통계로 얼만큼인지 분류되면 좋을듯.
+     * AI가 사이트 접속하는것도 만약 탐지 가능하면").
+     *
+     * 가려내는 근거는 **접속하는 쪽이 스스로 밝히는 이름** 하나뿐이다. 감추고 들어오면 못 잡는다 —
+     * 그래서 그 사실을 숨기지 않고 화면에 같이 적는다. 못 알아본 것은 「알 수 없음」으로 가고
+     * 사람 수에는 안 들어간다.
+     */
+    function renderKinds(visits: Visits | null): string {
+        const kinds = visits?.kinds;
+        if (!kinds) return '';
+        const rows = Object.keys(KIND_LABEL)
+            .map((key) => ({ key, label: KIND_LABEL[key], total: kinds.total[key] ?? 0, today: kinds.today[key] ?? 0 }))
+            .filter((row) => row.total > 0);
+        if (rows.length === 0) return '';
+        const sum = rows.reduce((total, row) => total + row.total, 0);
+        return `
+            <section class="plaza-section">
+                <h3>누가 왔나</h3>
+                <p class="plaza-section-note">사람만 위의 방문 수에 들어갑니다 · 나머지도 버리지 않고 여기에 그대로 둡니다</p>
+                <div class="plaza-rows">
+                    ${rows
+                        .map(
+                            (row) => `<div class="plaza-row">
+                                <span class="plaza-row-name">${escapeHtml(row.label)}</span>
+                                <span class="plaza-kind-bar"><i style="width:${Math.max(2, Math.round((row.total / sum) * 100))}%" data-kind="${escapeHtml(row.key)}"></i></span>
+                                <span class="plaza-row-value">${num(row.total)}${row.today ? ` <span class="plaza-row-today">오늘 ${num(row.today)}</span>` : ''}</span>
+                            </div>`,
+                        )
+                        .join('')}
+                </div>
+                <p class="plaza-section-note plaza-caveat">가려내는 근거는 접속하는 쪽이 스스로 밝히는 이름 하나뿐입니다.
+                    감추고 들어오면 못 알아봅니다 — 그런 것은 「알 수 없음」으로 가고 사람 수에는 안 들어갑니다.
+                    더 잡아내겠다고 방문자를 뒤쫓는 기술은 쓰지 않습니다.</p>
+            </section>`;
+    }
+
+    /* ===== 이번 주 KarmoLab ===== */
+
+    /** 늘었나 줄었나 — 비교값 없는 수는 「많다/적다」를 말할 수 없다. */
+    function delta(now: number, before: number): string {
+        if (before === 0) return now > 0 ? '<span class="plaza-up">새로</span>' : '';
+        const diff = Math.round(((now - before) / before) * 100);
+        if (diff === 0) return '<span class="plaza-flat">지난주와 같음</span>';
+        return diff > 0
+            ? `<span class="plaza-up">▲ ${diff}%</span>`
+            : `<span class="plaza-down">▼ ${Math.abs(diff)}%</span>`;
+    }
+
+    function renderRecap(recap: Recap | null): string {
+        if (!recap) return '';
+        // 한 주 동안 아무 일도 없었으면 안 그린다. 0으로 채운 결산은 「죽은 사이트」의 증거가 된다.
+        const quiet =
+            recap.visits.now === 0 && recap.toolOpens.now === 0 && recap.posts === 0 && recap.replies === 0;
+        if (quiet) return '';
+
+        const lines: string[] = [];
+        if (recap.people.now > 0) {
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">다녀간 사람</span><span class="plaza-row-value">${num(recap.people.now)}명 ${delta(recap.people.now, recap.people.before)}</span></div>`);
+        }
+        if (recap.toolOpens.now > 0) {
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">도구 열림</span><span class="plaza-row-value">${num(recap.toolOpens.now)}번 ${delta(recap.toolOpens.now, recap.toolOpens.before)}</span></div>`);
+        }
+        if (recap.topTools.length > 0) {
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많이 쓴 도구</span><span class="plaza-row-value">${recap.topTools.map((t) => escapeHtml(toolTitle(t.toolId))).join(' · ')}</span></div>`);
+        }
+        if (recap.newTools.length > 0) {
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">이번 주에 처음 쓰인 도구</span><span class="plaza-row-value">${recap.newTools.map((id) => escapeHtml(toolTitle(id))).join(' · ')}</span></div>`);
+        }
+        if (recap.posts > 0 || recap.replies > 0) {
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">커뮤니티</span><span class="plaza-row-value">새 글 ${num(recap.posts)} · 답글 ${num(recap.replies)}</span></div>`);
+        }
+        if (recap.topPost) {
+            const heading = recap.topPost.title || recap.topPost.text;
+            lines.push(`<div class="plaza-row"><span class="plaza-row-name">가장 많은 표</span><span class="plaza-row-value">${escapeHtml(heading)} (${num(recap.topPost.votes)}표)</span></div>`);
+        }
+        if (lines.length === 0) return '';
+
+        return `
+            <section class="plaza-section">
+                <h3>이번 주 KarmoLab</h3>
+                <p class="plaza-section-note">${escapeHtml(recap.from)} ~ ${escapeHtml(recap.to)} · 지난주와 견줍니다</p>
+                <div class="plaza-rows">${lines.join('')}</div>
             </section>`;
     }
 
@@ -270,7 +423,11 @@
 
     async function buildOverview(container: HTMLElement): Promise<void> {
         container.innerHTML = '<div class="plaza-wrap"><p class="plaza-note">불러오는 중…</p></div>';
-        const [rawStats, rawBoards] = await Promise.all([api('/kl/tools/stats'), api('/kl/boards')]);
+        const [rawStats, rawBoards, rawRecap] = await Promise.all([
+            api('/kl/tools/stats'),
+            api('/kl/boards'),
+            api('/kl/recap'),
+        ]);
         if (!container.isConnected) return;
         if (!rawStats) {
             offline(container);
@@ -278,13 +435,17 @@
         }
         const stats = rawStats as { tools: ToolStat[]; pulse: Pulse; visits?: Visits };
         const boards = (rawBoards as { boards?: Board[] } | null)?.boards ?? null;
+        const recap = (rawRecap as { recap?: Recap } | null)?.recap ?? null;
         const visits = stats.visits ?? null;
 
         const hasTools = stats.tools.some((t) => t.recent > 0);
         const body = [
             `<p class="plaza-lead">이 사이트의 숫자를 전부 열어 둡니다. 아래는 서버가 실제로 센 값이고, 손으로 적었거나 부풀린 수는 하나도 없습니다.</p>`,
-            visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다</p>${renderVisits(visits)}</section>` : '',
+            renderOnline(visits),
+            visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다 · 사람만 셉니다</p>${renderVisits(visits)}</section>` : '',
             renderSpark(visits),
+            renderRecap(recap),
+            renderKinds(visits),
             stats.pulse.opensTotal > 0
                 ? `<section class="plaza-section"><h3>도구</h3><p class="plaza-section-note">도구를 연 횟수입니다 — 무엇을 입력했는지는 서버가 모릅니다</p>${renderToolSummary(stats.pulse)}</section>`
                 : '',

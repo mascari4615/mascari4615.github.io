@@ -36,6 +36,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         titled: boolean;
         canDelete: boolean;
         tags: string[];
+        /** 이슈식 갤러리 — 글마다 번호와 상태가 있고 언젠가 닫힌다 (깃허브 이슈처럼). */
+        issueStyle?: boolean;
     }
 
     interface BoardsResponse {
@@ -71,6 +73,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         status: 'open' | 'planned' | 'done' | 'declined';
         pinned: boolean;
         tag: string | null;
+        seq?: number;
+        statusNote?: string | null;
+        statusAt?: string | null;
+        statusBy?: string | null;
         replies: Reply[];
         votedByMe: boolean;
         likedByMe: boolean;
@@ -100,12 +106,30 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         replyMaxLength: number;
     }
 
-    const STATUS_LABEL: Record<Post['status'], string> = {
+    /**
+     * 상태 이름은 **갤러리 성격에 따라 다르게 부른다.**
+     * 도구 요청판에서 「열림」은 어색하고, 남이 만든 이슈 갤러리에서 「만들었음」은 안 맞는다.
+     * 값은 같고 부르는 말만 다르다 — 저장은 한 벌이다.
+     */
+    const STATUS_LABEL_REQUEST: Record<Post['status'], string> = {
         open: '받는 중',
         planned: '만들 예정',
         done: '만들었음',
         declined: '안 만듦',
     };
+    const STATUS_LABEL_ISSUE: Record<Post['status'], string> = {
+        open: '열림',
+        planned: '할 예정',
+        done: '됐음',
+        declined: '안 함',
+    };
+    function statusLabels(gallery: { voteStyle: boolean }): Record<Post['status'], string> {
+        return gallery.voteStyle ? STATUS_LABEL_REQUEST : STATUS_LABEL_ISSUE;
+    }
+    /** 닫힌 글인가 — 「열림만 보기」의 기준. */
+    function isClosed(status: Post['status']): boolean {
+        return status === 'done' || status === 'declined';
+    }
 
     Mdd.injectCSS('community', `
         /* 커뮤니티는 **글을 읽는 곳**이다. 넓은 화면에는 판이 없어 관측실 무늬가 글 뒤로 그대로
@@ -206,6 +230,29 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-feed-meta { flex:0 0 auto; font-size:10px; color:var(--text-tertiary); }
         .c-feed-empty { margin:0; padding:18px 12px; font-size:var(--font-size-xs); color:var(--text-tertiary); }
         .c-gal-title { margin:0; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:700; }
+
+        /* 이슈식 갤러리 (깃허브 이슈처럼) — 번호와 상태가 늘 붙어 다닌다. */
+        .c-seq { color:var(--text-tertiary); font-weight:700; margin-right:2px; }
+        .c-tag[data-status="planned"] { color:#a16207; border-color:rgba(161,98,7,.4); }
+        .c-tag[data-status="done"] { color:#15803d; border-color:rgba(21,128,61,.4); }
+        .c-tag[data-status="declined"] { color:var(--text-tertiary); }
+        html[data-theme="dark"] .c-tag[data-status="planned"] { color:#fcd34d; border-color:rgba(252,211,77,.4); }
+        html[data-theme="dark"] .c-tag[data-status="done"] { color:#86efac; border-color:rgba(134,239,172,.4); }
+
+        /* 닫힌 글의 자국 — 「언제·누가·왜」. 없으면 닫힌 글이 사라진 글처럼 읽힌다. */
+        .c-closed { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px;
+            margin:12px 0 0; padding:10px 14px; border-radius:var(--radius-lg);
+            border:1px solid var(--border); background:var(--bg-secondary);
+            font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .c-closed b { color:var(--text-primary); }
+        .c-closed[data-status="done"] b { color:#15803d; }
+        html[data-theme="dark"] .c-closed[data-status="done"] b { color:#86efac; }
+        .c-closed-when { color:var(--text-tertiary); font-size:11px; }
+
+        /* 상태 바꾸는 줄 (갤러리 주인). */
+        .c-statusbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+        .c-statusbar select { flex:0 0 auto; }
+        .c-statusbar input { flex:1 1 220px; min-width:0; }
 
         /* 고르는 줄 — 무엇을 고르는 줄인지 왼쪽에 적는다. 안 적으면 갤러리와 말머리가 똑같아 보인다. */
         .c-picker { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
@@ -986,6 +1033,14 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     function renderList(data: ListResponse): void {
         if (!host) return;
         const isRequest = data.gallery.voteStyle;
+        /* 이슈식 갤러리 — 글마다 번호와 상태가 늘 보인다 (깃허브 이슈처럼).
+           도구 요청판은 원래부터 그렇게 살아 왔으므로 같이 묶는다. */
+        const isIssue = data.gallery.issueStyle === true || isRequest;
+        const labels = statusLabels(data.gallery);
+        /* 「열림만 보기」 — 이슈 갤러리의 목록은 닫힌 글이 쌓이면 금세 안 읽힌다.
+           기본은 열림만이다: 이슈판을 여는 사람이 보고 싶은 것은 「아직 남은 것」이다. */
+        const closedFilter = param('closed');
+        const showClosed = closedFilter === '1';
         // 말머리는 **갤러리를 만든 사람**과 주인이 정한다 (디시·아카의 갤주 자리).
         const canEditTags = data.isAdmin || (data.myHandle !== null && data.myHandle === data.gallery.createdByHandle);
 
@@ -1010,10 +1065,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
               )
             : data.posts;
 
+        /* 이슈 갤러리는 **열린 것만** 먼저 보여준다. 닫힌 글까지 섞으면 목록은 금세
+           「지난 일 더미」가 되고, 정작 남은 일이 안 보인다. 닫힌 것은 눌러서 편다. */
+        const closedCount = isIssue ? filtered.filter((p) => isClosed(p.status)).length : 0;
+        const visible = isIssue && !showClosed ? filtered.filter((p) => !isClosed(p.status)) : filtered;
+
         const PER_PAGE = 30;
-        const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+        const pageCount = Math.max(1, Math.ceil(visible.length / PER_PAGE));
         const page = Math.min(Math.max(1, Number(param('page') ?? '1') || 1), pageCount);
-        const shown = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+        const shown = visible.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
         /** 오늘 글은 시각, 지난 글은 날짜 — 국내 게시판이 다 이렇게 한다 (한눈에 오늘 것이 보인다). */
         const stamp = (iso: string): string => {
@@ -1043,13 +1103,17 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             ? shown
                   .map((p, index) => {
                       const heading = isRequest ? preview(p.text, 60) : (p.title ?? '(제목 없음)');
-                      const number = p.pinned ? '공지' : String(filtered.length - ((page - 1) * PER_PAGE + index));
+                      const number = p.pinned
+                          ? '공지'
+                          : isIssue && p.seq
+                            ? `#${p.seq}`
+                            : String(visible.length - ((page - 1) * PER_PAGE + index));
                       const hot = p.likes >= 3 || p.replyCount >= 5;
                       return `<tr data-pinned="${p.pinned ? '1' : '0'}">
                           <td class="c-num">${number}</td>
                           <td class="c-td-title">
                               <button type="button" class="c-title-btn" data-post="${esc(p.id)}">
-                                  ${isRequest && p.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[p.status]}</span>` : ''}
+                                  ${isIssue && p.status !== 'open' ? `<span class="c-tag" data-status="${esc(p.status)}">${labels[p.status]}</span>` : ''}
                                   ${p.tag ? `<span class="c-headword">[${esc(p.tag)}]</span>` : ''}
                                   <span class="t">${esc(heading)}</span>
                                   ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
@@ -1063,7 +1127,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                   })
                   .join('')
             : `<tr><td class="c-empty-row" colspan="6">${
-                  query ? '찾는 글이 없습니다.' : isRequest ? '아직 올라온 요청이 없습니다.' : '아직 이 판에 글이 없습니다. 첫 글을 남겨 주세요.'
+                  query
+                      ? '찾는 글이 없습니다.'
+                      : isIssue && !showClosed && closedCount > 0
+                        ? '열린 것이 없습니다 — 전부 끝났어요.'
+                        : isRequest
+                          ? '아직 올라온 요청이 없습니다.'
+                          : '아직 이 판에 글이 없습니다. 첫 글을 남겨 주세요.'
               }</td></tr>`;
 
         const pages: string[] = [];
@@ -1125,6 +1195,33 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                        </form>`
                     : ''
             }
+            ${
+                // 이슈 갤러리의 「열림만 / 전부」. 닫힌 글이 하나도 없으면 고를 것이 없으므로 안 그린다.
+                isIssue && closedCount > 0
+                    ? `<div class="c-picker">
+                           <span class="c-picker-label">보기</span>
+                           <div class="c-tags">
+                               <button type="button" class="c-tagchip" data-closed="0" data-on="${showClosed ? '0' : '1'}">열린 것만</button>
+                               <button type="button" class="c-tagchip" data-closed="1" data-on="${showClosed ? '1' : '0'}">전부 (${closedCount}개 닫힘)</button>
+                           </div>
+                       </div>`
+                    : ''
+            }
+            ${
+                // 갤러리를 만든 사람은 이 갤러리를 이슈식으로 쓸지 고를 수 있다 (사용자 요청).
+                // 요청판처럼 원래 이슈로 사는 갤러리는 끌 수 없다 — 그 갤러리의 뜻 자체가 그것이다.
+                canEditTags && !data.gallery.voteStyle
+                    ? `<div class="c-picker">
+                           <span class="c-picker-label">갤러리 성격</span>
+                           <div class="c-tags">
+                               <button type="button" class="c-tagchip" data-issue="${isIssue ? '0' : '1'}">
+                                   ${isIssue ? '이슈식 끄기' : '이슈식으로 쓰기'}
+                               </button>
+                               <span class="c-write-hint">글마다 번호와 상태가 생깁니다 (깃허브 이슈처럼) · 껐다 켜도 글은 안 다칩니다</span>
+                           </div>
+                       </div>`
+                    : ''
+            }
             <div class="c-bar">${sorts}${
                 data.signedIn && data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
             }</div>
@@ -1169,6 +1266,23 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-tag]').forEach((b) =>
             b.addEventListener('click', () => go({ tag: b.dataset.tag || null, page: null })),
         );
+        host.querySelectorAll<HTMLButtonElement>('[data-closed]').forEach((b) =>
+            b.addEventListener('click', () => go({ closed: b.dataset.closed === '1' ? '1' : null, page: null })),
+        );
+        host.querySelector<HTMLButtonElement>('[data-issue]')?.addEventListener('click', async (event) => {
+            const want = (event.currentTarget as HTMLButtonElement).dataset.issue === '1';
+            const ok = await api(`/kl/boards/${encodeURIComponent(data.board)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ issueStyle: want }),
+            });
+            if (!ok) {
+                Toolbox.showToast?.(toastFor('갤러리 성격을 못 바꿨어요'));
+                return;
+            }
+            boards = [];
+            go({ closed: null, page: null });
+        });
         host.querySelector('[data-tag-edit]')?.addEventListener('click', () => {
             tagEditOpen = true;
             void render();
@@ -1288,9 +1402,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     function renderDetail(data: DetailResponse): void {
         if (!host) return;
         const post = data.post;
-        const isRequest = post.board === 'request';
-        const canDelete = data.isAdmin || post.mine;
         const board = boards.find((b) => b.id === post.board);
+        const isRequest = board?.voteStyle === true || post.board === 'request';
+        const detailIsIssue = board?.issueStyle === true || isRequest;
+        const detailLabels = statusLabels({ voteStyle: isRequest });
+        const canDelete = data.isAdmin || post.mine;
+        // 상태는 주인과 **그 갤러리를 만든 사람**이 바꾼다. 남이 만든 이슈 갤러리를
+        // 아무도 못 닫으면 열린 글만 쌓이다 죽는다.
+        const canClose =
+            detailIsIssue && (data.isAdmin || (data.myHandle !== null && data.myHandle === board?.createdByHandle));
 
         const replies = post.replies.length
             ? orderReplies(post.replies)
@@ -1309,8 +1429,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.innerHTML = `<div class="c-wrap">
             <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? '목록')}</button></div>
             <article class="c-post">
-                <h2 class="c-post-title">${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
-                    ${isRequest && post.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[post.status]}</span>` : ''}
+                <h2 class="c-post-title">${detailIsIssue && post.seq ? `<span class="c-seq">#${post.seq}</span> ` : ''}${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
+                    ${detailIsIssue && post.status !== 'open' ? `<span class="c-tag" data-status="${esc(post.status)}">${detailLabels[post.status]}</span>` : ''}
                     ${post.pinned ? '<span class="c-tag">고정</span>' : ''}</h2>
                 <div class="c-post-meta">${face(post.authorHandle)}<span>@${esc(post.authorHandle)}</span>
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
@@ -1323,8 +1443,32 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     ${canDelete ? '<button type="button" class="c-act" data-delete>지우기</button>' : ''}
                     ${data.signedIn && !post.mine ? '<button type="button" class="c-act" data-report>신고</button>' : ''}
                     ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? '고정 풀기' : '고정'}</button>` : ''}
-                    ${data.isAdmin && isRequest ? '<button type="button" class="c-act" data-plan>만들 예정</button><button type="button" class="c-act" data-done>만들었음</button>' : ''}
                 </div>
+                ${
+                    // 닫힌 글은 「언제·누가·왜」가 같이 보여야 한다. 그게 없으면 그냥 사라진 글로 읽힌다.
+                    detailIsIssue && post.status !== 'open'
+                        ? `<div class="c-closed" data-status="${esc(post.status)}">
+                               <b>${detailLabels[post.status]}</b>
+                               ${post.statusNote ? `<span>${esc(post.statusNote)}</span>` : ''}
+                               ${post.statusAt ? `<span class="c-closed-when">${esc(relativeTime(post.statusAt))}${post.statusBy ? ` · @${esc(post.statusBy)}` : ''}</span>` : ''}
+                           </div>`
+                        : ''
+                }
+                ${
+                    canClose
+                        ? `<form class="c-statusbar" data-status-form>
+                               <select data-status-pick aria-label="상태">
+                                   ${(['open', 'planned', 'done', 'declined'] as Post['status'][])
+                                       .map((k) => `<option value="${k}"${post.status === k ? ' selected' : ''}>${detailLabels[k]}</option>`)
+                                       .join('')}
+                               </select>
+                               <input type="text" data-status-note maxlength="120"
+                                   placeholder="한 줄 남기기 (선택) — 예: 만들었어요, 도구 목록에 있습니다"
+                                   aria-label="상태 메모" value="${esc(post.statusNote ?? '')}">
+                               <button type="submit" class="c-act">바꾸기</button>
+                           </form>`
+                        : ''
+                }
             </article>
             <h3 class="c-section">답글 ${post.replyCount}</h3>
             <ul class="c-replies">${replies}</ul>
@@ -1387,17 +1531,19 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
             else reload();
         });
-        const setStatus = async (status: string): Promise<void> => {
+        host.querySelector<HTMLFormElement>('[data-status-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget as HTMLFormElement;
+            const status = form.querySelector<HTMLSelectElement>('[data-status-pick]')?.value ?? 'open';
+            const statusNote = form.querySelector<HTMLInputElement>('[data-status-note]')?.value ?? '';
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
+                body: JSON.stringify({ status, statusNote }),
             });
             if (!ok) Toolbox.showToast?.(toastFor('못 바꿨어요'));
             else reload();
-        };
-        host.querySelector('[data-plan]')?.addEventListener('click', () => void setStatus('planned'));
-        host.querySelector('[data-done]')?.addEventListener('click', () => void setStatus('done'));
+        });
 
         host.querySelector('[data-report]')?.addEventListener('click', async () => {
             // 신고해도 글은 안 사라진다. 그 사실을 먼저 말해 준다 — 안 그러면 「지우기」로 오해한다.
