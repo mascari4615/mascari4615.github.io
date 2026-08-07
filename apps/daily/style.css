@@ -671,3 +671,6 @@ table.past .play:hover { border-color: var(--accent); }
   white-space: nowrap;
 }
 .mine.win { color: var(--accent); }
+/* 풀다 만 판 표시 (TASK-KL-089) — 끝낸 판과 눈으로 갈리게 한다. */
+.done-mark.going { color: var(--accent); }
+.card.going-today { border-color: var(--accent); }

@@ -29,6 +29,16 @@ for (const card of document.querySelectorAll('.card[data-topic]')) {
     );
   } else {
     left += 1;
+    /* 풀다 만 판은 **끝낸 판만큼이나 중요한 정보**인데 여기서는 안 보였다 (TASK-KL-089).
+     * 두 번 두고 나갔다 돌아온 사람에게 이 화면은 처음 온 사람과 똑같이 생겼다 —
+     * 어디까지 갔는지도, 어느 판이었는지도 없다. 몇 번 뒀는지 적고 그 판을 먼저 권한다. */
+    if (saved && saved.day === dayKey && (saved.guesses?.length ?? 0) > 0) {
+      card.classList.add('going-today');
+      card.querySelector('.cnt').insertAdjacentHTML(
+        'afterbegin',
+        `<span class="done-mark going">풀던 중 ${saved.guesses.length}번째</span>`,
+      );
+    }
   }
 }
 
@@ -39,12 +49,20 @@ for (const card of document.querySelectorAll('.card[data-topic]')) {
  */
 const cards = document.querySelectorAll('.card[data-topic]');
 const jump = document.querySelector('.hub-jump');
-const firstUndone = [...cards].find((c) => !c.classList.contains('done-today'));
+// 풀던 판이 있으면 그것부터 — 새 판을 권하면 두던 것을 잊는다.
+const firstUndone =
+  [...cards].find((c) => c.classList.contains('going-today')) ||
+  [...cards].find((c) => !c.classList.contains('done-today'));
 
 if (jump && firstUndone) {
   const group = firstUndone.closest('.group')?.querySelector('.group-t')?.firstChild?.textContent?.trim() ?? '';
   const name = `${group} ${firstUndone.querySelector('h3').textContent.trim()}`.trim();
-  jump.innerHTML = `<a class="btn" href="${firstUndone.getAttribute('href')}">${left === cards.length ? '오늘 한 판 시작' : '남은 판 이어서'} · ${name}</a>`;
+  const label = firstUndone.classList.contains('going-today')
+    ? '풀던 판 이어서'
+    : left === cards.length
+      ? '오늘 한 판 시작'
+      : '남은 판 이어서';
+  jump.innerHTML = `<a class="btn" href="${firstUndone.getAttribute('href')}">${label} · ${name}</a>`;
 } else if (jump && cards.length) {
   /**
    * 오늘 다 푼 사람에게 「내일 또」만 남기면 그대로 나간다.
