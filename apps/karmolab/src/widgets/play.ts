@@ -8,6 +8,7 @@
  * (`apps/play/scripts/build.mjs` 가 이 앱의 data/ 로 실어 준다). 두 벌로 적으면 그날부터 갈라진다.
  */
 import { courseRun, courseSteps } from './play-course';
+import { loadPacks } from './pack-store';
 
 (function (): void {
   interface Game {
@@ -38,6 +39,9 @@ import { courseRun, courseSteps } from './play-course';
             <p class="pl-lead">하루 한 판씩. 하나 하다 다른 것으로 바로 건너가세요.</p>
             <section class="pl-course" id="plCourse"></section>
             <div class="pl-grid" id="plGrid"></div>
+            <!-- 표를 사람이 만들 수 있게 됐는데 **거기로 가는 문이 없었다** — 주소를 아는
+                 사람만 닿았다. 놀이 다음 자리가 그 문이다(놀이의 재료가 표이므로). -->
+            <section class="pl-mine" id="plMine"></section>
           `;
           const grid = container.querySelector<HTMLElement>('#plGrid')!;
           let games: Game[] = [];
@@ -49,6 +53,7 @@ import { courseRun, courseSteps } from './play-course';
             if (!games.length || !container.isConnected) return;
             paintCourse(games);
             paint(games);
+            paintMine();
           };
           /* 화면을 바꾸는 일은 주소가 아니라 **이 칸에 붙는 표시**로 일어난다(pushState 라
            * hashchange 가 안 온다 — 그걸로 걸었더니 안 돌았다). 그 표시가 켜지는 것을 본다.
@@ -145,6 +150,22 @@ import { courseRun, courseSteps } from './play-course';
           const esc = (s: string): string =>
             String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+          /** 내가 만든 표 — 있으면 늘어놓고, 없으면 만들러 가는 문 하나. */
+          function paintMine(): void {
+            const box = container.querySelector<HTMLElement>('#plMine')!;
+            const packs = loadPacks();
+            box.innerHTML =
+              `<div class="pl-mine-head"><strong>내가 만든 표</strong>` +
+              `<button type="button" class="btn btn-ghost" id="plNew">${packs.length ? '표 만들기·고치기' : '표 만들기'}</button></div>` +
+              (packs.length
+                ? `<div class="pl-chips">${packs
+                    .map((p) => `<span class="pl-chip">${esc(p.emoji)} ${esc(p.title)} <b>${p.items.length}</b></span>`)
+                    .join('')}</div>` +
+                  '<p class="pl-course-note">놀이에서 주제를 고를 때 이 표들이 함께 나옵니다.</p>'
+                : '<p class="pl-course-note">좋아하는 것으로 표를 만들면 놀이가 그 표로 돌아갑니다 — 스프레드시트에서 붙여넣기 한 판이면 됩니다.</p>');
+            box.querySelector('#plNew')!.addEventListener('click', () => Toolbox.switchPage('packs'));
+          }
+
           function paint(list: Game[]): void {
             grid.innerHTML = list
               .map((g) => {
@@ -175,6 +196,7 @@ import { courseRun, courseSteps } from './play-course';
             .then((j: { games: Game[] }) => {
               paintCourse(j.games);
               paint(j.games);
+              paintMine();
               games = j.games;
             })
             .catch(() => {
