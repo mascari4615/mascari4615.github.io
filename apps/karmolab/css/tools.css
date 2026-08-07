@@ -485,6 +485,36 @@ body.tool-hub-page .tool-crumb { margin-bottom: 10px; }
     body.tool-hub-page .tool-hub-toc { margin-inline: 0; padding-inline: 0; }
 }
 
+/* 카드마다 별 하나 (TASK-KL-129) — 훑다가 그 자리에서 「내 것」으로.
+   평소에는 흐리게 있다가 가까이 가면 또렷해진다. 켜 두면 늘 또렷하다.
+   카드가 링크라서 별은 그 위에 얹되, 누르는 자리는 손가락 크기로 둔다. */
+.tool-hub-card { position: relative; }
+.tool-hub-star {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-tertiary);
+    opacity: 0.35;
+    transition: opacity var(--transition), color var(--transition);
+}
+.tool-hub-card:hover .tool-hub-star { opacity: 0.8; }
+.tool-hub-star:hover { color: var(--accent); opacity: 1; }
+.tool-hub-star[aria-pressed='true'] { color: var(--accent); opacity: 1; }
+.tool-hub-star:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* 별이 앉을 자리를 비워 둔다 — 안 그러면 설명 끝이 별 밑으로 들어가 잘린 줄 모른다. */
+.tool-hub-card strong, .tool-hub-card span { padding-right: 28px; }
+
 /* 늘 쓰는 것 — 목록 맨 위 (TASK-KL-129). 이 브라우저가 아는 사람에게만 보인다.
    분류 묶음과 같은 생김새를 쓰되, 「내 것」이라는 표시로 왼쪽에 선 하나만 더 둔다. */
 .tool-hub-mine[hidden] { display: none; }
@@ -1207,3 +1237,6 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .pc-tag { padding: 1px 8px; color: var(--accent); border: 1px solid var(--border-strong); border-radius: 999px; }
 .pc-go { margin-left: auto; color: var(--accent); text-decoration: none; }
 .pc-go:hover { text-decoration: underline; }
+/* 좌우 화살표로도 고를 수 있다는 표시 — 조용히 옆에만 (TASK-KL-089). */
+.hi-keys { margin-left: 8px; color: var(--text-tertiary); font-size: var(--font-size-2xs); }
+@media (pointer: coarse) { .hi-keys { display: none; } }
