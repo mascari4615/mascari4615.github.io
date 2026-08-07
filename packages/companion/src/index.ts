@@ -94,6 +94,7 @@ export * from './settings';
 export * from './stated';
 export * from './memory/episodes';
 export * from './memory/known-stamps';
+export * from './garbled';
 export * from './room';
 export * from './voice/feeling-tone';
 export * from './watching';
