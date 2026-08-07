@@ -1085,6 +1085,18 @@ await page.screenshot({ path: join(shots, 'hub.png'), fullPage: true });
   check('다 푼 사람에겐 어제 판을 건넨다', /어제 판/.test(allDone), allDone);
   check('그 링크가 어제 날짜를 가리킨다', /\?d=\d{4}-\d{2}-\d{2}$/.test(await page.locator('.hub-jump a').getAttribute('href')));
   check('다 풀었다고 말해 준다', /다 풀었다/.test(await page.locator('.hub-note').innerText()));
+
+  /**
+   * 연속이 끊기면 **끊겼다고 말해야** 한다. 여태 불꽃만 조용히 사라졌다 —
+   * 매일 오던 사람이 하루 걸렀을 때, 본인은 기록이 사라진 줄도 왜인지도 모른다.
+   */
+  await page.evaluate(() => {
+    const day = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
+    localStorage.setItem('daily:streak', JSON.stringify({ days: 5, streak: 4, best: 5, lastDay: day - 4 }));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  const said = await page.locator('.hub-note').innerText();
+  check('★ 연속이 끊기면 끊겼다고 말한다', /끊겼어요/.test(said) && /최고 5일/.test(said), said);
 }
 
 await ctx.close();

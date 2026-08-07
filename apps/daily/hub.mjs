@@ -4,14 +4,14 @@
  * 처음 온 사람에겐 아무 표시도 안 뜬다. 돌아온 사람에게만 「남은 판」이 보인다 —
  * 다 푼 판을 다시 누르게 만드는 게 이 화면의 가장 흔한 낭비다.
  */
-import { kstDayKey, liveStreak, kstDayNumber } from './engine.mjs';
+import { kstDayKey, kstDayNumber, streakLine } from './engine.mjs';
 import { countPage } from './count.mjs';
 
 const dayKey = kstDayKey();
 const dayNumber = kstDayNumber();
 let left = 0;
-let best = 0;
-try { best = liveStreak(JSON.parse(localStorage.getItem('daily:streak')) ?? {}, dayNumber); } catch { /* 깨진 저장본 */ }
+let streakSaid = '';
+try { streakSaid = streakLine(JSON.parse(localStorage.getItem('daily:streak')) ?? {}, dayNumber); } catch { /* 깨진 저장본 */ }
 
 for (const card of document.querySelectorAll('.card[data-topic]')) {
   const { topic, mode } = card.dataset;
@@ -57,9 +57,10 @@ if (jump && firstUndone) {
 }
 
 const note = document.querySelector('.hub-note');
-if (note && (left < document.querySelectorAll('.card[data-topic]').length || best > 0)) {
+if (note && (left < document.querySelectorAll('.card[data-topic]').length || streakSaid)) {
   const parts = [];
-  if (best > 0) parts.push(`🔥 ${best}일 연속`);
+  // 끊겼으면 끊겼다고 말한다 — 불꽃만 조용히 사라지면 본인은 왜 없어졌는지 모른다.
+  if (streakSaid) parts.push(streakSaid);
   parts.push(left ? `오늘 남은 판 ${left}개` : '오늘 다 풀었다 — 내일 또');
   note.textContent = parts.join(' · ');
 }
