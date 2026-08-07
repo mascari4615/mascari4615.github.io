@@ -68,7 +68,7 @@
               </div>
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:var(--space-lg) 0;">
-              <button class="btn btn-primary" id="tdRun">비교</button>
+              <!-- 붙여넣고 또 눌러야 나오던 것을 없앴다 — 넣는 대로 비교한다 (TASK-KL-133). -->
               <button class="btn btn-ghost" id="tdSwap">A ↔ B</button>
               <button class="btn btn-ghost" id="tdClear">지우기</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
@@ -81,7 +81,7 @@
                 <input type="checkbox" id="tdOnlyChanged" style="width:auto;"> 바뀐 줄만 보기
               </label>
             </div>
-            <div class="tool-status" id="tdSummary">두 쪽에 텍스트를 넣고 비교를 누르세요.</div>
+            <div class="tool-status" id="tdSummary">두 쪽에 텍스트를 넣으면 바로 비교합니다.</div>
             <div id="tdOut" class="td-out"></div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -136,10 +136,19 @@
                   (truncated ? ` · ${MAX_LINES}줄까지만 비교했어요` : '');
           }
 
-          $<HTMLButtonElement>('#tdRun').onclick = () => {
-            run();
-            Toolbox.trackUse?.('compare');
-          };
+          /* 줄이 많을수록 비교가 무겁다. 글자를 칠 때마다 하지 않고, 손이 멎으면 한 번 한다. */
+          let timer: ReturnType<typeof setTimeout> | null = null;
+          let counted = false;
+          function runSoon(): void {
+            if (timer !== null) clearTimeout(timer);
+            timer = setTimeout(() => {
+              run();
+              // 「썼다」는 한 판에 한 번만 센다 — 글자마다 세면 숫자가 뻥튀기된다.
+              if (!counted && A.value && B.value) { counted = true; Toolbox.trackUse?.('compare'); }
+            }, 200);
+          }
+          A.addEventListener('input', runSoon);
+          B.addEventListener('input', runSoon);
           $<HTMLButtonElement>('#tdSwap').onclick = () => {
             const t = A.value;
             A.value = B.value;
@@ -150,8 +159,9 @@
             A.value = '';
             B.value = '';
             out.innerHTML = '';
-            summary.textContent = '두 쪽에 텍스트를 넣고 비교를 누르세요.';
+            summary.textContent = '두 쪽에 텍스트를 넣으면 바로 비교합니다.';
             summary.className = 'tool-status';
+            counted = false;
           };
           container.querySelectorAll('input[type="checkbox"]').forEach((el) =>
             el.addEventListener('change', () => {
