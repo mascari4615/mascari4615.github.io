@@ -125,6 +125,33 @@ async function common(page, id, label) {
   await page.waitForTimeout(700);
   const after = await page.evaluate(() => ({ 값공개: document.querySelectorAll('.vl')[1].textContent !== '?', 말: document.getElementById('msg').textContent.trim() }));
   say(after.값공개 && after.말.length > 0, 'higher: 눌러도 값이 안 열리거나 아무 말이 없다');
+
+  /* 이 놀이의 문법 자체 — 이긴 쪽이 자리에 남아야 방금 본 값과 계속 견줄 수 있다.
+   * 매판 둘 다 새로 뽑히면 판이 끊겨서 다른 놀이가 된다. */
+  if (/맞았|신기록/.test(after.말)) {
+    const winner = await page.evaluate(() => {
+      const v = [...document.querySelectorAll('.vl')].map((x) => parseFloat(String(x.textContent).replace(/[^0-9.-]/g, '')));
+      const n = [...document.querySelectorAll('.nm')].map((x) => x.textContent);
+      return v[0] > v[1] ? n[0] : n[1];
+    });
+    await page.waitForTimeout(1400);
+    const stay = await page.evaluate(() => ({
+      왼쪽: document.querySelector('#a .nm').textContent,
+      왼쪽값보임: document.querySelectorAll('.vl')[0].textContent !== '?',
+      오른값가림: document.querySelectorAll('.vl')[1].textContent === '?'
+    }));
+    say(stay.왼쪽 === winner, `higher: 이긴 쪽이 자리에 안 남는다 (${winner} → ${stay.왼쪽}) — 견주는 맛이 사라진다`);
+    say(stay.왼쪽값보임 && stay.오른값가림, 'higher: 남은 쪽 값이 가려졌거나 새 쪽 값이 미리 보인다');
+
+    /* 폰에서 연타하면 새 그림을 보기도 전에 두 번째 손가락이 답으로 먹혔다 — 판이 두 번 넘어간다. */
+    const before = await page.evaluate(() => Number(document.getElementById('streak').textContent));
+    await page.click('.side');
+    await page.click('.side').catch(() => {});
+    await page.waitForTimeout(500);
+    const now = await page.evaluate(() => Number(document.getElementById('streak').textContent));
+    say(now - before <= 1, `higher: 연타에 판이 ${now - before}번 넘어갔다 — 원치 않는 답이 들어간다`);
+  }
+
   await page.close();
 }
 
@@ -137,6 +164,13 @@ async function common(page, id, label) {
   const q = await page.evaluate(() => ({ 문제: document.getElementById('q').textContent.trim(), 도구: document.getElementById('tool').getAttribute('href') }));
   say(q.문제.length > 5 && !/불러오는|못 불러/.test(q.문제), `quest: 오늘 문제가 안 떴다 (${q.문제.slice(0, 20)})`);
   say(/^\/karmolab\/t\/[a-z0-9-]+\/$/.test(q.도구 || ''), `quest: 이 문제에 쓰는 도구 주소가 이상하다 (${q.도구})`);
+  const head = await page.evaluate(() => ({
+    회차: document.getElementById('day').textContent,
+    초점: document.activeElement.id
+  }));
+  say(/#\d+/.test(head.회차), `quest: 몇 번째 문제인지가 없다 (${head.회차}) — 남과 견줄 수가 없다`);
+  say(head.초점 === 'ans', `quest: 열자마자 답 칸에 커서가 없다 (${head.초점}) — 매일 한 번씩 더 눌러야 한다`);
+
   await page.fill('#ans', '틀린답');
   await page.click('button[type=submit]');
   await page.waitForTimeout(600);
@@ -159,6 +193,25 @@ async function common(page, id, label) {
     await page.waitForTimeout(600);
     const n = await page.evaluate(() => document.querySelectorAll('.browse-grid button').length);
     say(n > 100, `daily: 훑어보기에 ${n}개뿐이다`);
+    // 키보드로 들어가면 못 나오던 자리 — Esc 로 닫히고 초점이 돌아와야 한다.
+    await page.focus('.browse-grid button');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    const esc = await page.evaluate(() => ({
+      닫힘: document.querySelector('.browse').hidden,
+      초점: document.activeElement.className
+    }));
+    say(esc.닫힘 && /browse-open/.test(esc.초점), 'daily: 훑어보기를 Esc 로 못 빠져나온다 — 키보드로는 갇힌다');
+  }
+  // 한 번 두면 「지금까지 좁혀진 것」이 떠야 한다 — 줄마다 흩어진 정보를 매번 다시 읽지 않게.
+  await page.fill('.guessbar input', '이상해씨');
+  await page.waitForTimeout(300);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(700);
+  const narrow = await page.evaluate(() => document.querySelector('.narrow')?.textContent || '');
+  say(narrow.length > 10, 'daily: 한 번 두어도 지금까지 좁혀진 것이 안 뜬다');
+  {
+
   }
   await page.close();
 }
