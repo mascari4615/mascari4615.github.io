@@ -116,6 +116,7 @@ a { color: var(--accent); }
   font-size: 13.5px;
   margin-bottom: 12px;
 }
+.newday span { flex: 1 1 auto; }
 .newday button {
   margin-left: auto;
   background: var(--ink);
