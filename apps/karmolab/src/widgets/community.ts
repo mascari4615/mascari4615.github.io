@@ -321,6 +321,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-cnt[data-hot="1"] { color:var(--accent); font-weight:700; }
         .c-face { width:16px; height:16px; border-radius:50%; object-fit:cover; flex:0 0 auto; }
         .c-face-blank { width:16px; height:16px; border-radius:50%; background:var(--bg-tertiary); flex:0 0 auto; display:inline-block; }
+        /* 빈 갤러리 — 「없습니다」로 끝내면 닫힌 곳으로 읽힌다. 무엇을 쓰면 되는지 보여 준다. */
+        .c-invite { display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 4px; }
+        .c-invite-head { margin:0; font-size:var(--font-size-sm); color:var(--text-primary); }
+        .c-invite-sub { margin:8px 0 0; font-size:11px; color:var(--text-tertiary); }
+        .c-invite-list { margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap;
+            justify-content:center; gap:6px; }
+        .c-invite-list li { padding:4px 12px; border:1px dashed var(--border); border-radius:999px;
+            font-size:11px; color:var(--text-secondary); }
+        .c-invite .c-newbtn { margin-top:12px; }
         .c-empty-row { padding:32px 4px; color:var(--text-secondary); font-size:var(--font-size-sm); text-align:center; }
 
         /* 아래 줄 — 검색과 페이지. */
@@ -1030,6 +1039,33 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         });
     }
 
+    /**
+     * 빈 갤러리에 무엇을 띄울까 (TASK-KL-098).
+     *
+     * 「아직 글이 없습니다」로 끝내면 읽는 사람은 **닫힌 곳**이라고 이해하고 나간다.
+     * 빈 게시판의 진짜 문제는 글이 없는 것이 아니라 **무엇을 써야 할지 모르는 것**이다.
+     * 그래서 그 갤러리에서 실제로 쓸 만한 말을 예시로 보여 준다. 지어낸 글을 심지는 않는다 —
+     * 가짜 활동은 숫자를 지어내는 것과 같은 종류의 거짓말이다.
+     */
+    function emptyInvite(data: ListResponse, isRequest: boolean): string {
+        const examples = isRequest
+            ? ['이미지 여러 장을 한 번에 줄여 주는 도구', '영수증 사진에서 글자만 뽑기', '한글 파일을 PDF 로']
+            : data.board === 'qna'
+              ? ['이 도구에서 이게 안 되는데 원래 그런가요?', '로그인하면 뭐가 달라지나요?']
+              : data.board === 'show'
+                ? ['이 도구로 만든 것 자랑', '쓰다가 찾은 요령']
+                : ['요즘 쓰는 도구 이야기', '이 사이트에 있었으면 하는 것'];
+        const head = isRequest
+            ? '아직 올라온 요청이 없습니다. 첫 번째로 남겨 보세요.'
+            : '아직 이 갤러리에 글이 없습니다. 첫 글이 되어 주세요.';
+        return `<div class="c-invite">
+                    <p class="c-invite-head">${head}</p>
+                    <p class="c-invite-sub">이런 걸 쓰면 돼요</p>
+                    <ul class="c-invite-list">${examples.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
+                    ${data.signedIn && data.canWrite ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : ''}
+                </div>`;
+    }
+
     function renderList(data: ListResponse): void {
         if (!host) return;
         const isRequest = data.gallery.voteStyle;
@@ -1068,7 +1104,27 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         /* 이슈 갤러리는 **열린 것만** 먼저 보여준다. 닫힌 글까지 섞으면 목록은 금세
            「지난 일 더미」가 되고, 정작 남은 일이 안 보인다. 닫힌 것은 눌러서 편다. */
         const closedCount = isIssue ? filtered.filter((p) => isClosed(p.status)).length : 0;
-        const visible = isIssue && !showClosed ? filtered.filter((p) => !isClosed(p.status)) : filtered;
+        /* 「무엇을 보고 있나」는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
+           기본은 열린 것: 이슈 갤러리를 여는 사람이 보고 싶은 건 아직 남은 것이다. */
+        const stateParam = showClosed ? 'all' : (param('state') ?? 'open');
+        const inState = (post: Post): boolean =>
+            stateParam === 'all' ? true : stateParam === 'open' ? !isClosed(post.status) : post.status === stateParam;
+        const visible = isIssue ? filtered.filter(inState) : filtered;
+        const countOf = (key: string): number =>
+            key === 'all'
+                ? filtered.length
+                : key === 'open'
+                  ? filtered.filter((p) => !isClosed(p.status)).length
+                  : filtered.filter((p) => p.status === key).length;
+        const statusFilters = (['open', 'planned', 'done', 'declined', 'all'] as const)
+            .map((key) => ({
+                key,
+                label: key === 'all' ? '전부' : key === 'open' ? labels.open : labels[key as Post['status']],
+                count: countOf(key),
+                on: stateParam === key,
+            }))
+            // 한 건도 없는 상태는 고를 이유가 없다 (「안 함 0」이 늘 떠 있으면 줄만 길어진다).
+            .filter((f) => f.count > 0 || f.on);
 
         const PER_PAGE = 30;
         const pageCount = Math.max(1, Math.ceil(visible.length / PER_PAGE));
@@ -1131,9 +1187,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                       ? '찾는 글이 없습니다.'
                       : isIssue && !showClosed && closedCount > 0
                         ? '열린 것이 없습니다 — 전부 끝났어요.'
-                        : isRequest
-                          ? '아직 올라온 요청이 없습니다.'
-                          : '아직 이 판에 글이 없습니다. 첫 글을 남겨 주세요.'
+                        : emptyInvite(data, isRequest)
               }</td></tr>`;
 
         const pages: string[] = [];
@@ -1196,13 +1250,18 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     : ''
             }
             ${
-                // 이슈 갤러리의 「열림만 / 전부」. 닫힌 글이 하나도 없으면 고를 것이 없으므로 안 그린다.
+                // 상태별 개수 — 깃허브 이슈의 「Open 3 / Closed 12」 줄. 개수가 같이 보여야
+                // 「이 갤러리가 밀려 있나」를 한눈에 안다. 닫힌 글이 없으면 고를 것도 없다.
                 isIssue && closedCount > 0
                     ? `<div class="c-picker">
-                           <span class="c-picker-label">보기</span>
+                           <span class="c-picker-label">상태</span>
                            <div class="c-tags">
-                               <button type="button" class="c-tagchip" data-closed="0" data-on="${showClosed ? '0' : '1'}">열린 것만</button>
-                               <button type="button" class="c-tagchip" data-closed="1" data-on="${showClosed ? '1' : '0'}">전부 (${closedCount}개 닫힘)</button>
+                               ${statusFilters
+                                   .map(
+                                       (f) =>
+                                           `<button type="button" class="c-tagchip" data-state="${esc(f.key)}" data-on="${f.on ? '1' : '0'}">${esc(f.label)} ${f.count}</button>`,
+                                   )
+                                   .join('')}
                            </div>
                        </div>`
                     : ''
@@ -1266,8 +1325,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-tag]').forEach((b) =>
             b.addEventListener('click', () => go({ tag: b.dataset.tag || null, page: null })),
         );
-        host.querySelectorAll<HTMLButtonElement>('[data-closed]').forEach((b) =>
-            b.addEventListener('click', () => go({ closed: b.dataset.closed === '1' ? '1' : null, page: null })),
+        host.querySelectorAll<HTMLButtonElement>('[data-state]').forEach((b) =>
+            b.addEventListener('click', () =>
+                go({ state: b.dataset.state === 'open' ? null : (b.dataset.state ?? null), closed: null, page: null }),
+            ),
         );
         host.querySelector<HTMLButtonElement>('[data-issue]')?.addEventListener('click', async (event) => {
             const want = (event.currentTarget as HTMLButtonElement).dataset.issue === '1';
@@ -1319,10 +1380,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             const value = (event.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[data-q]')?.value.trim() ?? '';
             go({ q: value || null, page: null });
         });
-        host.querySelector('[data-new]')?.addEventListener('click', () => {
-            writerOpen = true;
-            void render();
-        });
+        host.querySelectorAll('[data-new]').forEach((button) =>
+            button.addEventListener('click', () => {
+                writerOpen = true;
+                void render();
+            }),
+        );
         host.querySelector('[data-cancel]')?.addEventListener('click', () => {
             writerOpen = false;
             void render();
