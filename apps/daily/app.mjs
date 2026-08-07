@@ -251,6 +251,8 @@ function watchMidnight() {
   if (practice) return;
   const startedOn = dayNumber;
   const timer = setInterval(() => {
+    // 화면이 안 보이면 볼 사람도 없다 — 폰에서 이런 타이머가 배터리를 갉는다.
+    if (document.hidden) return;
     if (kstDayNumber() === startedOn) return;
     clearInterval(timer);
     if (root.querySelector('.newday')) return;
@@ -388,7 +390,14 @@ function finish() {
 
   const next = el(`<div class="next">다음 문제까지 ${untilNextKst()}</div>`);
   $done.append(next);
-  setInterval(() => { next.textContent = `다음 문제까지 ${untilNextKst()}`; }, 1000);
+  // 안 보이는 동안은 세지 않는다. 다시 보이면 그때 값으로 이어 붙는다(계산이 시계 기준이라).
+  setInterval(() => {
+    if (document.hidden) return;
+    next.textContent = `다음 문제까지 ${untilNextKst()}`;
+  }, 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) next.textContent = `다음 문제까지 ${untilNextKst()}`;
+  });
 
   $done.hidden = false;
   $input.closest('.guessbar').hidden = true;
