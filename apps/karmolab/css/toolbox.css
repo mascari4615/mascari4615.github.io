@@ -923,7 +923,16 @@ html[data-intro="off"] .intro-overlay {
    누를 수 없게 두고 글보다 뒤에 깐다 — 장식이 버튼을 가로채면 그건 고장이다.
    도형·자리·크기·움직임은 toolbox.ts 가 열 때마다 새로 뽑는다. */
 .home-decor { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.home-decor-item { position: absolute; will-change: transform; }
+/* 바깥 = 시차(손가락·커서), 안쪽 = 떠다니기. 둘 다 transform 이라 한 요소에 겹치면
+   서로 덮어쓴다 — 나눠 놓는 것이 핵심이다 (TASK-KL-101). */
+.home-decor-item {
+    position: absolute;
+    will-change: transform;
+    transform: translate3d(calc(var(--px, 0px) * var(--depth, 0)), calc(var(--py, 0px) * var(--depth, 0)), 0);
+    /* 손가락을 따라 딱 붙으면 기계 같다. 아주 짧게 뒤따라오면 무게가 생긴다. */
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.home-decor-float { will-change: transform; }
 .landing-hero, .landing-cta { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) { .home-decor-item { animation: none !important; } }
 @media (max-width: 768px) {
