@@ -318,10 +318,14 @@
    도구 상세 페이지 SEO 블록 (/karmolab/t/<id>/)
    크롤러가 첫 HTML 에서 읽고, 사용자에게도 그대로 보인다 (숨김 X).
    ═══════════════════════════════════════ */
+/* 검색으로 들어온 사람이 도구를 쓴 **다음에** 읽는 자리다. 그런데 도구와 이 글 사이에
+   경계가 없어, 화면 아래쪽이 회색 글씨로 흐지부지 이어졌다. 여기서부터는 「읽는 자리」임을
+   눈에 보이게 갈라 준다 (TASK-KL-133). */
 .tool-seo {
     max-width: 720px;
-    margin: 0 auto;
-    padding: 8px 20px 72px;
+    margin: 40px auto 0;
+    padding: 28px 20px 72px;
+    border-top: 1px solid var(--border);
     color: var(--text-secondary);
     line-height: 1.8;
     font-size: var(--font-size-sm);
@@ -333,14 +337,14 @@
     font-weight: 600;
     letter-spacing: -0.01em;
 }
+/* 소제목이 본문보다 **작고 흐린** 회색이라 어디가 새 단락인지 안 보였다.
+   글씨는 본문만큼 키우고 색은 또렷하게, 대신 단락 사이 숨은 그대로 둔다. */
 .tool-seo h2 {
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    margin: 40px 0 14px;
-    font-weight: 600;
-    font-family: var(--font-mono);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    margin: 36px 0 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 .tool-seo p { margin: 0 0 12px; }
 .tool-seo ol, .tool-seo ul { margin: 0; padding-left: 20px; }
@@ -396,7 +400,8 @@ body.tool-detail .tool-head p {
 }
 .tool-seo-related a:hover { background: var(--bg-tertiary); color: var(--accent); }
 .tool-seo-related a span { display: block; color: var(--text-tertiary); margin-top: 4px; line-height: 1.55; }
-.tool-seo-faq dt { color: var(--text-primary); margin-top: 20px; font-weight: 600; }
+/* 묻는 말과 답이 같은 무게라 어디까지가 질문인지 눈으로 안 갈렸다. */
+.tool-seo-faq dt { color: var(--text-primary); margin-top: 22px; font-weight: 700; }
 .tool-seo-faq dt:first-child { margin-top: 0; }
 .tool-seo-faq dd { margin: 6px 0 0; padding-left: 0; }
 .tool-seo-crumb {
