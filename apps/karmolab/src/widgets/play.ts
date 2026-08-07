@@ -34,9 +34,38 @@
           Mdd.linePreset?.('tool_run', { msg: '하루 한 판씩이에요. 오늘 건 하셨어요?' });
           container.innerHTML = `
             <p class="pl-lead">하루 한 판씩. 하나 하다 다른 것으로 바로 건너가세요.</p>
+            <section class="pl-course" id="plCourse"></section>
             <div class="pl-grid" id="plGrid"></div>
           `;
           const grid = container.querySelector<HTMLElement>('#plGrid')!;
+          let games: Game[] = [];
+
+          /* 놀이를 하고 이 화면으로 **돌아오면** 앱은 그려 둔 화면을 그대로 다시 보여 준다 —
+           * 방금 한 판이 코스에 안 비쳤다(실측). 돌아온 그 순간에 다시 센다.
+           * 다는 일은 여기서(그리는 중에) 해야 뒷정리를 맡길 수 있다 — 나중에 걸면 주인을 모른다. */
+          const again = (): void => {
+            if (!games.length || !container.isConnected) return;
+            paintCourse(games);
+            paint(games);
+          };
+          /* 화면을 바꾸는 일은 주소가 아니라 **이 칸에 붙는 표시**로 일어난다(pushState 라
+           * hashchange 가 안 온다 — 그걸로 걸었더니 안 돌았다). 그 표시가 켜지는 것을 본다.
+           *
+           * 붙일 칸은 **그리는 도중에는 아직 없을 수 있다** — 화면에 얹기 전에 그리는 길이 있어서,
+           * 그때 찾으면 못 찾고 조용히 안 걸린다(처음 연 화면이 그랬다). 한 박자 뒤에 찾는다. */
+          const eye = new MutationObserver((recs) => {
+            for (const r of recs) {
+              if ((r.target as HTMLElement).classList.contains('active')) {
+                again();
+                return;
+              }
+            }
+          });
+          setTimeout(() => {
+            const page = container.closest('.tool-page') || container.parentElement;
+            if (page) eye.observe(page, { attributes: true, attributeFilter: ['class'] });
+          }, 0);
+          Toolbox.onDispose?.(() => eye.disconnect());
 
           /** 이 브라우저에 남은 것만 읽는다 — 여기서 새로 저장하는 것은 없다. */
           const read = (k: string): any => {
@@ -85,6 +114,91 @@
             return '';
           }
 
+          /* ── 오늘의 코스 (TASK-KL-089) ─────────────────────────────
+           * 놀이가 셋인데 서로 남남이었다 — 하나 하고 나가면 나머지 둘은 있는 줄도 몰랐다.
+           * 셋을 하루 한 줄로 묶는다: 셋 다 끝내면 그날 도장이 찍히고, 도장이 이어지면 연속이 된다.
+           *
+           * 새 판정 기준을 만들지 않는다 — 각 놀이가 이미 이 브라우저에 남긴 것만 읽는다.
+           * 도장(karmolab_course)만 여기서 쓴다. 못 읽거나 못 쓰면 코스만 조용히 빠진다. */
+          const COURSE_KEY = 'karmolab_course';
+          const kstDate = (d: Date): string =>
+            `${d.getUTCFullYear()}. ${d.getUTCMonth() + 1}. ${d.getUTCDate()}.`;
+
+          function doneToday(id: string): boolean {
+            try {
+              if (id === 'daily') {
+                return Object.keys(localStorage).some((k) => {
+                  if (!/^daily:[^:]+:[^:]+$/.test(k)) return false;
+                  const v = read(k);
+                  return !!v && (v.status === 'won' || v.status === 'lost');
+                });
+              }
+              if (id === 'quest') return !!(read('karmolab_quest') || {})[dayLabel()];
+              if (id === 'higher') {
+                const h = read('karmolab_higher_day');
+                return !!h && h.day === dayLabel() && (h.rounds || 0) > 0;
+              }
+            } catch {
+              /* 사생활 모드 */
+            }
+            return false;
+          }
+
+          /** 도장 찍기 + 연속 세기. 어제까지 이어졌으면 +1, 끊겼으면 오늘부터 1. */
+          function stamp(): { days: string[]; run: number } {
+            let box: { days?: string[] } = {};
+            try {
+              box = JSON.parse(localStorage.getItem(COURSE_KEY) || '{}');
+            } catch {
+              box = {};
+            }
+            const days: string[] = Array.isArray(box.days) ? box.days : [];
+            const today = dayLabel();
+            if (days[days.length - 1] !== today) {
+              days.push(today);
+              if (days.length > 400) days.splice(0, days.length - 400);
+              try {
+                localStorage.setItem(COURSE_KEY, JSON.stringify({ days }));
+              } catch {
+                /* 못 남겨도 오늘 화면은 맞다 */
+              }
+            }
+            // 뒤에서부터 하루씩 거슬러 세는 것이 곧 연속이다.
+            let run = 0;
+            const cur = new Date(Date.now() + 9 * 3600e3);
+            for (;;) {
+              if (days.indexOf(kstDate(cur)) < 0) break;
+              run++;
+              cur.setUTCDate(cur.getUTCDate() - 1);
+            }
+            return { days, run };
+          }
+
+          function paintCourse(list: Game[]): void {
+            const box = container.querySelector<HTMLElement>('#plCourse')!;
+            const state = list.map((g) => ({ g, ok: doneToday(g.id) }));
+            const left = state.filter((s) => !s.ok).length;
+            const all = left === 0;
+            const run = all ? stamp().run : 0;
+
+            const marks = state
+              .map(
+                (s) =>
+                  `<span class="pl-step${s.ok ? ' is-done' : ''}">${s.ok ? '●' : '○'} ${esc(s.g.title)}</span>`,
+              )
+              .join('');
+            box.innerHTML =
+              `<div class="pl-course-head">` +
+              `<strong>오늘의 코스</strong>` +
+              (all
+                ? `<span class="pl-stamp">완주 · ${run}일 연속</span>`
+                : `<span class="pl-course-left">${left}개 남음</span>`) +
+              `</div><div class="pl-steps">${marks}</div>` +
+              `<p class="pl-course-note">${
+                all ? '셋 다 끝냈습니다. 내일 또 새 문제가 나옵니다.' : '셋 다 끝내면 오늘 도장이 찍힙니다.'
+              }</p>`;
+          }
+
           const esc = (s: string): string =>
             String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -115,7 +229,11 @@
 
           fetch('/apps/karmolab/data/games.json')
             .then((r) => r.json())
-            .then((j: { games: Game[] }) => paint(j.games))
+            .then((j: { games: Game[] }) => {
+              paintCourse(j.games);
+              paint(j.games);
+              games = j.games;
+            })
             .catch(() => {
               grid.innerHTML = '<p class="tool-status">놀이 목록을 못 불러왔습니다.</p>';
             });
