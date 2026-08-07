@@ -454,7 +454,7 @@ for (const withShare of [true, false]) {
   check('표를 받는 동안 기다리라고 말한다', waiting.off && /불러오는 중/.test(waiting.ph), waiting.ph);
   await page.waitForFunction(() => !document.querySelector('.guessbar input').disabled, { timeout: 15000 });
   const ready = await page.$eval('.guessbar input', (e) => e.placeholder);
-  check('다 받으면 원래대로 돌아온다', /입력/.test(ready), ready);
+  check('다 받으면 원래대로 돌아온다', /이름/.test(ready) && !/불러오는 중/.test(ready), ready);
   await ctx.close();
 }
 
@@ -615,6 +615,12 @@ for (const withShare of [true, false]) {
   await page.fill('.guessbar input', '없는이름zzz');
   await page.waitForSelector('.sug-none', { timeout: 5000 });
   check('없는 이름을 치면 없다고 말한다', /없어요/.test(await page.locator('.sug-none').innerText()));
+
+  // 고를 것이 백 개 넘는 판에서 이름을 끝까지 치게 하면 그게 문턱이다 — 첫 자음만 쳐도 찾아져야 한다.
+  await page.fill('.guessbar input', 'ㅇㄹ');
+  await page.waitForSelector('.sug button', { timeout: 5000 });
+  const cho = await page.$$eval('.sug button', (els) => els.map((e) => e.textContent.trim()));
+  check('첫 자음만 쳐도 후보가 뜬다', cho.includes('아리'), cho.slice(0, 4).join(', '));
 
   const first = topic.items[0].name;
   await page.fill('.guessbar input', first);
