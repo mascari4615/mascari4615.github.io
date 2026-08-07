@@ -195,6 +195,8 @@ a { color: var(--accent); }
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
 .sug:empty { display: none; }
+/* 없는 이름·이미 낸 이름일 때 — 침묵하면 사람은 고장으로 읽는다. */
+.sug-none { margin: 0; padding: 12px 14px; color: var(--ink-2); font-size: 13.5px; }
 .sug button {
   display: flex;
   align-items: center;
