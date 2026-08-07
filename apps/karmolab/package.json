@@ -47,7 +47,7 @@
     "audit:cards": "node scripts/audit-share-cards.mjs",
     "audit:cards:fresh": "node scripts/gen-og-images.mjs --check",
     "audit:seo": "node scripts/audit-seo-head.mjs",
-    "audit:all": "npm run audit:scripts && npm run audit:data && npm run test:live && npm run test:hub && npm run test:nojs && npm run test:pwa && npm run test:answers && npm run audit:labels && npm run test:contrast && npm run audit:cards:fresh && npm run audit:seo && npm run audit:heights",
+    "audit:all": "node scripts/audit-all.mjs",
     "test:hub": "node scripts/smoke-hub.mjs",
     "test:nojs": "node scripts/smoke-nojs.mjs",
     "gen:icons": "node scripts/gen-app-icons.mjs",
@@ -72,7 +72,11 @@
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
     "test:ics": "node scripts/test-icsmake.mjs",
-    "test:barcode": "node scripts/test-barcode.mjs"
+    "test:barcode": "node scripts/test-barcode.mjs",
+    "test:typing": "node scripts/smoke-typing.mjs",
+    "audit:blocking-css": "node scripts/audit-blocking-css.mjs",
+    "audit:sponsor": "node scripts/audit-sponsor-slot.mjs",
+    "audit:live": "node scripts/audit-live-essentials.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
