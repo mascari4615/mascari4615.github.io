@@ -23,7 +23,7 @@ const seen = new Set();
 /** 그 주소를 실제로 내주는 파일이 있는가 — 앱마다 어디에 사는지는 여기 한 번만 적는다. */
 const WHERE = {
   '/daily/': path.join(apps, 'daily/dist/index.html'),
-  '/karmolab/t/higher/': path.join(apps, 'blog/karmolab/t/higher/index.html'),
+  '/karmolab/higher/': path.join(apps, 'higher/index.html'),
   '/karmolab/quest/': path.join(apps, 'quest/index.html')
 };
 

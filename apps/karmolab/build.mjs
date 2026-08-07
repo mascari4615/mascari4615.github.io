@@ -53,28 +53,6 @@ await esbuild.build({
   logLevel: 'info'
 });
 
-// 계정 (TASK-KL-098) — 기록이 브라우저 밖에 남는 자리. 서버가 없어도 조용히 넘어간다.
-await esbuild.build({
-  entryPoints: [join(root, 'src/account.ts')],
-  outfile: join(root, 'js/account.js'),
-  bundle: true,
-  format: 'iife',
-  platform: 'browser',
-  target: ['es2020'],
-  logLevel: 'info'
-});
-
-// 공개 프로필 페이지 (TASK-KL-098) — `/karmolab/u/?h=<핸들>`.
-await esbuild.build({
-  entryPoints: [join(root, 'src/profile.ts')],
-  outfile: join(root, 'js/profile.js'),
-  bundle: true,
-  format: 'iife',
-  platform: 'browser',
-  target: ['es2020'],
-  logLevel: 'info'
-});
-
 // Service Worker + 갱신 안내 (TASK-KL-088).
 // 캐시 이름에 빌드 스탬프를 박아야 새 배포가 옛 캐시를 버린다 → sw 는 소스가 아니라 빌드 산출물.
 const buildStamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
@@ -191,7 +169,6 @@ const entryPoints = [
   'src/widgets/tools/jsonfmt.ts',
   'src/widgets/tools/hangulkey.ts',
   'src/widgets/tools/qrgen.ts',
-  'src/widgets/tools/higher.ts',
   'src/widgets/tools/lotto.ts',
   'src/widgets/tools/timer.ts',
   'src/widgets/tools/datecalc.ts',

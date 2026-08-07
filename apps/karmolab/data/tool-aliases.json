@@ -125,7 +125,6 @@
     "audiofade": "audio fade in out 페이드 소리 서서히",
     "subtitle": "subtitle srt vtt 자막 싱크",
     "icsmake": "ics calendar event 일정 캘린더 초대",
-    "barcode": "barcode ean code128 바코드",
-    "higher": "higher lower 하이로우 더 큰 쪽 연승"
+    "barcode": "barcode ean code128 바코드"
   }
 }

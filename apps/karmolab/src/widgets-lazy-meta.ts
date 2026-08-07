@@ -823,16 +823,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/lotto', 'tools/ladder', 'tools/pick', 'tools/draw']
   },
   {
-    id: 'higher',
-    title: '높은 쪽 고르기',
-    category: 'tool',
-    desc: '둘 중 어느 쪽이 더 큰지만 고르는 연승 놀이. 포켓몬·롤·원신 표로 겨룹니다',
-    layout: 'wide',
-    icon:
-      '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['tools/higher']
-  },
-  {
     id: 'lotto',
     hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
