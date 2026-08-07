@@ -21,22 +21,6 @@ export {};
 
 declare global {
   interface Window {
-    /** 명령 팔레트 (TASK-KL-099) — 첫 화면에 박히고, 다른 화면에서는 ⌘K 로 떠오른다. */
-    KarmoPalette?: {
-      /** 첫 화면 안에 입력+목록을 박는다 */
-      mountInline: (container: HTMLElement) => void;
-      /** 첫 화면이 보이게 된 뒤 입력에 포커스 (손가락 화면에서는 건너뛴다) */
-      focusInline: () => void;
-      open: () => void;
-      close: () => void;
-      toggle: () => void;
-      isOpen: () => boolean;
-      /** 도구를 열 때마다 — 「최근」 목록이 여기서 쌓인다 */
-      noteOpen: (id: string) => void;
-      /** 지연 로드로 도구가 늘어난 뒤 인덱스를 다시 만든다 */
-      refresh: () => void;
-      getRecent: () => string[];
-    };
     KarmoLabImageConvert?: KarmoLabImageConvertAPI;
     KarmoLabImageBatch?: KarmoLabImageBatchAPI;
     KarmoWorld?: KarmoWorldNamespace;
@@ -246,6 +230,13 @@ declare global {
     findBundleFor: (id: string) => string | null;
     /** 갈래 목록 (id·label·icon) — 라벨의 단일 출처 */
     getCategories?: () => Array<{ id: string; label: string; icon: string }>;
+    /**
+     * 위젯이 건 타이머·전역 리스너를 거두는 뒷정리 (TASK-KL-100).
+     * `build(container)` **안에서** 부른다 — 그때만 누구 것인지 알 수 있다.
+     * 도구를 다시 그리거나 같은 id 로 다시 등록하면(핫 교체) 그 직전에 불린다.
+     * DOM 리스너는 노드가 갈리며 같이 죽으므로 적을 필요 없다. 타이머가 진짜 대상이다.
+     */
+    onDispose?: (fn: () => void) => void;
     showToast?: (msg: string, type?: string, detail?: unknown) => void;
     getProgress?: (key: string) => number;
     setProgress?: (key: string, value: number) => void;
