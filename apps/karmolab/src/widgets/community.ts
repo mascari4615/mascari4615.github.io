@@ -88,13 +88,18 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     };
 
     Mdd.injectCSS('community', `
-        /* 커뮤니티는 **글을 읽는 곳**이다. 넓은 화면(wide)은 판이 없어서 첫 화면의 관측실 무늬가
-           글 뒤로 그대로 비쳤다 — 예쁘긴 해도 글이 안 읽힌다. 그래서 제 바탕을 깐다.
-           안쪽 카드(글·작성기)는 한 겹 더 밝은 색이라 층이 구분된다. */
+        /* 커뮤니티는 **글을 읽는 곳**이다. 넓은 화면에는 판이 없어 관측실 무늬가 글 뒤로 그대로
+           비쳤다 — 예쁘지만 안 읽힌다. 그렇다고 불투명한 상자를 얹으면 이 사이트 같지가 않다.
+           그래서 유리처럼 깐다: 무늬는 흐릿하게 남고 글은 또렷하다. */
         .c-wrap { display:flex; flex-direction:column; position:relative;
-            max-width:860px; margin:0 auto; padding:22px 24px 30px;
-            background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-lg); }
-        @media (max-width: 620px) { .c-wrap { padding:16px 14px 22px; border-radius:0; border-left:0; border-right:0; } }
+            max-width:940px; margin:0 auto; padding:20px 22px 26px;
+            background:color-mix(in srgb, var(--bg-primary) 82%, transparent);
+            backdrop-filter:blur(10px) saturate(1.1); -webkit-backdrop-filter:blur(10px) saturate(1.1);
+            border:1px solid var(--border); border-radius:var(--radius-lg); }
+        /* 유리를 못 그리는 브라우저에서는 그냥 불투명하게 — 안 읽히는 것보다 낫다. */
+        @supports not (backdrop-filter: blur(1px)) { .c-wrap { background:var(--bg-primary); } }
+        @media (max-width: 620px) { .c-wrap { padding:14px 12px 20px; border-radius:0; border-left:0; border-right:0; } }
+
         .c-head { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
         .c-head h2 { margin:0; font-size:22px; color:var(--text-primary); }
         .c-head span { font-size:var(--font-size-xs); color:var(--text-secondary); }
@@ -161,31 +166,57 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             background:var(--bg-secondary); margin-bottom:18px; }
         .c-signin p { margin:0; color:var(--text-secondary); font-size:var(--font-size-sm); }
 
-        /* 목록 — 한 줄에 판단 재료가 다 있어야 한다. */
-        .c-list { list-style:none; margin:0; padding:0; border-top:1px solid var(--border); }
-        .c-row { display:flex; align-items:center; gap:12px; padding:12px 4px; border-bottom:1px solid var(--border); }
-        .c-row[data-pinned="1"] { background:var(--accent-dim); }
-        .c-votes { flex:0 0 auto; min-width:42px; text-align:center; padding:5px 0; border-radius:var(--radius);
-            border:1px solid var(--border); font-size:var(--font-size-xs); color:var(--text-secondary); }
-        .c-votes[data-on="1"] { border-color:var(--accent); color:var(--accent); }
-        .c-row-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;
-            background:none; border:0; padding:0; text-align:left; cursor:pointer; font:inherit; }
-        .c-row-title { font-size:var(--font-size-sm); font-weight:600; color:var(--text-primary);
-            display:flex; align-items:center; gap:6px; min-width:0; }
-        .c-row-title span.t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .c-row-main:hover .c-row-title { color:var(--accent); }
-        .c-replies-badge { flex:0 0 auto; font-size:11px; color:var(--accent); font-weight:700; }
-        .c-row-sub { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-tertiary); }
-        .c-face { width:18px; height:18px; border-radius:50%; object-fit:cover; flex:0 0 auto; }
-        .c-face-blank { width:18px; height:18px; border-radius:50%; background:var(--bg-tertiary); flex:0 0 auto; }
-        .c-dot::before { content:'·'; margin-right:8px; }
-        .c-empty-row { padding:32px 4px; color:var(--text-secondary); font-size:var(--font-size-sm); }
+        /* 목록 — 국내 게시판(디시·아카) 골격: 번호·제목·글쓴이·날짜·조회·추천이 한 줄에 선다.
+           조밀해야 한 화면에 많이 들어오고, 그래야 「사람이 오가는 곳」으로 읽힌다. */
+        .c-table { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
+        .c-table thead th { padding:7px 6px; border-top:2px solid var(--text-tertiary);
+            border-bottom:1px solid var(--border); color:var(--text-tertiary); font-weight:600;
+            font-size:11px; text-align:center; white-space:nowrap; }
+        .c-table thead th.c-th-title { text-align:left; padding-left:10px; }
+        .c-table tbody td { padding:6px; border-bottom:1px solid var(--border);
+            color:var(--text-secondary); text-align:center; white-space:nowrap; }
+        .c-table tbody tr:hover td { background:var(--bg-secondary); }
+        .c-table tr[data-pinned="1"] td { background:var(--accent-dim); }
+        .c-num { width:52px; font-family:monospace; font-size:11px; color:var(--text-tertiary); }
+        .c-td-title { text-align:left !important; width:auto; padding-left:10px !important; max-width:0; }
+        .c-title-btn { background:none; border:0; padding:0; font:inherit; cursor:pointer;
+            color:var(--text-primary); display:flex; align-items:center; gap:6px; width:100%; min-width:0; }
+        .c-title-btn:hover .t { color:var(--accent); text-decoration:underline; }
+        .c-title-btn .t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .c-cmt { flex:0 0 auto; color:var(--accent); font-weight:700; font-size:11px; }
+        .c-who { width:130px; }
+        .c-who span { display:inline-flex; align-items:center; gap:5px; max-width:100%; }
+        .c-who b { font-weight:400; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .c-when { width:66px; font-size:11px; color:var(--text-tertiary); }
+        .c-cnt { width:52px; font-family:monospace; font-size:11px; }
+        .c-cnt[data-hot="1"] { color:var(--accent); font-weight:700; }
+        .c-face { width:16px; height:16px; border-radius:50%; object-fit:cover; flex:0 0 auto; }
+        .c-face-blank { width:16px; height:16px; border-radius:50%; background:var(--bg-tertiary); flex:0 0 auto; display:inline-block; }
+        .c-empty-row { padding:32px 4px; color:var(--text-secondary); font-size:var(--font-size-sm); text-align:center; }
+
+        /* 아래 줄 — 검색과 페이지. */
+        .c-foot { display:flex; align-items:center; justify-content:space-between; gap:10px;
+            margin-top:14px; flex-wrap:wrap; }
+        .c-pages { display:flex; gap:2px; }
+        .c-page { min-width:26px; padding:4px 7px; border:1px solid var(--border); border-radius:var(--radius);
+            background:transparent; color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer; }
+        .c-page[data-on="1"] { border-color:var(--accent); color:var(--accent); font-weight:700; }
+        .c-page[disabled] { opacity:.4; cursor:default; }
+        .c-search { display:flex; gap:6px; }
+        .c-search input { padding:5px 10px; border-radius:var(--radius); border:1px solid var(--border);
+            background:var(--bg-secondary); color:var(--text-primary); font:inherit; font-size:11px; width:150px; }
+
+        @media (max-width: 620px) {
+            .c-num, .c-when, .c-cnt { display:none; }
+            .c-who { width:96px; }
+        }
 
         /* 글 하나 */
         .c-crumb { margin-bottom:12px; }
         .c-post { border:1px solid var(--border); border-radius:var(--radius-lg);
             background:var(--bg-secondary); padding:20px; }
         .c-post-title { margin:0; font-size:21px; line-height:1.4; color:var(--text-primary); }
+        .c-dot::before { content:'·'; margin-right:8px; }
         .c-post-meta { display:flex; align-items:center; gap:8px; margin-top:10px;
             font-size:11px; color:var(--text-tertiary); flex-wrap:wrap; }
         .c-post-body { margin-top:16px; white-space:pre-wrap; word-break:break-word; color:var(--text-primary); }
@@ -468,30 +499,79 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         else if (!data.canWrite) writer = '<p class="c-empty-row">이 판은 주인만 씁니다.</p>';
         else if (writerOpen) writer = composerHtml(data, isRequest);
 
-        const rows = data.posts.length
-            ? data.posts
-                  .map((p) => {
-                      const heading = isRequest ? preview(p.text) : (p.title ?? '(제목 없음)');
-                      return `<li class="c-row" data-pinned="${p.pinned ? '1' : '0'}">
-                          ${isRequest ? `<span class="c-votes" data-on="${p.votedByMe ? '1' : '0'}" title="표">${p.votes}</span>` : ''}
-                          <button type="button" class="c-row-main" data-post="${esc(p.id)}">
-                              <span class="c-row-title">
-                                  ${p.pinned ? '<span class="c-tag">고정</span>' : ''}
-                                  <span class="t">${esc(heading)}</span>
-                                  ${p.replyCount ? `<span class="c-replies-badge">[${p.replyCount}]</span>` : ''}
+        // 검색·페이지는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
+        const query = (param('q') ?? '').trim().toLowerCase();
+        const filtered = query
+            ? data.posts.filter((p) =>
+                  `${p.title ?? ''} ${p.text} ${p.authorHandle}`.toLowerCase().includes(query),
+              )
+            : data.posts;
+
+        const PER_PAGE = 30;
+        const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+        const page = Math.min(Math.max(1, Number(param('page') ?? '1') || 1), pageCount);
+        const shown = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+        /** 오늘 글은 시각, 지난 글은 날짜 — 국내 게시판이 다 이렇게 한다 (한눈에 오늘 것이 보인다). */
+        const stamp = (iso: string): string => {
+            const at = new Date(iso);
+            if (Number.isNaN(at.getTime())) return '';
+            const kst = new Intl.DateTimeFormat('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+            }).formatToParts(at);
+            const get = (type: string): string => kst.find((x) => x.type === type)?.value ?? '';
+            const todayParts = new Intl.DateTimeFormat('ko-KR', {
+                timeZone: 'Asia/Seoul',
+                month: '2-digit',
+                day: '2-digit',
+            }).formatToParts(new Date());
+            const sameDay =
+                get('month') === (todayParts.find((x) => x.type === 'month')?.value ?? '') &&
+                get('day') === (todayParts.find((x) => x.type === 'day')?.value ?? '');
+            return sameDay ? `${get('hour')}:${get('minute')}` : `${get('month')}.${get('day')}`;
+        };
+
+        const body = shown.length
+            ? shown
+                  .map((p, index) => {
+                      const heading = isRequest ? preview(p.text, 60) : (p.title ?? '(제목 없음)');
+                      const number = p.pinned ? '공지' : String(filtered.length - ((page - 1) * PER_PAGE + index));
+                      const hot = p.likes >= 3 || p.replyCount >= 5;
+                      return `<tr data-pinned="${p.pinned ? '1' : '0'}">
+                          <td class="c-num">${number}</td>
+                          <td class="c-td-title">
+                              <button type="button" class="c-title-btn" data-post="${esc(p.id)}">
                                   ${isRequest && p.status !== 'open' ? `<span class="c-tag">${STATUS_LABEL[p.status]}</span>` : ''}
-                              </span>
-                              <span class="c-row-sub">
-                                  ${face(p.authorHandle)}<span>@${esc(p.authorHandle)}</span>
-                                  <span class="c-dot">${relativeTime(p.bumpedAt)}</span>
-                                  <span class="c-dot">조회 ${p.views}</span>
-                                  ${p.likes ? `<span class="c-dot">좋아요 ${p.likes}</span>` : ''}
-                              </span>
-                          </button>
-                      </li>`;
+                                  <span class="t">${esc(heading)}</span>
+                                  ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
+                              </button>
+                          </td>
+                          <td class="c-who"><span>${face(p.authorHandle)}<b>${esc(p.authorHandle)}</b></span></td>
+                          <td class="c-when">${stamp(p.bumpedAt)}</td>
+                          <td class="c-cnt">${p.views}</td>
+                          <td class="c-cnt" data-hot="${hot ? '1' : '0'}">${isRequest ? p.votes : p.likes}</td>
+                      </tr>`;
                   })
                   .join('')
-            : `<li class="c-empty-row">${isRequest ? '아직 올라온 요청이 없습니다.' : '아직 이 판에 글이 없습니다. 첫 글을 남겨 주세요.'}</li>`;
+            : `<tr><td class="c-empty-row" colspan="6">${
+                  query ? '찾는 글이 없습니다.' : isRequest ? '아직 올라온 요청이 없습니다.' : '아직 이 판에 글이 없습니다. 첫 글을 남겨 주세요.'
+              }</td></tr>`;
+
+        const pages: string[] = [];
+        if (pageCount > 1) {
+            const from = Math.max(1, page - 2);
+            const to = Math.min(pageCount, from + 4);
+            pages.push(`<button type="button" class="c-page" data-page="${page - 1}" ${page === 1 ? 'disabled' : ''}>‹</button>`);
+            for (let n = from; n <= to; n += 1) {
+                pages.push(`<button type="button" class="c-page" data-page="${n}" data-on="${n === page ? '1' : '0'}">${n}</button>`);
+            }
+            pages.push(`<button type="button" class="c-page" data-page="${page + 1}" ${page === pageCount ? 'disabled' : ''}>›</button>`);
+        }
 
         const board = boards.find((b) => b.id === data.board);
         host.innerHTML = `<div class="c-wrap">
@@ -501,7 +581,24 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 data.signedIn && data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
             }</div>
             ${writer}
-            <ul class="c-list">${rows}</ul>
+            <table class="c-table">
+                <thead><tr>
+                    <th class="c-num">번호</th>
+                    <th class="c-th-title">제목</th>
+                    <th class="c-who">글쓴이</th>
+                    <th class="c-when">날짜</th>
+                    <th class="c-cnt">조회</th>
+                    <th class="c-cnt">${isRequest ? '표' : '추천'}</th>
+                </tr></thead>
+                <tbody>${body}</tbody>
+            </table>
+            <div class="c-foot">
+                <form class="c-search" data-search>
+                    <input type="text" name="cSearch" data-q placeholder="제목·글쓴이" aria-label="글 찾기" value="${esc(param('q') ?? '')}">
+                    <button type="submit" class="c-page">찾기</button>
+                </form>
+                <div class="c-pages">${pages.join('')}</div>
+            </div>
         </div>`;
 
         wireSignIn();
@@ -509,15 +606,23 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-board]').forEach((b) =>
             b.addEventListener('click', () => {
                 writerOpen = false;
-                go({ board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null), sort: null, p: null });
+                go({ board: b.dataset.board === 'free' ? null : (b.dataset.board ?? null), sort: null, p: null, page: null, q: null });
             }),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) =>
-            b.addEventListener('click', () => go({ sort: b.dataset.sort === 'top' ? 'top' : null })),
+            b.addEventListener('click', () => go({ sort: b.dataset.sort === 'top' ? 'top' : null, page: null })),
         );
         host.querySelectorAll<HTMLButtonElement>('[data-post]').forEach((b) =>
             b.addEventListener('click', () => go({ p: b.dataset.post ?? null })),
         );
+        host.querySelectorAll<HTMLButtonElement>('[data-page]').forEach((b) =>
+            b.addEventListener('click', () => go({ page: b.dataset.page === '1' ? null : (b.dataset.page ?? null) })),
+        );
+        host.querySelector<HTMLFormElement>('[data-search]')?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const value = (event.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[data-q]')?.value.trim() ?? '';
+            go({ q: value || null, page: null });
+        });
         host.querySelector('[data-new]')?.addEventListener('click', () => {
             writerOpen = true;
             void render();
