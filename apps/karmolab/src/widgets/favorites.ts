@@ -260,7 +260,10 @@ import { DEFAULT_ITEMS, FAVICON_FALLBACK, type FavoriteGroup, type FavoriteItem 
                                         : '';
                                     const iconHtml = isTool
                                         ? `<div class="fav-icon fav-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${it.icon || ''}</svg></div>`
-                                        : `<img class="fav-icon" src="${esc(getFaviconUrl(it))}" alt="" loading="lazy" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
+                                        // 늦은 로딩(lazy)을 쓰지 않는다. 아이콘은 52px 짜리 70장 —
+                                        // 미뤄서 아낄 게 없는데, 브라우저가 「미뤘다」며 자리표시자로
+                                        // 바꿔 놓으면 아이콘이 통째로 빈칸으로 보인다 (2026-08-08 제보).
+                                        : `<img class="fav-icon" src="${esc(getFaviconUrl(it))}" alt="" decoding="async" onerror="${FAVICON_IMG_ONERROR.replace(/"/g, '&quot;')}">`;
                                     const linkAttrs = isTool
                                         ? `href="#" class="fav-item" title="${esc(it.label)}" data-tool-id="${esc(it.toolId || '')}"`
                                         : `href="${esc(it.url || '')}" class="fav-item" target="_blank" rel="noopener noreferrer" title="${esc(it.label)}"`;
