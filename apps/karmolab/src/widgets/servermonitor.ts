@@ -1447,13 +1447,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
   }
 
   Toolbox.register({
-    id: 'servermonitor',
-    title: '서버 모니터',
-    category: 'tool',
-    desktopOnly: true,
-    desc: '로컬 URL·프로세스·.env (데스크톱)',
-    layout: 'form',
-    icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    ...Toolbox.getLazyWidgetPublicMeta!('servermonitor'),
     tabs: [{ id: 'main', label: '상태', build }]
   });
 })();

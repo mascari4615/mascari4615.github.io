@@ -1036,13 +1036,7 @@ import { invoke as tauriInvoke } from '../tauri-bridge';
   }
 
   Toolbox.register({
-    id: 'activity',
-    title: '활동 기록',
-    category: 'lab',
-    desktopOnly: true,
-    desc: '내 PC에서 어떤 앱·창에 시간을 얼마나 썼는지 (데스크톱 앱 전용)',
-    layout: 'form',
-    icon: '<rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 16v-3M11 16v-7M15 16v-5M19 16v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    ...Toolbox.getLazyWidgetPublicMeta!('activity'),
     tabs: [{ id: 'activity-main', label: '오늘', build }]
   });
 })();
