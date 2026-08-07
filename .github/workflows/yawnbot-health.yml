@@ -49,8 +49,24 @@ jobs:
           echo "body_ok=$BODY_OK" >> "$GITHUB_OUTPUT"
 
           if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ] || [ "$BODY_OK" != "true" ]; then
+            # 한 번 못 받았다고 바로 부르지 않는다. 재시작·배포·터널 재연결은 1분이면 지나가는데,
+            # 그때마다 알리면 알림이 배경 소음이 되고 진짜 사고 때 아무도 안 본다.
+            # 45초 뒤 한 번 더 묻고, 두 번 다 안 되면 그때 부른다.
+            echo "::notice::한 번 실패 — 45초 뒤 다시 묻는다 (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
+            sleep 45
+            BODY=$(curl -sS -m 10 -w "\nHTTP_CODE:%{http_code}\n" "$HEALTH_URL" 2>&1)
+            CURL_EXIT=$?
+            HTTP_CODE=$(echo "$BODY" | grep -oP 'HTTP_CODE:\K[0-9]+' | tail -1)
+            if [ -z "$HTTP_CODE" ]; then HTTP_CODE="000"; fi
+            BODY_OK=$(echo "$BODY" | grep -oE '"ok"[[:space:]]*:[[:space:]]*(true|false)' | grep -oE '(true|false)' | tail -1)
+            echo "curl_exit=$CURL_EXIT" >> "$GITHUB_OUTPUT"
+            echo "http_code=$HTTP_CODE" >> "$GITHUB_OUTPUT"
+            echo "body_ok=$BODY_OK" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ "$CURL_EXIT" -ne 0 ] || [ "$HTTP_CODE" != "200" ] || [ "$BODY_OK" != "true" ]; then
             echo "status=fail" >> "$GITHUB_OUTPUT"
-            echo "::warning::yawnbot health probe FAIL (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
+            echo "::warning::yawnbot health probe FAIL 2회 (curl_exit=$CURL_EXIT http_code=$HTTP_CODE body_ok=$BODY_OK)"
           else
             echo "status=ok" >> "$GITHUB_OUTPUT"
           fi
