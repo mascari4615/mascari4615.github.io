@@ -127,6 +127,15 @@ export function runBackup(now: Date = new Date()): string | null {
     return path.basename(folder);
 }
 
+/**
+ * 지금 당장 한 벌 뜬다 — 주기를 기다리지 않고 사람이 부를 수 있어야 한다.
+ * (자동으로만 도는 일은 「돌고 있나」를 확인할 방법이 없다. 손으로 부를 자리를 늘 같이 둔다.)
+ */
+export function triggerBackupNow(): { made: string | null; info: BackupInfo } {
+    const made = runBackup();
+    return { made, info: backupInfo() };
+}
+
 let timer: ReturnType<typeof setInterval> | null = null;
 
 /** 봇이 뜰 때 한 번 부른다. 바로 한 벌 만들고, 그 뒤로는 주기적으로 본다. */

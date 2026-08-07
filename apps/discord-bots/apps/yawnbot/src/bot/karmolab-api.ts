@@ -40,7 +40,7 @@ import {
   REPLY_MAX_LEN,
 } from '../services/karmolab-traces';
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
-import { backupInfo } from '../services/karmolab-backup';
+import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
@@ -837,6 +837,16 @@ export function registerKarmolabApi(
    */
   /* ===== 알림 (공용) =====
    * 커뮤니티만의 기능이 아니다. 도구·계정·봇 무엇이든 같은 자리에 알림을 넣는다. */
+
+  /** 주인이 지금 당장 백업을 뜬다 — 주기를 기다리지 않고 확인할 수 있어야 한다. */
+  app.post('/kl/backup', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!isAdminAccount(account)) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    res.json(triggerBackupNow());
+  });
 
   /* ===== 검색 · 활동 · 질서 · 그림 ===== */
 
