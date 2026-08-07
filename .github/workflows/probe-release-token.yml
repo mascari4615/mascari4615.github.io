@@ -1,0 +1,48 @@
+name: probe release token (임시)
+
+# 릴리스 만들기가 「권한 없음」으로 죽는데, 작업에 준 권한은 분명히 쓰기다.
+# 20분짜리 빌드를 돌려 가며 알아볼 일이 아니라, 30초 만에 같은 것만 물어본다.
+# 원인을 잡으면 이 파일은 지운다.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 초안 릴리스를 만들어 본다 (바로 지운다)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          TAG="probe-token-$(date +%s)"
+          OUT=$(gh api -X POST "repos/${{ github.repository }}/releases" \
+            -f tag_name="$TAG" -f name="probe" -F draft=true 2>&1)
+          CODE=$?
+          echo "$OUT"
+          if [ $CODE -ne 0 ]; then
+            echo "::error::초안 릴리스 만들기 실패 — 이게 진짜 원인이다"
+            exit 1
+          fi
+          ID=$(echo "$OUT" | jq -r .id)
+          echo "만들어졌다 id=$ID — 지운다"
+          gh api -X DELETE "repos/${{ github.repository }}/releases/$ID"
+
+          echo "--- 이번엔 릴리스 노트 자동 생성까지 (tauri-action 이 쓰는 방식)"
+          TAG2="probe-token-notes-$(date +%s)"
+          OUT2=$(gh api -X POST "repos/${{ github.repository }}/releases" \
+            -f tag_name="$TAG2" -f name="probe notes" -F draft=true -F generate_release_notes=true 2>&1)
+          CODE2=$?
+          echo "$OUT2"
+          if [ $CODE2 -ne 0 ]; then
+            echo "::error::릴리스 노트 자동 생성이 붙으면 실패한다 — 범인은 그것이다"
+            exit 1
+          fi
+          ID2=$(echo "$OUT2" | jq -r .id)
+          gh api -X DELETE "repos/${{ github.repository }}/releases/$ID2"
+          echo "둘 다 됐다 — 권한 문제가 아니다"
