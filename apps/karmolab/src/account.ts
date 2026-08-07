@@ -345,6 +345,179 @@ function mountHeaderAccount(): void {
     });
 }
 
+/* ===== 알림 종 (공용) =====
+ *
+ * 알림은 커뮤니티의 기능이 아니라 **플랫폼의 기능**이다 (사용자: "다른 기능도 함께 쓸 수 있도록
+ * Common하게"). 그래서 커뮤니티 위젯이 아니라 머리띠에 산다 — 어느 화면에 있든 보이고,
+ * 도구·계정·봇이 보낸 알림도 같은 자리에 뜬다.
+ *
+ * 서버에 못 닿거나 로그인 안 했으면 **아무것도 안 그린다**. 눌러도 아무 일 없는 종이 제일 나쁘다.
+ */
+interface NotificationItem {
+    id: string;
+    source: string;
+    title: string;
+    body: string | null;
+    url: string | null;
+    count: number;
+    updatedAt: string;
+    readAt: string | null;
+}
+
+/** 얼마나 자주 새 알림을 보나. 너무 잦으면 노트북 서버가 괜히 바쁘다. */
+const BELL_POLL_MS = 60000;
+
+function bellSafe(value: string): string {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function relativeTimeShort(iso: string): string {
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) return '';
+    const minutes = Math.floor((Date.now() - then) / 60000);
+    if (minutes < 1) return '방금';
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    return `${Math.floor(hours / 24)}일 전`;
+}
+
+function bellStyle(): void {
+    if (document.getElementById('kl-bell-style')) return;
+    const style = document.createElement('style');
+    style.id = 'kl-bell-style';
+    style.textContent = [
+        '.header-bell { position:relative; display:flex; }',
+        '.header-bell:empty { display:none; }',
+        '.kl-bell-btn { position:relative; display:grid; place-items:center; width:30px; height:30px;',
+        '  border:1px solid var(--border); border-radius:50%; background:transparent;',
+        '  color:var(--text-secondary); cursor:pointer; }',
+        '.kl-bell-btn:hover { color:var(--text-primary); border-color:var(--accent); }',
+        '.kl-bell-dot { position:absolute; top:-3px; right:-3px; min-width:16px; height:16px; padding:0 4px;',
+        '  border-radius:999px; background:var(--accent); color:var(--bg-primary);',
+        '  font-size:10px; line-height:16px; font-weight:700; }',
+        '.kl-bell-panel { position:absolute; top:38px; right:0; width:300px; max-height:60vh; overflow-y:auto;',
+        '  background:var(--bg-secondary); border:1px solid var(--border); border-radius:10px;',
+        '  box-shadow:0 8px 24px rgba(0,0,0,.35); z-index:60; }',
+        '.kl-bell-head { display:flex; align-items:center; justify-content:space-between;',
+        '  padding:10px 12px; border-bottom:1px solid var(--border); font-size:12px; color:var(--text-secondary); }',
+        '.kl-bell-head button { background:none; border:0; color:var(--accent); font:inherit; font-size:11px; cursor:pointer; }',
+        '.kl-bell-item { display:block; width:100%; text-align:left; padding:10px 12px; background:none;',
+        '  border:0; border-top:1px solid var(--border); cursor:pointer; font:inherit; }',
+        '.kl-bell-item:hover { background:var(--bg-tertiary); }',
+        '.kl-bell-item[data-unread="1"] { background:var(--accent-dim); }',
+        '.kl-bell-title { display:block; font-size:12px; color:var(--text-primary); }',
+        '.kl-bell-body { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);',
+        '  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
+        '.kl-bell-empty { padding:22px 12px; text-align:center; font-size:12px; color:var(--text-tertiary); }',
+    ].join('\n');
+    document.head.appendChild(style);
+}
+
+function mountBell(): void {
+    const slot = document.getElementById('headerBell');
+    if (!slot) return;
+    bellStyle();
+
+    let open = false;
+    let items: NotificationItem[] = [];
+    let unread = 0;
+
+    const load = async (): Promise<void> => {
+        const response = await call('/kl/notifications');
+        if (!response || !response.ok) return;
+        try {
+            const data = (await response.json()) as { items?: NotificationItem[]; unread?: number };
+            items = data.items ?? [];
+            unread = data.unread ?? 0;
+        } catch {
+            return;
+        }
+        paint();
+    };
+
+    function paint(): void {
+        // 로그인 안 했거나 서버에 못 닿으면 종 자체를 안 그린다.
+        if (!state.account || !state.reachable) {
+            slot!.innerHTML = '';
+            return;
+        }
+        const list = items.length
+            ? items
+                  .map(
+                      (n) =>
+                          `<button type="button" class="kl-bell-item" data-note="${bellSafe(n.id)}" data-unread="${n.readAt ? '0' : '1'}">` +
+                          `<span class="kl-bell-title">${bellSafe(n.title)}${n.count > 1 ? ` (${n.count})` : ''}</span>` +
+                          `<span class="kl-bell-body">${bellSafe(n.body ?? '')} · ${relativeTimeShort(n.updatedAt)}</span>` +
+                          `</button>`,
+                  )
+                  .join('')
+            : '<div class="kl-bell-empty">새 알림이 없습니다</div>';
+
+        const panel = open
+            ? `<div class="kl-bell-panel"><div class="kl-bell-head"><span>알림</span>${
+                  unread ? '<button type="button" id="klBellAll">모두 읽음</button>' : ''
+              }</div>${list}</div>`
+            : '';
+
+        slot!.innerHTML =
+            `<button type="button" class="kl-bell-btn" id="klBell" title="알림" aria-label="알림">` +
+            `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" ` +
+            `stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>` +
+            `<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>` +
+            (unread ? `<span class="kl-bell-dot">${unread > 99 ? '99+' : unread}</span>` : '') +
+            `</button>${panel}`;
+
+        slot!.querySelector('#klBell')?.addEventListener('click', () => {
+            open = !open;
+            paint();
+            if (open) void load();
+        });
+        slot!.querySelector('#klBellAll')?.addEventListener('click', () => {
+            void call('/kl/notifications/read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: '{}',
+            }).then(() => load());
+        });
+        slot!.querySelectorAll<HTMLButtonElement>('[data-note]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.dataset.note ?? '';
+                const found = items.find((n) => n.id === id);
+                void call('/kl/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id }),
+                }).then(async () => {
+                    open = false;
+                    await load();
+                    if (found?.url) location.href = found.url;
+                });
+            });
+        });
+    }
+
+    // 바깥을 누르면 닫힌다 — 열어 둔 채로 다른 걸 누르면 방해가 된다.
+    document.addEventListener('click', (event) => {
+        if (!open) return;
+        if (slot.contains(event.target as Node)) return;
+        open = false;
+        paint();
+    });
+
+    KarmoAccount.subscribe(() => {
+        paint();
+        if (state.account && state.reachable) void load();
+    });
+    setInterval(() => {
+        if (state.account && state.reachable && !open) void load();
+    }, BELL_POLL_MS);
+}
+
 declare global {
     interface Window {
         KarmoAccount: typeof KarmoAccount;
@@ -358,6 +531,7 @@ window.addEventListener('hashchange', traceCurrentTool);
 // 첫 화면 그리기와 겨루지 않게 뒤로 미룬다 — 계정은 급하지 않고 도구가 먼저다.
 function start(): void {
     mountHeaderAccount();
+    mountBell();
     void refresh();
     traceCurrentTool();
 }
