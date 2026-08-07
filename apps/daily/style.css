@@ -57,12 +57,16 @@ a { color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .home {
+  /* 손가락 자리 — 재 보니 25px 이었다. 헤더에서 자주 누르는 것이라 40 으로 올린다. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   color: var(--ink-3);
   text-decoration: none;
   font-size: 13px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 4px 12px;
 }
 .home:hover { color: var(--ink); border-color: var(--ink-3); }
 
@@ -75,8 +79,12 @@ a { color: var(--accent); }
 /* ── 모드 탭 + 연속 기록 ── */
 .tabs { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; }
 .tab {
+  /* 재 보니 32px. 나란히 붙는 것이라 40 으로 (단독 단추는 44). */
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   font-size: 13px;
-  padding: 5px 12px;
+  padding: 5px 14px;
   border-radius: 999px;
   border: 1px solid var(--line);
   color: var(--ink-2);
@@ -209,12 +217,14 @@ a { color: var(--accent); }
 .seeds:empty { display: none; }
 .seeds span { color: var(--ink-3); font-size: 12.5px; margin-right: 2px; }
 .seeds button {
+  /* 첫 한 수를 여는 단추다 — 재 보니 29px 이라 잘못 누르기 쉬웠다. 44 로. */
+  min-height: 44px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--ink-2);
   font-size: 13px;
-  padding: 5px 12px;
+  padding: 5px 14px;
   cursor: pointer;
 }
 .seeds button:hover { color: var(--ink); border-color: var(--accent); }
@@ -370,9 +380,10 @@ table.past img { width: 34px; height: 34px; object-fit: contain; vertical-align:
 table.past b { font-size: 14px; }
 .past-more { text-align: center; margin-top: 14px; }
 .past-more:empty { display: none; }
-.past-more button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); font-size: 13px; padding: 8px 18px; cursor: pointer; }
+.past-more button { min-height: 44px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); font-size: 13px; padding: 8px 20px; cursor: pointer; }
 .past-more button:hover { color: var(--ink); border-color: var(--accent); }
-table.past .play { display: inline-block; margin-top: 4px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+/* 표 안이라 44 는 과하지만 23px 은 너무 작았다 — 36 으로. */
+table.past .play { display: inline-flex; align-items: center; min-height: 36px; margin-top: 4px; font-size: 11.5px; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
 table.past .play:hover { border-color: var(--accent); }
 .tab.practice { background: var(--near); color: #fff; border-color: transparent; }
 
@@ -412,13 +423,14 @@ table.past .play:hover { border-color: var(--accent); }
   border-radius: var(--radius);
   padding: 12px 16px;
 }
-.how summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.how summary { cursor: pointer; font-size: 14px; font-weight: 600; min-height: 40px; display: flex; align-items: center; }
 .how ol { margin: 10px 0 0; padding-left: 20px; color: var(--ink-2); font-size: 13.5px; }
 .how li { margin-bottom: 5px; }
 .how p { color: var(--ink-3); font-size: 12.5px; margin: 10px 0 0; }
 
 .past-links { margin-top: 16px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
-.past-links a { color: var(--ink-2); }
+/* 재 보니 15px — 손가락으로는 거의 못 누른다. 줄 사이를 벌려 36 으로. */
+.past-links a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 8px; color: var(--ink-2); }
 
 @media (max-width: 420px) {
   .cell .k { font-size: 9px; }

@@ -413,6 +413,36 @@ for (const withShare of [true, false]) {
 }
 
 /**
+ * 손가락 자리 — 재 보니 15~35px 짜리가 일곱이었다. 작으면 잘못 눌리고, 잘못 눌리면 떠난다.
+ * 눈으로는 「작아 보이지 않아서」 안 잡힌다. 그래서 잰다.
+ */
+{
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const page = await ctx.newPage();
+  const small = [];
+  const measure = async (url, sels) => {
+    await page.goto(url, { waitUntil: 'networkidle' });
+    for (const [sel, min] of sels) {
+      for (const e of (await page.$$(sel)).slice(0, 3)) {
+        const box = await e.boundingBox();
+        if (box && box.height < min) small.push(`${sel} ${Math.round(box.height)}px<${min}`);
+      }
+    }
+  };
+  await measure(`${base}/pokemon/`, [['.seeds button', 44], ['.guessbar input', 44], ['.tab', 40], ['.home', 40]]);
+  await page.fill('.guessbar input', '리');
+  await page.waitForSelector('.sug button');
+  for (const e of (await page.$$('.sug button')).slice(0, 2)) {
+    const box = await e.boundingBox();
+    if (box && box.height < 44) small.push(`.sug button ${Math.round(box.height)}px<44`);
+  }
+  await measure(`${base}/`, [['.hub-jump a', 44], ['.how summary', 40], ['.past-links a', 36]]);
+  await measure(`${base}/pokemon/past/`, [['table.past .play', 36], ['.past-more button', 44]]);
+  check('누르는 자리가 다 손가락만 하다', small.length === 0, small.join(' · ') || '전부 기준 이상');
+  await ctx.close();
+}
+
+/**
  * **지는 판** — 여기까지 온 적이 한 번도 없었다. 안 돈 경로에 사고가 몰린다.
  * 다 틀렸을 때 정답을 알려 주는지, 격자가 X 로 남는지, 기록에 실패로 들어가는지 본다.
  */
