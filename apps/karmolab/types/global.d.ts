@@ -37,6 +37,9 @@ declare global {
 
     /** 도구 상세 페이지(/karmolab/t/&lt;id&gt;/)가 심는 진입 위젯 id — toolbox.init 이 첫 페이지로 연다 (TASK-KL-088) */
     KARMOLAB_ENTRY_TOOL?: string;
+    /** 본문이 HTML 에 이미 박혀 있는 정적 페이지 표식(예: 도구 목록 `hub`) — 셸의 머리띠·옆줄·
+     *  테마·⌘K 는 그대로 쓰되 화면은 앱이 그리지 않는다 (TASK-KL-129) */
+    KARMOLAB_ENTRY_STATIC?: string;
     /** 상세 페이지가 존재하는 도구 id 목록 — 도구 간 이동 시 각자의 URL 로 보내기 위해 (TASK-KL-088) */
     KARMOLAB_TOOL_PAGES?: string[];
     /** 계측 — analytics.ts (TASK-KL-088). 입력 내용은 절대 싣지 않는다. */

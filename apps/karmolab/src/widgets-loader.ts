@@ -36,7 +36,17 @@
   let pending = list.length;
 
   function done() {
-    if (--pending === 0) {
+    if (--pending === 0) start();
+  }
+
+  /* 받을 것을 다 받았다 — 이제 앱을 켠다.
+   *
+   * 예전에는 이 안이 done() 안에 있었고, 받을 것이 하나도 없을 때도 done() 을 불렀다.
+   * 그러면 세던 수가 0 에서 -1 이 되어 「다 받았다」에 **영영 안 걸린다** — 앱이 통째로 안 켜진다
+   * (머리띠·옆줄·테마·⌘K 가 전부 죽는다). 화면은 HTML 에 적힌 것이 그대로 보여서 멀쩡해 보인다.
+   * 실제로 도구 목록을 셸 안으로 들여올 때 이 길을 처음 밟았다 (TASK-KL-129). */
+  function start() {
+    {
       const waits = window.KARMOLAB_WIDGET_LOADER_WAIT || [];
       Promise.allSettled(waits).then(function () {
         Toolbox.initTheme();
@@ -86,7 +96,7 @@
   }
 
   if (pending === 0) {
-    done();
+    start();
     return;
   }
 

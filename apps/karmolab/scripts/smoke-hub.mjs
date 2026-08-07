@@ -212,14 +212,25 @@ if (state.firstHref) {
   const sp = await s.newPage();
   await sp.goto(`${BASE}/karmolab/t/`, { waitUntil: 'networkidle', timeout: 30000 });
   await sp.waitForTimeout(400);
-  const tall = await sp.evaluate(() => document.scrollingElement.scrollHeight > innerHeight + 100);
-  if (!tall) problems.push('목록이 한 화면보다 짧다 — 스크롤 검사가 아무것도 못 본다');
+  /* 내려가는 자리가 **문서라고 단정하지 않는다** (TASK-KL-129).
+   * 목록이 앱 셸 안으로 들어오면서 실제로 굴러가는 것은 본문 칸(.main-content)이다.
+   * 문서만 재면 「짧다」고 나오는데, 화면에서는 멀쩡히 내려간다 — 검사가 거짓으로 운다.
+   * 굴릴 것을 먼저 찾고, 그 다음에 **바퀴를 실제로 굴려** 확인한다. */
+  const scroller = await sp.evaluate(() => {
+    const cands = [document.querySelector('.main-content'), document.scrollingElement].filter(Boolean);
+    const hit = cands.find((e) => e.scrollHeight > e.clientHeight + 100);
+    return hit ? (hit === document.scrollingElement ? 'doc' : 'main') : null;
+  });
+  if (!scroller) problems.push('목록이 한 화면보다 짧다 — 스크롤 검사가 아무것도 못 본다');
   else {
     await sp.mouse.move(640, 450);
     await sp.mouse.wheel(0, 1200);
     await sp.waitForTimeout(400);
-    const y = await sp.evaluate(() => document.scrollingElement.scrollTop);
-    if (y < 100) problems.push(`바퀴를 굴려도 안 내려간다 — 아래가 통째로 갇혔다 (scrollTop ${y})`);
+    const y = await sp.evaluate(
+      (which) => (which === 'main' ? document.querySelector('.main-content').scrollTop : document.scrollingElement.scrollTop),
+      scroller
+    );
+    if (y < 100) problems.push(`바퀴를 굴려도 안 내려간다 — 아래가 통째로 갇혔다 (${scroller} scrollTop ${y})`);
   }
   await sp.close();
   await s.close();
@@ -237,6 +248,10 @@ if (state.firstHref) {
     const clipped = [...document.querySelectorAll('body *')]
       .filter((e) => e.scrollWidth > e.clientWidth + 2 && near(e))
       .filter((e) => !['auto', 'scroll'].includes(getComputedStyle(e).overflowX))
+      /* 일부러 자른 한 줄은 사고가 아니다 (TASK-KL-128 — 카드 설명은 한 줄로 자르고 「…」를
+         붙인다. 뒷부분은 도구를 열면 다 보이고 마우스를 올려도 뜬다). 이 검사가 잡아야 하는
+         것은 **자를 생각이 없었는데 잘린 것**이다. 예전부터 여기 걸려 울고 있었다. */
+      .filter((e) => getComputedStyle(e).textOverflow !== 'ellipsis')
       .map((e) => `${(e.className || e.tagName).toString().split(' ')[0].slice(0, 18)} ${e.scrollWidth}>${e.clientWidth}`);
     const smallTap = [...document.querySelectorAll('a.tool-hub-card, .tool-hub-toc a, button, input')]
       .filter(near)
