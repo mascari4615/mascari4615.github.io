@@ -32,6 +32,11 @@ export interface DiscoverOptions {
 	minCount?: number;
 	/** 화면 넓이 (픽셀²). maxAreaRatio 판단에 쓴다. */
 	viewportArea: number;
+	/**
+	 * 여러 무리를 합칠 때, 제일 좋은 무리 점수의 몇 배까지 받아 줄지. 기본 0.45.
+	 * 낮출수록 화면을 넓게 쓰지만 지저분한 뭉치가 낀다.
+	 */
+	keepRatio?: number;
 }
 
 /**
@@ -55,24 +60,70 @@ export function pickTileGroup(measured: readonly Measured[], options: DiscoverOp
 		else groups.set(item.group, [item]);
 	}
 
+	return bestBucket(groups, minCount);
+}
+
+/**
+ * 쓸 만한 무리를 **여러 개** 골라 합친다.
+ *
+ * 하나만 고르면 화면을 너무 조금 쓴다 — 첫 화면에서 큰 버튼 다섯 개만 쓰고 머리줄·옆줄·아래
+ * 전부를 놀렸다. 밈의 요점은 「화면이 통째로 액정이 된다」인데 구석 한 뭉치만 켜지면 약하다.
+ *
+ * 다만 아무거나 다 넣으면 안 된다. 제일 좋은 무리 점수의 일정 비율을 넘는 것만 받는다 —
+ * 들쭉날쭉한 뭉치가 끼면 그림이 지저분해진다.
+ */
+export function pickTileGroups(measured: readonly Measured[], options: DiscoverOptions): Measured[] {
+	const minSide = options.minSide ?? 24;
+	const maxAreaRatio = options.maxAreaRatio ?? 0.6;
+	const minCount = options.minCount ?? 4;
+	const keepRatio = options.keepRatio ?? 0.45;
+
+	const groups = new Map<unknown, Measured[]>();
+	for (const item of measured) {
+		const { width, height } = item.rect;
+		if (width < minSide || height < minSide) continue;
+		if (width * height > options.viewportArea * maxAreaRatio) continue;
+		const bucket = groups.get(item.group);
+		if (bucket) bucket.push(item);
+		else groups.set(item.group, [item]);
+	}
+
+	const scored: { bucket: Measured[]; score: number }[] = [];
+	for (const bucket of groups.values()) {
+		if (bucket.length < minCount) continue;
+		scored.push({ bucket, score: scoreOf(bucket) });
+	}
+	if (scored.length === 0) return [];
+
+	const best = Math.max(...scored.map((entry) => entry.score));
+	const out: Measured[] = [];
+	for (const entry of scored) {
+		if (entry.score >= best * keepRatio) out.push(...entry.bucket);
+	}
+	return out;
+}
+
+/** 무리 하나의 점수 — 개수는 이득이지만 무한정은 아니고(로그), 크기가 고를수록 좋다. */
+function scoreOf(bucket: readonly Measured[]): number {
+	let minArea = Infinity;
+	let maxArea = 0;
+	for (const item of bucket) {
+		const area = item.rect.width * item.rect.height;
+		minArea = Math.min(minArea, area);
+		maxArea = Math.max(maxArea, area);
+	}
+	const evenness = maxArea > 0 ? minArea / maxArea : 0;
+	return Math.log2(bucket.length + 1) * (0.25 + 0.75 * evenness);
+}
+
+function bestBucket(groups: Map<unknown, Measured[]>, minCount: number): Measured[] {
 	let best: Measured[] = [];
 	let bestScore = 0;
 
 	for (const bucket of groups.values()) {
 		if (bucket.length < minCount) continue;
 
-		// 크기가 얼마나 고른지 — 가장 작은 것과 가장 큰 것의 넓이 비.
-		let minArea = Infinity;
-		let maxArea = 0;
-		for (const item of bucket) {
-			const area = item.rect.width * item.rect.height;
-			minArea = Math.min(minArea, area);
-			maxArea = Math.max(maxArea, area);
-		}
-		const evenness = maxArea > 0 ? minArea / maxArea : 0;
-
-		// 개수는 이득이지만 무한정은 아니다(로그). 고르기가 심하게 나쁘면 개수로도 못 산다.
-		const score = Math.log2(bucket.length + 1) * (0.25 + 0.75 * evenness);
+		const score = scoreOf(bucket);
 		if (score > bestScore) {
 			bestScore = score;
 			best = bucket;
