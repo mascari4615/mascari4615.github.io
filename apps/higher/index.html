@@ -158,11 +158,11 @@ permalink: /karmolab/higher/
    * 이미 알고 있으니, 다음 상대만 새로 온다.
    * 처음 한 판만 둘 다 뽑는다. 값이 같으면 견줄 수 없으니 다시 뽑는다. */
   function nextRound(keepLeft) {
-    /* 새 판이 뜨자마자 손가락이 한 번 더 닿는 일이 잦다 (TASK-KL-089).
-     * 폰에서 두 번 빠르게 누르면 두 판이 넘어가 **원치 않는 답**이 들어갔다(연승이 운으로 끊긴다).
-     * 판이 바뀌고 나서 잠깐은 안 받는다 — 사람이 새 그림을 보기도 전이니 어차피 고른 게 아니다. */
-    locked = true;
-    setTimeout(function () { locked = false; }, 260);
+    /* 새 판이 뜨면 바로 받는다. 연타만 걸러 낸다 (TASK-KL-089).
+     * 처음에는 판이 바뀌고 0.26초를 막았는데, 그러면 **새 그림을 보고 바로 누른 진짜 클릭**까지
+     * 먹혔다(스무 판을 다 맞혔는데 연승이 10 이었다 — 한 번 걸러 두 번 눌러야 했다).
+     * 막을 것은 시간이 아니라 「앞 클릭 직후에 또 닿은 손가락」이다 — 그건 아래 answer 에서 본다. */
+    locked = false;
     $('again').hidden = true;
     var pool = board.items.filter(function (x) { return x.v[field.key] !== undefined; });
     if (!keepLeft || !left) left = pick(pool);
@@ -191,8 +191,14 @@ permalink: /karmolab/higher/
     $('msg').textContent = '';
   }
 
+  /* 앞서 받은 클릭이 아주 최근이면 그건 같은 손가락의 연타다 — 사람이 새 그림을 보고 고른 것이
+   * 아니므로 안 받는다. 새 판이 뜨는 데 1.1초가 걸리니, 진짜 클릭이 이 문턱에 걸릴 일은 없다. */
+  var lastAt = 0;
+
   function answer(sideEl, chosen, other) {
-    if (locked) return;
+    var now = Date.now();
+    if (locked || now - lastAt < 350) return;
+    lastAt = now;
     locked = true;
     var win = chosen.v[field.key] > other.v[field.key];
     $('a').disabled = true; $('b').disabled = true;
