@@ -121,8 +121,8 @@ describe('방문 세기 (Total / Today)', () => {
   it('30분이 지나면 방문은 다시 세지만 「오늘 다녀간 사람」은 그대로다 — 한 사람은 하루 한 명이다', () => {
     const first = new Date('2026-08-08T01:00:00Z');
     const later = new Date('2026-08-08T02:00:00Z');
-    expect(store.recordVisit('visitor-a', first)).toBe(true);
-    expect(store.recordVisit('visitor-a', later)).toBe(true);
+    expect(store.recordVisit('visitor-a', 'human', first)).toBe(true);
+    expect(store.recordVisit('visitor-a', 'human', later)).toBe(true);
     const stats = store.visitStats(later);
     expect(stats.total).toBe(2);
     expect(stats.peopleToday).toBe(1);
@@ -131,8 +131,8 @@ describe('방문 세기 (Total / Today)', () => {
   it('날이 바뀌면 오늘 수는 0부터, 누적은 이어진다', () => {
     const yesterday = new Date('2026-08-07T05:00:00Z');
     const today = new Date('2026-08-08T05:00:00Z');
-    store.recordVisit('visitor-a', yesterday);
-    store.recordVisit('visitor-b', today);
+    store.recordVisit('visitor-a', 'human', yesterday);
+    store.recordVisit('visitor-b', 'human', today);
     const stats = store.visitStats(today);
     expect(stats.total).toBe(2);
     expect(stats.today).toBe(1);
@@ -141,11 +141,11 @@ describe('방문 세기 (Total / Today)', () => {
 
   it('봇이 다시 떠도 오늘 사람 수가 두 배가 되지 않는다 — 열쇠를 저장하기 때문', () => {
     const now = new Date('2026-08-08T05:00:00Z');
-    store.recordVisit('visitor-a', now);
+    store.recordVisit('visitor-a', 'human', now);
     store.flush();
     // 재시작 = 30분 창(메모리)은 사라진다. 그래도 「오늘 이미 센 사람」은 파일에 남아 있어야 한다.
     const reopened = new KarmolabTraceStore(statePath);
-    expect(reopened.recordVisit('visitor-a', now)).toBe(true);
+    expect(reopened.recordVisit('visitor-a', 'human', now)).toBe(true);
     expect(reopened.visitStats(now).peopleToday).toBe(1);
     expect(reopened.visitStats(now).total).toBe(2);
   });
@@ -159,12 +159,202 @@ describe('방문 세기 (Total / Today)', () => {
 
   it('최근 14일을 오래된 날부터 오늘까지 빠짐없이 준다 — 빈 날도 0으로 있어야 그래프가 안 찌그러진다', () => {
     const now = new Date('2026-08-08T05:00:00Z');
-    store.recordVisit('visitor-a', now);
+    store.recordVisit('visitor-a', 'human', now);
     const days = store.visitStats(now).recentDays;
     expect(days).toHaveLength(14);
     expect(days[13].day).toBe(kstDay(now));
     expect(days[13].visits).toBe(1);
     expect(days[0].visits).toBe(0);
+  });
+});
+
+describe('누가 왔나 나눠 세기 · 지금 보는 사람', () => {
+  it('검색봇·AI 는 「사람」 수에 안 들어간다 — 공개한 수가 거짓말이 되면 안 된다', () => {
+    const now = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('사람1', 'human', now);
+    store.recordVisit('구글봇', 'search', now);
+    store.recordVisit('AI봇', 'ai', now);
+    store.recordVisit('정체불명', 'unknown', now);
+
+    const stats = store.visitStats(now);
+    expect(stats.total).toBe(1);
+    expect(stats.peopleToday).toBe(1);
+  });
+
+  it('그렇다고 버리지도 않는다 — 종류별로 그대로 공개된다', () => {
+    const now = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('사람1', 'human', now);
+    store.recordVisit('구글봇', 'search', now);
+    store.recordVisit('AI봇1', 'ai', now);
+    store.recordVisit('AI봇2', 'ai', now);
+
+    const kinds = store.visitStats(now).kinds;
+    expect(kinds.total).toEqual({ human: 1, search: 1, ai: 2, unknown: 0 });
+    expect(kinds.today).toEqual({ human: 1, search: 1, ai: 2, unknown: 0 });
+  });
+
+  it('어제 온 봇은 오늘 칸에 안 들어간다', () => {
+    const yesterday = new Date('2026-08-07T05:00:00Z');
+    const today = new Date('2026-08-08T05:00:00Z');
+    store.recordVisit('AI봇', 'ai', yesterday);
+    const kinds = store.visitStats(today).kinds;
+    expect(kinds.total.ai).toBe(1);
+    expect(kinds.today.ai).toBe(0);
+  });
+
+  it('종류 칸이 없던 예전 상태 파일에서도 기동한다', () => {
+    fs.writeFileSync(
+      statePath,
+      JSON.stringify({ version: 1, tools: {}, posts: [], visits: { total: 5, days: {}, people: {} } }),
+      'utf-8',
+    );
+    const reopened = new KarmolabTraceStore(statePath);
+    expect(reopened.visitStats().total).toBe(5);
+    expect(reopened.visitStats().kinds.total).toEqual({ human: 0, search: 0, ai: 0, unknown: 0 });
+  });
+
+  it('지금 보는 사람은 시간이 지나면 빠진다 — 「지금」이 과거를 끌고 다니면 안 된다', () => {
+    const t0 = new Date('2026-08-08T05:00:00Z');
+    expect(store.touchPresence('사람1', t0)).toBe(1);
+    expect(store.touchPresence('사람2', t0)).toBe(2);
+    // 같은 사람이 다시 알려 와도 두 명이 되지 않는다
+    expect(store.touchPresence('사람1', new Date(t0.getTime() + 60_000))).toBe(2);
+    // 마지막 소식에서 5분이 넘게 지나면 빠진다 (사람1 은 1분 뒤에 알려 왔으므로 더 오래 남는다)
+    expect(store.presenceCount(new Date(t0.getTime() + 5.5 * 60_000))).toBe(1);
+    expect(store.presenceCount(new Date(t0.getTime() + 7 * 60_000))).toBe(0);
+  });
+
+  it('지금 보는 사람은 저장하지 않는다 — 다시 켜면 0이 맞다', () => {
+    const now = new Date('2026-08-08T05:00:00Z');
+    store.touchPresence('사람1', now);
+    store.flush();
+    expect(new KarmolabTraceStore(statePath).presenceCount(now)).toBe(0);
+  });
+});
+
+describe('이슈식 갤러리 — 번호와 상태', () => {
+  it('갤러리마다 1번부터 매긴다 — 다른 갤러리와 안 섞인다', () => {
+    const a = store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
+    const b = store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
+    const c = store.addPost({ board: 'qna', title: '다', text: '3', accountId: 'acc-1', handle: 'kim' });
+    expect([a.seq, b.seq, c.seq]).toEqual([1, 2, 1]);
+  });
+
+  it('글을 지워도 번호는 안 당겨 온다 — 어제 남긴 「#2 참고」가 다른 글을 가리키면 안 된다', () => {
+    store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
+    const second = store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
+    store.deletePost(second.id, 'acc-1', false);
+    const third = store.addPost({ board: 'free', title: '다', text: '3', accountId: 'acc-1', handle: 'kim' });
+    expect(third.seq).toBe(3);
+  });
+
+  it('번호가 없던 옛 글도 갤러리마다 1부터 받고, 오래된 글이 1번이다', () => {
+    fs.writeFileSync(
+      statePath,
+      JSON.stringify({
+        version: 1,
+        tools: {},
+        posts: [
+          { id: 'p3', board: 'free', text: '새 글', createdAt: '2026-08-03T00:00:00Z' },
+          { id: 'p2', board: 'free', text: '중간', createdAt: '2026-08-02T00:00:00Z' },
+          { id: 'p1', board: 'free', text: '옛 글', createdAt: '2026-08-01T00:00:00Z' },
+        ],
+      }),
+      'utf-8',
+    );
+    const reopened = new KarmolabTraceStore(statePath);
+    expect(reopened.post('p1')?.seq).toBe(1);
+    expect(reopened.post('p2')?.seq).toBe(2);
+    expect(reopened.post('p3')?.seq).toBe(3);
+  });
+
+  it('다시 켠 뒤에 쓴 글도 남의 번호를 다시 받지 않는다 — 카운터가 옛 글보다 뒤에 있으면 안 된다', () => {
+    store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
+    store.addPost({ board: 'free', title: '나', text: '2', accountId: 'acc-1', handle: 'kim' });
+    store.flush();
+    const reopened = new KarmolabTraceStore(statePath);
+    const next = reopened.addPost({ board: 'free', title: '다', text: '3', accountId: 'acc-1', handle: 'kim' });
+    expect(next.seq).toBe(3);
+  });
+
+  it('상태를 바꾸면 언제·누가가 남는다 — 없으면 닫힌 글이 사라진 글처럼 읽힌다', () => {
+    const post = store.addPost({ board: 'request', text: '엑셀 도구', accountId: 'acc-1', handle: 'kim' });
+    const at = new Date('2026-08-08T05:00:00Z');
+    store.updatePost(post.id, { status: 'done', statusNote: '만들었어요', by: 'owner' }, at);
+
+    const updated = store.post(post.id)!;
+    expect(updated.status).toBe('done');
+    expect(updated.statusNote).toBe('만들었어요');
+    expect(updated.statusBy).toBe('owner');
+    expect(updated.statusAt).toBe(at.toISOString());
+  });
+
+  it('같은 상태로 다시 바꿔도 시각을 새로 찍지 않는다 — 안 일어난 일이다', () => {
+    const post = store.addPost({ board: 'request', text: '요청', accountId: 'acc-1', handle: 'kim' });
+    store.updatePost(post.id, { status: 'done', by: 'owner' }, new Date('2026-08-08T05:00:00Z'));
+    store.updatePost(post.id, { status: 'done', by: 'other' }, new Date('2026-08-09T05:00:00Z'));
+    expect(store.post(post.id)?.statusAt).toBe('2026-08-08T05:00:00.000Z');
+    expect(store.post(post.id)?.statusBy).toBe('owner');
+  });
+
+  it('이슈식은 껐다 켜도 글이 안 다친다 — 보여줄지만 정하는 스위치다', () => {
+    const post = store.addPost({ board: 'free', title: '가', text: '1', accountId: 'acc-1', handle: 'kim' });
+    store.updatePost(post.id, { status: 'planned', by: 'owner' });
+    expect(store.setGalleryStyle('free', { issueStyle: true })?.issueStyle).toBe(true);
+    expect(store.setGalleryStyle('free', { issueStyle: false })?.issueStyle).toBe(false);
+    expect(store.post(post.id)?.status).toBe('planned');
+    expect(store.post(post.id)?.seq).toBe(1);
+  });
+
+  it('도구 요청판은 처음부터 이슈식이다 — 원래 「열림 → 만들어짐」으로 살아 왔다', () => {
+    expect(store.gallery('request')?.issueStyle).toBe(true);
+    expect(store.gallery('free')?.issueStyle).toBe(false);
+  });
+});
+
+describe('주간 결산', () => {
+  const now = new Date('2026-08-08T05:00:00Z');
+  const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
+
+  it('지난 7일과 그 전 7일을 나란히 준다 — 비교값 없는 수는 뜻이 없다', () => {
+    store.recordVisit('a', 'human', daysAgo(1));
+    store.recordVisit('b', 'human', daysAgo(2));
+    store.recordVisit('c', 'human', daysAgo(9));
+
+    const recap = store.weeklyRecap(now);
+    expect(recap.visits.now).toBe(2);
+    expect(recap.visits.before).toBe(1);
+  });
+
+  it('이번 주 많이 열린 도구 셋과, 지난주엔 없다가 이번 주 처음 열린 도구를 준다', () => {
+    store.recordToolOpen('charcount', 'v1', daysAgo(1));
+    store.recordToolOpen('charcount', 'v2', daysAgo(2));
+    store.recordToolOpen('qrgen', 'v1', daysAgo(3));
+    // 지난주에도 있었던 도구는 「새로」가 아니다
+    store.recordToolOpen('qrgen', 'v9', daysAgo(9));
+
+    const recap = store.weeklyRecap(now);
+    expect(recap.topTools[0]).toEqual({ toolId: 'charcount', opens: 2 });
+    expect(recap.newTools).toContain('charcount');
+    expect(recap.newTools).not.toContain('qrgen');
+  });
+
+  it('이번 주 글·답글 수와 가장 표를 많이 받은 글을 준다', () => {
+    const post = store.addPost({ board: 'request', text: '이번 주 요청', accountId: 'acc-1', handle: 'kim' });
+    store.toggleVote(post.id, 'acc-2');
+    store.addReply(post.id, { text: '좋아요', accountId: 'acc-2', handle: 'lee', byOwner: false });
+
+    const recap = store.weeklyRecap();
+    expect(recap.posts).toBe(1);
+    expect(recap.replies).toBe(1);
+    expect(recap.topPost?.votes).toBe(2);
+  });
+
+  it('아무 일도 없던 주에는 0 과 null 을 준다 — 지어내지 않는다', () => {
+    const recap = store.weeklyRecap(now);
+    expect(recap.visits.now).toBe(0);
+    expect(recap.topTools).toEqual([]);
+    expect(recap.topPost).toBeNull();
   });
 });
 
