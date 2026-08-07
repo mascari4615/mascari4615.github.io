@@ -7,6 +7,7 @@ import { 깨졌나, 깨진줄들 } from '../garbled';
 import { Backchannel } from '../backchannel';
 import { Face, expressionFrom, stripExpression } from '../expression';
 import { 평소 } from '../feeling';
+import { 모든뜸 } from '../filler';
 import { withTone, type Tone } from '../voice/feeling-tone';
 import type { Whisper } from '../sense/whisper';
 import type { Speech } from '../voice/edge-tts';
@@ -106,6 +107,19 @@ export function webBody(options: WebBodyOptions = {}): Body {
   let askedAt: number | null = null;
   const firstSound: number[] = [];
 
+  /**
+   * 만들어 둔 소리 — **같은 말을 두 번 만들지 않는다.**
+   *
+   * 뜸(기다리는 동안 내는 소리)은 몇 마디가 돌고 돈다. 그런데 흉내 낸 목소리는 소리를
+   * 만드는 데 1~2초가 걸리고 **한 번에 하나씩만** 만든다 — 그래서 뜸이 먼저 줄을 서면
+   * 진짜 대답이 그 뒤에서 기다린다. 기다림을 메우라고 만든 것이 기다림을 만들고 있었다
+   * (실측: 혼자 보내면 0.7초, 진짜 대답 중에는 4~6초).
+   *
+   * 짧은 말만 담는다. 긴 대답은 매번 다르므로 담아 봐야 안 맞고 자리만 먹는다.
+   */
+  const 만든소리 = new Map<string, { audio: Buffer; type: string }>();
+  const 소리캐시최대 = 60;
+
   function broadcast(event: Record<string, unknown>): void {
     const payload = `data: ${JSON.stringify(event)}\n\n`;
     for (const client of clients) {
@@ -115,6 +129,33 @@ export function webBody(options: WebBodyOptions = {}): Body {
         clients.delete(client);
       }
     }
+  }
+
+  /** 뜸으로 쓰일 말들을 미리 만들어 담아 둔다. 몇 마디뿐이라 금방 끝난다. */
+  /** 어떤 목소리로 뜸을 미리 만들어 뒀나. 목소리를 바꾸면 다시 만들어야 한다. */
+  const 뜸만든목소리 = new Set<string>();
+
+  async function 뜸미리만들기(목소리?: string): Promise<void> {
+    if (options.speech === undefined) return;
+    // **실제로 쓰는 목소리로 만들어야 한다.** 처음엔 「목소리 없음」으로 만들어 뒀는데,
+    // 창은 고른 목소리 이름을 붙여 보내므로 담아 둔 것과 열쇠가 안 맞아 **한 번도 안
+    // 맞았다**(실측: 그대로 10초). 담아 두기는 열쇠가 어긋나면 조용히 무용지물이 된다.
+    if (뜸만든목소리.has(목소리 ?? '')) return;
+    뜸만든목소리.add(목소리 ?? '');
+    let 만든수 = 0;
+    for (const 말 of 모든뜸()) {
+      const 열쇠 = `${목소리 ?? ''}|${말}`;
+      if (만든소리.has(열쇠)) continue;
+      try {
+        const audio = await options.speech.synthesize(말, 목소리);
+        const perVoice = (options.speech as { contentTypeFor?: (v?: string) => string }).contentTypeFor;
+        만든소리.set(열쇠, { audio, type: perVoice ? perVoice(목소리) : (options.speech.contentType ?? 'audio/mpeg') });
+        만든수 += 1;
+      } catch {
+        // 하나 못 만들어도 나머지는 만든다. 못 만든 건 그때 가서 만들면 된다.
+      }
+    }
+    if (만든수 > 0) log(`뜸 ${만든수}개를 미리 만들어 뒀다 (${목소리 ?? '기본 목소리'})`);
   }
 
   const sense: Sense = {
@@ -383,16 +424,31 @@ export function webBody(options: WebBodyOptions = {}): Body {
           const 만들기시작 = Date.now();
           // 지금 마음을 목소리 결로 얹는다. 브라우저는 결을 모른다 — 알 필요도 없다.
           const 목소리 = withTone(query.get('v') ?? undefined, options.tone?.() ?? null);
+
+          // 담아 둔 게 있으면 그대로 낸다. 만드는 줄에 아예 안 선다.
+          const 열쇠 = `${목소리 ?? ''}|${say}`;
+          const 담긴것 = say.length <= 30 ? 만든소리.get(열쇠) : undefined;
+          // 이 목소리로 아직 안 만들어 뒀으면 뒤에서 만들어 둔다 — 다음 뜸부터 즉시 난다.
+          void 뜸미리만들기(목소리);
+          if (담긴것 !== undefined) {
+            res.writeHead(200, { 'content-type': 담긴것.type, 'content-length': 담긴것.audio.length });
+            res.end(담긴것.audio);
+            return;
+          }
+
           void options.speech
             .synthesize(say, 목소리)
             .then((audio) => {
               log(`소리 만드는 데 ${((Date.now() - 만들기시작) / 1000).toFixed(1)}초`);
               const speech = options.speech;
               const perVoice = (speech as { contentTypeFor?: (v?: string) => string } | undefined)?.contentTypeFor;
-              res.writeHead(200, {
-                'content-type': perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg'),
-                'content-length': audio.length,
-              });
+              const type = perVoice ? perVoice(목소리) : (speech?.contentType ?? 'audio/mpeg');
+              if (say.length <= 30) {
+                // 오래된 것부터 버린다 — 최근에 쓴 말이 또 나올 확률이 높다.
+                if (만든소리.size >= 소리캐시최대) 만든소리.delete(만든소리.keys().next().value as string);
+                만든소리.set(열쇠, { audio, type });
+              }
+              res.writeHead(200, { 'content-type': type, 'content-length': audio.length });
               res.end(audio);
             })
             .catch((e) => {
@@ -547,6 +603,9 @@ export function webBody(options: WebBodyOptions = {}): Body {
       server.listen(port, () => {
         const url = `http://localhost:${port}`;
         log(`웹 몸 = ${url}`);
+      /* **뜸을 미리 만들어 둔다.** 이걸 안 해 두면 첫 대답이 뜸 뒤에서 기다린다 —
+         소리를 한 번에 하나씩만 만들기 때문이다. 조용히, 실패해도 그냥 넘어간다. */
+      void 뜸미리만들기();
         if (options.open) openBrowser(url);
       });
     },
