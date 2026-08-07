@@ -88,7 +88,13 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     };
 
     Mdd.injectCSS('community', `
-        .c-wrap { display:flex; flex-direction:column; }
+        /* 커뮤니티는 **글을 읽는 곳**이다. 넓은 화면(wide)은 판이 없어서 첫 화면의 관측실 무늬가
+           글 뒤로 그대로 비쳤다 — 예쁘긴 해도 글이 안 읽힌다. 그래서 제 바탕을 깐다.
+           안쪽 카드(글·작성기)는 한 겹 더 밝은 색이라 층이 구분된다. */
+        .c-wrap { display:flex; flex-direction:column; position:relative;
+            max-width:860px; margin:0 auto; padding:22px 24px 30px;
+            background:var(--bg-primary); border:1px solid var(--border); border-radius:var(--radius-lg); }
+        @media (max-width: 620px) { .c-wrap { padding:16px 14px 22px; border-radius:0; border-left:0; border-right:0; } }
         .c-head { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
         .c-head h2 { margin:0; font-size:22px; color:var(--text-primary); }
         .c-head span { font-size:var(--font-size-xs); color:var(--text-secondary); }
