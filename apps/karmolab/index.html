@@ -96,7 +96,14 @@ permalink: /karmolab/
      var idle=window.requestIdleCallback||function(f){setTimeout(f,200);};
      if(document.readyState==="complete")idle(go);else addEventListener("load",function(){idle(go);});})();</script>
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/fonts.css"></noscript>
-    <link rel="stylesheet" href="/apps/karmolab/css/toolbox.css">
+    <!-- 셸 스타일을 두 벌로 나눠 받는다 (TASK-KL-128 ④-b).
+         한 장(101KB)이 통째로 화면 그리기를 막고 있었는데, 재 보니 그 안에 **눌러야/골라야
+         나타나는 것**이 23.7KB 섞여 있었다 — 명령 팔레트(목록·도구 화면에서 쓰임 0%),
+         첫 화면 큰 소개, 옆줄 차림. 글이 나오기를 그것들이 막을 이유가 없다.
+         나누는 곳 = `scripts/split-css.mjs` (정본은 여전히 `css/toolbox.css` 한 장이다). -->
+    <link rel="stylesheet" href="/apps/karmolab/css/shell-critical.css">
+    <link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css" media="print" onload="this.media=&#39;all&#39;">
+    <noscript><link rel="stylesheet" href="/apps/karmolab/css/shell-deferred.css"></noscript>
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css">
     <link id="prism-css" rel="stylesheet" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">

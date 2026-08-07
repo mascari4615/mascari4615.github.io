@@ -85,3 +85,8 @@ Thumbs.db
 
 # 폰 점검 스크린샷 (scripts/shoot-mobile.mjs) — 로컬 산출물
 apps/karmolab/.mobile-shots/
+
+# KarmoLab 셸 스타일 두 벌 — `scripts/split-css.mjs` 가 `css/toolbox.css` 에서 뽑는다 (TASK-KL-128).
+# 정본은 toolbox.css 한 장이므로 뽑은 것은 담지 않는다.
+apps/karmolab/css/shell-critical.css
+apps/karmolab/css/shell-deferred.css
