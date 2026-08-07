@@ -500,7 +500,7 @@ function courseDay(d = new Date()) {
  * 코스가 **셀 줄 아는** 놀이. 놀이터 목록에는 이보다 더 들어온다 — 읽는 법이 없는 놀이를
  * 코스에 넣으면 영영 안 끝나는 칸이 되어 완주가 불가능해진다. (KarmoLab 쪽 play-course 와 같은 규칙.)
  */
-const COURSE_COUNTED = ['daily', 'higher', 'quest'];
+const COURSE_COUNTED = ['daily', 'higher', 'quest', 'twenty'];
 
 /** 그 놀이를 오늘 끝냈나 — 각 놀이가 남긴 것만 읽는다(새 판정 기준 없음). */
 function courseDone(id) {
@@ -516,6 +516,10 @@ function courseDone(id) {
     if (id === 'higher') {
       const h = read('karmolab_higher_day', null);
       return !!h && h.day === courseDay() && (h.rounds || 0) > 0;
+    }
+    if (id === 'twenty') {
+      const t = read('karmolab_twenty_day', null);
+      return !!t && t.day === courseDay() && (t.rounds || 0) > 0;
     }
   } catch { /* 사생활 모드 */ }
   return false;
