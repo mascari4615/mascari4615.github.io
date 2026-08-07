@@ -70,6 +70,61 @@ const Toolbox = (() => {
         return t ? { category: t.category, desc: t.desc, hidden: t.hidden, desktopOnly: !!t.desktopOnly } : null;
     }
     const LAST_PAGE_KEY = 'toolbox_last_page';
+
+    /* ── 내가 고른 도구 (TASK-KL-129) ────────────────────────────
+     * 별 하나가 네 곳을 같이 바꾼다: 도구 목록 · 찾는 창 · 옆줄 · 도구 화면.
+     * 저장하는 자리는 하나뿐이라 어디서 꽂든 같은 것을 가리킨다. */
+    const PINNED_KEY = 'toolbox_pinned_tools';
+    /** 옆줄의 「내 것」 칸을 다시 그리는 손잡이 — 옆줄이 만들어질 때 채워진다. */
+    let rebuildMineGroup = null;
+
+    function getPins() {
+        try {
+            const raw = localStorage.getItem(PINNED_KEY);
+            const arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr.filter(x => typeof x === 'string') : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function isPinned(id) {
+        return getPins().indexOf(id) >= 0;
+    }
+
+    /** 꽂거나 뺀다. 화면에 있는 별·옆줄·찾는 창을 그 자리에서 맞춘다. */
+    function togglePin(id) {
+        const next = getPins().filter(x => x !== id);
+        const on = next.length === getPins().length;   // 없던 것이면 켜는 것
+        if (on) next.push(id);
+        try { localStorage.setItem(PINNED_KEY, JSON.stringify(next)); } catch (_) { /* 저장이 막혀도 화면은 돈다 */ }
+        paintPinStars();
+        rebuildMineGroup?.();
+        window.KarmoPalette?.refresh();
+        return on;
+    }
+
+    function paintPinStars() {
+        document.querySelectorAll('.tool-pin-star').forEach(btn => {
+            const on = isPinned(btn.dataset.tool);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.title = on ? '내 것에서 빼기' : '내 것으로 두기';
+            btn.setAttribute('aria-label', btn.title);
+        });
+    }
+
+    /** 도구 화면의 별 — 쓰던 자리에서 바로 꽂는다 (목록까지 안 가도 되게). */
+    function mountPinStar(host, toolId) {
+        if (!host || host.querySelector('.tool-pin-star')) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tool-pin-star';
+        btn.dataset.tool = toolId;
+        btn.textContent = '★';
+        btn.onclick = () => togglePin(toolId);
+        host.appendChild(btn);
+        paintPinStars();
+    }
     /** 현재 열린 도구 id — 복사·사용 계측이 어느 도구인지 알기 위해 (TASK-KL-088) */
     let currentPageId = 'home';
     const NAV_LAYOUT_KEY = 'toolbox_nav_layout';
@@ -922,19 +977,23 @@ const Toolbox = (() => {
              * 분류로만 접혀 있었다 — 늘 쓰는 두세 개를 열려면 매번 그 분류를 펼쳐야 했다.
              * 목록 페이지에서 별로 꽂아 둔 것이 있으면 맨 위에 편다.
              * 하나도 없으면 이 칸은 아예 안 생긴다 — 빈 상자를 두지 않는다. */
-            {
-                let pinnedIds = [];
-                try {
-                    const raw = localStorage.getItem('toolbox_pinned_tools');
-                    const arr = raw ? JSON.parse(raw) : [];
-                    if (Array.isArray(arr)) pinnedIds = arr.filter(x => typeof x === 'string');
-                } catch (_) { /* 못 읽으면 없는 것으로 본다 */ }
+            rebuildMineGroup = () => {
                 // 순서는 사람이 꽂은 순서 그대로 — 가나다순으로 다시 세우면 「내가 놓은 자리」가 사라진다.
-                const pinned = pinnedIds
+                const pinned = getPins()
                     .map(id => tools.find(t => t.id === id))
                     .filter(t => !!t && (!isDesktopOnlyTool(t) || isDesktopApp()));
+                const old = sidebarNavEl.querySelector('[data-group="mine"]');
+                if (old) old.remove();
+                if (!pinned.length) return;
                 buildSidebarGroup('mine', '내 것', pinned);
-            }
+                // 새로 만든 칸은 맨 위로 — 별을 꽂자마자 그 자리에 보여야 한다.
+                const made = sidebarNavEl.lastElementChild;
+                if (made) {
+                    made.dataset.group = 'mine';
+                    sidebarNavEl.prepend(made);
+                }
+            };
+            rebuildMineGroup();
 
             CATEGORIES.forEach(cat => {
                 const catTools = tools
@@ -959,9 +1018,17 @@ const Toolbox = (() => {
 
         // Build tool pages (가나다순)
         const sortedTools = [...tools].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
+        /* 도구 화면은 **열 때 만든다** (TASK-KL-128 런타임).
+         *
+         * 예전에는 부팅할 때 도구 168개의 화면을 전부 만들어 붙였다. 그중 보이는 것은 하나다.
+         * 재 보니 첫 화면의 DOM 이 3674개였고 그중 2509개가 안 보이는 것이었다 — 도구 화면
+         * 껍데기(제목·설명·탭·패널)가 대부분이다. 브라우저는 안 보이는 것도 스타일을 계산하고
+         * 자리를 잡는다. 느린 기기에서 주 스레드가 잡힌 시간의 대부분이 여기(브라우저 내부 일)였다.
+         *
+         * 지금은 `switchPage` 가 그 화면이 없으면 그때 만든다. 만드는 값은 같고, **한 번에
+         * 하나만** 만든다. 옆줄 항목은 그대로 만든다 — 그건 실제로 보이는 것이다. */
         sortedTools.forEach(tool => {
             if (!hiddenSet.has(tool.id) && (!isDesktopOnlyTool(tool) || isDesktopApp())) addMobileNavItem(tool);
-            if (!staticBody && (!isDesktopOnlyTool(tool) || isDesktopApp())) toolPages.appendChild(buildToolPage(tool));
         });
 
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
@@ -1003,6 +1070,10 @@ const Toolbox = (() => {
             : (hashPage && isValidPage(hashPage))
                 ? hashPage
                 : (lastPage && isValidPage(lastPage) ? lastPage : 'home');
+
+        /* 도구 상세 페이지에는 제목이 **서버에서 미리 박혀** 있고 앱 히어로는 접혀 있다.
+         * 별을 히어로에만 달면 그 127장에서는 꽂을 길이 없다 — 거기에도 단다. */
+        if (entryTool) mountPinStar(document.querySelector('.tool-head'), entryTool);
 
         switchPage(initialPage, { pushHistory: false });
         if (!entryTool) {
@@ -1670,6 +1741,9 @@ const Toolbox = (() => {
         if (pushHistory) {
             history.pushState({ pageId }, '', urlWithHash);
         }
+        /* 이 화면이 아직 없으면 지금 만든다 (TASK-KL-128 런타임 — 부팅 때 전부 안 만든다). */
+        ensureToolPage(pageId);
+
         const landing = document.getElementById('page-home');
         const allPages = document.querySelectorAll('.tool-page');
         const allNav = document.querySelectorAll('.nav-item');
@@ -1779,6 +1853,26 @@ const Toolbox = (() => {
 
     /* ===== Page Builder ===== */
 
+    /**
+     * 그 도구의 화면이 DOM 에 없으면 만들어 붙인다 (TASK-KL-128 런타임).
+     *
+     * 부팅 때 전부 만들지 않으므로, **여는 길이라면 어디로 오든** 여기를 지나야 한다.
+     * 지금 그 길은 `switchPage` 하나다 (팔레트·메뉴·주소·즐겨찾기 전부 그리로 온다).
+     */
+    function ensureToolPage(pageId) {
+        if (!pageId || pageId === 'home') return null;
+        const host = document.getElementById('tool-pages');
+        if (!host) return null;
+        const existing = document.getElementById('page-' + pageId);
+        if (existing) return existing;
+        const tool = tools.find(t => t.id === pageId);
+        if (!tool || !tool.tabs) return null;
+        if (isDesktopOnlyTool(tool) && !isDesktopApp()) return null;
+        const built = buildToolPage(tool);
+        host.appendChild(built);
+        return built;
+    }
+
     function buildToolPage(tool) {
         const div = document.createElement('div');
         div.className = 'tool-page';
@@ -1794,6 +1888,7 @@ const Toolbox = (() => {
                 `<p class="tool-page-hero-count" data-count-for="${escapeHtml(tool.id)}"></p>`;
             div.appendChild(hero);
             fillToolCount(hero.querySelector('[data-count-for]'), tool.id);
+            mountPinStar(hero, tool.id);
         }
 
         let panelsHost: HTMLElement = div;
