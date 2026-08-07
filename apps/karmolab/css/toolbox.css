@@ -1498,11 +1498,12 @@ body:has(#page-home.active) .mdd-container .mdd-char {
    TOOL PAGES
    ═══════════════════════════════════════ */
 
+/* 도구 화면의 머리는 **작아야 한다** (TASK-KL-133).
+   제목·설명·횟수가 첫 화면의 4분의 1을 먹고 있었다. 도구를 쓰러 온 사람에게 첫 화면은
+   「입력칸이 어디냐」이지 「이 도구 이름이 무엇이냐」가 아니다 — 이름은 이미 알고 눌러서 왔다.
+   그래서 브랜드 제목(첫 화면)과 달리 여기서는 크기를 줄이고 여백을 좁힌다. */
 .tool-page-hero {
     text-align: center;
-    /* 도구 화면의 머리는 **작아야 한다** (TASK-KL-133). 제목·설명·횟수가 첫 화면의 4분의 1을
-       먹고 있었다. 도구를 쓰러 온 사람의 첫 물음은 「입력칸이 어디냐」다 — 이름은 이미 알고
-       눌러서 왔다. 그래서 브랜드 제목(첫 화면)과 달리 여기서는 줄인다. */
     padding: var(--space-md) 0 var(--space-sm);
     margin-bottom: var(--space-md);
     border-bottom: 1px solid var(--border);
@@ -1515,6 +1516,20 @@ body:has(#page-home.active) .mdd-container .mdd-char {
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
+/* 도구를 다 쓴 사람에게 다음 자리 (TASK-KL-098). 도구 상세는 검색으로 들어오는 정문인데
+   거기서 사이트의 나머지로 가는 길이 하나도 없었다. 맨 아래에만 둔다 — 위는 도구의 자리다. */
+.tool-page-next { margin: var(--space-xl) 0 var(--space-md); padding-top: var(--space-md);
+    border-top: 1px solid var(--border); }
+.tool-page-next-head { font-size: 11px; font-weight: 700; color: var(--text-tertiary); margin-bottom: 10px; }
+.tool-page-next-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.tool-page-next-link { flex: 1 1 200px; display: flex; flex-direction: column; gap: 3px;
+    padding: 12px 14px; text-align: left; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg-secondary); color: inherit; text-decoration: none; cursor: pointer; font: inherit;
+    transition: border-color var(--transition), background var(--transition); }
+.tool-page-next-link:hover { border-color: var(--accent); background: var(--bg-tertiary); }
+.tool-page-next-link b { font-size: var(--font-size-sm); color: var(--text-primary); }
+.tool-page-next-link span { font-size: 11px; color: var(--text-tertiary); }
+
 /* 도구 이름 밑의 「지금까지 N번 열렸어요」 (TASK-KL-098).
    아직 아무도 안 연 도구에는 글자가 안 들어가므로, 그때는 자리도 없어야 한다. */
 .tool-page-hero-count { margin: 6px 0 0; font-size: 11px; color: var(--text-tertiary); }
@@ -1687,9 +1702,9 @@ body:has(#page-home.active) .mdd-container .mdd-char {
    FORMS
    ═══════════════════════════════════════ */
 
+/* 항목 하나에 카드 하나 + 큰 여백이라 세로가 한없이 길어졌다 — QR 만들기는 결과가
+   첫 화면 밖으로 밀려나 있었다. 카드는 유지하되 숨 쉬는 정도만 남긴다 (TASK-KL-133). */
 .field-group {
-    /* 항목 하나에 카드 하나 + 큰 여백이라 세로가 한없이 길어졌다 — QR 만들기는 결과가
-       첫 화면 밖으로 밀려나 있었다. 카드는 두되 숨 쉬는 정도만 (TASK-KL-133). */
     margin-bottom: var(--space-sm);
     padding: 12px 14px;
     background: var(--bg-tertiary);
@@ -1795,6 +1810,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer;
 .btn:disabled:active { transform: none; }
 
 .btn-primary {
+    /* 폭은 **도구가 정한다.** 공통에서 좁혀 봤더니(2026-08-08 실측) 어떤 도구는 나아지고
+       어떤 도구는 실행 단추가 곁들이 단추들과 한 줄에 뒤섞여 되레 나빠졌다 — 배치는 도구마다
+       다르므로 여기서 일괄로 정할 일이 아니다 (TASK-KL-133). */
     width: 100%;
     /* 누르는 것에만 크롬감 (TASK-KL-097) — 넓은 면은 그대로 종이로 둔다 */
     background: var(--chrome-grad);

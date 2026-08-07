@@ -131,6 +131,17 @@
         .user-act-title { flex:1; min-width:0; font-size:var(--font-size-xs); color:var(--text-primary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .user-act-meta { flex:0 0 auto; font-size:11px; color:var(--text-tertiary); }
+        .user-acct { display:flex; flex-direction:column; gap:14px; margin-top:16px; padding:16px;
+            border:1px solid var(--border); border-radius:var(--radius-lg); background:var(--bg-secondary); }
+        .user-acct-row { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+        .user-acct-label { flex:0 0 110px; font-size:var(--font-size-xs); color:var(--text-secondary); font-weight:600; }
+        .user-acct-value { font-size:var(--font-size-xs); color:var(--text-primary); }
+        .user-acct-row input { flex:1 1 160px; min-width:0; }
+        .user-acct-hint { flex:1 1 100%; font-size:11px; color:var(--text-tertiary); line-height:1.55; }
+        .user-acct-danger { border-top:1px solid var(--border); padding-top:14px; }
+        .user-account-btn-danger { background:transparent; color:#dc2626; border-color:rgba(220,38,38,.45); }
+        html[data-theme="dark"] .user-account-btn-danger { color:#fca5a5; border-color:rgba(252,165,165,.45); }
+        .user-account-btn-danger:hover { background:rgba(220,38,38,.12); }
         .user-act-more { display:inline-block; margin-top:10px; font-size:var(--font-size-xs); color:var(--accent); }
     `);
 
@@ -301,6 +312,119 @@
             slot.querySelector('#userSignOutBtn')?.addEventListener('click', () => {
                 void account.signOut();
             });
+            mountAccountTools(slot, me.displayName);
+        });
+    }
+
+    /**
+     * 계정을 **내 것으로** 다루는 자리 (TASK-KL-098).
+     *
+     * 지금까지 할 수 있는 일이 로그아웃 하나였다. 이름은 디스코드에서 온 것으로 고정이고,
+     * 내 기록을 가지고 나갈 방법도, 그만두는 방법도 없었다. 「기록이 남는다」는 약속은
+     * **가지고 나갈 수 있고 지울 수 있을 때** 비로소 약속이 된다 — 못 가지고 나가는 기록은
+     * 맡긴 것이 아니라 잡힌 것이다.
+     */
+    function mountAccountTools(slot: Element, displayName: string): void {
+        const base = window.KarmoAccount?.apiBase;
+        if (!base) return;
+
+        const box = document.createElement('div');
+        box.className = 'user-acct';
+        box.innerHTML = `
+            <form class="user-acct-row" data-name-form>
+                <label class="user-acct-label" for="userDisplayName">보이는 이름</label>
+                <input id="userDisplayName" type="text" maxlength="24" value="${escapeHtml(displayName)}"
+                    data-name-input aria-label="보이는 이름">
+                <button type="submit" class="user-account-btn user-account-btn-quiet">바꾸기</button>
+                <span class="user-acct-hint">주소(@아이디)는 그대로입니다 — 남이 걸어 둔 링크가 깨지지 않게.</span>
+            </form>
+            <div class="user-acct-row">
+                <span class="user-acct-label">로그인 중인 기기</span>
+                <span class="user-acct-value" data-sessions>세는 중…</span>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-revoke>다른 기기 전부 로그아웃</button>
+            </div>
+            <div class="user-acct-row">
+                <span class="user-acct-label">내 것 내려받기</span>
+                <a class="user-account-btn user-account-btn-quiet" href="${base}/kl/me/export" download>JSON 으로</a>
+                <span class="user-acct-hint">계정 · 도전과제 · 연속기록 · 커뮤니티에 남긴 것 전부.</span>
+            </div>
+            <div class="user-acct-row user-acct-danger">
+                <span class="user-acct-label">계정 지우기</span>
+                <button type="button" class="user-account-btn user-account-btn-danger" data-delete>지우기</button>
+                <span class="user-acct-hint">되돌릴 수 없습니다. 이미 남긴 글은 남고 <b>글쓴이 이름만 지워집니다</b> —
+                    답글이 달린 글을 통째로 지우면 남의 답글이 뜻을 잃기 때문입니다.</span>
+            </div>`;
+        slot.appendChild(box);
+
+        const sessionSlot = box.querySelector('[data-sessions]');
+        void (async () => {
+            try {
+                const res = await fetch(`${base}/kl/me/sessions`, { credentials: 'include' });
+                if (!res.ok || !sessionSlot) return;
+                const body = (await res.json()) as { sessions?: unknown[] };
+                const count = Array.isArray(body.sessions) ? body.sessions.length : 0;
+                sessionSlot.textContent = count > 1 ? `${count}곳` : '이 기기 하나';
+            } catch {
+                if (sessionSlot) sessionSlot.textContent = '지금은 못 셌어요';
+            }
+        })();
+
+        box.querySelector<HTMLFormElement>('[data-name-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const value = box.querySelector<HTMLInputElement>('[data-name-input]')?.value ?? '';
+            try {
+                const res = await fetch(`${base}/kl/me`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName: value }),
+                });
+                Toolbox.showToast?.(res.ok ? '이름을 바꿨어요' : '이름을 못 바꿨어요');
+                if (res.ok) location.reload();
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+
+        box.querySelector('[data-revoke]')?.addEventListener('click', async () => {
+            if (!confirm('이 기기만 남기고 다른 곳의 로그인을 전부 끊을까요?')) return;
+            try {
+                const res = await fetch(`${base}/kl/me/sessions/revoke-others`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                const body = (await res.json()) as { revoked?: number };
+                Toolbox.showToast?.(res.ok ? `${body.revoked ?? 0}곳을 끊었어요` : '지금은 안 되네요');
+                if (sessionSlot) sessionSlot.textContent = '이 기기 하나';
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+
+        box.querySelector('[data-delete]')?.addEventListener('click', async () => {
+            // 되돌릴 수 없는 일은 **무엇이 사라지고 무엇이 남는지** 먼저 말한 뒤에 묻는다.
+            const ok = confirm(
+                [
+                    '계정을 지웁니다. 되돌릴 수 없습니다.',
+                    '',
+                    '· 계정 · 도전과제 · 연속기록 · 로그인 → 사라집니다',
+                    '· 이미 남긴 글과 답글 → 남습니다 (글쓴이 이름만 지워집니다)',
+                    '',
+                    '내려받기를 먼저 하시는 편이 좋습니다. 계속할까요?',
+                ].join('\n'),
+            );
+            if (!ok) return;
+            try {
+                const res = await fetch(`${base}/kl/me`, { method: 'DELETE', credentials: 'include' });
+                if (!res.ok) {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                    return;
+                }
+                alert('지웠습니다. 그동안 고마웠습니다.');
+                location.reload();
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
         });
     }
 
