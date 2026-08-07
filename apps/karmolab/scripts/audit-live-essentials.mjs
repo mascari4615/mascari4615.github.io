@@ -46,9 +46,7 @@ const WANT = [
   ['로그인·기록 스크립트', '/karmolab/', /js\/account\.js/, '로그인·헤더·광장이 통째로 죽는다 (한 번 그랬다)'],
   ['그 스크립트가 실제로 받아진다', '/apps/karmolab/js/account.js', /KarmoAccount/, '부르기는 하는데 파일이 안 만들어져 404 다'],
   ['광장 입구', '/karmolab/', /Toolbox\.switchPage\('plaza'\)/, '이야기·도구 요청으로 가는 길이 없어진다'],
-  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다'],
-  ['커뮤니티', '/karmolab/c/', /id="communityRoot"/, '이야기·도구 요청이 통째로 사라진다'],
-  ['커뮤니티 스크립트', '/apps/karmolab/js/community.js', /communityRoot/, '목록이 「불러오는 중…」에서 멈췄다']
+  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다']
 ];
 
 for (const [what, where, re, hurt] of WANT) {

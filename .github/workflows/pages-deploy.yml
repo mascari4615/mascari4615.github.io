@@ -120,9 +120,6 @@ jobs:
           #   없어지면 프로필 주소가 404 가 된다 (배포 뒤 audit-live-essentials 가 잡는다).
           mkdir -p apps/blog/karmolab/u
           cp apps/karmolab/u/index.html apps/blog/karmolab/u/index.html
-          # TASK-KL-098: 커뮤니티(/karmolab/c/) — 이야기·도구 요청. 위젯이 아니라 제 페이지다.
-          mkdir -p apps/blog/karmolab/c
-          cp apps/karmolab/c/index.html apps/blog/karmolab/c/index.html
 
       # TASK-KAR-202: 「오늘의 하나 맞히기」(/daily/) — 의존성 0, 번들러 0.
       # 규칙 시험이 먼저 돌고(npm test), 통과해야 페이지가 나온다.
