@@ -216,7 +216,10 @@ await pastPage('genshin');
   const past = answerOf(topic, yesterday);
   const today = answerOf(topic);
 
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 840 } });
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 840 },
+    permissions: ['clipboard-read', 'clipboard-write'],
+  });
   const page = await ctx.newPage();
   await page.goto(`${base}/pokemon/?d=${dayKey}`, { waitUntil: 'networkidle' });
   check('연습 판임을 알려 준다', /연습/.test(await page.locator('.tabs').innerText()));
@@ -241,6 +244,14 @@ await pastPage('genshin');
     .toISOString()
     .slice(0, 10);
   check('연습이 그 전날로 이어진다', chain?.endsWith(before), `${chain} (기대 …${before})`);
+
+  // 연습 결과를 올려도 오늘 것처럼 보이면 안 된다 — 실제로 복사해서 날짜가 들어갔는지 본다.
+  await page.evaluate(() => {
+    delete navigator.share; // 공유창이 있으면 클립보드로 안 간다
+  });
+  await page.click('.done .btn');
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  check('연습 결과에 날짜가 박힌다', copied.includes(dayKey), copied.split('\n')[0]);
 
   // ★ 오늘·미래 날짜로는 연습이 안 열려야 한다 (열리면 오늘 답이 샌다).
   const todayKey = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
