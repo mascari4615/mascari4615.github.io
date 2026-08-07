@@ -57,10 +57,31 @@ export interface EpisodeStoreOptions {
   keep?: number;
   /** 이 점수 아래는 사건으로 안 센다. */
   문턱?: number;
+  /**
+   * 낱말 표가 놓친 말을 **두뇌에게 물어본다.** 0~9 를 말 개수만큼 돌려줘야 한다.
+   *
+   * 없으면 낱말 표만 쓴다 — 그때는 그때대로 돌아가되, 놓치는 게 많다는 걸 알고 쓰는 것이다.
+   */
+  물어보기?: (말들: readonly string[]) => Promise<readonly number[] | null>;
+  log?: (message: string) => void;
+}
+
+/**
+ * 두뇌에게 물어볼 만한 말인가 — **아무거나 물으면 그게 값이다.**
+ *
+ * 「응」 「ㅇㅇ」 같은 건 물어볼 것도 없고, 얘한테 시키는 말(「짧게 설명해줘」)도 사건이
+ * 아니다. 실제 기록을 보니 사람 말 197개 중 113개가 낱말 세 개도 안 됐다.
+ */
+function 물어볼만한가(text: string): boolean {
+  const 말 = text.trim();
+  if (말.length < 8) return false;
+  return (말.toLowerCase().match(/[가-힣a-z0-9]{2,}/g) ?? []).length >= 3;
 }
 
 export class EpisodeStore {
   private 목록: Episode[] = [];
+  /** 낱말 표가 못 잡아서 두뇌에게 물어볼 말들 (말 → 그때 시각). */
+  private readonly 물어볼것 = new Map<string, number>();
   private readonly options: Required<Pick<EpisodeStoreOptions, 'keep' | '문턱'>> & EpisodeStoreOptions;
 
   constructor(options: EpisodeStoreOptions = {}) {
@@ -89,13 +110,32 @@ export class EpisodeStore {
     let 담은수 = 0;
     for (const e of entries) {
       if (e.role !== 'sensed' || e.channel !== 'web') continue;
+      if (this.있나(e.text)) continue;
       const 기운 = 기운재기(e.text);
-      if (기운 < this.options.문턱) continue;
-      if (this.목록.some((있던것) => 있던것.said === e.text.trim())) continue;
-      this.목록.push({ said: e.text.trim(), at: e.at, 기운 });
+      if (기운 < this.options.문턱) {
+        // 낱말 표가 못 잡았다고 사건이 아닌 건 아니다 — 나중에 두뇌에게 물어본다.
+        if (물어볼만한가(e.text)) this.물어볼것.set(e.text.trim(), e.at);
+        continue;
+      }
+      this.담기({ said: e.text.trim(), at: e.at, 기운 });
       담은수 += 1;
     }
     if (담은수 === 0) return 0;
+    this.정리();
+    return 담은수;
+  }
+
+  /** 이 말이 이미 사건으로 들어와 있나. */
+  private 있나(text: string): boolean {
+    const 말 = text.trim();
+    return this.목록.some((있던것) => 있던것.said === 말);
+  }
+
+  private 담기(e: Episode): void {
+    this.목록.push(e);
+  }
+
+  private 정리(): void {
     // 자리가 모자라면 **기운이 약한 것부터** 버린다. 오래됐다고 버리면 정작 큰일이
     // 먼저 사라진다 — 사람은 오래된 큰일을 더 오래 기억한다.
     if (this.목록.length > this.options.keep) {
@@ -104,6 +144,48 @@ export class EpisodeStore {
     }
     this.목록.sort((a, b) => a.at - b.at);
     this.save();
+  }
+
+  /** 두뇌에게 물어볼 것이 몇 개 밀려 있나. */
+  get 밀린것(): number {
+    return this.물어볼것.size;
+  }
+
+  /**
+   * 낱말 표가 놓친 말을 **두뇌에게 물어본다.**
+   *
+   * 대답을 기다리느라 답이 늦어지면 안 되므로 **말하는 길에서 부르지 않는다** — 한 turn 이
+   * 끝난 뒤에 따로 부른다. 실패하면 조용히 넘어가지 않고 적는다.
+   */
+  async 되새기기(한번에 = 8): Promise<number> {
+    const 물어보기 = this.options.물어보기;
+    if (물어보기 === undefined || this.물어볼것.size === 0) return 0;
+
+    const 뭉치 = [...this.물어볼것.entries()].slice(0, 한번에);
+    for (const [말] of 뭉치) this.물어볼것.delete(말); // 실패해도 같은 걸 무한히 다시 묻지 않는다
+    let 점수들: readonly number[] | null = null;
+    try {
+      점수들 = await 물어보기(뭉치.map(([말]) => 말));
+    } catch (err) {
+      this.options.log?.(`되새기다 실패 — ${(err as Error)?.message ?? err}`);
+      return 0;
+    }
+    if (점수들 === null || 점수들.length !== 뭉치.length) {
+      this.options.log?.(`되새김 대답이 안 맞는다 — ${뭉치.length}개 물었는데 ${점수들?.length ?? '없음'}개 왔다`);
+      return 0;
+    }
+
+    let 담은수 = 0;
+    뭉치.forEach(([말, at], i) => {
+      const 기운 = Math.round(점수들![i]);
+      if (Number.isFinite(기운) === false || 기운 < this.options.문턱 || this.있나(말)) return;
+      this.담기({ said: 말, at, 기운 });
+      담은수 += 1;
+    });
+    if (담은수 > 0) {
+      this.정리();
+      this.options.log?.(`${뭉치.length}개 중 ${담은수}개를 사건으로 담았다`);
+    }
     return 담은수;
   }
 
@@ -185,6 +267,42 @@ export function 떠오름점수(e: Episode, 지금낱말수: number, 겹침: num
   const 지난날 = Math.max(0, (now - e.at) / (24 * 60 * 60_000));
   const 최근 = 0.5 ** (지난날 / 반감기);
   return 0.5 * 이어짐 + 0.35 * 큰일 + 0.15 * 최근;
+}
+
+/**
+ * 두뇌에게 「이거 기억할 만한 일이야?」를 묻는 자리.
+ *
+ * **낱말 표로는 안 된다는 걸 재서 알았다.** 실제 기록에서 사람 말 197개가 오갔는데 사건으로
+ * 담긴 건 **둘**이었다. 「오늘 회의가 길어서 좀 지쳤어」 「엄마랑 좀 다퉜어」 「발표 준비
+ * 하나도 못 했는데 내일이야」 — 전부 0점이었다. 표에 든 낱말이 하나도 안 들어 있어서다.
+ * 표를 늘려도 다음 말에서 또 놓친다. 사람 말은 표에 안 담긴다.
+ *
+ * 레퍼런스(Generative Agents)가 여기서 하는 건 **두뇌에게 점수를 물어보는 것**이다. 우리도
+ * 두뇌가 이미 있으니 물어본다. 다만 **말하는 길에서는 안 부른다** — 답이 늦어지면 그게 더
+ * 큰 손해다. 한 turn 끝나고 따로 부른다.
+ */
+export function 기운묻기(ask: (prompt: string) => Promise<string | null>) {
+  return async (말들: readonly string[]): Promise<readonly number[] | null> => {
+    if (말들.length === 0) return [];
+    const 목록 = 말들.map((말, i) => `${i + 1}. ${말.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
+    const 답 = await ask(
+      '아래는 사람이 한 말들이다. 각각이 **나중에 다시 꺼낼 만한 일**인지 0~9 로 매겨라.\n' +
+        '0 = 그냥 지나가는 말 · 3 = 기억해 둘 만함 · 7 이상 = 오래 남을 일(크게 기뻤거나 힘들었거나 큰 변화).\n' +
+        '지시·부탁·질문은 사건이 아니다 — 0 이다.\n' +
+        `숫자만 줄바꿈으로 ${말들.length}개, 다른 말은 붙이지 마라.\n\n${목록}`,
+    );
+    if (답 === null) return null;
+    /* **줄마다 마지막 숫자**를 본다. 통째로 숫자를 긁으면 두뇌가 「1. 5」처럼 번호를 붙여
+       답할 때 그 번호까지 점수로 센다 — 세 개 물었는데 [1,5,2] 가 나왔다(실측). */
+    const 숫자 = 답
+      .split('\n')
+      .map((줄) => (줄.match(/\d+/g) ?? []).pop())
+      .filter((n): n is string => n !== undefined)
+      .map(Number)
+      .slice(0, 말들.length);
+    // 개수가 안 맞으면 **억지로 맞추지 않는다** — 어긋난 채 담으면 엉뚱한 말이 큰일이 된다.
+    return 숫자.length === 말들.length ? 숫자 : null;
+  };
 }
 
 /** 얼마나 지난 일인지 사람이 쓰는 말로. */

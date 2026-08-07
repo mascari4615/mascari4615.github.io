@@ -20,6 +20,7 @@ import {
   clonedSpeech,
   EpisodeStore,
   episodeNote,
+  기운묻기,
   KnownStamps,
   말걸어도되나,
   자리결,
@@ -228,7 +229,14 @@ const memory =
    목록 자체에 날짜를 섞어 적으면 다음에 졸일 때 그 날짜까지 재료가 되어 굳는다. */
 /* 감정이 실린 순간만 따로 남긴다 — 졸인 사실 목록에서는 사건이 통째로 사라진다.
    「지난주에 발표 망했다고 속상해했다」가 「발표를 했다」로 줄거나 아예 빠진다. */
-const 그때그일 = new EpisodeStore({ path: join(home, '그때-그-일.json') });
+/* 낱말 표로는 사건을 못 줍는다는 걸 재서 알았다 — 사람 말 197개에 담긴 사건이 **둘**이었다.
+   표가 놓친 말은 두뇌에게 물어본다. 다만 **말하는 길에서는 안 부른다**(답이 늦어진다) —
+   한 turn 끝나고 따로 부른다. */
+const 그때그일 = new EpisodeStore({
+  path: join(home, '그때-그-일.json'),
+  물어보기: 기운묻기((prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null))),
+  log: (m) => console.log(`[그때] ${m}`),
+});
 
 const 언제알았나 = new KnownStamps({ path: join(home, '아는-것-언제.json') });
 언제알았나.sync(memory.longTerm?.() ?? null);
@@ -794,7 +802,7 @@ const companion = new Companion({
        참는 게 있으면 눈에 보이게 찍는다 — 안 보이면 이 자리가 도는지도 모른다. */
     밀린것.다음턴();
     const 참는것 = 밀린것.요약();
-    if (참는것 !== '') console.log(`[참음] ${참는것}`);
+    if (참는것 !== '') console.log(`[밀림] ${참는것}`);
     if (보여줄까) {
       console.log('[재료]');
       for (const 줄 of 만든것.split('\n')) console.log(`  · ${줄}`);
@@ -837,6 +845,9 @@ const companion = new Companion({
       watching.saw(seen, report.sensation.at);
     }
     if (report.sensation.channel === 'nudge') shownWindowTitle = lastWindowTitle;
+    /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
+       이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
+    void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
     if (report.error) { console.error(`[에러] ${report.error.message}`); troubles.hit('죽음', report.error.message); }
     else if (report.utterance) console.log(`[말함] ${report.utterance.text.slice(0, 60)}`);
     else console.log(`[참음] ${report.decision.reason}`);
