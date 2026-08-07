@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f12">
+<meta name="color-scheme" content="dark">
+<title>프로필 — KarmoLab</title>
+<meta name="description" content="KarmoLab 에서 이어 온 기록.">
+<!-- 프로필은 사람마다 다른 내용이 스크립트로 채워진다. 검색 결과에 빈 껍데기가 쌓이면
+     사이트 전체 평가가 깎이므로 색인하지 않는다 (TASK-KL-098 Cycle 1).
+     서버가 프로필 HTML 을 직접 내보내게 되면 그때 연다. -->
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/apps/karmolab/img/favicon.ico">
+<style>
+  :root {
+    --bg: #0f0f12;
+    --card: #171a22;
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #e8e8ef;
+    --muted: #a0a4b4;
+    --accent: #b9a2ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 48px 20px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+  }
+  #profileRoot { width: 100%; max-width: 560px; }
+  a { color: var(--accent); }
+  .profile-card, .profile-empty {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .profile-head { display: flex; gap: 18px; align-items: center; }
+  .profile-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .profile-avatar-blank {
+    display: grid; place-items: center;
+    background: rgba(185, 162, 255, 0.12); color: var(--accent); font-size: 30px;
+  }
+  .profile-name { margin: 0; font-size: 24px; }
+  .profile-handle { margin: 2px 0 0; color: var(--accent); font-size: 14px; }
+  .profile-joined { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .profile-stats { display: flex; gap: 12px; margin: 26px 0; flex-wrap: wrap; }
+  .profile-stat {
+    flex: 1 1 120px; text-align: center;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 8px;
+  }
+  .profile-stat strong { display: block; font-size: 24px; }
+  .profile-stat span { font-size: 12px; color: var(--muted); }
+  .profile-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .profile-table th, .profile-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+  .profile-table th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .profile-table td:not(:first-child), .profile-table th:not(:first-child) { text-align: right; }
+  .profile-note { color: var(--muted); font-size: 14px; }
+  .profile-foot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; }
+  .profile-empty h1 { margin: 0 0 10px; font-size: 20px; }
+  .profile-empty p { color: var(--muted); }
+</style>
+</head>
+<body>
+  <main id="profileRoot">
+    <div class="profile-empty"><p>불러오는 중…</p></div>
+  </main>
+  <script defer src="/apps/karmolab/js/profile.js"></script>
+</body>
+</html>
