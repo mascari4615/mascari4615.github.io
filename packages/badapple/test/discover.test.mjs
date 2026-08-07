@@ -7,7 +7,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pickTileGroup, subdivisionFor } from '../dist/surfaces/discover.js';
+import { pickTileGroup, pickTileGroups, subdivisionFor } from '../dist/surfaces/discover.js';
 
 const VIEW = 1280 * 800;
 
@@ -90,4 +90,41 @@ test('도구가 늘면 더 많은 칸을 쓴다 (개편에 저절로 따라온�
 	const many = pickTileGroup(grid('tools', 40), { viewportArea: VIEW }).length;
 	assert.equal(few, 6);
 	assert.equal(many, 40);
+});
+
+test('여러 무리를 합쳐 화면을 넓게 쓴다', () => {
+	// 첫 화면 큰 버튼 5개 + 머리줄 항목 8개. 하나만 고르면 화면 구석만 켜진다.
+	const cards = grid('cards', 5, 200, 120);
+	const nav = grid('nav', 8, 90, 40);
+	const merged = pickTileGroups([...cards, ...nav], { viewportArea: VIEW });
+
+	const owners = new Set(merged.map((item) => item.group));
+	assert.ok(owners.has('cards') && owners.has('nav'), '두 무리가 다 들어와야 한다');
+	assert.equal(merged.length, 13);
+});
+
+test('합칠 때도 껍데기와 글자 쪼가리는 안 들어온다', () => {
+	const shell = [{ group: 'body', rect: { x: 0, y: 0, width: 1280, height: 800 } }];
+	const crumbs = [];
+	for (let i = 0; i < 40; i++) crumbs.push({ group: 'text', rect: { x: i, y: 0, width: 8, height: 12 } });
+	const merged = pickTileGroups([...shell, ...crumbs, ...grid('cards', 6)], { viewportArea: VIEW });
+
+	const owners = new Set(merged.map((item) => item.group));
+	assert.deepEqual([...owners], ['cards']);
+});
+
+test('점수가 크게 낮은 뭉치는 안 받는다', () => {
+	// 크기가 제각각인 뭉치 — 끼면 그림이 지저분해진다.
+	const ragged = [
+		{ group: 'ragged', rect: { x: 0, y: 0, width: 400, height: 300 } },
+		{ group: 'ragged', rect: { x: 0, y: 0, width: 30, height: 30 } },
+		{ group: 'ragged', rect: { x: 0, y: 0, width: 300, height: 40 } },
+		{ group: 'ragged', rect: { x: 0, y: 0, width: 35, height: 260 } }
+	];
+	const merged = pickTileGroups([...ragged, ...grid('cards', 10)], { viewportArea: VIEW, keepRatio: 0.6 });
+	assert.deepEqual([...new Set(merged.map((i) => i.group))], ['cards']);
+});
+
+test('쓸 만한 무리가 하나도 없으면 빈 손', () => {
+	assert.deepEqual(pickTileGroups([], { viewportArea: VIEW }), []);
 });

@@ -21,7 +21,7 @@ export { Registry } from './registry.js';
 export { sampleVideo, type Sampled, type SampleOptions } from './sample.js';
 export type { Paint, Rect, Surface, SurfaceShape } from './surface.js';
 export { DomTilesSurface, type DomTilesOptions } from './surfaces/dom-tiles.js';
-export { measureCandidates, pickTileGroup, type DiscoverOptions, type Measured } from './surfaces/discover.js';
+export { measureCandidates, pickTileGroup, pickTileGroups, type DiscoverOptions, type Measured } from './surfaces/discover.js';
 export { TextSurface, type TextSurfaceOptions } from './surfaces/text.js';
 export {
 	bandFor,
