@@ -66,6 +66,25 @@ export function dailyIndex(topicId, dayNumber, count, salt = '') {
   return order[((dayNumber % count) + count) % count];
 }
 
+/**
+ * 연습으로 열어도 되는 날인가 (`?d=YYYY-MM-DD`).
+ *
+ * 두 쪽 다 막아야 한다:
+ * - **오늘·미래** — 열리면 오늘 답이 새어 놀이가 끝장난다.
+ * - **1번 문제 이전** — 없던 날이라 문제 번호가 음수로 찍힌다 (「#-2043」).
+ *
+ * 규칙이라 화면이 아니라 여기 산다. 통과하면 그날 시각(정오)을 돌려준다.
+ */
+export function practiceDate(raw, now = new Date()) {
+  if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  const at = new Date(`${raw}T12:00:00+09:00`);
+  if (Number.isNaN(at.getTime())) return null;
+  const day = kstDayNumber(at);
+  if (day >= kstDayNumber(now)) return null;
+  if (day < EPOCH_DAY_NUMBER) return null;
+  return at;
+}
+
 /** 오늘의 정답 항목. 모드가 다르면 같은 날이라도 정답이 다르다. */
 export function answerOf(topic, at = new Date(), mode = '') {
   return topic.items[dailyIndex(topic.id, kstDayNumber(at), topic.items.length, mode)];

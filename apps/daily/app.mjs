@@ -15,6 +15,7 @@ import {
   isWin,
   kstDayKey,
   kstDayNumber,
+  practiceDate,
   liveStreak,
   touchDay,
   puzzleNumber,
@@ -83,17 +84,9 @@ try {
  * 「오늘의 정답」을 검색해 들어온 사람도 읽고 나가는 것 말고는 할 일이 없었다.
  * 정답이 날짜에서 결정론적으로 나오므로 서버 없이 그날로 되돌아갈 수 있다.
  *
- * **오늘과 미래는 안 된다** — 오늘 답이 새면 놀이가 끝장난다.
+ * 열어도 되는 날인지는 규칙(engine)이 정한다 — 오늘·미래도, 1번 문제 이전도 안 된다.
  */
-function practiceAt() {
-  const raw = new URLSearchParams(location.search).get('d');
-  if (!raw || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
-  const at = new Date(`${raw}T12:00:00+09:00`);
-  if (Number.isNaN(at.getTime())) return null;
-  return kstDayNumber(at) < kstDayNumber() ? at : null;
-}
-
-const practice = practiceAt();
+const practice = practiceDate(new URLSearchParams(location.search).get('d'));
 const at = practice ?? new Date();
 const answer = answerOf(topic, at, mode === 'classic' ? '' : mode);
 const maxGuesses = mode === 'silhouette' ? 6 : topic.maxGuesses ?? 8;

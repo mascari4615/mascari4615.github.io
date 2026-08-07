@@ -9,6 +9,7 @@ import {
   emptyStats,
   findItem,
   liveStreak,
+  practiceDate,
   touchDay,
   updateStats,
   isWin,
@@ -201,6 +202,21 @@ test('이름 찾기는 대소문자·공백을 봐주고, 없으면 null 이다'
   const items = [{ name: 'Aatrox' }];
   assert.equal(findItem(items, ' aatrox ')?.name, 'Aatrox');
   assert.equal(findItem(items, '없음'), null);
+});
+
+test('연습으로 열 수 있는 날은 어제까지, 1번 문제 이후만', () => {
+  const now = new Date('2026-08-07T10:00:00+09:00');
+  assert.ok(practiceDate('2026-08-06', now), '어제는 된다');
+  assert.equal(practiceDate('2026-08-07', now), null, '오늘은 안 된다 — 열리면 오늘 답이 샌다');
+  assert.equal(practiceDate('2026-08-08', now), null, '내일도 안 된다');
+  assert.equal(practiceDate('2025-12-31', now), null, '1번 문제 이전은 없던 날이다');
+  assert.ok(practiceDate('2026-01-01', now), '1번 문제 당일은 된다');
+});
+
+test('이상한 날짜 문자열은 그냥 무시한다', () => {
+  for (const bad of [null, '', 'abc', '2026-8-7', '2026-13-40', '오늘']) {
+    assert.equal(practiceDate(bad), null, `${bad} 가 통과하면 안 된다`);
+  }
 });
 
 test('띄어 쓴 이름을 붙여 쳐도 찾아진다', () => {
