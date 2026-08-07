@@ -1040,6 +1040,14 @@ check('허브가 판을 다 건다', (await page.locator('.card').count()) >= 4)
 const groups = await page.locator('.group').count();
 check('허브가 주제로 묶어 보여 준다', groups >= 3, groups + '묶음');
 check('허브에 하는 법이 있다', (await page.locator('.how li').count()) >= 3);
+  /**
+   * 만들어 놓고 아무 데도 안 적으면 없는 기능이다. 하는 법 설명이 **지금 있는 것들**을 다 말하는지 본다.
+   * (첫 자음 검색과 지난 문제 연습은 만든 날 이 설명에 안 들어가 있었다.)
+   */
+  // 접혀 있는 <details> 는 innerText 로 안 읽힌다 — 보이는 글만 주기 때문이다.
+  const howto = await page.$eval('details.how', (e) => e.textContent);
+  const missing = ['속성', '실루엣', '첫 자음', '지난 문제'].filter((w) => !howto.includes(w));
+  check('★ 하는 법이 있는 기능을 다 말한다', missing.length === 0, missing.join(', ') || '넷 다 적혀 있다');
 // 고를 것부터 정해야 하는 화면은 그만큼 사람을 놓친다 — 한 번에 시작할 길이 있어야 한다.
 const jump = page.locator('.hub-jump a');
 check('허브에서 한 번에 시작할 수 있다', (await jump.count()) === 1, await jump.innerText().catch(() => ''));
