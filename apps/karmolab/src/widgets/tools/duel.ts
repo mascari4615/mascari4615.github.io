@@ -169,6 +169,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:var(--space-lg) 0;">
               <button class="btn btn-primary" id="duMake">대결 링크 만들기</button>
               <button class="btn btn-ghost" id="duMatch">아무나랑</button>
+              <button class="btn btn-ghost" id="duGhost">유령과</button>
               <button class="btn btn-ghost" id="duAgain" style="display:none;">한 판 더</button>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
                 이름 <input type="text" id="duName" maxlength="10" placeholder="누군가" style="width:100px;" aria-label="대결에 쓸 이름">
@@ -260,6 +261,18 @@ import { joinRoom, selfId } from 'trystero/nostr';
             timer = window.setTimeout(() => {
               if (!answered) answer(-1);
             }, r.limitMs);
+
+            /* 유령과 놀 때는 상대의 손을 여기서 흉내 낸다. 사람처럼 가끔 틀리고, 가끔 늦는다 —
+             * 늘 맞히면 이길 수 없고 늘 틀리면 이길 이유가 없다. */
+            clearTimeout(유령손);
+            if (유령) {
+              const 걸림 = 500 + Math.random() * Math.max(400, r.limitMs - 700);
+              const 맞힘 = Math.random() < 0.72;
+              유령손 = window.setTimeout(() => {
+                foeResult = { ok: 맞힘, ms: 걸림 };
+                if (myResult) settle();
+              }, 걸림);
+            }
           }
 
           function answer(i: number): void {
@@ -284,6 +297,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
 
           /** 방을 만든 쪽이 두 결과를 모아 이번 판의 임자를 정한다. */
           function settle(): void {
+            // 유령과 놀 때 내가 먼저 끝냈으면 유령의 손을 기다린다(예약이 곧 온다).
             if (!myResult || !foeResult) return;
             const a = myResult;
             const b = foeResult;
@@ -415,6 +429,8 @@ import { joinRoom, selfId } from 'trystero/nostr';
           /* 「아무나랑」 — 대기방에 들어가 처음 만난 사람과 짝을 짓고, **둘만의 방으로 옮긴다.**
            * 대기방에서 그대로 놀면 나중에 온 사람들에게까지 판이 새어 나간다. 방 이름을 두 사람의
            * 번호로 만들면 양쪽이 따로 계산해도 같은 이름이 나온다(주고받을 필요가 없다). */
+          let 유령 = false;
+          let 유령손 = 0;
           let 짝지음 = false;
           function 아무나랑(): void {
             $<HTMLElement>('#duMake').style.display = 'none';
@@ -430,10 +446,28 @@ import { joinRoom, selfId } from 'trystero/nostr';
             };
             // 아무도 없으면 계속 기다린다. 얼마나 기다렸는지는 말해 준다.
             window.setTimeout(() => {
-              if (!짝지음) say('아직 아무도 안 왔어요. 기다리는 사이 링크를 만들어 친구를 부르는 편이 빠릅니다.');
+              if (!짝지음) say('아직 아무도 안 왔어요. 「유령과」를 누르면 혼자서도 바로 놀 수 있습니다.');
             }, 45000);
           }
 
+          /** 아무도 없을 때 — 유령이 대신 달린다. 혼자 온 사람이 그냥 나가지 않게. */
+          function 유령과(): void {
+            유령 = true;
+            host = true;
+            foe = '유령';
+            $<HTMLElement>('#duFoeName').textContent = '유령';
+            $<HTMLElement>('#duMake').style.display = 'none';
+            $<HTMLElement>('#duMatch').style.display = 'none';
+            $<HTMLElement>('#duGhost').style.display = 'none';
+            $<HTMLElement>('#duShare').style.display = 'none';
+            say('유령과 겨룹니다. 사람이 오면 링크를 만들어 부르세요.');
+            roundIndex = -1;
+            myScore = 0;
+            foeScore = 0;
+            nextRound();
+          }
+
+          $<HTMLButtonElement>('#duGhost').onclick = 유령과;
           $<HTMLButtonElement>('#duMatch').onclick = 아무나랑;
 
           $<HTMLButtonElement>('#duMake').onclick = () => {
@@ -459,6 +493,7 @@ import { joinRoom, selfId } from 'trystero/nostr';
 
           Toolbox.onDispose?.(() => {
             clearTimeout(timer);
+            clearTimeout(유령손);
             cancelAnimationFrame(raf);
             room?.leave();
           });
