@@ -296,7 +296,9 @@ function watchMidnight() {
     clearInterval(timer);
     if (root.querySelector('.newday')) return;
     const bar = el(
-      '<div class="newday">자정이 지나 <b>새 문제</b>가 나왔어요. 지금 화면은 어제 문제입니다.<button type="button">새 문제 열기</button></div>',
+      // 글을 통째로 한 덩어리로 싼다 — 안 그러면 flex 가 글자 조각마다 사이를 벌린다.
+      '<div class="newday"><span>자정이 지나 <b>새 문제</b>가 나왔어요. 지금 화면은 어제 문제입니다.</span>' +
+        '<button type="button">새 문제 열기</button></div>',
     );
     bar.querySelector('button').addEventListener('click', () => {
       location.href = location.pathname;

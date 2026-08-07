@@ -413,6 +413,8 @@ for (const withShare of [true, false]) {
   await page.clock.runFor('25:00:00'); // 하루 넘게 감기 — 15초마다 도는 감시가 알아채야 한다
   await page.waitForSelector('.newday', { timeout: 15000 });
   check('자정이 지나면 어제 문제라고 말해 준다', /새 문제/.test(await page.locator('.newday').innerText()));
+  // 글이 한 덩어리여야 한다 — 조각나면 flex 가 글자 사이를 벌린다 (실제로 벌어져 보였다).
+  check('안내 글이 조각나지 않는다', (await page.locator('.newday span').count()) === 1);
   await page.screenshot({ path: join(shots, 'newday.png'), fullPage: true });
   await ctx.close();
 }
