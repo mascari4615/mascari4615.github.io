@@ -50,6 +50,8 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'pdfwatermark',
+    // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
+    accepts: ['application/pdf'],
     title: 'PDF 워터마크',
     category: 'tool',
     desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
@@ -182,6 +184,15 @@ import { acceptPastedFiles } from './shared/paste';
           fileInput.onchange = () => {
             if (fileInput.files?.[0]) pick(fileInput.files[0]);
           };
+
+          /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
+           * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
+          {
+            const handed = Toolbox.takeResult?.();
+            if (handed && handed.blob && handed.blob.type === 'application/pdf') {
+              pick(new File([handed.blob], handed.name || '넘겨받은.pdf', { type: 'application/pdf' }));
+            }
+          }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
             drop.classList.add('over');
