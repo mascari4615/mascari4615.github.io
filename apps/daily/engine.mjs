@@ -74,6 +74,13 @@ export function answerOf(topic, at = new Date(), mode = '') {
 const norm = (v) => String(v ?? '').trim().toLowerCase();
 
 /**
+ * 이름 찾기용 정규화 — 띄어쓰기와 가운뎃점을 지운다.
+ * 「누누와 윌럼프」·「미스터 마임」·「라이덴 쇼군」 처럼 띄어 쓴 이름이 22개인데,
+ * 사람은 대개 붙여 친다. 붙여 쳤다고 못 찾으면 그건 우리 잘못이다.
+ */
+const nameKey = (v) => norm(v).replace(/[\s·・‧~'’.-]/g, '');
+
+/**
  * 속성 한 칸 비교.
  * state: exact(맞음) / near(근접·부분일치) / wrong(틀림)
  * dir:   number 일 때만 — 정답이 더 큰가(up) 작은가(down)
@@ -203,13 +210,13 @@ export function liveStreak(stats, dayNumber) {
 
 /** 자동완성 — 앞글자 우선, 그 다음 포함. 이미 낸 답은 뺀다. */
 export function suggest(items, query, { limit = 8, exclude = [] } = {}) {
-  const q = norm(query);
+  const q = nameKey(query);
   if (!q) return [];
-  const taken = new Set(exclude.map(norm));
+  const taken = new Set(exclude.map(nameKey));
   const starts = [];
   const contains = [];
   for (const item of items) {
-    const name = norm(item.name);
+    const name = nameKey(item.name);
     if (taken.has(name)) continue;
     if (name.startsWith(q)) starts.push(item);
     else if (name.includes(q)) contains.push(item);
@@ -220,6 +227,6 @@ export function suggest(items, query, { limit = 8, exclude = [] } = {}) {
 
 /** 이름으로 항목 찾기 (대소문자·공백 무시). */
 export function findItem(items, name) {
-  const n = norm(name);
-  return items.find((item) => norm(item.name) === n) ?? null;
+  const n = nameKey(name);
+  return items.find((item) => nameKey(item.name) === n) ?? null;
 }
