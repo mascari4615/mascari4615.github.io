@@ -41,8 +41,8 @@
       "date": "2026-08-06"
     },
     "textdiff": {
-      "print": "1b5uysb",
-      "date": "2026-08-06"
+      "print": "1btk5k6",
+      "date": "2026-08-07"
     },
     "regextest": {
       "print": "5lhz9k",
@@ -249,8 +249,8 @@
       "date": "2026-08-06"
     },
     "listdiff": {
-      "print": "dvt7ij",
-      "date": "2026-08-06"
+      "print": "17vxity",
+      "date": "2026-08-07"
     },
     "bizno": {
       "print": "hjubjl",
@@ -293,8 +293,8 @@
       "date": "2026-08-06"
     },
     "pdftool": {
-      "print": "1kq4qs0",
-      "date": "2026-08-06"
+      "print": "12r1o9x",
+      "date": "2026-08-07"
     },
     "audiocut": {
       "print": "1yklgxb",
@@ -389,8 +389,8 @@
       "date": "2026-08-06"
     },
     "pdf2text": {
-      "print": "1xl1xz5",
-      "date": "2026-08-06"
+      "print": "19t82oc",
+      "date": "2026-08-07"
     },
     "exifclean": {
       "print": "1qcze1c",
@@ -499,6 +499,10 @@
     "barcode": {
       "print": "nt1z2d",
       "date": "2026-08-06"
+    },
+    "pdfdiff": {
+      "print": "1ndkzc7",
+      "date": "2026-08-07"
     }
   }
 }

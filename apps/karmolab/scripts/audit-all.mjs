@@ -24,6 +24,7 @@ const CHECKS = [
   ['설치 정보', 'test:pwa'],
   ['값을 넣으면 답이 나오는지', 'test:answers'],
   ['값을 넣으면 반응하는지', 'test:typing'],
+  ['판본 대조가 바뀐 자리를 잡는지', 'test:pdfdiff'],
   ['입력칸에 이름이 이어져 있는지', 'audit:labels'],
   ['밝은·어두운 테마 대비', 'test:contrast'],
   ['안 쓰는데 첫 화면을 막는 스타일', 'audit:blocking-css'],
