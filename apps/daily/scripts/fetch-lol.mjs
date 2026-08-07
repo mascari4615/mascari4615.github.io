@@ -55,6 +55,8 @@ const topic = {
   emoji: '⚔️',
   source: `Riot Data Dragon ${version}`,
   maxGuesses: 8,
+  // 표가 언제 만들어졌는지 — 빌드가 이걸 보고 「너무 오래됐다」를 말한다.
+  fetchedAt: new Date().toISOString().slice(0, 10),
   fields: [
     { key: 'roles', label: '역할', kind: 'set' },
     { key: 'resource', label: '자원', kind: 'category' },

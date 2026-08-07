@@ -44,6 +44,19 @@ for (const topic of topics) {
   }
   if (!topic.items?.length) die('에 항목이 없다');
 
+  /**
+   * 표는 조용히 낡는다. 새 챔피언·새 포켓몬이 나와도 우리 표는 그대로라, 그 이름은
+   * 자동완성에도 없고 정답으로도 안 나온다 — 사람은 「낡은 사이트」로 읽고 떠나는데
+   * 우리는 아무 신호도 못 받는다. 그래서 날짜를 박고, 너무 오래되면 빌드를 세운다.
+   * 푸는 법은 `node scripts/fetch-<주제>.mjs` 한 줄이다.
+   */
+  const STALE_DAYS = 180;
+  if (!topic.fetchedAt) die('에 표 만든 날짜(fetchedAt)가 없다');
+  const age = Math.floor((Date.now() - Date.parse(`${topic.fetchedAt}T00:00:00Z`)) / 86400000);
+  if (!Number.isFinite(age)) die(`의 표 만든 날짜가 이상하다: ${topic.fetchedAt}`);
+  if (age > STALE_DAYS) die(`표가 ${age}일 됐다 (${topic.fetchedAt}) — scripts/fetch-${topic.id}.mjs 로 새로 받아라`);
+  if (age > STALE_DAYS - 30) console.warn(`[daily] 표 「${topic.id}」 가 ${age}일 됐다 — 곧 새로 받아야 한다`);
+
   const seen = new Set();
   for (const item of topic.items) {
     if (!item.name) die('에 이름 없는 항목이 있다');
