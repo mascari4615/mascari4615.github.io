@@ -112,7 +112,7 @@ function pagesOf(topic) {
       label: `오늘의 ${topic.title}`,
       short: '속성',
       lede: `${topic.subtitle ?? ''} 속성이 맞으면 초록, 비슷하면 노랑. 숫자는 ▲▼ 로 방향을 알려준다.`,
-      desc: `${topic.title} ${topic.items.length}개 중 오늘의 하나를 ${topic.maxGuesses ?? 8}번 안에 맞혀 보세요. 매일 새 문제.`,
+      desc: `${topic.title} ${topic.items.length}개 중 오늘의 하나. 보통 서너 번이면 맞히고 1분이면 끝납니다. 매일 새 문제, 로그인 없음.`,
     },
   ];
   if (topic.items.every((i) => i.img)) {
@@ -123,7 +123,7 @@ function pagesOf(topic) {
       label: `${topic.title} 실루엣`,
       short: '실루엣',
       lede: '까맣게 칠한 그림 하나. 틀릴 때마다 조금씩 밝아진다.',
-      desc: `까맣게 칠한 ${topic.title} 그림을 6번 안에 맞혀 보세요. 틀릴수록 밝아집니다. 매일 새 문제.`,
+      desc: `까맣게 칠한 ${topic.title} 그림 하나. 틀릴수록 밝아집니다. 1분이면 끝나고 매일 새 문제, 로그인 없음.`,
     });
   }
   return list;
@@ -269,7 +269,7 @@ for (const topic of topics) {
 // ── 허브 ──
 const hub = `${head({
   title: '오늘의 하나 맞히기',
-  desc: `매일 새 문제 ${all.length}판. ${topics.map((t) => t.title).join(' · ')} — 속성 힌트와 실루엣으로 맞히고 결과를 자랑하세요.`,
+  desc: `매일 새 문제 ${all.length}판. ${topics.map((t) => t.title).join(' · ')} — 한 판 1분, 로그인 없이 바로. 결과는 정답이 안 새는 이모지 격자로 자랑.`,
   url: `${SITE}${BASE}/`,
   up: '',
   image: 'hub',
@@ -281,7 +281,7 @@ const hub = `${head({
 })}
 <div class="wrap">
   <div class="top"><h1>오늘의 하나 맞히기</h1><a class="home" href="/karmolab/">KarmoLab</a></div>
-  <p class="lede">판을 고르면 오늘의 문제가 하나. 매일 자정(KST)에 바뀐다.</p>
+  <p class="lede">판을 고르면 오늘의 문제가 하나. <b>보통 서너 번이면 맞고 1분이면 끝난다.</b> 매일 자정(KST)에 바뀐다.</p>
   <div class="hub-jump"></div>
   <p class="hub-note"></p>
 ${topics
