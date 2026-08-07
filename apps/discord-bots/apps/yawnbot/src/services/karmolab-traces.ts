@@ -257,7 +257,12 @@ export interface PublicPost {
 /** 처음부터 있어야 하는 갤러리를 채워 넣는다 (없을 때만 — 사람이 고친 것은 안 덮는다). */
 function withSeeds(existing: Gallery[]): Gallery[] {
   // 말머리 칸은 나중에 생겼다 — 없으면 빈 목록으로 채운다.
-  const out = existing.map((g) => ({ ...g, tags: Array.isArray(g.tags) ? g.tags : [] }));
+  // 처음부터 있던 갤러리는 씨앗의 말머리를 받는다 (기능이 생기기 전에 만들어졌으므로 비어 있다).
+  const out = existing.map((g) => {
+    const seed = SEED_GALLERIES.find((x) => x.id === g.id);
+    const tags = Array.isArray(g.tags) && g.tags.length > 0 ? g.tags : (seed && g.builtin ? [...seed.tags] : []);
+    return { ...g, tags };
+  });
   for (const seed of SEED_GALLERIES) {
     if (!out.some((g) => g.id === seed.id)) out.push({ ...seed });
   }
