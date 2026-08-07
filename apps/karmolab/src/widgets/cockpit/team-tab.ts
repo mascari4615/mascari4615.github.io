@@ -57,8 +57,6 @@ type TaskBoardEntry = {
   status: string;
   title: string;
   md_path: string;
-  discord_post_id?: string;
-  discord_channel_id?: string;
 };
 
 type CardInfo = {
@@ -320,27 +318,16 @@ export function buildTeamTab(container: HTMLElement): void {
     tasksList.innerHTML = filtered.map((t) => {
       const sv = taskStatusVisual(t.status);
       const dv = taskDomain(t.task_id);
-      const discordLink = t.discord_post_id
-        ? `<a href="#" class="at-task-discord" data-post="${esc(t.discord_post_id)}" data-ch="${esc(t.discord_channel_id || '')}" style="font-size:.72rem;opacity:.7;text-decoration:none">🔗 디코</a>`
-        : '<span style="font-size:.72rem;opacity:.4">디코 미연결</span>';
       return `<div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
           <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
           <strong style="font-family:monospace;font-size:.82rem">${esc(t.task_id)}</strong>
           <span style="background:${sv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${sv.emoji} ${esc(sv.label)}</span>
-          <span style="margin-left:auto">${discordLink}</span>
         </div>
         <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${esc(t.title)}</div>
         <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${esc(t.md_path)}</div>
       </div>`;
     }).join('');
-    tasksList.querySelectorAll<HTMLAnchorElement>('.at-task-discord').forEach((a) => {
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        const post = a.dataset.post || '';
-        if (post) window.open(`https://discord.com/channels/@me/${post}`, '_blank');
-      });
-    });
   }
 
   function renderProposals(rows: ProposalInfo[]): void {

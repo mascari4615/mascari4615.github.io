@@ -776,15 +776,13 @@ pub async fn agent_team_list_sessions(repo_root: String) -> Result<Vec<SessionIn
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// TASK Board (TASK-YB-039 — Core/skin 분리: Discord forum-post 와 *peer*).
+// TASK Board (TASK-YB-043 — TASK 정리 표면의 단일 창구).
 //
-// memo TASK md = Core 정본. yawnbot 의 #team-work forum-post 와 KarmoLab
-// Team Board 가 그걸 표현하는 두 skin. ledger
-// (`.claude/task-forum-bridge.jsonl`) = Discord 측 매핑이지만 *taskId* 가
-// shared key — KarmoLab 도 같은 ledger 읽어 "이 TASK 의 Discord 포스트는
-// 여기" 링크 가능 (사용자 cross-skin navigation).
+// memo TASK md = 정본. 예전엔 yawnbot 이 같은 TASK 를 Discord #team-work
+// forum-post 로도 투영했고 이 목록이 그 포스트 링크를 얹었으나, 두 표면을
+// 나란히 두는 값이 없어 Discord 쪽을 걷어냈다. 남은 표면 = 이 화면 하나.
 //
-// 본 명령은 read-only — 5 TASK_DIRS scan + bridge ledger 머지 → entry 목록.
+// 본 명령은 read-only — 5 TASK_DIRS scan → entry 목록.
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TaskBoardEntry {
@@ -793,10 +791,6 @@ pub struct TaskBoardEntry {
     pub title: String,
     /// memoRoot 기준 상대 경로 (open-in-editor 등 호출자 활용).
     pub md_path: String,
-    /// Discord forum-post id (bridge ledger 에 매핑 있는 경우만 — KarmoLab
-    /// 에서 "디코에서 보기" 링크 생성용). discord 미연결 = None.
-    pub discord_post_id: Option<String>,
-    pub discord_channel_id: Option<String>,
 }
 
 const TASK_DIRS: [&str; 5] = [
@@ -880,27 +874,7 @@ fn parse_status_title(content: &str, filename: &str) -> (Option<String>, String)
 fn read_tasks_blocking(repo_root: String) -> Result<Vec<TaskBoardEntry>, String> {
     let memo = memo_root(&repo_root);
 
-    // 1) bridge ledger 읽음 → taskId → (postId, channelId) 최신 매핑
-    let ledger_path = memo.join(".claude").join("task-forum-bridge.jsonl");
-    let mut bridge: std::collections::HashMap<String, (String, String)> =
-        std::collections::HashMap::new();
-    if let Ok(content) = fs::read_to_string(&ledger_path) {
-        for line in content.lines() {
-            let line = line.trim();
-            if line.is_empty() {
-                continue;
-            }
-            let Ok(v) = serde_json::from_str::<serde_json::Value>(line) else { continue };
-            let task_id = v.get("taskId").and_then(|x| x.as_str()).map(String::from);
-            let post_id = v.get("postId").and_then(|x| x.as_str()).map(String::from);
-            let channel_id = v.get("channelId").and_then(|x| x.as_str()).map(String::from);
-            if let (Some(t), Some(p), Some(c)) = (task_id, post_id, channel_id) {
-                bridge.insert(t, (p, c)); // append-only → 마지막이 최신
-            }
-        }
-    }
-
-    // 2) 5 TASK_DIRS scan
+    // 5 TASK_DIRS scan
     let mut out: Vec<TaskBoardEntry> = Vec::new();
     for dir in TASK_DIRS.iter() {
         let dir_abs = memo.join(dir);
@@ -922,17 +896,11 @@ fn read_tasks_blocking(repo_root: String) -> Result<Vec<TaskBoardEntry>, String>
                 continue;
             }
             let rel = format!("{}/{}", dir, name);
-            let (post_id, channel_id) = match bridge.get(&task_id) {
-                Some((p, c)) => (Some(p.clone()), Some(c.clone())),
-                None => (None, None),
-            };
             out.push(TaskBoardEntry {
                 task_id,
                 status,
                 title,
                 md_path: rel,
-                discord_post_id: post_id,
-                discord_channel_id: channel_id,
             });
         }
     }
