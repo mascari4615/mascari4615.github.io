@@ -107,8 +107,11 @@ function resolveFile(rel) {
   const dist = first ? path.join(REPO, 'apps', first, 'dist', ...rest) : null;
   const candidates = [
     path.join(REPO, rel),                    // 파일 경로 그대로 (/apps/karmolab/index.html)
-    path.join(REPO, 'apps/blog', rel),       // 블로그가 내보내는 것 — 도구 목록·상세가 여기 찍힌다
+    /* **원본이 먼저다** (TASK-KL-129). 배포는 셸을 `apps/blog/karmolab/` 로 복사해 두는데,
+     * 그 사본은 파일 이름에 지문이 박힌 옛 판본을 부른다. 그쪽을 먼저 찾으면 방금 고친 것이
+     * 화면에 하나도 안 나온다 — 「고쳤는데 왜 그대로지」의 가장 지독한 형태다(실제로 겪었다). */
     path.join(here, noLab),                  // 셸과 그 곁의 페이지 (/karmolab/ · /karmolab/bot/)
+    path.join(REPO, 'apps/blog', rel),       // 블로그가 내보내는 것 — 도구 목록·상세가 여기 찍힌다
     path.join(REPO, 'apps', noLab),          // 딴 앱 (/karmolab/higher/ → apps/higher/)
     path.join(REPO, 'apps', rel),            // 딴 앱을 제 이름으로 (/daily/ → apps/daily/)
     ...(dist ? [dist] : []),                 // 구워 두는 앱 (/daily/ → apps/daily/dist/)

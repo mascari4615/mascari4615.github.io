@@ -53,6 +53,8 @@ type Hit = {
 
 const RECENT_KEY = 'toolbox_recent_tools';
 const FAVORITES_KEY = 'toolbox_favorites';
+/** 도구 목록에서 별로 꽂은 것 — 저절로 쌓이는 「최근」과 달리 사람이 고른 것 (TASK-KL-129) */
+const PINNED_KEY = 'toolbox_pinned_tools';
 const RECENT_MAX = 8;
 const RESULT_MAX = 40;
 
@@ -109,6 +111,17 @@ const KarmoPalette = (() => {
       localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
     } catch (_) {
       /* 저장이 막혀 있어도 찾기 자체는 돌아야 한다 */
+    }
+  }
+
+  /** 도구 목록(`/karmolab/t/`)에서 별로 꽂아 둔 것 — 사람이 직접 고른 목록 (TASK-KL-129) */
+  function getPinnedToolIds(): string[] {
+    try {
+      const raw = localStorage.getItem(PINNED_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [];
+    } catch (_) {
+      return [];
     }
   }
 
@@ -313,11 +326,27 @@ const KarmoPalette = (() => {
     inst.rows.push({ el: row, id: e.id });
   }
 
-  /** 빈 입력일 때 보여 주는 것 — 최근 → 즐겨찾기 → 둘러보기. */
+  /** 빈 입력일 때 보여 주는 것 — 내 것 → 최근 → 즐겨찾기 → 둘러보기. */
   function renderResting(inst: Instance): void {
     const seen = new Set<string>();
 
+    /* 도구 목록에서 별로 꽂아 둔 것 (TASK-KL-129).
+     * 사람이 **직접 고른** 것이라 저절로 쌓이는 「최근」보다 앞에 온다.
+     * 「즐겨찾기」와 다르다 — 그쪽은 모든 도구를 자동으로 담는 화면이라 고른 티가 안 난다. */
+    const pinned = getPinnedToolIds()
+      .map(byId)
+      .filter((e): e is Entry => !!e)
+      .slice(0, 8);
+    if (pinned.length) {
+      inst.list.appendChild(sectionEl('내 것'));
+      pinned.forEach((e) => {
+        seen.add(e.id);
+        addRow(inst, e, null);
+      });
+    }
+
     const recent = getRecent()
+      .filter((id) => !seen.has(id))
       .map(byId)
       .filter((e): e is Entry => !!e)
       .slice(0, RECENT_MAX);
@@ -580,6 +609,28 @@ const KarmoPalette = (() => {
 
     input.addEventListener('input', () => render(inst));
     input.addEventListener('keydown', (e) => onKey(inst, e));
+
+    /* 첫 화면에서는 **누르기 전까지 목록을 접어 둔다** (TASK-KL-129, 사용자 요청).
+     * 예전에는 열린 채로 있어서 첫 화면의 절반을 목록이 차지했다 — 아직 아무것도 안 물어봤는데
+     * 답이 먼저 펼쳐져 있는 셈이다. 찾을 마음이 있을 때(입력을 누를 때) 펼친다.
+     * ⌘K 로 뜨는 쪽은 그대로 열려 있다 — 그건 찾으려고 연 것이다. */
+    if (mode === 'inline') {
+      const collapse = (): void => {
+        if (inst.input.value) return;         // 친 글이 있으면 결과를 접지 않는다
+        root.classList.add('kp-collapsed');
+        input.setAttribute('aria-expanded', 'false');
+      };
+      const expand = (): void => {
+        root.classList.remove('kp-collapsed');
+        input.setAttribute('aria-expanded', 'true');
+      };
+      collapse();
+      input.addEventListener('focus', expand);
+      input.addEventListener('blur', collapse);
+      /* 목록을 누를 때 입력에서 포커스가 빠지면 **접히면서 클릭이 사라진다**.
+       * 누르는 순간의 기본 동작(포커스 이동)만 막으면 포커스는 입력에 남고 클릭은 그대로 간다. */
+      list.addEventListener('mousedown', (e) => e.preventDefault());
+    }
 
     return inst;
   }
