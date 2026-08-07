@@ -1027,6 +1027,25 @@ html[data-view="home"] .home-decor { opacity: 1; transition: opacity .45s ease; 
     display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
     padding: var(--space-xl) 0 0; text-align: center;
 }
+/* 첫 화면의 실사용 줄 (TASK-KL-098) — 이 사이트가 실제로 쓰이고 있다는 증거.
+   값이 없으면 자리 자체가 안 생긴다 (`:empty`) — 「0번」이 떠 있으면 죽은 화면으로 읽힌다. */
+.landing-pulse { max-width: 620px; margin: var(--space-md) auto 0; text-align: center;
+    position: relative; z-index: 1; }
+.landing-pulse:empty { display: none; }
+.landing-pulse-line { margin: 0; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.landing-pulse-line b { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.landing-pulse-all { background:none; border:0; padding:0; margin-left:2px; font:inherit;
+    font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }
+.landing-pulse-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 6px; margin-top: 10px; }
+.landing-pulse-label { font-size: 11px; color: var(--text-tertiary); margin-right: 2px; }
+.landing-pulse-chip { display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer;
+    font: inherit; font-size: 11px; transition: border-color var(--transition), color var(--transition); }
+.landing-pulse-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+.landing-pulse-chip-n { color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+
 /* 첫 화면의 커뮤니티 줄 (TASK-KL-098) — 사람이 보이는 자리.
    서버에 못 닿거나 글이 없으면 비어 있으므로, 빈 상태에서는 자리 자체를 안 만든다. */
 .landing-feed { max-width: 560px; margin: var(--space-xl) auto 0; text-align: left; }
@@ -1434,6 +1453,12 @@ body:has(#page-home.active) .mdd-container .mdd-char {
 .tool-page-hero-desc {
     font-size: var(--font-size-sm); color: var(--text-tertiary); letter-spacing: 0.01em;
 }
+/* 도구 이름 밑의 「지금까지 N번 열렸어요」 (TASK-KL-098).
+   아직 아무도 안 연 도구에는 글자가 안 들어가므로, 그때는 자리도 없어야 한다. */
+.tool-page-hero-count { margin: 6px 0 0; font-size: 11px; color: var(--text-tertiary); }
+.tool-page-hero-count:empty { display: none; }
+.tool-page-hero-count b { color: var(--text-secondary); font-weight: 700; font-variant-numeric: tabular-nums; }
+
 .layout-full .tool-page-hero {
     padding: var(--space-md) 0 var(--space-sm);
     margin-bottom: var(--space-sm);

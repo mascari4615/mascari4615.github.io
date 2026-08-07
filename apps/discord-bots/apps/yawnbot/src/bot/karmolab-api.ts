@@ -277,6 +277,7 @@ export function registerKarmolabApi(
       ...store.stats(),
       backup: backupInfo(),
       pulse: traces.pulse(),
+      visits: traces.visitStats(),
     });
   });
 
@@ -426,9 +427,18 @@ export function registerKarmolabApi(
     res.json({ counted });
   });
 
+  /**
+   * 누가 사이트에 왔다 — 도구를 열든 안 열든. 첫 화면만 보고 나간 사람도 다녀간 사람이다.
+   * 로그인과 무관하고, 주소는 저장하지 않는다 (되돌릴 수 없게 섞은 열쇠만 오늘치).
+   */
+  app.post('/kl/trace/visit', (req: Request, res: Response) => {
+    const counted = traces.recordVisit(visitorKeyFor(req));
+    res.json({ counted });
+  });
+
   /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
   app.get('/kl/tools/stats', (_req: Request, res: Response) => {
-    res.json({ tools: traces.toolStats(), pulse: traces.pulse() });
+    res.json({ tools: traces.toolStats(), pulse: traces.pulse(), visits: traces.visitStats() });
   });
 
   /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수 · 마지막 글 · 마지막 시각). */
