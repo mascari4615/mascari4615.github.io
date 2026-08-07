@@ -10,6 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { kstDayNumber, EPOCH_DAY_NUMBER } from '../engine.mjs';
 import { modesOf, pastRow } from '../past-row.mjs';
+import { assertDenied } from './lib-pwa-deny.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const app = join(here, '..');
@@ -103,6 +104,20 @@ function checkBlogCollision() {
   }
 }
 checkBlogCollision();
+
+/**
+ * 블로그 루트의 서비스워커는 **cache-first** 다 — 한 번 담아 둔 주소는 새로 안 받아 온다.
+ * 우리 페이지가 거기 걸리면 **어제 문제가 계속 나온다.** 매일 바뀌는 물건에서 이건 치명적이고,
+ * 화면은 멀쩡해 보이므로 아무도 못 알아챈다 (KarmoLab 이 실제로 이걸로 배포가 고착됐었다).
+ *
+ * 지금은 제대로 빠져 있다. 빠져 있는 지금 잠근다 — 나중에 누가 지우면 여기서 막힌다.
+ */
+function checkPwaCache() {
+  const conf = join(app, '../blog/_config.yml');
+  if (!existsSync(conf)) return;
+  assertDenied(readFileSync(conf, 'utf8'), BASE);
+}
+checkPwaCache();
 
 /** 한 주제가 낼 수 있는 판들. 실루엣은 그림이 있어야 성립한다. */
 function pagesOf(topic) {
