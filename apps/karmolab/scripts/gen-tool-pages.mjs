@@ -203,11 +203,12 @@ const CRYPTO_TOOLS = (() => {
   }
 }
 
-const CRYPTO_TAG = '<script src="/apps/karmolab/js/vendor/crypto-js.min.js" defer></script>\n';
-if (!shell.includes(CRYPTO_TAG)) {
-  console.error('[gen-tool-pages] 셸에서 암호 라이브러리 태그를 못 찾음 — index.html 구조 확인');
-  process.exit(1);
-}
+/* 암호 계산 라이브러리 태그.
+ * 셸이 이걸 미리 싣던 시절에는 상세 페이지에서 **빼는 것**이 이 생성기의 일이었다.
+ * 지금은 셸이 필요할 때만 부르므로 뺄 것이 없을 수도 있다 — 그때 멈추면 안 된다.
+ * 없으면 없는 대로 넘어간다. 찾을 때는 주소만 본다(속성이 늘어도 계속 맞는다). */
+const CRYPTO_TAG_RE = /[ \t]*<script[^>]*src="[^"]*crypto-js[^"]*"[^>]*><\/script>\n?/;
+const SHELL_HAS_CRYPTO_TAG = CRYPTO_TAG_RE.test(shell);
 
 /* ── 후원·제휴 자리 (TASK-KL-089) ──────────────────── */
 
@@ -655,8 +656,8 @@ function buildToolPage(id) {
 
   // 암호 계산 라이브러리는 그것을 쓰는 도구의 페이지에만 싣는다 (TASK-KL-089).
   // 앱 첫 화면은 어느 도구로든 갈 수 있어 미리 받아 두지만, 상세 페이지는 갈 곳이 정해져 있다.
-  if (!CRYPTO_TOOLS.has(id)) {
-    html = html.replace(CRYPTO_TAG, '');
+  if (SHELL_HAS_CRYPTO_TAG && !CRYPTO_TOOLS.has(id)) {
+    html = html.replace(CRYPTO_TAG_RE, '');
   }
 
   // 상세 페이지는 세리프 글꼴을 부르지 않는다 (TASK-KL-089).

@@ -935,68 +935,223 @@ html[data-intro="off"] .intro-overlay {
     letter-spacing: 0.04em;
 }
 
-/* ── Landing CTA ── */
+/* ── 첫 화면 = 명령 팔레트 자리 (TASK-KL-099) ──
+   예전의 카드 3장(.landing-cta-card 일가)은 지웠다. 화면의 제일 좋은 자리를 먹으면서
+   세 곳으로만 갈 수 있었고, 그 아래 안내는 「메뉴에서 찾으세요」였다. 지금 이 자리는
+   160개 전부로 간다. 스타일도 같이 지운다 — 안 쓰는 규칙을 남기면 다음 사람이 살아 있는
+   줄 안다. */
 
 .landing-cta {
-    display: flex; flex-direction: column; align-items: center; gap: var(--space-lg);
-    padding: var(--space-xl) 0; text-align: center;
-}
-.landing-cta-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-md);
-}
-.landing-cta-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    padding: 18px 16px 16px;
-    min-width: 200px;
-    max-width: 220px;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color var(--transition), background var(--transition);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    position: relative;
-    border-radius: var(--radius-sm);
-    text-align: left;
-    font-family: inherit;
-    appearance: none;
-    -webkit-appearance: none;
-}
-.landing-cta-card:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--text-tertiary);
-}
-.landing-cta-card:hover .landing-cta-card-icon { color: var(--accent); }
-.landing-cta-card:hover .landing-cta-card-title { color: var(--accent); }
-a.landing-cta-card:hover { color: inherit; }
-.landing-cta-card-icon {
-    width: 20px;
-    height: 20px;
-    color: var(--text-tertiary);
-    margin-bottom: 4px;
-    transition: all var(--transition);
-}
-.landing-cta-card-icon svg { width: 100%; height: 100%; }
-.landing-cta-card-title {
-    font-size: var(--font-size-sm);
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 0.01em;
-}
-.landing-cta-card-desc {
-    font-size: var(--font-size-2xs);
-    color: var(--text-tertiary);
-    line-height: 1.5;
-    letter-spacing: 0.01em;
+    display: flex; flex-direction: column; align-items: stretch;
+    padding: 0; width: 100%;
 }
 .landing-cta-hint {
     font-size: var(--font-size-xs); color: var(--text-tertiary);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.02em; text-align: center;
+}
+
+/* 목록·문서로 가는 길은 사라지지 않는다 — 다만 주인공 자리는 내준다. */
+.landing-foot {
+    margin-top: var(--space-lg);
+    text-align: center;
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    position: relative; z-index: 1;
+}
+.landing-foot a { color: var(--text-tertiary); text-decoration: none; }
+.landing-foot a:hover { color: var(--accent); text-decoration: underline; }
+.landing-foot-sep { margin: 0 var(--space-sm); opacity: 0.5; }
+
+/* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
+   한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것
+   (.kp-overlay). 차이는 껍데기(그림자·너비·최대 높이)뿐이고 줄 모양은 같다. 그래야
+   두 번째로 만났을 때 「아까 그것」으로 읽힌다. */
+
+/* 첫 화면의 팔레트는 화면 폭을 다 쓰지 않는다. 가로로 늘어나면 아이콘·이름·설명이
+   서로 멀어져 한 줄로 안 읽히고, 「찾는 칸」이 아니라 「입력 양식」처럼 보인다.
+   떠오르는 창과 같은 폭으로 맞춰 둘이 같은 것으로 읽히게 한다. */
+.kp { width: 100%; max-width: 640px; margin: 0 auto; }
+.kp-box {
+    display: flex; flex-direction: column;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.kp-inline .kp-box {
+    box-shadow: 0 1px 0 var(--border);
+}
+/* 입력을 쥐고 있는 동안 테두리가 살아난다 — 지금 여기에 치면 된다는 표시. */
+.kp-box:focus-within {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.kp-input-wrap {
+    display: flex; align-items: center; gap: var(--space-sm);
+    padding: 0 var(--space-md);
+    border-bottom: 1px solid var(--border);
+}
+.kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; color: var(--text-tertiary); }
+/* 태그 이름까지 적는다: 아래쪽의 `input[type="text"]` 공통 규칙이 클래스 하나보다
+   힘이 세서, 그냥 `.kp-input` 으로는 테두리·바탕이 되살아난다 (실제로 그렇게 나왔다 —
+   찾는 칸 안에 또 네모난 칸이 그려졌다). */
+.kp-box input.kp-input {
+    flex: 1 1 auto; min-width: 0; width: auto;
+    background: none; border: none; outline: none;
+    box-shadow: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: var(--font-size-md);
+    /* 16px 미만이면 iOS 가 입력에 닿는 순간 화면을 확대한다 — 그러면 목록이 밖으로 밀린다. */
+    padding: 18px 0;
+    letter-spacing: 0.01em;
+}
+/* 포커스 표시는 바깥 상자(.kp-box:focus-within)가 이미 한다. 공통 규칙이 여기에 또
+   테두리·바탕을 얹으면 상자 안에 네모가 하나 더 생긴다 — 그것을 되돌린다.
+   `.kp-box` 를 앞에 붙인 이유: 공통 규칙이 이 파일 **뒤쪽**에 있어서, 힘이 같으면
+   그쪽이 이긴다. 실제로 그래서 포커스만 주면 입력 줄에 밝은 띠가 다시 생겼다. */
+.kp-box input.kp-input:focus {
+    background: none;
+    border: none;
+    box-shadow: none;
+}
+.kp-input::placeholder { color: var(--text-tertiary); }
+.kp-kbd {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px 7px;
+    letter-spacing: 0.04em;
+}
+/* 손가락으로 쓰는 화면에는 그 키가 없다. 없는 것을 알려 주면 거짓말이 된다. */
+@media (hover: none) { .kp-kbd { display: none; } }
+
+.kp-list { overflow-y: auto; overscroll-behavior: contain; }
+.kp-inline .kp-list { max-height: min(46vh, 420px); }
+.kp-overlay .kp-list { max-height: min(60vh, 520px); }
+
+.kp-section {
+    padding: var(--space-sm) var(--space-md) 4px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.kp-row {
+    display: flex; align-items: center; gap: var(--space-md);
+    /* 손가락 표적 44px — 좁히면 옆줄이 눌린다. */
+    padding: 11px var(--space-md);
+    min-height: 44px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+}
+/* 하이라이트는 진짜 포커스가 아니라 표시다 (입력이 포커스를 계속 쥔다).
+   그래서 :hover 가 아니라 클래스로 칠한다 — 키보드와 마우스가 같은 줄을 가리켜야 한다. */
+.kp-row.is-active {
+    background: var(--accent-subtle);
+    border-left-color: var(--accent);
+}
+.kp-icon {
+    width: 18px; height: 18px; flex: 0 0 auto;
+    color: var(--text-tertiary);
+}
+.kp-icon svg { width: 100%; height: 100%; }
+.kp-row.is-active .kp-icon { color: var(--accent); }
+.kp-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.kp-row-title {
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kp-row-desc {
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.4;
+}
+/* 어디가 걸렸는지 눈으로 확인시켜 준다. 배경을 칠하면 줄 강조와 싸우므로 글자만 세운다. */
+.kp-mark {
+    background: none;
+    color: var(--accent);
+    font-weight: 700;
+}
+.kp-row-badge {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+}
+
+.kp-empty { padding: var(--space-lg) var(--space-md); text-align: center; }
+.kp-empty p { font-size: var(--font-size-xs); color: var(--text-secondary); margin-bottom: var(--space-sm); }
+.kp-empty-link { font-size: var(--font-size-2xs); color: var(--accent); text-decoration: none; }
+.kp-empty-link:hover { text-decoration: underline; }
+
+/* 아직 아무것도 안 써 본 사람이 보는 자리 — 「여기에 이만큼 있다」 */
+.kp-browse {
+    display: flex; flex-wrap: wrap; gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+.kp-browse-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 14px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: var(--font-size-2xs);
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+}
+.kp-browse-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.kp-browse-n { font-family: var(--font-mono); color: var(--text-tertiary); }
+
+/* 화면 낭독기에만 읽히는 줄 — 결과 수가 바뀐 것을 알린다. */
+.kp-live {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── ⌘K 로 뜨는 껍데기 ── */
+.kp-scrim {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: flex-start; justify-content: center;
+    /* 화면 한가운데보다 조금 위 — 목록이 아래로 자라날 자리를 미리 비워 둔다. */
+    padding: 12vh var(--space-md) var(--space-md);
+}
+.kp-overlay { max-width: 640px; }
+.kp-overlay .kp-box {
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    border-color: var(--border-hover);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .kp-overlay { animation: kp-rise 140ms ease-out; }
+    @keyframes kp-rise {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: none; }
+    }
+}
+
+/* 좁은 화면에서는 화면을 통째로 쓴다 — 작은 창을 띄우면 키보드가 그것을 덮는다. */
+@media (max-width: 640px) {
+    .kp-scrim { padding: 0; }
+    .kp-overlay { max-width: none; width: 100%; height: 100%; }
+    .kp-overlay .kp-box { height: 100%; border: none; border-radius: 0; }
+    .kp-overlay .kp-list { max-height: none; flex: 1 1 auto; }
 }
 .landing-dev-links {
     margin-top: var(--space-md);
@@ -1769,6 +1924,18 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
 .mobile-nav .nav-item {
     white-space: nowrap; font-size: var(--font-size-xs); padding: 5px 10px;
     border-left: none;
+}
+/* 「찾기」는 이 줄의 다른 항목과 다른 일을 한다 (도구로 가는 게 아니라 창을 연다) —
+   그래서 다르게 생겨야 한다. 맨 앞에 붙박이로 두어 옆으로 밀려 사라지지 않게 한다.
+   (TASK-KL-099) */
+.mobile-nav .nav-item-find {
+    position: sticky; left: 0; z-index: 1;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    /* 붙박이라 뒤 항목이 그 밑을 지나간다 — 배경을 불투명하게 덮어야 겹쳐 보이지 않는다. */
+    box-shadow: 6px 0 6px -4px var(--bg-primary);
 }
 
 /* ── 랜덤 생성기 Wide 레이아웃 ── */

@@ -39,6 +39,12 @@ permalink: /karmolab/higher/
 .side .vl { font-size: var(--font-size-lg); color: var(--accent); font-weight: 700; min-height: 1.4em; }
 .side.win { border-color: var(--success); }
 .side.lose { border-color: var(--error); }
+.swap {
+  font: inherit; font-size: var(--font-size-2xs); margin-left: 6px; padding: 0 8px; min-height: 28px;
+  cursor: pointer; color: var(--text-tertiary); background: transparent;
+  border: 1px solid var(--border); border-radius: var(--radius-lg); vertical-align: middle;
+}
+.swap:hover { color: var(--text-primary); border-color: var(--border-hover); }
 .score { display: flex; justify-content: space-between; margin: 14px 0 0; color: var(--text-secondary); font-size: var(--font-size-xs); }
 .score b { color: var(--text-primary); font-size: var(--font-size-md); }
 .msg { text-align: center; margin: 10px 0 0; min-height: 1.7em; }
@@ -159,7 +165,20 @@ permalink: /karmolab/higher/
       tries++;
     } while ((right === left || right.v[field.key] === left.v[field.key]) && tries < 50);
     // 「출시이(가)」 처럼 조사가 어색해지는 것을 피한다 — 속성 이름을 앞에 떼어 놓는다.
-    $('ask').innerHTML = '<b>' + field.label + '</b> — 어느 쪽이 더 클까요?';
+    /* 겨룰 값을 바꿔 가며 놀 수 있게 한다 (TASK-KL-089).
+     * 지금까지는 판을 고르면 값이 무작위로 정해져, 「키로 겨루고 싶은데」가 안 됐다.
+     * 새로 뽑는 대신 있는 값을 돌려 가며 쓴다 — 판에 값이 하나뿐이면 이 버튼은 안 뜬다. */
+    $('ask').innerHTML = '<b>' + field.label + '</b> — 어느 쪽이 더 클까요?'
+      + (board.fields.length > 1 ? ' <button type="button" id="swap" class="swap">다른 값으로</button>' : '');
+    var sw = document.getElementById('swap');
+    if (sw) sw.addEventListener('click', function () {
+      var i = board.fields.indexOf(field);
+      field = board.fields[(i + 1) % board.fields.length];
+      streak = 0; left = null;
+      $('streak').textContent = '0';
+      $('best').textContent = best(board.topic);
+      nextRound(false);
+    });
     paintSide($('a'), left, true); // 남아 있는 쪽은 값이 이미 밝혀져 있다
     paintSide($('b'), right, false);
     $('msg').textContent = '';
@@ -183,7 +202,11 @@ permalink: /karmolab/higher/
         nextRound(true);
       }, 1100);
     } else {
-      $('msg').textContent = '아깝습니다 — ' + streak + '연승에서 끝났습니다';
+      /* 얼마나 아까웠는지 보여 준다 — 「한 끗 차이였다」가 다시 하게 만든다. */
+      var gap = Math.abs(chosen.v[field.key] - other.v[field.key]);
+      var close = gap <= Math.max(1, Math.abs(other.v[field.key]) * 0.05);
+      $('msg').textContent = (close ? '한 끗 차이였습니다 — ' : '아깝습니다 — ')
+        + fmt(gap) + ' 차이 · ' + streak + '연승에서 끝났습니다';
       $('msg').className = 'msg play-no';
       $('best').textContent = best(board.topic, streak);
       $('again').hidden = false;

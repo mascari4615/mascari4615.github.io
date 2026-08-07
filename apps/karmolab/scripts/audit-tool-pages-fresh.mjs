@@ -1,19 +1,19 @@
 /**
- * 도구 페이지가 셸과 갈라졌는지 본다 (TASK-KL-097)
+ * 앱 셸로 도구 페이지를 **지금 찍을 수 있는지** 본다 (TASK-KL-097)
  *
- * 도구 상세 127장 + 목록 한 장은 `index.html`(앱 셸)에서 **만들어진 것**이다. 단일 출처는
- * 이미 있다 — 문제는 셸을 고치고 다시 안 찍어도 아무도 안 잡는다는 것이었다. 실제로 오늘
- * 셸의 인트로 규칙과 브랜드 글자 규칙을 고쳤는데, 도구 페이지 127장에는 그것이 없었다.
- * 눈으로는 절대 안 보인다 — 페이지가 멀쩡히 열리기 때문이다.
+ * 도구 상세 127장 + 목록 한 장은 `index.html`(앱 셸)에서 배포 때 만들어진다. 결과물은
+ * 저장소에 안 들어간다(gitignore) — 그래서 셸을 고쳐도 로컬에서는 아무 일도 안 일어나고,
+ * **배포에 가서야** 터진다. 실제로 오늘 두 번 터졌다:
+ *   ① 인트로를 고치며 큰제목 태그에 id 를 붙였더니 생성기가 「큰제목을 못 찾음」으로 죽었다.
+ *      그 뒤 세 시간 동안 밀어넣은 것이 하나도 안 나갔다.
+ *   ② 셸이 암호 라이브러리를 지연 로드로 바꾸자 「태그를 못 찾음」으로 또 죽었다.
+ * 둘 다 셸을 고친 사람은 몰랐다. 생성기를 돌려 볼 이유가 없었기 때문이다.
  *
- * 흔한 방식은 「CI 에서 다시 만들고 `git diff --exit-code`」다. 여기서는 한 걸음 더 간다:
- * **임시 자리에 만들어 놓고 대조**한다. 이유 둘 —
- *   ① 작업 트리를 안 건드린다. 이 저장소는 여러 세션이 같은 트리를 공유해서, 검사가 파일을
- *      새로 쓰면 남의 작업과 섞인다.
- *   ② `git diff` 는 **남이 아직 안 올린 변경까지** 실패로 잡는다. 그건 이 검사가 볼 일이 아니다.
+ * 그래서 이 검사는 **임시 자리에 실제로 찍어 본다**. 저장소에 있는 결과물과 대조하지 않는다 —
+ * 그건 gitignore 라 CI 에는 아예 없고, 있어도 「낡았다」는 사실은 배포가 알아서 지운다.
+ * 여기서 볼 것은 하나다: 지금 셸로 찍는 일이 성립하는가.
  *
- * 사용: node scripts/audit-tool-pages-fresh.mjs
- * 낡은 것이 있으면 무엇이 어떻게 다른지 적고 1 로 끝난다. 고치는 법은 `npm run gen:tool-pages`.
+ * 사용: node scripts/audit-tool-pages-fresh.mjs  (npm run audit:pages)
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -22,78 +22,35 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const live = path.resolve(root, '../blog/karmolab/t');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'karmolab-pages-'));
 const out = path.join(tmp, 't');
 
-if (!fs.existsSync(live)) {
-  console.error('[audit-tool-pages] 만들어진 도구 페이지 폴더가 없다 — `npm run gen:tool-pages` 를 먼저 돌려라.');
-  process.exit(1);
-}
-
+let stdout = '';
 try {
-  execFileSync(process.execPath, [path.join(root, 'scripts/gen-tool-pages.mjs'), '--out', out], {
+  stdout = execFileSync(process.execPath, [path.join(root, 'scripts/gen-tool-pages.mjs'), '--out', out], {
     cwd: root,
+    encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    // 검사가 기록 파일을 건드리면 그건 검사가 아니다 — 다음 검사가 그 기록으로 통과해 버린다.
     env: { ...process.env, KARMOLAB_GEN_NO_STATE: '1' },
   });
 } catch (e) {
-  console.error('[audit-tool-pages] 다시 만들어 보는 중 실패했다 — 그것부터 고쳐야 한다.');
-  console.error(String(e.stderr || e.stdout || e.message).slice(0, 1200));
+  console.error('[audit-tool-pages] 지금 셸로는 도구 페이지를 못 찍는다 — 이대로 밀어넣으면 배포가 멈춘다.\n');
+  console.error(String(e.stderr || e.stdout || e.message).trim().split('\n').slice(0, 12).join('\n'));
+  fs.rmSync(tmp, { recursive: true, force: true });
   process.exit(1);
 }
 
-/** 폴더 안의 파일을 상대 경로 → 내용으로 (줄 끝 차이는 무시 — 기계마다 다르다) */
-function readAll(dir, base = dir, acc = new Map()) {
-  for (const name of fs.readdirSync(dir)) {
-    const p = path.join(dir, name);
-    if (fs.statSync(p).isDirectory()) readAll(p, base, acc);
-    else acc.set(path.relative(base, p).split(path.sep).join('/'), fs.readFileSync(p, 'utf8').split('\r\n').join('\n'));
-  }
-  return acc;
-}
-
-const fresh = readAll(out);
-const disk = readAll(live);
-const stale = [], missing = [], extra = [];
-
-for (const [rel, content] of fresh) {
-  if (!disk.has(rel)) missing.push(rel);
-  else if (disk.get(rel) !== content) stale.push(rel);
-}
-for (const rel of disk.keys()) if (!fresh.has(rel)) extra.push(rel);
-
+/** 조용히 반쪽만 찍히는 경우를 막는다 — 「돌긴 돌았다」는 통과 조건이 아니다. */
+const pages = fs.existsSync(out)
+  ? fs.readdirSync(out).filter((n) => fs.existsSync(path.join(out, n, 'index.html'))).length
+  : 0;
+const hub = fs.existsSync(path.join(out, 'index.html'));
 fs.rmSync(tmp, { recursive: true, force: true });
 
-const total = stale.length + missing.length + extra.length;
-if (!total) {
-  console.log(`[audit-tool-pages] 도구 페이지 ${disk.size}개가 셸과 같다`);
-  process.exit(0);
+if (!hub || pages < 50) {
+  console.error(`[audit-tool-pages] 찍히긴 했는데 결과가 이상하다 — 도구 ${pages}장 · 목록 ${hub ? '있음' : '없음'}`);
+  console.error(stdout.trim().split('\n').slice(-5).join('\n'));
+  process.exit(1);
 }
-
-console.error(`[audit-tool-pages] 셸과 갈라진 것 ${total}개 — \`npm run gen:tool-pages\` 로 다시 찍어라\n`);
-const show = (label, list) => {
-  if (!list.length) return;
-  console.error(`  ${label} ${list.length}개`);
-  for (const rel of list.slice(0, 8)) console.error(`    · ${rel}`);
-  if (list.length > 8) console.error(`    … 그 외 ${list.length - 8}개`);
-};
-show('낡음 (내용이 다르다)', stale);
-show('없음 (안 찍혔다)', missing);
-show('남음 (셸이 더 이상 안 만든다)', extra);
-
-/* 무엇이 다른지 한 곳만 보여 준다 — 「낡았다」만 적으면 왜인지 몰라 다시 찍기만 반복한다. */
-if (stale.length) {
-  const rel = stale[0];
-  const a = disk.get(rel).split('\n');
-  const b = fresh.get(rel).split('\n');
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    if (a[i] !== b[i]) {
-      console.error(`\n  첫 차이 — ${rel} ${i + 1}번째 줄`);
-      console.error(`    지금:  ${(a[i] ?? '(없음)').trim().slice(0, 110)}`);
-      console.error(`    새로:  ${(b[i] ?? '(없음)').trim().slice(0, 110)}`);
-      break;
-    }
-  }
-}
-process.exit(1);
+console.log(`[audit-tool-pages] 지금 셸로 도구 ${pages}장 + 목록을 찍을 수 있다`);

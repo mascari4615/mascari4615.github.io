@@ -19,6 +19,8 @@ import {
   DistillingMemory,
   clonedSpeech,
   KnownStamps,
+  말걸어도되나,
+  자리결,
   갓알게된것,
   InMemoryMemory,
   JsonlFileMemory,
@@ -341,9 +343,12 @@ const web = webBody({
         ?? 'また、東寺のように、五大明王と呼ばれる、主要な明王の中央に配されることも多い。',
       label: '흉내 낸 목소리',
     });
+    // **떠 있으면 이걸 기본으로 쓴다.** 맨 앞이 곧 기본이다 — 인터넷 목소리보다 느리지만
+    // 「원하는 목소리」가 「빠른 목소리」를 이긴다(조수님 결정). 안 떠 있으면 목록에도 안
+    // 나오고, 그땐 자동으로 다음 것이 기본이 된다.
     if (await 흉내.alive()) {
-      engines.push({ label: '흉내', speech: 흉내 });
-      console.log('[목소리] 흉내 낸 목소리도 쓸 수 있다');
+      engines.unshift({ label: '흉내', speech: 흉내 });
+      console.log('[목소리] 흉내 낸 목소리를 기본으로 쓴다');
     }
 
     engines.push({
@@ -427,6 +432,13 @@ if (process.env.COMPANION_NUDGE !== '0') {
         // 조용히 있으라고 했으면 먼저 걸지 않는다. 물으면 답하는 건 그대로다.
         if (settings.on('먼저말걸기') === false) return null;
         if (quiet.maySpeakFirst === false) return null;
+        /* 지금이 어떤 자리인지 보고 입을 연다. 통화 중에 끼어드는 건 그냥 사고다.
+           모르는 창이면 말을 건다 — 몸을 사리면 얘는 영영 조용해진다. */
+        const 자리 = 말걸어도되나(lastWindowTitle);
+        if (자리.된다 === false) {
+          console.log(`[먼저] 참았다 — ${자리.왜}`);
+          return null;
+        }
         // 하루의 매듭은 다른 어떤 이유보다 먼저다 — 오늘 처음 만난 순간은 한 번뿐이다.
         const 매듭 = dayMark(typeof conversationMemory?.recent === 'function' ? conversationMemory.recent(4000) : []);
         if (매듭 !== null) return { why: 매듭.note, key: `${매듭.kind}-${new Date().toDateString()}` };
@@ -618,6 +630,9 @@ const companion = new Companion({
       /* 방금 알게 된 것 — 예전부터 알던 척을 막는다.
          2분 전에 처음 들은 걸 「예전부터 알았잖아」라고 하면, 사람은 그 순간 얘가
          아무것도 기억 못 한다는 걸 안다. 아는 척이 기억보다 더 크게 티가 난다. */
+      // 말을 걸기로 한 뒤에도 자리에 맞게 굴어야 한다 — 만드는 중인 사람에게 긴
+      // 얘기를 늘어놓으면, 말 건 것 자체는 괜찮아도 방해가 된다.
+      { name: '자리', weight: 11, text: 자리결(lastWindowTitle) },
       { name: '갓안것', weight: 12, text: (() => {
         // 매 turn 맞춘다. 새 줄이 생겼을 때만 파일에 남으므로 값이 싸다 — 갱신 시점을
         // 따로 챙기려다 빠뜨리면 날짜가 통째로 어긋난다.
