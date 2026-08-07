@@ -5,7 +5,11 @@ param(
   [int]$Width = 420,
   [int]$Height = 640,
   [int]$Margin = 24,
-  [switch]$Transparent
+  [switch]$Transparent,
+  # The color the page paints its background with, RRGGBB. The caller owns this
+  # value and hands the same one to the page through the URL -- if only one side
+  # knows it, nothing matches and the window stays opaque.
+  [string]$KeyColor = 'FF00FE'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -92,14 +96,23 @@ $pinned = $false
 for ($i = 0; $i -lt 60 -and -not $pinned; $i++) {
   Start-Sleep -Milliseconds 250
   $process.Refresh()
+  # The handle can be $null, not just zero: when a companion window is already
+  # open, the browser hands the URL to that instance and this process exits, so
+  # there is never a window of our own. Passing $null into the Win32 call throws
+  # and the whole launch is reported as a failure -- guard it and keep trying.
   $handle = $process.MainWindowHandle
-  if ($handle -ne [IntPtr]::Zero -and [Companion.Win]::IsWindowVisible($handle)) {
+  if ($null -ne $handle -and $handle -ne [IntPtr]::Zero -and [Companion.Win]::IsWindowVisible($handle)) {
     [void][Companion.Win]::SetWindowPos($handle, $HWND_TOPMOST, $x, $y, $Width, $Height, $SWP_SHOWWINDOW)
     if ($Transparent) {
-      # 0x00FE00FF = BGR for #FF00FE, the key color the page paints its background with.
+      # Windows wants the key as 0x00BBGGRR, so flip the RRGGBB the caller gave us.
+      $hex = $KeyColor.TrimStart('#')
+      $r = [Convert]::ToInt32($hex.Substring(0, 2), 16)
+      $g = [Convert]::ToInt32($hex.Substring(2, 2), 16)
+      $b = [Convert]::ToInt32($hex.Substring(4, 2), 16)
+      $key = [uint32](($b -shl 16) -bor ($g -shl 8) -bor $r)
       # Give the page a moment to paint before punching the color out.
       Start-Sleep -Milliseconds 900
-      [Companion.Win]::MakeColorTransparent($handle, 0x00FE00FF)
+      [Companion.Win]::MakeColorTransparent($handle, $key)
     }
     $pinned = $true
   }
