@@ -717,7 +717,11 @@ const companion = new Companion({
       // 우리끼리 자꾸 나오는 얘기 — 농담으로 만들라고 시키지는 않는다.
       { name: '단골얘기', text: runningGagNote(recurringThings(wholeStory)), weight: 3, when: 조심.soft === false },
       { name: '사이', text: rapport.note, weight: 4 },
-      { name: '통한말', text: landingNote(recent), weight: 3 },
+      /* **사람이 실제로 반응한 것.** 가중치가 최하위(3)라 194번 밀리고 13번만 실렸다
+         — 발동 기록으로 확인. 그런데 이건 「무슨 말이 통했나」라는, 이 사람한테만
+         해당하는 되먹임이다. 아무 데서도 못 얻는 재료가 가장 먼저 밀리고 있었다.
+         내용이 있을 때가 40% 뿐이라(빔 264) 늘 자리를 먹지도 않는다. */
+      { name: '통한말', text: landingNote(recent), weight: 12 },
 
       { name: '궁금', text: maybeAsk(curiosity), weight: 5, when: 조심.soft === false && settings.on('놀리기') },
       // 대화가 마를 때만 — 잘 굴러가면 끼어들 이유가 없다.
@@ -727,7 +731,11 @@ const companion = new Companion({
         quietPerson: people.whoToAskAbout(Date.now())?.name ?? null,
         wish: wishes.unmet(recent)[0]?.what ?? null,
       }) },
-    ], { mark: (name, fate) => tally.mark(name, fate) });
+      /* 담을 자리. 재료가 열두 개일 때 정한 값을 스무 개가 된 지금까지 쓰고 있었다 —
+         새 재료를 넣을 때마다 예전 것이 **조용히** 밀렸고, 그건 발동 기록을 봐야만
+         보였다. 재료가 는 만큼만 늘린다(420자·5줄 → 520자·6줄). 더 늘리면 29회차에
+         고쳤던 「재료 과밀」로 되돌아간다. */
+    ], { maxChars: 520, maxLines: 6, mark: (name, fate) => tally.mark(name, fate) });
   },
   attention: tactfulAttention({
     // 닿은 것은 나한테 직접 한 짓이다 — 「지금 바쁘신 것 같아 참았다」가 말이 안 된다.
