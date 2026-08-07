@@ -1404,3 +1404,24 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     color: var(--text-secondary); border: 1px solid var(--border); border-radius: 999px;
 }
 .pl-chip b { color: var(--accent); }
+
+/* ── 타임캡슐 편지 (TASK-KL-134) ── */
+.tc-out { border: 1px solid var(--border); background: var(--bg-secondary); padding: 16px; margin-bottom: 12px; }
+.tc-when { font-size: var(--font-size-sm); color: var(--accent); font-weight: 700; margin-bottom: 10px; }
+.tc-remain { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.tc-locked { text-align: center; font-size: 40px; line-height: 1.4; }
+.tc-letter { white-space: pre-wrap; line-height: 1.9; font-size: var(--font-size-md); word-break: keep-all; }
+.tc-share { display: flex; gap: 6px; flex-wrap: wrap; }
+.tc-share input { flex: 1 1 16rem; min-width: 0; font-family: var(--font-mono); font-size: var(--font-size-2xs); }
+.tc-hint { margin-top: 8px; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.tc-note {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px dashed var(--border);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+@media (max-width: 480px) {
+    .tc-share input { flex-basis: 100%; }
+}
