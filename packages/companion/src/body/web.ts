@@ -3,6 +3,7 @@ import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
 import { touchKindFromWire, touchSensation } from '../touch';
+import { 깨졌나, 깨진줄들 } from '../garbled';
 import { Backchannel } from '../backchannel';
 import { Face, expressionFrom, stripExpression } from '../expression';
 import { 평소 } from '../feeling';
@@ -416,6 +417,28 @@ export function webBody(options: WebBodyOptions = {}): Body {
           return;
         }
 
+        /* 이미 쌓인 **깨진 줄**을 보고, 원하면 걷어내는 자리.
+           보기(GET)와 지우기(POST)를 나눠 뒀다 — 지우기는 되돌릴 수 없어서 무엇이
+           지워질지 먼저 볼 수 있어야 한다. */
+        if (url.startsWith('/garbled')) {
+          void Promise.resolve(options.history?.() ?? [])
+            .then((entries) => {
+              const 깨진것 = 깨진줄들([...entries]);
+              if (req.method !== 'POST') {
+                res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ 깨진줄: 깨진것.length, 보기: 깨진것.slice(0, 5).map((e) => e.text.slice(0, 30)) }));
+                return;
+              }
+              let 지운수 = 0;
+              for (const e of 깨진것) 지운수 += options.forget?.(e.text, true)?.conversation ?? 0;
+              log(`깨진 줄 ${깨진것.length}개를 걷어냈다 (대화 ${지운수}줄)`);
+              res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ 걷어냄: 깨진것.length, 대화: 지운수 }));
+            })
+            .catch(() => res.writeHead(500).end());
+          return;
+        }
+
         if (url === '/events') {
           res.writeHead(200, {
             'content-type': 'text/event-stream; charset=utf-8',
@@ -441,6 +464,18 @@ export function webBody(options: WebBodyOptions = {}): Body {
               text = String(JSON.parse(raw).text ?? '').trim();
             } catch {
               text = '';
+            }
+            /* **깨진 글은 안 받는다.**
+               한 번 들어오면 대화 기록에 남고, 졸여서 「아는 것」이 되고, 사건으로도
+               담긴다 — 사람이 안 한 말이 사람의 기억이 된다. 막을 땐 왜 막았는지
+               남긴다. 조용히 버리면 「보냈는데 아무 반응이 없다」가 되고 고장과
+               구분이 안 된다. */
+            const 깨짐 = text === '' ? null : 깨졌나(text);
+            if (깨짐 !== null) {
+              log(`받지 않았다 — ${깨짐}: ${text.slice(0, 30)}`);
+              res.writeHead(400, { 'content-type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({ 안받은이유: 깨짐 }));
+              return;
             }
             res.writeHead(text === '' ? 400 : 204).end();
             if (text === '') return;
