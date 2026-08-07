@@ -97,6 +97,18 @@ for (const topicId of ['pokemon', 'lol', 'genshin']) {
   check('[지난문제] 오늘 답은 안 보인다', !past.includes(answerOf(topic).name));
   check('[지난문제] 그날로 가는 길이 있다', (await page.locator('table.past .play').count()) > 5);
 
+  /**
+   * ★ 답이 **HTML 원문**에 박혀 있는지. 이 페이지의 값은 「어제 답이 뭐였지」로 찾아 들어오는
+   * 사람인데, 검색 로봇은 자바스크립트를 안 돌려 주는 쪽이 많다. 브라우저로 보면 어느 쪽이든
+   * 똑같이 보여서, 굽는 게 멈춰도 로컬 검사·눈으로는 절대 안 잡힌다. 실주소 원문을 직접 본다.
+   */
+  const rawPast = await (await fetch(`${BASE}/pokemon/past/`)).text();
+  const baked = (rawPast.match(/<tr data-day=/g) ?? []).length;
+  check('[지난문제] ★ 답이 원문에 박혀 나간다', baked >= 30, `${baked}줄`);
+  check('[지난문제] ★ 원문에 어제 답이 있다', rawPast.includes(yAnswer.name), yAnswer.name);
+  const todayLabelLive = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+  check('[지난문제] ★ 원문에 오늘 줄은 없다', !rawPast.includes(`>${todayLabelLive}<`), todayLabelLive);
+
   await page.goto(`${BASE}/pokemon/?d=${yKey}`, { waitUntil: 'networkidle' });
   check('[연습] 어제 판이 열린다', /연습/.test(await page.locator('.tabs').innerText()));
   await page.fill('.guessbar input', yAnswer.name);
