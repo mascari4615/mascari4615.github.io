@@ -224,6 +224,37 @@ const Toolbox = (() => {
         });
     }
 
+    /**
+     * 뒤늦게 도착한 아이콘·설명을 이미 있는 목록에 얹는다 (TASK-KL-128 ③).
+     *
+     * 도구 한 장짜리 화면은 처음에 **가벼운 목록**(이름·분류·불러올 곳)만 받는다 — 원본 93KB
+     * 중 26KB. 아이콘 그림과 설명은 옆줄·찾기창이 실제로 그려질 때 필요한 것이라, 화면이 다
+     * 그려진 뒤에 따라온다. 여기서 그 둘을 제자리에 꽂는다. 이미 그려진 아이콘 자리는 비어
+     * 있으므로 DOM 을 다시 그리지 않고 그 자리만 채운다 — 화면이 안 흔들린다.
+     */
+    function upgradeMeta() {
+        const full = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META) || [];
+        const byId = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || null;
+        for (const m of full) {
+            if (!m || !m.id) continue;
+            const tool = tools.find(x => x.id === m.id);
+            if (tool) {
+                if (m.icon) tool.icon = m.icon;
+                if (m.desc) tool.desc = m.desc;
+            }
+            if (byId && byId[m.id]) {
+                if (m.icon) byId[m.id].icon = m.icon;
+                if (m.desc) byId[m.id].desc = m.desc;
+            }
+        }
+        document.querySelectorAll('.nav-item[data-page]').forEach(function (a) {
+            const el = a as HTMLElement;
+            const tool = tools.find(x => x.id === el.dataset.page);
+            const svg = el.querySelector('.nav-icon');
+            if (tool && tool.icon && svg && !svg.innerHTML.trim()) svg.innerHTML = tool.icon;
+        });
+    }
+
     function rebuildToolPageIfInDom(pageId) {
         const toolPages = document.getElementById('tool-pages');
         if (!toolPages) return;
@@ -690,7 +721,7 @@ const Toolbox = (() => {
             a.href = '#';
             a.dataset.page = tool.id;
             a.title = tool.title;
-            a.innerHTML = `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${tool.icon}</svg><span class="nav-item-text">${tool.title}</span>`;
+            a.innerHTML = `<svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${tool.icon || ''}</svg><span class="nav-item-text">${tool.title}</span>`;
             a.onclick = (e) => {
                 e.preventDefault();
                 closeAllHeaderNav();
@@ -2236,7 +2267,7 @@ const Toolbox = (() => {
         onDispose,
         getCategories,
         isDesktopApp,
-        kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline,
+        kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,
         // 로더도 이 해석기를 쓴다 (KL-103). 예전에는 로더가 제 규칙으로 주소를 만들어서
         // 앞머리(vendor/·root/·world/)를 모른 채 늘 js/widgets/ 밑을 찾았다 — 실서비스에서
         // 도구 셋이 라이브러리를 못 받고 있었다. 규칙을 두 벌 두지 않는다.
