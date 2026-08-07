@@ -83,12 +83,14 @@
                   </div>
                 </div>
                 <textarea id="jfInput" aria-label="JSON 입력" class="mono-input" placeholder='{"name":"KarmoLab","tools":["글자수","JSON"],"ok":true}' style="min-height:340px;"></textarea>
-                <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-                  <button class="btn btn-primary" id="jfFormat">정렬</button>
-                  <button class="btn btn-secondary" id="jfMinify">압축</button>
-                  <button class="btn btn-ghost" id="jfSort">키 정렬</button>
-                  <button class="btn btn-ghost" id="jfEscape">문자열 이스케이프</button>
-                  <button class="btn btn-ghost" id="jfClear">지우기</button>
+                <!-- 「눌러야 나오는」 도구가 아니라 **모드를 고르면 즉시 나오는** 도구다 (TASK-KL-133).
+                     붙여넣고 한 번 더 눌러야 결과가 나오면 그 한 번이 매번 쌓인다. -->
+                <div class="tool-chips" id="jfModes" style="margin-top:10px;">
+                  <button type="button" class="tool-chip active" data-mode="format">정렬</button>
+                  <button type="button" class="tool-chip" data-mode="minify">압축</button>
+                  <button type="button" class="tool-chip" data-mode="sort">키 정렬</button>
+                  <button type="button" class="tool-chip" data-mode="escape">문자열 이스케이프</button>
+                  <button type="button" class="btn btn-ghost" id="jfClear" style="margin-left:auto;">지우기</button>
                 </div>
               </div>
               <div class="tool-split-pane">
@@ -97,7 +99,7 @@
                   <button class="btn btn-ghost" id="jfCopy">복사</button>
                 </div>
                 <textarea id="jfOutput" aria-label="정리된 결과" class="mono-input" readonly style="min-height:340px;"></textarea>
-                <div id="jfStatus" class="tool-status" style="margin-top:10px;">JSON 을 입력하고 정렬을 눌러보세요.</div>
+                <div id="jfStatus" class="tool-status" style="margin-top:10px;">JSON 을 붙여넣으면 바로 정리됩니다.</div>
               </div>
             </div>
           `;
@@ -145,33 +147,51 @@
             setStatus(`유효한 JSON · ${describe(value)} · ${note} · ${text.length.toLocaleString('ko-KR')}자`, 'ok');
           }
 
-          (container.querySelector('#jfFormat') as HTMLButtonElement).onclick = () => {
+          /* 지금 무엇으로 보여 줄지. 고르면 그 자리에서 다시 그린다. */
+          let mode: 'format' | 'minify' | 'sort' | 'escape' = 'format';
+
+          function run(): void {
+            if (mode === 'escape') {
+              const raw = input.value;
+              if (!raw) { output.value = ''; setStatus('입력이 비어 있어요.', 'idle'); return; }
+              output.value = JSON.stringify(raw);
+              setStatus('문자열 리터럴로 이스케이프했어요 (JSON 값 안에 통째로 넣을 때 사용).', 'ok');
+              return;
+            }
             const v = parse();
-            if (v === undefined) return;
-            emit(v, JSON.stringify(v, null, indent()), '정렬');
-          };
-          (container.querySelector('#jfMinify') as HTMLButtonElement).onclick = () => {
-            const v = parse();
-            if (v === undefined) return;
-            const before = input.value.length;
-            const text = JSON.stringify(v);
-            emit(v, text, `압축 (${before.toLocaleString('ko-KR')} → ${text.length.toLocaleString('ko-KR')}자)`);
-          };
-          (container.querySelector('#jfSort') as HTMLButtonElement).onclick = () => {
-            const v = parse();
-            if (v === undefined) return;
-            const sorted = sortKeysDeep(v);
-            emit(sorted, JSON.stringify(sorted, null, indent()), '키 사전순 정렬');
-          };
-          (container.querySelector('#jfEscape') as HTMLButtonElement).onclick = () => {
-            const raw = input.value;
-            if (!raw) return;
-            output.value = JSON.stringify(raw);
-            setStatus('문자열 리터럴로 이스케이프했어요 (JSON 값 안에 통째로 넣을 때 사용).', 'ok');
-          };
+            if (v === undefined) { output.value = ''; return; }
+            if (mode === 'minify') {
+              const before = input.value.length;
+              const text = JSON.stringify(v);
+              emit(v, text, `압축 (${before.toLocaleString('ko-KR')} → ${text.length.toLocaleString('ko-KR')}자)`);
+            } else if (mode === 'sort') {
+              const sorted = sortKeysDeep(v);
+              emit(sorted, JSON.stringify(sorted, null, indent()), '키 사전순 정렬');
+            } else {
+              emit(v, JSON.stringify(v, null, indent()), '정렬');
+            }
+          }
+
+          /* 글자를 칠 때마다 통째로 다시 해석하면 큰 JSON 에서 손가락이 느껴진다.
+             입력이 멎은 뒤에 한 번만 한다. */
+          let timer: ReturnType<typeof setTimeout> | null = null;
+          function runSoon(): void {
+            if (timer !== null) clearTimeout(timer);
+            timer = setTimeout(run, 120);
+          }
+
+          container.querySelector('#jfModes')?.addEventListener('click', (e: Event) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('.tool-chip');
+            if (!btn) return;
+            mode = (btn.dataset.mode || 'format') as typeof mode;
+            container.querySelectorAll('.tool-chip').forEach((c) => c.classList.toggle('active', c === btn));
+            run();
+          });
+          input.addEventListener('input', runSoon);
+          indentSel.addEventListener('change', run);
           (container.querySelector('#jfSample') as HTMLButtonElement).onclick = () => {
             input.value = '{"name":"KarmoLab","tools":[{"id":"charcount","ko":"글자수 세기"},{"id":"jsonfmt","ko":"JSON 포맷터"}],"free":true,"since":2024}';
-            setStatus('샘플을 넣었어요. 정렬을 눌러보세요.', 'idle');
+            run();
           };
           (container.querySelector('#jfClear') as HTMLButtonElement).onclick = () => {
             input.value = '';
