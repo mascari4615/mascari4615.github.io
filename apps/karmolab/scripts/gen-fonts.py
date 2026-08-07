@@ -174,6 +174,13 @@ def main():
     serif_latin |= {'·', '—', '–', '…', "'", '"'}
     serif_latin &= latin | set('KarmoLab')
 
+    # 고정폭도 마찬가지다 — 실제로 그리는 라틴은 64자다(여덟 화면에서 세어 봤다: 숫자·영문·
+    # 문장부호·긴줄표). 383자를 담으면 39.7KB, 쓰는 쪽에 맞추면 그보다 훨씬 적다.
+    # 넉넉히 아스키 전부 + 우리가 쓰는 기호 몇 개를 담는다. 그 밖은 컴퓨터 고정폭이 받는다.
+    mono_latin = {chr(c) for c in range(0x20, 0x7F)}
+    mono_latin |= {'·', '—', '–', '…', '→', '×', '°', '₩'}
+    mono_latin &= latin
+
     # 조각 나누기 — 라틴/기호와 한글을 따로 굽는다. 영문만 있는 화면은 한글 뭉치를 안 받는다.
     #
     # 한글을 「우리 화면 글자 / 그 밖의 상용 글자」로 한 번 더 갈라서 담은 글자를 정확히 적어
@@ -184,7 +191,7 @@ def main():
     pools = {
         'sans':  [('latin', latin), ('ko', ko_common)],
         'serif': [('latin', serif_latin), ('ko', ko_ours)],
-        'mono':  [('latin', latin)],
+        'mono':  [('latin', mono_latin)],
     }
 
     css = [
