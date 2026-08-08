@@ -100,7 +100,9 @@ const coreLoop = need('vision/core-loop');
 
 const tagline = section(oneLiner, /한 줄 정의/) || (oneLiner ? oneLiner.summary : '');
 const theme = firstQuote(oneLiner);
-const title = (section(branding, /^타이틀/) || '').split('\n')[0].replace(/\*\*/g, '').trim();
+// 타이틀 절의 **첫 문장만** — 뒤따르는 설명까지 큰제목에 걸면 문장이 제목 행세를 한다(실측).
+const titleLine = (section(branding, /^타이틀/) || '').split('\n')[0].replace(/\*\*/g, '').trim();
+const title = (titleLine.split(/(?<=[.。])\s/)[0] || titleLine).replace(/["“”]/g, '').replace(/\.$/, '').trim();
 const forWhom = glossaryList(labeledBlock(branding, /공유 언어/) || section(branding, /공유 언어/));
 const audience = section(branding, /팬 100명/)
   .split('\n')
