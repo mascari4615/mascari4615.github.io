@@ -1473,11 +1473,8 @@ a.landing-cta-card:hover { color: inherit; }
     text-decoration: underline;
 }
 
-/* 홈 화면에서는 조금 작게 — 다만 얼굴이 읽힐 만큼은 남긴다.
-   64px 은 전신 그림 12장을 쓰던 시절 크기였다(얼굴이 12px 였다). */
-body:has(#page-home.active) .mdd-container .mdd-char {
-    width: 92px; height: 100px;
-}
+/* 마스코트 크기는 설정(환경 설정 → 마스코트)이 정한다. 화면마다 다르게 주면
+   설정에서 고른 값이 홈에서만 안 먹는 것처럼 보인다 — 값의 주인은 하나다. */
 
 /* ═══════════════════════════════════════
    TOAST
