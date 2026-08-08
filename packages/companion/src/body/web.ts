@@ -92,9 +92,29 @@ export interface WebBodyOptions {
 /** 창 몸 — 보통 몸에 더해, 알아챈 것을 밖에서 밀어 넣는 자리를 하나 더 갖는다. */
 export type WebBody = Body & { 알아챔: (무엇: string) => void };
 
+/**
+ * 이 기계에서 뜬 창인가 — 곁에서 붙는 다른 화면(KarmoLab 앱)만 들여보낸다.
+ *
+ * 이름으로만 보면 `localhost.evil.com` 이 통과하므로 **주소를 파싱해서** 호스트가 정확히
+ * 이 기계인지 본다. 포트는 안 본다(앱마다 다르고, 어차피 이 기계 안이다).
+ */
+export function 이기계인가(origin: string): boolean {
+  // Tauri 앱 창은 이 이름으로 온다 — 실제 서버가 아니라 앱 내부 주소다.
+  if (origin === 'tauri://localhost' || origin === 'https://tauri.localhost') return true;
+  try {
+    const { protocol, hostname } = new URL(origin);
+    if (protocol !== 'http:' && protocol !== 'https:') return false;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '::1';
+  } catch {
+    return false;
+  }
+}
+
 export function webBody(options: WebBodyOptions = {}): WebBody {
   const channel = options.channel ?? 'web';
-  const port = options.port ?? 4615;
+  // 4615 는 yawnbot dev 웹훅이 이미 쓴다 — 둘 다 켜면 나중에 뜬 쪽이 죽는다.
+  // 기본값이 겹치면 「가끔 안 뜬다」로만 보이므로 자리를 갈랐다.
+  const port = options.port ?? 4620;
   const log = options.log ?? (() => {});
 
   const clients = new Set<ServerResponse>();
@@ -184,6 +204,23 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
       senseEmit = emit;
       server = createServer((req, res) => {
         const url = req.url ?? '/';
+
+        /* 다른 창(KarmoLab 앱)이 곁에서 붙는다 — 포트가 다르니 브라우저가 막는다.
+           그렇다고 아무 곳에나 열면 **인터넷의 어떤 페이지든** 이 대화를 읽고 말을 걸 수
+           있다(로컬 서버는 그 페이지에게도 그냥 주소일 뿐이다). 그래서 이 기계에서 뜬
+           것만 허용한다 — 열되, 밖으로는 안 연다. */
+        const 부른곳 = req.headers.origin;
+        if (부른곳 !== undefined && 이기계인가(부른곳)) {
+          res.setHeader('access-control-allow-origin', 부른곳);
+          res.setHeader('vary', 'origin');
+          res.setHeader('access-control-allow-headers', 'content-type');
+          res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS');
+        }
+        if (req.method === 'OPTIONS') {
+          // 허용 안 된 곳이면 헤더가 안 붙어 있으므로 브라우저가 알아서 막는다.
+          res.writeHead(204).end();
+          return;
+        }
 
         if (url === '/' || url.startsWith('/?')) {
           res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
