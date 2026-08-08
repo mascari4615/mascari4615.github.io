@@ -109,6 +109,16 @@ export function discoverEntryPoints(root, skip = new Set()) {
     else rels.add(`src/widgets/${rel}.ts`);
   }
 
+  /* 셸이 **실행 중에 뿌리 파일을 데려오는** 경우 — `ensureScript('root/home-scene')` (KL-128 ①-c).
+   * 화면에 `<script>` 로 안 적혀 있으니 위 규칙으로는 안 잡힌다. 안 잡히면 그 파일이 아예
+   * 안 만들어지고, 그런데 화면은 멀쩡히 뜬다 — 그 기능만 조용히 사라진다(장식이 안 뜬다). */
+  for (const file of allSources(root)) {
+    const body = fs.readFileSync(path.join(root, file), 'utf8');
+    for (const match of body.matchAll(/ensureScript\(\s*['"]root\/([A-Za-z0-9_-]+)['"]/g)) {
+      rels.add(`src/${match[1]}.ts`);
+    }
+  }
+
   // 위젯이 **실행 중에 형제 파일을 부르는** 경우 (tierlist·imageconvert 가 그렇게 한다:
   // `base + 'ui.js'`). 그 형제도 따로 만들어져야 하는데, 부르는 곳이 코드 안이라
   // 위 두 규칙으로는 안 잡힌다. 같은 폴더에 같은 이름의 소스가 있으면 그것이 답이다.

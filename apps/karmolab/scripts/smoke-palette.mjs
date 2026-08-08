@@ -255,6 +255,9 @@ if (headerInputs > 0) problems.push(`헤더/사이드바에 상시 입력칸이 
   const bootHas = (n) => asked.some((u) => u.includes(n));
   if (bootHas('palette.js')) problems.push('도구 화면이 부팅 때 팔레트를 받는다 — 미룬 것이 되돌아왔다');
   if (bootHas('widgets-index.js')) problems.push('도구 화면이 부팅 때 검색 목록을 받는다 — 미룬 것이 되돌아왔다');
+  /* 첫 화면 배경 장식(22KB)은 도구 화면에 붙을 자리가 없다 (KL-128 ①-c).
+     받아 놓고 안 그리면 아무도 못 알아챈다 — 안 받는 것까지 잠근다. */
+  if (bootHas('home-scene.js')) problems.push('도구 화면이 첫 화면 배경 장식을 받는다 — 거기엔 붙을 자리가 없다');
 
   await tp.keyboard.press('Control+k');
   await tp.waitForSelector('.kp-overlay .kp-input', { timeout: 8000 })
