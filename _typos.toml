@@ -41,6 +41,12 @@ Criterias = "Criterias"
 criterias = "criterias"
 
 # === 한국어 / 외국어 약어 / 고유명사 ===
+# === 표준 규격 용어 / 고유명사 (고칠 수 없는 단어) ===
+# 2026-08-08: 이 둘 때문에 master verify 가 빨갰다 (전 슬롯이 막혔다).
+COSE = "COSE"        # WebAuthn/CBOR 표준 키 형식 이름 (RFC 8152) — passkey 코드가 쓴다
+cose = "cose"        # 동일 (소문자 케이스)
+Dota = "Dota"        # 게임 이름 (Dota 2) — steam 연동 시험 데이터
+
 SOOP = "SOOP"        # 한국 OTT 서비스 이름
 soop = "soop"        # 동일 (소문자 케이스)
 INFP = "INFP"        # MBTI 성격 유형
