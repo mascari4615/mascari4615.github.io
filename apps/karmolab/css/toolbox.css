@@ -1201,6 +1201,8 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     padding: 2px 8px; font: inherit; font-size: var(--font-size-xs); color: var(--accent);
     cursor: pointer; }
 .lt-brag:hover { border-color: var(--accent); }
+.lt-book { color: var(--text-secondary); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.lt-book:hover { color: var(--accent); border-color: var(--accent); }
 .lt-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 .lt-chip { display: inline-flex; align-items: center; gap: 5px;
     background: var(--bg-secondary); border: 1px solid var(--border);
