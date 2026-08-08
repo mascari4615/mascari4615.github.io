@@ -51,6 +51,7 @@ import { SteamPackStore, STEAM_SOURCES, isSteamSourceId } from '../services/karm
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
+import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
 import {
   verifyRegistration,
   verifyAssertion,
@@ -961,6 +962,90 @@ export function registerKarmolabApi(
       following: store.followList(handle, 'following', viewer?.id ?? null),
       followers: store.followList(handle, 'followers', viewer?.id ?? null),
     });
+  });
+
+  /* ── 같이 쓰기 (TASK-KL-180) ──────────────────────────────────────
+   *
+   * 방 id = 지금 보고 있는 화면 id (도구든 게임이든 같다). 아무것도 저장하지 않는다 —
+   * 지나간 커서 좌표는 값이 0 이다.
+   *
+   * 로그인은 필요 없다. 익명도 같이 쓸 수 있어야 「지금 여기 사람이 있다」가 성립한다.
+   */
+  const rooms = getKarmolabRoomStore();
+
+  /** 방 id 로 받아들일 모양 — 주소에 그대로 들어가므로 좁게 잡는다. */
+  function roomIdOf(raw: unknown): string | null {
+    const id = String(raw ?? '');
+    return /^[a-z0-9][a-z0-9-]{0,39}$/.test(id) ? id : null;
+  }
+
+  /** 이 창 하나의 이름표. 같은 사람이 창을 둘 열면 둘 다 보이는 게 맞다. */
+  function memberIdOf(req: Request, tab: unknown): string {
+    const safeTab = String(tab ?? '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'tab';
+    return `${visitorKeyFor(req)}:${safeTab}`;
+  }
+
+  app.get('/kl/room/:id/stream', (req: Request, res: Response) => {
+    const roomId = roomIdOf(req.params.id);
+    if (!roomId) {
+      res.status(400).json({ error: 'bad_room' });
+      return;
+    }
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const id = memberIdOf(req, req.query.tab);
+    const name = account?.displayName || chat.identityFor(visitorKeyFor(req)).name;
+    const me = rooms.join(roomId, { id, name, handle: account?.handle ?? null, visitorKey: visitorKeyFor(req) });
+    if (!me) {
+      res.status(429).json({ error: 'too_many_tabs' });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    req.socket.setNoDelay(true);
+
+    const send = (event: string, data: unknown): void => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+    // 붙자마자 그릴 것을 준다 — 나와 지금 있는 사람들.
+    send('hello', { me, members: rooms.members(roomId).filter((m) => m.id !== id) });
+
+    const unsubscribe = rooms.subscribe(roomId, (event: RoomEvent) => {
+      // 내 커서는 내 화면이 이미 그리고 있다. 되돌려 보내면 두 개로 보인다.
+      if ('id' in event && event.id === id) return;
+      if (event.type === 'join' && event.member.id === id) return;
+      send(event.type, event);
+    });
+    const heartbeat = setInterval(() => res.write(': ping\n\n'), 15000);
+
+    const close = (): void => {
+      clearInterval(heartbeat);
+      unsubscribe();
+      rooms.leave(roomId, id);
+      res.end();
+    };
+    req.on('close', close);
+    res.on('error', close);
+  });
+
+  /** 커서가 움직였다. 저장하지 않고 그 방 사람들에게 흘려보내기만 한다. */
+  app.post('/kl/room/:id/move', (req: Request, res: Response) => {
+    const roomId = roomIdOf(req.params.id);
+    if (!roomId) {
+      res.status(400).json({ error: 'bad_room' });
+      return;
+    }
+    const body = req.body ?? {};
+    const moved = rooms.move(roomId, memberIdOf(req, body.tab), body.x, body.y, body.active !== false);
+    res.json({ moved });
+  });
+
+  /** 어느 화면에 몇 명이 같이 있나 — 광장에 낼 수 있는 값. */
+  app.get('/kl/rooms', (_req: Request, res: Response) => {
+    res.json({ rooms: rooms.snapshot() });
   });
 
   /** 내가 받을 알림 갈래 (TASK-KL-175 E1). */

@@ -113,6 +113,20 @@
                     </div>
                 </div>
                 <div class="settings-section">
+                    <h3>👥 같이 쓰기</h3>
+                    <div class="settings-row">
+                        <label for="setCopresence">남의 커서 보기</label>
+                        <select id="setCopresence" class="settings-control">
+                            <option value="on">켬</option>
+                            <option value="off">끔</option>
+                        </select>
+                    </div>
+                    <p style="font-size:var(--font-size-xs); color:var(--text-tertiary); margin:0 0 8px;">
+                        같은 화면을 열고 있는 사람들의 커서가 서로 보입니다. 끄면 내 커서도 안 보내고 남의 것도 안 그립니다.
+                        좌표는 저장되지 않습니다 — 지나간 커서는 아무 데도 안 남습니다.
+                    </p>
+                </div>
+                <div class="settings-section">
                     <h3>🔑 API</h3>
                     ${apiUI.html}
                 </div>
@@ -150,6 +164,15 @@
             });
             Toolbox.showToast?.('배경: ' + (bgThemes.find((t) => t.id === id)?.label || id));
         });
+
+        const copresence = container.querySelector<HTMLSelectElement>('#setCopresence');
+        if (copresence) {
+            copresence.value = window.KarmoCopresence?.isOn() === false ? 'off' : 'on';
+            copresence.addEventListener('change', () => {
+                window.KarmoCopresence?.set(copresence.value === 'on');
+                Toolbox.showToast?.(copresence.value === 'on' ? '같이 쓰기: 켬' : '같이 쓰기: 끔');
+            });
+        }
 
         const previewCode = container.querySelector<HTMLElement>('.settings-code-preview code[class*="language-"]');
         if (previewCode && typeof Prism !== 'undefined') Prism.highlightElement(previewCode);
