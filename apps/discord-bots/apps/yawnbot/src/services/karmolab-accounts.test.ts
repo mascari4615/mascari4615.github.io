@@ -303,3 +303,30 @@ describe('공개 범위 (KL-152 C4)', () => {
     expect(new KarmolabAccountStore(statePath).visibilityFor(account.id).profile).toBe(false);
   });
 });
+
+/** 프로필 꾸미기 (TASK-KL-152 C5) — 남의 화면에 그려지는 값이라 좁게 받는다. */
+describe('프로필 꾸미기 (KL-152 C5)', () => {
+  it('한 줄 소개는 다듬어 담고, 대표 도구는 3개까지·모양 확인·중복 제거', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const card = store.setCard(account.id, {
+      bio: '  도구   만드는   사람  ',
+      pins: ['pet', 'pet', 'memo', 'imageconvert', 'tierlist', '<script>', 'BAD ID'],
+    });
+    expect(card).toEqual({ bio: '도구 만드는 사람', pins: ['pet', 'memo', 'imageconvert'] });
+  });
+
+  it('안 채우면 지금과 같은 모습 — 빈 값이 나간다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    expect(store.publicProfile(account).card).toEqual({ bio: '', pins: [] });
+  });
+
+  it('공개 프로필에 실려 나가고, 다시 열어도 남는다', () => {
+    const first = new KarmolabAccountStore(statePath);
+    const account = first.upsertFromDiscord(discordUser);
+    first.setCard(account.id, { bio: '안녕', pins: ['pet'] });
+    const reopened = new KarmolabAccountStore(statePath);
+    expect(reopened.publicProfile(reopened.byHandle(account.handle)!).card).toEqual({ bio: '안녕', pins: ['pet'] });
+  });
+});
