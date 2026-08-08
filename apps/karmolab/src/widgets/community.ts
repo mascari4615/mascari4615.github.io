@@ -185,6 +185,16 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         .c-anonpick { display:inline-flex; align-items:center; gap:4px; cursor:pointer; user-select:none; }
         .c-anonpick input { accent-color:var(--accent); margin:0; }
 
+        /* 신고함 (KL-157) — 주인에게만, 들어온 것이 있을 때만 보인다. */
+        .c-reports { border:1px solid #ef8b8b55; border-radius:var(--radius); padding:10px 12px; }
+        .c-report-list { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:10px; }
+        .c-report { border-top:1px solid var(--border); padding-top:8px; }
+        .c-report:first-child { border-top:none; padding-top:0; }
+        .c-report-head { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-tertiary); }
+        .c-report-reason { color:var(--text-secondary); }
+        .c-report-body { margin:4px 0 6px; font-size:var(--font-size-sm); color:var(--text-primary); word-break:break-word; }
+        .c-report-foot { display:flex; gap:10px; }
+
         .c-write { display:flex; flex-direction:column; gap:8px; margin-bottom:18px;
             border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; background:var(--bg-secondary); }
         .c-write input, .c-write textarea { width:100%; padding:10px 12px; border-radius:var(--radius);
@@ -753,6 +763,26 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         descMaxLength: 60,
     };
 
+    /**
+     * 주인이 볼 신고함 (TASK-KL-157).
+     *
+     * 서버에는 `/kl/reports` 가 있었는데 **화면이 없었다** — 신고는 알림 한 줄로만 오고,
+     * 그 알림을 놓치면 어디서도 다시 볼 수 없었다. 신고 단추만 있고 처리하는 자리가 없는 것은
+     * 「신고를 받는다」고 말만 하는 것이다.
+     */
+    interface OpenReport {
+        id: string;
+        kind: 'post' | 'chat';
+        postId: string;
+        replyId: string | null;
+        reason: string;
+        /** 신고 당시의 그 말. 원본이 사라져도 이건 남는다. */
+        subject: string;
+        createdAt: string;
+    }
+    let reports: OpenReport[] = [];
+    let reportsOpen = false;
+
     let bestFeed: Post[] = [];
     let recentFeed: Post[] = [];
     let searchHits: Post[] = [];
@@ -796,6 +826,39 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                  </form>`
               : '';
 
+        /** 신고함. 주인이 아니거나 들어온 신고가 없으면 **자리 자체를 안 만든다.** */
+        function renderReportBox(): string {
+            /* 주인인지 따로 안 묻는다 — `/kl/reports` 는 주인에게만 답한다(그 외엔 403).
+               답이 온 것 자체가 주인이라는 뜻이라, 새 칸을 만들 필요가 없다.
+               들어온 신고가 없으면 자리 자체를 안 만든다 — 빈 「신고 0」이 늘 떠 있으면 안 읽힌다. */
+            if (reports.length === 0) return '';
+            const rows = reports
+                .map(
+                    (r) => `<li class="c-report">
+                        <div class="c-report-head">
+                            <span class="c-tag">${r.kind === 'chat' ? '채팅' : '글'}</span>
+                            <span class="c-dot">${relativeTime(r.createdAt)}</span>
+                            <span class="c-report-reason">${esc(r.reason)}</span>
+                        </div>
+                        <div class="c-report-body">${esc(plainPreview(r.subject, 160))}</div>
+                        <div class="c-report-foot">
+                            ${
+                                // 채팅 줄은 하루 뒤 사라진다 — 그때는 열어 볼 곳이 없으므로 단추도 안 만든다.
+                                r.kind === 'post'
+                                    ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">글 보기</button>`
+                                    : ''
+                            }
+                            <button type="button" class="c-linkbtn" data-report-done="${esc(r.id)}">확인함</button>
+                        </div>
+                    </li>`,
+                )
+                .join('');
+            return `<section class="c-feed c-reports">
+                <h3><button type="button" class="c-linkbtn" data-reports-toggle>신고 ${reports.length} ${reportsOpen ? '▾' : '▸'}</button></h3>
+                ${reportsOpen ? `<ul class="c-report-list">${rows}</ul>` : ''}
+            </section>`;
+        }
+
         const feedRows = (posts: Post[], empty: string): string =>
             posts.length
                 ? posts
@@ -836,6 +899,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     <div class="c-feed-rows">${feedRows(recentFeed, '아직 글이 없습니다.')}</div>
                 </section>
             </div>
+            ${renderReportBox()}
             <div class="c-bar"><h3 class="c-gal-title">갤러리 ${boards.length}</h3>${
                 boardsMeta.signedIn && !galleryFormOpen ? '<button type="button" class="c-newbtn" data-gal-new>갤러리 만들기</button>' : '<span></span>'
             }</div>
@@ -859,6 +923,27 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 (event.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[data-q-all]')?.value.trim() ?? '';
             go({ q: value || null, board: null, p: null, page: null });
         });
+        host.querySelector('[data-reports-toggle]')?.addEventListener('click', () => {
+            reportsOpen = !reportsOpen;
+            void render();
+        });
+        host.querySelectorAll<HTMLButtonElement>('[data-report-open]').forEach((b) =>
+            b.addEventListener('click', () => go({ p: b.dataset.reportOpen ?? null, board: null, q: null })),
+        );
+        host.querySelectorAll<HTMLButtonElement>('[data-report-done]').forEach((b) =>
+            b.addEventListener('click', async () => {
+                b.disabled = true;
+                const ok = await api(`/kl/reports/${encodeURIComponent(b.dataset.reportDone ?? '')}/resolve`, { method: 'POST' });
+                if (!ok) {
+                    b.disabled = false;
+                    Toolbox.showToast?.(toastFor('처리하지 못했어요'));
+                    return;
+                }
+                reports = reports.filter((r) => r.id !== b.dataset.reportDone);
+                void render();
+            }),
+        );
+
         host.querySelector('[data-gal-new]')?.addEventListener('click', () => {
             galleryFormOpen = true;
             void render();
@@ -1870,11 +1955,14 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
 
         // 갤러리를 안 골랐으면 갤러리 목록부터. 이게 커뮤니티의 첫 화면이다.
         if (!param('board')) {
-            const [freshHome, best, recent] = await Promise.all([
+            const [freshHome, best, recent, mod] = await Promise.all([
                 api('/kl/boards') as Promise<BoardsResponse | null>,
                 api('/kl/recent?kind=best&limit=6') as Promise<{ posts?: Post[] } | null>,
                 api('/kl/recent?limit=6') as Promise<{ posts?: Post[] } | null>,
+                // 주인이 아니면 403 이 오고 `null` 이 된다 — 그대로 빈 신고함이 된다.
+                api('/kl/reports') as Promise<{ reports?: OpenReport[] } | null>,
             ]);
+            reports = mod?.reports ?? [];
             bestFeed = best?.posts ?? [];
             recentFeed = recent?.posts ?? [];
             // 홈에서 찾기를 누르면 갤러리를 가리지 않고 찾는다.
