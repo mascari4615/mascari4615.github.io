@@ -36,7 +36,11 @@ page.on('request', (r) => {
 const res = await page.goto(URL_TARGET, { waitUntil: 'domcontentloaded', timeout: 30000 });
 if (!res || res.status() !== 200) problems.push(`첫 화면이 안 열린다 (http ${res && res.status()})`);
 
-await page.waitForSelector('.mdd-av-part', { timeout: 20000 });
+// 기본이 꺼짐이라 「보일 때까지」 기다리면 영영 안 온다 — 붙었는지만 본다
+await page.waitForSelector('.mdd-av-part', { state: 'attached', timeout: 20000 });
+// 마스코트는 기본이 「꺼짐」이다(그림을 다 다듬을 때까지). 검사는 켜 놓고 본다 —
+// 꺼져 있으면 크기·자리·드래그를 잴 수가 없다.
+await page.evaluate('Mdd.setPrefs({ enabled: true })');
 await page.waitForTimeout(1500);
 
 /* ① 부위가 붙었고 그림은 한 장만 받았다 */
@@ -167,6 +171,8 @@ note(gap.left === 16, `왼쪽으로 끌었는데 왼쪽 벽과 ${gap.left}px 떨
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForSelector('.mdd-av-part', { timeout: 20000 });
 await page.waitForTimeout(1200);
+// 설정은 브라우저에 남으므로 다시 켤 필요는 없다 — 켜져 있는지만 확인한다
+note(await page.evaluate('Mdd.getPrefs().enabled'), '새로고침했더니 켜 둔 설정이 사라졌다');
 gap = await wallGap();
 note(Math.abs(gap.left - 16) <= 2, `새로고침했더니 왼쪽 벽과 ${gap.left}px 로 벌어졌다`);
 

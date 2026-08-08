@@ -338,7 +338,7 @@
      * JS** 라 천장(39KB)을 넘겨 배포가 멈췄다. 이 값이 필요한 건 설정 화면
      * 하나뿐이고 이 파일은 열 때 받아 온다 — 여기가 제자리다. */
     const MASCOT_FALLBACK = {
-        enabled: true, width: 300, framing: 'bust', showOnMobile: false, opacity: 0.85,
+        enabled: false, width: 300, framing: 'bust', showOnMobile: false, opacity: 0.85,
         blink: true, gaze: true, breathe: true, motion: true, hologram: true,
         bubble: true, bubbleMs: 3000, idleMs: 30000, tapReact: true,
     };
