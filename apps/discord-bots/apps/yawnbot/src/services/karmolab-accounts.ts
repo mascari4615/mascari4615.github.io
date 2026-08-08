@@ -95,6 +95,8 @@ export interface Account {
   visibility?: Partial<AccountVisibility>;
   /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채우면 지금과 똑같은 모습이다. */
   card?: ProfileCard;
+  /** 내 계정에 무슨 일이 있었나 (TASK-KL-152 C7). 최근 것부터. */
+  events?: AccountEvent[];
 }
 
 /**
@@ -156,6 +158,53 @@ interface Session {
   accountId: string;
   createdAt: number;
   expiresAt: number;
+  /** 어떤 기기·브라우저인가 (TASK-KL-152 C6). 「2곳」이라는 숫자만으로는 끊을 결심을 못 한다. */
+  device?: string;
+  /** 이 로그인이 마지막으로 쓰인 시각 — 몇 달 잠든 로그인을 알아볼 수 있어야 한다. */
+  lastSeenAt?: number;
+}
+
+/**
+ * 보안 기록 (TASK-KL-152 C7).
+ *
+ * 「내 계정에 무슨 일이 있었나」를 계정 자신이 말할 수 있어야 한다. 로그인·로그아웃·복구코드
+ * 사용은 지금까지 **아무 데도 안 남았다** — 남이 내 계정에 들어와도 알 방법이 없었다.
+ *
+ * 남기는 것은 **일어난 일과 기기 이름**뿐이다. 주소(IP)는 안 적는다 — 있으면 언젠가 새고,
+ * 없어도 「내가 한 것인지」는 시각과 기기로 충분히 가려진다.
+ */
+export interface AccountEvent {
+  at: string;
+  kind: 'login' | 'logout' | 'recovery-used' | 'link-used' | 'name-changed' | 'visibility-changed' | 'sessions-revoked';
+  device?: string;
+  detail?: string;
+}
+
+/** 남기는 줄 수 상한. 오래된 것부터 버린다 — 계정 파일이 끝없이 커지지 않게. */
+export const EVENT_KEEP = 50;
+
+/**
+ * 브라우저가 밝힌 긴 문자열에서 **사람이 알아볼 이름**만 남긴다.
+ * 원문을 그대로 두면 화면에 못 쓰고, 그 자체가 사람을 지목하는 표식이 된다.
+ */
+export function deviceLabel(userAgent: unknown): string {
+  const ua = String(userAgent ?? '');
+  if (!ua) return '알 수 없는 기기';
+  const os =
+    /Windows/i.test(ua) ? 'Windows'
+    : /Android/i.test(ua) ? 'Android'
+    : /iPhone|iPad|iPod/i.test(ua) ? 'iOS'
+    : /Mac OS X|Macintosh/i.test(ua) ? 'macOS'
+    : /Linux/i.test(ua) ? 'Linux'
+    : '알 수 없는 기기';
+  const browser =
+    /Edg\//i.test(ua) ? 'Edge'
+    : /OPR\//i.test(ua) ? 'Opera'
+    : /Firefox\//i.test(ua) ? 'Firefox'
+    : /Chrome\//i.test(ua) ? 'Chrome'
+    : /Safari\//i.test(ua) ? 'Safari'
+    : '';
+  return browser ? `${os} · ${browser}` : os;
 }
 
 interface AccountsState {
@@ -395,13 +444,61 @@ export class KarmolabAccountStore {
     return account;
   }
 
-  createSession(accountId: string): { token: string; expiresAt: number } {
+  createSession(accountId: string, device?: string): { token: string; expiresAt: number } {
     const token = crypto.randomBytes(32).toString('base64url');
     const now = Date.now();
     const expiresAt = now + SESSION_TTL_MS;
-    this.state.sessions[token] = { accountId, createdAt: now, expiresAt };
+    this.state.sessions[token] = { accountId, createdAt: now, expiresAt, device, lastSeenAt: now };
     this.save();
     return { token, expiresAt };
+  }
+
+  /**
+   * 이 로그인이 방금 쓰였다 (TASK-KL-152 C6).
+   * 저장은 **하루 한 번**만 한다 — 요청마다 파일을 쓰면 도구 한 번 열 때마다 디스크가 돈다.
+   */
+  touchSession(token: string | undefined | null, now: number = Date.now()): void {
+    if (!token) return;
+    const session = this.state.sessions[token];
+    if (!session) return;
+    if (session.lastSeenAt && now - session.lastSeenAt < 24 * 60 * 60 * 1000) return;
+    session.lastSeenAt = now;
+    this.save();
+  }
+
+  /** 무슨 일이 있었는지 한 줄 남긴다 (TASK-KL-152 C7). 주소(IP)는 안 적는다 — 있으면 언젠가 샌다. */
+  noteEvent(accountId: string, kind: AccountEvent['kind'], input: { device?: string; detail?: string } = {}): void {
+    const account = this.state.accounts[accountId];
+    if (!account) return;
+    const events = account.events ?? [];
+    events.unshift({ at: new Date().toISOString(), kind, device: input.device, detail: input.detail });
+    account.events = events.slice(0, EVENT_KEEP);
+    this.save();
+  }
+
+  /** 내 보안 기록 — 최근 것부터. */
+  eventsFor(accountId: string): AccountEvent[] {
+    return [...(this.state.accounts[accountId]?.events ?? [])];
+  }
+
+  /** 이 로그인 하나만 끊는다 (TASK-KL-152 C6). 「이 기기만 빼고 전부」로는 못 하는 일이 있다. */
+  revokeSession(accountId: string, sessionId: string): boolean {
+    for (const [token, session] of Object.entries(this.state.sessions)) {
+      if (session.accountId !== accountId) continue;
+      if (this.sessionId(token) !== sessionId) continue;
+      delete this.state.sessions[token];
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 화면에 내보낼 로그인 이름표.
+   * **토큰 자체는 절대 안 내보낸다** — 그걸 아는 사람은 그 계정으로 로그인할 수 있다.
+   */
+  private sessionId(token: string): string {
+    return crypto.createHash('sha256').update(`karmolab-session:${token}`).digest('hex').slice(0, 16);
   }
 
   accountForSession(token: string | undefined | null): Account | null {
@@ -528,12 +625,18 @@ export class KarmolabAccountStore {
   }
 
   /** 지금 살아 있는 내 로그인들 — 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
-  sessionsFor(accountId: string, currentToken: string | null = null): { createdAt: string; current: boolean }[] {
+  sessionsFor(
+    accountId: string,
+    currentToken: string | null = null,
+  ): { id: string; createdAt: string; lastSeenAt: string | null; device: string; current: boolean }[] {
     const now = Date.now();
     return Object.entries(this.state.sessions)
       .filter(([, session]) => session.accountId === accountId && session.expiresAt > now)
       .map(([token, session]) => ({
+        id: this.sessionId(token),
         createdAt: new Date(session.createdAt).toISOString(),
+        lastSeenAt: session.lastSeenAt ? new Date(session.lastSeenAt).toISOString() : null,
+        device: session.device || '알 수 없는 기기',
         current: token === currentToken,
       }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));

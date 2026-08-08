@@ -161,6 +161,14 @@
             background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs); }
         .fp-pin:hover { border-color:var(--accent); }
         .fp-pin.on { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
+        .fp-sessions, .fp-events { display:flex; flex-direction:column; gap:6px; flex:1 1 260px; }
+        .fp-session, .fp-event { display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-tertiary); }
+        .fp-session-name, .fp-event-kind { flex:1 1 140px; font-size:var(--font-size-xs); color:var(--text-primary); }
+        .fp-session-name b { color:var(--accent); font-size:11px; }
+        .fp-session-when, .fp-event-when { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
+        .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }
         .fp-vis-item { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; }
         .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
@@ -426,9 +434,15 @@
                 <span class="user-acct-hint">주소(@아이디)는 그대로입니다 — 남이 걸어 둔 링크가 깨지지 않게.</span>
             </form>
             <div class="user-acct-row">
-                <span class="user-acct-label">로그인 중인 기기</span>
-                <span class="user-acct-value" data-sessions>세는 중…</span>
-                <button type="button" class="user-account-btn user-account-btn-quiet" data-revoke>다른 기기 전부 로그아웃</button>
+                <span class="user-acct-label">로그인한 기기</span>
+                <div class="fp-sessions" data-sessions>세는 중…</div>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-revoke>이 기기만 남기고 전부</button>
+            </div>
+            <div class="user-acct-row">
+                <span class="user-acct-label">계정 기록</span>
+                <div class="fp-events" data-events>보는 중…</div>
+                <span class="user-acct-hint">로그인·로그아웃·복구코드 사용이 남습니다. 주소(IP)는 안 적습니다 —
+                    있으면 언젠가 새고, 없어도 내가 한 것인지는 시각과 기기로 가려집니다.</span>
             </div>
             <div class="user-acct-row">
                 <span class="user-acct-label">내 것 내려받기</span>
@@ -474,18 +488,9 @@
             </div>`;
         slot.appendChild(box);
 
-        const sessionSlot = box.querySelector('[data-sessions]');
-        void (async () => {
-            try {
-                const res = await fetch(`${base}/kl/me/sessions`, { credentials: 'include' });
-                if (!res.ok || !sessionSlot) return;
-                const body = (await res.json()) as { sessions?: unknown[] };
-                const count = Array.isArray(body.sessions) ? body.sessions.length : 0;
-                sessionSlot.textContent = count > 1 ? `${count}곳` : '이 기기 하나';
-            } catch {
-                if (sessionSlot) sessionSlot.textContent = '지금은 못 셌어요';
-            }
-        })();
+        const sessionSlot = box.querySelector<HTMLElement>('[data-sessions]');
+        void renderSessions(sessionSlot, base);
+        void renderSecurity(box.querySelector<HTMLElement>('[data-events]'), base);
 
         box.querySelector<HTMLFormElement>('[data-name-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -513,7 +518,7 @@
                 });
                 const body = (await res.json()) as { revoked?: number };
                 Toolbox.showToast?.(res.ok ? `${body.revoked ?? 0}곳을 끊었어요` : '지금은 안 되네요');
-                if (sessionSlot) sessionSlot.textContent = '이 기기 하나';
+                void renderSessions(sessionSlot, base);
             } catch {
                 Toolbox.showToast?.('지금은 안 되네요');
             }
@@ -611,6 +616,110 @@
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
+    /** 사람이 읽는 상대 시각 — 「3일 전」이 「2026-08-05T…」보다 판단하기 쉽다. */
+    function whenText(iso: string | null): string {
+        if (!iso) return '기록 없음';
+        const then = new Date(iso).getTime();
+        if (Number.isNaN(then)) return '';
+        const minutes = Math.floor((Date.now() - then) / 60000);
+        if (minutes < 1) return '방금';
+        if (minutes < 60) return `${minutes}분 전`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}시간 전`;
+        return `${Math.floor(hours / 24)}일 전`;
+    }
+
+    type SessionRow = { id: string; createdAt: string; lastSeenAt: string | null; device: string; current: boolean };
+
+    /**
+     * 로그인한 기기 목록 (TASK-KL-152 C6).
+     *
+     * 예전에는 「2곳」이라는 숫자 하나였다 — 그것만 보고는 끊을 결심을 못 한다.
+     * 무엇이 어디서 언제 쓰였는지가 보여야 「이건 내가 아니다」를 알아본다.
+     */
+    async function renderSessions(slot: HTMLElement | null, base: string): Promise<void> {
+        if (!slot) return;
+        let sessions: SessionRow[] = [];
+        try {
+            const res = await fetch(`${base}/kl/me/sessions`, { credentials: 'include' });
+            if (!res.ok) throw new Error(String(res.status));
+            sessions = ((await res.json()) as { sessions?: SessionRow[] }).sessions ?? [];
+        } catch {
+            slot.textContent = '지금은 못 셌어요';
+            return;
+        }
+
+        slot.innerHTML = sessions
+            .map(
+                (session) => `
+                <div class="fp-session">
+                    <span class="fp-session-name">${escapeHtml(session.device)}${session.current ? ' <b>이 기기</b>' : ''}</span>
+                    <span class="fp-session-when">마지막 ${escapeHtml(whenText(session.lastSeenAt ?? session.createdAt))}</span>
+                    ${session.current
+                        ? ''
+                        : `<button type="button" class="user-account-btn user-account-btn-quiet" data-revoke-one="${escapeHtml(session.id)}">끊기</button>`}
+                </div>`,
+            )
+            .join('');
+
+        slot.querySelectorAll<HTMLButtonElement>('[data-revoke-one]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                if (!confirm('이 기기의 로그인을 끊을까요?')) return;
+                try {
+                    const res = await fetch(`${base}/kl/me/sessions/${encodeURIComponent(button.dataset.revokeOne ?? '')}/revoke`, {
+                        method: 'POST',
+                        credentials: 'include',
+                    });
+                    const body = (await res.json()) as { revoked?: boolean };
+                    Toolbox.showToast?.(res.ok && body.revoked ? '끊었어요' : '지금은 안 되네요');
+                } catch {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                }
+                void renderSessions(slot, base);
+            });
+        });
+    }
+
+    /** 보안 기록 (TASK-KL-152 C7) — 남이 내 계정에 들어와도 알 방법이 지금까지 없었다. */
+    const EVENT_LABELS: Record<string, string> = {
+        login: '로그인',
+        logout: '로그아웃',
+        'recovery-used': '복구 코드 사용',
+        'link-used': '코드로 로그인',
+        'name-changed': '이름 바꿈',
+        'visibility-changed': '공개 범위 바꿈',
+        'sessions-revoked': '로그인 끊음',
+    };
+
+    async function renderSecurity(slot: HTMLElement | null, base: string): Promise<void> {
+        if (!slot) return;
+        let events: Array<{ at: string; kind: string; device?: string; detail?: string }> = [];
+        try {
+            const res = await fetch(`${base}/kl/me/security`, { credentials: 'include' });
+            if (!res.ok) throw new Error(String(res.status));
+            events = ((await res.json()) as { events?: typeof events }).events ?? [];
+        } catch {
+            slot.textContent = '지금은 못 봤어요';
+            return;
+        }
+        if (!events.length) {
+            // 「없다」와 「못 봤다」를 구별해서 말한다.
+            slot.textContent = '아직 남은 기록이 없어요';
+            return;
+        }
+        slot.innerHTML = events
+            .slice(0, 12)
+            .map(
+                (event) => `
+                <div class="fp-event">
+                    <span class="fp-event-kind">${escapeHtml(EVENT_LABELS[event.kind] ?? event.kind)}</span>
+                    <span class="fp-event-meta">${escapeHtml([event.device, event.detail].filter(Boolean).join(' · '))}</span>
+                    <span class="fp-event-when">${escapeHtml(whenText(event.at))}</span>
+                </div>`,
+            )
+            .join('');
+    }
+
     /**
      * 프로필 꾸미기 (TASK-KL-152 C5).
      *

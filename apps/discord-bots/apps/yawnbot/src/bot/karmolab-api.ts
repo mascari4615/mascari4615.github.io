@@ -24,6 +24,8 @@ import {
   type Account,
   type AccountRecords,
   type KarmolabAccountStore,
+  // 기기 이름표·보안 기록 (TASK-KL-152 C6·C7)
+  deviceLabel,
 } from '../services/karmolab-accounts';
 import {
   getKarmolabTraceStore,
@@ -392,7 +394,9 @@ export function registerKarmolabApi(
         displayName: user.global_name || user.username,
         avatarUrl: discordAvatarUrl(user),
       });
-      const session = store.createSession(account.id);
+      const device = deviceLabel(req.headers['user-agent']);
+      const session = store.createSession(account.id, device);
+      store.noteEvent(account.id, 'login', { device, detail: '디스코드' });
       setSessionCookie(res, session.token, session.expiresAt - Date.now());
       res.redirect(`${returnUrl}${sep}kl_login=ok`);
     } catch (error) {
@@ -402,6 +406,8 @@ export function registerKarmolabApi(
   });
 
   app.post('/kl/auth/logout', (req: Request, res: Response) => {
+    const leaving = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (leaving) store.noteEvent(leaving.id, 'logout', { device: deviceLabel(req.headers['user-agent']) });
     store.destroySession(readCookie(req, SESSION_COOKIE));
     clearSessionCookie(res);
     res.json({ ok: true });
@@ -454,7 +460,9 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
+    const previous = account.displayName;
     const updated = store.setDisplayName(account.id, (req.body ?? {}).displayName);
+    if (updated) store.noteEvent(account.id, 'name-changed', { detail: `${previous} → ${updated.displayName}` });
     if (!updated) {
       res.status(400).json({ error: 'bad_name', maxLength: DISPLAY_NAME_MAX });
       return;
@@ -494,7 +502,9 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'bad_code' });
       return;
     }
-    const { token, expiresAt } = store.createSession(account.id);
+    const device = deviceLabel(req.headers['user-agent']);
+    const { token, expiresAt } = store.createSession(account.id, device);
+    store.noteEvent(account.id, 'recovery-used', { device });
     setSessionCookie(res, token, expiresAt - Date.now());
     res.json({ account: store.publicProfile(account), left: store.recoveryCodesLeft(account.id) });
   });
@@ -516,7 +526,9 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'bad_code' });
       return;
     }
-    const { token, expiresAt } = store.createSession(account.id);
+    const device = deviceLabel(req.headers['user-agent']);
+    const { token, expiresAt } = store.createSession(account.id, device);
+    store.noteEvent(account.id, 'link-used', { device });
     setSessionCookie(res, token, expiresAt - Date.now());
     res.json({ account: store.publicProfile(account) });
   });
@@ -554,6 +566,36 @@ export function registerKarmolabApi(
     res.json({ card });
   });
 
+  /**
+   * 로그인 하나만 끊는다 (TASK-KL-152 C6).
+   *
+   * 「이 기기만 빼고 전부」로는 못 하는 일이 있다 — 집 컴퓨터는 두고 카페에서 켠 것만 끄고 싶을 때.
+   * 목록에 나가는 것은 **토큰이 아니라 섞은 이름표**다. 토큰을 화면에 내보내면 그게 곧 열쇠가 된다.
+   */
+  app.post('/kl/me/sessions/:id/revoke', (req: Request, res: Response) => {
+    const token = readCookie(req, SESSION_COOKIE);
+    const account = store.accountForSession(token);
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const revoked = store.revokeSession(account.id, String(req.params.id ?? ''));
+    if (revoked) store.noteEvent(account.id, 'sessions-revoked', { detail: '한 곳' });
+    res.json({ revoked });
+  });
+
+  /**
+   * 보안 기록 (TASK-KL-152 C7) — 「내 계정에 무슨 일이 있었나」.
+   * 남이 내 계정에 들어와도 알 방법이 지금까지 하나도 없었다.
+   */
+  app.get('/kl/me/security', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ events: store.eventsFor(account.id) });
+  });
 
   /** 내 공개 범위 (TASK-KL-152 C4). */
   app.get('/kl/me/visibility', (req: Request, res: Response) => {
@@ -573,6 +615,10 @@ export function registerKarmolabApi(
       return;
     }
     const visibility = store.setVisibility(account.id, req.body);
+    if (visibility) {
+      const off = Object.entries(visibility).filter(([, on]) => !on).map(([key]) => key);
+      store.noteEvent(account.id, 'visibility-changed', { detail: off.length ? `가림: ${off.join(', ')}` : '전부 공개' });
+    }
     if (!visibility) {
       res.status(404).json({ error: 'not_found' });
       return;
@@ -680,8 +726,13 @@ export function registerKarmolabApi(
     }
     const counted = traces.recordToolOpen(toolId, visitorKeyFor(req));
     // 로그인했으면 **내 것으로도** 적는다 (TASK-KL-152 C1). 익명 집계는 그대로 — 두 벌은 쓰임이 다르다.
-    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    if (account) store.noteFootprint(account.id, { toolId });
+    const sessionToken = readCookie(req, SESSION_COOKIE);
+    const account = store.accountForSession(sessionToken);
+    if (account) {
+      store.noteFootprint(account.id, { toolId });
+      // 이 로그인이 아직 쓰이고 있다는 표시 (TASK-KL-152 C6). 하루 한 번만 저장된다.
+      store.touchSession(sessionToken);
+    }
     res.json({ counted, kind });
   });
 
