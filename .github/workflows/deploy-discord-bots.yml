@@ -25,7 +25,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # === KL-190: 밀린 판은 **일하지 않고 비킨다** ===
+  #
+  # 세션이 여섯이라 push 는 계속 들어온다(그게 전제다). 그런데 이 워크플로는 줄을 서므로
+  # (`cancel-in-progress: false`), 다섯 번 push 하면 5분짜리 배포가 **다섯 번 차례로** 돈다.
+  # 앞의 넷은 어차피 최신 판을 짓지도 않는데 뒤에 온 사람의 차례를 밀어낸다.
+  #
+  # 예전에 「3분 기다렸다 시작 + 새 push 면 취소」로 풀려다 실패했다 — 세션이 여섯이라
+  # 3분이 한 번도 안 닫혔다(취소 22 / 성공 3). 기다리는 게 아니라 **비키는** 것이 답이다.
+  #
+  # 취소(`cancel-in-progress: true`)를 안 쓰는 이유: 배포 도중 잘리면 어중간한 상태가 남는다.
+  # 대신 **시작할 때 자기가 최신인지 묻고**, 아니면 그 자리에서 조용히 끝낸다(10초).
+  tip:
+    runs-on: ubuntu-latest
+    outputs:
+      current: ${{ steps.check.outputs.current }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tip=$(gh api "repos/${{ github.repository }}/commits/${{ github.ref_name }}" --jq .sha)
+          if [ "$tip" = "${{ github.sha }}" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+            echo "이 판이 최신이다 — 배포한다 ($tip)"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "밀린 판이다 — 비킨다. 내 sha=${{ github.sha }} · 지금 최신=$tip"
+            echo "밀린 판이라 비켰습니다. 최신 판($tip)이 배포합니다." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   deploy-yawnbot:
+    needs: tip
+    if: needs.tip.outputs.current == 'true'
     runs-on: [self-hosted, windows, laptop, yawnbot]
     timeout-minutes: 15
 
