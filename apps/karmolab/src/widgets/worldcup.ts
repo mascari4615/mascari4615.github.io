@@ -39,6 +39,15 @@ interface Runner {
 /** 지난 우승자들끼리 붙이는 판 (TASK-KL-151 심화). 표가 아니라 **내 기록**이 재료다. */
 const CHAMPIONS_KEY = 'champions';
 
+/** 오늘의 월드컵 (TASK-KL-151 ⑥) — 날짜가 표를 고른다. 모두가 같은 판을 돈다. */
+const TODAY_KEY = 'today';
+
+/** KST 기준 며칠째인가. 서버 없이도 모두가 같은 답을 얻는 유일한 방법이다. */
+function dayNumber(now: Date = new Date()): number {
+  const kst = new Date(now.getTime() + 9 * 3600e3);
+  return Math.floor(kst.getTime() / 86400000);
+}
+
 const BUILTIN = [
   { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
   { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
@@ -203,6 +212,14 @@ interface Match {
             const options = roundChoices(picked.runners);
             // 처음 고르는 값은 **가장 큰 것이 아니라 16강**이다 — 128강은 첫 판에 백 번을 누르게 한다.
             size = options.indexOf(16) >= 0 ? 16 : options[options.length - 1];
+            /* 오늘의 월드컵은 라운드도 같아야 한다 — 8강 우승과 64강 우승을 같은 통계에 넣으면
+               그 수는 아무 말도 안 하는 수가 된다. */
+            if (picked.builtin === TODAY_KEY) {
+              $('wcRoundBox').hidden = true;
+              $('wcStartRow').hidden = false;
+              $('wcRounds').innerHTML = '';
+              return;
+            }
             $('wcRoundBox').hidden = false;
             $('wcStartRow').hidden = false;
             $('wcRounds').innerHTML = '';
@@ -269,6 +286,26 @@ interface Match {
             void listShared({ needs: 'image', sort: 'popular', limit: 30 }).then((got) => {
               if (!container.isConnected || !got) return;
               const mineShared = new Set(choices.map((c) => c.sharedId).filter(Boolean));
+              /* 오늘의 월드컵 (TASK-KL-151 ⑥).
+                 왜: 각자 다른 표를 돌리면 승률·순위가 영영 안 모인다. 하루에 하나를 정하면
+                 그날 통계가 통째로 살아나고, 「오늘 건 뭐야」로 다시 올 이유가 생긴다.
+                 서버가 정하지 않는다 — 날짜로 고르면 모두가 서버 없이 같은 답을 얻는다. */
+              const pool = got.packs.slice().sort((a, b) => a.id.localeCompare(b.id));
+              if (pool.length) {
+                const pick = pool[dayNumber() % pool.length];
+                const todayChoice: typeof choices = [
+                  {
+                    key: `today:${pick.id}`,
+                    title: `오늘의 월드컵 — ${pick.title}`,
+                    emoji: '📅',
+                    runners: pick.images,
+                    sharedId: pick.id,
+                    builtin: TODAY_KEY,
+                  },
+                ];
+                choices = todayChoice.concat(choices);
+              }
+
               const extra = got.packs
                 .filter((r: SharedPackSummary) => !mineShared.has(r.id))
                 .map((r: SharedPackSummary) => ({
@@ -285,6 +322,10 @@ interface Match {
 
           /** 표를 실제 항목으로 편다. 남의 표는 이때 이 브라우저로 들인다(이어받기와 같은 문). */
           async function runnersFor(choice: (typeof choices)[number]): Promise<Runner[]> {
+            if (choice.builtin === TODAY_KEY && choice.sharedId) {
+              const adopted = await adoptShared(choice.sharedId);
+              return adopted ? runnersOf(adopted.items) : [];
+            }
             if (choice.builtin === CHAMPIONS_KEY) {
               const seen = readHistory();
               return seen
