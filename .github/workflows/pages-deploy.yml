@@ -155,6 +155,12 @@ jobs:
         working-directory: apps/karmolab
         run: npm run gen:community
 
+      # TASK-KL-151 ⑪: 놀이마다 한 장씩 — 놀이는 앱 안 해시로만 살아서 검색에 걸릴 글이
+      # 한 줄도 없었다. 사람은 「놀이터」가 아니라 「이상형 월드컵」으로 검색한다.
+      - name: Generate KarmoLab play pages
+        working-directory: apps/karmolab
+        run: npm run gen:play-pages
+
       - name: Generate KarmoLab tool pages
         working-directory: apps/karmolab
         run: npm run gen:tool-pages
