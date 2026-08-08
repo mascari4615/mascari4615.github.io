@@ -15,12 +15,14 @@ import { registerKarmolabApi } from './karmolab-api';
 import { KarmolabAccountStore } from '../services/karmolab-accounts';
 import { KarmolabTraceStore } from '../services/karmolab-traces';
 import { KarmolabPlayStore } from '../services/karmolab-plays';
+import { KarmolabPackStore } from '../services/karmolab-packs';
 
 let server: Server;
 let baseUrl: string;
 let store: KarmolabAccountStore;
 let traces: KarmolabTraceStore;
 let plays: KarmolabPlayStore;
+let packs: KarmolabPackStore;
 let tmpDir: string;
 
 beforeEach(async () => {
@@ -29,9 +31,11 @@ beforeEach(async () => {
   traces = new KarmolabTraceStore(path.join(tmpDir, 'traces.json'));
   // 놀이 기록도 임시 파일로 (TASK-KL-148). 안 넣으면 시험이 운영 원장에 판을 적는다.
   plays = new KarmolabPlayStore(path.join(tmpDir, 'plays.json'));
+  // 사람이 만든 표도 임시 파일로 (TASK-KL-150).
+  packs = new KarmolabPackStore(path.join(tmpDir, 'packs.json'));
   const app = express();
   app.use(express.json());
-  registerKarmolabApi(app, store, traces, undefined, plays);
+  registerKarmolabApi(app, store, traces, undefined, plays, undefined, packs);
   /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
      `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -1189,5 +1193,98 @@ describe('놀이 기록 API — HTTP', () => {
     expect(pokemon.entries.map((e: any) => e.handle)).toEqual([handle]);
     const lol = (await (await fetch(`${baseUrl}/kl/play/board?game=higher&variant=lol`)).json()) as any;
     expect(lol.entries).toEqual([]);
+  });
+});
+
+/**
+ * 사람이 만든 표 (TASK-KL-150) — 브라우저에서 실제로 되는가.
+ * 여기서 보는 것: 로그인 없이 못 올리고, 남의 표를 못 고치고, 이유가 답에 실려 오는가.
+ */
+describe('표 API — HTTP', () => {
+  const HUMAN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36';
+
+  const body = (extra: Record<string, unknown> = {}): unknown => ({
+    title: '내가 만든 표',
+    emoji: '🍜',
+    fields: [{ key: 'f1', label: '맛', kind: 'number' }],
+    items: [
+      { name: '라면', f1: 9 },
+      { name: '국수', f1: 7 },
+      { name: '우동', f1: 8 },
+      { name: '냉면', f1: 6 },
+    ],
+    ...extra,
+  });
+
+  it('로그인 없이는 못 올린다', async () => {
+    const res = await fetch(`${baseUrl}/kl/packs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body()),
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('올리면 주소가 생기고, 로그인 없이도 그 주소로 열린다', async () => {
+    const { cookie } = signIn();
+    const made = (await (
+      await fetch(`${baseUrl}/kl/packs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Cookie: cookie },
+        body: JSON.stringify(body()),
+      })
+    ).json()) as any;
+    expect(made.pack.id).toMatch(/^[a-z0-9]{8}$/);
+
+    const opened = await fetch(`${baseUrl}/kl/packs/${made.pack.id}`, { headers: { 'User-Agent': HUMAN } });
+    expect(opened.status).toBe(200);
+    expect((await opened.json()).pack.items).toHaveLength(4);
+    // 사람이 열었으니 세어졌다
+    expect(packs.get(made.pack.id)!.opens).toBe(1);
+  });
+
+  it('안 되는 표는 **왜 안 되는지**까지 답에 실려 온다', async () => {
+    const { cookie } = signIn();
+    const res = await fetch(`${baseUrl}/kl/packs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify(body({ items: [{ name: '하나' }] })),
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'too_few_items', min: 4 });
+  });
+
+  it('남의 표는 못 고치고 못 내린다 (403)', async () => {
+    const owner = signIn();
+    const made = packs.create(owner.handle, body() as any);
+    // 다른 사람의 세션
+    const other = store.upsertFromDiscord({ discordId: '99', username: 'other', displayName: '남', avatarUrl: null });
+    const otherCookie = `kl_session=${encodeURIComponent(store.createSession(other.id).token)}`;
+
+    const put = await fetch(`${baseUrl}/kl/packs/${made.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: otherCookie },
+      body: JSON.stringify(body({ title: '가로챈 표' })),
+    });
+    expect(put.status).toBe(403);
+    expect((await fetch(`${baseUrl}/kl/packs/${made.id}`, { method: 'DELETE', headers: { Cookie: otherCookie } })).status).toBe(403);
+    expect(packs.get(made.id)!.title).toBe('내가 만든 표');
+  });
+
+  it('없는 표는 404', async () => {
+    expect((await fetch(`${baseUrl}/kl/packs/nosuchid`)).status).toBe(404);
+  });
+
+  it('목록은 로그인 없이 보이고, 내 것만 보려면 로그인해야 한다', async () => {
+    const { cookie, handle } = signIn();
+    packs.create(handle, body() as any);
+    const open = (await (await fetch(`${baseUrl}/kl/packs`)).json()) as any;
+    expect(open.packs).toHaveLength(1);
+    expect(open.packs[0].items).toBe(4); // 요약이지 표 전체가 아니다
+    expect(open.signedIn).toBe(false);
+
+    expect((await fetch(`${baseUrl}/kl/packs?mine=1`)).status).toBe(401);
+    const mine = (await (await fetch(`${baseUrl}/kl/packs?mine=1`, { headers: { Cookie: cookie } })).json()) as any;
+    expect(mine.packs).toHaveLength(1);
   });
 });

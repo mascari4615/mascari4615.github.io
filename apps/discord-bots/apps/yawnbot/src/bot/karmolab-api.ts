@@ -44,6 +44,7 @@ import {
 } from '../services/karmolab-traces';
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { getKarmolabPlayStore, playGame, isValidVariant, type KarmolabPlayStore } from '../services/karmolab-plays';
+import { getKarmolabPackStore, PackError, type KarmolabPackStore } from '../services/karmolab-packs';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
@@ -223,6 +224,22 @@ function isAdminAccount(account: Account | null, env: NodeJS.ProcessEnv = proces
  * 방문자를 가리키는 열쇠를 만든다 — 주소는 저장하지 않고 섞어서만 쓴다.
  * cloudflared 를 거쳐 오므로 원래 주소는 `x-forwarded-for` 의 맨 앞에 있다.
  */
+/**
+ * 표 원장이 던진 거절을 답으로 옮긴다 (TASK-KL-150).
+ *
+ * 왜 한자리인가: 「안 됩니다」만 돌려주면 스프레드시트에서 긁어 온 사람은 뭐가 문제인지
+ * 영영 모른다. 이유(code)와 기준(detail)을 **항상 같이** 실어 보낸다.
+ */
+function sendPackError(res: Response, error: unknown): void {
+  if (error instanceof PackError) {
+    const status = error.code === 'not_found' ? 404 : error.code === 'not_owner' ? 403 : 400;
+    res.status(status).json({ error: error.code, ...(error.detail ?? {}) });
+    return;
+  }
+  console.error('[karmolab-api] 표 처리 중 알 수 없는 실패:', error);
+  res.status(500).json({ error: 'server_error' });
+}
+
 function visitorKeyFor(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
   const first = Array.isArray(forwarded) ? forwarded[0] : String(forwarded ?? '').split(',')[0];
@@ -241,6 +258,7 @@ export function registerKarmolabApi(
   notes: KarmolabNotificationStore = getKarmolabNotificationStore(),
   plays: KarmolabPlayStore = getKarmolabPlayStore(),
   chat: KarmolabChatStore = getKarmolabChatStore(),
+  packs: KarmolabPackStore = getKarmolabPackStore(),
 ): void {
 
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
@@ -748,6 +766,99 @@ export function registerKarmolabApi(
         : null,
       signedIn: Boolean(account),
     });
+  });
+
+  // ── 사람이 만든 표 (TASK-KL-150 · 게임 커스텀/UGC) ─────────────────────────
+  //
+  // 표가 주소를 갖는 순간 셋이 한꺼번에 풀린다: 남에게 주기 · 고치면 남도 갱신 · 같은 표로
+  // 논 사람끼리 겨루기(`pack:<id>` 를 놀이 기록 원장의 표 이름으로 그대로 넘긴다).
+
+  /** 표 하나를 그대로 — 놀이가 이걸 받아 판을 짠다. 열린 횟수도 여기서 센다. */
+  app.get('/kl/packs/:id', (req: Request, res: Response) => {
+    const pack = packs.get(req.params.id);
+    if (!pack) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    // 로봇이 긁어 간 것을 「열렸다」로 세면 인기 순위가 거짓말이 된다.
+    if (classifyVisitor(req.headers['user-agent']) === 'human') packs.noteOpen(pack.id, visitorKeyFor(req));
+    res.json({ pack });
+  });
+
+  /**
+   * 표 목록. 놀이가 「내가 걸 수 있는 표만」 달라고 할 수 있다 —
+   * 못 거는 표가 목록에 서면 눌러 보고서야 안 된다는 걸 알게 된다.
+   */
+  app.get('/kl/packs', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const mine = req.query.mine === '1';
+    if (mine && !account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({
+      packs: packs.list({
+        sort: req.query.sort === 'new' ? 'new' : 'popular',
+        owner: mine ? account!.handle : undefined,
+        needsNumber: req.query.needs === 'number',
+        needsImage: req.query.needs === 'image',
+        query: typeof req.query.q === 'string' ? req.query.q : undefined,
+        limit: Number(req.query.limit) || undefined,
+      }),
+      signedIn: Boolean(account),
+      // 전체 규모는 `total` 안에 넣는다. 펼쳐서 넣으면 `packs`(목록)를 `packs`(개수)가
+      // 덮어써서 목록이 통째로 숫자가 된다 — 화면은 빈 목록으로 보이고 오류는 안 난다.
+      total: packs.stats(),
+    });
+  });
+
+  /** 표를 올린다 — 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */
+  app.post('/kl/packs', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const forkOf = typeof body.forkOf === 'string' ? body.forkOf : null;
+    try {
+      res.json({ pack: packs.create(account.handle, body, forkOf) });
+    } catch (error) {
+      sendPackError(res, error);
+    }
+  });
+
+  /** 고친다 — 주인만. */
+  app.put('/kl/packs/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    try {
+      res.json({ pack: packs.update(account.handle, String(req.params.id), req.body ?? {}) });
+    } catch (error) {
+      sendPackError(res, error);
+    }
+  });
+
+  /** 내린다 — 주인이거나 주인장. 순위 기록은 안 지운다(그 사람들이 실제로 논 것이다). */
+  app.delete('/kl/packs/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    try {
+      const gone = packs.remove(account.handle, String(req.params.id), isAdminAccount(account));
+      if (!gone) {
+        res.status(404).json({ error: 'not_found' });
+        return;
+      }
+      res.json({ ok: true });
+    } catch (error) {
+      sendPackError(res, error);
+    }
   });
 
   /** 내 전 종목 최고. 논 적 없는 종목은 안 나온다. */
