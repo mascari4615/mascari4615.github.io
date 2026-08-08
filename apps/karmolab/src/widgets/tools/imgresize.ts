@@ -73,6 +73,7 @@ import { fileSize as size } from './shared/media';
             <div class="field-group" id="irControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-chips" id="irMode">
                 <button type="button" class="tool-chip active" data-mode="side">긴 변 맞추기</button>
+                <button type="button" class="tool-chip" data-mode="percent">비율로 줄이기</button>
                 <button type="button" class="tool-chip" data-mode="bytes">용량 맞추기</button>
               </div>
 
@@ -83,6 +84,18 @@ import { fileSize as size } from './shared/media';
                   <button type="button" class="tool-chip" data-side="640">640</button>
                   <button type="button" class="tool-chip" data-side="1024">1024</button>
                   <button type="button" class="tool-chip" data-side="1920">1920</button>
+                </div>
+              </div>
+
+              <!-- iLoveIMG 등 상위 도구는 「픽셀 또는 백분율」 둘 다 받는다. 원본 크기를 모르고
+                   「반으로만 줄이고 싶다」는 사람에게는 픽셀 칸이 오히려 걸림돌이다. -->
+              <div id="irPercentWrap" style="display:none; margin-top:10px;">
+                <div class="tool-sublabel">원본의 <span id="irPercentVal" class="range-value">50%</span></div>
+                <input type="range" id="irPercent" aria-label="원본 대비 비율 (%)" min="5" max="200" step="5" value="50">
+                <div class="tool-chips" style="margin-top:8px;">
+                  <button type="button" class="tool-chip" data-pct="25">25%</button>
+                  <button type="button" class="tool-chip" data-pct="50">50%</button>
+                  <button type="button" class="tool-chip" data-pct="75">75%</button>
                 </div>
               </div>
 
@@ -129,7 +142,7 @@ import { fileSize as size } from './shared/media';
           let originalSize = 0;
           let baseName = '사진';
           let made: Blob | null = null;
-          let mode: 'side' | 'bytes' = 'side';
+          let mode: 'side' | 'percent' | 'bytes' = 'side';
 
           const say = (m: string, kind = ''): void => {
             status.textContent = m;
@@ -183,6 +196,17 @@ import { fileSize as size } from './shared/media';
 
               if (mode === 'side') {
                 dims = targetSize(parseInt($<HTMLInputElement>('#irSide').value, 10));
+                const cv = shrink(img, img.naturalWidth, img.naturalHeight, dims.w, dims.h);
+                blob = await toBlob(cv, type, 0.92);
+              } else if (mode === 'percent') {
+                /* 원본 크기를 몰라도 「반으로」 처럼 말할 수 있어야 한다. 비율은 그대로 지킨다. */
+                const pct = parseInt($<HTMLInputElement>('#irPercent').value, 10) / 100;
+                const noUp = $<HTMLInputElement>('#irNoUp').checked;
+                const k = noUp ? Math.min(pct, 1) : pct;
+                dims = {
+                  w: Math.max(1, Math.round(img.naturalWidth * k)),
+                  h: Math.max(1, Math.round(img.naturalHeight * k))
+                };
                 const cv = shrink(img, img.naturalWidth, img.naturalHeight, dims.w, dims.h);
                 blob = await toBlob(cv, type, 0.92);
               } else {
@@ -265,8 +289,9 @@ import { fileSize as size } from './shared/media';
             (chip as HTMLButtonElement).onclick = () => {
               container.querySelectorAll('#irMode .tool-chip').forEach((c) => c.classList.remove('active'));
               chip.classList.add('active');
-              mode = ((chip as HTMLElement).dataset.mode as 'side' | 'bytes') || 'side';
+              mode = ((chip as HTMLElement).dataset.mode as 'side' | 'percent' | 'bytes') || 'side';
               $<HTMLElement>('#irSideWrap').style.display = mode === 'side' ? '' : 'none';
+              $<HTMLElement>('#irPercentWrap').style.display = mode === 'percent' ? '' : 'none';
               $<HTMLElement>('#irBytesWrap').style.display = mode === 'bytes' ? '' : 'none';
             };
           });
@@ -277,6 +302,15 @@ import { fileSize as size } from './shared/media';
             (chip as HTMLButtonElement).onclick = () => {
               $<HTMLInputElement>('#irSide').value = (chip as HTMLElement).dataset.side as string;
               $<HTMLInputElement>('#irSide').dispatchEvent(new Event('input'));
+            };
+          });
+          $<HTMLInputElement>('#irPercent').addEventListener('input', () => {
+            $<HTMLElement>('#irPercentVal').textContent = $<HTMLInputElement>('#irPercent').value + '%';
+          });
+          container.querySelectorAll('[data-pct]').forEach((chip) => {
+            (chip as HTMLButtonElement).onclick = () => {
+              $<HTMLInputElement>('#irPercent').value = (chip as HTMLElement).dataset.pct as string;
+              $<HTMLInputElement>('#irPercent').dispatchEvent(new Event('input'));
             };
           });
           $<HTMLInputElement>('#irBytes').addEventListener('input', () => {
