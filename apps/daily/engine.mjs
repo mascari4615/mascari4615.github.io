@@ -323,3 +323,179 @@ export function findItem(items, name) {
   const n = nameKey(name);
   return items.find((item) => nameKey(item.name) === n) ?? null;
 }
+
+// ── 나열형 (TASK-KL-197) ────────────────────────────────────────────────────
+// 「하나를 맞힌다」 옆에 「전부 대본다」를 둔다. 다른 놀이지만 **표는 그대로**다 —
+// 질문도 정답도 속성표에서 파생한다. 주제를 늘릴 때 코드는 안 고친다는 약속이 여기도 걸린다.
+
+/** 받침이 있나 — 조사를 고르려면 이게 필요하다. 없으면 「불이인」 같은 말이 나온다. */
+function hasFinal(text) {
+  const last = String(text ?? '').trim().slice(-1);
+  const code = last.codePointAt(0) - 0xac00;
+  if (code < 0 || code > 11171) return null; // 한글이 아니면 모른다 → 조사를 「(이)」로 둔다
+  return code % 28 !== 0;
+}
+
+/** 조사 고르기. 한글이 아니면 두 벌 다 적는다 — 틀리게 적느니 어색한 게 낫다. */
+function josa(word, withFinal, withoutFinal) {
+  const f = hasFinal(word);
+  if (f === null) return `${withFinal}(${withoutFinal})`;
+  return f ? withFinal : withoutFinal;
+}
+
+/**
+ * 「전부 대보시오」가 성립하는 크기.
+ * 너무 적으면 놀이가 30초에 끝나고, 너무 많으면 끝이 안 보여 아무도 완주를 안 한다.
+ */
+export const LIST_MIN = 6;
+export const LIST_MAX = 45;
+
+/**
+ * 표에서 질문을 **파생**한다 — 사람이 매일 손으로 쓰지 않는다.
+ *
+ * playfootball 은 이 자리에 사람이 쓴 `{question, answers[]}` 를 매일 하나씩 올린다.
+ * 우리는 속성표가 이미 있으니 조건 하나가 곧 질문이고, 그 조건을 만족하는 항목이 곧 정답표다.
+ * 그래서 새 주제를 넣으면 나열형 판도 **저절로** 생긴다.
+ *
+ * 답이 갈리지 않게 순서는 항상 같다(필드 순 → 값 순). 날짜는 이 목록 *위에서* 고른다.
+ */
+function conditionsOf(topic) {
+  const out = [];
+  for (const field of topic.fields ?? []) {
+    const label = field.label;
+    const of = (item) => {
+      const v = item[field.key];
+      return (Array.isArray(v) ? v : [v]).filter((x) => x !== undefined && x !== null && x !== '').map(String);
+    };
+
+    if (field.kind === 'category' || field.kind === 'set') {
+      const values = [...new Set(topic.items.flatMap(of))].sort();
+      for (const value of values) {
+        const names = topic.items.filter((i) => of(i).map(norm).includes(norm(value))).map((i) => i.name);
+        // 관형형(「…인」)과 연결형(「…이면서」) 두 벌을 여기서 만든다. 나중에 말꼬리를 잘라
+        // 붙이면 「있는」→「있으면서」 같은 변형에서 반드시 어긋난다.
+        out.push(
+          field.kind === 'set'
+            ? { id: `${field.key}=${value}`, key: field.key, attr: `${label}에 ${value}${josa(value, '이', '가')} 있는`, conj: `${label}에 ${value}${josa(value, '이', '가')} 있으면서`, names }
+            : { id: `${field.key}=${value}`, key: field.key, attr: `${label}${josa(label, '이', '가')} ${value}인`, conj: `${label}${josa(label, '이', '가')} ${value}이면서`, names },
+        );
+      }
+      continue;
+    }
+
+    if (field.kind === 'number') {
+      /**
+       * 숫자라고 다 물어볼 수 있는 게 아니다. **나열형은 분류 축에서만 성립한다.**
+       * 「몸무게 550kg 이상인 포켓몬을 전부」는 답이 있어도 사람이 못 댄다 — 아무도 몸무게를
+       * 외우고 다니지 않는다. 반대로 세대·진화 단계·성급은 숫자지만 사실상 분류다.
+       * 그 둘을 가르는 표식은 **값의 가짓수**다. 적으면 분류, 많으면 정렬 축이라 여기서 뺀다.
+       */
+      const values = [...new Set(topic.items.map((i) => Number(i[field.key])).filter(Number.isFinite))].sort((a, b) => a - b);
+      if (values.length > 12) continue;
+      const unit = field.unit ?? '';
+      for (const value of values) {
+        const names = topic.items.filter((i) => Number(i[field.key]) === value).map((i) => i.name);
+        out.push({
+          id: `${field.key}=${value}`,
+          key: field.key,
+          attr: `${label}${josa(label, '이', '가')} ${value}${unit}인`,
+          conj: `${label}${josa(label, '이', '가')} ${value}${unit}이면서`,
+          names,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+export function listQuestions(topic, { min = LIST_MIN, max = LIST_MAX } = {}) {
+  const title = topic.title;
+  const conds = conditionsOf(topic);
+  const fits = (names) => names.length >= min && names.length <= max && names.length < topic.items.length;
+
+  // 조건 하나로 크기가 맞으면 그게 제일 좋은 질문이다 — 짧고 바로 이해된다.
+  const single = conds.filter((c) => fits(c.names)).map((c) => ({ id: c.id, text: `${c.attr} ${title}`, answers: c.names }));
+  if (single.length >= 8) return single;
+
+  /**
+   * 표가 크면 조건 하나로는 늘 넘친다 — 포켓몬 1025마리에서 「불꽃 타입」은 100마리가 넘는다.
+   * 그때 **조건을 교차**한다(「1세대이면서 타입에 불꽃이 있는」). 크기를 줄이는 손잡이이자,
+   * 질문이 구체적이라 오히려 더 재밌다. 다른 필드끼리만 겹친다 — 같은 필드 두 값은
+   * 대개 교집합이 0이다(색이 빨강이면서 파랑인 것은 없다).
+   */
+  const pairs = [];
+  for (let i = 0; i < conds.length; i += 1) {
+    for (let j = i + 1; j < conds.length; j += 1) {
+      const a = conds[i];
+      const b = conds[j];
+      if (a.key === b.key) continue;
+      const bset = new Set(b.names.map(norm));
+      const names = a.names.filter((n) => bset.has(norm(n)));
+      if (!fits(names)) continue;
+      pairs.push({ id: `${a.id}&${b.id}`, text: `${a.conj} ${b.attr} ${title}`, answers: names });
+    }
+  }
+  return [...single, ...pairs];
+}
+
+/** 나열형 판이 설 수 있는 주제인가 — 실루엣이 그림을 요구하는 것과 같은 자리. */
+export function hasListMode(topic) {
+  return listQuestions(topic).length >= 8;
+}
+
+/** 오늘의 질문. 정답 하나를 고를 때와 같은 순열을 쓴다 — 난수 체계를 새로 만들지 않는다. */
+export function listQuestionOf(topic, at = new Date(), questions = listQuestions(topic)) {
+  if (questions.length === 0) return null;
+  return questions[dailyIndex(topic.id, kstDayNumber(at), questions.length, 'list')];
+}
+
+/**
+ * 답 한 번의 판정. 이름이 표에 아예 없는 것(unknown)과 표엔 있지만 조건 밖인 것(miss)을 가른다 —
+ * 오타를 「틀렸다」로 처리하면 사람은 자기가 뭘 잘못했는지 모른다.
+ */
+export function listJudge(topic, question, raw, given = []) {
+  const item = findItem(topic.items, raw);
+  if (!item) return { status: 'unknown', name: String(raw ?? '').trim() };
+  const already = given.some((n) => nameKey(n) === nameKey(item.name));
+  if (already) return { status: 'dup', name: item.name };
+  const hit = question.answers.some((n) => nameKey(n) === nameKey(item.name));
+  return { status: hit ? 'hit' : 'miss', name: item.name };
+}
+
+/**
+ * 희귀도 점수 — **남들이 덜 댄 답일수록 크다.**
+ *
+ * 왜 이게 있나: 맞았나 틀렸나만 보면 나열형은 「많이 아는 사람이 이긴다」로 끝나고, 한 번 풀면
+ * 다시 올 이유가 없다. 남들의 답이 점수에 들어오면 *같은 문제를 다시 봐도* 볼 것이 남는다.
+ *
+ * `shares` = { 이름: 그 답을 낸 사람 비율(0~1) }. **없으면 null 을 준다** — 그때는 희귀도 없이
+ * 개수만 센다. 집계가 붙는 날 자동으로 점수가 살아난다 (서버가 죽어도 놀이는 안 멈춘다).
+ *
+ * 곡선은 선형이 아니다: 절반이 댄 답과 5%만 댄 답의 차이가 선형이면 체감이 안 난다.
+ */
+export function listScore(question, given, shares = null) {
+  const hits = given.filter((n) => question.answers.some((a) => nameKey(a) === nameKey(n)));
+  const rows = hits.map((name) => {
+    const share = shares ? shares[Object.keys(shares).find((k) => nameKey(k) === nameKey(name))] : undefined;
+    const p = Number.isFinite(share) ? Math.min(1, Math.max(0, share)) : null;
+    return { name, share: p, points: p === null ? 10 : Math.round(10 + 190 * (1 - p) ** 2) };
+  });
+  return {
+    rows,
+    found: hits.length,
+    total: question.answers.length,
+    points: rows.reduce((sum, r) => sum + r.points, 0),
+    rated: rows.some((r) => r.share !== null),
+  };
+}
+
+/**
+ * 나열형 공유 — 정답 이름은 한 글자도 안 넣는다.
+ * 격자는 정답표 순서가 아니라 **찾은 순서**로 그린다 (칸 위치가 정답을 흘리면 안 된다).
+ */
+export function listShareText({ title, puzzleNo, score, url, seconds }) {
+  const bar = `${'🟩'.repeat(Math.min(20, score.found))}${'⬜'.repeat(Math.max(0, Math.min(20, score.total) - Math.min(20, score.found)))}`;
+  const head = `${title} 전부대기 #${puzzleNo} ${score.found}/${score.total}`;
+  const line = [score.rated ? `${score.points}점` : null, Number.isFinite(seconds) ? `${seconds}초` : null].filter(Boolean).join(' · ');
+  return [head, '', bar, ...(line ? [line] : []), ...(url ? ['', url] : [])].join('\n');
+}

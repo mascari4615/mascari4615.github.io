@@ -22,6 +22,11 @@ import {
   suggest,
   triesLabel,
   whyNoPractice,
+  listQuestions,
+  listQuestionOf,
+  listJudge,
+  listScore,
+  listShareText,
 } from './engine.mjs';
 
 const topic = {
@@ -285,4 +290,103 @@ test('연속이 끊기면 끊겼다고 말한다', () => {
   assert.match(streakLine({ streak: 3, best: 5, lastDay: 96 }, 100), /끊겼어요 \(최고 5일 · 3일 걸렀다\)/);
   assert.equal(streakLine(null, 100), '', '한 번도 안 온 사람에겐 아무 말도 안 한다');
   assert.equal(streakLine({ streak: 0, best: 0, lastDay: null }, 100), '');
+});
+
+// ── 나열형 (TASK-KL-197) ────────────────────────────────────────────────────
+
+/** 나열형은 정답이 여럿이라 표가 커야 성립한다 — 시험용으로 하나 더 만든다. */
+const listTopic = {
+  id: 'list-test',
+  title: '시험',
+  fields: [
+    { key: 'color', label: '색', kind: 'category' },
+    { key: 'types', label: '타입', kind: 'set' },
+    { key: 'hp', label: '체력', kind: 'number' },
+  ],
+  items: Array.from({ length: 20 }, (_, i) => ({
+    name: `항목${i}`,
+    color: i < 8 ? '초록' : '빨강',
+    types: i % 2 === 0 ? ['물', '불'] : ['물'],
+    hp: 100 + i,
+  })),
+};
+
+test('질문은 표에서 파생된다 — 사람이 안 쓴다', () => {
+  const qs = listQuestions(listTopic);
+  const byId = new Map(qs.map((q) => [q.id, q]));
+  assert.equal(byId.get('color=초록').answers.length, 8);
+  assert.equal(byId.get('color=초록').text, '색이 초록인 시험');
+  assert.equal(byId.get('types=불').answers.length, 10, 'set 은 원소가 들어 있으면 든다');
+  assert.equal(byId.get('types=불').text, '타입에 불이 있는 시험');
+  assert.ok(!byId.has('types=물'), '20개 전부가 답이면 물어볼 게 없다 — 그런 질문은 안 선다');
+});
+
+test('조사는 받침을 보고 고른다', () => {
+  const text = listQuestions({
+    ...listTopic,
+    fields: [{ key: 'weapon', label: '무기', kind: 'category' }],
+    items: listTopic.items.map((it, i) => ({ ...it, weapon: i < 10 ? '활' : '검' })),
+  }).find((q) => q.id === 'weapon=활').text;
+  assert.equal(text, '무기가 활인 시험', '받침 없는 「무기」 뒤엔 「가」');
+});
+
+test('사람이 못 외우는 숫자는 질문이 안 된다', () => {
+  // 나열형은 분류 축에서만 성립한다 — 「체력 107 인 것 전부」는 답이 있어도 아무도 못 댄다.
+  assert.equal(listQuestions(listTopic).filter((q) => q.id.startsWith('hp')).length, 0, '값이 20가지면 정렬 축이다');
+  const graded = {
+    ...listTopic,
+    fields: [{ key: 'rank', label: '등급', kind: 'number', unit: '성' }],
+    items: listTopic.items.map((it, i) => ({ ...it, rank: i < 8 ? 5 : 4 })),
+  };
+  const q = listQuestions(graded).find((x) => x.id === 'rank=5');
+  assert.equal(q.text, '등급이 5성인 시험', '가짓수가 적으면 그건 분류다');
+  assert.equal(q.answers.length, 8);
+});
+
+test('오늘의 질문은 하루 종일 같고 판마다 다르다', () => {
+  const morning = listQuestionOf(listTopic, new Date('2026-08-07T01:00:00+09:00'));
+  const night = listQuestionOf(listTopic, new Date('2026-08-07T23:00:00+09:00'));
+  assert.equal(morning.id, night.id);
+  const one = answerOf(listTopic, new Date('2026-08-07T12:00:00+09:00'));
+  assert.ok(one.name, '같은 날 「하나 맞히기」 정답과 별개로 선다');
+});
+
+test('오타와 조건 밖은 다른 말이다', () => {
+  const q = listQuestions(listTopic).find((x) => x.id === 'color=초록');
+  assert.equal(listJudge(listTopic, q, '항목1', []).status, 'hit');
+  assert.equal(listJudge(listTopic, q, '항목19', []).status, 'miss', '표엔 있지만 조건 밖');
+  assert.equal(listJudge(listTopic, q, '없는것', []).status, 'unknown', '표에 아예 없음 = 오타');
+  assert.equal(listJudge(listTopic, q, '항목1', ['항목1']).status, 'dup');
+  assert.equal(listJudge(listTopic, q, ' 항목 1 ', []).status, 'hit', '띄어쓰기는 무시한다');
+});
+
+test('희귀도 점수는 남들이 덜 댄 답에 크게 준다', () => {
+  const q = listQuestions(listTopic).find((x) => x.id === 'color=초록');
+  const shares = { 항목0: 0.9, 항목1: 0.05 };
+  const s = listScore(q, ['항목0', '항목1', '항목19'], shares);
+  assert.equal(s.found, 2, '조건 밖 답은 점수에 안 든다');
+  assert.equal(s.total, 8);
+  assert.ok(s.rows[1].points > s.rows[0].points * 5, '5%가 댄 답이 90%짜리보다 확 커야 체감된다');
+  assert.equal(s.rated, true);
+});
+
+test('집계가 없어도 놀이는 안 멈춘다', () => {
+  const q = listQuestions(listTopic).find((x) => x.id === 'color=초록');
+  const s = listScore(q, ['항목0', '항목1'], null);
+  assert.equal(s.rated, false, '희귀도 없이 개수만 센다');
+  assert.equal(s.found, 2);
+  assert.ok(s.points > 0);
+});
+
+test('나열형 공유 글에는 정답 이름이 없다', () => {
+  const q = listQuestions(listTopic).find((x) => x.id === 'color=초록');
+  const text = listShareText({
+    title: '시험',
+    puzzleNo: 7,
+    score: listScore(q, ['항목0', '항목1'], null),
+    seconds: 42,
+    url: 'https://example.com/daily/',
+  });
+  for (const name of q.answers) assert.ok(!text.includes(name), `공유 글에 ${name} 이 샜다`);
+  assert.match(text, /2\/8/);
 });
