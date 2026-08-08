@@ -348,6 +348,12 @@ permalink: /karmolab/
          defer 는 문서 순서대로 실행되므로 이 줄의 위치가 곧 순서다.
          이 한 줄이 빌드 목록이기도 하다 — build.mjs 가 화면이 부르는 주소에서 뽑는다(KL-098). -->
     <script defer fetchpriority="low" src="/apps/karmolab/js/palette.js"></script>
+    <!-- 첫 화면 본문 (TASK-KL-128 ①-c 3차) — **이 화면에만** 싣는다.
+         도구 화면 129장에서는 한 번도 안 불리는 코드였는데 셸에 박혀 있어 매번 따라왔다.
+         정적 페이지 생성기(`scripts/lib/shell-page.mjs`)가 그 화면들에서 이 줄을 뺀다.
+         toolbox 가 `init()` 에서 `window.KarmoHomePage.build()` 를 부르므로 그보다 먼저 둔다
+         (defer 는 문서 순서대로 실행된다 — 이 줄의 위치가 곧 순서다). -->
+    <script defer fetchpriority="low" src="/apps/karmolab/js/home-page.js"></script>
     <script defer fetchpriority="low" src="/apps/karmolab/js/toolbox.js"></script>
     <!-- KL-131: 평소엔 아무 일도 안 한다. 켜면 지금 화면에 있는 것들이 그대로 액정이 된다. -->
     <!-- KL-054: gemini.js eager 제거 → chatbot/imagegen/imageedit/imagelib(lazyScriptPaths)
