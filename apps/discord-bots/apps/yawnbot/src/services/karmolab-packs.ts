@@ -89,7 +89,15 @@ interface PacksState {
   tallies?: Record<string, Record<string, { seen: number; wins: number }>>;
   /** 표별 우승 횟수 (항목 이름 → 우승 수). 집계와 나눠 두는 이유: 우승은 판당 하나뿐이라 성격이 다르다. */
   champions?: Record<string, Record<string, number>>;
-  /** 처음부터 있는 표를 이미 심었나. 사람이 지운 표를 다시 세우지 않으려고 따로 표시한다. */
+  /**
+   * 이미 심어 본 씨앗 표 **파일 이름들**.
+   *
+   * 처음엔 `seeded: true` 하나로 뒀는데, 그러면 씨앗을 하나 더 늘려도 **영영 안 심긴다**
+   * (봇은 「심었음」만 보고 지나간다 — 실제로 네 번째 표가 그렇게 안 들어갔다).
+   * 파일 단위로 적어야 새 표가 합류한다. 지운 표를 다시 안 세우는 성질은 그대로다.
+   */
+  seededFiles?: string[];
+  /** 옛 표시(파일 단위 이전). 있으면 처음 셋은 이미 심은 것으로 본다. */
   seeded?: boolean;
 }
 
@@ -324,15 +332,22 @@ export class KarmolabPackStore {
    * 쌓이면 둘러보기가 곧 쓰레기가 된다. 사람이 지웠으면 다시 안 심는다(지운 뜻을 존중).
    */
   private seed(): void {
-    if (this.state.seeded) return;
+    /* 옛 표시(`seeded: true`)를 파일 단위로 옮긴다 — 그때 심은 것은 처음 셋뿐이다. */
+    if (!this.state.seededFiles) {
+      this.state.seededFiles = this.state.seeded ? SEED_TABLES.slice(0, 3).map((t) => t.file) : [];
+    }
+    const already = new Set(this.state.seededFiles);
+
     let planted = 0;
     for (const table of SEED_TABLES) {
+      if (already.has(table.file)) continue; // 심어 봤다 — 사람이 지웠어도 다시 안 세운다
       try {
         const file = path.join(this.seedDir, table.file);
-        if (!fs.existsSync(file)) continue;
+        if (!fs.existsSync(file)) continue; // 아직 없다 — 다음에 생기면 그때 심는다
         const shaped = fromSiteTable(JSON.parse(fs.readFileSync(file, 'utf-8')));
         if (!shaped) continue;
         const title = shaped.title || table.fallbackTitle;
+        this.state.seededFiles.push(table.file);
         if (this.state.packs.some((p) => p.ownerHandle === SEED_OWNER && p.title === title)) continue;
         const now = new Date().toISOString();
         this.state.packs.push({
@@ -352,9 +367,7 @@ export class KarmolabPackStore {
         console.error(`[karmolab-packs] 씨앗 표 ${table.file} 를 못 심었다:`, error);
       }
     }
-    // 한 장도 못 찾았으면 표시를 안 남긴다 — 다음에 파일이 생기면 그때 심는다.
     if (!planted) return;
-    this.state.seeded = true;
     this.save();
     console.log(`[karmolab-packs] 처음부터 있는 표 ${planted}개를 심었다.`);
   }
@@ -368,6 +381,7 @@ export class KarmolabPackStore {
           packs: Array.isArray(parsed.packs) ? parsed.packs : [],
           tallies: parsed.tallies ?? {},
           champions: parsed.champions ?? {},
+          seededFiles: Array.isArray(parsed.seededFiles) ? parsed.seededFiles : undefined,
           seeded: parsed.seeded === true,
         };
       }
