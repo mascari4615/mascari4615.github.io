@@ -52,6 +52,7 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
+import { getKarmolabFlowStore } from '../services/karmolab-flows';
 import {
   verifyRegistration,
   verifyAssertion,
@@ -962,6 +963,89 @@ export function registerKarmolabApi(
       following: store.followList(handle, 'following', viewer?.id ?? null),
       followers: store.followList(handle, 'followers', viewer?.id ?? null),
     });
+  });
+
+  /* ── 도구 흐름 (TASK-KL-181) ──────────────────────────────────────
+   *
+   * 저장하는 것은 **순서뿐**이다. 파일도 결과도 서버에 안 올라온다 — 우리 도구는 전부
+   * 브라우저 안에서 돌고, 흐름은 그 순서를 적어 둔 종이 한 장이다.
+   *
+   * 보는 것은 로그인 없이. 만들고 고치는 것만 로그인 — 주소를 받은 사람이 못 열면
+   * 「남에게 준다」가 성립하지 않는다.
+   */
+  const flows = getKarmolabFlowStore();
+
+  app.get('/kl/flows', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    res.json({ flows: flows.list(), mine: account ? flows.byOwner(account.handle) : [] });
+  });
+
+  app.get('/kl/flows/:id', (req: Request, res: Response) => {
+    const flow = flows.get(String(req.params.id ?? ''));
+    if (!flow) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ flow });
+  });
+
+  app.post('/kl/flows', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const flow = flows.create(account.handle, { title: body.title, steps: body.steps });
+    if (!flow) {
+      // 왜 안 됐는지 말해 준다 — 조용히 실패하면 사람은 고장으로 읽는다.
+      res.status(400).json({ error: 'bad_flow', titleMax: 40, stepMax: 8, perOwner: 30 });
+      return;
+    }
+    res.json({ flow });
+  });
+
+  app.put('/kl/flows/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const flow = flows.update(String(req.params.id ?? ''), account.handle, req.body ?? {});
+    if (!flow) {
+      res.status(403).json({ error: 'not_owner' });
+      return;
+    }
+    res.json({ flow });
+  });
+
+  app.delete('/kl/flows/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ removed: flows.remove(String(req.params.id ?? ''), account.handle) });
+  });
+
+  /** 남의 흐름을 내 것으로 담는다 (원본은 그대로). */
+  app.post('/kl/flows/:id/fork', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const flow = flows.fork(String(req.params.id ?? ''), account.handle);
+    if (!flow) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ flow });
+  });
+
+  /** 한 번 돌았다 — 이 수만이 「쓸모 있는 흐름」을 가려낸다. 로그인 없이도 센다. */
+  app.post('/kl/flows/:id/run', (req: Request, res: Response) => {
+    res.json({ runs: flows.noteRun(String(req.params.id ?? '')) });
   });
 
   /* ── 같이 쓰기 (TASK-KL-180) ──────────────────────────────────────

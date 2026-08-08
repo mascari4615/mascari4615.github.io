@@ -28,7 +28,16 @@ interface AccountSummary {
     profileUrl: string;
 }
 
-const API_BASE = 'https://yawnbot.mascari4615.com';
+/**
+ * 어디에 붙을까. 기본은 노트북의 그 서버다.
+ *
+ * `window.KARMOLAB_API_BASE` 를 두면 그쪽으로 붙는다 — 로컬에서 봇을 띄워 놓고 이 화면을 그
+ * 봇에 붙이는 길이다(TASK-KL-181). 이게 없으면 계정이 걸린 기능은 **배포해야만** 확인할 수
+ * 있고, 그건 확인 루프가 없는 것과 같다. 같이 쓰기(copresence)도 같은 손잡이를 쓴다.
+ */
+const API_BASE =
+    (typeof window !== 'undefined' && (window as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE) ||
+    'https://yawnbot.mascari4615.com';
 const USER_DATA_KEY = 'toolbox_user_data';
 
 /** 서버를 기다리다 화면이 멈추면 안 된다. 이 시간을 넘기면 없는 셈 친다. */

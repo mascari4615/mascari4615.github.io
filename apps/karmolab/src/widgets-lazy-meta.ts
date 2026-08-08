@@ -25,6 +25,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['user']
   },
   {
+    /* 도구 흐름 (TASK-KL-181) — 도구를 이어 붙여 내 순서를 만들어 둔다.
+     * 숨기지 않는다: 이 화면 자체가 「도구가 서로 만난다」는 이 사이트의 주장이다. */
+    id: 'flow',
+    title: '흐름',
+    category: 'tool',
+    desc: '도구를 이어 붙여 내 순서를 만들고 저장합니다',
+    layout: 'form',
+    icon: '<path d="M4 6h6M14 6h6M4 18h6M14 18h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 6c0 6 4 6 4 12" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['flow']
+  },
+  {
     // 환경 설정 = 「이 브라우저」의 것이다. 「나」(내 정보)와 한 화면에 두지 않는다 (TASK-KL-139).
     id: 'settings',
     title: '환경 설정',
