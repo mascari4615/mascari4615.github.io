@@ -131,6 +131,20 @@ export class Companion {
    */
   private waiting: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
   private working = false;
+  /**
+   * **줄이 둘이다** — 사람 말(말 줄)과 나머지(일 줄).
+   *
+   * 8회차에 「사람 말 앞지르기」로 35.5초를 18.3초까지 줄였는데, 그건 *줄 서 있는 것들*
+   * 사이에서 앞으로 보내는 수였다. **이미 돌고 있는** 무거운 일 뒤에서는 여전히 통째로
+   * 기다렸다(실측 2026-08-08: 3초짜리 일이 돌 때 2793ms). 곁에 있는 사람이 딴 일 하느라
+   * 내 말을 못 듣는 건 곁에 있는 게 아니다.
+   *
+   * 그래서 줄을 갈랐다. 말 줄은 일 줄이 무엇을 하든 **바로 시작한다.** 대신 두뇌는 하나뿐이라
+   * 일 줄은 **말 줄이 비어 있을 때만 새 turn 을 연다** — 둘이 동시에 두뇌를 부르면 자원이
+   * 겹치고, 무엇보다 사람 말이 또 밀린다.
+   */
+  private 일줄: { body: Body | null; sensation: Sensation; done: () => void; urgent: boolean }[] = [];
+  private 일바쁨 = false;
   private running = false;
   /** 지금 처리 중인 바퀴. 끊겼으면 그 결과를 내보내지 않는다. */
   private inFlight: { cancelled: boolean } | null = null;
@@ -160,7 +174,7 @@ export class Companion {
 
   /** 처리 중인 감각이 모두 끝날 때까지 대기 (테스트·데모 종료용). */
   async drain(): Promise<void> {
-    while (this.working || this.waiting.length > 0) {
+    while (this.working || this.waiting.length > 0 || this.일바쁨 || this.일줄.length > 0) {
       await new Promise((r) => setTimeout(r, 5));
     }
   }
@@ -199,23 +213,17 @@ export class Companion {
     return new Promise<void>((done) => {
       const item = { body, sensation, done, urgent };
       if (urgent) {
-        // 사람 말은 기다리는 줄 맨 앞으로. 다만 사람 말끼리는 온 순서를 지킨다.
-        let after = -1;
-        for (let i = this.waiting.length - 1; i >= 0; i -= 1) {
-          if (this.waiting[i]?.urgent === true) {
-            after = i;
-            break;
-          }
-        }
-        this.waiting.splice(after + 1, 0, item);
-      } else {
+        // 사람 말끼리는 온 순서를 지킨다.
         this.waiting.push(item);
+        void this.pump();
+      } else {
+        this.일줄.push(item);
+        void this.일펌프();
       }
-      void this.pump();
     });
   }
 
-  /** 줄 선 것을 하나씩 처리한다. */
+  /** 말 줄 — 사람이 건넨 말. 일 줄이 무엇을 하든 바로 시작한다. */
   private async pump(): Promise<void> {
     if (this.working) return;
     this.working = true;
@@ -228,6 +236,31 @@ export class Companion {
       }
     } finally {
       this.working = false;
+      // 말이 끝났으니 미뤄 둔 일이 있으면 이어서.
+      void this.일펌프();
+    }
+  }
+
+  /**
+   * 일 줄 — 화면 보기·되새김처럼 사람이 기다리지 않는 것들.
+   *
+   * **말 줄이 비어 있을 때만 새 turn 을 연다.** 두뇌가 하나뿐이라 겹치면 사람 말이 또
+   * 밀린다. 이미 돌고 있는 일은 못 끊지만(찍고 옮기는 중이면 어차피 끊을 게 없다),
+   * 사람 말은 그걸 **기다리지 않고** 제 줄에서 바로 시작한다.
+   */
+  private async 일펌프(): Promise<void> {
+    if (this.일바쁨) return;
+    this.일바쁨 = true;
+    try {
+      while (this.일줄.length > 0) {
+        if (this.working || this.waiting.length > 0) break; // 사람이 말하는 중 — 양보한다
+        const next = this.일줄.shift();
+        if (next === undefined) break;
+        await this.cycle(next.body, next.sensation);
+        next.done();
+      }
+    } finally {
+      this.일바쁨 = false;
     }
   }
 
