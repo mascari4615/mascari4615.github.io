@@ -41,6 +41,13 @@
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
               <button class="btn btn-ghost" id="vaCopy">세 줄 복사</button>
             </div>
+            <div class="field-group">
+              <div class="tool-sublabel">1원 미만 처리</div>
+              <div class="tool-chips" id="vaRound">
+                <button type="button" class="tool-chip active" data-round="floor">절사 (실무 기본)</button>
+                <button type="button" class="tool-chip" data-round="round">반올림</button>
+              </div>
+            </div>
             <div class="tool-status" id="vaStatus">총액에서 뺄 때는 1.1 로 나눕니다 — 10%를 빼는 것과 다릅니다.</div>
           `;
 
@@ -58,6 +65,8 @@
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
+          let rounding: 'floor' | 'round' = 'floor';
+
           function run(): void {
             const v = parseFloat(amount.value) || 0;
             const rate = (parseFloat(rateEl.value) || 0) / 100;
@@ -74,6 +83,19 @@
               supply = v / (1 + rate);
               tax = total - supply;
             }
+            /* 1원 미만을 어떻게 하느냐로 답이 갈린다. 세금계산서는 보통 **절사**다.
+               게다가 세 줄을 따로 반올림하면 「공급가 + 세액 ≠ 합계」가 되어, 그대로 옮겨 적은
+               사람이 1원 때문에 다시 계산하게 된다. 그래서 두 줄을 확정한 뒤 합계를 맞춘다. */
+            const cut = (n: number): number => (rounding === 'floor' ? Math.floor(n) : Math.round(n));
+            if (mode === 'add') {
+              supply = cut(supply);
+              tax = cut(tax);
+              total = supply + tax;
+            } else {
+              total = cut(total);
+              supply = cut(supply);
+              tax = total - supply;
+            }
             last = { supply, tax, total };
             stats.innerHTML =
               stat(mode === 'add' ? '합계 (받을 돈)' : '공급가액', won(mode === 'add' ? total : supply), true) +
@@ -86,6 +108,15 @@
               row('참고', mode === 'sub' ? `총액 ÷ ${(1 + rate).toFixed(2)} 로 계산` : `공급가 × ${(1 + rate).toFixed(2)}`);
             Toolbox.trackUse?.(mode);
           }
+
+          container.querySelectorAll('#vaRound .tool-chip').forEach((chip) => {
+            (chip as HTMLButtonElement).onclick = () => {
+              container.querySelectorAll('#vaRound .tool-chip').forEach((c) => c.classList.remove('active'));
+              chip.classList.add('active');
+              rounding = ((chip as HTMLElement).dataset.round as 'floor' | 'round') || 'floor';
+              run();
+            };
+          });
 
           container.querySelectorAll('#vaMode .tool-chip').forEach((chip) => {
             (chip as HTMLButtonElement).onclick = () => {
