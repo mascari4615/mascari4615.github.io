@@ -12,8 +12,30 @@
     ok: boolean;
   }
 
-  function parseField(raw: string, min: number, max: number): Field {
+  /** 이름값 — 실제 crontab 에서 흔히 쓰는데 예전에는 통째로 거절했다. */
+  const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const DOW_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+  /** `@daily` 같은 별칭 — 사람이 실제로 쓰는 표기다. */
+  const ALIASES: Record<string, string> = {
+    '@yearly': '0 0 1 1 *',
+    '@annually': '0 0 1 1 *',
+    '@monthly': '0 0 1 * *',
+    '@weekly': '0 0 * * 0',
+    '@daily': '0 0 * * *',
+    '@midnight': '0 0 * * *',
+    '@hourly': '0 * * * *'
+  };
+
+  function parseField(raw: string, min: number, max: number, names?: string[]): Field {
     const values = new Set<number>();
+    /* 이름값(JAN·MON)과 일요일 7 을 숫자로 바꾼 뒤 푼다.
+       표준 cron 은 요일 0 과 7 을 둘 다 일요일로 받는데, 예전에는 7 을 에러로 냈다. */
+    let text = raw.toUpperCase();
+    /* 이름 → 숫자. 달은 1부터(JAN=1), 요일은 0부터(SUN=0)라 `min` 을 더한다. */
+    if (names) names.forEach((nm, i) => { text = text.split(nm).join(String(i + min)); });
+    if (max === 6) text = text.replace(/7/g, '0');
+    raw = text;
     for (const chunk of raw.split(',')) {
       const [range, stepRaw] = chunk.split('/');
       const step = stepRaw ? parseInt(stepRaw, 10) : 1;
@@ -29,7 +51,11 @@
       if (lo < min || hi > max || lo > hi) return { values: [], ok: false };
       for (let v = lo; v <= hi; v += step) values.add(v);
     }
-    return { values: [...values].sort((a, b) => a - b), ok: true };
+    /* 요일은 0 과 7 이 **둘 다 일요일**이다(표준 cron). 요일 칸만 7 까지 받아 두고 여기서 0 으로
+       접는다 — 이렇게 해야 `1-7`(월~일) 같은 범위도 그대로 읽힌다. 예전에는 7 을 통째로 거절해
+       실제 crontab 에 흔한 표현이 에러로 떴다. */
+    const folded = max === 7 ? new Set([...values].map((v) => (v === 7 ? 0 : v))) : values;
+    return { values: [...folded].sort((a, b) => a - b), ok: true };
   }
 
   const DOW = ['일', '월', '화', '수', '목', '금', '토'];
@@ -84,11 +110,12 @@
           const status = $<HTMLElement>('#crStatus');
 
           function run(): void {
-            const parts = input.value.trim().split(/\s+/);
+            const typed = input.value.trim();
+            const parts = (ALIASES[typed.toLowerCase()] || typed).split(/\s+/);
             if (parts.length !== 5) {
               text.textContent = '—';
               next.innerHTML = '';
-              status.textContent = '칸이 5개여야 합니다 — 분 시 일 월 요일.';
+              status.textContent = '칸이 5개여야 합니다 — 분 시 일 월 요일. (@daily·@hourly 같은 별칭도 됩니다)';
               status.className = 'tool-status error';
               return;
             }
@@ -96,13 +123,13 @@
               parseField(parts[0], 0, 59),
               parseField(parts[1], 0, 23),
               parseField(parts[2], 1, 31),
-              parseField(parts[3], 1, 12),
-              parseField(parts[4], 0, 6)
+              parseField(parts[3], 1, 12, MONTH_NAMES),
+              parseField(parts[4], 0, 7, DOW_NAMES)
             ];
             if (![mi, ho, da, mo, dw].every((f) => f.ok)) {
               text.textContent = '—';
               next.innerHTML = '';
-              status.textContent = '읽을 수 없는 칸이 있어요. 숫자·*·범위(1-5)·간격(*/10)·목록(1,3)만 됩니다.';
+              status.textContent = '읽을 수 없는 칸이 있어요. 숫자·*·범위(1-5)·간격(*/10)·목록(1,3)·이름(MON·JAN)만 됩니다.';
               status.className = 'tool-status error';
               return;
             }
