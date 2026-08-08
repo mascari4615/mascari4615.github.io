@@ -787,6 +787,38 @@ html[data-intro="off"] .intro-overlay {
     user-select: none;
 }
 
+/* 판 표식 배지 (TASK-KL-192) — 웹·앱 공통. 「지금 이 화면이 어느 판인가」를 항상 말한다.
+   브랜드 글자 옆에 붙지만 눈을 뺏으면 안 된다: 흐린 글씨 + 테두리 없음이 기본이고,
+   서버에 더 새 판이 있을 때만(`.is-stale`) 색이 올라온다. */
+.karmolab-version-badge {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2xs);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 2px 6px;
+    margin-left: 2px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+    user-select: none;
+}
+
+.karmolab-version-badge:hover,
+.karmolab-version-badge:focus-visible {
+    opacity: 1;
+    background: var(--bg-hover);
+}
+
+.karmolab-version-badge.is-stale {
+    opacity: 1;
+    color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+
 .header-logo {
     /* 글꼴·굵기·자간은 브랜드 글자 규칙(.header-logo-text)이 정한다 — 여기서 또 적으면 갈라진다 */
     font-size: var(--font-size-sm);

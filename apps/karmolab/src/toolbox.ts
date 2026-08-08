@@ -188,14 +188,54 @@ const Toolbox = (() => {
         return it;
     }
 
+    /* ── 형식 규약: 선언이 정본 (TASK-KL-191 축6) ─────────────────
+     *
+     * 「무엇을 받고 무엇을 내놓나」가 두 군데에 적혀 있었다 — 등록 메타(`accepts`/`produces`)와
+     * 도구 코드의 `onHandoff([...])` 배열. 둘이 갈라져도 아무도 안 아프다: 이어서 줄은 메타를
+     * 보고, 실제로 받는 것은 코드를 본다. 실제로 갈라져 있었다(exifclean: 메타 `image/jpeg`,
+     * 코드 `image/*`). **손으로 두 벌 적은 표는 반드시 샌다.**
+     *
+     * 그래서 자리를 하나로 줄인다: 도구는 자기 **이름만** 대고, 형식은 메타에서 읽는다.
+     *   `Toolbox.onHandoff('pdfcrop', (file) => …)`
+     * 배열을 직접 넘기는 옛 방식도 받는다(외부 도구·모래상자) — 다만 우리 도구에는
+     * `check-format-contract` 게이트가 이름을 강제한다.
+     */
+    function metaOf(id) {
+        return (window.KARMOLAB_LAZY_META || []).find(m => m.id === id) || null;
+    }
+
+    /** 이 도구가 받는다고 **선언한** 형식. 선언이 없으면 빈 배열 — 몰래 다 받지 않는다. */
+    function declaredAccepts(id) {
+        const meta = metaOf(id);
+        if (meta && Array.isArray(meta.accepts)) return meta.accepts;
+        const t = tools.find(x => x.id === id);
+        return (t && Array.isArray(t.accepts)) ? t.accepts : [];
+    }
+
+    /** 이 도구가 내놓는다고 **선언한** 형식. */
+    function declaredProduces(id) {
+        const meta = metaOf(id);
+        if (meta && Array.isArray(meta.produces)) return meta.produces;
+        const t = tools.find(x => x.id === id);
+        return (t && Array.isArray(t.produces)) ? t.produces : [];
+    }
+
+    /** `image/*` 같은 별표를 푼 한 쌍 맞춰 보기. 이어서·흐름·공유대상이 **같은 자를 쓴다**. */
+    function kindMatches(pattern, type) {
+        const p = String(pattern || '');
+        const t = String(type || '');
+        return p === t || (p.endsWith('/*') && t.startsWith(p.slice(0, -1)));
+    }
+
     /**
      * 놓인 것이 **이 도구가 받을 수 있는 것이면** 건네준다 — 한 번만.
      *
      * 기억에 있으면 그 자리에서, 없으면 저장소에서 찾아 준다(화면을 옮겨 온 경우).
-     * 도구는 언제 오든 같은 방식으로 받는다: `Toolbox.onHandoff(['application/pdf'], (file) => …)`.
+     * 도구는 언제 오든 같은 방식으로 받는다: `Toolbox.onHandoff('pdfcrop', (file) => …)`.
      */
     function onHandoff(kinds, cb) {
-        const ok = (type) => (kinds || []).some((k) => (k.endsWith('/*') ? String(type).startsWith(k.slice(0, -1)) : type === k));
+        if (typeof kinds === 'string') kinds = declaredAccepts(kinds);
+        const ok = (type) => (kinds || []).some((k) => kindMatches(k, type));
         const hand = (it) => {
             if (!it || !it.blob || !ok(it.blob.type)) return false;
             cb(new File([it.blob], it.name || '넘겨받은', { type: it.blob.type }));
@@ -225,8 +265,7 @@ const Toolbox = (() => {
         const t = String(type || '');
         return tools.filter(x =>
             x.id !== exceptId &&
-            Array.isArray(x.accepts) &&
-            x.accepts.some(a => a === t || (a.endsWith('/*') && t.startsWith(a.slice(0, -1)))) &&
+            declaredAccepts(x.id).some(a => kindMatches(a, t)) &&
             (!isDesktopOnlyTool(x) || isDesktopApp())
         );
     }
@@ -243,6 +282,19 @@ const Toolbox = (() => {
         /* 놓아둘 수 있는 결과는 **하나뿐**이다. 그러니 화면에 남은 옛 줄도 전부 걷는다 —
          * 안 걷으면 앞 도구의 탭에 낡은 줄이 남아, 눌렀을 때 없는 것을 넘기려 든다. */
         document.querySelectorAll('.tool-next-row').forEach(n => n.remove());
+        /* 선언을 **실물이 감사한다** (TASK-KL-191).
+         *
+         * 게이트는 「`produces` 를 적었나」까지만 본다 — 적힌 값이 맞는지는 정적으로 못 본다.
+         * 그런데 실제 결과가 여기를 지나간다. 선언과 다른 것이 나오면 그 자리에서 말한다.
+         * 조용히 두면 흐름 화면의 「이어지는 도구」가 영영 틀린 줄을 세운다. */
+        if (item && item.blob && item.from) {
+            const declared = declaredProduces(item.from);
+            if (declared.length && !declared.some(k => kindMatches(k, item.blob.type))) {
+                console.warn(
+                    `[karmolab] 형식 규약 어긋남 — '${item.from}' 는 ${declared.join('·')} 를 내놓는다고 적었는데 실제로는 '${item.blob.type}' 가 나왔다.`,
+                );
+            }
+        }
         let targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
         if (!item || !targets.length) return;
         /* 갈 곳이 여덟 군데까지 나오는데 한 줄에는 다섯이 들어간다. 무엇을 앞에 둘지는
@@ -852,6 +904,94 @@ const Toolbox = (() => {
         return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
     }
 
+    /* ── 판 표식 배지 (웹·앱 공통) ─────────────────────────────────────────────
+     *
+     * 답하려는 질문: 「지금 보고 있는 이 화면이 **방금 올린 그것**인가?」
+     * 여태 앱에만 `앱 v0.1.55` 배지가 있었고 웹에는 아무 표식이 없어서, 배포하고 열어 봐도
+     * 새 판인지 옛 판인지 눈으로 알 길이 없었다.
+     *
+     * 표식은 **번들에 구워 박은 값**을 쓴다 (`build.mjs` 의 define). `build.json` 을 받아
+     * 보여 주는 방식은 「서버에 있는 판」을 말할 뿐, 지금 브라우저가 실행 중인 코드가 그것이라는
+     * 보장이 없다 — 캐시·서비스 워커가 옛 묶음을 주면 표식만 새것으로 보이는 거짓말이 된다.
+     *
+     * 그 위에 서버의 `build.json` 을 한 번 물어 **더 새 판이 올라와 있으면** 배지를 강조한다
+     * = 「올라왔는데 네 화면은 옛것」. 웹 전용 — 앱은 자체 업데이터 배너가 그 일을 한다. */
+    const BUILD_COMMIT = typeof __KARMOLAB_COMMIT__ === 'string' ? __KARMOLAB_COMMIT__ : '';
+
+    let versionBadgeEl = null;
+    let versionBadgeAppVer = null;
+    let versionBadgeLiveCommit = null;
+
+    /** `YYYYMMDDHHMMSS`(UTC) 표식 → `MM-DD HH:mm` (KST). 못 읽으면 `dev`. */
+    function formatBuildStamp(stamp) {
+        const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(stamp || '');
+        if (!m) return 'dev';
+        const kst = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) + 9 * 3600 * 1000);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${p(kst.getUTCMonth() + 1)}-${p(kst.getUTCDate())} ${p(kst.getUTCHours())}:${p(kst.getUTCMinutes())}`;
+    }
+
+    function versionBadgeDetail() {
+        const lines = [];
+        if (versionBadgeAppVer) lines.push(`앱 v${versionBadgeAppVer}`);
+        lines.push(`웹 빌드 ${formatBuildStamp(BUILD_TAG)} KST`);
+        if (BUILD_COMMIT) lines.push(`커밋 ${BUILD_COMMIT.slice(0, 8)}`);
+        if (typeof window !== 'undefined' && window.__KARMOLAB_DEV_INSTANCE__) lines.push('개발 인스턴스');
+        if (versionBadgeLiveCommit && versionBadgeLiveCommit !== BUILD_COMMIT) {
+            lines.push(`⚠ 서버에는 더 새 판 ${versionBadgeLiveCommit.slice(0, 8)} — 새로고침하면 받는다`);
+        }
+        return lines.join('\n');
+    }
+
+    function renderVersionBadge() {
+        if (!versionBadgeEl) return;
+        const parts = [];
+        if (versionBadgeAppVer) parts.push(`v${versionBadgeAppVer}`);
+        parts.push(formatBuildStamp(BUILD_TAG));
+        if (typeof window !== 'undefined' && window.__KARMOLAB_DEV_INSTANCE__) parts.push('dev');
+        const stale = !!versionBadgeLiveCommit && versionBadgeLiveCommit !== BUILD_COMMIT;
+        if (stale) parts.push('↑');
+        versionBadgeEl.textContent = parts.join(' · ');
+        versionBadgeEl.classList.toggle('is-stale', stale);
+        versionBadgeEl.title = versionBadgeDetail() + '\n(눌러서 복사)';
+    }
+
+    /** 데스크톱 껍데기가 Cargo 버전을 알려 준다 — 웹에서는 안 불린다. */
+    function setAppVersion(ver) {
+        versionBadgeAppVer = ver || null;
+        renderVersionBadge();
+    }
+
+    function checkLiveBuild() {
+        if (isDesktopApp() || !BUILD_COMMIT || BUILD_COMMIT === 'unknown') return;
+        // 캐시가 옛 답을 주면 이 확인 자체가 거짓말이 된다 — 매번 다른 주소로 묻는다.
+        const url = getJsScriptBase().replace(/js\/$/, '') + 'build.json?t=' + Date.now();
+        fetch(url, { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                if (!d || typeof d.commit !== 'string') return;
+                versionBadgeLiveCommit = d.commit;
+                renderVersionBadge();
+            })
+            .catch(() => { /* 못 물어봤다고 배지가 사라질 이유는 없다 */ });
+    }
+
+    function installVersionBadge() {
+        const left = document.querySelector('.header-bar-left');
+        if (!left || document.getElementById('headerVersionBadge')) return;
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.id = 'headerVersionBadge';
+        el.className = 'karmolab-version-badge';
+        el.addEventListener('click', () => {
+            void copyText(versionBadgeDetail(), { message: '판 표식 복사됨', action: 'copy-version' });
+        });
+        left.appendChild(el);
+        versionBadgeEl = el;
+        renderVersionBadge();
+        checkLiveBuild();
+    }
+
     /** decorations:false 윈도우의 헤더 컨트롤(min/max/close)을 활성화. 데스크톱 외에는 noop. */
     function isDesktopOnlyTool(tool) {
         return tool && (tool.desktopOnly === true || tool.category === 'desktop');
@@ -1230,6 +1370,7 @@ const Toolbox = (() => {
          * 여기서 첫 화면을 그리면 적혀 있던 목록 위에 홈이 덮인다(실제로 그랬다). */
         if (staticBody) {
             installDesktopChrome();
+            installVersionBadge();
             installPaletteShortcut();
             return;
         }
@@ -1255,6 +1396,7 @@ const Toolbox = (() => {
         });
 
         installDesktopChrome();
+        installVersionBadge();
         installPaletteShortcut();
         installGlobalDrop();
         installRunShortcut();
@@ -2031,7 +2173,7 @@ const Toolbox = (() => {
         // 시작할 때도 이 함수를 부르는데, 그때마다 주소 끝에 시각을 붙여 새로 받는 바람에
         // 셸이 부른 것과 합쳐 같은 파일을 두 번 받고 있었다.
         const already = (oldLink as HTMLLinkElement | null)?.getAttribute('href') || '';
-        if (already.split('?')[0].endsWith(t.url.split('/').pop() || ' ')) {
+        if (already.split('?')[0].endsWith(t.url.split('/').pop() || '')) {
             if (!silent) showToast('코드 테마: ' + t.label);
             return;
         }
@@ -2221,8 +2363,12 @@ const Toolbox = (() => {
         onDispose,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
         offerNext, result, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
+        // 형식 규약은 **한 자로 잰다** (TASK-KL-191) — 흐름 화면도 이 셋을 쓴다
+        declaredAccepts, declaredProduces, kindMatches,
         getCategories,
         isDesktopApp,
+        // 판 표식 배지 (TASK-KL-192) — 데스크톱 껍데기가 앱 버전을 얹는다 (그쪽은 셸 안을 못 본다).
+        setAppVersion, getBuildInfo: () => ({ stamp: BUILD_TAG, commit: BUILD_COMMIT, app: versionBadgeAppVer }),
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,
         // 첫 화면 본문(`home-page.js`)이 부른다 — 그쪽은 셸 안을 못 보므로 전역으로 준다.
         mountHomeDecor, toolCountsOnce, whenApiBase,
