@@ -80,7 +80,12 @@ writeFileSync(
 await esbuild.build({
   entryPoints: [join(root, 'src/toolbox.ts')],
   outfile: join(root, 'js/toolbox.js'),
-  define: { __KARMOLAB_BUILD__: JSON.stringify(buildStamp) },
+  // 커밋도 같이 박는다 — 머리띠의 판 표식 배지가 「지금 돌고 있는 코드가 어느 판인가」를
+  // 서버에 묻지 않고 답하려면, 값이 **번들 안에** 있어야 한다 (KL 버전 표시).
+  define: {
+    __KARMOLAB_BUILD__: JSON.stringify(buildStamp),
+    __KARMOLAB_COMMIT__: JSON.stringify(buildCommit),
+  },
   ...SAFE_MINIFY,
   bundle: false,
   format: 'esm',
@@ -135,7 +140,10 @@ for (const rel of entryPoints) {
     outfile: join(root, outfile),
     // 판 표식은 **모든 번들이 같은 값**을 봐야 한다 — 로더와 셸이 다른 주소를 만들면
     // 같은 위젯을 두 번 받는다(실측으로 그랬다).
-    define: { __KARMOLAB_BUILD__: JSON.stringify(buildStamp) },
+    define: {
+      __KARMOLAB_BUILD__: JSON.stringify(buildStamp),
+      __KARMOLAB_COMMIT__: JSON.stringify(buildCommit),
+    },
     ...FULL_MINIFY,
     bundle: true,
     format: 'iife',

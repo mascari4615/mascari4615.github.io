@@ -216,10 +216,12 @@
             const span = document.createElement('span');
             span.className = 'karmolab-desktop-badge';
             const ver = window.__KARMOLAB_VERSION__;
-            span.textContent = ver ? `앱 v${ver}` : '앱';
-            span.title = ver
-              ? `KarmoLab 데스크톱 앱 v${ver}`
-              : 'Tauri 데스크톱 앱에서 실행 중입니다. 웹에서는 이 배지가 보이지 않습니다.';
+            /* 버전 숫자는 여기서 안 적는다 (TASK-KL-192). 셸의 판 표식 배지가 웹·앱 공통으로
+             * 「앱 버전 + 웹 빌드」를 한 자리에 보여 준다 — 두 군데서 적으면 갈라진다.
+             * 여기 남는 것은 「지금 앱이다」라는 사실뿐. */
+            span.textContent = '앱';
+            span.title = 'Tauri 데스크톱 앱에서 실행 중입니다. 웹에서는 이 배지가 보이지 않습니다.';
+            if (ver) Toolbox.setAppVersion?.(ver);
             const browserA = document.createElement('a');
             browserA.className = 'karmolab-open-browser';
             browserA.href = 'https://mascari4615.github.io/karmolab/';
