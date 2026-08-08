@@ -9,8 +9,8 @@ name: "daily WM 허브 새로 긁기"
 # 그 둘이 **같이 있는 기계는 노트북 하나**뿐이다(prod 봇이 도는 그 기계). 그래서 여기서만 돈다.
 # 하루 한 번 긁어 보고, 달라진 게 있을 때만 커밋한다 — 없으면 조용히 끝난다(그게 정상이다).
 #
-# 안 되면 접는다: 개발 노트가 없으면 그 자리는 커밋된 옛 산출을 그대로 두고, 무엇을 못 긁었는지
-# 로그에 남긴다. 「초록인데 아무것도 안 바뀜」 = 그날 새 이야기가 없었다는 뜻이다.
+# 껍데기 주의: 이 러너에는 bash 가 없다. 노트북 단계는 전부 powershell 이다
+# (deploy-discord-bots.yml 과 같은 규약 — 어긴 첫 판이 `bash: command not found` 로 죽었다).
 
 on:
   schedule:
@@ -25,6 +25,10 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  KARMODDRINE_MEMO_PATH: 'C:\Users\masca\repos\karmoddrine\memo'
+  KARMODDRINE_WM_PATH: 'C:\Users\masca\repos\karmoddrine\WitchMendokusai'
+
 jobs:
   refresh:
     # 개발 노트(memo)와 게임 저장소가 같이 있는 기계 = 노트북.
@@ -34,36 +38,35 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: 무엇을 긁을 수 있는지 먼저 본다
-        shell: bash
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
-          for p in "$KARMODDRINE_MEMO_PATH" "$KARMODDRINE_WM_PATH"; do
-            if [ -n "$p" ] && [ -d "$p" ]; then echo "있다: $p"; else echo "없다: ${p:-(경로 미설정)}"; fi
-          done
-        env:
-          KARMODDRINE_MEMO_PATH: 'C:\Users\masca\repos\karmoddrine\memo'
-          KARMODDRINE_WM_PATH: 'C:\Users\masca\repos\karmoddrine\WitchMendokusai'
+          foreach ($p in @($env:KARMODDRINE_MEMO_PATH, $env:KARMODDRINE_WM_PATH)) {
+              if ($p -and (Test-Path $p)) { Write-Output "있다: $p" } else { Write-Output "없다: $p" }
+          }
 
       - name: 도감 · 소식 · 만드는 중을 새로 긁는다
         working-directory: apps/karmolab
-        shell: bash
-        env:
-          KARMODDRINE_MEMO_PATH: 'C:\Users\masca\repos\karmoddrine\memo'
-          KARMODDRINE_WM_PATH: 'C:\Users\masca\repos\karmoddrine\WitchMendokusai'
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
           node scripts/build-worldbook.mjs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           node scripts/build-devlog.mjs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           node scripts/build-wm-tasks.mjs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           node scripts/gen-wm-landing.mjs
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: 달라진 게 있으면만 올린다
-        shell: bash
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
           git add -- apps/karmolab/data/worldbook.json apps/karmolab/data/devlog.json apps/karmolab/data/wm-tasks.json apps/karmolab/wm/index.html
-          if git diff --cached --quiet; then
-            echo "바뀐 것 없음 — 그날 새 이야기가 없었다는 뜻이다."
-            exit 0
-          fi
-          git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' \
-            commit -m 'chore(karmolab): WM 허브 새로 긁기 — 도감 · 소식 · 만드는 중' \
-            -- apps/karmolab/data apps/karmolab/wm
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+              Write-Output "바뀐 것 없음 — 그날 새 이야기가 없었다는 뜻이다."
+              exit 0
+          }
+          git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' commit -m 'chore(karmolab): WM 허브 새로 긁기 — 도감 · 소식 · 만드는 중' -- apps/karmolab/data apps/karmolab/wm
+          if ($LASTEXITCODE -ne 0) { exit 1 }
           git push origin HEAD:master
+          if ($LASTEXITCODE -ne 0) { exit 1 }
