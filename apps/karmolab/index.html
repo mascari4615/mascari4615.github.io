@@ -135,7 +135,13 @@ permalink: /karmolab/
     <link rel="stylesheet" href="/apps/karmolab/css/randomgen.css" media="print" onload="this.media=&#39;all&#39;">
     <link rel="stylesheet" href="/apps/karmolab/css/tools.css" media="print" onload="this.media=&#39;all&#39;">
     <noscript><link rel="stylesheet" href="/apps/karmolab/css/randomgen.css"><link rel="stylesheet" href="/apps/karmolab/css/tools.css"></noscript>
-    <link id="prism-css" rel="stylesheet" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
+    <!-- 코드 색칠 스타일은 **첫 그림을 막지 않는다** (실측 2026-08-08).
+         `rel="stylesheet"` 로 두면 이 한 장이 첫 그림을 붙잡는다 — 그 요청만 1.5초 늦춰 봤더니
+         첫 그림이 484ms → 1936ms 가 됐다(3회 중앙값). 그런데 첫 화면에는 코드 블록이 없다.
+         도구 페이지 129장은 생성기(`scripts/lib/shell-page.mjs`)가 이미 같은 처리를 하고 있었고,
+         앱 첫 화면만 빠져 있었다. `id` 는 그대로 둔다 — 테마 고르는 코드가 이 id 로 찾는다. -->
+    <link id="prism-css" rel="stylesheet" media="print" onload="this.media=&#39;all&#39;" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css">
+    <noscript><link rel="stylesheet" href="/apps/karmolab/js/vendor/prism/themes-cdn/prism-tomorrow.min.css"></noscript>
     <script>
 (function(){
   var t=localStorage.getItem('toolbox_theme')||'dark';
