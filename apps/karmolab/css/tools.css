@@ -1613,3 +1613,11 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-day-end { display: grid; gap: 10px; justify-items: start; }
 .wm-day-event { margin: 0; font-size: var(--font-size-sm); color: var(--accent); font-style: italic; }
 .wm-day-reset { background: none; border: 0; padding: 0; color: var(--text-tertiary); text-decoration: underline; cursor: pointer; font-size: inherit; }
+
+/* ── WM 이야기 (TASK-KL-165) ── */
+.wm-talk-write { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0 0 14px; }
+.wm-talk { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.wm-talk-row { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-secondary); }
+.wm-talk-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); text-decoration: none; }
+.wm-talk-title:hover { color: var(--accent); }
+.wm-talk-meta { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
