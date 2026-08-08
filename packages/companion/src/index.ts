@@ -79,6 +79,7 @@ export * from './made-up';
 export * from './milestone';
 export * from './mouth-gate';
 export * from './touch';
+export { 수요기동, 필요할때, type 수요기동옵션 } from './voice/on-demand';
 export { 이웃, 이저장소, 같은저장소사본들 } from './workspace';
 export { 대사창고, 골라내기, type StockOptions } from './stock';
 export * from './people';

@@ -32,6 +32,10 @@ export const 설정할것: Readonly<Record<string, SettingSpec>> = {
   조용한시간시작: { what: '이 시각부터 조용 (시)', value: 23, min: 0, max: 23 },
   조용한시간끝: { what: '이 시각까지 조용 (시)', value: 7, min: 0, max: 23 },
   놀리기: { what: '가끔 놀려도 되나', value: true },
+  /* 흉내 낸 목소리(무거운 프로그램)를 **쓸 때 켜고 안 쓰면 끈다.**
+     끄는 길을 남긴다 — 자동을 꺼 두면 손으로 띄운 것만 쓴다. */
+  애니목소리자동: { what: '흉내 낸 목소리를 필요할 때 자동으로 켜나', value: true },
+  애니목소리쉬는분: { what: '이만큼 말이 없으면 흉내 낸 목소리를 끈다 (0 = 안 끔)', value: 30, min: 0, max: 720 },
 };
 
 export type SettingValues = Record<string, number | boolean>;
