@@ -1183,6 +1183,33 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-pulse-all { background:none; border:0; padding:0; font:inherit;
     font-size:var(--font-size-xs); color:var(--accent); cursor:pointer; }
 
+/* 오늘의 판 (TASK-KL-194) — 찾는 칸 바로 아래. 못 읽으면 자리 자체가 안 생긴다(`:empty`):
+   빈 상자가 떠 있으면 「오늘은 아무것도 없다」로 읽힌다. */
+.landing-today { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: var(--space-sm); }
+.landing-today:empty { display: none; }
+.lt-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: var(--space-sm); font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.lt-tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-tertiary); }
+.lt-count { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.lt-run { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.lt-crowd { font-variant-numeric: tabular-nums; }
+.lt-brag { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 2px 8px; font: inherit; font-size: var(--font-size-xs); color: var(--accent);
+    cursor: pointer; }
+.lt-brag:hover { border-color: var(--accent); }
+.lt-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.lt-chip { display: inline-flex; align-items: center; gap: 5px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 5px 10px;
+    font-size: var(--font-size-xs); color: var(--text-secondary); text-decoration: none;
+    transition: border-color var(--transition), background var(--transition), color var(--transition); }
+.lt-chip:hover { background: var(--bg-tertiary); border-color: var(--text-tertiary); color: var(--accent); }
+/* 끝낸 칸은 **색이 아니라 표식**으로도 말한다 — 색만으로 구분하면 못 보는 사람이 있다. */
+.lt-chip.is-done { color: var(--text-tertiary); border-color: transparent; background: transparent; }
+.lt-chip.is-done::after { content: '✓'; color: var(--accent); font-weight: 700; }
+
 .landing-cta-grid {
     display: flex;
     flex-wrap: wrap;

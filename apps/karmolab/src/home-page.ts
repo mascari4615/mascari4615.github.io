@@ -54,6 +54,25 @@
             window.KarmoPalette.mountInline(palette);
         }
 
+        /* 오늘의 판 (TASK-KL-194) — 찾는 칸 바로 아래, 갈 곳 카드 **위**.
+         * 여기 있는 이유: 「오늘의 코스」는 이미 돌고 있었지만 놀이터 안에만 있었다 —
+         * 놀이터로 들어간 사람만 본다. 매일 달라지는 것이 첫 화면에 없으면, 이 사이트는
+         * 「필요할 때 한 번」 오는 도구함이지 매일 오는 곳이 아니다.
+         * 아무것도 못 읽으면(서버·목록 둘 다) 이 자리는 통째로 안 그려진다. */
+        const board = document.createElement('div');
+        board.className = 'landing-today';
+        board.id = 'homeToday';
+        landing.appendChild(board);
+        /* 조각은 **첫 그림 뒤에** 데려온다 (`src/today.ts`). 태그로 걸면 첫 화면 부팅 JS 천장
+         * (40KB gz) 을 넘는다 — 실제로 넘겨 보고 뗐다. 이 자리는 어차피 놀이 목록을 받아야
+         * 채워지므로 비동기가 맞다. 못 데려오면 이 자리만 빈 채로 남고(`:empty` = 안 보임)
+         * 첫 화면은 그대로다. */
+        if (Toolbox.ensureScript) {
+            Toolbox.ensureScript('root/today')
+                .then(() => window.KarmoToday && window.KarmoToday.mount(board))
+                .catch(() => {});
+        }
+
         /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
          * 카드마다 제목+설명 두 줄이던 것을 아이콘+이름 한 줄로 줄였다 — 다섯 장이 한 줄에
          * 들어가야 「검색창이 주인공」이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
