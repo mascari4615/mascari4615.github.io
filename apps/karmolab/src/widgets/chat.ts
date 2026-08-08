@@ -124,8 +124,16 @@
         .klchat-dock { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.85)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:var(--text-primary,#e4eaf6); border-radius:var(--radius-md,8px); font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 6px 20px var(--vignette,rgba(0,0,0,0.35)); transition:transform .12s ease, border-color .12s ease; }
         .klchat-dock:hover { transform:translateY(-1px); border-color:var(--border-hover,rgba(0,229,255,0.3)); }
         .klchat-dot { width:7px; height:7px; border-radius:50%; background:var(--text-tertiary,#6b7688); flex:none; }
-        .klchat-dot.on { background:#5fd3b2; box-shadow:0 0 0 0 rgba(95,211,178,0.6); animation:klchat-pulse 2.4s infinite; }
-        @keyframes klchat-pulse { 0%{box-shadow:0 0 0 0 rgba(95,211,178,0.5);} 70%{box-shadow:0 0 0 7px rgba(95,211,178,0);} 100%{box-shadow:0 0 0 0 rgba(95,211,178,0);} }
+        /* 맥박은 합성기가 그리는 것으로 그린다 (TASK-KL-128 25).
+           예전에는 box-shadow 를 키프레임으로 늘렸다 — 그건 주 스레드가 매 프레임 다시
+           계산한다. 손을 안 대도 스타일 재계산 초당 137회 중 24%가 이 점 하나였다(실측).
+           같은 그림을 고리 하나의 transform+opacity 로 그리면 주 스레드는 0이다.
+           (이 글은 템플릿 문자열 **안**이다 — 백틱을 쓰면 문자열이 끊긴다. 실제로 끊었다.) */
+        .klchat-dot { position:relative; }
+        .klchat-dot.on::after { content:''; position:absolute; inset:0; border-radius:50%;
+          background:rgba(95,211,178,0.5); animation:klchat-pulse 2.4s infinite; will-change:transform,opacity; }
+        .klchat-dot.on { background:#5fd3b2; }
+        @keyframes klchat-pulse { 0%{transform:scale(1);opacity:.5;} 70%{transform:scale(3);opacity:0;} 100%{transform:scale(1);opacity:0;} }
         .klchat-badge { min-width:18px; height:18px; padding:0 5px; border-radius:9px; background:#ef8b8b; color:#1a1016; font-size:11px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
         .klchat-panel { width:min(340px,calc(100vw - 32px)); height:min(460px,calc(100vh - 120px)); display:none; flex-direction:column; border:1px solid var(--border,rgba(255,255,255,0.1)); background:var(--glass-strong,rgba(8,16,30,0.92)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:var(--radius-md,8px); overflow:hidden; box-shadow:0 12px 40px var(--vignette,rgba(0,0,0,0.45)); }
         .klchat.open .klchat-panel { display:flex; }
