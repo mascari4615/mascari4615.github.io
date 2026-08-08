@@ -109,6 +109,35 @@ function reasonOf(run) {
   return '알 수 없음';
 }
 
+/**
+ * **사이트에 실제로 서 있는 판이 얼마나 뒤처졌나** (TASK-KL-161).
+ *
+ * 이게 없어서 한 번 크게 속았다: 「마지막 성공 1분 전」이라 초록이었는데, 그 성공은 100건
+ * 창 안의 **옛** 성공이었고 사이트는 몇 시간째 옛 판에 멈춰 있었다.
+ * 배포가 성공했나가 아니라 **올린 것이 사람 화면에 있나**가 물어야 할 것이다.
+ */
+function liveLag(repoDefaultBranch = 'origin/master') {
+  let liveSha = null;
+  try {
+    const raw = execFileSync('curl', ['-s', '-m', '20', 'https://blog.mascari4615.com/apps/karmolab/build.json'], {
+      encoding: 'utf8',
+    });
+    liveSha = JSON.parse(raw).commit;
+  } catch {
+    return { err: '실사이트 판을 못 읽었다' };
+  }
+  try {
+    execFileSync('git', ['fetch', 'origin', 'master'], { stdio: 'ignore' });
+    const behind = execFileSync('git', ['rev-list', '--count', `${liveSha}..${repoDefaultBranch}`], {
+      encoding: 'utf8',
+    }).trim();
+    const at = execFileSync('git', ['log', '-1', '--format=%cr', liveSha], { encoding: 'utf8' }).trim();
+    return { liveSha: liveSha.slice(0, 8), behind: Number(behind), at };
+  } catch {
+    return { liveSha: liveSha.slice(0, 8), err: '얼마나 뒤처졌는지 못 셌다 (그 판을 로컬에서 모른다)' };
+  }
+}
+
 const median = (list) => {
   if (list.length === 0) return null;
   const sorted = [...list].sort((a, b) => a - b);
@@ -149,6 +178,16 @@ if (reasons.size) {
   }
 }
 
+/* 사이트에 서 있는 판 — 「성공했나」보다 이쪽이 사람이 겪는 진실이다. */
+const lag = liveLag();
+if (lag.err && !lag.liveSha) {
+  console.log(`  사이트에 선 판: ${lag.err}`);
+} else if (lag.err) {
+  console.log(`  사이트에 선 판: ${lag.liveSha} — ${lag.err}`);
+} else {
+  console.log(`  사이트에 선 판: ${lag.liveSha} (${lag.at}) · 그 뒤로 올린 것 ${lag.behind}건`);
+}
+
 /* ── 판정 ──────────────────────────────────────────────────────────────────────
  * 「몇 건 있었나」로는 판정하지 않는다. 대기 밀림은 많아도 정상이고, 고쳐진 실패는 시체다.
  * 아픈 것은 **마지막 성공 뒤에도 또 일어난 것**뿐이다. */
@@ -168,6 +207,13 @@ if (lastSuccessAt === null) {
     problems.push(
       `마지막 성공 뒤에도 짓다가 죽은 배포 ${liveKills.length}건 (수명 ${liveKills.map(life).join('·')}초) — ` +
         '배포를 끊는 설정이 어딘가에 또 있다.',
+    );
+  }
+  /* 「성공했다」와 「사람에게 닿았다」는 다른 말이다. 올린 것이 열 건 넘게 쌓여 있으면
+     그동안 배포가 몇 번 성공했든 **사람은 옛 화면을 보고 있다.** */
+  if (typeof lag.behind === 'number' && lag.behind >= 10) {
+    problems.push(
+      `사이트는 ${lag.liveSha} 에 서 있고 그 뒤로 올린 것이 ${lag.behind}건 — 성공 여부와 무관하게 사람에게 안 닿고 있다.`,
     );
   }
   if (Date.now() - lastSuccessAt > STALE_SUCCESS_SEC * 1000) {
