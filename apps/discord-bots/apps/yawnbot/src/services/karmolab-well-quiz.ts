@@ -59,6 +59,20 @@ function numberFields(pack: WellPack): WellField[] {
   );
 }
 
+/**
+ * 「재료 가짓수**가**」 · 「접속자**가**」 — 받침에 따라 조사를 고른다.
+ *
+ * 왜 이걸 신경 쓰나: 「가짓수이(가)」처럼 괄호로 도망친 문장은 **기계가 쓴 티**가 난다.
+ * 문제는 매일 자동으로 나오는데, 그게 매일 어색하면 그 놀이는 대충 만든 것으로 읽힌다.
+ */
+export function withParticle(word: string, withFinal: string, withoutFinal: string): string {
+  const last = word.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  // 한글이 아니면(영어·숫자) 판단할 수 없다 — 그때는 받침 없는 쪽이 덜 어색하다.
+  if (!last || code < 0xac00 || code > 0xd7a3) return `${word}${withoutFinal}`;
+  return `${word}${(code - 0xac00) % 28 ? withFinal : withoutFinal}`;
+}
+
 /** 사람이 읽는 숫자 — 백만은 「1,000,000」으로. */
 function pretty(value: number, unit?: string): string {
   const text = Number.isInteger(value) ? value.toLocaleString('ko-KR') : String(value);
@@ -110,9 +124,7 @@ export function quizFor(pack: WellPack, day: string): WellQuiz | null {
   return {
     well: pack.well,
     day,
-    question: askTop
-      ? `「${pack.title}」에서 ${label}이(가) 가장 많은 것은?`
-      : `「${pack.title}」에서 ${label}이(가) 가장 적은 것은?`,
+    question: `「${pack.title}」에서 ${withParticle(label, '이', '가')} 가장 ${askTop ? '많은' : '적은'} 것은?`,
     choices,
     answerHash: hashAnswer(answer.name),
     because: `${answer.name} — ${label} ${pretty(answer[field.key] as number, field.unit)}`,
