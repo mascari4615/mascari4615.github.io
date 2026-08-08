@@ -1540,3 +1540,21 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-board-list li { display: grid; grid-template-columns: minmax(7.5em, auto) 1fr; gap: 10px; align-items: baseline; }
 .wm-board-id { font-size: var(--font-size-2xs); color: var(--text-tertiary); font-family: var(--font-mono); }
 .wm-board-title { font-size: var(--font-size-sm); line-height: 1.6; word-break: keep-all; }
+
+/* 글자수 세기 — 「어디에 들어가나」 표와 안내 줄 (TASK-KL-135 후속 · 도구 품질 올리기)
+   남들은 숫자만 준다. 사람이 진짜 궁금한 건 「이 글이 그 칸에 들어가나」다. */
+.cc-fit { display: flex; flex-direction: column; gap: 4px; }
+.cc-fit-row {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: baseline;
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-secondary); font-size: var(--font-size-xs);
+}
+.cc-fit-label { color: var(--text-primary); }
+.cc-fit-num { color: var(--text-tertiary); font-family: var(--font-mono); }
+.cc-fit-state { color: var(--text-secondary); font-family: var(--font-mono); }
+.cc-fit-over { border-color: var(--error); }
+.cc-fit-over .cc-fit-state { color: var(--error); }
+.cc-note {
+    margin-top: 8px; font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6;
+}
+.cc-note-warn { color: var(--warning); }
