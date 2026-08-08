@@ -328,10 +328,26 @@ interface WellPack {
              * 못 노는 놀이는 아예 안 보여 준다 — 숫자 칸이 없으면 「높은 쪽 고르기」는 그 표를
              * 안 받고, 그림이 없으면 월드컵은 화면이 텅 빈다. 주소는 앱 안 해시다(놀이 넷은
              * 도구 상세 페이지가 안 찍힌다 — 상세 주소로 걸면 전부 404). */
+            /* 티어표는 표를 못 먹는 유일한 놀이였다 (TASK-KL-190 ⑥) — 그림을 한 장씩 다시
+             * 올려야 했다. 쪽지를 놓아 두면 티어표가 열릴 때 한 번 읽어 표를 세운다. */
+            if (images >= 2) {
+              try {
+                localStorage.setItem(
+                  'karmolab_tierlist_pack',
+                  JSON.stringify({
+                    title: pack.title,
+                    items: pack.items.filter((i) => i.img).slice(0, 200).map((i) => ({ name: i.name, img: i.img })),
+                  }),
+                );
+              } catch {
+                /* 자리가 없으면 티어표 단추만 안 먹는다 — 나머지는 그대로 */
+              }
+            }
+
             const links = [
               numbers > 0 ? `<a class="btn btn-primary" href="/karmolab/#higher">높은 쪽 고르기</a>` : '',
               images >= 4 ? `<a class="btn btn-ghost" href="/karmolab/#worldcup">이상형 월드컵</a>` : '',
-              images >= 4 ? `<a class="btn btn-ghost" href="/karmolab/#tierlist">티어표</a>` : '',
+              images >= 2 ? `<a class="btn btn-ghost" href="/karmolab/#tierlist">티어표</a>` : '',
               `<a class="btn btn-ghost" href="/karmolab/#packs">내 표 보기</a>`,
             ].filter(Boolean);
             act.innerHTML =
