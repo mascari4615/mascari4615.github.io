@@ -367,11 +367,17 @@ interface WorldBook {
     return Math.floor(min / 1440) + '일 전';
   }
 
+  /** 갤러리가 가진 꼬리표 — 서버가 알려 주는 대로 쓴다(우리가 목록을 박지 않는다). */
+  let talkTags: string[] = [];
+  let talkTag = '';
+
   async function fetchTalk(): Promise<TalkPost[] | null> {
     try {
-      const res = await fetch(`${apiBase()}/kl/posts?board=${TALK_BOARD}&limit=20`, { cache: 'no-cache' });
+      const q = talkTag !== '' ? `&tag=${encodeURIComponent(talkTag)}` : '';
+      const res = await fetch(`${apiBase()}/kl/posts?board=${TALK_BOARD}&limit=20${q}`, { cache: 'no-cache' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = (await res.json()) as { posts?: TalkPost[] };
+      const data = (await res.json()) as { posts?: TalkPost[]; gallery?: { tags?: string[] } };
+      if (Array.isArray(data.gallery?.tags)) talkTags = data.gallery.tags;
       return Array.isArray(data.posts) ? data.posts : [];
     } catch (_) {
       return null;
@@ -383,7 +389,15 @@ interface WorldBook {
       return `<p class="wb-empty">이야기판을 지금은 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.
         <a href="/karmolab/#community">커뮤니티로 가기</a></p>`;
     }
-    const write = `<p class="wm-talk-write">
+    const tabs = talkTags.length > 0
+      ? `<div class="wb-kinds wm-talk-tags">
+          <button type="button" class="wb-kind${talkTag === '' ? ' is-on' : ''}" data-talktag="">전체</button>
+          ${talkTags
+            .map((t) => `<button type="button" class="wb-kind${talkTag === t ? ' is-on' : ''}" data-talktag="${escapeHtml(t)}">${escapeHtml(t)}</button>`)
+            .join('')}
+        </div>`
+      : '';
+    const write = `${tabs}<p class="wm-talk-write">
         <a class="btn btn-primary" href="/karmolab/#community">커뮤니티에서 쓰기</a>
         <span class="wb-source">쓰기·답글·좋아요는 커뮤니티 화면이 맡습니다</span>
       </p>`;
@@ -677,6 +691,12 @@ interface WorldBook {
           saveDay(st);
           render();
         }
+        return;
+      }
+      const tagBtn = target.closest<HTMLElement>('[data-talktag]');
+      if (tagBtn) {
+        talkTag = tagBtn.dataset.talktag || '';
+        render();
         return;
       }
       const dayBtn = target.closest<HTMLElement>('[data-day]');
