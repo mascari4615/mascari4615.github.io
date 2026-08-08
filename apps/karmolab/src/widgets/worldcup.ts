@@ -19,16 +19,12 @@ import { loadPacks, type Pack, type PackItem } from './pack-store';
 import { listShared, adoptShared, type SharedPackSummary } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
 import { joinRoom, selfId } from 'trystero/nostr';
+import { agreement, roundChoices, seededRandom, shuffled, type Match, type Runner } from '../lib/tournament';
 import { copyResultCard } from '../lib/result-card';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 /** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
 const HISTORY_KEY = 'karmolab_worldcup_history';
-
-interface Runner {
-  name: string;
-  img: string;
-}
 
 /**
  * 처음부터 있는 표 (TASK-KL-151).
@@ -46,43 +42,9 @@ const BUILTIN = [
   { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' },
 ];
 
-interface Match {
-  win: string;
-  lose: string;
-  /** 몇 강에서 붙었나 (16 = 16강). 「내가 고른 길」이 이걸로 선다. */
-  round: number;
-}
-
 (function (): void {
   const esc = (s: string): string =>
     String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-  /** 몇 강까지 할 수 있나 — 표 크기가 정한다. 4강은 되어야 놀이가 된다. */
-  function roundChoices(count: number): number[] {
-    const out: number[] = [];
-    for (let size = 4; size <= 128; size *= 2) if (size <= count) out.push(size);
-    return out;
-  }
-
-  /** 씨앗에서 나오는 난수 — 같은 씨앗이면 **양쪽이 같은 대진**을 얻는다 (mulberry32). */
-  function seededRandom(seed: number): () => number {
-    let t = seed >>> 0;
-    return () => {
-      t += 0x6d2b79f5;
-      let x = Math.imul(t ^ (t >>> 15), 1 | t);
-      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
-      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function shuffled<T>(list: T[], rand: () => number = Math.random): T[] {
-    const out = list.slice();
-    for (let i = out.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
-  }
 
   /** 그림이 있는 항목만 달린다 — 그림 없는 칸이 섞이면 고르는 재미가 통째로 죽는다. */
   function runnersOf(items: PackItem[]): Runner[] {
@@ -158,7 +120,6 @@ interface Match {
                 <button type="button" class="btn btn-ghost" id="wcOther">다른 표로</button>
               </div>
               <div id="wcPath" style="margin-top:14px"></div>
-              <div id="wcTaste" hidden style="margin-top:18px"></div>
               <div id="wcTally" style="margin-top:18px"></div>
             </div>
 
@@ -183,8 +144,6 @@ interface Match {
             emoji: string;
             runners: number;
             sharedId?: string;
-            /** 바깥 우물에서 길어 온 표면 그 우물 id — 취향 지문이 모두 같은 이름으로 갈리게 (KL-190 ④). */
-            well?: string;
             local?: Pack;
             /** 처음부터 있는 표면 그 이름 (`pokemon` …). 항목은 그때 받아 온다. */
             builtin?: string;
@@ -285,7 +244,7 @@ interface Match {
 
             choices = championChoice.concat(builtins).concat(
               loadPacks()
-                .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, well: p.well, local: p }))
+                .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, local: p }))
                 .filter((c) => c.runners >= 4)
             );
             paintPacks();
@@ -386,7 +345,6 @@ interface Match {
               : '';
 
             pushHistory({ at: new Date().toISOString(), title: picked?.title ?? '', champion: champion.name, img: champion.img });
-            sendTaste();
             // 같이 하는 판이면 내 길을 보낸다 — 상대가 도착하면 그때 견준다.
             myPath = matches.slice();
             myChampion = champion.name;
@@ -398,47 +356,6 @@ interface Match {
             paintHistory();
             if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: `${champion.name} 이(가) 우승이네요!` });
             sendTournament(champion);
-          }
-
-          /**
-           * 내가 고른 것들을 **취향 지문**에 더한다 (TASK-KL-190 ④).
-           *
-           * 왜: 이 판의 선택은 지금까지 순위 말고 아무 데도 안 쓰였다 — 끝나면 사라졌다.
-           * 「무엇을 골랐나」는 순위보다 많은 걸 말한다(누구와 닮았나, 정반대는 누구인가).
-           *
-           * fail-open: 로그인을 안 했으면 서버가 조용히 넘긴다. 못 닿으면 이 칸만 없다.
-           */
-          function sendTaste(): void {
-            const variant = picked?.well
-              ? `well:${picked.well}`
-              : picked?.sharedId
-                ? `pack:${picked.sharedId}`
-                : picked?.builtin
-                  ? `builtin:${picked.builtin}`
-                  : null;
-            // 이 브라우저에만 있는 표는 안 보낸다 — 남과 견줄 수 없는 지문은 혼잣말이다.
-            if (!variant || !matches.length) return;
-            fetch(`${API_BASE}/kl/taste`, {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ variant, matches: matches.map((m) => ({ win: m.win, lose: m.lose })) }),
-            })
-              .then((r) => (r.ok ? r.json() : null))
-              .then((body: { signedIn?: boolean; closest?: Array<{ handle: string; agreePct: number; overlap: number }> } | null) => {
-                if (!body || !body.signedIn || !container.isConnected) return;
-                const near = (body.closest ?? [])[0];
-                if (!near) return;
-                const slot = $('wcTaste');
-                slot.hidden = false;
-                slot.innerHTML =
-                  `<div class="tool-sublabel">취향이 닮은 사람</div>` +
-                  `<p style="margin:6px 0 0;line-height:1.7">${esc(near.handle)} 님과 ` +
-                  `<b>${near.agreePct}%</b> 같은 쪽을 골랐어요 <span style="opacity:.7">(견준 항목 ${near.overlap}개)</span></p>`;
-              })
-              .catch(() => {
-                /* 못 닿으면 이 칸만 없다 */
-              });
           }
 
           /** 판 결과를 표의 통계로 보낸다. 서버 없으면 통계 칸만 없다. */
@@ -563,13 +480,7 @@ interface Match {
 
           /** 둘의 결과를 견준다 — 같은 대진이라 라운드끼리 그대로 맞댈 수 있다. */
           function compare(theirs: { champion: string; path: Array<{ win: string; lose: string; round: number }> }): void {
-            const mine = myPath ?? [];
-            let same = 0;
-            for (const m of mine) {
-              const twin = theirs.path.filter((t) => t.round === m.round && (t.win === m.win || t.win === m.lose) && (t.lose === m.win || t.lose === m.lose))[0];
-              if (twin && twin.win === m.win) same += 1;
-            }
-            const rate = mine.length ? Math.round((same / mine.length) * 100) : 0;
+            const { rate } = agreement(myPath ?? [], theirs.path);
             $('wcTogetherMsg').innerHTML =
               `상대 우승: <b>${esc(theirs.champion)}</b> · 나: <b>${esc(myChampion ?? '')}</b><br>` +
               `같은 갈림길에서 <b>${rate}%</b> 를 같게 골랐습니다 — ` +
