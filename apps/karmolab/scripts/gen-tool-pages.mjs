@@ -450,6 +450,26 @@ function aliasLine(id, pageText) {
   return `\n        <p class="tool-seo-alias">이렇게도 부른다 — ${esc(words.join(' · '))}</p>`;
 }
 
+/**
+ * 「다른 곳과 뭐가 다른가」 — 있을 때만 (KL-184).
+ *
+ * 검색 결과에서 우리 도구는 남들과 한 줄 요약이 똑같이 보인다. 실제로는 다른 점이 있는데
+ * 페이지 어디에도 안 적혀 있어서, 들어온 사람이 「여기도 같은 거네」 하고 나간다.
+ *
+ * 2026-05-07 로 FAQ 리치결과가, 그전에 HowTo 가 폐지됐다(구글). 즉 **표식으로 눈에 띄는 길은
+ * 닫혔고**, 남은 것은 사람이 읽고 머무는 글이다. 그래서 이 자리는 표식이 아니라 문장이다.
+ * 없는 도구는 아무것도 안 그린다 — 지어내면 그 순간 다른 글까지 못 믿을 글이 된다.
+ */
+function edgeBlock(id) {
+  const edge = seo[id].edge;
+  if (!edge || !edge.length) return '';
+  return `<h2>다른 곳과 뭐가 다른가</h2>
+        <ul class="tool-seo-edge">
+          ${edge.map((e) => `<li>${esc(e)}</li>`).join(String.fromCharCode(10) + '          ')}
+        </ul>
+`;
+}
+
 function seoBlock(id) {
   const t = seo[id];
   const related = t.related
@@ -470,6 +490,7 @@ function seoBlock(id) {
           ${t.howto.map((s) => `<li>${esc(s)}</li>`).join('\n          ')}
         </ol>
 
+        ${edgeBlock(id)}
         <h2>자주 묻는 질문</h2>
         <dl class="tool-seo-faq">
           ${t.faq.map((f) => `<dt>${esc(f.q)}</dt>\n          <dd>${esc(f.a)}</dd>`).join('\n          ')}
