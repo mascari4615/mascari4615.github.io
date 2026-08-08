@@ -72,6 +72,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         text: string;
         authorHandle: string;
         anon: AnonFace | null;
+        /** 서버가 만들어 주는 찾을 거리 한 벌 (KL-159). 화면이 규칙을 따로 안 짠다. */
+        searchable?: string;
         createdAt: string;
         bumpedAt: string;
         votes: number;
@@ -1359,8 +1361,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const query = (param('q') ?? '').trim().toLowerCase();
         const filtered = query
             ? data.posts.filter((p) =>
-                  // 익명 글은 손잡이가 비어 있다 — 보이는 이름(이름표)으로도 찾히게 (KL-158).
-                  `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.anon?.name ?? ''}`.toLowerCase().includes(query),
+                  /* 찾을 거리는 **서버가 만든 한 벌**을 쓴다 (KL-159). 예전엔 같은 규칙을
+                     여기에 또 적어 뒀는데, 그러면 한쪽만 고쳤을 때 「서버에선 찾히는데
+                     화면에선 안 찾히는」 상태가 된다 — 검색이 거짓말을 하게 된다.
+                     옛 서버가 이 칸을 안 줄 수도 있으니 그때만 최소한으로 되돌아간다. */
+                  (p.searchable ?? `${p.title ?? ''} ${p.text} ${p.anon?.name ?? ''}`.toLowerCase()).includes(query),
               )
             : data.posts;
 

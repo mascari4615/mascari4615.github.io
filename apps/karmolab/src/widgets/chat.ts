@@ -31,8 +31,12 @@
         who: string;
         byOwner: boolean;
         at: string;
-        /** 이 줄을 지킨 사람들 (TASK-KL-158). 지킨 줄은 하루가 지나도 안 사라진다. */
-        keptBy?: string[];
+        /** 지킨 사람 수와 「내가 지켰나」 (TASK-KL-158/159). 누가 지켰는지는 안 내려온다. */
+        kept?: number;
+        keptByMe?: boolean;
+        reportedByMe?: boolean;
+        /** 어느 줄에 답하는가 — 그때 모습 그대로 베껴 온다 (TASK-KL-159). */
+        replyTo?: { id: string; name: string; text: string } | null;
     }
     interface Hello {
         me: Me;
@@ -55,6 +59,10 @@
     let maxLength = 300;
     let here = 0;
     let todayVoices = 0;
+    /** 지킨 줄만 보고 있나 (TASK-KL-159). 지킨 줄이 흐름에 섞이면 다시 못 찾는다. */
+    let onlyKept = false;
+    /** 지금 답하는 줄. 답을 달다 말면 취소할 수 있어야 한다. */
+    let replyTo: Message | null = null;
     let unread = 0;
     let connected = false;
     const messages: Message[] = [];
@@ -127,6 +135,11 @@
         .klchat-act button:hover { color:#ef8b8b; }
         .klchat-act button[data-on="1"] { color:#e6c65c; }
         .klchat-kept { color:#e6c65c; font-size:10px; margin-left:4px; }
+        .klchat-filter { background:none; border:none; cursor:pointer; font-size:12px; opacity:0.35; padding:0 2px; }
+        .klchat-filter[data-on="1"] { opacity:1; }
+        .klchat-quote { font-size:11px; color:var(--text-tertiary,#6b7688); border-left:2px solid var(--border,rgba(255,255,255,0.15)); padding-left:6px; margin:2px 0 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .klchat-replying { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-tertiary,#6b7688); }
+        .klchat-replying button { background:none; border:none; color:inherit; cursor:pointer; }
         .klchat-note { color:var(--text-tertiary,#6b7688); font-size:11px; line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--border,rgba(255,255,255,0.08)); margin-bottom:4px; }
         .klchat-foot { border-top:1px solid var(--border,rgba(255,255,255,0.08)); padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
         .klchat-row { display:flex; gap:6px; align-items:flex-end; }
@@ -163,11 +176,13 @@
                 <b>지금 여기</b>
                 <span id="klChatHere">·</span>
                 <span class="klchat-spacer"></span>
+                <button type="button" class="klchat-filter" id="klChatOnlyKept" title="지킨 줄만 보기">⭐</button>
                 <span id="klChatMe" title="오늘의 내 이름표 — 자정에 바뀐다"></span>
                 <button type="button" class="klchat-x" id="klChatClose" aria-label="닫기">✕</button>
             </div>
             <div class="klchat-log" id="klChatLog"></div>
             <div class="klchat-foot">
+                <div class="klchat-replying" id="klChatReplying" hidden></div>
                 <div class="klchat-row">
                     <textarea class="klchat-input" id="klChatInput" rows="1" placeholder="아무 말이나 — 이름은 오늘까지만" maxlength="300"></textarea>
                     <button type="button" class="klchat-send" id="klChatSend">보내기</button>
@@ -195,6 +210,8 @@
         meLabel: root.querySelector('#klChatMe') as HTMLElement,
         log: root.querySelector('#klChatLog') as HTMLElement,
         input: root.querySelector('#klChatInput') as HTMLTextAreaElement,
+        onlyKept: root.querySelector('#klChatOnlyKept') as HTMLButtonElement,
+        replying: root.querySelector('#klChatReplying') as HTMLElement,
         send: root.querySelector('#klChatSend') as HTMLButtonElement,
         status: root.querySelector('#klChatStatus') as HTMLElement,
     };
@@ -213,6 +230,7 @@
         if (me) {
             el.meLabel.innerHTML = `<span class="klchat-who" style="color:${me.color}">${escapeHtml(me.name)}</span>`;
         }
+        el.onlyKept.dataset.on = onlyKept ? '1' : '0';
         el.unread.style.display = unread > 0 && !isOpen() ? '' : 'none';
         el.unread.textContent = unread > 99 ? '99+' : String(unread);
     }
@@ -226,14 +244,14 @@
             Date.parse(m.at) - Date.parse(previous.at) < 5 * 60 * 1000;
         const owner = m.byOwner ? '<span class="klchat-owner">주인</span>' : '';
         // 지킨 줄은 목록에서도 표가 나야 한다 — 안 그러면 왜 안 사라지는지 아무도 모른다.
-        const keptMark = (m.keptBy?.length ?? 0) > 0 ? '<span class="klchat-kept">⭐</span>' : '';
+        const keptMark = (m.kept ?? 0) > 0 ? '<span class="klchat-kept">⭐</span>' : '';
         const head = sameSpeaker
             ? ''
             : `${owner}<span class="klchat-who" style="color:${m.color}">${escapeHtml(m.name)}</span><span style="color:var(--text-tertiary,#6b7688)">: </span>`;
         /* 「글로 옮기기」가 왜 여기 있나 (TASK-KL-157): 채팅에서 나온 좋은 말은 24시간 뒤 사라진다.
          * 남길 가치가 있다고 느낀 그 순간에 옮길 길이 없으면, 옮기자고 마음먹을 일도 없다. */
-        const keptCount = m.keptBy?.length ?? 0;
-        const mineKept = me !== null && (m.keptBy ?? []).includes(me.who);
+        const keptCount = m.kept ?? 0;
+        const mineKept = m.keptByMe === true;
         /* ⭐ 지키기 — 누른 줄은 **하루가 지나도 안 사라진다**.
          * 「사라지기 전에 알려 주기」보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
          * 지키기는 한 번 누르면 끝난다. 📌 는 커뮤니티로 옮기는 것이라 하는 일이 다르다. */
@@ -241,11 +259,23 @@
             mineKept ? '지키는 중 — 안 사라진다' : '지키기 (하루 뒤에도 남는다)'
         }">${mineKept ? '⭐' : '☆'}${keptCount > 1 ? keptCount : ''}</button>`;
         const keep = `${star}<button data-act="keep" data-id="${m.id}" title="글로 옮기기">📌</button>`;
+        // 답하기 — 여럿이 동시에 말하면 「누구한테 하는 말이지?」가 안 보인다.
+        const answer = `<button data-act="answer" data-id="${m.id}" title="답하기">↩</button>`;
+        /* 이미 신고한 줄은 눌린 채로 둔다. 안 그러면 눌렀는지 몰라 또 누르고,
+           또 눌러도 아무 일이 안 일어나니 고장으로 읽힌다. */
+        const report = m.reportedByMe
+            ? '<button data-act="none" data-on="1" title="이미 신고했다" disabled>🚩</button>'
+            : `<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
         const actions = isAdmin
-            ? `${keep}<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
-            : `${keep}<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
+            ? `${answer}${keep}<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
+            : `${answer}${keep}${report}`;
+        // 답한 줄에는 **무엇에 답한 것인지**가 한 줄 위에 붙는다.
+        const quoted = m.replyTo
+            ? `<div class="klchat-quote">↩ <b>${escapeHtml(m.replyTo.name)}</b> ${escapeHtml(m.replyTo.text)}</div>`
+            : '';
         return (
             `<div class="klchat-line${sameSpeaker ? ' cont' : ''}" data-id="${m.id}">` +
+            quoted +
             head +
             escapeHtml(m.text) +
             keptMark +
@@ -261,18 +291,22 @@
             pref(HINT_KEY, '') === '1'
                 ? ''
                 : '<div class="klchat-note">여긴 <b>하루짜리 이름표</b>로 말하는 자리. 자정에 이름이 바뀌고, 하루 지난 줄은 사라진다. 계정은 안 드러난다.</div>';
-        let html = hint;
-        for (let i = 0; i < messages.length; i += 1) {
-            html += lineHtml(messages[i], i > 0 ? messages[i - 1] : null);
+        const shown = onlyKept ? messages.filter((m) => (m.kept ?? 0) > 0) : messages;
+        let html = onlyKept ? '' : hint;
+        for (let i = 0; i < shown.length; i += 1) {
+            html += lineHtml(shown[i], i > 0 ? shown[i - 1] : null);
         }
-        if (messages.length === 0) {
+        if (onlyKept && shown.length === 0) {
+            html += '<div class="klchat-note" style="border:none">아직 지킨 줄이 없다. 남기고 싶은 줄에 ☆ 를 눌러라.</div>';
+        }
+        if (!onlyKept && messages.length === 0) {
             html += '<div class="klchat-note" style="border:none">아직 아무도 말을 안 했다. 첫 줄을 남겨도 된다.</div>';
         }
         /* 혼자 있을 때 이 창은 **죽은 방으로 읽힌다** (TASK-KL-157).
          * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안
          * 남기고 → 영영 빈다. 그래서 남긴 말이 **나중에 닿는다**는 사실을 그 자리에서 말해 준다.
          * 지어낸 수는 안 쓴다 — 오늘 실제로 말한 사람 수만 적는다. */
-        if (here <= 1) {
+        if (!onlyKept && here <= 1) {
             const others = todayVoices > 1 ? `오늘 여기서 ${todayVoices}명이 말했다. ` : '';
             html +=
                 `<div class="klchat-note klchat-alone">지금은 혼자다. ${others}` +
@@ -280,6 +314,24 @@
         }
         el.log.innerHTML = html;
         if (stick) el.log.scrollTop = el.log.scrollHeight;
+    }
+
+    /** 「지금 누구에게 답하는 중인가」를 입력칸 바로 위에 적는다. 안 적으면 실수로 딴 줄에 붙는다. */
+    function renderReplying(): void {
+        if (!replyTo) {
+            el.replying.hidden = true;
+            el.replying.innerHTML = '';
+            return;
+        }
+        el.replying.hidden = false;
+        el.replying.innerHTML =
+            `↩ <b style="color:${replyTo.color}">${escapeHtml(replyTo.name)}</b> ` +
+            `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(replyTo.text.slice(0, 40))}</span>` +
+            '<button type="button" data-cancel-reply title="답하기 그만">✕</button>';
+        el.replying.querySelector('[data-cancel-reply]')?.addEventListener('click', () => {
+            replyTo = null;
+            renderReplying();
+        });
     }
 
     function isOpen(): boolean {
@@ -391,10 +443,8 @@
             const found = messages.find((m) => m.id === data.id);
             if (!found) return;
             /* 서버는 **몇 명이 지켰나**만 흘린다 — 누가 지켰는지를 뿌리면 익명이 샌다.
-               그래서 내 표시는 내가 누른 것으로만 유지하고, 수만 맞춘다. */
-            const mine = (found.keptBy ?? []).includes(me?.who ?? '');
-            found.keptBy = Array.from({ length: data.kept }, (_, i) => (i === 0 && mine ? (me?.who ?? `x${i}`) : `x${i}`));
-            if (mine && !found.keptBy.includes(me?.who ?? '')) found.keptBy[0] = me?.who ?? '';
+               내가 눌렀는지는 내 화면이 이미 안다. 여기서는 수만 맞춘다. */
+            found.kept = data.kept;
             renderLog();
         });
         source.addEventListener('here', (event) => {
@@ -434,10 +484,12 @@
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text }),
+                body: JSON.stringify({ text, replyTo: replyTo?.id ?? null }),
             });
             if (response.ok) {
                 el.input.value = '';
+                replyTo = null;
+                renderReplying();
                 el.input.style.height = '34px';
                 el.status.textContent = '';
                 el.status.classList.remove('warn');
@@ -507,6 +559,11 @@
 
     // ── 배선 ──────────────────────────────────────────────────────────────────
 
+    el.onlyKept.onclick = () => {
+        onlyKept = !onlyKept;
+        renderHeader();
+        renderLog();
+    };
     el.dock.onclick = () => setOpen(!isOpen());
     el.close.onclick = () => setOpen(false);
     el.send.onclick = () => void send();
@@ -545,19 +602,25 @@
         if (kind === 'del') void act(`/kl/chat/${button.dataset.id}`, null, 'DELETE');
         if (kind === 'mute') void act('/kl/chat/mute', { who: button.dataset.who, minutes: 30 });
         if (kind === 'report') {
+            const line = messages.find((m) => m.id === button.dataset.id);
+            if (line) line.reportedByMe = true; // 누른 자리에서 바로 표가 나야 또 안 누른다.
+            renderLog();
             void act('/kl/chat/report', { id: button.dataset.id });
             Toolbox.showToast?.('신고했다 — 주인에게 갔다.', 'info');
         }
         if (kind === 'keep') keep(button.dataset.id ?? '');
+        if (kind === 'answer') {
+            replyTo = messages.find((m) => m.id === button.dataset.id) ?? null;
+            renderReplying();
+            el.input.focus();
+        }
         if (kind === 'star') {
             const id = button.dataset.id ?? '';
             const line = messages.find((m) => m.id === id);
             if (line) {
                 // 누른 자리에서 바로 바뀐다 — 서버 확인은 뒤에서 (흐르는 연결이 수를 맞춰 준다).
-                const list = new Set(line.keptBy ?? []);
-                if (me && list.has(me.who)) list.delete(me.who);
-                else if (me) list.add(me.who);
-                line.keptBy = [...list];
+                line.keptByMe = !line.keptByMe;
+                line.kept = Math.max(0, (line.kept ?? 0) + (line.keptByMe ? 1 : -1));
                 renderLog();
             }
             void act(`/kl/chat/${encodeURIComponent(id)}/keep`, {});
