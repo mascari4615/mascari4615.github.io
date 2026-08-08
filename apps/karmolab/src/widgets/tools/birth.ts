@@ -27,6 +27,9 @@
     [12, 22, '염소자리']
   ];
 
+  /** 달마다 정해진 탄생석 — 상위 계산기들이 대개 함께 준다. */
+  const GEMS = ['가넷', '자수정', '아쿠아마린', '다이아몬드', '에메랄드', '진주', '루비', '페리도트', '사파이어', '오팔', '토파즈', '터키석'];
+
   function signOf(m: number, d: number): string {
     let found = '염소자리'; // 12/22 ~ 1/19
     for (const [sm, sd, name] of SIGNS) {
@@ -86,13 +89,28 @@
             const untilNext = Math.round((next.getTime() - today.getTime()) / 86400000);
             const lived = Math.floor((today.getTime() - born.getTime()) / 86400000);
 
+            /* 한국에서 「나이」는 세 가지다 (2023-06 만 나이 통일 뒤에도 연 나이는 법에 남아 있다).
+               상위 계산기들이 셋을 나란히 주는 이유 — 어디에 쓰느냐에 따라 답이 다르기 때문이다.
+                 만 나이   생일 지났으면 올해-태어난해
+                 연 나이   올해 - 태어난 해 (병역·청소년보호법 등)
+                 세는 나이 연 나이 + 1 (예전에 쓰던 한국식) */
+            const yearAge = today.getFullYear() - y;
+            const koreanAge = yearAge + 1;
+            /* 초등학교 입학 연도 — 태어난 해 + 7. 2009년 이전 1~2월생(빠른년생)은 한 해 빨랐다. */
+            const schoolYear = y + 7;
+            const 빠른 = m <= 2 && y < 2009;
+
             out.innerHTML =
               row('만 나이', `${age}세`) +
+              row('연 나이', `${yearAge}세 <span class="tool-list-dim">올해 − 태어난 해</span>`) +
+              row('세는 나이', `${koreanAge}세 <span class="tool-list-dim">예전 한국식</span>`) +
               row('띠', `${ZODIAC[y % 12]}띠`) +
               row('별자리', signOf(m, d)) +
               row('태어난 요일', ['일', '월', '화', '수', '목', '금', '토'][born.getDay()] + '요일') +
               row('산 날수', `${lived.toLocaleString('ko-KR')}일째`) +
               row('다음 생일', untilNext === 0 ? '오늘이에요 🎉' : `${untilNext}일 남음 (${next.toLocaleDateString('ko-KR')})`) +
+              row('탄생석', GEMS[m - 1]) +
+              row('초등학교 입학', `${schoolYear}년 3월 <span class="tool-list-dim">${빠른 ? '빠른년생이면 ' + (schoolYear - 1) + '년' : '추정'}</span>`) +
               row('1만 일 되는 날', new Date(born.getTime() + 10000 * 86400000).toLocaleDateString('ko-KR'));
             Toolbox.trackUse?.('calc');
           }
