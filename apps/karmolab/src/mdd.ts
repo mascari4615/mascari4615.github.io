@@ -138,13 +138,21 @@ const Mdd = (() => {
         tilt: number;
         /** 몸 전체 상하 오프셋(캔버스 px) */
         bob: number;
+        /** 왼팔·오른팔 회전(도). 어깨를 축으로 돈다. +면 손이 올라간다 */
+        armL: number;
+        armR: number;
         /** 시선 고정 방향. null 이면 커서를 따라본다 */
         gaze: { x: number; y: number } | null;
+        /** 눈을 통째로 갈아 끼우는 조각(감은 눈·웃는 눈…). null 이면 기본 눈 */
+        eyeArt: string | null;
+        /** 입 조각. null 이면 기본 입 */
+        mouthArt: string | null;
     }
 
     const NEUTRAL: AvatarPose = {
         eyeOpen: 1, eyeSquint: 0, browTilt: 0, browRaise: 0,
-        mouthOpen: 1, mouthWide: 1, blush: 0, tilt: 0, bob: 0, gaze: null,
+        mouthOpen: 1, mouthWide: 1, blush: 0, tilt: 0, bob: 0,
+        armL: 0, armR: 0, gaze: null, eyeArt: null, mouthArt: null,
     };
 
     /** 기존 12 포즈 = 이 값들의 프리셋. 사이 값도 되므로 전환이 보간된다.
@@ -154,17 +162,17 @@ const Mdd = (() => {
      * 읽히는 건 고개 각도·몸 상하·눈 개폐·홍조뿐이라 그쪽으로 몰아 준다. */
     const POSE_PRESETS: Record<string, Partial<AvatarPose>> = {
         idle:     {},
-        happy:    { eyeSquint: 0.62, mouthWide: 1.8, mouthOpen: 2.0, blush: 0.4, tilt: -9, bob: -5 },
-        sad:      { eyeOpen: 0.55, browTilt: -18, browRaise: 4, mouthWide: 0.75, tilt: 13, bob: 12 },
-        shock:    { eyeOpen: 1.7, browRaise: -8, mouthOpen: 4.5, mouthWide: 1.2, tilt: -2, bob: -8 },
+        happy:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.4, tilt: -9, bob: -5 },
+        sad:      { eyeOpen: 0.55, mouthArt: 'mouth-frown', tilt: 13, bob: 12, armL: 6, armR: -6 },
+        shock:    { eyeArt: 'eyes-wide', mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
         think:    { eyeOpen: 0.8, browTilt: 10, browRaise: -3, mouthWide: 0.85, tilt: 15, gaze: { x: 0.85, y: -0.7 } },
-        sleep:    { eyeOpen: 0, eyeSquint: 0.3, browRaise: 4, mouthOpen: 1.4, tilt: 20, bob: 16 },
-        angry:    { eyeOpen: 1.15, browTilt: 24, browRaise: -6, mouthWide: 0.75, mouthOpen: 1.5, blush: 0.25, tilt: 3, bob: -3 },
-        love:     { eyeSquint: 0.78, mouthWide: 1.5, blush: 1, tilt: -12, bob: -6 },
+        sleep:    { eyeOpen: 0, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
+        angry:    { eyeArt: 'eyes-wide', mouthArt: 'mouth-frown', blush: 0.25, tilt: 3, bob: -3, armL: 10, armR: -10 },
+        love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6 },
         smug:     { eyeOpen: 0.72, browTilt: 8, browRaise: -4, mouthWide: 1.3, tilt: -15, gaze: { x: -0.7, y: 0.2 } },
-        eating:   { eyeSquint: 0.5, mouthOpen: 3.2, mouthWide: 1.2, blush: 0.3, tilt: 5, bob: 4 },
-        pointing: { eyeOpen: 1.25, browRaise: -6, mouthOpen: 2.2, mouthWide: 1.25, tilt: -7, bob: -9 },
-        cheer:    { eyeSquint: 0.7, mouthOpen: 3.5, mouthWide: 1.6, blush: 0.5, tilt: 0, bob: -18 },
+        eating:   { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.3, tilt: 5, bob: 4 },
+        pointing: { eyeOpen: 1.25, mouthArt: 'mouth-open', tilt: -7, bob: -9, armL: 0, armR: -38 },
+        cheer:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-wide', blush: 0.5, tilt: 0, bob: -18, armL: -46, armR: 46 },
     };
 
     /** x/y/w/h = 원본 캔버스에서의 자리, s* = 아틀라스에서 잘라 올 자리 */
@@ -174,6 +182,8 @@ const Mdd = (() => {
         canvas: [number, number];
         atlas: { src: string; w: number; h: number };
         order: string[];
+        /** 평소엔 숨어 있다가 그 표정일 때만 보이는 조각들 */
+        variants?: string[];
         parts: Record<string, PartBox>;
     }
 
@@ -181,6 +191,8 @@ const Mdd = (() => {
     const HEAD_PARTS = new Set(['back-hair', 'face', 'ears', 'eyewhite', 'irides',
         'eyelash', 'eyebrow', 'nose', 'mouth', 'front-hair', 'headwear']);
     const EYE_PARTS = new Set(['eyewhite', 'irides', 'eyelash']);
+    /** 팔은 어깨(위쪽 안쪽 모서리)를 축으로 돈다 */
+    const ARM_PIVOT: Record<string, string> = { 'arm-l': '100% 8%', 'arm-r': '0% 8%' };
 
     /** 화면에 보여 줄 범위(원본 캔버스 좌표). 우하단 상주는 작아서 얼굴이 읽혀야 한다. */
     const FRAMING = {
@@ -227,6 +239,7 @@ const Mdd = (() => {
         // 벌리기)을 한 요소에 겹쳐 쓰면 회전용 축(목덜미)을 스케일이 그대로 물려받아
         // 눈·입이 얼굴 밖으로 튄다 — 축이 다른 두 변형은 층을 나눠야 한다.
         const layers = new Map<string, HTMLDivElement>();
+        const variantNames = manifest.variants || [];
         const headGroups: HTMLDivElement[] = [];
         let group: HTMLDivElement | null = null;
         for (const name of manifest.order) {
@@ -245,6 +258,7 @@ const Mdd = (() => {
             // 필요한 칸만 꺼내 쓴다 — 브라우저가 받는 그림은 하나다.
             const el2 = document.createElement('div');
             el2.className = 'mdd-av-part';
+            el2.dataset.part = name;      // 어느 부위인지 화면에서 바로 알아볼 수 있게
             el2.style.left = box.x + 'px';
             el2.style.top = box.y + 'px';
             el2.style.width = box.w + 'px';
@@ -311,7 +325,7 @@ const Mdd = (() => {
             // 값 보간 — 포즈가 튀지 않고 흘러간다
             const k = REDUCED ? 1 : 0.14;
             for (const key of Object.keys(NEUTRAL) as (keyof AvatarPose)[]) {
-                if (key === 'gaze') continue;
+                if (key === 'gaze' || key === 'eyeArt' || key === 'mouthArt') continue;
                 (pose[key] as number) += ((target[key] as number) - (pose[key] as number)) * k;
             }
 
@@ -321,7 +335,7 @@ const Mdd = (() => {
             gaze.y += (wanted.y - gaze.y) * (REDUCED ? 1 : 0.1);
 
             // 눈깜빡임 — 일정 간격이면 기계처럼 보인다. 다음 시각을 매번 새로 뽑는다
-            if (!REDUCED && motion.blink && target.eyeOpen > 0.15) {
+            if (!REDUCED && motion.blink && !target.eyeArt && target.eyeOpen > 0.15) {
                 if (blinkPhase > 0) {
                     blinkPhase -= 1 / 7;                 // 약 7 프레임에 걸쳐 감았다 뜬다
                     blink = Math.abs(blinkPhase * 2 - 1);
@@ -375,6 +389,34 @@ const Mdd = (() => {
                 brow.style.transformOrigin = '50% 50%';
                 brow.style.transform =
                     `translate(0px, ${pose.browRaise}px) rotate(${pose.browTilt * 0.35}deg)`;
+            }
+
+            // 표정 조각 — 눈·입을 통째로 갈아 끼운다.
+            //
+            // 값(scaleY·scale)으로 만드는 표정에는 천장이 있다. 입은 원본에서
+            // 17px 짜리 선 하나뿐이라 아무리 늘려도 「벌린 입」이 안 된다. 같은
+            // 그림의 그 부분만 다시 그려 둔 조각을 얹으면 진짜로 달라진다.
+            const eyeArt = target.eyeArt;
+            const mouthArt = target.mouthArt;
+            for (const name of variantNames) {
+                const v = layers.get(name);
+                if (!v) continue;
+                v.style.display = (name === eyeArt || name === mouthArt) ? '' : 'none';
+            }
+            // 갈아 끼운 자리의 기본 부품은 숨긴다 — 겹치면 눈이 네 개가 된다
+            for (const name of EYE_PARTS) {
+                const b = layers.get(name);
+                if (b) b.style.display = eyeArt ? 'none' : '';
+            }
+            const baseMouth = layers.get('mouth');
+            if (baseMouth) baseMouth.style.display = mouthArt ? 'none' : '';
+
+            // 팔 — 어깨를 축으로. 손 흔들기·가리키기가 여기서 나온다
+            for (const [name, pivot] of Object.entries(ARM_PIVOT)) {
+                const arm = layers.get(name);
+                if (!arm) continue;
+                arm.style.transformOrigin = pivot;
+                arm.style.transform = `rotate(${name === 'arm-l' ? pose.armL : pose.armR}deg)`;
             }
 
             const mouth = layers.get('mouth');
