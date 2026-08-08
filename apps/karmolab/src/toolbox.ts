@@ -1218,6 +1218,86 @@ const Toolbox = (() => {
 
         installDesktopChrome();
         installPaletteShortcut();
+        installGlobalDrop();
+        installRunShortcut();
+    }
+
+    /* ── 창 아무 데나 떨어뜨려도 받는다 (도구 품질 — 전 도구 공통) ────────────────
+     *
+     * 남들 기준: 파일을 다루는 도구는 **창 전체가 놓는 자리**여야 한다는 것이 정설이다
+     * (Smart Interface Design Patterns · Uploadcare). 우리는 도구 40장이 각자 작은 네모를
+     * 만들어 두었고, 나머지 파일 도구는 「파일 선택」 단추뿐이라 끌어다 놓으면 **브라우저가
+     * 그 파일을 열어 버려** 하던 작업이 통째로 날아갔다.
+     *
+     * 그래서 셸에 한 번 박는다. 자기 자리를 이미 만들어 둔 도구는 그쪽이 먼저 잡으므로
+     * (`e.defaultPrevented`) 여기서는 손대지 않는다 — 두 벌로 처리되지 않는다. */
+    function installGlobalDrop() {
+        let overlay = null;
+        let depth = 0;
+
+        const fileInput = () => {
+            const page = document.querySelector('.tool-page.active');
+            if (!page) return null;
+            return page.querySelector('input[type="file"]');
+        };
+
+        const show = () => {
+            if (overlay || !fileInput()) return;
+            overlay = document.createElement('div');
+            overlay.className = 'kl-dropzone';
+            overlay.innerHTML = '<div class="kl-dropzone-box">여기에 놓으면 이 도구가 받아요</div>';
+            document.body.appendChild(overlay);
+        };
+        const hide = () => {
+            depth = 0;
+            if (overlay) { overlay.remove(); overlay = null; }
+        };
+
+        window.addEventListener('dragenter', (e) => {
+            if (!e.dataTransfer || [...e.dataTransfer.types].indexOf('Files') < 0) return;
+            depth++;
+            show();
+        });
+        window.addEventListener('dragleave', () => {
+            depth--;
+            if (depth <= 0) hide();
+        });
+        window.addEventListener('dragover', (e) => {
+            if (!e.dataTransfer || [...e.dataTransfer.types].indexOf('Files') < 0) return;
+            // 이걸 막지 않으면 브라우저가 그 파일을 열어 하던 작업이 날아간다.
+            e.preventDefault();
+        });
+        window.addEventListener('drop', (e) => {
+            hide();
+            if (e.defaultPrevented) return;           // 자기 자리를 가진 도구가 이미 받았다
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (!files || !files.length) return;
+            const input = fileInput();
+            if (!input) return;
+            e.preventDefault();
+            /* 파일 입력에 값을 넣는 유일한 길이 DataTransfer 다. 넣기만 하면 도구는 모르므로
+               사람이 고른 것과 같은 신호를 보낸다. */
+            const dt = new DataTransfer();
+            const 여러개 = input.multiple;
+            [...files].slice(0, 여러개 ? files.length : 1).forEach((f) => dt.items.add(f));
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            showToast(여러개 && files.length > 1 ? `파일 ${files.length}개를 받았어요` : `${files[0].name} 을(를) 받았어요`);
+        });
+    }
+
+    /* ⌘/Ctrl + Enter = 이 도구의 주 단추를 누른다.
+     * 긴 글을 붙여넣고 마우스로 단추를 찾아가는 왕복이 도구마다 매번 있었다. */
+    function installRunShortcut() {
+        document.addEventListener('keydown', (e) => {
+            if (!(e.ctrlKey || e.metaKey) || e.key !== 'Enter') return;
+            const page = document.querySelector('.tool-page.active');
+            if (!page) return;
+            const btn = page.querySelector('button.btn-primary:not([disabled])');
+            if (!btn) return;
+            e.preventDefault();
+            btn.click();
+        });
     }
 
     /* TASK-KL-099 — 어디서든 ⌘K / Ctrl+K 로 찾는 창을 부른다.

@@ -3126,3 +3126,18 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     padding: 0;
 }
 .karmolab-update-completed-toast-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+/* 창 전체를 놓는 자리로 (도구 품질 — 전 도구 공통).
+   파일을 끌어오면 이 막이 뜨고, 놓으면 지금 도구의 파일 칸이 받는다.
+   자기 자리를 이미 가진 도구는 그쪽이 먼저 잡으므로 이 막은 뜨기만 하고 비켜 준다. */
+.kl-dropzone {
+    position: fixed; inset: 0; z-index: 9000; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+    backdrop-filter: blur(2px);
+}
+.kl-dropzone-box {
+    padding: 22px 30px; border: 2px dashed var(--accent); border-radius: var(--radius-lg);
+    background: var(--bg-secondary); color: var(--text-primary);
+    font-size: var(--font-size-sm); font-weight: 600;
+}
