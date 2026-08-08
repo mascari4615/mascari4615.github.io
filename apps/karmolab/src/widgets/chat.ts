@@ -36,6 +36,8 @@
         me: Me;
         messages: Message[];
         here: number;
+        /** 오늘 이 방에서 목소리를 낸 사람 수 (TASK-KL-157). */
+        todayVoices?: number;
         isAdmin: boolean;
         maxLength: number;
     }
@@ -50,6 +52,7 @@
     let isAdmin = false;
     let maxLength = 300;
     let here = 0;
+    let todayVoices = 0;
     let unread = 0;
     let connected = false;
     const messages: Message[] = [];
@@ -129,9 +132,16 @@
         .klchat-send:disabled { opacity:0.4; cursor:default; }
         .klchat-status { font-size:11px; color:var(--text-tertiary,#6b7688); min-height:14px; }
         .klchat-status.warn { color:#ef8b8b; }
+        .klchat-alone { border:none; color:var(--text-secondary,#9aa7bd); }
         @media (max-width:640px) {
             .klchat { left:12px; right:12px; bottom:12px; }
-            .klchat-panel { width:100%; height:min(70vh,460px); }
+            /* 폰에서는 **화면에 실제로 보이는 높이**(dvh)로 잡는다. vh 는 주소창·키보드가
+               올라와도 안 줄어서, 키보드가 뜨면 입력칸이 화면 밖으로 밀려난다.
+               dvh 를 모르는 브라우저를 위해 vh 를 먼저 적어 둔다(뒤가 이긴다). */
+            .klchat-panel { width:100%; height:min(70vh,460px); height:min(60dvh,460px); }
+            /* 아이폰은 글자가 16px 보다 작은 칸을 누르면 **화면을 확대해 버린다.**
+               그러면 창이 화면 밖으로 밀려나고, 되돌리려면 손으로 축소해야 한다. */
+            .klchat-input { font-size:16px; }
         }
         `,
     );
@@ -243,6 +253,16 @@
         if (messages.length === 0) {
             html += '<div class="klchat-note" style="border:none">아직 아무도 말을 안 했다. 첫 줄을 남겨도 된다.</div>';
         }
+        /* 혼자 있을 때 이 창은 **죽은 방으로 읽힌다** (TASK-KL-157).
+         * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안
+         * 남기고 → 영영 빈다. 그래서 남긴 말이 **나중에 닿는다**는 사실을 그 자리에서 말해 준다.
+         * 지어낸 수는 안 쓴다 — 오늘 실제로 말한 사람 수만 적는다. */
+        if (here <= 1) {
+            const others = todayVoices > 1 ? `오늘 여기서 ${todayVoices}명이 말했다. ` : '';
+            html +=
+                `<div class="klchat-note klchat-alone">지금은 혼자다. ${others}` +
+                '남겨 두면 오늘 여기 있던 사람들에게 알림이 간다.</div>';
+        }
         el.log.innerHTML = html;
         if (stick) el.log.scrollTop = el.log.scrollHeight;
     }
@@ -287,6 +307,7 @@
         isAdmin = Boolean(data.isAdmin);
         maxLength = data.maxLength || maxLength;
         here = data.here || 0;
+        todayVoices = data.todayVoices || 0;
         el.input.maxLength = maxLength;
         messages.length = 0;
         for (const m of data.messages || []) messages.push(m);
@@ -353,6 +374,7 @@
         source.addEventListener('here', (event) => {
             here = (JSON.parse((event as MessageEvent).data) as { here: number }).here;
             renderHeader();
+            renderLog();
         });
         source.onerror = () => {
             /* EventSource 는 스스로 다시 붙는다 — 여기서 닫으면 그 기능을 우리가 꺼 버린다.
@@ -464,6 +486,15 @@
     el.send.onclick = () => void send();
     el.log.onscroll = () => {
         if (isOpen() && atBottom()) markSeen();
+    };
+
+    /* 폰에서 칸을 누르면 키보드가 올라오며 창을 덮는다 — 브라우저가 알아서 밀어 주지 않는다.
+     * 키보드가 자리를 잡을 틈을 준 뒤 이 창을 보이는 자리로 끌어온다 (TASK-KL-157). */
+    el.input.onfocus = () => {
+        setTimeout(() => {
+            root.scrollIntoView({ block: 'end', behavior: 'smooth' });
+            el.log.scrollTop = el.log.scrollHeight;
+        }, 250);
     };
 
     el.input.onkeydown = (event) => {
