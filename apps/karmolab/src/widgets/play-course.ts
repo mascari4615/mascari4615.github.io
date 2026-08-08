@@ -77,6 +77,57 @@ export function courseSteps(games: Array<{ id: string; title: string; url: strin
     .map((g) => ({ id: g.id, title: g.title, url: g.url, done: doneToday(g.id) }));
 }
 
+/** 놀이 목록 한 벌. 여러 자리(코스 줄·첫 화면)가 부르므로 한 화면에서 한 번만 받아 온다. */
+let gamesOnce: Promise<Array<{ id: string; title: string; url: string; emoji?: string }>> | null = null;
+export function courseGames(): Promise<Array<{ id: string; title: string; url: string; emoji?: string }>> {
+  if (!gamesOnce) {
+    gamesOnce = fetch('/apps/karmolab/data/games.json')
+      .then((r) => r.json())
+      .then((j: { games: Array<{ id: string; title: string; url: string; emoji?: string }> }) => j.games || [])
+      .catch(() => []);
+  }
+  return gamesOnce;
+}
+
+/**
+ * 오늘 끝낸 칸을 **계정에** 옮겨 적는다 (TASK-KL-194).
+ *
+ * 왜 필요한가: 연속일은 여기(브라우저) 안에만 있었다 — 폰으로 열면 0일, 기록을 지우면 0일.
+ * 한 번의 청소로 사라지는 자리는 아무도 안 쌓는다. 판정은 그대로 여기가 한다(각 놀이의 저장을
+ * 읽는 쪽이 정본). 서버는 날짜만 받아 적는다 — 판정을 서버로 옮기면 같은 규칙이 두 벌이 된다.
+ *
+ * 같은 칸을 두 번 보내지 않는다(하루 단위로 기억). 로그인 안 했거나 서버가 죽었으면
+ * **아무 일도 안 일어난다** — 놀이는 그대로 굴러가고 연속일만 이 브라우저 것으로 남는다.
+ */
+const PUSHED_KEY = 'karmolab_course_pushed';
+
+export function pushCourseSlots(steps: CourseStep[]): void {
+  const base = (window as any).KarmoAccount?.apiBase;
+  if (!base) return;
+  const today = courseDay();
+  let box: { day?: string; slots?: string[] } = READ(PUSHED_KEY) || {};
+  if (box.day !== today) box = { day: today, slots: [] };
+  const sent = box.slots || [];
+  const fresh = steps.filter((s) => s.done && sent.indexOf(s.id) < 0);
+  if (!fresh.length) return;
+  for (const step of fresh) {
+    sent.push(step.id);
+    fetch(base + '/kl/today/done', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ slot: step.id }),
+    }).catch(() => {
+      /* 서버가 없어도 놀이는 그대로다 */
+    });
+  }
+  try {
+    localStorage.setItem(PUSHED_KEY, JSON.stringify({ day: today, slots: sent }));
+  } catch {
+    /* 사생활 모드 — 다음에 한 번 더 보낸다(서버가 같은 칸을 두 번 세지 않는다) */
+  }
+}
+
 /**
  * 오늘 도장 + 연속 일수. `stamp` 가 참일 때만 오늘을 적는다 —
  * 놀이 안에서 부를 때는 세기만 하고, 도장은 코스를 보여 주는 자리(놀이터)가 찍는다.
@@ -118,11 +169,14 @@ export function courseRun(stamp: boolean): number {
  * 빈 띠만 덩그러니 남는다(코스 밖 놀이에서 실제로 그랬다).
  */
 export function mountCourseNext(slot: HTMLElement, meId: string): void {
-  fetch('/apps/karmolab/data/games.json')
-    .then((r) => r.json())
-    .then((j: { games: Array<{ id: string; title: string; url: string; emoji?: string }> }) => {
+  courseGames()
+    .then((games) => {
+      const j = { games };
       if (!slot.isConnected) return;
       const steps = courseSteps(j.games);
+      /* 한 판이 끝난 자리 = 「오늘 뭘 했나」가 방금 바뀐 자리다. 계정에 옮겨 적는 것도 여기서
+         한다 — 첫 화면에만 두면 놀고 나서 첫 화면에 안 들르는 사람은 영영 안 쌓인다. */
+      pushCourseSlots(steps);
       if (!steps.some((s) => s.id === meId)) return; // 코스 밖의 놀이는 코스를 말하지 않는다
       const left = steps.filter((s) => !s.done && s.id !== meId);
       const meDone = steps.every((s) => s.done);

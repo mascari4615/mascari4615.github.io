@@ -121,6 +121,7 @@
     "measure:runtime": "node scripts/measure-runtime.mjs",
     "test:navigation": "node scripts/smoke-navigation.mjs",
     "test:worldcup": "node scripts/smoke-worldcup.mjs",
+    "test:today": "node scripts/smoke-today.mjs",
     "test:idle": "node scripts/smoke-idle.mjs",
     "audit:boot": "node scripts/audit-boot-budget.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",

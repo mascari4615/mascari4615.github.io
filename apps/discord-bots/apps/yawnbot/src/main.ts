@@ -35,6 +35,7 @@ import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
+import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
@@ -367,6 +368,9 @@ registerKarmolabApi(app);
  * 자기 파일에 사는 이유 = 그 2700줄짜리 파일을 낡은 사본으로 덮어쓴 커밋이 두 번
  * 이 라우트를 함께 지웠다(2026-08-08). 남이 덮어쓸 파일에 내 줄을 두지 않는다. */
 registerWellRoutes(app);
+/* TASK-KL-194 — 오늘의 판. 「오늘의 코스」 연속일이 브라우저 안에만 있어서 기록을 지우면
+ * 0일이 됐다. 그 셈을 계정에 옮긴다(판정은 그대로 브라우저). 같은 이유로 자기 파일. */
+registerTodayRoutes(app);
 // TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
 startBackupLoop();
 
