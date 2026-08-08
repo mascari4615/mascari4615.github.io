@@ -1164,6 +1164,44 @@ const Toolbox = (() => {
             if (!hiddenSet.has(tool.id) && (!isDesktopOnlyTool(tool) || isDesktopApp())) addMobileNavItem(tool);
         });
 
+        /* 공유로 들어왔다 (TASK-KL-183 D).
+         *
+         * 파일은 서비스 워커가 「이어서」 칸에 이미 놓아 뒀다 — 여기서는 **받을 수 있는 도구로
+         * 데려다주기만** 한다. 갈 곳이 없으면 아무 데도 안 보낸다(첫 화면 그대로).
+         * 주소에 남은 표시는 지운다: 새로고침할 때마다 「공유받았다」가 되면 안 된다. */
+        try {
+            const params = new URLSearchParams(location.search);
+            if (params.get('shared') !== null) {
+                params.delete('shared');
+                const rest = params.toString();
+                history.replaceState({}, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+                void handoffLoad().then((item) => {
+                    if (!item || !item.blob) return;
+                    /* 갈 곳이 여럿이면 **이 사람이 쓰는 것**을 먼저 — 「이어서」 줄과 같은 규칙이다.
+                     * 등록 순서대로 고르면 늘 쓰는 도구를 두고 낯선 도구로 데려간다. */
+                    const mine = getPins();
+                    const recent = (window.KarmoPalette?.getRecent?.() || []);
+                    const targets = toolsAccepting(item.blob.type, null).sort((a, b) => {
+                        const rank = (t) => {
+                            const i = mine.indexOf(t.id);
+                            if (i >= 0) return i;
+                            const r = recent.indexOf(t.id);
+                            return r >= 0 ? 100 + r : 1000;
+                        };
+                        return rank(a) - rank(b);
+                    });
+                    if (!targets.length) {
+                        showToast('공유받았는데 열 수 있는 도구가 없어요');
+                        return;
+                    }
+                    showToast(`공유받은 파일 → ${targets[0].title || targets[0].id}`);
+                    switchPage(targets[0].id);
+                });
+            }
+        } catch (_) {
+            /* 주소가 이상해도 앱은 그대로 뜬다 */
+        }
+
         document.getElementById('userPageBtn')?.addEventListener('click', () => switchPage('user'));
         document.getElementById('settingsPageBtn')?.addEventListener('click', () => switchPage('settings'));
 
