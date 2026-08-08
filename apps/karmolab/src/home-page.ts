@@ -95,16 +95,10 @@
         landing.appendChild(pulse);
         fillHomePulse(pulse);
 
-        /* 아직 안 써 본 것 (TASK-KL-183 E) — 발견.
-         *
-         * 도구가 160개인데 사람들이 여는 건 늘 같은 열몇 개다. 이미 두 벌의 실측이 있다:
-         * 남들이 많이 여는 것과 내가 열어 본 것. 둘을 맞대면 「남들은 쓰는데 나는 아직」이
-         * 그냥 나온다 — 지어낼 필요가 없다. 다 써 본 사람에게는 이 자리가 통째로 없다. */
-        const suggest = document.createElement('div');
-        suggest.className = 'landing-suggest';
-        suggest.id = 'homeSuggest';
-        landing.appendChild(suggest);
-        fillSuggest(suggest);
+        /* 「아직 안 써 본 것」 은 뺐다 (사용자 지시 2026-08-08).
+         * 첫 화면에서 「너 이거 안 써 봤지」라고 미는 자리였다 — 발견을 돕는다기보다 재촉으로
+         * 읽힌다. 도구를 찾는 길은 이미 둘(도구 전체·검색) 있다. 서버의 `/kl/suggest` 도
+         * 이 자리 때문에 첫 화면마다 두드리고 있었으므로 그 요청도 같이 없어진다. */
 
         return landing;
     }
@@ -119,12 +113,6 @@
      * 한 번도 안 열린 도구에는 아무것도 안 쓴다. 「0번 열렸어요」는 재미가 아니라 낙인이다.
      */
     /** 계정 스크립트를 기다린다 — 도구 화면은 그것보다 먼저 그려진다. 안 오면 그냥 포기한다. */
-    /**
-     * 「아직 안 써 본 것」 채우기 (TASK-KL-183 E).
-     *
-     * 로그인 안 했으면 「내가 써 본 것」을 모른다 — 그때는 개인화가 아니라 **그냥 인기**이고,
-     * 화면 문구도 그렇게 바뀐다(없는 개인화를 있는 척하지 않는다).
-     */
     /** 화면에 그대로 쓰는 글자 다듬기 — 도구 이름은 우리 것이지만 규칙은 한 곳에 둔다. */
     function escapeHtml(value) {
         return String(value == null ? '' : value)
@@ -132,38 +120,6 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
-    }
-
-    function fillSuggest(host) {
-        const base = window.KarmoAccount && window.KarmoAccount.apiBase;
-        if (!base) return;
-        fetch(base + '/kl/suggest', { credentials: 'include' })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((body) => {
-                if (!body || !host.isConnected) return;
-                const rows = (body.tools || [])
-                    .map((row) => ({ id: row.toolId, title: toolTitleFor(row.toolId) }))
-                    .filter((row) => row.title)
-                    .slice(0, 5);
-                if (!rows.length) return; // 다 써 봤거나 셀 것이 없으면 아무 말도 안 한다
-                host.innerHTML =
-                    '<span class="landing-suggest-label">' +
-                    (body.personal ? '아직 안 써 본 것' : '요즘 많이 여는 것') +
-                    '</span>' +
-                    rows
-                        .map(
-                            (row) =>
-                                '<button type="button" class="landing-suggest-item" data-go="' +
-                                escapeHtml(row.id) + '">' + escapeHtml(row.title) + '</button>',
-                        )
-                        .join('');
-                host.querySelectorAll('[data-go]').forEach((btn) => {
-                    btn.onclick = () => switchPage(btn.dataset.go);
-                });
-            })
-            .catch(() => {
-                /* 못 받아 오면 이 줄은 없는 것이다 — 첫 화면은 그대로 뜬다 */
-            });
     }
 
     /** 도구 id 로 사람이 읽는 이름 찾기. 등록된 것 우선, 없으면 지연 메타. 둘 다 없으면 null. */

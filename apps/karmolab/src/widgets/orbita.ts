@@ -163,7 +163,10 @@
     title: 'ORBITA',
     category: 'lab',
     desc: '궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력',
-    layout: 'full',
+    /* `full` 이 아니라 `form` 이다. `full` 은 패널을 화면 높이에 가두고(`flex:1`) 내부에서
+       스스로 스크롤하는 위젯(cockpit 등)용이다. 이건 위에서 아래로 흐르는 계기판이라
+       가두면 아래 절반이 패널 밖으로 삐져나와 「여기도 있어요」와 겹친다(실측 1018 > 688). */
+    layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
     tabs: [
       {
@@ -544,22 +547,28 @@
             // 자오선 — 여기를 지나면 소리가 난다
             const rOuter = ringRadius(0) + 22;
             const grad = ctx2d.createLinearGradient(cx, cy - rOuter, cx, cy);
-            grad.addColorStop(0, 'rgba(242,242,238,0.55)');
-            grad.addColorStop(1, 'rgba(242,242,238,0.03)');
+            grad.addColorStop(0, 'rgba(255,255,252,0.95)');
+            grad.addColorStop(1, 'rgba(242,242,238,0.10)');
             ctx2d.strokeStyle = grad;
-            ctx2d.lineWidth = 1.5;
+            ctx2d.lineWidth = 2;
+            ctx2d.shadowColor = 'rgba(200,190,255,0.5)';
+            ctx2d.shadowBlur = 8;
             ctx2d.beginPath();
             ctx2d.moveTo(cx, cy - rOuter);
             ctx2d.lineTo(cx, cy);
             ctx2d.stroke();
+            ctx2d.shadowBlur = 0;
 
             song.rings.forEach((r, ri) => {
               const rad = ringRadius(ri);
               if (rad < 6) return;
 
-              // 궤도 선
-              ctx2d.strokeStyle = r.muted ? 'rgba(242,242,238,0.045)' : 'rgba(210,205,245,0.11)';
-              ctx2d.lineWidth = 1;
+              /* 궤도 선 — 처음엔 0.11 이었는데 **안 보인다**는 말을 들었다(실측: 배경과
+                 명도차가 3 미만). 궤도가 안 보이면 어디에 찍을 수 있는지도 안 보인다 =
+                 이 도구의 뼈대가 없는 것과 같다. 선 자체를 올리고, 안쪽에 아주 옅은
+                 채움을 깔아 고리 사이의 층도 눈에 들어오게 한다. */
+              ctx2d.strokeStyle = r.muted ? 'rgba(242,242,238,0.10)' : 'rgba(214,208,255,0.34)';
+              ctx2d.lineWidth = 1.25;
               ctx2d.beginPath();
               ctx2d.arc(cx, cy, rad, 0, Math.PI * 2);
               ctx2d.stroke();
@@ -571,9 +580,11 @@
                 const y = cy + Math.sin(ang) * rad;
                 const slot = r.slots[i];
                 if (!slot) {
-                  ctx2d.fillStyle = 'rgba(210,205,245,0.16)';
+                  // 마디 첫 칸은 크게 — 「어디가 처음인가」가 돌아가는 중에도 읽힌다
+                  const head = i === 0;
+                  ctx2d.fillStyle = head ? 'rgba(233,229,255,0.68)' : 'rgba(214,208,255,0.36)';
                   ctx2d.beginPath();
-                  ctx2d.arc(x, y, 1.6, 0, Math.PI * 2);
+                  ctx2d.arc(x, y, head ? 2.8 : 2, 0, Math.PI * 2);
                   ctx2d.fill();
                   continue;
                 }
