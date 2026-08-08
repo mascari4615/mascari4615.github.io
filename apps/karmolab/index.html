@@ -417,10 +417,56 @@ permalink: /karmolab/
         };
         document.body.appendChild(mdd);
 
-        var ba = document.createElement('script');
-        ba.src = '/apps/karmolab/js/badapple/boot.js';
-        document.body.appendChild(ba);
       }
+
+      /* 액정놀이는 **켜는 신호가 왔을 때** 데려온다 (TASK-KL-128 ⑱).
+         평소엔 아무 일도 안 하는 이스터에그인데 4.9KB(압축)를 화면 130장이 매번 받고 있었다.
+         켜는 길은 둘 — 주소 뒤 `?badapple`, 그리고 위위아래아래왼오왼오BA.
+         그 둘만 여기서 지켜보고, 걸리면 그때 진짜를 부른다.
+
+         도구가 「나도 그릴게」 하고 신고하는 창구는 **먼저 자리를 만들어 둔다** — 안 그러면
+         이 파일이 오기 전에 열려 있던 도구들의 칸이 통째로 빠진다(켰을 때 화면 일부만 액정이
+         되는데, 오류가 없어서 아무도 못 알아챈다). 줄 세워 뒀다가 진짜가 오면 흘려보낸다. */
+      (function () {
+        var pending = [];
+        window.KarmoLabBadApple = {
+          add: function (surface) {
+            pending.push(surface);
+            return function () {
+              var i = pending.indexOf(surface);
+              if (i >= 0) pending.splice(i, 1);
+            };
+          }
+        };
+        var asked = false;
+        function pull(then) {
+          if (asked) return;
+          asked = true;
+          var ba = document.createElement('script');
+          ba.src = '/apps/karmolab/js/badapple/boot.js';
+          ba.onload = function () {
+            var real = window.KarmoLabBadApple;
+            if (real && real.add) for (var i = 0; i < pending.length; i++) { try { real.add(pending[i]); } catch (e) {} }
+            pending.length = 0;
+            if (then && real && real.start) real.start();
+          };
+          document.body.appendChild(ba);
+        }
+        /* 주소로 켠 경우엔 그쪽 파일이 스스로 시작한다 — 여기서 또 부르면 두 번 켠다. */
+        if (new URLSearchParams(location.search).has('badapple')) { pull(false); return; }
+
+        var KONAMI = ['arrowup','arrowup','arrowdown','arrowdown','arrowleft','arrowright','arrowleft','arrowright','b','a'];
+        var at = 0;
+        addEventListener('keydown', function (e) {
+          var k = (e.key || '').toLowerCase();
+          if (k === KONAMI[at]) {
+            at++;
+            if (at === KONAMI.length) { at = 0; pull(true); }
+          } else {
+            at = (k === KONAMI[0]) ? 1 : 0;
+          }
+        });
+      })();
       var idle = window.requestIdleCallback || function (f) { setTimeout(f, 300); };
       if (document.readyState === 'complete') idle(pullRest);
       else addEventListener('load', function () { idle(pullRest); });
