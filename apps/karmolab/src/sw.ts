@@ -172,6 +172,44 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
 
   if (req.method !== 'GET' || req.headers.has('range')) return;
 
+  /* ── 서버가 죽어도 읽기는 산다 (TASK-KL-183 F) ──────────────────
+   *
+   * 계정·광장·흐름은 전부 노트북 한 대에 물려 있다. 그 한 대가 자거나 터널이 끊기면 화면이
+   * 통째로 빈다 — 도구는 멀쩡한데 「아무것도 없는 사이트」처럼 보인다.
+   *
+   * 그래서 **읽기 응답을 받아 둔다**. 서버에 못 닿으면 받아 둔 것을 내주되, **낡았다는 표시**를
+   * 붙인다(`X-KL-Stale`). 낡은 값을 새 값인 척 내주는 것이 제일 나쁘다 — 그건 고장이 아니라
+   * 거짓말이 된다. 화면은 그 표시를 보고 「지금은 옛 숫자」라고 말한다.
+   *
+   * 개인적인 것은 안 담는다: 내 계정·알림처럼 사람마다 다른 답을 캐시에 두면 다음 사람이
+   * 그것을 볼 수 있다. 담는 것은 **누가 보든 같은 답**뿐이다.
+   */
+  if (url.hostname === 'yawnbot.mascari4615.com' && url.pathname.startsWith('/kl/')) {
+    const shared =
+      /^\/kl\/(tools\/stats|recent|boards|recap|rooms|missions|suggest|flows|stats\/(leaders|achievements)|play\/(board|games|season)|u\/[^/]+(\/(works|follows|activity))?)$/.test(
+        url.pathname,
+      );
+    if (!shared) return;
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open('karmolab-api');
+        try {
+          const fresh = await fetch(req);
+          if (fresh.ok) void cache.put(req, fresh.clone());
+          return fresh;
+        } catch {
+          const cached = await cache.match(req);
+          if (!cached) throw new Error('offline');
+          // 낡았다는 사실을 **응답에 실어** 보낸다. 화면이 그걸 보고 말한다.
+          const headers = new Headers(cached.headers);
+          headers.set('X-KL-Stale', '1');
+          return new Response(cached.body, { status: cached.status, headers });
+        }
+      })(),
+    );
+    return;
+  }
+
   let url: URL;
   try {
     url = new URL(req.url);
