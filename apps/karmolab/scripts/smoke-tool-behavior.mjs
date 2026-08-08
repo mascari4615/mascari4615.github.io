@@ -43,6 +43,9 @@ const CASES = [
   ['numword', '1234', null, /천이백삼십사|일천이백삼십사/],
   ['jamo', '한글', null, /ㅎ|ㅏ|ㄴ/],
   ['hangulkey', 'dkssudgktpdy', null, /안녕하세요/],
+  /* 섞여 있는 글은 조각마다 따로 되돌린다 — 남들은 글 전체를 한 방향으로만 본다.
+     이 성질이 사라지면 멀쩡한 쪽까지 같이 뒤집혀 더 망가진다. */
+  ['hangulkey', '안녕 gktpdy', null, /dkssud 하세요/],
   // 주소 분해는 결과를 표로 보여 준다 — 「x=1」 그대로가 아니라 「호스트 a.b」 꼴로 나온다.
   ['urlparse', 'https://a.b/c?x=1&y=2', null, /a\.b/],
   ['wordfreq', '가나 가나 다라', null, /가나/],

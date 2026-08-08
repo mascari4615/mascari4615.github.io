@@ -209,15 +209,61 @@
             const eng = (s.match(/[a-zA-Z]/g) || []).length;
             return kor >= eng;
           }
+
+          /**
+           * 자동일 때는 **조각마다 따로** 판단한다 (2026-08-08 — 남들도 안 하는 자리).
+           *
+           * 남들(가제트AI·인스타공백·크롬 확장)은 전부 「글 전체가 한글이냐 영문이냐」로 한 번에
+           * 정한다. 그런데 실제로 잘못 친 글은 「안녕 gktpdy」처럼 **섞여** 있다. 전체로 판단하면
+           * 멀쩡한 쪽까지 같이 뒤집혀 더 망가진다.
+           *
+           * 그래서 글자 갈래가 바뀌는 자리에서 잘라, 한글 덩어리는 영문으로·영문 덩어리는
+           * 한글로 각각 되돌린다. 숫자·기호·공백은 어느 쪽도 아니라 그대로 둔다.
+           */
+          function autoConvert(src: string): { text: string; k2e: number; e2k: number } {
+            const 갈래 = (ch: string): 'kor' | 'eng' | 'etc' =>
+              /[가-힣ㄱ-ㅣ]/.test(ch) ? 'kor' : /[a-zA-Z]/.test(ch) ? 'eng' : 'etc';
+            let out = '';
+            let k2e = 0;
+            let e2k = 0;
+            let i = 0;
+            while (i < src.length) {
+              const kind = 갈래(src[i]);
+              let j = i;
+              /* 기호·공백은 옆 덩어리에 붙여 둔다 — 「안녕 gktpdy」의 가운데 빈칸에서 끊으면
+                 덩어리가 잘게 쪼개져 판단이 흔들린다. */
+              while (j < src.length && (갈래(src[j]) === kind || 갈래(src[j]) === 'etc')) j++;
+              const 덩어리 = src.slice(i, j);
+              if (kind === 'kor') { out += korToEng(덩어리); k2e++; }
+              else if (kind === 'eng') { out += engToKor(덩어리); e2k++; }
+              else out += 덩어리;
+              i = j;
+            }
+            return { text: out, k2e, e2k };
+          }
+
           function run(mode: 'auto' | 'e2k' | 'k2e'): void {
             const src = input.value;
             if (!src) {
               output.value = '';
+              note.textContent = '두벌식 자판 기준입니다. 숫자·특수문자는 그대로 둡니다.';
               return;
             }
-            const dir = mode === 'auto' ? (looksKorean(src) ? 'k2e' : 'e2k') : mode;
-            output.value = dir === 'k2e' ? korToEng(src) : engToKor(src);
-            note.textContent = dir === 'k2e' ? '한글 → 영문으로 변환했어요.' : '영문 → 한글로 변환했어요.';
+            if (mode === 'auto') {
+              const r = autoConvert(src);
+              output.value = r.text;
+              const 섞임 = r.k2e > 0 && r.e2k > 0;
+              note.textContent = 섞임
+                ? `섞여 있어서 조각마다 따로 되돌렸어요 — 한글→영문 ${r.k2e}조각 · 영문→한글 ${r.e2k}조각.`
+                : r.k2e > 0
+                  ? '한글 → 영문으로 변환했어요.'
+                  : r.e2k > 0
+                    ? '영문 → 한글로 변환했어요.'
+                    : '되돌릴 글자가 없어요 (숫자·기호는 그대로 둡니다).';
+              return;
+            }
+            output.value = mode === 'k2e' ? korToEng(src) : engToKor(src);
+            note.textContent = mode === 'k2e' ? '한글 → 영문으로 변환했어요.' : '영문 → 한글로 변환했어요.';
           }
 
           (container.querySelector('#hkAuto') as HTMLButtonElement).onclick = () => run('auto');
