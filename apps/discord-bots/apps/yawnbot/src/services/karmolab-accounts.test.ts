@@ -547,3 +547,60 @@ describe('알림 대상·전당·지금 상태 (KL-156 D3·D4·D5)', () => {
     expect(store.onlineNow(me.handle, 5 * 60 * 1000, new Date(Date.now() + 60 * 60 * 1000))).toBe(false);
   });
 });
+
+/** 병합·보관 (TASK-KL-156 D8·D10). */
+describe('병합·보관 (KL-156 D8·D10)', () => {
+  const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
+
+  it('합치면 아무것도 안 잃는다 — 기록·발자국·따라가기가 모두 남는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const keep = store.upsertFromDiscord(discordUser);
+    const gone = store.upsertFromDiscord(other);
+    store.mergeRecordsForAccount(keep.id, { ...emptyRecords(), achievements: ['pet_100'], progress: { pet_strokes: 10 } });
+    store.mergeRecordsForAccount(gone.id, { ...emptyRecords(), achievements: ['first_chat'], progress: { pet_strokes: 40 } });
+    store.noteFootprint(keep.id, { toolId: 'pet', at: new Date('2026-08-01T05:00:00Z') });
+    store.noteFootprint(gone.id, { toolId: 'pet', at: new Date('2026-08-01T06:00:00Z') });
+    store.noteFootprint(gone.id, { toolId: 'memo', at: new Date('2026-08-02T06:00:00Z') });
+
+    const merged = store.mergeAccounts(keep.id, gone.id)!;
+    expect(merged.records.achievements).toEqual(['first_chat', 'pet_100']);
+    expect(merged.records.progress.pet_strokes).toBe(40);
+
+    const footprint = store.footprintFor(keep.id);
+    expect(footprint.tools.pet).toBe(2);
+    expect(footprint.tools.memo).toBe(1);
+    expect(footprint.days['2026-08-01']).toBe(2);
+  });
+
+  it('남는 이름은 받는 쪽 · 지운 이름으로 찾아도 받는 쪽이 나온다 (걸어 둔 링크가 안 깨진다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const keep = store.upsertFromDiscord(discordUser);
+    const gone = store.upsertFromDiscord(other);
+    store.mergeAccounts(keep.id, gone.id);
+
+    expect(store.byHandle(keep.handle)?.id).toBe(keep.id);
+    expect(store.byHandle(gone.handle)?.id).toBe(keep.id);
+  });
+
+  it('지우는 쪽 로그인은 전부 끊긴다 — 합쳐 놓고 옛 문이 열려 있으면 합친 게 아니다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const keep = store.upsertFromDiscord(discordUser);
+    const gone = store.upsertFromDiscord(other);
+    const oldSession = store.createSession(gone.id, '옛 기기');
+
+    store.mergeAccounts(keep.id, gone.id);
+    expect(store.accountForSession(oldSession.token)).toBeNull();
+  });
+
+  it('오래 안 온 계정을 세지만 지우지는 않는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    store.noteFootprint(account.id, { at: new Date('2024-01-01T00:00:00Z') });
+
+    const dormant = store.dormantAccounts(365, new Date('2026-08-08T00:00:00Z'));
+    expect(dormant.map((row) => row.handle)).toEqual([account.handle]);
+    expect(store.idleDaysOf(account.id, new Date('2026-08-08T00:00:00Z'))).toBeGreaterThan(900);
+    // 세기만 한다 — 계정은 그대로 있다
+    expect(store.byHandle(account.handle)).not.toBeNull();
+  });
+});

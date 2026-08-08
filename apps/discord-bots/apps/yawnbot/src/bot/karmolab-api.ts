@@ -793,6 +793,127 @@ export function registerKarmolabApi(
     res.json({ blocked: store.blockedBy(account.id) });
   });
 
+  /**
+   * 주간 발자국 DM 켜고 끄기 (TASK-KL-156 D6).
+   * 부르지도 않았는데 말 거는 일이라 기본은 꺼짐이고, 끄는 길이 켜는 자리와 같은 곳에 있다.
+   */
+  app.patch('/kl/me/weekly', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const on = store.setWeeklyDm(account.id, (req.body ?? {}).on !== false);
+    res.json({ weekly: on, hasDiscord: !!account.identities?.discord });
+  });
+
+  /** 지금 켜져 있나. */
+  app.get('/kl/me/weekly', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ weekly: store.weeklyDmOn(account.id), hasDiscord: !!account.identities?.discord });
+  });
+
+  /**
+   * 프로필 공유 주소 (TASK-KL-156 D9) — `https://yawnbot.mascari4615.com/kl/u/:handle/card`.
+   *
+   * 왜 서버가 HTML 을 내보내나: 지금 프로필은 `/karmolab/u/?h=…` 라 **크롤러가 사람마다 다른
+   * 미리보기 그림을 못 읽는다**(정적 파일 한 장이라 og 태그가 모두 같다). 카드 그림은 이미
+   * 서버에 있는데 아무도 못 보는 상태였다.
+   *
+   * 사람은 이 주소를 열면 곧바로 원래 프로필로 간다. 크롤러는 여기서 og 태그만 읽고 떠난다.
+   */
+  app.get('/kl/u/:handle/card', (req: Request, res: Response) => {
+    const handle = String(req.params.handle ?? '');
+    const account = store.byHandle(handle);
+    if (!account) {
+      res.status(404).send('not found');
+      return;
+    }
+    const visible = store.visibilityFor(account.id);
+    if (!visible.profile) {
+      res.status(403).send('private');
+      return;
+    }
+    const esc = (value: string): string =>
+      String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const target = `https://blog.mascari4615.com/karmolab/u/?h=${encodeURIComponent(account.handle)}`;
+    const image = `https://yawnbot.mascari4615.com/kl/u/${encodeURIComponent(account.handle)}/card.svg`;
+    const title = `${account.displayName} (@${account.handle}) — KarmoLab`;
+    const description = account.card?.bio || 'KarmoLab 에서 이어 온 기록.';
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(
+      [
+        '<!doctype html><html lang="ko"><head><meta charset="utf-8">',
+        `<title>${esc(title)}</title>`,
+        `<meta name="description" content="${esc(description)}">`,
+        '<meta property="og:type" content="profile">',
+        `<meta property="og:title" content="${esc(title)}">`,
+        `<meta property="og:description" content="${esc(description)}">`,
+        `<meta property="og:image" content="${esc(image)}">`,
+        `<meta property="og:url" content="${esc(target)}">`,
+        '<meta name="twitter:card" content="summary_large_image">',
+        `<meta name="twitter:image" content="${esc(image)}">`,
+        // 사람은 바로 넘어간다. 크롤러는 위 태그만 읽고 떠난다.
+        `<meta http-equiv="refresh" content="0; url=${esc(target)}">`,
+        `<link rel="canonical" href="${esc(target)}">`,
+        `</head><body><p><a href="${esc(target)}">${esc(account.displayName)} 님의 프로필로 이동합니다.</a></p></body></html>`,
+      ].join(''),
+    );
+  });
+
+  /**
+   * 계정 합치기 (TASK-KL-156 D8).
+   *
+   * 지금 로그인한 계정이 **받는 쪽**이고, 합칠 계정은 그 계정의 복구 코드로 증명한다 —
+   * 남의 계정을 흡수할 수 없어야 하므로 「그 계정에 들어갈 수 있는 사람」만 합칠 수 있다.
+   * 되돌릴 수 없다.
+   */
+  app.post('/kl/me/merge', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    // 합칠 쪽의 복구 코드. 이것이 곧 「그 계정이 내 것이다」의 증명이다.
+    const other = store.consumeRecoveryCode((req.body ?? {}).code);
+    if (!other) {
+      res.status(401).json({ error: 'bad_code' });
+      return;
+    }
+    if (other.id === account.id) {
+      res.status(400).json({ error: 'same_account' });
+      return;
+    }
+    const merged = store.mergeAccounts(account.id, other.id);
+    if (!merged) {
+      res.status(400).json({ error: 'cannot_merge' });
+      return;
+    }
+    res.json({ account: store.publicProfile(merged), mergedHandle: other.handle });
+  });
+
+  /**
+   * 보관 안내 (TASK-KL-156 D10).
+   * 지우지 않는다 — 「얼마나 안 왔는지」를 본인이 볼 수 있게 하는 것까지다.
+   */
+  app.get('/kl/me/retention', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({
+      idleDays: store.idleDaysOf(account.id),
+      // 규칙은 코드와 화면이 **같은 말**을 해야 한다. 그래서 숫자를 서버가 내보낸다.
+      policy: { dormantAfterDays: 365, deletesAutomatically: false },
+    });
+  });
+
   /** 내 공개 범위 (TASK-KL-152 C4). */
   app.get('/kl/me/visibility', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));

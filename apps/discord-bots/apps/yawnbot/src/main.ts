@@ -57,6 +57,7 @@ import { checkMemoPushScope } from './services/memo-push';
 import { loadCoreDef } from './services/agent-core';
 import { getLocalChannels } from './services/webhook-routes';
 import { startProactive, stopProactive, sendStartupGreeting, startScheduleReminder, startSpontaneous } from './bot/proactive';
+import { startKarmolabWeeklyDm } from './services/karmolab-weekly-dm';
 import { handleReaction } from './bot/reactions';
 import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
@@ -528,6 +529,8 @@ client.once('clientReady', async () => {
     getMemory(characterService.getDefaultSlug());
     startProactive(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath || undefined, memoRepoPath ? getAnniversary : undefined);
     startScheduleReminder(client, characterService, getSchedule);
+    // 주간 발자국 DM (TASK-KL-156 D6) — 켠 사람에게만, 월요일 오전 10시(KST).
+    startKarmolabWeeklyDm(client);
     startSpontaneous(client, characterService, getMemory, memoRepoPath ? getMood : undefined, memoRepoPath ? getSchedule : undefined, memoRepoPath ? getNews : undefined);
     if (memoRepoPath) startNewsNotifier(client, getNews, characterService.getDefaultSlug());
     // TASK-YB-042: 켠 서버에만 간다 (기본 꺼짐) — memo 저장소와 무관하므로 조건 없이 시작.

@@ -163,6 +163,9 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
             <div id="profileActivity"></div>
             <footer class="profile-foot">
                 <a href="/karmolab/">KarmoLab 에서 도구 보기</a>
+                <!-- 공유용 주소 (TASK-KL-156 D9). 이 주소로 붙여넣어야 카드 그림이 펼쳐진다 —
+                     지금 주소(?h=)는 어느 사람이든 미리보기가 같다. -->
+                <button type="button" class="profile-share" id="profileShare">공유 주소 복사</button>
             </footer>
         </article>`;
 }
@@ -285,6 +288,25 @@ function mountBlock(root: HTMLElement, profile: PublicProfile): void {
     });
 }
 
+/**
+ * 공유 주소 복사 (TASK-KL-156 D9).
+ *
+ * 사람이 보는 주소와 **붙여넣을 주소가 다르다**. 지금 프로필 주소는 정적 한 장이라 어느
+ * 사람이든 미리보기가 같게 나간다 — 서버가 내주는 주소로 붙여야 그 사람 카드가 펼쳐진다.
+ */
+function mountShare(root: HTMLElement, profile: PublicProfile): void {
+    const button = root.querySelector<HTMLButtonElement>('#profileShare');
+    if (!button) return;
+    button.addEventListener('click', () => {
+        const url = `${API_BASE}/kl/u/${encodeURIComponent(profile.handle)}/card`;
+        void navigator.clipboard?.writeText(url);
+        button.textContent = '복사했어요';
+        setTimeout(() => {
+            button.textContent = '공유 주소 복사';
+        }, 2000);
+    });
+}
+
 async function main(): Promise<void> {
     const root = document.getElementById('profileRoot');
     if (!root) return;
@@ -312,6 +334,7 @@ async function main(): Promise<void> {
         renderProfile(root, data.profile);
         mountFollow(root, data.profile);
         mountBlock(root, data.profile);
+        mountShare(root, data.profile);
         void loadActivity(data.profile.handle);
     } catch (error) {
         console.warn('[profile] 프로필을 못 불러왔다:', error);
