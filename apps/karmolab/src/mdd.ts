@@ -172,9 +172,14 @@ const Mdd = (() => {
         idle:     {},
         happy:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.4, tilt: -9, bob: -5 },
         sad:      { eyeOpen: 0.82, mouthArt: 'mouth-frown', tilt: 14, bob: 12, armL: 7, armR: -7 },
-        shock:    { eyeOpen: 1.35, irisScale: 0.78, mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
+        /* 놀람은 **눈을 늘리는 게 아니라 눈동자를 줄이는 것**이다 (사용자 신고: 눈이 늘어져
+           이상하다). 1.35 배로 세로만 늘리면 눈이 달걀이 된다 — 24px 짜리 눈이 8px 자란다.
+           크게 뜨는 건 1.12 까지만 하고, 놀란 티는 작아진 눈동자(0.72)와 올라간 눈썹이 낸다. */
+        shock:    { eyeOpen: 1.12, irisScale: 0.72, browRaise: -3, mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
         think:    { eyeOpen: 0.88, mouthWide: 0.85, tilt: 16, gaze: { x: 0.9, y: -0.75 } },
-        sleep:    { eyeOpen: 0, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
+        /* 감은 눈은 **0 이 아니다.** 0 이면 눈이 통째로 사라지고, 남은 속눈썹만 눈 상자
+           맨 아래로 눌려 「눈이 턱 쪽에 있는」 그림이 된다(사용자 신고). 얇게 남겨 둔다. */
+        sleep:    { eyeOpen: 0.08, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
         angry:    { eyeOpen: 0.92, irisScale: 0.92, mouthArt: 'mouth-frown', blush: 0.45, tilt: 2, bob: -4, armL: 14, armR: -14 },
         love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6, irisScale: 1.12 },
         smug:     { eyeOpen: 0.84, mouthWide: 1.3, tilt: -16, gaze: { x: -0.75, y: 0.25 } },
@@ -207,8 +212,11 @@ const Mdd = (() => {
     const ARM_PIVOT: Record<string, string> = { 'arm-l': '100% 8%', 'arm-r': '0% 8%' };
 
     /** 화면에 보여 줄 범위(원본 캔버스 좌표). 우하단 상주는 작아서 얼굴이 읽혀야 한다. */
+    /* bust 는 y=74 에서 시작했는데 **앞머리는 y=30 에서 시작한다** — 정수리 44px 가 늘
+       잘려 있었다(사용자 신고). 게다가 고개를 갸우뚱하면(±16°) 머리가 더 밖으로 나간다.
+       머리 위로 여백을 두고, 좌우도 조금 넓힌다. 아래(y=342, 어깨선)는 그대로 둔다. */
     const FRAMING = {
-        bust: { x: 398, y: 74, w: 246, h: 268 },
+        bust: { x: 384, y: 14, w: 274, h: 328 },
         full: { x: 262, y: 60, w: 500, h: 940 },
     } as const;
 
@@ -320,6 +328,27 @@ const Mdd = (() => {
         if (eyeSpots) {
             const base0 = layers.get('irides');
             if (base0) base0.style.display = 'none';           // 그림 눈동자는 물러난다
+
+            /* 흰자 그림에는 **원본 눈동자가 같이 찍혀 있다** (분해가 눈을 통째로 잘라 왔다).
+             * 그 위에 우리 눈동자를 얹으니 시선이 움직일 때마다 원본 눈알이 밑에서 비쳐
+             * 나왔다 — 「눈이 두 겹」으로 보인다(사용자 신고 2026-08-08).
+             * 그래서 흰자는 **그림을 안 쓴다**: 같은 칸을 마스크로만 써서 눈 모양을 얻고,
+             * 안은 살짝 그늘진 흰색으로 직접 칠한다. 원본 눈동자는 이 순간 사라진다. */
+            const whiteEl = layers.get('eyewhite');
+            if (whiteEl) {
+                const wb = manifest.parts['eyewhite'];
+                const kx = wb.w / wb.sw;
+                const ky = wb.h / wb.sh;
+                whiteEl.style.backgroundImage = 'none';
+                whiteEl.style.background =
+                    'linear-gradient(to bottom, #cfc6dd 0%, #f4f1f8 34%, #ffffff 100%)';
+                for (const pfx of ['-webkit-mask', 'mask']) {
+                    whiteEl.style.setProperty(pfx + '-image', `url(${base}/${manifest.atlas.src})`);
+                    whiteEl.style.setProperty(pfx + '-size', `${manifest.atlas.w * kx}px ${manifest.atlas.h * ky}px`);
+                    whiteEl.style.setProperty(pfx + '-position', `${-wb.sx * kx}px ${-wb.sy * ky}px`);
+                    whiteEl.style.setProperty(pfx + '-repeat', 'no-repeat');
+                }
+            }
             /* 크기는 분해가 준 눈동자 크기가 아니라 **흰자 높이**에서 잡는다.
                분해된 눈동자는 실제보다 작게 잘려 있어 그대로 쓰면 「점눈」이 된다 —
                셀 애니 눈은 홍채가 눈 높이를 거의 꽉 채운다. */
@@ -466,10 +495,13 @@ const Mdd = (() => {
             for (const name of EYE_PARTS) {
                 const img = layers.get(name);
                 if (!img) continue;
+                /* 감을 때 눈이 **아래로만** 눌리면 감은 눈이 눈 상자 바닥에 붙는다.
+                 * 실제로 눈꺼풀은 위에서 내려와 눈 가운데쯤에서 만난다 — 축을 아래가 아니라
+                 * 아래쪽 3/4 지점에 두면 그 자리에서 만난다. */
+                img.style.transformOrigin = name === 'eyelash' ? '50% 76%' : '50% 88%';
                 const sq = name === 'eyelash' ? Math.max(open, 0.3) : open;
                 const drift = name === 'eyewhite' ? 0.35 : 0;   // 흰자는 눈동자보다 덜 따라간다
                 const b2 = manifest.parts[name];
-                img.style.transformOrigin = '50% 100%';
                 img.style.transform = drift
                     ? `translate(${gaze.x * b2.w * 0.04 * drift}px, 0px) scaleY(${sq})`
                     : `scaleY(${sq})`;
@@ -564,8 +596,12 @@ const Mdd = (() => {
         -webkit-user-drag:none; user-drag:none; transform-box:fill-box; will-change:transform; }
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
 .mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
-.mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 100%;
+/* 눈동자만 **코드로 그린** 것이라 다른 부위와 선명도가 안 맞았다 — 원본 그림은 부드러운데
+   눈만 벡터처럼 또렷해 「눈이 따로 논다」(사용자 신고). 아주 살짝 흐리고 채도를 낮춰
+   같은 붓으로 그린 것처럼 맞춘다. 흐림은 1024 좌표계에서 걸리므로 화면에서는 그 절반쯤이다. */
+.mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 88%;
     overflow:hidden; will-change:transform;
+    filter: blur(0.7px) saturate(0.88) brightness(0.98);
     /* 셀 애니 눈의 구조는 정해져 있다 — 위에서부터
        ① 속눈썹이 드리운 진한 아치  ② 홍채 본색  ③ 아래쪽 반사(가장 밝은 띠)
        ④ 한가운데 세로로 긴 동공     ⑤ 큰 하이라이트(좌상) + 작은 것(우하)
@@ -583,46 +619,64 @@ const Mdd = (() => {
         linear-gradient(to bottom, #33144f 0 24%, #5b2a93 25% 47%, #8c52cf 48% 77%, #b483ea 78% 100%);
     box-shadow: inset 0 0 0 1.4px rgba(24,10,38,0.9); }
 
-/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 「쏘아 보낸 상」.
+/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 **쏘아 보낸 상**.
  *
- * 흔한 SF 필터는 주사선을 굵게 깔지만 그건 옛날 브라운관에 가깝고, 우리 첫 화면과
- * 결이 다르다. 여기서는 세 가지를 겹친다:
- *   ① 홈 배경과 같은 **점 격자**(하프톤) — 같은 세계의 물건으로 보이게
- *   ② **색수차** — 청록과 자홍이 실루엣 좌우로 아주 조금 벌어진다. 상이 완전히
- *      맞물리지 않았다는 신호라, 이것 하나로 「투영된 상」이 읽힌다
- *   ③ 아주 가끔 **가로로 어긋나는 띠** — 7초에 한 번, 0.2초. 자주 튀면 고장 난
- *      화면이 되고, 아예 없으면 그냥 반투명 그림이다
+ * 다시 만들었다 (사용자 지시 2026-08-08 — 「지직하면서 깜빡여야 연출인지 알지」).
+ *
+ * 전에 뭐가 문제였나:
+ *   ① **상시 색수차**(청록/자홍 ±1.6px)를 걸어 뒀는데, 부위가 여러 장이라 눈·코 같은
+ *      안쪽 경계에도 테두리가 생겼다 — 「누끼가 잘못됐나」로 읽혔다(사용자 신고).
+ *   ② 점 격자를 상자(::after inset:0)에 깔아서, 캐릭터가 아니라 **네모가** 떠 있었다.
+ *   ③ 어긋나는 띠가 7초에 한 번 0.2초 — 눈에 걸리지만 「효과」로 안 읽히고 렌더 오류로 보였다.
+ *
+ * 지금은 이렇게 한다:
+ *   ① **주사선은 실루엣 안에서만** — 그림 자체를 가로줄 마스크로 깎는다. 상자가 안 생긴다.
+ *      줄이 위로 흐르면서 「투영 중」이 계속 보인다.
+ *   ② **색수차는 지직할 때만** 튄다. 평소엔 청록 글로우만 — 안쪽에 테두리가 안 남는다.
+ *   ③ 지직은 3.6초 주기의 **짧은 연타**(두 번 튀고 멈춤). 규칙적으로 오면 고장이 아니라
+ *      연출로 읽힌다. 밝기도 같이 튄다 — 빛이 흔들리는 물건이라는 뜻.
  */
 .mdd-holo { position:relative; }
 .mdd-holo .mdd-av {
-    filter:
-        drop-shadow(-1.6px 0 0 rgba(0,229,255,0.55))
-        drop-shadow(1.6px 0 0 rgba(255,64,190,0.42))
-        drop-shadow(0 0 7px rgba(0,229,255,0.30))
-        saturate(1.06) brightness(1.03);
-    animation:mdd-holo-slice 7s steps(1) infinite;
+    /* 실루엣 밖으로만 번지는 빛 — 안쪽 경계에는 아무 테두리도 안 남긴다 */
+    filter: drop-shadow(0 0 9px rgba(0,229,255,0.34)) saturate(1.05) brightness(1.03);
+    /* 주사선: 그림을 가로줄로 깎는다 (상자가 아니라 캐릭터가 줄무늬가 된다) */
+    /* 줄은 **있는지 없는지 헷갈릴 만큼** 얕게. 0.72 로 깎았더니 캐릭터가 바코드가 됐다
+       (실측 스크린샷). 4px 마다 1px 을 0.9 로만 눌러 「스캔되는 중」만 남긴다. */
+    -webkit-mask-image: repeating-linear-gradient(to bottom,
+        #000 0 3px, rgba(0,0,0,0.9) 3px 4px);
+    mask-image: repeating-linear-gradient(to bottom,
+        #000 0 3px, rgba(0,0,0,0.9) 3px 4px);
+    -webkit-mask-size:100% 4px; mask-size:100% 4px;
+    animation: mdd-holo-scan 1.6s linear infinite, mdd-holo-glitch 3.6s steps(1) infinite;
 }
-.mdd-holo::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
-    background-image:
-        radial-gradient(circle at 50% 50%, rgba(0,229,255,0.26) 0 1.1px, rgba(0,0,0,0) 1.3px),
-        radial-gradient(circle at 50% 50%, rgba(168,117,232,0.20) 0 1px, rgba(0,0,0,0) 1.2px);
-    background-size:6px 6px, 9px 9px;
-    background-position:0 0, 3px 3px;
-    mix-blend-mode:screen;
-    animation:mdd-holo-drift 9s linear infinite; }
+/* 아래로 깔리는 투영 빛 — 「어딘가에서 쏘고 있다」 */
 .mdd-holo::before { content:''; position:absolute; inset:-8% -5%; pointer-events:none; z-index:1;
-    background:radial-gradient(ellipse at 50% 78%, rgba(0,229,255,0.13) 0%, rgba(0,229,255,0) 60%); }
-@keyframes mdd-holo-drift { from { background-position:0 0, 3px 3px; } to { background-position:0 -18px, 3px -15px; } }
-@keyframes mdd-holo-slice {
-    0%, 96% { clip-path:none; transform:translateX(0); }
-    97% { clip-path:inset(38% 0 46% 0); transform:translateX(3px); }
-    98% { clip-path:none; transform:translateX(0); }
-    99% { clip-path:inset(62% 0 24% 0); transform:translateX(-2px); }
-    100% { clip-path:none; transform:translateX(0); }
+    background:radial-gradient(ellipse at 50% 82%, rgba(0,229,255,0.16) 0%, rgba(0,229,255,0) 62%);
+    animation: mdd-holo-breathe 3.6s ease-in-out infinite; }
+
+@keyframes mdd-holo-scan {
+    from { -webkit-mask-position:0 0; mask-position:0 0; }
+    to   { -webkit-mask-position:0 -4px; mask-position:0 -4px; }
 }
+/* 지직 — 3.6초에 한 번, 0.2초 동안 **두 번** 튄다. 이때만 색이 갈라진다. */
+@keyframes mdd-holo-glitch {
+    0%, 88% { transform:translateX(0); clip-path:none;
+              filter:drop-shadow(0 0 9px rgba(0,229,255,0.34)) saturate(1.05) brightness(1.03); }
+    89% { transform:translateX(5px); clip-path:inset(30% 0 52% 0);
+          filter:drop-shadow(-3px 0 0 rgba(0,229,255,0.8)) drop-shadow(3px 0 0 rgba(255,64,190,0.65)) brightness(1.3); }
+    91% { transform:translateX(-4px); clip-path:inset(58% 0 22% 0);
+          filter:drop-shadow(3px 0 0 rgba(0,229,255,0.7)) drop-shadow(-3px 0 0 rgba(255,64,190,0.6)) brightness(0.86); }
+    93% { transform:translateX(2px); clip-path:none; filter:brightness(1.35) saturate(1.4); }
+    95%, 100% { transform:translateX(0); clip-path:none;
+                filter:drop-shadow(0 0 9px rgba(0,229,255,0.34)) saturate(1.05) brightness(1.03); }
+}
+@keyframes mdd-holo-breathe { 0%,100% { opacity:0.75; } 50% { opacity:1; } }
+
 @media (prefers-reduced-motion: reduce) {
-    .mdd-holo::after { animation:none; }
+    /* 움직임을 싫어하는 사람에게는 **줄무늬만** 남긴다 — 튀지 않아도 상으로는 읽힌다 */
     .mdd-holo .mdd-av { animation:none; }
+    .mdd-holo::before { animation:none; }
 }
 .mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
         background:radial-gradient(ellipse at 22% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%),
