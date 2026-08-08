@@ -18,6 +18,7 @@
  */
 import { stampsLocal, stampToday } from '../stamps';
 import { onPageActive } from './pack-pick';
+import { SECRETS, foundLocal, syncSecrets } from '../secrets';
 
 interface ToolMeta {
     id: string;
@@ -28,6 +29,49 @@ interface ToolMeta {
 }
 
 (function (): void {
+    /* 도감 스타일은 **이 화면이 열릴 때만** 온다 (TASK-KL-196).
+       공용 시트(`css/tools.css`)에 넣었더니 도구 화면 130장이 도감 스타일을 같이 받아
+       그쪽 CSS 천장(68KB gz)에 붙었다 — 한 화면에서만 쓰는 것을 모두에게 지우지 않는다. */
+    function injectStyles(): void {
+        if (document.getElementById('collection-widget-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'collection-widget-styles';
+        style.textContent = `/* 도감 (TASK-KL-196) — 써 본 도구에 도장. 빈 칸도 **보여야** 한다:
+   안 써 본 것이 안 보이면 채울 것이 없는 도감이 된다(그건 그냥 최근 목록이다). */
+.cl-lead { color: var(--text-secondary); font-size: var(--font-size-sm); margin: 0 0 14px; }
+.cl-head { margin-bottom: 16px; }
+.cl-count { font-size: var(--font-size-lg); color: var(--text-secondary); display: flex; align-items: baseline; gap: 8px; }
+.cl-count b { font-size: 32px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.cl-pct { margin-left: auto; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.cl-bar { height: 6px; border-radius: 999px; background: var(--bg-secondary); border: 1px solid var(--border);
+    overflow: hidden; margin-top: 8px; }
+.cl-bar i { display: block; height: 100%; background: var(--accent); transition: width 240ms ease; }
+.cl-note { margin: 10px 0 0; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.cl-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.cl-cell { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px 6px;
+    background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-sm);
+    color: var(--text-tertiary); font: inherit; cursor: pointer; text-align: center;
+    transition: border-color var(--transition), color var(--transition), background var(--transition); }
+.cl-cell:hover { border-color: var(--text-tertiary); color: var(--text-secondary); }
+/* 찍힌 칸 = 실선 + 색. 점선/실선까지 같이 바꾸는 이유 = 색만으로 가르면 못 보는 사람이 있다. */
+.cl-cell.is-on { border-style: solid; border-color: var(--border); background: var(--bg-secondary); color: var(--text-primary); }
+.cl-cell.is-on .cl-ico { color: var(--accent); opacity: 1; }
+.cl-ico { width: 26px; height: 26px; opacity: 0.45; }
+.cl-ico svg { width: 100%; height: 100%; }
+.cl-name { font-size: var(--font-size-xs); line-height: 1.3; word-break: keep-all; }
+
+/* 숨긴 것 (TASK-KL-196 D) — 못 찾은 칸은 「?」 하나. 이름을 적으면 숨긴 것이 아니게 된다. */
+.cl-secrets { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); }
+.cl-sec-title { margin: 0 0 10px; font-size: var(--font-size-sm); color: var(--text-secondary); font-weight: 700; }
+.cl-sec-title b { color: var(--accent); font-variant-numeric: tabular-nums; }
+.cl-sec-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.cl-sec { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: 5px 10px;
+    border: 1px dashed var(--border); border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
+.cl-sec.is-on { border-style: solid; border-color: var(--accent); color: var(--accent); font-family: inherit; }`;
+        document.head.appendChild(style);
+    }
+
     /** 도감이 세는 것 = 사람이 열 수 있는 도구. 놀이·문서 같은 화면은 도구가 아니다. */
     const isTool = (meta: ToolMeta): boolean => meta.category === 'tool';
 
@@ -71,13 +115,35 @@ interface ToolMeta {
                 id: 'app',
                 label: '도감',
                 build: function (container: HTMLElement): void {
+                    injectStyles();
                     container.innerHTML = `
                       <p class="cl-lead">써 본 도구에 도장이 찍힙니다. 지운 적 없으면 예전에 쓴 것도 들어 있어요.</p>
                       <div class="cl-head" id="clHead"></div>
                       <div class="cl-grid" id="clGrid"></div>
+                      <section class="cl-secrets" id="clSecrets"></section>
                     `;
                     const head = container.querySelector<HTMLElement>('#clHead')!;
                     const grid = container.querySelector<HTMLElement>('#clGrid')!;
+                    const secretSlot = container.querySelector<HTMLElement>('#clSecrets')!;
+
+                    /* 숨긴 것 (TASK-KL-196 D). **개수는 보여 주고 이름은 안 보여 준다** —
+                       못 찾은 것의 이름까지 적어 두면 그건 숨긴 것이 아니라 목록이다.
+                       그렇다고 통째로 감추면 찾을 것이 있는 줄도 모른다. */
+                    const paintSecrets = (): void => {
+                        const found = new Set(foundLocal());
+                        secretSlot.innerHTML =
+                            `<h3 class="cl-sec-title">숨긴 것 <b>${found.size}</b> / ${SECRETS.length}</h3>` +
+                            '<div class="cl-sec-row">' +
+                            SECRETS.map((secret) =>
+                                found.has(secret.id)
+                                    ? `<span class="cl-sec is-on" title="${secret.how}">${secret.title}</span>`
+                                    : '<span class="cl-sec">?</span>'
+                            ).join('') +
+                            '</div>' +
+                            (found.size === SECRETS.length
+                                ? '<p class="cl-note">전부 찾았습니다.</p>'
+                                : '<p class="cl-note">사이트 어딘가에 있습니다. 도구를 쓰다 보면 걸리는 것도 있어요.</p>');
+                    };
 
                     const paint = (stamped: Set<string>, signedIn: boolean): void => {
                         if (!container.isConnected) return;
@@ -127,6 +193,7 @@ interface ToolMeta {
                         const ids = new Set(known);
                         for (const id of Object.keys(stampsLocal())) ids.add(id);
                         paint(ids, signed);
+                        paintSecrets();
                     };
 
                     draw(); // 로컬 먼저 — 서버를 기다리는 동안 빈 화면을 두지 않는다
@@ -134,6 +201,10 @@ interface ToolMeta {
                         known = ids;
                         signed = signedIn;
                         draw();
+                    });
+                    /* 다른 기기에서 찾아 둔 것도 여기 보여야 한다 — 받아 오면 다시 그린다. */
+                    void syncSecrets().then(() => {
+                        if (container.isConnected) paintSecrets();
                     });
                     onPageActive(container, draw);
                 }

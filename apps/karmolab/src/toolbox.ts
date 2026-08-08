@@ -897,6 +897,15 @@ const Toolbox = (() => {
         return typeof window !== 'undefined' && !!window.__KARMOLAB_DESKTOP__;
     }
 
+    /* 숨긴 것 (TASK-KL-196 D) — 코나미 코드·로고 연타 같은 것은 **어느 화면에서나** 통해야
+     * 하므로 셸이 건다. 다만 첫 그림에는 필요 없으므로 조각을 따로 두고 뒤에 데려온다
+     * (셸에 넣으면 화면 130장이 그날부터 같이 받는다 — 부팅 예산은 그렇게 는다). */
+    function installSecrets() {
+        void ensureScript('root/secrets')
+            .then(() => window.KarmoSecrets?.install())
+            .catch(() => { /* 숨긴 것이 없다고 도구가 멈출 이유는 없다 */ });
+    }
+
     /* ── 판 표식 배지 (웹·앱 공통) ─────────────────────────────────────────────
      *
      * 답하려는 질문: 「지금 보고 있는 이 화면이 **방금 올린 그것**인가?」
@@ -1397,6 +1406,7 @@ const Toolbox = (() => {
         });
 
         installDesktopChrome();
+        installSecrets();
         installVersionBadge();
         installPaletteShortcut();
         installGlobalDrop();
