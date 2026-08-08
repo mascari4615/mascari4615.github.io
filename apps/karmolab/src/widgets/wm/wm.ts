@@ -425,7 +425,22 @@ interface WorldBook {
     return escapeHtml(value);
   }
 
-  function detailHtml(doc: WorldDoc): string {
+  /** 이 문서와 이웃한 것들 — 같은 꼬리표가 먼저, 없으면 같은 종류. 정본에 있는 것만 쓴다. */
+  function relatedOf(doc: WorldDoc, all: WorldDoc[], limit = 6): WorldDoc[] {
+    const score = (d: WorldDoc): number => {
+      if (d.id === doc.id) return -1;
+      const shared = d.tags.filter((t) => doc.tags.includes(t)).length;
+      return shared * 10 + (d.kind === doc.kind ? 1 : 0);
+    };
+    return all
+      .map((d) => ({ d, n: score(d) }))
+      .filter((x) => x.n > 0)
+      .sort((a, b) => b.n - a.n || a.d.title.localeCompare(b.d.title, 'ko'))
+      .slice(0, limit)
+      .map((x) => x.d);
+  }
+
+  function detailHtml(doc: WorldDoc, all: WorldDoc[] = []): string {
     const fields = Object.entries(doc.fields).filter(([, v]) => v !== '' && v != null);
     const rows = fields
       .map(
@@ -446,6 +461,14 @@ interface WorldBook {
         ${doc.summary ? `<p class="wb-detail-lead">${escapeHtml(doc.summary)}</p>` : ''}
         ${rows ? `<dl class="wb-fields">${rows}</dl>` : ''}
         <div class="wb-body">${bodyHtml}</div>
+        ${(() => {
+          const near = relatedOf(doc, all);
+          if (near.length === 0) return '';
+          return `<section class="wm-in-block">
+            <h3>비슷한 것</h3>
+            <div class="wb-list">${near.map(cardHtml).join('')}</div>
+          </section>`;
+        })()}
         <p class="wb-source">출처: <code>${escapeHtml(doc.source)}</code></p>
       </article>`;
   }
@@ -658,7 +681,7 @@ interface WorldBook {
     }
     const doc = route && route !== 'all' && route !== 'map' ? loaded.docs.find((d) => d.id === route) : undefined;
     const main = doc
-      ? detailHtml(doc)
+      ? detailHtml(doc, loaded.docs)
       : route === 'all'
         ? bookHtml(loaded)
         : route === 'map'
