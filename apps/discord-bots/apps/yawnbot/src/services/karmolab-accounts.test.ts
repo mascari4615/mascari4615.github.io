@@ -604,3 +604,61 @@ describe('병합·보관 (KL-156 D8·D10)', () => {
     expect(store.byHandle(account.handle)).not.toBeNull();
   });
 });
+
+/** 3라운드 (TASK-KL-175 E1·E5·E6). */
+describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
+  const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
+
+  it('알림 갈래는 기본 전부 받음 · 끈 갈래는 「원하지 않음」으로 답한다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    expect(store.notifyPrefsOf(me.id)).toEqual({ community: true, follow: true, system: true });
+    expect(store.wantsNotification(me.id, 'follow')).toBe(true);
+
+    store.setNotifyPrefs(me.id, { follow: false, 장난: true });
+    expect(store.wantsNotification(me.id, 'follow')).toBe(false);
+    // 모르는 출처는 「그 밖」으로 묶인다
+    expect(store.wantsNotification(me.id, 'tool')).toBe(true);
+    store.setNotifyPrefs(me.id, { system: false });
+    expect(store.wantsNotification(me.id, 'tool')).toBe(false);
+  });
+
+  it('팔로우 목록에 누구인지 나오고, 맞팔이 표시된다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.setFollowing(me.id, you.handle, true);
+    store.setFollowing(you.id, me.handle, true);
+
+    const mine = store.followList(me.handle, 'following', me.id);
+    expect(mine.map((row) => row.handle)).toEqual([you.handle]);
+    expect(mine[0].mutual).toBe(true);
+
+    const theirs = store.followList(you.handle, 'followers', null);
+    expect(theirs.map((row) => row.handle)).toEqual([me.handle]);
+    // 보는 사람이 없으면 맞팔은 계산되지 않는다 (거짓으로 켜 두지 않는다)
+    expect(theirs[0].mutual).toBe(false);
+  });
+
+  it('프로필을 잠근 사람은 목록에서 빠진다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.setFollowing(me.id, you.handle, true);
+    store.setVisibility(you.id, { profile: false });
+
+    expect(store.followList(me.handle, 'following', me.id)).toEqual([]);
+  });
+
+  it('잔디는 가리면 빈 것이 아니라 아예 없다 · 기록이 없어도 없다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    expect(store.publicFootprint(me.handle)).toBeNull();
+
+    store.noteFootprint(me.id, { toolId: 'pet' });
+    expect(store.publicFootprint(me.handle)?.streak.current).toBe(1);
+
+    store.setVisibility(me.id, { activity: false });
+    expect(store.publicFootprint(me.handle)).toBeNull();
+  });
+});

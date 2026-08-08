@@ -123,6 +123,34 @@ export interface Account {
   weeklyDmSentWeek?: string;
   /** 패스키 (TASK-KL-156 D7). 문이 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. */
   passkeys?: StoredPasskey[];
+  /** 어떤 알림을 받을까 (TASK-KL-175 E1). 없으면 지금까지처럼 전부 받는다. */
+  notify?: Partial<NotifyPrefs>;
+}
+
+/**
+ * 알림 종류 (TASK-KL-175 E1).
+ *
+ * 알림 울릴 일이 답글 하나였을 때는 고를 것이 없었다. 팔로우한 사람의 새 글이 붙으면서
+ * **전부 받거나 안 받거나** 두 갈래만 남았다 — 그러면 사람은 종을 통째로 끈다.
+ *
+ * 여기 이름은 알림의 `source` 와 **같은 말**이다. 두 벌로 적으면 언젠가 갈라진다.
+ */
+export interface NotifyPrefs {
+  /** 내 글에 달린 답글 */
+  community: boolean;
+  /** 따라가는 사람의 새 글 */
+  follow: boolean;
+  /** 그 밖(계정·도구·봇) */
+  system: boolean;
+}
+
+export const DEFAULT_NOTIFY: NotifyPrefs = { community: true, follow: true, system: true };
+
+/** 알림 출처를 사람이 고른 갈래로 옮긴다. 모르는 출처는 「그 밖」이다. */
+export function notifyBucket(source: string): keyof NotifyPrefs {
+  if (source === 'community') return 'community';
+  if (source === 'follow') return 'follow';
+  return 'system';
 }
 
 /** ISO 주 이름 (`2026-W32`) — KST 기준. 주간 발송이 같은 주에 두 번 나가지 않게 하는 열쇠. */
@@ -1058,6 +1086,85 @@ export class KarmolabAccountStore {
     if (!account) return 0;
     const last = account.footprint?.lastSeenAt ?? account.createdAt;
     return Math.max(0, Math.floor((now.getTime() - Date.parse(last)) / 86400000));
+  }
+
+  /**
+   * 팔로잉·팔로워 목록 (TASK-KL-175 E5).
+   *
+   * 수만 보이고 누구인지 못 보면 그건 사회가 아니라 계기판이다.
+   * **프로필을 잠근 사람은 목록에서 빠진다** — 잠갔는데 남의 목록에 이름이 뜨면 잠근 게 아니다.
+   * 맞팔 여부는 보는 사람 기준으로 계산한다.
+   */
+  followList(
+    handle: string,
+    kind: 'following' | 'followers',
+    viewerId: string | null = null,
+  ): Array<{ handle: string; displayName: string; avatarPath: string | null; mutual: boolean }> {
+    const targetId = this.state.handleIndex[String(handle ?? '').toLowerCase()];
+    const target = targetId ? this.state.accounts[targetId] : null;
+    if (!target) return [];
+
+    const handles =
+      kind === 'following'
+        ? (target.following ?? [])
+        : Object.values(this.state.accounts)
+            .filter((account) => (account.following ?? []).includes(target.handle))
+            .map((account) => account.handle);
+
+    const viewerFollowing = viewerId ? new Set(this.followingOf(viewerId)) : new Set<string>();
+    const rows: Array<{ handle: string; displayName: string; avatarPath: string | null; mutual: boolean }> = [];
+    for (const h of handles) {
+      const id = this.state.handleIndex[h];
+      const account = id ? this.state.accounts[id] : null;
+      if (!account) continue;
+      if (!this.visibilityFor(account.id).profile) continue;
+      rows.push({
+        handle: account.handle,
+        displayName: account.displayName,
+        avatarPath: account.avatarUrl ? `/kl/u/${encodeURIComponent(account.handle)}/avatar` : null,
+        mutual: viewerFollowing.has(account.handle),
+      });
+    }
+    return rows.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }
+
+  /**
+   * 남에게 보일 잔디 (TASK-KL-175 E6).
+   * 발자국을 가렸으면 **null** — 빈 잔디가 아니라 아예 없는 것이다.
+   */
+  publicFootprint(handle: string): { days: Record<string, number>; streak: { current: number; longest: number } } | null {
+    const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
+    const account = id ? this.state.accounts[id] : null;
+    if (!account) return null;
+    const visible = this.visibilityFor(account.id);
+    if (!visible.profile || !visible.activity) return null;
+    const footprint = this.footprintFor(account.id);
+    if (footprint.totals.activeDays === 0) return null;
+    return { days: footprint.days, streak: footprint.streak };
+  }
+
+  /** 지금 이 계정이 받기로 한 알림 갈래 (안 정했으면 전부). */
+  notifyPrefsOf(accountId: string): NotifyPrefs {
+    return { ...DEFAULT_NOTIFY, ...(this.state.accounts[accountId]?.notify ?? {}) };
+  }
+
+  /** 알림 갈래 바꾸기 — 보낸 칸만. */
+  setNotifyPrefs(accountId: string, patch: unknown): NotifyPrefs | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const next: Partial<NotifyPrefs> = { ...(account.notify ?? {}) };
+    const source = (patch ?? {}) as Record<string, unknown>;
+    for (const key of Object.keys(DEFAULT_NOTIFY) as (keyof NotifyPrefs)[]) {
+      if (typeof source[key] === 'boolean') next[key] = source[key] as boolean;
+    }
+    account.notify = next;
+    this.save();
+    return this.notifyPrefsOf(accountId);
+  }
+
+  /** 이 출처의 알림을 이 사람이 받기로 했나 — 알림을 **쌓기 전에** 묻는다. */
+  wantsNotification(accountId: string, source: string): boolean {
+    return this.notifyPrefsOf(accountId)[notifyBucket(source)];
   }
 
   /* ── 패스키 (TASK-KL-156 D7) ─────────────────────────────────────── */

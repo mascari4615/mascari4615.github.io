@@ -33,6 +33,8 @@ interface PublicProfile {
     canFollow?: boolean;
     /** 지금 접속 중 (TASK-KL-156 D5). 본인이 안 켰으면 null — 그때는 칸 자체를 안 그린다. */
     online?: boolean | null;
+    /** 잔디 (TASK-KL-175 E6). 가렸거나 기록이 없으면 null — 빈 잔디를 그리지 않는다. */
+    footprint?: { days: Record<string, number>; streak: { current: number; longest: number } } | null;
 }
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -115,6 +117,37 @@ function hiddenNote(profile: PublicProfile): string {
     return `<p class="profile-note">${escapeHtml(hidden.join(' · '))} 은(는) 본인이 가려 뒀습니다.</p>`;
 }
 
+/**
+ * 잔디 (TASK-KL-175 E6).
+ *
+ * 내 화면에만 있던 것을 남의 화면에도 놓는다 — 프로필이 숫자 네 칸이던 자리에 **시간이** 보인다.
+ * 가렸거나 기록이 없으면 통째로 안 그린다(빈 잔디는 「안 왔다」로 읽혀 거짓말이 된다).
+ * 안 온 날과 「둘러보기만 한 날」을 다르게 칠하는 규칙은 내 화면과 같다.
+ */
+function grassHtml(profile: PublicProfile): string {
+    const footprint = profile.footprint;
+    if (!footprint) return '';
+    const today = new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()));
+    const end = new Date(today);
+    end.setDate(end.getDate() + (6 - end.getDay()));
+    const start = new Date(end);
+    start.setDate(start.getDate() - (53 * 7 - 1));
+
+    const cells: string[] = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const key = d.toISOString().slice(0, 10);
+        const future = d > today;
+        const value = footprint.days[key];
+        const level = future ? 'x' : value === undefined ? '0' : value === 0 ? '1' : value < 3 ? '2' : value < 8 ? '3' : '4';
+        cells.push(`<i data-lv="${level}"${future ? '' : ` title="${key} · ${value === undefined ? '안 옴' : value === 0 ? '둘러봄' : `${value}번`}"`}></i>`);
+    }
+    return `
+        <section class="profile-grass-wrap">
+            <h2>발자국 <span class="profile-dim">지금 연속 ${footprint.streak.current}일 · 최장 ${footprint.streak.longest}일</span></h2>
+            <div class="profile-grass" role="img" aria-label="지난 1년 활동">${cells.join('')}</div>
+        </section>`;
+}
+
 function renderProfile(root: HTMLElement, profile: PublicProfile): void {
     document.title = `${profile.displayName} — KarmoLab`;
 
@@ -159,6 +192,7 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                 <div class="profile-stat"><strong>${profile.badges.length}</strong><span>뱃지</span></div>
                 <div class="profile-stat"><strong>${streakEntries.length}</strong><span>연속 기록 트랙</span></div>
             </section>
+            ${grassHtml(profile)}
             ${streaksHtml}
             <div id="profileActivity"></div>
             <footer class="profile-foot">
