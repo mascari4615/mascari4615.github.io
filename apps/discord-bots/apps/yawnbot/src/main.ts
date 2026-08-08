@@ -34,6 +34,7 @@ import { mountLocalWebhook, sendLocalEvent } from './bot/local-webhook';
 import { mountDeviceLog } from './bot/device-log';
 import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
+import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
@@ -361,6 +362,11 @@ mountDeviceLog(app, client);
 mountWrappedWeb(app, client);
 // TASK-KL-098 — KarmoLab 계정·기록·공개 프로필. 도구 사이트의 기록이 브라우저 밖에 남는 자리.
 registerKarmolabApi(app);
+/* TASK-KL-153/190 — 표 우물(바깥에서 길어 오는 놀이 재료). **`karmolab-api` 다음에** 붙는다:
+ * `/kl` CORS·쿠키 미들웨어가 거기서 달리고 Express 는 먼저 달린 것부터 태운다.
+ * 자기 파일에 사는 이유 = 그 2700줄짜리 파일을 낡은 사본으로 덮어쓴 커밋이 두 번
+ * 이 라우트를 함께 지웠다(2026-08-08). 남이 덮어쓸 파일에 내 줄을 두지 않는다. */
+registerWellRoutes(app);
 // TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
 startBackupLoop();
 

@@ -246,10 +246,40 @@ jobs:
           }
           if ($nssm) { & $nssm stop yawnbot-prod 2>&1 | Out-Null; Start-Sleep -Seconds 2; Write-Host "[KAR-150] yawnbot-prod stopped for clean npm install" }
           else { Write-Warning "[KAR-150] nssm 못 찾음 — stop skip" }
+
+          # === KL-190 ①: 짓다 실패해도 **돌아갈 판**을 남긴다 ===
+          # 이 step 은 봇을 세워 놓고 짓는다. 그런데 짓다 죽으면 아래 재기동 step 까지 못 가서
+          # **봇이 멈춘 채로 남는다.** 2026-08-08 하루에 세 번 그랬고(누가 push 할 때마다),
+          # 아무 경보도 없이 웹훅·로그인·놀이 순위판이 전부 죽어 있었다.
+          # 그래서 짓기 전에 직전 판을 통째로 복사해 두고, 실패하면 그걸 되돌린다.
+          $distDir = Join-Path $PWD 'apps\yawnbot\dist'
+          $lastGood = Join-Path $PWD 'apps\yawnbot\dist.last-good'
+          if (Test-Path $distDir) {
+            if (Test-Path $lastGood) { Remove-Item $lastGood -Recurse -Force -ErrorAction SilentlyContinue }
+            Copy-Item $distDir $lastGood -Recurse -Force
+            Write-Host "[KL-190] 직전 판 보관: dist.last-good"
+          }
+
+          $failed = $null
           & npm install --prefer-offline --no-audit --no-fund
-          if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-          & npm run build:yawnbot
-          if ($LASTEXITCODE -ne 0) { throw "build:yawnbot failed" }
+          if ($LASTEXITCODE -ne 0) { $failed = 'npm install failed' }
+          if (-not $failed) {
+            & npm run build:yawnbot
+            if ($LASTEXITCODE -ne 0) { $failed = 'build:yawnbot failed' }
+          }
+
+          if ($failed) {
+            # 되돌린다. 새 기능은 안 나가지만 **봇은 산다** — 죽은 봇보다 어제 봇이 낫다.
+            if (Test-Path $lastGood) {
+              if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force -ErrorAction SilentlyContinue }
+              Copy-Item $lastGood $distDir -Recurse -Force
+              Write-Output "::warning title=배포 실패 — 직전 판으로 되돌림::$failed. 봇은 직전 판으로 계속 돕니다."
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "🔙 **$failed** — 직전 판(dist.last-good)으로 되돌리고 봇을 살렸습니다. 새 변경은 안 나갔습니다."
+            } else {
+              Write-Output "::warning title=배포 실패 · 되돌릴 판 없음::$failed"
+            }
+            throw $failed
+          }
 
       - name: Deploy slash commands
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
@@ -358,3 +388,49 @@ jobs:
             exit 0
           }
           # cloudflared named tunnel (yawnbot.mascari4615.com) 은 별도 영구 service (KarmoLab Server Monitor 의 yawnbot-tunnel-prod 카드 또는 NSSM)
+
+      # === KL-190 ①: 무슨 일이 있어도 봇은 켜 놓고 나간다 ===
+      # 앞의 어느 step 이 죽든 이 step 은 돈다(`if: always()`). 배포가 실패하는 것과
+      # **봇이 멈춰 있는 것**은 전혀 다른 사고다 — 전자는 새 기능이 안 나간 것이고,
+      # 후자는 이미 쓰던 사람의 화면이 죽은 것이다. 실측(2026-08-08): 후자가 세 번 났고
+      # 사람이 알아채고 손으로 살릴 때까지 아무도 몰랐다.
+      - name: 봇이 켜져 있는지 확인하고, 꺼져 있으면 켠다
+        if: always()
+        shell: 'powershell -ExecutionPolicy Bypass -File {0}'
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $nssm = (Get-Command nssm.exe -ErrorAction SilentlyContinue).Source
+          if (-not $nssm) {
+            $f = Get-ChildItem `
+              "C:\Users\masca\AppData\Local\Microsoft\WinGet\Packages\NSSM.NSSM_*\nssm*\win64\nssm.exe", `
+              "C:\ProgramData\chocolatey\bin\nssm.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($f) { $nssm = $f.FullName }
+          }
+          if (-not $nssm) {
+            Write-Output "::warning title=봇 상태 확인 불가::nssm 을 못 찾았습니다."
+            exit 0
+          }
+
+          $status = (& $nssm status yawnbot-prod 2>&1) -join ''
+          Write-Host "[KL-190] 지금 상태: $status"
+          if ($status -notmatch 'SERVICE_RUNNING') {
+            & $nssm start yawnbot-prod 2>&1 | Out-Null
+            Start-Sleep -Seconds 8
+            $status = (& $nssm status yawnbot-prod 2>&1) -join ''
+            Write-Host "[KL-190] 켠 뒤 상태: $status"
+          }
+
+          # 「서비스가 돈다」와 「사람이 쓸 수 있다」는 다른 말이다 — 실제로 찔러 본다.
+          $ok = $false
+          for ($i = 0; $i -lt 6; $i++) {
+            try {
+              $res = Invoke-WebRequest -Uri 'http://127.0.0.1:4615/kl/health' -TimeoutSec 5 -UseBasicParsing
+              if ($res.StatusCode -eq 200) { $ok = $true; break }
+            } catch { Start-Sleep -Seconds 5 }
+          }
+          if ($ok) {
+            Write-Host "[KL-190] 봇 살아 있음 (/kl/health 200)"
+          } else {
+            Write-Output "::warning title=봇이 안 살아납니다::서비스는 켰지만 /kl/health 가 응답하지 않습니다. 로그: C:\nssm-logs\yawnbot-prod\stderr.log"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "🚨 **봇이 응답하지 않습니다** — 서비스는 켰지만 ``/kl/health`` 무응답"
+          }
