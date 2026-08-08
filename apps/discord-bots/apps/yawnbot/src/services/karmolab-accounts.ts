@@ -811,6 +811,11 @@ export class KarmolabAccountStore {
     return id ? (this.state.accounts[id] ?? null) : null;
   }
 
+  /** 계정 id 로 찾기 — 알림이 들고 있는 것은 id 뿐이다 (TASK-KL-157). */
+  byId(accountId: string): Account | null {
+    return this.state.accounts[accountId] ?? null;
+  }
+
   byHandle(handle: string): Account | null {
     const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
     return id ? (this.state.accounts[id] ?? null) : null;

@@ -2185,7 +2185,33 @@ export function registerKarmolabApi(
       res.json({ items: [], unread: 0, signedIn: false });
       return;
     }
-    res.json({ items: notes.listFor(account.id), unread: notes.unreadCount(account.id), signedIn: true });
+    res.json({
+      items: notes.listFor(account.id),
+      unread: notes.unreadCount(account.id),
+      signedIn: true,
+      /* 「어디로 받고 있나」를 목록과 함께 준다 (TASK-KL-157) — 종을 열면 바로 보이고,
+         이 값 하나 때문에 요청을 한 번 더 하지 않는다. */
+      discord: notes.discordEnabled(account.id),
+      /* 디스코드로 못 보내는 계정(연결 안 됨)에는 칸 자체를 안 만든다 —
+         켤 수 없는 스위치가 보이는 것이 제일 나쁘다. */
+      discordAvailable: Boolean(account.identities.discord?.discordId),
+    });
+  });
+
+  /** 알림을 디스코드로도 받을지. 기본은 꺼짐 — 부르지도 않았는데 말 거는 일이다. */
+  app.post('/kl/notifications/discord', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    if (!account.identities.discord?.discordId) {
+      res.status(400).json({ error: 'no_discord' });
+      return;
+    }
+    notes.setDiscordEnabled(account.id, req.body?.on === true);
+    notes.flush();
+    res.json({ ok: true, discord: notes.discordEnabled(account.id) });
   });
 
   app.post('/kl/notifications/read', (req: Request, res: Response) => {

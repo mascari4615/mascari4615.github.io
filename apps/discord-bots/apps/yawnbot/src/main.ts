@@ -363,6 +363,21 @@ startBackupLoop();
 
 client.once('clientReady', async () => {
   setMusicDiscordClient(client);
+  /* TASK-KL-157 — 사이트 알림을 디스코드로도 흘린다 (켠 사람에게만).
+     종은 사이트 안에서만 울린다 — 그 사람이 사이트를 안 열고 있으면 없는 것과 같다.
+     저장소는 디스코드를 모른다. 봇이 살아 있는 이 자리에서 창구를 꽂는다. */
+  try {
+    const [{ wireDiscordNotifications }, { getKarmolabNotificationStore }, { getKarmolabAccountStore }] =
+      await Promise.all([
+        import('./services/karmolab-notify-discord.js'),
+        import('./services/karmolab-notifications.js'),
+        import('./services/karmolab-accounts.js'),
+      ]);
+    wireDiscordNotifications(client, getKarmolabNotificationStore(), getKarmolabAccountStore());
+  } catch (error) {
+    // 알림 DM 이 안 붙어도 사이트 알림은 그대로 돈다 — 봇 전체를 여기서 죽이지 않는다.
+    console.warn('[main] KarmoLab 알림 DM 창구를 못 꽂았다:', error);
+  }
   // KAR-018-LT-DIVERSITY D-2 outbound: agent-bus core-utter → Discord webhook post.
   try {
     const { subscribeBusEvents, resolveBusRoot } = await import('./services/agent-bus.js');
