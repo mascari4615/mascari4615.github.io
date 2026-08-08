@@ -240,6 +240,57 @@ const KarmoAccount = {
         const back = encodeURIComponent(location.href.split('#')[0]);
         location.href = `${API_BASE}/kl/auth/discord?return=${back}`;
     },
+    /**
+     * 패스키로 로그인 (TASK-KL-156 D7).
+     *
+     * 누구인지 먼저 안 묻는다 — 기기가 자기가 가진 열쇠를 고르고, 서버가 그 열쇠로 계정을 찾는다.
+     * 이 브라우저가 패스키를 모르면 애초에 이 단추가 안 그려진다.
+     */
+    async signInWithPasskey(): Promise<boolean> {
+        try {
+            const start = await call('/kl/auth/passkey/challenge', { method: 'POST' });
+            if (!start || !start.ok) return false;
+            const options = (await start.json()) as { key: string; challenge: string; rpId: string };
+            const toBytes = (value: string): Uint8Array => {
+                const padded = value.replace(/-/g, '+').replace(/_/g, '/');
+                const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
+                return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+            };
+            const toB64url = (buffer: ArrayBuffer): string => {
+                let binary = '';
+                new Uint8Array(buffer).forEach((b) => {
+                    binary += String.fromCharCode(b);
+                });
+                return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            };
+            const got = (await navigator.credentials.get({
+                publicKey: {
+                    challenge: toBytes(options.challenge),
+                    rpId: options.rpId,
+                    userVerification: 'preferred',
+                    timeout: 120000,
+                },
+            })) as PublicKeyCredential | null;
+            if (!got) return false;
+            const response = got.response as AuthenticatorAssertionResponse;
+            const done = await call('/kl/auth/passkey', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    key: options.key,
+                    id: got.id,
+                    clientDataJSON: toB64url(response.clientDataJSON),
+                    authenticatorData: toB64url(response.authenticatorData),
+                    signature: toB64url(response.signature),
+                }),
+            });
+            if (!done || !done.ok) return false;
+            await refresh();
+            return true;
+        } catch {
+            return false;
+        }
+    },
     async signOut(): Promise<void> {
         await call('/kl/auth/logout', { method: 'POST' });
         state.account = null;
@@ -385,9 +436,15 @@ function mountHeaderAccount(): void {
                        <button type="button" role="menuitem" data-go="settings">환경 설정</button>
                        ${me ? '<button type="button" role="menuitem" class="header-account-menu-out" data-signout>로그아웃</button>' : ''}
                        ${!me && canAccount ? '<button type="button" role="menuitem" data-signin>디스코드로 시작하기</button>' : ''}
+                       ${!me && canAccount && typeof window.PublicKeyCredential !== 'undefined'
+                           ? '<button type="button" role="menuitem" data-passkey-in>패스키로 로그인</button>'
+                           : ''}
                    </div>`
                 : '');
         slot.querySelector('[data-signin]')?.addEventListener('click', () => KarmoAccount.signIn());
+        slot.querySelector('[data-passkey-in]')?.addEventListener('click', () => {
+            void KarmoAccount.signInWithPasskey();
+        });
         markActivePage();
 
         slot.querySelector('#klHeaderMe')?.addEventListener('click', (event) => {

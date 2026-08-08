@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { PKG_ROOT } from '../paths';
+import type { StoredPasskey } from './karmolab-passkey';
 
 /** 도구들이 쌓는 기록. 브라우저에 있던 모양을 그대로 받는다 (변환 없이 왕복). */
 export interface AccountRecords {
@@ -120,6 +121,8 @@ export interface Account {
   weeklyDm?: boolean;
   /** 마지막으로 보낸 주 (`YYYY-Www`). 같은 주에 두 번 보내지 않으려고 적는다. */
   weeklyDmSentWeek?: string;
+  /** 패스키 (TASK-KL-156 D7). 문이 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. */
+  passkeys?: StoredPasskey[];
 }
 
 /** ISO 주 이름 (`2026-W32`) — KST 기준. 주간 발송이 같은 주에 두 번 나가지 않게 하는 열쇠. */
@@ -1050,6 +1053,59 @@ export class KarmolabAccountStore {
     if (!account) return 0;
     const last = account.footprint?.lastSeenAt ?? account.createdAt;
     return Math.max(0, Math.floor((now.getTime() - Date.parse(last)) / 86400000));
+  }
+
+  /* ── 패스키 (TASK-KL-156 D7) ─────────────────────────────────────── */
+
+  /** 내 패스키 목록 — 공개키는 안 내보낸다(화면에 쓸 일이 없고, 안 내보내면 샐 일도 없다). */
+  passkeysOf(accountId: string): Array<{ id: string; label: string; createdAt: string; lastUsedAt: string | null }> {
+    return (this.state.accounts[accountId]?.passkeys ?? []).map((key) => ({
+      id: key.id,
+      label: key.label,
+      createdAt: key.createdAt,
+      lastUsedAt: key.lastUsedAt,
+    }));
+  }
+
+  addPasskey(accountId: string, passkey: StoredPasskey): boolean {
+    const account = this.state.accounts[accountId];
+    if (!account) return false;
+    const list = account.passkeys ?? [];
+    // 같은 열쇠를 두 번 담지 않는다.
+    if (list.some((key) => key.id === passkey.id)) return false;
+    list.push(passkey);
+    account.passkeys = list;
+    this.save();
+    return true;
+  }
+
+  removePasskey(accountId: string, passkeyId: string): boolean {
+    const account = this.state.accounts[accountId];
+    if (!account) return false;
+    const before = (account.passkeys ?? []).length;
+    account.passkeys = (account.passkeys ?? []).filter((key) => key.id !== passkeyId);
+    const removed = account.passkeys.length !== before;
+    if (removed) this.save();
+    return removed;
+  }
+
+  /** 이 자격증명 id 를 가진 계정과 그 열쇠 — 로그인은 이것으로 찾는다(누구인지 미리 안 물어도 된다). */
+  accountForPasskey(passkeyId: string): { account: Account; passkey: StoredPasskey } | null {
+    for (const account of Object.values(this.state.accounts)) {
+      const passkey = (account.passkeys ?? []).find((key) => key.id === passkeyId);
+      if (passkey) return { account, passkey };
+    }
+    return null;
+  }
+
+  /** 쓰고 나면 사용 횟수와 시각을 적는다 — 복제 신호를 알아보려면 이 값이 살아 있어야 한다. */
+  notePasskeyUse(accountId: string, passkeyId: string, signCount: number): void {
+    const account = this.state.accounts[accountId];
+    const passkey = (account?.passkeys ?? []).find((key) => key.id === passkeyId);
+    if (!passkey) return;
+    passkey.signCount = signCount;
+    passkey.lastUsedAt = new Date().toISOString();
+    this.save();
   }
 
   /** 주간 발자국 DM 켜고 끄기 (TASK-KL-156 D6). */
