@@ -245,3 +245,30 @@ describe('표마다 순위판이 갈린다', () => {
     expect(found).toMatchObject({ players: 2, plays: 3, variants: true });
   });
 });
+
+/** 시즌 순위 (TASK-KL-182 F2). */
+describe('시즌 순위 (KL-182 F2)', () => {
+  it('판마다 메달을 주고 메달 수로 줄 세운다 — 점수를 섞지 않는다', () => {
+    const store = new KarmolabPlayStore(statePath);
+    // reaction 은 낮을수록, speed 는 높을수록 좋다 — 실제로 있는 두 종목으로 확인한다.
+    store.record('reaction', 'karmo', 180);
+    store.record('reaction', 'ring', 260);
+    store.record('speed', 'ring', 12.5);
+    store.record('speed', 'karmo', 4.2);
+
+    const ranking = store.seasonRanking();
+    const karmo = ranking.find((row) => row.handle === 'karmo')!;
+    const ring = ranking.find((row) => row.handle === 'ring')!;
+    expect(karmo.gold).toBe(1);
+    expect(ring.gold).toBe(1);
+    expect(karmo.boards).toBe(2);
+    expect(ring.boards).toBe(2);
+  });
+
+  it('아무 판에도 없는 사람은 목록에 없다 — 0 으로 줄 세우지 않는다', () => {
+    const store = new KarmolabPlayStore(statePath);
+    expect(store.seasonRanking()).toEqual([]);
+    store.record('reaction', 'karmo', 200);
+    expect(store.seasonRanking().map((r) => r.handle)).toEqual(['karmo']);
+  });
+});

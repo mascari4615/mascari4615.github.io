@@ -182,6 +182,13 @@
         .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
             border:1px solid var(--border); border-radius:999px; background:var(--bg-tertiary); }
         .fp-blocked-item button { background:none; border:0; color:var(--accent); font:inherit; font-size:11px; cursor:pointer; }
+        .fp-season { font-size:11px; color:var(--text-tertiary); font-weight:400; margin-left:6px; }
+        .fp-missions { display:flex; flex-direction:column; gap:10px; }
+        .fp-mission { display:flex; flex-direction:column; gap:4px; padding:10px 12px;
+            border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-secondary); }
+        .fp-mission.done { border-color:var(--accent); }
+        .fp-mission-title { font-size:var(--font-size-xs); color:var(--text-primary); }
+        .fp-mission .user-item-progress { margin-top:2px; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }
         .fp-vis-item { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; }
         .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
@@ -200,12 +207,14 @@
             <div class="user-layout">
                 <div id="userIdentity"></div>
                 <div class="user-stats" id="userStats"></div>
+                <div id="userMissions"></div>
                 <div id="userFeed"></div>
                 <div id="userServerSlot"></div>
             </div>`;
 
         renderStats(container.querySelector<HTMLElement>('#userStats'));
         mountIdentity(container.querySelector<HTMLElement>('#userIdentity'));
+        mountMissions(container.querySelector<HTMLElement>('#userMissions'));
         mountFeed(container.querySelector<HTMLElement>('#userFeed'));
         watchServerSlot(container.querySelector('#userServerSlot'));
     }
@@ -660,6 +669,70 @@
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
+    /**
+     * 이번 주 미션 (TASK-KL-182 F1).
+     *
+     * 발자국은 「무엇을 했나」를 보여 준다 — 미션은 그 옆에서 **무엇을 해 볼까**를 말한다.
+     * 도구가 160개면 고르는 것 자체가 일이라, 한 줄 제안이 있는 편이 낫다.
+     * 로그인 안 했으면 안 그린다(진행도를 셀 수 없는 미션은 광고일 뿐이다).
+     */
+    function mountMissions(slot: HTMLElement | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+        let drawnFor: string | null = null;
+        const off = account.subscribe((state) => {
+            const handle = state.account?.handle ?? null;
+            if (!handle) {
+                drawnFor = null;
+                slot.innerHTML = '';
+                return;
+            }
+            if (drawnFor === handle) return;
+            drawnFor = handle;
+            void renderMissions(slot);
+        });
+        Toolbox.onDispose?.(off);
+    }
+
+    async function renderMissions(slot: HTMLElement): Promise<void> {
+        const base = window.KarmoAccount?.apiBase;
+        if (!base) return;
+        let body: {
+            week: string;
+            seasonWeek: number;
+            missions: Array<{ id: string; title: string; goal: number; now: number; done: boolean; kind: string }>;
+            clearedThisWeek: number;
+        } | null = null;
+        try {
+            const res = await fetch(`${base}/kl/me/missions`, { credentials: 'include' });
+            if (!res.ok) return;
+            body = await res.json();
+        } catch {
+            return;
+        }
+        if (!body || !body.missions.length) return;
+
+        slot.innerHTML = `
+            <div class="user-section">
+                <h3>🎯 이번 주 미션 <span class="fp-season">시즌 ${body.seasonWeek}/4주차 · ${body.clearedThisWeek}/${body.missions.length} 깸</span></h3>
+                <div class="fp-missions">
+                    ${body.missions
+                        .map((mission) => {
+                            const pct = Math.min(100, Math.round((mission.now / mission.goal) * 100));
+                            return `
+                                <div class="fp-mission${mission.done ? ' done' : ''}">
+                                    <span class="fp-mission-title">${mission.done ? '✅ ' : ''}${escapeHtml(mission.title)}</span>
+                                    <div class="user-item-progress"><i style="width:${pct}%"></i><span>${mission.now} / ${mission.goal}</span></div>
+                                </div>`;
+                        })
+                        .join('')}
+                </div>
+                <p class="user-acct-hint">미션은 모두에게 같고 매주 바뀝니다. 진행도는 발자국에서 그때그때 셉니다 —
+                    따로 적어 두지 않아 숫자가 갈라질 일이 없습니다. (「도구 가짓수」는 통산으로 셉니다.)</p>
+            </div>`;
+    }
+
     /**
      * 내 피드 (TASK-KL-152 C8) — 내가 따라가는 사람들이 남긴 것.
      *
