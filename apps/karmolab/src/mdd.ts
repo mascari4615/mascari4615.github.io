@@ -35,7 +35,7 @@ const Mdd = (() => {
     }
 
     const PREF_DEFAULTS: MddPrefs = {
-        enabled: true, width: 92, framing: 'bust', showOnMobile: false,
+        enabled: true, width: 300, framing: 'bust', showOnMobile: false,
         opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true,
         bubble: true, bubbleMs: 3000, idleMs: IDLE_TIMEOUT, tapReact: true,
     };
@@ -163,13 +163,13 @@ const Mdd = (() => {
     const POSE_PRESETS: Record<string, Partial<AvatarPose>> = {
         idle:     {},
         happy:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.4, tilt: -9, bob: -5 },
-        sad:      { eyeOpen: 0.55, mouthArt: 'mouth-frown', tilt: 13, bob: 12, armL: 6, armR: -6 },
+        sad:      { eyeOpen: 0.82, mouthArt: 'mouth-frown', tilt: 14, bob: 12, armL: 7, armR: -7 },
         shock:    { eyeArt: 'eyes-wide', mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
-        think:    { eyeOpen: 0.8, browTilt: 10, browRaise: -3, mouthWide: 0.85, tilt: 15, gaze: { x: 0.85, y: -0.7 } },
+        think:    { eyeOpen: 0.88, mouthWide: 0.85, tilt: 16, gaze: { x: 0.9, y: -0.75 } },
         sleep:    { eyeOpen: 0, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
-        angry:    { eyeArt: 'eyes-wide', mouthArt: 'mouth-frown', blush: 0.25, tilt: 3, bob: -3, armL: 10, armR: -10 },
+        angry:    { eyeOpen: 0.92, mouthArt: 'mouth-frown', blush: 0.45, tilt: 2, bob: -4, armL: 14, armR: -14 },
         love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6 },
-        smug:     { eyeOpen: 0.72, browTilt: 8, browRaise: -4, mouthWide: 1.3, tilt: -15, gaze: { x: -0.7, y: 0.2 } },
+        smug:     { eyeOpen: 0.84, mouthWide: 1.3, tilt: -16, gaze: { x: -0.75, y: 0.25 } },
         eating:   { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.3, tilt: 5, bob: 4 },
         pointing: { eyeOpen: 1.25, mouthArt: 'mouth-open', tilt: -7, bob: -9, armL: 0, armR: -38 },
         cheer:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-wide', blush: 0.5, tilt: 0, bob: -18, armL: -46, armR: 46 },
