@@ -164,3 +164,89 @@ describe('KarmolabAccountStore', () => {
     expect(() => store.upsertFromDiscord(discordUser)).not.toThrow();
   });
 });
+
+/**
+ * 계정별 발자국 (TASK-KL-152 C1).
+ *
+ * 여기가 틀리면 잔디·돌아보기가 **조용히 거짓말한다** — 화면은 멀쩡히 그려지고 숫자만 틀린다.
+ * 그래서 「밤에 연 것이 어제로 안 밀리나」·「그냥 다녀간 날도 칠해지나」를 눈으로 박는다.
+ */
+describe('발자국 (KL-152 C1)', () => {
+  const at = (iso: string) => new Date(iso);
+
+  it('도구를 열면 그 날짜(KST)와 도구가 함께 쌓인다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    store.noteFootprint(account.id, { toolId: 'imageconvert', at: at('2026-08-08T01:00:00Z') });
+    store.noteFootprint(account.id, { toolId: 'imageconvert', at: at('2026-08-08T02:00:00Z') });
+
+    const activity = store.footprintFor(account.id, at('2026-08-08T05:00:00Z'));
+    expect(activity.days['2026-08-08']).toBe(2);
+    expect(activity.tools.imageconvert).toBe(2);
+    expect(activity.totals).toEqual({ opens: 2, activeDays: 1, distinctTools: 1 });
+  });
+
+  it('한국 시간으로 날짜를 가른다 — 밤 10시(UTC 13시)에 연 것이 어제로 안 밀린다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    // 2026-08-08 22:00 KST = 2026-08-08 13:00 UTC
+    store.noteFootprint(account.id, { toolId: 'pet', at: at('2026-08-08T13:00:00Z') });
+    // 2026-08-09 01:00 KST = 2026-08-08 16:00 UTC — UTC 로 세면 같은 날로 뭉개진다
+    store.noteFootprint(account.id, { toolId: 'pet', at: at('2026-08-08T16:00:00Z') });
+
+    const activity = store.footprintFor(account.id, at('2026-08-08T16:30:00Z'));
+    expect(Object.keys(activity.days).sort()).toEqual(['2026-08-08', '2026-08-09']);
+  });
+
+  it('도구를 안 연 날도 칠해진다 — 둘러보기만 한 날을 「안 온 날」로 적으면 거짓말이다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    store.noteFootprint(account.id, { at: at('2026-08-07T03:00:00Z') });
+
+    const activity = store.footprintFor(account.id, at('2026-08-07T05:00:00Z'));
+    expect(activity.days['2026-08-07']).toBe(0);
+    expect(activity.totals.activeDays).toBe(1);
+    expect(activity.totals.opens).toBe(0);
+  });
+
+  it('연속일은 어제까지 이어져 있으면 살아 있다 — 오늘 아직 안 왔다고 0 으로 지우지 않는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    for (const day of ['2026-08-05', '2026-08-06', '2026-08-07']) {
+      store.noteFootprint(account.id, { toolId: 'pet', at: at(`${day}T05:00:00Z`) });
+    }
+    // 오늘 = 08-08, 아직 안 왔다 (KST 오후)
+    const activity = store.footprintFor(account.id, at('2026-08-08T05:00:00Z'));
+    expect(activity.streak.current).toBe(3);
+    expect(activity.streak.longest).toBe(3);
+  });
+
+  it('이틀 넘게 비면 연속은 끊긴다 (가장 길었던 것은 남는다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    for (const day of ['2026-07-01', '2026-07-02', '2026-07-03', '2026-07-04']) {
+      store.noteFootprint(account.id, { toolId: 'pet', at: at(`${day}T05:00:00Z`) });
+    }
+    const activity = store.footprintFor(account.id, at('2026-08-08T05:00:00Z'));
+    expect(activity.streak.current).toBe(0);
+    expect(activity.streak.longest).toBe(4);
+  });
+
+  it('다시 열어도 남는다 (파일에 저장된다)', () => {
+    const first = new KarmolabAccountStore(statePath);
+    const account = first.upsertFromDiscord(discordUser);
+    first.noteFootprint(account.id, { toolId: 'memo', at: at('2026-08-08T05:00:00Z') });
+
+    const reopened = new KarmolabAccountStore(statePath);
+    expect(reopened.footprintFor(account.id, at('2026-08-08T06:00:00Z')).tools.memo).toBe(1);
+  });
+
+  it('발자국이 한 번도 없어도 빈 채로 답한다 (없는 것을 0 으로 지어내지 않는다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const activity = store.footprintFor(account.id);
+    expect(activity.days).toEqual({});
+    expect(activity.totals).toEqual({ opens: 0, activeDays: 0, distinctTools: 0 });
+    expect(activity.streak).toEqual({ current: 0, longest: 0 });
+  });
+});

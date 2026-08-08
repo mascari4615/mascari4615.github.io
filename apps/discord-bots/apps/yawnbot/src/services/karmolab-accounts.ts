@@ -36,6 +36,41 @@ export interface AccountIdentityDiscord {
   linkedAt: string;
 }
 
+/**
+ * 계정별 발자국 (TASK-KL-152 C1).
+ *
+ * 서버는 「어느 도구가 열렸나」를 오래전부터 세고 있었다 — 그런데 **익명 집계뿐**이라
+ * 「내가 무엇을 했나」는 아무도 못 봤다. 모으기만 하고 안 돌려주면 없는 것과 같다.
+ * 잔디(C2)·돌아보기(C3)가 전부 이 한 벌 위에 선다.
+ *
+ * 로그인한 사람만 쌓인다. 안 한 사람 것은 지금까지처럼 익명 집계로만 남는다.
+ */
+export interface AccountFootprint {
+  /** `YYYY-MM-DD`(KST) → 그날 연 도구 수. 그냥 다녀가기만 해도 그날은 0 으로 찍힌다. */
+  days: Record<string, number>;
+  /** 도구 id → 연 횟수 (누적) */
+  tools: Record<string, number>;
+  firstSeenAt: string | null;
+  lastSeenAt: string | null;
+}
+
+/** 잔디는 1년 남짓이면 된다. 그보다 오래된 날은 지운다 — 파일이 끝없이 커지지 않게. */
+export const FOOTPRINT_KEEP_DAYS = 400;
+
+/** 이 사이트는 KST 로 말한다. 날짜 칸이 UTC 면 밤에 연 것이 「어제」로 찍힌다. */
+export function kstDayKey(at: Date = new Date()): string {
+  // en-CA 는 `YYYY-MM-DD` 로 준다 — 손으로 자르지 않는다.
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(at);
+}
+
+/** 날짜 칸에서 하루 뒤로 (문자열만으로 옮긴다 — 시간대에 다시 안 걸리게). */
+function prevDayKey(key: string): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const date = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
 export interface Account {
   id: string;
   /** 공개 주소에 쓰는 이름 (`/karmolab/u/<handle>`). 소문자·영숫자·`-`·`_` 만. */
@@ -54,6 +89,8 @@ export interface Account {
    * 그것으로는 아무도 로그인하지 못한다. 원문은 만들 때 딱 한 번 보여 준다.
    */
   recoveryCodes?: { hash: string; usedAt: string | null }[];
+  /** 내가 언제 무엇을 열었나 (TASK-KL-152 C1). 없을 수 있다 — 옛 계정은 이 칸 없이 저장돼 있다. */
+  footprint?: AccountFootprint;
 }
 
 interface Session {
@@ -337,6 +374,94 @@ export class KarmolabAccountStore {
     account.displayName = name;
     this.save();
     return account;
+  }
+
+  /**
+   * 발자국 한 줄 남기기 (TASK-KL-152 C1).
+   *
+   * 도구를 열면 `toolId` 와 함께, 그냥 다녀가기만 하면 `toolId` 없이 부른다.
+   * 다녀간 날도 잔디에 칠해져야 한다 — 도구를 안 연 날을 「안 온 날」로 적으면 거짓말이 된다.
+   */
+  noteFootprint(accountId: string, input: { toolId?: string | null; at?: Date } = {}): void {
+    const account = this.state.accounts[accountId];
+    if (!account) return;
+    const at = input.at ?? new Date();
+    const key = kstDayKey(at);
+    const footprint: AccountFootprint = account.footprint ?? {
+      days: {},
+      tools: {},
+      firstSeenAt: null,
+      lastSeenAt: null,
+    };
+
+    // 날 칸은 **다녀간 것만으로도 생긴다**(0). 도구를 열면 그 위에 센다.
+    if (footprint.days[key] === undefined) footprint.days[key] = 0;
+    const toolId = typeof input.toolId === 'string' ? input.toolId : null;
+    if (toolId) {
+      footprint.days[key] += 1;
+      footprint.tools[toolId] = (footprint.tools[toolId] ?? 0) + 1;
+    }
+
+    const iso = at.toISOString();
+    footprint.firstSeenAt = footprint.firstSeenAt ?? iso;
+    footprint.lastSeenAt = iso;
+
+    // 오래된 날은 버린다. 자르는 기준도 KST 날짜 칸이라 시간대에 두 번 안 걸린다.
+    const keys = Object.keys(footprint.days).sort();
+    if (keys.length > FOOTPRINT_KEEP_DAYS) {
+      for (const old of keys.slice(0, keys.length - FOOTPRINT_KEEP_DAYS)) delete footprint.days[old];
+    }
+
+    account.footprint = footprint;
+    this.save();
+  }
+
+  /**
+   * 내 발자국 — 잔디·돌아보기가 읽는 자리.
+   *
+   * 연속일은 **오늘 또는 어제**에서 이어져야 살아 있는 것으로 본다. 오늘 아직 안 왔다고
+   * 어제까지의 연속을 0 으로 지우면, 아침에 열어 본 사람은 늘 「끊겼다」를 본다.
+   */
+  footprintFor(accountId: string, now: Date = new Date()): {
+    days: Record<string, number>;
+    tools: Record<string, number>;
+    totals: { opens: number; activeDays: number; distinctTools: number };
+    streak: { current: number; longest: number };
+    firstSeenAt: string | null;
+    lastSeenAt: string | null;
+  } {
+    const account = this.state.accounts[accountId];
+    const footprint = account?.footprint;
+    const days = { ...(footprint?.days ?? {}) };
+    const tools = { ...(footprint?.tools ?? {}) };
+    const opens = Object.values(tools).reduce((sum, n) => sum + (Number(n) || 0), 0);
+
+    const present = new Set(Object.keys(days));
+    const today = kstDayKey(now);
+    const yesterday = prevDayKey(today);
+
+    let current = 0;
+    let cursor = present.has(today) ? today : present.has(yesterday) ? yesterday : null;
+    while (cursor && present.has(cursor)) {
+      current += 1;
+      cursor = prevDayKey(cursor);
+    }
+
+    let longest = 0;
+    let run = 0;
+    for (const key of [...present].sort()) {
+      run = present.has(prevDayKey(key)) ? run + 1 : 1;
+      if (run > longest) longest = run;
+    }
+
+    return {
+      days,
+      tools,
+      totals: { opens, activeDays: present.size, distinctTools: Object.keys(tools).length },
+      streak: { current, longest },
+      firstSeenAt: footprint?.firstSeenAt ?? account?.createdAt ?? null,
+      lastSeenAt: footprint?.lastSeenAt ?? null,
+    };
   }
 
   /** 지금 살아 있는 내 로그인들 — 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
