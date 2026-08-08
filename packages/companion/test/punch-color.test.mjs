@@ -1,54 +1,53 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { ownWindowExe } from '../dist/index.js';
+
 /**
- * 뚫어낼 색 — **양쪽이 같은 색을 알아야** 창이 투명해진다.
+ * 색 뚫기는 **폐기됐다** — 되살아나지 않는지 지킨다.
  *
- * 창을 띄우는 쪽은 한 색을 뚫어내고, 페이지는 그 색을 칠한다. 한쪽만 알면 뚫을 픽셀이
- * 없어서 창이 통째로 하얘진다 — 실제로 그랬다(「흰 화면만 보여」). 두 쪽이 각자 값을 들고
- * 있으면 아무 경고 없이 어긋나므로, 여기서 **계약을 기계로 붙잡아 둔다.**
+ * 옛 수법: 페이지가 형광색 한 가지를 칠하고, 창 띄우는 스크립트가 그 색을 뚫어 투명한
+ * 척한다. 그림을 GPU 가 그리는 창에서는 그 색이 안 뚫린다. 그래서 실제로 나온 화면이
+ * **형광 분홍 바탕 + 최소화·최대화·닫기 막대 + 그 위에 시커먼 몸**이었다(사용자 실측).
+ *
+ * 「없는 것보다 나은 차선」이 아니라 결과를 더 나쁘게 만드는 길이라 걷어냈다. 투명은
+ * 제 창(`companion-window.exe`)이 창 설정으로 그냥 지원한다.
  */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const 읽기 = (...p) => readFileSync(join(root, ...p), 'utf8');
 
-test('창 띄우는 쪽은 색을 주소와 스크립트 **양쪽에** 넘긴다', () => {
+test('창 띄우는 쪽은 뚫을 색을 더 이상 안 넘긴다', () => {
   const web = 읽기('src', 'body', 'web.ts');
-  const 색 = /const KEY = '([0-9A-Fa-f]{6})'/.exec(web);
-  assert.notEqual(색, null, '뚫을 색이 한 곳에 정해져 있어야 한다');
-  assert.match(web, /t=\$\{KEY\}/, '주소로 페이지에 알려 줘야 한다');
-  assert.match(web, /'-KeyColor', KEY/, '창 띄우는 스크립트에도 같은 값을 넘겨야 한다');
+  assert.equal(/const KEY = '[0-9A-Fa-f]{6}'/.test(web), false, '뚫을 색이 되살아났다');
+  assert.equal(/-KeyColor/.test(web), false, '색을 뚫는 스크립트를 다시 부르고 있다');
 });
 
-test('페이지는 받은 색을 바탕에 칠한다 — 안 칠하면 뚫을 게 없다', () => {
+test('페이지는 바탕을 칠하지 않는다 — 안 뚫리면 그게 그냥 형광 분홍 화면이다', () => {
   const page = 읽기('assets', 'face.html');
-  assert.match(page, /URLSearchParams\(location\.search\)\.get\('t'\)/, '주소에서 색을 읽어야 한다');
-  assert.match(page, /document\.body\.style\.background/, '바탕에 실제로 칠해야 한다');
+  assert.equal(/document\.body\.style\.background\s*=/.test(page), false, '바탕을 다시 칠하고 있다');
+  assert.equal(/URLSearchParams\(location\.search\)\.get\('t'\)/.test(page), false, '색을 다시 받고 있다');
 });
 
-test('페이지는 아무 값이나 칠하지 않는다 — 주소는 남이 건드릴 수 있다', () => {
-  const page = 읽기('assets', 'face.html');
-  assert.match(page, /\[0-9a-fA-F\]\{6\}/, '여섯 자리 색만 받아야 한다');
+test('색을 뚫던 스크립트 자체가 없다', () => {
+  assert.equal(existsSync(join(root, 'assets', 'pin-window.ps1')), false);
 });
 
-test('창 띄우는 스크립트는 색을 밖에서 받는다 — 안에 박아 두면 또 어긋난다', () => {
-  const ps1 = 읽기('assets', 'pin-window.ps1');
-  assert.match(ps1, /\[string\]\$KeyColor/, '색을 매개변수로 받아야 한다');
-  assert.match(ps1, /MakeColorTransparent\(\$handle, \$key\)/, '받은 색으로 뚫어야 한다');
-});
+test('제 창은 저장소 위치에 안 묶인다 — 밖에서 알려 주면 그걸 쓴다', () => {
+  const 원래 = process.env.COMPANION_WINDOW_EXE;
+  try {
+    // 이 파일은 반드시 있다. 실제로 있는 파일이어야 「찾았다」가 의미를 갖는다.
+    const 있는파일 = join(root, 'package.json');
+    process.env.COMPANION_WINDOW_EXE = 있는파일;
+    assert.equal(ownWindowExe(), process.platform === 'win32' ? 있는파일 : null);
 
-test('색 뒤집기 — 윈도우는 0x00BBGGRR 로 받는다', () => {
-  const ps1 = 읽기('assets', 'pin-window.ps1');
-  // 뒤집지 않으면 빨강과 파랑이 바뀌어 엉뚱한 색이 뚫린다.
-  assert.match(ps1, /\$b -shl 16/);
-  assert.match(ps1, /\$g -shl 8/);
-});
-
-test('투명하게 안 띄울 땐 색을 안 넘긴다 — 평범한 탭이 분홍색이면 안 된다', () => {
-  const web = 읽기('src', 'body', 'web.ts');
-  assert.match(web, /transparent \? `\$\{url\}/, '투명일 때만 주소에 붙어야 한다');
-  assert.match(web, /\.\.\.\(transparent \? \['-Transparent', '-KeyColor', KEY\] : \[\]\)/);
+    process.env.COMPANION_WINDOW_EXE = join(root, '없는-파일.exe');
+    assert.notEqual(ownWindowExe(), join(root, '없는-파일.exe'), '없는 자리를 들고 있으면 안 된다');
+  } finally {
+    if (원래 === undefined) delete process.env.COMPANION_WINDOW_EXE;
+    else process.env.COMPANION_WINDOW_EXE = 원래;
+  }
 });

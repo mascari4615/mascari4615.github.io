@@ -10,6 +10,7 @@
  *   COMPANION_COOLDOWN_MS=45000    혼잣말 참는 간격
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -103,6 +104,8 @@ import {
   retryNote,
   TOUCH_CHANNEL,
   TouchCount,
+  이웃,
+  같은저장소사본들,
   대사창고,
   닿음갈래,
   닿음단계,
@@ -359,6 +362,40 @@ const selfImage = new SelfImage({
   path: join(home, '나에-대해-한-말.json'),
   log: (m) => console.log(`[자기상] ${m}`),
 });
+/* 이웃 저장소에서 오는 것들 — 없으면 **없다고 말한다.** 조용히 빠지면 화면에서는
+   「몸이 큐브로 바뀌고 로컬 목소리가 사라진」 것으로만 보이고, 그건 회귀로 읽힌다. */
+function 욘메시() {
+  const 게임 = 이웃('WitchMendokusai', 'Assets');
+  if (게임 === null) {
+    console.log('[몸] 게임 저장소를 이웃에서 못 찾았다 — 3D 몸 없이 큐브로 지낸다');
+    return null;
+  }
+  return join(게임, 'Assets', '_WitchMendokusai', 'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx');
+}
+
+function 받아쓰기실행파일() {
+  for (const 뿌리 of [join(root, '..', '..'), ...같은저장소사본들(join('apps', 'karmolab-tauri'))]) {
+    for (const 자리 of ['release', 'debug']) {
+      const exe = join(뿌리, 'apps', 'karmolab-tauri', 'target', 자리, 'karmolab-life-ml.exe');
+      if (existsSync(exe)) return exe;
+    }
+  }
+  console.log('[귀] 받아쓰기 실행 파일을 못 찾았다 — 창 안 받아쓰기로 물러선다');
+  return null;
+}
+
+function 흉내참고음성() {
+  const memo = 이웃('memo', join('life', '.models'));
+  if (memo === null) return null;
+  return join(memo, 'life', '.models', 'tsukuyomi', 'ref.wav');
+}
+
+function 받아쓰기모델() {
+  const memo = 이웃('memo', join('life', '.models'));
+  if (memo === null) return null;
+  return join(memo, 'life', '.models', 'whisper-small');
+}
+
 const touchCount = new TouchCount();
 /* 미리 지어 둔 대꾸 창고 (89회차). 손으로 적은 표는 후보가 셋뿐이라 스무 번이면 또 돈다 —
    실측으로 얘가 한 말 320개 중 145개가 글자 그대로 반복이었다. 한가할 때 두뇌가 채워 두고,
@@ -460,9 +497,13 @@ ${tallyReport(tally)}`;
   // 목소리 — 내 컴퓨터 것과 인터넷 것을 한 목록에 같이 올린다. 어느 쪽이 취향인지는
   // 코드가 아니라 사람이 정한다.
   speech: await (async () => {
+    /* 로컬 목소리는 메모 저장소 안에 있다. 「여기서 세 겹 위」로 박아 두면 워크트리에서
+       띄웠을 때 통째로 사라진다 — 실제로 목록에서 로컬 목소리가 없어졌다(실측). */
+    const memo뿌리 = 이웃('memo', join('life', '.models'));
     const piperRoot = process.env.COMPANION_PIPER_DIR
-      ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'piper');
-    const local = {
+      ?? (memo뿌리 === null ? null : join(memo뿌리, 'life', '.models', 'piper'));
+    if (piperRoot === null) console.log('[목소리] 로컬 목소리 자리를 못 찾았다 (memo 저장소가 이웃에 없다) — 인터넷 목소리만 쓴다');
+    const local = piperRoot === null ? null : {
       exePath: join(piperRoot, 'piper', 'piper.exe'),
       // 같은 모델이라도 말 속도가 다르면 다른 사람처럼 들린다. 로컬 한국어 목소리가
       // 하나뿐이라 고를 게 없던 것을, 결이 다른 셋으로 갈라 둔다.
@@ -475,7 +516,7 @@ ${tallyReport(tally)}`;
       log: (m) => console.log(`[목소리] ${m}`),
     };
     const engines = [];
-    if (piperReady(local)) {
+    if (local !== null && piperReady(local)) {
       const localSpeech = piperSpeech(local);
       // 첫 호출이 느린 게 하필 처음 말 걸었을 때 온다 — 미리 데워 둔다.
       localSpeech.warmUp?.().then(() => console.log('[목소리] 미리 데워 뒀다'));
@@ -486,8 +527,8 @@ ${tallyReport(tally)}`;
        목록에만 있으면, 골랐다가 아무 소리도 안 나는 게 제일 나쁘다.
        세우는 법 = `node memo/scripts/setup-cloned-voice.mjs`, 띄우면 목록에 저절로 붙는다. */
     const 흉내 = clonedSpeech({
-      refAudioPath: process.env.COMPANION_CLONE_REF
-        ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'tsukuyomi', 'ref.wav'),
+      // 참고 음성도 메모 저장소 안에 있다 — 로컬 목소리·몸과 같은 병을 여기서도 끊는다.
+      refAudioPath: process.env.COMPANION_CLONE_REF ?? 흉내참고음성() ?? '',
       refText: process.env.COMPANION_CLONE_REF_TEXT
         ?? 'また、東寺のように、五大明王と呼ばれる、主要な明王の中央に配されることも多い。',
       label: '흉내 낸 목소리',
@@ -498,6 +539,14 @@ ${tallyReport(tally)}`;
     if (await 흉내.alive()) {
       engines.unshift({ label: '흉내', speech: 흉내 });
       console.log('[목소리] 흉내 낸 목소리를 기본으로 쓴다');
+    } else {
+      /* **없어진 걸 없어졌다고 말한다.** 여태 안 떠 있으면 목록에서 조용히 빠졌고, 그건
+         화면에서 「목소리가 회귀했다」로만 보였다(실측 2026-08-08). 오늘 사고 셋(로컬
+         목소리·3D 몸·창)이 전부 이 모양이었다 — 조용한 소실. */
+      console.log(
+        '[목소리] 흉내 낸 목소리(애니 목소리)가 안 떠 있다 — 인터넷/내 컴퓨터 목소리로 간다. ' +
+          '띄우려면: cd memo/life/.models/gpt-sovits && .venv/Scripts/python.exe api_v2.py -a 127.0.0.1 -p 9880',
+      );
     }
 
     engines.push({
@@ -524,9 +573,8 @@ ${tallyReport(tally)}`;
   },
   // 3D 몸 — 게임 저장소 안의 메시를 그 자리에서 읽는다 (복사본 X).
   models: {
-    '욘': process.env.COMPANION_MODEL_YON
-      ?? join(root, '..', '..', '..', 'WitchMendokusai', 'Assets', '_WitchMendokusai',
-              'Domain', 'NPC', 'Human', 'Yawn', 'Mesh', 'Ver2', 'Yawn2.fbx'),
+    // 몸은 게임 저장소 안에 있다 — 사본을 만들지 않고 그 자리에서 읽는다.
+    '욘': process.env.COMPANION_MODEL_YON ?? 욘메시() ?? '',
   },
   // 어떤 머리를 쓸지도 창에서 고른다. 빠른 쪽·깊은 쪽이 필요한 때가 다르다.
   permission: {
@@ -552,10 +600,8 @@ ${tallyReport(tally)}`;
     },
   },
   ears: whisperEars({
-    exePath: process.env.COMPANION_EARS_EXE
-      ?? join(root, '..', '..', 'apps', 'karmolab-tauri', 'target', 'release', 'karmolab-life-ml.exe'),
-    modelDir: process.env.COMPANION_WHISPER_MODEL
-      ?? join(root, '..', '..', '..', 'memo', 'life', '.models', 'whisper-small'),
+    exePath: process.env.COMPANION_EARS_EXE ?? 받아쓰기실행파일() ?? '',
+    modelDir: process.env.COMPANION_WHISPER_MODEL ?? 받아쓰기모델() ?? '',
     log: (m) => console.log(`[귀] ${m}`),
   }),
 });

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { dirname, join } from 'node:path';
 
@@ -13,6 +13,7 @@ import type { Whisper } from '../sense/whisper';
 import { 안넘긴이유 } from '../heard';
 import type { Speech } from '../voice/edge-tts';
 import type { Body, MemoryEntry, Sensation, Sense, Utterance, Voice } from '../types';
+import { 같은저장소사본들, 이저장소 } from '../workspace';
 
 export interface WebBodyOptions {
   channel?: string;
@@ -787,50 +788,26 @@ export function openPinnedWindow(
   url: string,
   size?: { width?: number; height?: number; transparent?: boolean },
 ): Promise<string> {
-  const script = join(dirname(__filename), '..', '..', 'assets', 'pin-window.ps1');
-  // **제 창이 있으면 그걸로 뜬다.** 브라우저 창으로는 창틀·최소화·닫기 단추를 없앨 수
-  // 없고, 배경을 진짜로 뚫을 수도 없다(색 하나를 뚫는 옛 수법은 그림을 GPU 가 그리는
-  // 창에서는 먹지 않는다). 곁에 있는 존재가 제목 표시줄을 달고 있으면 창이지 존재가
-  // 아니다. 이 배선이 한때 있다가 사라져 브라우저 창으로만 뜨고 있었다.
+  /* **제 창(`companion-window.exe`)이 정본이다.**
+   *
+   * 옛날엔 제 창이 없으면 「한 색을 칠하고 그 색을 뚫는」 수법으로 브라우저 창을 투명하게
+   * 흉내 냈다. **그 수법은 원리상 안 먹는다** — 그림을 GPU 가 그리는 창에서는 뚫리지
+   * 않는다. 그래서 실제로 나온 화면이 이랬다(사용자 실측): **바탕이 형광 분홍이고,
+   * 최소화·최대화·닫기 막대가 붙어 있고, 몸은 그 위에서 시커멓게 보인다.**
+   *
+   * 즉 이 폴백은 「없는 것보다 나은 차선」이 아니라 **결과를 더 나쁘게 만드는 길**이었다.
+   * 폐기한다. 제 창이 없으면 분홍칠 없이 평범한 창으로 열고, **왜 그런지 말한다** —
+   * 조용히 이상한 화면을 띄우면 사람이 그걸 고장으로 읽는다. */
   const own = ownWindowExe();
   if (own !== null && size?.transparent !== false) return openOwnWindow(own, url, size);
-  return import('node:child_process').then(
-    ({ execFile }) =>
-      new Promise<string>((resolve) => {
-        if (process.platform !== 'win32') {
-          openBrowser(url);
-          resolve('이 운영체제에선 평범한 브라우저로 열었다');
-          return;
-        }
-        const transparent = size?.transparent === true;
-        // 뚫어낼 색은 **여기 한 곳**에서만 정한다.
-        //
-        // 예전엔 창 띄우는 스크립트가 「페이지가 칠하는 색」이라며 값을 박아 뒀는데,
-        // 페이지는 그 색을 한 번도 칠한 적이 없었다 — 바탕이 투명이라 브라우저가 흰색으로
-        // 칠했고, 뚫을 픽셀이 없으니 창이 통째로 하얬다(실측: 「흰 화면만 보여」).
-        // 계약이 한쪽에만 있으면 이렇게 조용히 깨진다. 색을 한 곳에서 정해 양쪽에 넘긴다.
-        const KEY = 'FF00FE';
-        const target = transparent ? `${url}${url.includes('?') ? '&' : '?'}t=${KEY}` : url;
-        execFile(
-          'powershell',
-          [
-            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
-            '-Url', target,
-            '-Width', String(size?.width ?? 420),
-            '-Height', String(size?.height ?? 640),
-            ...(transparent ? ['-Transparent', '-KeyColor', KEY] : []),
-          ],
-          { timeout: 40_000, windowsHide: true, encoding: 'utf8' },
-          (error, stdout) => {
-            if (error) {
-              openBrowser(url);
-              resolve('창으로 못 띄워서 평범한 브라우저로 열었다');
-              return;
-            }
-            resolve(stdout.trim().split('\n').pop()?.trim() ?? '열었다');
-          },
-        );
-      }),
+
+  openBrowser(url);
+  return Promise.resolve(
+    process.platform !== 'win32'
+      ? '이 운영체제에선 평범한 창으로 열었다'
+      : '제 창(companion-window.exe)이 없어 평범한 창으로 열었다 — 창틀이 보이고 배경도 안 뚫린다. ' +
+        '구우려면: cd apps/karmolab-tauri && cargo build --bin companion-window · ' +
+        '다른 자리에 이미 있으면 COMPANION_WINDOW_EXE 로 알려 줘라',
   );
 }
 
@@ -840,12 +817,25 @@ export function openPinnedWindow(
  * 아직 배포용으로 굽지 않아서 개발 산출물 자리에 있다. 릴리스 자리를 먼저 보고,
  * 없으면 개발 자리를 본다 — 나중에 구우면 손 안 대고 그쪽을 쓴다.
  */
-function ownWindowExe(): string | null {
+export function ownWindowExe(): string | null {
   if (process.platform !== 'win32') return null;
-  const 뿌리 = join(dirname(__filename), '..', '..', '..', '..', 'apps', 'karmolab-tauri', 'target');
-  for (const 자리 of ['release', 'debug']) {
-    const exe = join(뿌리, 자리, 'companion-window.exe');
-    if (existsSync(exe)) return exe;
+
+  // 밖에서 알려 준 자리가 가장 세다.
+  const 알려준것 = process.env.COMPANION_WINDOW_EXE?.trim();
+  if (알려준것 !== undefined && 알려준것 !== '' && existsSync(알려준것)) return 알려준것;
+
+  /* **저장소 위치에 묶지 않는다.**
+   *
+   * 굽는 데 몇 분이 걸리는 물건이라 저장소마다 한 벌씩 있지 않다. 세션이 자기 작업 폴더
+   * (워크트리)에서 얘를 띄우면 그 폴더엔 구운 게 없어서, 여태 조용히 옛 창으로 물러섰다 —
+   * 그 결과가 분홍 바탕 + 창틀이었다. 창 프로그램은 주소만 보고 붙으므로 **어느 저장소의
+   * 것이든 같은 물건**이다. 그러니 이웃 저장소도 본다. */
+  const 후보뿌리 = [이저장소(), ...같은저장소사본들(join('apps', 'karmolab-tauri'))];
+  for (const 뿌리 of 후보뿌리) {
+    for (const 자리 of ['release', 'debug']) {
+      const exe = join(뿌리, 'apps', 'karmolab-tauri', 'target', 자리, 'companion-window.exe');
+      if (existsSync(exe)) return exe;
+    }
   }
   return null;
 }
