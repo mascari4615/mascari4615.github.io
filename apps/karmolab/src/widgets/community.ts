@@ -47,10 +47,17 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         descMaxLength: number;
     }
 
+    /** 익명으로 남긴 글의 얼굴 — 채팅과 같은 하루짜리 이름표다 (TASK-KL-157). */
+    interface AnonFace {
+        name: string;
+        color: string;
+    }
+
     interface Reply {
         id: string;
         text: string;
         authorHandle: string;
+        anon: AnonFace | null;
         createdAt: string;
         byOwner: boolean;
         parentId: string | null;
@@ -64,6 +71,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         title: string | null;
         text: string;
         authorHandle: string;
+        anon: AnonFace | null;
         createdAt: string;
         bumpedAt: string;
         votes: number;
@@ -92,6 +100,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         signedIn: boolean;
         isAdmin: boolean;
         myHandle: string | null;
+        /** 오늘의 내 이름표 — 익명으로 올릴 때 어떤 이름이 나갈지 미리 보여 준다 (KL-157). */
+        myAnon: AnonFace | null;
         canWrite: boolean;
         maxLength: number;
         titleMaxLength: number;
@@ -103,6 +113,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         signedIn: boolean;
         isAdmin: boolean;
         myHandle: string | null;
+        myAnon: AnonFace | null;
         replyMaxLength: number;
     }
 
@@ -167,6 +178,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             background:transparent; color:var(--accent); font:inherit; font-size:var(--font-size-xs);
             font-weight:600; cursor:pointer; }
         .c-newbtn:hover { background:var(--accent); color:var(--bg-primary); }
+
+        /* 익명 이름표 (KL-157) — 채팅에서 쓰던 그 색 그대로. 손잡이(@아무개)와 **다르게** 보여야
+           읽는 사람이 「눌러도 프로필이 없는 이름」임을 바로 안다. */
+        .c-anon { font-weight:700; }
+        .c-anonpick { display:inline-flex; align-items:center; gap:4px; cursor:pointer; user-select:none; }
+        .c-anonpick input { accent-color:var(--accent); margin:0; }
 
         .c-write { display:flex; flex-direction:column; gap:8px; margin-bottom:18px;
             border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px; background:var(--bg-secondary); }
@@ -439,6 +456,20 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     }
 
     /**
+     * 「누가 썼나」를 **한 자리에서** 그린다 (TASK-KL-157).
+     *
+     * 익명이면 얼굴도 손잡이도 없다 — 채팅에서 쓰던 그 이름표를 그 색으로 그대로 쓴다.
+     * 두 곳이 같은 이름으로 보여야 채팅과 게시판이 한 커뮤니티로 읽힌다.
+     * 실명이면 예전 그대로(얼굴 + @손잡이).
+     */
+    function who(author: { authorHandle: string; anon: AnonFace | null }): string {
+        if (author.anon) {
+            return `<span class="c-anon" style="color:${esc(author.anon.color)}">${esc(author.anon.name)}</span>`;
+        }
+        return `${face(author.authorHandle)}<span>@${esc(author.authorHandle)}</span>`;
+    }
+
+    /**
      * 마지막으로 실패한 부름.
      *
      * 「안 돼요」만 보여 주면 사용자도 나도 못 고친다 (레퍼런스: 오류 메시지는 *무엇이·왜·이제
@@ -633,6 +664,21 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     let boards: Board[] = [];
     /** 글쓰기 칸을 펼쳐 두었나 — 다시 그려도 접히지 않게 밖에 둔다. */
     let writerOpen = false;
+
+    /**
+     * 채팅에서 줄을 옮겨 오면 **글쓰기 칸이 펴진 채로** 도착해야 한다 (TASK-KL-157).
+     * 초안만 넣어 두고 접힌 화면을 주면, 옮겨 온 사람은 아무 일도 안 일어난 줄 안다.
+     * 표식은 한 번 쓰고 지운다 — 안 지우면 다음에 커뮤니티를 열 때마다 칸이 펴진다.
+     */
+    function takeWriterHandoff(): void {
+        try {
+            if (localStorage.getItem('karmolab_community_open_writer') !== '1') return;
+            localStorage.removeItem('karmolab_community_open_writer');
+            writerOpen = true;
+        } catch {
+            /* 기억을 못 읽어도 커뮤니티는 그대로 돈다 */
+        }
+    }
     /** 말머리 고치는 칸을 펼쳐 두었나. */
     let tagEditOpen = false;
 
@@ -947,15 +993,56 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 <input type="file" accept="image/*" data-img-input hidden>
             </div>
             <div class="c-write-foot">
-                <span class="c-write-hint"><span data-count>0</span>/${data.maxLength}${
-                    data.myHandle ? ` · @${esc(data.myHandle)} 로 올라갑니다` : ''
-                } · Ctrl+Enter 로 올리기</span>
+                <span class="c-write-hint">
+                    <span data-count>0</span>/${data.maxLength}
+                    ${nameLine(data)}
+                    · Ctrl+Enter 로 올리기
+                </span>
                 <span>
                     <button type="button" class="c-act" data-cancel>접기</button>
                     <button type="submit" class="btn btn-primary">올리기</button>
                 </span>
             </div>
         </form>`;
+    }
+
+    /**
+     * 「어떤 이름으로 올라가는가」를 올리기 **전에** 적는다 (TASK-KL-157).
+     *
+     * 올리고 나서야 알게 되면 되돌릴 수가 없다 — 익명은 특히 그렇다. 로그인한 사람에게는
+     * 고를 칸을, 로그인 안 한 사람에게는 오늘의 이름표를 **그 색 그대로** 보여 준다.
+     */
+    function nameLine(data: { myHandle: string | null; myAnon: AnonFace | null }): string {
+        const anonLabel = data.myAnon
+            ? `<span class="c-anon" style="color:${esc(data.myAnon.color)}">${esc(data.myAnon.name)}</span>`
+            : '오늘의 이름표';
+        if (!data.myHandle) return `· ${anonLabel} 로 올라갑니다 (자정에 바뀝니다)`;
+        return `· <label class="c-anonpick"><input type="checkbox" data-anon> 익명으로</label>
+                <span data-asname data-mine="@${esc(data.myHandle)}">@${esc(data.myHandle)}</span> 로 올라갑니다
+                <template data-anonname>${anonLabel}</template>`;
+    }
+
+    /**
+     * 익명 칸을 켜고 끌 때 **발밑 문구가 같이 바뀐다.**
+     * 칸만 있고 문구가 그대로면 「켠 게 먹혔나」를 올려 보기 전에는 알 수 없다.
+     */
+    function wireNameLine(scope: ParentNode): void {
+        scope.querySelectorAll<HTMLInputElement>('[data-anon]').forEach((box) => {
+            const foot = box.closest('.c-write-foot') ?? box.parentElement?.parentElement;
+            const label = foot?.querySelector<HTMLElement>('[data-asname]');
+            const anonName = foot?.querySelector<HTMLTemplateElement>('[data-anonname]');
+            if (!label || !anonName) return;
+            const mine = label.dataset.mine ?? '';
+            box.addEventListener('change', () => {
+                label.innerHTML = box.checked ? anonName.innerHTML : esc(mine);
+            });
+        });
+    }
+
+    /** 이 작성기가 익명으로 올리기로 되어 있나. 칸이 없으면(로그인 안 함) 늘 익명이다. */
+    function anonChosen(form: HTMLElement | null): boolean {
+        const box = form?.querySelector<HTMLInputElement>('[data-anon]');
+        return box ? box.checked : true;
     }
 
     /** 작성기 안의 손놀림 — 서식 단추·미리보기·초안·단축키·칸 높이. */
@@ -1108,7 +1195,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     <p class="c-invite-head">${head}</p>
                     <p class="c-invite-sub">이런 걸 쓰면 돼요</p>
                     <ul class="c-invite-list">${examples.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>
-                    ${data.signedIn && data.canWrite ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : ''}
+                    ${data.canWrite ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : ''}
                 </div>`;
     }
 
@@ -1133,10 +1220,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                    <button type="button" class="c-sort" data-sort="top" data-on="${data.sort === 'top' ? '1' : '0'}">인기</button>
                </div>`;
 
+        /* 로그인은 이제 **글쓰기의 조건이 아니다** (KL-157) — 익명으로 쓸 수 있다.
+           로그인은 「내 글로 남기기·좋아요·알림」을 위한 것이고, 그건 권유지 문턱이 아니다. */
         let writer = '';
-        if (!data.signedIn) writer = signInBlock('로그인하면 글을 쓰고 답글을 달 수 있습니다.');
-        else if (!data.canWrite) writer = '<p class="c-empty-row">이 판은 주인만 씁니다.</p>';
+        if (!data.canWrite) writer = '<p class="c-empty-row">이 판은 주인만 씁니다.</p>';
         else if (writerOpen) writer = composerHtml(data, isRequest);
+        else if (!data.signedIn) writer = signInBlock('로그인하면 좋아요·알림이 붙고, 쓴 글이 내 것으로 남습니다.');
 
         // 검색·페이지는 주소에 남는다 — 뒤로 가기로 보던 자리에 돌아온다.
         // 이 갤러리 안에서만 거른다. 갤러리를 가리지 않는 검색은 홈의 검색칸이 맡는다.
@@ -1221,7 +1310,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                                   ${p.replyCount ? `<span class="c-cmt">[${p.replyCount}]</span>` : ''}
                               </button>
                           </td>
-                          <td class="c-who"><span>${face(p.authorHandle)}<b>${esc(p.authorHandle)}</b></span></td>
+                          <td class="c-who"><span>${p.anon ? `<span class="c-anon" style="color:${esc(p.anon.color)}">${esc(p.anon.name)}</span>` : `${face(p.authorHandle)}<b>${esc(p.authorHandle)}</b>`}</span></td>
                           <td class="c-when">${stamp(p.bumpedAt)}</td>
                           <td class="c-cnt">${p.views}</td>
                           <td class="c-cnt" data-hot="${hot ? '1' : '0'}">${isRequest ? p.votes : p.likes}</td>
@@ -1328,7 +1417,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     : ''
             }
             <div class="c-bar">${sorts}${
-                data.signedIn && data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
+                data.canWrite && !writerOpen ? '<button type="button" class="c-newbtn" data-new>글쓰기</button>' : '<span></span>'
             }</div>
             ${writer}
             <table class="c-table">
@@ -1456,6 +1545,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                         title,
                         text,
                         tag: writeForm.querySelector<HTMLSelectElement>('[data-tagpick]')?.value || null,
+                        anon: anonChosen(writeForm),
                     }),
                 })) as { id?: string } | null;
                 if (button) button.disabled = false;
@@ -1475,15 +1565,18 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 void send();
             });
             wireComposer(writeForm, data.board, () => void send());
+            wireNameLine(writeForm);
         }
     }
 
     /* ===== 글 하나 ===== */
 
     function renderReply(reply: Reply, data: DetailResponse): string {
-        const canDelete = data.isAdmin || (data.myHandle !== null && data.myHandle === reply.authorHandle);
+        // 익명 답글은 손잡이가 비어 있다 — 「빈 손잡이끼리 같다」로 남의 글이 지워지면 안 된다.
+        const canDelete =
+            data.isAdmin || (reply.anon === null && data.myHandle !== null && data.myHandle === reply.authorHandle);
         return `<li class="c-reply" data-child="${reply.parentId ? '1' : '0'}" data-owner="${reply.byOwner ? '1' : '0'}">
-            <div class="c-reply-head">${face(reply.authorHandle)}<span>@${esc(reply.authorHandle)}</span>
+            <div class="c-reply-head">${who(reply)}
                 ${reply.byOwner ? '<span class="c-tag">주인</span>' : ''}<span class="c-dot">${relativeTime(reply.createdAt)}</span></div>
             <div class="c-reply-body md">${renderMarkdown(reply.text)}</div>
             <div class="c-reply-foot">
@@ -1527,13 +1620,15 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                   .join('')
             : '<li class="c-empty-row">아직 답글이 없습니다.</li>';
 
-        const replyForm = data.signedIn
-            ? `<form class="c-write" data-reply-form>
+        /* 답글도 익명으로 단다 (KL-157). 예전엔 로그인해야만 이 칸이 떴다 — 채팅에서 넘어온
+           사람이 대화에 못 끼는 자리가 바로 여기였다. */
+        const replyForm = `<form class="c-write" data-reply-form>
                    <textarea name="cReply" data-reply-text maxlength="${data.replyMaxLength}" placeholder="답글 달기" aria-label="답글" required></textarea>
-                   <div class="c-write-foot"><span class="c-write-hint" data-reply-target></span>
+                   <div class="c-write-foot">
+                       <span class="c-write-hint" data-reply-target></span>
+                       <span class="c-write-hint">${nameLine(data)}</span>
                        <button type="submit" class="btn btn-primary">답글</button></div>
-               </form>`
-            : signInBlock('로그인하면 답글을 달 수 있습니다.');
+               </form>`;
 
         host.innerHTML = `<div class="c-wrap">
             <div class="c-crumb"><button type="button" class="c-linkbtn" data-back>← ${esc(board?.label ?? '목록')}</button></div>
@@ -1541,7 +1636,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 <h2 class="c-post-title">${detailIsIssue && post.seq ? `<span class="c-seq">#${post.seq}</span> ` : ''}${post.tag ? `<span class="c-headword">[${esc(post.tag)}]</span> ` : ''}${esc(post.title ?? preview(post.text, 60))}
                     ${detailIsIssue && post.status !== 'open' ? `<span class="c-tag" data-status="${esc(post.status)}">${detailLabels[post.status]}</span>` : ''}
                     ${post.pinned ? '<span class="c-tag">고정</span>' : ''}</h2>
-                <div class="c-post-meta">${face(post.authorHandle)}<span>@${esc(post.authorHandle)}</span>
+                <div class="c-post-meta">${who(post)}
                     <span class="c-dot">${relativeTime(post.createdAt)}</span>
                     <span class="c-dot">조회 ${post.views}</span></div>
                 ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
@@ -1712,6 +1807,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             }
         });
 
+        wireNameLine(host);
+
         host.querySelector<HTMLFormElement>('[data-reply-form]')?.addEventListener('submit', async (event) => {
             event.preventDefault();
             const text = (textarea?.value ?? '').trim();
@@ -1721,7 +1818,11 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             const ok = await api(`/kl/posts/${encodeURIComponent(post.id)}/replies`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, parentId: replyTo }),
+                body: JSON.stringify({
+                    text,
+                    parentId: replyTo,
+                    anon: anonChosen(event.currentTarget as HTMLFormElement),
+                }),
             });
             if (button) button.disabled = false;
             if (!ok) {
@@ -1742,6 +1843,7 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
      */
     async function render(): Promise<void> {
         if (!host) return;
+        takeWriterHandoff();
         if (host.childElementCount === 0) host.innerHTML = '<p class="c-empty-row">불러오는 중…</p>';
 
         if (boards.length === 0) {

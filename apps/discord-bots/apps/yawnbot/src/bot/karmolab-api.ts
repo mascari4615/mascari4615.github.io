@@ -1674,7 +1674,12 @@ export function registerKarmolabApi(
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
-      canWrite: Boolean(account) && (!gallery.ownerOnly || isAdminAccount(account)),
+      /* 오늘의 내 이름표 — 익명으로 올릴 때 **미리** 보여 준다 (TASK-KL-157).
+         올리고 나서야 어떤 이름으로 나갔는지 알게 되면 되돌릴 수가 없다. */
+      myAnon: anonFaceFor(req),
+      /* 로그인 없이도 쓴다 (익명). 공지판만 주인 몫으로 남는다 —
+         예전에는 여기서 로그인을 요구해서, 채팅으로 들어온 사람이 글은 못 쓰는 턱이 있었다. */
+      canWrite: !gallery.ownerOnly || isAdminAccount(account),
       maxLength: maxLenFor(gallery),
       titleMaxLength: TITLE_MAX_LEN,
       replyMaxLength: REPLY_MAX_LEN,
@@ -1715,6 +1720,7 @@ export function registerKarmolabApi(
       signedIn: Boolean(account),
       isAdmin: isAdminAccount(account),
       myHandle: account?.handle ?? null,
+      myAnon: anonFaceFor(req),
       replyMaxLength: REPLY_MAX_LEN,
     });
   });
@@ -1773,8 +1779,12 @@ export function registerKarmolabApi(
     /* 따라가는 사람들에게 알린다 (TASK-KL-156 D3).
      * 종은 있었지만 울릴 일이 커뮤니티(내 글에 달린 답글)뿐이었다 — 따라가기를 만들어 놓고
      * 새 글이 안 오면 그 따라가기는 아무 일도 안 하는 단추다.
-     * 막은 사이는 `followerIdsOf` 에서 이미 빠져 나온다. */
-    for (const followerId of store.followerIdsOf(account.handle)) {
+     * 막은 사이는 `followerIdsOf` 에서 이미 빠져 나온다.
+     *
+     * **익명 글은 안 알린다** (TASK-KL-157). 「아무개 님의 새 글」이 나가는 순간 그 글이
+     * 누구 것인지 팔로워 전원에게 드러난다 — 익명을 고른 뜻이 거기서 무너진다.
+     * 로그인 안 한 사람은 `account` 자체가 없다(예전엔 여기가 로그인 필수라 없을 수 없었다). */
+    for (const followerId of account && !writer.anon ? store.followerIdsOf(account.handle) : []) {
       notes.notify({
         accountId: followerId,
         source: 'follow',
@@ -2417,6 +2427,11 @@ export function registerKarmolabApi(
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
+    /* **자취를 남긴다.** 여기로는 몸통이 깨진 요청만 오는 게 아니라 라우트 안에서 터진 것도
+     * 전부 온다. 그런데 답은 늘 `bad_request` 한 마디라, 서버가 터진 것을 「잘못 보냈다」로
+     * 읽게 된다 — 실제로 익명 글쓰기를 붙이다가 이것 때문에 원인을 못 찾고 헤맸다.
+     * 사용자에게 나가는 답은 그대로 두되, 로그에는 무엇이 터졌는지 그대로 적는다. */
+    console.error(`[karmolab-api] ${req.method} ${req.path} 에서 터졌다:`, error?.stack ?? error);
     const tooBig = error.status === 413 || error.type === 'entity.too.large';
     res.status(tooBig ? 413 : 400).json({
       error: tooBig ? 'too_big' : 'bad_request',
