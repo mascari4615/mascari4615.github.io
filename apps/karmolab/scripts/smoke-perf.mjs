@@ -85,7 +85,24 @@ const BUDGET = {
      없느니만 못하다(있으면 사람들이 무시하는 법을 배운다). 숫자는 눈으로 보라고 찍는다. */
 };
 
-const browser = await chromium.launch();
+/* 브라우저가 없으면 **「못 돌린다」**고 말하고 비켜 준다 (2026-08-08 실측 사고).
+ *
+ * 이 검사는 `npm run build` 안에 있어서 **배포 길목**이다. 배포 러너에는 Playwright 브라우저를
+ * 안 깔아 두는데, 여기서 그냥 죽는 바람에 **배포가 세 판 연속 빨강**이었다 — 그동안 올린
+ * 코드가 사람 화면에 하나도 안 닿았다(조각 다섯이 404). 위쪽 「js 가 없으면 못 돌림」과 같은
+ * 규칙이다: 없는 것을 두고 「통과」도 「실패」도 거짓말이고, **막는 자리가 답을 더 나쁘게
+ * 만들면 안 된다**. 브라우저가 있는 자리(라이브 점검)에서는 그대로 돈다. */
+let browser;
+try {
+  browser = await chromium.launch();
+} catch (error) {
+  const why = String(error && error.message ? error.message : error);
+  if (/Executable doesn't exist|playwright install/i.test(why)) {
+    console.log('[smoke-perf] 못 돌림 — 이 기계에 브라우저가 없다 (`npx playwright install chromium`)');
+    process.exit(0);
+  }
+  throw error;
+}
 
 /** 화면 하나를 재고 결과를 돌려준다. */
 async function measurePage(url) {
