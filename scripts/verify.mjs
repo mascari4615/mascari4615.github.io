@@ -171,6 +171,12 @@ if (existsSync('apps/blog/node_modules')) {
 //    루트 node_modules(workspace hoist) 있으면 실행 — verify 가 karmolab build 하므로 사실상 상존.
 if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsconfig.json')) {
   run('yawnbot build (tsc)', 'apps/discord-bots/apps/yawnbot', 'npx tsc -p tsconfig.json');
+  /* 타입만 보면 **라우트가 통째로 사라진 것**은 안 잡힌다 (TASK-KL-153).
+   * 실제로 그랬다: 한 세션이 `karmolab-api.ts` 를 통째로 덮어쓰면서 다른 세션이 넣은
+   * 라우트 두 개가 조용히 없어졌고, 타입도 배포도 초록이었다 — 사람 화면에서만 404 였다.
+   * 그 라우트를 찌르는 시험은 이미 있었는데 **아무 관문도 그걸 안 돌리고 있었다.**
+   * 배포(노트북) 는 tsc 만 본다. 그래서 여기서 돈다. */
+  run('yawnbot 시험 (라우트가 사라져도 잡히게)', 'apps/discord-bots/apps/yawnbot', 'npx vitest run');
 } else {
   console.log('[verify] ! yawnbot build skip — node_modules/tsconfig 부재 (CI deploy-discord-bots 가 정본 게이트)');
 }
@@ -183,6 +189,12 @@ if (existsSync('packages/companion/node_modules')) {
 } else {
   console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
 }
+
+// 5.6. 「동반자」 위젯이 실제로 봇에 붙는지 (TASK-KAR-201 / KarmoLab 몸).
+//      이 위젯의 값은 전부 다른 프로세스와의 경계(포트·CORS·응답 모양)에 있어서,
+//      화면만 그려도 빌드·단위는 초록이다. 봇이 안 떠 있으면 스스로 건너뛴다 —
+//      전제가 없는 것과 고장은 다르다.
+run('동반자 위젯 ↔ 봇 (봇 없으면 skip)', 'apps/karmolab', 'node scripts/smoke-companion.mjs');
 
 // 5.7. apps/daily — 「오늘의 하나 맞히기」 규칙 시험 (TASK-KAR-202). 의존성 0 이라
 //      npm ci 도 필요 없다. 어떤 앱도 이걸 import 하지 않으므로 여기 안 걸면 규칙이
