@@ -572,6 +572,7 @@ const Toolbox = (() => {
     }
 
 
+
     function getWidgetScriptBase() {
         const b = typeof window !== 'undefined' && window.KARMOLAB_WIDGET_SCRIPT_BASE;
         if (b) return b;
@@ -1161,45 +1162,25 @@ const Toolbox = (() => {
     let toolCountsPromise = null;
 
     function toolCountsOnce() {
-
         if (toolCountsPromise) return toolCountsPromise;
-
         const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-
         /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
-
          * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
-
          * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
-
         if (!base) return Promise.resolve({});
-
         toolCountsPromise = (async () => {
-
             try {
-
                 const response = await fetch(base + '/kl/tools/stats');
-
                 if (!response.ok) return {};
-
                 const data = await response.json();
-
                 const map = {};
-
                 for (const row of data.tools || []) map[row.toolId] = row;
-
                 return map;
-
             } catch (_) {
-
                 return {};
-
             }
-
         })();
-
         return toolCountsPromise;
-
     }
 
     function whenApiBase(timeoutMs = 6000) {
