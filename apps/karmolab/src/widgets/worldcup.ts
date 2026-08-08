@@ -36,6 +36,9 @@ interface Runner {
  * 「표를 먼저 만드세요」는 놀러 온 사람에게 숙제를 내미는 것이다 — 일단 한 판 해 보고
  * 재밌으면 자기 표를 만든다. 표는 「높은 쪽 고르기」가 쓰던 것을 그대로 쓴다(그림이 다 있다).
  */
+/** 지난 우승자들끼리 붙이는 판 (TASK-KL-151 심화). 표가 아니라 **내 기록**이 재료다. */
+const CHAMPIONS_KEY = 'champions';
+
 const BUILTIN = [
   { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
   { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
@@ -225,6 +228,15 @@ interface Match {
            */
           function loadChoices(): void {
             // 처음부터 있는 표를 **맨 앞에** 둔다 — 처음 온 사람이 바로 한 판 할 수 있어야 한다.
+            /* 지난 우승자들끼리 (TASK-KL-151 심화).
+               왜: 표를 여러 번 돌리면 우승자가 쌓이는데, 그것들끼리 붙여 보고 싶어지는 게
+               이 놀이의 자연스러운 다음 수다. 재료가 이미 이 브라우저에 있으니 새로 받을 것이 없다.
+               넷은 모여야 판이 선다 — 둘로는 「토너먼트」가 아니다. */
+            const champions = readHistory();
+            const uniqueChampions = champions.filter(
+              (h, i) => h.img && champions.findIndex((x) => x.champion === h.champion) === i
+            );
+
             const builtins: typeof choices = BUILTIN.map((b) => ({
               key: `builtin:${b.id}`,
               title: b.title,
@@ -234,7 +246,20 @@ interface Match {
               runners: 128,
               builtin: b.id,
             }));
-            choices = builtins.concat(
+            const championChoice: typeof choices =
+              uniqueChampions.length >= 4
+                ? [
+                    {
+                      key: `builtin:${CHAMPIONS_KEY}`,
+                      title: `지난 우승자들 (${uniqueChampions.length})`,
+                      emoji: '👑',
+                      runners: uniqueChampions.length,
+                      builtin: CHAMPIONS_KEY,
+                    },
+                  ]
+                : [];
+
+            choices = championChoice.concat(builtins).concat(
               loadPacks()
                 .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, local: p }))
                 .filter((c) => c.runners >= 4)
@@ -260,6 +285,12 @@ interface Match {
 
           /** 표를 실제 항목으로 편다. 남의 표는 이때 이 브라우저로 들인다(이어받기와 같은 문). */
           async function runnersFor(choice: (typeof choices)[number]): Promise<Runner[]> {
+            if (choice.builtin === CHAMPIONS_KEY) {
+              const seen = readHistory();
+              return seen
+                .filter((h, i) => h.img && seen.findIndex((x) => x.champion === h.champion) === i)
+                .map((h) => ({ name: h.champion, img: h.img }));
+            }
             if (choice.builtin) {
               const got = await fetch(`/apps/karmolab/data/higher-${choice.builtin}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
               const items: Array<{ n: string; i?: string }> = got && Array.isArray(got.items) ? got.items : [];
@@ -353,7 +384,20 @@ interface Match {
               .then((r) => (r.ok ? r.json() : null))
               .then((body: { tally?: Array<{ name: string; rate: number; seen: number; champion: number }> } | null) => {
                 if (!container.isConnected || !body || !body.tally || !body.tally.length) return;
+                /* 나 vs 남 (TASK-KL-151 심화) — 「내 우승이 남들과 같나 다르나」가 이 놀이의
+                   진짜 재미다. 우승 횟수 합이 곧 지금까지 돌린 판 수다(따로 안 센다). */
+                const totalRuns = body.tally.reduce((sum, t) => sum + (t.champion ?? 0), 0);
+                const mine = body.tally.filter((t) => t.name === champion.name)[0];
+                const taste =
+                  totalRuns >= 2 && mine
+                    ? `<p class="tool-status">지금까지 ${totalRuns}판 중 <b>${Math.round(
+                        ((mine.champion ?? 0) / totalRuns) * 100
+                      )}%</b> 가 ${esc(champion.name)} 를 뽑았습니다 — ${
+                        (mine.champion ?? 0) * 2 >= totalRuns ? '다수파네요.' : '취향이 남다릅니다.'
+                      }</p>`
+                    : '';
                 $('wcTally').innerHTML =
+                  taste +
                   `<div class="tool-sublabel">이 표의 인기 (실제로 붙어 본 판만)</div>` +
                   `<ol style="list-style:none;padding:0;margin:6px 0 0">` +
                   body.tally
