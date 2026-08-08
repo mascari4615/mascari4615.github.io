@@ -334,3 +334,25 @@ describe('처음부터 있는 표', () => {
     expect(new KarmolabPackStore(statePath, dir).list()).toEqual([]);
   });
 });
+
+describe('씨앗 표의 글자 칸', () => {
+  it('갈래 같은 글자 칸도 그대로 온다 (숫자로 읽으면 값이 통째로 빠진다)', () => {
+    const dir = path.join(tmpRoot, 'site-data2');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'worldcup-tools.json'),
+      JSON.stringify({
+        title: 'KarmoLab 도구 월드컵',
+        emoji: '🧰',
+        fields: [{ key: 'cat', label: '갈래', kind: 'category' }],
+        items: [1, 2, 3, 4].map((n) => ({ n: `도구${n}`, i: `https://example.com/${n}.jpg`, v: { cat: '도구' } }))
+      }),
+      'utf-8'
+    );
+    const s = new KarmolabPackStore(statePath, dir);
+    const made = s.list()[0];
+    expect(made.title).toBe('KarmoLab 도구 월드컵');
+    expect(made.images).toBe(4);
+    expect(s.get(made.id)!.items[0].cat).toBe('도구');
+  });
+});

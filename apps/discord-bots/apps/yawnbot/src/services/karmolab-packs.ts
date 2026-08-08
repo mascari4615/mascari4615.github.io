@@ -258,6 +258,8 @@ const SEED_TABLES = [
   { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴' },
   { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️' },
   { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠' },
+  // 남의 그림을 퍼다 심을 수는 없다 — 이건 **우리가 구운** 도구 공유 카드로 만든 표다.
+  { file: 'worldcup-tools.json', fallbackTitle: 'KarmoLab 도구 월드컵', emoji: '🧰' },
 ];
 
 /** 사이트 표(`{n,i,v}`)를 우리 표 모양(`{name,img,...}`)으로. 모양이 다르면 새로 만들지 않는다. */
@@ -270,7 +272,10 @@ function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: Pa
   const fields: PackField[] = rawFields.map((one) => {
     const f = (one ?? {}) as Record<string, unknown>;
     const unit = String(f.unit ?? '').trim();
-    return { key: String(f.key ?? ''), label: String(f.label ?? ''), kind: 'number' as const, ...(unit ? { unit } : {}) };
+    /* 사이트 표는 원래 숫자 칸만 있었다(높은 쪽 고르기용). 이제 갈래 같은 글자 칸도 오므로
+       **적혀 있으면 그대로 믿는다** — 안 그러면 「도구」가 숫자로 읽혀 값이 통째로 빠진다. */
+    const kind = f.kind === 'category' || f.kind === 'set' ? f.kind : 'number';
+    return { key: String(f.key ?? ''), label: String(f.label ?? ''), kind, ...(unit ? { unit } : {}) };
   });
 
   const items: PackItem[] = rawItems.map((one) => {
@@ -279,8 +284,18 @@ function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: Pa
     const item: PackItem = { name: String(it.n ?? '') };
     if (it.i) item.img = String(it.i);
     for (const field of fields) {
-      const value = Number(values[field.key]);
-      if (Number.isFinite(value)) item[field.key] = value;
+      const raw = values[field.key];
+      if (raw === undefined || raw === null) continue;
+      if (field.kind === 'number') {
+        const value = Number(raw);
+        if (Number.isFinite(value)) item[field.key] = value;
+      } else if (field.kind === 'set') {
+        const list = (Array.isArray(raw) ? raw : String(raw).split(/[,·]/)).map((v) => String(v).trim()).filter(Boolean);
+        if (list.length) item[field.key] = list;
+      } else {
+        const text = String(raw).trim();
+        if (text) item[field.key] = text;
+      }
     }
     return item;
   });
