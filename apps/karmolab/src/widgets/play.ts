@@ -41,6 +41,7 @@ import { loadPacks } from './pack-store';
             <div class="pl-grid" id="plGrid"></div>
             <!-- 표를 사람이 만들 수 있게 됐는데 **거기로 가는 문이 없었다** — 주소를 아는
                  사람만 닿았다. 놀이 다음 자리가 그 문이다(놀이의 재료가 표이므로). -->
+            <section class="pl-mine" id="plWell"></section>
             <section class="pl-mine" id="plMine"></section>
           `;
           const grid = container.querySelector<HTMLElement>('#plGrid')!;
@@ -54,6 +55,7 @@ import { loadPacks } from './pack-store';
             paintCourse(games);
             paint(games);
             paintMine();
+            paintWell();
           };
           /* 화면을 바꾸는 일은 주소가 아니라 **이 칸에 붙는 표시**로 일어난다(pushState 라
            * hashchange 가 안 온다 — 그걸로 걸었더니 안 돌았다). 그 표시가 켜지는 것을 본다.
@@ -150,6 +152,35 @@ import { loadPacks } from './pack-store';
           const esc = (s: string): string =>
             String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+          /**
+           * 오늘의 표 (TASK-KL-153) — 바깥 우물에서 매일 한 벌.
+           *
+           * 왜 여기인가: 놀이의 재료는 표인데, 표를 **만드는** 사람만 새 재료를 얻었다.
+           * 길어 오는 문이 놀이터 안에 없으면 우물을 파 놓고 아무도 안 들어간다.
+           * 서버가 날짜(KST)로 고르므로 오늘은 누구에게나 같은 표다 — 그래야 겨룰 수 있다.
+           *
+           * fail-open: 못 닿으면 이 줄만 없다. 놀이터는 그대로다.
+           */
+          function paintWell(): void {
+            const box = container.querySelector<HTMLElement>('#plWell')!;
+            fetch('https://yawnbot.mascari4615.com/kl/wells')
+              .then((r) => (r.ok ? r.json() : null))
+              .then((body: { wells?: Array<{ id: string; title: string; emoji: string }>; today?: string } | null) => {
+                if (!body || !container.isConnected) return;
+                const today = (body.wells || []).filter((w) => w.id === body.today)[0];
+                if (!today) return;
+                box.innerHTML =
+                  `<div class="pl-mine-head"><strong>오늘의 표</strong>` +
+                  `<button type="button" class="btn btn-ghost" id="plWellGo">길어 오기</button></div>` +
+                  `<div class="pl-chips"><span class="pl-chip">${esc(today.emoji)} ${esc(today.title)}</span></div>` +
+                  `<p class="pl-course-note">바깥에서 길어 온 표는 담는 순간 놀이 셋이 그대로 씁니다 — 같은 표로 논 사람끼리 순위가 매겨집니다.</p>`;
+                box.querySelector('#plWellGo')!.addEventListener('click', () => Toolbox.switchPage('packwell'));
+              })
+              .catch(() => {
+                /* 우물에 못 닿으면 이 줄만 없다 */
+              });
+          }
+
           /** 내가 만든 표 — 있으면 늘어놓고, 없으면 만들러 가는 문 하나. */
           function paintMine(): void {
             const box = container.querySelector<HTMLElement>('#plMine')!;
@@ -197,6 +228,7 @@ import { loadPacks } from './pack-store';
               paintCourse(j.games);
               paint(j.games);
               paintMine();
+              paintWell();
               games = j.games;
             })
             .catch(() => {

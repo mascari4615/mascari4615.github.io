@@ -38,6 +38,14 @@ export interface Pack {
   sharedId?: string;
   /** 서버에 있는 표를 이어받았다면 그 주인 — 「누가 만든 표인가」를 화면이 말할 수 있게. */
   sharedBy?: string;
+  /**
+   * 바깥 우물에서 길어 온 표면 그 우물 id (`steam-hot`·`anime-top` …) — TASK-KL-153.
+   *
+   * 왜 따로 두나: 같은 우물에서 길어 온 표는 **누가 담았든 같은 표**다. 그래서 순위판을
+   * 이걸로 가르면 서로 겨룰 수 있다(`variantFor`). 브라우저마다 다른 `id` 로 가르면
+   * 백 명이 각자 혼자 1등이 된다.
+   */
+  well?: string;
 }
 
 const KEY = 'karmolab_packs';

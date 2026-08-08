@@ -1,22 +1,14 @@
 /**
- * 바깥에서 표를 길어 온다 — 첫 우물은 스팀 (TASK-KL-153).
+ * 스팀 우물 — 바깥 숫자를 표로 옮기는 규칙 (TASK-KL-153).
  *
- * 왜 있나: 놀이(높은 쪽 고르기·이상형 월드컵·티어표)의 재미는 놀이 방식이 아니라 **표**에서
- * 온다. 그런데 표는 지금까지 ① 우리가 손으로 넣은 셋(포켓몬·롤·원신) ② 사람이 붙여넣기로
- * 만든 것 뿐이었다. 둘 다 **사람이 타이핑한 만큼만** 늘어난다 — 놀이 여섯이 콘텐츠에 굶는다.
- * 바깥 세상은 이미 숫자로 된 표를 갖고 있다. 길어 오기만 하면 놀이가 그날로 몇 배가 된다.
+ * 이 파일은 **변환만** 안다. 길어 오기·캐시·바깥이 죽었을 때는 `karmolab-wells.ts` 가
+ * 우물 전부를 대신 진다 — 두 번째 우물이 생기는 순간 그 셋을 베껴 쓰게 되기 때문이다.
  *
- * 왜 서버가 하나: 스팀 쪽 주소들은 **CORS 헤더를 안 준다**(실측 2026-08-08 —
+ * 왜 서버를 거치나: 스팀 쪽 주소들은 **CORS 헤더를 안 준다**(실측 2026-08-08 —
  * steamspy.com/api.php · store.steampowered.com 둘 다 `access-control-allow-origin` 없음).
- * 브라우저에서 직접 부르면 무조건 막힌다. 그래서 통로가 필요하고, 통로가 생긴 김에
- * **캐시**도 여기가 진다 — SteamSpy 의 top100 은 60초에 한 번만 받아 준다. 100명이 놀이를
- * 열어도 바깥으로 나가는 요청은 6시간에 한 번이다.
+ * 브라우저에서 직접 부르면 무조건 막힌다.
  *
- * 열쇠(Steam Web API key)는 **안 쓴다**. 여기 쓰는 두 곳은 열쇠 없이 열린다. 열쇠가 필요한
- * 것(내 서재·내 플레이시간)은 나중 일이고, 없다고 이 기능이 멈추지는 않는다.
- *
- * 실패했을 때: **마지막으로 성공한 표를 그대로 준다**(stale-on-error). 바깥이 잠깐 죽었다고
- * 놀이가 같이 죽으면 안 된다 — 어제 숫자로 노는 건 아무 문제가 없다.
+ * 열쇠(Steam Web API key)는 **안 쓴다**. 여기 쓰는 곳은 열쇠 없이 열린다.
  */
 
 /** 브라우저 쪽 `pack-store.ts` 와 **같은 모양**. 새 모양을 만들면 그날부터 갈라진다. */
@@ -173,75 +165,4 @@ export function toPack(source: SteamSourceId, raw: unknown, fetchedAt = new Date
     fetchedAt: fetchedAt.toISOString(),
     stale: false,
   };
-}
-
-type Fetcher = (url: string) => Promise<unknown>;
-
-async function defaultFetcher(url: string): Promise<unknown> {
-  const control = new AbortController();
-  const timer = setTimeout(() => control.abort(), FETCH_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { signal: control.signal, headers: { 'User-Agent': 'karmolab/1.0 (+https://mascari4615.github.io)' } });
-    if (!res.ok) throw new Error(`steamspy ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-interface CacheEntry {
-  pack: SteamPack;
-  at: number;
-}
-
-/**
- * 우물 하나당 표 하나를 쥐고 있는다.
- *
- * 왜 클래스인가: 시험이 **시계와 바깥을 갈아 끼울 수 있어야** 한다. 전역 변수로 캐시를 두면
- * 시험이 서로의 캐시를 물려받아 「혼자 돌리면 초록, 같이 돌리면 빨강」이 된다.
- */
-export class SteamPackStore {
-  private cache = new Map<SteamSourceId, CacheEntry>();
-  private inflight = new Map<SteamSourceId, Promise<SteamPack>>();
-
-  constructor(
-    private readonly fetcher: Fetcher = defaultFetcher,
-    private readonly now: () => number = () => Date.now(),
-    private readonly ttlMs: number = CACHE_MS,
-  ) {}
-
-  /** 캐시에 있는 표. 없으면 null — 화면 붙이는 쪽이 기다릴지 말지 정한다. */
-  peek(source: SteamSourceId): SteamPack | null {
-    return this.cache.get(source)?.pack ?? null;
-  }
-
-  async get(source: SteamSourceId): Promise<SteamPack> {
-    const hit = this.cache.get(source);
-    if (hit && this.now() - hit.at < this.ttlMs) return hit.pack;
-
-    // 같은 순간에 열 명이 열어도 바깥으로는 한 번만 나간다.
-    const running = this.inflight.get(source);
-    if (running) return running;
-
-    const task = this.refresh(source).finally(() => this.inflight.delete(source));
-    this.inflight.set(source, task);
-    return task;
-  }
-
-  private async refresh(source: SteamSourceId): Promise<SteamPack> {
-    const spec = STEAM_SOURCES[source];
-    try {
-      const raw = await this.fetcher(`https://steamspy.com/api.php?request=${spec.request}`);
-      const pack = toPack(source, raw, new Date(this.now()));
-      // 항목이 넷도 안 되면 **성공이 아니다**. 이걸 캐시에 넣으면 여섯 시간 동안 못 노는 표를 준다.
-      if (pack.items.length < MIN_ITEMS) throw new Error(`steamspy ${source}: 항목 ${pack.items.length}개`);
-      this.cache.set(source, { pack, at: this.now() });
-      return pack;
-    } catch (err) {
-      const stale = this.cache.get(source);
-      // 바깥이 죽었다 — 어제 숫자로 노는 건 아무 문제가 없다. 진짜로 아무것도 없을 때만 던진다.
-      if (stale) return { ...stale.pack, stale: true };
-      throw err;
-    }
-  }
 }

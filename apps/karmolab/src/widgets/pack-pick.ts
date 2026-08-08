@@ -20,6 +20,15 @@ export function takePick(): string | null {
   }
 }
 
+/** 놀이로 표를 밀어 넣는다 — 표를 만든 쪽·길어 온 쪽이 부른다. */
+export function putPick(id: string): void {
+  try {
+    localStorage.setItem(PICK, id);
+  } catch {
+    /* 못 남겨도 놀이는 열린다 — 표만 손으로 고르면 된다 */
+  }
+}
+
 /** 이 위젯의 화면이 다시 보일 때마다 부른다. 뒷정리는 Toolbox 가 맡는다. */
 export function onPageActive(container: HTMLElement, fn: () => void): void {
   const eye = new MutationObserver((recs) => {

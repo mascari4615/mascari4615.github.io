@@ -1,19 +1,12 @@
 /**
- * TASK-KL-153 — 바깥에서 길어 온 표 시험.
+ * TASK-KL-153 — 스팀 숫자를 표로 옮기는 규칙 시험.
  *
  * 바깥은 **우리 것이 아니다.** 그래서 「잘 오면 되나」보다 「이상하게 오면 어떻게 되나」를
- * 먼저 묻는다: 빈 이름 · 겹치는 이름 · 표본 세 개짜리 평점 · 죽은 응답 · 동시에 열 명.
+ * 먼저 묻는다: 빈 이름 · 겹치는 이름 · 표본 세 개짜리 평점 · 표가 아닌 응답.
+ * (길어 오기·캐시·바깥이 죽었을 때 = `karmolab-wells.test.ts` — 우물 전부의 공통이다.)
  */
-import { describe, it, expect, vi } from 'vitest';
-import {
-  SteamPackStore,
-  toPack,
-  ownersFloor,
-  likeRatio,
-  priceUsd,
-  headerImage,
-  isSteamSourceId,
-} from './karmolab-steam';
+import { describe, it, expect } from 'vitest';
+import { toPack, ownersFloor, likeRatio, priceUsd, headerImage, isSteamSourceId } from './karmolab-steam';
 
 const row = (over: Record<string, unknown> = {}) => ({
   appid: 570,
@@ -25,14 +18,6 @@ const row = (over: Record<string, unknown> = {}) => ({
   price: '0',
   ccu: 500_000,
   ...over,
-});
-
-/** 항목 넷은 넘어야 놀이가 된다 — 캐시 규칙을 건드리지 않는 최소 표. */
-const enough = () => ({
-  a: row({ appid: 1, name: 'A' }),
-  b: row({ appid: 2, name: 'B' }),
-  c: row({ appid: 3, name: 'C' }),
-  d: row({ appid: 4, name: 'D' }),
 });
 
 describe('숫자 읽기', () => {
@@ -102,79 +87,5 @@ describe('표 만들기', () => {
     expect(pack.fields.map((f) => f.key)).toEqual(['ccu', 'rating', 'owners', 'price', 'dev']);
     expect(pack.fields.filter((f) => f.kind === 'number')).toHaveLength(4);
     expect(pack.title).toContain('스팀');
-  });
-});
-
-describe('길어 오기 · 캐시', () => {
-  it('여섯 시간 안에는 바깥으로 안 나간다', async () => {
-    const fetcher = vi.fn().mockResolvedValue(enough());
-    let now = 1_000_000;
-    const store = new SteamPackStore(fetcher, () => now, 6 * 3600e3);
-
-    await store.get('hot');
-    await store.get('hot');
-    expect(fetcher).toHaveBeenCalledTimes(1);
-
-    now += 6 * 3600e3 + 1;
-    await store.get('hot');
-    expect(fetcher).toHaveBeenCalledTimes(2);
-  });
-
-  it('동시에 열 명이 열어도 바깥으로는 한 번만 나간다', async () => {
-    let release: (v: unknown) => void = () => {};
-    const fetcher = vi.fn().mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          release = resolve;
-        }),
-    );
-    const store = new SteamPackStore(fetcher, () => 0);
-    const all = Promise.all(Array.from({ length: 10 }, () => store.get('hot')));
-    release(enough());
-    const packs = await all;
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(packs.every((p) => p.items.length === 4)).toBe(true);
-  });
-
-  it('바깥이 죽으면 지난 표를 준다 — 어제 숫자로 노는 건 문제가 아니다', async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce(enough()).mockRejectedValue(new Error('steamspy 503'));
-    let now = 0;
-    const store = new SteamPackStore(fetcher, () => now, 1000);
-
-    const fresh = await store.get('hot');
-    expect(fresh.stale).toBe(false);
-
-    now += 5000;
-    const stale = await store.get('hot');
-    expect(stale.stale).toBe(true);
-    expect(stale.items).toHaveLength(4);
-  });
-
-  it('한 번도 성공한 적이 없으면 숨기지 않고 던진다', async () => {
-    const store = new SteamPackStore(vi.fn().mockRejectedValue(new Error('steamspy 503')), () => 0);
-    await expect(store.get('hot')).rejects.toThrow('503');
-  });
-
-  it('놀이가 안 되는 표는 캐시에 안 넣는다 — 넣으면 여섯 시간 동안 못 논다', async () => {
-    const fetcher = vi
-      .fn()
-      .mockResolvedValueOnce({ '1': row({ appid: 1, name: 'A' }) }) // 항목 1개
-      .mockResolvedValue(enough());
-    const store = new SteamPackStore(fetcher, () => 0);
-
-    await expect(store.get('hot')).rejects.toThrow();
-    const second = await store.get('hot');
-    expect(second.items).toHaveLength(4);
-    expect(fetcher).toHaveBeenCalledTimes(2);
-  });
-
-  it('우물이 다르면 표도 따로 쥔다', async () => {
-    const fetcher = vi.fn().mockResolvedValue(enough());
-    const store = new SteamPackStore(fetcher, () => 0);
-    await store.get('hot');
-    await store.get('owned');
-    expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(store.peek('hot')?.title).not.toBe(store.peek('owned')?.title);
-    expect(store.peek('forever')).toBeNull();
   });
 });
