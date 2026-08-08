@@ -2910,13 +2910,21 @@ export function registerKarmolabApi(
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
 
+    /* 세는 자리에 **먼저 들어간 뒤** 첫 마디를 보낸다 (사용자 신고 2026-08-08 — 숫자가
+     * 계속 왔다갔다). 예전엔 붙기 전에 세고 `+1` 을 손으로 더했다. 같은 사람이 탭을 하나
+     * 더 열면 이미 세어진 자기 자신에 또 1 을 더해 「2명」이 됐다가 다음 갱신에 1 로
+     * 돌아왔다. 이름표를 넘겨 **사람 단위**로 묶으므로, 들어간 다음 그냥 물어보면 맞다. */
+    const unsubscribe = chat.subscribe((event: ChatEvent) => {
+      send(event.type, event);
+    }, identity.who);
+
     /* 첫 마디. 「너는 오늘 누구인가」 + 지금까지의 줄 + 몇 명이 창을 열고 있나.
      * 이걸 한 번에 주기 때문에 화면은 붙자마자 그릴 것이 있다 — 빈 창을 안 보여 준다. */
     send('hello', {
       me: { who: identity.who, name: identity.name, color: identity.color },
       // 저장 모양이 아니라 **보여 줄 모양**을 내보낸다 — 지킨/신고한 사람 목록은 안 나간다.
       messages: chat.publicMessages(KarmolabChatStore.keeperKey(identity.who, account?.id)),
-      here: chat.hereCount() + 1,
+      here: chat.hereCount(),
       /* 지금 혼자여도 「오늘 여기 몇 명이 말했나」를 알면 빈 방으로 안 읽힌다.
          자기 자신은 안 뺀다 — 「오늘 이 방에 있던 사람 수」가 곧 그 값이다. */
       todayVoices: chat.todaysVoiceCount(),
@@ -2924,9 +2932,6 @@ export function registerKarmolabApi(
       maxLength: CHAT_TEXT_MAX,
     });
 
-    const unsubscribe = chat.subscribe((event: ChatEvent) => {
-      send(event.type, event);
-    });
     const heartbeat = setInterval(() => res.write(': ping\n\n'), 15000);
 
     const close = (): void => {
