@@ -78,6 +78,15 @@
         .plaza-section h3 { margin:0 0 4px; font-size:var(--font-size-md); color:var(--text-primary); }
         .plaza-section-note { margin:0 0 12px; font-size:11px; color:var(--text-tertiary); }
 
+        /* 방금 있었던 일 (TASK-KL-151 ③) — 숫자만 있는 광장은 「사람이 있다」까지만 말한다. */
+        .plaza-feed { list-style:none; margin:0 0 6px; padding:0; }
+        .plaza-feed li { padding:5px 0; font-size:var(--font-size-sm); color:var(--text-secondary);
+            border-bottom:1px solid var(--border); }
+        .plaza-feed li:last-child { border-bottom:0; }
+        .plaza-feed b { color:var(--text-primary); }
+        .plaza-dim { color:var(--text-tertiary); font-size:11px; }
+        .plaza-sub { margin:14px 0 4px; font-size:var(--font-size-sm); color:var(--text-primary); }
+
         /* 14일 막대 — 빈 날도 자리를 지켜야 「요즘 조용하다」가 보인다. */
         .plaza-spark { display:flex; align-items:flex-end; gap:4px; height:64px;
             padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-lg);
@@ -472,14 +481,89 @@
             </div>
         </section>`;
 
+
+    /* ===== 방금 무슨 일이 있었나 (TASK-KL-151 ③) ===== */
+
+    interface FeedPlay {
+        game: string;
+        variant: string | null;
+        handle: string;
+        score: number;
+        at: string;
+        best: boolean;
+    }
+    interface FeedGame {
+        game: string;
+        label: string;
+        unit: string;
+        better: 'high' | 'low';
+        players: number;
+        plays: number;
+    }
+    interface FeedPack {
+        id: string;
+        title: string;
+        emoji: string;
+        ownerHandle: string;
+        items: number;
+    }
+
+    /** 「몇 분 전」. 시각을 그대로 적으면 살아 있는지 죽었는지가 안 읽힌다. */
+    function ago(iso: string): string {
+        const gap = Date.now() - new Date(iso).getTime();
+        const min = Math.floor(gap / 60000);
+        if (min < 1) return '방금';
+        if (min < 60) return `${min}분 전`;
+        const hour = Math.floor(min / 60);
+        if (hour < 24) return `${hour}시간 전`;
+        return `${Math.floor(hour / 24)}일 전`;
+    }
+
+    function renderFeed(
+        feed: { plays?: FeedPlay[]; games?: FeedGame[]; packs?: FeedPack[] } | null
+    ): string {
+        if (!feed) return '';
+        const games = new Map((feed.games ?? []).map((g) => [g.game, g]));
+        const plays = (feed.plays ?? []).slice(0, 8);
+        const packs = feed.packs ?? [];
+        // 아직 아무도 안 놀았고 표도 없으면 **자리 자체를 안 만든다** — 0 이 늘어선 화면은
+        // 「비었다」가 아니라 「죽었다」로 읽힌다 (이 파일의 규칙 ②).
+        if (!plays.length && !packs.length) return '';
+
+        const playRows = plays
+            .map((p) => {
+                const g = games.get(p.game);
+                const label = g ? g.label : p.game;
+                const unit = g ? g.unit : '';
+                return `<li>${p.best ? '🏆 ' : ''}<b>${escapeHtml(p.handle)}</b> · ${escapeHtml(label)} ${p.score}${escapeHtml(unit)} <span class="plaza-dim">${ago(p.at)}</span></li>`;
+            })
+            .join('');
+        const packRows = packs
+            .map(
+                (k) =>
+                    `<li>${escapeHtml(k.emoji)} <b>${escapeHtml(k.title)}</b> <span class="plaza-dim">${k.items}개 · ${escapeHtml(k.ownerHandle)}</span></li>`
+            )
+            .join('');
+
+        return `
+        <section class="plaza-section">
+            <h3>방금 있었던 일</h3>
+            <p class="plaza-section-note">실제로 끝낸 판과 실제로 올라온 표만 · 사람만 셉니다</p>
+            ${playRows ? `<ul class="plaza-feed">${playRows}</ul>` : ''}
+            ${packRows ? `<h4 class="plaza-sub">새로 올라온 표</h4><ul class="plaza-feed">${packRows}</ul>` : ''}
+        </section>`;
+    }
+
     async function buildOverview(container: HTMLElement): Promise<void> {
         container.innerHTML = '<div class="plaza-wrap"><p class="plaza-note">불러오는 중…</p></div>';
-        const [rawStats, rawBoards, rawRecap, rawLeaders] = await Promise.all([
+        const [rawStats, rawBoards, rawRecap, rawLeaders, rawFeed] = await Promise.all([
             api('/kl/tools/stats'),
             api('/kl/boards'),
             api('/kl/recap'),
             // 명예의 전당 (TASK-KL-156 D4). 못 받아 와도 광장은 그대로 열린다.
             api('/kl/stats/leaders'),
+            // 방금 있었던 일 (TASK-KL-151 ③). 마찬가지로 없으면 그 칸만 안 그린다.
+            api('/kl/feed?limit=12'),
         ]);
         if (!container.isConnected) return;
         if (!rawStats) {
@@ -491,11 +575,13 @@
         const recap = (rawRecap as { recap?: Recap } | null)?.recap ?? null;
         const visits = stats.visits ?? null;
         const leaders = (rawLeaders as { leaders?: Leader[] } | null)?.leaders ?? null;
+        const feed = rawFeed as { plays?: FeedPlay[]; games?: FeedGame[]; packs?: FeedPack[] } | null;
 
         const hasTools = stats.tools.some((t) => t.recent > 0);
         const body = [
             `<p class="plaza-lead">이 사이트의 숫자를 전부 열어 둡니다. 아래는 서버가 실제로 센 값이고, 손으로 적었거나 부풀린 수는 하나도 없습니다.</p>`,
             renderOnline(visits),
+            renderFeed(feed),
             visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다 · 사람만 셉니다</p>${renderVisits(visits)}</section>` : '',
             renderSpark(visits),
             renderLeaders(leaders),
