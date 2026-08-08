@@ -46,7 +46,13 @@ const WANT = [
   ['로그인·기록 스크립트', '/karmolab/', /js\/account\.js/, '로그인·헤더·광장이 통째로 죽는다 (한 번 그랬다)'],
   ['그 스크립트가 실제로 받아진다', '/apps/karmolab/js/account.js', /KarmoAccount/, '부르기는 하는데 파일이 안 만들어져 404 다'],
   ['광장 입구', '/karmolab/', /Toolbox\.switchPage\('plaza'\)/, '이야기·도구 요청으로 가는 길이 없어진다'],
-  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다']
+  ['공개 프로필 페이지', '/karmolab/u/', /id="profileRoot"/, '남에게 보여줄 프로필 주소가 죽는다'],
+  /* TASK-KL-161 — 채팅은 「사이트 어디에 있든 옆에 뜬다」로 만들었는데, **도구 화면 129장에서는
+     안 떴다.** 그 화면은 앱 셸을 통째로 안 싣기 때문이다. 그런데 사람이 실제로 들어오는 곳은
+     거기다 — 채팅 줄이 하루에 1개였던 진짜 이유가 이것이었다.
+     여기 박아 두면 부팅 목록이 다시 좁아질 때 사람이 아니라 검사가 먼저 안다. */
+  ['도구 화면에 채팅이 실린다', '/karmolab/t/loan/', /KARMOLAB_WIDGETS_BOOT=\[[^\]]*"chat"/, '사람이 제일 많이 있는 자리에서 채팅이 안 뜬다 (한 번 그랬다)'],
+  ['그 채팅이 실제로 받아진다', '/apps/karmolab/js/widgets/chat.js', /klChatDock/, '부르기는 하는데 파일이 안 만들어져 404 다']
 ];
 
 for (const [what, where, re, hurt] of WANT) {
