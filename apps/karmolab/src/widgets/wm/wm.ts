@@ -231,6 +231,117 @@ interface WorldBook {
       ${spaces ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">공간 원문 →</a></p>` : ''}`;
   }
 
+  /* -- 하루 체험 (TASK-KL-163 첫 조각) ------------------------------------------------
+   * 설치 없이 이 게임의 **결**을 잠깐 느끼게 하는 자리.
+   *
+   * 규칙도 문장도 **전부 개발 노트에서 온다** - 컨디션 표(`gameplay/condition`)가 그날의
+   * 지시 슬롯 수를 정하고, 밤 행동 목록도 같은 문서의 목록이며, 계절과 계절 이벤트는
+   * `gameplay/time-seasons` 의 표/목록이다. 여기서 새로 지어낸 수치는 없다 -
+   * 문서에 없는 것(수확량 같은 것)은 아예 안 다룬다. 문서가 바뀌면 체험도 바뀐다.
+   */
+  interface DayState { day: number; condition: string; slots: number; used: string[]; log: string[]; }
+
+  const DAY_KEY = 'wm_day_state';
+  const DAYS_PER_SEASON = 30;
+
+  /** 「- **이름** - 설명」 목록을 읽는다. 못 읽으면 빈 배열(그 칸만 빠진다). */
+  function dashList(body: string, headingRe: RegExp): Array<{ name: string; desc: string }> {
+    const lines = body.split(/\r?\n/);
+    let on = false;
+    const out: Array<{ name: string; desc: string }> = [];
+    for (const line of lines) {
+      const h = /^#{2,4}\s+(.+)$/.exec(line);
+      if (h) { if (on) break; on = headingRe.test(h[1]); continue; }
+      if (!on) continue;
+      const m = /^-\s*\*\*(.+?)\*\*\s*[—-]\s*(.+)$/.exec(line.trim());
+      if (m) out.push({ name: m[1].trim(), desc: m[2].trim() });
+    }
+    return out;
+  }
+
+  function seasonsOf(loaded: WorldBook): { rows: TableRow[]; events: Array<{ name: string; desc: string }> } {
+    const doc = loaded.docs.find((d) => d.id === 'gameplay/time-seasons');
+    if (!doc?.body) return { rows: [], events: [] };
+    const table = firstTable(doc.body);
+    const events: Array<{ name: string; desc: string }> = [];
+    let on = false;
+    for (const line of doc.body.split(/\r?\n/)) {
+      const h = /^#{2,4}\s+(.+)$/.exec(line);
+      if (h) { if (on) break; on = /계절 이벤트/.test(h[1]); continue; }
+      if (!on) continue;
+      const m = /^-\s*(.+?)\s*:\s*(.+)$/.exec(line.trim());
+      if (m) events.push({ name: m[1].trim(), desc: m[2].trim() });
+    }
+    return { rows: table.rows, events };
+  }
+
+  function loadDay(): DayState | null {
+    try {
+      const raw = localStorage.getItem(DAY_KEY);
+      return raw ? (JSON.parse(raw) as DayState) : null;
+    } catch (_) { return null; }
+  }
+
+  function saveDay(st: DayState): void {
+    try { localStorage.setItem(DAY_KEY, JSON.stringify(st)); } catch (_) { /* 저장 못 해도 놀 수는 있다 */ }
+  }
+
+  function rollDay(loaded: WorldBook, prevDay: number): DayState | null {
+    const cond = loaded.docs.find((d) => d.id === 'gameplay/condition');
+    if (!cond?.body) return null;
+    const rows = firstTable(cond.body).rows;
+    if (rows.length === 0) return null;
+    const pick = rows[Math.floor(Math.random() * rows.length)];
+    const slotText = pick.cells[2] || '';
+    const m = /지시\s*슬롯\s*(\d+)/.exec(slotText);
+    return {
+      day: prevDay + 1,
+      condition: (pick.cells[0] || '') + ' - ' + (pick.cells[1] || ''),
+      slots: m ? Number(m[1]) : 3,
+      used: [],
+      log: [],
+    };
+  }
+
+  function dayHtml(loaded: WorldBook, st: DayState): string {
+    const cond = loaded.docs.find((d) => d.id === 'gameplay/condition');
+    const actions = cond?.body ? dashList(cond.body, /밤/) : [];
+    const seasons = seasonsOf(loaded);
+    const seasonIndex = seasons.rows.length > 0
+      ? Math.floor((st.day - 1) / DAYS_PER_SEASON) % seasons.rows.length
+      : -1;
+    const season = seasonIndex >= 0 ? seasons.rows[seasonIndex] : null;
+    const seasonName = season ? season.cells[0] || '' : '';
+    const event = seasons.events.find((e) => seasonName !== '' && e.name.startsWith(seasonName));
+    const left = st.slots - st.used.length;
+
+    return `
+      <p class="wb-lead">설치 없이 이 게임의 결을 잠깐. 규칙도 문장도 개발 노트에서 그대로 옵니다.</p>
+      <section class="wm-day">
+        <header class="wm-day-head">
+          <span class="wm-day-n">${st.day}일째</span>
+          ${seasonName ? `<span class="wb-chip">${escapeHtml(seasonName)}</span>` : ''}
+          ${season && season.cells[1] ? `<span class="wm-day-mood">${escapeHtml(season.cells[1])}</span>` : ''}
+        </header>
+        <p class="wm-day-cond">오늘 욘: <b>${escapeHtml(st.condition)}</b></p>
+        <p class="wm-day-slots">지시할 수 있는 것 ${left} / ${st.slots}</p>
+        <div class="wm-day-acts">${actions
+          .map(
+            (a) => `<button type="button" class="wm-act${st.used.includes(a.name) ? ' is-used' : ''}" data-act="${escapeHtml(a.name)}"${left <= 0 || st.used.includes(a.name) ? ' disabled' : ''}><b>${escapeHtml(a.name)}</b><span>${escapeHtml(a.desc)}</span></button>`
+          )
+          .join('')}</div>
+        ${st.log.length > 0 ? `<ul class="wm-day-log">${st.log.map((l) => `<li>${escapeHtml(l)}</li>`).join('')}</ul>` : ''}
+        ${left <= 0
+          ? `<div class="wm-day-end">${event ? `<p class="wm-day-event">${escapeHtml(event.desc)}</p>` : ''}<button type="button" class="btn btn-primary" data-day="next">다음 날</button></div>`
+          : ''}
+        <p class="wb-source">
+          <a href="/karmolab/?wb=gameplay%2Fcondition#wm">컨디션 원문</a> ·
+          <a href="/karmolab/?wb=gameplay%2Ftime-seasons#wm">시간·계절 원문</a> ·
+          <button type="button" class="wm-day-reset" data-day="reset">처음부터</button>
+        </p>
+      </section>`;
+  }
+
   function fieldValueHtml(value: unknown): string {
     if (Array.isArray(value)) {
       return value.map((v) => `<span class="wb-chip">${escapeHtml(v)}</span>`).join(' ');
@@ -362,12 +473,13 @@ interface WorldBook {
   }
 
   function navHtml(route: string): string {
-    const known = ['news', 'map', 'board'];
+    const known = ['news', 'map', 'board', 'day'];
     const here = route === '' ? '' : known.includes(route) ? route : 'book';
     const on = (r: string): string => (r === here ? ' is-on' : '');
     return `<nav class="wm-nav">
         <button type="button" class="wm-nav-btn${on('')}" data-go="">소개</button>
         <button type="button" class="wm-nav-btn${on('book')}" data-go="all">세계 도감</button>
+        <button type="button" class="wm-nav-btn${on('day')}" data-go="day">하루 체험</button>
         <button type="button" class="wm-nav-btn${on('map')}" data-go="map">공간</button>
         <button type="button" class="wm-nav-btn${on('news')}" data-go="news">소식</button>
         <button type="button" class="wm-nav-btn${on('board')}" data-go="board">만드는 중</button>
@@ -451,6 +563,16 @@ interface WorldBook {
       });
       return;
     }
+    if (route === 'day') {
+      let st = loadDay();
+      if (!st) st = rollDay(loaded, 0);
+      const dayMain = st
+        ? dayHtml(loaded, st)
+        : '<p class="wb-empty">컨디션 표를 읽지 못했습니다. <a href="/karmolab/?wb=gameplay%2Fcondition#wm">원문 보기</a></p>';
+      if (st) saveDay(st);
+      host.innerHTML = navHtml(route) + `<div class="wm-body">${dayMain}</div>`;
+      return;
+    }
     const doc = route && route !== 'all' && route !== 'map' ? loaded.docs.find((d) => d.id === route) : undefined;
     const main = doc
       ? detailHtml(doc)
@@ -476,6 +598,25 @@ interface WorldBook {
       const target = ev.target as HTMLElement;
       const nav = target.closest<HTMLElement>('[data-go]');
       if (nav) { go(nav.dataset.go || ''); return; }
+      const act = target.closest<HTMLElement>('[data-act]');
+      if (act) {
+        const st = loadDay();
+        const name = act.dataset.act || '';
+        if (st && name !== '' && !st.used.includes(name)) {
+          st.used.push(name);
+          st.log.push(name + ' - 시켰다.');
+          saveDay(st);
+          render();
+        }
+        return;
+      }
+      const dayBtn = target.closest<HTMLElement>('[data-day]');
+      if (dayBtn && book) {
+        const prev = loadDay();
+        const next = dayBtn.dataset.day === 'reset' ? rollDay(book, 0) : rollDay(book, prev ? prev.day : 0);
+        if (next) { saveDay(next); render(); }
+        return;
+      }
       const card = target.closest<HTMLElement>('.wb-card');
       if (card?.dataset.id) { go(card.dataset.id); return; }
       if (target.closest('.wb-back')) { go('all'); }
