@@ -1,0 +1,19 @@
+{
+  "note": "크롬 가상 인증기(CDP WebAuthn)가 만든 것. 손으로 지어낸 값이 아니다 — scripts/gen-passkey-fixture.mjs 로 다시 뜬다.",
+  "madeAt": "2026-08-08T05:14:52.982Z",
+  "rpId": "localhost",
+  "origin": "http://localhost:8813",
+  "register": {
+    "challenge": "W6RgCPZ-zQN5AFSKJ9FIFk0TeiKehDlsRGleLuwjUJc",
+    "id": "2uiWwtwNajclNPeeiAAogHIHp909vpRkasoxd-5jsaU",
+    "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiVzZSZ0NQWi16UU41QUZTS0o5RklGazBUZWlLZWhEbHNSR2xlTHV3alVKYyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODgxMyIsImNyb3NzT3JpZ2luIjpmYWxzZX0",
+    "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YVikSZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2NFAAAAAQECAwQFBgcIAQIDBAUGBwgAINrolsLcDWo3JTT3nogAKIByB6fdPb6UZGrKMXfuY7GlpQECAyYgASFYICeUMAjRfACEHjY5QZX2xU3-d89LfBPMmChRP2J-IkgYIlggTEyLzx9p_e-r_Jrc9jGkvFEdHRQTsfgvdqYUQjBdSIQ"
+  },
+  "assert": {
+    "challenge": "3PYxR_A8-VTseh0l6OPl5hKYE8XMRlhZwVSY2WqVNr8",
+    "id": "2uiWwtwNajclNPeeiAAogHIHp909vpRkasoxd-5jsaU",
+    "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiM1BZeFJfQTgtVlRzZWgwbDZPUGw1aEtZRThYTVJsaFp3VlNZMldxVk5yOCIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODgxMyIsImNyb3NzT3JpZ2luIjpmYWxzZSwib3RoZXJfa2V5c19jYW5fYmVfYWRkZWRfaGVyZSI6ImRvIG5vdCBjb21wYXJlIGNsaWVudERhdGFKU09OIGFnYWluc3QgYSB0ZW1wbGF0ZS4gU2VlIGh0dHBzOi8vZ29vLmdsL3lhYlBleCJ9",
+    "authenticatorData": "SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MFAAAAAg",
+    "signature": "MEUCIHP-vBcZ029apFotZI8HIzp0Sp-axbAI0q9mJi9DVB-YAiEAucdvwapUTuNdKUOyo472iQ7tVFdST0NDyUlhzFPBtHE"
+  }
+}
