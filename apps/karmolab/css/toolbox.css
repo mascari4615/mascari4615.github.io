@@ -2340,7 +2340,11 @@ html[data-nav="sidebar"] .sidebar:hover .sidebar-dev-links-text { display: inlin
     }
     /* 폰 내비 줄은 고정 헤더 **아래**에서 시작해야 한다. 안 밀어 주면 유리 헤더 뒤에 깔려
        로고 옆에 글자가 비쳐 보인다 (실제로 그렇게 나가고 있었다, TASK-KL-101). */
-    .mobile-nav { display: flex !important; margin-top: 52px; }
+    /* 줄은 **JS 가 채운다** — 그 전까지 높이가 0이라, 채워지는 순간 아래 본문이 통째로 밀렸다.
+       도구 목록 폰 밀림 0.105 중 0.117(사건 둘 합)이 이것이었다(실측·기준 0.1).
+       채워진 높이(55px, 실측)를 미리 잡아 두면 채워져도 아무것도 안 움직인다.
+       한 줄짜리 가로 스크롤이라 항목이 몇 개든 이 높이는 그대로다. */
+    .mobile-nav { display: flex !important; margin-top: 52px; min-height: 55px; }
     .content-body { padding: var(--space-md); }
     .landing-page { padding: var(--space-md); }
     .landing-title { font-size: 32px; }
