@@ -320,6 +320,31 @@ const Toolbox = (() => {
         }
 
         anchor.insertAdjacentElement('afterend', row);
+
+        /* 결과가 나왔다고 **한 번만** 알린다 (TASK-KL-183 A).
+         *
+         * 이 한 줄이 도구 SDK 의 전부다. 도구는 지금까지처럼 `offerNext` 만 부르면 되고,
+         * 그 순간 넷이 자동으로 이어진다: 이어서(줄) · 작업실(걸기) · 흐름(다음 단계) ·
+         * 앞으로 붙을 것들. 도구마다 배선을 늘리면 160개 중 몇 개만 참여하게 된다 —
+         * 참여의 문턱은 **이미 부르고 있는 함수 하나**여야 한다. */
+        try {
+            window.dispatchEvent(new CustomEvent('karmolab-result', {
+                detail: { type: item.blob.type || '', name: item.name || '', from: item.from || null },
+            }));
+        } catch (_) {
+            /* 알림 한 번 못 쏜 것과 결과가 안 나온 것은 다른 무게다 */
+        }
+    }
+
+    /**
+     * 결과를 내놨다 (TASK-KL-183 A) — 도구가 부를 **하나의 이름**.
+     *
+     * `offerNext` 라는 이름은 「다음 도구를 권한다」는 한 가지 일만 말한다. 지금은 그 한 번이
+     * 이어서·작업실·흐름을 한꺼번에 잇는다 — 이름이 하는 일을 못 따라가고 있었다.
+     * 옛 이름도 그대로 둔다(23곳이 부르고 있다). 둘은 **같은 함수**라 갈라질 일이 없다.
+     */
+    function result(anchor, item) {
+        return offerNext(anchor, item);
     }
 
     /** 도구 화면의 별 — 쓰던 자리에서 바로 꽂는다 (목록까지 안 가도 되게). */
@@ -505,7 +530,15 @@ const Toolbox = (() => {
                 id: '__lazy',
                 label: '…',
                 build(container) {
+                    // 회색 글자 한 줄 대신 티메토가 기다려 준다. 마스코트를 아직
+                    // 못 받았거나 사용자가 껐으면 원래 글자가 그대로 남는다.
                     container.innerHTML = '<p class="tb-lazy-loading" style="padding:32px;text-align:center;color:var(--text-secondary);">불러오는 중…</p>';
+                    if (typeof Mdd !== 'undefined' && Mdd.spot) {
+                        void Mdd.spot(container, {
+                            mood: 'think', msg: '장비 꺼내는 중이에요…', width: 110,
+                            onlyIf: '.tb-lazy-loading',
+                        });
+                    }
                 },
             }],
         });
@@ -2063,7 +2096,7 @@ const Toolbox = (() => {
         register, registerDeferred, init, initTheme, switchPage, switchTab, getTools, mountTool, findBundleFor,
         onDispose,
         // 결과를 옆 도구로 넘기기 (TASK-KL-133)
-        offerNext, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
+        offerNext, result, offerResult, takeResult, peekResult, toolsAccepting, onHandoff,
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,

@@ -77,17 +77,6 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['activity']
   },
   {
-    id: 'wm',
-    title: 'Witch-Mendokusai',
-    category: 'tool',
-    desc: '만들고 있는 게임 — 소개와 세계 도감(인물·세계·규칙). 개발 노트에서 바로 옵니다',
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5h6M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['wm/wm']
-  },
-  {
     id: 'docs',
     title: '문서',
     category: 'tool',
@@ -192,6 +181,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'AI로 이미지를 생성합니다',
     layout: 'full',
     icon: '<circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/>',
+    produces: ['image/*'],
     lazyScriptPaths: [
       'root/gemini',
       'world/world',
@@ -211,6 +201,9 @@ window.KARMOLAB_LAZY_META = [
     desc: '편집·형식 변환, 아스키 아트, AI 생성과 보관함을 한 곳에서',
     layout: 'full',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M4 17l4.5-4.5 3 3L15 12l5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    /* 이 묶음이 내놓는 것 (TASK-KL-183 A) — 흐름을 만들 때 「이어지는 도구」를 위로 올리는 근거.
+       숨긴 도구(imagegen 등)에 적어 봐야 목록에 안 뜨므로, **보이는 대표**에 적는다. */
+    produces: ['image/*'],
     lazyScriptPaths: ['root/gemini', 'ref/reftable', 'imageconvert/imageconvert', 'imageedit', 'tools/text2img', 'tools/imgresize', 'tools/redact', 'tools/asciiart', 'world/world', 'world/parse-md', 'world/load-characters-from-wiki', 'imagegen/presets', 'imagegen/config', 'imagegen/styles', 'imagegen/core', 'imagegen/imagegen', 'imagelib', 'tools/image']
   },
   {
@@ -222,6 +215,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '편집·형식·해상도 변환(PNG·JPEG·WebP 등)을 한 화면에서',
     layout: 'full',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 3v18" stroke="currentColor" stroke-width="1.5"/><path d="M3 15h18" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="9" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    produces: ['image/*'],
     lazyScriptPaths: ['root/gemini', 'imageconvert/imageconvert', 'imageedit']
   },
   {
@@ -667,6 +661,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '사진에 든 위치·카메라 정보를 보여 주고 지웁니다. 화질을 건드리지 않고, 사진이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 6l1.5-2h5L16 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M18.5 4.5 5.5 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    produces: ['image/*'],
     lazyScriptPaths: ['tools/exifclean']
   },
   {
@@ -1037,17 +1032,6 @@ window.KARMOLAB_LAZY_META = [
     icon:
       '<path d="M4 18l5-6 4 3 7-9" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     lazyScriptPaths: ['higher']
-  },
-  {
-    id: 'packwell',
-    title: '표 우물',
-    category: 'play',
-    desc: '놀이에 쓸 표를 바깥에서 길어 옵니다 — 스팀에서 진짜 숫자로 된 표를',
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M4 9h16l-1.5 10a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7L4 9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 9V6a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 12v5M9.5 14.5L12 12l2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-    lazyScriptPaths: ['packwell']
   },
   {
     id: 'worldcup',
@@ -1790,15 +1774,6 @@ window.KARMOLAB_LAZY_META = [
   },
 
   /* 노트북(집에서 24시간 도는 기계)으로 가는 문 — 파일 공유·빌드 현황 */
-  {
-    id: 'companion',
-    title: '동반자',
-    category: 'lab',
-    desc: '말하는 봇 — 곁에 있는지 보고, 한 줄 던지고, 나를 뭘 안다고 생각하는지 본다',
-    layout: 'form',
-    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="9" cy="10.5" r="1.2" fill="currentColor"/><circle cx="15" cy="10.5" r="1.2" fill="currentColor"/><path d="M9 15c1.8 1.2 4.2 1.2 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>',
-    lazyScriptPaths: ['companion']
-  },
   {
     id: 'laptop',
     title: '노트북',
