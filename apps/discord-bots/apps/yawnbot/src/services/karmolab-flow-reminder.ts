@@ -40,12 +40,17 @@ export function runFlowReminderTick(
     // 알릴 사람이 없으면 표시만 하고 넘어간다 — 안 그러면 30분마다 다시 시도한다.
     flows.markReminded(flow.id, week);
     if (!owner) continue;
+    /* 누르면 **그 흐름이 바로 시작한다** (TASK-KL-191 축1).
+     *
+     * 예전엔 흐름 **목록**으로 보냈다 — 알림을 눌러 놓고 목록에서 다시 찾아 다시 눌러야 했다.
+     * 서버가 대신 돌 수 없는 것은 그대로지만, **사람의 손이 한 번으로 줄어드는 것**은 서버가
+     * 할 수 있는 일이다. 스스로 이어가기가 켜진 흐름이면 그 한 번이 끝까지 간다. */
     notes.notify({
       accountId: owner.id,
       source: 'flow',
       title: `「${flow.title}」 할 때예요`,
-      body: `${flow.steps.length}단계 · 눌러서 시작`,
-      url: '/karmolab/#flow',
+      body: flow.auto ? `${flow.steps.length}단계 · 눌러서 시작 (스스로 이어감)` : `${flow.steps.length}단계 · 눌러서 시작`,
+      url: `/karmolab/?flow=${encodeURIComponent(flow.id)}#flow`,
       groupKey: `flow:${flow.id}`,
     });
     sent += 1;

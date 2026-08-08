@@ -16,6 +16,8 @@
         steps: Step[];
         runs: number;
         forkedFrom: string | null;
+        /** 결과가 나오면 스스로 다음 단계로 (TASK-KL-191 축1) */
+        auto?: boolean;
     };
 
     /** 실행 중인 흐름 — 화면을 옮겨 다녀야 하므로 이 창에 적어 둔다(탭을 닫으면 끝난다). */
@@ -62,6 +64,11 @@
             50% { box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
         }
         @media (prefers-reduced-motion: reduce) { .flow-btn.flow-ready { animation:none; outline:2px solid var(--accent); } }
+        /* 스스로 넘어가는 중 — 남은 초가 보이고, 그 자리에서 멈출 수 있다 (TASK-KL-191 축1) */
+        .flow-bar-auto { font-size:11px; color:var(--accent); font-weight:600; }
+        .flow-auto-toggle { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--text-tertiary); cursor:pointer; }
+        .flow-auto-toggle input { accent-color:var(--accent); }
+        .flow-auto-tag { margin-left:6px; font-size:10px; color:var(--accent); font-weight:600; }
     `);
 
     const api = (): string | null => window.KarmoAccount?.apiBase ?? null;
@@ -84,7 +91,7 @@
      * 화면을 옮기며 도는 일이라 「지금 몇 번째인가」를 창에 적어 둔다. 탭을 닫으면 사라지는 게
      * 맞다 — 어제 시작한 흐름이 오늘 갑자기 이어지면 그건 자동화가 아니라 유령이다.
      */
-    type RunState = { id: string; title: string; steps: Step[]; at: number; started: number };
+    type RunState = { id: string; title: string; steps: Step[]; at: number; started: number; auto?: boolean };
 
     function readRun(): RunState | null {
         try {
@@ -106,7 +113,7 @@
     }
 
     function startRun(flow: Flow): void {
-        writeRun({ id: flow.id, title: flow.title, steps: flow.steps, at: 0, started: Date.now() });
+        writeRun({ id: flow.id, title: flow.title, steps: flow.steps, at: 0, started: Date.now(), auto: flow.auto === true });
         const base = api();
         if (base) {
             void fetch(`${base}/kl/flows/${encodeURIComponent(flow.id)}/run`, { method: 'POST', credentials: 'include' }).catch(() => {});
@@ -125,7 +132,70 @@
         return false;
     }
 
+    /* ── 스스로 이어감 (TASK-KL-191 축1) ─────────────────────────────
+     *
+     * 「자동화」라고 적어 두고 사람이 단계마다 **다음**을 눌러야 했다. 그런데 그 시점에
+     * 결과는 이미 나와 있고(`karmolab-result`), 다음 도구는 이미 그 결과를 집어 갈 줄 안다
+     * (`onHandoff`). 남은 것은 클릭 하나 — 그게 자동화와 반자동을 갈랐다.
+     *
+     * 서버가 대신 도는 것은 여전히 불가능하다(도구가 전부 브라우저 안에서 돈다). 자동은
+     * **이 창 안에서** 일어난다. 그리고 **셀 수 있게** 한다: 결과를 확인할 틈은 사람의
+     * 것이고, 못 멈추는 자동은 자동이 아니라 덫이다.
+     */
+    const AUTO_GRACE_MS = 4000;
+    let autoTimer: ReturnType<typeof setInterval> | null = null;
+
+    function cancelAuto(): void {
+        if (!autoTimer) return;
+        clearInterval(autoTimer);
+        autoTimer = null;
+    }
+
+    /** 결과가 나왔고 자동이 켜져 있으면 — 초를 세고 넘어간다. 세는 동안 아무 때나 멈춘다. */
+    function armAuto(run: RunState): void {
+        cancelAuto();
+        const bar = document.querySelector('.flow-bar');
+        const goBtn = bar?.querySelector<HTMLElement>('[data-flow-next], [data-flow-done]');
+        if (!bar || !goBtn) return;
+        let left = Math.round(AUTO_GRACE_MS / 1000);
+        const mark = document.createElement('span');
+        mark.className = 'flow-bar-auto';
+        bar.insertBefore(mark, goBtn);
+        const stop = document.createElement('button');
+        stop.type = 'button';
+        stop.className = 'flow-btn';
+        stop.textContent = '잠깐';
+        stop.addEventListener('click', () => {
+            cancelAuto();
+            mark.remove();
+            stop.remove();
+            Toolbox.showToast?.('여기서 멈췄어요 — 다음은 손으로 누르세요');
+        });
+        bar.insertBefore(stop, goBtn);
+        const tick = (): void => {
+            mark.textContent = `${left}초 뒤 스스로 다음으로`;
+            if (left <= 0) {
+                cancelAuto();
+                const now = readRun();
+                if (!now) return;
+                if (now.steps[now.at + 1]) goStep(now.at + 1);
+                else finishRun(now);
+                return;
+            }
+            left -= 1;
+        };
+        tick();
+        autoTimer = setInterval(tick, 1000);
+    }
+
+    function finishRun(run: RunState): void {
+        noteTrail(run, true);
+        writeRun(null);
+        Toolbox.showToast?.('흐름을 끝냈어요');
+    }
+
     function goStep(index: number): void {
+        cancelAuto();
         const run = readRun();
         if (!run) return;
         // 건너뛸 단계는 지나친다. 다 건너뛰면 흐름이 끝난 것이다.
@@ -153,20 +223,18 @@
         bar.className = 'flow-bar';
         bar.innerHTML =
             `<span class="flow-bar-title">${escapeHtml(run.title)}</span>` +
-            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length} · 지금 ${escapeHtml(toolTitle(step.toolId))}</span>` +
+            `<span class="flow-bar-count">${run.at + 1} / ${run.steps.length} · 지금 ${escapeHtml(toolTitle(step.toolId))}` +
+            `${run.auto ? ' · 스스로 이어감' : ''}</span>` +
             (next
                 ? `<button type="button" class="flow-btn flow-btn-go" data-flow-next>다음: ${escapeHtml(toolTitle(next.toolId))} →</button>`
                 : '<button type="button" class="flow-btn flow-btn-go" data-flow-done>끝내기</button>') +
             '<button type="button" class="flow-btn" data-flow-stop>그만</button>';
         document.body.appendChild(bar);
         bar.querySelector('[data-flow-next]')?.addEventListener('click', () => goStep(run.at + 1));
-        bar.querySelector('[data-flow-done]')?.addEventListener('click', () => {
-            noteTrail(run, true);
-            writeRun(null);
-            Toolbox.showToast?.('흐름을 끝냈어요');
-        });
+        bar.querySelector('[data-flow-done]')?.addEventListener('click', () => finishRun(run));
         bar.querySelector('[data-flow-stop]')?.addEventListener('click', () => {
             /* 그만둔 것도 자국이다 — 오히려 **어디서 막히는지**는 여기서만 드러난다. */
+            cancelAuto();
             noteTrail(run, false);
             writeRun(null);
         });
@@ -218,11 +286,17 @@
             <div class="flow-card" data-flow="${escapeHtml(flow.id)}">
                 <h4>${escapeHtml(flow.title)}</h4>
                 <div class="flow-steps">${stepsHtml(flow.steps)}</div>
-                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}</span>
+                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}${flow.auto ? '<b class="flow-auto-tag">스스로 이어감</b>' : ''}</span>
                 <div class="flow-actions">
                     <button type="button" class="flow-btn flow-btn-go" data-run="${escapeHtml(flow.id)}">시작</button>
                     ${mine
-                        ? `<button type="button" class="flow-btn" data-del="${escapeHtml(flow.id)}">지우기</button>`
+                        ? /* 단계가 하나뿐이면 이어갈 다음이 없다 — 켤 수 없는 것을 켜는 자리로 두지 않는다 */
+                          `${flow.steps.length > 1
+                              ? `<label class="flow-auto-toggle" title="결과가 나오면 4초 세고 스스로 다음 단계로 갑니다 (그동안 멈출 수 있어요)">
+                                     <input type="checkbox" data-auto="${escapeHtml(flow.id)}"${flow.auto ? ' checked' : ''}> 스스로 이어감
+                                 </label>`
+                              : ''}
+                           <button type="button" class="flow-btn" data-del="${escapeHtml(flow.id)}">지우기</button>`
                         : `<button type="button" class="flow-btn" data-fork="${escapeHtml(flow.id)}">담기</button>`}
                 </div>
             </div>`;
@@ -346,6 +420,30 @@
                     startRun(flow);
                 } catch {
                     Toolbox.showToast?.('지금은 못 시작했어요');
+                }
+            });
+        });
+        /* 스스로 이어감 켜기·끄기 (TASK-KL-191 축1) — 서버는 이 선택만 지킨다(돌리지는 않는다). */
+        container.querySelectorAll<HTMLInputElement>('[data-auto]').forEach((box) => {
+            box.addEventListener('change', async () => {
+                const base = api();
+                if (!base) return;
+                const want = box.checked;
+                try {
+                    const res = await fetch(`${base}/kl/flows/${encodeURIComponent(box.dataset.auto ?? '')}/auto`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ on: want }),
+                    });
+                    if (!res.ok) throw new Error(String(res.status));
+                    const saved = (await res.json()) as { auto?: boolean };
+                    // 화면은 **서버가 답한 값**을 따른다 — 눌린 대로 두면 저장 안 된 것이 켜져 보인다.
+                    box.checked = saved.auto === true;
+                    Toolbox.showToast?.(box.checked ? '이제 결과가 나오면 스스로 다음으로 갑니다' : '스스로 이어가기를 껐어요');
+                } catch {
+                    box.checked = !want;
+                    Toolbox.showToast?.('바꾸지 못했어요');
                 }
             });
         });
@@ -520,7 +618,37 @@
             const count = bar.querySelector('.flow-bar-count');
             if (count && !count.textContent?.includes('결과')) count.textContent += ' · 결과 나옴';
         }
+        /* 자동이 켜져 있으면 여기서부터는 손이 필요 없다 — 초를 세고 스스로 넘어간다. */
+        if (run?.auto) armAuto(run);
     });
+
+    /* 알림을 누르면 **그 흐름이 바로 시작한다** (TASK-KL-191 축1).
+     *
+     * 예약 알림이 목록으로 보내던 시절엔, 알림을 누른 사람이 목록에서 다시 찾아 다시 눌러야
+     * 했다 — 「때가 됐다」를 알려 주고 정작 시작은 사람에게 미룬 셈이다. 주소에 흐름 이름이
+     * 실려 오면 그 자리에서 시작한다. 스스로 이어가기가 켜져 있으면 그 한 번이 끝까지 간다.
+     *
+     * 주소는 시작한 뒤 지운다 — 안 지우면 새로고침마다 같은 흐름이 다시 시작한다.
+     */
+    async function startFromLink(): Promise<void> {
+        const wanted = new URLSearchParams(location.search).get('flow');
+        if (!wanted) return;
+        const url = new URL(location.href);
+        url.searchParams.delete('flow');
+        history.replaceState(null, '', url.toString());
+        const base = api();
+        if (!base) return;
+        try {
+            const res = await fetch(`${base}/kl/flows/${encodeURIComponent(wanted)}`);
+            if (!res.ok) throw new Error(String(res.status));
+            const flow = ((await res.json()) as { flow: Flow }).flow;
+            if (!flow?.steps?.length) return;
+            startRun(flow);
+        } catch {
+            Toolbox.showToast?.('그 흐름을 못 찾았어요');
+        }
+    }
+    void startFromLink();
 
     // 도구 화면으로 옮겨 다녀도 띠는 따라온다.
     window.addEventListener('hashchange', paintBar);
