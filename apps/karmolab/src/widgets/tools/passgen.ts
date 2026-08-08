@@ -14,6 +14,28 @@
   const SYMBOL = '!@#$%^&*-_=+?';
   const AMBIG = 'lIO01';
 
+  /**
+   * 외우기 쉬운 비밀번호 — **발음되는 조각**을 이어 만든다.
+   *
+   * 왜 있나: 무작위 20자는 안전하지만 아무도 못 외운다. 그래서 사람들은 적어 두거나 짧게 바꾼다.
+   *
+   * 낱말 사전을 쓰는 방식(diceware)도 있지만, 사전이 작으면 **길어 보여도 실제로는 약하다**
+   * (낱말 50개로 4개를 이으면 6억 가지뿐 — 무작위 5자보다 못하다). 사전을 크게 넣으면 이 도구가
+   * 무거워진다. 그래서 자음+모음 조각을 그 자리에서 만들어 잇는다 — 조각 하나가 20×6×21 = 2,520
+   * 가지라 넷만 이어도 사전 방식보다 세고, 소리 내어 읽히므로 외워진다.
+   */
+  const CONS = 'bcdfghjklmnprstvwyz';
+  const VOWEL = 'aeiou';
+
+  /** 조각 하나: 자음 + 모음 + (끝자음 또는 없음). 몇 가지가 나오는지 함께 돌려준다. */
+  function syllable(r: Uint32Array, i: number): string {
+    const c = CONS[r[i * 3] % CONS.length];
+    const v = VOWEL[r[i * 3 + 1] % VOWEL.length];
+    const t = r[i * 3 + 2] % (CONS.length + 1);
+    return c + v + (t === CONS.length ? '' : CONS[t]);
+  }
+  const SYLLABLE_SPACE = CONS.length * VOWEL.length * (CONS.length + 1);
+
   /** 흔한 비밀번호 조각 — 이게 들어가면 길이와 무관하게 금방 뚫린다. */
   const COMMON = ['password', 'qwerty', 'admin', '1234', 'iloveyou', 'letmein', 'welcome', 'dragon', 'monkey', 'abc123', 'asdf', 'zxcv'];
 
@@ -95,11 +117,20 @@
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-sublabel">길이 <span id="pgLenVal" class="range-value">20자</span></div>
               <input type="range" id="pgLen" aria-label="길이" min="8" max="64" value="20">
-              <div class="tool-chips" style="margin-top:10px;">
+              <div class="tool-chips" id="pgMode" style="margin-bottom:10px;">
+                <button type="button" class="tool-chip active" data-mode="random">무작위</button>
+                <button type="button" class="tool-chip" data-mode="words">외우기 쉽게 (소리 나는 조각)</button>
+              </div>
+              <div class="tool-chips" id="pgRandomOpts" style="margin-top:10px;">
                 <label class="tool-chip"><input type="checkbox" id="pgUpper" checked> 대문자</label>
                 <label class="tool-chip"><input type="checkbox" id="pgDigit" checked> 숫자</label>
                 <label class="tool-chip"><input type="checkbox" id="pgSym" checked> 기호</label>
                 <label class="tool-chip"><input type="checkbox" id="pgAmbig" checked> 헷갈리는 글자 빼기 (l, I, O, 0, 1)</label>
+              </div>
+              <div id="pgWordOpts" style="display:none; margin-top:10px;">
+                <div class="tool-sublabel">조각 수 <span id="pgWordsVal" class="range-value">4개</span></div>
+                <input type="range" id="pgWords" aria-label="조각 수" min="3" max="8" value="5">
+                <div class="tool-status" style="margin-top:8px;">조각 사이는 - 로 잇고 끝에 숫자 두 자를 붙입니다. 소리 내어 읽히므로 외워집니다.</div>
               </div>
             </div>
 
@@ -126,7 +157,35 @@
           const stat = (l: string, v: string, primary = false): string =>
             `<div class="cc-stat${primary ? ' cc-stat-primary' : ''}"><div class="cc-stat-label">${l}</div><div class="cc-stat-value">${v}</div></div>`;
 
+          let mode: 'random' | 'words' = 'random';
+
+          /** 낱말을 이어 만든다 — 무작위 뽑기는 암호용 난수(crypto)로 한다. */
+          function makeWords(): void {
+            const n = parseInt($<HTMLInputElement>('#pgWords').value, 10);
+            const r = new Uint32Array(n * 3 + 1);
+            crypto.getRandomValues(r);
+            const parts = [];
+            for (let i = 0; i < n; i++) parts.push(syllable(r, i));
+            const tail = String(r[n * 3] % 100).padStart(2, '0');
+            const pw = parts.join('-') + '-' + tail;
+            out.textContent = pw;
+            /* 세기는 글자 수가 아니라 **고른 가짓수**로 센다 — 조각 하나가 SYLLABLE_SPACE 가지다.
+               글자 기준으로 재면 이 방식이 실제보다 약해 보인다(길지만 소문자뿐이라서). */
+            const bits = Math.log2(Math.pow(SYLLABLE_SPACE, n) * 100);
+            const 초 = Math.pow(2, bits - 1) / 1e10;
+            const 년 = 초 / 3.15e7;
+            const 시간말 = 년 > 1e6 ? `${(년 / 1e8).toExponential(1)}억년` : 년 > 1 ? `${Math.round(년).toLocaleString('ko-KR')}년` : 초 > 86400 ? `${Math.round(초 / 86400)}일` : `${Math.round(초)}초`;
+            stats.innerHTML =
+              stat('세기', bits >= 80 ? '아주 셈' : bits >= 60 ? '셈' : bits >= 45 ? '보통' : '약함', true) +
+              stat('버티는 시간', 시간말) +
+              stat('가짓수', `${SYLLABLE_SPACE.toLocaleString('ko-KR')}^${n} × 100`);
+            $<HTMLElement>('#pgWordsVal').textContent = n + '개';
+            say('소리 나는 조각을 이어 만들었어요. 외우기 쉬우면서도 셉니다 — 어디에도 보내지지 않습니다.', 'ok');
+            Toolbox.trackUse?.('words');
+          }
+
           function make(): void {
+            if (mode === 'words') { makeWords(); return; }
             const noAmbig = $<HTMLInputElement>('#pgAmbig').checked;
             let pool = noAmbig ? LOWER : LOWER + 'l';
             if ($<HTMLInputElement>('#pgUpper').checked) pool += noAmbig ? UPPER : UPPER + 'IO';
@@ -143,6 +202,18 @@
             Toolbox.trackUse?.('make');
           }
 
+          $<HTMLElement>('#pgMode').addEventListener('click', (e: Event) => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('.tool-chip');
+            if (!btn) return;
+            mode = (btn.dataset.mode || 'random') as typeof mode;
+            $<HTMLElement>('#pgMode').querySelectorAll('.tool-chip').forEach((c) => c.classList.toggle('active', c === btn));
+            $<HTMLElement>('#pgRandomOpts').style.display = mode === 'random' ? '' : 'none';
+            $<HTMLElement>('#pgWordOpts').style.display = mode === 'words' ? '' : 'none';
+            $<HTMLElement>('#pgLenVal').parentElement!.style.display = mode === 'random' ? '' : 'none';
+            lenEl.style.display = mode === 'random' ? '' : 'none';
+            make();
+          });
+          $<HTMLInputElement>('#pgWords').addEventListener('input', make);
           lenEl.addEventListener('input', make);
           ['#pgUpper', '#pgDigit', '#pgSym', '#pgAmbig'].forEach((s) => $<HTMLInputElement>(s).addEventListener('change', make));
           $<HTMLButtonElement>('#pgMake').onclick = make;
