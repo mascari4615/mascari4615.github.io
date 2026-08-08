@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>Witch-Mendokusai — 귀찮은 마녀</title>
+    <meta name="description" content="숲 속 마녀의 집에서 살아가면서, 근처 폐허 마을이 되살아나는 이야기.">
+    <meta property="og:title" content="Witch-Mendokusai — 귀찮은 마녀">
+    <meta property="og:description" content="숲 속 마녀의 집에서 살아가면서, 근처 폐허 마을이 되살아나는 이야기.">
+    <style>
+      :root { --wm-ink: #e8e3f5; --wm-dim: #a49cc0; --wm-line: rgba(180,160,230,.22); --wm-accent: #c4a7ff; }
+      body { color: var(--wm-ink); }
+      .wm-hero { padding: 3.2rem 0 2.4rem; border-bottom: 1px solid var(--wm-line); }
+      .wm-kicker { letter-spacing: .28em; text-transform: uppercase; font-size: .72rem; color: var(--wm-dim); margin: 0 0 .8rem; }
+      .wm-title { font-size: clamp(2.1rem, 6vw, 3.4rem); margin: 0 0 .9rem; line-height: 1.15; }
+      .wm-tagline { font-size: clamp(1rem, 2.4vw, 1.22rem); color: var(--wm-ink); margin: 0 0 1.2rem; max-width: 34em; }
+      .wm-theme { margin: 0 0 1.6rem; padding: .7rem 0 .7rem 1rem; border-left: 3px solid var(--wm-accent); color: var(--wm-dim); font-style: italic; }
+      .wm-cta { display: flex; gap: .6rem; flex-wrap: wrap; }
+      .wm-btn { display: inline-block; padding: .62rem 1.15rem; border: 1px solid var(--wm-line); border-radius: 999px; text-decoration: none; color: var(--wm-ink); font-size: .92rem; }
+      .wm-btn:hover { border-color: var(--wm-accent); }
+      .wm-btn-main { background: var(--wm-accent); color: #1b1330; border-color: transparent; font-weight: 600; }
+      .wm-block { padding: 2.2rem 0; border-bottom: 1px solid var(--wm-line); }
+      .wm-block h2 { font-size: 1.12rem; letter-spacing: .04em; margin: 0 0 1.1rem; color: var(--wm-dim); font-weight: 600; }
+      .wm-loop { margin: 0; padding-left: 1.1rem; display: grid; gap: .45rem; color: var(--wm-ink); }
+      .wm-cast { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+      .wm-cast-card { border: 1px solid var(--wm-line); border-radius: 14px; padding: 1rem 1.05rem; background: rgba(255,255,255,.02); }
+      .wm-cast-card h3 { margin: 0 0 .45rem; font-size: 1.02rem; }
+      .wm-cast-en { color: var(--wm-dim); font-size: .78rem; font-weight: 400; }
+      .wm-cast-card p { margin: 0 0 .7rem; color: var(--wm-dim); font-size: .9rem; line-height: 1.6; }
+      .wm-cast-more { font-size: .82rem; color: var(--wm-accent); text-decoration: none; }
+      .wm-more-cast { margin: 1rem 0 0; color: var(--wm-dim); font-size: .88rem; }
+      .wm-more-cast a { color: var(--wm-ink); }
+      .wm-audience { margin: 0; padding-left: 1.1rem; display: grid; gap: .4rem; color: var(--wm-dim); }
+      .wm-glossary { margin: 0; display: grid; gap: .55rem; }
+      .wm-glossary div { display: grid; grid-template-columns: minmax(6.5em, auto) 1fr; gap: .8rem; align-items: baseline; }
+      .wm-glossary dt { color: var(--wm-accent); font-weight: 600; }
+      .wm-glossary dd { margin: 0; color: var(--wm-dim); }
+      .wm-foot { border-bottom: 0; color: var(--wm-dim); font-size: .85rem; }
+      .wm-stamp { opacity: .7; }
+    </style>
+  </head>
+  <body>
+    <section class="wm-hero">
+      <p class="wm-kicker">Witch-Mendokusai</p>
+      <h1 class="wm-title">&quot;Witch-Mendokusai&quot; — &quot;귀찮은 마녀&quot;. 설명 없이 캐릭터 핵심이 전달된다. 서브타이틀 없이 단독으로 충분.</h1>
+      <p class="wm-tagline">숲 속 마녀의 집에서 살아가면서, 근처 폐허 마을이 되살아나는 이야기.</p>
+      <blockquote class="wm-theme">&quot;Are we real?&quot; — 인형이지만 감정이 생기는 것. 만든 것이 만든 사람을 만드는 것.</blockquote>
+      <div class="wm-cta">
+        <a class="wm-btn wm-btn-main" href="/karmolab/#wm">세계 도감 보기</a>
+        <a class="wm-btn" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">개발 저장소</a>
+      </div>
+    </section>
+
+    <section class="wm-block">
+      <h2>어떤 게임인가</h2>
+      <ol class="wm-loop"><li>그림서가 새 재료를 요구 (강제성)</li><li>탐험/채집/농사</li><li>재료 획득</li><li>마을 건설 &amp; 인형·주민 관리</li><li>마을이 성장</li></ol>
+    </section>
+
+    <section class="wm-block">
+      <h2>사는 사람들</h2>
+      <div class="wm-cast">
+        <article class="wm-cast-card">
+        <h3>욘 <span class="wm-cast-en">Yawn</span></h3>
+        <p>어린 욘은 호기심이 많았다. 마법을 배우고, 친구를 사귀고, 좋아하는 사람들이 생겼다. 근데 계속 어긋났다.</p>
+        <a class="wm-cast-more" href="/karmolab/?wb=characters%2Fyawn#wm">도감에서 보기 →</a>
+      </article>
+        <article class="wm-cast-card">
+        <h3>링 <span class="wm-cast-en">Ring</span></h3>
+        <p>링이 먼저였다.</p>
+        <a class="wm-cast-more" href="/karmolab/?wb=characters%2Fring#wm">도감에서 보기 →</a>
+      </article>
+        <article class="wm-cast-card">
+        <h3>알리사 <span class="wm-cast-en">Alisa</span></h3>
+        <p>링 다음에, 링 때문에 태어났다.</p>
+        <a class="wm-cast-more" href="/karmolab/?wb=characters%2Falisa#wm">도감에서 보기 →</a>
+      </article>
+        <article class="wm-cast-card">
+        <h3>플레이어 (Fourth) — 네 번째 인형 <span class="wm-cast-en">Fourth</span></h3>
+        <p>아직 덜 완성된 존재다. 영혼은 불어넣었는데 목소리가 없다. 그래서 플레이어는 행동으로만 존재한다.</p>
+        <a class="wm-cast-more" href="/karmolab/?wb=characters%2Ffourth#wm">도감에서 보기 →</a>
+      </article>
+      </div>
+      <p class="wm-more-cast">그리고 <a href="/karmolab/?wb=characters%2Fvillagers#wm">마을 주민 &amp; NPC</a> · <a href="/karmolab/?wb=characters%2Fstar#wm">스타</a> · <a href="/karmolab/?wb=characters%2Ffog#wm">포그</a></p>
+    </section>
+
+    <section class="wm-block">
+      <h2>이런 사람에게</h2>
+      <ul class="wm-audience"><li>뭘 해야 할지 몰라서 시작이 안 되는 사람</li><li>이상과 현실 사이 갈팡질팡하는 사람</li><li>뭔가 모아두고 정작 못 쓰는 사람 (도토리 증후군)</li><li>&quot;욘처럼&quot; → 귀찮지만 사실 하고 싶은 상태</li></ul>
+    </section>
+
+    <section class="wm-block">
+      <h2>이 세계의 말</h2>
+      <dl class="wm-glossary"><div><dt>욘처럼</dt><dd>귀찮지만 사실 하고 싶은 상태</dd></div><div><dt>알리사 모드</dt><dd>정리하고 일을 처리하는 상태</dd></div><div><dt>링 에너지</dt><dd>이유 없이 신나는 상태</dd></div><div><dt>도토리 중</dt><dd>뭔가를 모아두는 중</dd></div><div><dt>안개 들판</dt><dd>막막한 상태</dd></div></dl>
+    </section>
+
+    <section class="wm-block wm-foot">
+      <p>이 페이지의 모든 문장은 개발 노트(<code>memo/wm/design</code>)에서 자동으로 옵니다 — 설정이 바뀌면 여기도 바뀝니다.</p>
+      <p class="wm-stamp">문서 49건 기준 · 2026-08-08</p>
+    </section>
+  </body>
+</html>

@@ -1425,3 +1425,86 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 @media (max-width: 480px) {
     .tc-share input { flex-basis: 100%; }
 }
+
+/* ── 세계 도감 (TASK-KL-158) ── */
+.wb-lead { color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: 14px; }
+.wb-toolbar { display: grid; gap: 10px; margin-bottom: 12px; }
+.wb-toolbar input[type="search"] { width: 100%; }
+.wb-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.wb-kind {
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+}
+.wb-kind:hover { border-color: var(--accent); color: var(--text-primary); }
+.wb-kind.is-on { background: var(--accent); border-color: transparent; color: var(--bg-primary); font-weight: 700; }
+.wb-list[hidden], .wb-toolbar[hidden] { display: none; }
+.wb-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.wb-card {
+    display: grid;
+    gap: 6px;
+    text-align: left;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg-secondary);
+    color: inherit;
+    cursor: pointer;
+}
+.wb-card:hover { border-color: var(--accent); }
+.wb-card-kind { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: .08em; }
+.wb-card-title { font-size: var(--font-size-md); font-weight: 700; }
+.wb-card-sum { font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6; }
+.wb-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.wb-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: var(--font-size-2xs);
+    color: var(--text-tertiary);
+}
+.wb-empty { color: var(--text-tertiary); font-size: var(--font-size-sm); }
+.wb-detail { display: grid; gap: 12px; }
+.wb-back { justify-self: start; }
+.wb-detail-kind { font-size: var(--font-size-2xs); color: var(--accent); letter-spacing: .08em; margin: 0; }
+.wb-detail-title { margin: 0; font-size: var(--font-size-xl); }
+.wb-detail-lead { margin: 0; color: var(--text-secondary); line-height: 1.7; }
+.wb-fields { display: grid; gap: 6px; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--bg-secondary); }
+.wb-field { display: grid; grid-template-columns: minmax(5.5em, auto) 1fr; gap: 10px; align-items: baseline; }
+.wb-field dt { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.wb-field dd { margin: 0; font-size: var(--font-size-xs); color: var(--text-secondary); word-break: break-word; }
+.wb-body { line-height: 1.85; word-break: keep-all; overflow-wrap: anywhere; }
+.wb-body table { display: block; overflow-x: auto; max-width: 100%; }
+.wb-locked { color: var(--text-tertiary); font-size: var(--font-size-sm); }
+.wb-source { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+
+/* ── WM 위젯 소개 탭 (TASK-KL-158 / KL-162) ── */
+.wm-in-hero { padding: 6px 0 18px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.wm-in-kicker { letter-spacing: .24em; text-transform: uppercase; font-size: var(--font-size-2xs); color: var(--accent); margin: 0 0 8px; }
+.wm-in-title { margin: 0 0 10px; font-size: var(--font-size-2xl); }
+.wm-in-tagline { margin: 0 0 12px; font-size: var(--font-size-md); color: var(--text-secondary); max-width: 34em; line-height: 1.7; }
+.wm-in-theme { margin: 0 0 14px; padding: 6px 0 6px 12px; border-left: 3px solid var(--accent); color: var(--text-tertiary); font-style: italic; }
+.wm-in-cta { display: flex; gap: 8px; flex-wrap: wrap; }
+.wm-in-block h3 { font-size: var(--font-size-sm); color: var(--text-tertiary); margin: 0 0 10px; letter-spacing: .04em; }
+.wm-page { display: block; }
+.wm-nav { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.wm-nav-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    cursor: pointer;
+}
+.wm-nav-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.wm-nav-btn.is-on { background: var(--accent); border-color: transparent; color: var(--bg-primary); font-weight: 700; }
+.wm-nav-link { margin-left: auto; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+.wm-nav-link + .wm-nav-link { margin-left: 10px; }
+.wm-body { display: block; }
+.wm-in-cta .btn { flex: 0 0 auto; width: auto; }
