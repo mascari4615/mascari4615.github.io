@@ -73,28 +73,41 @@ export function weeklyMessage(
  * 정확히 10:00 을 노리지 않는다 — 노트북이 잠깐 꺼져 있었다고 그 주를 통째로 건너뛰면
  * 안 된다. 그날 10시가 지났고 이번 주에 아직 안 보냈으면 보낸다.
  */
+/**
+ * 한 바퀴 돌린다 — **손으로도 부를 수 있다** (자동화빚 원장 ①).
+ *
+ * 시각을 기다리는 것 말고 지금 당장 돌려 볼 길이 없으면, 「보내지는가」를 확인하려면
+ * 월요일 아침까지 기다려야 한다. 그건 확인 루프가 없는 것과 같다.
+ * `force` 를 주면 보낼 시각인지 안 따진다 (그 외 규칙 — 켠 사람만·주 1회 — 은 그대로다).
+ */
+export async function runKarmolabWeeklyDmTick(
+  client: Client,
+  store: KarmolabAccountStore = getKarmolabAccountStore(),
+  options: { force?: boolean } = {},
+): Promise<void> {
+  const { day, hour } = kstNow();
+  if (!options.force && (day !== SEND_DAY || hour < SEND_HOUR)) return;
+  const week = kstWeekKey();
+  for (const target of store.weeklyDmTargets(week)) {
+    const text = weeklyMessage(target.displayName, store.footprintFor(target.accountId));
+    // 보낼 말이 없어도 **보낸 것으로 적는다** — 안 그러면 30분마다 다시 시도한다.
+    store.markWeeklyDmSent(target.accountId, week);
+    if (!text) continue;
+    try {
+      const user = await client.users.fetch(target.discordId);
+      const dm = (await user.createDM()) as DMChannel;
+      await dm.send(text.slice(0, 1900));
+      console.log(`[karmolab-weekly] 보냄 — ${target.displayName}`);
+    } catch (error) {
+      // DM 을 닫아 둔 사람도 있다. 그건 고장이 아니라 그 사람의 선택이다.
+      console.warn('[karmolab-weekly] 못 보냈다:', error instanceof Error ? error.message : error);
+    }
+  }
+}
+
 export function startKarmolabWeeklyDm(client: Client, store: KarmolabAccountStore = getKarmolabAccountStore()): void {
   if (timer) return;
-  const tick = async (): Promise<void> => {
-    const { day, hour } = kstNow();
-    if (day !== SEND_DAY || hour < SEND_HOUR) return;
-    const week = kstWeekKey();
-    for (const target of store.weeklyDmTargets(week)) {
-      const text = weeklyMessage(target.displayName, store.footprintFor(target.accountId));
-      // 보낼 말이 없어도 **보낸 것으로 적는다** — 안 그러면 30분마다 다시 시도한다.
-      store.markWeeklyDmSent(target.accountId, week);
-      if (!text) continue;
-      try {
-        const user = await client.users.fetch(target.discordId);
-        const dm = (await user.createDM()) as DMChannel;
-        await dm.send(text.slice(0, 1900));
-        console.log(`[karmolab-weekly] 보냄 — ${target.displayName}`);
-      } catch (error) {
-        // DM 을 닫아 둔 사람도 있다. 그건 고장이 아니라 그 사람의 선택이다.
-        console.warn('[karmolab-weekly] 못 보냈다:', error instanceof Error ? error.message : error);
-      }
-    }
-  };
+  const tick = (): Promise<void> => runKarmolabWeeklyDmTick(client, store);
   void tick();
   timer = setInterval(() => void tick(), TICK_MS);
   console.log('[karmolab-weekly] 주간 발자국 DM 감시 시작 (월 10시 KST, 켠 사람만)');
