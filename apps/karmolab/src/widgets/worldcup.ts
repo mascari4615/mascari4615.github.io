@@ -27,6 +27,19 @@ interface Runner {
   img: string;
 }
 
+/**
+ * 처음부터 있는 표 (TASK-KL-151).
+ *
+ * 왜 필요한가: 사람이 만든 표만 쓰게 두면 **처음 온 사람에게는 빈 화면**이 뜬다.
+ * 「표를 먼저 만드세요」는 놀러 온 사람에게 숙제를 내미는 것이다 — 일단 한 판 해 보고
+ * 재밌으면 자기 표를 만든다. 표는 「높은 쪽 고르기」가 쓰던 것을 그대로 쓴다(그림이 다 있다).
+ */
+const BUILTIN = [
+  { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
+  { id: 'lol', title: '롤 챔피언', emoji: '⚔️' },
+  { id: 'genshin', title: '원신 캐릭터', emoji: '🌠' },
+];
+
 interface Match {
   win: string;
   lose: string;
@@ -137,7 +150,16 @@ interface Match {
           const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
 
           /** 고를 수 있는 표 — 이 브라우저 것 + 남이 올린 것. 그림 넷 이상인 것만. */
-          let choices: Array<{ key: string; title: string; emoji: string; runners: number; sharedId?: string; local?: Pack }> = [];
+          let choices: Array<{
+            key: string;
+            title: string;
+            emoji: string;
+            runners: number;
+            sharedId?: string;
+            local?: Pack;
+            /** 처음부터 있는 표면 그 이름 (`pokemon` …). 항목은 그때 받아 온다. */
+            builtin?: string;
+          }> = [];
           let picked: (typeof choices)[number] | null = null;
           let size = 0;
 
@@ -159,7 +181,7 @@ interface Match {
             choices.forEach((c) => {
               const btn = document.createElement('button');
               btn.type = 'button';
-              btn.textContent = `${c.emoji} ${c.title} (${c.runners})`;
+              btn.textContent = c.builtin ? `${c.emoji} ${c.title}` : `${c.emoji} ${c.title} (${c.runners})`;
               btn.setAttribute('aria-pressed', String(picked === c));
               btn.addEventListener('click', () => {
                 picked = c;
@@ -174,7 +196,8 @@ interface Match {
           function paintRounds(): void {
             if (!picked) return;
             const options = roundChoices(picked.runners);
-            size = options[options.length - 1];
+            // 처음 고르는 값은 **가장 큰 것이 아니라 16강**이다 — 128강은 첫 판에 백 번을 누르게 한다.
+            size = options.indexOf(16) >= 0 ? 16 : options[options.length - 1];
             $('wcRoundBox').hidden = false;
             $('wcStartRow').hidden = false;
             $('wcRounds').innerHTML = '';
@@ -199,9 +222,21 @@ interface Match {
            * 된다. 남의 표는 도착하는 대로 뒤에 붙는다.
            */
           function loadChoices(): void {
-            choices = loadPacks()
-              .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, local: p }))
-              .filter((c) => c.runners >= 4);
+            // 처음부터 있는 표를 **맨 앞에** 둔다 — 처음 온 사람이 바로 한 판 할 수 있어야 한다.
+            const builtins: typeof choices = BUILTIN.map((b) => ({
+              key: `builtin:${b.id}`,
+              title: b.title,
+              emoji: b.emoji,
+              /* 항목 수는 파일을 받아 봐야 안다. 여기서는 「128강까지 열어 둔다」는 뜻으로만 쓴다 —
+                 실제로 받은 뒤 그보다 적으면 그만큼만 달린다(`start`). */
+              runners: 128,
+              builtin: b.id,
+            }));
+            choices = builtins.concat(
+              loadPacks()
+                .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, local: p }))
+                .filter((c) => c.runners >= 4)
+            );
             paintPacks();
 
             void listShared({ needs: 'image', sort: 'popular', limit: 30 }).then((got) => {
@@ -223,6 +258,11 @@ interface Match {
 
           /** 표를 실제 항목으로 편다. 남의 표는 이때 이 브라우저로 들인다(이어받기와 같은 문). */
           async function runnersFor(choice: (typeof choices)[number]): Promise<Runner[]> {
+            if (choice.builtin) {
+              const got = await fetch(`/apps/karmolab/data/higher-${choice.builtin}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+              const items: Array<{ n: string; i?: string }> = got && Array.isArray(got.items) ? got.items : [];
+              return items.filter((x) => x.i).map((x) => ({ name: x.n, img: String(x.i) }));
+            }
             if (choice.local) return runnersOf(choice.local.items);
             const adopted = choice.sharedId ? await adoptShared(choice.sharedId) : null;
             return adopted ? runnersOf(adopted.items) : [];
