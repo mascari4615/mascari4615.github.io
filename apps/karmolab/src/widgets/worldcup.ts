@@ -18,6 +18,7 @@
 import { loadPacks, type Pack, type PackItem } from './pack-store';
 import { listShared, adoptShared, type SharedPackSummary } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
+import { copyResultCard } from '../lib/result-card';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 /** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
@@ -420,12 +421,28 @@ interface Match {
             $('wcDone').hidden = true;
             $('wcSetup').hidden = false;
           });
+          /* 자랑은 **그림**으로 나간다 (TASK-KL-151 ②).
+             글만 복사하면 아무도 안 붙여넣는다 — 사람이 자랑하는 자리는 그림이 먼저 보인다.
+             그림을 못 얹거나 복사가 막히면 카드가 글자만으로 서거나 파일로 내려간다. */
           $('wcShare').addEventListener('click', () => {
             const last = readHistory()[0];
             if (!last) return;
-            const text = `KarmoLab 이상형 월드컵 — ${last.title}\n내 우승: ${last.champion}\n${location.origin}/karmolab/#worldcup`;
-            void navigator.clipboard.writeText(text).then(() => {
-              $('wcMsg').textContent = '결과를 복사했습니다.';
+            const beat = matches.filter((m) => m.round === 2)[0];
+            $('wcMsg').textContent = '그림 만드는 중…';
+            void copyResultCard(
+              {
+                kicker: `이상형 월드컵 · ${last.title}`,
+                headline: last.champion,
+                lines: [
+                  `${runners.length}강`,
+                  beat ? `결승에서 ${beat.lose} 를 이겼습니다` : '',
+                  new Date(last.at).toLocaleDateString('ko-KR')
+                ].filter(Boolean),
+                imageUrl: last.img
+              },
+              `karmolab-worldcup-${last.champion}.png`
+            ).then((msg) => {
+              $('wcMsg').textContent = msg;
             });
           });
 
