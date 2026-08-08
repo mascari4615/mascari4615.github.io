@@ -52,6 +52,11 @@
             </div>
             <div class="cc-stats" id="wfStats"></div>
             <div class="tool-list" id="wfOut"></div>
+
+            <div class="field-group" style="margin-top:var(--space-lg);">
+              <label class="field-label">되풀이한 구 — 두 번 이상</label>
+              <div class="tool-list" id="wfPhrases"></div>
+            </div>
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
               <button class="btn btn-ghost" id="wfCopy">표 복사</button>
             </div>
@@ -101,12 +106,37 @@
               stat('서로 다른 말', `${rows.length.toLocaleString('ko-KR')}개`) +
               stat('어휘 다양도', total ? `${((rows.length / total) * 100).toFixed(1)}%` : '—');
 
+            /* 반복은 대개 **낱말이 아니라 구(句)**로 온다 — 「그런 의미에서」, 「할 수 있다」.
+               상위 도구들이 전부 n-gram 을 주는 이유다. 조사를 뗀 뒤의 낱말로 잇는다. */
+            const words = raw.map((w) => {
+              let x = caseSensitive ? w : w.toLowerCase();
+              if (useParticle && /^[가-힣]+$/.test(x)) x = stripParticle(x);
+              return x;
+            });
+            const phrases: Record<string, number> = {};
+            for (const n of [2, 3]) {
+              for (let i = 0; i + n <= words.length; i++) {
+                const key = words.slice(i, i + n).join(' ');
+                phrases[key] = (phrases[key] || 0) + 1;
+              }
+            }
+            const phraseRows = Object.entries(phrases)
+              .filter(([, c]) => c >= 2)
+              .sort((a, b) => b[1] - a[1] || b[0].length - a[0].length)
+              .slice(0, 12);
+            const phraseEl = $<HTMLElement>('#wfPhrases');
+            phraseEl.innerHTML = phraseRows.length
+              ? phraseRows
+                  .map(([w, c]) => `<div class="tool-list-row"><span class="tool-list-key">${esc(w)}</span><span class="tool-list-val">${c}회</span></div>`)
+                  .join('')
+              : '<div class="tool-status">두 번 이상 되풀이한 구가 없어요.</div>';
+
             const maxCount = top ? top[1] : 1;
             out.innerHTML = rows
               .slice(0, 60)
               .map(
                 ([w, c]) =>
-                  `<div class="tool-list-row"><span class="tool-list-key">${esc(w)}</span><span class="tool-list-val"><span class="wf-bar" style="width:${Math.max(4, (c / maxCount) * 100)}%"></span> ${c}회</span></div>`
+                  `<div class="tool-list-row"><span class="tool-list-key">${esc(w)}</span><span class="tool-list-val"><span class="wf-bar" style="width:${Math.max(4, (c / maxCount) * 100)}%"></span> ${c}회 <span class="tool-list-dim">${total ? ((c / total) * 100).toFixed(1) : '0'}%</span></span></div>`
               )
               .join('');
             status.textContent = `상위 ${Math.min(60, rows.length)}개를 보여줍니다. 같은 말을 얼마나 반복하는지 보면 글이 줄어듭니다.`;
