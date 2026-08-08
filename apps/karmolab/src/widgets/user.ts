@@ -138,6 +138,26 @@
             background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); }
         .user-stat b { display:block; font-size:20px; font-weight:700; color:var(--accent); font-family:var(--font-mono, monospace); }
         .user-stat span { display:block; margin-top:2px; font-size:var(--font-size-xs); color:var(--text-secondary); }
+
+        /* 잔디 (TASK-KL-152 C2) — 세로 7칸(일~토)으로 흘러 한 열이 한 주다.
+           안 온 날과 「둘러보기만 한 날」을 다르게 칠한다: 둘을 같게 칠하면 온 날이 사라진다. */
+        .fp-recap { margin-bottom:14px; }
+        .fp-grass { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7, 11px);
+            gap:3px; overflow-x:auto; padding:4px 0 8px; }
+        .fp-cell { width:11px; height:11px; border-radius:2px; background:var(--bg-tertiary); }
+        .fp-cell[data-lv="1"] { background:color-mix(in srgb, var(--accent) 22%, var(--bg-tertiary)); }
+        .fp-cell[data-lv="2"] { background:color-mix(in srgb, var(--accent) 45%, var(--bg-tertiary)); }
+        .fp-cell[data-lv="3"] { background:color-mix(in srgb, var(--accent) 70%, var(--bg-tertiary)); }
+        .fp-cell[data-lv="4"] { background:var(--accent); }
+        .fp-cell[data-lv="x"] { background:transparent; }
+        .fp-top { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .fp-top-item { display:flex; align-items:baseline; gap:6px; padding:7px 12px; cursor:pointer;
+            border:1px solid var(--border); border-radius:999px; background:var(--bg-secondary); font:inherit; }
+        .fp-top-item:hover { border-color:var(--accent); }
+        .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
+        .fp-top-item span { font-size:11px; color:var(--text-tertiary); }
+        .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
+        .fp-share .user-acct-hint { flex:1 1 200px; }
     `);
 
     /**
@@ -556,10 +576,162 @@
         });
     }
 
+    /**
+     * 활동 (TASK-KL-152 C2·C3).
+     *
+     * 위 = **내 발자국**(잔디 + 돌아보기). 서버는 오래전부터 「어느 도구가 열렸나」를 세고
+     * 있었지만 익명 집계뿐이라 「내가 무엇을 했나」는 아무도 못 봤다 — 모으기만 하고
+     * 안 돌려주면 없는 것과 같다.
+     * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
+     */
     function buildUsage(container: HTMLElement): void {
-        if (typeof window.DashboardBuild === 'function') {
-            window.DashboardBuild(container);
+        container.innerHTML = '<div class="user-layout"><div id="userFootprint"></div><div id="userDash"></div></div>';
+        const dash = container.querySelector<HTMLElement>('#userDash');
+        if (dash && typeof window.DashboardBuild === 'function') window.DashboardBuild(dash);
+        mountFootprint(container.querySelector<HTMLElement>('#userFootprint'));
+    }
+
+    type Footprint = {
+        days: Record<string, number>;
+        tools: Record<string, number>;
+        totals: { opens: number; activeDays: number; distinctTools: number };
+        streak: { current: number; longest: number };
+        firstSeenAt: string | null;
+        lastSeenAt: string | null;
+    };
+
+    /** 로그인해야만 있는 자리다. 안 했으면 **아무것도 안 그린다** — 빈 잔디는 「기록이 없다」로 읽힌다. */
+    function mountFootprint(slot: HTMLElement | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+        let drawnFor: string | null = null;
+        const off = account.subscribe((state) => {
+            const handle = state.account?.handle ?? null;
+            if (!handle) {
+                drawnFor = null;
+                slot.innerHTML = '';
+                return;
+            }
+            if (drawnFor === handle) return;
+            drawnFor = handle;
+            void renderFootprint(slot);
+        });
+        Toolbox.onDispose?.(off);
+    }
+
+    async function renderFootprint(slot: HTMLElement): Promise<void> {
+        const base = window.KarmoAccount?.apiBase;
+        if (!base) return;
+        let activity: Footprint | null = null;
+        try {
+            const response = await fetch(`${base}/kl/me/activity`, { credentials: 'include' });
+            if (!response.ok) return;
+            activity = ((await response.json()) as { activity?: Footprint }).activity ?? null;
+        } catch {
+            return; // 못 받아 온 것과 「기록이 없다」는 다르다 — 못 받았으면 이 자리는 통째로 없다.
         }
+        if (!activity) return;
+
+        const top = Object.entries(activity.tools)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        slot.innerHTML = `
+            <div class="user-section">
+                <h3>🌱 내 발자국</h3>
+                ${recapHtml(activity)}
+                ${grassHtml(activity.days)}
+                ${top.length
+                    ? `<div class="fp-top">${top
+                          .map(
+                              ([id, n]) =>
+                                  `<button type="button" class="fp-top-item" data-tool="${escapeHtml(id)}">
+                                       <b>${escapeHtml(toolTitle(id))}</b><span>${n}번</span>
+                                   </button>`,
+                          )
+                          .join('')}</div>`
+                    : ''}
+                <div class="fp-share">
+                    <button type="button" class="user-account-btn user-account-btn-quiet" data-share>내 발자국 복사</button>
+                    <span class="user-acct-hint">숫자는 전부 실제로 열린 것만 셉니다. 지어낸 값은 없습니다.</span>
+                </div>
+            </div>`;
+
+        slot.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((button) => {
+            button.addEventListener('click', () => Toolbox.switchPage?.(button.dataset.tool ?? ''));
+        });
+        slot.querySelector('[data-share]')?.addEventListener('click', () => {
+            void navigator.clipboard?.writeText(shareText(activity!, top));
+            Toolbox.showToast?.('복사했어요');
+        });
+    }
+
+    /**
+     * 나눠 쓸 한 덩어리 (C3).
+     *
+     * 그림이 아니라 **글**인 이유: 어디에 붙여도 깨지지 않고, 우리가 지어낸 수가 하나도 없다는 것을
+     * 읽는 사람이 그대로 확인할 수 있다. 그림 카드는 서버가 만드는 편이 맞다(C8).
+     */
+    function shareText(activity: Footprint, top: Array<[string, number]>): string {
+        const lines = [
+            '🌱 KarmoLab 내 발자국',
+            `연속 ${activity.streak.current}일 (최장 ${activity.streak.longest}일)`,
+            `다녀간 날 ${activity.totals.activeDays}일 · 도구 ${activity.totals.opens}번 · 써 본 도구 ${activity.totals.distinctTools}가지`,
+        ];
+        if (top.length) lines.push(`많이 쓴 것: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(' · ')}`);
+        lines.push('https://blog.mascari4615.com/karmolab/');
+        return lines.join('\n');
+    }
+
+    /** 도구 id → 사람이 아는 이름. 모르면 id 그대로 (지어내지 않는다). */
+    function toolTitle(id: string): string {
+        const meta = (window.KARMOLAB_LAZY_META_BY_ID ?? {})[id] as { title?: string } | undefined;
+        return meta?.title || id;
+    }
+
+    /**
+     * 돌아보기 (C3) — 실측값만. 없는 값은 칸 자체를 안 만든다.
+     * 「처음 온 날」은 계정 만든 날이 아니라 **실제 첫 발자국**이다.
+     */
+    function recapHtml(activity: Footprint): string {
+        const cells: Array<[string, string]> = [
+            [String(activity.streak.current), '지금 연속(일)'],
+            [String(activity.streak.longest), '최장 연속(일)'],
+            [String(activity.totals.activeDays), '다녀간 날'],
+            [String(activity.totals.opens), '도구 연 횟수'],
+            [String(activity.totals.distinctTools), '써 본 도구'],
+        ];
+        const first = activity.firstSeenAt ? new Date(activity.firstSeenAt) : null;
+        const firstText = first && !Number.isNaN(first.getTime())
+            ? new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeZone: 'Asia/Seoul' }).format(first)
+            : null;
+        return `
+            <div class="user-stats fp-recap">${cells
+                .map(([v, l]) => `<div class="user-stat"><b>${v}</b><span>${l}</span></div>`)
+                .join('')}</div>
+            ${firstText ? `<p class="user-act-lead">${escapeHtml(firstText)}부터 여기 있었습니다.</p>` : ''}`;
+    }
+
+    /** 잔디 — 오늘까지 53주. 값이 0 인 날과 안 온 날은 **다르게** 칠한다(둘러보기만 한 날도 온 날이다). */
+    function grassHtml(days: Record<string, number>): string {
+        const today = new Date(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()));
+        const cells: string[] = [];
+        // 오늘이 있는 주의 토요일까지 채워 마지막 열이 잘리지 않게 한다.
+        const end = new Date(today);
+        end.setDate(end.getDate() + (6 - end.getDay()));
+        const start = new Date(end);
+        start.setDate(start.getDate() - (53 * 7 - 1));
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const key = d.toISOString().slice(0, 10);
+            const future = d > today;
+            const value = days[key];
+            const level = future ? 'x' : value === undefined ? '0' : value === 0 ? '1' : value < 3 ? '2' : value < 8 ? '3' : '4';
+            const title = future ? '' : `${key} · ${value === undefined ? '안 옴' : value === 0 ? '둘러봄' : `${value}번`}`;
+            cells.push(`<i class="fp-cell" data-lv="${level}"${title ? ` title="${title}"` : ''}></i>`);
+        }
+        return `<div class="fp-grass" role="img" aria-label="지난 1년 활동">${cells.join('')}</div>`;
     }
 
     /**
