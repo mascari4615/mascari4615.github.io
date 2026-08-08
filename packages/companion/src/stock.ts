@@ -26,6 +26,14 @@ export interface StockOptions {
   지어오기: (prompt: string) => Promise<string | null>;
   /** 지금 누구인가 — 인격이 바뀌면 앞 인격이 지은 말은 안 쓴다. */
   누구?: () => string | null;
+  /**
+   * 누구로서 짓나 — 인격 글 그대로.
+   *
+   * **이게 없으면 맨 두뇌가 짓는다.** 실측(89회차): 인사 대꾸를 부탁했더니 「안녕하세요 /
+   * 반갑습니다 / 뵙게 되어 좋습니다」가 왔고 전부 걸러졌다. 짓는 자리에 인격이 안 실리면
+   * 걸러 내는 잣대가 아무리 좋아도 담을 게 안 남는다.
+   */
+  인격글?: () => string | null;
   /** 한 갈래에 담아 둘 최대 개수. */
   최대?: number;
   /** 이 길이를 넘으면 대꾸가 아니라 설명이다. */
@@ -131,8 +139,16 @@ export class 대사창고 {
     this.채우는중.add(갈래);
     try {
       const 몇개 = Math.min(목표, this.최대) - 지금;
+      const 인격 = this.options.인격글?.() ?? null;
       const raw = await this.options.지어오기(
-        `${부탁}\n\n${몇개}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. 번호·따옴표·설명 없이 말만.`
+        [
+          인격 === null ? null : `${인격}\n\n---`,
+          인격 === null ? null : '위 인격 그대로, 아래 자리에서 할 말을 지어라.',
+          부탁,
+          `${몇개}개만, 한 줄에 하나씩. ${this.최대글자}자 안쪽. **반말**로. 번호·따옴표·설명 없이 말만.`,
+        ]
+          .filter((줄) => 줄 !== null)
+          .join('\n\n')
       );
       if (raw === null) return 0;
       const 쓸것 = 골라내기(raw, this.최대글자);

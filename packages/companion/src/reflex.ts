@@ -19,6 +19,28 @@ export interface ReflexOptions {
   /** 직전에 반사로 한 말 — 같은 걸 연달아 하지 않게. */
   last?: string | null;
   roll?: () => number;
+  /**
+   * 미리 지어 둔 대사 창고. 있으면 여기서 먼저 꺼낸다.
+   *
+   * 여기도 후보가 셋뿐이라 결국 도는 말이 된다 — 실제 기록에서 「응.」 8번, 「뭐.」 8번.
+   * 닿음 대꾸와 같은 자리를 쓴다(`stock.ts`). 비면 아래 표로 그냥 물러선다.
+   */
+  창고?: { 꺼내기: (갈래: string) => string | null };
+}
+
+/** 지금 기운이 어느 결인가 — 처짐 / 보통 / 생생. */
+export function 반사결(energy: number): '처짐' | '보통' | '생생' {
+  return energy < 0.35 ? '처짐' : energy > 0.75 ? '생생' : '보통';
+}
+
+/** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
+export function 반사갈래(종류: string, 결: string): string {
+  return `reflex:${종류}:${결}`;
+}
+
+/** 반사가 다루는 상황들 — 미리 채워 두려면 무엇이 있는지 밖에서 알아야 한다. */
+export function 반사종류들(): readonly string[] {
+  return Object.keys(대꾸);
 }
 
 /** 상황마다, 결마다 다른 대꾸. */
@@ -65,8 +87,14 @@ export function reflexFor(said: string, options: ReflexOptions = {}): string | n
   if (hit === undefined) return null;
 
   const energy = options.energy ?? 0.5;
+  const 결 = 반사결(energy);
+
+  // 미리 지어 둔 것이 먼저다. 바로 앞것과 같으면 그건 안 쓴다.
+  const 지어둔것 = options.창고?.꺼내기(반사갈래(hit.종류, 결)) ?? null;
+  if (지어둔것 !== null && 지어둔것 !== options.last) return 지어둔것;
+
   const set = 대꾸[hit.종류] as { 처짐: readonly string[]; 보통: readonly string[]; 생생: readonly string[] };
-  const pool = energy < 0.35 ? set.처짐 : energy > 0.75 ? set.생생 : set.보통;
+  const pool = set[결];
 
   const usable = pool.filter((p) => p !== options.last);
   const choices = usable.length > 0 ? usable : pool;

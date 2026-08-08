@@ -138,6 +138,8 @@ import {
   readMood,
   pickFiller,
   reflexFor,
+  반사갈래,
+  반사종류들,
   driftWarning,
   dayMark,
   avoidanceWarning,
@@ -361,30 +363,54 @@ const touchCount = new TouchCount();
 /* 미리 지어 둔 대꾸 창고 (89회차). 손으로 적은 표는 후보가 셋뿐이라 스무 번이면 또 돈다 —
    실측으로 얘가 한 말 320개 중 145개가 글자 그대로 반복이었다. 한가할 때 두뇌가 채워 두고,
    닿았을 때는 꺼내 쓴다(꺼내는 데 걸리는 시간 0). 비면 손으로 적은 표로 그냥 물러선다. */
+/** 빈 자리가 남았을 때 다음 것을 잇는 간격. 첫 판에 스물한 자리를 채우는 속도를 정한다. */
+const 이어채우기간격 = Number(process.env.COMPANION_STOCK_NEXT_MS ?? '20000');
 const 대사 = new 대사창고({
   path: join(home, '지어-둔-대꾸.json'),
   누구: () => character?.name ?? null,
+  인격글: () => character?.instruction ?? null,
   지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
   log: (m) => console.log(m),
 });
 const 닿음결 = { 쿡: '쿡 찔렸을 때', 흔듦: '붙잡혀 끌려다닐 때', 쓰다듬: '쓰다듬어질 때' };
 const 단계결 = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
-/** 한가할 때 대꾸를 지어 둔다. 못 지어도 그냥 넘어간다 — 기본 표가 있다. */
-function 대꾸채워두기() {
+const 반사상황 = {
+  인사: '조수님이 인사를 건넸을 때 받는 인사',
+  작별: '조수님이 자러 가거나 나갈 때 하는 인사',
+  고마움: '조수님이 고맙다고 했을 때 하는 대꾸',
+  호응: '조수님 말에 짧게 맞장구치는 대꾸',
+};
+const 기운결 = { 처짐: '축 처져서 나른한 결', 보통: '평소 결', 생생: '기운이 도는 결' };
+
+/** 미리 채워 둘 자리 전부 — 어디에 무슨 말을 지어야 하는지. */
+function 채울자리들() {
+  const 자리 = [];
   for (const [갈래, 무슨일] of Object.entries(닿음결)) {
     for (let 단계 = 0; 단계 < 3; 단계 += 1) {
-      const 열쇠 = 닿음갈래(갈래, 단계);
-      if (대사.남은수(열쇠) >= 4) continue;
-      void 대사
-        .채우기(
-          열쇠,
-          `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.`,
-          6,
-        )
-        .catch(() => {});
-      return; // 한 번에 한 갈래만 — 느린 두뇌를 아홉 번 부르면 진짜 대답이 밀린다.
+      자리.push({ 열쇠: 닿음갈래(갈래, 단계), 부탁: `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.` });
     }
   }
+  for (const 종류 of 반사종류들()) {
+    for (const [결, 어떤결] of Object.entries(기운결)) {
+      자리.push({ 열쇠: 반사갈래(종류, 결), 부탁: `${반사상황[종류]}. 너답게 짧게. ${어떤결}.` });
+    }
+  }
+  return 자리;
+}
+
+/**
+ * 한가할 때 대꾸를 지어 둔다. 못 지어도 그냥 넘어간다 — 기본 표가 있다.
+ *
+ * **한 번에 한 자리만.** 느린 두뇌를 스무 번 부르면 진짜 대답이 그 뒤에서 기다린다(8회차).
+ * 대신 아직 빈 자리가 남아 있으면 다음 것을 곧 잇는다 — 스물한 자리를 긴 간격으로만
+ * 돌면 정작 자주 쓰는 자리가 한참 동안 옛 표 그대로다.
+ */
+function 대꾸채워두기() {
+  const 빈것 = 채울자리들().filter((자리) => 대사.남은수(자리.열쇠) < 4);
+  const 이번것 = 빈것[0];
+  if (이번것 === undefined) return;
+  void 대사.채우기(이번것.열쇠, 이번것.부탁, 6).catch(() => {});
+  if (빈것.length > 1) setTimeout(대꾸채워두기, 이어채우기간격).unref();
 }
 let lastEnergy = 0.5;
 
@@ -695,7 +721,7 @@ const companion = new Companion({
       heart.felt(/내가 이겼다/.test(놀이.say) ? '놀이이김' : /내가 졌다/.test(놀이.say) ? '놀이짐' : '같이놂', 0.6);
       return 놀이.say;
     }
-    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex });
+    const quick = reflexFor(sensation.text, { energy: lastEnergy, last: lastReflex, 창고: 대사 });
     if (quick !== null) lastReflex = quick;
     return quick;
   },

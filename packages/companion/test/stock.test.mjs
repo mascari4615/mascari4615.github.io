@@ -4,7 +4,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { 대사창고, 골라내기, touchReply, 닿음갈래, 대꾸기억지우기 } from '../dist/index.js';
+import { 대사창고, 골라내기, touchReply, 닿음갈래, 대꾸기억지우기, reflexFor, 반사갈래 } from '../dist/index.js';
 
 const 새파일 = () => join(mkdtempSync(join(tmpdir(), 'stock-')), '지은-대사.json');
 
@@ -125,4 +125,42 @@ test('두뇌가 되물으며 낸 말은 대꾸로 안 담는다 (89회차 실측
 
 test('반말 대꾸는 그 잣대에 안 걸린다', () => {
   assert.deepEqual(골라내기('…또야?\n뭐야 갑자기\n아, 놔\n됐어 됐어'), ['…또야?', '뭐야 갑자기', '아, 놔', '됐어 됐어']);
+});
+
+test('반사도 미리 지어 둔 것을 먼저 쓰고, 비면 손으로 적은 표로 물러선다', async () => {
+  const 창고 = new 대사창고({ 지어오기: async () => '어, 왔어' });
+  await 창고.채우기(반사갈래('인사', '보통'), '인사 받는 말');
+  assert.equal(reflexFor('안녕', { energy: 0.5, 창고 }), '어, 왔어');
+  const 다음 = reflexFor('안녕', { energy: 0.5, 창고 });
+  assert.ok(['응, 왔네.', '어, 안녕.', '왔어?'].includes(다음), `기본 표에서 나와야 하는데 "${다음}"`);
+});
+
+test('결이 다르면 그 자리 것을 안 꺼낸다 — 늘어진 애가 생생한 말을 하면 안 된다', async () => {
+  const 창고 = new 대사창고({ 지어오기: async () => '…어… 왔네' });
+  await 창고.채우기(반사갈래('인사', '처짐'), '나른할 때 인사');
+  // 기운이 생생한데 처짐 자리 것이 나오면 안 된다 — 기본 표(생생)에서 나와야 한다.
+  const 말 = reflexFor('안녕', { energy: 0.9, 창고 });
+  assert.notEqual(말, '…어… 왔네');
+  assert.ok(['오, 왔네!', '어 안녕.', '왔구나.'].includes(말), `생생 표에서 나와야 하는데 "${말}"`);
+  assert.equal(창고.남은수(반사갈래('인사', '처짐')), 1);
+});
+
+test('반사 아닌 말은 창고가 있어도 반사하지 않는다', async () => {
+  const 창고 = new 대사창고({ 지어오기: async () => '아무 말' });
+  await 창고.채우기(반사갈래('인사', '보통'), '인사');
+  assert.equal(reflexFor('오늘 회의가 진짜 길었어', { energy: 0.5, 창고 }), null);
+});
+
+test('인격을 주면 그 글이 부탁에 실린다 — 안 실으면 맨 두뇌가 짓는다 (89회차 실측)', async () => {
+  let 받은부탁 = '';
+  const 창고 = new 대사창고({
+    인격글: () => '너는 욘. 늘 나른하고 반말만 쓴다.',
+    지어오기: async (prompt) => {
+      받은부탁 = prompt;
+      return '어, 왔어';
+    },
+  });
+  await 창고.채우기('갈래', '인사 받는 말');
+  assert.ok(받은부탁.includes('너는 욘. 늘 나른하고 반말만 쓴다.'), '인격 글이 안 실렸다');
+  assert.ok(받은부탁.includes('반말'), '반말로 지으라는 말이 안 실렸다');
 });
