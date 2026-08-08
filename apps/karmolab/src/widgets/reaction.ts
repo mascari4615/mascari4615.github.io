@@ -1,3 +1,14 @@
+/**
+ * 반응속도 — 한 판이 끝나면 기록 원장에 남는다 (TASK-KL-148).
+ *
+ * 예전에는 저장이 한 줄도 없어서 새로고침 한 번이면 없던 일이 됐다. 이제 최고·순위·「어제의 나」가
+ * 그 자리에 붙는다. 서버가 죽거나 로그인을 안 했으면 이 브라우저 최고만 뜨고 놀이는 그대로 된다.
+ */
+import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+
+/** 작을수록 좋다 — 이건 놀이 자체의 성질이라 놀이가 말한다. 순위는 서버가 매긴다. */
+const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 0 };
+
 (function (): void {
   Toolbox.register({
     id: 'reaction',
@@ -31,6 +42,7 @@
                     <div id="reactionResults" style="width:100%;font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center;min-height:24px;"></div>
                     <div id="reactionHistory" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>
                     <div id="reactionBest" style="font-size:var(--font-size-xs);color:var(--text-tertiary);"></div>
+                    <div id="reactionBoard" hidden style="width:100%;"></div>
                 </div>
             `;
 
@@ -41,7 +53,8 @@
           const resultsEl = container.querySelector('#reactionResults') as HTMLElement | null;
           const historyEl = container.querySelector('#reactionHistory') as HTMLElement | null;
           const bestEl = container.querySelector('#reactionBest') as HTMLElement | null;
-          if (!boxEl || !iconEl || !textEl || !subEl || !resultsEl || !historyEl || !bestEl) return;
+          const boardEl = container.querySelector('#reactionBoard') as HTMLElement | null;
+          if (!boxEl || !iconEl || !textEl || !subEl || !resultsEl || !historyEl || !bestEl || !boardEl) return;
 
           const box = boxEl;
           const icon = iconEl;
@@ -50,9 +63,14 @@
           const resultsOut = resultsEl;
           const historyOut = historyEl;
           const bestOut = bestEl;
+          const boardOut = boardEl;
 
           const bestTime = Toolbox.getProgress?.('reaction_best');
           if (bestTime) bestOut.textContent = `최고 기록: ${bestTime}ms`;
+
+          // 순위판은 들어오자마자 붙인다 — 「남들은 어느 정도인가」가 한 판 하게 만드는 힘이다.
+          // 서버에 못 닿거나 아직 아무도 안 놀았으면 아무것도 안 붙는다.
+          mountPlayBoard(boardEl, SPEC);
 
           function setState(newState: ReactionState): void {
             state = newState;
@@ -136,9 +154,9 @@
 
                 const currentBest = Toolbox.getProgress?.('reaction_best') ?? 0;
                 if (!currentBest || reactionTime < currentBest) {
+                  // 도전과제·계정 동기화가 이 값을 본다. 화면에 보이는 「최고」는 아래 기록 원장이 그린다
+                  // (두 곳에서 그리면 하나가 낡은 값을 들고 남는다).
                   Toolbox.setProgress?.('reaction_best', reactionTime);
-                  bestOut.textContent = `최고 기록: ${reactionTime}ms`;
-                  bestOut.style.color = 'var(--accent)';
                   Mdd.linePreset('success', { msg: '신기록이에요!' });
                 } else if (reactionTime < 200) {
                   Mdd.linePreset('idle_wake', { msg: '빨라요!!! 인간 맞아요?!' });
@@ -154,6 +172,14 @@
                 if (reactionTime < 150) {
                   Toolbox.completeAchievement?.('reaction_150', { title: '번개 반응 150ms' });
                 }
+                // 한 판이 끝났다 — 기록 원장에 남긴다. 실패해도 위 화면은 이미 다 그려져 있다.
+                void submitPlay(SPEC, reactionTime).then((result) => {
+                  if (!bestOut.isConnected) return;
+                  renderPlayResult(bestOut, SPEC, result);
+                  // 순위가 바뀐 판만 다시 받는다 (매 판 부르면 서버를 놀이 속도로 두드린다).
+                  if (result.server && result.server.improved) mountPlayBoard(boardOut, SPEC);
+                });
+
                 Mdd.addAffection(1);
                 break;
               }

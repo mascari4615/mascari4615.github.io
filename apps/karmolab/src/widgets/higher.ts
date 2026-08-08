@@ -11,6 +11,7 @@
  * 표는 「오늘의 하나 맞히기」가 모아 둔 것을 쓴다(data/higher-<주제>.json 으로 추려 둔 것).
  */
 import { mountCourseNext } from './play-course';
+import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
 import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 
@@ -69,6 +70,8 @@ import { onPageActive, takePick } from './pack-pick';
             <p class="hi-score"><span>연승 <b id="hiStreak">0</b></span><span>최고 <b id="hiBest">0</b></span></p>
             <p class="tool-status" id="hiMsg" aria-live="polite"></p>
             <p class="pc-line" id="hiCourse" hidden></p>
+            <p id="hiRecord" hidden></p>
+            <div id="hiBoard" hidden></div>
             <div id="hiAgain" style="display:none; gap:6px; flex-wrap:wrap;">
               <button class="btn btn-primary" id="hiRetry">다시</button>
               <button class="btn btn-ghost" id="hiShare">결과 복사</button>
@@ -107,6 +110,33 @@ import { onPageActive, takePick } from './pack-pick';
           /* 오늘 이 놀이를 했는지 (TASK-KL-089 — 「오늘의 코스」).
            * 최고 기록만으로는 **오늘 했는지**를 알 수 없다(작년에 세운 10연승이 그대로 남는다).
            * 놀이터가 코스를 세려면 「오늘 한 판 끝냈다」가 있어야 한다 — 그 한 줄을 여기서 남긴다. */
+          /**
+           * 이 판(표)의 순위판 이름 (TASK-KL-148).
+           * 포켓몬 10연승과 롤 10연승은 같은 기록이 아니다 — 표마다 순위판이 갈린다.
+           */
+          const specOf = (id: string): PlaySpec => ({
+            game: 'higher',
+            variant: id,
+            better: 'high',
+            unit: '연승',
+            decimals: 0,
+          });
+
+          /**
+           * 한 연승이 끝났다 — 기록 원장에 남긴다. 0연승은 안 보낸다(기록이 아니다).
+           * 실패해도 놀이는 이미 다 끝나 있다.
+           */
+          const sendRun = (id: string, last: number): void => {
+            if (last < 1 || !id) return;
+            const spec = specOf(id);
+            void submitPlay(spec, last).then((r) => {
+              const slot = container.querySelector<HTMLElement>('#hiRecord');
+              if (!slot || !slot.isConnected) return;
+              renderPlayResult(slot, spec, r);
+              if (r.server && r.server.improved) mountPlayBoard($('hiBoard'), spec);
+            });
+          };
+
           const markToday = (last: number): void => {
             const k = new Date(Date.now() + 9 * 3600e3);
             const day = `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;
@@ -214,6 +244,7 @@ import { onPageActive, takePick } from './pack-pick';
               $('hiBest').textContent = String(bestOf(boardId, streak));
               $('hiAgain').style.display = 'flex';
               markToday(streak);
+              sendRun(boardId, streak);
               // 끝낸 그 자리에서 오늘 남은 놀이를 말해 준다 — 여기서 안 하면 그냥 창을 닫는다.
               mountCourseNext($('hiCourse'), 'higher');
             }
@@ -247,6 +278,8 @@ import { onPageActive, takePick } from './pack-pick';
             let note = '';
             if (streak > 0 && boardId && boardId !== id) {
               markToday(streak);
+              // 판을 바꿔 끝난 연승도 기록이다 — **떠나는 표**의 순위판에 남긴다.
+              sendRun(boardId, streak);
               // 새 판을 다 그린 **뒤에** 말해야 한다 — 먼저 적으면 새 판이 그리면서 지운다(실측).
               note = `판을 바꿔 ${streak}연승은 여기서 끝냅니다 — 최고 기록에는 남겼어요.`;
             }
@@ -272,6 +305,10 @@ import { onPageActive, takePick } from './pack-pick';
                 left = null;
                 $('hiStreak').textContent = '0';
                 $('hiBest').textContent = String(bestOf(id));
+                // 이 표의 순위판을 붙인다 (표를 바꾸면 순위판도 그 표의 것으로 갈린다).
+                $('hiRecord').hidden = true;
+                $('hiBoard').hidden = true;
+                mountPlayBoard($('hiBoard'), specOf(id));
                 nextRound(false);
                 if (note) $('hiMsg').textContent = note;
               })
