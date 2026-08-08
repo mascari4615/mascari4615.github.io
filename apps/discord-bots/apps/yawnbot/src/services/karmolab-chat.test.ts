@@ -285,3 +285,49 @@ describe('답하기·신고 표시·보여 줄 모양 (KL-159)', () => {
         expect(JSON.stringify(asC)).not.toContain('who-b');
     });
 });
+
+describe('지킨 사람이 하루를 넘긴다 (KL-160)', () => {
+    it('로그인한 사람은 계정 열쇠로 적혀, 이름표가 갈려도 「내가 지킨 것」이 남는다', () => {
+        const store = makeStore();
+        const day1 = new Date('2026-08-08T12:00:00Z');
+        const day2 = new Date('2026-08-09T12:00:00Z');
+
+        const posted = store.post('visitor', '넘길 말', {}, day1);
+        const whoDay1 = store.identityFor('visitor', day1).who;
+        const whoDay2 = store.identityFor('visitor', day2).who;
+        // 전제: 이름표는 실제로 하루 만에 갈린다.
+        expect(whoDay2).not.toBe(whoDay1);
+
+        const keeper = KarmolabChatStore.keeperKey(whoDay1, 'acct-1');
+        store.toggleKeep(posted.message!.id, keeper, day1);
+
+        // 다음 날, 이름표는 갈렸지만 계정은 그대로다 — 여전히 내가 지킨 것으로 보인다.
+        const keeperNextDay = KarmolabChatStore.keeperKey(whoDay2, 'acct-1');
+        expect(store.publicMessages(keeperNextDay, day2)[0].keptByMe).toBe(true);
+    });
+
+    it('익명은 오늘 이름표로만 적힌다 — 그 이상 남는 표식을 안 갖는다', () => {
+        const store = makeStore();
+        const day1 = new Date('2026-08-08T12:00:00Z');
+        const day2 = new Date('2026-08-09T12:00:00Z');
+        const posted = store.post('visitor', '익명이 지킨다', {}, day1);
+        const whoDay1 = store.identityFor('visitor', day1).who;
+
+        store.toggleKeep(posted.message!.id, KarmolabChatStore.keeperKey(whoDay1, null), day1);
+        const whoDay2 = store.identityFor('visitor', day2).who;
+        expect(store.publicMessages(KarmolabChatStore.keeperKey(whoDay2, null), day2)[0].keptByMe).toBe(false);
+        // 줄 자체는 지켜져 있으므로 남아 있다 — 「누가」만 하루짜리다.
+        expect(store.publicMessages(whoDay2, day2)[0].kept).toBe(1);
+    });
+
+    it('답을 받은 사람의 계정을 되찾을 수 있다 (밖으로는 안 나간다)', () => {
+        const store = makeStore();
+        const spoken = store.post('v', '내 말', { accountId: 'acct-9' });
+        expect(store.accountOfMessage(spoken.message!.id)).toBe('acct-9');
+        // 익명이면 알릴 곳이 없다 — 그건 고장이 아니다.
+        const anon = store.post('w', '익명 말');
+        expect(store.accountOfMessage(anon.message!.id)).toBe(null);
+        // 보여 줄 모양에는 계정이 절대 안 실린다.
+        expect(JSON.stringify(store.publicMessages('who-x'))).not.toContain('acct-9');
+    });
+});

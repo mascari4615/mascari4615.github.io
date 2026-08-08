@@ -56,6 +56,11 @@ export interface ChatMessage {
      */
     reportedBy?: string[];
     /**
+     * 이 말을 한 사람의 계정 (로그인했을 때만). **밖으로 안 나간다** — 나가면 익명이 아니다.
+     * 오직 「이 줄에 답이 달렸다」를 그 사람에게 알리는 데만 쓴다 (TASK-KL-160).
+     */
+    accountId?: string | null;
+    /**
      * 이 줄이 어느 줄에 답하는가 (TASK-KL-159). 최상위면 없음.
      *
      * 왜 필요한가: 여럿이 동시에 말하면 「누구한테 하는 말이지?」가 안 보인다. 방이 커질수록
@@ -317,6 +322,7 @@ export class KarmolabChatStore {
             color: identity.color,
             who: identity.who,
             byOwner: Boolean(options.byOwner),
+            accountId: options.accountId ?? null,
             at: now.toISOString(),
         };
         this.state.messages.push(message);
@@ -338,6 +344,14 @@ export class KarmolabChatStore {
         this.markDirty();
         this.broadcast({ type: 'del', id });
         return true;
+    }
+
+    /**
+     * 이 줄에 답을 받은 사람의 계정 — 알릴 곳이 있으면 준다.
+     * 익명(비로그인)이면 null 이다. 그건 알릴 곳이 없다는 뜻이지 고장이 아니다.
+     */
+    accountOfMessage(id: string): string | null {
+        return this.state.messages.find((m) => m.id === id)?.accountId ?? null;
     }
 
     /**
@@ -378,6 +392,13 @@ export class KarmolabChatStore {
 
     /**
      * 이 줄을 지킨다 / 지키기를 푼다. 같은 사람이 다시 누르면 풀린다.
+     *
+     * **누구로 적느냐가 중요하다** (TASK-KL-160). 오늘 이름표(`who`)로만 적으면 자정에
+     * 이름표가 갈리면서 「내가 지킨 것」이 통째로 남의 것처럼 보인다 — 지킨 줄은 하루를
+     * 넘겨 남는데 지킨 사람은 하루를 못 넘기는 셈이라 앞뒤가 안 맞았다.
+     * 그래서 로그인했으면 **계정 열쇠**(`acc:<id>`)로 적는다. 익명은 오늘 이름표로 적고,
+     * 그건 하루짜리다 — 익명이 그 이상 남는 표식을 갖는 건 익명이 아니다.
+     *
      * @returns 지금 지킨 사람 수. 없는 줄이면 null.
      */
     toggleKeep(id: string, who: string, now: Date = new Date()): number | null {
@@ -430,6 +451,14 @@ export class KarmolabChatStore {
     todaysSpeakers(exceptAccountId: string | null, now: Date = new Date()): string[] {
         this.prune(now);
         return Object.keys(this.state.speakers ?? {}).filter((id) => id !== exceptAccountId);
+    }
+
+    /**
+     * 지키기·신고에서 이 사람을 가리키는 열쇠.
+     * 로그인했으면 계정(내일도 나) · 아니면 오늘 이름표(하루짜리).
+     */
+    static keeperKey(who: string, accountId: string | null | undefined): string {
+        return accountId ? `acc:${accountId}` : who;
     }
 
     /**
