@@ -329,7 +329,13 @@ const Toolbox = (() => {
          * 참여의 문턱은 **이미 부르고 있는 함수 하나**여야 한다. */
         try {
             window.dispatchEvent(new CustomEvent('karmolab-result', {
-                detail: { type: item.blob.type || '', name: item.name || '', from: item.from || null },
+                detail: {
+                    type: item.blob.type || '',
+                    // 크기를 함께 실어야 흐름이 「작으면 건너뛰기」를 판정할 수 있다 (TASK-KL-183 B).
+                    size: item.blob.size || 0,
+                    name: item.name || '',
+                    from: item.from || null,
+                },
             }));
         } catch (_) {
             /* 알림 한 번 못 쏜 것과 결과가 안 나온 것은 다른 무게다 */
