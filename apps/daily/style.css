@@ -79,7 +79,9 @@ a { color: var(--accent); }
 }
 
 /* ── 모드 탭 + 연속 기록 ── */
-.tabs { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; }
+/* 판이 넷이 되면서 한 줄에 안 들어간다 — 좁은 화면(글자 200%)에서 통째로 넘쳤다.
+   줄바꿈을 허용한다: 넘치는 것보다 두 줄이 낫다. 연속 기록은 계속 오른쪽 끝. */
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
 .tab {
   /* 재 보니 32px. 나란히 붙는 것이라 40 으로 (단독 단추는 44). */
   display: inline-flex;
@@ -91,6 +93,7 @@ a { color: var(--accent); }
   border: 1px solid var(--line);
   color: var(--ink-2);
   text-decoration: none;
+  white-space: nowrap;
 }
 .tab:hover { color: var(--ink); border-color: var(--ink-3); }
 .tab.on { background: var(--panel-2); color: var(--ink); border-color: var(--ink-3); }
@@ -746,3 +749,42 @@ table.past .play:hover { border-color: var(--accent); }
 .missed { margin: 10px 0 4px; font-size: 13px; color: var(--ink-2); }
 .missed b { display: block; margin-bottom: 6px; }
 .missed div { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+
+/* ── 격자판 (TASK-KL-199) ───────────────────────────────────────────────────
+   가로·세로 조건이 만나는 아홉 칸. 좁은 폰에서 글자가 뭉개지지 않는 것이 이 판의 전부다. */
+.grid-board { margin: 6px 0 10px; overflow-x: auto; }
+.grid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+  table-layout: fixed;
+}
+.grid-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  line-height: 1.25;
+  word-break: keep-all;
+  padding: 2px;
+}
+.grid-table th[scope='row'] { text-align: right; width: 22%; }
+.grid-table .corner { width: 22%; }
+.gcell {
+  width: 100%;
+  min-height: 62px;
+  padding: 6px 4px;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.25;
+  color: var(--ink-3);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  word-break: keep-all;
+}
+.gcell:hover { border-color: var(--ink-3); }
+/* 지금 넣는 칸 — 입력칸이 화면 아래에 있어서, 어디에 넣는 중인지가 안 보이면 헷갈린다. */
+.gcell.picked { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.gcell.on { color: var(--ink); border-color: var(--exact); background: color-mix(in srgb, var(--exact) 18%, var(--panel-2)); }
+.gcell i { display: block; font-style: normal; font-size: 11px; color: var(--ink-3); }

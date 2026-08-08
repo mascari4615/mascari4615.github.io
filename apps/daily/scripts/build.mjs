@@ -9,7 +9,7 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSy
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stripHtml, STRIP_CSS } from '../../play/scripts/strip.mjs';
-import { kstDayNumber, EPOCH_DAY_NUMBER, hasListMode } from '../engine.mjs';
+import { kstDayNumber, EPOCH_DAY_NUMBER, hasListMode, hasGridMode } from '../engine.mjs';
 import { modesOf, pastRow } from '../past-row.mjs';
 import { assertDenied } from './lib-pwa-deny.mjs';
 
@@ -149,6 +149,21 @@ function pagesOf(topic) {
       desc: `조건에 드는 ${topic.title}을(를) 90초 안에 전부 대는 판. 매일 새 질문, 로그인 없음.`,
     });
   }
+  /**
+   * 격자판 (KL-199) — 두 조건이 만나는 아홉 칸을 배치로 채운다.
+   * 축 둘을 세울 만큼 갈래가 있는 표에만 붙는다(롤은 자원이 「마나」로 쏠려 못 선다).
+   */
+  if (hasGridMode(topic)) {
+    list.push({
+      mode: 'grid',
+      path: `${topic.id}/grid`,
+      depth: 2,
+      label: `${topic.title} 격자판`,
+      short: '격자판',
+      lede: '가로·세로 조건이 만나는 칸을 채우세요. 아홉 칸에 아홉 수, 한 항목은 한 칸만.',
+      desc: `가로·세로 조건이 만나는 ${topic.title} 아홉 칸을 채우는 판. 매일 새 격자, 로그인 없음.`,
+    });
+  }
   if (topic.items.every((i) => i.img)) {
     list.push({
       mode: 'silhouette',
@@ -236,9 +251,14 @@ for (const page of all) {
 
   const shot = page.mode === 'silhouette' ? '<div class="shot"><img alt="오늘의 실루엣"></div>' : '';
   const isList = page.mode === 'list';
+  const isGrid = page.mode === 'grid';
 
   // 전부대기는 화면이 다르다 — 표를 쌓는 대신 답을 쏟아 넣는다. 껍데기도 스크립트도 따로 간다.
-  const center = isList
+  const center = isGrid
+    ? `  <div class="grid-board"></div>
+  <p class="left"></p>
+  <p class="say" role="status"></p>`
+    : isList
     ? `  <p class="question"></p>
   <div class="bar"><span></span></div>
   <div class="listmeta"><span class="tally-live"></span><span class="clock" hidden></span></div>
@@ -269,7 +289,7 @@ for (const page of all) {
   <div class="guessbar">
     <input type="text" role="combobox" aria-expanded="false" aria-controls="sug-list" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${esc(topic.title)} 이름" placeholder="${esc(topic.title)} 이름 · 첫 자음만 쳐도 돼요">
     <div class="sug" id="sug-list" role="listbox" aria-label="추천 이름"></div>
-    ${isList
+    ${isList || isGrid
       ? '<button type="button" class="giveup">그만하고 결과 보기</button>'
       : `<button type="button" class="browse-open" aria-expanded="false" aria-controls="browse-list">훑어보기</button>
     <div class="browse" id="browse-list" hidden>
@@ -281,7 +301,7 @@ ${center}
   <div class="done" role="status" hidden></div>
   ${foot(false, topic.id)}
 </div>
-<script type="module" src="${up}${isList ? 'list' : 'app'}.mjs?v=${stamp}"></script>
+<script type="module" src="${up}${isGrid ? 'grid' : isList ? 'list' : 'app'}.mjs?v=${stamp}"></script>
 </body></html>
 `;
   mkdirSync(join(dist, page.path), { recursive: true });
@@ -433,7 +453,7 @@ writeFileSync(join(dist, 'index.html'), hub);
 // (실측: /sitemap.xml 에 /daily/, /daily/pokemon/, /daily/lol/ 이 들어 있었다).
 // 여기서 하나 더 찍으면 아무도 안 읽는 파일이 남는다.
 
-for (const f of ['engine.mjs', 'app.mjs', 'list.mjs', 'past.mjs', 'past-row.mjs', 'hub.mjs', 'count.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
+for (const f of ['engine.mjs', 'app.mjs', 'list.mjs', 'grid.mjs', 'past.mjs', 'past-row.mjs', 'hub.mjs', 'count.mjs', 'style.css']) copyFileSync(join(app, f), join(dist, f));
 
 // 공유 카드 그림 (scripts/gen-og.mjs 가 만들어 커밋해 둔 것 — 배포에선 만들지 않는다).
 mkdirSync(join(dist, 'img/og'), { recursive: true });
