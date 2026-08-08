@@ -590,6 +590,14 @@ function bellStyle(): void {
         '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:12px; text-align:left; cursor:pointer; }',
         '.kl-bell-dm:hover { color:var(--text-primary); }',
         '.kl-bell-dm[data-on="1"] { color:var(--accent); }',
+        // 갈래 고르기 + 지난 것 더 보기 (TASK-KL-191 축7)
+        '.kl-bell-tabs { display:flex; gap:4px; padding:8px 12px; border-bottom:1px solid var(--border); flex-wrap:wrap; }',
+        '.kl-bell-tab { padding:3px 9px; border-radius:999px; border:1px solid var(--border); background:transparent;',
+        '  color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }',
+        '.kl-bell-tab[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }',
+        '.kl-bell-more { display:block; width:100%; padding:9px 12px; border:0; border-top:1px solid var(--border);',
+        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:11px; cursor:pointer; }',
+        '.kl-bell-more:hover { color:var(--text-primary); }',
     ].join('\n');
     document.head.appendChild(style);
 }
@@ -606,18 +614,28 @@ function mountBell(): void {
     let discordOn = false;
     let discordAvailable = false;
 
+    /* 받은함 (TASK-KL-191 축7) — 갈래로 걸러 보고, 지난 것도 볼 수 있다.
+     * 서른 개만 보이던 시절엔 그 앞의 알림이 **없는 것**이 됐다. 「나중에 볼게」가 안 되면
+     * 그건 받은함이 아니라 종소리다. */
+    let bucket = '';
+    let limit = 30;
+    let buckets: Record<string, number> = {};
+
     const load = async (): Promise<void> => {
-        const response = await call('/kl/notifications');
+        const query = `?limit=${limit}${bucket ? `&bucket=${encodeURIComponent(bucket)}` : ''}`;
+        const response = await call(`/kl/notifications${query}`);
         if (!response || !response.ok) return;
         try {
             const data = (await response.json()) as {
                 items?: NotificationItem[];
                 unread?: number;
+                buckets?: Record<string, number>;
                 discord?: boolean;
                 discordAvailable?: boolean;
             };
             items = data.items ?? [];
             unread = data.unread ?? 0;
+            buckets = data.buckets ?? {};
             discordOn = data.discord === true;
             discordAvailable = data.discordAvailable === true;
         } catch {
@@ -652,10 +670,32 @@ function mountBell(): void {
               `${discordOn ? '☑' : '☐'} 디스코드로도 받기</button>`
             : '';
 
+        /* 갈래 줄 — 사람이 켜고 끄는 갈래와 **같은 이름**이어야 한다. 여기만 다른 말을 쓰면
+         * 「community 를 껐는데 왜 커뮤니티 알림이 오지」가 된다. */
+        const TABS: Array<[string, string]> = [
+            ['', '전체'],
+            ['community', '커뮤니티'],
+            ['follow', '팔로우'],
+            ['system', '그 밖'],
+        ];
+        const tabs = items.length || bucket
+            ? `<div class="kl-bell-tabs">${TABS.map(([key, label]) => {
+                  const n = key ? (buckets[key] ?? 0) : unread;
+                  return (
+                      `<button type="button" class="kl-bell-tab" data-bucket="${key}" ` +
+                      `aria-pressed="${bucket === key ? 'true' : 'false'}">${label}${n ? ` ${n}` : ''}</button>`
+                  );
+              }).join('')}</div>`
+            : '';
+        /* 「더 보기」는 **받은 만큼 찼을 때만** 뜬다 — 다 보여 준 뒤에도 뜨면 눌러도 아무 일이 없다. */
+        const more = items.length >= limit && limit < 100
+            ? '<button type="button" class="kl-bell-more" id="klBellMore">지난 알림 더 보기</button>'
+            : '';
+
         const panel = open
             ? `<div class="kl-bell-panel"><div class="kl-bell-head"><span>알림</span>${
                   unread ? '<button type="button" id="klBellAll">모두 읽음</button>' : ''
-              }</div>${list}${discordRow}</div>`
+              }</div>${tabs}${list}${more}${discordRow}</div>`
             : '';
 
         slot!.innerHTML =
@@ -689,6 +729,20 @@ function mountBell(): void {
                 discordOn = !next; // 못 바꿨으면 되돌린다. 껐다고 믿는데 계속 오면 그게 제일 나쁘다.
                 paint();
             });
+        });
+        slot!.querySelectorAll<HTMLButtonElement>('.kl-bell-tab').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                // 패널 안의 클릭이다 — 안 막으면 「바깥 클릭이면 닫는다」가 패널을 닫는다.
+                event.stopPropagation();
+                bucket = button.dataset.bucket ?? '';
+                limit = 30; // 갈래를 바꾸면 처음부터 — 앞 갈래에서 늘려 둔 수가 따라오면 안 된다
+                void load();
+            });
+        });
+        slot!.querySelector('#klBellMore')?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            limit = 100;
+            void load();
         });
         slot!.querySelector('#klBellAll')?.addEventListener('click', () => {
             void call('/kl/notifications/read', {

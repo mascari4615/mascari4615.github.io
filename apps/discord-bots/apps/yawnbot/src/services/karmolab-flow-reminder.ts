@@ -10,6 +10,7 @@
 import { kstWeekKey, type KarmolabAccountStore } from './karmolab-accounts';
 import { getKarmolabFlowStore, type KarmolabFlowStore } from './karmolab-flows';
 import type { KarmolabNotificationStore } from './karmolab-notifications';
+import { notifyIfWanted } from './karmolab-notify-gate';
 
 /** 30분마다 본다. 정시를 놓쳐도 그 요일 안에서 따라잡는다(노트북이 잠깐 꺼져 있었다고 그 주를 건너뛰지 않게). */
 const TICK_MS = 30 * 60 * 1000;
@@ -45,7 +46,7 @@ export function runFlowReminderTick(
      * 예전엔 흐름 **목록**으로 보냈다 — 알림을 눌러 놓고 목록에서 다시 찾아 다시 눌러야 했다.
      * 서버가 대신 돌 수 없는 것은 그대로지만, **사람의 손이 한 번으로 줄어드는 것**은 서버가
      * 할 수 있는 일이다. 스스로 이어가기가 켜진 흐름이면 그 한 번이 끝까지 간다. */
-    notes.notify({
+    const went = notifyIfWanted(accounts, notes, {
       accountId: owner.id,
       source: 'flow',
       title: `「${flow.title}」 할 때예요`,
@@ -53,7 +54,7 @@ export function runFlowReminderTick(
       url: `/karmolab/?flow=${encodeURIComponent(flow.id)}#flow`,
       groupKey: `flow:${flow.id}`,
     });
-    sent += 1;
+    if (went) sent += 1;
   }
   // 0건이어도 한 줄 남긴다 — 조용한 자동화는 살아 있는지 죽었는지 구분이 안 된다.
   console.log(`[karmolab-flow-reminder] ${week} ${weekday}요일 ${hour}시 · 알림 ${sent}건`);
