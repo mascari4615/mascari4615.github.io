@@ -66,6 +66,8 @@
     let unread = 0;
     let connected = false;
     const messages: Message[] = [];
+    /** 마지막으로 그린 로그의 서명 — 같은 내용을 다시 그려 hover 를 깨뜨리지 않으려고 둔다. */
+    let lastLogSignature = '';
 
     let source: EventSource | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -314,7 +316,16 @@
         );
     }
 
+    /** 「지금 그려져 있는 것과 같은 내용인가」 판별용 한 줄. 서명이 같으면 다시 안 그린다. */
+    function logSignature(): string {
+        return (
+            `${onlyKept ? 'k' : 'a'}|${here <= 1 ? 'alone' : 'with'}|` +
+            messages.map((m) => `${m.id}:${m.kept ?? 0}:${m.keptByMe ? 1 : 0}:${m.reportedByMe ? 1 : 0}`).join(',')
+        );
+    }
+
     function renderLog(): void {
+        lastLogSignature = logSignature();
         const stick = atBottom();
         const hint =
             pref(HINT_KEY, '') === '1'
@@ -413,7 +424,10 @@
         const seen = pref(SEEN_KEY, '');
         const index = messages.findIndex((m) => m.id === seen);
         unread = isOpen() ? 0 : index >= 0 ? messages.length - index - 1 : Math.min(messages.length, 99);
-        renderLog();
+        /* 되돌아갈 길(5초 폴링)은 **바뀐 게 없어도** 통째로 다시 받는다. 그때마다 다시 그리면
+         * 5초마다 hover 가 풀려 날짜가 깜빡이고, 누르려던 버튼이 손 밑에서 사라진다.
+         * 내용이 같으면 그리지 않는다 — 서명 한 줄로 판별한다. */
+        if (logSignature() !== lastLogSignature) renderLog();
         renderHeader();
         if (isOpen()) markSeen();
     }
@@ -478,9 +492,15 @@
             renderLog();
         });
         source.addEventListener('here', (event) => {
+            /* 사람 수만 바뀐 것으로 **로그를 다시 그리면 안 된다** (사용자 신고 2026-08-08).
+             * `el.log.innerHTML = …` 는 줄을 통째로 새로 만든다 — 그 순간 마우스가 얹혀 있던
+             * 줄이 사라졌다 다시 생기므로 `:hover` 가 풀리고, hover 로만 뜨는 날짜가 깜빡인다.
+             * 사람 수가 로그에 미치는 영향은 「지금은 혼자다」 안내 하나뿐이니, **그 경계를
+             * 넘을 때만** 다시 그린다. */
+            const was = here;
             here = (JSON.parse((event as MessageEvent).data) as { here: number }).here;
             renderHeader();
-            renderLog();
+            if ((was <= 1) !== (here <= 1)) renderLog();
         });
         source.onerror = () => {
             /* EventSource 는 스스로 다시 붙는다 — 여기서 닫으면 그 기능을 우리가 꺼 버린다.
