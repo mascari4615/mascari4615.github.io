@@ -51,7 +51,12 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
 const problems = [];
-const browser = await chromium.launch({ headless: process.env.HEADED !== "1" });
+/* 자동화용 크롬은 **뒤로 가기 되살림을 꺼 놓고** 뜬다(`--disable-back-forward-cache`).
+   그대로 재면 우리 잘못이 아닌데도 늘 빨간불이다 — 그 인자만 빼고 띄운다. */
+const browser = await chromium.launch({
+  headless: process.env.HEADED !== '1',
+  ignoreDefaultArgs: ['--disable-back-forward-cache']
+});
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
 const page = await ctx.newPage();
 const errs = [];
@@ -130,6 +135,67 @@ if (!(await link.count())) {
   }
 }
 
+/* ── ④ 뒤로 가기를 **우리가** 막고 있지는 않은가 (bfcache) ────
+ *
+ * 뒤로 가기는 원래 공짜여야 한다 — 브라우저가 떠날 때 화면을 통째로 얼려 뒀다가 그대로
+ * 되살린다. 그런데 `beforeunload`/`unload` 를 하나만 달아도, 서버가 `Cache-Control:
+ * no-store` 를 주기만 해도 **조용히 자격을 잃는다**. 잃어도 화면은 똑같이 뜨므로 아무도 모른다.
+ *
+ * 여기서도 끝까지는 못 본다 — 미리 실행과 마찬가지로 **자동화가 붙으면 크롬이 되살림을
+ * 스스로 끈다**(`BackForwardCacheDisabledForDelegate`). 그래서 「되살아났나」로 재면 영원히
+ * 빨간불이다(실제로 그렇게 만들었다가 이 벽을 만났다). 대신 크롬이 대는 **막힌 이유 목록**을
+ * 받아서, 그 안에 **우리 탓**이 섞여 있는지만 본다.
+ */
+{
+  const bf = await ctx.newPage();
+  const bfCdp = await ctx.newCDPSession(bf);
+  const reasons = [];
+  bfCdp.on('Page.backForwardCacheNotUsed', (e) => {
+    for (const x of e.notRestoredExplanations || []) reasons.push(x.reason);
+  });
+  await bfCdp.send('Page.enable');
+  await bf.goto(`${BASE}/karmolab/t/`, { waitUntil: 'load', timeout: 30000 });
+  await bf.waitForTimeout(1200);
+  await bf.goto(`${BASE}/karmolab/t/loan/`, { waitUntil: 'load', timeout: 30000 });
+  await bf.waitForTimeout(1000);
+  await bf.goBack({ waitUntil: 'commit' });
+  await bf.waitForTimeout(1500);
+
+  /* 자동화 때문에 늘 뜨는 것들 — 실사용자에게는 안 뜬다. */
+  const notOurs = new Set(['BackForwardCacheDisabledForDelegate', 'BrowsingInstanceNotSwapped']);
+  const ours = [...new Set(reasons)].filter((r) => !notOurs.has(r));
+  if (ours.length) {
+    problems.push(`뒤로 가기 되살림을 우리 쪽 이유로 막고 있다 — ${ours.join(', ')}`);
+  }
+  await bf.close();
+}
+
+/* ── ⑤ 자격을 잃게 만드는 것을 코드에서 미리 막는다 ────────────
+ * 위 ④ 는 「지금 이 화면」만 본다. 다른 화면에 하나 달리면 그 화면만 조용히 잃는다. */
+{
+  const bad = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.ts')) {
+        const src = fs.readFileSync(p, 'utf8');
+        if (/addEventListener\(\s*['"](?:beforeunload|unload)['"]/.test(src)) {
+          bad.push(path.relative(root, p).split(path.sep).join('/'));
+        }
+      }
+    }
+  };
+  walk(path.join(root, 'src'));
+  /* 알고 남겨 둔 것 — 「저장 안 했는데 나가려는」 경고는 그 화면에서 값어치가 더 크다.
+     늘리지 마라. 늘릴 때는 그 화면이 뒤로 가기를 잃는다는 것을 알고 늘려라. */
+  const allowed = new Set(['src/widgets/adventure/adventure.ts']);
+  const unexpected = bad.filter((f) => !allowed.has(f));
+  if (unexpected.length) {
+    problems.push(`뒤로 가기를 잃게 만드는 beforeunload/unload 가 새로 생겼다 — ${unexpected.join(', ')}`);
+  }
+}
+
 if (errs.length) problems.push(`옮기는 동안 코드 오류 ${errs.length}건 — ${errs[0]}`);
 
 await browser.close();
@@ -140,4 +206,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[smoke-navigation] 미리 실행 · 이어 붙이기 이름 · 계측 대기 OK');
+console.log('[smoke-navigation] 미리 실행 · 이어 붙이기 이름 · 계측 대기 · 뒤로가기 되살림 OK');
