@@ -101,6 +101,7 @@
               <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                 <input type="color" id="ccColor" aria-label="색 선택" value="#5865f2" style="width:64px; height:44px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 <input type="text" id="ccHex" aria-label="색 코드 (HEX)" class="mono-input" value="#5865F2" style="flex:1; min-width:140px;">
+                <button class="btn btn-ghost" id="ccPick" style="display:none;">화면에서 집기</button>
                 <button class="btn btn-ghost" id="ccRandom">랜덤</button>
               </div>
             </div>
@@ -223,6 +224,28 @@
           hexInput.addEventListener('input', () => {
             if (hexToRgb(hexInput.value)) render(hexInput.value);
           });
+          /* 화면 어디서든 색을 집는다 (EyeDropper).
+           *
+           * 색 변환기를 쓰는 이유의 상당수는 「저 화면에 있는 저 색이 뭐냐」다. 지금까지는 화면을
+           * 캡처해 그림 도구로 열어 스포이드를 써야 했다. 브라우저가 그 일을 해 준다.
+           * 다만 아직 모든 브라우저에 있는 기능이 아니라, **있는 곳에서만 단추를 보인다** —
+           * 눌러도 안 되는 단추를 두지 않는다. */
+          const ED = (window as unknown as { EyeDropper?: new () => { open(): Promise<{ sRGBHex: string }> } }).EyeDropper;
+          if (ED) {
+            const pick = $<HTMLButtonElement>('#ccPick');
+            pick.style.display = '';
+            pick.onclick = async () => {
+              try {
+                const r = await new ED().open();
+                hexInput.value = r.sRGBHex.toUpperCase();
+                render(r.sRGBHex);
+                Toolbox.trackUse?.('pick');
+              } catch (_) {
+                /* 사람이 Esc 로 그만둔 것도 여기로 온다 — 아무 말도 하지 않는다. */
+              }
+            };
+          }
+
           $<HTMLButtonElement>('#ccRandom').onclick = () => {
             const hex = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
             hexInput.value = hex.toUpperCase();
