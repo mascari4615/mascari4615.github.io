@@ -244,11 +244,16 @@ function run(
 
     child.on('close', (code) => {
       clearTimeout(timer);
-      // 어디서 시간이 새는지 밖에서 볼 수 있게. 「느리다」는 느낌만으로는 못 고친다.
-      if (process.env.COMPANION_TIME === '1') {
+      /* 어디서 시간이 새는지 밖에서 볼 수 있게. 「느리다」는 느낌만으로는 못 고친다.
+       *
+       * **늘 찍는다.** 여태 `COMPANION_TIME=1` 뒤에 숨겨 뒀는데, 정작 느려졌을 때(실측
+       * 2026-08-08: 한 마디에 33초) 아무 기록이 없어서 두뇌가 느린 건지 재료가 큰 건지
+       * 못 갈랐다. 재는 값은 숨기면 없는 것과 같다. 한 줄이라 시끄럽지도 않다. */
+      {
         const since = (at: number | null) => (at === null ? '-' : `${at - startedAt}ms`);
         process.stderr.write(
-          `[두뇌] 켜짐 ${since(readyAt)} · 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms · 글자 ${(onDelta ? streamed : stdout).length}
+          `[두뇌] 켜짐 ${since(readyAt)} · 첫낱말 ${since(firstWordAt)} · 끝 ${Date.now() - startedAt}ms` +
+            ` · 재료 ${prompt.length}자 · 답 ${(onDelta ? streamed : stdout).length}자
 `,
         );
       }

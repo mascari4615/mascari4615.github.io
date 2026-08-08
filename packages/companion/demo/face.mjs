@@ -607,18 +607,13 @@ ${tallyReport(tally)}`;
     if (흉내참고음성() !== null || process.env.COMPANION_CLONE_REF) {
       engines.unshift({
         label: '흉내',
-        speech: 필요할때({
-          진짜: 흉내,
-          // 대타 = 인터넷 목소리. 내 컴퓨터 것보다 자연스럽고, 준비 동안만 쓴다.
-          대타: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
-          기동: 흉내기동,
-          log: (m) => console.log(`[목소리] ${m}`),
-        }),
+        // 고른 목소리로만 말한다 — 준비될 때까지 기다린다(조수님 결정: 대타 금지).
+        speech: 필요할때({ 진짜: 흉내, 기동: 흉내기동, log: (m) => console.log(`[목소리] ${m}`) }),
       });
       console.log(
         (await 흉내.alive())
           ? '[목소리] 흉내 낸 목소리를 기본으로 쓴다 (이미 떠 있다)'
-          : '[목소리] 흉내 낸 목소리를 기본으로 쓴다 — 아직 안 떠 있어 처음 몇 마디는 인터넷 목소리로 나간다',
+          : '[목소리] 흉내 낸 목소리를 기본으로 쓴다 — 아직 안 떠 있어 첫 마디는 뜰 때까지 기다린다',
       );
     } else {
       /* **없어진 걸 없어졌다고 말한다.** 여태 안 떠 있으면 목록에서 조용히 빠졌고, 그건
