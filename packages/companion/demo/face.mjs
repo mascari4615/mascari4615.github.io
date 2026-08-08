@@ -160,6 +160,8 @@ import {
   tangentFor,
   rutWarning,
   recallFrom,
+  뜻기억,
+  작은모델로재기,
   openPinnedWindow,
   screenSense,
   webBody,
@@ -422,6 +424,15 @@ function 받아쓰기모델() {
   if (memo === null) return null;
   return join(memo, 'life', '.models', 'whisper-small');
 }
+
+/* 뜻으로 찾는 기억 — 낱말이 하나도 안 겹쳐도 옛 말을 부른다.
+   모델은 처음 뜰 때 수십 초 걸리므로 **기다리지 않는다**: 준비될 때까지는 낱말 회상만
+   나가고, 준비되면 그때부터 뜻 회상이 얹힌다. */
+const 뜻 = new 뜻기억({
+  path: join(home, '뜻-색인.json'),
+  재기: 작은모델로재기({ log: (m) => console.log(`[뜻] ${m}`) }),
+  log: (m) => console.log(`[뜻] ${m}`),
+});
 
 const touchCount = new TouchCount();
 /* 미리 지어 둔 대꾸 창고 (89회차). 손으로 적은 표는 후보가 셋뿐이라 스무 번이면 또 돈다 —
@@ -864,6 +875,20 @@ const companion = new Companion({
     const 옛것 = canSearch
       ? recallFrom((word, limit) => conversationMemory.search(word, limit))(sensation, recent)
       : [];
+    /* 낱말로 못 찾은 것을 뜻으로 한 번 더 — 「매운 거 싫어」와 「마라탕은 못 먹어」는
+       낱말이 하나도 안 겹친다. 둘을 합치되 같은 말은 한 번만. */
+    try {
+      const 뜻으로 = await 뜻.찾기(sensation.text, {
+        몇개: 2,
+        뺄것: new Set([...recent.map((e) => e.text), ...옛것]),
+      });
+      for (const r of 뜻으로) {
+        옛것.push(r.text);
+        console.log(`[뜻] 닮은 옛말 (${r.닮음.toFixed(2)}): ${r.text.slice(0, 40)}`);
+      }
+    } catch (e) {
+      console.error(`[뜻] 찾다 죽었다 — ${e?.message ?? e}`);
+    }
     if (sensation.channel !== 'web') return 옛것;
     // **파일로 더한 손의 힌트가 먼저다.** 사람이 「이럴 때 쓰라」고 적어 둔 것이니
     // 우리가 코드에 박아 둔 것보다 앞선다.
@@ -1127,6 +1152,11 @@ const companion = new Companion({
     /* 낱말 표가 놓친 말을 두뇌에게 물어 사건으로 담는다. **여기서 기다리지 않는다** —
        이 자리는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
     void 그때그일.되새기기().catch((e) => console.error(`[그때] 되새기다 죽었다 — ${e?.message ?? e}`));
+    /* 오간 말을 뜻 색인에 담는다 — **말이 나간 뒤라** 늦어져도 대화가 안 밀린다.
+       이미 담긴 것은 건너뛰므로 몇 번을 불러도 값이 거의 안 든다. */
+    void Promise.resolve(conversationMemory.recent(40))
+      .then((es) => 뜻.담기(es))
+      .catch((e) => console.error(`[뜻] 담다 죽었다 — ${e?.message ?? e}`));
     void 자리앎.되새기기().catch((e) => console.error(`[자리] 되새기다 죽었다 — ${e?.message ?? e}`));
     /* 말이 얼마쯤 쌓이면 한 번 되새긴다. 매 turn 하면 그게 값이고, 안 하면 얘는
        영영 「일어난 일」만 안다. 여기는 이미 말이 나간 뒤라 늦어져도 대화가 안 밀린다. */
