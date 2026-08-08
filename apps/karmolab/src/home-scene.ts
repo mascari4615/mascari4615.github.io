@@ -88,7 +88,23 @@
         const grads = ['kdg1', 'kdg2', 'kdg3'];
         const kinds = ['halftone', 'grain', 'jelly', 'stripe', 'outline', 'misprint'];
 
-        const svg = (z, inner) => `<svg width="${z}" height="${z}">${inner}</svg>`;
+        /* 흐림은 **그림 안에서** 건다 (2026-08-08).
+         *
+         * 예전에는 바깥 상자에 CSS `filter:blur()` 를 걸었다. 그러면 그 상자가 움직일 때마다
+         * 브라우저가 흐림을 **다시 계산**한다 — 도형이 떠다니는 동안 내내. 실측(라이브,
+         * CPU 4배 느리게): 흐림을 끄면 스크롤 중앙 프레임이 50ms → 17ms 였다.
+         * 흐림을 SVG 안에 넣으면 그림 자체가 흐린 것이라 **한 번만 굽고** 그다음엔 옮기기만
+         * 한다. 눈에 보이는 결과는 같다.
+         * `overflow:visible` 이 필요하다 — 안 주면 번진 가장자리가 상자에 잘려 테가 생긴다. */
+        let curBlur = 0;
+        const svg = (z, inner) => {
+            if (!(curBlur > 0)) return `<svg width="${z}" height="${z}">${inner}</svg>`;
+            const id = 'kdb' + (clipId++);
+            return `<svg width="${z}" height="${z}" style="overflow:visible">`
+                + `<defs><filter id="${id}" x="-40%" y="-40%" width="180%" height="180%" `
+                + `color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="${curBlur}"/></filter></defs>`
+                + `<g filter="url(#${id})">${inner}</g></svg>`;
+        };
         function halftone(n, z, g) {
             // 점 간격은 화면 기준으로 잡는다 — 크기에 비례해 늘리면 렌즈 앞 큰 것이 점 몇 개로 뭉개진다
             const N = Math.max(22, Math.min(70, Math.round(z / 5.5))), cell = z / N, o = [];
@@ -145,10 +161,13 @@
                 + `50%{transform:translate(${ax / 2}px,${ay}px) rotate(0deg)}`
                 + `75%{transform:translate(${-ax}px,${ay / 2}px) rotate(${-rot * dir}deg)}`
                 + `100%{transform:translate(0,0) rotate(0deg)}}`);
+            curBlur = Number(blur) || 0;          // 이 도형의 흐림 — svg() 가 그림 안에 굽는다
+            const shape = draw(kindOf(), pick(names), z, pick(grads));
+            curBlur = 0;
             html.push(`<div class="home-decor-item${extra ? ' ' + extra : ''}" style="${pos};opacity:${op};`
-                + `filter:blur(${blur}px);--depth:${depth}">`
+                + `--depth:${depth}">`
                 + `<div class="home-decor-float" style="animation:${cls} ${secs}s ease-in-out ${delay}s infinite">`
-                + draw(kindOf(), pick(names), z, pick(grads)) + '</div></div>');
+                + shape + '</div></div>');
         }
 
         // 렌즈 바로 앞 — 화면보다 크고 잘리고 초점이 나갔다. 흐리므로 글을 안 가린다.
