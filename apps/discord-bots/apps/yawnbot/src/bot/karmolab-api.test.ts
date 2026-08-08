@@ -1542,3 +1542,86 @@ describe('계정 2라운드 (KL-156)', () => {
     expect(body.leaders.map((row: { handle: string }) => row.handle)).toContain(me.handle);
   });
 });
+
+/** 같이 쓰기 (TASK-KL-180) — 진짜 SSE 로 두 창을 붙여 본다. */
+describe('같이 쓰기 (KL-180)', () => {
+  /** SSE 한 줄씩 읽는 작은 도구. 라이브러리 없이 실제 흐름을 그대로 본다. */
+  async function openStream(room: string, tab: string): Promise<{ events: Array<{ type: string; data: unknown }>; close: () => void }> {
+    const controller = new AbortController();
+    const events: Array<{ type: string; data: unknown }> = [];
+    const res = await fetch(`${baseUrl}/kl/room/${room}/stream?tab=${tab}`, { signal: controller.signal });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/event-stream');
+    void (async () => {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let cut = buffer.indexOf('\n\n');
+          while (cut >= 0) {
+            const chunk = buffer.slice(0, cut);
+            buffer = buffer.slice(cut + 2);
+            const type = /^event: (.+)$/m.exec(chunk)?.[1];
+            const data = /^data: (.+)$/m.exec(chunk)?.[1];
+            if (type && data) events.push({ type, data: JSON.parse(data) });
+            cut = buffer.indexOf('\n\n');
+          }
+        }
+      } catch {
+        /* 닫으면 여기로 온다 — 정상 */
+      }
+    })();
+    return { events, close: () => controller.abort() };
+  }
+
+  const settle = (ms = 120): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+  it('두 창이 같은 방에 붙으면 서로가 보이고, 하나가 닫히면 사라진다', async () => {
+    const first = await openStream('pet', 'aaa');
+    await settle();
+    expect(first.events[0].type).toBe('hello');
+    expect((first.events[0].data as { members: unknown[] }).members).toEqual([]);
+
+    const second = await openStream('pet', 'bbb');
+    await settle();
+    // 먼저 있던 창에 「누가 들어왔다」가 온다
+    expect(first.events.some((e) => e.type === 'join')).toBe(true);
+    // 나중에 붙은 창은 첫 인사에 이미 있던 사람을 받는다
+    expect(((second.events[0].data as { members: unknown[] }).members).length).toBe(1);
+
+    second.close();
+    await settle(200);
+    expect(first.events.some((e) => e.type === 'leave')).toBe(true);
+    first.close();
+  });
+
+  it('커서를 움직이면 남의 창에만 간다 (내 것은 안 돌아온다)', async () => {
+    const mine = await openStream('memo', 'me');
+    const other = await openStream('memo', 'you');
+    await settle();
+
+    await fetch(`${baseUrl}/kl/room/memo/move`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ tab: 'me', x: 0.25, y: 0.75, active: true }),
+    });
+    await settle();
+
+    const toOther = other.events.filter((e) => e.type === 'move');
+    expect(toOther).toHaveLength(1);
+    expect(toOther[0].data).toMatchObject({ x: 0.25, y: 0.75, active: true });
+    expect(mine.events.filter((e) => e.type === 'move')).toHaveLength(0);
+
+    mine.close();
+    other.close();
+  });
+
+  it('이상한 방 이름은 안 받는다', async () => {
+    const res = await fetch(`${baseUrl}/kl/room/..%2Fetc/stream`);
+    expect(res.status).toBe(400);
+  });
+});
