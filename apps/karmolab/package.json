@@ -13,6 +13,9 @@
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
+    "build:devlog": "node scripts/build-devlog.mjs",
+    "build:wm-tasks": "node scripts/build-wm-tasks.mjs",
+    "gen:wm": "node scripts/gen-wm-landing.mjs",
     "build:worldbook": "node scripts/build-worldbook.mjs",
     "gen:play-pages": "node scripts/gen-play-pages.mjs",
     "gen:changelog": "node scripts/gen-changelog.mjs",

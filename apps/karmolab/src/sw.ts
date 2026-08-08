@@ -146,6 +146,19 @@ function putHandoff(item: { blob: Blob; name: string; from: string | null; at: n
 ctx.addEventListener('fetch', (event: FetchEvent) => {
   const req = event.request;
 
+  /* **주소는 맨 위에서 한 번 푼다.**
+     아래로 내려 두었더니, 나중에 끼어든 블록(읽기 캐시)이 선언보다 위에서 `url` 을 쓰는 바람에
+     빌드가 통째로 멈췄다 — 증상은 「used before its declaration」 여섯 줄뿐이라 어느 블록이
+     범인인지 안 보인다. 맨 위에 두면 그 자리가 다시 안 생긴다. */
+  let url: URL;
+  try {
+    url = new URL(req.url);
+  } catch {
+    return;
+  }
+  if (!url.protocol.startsWith('http')) return;
+  if (url.pathname.includes('/api/') || url.href.includes('tauri')) return;
+
   // 공유로 들어온 것 — 파일을 놓아두고 앱을 연다.
   if (req.method === 'POST' && new URL(req.url).pathname === '/karmolab/share/') {
     event.respondWith(
@@ -209,15 +222,6 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
     );
     return;
   }
-
-  let url: URL;
-  try {
-    url = new URL(req.url);
-  } catch {
-    return;
-  }
-  if (!url.protocol.startsWith('http')) return;
-  if (url.pathname.includes('/api/') || url.href.includes('tauri')) return;
 
   if (isImmutable(url)) {
     // 지문이 박힌 것 = 이 주소의 내용은 절대 안 바뀐다. 있으면 그냥 주고, 없을 때만 받아 온다.
