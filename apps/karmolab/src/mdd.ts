@@ -146,6 +146,8 @@ const Mdd = (() => {
         armR: number;
         /** 시선 고정 방향. null 이면 커서를 따라본다 */
         gaze: { x: number; y: number } | null;
+        /** 눈동자 크기 배율. 놀라면 작아지고(흰자가 넓어 보인다) 반하면 커진다 */
+        irisScale: number;
         /** 눈을 통째로 갈아 끼우는 조각(감은 눈·웃는 눈…). null 이면 기본 눈 */
         eyeArt: string | null;
         /** 입 조각. null 이면 기본 입 */
@@ -155,7 +157,7 @@ const Mdd = (() => {
     const NEUTRAL: AvatarPose = {
         eyeOpen: 1, eyeSquint: 0, browTilt: 0, browRaise: 0,
         mouthOpen: 1, mouthWide: 1, blush: 0, tilt: 0, bob: 0,
-        armL: 0, armR: 0, gaze: null, eyeArt: null, mouthArt: null,
+        armL: 0, armR: 0, irisScale: 1, gaze: null, eyeArt: null, mouthArt: null,
     };
 
     /** 기존 12 포즈 = 이 값들의 프리셋. 사이 값도 되므로 전환이 보간된다.
@@ -167,11 +169,11 @@ const Mdd = (() => {
         idle:     {},
         happy:    { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.4, tilt: -9, bob: -5 },
         sad:      { eyeOpen: 0.82, mouthArt: 'mouth-frown', tilt: 14, bob: 12, armL: 7, armR: -7 },
-        shock:    { eyeArt: 'eyes-wide', mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
+        shock:    { eyeOpen: 1.35, irisScale: 0.78, mouthArt: 'mouth-wide', tilt: -2, bob: -8, armL: -14, armR: 14 },
         think:    { eyeOpen: 0.88, mouthWide: 0.85, tilt: 16, gaze: { x: 0.9, y: -0.75 } },
         sleep:    { eyeOpen: 0, eyeSquint: 0.3, mouthOpen: 1.4, tilt: 20, bob: 16 },
-        angry:    { eyeOpen: 0.92, mouthArt: 'mouth-frown', blush: 0.45, tilt: 2, bob: -4, armL: 14, armR: -14 },
-        love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6 },
+        angry:    { eyeOpen: 0.92, irisScale: 0.92, mouthArt: 'mouth-frown', blush: 0.45, tilt: 2, bob: -4, armL: 14, armR: -14 },
+        love:     { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 1, tilt: -12, bob: -6, irisScale: 1.12 },
         smug:     { eyeOpen: 0.84, mouthWide: 1.3, tilt: -16, gaze: { x: -0.75, y: 0.25 } },
         eating:   { eyeArt: 'eyes-happy', mouthArt: 'mouth-open', blush: 0.3, tilt: 5, bob: 4 },
         pointing: { eyeOpen: 1.25, mouthArt: 'mouth-open', tilt: -7, bob: -9, armL: 0, armR: -38 },
@@ -469,7 +471,8 @@ const Mdd = (() => {
                 const dx = gaze.x * 4.2;
                 const dy = gaze.y * 3.0;
                 for (const el3 of irisEls) {
-                    el3.style.transform = `translate(${dx}px, ${dy}px) scaleY(${open})`;
+                    el3.style.transform =
+                        `translate(${dx}px, ${dy}px) scale(${pose.irisScale}, ${open * pose.irisScale})`;
                 }
             } else {
                 const iris = layers.get('irides');
@@ -554,16 +557,23 @@ const Mdd = (() => {
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
 .mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
 .mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 100%;
-    /* 셀 애니메이션 눈 = 그라디언트로 뭉갠 구슬이 아니라 **면이 나뉜** 그림이다.
-       위는 속눈썹 그림자로 어둡고 아래는 빛을 받아 밝다. 동공은 또렷한 검정,
-       하이라이트는 흐릿한 빛이 아니라 잘린 흰 점이다 — 경계를 일부러 딱 끊는다. */
+    overflow:hidden; will-change:transform;
+    /* 셀 애니 눈의 구조는 정해져 있다 — 위에서부터
+       ① 속눈썹이 드리운 진한 아치  ② 홍채 본색  ③ 아래쪽 반사(가장 밝은 띠)
+       ④ 한가운데 세로로 긴 동공     ⑤ 큰 하이라이트(좌상) + 작은 것(우하)
+       ⑥ 홍채를 두르는 진한 테두리
+       그라디언트를 부드럽게 이으면 구슬이 된다. 경계를 끊어야 「그린 눈」이 된다. */
     background:
-        radial-gradient(circle at 34% 26%, #ffffff 0 22%, rgba(255,255,255,0) 22.5%),
-        radial-gradient(circle at 70% 72%, rgba(255,255,255,0.85) 0 9%, rgba(255,255,255,0) 9.5%),
-        radial-gradient(circle at 50% 56%, #1b0c2b 0 27%, rgba(27,12,43,0) 27.5%),
-        linear-gradient(to bottom, #4b2278 0 34%, #7b45c0 34% 62%, #a875e8 62% 84%, #cfa9f5 84% 100%);
-    box-shadow: inset 0 0 0 1.2px rgba(28,12,44,0.85);
-    will-change:transform; }
+        /* ⑤ 하이라이트 */
+        radial-gradient(circle at 33% 24%, #ffffff 0 21%, rgba(255,255,255,0) 21.5%),
+        radial-gradient(circle at 71% 74%, rgba(255,255,255,0.9) 0 8%, rgba(255,255,255,0) 8.5%),
+        /* ④ 동공 — 세로로 긴 타원 */
+        radial-gradient(ellipse 26% 34% at 50% 54%, #150a22 0 100%, rgba(21,10,34,0) 100%),
+        /* ③ 아래쪽 반사 */
+        radial-gradient(ellipse 74% 46% at 50% 88%, #d7b4fb 0 60%, rgba(215,180,251,0) 100%),
+        /* ① 위쪽 그림자 + ② 본색 */
+        linear-gradient(to bottom, #33144f 0 26%, #5b2a93 26% 48%, #8c52cf 48% 78%, #b483ea 78% 100%);
+    box-shadow: inset 0 0 0 1.4px rgba(24,10,38,0.9); }
 
 /* 홀로그램 — 주사선이 아니라 **홈 배경과 같은 결**로. 첫 화면의 도형들이 점 격자로
    그려져 있어서(하프톤), 마스코트도 같은 점으로 한 겹 덮으면 같은 세계의 물건으로 보인다. */
@@ -673,6 +683,12 @@ const Mdd = (() => {
         if (!charEl) return;
         try {
             const manifest = await loadManifest();
+            /* 앞의 아바타를 **먼저 끊는다** (TASK-KL-128 ㉔).
+             * 안 끊으면 그 아바타의 매-프레임 루프가 화면에서 떨어진 채로 영영 돈다 —
+             * 다시 붙일 때마다 하나씩 늘어난다. 손을 안 대도 스타일 재계산이 초당 137회
+             * (=60fps 두 벌) 돌고 있었다. 듣는 귀도 같이 늘어난다. */
+            avatar?.destroy?.();
+            document.removeEventListener('pointermove', onPointerLook);
             const handle = createAvatar(PARTS_BASE, manifest, 'bust');
             charEl.replaceChildren(handle.el);
             avatar = handle;
