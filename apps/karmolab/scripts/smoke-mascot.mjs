@@ -131,7 +131,9 @@ await page.waitForTimeout(300);
 await page.evaluate('Mdd.setPrefs({ motion: false })');
 const eye = await page.evaluate(async () => {
   Mdd.setMood('idle');
-  await new Promise((r) => setTimeout(r, 1200));     // 값이 목표로 흘러갈 시간을 준다
+  // 값은 목표로 「점점 가까워지는」 방식이라 곧바로 재면 수렴 꼬리를 흔들림으로 읽는다
+  // (1.2초에 0.010, 2.5초에 0.00001 이었다 — 재는 시점이 판정을 바꿨다).
+  await new Promise((r) => setTimeout(r, 2500));
   const el = document.querySelector('.mdd-av-part[data-part="eyewhite"]');
   const vals = [];
   for (let i = 0; i < 100; i++) {

@@ -317,8 +317,13 @@ const Mdd = (() => {
         if (eyeSpots) {
             const base0 = layers.get('irides');
             if (base0) base0.style.display = 'none';           // 그림 눈동자는 물러난다
-            const rx = (eyeSpots[0].rx + eyeSpots[1].rx) / 2;  // 좌우를 같은 크기로
-            const ry = (eyeSpots[0].ry + eyeSpots[1].ry) / 2;
+            /* 크기는 분해가 준 눈동자 크기가 아니라 **흰자 높이**에서 잡는다.
+               분해된 눈동자는 실제보다 작게 잘려 있어 그대로 쓰면 「점눈」이 된다 —
+               셀 애니 눈은 홍채가 눈 높이를 거의 꽉 채운다. */
+            const wh = manifest.parts['eyewhite'];
+            const measured = (eyeSpots[0].ry + eyeSpots[1].ry) / 2;
+            const ry = wh ? Math.max(measured, wh.h * 0.34) : measured;
+            const rx = ry;                                     // 홍채는 둥글다
             const host = headGroups[headGroups.length - 1] || stage;
             const wBox = manifest.parts['eyewhite'];
             for (const spot of eyeSpots) {
@@ -468,8 +473,8 @@ const Mdd = (() => {
             }
             // 눈동자만 시선 방향으로 더 움직인다
             if (irisEls.length) {
-                const dx = gaze.x * 4.2;
-                const dy = gaze.y * 3.0;
+                const dx = gaze.x * 2.4;
+                const dy = gaze.y * 1.8;
                 for (const el3 of irisEls) {
                     el3.style.transform =
                         `translate(${dx}px, ${dy}px) scale(${pose.irisScale}, ${open * pose.irisScale})`;
@@ -564,33 +569,58 @@ const Mdd = (() => {
        ⑥ 홍채를 두르는 진한 테두리
        그라디언트를 부드럽게 이으면 구슬이 된다. 경계를 끊어야 「그린 눈」이 된다. */
     background:
-        /* ⑤ 하이라이트 */
-        radial-gradient(circle at 33% 24%, #ffffff 0 21%, rgba(255,255,255,0) 21.5%),
-        radial-gradient(circle at 71% 74%, rgba(255,255,255,0.9) 0 8%, rgba(255,255,255,0) 8.5%),
+        /* ⑤ 하이라이트 — 셀 룩이라 경계는 끊되, 아주 얇게 풀어 계단을 없앤다 */
+        radial-gradient(circle at 34% 25%, #ffffff 0 19%, rgba(255,255,255,0) 21%),
+        radial-gradient(circle at 70% 73%, rgba(255,255,255,0.9) 0 7%, rgba(255,255,255,0) 9%),
         /* ④ 동공 — 세로로 긴 타원 */
-        radial-gradient(ellipse 26% 34% at 50% 54%, #150a22 0 100%, rgba(21,10,34,0) 100%),
+        radial-gradient(ellipse 24% 33% at 50% 53%, #150a22 0 92%, rgba(21,10,34,0) 100%),
         /* ③ 아래쪽 반사 */
-        radial-gradient(ellipse 74% 46% at 50% 88%, #d7b4fb 0 60%, rgba(215,180,251,0) 100%),
+        radial-gradient(ellipse 72% 44% at 50% 89%, #d9b8fc 0 55%, rgba(217,184,252,0) 100%),
         /* ① 위쪽 그림자 + ② 본색 */
-        linear-gradient(to bottom, #33144f 0 26%, #5b2a93 26% 48%, #8c52cf 48% 78%, #b483ea 78% 100%);
+        linear-gradient(to bottom, #33144f 0 24%, #5b2a93 25% 47%, #8c52cf 48% 77%, #b483ea 78% 100%);
     box-shadow: inset 0 0 0 1.4px rgba(24,10,38,0.9); }
 
-/* 홀로그램 — 주사선이 아니라 **홈 배경과 같은 결**로. 첫 화면의 도형들이 점 격자로
-   그려져 있어서(하프톤), 마스코트도 같은 점으로 한 겹 덮으면 같은 세계의 물건으로 보인다. */
+/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 「쏘아 보낸 상」.
+ *
+ * 흔한 SF 필터는 주사선을 굵게 깔지만 그건 옛날 브라운관에 가깝고, 우리 첫 화면과
+ * 결이 다르다. 여기서는 세 가지를 겹친다:
+ *   ① 홈 배경과 같은 **점 격자**(하프톤) — 같은 세계의 물건으로 보이게
+ *   ② **색수차** — 청록과 자홍이 실루엣 좌우로 아주 조금 벌어진다. 상이 완전히
+ *      맞물리지 않았다는 신호라, 이것 하나로 「투영된 상」이 읽힌다
+ *   ③ 아주 가끔 **가로로 어긋나는 띠** — 7초에 한 번, 0.2초. 자주 튀면 고장 난
+ *      화면이 되고, 아예 없으면 그냥 반투명 그림이다
+ */
 .mdd-holo { position:relative; }
-.mdd-holo .mdd-av { filter:drop-shadow(0 0 5px rgba(0,229,255,0.35)) saturate(1.08) brightness(1.04); }
+.mdd-holo .mdd-av {
+    filter:
+        drop-shadow(-1.6px 0 0 rgba(0,229,255,0.55))
+        drop-shadow(1.6px 0 0 rgba(255,64,190,0.42))
+        drop-shadow(0 0 7px rgba(0,229,255,0.30))
+        saturate(1.06) brightness(1.03);
+    animation:mdd-holo-slice 7s steps(1) infinite;
+}
 .mdd-holo::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
     background-image:
-        radial-gradient(circle at 50% 50%, rgba(0,229,255,0.30) 0 1.1px, rgba(0,0,0,0) 1.3px),
-        radial-gradient(circle at 50% 50%, rgba(168,117,232,0.22) 0 1px, rgba(0,0,0,0) 1.2px);
+        radial-gradient(circle at 50% 50%, rgba(0,229,255,0.26) 0 1.1px, rgba(0,0,0,0) 1.3px),
+        radial-gradient(circle at 50% 50%, rgba(168,117,232,0.20) 0 1px, rgba(0,0,0,0) 1.2px);
     background-size:6px 6px, 9px 9px;
     background-position:0 0, 3px 3px;
     mix-blend-mode:screen;
     animation:mdd-holo-drift 9s linear infinite; }
 .mdd-holo::before { content:''; position:absolute; inset:-8% -5%; pointer-events:none; z-index:1;
-    background:radial-gradient(ellipse at 50% 78%, rgba(0,229,255,0.14) 0%, rgba(0,229,255,0) 60%); }
+    background:radial-gradient(ellipse at 50% 78%, rgba(0,229,255,0.13) 0%, rgba(0,229,255,0) 60%); }
 @keyframes mdd-holo-drift { from { background-position:0 0, 3px 3px; } to { background-position:0 -18px, 3px -15px; } }
-@media (prefers-reduced-motion: reduce) { .mdd-holo::after { animation:none; } }
+@keyframes mdd-holo-slice {
+    0%, 96% { clip-path:none; transform:translateX(0); }
+    97% { clip-path:inset(38% 0 46% 0); transform:translateX(3px); }
+    98% { clip-path:none; transform:translateX(0); }
+    99% { clip-path:inset(62% 0 24% 0); transform:translateX(-2px); }
+    100% { clip-path:none; transform:translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mdd-holo::after { animation:none; }
+    .mdd-holo .mdd-av { animation:none; }
+}
 .mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
         background:radial-gradient(ellipse at 22% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%),
                    radial-gradient(ellipse at 78% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%);
