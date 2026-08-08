@@ -112,3 +112,23 @@ describe('못 만드는 표', () => {
     expect(quizFor(pack(6), '2026-08-08')).toBeNull();
   });
 });
+
+describe('조사', () => {
+  it('받침에 따라 이/가를 고른다 — 「가짓수이(가)」는 기계가 쓴 티가 난다', async () => {
+    const { withParticle } = await import('./karmolab-well-quiz');
+    expect(withParticle('가짓수', '이', '가')).toBe('가짓수가');
+    expect(withParticle('접속자', '이', '가')).toBe('접속자가');
+    expect(withParticle('별점', '이', '가')).toBe('별점이');
+    expect(withParticle('플레이 시간', '이', '가')).toBe('플레이 시간이');
+  });
+
+  it('한글이 아니면 받침 없는 쪽 — 덜 어색하다', async () => {
+    const { withParticle } = await import('./karmolab-well-quiz');
+    expect(withParticle('CCU', '이', '가')).toBe('CCU가');
+  });
+
+  it('문제 문장에 괄호 도망이 없다', () => {
+    const quiz = quizFor(pack(), '2026-08-08')!;
+    expect(quiz.question).not.toContain('이(가)');
+  });
+});

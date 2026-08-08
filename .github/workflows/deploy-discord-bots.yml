@@ -432,5 +432,8 @@ jobs:
             Write-Host "[KL-190] 봇 살아 있음 (/kl/health 200)"
           } else {
             Write-Output "::warning title=봇이 안 살아납니다::서비스는 켰지만 /kl/health 가 응답하지 않습니다. 로그: C:\nssm-logs\yawnbot-prod\stderr.log"
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "🚨 **봇이 응답하지 않습니다** — 서비스는 켰지만 ``/kl/health`` 무응답"
+            # 큰따옴표 안에서 백틱은 **이스케이프 문자**다 — 마크다운 코드 표시로 넣었더니
+            # 문자열의 닫는 따옴표를 먹어 이 step 이 통째로 파서 오류로 죽었다(2026-08-08 실측).
+            # 그래서 여기서는 백틱을 쓰지 않는다.
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '🚨 봇이 응답하지 않습니다 — 서비스는 켰지만 /kl/health 무응답'
           }
