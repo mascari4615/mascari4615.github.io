@@ -230,11 +230,20 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
       const rows = entries
         .map((e) => {
           const isMe = mine ? e.handle === mine.handle : false;
+          /* 얼굴을 붙인다 (TASK-KL-151 ⑩) — 「북적북적」은 숫자가 아니라 **사람**에서 온다.
+             핸들 글자만 늘어서면 순위판이 로그 파일처럼 읽힌다.
+             그림이 없는 계정도 있다: 그때는 그 자리가 비고(alt 빈 글자) 이름만 남는다. */
+          const face =
+            `<img src="${API_BASE}/kl/u/${encodeURIComponent(e.handle)}/avatar" alt="" loading="lazy" ` +
+            `style="width:20px;height:20px;border-radius:50%;object-fit:cover;background:var(--bg-tertiary);flex:0 0 auto">`;
           return (
-            `<li style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;` +
+            `<li style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;align-items:center;` +
             `${isMe ? 'font-weight:700;color:var(--accent);' : ''}">` +
-            `<span>${e.rank}. ${escapeHtml(e.handle)}</span>` +
-            `<span>${formatScore(spec, e.score)}</span></li>`
+            `<span style="display:flex;align-items:center;gap:7px;min-width:0">` +
+            `<span style="opacity:.7">${e.rank}.</span>${face}` +
+            `<a href="/karmolab/u/${encodeURIComponent(e.handle)}/" style="color:inherit;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(e.handle)}</a>` +
+            `</span>` +
+            `<span style="flex:0 0 auto">${formatScore(spec, e.score)}</span></li>`
           );
         })
         .join('');
@@ -251,6 +260,14 @@ export function mountPlayBoard(slot: HTMLElement, spec: PlaySpec, period: 'day' 
         `<div style="width:100%;max-width:420px;margin:0 auto;font-size:var(--font-size-xs);color:var(--text-secondary);">` +
         `<div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">순위판</div>` +
         `<ol style="list-style:none;margin:0;padding:0;">${rows}</ol>${footer}</div>`;
+
+      /* 그림이 없는 계정도 있다(디스코드 아바타가 없거나 씨앗 계정). 깨진 그림 표시가 뜨면
+         순위판이 고장 난 것처럼 보인다 — 조용히 자리만 비운다. */
+      slot.querySelectorAll('img').forEach((img) => {
+        img.addEventListener('error', () => {
+          (img as HTMLImageElement).style.visibility = 'hidden';
+        });
+      });
     })
     .catch(() => {
       clearTimeout(timer);
