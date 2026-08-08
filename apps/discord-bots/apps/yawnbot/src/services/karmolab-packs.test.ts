@@ -197,3 +197,76 @@ describe('목록', () => {
     expect(Array.isArray(row.items)).toBe(false);
   });
 });
+
+/**
+ * 월드컵 집계 (TASK-KL-151).
+ *
+ * 여기서 틀리면 **불공정한 순위가 예쁘게** 나온다 — 골라진 횟수만 세면 대진운 좋게 여러 번
+ * 올라온 항목이 무조건 1등이 된다. 그래서 「마주친 판으로 나누는가」를 먼저 본다.
+ */
+describe('월드컵 집계', () => {
+  const imgPack = {
+    title: '그림 표',
+    emoji: '🖼',
+    fields: [{ key: 'f1', label: '분류', kind: 'category' }],
+    items: ['가', '나', '다', '라'].map((n) => ({ name: n, img: `https://example.com/${encodeURIComponent(n)}.png` })),
+  };
+
+  it('승률은 **마주친 판**으로 나눈다 — 많이 올라온 항목이 그냥 1등이 되면 안 된다', () => {
+    const s = store();
+    const pack = s.create('yon', imgPack);
+    s.recordTournament(
+      pack.id,
+      [
+        { win: '가', lose: '나' },
+        { win: '가', lose: '다' },
+        { win: '라', lose: '가' },
+      ],
+      '라',
+      'visitor-a',
+    );
+    const rows = s.tally(pack.id);
+    const 라 = rows.find((r) => r.name === '라')!;
+    const 가 = rows.find((r) => r.name === '가')!;
+    expect(라.rate).toBe(1); // 한 번 마주쳐 한 번 이김
+    expect(가.wins).toBe(2);
+    expect(가.seen).toBe(3);
+    expect(rows[0].name).toBe('라'); // 승률 우선
+    expect(라.champion).toBe(1);
+  });
+
+  it('표에 없는 이름·자기 자신과의 대결은 안 센다 (아무나 보낼 수 있는 자리다)', () => {
+    const s = store();
+    const pack = s.create('yon', imgPack);
+    const counted = s.recordTournament(
+      pack.id,
+      [
+        { win: '없는놈', lose: '가' },
+        { win: '나', lose: '나' },
+        { win: '다', lose: '라' },
+      ],
+      '다',
+      'visitor-a',
+    );
+    expect(counted).toBe(1);
+    expect(s.tally(pack.id).map((r) => r.name).sort()).toEqual(['다', '라']);
+  });
+
+  it('같은 사람이 연달아 보내면 안 센다 (한 사람이 순위를 만들 수 있으면 안 된다)', () => {
+    const s = store();
+    const pack = s.create('yon', imgPack);
+    expect(s.recordTournament(pack.id, [{ win: '가', lose: '나' }], '가', 'same')).toBe(1);
+    expect(s.recordTournament(pack.id, [{ win: '가', lose: '나' }], '가', 'same')).toBe(0);
+    expect(s.tally(pack.id).find((r) => r.name === '가')!.seen).toBe(1);
+  });
+
+  it('아직 아무도 안 돌린 표는 빈 순위다 (0% 줄을 늘어놓지 않는다)', () => {
+    const s = store();
+    const pack = s.create('yon', imgPack);
+    expect(s.tally(pack.id)).toEqual([]);
+  });
+
+  it('없는 표에는 아무것도 안 적는다', () => {
+    expect(store().recordTournament('nosuchid', [{ win: '가', lose: '나' }], '가', 'v')).toBe(0);
+  });
+});

@@ -79,6 +79,30 @@ export interface PackSummary {
 interface PacksState {
   version: 1;
   packs: SharedPack[];
+  /**
+   * 표별 항목 집계 (TASK-KL-151 월드컵).
+   *
+   * 표 id → 항목 이름 → 「몇 번 마주쳤고 몇 번 골라졌나」. 승률이 여기서 나온다.
+   * **실제로 붙은 판만** 센다 — 안 마주친 항목은 칸 자체가 안 생긴다(0승 0패 줄이 늘어서면
+   * 그 표는 죽어 보인다).
+   */
+  tallies?: Record<string, Record<string, { seen: number; wins: number }>>;
+  /** 표별 우승 횟수 (항목 이름 → 우승 수). 집계와 나눠 두는 이유: 우승은 판당 하나뿐이라 성격이 다르다. */
+  champions?: Record<string, Record<string, number>>;
+}
+
+/** 한 판(토너먼트)에 담아 보낼 수 있는 대결 수. 128강도 127판이면 끝난다. */
+export const TALLY_MATCH_MAX = 200;
+
+export interface TallyRow {
+  name: string;
+  img?: string;
+  seen: number;
+  wins: number;
+  /** 마주친 판에서 골라진 비율(0~1). 화면이 백분율로 옮긴다. */
+  rate: number;
+  /** 우승한 횟수. */
+  champion: number;
 }
 
 export class PackError extends Error {
@@ -226,12 +250,17 @@ export class KarmolabPackStore {
     try {
       if (fs.existsSync(this.statePath)) {
         const parsed = JSON.parse(fs.readFileSync(this.statePath, 'utf-8')) as Partial<PacksState>;
-        return { version: 1, packs: Array.isArray(parsed.packs) ? parsed.packs : [] };
+        return {
+          version: 1,
+          packs: Array.isArray(parsed.packs) ? parsed.packs : [],
+          tallies: parsed.tallies ?? {},
+          champions: parsed.champions ?? {},
+        };
       }
     } catch (error) {
       console.error('[karmolab-packs] 상태 파일을 못 읽었다 — 빈 원장으로 시작한다:', error);
     }
-    return { version: 1, packs: [] };
+    return { version: 1, packs: [], tallies: {}, champions: {} };
   }
 
   private save(): void {
@@ -338,6 +367,84 @@ export class KarmolabPackStore {
         : b.opens - a.opens || b.createdAt.localeCompare(a.createdAt),
     );
     return rows.slice(0, limit).map(summarize);
+  }
+
+  /**
+   * 월드컵 한 판의 결과를 적는다 (TASK-KL-151).
+   *
+   * 무엇을 세나: **마주친 횟수**와 **골라진 횟수**. 이 둘이 있어야 「인기」가 공정해진다 —
+   * 골라진 횟수만 세면 대진운 좋게 여러 번 올라온 항목이 무조건 이긴다.
+   *
+   * 믿을 수 없는 입력이다: 표에 없는 이름 · 자기 자신과의 대결 · 너무 많은 판은 버린다.
+   * 같은 사람이 연달아 보내는 것도 안 센다(10분) — 한 사람이 순위를 만들 수 있으면 그 순위는
+   * 아무 말도 안 하는 수가 된다.
+   *
+   * @returns 실제로 센 대결 수. 0 이면 아무것도 안 셌다.
+   */
+  recordTournament(
+    packId: string,
+    matches: Array<{ win: unknown; lose: unknown }>,
+    champion: unknown,
+    visitorKey: string,
+    now: Date = new Date(),
+  ): number {
+    const pack = this.get(packId);
+    if (!pack || !Array.isArray(matches) || !matches.length) return 0;
+
+    const key = `tally:${visitorKey}:${packId}`;
+    const last = this.recentOpens.get(key) ?? 0;
+    if (now.getTime() - last < 10 * 60 * 1000) return 0;
+
+    const known = new Set(pack.items.map((i) => i.name));
+    if (!this.state.tallies) this.state.tallies = {};
+    const table = (this.state.tallies[packId] ??= {});
+    const bump = (name: string): { seen: number; wins: number } => (table[name] ??= { seen: 0, wins: 0 });
+
+    let counted = 0;
+    for (const one of matches.slice(0, TALLY_MATCH_MAX)) {
+      const win = String((one ?? {}).win ?? '');
+      const lose = String((one ?? {}).lose ?? '');
+      if (!known.has(win) || !known.has(lose) || win === lose) continue;
+      bump(win).seen += 1;
+      bump(win).wins += 1;
+      bump(lose).seen += 1;
+      counted += 1;
+    }
+    if (!counted) return 0;
+
+    const top = String(champion ?? '');
+    if (known.has(top)) {
+      if (!this.state.champions) this.state.champions = {};
+      const crowns = (this.state.champions[packId] ??= {});
+      crowns[top] = (crowns[top] ?? 0) + 1;
+    }
+    this.recentOpens.set(key, now.getTime());
+    this.save();
+    return counted;
+  }
+
+  /**
+   * 항목 순위. **마주친 적 있는 항목만** — 안 나온 것을 0% 로 줄 세우면 그 표는 죽어 보인다.
+   * 같은 승률이면 많이 마주친 쪽이 위다(한 번 이겨 100% 인 항목이 1등이 되면 안 된다).
+   */
+  tally(packId: string, limit = 50): TallyRow[] {
+    const pack = this.get(packId);
+    if (!pack) return [];
+    const table = (this.state.tallies ?? {})[packId] ?? {};
+    const crowns = (this.state.champions ?? {})[packId] ?? {};
+    const byName = new Map(pack.items.map((i) => [i.name, i]));
+    return Object.entries(table)
+      .filter(([name]) => byName.has(name))
+      .map(([name, row]) => ({
+        name,
+        img: byName.get(name)?.img,
+        seen: row.seen,
+        wins: row.wins,
+        rate: row.seen ? row.wins / row.seen : 0,
+        champion: crowns[name] ?? 0,
+      }))
+      .sort((a, b) => b.rate - a.rate || b.seen - a.seen || a.name.localeCompare(b.name))
+      .slice(0, Math.max(1, limit));
   }
 
   stats(): { packs: number; makers: number; items: number } {

@@ -1017,6 +1017,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['higher']
   },
   {
+    id: 'worldcup',
+    title: '이상형 월드컵',
+    category: 'tool',
+    desc: '둘 중 하나만 고르는 토너먼트 — 표를 만들면 그대로 내 월드컵이 됩니다',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M7 4h10v3a5 5 0 0 1-10 0V4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M12 12v4M9 20h6M10 16h4v4h-4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['worldcup']
+  },
+  {
     id: 'lotto',
     hidden: true, // 「뽑기」 위젯의 탭으로 합쳐짐 — 검색 유입 주소는 유지
     bundle: 'draw', // 이 도구를 부르면 묶음의 이 탭으로 간다
