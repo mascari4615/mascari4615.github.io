@@ -1629,3 +1629,13 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 
 /* 퍼센트 — 풀이 식 한 줄 (남들 전부 주는 것). 「맞게 넣었나」를 눈으로 확인하는 장치. */
 .pc-formula { margin-top: 4px; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
+
+/* 체질량지수 눈금 — 「내가 어디쯤」을 한눈에 (상위 계산기는 전부 있고 우리만 없었다) */
+.bmi-scale { position: relative; margin: 10px 0 18px; }
+.bmi-scale-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+.bmi-seg { background: var(--bg-tertiary); }
+.bmi-seg.bmi-ok { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.bmi-seg.bmi-warn { background: color-mix(in srgb, var(--warning) 55%, transparent); }
+.bmi-seg.bmi-bad { background: color-mix(in srgb, var(--error) 45%, transparent); }
+.bmi-seg.bmi-worse { background: color-mix(in srgb, var(--error) 70%, transparent); }
+.bmi-pin { position: absolute; top: -4px; width: 3px; height: 18px; background: var(--text-primary); border-radius: 2px; transform: translateX(-1px); transition: left 120ms ease; }

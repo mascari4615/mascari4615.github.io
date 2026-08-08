@@ -57,6 +57,17 @@
             </div>
 
             <div class="tool-display" id="bmValue">—</div>
+            <!-- 숫자 22.5 보다 「내가 어디쯤」이 즉각 이해된다. 상위 계산기는 전부 눈금이 있다. -->
+            <div class="bmi-scale" id="bmScale" aria-hidden="true">
+              <div class="bmi-scale-bar">
+                <span class="bmi-seg" style="flex:18.5"></span>
+                <span class="bmi-seg bmi-ok" style="flex:4.5"></span>
+                <span class="bmi-seg bmi-warn" style="flex:2"></span>
+                <span class="bmi-seg bmi-bad" style="flex:5"></span>
+                <span class="bmi-seg bmi-worse" style="flex:10"></span>
+              </div>
+              <div class="bmi-pin" id="bmPin"></div>
+            </div>
             <div class="cc-stats" id="bmStats"></div>
             <div class="tool-list" id="bmDetail"></div>
             <div class="tool-status" id="bmStatus"></div>
@@ -90,8 +101,22 @@
             const bmi = kg / (m * m);
             value.textContent = bmi.toFixed(1);
 
+            /* 눈금 위 내 자리 — 15~40 을 화면 폭으로 본다(그 밖은 양끝에 붙인다). */
+            const pin = Math.min(100, Math.max(0, ((bmi - 15) / 25) * 100));
+            $<HTMLElement>('#bmPin').style.left = pin.toFixed(1) + '%';
+
+            /* 「정상까지 몇 kg」 — 실제로 행동을 만드는 한 줄인데 우리에겐 없었다. */
+            const 정상하한 = 18.5 * m * m;
+            const 정상상한 = 23 * m * m;
+            const 차이 =
+              kg > 정상상한 ? `${(kg - 정상상한).toFixed(1)}kg 빼면 정상`
+              : kg < 정상하한 ? `${(정상하한 - kg).toFixed(1)}kg 늘리면 정상`
+              : '정상 범위 안';
+
             stats.innerHTML =
-              stat('대한비만학회 기준', classify(bmi, KR), true) + stat('WHO 국제 기준', classify(bmi, WHO));
+              stat('대한비만학회 기준', classify(bmi, KR), true) +
+              stat('WHO 국제 기준', classify(bmi, WHO)) +
+              stat('정상까지', 차이);
 
             // 「정상 범위 몸무게」 는 BMI 자체보다 실제로 궁금해하는 값이다.
             const lo = 18.5 * m * m;
