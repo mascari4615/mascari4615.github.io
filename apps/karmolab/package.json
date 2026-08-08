@@ -13,6 +13,7 @@
   },
   "scripts": {
     "build:wiki": "node scripts/sync-wiki.mjs",
+    "build:worldbook": "node scripts/build-worldbook.mjs",
     "gen:play-pages": "node scripts/gen-play-pages.mjs",
     "gen:changelog": "node scripts/gen-changelog.mjs",
     "gen:feeds": "node scripts/gen-feeds.mjs",
