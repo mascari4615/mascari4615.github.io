@@ -203,10 +203,11 @@
             paintIdentity(slot, null);
             return;
         }
-        account.subscribe((state) => {
-            if (!slot.isConnected) return;
-            paintIdentity(slot, state);
-        });
+        /*  로 막으면 안 된다 (실측): 위젯은 패널을 **DOM 에 붙이기 전에** 그린다 —
+         * 첫 호출이 그 검사에 걸려 한 번도 안 그려지고, 상태가 더 바뀌지 않으면 영영 빈칸이었다.
+         * 대신 화면이 갈릴 때 구독을 끊는다(핫리로드 규약과 같은 자리). */
+        const off = account.subscribe((state) => paintIdentity(slot, state));
+        Toolbox.onDispose?.(off);
     }
 
     type AccountState = { account: { handle: string; displayName: string; avatarPath: string | null; joinedAt: string; profileUrl: string } | null; reachable: boolean; loading: boolean };
@@ -257,7 +258,7 @@
         if (!account) return;
         // 로그인 상태는 처음엔 「아직 모름」이다. 한 번만 물어보면 늘 「없음」으로 끝난다.
         let drawnFor: string | null = null;
-        account.subscribe((state) => {
+        const off = account.subscribe((state) => {
             const handle = state.account?.handle ?? null;
             if (!handle) {
                 drawnFor = null;
@@ -268,6 +269,7 @@
             drawnFor = handle;
             void renderServerSlot(slot, handle);
         });
+        Toolbox.onDispose?.(off);
     }
 
     async function renderServerSlot(slot: Element, handle: string): Promise<void> {
@@ -329,8 +331,7 @@
         }
 
         let drawnFor: string | null = null;
-        account.subscribe((state) => {
-            if (!slot.isConnected) return;
+        const off = account.subscribe((state) => {
             if (state.loading) return;
             if (!state.reachable) {
                 drawnFor = null;
@@ -372,6 +373,7 @@
             });
             mountAccountTools(slot, me.displayName);
         });
+        Toolbox.onDispose?.(off);
     }
 
     /**
