@@ -1626,3 +1626,6 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
    FAQ·HowTo 리치결과가 폐지돼 표식으로 눈에 띄는 길은 닫혔다. 남은 건 읽히는 글이다. */
 .tool-seo-edge { margin: 0 0 var(--space-lg); padding-left: 18px; }
 .tool-seo-edge li { margin: 6px 0; line-height: 1.75; }
+
+/* 퍼센트 — 풀이 식 한 줄 (남들 전부 주는 것). 「맞게 넣었나」를 눈으로 확인하는 장치. */
+.pc-formula { margin-top: 4px; font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-tertiary); }
