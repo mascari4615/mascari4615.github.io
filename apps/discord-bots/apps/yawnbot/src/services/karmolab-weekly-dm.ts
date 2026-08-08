@@ -13,6 +13,8 @@
  */
 import type { Client, DMChannel } from 'discord.js';
 import { getKarmolabAccountStore, kstWeekKey, type KarmolabAccountStore } from './karmolab-accounts';
+import { notifyIfWanted } from './karmolab-notify-gate';
+import { getKarmolabNotificationStore, type KarmolabNotificationStore } from './karmolab-notifications';
 
 /** 얼마나 자주 「보낼 때인가」를 보나. 정시를 놓쳐도 다음 시각에 따라잡는다. */
 const TICK_MS = 30 * 60 * 1000;
@@ -83,7 +85,7 @@ export function weeklyMessage(
 export async function runKarmolabWeeklyDmTick(
   client: Client,
   store: KarmolabAccountStore = getKarmolabAccountStore(),
-  options: { force?: boolean } = {},
+  options: { force?: boolean; notes?: KarmolabNotificationStore } = {},
 ): Promise<void> {
   const { day, hour } = kstNow();
   if (!options.force && (day !== SEND_DAY || hour < SEND_HOUR)) return;
@@ -93,6 +95,24 @@ export async function runKarmolabWeeklyDmTick(
     // 보낼 말이 없어도 **보낸 것으로 적는다** — 안 그러면 30분마다 다시 시도한다.
     store.markWeeklyDmSent(target.accountId, week);
     if (!text) continue;
+    /* 사이트 안에도 남긴다 (TASK-KL-191 축7).
+     *
+     * 지난 주 발자국은 디스코드 DM 으로만 갔다 — DM 을 닫아 둔 사람에게는 **아무 데도**
+     * 안 남았고, 그건 그 사람 입장에서 켠 적 없는 기능과 같다. 종은 사이트 안의 한 자리라
+     * DM 이 막혀도 닿는다. 거르는 문은 여기서도 지난다. */
+    {
+      /* 기본으로 켜져 있다 — 넣어 줄 때만 도는 기능은 실서비스에서 한 번도 안 돈다
+       * (시험만 통과하는 자리가 된다). 시험은 자기 원장을 건네서 격리한다. */
+      const notes = options.notes ?? getKarmolabNotificationStore();
+      notifyIfWanted(store, notes, {
+        accountId: target.accountId,
+        source: 'weekly',
+        title: '지난 주 발자국',
+        body: text.split('\n').slice(1, 3).join(' ').replace(/^·\s*/, ''),
+        url: '/karmolab/#user',
+        groupKey: `weekly:${week}`,
+      });
+    }
     try {
       const user = await client.users.fetch(target.discordId);
       const dm = (await user.createDM()) as DMChannel;

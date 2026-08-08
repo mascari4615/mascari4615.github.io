@@ -26,6 +26,8 @@ import {
   type KarmolabAccountStore,
   // 기기 이름표·보안 기록 (TASK-KL-152 C6·C7)
   deviceLabel,
+  // 받은함이 갈래로 거르는 자 (TASK-KL-191 축7) — 사람이 켜고 끄는 갈래와 같은 자여야 한다
+  notifyBucket,
 } from '../services/karmolab-accounts';
 import {
   getKarmolabTraceStore,
@@ -52,6 +54,7 @@ import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-upl
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
+import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
 import { getKarmolabUserToolStore } from '../services/karmolab-userTools';
 import { missionState, missionsOfWeek } from '../services/karmolab-missions';
@@ -941,8 +944,9 @@ export function registerKarmolabApi(
    * 거르는 자리를 여기 하나로 둔다 — 부르는 곳마다 검사를 적으면 한 곳은 반드시 빠뜨린다.
    */
   function notifyIfWanted(input: Parameters<typeof notes.notify>[0]): void {
-    if (!store.wantsNotification(input.accountId, input.source)) return;
-    notes.notify(input);
+    /* 문 자체는 이 파일 밖에 있다 (TASK-KL-191 축7) — 문이 한 파일 안에만 있으면
+     * 그 파일 밖에서 알리는 곳(흐름 예약)은 언제나 뒷문이 된다. 실제로 그랬다. */
+    sharedNotifyGate(store, notes, input);
   }
 
   /**
@@ -2717,8 +2721,22 @@ export function registerKarmolabApi(
       res.json({ items: [], unread: 0, signedIn: false });
       return;
     }
+    /* 받은함 (TASK-KL-191 축7) — 갈래로 걸러 보고, 지난 것도 볼 수 있다.
+     * 예전엔 서른 개만 내려보내고 그게 전부였다. 알림이 서른을 넘는 순간 그 앞의 것은
+     * **없는 것**이 된다 — 「나중에 볼게」가 성립하지 않으면 그건 받은함이 아니라 종소리다. */
+    const bucket = String(req.query.bucket ?? '');
+    const limit = Math.min(100, Math.max(10, Number(req.query.limit) || 30));
+    const all = notes.listFor(account.id, limit);
+    const items = bucket ? all.filter((n) => notifyBucket(n.source) === bucket) : all;
     res.json({
-      items: notes.listFor(account.id),
+      items,
+      /** 갈래마다 안 읽은 수 — 종을 열기 전에 「무엇이 왔나」가 보인다. */
+      buckets: notes.listFor(account.id, 100).reduce<Record<string, number>>((acc, n) => {
+        if (n.readAt) return acc;
+        const key = notifyBucket(n.source);
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      }, {}),
       unread: notes.unreadCount(account.id),
       signedIn: true,
       /* 「어디로 받고 있나」를 목록과 함께 준다 (TASK-KL-157) — 종을 열면 바로 보이고,
@@ -2924,7 +2942,10 @@ export function registerKarmolabApi(
      * 나에게 온 답이 흐름 알림에 묻히지 않게 한다. */
     const answeredAccountId = req.body?.replyTo ? chat.accountOfMessage(String(req.body.replyTo)) : null;
     if (answeredAccountId) {
-      notes.notify({
+      /* 여기도 **거르는 자리를 지난다** (TASK-KL-191 축7). 이 한 곳만 `notes.notify` 를 직접
+       * 불러서, 채팅 알림을 꺼 둔 사람에게도 답글 알림이 쌓이고 있었다 — 끈 갈래가 쌓이면
+       * 「안 읽음 12」가 안 없어지고, 그 수를 없애려고 사람은 결국 종을 통째로 끈다. */
+      notifyIfWanted({
         accountId: answeredAccountId,
         actorAccountId: account?.id ?? null,
         source: 'chat',

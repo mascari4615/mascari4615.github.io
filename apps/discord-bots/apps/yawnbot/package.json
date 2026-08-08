@@ -3,7 +3,7 @@
   "private": true,
   "main": "dist/src/main.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && npm run audit:counters",
+    "build": "tsc -p tsconfig.json && npm run audit:counters && npm run check:notify",
     "test": "vitest run",
     "start": "node dist/src/main.js",
     "deploy": "node dist/src/deploy-commands.js",
@@ -21,7 +21,8 @@
     "kakao-export-watch": "node scripts/kakao-export.mjs --watch",
     "kakao-export-watch-bg": "node scripts/kakao-export-watch-background.mjs",
     "kakao-export-watch-stop": "node scripts/kakao-export-watch-stop.mjs",
-    "audit:counters": "node scripts/audit-public-counters.mjs"
+    "audit:counters": "node scripts/audit-public-counters.mjs",
+    "check:notify": "node scripts/check-notify-gate.mjs"
   },
   "dependencies": {
     "karmolab-ai": "file:../../../../packages/karmolab-ai",
