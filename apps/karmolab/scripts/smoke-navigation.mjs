@@ -53,10 +53,21 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
 const problems = [];
 /* 자동화용 크롬은 **뒤로 가기 되살림을 꺼 놓고** 뜬다(`--disable-back-forward-cache`).
    그대로 재면 우리 잘못이 아닌데도 늘 빨간불이다 — 그 인자만 빼고 띄운다. */
-const browser = await chromium.launch({
-  headless: process.env.HEADED !== '1',
-  ignoreDefaultArgs: ['--disable-back-forward-cache']
-});
+let browser;
+try {
+  browser = await chromium.launch({
+    headless: process.env.HEADED !== '1',
+    ignoreDefaultArgs: ['--disable-back-forward-cache']
+  });
+} catch (error) {
+  /* 브라우저가 아예 없으면 「검사가 실패했다」가 아니라 **검사를 못 돌렸다**이다.
+     그 둘을 같은 빨간불로 말하면, 배포가 왜 섰는지 로그를 끝까지 읽어야 안다.
+     (2026-08-08: 러너에 브라우저가 없어 배포 세 판이 연속으로 섰다.) */
+  console.error('[smoke-navigation] CANNOT-RUN — 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
+  console.error(String(error && error.message ? error.message : error).split(String.fromCharCode(10))[0]);
+  server.close();
+  process.exit(1);
+}
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
 const page = await ctx.newPage();
 const errs = [];
