@@ -113,8 +113,63 @@ ctx.addEventListener('message', (event: ExtendableMessageEvent) => {
   if (event.data === 'GET_BUILD') event.source?.postMessage({ type: 'BUILD', build: BUILD });
 });
 
+/* ── 폰에서 「공유 → KarmoLab」 (TASK-KL-183 D) ───────────────────
+ *
+ * 공유 대상은 **POST 로 온다**. 우리 사이트는 정적으로 올라가므로 받아 줄 서버가 없다 —
+ * 그래서 서비스 워커가 그 자리를 대신한다(표준 방식): 파일을 받아 「이어서」가 쓰는 그 칸에
+ * 놓아두고, 앱을 그냥 열어 준다. 앱은 지금까지처럼 그 칸을 집어 가면 된다.
+ *
+ * 새 통로를 파지 않는 것이 핵심이다. 공유로 들어온 파일과 도구가 넘긴 파일은 **같은 칸**에
+ * 있어야 도구들이 아무것도 몰라도 된다.
+ */
+const HANDOFF_DB = 'karmolab-handoff';
+const HANDOFF_KEY = 'current';
+
+function putHandoff(item: { blob: Blob; name: string; from: string | null; at: number }): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const open = indexedDB.open(HANDOFF_DB, 1);
+      open.onupgradeneeded = () => open.result.createObjectStore('items');
+      open.onerror = () => resolve();
+      open.onsuccess = () => {
+        const tx = open.result.transaction('items', 'readwrite');
+        tx.objectStore('items').put(item, HANDOFF_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      };
+    } catch {
+      resolve();
+    }
+  });
+}
+
 ctx.addEventListener('fetch', (event: FetchEvent) => {
   const req = event.request;
+
+  // 공유로 들어온 것 — 파일을 놓아두고 앱을 연다.
+  if (req.method === 'POST' && new URL(req.url).pathname === '/karmolab/share/') {
+    event.respondWith(
+      (async () => {
+        try {
+          const form = await req.formData();
+          const file = form.get('file');
+          if (file instanceof File && file.size > 0) {
+            await putHandoff({ blob: file, name: file.name || '공유받은 파일', from: 'share', at: Date.now() });
+            return Response.redirect('/karmolab/?shared=1', 303);
+          }
+          // 글·주소만 온 경우 — 그대로 들고 들어간다(도구가 읽어 쓴다).
+          const text = String(form.get('text') ?? form.get('url') ?? form.get('title') ?? '');
+          const target = text ? `/karmolab/?shared=1&text=${encodeURIComponent(text.slice(0, 2000))}` : '/karmolab/?shared=1';
+          return Response.redirect(target, 303);
+        } catch {
+          // 실패해도 앱은 열어 준다 — 빈 화면보다 낫다.
+          return Response.redirect('/karmolab/?shared=0', 303);
+        }
+      })(),
+    );
+    return;
+  }
+
   if (req.method !== 'GET' || req.headers.has('range')) return;
 
   let url: URL;

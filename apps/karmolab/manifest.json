@@ -23,31 +23,97 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "shortcuts": [
     {
       "name": "글자수 세기",
       "short_name": "글자수",
       "url": "/karmolab/t/charcount/",
-      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/apps/karmolab/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "PDF 편집",
       "short_name": "PDF",
       "url": "/karmolab/t/pdftool/",
-      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/apps/karmolab/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "QR 코드 생성",
       "short_name": "QR",
       "url": "/karmolab/t/qrgen/",
-      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/apps/karmolab/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "이미지 편집",
       "short_name": "이미지",
       "url": "/karmolab/t/imageedit/",
-      "icons": [{ "src": "/apps/karmolab/img/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/apps/karmolab/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/karmolab/share/",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": [
+            "image/*",
+            "application/pdf",
+            "text/*",
+            "audio/*",
+            "video/*"
+          ]
+        }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/karmolab/share/",
+      "accept": {
+        "image/*": [
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".webp",
+          ".gif"
+        ],
+        "application/pdf": [
+          ".pdf"
+        ]
+      }
     }
   ]
 }
