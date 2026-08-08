@@ -131,7 +131,8 @@
     "test:flow:auto": "node scripts/smoke-flow-auto.mjs",
     "test:workshop": "node scripts/smoke-workshop-kinds.mjs",
     "test:inbox": "node scripts/smoke-inbox.mjs",
-    "test:usertool": "node scripts/smoke-usertool-trust.mjs"
+    "test:usertool": "node scripts/smoke-usertool-trust.mjs",
+    "test:offline": "node scripts/smoke-offline-app.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

@@ -1432,7 +1432,15 @@ const Toolbox = (() => {
         const hashPage = location.hash ? location.hash.slice(1) : null;
         // TASK-KL-088: /karmolab/t/<id>/ 도구 상세 페이지가 심는 진입 위젯.
         // 있으면 해시·마지막 페이지보다 우선하고, URL 에 해시를 덧붙이지 않는다.
-        const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || null;
+        /* 껍데기만 받아서 열린 경우 — 어느 도구로 가려 했는지는 **주소에 남아 있다**
+         * (TASK-KL-191 축8). 오프라인에서 서비스 워커가 첫 화면 껍데기를 대신 내주면
+         * `KARMOLAB_ENTRY_TOOL` 은 비어 있지만 주소는 `/karmolab/t/<도구>/` 그대로다.
+         * 그걸 안 읽으면 「도구 주소로 들어왔는데 홈이 뜬다」가 된다. */
+        const pathTool = (() => {
+            const m = /^\/karmolab\/t\/([a-z0-9-]+)\/?$/.exec(location.pathname);
+            return m ? m[1] : null;
+        })();
+        const entryTool = (typeof window !== 'undefined' && window.KARMOLAB_ENTRY_TOOL) || pathTool || null;
         const lastPage = (() => { try { return localStorage.getItem(LAST_PAGE_KEY); } catch (_) { return null; } })();
         const isValidPage = (id) => {
             if (id === 'home' || SYSTEM_PAGES.has(id)) return true;
