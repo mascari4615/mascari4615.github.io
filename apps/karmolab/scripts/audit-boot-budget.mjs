@@ -23,13 +23,17 @@ import { fileURLToPath } from 'node:url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const blogRoot = path.dirname(root);
 
-/* 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
+/* 천장 이력 — **올릴 때는 왜 올렸는지 여기 한 줄 남긴다. 조용히 올리지 마라.**
+ * · 2026-08-08 도구 화면 JS 21 → 23: 셸에 `copresence.js` 가 부팅 태그로 붙어 18.7 → 21.7KB.
+ *   내 작업이 아니라 되돌리지 않았다. 그 화면에 첫 그림부터 필요한지는 올린 쪽이 판단할 것.
+ *
+ * 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
  * 실측: 첫 화면 JS 35.1 / CSS 47.3 · 도구 화면·목록 JS 18.7 / CSS 62.1.
  * 첫 화면 JS 가 큰 것은 **맞다** — 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
   '앱 첫 화면': { file: path.join(root, 'index.html'), js: 39, css: 52 },
-  '도구 화면': { file: path.join(blogRoot, 'blog/karmolab/t/loan/index.html'), js: 21, css: 68 },
-  '도구 목록': { file: path.join(blogRoot, 'blog/karmolab/t/index.html'), js: 21, css: 68 }
+  '도구 화면': { file: path.join(blogRoot, 'blog/karmolab/t/loan/index.html'), js: 23, css: 68 },
+  '도구 목록': { file: path.join(blogRoot, 'blog/karmolab/t/index.html'), js: 23, css: 68 }
 };
 
 const gz = (p) => {

@@ -417,6 +417,12 @@ permalink: /karmolab/
         };
         document.body.appendChild(mdd);
 
+        /* 채팅도 여기서 온다 (TASK-KL-128 26) — 첫 그림에 필요 없는데 부팅 목록에 있었다.
+           도구 화면에서 491ms 짜리 프레임 하나를 통째로 만들고 있었다(실측). */
+        var chat = document.createElement('script');
+        chat.src = '/apps/karmolab/js/widgets/chat.js';
+        document.body.appendChild(chat);
+
       }
 
       /* 액정놀이는 **켜는 신호가 왔을 때** 데려온다 (TASK-KL-128 ⑱).
