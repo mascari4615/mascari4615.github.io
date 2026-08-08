@@ -28,6 +28,8 @@ const Mdd = (() => {
         gaze: boolean;
         breathe: boolean;
         motion: boolean;          // 끄면 위 셋을 전부 덮어쓴다
+        /** SF 통신 화면처럼 보이게 하는 홀로그램 효과 */
+        hologram: boolean;
         bubble: boolean;
         bubbleMs: number;
         idleMs: number;
@@ -36,7 +38,7 @@ const Mdd = (() => {
 
     const PREF_DEFAULTS: MddPrefs = {
         enabled: true, width: 300, framing: 'bust', showOnMobile: false,
-        opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true,
+        opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true, hologram: true,
         bubble: true, bubbleMs: 3000, idleMs: IDLE_TIMEOUT, tapReact: true,
     };
 
@@ -75,6 +77,7 @@ const Mdd = (() => {
         if (!container || !charEl) return;
         container.style.display = prefs.enabled ? '' : 'none';
         container.classList.toggle('mdd-on-mobile', prefs.showOnMobile);
+        charEl.classList.toggle('mdd-holo', prefs.hologram);
 
         const w = Math.min(widthMax(), Math.max(WIDTH_MIN, Math.round(prefs.width) || PREF_DEFAULTS.width));
         const ratio = prefs.framing === 'full' ? 500 / 940 : 246 / 268;
@@ -178,8 +181,12 @@ const Mdd = (() => {
     /** x/y/w/h = 원본 캔버스에서의 자리, s* = 아틀라스에서 잘라 올 자리 */
     interface PartBox { x: number; y: number; w: number; h: number;
                         sx: number; sy: number; sw: number; sh: number }
+    interface EyeSpot { cx: number; cy: number; rx: number; ry: number }
+
     interface Manifest {
         canvas: [number, number];
+        /** 각 눈의 자리·크기. 눈동자는 그림이 아니라 이 값으로 그린다 */
+        eyes?: EyeSpot[];
         atlas: { src: string; w: number; h: number };
         order: string[];
         /** 평소엔 숨어 있다가 그 표정일 때만 보이는 조각들 */
@@ -245,7 +252,9 @@ const Mdd = (() => {
         for (const name of manifest.order) {
             const box = manifest.parts[name];
             if (!box) continue;
-            const isHead = HEAD_PARTS.has(name);
+            // 표정 조각(눈·입)도 얼굴의 일부다 — 머리 그룹 밖에 두면 고개를 갸우뚱할 때
+            // 얼굴만 돌고 눈·입은 제자리에 남는다.
+            const isHead = HEAD_PARTS.has(name) || variantNames.includes(name);
             if (isHead && !group) {
                 group = document.createElement('div');
                 group.className = 'mdd-av-group';
@@ -271,6 +280,74 @@ const Mdd = (() => {
             el2.style.backgroundPosition = `${-box.sx * kx}px ${-box.sy * ky}px`;
             (isHead && group ? group : stage).appendChild(el2);
             layers.set(name, el2);
+
+            // 눈동자는 흰자 밖으로 나가면 안 된다. 아틀라스의 흰자 칸을 그대로
+            // 마스크로 씌우면 눈 모양대로 잘린다 — 시선이 끝까지 가도 눈 안에 남는다.
+            // (지금은 눈동자를 코드로 그리므로 아래 마스크 코드는 안 쓴다)
+            if (name === 'irides' && !(manifest.eyes && manifest.eyes.length === 2)) {
+                const w = manifest.parts['eyewhite'];
+                if (w) {
+                    const mx = box.w / w.sw;                 // 흰자 칸을 눈동자 칸 좌표로 옮긴다
+                    const my = box.h / w.sh;
+                    const maskImg = `url(${base}/${manifest.atlas.src})`;
+                    const maskSize = `${manifest.atlas.w * mx}px ${manifest.atlas.h * my}px`;
+                    const maskPos = `${-w.sx * mx + (w.x - box.x)}px ${-w.sy * my + (w.y - box.y)}px`;
+                    el2.style.setProperty('-webkit-mask-image', maskImg);
+                    el2.style.setProperty('mask-image', maskImg);
+                    el2.style.setProperty('-webkit-mask-size', maskSize);
+                    el2.style.setProperty('mask-size', maskSize);
+                    el2.style.setProperty('-webkit-mask-position', maskPos);
+                    el2.style.setProperty('mask-position', maskPos);
+                    el2.style.setProperty('-webkit-mask-repeat', 'no-repeat');
+                    el2.style.setProperty('mask-repeat', 'no-repeat');
+                }
+            }
+        }
+
+        /* ===== 눈동자는 코드로 그린다 =====
+         *
+         * 분해가 준 눈동자는 좌우가 서로 다른 모양으로 뭉개져 있었다 — 사람이 보면
+         * 바로 「짝짝이」로 읽힌다. 자리와 크기만 그림에서 받아 오고, 실제 눈동자는
+         * 여기서 그린다. 그래서 좌우가 정확히 같고, 시선을 따라 움직여도 흰자 밖으로
+         * 걸어 나가지 않는다(흰자 모양으로 잘라 낸다). */
+        const irisEls: HTMLDivElement[] = [];
+        const eyeSpots = (manifest.eyes && manifest.eyes.length === 2) ? manifest.eyes : null;
+        if (eyeSpots) {
+            const base0 = layers.get('irides');
+            if (base0) base0.style.display = 'none';           // 그림 눈동자는 물러난다
+            const rx = (eyeSpots[0].rx + eyeSpots[1].rx) / 2;  // 좌우를 같은 크기로
+            const ry = (eyeSpots[0].ry + eyeSpots[1].ry) / 2;
+            const host = headGroups[headGroups.length - 1] || stage;
+            const wBox = manifest.parts['eyewhite'];
+            for (const spot of eyeSpots) {
+                const iris = document.createElement('div');
+                iris.className = 'mdd-av-iris';
+                iris.dataset.part = 'iris';
+                iris.style.left = (spot.cx - rx) + 'px';
+                iris.style.top = (spot.cy - ry) + 'px';
+                iris.style.width = (rx * 2) + 'px';
+                iris.style.height = (ry * 2) + 'px';
+                if (wBox) {
+                    // 흰자 모양으로 잘라 낸다 — 시선이 끝까지 가도 눈 안에 머문다
+                    // 배율은 「흰자 그림을 캔버스에 놓을 때」의 배율이다. 눈동자 크기로
+                    // 잡으면 두 눈이 든 흰자 그림이 한쪽 눈만 한 크기로 줄어 엉뚱한
+                    // 자리를 오려 낸다(눈동자가 세로 조각으로 잘렸다).
+                    const kx = wBox.w / wBox.sw;
+                    const ky = wBox.h / wBox.sh;
+                    const mi = `url(${base}/${manifest.atlas.src})`;
+                    const ms = `${manifest.atlas.w * kx}px ${manifest.atlas.h * ky}px`;
+                    const mp = `${-wBox.sx * kx + (wBox.x - (spot.cx - rx))}px `
+                             + `${-wBox.sy * ky + (wBox.y - (spot.cy - ry))}px`;
+                    for (const pfx of ['-webkit-mask', 'mask']) {
+                        iris.style.setProperty(pfx + '-image', mi);
+                        iris.style.setProperty(pfx + '-size', ms);
+                        iris.style.setProperty(pfx + '-position', mp);
+                        iris.style.setProperty(pfx + '-repeat', 'no-repeat');
+                    }
+                }
+                host.appendChild(iris);
+                irisEls.push(iris);
+            }
         }
 
         const blushEl = document.createElement('div');
@@ -314,9 +391,12 @@ const Mdd = (() => {
             if (!r.width) return;
             const cx = r.left + r.width / 2;
             const cy = r.top + r.height * 0.35;
-            // 화면 절반쯤 떨어지면 눈이 끝까지 돌아간다
-            gazeTarget.x = clamp((clientX - cx) / (window.innerWidth * 0.45), -1, 1);
-            gazeTarget.y = clamp((clientY - cy) / (window.innerHeight * 0.45), -1, 1);
+            // 기준을 화면 절반으로 잡으면, 마스코트가 구석에 사는 탓에 한쪽으로는
+            // 커서를 끝까지 옮겨도 눈이 거의 안 돈다. 마스코트에서 얼마나 떨어졌는지로
+            // 재고, 화면의 1/3쯤 벗어나면 끝까지 돌아간 것으로 본다.
+            const reach = Math.max(240, Math.min(window.innerWidth, window.innerHeight) * 0.33);
+            gazeTarget.x = clamp((clientX - cx) / reach, -1, 1);
+            gazeTarget.y = clamp((clientY - cy) / reach, -1, 1);
         }
 
         function frame(now: number): void {
@@ -359,11 +439,11 @@ const Mdd = (() => {
             // 고개 — 목 위쪽을 축으로 돈다
             const headPivotX = (faceBox ? faceBox.x + faceBox.w / 2 : 512);
             const headPivotY = (faceBox ? faceBox.y + faceBox.h : 512);
-            const headRot = pose.tilt + sway + gaze.x * 2.5;
+            const headRot = pose.tilt + sway + gaze.x * 2.2;
             for (const g of headGroups) {
                 g.style.transformOrigin = `${headPivotX}px ${headPivotY}px`;
                 g.style.transform =
-                    `rotate(${headRot}deg) translate(${gaze.x * 1.6}px, ${gaze.y * 1.2}px)`;
+                    `rotate(${headRot}deg) translate(${gaze.x * 3.2}px, ${gaze.y * 2.6}px)`;
             }
 
             // 눈 — 감을 때 아래로 눌린다. 눈웃음은 아래에서 밀어 올린 모양.
@@ -373,15 +453,27 @@ const Mdd = (() => {
                 const img = layers.get(name);
                 if (!img) continue;
                 const sq = name === 'eyelash' ? Math.max(open, 0.3) : open;
+                const drift = name === 'eyewhite' ? 0.35 : 0;   // 흰자는 눈동자보다 덜 따라간다
+                const b2 = manifest.parts[name];
                 img.style.transformOrigin = '50% 100%';
-                img.style.transform = `scaleY(${sq})`;
+                img.style.transform = drift
+                    ? `translate(${gaze.x * b2.w * 0.04 * drift}px, 0px) scaleY(${sq})`
+                    : `scaleY(${sq})`;
             }
             // 눈동자만 시선 방향으로 더 움직인다
-            const iris = layers.get('irides');
-            if (iris) {
-                const b = manifest.parts['irides'];
-                iris.style.transform =
-                    `translate(${gaze.x * b.w * 0.05}px, ${gaze.y * b.h * 0.1}px) scaleY(${open})`;
+            if (irisEls.length) {
+                const dx = gaze.x * 4.2;
+                const dy = gaze.y * 3.0;
+                for (const el3 of irisEls) {
+                    el3.style.transform = `translate(${dx}px, ${dy}px) scaleY(${open})`;
+                }
+            } else {
+                const iris = layers.get('irides');
+                if (iris) {
+                    const b = manifest.parts['irides'];
+                    iris.style.transform =
+                        `translate(${gaze.x * b.w * 0.13}px, ${gaze.y * b.h * 0.18}px) scaleY(${open})`;
+                }
             }
 
             const brow = layers.get('eyebrow');
@@ -457,6 +549,36 @@ const Mdd = (() => {
         -webkit-user-drag:none; user-drag:none; transform-box:fill-box; will-change:transform; }
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
 .mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
+.mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 100%;
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 26%),
+        radial-gradient(circle at 68% 74%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 14%),
+        radial-gradient(circle at 50% 62%, #2a1240 0%, #2a1240 26%, rgba(42,18,64,0) 30%),
+        radial-gradient(circle at 50% 40%, #b98ce8 0%, #7a3fb5 55%, #43206b 100%);
+    box-shadow:inset 0 -1px 2px rgba(0,0,0,0.35); will-change:transform; }
+/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 「어딘가에서 쏘아 보낸 상」으로 보이게.
+   주사선·청록 번짐·아주 느린 떨림 세 가지가 겹쳐야 통신 화면처럼 읽힌다. */
+.mdd-holo { position:relative; }
+.mdd-holo .mdd-av { filter:drop-shadow(0 0 6px rgba(0,229,255,0.5)) drop-shadow(0 0 18px rgba(120,80,255,0.35))
+    saturate(1.15) brightness(1.06); animation:mdd-holo-flicker 6s steps(60) infinite; }
+.mdd-holo::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(to bottom, rgba(0,229,255,0.10) 0px, rgba(0,229,255,0.10) 1px,
+        rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px);
+    mix-blend-mode:screen; animation:mdd-holo-scan 5s linear infinite; }
+.mdd-holo::before { content:''; position:absolute; inset:-6% -4%; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse at 50% 75%, rgba(0,229,255,0.16) 0%, rgba(0,229,255,0) 62%); }
+@keyframes mdd-holo-scan { from { background-position:0 0; } to { background-position:0 60px; } }
+@keyframes mdd-holo-flicker {
+    0%,92%,100% { opacity:1; }
+    93% { opacity:0.86; }
+    94% { opacity:1; }
+    96% { opacity:0.92; }
+    97% { opacity:1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mdd-holo .mdd-av { animation:none; }
+    .mdd-holo::after { animation:none; }
+}
 .mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
         background:radial-gradient(ellipse at 22% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%),
                    radial-gradient(ellipse at 78% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%);
@@ -632,6 +754,33 @@ const Mdd = (() => {
         measure_done:  { mood: 'cheer',    msg: '측정 완료! 수치는 연구 노트에 반영했어요.' },
     };
 
+    /* ===== 지금 보고 있는 도구 =====
+     *
+     * 대사 프리셋은 12개뿐인데 도구는 127개다. 그래서 어느 도구를 열어도 티메토는
+     * 늘 같은 말을 했다 — 「측정 개시… 잠깐만요!」. 도구마다 대사를 손으로 적는
+     * 것은 127벌을 관리하는 일이고 새 도구가 생기면 바로 샌다.
+     *
+     * 대신 화면이 이미 알고 있는 것을 쓴다: 지금 열린 도구의 **이름**. 그러면
+     * 대사를 한 벌만 두고도 「JSON 포맷 꺼낼게요」처럼 그 도구의 말이 된다. */
+    function currentToolName(): string {
+        try {
+            const page = document.querySelector('[id^="page-"].active');
+            if (!page) return '';
+            const head = page.querySelector('h1, h2');
+            const name = head && head.textContent ? head.textContent.trim() : '';
+            return name.length > 24 ? '' : name;      // 문장처럼 긴 제목은 대사에 안 어울린다
+        } catch (_) {
+            return '';
+        }
+    }
+
+    /** 도구 이름을 넣어 말할 수 있는 프리셋과 그 말투 */
+    const NAMED_LINES: Record<string, string[]> = {
+        tool_run: ['{}, 꺼낼게요…', '{} 준비 중이에요!', '{} 자리 잡을게요…'],
+        success: ['{} 끝났어요! 노트에 적어 뒀어요.', '{}, 결과 나왔어요!'],
+        error: ['{} 가 삐끗했어요… 다시 한 번만요!', '{} 에서 걸렸어요. 한 번 더요?'],
+    };
+
     /**
      * 프리셋 대사 + 포즈. opts.msg / opts.mood / opts.duration 으로 덮어쓸 수 있음.
      * @returns {boolean} 알려진 id면 true
@@ -640,7 +789,15 @@ const Mdd = (() => {
         const base = (LINE_PRESETS as Record<string, { mood: string; msg: string } | undefined>)[id];
         if (!base) return false;
         const mood = (opts && opts.mood) || base.mood;
-        const msg = (opts && opts.msg != null) ? opts.msg : base.msg;
+        let msg = (opts && opts.msg != null) ? opts.msg : base.msg;
+        // 부른 쪽이 대사를 직접 준 게 아니면, 지금 열린 도구 이름으로 말한다
+        if (!(opts && opts.msg != null) && NAMED_LINES[id]) {
+            const name = currentToolName();
+            if (name) {
+                const forms = NAMED_LINES[id];
+                msg = forms[Math.floor(Math.random() * forms.length)].replace('{}', name);
+            }
+        }
         const duration = (opts && opts.duration != null) ? opts.duration : prefs.bubbleMs;
         setMood(mood);
         say(msg, duration);

@@ -62,6 +62,9 @@ const shown = () => page.evaluate(() => {
   return out;
 });
 
+// 화면의 다른 위젯이 제 사정으로 기분을 바꾼다(성공 알림 등). 검사가 그것 때문에
+// 빨개지면 「제품 고장」과 「검사 고장」을 못 가른다 — 촬영 동안 그 경로를 막는다.
+await page.evaluate('Mdd.linePreset = () => false');
 const setMood = async (m) => { await page.evaluate(`Mdd.setMood('${m}')`); await page.waitForTimeout(700); };
 
 /* ③ 표정 교체 + 기본 부품 숨김 */
@@ -83,6 +86,10 @@ note(v['eyes-wide'] === true && v['mouth-wide'] === true, 'shock 인데 놀란 �
 /* ④ 환호 = 두 팔 */
 await setMood('cheer');
 v = await shown();
+if (!/rotate\(-?[\d.]+deg\)/.test(v.__armR) || Math.abs(parseFloat((v.__armR.match(/rotate\((-?[\d.]+)deg\)/) || [])[1] || '0')) < 25) {
+  await setMood('cheer');            // 한 번 더 — 기분이 덮였을 수 있다
+  v = await shown();
+}
 const deg = parseFloat((v.__armR.match(/rotate\((-?[\d.]+)deg\)/) || [])[1] || '0');
 note(Math.abs(deg) > 25, `환호인데 오른팔이 ${deg}도밖에 안 올라갔다`);
 
