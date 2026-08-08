@@ -72,7 +72,12 @@
             </div>
             <div class="tool-display" id="ddResult">D-0</div>
             <div class="cc-stats" id="ddStats"></div>
-            <div class="tool-status" id="ddNote">D-Day 는 목표일 당일을 D-Day 로, 하루 전을 D-1 로 셉니다.</div>
+            <!-- 기념일 표 — 커플·기념일 계산기가 앞세우는 것. 기준일만 넣으면 나온다. -->
+            <div class="field-group" style="margin-top:var(--space-lg);">
+              <label class="field-label">기준일부터의 기념일</label>
+              <div class="tool-list" id="ddMarks"></div>
+            </div>
+            <div class="tool-status" id="ddNote">D-Day 는 목표일 당일을 D-Day 로, 하루 전을 D-1 로 셉니다. 기념일은 <b>기준일을 1일째</b>로 세는 한국식입니다.</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const base = $<HTMLInputElement>('#ddBase');
@@ -99,6 +104,25 @@
             ];
             stats.innerHTML = cells
               .map(([k, v]) => `<div class="cc-stat"><div class="cc-stat-label">${k}</div><div class="cc-stat-value">${v}</div></div>`)
+              .join('');
+
+            /* 기념일은 **기준일을 1일째**로 센다(한국식) — 100일은 기준일+99일이다.
+               이걸 틀리면 하루씩 밀려서 정작 그날 축하를 못 한다. */
+            const marks: Array<[string, number]> = [
+              ['100일', 99], ['200일', 199], ['300일', 299],
+              ['500일', 499], ['1000일', 999],
+              ['1주년', -1], ['2주년', -2], ['3주년', -3]
+            ];
+            const now = today();
+            $<HTMLElement>('#ddMarks').innerHTML = marks
+              .map(([name, plus]) => {
+                const day = plus < 0
+                  ? new Date(a.getFullYear() - plus, a.getMonth(), a.getDate())
+                  : new Date(a.getTime() + plus * DAY);
+                const left = Math.round((day.getTime() - now.getTime()) / DAY);
+                const 남은말 = left === 0 ? '오늘 🎉' : left > 0 ? `D-${left}` : `${Math.abs(left)}일 지남`;
+                return `<div class="tool-list-row"><span class="tool-list-key">${name}</span><span class="tool-list-val">${label(day)} <span class="tool-list-dim">${남은말}</span></span></div>`;
+              })
               .join('');
           }
           base.addEventListener('change', render);
