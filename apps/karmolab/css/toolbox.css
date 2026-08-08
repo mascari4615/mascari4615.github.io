@@ -822,6 +822,44 @@ html[data-intro="off"] .intro-overlay {
     display: none;
 }
 
+/* ── 계정 캡슐 = 「내 정보」 단추 (TASK-KL-139) ──────────────────────────
+   화면(index.html)에 기본 캡슐이 박혀 있고 js/account.js 가 로그인 상태면 아바타·이름으로
+   갈아 끼운다. 그래서 모양은 **셸 CSS 인 여기**에 있어야 한다 — 스크립트 안에 두면
+   account.js 가 오기 전까지 맨몸 단추로 보인다. */
+.header-account { display: flex; align-items: center; position: relative; }
+.header-account-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 4px 10px 4px 4px;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: transparent; cursor: pointer;
+    color: var(--text-secondary); font-size: var(--font-size-xs);
+    max-width: 170px;
+}
+.header-account-btn:hover { color: var(--text-primary); border-color: var(--accent); }
+.header-account-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.header-account-btn img,
+.header-account-blank { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; }
+.header-account-blank { display: grid; place-items: center; background: var(--bg-tertiary); }
+.header-account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-account-menu {
+    position: absolute; top: 40px; right: 0; min-width: 190px; z-index: 60;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35); overflow: hidden;
+}
+.header-account-menu button,
+.header-account-menu a {
+    display: block; width: 100%; padding: 9px 13px;
+    background: none; border: 0; border-top: 1px solid var(--border);
+    text-align: left; font: inherit; font-size: var(--font-size-xs);
+    color: var(--text-primary); cursor: pointer; text-decoration: none;
+}
+.header-account-menu > :first-child { border-top: 0; }
+.header-account-menu button:hover,
+.header-account-menu a:hover { background: var(--bg-tertiary); }
+.header-account-menu button[data-signin] { color: var(--accent); font-weight: 600; }
+.header-account-menu .header-account-menu-out { color: #dc2626; }
+html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #fca5a5; }
+
 .header-btn.user-btn,
 .header-btn.settings-btn,
 .theme-toggle {

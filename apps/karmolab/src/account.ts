@@ -338,36 +338,8 @@ function mountHeaderAccount(): void {
     const slot = document.getElementById('headerAccount');
     if (!slot) return;
 
-    if (!document.getElementById('kl-account-style')) {
-        const style = document.createElement('style');
-        style.id = 'kl-account-style';
-        style.textContent = `
-            .header-account { display:flex; align-items:center; }
-            .header-account:empty { display:none; }
-            .header-account-btn { display:flex; align-items:center; gap:7px; padding:4px 10px 4px 4px;
-                border:1px solid var(--border); border-radius:999px; background:transparent; cursor:pointer;
-                color:var(--text-secondary); font-size:var(--font-size-xs); max-width:170px; }
-            .header-account-btn:hover { color:var(--text-primary); border-color:var(--accent); }
-            .header-account-btn img, .header-account-blank { width:22px; height:22px; border-radius:50%; flex:0 0 auto; }
-            .header-account-blank { display:grid; place-items:center; background:var(--bg-tertiary); font-size:11px; }
-            .header-account-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-            .header-account-signin { padding:5px 12px; border-radius:999px; border:1px solid var(--accent);
-                background:transparent; color:var(--accent); font-size:var(--font-size-xs); font-weight:600; cursor:pointer; }
-            .header-account-signin:hover { background:var(--accent); color:var(--bg-primary); }
-            .header-account { position:relative; }
-            .header-account-menu { position:absolute; top:40px; right:0; min-width:190px; z-index:60;
-                background:var(--bg-secondary); border:1px solid var(--border); border-radius:10px;
-                box-shadow:0 8px 24px rgba(0,0,0,.35); overflow:hidden; }
-            .header-account-menu button, .header-account-menu a { display:block; width:100%; padding:9px 13px;
-                background:none; border:0; border-top:1px solid var(--border); text-align:left;
-                font:inherit; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; text-decoration:none; }
-            .header-account-menu > :first-child { border-top:0; }
-            .header-account-menu button:hover, .header-account-menu a:hover { background:var(--bg-tertiary); }
-            .header-account-menu .header-account-menu-out { color:#dc2626; }
-            html[data-theme="dark"] .header-account-menu .header-account-menu-out { color:#fca5a5; }
-        `;
-        document.head.appendChild(style);
-    }
+    /* 이 캡슐의 모양은 셸 CSS(css/toolbox.css § 계정 캡슐)에 있다 — 화면(index.html)에
+     * 기본 캡슐이 박혀 있어서, 스타일이 이 파일에 있으면 account.js 가 오기 전까지 맨몸으로 보인다. */
 
     /* 아바타를 누르면 메뉴가 열린다 (TASK-KL-139).
      *
@@ -376,35 +348,47 @@ function mountHeaderAccount(): void {
      * 아바타 메뉴에 둔다). 환경 설정도 여기 둔다: 「나」에서 떼어 낸 화면이라 갈 길이 있어야 한다. */
     let menuOpen = false;
 
+    /** 로그인 전에도 쓰는 얼굴 자리 — 화면(index.html)에 박아 둔 것과 같은 모양이어야 한다. */
+    const BLANK_FACE =
+        '<span class="header-account-blank">' +
+        '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/>' +
+        '<path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>';
+
+    /** 지금 보고 있는 화면이 「내 정보」면 캡슐을 켠다 — 다시 그릴 때마다 도로 꺼지지 않게 여기서도 건다. */
+    const markActivePage = (): void => {
+        const button = slot.querySelector('.header-account-btn');
+        if (!button) return;
+        button.classList.toggle('active', !!document.getElementById('page-user')?.classList.contains('active'));
+    };
+
     const paint = (state: AccountState): void => {
-        if (state.loading || !state.reachable) {
-            menuOpen = false;
-            slot.innerHTML = '';
-            return;
-        }
-        if (!state.account) {
-            menuOpen = false;
-            slot.innerHTML = '<button type="button" class="header-account-signin" id="klHeaderSignIn">시작하기</button>';
-            slot.querySelector('#klHeaderSignIn')?.addEventListener('click', () => KarmoAccount.signIn());
-            return;
-        }
-        const me = state.account;
-        const avatar = KarmoAccount.avatarUrl(me.avatarPath);
-        const safeName = me.displayName.replace(/[<>&"]/g, '');
+        /* 서버에 못 닿아도 **단추는 남는다** (사용자 요청 「통합」).
+         * 이 캡슐이 곧 「내 정보」 단추라, 비우면 내 정보로 가는 길이 통째로 사라진다.
+         * 계정과 무관한 것(내 정보·환경 설정)만 메뉴에 남기고, 계정 것은 안 그린다 —
+         * 눌러도 아무 일 없는 단추를 안 만든다는 원칙은 그대로다. */
+        const me = state.loading ? null : state.account;
+        const canAccount = !state.loading && state.reachable;
+        const avatar = me ? KarmoAccount.avatarUrl(me.avatarPath) : null;
+        const label = me ? me.displayName.replace(/[<>&"]/g, '') : '내 정보';
+
         slot.innerHTML = `
-            <button type="button" class="header-account-btn" id="klHeaderMe" title="내 계정"
+            <button type="button" class="header-account-btn" id="klHeaderMe" title="${me ? '내 계정' : '내 정보'}"
                     aria-haspopup="menu" aria-expanded="${menuOpen}">
-                ${avatar ? `<img src="${avatar}" alt="">` : '<span class="header-account-blank">◍</span>'}
-                <span class="header-account-name">${safeName}</span>
+                ${avatar ? `<img src="${avatar}" alt="">` : BLANK_FACE}
+                <span class="header-account-name">${label}</span>
             </button>` +
             (menuOpen
                 ? `<div class="header-account-menu" role="menu">
                        <button type="button" role="menuitem" data-go="user">내 정보</button>
-                       <a role="menuitem" href="${me.profileUrl}">남에게 보이는 프로필</a>
+                       ${me ? `<a role="menuitem" href="${me.profileUrl}">남에게 보이는 프로필</a>` : ''}
                        <button type="button" role="menuitem" data-go="settings">환경 설정</button>
-                       <button type="button" role="menuitem" class="header-account-menu-out" data-signout>로그아웃</button>
+                       ${me ? '<button type="button" role="menuitem" class="header-account-menu-out" data-signout>로그아웃</button>' : ''}
+                       ${!me && canAccount ? '<button type="button" role="menuitem" data-signin>디스코드로 시작하기</button>' : ''}
                    </div>`
                 : '');
+        slot.querySelector('[data-signin]')?.addEventListener('click', () => KarmoAccount.signIn());
+        markActivePage();
 
         slot.querySelector('#klHeaderMe')?.addEventListener('click', (event) => {
             /* 이 클릭이 문서까지 올라가면 **바로 아래 「바깥 클릭이면 닫는다」가 자기 자신을 닫는다**.

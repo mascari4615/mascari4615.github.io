@@ -397,10 +397,25 @@ const Toolbox = (() => {
      * 교체 배선은 이미 있었다 — 지연 등록이 실제 등록으로 바뀔 때 쓰던 그 길이다. 그 길을
      * 재등록에도 열어 주는 것이 이 함수의 전부다.
      */
+    /* 누르는 것이 **불러오는 것보다 빠를 때** 그 화면을 살린다 (TASK-KL-139).
+     *
+     * 실측: 첫 화면에서 부팅 3초 안에 「내 정보」로 옮기면 그 화면은 껍데기(제목만)로 남고
+     * 15초를 기다려도 안 채워졌다. `switchPage` 가 화면을 만들려 한 시점에 그 위젯이 아직
+     * 등록 전이라 만들 것이 없었고, 뒤늦게 등록돼도 **아무도 다시 만들지 않았다**.
+     * 등록은 늦게 와도 되지만, 그때 보고 있는 화면이 자기 것이면 그 자리는 자기가 채워야 한다. */
+    function buildLatePageIfShowing(id) {
+        if (currentPageId !== id || document.getElementById('page-' + id)) return;
+        const page = ensureToolPage(id);
+        if (!page) return;
+        document.querySelectorAll('.tool-page').forEach(p => p.classList.remove('active'));
+        page.classList.add('active');
+    }
+
     function register(config) {
         const idx = tools.findIndex(t => t.id === config.id);
         if (idx < 0) {
             tools.push(config);
+            buildLatePageIfShowing(config.id);
             return;
         }
         const wasDeferred = !!tools[idx]._deferred;
@@ -408,6 +423,7 @@ const Toolbox = (() => {
         if (!wasDeferred) disposeTool(config.id);
         tools[idx] = wasDeferred ? { ...config, _deferred: false } : config;
         rebuildToolPageIfInDom(config.id);
+        buildLatePageIfShowing(config.id);
     }
 
     /** 등록된 위젯의 첫 tab.build 를 임의 container 에 inline 호출 (잡동사니 위젯 등 페이지 안 페이지). */
@@ -1956,7 +1972,9 @@ const Toolbox = (() => {
         }
         document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
 
-        const userBtn = document.getElementById('userPageBtn');
+        /* 계정 캡슐이 곧 「내 정보」 단추다 (통합). account.js 가 그 안을 갈아 끼우므로
+         * id 가 아니라 **자리**로 찾는다 — 갈아 끼운 뒤에도 같은 자리다. */
+        const userBtn = document.querySelector('#headerAccount .header-account-btn');
         if (userBtn) userBtn.classList.toggle('active', pageId === 'user');
         const settingsBtn = document.getElementById('settingsPageBtn');
         if (settingsBtn) settingsBtn.classList.toggle('active', pageId === 'settings');
