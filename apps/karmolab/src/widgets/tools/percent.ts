@@ -16,6 +16,8 @@
     /** 문장 조각 — 숫자 칸은 null */
     parts: (string | null)[];
     calc: (v: number[]) => string;
+    /** 풀이 식 한 줄 — 「맞게 넣었나」를 사람이 확인하는 유일한 장치다. 남들은 전부 준다. */
+    formula: (v: number[]) => string;
     defaults: number[];
   }
 
@@ -23,12 +25,14 @@
     {
       parts: [null, '의 ', null, '% 는?'],
       defaults: [200, 15],
-      calc: (v) => `${fmt((v[0] * v[1]) / 100)}`
+      calc: (v) => `${fmt((v[0] * v[1]) / 100)}`,
+      formula: (v) => `${fmt(v[0])} × ${fmt(v[1])} ÷ 100`
     },
     {
       parts: [null, '은 ', null, '의 몇 % ?'],
       defaults: [30, 200],
-      calc: (v) => `${fmt((v[0] / v[1]) * 100)} %`
+      calc: (v) => `${fmt((v[0] / v[1]) * 100)} %`,
+      formula: (v) => `${fmt(v[0])} ÷ ${fmt(v[1])} × 100`
     },
     {
       parts: [null, '에서 ', null, '(으)로 바뀌면 몇 % 변화?'],
@@ -36,22 +40,38 @@
       calc: (v) => {
         const d = ((v[1] - v[0]) / v[0]) * 100;
         return `${d >= 0 ? '+' : ''}${fmt(d)} % (${d >= 0 ? '증가' : '감소'})`;
-      }
+      },
+      formula: (v) => `(${fmt(v[1])} − ${fmt(v[0])}) ÷ ${fmt(v[0])} × 100`
     },
     {
       parts: [null, '에 ', null, '% 를 더하면?'],
       defaults: [50000, 10],
-      calc: (v) => `${fmt(v[0] * (1 + v[1] / 100))}`
+      calc: (v) => `${fmt(v[0] * (1 + v[1] / 100))}`,
+      formula: (v) => `${fmt(v[0])} × (1 + ${fmt(v[1])} ÷ 100)`
     },
     {
       parts: [null, '에서 ', null, '% 를 빼면?'],
       defaults: [50000, 30],
-      calc: (v) => `${fmt(v[0] * (1 - v[1] / 100))}`
+      calc: (v) => `${fmt(v[0] * (1 - v[1] / 100))}`,
+      formula: (v) => `${fmt(v[0])} × (1 − ${fmt(v[1])} ÷ 100)`
+    },
+    {
+      /* 연속 할인 — 「30% 먼저, 추가 10%」는 37%가 아니라 37% 가 아니다(0.7×0.9=0.63 → 37% 할인).
+         실제로 자주 헷갈리는데 상위 계산기 어디에도 이 줄이 없다. */
+      parts: [null, '에서 ', null, '% 할인 후 추가 ', null, '% 할인하면?'],
+      defaults: [50000, 30, 10],
+      calc: (v) => {
+        const price = v[0] * (1 - v[1] / 100) * (1 - v[2] / 100);
+        const eff = (1 - price / v[0]) * 100;
+        return `${fmt(price)} (합쳐서 ${fmt(eff)}% 할인)`;
+      },
+      formula: (v) => `${fmt(v[0])} × (1 − ${fmt(v[1])} ÷ 100) × (1 − ${fmt(v[2])} ÷ 100)`
     },
     {
       parts: [null, '이 원래 값의 ', null, '% 라면 원래 값은?'],
       defaults: [80, 40],
-      calc: (v) => `${fmt((v[0] / v[1]) * 100)}`
+      calc: (v) => `${fmt((v[0] / v[1]) * 100)}`,
+      formula: (v) => `${fmt(v[0])} ÷ ${fmt(v[1])} × 100`
     }
   ];
 
@@ -94,6 +114,7 @@
             return `<div class="field-group pc-row">
                       <div class="pc-line">${line}</div>
                       <div class="pc-out" data-out="${ri}">—</div>
+                      <div class="pc-formula" data-formula="${ri}"></div>
                     </div>`;
           }).join('');
 
@@ -103,9 +124,13 @@
             const out = rowsEl.querySelector(`[data-out="${ri}"]`) as HTMLElement;
             if (vals.some((v) => !isFinite(v))) {
               out.textContent = '—';
+              const fx = rowsEl.querySelector(`[data-formula="${ri}"]`) as HTMLElement;
+              if (fx) fx.textContent = '';
               return;
             }
             out.textContent = ROWS[ri].calc(vals);
+            const f = rowsEl.querySelector(`[data-formula="${ri}"]`) as HTMLElement;
+            if (f) f.textContent = ROWS[ri].formula(vals);
           }
 
           rowsEl.querySelectorAll('.pc-num').forEach((el) => {
