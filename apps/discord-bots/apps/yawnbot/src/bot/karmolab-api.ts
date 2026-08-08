@@ -1245,6 +1245,27 @@ export function registerKarmolabApi(
     res.json({ reminder: flow.reminder ?? null, runsOnServer: false });
   });
 
+  /**
+   * 스스로 이어가기 켜기·끄기 (TASK-KL-191 축1).
+   *
+   * 서버가 흐름을 대신 도는 일은 여전히 없다 — 도구가 전부 브라우저 안에서 돈다.
+   * 서버가 지키는 것은 **그 사람의 선택**뿐이라, 응답도 그 사실을 그대로 말한다.
+   */
+  app.patch('/kl/flows/:id/auto', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const on = (req.body ?? {}).on === true;
+    const flow = flows.setAuto(String(req.params.id ?? ''), account.handle, on);
+    if (!flow) {
+      res.status(403).json({ error: on ? 'not_owner_or_single_step' : 'not_owner' });
+      return;
+    }
+    res.json({ auto: flow.auto === true, runsOnServer: false, runsInBrowser: true });
+  });
+
   /** 한 번 돌았다 — 이 수만이 「쓸모 있는 흐름」을 가려낸다. 로그인 없이도 센다. */
   app.post('/kl/flows/:id/run', (req: Request, res: Response) => {
     res.json({ runs: flows.noteRun(String(req.params.id ?? '')) });

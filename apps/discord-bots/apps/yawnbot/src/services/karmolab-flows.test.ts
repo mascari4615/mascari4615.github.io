@@ -151,3 +151,27 @@ describe('흐름 예약 (KL-183 B)', () => {
     expect(flow.steps[1].skipWhen).toBeUndefined();
   });
 });
+
+describe('스스로 이어감 (KL-191 축1)', () => {
+  it('주인만 켜고 끌 수 있다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: '문서 정리', steps })!;
+    expect(store.setAuto(flow.id, 'ring', true)).toBeNull();
+    expect(store.setAuto(flow.id, 'karmo', true)!.auto).toBe(true);
+    expect(store.setAuto(flow.id, 'karmo', false)!.auto).toBeUndefined();
+  });
+
+  it('단계가 하나뿐이면 못 켠다 — 이어갈 다음이 없다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: '한 단계', steps: [{ toolId: 'pdfcrop' }] })!;
+    expect(store.setAuto(flow.id, 'karmo', true)).toBeNull();
+    expect(store.get(flow.id)!.auto).toBeUndefined();
+  });
+
+  it('껐다 켠 것이 다시 열어도 남는다', () => {
+    const first = new KarmolabFlowStore(statePath);
+    const flow = first.create('karmo', { title: '문서 정리', steps })!;
+    first.setAuto(flow.id, 'karmo', true);
+    expect(new KarmolabFlowStore(statePath).get(flow.id)!.auto).toBe(true);
+  });
+});

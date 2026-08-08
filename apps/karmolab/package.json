@@ -127,7 +127,8 @@
     "audit:wm": "node scripts/audit-wm-page.mjs",
     "test:apicache": "node scripts/check-api-cache-rule.mjs",
     "test:contract": "node scripts/check-format-contract.mjs",
-    "test:contract:live": "node scripts/smoke-format-contract.mjs"
+    "test:contract:live": "node scripts/smoke-format-contract.mjs",
+    "test:flow:auto": "node scripts/smoke-flow-auto.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
