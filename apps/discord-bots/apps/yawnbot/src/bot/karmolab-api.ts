@@ -51,6 +51,7 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
+import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
 import { getKarmolabUserToolStore } from '../services/karmolab-userTools';
 import { missionState, missionsOfWeek } from '../services/karmolab-missions';
@@ -1362,6 +1363,40 @@ export function registerKarmolabApi(
     }
     const body = req.body ?? {};
     res.json({ relayed: rooms.relayOp(roomId, memberIdOf(req, body.tab), body.op) });
+  });
+
+  /* ── 같이 쓴 글이 방을 나가도 남는다 (TASK-KL-191 축2) ─────────────
+   *
+   * 커서·연산은 여전히 **안 저장한다**(지나간 좌표는 값이 0). 남기는 것은 글 한 장뿐이고,
+   * 그마저 로그가 아니라 **지금 글**이다 — 다시 열 때 필요한 것은 그것뿐이다.
+   */
+  const codocs = getKarmolabCoDocStore();
+
+  /** 다시 들어온 사람의 **시작점**. 없으면 빈 글 — 없는 것을 지어내지 않는다. */
+  app.get('/kl/room/:id/doc/:key', (req: Request, res: Response) => {
+    const id = KarmolabCoDocStore.idOf(req.params.id, req.params.key);
+    if (!id) {
+      res.status(400).json({ error: 'bad_doc' });
+      return;
+    }
+    const doc = codocs.get(id);
+    res.json({ text: doc?.text ?? '', version: doc?.version ?? 0, updatedAt: doc?.updatedAt ?? null });
+  });
+
+  /** 저장 — 낡은 판이 새 판을 못 덮고, 빈 글이 쓴 글을 못 덮는다(원장이 막는다). */
+  app.put('/kl/room/:id/doc/:key', (req: Request, res: Response) => {
+    const id = KarmolabCoDocStore.idOf(req.params.id, req.params.key);
+    if (!id) {
+      res.status(400).json({ error: 'bad_doc' });
+      return;
+    }
+    const body = req.body ?? {};
+    const doc = codocs.put(id, body.text, body.basedOn);
+    if (!doc) {
+      res.status(413).json({ error: 'too_long' });
+      return;
+    }
+    res.json({ version: doc.version, saved: doc.text === String(body.text ?? '') });
   });
 
   /** 어느 화면에 몇 명이 같이 있나 — 광장에 낼 수 있는 값. */

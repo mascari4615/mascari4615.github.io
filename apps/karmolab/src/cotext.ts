@@ -94,6 +94,26 @@ export class CoText {
         siblings.splice(at, 0, node);
     }
 
+    /**
+     * 저장해 둔 글로 **시작점을 맞춘다** (TASK-KL-191 축2).
+     *
+     * 방을 나가면 글이 사라지던 시절엔 시작점이 늘 빈 글이었다. 이제 서버가 마지막 글을
+     * 들고 있는데, 그걸 각자 `diffTo` 로 집어넣으면 **사람마다 다른 이름**이 붙는다 —
+     * 둘이 같은 글을 들고 시작했는데 이름이 달라서, 한 글자만 쳐도 글이 두 벌로 갈라진다.
+     *
+     * 그래서 시작점은 **모두가 똑같이** 만든다: 자리마다 정해진 이름(`:seed`)을 붙인다.
+     * 누가 언제 들어오든 같은 글에서 같은 나무가 나온다. 내가 치는 글자만 내 이름을 받는다.
+     */
+    seed(text: string): void {
+        if (this.nodes.size) return; // 이미 뭔가 있으면 시작점이 아니다
+        let after: string | null = null;
+        for (let i = 0; i < text.length; i += 1) {
+            const id = `${String(i + 1).padStart(6, '0')}:seed`;
+            this.insertNode({ id, after, ch: text[i], deleted: false });
+            after = id;
+        }
+    }
+
     /** 남이 보낸 연산을 받는다. 어느 순서로 받아도 결과가 같다. */
     apply(op: TextOp): void {
         if (op.t === 'ins') {
