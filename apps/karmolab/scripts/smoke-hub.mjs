@@ -305,7 +305,17 @@ await home.waitForTimeout(1200);
 
 // 첫 화면(`/karmolab/index.html`)은 배포가 복사해 만든다. 로컬 사본에는 없을 수 있는데,
 // 그건 이 환경에 없는 것이지 사이트가 깨진 게 아니다 — 없으면 건너뛴다(라이브에는 늘 있다).
-const homeMissing = homeRes.status() === 404;
+/* 이 주소가 여는 것은 **배포가 복사해 둔 사본**이다 — 소스(`apps/karmolab/index.html`)가 아니다.
+   사본이 낡으면 그 안의 옛 지문 파일과 방금 새로 빌드된 파일이 섞여, 제품은 멀쩡한데
+   「tools is not defined」 같은 오류가 난다(2026-08-08 실제로 그렇게 빨갰다).
+   그건 **제품 고장이 아니라 이 환경의 사본이 낡은 것**이므로, 그때는 첫 화면 판정을 건너뛴다. */
+const srcShell = path.join(root, 'index.html');
+const copyShell = path.join(path.dirname(root), 'blog/karmolab/index.html');
+const homeStale = fs.existsSync(srcShell) && fs.existsSync(copyShell)
+  && fs.statSync(copyShell).mtimeMs < fs.statSync(srcShell).mtimeMs;
+if (homeStale) console.log('  (첫 화면 판정 건너뜀 — 배포 사본이 소스보다 낡았다. 배포가 다시 찍는다)');
+
+const homeMissing = homeRes.status() === 404 || homeStale;
 if (!homeMissing && homeRes.status() !== 200) problems.push(`첫 화면이 안 열린다 (http ${homeRes.status()})`);
 
 const homeState = homeMissing ? null : await home.evaluate(() => {
