@@ -166,8 +166,29 @@ export class KarmolabChatStore {
     private readonly listeners = new Set<(event: ChatEvent) => void>();
     /** 도배 판정용. 메모리에만 둔다 — 재시작하면 한 번 봐주는 셈이고, 그게 맞다. */
     private readonly recentPosts = new Map<string, number[]>();
+    /**
+     * 「지금 여기」를 **사람 단위**로 센다 (사용자 신고 2026-08-08 — 숫자가 계속 왔다갔다).
+     *
+     * 예전엔 열린 연결 수를 그대로 내보냈다. 그런데 연결은 사람보다 훨씬 자주 생겼다 사라진다:
+     *   · 도구 화면은 진짜 페이지 이동이라 옮길 때마다 끊었다 다시 붙는다
+     *   · 탭을 두 개 열면 한 사람이 두 명이 된다
+     *   · EventSource 는 잠깐 끊기면 스스로 다시 붙는다(그 사이 한 명 줄었다 는다)
+     * 그래서 혼자 있어도 숫자가 1↔2 를 오갔다.
+     *
+     * 이제 이름표(who)별로 묶고, 마지막 연결이 끊겨도 **유예 시간**을 준다. 그 안에 다시
+     * 붙으면 아무 일도 없었던 것이다 — 화면 이동·재접속으로는 숫자가 안 움직인다.
+     */
+    private readonly present = new Map<string, { conns: number; leaveAt: ReturnType<typeof setTimeout> | null }>();
+    /** 이름표 없는 연결에 붙일 일련번호 */
+    private connSeq = 0;
 
-    constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE)) {
+    /**
+     * 마지막 연결이 끊긴 뒤 「아직 있다」로 쳐 주는 시간.
+     * 도구 화면 사이 이동은 보통 1초 안쪽이고, 잠깐 끊긴 SSE 도 몇 초면 돌아온다.
+     * 너무 길면 나간 사람이 남아 있는 것처럼 보이므로 12초로 잡았다. (시험에서 줄인다)
+     */
+    constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE),
+                private readonly leaveGraceMs = 12000) {
         this.state = this.load();
     }
 
@@ -429,18 +450,54 @@ export class KarmolabChatStore {
 
     // ── 흐르는 쪽 (SSE) ────────────────────────────────────────────────────────
 
-    subscribe(listener: (event: ChatEvent) => void): () => void {
+    subscribe(listener: (event: ChatEvent) => void, who?: string): () => void {
         /* 새로 붙은 사람에게는 「몇 명」을 **다시 안 보낸다** — 첫 마디(hello)에 이미 들어 있다.
          * 자기 자신에게도 쏘면 붙자마자 같은 수를 두 번 받고, 그 사이에 잠깐 다른 수가 보인다.
          * 그래서 지금 있는 사람들에게만 알린 뒤 목록에 넣는다. */
         const others = [...this.listeners];
         this.listeners.add(listener);
-        const here = this.listeners.size;
-        for (const other of others) other({ type: 'here', here });
 
+        /* 이름표가 없으면(옛 호출부·시험) 이 연결 자체를 한 사람으로 친다. */
+        const key = who ?? `conn:${this.connSeq += 1}`;
+        const before = this.present.size;
+        const slot = this.present.get(key);
+        if (slot) {
+            slot.conns += 1;
+            if (slot.leaveAt) {                      // 나가려다 돌아왔다 — 없던 일로
+                clearTimeout(slot.leaveAt);
+                slot.leaveAt = null;
+            }
+        } else {
+            this.present.set(key, { conns: 1, leaveAt: null });
+        }
+        // 사람 수가 안 변했으면(같은 사람의 두 번째 탭) 아무에게도 안 알린다 — 그게 깜빡임의 정체다.
+        if (this.present.size !== before) {
+            const here = this.present.size;
+            for (const other of others) other({ type: 'here', here });
+        }
+
+        let released = false;
         return () => {
+            if (released) return;                    // 같은 연결을 두 번 끊는 경우(close+error)
+            released = true;
             this.listeners.delete(listener);
-            this.broadcast({ type: 'here', here: this.listeners.size });
+            const mine = this.present.get(key);
+            if (!mine) return;
+            mine.conns -= 1;
+            if (mine.conns > 0) return;              // 다른 탭이 아직 열려 있다
+            /* 유예는 **이름표가 있을 때만** 뜻이 있다 — 다시 붙은 게 같은 사람인지 알아야
+             * 「없던 일」로 칠 수 있다. 이름표 없는 연결은 그냥 그 자리에서 뺀다. */
+            if (who === undefined) {
+                this.present.delete(key);
+                this.broadcast({ type: 'here', here: this.present.size });
+                return;
+            }
+            mine.leaveAt = setTimeout(() => {
+                this.present.delete(key);
+                this.broadcast({ type: 'here', here: this.present.size });
+            }, this.leaveGraceMs);
+            // 노드가 이 타이머 때문에 안 꺼지면 안 된다 — 사람 수 세기가 프로세스를 붙잡을 일은 없다
+            (mine.leaveAt as { unref?: () => void }).unref?.();
         };
     }
 
@@ -473,9 +530,12 @@ export class KarmolabChatStore {
         return new Set(this.state.messages.map((m) => m.who)).size;
     }
 
-    /** 지금 채팅창을 열어 둔 사람 수. 「사이트에 몇 명」(presence)과 다른 값이다. */
+    /**
+     * 지금 채팅창을 열어 둔 **사람** 수. 「사이트에 몇 명」(presence)과 다른 값이다.
+     * 연결 수가 아니다 — 한 사람이 탭을 셋 열어도 1 이고, 화면을 옮기는 몇 초 동안도 1 이다.
+     */
     hereCount(): number {
-        return this.listeners.size;
+        return this.present.size;
     }
 
     private broadcast(event: ChatEvent): void {

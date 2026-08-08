@@ -162,6 +162,50 @@ describe('흐르는 쪽', () => {
         expect(seen).toEqual(['들리나']);
         expect(store.hereCount()).toBe(0);
     });
+
+    /* 「지금 여기」가 왜 흔들렸나 (사용자 신고 2026-08-08 — 숫자가 계속 왔다갔다).
+     *
+     * 세던 것이 **사람이 아니라 열린 연결**이었다. 도구 화면은 진짜 페이지 이동이라 옮길
+     * 때마다 끊었다 다시 붙고, 탭을 둘 열면 한 사람이 둘이 되고, SSE 는 잠깐 끊기면 스스로
+     * 다시 붙는다. 혼자 있어도 1↔2 를 오갔다.
+     *
+     * 이 시험이 잡는 것 = 그 진동 자체다. 고치기 전 코드로 돌리면 here 이벤트가
+     * [2,3,2,3,2,1] 로 나오고(실측), 고친 뒤에는 [2,1] 만 나온다. */
+    it('같은 사람이 탭을 더 열거나 화면을 옮겨도 사람 수가 안 흔들린다', async () => {
+        const grace = 60;
+        const store = new KarmolabChatStore(statePath, grace);
+        const heres: number[] = [];
+        const watcher = store.subscribe((e) => { if (e.type === 'here') heres.push(e.here); }, 'watcher');
+        expect(store.hereCount()).toBe(1);
+
+        // 같은 사람의 두 번째 탭 — 수도 그대로, 알림도 없다
+        const tab2 = store.subscribe(() => {}, 'watcher');
+        expect(store.hereCount()).toBe(1);
+        expect(heres).toEqual([]);
+
+        // 다른 사람 입장 — 여기서만 알림 한 번
+        const other = store.subscribe(() => {}, 'other');
+        expect(store.hereCount()).toBe(2);
+        expect(heres).toEqual([2]);
+
+        // 화면 이동 = 끊고 유예 안에 다시 붙기 — 아무 일도 없어야 한다
+        other();
+        await new Promise((r) => setTimeout(r, grace / 3));
+        const otherAgain = store.subscribe(() => {}, 'other');
+        await new Promise((r) => setTimeout(r, grace * 2));
+        expect(store.hereCount()).toBe(2);
+        expect(heres).toEqual([2]);
+
+        // 진짜 나감 — 유예가 지나야 줄어든다
+        otherAgain();
+        expect(store.hereCount()).toBe(2);
+        await new Promise((r) => setTimeout(r, grace * 2));
+        expect(store.hereCount()).toBe(1);
+        expect(heres).toEqual([2, 1]);
+
+        tab2();
+        watcher();
+    });
 });
 
 describe('지키기 (KL-158)', () => {
