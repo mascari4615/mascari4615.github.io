@@ -19,15 +19,6 @@
 
   type Entry = { role: 'sensed' | 'said'; channel: string; text: string; at: number };
   type Stats = { 샘플수: number; 첫소리중앙값ms: number | null; 최악ms: number | null };
-  type State = {
-    창붙음: number;
-    몸: '3D' | '큐브' | null;
-    인격?: string | null;
-    머리?: string | null;
-    목소리들?: string[];
-    흉내준비?: boolean | null;
-    흉내자동?: boolean;
-  };
 
   function injectStyles(): void {
     if (document.getElementById('companion-widget-styles')) return;
@@ -67,12 +58,6 @@
       .cmp-h { font-size:.76rem; letter-spacing:.06em; text-transform:uppercase;
         color:var(--text-tertiary, #8a867e); margin:0 0 8px; }
       .cmp-note { margin-top:14px; font-size:.78rem; color:var(--text-tertiary, #8a867e); line-height:1.6; }
-      .cmp-bits { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
-      .cmp-bit { display:flex; align-items:center; gap:6px; padding:6px 10px; font-size:.8rem;
-        background:var(--bg-secondary); border:1px solid var(--border, var(--border-color));
-        border-radius:var(--radius-sm); color:var(--text-primary, #e8e8e8); }
-      .cmp-bit b { font-weight:600; color:var(--text-tertiary, #8a867e); font-size:.74rem; }
-      .cmp-bit.warn { border-color:#d9a441; }
     `;
     document.head.appendChild(style);
   }
@@ -103,7 +88,6 @@
                 <button class="cmp-btn" id="cmpAgain" type="button">다시 확인</button>
               </div>
             </div>
-            <div class="cmp-bits" id="cmpBits"></div>
             <div class="cmp-say">
               <input id="cmpInput" type="text" placeholder="한 줄 던지기 — 답은 저쪽 창과 목소리로 나간다" autocomplete="off">
               <button class="cmp-btn" id="cmpSend" type="button">말 걸기</button>
@@ -123,7 +107,6 @@
           const send = container.querySelector('#cmpSend') as HTMLButtonElement;
           const log = container.querySelector('#cmpLog') as HTMLElement;
           const known = container.querySelector('#cmpKnown') as HTMLElement;
-          const bits = container.querySelector('#cmpBits') as HTMLElement;
 
           function 못붙음(why: string): void {
             dot.className = 'cmp-dot off';
@@ -131,39 +114,6 @@
             sub.textContent = why;
             input.disabled = true;
             send.disabled = true;
-            bits.innerHTML = '';
-          }
-
-          /**
-           * 창·몸·목소리를 눈에 보이게 — 오늘(2026-08-08) 사고 셋이 전부 **조용히** 빠진
-           * 것이었다. 로컬 목소리가 목록에서 사라지고, 3D 몸이 큐브로 바뀌고, 창이 옛
-           * 방식으로 떴는데 전부 기록에만 남았다. 기록은 아무도 안 본다.
-           */
-          function 상태그리기(st: State | null): void {
-            if (st === null) {
-              bits.innerHTML = '';
-              return;
-            }
-            const 칸: { 이름: string; 값: string; 경고?: boolean }[] = [
-              { 이름: '창', 값: st.창붙음 > 0 ? `${st.창붙음}개 붙음` : '안 떠 있음', 경고: st.창붙음 === 0 },
-              // 큐브 = 3D 몸을 못 세운 것. 그냥 두면 「원래 저런가 보다」가 된다.
-              { 이름: '몸', 값: st.몸 ?? '모름', 경고: st.몸 === '큐브' },
-              { 이름: '인격', 값: st.인격 ?? '없음' },
-              { 이름: '머리', 값: st.머리 ?? '모름' },
-            ];
-            if (Array.isArray(st.목소리들)) {
-              const 흉내있나 = st.목소리들.includes('흉내');
-              const 값 =
-                흉내있나 === false
-                  ? st.목소리들.join(' + ') || '없음'
-                  : st.흉내준비 === true
-                    ? `흉내(준비됨) + ${st.목소리들.filter((v) => v !== '흉내').join(' + ')}`
-                    : `흉내(${st.흉내자동 === false ? '자동 꺼둠' : '켜는 중'}) + ${st.목소리들.filter((v) => v !== '흉내').join(' + ')}`;
-              칸.push({ 이름: '목소리', 값, 경고: 흉내있나 === false });
-            }
-            bits.innerHTML = 칸
-              .map((c) => `<span class="cmp-bit${c.경고 === true ? ' warn' : ''}"><b>${c.이름}</b>${esc(c.값)}</span>`)
-              .join('');
           }
 
           async function 읽기<T>(길: string): Promise<T> {
@@ -203,13 +153,11 @@
               text.textContent = '곁에 있다';
               input.disabled = false;
               send.disabled = false;
-              const [stats, hist, kn, st] = await Promise.all([
+              const [stats, hist, kn] = await Promise.all([
                 읽기<Stats>('/stats').catch(() => null),
                 읽기<Entry[]>('/history').catch(() => null),
                 읽기<{ known: string | null }>('/known').catch(() => null),
-                읽기<State>('/state').catch(() => null),
               ]);
-              상태그리기(st);
               const 첫소리 =
                 stats === null || stats.첫소리중앙값ms === null
                   ? '첫 소리 아직 안 쟀다'
