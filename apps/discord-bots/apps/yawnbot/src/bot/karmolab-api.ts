@@ -47,8 +47,6 @@ import {
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { getKarmolabPlayStore, playGame, isValidVariant, type KarmolabPlayStore } from '../services/karmolab-plays';
 import { getKarmolabPackStore, PackError, type KarmolabPackStore } from '../services/karmolab-packs';
-import { WELLS, WellStore, wellById, wellOfTheDay, kstDay as wellKstDay } from '../services/karmolab-wells';
-import { SteamLibrary, LibraryError } from '../services/karmolab-steam-library';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
@@ -64,10 +62,11 @@ import {
   CHALLENGE_TTL_MS,
 } from '../services/karmolab-passkey';
 import {
+  // 클래스 자체를 값으로도 쓴다 (`keeperKey`) — type 으로만 들이면 그 자리에서 못 부른다.
+  KarmolabChatStore,
   getKarmolabChatStore,
   TEXT_MAX as CHAT_TEXT_MAX,
   type ChatEvent,
-  type KarmolabChatStore,
 } from '../services/karmolab-chat';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
@@ -274,8 +273,6 @@ export function registerKarmolabApi(
   plays: KarmolabPlayStore = getKarmolabPlayStore(),
   chat: KarmolabChatStore = getKarmolabChatStore(),
   packs: KarmolabPackStore = getKarmolabPackStore(),
-  wells: WellStore = new WellStore(),
-  library: SteamLibrary = new SteamLibrary(),
 ): void {
 
   /**
@@ -1655,6 +1652,45 @@ export function registerKarmolabApi(
   // 표가 주소를 갖는 순간 셋이 한꺼번에 풀린다: 남에게 주기 · 고치면 남도 갱신 · 같은 표로
   // 논 사람끼리 겨루기(`pack:<id>` 를 놀이 기록 원장의 표 이름으로 그대로 넘긴다).
 
+  /**
+   * 표 하나를 자랑하는 주소 (TASK-KL-151 ⑤) — `https://yawnbot.mascari4615.com/kl/w/<표>`.
+   *
+   * 왜 봇이 내주나: 우리 사이트는 정적으로 찍혀 나간다. 그런데 표는 **런타임에 생긴다** —
+   * 찍는 시점에는 없는 표라 미리보기(제목·그림)를 넣어 둘 수가 없다. 링크를 붙였을 때
+   * 아무 그림도 안 뜨면 아무도 안 누른다.
+   *
+   * 사람은 곧바로 놀이 화면으로 보내고, 미리보기를 읽는 쪽(디스코드·카톡·검색)에는 이 표의
+   * 제목과 첫 그림을 준다. 그림은 표에 실제로 들어 있는 주소다 — 우리가 새로 만들지 않는다.
+   */
+  app.get('/kl/w/:id', (req: Request, res: Response) => {
+    const pack = packs.get(req.params.id);
+    const target = pack
+      ? `https://blog.mascari4615.com/karmolab/?wc=${encodeURIComponent(pack.id)}#worldcup`
+      : 'https://blog.mascari4615.com/karmolab/#worldcup';
+    if (!pack) {
+      res.status(404).type('html').send(`<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${target}">`);
+      return;
+    }
+    const cover = pack.items.filter((i) => i.img)[0]?.img ?? '';
+    const esc = (raw: string): string =>
+      raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const title = `${pack.emoji} ${pack.title} 이상형 월드컵`;
+    const desc = `${pack.items.length}명 중 하나를 고릅니다 — ${pack.ownerHandle} 님이 만든 표. KarmoLab`;
+    res.type('html').send(
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
+        `<title>${esc(title)}</title>` +
+        `<meta name="description" content="${esc(desc)}">` +
+        `<meta property="og:type" content="website">` +
+        `<meta property="og:title" content="${esc(title)}">` +
+        `<meta property="og:description" content="${esc(desc)}">` +
+        (cover ? `<meta property="og:image" content="${esc(cover)}">` : '') +
+        `<meta name="twitter:card" content="${cover ? 'summary_large_image' : 'summary'}">` +
+        `<link rel="canonical" href="${esc(target)}">` +
+        `<meta http-equiv="refresh" content="0;url=${esc(target)}">` +
+        `</head><body><p><a href="${esc(target)}">${esc(title)} 하러 가기</a></p></body></html>`,
+    );
+  });
+
   /** 표 하나를 그대로 — 놀이가 이걸 받아 판을 짠다. 열린 횟수도 여기서 센다. */
   app.get('/kl/packs/:id', (req: Request, res: Response) => {
     const pack = packs.get(req.params.id);
@@ -1728,76 +1764,6 @@ export function registerKarmolabApi(
       // 덮어써서 목록이 통째로 숫자가 된다 — 화면은 빈 목록으로 보이고 오류는 안 난다.
       total: packs.stats(),
     });
-  });
-
-  /**
-   * 바깥에서 길어 오는 표 — 어떤 우물이 있나 (TASK-KL-153).
-   *
-   * 목록과 표를 나눈 이유: 화면이 「고를 것」을 보여 주는 데 100개짜리 표 다섯 벌이 필요하지
-   * 않다. 고른 다음에만 길어 온다.
-   *
-   * 오늘의 표도 여기서 말한다 — 화면이 날짜 계산을 따로 하면 서버와 하루가 어긋난다.
-   */
-  app.get('/kl/wells', (_req: Request, res: Response) => {
-    const today = wellOfTheDay(wellKstDay());
-    res.json({
-      day: wellKstDay(),
-      today: today.id,
-      wells: WELLS.map((well) => ({
-        id: well.id,
-        title: well.title,
-        emoji: well.emoji,
-        desc: well.desc,
-        // 이미 길어 둔 표면 몇 개짜리인지 바로 말해 준다 — 안 길어 왔으면 굳이 지금 가지 않는다.
-        items: wells.peek(well.id)?.items.length ?? null,
-      })),
-    });
-  });
-
-  /**
-   * 표 한 벌. **로그인이 필요 없다** — 남의 공개 숫자를 옮겨 주는 일이고, 놀이는 로그인 없이도 된다.
-   *
-   * 바깥이 죽으면 지난 표를 `stale: true` 와 함께 준다. 화면은 그걸 보고 「몇 시 기준」만 다르게
-   * 적으면 된다 — 놀이는 그대로 굴러간다.
-   */
-  app.get('/kl/wells/pack', async (req: Request, res: Response) => {
-    // `today` 로 부르면 오늘의 표 — 화면이 날짜를 따로 세지 않게.
-    const asked = req.query.well === 'today' ? wellOfTheDay(wellKstDay()).id : req.query.well;
-    const well = wellById(asked);
-    if (!well) {
-      res.status(400).json({ error: 'unknown_well', wells: WELLS.map((w) => w.id) });
-      return;
-    }
-    try {
-      const pack = await wells.get(well);
-      // 브라우저·터널이 한 번 더 안 나가게. 서버 캐시(6h)와 어긋나도 손해가 없는 숫자다.
-      res.setHeader('Cache-Control', 'public, max-age=1800');
-      res.json({ pack });
-    } catch {
-      // 한 번도 못 길어 왔다 — 없는 표를 지어내지 않는다.
-      res.status(503).json({ error: 'well_unavailable' });
-    }
-  });
-
-  /**
-   * 내 스팀 서재 → 표 (TASK-KL-153 C).
-   *
-   * 우물과 자리를 나눈 이유: 우물은 모두에게 같은 표라 캐시가 하나면 되지만, 서재는 사람마다
-   * 다르다. 같은 자리에 끼우면 한 사람의 서재가 캐시에 눌러앉아 남에게 나간다.
-   *
-   * 열쇠가 없으면 **이 길만** 닫힌다(501) — 우물 다섯은 그대로 돈다. 「고장」이 아니라
-   * 「아직 안 켰다」로 말한다.
-   */
-  app.get('/kl/steam/library', async (req: Request, res: Response) => {
-    const who = typeof req.query.who === 'string' ? req.query.who : '';
-    try {
-      const pack = await library.pack(who);
-      res.json({ pack });
-    } catch (err) {
-      const code = err instanceof LibraryError ? err.code : 'failed';
-      // 열쇠 없음만 501(아직 안 켠 기능), 나머지는 사람이 고칠 수 있는 400 이다.
-      res.status(code === 'no_key' ? 501 : 400).json({ error: code });
-    }
   });
 
   /** 표를 올린다 — 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */
@@ -2691,7 +2657,7 @@ export function registerKarmolabApi(
     send('hello', {
       me: { who: identity.who, name: identity.name, color: identity.color },
       // 저장 모양이 아니라 **보여 줄 모양**을 내보낸다 — 지킨/신고한 사람 목록은 안 나간다.
-      messages: chat.publicMessages(identity.who),
+      messages: chat.publicMessages(KarmolabChatStore.keeperKey(identity.who, account?.id)),
       here: chat.hereCount() + 1,
       /* 지금 혼자여도 「오늘 여기 몇 명이 말했나」를 알면 빈 방으로 안 읽힌다.
          자기 자신은 안 뺀다 — 「오늘 이 방에 있던 사람 수」가 곧 그 값이다. */
@@ -2719,7 +2685,9 @@ export function registerKarmolabApi(
     const identity = chat.identityFor(visitorKeyFor(req));
     res.json({
       me: { who: identity.who, name: identity.name, color: identity.color },
-      messages: chat.publicMessages(identity.who),
+      messages: chat.publicMessages(
+        KarmolabChatStore.keeperKey(identity.who, store.accountForSession(readCookie(req, SESSION_COOKIE))?.id),
+      ),
       here: chat.hereCount(),
       todayVoices: chat.todaysVoiceCount(),
       isAdmin: isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE))),
@@ -2752,13 +2720,31 @@ export function registerKarmolabApi(
     }
     chat.flush();
 
+    /* 답을 받은 사람에게 먼저 알린다 (TASK-KL-160).
+     *
+     * ↩ 로 답해도 상대가 창을 안 보고 있으면 모른다 — 답하기를 넣어 놓고 닿지 않으면
+     * 그건 대화가 아니다. 아래 「오늘 여기 있던 사람」 알림과 **열쇠를 다르게** 둬서,
+     * 나에게 온 답이 흐름 알림에 묻히지 않게 한다. */
+    const answeredAccountId = req.body?.replyTo ? chat.accountOfMessage(String(req.body.replyTo)) : null;
+    if (answeredAccountId) {
+      notes.notify({
+        accountId: answeredAccountId,
+        actorAccountId: account?.id ?? null,
+        source: 'chat',
+        title: '내 말에 답이 달렸어요',
+        body: `${result.message?.name}: ${result.message?.text.slice(0, 40)}`,
+        url: '/karmolab/#chat',
+        groupKey: `chat-answer:${req.body.replyTo}`,
+      });
+    }
+
     /* 빈 방을 깨는 자리 (TASK-KL-157).
      *
      * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안 남기고
      * → 방이 영영 빈다. 그래서 「지금 보고 있는 사람」이 아니라 **오늘 여기 있던 사람**에게 알린다.
      * 지금 창을 열어 둔 사람은 이미 그 줄을 받았으므로, 알림은 그 밖의 사람들을 위한 것이다.
      * 한 열쇠로 묶여서 여러 줄이 와도 「채팅 3」 한 줄이 된다. */
-    for (const accountId of chat.todaysSpeakers(account?.id ?? null)) {
+    for (const accountId of chat.todaysSpeakers(account?.id ?? null).filter((id) => id !== answeredAccountId)) {
       notifyIfWanted({
         accountId,
         source: 'chat',
@@ -2783,8 +2769,13 @@ export function registerKarmolabApi(
       res.status(403).json({ error: 'not_human' });
       return;
     }
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
     const identity = chat.identityFor(visitorKeyFor(req));
-    const kept = chat.toggleKeep(String(req.params.id ?? ''), identity.who);
+    /* 로그인했으면 **계정**으로 적는다 — 오늘 이름표로만 적으면 자정에 「내가 지킨 것」이
+       통째로 남의 것처럼 보인다. 지킨 줄은 하루를 넘겨 남는데 지킨 사람이 하루를 못 넘기면
+       앞뒤가 안 맞는다 (TASK-KL-160). */
+    const keeper = KarmolabChatStore.keeperKey(identity.who, account?.id);
+    const kept = chat.toggleKeep(String(req.params.id ?? ''), keeper);
     if (kept === null) {
       res.status(404).json({ error: 'not_found' });
       return;
@@ -2858,8 +2849,11 @@ export function registerKarmolabApi(
     }
     /* 눌렀는지 화면이 알 수 있게 적어 둔다 (TASK-KL-159) — 안 그러면 또 누른다.
        이미 눌렀으면 원장에 두 줄을 만들지 않는다. */
-    const reporterWho = chat.identityFor(visitorKeyFor(req)).who;
-    const fresh = chat.markReported(target.id, reporterWho);
+    const reporter = KarmolabChatStore.keeperKey(
+      chat.identityFor(visitorKeyFor(req)).who,
+      store.accountForSession(readCookie(req, SESSION_COOKIE))?.id,
+    );
+    const fresh = chat.markReported(target.id, reporter);
     if (fresh === false) {
       res.json({ ok: true, already: true });
       return;
