@@ -47,6 +47,14 @@ export function doneToday(id: string): boolean {
       const t = READ('karmolab_twenty_day');
       return !!t && t.day === courseDay() && (t.rounds || 0) > 0;
     }
+    /* 월드컵은 「오늘 한 판」을 따로 안 적는다 — 지난 우승 목록에 오늘 날짜가 있으면 한 것이다
+       (새 저장을 하나 더 만들면 그날부터 두 벌이 갈라진다). */
+    if (id === 'worldcup') {
+      const list = READ('karmolab_worldcup_history');
+      if (!Array.isArray(list) || !list.length) return false;
+      const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+      return list.some((h: { at?: string }) => String(h && h.at).slice(0, 10) === today);
+    }
   } catch {
     /* 사생활 모드 */
   }
@@ -60,7 +68,7 @@ export function doneToday(id: string): boolean {
  * 그대로 코스로 삼으면, 읽을 줄 모르는 놀이가 **영영 안 끝나는 칸**이 되어 코스가 통째로
  * 완주 불가가 된다. 그래서 코스는 여기 적힌 것만 센다 — 새 놀이는 읽는 법을 더한 날 합류한다.
  */
-const COUNTED = ['daily', 'higher', 'quest', 'twenty'];
+const COUNTED = ['daily', 'higher', 'quest', 'twenty', 'worldcup'];
 
 /** 놀이 목록(games.json)을 받아 오늘 상태를 붙여 돌려준다. 셀 줄 모르는 놀이는 빼고. */
 export function courseSteps(games: Array<{ id: string; title: string; url: string }>): CourseStep[] {

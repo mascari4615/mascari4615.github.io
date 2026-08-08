@@ -26,7 +26,10 @@ const WHERE = {
   '/karmolab/#higher': path.join(apps, 'karmolab/js/widgets/higher.js'),
   '/karmolab/#quest': path.join(apps, 'karmolab/js/widgets/quest.js'),
   '/karmolab/#ghosttype': path.join(apps, 'karmolab/js/widgets/tools/ghosttype.js'),
-  '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js')
+  '/karmolab/#twenty': path.join(apps, 'karmolab/js/widgets/twenty.js'),
+  '/karmolab/#worldcup': path.join(apps, 'karmolab/js/widgets/worldcup.js'),
+  '/karmolab/#reaction': path.join(apps, 'karmolab/js/widgets/reaction.js'),
+  '/karmolab/#speed': path.join(apps, 'karmolab/js/widgets/speed.js')
 };
 
 for (const g of list) {

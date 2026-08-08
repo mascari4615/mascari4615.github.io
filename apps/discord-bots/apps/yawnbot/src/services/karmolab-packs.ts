@@ -89,6 +89,8 @@ interface PacksState {
   tallies?: Record<string, Record<string, { seen: number; wins: number }>>;
   /** 표별 우승 횟수 (항목 이름 → 우승 수). 집계와 나눠 두는 이유: 우승은 판당 하나뿐이라 성격이 다르다. */
   champions?: Record<string, Record<string, number>>;
+  /** 처음부터 있는 표를 이미 심었나. 사람이 지운 표를 다시 세우지 않으려고 따로 표시한다. */
+  seeded?: boolean;
 }
 
 /** 한 판(토너먼트)에 담아 보낼 수 있는 대결 수. 128강도 127판이면 끝난다. */
@@ -237,13 +239,109 @@ export function isValidPackId(raw: unknown): raw is string {
   return typeof raw === 'string' && /^[a-z0-9]{4,16}$/.test(raw);
 }
 
+
+/**
+ * 처음부터 서 있는 표 (TASK-KL-151 ④).
+ *
+ * 왜 심나: 표 원장이 **비어 있으면** 둘러보기도, 순위판도, 승률도 전부 0 이다. 처음 온 사람에게
+ * 그건 「아직 아무도 없다」가 아니라 「죽은 곳」으로 읽힌다. 이미 사이트가 쓰고 있는 표 셋을
+ * 그대로 주인장 이름으로 세워 두면, 그 자리에서 **이어받기·승률·순위판이 한꺼번에 살아난다**.
+ *
+ * 지어낸 수는 안 넣는다 — 심는 것은 **표**뿐이고, 열린 횟수·승률은 여전히 0 에서 시작한다.
+ *
+ * 어디서 읽나: 같은 저장소의 사이트 데이터(`apps/karmolab/data/higher-*.json`). 못 찾으면
+ * 조용히 안 심는다(봇이 그 파일 없이도 떠야 한다).
+ */
+export const SEED_OWNER = 'karmolab';
+
+const SEED_TABLES = [
+  { file: 'higher-pokemon.json', fallbackTitle: '포켓몬', emoji: '🔴' },
+  { file: 'higher-lol.json', fallbackTitle: '롤 챔피언', emoji: '⚔️' },
+  { file: 'higher-genshin.json', fallbackTitle: '원신 캐릭터', emoji: '🌠' },
+];
+
+/** 사이트 표(`{n,i,v}`)를 우리 표 모양(`{name,img,...}`)으로. 모양이 다르면 새로 만들지 않는다. */
+function fromSiteTable(raw: unknown): { title: string; emoji: string; fields: PackField[]; items: PackItem[] } | null {
+  const body = (raw ?? {}) as Record<string, unknown>;
+  const rawFields = Array.isArray(body.fields) ? body.fields : [];
+  const rawItems = Array.isArray(body.items) ? body.items : [];
+  if (!rawFields.length || rawItems.length < PACK_ITEM_MIN) return null;
+
+  const fields: PackField[] = rawFields.map((one) => {
+    const f = (one ?? {}) as Record<string, unknown>;
+    const unit = String(f.unit ?? '').trim();
+    return { key: String(f.key ?? ''), label: String(f.label ?? ''), kind: 'number' as const, ...(unit ? { unit } : {}) };
+  });
+
+  const items: PackItem[] = rawItems.map((one) => {
+    const it = (one ?? {}) as Record<string, unknown>;
+    const values = (it.v ?? {}) as Record<string, unknown>;
+    const item: PackItem = { name: String(it.n ?? '') };
+    if (it.i) item.img = String(it.i);
+    for (const field of fields) {
+      const value = Number(values[field.key]);
+      if (Number.isFinite(value)) item[field.key] = value;
+    }
+    return item;
+  });
+
+  return { title: String(body.title ?? ''), emoji: String(body.emoji ?? '🎲'), fields, items };
+}
+
 export class KarmolabPackStore {
   private state: PacksState;
   /** `<주소열쇠>:<표>` → 마지막으로 센 시각. 메모리에만 (재시작하면 한 번 더 세도 무해). */
   private readonly recentOpens = new Map<string, number>();
 
-  constructor(private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE)) {
+  constructor(
+    private readonly statePath = path.join(PKG_ROOT, 'data', STATE_FILE),
+    /** 사이트 표가 있는 자리. 시험에서는 임시 폴더를 준다. */
+    private readonly seedDir = path.join(PKG_ROOT, '..', '..', '..', 'karmolab', 'data'),
+  ) {
     this.state = this.load();
+    this.seed();
+  }
+
+  /**
+   * 처음부터 있는 표를 한 번만 심는다.
+   *
+   * 이미 심어 둔 것은 다시 안 만든다(제목으로 알아본다) — 봇이 다시 뜰 때마다 같은 표가
+   * 쌓이면 둘러보기가 곧 쓰레기가 된다. 사람이 지웠으면 다시 안 심는다(지운 뜻을 존중).
+   */
+  private seed(): void {
+    if (this.state.seeded) return;
+    let planted = 0;
+    for (const table of SEED_TABLES) {
+      try {
+        const file = path.join(this.seedDir, table.file);
+        if (!fs.existsSync(file)) continue;
+        const shaped = fromSiteTable(JSON.parse(fs.readFileSync(file, 'utf-8')));
+        if (!shaped) continue;
+        const title = shaped.title || table.fallbackTitle;
+        if (this.state.packs.some((p) => p.ownerHandle === SEED_OWNER && p.title === title)) continue;
+        const now = new Date().toISOString();
+        this.state.packs.push({
+          id: newId(),
+          ownerHandle: SEED_OWNER,
+          title,
+          emoji: shaped.emoji || table.emoji,
+          fields: shaped.fields,
+          items: shaped.items,
+          createdAt: now,
+          updatedAt: now,
+          opens: 0,
+          forkOf: null,
+        });
+        planted += 1;
+      } catch (error) {
+        console.error(`[karmolab-packs] 씨앗 표 ${table.file} 를 못 심었다:`, error);
+      }
+    }
+    // 한 장도 못 찾았으면 표시를 안 남긴다 — 다음에 파일이 생기면 그때 심는다.
+    if (!planted) return;
+    this.state.seeded = true;
+    this.save();
+    console.log(`[karmolab-packs] 처음부터 있는 표 ${planted}개를 심었다.`);
   }
 
   private load(): PacksState {
@@ -255,6 +353,7 @@ export class KarmolabPackStore {
           packs: Array.isArray(parsed.packs) ? parsed.packs : [],
           tallies: parsed.tallies ?? {},
           champions: parsed.champions ?? {},
+          seeded: parsed.seeded === true,
         };
       }
     } catch (error) {
