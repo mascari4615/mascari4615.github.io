@@ -165,6 +165,8 @@ import {
   openPinnedWindow,
   screenSense,
   webBody,
+  discordBody,
+  discordJs,
   whisperEars,
 } from '../dist/index.js';
 
@@ -684,6 +686,28 @@ ${tallyReport(tally)}`;
 });
 
 const bodies = [web];
+
+/* 관객이 있는 자리 — 토큰을 주면 디스코드에도 몸이 선다(코어는 그대로다).
+   **토큰이 없으면 그렇다고 말한다.** 조용히 안 붙으면 「왜 디스코드에서 아무 말도 없지」가
+   되고, 오늘 사고 셋이 전부 그 모양이었다. */
+const 디코토큰 = process.env.COMPANION_DISCORD_TOKEN?.trim();
+if (디코토큰) {
+  try {
+    const 붙이기 = await discordJs({ token: 디코토큰, log: (m) => console.log(`[디코] ${m}`) });
+    bodies.push(
+      discordBody({
+        붙이기,
+        // 여기서만 듣는다. 안 정하면 들어오는 모든 방 — 남의 방에 끼어들지 않게 정해 두는 편이 낫다.
+        채널들: process.env.COMPANION_DISCORD_CHANNELS?.split(',').map((x) => x.trim()).filter(Boolean),
+        log: (m) => console.log(`[디코] ${m}`),
+      }),
+    );
+  } catch (e) {
+    console.log(`[디코] 못 붙었다 — 디스코드 몸 없이 간다: ${e?.message ?? e}`);
+  }
+} else {
+  console.log('[디코] 토큰이 없어 디스코드 몸은 안 선다 (COMPANION_DISCORD_TOKEN)');
+}
 if (clockMs > 0) {
   // 몸은 감각 + 표현 한 쌍일 뿐이라, 이렇게 섞어 쓸 수 있다:
   // 시계로 느끼고, 웹 화면으로 말한다. 코어는 이 조합을 몰라도 된다.
