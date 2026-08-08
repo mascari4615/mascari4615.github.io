@@ -66,6 +66,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['activity']
   },
   {
+    id: 'wm',
+    title: 'Witch-Mendokusai',
+    category: 'tool',
+    desc: '만들고 있는 게임 — 소개와 세계 도감(인물·세계·규칙). 개발 노트에서 바로 옵니다',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5h6M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['wm/wm']
+  },
+  {
     id: 'docs',
     title: '문서',
     category: 'tool',

@@ -37,6 +37,9 @@ const PAGES = [
     strip: [/<div class="top">[\s\S]*?<\/div><\/div>\n?/],
   },
   { kind: 'profile', src: 'u/index.html', permalink: '/karmolab/u/', out: 'u' },
+  // TASK-KL-162: WM 소개 한 장. 원본(`wm/index.html`)은 손으로 쓰지 않는다 —
+  // `scripts/gen-wm-landing.mjs` 가 memo 정본에서 찍는다(설정이 바뀌면 페이지도 바뀐다).
+  { kind: 'wm', src: 'wm/index.html', permalink: '/karmolab/wm/', out: 'wm' },
 ];
 
 const shell = loadShell(root);
