@@ -1214,6 +1214,20 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .lt-chip.is-done { color: var(--text-tertiary); border-color: transparent; background: transparent; }
 .lt-chip.is-done::after { content: '✓'; color: var(--accent); font-weight: 700; }
 
+.landing-live { max-width: 620px; margin: var(--space-md) auto 0; position: relative; z-index: 1; }
+.landing-live:empty { display: none; }
+.lv-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px;
+    font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.lv-now { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); font-weight: 700; }
+.lv-now i { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; display: inline-block; }
+.lv-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.lv-chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.lv-chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 9px; font: inherit;
+    font-size: var(--font-size-xs); color: var(--text-secondary); cursor: pointer;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.lv-chip:hover { color: var(--accent); border-color: var(--accent); }
+.lv-chip span { font-size: 10px; color: var(--text-tertiary); }
+
 .landing-cta-grid {
     display: flex;
     flex-wrap: wrap;

@@ -127,6 +127,7 @@
     "test:secrets": "node scripts/smoke-secrets.mjs",
     "test:ask": "node scripts/smoke-ask.mjs",
     "test:resultcard": "node scripts/smoke-result-card.mjs",
+    "test:live-line": "node scripts/smoke-live.mjs",
     "test:idle": "node scripts/smoke-idle.mjs",
     "audit:boot": "node scripts/audit-boot-budget.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",

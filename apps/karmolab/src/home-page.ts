@@ -108,6 +108,19 @@
          * 값은 전부 실측이고 지어낸 수는 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는
          * 통째로 안 그려진다. 문장이 아니라 Today / Total 두 칸이다 (사용자 요청) — 문장으로
          * 쓰면 폭에 따라 두 줄이 되고, 세 가지 수를 한 줄에 우겨 넣게 된다. */
+        /* 실황 (TASK-KL-196 G) — 「지금 사람이 있다」는 누적 숫자로는 안 읽힌다.
+         * 조각은 첫 그림 뒤에 데려온다(`src/live.ts`). 아무도 없으면 이 자리는 비어 있고,
+         * 비면 CSS 가 통째로 감춘다 — 「지금 0명」은 북적임이 아니라 죽은 화면이다. */
+        const live = document.createElement('div');
+        live.className = 'landing-live';
+        live.id = 'homeLive';
+        landing.appendChild(live);
+        if (Toolbox.ensureScript) {
+            Toolbox.ensureScript('root/live')
+                .then(() => window.KarmoLive && window.KarmoLive.mount(live))
+                .catch(() => {});
+        }
+
         const pulse = document.createElement('div');
         pulse.className = 'landing-pulse';
         pulse.id = 'homePulse';
