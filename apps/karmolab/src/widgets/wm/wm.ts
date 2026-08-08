@@ -26,6 +26,19 @@ interface WorldDoc {
   body?: string;
 }
 
+interface DevlogDay {
+  date: string;
+  entries: Array<{ sha: string; type: string; typeLabel: string; scope: string; text: string }>;
+  quiet: number;
+  more: number;
+}
+
+interface Devlog {
+  source: string;
+  counts: { commits: number; days: number; shown: number };
+  days: DevlogDay[];
+}
+
 interface WorldBook {
   generatedAt: string;
   counts: { docs: number; kinds: number; privateSkipped: number };
@@ -35,6 +48,8 @@ interface WorldBook {
 
 (function (): void {
   const DATA_URL = '/apps/karmolab/data/worldbook.json';
+  const DEVLOG_URL = '/apps/karmolab/data/devlog.json';
+  const TASKS_URL = '/apps/karmolab/data/wm-tasks.json';
 
   /** 머리말 키 → 사람이 읽는 이름. 여기 없는 키도 **그대로** 보여 준다(모르는 칸도 그린다). */
   const FIELD_LABEL: Record<string, string> = {
@@ -62,6 +77,158 @@ interface WorldBook {
       book = null;
     }
     return book;
+  }
+
+  let devlog: Devlog | null = null;
+  let devlogError = '';
+
+  async function ensureDevlog(): Promise<Devlog | null> {
+    if (devlog) return devlog;
+    try {
+      const res = await fetch(DEVLOG_URL, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      devlog = (await res.json()) as Devlog;
+      devlogError = '';
+    } catch (err) {
+      devlogError = err instanceof Error ? err.message : String(err);
+      devlog = null;
+    }
+    return devlog;
+  }
+
+  /** 소식 — 게임 저장소의 커밋이 그대로 「오늘 뭐가 달라졌나」가 된다. */
+  function newsHtml(log: Devlog): string {
+    return `
+      <p class="wb-lead">개발 저장소에 올라간 변화입니다 — 최근 ${log.counts.days}일 · ${log.counts.shown}건.</p>
+      <div class="wm-news">${log.days
+        .map(
+          (d) => `<section class="wm-news-day">
+            <h3 class="wm-news-date">${escapeHtml(d.date)}</h3>
+            <ul class="wm-news-list">${d.entries
+              .map(
+                (e) => `<li><span class="wm-news-kind wm-news-${escapeHtml(e.type || 'etc')}">${escapeHtml(e.typeLabel)}</span>
+                  <span class="wm-news-text">${escapeHtml(e.text)}</span></li>`
+              )
+              .join('')}</ul>
+            ${d.more > 0 || d.quiet > 0
+              ? `<p class="wm-news-quiet">그 밖에 ${d.more > 0 ? `변화 ${d.more}건 · ` : ''}손질 ${d.quiet}건</p>`
+              : ''}
+          </section>`
+        )
+        .join('')}</div>`;
+  }
+
+  interface TaskGroup {
+    status: string;
+    label: string;
+    count: number;
+    items: Array<{ id: string; title: string; status: string; statusLabel: string; priority: string }>;
+  }
+
+  interface TaskBoard {
+    counts: { docs: number; groups: number; shown: number; hidden: number };
+    groups: TaskGroup[];
+  }
+
+  let board: TaskBoard | null = null;
+  let boardError = '';
+
+  async function ensureBoard(): Promise<TaskBoard | null> {
+    if (board) return board;
+    try {
+      const res = await fetch(TASKS_URL, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      board = (await res.json()) as TaskBoard;
+      boardError = '';
+    } catch (err) {
+      boardError = err instanceof Error ? err.message : String(err);
+      board = null;
+    }
+    return board;
+  }
+
+  /** 만드는 중 — 개발 노트의 TASK 머리말이 그대로 공개 보드가 된다(본문은 안 나간다). */
+  function boardHtml(b: TaskBoard): string {
+    return `
+      <p class="wb-lead">지금 만들고 있는 것들입니다 — ${b.counts.shown}건.</p>
+      <div class="wm-board">${b.groups
+        .map(
+          (g) => `<section class="wm-board-group">
+            <h3 class="wm-board-status">${escapeHtml(g.label)} <span class="wb-chip">${g.count}</span></h3>
+            <ul class="wm-board-list">${g.items
+              .map(
+                (t) => `<li><span class="wm-board-id">${escapeHtml(t.id)}</span>
+                  <span class="wm-board-title">${escapeHtml(t.title)}</span></li>`
+              )
+              .join('')}</ul>
+          </section>`
+        )
+        .join('')}</div>`;
+  }
+
+  /* ── 공간 지도 (TASK-KL-159) ─────────────────────────────────────────────────────────
+   * 정본은 문서 안의 **표**다(`world/spaces.md`). 표의 칸 이름을 모른 채 읽는다 —
+   * 첫 칸을 이름으로 쓰고 나머지는 있는 대로 붙인다. 표 모양이 바뀌어 못 읽으면
+   * 지도 자리에 그 문서로 가는 길만 남긴다(빈 화면 대신).
+   */
+  interface TableRow { cells: string[]; }
+
+  function firstTable(body: string): { head: string[]; rows: TableRow[] } {
+    const lines = body.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      if (!/^\s*\|/.test(lines[i])) continue;
+      if (!/^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] || '')) continue;
+      const cut = (l: string): string[] =>
+        l.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+      const head = cut(lines[i]);
+      const rows: TableRow[] = [];
+      for (let j = i + 2; j < lines.length; j++) {
+        if (!/^\s*\|/.test(lines[j])) break;
+        rows.push({ cells: cut(lines[j]) });
+      }
+      return { head, rows };
+    }
+    return { head: [], rows: [] };
+  }
+
+  function mapHtml(loaded: WorldBook): string {
+    const spaces = loaded.docs.find((d) => d.id === 'world/spaces');
+    const home = loaded.docs.find((d) => d.id === 'world/home-structure');
+    const table = spaces?.body ? firstTable(spaces.body) : { head: [], rows: [] };
+
+    if (table.rows.length === 0) {
+      return `<p class="wb-empty">공간 표를 읽지 못했습니다. ${
+        spaces ? `<a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">원문 보기</a>` : '원문도 아직 없습니다.'
+      }</p>`;
+    }
+
+    const cards = table.rows
+      .map((r) => {
+        const name = r.cells[0] || '';
+        const rest = r.cells.slice(1).filter((c) => c !== '');
+        return `<article class="wm-place">
+            <h4>${escapeHtml(name)}</h4>
+            ${rest.map((c) => `<p>${escapeHtml(c)}</p>`).join('')}
+          </article>`;
+      })
+      .join('');
+
+    const homeRooms = home?.body ? firstTable(home.body) : { head: [], rows: [] };
+    const rooms = homeRooms.rows
+      .map((r) => `<li><b>${escapeHtml(r.cells[0] || '')}</b> ${escapeHtml(r.cells[1] || '')}</li>`)
+      .join('');
+
+    return `
+      <p class="wb-lead">이 세계에 있는 곳들입니다. 표가 늘어나면 여기도 늘어납니다.</p>
+      <div class="wm-places">${cards}</div>
+      ${rooms
+        ? `<section class="wm-in-block">
+             <h3>욘의 집 안</h3>
+             <ul class="wm-rooms">${rooms}</ul>
+             ${home ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(home.id)}#wm">집 구조 원문 →</a></p>` : ''}
+           </section>`
+        : ''}
+      ${spaces ? `<p class="wb-source"><a href="/karmolab/?wb=${encodeURIComponent(spaces.id)}#wm">공간 원문 →</a></p>` : ''}`;
   }
 
   function fieldValueHtml(value: unknown): string {
@@ -148,6 +315,7 @@ interface WorldBook {
         ${theme ? `<blockquote class="wm-in-theme">${escapeHtml(theme)}</blockquote>` : ''}
         <div class="wm-in-cta">
           <button type="button" class="btn btn-primary" data-go="all">세계 도감 열기</button>
+          <button type="button" class="btn btn-ghost" data-go="news">개발 소식</button>
           <a class="btn btn-ghost" href="/karmolab/wm/">소개 페이지</a>
           <a class="btn btn-ghost" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">개발 저장소</a>
         </div>
@@ -194,10 +362,15 @@ interface WorldBook {
   }
 
   function navHtml(route: string): string {
-    const on = (r: string): string => (r === (route === '' ? '' : 'book') ? ' is-on' : '');
+    const known = ['news', 'map', 'board'];
+    const here = route === '' ? '' : known.includes(route) ? route : 'book';
+    const on = (r: string): string => (r === here ? ' is-on' : '');
     return `<nav class="wm-nav">
         <button type="button" class="wm-nav-btn${on('')}" data-go="">소개</button>
         <button type="button" class="wm-nav-btn${on('book')}" data-go="all">세계 도감</button>
+        <button type="button" class="wm-nav-btn${on('map')}" data-go="map">공간</button>
+        <button type="button" class="wm-nav-btn${on('news')}" data-go="news">소식</button>
+        <button type="button" class="wm-nav-btn${on('board')}" data-go="board">만드는 중</button>
         <a class="wm-nav-link" href="/karmolab/wm/">바깥 소개 페이지</a>
         <a class="wm-nav-link" href="https://github.com/Mascari4615/Witch-Mendokusai" rel="noopener">개발 저장소</a>
       </nav>`;
@@ -256,16 +429,40 @@ interface WorldBook {
       host.innerHTML = `<p class="tool-status">${loadError ? `못 불러왔습니다 (${escapeHtml(loadError)})` : '불러오는 중…'}</p>`;
       return;
     }
-    const doc = route && route !== 'all' ? loaded.docs.find((d) => d.id === route) : undefined;
+    if (route === 'board') {
+      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      void ensureBoard().then((b) => {
+        const body = host?.querySelector<HTMLElement>('.wm-body');
+        if (!body || currentRoute() !== 'board') return;
+        body.innerHTML = b
+          ? boardHtml(b)
+          : `<p class="tool-status">보드를 못 불러왔습니다 (${escapeHtml(boardError)}).</p>`;
+      });
+      return;
+    }
+    if (route === 'news') {
+      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      void ensureDevlog().then((log) => {
+        const body = host?.querySelector<HTMLElement>('.wm-body');
+        if (!body || currentRoute() !== 'news') return;
+        body.innerHTML = log
+          ? newsHtml(log)
+          : `<p class="tool-status">소식을 못 불러왔습니다 (${escapeHtml(devlogError)}).</p>`;
+      });
+      return;
+    }
+    const doc = route && route !== 'all' && route !== 'map' ? loaded.docs.find((d) => d.id === route) : undefined;
     const main = doc
       ? detailHtml(doc)
       : route === 'all'
         ? bookHtml(loaded)
-        : introHtml(loaded);
+        : route === 'map'
+          ? mapHtml(loaded)
+          : introHtml(loaded);
     host.innerHTML = navHtml(route) + `<div class="wm-body">${main}</div>`;
     const body = host.querySelector<HTMLElement>('.wm-body');
     if (route === 'all' && body) wireBook(body, loaded);
-    if (route !== '' && route !== 'all' && !doc && body) {
+    if (route !== '' && route !== 'all' && route !== 'map' && !doc && body) {
       body.innerHTML = '<p class="wb-empty">그런 항목이 없습니다. 도감에서 찾아보세요.</p>';
     }
   }
