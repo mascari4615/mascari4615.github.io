@@ -12,6 +12,7 @@
  */
 import { mountCourseNext } from './play-course';
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+import { variantFor } from '../lib/shared-packs';
 import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 
@@ -107,16 +108,16 @@ import { onPageActive, takePick } from './pack-pick';
             }
             return all[id] || 0;
           };
-          /* 오늘 이 놀이를 했는지 (TASK-KL-089 — 「오늘의 코스」).
-           * 최고 기록만으로는 **오늘 했는지**를 알 수 없다(작년에 세운 10연승이 그대로 남는다).
-           * 놀이터가 코스를 세려면 「오늘 한 판 끝냈다」가 있어야 한다 — 그 한 줄을 여기서 남긴다. */
           /**
            * 이 판(표)의 순위판 이름 (TASK-KL-148).
            * 포켓몬 10연승과 롤 10연승은 같은 기록이 아니다 — 표마다 순위판이 갈린다.
            */
           const specOf = (id: string): PlaySpec => ({
             game: 'higher',
-            variant: id,
+            /* 사람이 만든 표는 **올라간 주소**로 가른다 (TASK-KL-150).
+             * 이 브라우저 안의 이름으로 가르면, 같은 표를 이어받은 두 사람이 서로 다른
+             * 순위판에 서서 각자 혼자 1등이 된다. */
+            variant: id.indexOf('pack:') === 0 ? variantFor(getPack(id.slice(5)) ?? { id: id.slice(5) }) : id,
             better: 'high',
             unit: '연승',
             decimals: 0,
@@ -137,6 +138,9 @@ import { onPageActive, takePick } from './pack-pick';
             });
           };
 
+          /* 오늘 이 놀이를 했는지 (TASK-KL-089 — 「오늘의 코스」).
+           * 최고 기록만으로는 **오늘 했는지**를 알 수 없다(작년에 세운 10연승이 그대로 남는다).
+           * 놀이터가 코스를 세려면 「오늘 한 판 끝냈다」가 있어야 한다 — 그 한 줄을 여기서 남긴다. */
           const markToday = (last: number): void => {
             const k = new Date(Date.now() + 9 * 3600e3);
             const day = `${k.getUTCFullYear()}. ${k.getUTCMonth() + 1}. ${k.getUTCDate()}.`;

@@ -8,6 +8,7 @@
  * 우리 표와 같기 때문이다(`pack-store`).
  */
 import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type Pack } from './pack-store';
+import { adoptShared, listShared, packErrorText, updateShared, uploadPack, type SharedPackSummary } from '../lib/shared-packs';
 
 (function (): void {
   const SAMPLE =
@@ -80,8 +81,11 @@ import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type 
                   `<div class="pk-item" data-id="${esc(p.id)}">` +
                   `<span class="pk-emoji">${esc(p.emoji)}</span>` +
                   `<div class="pk-meta"><strong>${esc(p.title)}</strong>` +
-                  `<span>${p.items.length}개 · 칸 ${p.fields.map((f) => esc(f.label)).join('·')}</span></div>` +
+                  `<span>${p.items.length}개 · 칸 ${p.fields.map((f) => esc(f.label)).join('·')}` +
+                  (p.sharedId ? ` · <b>올라감</b>${p.sharedBy ? ` (${esc(p.sharedBy)})` : ''}` : '') +
+                  `</span></div>` +
                   `<div class="pk-acts">` +
+                  `<button type="button" class="btn btn-ghost" data-up="1">${p.sharedId ? '올린 표 고치기' : '올리기'}</button>` +
                   `<button type="button" class="btn btn-ghost" data-go="twenty">스무고개로</button>` +
                   `<a class="btn btn-ghost" href="/daily/mine/?pack=${esc(p.id)}">하나 맞히기로</a>` +
                   `<button type="button" class="btn btn-ghost" data-go="higher">높은 쪽으로</button>` +
@@ -111,6 +115,23 @@ import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type 
                   url.length > 6000
                     ? '복사했습니다 — 다만 표가 커서 주소가 깁니다. 어떤 앱에서는 잘릴 수 있어요.'
                     : '주소를 복사했습니다. 받은 사람이 열면 그 표가 생깁니다.';
+              });
+              return;
+            }
+            if (btn.dataset.up) {
+              /* 올리기 = 이 표에 **주소를 붙이는 일**이다 (TASK-KL-150).
+               * 주소가 붙으면 남이 이어받을 수 있고, 같은 표로 논 사람끼리 한 순위판에서 만난다. */
+              btn.setAttribute('disabled', 'true');
+              $('pkMsg').textContent = '올리는 중…';
+              void (p.sharedId ? updateShared(p.sharedId, p) : uploadPack(p)).then((res) => {
+                btn.removeAttribute('disabled');
+                if (res.error || !res.id) {
+                  $('pkMsg').textContent = packErrorText(res.error ?? 'unknown', res.detail);
+                  return;
+                }
+                putPack({ ...p, sharedId: res.id });
+                paintList();
+                $('pkMsg').textContent = `「${p.title}」 올렸습니다 — 이제 「둘러보기」에 서고, 이 표의 순위판이 생깁니다.`;
               });
               return;
             }
@@ -176,6 +197,112 @@ import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type 
           }
 
           paintList();
+        }
+      },
+      {
+        id: 'browse',
+        label: '둘러보기',
+        /**
+         * 남들이 올린 표 (TASK-KL-150).
+         *
+         * 왜 별도 탭인가: 「내 표」는 만드는 자리라 입력칸이 화면을 먹는다. 둘러보기는 **고르는**
+         * 자리다 — 목록이 주인공이어야 한다.
+         *
+         * 서버에 못 닿으면 「지금 못 불러왔다」 한 줄만 남긴다. 빈 목록을 그리면 「아무도 안 만든
+         * 곳」으로 읽히는데, 그건 사실이 아니다.
+         */
+        build: function (container: HTMLElement): void {
+          container.innerHTML = `
+            <p class="pk-lead">남들이 올린 표입니다. 「이어받기」를 누르면 내 표가 되고, 그대로 놀이에 걸 수 있습니다.
+              같은 표로 논 사람끼리는 <b>한 순위판</b>에서 만납니다.</p>
+            <section class="pk-card">
+              <div class="pk-row">
+                <input type="search" id="pkFind" placeholder="표 이름으로 찾기" style="flex:1;min-width:180px">
+                <button type="button" class="btn btn-ghost" id="pkSortPop">많이 열린 순</button>
+                <button type="button" class="btn btn-ghost" id="pkSortNew">새로 올린 순</button>
+              </div>
+              <p class="tool-status" id="pkBrowseMsg" aria-live="polite">불러오는 중…</p>
+            </section>
+            <div id="pkShared" class="pk-list" style="margin-top:14px"></div>
+          `;
+          const $ = (id: string) => container.querySelector<HTMLElement>('#' + id)!;
+          const esc = (s: string): string =>
+            String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          let sort: 'popular' | 'new' = 'popular';
+
+          function paint(rows: SharedPackSummary[]): void {
+            $('pkShared').innerHTML = rows
+              .map(
+                (r) =>
+                  `<div class="pk-item" data-shared="${esc(r.id)}">` +
+                  `<span class="pk-emoji">${esc(r.emoji)}</span>` +
+                  `<div class="pk-meta"><strong>${esc(r.title)}</strong>` +
+                  `<span>${r.items}개 · ${esc(r.ownerHandle)}` +
+                  (r.opens ? ` · ${r.opens}번 열림` : '') +
+                  (r.forkOf ? ' · 이어받은 표' : '') +
+                  `</span></div>` +
+                  `<div class="pk-acts">` +
+                  `<button type="button" class="btn btn-primary" data-adopt="1">이어받기</button>` +
+                  `</div></div>`
+              )
+              .join('');
+          }
+
+          function load(): void {
+            const q = (container.querySelector<HTMLInputElement>('#pkFind')!).value.trim();
+            $('pkBrowseMsg').textContent = '불러오는 중…';
+            void listShared({ sort, q, limit: 30 }).then((got) => {
+              if (!container.isConnected) return;
+              if (!got) {
+                // 서버에 못 닿았다 — 없는 것과 다르다. 그 둘을 같은 화면으로 말하지 않는다.
+                $('pkBrowseMsg').textContent = '지금은 남의 표를 못 불러왔습니다. 내 표로는 그대로 놀 수 있어요.';
+                $('pkShared').innerHTML = '';
+                return;
+              }
+              if (!got.packs.length) {
+                $('pkBrowseMsg').textContent = q
+                  ? '그 이름의 표가 없습니다.'
+                  : '아직 올라온 표가 없습니다 — 「내 표」에서 하나 만들어 올려 보세요.';
+                $('pkShared').innerHTML = '';
+                return;
+              }
+              $('pkBrowseMsg').textContent = `표 ${got.total.packs}개 · 만든 사람 ${got.total.makers}명`;
+              paint(got.packs);
+            });
+          }
+
+          $('pkShared').addEventListener('click', (e) => {
+            const box = (e.target as HTMLElement).closest('.pk-item') as HTMLElement | null;
+            const btn = (e.target as HTMLElement).closest('button') as HTMLElement | null;
+            if (!box || !btn || !btn.dataset.adopt) return;
+            btn.setAttribute('disabled', 'true');
+            void adoptShared(box.dataset.shared ?? '').then((pack) => {
+              btn.removeAttribute('disabled');
+              $('pkBrowseMsg').textContent = pack
+                ? `「${pack.title}」 를 이어받았습니다 — 「내 표」에서 놀이로 보내세요.`
+                : '이어받지 못했습니다. 잠시 뒤 다시 눌러 주세요.';
+            });
+          });
+
+          $('pkSortPop').addEventListener('click', () => {
+            sort = 'popular';
+            load();
+          });
+          $('pkSortNew').addEventListener('click', () => {
+            sort = 'new';
+            load();
+          });
+          let timer: ReturnType<typeof setTimeout> | null = null;
+          $('pkFind').addEventListener('input', () => {
+            // 글자마다 부르면 서버를 타자 속도로 두드린다.
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(load, 300);
+          });
+          Toolbox.onDispose?.(() => {
+            if (timer) clearTimeout(timer);
+          });
+
+          load();
         }
       }
     ]
