@@ -499,3 +499,118 @@ export function listShareText({ title, puzzleNo, score, url, seconds }) {
   const line = [score.rated ? `${score.points}점` : null, Number.isFinite(seconds) ? `${seconds}초` : null].filter(Boolean).join(' · ');
   return [head, '', bar, ...(line ? [line] : []), ...(url ? ['', url] : [])].join('\n');
 }
+
+// ── 격자판 (TASK-KL-199) ────────────────────────────────────────────────────
+// 셋째 원형. 속성판은 *하나*를 좁히고, 전부대기는 *전부*를 쏟고, 격자판은 **배치**한다.
+// 새로 만들 것은 거의 없다 — 조건과 교차는 전부대기(KL-197)가 이미 만들어 둔다.
+
+/** 한 칸이 성립하려면 답이 이만큼은 있어야 한다. 하나뿐인 칸은 「알거나 모르거나」라 재미가 없다. */
+const GRID_MIN_PER_CELL = 2;
+/** 반대로 이만큼보다 헐거운 칸은 「아무거나 넣으면 맞는 칸」이라 재미가 죽는다. */
+const GRID_MAX_PER_CELL = 25;
+/** 축 하나가 가질 값 수 = 격자 한 변. */
+export const GRID_SIZE = 3;
+
+/**
+ * 오늘의 격자. 못 만들면 null (그런 주제는 판이 안 선다 — 실루엣과 같은 규칙).
+ *
+ * **축은 서로 다른 필드에서 뽑는다.** 같은 필드의 두 값은 교집합이 대개 0이다
+ * (색이 빨강이면서 파랑인 것은 없다). 그래서 「세대 × 타입」처럼 갈래가 다른 둘을 건다.
+ *
+ * 아홉 칸이 **전부** 답을 가져야 한다. 한 칸이라도 비면 그 판은 못 깬다 —
+ * 만들 때 확인하지 않으면 그 사실을 푸는 사람이 발견하게 된다.
+ */
+export function gridPuzzleOf(topic, at = new Date(), { attempts = 400 } = {}) {
+  const conds = conditionsOf(topic);
+  const byField = new Map();
+  for (const c of conds) {
+    if (!byField.has(c.key)) byField.set(c.key, []);
+    byField.get(c.key).push(c);
+  }
+  const usable = [...byField.entries()].filter(([, list]) => list.length >= GRID_SIZE).sort((a, b) => a[0].localeCompare(b[0]));
+  if (usable.length === 0) return null;
+
+  const rand = mulberry32(hash32(`${topic.id}:grid:${kstDayNumber(at)}`));
+  /**
+   * 후보는 **큰 조건부터** 본다. 작은 조건끼리 걸면 아홉 칸 중 하나는 거의 반드시 비고,
+   * 그러면 아무리 뒤져도 판이 안 선다 (롤이 그랬다 — 자원 12가지 중 대부분이 소수라
+   * 무작위로 뽑으면 400번을 뒤져도 못 세웠다). 큰 것 여덟 안에서만 고른다.
+   */
+  const WIDE = 8;
+  const widest = (list) => [...list].sort((a, b) => b.names.length - a.names.length).slice(0, WIDE);
+  const pick = (list, n) => {
+    const pool = [...list];
+    for (let i = pool.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(rand() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, n);
+  };
+
+  for (let n = 0; n < attempts; n += 1) {
+    /**
+     * 축 둘. **여러 값을 갖는 속성(set)은 자기 자신과도 걸 수 있다** — 「역할에 서포터가
+     * 있으면서 원거리 딜러이기도 한」은 성립한다. 이걸 막으면 롤처럼 쓸 만한 속성이
+     * 하나뿐인 주제는 판이 아예 안 선다.
+     */
+    const [fa, fbMaybe] = pick(usable, 2);
+    const selfPair = topic.fields.find((f) => f.key === fa[0])?.kind === 'set' && rand() < 0.5;
+    const fb = selfPair || !fbMaybe ? fa : fbMaybe;
+    const rows = pick(widest(fa[1]), GRID_SIZE);
+    // 같은 속성을 두 축에 걸 때는 값이 겹치면 안 된다 — 「불꽃이면서 불꽃」은 조건이 아니다.
+    const colPool = widest(fb[1]).filter((c) => !rows.some((r) => r.id === c.id));
+    if (colPool.length < GRID_SIZE) continue;
+    const cols = pick(colPool, GRID_SIZE);
+    const cells = rows.map((r) => {
+      const rowSet = new Set(r.names.map(norm));
+      return cols.map((c) => c.names.filter((x) => rowSet.has(norm(x))));
+    });
+    // 칸이 너무 넉넉하면(70마리 중 아무거나) 배치하는 재미가 없다. 좁은 판을 먼저 찾고,
+    // 끝까지 못 찾으면 그때 넉넉한 판이라도 세운다 — 판이 아예 없는 것보다는 낫다.
+    const tight = n < attempts / 2 ? GRID_MAX_PER_CELL : Infinity;
+    if (cells.every((row) => row.every((names) => names.length >= GRID_MIN_PER_CELL && names.length <= tight))) {
+      return {
+        id: `${rows.map((r) => r.id).join(',')}|${cols.map((c) => c.id).join(',')}`,
+        rows: rows.map((r) => ({ id: r.id, label: r.attr })),
+        cols: cols.map((c) => ({ id: c.id, label: c.attr })),
+        cells,
+      };
+    }
+  }
+  return null;
+}
+
+/** 격자판이 설 수 있는 주제인가. 하루치가 아니라 **여러 날**을 봐야 한다 — 오늘만 되는 판은 판이 아니다. */
+export function hasGridMode(topic) {
+  const day = kstDayNumber();
+  for (const offset of [0, 1, 2, 3, 7]) {
+    if (!gridPuzzleOf(topic, new Date((day + offset) * 86400000))) return false;
+  }
+  return true;
+}
+
+/**
+ * 칸 하나의 판정. `hit` | `miss`(표엔 있지만 그 칸이 아님) | `unknown`(표에 없음) | `used`(다른 칸에서 이미 씀).
+ *
+ * **한 항목은 한 칸에만.** 안 그러면 두 조건을 다 만족하는 이름 하나로 여러 칸을 메울 수 있고,
+ * 그러면 아는 것을 배치하는 놀이가 아니라 이름 하나 아는 놀이가 된다.
+ */
+export function gridJudge(topic, puzzle, row, col, raw, used = []) {
+  const item = findItem(topic.items, raw);
+  if (!item) return { status: 'unknown', name: String(raw ?? '').trim() };
+  if (used.some((n) => nameKey(n) === nameKey(item.name))) return { status: 'used', name: item.name };
+  const cell = puzzle.cells[row]?.[col] ?? [];
+  return { status: cell.some((n) => nameKey(n) === nameKey(item.name)) ? 'hit' : 'miss', name: item.name };
+}
+
+/** 칸의 질문 id — 희귀도 집계(KL-197)를 그대로 탄다. 새 원장을 만들지 않는다. */
+export function gridCellQuestionId(puzzle, row, col) {
+  return `${puzzle.rows[row].id}&${puzzle.cols[col].id}`;
+}
+
+/** 격자 공유 — 채운 칸만 초록. 이름은 한 글자도 안 나간다. */
+export function gridShareText({ title, puzzleNo, filled, url, tries, maxTries }) {
+  const grid = filled.map((row) => row.map((ok) => (ok ? '🟩' : '⬜')).join('')).join('\n');
+  const count = filled.flat().filter(Boolean).length;
+  return [`${title} 격자판 #${puzzleNo} ${count}/9 (${tries}/${maxTries}수)`, '', grid, ...(url ? ['', url] : [])].join('\n');
+}

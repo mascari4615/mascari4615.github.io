@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startServer } from './serve.mjs';
-import { answerOf, findItem, kstDayNumber, listQuestionOf } from '../engine.mjs';
+import { answerOf, findItem, kstDayNumber, listQuestionOf, gridPuzzleOf } from '../engine.mjs';
 
 /** 오늘(한국 시각 기준 날짜 번호) — 지난 목록에 이 번호가 있으면 샌 것이다. */
 const today = () => kstDayNumber();
@@ -256,6 +256,54 @@ async function playList(topicId) {
 
 await playList('pokemon');
 await playList('genshin');
+
+/**
+ * 격자판 (TASK-KL-199) — 아홉 칸 배치. 여기서만 갈리는 것: 칸을 골라 넣을 수 있는가 ·
+ * 한 항목이 두 칸을 못 먹는가 · 수가 다 떨어지면 끝나는가 · 못 채운 칸을 알려 주는가.
+ */
+async function playGrid(topicId) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const puzzle = gridPuzzleOf(topic, new Date());
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(`${base}/${topicId}/grid/`, { waitUntil: 'networkidle' });
+
+  check(`[격자:${topicId}] 축 라벨이 여섯 개 다 뜬다`, (await page.locator('.grid-table th').count()) === 6);
+  check(`[격자:${topicId}] 칸이 아홉이다`, (await page.locator('.gcell').count()) === 9);
+
+  // 첫 칸에 그 칸의 답을 넣는다.
+  await page.click('.gcell[data-r="0"][data-c="0"]');
+  await page.fill('.guessbar input', puzzle.cells[0][0][0]);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(150);
+  check(`[격자:${topicId}] 맞는 답이 칸에 박힌다`, (await page.locator('.gcell.on').count()) === 1);
+
+  // 같은 이름을 다른 칸에 — 한 항목은 한 칸만.
+  await page.click('.gcell[data-r="1"][data-c="1"]');
+  await page.fill('.guessbar input', puzzle.cells[0][0][0]);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(120);
+  check(`[격자:${topicId}] 한 항목은 한 칸만`, (await page.locator('.gcell.on').count()) === 1 && /이미 썼어요/.test(await page.locator('.say').innerText()));
+
+  await page.click('.giveup');
+  await page.waitForSelector('.done:not([hidden])');
+  const doneText = await page.locator('.done').innerText();
+  check(`[격자:${topicId}] 그만하면 결과가 뜬다`, /1 \/ 9 채웠다/.test(doneText), doneText.split(String.fromCharCode(10))[0]);
+  check(`[격자:${topicId}] 못 채운 칸을 알려 준다`, /못 채운 칸 8개/.test(doneText));
+
+  await page.reload({ waitUntil: 'networkidle' });
+  check(`[격자:${topicId}] 새로고침해도 결과가 남는다`, await page.locator('.done').isVisible());
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check(`[격자:${topicId}] 가로로 안 넘친다`, over <= 0, `넘침 ${over}px`);
+  check(`[격자:${topicId}] 콘솔 오류 0`, errors.length === 0, errors.join(' | '));
+  await page.screenshot({ path: join(shots, `grid-${topicId}.png`), fullPage: true });
+  await ctx.close();
+}
+
+await playGrid('pokemon');
+await playGrid('genshin');
 
 /** 지난 문제 — 오늘 답이 새면 게임이 끝장난다. 그것만은 기계가 지켜야 한다. */
 async function pastPage(topicId) {
@@ -943,8 +991,8 @@ for (const withShare of [true, false]) {
     const topicId = await page.getAttribute('#app', 'data-topic');
     const mode = await page.getAttribute('#app', 'data-mode');
     const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
-    // 전부대기는 「맞히면 끝」이 아니다 — 그만두는 것이 끝내는 방법이다.
-    if (mode === 'list') {
+    // 전부대기·격자판은 「맞히면 끝」이 아니다 — 그만두는 것이 끝내는 방법이다.
+    if (mode === 'list' || mode === 'grid') {
       await page.click('.giveup');
       await page.waitForSelector('.done:not([hidden])');
       return `${topicId}/${mode}`;

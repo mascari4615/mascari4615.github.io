@@ -27,6 +27,11 @@ import {
   listJudge,
   listScore,
   listShareText,
+  gridPuzzleOf,
+  hasGridMode,
+  gridJudge,
+  gridCellQuestionId,
+  gridShareText,
 } from './engine.mjs';
 
 const topic = {
@@ -389,4 +394,76 @@ test('나열형 공유 글에는 정답 이름이 없다', () => {
   });
   for (const name of q.answers) assert.ok(!text.includes(name), `공유 글에 ${name} 이 샜다`);
   assert.match(text, /2\/8/);
+});
+
+// ── 격자판 (TASK-KL-199) ────────────────────────────────────────────────────
+
+/** 축 둘이 서로 다른 갈래여야 격자가 선다 — 시험용 표도 그렇게 만든다. */
+const gridTopic = {
+  id: 'grid-test',
+  title: '시험',
+  fields: [
+    { key: 'color', label: '색', kind: 'category' },
+    { key: 'gen', label: '세대', kind: 'number' },
+  ],
+  items: (() => {
+    const out = [];
+    for (const color of ['빨강', '파랑', '초록', '노랑']) {
+      for (const gen of [1, 2, 3, 4]) {
+        for (let n = 0; n < 3; n += 1) out.push({ name: `${color}${gen}-${n}`, color, gen });
+      }
+    }
+    return out;
+  })(),
+};
+
+test('격자는 아홉 칸 전부 답을 갖는다', () => {
+  // 한 칸이라도 비면 그 판은 못 깬다 — 만들 때 확인 안 하면 푸는 사람이 발견한다.
+  const puzzle = gridPuzzleOf(gridTopic);
+  assert.ok(puzzle, '표가 충분한데 판이 안 섰다');
+  assert.equal(puzzle.rows.length, 3);
+  assert.equal(puzzle.cols.length, 3);
+  for (const row of puzzle.cells) for (const cell of row) assert.ok(cell.length >= 2, `빈 칸: ${cell.length}`);
+});
+
+test('격자는 하루 종일 같고 날이 바뀌면 달라진다', () => {
+  const a = gridPuzzleOf(gridTopic, new Date('2026-08-07T01:00:00+09:00'));
+  const b = gridPuzzleOf(gridTopic, new Date('2026-08-07T23:00:00+09:00'));
+  assert.equal(a.id, b.id);
+  const ids = new Set([0, 1, 2, 3, 4, 5, 6].map((d) => gridPuzzleOf(gridTopic, new Date(`2026-08-0${d + 1}T12:00:00+09:00`)).id));
+  assert.ok(ids.size > 1, '이레 내내 같은 격자면 매일 올 이유가 없다');
+});
+
+test('축을 못 세우는 표에서는 판이 안 선다 — 억지로 만들지 않는다', () => {
+  const flat = { id: 'flat', title: '민', fields: [{ key: 'color', label: '색', kind: 'category' }], items: [{ name: 'a', color: '빨강' }, { name: 'b', color: '빨강' }] };
+  assert.equal(gridPuzzleOf(flat), null);
+  assert.equal(hasGridMode(flat), false);
+});
+
+test('한 항목은 한 칸에만 쓴다', () => {
+  const puzzle = gridPuzzleOf(gridTopic);
+  const name = puzzle.cells[0][0][0];
+  assert.equal(gridJudge(gridTopic, puzzle, 0, 0, name, []).status, 'hit');
+  assert.equal(gridJudge(gridTopic, puzzle, 0, 0, name, [name]).status, 'used');
+});
+
+test('칸이 아닌 답과 표에 없는 이름은 다른 말이다', () => {
+  const puzzle = gridPuzzleOf(gridTopic);
+  const wrong = gridTopic.items.find((i) => !puzzle.cells[0][0].includes(i.name)).name;
+  assert.equal(gridJudge(gridTopic, puzzle, 0, 0, wrong, []).status, 'miss');
+  assert.equal(gridJudge(gridTopic, puzzle, 0, 0, '없는것', []).status, 'unknown');
+});
+
+test('격자 칸의 질문 id 는 두 조건이다 — 희귀도 집계를 그대로 탄다', () => {
+  const puzzle = gridPuzzleOf(gridTopic);
+  assert.equal(gridCellQuestionId(puzzle, 1, 2), `${puzzle.rows[1].id}&${puzzle.cols[2].id}`);
+});
+
+test('격자 공유 글에 이름이 안 샌다', () => {
+  const puzzle = gridPuzzleOf(gridTopic);
+  const filled = [[true, false, true], [false, false, false], [true, true, false]];
+  const text = gridShareText({ title: '시험', puzzleNo: 3, filled, tries: 9, maxTries: 9, url: 'https://x' });
+  assert.match(text, /4\/9/);
+  assert.match(text, /🟩⬜🟩/);
+  for (const cell of puzzle.cells.flat()) for (const name of cell) assert.ok(!text.includes(name));
 });
