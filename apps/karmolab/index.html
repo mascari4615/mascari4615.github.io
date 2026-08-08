@@ -376,7 +376,7 @@ permalink: /karmolab/
       var q = [];
       var api = ['setMood', 'say', 'bounce', 'injectCSS', 'linePreset', 'addAffection',
                  'showGuide', 'showNextGuide', 'openStoryLog',
-                 'setPrefs', 'resetPrefs', 'resetPosition'];
+                 'setPrefs', 'resetPrefs', 'resetPosition', 'spot'];
       var stub = {};
       api.forEach(function (n) { stub[n] = function () { q.push([n, [].slice.call(arguments)]); }; });
       /* 값으로 읽는 것들은 빈 값으로 답한다 — 없는 것보다 낫다. */

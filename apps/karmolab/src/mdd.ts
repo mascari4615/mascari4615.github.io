@@ -455,7 +455,9 @@ const Mdd = (() => {
     .mdd-av-group { position:absolute; inset:0; will-change:transform; }
 .mdd-av-part { position:absolute; display:block; pointer-events:none;
         -webkit-user-drag:none; user-drag:none; transform-box:fill-box; will-change:transform; }
-    .mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
+    .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
+.mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
+.mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
         background:radial-gradient(ellipse at 22% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%),
                    radial-gradient(ellipse at 78% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%);
         transition:opacity 0.25s; mix-blend-mode:multiply; }
@@ -485,12 +487,68 @@ const Mdd = (() => {
         return `${PARTS_BASE}/fallback.webp`;
     }
 
+    /** 부위 목록은 한 번만 받는다 — 화면 여러 곳에 티메토가 나와도 요청은 하나 */
+    let manifestOnce: Promise<Manifest> | null = null;
+
+    function loadManifest(): Promise<Manifest> {
+        if (!manifestOnce) {
+            manifestOnce = fetch(`${PARTS_BASE}/manifest.json`).then((r) => {
+                if (!r.ok) throw new Error(`manifest ${r.status}`);
+                return r.json();
+            });
+        }
+        return manifestOnce;
+    }
+
+    /**
+     * 화면 안 아무 자리에나 티메토를 세운다 — 우하단 상주 말고.
+     *
+     * 로딩·빈 화면·에러는 지금까지 회색 글자 한 줄이었다. 같은 캐릭터가 그 자리에
+     * 나와서 말하면 「기다리는 시간」이 「누가 대신 봐 주는 시간」이 된다. 상주
+     * 마스코트와 같은 그림·같은 리깅을 쓰므로 얼굴이 갈리지 않는다.
+     */
+    async function spot(host: HTMLElement, opts?: {
+        mood?: string; msg?: string; width?: number; framing?: Framing;
+        /** 이 선택자가 host 안에 아직 있을 때만 그린다 */
+        onlyIf?: string;
+    }): Promise<{ destroy(): void } | null> {
+        const o = opts || {};
+        // 마스코트가 늦게 도착하면 이 부름은 줄을 섰다가 나중에 실행된다. 그 사이
+        // 기다리던 화면이 이미 다 그려졌을 수 있어서, 「아직 기다리는 중인가」를
+        // 부른 쪽이 알려 준 표시로 확인한다 — 안 그러면 완성된 화면을 덮는다.
+        if (o.onlyIf && !host.querySelector(o.onlyIf)) return null;
+        // 탭 내용은 화면에 붙기 *전에* 그려진다 — 그 시점에 「아직 안 붙었으니 관두자」
+        // 하면 영영 안 뜬다. 한 프레임 기다렸다가 다시 본다.
+        if (!host.isConnected) {
+            await new Promise((r) => requestAnimationFrame(() => r(null)));
+            if (!host.isConnected) return null;
+            if (o.onlyIf && !host.querySelector(o.onlyIf)) return null;
+        }
+        try {
+            const manifest = await loadManifest();
+            const wrap = document.createElement('div');
+            wrap.className = 'mdd-spot';
+            const av = createAvatar(PARTS_BASE, manifest, o.framing || 'bust');
+            av.el.style.width = (o.width || 120) + 'px';
+            av.setPose(o.mood || 'idle');
+            wrap.appendChild(av.el);
+            if (o.msg) {
+                const line = document.createElement('p');
+                line.className = 'mdd-spot-msg';
+                line.textContent = o.msg;
+                wrap.appendChild(line);
+            }
+            host.replaceChildren(wrap);
+            return { destroy() { av.destroy(); wrap.remove(); } };
+        } catch (_) {
+            return null;        // 못 세우면 부른 쪽의 원래 글자가 남는다
+        }
+    }
+
     async function mountAvatar(): Promise<void> {
         if (!charEl) return;
         try {
-            const res = await fetch(`${PARTS_BASE}/manifest.json`);
-            if (!res.ok) throw new Error(`manifest ${res.status}`);
-            const manifest = await res.json();
+            const manifest = await loadManifest();
             const handle = createAvatar(PARTS_BASE, manifest, 'bust');
             charEl.replaceChildren(handle.el);
             avatar = handle;
@@ -994,7 +1052,7 @@ const Mdd = (() => {
         addAffection, getAffection, getRelationshipTitle,
         getStoryProgress, getStoryLog, STORY_EVENTS,
         showGuide, showNextGuide, openStoryLog, GUIDE_MESSAGES,
-        getPrefs, setPrefs, resetPrefs, resetPosition, PREF_DEFAULTS,
+        getPrefs, setPrefs, resetPrefs, resetPosition, PREF_DEFAULTS, spot,
         WIDTH_MIN, widthMax,
     };
 })();
