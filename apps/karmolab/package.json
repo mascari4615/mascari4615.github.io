@@ -125,6 +125,7 @@
     "test:brag": "node scripts/smoke-brag.mjs",
     "test:collection": "node scripts/smoke-collection.mjs",
     "test:secrets": "node scripts/smoke-secrets.mjs",
+    "test:ask": "node scripts/smoke-ask.mjs",
     "test:idle": "node scripts/smoke-idle.mjs",
     "audit:boot": "node scripts/audit-boot-budget.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",

@@ -629,9 +629,54 @@ const KarmoPalette = (() => {
     inst.active = -1;
   }
 
+
+  /* ── 말로 부리기 (TASK-KL-196 E) ─────────────────────────────────────────
+   *
+   * 이름으로 못 찾은 그 자리에서만 뜬다. **누를 때 데려온다**(`src/ask.ts`) — 첫 화면 부팅
+   * JS 천장(40KB gz)에 이미 닿아 있어서, 눌러 본 사람만 받는 것이 맞다.
+   */
+  function askWire(inst: Instance, host: HTMLElement, q: string): void {
+    const button = host.querySelector<HTMLButtonElement>('.kp-ask');
+    if (!button) return;
+    if (!(window as any).KarmoAccount?.apiBase) {
+      button.remove(); // 서버가 없으면 이 길 자체가 없다 — 눌러도 아무 일 없는 단추가 제일 나쁘다
+      return;
+    }
+    const run = (): void => {
+      button.disabled = true;
+      button.textContent = '고르는 중…';
+      /* `?.` 로 부르면 **묶음이 안 만들어진다** — 빌드가 부르는 곳을 글자로 찾는데
+         (`entry-points.mjs`) 그 모양은 안 잡힌다. 잡히는 모양으로 적고 있는지는 위에서 본다. */
+      const bring = Toolbox.ensureScript;
+      if (!bring) return;
+      void Toolbox.ensureScript('root/ask')
+        .then(() => (window as any).KarmoAsk?.run({ host, q, close, byId, esc, go: (id: string) => Toolbox.switchPage(id) }))
+        .catch(() => {
+          button.disabled = false;
+          button.textContent = '하려는 일로 찾기 →';
+        });
+    };
+    button.addEventListener('click', run);
+    /* 빈 자리에서 Enter = 같은 뜻. 이미 고른 물음이면 그 도구로 바로 간다(서버를 또 안 두들긴다). */
+    inst.input.onkeydown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      const known = (window as any).KarmoAsk?.known?.(q);
+      if (known) {
+        close();
+        Toolbox.switchPage(known);
+        return;
+      }
+      run();
+    };
+  }
+
   function render(inst: Instance): void {
     const q = inst.input.value.trim();
     resetList(inst);
+    /* 「말로 찾기」가 걸어 둔 Enter 는 **그 빈 자리에서만** 산다. 안 지우면 결과가 나온
+       뒤에도 Enter 가 그쪽으로 가서, 첫 줄을 고르는 평소 동작이 조용히 사라진다. */
+    inst.input.onkeydown = null;
 
     if (!q) {
       renderResting(inst);
@@ -658,8 +703,10 @@ const KarmoPalette = (() => {
       empty.className = 'kp-empty';
       empty.innerHTML =
         '<p>「' + esc(q) + '」 로 찾은 도구가 없어요.</p>' +
+        '<button type="button" class="kp-ask">하려는 일로 찾기 →</button>' +
         '<a class="kp-empty-link" href="/karmolab/t/?q=' + encodeURIComponent(q) + '">전체 목록에서 찾아보기 →</a>';
       inst.list.appendChild(empty);
+      askWire(inst, empty, q);
       announce(inst);
       return;
     }
