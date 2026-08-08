@@ -149,7 +149,8 @@ function report(row, col, name) {
 let picked = { row: 0, col: 0 };
 
 function paint() {
-  const head = `<tr><td class="corner"></td>${puzzle.cols.map((c) => `<th scope="col">${esc(c.label)}</th>`).join('')}</tr>`;
+  const axes = `${esc(puzzle.rows[0].field ?? '')} × ${esc(puzzle.cols[0].field ?? '')}`;
+  const head = `<tr><td class="corner">${axes}</td>${puzzle.cols.map((c) => `<th scope="col" title="${esc(c.label)}">${esc(c.short ?? c.label)}</th>`).join('')}</tr>`;
   const rows = puzzle.rows
     .map((r, ri) => {
       const cells = puzzle.cols
@@ -163,7 +164,7 @@ function paint() {
             aria-label="${esc(r.label)} ${esc(c.label)} 칸${name ? `, ${esc(name)}` : ', 비어 있음'}">${name ? `${esc(name)}${rare}` : '+'}</button></td>`;
         })
         .join('');
-      return `<tr><th scope="row">${esc(r.label)}</th>${cells}</tr>`;
+      return `<tr><th scope="row" title="${esc(r.label)}">${esc(r.short ?? r.label)}</th>${cells}</tr>`;
     })
     .join('');
   $board.innerHTML = `<table class="grid-table">${head}${rows}</table>`;

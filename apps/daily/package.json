@@ -13,10 +13,11 @@
     "fetch:lol": "node scripts/fetch-lol.mjs",
     "fetch:pokemon": "node scripts/fetch-pokemon.mjs",
     "fetch:genshin": "node scripts/fetch-genshin.mjs",
-    "fetch:all": "npm run fetch:lol && npm run fetch:genshin && npm run fetch:pokemon",
+    "fetch:all": "npm run fetch:lol && npm run fetch:genshin && npm run fetch:pokemon && npm run fetch:bluearchive",
     "check:fresh": "node scripts/check-freshness.mjs",
     "gen:og": "node scripts/gen-og.mjs",
     "check:images": "node scripts/check-images.mjs",
-    "check:refresh": "node scripts/check-refresh-delta.mjs"
+    "check:refresh": "node scripts/check-refresh-delta.mjs",
+    "fetch:bluearchive": "node scripts/fetch-bluearchive.mjs"
   }
 }
