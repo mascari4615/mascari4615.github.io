@@ -263,6 +263,8 @@ describe('공개 범위 (KL-152 C4)', () => {
     const account = store.upsertFromDiscord(discordUser);
     expect(store.visibilityFor(account.id)).toEqual({
       profile: true, achievements: true, badges: true, streaks: true, community: true, activity: true,
+      // presence 만 기본이 꺼짐 — 새로 생기는 노출은 켜는 사람만 켠다 (KL-156 D5)
+      presence: false,
     });
   });
 
@@ -293,6 +295,7 @@ describe('공개 범위 (KL-152 C4)', () => {
     const next = store.setVisibility(account.id, { community: false, 장난: true, badges: 'yes' });
     expect(next).toEqual({
       profile: true, achievements: true, badges: true, streaks: true, community: false, activity: true,
+      presence: false,
     });
   });
 
@@ -435,5 +438,112 @@ describe('팔로우 (KL-152 C8)', () => {
     expect(first.followingOf(me.id)).toEqual([you.handle]);
 
     expect(new KarmolabAccountStore(statePath).followingOf(me.id)).toEqual([you.handle]);
+  });
+});
+
+/** 희귀도·막기 (TASK-KL-156 D1·D2). */
+describe('희귀도·막기 (KL-156 D1·D2)', () => {
+  const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
+
+  it('희귀도는 전수에서 세고, 계정이 적으면 비율을 안 내놓는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.mergeRecordsForAccount(me.id, { ...emptyRecords(), achievements: ['pet_100', 'first_chat'] });
+    store.mergeRecordsForAccount(you.id, { ...emptyRecords(), achievements: ['pet_100'] });
+
+    const rarity = store.achievementRarity();
+    expect(rarity.total).toBe(2);
+    expect(rarity.counts).toEqual({ pet_100: 2, first_chat: 1 });
+    // 둘뿐이면 「셋 중 하나가 33%」 같은 착시를 안 만든다
+    expect(rarity.enough).toBe(false);
+    expect(store.achievementRarity(2).enough).toBe(true);
+  });
+
+  it('막으면 양쪽 팔로우가 함께 끊긴다 — 안 그러면 막고도 내 글이 그쪽으로 간다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.setFollowing(me.id, you.handle, true);
+    store.setFollowing(you.id, me.handle, true);
+
+    store.setBlocked(me.id, you.handle, true);
+    expect(store.followingOf(me.id)).toEqual([]);
+    expect(store.followingOf(you.id)).toEqual([]);
+    expect(store.blockedBy(me.id)).toEqual([you.handle]);
+    expect(store.isBlockedBy(me.handle, you.handle)).toBe(true);
+  });
+
+  it('풀면 막힘만 없어진다 (따라가기가 저절로 살아나지 않는다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.setFollowing(me.id, you.handle, true);
+    store.setBlocked(me.id, you.handle, true);
+    store.setBlocked(me.id, you.handle, false);
+
+    expect(store.blockedBy(me.id)).toEqual([]);
+    expect(store.followingOf(me.id)).toEqual([]);
+  });
+
+  it('자기 자신·없는 사람은 못 막는다 · 다시 열어도 남는다', () => {
+    const first = new KarmolabAccountStore(statePath);
+    const me = first.upsertFromDiscord(discordUser);
+    const you = first.upsertFromDiscord(other);
+    expect(first.setBlocked(me.id, me.handle, true)).toBeNull();
+    expect(first.setBlocked(me.id, '없는사람', true)).toBeNull();
+    first.setBlocked(me.id, you.handle, true);
+    expect(new KarmolabAccountStore(statePath).blockedBy(me.id)).toEqual([you.handle]);
+  });
+});
+
+/** 알림 대상·전당·지금 상태 (TASK-KL-156 D3·D4·D5). */
+describe('알림 대상·전당·지금 상태 (KL-156 D3·D4·D5)', () => {
+  const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
+
+  it('막은 사람은 알림 대상에서 빠진다 — 막아 놓고 알림이 오면 막은 것이 아니다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.setFollowing(you.id, me.handle, true);
+    expect(store.followerIdsOf(me.handle)).toEqual([you.id]);
+
+    store.setBlocked(you.id, me.handle, true);
+    expect(store.followerIdsOf(me.handle)).toEqual([]);
+  });
+
+  it('전당에는 가린 사람이 안 들어간다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+    store.noteFootprint(me.id, { toolId: 'pet' });
+    store.noteFootprint(you.id, { toolId: 'pet' });
+
+    expect(store.leaders().map((row) => row.handle).sort()).toEqual([me.handle, you.handle].sort());
+
+    store.setVisibility(you.id, { activity: false });
+    expect(store.leaders().map((row) => row.handle)).toEqual([me.handle]);
+
+    store.setVisibility(me.id, { profile: false });
+    expect(store.leaders()).toEqual([]);
+  });
+
+  it('발자국이 하나도 없는 사람은 전당에 안 뜬다 (0 으로 줄 세우지 않는다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    store.upsertFromDiscord(discordUser);
+    expect(store.leaders()).toEqual([]);
+  });
+
+  it('「지금 접속 중」은 켠 사람만 대답한다 (기본은 안 켜짐)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    store.touchPresence(me.id);
+    // 안 켰으면 있는지 없는지 자체를 안 알려 준다
+    expect(store.onlineNow(me.handle)).toBeNull();
+
+    store.setVisibility(me.id, { presence: true });
+    expect(store.onlineNow(me.handle)).toBe(true);
+    // 창을 오래 닫아 뒀으면 꺼진 것으로 본다
+    expect(store.onlineNow(me.handle, 5 * 60 * 1000, new Date(Date.now() + 60 * 60 * 1000))).toBe(false);
   });
 });

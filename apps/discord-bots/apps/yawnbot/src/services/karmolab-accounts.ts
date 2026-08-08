@@ -104,6 +104,13 @@ export interface Account {
    * 팔로워는 전수에서 센다 (계정 수가 만 단위가 되면 그때 색인을 만든다 — 지금은 아니다).
    */
   following?: string[];
+  /**
+   * 내가 막은 사람 (TASK-KL-156 D2). handle 소문자.
+   *
+   * 따라갈 수만 있고 막을 수 없으면 그건 반쪽이다. 막으면 **내 피드·알림에서 사라지고**,
+   * 그쪽이 나를 따라가는 것도 끊긴다. 「안 보이게」와 「못 하게」를 같이 해야 뜻이 있다.
+   */
+  blocked?: string[];
 }
 
 /**
@@ -150,6 +157,13 @@ export interface AccountVisibility {
   community: boolean;
   /** 발자국(잔디·연속·써 본 도구) */
   activity: boolean;
+  /**
+   * 「지금 접속 중」을 남에게 보이나 (TASK-KL-156 D5).
+   *
+   * 이것만 **기본이 꺼짐**이다. 다른 칸은 이미 공개돼 있던 것을 잠그는 것이라 기본을 바꾸면
+   * 걸어 둔 링크가 죽지만, 이건 새로 생기는 노출이다 — 새 노출은 켜는 사람만 켠다.
+   */
+  presence: boolean;
 }
 
 export const DEFAULT_VISIBILITY: AccountVisibility = {
@@ -159,6 +173,7 @@ export const DEFAULT_VISIBILITY: AccountVisibility = {
   streaks: true,
   community: true,
   activity: true,
+  presence: false,
 };
 
 interface Session {
@@ -797,9 +812,127 @@ export class KarmolabAccountStore {
     return account.following;
   }
 
-  /** 내가 따라가는 사람들 (handle). */
+  /** 내가 따라가는 사람들 (handle). 막은 사람은 여기서 이미 빠져 있다. */
   followingOf(accountId: string): string[] {
     return [...(this.state.accounts[accountId]?.following ?? [])];
+  }
+
+  /**
+   * 막기·풀기 (TASK-KL-156 D2).
+   *
+   * 막으면 **양쪽 팔로우를 함께 끊는다** — 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
+   * 「안 보이게」와 「못 하게」를 같이 해야 막은 것이다.
+   */
+  setBlocked(accountId: string, targetHandle: string, on: boolean): string[] | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const handle = String(targetHandle ?? '').toLowerCase();
+    const targetId = this.state.handleIndex[handle];
+    if (!targetId || targetId === accountId) return null;
+
+    const set = new Set(account.blocked ?? []);
+    if (on) {
+      set.add(handle);
+      account.following = (account.following ?? []).filter((h) => h !== handle);
+      const target = this.state.accounts[targetId];
+      if (target) target.following = (target.following ?? []).filter((h) => h !== account.handle);
+    } else {
+      set.delete(handle);
+    }
+    account.blocked = [...set].sort();
+    this.save();
+    return account.blocked;
+  }
+
+  /** 내가 막은 사람들. */
+  blockedBy(accountId: string): string[] {
+    return [...(this.state.accounts[accountId]?.blocked ?? [])];
+  }
+
+  /** 저 사람이 나를 막았나 — 팔로우를 막을 때 쓴다(막은 사실 자체는 안 알려 준다). */
+  isBlockedBy(targetHandle: string, viewerHandle: string): boolean {
+    const targetId = this.state.handleIndex[String(targetHandle ?? '').toLowerCase()];
+    const target = targetId ? this.state.accounts[targetId] : null;
+    return !!target?.blocked?.includes(String(viewerHandle ?? '').toLowerCase());
+  }
+
+  /**
+   * 도전과제 희귀도 (TASK-KL-156 D1) — 전체 계정 중 몇 %가 가졌나.
+   *
+   * Steam 이 하는 그것과 같다. 값은 **전수에서 세고**, 계정이 너무 적으면 비율을 안 내놓는다 —
+   * 세 명 중 한 명이 가졌다고 「33%」라고 말하면 그건 수치가 아니라 착시다.
+   */
+  achievementRarity(minAccounts = 5): { total: number; enough: boolean; counts: Record<string, number> } {
+    const accounts = Object.values(this.state.accounts);
+    const counts: Record<string, number> = {};
+    for (const account of accounts) {
+      for (const id of account.records?.achievements ?? []) {
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+    }
+    return { total: accounts.length, enough: accounts.length >= minAccounts, counts };
+  }
+
+  /**
+   * 이 사람을 따라가는 사람들의 계정 id (TASK-KL-156 D3).
+   * 막은 사이는 뺀다 — 막아 놓고 알림이 오면 막은 것이 아니다.
+   */
+  followerIdsOf(handle: string): string[] {
+    const target = String(handle ?? '').toLowerCase();
+    const ids: string[] = [];
+    for (const account of Object.values(this.state.accounts)) {
+      if (!(account.following ?? []).includes(target)) continue;
+      if ((account.blocked ?? []).includes(target)) continue;
+      ids.push(account.id);
+    }
+    return ids;
+  }
+
+  /**
+   * 명예의 전당 (TASK-KL-156 D4) — 연속·다녀간 날 상위.
+   *
+   * 프로필이나 발자국을 가린 사람은 **애초에 목록에 안 들어간다**. 가렸는데 순위표에 이름이
+   * 뜨면 그건 가린 것이 아니다.
+   */
+  leaders(limit = 10): Array<{ handle: string; displayName: string; streak: number; activeDays: number }> {
+    const rows: Array<{ handle: string; displayName: string; streak: number; activeDays: number }> = [];
+    for (const account of Object.values(this.state.accounts)) {
+      const visible = this.visibilityFor(account.id);
+      if (!visible.profile || !visible.activity) continue;
+      const footprint = this.footprintFor(account.id);
+      if (footprint.totals.activeDays === 0) continue;
+      rows.push({
+        handle: account.handle,
+        displayName: account.displayName,
+        streak: footprint.streak.longest,
+        activeDays: footprint.totals.activeDays,
+      });
+    }
+    return rows.sort((a, b) => b.streak - a.streak || b.activeDays - a.activeDays).slice(0, limit);
+  }
+
+  /**
+   * 「지금 보고 있다」를 계정에 적는다 (TASK-KL-156 D5).
+   * 발자국의 마지막 시각을 그대로 쓴다 — 같은 뜻을 두 곳에 적지 않는다.
+   */
+  touchPresence(accountId: string, at: Date = new Date()): void {
+    const account = this.state.accounts[accountId];
+    if (!account) return;
+    const footprint = account.footprint ?? { days: {}, tools: {}, firstSeenAt: null, lastSeenAt: null };
+    footprint.firstSeenAt = footprint.firstSeenAt ?? at.toISOString();
+    footprint.lastSeenAt = at.toISOString();
+    account.footprint = footprint;
+    this.save();
+  }
+
+  /** 이 사람이 지금 보고 있나 (본인이 켜 뒀을 때만 대답한다). */
+  onlineNow(handle: string, windowMs = 5 * 60 * 1000, now: Date = new Date()): boolean | null {
+    const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
+    const account = id ? this.state.accounts[id] : null;
+    if (!account) return null;
+    if (!this.visibilityFor(account.id).presence) return null;
+    const last = account.footprint?.lastSeenAt ? Date.parse(account.footprint.lastSeenAt) : 0;
+    return last > 0 && now.getTime() - last <= windowMs;
   }
 
   /** 이 사람을 따라가는 사람 수 — 목록을 두 벌 두지 않으려고 셀 때 훑는다. */
@@ -887,8 +1020,10 @@ export class KarmolabAccountStore {
       streaks,
       updatedAt: account.recordsUpdatedAt,
       card: this.cardFor(account.id),
+      /* 「가렸다」에 `presence` 는 안 넣는다 (TASK-KL-156 D5). 그건 원래 꺼져 있는 것을
+       * 켜는 칸이라, 안 켠 것을 「가렸다」고 적으면 아무것도 안 한 사람에게 늘 그 문구가 붙는다. */
       hidden: (Object.keys(DEFAULT_VISIBILITY) as (keyof AccountVisibility)[]).filter(
-        (key) => key !== 'profile' && !visible[key],
+        (key) => key !== 'profile' && key !== 'presence' && !visible[key],
       ),
     };
   }

@@ -31,6 +31,8 @@ interface PublicProfile {
     followers?: number;
     following?: boolean;
     canFollow?: boolean;
+    /** 지금 접속 중 (TASK-KL-156 D5). 본인이 안 켰으면 null — 그때는 칸 자체를 안 그린다. */
+    online?: boolean | null;
 }
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -137,11 +139,16 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                 ${avatar ? `<img class="profile-avatar" src="${escapeHtml(avatar)}" alt="">` : '<div class="profile-avatar profile-avatar-blank">◍</div>'}
                 <div>
                     <h1 class="profile-name">${escapeHtml(profile.displayName)}</h1>
-                    <p class="profile-handle">@${escapeHtml(profile.handle)}</p>
+                    <p class="profile-handle">@${escapeHtml(profile.handle)}${
+                        profile.online === true ? ' <span class="profile-online">● 지금 접속 중</span>' : ''
+                    }</p>
                     <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
                 </div>
                 ${profile.canFollow
-                    ? `<button type="button" class="profile-follow${profile.following ? ' on' : ''}" id="profileFollow">${profile.following ? '따라가는 중' : '따라가기'}</button>`
+                    ? `<div class="profile-actions">
+                           <button type="button" class="profile-follow${profile.following ? ' on' : ''}" id="profileFollow">${profile.following ? '따라가는 중' : '따라가기'}</button>
+                           <button type="button" class="profile-block" id="profileBlock">막기</button>
+                       </div>`
                     : ''}
             </header>
             ${cardHtml(profile)}
@@ -235,6 +242,49 @@ function mountFollow(root: HTMLElement, profile: PublicProfile): void {
     });
 }
 
+/**
+ * 막기 (TASK-KL-156 D2).
+ *
+ * 되돌릴 수 있는 일이지만 남과의 관계를 끊는 일이라 **무엇이 일어나는지 먼저 말하고** 묻는다.
+ * 막았다는 사실은 상대에게 안 알린다.
+ */
+function mountBlock(root: HTMLElement, profile: PublicProfile): void {
+    const button = root.querySelector<HTMLButtonElement>('#profileBlock');
+    if (!button) return;
+    button.addEventListener('click', async () => {
+        const ok = confirm(
+            [
+                `@${profile.handle} 님을 막습니다.`,
+                '',
+                '· 그 사람 글이 내 피드·알림에서 사라집니다',
+                '· 서로 따라가기가 끊깁니다',
+                '· 막았다는 사실은 상대에게 안 알립니다',
+                '',
+                '내 정보 › 계정 에서 언제든 풀 수 있습니다. 계속할까요?',
+            ].join('\n'),
+        );
+        if (!ok) return;
+        button.disabled = true;
+        try {
+            const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(profile.handle)}/block`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ on: true }),
+            });
+            if (!response.ok) throw new Error(String(response.status));
+            button.textContent = '막았어요';
+            const follow = root.querySelector<HTMLButtonElement>('#profileFollow');
+            if (follow) {
+                follow.textContent = '따라가기';
+                follow.classList.remove('on');
+            }
+        } catch {
+            button.disabled = false;
+        }
+    });
+}
+
 async function main(): Promise<void> {
     const root = document.getElementById('profileRoot');
     if (!root) return;
@@ -261,6 +311,7 @@ async function main(): Promise<void> {
         if (!data.profile) throw new Error('프로필이 비어 있음');
         renderProfile(root, data.profile);
         mountFollow(root, data.profile);
+        mountBlock(root, data.profile);
         void loadActivity(data.profile.handle);
     } catch (error) {
         console.warn('[profile] 프로필을 못 불러왔다:', error);

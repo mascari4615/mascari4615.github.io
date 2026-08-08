@@ -265,6 +265,48 @@ export function registerKarmolabApi(
   steam: SteamPackStore = new SteamPackStore(),
 ): void {
 
+  /**
+   * 「이 글을 남기는 사람은 누구인가」 — 실명과 익명을 **한 자리에서** 가른다 (TASK-KL-157).
+   *
+   * 왜 필요한가: 채팅은 익명으로 즉시 말할 수 있는데 커뮤니티는 서른여덟 자리에서 로그인을
+   * 요구했다. 채팅으로 들어온 사람이 글은 못 쓰는 턱이 생겼고, 그 턱에서 사람이 끊긴다.
+   *
+   * 익명이어도 서버는 **누구의 글인지 안다** — 안 그러면 지울 수도, 하루 상한을 셀 수도 없다.
+   *  - 로그인한 채로 익명 = 글쓴이 열쇠는 **진짜 계정**. 내일도 내가 지운다. 표시만 이름표.
+   *  - 로그인 없이 익명 = 오늘 열쇠에 묶는다. **하루가 지나면 내 글이 아니게 된다** —
+   *    그게 익명의 값이다(추적할 것을 안 남긴다). 대신 채팅과 같은 재갈·봇 차단이 걸린다.
+   */
+  /* 판별 유니온(`{ok:true}|{ok:false}`)으로 쓰면 이 패키지에서는 안 좁혀진다 —
+   * `strictNullChecks` 가 꺼져 있어서 컴파일러가 갈래를 못 가른다. 그래서 한 모양으로 둔다. */
+  interface Writer {
+    /** 막혔으면 그 까닭. null 이면 통과다. */
+    error: string | null;
+    status: number;
+    accountId: string;
+    handle: string;
+    anon: { name: string; color: string } | null;
+  }
+
+  function writerFor(req: Request, account: Account | null, wantsAnon: boolean): Writer {
+    const blocked = (status: number, error: string): Writer => ({ error, status, accountId: '', handle: '', anon: null });
+    if (!wantsAnon) {
+      if (!account) return blocked(401, 'not_signed_in');
+      return { error: null, status: 200, accountId: account.id, handle: account.handle, anon: null };
+    }
+    // 봇이 익명 문을 통해 글을 쏟아붓지 못하게. 채팅과 같은 기준을 쓴다.
+    if (classifyVisitor(req.headers['user-agent']) !== 'human') return blocked(403, 'not_human');
+    const identity = chat.identityFor(visitorKeyFor(req));
+    // 채팅에서 재갈이 물린 사람은 글로도 못 돈다 — 안 그러면 재갈이 우회로를 갖는다.
+    if (chat.isMuted(identity.who)) return blocked(403, 'muted');
+    return {
+      error: null,
+      status: 200,
+      accountId: account ? account.id : `anon:${identity.key}`,
+      handle: account ? account.handle : '',
+      anon: { name: identity.name, color: identity.color },
+    };
+  }
+
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
   app.use('/kl', (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
@@ -613,6 +655,12 @@ export function registerKarmolabApi(
     }
     const handle = String(req.params.handle ?? '');
     const on = (req.body ?? {}).on !== false;
+    // 막은·막힌 사이는 따라갈 수 없다 (TASK-KL-156 D2). 막혔다는 사실 자체는 안 알린다 —
+    // 「막혔음」이라고 답하면 그것이 곧 통보가 된다. 그냥 안 되는 것으로 답한다.
+    if (store.isBlockedBy(handle, account.handle) || store.blockedBy(account.id).includes(handle.toLowerCase())) {
+      res.status(400).json({ error: 'cannot_follow' });
+      return;
+    }
     const following = store.setFollowing(account.id, handle, on);
     if (!following) {
       res.status(400).json({ error: 'cannot_follow' });
@@ -633,7 +681,8 @@ export function registerKarmolabApi(
       res.status(401).json({ error: 'not_signed_in' });
       return;
     }
-    const handles = store.followingOf(account.id);
+    const muted = new Set(store.blockedBy(account.id));
+    const handles = store.followingOf(account.id).filter((handle) => !muted.has(handle));
     const posts = handles
       .flatMap((handle) => traces.postsBy(handle, account.id).map((post) => ({ ...post, handle })))
       .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
@@ -690,6 +739,58 @@ export function registerKarmolabApi(
     // 몇 분은 그대로 써도 된다 — 이 그림은 초 단위로 달라지는 것이 아니다.
     res.setHeader('Cache-Control', 'public, max-age=300');
     res.send(card);
+  });
+
+  /**
+   * 명예의 전당 (TASK-KL-156 D4) — 연속·다녀간 날 상위.
+   *
+   * 프로필이나 발자국을 가린 사람은 애초에 안 들어간다. 가렸는데 순위표에 이름이 뜨면
+   * 그건 가린 것이 아니다.
+   */
+  app.get('/kl/stats/leaders', (_req: Request, res: Response) => {
+    res.json({ leaders: store.leaders() });
+  });
+
+  /**
+   * 도전과제 희귀도 (TASK-KL-156 D1) — 전체 중 몇 %가 가졌나.
+   *
+   * 공개 값이다(누가 가졌는지는 안 나가고, 몇 명인지만 나간다). 계정이 적으면 비율 대신
+   * 「아직 셀 수 없음」을 뜻하는 `enough:false` 로 답한다 — 셋 중 하나를 33%라고 말하면 착시다.
+   */
+  app.get('/kl/stats/achievements', (_req: Request, res: Response) => {
+    res.json(store.achievementRarity());
+  });
+
+  /**
+   * 막기·풀기 (TASK-KL-156 D2).
+   *
+   * 막으면 양쪽 팔로우가 함께 끊긴다 — 안 그러면 막아 놓고도 그쪽 피드에는 내 글이 계속 간다.
+   * 막았다는 사실은 상대에게 안 알린다.
+   */
+  app.post('/kl/u/:handle/block', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const handle = String(req.params.handle ?? '');
+    const on = (req.body ?? {}).on !== false;
+    const blocked = store.setBlocked(account.id, handle, on);
+    if (!blocked) {
+      res.status(400).json({ error: 'cannot_block' });
+      return;
+    }
+    res.json({ blocked: blocked.includes(handle.toLowerCase()), list: blocked });
+  });
+
+  /** 내가 막은 사람 목록. */
+  app.get('/kl/me/blocked', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ blocked: store.blockedBy(account.id) });
   });
 
   /** 내 공개 범위 (TASK-KL-152 C4). */
@@ -856,6 +957,12 @@ export function registerKarmolabApi(
    */
   app.post('/kl/presence', (req: Request, res: Response) => {
     const kind = classifyVisitor(req.headers['user-agent']);
+    // 로그인한 사람은 계정에도 시각을 적는다 (TASK-KL-156 D5) — 프로필의 「지금 접속 중」이
+    // 이 값 하나로 판정된다. 본인이 켜 두지 않았으면 그 값은 남에게 안 나간다.
+    if (kind === 'human') {
+      const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
+      if (viewer) store.touchPresence(viewer.id);
+    }
     const online =
       kind === 'human' ? traces.touchPresence(visitorKeyFor(req)) : traces.presenceCount();
     res.json({ online });
@@ -1346,18 +1453,20 @@ export function registerKarmolabApi(
 
   app.post('/kl/posts', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    if (!account) {
-      res.status(401).json({ error: 'not_signed_in' });
+    const body = req.body ?? {};
+    const writer = writerFor(req, account, body.anon === true);
+    if (writer.error) {
+      res.status(writer.status).json({ error: writer.error });
       return;
     }
-    const body = req.body ?? {};
     const gallery = traces.gallery(String(body.board ?? 'free'));
     if (!gallery) {
       res.status(404).json({ error: 'no_such_gallery' });
       return;
     }
     // 공지는 주인만 쓴다. 막을 거면 서버가 막아야 한다 — 화면에서 숨기는 것은 잠금이 아니다.
-    if (gallery.ownerOnly && !isAdminAccount(account)) {
+    // 익명은 여기 못 들어온다 (익명 공지는 공지가 아니다).
+    if (gallery.ownerOnly && (writer.anon !== null || !isAdminAccount(account))) {
       res.status(403).json({ error: 'not_allowed' });
       return;
     }
@@ -1374,7 +1483,7 @@ export function registerKarmolabApi(
       res.status(400).json({ error: 'bad_title', maxLength: TITLE_MAX_LEN });
       return;
     }
-    if (traces.postsTodayBy(account.id, gallery.id) >= dailyLimitFor(gallery)) {
+    if (traces.postsTodayBy(writer.accountId, gallery.id) >= dailyLimitFor(gallery)) {
       // 막을 때는 왜 막혔는지 말해 준다. 조용히 실패하면 사람은 고장으로 읽는다.
       res.status(429).json({ error: 'daily_limit', limit: dailyLimitFor(gallery) });
       return;
@@ -1386,11 +1495,29 @@ export function registerKarmolabApi(
       board: gallery.id,
       title: gallery.titled ? title : null,
       text,
-      accountId: account.id,
-      handle: account.handle,
+      accountId: writer.accountId,
+      handle: writer.handle,
       tag,
+      anon: writer.anon,
     });
     traces.flush();
+
+    /* 따라가는 사람들에게 알린다 (TASK-KL-156 D3).
+     * 종은 있었지만 울릴 일이 커뮤니티(내 글에 달린 답글)뿐이었다 — 따라가기를 만들어 놓고
+     * 새 글이 안 오면 그 따라가기는 아무 일도 안 하는 단추다.
+     * 막은 사이는 `followerIdsOf` 에서 이미 빠져 나온다. */
+    for (const followerId of store.followerIdsOf(account.handle)) {
+      notes.notify({
+        accountId: followerId,
+        source: 'follow',
+        title: `${account.displayName} 님의 새 글`,
+        body: gallery.titled ? title : text.slice(0, 60),
+        url: `/karmolab/?p=${encodeURIComponent(created.id)}#community`,
+        groupKey: `follow:${account.handle}`,
+        actorAccountId: account.id,
+      });
+    }
+    notes.flush();
     res.json({ id: created.id });
   });
 
@@ -1445,11 +1572,12 @@ export function registerKarmolabApi(
   /** 답글 — 게시판이 게시판인 이유. `parentId` 를 주면 그 답글에 달리는 답글이다. */
   app.post('/kl/posts/:id/replies', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
-    if (!account) {
-      res.status(401).json({ error: 'not_signed_in' });
+    const body = req.body ?? {};
+    const writer = writerFor(req, account, body.anon === true);
+    if (writer.error) {
+      res.status(writer.status).json({ error: writer.error });
       return;
     }
-    const body = req.body ?? {};
     const text = String(body.text ?? '').trim();
     if (text.length < 1 || text.length > REPLY_MAX_LEN) {
       res.status(400).json({ error: 'bad_text', maxLength: REPLY_MAX_LEN });
@@ -1462,10 +1590,11 @@ export function registerKarmolabApi(
 
     const reply = traces.addReply(postId, {
       text,
-      accountId: account.id,
-      handle: account.handle,
+      accountId: writer.accountId,
+      handle: writer.handle,
       byOwner: isAdminAccount(account),
       parentId,
+      anon: writer.anon,
     });
     if (!reply) {
       res.status(404).json({ error: 'not_found' });
@@ -1474,14 +1603,19 @@ export function registerKarmolabApi(
     traces.flush();
 
     /* 알림 — 답글이 달렸는데 글쓴이가 모르면 그 사람은 안 돌아온다.
-       한 글의 답글은 같은 열쇠라 「답글 3개」로 묶인다. 내가 내 글에 단 것은 안 보낸다. */
+       한 글의 답글은 같은 열쇠라 「답글 3개」로 묶인다. 내가 내 글에 단 것은 안 보낸다.
+       익명으로 달았으면 **오늘의 이름표**로 알린다 — 알림 한 줄에 진짜 손잡이를 적으면
+       익명이 거기서 샌다. 「누가」를 안 적을 수는 없다(그러면 알림이 안 읽힌다). */
+    const actorLabel = writer.anon ? writer.anon.name : `@${writer.handle}`;
+    // 익명이 로그인 상태로 달았으면 `writer.accountId` 는 진짜 계정이다 — 자기 글엔 알림이 안 가야 한다.
+    const actorAccountId = writer.accountId;
     if (target) {
       notes.notify({
         accountId: target.authorAccountId,
-        actorAccountId: account.id,
+        actorAccountId,
         source: 'community',
         title: `내 글에 답글이 달렸어요`,
-        body: `${target.title ?? target.text.slice(0, 30)} — @${account.handle}`,
+        body: `${target.title ?? target.text.slice(0, 30)} — ${actorLabel}`,
         url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `post-reply:${postId}`,
       });
@@ -1490,10 +1624,10 @@ export function registerKarmolabApi(
     if (parentAuthorId) {
       notes.notify({
         accountId: parentAuthorId,
-        actorAccountId: account.id,
+        actorAccountId,
         source: 'community',
         title: '내 답글에 답글이 달렸어요',
-        body: `@${account.handle}: ${text.slice(0, 40)}`,
+        body: `${actorLabel}: ${text.slice(0, 40)}`,
         url: `/karmolab/?p=${encodeURIComponent(postId)}#community`,
         groupKey: `reply-reply:${parentId}`,
       });
@@ -1842,6 +1976,8 @@ export function registerKarmolabApi(
         activity: visible.community ? traces.activityOf(account.handle) : { posts: 0, replies: 0 },
         // 따라가기 (TASK-KL-152 C8) — 보는 사람이 누구냐에 따라 답이 다르다.
         followers: store.followerCount(account.handle),
+        // 「지금 접속 중」 — 본인이 켠 사람만. 안 켰으면 null 이라 화면이 그 칸을 아예 안 그린다.
+        online: store.onlineNow(account.handle),
         following: viewerSelf ? store.isFollowing(viewerSelf.id, account.handle) : false,
         canFollow: !!viewerSelf && viewerSelf.id !== account.id,
       },
