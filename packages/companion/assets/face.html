@@ -95,17 +95,6 @@
       }).catch(() => {});
     } catch { /* 기록 못 남겨도 하던 일은 계속 */ }
   }
-  /** 지금 몸이 무엇인지 서버에 알린다 — 못 알려도 하던 일은 계속. */
-  function 몸알리기(무엇) {
-    try {
-      fetch('/window-state', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ 몸: 무엇 }),
-      }).catch(() => {});
-    } catch { /* 알림 하나 못 보낸다고 얘가 멈추면 안 된다 */ }
-  }
-
   window.addEventListener('error', (e) => tell(`에러: ${e.message}`));
   window.addEventListener('unhandledrejection', (e) => tell(`처리 안 된 실패: ${e.reason}`));
 
@@ -970,10 +959,6 @@
         canvas.hidden = true;
       });
       tell(body3d === null ? '3D 몸이 안 섰다 — 큐브로 지낸다' : '3D 몸이 섰다');
-      /* **밖에서도 보이게 알린다.** 여태 이건 기록(로그)에만 남아서, 큐브로 물러선 걸
-         사람이 화면을 들여다보기 전에는 몰랐다. 곁눈질하는 자리(KarmoLab 위젯)가
-         읽어 간다. */
-      몸알리기(body3d === null ? '큐브' : '3D');
       if (body3d !== null) {
         몸크기적용(); // 껐다 켜도 아까 맞춰 둔 크기로 선다
         cube.classList.add('retired');
