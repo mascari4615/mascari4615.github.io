@@ -18,6 +18,7 @@
 import { loadPacks, type Pack, type PackItem } from './pack-store';
 import { listShared, adoptShared, type SharedPackSummary } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
+import { joinRoom, selfId } from 'trystero/nostr';
 import { copyResultCard } from '../lib/result-card';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -38,15 +39,6 @@ interface Runner {
  */
 /** 지난 우승자들끼리 붙이는 판 (TASK-KL-151 심화). 표가 아니라 **내 기록**이 재료다. */
 const CHAMPIONS_KEY = 'champions';
-
-/** 오늘의 월드컵 (TASK-KL-151 ⑥) — 날짜가 표를 고른다. 모두가 같은 판을 돈다. */
-const TODAY_KEY = 'today';
-
-/** KST 기준 며칠째인가. 서버 없이도 모두가 같은 답을 얻는 유일한 방법이다. */
-function dayNumber(now: Date = new Date()): number {
-  const kst = new Date(now.getTime() + 9 * 3600e3);
-  return Math.floor(kst.getTime() / 86400000);
-}
 
 const BUILTIN = [
   { id: 'pokemon', title: '포켓몬', emoji: '🔴' },
@@ -72,10 +64,21 @@ interface Match {
     return out;
   }
 
-  function shuffled<T>(list: T[]): T[] {
+  /** 씨앗에서 나오는 난수 — 같은 씨앗이면 **양쪽이 같은 대진**을 얻는다 (mulberry32). */
+  function seededRandom(seed: number): () => number {
+    let t = seed >>> 0;
+    return () => {
+      t += 0x6d2b79f5;
+      let x = Math.imul(t ^ (t >>> 15), 1 | t);
+      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffled<T>(list: T[], rand: () => number = Math.random): T[] {
     const out = list.slice();
     for (let i = out.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rand() * (i + 1));
       [out[i], out[j]] = [out[j], out[i]];
     }
     return out;
@@ -158,6 +161,15 @@ interface Match {
               <div id="wcTally" style="margin-top:18px"></div>
             </div>
 
+            <div id="wcTogether" class="pk-card" style="margin-top:18px">
+              <div class="tool-sublabel">같이 하기</div>
+              <p class="tool-status" id="wcTogetherMsg">같은 표·같은 대진으로 둘이 돌리고, 끝나면 취향이 얼마나 겹치는지 봅니다.</p>
+              <div class="pk-row">
+                <button type="button" class="btn btn-ghost" id="wcMakeRoom">방 만들기</button>
+                <button type="button" class="btn btn-ghost" id="wcJoinRoom">코드로 참가</button>
+              </div>
+            </div>
+
             <div id="wcHistory" style="margin-top:22px"></div>
           `;
 
@@ -212,14 +224,6 @@ interface Match {
             const options = roundChoices(picked.runners);
             // 처음 고르는 값은 **가장 큰 것이 아니라 16강**이다 — 128강은 첫 판에 백 번을 누르게 한다.
             size = options.indexOf(16) >= 0 ? 16 : options[options.length - 1];
-            /* 오늘의 월드컵은 라운드도 같아야 한다 — 8강 우승과 64강 우승을 같은 통계에 넣으면
-               그 수는 아무 말도 안 하는 수가 된다. */
-            if (picked.builtin === TODAY_KEY) {
-              $('wcRoundBox').hidden = true;
-              $('wcStartRow').hidden = false;
-              $('wcRounds').innerHTML = '';
-              return;
-            }
             $('wcRoundBox').hidden = false;
             $('wcStartRow').hidden = false;
             $('wcRounds').innerHTML = '';
@@ -286,26 +290,6 @@ interface Match {
             void listShared({ needs: 'image', sort: 'popular', limit: 30 }).then((got) => {
               if (!container.isConnected || !got) return;
               const mineShared = new Set(choices.map((c) => c.sharedId).filter(Boolean));
-              /* 오늘의 월드컵 (TASK-KL-151 ⑥).
-                 왜: 각자 다른 표를 돌리면 승률·순위가 영영 안 모인다. 하루에 하나를 정하면
-                 그날 통계가 통째로 살아나고, 「오늘 건 뭐야」로 다시 올 이유가 생긴다.
-                 서버가 정하지 않는다 — 날짜로 고르면 모두가 서버 없이 같은 답을 얻는다. */
-              const pool = got.packs.slice().sort((a, b) => a.id.localeCompare(b.id));
-              if (pool.length) {
-                const pick = pool[dayNumber() % pool.length];
-                const todayChoice: typeof choices = [
-                  {
-                    key: `today:${pick.id}`,
-                    title: `오늘의 월드컵 — ${pick.title}`,
-                    emoji: '📅',
-                    runners: pick.images,
-                    sharedId: pick.id,
-                    builtin: TODAY_KEY,
-                  },
-                ];
-                choices = todayChoice.concat(choices);
-              }
-
               const extra = got.packs
                 .filter((r: SharedPackSummary) => !mineShared.has(r.id))
                 .map((r: SharedPackSummary) => ({
@@ -322,10 +306,6 @@ interface Match {
 
           /** 표를 실제 항목으로 편다. 남의 표는 이때 이 브라우저로 들인다(이어받기와 같은 문). */
           async function runnersFor(choice: (typeof choices)[number]): Promise<Runner[]> {
-            if (choice.builtin === TODAY_KEY && choice.sharedId) {
-              const adopted = await adoptShared(choice.sharedId);
-              return adopted ? runnersOf(adopted.items) : [];
-            }
             if (choice.builtin === CHAMPIONS_KEY) {
               const seen = readHistory();
               return seen
@@ -403,6 +383,14 @@ interface Match {
               : '';
 
             pushHistory({ at: new Date().toISOString(), title: picked?.title ?? '', champion: champion.name, img: champion.img });
+            // 같이 하는 판이면 내 길을 보낸다 — 상대가 도착하면 그때 견준다.
+            myPath = matches.slice();
+            myChampion = champion.name;
+            const send = sendResult;
+            if (send && together) {
+              send({ champion: champion.name, path: matches });
+              $('wcTogetherMsg').textContent = '내 결과를 보냈습니다 — 상대가 끝나면 견줍니다.';
+            }
             paintHistory();
             if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: `${champion.name} 이(가) 우승이네요!` });
             sendTournament(champion);
@@ -487,7 +475,11 @@ interface Match {
               $('wcPackMsg').textContent = '그 표에서 그림이 있는 항목이 넷도 안 됩니다.';
               return;
             }
-            runners = shuffled(all).slice(0, Math.min(size, all.length));
+            /* 같이 하는 판이면 **같은 씨앗**으로 섞는다 — 그래야 라운드끼리 맞댈 수 있다. */
+            runners = shuffled(all, together ? seededRandom(together.seed) : Math.random).slice(
+              0,
+              Math.min(size, all.length)
+            );
             queue = runners.slice();
             winners = [];
             matches = [];
@@ -497,6 +489,121 @@ interface Match {
             $('wcPlay').hidden = false;
             nextMatch();
           }
+
+          /* ── 같이 하기 (TASK-KL-151 ⑧) ───────────────────────────────────
+           *
+           * 왜 「기다렸다 같이 누르기」가 아닌가: 한 명이 고민하면 다른 한 명은 그냥 멈춰 있다.
+           * 몇십 판을 그렇게 하면 지친다. 그래서 **대진만 맞추고 각자 돌린다** —
+           * 재미는 「같이 누르기」가 아니라 **끝나고 갈리는 데** 있다.
+           *
+           * 서버는 없다(트리스테로). 우리 쪽에 방도 기록도 안 남는다.
+           */
+          const APP_ID = 'karmolab-worldcup';
+          let room: ReturnType<typeof joinRoom> | null = null;
+          let sendResult: ((data: unknown) => void) | null = null;
+          let together: { seed: number; size: number; packKey: string } | null = null;
+          let myPath: Match[] | null = null;
+          let myChampion: string | null = null;
+
+          function closeRoom(): void {
+            try {
+              room?.leave();
+            } catch {
+              /* 이미 닫혔다 */
+            }
+            room = null;
+            sendResult = null;
+          }
+          Toolbox.onDispose?.(closeRoom);
+
+          /** 둘의 결과를 견준다 — 같은 대진이라 라운드끼리 그대로 맞댈 수 있다. */
+          function compare(theirs: { champion: string; path: Array<{ win: string; lose: string; round: number }> }): void {
+            const mine = myPath ?? [];
+            let same = 0;
+            for (const m of mine) {
+              const twin = theirs.path.filter((t) => t.round === m.round && (t.win === m.win || t.win === m.lose) && (t.lose === m.win || t.lose === m.lose))[0];
+              if (twin && twin.win === m.win) same += 1;
+            }
+            const rate = mine.length ? Math.round((same / mine.length) * 100) : 0;
+            $('wcTogetherMsg').innerHTML =
+              `상대 우승: <b>${esc(theirs.champion)}</b> · 나: <b>${esc(myChampion ?? '')}</b><br>` +
+              `같은 갈림길에서 <b>${rate}%</b> 를 같게 골랐습니다 — ` +
+              (theirs.champion === myChampion ? '취향이 통하네요.' : rate >= 60 ? '거의 같은데 끝이 갈렸습니다.' : '완전히 다른 취향입니다.');
+          }
+
+          function connect(code: string, host: boolean): void {
+            closeRoom();
+            const r = joinRoom({ appId: APP_ID }, code);
+            room = r;
+            // 받는 자리를 만들 때 같이 건다 (트리스테로 0.25 부터 이 모양이다 — duel.ts 와 같은 길).
+            let pendingSetup: { seed: number; size: number; packKey: string } | null = null;
+            const setupChannel = r.makeAction('setup', {
+              onMessage: (data: unknown) => {
+                const d = data as { seed?: number; size?: number; packKey?: string };
+                if (typeof d?.seed !== 'number' || typeof d.size !== 'number' || !d.packKey) return;
+                pendingSetup = { seed: d.seed, size: d.size, packKey: d.packKey };
+                applySetup(pendingSetup);
+              }
+            });
+            const sendSetup = setupChannel.send as (data: unknown) => void;
+
+            const resultChannel = r.makeAction('result', {
+              onMessage: (data: unknown) => {
+                const d = data as { champion?: string; path?: Match[] };
+                if (!d || !Array.isArray(d.path) || typeof d.champion !== 'string') return;
+                compare({ champion: d.champion, path: d.path });
+              }
+            });
+            sendResult = resultChannel.send as (data: unknown) => void;
+
+            if (host) {
+              $('wcTogetherMsg').textContent = `방 코드: ${code} — 상대가 들어오면 시작합니다. 표와 몇 강은 내가 고른 대로 갑니다.`;
+              r.onPeerJoin = (): void => {
+                if (!picked) {
+                  $('wcTogetherMsg').textContent = '표를 먼저 고르고 다시 방을 만들어 주세요.';
+                  return;
+                }
+                together = { seed: Math.floor(Math.random() * 2 ** 31), size, packKey: picked.key };
+                sendSetup(together);
+                $('wcTogetherMsg').textContent = '상대가 들어왔습니다 — 각자 돌리고 끝나면 견줍니다.';
+                void start();
+              };
+              return;
+            }
+
+            $('wcTogetherMsg').textContent = '방에 들어갔습니다 — 상대가 표를 고르면 시작합니다.';
+          }
+
+          /** 상대가 정한 대진으로 맞춘다. 그 표가 여기 없으면 말해 준다(조용히 다른 표로 놀면 안 된다). */
+          function applySetup(setup: { seed: number; size: number; packKey: string }): void {
+            together = setup;
+            const found = choices.filter((c) => c.key === setup.packKey)[0];
+            if (!found) {
+              $('wcTogetherMsg').textContent = '상대가 고른 표가 여기엔 없습니다 — 둘러보기에서 이어받고 다시 들어와 주세요.';
+              return;
+            }
+            picked = found;
+            size = setup.size;
+            paintPacks();
+            void start();
+          }
+
+          $('wcMakeRoom').addEventListener('click', () => {
+            if (!picked) {
+              $('wcTogetherMsg').textContent = '먼저 표를 고르세요 — 방을 만든 쪽의 표로 돌립니다.';
+              return;
+            }
+            const code = 'wc' + selfId.slice(0, 6) + Math.random().toString(36).slice(2, 5);
+            void navigator.clipboard.writeText(code).catch(() => undefined);
+            connect(code, true);
+            $('wcTogetherMsg').textContent = `방 코드 ${code} 를 복사했습니다 — 상대에게 보내세요.`;
+          });
+
+          $('wcJoinRoom').addEventListener('click', () => {
+            const code = prompt('받은 방 코드를 붙여넣으세요');
+            if (!code) return;
+            connect(code.trim(), false);
+          });
 
           $('wcA').addEventListener('click', () => choose(0));
           $('wcB').addEventListener('click', () => choose(1));
