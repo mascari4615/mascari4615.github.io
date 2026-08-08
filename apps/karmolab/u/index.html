@@ -63,6 +63,16 @@
   .profile-table td:not(:first-child), .profile-table th:not(:first-child) { text-align: right; }
   .profile-note { color: var(--muted); font-size: 14px; }
   /* 명함 자리 (TASK-KL-152 C5) — 한 줄 소개 + 대표 도구. 안 채운 사람에겐 통째로 안 그려진다. */
+  /* 따라가기 (TASK-KL-152 C8) — 로그인 안 했거나 자기 프로필이면 단추 자체가 없다. */
+  .profile-follow {
+    margin-left: auto; align-self: flex-start;
+    padding: 8px 16px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    font: inherit; font-size: 14px; font-weight: 600;
+  }
+  .profile-follow:hover { background: var(--accent); color: #0f0f12; }
+  .profile-follow.on { background: var(--accent); color: #0f0f12; }
+  .profile-follow[disabled] { opacity: .6; cursor: default; }
   .profile-card-note { margin: 18px 0 0; }
   .profile-bio { margin: 0; font-size: 15px; line-height: 1.6; }
   .profile-pins { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }

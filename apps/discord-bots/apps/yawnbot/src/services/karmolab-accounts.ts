@@ -97,6 +97,13 @@ export interface Account {
   card?: ProfileCard;
   /** 내 계정에 무슨 일이 있었나 (TASK-KL-152 C7). 최근 것부터. */
   events?: AccountEvent[];
+  /**
+   * 내가 따라가는 사람 (TASK-KL-152 C8). handle 소문자.
+   *
+   * 팔로워 목록을 따로 두지 않는 이유: 두 벌이면 언젠가 갈라진다. 따라가는 쪽만 적고,
+   * 팔로워는 전수에서 센다 (계정 수가 만 단위가 되면 그때 색인을 만든다 — 지금은 아니다).
+   */
+  following?: string[];
 }
 
 /**
@@ -769,6 +776,45 @@ export class KarmolabAccountStore {
   byHandle(handle: string): Account | null {
     const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
     return id ? (this.state.accounts[id] ?? null) : null;
+  }
+
+  /**
+   * 따라가기 켜고 끄기 (TASK-KL-152 C8).
+   * 자기 자신은 못 따라간다 — 자기 글이 자기 피드에 두 번 뜨는 것뿐이라 아무 뜻이 없다.
+   */
+  setFollowing(accountId: string, targetHandle: string, on: boolean): string[] | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const handle = String(targetHandle ?? '').toLowerCase();
+    const target = this.state.handleIndex[handle];
+    if (!target || target === accountId) return null;
+
+    const set = new Set(account.following ?? []);
+    if (on) set.add(handle);
+    else set.delete(handle);
+    account.following = [...set].sort();
+    this.save();
+    return account.following;
+  }
+
+  /** 내가 따라가는 사람들 (handle). */
+  followingOf(accountId: string): string[] {
+    return [...(this.state.accounts[accountId]?.following ?? [])];
+  }
+
+  /** 이 사람을 따라가는 사람 수 — 목록을 두 벌 두지 않으려고 셀 때 훑는다. */
+  followerCount(handle: string): number {
+    const target = String(handle ?? '').toLowerCase();
+    let count = 0;
+    for (const account of Object.values(this.state.accounts)) {
+      if ((account.following ?? []).includes(target)) count += 1;
+    }
+    return count;
+  }
+
+  /** 내가 저 사람을 따라가고 있나. */
+  isFollowing(accountId: string, handle: string): boolean {
+    return (this.state.accounts[accountId]?.following ?? []).includes(String(handle ?? '').toLowerCase());
   }
 
   /** 프로필 꾸미기 읽기 (안 채웠으면 빈 것). */

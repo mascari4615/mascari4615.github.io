@@ -1,8 +1,11 @@
 /**
  * 공개 프로필 페이지 (TASK-KL-098 Cycle 1) — `/karmolab/u/?h=<핸들>`.
  *
- * 「북적북적」이 실제로 보이는 첫 자리다. 로그인 없이 남이 열 수 있어야 의미가 있으므로
- * 이 페이지는 계정 쿠키를 안 쓴다 (`credentials` 를 안 붙인다).
+ * 「북적북적」이 실제로 보이는 첫 자리다. **로그인 없이 남이 열려야** 의미가 있다 —
+ * 그래서 로그인은 있으면 좋은 것이지 있어야 하는 것이 아니다.
+ * 프로필 본문 요청에만 쿠키를 함께 보낸다 (TASK-KL-152 C8): 「내가 이 사람을 따라가고 있나」는
+ * 보는 사람이 누구냐에 따라 답이 달라서, 그것 없이는 단추를 그릴 수 없다.
+ * 로그인 안 한 사람에게는 지금까지와 똑같이 보인다(단추만 없다).
  *
  * 왜 `?h=` 인가: 이 사이트는 정적으로 올라간다 — `/karmolab/u/<핸들>/` 같은 주소는 핸들마다
  * 파일이 하나씩 있어야 성립한다. 사람이 생길 때마다 배포할 수는 없으므로 Cycle 1 은 물음표
@@ -24,6 +27,10 @@ interface PublicProfile {
     hidden?: string[];
     /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채웠으면 빈 값. */
     card?: { bio: string; pins: string[] };
+    /** 따라가기 (TASK-KL-152 C8). 보는 사람이 누구냐에 따라 답이 다르다. */
+    followers?: number;
+    following?: boolean;
+    canFollow?: boolean;
 }
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -133,10 +140,14 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                     <p class="profile-handle">@${escapeHtml(profile.handle)}</p>
                     <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
                 </div>
+                ${profile.canFollow
+                    ? `<button type="button" class="profile-follow${profile.following ? ' on' : ''}" id="profileFollow">${profile.following ? '따라가는 중' : '따라가기'}</button>`
+                    : ''}
             </header>
             ${cardHtml(profile)}
             ${hiddenNote(profile)}
             <section class="profile-stats">
+                <div class="profile-stat"><strong>${profile.followers ?? 0}</strong><span>팔로워</span></div>
                 <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>도전과제</span></div>
                 <div class="profile-stat"><strong>${profile.badges.length}</strong><span>뱃지</span></div>
                 <div class="profile-stat"><strong>${streakEntries.length}</strong><span>연속 기록 트랙</span></div>
@@ -190,6 +201,40 @@ async function loadActivity(handle: string): Promise<void> {
     }
 }
 
+/**
+ * 따라가기 단추 (TASK-KL-152 C8).
+ *
+ * 로그인 안 했거나 자기 프로필이면 **단추 자체가 없다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+ * 이 페이지는 남이 로그인 없이 여는 자리라, 쿠키는 이 요청에서만 함께 보낸다.
+ */
+function mountFollow(root: HTMLElement, profile: PublicProfile): void {
+    const button = root.querySelector<HTMLButtonElement>('#profileFollow');
+    if (!button) return;
+    let on = !!profile.following;
+    button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+            const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(profile.handle)}/follow`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ on: !on }),
+            });
+            if (!response.ok) throw new Error(String(response.status));
+            const body = (await response.json()) as { following: boolean; count: number };
+            on = body.following;
+            button.textContent = on ? '따라가는 중' : '따라가기';
+            button.classList.toggle('on', on);
+            const followerCell = root.querySelector('.profile-stat strong');
+            if (followerCell) followerCell.textContent = String(body.count);
+        } catch {
+            // 못 바꿨으면 화면도 그대로 둔다 — 눌렀는데 안 된 것을 된 것처럼 보이면 안 된다.
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
 async function main(): Promise<void> {
     const root = document.getElementById('profileRoot');
     if (!root) return;
@@ -201,7 +246,7 @@ async function main(): Promise<void> {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}`);
+        const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}`, { credentials: 'include' });
         // 잠근 것과 없는 것은 다르다 — 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다 (KL-152 C4).
         if (response.status === 403) {
             renderMessage(root, '비공개 프로필이에요', `@${handle} 님이 프로필을 남에게 안 보이게 해 뒀습니다.`);
@@ -215,6 +260,7 @@ async function main(): Promise<void> {
         const data = (await response.json()) as { profile?: PublicProfile };
         if (!data.profile) throw new Error('프로필이 비어 있음');
         renderProfile(root, data.profile);
+        mountFollow(root, data.profile);
         void loadActivity(data.profile.handle);
     } catch (error) {
         console.warn('[profile] 프로필을 못 불러왔다:', error);
