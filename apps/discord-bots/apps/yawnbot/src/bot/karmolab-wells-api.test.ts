@@ -20,11 +20,15 @@ import { registerWellRoutes } from './karmolab-wells-api';
 import { WellStore } from '../services/karmolab-wells';
 import { SteamLibrary } from '../services/karmolab-steam-library';
 import { WellSnapshotStore } from '../services/karmolab-well-snapshots';
+import { TasteStore } from '../services/karmolab-taste';
+import { KarmolabAccountStore } from '../services/karmolab-accounts';
 
 let server: Server;
 let baseUrl: string;
 let wells: WellStore;
 let snapshots: WellSnapshotStore;
+let taste: TasteStore;
+let accounts: KarmolabAccountStore;
 let tmpDir: string;
 /** 바깥 우물이 몇 번 불렸나 — 「캐시가 실제로 막고 있나」를 여기서 센다. */
 let wellCalls: number;
@@ -38,7 +42,8 @@ let wellFails: boolean;
 function fakeOutside(url: string): Record<string, unknown> {
   if (url.includes('steamspy')) {
     const rows: Record<string, unknown> = {};
-    for (let i = 1; i <= 5; i += 1) {
+    // 열둘로 둔다 — 「오늘의 문제」는 여덟 개 넘는 표에서만 나온다(보기 넷이 표의 절반이면 안 되므로).
+    for (let i = 1; i <= 12; i += 1) {
       rows[String(i)] = {
         appid: i,
         name: `게임 ${i}`,
@@ -89,6 +94,8 @@ beforeEach(async () => {
   });
   // 쌓아 두는 자리도 임시 파일로 — 안 그러면 시험이 운영 원장에 하루치를 적는다.
   snapshots = new WellSnapshotStore(path.join(tmpDir, 'snap.json'));
+  taste = new TasteStore(path.join(tmpDir, 'taste.json'));
+  accounts = new KarmolabAccountStore(path.join(tmpDir, 'accounts.json'));
 
   const app = express();
   app.use(express.json());
@@ -105,6 +112,8 @@ beforeEach(async () => {
       };
     }),
     snapshots,
+    taste,
+    accounts,
   );
 
   /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
@@ -157,7 +166,7 @@ describe('표 우물', () => {
     const res = await fetch(`${baseUrl}/kl/wells/pack?well=steam-hot`);
     expect(res.status).toBe(200);
     const { pack } = await res.json();
-    expect(pack.items).toHaveLength(5);
+    expect(pack.items).toHaveLength(12);
     expect(pack.items[0].img).toContain('/steam/apps/1/header.jpg');
     expect(pack.fields.filter((f: { kind: string }) => f.kind === 'number')).toHaveLength(4);
     expect(pack.stale).toBe(false);
@@ -194,7 +203,7 @@ describe('표 우물', () => {
     expect(wellCalls).toBe(1);
     // 한 번 길어 온 우물은 목록에서 개수를 말한다
     const body = await (await fetch(`${baseUrl}/kl/wells`)).json();
-    expect(body.wells.find((w: { id: string }) => w.id === 'steam-hot').items).toBe(5);
+    expect(body.wells.find((w: { id: string }) => w.id === 'steam-hot').items).toBe(12);
   });
 
   it('한 번도 못 길어 왔으면 503 — 없는 표를 지어내지 않는다', async () => {
@@ -264,5 +273,118 @@ describe('시간여행 표 (KL-190 ②)', () => {
     await fetch(`${baseUrl}/kl/wells/pack?well=steam-hot`);
     const body = await (await fetch(`${baseUrl}/kl/wells`)).json();
     expect(body.wells.find((w: { id: string }) => w.id === 'steam-hot').days).toBe(1);
+  });
+});
+
+describe('오늘의 문제 (KL-190 ③)', () => {
+  it('우물에서 문제가 나온다 — 보기 넷, 정답 글자는 안 실린다', async () => {
+    const body = await (await fetch(`${baseUrl}/kl/wells/quiz?well=steam-hot`)).json();
+    expect(body.ready).toBe(true); // 건너뛰면 「문제가 안 나온다」를 초록으로 넘기게 된다
+    expect(body.quiz.choices).toHaveLength(4);
+    expect(JSON.stringify(body.quiz)).not.toContain('"answer"');
+    expect(body.quiz.answerHash).toHaveLength(16);
+  });
+
+  it('안 주면 오늘의 우물로 낸다', async () => {
+    const list = await (await fetch(`${baseUrl}/kl/wells`)).json();
+    const body = await (await fetch(`${baseUrl}/kl/wells/quiz`)).json();
+    expect(body.ready ? body.quiz.well : body.well).toBe(list.today);
+  });
+
+  it('모르는 우물이면 400', async () => {
+    expect((await fetch(`${baseUrl}/kl/wells/quiz?well=constructor`)).status).toBe(400);
+  });
+});
+
+/** 로그인 왕복을 흉내 낼 수 없으니 세션을 직접 만들어 쿠키로 쓴다. */
+function signIn(name = 'tester', id = '42'): { cookie: string; handle: string } {
+  const account = accounts.upsertFromDiscord({ discordId: id, username: name, displayName: name, avatarUrl: null });
+  const session = accounts.createSession(account.id, 'vitest');
+  return { cookie: `kl_session=${session.token}`, handle: account.handle };
+}
+
+describe('취향 지문 (KL-190 ④)', () => {
+  const beat = (win: string, lose: string, n = 1) => Array.from({ length: n }, () => ({ win, lose }));
+
+  it('로그인 안 했으면 조용히 넘긴다 — 논 사람만 벌 받으면 안 된다', async () => {
+    const res = await fetch(`${baseUrl}/kl/taste`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ variant: 'well:steam-hot', matches: beat('A', 'B') }),
+    });
+    expect(res.status).toBe(200);
+    expect((await res.json()).signedIn).toBe(false);
+  });
+
+  it('한 판을 보내면 내가 좋아한 것이 돌아온다', async () => {
+    const me = signIn();
+    const res = await fetch(`${baseUrl}/kl/taste`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ variant: 'well:steam-hot', matches: beat('A', 'B', 3) }),
+    });
+    const body = await res.json();
+    expect(body.signedIn).toBe(true);
+    expect(body.favorites[0].name).toBe('A');
+    expect(body.favorites[0].rate).toBe(100);
+  });
+
+  it('빈 판은 400 — 아무것도 안 고른 판은 지문이 아니다', async () => {
+    const me = signIn();
+    const res = await fetch(`${baseUrl}/kl/taste`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ variant: 'well:steam-hot', matches: [] }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('내 지문을 다시 물어볼 수 있다', async () => {
+    const me = signIn();
+    await fetch(`${baseUrl}/kl/taste`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ variant: 'well:steam-hot', matches: beat('A', 'B', 3) }),
+    });
+    const body = await (await fetch(`${baseUrl}/kl/taste/me?variant=well:steam-hot`, { headers: { cookie: me.cookie } })).json();
+    expect(body.favorites[0].name).toBe('A');
+    // 아직 나 혼자다 — 없는 이웃을 지어내지 않는다
+    expect(body.closest).toEqual([]);
+  });
+
+  it('표를 안 주면 내가 논 표 목록을 준다', async () => {
+    const me = signIn();
+    await fetch(`${baseUrl}/kl/taste`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ variant: 'well:anime-top', matches: beat('A', 'B') }),
+    });
+    const body = await (await fetch(`${baseUrl}/kl/taste/me`, { headers: { cookie: me.cookie } })).json();
+    expect(body.variants).toContain('well:anime-top');
+  });
+});
+
+describe('표 섞기 (KL-190 ⑤)', () => {
+  it('두 우물이 반반으로 섞이고, 어디서 왔는지 남는다', async () => {
+    const { pack } = await (await fetch(`${baseUrl}/kl/wells/mix?a=steam-hot&b=anime-top`)).json();
+    const froms = new Set(pack.items.map((i: { from: string }) => i.from));
+    expect(froms.size).toBe(2);
+    expect(pack.items.every((i: { img?: string }) => i.img)).toBe(true);
+  });
+
+  it('순서가 달라도 같은 표다 — 순위판이 둘로 갈리면 안 된다', async () => {
+    const one = await (await fetch(`${baseUrl}/kl/wells/mix?a=steam-hot&b=anime-top`)).json();
+    const two = await (await fetch(`${baseUrl}/kl/wells/mix?a=anime-top&b=steam-hot`)).json();
+    expect(two.pack.well).toBe(one.pack.well);
+  });
+
+  it('숫자 칸은 안 섞는다 — 접속자와 별점을 한 칸에 놓으면 거짓이 된다', async () => {
+    const { pack } = await (await fetch(`${baseUrl}/kl/wells/mix?a=steam-hot&b=anime-top`)).json();
+    expect(pack.fields.filter((f: { kind: string }) => f.kind === 'number')).toHaveLength(0);
+  });
+
+  it('같은 우물 둘이거나 모르는 우물이면 400', async () => {
+    expect((await fetch(`${baseUrl}/kl/wells/mix?a=steam-hot&b=steam-hot`)).status).toBe(400);
+    expect((await fetch(`${baseUrl}/kl/wells/mix?a=steam-hot&b=constructor`)).status).toBe(400);
   });
 });

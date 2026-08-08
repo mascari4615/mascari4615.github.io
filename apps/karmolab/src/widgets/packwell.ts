@@ -28,6 +28,15 @@ interface WellRow {
   items: number | null;
 }
 
+interface WellQuiz {
+  well: string;
+  day: string;
+  question: string;
+  choices: string[];
+  answerHash: string;
+  because: string;
+}
+
 interface WellPack {
   title: string;
   emoji: string;
@@ -47,6 +56,20 @@ interface WellPack {
     const d = new Date(iso);
     if (isNaN(d.getTime())) return '';
     return d.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  /** 기존 「오늘의 문제」와 같은 대조 규칙 — 소문자·공백·쉼표를 지우고 잰다. */
+  function normalize(text: string): string {
+    return String(text).toLowerCase().replace(/[\s,]/g, '');
+  }
+
+  /** 정답 지문. 브라우저가 직접 재므로 정답 글자는 서버에서 안 온다. */
+  async function sha256Short(text: string): Promise<string> {
+    const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(bytes))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, 16);
   }
 
   async function ask<T>(path: string, signal: AbortSignal): Promise<T> {
@@ -108,6 +131,7 @@ interface WellPack {
               list.querySelectorAll<HTMLButtonElement>('[data-well]').forEach((btn) => {
                 btn.addEventListener('click', () => void open(btn.dataset.well as string, btn));
               });
+              paintMix(ordered);
             })
             .catch(() => {
               if (!root.isConnected) return;
@@ -117,6 +141,57 @@ interface WellPack {
                 `font-size:var(--font-size-sm);line-height:1.7;">지금은 우물에 닿지 못했습니다. 잠시 뒤 다시 열어 보세요.<br>` +
                 `<a class="btn btn-ghost" style="margin-top:10px;" href="/karmolab/#packs">표를 직접 만들기</a></div>`;
             });
+
+          /**
+           * 표 섞기 (TASK-KL-190 ⑤ — 서브 콘텐츠).
+           *
+           * 「애니 vs 게임」처럼 원래 견줄 수 없는 것들을 한 판에 올린다. 메인이 아니라서
+           * 목록 아래 한 줄로만 둔다 — 우물 고르기가 주인공이다.
+           * 숫자로는 못 겨루므로 그림만 담긴 표가 나온다(월드컵·티어표용).
+           */
+          function paintMix(wells: WellRow[]): void {
+            if (wells.length < 2) return;
+            const row = document.createElement('div');
+            row.style.cssText =
+              'display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:var(--font-size-xs);color:var(--text-secondary);';
+            const pickA = document.createElement('select');
+            const pickB = document.createElement('select');
+            for (const select of [pickA, pickB]) {
+              select.className = 'input';
+              select.style.cssText = 'width:auto;min-width:150px;';
+              select.innerHTML = wells.map((w) => `<option value="${esc(w.id)}">${esc(w.emoji)} ${esc(w.title)}</option>`).join('');
+            }
+            pickB.selectedIndex = 1;
+            const go = document.createElement('button');
+            go.className = 'btn btn-ghost';
+            go.textContent = '섞기';
+            row.append('섞어서 한 판:', pickA, document.createTextNode('vs'), pickB, go);
+            list.after(row);
+
+            go.addEventListener('click', () => {
+              if (pickA.value === pickB.value) {
+                view.innerHTML = `<div style="font-size:var(--font-size-sm);color:var(--text-secondary);">서로 다른 우물 둘을 골라 주세요.</div>`;
+                return;
+              }
+              go.disabled = true;
+              view.innerHTML = `<div style="color:var(--text-tertiary);font-size:var(--font-size-sm);">두 표를 섞는 중…</div>`;
+              ask<{ pack: WellPack }>(
+                `/kl/wells/mix?a=${encodeURIComponent(pickA.value)}&b=${encodeURIComponent(pickB.value)}`,
+                control.signal,
+              )
+                .then((body) => {
+                  if (root.isConnected) show(body.pack);
+                })
+                .catch(() => {
+                  if (root.isConnected) {
+                    view.innerHTML = `<div style="font-size:var(--font-size-sm);color:var(--text-secondary);">지금은 못 섞었습니다.</div>`;
+                  }
+                })
+                .finally(() => {
+                  go.disabled = false;
+                });
+            });
+          }
 
           async function open(id: string, btn: HTMLButtonElement): Promise<void> {
             const wasDisabled = btn.disabled;
@@ -172,6 +247,7 @@ interface WellPack {
                 )
                 .join('') +
               `</div>` +
+              `<div id="pwMovers" hidden></div>` +
               `<div id="pwAct" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">` +
               `<button class="btn btn-primary" id="pwTake">${already ? '내 표 새로 고치기' : '내 표로 담기'}</button>` +
               (already
@@ -180,6 +256,45 @@ interface WellPack {
               `</div></div>`;
 
             (view.querySelector('#pwTake') as HTMLButtonElement).addEventListener('click', () => take(pack, already ?? null));
+            paintMovers(pack.well);
+          }
+
+          /**
+           * 며칠 전보다 많이 움직인 것 (TASK-KL-190 ②).
+           *
+           * 「지금 1등」은 아무나 보여 준다. **「지난주보다 뭐가 올라왔나」**는 우리가 쌓아 둔
+           * 것에서만 나온다. 쌓인 날이 이틀도 안 되면 **아무 말도 안 한다** — 지어내지 않는다.
+           */
+          function paintMovers(well: string): void {
+            const slot = view.querySelector('#pwMovers') as HTMLElement | null;
+            if (!slot) return;
+            ask<{ ready: boolean; since?: string; rows?: Array<{ name: string; changePct: number; rankDelta: number | null }> }>(
+              `/kl/wells/movers?well=${encodeURIComponent(well)}`,
+              control.signal,
+            )
+              .then((body) => {
+                if (!root.isConnected || !body.ready || !body.rows?.length) return;
+                slot.hidden = false;
+                slot.innerHTML =
+                  `<div style="font-size:var(--font-size-xs);color:var(--text-tertiary);margin-bottom:6px;">` +
+                  `${esc(body.since ?? '')} 이후 많이 움직인 것</div>` +
+                  `<div style="display:flex;gap:8px;flex-wrap:wrap;">` +
+                  body.rows
+                    .map((r) => {
+                      const up = r.changePct > 0;
+                      return (
+                        `<span style="padding:3px 9px;border-radius:100px;border:1px solid var(--border);` +
+                        `font-size:var(--font-size-xs);color:var(--text-secondary);">` +
+                        `${up ? '▲' : '▼'} ${esc(r.name)} ${Math.abs(r.changePct)}%` +
+                        `${r.rankDelta ? ` <span style="opacity:.7">(${Math.abs(r.rankDelta)}칸)</span>` : ''}</span>`
+                      );
+                    })
+                    .join('') +
+                  `</div>`;
+              })
+              .catch(() => {
+                /* 아직 쌓인 게 없거나 못 닿았다 — 이 칸만 없다 */
+              });
           }
 
           /**
@@ -223,6 +338,57 @@ interface WellPack {
               links.join('') +
               `<span style="width:100%;font-size:var(--font-size-xs);color:var(--text-tertiary);">놀이를 열면 이 표가 이미 골라져 있습니다.</span>`;
           }
+        },
+      },
+      {
+        id: 'quiz',
+        label: '오늘의 문제',
+        /**
+         * 우물에서 자동으로 뽑은 오늘의 문제 (TASK-KL-190 ③).
+         *
+         * 손으로 적어 둔 문제는 다 풀면 끝이다. 우물은 매일 새 숫자를 길어 오므로 여기서
+         * 뽑으면 사람 손 없이 는다. 정답 글자는 서버가 안 보낸다(지문만) — 소스를 열어도
+         * 답이 안 보이게. 대조 규칙은 기존 「오늘의 문제」와 같다(소문자·공백·쉼표 지우기).
+         */
+        build: function (root: HTMLElement): void {
+          const control = new AbortController();
+          Toolbox.onDispose?.(() => control.abort());
+          root.innerHTML = `<div id="pwQuiz" style="max-width:640px;margin:0 auto;color:var(--text-tertiary);font-size:var(--font-size-sm);">문제를 가져오는 중…</div>`;
+          const box = root.querySelector('#pwQuiz') as HTMLElement;
+
+          ask<{ ready: boolean; quiz?: WellQuiz; reason?: string }>('/kl/wells/quiz', control.signal)
+            .then(async (body) => {
+              if (!root.isConnected) return;
+              if (!body.ready || !body.quiz) {
+                box.innerHTML = `오늘 우물에서는 문제를 못 만들었습니다 — 견줄 숫자 칸이 없는 표라서요.`;
+                return;
+              }
+              const quiz = body.quiz;
+              box.style.color = 'var(--text-primary)';
+              box.innerHTML =
+                `<p style="font-size:var(--font-size-lg);font-weight:700;margin:0 0 14px;">${esc(quiz.question)}</p>` +
+                `<div style="display:grid;gap:8px;">` +
+                quiz.choices
+                  .map((c, i) => `<button class="btn btn-ghost" data-pick="${i}" style="justify-content:flex-start;">${esc(c)}</button>`)
+                  .join('') +
+                `</div><div id="pwQuizSaid" style="margin-top:14px;font-size:var(--font-size-sm);"></div>`;
+
+              const said = box.querySelector('#pwQuizSaid') as HTMLElement;
+              box.querySelectorAll<HTMLButtonElement>('[data-pick]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                  const picked = quiz.choices[Number(btn.dataset.pick)];
+                  const right = (await sha256Short(normalize(picked))) === quiz.answerHash;
+                  box.querySelectorAll<HTMLButtonElement>('[data-pick]').forEach((b) => (b.disabled = true));
+                  btn.className = right ? 'btn btn-primary' : 'btn btn-ghost';
+                  said.innerHTML = right
+                    ? `<b>맞았어요.</b> ${esc(quiz.because)}`
+                    : `<b>아쉬워요.</b> ${esc(quiz.because)}`;
+                });
+              });
+            })
+            .catch(() => {
+              if (root.isConnected) box.textContent = '지금은 문제를 가져오지 못했습니다.';
+            });
         },
       },
       {

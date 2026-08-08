@@ -158,6 +158,7 @@ interface Match {
                 <button type="button" class="btn btn-ghost" id="wcOther">다른 표로</button>
               </div>
               <div id="wcPath" style="margin-top:14px"></div>
+              <div id="wcTaste" hidden style="margin-top:18px"></div>
               <div id="wcTally" style="margin-top:18px"></div>
             </div>
 
@@ -182,6 +183,8 @@ interface Match {
             emoji: string;
             runners: number;
             sharedId?: string;
+            /** 바깥 우물에서 길어 온 표면 그 우물 id — 취향 지문이 모두 같은 이름으로 갈리게 (KL-190 ④). */
+            well?: string;
             local?: Pack;
             /** 처음부터 있는 표면 그 이름 (`pokemon` …). 항목은 그때 받아 온다. */
             builtin?: string;
@@ -282,7 +285,7 @@ interface Match {
 
             choices = championChoice.concat(builtins).concat(
               loadPacks()
-                .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, local: p }))
+                .map((p) => ({ key: `local:${p.id}`, title: p.title, emoji: p.emoji, runners: runnersOf(p.items).length, sharedId: p.sharedId, well: p.well, local: p }))
                 .filter((c) => c.runners >= 4)
             );
             paintPacks();
@@ -383,6 +386,7 @@ interface Match {
               : '';
 
             pushHistory({ at: new Date().toISOString(), title: picked?.title ?? '', champion: champion.name, img: champion.img });
+            sendTaste();
             // 같이 하는 판이면 내 길을 보낸다 — 상대가 도착하면 그때 견준다.
             myPath = matches.slice();
             myChampion = champion.name;
@@ -394,6 +398,47 @@ interface Match {
             paintHistory();
             if (typeof Mdd !== 'undefined') Mdd.linePreset?.('success', { msg: `${champion.name} 이(가) 우승이네요!` });
             sendTournament(champion);
+          }
+
+          /**
+           * 내가 고른 것들을 **취향 지문**에 더한다 (TASK-KL-190 ④).
+           *
+           * 왜: 이 판의 선택은 지금까지 순위 말고 아무 데도 안 쓰였다 — 끝나면 사라졌다.
+           * 「무엇을 골랐나」는 순위보다 많은 걸 말한다(누구와 닮았나, 정반대는 누구인가).
+           *
+           * fail-open: 로그인을 안 했으면 서버가 조용히 넘긴다. 못 닿으면 이 칸만 없다.
+           */
+          function sendTaste(): void {
+            const variant = picked?.well
+              ? `well:${picked.well}`
+              : picked?.sharedId
+                ? `pack:${picked.sharedId}`
+                : picked?.builtin
+                  ? `builtin:${picked.builtin}`
+                  : null;
+            // 이 브라우저에만 있는 표는 안 보낸다 — 남과 견줄 수 없는 지문은 혼잣말이다.
+            if (!variant || !matches.length) return;
+            fetch(`${API_BASE}/kl/taste`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ variant, matches: matches.map((m) => ({ win: m.win, lose: m.lose })) }),
+            })
+              .then((r) => (r.ok ? r.json() : null))
+              .then((body: { signedIn?: boolean; closest?: Array<{ handle: string; agreePct: number; overlap: number }> } | null) => {
+                if (!body || !body.signedIn || !container.isConnected) return;
+                const near = (body.closest ?? [])[0];
+                if (!near) return;
+                const slot = $('wcTaste');
+                slot.hidden = false;
+                slot.innerHTML =
+                  `<div class="tool-sublabel">취향이 닮은 사람</div>` +
+                  `<p style="margin:6px 0 0;line-height:1.7">${esc(near.handle)} 님과 ` +
+                  `<b>${near.agreePct}%</b> 같은 쪽을 골랐어요 <span style="opacity:.7">(견준 항목 ${near.overlap}개)</span></p>`;
+              })
+              .catch(() => {
+                /* 못 닿으면 이 칸만 없다 */
+              });
           }
 
           /** 판 결과를 표의 통계로 보낸다. 서버 없으면 통계 칸만 없다. */
