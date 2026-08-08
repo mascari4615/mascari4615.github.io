@@ -43,9 +43,16 @@ import {
   REPLY_MAX_LEN,
 } from '../services/karmolab-traces';
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
+import { getKarmolabPlayStore, playGame, isValidVariant, type KarmolabPlayStore } from '../services/karmolab-plays';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
+import {
+  getKarmolabChatStore,
+  TEXT_MAX as CHAT_TEXT_MAX,
+  type ChatEvent,
+  type KarmolabChatStore,
+} from '../services/karmolab-chat';
 
 /** 쿠키 이름. 짧고 우리 것임이 드러나게. */
 const SESSION_COOKIE = 'kl_session';
@@ -232,6 +239,8 @@ export function registerKarmolabApi(
   store: KarmolabAccountStore = getKarmolabAccountStore(),
   traces: KarmolabTraceStore = getKarmolabTraceStore(),
   notes: KarmolabNotificationStore = getKarmolabNotificationStore(),
+  plays: KarmolabPlayStore = getKarmolabPlayStore(),
+  chat: KarmolabChatStore = getKarmolabChatStore(),
 ): void {
 
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
@@ -494,6 +503,21 @@ export function registerKarmolabApi(
     res.json({ account: store.publicProfile(account) });
   });
 
+  /**
+   * 내 발자국 (TASK-KL-152 C1) — 잔디·돌아보기가 읽는 자리.
+   *
+   * 지어낸 수는 하나도 없다. 로그인한 뒤에 실제로 열린 것만 들어 있고, 없으면 빈 채로 답한다
+   * (없는 것을 0 이 아니라 「아직 없다」로 보여 줄 수 있게 날짜 칸 자체가 비어 나간다).
+   */
+  app.get('/kl/me/activity', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ activity: store.footprintFor(account.id) });
+  });
+
   /** 지금 살아 있는 내 로그인들. 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
   app.get('/kl/me/sessions', (req: Request, res: Response) => {
     const token = readCookie(req, SESSION_COOKIE);
@@ -593,6 +617,9 @@ export function registerKarmolabApi(
       return;
     }
     const counted = traces.recordToolOpen(toolId, visitorKeyFor(req));
+    // 로그인했으면 **내 것으로도** 적는다 (TASK-KL-152 C1). 익명 집계는 그대로 — 두 벌은 쓰임이 다르다.
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (account) store.noteFootprint(account.id, { toolId });
     res.json({ counted, kind });
   });
 
@@ -605,6 +632,12 @@ export function registerKarmolabApi(
     // 버리지는 않는다. 종류별로 나눠서 그대로 공개한다.
     const kind = classifyVisitor(req.headers['user-agent']);
     const counted = traces.recordVisit(visitorKeyFor(req), kind);
+    /* 도구를 안 연 날도 **온 날이다** (TASK-KL-152 C1). 도구 연 것만 세면 「그냥 둘러본 날」이
+     * 잔디에서 빈칸이 되고, 연속 기록이 사실과 다르게 끊긴다. */
+    if (kind === 'human') {
+      const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+      if (account) store.noteFootprint(account.id, {});
+    }
     res.json({ counted, kind });
   });
 
@@ -631,6 +664,100 @@ export function registerKarmolabApi(
   /** 공개 집계 — 어느 도구가 실제로 쓰이는가. 한 번도 안 열린 도구는 아예 안 나온다. */
   app.get('/kl/tools/stats', (_req: Request, res: Response) => {
     res.json({ tools: traces.toolStats(), pulse: traces.pulse(), visits: traces.visitStats() });
+  });
+
+  // ── 놀이 기록 (TASK-KL-148) ────────────────────────────────────────────────
+  //
+  // 한 판이 끝나면 남는 자리. **순위 방향은 서버만 안다** — 반응속도는 작을수록, 연승은
+  // 클수록 좋다. 화면은 자기 숫자를 그리기만 한다(두 곳에 적으면 그날부터 갈라진다).
+  //
+  // 로그인해야 서버에 남는다. 안 한 사람도 놀이는 그대로 되고(이 브라우저 최고만 뜬다),
+  // 서버가 죽어도 마찬가지다 — 놀이 여섯의 생사를 노트북 한 대에 걸지 않는다.
+
+  /** 겨룰 수 있는 놀이와 그 규칙 + 지금까지 몇 명이 겨뤘나. */
+  app.get('/kl/play/games', (_req: Request, res: Response) => {
+    res.json({ games: plays.stats() });
+  });
+
+  /** 한 판 결과. 로그인 안 했으면 401 — 화면은 그걸 받고 로컬 최고만 보여 준다. */
+  app.post('/kl/play', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const spec = playGame(body.game);
+    if (!spec) {
+      res.status(400).json({ error: 'unknown_game' });
+      return;
+    }
+    // 사람이 만든 판인지부터. 여기서 안 거르면 순위판 1등이 로봇이 된다.
+    if (classifyVisitor(req.headers['user-agent']) !== 'human') {
+      res.json({ counted: false });
+      return;
+    }
+    // 표가 갈리는 놀이(높은 쪽 고르기)는 어느 표로 놀았는지가 있어야 순위가 성립한다 —
+    // 없으면 쉬운 표를 고른 사람이 1등이 된다.
+    const variant = typeof body.variant === 'string' ? body.variant : null;
+    const outcome = plays.record(spec.id, account.handle, Number(body.score), new Date(), variant);
+    if (!outcome) {
+      res.status(400).json({
+        error: spec.variants && !isValidVariant(variant) ? 'bad_variant' : 'bad_score',
+        min: spec.min,
+        max: spec.max,
+        unit: spec.unit,
+      });
+      return;
+    }
+    res.json({ counted: true, outcome, board: plays.board(spec.id, 'all', 5, new Date(), outcome.variant) });
+  });
+
+  /** 순위판 — 역대(all) 또는 오늘(day). 아무도 안 논 놀이는 빈 목록이다(0 을 꾸며 내지 않는다). */
+  app.get('/kl/play/board', (req: Request, res: Response) => {
+    const spec = playGame(req.query.game);
+    if (!spec) {
+      res.status(400).json({ error: 'unknown_game' });
+      return;
+    }
+    const period = req.query.period === 'day' ? 'day' : 'all';
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const variant = typeof req.query.variant === 'string' ? req.query.variant : null;
+    if (spec.variants && !isValidVariant(variant)) {
+      res.status(400).json({ error: 'bad_variant' });
+      return;
+    }
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    res.json({
+      game: spec.id,
+      variant: spec.variants ? variant : null,
+      label: spec.label,
+      unit: spec.unit,
+      better: spec.better,
+      period,
+      entries: plays.board(spec.id, period, limit, new Date(), variant),
+      // 내가 순위 밖이어도 내 자리는 알려 준다 — 없으면 「나는 어디쯤인가」를 영영 모른다.
+      // 핸들을 같이 주는 이유: 순위판에서 **내 줄에 색을 넣으려면** 어느 줄이 나인지 알아야 한다.
+      me: account
+        ? (() => {
+            const found = plays
+              .me(account.handle)
+              .find((m) => m.game === spec.id && m.variant === (spec.variants ? variant : null));
+            return found ? { handle: account.handle, ...found } : null;
+          })()
+        : null,
+      signedIn: Boolean(account),
+    });
+  });
+
+  /** 내 전 종목 최고. 논 적 없는 종목은 안 나온다. */
+  app.get('/kl/play/me', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ handle: account.handle, records: plays.me(account.handle) });
   });
 
   /** 어떤 갤러리가 있고, 각 갤러리가 얼마나 살아 있나 (글 수 · 마지막 글 · 마지막 시각). */
@@ -1316,6 +1443,149 @@ export function registerKarmolabApi(
     // 커뮤니티 활동도 프로필의 일부다 — 「이 사람이 여기서 무엇을 했나」.
     res.json({ profile: { ...store.publicProfile(account), activity: traces.activityOf(account.handle) } });
   });
+  // ── 실시간 익명 채팅 (TASK-KL-149) ─────────────────────────────────────────
+  //
+  // 광장은 「지금 N명」을 세기만 했다. 여기서 그 N명이 서로에게 말을 건다.
+  // 전송은 **SSE** 다 — 새 의존성 0, 재연결은 브라우저가 알아서, 프록시(cloudflared)를 그냥 통과.
+
+  /**
+   * 흐르는 쪽. 브라우저가 한 번 붙어 두고 계속 받는다.
+   *
+   * 함정 두 개를 여기서 막는다:
+   *  ① 중간에서 **모아 두면** 실시간이 아니다 → `X-Accel-Buffering: no` + 압축 금지 + 즉시 헤더 전송.
+   *  ② 조용한 연결은 프록시가 **끊는다** → 15초마다 주석 한 줄(`:`)을 흘려 보낸다. 화면엔 안 보인다.
+   */
+  app.get('/kl/chat/stream', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const identity = chat.identityFor(visitorKeyFor(req));
+
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    // 작은 조각을 모았다 보내면 그 자체가 지연이다.
+    req.socket.setNoDelay(true);
+
+    const send = (event: string, data: unknown): void => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
+    /* 첫 마디. 「너는 오늘 누구인가」 + 지금까지의 줄 + 몇 명이 창을 열고 있나.
+     * 이걸 한 번에 주기 때문에 화면은 붙자마자 그릴 것이 있다 — 빈 창을 안 보여 준다. */
+    send('hello', {
+      me: { who: identity.who, name: identity.name, color: identity.color },
+      messages: chat.recent(),
+      here: chat.hereCount() + 1,
+      isAdmin: isAdminAccount(account),
+      maxLength: CHAT_TEXT_MAX,
+    });
+
+    const unsubscribe = chat.subscribe((event: ChatEvent) => {
+      send(event.type, event);
+    });
+    const heartbeat = setInterval(() => res.write(': ping\n\n'), 15000);
+
+    const close = (): void => {
+      clearInterval(heartbeat);
+      unsubscribe();
+      res.end();
+    };
+    req.on('close', close);
+    res.on('error', close);
+  });
+
+  /** SSE 가 막힌 자리(구형 브라우저·이상한 프록시)를 위한 되돌아갈 길. 화면은 이걸로도 돈다. */
+  app.get('/kl/chat/recent', (req: Request, res: Response) => {
+    const identity = chat.identityFor(visitorKeyFor(req));
+    res.json({
+      me: { who: identity.who, name: identity.name, color: identity.color },
+      messages: chat.recent(),
+      here: chat.hereCount(),
+      isAdmin: isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE))),
+      maxLength: CHAT_TEXT_MAX,
+    });
+  });
+
+  /**
+   * 한 줄 보낸다. **로그인은 안 물어본다** — 익명 채팅이니까.
+   * 막힐 때는 왜 막혔는지와 언제 다시 되는지를 같이 준다(「안 돼요」만 주면 아무도 못 고친다).
+   */
+  app.post('/kl/chat', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    // 봇은 사람 사이에 끼지 않는다. 크롤러가 폼을 눌러 방을 채우는 일을 막는다.
+    if (classifyVisitor(req.headers['user-agent']) !== 'human') {
+      res.status(403).json({ error: 'not_human' });
+      return;
+    }
+    const result = chat.post(visitorKeyFor(req), String(req.body?.text ?? ''), {
+      byOwner: isAdminAccount(account),
+    });
+    if (!result.ok) {
+      const status = result.error === 'muted' ? 403 : result.error === 'too_long' ? 400 : 429;
+      res.status(status).json({ error: result.error, retryAfterMs: result.retryAfterMs ?? null, maxLength: CHAT_TEXT_MAX });
+      return;
+    }
+    chat.flush();
+    res.json({ ok: true, message: result.message });
+  });
+
+  /** 주인이 한 줄 지운다. 지운 자리는 안 남긴다 — 「삭제됨」이 줄줄이 남으면 그것이 도배가 된다. */
+  app.delete('/kl/chat/:id', (req: Request, res: Response) => {
+    if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    if (!chat.remove(String(req.params.id ?? ''))) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    chat.flush();
+    res.json({ ok: true });
+  });
+
+  /** 주인이 재갈을 물린다. 오늘 이름표 기준이라 **자정이면 어차피 풀린다** — 영구 추방이 아니다. */
+  app.post('/kl/chat/mute', (req: Request, res: Response) => {
+    if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    const minutes = Number(req.body?.minutes ?? 30);
+    if (!chat.mute(String(req.body?.who ?? ''), Number.isFinite(minutes) ? minutes : 30)) {
+      res.status(400).json({ error: 'bad_request' });
+      return;
+    }
+    chat.flush();
+    res.json({ ok: true });
+  });
+
+  /**
+   * 신고. 지우지 않는다 — 주인에게 알림만 간다(커뮤니티 신고와 같은 원칙).
+   * 신고 한 번으로 남의 말이 사라지면 그 단추 자체가 무기가 된다.
+   */
+  app.post('/kl/chat/report', (req: Request, res: Response) => {
+    const id = String(req.body?.id ?? '');
+    const target = chat.recent().find((m) => m.id === id);
+    if (!target) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
+      const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
+      if (!admin) continue;
+      notes.notify({
+        accountId: admin.id,
+        source: 'moderation',
+        title: '채팅 신고가 들어왔어요',
+        body: `${target.name}: ${target.text}`.slice(0, 60),
+        url: '/karmolab/#chat',
+        groupKey: 'chat-reports',
+      });
+    }
+    notes.flush();
+    res.json({ ok: true });
+  });
+
   /* 라우트보다 **뒤**에 있어야 잡는다. 여기로 오는 오류는 **반드시 CORS 헤더를 달고** 나가야 한다.
    * 안 그러면 브라우저가 진짜 이유(너무 큼·잘못된 몸통) 대신 「CORS 막힘」만 보여 준다. */
   app.use('/kl', (error: Error & { status?: number; type?: string }, req: Request, res: Response, next: NextFunction) => {

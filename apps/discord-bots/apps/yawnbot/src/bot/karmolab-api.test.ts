@@ -14,20 +14,24 @@ import path from 'path';
 import { registerKarmolabApi } from './karmolab-api';
 import { KarmolabAccountStore } from '../services/karmolab-accounts';
 import { KarmolabTraceStore } from '../services/karmolab-traces';
+import { KarmolabPlayStore } from '../services/karmolab-plays';
 
 let server: Server;
 let baseUrl: string;
 let store: KarmolabAccountStore;
 let traces: KarmolabTraceStore;
+let plays: KarmolabPlayStore;
 let tmpDir: string;
 
 beforeEach(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kl098-api-'));
   store = new KarmolabAccountStore(path.join(tmpDir, 'state.json'));
   traces = new KarmolabTraceStore(path.join(tmpDir, 'traces.json'));
+  // 놀이 기록도 임시 파일로 (TASK-KL-148). 안 넣으면 시험이 운영 원장에 판을 적는다.
+  plays = new KarmolabPlayStore(path.join(tmpDir, 'plays.json'));
   const app = express();
   app.use(express.json());
-  registerKarmolabApi(app, store, traces);
+  registerKarmolabApi(app, store, traces, undefined, plays);
   /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
      `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -1074,5 +1078,116 @@ describe('검색 · 활동 · 신고 · 그림 — HTTP', () => {
 
   it('이상한 그림 이름으로는 아무것도 못 읽는다', async () => {
     expect((await fetch(`${baseUrl}/kl/img/..%2F..%2Fpackage.json`)).status).toBe(404);
+  });
+});
+
+/**
+ * 놀이 기록 (TASK-KL-148).
+ *
+ * 유닛 시험이 원장을 보고, 여기서는 **브라우저에서 실제로 되는가**를 본다 — 로그인 없이 못 적고,
+ * 로봇이 순위판에 못 올라가고, 서버가 순위 방향을 쥐고 있는가.
+ */
+describe('놀이 기록 API — HTTP', () => {
+  /** 사람 브라우저 표식. 이게 없으면 서버가 「알 수 없음」으로 보고 안 센다. */
+  const HUMAN = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36';
+
+  async function play(cookie: string | null, body: unknown, ua = HUMAN): Promise<Response> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', 'User-Agent': ua };
+    if (cookie) headers.Cookie = cookie;
+    return fetch(`${baseUrl}/kl/play`, { method: 'POST', headers, body: JSON.stringify(body) });
+  }
+
+  it('로그인 안 하면 서버에 안 남는다 (놀이는 그대로 되고, 화면이 로컬 최고만 쓴다)', async () => {
+    const res = await play(null, { game: 'reaction', score: 200 });
+    expect(res.status).toBe(401);
+    expect(plays.board('reaction')).toHaveLength(0);
+  });
+
+  it('한 판을 적으면 최고·순위·오늘이 함께 돌아온다', async () => {
+    const { cookie, handle } = signIn();
+    const res = await play(cookie, { game: 'reaction', score: 205 });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as any;
+    expect(body.counted).toBe(true);
+    expect(body.outcome).toMatchObject({ game: 'reaction', score: 205, best: 205, improved: true, rank: 1, total: 1 });
+    expect(body.outcome.previousBest).toBeNull();
+    expect(body.board[0]).toMatchObject({ rank: 1, handle, score: 205 });
+  });
+
+  it('로봇이 보낸 판은 순위판에 안 올라간다', async () => {
+    const { cookie } = signIn();
+    const res = await play(cookie, { game: 'reaction', score: 90 }, 'python-requests/2.32');
+    expect(res.status).toBe(200);
+    expect((await res.json()).counted).toBe(false);
+    expect(plays.board('reaction')).toHaveLength(0);
+  });
+
+  it('사람이 낼 수 없는 점수는 거절하고 왜인지 알려 준다', async () => {
+    const { cookie } = signIn();
+    const res = await play(cookie, { game: 'reaction', score: 3 });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'bad_score', unit: 'ms' });
+  });
+
+  it('모르는 놀이는 400 — 아무 이름이나 받으면 원장이 쓰레기로 찬다', async () => {
+    const { cookie } = signIn();
+    expect((await play(cookie, { game: '없는놀이', score: 200 })).status).toBe(400);
+    expect((await fetch(`${baseUrl}/kl/play/board?game=없는놀이`)).status).toBe(400);
+  });
+
+  it('순위 방향은 서버가 쥔다 — 반응속도 순위판에 느린 사람이 위로 오지 않는다', async () => {
+    const fast = signIn();
+    plays.record('reaction', fast.handle, 150);
+    plays.record('reaction', 'slowpoke', 800);
+    const res = await fetch(`${baseUrl}/kl/play/board?game=reaction`, { headers: { Cookie: fast.cookie } });
+    const body = (await res.json()) as any;
+    expect(body.better).toBe('low');
+    expect(body.entries.map((e: any) => e.handle)).toEqual([fast.handle, 'slowpoke']);
+    expect(body.me).toMatchObject({ best: 150, rank: 1 });
+    expect(body.signedIn).toBe(true);
+  });
+
+  it('로그인 안 한 사람도 순위판은 본다 (내 자리만 없다)', async () => {
+    const res = await fetch(`${baseUrl}/kl/play/board?game=reaction`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as any;
+    expect(body.me).toBeNull();
+    expect(body.signedIn).toBe(false);
+    expect(body.entries).toEqual([]);
+  });
+
+  it('겨룰 수 있는 놀이 목록은 아무나 본다 — 아무도 안 논 놀이는 0 으로 정직하게 나온다', async () => {
+    const res = await fetch(`${baseUrl}/kl/play/games`);
+    const body = (await res.json()) as any;
+    expect(body.games.map((g: any) => g.game)).toContain('reaction');
+    expect(body.games.every((g: any) => g.players === 0)).toBe(true);
+  });
+
+  it('내 기록은 로그인해야 보인다', async () => {
+    expect((await fetch(`${baseUrl}/kl/play/me`)).status).toBe(401);
+    const { cookie } = signIn();
+    await play(cookie, { game: 'speed', score: 12 });
+    const body = (await (await fetch(`${baseUrl}/kl/play/me`, { headers: { Cookie: cookie } })).json()) as any;
+    expect(body.records).toHaveLength(1);
+    expect(body.records[0]).toMatchObject({ game: 'speed', best: 12, better: 'high' });
+  });
+
+  it('표가 갈리는 놀이는 표 없이 못 적는다 — 섞이면 쉬운 표를 고른 사람이 1등이 된다', async () => {
+    const { cookie } = signIn();
+    const bad = await play(cookie, { game: 'higher', score: 5 });
+    expect(bad.status).toBe(400);
+    expect((await bad.json()).error).toBe('bad_variant');
+    expect((await fetch(`${baseUrl}/kl/play/board?game=higher`)).status).toBe(400);
+  });
+
+  it('표를 주면 그 표의 순위판에만 남는다', async () => {
+    const { cookie, handle } = signIn();
+    const res = await play(cookie, { game: 'higher', score: 9, variant: 'pokemon' });
+    expect((await res.json()).outcome).toMatchObject({ game: 'higher', variant: 'pokemon', best: 9 });
+
+    const pokemon = (await (await fetch(`${baseUrl}/kl/play/board?game=higher&variant=pokemon`)).json()) as any;
+    expect(pokemon.entries.map((e: any) => e.handle)).toEqual([handle]);
+    const lol = (await (await fetch(`${baseUrl}/kl/play/board?game=higher&variant=lol`)).json()) as any;
+    expect(lol.entries).toEqual([]);
   });
 });
