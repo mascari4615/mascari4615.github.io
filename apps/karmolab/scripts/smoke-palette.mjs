@@ -217,22 +217,36 @@ if (!chipsAfterUse.length) {
   problems.push('도구를 쓰고 나니 둘러보기 칩이 사라졌다 — 이름을 모르면 갈 곳이 없다');
 }
 
-/* ── ⑩ 갈래를 펼치면 묶음 탭까지 나오고, 되돌아갈 길이 있다 ── */
+/* ── ⑩ 갈래를 펼치면 묶음 탭까지 나오고, 되돌아갈 길이 있다 ──
+ *
+ * **어디에 펼쳐지는지가 2026-08-08 에 바뀌었다** (KL-136): 첫 화면의 칸은 짧게 유지하고,
+ * 갈래는 **떠오르는 창**에서 펼친다(갈래 하나가 123줄이라 첫 화면에 펼치면 화면이 통째로
+ * 목록이 된다). 검사가 옛 자리(`.kp-inline`)만 보다가 「죽었다」로 오래 빨갰다 —
+ * 제품이 아니라 **보는 자리가 틀렸다**. 펼쳐진 곳을 보러 간다.
+ */
 if (chipsAfterUse.length) {
-  await page.locator('.kp-inline .kp-browse-chip').first().click();
+  /* 칩은 목록이 열려 있을 때만 보인다(입력을 눌러야 열린다) — 안 누르고 클릭하면
+     「보이지 않음」으로 30초를 기다리다 죽는다. */
+  await page.locator('.kp-inline .kp-input').click();
   await page.waitForTimeout(200);
-  const opened = await page.$$eval('.kp-inline .kp-row', (els) => els.length);
-  const children = await page.$$eval('.kp-inline .kp-row-child', (els) => els.length);
+  await page.locator('.kp-inline .kp-browse-chip').first().click();
+  await page.waitForTimeout(600);
+
+  const opened = await page.$$eval('.kp-overlay .kp-row', (els) => els.length);
+  const children = await page.$$eval('.kp-overlay .kp-row-child', (els) => els.length);
+  if (!(await page.$('.kp-overlay .kp-input'))) problems.push('첫 화면 갈래를 눌렀는데 창이 안 뜬다');
   if (opened < 50) problems.push(`갈래를 펼쳤는데 ${opened}줄뿐이다 — 묶음 안의 도구가 빠졌다`);
   if (!children) problems.push('묶음 탭이 부모 밑에 붙지 않았다 — 무엇의 일부인지 알 수 없다');
 
-  const back = await page.$('.kp-inline .kp-back');
+  const back = await page.$('.kp-overlay .kp-back');
   if (!back) problems.push('갈래를 펼친 뒤 되돌아갈 길이 없다 — 막다른 골목이다');
   else {
     await back.click();
-    await page.waitForTimeout(200);
-    if (!(await page.$('.kp-inline .kp-browse-chip'))) problems.push('되돌아가기를 눌렀는데 안 돌아온다');
+    await page.waitForTimeout(300);
+    if (!(await page.$('.kp-overlay .kp-browse-chip'))) problems.push('되돌아가기를 눌렀는데 안 돌아온다');
   }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
 }
 
 /* ── ⑪ 헤더에 상시 검색창이 없다 (사용자 거부 항목) ────────── */
