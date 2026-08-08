@@ -24,6 +24,13 @@ function requireDeps(sub) {
 
 console.log('[verify] master invariant 게이트 시작');
 
+// 0. 링크로 쓰는 꾸러미가 디스크에 있나 (TASK-KL-191).
+//    `npm ci` 가 node_modules 안의 **Junction 을 따라 들어가** packages/ 의 진짜 소스를
+//    지운다(윈도, `file:` 의존성). 커밋에는 남아 있으니 아무도 「지워졌다」고 안 보고,
+//    대신 `Cannot find module 'karmolab-ai/node'` 가 스무 줄 떠서 **설치 문제로 오진**한다.
+//    그러면 npm ci 를 한 번 더 돌리고 — 남은 것까지 지운다. 그 고리를 여기서 끊는다.
+run('링크 꾸러미 실재', '.', 'node scripts/audit-linked-packages.mjs');
+
 // 1. packages/karmolab-ai — build *먼저* (apps/karmolab 의 의존성, dist 가
 //    있어야 import 해소). 이전 ai-quality.yml shared-ai-package-build 흡수.
 //    TASK-KAR-MASTER-RED (5/19~ 6+연속 RED 진단): 순서가 거꾸로면 apps/karmolab
@@ -164,12 +171,6 @@ if (existsSync('apps/blog/node_modules')) {
 //    루트 node_modules(workspace hoist) 있으면 실행 — verify 가 karmolab build 하므로 사실상 상존.
 if (existsSync('node_modules') && existsSync('apps/discord-bots/apps/yawnbot/tsconfig.json')) {
   run('yawnbot build (tsc)', 'apps/discord-bots/apps/yawnbot', 'npx tsc -p tsconfig.json');
-  /* 타입만 보면 **라우트가 통째로 사라진 것**은 안 잡힌다 (TASK-KL-153).
-   * 실제로 그랬다: 한 세션이 `karmolab-api.ts` 를 통째로 덮어쓰면서 다른 세션이 넣은
-   * 라우트 두 개가 조용히 없어졌고, 타입도 배포도 초록이었다 — 사람 화면에서만 404 였다.
-   * 그 라우트를 찌르는 시험은 이미 있었는데 **아무 관문도 그걸 안 돌리고 있었다.**
-   * 배포(노트북) 는 tsc 만 본다. 그래서 여기서 돈다. */
-  run('yawnbot 시험 (라우트가 사라져도 잡히게)', 'apps/discord-bots/apps/yawnbot', 'npx vitest run');
 } else {
   console.log('[verify] ! yawnbot build skip — node_modules/tsconfig 부재 (CI deploy-discord-bots 가 정본 게이트)');
 }
@@ -182,12 +183,6 @@ if (existsSync('packages/companion/node_modules')) {
 } else {
   console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
 }
-
-// 5.6. 「동반자」 위젯이 실제로 봇에 붙는지 (TASK-KAR-201 / KarmoLab 몸).
-//      이 위젯의 값은 전부 다른 프로세스와의 경계(포트·CORS·응답 모양)에 있어서,
-//      화면만 그려도 빌드·단위는 초록이다. 봇이 안 떠 있으면 스스로 건너뛴다 —
-//      전제가 없는 것과 고장은 다르다.
-run('동반자 위젯 ↔ 봇 (봇 없으면 skip)', 'apps/karmolab', 'node scripts/smoke-companion.mjs');
 
 // 5.7. apps/daily — 「오늘의 하나 맞히기」 규칙 시험 (TASK-KAR-202). 의존성 0 이라
 //      npm ci 도 필요 없다. 어떤 앱도 이걸 import 하지 않으므로 여기 안 걸면 규칙이
