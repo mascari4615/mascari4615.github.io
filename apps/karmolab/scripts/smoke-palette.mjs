@@ -246,7 +246,9 @@ if (headerInputs > 0) problems.push(`헤더/사이드바에 상시 입력칸이 
  * 아무 일도 안 하고 오류도 안 난다** — 눈에 안 보이는 고장이다. 그래서 둘 다 본다:
  * 부팅 때 안 받았나 · 그런데 눌렀을 때 열리고 찾히나.
  */
-{
+if (!fs.existsSync(path.join(blogRoot, 'apps/blog/karmolab/t/loan/index.html'))) {
+  console.log('  (⑫ 건너뜀 — 찍힌 도구 화면이 없다)');
+} else {
   const tp = await ctx.newPage();
   const asked = [];
   tp.on('request', (r) => asked.push(r.url()));
