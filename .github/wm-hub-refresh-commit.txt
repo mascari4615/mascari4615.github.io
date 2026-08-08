@@ -1,0 +1,3 @@
+chore(karmolab): WM 허브 새로 긁기 — 도감 · 소식 · 만드는 중
+
+노트북에서 하루 한 번 개발 노트·게임 저장소를 긁어 담은 것이다 (wm-hub-refresh.yml).
