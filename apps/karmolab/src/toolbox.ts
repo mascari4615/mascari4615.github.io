@@ -1730,6 +1730,9 @@ const Toolbox = (() => {
         if (settingsBtn) settingsBtn.classList.toggle('active', pageId === 'settings');
 
         const tool = tools.find(t => t.id === pageId);
+        /* 묶음 안의 도구는 여기서 `tool` 이 **없다**(`bmi` 는 `calc` 묶음으로 열린다).
+           `if (tool)` 안에 두었더니 묶음 도구 전부가 빠졌다 — 그쪽이 계산기의 대부분이다. */
+        offerResultCard(pageId, tool ? tool.title : pageId);
         if (tool) {
             document.getElementById('pageTitle').textContent = tool.title;
             if (breadcrumb && tool.category) {
@@ -1743,6 +1746,25 @@ const Toolbox = (() => {
                 breadcrumb.innerHTML = `<button class="breadcrumb-link" onclick="Toolbox.switchPage('home')">KarmoLab</button>`;
             }
         }
+    }
+
+    /* 결과를 그림으로 (TASK-KL-196 F) — 계산기 마흔 몇 개가 **같은 모양**으로 답을 그린다
+     * (`.cc-stat` 칸). 그 모양을 읽어 카드를 만들므로 도구는 한 줄도 안 고친다.
+     *
+     * 셸에는 **부르는 줄만** 둔다. 단추를 붙이는 일도, 그리는 일도 조각(`src/result-card.ts`)이
+     * 한다 — 여기에 두었더니 첫 화면 부팅 JS 가 천장(40KB gz)을 넘었다. 계산기 화면에서만,
+     * 그것도 첫 그림 뒤에 온다. */
+    function offerResultCard(pageId, toolTitle) {
+        /* 화면을 **뒤에** 찾는다. 도구는 묶음 화면으로 열리므로(`bmi` → `page-calc`)
+           id 로 짐작하면 없는 칸을 잡고, 이 시점엔 아직 활성 표시도 안 붙어 있다.
+           한 박자 뒤에 「지금 활성인 화면」을 집으면 둘 다 맞는다(실측으로 여기서 헛짚었다). */
+        setTimeout(() => {
+            const page = document.querySelector('.tool-page.active') || document.getElementById('page-' + pageId);
+            if (!page) return;
+            void ensureScript('root/result-card')
+                .then(() => window.KarmoResultCard?.attach(page, toolTitle, pageId))
+                .catch(() => { /* 카드가 없다고 도구가 멈출 이유는 없다 */ });
+        }, 0);
     }
 
     function switchTab(btn, tabId?) {

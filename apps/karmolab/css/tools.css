@@ -1645,3 +1645,10 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .tm-fill { height: 100%; width: 100%; background: var(--accent); transition: width 120ms linear; }
 .tool-page:fullscreen { padding: 4vh 4vw; background: var(--bg-primary); overflow: auto; }
 .tool-page:fullscreen .tool-display { font-size: min(22vw, 30vh); line-height: 1.05; }
+
+/* 결과를 그림으로 (TASK-KL-196 F) — 답 칸 바로 아래. 답이 있을 때만 붙는다. */
+.tool-card-btn { display: inline-flex; align-items: center; gap: 6px; margin: -8px 0 var(--space-lg);
+    padding: 6px 12px; font: inherit; font-size: var(--font-size-xs); color: var(--text-secondary);
+    background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+.tool-card-btn:hover { color: var(--accent); border-color: var(--accent); }
+.tool-card-btn[disabled] { color: var(--text-tertiary); cursor: default; }
