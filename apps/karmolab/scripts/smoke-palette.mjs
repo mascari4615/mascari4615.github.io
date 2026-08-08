@@ -47,6 +47,9 @@ const MIME = {
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/karmolab/' || urlPath === '/karmolab') urlPath = '/apps/karmolab/index.html';
+  /* 도구 상세·목록은 배포 때 **찍히는 생성물**이라 소스 옆이 아니라 blog 밑에 있다.
+     이어 주지 않으면 그 화면을 여는 검사가 통째로 404 를 본다. */
+  if (urlPath.startsWith('/karmolab/t/')) urlPath = '/apps/blog' + urlPath;
   if (urlPath.endsWith('/')) urlPath += 'index.html';
 
   const file = path.join(blogRoot, urlPath.replace(/^\//, ''));
@@ -236,6 +239,34 @@ if (chipsAfterUse.length) {
 const headerInputs = await page.$$eval('.header-bar input, .sidebar input', (els) => els.length);
 if (headerInputs > 0) problems.push(`헤더/사이드바에 상시 입력칸이 ${headerInputs}개 생겼다 — 두지 않기로 한 것이다`);
 
+/* ── ⑫ 도구 화면은 팔레트를 **안 싣고** 뜬다. 그런데 눌러서 열린다 (TASK-KL-128 ①-b) ──
+ *
+ * 도구 화면은 앱 셸을 통째로 싣고 있었다. 팔레트는 거기서 첫 그림에 아무것도 안 하므로
+ * 부팅에서 뺐는데, 셸이 `window.KarmoPalette?.…` 로 부르기 때문에 **그냥 빼면 ⌘K 가
+ * 아무 일도 안 하고 오류도 안 난다** — 눈에 안 보이는 고장이다. 그래서 둘 다 본다:
+ * 부팅 때 안 받았나 · 그런데 눌렀을 때 열리고 찾히나.
+ */
+{
+  const tp = await ctx.newPage();
+  const asked = [];
+  tp.on('request', (r) => asked.push(r.url()));
+  await tp.goto(`${BASE}/karmolab/t/loan/`, { waitUntil: 'load', timeout: 30000 });
+  await tp.waitForTimeout(1200);
+  const bootHas = (n) => asked.some((u) => u.includes(n));
+  if (bootHas('palette.js')) problems.push('도구 화면이 부팅 때 팔레트를 받는다 — 미룬 것이 되돌아왔다');
+  if (bootHas('widgets-index.js')) problems.push('도구 화면이 부팅 때 검색 목록을 받는다 — 미룬 것이 되돌아왔다');
+
+  await tp.keyboard.press('Control+k');
+  await tp.waitForSelector('.kp-overlay .kp-input', { timeout: 8000 })
+    .catch(() => problems.push('도구 화면에서 ⌘K 를 눌러도 팔레트가 안 열린다 (미룬 뒤 조용히 죽음)'));
+  if (!bootHas('palette.js')) problems.push('⌘K 를 눌렀는데 팔레트를 받으러 가지 않았다');
+  await tp.keyboard.type('대출');
+  await tp.waitForTimeout(500);
+  const rows = await tp.$$eval('.kp-overlay .kp-row', (els) => els.length).catch(() => 0);
+  if (!rows) problems.push('도구 화면에서 연 팔레트가 「대출」을 하나도 못 찾는다 — 검색 목록이 안 따라왔다');
+  await tp.close();
+}
+
 await browser.close();
 server.close();
 
@@ -244,4 +275,4 @@ if (problems.length) {
   problems.forEach((p) => console.error('  - ' + p));
   process.exit(1);
 }
-console.log('[smoke-palette] 찾기·초성·Enter·⌘K·최근·숨은도구·둘러보기·되돌아가기 11개 항목 OK');
+console.log('[smoke-palette] 찾기·초성·Enter·⌘K·최근·숨은도구·둘러보기·되돌아가기 + 도구화면 지연로드 12개 항목 OK');

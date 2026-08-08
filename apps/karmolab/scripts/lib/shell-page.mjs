@@ -168,7 +168,90 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
     if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
   }
 
+  /* 첫 그림에 안 쓰이는 셸 조각은 여기서 통째로 미룬다 — 정적 페이지 전부에 해당한다.
+     앱 첫 화면(`index.html`)만 예외다: 거기서는 팔레트가 화면의 본체다. */
+  html = deferShellExtras(html);
+
   return html;
+}
+
+/**
+ * 정적 페이지에서 **첫 그림에 안 쓰이는 셸 조각**을 부팅에서 뺀다 (TASK-KL-128 ①-b)
+ *
+ * 도구 화면 한 장이 앱 셸을 통째로 싣고 있었다. 그중 셋은 **그 화면이 뜰 때 하는 일이 없다**:
+ *  - `palette.js`(5.4KB gz) — 첫 화면에서는 본체(가운데 찾는 칸)지만, 도구 화면에서는
+ *    ⌘K 나 폰 「찾기」를 눌러야 처음 쓰인다.
+ *  - `widgets-index.js`(5.0KB gz) — 그 팔레트가 찾을 때 쓰는 목록. 팔레트와 운명을 같이한다.
+ *  - `account.js`(4.0KB gz) — 머리띠의 로그인 자리를 채운다. 도구를 쓰는 데는 필요 없다.
+ *
+ * 그냥 빼면 **조용히 고장 난다** — 셸은 `window.KarmoPalette?.…` 로 부르므로 ⌘K 가 아무 일도
+ * 안 하게 된다(눌러도 안 열리는데 오류도 안 난다). 그래서 마스코트 때와 같은 수를 쓴다:
+ * **먼저 자리를 만들어 둔다.** 사람이 부르는 것(open/toggle)은 그 순간 진짜를 데려와 이어서
+ * 열고, 앱이 배경으로 부르는 것(noteOpen·refresh…)은 줄을 세워 뒀다가 진짜가 오면 흘려보낸다.
+ * 값으로 읽는 것은 빈 값으로 답한다.
+ */
+export function deferShellExtras(html) {
+  const tag = (file) =>
+    `<script defer fetchpriority="low" src="/apps/karmolab/js/${file}"></script>`;
+  for (const f of ['palette.js', 'widgets-index.js', 'account.js']) {
+    if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
+    html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
+  }
+
+  const shim = `<script>
+    /* 도구 화면 전용 — 첫 그림에 안 쓰이는 셋을 미룬다 (TASK-KL-128 ①-b). */
+    (function () {
+      var q = [], real = null, loading = false;
+      /* 앱이 배경으로 부르는 것들 — 줄을 세운다. */
+      var quiet = ['noteOpen', 'refresh', 'setPopular', 'mountInline', 'focusInline', 'close'];
+      var stub = {};
+      quiet.forEach(function (n) { stub[n] = function () { q.push([n, [].slice.call(arguments)]); }; });
+      /* 값으로 읽는 것 — 없는 것보다 빈 값이 낫다. */
+      stub.isOpen = function () { return false; };
+      stub.getRecent = function () { return []; };
+
+      function load(then) {
+        if (real) { then(); return; }
+        if (loading) { q.push(['__then', [then]]); return; }
+        loading = true;
+        var n = 2;
+        function done() {
+          if (--n) return;
+          real = window.KarmoPalette;
+          if (real === stub) { real = null; return; }   /* 못 왔으면 그대로 둔다 */
+          q.forEach(function (c) {
+            try {
+              if (c[0] === '__then') c[1][0]();
+              else if (real[c[0]]) real[c[0]].apply(real, c[1]);
+            } catch (e) { /* 하나 실패해도 나머지는 흘려보낸다 */ }
+          });
+          q.length = 0;
+          then();
+        }
+        [['/apps/karmolab/js/widgets-index.js'], ['/apps/karmolab/js/palette.js']].forEach(function (p) {
+          var s = document.createElement('script');
+          s.src = p[0]; s.onload = done; s.onerror = done;
+          document.head.appendChild(s);
+        });
+      }
+      /* 사람이 부른 것 — 지금 데려와서 이어서 연다. */
+      ['open', 'toggle'].forEach(function (n) {
+        stub[n] = function () { var a = [].slice.call(arguments); load(function () { if (real && real[n]) real[n].apply(real, a); }); };
+      });
+      window.KarmoPalette = stub;
+
+      /* 계정은 화면을 다 그린 뒤 한가할 때. 머리띠의 로그인 자리만 채우므로 늦어도 된다. */
+      function pullAccount() {
+        var s = document.createElement('script');
+        s.src = '/apps/karmolab/js/account.js';
+        document.head.appendChild(s);
+      }
+      var idle = window.requestIdleCallback || function (f) { setTimeout(f, 300); };
+      if (document.readyState === 'complete') idle(pullAccount);
+      else addEventListener('load', function () { idle(pullAccount); });
+    })();
+    </script>`;
+  return html.replace('</head>', `    ${shim}\n</head>`);
 }
 
 /**
