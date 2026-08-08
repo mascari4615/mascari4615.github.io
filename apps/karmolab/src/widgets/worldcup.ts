@@ -486,6 +486,16 @@ interface Match {
               },
               `karmolab-worldcup-${last.champion}.png`
             ).then((msg) => {
+              /* 그림만 주면 **받은 사람이 같은 판을 할 수가 없다**. 올라간 표면 그 주소도 같이
+                 남긴다(미리보기가 뜨는 주소다 — 봇이 제목·그림을 내준다). */
+              const shared = picked?.sharedId;
+              if (shared) {
+                void navigator.clipboard
+                  .writeText(`https://yawnbot.mascari4615.com/kl/w/${shared}`)
+                  .catch(() => undefined);
+                $('wcMsg').textContent = `${msg} 같은 표로 놀 수 있는 주소도 함께 복사했습니다.`;
+                return;
+              }
               $('wcMsg').textContent = msg;
             });
           });
@@ -511,9 +521,31 @@ interface Match {
           /* 「내 표」에서 밀어 준 표가 있으면 그것부터 골라 둔다 (TASK-KL-089 와 같은 문).
              화면이 다시 보일 때마다 확인한다 — 앱은 한 번 그린 화면을 그대로 다시 보여 주므로,
              나중에 밀어 넣은 표는 이 갱신이 없으면 영영 안 뜬다. */
+          /** 자랑 주소(`?wc=<표>`)로 들어왔나 — 그 표를 바로 골라 준다 (TASK-KL-151 ⑤). */
+          function wantedShared(): string | null {
+            const got = new URLSearchParams(location.search).get('wc');
+            return got && /^[a-z0-9]{4,16}$/.test(got) ? got : null;
+          }
+
           function refresh(): void {
             const handed = takePick();
             loadChoices();
+            const wanted = wantedShared();
+            if (wanted) {
+              /* 받은 사람은 **그 표로 놀러 온 것**이다. 목록에서 찾아 눌러 달라고 하면
+                 한 단계가 더 생기고, 대부분 거기서 나간다. 바로 골라 둔다. */
+              void adoptShared(wanted).then((pack) => {
+                if (!pack || !container.isConnected) return;
+                loadChoices();
+                const found = choices.filter((c) => c.local && c.local.id === pack.id)[0];
+                if (!found) return;
+                picked = found;
+                paintPacks();
+                paintRounds();
+                $('wcPackMsg').textContent = `「${pack.title}」 로 놀러 오셨네요 — 몇 강으로 할지 고르고 시작하세요.`;
+              });
+              return;
+            }
             if (!handed) return;
             const found = choices.filter((c) => c.local && c.local.id === handed)[0];
             if (found) {
