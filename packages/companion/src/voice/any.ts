@@ -1,4 +1,5 @@
 import { splitTone } from './feeling-tone';
+import { 말할수있게, 소리낼만한가 } from './speakable';
 import type { Speech, SpeechVoice } from './edge-tts';
 
 /**
@@ -63,6 +64,11 @@ export function anySpeech(engines: readonly { label: string; speech: Speech }[])
     },
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
+      /* **읽을 수 없는 글자는 입으로 안 보낸다.** 화면에서 주운 점자 기호 하나에 목소리
+         서버가 400 으로 죽어 그 turn 이 통째로 무음이 된 적이 있다(실측). 여기서 한 번
+         거르면 어느 목소리를 쓰든 같이 지켜진다. */
+      if (소리낼만한가(text) === false) throw new Error('소리로 낼 게 없는 말이다');
+      text = 말할수있게(text);
       await roster(); // 목록을 한 번은 읽어야 어느 엔진 것인지 안다
       const found = split(voiceId);
       if (found === null) throw new Error('그런 목소리는 없다');

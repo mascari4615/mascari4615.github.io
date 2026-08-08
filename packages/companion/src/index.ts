@@ -60,6 +60,7 @@ export { webBody, openPinnedWindow, ownWindowExe, 이기계인가, type WebBodyO
 export { discordBody, discordJs, type DiscordBodyOptions, type 디스코드붙이기, type 디스코드채널 } from './body/discord';
 
 export { anySpeech } from './voice/any';
+export { 말할수있게, 소리낼만한가 } from './voice/speakable';
 export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
 export { edgeSpeech, type EdgeSpeechOptions, type Speech, type SpeechVoice } from './voice/edge-tts';
 export { clonedSpeech, type ClonedSpeechOptions } from './voice/cloned';

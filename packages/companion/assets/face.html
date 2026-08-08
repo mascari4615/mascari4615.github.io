@@ -594,7 +594,36 @@
     }, holdMs);
   }
 
-  const events = new EventSource('/events');
+  /* **서버가 죽어도 창은 살아 있다** — 그러면 창은 고아가 된다.
+     여태 「연결이 끊겼다 — 서버 확인」 한 줄만 띄우고 가만히 있었다. 사람 눈에는 창이
+     멀쩡히 떠 있으니 「말해도 안 먹힌다」로만 보인다(실측: 조수님이 그 상태를 겪었다).
+     봇을 껐다 켜는 건 흔한 일이므로(배포·설정 바꾸기) **스스로 다시 붙어야 한다.**
+
+     다시 붙는 간격은 늘려 간다 — 서버가 아주 꺼져 있는데 1초마다 두드리면 그건 그것대로
+     기계를 괴롭힌다. 붙으면 곧바로 원래 간격으로 되돌린다. */
+  let events = null;
+  let 다시붙기ms = 1000;
+  let 끊긴때 = 0;
+
+  function 신호받기() {
+    if (events !== null) { try { events.close(); } catch { /* 이미 닫혔으면 그만 */ } }
+    events = new EventSource('/events');
+    붙이기(events);
+  }
+
+  function 붙이기(events) {
+  events.onopen = () => {
+    if (끊긴때 !== 0) {
+      const 몇초 = Math.round((Date.now() - 끊긴때) / 1000);
+      tell(`서버에 다시 붙었다 (${몇초}초 만에)`);
+      setState('', '');
+      // 끊긴 동안 오간 말을 놓쳤다 — 화면을 기억에게 다시 물어 맞춘다.
+      // 끊긴 동안 오간 말을 놓쳤다 — 화면을 기억에게 다시 물어 맞춘다.
+      void loadHistory();
+      끊긴때 = 0;
+    }
+    다시붙기ms = 1000;
+  };
   events.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.type === 'notice') {
@@ -639,7 +668,18 @@
       say(data.text);
     }
   };
-  events.onerror = () => setState('', '연결이 끊겼다 — 서버 확인');
+  events.onerror = () => {
+    if (끊긴때 === 0) 끊긴때 = Date.now();
+    const 몇초 = Math.round((Date.now() - 끊긴때) / 1000);
+    setState('', `서버가 끊겼다 — 다시 붙는 중 (${몇초}초)`);
+    try { events.close(); } catch { /* 이미 닫혔으면 그만 */ }
+    setTimeout(신호받기, 다시붙기ms);
+    // 1초 → 2 → 4 … 10초까지만. 아주 꺼져 있어도 10초마다 한 번은 두드린다.
+    다시붙기ms = Math.min(10000, 다시붙기ms * 2);
+  };
+  }
+
+  신호받기();
 
   text.addEventListener('focus', () => {
     if (cube.classList.contains('thinking') === false && cube.classList.contains('speaking') === false) {

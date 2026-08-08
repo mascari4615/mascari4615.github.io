@@ -12,9 +12,13 @@ import type { Speech, SpeechVoice } from './edge-tts';
  * 말이 없으면 끈다. 컴퓨터를 켤 때마다 30초씩 무거운 걸 올려 둘 이유가 없다.
  *
  * 규칙 둘:
- * - **기다리게 하지 않는다.** 아직 안 떴으면 이번 말은 대타 목소리로 그냥 나간다. 첫
- *   소리까지 걸리는 시간이 이 프로젝트의 핵심 지표라(7·65회차), 준비를 기다리느라 조용해지면
- *   그건 개선이 아니라 회귀다.
+ * - **고른 목소리로만 말한다.** 아직 안 떴으면 **뜰 때까지 기다린다.**
+ *
+ *   처음엔 준비될 때까지 대타(인터넷 목소리)로 말하게 했는데, 조수님이 오류라고 못 박았다
+ *   (2026-08-08): 「음성 설정한 거 fallback 금지. 음성 설정하면 그 음성 사용 가능할 때까지
+ *   대기하는 게 맞지, 다른 목소리가 나오는 건 오류입니다.」 곁에 있는 존재의 목소리가
+ *   그때그때 딴 사람으로 바뀌는 건 빠른 것보다 나쁘다 — 그건 같은 존재가 아니게 된다.
+ *
  * - **끄는 길이 늘 있다.** 설정으로 자동 기동을 끄면 손으로 띄운 것만 쓴다.
  */
 export interface 수요기동옵션 {
@@ -69,7 +73,8 @@ export class 수요기동 {
   /**
    * 지금 필요하다 — 안 떠 있으면 **뒤에서** 띄우기 시작한다.
    *
-   * 기다리지 않는다. 이번 말은 부르는 쪽이 대타로 내보내고, 다음 말부터 이걸 쓰게 된다.
+   * 이 함수는 안 기다린다(띄우기만 건다). 기다리는 건 말하는 쪽이다 — 고른 목소리가 뜰
+   * 때까지 기다렸다 그 목소리로 말한다.
    */
   async 써야한다(): Promise<void> {
     this.마지막사용 = this.지금;
@@ -89,7 +94,7 @@ export class 수요기동 {
     if (this.지금 - this.실패한때 < (this.options.실패후쉬기ms ?? 60_000)) return;
 
     this.띄우는중 = true;
-    this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지는 다른 걸로 말한다`);
+    this.options.log?.(`${this.options.이름} 이(가) 필요해서 띄운다 — 준비될 때까지 말이 기다린다`);
     void Promise.resolve()
       .then(() => this.options.띄우기())
       .then(() => {
@@ -165,10 +170,10 @@ export class 수요기동 {
 export interface 필요할때옵션 {
   /** 무거운 진짜 목소리. */
   진짜: Speech;
-  /** 아직 준비 안 됐을 때 대신 말할 목소리. */
-  대타: Speech;
   /** 켜고 끄는 자리. */
   기동: 수요기동;
+  /** 이만큼 기다려도 안 뜨면 포기한다(그때는 소리가 없다 — 딴 목소리로 바꾸지 않는다). */
+  기다림한계ms?: number;
   log?: (message: string) => void;
 }
 
@@ -176,10 +181,11 @@ export interface 필요할때옵션 {
  * 「필요하면 켜지는」 목소리 하나.
  *
  * 목록에는 **늘 보인다.** 꺼져 있다고 목록에서 빼면 사람은 그걸 「기능이 사라졌다」로
- * 읽는다 — 오늘 실제로 그렇게 읽혔다. 대신 준비 안 된 동안은 대타가 소리를 낸다.
+ * 읽는다 — 실제로 그렇게 읽혔다. 준비 안 된 동안은 **기다린다** — 딴 목소리로 바꾸지 않는다.
  */
 export function 필요할때(options: 필요할때옵션): Speech {
-  const { 진짜, 대타, 기동 } = options;
+  const { 진짜, 기동 } = options;
+  const 기다림한계 = options.기다림한계ms ?? 180_000;
 
   return {
     name: `${진짜.name}(필요할 때)`,
@@ -192,17 +198,25 @@ export function 필요할때(options: 필요할때옵션): Speech {
 
     async synthesize(text: string, voiceId?: string): Promise<Buffer> {
       await 기동.써야한다();
-      if (기동.준비됐나) {
-        try {
-          return await 진짜.synthesize(text, voiceId);
-        } catch (e) {
-          // 떠 있다고 봤는데 실패했다 — 이번 말까지 삼키지는 않는다.
-          options.log?.(`흉내 낸 목소리가 실패해서 이번엔 대타로 말한다: ${e instanceof Error ? e.message : String(e)}`);
+
+      /* **뜰 때까지 기다린다.** 딴 목소리로 바꾸지 않는다 — 그건 같은 존재가 아니게 된다.
+         무한히 기다리지는 않는다: 정해진 시간을 넘기면 포기하고, 그때는 **소리가 없다**
+         (조용한 게 딴 사람 목소리보다 낫다). */
+      const 시작 = Date.now();
+      let 알렸나 = false;
+      while (기동.준비됐나 === false) {
+        if (Date.now() - 시작 >= 기다림한계) {
+          throw new Error(`고른 목소리가 ${Math.round(기다림한계 / 1000)}초 안에 준비 안 됐다`);
         }
+        if (알렸나 === false) {
+          options.log?.('고른 목소리가 아직 안 떴다 — 뜰 때까지 기다린다 (딴 목소리로 안 바꾼다)');
+          알렸나 = true;
+        }
+        await new Promise((r) => setTimeout(r, 500));
+        await 기동.써야한다();
       }
-      /* 진짜 쪽 목소리 이름은 대타가 모른다 — 그대로 넘기면 「그런 목소리는 없다」로
-         죽는다. 대타의 기본 목소리로 말하게 둔다. 소리가 나는 게 먼저다. */
-      return 대타.synthesize(text);
+      if (알렸나) options.log?.(`고른 목소리로 말한다 (${Math.round((Date.now() - 시작) / 1000)}초 기다림)`);
+      return 진짜.synthesize(text, voiceId);
     },
   };
 }
