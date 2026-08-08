@@ -1558,3 +1558,25 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
     margin-top: 8px; font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6;
 }
 .cc-note-warn { color: var(--warning); }
+
+/* JSON 트리 보기 (도구 품질 올리기 — 남들은 다 있고 우리만 없던 것)
+   접힌 채로 시작하고, 줄을 누르면 그 자리의 경로를 준다. */
+.jt-tree { max-height: 420px; overflow: auto; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-md); background: var(--bg-secondary);
+    font-family: var(--font-mono); font-size: var(--font-size-xs); line-height: 1.7; }
+.jt-row { cursor: pointer; white-space: nowrap; }
+.jt-row:hover { background: var(--bg-tertiary); }
+.jt-node > summary { list-style: none; }
+.jt-node > summary::-webkit-details-marker { display: none; }
+.jt-node > summary::before { content: '▸'; display: inline-block; width: 1em; color: var(--text-tertiary); }
+.jt-node[open] > summary::before { content: '▾'; }
+.jt-children { padding-left: 14px; border-left: 1px solid var(--border); margin-left: 4px; }
+.jt-key { color: var(--text-primary); }
+.jt-colon, .jt-brace { color: var(--text-tertiary); }
+.jt-count { color: var(--text-tertiary); margin: 0 4px; }
+.jt-str { color: var(--accent); }
+.jt-num { color: var(--warning); }
+.jt-bool, .jt-null { color: var(--text-secondary); }
+.jt-hit { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.jf-repair { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    font-size: var(--font-size-xs); color: var(--text-secondary); }
