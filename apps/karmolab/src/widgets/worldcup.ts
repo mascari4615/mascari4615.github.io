@@ -17,6 +17,7 @@
  */
 import { loadPacks, type Pack, type PackItem } from './pack-store';
 import { listShared, adoptShared, type SharedPackSummary } from '../lib/shared-packs';
+import { onPageActive, takePick } from './pack-pick';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 /** 이 브라우저에 남기는 지난 판 (「작년의 나는 누구를 골랐나」). */
@@ -446,7 +447,23 @@ interface Match {
           addEventListener('keydown', keys);
           Toolbox.onDispose?.(() => removeEventListener('keydown', keys));
 
-          loadChoices();
+          /* 「내 표」에서 밀어 준 표가 있으면 그것부터 골라 둔다 (TASK-KL-089 와 같은 문).
+             화면이 다시 보일 때마다 확인한다 — 앱은 한 번 그린 화면을 그대로 다시 보여 주므로,
+             나중에 밀어 넣은 표는 이 갱신이 없으면 영영 안 뜬다. */
+          function refresh(): void {
+            const handed = takePick();
+            loadChoices();
+            if (!handed) return;
+            const found = choices.filter((c) => c.local && c.local.id === handed)[0];
+            if (found) {
+              picked = found;
+              paintPacks();
+              paintRounds();
+            }
+          }
+          onPageActive(container, refresh);
+
+          refresh();
           paintHistory();
         }
       }

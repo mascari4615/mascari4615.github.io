@@ -14,6 +14,7 @@
  */
 import { mountCourseNext } from './play-course';
 import { absorbFromUrl, getPack, loadPacks, packToCode } from './pack-store';
+import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
 import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
@@ -374,8 +375,7 @@ import { onPageActive, takePick } from './pack-pick';
            * 표는 놀다가도 새로 생기므로 목록은 화면이 보일 때마다 다시 그린다. */
           let chips: Array<{ id: string; title: string; emoji: string }> = [];
 
-          function paintChips(active: string): void {
-            chips = TOPICS.concat(loadPacks().map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji })));
+          function drawChips(active: string): void {
             $('twTopics').innerHTML = '';
             chips.forEach((t) => {
               const btn = document.createElement('button');
@@ -385,9 +385,29 @@ import { onPageActive, takePick } from './pack-pick';
               btn.addEventListener('click', () => {
                 [...$('twTopics').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
                 btn.setAttribute('aria-pressed', 'true');
+                /* 남의 표는 고른 그때 받아 들인다 (TASK-KL-150 ②). */
+                if (t.id.indexOf('shared:') === 0) {
+                  void ensureLocal(t.id).then((got) => {
+                    if (!got) return;
+                    t.id = got;
+                    start(got);
+                  });
+                  return;
+                }
                 start(t.id);
               });
               $('twTopics').appendChild(btn);
+            });
+          }
+
+          function paintChips(active: string): void {
+            // 이 브라우저 표가 먼저, 남의 표는 도착하는 대로 뒤에 붙는다.
+            chips = TOPICS.concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
+            drawChips(active);
+            void sharedChoices('number').then((rows) => {
+              if (!container.isConnected || !rows.length) return;
+              chips = chips.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? '남의 표'}`, emoji: c.emoji })));
+              drawChips(active);
             });
           }
 
