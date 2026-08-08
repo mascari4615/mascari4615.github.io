@@ -41,7 +41,7 @@ jobs:
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
         run: |
           foreach ($p in @($env:KARMODDRINE_MEMO_PATH, $env:KARMODDRINE_WM_PATH)) {
-              if ($p -and (Test-Path $p)) { Write-Output "있다: $p" } else { Write-Output "없다: $p" }
+              if ($p -and (Test-Path $p)) { Write-Output "found: $p" } else { Write-Output "missing: $p" }
           }
 
       - name: 도감 · 소식 · 만드는 중을 새로 긁는다
@@ -63,10 +63,12 @@ jobs:
           git add -- apps/karmolab/data/worldbook.json apps/karmolab/data/devlog.json apps/karmolab/data/wm-tasks.json apps/karmolab/wm/index.html
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) {
-              Write-Output "바뀐 것 없음 — 그날 새 이야기가 없었다는 뜻이다."
+              Write-Output "no change today (that is normal)"
               exit 0
           }
-          git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' commit -m 'chore(karmolab): WM 허브 새로 긁기 — 도감 · 소식 · 만드는 중' -- apps/karmolab/data apps/karmolab/wm
+          # 커밋 메시지는 파일에서 읽는다 — 이 셸(5.1)이 UTF-8 스크립트를 ANSI 로 읽어
+          # 한글이 깨지고 따옴표가 어긋나 파서가 죽는다(첫 판이 그렇게 죽었다).
+          git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' commit -F .github/wm-hub-refresh-commit.txt -- apps/karmolab/data apps/karmolab/wm
           if ($LASTEXITCODE -ne 0) { exit 1 }
           git push origin HEAD:master
           if ($LASTEXITCODE -ne 0) { exit 1 }
