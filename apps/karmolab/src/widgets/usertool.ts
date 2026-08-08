@@ -20,7 +20,15 @@
         source?: string;
         listed: boolean;
         runs: number;
+        /** 세워졌나 (TASK-KL-191 축4) — 신고가 쌓였거나 주인이 세웠다 */
+        stopped?: boolean;
+        stoppedReason?: string | null;
+        /** 신고 수 (서버가 이름은 안 준다 — 셈만 준다) */
+        reports?: number;
     };
+
+    /** 「이 도구가 뭘 하나」 — 소스에서 읽은 것. 안전 판정이 아니다. */
+    type ToolSummary = { does: string[]; blocked: string[]; unreadable: boolean };
 
     Mdd.injectCSS('usertool-page', `
         .ut-wrap { display:flex; flex-direction:column; gap:18px; }
@@ -45,6 +53,11 @@
         .ut-stage iframe { display:block; width:100%; height:420px; border:0; }
         .ut-stage-head { display:flex; align-items:center; gap:10px; padding:8px 12px;
             background:var(--bg-tertiary); font-size:var(--font-size-xs); color:var(--text-secondary); }
+        /* 「이 도구가 뭘 하나」 (TASK-KL-191 축4) — 상자 바로 위, 열기 전에 눈에 들어오는 자리 */
+        .ut-summary { padding:9px 12px; border-top:1px solid var(--border); background:var(--bg-secondary);
+            font-size:11px; color:var(--text-secondary); line-height:1.6; }
+        .ut-summary b { color:var(--text-primary); font-weight:600; }
+        .ut-stopped { color:#f87171; font-weight:600; }
     `);
 
     const api = (): string | null => window.KarmoAccount?.apiBase ?? null;
@@ -57,15 +70,33 @@
             .replace(/"/g, '&quot;');
     }
 
+    /**
+     * 「이 도구가 뭘 하나」 한 줄 (TASK-KL-191 축4).
+     *
+     * 올린 사람의 설명이 아니라 **소스에서 읽은 것**이다 — 설명은 쓰고 싶은 대로 쓴다.
+     * 안전 판정이 아니다(안전은 상자가 만든다). 읽을지 말지를 사람이 정하는 근거일 뿐이다.
+     */
+    function summaryHtml(summary?: ToolSummary): string {
+        if (!summary) return '';
+        const parts: string[] = [];
+        if (summary.does.length) parts.push(`<b>하는 일</b> ${summary.does.map(escapeHtml).join(' · ')}`);
+        if (summary.blocked.length) parts.push(`<b>막힌 것</b> ${summary.blocked.map(escapeHtml).join(' · ')}`);
+        if (summary.unreadable) parts.push('<b>사람이 읽기 어려운 글자 뭉치입니다</b> — 무엇을 하는지 요약하지 못했습니다');
+        if (!parts.length) parts.push('부르는 것이 거의 없습니다 — 글 한 장에 가깝습니다');
+        return `<div class="ut-summary">${parts.join('<br>')}</div>`;
+    }
+
     /** 모래상자 한 장 — 이 함수가 이 기능의 안전 전부다. */
-    function runInSandbox(host: HTMLElement, tool: UserTool): void {
+    function runInSandbox(host: HTMLElement, tool: UserTool, summary?: ToolSummary): void {
         host.innerHTML = `
             <div class="ut-stage">
                 <div class="ut-stage-head">
                     <span>${escapeHtml(tool.title)} · @${escapeHtml(tool.ownerHandle)}</span>
                     <span class="ut-meta">이 상자 안에서만 돕니다 — 바깥과 연결되지 않고, 계정·저장소에 못 닿습니다</span>
+                    <button type="button" class="ut-btn" data-report="${escapeHtml(tool.id)}">🚩 신고</button>
                     <button type="button" class="ut-btn" data-stop>닫기</button>
                 </div>
+                ${summaryHtml(summary)}
                 <iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="${escapeHtml(tool.title)}"></iframe>
             </div>`;
         const frame = host.querySelector('iframe');
@@ -82,6 +113,33 @@
         }
         host.querySelector('[data-stop]')?.addEventListener('click', () => {
             host.innerHTML = '';
+        });
+        /* 신고 (TASK-KL-191 축4) — **열어 본 자리에** 둔다. 목록에만 두면 이상한 것을 본
+         * 순간에 누를 자리가 없고, 창을 닫고 나면 대개 안 돌아온다. */
+        host.querySelector<HTMLButtonElement>('[data-report]')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget as HTMLButtonElement;
+            if (!confirm('이 도구를 신고할까요? 여러 사람이 신고하면 자동으로 멈춥니다.')) return;
+            const apiBase = api();
+            if (!apiBase) return;
+            button.disabled = true;
+            try {
+                const res = await fetch(`${apiBase}/kl/tools/user/${encodeURIComponent(tool.id)}/report`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                if (res.status === 401) {
+                    Toolbox.showToast?.('신고하려면 로그인이 필요해요');
+                    return;
+                }
+                if (!res.ok) throw new Error(String(res.status));
+                const data = (await res.json()) as { reports: number; stopped: boolean };
+                Toolbox.showToast?.(data.stopped ? '신고가 쌓여 이 도구가 멈췄어요' : `신고했어요 (${data.reports}건)`);
+                if (data.stopped) host.innerHTML = '';
+            } catch {
+                Toolbox.showToast?.('신고하지 못했어요');
+            } finally {
+                button.disabled = false;
+            }
         });
         const base = api();
         if (base) void fetch(`${base}/kl/tools/user/${encodeURIComponent(tool.id)}/run`, { method: 'POST' }).catch(() => {});
@@ -103,10 +161,14 @@
         return `
             <div class="ut-card">
                 <h4>${escapeHtml(tool.title)}</h4>
-                <span class="ut-meta">@${escapeHtml(tool.ownerHandle)} · ${tool.runs}번 돌았음${mine && !tool.listed ? ' · 목록에 안 올림' : ''}</span>
+                <span class="ut-meta">@${escapeHtml(tool.ownerHandle)} · ${tool.runs}번 돌았음${mine && !tool.listed ? ' · 목록에 안 올림' : ''}${
+                    tool.stopped ? ` · <span class="ut-stopped">멈춤 (${escapeHtml(tool.stoppedReason ?? '세워짐')})</span>` : ''
+                }</span>
                 <button type="button" class="ut-btn ut-btn-go" data-run="${escapeHtml(tool.id)}">열기</button>
                 ${mine
                     ? `<button type="button" class="ut-btn" data-list="${escapeHtml(tool.id)}" data-on="${tool.listed ? '0' : '1'}">${tool.listed ? '목록에서 내리기' : '목록에 올리기'}</button>
+                       ${/* 주인이 스스로 세우고 다시 연다. 신고로 선 것은 여기서 못 되돌린다(서버가 막는다) */ ''}
+                       <button type="button" class="ut-btn" data-stopped="${escapeHtml(tool.id)}" data-want="${tool.stopped ? '0' : '1'}">${tool.stopped ? '다시 열기' : '세우기'}</button>
                        <button type="button" class="ut-btn" data-del="${escapeHtml(tool.id)}">지우기</button>`
                     : ''}
             </div>`;
@@ -151,9 +213,21 @@
                 const base = api();
                 if (!base || !stage) return;
                 try {
-                    const res = await fetch(`${base}/kl/tools/user/${encodeURIComponent(button.dataset.run ?? '')}`);
+                    const res = await fetch(`${base}/kl/tools/user/${encodeURIComponent(button.dataset.run ?? '')}`, {
+                        credentials: 'include',
+                    });
+                    /* 세워진 도구는 **소스가 안 온다** — 「왜 못 여나」를 그 자리에서 말한다.
+                     * 조용히 실패하면 사람은 사이트 고장으로 읽는다. */
+                    if (res.status === 451) {
+                        const why = (await res.json()) as { reason?: string };
+                        stage.innerHTML =
+                            `<p class="ut-warn">이 도구는 멈춰 있습니다 — ${escapeHtml(why.reason ?? '세워짐')}. ` +
+                            '만든 사람이 고치면 다시 열립니다.</p>';
+                        return;
+                    }
                     if (!res.ok) throw new Error(String(res.status));
-                    runInSandbox(stage, ((await res.json()) as { tool: UserTool }).tool);
+                    const data = (await res.json()) as { tool: UserTool; summary?: ToolSummary };
+                    runInSandbox(stage, data.tool, data.summary);
                     stage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } catch {
                     Toolbox.showToast?.('지금은 못 열었어요');
@@ -170,6 +244,24 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ listed: button.dataset.on === '1' }),
                 }).catch(() => {});
+                void build(container);
+            });
+        });
+        container.querySelectorAll<HTMLButtonElement>('[data-stopped]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const base = api();
+                if (!base) return;
+                const res = await fetch(`${base}/kl/tools/user/${encodeURIComponent(button.dataset.stopped ?? '')}/stopped`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stopped: button.dataset.want === '1' }),
+                }).catch(() => null);
+                if (res && !res.ok) {
+                    // 신고로 선 것은 주인 혼자 못 되돌린다 — 왜 안 되는지 말한다.
+                    Toolbox.showToast?.('신고로 멈춘 도구는 혼자 다시 열 수 없어요');
+                    return;
+                }
                 void build(container);
             });
         });

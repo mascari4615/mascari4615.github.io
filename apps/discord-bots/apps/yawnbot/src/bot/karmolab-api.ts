@@ -56,7 +56,7 @@ import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karm
 import { getKarmolabCoDocStore, KarmolabCoDocStore } from '../services/karmolab-codocs';
 import { notifyIfWanted as sharedNotifyGate } from '../services/karmolab-notify-gate';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
-import { getKarmolabUserToolStore } from '../services/karmolab-userTools';
+import { getKarmolabUserToolStore, KarmolabUserToolStore } from '../services/karmolab-userTools';
 import { missionState, missionsOfWeek } from '../services/karmolab-missions';
 import {
   verifyRegistration,
@@ -1105,7 +1105,50 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ tool });
+    /* 선 도구는 **소스를 안 준다** (TASK-KL-191 축4).
+     * 목록에서만 빼면 주소를 아는 사람에게는 그대로 돌아간다 — 그러면 세운 것이 아니다.
+     * 주인은 자기 것을 계속 본다(고치려면 봐야 한다). */
+    const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const isOwner = viewer?.handle === tool.ownerHandle;
+    if (tool.stopped && !isOwner) {
+      res.status(451).json({ error: 'stopped', reason: tool.stoppedReason ?? '세워짐', title: tool.title });
+      return;
+    }
+    res.json({
+      tool: { ...tool, reports: (tool.reports ?? []).length },
+      /* 「이 도구가 뭘 하나」 — 올린 사람의 설명이 아니라 **소스에서 읽은 것**이다. */
+      summary: KarmolabUserToolStore.summarize(tool.source),
+    });
+  });
+
+  /** 신고 — 로그인한 사람만, 한 사람 한 번. 이유는 안 받는다(볼 사람 없는 글은 안 쌓는다). */
+  app.post('/kl/tools/user/:id/report', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const result = userTools.report(String(req.params.id ?? ''), account.handle);
+    if (!result) {
+      res.status(400).json({ error: 'cannot_report' });
+      return;
+    }
+    res.json(result);
+  });
+
+  /** 주인이 세우기·다시 열기. 신고로 선 것은 주인 혼자 못 되돌린다. */
+  app.patch('/kl/tools/user/:id/stopped', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const tool = userTools.setStopped(String(req.params.id ?? ''), account.handle, (req.body ?? {}).stopped === true);
+    if (!tool) {
+      res.status(403).json({ error: 'not_owner_or_reported' });
+      return;
+    }
+    res.json({ stopped: tool.stopped === true, reason: tool.stoppedReason ?? null });
   });
 
   app.post('/kl/tools/user', (req: Request, res: Response) => {

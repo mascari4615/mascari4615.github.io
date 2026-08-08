@@ -130,7 +130,8 @@
     "test:contract:live": "node scripts/smoke-format-contract.mjs",
     "test:flow:auto": "node scripts/smoke-flow-auto.mjs",
     "test:workshop": "node scripts/smoke-workshop-kinds.mjs",
-    "test:inbox": "node scripts/smoke-inbox.mjs"
+    "test:inbox": "node scripts/smoke-inbox.mjs",
+    "test:usertool": "node scripts/smoke-usertool-trust.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

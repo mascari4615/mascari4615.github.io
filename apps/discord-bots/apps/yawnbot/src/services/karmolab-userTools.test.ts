@@ -68,3 +68,67 @@ describe('남이 만든 도구 (KL-183 H)', () => {
     expect(new KarmolabUserToolStore(statePath).get(tool.id)?.runs).toBe(1);
   });
 });
+
+describe('남의 도구 신뢰 (KL-191 축4)', () => {
+  it('같은 사람이 여러 번 눌러도 한 번 — 신고가 무기가 되지 않게', () => {
+    const store = new KarmolabUserToolStore(statePath);
+    const tool = store.create('karmo', { title: '내 도구', source: '<p>hi</p>' })!;
+    store.report(tool.id, 'ring');
+    store.report(tool.id, 'ring');
+    expect(store.report(tool.id, 'ring')!.reports).toBe(1);
+    expect(store.get(tool.id)!.stopped).toBeUndefined();
+  });
+
+  it('주인은 자기 도구를 신고 못 한다 — 내리고 싶으면 스스로 세우면 된다', () => {
+    const store = new KarmolabUserToolStore(statePath);
+    const tool = store.create('karmo', { title: '내 도구', source: '<p>hi</p>' })!;
+    expect(store.report(tool.id, 'karmo')).toBeNull();
+  });
+
+  it('셋이 쌓이면 스스로 서고, 목록에서도 빠진다', () => {
+    const store = new KarmolabUserToolStore(statePath);
+    const tool = store.create('karmo', { title: '내 도구', source: '<p>hi</p>' })!;
+    store.update(tool.id, 'karmo', { listed: true });
+    store.report(tool.id, 'a');
+    store.report(tool.id, 'b');
+    const third = store.report(tool.id, 'c')!;
+    expect(third.stopped).toBe(true);
+    expect(store.get(tool.id)!.listed).toBe(false);
+    expect(store.listed().map((t) => t.id)).not.toContain(tool.id);
+  });
+
+  it('신고로 선 것은 주인 혼자 못 되돌린다 — 되돌려지면 세운 것이 아니다', () => {
+    const store = new KarmolabUserToolStore(statePath);
+    const tool = store.create('karmo', { title: '내 도구', source: '<p>hi</p>' })!;
+    ['a', 'b', 'c'].forEach((who) => store.report(tool.id, who));
+    expect(store.setStopped(tool.id, 'karmo', false)).toBeNull();
+    expect(store.get(tool.id)!.stopped).toBe(true);
+  });
+
+  it('주인이 스스로 세운 것은 스스로 다시 연다', () => {
+    const store = new KarmolabUserToolStore(statePath);
+    const tool = store.create('karmo', { title: '내 도구', source: '<p>hi</p>' })!;
+    expect(store.setStopped(tool.id, 'karmo', true)!.stopped).toBe(true);
+    expect(store.setStopped(tool.id, 'karmo', false)!.stopped).toBeUndefined();
+  });
+});
+
+describe('「이 도구가 뭘 하나」 요약 (KL-191 축4)', () => {
+  it('소스에서 읽는다 — 올린 사람의 설명이 아니라', () => {
+    const s = KarmolabUserToolStore.summarize('<canvas id="c"></canvas><script>c.getContext("2d")</script>');
+    expect(s.does).toContain('그림을 그린다');
+    expect(s.blocked).toEqual([]);
+  });
+
+  it('막힌 것을 하려고 한 사실도 말한다 — 안 보여 주면 막힌 것이 풀린 날 아무도 모른다', () => {
+    const s = KarmolabUserToolStore.summarize('<script>fetch("//x.example");localStorage.getItem("k")</script>');
+    expect(s.blocked).toContain('바깥으로 보내기 (끊겨 있음)');
+    expect(s.blocked).toContain('내 저장소·쿠키 (안 보임)');
+  });
+
+  it('못 읽는 것은 못 읽는다고 한다 — 아는 척이 제일 나쁘다', () => {
+    const jumble = `<script>${'a'.repeat(2500)}</script>`;
+    expect(KarmolabUserToolStore.summarize(jumble).unreadable).toBe(true);
+    expect(KarmolabUserToolStore.summarize('<p>보통 글</p>\n<p>두 줄</p>').unreadable).toBe(false);
+  });
+});
