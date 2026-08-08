@@ -436,6 +436,10 @@ const 대사 = new 대사창고({
   지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
   log: (m) => console.log(m),
 });
+/** 목소리 상태를 곁눈질하는 화면이 읽어 갈 수 있게 밖에 둔다. */
+let 흉내기동 = null;
+let 목소리목록 = [];
+
 const 닿음결 = { 쿡: '쿡 찔렸을 때', 흔듦: '붙잡혀 끌려다닐 때', 쓰다듬: '쓰다듬어질 때' };
 const 단계결 = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
 const 반사상황 = {
@@ -502,6 +506,15 @@ const web = webBody({
 ${tallyReport(tally)}`;
   },
   troubles: () => troublesReport(troubles),
+  /* 곁눈질하는 화면(KarmoLab 위젯)이 읽어 갈 것들. 오늘 사고 셋이 전부 「조용히 빠짐」
+     이었다 — 기록에만 남는 상태는 아무도 안 본다. */
+  상태: () => ({
+    인격: character?.name ?? null,
+    머리: brain.currentModel ? brain.currentModel() : brain.name,
+    목소리들: 목소리목록,
+    흉내준비: 흉내기동 === null ? null : 흉내기동.준비됐나,
+    흉내자동: settings.on('애니목소리자동'),
+  }),
   settings: () => settingsReport(settings),
   putSettings: (next) => settings.put(next),
   // 얼굴 신호를 유도할 재료. 생김새는 다른 세션이 이 신호를 받아 쓴다.
@@ -566,7 +579,7 @@ ${tallyReport(tally)}`;
     /* **쓸 때 켜고 안 쓰면 끈다** (사용자 결정 2026-08-08: 「부팅 기준이 아니라 쓸 때/안
        쓸 때 기준」). 뜨는 데 30초쯤 걸리므로 기다리지 않는다 — 준비될 때까지는 대타가
        말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
-    const 흉내기동 = new 수요기동({
+    흉내기동 = new 수요기동({
       이름: '흉내 낸 목소리',
       살았나: () => 흉내.alive(),
       띄우기: () => 흉내서버띄우기(),
@@ -607,7 +620,8 @@ ${tallyReport(tally)}`;
       // 고를 이유가 없었다 — 결은 그때그때 마음에서 나온다.
       speech: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
     });
-    console.log(`[목소리] ${engines.map((e) => e.label).join(' + ')}`);
+    목소리목록 = engines.map((e) => e.label);
+    console.log(`[목소리] ${목소리목록.join(' + ')}`);
     return anySpeech(engines);
   })(),
 
