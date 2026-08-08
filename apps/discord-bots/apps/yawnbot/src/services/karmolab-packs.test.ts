@@ -356,3 +356,24 @@ describe('씨앗 표의 글자 칸', () => {
     expect(s.get(made.id)!.items[0].cat).toBe('도구');
   });
 });
+
+describe('씨앗을 나중에 늘렸을 때', () => {
+  it('새로 늘린 씨앗 표가 실제로 합류한다 — 「심었음」 한 칸으로 막으면 영영 안 들어간다', () => {
+    const dir = path.join(tmpRoot, 'later');
+    fs.mkdirSync(dir, { recursive: true });
+    const table = (title: string) => ({
+      title,
+      emoji: '🧪',
+      fields: [{ key: 'f1', label: '갈래', kind: 'category' }],
+      items: [1, 2, 3, 4].map((n) => ({ n: `${title}${n}`, i: `https://example.com/${n}.png`, v: { f1: 'ㄱ' } }))
+    });
+    // 먼저 포켓몬 파일만 있는 상태로 한 번 뜬다
+    fs.writeFileSync(path.join(dir, 'higher-pokemon.json'), JSON.stringify(table('첫 표')), 'utf-8');
+    expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(1);
+
+    // 나중에 도구 월드컵 표가 생긴다 — 다시 뜨면 그것도 심겨야 한다
+    fs.writeFileSync(path.join(dir, 'worldcup-tools.json'), JSON.stringify(table('나중 표')), 'utf-8');
+    const after = new KarmolabPackStore(statePath, dir).list().map((p) => p.title).sort();
+    expect(after).toEqual(['나중 표', '첫 표']);
+  });
+});
