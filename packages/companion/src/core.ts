@@ -276,6 +276,8 @@ export class Companion {
         channel: sensation.channel,
         text: sensation.text,
         at: sensation.at,
+        // 누가 한 말인지 같이 담는다 — 여럿이 있는 자리에서는 이게 없으면 독백이 된다.
+        ...(sensation.누가 === undefined ? {} : { 누가: sensation.누가 }),
       });
     }
 

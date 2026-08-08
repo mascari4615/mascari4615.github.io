@@ -630,8 +630,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
           });
           req.on('end', () => {
             let text = '';
+            let 누가: string | undefined;
             try {
-              text = String(JSON.parse(raw).text ?? '').trim();
+              const 온것 = JSON.parse(raw) as { text?: unknown; 누가?: unknown };
+              text = String(온것.text ?? '').trim();
+              // 여럿이 있는 자리에서는 누가 한 말인지 같이 온다. 단둘이면 안 온다.
+              if (typeof 온것.누가 === 'string' && 온것.누가.trim() !== '') 누가 = 온것.누가.trim().slice(0, 40);
             } catch {
               text = '';
             }
@@ -655,7 +659,14 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             // 맞장구는 말이 아니라서 뜸과 같은 길로 나간다(대화에 안 쌓인다).
             const 받는소리 = backchannel.heard(askedAt);
             if (받는소리 !== null) broadcast({ type: 'filler', text: 받는소리, channel });
-            emit({ channel, kind: 'text', text, at: askedAt, ...(시험인가 ? { 시험: true } : {}) });
+            emit({
+              channel,
+              kind: 'text',
+              text,
+              at: askedAt,
+              ...(누가 === undefined ? {} : { 누가 }),
+              ...(시험인가 ? { 시험: true } : {}),
+            });
           });
           return;
         }
