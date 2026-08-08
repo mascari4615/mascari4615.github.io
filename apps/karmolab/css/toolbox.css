@@ -1110,9 +1110,11 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .home-decor-item {
     position: absolute;
     will-change: transform;
-    transform: translate3d(
-        calc(var(--px, 0px) * var(--depth, 0) + var(--ox, 0px)),
-        calc(var(--py, 0px) * var(--depth, 0) + var(--oy, 0px)), 0);
+    /* 자리는 **JS 가 완성된 값으로** 쓴다 (home-scene.ts 의 place()).
+       예전에는 여기서 `calc(var(--px)*var(--depth)+var(--ox))` 로 풀었는데, 변수 하나가
+       바뀔 때마다 하위 전체 스타일을 다시 계산하고 합성기가 그 transform 을 못 맡았다 —
+       마우스를 움직이는 동안 CPU 의 77%가 이 장식이었다(실측 2026-08-08). */
+    transform: translate3d(0, 0, 0);
     /* 부드러움은 CSS 전환이 아니라 계산 쪽에서 만든다 — 밀림 값이 매 프레임 들어오므로
        전환을 걸면 두 번 미끄러져 흐물거린다 (TASK-KL-101). */
 }

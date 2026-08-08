@@ -195,12 +195,25 @@
                아주 조금 흐르는 정도로만 쓴다 (TASK-KL-101). */
             const reach = narrow ? 7 : 12;
             let tx = 0, ty = 0, queued = false;
+            /* 자리는 **완성된 transform 문자열**로 쓴다 — 변수(--px)와 calc() 로 쓰면 안 된다.
+             *
+             * 예전에는 바깥 상자에 `--px/--py` 를 얹고 CSS 가 `calc(var(--px)*var(--depth)+var(--ox))`
+             * 로 풀게 했다. 한 줄이라 깔끔했지만 값이 바뀔 때마다 **하위 전체의 스타일을 다시
+             * 계산**하고, 변수로 만든 transform 은 합성기가 못 맡아 매 프레임 주 스레드가 짊어졌다.
+             * 실측(라이브, CPU 4배 느리게, 마우스를 1.1초 움직이는 동안):
+             *   장식 켬 = 총작업 1.382초(그중 스타일 계산 0.644초) / 장식 끔 = 0.319초.
+             * 조작 중 CPU 의 77%가 배경 장식이었고, 대부분이 페인트가 아니라 **스타일 계산**이었다.
+             * 값을 다 계산해서 그 요소에만 직접 쓰면 무효화가 그 하나로 좁혀진다. */
+            const place = (d) => {
+                d.el.style.transform =
+                    'translate3d(' + (cx0 * d.depth + d.ox).toFixed(2) + 'px,'
+                    + (cy0 * d.depth + d.oy).toFixed(2) + 'px,0)';
+            };
             const apply = () => {
                 queued = false;
                 cx0 += (tx - cx0) * 0.12;
                 cy0 += (ty - cy0) * 0.12;
-                wrap.style.setProperty('--px', cx0.toFixed(1) + 'px');
-                wrap.style.setProperty('--py', cy0.toFixed(1) + 'px');
+                for (const d of drifters) place(d);
                 if (Math.abs(tx - cx0) > 0.2 || Math.abs(ty - cy0) > 0.2) {
                     if (!queued) { queued = true; requestAnimationFrame(apply); }
                 }
@@ -279,13 +292,11 @@
                     else if (cy > innerHeight + pad) d.oy -= innerHeight + pad * 2;
                     // 값은 **0 으로 되돌리지 않는다** — 되돌리면 그 순간 원래 자리로 튄다.
                     if (Math.abs(d.vx) < 0.02 && Math.abs(d.vy) < 0.02) {
-                        d.el.style.setProperty('--ox', d.ox.toFixed(2) + 'px');
-                        d.el.style.setProperty('--oy', d.oy.toFixed(2) + 'px');
+                        place(d);
                         continue;
                     }
                     moving = true;
-                    d.el.style.setProperty('--ox', d.ox.toFixed(2) + 'px');
-                    d.el.style.setProperty('--oy', d.oy.toFixed(2) + 'px');
+                    place(d);
                 }
                 // 다 가라앉으면 멈춘다 — 가만히 있는 화면에서 프레임을 태우지 않는다
                 if (moving) requestAnimationFrame(step);
