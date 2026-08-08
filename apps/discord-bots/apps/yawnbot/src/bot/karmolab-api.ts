@@ -52,6 +52,14 @@ import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import {
+  verifyRegistration,
+  verifyAssertion,
+  bufToB64url,
+  RP_ID,
+  RP_NAME,
+  CHALLENGE_TTL_MS,
+} from '../services/karmolab-passkey';
+import {
   getKarmolabChatStore,
   TEXT_MAX as CHAT_TEXT_MAX,
   type ChatEvent,
@@ -912,6 +920,139 @@ export function registerKarmolabApi(
       // 규칙은 코드와 화면이 **같은 말**을 해야 한다. 그래서 숫자를 서버가 내보낸다.
       policy: { dormantAfterDays: 365, deletesAutomatically: false },
     });
+  });
+
+  /* ── 패스키 (TASK-KL-156 D7) ──────────────────────────────────────
+   *
+   * 들어오는 문이 디스코드 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. 패스키는 기기가 열쇠라
+   * 외부 등록도 secret 도 필요 없다 — 도메인만 있으면 된다.
+   *
+   * 도전값은 **메모리에만, 몇 분만** 산다. 한 번 쓰면 버린다(같은 답을 두 번 못 쓰게).
+   */
+  const passkeyChallenges = new Map<string, { challenge: string; expiresAt: number }>();
+
+  function issueChallenge(key: string): string {
+    const challenge = bufToB64url(crypto.randomBytes(32));
+    passkeyChallenges.set(key, { challenge, expiresAt: Date.now() + CHALLENGE_TTL_MS });
+    return challenge;
+  }
+
+  function takeChallenge(key: string): string | null {
+    const found = passkeyChallenges.get(key);
+    passkeyChallenges.delete(key);
+    if (!found || found.expiresAt <= Date.now()) return null;
+    return found.challenge;
+  }
+
+  /** 등록 시작 — 로그인한 사람만. 이미 있는 열쇠는 제외해 같은 기기를 두 번 담지 않는다. */
+  app.post('/kl/me/passkeys/challenge', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({
+      challenge: issueChallenge(`reg:${account.id}`),
+      rp: { id: RP_ID, name: RP_NAME },
+      user: { id: bufToB64url(Buffer.from(account.id)), name: account.handle, displayName: account.displayName },
+      exclude: store.passkeysOf(account.id).map((key) => key.id),
+    });
+  });
+
+  /** 등록 마무리 — 브라우저가 만든 것을 확인하고 담는다. */
+  app.post('/kl/me/passkeys', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const challenge = takeChallenge(`reg:${account.id}`);
+    if (!challenge) {
+      res.status(400).json({ error: 'challenge_expired' });
+      return;
+    }
+    const body = req.body ?? {};
+    try {
+      const passkey = verifyRegistration({
+        challenge,
+        clientDataJSON: String(body.clientDataJSON ?? ''),
+        attestationObject: String(body.attestationObject ?? ''),
+        label: String(body.label ?? deviceLabel(req.headers['user-agent'])),
+      });
+      if (!store.addPasskey(account.id, passkey)) {
+        res.status(409).json({ error: 'already_registered' });
+        return;
+      }
+      store.noteEvent(account.id, 'login', { device: passkey.label, detail: '패스키 등록' });
+      res.json({ passkeys: store.passkeysOf(account.id) });
+    } catch (error) {
+      // 왜 틀렸는지 자세히 알려 주지 않는다 — 찍어 보는 데 쓰인다.
+      console.warn('[karmolab-api] 패스키 등록 실패:', error instanceof Error ? error.message : error);
+      res.status(400).json({ error: 'bad_passkey' });
+    }
+  });
+
+  /** 내 패스키 목록 (공개키는 안 나간다). */
+  app.get('/kl/me/passkeys', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ passkeys: store.passkeysOf(account.id) });
+  });
+
+  /** 패스키 지우기. 마지막 하나여도 막지 않는다 — 디스코드와 복구 코드가 남아 있다. */
+  app.delete('/kl/me/passkeys/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const removed = store.removePasskey(account.id, String(req.params.id ?? ''));
+    res.json({ removed, passkeys: store.passkeysOf(account.id) });
+  });
+
+  /** 로그인 시작 — 로그인 전이라 도전값은 쿠키 없이 브라우저가 그대로 돌려준다. */
+  app.post('/kl/auth/passkey/challenge', (_req: Request, res: Response) => {
+    const key = crypto.randomUUID();
+    res.json({ key, challenge: issueChallenge(`auth:${key}`), rpId: RP_ID });
+  });
+
+  /**
+   * 패스키로 로그인.
+   * 누구인지 미리 안 물어도 된다 — 자격증명 id 하나로 계정을 찾는다.
+   */
+  app.post('/kl/auth/passkey', (req: Request, res: Response) => {
+    const body = req.body ?? {};
+    const challenge = takeChallenge(`auth:${String(body.key ?? '')}`);
+    if (!challenge) {
+      res.status(400).json({ error: 'challenge_expired' });
+      return;
+    }
+    const found = store.accountForPasskey(String(body.id ?? ''));
+    if (!found) {
+      res.status(401).json({ error: 'bad_passkey' });
+      return;
+    }
+    try {
+      const signCount = verifyAssertion({
+        challenge,
+        clientDataJSON: String(body.clientDataJSON ?? ''),
+        authenticatorData: String(body.authenticatorData ?? ''),
+        signature: String(body.signature ?? ''),
+        passkey: found.passkey,
+      });
+      store.notePasskeyUse(found.account.id, found.passkey.id, signCount);
+      const device = deviceLabel(req.headers['user-agent']);
+      const { token, expiresAt } = store.createSession(found.account.id, device);
+      store.noteEvent(found.account.id, 'login', { device, detail: '패스키' });
+      setSessionCookie(res, token, expiresAt - Date.now());
+      res.json({ account: store.publicProfile(found.account) });
+    } catch (error) {
+      console.warn('[karmolab-api] 패스키 로그인 실패:', error instanceof Error ? error.message : error);
+      res.status(401).json({ error: 'bad_passkey' });
+    }
   });
 
   /** 내 공개 범위 (TASK-KL-152 C4). */
@@ -2231,6 +2372,17 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    /* **같은 원장에 넣는다** (TASK-KL-157). 예전엔 알림 한 줄만 보내고 끝이라, 알림을 놓치면
+       그 신고는 어디에도 안 남았다. 채팅 줄은 하루 뒤 사라지므로 그 말을 함께 베껴 둔다. */
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    traces.report({
+      kind: 'chat',
+      postId: target.id,
+      byAccountId: account ? account.id : `anon:${chat.identityFor(visitorKeyFor(req)).key}`,
+      reason: String(req.body?.reason ?? '채팅 신고'),
+      subject: `${target.name}: ${target.text}`,
+    });
+    traces.flush();
     for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
       const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
       if (!admin) continue;

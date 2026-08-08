@@ -482,6 +482,13 @@
                 <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
             </div>
             <div class="user-acct-row">
+                <span class="user-acct-label">패스키</span>
+                <div class="fp-sessions" data-passkeys>보는 중…</div>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-add>이 기기에 만들기</button>
+                <span class="user-acct-hint">지문·얼굴·PIN 으로 로그인합니다. 들어오는 문이 하나뿐이면
+                    그 문이 잠기는 날 계정을 잃습니다 — 두 번째 문입니다.</span>
+            </div>
+            <div class="user-acct-row">
                 <span class="user-acct-label">주간 발자국</span>
                 <label class="fp-vis-item"><input type="checkbox" data-weekly> 지난주 요약을 디스코드로 받기</label>
                 <span class="user-acct-hint" data-weekly-hint>월요일 오전에 한 번. 아무것도 안 한 주에는 안 보냅니다.
@@ -600,6 +607,7 @@
         mountVisibility(box.querySelector<HTMLElement>('[data-visibility]'), base);
         void renderBlocked(box.querySelector<HTMLElement>('[data-blocked]'), base);
         void mountWeekly(box, base);
+        mountPasskeys(box, base);
         mountCard(box, base);
 
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
@@ -898,6 +906,118 @@
                 Toolbox.showToast?.('지금은 안 되네요');
             }
         });
+    }
+
+    /* ── 패스키 (TASK-KL-156 D7) ─────────────────────────────────────
+     *
+     * 이 브라우저가 패스키를 모르면 **단추 자체를 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
+     */
+    function b64urlToBytes(value: string): Uint8Array {
+        const padded = value.replace(/-/g, '+').replace(/_/g, '/');
+        const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
+        return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+    }
+
+    function bytesToB64url(buffer: ArrayBuffer): string {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        bytes.forEach((b) => {
+            binary += String.fromCharCode(b);
+        });
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function mountPasskeys(box: Element, base: string): void {
+        const slot = box.querySelector<HTMLElement>('[data-passkeys]');
+        const addButton = box.querySelector<HTMLButtonElement>('[data-passkey-add]');
+        if (!slot || !addButton) return;
+        if (!window.PublicKeyCredential) {
+            slot.textContent = '이 브라우저는 패스키를 모릅니다';
+            addButton.remove();
+            return;
+        }
+
+        const paint = async (): Promise<void> => {
+            try {
+                const res = await fetch(`${base}/kl/me/passkeys`, { credentials: 'include' });
+                if (!res.ok) throw new Error(String(res.status));
+                const list = ((await res.json()) as { passkeys?: Array<{ id: string; label: string; lastUsedAt: string | null }> }).passkeys ?? [];
+                slot.innerHTML = list.length
+                    ? list
+                          .map(
+                              (key) => `
+                        <div class="fp-session">
+                            <span class="fp-session-name">${escapeHtml(key.label)}</span>
+                            <span class="fp-session-when">${key.lastUsedAt ? `마지막 ${escapeHtml(whenText(key.lastUsedAt))}` : '아직 안 씀'}</span>
+                            <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-del="${escapeHtml(key.id)}">지우기</button>
+                        </div>`,
+                          )
+                          .join('')
+                    : '<span class="user-acct-hint">아직 없어요</span>';
+                slot.querySelectorAll<HTMLButtonElement>('[data-passkey-del]').forEach((button) => {
+                    button.addEventListener('click', async () => {
+                        if (!confirm('이 패스키를 지울까요? 디스코드와 복구 코드로는 계속 들어올 수 있습니다.')) return;
+                        await fetch(`${base}/kl/me/passkeys/${encodeURIComponent(button.dataset.passkeyDel ?? '')}`, {
+                            method: 'DELETE',
+                            credentials: 'include',
+                        });
+                        void paint();
+                    });
+                });
+            } catch {
+                slot.textContent = '지금은 못 봤어요';
+            }
+        };
+
+        addButton.addEventListener('click', async () => {
+            addButton.disabled = true;
+            try {
+                const start = await fetch(`${base}/kl/me/passkeys/challenge`, { method: 'POST', credentials: 'include' });
+                if (!start.ok) throw new Error(String(start.status));
+                const options = (await start.json()) as {
+                    challenge: string;
+                    rp: { id: string; name: string };
+                    user: { id: string; name: string; displayName: string };
+                    exclude: string[];
+                };
+                const created = (await navigator.credentials.create({
+                    publicKey: {
+                        challenge: b64urlToBytes(options.challenge),
+                        rp: options.rp,
+                        user: {
+                            id: b64urlToBytes(options.user.id),
+                            name: options.user.name,
+                            displayName: options.user.displayName,
+                        },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                        // 같은 기기를 두 번 담지 않는다.
+                        excludeCredentials: options.exclude.map((id) => ({ type: 'public-key' as const, id: b64urlToBytes(id) })),
+                        authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' },
+                        timeout: 120000,
+                    },
+                })) as PublicKeyCredential | null;
+                if (!created) throw new Error('취소');
+                const response = created.response as AuthenticatorAttestationResponse;
+                const res = await fetch(`${base}/kl/me/passkeys`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        clientDataJSON: bytesToB64url(response.clientDataJSON),
+                        attestationObject: bytesToB64url(response.attestationObject),
+                    }),
+                });
+                Toolbox.showToast?.(res.ok ? '패스키를 만들었어요' : '만들지 못했어요');
+            } catch {
+                // 사용자가 취소한 것과 고장은 다르지만, 둘 다 여기서는 「안 됐다」로 충분하다.
+                Toolbox.showToast?.('만들지 못했어요');
+            } finally {
+                addButton.disabled = false;
+                void paint();
+            }
+        });
+
+        void paint();
     }
 
     /** 주간 발자국 DM (TASK-KL-156 D6) — 켠 사람에게만 간다. 디스코드가 안 붙어 있으면 못 켠다. */
