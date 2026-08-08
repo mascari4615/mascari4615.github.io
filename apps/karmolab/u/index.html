@@ -110,6 +110,16 @@
   .profile-grass i[data-lv="3"] { background: rgba(185, 162, 255, 0.75); }
   .profile-grass i[data-lv="4"] { background: var(--accent); }
   .profile-grass i[data-lv="x"] { background: transparent; }
+  /* 작업실 (TASK-KL-182 F3) — 건 것이 없으면 이 자리는 아예 안 그려진다. */
+  .profile-works { margin: 24px 0; }
+  .profile-works h2 { margin: 0 0 10px; font-size: 15px; }
+  .profile-works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .profile-works figure { margin: 0; }
+  .profile-works img {
+    width: 100%; aspect-ratio: 1; object-fit: cover; display: block;
+    border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03);
+  }
+  .profile-works figcaption { margin-top: 5px; font-size: 12px; color: var(--text); }
   .profile-foot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; }
   .profile-empty h1 { margin: 0 0 10px; font-size: 20px; }
   .profile-empty p { color: var(--muted); }

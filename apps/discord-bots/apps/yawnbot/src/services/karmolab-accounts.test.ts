@@ -662,3 +662,44 @@ describe('알림 갈래·팔로우 목록·잔디 공개 (KL-175)', () => {
     expect(store.publicFootprint(me.handle)).toBeNull();
   });
 });
+
+/** 작업실 (TASK-KL-182 F3·F4). */
+describe('작업실 (KL-182)', () => {
+  it('걸고 내린다 · 같은 것을 두 번 걸지 않는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    store.addWork(me.id, { id: 'abcd1234', title: '첫 그림', toolId: 'imagegen' });
+    store.addWork(me.id, { id: 'abcd1234', title: '또', toolId: 'imagegen' });
+    expect(store.worksOf(me.id)).toHaveLength(1);
+    expect(store.worksOf(me.id)[0].title).toBe('첫 그림');
+
+    store.removeWork(me.id, 'abcd1234');
+    expect(store.worksOf(me.id)).toEqual([]);
+  });
+
+  it('벽이 차면 가장 오래된 것이 내려간다 — 거는 순간 실패하면 만든 것이 사라진다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    for (let i = 0; i < 15; i += 1) store.addWork(me.id, { id: `work${String(i).padStart(4, '0')}`, title: `w${i}` });
+    const works = store.worksOf(me.id);
+    expect(works).toHaveLength(12);
+    expect(works[0].title).toBe('w14');
+  });
+
+  it('이상한 id·꾸민 글자는 안 받는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    expect(store.addWork(me.id, { id: '../etc/passwd' })).toBeNull();
+    store.addWork(me.id, { id: 'okid1234', title: '<script>x</script>' });
+    expect(JSON.stringify(store.worksOf(me.id))).not.toContain('<script>');
+  });
+
+  it('프로필을 잠그면 남에게는 작업실이 아예 없다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    store.addWork(me.id, { id: 'okid1234', title: 'x' });
+    expect(store.publicWorks(me.handle)).toHaveLength(1);
+    store.setVisibility(me.id, { profile: false });
+    expect(store.publicWorks(me.handle)).toBeNull();
+  });
+});

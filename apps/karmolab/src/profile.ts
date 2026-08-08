@@ -194,6 +194,7 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
             </section>
             ${grassHtml(profile)}
             ${streaksHtml}
+            <div id="profileWorks"></div>
             <div id="profileActivity"></div>
             <footer class="profile-foot">
                 <a href="/karmolab/">KarmoLab 에서 도구 보기</a>
@@ -202,6 +203,38 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                 <button type="button" class="profile-share" id="profileShare">공유 주소 복사</button>
             </footer>
         </article>`;
+}
+
+/**
+ * 작업실 (TASK-KL-182 F3) — 「무엇을 만들었나」.
+ *
+ * 프로필은 활동과 기록까지 왔지만 **만든 것**은 없었다. 건 것이 없으면 이 자리는 통째로
+ * 안 그려진다 — 빈 액자만 걸린 벽은 없느니만 못하다.
+ */
+async function loadWorks(handle: string): Promise<void> {
+    const root = document.getElementById('profileWorks');
+    if (!root) return;
+    try {
+        const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}/works`);
+        if (!response.ok) return;
+        const works = ((await response.json()) as { works?: Array<{ id: string; title: string; toolId: string | null }> }).works ?? [];
+        if (!works.length) return;
+        root.innerHTML = `
+            <section class="profile-works">
+                <h2>작업실 <span class="profile-dim">${works.length}점</span></h2>
+                <div class="profile-works-grid">
+                    ${works
+                        .map(
+                            (work) =>
+                                `<figure><img src="${API_BASE}/kl/img/${encodeURIComponent(work.id)}" alt="${escapeHtml(work.title)}" loading="lazy">` +
+                                `<figcaption>${escapeHtml(work.title)}${work.toolId ? ` <span class="profile-dim">${escapeHtml(toolTitle(work.toolId))}</span>` : ''}</figcaption></figure>`,
+                        )
+                        .join('')}
+                </div>
+            </section>`;
+    } catch {
+        /* 작업실을 못 받아도 프로필 자체는 보인다 */
+    }
 }
 
 /** 이 사람이 쓴 글·답글 — 「무엇을 했나」가 없으면 프로필은 빈 명함이다. */
@@ -369,6 +402,7 @@ async function main(): Promise<void> {
         mountFollow(root, data.profile);
         mountBlock(root, data.profile);
         mountShare(root, data.profile);
+        void loadWorks(data.profile.handle);
         void loadActivity(data.profile.handle);
     } catch (error) {
         console.warn('[profile] 프로필을 못 불러왔다:', error);
