@@ -867,6 +867,16 @@ html[data-intro="off"] .intro-overlay {
 .header-account-menu .header-account-menu-out { color: #dc2626; }
 html[data-theme="dark"] .header-account-menu .header-account-menu-out { color: #fca5a5; }
 
+/* 아직 안 써 본 것 (TASK-KL-183 E) — 첫 화면 아래 한 줄. 없으면 아예 안 그려진다. */
+.landing-suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+.landing-suggest:empty { display: none; }
+.landing-suggest-label { font-size: 12px; color: var(--text-tertiary); }
+.landing-suggest-item {
+    padding: 6px 13px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 13px;
+    border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary);
+}
+.landing-suggest-item:hover { border-color: var(--accent); color: var(--accent); }
+
 .header-btn.user-btn,
 .header-btn.settings-btn,
 .theme-toggle {
