@@ -345,7 +345,11 @@ const Mdd = (() => {
                         iris.style.setProperty(pfx + '-repeat', 'no-repeat');
                     }
                 }
-                host.appendChild(iris);
+                // 눈동자는 흰자 위·속눈썹 아래다. 맨 뒤에 붙이면 눈꺼풀 위로 떠올라
+                // 「눈알이 얼굴에 얹힌」 그림이 된다.
+                const lash = layers.get('eyelash');
+                if (lash && lash.parentNode === host) host.insertBefore(iris, lash);
+                else host.appendChild(iris);
                 irisEls.push(iris);
             }
         }
@@ -550,35 +554,33 @@ const Mdd = (() => {
     .mdd-spot { display:flex; flex-direction:column; align-items:center; gap:10px; padding:24px 16px; }
 .mdd-spot-msg { margin:0; font-size:var(--font-size-sm,13px); color:var(--text-secondary,#9aa3b2); text-align:center; line-height:1.5; }
 .mdd-av-iris { position:absolute; border-radius:50%; transform-origin:50% 100%;
+    /* 셀 애니메이션 눈 = 그라디언트로 뭉갠 구슬이 아니라 **면이 나뉜** 그림이다.
+       위는 속눈썹 그림자로 어둡고 아래는 빛을 받아 밝다. 동공은 또렷한 검정,
+       하이라이트는 흐릿한 빛이 아니라 잘린 흰 점이다 — 경계를 일부러 딱 끊는다. */
     background:
-        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 26%),
-        radial-gradient(circle at 68% 74%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 14%),
-        radial-gradient(circle at 50% 62%, #2a1240 0%, #2a1240 26%, rgba(42,18,64,0) 30%),
-        radial-gradient(circle at 50% 40%, #b98ce8 0%, #7a3fb5 55%, #43206b 100%);
-    box-shadow:inset 0 -1px 2px rgba(0,0,0,0.35); will-change:transform; }
-/* 홀로그램 — 「지금 여기 있는 사람」이 아니라 「어딘가에서 쏘아 보낸 상」으로 보이게.
-   주사선·청록 번짐·아주 느린 떨림 세 가지가 겹쳐야 통신 화면처럼 읽힌다. */
+        radial-gradient(circle at 34% 26%, #ffffff 0 22%, rgba(255,255,255,0) 22.5%),
+        radial-gradient(circle at 70% 72%, rgba(255,255,255,0.85) 0 9%, rgba(255,255,255,0) 9.5%),
+        radial-gradient(circle at 50% 56%, #1b0c2b 0 27%, rgba(27,12,43,0) 27.5%),
+        linear-gradient(to bottom, #4b2278 0 34%, #7b45c0 34% 62%, #a875e8 62% 84%, #cfa9f5 84% 100%);
+    box-shadow: inset 0 0 0 1.2px rgba(28,12,44,0.85);
+    will-change:transform; }
+
+/* 홀로그램 — 주사선이 아니라 **홈 배경과 같은 결**로. 첫 화면의 도형들이 점 격자로
+   그려져 있어서(하프톤), 마스코트도 같은 점으로 한 겹 덮으면 같은 세계의 물건으로 보인다. */
 .mdd-holo { position:relative; }
-.mdd-holo .mdd-av { filter:drop-shadow(0 0 6px rgba(0,229,255,0.5)) drop-shadow(0 0 18px rgba(120,80,255,0.35))
-    saturate(1.15) brightness(1.06); animation:mdd-holo-flicker 6s steps(60) infinite; }
+.mdd-holo .mdd-av { filter:drop-shadow(0 0 5px rgba(0,229,255,0.35)) saturate(1.08) brightness(1.04); }
 .mdd-holo::after { content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
-    background:repeating-linear-gradient(to bottom, rgba(0,229,255,0.10) 0px, rgba(0,229,255,0.10) 1px,
-        rgba(0,0,0,0) 1px, rgba(0,0,0,0) 3px);
-    mix-blend-mode:screen; animation:mdd-holo-scan 5s linear infinite; }
-.mdd-holo::before { content:''; position:absolute; inset:-6% -4%; pointer-events:none; z-index:1;
-    background:radial-gradient(ellipse at 50% 75%, rgba(0,229,255,0.16) 0%, rgba(0,229,255,0) 62%); }
-@keyframes mdd-holo-scan { from { background-position:0 0; } to { background-position:0 60px; } }
-@keyframes mdd-holo-flicker {
-    0%,92%,100% { opacity:1; }
-    93% { opacity:0.86; }
-    94% { opacity:1; }
-    96% { opacity:0.92; }
-    97% { opacity:1; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .mdd-holo .mdd-av { animation:none; }
-    .mdd-holo::after { animation:none; }
-}
+    background-image:
+        radial-gradient(circle at 50% 50%, rgba(0,229,255,0.30) 0 1.1px, rgba(0,0,0,0) 1.3px),
+        radial-gradient(circle at 50% 50%, rgba(168,117,232,0.22) 0 1px, rgba(0,0,0,0) 1.2px);
+    background-size:6px 6px, 9px 9px;
+    background-position:0 0, 3px 3px;
+    mix-blend-mode:screen;
+    animation:mdd-holo-drift 9s linear infinite; }
+.mdd-holo::before { content:''; position:absolute; inset:-8% -5%; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse at 50% 78%, rgba(0,229,255,0.14) 0%, rgba(0,229,255,0) 60%); }
+@keyframes mdd-holo-drift { from { background-position:0 0, 3px 3px; } to { background-position:0 -18px, 3px -15px; } }
+@media (prefers-reduced-motion: reduce) { .mdd-holo::after { animation:none; } }
 .mdd-av-blush { position:absolute; pointer-events:none; opacity:0;
         background:radial-gradient(ellipse at 22% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%),
                    radial-gradient(ellipse at 78% 50%, rgba(255,120,150,0.55) 0%, rgba(255,120,150,0) 60%);
