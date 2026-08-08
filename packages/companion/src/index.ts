@@ -79,6 +79,7 @@ export * from './made-up';
 export * from './milestone';
 export * from './mouth-gate';
 export * from './touch';
+export { 대사창고, 골라내기, type StockOptions } from './stock';
 export * from './people';
 export * from './quiet';
 export * from './resume';
