@@ -16,6 +16,9 @@
 (function () {
     const switchPage = (id, opts) => Toolbox.switchPage(id, opts);
     const mountHomeDecor = () => Toolbox.mountHomeDecor();
+    /* 셸 안의 도구 목록은 여기서 안 보인다 — 창구로 받는다.
+       분리할 때 이 한 줄을 놓쳐 첫 화면이 「tools is not defined」로 죽었다(관문 검사가 잡음). */
+    const tools = () => Toolbox.getTools();
     const toolCountsOnce = () => Toolbox.toolCountsOnce();
     const whenApiBase = (ms) => Toolbox.whenApiBase(ms);
 
@@ -107,7 +110,7 @@
     /** 계정 스크립트를 기다린다 — 도구 화면은 그것보다 먼저 그려진다. 안 오면 그냥 포기한다. */
     /** 도구 id 로 사람이 읽는 이름 찾기. 등록된 것 우선, 없으면 지연 메타. 둘 다 없으면 null. */
     function toolTitleFor(id) {
-        const registered = tools.find((t) => t.id === id);
+        const registered = tools().find((t) => t.id === id);
         if (registered && registered.title) return registered.title;
         const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
         return (meta[id] && meta[id].title) || null;
