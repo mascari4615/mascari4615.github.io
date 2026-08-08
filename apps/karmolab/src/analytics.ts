@@ -49,11 +49,49 @@
 
   window.KarmoStat = { page, use, disabled };
 
-  if (!disabled) {
+  /* 미리 실행된 화면은 **아직 방문이 아니다** (TASK-KL-128 ③).
+   *
+   * 다음에 갈 것 같은 화면을 미리 받아 두는 것(prefetch)은 문서만 가져오지만, 미리 **실행**까지
+   * 하는 것(prerender)은 그 화면의 스크립트가 정말로 돈다. 그대로 두면 아무도 안 본 화면이
+   * 방문으로 세이고, 그래서 그동안 미리 받기만 했다.
+   *
+   * 브라우저가 그 구분을 알려 준다: 미리 실행 중이면 `document.prerendering` 이 참이고,
+   * 사람이 실제로 그 화면에 도착하면 `prerenderingchange` 가 온다. 그때 세면 숫자는 그대로다.
+   * 그동안 앱이 부른 기록은 줄을 세워 뒀다가 도착한 뒤에 흘려보낸다 — 놓치는 것 0.
+   */
+  const queued: Array<() => void> = [];
+  const prerendering = () => typeof document !== 'undefined' && !!(document as Document & { prerendering?: boolean }).prerendering;
+  const held = (fn: () => void): boolean => {
+    if (!prerendering()) return false;
+    queued.push(fn);
+    return true;
+  };
+
+  function start(): void {
+    if (disabled) return;
     const s = document.createElement('script');
     s.async = true;
     s.src = 'https://gc.zgo.at/count.js';
     s.setAttribute('data-goatcounter', SITE);
     document.head.appendChild(s);
+    for (const fn of queued.splice(0)) fn();
   }
+
+  if (prerendering()) {
+    document.addEventListener('prerenderingchange', start, { once: true });
+  } else {
+    start();
+  }
+
+  /* 부르는 쪽은 아무것도 몰라도 된다 — 여기서 붙잡았다가 도착한 뒤에 흘려보낸다. */
+  const rawPage = page;
+  const rawUse = use;
+  window.KarmoStat.page = (toolId: string, title?: string) => {
+    if (held(() => rawPage(toolId, title))) return;
+    rawPage(toolId, title);
+  };
+  window.KarmoStat.use = (toolId: string, action: string) => {
+    if (held(() => rawUse(toolId, action))) return;
+    rawUse(toolId, action);
+  };
 })();
