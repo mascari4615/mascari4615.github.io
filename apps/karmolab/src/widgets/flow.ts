@@ -54,6 +54,13 @@
             border:1px solid var(--border); background:var(--bg-secondary); box-shadow:0 8px 24px rgba(0,0,0,.35); }
         .flow-bar-title { font-size:var(--font-size-xs); color:var(--text-primary); }
         .flow-bar-count { font-size:11px; color:var(--text-tertiary); }
+        /* 결과가 나온 단추는 빛난다 — 언제 눌러야 하는지를 사람이 판단하지 않아도 되게. */
+        .flow-btn.flow-ready { animation:flow-pulse 1.2s ease-in-out infinite; }
+        @keyframes flow-pulse {
+            0%, 100% { box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+            50% { box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
+        }
+        @media (prefers-reduced-motion: reduce) { .flow-btn.flow-ready { animation:none; outline:2px solid var(--accent); } }
     `);
 
     const api = (): string | null => window.KarmoAccount?.apiBase ?? null;
@@ -352,17 +359,63 @@
         const titleInput = container.querySelector<HTMLInputElement>('[data-title]');
         if (!pick || !draftSlot || !titleInput) return;
 
-        /* 고를 수 있는 것은 **화면에 있는 도구 전부**다. 「이어지는 것만」으로 좁히면 아직
-         * 형식을 안 밝힌 도구가 통째로 빠져 흐름을 못 만든다 — 좁히는 것은 나중에. */
-        const metas = (window.KARMOLAB_LAZY_META ?? []) as Array<{ id: string; title?: string; hidden?: boolean }>;
-        pick.innerHTML = metas
-            .filter((meta) => !meta.hidden)
-            .sort((a, b) => (a.title ?? a.id).localeCompare(b.title ?? b.id))
-            .map((meta) => `<option value="${escapeHtml(meta.id)}">${escapeHtml(meta.title ?? meta.id)}</option>`)
-            .join('');
+        /* 고를 수 있는 것은 여전히 **도구 전부**다 — 형식을 안 밝힌 도구를 빼면 흐름을 못 만든다.
+         * 다만 앞 단계가 정해지면 **이어지는 것을 위로 올린다** (TASK-KL-183 A):
+         * 앞 도구가 내놓는 형식을 받을 수 있다고 밝힌(`accepts`) 도구가 먼저 온다.
+         * 거르지 않고 **줄만 세운다** — 고르는 자유는 그대로 두고 눈만 덜 피곤하게. */
+        const metas = (window.KARMOLAB_LAZY_META ?? []) as Array<{
+            id: string;
+            title?: string;
+            hidden?: boolean;
+            accepts?: string[];
+            produces?: string[];
+        }>;
+        const byId = new Map(metas.map((meta) => [meta.id, meta]));
+
+        /* 묶음은 **자식이 하는 일을 대신 말한다** (TASK-KL-183 A).
+         *
+         * 형식 선언(`accepts`·`produces`)은 실제로 일하는 도구에 붙어 있는데, 그 도구들 상당수가
+         * 묶음 탭 안으로 들어가며 목록에서 숨겨졌다(`hidden`). 그러면 화면에 보이는 대표는
+         * 아무 형식도 안 밝힌 것이 되어 「이어지는 도구」가 영영 안 뜬다.
+         * 그래서 자식 것을 합쳐서 본다 — 두 벌로 적지 않고 **파생**한다. */
+        const kindsOf = (id: string, key: 'accepts' | 'produces'): string[] => {
+            const own = (byId.get(id)?.[key] ?? []) as string[];
+            const children = metas
+                .filter((meta) => (meta as { bundle?: string }).bundle === id)
+                .flatMap((meta) => (meta[key] ?? []) as string[]);
+            return [...new Set([...own, ...children])];
+        };
+
+        const canFollow = (candidate: (typeof metas)[number], prevId: string | null): boolean => {
+            if (!prevId) return false;
+            const outs = kindsOf(prevId, 'produces');
+            const ins = kindsOf(candidate.id, 'accepts');
+            if (!outs.length || !ins.length) return false;
+            return outs.some((out) =>
+                ins.some((accept) => accept === out || (accept.endsWith('/*') && out.startsWith(accept.slice(0, -1)))),
+            );
+        };
+
+        const paintPicker = (): void => {
+            const prevId = draft.length ? draft[draft.length - 1].toolId : null;
+            const rows = metas
+                .filter((meta) => !meta.hidden)
+                .map((meta) => ({ meta, follows: canFollow(meta, prevId) }))
+                .sort((a, b) => {
+                    if (a.follows !== b.follows) return a.follows ? -1 : 1;
+                    return (a.meta.title ?? a.meta.id).localeCompare(b.meta.title ?? b.meta.id);
+                });
+            pick.innerHTML = rows
+                .map(
+                    ({ meta, follows }) =>
+                        `<option value="${escapeHtml(meta.id)}">${follows ? '↳ ' : ''}${escapeHtml(meta.title ?? meta.id)}</option>`,
+                )
+                .join('');
+        };
 
         let draft: Step[] = [];
         const paintDraft = (): void => {
+            paintPicker();
             draftSlot.innerHTML = draft.length
                 ? draft
                       .map(
@@ -378,6 +431,9 @@
                 });
             });
         };
+
+        // 첫 그림 — 고를 목록과 빈 초안을 한 번 그려 둔다.
+        paintDraft();
 
         container.querySelector('[data-add]')?.addEventListener('click', () => {
             if (draft.length >= 8) {
@@ -410,6 +466,24 @@
             }
         });
     }
+
+    /* 결과가 나오면 띠가 **먼저 안다** (TASK-KL-183 A).
+     *
+     * 지금까지는 사람이 「다음」을 눌러야 했고, 언제 눌러야 하는지는 스스로 판단해야 했다.
+     * 도구가 결과를 내놓는 순간 그 단추가 빛나면, 흐름이 화면을 따라오는 것이 아니라
+     * **화면이 흐름을 따라간다**. 자동으로 넘기지는 않는다 — 결과를 확인할 틈은 사람의 것이다. */
+    window.addEventListener('karmolab-result', () => {
+        const bar = document.querySelector('.flow-bar');
+        const next = bar?.querySelector<HTMLElement>('[data-flow-next], [data-flow-done]');
+        if (!next) return;
+        next.classList.add('flow-ready');
+        const run = readRun();
+        const step = run?.steps[run.at];
+        if (step && bar) {
+            const count = bar.querySelector('.flow-bar-count');
+            if (count && !count.textContent?.includes('결과')) count.textContent += ' · 결과 나옴';
+        }
+    });
 
     // 도구 화면으로 옮겨 다녀도 띠는 따라온다.
     window.addEventListener('hashchange', paintBar);
