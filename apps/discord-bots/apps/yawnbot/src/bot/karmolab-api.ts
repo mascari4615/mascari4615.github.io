@@ -988,7 +988,18 @@ export function registerKarmolabApi(
       return;
     }
     const body = req.body ?? {};
-    const works = store.addWork(account.id, { id: String(body.id ?? ''), title: body.title, toolId: body.toolId });
+    /* 그림이 아닌 것도 걸린다 (TASK-KL-191 축3). 미리보기가 없는 것은 **열쇠를 여기서 만든다** —
+     * 업로드 id 가 곧 열쇠이던 시절의 규칙이 그대로면 그림 아닌 것은 애초에 못 걸린다. */
+    const givenId = String(body.id ?? '');
+    const workId = givenId || `w${crypto.randomBytes(8).toString('hex')}`;
+    const works = store.addWork(account.id, {
+      id: workId,
+      title: body.title,
+      toolId: body.toolId,
+      kind: body.kind,
+      preview: body.preview === true && !!givenId,
+      note: body.note,
+    });
     if (!works) {
       res.status(400).json({ error: 'bad_work' });
       return;

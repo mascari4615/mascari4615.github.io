@@ -703,3 +703,45 @@ describe('작업실 (KL-182)', () => {
     expect(store.publicWorks(me.handle)).toBeNull();
   });
 });
+
+describe('작업실이 그림만 받던 것 (KL-191 축3)', () => {
+  it('그림이 아닌 것도 걸린다 — 갈래와 단서가 남는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord({ id: 'd1', username: '카르모' });
+    store.addWork(account.id, { id: 'w0123456789ab', title: '보고서', kind: 'pdf', preview: true, note: '1.2MB' });
+    store.addWork(account.id, { id: 'w0123456789cd', title: '메모', kind: 'text', preview: false, note: '오늘 산 것' });
+    const works = store.worksOf(account.id);
+    expect(works.map((w) => w.kind)).toEqual(['text', 'pdf']);
+    expect(works.find((w) => w.kind === 'text')!.preview).toBe(false);
+    expect(works.find((w) => w.kind === 'pdf')!.note).toBe('1.2MB');
+  });
+
+  it('모르는 갈래는 「그 밖」으로 — 화면이 지어낸 이름을 그리지 않게', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord({ id: 'd2', username: '카르모' });
+    store.addWork(account.id, { id: 'w0123456789ef', title: 'x', kind: '장난', preview: true });
+    expect(store.worksOf(account.id)[0].kind).toBe('file');
+  });
+
+  it('올린 그림이 없으면 미리보기는 거짓 — 없는 그림을 부르는 칸을 안 만든다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord({ id: 'd3', username: '카르모' });
+    store.addWork(account.id, { id: 'w0123456789gh', title: 'x', kind: 'audio', preview: false });
+    expect(store.worksOf(account.id)[0].preview).toBe(false);
+  });
+
+  it('옛 기록(갈래 없음)은 읽을 때 그림으로 본다 — 저장된 것을 고쳐 쓰지 않는다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord({ id: 'd4', username: '카르모' });
+    store.addWork(account.id, { id: 'oldwork12345', title: '옛 그림' });
+    // 갈래·미리보기 칸을 지운 옛 모양으로 되돌려 놓는다
+    const raw = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+    const key = Object.keys(raw.accounts)[0];
+    raw.accounts[key].works = [{ id: 'oldwork12345', title: '옛 그림', toolId: null, at: new Date().toISOString() }];
+    fs.writeFileSync(statePath, JSON.stringify(raw), 'utf-8');
+    const reopened = new KarmolabAccountStore(statePath);
+    const work = reopened.worksOf(key)[0];
+    expect(work.kind).toBe('image');
+    expect(work.preview).toBe(true);
+  });
+});

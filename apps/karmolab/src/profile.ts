@@ -217,8 +217,31 @@ async function loadWorks(handle: string): Promise<void> {
     try {
         const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}/works`);
         if (!response.ok) return;
-        const works = ((await response.json()) as { works?: Array<{ id: string; title: string; toolId: string | null }> }).works ?? [];
+        type Work = {
+            id: string;
+            title: string;
+            toolId: string | null;
+            kind?: string;
+            preview?: boolean;
+            note?: string | null;
+        };
+        const works = ((await response.json()) as { works?: Work[] }).works ?? [];
         if (!works.length) return;
+        /* 그림이 아닌 것도 걸린다 (TASK-KL-191 축3). 미리보기가 없으면 **없는 그림을 부르지
+         * 않는다** — 부르면 깨진 칸이 남고, 그건 「안 걸린 것」처럼 보인다. 대신 갈래 표시와
+         * 단서 한 줄(크기 또는 글 앞머리)을 그 자리에 둔다. */
+        const FACE: Record<string, string> = {
+            image: '🖼', pdf: '📄', audio: '🎵', video: '🎬', text: '📝', file: '📦',
+        };
+        const faceOf = (work: Work): string => {
+            if (work.preview !== false) {
+                return `<img src="${API_BASE}/kl/img/${encodeURIComponent(work.id)}" alt="${escapeHtml(work.title)}" loading="lazy">`;
+            }
+            return (
+                `<span class="profile-work-blank"><b>${FACE[work.kind ?? 'file'] ?? '📦'}</b>` +
+                `${work.note ? `<i>${escapeHtml(work.note)}</i>` : ''}</span>`
+            );
+        };
         root.innerHTML = `
             <section class="profile-works">
                 <h2>작업실 <span class="profile-dim">${works.length}점</span></h2>
@@ -226,7 +249,7 @@ async function loadWorks(handle: string): Promise<void> {
                     ${works
                         .map(
                             (work) =>
-                                `<figure><img src="${API_BASE}/kl/img/${encodeURIComponent(work.id)}" alt="${escapeHtml(work.title)}" loading="lazy">` +
+                                `<figure>${faceOf(work)}` +
                                 `<figcaption>${escapeHtml(work.title)}${work.toolId ? ` <span class="profile-dim">${escapeHtml(toolTitle(work.toolId))}</span>` : ''}</figcaption></figure>`,
                         )
                         .join('')}

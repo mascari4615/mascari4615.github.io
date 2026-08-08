@@ -270,8 +270,25 @@ const Toolbox = (() => {
         );
     }
 
+    /** 미리보기 한 장을 올리고 그 열쇠를 돌려준다. 못 올리면 null — 없는 그림을 가리키지 않는다. */
+    async function uploadPreview(base, dataUrl) {
+        try {
+            const up = await fetch(base + '/kl/uploads', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: dataUrl }),
+            });
+            if (!up.ok) return null;
+            const saved = await up.json();
+            return saved && saved.id ? saved.id : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
     /**
-     * 결과 아래 「이어서」 한 줄. 갈 곳이 없으면 아무것도 안 그린다 —
+     * 결과 아래 「이어서」 한 줄. 갈 곳도 없고 걸 수도 없으면 아무것도 안 그린다 —
      * 눌러도 아무 일 없는 줄을 두지 않는다.
      */
     function offerNext(anchor, item) {
@@ -296,7 +313,11 @@ const Toolbox = (() => {
             }
         }
         let targets = toolsAccepting(item && item.blob && item.blob.type, item && item.from);
-        if (!item || !targets.length) return;
+        /* 갈 곳이 없어도 **걸 수는 있다** (TASK-KL-191 축3).
+         * 예전엔 이어질 도구가 없으면 줄 자체를 안 그렸다 — 그래서 표·글처럼 받아 줄 도구가
+         * 없는 결과는 작업실에 걸 방법도 같이 사라졌다. 줄은 「보일 것이 하나라도 있으면」 선다. */
+        const canHang = !!(item && item.blob && window.KarmoAccount?.state.account);
+        if (!item || (!targets.length && !canHang)) return;
         /* 갈 곳이 여덟 군데까지 나오는데 한 줄에는 다섯이 들어간다. 무엇을 앞에 둘지는
          * **이 사람이 쓰는 것**으로 정한다 — 내가 꽂아 둔 것, 그다음 최근에 연 것.
          * 등록 순서대로 자르면 늘 쓰는 도구가 잘려 나가고 안 쓰는 것이 남는다. */
@@ -330,9 +351,60 @@ const Toolbox = (() => {
          *
          * 「이어서」 줄은 결과가 나온 자리에 이미 서 있다 — 포트폴리오를 따로 만들라고 하면
          * 아무도 안 만든다. 만든 그 자리에서 한 번 누르면 프로필에 걸린다.
-         * 그림일 때만, 로그인했을 때만 뜬다(둘 중 하나라도 아니면 눌러도 아무 일 없는 단추다). */
-        const isImage = String(item.blob.type || '').startsWith('image/');
-        if (isImage && window.KarmoAccount?.state.account) {
+         * **그림만 받던 것을 고쳤다** (TASK-KL-191 축3). 도구 160개 중 그림을 내놓는 것은
+         * 스물 남짓이라, 「만든 것을 건다」고 해 놓고 만든 것의 대부분(PDF·소리·영상·표·글)을
+         * 안 받고 있었다. 이제 갈래마다 걸 수 있는 만큼 건다:
+         *   그림 → 그대로 미리보기 · PDF → 첫 장을 그려서 미리보기 ·
+         *   글/표 → 앞머리 한 줄 · 소리/영상/그 밖 → 크기 한 줄.
+         * 미리보기를 못 만들면 **없다고 말한다** — 없는 그림을 부르면 깨진 칸이 남는다. */
+        if (canHang) {
+            const mime = String(item.blob.type || '');
+            const kindOf = () => {
+                if (mime.startsWith('image/')) return 'image';
+                if (mime === 'application/pdf') return 'pdf';
+                if (mime.startsWith('audio/')) return 'audio';
+                if (mime.startsWith('video/')) return 'video';
+                if (mime.startsWith('text/') || mime.includes('json') || mime.includes('csv')) return 'text';
+                return 'file';
+            };
+            const kind = kindOf();
+            const sizeNote = () => {
+                const n = item.blob.size || 0;
+                if (n < 1024) return `${n}B`;
+                if (n < 1024 * 1024) return `${Math.round(n / 1024)}KB`;
+                return `${(n / (1024 * 1024)).toFixed(1)}MB`;
+            };
+            const readDataUrl = (blob) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ''));
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            /* PDF 는 **첫 장을 그려서** 미리보기로 쓴다. 그리는 도구(pdf.js)는 이 앱이 이미
+             * 들고 있고, 여기서 처음 필요해질 때만 받는다 — 셸이 늘 지고 다닐 짐이 아니다.
+             * 못 그리면 미리보기 없이 건다(거는 것 자체가 실패하면 만든 것이 사라진다). */
+            const pdfThumb = async () => {
+                try {
+                    await ensureScript('vendor/pdfjs.min');
+                    const lib = window.pdfjsLib;
+                    if (!lib) return null;
+                    // 워커도 같은 자리에서 받아야 한다 (다른 데서 받으면 판본이 어긋난다)
+                    lib.GlobalWorkerOptions.workerSrc = '/apps/karmolab/js/vendor/pdfjs.worker.min.js';
+                    const data = new Uint8Array(await item.blob.arrayBuffer());
+                    const pdf = await lib.getDocument({ data }).promise;
+                    const page = await pdf.getPage(1);
+                    const view = page.getViewport({ scale: 1 });
+                    const scale = Math.min(1.6, 640 / view.width);
+                    const scaled = page.getViewport({ scale });
+                    const cv = document.createElement('canvas');
+                    cv.width = Math.round(scaled.width);
+                    cv.height = Math.round(scaled.height);
+                    await page.render({ canvasContext: cv.getContext('2d'), viewport: scaled }).promise;
+                    return cv.toDataURL('image/png');
+                } catch (_) {
+                    return null;
+                }
+            };
             const hang = document.createElement('button');
             hang.type = 'button';
             hang.className = 'tool-next-btn';
@@ -341,25 +413,29 @@ const Toolbox = (() => {
                 hang.disabled = true;
                 try {
                     const base = window.KarmoAccount.apiBase;
-                    const dataUrl = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => resolve(String(reader.result || ''));
-                        reader.onerror = reject;
-                        reader.readAsDataURL(item.blob);
-                    });
-                    const up = await fetch(base + '/kl/uploads', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ data: dataUrl }),
-                    });
-                    if (!up.ok) throw new Error(String(up.status));
-                    const saved = await up.json();
+                    let uploadId = null;
+                    let note = sizeNote();
+                    if (kind === 'image') {
+                        uploadId = await uploadPreview(base, await readDataUrl(item.blob));
+                    } else if (kind === 'pdf') {
+                        const thumb = await pdfThumb();
+                        if (thumb) uploadId = await uploadPreview(base, thumb);
+                    } else if (kind === 'text') {
+                        // 글은 앞머리 한 줄이 미리보기다 — 통째로 올리면 그건 걸기가 아니라 업로드다.
+                        note = (await item.blob.slice(0, 400).text()).replace(/\s+/g, ' ').trim().slice(0, 80) || note;
+                    }
                     const res = await fetch(base + '/kl/me/works', {
                         method: 'POST',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: saved.id, title: item.name || '작업', toolId: item.from || null }),
+                        body: JSON.stringify({
+                            id: uploadId || '',
+                            title: item.name || '작업',
+                            toolId: item.from || null,
+                            kind,
+                            preview: !!uploadId,
+                            note,
+                        }),
                     });
                     showToast(res.ok ? '작업실에 걸었어요' : '걸지 못했어요');
                 } catch (_) {

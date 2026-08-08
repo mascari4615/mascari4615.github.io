@@ -189,14 +189,29 @@ export interface ProfileCard {
   pins: string[];
 }
 
+/**
+ * 걸린 것이 **무엇인가** (TASK-KL-191 축3).
+ *
+ * 작업실은 그림만 받았다. 그런데 도구 160개 중 그림을 내놓는 것은 스물 남짓이고, 나머지가
+ * 만든 것(PDF·소리·영상·표·글)은 걸 자리가 없었다 — 「만든 것을 건다」고 해 놓고 대부분의
+ * 만든 것을 안 받은 셈이다.
+ */
+export type WorkKind = 'image' | 'pdf' | 'audio' | 'video' | 'text' | 'file';
+
 export interface AccountWork {
-  /** 업로드 id (`/kl/img/<id>`) */
+  /** 갤러리 열쇠. 그림·PDF 는 미리보기 업로드 id 를 겸한다 (`/kl/img/<id>`) */
   id: string;
   /** 한 줄 이름 */
   title: string;
   /** 어느 도구로 만들었나 (모르면 null) */
   toolId: string | null;
   at: string;
+  /** 무엇인가 — 옛 기록에는 없다(그때는 그림뿐이었다). 읽을 때 그림으로 본다. */
+  kind?: WorkKind;
+  /** 그림으로 보여 줄 수 있나. 소리·영상·글은 못 보여 준다 — 없는 그림을 부르면 깨진 칸이 남는다. */
+  preview?: boolean;
+  /** 크기 한 줄 또는 글 앞머리. 미리보기가 없을 때 **이것이 유일한 단서**다. */
+  note?: string | null;
 }
 
 /** 걸 수 있는 개수. 벽이 넓으면 아무것도 안 보인다 — 고르는 것이 작업실의 절반이다. */
@@ -1167,22 +1182,44 @@ export class KarmolabAccountStore {
 
   /* ── 작업실 (TASK-KL-182 F3·F4) ─────────────────────────────────── */
 
+  /**
+   * 옛 기록에는 「무엇인가」가 없다 — 그때는 그림뿐이었다 (TASK-KL-191 축3).
+   * 읽는 자리에서 그림으로 채운다. 저장된 것을 고쳐 쓰지 않는다(마이그레이션 없이 늙는다).
+   */
+  private static fillWork(work: AccountWork): AccountWork {
+    return {
+      ...work,
+      kind: work.kind ?? 'image',
+      preview: work.preview ?? true,
+      note: work.note ?? null,
+    };
+  }
+
   worksOf(accountId: string): AccountWork[] {
-    return [...(this.state.accounts[accountId]?.works ?? [])];
+    return (this.state.accounts[accountId]?.works ?? []).map(KarmolabAccountStore.fillWork);
   }
 
   /** 하나 건다. 벽이 다 차면 **가장 오래된 것을 내린다** — 거는 순간 실패하면 만든 것이 사라진다. */
-  addWork(accountId: string, input: { id: string; title?: unknown; toolId?: unknown }): AccountWork[] | null {
+  addWork(
+    accountId: string,
+    input: { id: string; title?: unknown; toolId?: unknown; kind?: unknown; preview?: unknown; note?: unknown },
+  ): AccountWork[] | null {
     const account = this.state.accounts[accountId];
     if (!account) return null;
     if (!/^[a-zA-Z0-9_-]{4,64}$/.test(String(input.id ?? ''))) return null;
     const works = account.works ?? [];
     if (works.some((work) => work.id === input.id)) return works;
+    const KINDS: WorkKind[] = ['image', 'pdf', 'audio', 'video', 'text', 'file'];
+    const kind = KINDS.includes(input.kind as WorkKind) ? (input.kind as WorkKind) : 'file';
     works.unshift({
       id: input.id,
       title: String(input.title ?? '').replace(/[<>&"]/g, '').trim().slice(0, WORK_TITLE_MAX) || '작업',
       toolId: isToolIdLike(input.toolId) ? input.toolId : null,
       at: new Date().toISOString(),
+      kind,
+      /* 「그림이 있다」는 **올린 쪽만** 안다. 여기서 추측하면 없는 그림을 부르는 칸이 남는다. */
+      preview: input.preview === true,
+      note: String(input.note ?? '').replace(/[<>&"]/g, '').trim().slice(0, 80) || null,
     });
     account.works = works.slice(0, WORKS_MAX);
     this.save();
@@ -1203,7 +1240,7 @@ export class KarmolabAccountStore {
     const account = id ? this.state.accounts[id] : null;
     if (!account) return null;
     if (!this.visibilityFor(account.id).profile) return null;
-    const works = account.works ?? [];
+    const works = (account.works ?? []).map(KarmolabAccountStore.fillWork);
     return works.length ? works : null;
   }
 
