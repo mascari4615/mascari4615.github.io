@@ -206,6 +206,35 @@
             </section>`;
     }
 
+    /**
+     * 놀이 시즌 순위 (TASK-KL-182 F2).
+     *
+     * 놀이마다 순위판이 따로 있으면 「누가 제일 잘하나」에 답이 없다. 판마다 메달을 주고
+     * **메달 수로** 줄 세운다 — 점수를 섞으면 단위가 다른 수를 더하는 셈이라 그 합은 뜻이 없다.
+     */
+    type SeasonRow = { handle: string; gold: number; silver: number; bronze: number; boards: number };
+
+    function renderSeason(rows: SeasonRow[] | null): string {
+        if (!rows || rows.length === 0) return '';
+        const body = rows
+            .map(
+                (row, index) =>
+                    `<tr><td>${index + 1}</td>` +
+                    `<td><a href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">@${escapeHtml(row.handle)}</a></td>` +
+                    `<td>🥇 ${num(row.gold)}</td><td>🥈 ${num(row.silver)}</td><td>🥉 ${num(row.bronze)}</td></tr>`,
+            )
+            .join('');
+        return `
+            <section class="plaza-section">
+                <h3>놀이 시즌 순위</h3>
+                <p class="plaza-section-note">판마다 메달을 주고 메달 수로 줄 세웁니다 · 점수는 섞지 않습니다</p>
+                <table class="plaza-leaders">
+                    <thead><tr><th></th><th>사람</th><th>금</th><th>은</th><th>동</th></tr></thead>
+                    <tbody>${body}</tbody>
+                </table>
+            </section>`;
+    }
+
     async function api(path: string): Promise<unknown | null> {
         const base = window.KarmoAccount?.apiBase;
         if (!base) return null;
@@ -556,7 +585,7 @@
 
     async function buildOverview(container: HTMLElement): Promise<void> {
         container.innerHTML = '<div class="plaza-wrap"><p class="plaza-note">불러오는 중…</p></div>';
-        const [rawStats, rawBoards, rawRecap, rawLeaders, rawFeed] = await Promise.all([
+        const [rawStats, rawBoards, rawRecap, rawLeaders, rawFeed, rawSeason] = await Promise.all([
             api('/kl/tools/stats'),
             api('/kl/boards'),
             api('/kl/recap'),
@@ -564,6 +593,8 @@
             api('/kl/stats/leaders'),
             // 방금 있었던 일 (TASK-KL-151 ③). 마찬가지로 없으면 그 칸만 안 그린다.
             api('/kl/feed?limit=12'),
+            // 놀이 시즌 순위 (TASK-KL-182 F2). 없으면 그 칸만 안 그린다.
+            api('/kl/play/season'),
         ]);
         if (!container.isConnected) return;
         if (!rawStats) {
@@ -575,6 +606,7 @@
         const recap = (rawRecap as { recap?: Recap } | null)?.recap ?? null;
         const visits = stats.visits ?? null;
         const leaders = (rawLeaders as { leaders?: Leader[] } | null)?.leaders ?? null;
+        const season = (rawSeason as { ranking?: SeasonRow[] } | null)?.ranking ?? null;
         const feed = rawFeed as { plays?: FeedPlay[]; games?: FeedGame[]; packs?: FeedPack[] } | null;
 
         const hasTools = stats.tools.some((t) => t.recent > 0);
@@ -585,6 +617,7 @@
             visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다 · 사람만 셉니다</p>${renderVisits(visits)}</section>` : '',
             renderSpark(visits),
             renderLeaders(leaders),
+            renderSeason(season),
             renderRecap(recap),
             renderKinds(visits),
             stats.pulse.opensTotal > 0

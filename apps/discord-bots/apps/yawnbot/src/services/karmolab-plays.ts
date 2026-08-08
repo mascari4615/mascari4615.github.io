@@ -333,6 +333,41 @@ export class KarmolabPlayStore {
   }
 
   /**
+   * 시즌 순위 (TASK-KL-182 F2) — 여러 판을 하나로 모은다.
+   *
+   * 놀이마다 순위판이 따로 있으면 「누가 제일 잘하나」에 답이 없다. 판마다 1등에게 금,
+   * 2·3등에게 은·동을 주고 **메달 수로** 줄 세운다 — 종목이 다른 사람을 비교하는 유일하게
+   * 정직한 방법이다(점수를 섞으면 단위가 다른 수를 더하는 셈이 된다).
+   *
+   * 아무 판에도 안 오른 사람은 목록에 없다. 0 으로 줄 세우지 않는다.
+   */
+  seasonRanking(limit = 10, now: Date = new Date()): Array<{
+    handle: string;
+    gold: number;
+    silver: number;
+    bronze: number;
+    boards: number;
+  }> {
+    const tally = new Map<string, { gold: number; silver: number; bronze: number; boards: number }>();
+    for (const key of Object.keys(this.state.games)) {
+      const gameId = key.split(':')[0];
+      const top = this.board(gameId, 'all', 3, now, key.includes(':') ? key.slice(gameId.length + 1) : null);
+      top.forEach((row, index) => {
+        const cur = tally.get(row.handle) ?? { gold: 0, silver: 0, bronze: 0, boards: 0 };
+        if (index === 0) cur.gold += 1;
+        else if (index === 1) cur.silver += 1;
+        else cur.bronze += 1;
+        cur.boards += 1;
+        tally.set(row.handle, cur);
+      });
+    }
+    return [...tally.entries()]
+      .map(([handle, medals]) => ({ handle, ...medals }))
+      .sort((a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.boards - a.boards)
+      .slice(0, limit);
+  }
+
+  /**
    * 한 사람의 최고 — **논 순위판마다 한 줄**. 표가 갈리는 놀이는 표마다 한 줄이 된다
    * (포켓몬 12연승과 롤 3연승은 다른 기록이다).
    */
