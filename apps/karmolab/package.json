@@ -112,7 +112,8 @@
     "test:badapple:load": "node scripts/smoke-badapple-load.mjs",
     "measure:runtime": "node scripts/measure-runtime.mjs",
     "test:companion": "node scripts/smoke-companion.mjs",
-    "test:navigation": "node scripts/smoke-navigation.mjs"
+    "test:navigation": "node scripts/smoke-navigation.mjs",
+    "test:idle": "node scripts/smoke-idle.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

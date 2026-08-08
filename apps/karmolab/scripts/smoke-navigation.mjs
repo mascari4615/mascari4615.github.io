@@ -47,6 +47,26 @@ const server = http.createServer((req, res) => {
   if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
+/* 이 검사는 **도구 상세 페이지가 이미 만들어져 있어야** 말이 된다 (`npm run gen:tool-pages`).
+   없는데 그냥 돌면 「링크를 못 찾았다」로 죽는데, 그건 제품 고장이 아니라 **검사를 못 돌린 것**이다.
+   그 둘을 같은 빨간불로 말했더니 사이트 배포가 몇 시간 섰다 (2026-08-08). */
+const toolPagesDir = path.join(repoRoot, 'apps', 'blog', 'karmolab', 't');
+if (!fs.existsSync(toolPagesDir) || fs.readdirSync(toolPagesDir).length === 0) {
+  console.error('[smoke-navigation] CANNOT-RUN — 도구 페이지가 아직 없다. 먼저 `npm run gen:tool-pages` 를 돌려라.');
+  process.exit(1);
+}
+
+/* 도구 화면·목록은 **배포 때 찍는 생성물**이라 저장소에 안 담긴다(gitignore).
+ * 새로 받은 체크아웃이나 세션 레인에는 그것이 없다 — 그런데 이 검사는 그 화면을 연다.
+ * 없는 채로 그냥 돌리면 404 를 「제품 고장」으로 보고한다: 실제로 그렇게 나가서 build 가
+ * 빨개졌고, 이 검사가 build 에 물려 있는 바람에 **다른 슬롯의 push 까지 막았다**(slot-E 보고).
+ * 검사는 「통과/실패」 말고 **「못 돌린다」**를 말할 줄 알아야 한다. */
+const HUB = path.join(repoRoot, 'apps/blog/karmolab/t/index.html');
+if (!fs.existsSync(HUB)) {
+  console.log('[smoke-navigation] 건너뜀 — 찍힌 도구 화면이 없다 (`npm run gen:tool-pages` 뒤에 돌려라)');
+  process.exit(0);
+}
+
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
