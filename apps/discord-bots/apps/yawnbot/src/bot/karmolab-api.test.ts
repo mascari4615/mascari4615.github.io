@@ -16,6 +16,7 @@ import { KarmolabAccountStore } from '../services/karmolab-accounts';
 import { KarmolabTraceStore } from '../services/karmolab-traces';
 import { KarmolabPlayStore } from '../services/karmolab-plays';
 import { KarmolabPackStore } from '../services/karmolab-packs';
+import { SteamPackStore } from '../services/karmolab-steam';
 
 let server: Server;
 let baseUrl: string;
@@ -23,7 +24,29 @@ let store: KarmolabAccountStore;
 let traces: KarmolabTraceStore;
 let plays: KarmolabPlayStore;
 let packs: KarmolabPackStore;
+let steam: SteamPackStore;
+/** 바깥 우물이 몇 번 불렸나 — 「캐시가 실제로 막고 있나」를 여기서 센다. */
+let steamCalls: number;
+let steamFails: boolean;
 let tmpDir: string;
+
+/** 스팀 표 흉내 (TASK-KL-153). 시험이 진짜 steamspy.com 으로 나가면 안 된다. */
+function fakeSteamRows(): Record<string, unknown> {
+  const rows: Record<string, unknown> = {};
+  for (let i = 1; i <= 5; i += 1) {
+    rows[String(i)] = {
+      appid: i,
+      name: `게임 ${i}`,
+      developer: '만든곳',
+      positive: 900,
+      negative: 100,
+      owners: '1,000,000 .. 2,000,000',
+      price: '1999',
+      ccu: 1000 * i,
+    };
+  }
+  return rows;
+}
 
 beforeEach(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kl098-api-'));
@@ -33,9 +56,17 @@ beforeEach(async () => {
   plays = new KarmolabPlayStore(path.join(tmpDir, 'plays.json'));
   // 사람이 만든 표도 임시 파일로 (TASK-KL-150).
   packs = new KarmolabPackStore(path.join(tmpDir, 'packs.json'));
+  // 바깥 우물은 흉내로 갈아 끼운다 (TASK-KL-153) — 안 그러면 시험이 진짜 steamspy 로 나간다.
+  steamCalls = 0;
+  steamFails = false;
+  steam = new SteamPackStore(async () => {
+    steamCalls += 1;
+    if (steamFails) throw new Error('steamspy 503');
+    return fakeSteamRows();
+  });
   const app = express();
   app.use(express.json());
-  registerKarmolabApi(app, store, traces, undefined, plays, undefined, packs);
+  registerKarmolabApi(app, store, traces, undefined, plays, undefined, packs, steam);
   /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
      `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -1382,5 +1413,58 @@ describe('계정 도메인 (KL-152)', () => {
       await fetch(`${baseUrl}/kl/me/sessions/${other.id}/revoke`, { method: 'POST', headers: { cookie: me.cookie } })
     ).json();
     expect(revoked.revoked).toBe(true);
+  });
+});
+
+/**
+ * TASK-KL-153 — 바깥에서 길어 온 표.
+ *
+ * 여기서 보는 것은 변환이 아니라(그건 `karmolab-steam.test.ts` 가 본다) **배선**이다:
+ * 로그인 없이 되는가 · 모르는 우물을 부르면 어떻게 되는가 · 캐시가 실제로 바깥을 막는가 ·
+ * 바깥이 죽었을 때 놀이가 같이 죽지 않는가.
+ */
+describe('스팀 표 길어 오기', () => {
+  it('우물 목록은 로그인 없이 보인다', async () => {
+    const res = await fetch(`${baseUrl}/kl/steam/sources`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.sources.map((s: { id: string }) => s.id)).toEqual(['hot', 'owned', 'forever']);
+    // 아직 안 길어 온 우물은 개수를 지어내지 않는다.
+    expect(body.sources[0].items).toBeNull();
+    expect(steamCalls).toBe(0); // 목록을 본다고 바깥으로 나가지 않는다
+  });
+
+  it('표는 로그인 없이 오고, 놀이가 쓸 모양 그대로다', async () => {
+    const res = await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
+    expect(res.status).toBe(200);
+    const { pack } = await res.json();
+    expect(pack.items).toHaveLength(5);
+    expect(pack.items[0].img).toContain('/steam/apps/1/header.jpg');
+    expect(pack.fields.filter((f: { kind: string }) => f.kind === 'number')).toHaveLength(4);
+    expect(pack.stale).toBe(false);
+  });
+
+  it('모르는 우물은 400 이고, 어떤 우물이 있는지 알려 준다', async () => {
+    const res = await fetch(`${baseUrl}/kl/steam/pack?source=constructor`);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.sources).toContain('hot');
+    expect(steamCalls).toBe(0);
+  });
+
+  it('두 번 열어도 바깥으로는 한 번만 나간다', async () => {
+    await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
+    await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
+    expect(steamCalls).toBe(1);
+    // 한 번 길어 온 우물은 목록에서 개수를 말한다
+    const body = await (await fetch(`${baseUrl}/kl/steam/sources`)).json();
+    expect(body.sources.find((s: { id: string }) => s.id === 'hot').items).toBe(5);
+  });
+
+  it('한 번도 못 길어 왔으면 503 — 없는 표를 지어내지 않는다', async () => {
+    steamFails = true;
+    const res = await fetch(`${baseUrl}/kl/steam/pack?source=owned`);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe('source_unavailable');
   });
 });

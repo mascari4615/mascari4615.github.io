@@ -47,6 +47,7 @@ import {
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { getKarmolabPlayStore, playGame, isValidVariant, type KarmolabPlayStore } from '../services/karmolab-plays';
 import { getKarmolabPackStore, PackError, type KarmolabPackStore } from '../services/karmolab-packs';
+import { SteamPackStore, STEAM_SOURCES, isSteamSourceId } from '../services/karmolab-steam';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
@@ -261,6 +262,7 @@ export function registerKarmolabApi(
   plays: KarmolabPlayStore = getKarmolabPlayStore(),
   chat: KarmolabChatStore = getKarmolabChatStore(),
   packs: KarmolabPackStore = getKarmolabPackStore(),
+  steam: SteamPackStore = new SteamPackStore(),
 ): void {
 
   // ── CORS — 아는 출처에만, 쿠키를 실어 보낼 수 있게 ──────────────────────────
@@ -1034,6 +1036,48 @@ export function registerKarmolabApi(
       // 덮어써서 목록이 통째로 숫자가 된다 — 화면은 빈 목록으로 보이고 오류는 안 난다.
       total: packs.stats(),
     });
+  });
+
+  /**
+   * 바깥에서 길어 오는 표 — 어떤 우물이 있나 (TASK-KL-153).
+   *
+   * 목록과 표를 나눈 이유: 화면이 「고를 것」을 보여 주는 데 100개짜리 표 세 벌이 필요하지 않다.
+   * 고른 다음에만 길어 온다.
+   */
+  app.get('/kl/steam/sources', (_req: Request, res: Response) => {
+    res.json({
+      sources: Object.entries(STEAM_SOURCES).map(([id, spec]) => ({
+        id,
+        title: spec.title,
+        emoji: spec.emoji,
+        desc: spec.desc,
+        // 이미 길어 둔 표면 몇 개짜리인지 바로 말해 준다 — 안 길어 왔으면 굳이 지금 가지 않는다.
+        items: steam.peek(id as keyof typeof STEAM_SOURCES)?.items.length ?? null,
+      })),
+    });
+  });
+
+  /**
+   * 표 한 벌. **로그인이 필요 없다** — 남의 공개 숫자를 옮겨 주는 일이고, 놀이는 로그인 없이도 된다.
+   *
+   * 바깥이 죽으면 지난 표를 `stale: true` 와 함께 준다. 화면은 그걸 보고 「몇 시 기준」만 다르게
+   * 적으면 된다 — 놀이는 그대로 굴러간다.
+   */
+  app.get('/kl/steam/pack', async (req: Request, res: Response) => {
+    const source = req.query.source;
+    if (!isSteamSourceId(source)) {
+      res.status(400).json({ error: 'unknown_source', sources: Object.keys(STEAM_SOURCES) });
+      return;
+    }
+    try {
+      const pack = await steam.get(source);
+      // 브라우저·터널이 한 번 더 안 나가게. 서버 캐시(6h)와 어긋나도 손해가 없는 숫자다.
+      res.setHeader('Cache-Control', 'public, max-age=1800');
+      res.json({ pack });
+    } catch {
+      // 한 번도 못 길어 왔다 — 없는 표를 지어내지 않는다.
+      res.status(503).json({ error: 'source_unavailable' });
+    }
   });
 
   /** 표를 올린다 — 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */

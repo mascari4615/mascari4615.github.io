@@ -1017,6 +1017,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['higher']
   },
   {
+    id: 'packwell',
+    title: '표 우물',
+    category: 'play',
+    desc: '놀이에 쓸 표를 바깥에서 길어 옵니다 — 스팀에서 진짜 숫자로 된 표를',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<path d="M4 9h16l-1.5 10a2 2 0 0 1-2 1.7H7.5a2 2 0 0 1-2-1.7L4 9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 9V6a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 12v5M9.5 14.5L12 12l2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['packwell']
+  },
+  {
     id: 'worldcup',
     title: '이상형 월드컵',
     category: 'tool',
