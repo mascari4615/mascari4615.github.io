@@ -332,9 +332,22 @@
         renderMascot(container);
     }
 
+    /* 마스코트 기본값의 사본.
+     *
+     * 원래는 첫 화면 HTML 안의 임시 스텁이 들고 있었는데, 그건 **부팅 때 받는
+     * JS** 라 천장(39KB)을 넘겨 배포가 멈췄다. 이 값이 필요한 건 설정 화면
+     * 하나뿐이고 이 파일은 열 때 받아 온다 — 여기가 제자리다. */
+    const MASCOT_FALLBACK = {
+        enabled: true, width: 300, framing: 'bust', showOnMobile: false, opacity: 0.85,
+        blink: true, gaze: true, breathe: true, motion: true, hologram: true,
+        bubble: true, bubbleMs: 3000, idleMs: 30000, tapReact: true,
+    };
+
     function renderMascot(container: HTMLElement): void {
-        const p = Mdd.getPrefs();
+        // 마스코트가 아직 안 왔으면 임시 스텁이라 값을 못 준다 — 기본값으로 그린다
+        const p = { ...MASCOT_FALLBACK, ...(Mdd.getPrefs ? Mdd.getPrefs() : {}) } as ReturnType<typeof Mdd.getPrefs>;
         const sel = (v: boolean): string => (v ? 'selected' : '');
+        const maxW = Mdd.widthMax ? Mdd.widthMax() : 640;
 
         container.innerHTML = `
             <div class="settings-layout">
@@ -350,7 +363,7 @@
                     <div class="settings-row">
                         <label for="mdWidth">크기 <span id="mdWidthVal">${p.width}px</span></label>
                         <input type="range" id="mdWidth" class="settings-control"
-                               min="${Mdd.WIDTH_MIN}" max="${Mdd.widthMax()}" step="2" value="${Math.min(p.width, Mdd.widthMax())}">
+                               min="${Mdd.WIDTH_MIN ?? 48}" max="${maxW}" step="2" value="${Math.min(p.width, maxW)}">
                     </div>
                     <div class="settings-row">
                         <label for="mdFraming">보이는 범위</label>
