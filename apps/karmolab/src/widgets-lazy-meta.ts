@@ -1827,5 +1827,16 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     lazyScriptPaths: ['laptop']
+  },
+
+  /* ORBITA (TASK-KL-193) — 순서를 줄이 아니라 궤도로 적는 시퀀서. 색이 곧 음이다. */
+  {
+    id: 'orbita',
+    title: 'ORBITA',
+    category: 'lab',
+    desc: '궤도에 색을 찍어 만드는 폴리리듬 시퀀서 — 브라우저 신스 + MIDI 출력',
+    layout: 'full',
+    icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
+    lazyScriptPaths: ['orbita']
   }
 ] as KarmoLabLazyWidgetStub[];
