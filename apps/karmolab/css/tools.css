@@ -1639,3 +1639,9 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .bmi-seg.bmi-bad { background: color-mix(in srgb, var(--error) 45%, transparent); }
 .bmi-seg.bmi-worse { background: color-mix(in srgb, var(--error) 70%, transparent); }
 .bmi-pin { position: absolute; top: -4px; width: 3px; height: 18px; background: var(--text-primary); border-radius: 2px; transform: translateX(-1px); transition: left 120ms ease; }
+
+/* 타이머 진행 바 + 전체화면일 때 숫자 크게 */
+.tm-track { height: 8px; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: var(--bg-secondary); margin: 8px 0 4px; }
+.tm-fill { height: 100%; width: 100%; background: var(--accent); transition: width 120ms linear; }
+.tool-page:fullscreen { padding: 4vh 4vw; background: var(--bg-primary); overflow: auto; }
+.tool-page:fullscreen .tool-display { font-size: min(22vw, 30vh); line-height: 1.05; }

@@ -55,6 +55,8 @@
           Mdd.linePreset('tool_run', { msg: '시간 재 드릴게요. 딴짓하면 안 돼요!' });
           container.innerHTML = `
             <div class="tool-display" id="tmDisplay">00:00</div>
+            <!-- 남은 시간을 눈으로 — 상위 타이머는 전부 링·바가 있다. -->
+            <div class="tm-track"><div class="tm-fill" id="tmFill"></div></div>
             <div class="field-group">
               <label class="field-label">시간 설정</label>
               <div style="display:flex; gap:8px; align-items:center;">
@@ -77,6 +79,7 @@
               <button class="btn btn-primary" id="tmStart">시작</button>
               <button class="btn btn-secondary" id="tmPause">일시정지</button>
               <button class="btn btn-ghost" id="tmReset">초기화</button>
+              <button class="btn btn-ghost" id="tmFull">전체화면</button>
             </div>
             <div class="tool-status" id="tmStatus" style="margin-top:var(--space-lg);">시간을 넣고 시작을 누르세요. 탭을 옮겨도 정확히 셉니다.</div>
           `;
@@ -95,9 +98,40 @@
             const n = (sel: string): number => parseInt(($<HTMLInputElement>(sel).value || '0').replace(/[^0-9]/g, ''), 10) || 0;
             return (n('#tmH') * 3600 + n('#tmM') * 60 + n('#tmS')) * 1000;
           }
+          const KEEP = 'karmolab_timer_run';
+
           function paint(ms: number): void {
             display.textContent = fmt(Math.max(ms, 0), false);
             if (running) document.title = fmt(Math.max(ms, 0), false) + ' — 타이머';
+            const fill = $<HTMLElement>('#tmFill');
+            if (fill && totalMs > 0) fill.style.width = ((Math.max(ms, 0) / totalMs) * 100).toFixed(1) + '%';
+          }
+
+          /* 새로고침 한 번에 진행 중인 타이머가 증발했다 — 상태가 전부 메모리에만 있었기 때문이다.
+             **끝나는 시각(벽시계)** 을 이 기기에 적어 두면, 창을 닫았다 열어도 남은 시간이 그대로다.
+             performance.now() 는 창마다 0 부터라 복구에 못 쓴다 — 그래서 Date.now() 로 적는다. */
+          function remember(): void {
+            try {
+              if (running) localStorage.setItem(KEEP, JSON.stringify({ endWall: Date.now() + remaining, totalMs }));
+              else localStorage.removeItem(KEEP);
+            } catch (_) { /* 저장을 막아 둔 브라우저도 있다 */ }
+          }
+
+          function restore(): void {
+            try {
+              const raw = localStorage.getItem(KEEP);
+              if (!raw) return;
+              const saved = JSON.parse(raw) as { endWall: number; totalMs: number };
+              const left = saved.endWall - Date.now();
+              if (!(left > 0)) { localStorage.removeItem(KEEP); return; }
+              totalMs = saved.totalMs || left;
+              remaining = left;
+              endAt = performance.now() + left;
+              running = true;
+              status.textContent = '진행 중… (창을 닫아도 이어집니다)';
+              status.className = 'tool-status ok';
+              tick();
+            } catch (_) { /* 저장 형식이 바뀌었으면 그냥 새로 시작한다 */ }
           }
           function tick(): void {
             if (!running) return;
@@ -110,6 +144,7 @@
               display.classList.add('tool-display-done');
               status.textContent = '시간 종료!';
               status.className = 'tool-status ok';
+              remember();
               beep(3);
               Toolbox.showToast?.('타이머 종료!', 'success', undefined);
               if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -140,6 +175,7 @@
               Notification.requestPermission().catch(() => undefined);
             }
             tick();
+            remember();
             Toolbox.trackUse?.('start');
             void totalMs;
           };
@@ -150,6 +186,7 @@
             document.title = originalTitle;
             status.textContent = '일시정지 — 시작을 누르면 이어서 갑니다.';
             status.className = 'tool-status';
+            remember();
           };
           $<HTMLButtonElement>('#tmReset').onclick = () => {
             running = false;
@@ -160,7 +197,16 @@
             paint(readInputs());
             status.textContent = '초기화했어요.';
             status.className = 'tool-status';
+            remember();
           };
+          /* 공부·수업·라이브에서는 크게 보이는 숫자가 사실상 기본이다(상위 타이머 전부).
+             도구 화면째 전체화면으로 던진다 — 그 안에서 시작·정지도 그대로 쓸 수 있다. */
+          $<HTMLButtonElement>('#tmFull').onclick = () => {
+            const page = (container.closest('.tool-page') || container) as HTMLElement;
+            if (document.fullscreenElement) void document.exitFullscreen();
+            else void page.requestFullscreen?.();
+          };
+
           container.querySelectorAll('.tm-preset').forEach((btn) => {
             (btn as HTMLButtonElement).onclick = () => {
               const sec = parseInt((btn as HTMLElement).dataset.sec || '0', 10);
@@ -181,6 +227,8 @@
           });
 
           paint(0);
+          /* 창을 닫았다 열어도 돌던 타이머가 이어지게 — 화면을 다 만든 뒤 한 번 되살린다. */
+          restore();
         }
       },
       {
