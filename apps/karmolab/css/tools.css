@@ -1597,3 +1597,19 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
     .td-srow { grid-template-columns: 34px 1fr; }
     .td-srow > :nth-child(3), .td-srow > :nth-child(4) { border-top: 1px dashed var(--border); }
 }
+
+/* ── WM 하루 체험 (TASK-KL-163) ── */
+.wm-day { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 18px; background: var(--bg-secondary); display: grid; gap: 12px; }
+.wm-day-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.wm-day-n { font-size: var(--font-size-lg); font-weight: 700; }
+.wm-day-mood { font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.wm-day-cond, .wm-day-slots { margin: 0; font-size: var(--font-size-sm); color: var(--text-secondary); }
+.wm-day-acts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.wm-act { display: grid; gap: 4px; text-align: left; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: transparent; color: inherit; cursor: pointer; }
+.wm-act:hover:not(:disabled) { border-color: var(--accent); }
+.wm-act:disabled { opacity: .45; cursor: default; }
+.wm-act span { font-size: var(--font-size-xs); color: var(--text-tertiary); line-height: 1.55; }
+.wm-day-log { margin: 0; padding-left: 1.1rem; display: grid; gap: 4px; font-size: var(--font-size-xs); color: var(--text-tertiary); }
+.wm-day-end { display: grid; gap: 10px; justify-items: start; }
+.wm-day-event { margin: 0; font-size: var(--font-size-sm); color: var(--accent); font-style: italic; }
+.wm-day-reset { background: none; border: 0; padding: 0; color: var(--text-tertiary); text-decoration: underline; cursor: pointer; font-size: inherit; }
