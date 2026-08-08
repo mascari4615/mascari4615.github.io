@@ -86,6 +86,9 @@ export const SEED_GALLERIES: Gallery[] = [
   { id: 'show', label: '자랑', desc: '만든 것·찾은 것을 보여주는 곳', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['만든 것', '찾은 것'], issueStyle: false },
   { id: 'request', label: '도구 요청', desc: '있었으면 하는 도구', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: true, ownerOnly: false, titled: false, tags: [], issueStyle: true },
   { id: 'notice', label: '공지', desc: '주인이 알리는 것', createdByHandle: null, createdAt: '2026-01-01T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: true, titled: true, tags: [], issueStyle: false },
+  // KarmoLab 이 WM(Witch-Mendokusai) 의 메인 웹이 되면서 생긴 자리 (TASK-KL-165).
+  // WM 페이지(`/karmolab/#wm`)가 이 갤러리를 제 이야기판으로 읽는다.
+  { id: 'wm', label: '마녀 이야기', desc: 'Witch-Mendokusai — 감상 · 설정 이야기 · 그림 · 바라는 것', createdByHandle: null, createdAt: '2026-08-08T00:00:00.000Z', builtin: true, voteStyle: false, ownerOnly: false, titled: true, tags: ['감상', '설정', '그림', '바라는 것'], issueStyle: false },
 ];
 
 export type BoardId = string;

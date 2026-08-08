@@ -342,6 +342,65 @@ interface WorldBook {
       </section>`;
   }
 
+  /* -- 이야기 (TASK-KL-165) ------------------------------------------------------------
+   * 커뮤니티의 「마녀 이야기」 갤러리를 WM 페이지 안에서 그대로 읽는다.
+   * 글판을 새로 만들지 않는다 — 같은 것을 두 곳에 두면 한쪽은 반드시 낡는다.
+   * 쓰기·답글·좋아요는 커뮤니티 화면이 이미 하는 일이라 그리로 보낸다.
+   * 서버(봇)가 자고 있으면 그 자리만 「지금은 못 불러왔다」로 남는다 — 페이지는 산다.
+   */
+  const TALK_BOARD = 'wm';
+
+  interface TalkPost { id: string; title: string; body: string; handle: string; createdAt: string; likes: number; replyCount: number; }
+
+  function apiBase(): string {
+    const cfg = (window as unknown as { KARMOLAB_API_BASE?: string }).KARMOLAB_API_BASE;
+    return cfg || 'https://yawnbot.mascari4615.com';
+  }
+
+  function whenText(iso: string): string {
+    const t = Date.parse(iso);
+    if (Number.isNaN(t)) return '';
+    const min = Math.floor((Date.now() - t) / 60000);
+    if (min < 1) return '방금';
+    if (min < 60) return min + '분 전';
+    if (min < 60 * 24) return Math.floor(min / 60) + '시간 전';
+    return Math.floor(min / 1440) + '일 전';
+  }
+
+  async function fetchTalk(): Promise<TalkPost[] | null> {
+    try {
+      const res = await fetch(`${apiBase()}/kl/posts?board=${TALK_BOARD}&limit=20`, { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = (await res.json()) as { posts?: TalkPost[] };
+      return Array.isArray(data.posts) ? data.posts : [];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function talkHtml(posts: TalkPost[] | null): string {
+    if (posts === null) {
+      return `<p class="wb-empty">이야기판을 지금은 못 불러왔습니다. 잠시 뒤 다시 열어 주세요.
+        <a href="/karmolab/#community">커뮤니티로 가기</a></p>`;
+    }
+    const write = `<p class="wm-talk-write">
+        <a class="btn btn-primary" href="/karmolab/#community">커뮤니티에서 쓰기</a>
+        <span class="wb-source">쓰기·답글·좋아요는 커뮤니티 화면이 맡습니다</span>
+      </p>`;
+    if (posts.length === 0) {
+      return `${write}<p class="wb-empty">아직 첫 글이 없습니다. 첫 사람이 되어 주세요.</p>`;
+    }
+    return `${write}<ul class="wm-talk">${posts
+      .map(
+        (t) => `<li class="wm-talk-row">
+          <a class="wm-talk-title" href="/karmolab/?p=${encodeURIComponent(t.id)}#community">${escapeHtml(t.title || '(제목 없음)')}</a>
+          <span class="wm-talk-meta">${escapeHtml(t.handle || '익명')} · ${escapeHtml(whenText(t.createdAt))}
+            ${t.replyCount > 0 ? ` · 답글 ${t.replyCount}` : ''}${t.likes > 0 ? ` · 좋아요 ${t.likes}` : ''}</span>
+        </li>`
+      )
+      .join('')}</ul>`;
+  }
+
   function fieldValueHtml(value: unknown): string {
     if (Array.isArray(value)) {
       return value.map((v) => `<span class="wb-chip">${escapeHtml(v)}</span>`).join(' ');
@@ -473,7 +532,7 @@ interface WorldBook {
   }
 
   function navHtml(route: string): string {
-    const known = ['news', 'map', 'board', 'day'];
+    const known = ['news', 'map', 'board', 'day', 'talk'];
     const here = route === '' ? '' : known.includes(route) ? route : 'book';
     const on = (r: string): string => (r === here ? ' is-on' : '');
     return `<nav class="wm-nav">
@@ -481,6 +540,7 @@ interface WorldBook {
         <button type="button" class="wm-nav-btn${on('book')}" data-go="all">세계 도감</button>
         <button type="button" class="wm-nav-btn${on('day')}" data-go="day">하루 체험</button>
         <button type="button" class="wm-nav-btn${on('map')}" data-go="map">공간</button>
+        <button type="button" class="wm-nav-btn${on('talk')}" data-go="talk">이야기</button>
         <button type="button" class="wm-nav-btn${on('news')}" data-go="news">소식</button>
         <button type="button" class="wm-nav-btn${on('board')}" data-go="board">만드는 중</button>
         <a class="wm-nav-link" href="/karmolab/wm/">바깥 소개 페이지</a>
@@ -539,6 +599,15 @@ interface WorldBook {
     const loaded = book;
     if (!loaded) {
       host.innerHTML = `<p class="tool-status">${loadError ? `못 불러왔습니다 (${escapeHtml(loadError)})` : '불러오는 중…'}</p>`;
+      return;
+    }
+    if (route === 'talk') {
+      host.innerHTML = navHtml(route) + '<div class="wm-body"><p class="tool-status">불러오는 중…</p></div>';
+      void fetchTalk().then((posts) => {
+        const body = host?.querySelector<HTMLElement>('.wm-body');
+        if (!body || currentRoute() !== 'talk') return;
+        body.innerHTML = talkHtml(posts);
+      });
       return;
     }
     if (route === 'board') {
