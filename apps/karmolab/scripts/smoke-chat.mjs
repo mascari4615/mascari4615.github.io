@@ -154,6 +154,9 @@ try {
 
   // ① 껍데기가 어느 화면에서든 붙는다 (도구를 안 열어도).
   await a.page.waitForSelector('#klChatDock', { timeout: 15000 });
+  /* 두 번째 창도 **기다렸다가** 본다. 첫 창이 붙는 순간 두 번째를 바로 물으면, 아직 안 그린
+     것을 「없다」고 읽는다 — 두 창은 같이 열렸을 뿐 같은 속도로 그려지지 않는다. */
+  await b.page.waitForSelector('#klChatDock', { timeout: 15000 }).catch(() => {});
   check('상주', await b.page.locator('#klChatDock').isVisible(), '두 번째 창에 채팅 단추가 없다');
 
   // ② 열면 오늘의 이름표가 있다 — 이게 없으면 익명 규칙 자체가 안 붙은 것이다.
