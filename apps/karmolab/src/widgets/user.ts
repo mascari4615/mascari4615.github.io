@@ -169,6 +169,11 @@
         .fp-session-when, .fp-event-when { font-size:11px; color:var(--text-tertiary); white-space:nowrap; }
         .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .user-item-rarity { margin-top:6px; font-size:11px; color:var(--accent); }
+        .fp-blocked { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; font-size:var(--font-size-xs); color:var(--text-secondary); }
+        .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
+            border:1px solid var(--border); border-radius:999px; background:var(--bg-tertiary); }
+        .fp-blocked-item button { background:none; border:0; color:var(--accent); font:inherit; font-size:11px; cursor:pointer; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }
         .fp-vis-item { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; }
         .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
@@ -476,6 +481,12 @@
                 <div class="fp-pins" data-pins>불러오는 중…</div>
                 <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
             </div>
+            <div class="user-acct-row">
+                <span class="user-acct-label">막은 사람</span>
+                <div class="fp-blocked" data-blocked>보는 중…</div>
+                <span class="user-acct-hint">막으면 그 사람 글이 내 피드·알림에서 사라지고, 서로 따라가기가 끊깁니다.
+                    막았다는 사실은 상대에게 안 알립니다.</span>
+            </div>
             <div class="user-acct-row" data-visibility-row>
                 <span class="user-acct-label">남에게 보이기</span>
                 <div class="fp-vis" data-visibility>불러오는 중…</div>
@@ -581,6 +592,7 @@
         });
 
         mountVisibility(box.querySelector<HTMLElement>('[data-visibility]'), base);
+        void renderBlocked(box.querySelector<HTMLElement>('[data-blocked]'), base);
         mountCard(box, base);
 
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
@@ -881,6 +893,47 @@
         });
     }
 
+    /** 막은 사람 (TASK-KL-156 D2) — 푸는 길이 같은 자리에 있어야 막는 것도 마음 편하다. */
+    async function renderBlocked(slot: HTMLElement | null, base: string): Promise<void> {
+        if (!slot) return;
+        let blocked: string[] = [];
+        try {
+            const res = await fetch(`${base}/kl/me/blocked`, { credentials: 'include' });
+            if (!res.ok) throw new Error(String(res.status));
+            blocked = ((await res.json()) as { blocked?: string[] }).blocked ?? [];
+        } catch {
+            slot.textContent = '지금은 못 봤어요';
+            return;
+        }
+        if (!blocked.length) {
+            slot.textContent = '아직 없어요';
+            return;
+        }
+        slot.innerHTML = blocked
+            .map(
+                (handle) =>
+                    `<span class="fp-blocked-item">@${escapeHtml(handle)}` +
+                    `<button type="button" data-unblock="${escapeHtml(handle)}">풀기</button></span>`,
+            )
+            .join('');
+        slot.querySelectorAll<HTMLButtonElement>('[data-unblock]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`${base}/kl/u/${encodeURIComponent(button.dataset.unblock ?? '')}/block`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ on: false }),
+                    });
+                    Toolbox.showToast?.(res.ok ? '풀었어요' : '지금은 안 되네요');
+                } catch {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                }
+                void renderBlocked(slot, base);
+            });
+        });
+    }
+
     /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
     const VISIBILITY_LABELS: Array<[string, string]> = [
         ['profile', '프로필 자체'],
@@ -889,6 +942,8 @@
         ['streaks', '연속 기록'],
         ['community', '커뮤니티에 남긴 것'],
         ['activity', '발자국(잔디)'],
+        // 이것만 기본이 꺼짐이다 — 새로 생기는 노출은 켜는 사람만 켠다 (TASK-KL-156 D5).
+        ['presence', '지금 접속 중'],
     ];
 
     function mountVisibility(slot: HTMLElement | null, base: string): void {
@@ -1091,6 +1146,27 @@
         renderAchievements(container);
     }
 
+    /** 도전과제 희귀도 (TASK-KL-156 D1) — 전체 중 몇 %가 가졌나. 못 받아 오면 아무 말도 안 한다. */
+    async function paintRarity(container: HTMLElement): Promise<void> {
+        const base = window.KarmoAccount?.apiBase;
+        if (!base) return;
+        let rarity: { total: number; enough: boolean; counts: Record<string, number> } | null = null;
+        try {
+            const res = await fetch(`${base}/kl/stats/achievements`);
+            if (!res.ok) return;
+            rarity = await res.json();
+        } catch {
+            return;
+        }
+        if (!rarity || !rarity.enough) return; // 계정이 적으면 비율은 착시다 — 아예 안 적는다.
+        container.querySelectorAll<HTMLElement>('[data-ach]').forEach((cell) => {
+            const count = rarity!.counts[cell.dataset.ach ?? ''] ?? 0;
+            const percent = Math.round((count / rarity!.total) * 1000) / 10;
+            const slot = cell.querySelector('.user-item-rarity');
+            if (slot) slot.textContent = count === 0 ? '아직 아무도' : `전체의 ${percent}%`;
+        });
+    }
+
     function renderAchievements(container: HTMLElement): void {
         const data = (Toolbox.getUserData?.() as UserData | undefined) ?? {};
         const achievements = data.achievements ?? [];
@@ -1100,10 +1176,11 @@
 
         const achGrid = DEFS.achievements.map((a) => {
             const unlocked = achievements.includes(a.id);
-            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${escapeHtml(a.desc)}">
+            return `<div class="user-item ${unlocked ? '' : 'locked'}" title="${escapeHtml(a.desc)}" data-ach="${escapeHtml(a.id)}">
                 <div class="user-item-icon">${unlocked ? a.icon : '🔒'}</div>
                 <div class="user-item-title">${escapeHtml(a.title)}</div>
                 <div class="user-item-desc">${escapeHtml(a.desc)}</div>
+                <div class="user-item-rarity"></div>
             </div>`;
         }).join('');
 
@@ -1136,13 +1213,15 @@
                     <h3>🎖️ 뱃지 (${badges.length}/${DEFS.badges.length})</h3>
                     <div class="user-grid">${badgeGrid}</div>
                 </div>
-                <div class="user-section">
+                <div class="user-section" data-streaks>
                     <h3>🔥 스트릭 (${streakIds.length} 트랙)</h3>
                     ${streakIds.length === 0
                         ? '<p style="font-size:var(--font-size-sm);color:var(--text-secondary);margin:0;">아직 기록이 없어요. 플래너에서 오늘 완료를 눌러보세요.</p>'
                         : `<div class="user-grid">${streakGrid}</div>`}
                 </div>
             </div>`;
+
+        void paintRarity(container);
     }
 
     function escapeHtml(s: string | null | undefined): string {

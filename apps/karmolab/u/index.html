@@ -73,6 +73,17 @@
   .profile-follow:hover { background: var(--accent); color: #0f0f12; }
   .profile-follow.on { background: var(--accent); color: #0f0f12; }
   .profile-follow[disabled] { opacity: .6; cursor: default; }
+  .profile-actions { margin-left: auto; display: flex; gap: 8px; align-self: flex-start; }
+  .profile-actions .profile-follow { margin-left: 0; }
+  .profile-block {
+    padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+    font: inherit; font-size: 14px;
+  }
+  .profile-block:hover { border-color: #dc2626; color: #fca5a5; }
+  .profile-block[disabled] { opacity: .6; cursor: default; }
+  /* 지금 접속 중 (TASK-KL-156 D5) — 본인이 켠 사람에게만 붙는다. */
+  .profile-online { color: #4ade80; font-size: 12px; margin-left: 6px; }
   .profile-card-note { margin: 18px 0 0; }
   .profile-bio { margin: 0; font-size: 15px; line-height: 1.6; }
   .profile-pins { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }

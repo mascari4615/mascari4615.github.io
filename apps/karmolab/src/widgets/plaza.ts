@@ -70,6 +70,11 @@
         .plaza-big-item em { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);
             font-style:normal; }
 
+        .plaza-leaders { width:100%; border-collapse:collapse; font-size:var(--font-size-xs); }
+        .plaza-leaders th, .plaza-leaders td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:left; }
+        .plaza-leaders th { color:var(--text-secondary); font-weight:600; }
+        .plaza-leaders td:first-child { width:28px; color:var(--text-tertiary); }
+        .plaza-leaders td:not(:first-child):not(:nth-child(2)), .plaza-leaders th:not(:first-child):not(:nth-child(2)) { text-align:right; }
         .plaza-section h3 { margin:0 0 4px; font-size:var(--font-size-md); color:var(--text-primary); }
         .plaza-section-note { margin:0 0 12px; font-size:11px; color:var(--text-tertiary); }
 
@@ -161,6 +166,35 @@
     /** 이름을 아는 것만. 모르는 id 를 그대로 내보내면 내부 사정이 새어 나온 것처럼 보인다. */
     function namedTools(ids: string[]): string[] {
         return ids.map((id) => toolTitle(id)).filter((t): t is string => Boolean(t));
+    }
+
+    /**
+     * 명예의 전당 (TASK-KL-156 D4).
+     *
+     * 여기 뜨는 사람은 **본인이 프로필과 발자국을 열어 둔 사람뿐**이다 — 가린 사람은 서버가
+     * 애초에 안 보낸다. 아무도 없으면 이 자리는 통째로 안 그려진다(빈 순위표는 초라할 뿐이다).
+     */
+    type Leader = { handle: string; displayName: string; streak: number; activeDays: number };
+
+    function renderLeaders(leaders: Leader[] | null): string {
+        if (!leaders || leaders.length === 0) return '';
+        const rows = leaders
+            .map(
+                (row, index) =>
+                    `<tr><td>${index + 1}</td>` +
+                    `<td><a href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">${escapeHtml(row.displayName)}</a></td>` +
+                    `<td>${num(row.streak)}일</td><td>${num(row.activeDays)}일</td></tr>`,
+            )
+            .join('');
+        return `
+            <section class="plaza-section">
+                <h3>이어 온 사람들</h3>
+                <p class="plaza-section-note">프로필을 열어 둔 사람만 · 최장 연속 순 · 전부 실측</p>
+                <table class="plaza-leaders">
+                    <thead><tr><th></th><th>사람</th><th>최장 연속</th><th>다녀간 날</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </section>`;
     }
 
     async function api(path: string): Promise<unknown | null> {
@@ -440,10 +474,12 @@
 
     async function buildOverview(container: HTMLElement): Promise<void> {
         container.innerHTML = '<div class="plaza-wrap"><p class="plaza-note">불러오는 중…</p></div>';
-        const [rawStats, rawBoards, rawRecap] = await Promise.all([
+        const [rawStats, rawBoards, rawRecap, rawLeaders] = await Promise.all([
             api('/kl/tools/stats'),
             api('/kl/boards'),
             api('/kl/recap'),
+            // 명예의 전당 (TASK-KL-156 D4). 못 받아 와도 광장은 그대로 열린다.
+            api('/kl/stats/leaders'),
         ]);
         if (!container.isConnected) return;
         if (!rawStats) {
@@ -454,6 +490,7 @@
         const boards = (rawBoards as { boards?: Board[] } | null)?.boards ?? null;
         const recap = (rawRecap as { recap?: Recap } | null)?.recap ?? null;
         const visits = stats.visits ?? null;
+        const leaders = (rawLeaders as { leaders?: Leader[] } | null)?.leaders ?? null;
 
         const hasTools = stats.tools.some((t) => t.recent > 0);
         const body = [
@@ -461,6 +498,7 @@
             renderOnline(visits),
             visits ? `<section class="plaza-section"><h3>방문</h3><p class="plaza-section-note">첫 화면만 보고 가도 한 명입니다 · 사람만 셉니다</p>${renderVisits(visits)}</section>` : '',
             renderSpark(visits),
+            renderLeaders(leaders),
             renderRecap(recap),
             renderKinds(visits),
             stats.pulse.opensTotal > 0
