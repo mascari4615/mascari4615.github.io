@@ -81,7 +81,14 @@ note(v.eyewhite === false && v.mouth === false,
 
 await setMood('shock');
 v = await shown();
-note(v['eyes-wide'] === true && v['mouth-wide'] === true, 'shock 인데 놀란 눈·입이 안 켜졌다');
+note(v['mouth-wide'] === true, 'shock 인데 크게 벌린 입이 안 켜졌다');
+// 놀란 눈은 조각이 아니라 값이다 — 눈동자가 실제로 작아졌는지 본다
+const irisScale = await page.evaluate(() => {
+  const el = document.querySelector('.mdd-av-iris');
+  const m = /scale\(([\d.]+)/.exec(el && el.style.transform || '');
+  return m ? parseFloat(m[1]) : null;
+});
+note(irisScale !== null && irisScale < 0.9, `shock 인데 눈동자가 안 작아졌다 (${irisScale})`);
 
 /* ④ 환호 = 두 팔 */
 await setMood('cheer');
