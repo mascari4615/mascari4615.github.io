@@ -197,7 +197,7 @@ import { acceptPastedFiles } from './shared/paste';
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
-              Toolbox.onHandoff?.(['audio/*'], (f: File) => void load(f));
+              Toolbox.onHandoff?.('audiocut', (f: File) => void load(f));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();

@@ -511,6 +511,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '사진 여러 장을 한 PDF 로 묶습니다. 비율을 지킨 채 종이에 맞춥니다',
     layout: 'wide',
     icon: '<rect x="3" y="4" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3 11l3-3 2 2 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M17 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/img2pdf']
   },
   {
@@ -534,6 +535,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 전 페이지에 문구를 얹습니다. 한글도 됩니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 17 16 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfwatermark']
   },
   {
@@ -546,6 +548,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '녹음을 빠르게·느리게 만듭니다. 목소리는 그대로 두고 길이만 바꿉니다',
     layout: 'wide',
     icon: '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M16 8l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/audiospeed']
   },
   {
@@ -558,6 +561,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '시작·끝의 「툭」 하는 끊김을 없앱니다. 어디가 끊기는지 먼저 짚어 줍니다',
     layout: 'wide',
     icon: '<path d="M3 19L21 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 19v-3M11 19v-6M15 19v-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.7"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/audiofade']
   },
   {
@@ -570,6 +574,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '여러 음원을 하나로 잇습니다. 표본율이 달라도 맞춰서 이어 줍니다',
     layout: 'wide',
     icon: '<path d="M4 12h3l2-4 2 8 2-6 2 4h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4v3M12 17v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/audiojoin']
   },
   {
@@ -603,6 +608,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 를 합치고 페이지를 빼내고 돌립니다. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 14h8M8 17h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdftool']
   },
   {
@@ -615,6 +621,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/audiocut']
   },
   {
@@ -638,6 +645,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '여러 장을 세로나 가로로 한 장에 이어 붙입니다. 사진이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="3" y="13" width="18" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 7l2-2 2 2M7 17l2-2 2 2" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>',
+    produces: ['image/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/imgmerge']
   },
   {
@@ -649,6 +657,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '적은 글을 A4 PDF 로 만듭니다. 한글도 깨지지 않고, 글이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8.5 12h7M8.5 15h7M8.5 18h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/text2pdf']
   },
   {
@@ -661,6 +670,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '계약서에 손으로 그린 서명을 얹습니다. 인쇄·스캔 없이, 문서가 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16c1.5-3 2.5 1 4-1s2 .5 3-1" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfsign']
   },
   {
@@ -709,6 +719,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '들쭉날쭉한 녹음의 크기를 고르게 만듭니다. 전후를 파형과 숫자로 비교하고, 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M4 14V10M8 17V7M12 19V5M16 16V8M20 13v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/audiolevel']
   },
   {
@@ -721,6 +732,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '스캔본·논문의 넓은 여백을 걷어냅니다. 글자는 그대로 고를 수 있습니다',
     layout: 'wide',
     icon: '<path d="M7 3v14h14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3 7h14v14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfcrop']
   },
   {
@@ -733,6 +745,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 에 쪽 번호를 넣습니다. 표지는 건너뛰고 본문부터 1로 셀 수 있습니다',
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfpagenum']
   },
   {
@@ -745,6 +758,7 @@ window.KARMOLAB_LAZY_META = [
     desc: 'PDF 에서 개인정보를 지웁니다. 검은 네모를 얹는 게 아니라 글자 자체를 없앱니다',
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="8" y="12" width="7" height="3.5" rx="0.8" fill="currentColor"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfredact']
   },
   {
@@ -759,6 +773,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '스캔 PDF 의 용량을 줄입니다. 화질을 미리 보고 고를 수 있고, 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M9 16h6M12 11v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 13.2 12 14.7l1.5-1.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['application/pdf'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/pdfcompress']
   },
   {
@@ -800,6 +815,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '영상의 원하는 구간을 GIF 로 만듭니다. 구간·화질을 보면서 고르고, 받기 전에 결과를 먼저 봅니다',
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 9.5v5l4-2.5z" fill="currentColor"/>',
+    produces: ['image/gif'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/gifenc', 'tools/video2gif'] // 압축기가 먼저 있어야 한다
   },
   {
@@ -812,6 +828,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '영상 파일의 소리만 뽑아 음원으로 받습니다. 파일이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<rect x="3" y="5" width="13" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M16 10l5-3v10l-5-3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M7 14c0-2 1.5-3 2.5-3s2.5 1 2.5 3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
+    produces: ['audio/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/video2audio']
   },
   {
@@ -824,6 +841,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<path d="M6 4v13a3 3 0 1 0 2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 4v13a3 3 0 1 1-2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M9 9h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    produces: ['video/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/videotrim']
   },
   {
@@ -836,6 +854,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '누워서 찍힌 영상을 세웁니다. 돌리면 가로세로도 함께 바뀝니다',
     layout: 'wide',
     icon: '<rect x="3" y="7" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M17 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19.5 5.5L17 8l2.5 2.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['video/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/videorotate']
   },
   {
@@ -848,6 +867,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '영상 용량을 줄입니다. 해상도와 화질을 고르고, 영상이 브라우저를 벗어나지 않습니다',
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.5 9.5 8 12l2.5 2.5M13.5 9.5 16 12l-2.5 2.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['video/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/videocompress']
   },
   {
@@ -1275,6 +1295,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '인용구나 공지를 이미지 카드로 만듭니다. 긴 글도 잘리지 않게 크기를 맞춰 줍니다',
     layout: 'wide',
     icon: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 10h10M7 13h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    produces: ['image/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/text2img']
   },
   {
@@ -1287,6 +1308,7 @@ window.KARMOLAB_LAZY_META = [
     desc: '가로 몇 px, 몇 MB 이하 같은 기준에 맞춰 줄입니다. 용량은 알아서 찾아 줍니다',
     layout: 'wide',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 16l3-3 2 2 3-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 7h3v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    produces: ['image/*'], // 이 도구가 내놓는 것 (TASK-KL-191 — 선언이 정본, 파생 X)
     lazyScriptPaths: ['tools/imgresize']
   },
   {
