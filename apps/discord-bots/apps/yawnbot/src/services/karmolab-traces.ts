@@ -124,11 +124,25 @@ export function isPostSort(raw: unknown): raw is PostSort {
   return raw === 'recent' || raw === 'top';
 }
 
+/**
+ * 익명으로 남긴 글·답글의 얼굴 (TASK-KL-157).
+ *
+ * 채팅과 **같은 이름표**를 쓴다 — 채팅에서 「연보라 수달」이던 사람이 글에서도 그렇게 보인다.
+ * 그래야 두 자리가 한 커뮤니티가 된다. 이 값이 있으면 `authorHandle` 은 비어 있고(빈 문자열),
+ * 검색·활동·프로필 어디에도 안 잡힌다 — 익명은 끝까지 익명이어야 한다.
+ */
+export interface AnonFace {
+  name: string;
+  color: string;
+}
+
 export interface PostReply {
   id: string;
   text: string;
   authorHandle: string;
   authorAccountId: string;
+  /** 익명으로 남겼으면 그 얼굴. 실명이면 null. */
+  anon: AnonFace | null;
   createdAt: string;
   /** 주인이 단 답인가 — 화면에서 다르게 보여 주려고. */
   byOwner: boolean;
@@ -145,6 +159,8 @@ export interface Post {
   text: string;
   authorHandle: string;
   authorAccountId: string;
+  /** 익명으로 남겼으면 그 얼굴. 실명이면 null. */
+  anon: AnonFace | null;
   createdAt: string;
   /** 표를 준 사람들 (요청판). 사람 수를 세려면 목록이어야 한다. */
   voterAccountIds: string[];
@@ -281,6 +297,7 @@ export interface PublicReply {
   id: string;
   text: string;
   authorHandle: string;
+  anon: AnonFace | null;
   createdAt: string;
   byOwner: boolean;
   parentId: string | null;
@@ -294,6 +311,7 @@ export interface PublicPost {
   title: string | null;
   text: string;
   authorHandle: string;
+  anon: AnonFace | null;
   createdAt: string;
   bumpedAt: string;
   votes: number;
@@ -349,6 +367,8 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
     text: raw.text ?? '',
     authorHandle: raw.authorHandle ?? '알 수 없음',
     authorAccountId: raw.authorAccountId ?? '',
+    // 예전에 쌓인 글은 전부 실명이었다 — 없으면 null 이 맞다 (TASK-KL-157).
+    anon: raw.anon ?? null,
     createdAt,
     voterAccountIds: raw.voterAccountIds ?? [],
     likerAccountIds: raw.likerAccountIds ?? [],
@@ -357,6 +377,7 @@ function migratePost(raw: Partial<Post> & { kind?: string }): Post {
     replies: (raw.replies ?? []).map((r) => ({
       ...r,
       parentId: r.parentId ?? null,
+      anon: r.anon ?? null,
       likerAccountIds: r.likerAccountIds ?? [],
     })),
     bumpedAt: raw.bumpedAt ?? createdAt,
@@ -748,7 +769,16 @@ export class KarmolabTraceStore {
   }
 
   addPost(
-    input: { board: BoardId; title?: string | null; text: string; accountId: string; handle: string; tag?: string | null },
+    input: {
+      board: BoardId;
+      title?: string | null;
+      text: string;
+      accountId: string;
+      handle: string;
+      tag?: string | null;
+      /** 익명으로 남기면 그 얼굴. 주면 `handle` 은 무시하고 빈 문자열로 둔다. */
+      anon?: AnonFace | null;
+    },
     now: Date = new Date(),
   ): Post {
     const at = now.toISOString();
@@ -757,8 +787,11 @@ export class KarmolabTraceStore {
       board: input.board,
       title: input.title ?? null,
       text: input.text,
-      authorHandle: input.handle,
+      /* 익명이면 손잡이를 **아예 안 적는다.** 적어 두면 검색·활동·프로필 어딘가에서 새어
+       * 나온다 — 익명은 「화면에서 안 보이기」가 아니라 「기록에 안 남기」여야 한다. */
+      authorHandle: input.anon ? '' : input.handle,
       authorAccountId: input.accountId,
+      anon: input.anon ?? null,
       createdAt: at,
       // 올린 사람은 이미 원하는 사람이다. 자기 요청에 또 눌러야 하면 첫 표가 어색하게 0 이 된다.
       voterAccountIds: this.gallery(input.board)?.voteStyle ? [input.accountId] : [],
@@ -820,7 +853,14 @@ export class KarmolabTraceStore {
    */
   addReply(
     postId: string,
-    input: { text: string; accountId: string; handle: string; byOwner: boolean; parentId?: string | null },
+    input: {
+      text: string;
+      accountId: string;
+      handle: string;
+      byOwner: boolean;
+      parentId?: string | null;
+      anon?: AnonFace | null;
+    },
     now: Date = new Date(),
   ): PostReply | null {
     const post = this.state.posts.find((p) => p.id === postId);
@@ -835,10 +875,12 @@ export class KarmolabTraceStore {
     const reply: PostReply = {
       id: crypto.randomUUID(),
       text: input.text,
-      authorHandle: input.handle,
+      authorHandle: input.anon ? '' : input.handle,
       authorAccountId: input.accountId,
+      anon: input.anon ?? null,
       createdAt: now.toISOString(),
-      byOwner: input.byOwner,
+      // 익명인데 「주인」 표식이 붙으면 그 자체로 정체가 드러난다.
+      byOwner: input.anon ? false : input.byOwner,
       parentId,
       likerAccountIds: [],
     };
@@ -976,6 +1018,7 @@ export class KarmolabTraceStore {
       title: post.title,
       text: post.text,
       authorHandle: post.authorHandle,
+      anon: post.anon,
       createdAt: post.createdAt,
       bumpedAt: post.bumpedAt,
       votes: post.voterAccountIds.length,
@@ -993,6 +1036,7 @@ export class KarmolabTraceStore {
         id: r.id,
         text: r.text,
         authorHandle: r.authorHandle,
+        anon: r.anon,
         createdAt: r.createdAt,
         byOwner: r.byOwner,
         parentId: r.parentId,

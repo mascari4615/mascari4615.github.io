@@ -295,6 +295,12 @@ export function registerKarmolabApi(
     anon: { name: string; color: string } | null;
   }
 
+  /** 이 사람의 오늘 이름표 (보여 주기용). 채팅에서 보이는 것과 같은 값이다. */
+  function anonFaceFor(req: Request): { name: string; color: string } {
+    const identity = chat.identityFor(visitorKeyFor(req));
+    return { name: identity.name, color: identity.color };
+  }
+
   function writerFor(req: Request, account: Account | null, wantsAnon: boolean): Writer {
     const blocked = (status: number, error: string): Writer => ({ error, status, accountId: '', handle: '', anon: null });
     if (!wantsAnon) {
