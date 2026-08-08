@@ -270,3 +270,67 @@ describe('월드컵 집계', () => {
     expect(store().recordTournament('nosuchid', [{ win: '가', lose: '나' }], '가', 'v')).toBe(0);
   });
 });
+
+/**
+ * 처음부터 있는 표 (TASK-KL-151 ④).
+ *
+ * 빈 원장은 「아직 아무도 없다」가 아니라 「죽은 곳」으로 읽힌다. 다만 심는 것은 **표**뿐이고
+ * 열린 횟수·승률까지 심으면 그건 지어낸 수다 — 그 경계를 여기서 지킨다.
+ */
+describe('처음부터 있는 표', () => {
+  const siteTable = {
+    title: '포켓몬',
+    emoji: '🔴',
+    fields: [{ key: 'gen', label: '세대', unit: '' }],
+    items: [1, 2, 3, 4, 5].map((n) => ({ n: `몬${n}`, i: `https://example.com/${n}.png`, v: { gen: n } })),
+  };
+
+  function seedDirWith(name: string, body: unknown): string {
+    const dir = path.join(tmpRoot, 'site-data');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name), JSON.stringify(body), 'utf-8');
+    return dir;
+  }
+
+  it('사이트 표를 우리 표 모양으로 심는다 — 그림과 숫자 칸이 그대로 온다', () => {
+    const dir = seedDirWith('higher-pokemon.json', siteTable);
+    const s = new KarmolabPackStore(statePath, dir);
+    const list = s.list();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({ title: '포켓몬', items: 5, images: 5, numberFields: 1, ownerHandle: 'karmolab' });
+  });
+
+  it('심는 건 표뿐이다 — 열린 횟수·승률은 0 에서 시작한다 (지어낸 수 0)', () => {
+    const dir = seedDirWith('higher-pokemon.json', siteTable);
+    const s = new KarmolabPackStore(statePath, dir);
+    expect(s.list()[0].opens).toBe(0);
+    expect(s.tally(s.list()[0].id)).toEqual([]);
+  });
+
+  it('다시 떠도 같은 표가 쌓이지 않는다', () => {
+    const dir = seedDirWith('higher-pokemon.json', siteTable);
+    new KarmolabPackStore(statePath, dir);
+    const again = new KarmolabPackStore(statePath, dir);
+    expect(again.list()).toHaveLength(1);
+  });
+
+  it('사람이 지웠으면 다시 안 심는다 (지운 뜻을 존중)', () => {
+    const dir = seedDirWith('higher-pokemon.json', siteTable);
+    const s = new KarmolabPackStore(statePath, dir);
+    s.remove('karmolab', s.list()[0].id);
+    expect(new KarmolabPackStore(statePath, dir).list()).toEqual([]);
+  });
+
+  it('표 파일이 없으면 조용히 안 심는다 (봇은 그 파일 없이도 떠야 한다)', () => {
+    const s = new KarmolabPackStore(statePath, path.join(tmpRoot, '없는폴더'));
+    expect(s.list()).toEqual([]);
+    // 표시를 안 남겼으므로, 나중에 파일이 생기면 그때 심는다
+    const dir = seedDirWith('higher-pokemon.json', siteTable);
+    expect(new KarmolabPackStore(statePath, dir).list()).toHaveLength(1);
+  });
+
+  it('모양이 다른 파일은 무시한다 (항목이 모자라면 표가 아니다)', () => {
+    const dir = seedDirWith('higher-pokemon.json', { title: 'x', fields: [], items: [] });
+    expect(new KarmolabPackStore(statePath, dir).list()).toEqual([]);
+  });
+});
