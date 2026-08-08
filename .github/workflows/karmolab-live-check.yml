@@ -142,6 +142,12 @@ jobs:
         if: always()
         run: npm run test:nojs
 
+      # 미리 그려 둔 화면에 **손이 달리는지**. 안 달리면 도구는 보이는데 죽어 있다 —
+      # 화면은 멀쩡해 보여서 위의 검사들은 전부 통과한다 (TASK-KL-135).
+      - name: 미리 그린 화면에 손이 달리는지
+        if: always()
+        run: npm run test:hydration
+
       # 대표 주소·구조화 데이터·제목 겹침. 틀려도 화면은 멀쩡해 보이고, 검색에서만 조용히 사라진다.
       - name: 실제 사이트에 있어야 하는 것이 있는지
         if: always()

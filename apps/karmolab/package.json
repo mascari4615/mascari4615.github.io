@@ -70,6 +70,7 @@
     "test:palette": "node scripts/smoke-palette.mjs",
     "test:palette-answers": "node scripts/smoke-palette-answers.mjs",
     "test:nojs": "node scripts/smoke-nojs.mjs",
+    "test:hydration": "node scripts/smoke-hydration.mjs",
     "gen:icons": "node scripts/gen-app-icons.mjs",
     "test:pwa": "node scripts/smoke-pwa.mjs",
     "sync:tools": "npm run gen:og && npm run gen:tool-pages && npm run measure:heights && npm run gen:tool-pages && npm run audit:heights && node scripts/after-sync-note.mjs",
