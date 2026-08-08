@@ -159,3 +159,27 @@ describe('우물이 늘어도 모양이 안 갈린다', () => {
     for (const item of pack.items) expect(typeof item.name).toBe('string');
   });
 });
+
+describe('바깥이 반만 답할 때', () => {
+  it('여러 판을 부르는 우물은 한 판이 죽어도 받은 데까지 쓴다 — 표 전체가 안 죽는다', async () => {
+    // 애니 우물은 네 쪽을 부른다. 실측에서 3·4쪽이 자주 504 로 온다.
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      if (calls > 2) throw new Error('jikan 504');
+      return {
+        data: Array.from({ length: 25 }, (_, i) => ({
+          title: `애니 ${calls}-${i}`,
+          images: { jpg: { large_image_url: 'https://img.test/a.jpg' } },
+          score: 8,
+          members: 100,
+        })),
+      };
+    };
+    const store = new WellStore(fetcher, () => 0);
+    const anime = WELLS.filter((w) => w.id === 'anime-top')[0];
+    const pack = await store.get(anime);
+    expect(pack.items).toHaveLength(50); // 두 쪽만 받았어도 표가 선다
+    expect(pack.stale).toBe(false);
+  }, 10000);
+});

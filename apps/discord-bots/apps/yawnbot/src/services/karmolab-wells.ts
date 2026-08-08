@@ -87,7 +87,17 @@ const animeWell: WellSpec = {
     const items: WellItem[] = [];
     const seen = new Set<string>();
     for (let page = 1; page <= 4; page += 1) {
-      const raw = (await fetch(`https://api.jikan.moe/v4/top/anime?page=${page}`)) as { data?: JikanAnime[] };
+      /* **한 판이 실패해도 표는 산다.** 실측(2026-08-08): 3·4쪽이 자주 504 로 돌아온다
+       * (그쪽 사정이다). 그때 전체를 실패로 만들면 「애니 우물」이 통째로 안 열린다 —
+       * 50개짜리 표로도 놀이는 충분히 된다. 받은 데까지 쓰고 조용히 멈춘다. */
+      let raw: { data?: JikanAnime[] };
+      try {
+        // 너무 몰아 부르면 막힌다(초당 몇 번). 쪽 사이를 조금 띄운다.
+        if (page > 1) await new Promise((r) => setTimeout(r, 400));
+        raw = (await fetch(`https://api.jikan.moe/v4/top/anime?page=${page}`)) as { data?: JikanAnime[] };
+      } catch {
+        break;
+      }
       for (const row of raw?.data ?? []) {
         const name = (row.title_english || row.title || '').trim();
         if (!name || seen.has(name)) continue;
