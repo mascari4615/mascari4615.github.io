@@ -81,6 +81,13 @@ jobs:
         working-directory: packages/karmolab-ai
         run: npm ci --no-audit --no-fund && npm run build
 
+      # 같은 사고가 꾸러미 하나 더 늘었을 때 그대로 반복됐다 (2026-08-08 — badapple).
+      # 이쪽은 자기 잠금 파일이 없어 `npm ci` 로는 못 짓는다.
+      # (이 단계는 한 번 들어갔다가 워크플로 통짜 덮어쓰기에 함께 사라졌다 — audit:pkg-builds 가 잡았다.)
+      - name: 공용 꾸러미 먼저 짓기 (badapple)
+        working-directory: packages/badapple
+        run: npx -y -p typescript@5 tsc -p tsconfig.json
+
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
 
