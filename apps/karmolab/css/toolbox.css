@@ -1228,6 +1228,31 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .lv-chip:hover { color: var(--accent); border-color: var(--accent); }
 .lv-chip span { font-size: 10px; color: var(--text-tertiary); }
 
+/* 나만의 첫 화면 (TASK-KL-196 H) */
+.landing-hi { margin-top: 6px; font-size: var(--font-size-sm); color: var(--accent); }
+.hp-open { display: block; margin: var(--space-lg) auto 0; padding: 4px 10px; font: inherit;
+    font-size: var(--font-size-2xs); color: var(--text-tertiary); background: none;
+    border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; }
+.hp-open:hover { color: var(--accent); border-color: var(--border); }
+.hp-panel { max-width: 420px; margin: var(--space-sm) auto 0; padding: 14px 16px; text-align: left;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.hp-panel h3 { margin: 0 0 10px; font-size: var(--font-size-sm); }
+.hp-name { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-xs);
+    color: var(--text-secondary); margin-bottom: 10px; }
+.hp-name input { flex: 1; padding: 5px 8px; font: inherit; font-size: var(--font-size-xs);
+    color: var(--text-primary); background: var(--bg-primary);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.hp-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.hp-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    font-size: var(--font-size-xs); color: var(--text-secondary); }
+.hp-list label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.hp-move button { padding: 2px 7px; font: inherit; color: var(--text-tertiary); background: none;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+.hp-move button:hover { color: var(--accent); border-color: var(--accent); }
+.hp-note { margin: 0 0 10px; font-size: 11px; color: var(--text-tertiary); }
+.hp-reset { padding: 4px 10px; font: inherit; font-size: var(--font-size-2xs); color: var(--text-tertiary);
+    background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+
 .landing-cta-grid {
     display: flex;
     flex-wrap: wrap;
