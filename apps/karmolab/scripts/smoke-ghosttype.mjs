@@ -17,6 +17,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { waitHydrated } from './lib/hydrated.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 void root;
@@ -45,7 +46,8 @@ async function open(url) {
   await page.goto('about:blank');
   const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전)`);
-  await page.waitForSelector('#gtInput', { timeout: 30000 });
+  // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
+  await waitHydrated(page, '#gtInput');
 }
 
 /** 지금 화면의 글을 한 글자씩 친다. perChar 를 크게 주면 느리게 친 판이 된다. */

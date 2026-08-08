@@ -19,6 +19,7 @@
  * 통과도 실패도 아니다. 둘을 같은 글자로 적으면 게이트가 죽은 것을 아무도 모른다.
  */
 import { chromium } from 'playwright';
+import { waitHydrated } from './lib/hydrated.mjs';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const TOOL = `${BASE}/karmolab/t/duel/`;
@@ -106,7 +107,8 @@ try {
   // ① 방을 만들면 링크가 나온다
   const res = await a.goto(TOOL, { waitUntil: 'domcontentloaded' });
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전)`);
-  await a.waitForSelector('#duMake', { timeout: 30000 });
+  // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
+  await waitHydrated(a, '#duMake');
   await a.fill('#duName', '가');
   await a.click('#duMake');
   await a.waitForSelector('#duUrl', { timeout: 15000 });
@@ -116,7 +118,7 @@ try {
   // ② 링크를 다른 창에서 열면 붙는다 (검사에서는 뿌리가 다를 수 있어 해시만 옮겨 붙인다)
   const hash = url.slice(url.indexOf('#'));
   await b.goto(TOOL + hash, { waitUntil: 'domcontentloaded' });
-  await b.waitForSelector('#duName', { timeout: 30000 });
+  await waitHydrated(b, '#duName');
   await b.fill('#duName', '나');
 
   const joined = await a

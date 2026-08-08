@@ -16,6 +16,7 @@
  * `npm run test:timecapsule` 로 손수 돌린다. 못 돌면 「못 돌았다」(2)로 끝낸다.
  */
 import { chromium } from 'playwright';
+import { waitHydrated } from './lib/hydrated.mjs';
 
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
 const TOOL = `${BASE}/karmolab/t/timecapsule/`;
@@ -37,16 +38,9 @@ try {
   // ① 잠그면 주소가 나온다 (2분 뒤로)
   const res = await page.goto(TOOL, { waitUntil: 'domcontentloaded' });
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전)`);
-  await page.waitForSelector('#tcSeal', { timeout: 30000 });
-  /* 단추가 보인다고 손이 달린 것은 아니다 (TASK-KL-135 미리 그리기).
-     미리 그려 둔 그림이 먼저 오고, 위젯이 도착하면 그 자리를 제 화면으로 갈아 끼운다
-     (실측: 실사이트에서 76ms 에 그림, 127ms 에 교체 — 그 사이 51ms 가 함정이다).
-     그 틈에 적으면 글이 교체와 함께 사라지고, 눌러도 아무 일이 안 난다 — 실제로 이 검사가
-     그렇게 두 번 헛돌아 「공개 시계에 못 닿았다」로 끝났다. 손이 달린 뒤에 적는다. */
-  await page.waitForFunction(
-    () => typeof document.querySelector('#tcSeal')?.onclick === 'function',
-    { timeout: 30000 }
-  );
+  /* 단추가 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135).
+     이 검사가 그 틈에서 두 번 헛돌아 「공개 시계에 못 닿았다」로 끝났다(도구는 멀쩡했다). */
+  await waitHydrated(page, '#tcSeal');
   await page.fill('#tcText', 편지);
   const 열릴때 = new Date(Date.now() + 120000);
   const p2 = (n) => String(n).padStart(2, '0');
