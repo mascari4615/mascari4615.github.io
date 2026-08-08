@@ -49,6 +49,19 @@ export interface ChatMessage {
      * 지키기는 한 번 누르면 끝난다.
      */
     keptBy?: string[];
+    /**
+     * 이 줄을 신고한 사람들의 오늘 번호 (TASK-KL-159).
+     * 화면이 「이미 신고했다」를 보여 주려고 둔다 — 안 그러면 눌렀는지 몰라 또 누른다.
+     * 밖으로는 **내가 눌렀나(참/거짓)** 만 나간다. 목록을 뿌리면 누가 신고했는지가 샌다.
+     */
+    reportedBy?: string[];
+    /**
+     * 이 줄이 어느 줄에 답하는가 (TASK-KL-159). 최상위면 없음.
+     *
+     * 왜 필요한가: 여럿이 동시에 말하면 「누구한테 하는 말이지?」가 안 보인다. 방이 커질수록
+     * 대화가 아니라 낱말 더미가 된다. 한 단만 둔다 — 더 깊이 접으면 좁은 창에서 못 읽는다.
+     */
+    replyTo?: { id: string; name: string; text: string } | null;
 }
 
 interface ChatState {
@@ -256,7 +269,7 @@ export class KarmolabChatStore {
     post(
         visitorKey: string,
         rawText: string,
-        options: { byOwner?: boolean; accountId?: string | null } = {},
+        options: { byOwner?: boolean; accountId?: string | null; replyTo?: string | null } = {},
         now: Date = new Date(),
     ): PostResult {
         this.prune(now);
@@ -292,9 +305,14 @@ export class KarmolabChatStore {
         stamps.push(now.getTime());
         this.recentPosts.set(identity.key, stamps);
 
+        /* 답하는 상대의 말을 **그때 모습 그대로** 베껴 둔다. 원본은 지워질 수도, 하루 뒤
+           사라질 수도 있는데, 그러면 답글만 남아 「무엇에 대한 답인지」가 없어진다. */
+        const parent = options.replyTo ? this.state.messages.find((m) => m.id === options.replyTo) : null;
+
         const message: ChatMessage = {
             id: crypto.randomUUID(),
             text,
+            replyTo: parent ? { id: parent.id, name: parent.name, text: parent.text.slice(0, 60) } : null,
             name: identity.name,
             color: identity.color,
             who: identity.who,
@@ -320,6 +338,42 @@ export class KarmolabChatStore {
         this.markDirty();
         this.broadcast({ type: 'del', id });
         return true;
+    }
+
+    /**
+     * 이 줄을 신고했다고 적어 둔다. 같은 사람이 두 번 눌러도 한 번이다.
+     * @returns 새로 적혔으면 true, 이미 있었으면 false. 없는 줄이면 null.
+     */
+    markReported(id: string, who: string, now: Date = new Date()): boolean | null {
+        this.prune(now);
+        const message = this.state.messages.find((m) => m.id === id);
+        if (!message) return null;
+        const list = new Set(message.reportedBy ?? []);
+        if (list.has(who)) return false;
+        list.add(who);
+        message.reportedBy = [...list];
+        this.markDirty();
+        return true;
+    }
+
+    /**
+     * 밖으로 내보낼 모양 — **남의 이름표 목록은 빼고** 「내가 눌렀나」만 남긴다.
+     * 저장하는 모양과 보여 주는 모양을 가르지 않으면, 익명은 언젠가 목록째 샌다.
+     */
+    publicMessages(viewerWho: string, now: Date = new Date()): PublicChatMessage[] {
+        return this.recent(MAX_MESSAGES, now).map((m) => ({
+            id: m.id,
+            text: m.text,
+            name: m.name,
+            color: m.color,
+            who: m.who,
+            byOwner: m.byOwner,
+            at: m.at,
+            replyTo: m.replyTo ?? null,
+            kept: m.keptBy?.length ?? 0,
+            keptByMe: (m.keptBy ?? []).includes(viewerWho),
+            reportedByMe: (m.reportedBy ?? []).includes(viewerWho),
+        }));
     }
 
     /**
@@ -405,6 +459,21 @@ export class KarmolabChatStore {
             }
         }
     }
+}
+
+/** 화면이 받는 모양. 저장 모양(`ChatMessage`)과 **다르다** — 목록은 안 나간다. */
+export interface PublicChatMessage {
+    id: string;
+    text: string;
+    name: string;
+    color: string;
+    who: string;
+    byOwner: boolean;
+    at: string;
+    replyTo: { id: string; name: string; text: string } | null;
+    kept: number;
+    keptByMe: boolean;
+    reportedByMe: boolean;
 }
 
 export type ChatEvent =

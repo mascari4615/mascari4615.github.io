@@ -326,6 +326,8 @@ export interface PublicPost {
   text: string;
   authorHandle: string;
   anon: AnonFace | null;
+  /** 이 글을 찾을 때 쓰는 글자 한 벌 (소문자). 서버와 화면이 **같은 것**을 본다. */
+  searchable: string;
   createdAt: string;
   bumpedAt: string;
   votes: number;
@@ -1025,6 +1027,23 @@ export class KarmolabTraceStore {
     this.markDirty();
   }
 
+  /**
+   * 「이 글을 무엇으로 찾을 수 있나」 — **한 벌만** 만든다 (TASK-KL-159).
+   *
+   * 예전에는 같은 규칙이 서버 검색과 화면 거르기 두 곳에 각각 적혀 있었다. 이름표를 찾을
+   * 거리에 넣을 때 양쪽을 다 손대야 했고, 한쪽만 고치면 「서버에선 찾히는데 화면에선 안
+   * 찾히는」 상태가 된다 — 그건 검색이 거짓말을 하는 것이다.
+   * 그래서 서버가 이 문자열을 만들어 내려보내고, 화면은 그것만 본다.
+   */
+  static searchableOf(post: Post): string {
+    return `${post.title ?? ''} ${post.text} ${post.authorHandle} ${post.anon?.name ?? ''} ${post.tag ?? ''} ${post.replies
+      .map((r) => `${r.text} ${r.anon?.name ?? ''} ${r.authorHandle}`)
+      .join(' ')}`
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   private toPublic(post: Post, viewerAccountId: string | null): PublicPost {
     return {
       id: post.id,
@@ -1033,6 +1052,9 @@ export class KarmolabTraceStore {
       text: post.text,
       authorHandle: post.authorHandle,
       anon: post.anon,
+      /* 화면이 목록 안에서 거를 때 쓰는 **같은** 찾을 거리. 규칙을 두 벌로 갈라 두면
+         「서버에선 찾히는데 화면에선 안 찾히는」 상태가 생긴다 (TASK-KL-159). */
+      searchable: KarmolabTraceStore.searchableOf(post),
       createdAt: post.createdAt,
       bumpedAt: post.bumpedAt,
       votes: post.voterAccountIds.length,
@@ -1074,14 +1096,8 @@ export class KarmolabTraceStore {
     if (needle.length < 1) return [];
     return this.state.posts
       .filter((p) => {
-        /* 익명 글은 손잡이가 비어 있다(일부러). 그러면 「연보라 수달」로는 못 찾는데,
-           읽는 사람 눈에 보이는 이름은 그것뿐이다 — 보이는 이름으로 못 찾으면 검색이 거짓말이
-           된다. 그래서 **화면에 보이는 이름**을 찾을 거리에 함께 넣는다 (TASK-KL-158).
-           오늘 이름표는 자정에 갈리므로 이걸로 어제 글까지 엮이지는 않는다. */
-        const hay = `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.anon?.name ?? ''} ${p.tag ?? ''} ${p.replies
-          .map((r) => `${r.text} ${r.anon?.name ?? ''}`)
-          .join(' ')}`.toLowerCase();
-        return hay.includes(needle);
+        // 찾을 거리는 한 벌뿐이다 (`searchableOf`). 여기서 또 짜맞추지 않는다.
+        return KarmolabTraceStore.searchableOf(p).includes(needle);
       })
       .sort((a2, b) => b.bumpedAt.localeCompare(a2.bumpedAt))
       .slice(0, limit)

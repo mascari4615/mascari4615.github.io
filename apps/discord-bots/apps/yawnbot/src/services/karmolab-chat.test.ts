@@ -232,3 +232,56 @@ describe('지키기 (KL-158)', () => {
         expect(seen).toEqual([{ id: posted.message!.id, kept: 1 }]);
     });
 });
+
+describe('답하기·신고 표시·보여 줄 모양 (KL-159)', () => {
+    it('답한 줄은 상대의 말을 그때 모습대로 데리고 다닌다', () => {
+        const store = makeStore();
+        const now = new Date('2026-08-08T12:00:00Z');
+        const first = store.post('v', '원래 말', {}, now);
+        const answer = store.post('w', '거기에 답', { replyTo: first.message!.id }, now);
+        expect(answer.message!.replyTo).toEqual({
+            id: first.message!.id,
+            name: first.message!.name,
+            text: '원래 말',
+        });
+
+        // 원본을 지워도 답글은 무엇에 답한 것인지 그대로 안다.
+        store.remove(first.message!.id);
+        expect(store.recent()[0].replyTo?.text).toBe('원래 말');
+    });
+
+    it('없는 줄에 답하면 그냥 최상위 말이 된다 (막지 않는다)', () => {
+        const store = makeStore();
+        expect(store.post('v', '허공에 답', { replyTo: '없는-id' }).message!.replyTo).toBe(null);
+    });
+
+    it('같은 사람이 두 번 신고해도 한 번이다', () => {
+        const store = makeStore();
+        const posted = store.post('v', '신고당할 말');
+        expect(store.markReported(posted.message!.id, 'who-a')).toBe(true);
+        expect(store.markReported(posted.message!.id, 'who-a')).toBe(false);
+        expect(store.markReported('없는-id', 'who-a')).toBe(null);
+    });
+
+    it('보여 줄 모양에는 **목록이 안 들어간다** — 내가 눌렀나만 나간다', () => {
+        const store = makeStore();
+        const posted = store.post('v', '지키고 신고한 말');
+        store.toggleKeep(posted.message!.id, 'who-a');
+        store.toggleKeep(posted.message!.id, 'who-b');
+        store.markReported(posted.message!.id, 'who-a');
+
+        const asA = store.publicMessages('who-a')[0];
+        expect(asA.kept).toBe(2);
+        expect(asA.keptByMe).toBe(true);
+        expect(asA.reportedByMe).toBe(true);
+
+        const asC = store.publicMessages('who-c')[0];
+        expect(asC.kept).toBe(2);
+        expect(asC.keptByMe).toBe(false);
+        expect(asC.reportedByMe).toBe(false);
+
+        // 남이 누른 목록은 어느 쪽에서도 안 보인다 — 보이면 익명이 샌다.
+        expect(JSON.stringify(asC)).not.toContain('who-a');
+        expect(JSON.stringify(asC)).not.toContain('who-b');
+    });
+});

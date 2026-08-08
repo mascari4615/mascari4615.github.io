@@ -47,8 +47,6 @@ import {
 import { getKarmolabNotificationStore, type KarmolabNotificationStore } from '../services/karmolab-notifications';
 import { getKarmolabPlayStore, playGame, isValidVariant, type KarmolabPlayStore } from '../services/karmolab-plays';
 import { getKarmolabPackStore, PackError, type KarmolabPackStore } from '../services/karmolab-packs';
-import { WELLS, WellStore, wellById, wellOfTheDay, kstDay as wellKstDay } from '../services/karmolab-wells';
-import { SteamLibrary, LibraryError } from '../services/karmolab-steam-library';
 import { backupInfo, triggerBackupNow } from '../services/karmolab-backup';
 import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-uploads';
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
@@ -274,8 +272,6 @@ export function registerKarmolabApi(
   plays: KarmolabPlayStore = getKarmolabPlayStore(),
   chat: KarmolabChatStore = getKarmolabChatStore(),
   packs: KarmolabPackStore = getKarmolabPackStore(),
-  wells: WellStore = new WellStore(),
-  library: SteamLibrary = new SteamLibrary(),
 ): void {
 
   /**
@@ -1118,6 +1114,20 @@ export function registerKarmolabApi(
     res.json({ flow });
   });
 
+  /**
+   * 한 판의 자국 (TASK-KL-182 F5) — 몇 번째까지 갔나 · 얼마나 걸렸나.
+   * 흐름을 만들어 놓고 「실제로 되나」를 아무도 못 봤다. 이 줄이 그 답이다.
+   */
+  app.post('/kl/flows/:id/trail', (req: Request, res: Response) => {
+    const body = req.body ?? {};
+    res.json({ trails: flows.noteTrail(String(req.params.id ?? ''), body).length });
+  });
+
+  /** 이 흐름이 어디서 막히나 — 자국이 없으면 null(모르는 것을 아는 척하지 않는다). */
+  app.get('/kl/flows/:id/summary', (req: Request, res: Response) => {
+    res.json({ summary: flows.trailSummary(String(req.params.id ?? '')) });
+  });
+
   /** 한 번 돌았다 — 이 수만이 「쓸모 있는 흐름」을 가려낸다. 로그인 없이도 센다. */
   app.post('/kl/flows/:id/run', (req: Request, res: Response) => {
     res.json({ runs: flows.noteRun(String(req.params.id ?? '')) });
@@ -1714,76 +1724,6 @@ export function registerKarmolabApi(
       // 덮어써서 목록이 통째로 숫자가 된다 — 화면은 빈 목록으로 보이고 오류는 안 난다.
       total: packs.stats(),
     });
-  });
-
-  /**
-   * 바깥에서 길어 오는 표 — 어떤 우물이 있나 (TASK-KL-153).
-   *
-   * 목록과 표를 나눈 이유: 화면이 「고를 것」을 보여 주는 데 100개짜리 표 다섯 벌이 필요하지
-   * 않다. 고른 다음에만 길어 온다.
-   *
-   * 오늘의 표도 여기서 말한다 — 화면이 날짜 계산을 따로 하면 서버와 하루가 어긋난다.
-   */
-  app.get('/kl/wells', (_req: Request, res: Response) => {
-    const today = wellOfTheDay(wellKstDay());
-    res.json({
-      day: wellKstDay(),
-      today: today.id,
-      wells: WELLS.map((well) => ({
-        id: well.id,
-        title: well.title,
-        emoji: well.emoji,
-        desc: well.desc,
-        // 이미 길어 둔 표면 몇 개짜리인지 바로 말해 준다 — 안 길어 왔으면 굳이 지금 가지 않는다.
-        items: wells.peek(well.id)?.items.length ?? null,
-      })),
-    });
-  });
-
-  /**
-   * 표 한 벌. **로그인이 필요 없다** — 남의 공개 숫자를 옮겨 주는 일이고, 놀이는 로그인 없이도 된다.
-   *
-   * 바깥이 죽으면 지난 표를 `stale: true` 와 함께 준다. 화면은 그걸 보고 「몇 시 기준」만 다르게
-   * 적으면 된다 — 놀이는 그대로 굴러간다.
-   */
-  app.get('/kl/wells/pack', async (req: Request, res: Response) => {
-    // `today` 로 부르면 오늘의 표 — 화면이 날짜를 따로 세지 않게.
-    const asked = req.query.well === 'today' ? wellOfTheDay(wellKstDay()).id : req.query.well;
-    const well = wellById(asked);
-    if (!well) {
-      res.status(400).json({ error: 'unknown_well', wells: WELLS.map((w) => w.id) });
-      return;
-    }
-    try {
-      const pack = await wells.get(well);
-      // 브라우저·터널이 한 번 더 안 나가게. 서버 캐시(6h)와 어긋나도 손해가 없는 숫자다.
-      res.setHeader('Cache-Control', 'public, max-age=1800');
-      res.json({ pack });
-    } catch {
-      // 한 번도 못 길어 왔다 — 없는 표를 지어내지 않는다.
-      res.status(503).json({ error: 'well_unavailable' });
-    }
-  });
-
-  /**
-   * 내 스팀 서재 → 표 (TASK-KL-153 C).
-   *
-   * 우물과 자리를 나눈 이유: 우물은 모두에게 같은 표라 캐시가 하나면 되지만, 서재는 사람마다
-   * 다르다. 같은 자리에 끼우면 한 사람의 서재가 캐시에 눌러앉아 남에게 나간다.
-   *
-   * 열쇠가 없으면 **이 길만** 닫힌다(501) — 우물 다섯은 그대로 돈다. 「고장」이 아니라
-   * 「아직 안 켰다」로 말한다.
-   */
-  app.get('/kl/steam/library', async (req: Request, res: Response) => {
-    const who = typeof req.query.who === 'string' ? req.query.who : '';
-    try {
-      const pack = await library.pack(who);
-      res.json({ pack });
-    } catch (err) {
-      const code = err instanceof LibraryError ? err.code : 'failed';
-      // 열쇠 없음만 501(아직 안 켠 기능), 나머지는 사람이 고칠 수 있는 400 이다.
-      res.status(code === 'no_key' ? 501 : 400).json({ error: code });
-    }
   });
 
   /** 표를 올린다 — 로그인해야 한다. 남의 표를 고치는 게 아니라 **이어받을** 때도 여기로 온다. */
