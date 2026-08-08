@@ -222,7 +222,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
         if (부른곳 !== undefined && 이기계인가(부른곳)) {
           res.setHeader('access-control-allow-origin', 부른곳);
           res.setHeader('vary', 'origin');
-          res.setHeader('access-control-allow-headers', 'content-type');
+          // 검사 표시 헤더까지 허용 목록에 있어야 한다 — 빠지면 브라우저가 통째로 막는다.
+          res.setHeader('access-control-allow-headers', 'content-type, x-companion-test');
           res.setHeader('access-control-allow-methods', 'GET, POST, OPTIONS');
         }
         if (req.method === 'OPTIONS') {
@@ -619,6 +620,9 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
         // 브라우저 → 서버: 사람이 친 말.
         if (url === '/say' && req.method === 'POST') {
+          /* 검사가 건네는 말은 **기억에 안 남긴다.** 검사가 쌓아 놓은 말이 졸여져서
+             사람의 상이 된 적이 있다(실측: 「아는 것」 네 줄이 전부 검사 찌꺼기였다). */
+          const 시험인가 = req.headers['x-companion-test'] === '1';
           let raw = '';
           req.on('data', (chunk) => {
             raw += chunk;
@@ -651,7 +655,7 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
             // 맞장구는 말이 아니라서 뜸과 같은 길로 나간다(대화에 안 쌓인다).
             const 받는소리 = backchannel.heard(askedAt);
             if (받는소리 !== null) broadcast({ type: 'filler', text: 받는소리, channel });
-            emit({ channel, kind: 'text', text, at: askedAt });
+            emit({ channel, kind: 'text', text, at: askedAt, ...(시험인가 ? { 시험: true } : {}) });
           });
           return;
         }
@@ -699,11 +703,12 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
         // 브라우저 → 서버: 얘 몸에 닿은 것. 말이 아니라서 통로를 따로 둔다.
         if (url.startsWith('/touch') && req.method === 'POST') {
+          const 시험닿음 = req.headers['x-companion-test'] === '1';
           const wire = new URL(url, 'http://x').searchParams.get('kind') ?? 'poke';
           const kind = touchKindFromWire(wire);
           res.writeHead(kind === null ? 400 : 204).end();
           if (kind === null) return;
-          emit(touchSensation(kind));
+          emit(시험닿음 ? { ...touchSensation(kind), 시험: true } : touchSensation(kind));
           return;
         }
 
