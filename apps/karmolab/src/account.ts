@@ -133,6 +133,40 @@ function noteStale(response: Response): void {
     setTimeout(() => note.remove(), 8000);
 }
 
+/**
+ * 서버에 못 닿은 채 열렸다 (TASK-KL-191 축8).
+ *
+ * 도구는 전부 브라우저 안에서 도니까 **끊겨도 대부분 그대로 쓴다**. 그런데 아무 말이 없으면
+ * 사람은 로그인·광장이 안 뜨는 것을 고장으로 읽고 창을 닫는다. 무엇이 되고 무엇이 안 되는지를
+ * 한 줄로 말해 주는 것이 「오프라인 지원」의 절반이다.
+ *
+ * **`navigator.onLine` 은 안 믿는다** — 실측(2026-08-08): 회선을 끊어 놓고도 `true` 였다.
+ * 원래 그 값은 「그물에 꽂혀 있나」지 「닿을 수 있나」가 아니다(공유기만 살아 있어도 참이다).
+ * 우리가 아는 유일한 진실은 **실제로 못 닿았다**는 사실뿐이라, 그것을 신호로 쓴다.
+ */
+function offlineNote(show: boolean): void {
+    const ID = 'kl-offline-note';
+    const paint = (): void => {
+        const existing = document.getElementById(ID);
+        if (!show) {
+            existing?.remove();
+            return;
+        }
+        if (existing) return;
+        const note = document.createElement('div');
+        note.id = ID;
+        note.textContent = '서버에 못 닿고 있어요 — 도구는 그대로 씁니다. 로그인·광장·저장만 잠시 쉽니다.';
+        note.style.cssText =
+            'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
+            'padding:8px 14px;border-radius:999px;font-size:12px;' +
+            'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
+            'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
+        document.body.appendChild(note);
+    };
+    if (document.body) paint();
+    else document.addEventListener('DOMContentLoaded', paint, { once: true });
+}
+
 async function call(path: string, init: RequestInit = {}): Promise<Response | null> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -238,10 +272,13 @@ async function refresh(): Promise<void> {
     if (!response || !response.ok) {
         state.reachable = false;
         state.account = null;
+        // 못 닿았다는 **사실**이 유일하게 믿을 수 있는 신호다 (TASK-KL-191 축8)
+        offlineNote(true);
         emit();
         return;
     }
     state.reachable = true;
+    offlineNote(false);
     try {
         const data = (await response.json()) as { account?: AccountSummary | null };
         state.account = data.account ?? null;

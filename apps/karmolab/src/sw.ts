@@ -146,19 +146,6 @@ function putHandoff(item: { blob: Blob; name: string; from: string | null; at: n
 ctx.addEventListener('fetch', (event: FetchEvent) => {
   const req = event.request;
 
-  /* **주소는 맨 위에서 한 번 푼다.**
-     아래로 내려 두었더니, 나중에 끼어든 블록(읽기 캐시)이 선언보다 위에서 `url` 을 쓰는 바람에
-     빌드가 통째로 멈췄다 — 증상은 「used before its declaration」 여섯 줄뿐이라 어느 블록이
-     범인인지 안 보인다. 맨 위에 두면 그 자리가 다시 안 생긴다. */
-  let url: URL;
-  try {
-    url = new URL(req.url);
-  } catch {
-    return;
-  }
-  if (!url.protocol.startsWith('http')) return;
-  if (url.pathname.includes('/api/') || url.href.includes('tauri')) return;
-
   // 공유로 들어온 것 — 파일을 놓아두고 앱을 연다.
   if (req.method === 'POST' && new URL(req.url).pathname === '/karmolab/share/') {
     event.respondWith(
@@ -185,6 +172,12 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
 
   if (req.method !== 'GET' || req.headers.has('range')) return;
 
+  let url: URL;
+  try {
+    url = new URL(req.url);
+  } catch {
+    return;
+  }
   /* ── 서버가 죽어도 읽기는 산다 (TASK-KL-183 F) ──────────────────
    *
    * 계정·광장·흐름은 전부 노트북 한 대에 물려 있다. 그 한 대가 자거나 터널이 끊기면 화면이
@@ -223,6 +216,9 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
     return;
   }
 
+  if (!url.protocol.startsWith('http')) return;
+  if (url.pathname.includes('/api/') || url.href.includes('tauri')) return;
+
   if (isImmutable(url)) {
     // 지문이 박힌 것 = 이 주소의 내용은 절대 안 바뀐다. 있으면 그냥 주고, 없을 때만 받아 온다.
     // 뒤에서 다시 확인하지도 않는다 — 확인할 것이 없다.
@@ -256,7 +252,23 @@ ctx.addEventListener('fetch', (event: FetchEvent) => {
           }
           return res;
         })
-        .catch(() => caches.match(req).then((cached) => cached || Response.error()))
+        .catch(() =>
+          caches.match(req).then((cached) => {
+            if (cached) return cached;
+            /* 오프라인에서 **앱이 아예 안 열리던 것** (TASK-KL-191 축8).
+             *
+             * 받아 둔 것은 첫 화면(`/karmolab/`) 한 장뿐이라, 설치한 앱에서 도구 주소로
+             * 바로 들어가면(바로가기·지난 화면) 브라우저의 「인터넷 없음」 화면이 떴다 —
+             * 도구는 전부 브라우저 안에서 도는데, **껍데기가 없어서** 못 열린 것이다.
+             *
+             * 그래서 우리 울타리 안의 이동이면 받아 둔 껍데기를 내준다. 어느 도구로 가려
+             * 했는지는 주소에 그대로 남아 있어서, 앱이 그것을 읽고 그 도구를 연다. */
+            if (req.mode === 'navigate' && url.origin === ctx.location.origin && url.pathname.startsWith('/karmolab/')) {
+              return caches.match('/karmolab/').then((shell) => shell || Response.error());
+            }
+            return Response.error();
+          }),
+        )
     );
     return;
   }
