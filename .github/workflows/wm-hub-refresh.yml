@@ -1,0 +1,69 @@
+name: "daily WM 허브 새로 긁기"
+
+# 왜 있나 (TASK-KL-158 · KL-164 · KL-171)
+#
+# WM 허브(`/karmolab/#wm`)의 도감·소식·만드는 중은 **개발 노트와 게임 저장소**에서 온다.
+# 그런데 그 둘은 비공개라 GitHub 러너에 없다 — 그래서 웹은 「누군가 자기 컴퓨터에서 빌드해
+# 커밋한 그 순간」에 멈춰 있다. 손을 안 대면 소식이 조용히 낡고, 사이트만 옛말을 한다.
+#
+# 그 둘이 **같이 있는 기계는 노트북 하나**뿐이다(prod 봇이 도는 그 기계). 그래서 여기서만 돈다.
+# 하루 한 번 긁어 보고, 달라진 게 있을 때만 커밋한다 — 없으면 조용히 끝난다(그게 정상이다).
+#
+# 안 되면 접는다: 개발 노트가 없으면 그 자리는 커밋된 옛 산출을 그대로 두고, 무엇을 못 긁었는지
+# 로그에 남긴다. 「초록인데 아무것도 안 바뀜」 = 그날 새 이야기가 없었다는 뜻이다.
+
+on:
+  schedule:
+    # UTC 20:20 = 한국 05:20 — 사람이 거의 안 보는 시각에 갈아끼운다.
+    - cron: '20 20 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: wm-hub-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    # 개발 노트(memo)와 게임 저장소가 같이 있는 기계 = 노트북.
+    runs-on: [self-hosted, windows, laptop, yawnbot]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: 무엇을 긁을 수 있는지 먼저 본다
+        shell: bash
+        run: |
+          for p in "$KARMODDRINE_MEMO_PATH" "$KARMODDRINE_WM_PATH"; do
+            if [ -n "$p" ] && [ -d "$p" ]; then echo "있다: $p"; else echo "없다: ${p:-(경로 미설정)}"; fi
+          done
+        env:
+          KARMODDRINE_MEMO_PATH: 'C:\Users\masca\repos\karmoddrine\memo'
+          KARMODDRINE_WM_PATH: 'C:\Users\masca\repos\karmoddrine\WitchMendokusai'
+
+      - name: 도감 · 소식 · 만드는 중을 새로 긁는다
+        working-directory: apps/karmolab
+        shell: bash
+        env:
+          KARMODDRINE_MEMO_PATH: 'C:\Users\masca\repos\karmoddrine\memo'
+          KARMODDRINE_WM_PATH: 'C:\Users\masca\repos\karmoddrine\WitchMendokusai'
+        run: |
+          node scripts/build-worldbook.mjs
+          node scripts/build-devlog.mjs
+          node scripts/build-wm-tasks.mjs
+          node scripts/gen-wm-landing.mjs
+
+      - name: 달라진 게 있으면만 올린다
+        shell: bash
+        run: |
+          git add -- apps/karmolab/data/worldbook.json apps/karmolab/data/devlog.json apps/karmolab/data/wm-tasks.json apps/karmolab/wm/index.html
+          if git diff --cached --quiet; then
+            echo "바뀐 것 없음 — 그날 새 이야기가 없었다는 뜻이다."
+            exit 0
+          fi
+          git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' \
+            commit -m 'chore(karmolab): WM 허브 새로 긁기 — 도감 · 소식 · 만드는 중' \
+            -- apps/karmolab/data apps/karmolab/wm
+          git push origin HEAD:master
