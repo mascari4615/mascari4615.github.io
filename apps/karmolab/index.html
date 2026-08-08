@@ -87,13 +87,17 @@ permalink: /karmolab/
          도구가 128가지라 사람은 목록에서 하나를 고른다 — 그 순간 화면 하나를 통째로 새로
          받아야 했다. 마우스를 올리거나 누르기 시작하면(=고를 낌새) 브라우저가 그 화면을 미리
          받아 둔다. 그러면 누르는 순간에는 이미 와 있다.
-         `prefetch` 만 쓴다 — 미리 **실행**까지 하는 `prerender` 는 방문 수가 두 번 세이거나
-         타이머가 미리 도는 등 눈에 안 보이는 부작용이 있다. 받아만 두는 것은 그런 게 없다.
+         이제 **미리 실행까지** 한다(`prerender`) — 누르는 순간 이미 다 그려져 있다.
+         한동안 받아만 뒀던 이유는 「아무도 안 본 화면이 방문으로 세인다」였는데, 그건 계측이
+         브라우저의 구분을 안 보고 있었기 때문이다. `analytics.ts` 가 `document.prerendering`
+         을 보고 도착(`prerenderingchange`) 뒤에 세도록 고쳤다 — 그동안의 기록은 줄을 세운다.
+         **새로 뭘 미리 돌게 만들 때는 그 구분을 같이 봐라** (타이머·소리·서버 두드리기).
          `moderate` = 「올려두거나 누르기 시작했을 때」. 아무것도 안 하는 사람은 아무것도 안 받는다.
+         한 번에 두 장까지만 미리 돈다(브라우저 제한) — 화면 128개를 다 돌리지 않는다.
          이 기능을 모르는 브라우저는 이 덩어리를 그냥 무시한다(우리가 손댈 것 없음). -->
     <script type="speculationrules">
-    {"prefetch":[{"where":{"and":[{"href_matches":"/karmolab/t/*"},{"not":{"href_matches":"/karmolab/t/"}}]},"eagerness":"moderate"},
-                 {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"}]}
+    {"prerender":[{"where":{"and":[{"href_matches":"/karmolab/t/*"},{"not":{"href_matches":"/karmolab/t/"}}]},"eagerness":"moderate"},
+                  {"where":{"href_matches":"/karmolab/t/"},"eagerness":"moderate"}]}
     </script>
     <link rel="icon" href="/apps/karmolab/img/favicon.ico">
     <!-- iOS 에서 홈 화면에 추가할 때 쓰는 아이콘. 없으면 화면을 찍어 아이콘으로 삼는다. -->
