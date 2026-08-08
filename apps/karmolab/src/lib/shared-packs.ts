@@ -143,7 +143,10 @@ export async function updateShared(sharedId: string, pack: Pack): Promise<Upload
  * 서버 주소가 있으면 그것 — 그래야 같은 표로 논 사람끼리 한 판에서 만난다.
  * 없으면 이 브라우저 안의 이름(혼자만의 기록).
  */
-export function variantFor(pack: { id: string; sharedId?: string }): string {
+export function variantFor(pack: { id: string; sharedId?: string; well?: string }): string {
+  /* 바깥 우물에서 길어 온 표는 **누가 담았든 같은 표**다 (TASK-KL-153) — 우물 이름으로 갈라야
+   * 서로 겨룰 수 있다. 브라우저마다 다른 `id` 로 가르면 백 명이 각자 혼자 1등이 된다. */
+  if (pack.well) return `well:${pack.well}`;
   return `pack:${pack.sharedId ?? pack.id}`;
 }
 

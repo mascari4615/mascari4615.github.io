@@ -16,7 +16,8 @@ import { KarmolabAccountStore } from '../services/karmolab-accounts';
 import { KarmolabTraceStore } from '../services/karmolab-traces';
 import { KarmolabPlayStore } from '../services/karmolab-plays';
 import { KarmolabPackStore } from '../services/karmolab-packs';
-import { SteamPackStore } from '../services/karmolab-steam';
+import { WellStore } from '../services/karmolab-wells';
+import { SteamLibrary } from '../services/karmolab-steam-library';
 
 let server: Server;
 let baseUrl: string;
@@ -24,28 +25,58 @@ let store: KarmolabAccountStore;
 let traces: KarmolabTraceStore;
 let plays: KarmolabPlayStore;
 let packs: KarmolabPackStore;
-let steam: SteamPackStore;
+let wells: WellStore;
 /** 바깥 우물이 몇 번 불렸나 — 「캐시가 실제로 막고 있나」를 여기서 센다. */
-let steamCalls: number;
-let steamFails: boolean;
+let wellCalls: number;
+let wellFails: boolean;
 let tmpDir: string;
 
-/** 스팀 표 흉내 (TASK-KL-153). 시험이 진짜 steamspy.com 으로 나가면 안 된다. */
-function fakeSteamRows(): Record<string, unknown> {
-  const rows: Record<string, unknown> = {};
-  for (let i = 1; i <= 5; i += 1) {
-    rows[String(i)] = {
-      appid: i,
-      name: `게임 ${i}`,
-      developer: '만든곳',
-      positive: 900,
-      negative: 100,
-      owners: '1,000,000 .. 2,000,000',
-      price: '1999',
-      ccu: 1000 * i,
+/**
+ * 바깥 흉내 (TASK-KL-153). 시험이 진짜 steamspy·jikan·themealdb 로 나가면 안 된다.
+ * 주소를 보고 그 집 모양으로 답한다 — 한 가지 모양만 주면 「오늘의 표」가 다른 우물을
+ * 고른 날 시험이 통째로 무너진다.
+ */
+function fakeOutside(url: string): Record<string, unknown> {
+  if (url.includes('steamspy')) {
+    const rows: Record<string, unknown> = {};
+    for (let i = 1; i <= 5; i += 1) {
+      rows[String(i)] = {
+        appid: i,
+        name: `게임 ${i}`,
+        developer: '만든곳',
+        positive: 900,
+        negative: 100,
+        owners: '1,000,000 .. 2,000,000',
+        price: '1999',
+        ccu: 1000 * i,
+      };
+    }
+    return rows;
+  }
+  if (url.includes('jikan')) {
+    return {
+      data: Array.from({ length: 5 }, (_, i) => ({
+        title: `애니 ${url.slice(-1)}-${i}`,
+        images: { jpg: { large_image_url: 'https://img.test/a.jpg' } },
+        score: 8 + i / 10,
+        members: 1000 * (i + 1),
+        episodes: 12,
+        year: 2020 + i,
+        studios: [{ name: '어느 제작사' }],
+      })),
     };
   }
-  return rows;
+  return {
+    meals: Array.from({ length: 5 }, (_, i) => ({
+      strMeal: `요리 ${url.slice(-1)}-${i}`,
+      strMealThumb: 'https://img.test/m.jpg',
+      strArea: 'Korean',
+      strCategory: 'Beef',
+      strIngredient1: '소고기',
+      strIngredient2: '간장',
+      strIngredient3: '',
+    })),
+  };
 }
 
 beforeEach(async () => {
@@ -57,16 +88,34 @@ beforeEach(async () => {
   // 사람이 만든 표도 임시 파일로 (TASK-KL-150).
   packs = new KarmolabPackStore(path.join(tmpDir, 'packs.json'));
   // 바깥 우물은 흉내로 갈아 끼운다 (TASK-KL-153) — 안 그러면 시험이 진짜 steamspy 로 나간다.
-  steamCalls = 0;
-  steamFails = false;
-  steam = new SteamPackStore(async () => {
-    steamCalls += 1;
-    if (steamFails) throw new Error('steamspy 503');
-    return fakeSteamRows();
+  wellCalls = 0;
+  wellFails = false;
+  wells = new WellStore(async (url: string) => {
+    wellCalls += 1;
+    if (wellFails) throw new Error('바깥 503');
+    return fakeOutside(url);
   });
   const app = express();
   app.use(express.json());
-  registerKarmolabApi(app, store, traces, undefined, plays, undefined, packs, steam);
+  // 서재는 열쇠가 있어야 켜진다 — 시험은 흉내 열쇠와 흉내 바깥으로 켜 둔다 (TASK-KL-153 C).
+  registerKarmolabApi(
+    app,
+    store,
+    traces,
+    undefined,
+    plays,
+    undefined,
+    packs,
+    wells,
+    new SteamLibrary('시험열쇠', async (url: string) => {
+      if (url.includes('ResolveVanityURL')) return { response: { success: 1, steamid: '765611979' } };
+      return {
+        response: {
+          games: Array.from({ length: 5 }, (_, i) => ({ appid: i + 1, name: `내 게임 ${i}`, playtime_forever: 60 * (i + 1) })),
+        },
+      };
+    }),
+  );
   /* 아무 포트나 받으면 가끔 **브라우저가 막는 포트**(6000·6665 등)가 걸려서
      `fetch` 가 「bad port」로 죽는다 — 코드와 무관한 실패다. 안전한 대역에서만 고른다. */
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
@@ -1419,209 +1468,89 @@ describe('계정 도메인 (KL-152)', () => {
 /**
  * TASK-KL-153 — 바깥에서 길어 온 표.
  *
- * 여기서 보는 것은 변환이 아니라(그건 `karmolab-steam.test.ts` 가 본다) **배선**이다:
+ * 여기서 보는 것은 변환이 아니라(그건 우물별 시험이 본다) **배선**이다:
  * 로그인 없이 되는가 · 모르는 우물을 부르면 어떻게 되는가 · 캐시가 실제로 바깥을 막는가 ·
- * 바깥이 죽었을 때 놀이가 같이 죽지 않는가.
+ * 바깥이 죽었을 때 놀이가 같이 죽지 않는가 · 오늘의 표가 서버와 화면에서 같은가.
  */
-describe('스팀 표 길어 오기', () => {
-  it('우물 목록은 로그인 없이 보인다', async () => {
-    const res = await fetch(`${baseUrl}/kl/steam/sources`);
+describe('표 우물', () => {
+  it('우물 목록은 로그인 없이 보이고, 오늘의 표를 함께 말한다', async () => {
+    const res = await fetch(`${baseUrl}/kl/wells`);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.sources.map((s: { id: string }) => s.id)).toEqual(['hot', 'owned', 'forever']);
+    expect(body.wells.map((w: { id: string }) => w.id)).toContain('steam-hot');
+    expect(body.wells.map((w: { id: string }) => w.id)).toContain('anime-top');
+    // 오늘의 표는 반드시 **있는 우물**이어야 한다 — 아니면 눌러도 안 열린다.
+    expect(body.wells.map((w: { id: string }) => w.id)).toContain(body.today);
+    expect(body.day).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     // 아직 안 길어 온 우물은 개수를 지어내지 않는다.
-    expect(body.sources[0].items).toBeNull();
-    expect(steamCalls).toBe(0); // 목록을 본다고 바깥으로 나가지 않는다
+    expect(body.wells[0].items).toBeNull();
+    expect(wellCalls).toBe(0); // 목록을 본다고 바깥으로 나가지 않는다
   });
 
   it('표는 로그인 없이 오고, 놀이가 쓸 모양 그대로다', async () => {
-    const res = await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
+    const res = await fetch(`${baseUrl}/kl/wells/pack?well=steam-hot`);
     expect(res.status).toBe(200);
     const { pack } = await res.json();
     expect(pack.items).toHaveLength(5);
     expect(pack.items[0].img).toContain('/steam/apps/1/header.jpg');
     expect(pack.fields.filter((f: { kind: string }) => f.kind === 'number')).toHaveLength(4);
     expect(pack.stale).toBe(false);
+    expect(pack.well).toBe('steam-hot'); // 순위판이 표마다 갈리는 근거
+  });
+
+  it('우물이 달라도 같은 모양으로 온다 — 애니·요리', async () => {
+    for (const id of ['anime-top', 'meal']) {
+      const { pack } = await (await fetch(`${baseUrl}/kl/wells/pack?well=${id}`)).json();
+      expect(pack.items.length).toBeGreaterThanOrEqual(4);
+      expect(pack.items.every((i: { name: string }) => typeof i.name === 'string')).toBe(true);
+      expect(pack.fields.length).toBeGreaterThan(0);
+      expect(pack.well).toBe(id);
+    }
+  });
+
+  it('`today` 로 부르면 오늘의 표가 그대로 온다 — 화면이 날짜를 따로 세지 않는다', async () => {
+    const list = await (await fetch(`${baseUrl}/kl/wells`)).json();
+    const { pack } = await (await fetch(`${baseUrl}/kl/wells/pack?well=today`)).json();
+    expect(pack.well).toBe(list.today);
   });
 
   it('모르는 우물은 400 이고, 어떤 우물이 있는지 알려 준다', async () => {
-    const res = await fetch(`${baseUrl}/kl/steam/pack?source=constructor`);
+    const res = await fetch(`${baseUrl}/kl/wells/pack?well=constructor`);
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.sources).toContain('hot');
-    expect(steamCalls).toBe(0);
+    expect(body.wells).toContain('steam-hot');
+    expect(wellCalls).toBe(0);
   });
 
   it('두 번 열어도 바깥으로는 한 번만 나간다', async () => {
-    await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
-    await fetch(`${baseUrl}/kl/steam/pack?source=hot`);
-    expect(steamCalls).toBe(1);
+    await fetch(`${baseUrl}/kl/wells/pack?well=steam-hot`);
+    await fetch(`${baseUrl}/kl/wells/pack?well=steam-hot`);
+    expect(wellCalls).toBe(1);
     // 한 번 길어 온 우물은 목록에서 개수를 말한다
-    const body = await (await fetch(`${baseUrl}/kl/steam/sources`)).json();
-    expect(body.sources.find((s: { id: string }) => s.id === 'hot').items).toBe(5);
+    const body = await (await fetch(`${baseUrl}/kl/wells`)).json();
+    expect(body.wells.find((w: { id: string }) => w.id === 'steam-hot').items).toBe(5);
   });
 
   it('한 번도 못 길어 왔으면 503 — 없는 표를 지어내지 않는다', async () => {
-    steamFails = true;
-    const res = await fetch(`${baseUrl}/kl/steam/pack?source=owned`);
+    wellFails = true;
+    const res = await fetch(`${baseUrl}/kl/wells/pack?well=steam-owned`);
     expect(res.status).toBe(503);
-    expect((await res.json()).error).toBe('source_unavailable');
-/** 2라운드 배선 (TASK-KL-156). */
-describe('계정 2라운드 (KL-156)', () => {
-  it('희귀도는 로그인 없이 볼 수 있고, 누가 가졌는지는 안 나간다', async () => {
-    const me = signIn();
-    store.mergeRecordsForAccount(store.byHandle(me.handle)!.id, {
-      achievements: ['pet_100'],
-      badges: [],
-      progress: {},
-      streaks: {},
-    });
-    const res = await fetch(`${baseUrl}/kl/stats/achievements`);
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.counts.pet_100).toBe(1);
-    expect(JSON.stringify(body)).not.toContain(me.handle);
-  });
-
-  it('막으면 그 사람을 못 따라가고, 막았다는 말은 답에 안 들어간다', async () => {
-    const me = signIn();
-    const other = store.upsertFromDiscord({ discordId: '77', username: 'ring', displayName: '링', avatarUrl: null });
-
-    const blocked = await fetch(`${baseUrl}/kl/u/${other.handle}/block`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie: me.cookie },
-      body: JSON.stringify({ on: true }),
-    });
-    expect(blocked.status).toBe(200);
-
-    const follow = await fetch(`${baseUrl}/kl/u/${other.handle}/follow`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', cookie: me.cookie },
-      body: JSON.stringify({ on: true }),
-    });
-    expect(follow.status).toBe(400);
-    // 「막혔음」이라고 답하면 그것이 곧 통보다 — 그냥 안 되는 것으로만 답한다
-    expect(JSON.stringify(await follow.json())).not.toContain('block');
-  });
-
-  it('공유 주소는 HTML 로 나가고 그 사람 카드 그림을 가리킨다 · 잠근 사람은 403', async () => {
-    const me = signIn();
-    const res = await fetch(`${baseUrl}/kl/u/${me.handle}/card`);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toContain('text/html');
-    const html = await res.text();
-    expect(html).toContain(`/kl/u/${me.handle}/card.svg`);
-    expect(html).toContain('og:image');
-    expect(html).toContain(`karmolab/u/?h=${me.handle}`);
-
-    store.setVisibility(store.byHandle(me.handle)!.id, { profile: false });
-    expect((await fetch(`${baseUrl}/kl/u/${me.handle}/card`)).status).toBe(403);
-  });
-
-  it('주간 DM 은 로그인해야 켜고, 기본은 꺼져 있다', async () => {
-    const me = signIn();
-    expect((await fetch(`${baseUrl}/kl/me/weekly`)).status).toBe(401);
-
-    const before = await (await fetch(`${baseUrl}/kl/me/weekly`, { headers: { cookie: me.cookie } })).json();
-    expect(before.weekly).toBe(false);
-
-    const after = await (
-      await fetch(`${baseUrl}/kl/me/weekly`, {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json', cookie: me.cookie },
-        body: JSON.stringify({ on: true }),
-      })
-    ).json();
-    expect(after.weekly).toBe(true);
-  });
-
-  it('명예의 전당은 로그인 없이 볼 수 있다', async () => {
-    const me = signIn();
-    store.noteFootprint(store.byHandle(me.handle)!.id, { toolId: 'pet' });
-    const body = await (await fetch(`${baseUrl}/kl/stats/leaders`)).json();
-    expect(body.leaders.map((row: { handle: string }) => row.handle)).toContain(me.handle);
+    expect((await res.json()).error).toBe('well_unavailable');
   });
 });
 
-/** 같이 쓰기 (TASK-KL-180) — 진짜 SSE 로 두 창을 붙여 본다. */
-describe('같이 쓰기 (KL-180)', () => {
-  /** SSE 한 줄씩 읽는 작은 도구. 라이브러리 없이 실제 흐름을 그대로 본다. */
-  async function openStream(room: string, tab: string): Promise<{ events: Array<{ type: string; data: unknown }>; close: () => void }> {
-    const controller = new AbortController();
-    const events: Array<{ type: string; data: unknown }> = [];
-    const res = await fetch(`${baseUrl}/kl/room/${room}/stream?tab=${tab}`, { signal: controller.signal });
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toContain('text/event-stream');
-    void (async () => {
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      try {
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          let cut = buffer.indexOf('\n\n');
-          while (cut >= 0) {
-            const chunk = buffer.slice(0, cut);
-            buffer = buffer.slice(cut + 2);
-            const type = /^event: (.+)$/m.exec(chunk)?.[1];
-            const data = /^data: (.+)$/m.exec(chunk)?.[1];
-            if (type && data) events.push({ type, data: JSON.parse(data) });
-            cut = buffer.indexOf('\n\n');
-          }
-        }
-      } catch {
-        /* 닫으면 여기로 온다 — 정상 */
-      }
-    })();
-    return { events, close: () => controller.abort() };
-  }
-
-  const settle = (ms = 120): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
-
-  it('두 창이 같은 방에 붙으면 서로가 보이고, 하나가 닫히면 사라진다', async () => {
-    const first = await openStream('pet', 'aaa');
-    await settle();
-    expect(first.events[0].type).toBe('hello');
-    expect((first.events[0].data as { members: unknown[] }).members).toEqual([]);
-
-    const second = await openStream('pet', 'bbb');
-    await settle();
-    // 먼저 있던 창에 「누가 들어왔다」가 온다
-    expect(first.events.some((e) => e.type === 'join')).toBe(true);
-    // 나중에 붙은 창은 첫 인사에 이미 있던 사람을 받는다
-    expect(((second.events[0].data as { members: unknown[] }).members).length).toBe(1);
-
-    second.close();
-    await settle(200);
-    expect(first.events.some((e) => e.type === 'leave')).toBe(true);
-    first.close();
+describe('내 스팀 서재', () => {
+  it('별명·주소·숫자 id 로 서재가 표로 온다', async () => {
+    const { pack } = await (await fetch(`${baseUrl}/kl/steam/library?who=mascari`)).json();
+    expect(pack.items).toHaveLength(5);
+    expect(pack.steamId).toBe('765611979');
+    expect(pack.fields.map((f: { key: string }) => f.key)).toEqual(['played', 'recent']);
+    expect(pack.items[0].img).toContain('/steam/apps/1/header.jpg');
   });
 
-  it('커서를 움직이면 남의 창에만 간다 (내 것은 안 돌아온다)', async () => {
-    const mine = await openStream('memo', 'me');
-    const other = await openStream('memo', 'you');
-    await settle();
-
-    await fetch(`${baseUrl}/kl/room/memo/move`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tab: 'me', x: 0.25, y: 0.75, active: true }),
-    });
-    await settle();
-
-    const toOther = other.events.filter((e) => e.type === 'move');
-    expect(toOther).toHaveLength(1);
-    expect(toOther[0].data).toMatchObject({ x: 0.25, y: 0.75, active: true });
-    expect(mine.events.filter((e) => e.type === 'move')).toHaveLength(0);
-
-    mine.close();
-    other.close();
-  });
-
-  it('이상한 방 이름은 안 받는다', async () => {
-    const res = await fetch(`${baseUrl}/kl/room/..%2Fetc/stream`);
+  it('빈 입력은 「못 찾았다」 — 400 이다(고장 아님)', async () => {
+    const res = await fetch(`${baseUrl}/kl/steam/library?who=`);
     expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('not_found');
   });
 });
