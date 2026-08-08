@@ -103,6 +103,16 @@ import qrcode from 'qrcode-generator';
                   <input type="color" id="qrBg" aria-label="배경색" value="#ffffff" style="width:100%; height:38px; padding:2px; background:var(--bg-secondary); border:1px solid var(--border);">
                 </div>
               </div>
+              <div class="tool-grid-2" style="margin-top:10px;">
+                <div>
+                  <div class="tool-sublabel">가운데 로고 (선택)</div>
+                  <input type="file" id="qrLogo" accept="image/*" aria-label="가운데 로고 이미지">
+                </div>
+                <div>
+                  <div class="tool-sublabel">로고 크기 <span id="qrLogoVal" class="range-value">20%</span></div>
+                  <input type="range" id="qrLogoSize" aria-label="로고 크기 (%)" min="10" max="35" step="1" value="20">
+                </div>
+              </div>
             </div>
 
             <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
@@ -113,6 +123,7 @@ import qrcode from 'qrcode-generator';
                 <button class="btn btn-ghost" id="qrCopy">이미지 복사</button>
               </div>
               <div class="tool-status" id="qrStatus">내용을 입력하면 바로 QR 이 만들어집니다.</div>
+              <div class="tool-status" id="qrScan">만든 QR 을 실제로 읽어 확인합니다.</div>
             </div>
           `;
 
@@ -163,6 +174,9 @@ import qrcode from 'qrcode-generator';
             }
           }
 
+          /* 가운데 로고 — 남들(QR Tiger 등)이 앞세우는 기능이다. 다만 로고를 얹으면 그 자리 칸이
+             가려져 **안 읽히는 QR** 이 되기 쉬워서, 얹은 뒤 실제로 다시 읽어 확인한다. */
+          let logoImg: HTMLImageElement | null = null;
           let lastCanvas: HTMLCanvasElement | null = null;
           let lastModules = 0;
 
@@ -210,14 +224,63 @@ import qrcode from 'qrcode-generator';
               canvas.style.imageRendering = 'pixelated';
               preview.innerHTML = '';
               preview.appendChild(canvas);
+              if (logoImg) {
+                const pct = parseInt($<HTMLInputElement>('#qrLogoSize').value, 10) / 100;
+                const w = size * pct;
+                const x = (size - w) / 2;
+                /* 로고 뒤에 배경색을 깔아 준다 — 안 깔면 코드 무늬 위에 겹쳐 더 안 읽힌다. */
+                ctx.fillStyle = $<HTMLInputElement>('#qrBg').value;
+                ctx.fillRect(x - w * 0.06, x - w * 0.06, w * 1.12, w * 1.12);
+                ctx.drawImage(logoImg, x, x, w, w);
+              }
               lastCanvas = canvas;
               status.textContent = `${data.length.toLocaleString('ko-KR')}자 · ${count}×${count} 모듈 · 오류정정 ${$<HTMLSelectElement>('#qrLevel').value}`;
               status.className = 'tool-status ok';
+              void verify(canvas, data);
             } catch (e) {
               preview.innerHTML = '';
               status.textContent = '내용이 너무 길어요. 오류 정정 수준을 낮추거나 내용을 줄여 주세요.';
               status.className = 'tool-status error';
               void e;
+            }
+          }
+
+          /**
+           * 만든 QR 을 **다시 읽어** 본다 (남들이 안 하는 자리).
+           *
+           * 로고를 얹거나 색 대비를 낮추면 화면에는 멀쩡한 QR 이 그려지는데 폰으로는 안 읽힌다.
+           * 인쇄해 붙이고 나서야 아는 사고가 흔하다. 여기서는 만든 그림을 그대로 해독해
+           * 원래 내용과 같은지 확인한다 — 다르면 그 자리에서 말해 준다.
+           *
+           * 못 읽어 오는 환경이면 「확인 못 했다」고 말한다(통과로 삼지 않는다).
+           */
+          async function verify(canvas: HTMLCanvasElement, expected: string): Promise<void> {
+            const scan = $<HTMLElement>('#qrScan');
+            const say = (msg: string, kind: '' | 'ok' | 'error'): void => {
+              scan.textContent = msg;
+              scan.className = 'tool-status' + (kind ? ' ' + kind : '');
+            };
+            try {
+              const BD = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => { detect(c: HTMLCanvasElement): Promise<Array<{ rawValue: string }>> } }).BarcodeDetector;
+              let read: string | null = null;
+              if (BD) {
+                const found = await new BD({ formats: ['qr_code'] }).detect(canvas);
+                read = found.length ? found[0].rawValue : null;
+              } else {
+                await Toolbox.ensureScript?.('vendor/jsqr.min');
+                const jsQR = (window as unknown as { jsQR?: (d: Uint8ClampedArray, w: number, h: number) => { data: string } | null }).jsQR;
+                if (!jsQR) { say('이 브라우저에서는 확인을 못 했어요 (QR 자체는 만들어졌습니다).', ''); return; }
+                const c2 = canvas.getContext('2d', { willReadFrequently: true });
+                if (!c2) return;
+                const img = c2.getImageData(0, 0, canvas.width, canvas.height);
+                const hit = jsQR(img.data, canvas.width, canvas.height);
+                read = hit ? hit.data : null;
+              }
+              if (read === expected) say('직접 읽어 봤어요 — 잘 읽힙니다.', 'ok');
+              else if (read) say('읽히긴 하는데 내용이 달라요. 로고를 줄이거나 오류정정을 H 로 올려 보세요.', 'error');
+              else say('만든 QR 이 안 읽혀요 — 로고를 줄이거나, 오류정정을 H 로, 색 대비를 높여 보세요.', 'error');
+            } catch (_) {
+              say('이 브라우저에서는 확인을 못 했어요 (QR 자체는 만들어졌습니다).', '');
             }
           }
 
@@ -227,6 +290,19 @@ import qrcode from 'qrcode-generator';
             a.download = name;
             a.click();
           }
+
+          $<HTMLInputElement>('#qrLogo').addEventListener('change', (e: Event) => {
+            const f = (e.target as HTMLInputElement).files?.[0];
+            if (!f) { logoImg = null; render(); return; }
+            const url = URL.createObjectURL(f);
+            const img = new Image();
+            img.onload = () => { logoImg = img; URL.revokeObjectURL(url); render(); };
+            img.onerror = () => { URL.revokeObjectURL(url); logoImg = null; render(); };
+            img.src = url;
+          });
+          $<HTMLInputElement>('#qrLogoSize').addEventListener('input', () => {
+            $<HTMLElement>('#qrLogoVal').textContent = $<HTMLInputElement>('#qrLogoSize').value + '%';
+          });
 
           kind.addEventListener('change', () => {
             Object.keys(panels).forEach((k) => {
