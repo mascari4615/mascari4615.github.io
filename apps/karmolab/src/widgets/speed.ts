@@ -23,10 +23,10 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
           Mdd.linePreset('tool_run', { msg: '속도 측정이에요! 빨리 드래그하세요!' });
           container.innerHTML = `
                 <div style="display:flex; flex-direction:column; padding:20px; height:380px; box-sizing:border-box; text-align:center;">
-                    <div style="font-size:14px; color:var(--text-secondary); margin-bottom:10px;">💾 [1MB] 블럭을 마우스로 잡고 골인 지점까지 끌고 가세요!</div>
+                    <div style="font-size:14px; color:var(--text-secondary); margin-bottom:10px;">💾 [1MB] 블럭을 잡고 골인 지점까지 끌고 가세요! (폰에서는 손가락으로)</div>
                     <div id="dropZone" style="flex:1; background:rgba(0,0,0,0.3); border:2px dashed #444; border-radius:8px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
                         <div id="targetArea" style="position:absolute; right:20px; width:80px; height:80px; background:rgba(0, 200, 0, 0.1); border:2px dashed var(--success); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--success); font-size:var(--font-size-xs); font-weight:bold;">GOAL</div>
-                        <div id="dragBlock" style="position:absolute; left:20px; width:60px; height:60px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:var(--font-size-xs); cursor:grab; box-shadow:0 4px 6px rgba(0,0,0,0.3); user-select:none;">1 MB</div>
+                        <div id="dragBlock" style="position:absolute; left:20px; width:60px; height:60px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:var(--font-size-xs); cursor:grab; box-shadow:0 4px 6px rgba(0,0,0,0.3); user-select:none; touch-action:none;">1 MB</div>
                     </div>
                     <div id="speedResult" style="margin-top:15px; font-size:15px; font-weight:bold; color:var(--text-primary); min-height:20px;"></div>
                     <div id="speedRecord" hidden style="margin-top:10px;"></div>
@@ -54,19 +54,32 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
           let startTime: number | null = null;
           let isDragging = false;
 
-          dragBlock.onmousedown = (e: MouseEvent) => {
+          /* 폰에서는 **아예 못 놀았다** (TASK-KL-151 ③).
+             마우스 사건만 듣고 있었는데 유입은 대부분 폰이다 — 열어 보고 블럭이 안 움직이면
+             그 사람에게 이 도구는 고장난 것이다. 두 입력을 한 자리로 모은다. */
+          const pointOf = (e: MouseEvent | TouchEvent): { x: number; y: number } => {
+            const t = (e as TouchEvent).touches;
+            const p = t && t.length ? t[0] : (e as MouseEvent);
+            return { x: p.clientX, y: p.clientY };
+          };
+
+          const onStart = (e: MouseEvent | TouchEvent): void => {
             isDragging = true;
             if (startTime === null) startTime = performance.now();
             dragBlock.style.cursor = 'grabbing';
 
-            const offsetX = e.clientX - dragBlock.getBoundingClientRect().left;
-            const offsetY = e.clientY - dragBlock.getBoundingClientRect().top;
+            const at = pointOf(e);
+            const offsetX = at.x - dragBlock.getBoundingClientRect().left;
+            const offsetY = at.y - dragBlock.getBoundingClientRect().top;
 
-            function onMouseMove(moveEvent: MouseEvent): void {
+            function onMouseMove(moveEvent: MouseEvent | TouchEvent): void {
               if (!isDragging) return;
+              // 손가락으로 끌 때 화면이 같이 스크롤되면 블럭이 도착을 못 한다.
+              if ((moveEvent as TouchEvent).touches) moveEvent.preventDefault();
+              const moved = pointOf(moveEvent);
               const r = dropZone.getBoundingClientRect();
-              let x = moveEvent.clientX - r.left - offsetX;
-              let y = moveEvent.clientY - r.top - offsetY;
+              let x = moved.x - r.left - offsetX;
+              let y = moved.y - r.top - offsetY;
 
               x = Math.max(0, Math.min(x, r.width - 60));
               y = Math.max(0, Math.min(y, r.height - 60));
@@ -80,8 +93,7 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
               if (br.right > tr.left && br.left < tr.right && br.bottom > tr.top && br.top < tr.bottom) {
                 isDragging = false;
                 dragBlock.style.cursor = 'default';
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+                stopListening();
 
                 const endTime = performance.now();
                 const st = startTime;
@@ -101,16 +113,28 @@ const SPEC: PlaySpec = { game: 'speed', better: 'high', unit: 'MB/s', decimals: 
               }
             }
 
+            function stopListening(): void {
+              document.removeEventListener('mousemove', onMouseMove);
+              document.removeEventListener('mouseup', onMouseUp);
+              document.removeEventListener('touchmove', onMouseMove);
+              document.removeEventListener('touchend', onMouseUp);
+            }
+
             function onMouseUp(): void {
               isDragging = false;
               dragBlock.style.cursor = 'grab';
-              document.removeEventListener('mousemove', onMouseMove);
-              document.removeEventListener('mouseup', onMouseUp);
+              stopListening();
             }
 
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
+            // 손가락 끌기는 기본 동작(스크롤)을 막아야 해서 passive 를 꺼 둔다.
+            document.addEventListener('touchmove', onMouseMove, { passive: false });
+            document.addEventListener('touchend', onMouseUp);
           };
+
+          dragBlock.addEventListener('mousedown', onStart);
+          dragBlock.addEventListener('touchstart', onStart, { passive: true });
         }
       }
     ]
