@@ -326,6 +326,12 @@ async function main() {
     return;
   }
 
+  /* 내용이 그대로면 「만든 시각」도 그대로 둔다 — 안 그러면 빌드할 때마다 이 파일 한 줄이
+   * 바뀌어 커밋이 지저분해지고, 남의 세션과 부딪힌다(실측으로 매 빌드마다 dirty). */
+  if (prev && JSON.stringify(prev.docs) === JSON.stringify(book.docs) && prev.generatedAt) {
+    book.generatedAt = prev.generatedAt;
+  }
+
   await fsp.mkdir(path.dirname(OUT_PATH), { recursive: true });
   await fsp.writeFile(OUT_PATH, JSON.stringify(book, null, 2) + '\n', 'utf8');
   console.log(`[worldbook] 씀: ${path.relative(KARMOLAB_ROOT, OUT_PATH)}`);
