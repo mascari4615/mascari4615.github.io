@@ -56,6 +56,42 @@
     return rows;
   }
 
+  /**
+   * 거치기간 — 그동안은 **이자만** 낸다 (2026-08-08, 남들 기준 맞추기).
+   *
+   * 국내 계산기(핀다·부동산계산기·은행 금융계산기)는 전부 거치기간을 받는다. 주담대에서
+   * 흔한 조건인데 우리 도구에는 아예 없어서, 실제 조건을 넣어 볼 수가 없었다.
+   */
+  function withGrace(P: number, rate: number, grace: number, rows: Row[]): Row[] {
+    if (grace <= 0) return rows;
+    const r = rate / 100 / 12;
+    const 앞 = [];
+    for (let n = 1; n <= grace; n++) 앞.push({ n, pay: P * r, interest: P * r, principal: 0, left: P });
+    return 앞.concat(rows.map((row) => ({ ...row, n: row.n + grace })));
+  }
+
+  /**
+   * 매달 조금씩 더 갚으면 얼마나 줄어드나 (남들이 표로만 보여 주고 안 재 주는 자리).
+   *
+   * 「중도상환하면 얼마나 줄어드는지」는 이 도구를 만든 이유로 적혀 있었는데 정작 없었다.
+   * 수수료는 대출마다 달라 넣지 않는다 — 대신 **기간이 얼마나 짧아지고 이자가 얼마나 주는지**
+   * 두 숫자를 준다. 그게 사람이 결정할 때 보는 값이다.
+   */
+  function withExtra(rows: Row[], rate: number, extra: number): Row[] {
+    if (extra <= 0) return rows;
+    const r = rate / 100 / 12;
+    const out: Row[] = [];
+    let left = rows[0] ? rows[0].left + rows[0].principal : 0;
+    for (const base of rows) {
+      if (left <= 0) break;
+      const interest = left * r;
+      const 예정원금 = Math.min(base.principal + extra, left);
+      left = Math.max(0, left - 예정원금);
+      out.push({ n: base.n, pay: interest + 예정원금, interest, principal: 예정원금, left });
+    }
+    return out;
+  }
+
   Toolbox.register({
     id: 'loan',
     title: '대출 상환표',
@@ -94,12 +130,28 @@
                   </select>
                 </div>
               </div>
+              <div class="tool-grid-2" style="margin-top:10px;">
+                <div>
+                  <div class="tool-sublabel">거치기간 (개월) — 이자만 내는 기간</div>
+                  <input type="number" id="loG" value="0" step="6" min="0" aria-label="거치기간 (개월)">
+                </div>
+                <div>
+                  <div class="tool-sublabel">매달 더 갚기 (원)</div>
+                  <input type="number" id="loX" value="0" step="100000" min="0" aria-label="매달 더 갚기 (원)">
+                </div>
+              </div>
             </div>
 
             <div class="cc-stats" id="loStats"></div>
             <div class="tool-list" id="loCompare"></div>
 
-            <div class="tool-sublabel" style="margin:16px 0 6px;">달별 상환표 — 처음 12개월과 마지막 달</div>
+            <div class="field-row" style="margin:16px 0 6px;">
+              <div class="tool-sublabel" id="loTableHead" style="margin:0;">달별 상환표 — 처음 12개월과 마지막 달</div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-ghost" id="loAll">전체 보기</button>
+                <button class="btn btn-ghost" id="loCsv">표 내려받기</button>
+              </div>
+            </div>
             <div class="tool-list" id="loTable"></div>
             <div class="tool-status" id="loStatus">부대비용·중도상환수수료는 넣지 않았습니다.</div>
           `;
@@ -120,14 +172,25 @@
             const months = Math.max(1, Math.round(parseFloat($<HTMLInputElement>('#loM').value) || 1));
             const type = $<HTMLSelectElement>('#loType').value;
 
+            const grace = Math.max(0, Math.round(parseFloat($<HTMLInputElement>('#loG').value) || 0));
+            const extra = Math.max(0, parseFloat($<HTMLInputElement>('#loX').value) || 0);
+
             const build = type === 'pp' ? equalPrincipal : type === 'bu' ? bullet : equalPayment;
-            const rows = build(P, rate, months);
+            const 기본 = withGrace(P, rate, grace, build(P, rate, months));
+            /* 만기일시는 매달 갚는 원금이 없어서 「더 갚기」의 뜻이 다르다 — 그 방식엔 안 태운다. */
+            const rows = type === 'bu' ? 기본 : withExtra(기본, rate, extra);
             const totalInterest = rows.reduce((a, r) => a + r.interest, 0);
+            const 원래이자 = 기본.reduce((a, r) => a + r.interest, 0);
+            const 아낀이자 = 원래이자 - totalInterest;
+            const 줄어든달 = 기본.length - rows.length;
 
             stats.innerHTML =
               stat(type === 'ep' ? '월 상환액' : '첫 달 상환액', won(rows[0].pay), true) +
               stat('총 이자', won(totalInterest)) +
-              stat('총 상환액', won(P + totalInterest));
+              stat('총 상환액', won(P + totalInterest)) +
+              (grace > 0 ? stat('거치 중 월 이자', won(P * (rate / 100 / 12))) : '') +
+              (아낀이자 > 0 ? stat('더 갚아 아낀 이자', won(아낀이자), true) : '') +
+              (줄어든달 > 0 ? stat('빨라진 기간', `${줄어든달}개월`) : '');
 
             // 세 방식을 나란히 놓아야 「총이자가 적은 대신 초반이 무겁다」 는 맞바꿈이 보인다
             const alts: Array<[string, Row[]]> = [
@@ -142,7 +205,11 @@
               })
               .join('');
 
-            const show = [...rows.slice(0, 12), ...(months > 12 ? [rows[rows.length - 1]] : [])];
+            마지막표 = rows;
+            const show = 전체보기 ? rows : [...rows.slice(0, 12), ...(rows.length > 12 ? [rows[rows.length - 1]] : [])];
+            $<HTMLElement>('#loTableHead').textContent = 전체보기
+              ? `달별 상환표 — ${rows.length}개월 전부`
+              : '달별 상환표 — 처음 12개월과 마지막 달';
             table.innerHTML = show
               .map(
                 (r) =>
@@ -151,9 +218,43 @@
               .join('');
 
             const firstRatio = rows[0].pay ? (rows[0].interest / rows[0].pay) * 100 : 0;
-            $<HTMLElement>('#loStatus').textContent = `첫 달 상환액의 ${firstRatio.toFixed(0)}%가 이자입니다. 부대비용·중도상환수수료는 넣지 않았습니다.`;
+            $<HTMLElement>('#loStatus').textContent =
+              `첫 달 상환액의 ${firstRatio.toFixed(0)}%가 이자입니다.` +
+              (grace > 0 ? ` 거치 ${grace}개월 동안은 원금이 안 줄어듭니다.` : '') +
+              (아낀이자 > 0 ? ` 매달 ${won(extra)} 더 갚으면 ${줄어든달}개월 빨리 끝나고 이자 ${won(아낀이자)}을 아낍니다.` : '') +
+              ' 부대비용·중도상환수수료는 넣지 않았습니다.';
             Toolbox.trackUse?.(type);
           }
+
+          /* 표를 접어 두는 것이 기본이다 — 360개월을 다 펴면 화면이 통째로 표가 된다.
+             그래도 「전부 보고 싶다」는 사람이 있어서 한 번 누르면 편다. */
+          let 전체보기 = false;
+          let 마지막표: Row[] = [];
+
+          $<HTMLButtonElement>('#loAll').onclick = () => {
+            전체보기 = !전체보기;
+            $<HTMLButtonElement>('#loAll').textContent = 전체보기 ? '접기' : '전체 보기';
+            run();
+          };
+          /* 표는 옮겨 붙여 쓰는 물건이다 — 엑셀에서 열리는 모양으로 준다.
+             한글이 깨지지 않게 앞머리 표식(BOM)을 붙인다. */
+          $<HTMLButtonElement>('#loCsv').onclick = () => {
+            if (!마지막표.length) return;
+            const BR = String.fromCharCode(10);
+            const BOM = String.fromCharCode(0xfeff);
+            const head = '회차,상환액,원금,이자,잔액';
+            const body = 마지막표
+              .map((r) => [r.n, Math.round(r.pay), Math.round(r.principal), Math.round(r.interest), Math.round(r.left)].join(','))
+              .join(BR);
+            const blob = new Blob([BOM + head + BR + body], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '대출상환표.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            Toolbox.trackUse?.('csv');
+          };
 
           container.querySelectorAll('input, select').forEach((el) => {
             el.addEventListener('input', run);
