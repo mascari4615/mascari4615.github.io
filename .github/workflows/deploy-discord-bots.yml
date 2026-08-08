@@ -273,14 +273,15 @@ jobs:
             if (Test-Path $lastGood) {
               if (Test-Path $distDir) { Remove-Item $distDir -Recurse -Force -ErrorAction SilentlyContinue }
               Copy-Item $lastGood $distDir -Recurse -Force
-              Write-Output "::warning title=배포 실패 — 직전 판으로 되돌림::$failed. 봇은 직전 판으로 계속 돕니다."
+              Write-Output "::warning title=deploy-failed-rolled-back::$failed - bot keeps running on the previous build."
               # 그림글자는 **한 칸짜리만** 쓴다. 두 칸을 차지하는 것(되돌림·경보 그림)을 넣었더니
               # 러너가 이 파일을 옛 글자표로 읽으면서 문자열이 중간에 끊겨, 이 step 이
               # 통째로 파서 오류로 죽었다(2026-08-08 두 판 연속). 안전망이 자기 문법으로 죽으면
               # 아무도 안 지킨다. ⚠ 는 한 칸이라 안전하다.
-              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "⚠ **$failed** — 직전 판(dist.last-good)으로 되돌리고 봇을 살렸습니다. 새 변경은 안 나갔습니다."
+              # 문자열은 영문으로 — 한글이 들어가면 러너가 옛 글자표로 읽다 따옴표를 먹는다(실측).
+              Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "ROLLED BACK: $failed - restored dist.last-good, bot kept alive. New changes did NOT ship."
             } else {
-              Write-Output "::warning title=배포 실패 · 되돌릴 판 없음::$failed"
+              Write-Output "::warning title=deploy-failed-no-rollback::$failed"
             }
             throw $failed
           }
@@ -398,6 +399,11 @@ jobs:
       # **봇이 멈춰 있는 것**은 전혀 다른 사고다 — 전자는 새 기능이 안 나간 것이고,
       # 후자는 이미 쓰던 사람의 화면이 죽은 것이다. 실측(2026-08-08): 후자가 세 번 났고
       # 사람이 알아채고 손으로 살릴 때까지 아무도 몰랐다.
+      #
+      # **이 step 안의 글자열은 전부 영문이다.** 러너가 이 파일을 옛 글자표로 읽는 바람에
+      # 한글이 든 문자열의 닫는 따옴표가 먹혀 세 판 연속 파서 오류로 죽었다(실측).
+      # 주석의 한글은 괜찮다(따옴표가 없다) — 죽는 것은 **문자열**이다.
+      # 안전망이 자기 문법으로 죽으면 아무도 안 지킨다.
       - name: 봇이 켜져 있는지 확인하고, 꺼져 있으면 켠다
         if: always()
         shell: 'powershell -ExecutionPolicy Bypass -File {0}'
@@ -411,17 +417,17 @@ jobs:
             if ($f) { $nssm = $f.FullName }
           }
           if (-not $nssm) {
-            Write-Output "::warning title=봇 상태 확인 불가::nssm 을 못 찾았습니다."
+            Write-Output "::warning title=bot-health::nssm not found - cannot check yawnbot-prod"
             exit 0
           }
 
           $status = (& $nssm status yawnbot-prod 2>&1) -join ''
-          Write-Host "[KL-190] 지금 상태: $status"
+          Write-Host "[KL-190] status now: $status"
           if ($status -notmatch 'SERVICE_RUNNING') {
             & $nssm start yawnbot-prod 2>&1 | Out-Null
             Start-Sleep -Seconds 8
             $status = (& $nssm status yawnbot-prod 2>&1) -join ''
-            Write-Host "[KL-190] 켠 뒤 상태: $status"
+            Write-Host "[KL-190] status after start: $status"
           }
 
           # 「서비스가 돈다」와 「사람이 쓸 수 있다」는 다른 말이다 — 실제로 찔러 본다.
@@ -433,11 +439,8 @@ jobs:
             } catch { Start-Sleep -Seconds 5 }
           }
           if ($ok) {
-            Write-Host "[KL-190] 봇 살아 있음 (/kl/health 200)"
+            Write-Host "[KL-190] bot is alive (/kl/health 200)"
           } else {
-            Write-Output "::warning title=봇이 안 살아납니다::서비스는 켰지만 /kl/health 가 응답하지 않습니다. 로그: C:\nssm-logs\yawnbot-prod\stderr.log"
-            # 큰따옴표 안에서 백틱은 **이스케이프 문자**다 — 마크다운 코드 표시로 넣었더니
-            # 문자열의 닫는 따옴표를 먹어 이 step 이 통째로 파서 오류로 죽었다(2026-08-08 실측).
-            # 그래서 여기서는 백틱을 쓰지 않는다.
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '⚠ 봇이 응답하지 않습니다 — 서비스는 켰지만 /kl/health 무응답'
+            Write-Output "::warning title=bot-not-answering::service started but /kl/health does not answer - see C:\nssm-logs\yawnbot-prod\stderr.log"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value 'WARN: bot does not answer - service started but /kl/health silent'
           }
