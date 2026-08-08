@@ -83,3 +83,34 @@ describe('흐름 원장 (KL-181)', () => {
     expect(store.list().map((f) => f.title)).toEqual(['b', 'a']);
   });
 });
+
+/** 흐름 자국 (TASK-KL-182 F5) — 어디서 막히나. */
+describe('흐름 자국 (KL-182 F5)', () => {
+  const steps3 = [{ toolId: 'a' }, { toolId: 'b' }, { toolId: 'c' }];
+
+  it('자국이 없으면 요약도 없다 — 모르는 것을 아는 척하지 않는다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: 'x', steps: steps3 })!;
+    expect(store.trailSummary(flow.id)).toBeNull();
+  });
+
+  it('가장 자주 멈추는 단계를 짚는다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: 'x', steps: steps3 })!;
+    store.noteTrail(flow.id, { reached: 2, finished: false, seconds: 30 });
+    store.noteTrail(flow.id, { reached: 2, finished: false, seconds: 40 });
+    store.noteTrail(flow.id, { reached: 3, finished: true, seconds: 90 });
+
+    const summary = store.trailSummary(flow.id)!;
+    expect(summary).toMatchObject({ runs: 3, finished: 1, stuckStep: 2 });
+    expect(summary.medianSeconds).toBe(40);
+  });
+
+  it('단계 수를 넘는 값은 잘린다 · 자국은 20판까지', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: 'x', steps: steps3 })!;
+    expect(store.noteTrail(flow.id, { reached: 99, finished: true })[0].reached).toBe(3);
+    for (let i = 0; i < 30; i += 1) store.noteTrail(flow.id, { reached: 1, finished: false });
+    expect(store.get(flow.id)!.trails).toHaveLength(20);
+  });
+});
