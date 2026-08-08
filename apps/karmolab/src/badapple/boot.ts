@@ -27,7 +27,7 @@ import { CLIP_STORAGE_KEY } from './shared';
  */
 declare global {
 	interface Window {
-		KarmoLabBadApple?: { add(surface: Surface): () => void };
+		KarmoLabBadApple?: { add(surface: Surface): () => void; start?(): void };
 	}
 }
 
@@ -158,6 +158,14 @@ const KONAMI = [
 			// 첫 글자부터 다시 — 틀린 그 키가 시작일 수도 있다.
 			progress = KONAMI[0] && event.key.toLowerCase() === KONAMI[0].toLowerCase() ? 1 : 0;
 		}
+	});
+
+	/* 바깥에서 켤 수 있게 손잡이를 낸다 (TASK-KL-128 ⑱).
+	   이 파일은 이제 **신호가 왔을 때** 온다 — 그래서 켜는 그 순간에는 이미 이 파일이
+	   막 도착한 참이라, 화면의 키 감지가 놓친 그 한 번을 여기서 이어받아야 한다. */
+	window.KarmoLabBadApple = Object.assign(window.KarmoLabBadApple || {}, {
+		add: (surface: Surface) => registry.add(surface),
+		start: () => { void start(); }
 	});
 
 	if (new URLSearchParams(location.search).has('badapple')) void start();
