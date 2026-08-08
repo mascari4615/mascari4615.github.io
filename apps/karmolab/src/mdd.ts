@@ -88,11 +88,13 @@ const Mdd = (() => {
             avatar.setMotion({ blink: on && prefs.blink, gaze: on && prefs.gaze, breathe: on && prefs.breathe });
         }
         if (!prefs.bubble && bubbleEl) bubbleEl.classList.remove('visible');
+        reflowPosition();     // 크기가 바뀌면 붙어 있던 벽에 다시 맞춘다
         resetIdleTimer();
     }
 
     /** 드래그로 옮긴 자리를 버리고 우하단으로 돌려놓는다 */
     function resetPosition(): void {
+        stuck = null;
         try { localStorage.removeItem(POSITION_KEY); } catch (_) {}
         if (!container) return;
         container.style.left = '';
@@ -165,8 +167,15 @@ const Mdd = (() => {
         cheer:    { eyeSquint: 0.7, mouthOpen: 3.5, mouthWide: 1.6, blush: 0.5, tilt: 0, bob: -18 },
     };
 
-    interface PartBox { x: number; y: number; w: number; h: number }
-    interface Manifest { canvas: [number, number]; order: string[]; parts: Record<string, PartBox> }
+    /** x/y/w/h = 원본 캔버스에서의 자리, s* = 아틀라스에서 잘라 올 자리 */
+    interface PartBox { x: number; y: number; w: number; h: number;
+                        sx: number; sy: number; sw: number; sh: number }
+    interface Manifest {
+        canvas: [number, number];
+        atlas: { src: string; w: number; h: number };
+        order: string[];
+        parts: Record<string, PartBox>;
+    }
 
     /** 고개와 함께 도는 부위 — 목 아래는 안 돈다 */
     const HEAD_PARTS = new Set(['back-hair', 'face', 'ears', 'eyewhite', 'irides',
@@ -217,7 +226,7 @@ const Mdd = (() => {
         // 고개 회전은 부위를 감싸는 그룹이 맡는다. 회전과 부위별 변형(눈 감기·입
         // 벌리기)을 한 요소에 겹쳐 쓰면 회전용 축(목덜미)을 스케일이 그대로 물려받아
         // 눈·입이 얼굴 밖으로 튄다 — 축이 다른 두 변형은 층을 나눠야 한다.
-        const layers = new Map<string, HTMLImageElement>();
+        const layers = new Map<string, HTMLDivElement>();
         const headGroups: HTMLDivElement[] = [];
         let group: HTMLDivElement | null = null;
         for (const name of manifest.order) {
@@ -232,17 +241,22 @@ const Mdd = (() => {
             } else if (!isHead && group) {
                 group = null;
             }
-            const img = document.createElement('img');
-            img.src = `${base}/${name}.webp`;
-            img.alt = '';
-            img.draggable = false;
-            img.className = 'mdd-av-part';
-            img.style.left = box.x + 'px';
-            img.style.top = box.y + 'px';
-            img.style.width = box.w + 'px';
-            img.style.height = box.h + 'px';
-            (isHead && group ? group : stage).appendChild(img);
-            layers.set(name, img);
+            // 파츠를 낱장으로 받으면 첫 화면에서 요청이 15번 난다. 한 장(아틀라스)에서
+            // 필요한 칸만 꺼내 쓴다 — 브라우저가 받는 그림은 하나다.
+            const el2 = document.createElement('div');
+            el2.className = 'mdd-av-part';
+            el2.style.left = box.x + 'px';
+            el2.style.top = box.y + 'px';
+            el2.style.width = box.w + 'px';
+            el2.style.height = box.h + 'px';
+            el2.style.backgroundImage = `url(${base}/${manifest.atlas.src})`;
+            // 원본 칸 크기(sw×sh)를 놓일 크기(w×h)로 늘리는 배율을 아틀라스 전체에 건다
+            const kx = box.w / box.sw;
+            const ky = box.h / box.sh;
+            el2.style.backgroundSize = `${manifest.atlas.w * kx}px ${manifest.atlas.h * ky}px`;
+            el2.style.backgroundPosition = `${-box.sx * kx}px ${-box.sy * ky}px`;
+            (isHead && group ? group : stage).appendChild(el2);
+            layers.set(name, el2);
         }
 
         const blushEl = document.createElement('div');
@@ -420,9 +434,13 @@ const Mdd = (() => {
      * 아직 못 받았거나 못 읽는 동안에는 예전 그림 12장으로 버틴다 — 마스코트가
      * 통째로 사라지는 것보다 낫다. */
 
-    function getMascotImgSrc(mood: string): string {
-        const valid = POSES.includes(mood) ? mood : 'idle';
-        return `${MASCOT_BASE}/${valid}.png`;
+    /** 파츠를 못 받았을 때 대신 세워 두는 그림 한 장.
+     *
+     * 예전엔 표정마다 파일이 하나씩(12장) 있었는데 서로 다른 캐릭터로 그려져
+     * 있었다 — 표정이 바뀔 때마다 다른 사람이 됐다. 이제 표정은 값이 만들고,
+     * 폴백은 같은 일러스트에서 잘라 낸 한 장이라 무슨 일이 있어도 같은 사람이다. */
+    function getMascotImgSrc(): string {
+        return `${PARTS_BASE}/fallback.webp`;
     }
 
     async function mountAvatar(): Promise<void> {
@@ -435,9 +453,15 @@ const Mdd = (() => {
             charEl.replaceChildren(handle.el);
             avatar = handle;
             handle.setPose(currentMood);
+            // 파츠가 붙고 나면 컨테이너 높이가 확정된다. 그 전에 잡아 둔 자리는
+            // 말풍선 높이가 달라진 만큼 어긋나 있으므로 다시 붙인다.
+            reflowPosition();
             document.addEventListener('pointermove', onPointerLook);
         } catch (_) {
-            /* 그림 12장 폴백 유지 */
+            // 파츠를 못 받았을 때만 폴백 그림을 넣는다. 미리 넣어 두면 잘 되는
+            // 경우에도 모든 방문자가 안 쓸 그림 한 장을 받는다.
+            charEl.innerHTML =
+                `<img src="${getMascotImgSrc()}" alt="마스코트" draggable="false">`;
         }
     }
 
@@ -464,8 +488,8 @@ const Mdd = (() => {
         if (avatar) {
             avatar.setPose(poseId);
         } else {
-            const img = charEl.querySelector('img');
-            if (img) img.src = getMascotImgSrc(poseId);
+            /* 폴백은 한 장뿐이라 표정이 안 바뀐다 — 값이 아니라 파일로 표정을
+               내던 시절의 한계다. 파츠가 오면 그때부터 진짜로 움직인다. */
         }
         resetIdleTimer();
     }
@@ -654,28 +678,66 @@ const Mdd = (() => {
 
     /* ===== 드래그 ===== */
 
+    /* 자리 기억 = 「어느 벽에 붙어 있고, 그 벽을 따라 얼마쯤」.
+     *
+     * 좌표(left/top)만 저장하면 크기가 달라지는 순간 어긋난다 — 마스코트 크기를
+     * 바꾸거나, 폴백 그림에서 진짜 파츠로 갈아 끼우기만 해도 높이가 변해서
+     * 화면 밖으로 20px 씩 삐져나갔다. 창 크기를 바꿔도 마찬가지다.
+     * 벽과 비율로 적어 두면 무엇이 변하든 그 벽에 붙은 채로 따라간다. */
+    type Wall = 'left' | 'right' | 'top' | 'bottom';
+    const WALL_MARGIN = 16;
+
+    function placeAt(wall: Wall, ratio: number): void {
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        const freeX = Math.max(0, window.innerWidth - rect.width - WALL_MARGIN * 2);
+        const freeY = Math.max(0, window.innerHeight - rect.height - WALL_MARGIN * 2);
+        let left: number;
+        let top: number;
+        if (wall === 'left' || wall === 'right') {
+            left = wall === 'left' ? WALL_MARGIN : window.innerWidth - rect.width - WALL_MARGIN;
+            top = WALL_MARGIN + freeY * ratio;
+        } else {
+            top = wall === 'top' ? WALL_MARGIN : window.innerHeight - rect.height - WALL_MARGIN;
+            left = WALL_MARGIN + freeX * ratio;
+        }
+        container.style.left = Math.round(left) + 'px';
+        container.style.top = Math.round(top) + 'px';
+        container.style.right = 'auto';
+        container.style.bottom = 'auto';
+    }
+
+    let stuck: { wall: Wall; ratio: number } | null = null;
+    /* 끌고 있는 중에는 아무도 자리를 건드리면 안 된다. 늦게 도착한 load 이벤트가
+       재배치를 걸어 손에 쥔 마스코트를 도로 끌어당기는 일이 실제로 있었다. */
+    let dragging = false;
+
     function loadPosition(): void {
         if (!container) return;
         try {
-            const s = localStorage.getItem(POSITION_KEY);
-            if (s) {
-                const { left, top } = JSON.parse(s) as { left: number; top: number };
-                if (typeof left === 'number' && typeof top === 'number') {
-                    container.style.left = left + 'px';
-                    container.style.top = top + 'px';
-                    container.style.bottom = 'auto';
-                    container.style.right = 'auto';
-                }
-            }
+            const raw = localStorage.getItem(POSITION_KEY);
+            if (!raw) return;
+            const v = JSON.parse(raw) as { wall?: Wall; ratio?: number };
+            if (!v || typeof v.wall !== 'string' || typeof v.ratio !== 'number') return;
+            stuck = { wall: v.wall, ratio: v.ratio };
+            placeAt(stuck.wall, stuck.ratio);
         } catch (_) {}
     }
 
-    function savePosition(): void {
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        try {
-            localStorage.setItem(POSITION_KEY, JSON.stringify({ left: rect.left, top: rect.top }));
-        } catch (_) {}
+    function savePosition(wall: Wall, ratio: number): void {
+        stuck = { wall, ratio };
+        try { localStorage.setItem(POSITION_KEY, JSON.stringify(stuck)); } catch (_) {}
+    }
+
+    /** 크기·창이 바뀌면 붙어 있던 벽으로 다시 붙인다 */
+    function reflowPosition(): void {
+        if (dragging || !stuck) return;
+        placeAt(stuck.wall, stuck.ratio);
+    }
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('resize', reflowPosition);
+        window.addEventListener('load', reflowPosition);
     }
 
     function initDrag(): void {
@@ -686,6 +748,7 @@ const Mdd = (() => {
         const DRAG_THRESHOLD = 8;
 
         const onDown = (e: PointerEvent) => {
+            dragging = true;
             dragStart = { x: e.clientX, y: e.clientY, left: box.offsetLeft, top: box.offsetTop };
             const rect = box.getBoundingClientRect();
             if (box.style.left) {
@@ -722,10 +785,11 @@ const Mdd = (() => {
             document.removeEventListener('pointermove', onMove);
             document.removeEventListener('pointerup', onUp);
             document.removeEventListener('pointercancel', onUp);
+            dragging = false;
             if (!dragStart) return;
             const moved = Math.abs(e.clientX - dragStart.x) + Math.abs(e.clientY - dragStart.y);
             if (moved >= DRAG_THRESHOLD) {
-                savePosition();
+                snapToWall();
             } else if (prefs.tapReact) {
                 bounce();
                 addAffection(1);
@@ -735,6 +799,36 @@ const Mdd = (() => {
             }
             dragStart = null;
         };
+
+        /** 놓은 자리에서 가까운 벽에 붙인다.
+         *
+         * 손으로 정확히 모서리에 맞추기는 어렵고, 어중간하게 뜬 마스코트는 본문
+         * 위에 얹혀 글을 가린다. 가까운 쪽 벽에 붙여 두면 어디에 뒀는지도
+         * 분명해진다. 창 크기가 바뀌어도 붙은 쪽을 알면 따라갈 수 있다. */
+        function snapToWall(): void {
+            const rect = box.getBoundingClientRect();
+            const dist: Record<Wall, number> = {
+                left: rect.left,
+                right: window.innerWidth - rect.right,
+                top: rect.top,
+                bottom: window.innerHeight - rect.bottom,
+            };
+            const wall = (Object.keys(dist) as Wall[])
+                .reduce((a, b) => (dist[b] < dist[a] ? b : a));
+
+            // 벽을 따라 어디쯤인지 = 움직일 수 있는 폭 대비 비율. 크기·창이 바뀌어도
+            // 같은 자리로 되돌릴 수 있는 형태로 적는다.
+            const freeX = Math.max(1, window.innerWidth - rect.width - WALL_MARGIN * 2);
+            const freeY = Math.max(1, window.innerHeight - rect.height - WALL_MARGIN * 2);
+            const ratio = (wall === 'left' || wall === 'right')
+                ? clamp((rect.top - WALL_MARGIN) / freeY, 0, 1)
+                : clamp((rect.left - WALL_MARGIN) / freeX, 0, 1);
+
+            box.style.transition = 'left 0.18s ease, top 0.18s ease';
+            savePosition(wall, ratio);
+            placeAt(wall, ratio);
+            setTimeout(() => { box.style.transition = ''; }, 220);
+        }
 
         el.addEventListener('pointerdown', (e) => { e.preventDefault(); onDown(e); });
         el.addEventListener('dragstart', (e) => e.preventDefault());
@@ -831,7 +925,6 @@ const Mdd = (() => {
 
         charEl = document.createElement('div');
         charEl.className = 'mdd-char';
-        charEl.innerHTML = `<img src="${getMascotImgSrc('idle')}" alt="마스코트" draggable="false">`;
         container.appendChild(charEl);
         document.body.appendChild(container);
         void mountAvatar();
