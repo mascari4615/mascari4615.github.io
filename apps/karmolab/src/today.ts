@@ -18,6 +18,7 @@
  * 첫 화면·놀이터·서버가 서로 다른 날을 말한다.
  */
 import { courseGames, courseSteps, courseRun, pushCourseSlots, type CourseStep } from './widgets/play-course';
+import { shareBrag, drawBragCard } from './brag-card';
 
 declare const Toolbox: { switchPage: (id: string) => void };
 
@@ -108,24 +109,23 @@ async function mount(slot: HTMLElement): Promise<void> {
     const bragButton = slot.querySelector<HTMLButtonElement>('[data-brag]');
     if (bragButton) {
         bragButton.addEventListener('click', async () => {
-            /* 자랑은 **밖으로** 나가야 유입이 된다. 폰은 공유 창, PC 는 복사 —
-               없는 기능을 있는 척하지 않는다(복사도 막히면 막혔다고 말한다). */
-            const text =
-                `KarmoLab 오늘의 판 ${steps.length}판 완주` +
-                (run >= 2 ? ` · ${run}일 연속` : '') +
-                '\nhttps://blog.mascari4615.com/karmolab/#play';
+            /* 자랑은 **그림으로** 나간다 (TASK-KL-195). 글자만 붙인 자랑은 피드에서 아무도
+               안 멈춘다. 그리는 코드는 이 묶음에 함께 있다 — 이 묶음 자체가 첫 그림 뒤에
+               오므로 부팅에는 안 얹힌다(따로 떼면 조각만 늘고 얻는 것이 없다). */
+            bragButton.disabled = true;
+            const was = bragButton.textContent;
+            bragButton.textContent = '그리는 중…';
             try {
-                if ((navigator as any).share) {
-                    await (navigator as any).share({ text });
-                    return;
-                }
-                await navigator.clipboard.writeText(text);
-                bragButton.textContent = '복사했습니다';
+                bragButton.textContent = await shareBrag({ done: steps.length, total: steps.length, run });
             } catch {
-                bragButton.textContent = '복사가 막혀 있습니다';
+                bragButton.textContent = was || '자랑하기';
+                bragButton.disabled = false;
             }
         });
     }
 }
 
-(window as any).KarmoToday = { mount };
+/* `card` 는 **검사용 손잡이**다 (TASK-KL-195). 자랑 카드는 그림이라, 눈으로 보기 전에는
+   글자가 넘쳤는지·글꼴이 폴백으로 찍혔는지 알 수 없다 — 화면 검사가 그림을 떠서 본다.
+   사람이 쓰는 길은 자랑 단추 하나뿐이고, 이 손잡이는 그 길에 아무 영향도 주지 않는다. */
+(window as any).KarmoToday = { mount, card: drawBragCard };
