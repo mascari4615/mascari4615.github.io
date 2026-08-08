@@ -7,6 +7,12 @@
             "url": "http://127.0.0.1:4615/webhook/github"
         },
         {
+            "id": "companion",
+            "title": "동반자",
+            "subtitle": "말하는 봇 — 창 + 목소리 (packages/companion, TASK-KAR-201)",
+            "url": "http://127.0.0.1:4620/ears"
+        },
+        {
             "id": "jekyll",
             "title": "Jekyll Blog",
             "subtitle": "블로그 로컬",
@@ -73,6 +79,14 @@
             "script": "dev:yawnbot",
             "deployScript": "deploy:yawnbot",
             "healthUrl": "http://127.0.0.1:4615/webhook/github",
+            "npmInstall": true
+        },
+        {
+            "id": "companion",
+            "label": "동반자 (말하는 봇)",
+            "app": "packages/companion",
+            "script": "face",
+            "healthUrl": "http://127.0.0.1:4620/ears",
             "npmInstall": true
         },
         {

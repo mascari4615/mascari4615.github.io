@@ -177,6 +177,12 @@ if (existsSync('packages/companion/node_modules')) {
   console.log('[verify] ! packages/companion skip — node_modules 부재 (cd packages/companion && npm ci)');
 }
 
+// 5.6. 「동반자」 위젯이 실제로 봇에 붙는지 (TASK-KAR-201 / KarmoLab 몸).
+//      이 위젯의 값은 전부 다른 프로세스와의 경계(포트·CORS·응답 모양)에 있어서,
+//      화면만 그려도 빌드·단위는 초록이다. 봇이 안 떠 있으면 스스로 건너뛴다 —
+//      전제가 없는 것과 고장은 다르다.
+run('동반자 위젯 ↔ 봇 (봇 없으면 skip)', 'apps/karmolab', 'node scripts/smoke-companion.mjs');
+
 // 5.7. apps/daily — 「오늘의 하나 맞히기」 규칙 시험 (TASK-KAR-202). 의존성 0 이라
 //      npm ci 도 필요 없다. 어떤 앱도 이걸 import 하지 않으므로 여기 안 걸면 규칙이
 //      깨져도 아무 빌드가 안 빨개진다 — 매일 도는 물건이라 조용한 고장이 제일 나쁘다.

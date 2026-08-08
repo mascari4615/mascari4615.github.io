@@ -49,7 +49,15 @@ COMPANION_BRAIN=assistant ASSISTANT_AI_PROVIDER=claude-cli node demo/run.mjs   #
 COMPANION_CLOCK_MS=2000 COMPANION_MEMORY_FILE=./memory.jsonl node demo/run.mjs # 몸 2개 + 남는 기억
 ```
 
-환경변수: `COMPANION_BRAIN`(claude|echo|assistant) · `COMPANION_CHARACTER`(파일명 또는 `none`) · `COMPANION_SCREEN_MS` · `COMPANION_CLOCK_MS` · `COMPANION_COOLDOWN_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_PORT`.
+환경변수: `COMPANION_BRAIN`(claude|echo|assistant) · `COMPANION_CHARACTER`(파일명 또는 `none`) · `COMPANION_SCREEN_MS` · `COMPANION_CLOCK_MS` · `COMPANION_COOLDOWN_MS` · `COMPANION_MEMORY_FILE` · `COMPANION_PORT`(기본 **4620** — 4615 는 yawnbot dev 웹훅이 쓴다).
+
+## KarmoLab 에서 켜고 곁눈질하기
+
+터미널을 안 열어도 된다. **서버 모니터 → 「동반자 (말하는 봇)」** 카드로 켠다(`devProfiles: companion` → `npm run face`).
+
+켜고 나면 **「동반자」 위젯**(`apps/karmolab/src/widgets/companion.ts`)이 곁에 있는지 보여 주고, 거기서 한 줄 던질 수 있다. 얼굴·목소리는 **이 창이 정본**이고 위젯은 관제만 한다 — 표면을 두 벌 만들면 반드시 갈라진다.
+
+그래서 이 서버는 **이 기계에서 뜬 창에만** 문을 연다(`이기계인가`). 아무 곳에나 열면 인터넷의 어떤 페이지든 이 대화를 읽고 말을 걸 수 있다. 위젯이 실제로 붙어 말이 건너가는지는 `apps/karmolab/scripts/smoke-companion.mjs` 가 지킨다(봇이 안 떠 있으면 건너뜀).
 
 **목소리**는 창 오른쪽 위 버튼으로 켠다. 브라우저 내장 음성이라 키도 서버도 필요 없고, 기본은 꺼져 있다 — 소리가 갑자기 나오는 건 무례하니까.
 

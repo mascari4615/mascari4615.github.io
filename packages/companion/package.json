@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test \"test/*.test.mjs\"",
-    "demo": "npm run build && node demo/run.mjs"
+    "demo": "npm run build && node demo/run.mjs",
+    "face": "npm run build && node demo/face.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.3",

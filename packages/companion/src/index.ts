@@ -56,7 +56,7 @@ export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker, type Swi
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
-export { webBody, openPinnedWindow, type WebBodyOptions } from './body/web';
+export { webBody, openPinnedWindow, 이기계인가, type WebBodyOptions } from './body/web';
 
 export { anySpeech } from './voice/any';
 export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
