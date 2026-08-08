@@ -1621,3 +1621,8 @@ ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, tra
 .wm-talk-title { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); text-decoration: none; }
 .wm-talk-title:hover { color: var(--accent); }
 .wm-talk-meta { font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+
+/* 「다른 곳과 뭐가 다른가」 — 도구 페이지에서 우리만의 것을 사람이 읽게 (KL-184).
+   FAQ·HowTo 리치결과가 폐지돼 표식으로 눈에 띄는 길은 닫혔다. 남은 건 읽히는 글이다. */
+.tool-seo-edge { margin: 0 0 var(--space-lg); padding-left: 18px; }
+.tool-seo-edge li { margin: 6px 0; line-height: 1.75; }
