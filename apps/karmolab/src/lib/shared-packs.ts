@@ -10,7 +10,7 @@
  * **fail-open**: 서버가 죽거나 로그인을 안 했으면 이 파일의 모든 함수가 조용히 `null` 을
  * 돌려주고, 화면은 지금까지와 똑같이 이 브라우저 표만 쓴다.
  */
-import { putPack, type Pack, type PackField, type PackItem } from '../widgets/pack-store';
+import { loadPacks, putPack, type Pack, type PackField, type PackItem } from '../widgets/pack-store';
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
 const TIMEOUT_MS = 6000;
@@ -143,10 +143,7 @@ export async function updateShared(sharedId: string, pack: Pack): Promise<Upload
  * 서버 주소가 있으면 그것 — 그래야 같은 표로 논 사람끼리 한 판에서 만난다.
  * 없으면 이 브라우저 안의 이름(혼자만의 기록).
  */
-export function variantFor(pack: { id: string; sharedId?: string; well?: string }): string {
-  /* 바깥 우물에서 길어 온 표는 **누가 담았든 같은 표**다 (TASK-KL-153) — 우물 이름으로 갈라야
-   * 서로 겨룰 수 있다. 브라우저마다 다른 `id` 로 가르면 백 명이 각자 혼자 1등이 된다. */
-  if (pack.well) return `well:${pack.well}`;
+export function variantFor(pack: { id: string; sharedId?: string }): string {
   return `pack:${pack.sharedId ?? pack.id}`;
 }
 
@@ -172,4 +169,67 @@ export function packErrorText(error: string, detail?: Record<string, unknown>): 
     default:
       return '표를 못 올렸습니다.';
   }
+}
+
+/* ── 로그인 전에 만든 표를 잃지 않는다 (TASK-KL-151 ⑦) ──────────────────────
+ *
+ * 「올리려면 로그인하세요」로 끝내면 대부분 거기서 나간다. 붙여넣고 다듬어 만든 표를
+ * 두고 로그인 왕복을 다녀오라는 뜻이기 때문이다.
+ *
+ * 그래서 **올리려던 사실을 적어 두고** 로그인으로 보낸다. 돌아오면 그 표가 저절로 올라간다.
+ * 표 자체는 이미 이 브라우저에 있으니 여기 적는 것은 「어느 표였나」 하나뿐이다.
+ */
+const PENDING_KEY = 'karmolab_pack_upload_pending';
+
+function readPending(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+    return Array.isArray(raw) ? raw.filter((x) => typeof x === 'string').slice(0, 20) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePending(list: string[]): void {
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+  } catch {
+    /* 못 적으면 로그인 뒤 손으로 한 번 더 누르면 된다 */
+  }
+}
+
+/** 로그인하고 오면 올릴 표로 적어 둔다. */
+export function queueUpload(localPackId: string): void {
+  const list = readPending();
+  if (list.indexOf(localPackId) < 0) list.push(localPackId);
+  writePending(list);
+}
+
+/**
+ * 적어 둔 표들을 올린다 — 로그인한 뒤 한 번 부른다.
+ *
+ * 실패한 것은 **줄에서 안 뺀다**(서버가 잠깐 죽었을 수 있다). 다만 표가 이 브라우저에서
+ * 사라졌으면 그 줄은 지운다 — 영영 못 올릴 것을 계속 들고 있을 이유가 없다.
+ *
+ * @returns 실제로 올라간 표들.
+ */
+export async function flushQueuedUploads(): Promise<Pack[]> {
+  const list = readPending();
+  if (!list.length) return [];
+  const done: Pack[] = [];
+  const left: string[] = [];
+  for (const id of list) {
+    const pack = loadPacks().filter((p) => p.id === id)[0];
+    if (!pack) continue; // 표가 사라졌다 — 줄에서 뺀다
+    if (pack.sharedId) continue; // 이미 올라가 있다
+    const res = await uploadPack(pack);
+    if (res.id) {
+      putPack({ ...pack, sharedId: res.id });
+      done.push(pack);
+    } else if (res.error === 'offline') {
+      left.push(id); // 서버가 잠깐 없었을 뿐이다 — 다음에 다시
+    }
+  }
+  writePending(left);
+  return done;
 }

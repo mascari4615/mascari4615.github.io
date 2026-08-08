@@ -8,7 +8,16 @@
  * 우리 표와 같기 때문이다(`pack-store`).
  */
 import { codeToPack, dropPack, loadPacks, packToCode, parseTable, putPack, type Pack } from './pack-store';
-import { adoptShared, listShared, packErrorText, updateShared, uploadPack, type SharedPackSummary } from '../lib/shared-packs';
+import {
+  adoptShared,
+  flushQueuedUploads,
+  listShared,
+  packErrorText,
+  queueUpload,
+  updateShared,
+  uploadPack,
+  type SharedPackSummary
+} from '../lib/shared-packs';
 
 (function (): void {
   const SAMPLE =
@@ -128,6 +137,15 @@ import { adoptShared, listShared, packErrorText, updateShared, uploadPack, type 
               $('pkMsg').textContent = '올리는 중…';
               void (p.sharedId ? updateShared(p.sharedId, p) : uploadPack(p)).then((res) => {
                 btn.removeAttribute('disabled');
+                if (res.error === 'not_signed_in') {
+                  /* 「로그인하세요」로 끝내면 대부분 거기서 나간다 — 붙여넣고 다듬어 만든 표를
+                     두고 왕복을 다녀오라는 뜻이기 때문이다. 올리려던 표를 적어 두고 보낸다:
+                     돌아오면 저절로 올라간다 (TASK-KL-151 ⑦). */
+                  queueUpload(p.id);
+                  $('pkMsg').textContent = '로그인하고 오면 이 표가 저절로 올라갑니다 — 잠시 디스코드로 다녀올게요.';
+                  setTimeout(() => window.KarmoAccount?.signIn(), 700);
+                  return;
+                }
                 if (res.error || !res.id) {
                   $('pkMsg').textContent = packErrorText(res.error ?? 'unknown', res.detail);
                   return;
@@ -198,6 +216,22 @@ import { adoptShared, listShared, packErrorText, updateShared, uploadPack, type 
             if (p && putPack(p)) $('pkMsg').textContent = `「${p.title}」 를 받았습니다. 아래에서 놀이로 보내세요.`;
             else $('pkMsg').textContent = '받은 주소에서 표를 못 읽었습니다.';
           }
+
+          /* 로그인하고 돌아왔으면 적어 둔 표를 올린다 (TASK-KL-151 ⑦).
+             로그인 상태가 늦게 도착하므로 상태가 바뀔 때마다 본다 — 화면을 그릴 때 한 번만
+             보면 「로그인 직후 첫 화면」에서는 아직 로그인 전으로 보인다. */
+          const stopWatch = window.KarmoAccount?.subscribe((st: { account?: unknown } | null) => {
+            if (!st || !st.account) return;
+            void flushQueuedUploads().then((done) => {
+              if (!done.length || !container.isConnected) return;
+              paintList();
+              $('pkMsg').textContent =
+                done.length === 1
+                  ? `「${done[0].title}」 를 올렸습니다 — 이제 둘러보기에 섭니다.`
+                  : `표 ${done.length}개를 올렸습니다.`;
+            });
+          });
+          if (stopWatch) Toolbox.onDispose?.(stopWatch);
 
           paintList();
         }
