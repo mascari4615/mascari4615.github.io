@@ -18,6 +18,12 @@ on:
   workflow_run:
     workflows: ['Build and Deploy']
     types: [completed]
+  # **시작도 못 하고 죽은 배포**는 위 이벤트를 안 만든다 (2026-08-08, TASK-KL-128 ㉓).
+  # 워크플로 표현식 문법이 틀리면 job 이 0개인 채로 끝나는데, 그러면 `workflow_run` 이
+  # 아예 안 오고 로그도 안 남는다 — 실제로 그렇게 4연속 죽는 동안 알림이 한 번도 안 갔다.
+  # 그 한 경우만 여기서 따로 훑는다(정상 실패는 위 이벤트가 이미 잡는다).
+  schedule:
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       run_id:
@@ -35,7 +41,7 @@ permissions:
 jobs:
   alert:
     # 실패만. 성공·취소·건너뜀은 조용히 지나간다. (손으로 돌릴 때는 언제나 돈다.)
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     steps:
       - name: 어느 배포를 볼 것인가
@@ -58,9 +64,24 @@ jobs:
           fi
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
+      # 주기 실행은 **시작도 못 한 배포**만 본다. job 이 하나라도 있으면 그건 위 이벤트가
+      # 이미 알렸으므로 여기서 또 울리면 소음이다.
+      - name: 시작도 못 한 배포인가 (주기 실행 한정)
+        id: startup
+        if: github.event_name == 'schedule' && steps.pick.outputs.skip != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.pick.outputs.run_id }}
+        run: |
+          JOBS=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN_ID/jobs" --jq '.jobs | length' || echo 1)
+          if [ "$JOBS" != "0" ]; then
+            echo "::notice::가장 최근 실패는 job $JOBS 개 — 이벤트 쪽이 이미 알린다. 조용히 지나간다."
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: 어디서 죽었는지 · 무슨 커밋인지
         id: what
-        if: steps.pick.outputs.skip != '1'
+        if: steps.pick.outputs.skip != '1' && steps.startup.outputs.skip != '1'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ steps.pick.outputs.run_id }}
@@ -82,7 +103,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: 디스코드로 보낸다
-        if: steps.pick.outputs.skip != '1'
+        if: steps.pick.outputs.skip != '1' && steps.startup.outputs.skip != '1'
         env:
           ALERT_WEBHOOK: ${{ secrets.YAWNBOT_HEALTH_ALERT_WEBHOOK_URL }}
           DRY: ${{ github.event.inputs.dry_run }}
