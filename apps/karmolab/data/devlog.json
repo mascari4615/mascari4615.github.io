@@ -2,7 +2,7 @@
   "source": "Mascari4615/Witch-Mendokusai",
   "windowDays": 120,
   "counts": {
-    "commits": 1485,
+    "commits": 1489,
     "days": 12,
     "shown": 60
   },
@@ -10,6 +10,27 @@
     {
       "date": "2026-08-08",
       "entries": [
+        {
+          "sha": "819b7a64",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "러너가 둘일 때 편집 중에는 지우는 대신 알려 준다"
+        },
+        {
+          "sha": "ad5a97eb",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "새 시험 도우미의 짝(.meta)을 빠뜨린 것을 채운다"
+        },
+        {
+          "sha": "c1da9bfe",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "흉내가 진짜보다 더 살아 있어서 초록이던 것을 바로잡는다"
+        },
         {
           "sha": "a49c7011",
           "type": "fix",
@@ -30,31 +51,10 @@
           "typeLabel": "새로 생긴 것",
           "scope": "WM-052",
           "text": "선택지에 「무슨 질문이었나」가 딸려 간다"
-        },
-        {
-          "sha": "a6cf76ed",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "러너가 둘일 때 진 쪽이 이긴 쪽 창구를 비우던 것 — 마지막 리뷰 지적"
-        },
-        {
-          "sha": "eaf585cb",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "크게 알리려던 것이 조용한 영구 정지가 되던 것 + 하네스가 Awake 를 돌린다"
-        },
-        {
-          "sha": "2c9f68fb",
-          "type": "fix",
-          "typeLabel": "고친 것",
-          "scope": "WM-052",
-          "text": "대화 번호가 저장 파일에 잘못 박히던 두 건 + 그래프 누수"
         }
       ],
-      "quiet": 34,
-      "more": 57
+      "quiet": 35,
+      "more": 60
     },
     {
       "date": "2026-08-07",
