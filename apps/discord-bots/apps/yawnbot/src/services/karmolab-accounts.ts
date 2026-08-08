@@ -123,6 +123,14 @@ export interface Account {
   weeklyDmSentWeek?: string;
   /** 패스키 (TASK-KL-156 D7). 문이 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. */
   passkeys?: StoredPasskey[];
+  /**
+   * 작업실에 건 것 (TASK-KL-182 F3·F4).
+   *
+   * 프로필은 「이 사람이 무엇을 했나」까지 왔지만 **무엇을 만들었나**는 없다.
+   * 도구로 만든 결과를 여기 걸면 프로필이 명함에서 **작업실**이 된다.
+   * 그림 자체는 업로드 자리에 있고, 여기엔 그 이름표만 담는다.
+   */
+  works?: AccountWork[];
   /** 어떤 알림을 받을까 (TASK-KL-175 E1). 없으면 지금까지처럼 전부 받는다. */
   notify?: Partial<NotifyPrefs>;
 }
@@ -180,6 +188,20 @@ export interface ProfileCard {
   /** 대표 도구 id (최대 3개) */
   pins: string[];
 }
+
+export interface AccountWork {
+  /** 업로드 id (`/kl/img/<id>`) */
+  id: string;
+  /** 한 줄 이름 */
+  title: string;
+  /** 어느 도구로 만들었나 (모르면 null) */
+  toolId: string | null;
+  at: string;
+}
+
+/** 걸 수 있는 개수. 벽이 넓으면 아무것도 안 보인다 — 고르는 것이 작업실의 절반이다. */
+export const WORKS_MAX = 12;
+export const WORK_TITLE_MAX = 40;
 
 export const BIO_MAX = 80;
 export const PIN_MAX = 3;
@@ -1141,6 +1163,48 @@ export class KarmolabAccountStore {
     const footprint = this.footprintFor(account.id);
     if (footprint.totals.activeDays === 0) return null;
     return { days: footprint.days, streak: footprint.streak };
+  }
+
+  /* ── 작업실 (TASK-KL-182 F3·F4) ─────────────────────────────────── */
+
+  worksOf(accountId: string): AccountWork[] {
+    return [...(this.state.accounts[accountId]?.works ?? [])];
+  }
+
+  /** 하나 건다. 벽이 다 차면 **가장 오래된 것을 내린다** — 거는 순간 실패하면 만든 것이 사라진다. */
+  addWork(accountId: string, input: { id: string; title?: unknown; toolId?: unknown }): AccountWork[] | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    if (!/^[a-zA-Z0-9_-]{4,64}$/.test(String(input.id ?? ''))) return null;
+    const works = account.works ?? [];
+    if (works.some((work) => work.id === input.id)) return works;
+    works.unshift({
+      id: input.id,
+      title: String(input.title ?? '').replace(/[<>&"]/g, '').trim().slice(0, WORK_TITLE_MAX) || '작업',
+      toolId: isToolIdLike(input.toolId) ? input.toolId : null,
+      at: new Date().toISOString(),
+    });
+    account.works = works.slice(0, WORKS_MAX);
+    this.save();
+    return account.works;
+  }
+
+  removeWork(accountId: string, workId: string): AccountWork[] {
+    const account = this.state.accounts[accountId];
+    if (!account) return [];
+    account.works = (account.works ?? []).filter((work) => work.id !== workId);
+    this.save();
+    return account.works;
+  }
+
+  /** 남에게 보일 작업실 — 프로필을 잠갔으면 아예 없다. */
+  publicWorks(handle: string): AccountWork[] | null {
+    const id = this.state.handleIndex[String(handle ?? '').toLowerCase()];
+    const account = id ? this.state.accounts[id] : null;
+    if (!account) return null;
+    if (!this.visibilityFor(account.id).profile) return null;
+    const works = account.works ?? [];
+    return works.length ? works : null;
   }
 
   /** 지금 이 계정이 받기로 한 알림 갈래 (안 정했으면 전부). */

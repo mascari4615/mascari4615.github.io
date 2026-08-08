@@ -273,6 +273,52 @@ const Toolbox = (() => {
             b.onclick = () => switchPage(t.id);
             row.appendChild(b);
         });
+
+        /* 만든 것을 **작업실에 건다** (TASK-KL-182 F4).
+         *
+         * 「이어서」 줄은 결과가 나온 자리에 이미 서 있다 — 포트폴리오를 따로 만들라고 하면
+         * 아무도 안 만든다. 만든 그 자리에서 한 번 누르면 프로필에 걸린다.
+         * 그림일 때만, 로그인했을 때만 뜬다(둘 중 하나라도 아니면 눌러도 아무 일 없는 단추다). */
+        const isImage = String(item.blob.type || '').startsWith('image/');
+        if (isImage && window.KarmoAccount?.state.account) {
+            const hang = document.createElement('button');
+            hang.type = 'button';
+            hang.className = 'tool-next-btn';
+            hang.textContent = '🖼 작업실에 걸기';
+            hang.onclick = async () => {
+                hang.disabled = true;
+                try {
+                    const base = window.KarmoAccount.apiBase;
+                    const dataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(String(reader.result || ''));
+                        reader.onerror = reject;
+                        reader.readAsDataURL(item.blob);
+                    });
+                    const up = await fetch(base + '/kl/uploads', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: dataUrl }),
+                    });
+                    if (!up.ok) throw new Error(String(up.status));
+                    const saved = await up.json();
+                    const res = await fetch(base + '/kl/me/works', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: saved.id, title: item.name || '작업', toolId: item.from || null }),
+                    });
+                    showToast(res.ok ? '작업실에 걸었어요' : '걸지 못했어요');
+                } catch (_) {
+                    showToast('걸지 못했어요');
+                } finally {
+                    hang.disabled = false;
+                }
+            };
+            row.appendChild(hang);
+        }
+
         anchor.insertAdjacentElement('afterend', row);
     }
 

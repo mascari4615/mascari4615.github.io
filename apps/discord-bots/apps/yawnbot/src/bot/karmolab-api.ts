@@ -968,6 +968,50 @@ export function registerKarmolabApi(
     });
   });
 
+  /* ── 작업실 (TASK-KL-182 F3·F4) ──────────────────────────────────
+   *
+   * 프로필은 「무엇을 했나」까지 왔는데 **무엇을 만들었나**가 없었다. 도구로 만든 결과를
+   * 걸면 프로필이 명함에서 작업실이 된다. 그림은 이미 있는 업로드 자리를 쓴다.
+   */
+  app.get('/kl/me/works', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ works: store.worksOf(account.id) });
+  });
+
+  app.post('/kl/me/works', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const works = store.addWork(account.id, { id: String(body.id ?? ''), title: body.title, toolId: body.toolId });
+    if (!works) {
+      res.status(400).json({ error: 'bad_work' });
+      return;
+    }
+    res.json({ works });
+  });
+
+  app.delete('/kl/me/works/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ works: store.removeWork(account.id, String(req.params.id ?? '')) });
+  });
+
+  /** 남의 작업실 — 로그인 없이 볼 수 있다(프로필과 같은 성질). */
+  app.get('/kl/u/:handle/works', (req: Request, res: Response) => {
+    const works = store.publicWorks(String(req.params.handle ?? ''));
+    res.json({ works: works ?? [] });
+  });
+
   /**
    * 이번 주 미션 (TASK-KL-182 F1).
    *
@@ -2632,7 +2676,8 @@ export function registerKarmolabApi(
      * 이걸 한 번에 주기 때문에 화면은 붙자마자 그릴 것이 있다 — 빈 창을 안 보여 준다. */
     send('hello', {
       me: { who: identity.who, name: identity.name, color: identity.color },
-      messages: chat.recent(),
+      // 저장 모양이 아니라 **보여 줄 모양**을 내보낸다 — 지킨/신고한 사람 목록은 안 나간다.
+      messages: chat.publicMessages(identity.who),
       here: chat.hereCount() + 1,
       /* 지금 혼자여도 「오늘 여기 몇 명이 말했나」를 알면 빈 방으로 안 읽힌다.
          자기 자신은 안 뺀다 — 「오늘 이 방에 있던 사람 수」가 곧 그 값이다. */
@@ -2660,7 +2705,7 @@ export function registerKarmolabApi(
     const identity = chat.identityFor(visitorKeyFor(req));
     res.json({
       me: { who: identity.who, name: identity.name, color: identity.color },
-      messages: chat.recent(),
+      messages: chat.publicMessages(identity.who),
       here: chat.hereCount(),
       todayVoices: chat.todaysVoiceCount(),
       isAdmin: isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE))),
@@ -2683,6 +2728,8 @@ export function registerKarmolabApi(
       byOwner: isAdminAccount(account),
       // 로그인한 사람만 적힌다 — 나중에 온 말을 이 사람들에게 알린다 (TASK-KL-157).
       accountId: account?.id ?? null,
+      // 어느 줄에 답하는가 (TASK-KL-159). 없는 줄을 가리키면 그냥 최상위 말이 된다.
+      replyTo: typeof req.body?.replyTo === 'string' ? req.body.replyTo : null,
     });
     if (!result.ok) {
       const status = result.error === 'muted' ? 403 : result.error === 'too_long' ? 400 : 429;
@@ -2795,6 +2842,16 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    /* 눌렀는지 화면이 알 수 있게 적어 둔다 (TASK-KL-159) — 안 그러면 또 누른다.
+       이미 눌렀으면 원장에 두 줄을 만들지 않는다. */
+    const reporterWho = chat.identityFor(visitorKeyFor(req)).who;
+    const fresh = chat.markReported(target.id, reporterWho);
+    if (fresh === false) {
+      res.json({ ok: true, already: true });
+      return;
+    }
+    chat.flush();
+
     /* **같은 원장에 넣는다** (TASK-KL-157). 예전엔 알림 한 줄만 보내고 끝이라, 알림을 놓치면
        그 신고는 어디에도 안 남았다. 채팅 줄은 하루 뒤 사라지므로 그 말을 함께 베껴 둔다. */
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
