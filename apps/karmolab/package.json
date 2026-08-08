@@ -93,6 +93,7 @@
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
     "measure:speed": "node scripts/measure-speed.mjs",
+    "measure:tool-visible": "node scripts/measure-tool-visible.mjs",
     "test:ics": "node scripts/test-icsmake.mjs",
     "test:barcode": "node scripts/test-barcode.mjs",
     "test:typing": "node scripts/smoke-typing.mjs",
@@ -108,8 +109,7 @@
     "test:badapple:home": "node scripts/smoke-badapple-home.mjs",
     "gen:badapple": "node scripts/gen-badapple-demo.mjs",
     "test:badapple:load": "node scripts/smoke-badapple-load.mjs",
-    "measure:runtime": "node scripts/measure-runtime.mjs",
-    "test:companion": "node scripts/smoke-companion.mjs"
+    "measure:runtime": "node scripts/measure-runtime.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
