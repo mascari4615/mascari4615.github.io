@@ -41,7 +41,7 @@ fn quit(app: tauri::AppHandle) {
 
 fn main() {
     // 어디에 붙을지는 실행할 때 정한다 — 동반자가 다른 포트로 떠 있을 수 있다.
-    let url = std::env::var("COMPANION_URL").unwrap_or_else(|_| "http://localhost:4615".to_string());
+    let url = std::env::var("COMPANION_URL").unwrap_or_else(|_| "http://localhost:4620".to_string());
     let width: f64 = env_number("COMPANION_WIDTH", 380.0);
     let height: f64 = env_number("COMPANION_HEIGHT", 560.0);
     let margin: f64 = env_number("COMPANION_MARGIN", 24.0);

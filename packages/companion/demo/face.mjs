@@ -5,7 +5,7 @@
  *   COMPANION_BRAIN=echo node demo/face.mjs   가짜 두뇌 (움직임만 확인)
  *   COMPANION_BRAIN=assistant …               공용 provider 라우터 (세션·지침 공유 주의)
  *
- *   COMPANION_PORT=4615            주소
+ *   COMPANION_PORT=4620            주소 (4615 는 yawnbot dev 웹훅이 쓴다)
  *   COMPANION_CLOCK_MS=60000       이 간격으로 스스로 깨어나 혼잣말 (0 = 끔)
  *   COMPANION_COOLDOWN_MS=45000    혼잣말 참는 간격
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
@@ -212,7 +212,7 @@ const brain =
   brainName === 'claude' ? claudeCliBrain({ handsNote: describeHands(hands), alwaysNote: expressionNote() })
   : brainName === 'assistant' ? assistantBrain()
   : echoBrain;
-const port = Number(process.env.COMPANION_PORT ?? '4615');
+const port = Number(process.env.COMPANION_PORT ?? '4620');
 const clockMs = Number(process.env.COMPANION_CLOCK_MS ?? '0');
 const screenMs = Number(process.env.COMPANION_SCREEN_MS ?? '120000');
 const cooldownMs = Number(process.env.COMPANION_COOLDOWN_MS ?? '90000');
