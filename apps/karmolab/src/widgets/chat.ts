@@ -70,8 +70,20 @@
     let source: EventSource | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-    function apiBase(): string | null {
-        return (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || null;
+    /**
+     * 서버 주소.
+     *
+     * 예전에는 계정 스크립트(`account.js`)가 창에 얹어 주는 값만 봤다. 그런데 **도구 화면
+     * 129장은 그 스크립트를 안 싣는다**(무게 때문에 일부러 뺐다) — 그래서 채팅은 사람이 제일
+     * 많이 있는 자리에서 조용히 자기 자신을 지우고 있었다. 채팅은 익명으로도 도는데 계정에
+     * 매달려 있었던 것이다 (TASK-KL-161).
+     *
+     * 이제 계정이 있으면 그 값을 쓰고(검사가 주소를 갈아 끼울 수 있다), 없으면 제 주소를 쓴다.
+     */
+    const DEFAULT_API = 'https://yawnbot.mascari4615.com';
+
+    function apiBase(): string {
+        return (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || DEFAULT_API;
     }
 
     function escapeHtml(value: string): string {
@@ -169,6 +181,15 @@
     const root = document.createElement('div');
     root.id = 'klChat';
     root.className = 'klchat';
+    /* 자리는 **여기서 못 박는다** (TASK-KL-128 F-4).
+       이 껍데기의 스타일은 `Mdd.injectCSS` 를 지나는데, 마스코트는 화면을 다 그린 뒤에야
+       온다 — 그동안 이 상자가 **흐름 안에 낀 채로** 서서 아래 것들을 통째로 밀었다.
+       첫 화면 밀림 0.178 중 0.174 가 이것 하나였다(실측). 뜨는 자리만 인라인으로 박아 두면
+       스타일이 늦게 와도 아무것도 안 밀린다. 나머지 생김새는 그대로 그 CSS 가 맡는다. */
+    root.style.position = 'fixed';
+    root.style.left = '16px';
+    root.style.bottom = '16px';
+    root.style.zIndex = '940';
     root.innerHTML = `
         <div class="klchat-panel" role="log" aria-label="실시간 익명 채팅">
             <div class="klchat-head">
@@ -184,7 +205,7 @@
             <div class="klchat-foot">
                 <div class="klchat-replying" id="klChatReplying" hidden></div>
                 <div class="klchat-row">
-                    <textarea class="klchat-input" id="klChatInput" rows="1" placeholder="아무 말이나 — 이름은 오늘까지만" maxlength="300"></textarea>
+                    <textarea class="klchat-input" id="klChatInput" rows="1" placeholder="아무 말이나 — 하루 뒤 사라진다 (☆ 누르면 남음)" maxlength="300"></textarea>
                     <button type="button" class="klchat-send" id="klChatSend">보내기</button>
                 </div>
                 <div class="klchat-status" id="klChatStatus"></div>
@@ -290,7 +311,8 @@
         const hint =
             pref(HINT_KEY, '') === '1'
                 ? ''
-                : '<div class="klchat-note">여긴 <b>하루짜리 이름표</b>로 말하는 자리. 자정에 이름이 바뀌고, 하루 지난 줄은 사라진다. 계정은 안 드러난다.</div>';
+                : '<div class="klchat-note">여긴 <b>하루짜리 이름표</b>로 말하는 자리 — 자정에 이름이 바뀌고 계정은 안 드러난다.<br>' +
+                  '<b>여기 쓴 말은 하루 뒤 사라진다.</b> 남기고 싶으면 ☆ (여기 그대로 남김) 또는 📌 (커뮤니티 글로 옮김).</div>';
         const shown = onlyKept ? messages.filter((m) => (m.kept ?? 0) > 0) : messages;
         let html = onlyKept ? '' : hint;
         for (let i = 0; i < shown.length; i += 1) {
@@ -630,17 +652,8 @@
     if (pref(OPEN_KEY, '0') === '1') setOpen(true);
     renderHeader();
 
-    /* 계정 스크립트가 아직 안 왔을 수 있다 (둘 다 defer 라 순서는 보장되지만, 실패로 늦을 수 있다).
-     * 주소를 얻을 때까지 잠깐 기다렸다 붙는다 — 못 얻으면 채팅만 조용히 안 뜬다. */
-    (function waitForApi(tries = 0): void {
-        if (apiBase()) {
-            connect();
-            return;
-        }
-        if (tries > 20) {
-            root.remove();
-            return;
-        }
-        setTimeout(() => waitForApi(tries + 1), 250);
-    })();
+    /* 계정 스크립트가 늦게 올 수 있다 — 오면 그쪽 주소가 이긴다(검사가 갈아 끼우는 자리).
+     * 하지만 **기다리지는 않는다.** 기다리면 계정 스크립트가 아예 없는 화면(도구 129장)에서
+     * 채팅이 영영 안 뜬다. 제 주소로 먼저 붙고, 필요하면 그때 다시 붙는다. */
+    connect();
 })();
