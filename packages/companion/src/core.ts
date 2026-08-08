@@ -235,12 +235,16 @@ export class Companion {
     const { brain, memory, attention, onCycle } = this.options;
     const recallSize = this.options.recallSize ?? 10;
 
-    await memory.remember({
-      role: 'sensed',
-      channel: sensation.channel,
-      text: sensation.text,
-      at: sensation.at,
-    });
+    /* 시험이 만든 감각은 기억에 안 담는다 — 사람의 상이 검사 찌꺼기로 만들어지면 안 된다.
+       처리는 그대로 한다(대답·반응). 담기지만 않는다. */
+    if (sensation.시험 !== true) {
+      await memory.remember({
+        role: 'sensed',
+        channel: sensation.channel,
+        text: sensation.text,
+        at: sensation.at,
+      });
+    }
 
     const recent = await memory.recent(recallSize);
     const longTerm = (await memory.longTerm?.()) ?? null;
@@ -273,7 +277,9 @@ export class Companion {
     const knee = this.options.reflex?.(sensation) ?? null;
     if (knee !== null && knee !== '') {
       const at = (this.options.now ?? Date.now)();
-      await memory.remember({ role: 'said', channel: sensation.channel, text: knee, at, via: 'reflex' });
+      if (sensation.시험 !== true) {
+        await memory.remember({ role: 'said', channel: sensation.channel, text: knee, at, via: 'reflex' });
+      }
       try {
         await target?.voice.speak({ text: knee, channel: sensation.channel, at });
       } catch (e) {
@@ -397,7 +403,10 @@ export class Companion {
 
     const now = this.options.now ?? Date.now;
     const utterance: Utterance = { text: text.trim(), channel: sensation.channel, at: now() };
-    await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at, via: 'brain' });
+    // 시험에 대고 한 말도 기억에 안 담는다 — 담기면 그게 다음 재료가 되어 결이 굳는다.
+    if (sensation.시험 !== true) {
+      await memory.remember({ role: 'said', channel: utterance.channel, text: utterance.text, at: utterance.at, via: 'brain' });
+    }
 
     try {
       await target?.voice.speak(utterance);

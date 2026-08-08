@@ -82,6 +82,10 @@ const 상태 = await page.evaluate(() => ({
 }));
 
 // ②-0 창·몸·목소리가 화면에 뜨나 — 오늘 사고 셋이 전부 「조용히 빠짐」이었다.
+// 칸은 상태를 읽어 온 뒤에 그려진다 — 곧바로 읽으면 비어 있다(실제로 한 번 비었다).
+await page
+  .waitForFunction(() => document.querySelectorAll('#cmpBits .cmp-bit').length > 0, { timeout: 10000 })
+  .catch(() => {});
 const 칸 = await page.evaluate(() =>
   [...document.querySelectorAll('#cmpBits .cmp-bit')].map((el) => el.textContent ?? ''),
 );
@@ -97,12 +101,24 @@ await page.waitForFunction((찾을말) => (document.getElementById('cmpLog')?.te
 const 기록 = await (await fetch(`${봇}/history`, { signal: AbortSignal.timeout(4000) })).json();
 const 봇도들었나 = 기록.some((e) => e.text === 말);
 
+/* **끝나고 자국을 지운다.**
+ *
+ * 여태 검사가 건넨 「스모크 1786…」 이 사람의 말로 그대로 쌓였다. 졸이고 나니 「아는 것」이
+ * 통째로 검사 찌꺼기가 됐다(실측 네 줄 전부: 「반복적인 장난스러운 상호작용을 즐김」
+ * 「지속적으로 장난을 거는 경향」). **얘가 사람을 잘못 알게 되는 것보다 나쁜 건 없다.** */
+const 지움 = await fetch(`${봇}/known/forget?what=${encodeURIComponent(말)}&deep=1`, { method: 'POST' })
+  .then((r) => r.json())
+  .catch(() => null);
+const 남은기록 = await (await fetch(`${봇}/history`, { signal: AbortSignal.timeout(4000) })).json();
+const 지워졌나 = 남은기록.some((e) => e.text === 말) === false;
+
 await browser.close();
 server.close();
 
 const 탈 = [];
 if (상태.칸열림 === false) 탈.push('붙었다면서 말 걸기 칸이 잠겨 있다');
 if (봇도들었나 === false) 탈.push('화면엔 떴는데 봇 기록엔 그 말이 없다');
+if (지워졌나 === false) 탈.push('검사 자국이 사람의 기억에 남았다 — 그게 졸여져 사람의 상이 된다');
 if (errors.length > 0) 탈.push(`창에서 터진 게 있다: ${errors.join(' / ')}`);
 // 「곁에 있다」만 보고 끝내면, 몸이 큐브로 물러서거나 목소리가 빠진 걸 화면이 여전히 못 잡는다.
 if (칸.length === 0) 탈.push('창·몸·목소리 칸이 하나도 안 떴다');
@@ -111,7 +127,10 @@ for (const 있어야할것 of ['창', '몸', '목소리']) {
 }
 
 console.log(`[smoke-companion] ${상태.곁에} · ${상태.아래}`);
-console.log(`[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${봇도들었나 ? 'O' : 'X'}`);
+console.log(
+  `[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${봇도들었나 ? 'O' : 'X'} · 자국 지움 ${지워졌나 ? 'O' : 'X'}` +
+    (지움 ? ` (대화 ${지움.conversation}줄)` : ''),
+);
 console.log(`[smoke-companion] 상태 칸: ${칸.join(' | ') || '(없음)'}`);
 if (탈.length > 0) {
   console.error(`[smoke-companion] X  ${탈.join(' | ')}`);

@@ -161,3 +161,19 @@ test('사람이 직접 말 건 채널은 쿨다운을 건너뛴다', async () =>
   assert.equal(talk.spoken.length, 2, '말 건 쪽엔 계속 대답한다');
   assert.equal(tick.spoken.length, 0, '혼잣말은 쿨다운에 걸려 참는다');
 });
+
+test('시험이 만든 감각은 기억에 안 담긴다 — 사람 상이 검사 찌꺼기로 만들어지면 안 된다', async () => {
+  const { body, spoken } = recordingBody();
+  const memory = new InMemoryMemory();
+  const companion = new Companion({ bodies: [body], brain: echoBrain, memory, attention: alwaysRespond });
+  await companion.start();
+
+  await companion.feed({ ...sensation('스모크 12345'), 시험: true });
+  // 처리는 그대로 한다 — 검사가 진짜 길을 안 밟으면 검사가 아니다.
+  assert.deepEqual(spoken, ['(echo) 스모크 12345']);
+  // 다만 기억에는 없어야 한다.
+  assert.deepEqual(memory.all(), []);
+
+  await companion.feed(sensation('진짜 말'));
+  assert.deepEqual(memory.all().map((e) => e.text), ['진짜 말', '(echo) 진짜 말']);
+});
