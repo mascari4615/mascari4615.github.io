@@ -56,7 +56,7 @@ export { claudeCliBrain, type ClaudeCliBrainOptions, type PlainThinker, type Swi
 
 export { terminalBody, type TerminalBodyOptions } from './body/terminal';
 export { clockBody, type ClockBodyOptions } from './body/clock';
-export { webBody, openPinnedWindow, 이기계인가, type WebBodyOptions } from './body/web';
+export { webBody, openPinnedWindow, ownWindowExe, 이기계인가, type WebBodyOptions } from './body/web';
 
 export { anySpeech } from './voice/any';
 export { piperSpeech, piperReady, type PiperSpeechOptions } from './voice/piper';
@@ -79,6 +79,7 @@ export * from './made-up';
 export * from './milestone';
 export * from './mouth-gate';
 export * from './touch';
+export { 이웃, 이저장소, 같은저장소사본들 } from './workspace';
 export { 대사창고, 골라내기, type StockOptions } from './stock';
 export * from './people';
 export * from './quiet';
