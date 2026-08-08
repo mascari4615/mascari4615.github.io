@@ -111,6 +111,26 @@ export interface Account {
    * 그쪽이 나를 따라가는 것도 끊긴다. 「안 보이게」와 「못 하게」를 같이 해야 뜻이 있다.
    */
   blocked?: string[];
+  /**
+   * 주간 발자국을 디스코드로 받을까 (TASK-KL-156 D6). 기본 꺼짐.
+   *
+   * 남들은 이 자리에 메일을 붙이느라 고생한다 — 우리는 봇이 이미 그 사람과 대화하는 창이 있다.
+   * 다만 **부르지도 않았는데 말 거는 것**이라 켠 사람에게만 간다.
+   */
+  weeklyDm?: boolean;
+  /** 마지막으로 보낸 주 (`YYYY-Www`). 같은 주에 두 번 보내지 않으려고 적는다. */
+  weeklyDmSentWeek?: string;
+}
+
+/** ISO 주 이름 (`2026-W32`) — KST 기준. 주간 발송이 같은 주에 두 번 나가지 않게 하는 열쇠. */
+export function kstWeekKey(at: Date = new Date()): string {
+  const kst = new Date(at.getTime() + 9 * 60 * 60 * 1000);
+  const day = (kst.getUTCDay() + 6) % 7; // 월=0
+  const thursday = new Date(kst);
+  thursday.setUTCDate(kst.getUTCDate() - day + 3);
+  const firstThursday = new Date(Date.UTC(thursday.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((thursday.getTime() - firstThursday.getTime()) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+  return `${thursday.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
 /**
@@ -948,6 +968,123 @@ export class KarmolabAccountStore {
   /** 내가 저 사람을 따라가고 있나. */
   isFollowing(accountId: string, handle: string): boolean {
     return (this.state.accounts[accountId]?.following ?? []).includes(String(handle ?? '').toLowerCase());
+  }
+
+  /**
+   * 계정 병합 (TASK-KL-156 D8).
+   *
+   * 같은 사람이 두 계정이 되는 일은 실제로 생긴다 — 디스코드로 한 번, 복구 코드로 잘못 한 번.
+   * **아무것도 잃지 않는 방향으로만** 합친다: 기록은 합집합·큰 쪽, 발자국은 날짜별 합,
+   * 따라가기/막기는 합집합. 남는 이름(handle)은 **받는 쪽**이다 — 남이 걸어 둔 링크가 깨지지
+   * 않는 쪽을 남긴다.
+   *
+   * 지우는 쪽의 로그인은 전부 끊는다. 합쳐 놓고 옛 문이 열려 있으면 합친 것이 아니다.
+   */
+  mergeAccounts(keepId: string, mergeId: string): Account | null {
+    const keep = this.state.accounts[keepId];
+    const gone = this.state.accounts[mergeId];
+    if (!keep || !gone || keepId === mergeId) return null;
+
+    keep.records = mergeRecords(keep.records ?? emptyRecords(), gone.records ?? emptyRecords());
+    keep.recordsUpdatedAt = new Date().toISOString();
+
+    // 발자국 — 날짜별로 더한다. 두 계정을 번갈아 쓴 날이 하나로 합쳐진다.
+    const a = keep.footprint ?? { days: {}, tools: {}, firstSeenAt: null, lastSeenAt: null };
+    const b = gone.footprint ?? { days: {}, tools: {}, firstSeenAt: null, lastSeenAt: null };
+    const days: Record<string, number> = { ...a.days };
+    for (const [day, count] of Object.entries(b.days)) days[day] = (days[day] ?? 0) + count;
+    const tools: Record<string, number> = { ...a.tools };
+    for (const [id, count] of Object.entries(b.tools)) tools[id] = (tools[id] ?? 0) + count;
+    const firstSeen = [a.firstSeenAt, b.firstSeenAt].filter(Boolean).sort()[0] ?? null;
+    const lastSeen = [a.lastSeenAt, b.lastSeenAt].filter(Boolean).sort().pop() ?? null;
+    keep.footprint = { days, tools, firstSeenAt: firstSeen, lastSeenAt: lastSeen };
+
+    keep.following = [...new Set([...(keep.following ?? []), ...(gone.following ?? [])])]
+      .filter((handle) => handle !== keep.handle)
+      .sort();
+    keep.blocked = [...new Set([...(keep.blocked ?? []), ...(gone.blocked ?? [])])]
+      .filter((handle) => handle !== keep.handle)
+      .sort();
+    keep.events = [...(gone.events ?? []), ...(keep.events ?? [])]
+      .sort((x, y) => y.at.localeCompare(x.at))
+      .slice(0, EVENT_KEEP);
+
+    // 로그인 수단은 받는 쪽에 없던 것만 옮긴다 (있는 문을 덮어쓰지 않는다).
+    if (gone.identities?.discord && !keep.identities.discord) {
+      keep.identities.discord = gone.identities.discord;
+      this.state.identityIndex[`discord:${gone.identities.discord.discordId}`] = keep.id;
+    }
+
+    // 지우는 쪽의 로그인은 전부 끊는다.
+    for (const [token, session] of Object.entries(this.state.sessions)) {
+      if (session.accountId === mergeId) delete this.state.sessions[token];
+    }
+    // 남이 걸어 둔 옛 주소가 죽지 않게, 지운 이름은 받는 쪽을 가리키게 둔다.
+    this.state.handleIndex[gone.handle] = keep.id;
+    delete this.state.accounts[mergeId];
+
+    this.noteEvent(keep.id, 'name-changed', { detail: `계정 합침: @${gone.handle} → @${keep.handle}` });
+    this.save();
+    return keep;
+  }
+
+  /**
+   * 오래 안 온 계정 (TASK-KL-156 D10).
+   *
+   * 지우지 않는다 — **알리기 위한 목록**이다. 자동으로 지우는 규칙은 사람 몫이고, 그 전에
+   * 「곧 정리될 수 있다」를 본인이 볼 수 있어야 한다. 지금은 세는 것과 보여 주는 것까지만 한다.
+   */
+  dormantAccounts(days = 365, now: Date = new Date()): Array<{ handle: string; lastSeenAt: string | null; days: number }> {
+    const rows: Array<{ handle: string; lastSeenAt: string | null; days: number }> = [];
+    for (const account of Object.values(this.state.accounts)) {
+      const last = account.footprint?.lastSeenAt ?? account.createdAt;
+      const gap = Math.floor((now.getTime() - Date.parse(last)) / 86400000);
+      if (gap >= days) rows.push({ handle: account.handle, lastSeenAt: account.footprint?.lastSeenAt ?? null, days: gap });
+    }
+    return rows.sort((x, y) => y.days - x.days);
+  }
+
+  /** 내가 마지막으로 다녀간 뒤 며칠 지났나 — 보관 안내에 쓴다. */
+  idleDaysOf(accountId: string, now: Date = new Date()): number {
+    const account = this.state.accounts[accountId];
+    if (!account) return 0;
+    const last = account.footprint?.lastSeenAt ?? account.createdAt;
+    return Math.max(0, Math.floor((now.getTime() - Date.parse(last)) / 86400000));
+  }
+
+  /** 주간 발자국 DM 켜고 끄기 (TASK-KL-156 D6). */
+  setWeeklyDm(accountId: string, on: boolean): boolean | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    account.weeklyDm = !!on;
+    this.save();
+    return account.weeklyDm;
+  }
+
+  /** 지금 보낼 사람들 — 켜 뒀고, 디스코드가 붙어 있고, 이번 주에 아직 안 보낸 계정. */
+  weeklyDmTargets(week: string = kstWeekKey()): Array<{ accountId: string; discordId: string; displayName: string }> {
+    const rows: Array<{ accountId: string; discordId: string; displayName: string }> = [];
+    for (const account of Object.values(this.state.accounts)) {
+      if (!account.weeklyDm) continue;
+      const discordId = account.identities?.discord?.discordId;
+      if (!discordId) continue;
+      if (account.weeklyDmSentWeek === week) continue;
+      rows.push({ accountId: account.id, discordId, displayName: account.displayName });
+    }
+    return rows;
+  }
+
+  /** 보냈다고 적는다 — 같은 주에 두 번 안 가게. */
+  markWeeklyDmSent(accountId: string, week: string = kstWeekKey()): void {
+    const account = this.state.accounts[accountId];
+    if (!account) return;
+    account.weeklyDmSentWeek = week;
+    this.save();
+  }
+
+  /** 이 사람이 주간 DM 을 켜 뒀나. */
+  weeklyDmOn(accountId: string): boolean {
+    return !!this.state.accounts[accountId]?.weeklyDm;
   }
 
   /** 프로필 꾸미기 읽기 (안 채웠으면 빈 것). */

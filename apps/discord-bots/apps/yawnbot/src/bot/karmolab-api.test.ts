@@ -1466,5 +1466,79 @@ describe('스팀 표 길어 오기', () => {
     const res = await fetch(`${baseUrl}/kl/steam/pack?source=owned`);
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe('source_unavailable');
+/** 2라운드 배선 (TASK-KL-156). */
+describe('계정 2라운드 (KL-156)', () => {
+  it('희귀도는 로그인 없이 볼 수 있고, 누가 가졌는지는 안 나간다', async () => {
+    const me = signIn();
+    store.mergeRecordsForAccount(store.byHandle(me.handle)!.id, {
+      achievements: ['pet_100'],
+      badges: [],
+      progress: {},
+      streaks: {},
+    });
+    const res = await fetch(`${baseUrl}/kl/stats/achievements`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.counts.pet_100).toBe(1);
+    expect(JSON.stringify(body)).not.toContain(me.handle);
+  });
+
+  it('막으면 그 사람을 못 따라가고, 막았다는 말은 답에 안 들어간다', async () => {
+    const me = signIn();
+    const other = store.upsertFromDiscord({ discordId: '77', username: 'ring', displayName: '링', avatarUrl: null });
+
+    const blocked = await fetch(`${baseUrl}/kl/u/${other.handle}/block`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ on: true }),
+    });
+    expect(blocked.status).toBe(200);
+
+    const follow = await fetch(`${baseUrl}/kl/u/${other.handle}/follow`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ on: true }),
+    });
+    expect(follow.status).toBe(400);
+    // 「막혔음」이라고 답하면 그것이 곧 통보다 — 그냥 안 되는 것으로만 답한다
+    expect(JSON.stringify(await follow.json())).not.toContain('block');
+  });
+
+  it('공유 주소는 HTML 로 나가고 그 사람 카드 그림을 가리킨다 · 잠근 사람은 403', async () => {
+    const me = signIn();
+    const res = await fetch(`${baseUrl}/kl/u/${me.handle}/card`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    const html = await res.text();
+    expect(html).toContain(`/kl/u/${me.handle}/card.svg`);
+    expect(html).toContain('og:image');
+    expect(html).toContain(`karmolab/u/?h=${me.handle}`);
+
+    store.setVisibility(store.byHandle(me.handle)!.id, { profile: false });
+    expect((await fetch(`${baseUrl}/kl/u/${me.handle}/card`)).status).toBe(403);
+  });
+
+  it('주간 DM 은 로그인해야 켜고, 기본은 꺼져 있다', async () => {
+    const me = signIn();
+    expect((await fetch(`${baseUrl}/kl/me/weekly`)).status).toBe(401);
+
+    const before = await (await fetch(`${baseUrl}/kl/me/weekly`, { headers: { cookie: me.cookie } })).json();
+    expect(before.weekly).toBe(false);
+
+    const after = await (
+      await fetch(`${baseUrl}/kl/me/weekly`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: me.cookie },
+        body: JSON.stringify({ on: true }),
+      })
+    ).json();
+    expect(after.weekly).toBe(true);
+  });
+
+  it('명예의 전당은 로그인 없이 볼 수 있다', async () => {
+    const me = signIn();
+    store.noteFootprint(store.byHandle(me.handle)!.id, { toolId: 'pet' });
+    const body = await (await fetch(`${baseUrl}/kl/stats/leaders`)).json();
+    expect(body.leaders.map((row: { handle: string }) => row.handle)).toContain(me.handle);
   });
 });

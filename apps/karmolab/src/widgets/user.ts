@@ -482,6 +482,12 @@
                 <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
             </div>
             <div class="user-acct-row">
+                <span class="user-acct-label">주간 발자국</span>
+                <label class="fp-vis-item"><input type="checkbox" data-weekly> 지난주 요약을 디스코드로 받기</label>
+                <span class="user-acct-hint" data-weekly-hint>월요일 오전에 한 번. 아무것도 안 한 주에는 안 보냅니다.
+                    끄는 것도 여기서 — 알림은 끄는 길이 켜는 자리와 같아야 합니다.</span>
+            </div>
+            <div class="user-acct-row">
                 <span class="user-acct-label">막은 사람</span>
                 <div class="fp-blocked" data-blocked>보는 중…</div>
                 <span class="user-acct-hint">막으면 그 사람 글이 내 피드·알림에서 사라지고, 서로 따라가기가 끊깁니다.
@@ -593,6 +599,7 @@
 
         mountVisibility(box.querySelector<HTMLElement>('[data-visibility]'), base);
         void renderBlocked(box.querySelector<HTMLElement>('[data-blocked]'), base);
+        void mountWeekly(box, base);
         mountCard(box, base);
 
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
@@ -888,6 +895,43 @@
                 });
                 Toolbox.showToast?.(res.ok ? '저장했어요' : '지금은 안 되네요');
             } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+    }
+
+    /** 주간 발자국 DM (TASK-KL-156 D6) — 켠 사람에게만 간다. 디스코드가 안 붙어 있으면 못 켠다. */
+    async function mountWeekly(box: Element, base: string): Promise<void> {
+        const input = box.querySelector<HTMLInputElement>('[data-weekly]');
+        const hint = box.querySelector<HTMLElement>('[data-weekly-hint]');
+        if (!input) return;
+        try {
+            const res = await fetch(`${base}/kl/me/weekly`, { credentials: 'include' });
+            if (!res.ok) throw new Error(String(res.status));
+            const body = (await res.json()) as { weekly: boolean; hasDiscord: boolean };
+            input.checked = !!body.weekly;
+            if (!body.hasDiscord) {
+                // 보낼 길이 없으면 켜는 시늉을 하게 두지 않는다.
+                input.disabled = true;
+                if (hint) hint.textContent = '디스코드로 로그인한 계정에만 보낼 수 있어요.';
+            }
+        } catch {
+            input.disabled = true;
+            if (hint) hint.textContent = '지금은 못 봤어요.';
+            return;
+        }
+        input.addEventListener('change', async () => {
+            try {
+                const res = await fetch(`${base}/kl/me/weekly`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ on: input.checked }),
+                });
+                if (!res.ok) throw new Error(String(res.status));
+                Toolbox.showToast?.(input.checked ? '월요일에 보낼게요' : '이제 안 보냅니다');
+            } catch {
+                input.checked = !input.checked;
                 Toolbox.showToast?.('지금은 안 되네요');
             }
         });
