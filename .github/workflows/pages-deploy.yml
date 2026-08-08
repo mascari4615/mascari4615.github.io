@@ -113,10 +113,6 @@ jobs:
         working-directory: apps/karmolab
         run: |
           npm ci
-          # 화면을 실제로 띄워 보는 검사(smoke-navigation)가 build 안에 있다.
-          # 러너에는 브라우저가 없어서 그 한 줄에서 **배포 전체**가 섰다 (2026-08-08, 세 판 연속).
-          # 로컬은 브라우저가 깔려 있어 초록이라 안 보였다 — CI 에서만 받아 온다.
-          npx playwright install --with-deps chromium
           npm run build
 
       - name: Prepare KarmoLab Jekyll page
@@ -186,6 +182,16 @@ jobs:
           done
           npm run prerender
           kill %1 || true
+
+      # TASK-KL-128 ②③: 화면을 옮기는 길이 실제로 빠른가 (미리 실행·이어 붙이기·뒤로 가기).
+      #
+      # 2026-08-08: 이 검사가 `npm run build` 안에 있어서 **도구 페이지가 만들어지기도 전에**
+      # 돌았다. 볼 화면이 없으니 늘 「링크를 못 찾았다」로 죽었고, 그 한 줄이 사이트 배포를
+      # 통째로 세웠다(로컬은 지난 빌드 산출물이 남아 있어 초록이었다).
+      # 이제 도구 페이지를 다 찍은 **뒤에** 돈다 — 재는 대상이 실제로 있는 자리.
+      - name: Check KarmoLab navigation (prerender · view transitions · bfcache)
+        working-directory: apps/karmolab
+        run: npm run test:navigation
 
       # TASK-KL-128: 파일 이름에 내용 지문을 박고, 찍어 둔 화면들이 그 이름을 부르게 바꾼다.
       # 그래야 서비스 워커가 「한 번 받은 것은 영원히 그대로」로 둘 수 있다(재방문 = 네트워크 0).
