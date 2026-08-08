@@ -212,9 +212,19 @@ def main():
             if before != after:
                 changed.append(name)
             print(f'    {name:20s} {len(after)/1024:7.1f}KB  ({len(pool)}자)')
+            # 한글 뭉치는 **바꿔 끼우지 않는다** (`optional`).
+            #
+            # 왜: 한글 조각이 258KB 다(라틴은 40KB). `swap` 이면 브라우저가 먼저 시스템
+            # 글꼴로 글을 그렸다가 뭉치가 도착하는 순간 **화면을 통째로 다시 그린다** —
+            # 사용자가 「처음에 UI 가 망가진 채로 한참 보인다」고 한 게 이 구간이다
+            # (실측: 첫 그림 0.5초 → 한글 뭉치 도착까지 0.26MB).
+            # `optional` 은 제때 못 오면 **그 방문에는 그냥 안 쓴다**. 대신 받아 둔 것은
+            # 캐시에 남아 **다음 방문부터는 처음부터 우리 글꼴**로 뜬다. 바뀌는 순간이 없다.
+            # 라틴은 작아서 제때 오므로 `swap` 그대로 둔다.
+            display = 'optional' if part == 'ko' else 'swap'
             css.append(
                 f"@font-face{{font-family:'{css_name}';font-style:normal;font-weight:100 900;"
-                f"font-display:swap;src:url('/apps/karmolab/fonts/{name}') format('woff2');"
+                f"font-display:{display};src:url('/apps/karmolab/fonts/{name}') format('woff2');"
                 f"unicode-range:{UNICODE_RANGE[part]}}}"
             )
     body = '\n'.join(css) + '\n'
