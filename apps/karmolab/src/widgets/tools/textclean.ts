@@ -18,9 +18,43 @@
     suffix: string;
     number: boolean;
     reverse: boolean;
+    /** 보이지 않는 글자(NBSP·전각공백·zero-width) 를 보통 공백으로 */
+    invisible: boolean;
+    /** 자모 분리(NFD) 한글을 합쳐 되돌리기 */
+    nfc: boolean;
+    /** 한 문단이 여러 줄로 쪼개진 것을 다시 잇기 */
+    join: boolean;
   }
 
+  const NEWLINE_RE = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n');
+
   function apply(src: string, o: Opts): string[] {
+    /* 붙여넣은 글의 가장 흔한 오염원은 **보이지 않는 글자**다 — 워드·PDF·웹에서 따라오는
+       NBSP·전각 공백·zero-width. 눈에는 공백인데 기존 정리가 하나도 못 잡아서, 정리했는데도
+       정렬·중복 제거가 안 먹었다. */
+    if (o.invisible) {
+      src = src
+        .replace(/[   -   　]/g, ' ')
+        .replace(/[​-‍﻿]/g, '');
+    }
+    /* macOS 에서 온 한글은 자모가 갈라진 모양(NFD)일 때가 있다 — 윈도에서 깨져 보이고 검색·정렬이
+       다 어긋난다. 합치면 되돌아온다. 남들의 「유니코드 정규화」는 라틴 문자용이라 한글 자모 분리를
+       내세운 곳이 사실상 없다. */
+    if (o.nfc) src = src.normalize('NFC');
+    /* PDF·전자책에서 복사하면 한 문단이 줄마다 잘려 온다. 그냥 이으면 영어는 붙고 한글은 없던
+       공백이 생긴다. 앞뒤 글자를 보고 한글끼리면 그대로, 아니면 공백 하나. 빈 줄은 문단 경계다. */
+    if (o.join) {
+      const merged: string[] = [];
+      for (const line of src.split(NEWLINE_RE)) {
+        const cur = line.trim();
+        if (cur === '') { merged.push(''); continue; }
+        const prev = merged.length ? merged[merged.length - 1] : '';
+        if (prev === '' || /[.!?。？！:;]$/.test(prev)) { merged.push(cur); continue; }
+        const 한글끼리 = /[가-힣]$/.test(prev) && /^[가-힣]/.test(cur);
+        merged[merged.length - 1] = prev + (한글끼리 ? '' : ' ') + cur;
+      }
+      src = merged.join(String.fromCharCode(10));
+    }
     let lines = src.split(/\r?\n/);
     if (o.trim) lines = lines.map((l) => l.trim());
     if (o.squeeze) lines = lines.map((l) => l.replace(/[ \t]+/g, ' '));
@@ -83,6 +117,9 @@
                 <label class="tool-chip"><input type="checkbox" id="tcDedupe"> 중복 줄 제거</label>
                 <label class="tool-chip"><input type="checkbox" id="tcReverse"> 순서 뒤집기</label>
                 <label class="tool-chip"><input type="checkbox" id="tcNumber"> 번호 매기기</label>
+                <label class="tool-chip"><input type="checkbox" id="tcInvisible" checked> 보이지 않는 공백 정리</label>
+                <label class="tool-chip"><input type="checkbox" id="tcNfc" checked> 자모 분리 한글 되돌리기</label>
+                <label class="tool-chip"><input type="checkbox" id="tcJoin"> 문단 잇기 (PDF 복사)</label>
               </div>
             </div>
 
@@ -143,6 +180,9 @@
               dedupe: $<HTMLInputElement>('#tcDedupe').checked,
               reverse: $<HTMLInputElement>('#tcReverse').checked,
               number: $<HTMLInputElement>('#tcNumber').checked,
+              invisible: $<HTMLInputElement>('#tcInvisible').checked,
+              nfc: $<HTMLInputElement>('#tcNfc').checked,
+              join: $<HTMLInputElement>('#tcJoin').checked,
               sort: $<HTMLSelectElement>('#tcSort').value,
               caseMode: $<HTMLSelectElement>('#tcCase').value,
               prefix: $<HTMLInputElement>('#tcPrefix').value,
