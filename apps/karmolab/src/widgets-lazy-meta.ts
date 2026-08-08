@@ -25,6 +25,18 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['user']
   },
   {
+    /* 남이 만든 도구 (TASK-KL-183 H) — 창작자 층.
+     * 실행은 모래상자 안에서만 일어난다(우리 출처를 안 준다). 숨기지 않는다:
+     * 이 화면 자체가 「여기 있는 것이 전부 우리가 만든 것은 아니다」라는 선언이다. */
+    id: 'usertool',
+    title: '만든 도구',
+    category: 'tool',
+    desc: '사람들이 만들어 올린 도구 — 상자 안에서만 돕니다',
+    layout: 'form',
+    icon: '<path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="17" cy="16" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+    lazyScriptPaths: ['usertool']
+  },
+  {
     /* 도구 흐름 (TASK-KL-181) — 도구를 이어 붙여 내 순서를 만들어 둔다.
      * 숨기지 않는다: 이 화면 자체가 「도구가 서로 만난다」는 이 사이트의 주장이다. */
     id: 'flow',
@@ -75,17 +87,6 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 16v-3M11 16v-7M15 16v-5M19 16v-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     lazyScriptPaths: ['activity']
-  },
-  {
-    id: 'wm',
-    title: 'Witch-Mendokusai',
-    category: 'tool',
-    desc: '만들고 있는 게임 — 소개 · 하루 체험 · 세계 도감 · 이야기 · 소식 · 만드는 중',
-    layout: 'wide',
-    noHero: true,
-    icon:
-      '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7.5h6M9 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
-    lazyScriptPaths: ['wm/wm']
   },
   {
     id: 'docs',

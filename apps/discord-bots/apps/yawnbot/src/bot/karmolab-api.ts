@@ -52,6 +52,7 @@ import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-upl
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
+import { getKarmolabUserToolStore } from '../services/karmolab-userTools';
 import { missionState, missionsOfWeek } from '../services/karmolab-missions';
 import {
   verifyRegistration,
@@ -1057,6 +1058,81 @@ export function registerKarmolabApi(
   /** 이번 주 미션은 **모두에게 같다** — 로그인 없이도 무엇이 걸렸는지 볼 수 있어야 이야기가 된다. */
   app.get('/kl/missions', (_req: Request, res: Response) => {
     res.json({ missions: missionsOfWeek() });
+  });
+
+  /* ── 남이 만든 도구 (TASK-KL-183 H) ──────────────────────────────
+   *
+   * 서버는 **글자만 보관한다**. 실행은 브라우저의 모래상자에서만 일어나고, 그 안에는 우리
+   * 출처를 안 준다 — 남의 도구가 내 계정을 만지는 일이 구조적으로 없다.
+   * 기본은 비공개다: 목록에 올리는 것은 주인이 스스로 켠다.
+   */
+  const userTools = getKarmolabUserToolStore();
+
+  app.get('/kl/tools/mine', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ tools: userTools.byOwner(account.handle) });
+  });
+
+  /** 목록 — 주인이 올린 것만. 로그인 없이 볼 수 있다. */
+  app.get('/kl/tools/user', (_req: Request, res: Response) => {
+    res.json({ tools: userTools.listed().map(({ source: _source, ...rest }) => rest) });
+  });
+
+  /** 하나 — 소스까지. 주소를 아는 사람은 열 수 있다(비공개는 「목록에 안 올림」이지 잠금이 아니다). */
+  app.get('/kl/tools/user/:id', (req: Request, res: Response) => {
+    const tool = userTools.get(String(req.params.id ?? ''));
+    if (!tool) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ tool });
+  });
+
+  app.post('/kl/tools/user', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const body = req.body ?? {};
+    const tool = userTools.create(account.handle, { title: body.title, source: body.source });
+    if (!tool) {
+      // 왜 안 됐는지 말해 준다 — 조용히 실패하면 사람은 고장으로 읽는다.
+      res.status(400).json({ error: 'bad_tool', titleMax: 32, sourceMax: 20000, perOwner: 10 });
+      return;
+    }
+    res.json({ tool });
+  });
+
+  app.put('/kl/tools/user/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const tool = userTools.update(String(req.params.id ?? ''), account.handle, req.body ?? {});
+    if (!tool) {
+      res.status(403).json({ error: 'not_owner' });
+      return;
+    }
+    res.json({ tool });
+  });
+
+  app.delete('/kl/tools/user/:id', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ removed: userTools.remove(String(req.params.id ?? ''), account.handle) });
+  });
+
+  app.post('/kl/tools/user/:id/run', (req: Request, res: Response) => {
+    res.json({ runs: userTools.noteRun(String(req.params.id ?? '')) });
   });
 
   /* ── 도구 흐름 (TASK-KL-181) ──────────────────────────────────────
