@@ -170,6 +170,14 @@
         .fp-event-meta { flex:2 1 160px; font-size:11px; color:var(--text-secondary);
             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .user-item-rarity { margin-top:6px; font-size:11px; color:var(--accent); }
+        .fp-follows { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+        .fp-follows > div { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+        .fp-follows > div > span { font-size:11px; color:var(--text-tertiary); margin-right:4px; }
+        .fp-person { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px;
+            border:1px solid var(--border); background:var(--bg-secondary); font-size:var(--font-size-xs);
+            color:var(--text-primary); text-decoration:none; }
+        .fp-person:hover { border-color:var(--accent); }
+        .fp-person b { font-size:10px; color:var(--accent); font-weight:600; }
         .fp-blocked { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; font-size:var(--font-size-xs); color:var(--text-secondary); }
         .fp-blocked-item { display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
             border:1px solid var(--border); border-radius:999px; background:var(--bg-tertiary); }
@@ -482,6 +490,12 @@
                 <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
             </div>
             <div class="user-acct-row">
+                <span class="user-acct-label">받을 알림</span>
+                <div class="fp-vis" data-notify>불러오는 중…</div>
+                <span class="user-acct-hint">끈 갈래는 **쌓이지도 않습니다** — 쌓아 두고 화면에서만 숨기면
+                    「안 읽음」 수가 계속 붙고, 그걸 없애려다 결국 종을 통째로 끄게 됩니다.</span>
+            </div>
+            <div class="user-acct-row">
                 <span class="user-acct-label">패스키</span>
                 <div class="fp-sessions" data-passkeys>보는 중…</div>
                 <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-add>이 기기에 만들기</button>
@@ -608,6 +622,7 @@
         void renderBlocked(box.querySelector<HTMLElement>('[data-blocked]'), base);
         void mountWeekly(box, base);
         mountPasskeys(box, base);
+        void mountNotifyPrefs(box.querySelector<HTMLElement>('[data-notify]'), base);
         mountCard(box, base);
 
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
@@ -670,6 +685,39 @@
         Toolbox.onDispose?.(off);
     }
 
+    /** 내가 따라가는 사람 얼굴 줄 (TASK-KL-175 E5). 못 받아 오면 빈 문자열 — 피드는 그대로 뜬다. */
+    async function followRows(): Promise<string> {
+        const base = window.KarmoAccount?.apiBase;
+        const handle = window.KarmoAccount?.state.account?.handle;
+        if (!base || !handle) return '';
+        try {
+            const res = await fetch(`${base}/kl/u/${encodeURIComponent(handle)}/follows`, { credentials: 'include' });
+            if (!res.ok) return '';
+            const body = (await res.json()) as {
+                following?: Array<{ handle: string; displayName: string; mutual: boolean }>;
+                followers?: Array<{ handle: string; displayName: string }>;
+            };
+            const following = body.following ?? [];
+            const followers = body.followers ?? [];
+            if (!following.length && !followers.length) return '';
+            const chips = (rows: Array<{ handle: string; displayName: string; mutual?: boolean }>): string =>
+                rows
+                    .map(
+                        (row) =>
+                            `<a class="fp-person" href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">` +
+                            `${escapeHtml(row.displayName)}${row.mutual ? '<b>맞팔</b>' : ''}</a>`,
+                    )
+                    .join('');
+            return `
+                <div class="fp-follows">
+                    ${following.length ? `<div><span>따라가는 ${following.length}</span>${chips(following)}</div>` : ''}
+                    ${followers.length ? `<div><span>팔로워 ${followers.length}</span>${chips(followers)}</div>` : ''}
+                </div>`;
+        } catch {
+            return '';
+        }
+    }
+
     async function renderFeed(slot: HTMLElement): Promise<void> {
         const base = window.KarmoAccount?.apiBase;
         if (!base) return;
@@ -696,9 +744,12 @@
             })
             .join('');
 
+        // 누구를 따라가는지 얼굴로 보여 준다 (TASK-KL-175 E5) — 수만 보이면 계기판이지 사회가 아니다.
+        const people = await followRows();
         slot.innerHTML = `
             <div class="user-section">
                 <h3>👣 따라가는 사람들</h3>
+                ${people}
                 <p class="user-act-lead">${body.following}명을 따라가는 중${body.posts.length === 0 ? ' — 아직 새 글이 없어요' : ''}</p>
                 ${rows ? `<div class="user-acts">${rows}</div>` : ''}
             </div>`;
@@ -905,6 +956,49 @@
             } catch {
                 Toolbox.showToast?.('지금은 안 되네요');
             }
+        });
+    }
+
+    /** 받을 알림 갈래 (TASK-KL-175 E1). 이름은 서버 칸 이름과 같다. */
+    const NOTIFY_LABELS: Array<[string, string]> = [
+        ['community', '내 글의 답글'],
+        ['follow', '따라가는 사람의 새 글'],
+        ['system', '그 밖(계정·도구·봇)'],
+    ];
+
+    async function mountNotifyPrefs(slot: HTMLElement | null, base: string): Promise<void> {
+        if (!slot) return;
+        let prefs: Record<string, boolean> | null = null;
+        try {
+            const res = await fetch(`${base}/kl/me/notify-prefs`, { credentials: 'include' });
+            if (!res.ok) throw new Error(String(res.status));
+            prefs = ((await res.json()) as { prefs?: Record<string, boolean> }).prefs ?? null;
+        } catch {
+            slot.textContent = '지금은 못 봤어요';
+            return;
+        }
+        if (!prefs) return;
+        const current = prefs;
+        slot.innerHTML = NOTIFY_LABELS.map(
+            ([key, label]) =>
+                `<label class="fp-vis-item"><input type="checkbox" data-notify-key="${key}"${current[key] === false ? '' : ' checked'}> ${escapeHtml(label)}</label>`,
+        ).join('');
+        slot.querySelectorAll<HTMLInputElement>('[data-notify-key]').forEach((input) => {
+            input.addEventListener('change', async () => {
+                try {
+                    const res = await fetch(`${base}/kl/me/notify-prefs`, {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ [input.dataset.notifyKey ?? '']: input.checked }),
+                    });
+                    if (!res.ok) throw new Error(String(res.status));
+                    Toolbox.showToast?.(input.checked ? '받습니다' : '이제 안 옵니다');
+                } catch {
+                    input.checked = !input.checked;
+                    Toolbox.showToast?.('지금은 안 되네요');
+                }
+            });
         });
     }
 

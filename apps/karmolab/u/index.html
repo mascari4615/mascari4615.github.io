@@ -97,6 +97,19 @@
     border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px;
   }
   .profile-share:hover { border-color: var(--accent); color: var(--accent); }
+  /* 잔디 (TASK-KL-175 E6) — 안 온 날과 둘러보기만 한 날을 다르게 칠한다. */
+  .profile-grass-wrap { margin: 24px 0; }
+  .profile-grass-wrap h2 { margin: 0 0 8px; font-size: 15px; }
+  .profile-grass {
+    display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 9px);
+    gap: 2px; overflow-x: auto; padding-bottom: 6px;
+  }
+  .profile-grass i { width: 9px; height: 9px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); }
+  .profile-grass i[data-lv="1"] { background: rgba(185, 162, 255, 0.25); }
+  .profile-grass i[data-lv="2"] { background: rgba(185, 162, 255, 0.5); }
+  .profile-grass i[data-lv="3"] { background: rgba(185, 162, 255, 0.75); }
+  .profile-grass i[data-lv="4"] { background: var(--accent); }
+  .profile-grass i[data-lv="x"] { background: transparent; }
   .profile-foot { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; }
   .profile-empty h1 { margin: 0 0 10px; font-size: 20px; }
   .profile-empty p { color: var(--muted); }
