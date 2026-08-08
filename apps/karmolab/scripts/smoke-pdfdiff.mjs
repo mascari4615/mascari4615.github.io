@@ -17,6 +17,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { waitHydrated } from './lib/hydrated.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const BASE = process.env.BASE || 'https://blog.mascari4615.com';
@@ -33,7 +34,8 @@ async function compare(a, b, mode) {
   const res = await page.goto(`${BASE}/karmolab/t/pdfdiff/`, { waitUntil: 'domcontentloaded' });
   // 아직 안 올라간 것과 망가진 것은 고칠 곳이 다르다 — 섞어 적으면 없는 버그를 쫓게 된다.
   if (res && res.status() === 404) throw new Error(`페이지가 아직 없다 (${BASE} 에 배포되기 전) — 배포 후 다시 보라`);
-  await page.waitForSelector('#pdRun', { timeout: 30000 });
+  // 보인다고 손이 달린 것은 아니다 — 미리 그린 그림과 진짜 화면 사이 틈 (TASK-KL-135)
+  await waitHydrated(page, '#pdRun');
   await page.setInputFiles('#pdFileA', a);
   await page.setInputFiles('#pdFileB', b);
   await page.selectOption('#pdMode', mode);
