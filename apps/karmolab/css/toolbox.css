@@ -1069,7 +1069,11 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 }
 .home-decor-float { will-change: transform; }
 .landing-hero, .landing-cta { position: relative; z-index: 1; }
-@media (prefers-reduced-motion: reduce) { .home-decor-item { animation: none !important; } }
+/* 떠다니는 움직임은 **안쪽 상자**에 걸려 있다 (`.home-decor-float`). 바깥 상자만 껐던
+   탓에 「움직임 줄이기」를 켠 사람에게도 배경이 계속 흘렀다 — 규칙이 죽어 있었다. */
+@media (prefers-reduced-motion: reduce) {
+    .home-decor-item, .home-decor-float { animation: none !important; }
+}
 @media (max-width: 768px) {
     /* 크기는 만들 때 줄인다(toolbox.ts) — 여기서 transform 을 걸면 떠다니는 움직임에 덮인다 */
 }

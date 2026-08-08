@@ -106,7 +106,8 @@
     "test:badapple": "node scripts/smoke-badapple.mjs",
     "test:badapple:home": "node scripts/smoke-badapple-home.mjs",
     "gen:badapple": "node scripts/gen-badapple-demo.mjs",
-    "test:badapple:load": "node scripts/smoke-badapple-load.mjs"
+    "test:badapple:load": "node scripts/smoke-badapple-load.mjs",
+    "measure:runtime": "node scripts/measure-runtime.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
