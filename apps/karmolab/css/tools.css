@@ -1580,3 +1580,20 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .jt-hit { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 .jf-repair { margin-top: 8px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
     font-size: var(--font-size-xs); color: var(--text-secondary); }
+
+/* 텍스트 비교 — 줄 안에서 어디가 바뀌었나 + 나란히 보기 (도구 품질 올리기)
+   줄 통째를 칠하면 「이 줄이 바뀌었다」까지만 알고 사람이 다시 눈으로 대조해야 한다. */
+.td-x { text-decoration: none; border-radius: 3px; padding: 0 1px; }
+del.td-x { background: color-mix(in srgb, var(--error) 30%, transparent); }
+ins.td-x { background: color-mix(in srgb, var(--success, var(--accent)) 30%, transparent); }
+.td-out-split { display: block; }
+.td-srow {
+    display: grid; grid-template-columns: 44px 1fr 44px 1fr; align-items: flex-start;
+    line-height: 1.6; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+.td-srow .td-text { padding: 0 8px; }
+.td-srow .td-blank { background: color-mix(in srgb, var(--border) 25%, transparent); }
+@media (max-width: 720px) {
+    .td-srow { grid-template-columns: 34px 1fr; }
+    .td-srow > :nth-child(3), .td-srow > :nth-child(4) { border-top: 1px dashed var(--border); }
+}
