@@ -1231,6 +1231,20 @@ export function registerKarmolabApi(
     res.json({ moved });
   });
 
+  /**
+   * 함께 편집 연산 (TASK-KL-183 C) — 받아서 그대로 흘려보낸다.
+   * 서버는 글을 읽지도 저장하지도 않는다. 뜻은 브라우저 쪽 규칙이 정한다.
+   */
+  app.post('/kl/room/:id/op', (req: Request, res: Response) => {
+    const roomId = roomIdOf(req.params.id);
+    if (!roomId) {
+      res.status(400).json({ error: 'bad_room' });
+      return;
+    }
+    const body = req.body ?? {};
+    res.json({ relayed: rooms.relayOp(roomId, memberIdOf(req, body.tab), body.op) });
+  });
+
   /** 어느 화면에 몇 명이 같이 있나 — 광장에 낼 수 있는 값. */
   app.get('/kl/rooms', (_req: Request, res: Response) => {
     res.json({ rooms: rooms.snapshot() });

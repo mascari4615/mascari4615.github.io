@@ -164,6 +164,10 @@ function joinRoom(next: string): void {
         node.dataset.active = data.active ? '1' : '0';
         node.style.transform = `translate(${data.x * window.innerWidth}px, ${data.y * window.innerHeight}px)`;
     });
+    source.addEventListener('op', (event) => {
+        const data = JSON.parse((event as MessageEvent).data) as { op?: unknown };
+        applyRemote(data.op);
+    });
     source.addEventListener('leave', (event) => {
         removeMember((JSON.parse((event as MessageEvent).data) as { id: string }).id);
     });
@@ -215,12 +219,70 @@ function start(): void {
 if (document.readyState === 'complete') start();
 else window.addEventListener('load', start);
 
-declare global {
-    interface Window {
-        KarmoCopresence: { isOn: typeof isCopresenceOn; set: typeof setCopresence };
+/* ── 함께 편집 붙이기 (TASK-KL-183 C) ─────────────────────────────
+ *
+ * 도구는 **글칸 하나를 건네주기만** 하면 된다: `KarmoCopresence.share(el, 'memo-1')`.
+ * 나머지(연산 만들기·보내기·받기·커서 지키기)는 여기서 한다 — 도구마다 CRDT 를 알게 하면
+ * 아무도 안 붙인다.
+ *
+ * 첫 사이클은 **방에 있는 동안만**이다. 서버는 글을 저장하지 않는다(그래서 새로고침하면
+ * 내 것만 남는다) — 그 사실을 도구 화면에도 적는다. 저장은 그다음 이야기다.
+ */
+const shared = new Map<string, { doc: import('./cotext').CoText; el: HTMLTextAreaElement | HTMLInputElement }>();
+
+async function shareField(el: HTMLTextAreaElement | HTMLInputElement, key: string): Promise<void> {
+    if (!isCopresenceOn() || shared.has(key)) return;
+    const { CoText } = await import('./cotext');
+    const doc = new CoText(TAB_ID);
+    // 지금 화면에 있던 글을 시작점으로 (빈 글에서 시작하면 남이 들어오는 순간 내 글이 사라진다).
+    doc.diffTo(el.value);
+    shared.set(key, { doc, el });
+
+    el.addEventListener('input', () => {
+        const ops = doc.diffTo(el.value);
+        if (!ops.length || !roomId) return;
+        void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/op`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tab: TAB_ID, op: { key, ops } }),
+        }).catch(() => {
+            /* 한 번 못 보낸 연산은 다음 입력 때 다시 실려 간다(diff 는 지금 글 기준이다) */
+        });
+    });
+}
+
+function applyRemote(payload: unknown): void {
+    const data = payload as { key?: string; ops?: Array<import('./cotext').TextOp> } | undefined;
+    const entry = data?.key ? shared.get(data.key) : undefined;
+    if (!entry || !Array.isArray(data?.ops)) return;
+    data.ops.forEach((op) => entry.doc.apply(op));
+    // 커서 자리를 지킨다 — 남이 친 글자 때문에 내 커서가 튀면 같이 쓰는 게 아니라 방해가 된다.
+    const el = entry.el;
+    const before = el.selectionStart ?? 0;
+    const prevLength = el.value.length;
+    const next = entry.doc.text;
+    if (el.value === next) return;
+    el.value = next;
+    const shift = next.length - prevLength;
+    const at = Math.max(0, before + (shift > 0 ? shift : 0));
+    try {
+        el.setSelectionRange(at, at);
+    } catch {
+        /* 몇몇 입력칸은 커서를 못 옮긴다 — 글은 이미 맞았다 */
     }
 }
 
-window.KarmoCopresence = { isOn: isCopresenceOn, set: setCopresence };
+declare global {
+    interface Window {
+        KarmoCopresence: {
+            isOn: typeof isCopresenceOn;
+            set: typeof setCopresence;
+            share: typeof shareField;
+        };
+    }
+}
+
+window.KarmoCopresence = { isOn: isCopresenceOn, set: setCopresence, share: shareField };
 
 export {};

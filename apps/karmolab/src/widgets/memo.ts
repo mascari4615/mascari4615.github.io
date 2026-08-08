@@ -157,12 +157,17 @@
                 </div>
                 <textarea id="memoBodyInput" class="memo-body-input" placeholder="여기에 내용을 입력하세요...">${esc(m.body)}</textarea>
                 <div class="memo-status-indicator" id="memoStatus">자동 저장 대기 중</div>
+                <div class="memo-status-indicator">같이 보고 있는 사람이 있으면 글자가 서로에게 흘러갑니다 · 함께 친 내용은 이 창을 닫으면 사라집니다(저장은 내 브라우저에만)</div>
             `
       const titleInput = document.getElementById('memoTitleInput') as HTMLInputElement | null
       const bodyInput = document.getElementById('memoBodyInput') as HTMLTextAreaElement | null
       const deleteBtn = document.getElementById('memoDeleteBtn') as HTMLButtonElement | null
       if (titleInput) titleInput.oninput = handleInput
       if (bodyInput) bodyInput.oninput = handleInput
+      /* 같이 쓰기 (TASK-KL-183 C) — 글칸 하나를 건네주면 끝이다.
+       * 같은 메모를 열고 있는 사람끼리 글자가 서로에게 흘러간다. 서버는 글을 저장하지 않아
+       * **방에 있는 동안만**이다(새로고침하면 내 것만 남는다) — 그 사실을 아래 줄에 적었다. */
+      if (bodyInput) void window.KarmoCopresence?.share?.(bodyInput, `memo:${m.id}`)
       if (deleteBtn)
         deleteBtn.onclick = () => {
           deleteMemo(m.id)

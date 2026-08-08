@@ -37,7 +37,15 @@ export interface RoomMember {
 export type RoomEvent =
   | { type: 'join'; member: PublicMember }
   | { type: 'move'; id: string; x: number; y: number; active: boolean }
-  | { type: 'leave'; id: string };
+  | { type: 'leave'; id: string }
+  /**
+   * 함께 편집 연산 (TASK-KL-183 C).
+   *
+   * 서버는 **읽지도 저장하지도 않는다** — 그냥 흘려보낸다. 글의 뜻은 브라우저 쪽 규칙(RGA)이
+   * 정하고, 그 규칙은 어느 순서로 받아도 같은 곳에 닿는다. 서버가 순서를 지켜 줄 필요가 없다는
+   * 뜻이고, 그래서 서버는 이 기능에 대해 아무 상태도 안 갖는다.
+   */
+  | { type: 'op'; id: string; op: unknown };
 
 export type PublicMember = Omit<RoomMember, 'lastSeen'>;
 
@@ -143,6 +151,16 @@ export class KarmolabRoomStore {
     member.active = !!active;
     member.lastSeen = now;
     this.emit(roomId, { type: 'move', id, x: member.x, y: member.y, active: member.active });
+    return true;
+  }
+
+  /** 편집 연산 한 개를 그 방 사람들에게 흘려보낸다. 저장하지 않는다. */
+  relayOp(roomId: string, id: string, op: unknown, now = Date.now()): boolean {
+    const room = this.rooms.get(roomId);
+    const member = room?.members.get(id);
+    if (!room || !member) return false;
+    member.lastSeen = now; // 글을 치는 사람은 살아 있는 사람이다
+    this.emit(roomId, { type: 'op', id, op });
     return true;
   }
 
