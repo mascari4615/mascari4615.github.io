@@ -162,14 +162,25 @@ jobs:
         run: npm run gen:tool-pages
 
       # TASK-KL-135: 도구 화면을 미리 그려 HTML 에 박는다 — 스크립트 없이도 도구가 보인다.
-      # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄운다. 못 띄우면 그냥 넘어간다
-      # (미리 그리기는 있으면 좋은 것이지, 없다고 배포를 세울 일이 아니다).
+      # 화면을 실제로 열어 봐야 하므로 눌러 볼 서버를 잠깐 띄우고, 그 화면을 열 브라우저를 받는다.
+      #
+      # 2026-08-08: 이 단계는 **한 번도 실제로 돈 적이 없다**. 브라우저를 안 받아 둬서
+      # `browserType.launch: Executable doesn't exist` 로 죽었는데 `|| true` 가 그걸 삼켰다.
+      # 그래서 로컬에는 129장이 다 박혀 있는데 실제 사이트는 0장이었다 — 배포는 내내 초록.
+      # 이제 브라우저를 명시적으로 받고, 실패는 배포를 세운다(조용히 넘어가는 길 없음).
+      - name: Install browser for prerender
+        working-directory: apps/karmolab
+        run: npx playwright install --with-deps chromium
+
       - name: Prerender KarmoLab tool pages
         working-directory: apps/karmolab
         run: |
           npm run serve:gzip &
-          sleep 4
-          npm run prerender || true
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://127.0.0.1:8801/apps/blog/karmolab/t/ && break
+            sleep 1
+          done
+          npm run prerender
           kill %1 || true
 
       # TASK-KL-128: 파일 이름에 내용 지문을 박고, 찍어 둔 화면들이 그 이름을 부르게 바꾼다.
