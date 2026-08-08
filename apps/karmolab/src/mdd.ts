@@ -37,7 +37,10 @@ const Mdd = (() => {
     }
 
     const PREF_DEFAULTS: MddPrefs = {
-        enabled: true, width: 300, framing: 'bust', showOnMobile: false,
+        /* 기본은 **끔**. 그림·표정·눈 배선이 아직 다듬는 중이라, 다 만들어지기 전에
+           모든 방문자 화면에 세워 두면 미완성이 기본값이 된다. 켜는 자리는 남겨 둔다
+           (환경 설정 → 마스코트). 다 다듬으면 이 한 줄만 되돌린다. */
+        enabled: false, width: 300, framing: 'bust', showOnMobile: false,
         opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true, hologram: true,
         bubble: true, bubbleMs: 3000, idleMs: IDLE_TIMEOUT, tapReact: true,
     };
