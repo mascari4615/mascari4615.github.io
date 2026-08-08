@@ -253,3 +253,83 @@ describe('보내는 자리', () => {
     expect(nameA).not.toBe(nameB);
   });
 });
+
+describe('익명 글쓰기 (KL-157)', () => {
+  it('로그인 없이도 익명으로 글이 올라가고, 손잡이는 기록에 안 남는다', async () => {
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.0.1' },
+      body: JSON.stringify({ board: 'free', title: '익명 글', text: '로그인 안 했다', anon: true }),
+    });
+    expect(created.status).toBe(200);
+
+    const list = await fetch(`${baseUrl}/kl/posts?board=free`, {
+      headers: { 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.0.2' },
+    });
+    const body = (await list.json()) as { posts: { text: string; authorHandle: string; anon: { name: string; color: string } | null }[] };
+    const post = body.posts.find((p) => p.text === '로그인 안 했다');
+    expect(post).toBeTruthy();
+    // 이름표는 채팅과 같은 모양(「색 동물」)이고, 손잡이는 **비어 있어야** 한다.
+    expect(post!.anon?.name).toMatch(/\S+ \S+/);
+    expect(post!.anon?.color).toMatch(/^#[0-9a-f]{6}$/);
+    expect(post!.authorHandle).toBe('');
+  });
+
+  it('익명이 아니면 예전대로 로그인을 요구한다', async () => {
+    const denied = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.0.3' },
+      body: JSON.stringify({ board: 'free', title: '실명 글', text: '로그인 없이 실명' }),
+    });
+    expect(denied.status).toBe(401);
+    expect((await denied.json()).error).toBe('not_signed_in');
+  });
+
+  it('봇은 익명 문으로도 못 들어온다', async () => {
+    const denied = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': BOT_UA, 'x-forwarded-for': '10.1.0.4' },
+      body: JSON.stringify({ board: 'free', title: '크롤러', text: '긁는 중', anon: true }),
+    });
+    expect(denied.status).toBe(403);
+    expect((await denied.json()).error).toBe('not_human');
+  });
+
+  it('익명 답글도 달리고, 「주인」 표식은 안 붙는다', async () => {
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.1.1' },
+      body: JSON.stringify({ board: 'free', title: '답글 받을 글', text: '본문', anon: true }),
+    });
+    const postId = ((await created.json()) as { id: string }).id;
+
+    const replied = await fetch(`${baseUrl}/kl/posts/${postId}/replies`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.1.2' },
+      body: JSON.stringify({ text: '익명 답글', anon: true }),
+    });
+    expect(replied.status).toBe(200);
+
+    const detail = await fetch(`${baseUrl}/kl/posts/${postId}`, { headers: { 'user-agent': HUMAN_UA } });
+    const body = (await detail.json()) as {
+      post: { replies: { text: string; byOwner: boolean; authorHandle: string; anon: { name: string } | null }[] };
+      myAnon: { name: string } | null;
+    };
+    const reply = body.post.replies[0];
+    expect(reply.text).toBe('익명 답글');
+    expect(reply.anon?.name).toMatch(/\S+ \S+/);
+    expect(reply.byOwner).toBe(false);
+    expect(reply.authorHandle).toBe('');
+    // 화면이 「어떤 이름으로 올라가는가」를 미리 적으려면 이 값이 있어야 한다.
+    expect(body.myAnon?.name).toMatch(/\S+ \S+/);
+  });
+
+  it('공지판은 익명으로 못 쓴다', async () => {
+    const denied = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.1.2.1' },
+      body: JSON.stringify({ board: 'notice', title: '가짜 공지', text: '주인인 척', anon: true }),
+    });
+    expect([403, 404]).toContain(denied.status);
+  });
+});

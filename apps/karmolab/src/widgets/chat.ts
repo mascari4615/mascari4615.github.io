@@ -214,9 +214,12 @@
         const head = sameSpeaker
             ? ''
             : `${owner}<span class="klchat-who" style="color:${m.color}">${escapeHtml(m.name)}</span><span style="color:var(--text-tertiary,#6b7688)">: </span>`;
+        /* 「글로 옮기기」가 왜 여기 있나 (TASK-KL-157): 채팅에서 나온 좋은 말은 24시간 뒤 사라진다.
+         * 남길 가치가 있다고 느낀 그 순간에 옮길 길이 없으면, 옮기자고 마음먹을 일도 없다. */
+        const keep = `<button data-act="keep" data-id="${m.id}" title="글로 옮기기">📌</button>`;
         const actions = isAdmin
-            ? `<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
-            : `<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
+            ? `${keep}<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
+            : `${keep}<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
         return (
             `<div class="klchat-line${sameSpeaker ? ' cont' : ''}" data-id="${m.id}">` +
             head +
@@ -419,6 +422,41 @@
         }).catch(() => null);
     }
 
+    /**
+     * 이 줄을 커뮤니티 글로 옮긴다 (TASK-KL-157).
+     *
+     * 여기서 글을 **대신 올리지 않는다.** 옮길지 말지·어떻게 다듬을지는 사람이 정할 일이고,
+     * 한 번 누르면 글이 올라가 버리는 단추는 무섭다. 대신 인용을 초안에 넣고 작성기를 열어 준다.
+     * 초안은 커뮤니티가 이미 쓰는 자리(`kl_draft:<판>`)에 넣는다 — 새 통로를 안 만든다.
+     */
+    function keep(id: string): void {
+        const line = messages.find((m) => m.id === id);
+        if (!line) return;
+        const quoted = line.text
+            .split('\n')
+            .map((row) => `> ${row}`)
+            .join('\n');
+        try {
+            // 커뮤니티가 이미 쓰는 초안 자리. 새 통로를 안 만든다 (`community.ts` 의 draftKey).
+            localStorage.setItem(
+                'karmolab_community_draft_free',
+                JSON.stringify({ title: '', text: `${quoted}\n\n— 채팅에서 (${line.name})\n\n` }),
+            );
+            // 「글쓰기 칸을 펴 둔 채로 도착해라」 한 번만 쓰이는 표식.
+            localStorage.setItem('karmolab_community_open_writer', '1');
+        } catch {
+            /* 기억을 못 해도 화면은 열어 준다 — 붙여 쓰면 된다 */
+        }
+        setOpen(false);
+        // 자유 판으로 도착하게 주소를 먼저 맞춘다 — 커뮤니티는 주소에서 판을 읽는다.
+        const search = new URLSearchParams(location.search);
+        search.set('board', 'free');
+        search.delete('p');
+        history.replaceState({}, '', `${location.pathname}?${search.toString()}#community`);
+        Toolbox.switchPage?.('community');
+        Toolbox.showToast?.('채팅 줄을 옮겨 왔다 — 자유 판에 글쓰기를 열었다.', 'info');
+    }
+
     // ── 배선 ──────────────────────────────────────────────────────────────────
 
     el.dock.onclick = () => setOpen(!isOpen());
@@ -453,6 +491,7 @@
             void act('/kl/chat/report', { id: button.dataset.id });
             Toolbox.showToast?.('신고했다 — 주인에게 갔다.', 'info');
         }
+        if (kind === 'keep') keep(button.dataset.id ?? '');
     };
 
     if (pref(OPEN_KEY, '0') === '1') setOpen(true);
