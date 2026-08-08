@@ -13,8 +13,8 @@
  */
 // @ts-nocheck — 셸에서 그대로 옮겨 온 코드 (TASK-KL-128 ①-c)
 (function () {
-    const escapeHtml = (s) => window.Toolbox.escapeHtml(s);
-    const isDesktopApp = () => window.Toolbox.isDesktopApp();
+    const escapeHtml = (s) => Toolbox.escapeHtml(s);
+    const isDesktopApp = () => Toolbox.isDesktopApp();
 
     const UPDATE_DISMISS_KEY = 'karmolab-update-dismissed-version';
 

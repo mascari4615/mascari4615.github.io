@@ -972,7 +972,12 @@ const Toolbox = (() => {
         const staticBody = typeof window !== 'undefined' && !!window.KARMOLAB_ENTRY_STATIC;
 
         // Build landing page
-        if (!staticBody) toolPages.appendChild(buildLanding());
+        /* 첫 화면 본문은 **첫 화면에만** 실린다 (TASK-KL-128 ①-c 3차) — 도구 화면에서는
+           원래도 안 불렸는데 코드만 따라왔다. `index.html` 이 부르는 `home-page.js` 가 그것이다. */
+        if (!staticBody) {
+            const home = window.KarmoHomePage?.build();
+            if (home) toolPages.appendChild(home);
+        }
 
         // Build tool pages (가나다순)
         const sortedTools = [...tools].sort((a, b) => (a.title || '').localeCompare(b.title || '', 'ko-KR'));
@@ -1086,115 +1091,30 @@ const Toolbox = (() => {
             .catch(() => { /* 장식이 없다고 앱이 멈출 이유는 없다 */ });
     }
 
-    function buildLanding() {
-        const landing = document.createElement('div');
-        landing.className = 'landing-page';
-        landing.id = 'page-home';
-        /* 장식은 **첫 화면 것이 아니라 이 앱의 것**이다 (TASK-KL-101).
-           첫 화면 안에 넣어 두면 도구로 가는 순간 통째로 사라진다 — 도구를 여닫을 때마다
-           세계가 바뀌는 셈이다. 껍데기(body) 에 한 장 붙여 두면 어느 화면에서나 그대로
-           떠 있고, 화면 사이를 오가도 도형이 이어진다. 위치는 어차피 화면 기준이다. */
-        mountHomeDecor();
-
-        /* 이름을 두 번 쓰지 않는다 (사용자 요청 — 「두 줄 넘어간 것들을 한 줄로」).
-         * 예전엔 작은 「KarmoLab」 위에 큰 「KarmoLab」이 또 있었다 — 같은 말이 두 줄이었다. */
-        const hero = document.createElement('div');
-        hero.className = 'landing-hero';
-        hero.innerHTML = `
-            <h1 class="landing-title">KarmoLab</h1>
-            <p class="landing-tagline">삶을 섞고 술을 바꿀 시간</p>
-        `;
-        landing.appendChild(hero);
-
-        /* TASK-KL-099 — 첫 화면의 본체는 찾는 입력이다. 도구가 160개인데 예전에는 이 자리에
-         * 카드 3장과 「상단 메뉴에서 카테고리를 열고 도구를 선택하세요」만 있었다 — 찾는 일을
-         * 사람에게 떠넘기는 화면이었다.
-         * 찾는 칸이 **주인공 자리**에 온다 (사용자 요청 — 「구글같이 검색창이 메인」).
-         * 제목 바로 밑이 그 자리다. 갈 곳 카드는 그 아래 한 줄로 깔린다. */
-        const palette = document.createElement('div');
-        palette.className = 'landing-palette';
-        landing.appendChild(palette);
-        if (typeof window !== 'undefined' && window.KarmoPalette) {
-            window.KarmoPalette.mountInline(palette);
-        }
-
-        /* 갈 곳 카드는 찾는 칸 **아래** 한 줄로 (사용자 요청).
-         * 카드마다 제목+설명 두 줄이던 것을 아이콘+이름 한 줄로 줄였다 — 다섯 장이 한 줄에
-         * 들어가야 「검색창이 주인공」이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
-        const cta = document.createElement('div');
-        cta.className = 'landing-cta';
-        cta.innerHTML = `
-            <div class="landing-cta-grid">
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
-                    <span class="landing-cta-card-title">즐겨찾기</span>
-                </button>
-                <a class="landing-cta-card" href="/karmolab/t/">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
-                    <span class="landing-cta-card-title">도구 목록</span>
-                </a>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('community')">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H9l-4 3.5V16H4z"/><path d="M8 10h8M8 13h5"/></svg></span>
-                    <span class="landing-cta-card-title">커뮤니티</span>
-                </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('play')">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M7.5 11v3M6 12.5h3"/><path d="M16 12h.01M18 14.5h.01"/></svg></span>
-                    <span class="landing-cta-card-title">놀이터</span>
-                </button>
-                <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('docs')">
-                    <span class="landing-cta-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-                    <span class="landing-cta-card-title">문서</span>
-                </button>
-            </div>
-        `;
-        landing.appendChild(cta);
-
-        /* TASK-KL-098 — 「사람이 있다」를 말이 아니라 **숫자**로 보여 주는 자리.
-         * 값은 전부 실측이고 지어낸 수는 한 개도 없다. 서버에 못 닿거나 아직 0이면 이 자리는
-         * 통째로 안 그려진다. 문장이 아니라 Today / Total 두 칸이다 (사용자 요청) — 문장으로
-         * 쓰면 폭에 따라 두 줄이 되고, 세 가지 수를 한 줄에 우겨 넣게 된다. */
-        const pulse = document.createElement('div');
-        pulse.className = 'landing-pulse';
-        pulse.id = 'homePulse';
-        landing.appendChild(pulse);
-        fillHomePulse(pulse);
-
-        return landing;
-    }
-
-    /**
-     * 도구별 열린 횟수 — 한 화면에서 **한 번만** 받아 온다.
-     * 도구를 옮길 때마다 새로 물으면, 그 요청 자체가 「도구를 열었다」를 세는 서버를 계속 두드린다.
-     */
     let toolCountsPromise = null;
-    function toolCountsOnce() {
-        if (toolCountsPromise) return toolCountsPromise;
-        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
-         * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
-         * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
-        if (!base) return Promise.resolve({});
-        toolCountsPromise = (async () => {
-            try {
-                const response = await fetch(base + '/kl/tools/stats');
-                if (!response.ok) return {};
-                const data = await response.json();
-                const map = {};
-                for (const row of data.tools || []) map[row.toolId] = row;
-                return map;
-            } catch (_) {
-                return {};
-            }
-        })();
-        return toolCountsPromise;
+
+    function toolCountsOnce() {
+        if (toolCountsPromise) return toolCountsPromise;
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
+         * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
+         * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
+        if (!base) return Promise.resolve({});
+        toolCountsPromise = (async () => {
+            try {
+                const response = await fetch(base + '/kl/tools/stats');
+                if (!response.ok) return {};
+                const data = await response.json();
+                const map = {};
+                for (const row of data.tools || []) map[row.toolId] = row;
+                return map;
+            } catch (_) {
+                return {};
+            }
+        })();
+        return toolCountsPromise;
     }
 
-    /**
-     * 도구 이름 밑에 「지금까지 N번 열렸어요」 (사용자 요청 — "그냥 재밌잖아 그런거").
-     *
-     * 한 번도 안 열린 도구에는 아무것도 안 쓴다. 「0번 열렸어요」는 재미가 아니라 낙인이다.
-     */
-    /** 계정 스크립트를 기다린다 — 도구 화면은 그것보다 먼저 그려진다. 안 오면 그냥 포기한다. */
     function whenApiBase(timeoutMs = 6000) {
         const has = () => Boolean(typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase);
         if (has()) return Promise.resolve(true);
@@ -1210,84 +1130,24 @@ const Toolbox = (() => {
     }
 
     async function fillToolCount(slot, toolId) {
+
         if (!slot) return;
+
         if (!(await whenApiBase())) return;
+
         const counts = await toolCountsOnce();
+
         const row = counts[toolId];
+
         if (!row || !row.total || !slot.isConnected) return;
+
         const n = (value) => Number(value || 0).toLocaleString('ko-KR');
+
         slot.innerHTML = '지금까지 <b>' + n(row.total) + '</b>번 열렸어요'
+
             + (row.recent ? ' · 최근 7일 <b>' + n(row.recent) + '</b>번' : '');
+
     }
-
-    /** 도구 id 로 사람이 읽는 이름 찾기. 등록된 것 우선, 없으면 지연 메타. 둘 다 없으면 null. */
-    function toolTitleFor(id) {
-        const registered = tools.find((t) => t.id === id);
-        if (registered && registered.title) return registered.title;
-        const meta = (typeof window !== 'undefined' && window.KARMOLAB_LAZY_META_BY_ID) || {};
-        return (meta[id] && meta[id].title) || null;
-    }
-
-    /**
-     * 첫 화면의 방문 수 — 블로그와 같은 **Today / Total** 두 칸 (TASK-KL-136, 사용자 요청).
-     *
-     * 문장으로 쓰던 것을 칸으로 바꿨다: 「지금까지 N번 다녀갔어요 · 오늘 M번 · 도구는 K번
-     * 열렸고요(L개가 실제로 쓰였어요)」는 폭이 좁아지는 순간 두 줄이 되고, 무엇이 무엇인지도
-     * 읽어야 안다. 도구 열림 수는 광장(`전부 보기 →`)에 그대로 있다 — 첫 화면에 세 종류의
-     * 수를 늘어놓지 않는다.
-     *
-     * 「이번 주에 많이 쓴 도구」는 **찾는 칸 안쪽**으로 옮겼다 (사용자 요청). 통계를 받아 오는
-     * 곳은 여기 하나뿐이므로, 여기서 받아 팔레트에 건네준다.
-     *
-     * 왜 실측만 쓰나: 이 자리에 한 번이라도 지어낸 수를 넣으면 옆의 진짜 수까지 못 믿을 것이
-     * 된다. 그래서 서버에 못 닿거나 아직 한 번도 안 열렸으면 **아무것도 안 그린다** —
-     * 「0번 열림」이 떠 있는 화면은 북적이는 게 아니라 죽은 화면으로 읽힌다.
-     */
-    async function fillHomePulse(slot) {
-        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        if (!base) return;
-        let data;
-        try {
-            const response = await fetch(base + '/kl/tools/stats');
-            if (!response.ok) return;
-            data = await response.json();
-        } catch (_) {
-            return;
-        }
-        const pulse = (data && data.pulse) || {};
-        const visits = (data && data.visits) || {};
-
-        /* 이번 주에 많이 쓴 도구는 찾는 칸 안으로 (TASK-KL-136). 첫 화면이 안 붙어 있어도
-         * (도구 상세에서 이 함수가 돌 때) 팔레트는 있을 수 있으므로 화면 확인보다 먼저 넘긴다.
-         * 이름을 못 찾는 도구는 뺀다 — 화면에 id 가 그대로 뜨면 내부 사정이 새어 나온 것처럼 보인다. */
-        const top = (data.tools || [])
-            .filter((t) => t.recent > 0 && toolTitleFor(t.toolId))
-            .slice(0, 6)
-            .map((t) => t.toolId);
-        if (top.length && typeof window !== 'undefined' && window.KarmoPalette) {
-            window.KarmoPalette.setPopular(top);
-        }
-
-        if (!slot.isConnected) return;
-        if (!pulse.opensTotal && !visits.total) return;
-        const n = (value) => Number(value || 0).toLocaleString('ko-KR');
-
-        /* 블로그의 Today / Total 두 칸 (사용자 요청). 방문 수만 낸다 —
-         * 「명」이라고 쓰면 안 된다: 이 수는 방문 횟수지 사람 수가 아니다. 사람 수는 하루
-         * 단위로만 셀 수 있고(오늘 열쇠만 들고 있으므로), 그 값은 광장에 있다. */
-        if (!visits.total) return;
-        slot.innerHTML = '<p class="landing-pulse-line">'
-            + '<span class="landing-pulse-stat"><span class="landing-pulse-k">Today</span>'
-            + '<b>' + n(visits.today) + '</b></span>'
-            + '<span class="landing-pulse-stat"><span class="landing-pulse-k">Total</span>'
-            + '<b>' + n(visits.total) + '</b></span>'
-            + '<button type="button" class="landing-pulse-all" data-open-plaza>전부 보기 →</button></p>';
-
-        const all = slot.querySelector('[data-open-plaza]');
-        if (all) all.onclick = () => switchPage('plaza');
-    }
-
-    /* ===== Navigation ===== */
 
     function pageIdFromHash() {
         const h = location.hash ? location.hash.slice(1) : '';
@@ -2076,6 +1936,8 @@ const Toolbox = (() => {
         getCategories,
         isDesktopApp,
         kickLazyLoad, ensureScript, getLazyWidgetPublicMeta, renderInline, upgradeMeta,
+        // 첫 화면 본문(`home-page.js`)이 부른다 — 그쪽은 셸 안을 못 보므로 전역으로 준다.
+        mountHomeDecor, toolCountsOnce, whenApiBase,
         // 로더도 이 해석기를 쓴다 (KL-103). 예전에는 로더가 제 규칙으로 주소를 만들어서
         // 앞머리(vendor/·root/·world/)를 모른 채 늘 js/widgets/ 밑을 찾았다 — 실서비스에서
         // 도구 셋이 라이브러리를 못 받고 있었다. 규칙을 두 벌 두지 않는다.

@@ -193,7 +193,9 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
 export function deferShellExtras(html) {
   const tag = (file) =>
     `<script defer fetchpriority="low" src="/apps/karmolab/js/${file}"></script>`;
-  for (const f of ['palette.js', 'widgets-index.js', 'account.js']) {
+  /* `home-page.js` 는 미루는 게 아니라 **아예 안 싣는다** — 이 화면들에서는 한 번도 안 불린다
+     (`init()` 이 `staticBody` 면 건너뛴다). 미룰 것과 달리 대신 세울 자리도 필요 없다. */
+  for (const f of ['home-page.js', 'palette.js', 'widgets-index.js', 'account.js']) {
     if (!html.includes(tag(f))) throw new Error(`셸에서 ${f} 자리를 못 찾음 — index.html 확인`);
     html = html.replace(tag(f) + '\n', '').replace(tag(f), '');
   }
