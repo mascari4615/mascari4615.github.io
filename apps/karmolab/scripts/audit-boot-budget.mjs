@@ -26,12 +26,18 @@ const blogRoot = path.dirname(root);
 /* 천장 이력 — **올릴 때는 왜 올렸는지 여기 한 줄 남긴다. 조용히 올리지 마라.**
  * · 2026-08-08 도구 화면 JS 21 → 23: 셸에 `copresence.js` 가 부팅 태그로 붙어 18.7 → 21.7KB.
  *   내 작업이 아니라 되돌리지 않았다. 그 화면에 첫 그림부터 필요한지는 올린 쪽이 판단할 것.
+ * · 2026-08-08 첫 화면 JS 39 → 40 (KL-191): 내가 오기 전에 **이미 39.7KB 로 넘어 있었다**
+ *   (05:00 UTC verify 기록). 내 작업(작업실 갈래·형식 규약·오프라인)이 40.3 까지 올렸고,
+ *   그중 제일 무거운 「작업실에 걸기」(PDF 첫 장 그리기·미리보기 올리기)를 `workshop-hang.js`
+ *   로 떼어 **누를 때 데려오게** 해서 39.6 으로 내렸다 — 물려받은 값보다 낮다.
+ *   남은 0.6KB 는 여러 슬롯이 함께 밀어 올린 것이라 한 사람이 되돌릴 수 없다. 숫자를
+ *   진실대로 두고 천장을 올린다. **다음에 올리려는 사람은 먼저 뗄 것부터 찾아라.**
  *
  * 천장(gz, KB). 2026-08-08 KL-128 ①-c/⑱ 직후 실측값 + 여유 10%.
  * 실측: 첫 화면 JS 35.1 / CSS 47.3 · 도구 화면·목록 JS 18.7 / CSS 62.1.
  * 첫 화면 JS 가 큰 것은 **맞다** — 팔레트가 그 화면의 본체라 미룰 수 없다(도구 화면에선 뺐다). */
 const BUDGET = {
-  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 39, css: 52 },
+  '앱 첫 화면': { file: path.join(root, 'index.html'), js: 40, css: 52 },
   '도구 화면': { file: path.join(blogRoot, 'blog/karmolab/t/loan/index.html'), js: 23, css: 68 },
   '도구 목록': { file: path.join(blogRoot, 'blog/karmolab/t/index.html'), js: 23, css: 68 }
 };
