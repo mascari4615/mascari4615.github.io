@@ -128,9 +128,10 @@ if (why) {
  * **없으면 없는 대로 논다.** 서버가 죽었든 아직 아무도 안 풀었든, 점수는 개수로 매겨지고
  * 집계가 붙는 순간 희귀도가 살아난다. 놀이의 생사를 노트북 한 대에 걸지 않는다.
  */
+//  아래로 부른다 — 거기 이미 CORS 가 달려 있다. 새 경로를 파면 그 설정을 또 적게 된다.
 const API = 'https://yawnbot.mascari4615.com';
 let shares = null;
-fetch(`${API}/api/daily-list/shares?topic=${encodeURIComponent(topicId)}&q=${encodeURIComponent(question.id)}`, { signal: AbortSignal.timeout(4000) })
+fetch(`${API}/kl/daily-list/shares?topic=${encodeURIComponent(topicId)}&q=${encodeURIComponent(question.id)}`, { signal: AbortSignal.timeout(4000) })
   .then((r) => (r.ok ? r.json() : null))
   .then((j) => {
     if (j?.shares && typeof j.shares === 'object') shares = j.shares;
@@ -139,7 +140,7 @@ fetch(`${API}/api/daily-list/shares?topic=${encodeURIComponent(topicId)}&q=${enc
 
 function report() {
   if (practice || !state.given.length) return; // 연습은 남의 통계를 흔들지 않는다
-  fetch(`${API}/api/daily-list/answers`, {
+  fetch(`${API}/kl/daily-list/answers`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ topic: topicId, q: question.id, day: dayKey, names: state.given }),
