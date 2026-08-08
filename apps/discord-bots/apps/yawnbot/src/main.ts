@@ -39,6 +39,7 @@ import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
 import { registerCollectionRoutes } from './bot/karmolab-collection-api';
 import { registerRouteRoutes } from './bot/karmolab-route-api';
+import { registerLiveRoutes } from './bot/karmolab-live-api';
 import { registerDailyListRoutes } from './bot/daily-list-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
@@ -381,6 +382,8 @@ registerBragRoutes(app);
 registerCollectionRoutes(app);
 /* TASK-KL-196 E — 말로 부리기. 찾는 칸이 0건일 때만 불린다(그래서 평소엔 안 돈다). */
 registerRouteRoutes(app);
+/* TASK-KL-196 G — 실황. 새로 적는 것 없이 이미 재고 있는 둘(접속자·마지막 열림)만 내준다. */
+registerLiveRoutes(app);
 /* TASK-KL-197 — 전부대기의 「군중의 답」. 남들이 덜 댄 답일수록 점수가 크다는 규칙은
  * 한 브라우저 안에서는 못 만든다. 누가 냈는지는 안 적는다(사람 수와 이름별 횟수뿐). */
 registerDailyListRoutes(app);

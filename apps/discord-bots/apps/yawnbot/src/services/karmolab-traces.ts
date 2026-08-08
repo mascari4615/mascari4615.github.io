@@ -767,6 +767,28 @@ export class KarmolabTraceStore {
       .sort((a, b) => b.recent - a.recent || b.total - a.total);
   }
 
+  /**
+   * 방금 열린 도구들 (TASK-KL-196 G) — **새로 적는 것이 없다.**
+   *
+   * 도구마다 「마지막으로 열린 시각」은 이미 적고 있다. 실황을 위해 사건을 따로 쌓으면
+   * 같은 사실이 두 벌이 되고, 그 벌은 노트북 메모리에서 조용히 어긋난다.
+   *
+   * 한 도구는 **한 번만** 나온다(사건 기록이 아니라 마지막 시각이므로). 사람도 안 센다 —
+   * 누가 열었는지는 애초에 저장하지 않는다.
+   * 오래된 것은 안 준다: 어제 열린 도구를 「방금」이라고 부르면 그건 실황이 아니라 거짓이다.
+   */
+  recentlyOpened(limit = 8, now: Date = new Date(), windowMs = 6 * 60 * 60 * 1000): Array<{ toolId: string; at: string }> {
+    const floor = now.getTime() - windowMs;
+    return Object.entries(this.state.tools)
+      .map(([toolId, trace]) => ({ toolId, at: trace.lastOpenedAt }))
+      .filter((row) => {
+        const at = Date.parse(row.at);
+        return Number.isFinite(at) && at >= floor && at <= now.getTime() + 60000;
+      })
+      .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+      .slice(0, Math.max(1, Math.min(30, limit)));
+  }
+
   /** 사이트가 얼마나 쓰였나 한 줄 — 실제 합계다. */
   pulse(now: Date = new Date()): { toolsUsed: number; opensTotal: number; opensToday: number } {
     const today = kstDay(now);
