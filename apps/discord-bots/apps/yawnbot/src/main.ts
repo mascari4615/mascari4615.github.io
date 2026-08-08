@@ -38,6 +38,7 @@ import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
 import { registerCollectionRoutes } from './bot/karmolab-collection-api';
+import { registerRouteRoutes } from './bot/karmolab-route-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
@@ -377,6 +378,8 @@ registerTodayRoutes(app);
 registerBragRoutes(app);
 /* TASK-KL-196 — 도감. 서버는 이미 가진 발자국을 읽기만 한다(새 원장 X). */
 registerCollectionRoutes(app);
+/* TASK-KL-196 E — 말로 부리기. 찾는 칸이 0건일 때만 불린다(그래서 평소엔 안 돈다). */
+registerRouteRoutes(app);
 // TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
 startBackupLoop();
 
