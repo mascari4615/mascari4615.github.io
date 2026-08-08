@@ -367,3 +367,11 @@ body.showboxes .room::before {
 .doing .ico { font-size: 13px; line-height: 1; }
 .doing .lab:empty { display: none; }
 .doing.idle { opacity: .28; }
+
+/* 지금 들어오는 소리 — 「마이크가 잡혔나」를 눈으로 본다.
+   가는 세로선(b) = 문이 열리는 문턱. 막대가 그 선을 넘어야 듣기 시작한다. */
+.menu .level { position: relative; height: 8px; margin: 2px 0 6px; border-radius: 4px;
+  background: rgba(255,255,255,.12); overflow: hidden; }
+.menu .level i { position: absolute; inset: 0 auto 0 0; width: 0%; background: #7ee787;
+  transition: width .06s linear; }
+.menu .level b { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #ffd166; }
