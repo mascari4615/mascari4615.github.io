@@ -130,8 +130,18 @@ if (check) {
     for (const key of Object.keys(WIDTHS)) {
       const was = prev[id]?.[key];
       const now = out[id]?.[key];
+      /* **한쪽만 본다** (2026-08-08).
+       *
+       * 이 기록은 「자리를 얼마나 비워 둘까」다. 실제가 기록보다 **크면** 도구가 뜨는 순간
+       * 아래 글이 밀린다 = 진짜 고장. 실제가 기록보다 **작으면** 예약한 자리가 조금 남을
+       * 뿐 아무것도 안 밀린다.
+       * 양쪽을 다 보다가 이 게이트가 영영 초록이 안 되는 상태였다: ghosttype(narrow) 이
+       * 잴 때마다 924 ↔ 958 로 흔들려(34px, 허용 24px) 다시 재도 반대쪽으로 걸렸다.
+       * 흔들리는 도구는 **큰 쪽으로 예약**해 두는 것이 맞다. 다만 너무 많이 남으면 큰 빈칸이
+       * 생기므로 그건 따로, 훨씬 헐겁게 본다. */
       if (was == null) off.push(`${id}(${key}): 기록에 없다`);
-      else if (Math.abs(now - was) > TOLERANCE) off.push(`${id}(${key}): 기록 ${was}px 인데 실제 ${now}px`);
+      else if (now - was > TOLERANCE) off.push(`${id}(${key}): 자리를 ${was}px 잡아 뒀는데 실제 ${now}px — 그만큼 아래 글이 밀린다`);
+      else if (was - now > 200) off.push(`${id}(${key}): 자리를 ${was}px 잡아 뒀는데 실제 ${now}px — 빈칸이 너무 크다`);
     }
   }
   if (off.length) {
@@ -145,5 +155,15 @@ if (check) {
 }
 
 const sorted = Object.fromEntries(Object.keys(out).sort().map((k) => [k, out[k]]));
+/* 노이즈 범위(허용치의 두 배) 안에서 흔들리는 값은 **큰 쪽을 남긴다** — 자리는 예약이라
+   덜 잡는 쪽이 사고다. 그보다 크게 달라졌으면 진짜 변화이므로 새 값을 그대로 쓴다. */
+for (const id of Object.keys(sorted)) {
+  for (const key of Object.keys(WIDTHS)) {
+    const was = prev[id]?.[key];
+    const now = sorted[id]?.[key];
+    if (was == null || now == null) continue;
+    if (Math.abs(now - was) <= TOLERANCE * 2) sorted[id][key] = Math.max(now, was);
+  }
+}
 fs.writeFileSync(outPath, JSON.stringify(sorted, null, 2) + '\n');
 console.log(`[measure-heights] ${todo.length}개를 새로 재어 기록했다 (기록 전체 ${Object.keys(sorted).length}개)`);
