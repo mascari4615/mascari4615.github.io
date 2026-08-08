@@ -48,7 +48,7 @@
         build: function (container: HTMLElement): void {
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">타임스탬프 — 10자리는 초, 13자리는 밀리초</label>
+              <label class="field-label">타임스탬프 — 10자리 초 · 13자리 밀리초 · 16자리 마이크로초 · 19자리 나노초</label>
               <input type="text" id="epNum" spellcheck="false" placeholder="1750000000">
             </div>
             <div class="field-group">
@@ -83,7 +83,9 @@
               row('요일', ['일', '월', '화', '수', '목', '금', '토'][d.getDay()] + '요일') +
               row('지금 기준', human(ms)) +
               row('초 (10자리)', String(Math.floor(ms / 1000))) +
-              row('밀리초 (13자리)', String(ms));
+              row('밀리초 (13자리)', String(Math.round(ms))) +
+              row('마이크로초 (16자리)', String(Math.round(ms * 1e3))) +
+              row('나노초 (19자리)', String(Math.round(ms * 1e6)));
             status.textContent = note;
             status.className = 'tool-status ok';
           }
@@ -93,11 +95,19 @@
             if (!raw) return;
             const n = Number(raw);
             if (!isFinite(n)) return;
-            // 자릿수로 단위를 가린다 — 이걸 틀리면 1970년이나 먼 미래가 나온다.
-            const isSeconds = Math.abs(n) < 1e11;
-            ms = isSeconds ? n * 1000 : n;
+            /* 자릿수로 단위를 가린다. 예전에는 「11자리 미만이면 초, 아니면 밀리초」 하나뿐이라
+               **마이크로초(16자리)·나노초(19자리)를 밀리초로 잘못 읽고** 서기 5만 년을 자신 있게
+               내놓았다. 로그에서 흔히 나오는 단위인데 틀린 답에 「밀리초로 읽었습니다」까지 붙어
+               사람이 의심할 길이 없었다. 이제 네 단위를 자릿수로 가른다. */
+            const digits = raw.replace('-', '').length;
+            const unit =
+              digits >= 18 ? { div: 1e6, label: '나노초 (19자리)' }
+              : digits >= 15 ? { div: 1e3, label: '마이크로초 (16자리)' }
+              : digits >= 12 ? { div: 1, label: '밀리초 (13자리)' }
+              : { div: 0.001, label: '초 (10자리)' };
+            ms = n / unit.div;
             date.value = toLocalInput(new Date(ms));
-            render(isSeconds ? '초로 읽었습니다 (10자리).' : '밀리초로 읽었습니다 (13자리).');
+            render(`${unit.label}로 읽었습니다.`);
           }
 
           num.addEventListener('input', fromNumber);
