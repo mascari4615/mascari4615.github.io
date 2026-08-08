@@ -68,6 +68,12 @@ export interface WebBodyOptions {
    * 모델 파일이 게임 저장소 안에 있으므로, 복사해 두 벌로 만들지 않고 그 자리에서 읽는다.
    */
   models?: Readonly<Record<string, string>>;
+  /**
+   * 지금 상태를 한 줌으로 — 곁눈질하는 화면이 읽어 간다.
+   *
+   * 목소리가 무엇인지·흉내가 준비됐는지처럼 **몸이 모르는 것**을 부르는 쪽이 채운다.
+   */
+  상태?: () => Record<string, unknown>;
   /** 어떤 머리를 쓸 수 있는지 + 지금 무엇인지 + 바꾸기. */
   /** 되돌리기 어려운 일을 하기 전에 화면에 물어보는 자리. */
   permission?: {
@@ -129,6 +135,8 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
    * 실시간 대화의 핵심 지표는 「첫 소리까지 걸린 시간」이고, 0.3초가 대화와 기계를
    * 가르는 선이라고 한다. 우리는 그걸 재지도 않고 있었다 — 못 재는 것은 못 고친다.
    */
+  /** 창이 알려 준 제 몸 — 아직 안 알려 줬으면 모른다. */
+  let 창의몸: '3D' | '큐브' | null = null;
   let askedAt: number | null = null;
   const firstSound: number[] = [];
 
@@ -359,6 +367,36 @@ export function webBody(options: WebBodyOptions = {}): WebBody {
 
         // 창에서 벌어진 일을 밖에서 볼 수 있게. 화면 속 실패는 조용히 사라지기 때문에
         // 「눌렀는데 아무 일도 안 난다」의 원인을 찾을 방법이 없었다.
+        /* 창이 제 상태를 알린다 — 3D 몸인가 큐브인가.
+           여태 이건 기록에만 남아서, 큐브로 물러선 걸 사람이 화면을 볼 때까지 몰랐다. */
+        if (url === '/window-state' && req.method === 'POST') {
+          let raw = '';
+          req.on('data', (chunk) => { raw += chunk; if (raw.length > 2000) req.destroy(); });
+          req.on('end', () => {
+            try {
+              const 온것 = JSON.parse(raw) as { 몸?: unknown };
+              if (온것.몸 === '3D' || 온것.몸 === '큐브') 창의몸 = 온것.몸;
+            } catch {
+              // 못 읽으면 모르는 채로 둔다
+            }
+            res.writeHead(204).end();
+          });
+          return;
+        }
+
+        /* 지금 어떤 상태인가 — 곁눈질하는 화면(KarmoLab 위젯)이 읽어 간다.
+           오늘 사고 셋(로컬 목소리·3D 몸·투명 창)이 전부 **조용히** 빠진 것이었다.
+           기록에만 남는 상태는 아무도 안 본다. */
+        if (url === '/state') {
+          res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            창붙음: clients.size,
+            몸: 창의몸,
+            ...(options.상태?.() ?? {}),
+          }));
+          return;
+        }
+
         if (url === '/log' && req.method === 'POST') {
           let raw = '';
           req.on('data', (chunk) => { raw += chunk; if (raw.length > 8000) req.destroy(); });
