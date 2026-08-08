@@ -13,6 +13,8 @@ window.KARMOLAB_WIDGETS_BOOT = [
   'linktree/linktree',
   'plaza',
   'community',
+  // 채팅은 도구가 아니라 **셸에 상주하는 한 방**이다 (TASK-KL-149) — 어느 화면에 있든 옆에 뜬다.
+  'chat',
   'dashboard',
   'devtools'
 ];

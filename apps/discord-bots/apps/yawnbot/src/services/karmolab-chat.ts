@@ -290,8 +290,14 @@ export class KarmolabChatStore {
     // ── 흐르는 쪽 (SSE) ────────────────────────────────────────────────────────
 
     subscribe(listener: (event: ChatEvent) => void): () => void {
+        /* 새로 붙은 사람에게는 「몇 명」을 **다시 안 보낸다** — 첫 마디(hello)에 이미 들어 있다.
+         * 자기 자신에게도 쏘면 붙자마자 같은 수를 두 번 받고, 그 사이에 잠깐 다른 수가 보인다.
+         * 그래서 지금 있는 사람들에게만 알린 뒤 목록에 넣는다. */
+        const others = [...this.listeners];
         this.listeners.add(listener);
-        this.broadcast({ type: 'here', here: this.listeners.size });
+        const here = this.listeners.size;
+        for (const other of others) other({ type: 'here', here });
+
         return () => {
             this.listeners.delete(listener);
             this.broadcast({ type: 'here', here: this.listeners.size });
