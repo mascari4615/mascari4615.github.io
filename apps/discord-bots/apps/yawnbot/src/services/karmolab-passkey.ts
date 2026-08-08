@@ -20,6 +20,14 @@
 import crypto from 'crypto';
 
 /** 우리 도메인. 패스키는 이 이름에 묶인다 — 여기가 바뀌면 기존 패스키는 안 열린다. */
+/**
+ * 우리 도메인. 브라우저는 **이 값과 주소가 안 맞으면 패스키를 아예 안 만들어 준다.**
+ *
+ * 그래서 로컬에서 확인하려면 `KARMOLAB_RP_ID=localhost` 로 띄워야 한다 (TASK-KL-191 축5).
+ * 기본값 그대로면 로컬에서는 **어떤 패스키도 통과하지 못한다** — 배포해야만 확인되는
+ * 기능이 되고, 그건 확인 루프가 없는 것과 같다.
+ * IP 주소(`127.0.0.1`)는 브라우저가 도메인으로 안 쳐 준다 — 반드시 `localhost` 다.
+ */
 export const RP_ID = process.env.KARMOLAB_RP_ID?.trim() || 'blog.mascari4615.com';
 export const RP_NAME = 'KarmoLab';
 
