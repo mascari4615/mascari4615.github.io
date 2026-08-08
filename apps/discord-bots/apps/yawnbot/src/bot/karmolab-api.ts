@@ -981,6 +981,14 @@ export function registerKarmolabApi(
     res.json(missionState(store, account.id));
   });
 
+  /**
+   * 시즌 순위 (TASK-KL-182 F2) — 판마다 메달을 주고 메달 수로 줄 세운다.
+   * 점수를 섞지 않는다: 단위가 다른 수를 더하면 그 합은 아무 뜻이 없다.
+   */
+  app.get('/kl/play/season', (_req: Request, res: Response) => {
+    res.json({ ranking: plays.seasonRanking() });
+  });
+
   /** 이번 주 미션은 **모두에게 같다** — 로그인 없이도 무엇이 걸렸는지 볼 수 있어야 이야기가 된다. */
   app.get('/kl/missions', (_req: Request, res: Response) => {
     res.json({ missions: missionsOfWeek() });
@@ -1751,6 +1759,30 @@ export function registerKarmolabApi(
     } catch (error) {
       sendPackError(res, error);
     }
+  });
+
+  /**
+   * 방금 무슨 일이 있었나 (TASK-KL-151 ③) — 최근 판 · 새로 올라온 표.
+   *
+   * 광장이 숫자만 보여 주고 있었다. 숫자는 「사람이 있다」를 말하지만 **누가 방금 뭘 했는지**는
+   * 말하지 못한다. 원장에 이미 쌓고 있는 것을 그대로 내보낸다 — 새로 세는 값 0.
+   *
+   * 아직 아무 일도 없었으면 빈 목록이다. 0 을 꾸며 내지 않는다.
+   */
+  app.get('/kl/feed', (req: Request, res: Response) => {
+    const limit = Math.min(30, Math.max(1, Number(req.query.limit) || 10));
+    res.json({
+      plays: plays.recent(limit).map((p) => ({
+        game: p.game,
+        variant: p.variant,
+        handle: p.handle,
+        score: p.score,
+        at: p.at,
+        best: p.best,
+      })),
+      games: plays.stats().filter((g) => g.plays > 0),
+      packs: packs.list({ sort: 'new', limit: 5 }),
+    });
   });
 
   /** 내 전 종목 최고. 논 적 없는 종목은 안 나온다. */
