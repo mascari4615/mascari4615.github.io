@@ -110,6 +110,7 @@ export * from './pressure';
 export * from './heard';
 export * from './room-learn';
 export * from './memory/reflect';
+export { 뜻기억, 작은모델로재기, 닮은정도, type 뜻재기, type 뜻기억옵션 } from './memory/meaning';
 export * from './rarity';
 export * from './length';
 export * from './head-size';
