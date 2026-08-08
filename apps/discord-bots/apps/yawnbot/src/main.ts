@@ -36,6 +36,7 @@ import { mountWrappedWeb } from './bot/wrapped-web';
 import { registerKarmolabApi } from './bot/karmolab-api';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
+import { registerBragRoutes } from './bot/karmolab-brag-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
@@ -371,6 +372,8 @@ registerWellRoutes(app);
 /* TASK-KL-194 — 오늘의 판. 「오늘의 코스」 연속일이 브라우저 안에만 있어서 기록을 지우면
  * 0일이 됐다. 그 셈을 계정에 옮긴다(판정은 그대로 브라우저). 같은 이유로 자기 파일. */
 registerTodayRoutes(app);
+/* TASK-KL-195 — 자랑 카드 주소. 그림 주소를 그대로 붙이면 그림만 뜨고 들어올 문이 없다. */
+registerBragRoutes(app);
 // TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
 startBackupLoop();
 
