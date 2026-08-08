@@ -113,6 +113,10 @@ jobs:
         working-directory: apps/karmolab
         run: |
           npm ci
+          # 화면을 실제로 띄워 보는 검사(smoke-navigation)가 build 안에 있다.
+          # 러너에는 브라우저가 없어서 그 한 줄에서 **배포 전체**가 섰다 (2026-08-08, 세 판 연속).
+          # 로컬은 브라우저가 깔려 있어 초록이라 안 보였다 — CI 에서만 받아 온다.
+          npx playwright install --with-deps chromium
           npm run build
 
       - name: Prepare KarmoLab Jekyll page
