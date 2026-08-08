@@ -553,6 +553,11 @@ function bellStyle(): void {
         '.kl-bell-body { display:block; margin-top:2px; font-size:11px; color:var(--text-tertiary);',
         '  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
         '.kl-bell-empty { padding:22px 12px; text-align:center; font-size:12px; color:var(--text-tertiary); }',
+        // 「어디로 받을 것인가」 (KL-157). 목록 아래에 붙여 알림을 볼 때마다 눈에 들어오게.
+        '.kl-bell-dm { display:block; width:100%; padding:9px 12px; border:none; border-top:1px solid var(--border);',
+        '  background:transparent; color:var(--text-tertiary); font:inherit; font-size:12px; text-align:left; cursor:pointer; }',
+        '.kl-bell-dm:hover { color:var(--text-primary); }',
+        '.kl-bell-dm[data-on="1"] { color:var(--accent); }',
     ].join('\n');
     document.head.appendChild(style);
 }
@@ -565,14 +570,24 @@ function mountBell(): void {
     let open = false;
     let items: NotificationItem[] = [];
     let unread = 0;
+    /** 알림을 디스코드로도 받고 있나 (TASK-KL-157). 켤 수 없는 계정이면 칸을 안 만든다. */
+    let discordOn = false;
+    let discordAvailable = false;
 
     const load = async (): Promise<void> => {
         const response = await call('/kl/notifications');
         if (!response || !response.ok) return;
         try {
-            const data = (await response.json()) as { items?: NotificationItem[]; unread?: number };
+            const data = (await response.json()) as {
+                items?: NotificationItem[];
+                unread?: number;
+                discord?: boolean;
+                discordAvailable?: boolean;
+            };
             items = data.items ?? [];
             unread = data.unread ?? 0;
+            discordOn = data.discord === true;
+            discordAvailable = data.discordAvailable === true;
         } catch {
             return;
         }
@@ -597,10 +612,18 @@ function mountBell(): void {
                   .join('')
             : '<div class="kl-bell-empty">새 알림이 없습니다</div>';
 
+        /* 「어디로 받을 것인가」를 알림을 보는 자리에 둔다 (TASK-KL-157).
+           종은 사이트 안에서만 울린다 — 사이트를 안 열고 있으면 그 알림은 없는 것과 같다.
+           설정 화면 깊숙이 두면 이 스위치가 있다는 것 자체를 아무도 모른다. */
+        const discordRow = discordAvailable
+            ? `<button type="button" class="kl-bell-dm" id="klBellDm" data-on="${discordOn ? '1' : '0'}">` +
+              `${discordOn ? '☑' : '☐'} 디스코드로도 받기</button>`
+            : '';
+
         const panel = open
             ? `<div class="kl-bell-panel"><div class="kl-bell-head"><span>알림</span>${
                   unread ? '<button type="button" id="klBellAll">모두 읽음</button>' : ''
-              }</div>${list}</div>`
+              }</div>${list}${discordRow}</div>`
             : '';
 
         slot!.innerHTML =
@@ -618,6 +641,22 @@ function mountBell(): void {
             open = !open;
             paint();
             if (open) void load();
+        });
+        slot!.querySelector('#klBellDm')?.addEventListener('click', (event) => {
+            // 종 패널 안의 클릭이므로 바깥 클릭으로 새어 나가면 방금 연 패널이 닫힌다.
+            event.stopPropagation();
+            const next = !discordOn;
+            discordOn = next; // 누른 자리에서 바로 바뀐다 — 서버 확인은 뒤에서.
+            paint();
+            void call('/kl/notifications/discord', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ on: next }),
+            }).then((response) => {
+                if (response && response.ok) return;
+                discordOn = !next; // 못 바꿨으면 되돌린다. 껐다고 믿는데 계속 오면 그게 제일 나쁘다.
+                paint();
+            });
         });
         slot!.querySelector('#klBellAll')?.addEventListener('click', () => {
             void call('/kl/notifications/read', {

@@ -51,6 +51,15 @@ export interface Notification {
 interface NotificationsState {
     version: 1;
     items: Notification[];
+    /**
+     * 알림을 **디스코드로도** 받기로 한 사람들 (TASK-KL-157).
+     *
+     * 왜 여기인가: 이건 계정의 성질이 아니라 알림의 성질이다. 「어디로 받을 것인가」는
+     * 알림 도메인이 답할 질문이고, 계정 파일에 또 하나의 설정 서랍을 만들지 않는다.
+     *
+     * 기본은 **꺼짐**이다. 부르지도 않았는데 말 거는 일은 켠 사람에게만 한다.
+     */
+    discordOn?: string[];
 }
 
 const STATE_FILE = 'karmolab-notifications-state.json';
@@ -73,12 +82,12 @@ export class KarmolabNotificationStore {
         try {
             if (fs.existsSync(this.statePath)) {
                 const parsed = JSON.parse(fs.readFileSync(this.statePath, 'utf-8')) as Partial<NotificationsState>;
-                return { version: 1, items: parsed.items ?? [] };
+                return { version: 1, items: parsed.items ?? [], discordOn: parsed.discordOn ?? [] };
             }
         } catch (error) {
             console.error('[karmolab-notifications] 상태 파일을 못 읽었다 — 빈 목록으로 시작한다:', error);
         }
-        return { version: 1, items: [] };
+        return { version: 1, items: [], discordOn: [] };
     }
 
     private markDirty(): void {
@@ -135,6 +144,7 @@ export class KarmolabNotificationStore {
                 existing.body = body;
                 existing.updatedAt = at;
                 this.markDirty();
+                this.sink?.(existing);
                 return existing;
             }
         }
@@ -162,7 +172,35 @@ export class KarmolabNotificationStore {
         }
 
         this.markDirty();
+        this.sink?.(notification);
         return notification;
+    }
+
+    // ── 어디로 받을 것인가 (TASK-KL-157) ──────────────────────────────────────
+
+    /** 이 사람이 디스코드로도 받기로 했나. */
+    discordEnabled(accountId: string): boolean {
+        return (this.state.discordOn ?? []).includes(accountId);
+    }
+
+    setDiscordEnabled(accountId: string, on: boolean): void {
+        const list = new Set(this.state.discordOn ?? []);
+        if (on) list.add(accountId);
+        else list.delete(accountId);
+        this.state.discordOn = [...list];
+        this.markDirty();
+    }
+
+    /**
+     * 알림이 실제로 만들어질 때마다 불린다.
+     *
+     * 저장소는 디스코드를 **모른다.** 보내는 일은 봇이 있는 자리(합성 지점)에서 꽂는다 —
+     * 안 그러면 이 파일이 discord.js 를 끌고 들어와 시험조차 못 돌게 된다.
+     */
+    private sink: ((notification: Notification) => void) | null = null;
+
+    onNotify(fn: (notification: Notification) => void): void {
+        this.sink = fn;
     }
 
     /** 이 사람의 알림 (새 것부터). */
