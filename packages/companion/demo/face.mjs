@@ -11,6 +11,7 @@
  *   COMPANION_MEMORY_FILE=<경로>   기억을 파일로
  */
 import { existsSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -104,6 +105,8 @@ import {
   retryNote,
   TOUCH_CHANNEL,
   TouchCount,
+  수요기동,
+  필요할때,
   이웃,
   같은저장소사본들,
   대사창고,
@@ -384,6 +387,30 @@ function 받아쓰기실행파일() {
   return null;
 }
 
+/** 흉내 낸 목소리 서버(GPT-SoVITS)를 띄운다. 뜨는 데 30초쯤 걸린다 — 기다리지 않는다. */
+let 흉내프로세스 = null;
+function 흉내서버띄우기() {
+  const memo = 이웃('memo', join('life', '.models'));
+  if (memo === null) throw new Error('memo 저장소를 이웃에서 못 찾았다');
+  const 자리 = join(memo, 'life', '.models', 'gpt-sovits');
+  const 파이썬 = join(자리, '.venv', 'Scripts', 'python.exe');
+  if (existsSync(파이썬) === false) throw new Error(`파이썬을 못 찾았다 (${파이썬})`);
+  흉내프로세스 = spawn(파이썬, ['api_v2.py', '-a', '127.0.0.1', '-p', '9880'], {
+    cwd: 자리,
+    detached: false,
+    stdio: 'ignore',
+    // 안 주면 검은 창이 하나 뜬다.
+    windowsHide: true,
+  });
+  흉내프로세스.on('exit', () => { 흉내프로세스 = null; });
+}
+
+function 흉내서버끄기() {
+  if (흉내프로세스 === null) return;
+  흉내프로세스.kill();
+  흉내프로세스 = null;
+}
+
 function 흉내참고음성() {
   const memo = 이웃('memo', join('life', '.models'));
   if (memo === null) return null;
@@ -536,17 +563,42 @@ ${tallyReport(tally)}`;
     // **떠 있으면 이걸 기본으로 쓴다.** 맨 앞이 곧 기본이다 — 인터넷 목소리보다 느리지만
     // 「원하는 목소리」가 「빠른 목소리」를 이긴다(조수님 결정). 안 떠 있으면 목록에도 안
     // 나오고, 그땐 자동으로 다음 것이 기본이 된다.
-    if (await 흉내.alive()) {
-      engines.unshift({ label: '흉내', speech: 흉내 });
-      console.log('[목소리] 흉내 낸 목소리를 기본으로 쓴다');
+    /* **쓸 때 켜고 안 쓰면 끈다** (사용자 결정 2026-08-08: 「부팅 기준이 아니라 쓸 때/안
+       쓸 때 기준」). 뜨는 데 30초쯤 걸리므로 기다리지 않는다 — 준비될 때까지는 대타가
+       말한다. 목록에는 늘 보인다: 꺼졌다고 목록에서 빼면 그게 「사라졌다」로 읽힌다. */
+    const 흉내기동 = new 수요기동({
+      이름: '흉내 낸 목소리',
+      살았나: () => 흉내.alive(),
+      띄우기: () => 흉내서버띄우기(),
+      끄기: () => 흉내서버끄기(),
+      쉬면끄기ms: () => Number(settings.get('애니목소리쉬는분')) * 60_000,
+      자동인가: () => settings.on('애니목소리자동'),
+      log: (m) => console.log(`[목소리] ${m}`),
+    });
+    // 쉬는지 살피는 자리. 값이 0 이면 아무 일도 안 한다.
+    setInterval(() => void 흉내기동.쉬었으면끄기().catch(() => {}), 60_000).unref();
+
+    if (흉내참고음성() !== null || process.env.COMPANION_CLONE_REF) {
+      engines.unshift({
+        label: '흉내',
+        speech: 필요할때({
+          진짜: 흉내,
+          // 대타 = 인터넷 목소리. 내 컴퓨터 것보다 자연스럽고, 준비 동안만 쓴다.
+          대타: edgeSpeech({ rate: process.env.COMPANION_VOICE_RATE ?? '-4%' }),
+          기동: 흉내기동,
+          log: (m) => console.log(`[목소리] ${m}`),
+        }),
+      });
+      console.log(
+        (await 흉내.alive())
+          ? '[목소리] 흉내 낸 목소리를 기본으로 쓴다 (이미 떠 있다)'
+          : '[목소리] 흉내 낸 목소리를 기본으로 쓴다 — 아직 안 떠 있어 처음 몇 마디는 인터넷 목소리로 나간다',
+      );
     } else {
       /* **없어진 걸 없어졌다고 말한다.** 여태 안 떠 있으면 목록에서 조용히 빠졌고, 그건
          화면에서 「목소리가 회귀했다」로만 보였다(실측 2026-08-08). 오늘 사고 셋(로컬
          목소리·3D 몸·창)이 전부 이 모양이었다 — 조용한 소실. */
-      console.log(
-        '[목소리] 흉내 낸 목소리(애니 목소리)가 안 떠 있다 — 인터넷/내 컴퓨터 목소리로 간다. ' +
-          '띄우려면: cd memo/life/.models/gpt-sovits && .venv/Scripts/python.exe api_v2.py -a 127.0.0.1 -p 9880',
-      );
+      console.log('[목소리] 흉내 낼 참고 음성을 못 찾았다 (memo 저장소가 이웃에 없다) — 인터넷/내 컴퓨터 목소리로 간다');
     }
 
     engines.push({
