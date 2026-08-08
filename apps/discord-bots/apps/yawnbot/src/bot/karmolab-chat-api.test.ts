@@ -37,7 +37,9 @@ beforeEach(async () => {
     new KarmolabTraceStore(path.join(tmpDir, 'traces.json')),
     undefined,
     new KarmolabPlayStore(path.join(tmpDir, 'plays.json')),
-    new KarmolabChatStore(path.join(tmpDir, 'chat.json')),
+    /* 「지금 여기」는 사람이 나가도 곧바로 안 줄인다 — 화면을 옮기는 몇 초를 봐준다(기본 12초).
+       여기서 재고 싶은 것은 **양쪽에 갱신이 가는가**지 그 유예의 길이가 아니라서, 짧게 준다. */
+    new KarmolabChatStore(path.join(tmpDir, 'chat.json'), 200),
   );
   const UNSAFE = new Set([1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697]);
   let port = 0;
@@ -201,7 +203,8 @@ describe('흐르는 연결', () => {
     const grew = await first.next('here', 2000);
     expect(grew.data.here).toBe(2);
     second.close();
-    const shrank = await first.next('here', 2000);
+    // 유예(위에서 200ms)가 지나야 줄어든다 — 그 뒤에 온다.
+    const shrank = await first.next('here', 3000);
     expect(shrank.data.here).toBe(1);
     first.close();
   }, 10000);
