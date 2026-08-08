@@ -70,5 +70,15 @@ jobs:
           # 한글이 깨지고 따옴표가 어긋나 파서가 죽는다(첫 판이 그렇게 죽었다).
           git -c user.name='karmolab-bot' -c user.email='noreply@mascari4615.com' commit -F .github/wm-hub-refresh-commit.txt -- apps/karmolab/data apps/karmolab/wm
           if ($LASTEXITCODE -ne 0) { exit 1 }
-          git push origin HEAD:master
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # 이 저장소는 여러 세션이 하루 종일 밀어 넣는다 — 한 번에 올라갈 거라 믿으면 안 된다.
+          # 받아서 얹고 다시 민다. 세 번 해 보고 안 되면 빨갛게 남긴다(다음 판이 또 해 본다).
+          $pushed = $false
+          for ($i = 1; $i -le 3; $i++) {
+              git fetch origin master
+              git rebase origin/master
+              if ($LASTEXITCODE -ne 0) { git rebase --abort; Start-Sleep -Seconds 5; continue }
+              git push origin HEAD:master
+              if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+              Start-Sleep -Seconds 5
+          }
+          if (-not $pushed) { Write-Output "push blocked after 3 tries"; exit 1 }
