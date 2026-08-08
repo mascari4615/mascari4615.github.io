@@ -671,7 +671,12 @@ function buildToolPage(id) {
 
   // 상세 페이지 표식 — 앱 히어로(제목·설명)가 아래 설명 블록과 겹쳐 두 번 읽히는 것을 막는다
   html = html.replace('<body>', '<body class="tool-detail">');
-  const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};window.KARMOLAB_BUILD_PRINT=${JSON.stringify(BUILD_PRINT)};</script>`;
+  /* 손이 달리기 전에 눌린 것을 **잡아 둔다** (TASK-KL-135).
+   * 미리 그린 그림이 먼저 오고 위젯이 그 자리를 갈아 끼우는데(실측 76ms → 127ms), 그 사이에
+   * 누르면 아무 일도 안 난다 — 그림에는 손이 안 달려 있기 때문이다. 여기서 눌린 단추를 적어
+   * 두면 갈아 끼운 뒤 `toolbox` 가 그 한 번을 대신 눌러 준다(Qwik 이 쓰는 방식).
+   * 이 조각이 죽으면 화면이 통째로 안 그려지므로 반드시 try 로 감싼다. */
+  const entry = `<script>window.KARMOLAB_ENTRY_TOOL=${JSON.stringify(id)};window.KARMOLAB_TOOL_PAGES=${JSON.stringify(ids)};window.KARMOLAB_BUILD_PRINT=${JSON.stringify(BUILD_PRINT)};window.KARMOLAB_PENDING_CLICK=null;try{addEventListener('click',function(e){try{var t=e.target&&e.target.closest&&e.target.closest('#tool-pages button');if(t&&t.id&&typeof t.onclick!=='function')window.KARMOLAB_PENDING_CLICK={id:t.id,at:Date.now()};}catch(_){}},true);}catch(_){}</script>`;
   html = html.replace('</head>', `    ${entry}\n    ${jsonLd(id)}\n${reserveSpace(id)}</head>`);
 
   /* 첫 화면을 도구가 통째로 차지하는데 그 도구는 스크립트로만 그려진다. 그래서 느린 기기에서는

@@ -512,6 +512,7 @@ const Toolbox = (() => {
         if (wasActive) nu.classList.add('active');
         old.replaceWith(nu);
         putUserState(nu, 손댄것);
+        replayPendingClick(nu);
     }
 
     /* ── 갈아 끼울 때 사람이 손댄 것을 옮긴다 (TASK-KL-135) ────────────────
@@ -547,6 +548,22 @@ const Toolbox = (() => {
             커서 = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
         }
         return 값.length || 커서 ? { 값, 커서 } : null;
+    }
+
+    /* 손이 달리기 전에 눌린 단추 한 번을 대신 눌러 준다 (TASK-KL-135).
+     *
+     * 도구 상세 페이지의 머리에 있는 짧은 조각이 「손이 안 달린 단추가 눌렸다」를 적어 둔다.
+     * 갈아 끼운 뒤 여기서 그 한 번을 쏜다 — 사람 입장에서는 「누른 것이 조금 늦게 되는」 것이
+     * 되고, 지금처럼 **누른 적이 없던 일**이 되지는 않는다.
+     *
+     * 한 번만·10초 안에만. 오래된 것은 사람이 이미 마음을 바꿨다고 본다. */
+    function replayPendingClick(root) {
+        const 눌림 = typeof window !== 'undefined' && window.KARMOLAB_PENDING_CLICK;
+        if (!눌림) return;
+        window.KARMOLAB_PENDING_CLICK = null;
+        if (Date.now() - 눌림.at > 10000) return;
+        const el = root.querySelector('#' + CSS.escape(눌림.id));
+        if (el && typeof el.onclick === 'function') el.click();
     }
 
     function putUserState(root, state) {
