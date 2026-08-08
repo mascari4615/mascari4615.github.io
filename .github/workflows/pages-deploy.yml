@@ -305,9 +305,10 @@ jobs:
       - name: 왜 죽었는지 남긴다
         if: failure()
         run: |
-          FAILED='${{ join(steps.*.outcome, ",") }}'
-          echo "::error::배포 실패 — 실패한 단계를 로그 맨 위에서 확인해라 (steps: $FAILED)"
-          echo "DEPLOY_FAIL_STEPS=$FAILED" >> "$GITHUB_STEP_SUMMARY"
+          # `join(steps.*.outcome, …)` 은 여기서 못 쓴다 — 워크플로가 **아예 안 뜬다**
+          # (job 0개 · startup failure). 2026-08-08 배포가 4연속 그렇게 죽어 사이트 전체가 섰다.
+          echo "::error::배포 실패 — 위 단계들 중 빨간 것을 봐라"
+          echo "배포 실패 — 위 단계 목록에서 빨간 것을 확인" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Deploy to GitHub Pages
         if: steps.freshness.outputs.stale != 'true'
