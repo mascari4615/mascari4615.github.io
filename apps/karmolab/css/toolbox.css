@@ -85,9 +85,16 @@
        다른 글씨체로 보여 사람마다 화면이 갈린다. */
     /* 이름이 Karmo* 인 것은 **우리가 구운 글꼴**이다 (TASK-KL-128, `scripts/gen-fonts.py`).
        담지 않은 글자는 그 다음 후보로 흘러간다 — 그래서 뒤의 컴퓨터 글꼴 목록을 그대로 둔다. */
-    --font-sans: 'KarmoSans', 'Malgun Gothic', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-serif: 'KarmoSerif', Georgia, 'Times New Roman', serif;
-    --font-mono: 'KarmoMono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Liberation Mono', monospace;
+    /* 후보를 **짧게** 둔다 (TASK-KL-128 ⑳).
+     * 우리 글꼴에 없는 글자는 이 목록을 하나씩 짚어 내려간다 — 그리고 그 값이 크다.
+     * 실측(도구 화면·기기 4배 느리게): 후보를 하나로 줄이면 글자 모양내기 429 → 282ms,
+     * 첫 배치 한 번이 395 → 311ms. 사슬이 **첫 그림의 34%** 였다.
+     * 예전 목록의 `-apple-system`·`BlinkMacSystemFont`·`Segoe UI`·`Roboto` 는 결국 전부
+     * 「그 기계의 기본 글꼴」을 가리킨다 — `system-ui` 한 단어가 같은 일을 한 걸음에 한다.
+     * 한글은 `system-ui` 가 안 덮는 기계가 있어 맑은 고딕만 남긴다. */
+    --font-sans: 'KarmoSans', system-ui, 'Malgun Gothic', sans-serif;
+    --font-serif: 'KarmoSerif', Georgia, serif;
+    --font-mono: 'KarmoMono', ui-monospace, Consolas, monospace;
 
     /* 격자 두 겹 — 굵은 칸은 또렷하게, 가는 칸은 아주 옅게 (모눈 종이) */
     --grid-color: rgba(210, 205, 245, 0.075);
