@@ -9,7 +9,7 @@ export { loadCharacter, loadCharacters } from './character';
 export { reasonToSpeak, nudgeSense, type Reason, type NudgeInput, type NudgeSenseOptions } from './nudge';
 export { dayMark, type DayMark, type DayMarkOptions } from './day-mark';
 export { checkDrift, driftWarning, avoidanceWarning, type Drift, type DriftRules } from './drift';
-export { reflexFor, type ReflexOptions } from './reflex';
+export { reflexFor, 반사결, 반사갈래, 반사종류들, type ReflexOptions } from './reflex';
 export { pickFiller, type FillerOptions } from './filler';
 export { readRapport, type Rapport, type RapportOptions } from './rapport';
 export { fileCuriosity, wonderHand, maybeAsk, noticeCuriosity, stripParticle, worthWondering, unusableCuriosity, type Curiosity } from './curiosity';
