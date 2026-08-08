@@ -81,6 +81,11 @@ const 상태 = await page.evaluate(() => ({
   칸열림: document.getElementById('cmpInput')?.disabled === false,
 }));
 
+// ②-0 창·몸·목소리가 화면에 뜨나 — 오늘 사고 셋이 전부 「조용히 빠짐」이었다.
+const 칸 = await page.evaluate(() =>
+  [...document.querySelectorAll('#cmpBits .cmp-bit')].map((el) => el.textContent ?? ''),
+);
+
 // ② 말이 실제로 건너가나 — 화면에서 치고, 봇의 기록에 그 말이 남는지 본다.
 //    화면만 보면 「보낸 척」을 못 가른다.
 const 말 = `스모크 ${Date.now()}`;
@@ -99,9 +104,15 @@ const 탈 = [];
 if (상태.칸열림 === false) 탈.push('붙었다면서 말 걸기 칸이 잠겨 있다');
 if (봇도들었나 === false) 탈.push('화면엔 떴는데 봇 기록엔 그 말이 없다');
 if (errors.length > 0) 탈.push(`창에서 터진 게 있다: ${errors.join(' / ')}`);
+// 「곁에 있다」만 보고 끝내면, 몸이 큐브로 물러서거나 목소리가 빠진 걸 화면이 여전히 못 잡는다.
+if (칸.length === 0) 탈.push('창·몸·목소리 칸이 하나도 안 떴다');
+for (const 있어야할것 of ['창', '몸', '목소리']) {
+  if (칸.some((c) => c.startsWith(있어야할것)) === false) 탈.push(`「${있어야할것}」 칸이 없다`);
+}
 
 console.log(`[smoke-companion] ${상태.곁에} · ${상태.아래}`);
 console.log(`[smoke-companion] 말 걸기 → 화면 O · 봇 기록 ${봇도들었나 ? 'O' : 'X'}`);
+console.log(`[smoke-companion] 상태 칸: ${칸.join(' | ') || '(없음)'}`);
 if (탈.length > 0) {
   console.error(`[smoke-companion] X  ${탈.join(' | ')}`);
   process.exit(1);
