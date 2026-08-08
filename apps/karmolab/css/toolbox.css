@@ -1111,7 +1111,8 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     gap: 8px;
     white-space: nowrap;
     position: relative;
-    border-radius: 999px;
+    /* 알약 말고 네모 (사용자 요청, KL-136). 위 찾는 칸·아래 칩과 각을 맞춘다. */
+    border-radius: var(--radius-sm);
     font-family: inherit;
     appearance: none;
     -webkit-appearance: none;
