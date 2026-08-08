@@ -245,7 +245,7 @@ import { fileSize as size } from './shared/media';
 
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133). */
           {
-            Toolbox.onHandoff?.(['application/pdf'], (f: File) => void load(f));
+            Toolbox.onHandoff?.('pdfredact', (f: File) => void load(f));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();

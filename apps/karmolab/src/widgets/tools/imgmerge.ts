@@ -214,7 +214,7 @@ import { acceptPastedFiles } from './shared/paste';
           /* 옆 도구가 방금 만든 그림이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 것이 다시 들어와 방금 한 일을 덮는다. */
           {
-              Toolbox.onHandoff?.(['image/*'], (f: File) => void add([f]));
+              Toolbox.onHandoff?.('imgmerge', (f: File) => void add([f]));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();

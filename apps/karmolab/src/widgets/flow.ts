@@ -405,12 +405,17 @@
          * 묶음 탭 안으로 들어가며 목록에서 숨겨졌다(`hidden`). 그러면 화면에 보이는 대표는
          * 아무 형식도 안 밝힌 것이 되어 「이어지는 도구」가 영영 안 뜬다.
          * 그래서 자식 것을 합쳐서 본다 — 두 벌로 적지 않고 **파생**한다. */
+        /* 선언은 셸이 읽는다 (TASK-KL-191) — 여기서 `meta.accepts` 를 직접 뒤지면 형식을 재는
+         * 자가 두 개가 된다(셸의 「이어서」 줄과 이 화면의 ↳ 가 서로 다른 답을 냈었다).
+         * 묶음이 자식을 대신 말하는 것만 이 화면의 몫이다 — 셸은 낱개 도구를 다룬다. */
+        const declared = (id: string, key: 'accepts' | 'produces'): string[] =>
+            (key === 'accepts' ? Toolbox.declaredAccepts?.(id) : Toolbox.declaredProduces?.(id)) ?? [];
+
         const kindsOf = (id: string, key: 'accepts' | 'produces'): string[] => {
-            const own = (byId.get(id)?.[key] ?? []) as string[];
             const children = metas
                 .filter((meta) => (meta as { bundle?: string }).bundle === id)
-                .flatMap((meta) => (meta[key] ?? []) as string[]);
-            return [...new Set([...own, ...children])];
+                .flatMap((meta) => declared(meta.id, key));
+            return [...new Set([...declared(id, key), ...children])];
         };
 
         const canFollow = (candidate: (typeof metas)[number], prevId: string | null): boolean => {
@@ -418,9 +423,7 @@
             const outs = kindsOf(prevId, 'produces');
             const ins = kindsOf(candidate.id, 'accepts');
             if (!outs.length || !ins.length) return false;
-            return outs.some((out) =>
-                ins.some((accept) => accept === out || (accept.endsWith('/*') && out.startsWith(accept.slice(0, -1)))),
-            );
+            return outs.some((out) => ins.some((accept) => Toolbox.kindMatches?.(accept, out) ?? false));
         };
 
         const paintPicker = (): void => {

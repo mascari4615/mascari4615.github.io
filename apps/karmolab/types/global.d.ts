@@ -210,8 +210,20 @@ declare global {
     takeResult?: () => { blob: Blob; name?: string; from?: string } | null;
     peekResult?: () => { blob: Blob; name?: string; from?: string } | null;
     toolsAccepting?: (type: string, exceptId?: string) => Array<{ id: string; title?: string }>;
-    /** 놓인 것이 이 도구가 받을 수 있는 것이면 건네준다 — 한 번만. 화면을 옮겨 와도 받는다. */
-    onHandoff?: (kinds: string[], cb: (file: File) => void) => void;
+    /**
+     * 놓인 것이 이 도구가 받을 수 있는 것이면 건네준다 — 한 번만. 화면을 옮겨 와도 받는다.
+     *
+     * 첫 인자는 **도구 이름**이다 (TASK-KL-191) — 형식은 등록 메타의 `accepts` 에서 읽는다.
+     * 형식을 두 군데 적으면 갈라진다(실제로 갈라져 있었다). 배열도 받지만 그건 우리 도구
+     * 밖의 것(모래상자·외부)만 쓴다 — `check-format-contract` 게이트가 이름을 강제한다.
+     */
+    onHandoff?: (toolIdOrKinds: string | string[], cb: (file: File) => void) => void;
+    /** 이 도구가 받는다고 **선언한** 형식 (TASK-KL-191 — 선언이 정본) */
+    declaredAccepts?: (id: string) => string[];
+    /** 이 도구가 내놓는다고 **선언한** 형식 */
+    declaredProduces?: (id: string) => string[];
+    /** `image/*` 별표를 푼 한 쌍 맞춰 보기 — 이어서·흐름·공유대상이 같은 자를 쓴다 */
+    kindMatches?: (pattern: string, type: string) => boolean;
     registerDeferred?: (stub: KarmoLabLazyWidgetStub) => void;
     getLazyWidgetPublicMeta?: (id: string) => Record<string, unknown>;
     /** KL-054 — vendor/root/widgets 스크립트 1회 주입(load-once 캐시). boot 위젯이 무거운 lib 을 사용 직전 로드. */

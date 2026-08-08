@@ -190,7 +190,7 @@ import { acceptPastedFiles } from './shared/paste';
           /* 옆 도구가 방금 만든 것이 놓여 있으면 그대로 물고 시작한다 (TASK-KL-133).
            * 한 번만 집어 간다 — 두 번 집으면 같은 파일이 다시 들어와 방금 한 일을 덮는다. */
           {
-            Toolbox.onHandoff?.(['application/pdf'], (f: File) => pick(f));
+            Toolbox.onHandoff?.('pdfwatermark', (f: File) => pick(f));
           }
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();

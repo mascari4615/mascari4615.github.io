@@ -22,7 +22,7 @@
     "gen:changelog": "node scripts/gen-changelog.mjs",
     "gen:feeds": "node scripts/gen-feeds.mjs",
     "test:platform": "node scripts/smoke-platform-pages.mjs",
-    "build": "npm run typecheck && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && node build.mjs && npm run test:md && npm run test:tools && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache",
+    "build": "npm run typecheck && npm run gen:changelog && npm run gen:feeds && npm run build:wiki && npm run build:worldbook && npm run build:wm-tasks && node build.mjs && npm run test:md && npm run test:tools && npm run test:bundles && npm run audit:script-paths && npm run audit:vendor-globals && npm run test:names && npm run audit:cache && npm run audit:fonts && npm run audit:bg-themes && npm run audit:boot && npm run test:cotext && npm run test:apicache && npm run test:contract",
     "gen:fonts": "python scripts/gen-fonts.py",
     "audit:fonts": "node scripts/audit-fonts.mjs",
     "audit:bg-themes": "node scripts/audit-bg-themes.mjs",
@@ -125,7 +125,9 @@
     "audit:boot": "node scripts/audit-boot-budget.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",
     "audit:wm": "node scripts/audit-wm-page.mjs",
-    "test:apicache": "node scripts/check-api-cache-rule.mjs"
+    "test:apicache": "node scripts/check-api-cache-rule.mjs",
+    "test:contract": "node scripts/check-format-contract.mjs",
+    "test:contract:live": "node scripts/smoke-format-contract.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
