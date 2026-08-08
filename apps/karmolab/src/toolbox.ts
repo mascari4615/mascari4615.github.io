@@ -415,6 +415,12 @@ const Toolbox = (() => {
         const idx = tools.findIndex(t => t.id === config.id);
         if (idx < 0) {
             tools.push(config);
+            /* 처음 등록이어도 **그 자리에 화면이 이미 있을 수 있다** — 빌드 때 미리 그려 둔
+               그림이다 (TASK-KL-135). 그건 HTML 을 떠 온 것이라 어떤 단추에도 손이 안 달려 있다.
+               여기서 안 갈아 끼우면 그 도구는 **영영 죽은 채로 남는다** — 보이는데 눌러도 아무
+               일이 안 난다. 실제로 로컬에서 미리 그린 대출 상환표가 8초가 지나도 죽어 있었다.
+               (목록에 미리 올라와 있는 도구는 아래 갈래로 가서 여태 이 문제가 안 보였다.) */
+            rebuildToolPageIfInDom(config.id);
             buildLatePageIfShowing(config.id);
             return;
         }
@@ -500,9 +506,68 @@ const Toolbox = (() => {
         // — 한쪽에만 두면 그 길로 올 때마다 타이머가 쌓인다 (TASK-KL-100).
         disposeTool(pageId);
         const wasActive = old.classList.contains('active');
+        const 손댄것 = takeUserState(old);
         const nu = buildToolPage(tool);
         if (wasActive) nu.classList.add('active');
         old.replaceWith(nu);
+        putUserState(nu, 손댄것);
+    }
+
+    /* ── 갈아 끼울 때 사람이 손댄 것을 옮긴다 (TASK-KL-135) ────────────────
+     *
+     * 도구 화면은 두 번 그려진다 — 빌드 때 미리 그려 둔 그림이 먼저 오고(빠르다), 위젯이
+     * 도착하면 그 자리를 제 화면으로 갈아 끼운다. 실사이트 실측으로 76ms 와 127ms 였다.
+     * 그 사이 51ms 에 사람이 뭘 적으면 **교체와 함께 그 글이 사라진다**. 느린 회선에서는
+     * 이 틈이 더 벌어진다. 실제로 검사 하나가 그 틈에 걸려 두 번 헛돌았다.
+     *
+     * 「기존 DOM 을 그대로 두고 손만 붙인다」(모핑)는 여기서 못 쓴다 — 위젯이 만든 손은
+     * **자기가 만든 노드**를 붙들고 있어서, 옛 노드를 살려 두면 그 손이 딴 데를 만지게 된다.
+     * 그래서 반대로 한다: 새 화면을 쓰되 **사람이 손댄 것만 옮겨 온다**.
+     *
+     * 옮기는 것 = 사람이 바꾼 입력값·고른 것·켠 것 + 커서가 있던 자리. 기본값 그대로인 칸은
+     * 안 옮긴다(그건 사람의 것이 아니라 그 도구의 것이고, 새 화면이 더 맞다). */
+    function takeUserState(root) {
+        const 값 = [];
+        let 커서 = null;
+        root.querySelectorAll('input, textarea, select').forEach(el => {
+            if (!el.id) return;
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                if (el.checked !== el.defaultChecked) 값.push({ id: el.id, checked: el.checked });
+                return;
+            }
+            if (el.type === 'file' || el.type === 'button' || el.type === 'submit') return;
+            const 기본 = el.tagName === 'SELECT'
+                ? [...el.options].find(o => o.defaultSelected)?.value ?? el.options[0]?.value ?? ''
+                : el.defaultValue;
+            if (el.value !== 기본) 값.push({ id: el.id, value: el.value });
+        });
+        const active = document.activeElement;
+        if (active && active !== document.body && root.contains(active) && active.id) {
+            커서 = { id: active.id, start: active.selectionStart ?? null, end: active.selectionEnd ?? null };
+        }
+        return 값.length || 커서 ? { 값, 커서 } : null;
+    }
+
+    function putUserState(root, state) {
+        if (!state) return;
+        state.값.forEach(v => {
+            const el = root.querySelector('#' + CSS.escape(v.id));
+            if (!el) return;
+            if ('checked' in v) el.checked = v.checked;
+            else el.value = v.value;
+            /* 값만 넣으면 도구는 모른다 — 사람이 친 것과 같은 신호를 보낸다. */
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        if (state.커서) {
+            const el = root.querySelector('#' + CSS.escape(state.커서.id));
+            if (el && typeof el.focus === 'function') {
+                el.focus();
+                if (state.커서.start != null && typeof el.setSelectionRange === 'function') {
+                    try { el.setSelectionRange(state.커서.start, state.커서.end); } catch (_) { /* 커서를 못 두는 칸도 있다 */ }
+                }
+            }
+        }
     }
 
     function getWidgetScriptBase() {
@@ -1093,26 +1158,26 @@ const Toolbox = (() => {
 
     let toolCountsPromise = null;
 
-    function toolCountsOnce() {
-        if (toolCountsPromise) return toolCountsPromise;
-        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
-        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
-         * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
-         * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
-        if (!base) return Promise.resolve({});
-        toolCountsPromise = (async () => {
-            try {
-                const response = await fetch(base + '/kl/tools/stats');
-                if (!response.ok) return {};
-                const data = await response.json();
-                const map = {};
-                for (const row of data.tools || []) map[row.toolId] = row;
-                return map;
-            } catch (_) {
-                return {};
-            }
-        })();
-        return toolCountsPromise;
+    function toolCountsOnce() {
+        if (toolCountsPromise) return toolCountsPromise;
+        const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
+        /* 계정 스크립트가 아직 안 왔을 수 있다 — 도구 상세 페이지에서 실제로 그랬다.
+         * 그때 빈 답을 **기억해 두면** 그 화면에서는 영영 숫자가 안 뜬다(요소만 비어 있어
+         * 아무도 못 알아챈다). 아직 모를 때는 기억하지 않고 다음에 다시 묻는다. */
+        if (!base) return Promise.resolve({});
+        toolCountsPromise = (async () => {
+            try {
+                const response = await fetch(base + '/kl/tools/stats');
+                if (!response.ok) return {};
+                const data = await response.json();
+                const map = {};
+                for (const row of data.tools || []) map[row.toolId] = row;
+                return map;
+            } catch (_) {
+                return {};
+            }
+        })();
+        return toolCountsPromise;
     }
 
     function whenApiBase(timeoutMs = 6000) {
