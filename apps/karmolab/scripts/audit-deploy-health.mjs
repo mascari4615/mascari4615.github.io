@@ -37,8 +37,12 @@ const HOURS = Number(arg('hours', 24));
 const RUNNING_CANCEL_SEC = 120;
 /** 마지막 성공이 이보다 오래됐으면 배포가 서 있는 것으로 본다. */
 const STALE_SUCCESS_SEC = 3 * 60 * 60;
-/** 사유를 캐 볼 실패 수 상한. 로그 한 건 읽는 데 몇 초씩 걸린다. */
-const REASON_LOOKUPS = Number(arg('reasons', 8));
+/**
+ * 사유를 캐 볼 실패 수 상한. 로그 한 건 읽는 데 몇 초씩 걸린다.
+ * **살아 있는 실패를 먼저 캔다** — 지나간 실패(마지막 성공 이전)는 이미 고쳐진 것이라
+ * 사유를 캘 이유가 없다. 그것까지 캐느라 재는 일 자체가 느려졌다 (TASK-KL-161).
+ */
+const REASON_LOOKUPS = Number(arg('reasons', 6));
 
 function gh(args) {
   return execFileSync('gh', args, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -123,7 +127,13 @@ console.log(
 
 /* 실패 사유 — 「실패 13」은 아무 정보가 아니다. 무엇을 고칠지 말해 주는 것은 사유별 개수다.
    살아 있는 것(마지막 성공보다 뒤)을 먼저 캔다. */
-const toInspect = [...failure].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, REASON_LOOKUPS);
+const byNewest = (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt);
+/* 살아 있는 것(마지막 성공 뒤) 먼저, 그 다음에 지나간 것. 상한에 걸리면 지나간 것이 잘린다 —
+   잘려도 판정은 안 흔들린다(판정은 살아 있는 것만 본다). */
+const toInspect = [...failure.filter(afterLastSuccess).sort(byNewest), ...failure.filter((r) => !afterLastSuccess(r)).sort(byNewest)].slice(
+  0,
+  REASON_LOOKUPS,
+);
 const reasons = new Map();
 for (const run of toInspect) {
   const reason = reasonOf(run);

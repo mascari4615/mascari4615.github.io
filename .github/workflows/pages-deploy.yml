@@ -296,6 +296,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      # 왜 죽었는지를 **배포가 스스로 적는다** (TASK-KL-161).
+      #
+      # 예전에는 건강 검사가 실패 이유를 알려고 실패한 판마다 로그를 통째로 내려받아 읽었다.
+      # 한 건에 몇 초씩 걸려서, 실패가 잦은 날에는 재는 일 자체가 느려졌다.
+      # 죽은 자리는 죽은 쪽이 제일 잘 안다 — 여기서 한 줄로 적어 두면 아무도 안 캐도 된다.
+      # 실패한 단계 이름만으로 충분하다(무엇이 죽었나). 자세한 것은 그때 로그를 보면 된다.
+      - name: 왜 죽었는지 남긴다
+        if: failure()
+        run: |
+          FAILED='${{ join(steps.*.outcome, ",") }}'
+          echo "::error::배포 실패 — 실패한 단계를 로그 맨 위에서 확인해라 (steps: $FAILED)"
+          echo "DEPLOY_FAIL_STEPS=$FAILED" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Deploy to GitHub Pages
         if: steps.freshness.outputs.stale != 'true'
         id: deployment

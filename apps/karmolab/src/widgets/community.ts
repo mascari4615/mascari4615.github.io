@@ -789,9 +789,21 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
     let recentFeed: Post[] = [];
     let searchHits: Post[] = [];
 
+    /** 아직 아무 글도 없는 판을 펴 두었나 (TASK-KL-161). */
+    let emptyBoardsOpen = false;
+
     function renderGalleryHome(): void {
         if (!host) return;
-        const cards = boards
+        /* **빈 판은 접는다** (TASK-KL-161).
+         *
+         * 판 여섯 중 넷이 글 0개였다. 빈 판이 줄줄이 늘어선 목록은 「조용하다」가 아니라
+         * 「죽었다」로 읽힌다 — 처음 온 사람은 그 화면을 보고 아무것도 안 쓰고 나간다.
+         * 지우지는 않는다(그건 주인이 정할 일이고, 글이 생기면 저절로 살아난다).
+         * 첫 글이 붙는 순간 그 판은 스스로 위로 올라온다. */
+        const live = boards.filter((b) => b.count > 0 || b.lastTitle);
+        const empty = boards.filter((b) => !(b.count > 0 || b.lastTitle));
+        const shownBoards = emptyBoardsOpen ? [...live, ...empty] : live;
+        const cards = shownBoards
             .map(
                 (b) => `<div class="c-gal-wrap">
                     <button type="button" class="c-gal" data-gal="${esc(b.id)}">
@@ -906,7 +918,9 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                 </section>
             </div>
             ${renderReportBox()}
-            <div class="c-bar"><h3 class="c-gal-title">갤러리 ${boards.length}</h3>${
+            <div class="c-bar"><h3 class="c-gal-title">갤러리 ${live.length}${
+                empty.length ? ` <button type="button" class="c-linkbtn" data-empty-toggle>· 아직 빈 판 ${empty.length}${emptyBoardsOpen ? ' 접기' : ' 펼치기'}</button>` : ''
+            }</h3>${
                 boardsMeta.signedIn && !galleryFormOpen ? '<button type="button" class="c-newbtn" data-gal-new>갤러리 만들기</button>' : '<span></span>'
             }</div>
             ${maker}
@@ -988,6 +1002,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
             }),
         );
 
+        host.querySelector('[data-empty-toggle]')?.addEventListener('click', () => {
+            emptyBoardsOpen = !emptyBoardsOpen;
+            void render();
+        });
         host.querySelector('[data-gal-new]')?.addEventListener('click', () => {
             galleryFormOpen = true;
             void render();
@@ -1126,6 +1144,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     <span data-count>0</span>/${data.maxLength}
                     ${nameLine(data)}
                     · Ctrl+Enter 로 올리기
+                    <!-- 어디에 쓰는 것이 얼마나 남는지 (TASK-KL-161).
+                         채팅은 하루 뒤 사라지고 글은 남는다 — 그 경계를 아무 데서도 안 알려 줘서,
+                         남기고 싶은 말을 채팅에 쓰고 잃는 일이 생긴다. -->
+                    · <b>여기 쓴 글은 계속 남는다</b> (채팅은 하루 뒤 사라진다)
                 </span>
                 <span>
                     <button type="button" class="c-act" data-cancel>접기</button>

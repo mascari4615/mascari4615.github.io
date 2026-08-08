@@ -582,7 +582,14 @@ function buildToolPage(id) {
    * 모른 채였다(이미지 편집 페이지가 그랬다). 어차피 못 받는 항목이니 목록에서 빼면
    * 헛걸음 하나가 사라진다. 정말 필요해질 때는 앱이 제 규칙으로 따로 받아 온다. */
   const declared = widgetById[id]?.lazyScriptPaths?.length ? widgetById[id].lazyScriptPaths : ['dashboard'];
-  const bootPaths = declared.filter((p) => {
+  /* 채팅은 **여기에도** 실어야 한다 (TASK-KL-161).
+   *
+   * 「사이트 어디에 있든 옆에 뜬다」로 만들었는데(KL-149), 실제로는 앱 셸(첫 화면)에서만 떴다.
+   * 도구 화면 129장은 셸을 통째로 안 싣고 제 도구만 싣기 때문이다 — 그런데 사람이 실제로
+   * 들어오는 곳은 **거기**다. 채팅 줄 1개·글 2개라는 숫자가 그것을 말하고 있었다:
+   * 기능이 없었던 게 아니라 사람이 있는 자리에 없었다.
+   * 무게는 8KB 남짓이고 맨 뒤에 붙으므로 도구가 뜨는 데는 안 끼어든다. */
+  const bootPaths = [...declared, 'chat'].filter((p) => {
     const ok = fs.existsSync(path.join(root, scriptFile(p)));
     if (!ok) missingBoot.add(`${id}: ${p}`);
     return ok;
