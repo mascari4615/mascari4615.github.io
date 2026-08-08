@@ -1747,6 +1747,15 @@ window.KARMOLAB_LAZY_META = [
 
   /* 노트북(집에서 24시간 도는 기계)으로 가는 문 — 파일 공유·빌드 현황 */
   {
+    id: 'companion',
+    title: '동반자',
+    category: 'lab',
+    desc: '말하는 봇 — 곁에 있는지 보고, 한 줄 던지고, 나를 뭘 안다고 생각하는지 본다',
+    layout: 'form',
+    icon: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="9" cy="10.5" r="1.2" fill="currentColor"/><circle cx="15" cy="10.5" r="1.2" fill="currentColor"/><path d="M9 15c1.8 1.2 4.2 1.2 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>',
+    lazyScriptPaths: ['companion']
+  },
+  {
     id: 'laptop',
     title: '노트북',
     category: 'lab',
