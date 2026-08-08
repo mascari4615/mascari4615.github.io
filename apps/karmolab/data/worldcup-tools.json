@@ -1,0 +1,916 @@
+{
+  "title": "KarmoLab 도구 월드컵",
+  "emoji": "🧰",
+  "fields": [
+    {
+      "key": "cat",
+      "label": "갈래",
+      "kind": "category"
+    }
+  ],
+  "items": [
+    {
+      "n": "글자수 세기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/charcount.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "JSON 포맷터",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/jsonfmt.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "한영타 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/hangulkey.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "QR 코드 생성",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/qrgen.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "로또 번호 생성",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/lotto.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uD0C0\\uC774\\uBA38 \\xB7 \\uC2A4\\uD1B1\\uC6CC\\uCE58",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/timer.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uB0A0\\uC9DC \\uACC4\\uC0B0\\uAE30 \\xB7 D-Day",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/datecalc.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "단위 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/unitconv.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "해시 생성기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/hashgen.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "UUID 생성기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/uuidgen.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "텍스트 비교",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/textdiff.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "정규식 테스터",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/regextest.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "색상 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/colorconv.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이미지 → 아스키 아트",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/asciiart.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "특수문자 모음",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/specialchar.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "ASCII 코드표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/ascii.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "HTML 특수문자",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/htmlentity.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "HTTP 상태 코드",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/httpstatus.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "CSS 색상 이름표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/colorname.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "키보드 이벤트 코드",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/keycode.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "진법 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/radix.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "텍스트 정리",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/textclean.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "사다리타기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/ladder.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이미지 색상 추출",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/palette.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이모지 찾기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/emoji.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "마크다운 문법표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/markdown.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "퍼센트 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/percent.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이자 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/interest.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "URL \\uC778\\uCF54\\uB529 \\xB7 \\uBD84\\uD574",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/urlparse.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "git 명령어 모음",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/gitcmd.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "파일 확장자표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/filetype.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "단축키 모음",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/shortcut.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "표기법 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/caseconv.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "JWT 디코더",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/jwt.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "크론 표현식 읽기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/cron.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uC138\\uACC4 \\uC2DC\\uAC04 \\xB7 \\uC2DC\\uCC28",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/worldclock.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "BMI 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/bmi.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "모스 부호 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/morse.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uCD94\\uCCA8 \\xB7 \\uD300 \\uB098\\uB204\\uAE30",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pick.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "문자표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/charmap.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "색상 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/color.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "텍스트 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/text.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "참고표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/reference.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/calc.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "시간",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/time.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "랜덤 뽑기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/draw.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "개발 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/devtool.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "타임스탬프 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/epoch.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "Base64 \\uC778\\uCF54\\uB529 \\xB7 \\uB514\\uCF54\\uB529",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/base64.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "더미 텍스트 생성",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/lorem.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "CSV ↔ JSON 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/csvjson.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "정규식 치트시트",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/regexref.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "숫자 ↔ 한글",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/numword.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "화면 비율 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/aspect.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "생일 정보",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/birth.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "색 대비 검사",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/contrast.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uC2DC\\uAC04 \\uB354\\uD558\\uAE30\\xB7\\uBE7C\\uAE30",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/timecalc.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "찾아 바꾸기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/replace.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "학점 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/grade.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "부가세 계산기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/vat.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "용량 단위 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/bytesize.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "슬러그 만들기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/slug.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "목록 비교",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/listdiff.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "사업자번호 검사",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/bizno.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "한글 자모 분해",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/jamo.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "단어 빈도 분석",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/wordfreq.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "JSON → 타입 선언",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/json2ts.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "색각 시뮬레이터",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/colorblind.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "대출 상환표",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/loan.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "CSS 단위 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/cssunit.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "러닝 페이스 계산",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pace.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "줄바꿈 정리",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/linebreak.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "체크리스트",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/checklist.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 편집",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdftool.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "오디오 자르기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/audiocut.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "파일 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/filetool.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF → 이미지",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdf2img.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이미지 → PDF",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/img2pdf.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "ZIP \\uB9CC\\uB4E4\\uAE30\\xB7\\uD480\\uAE30",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/ziptool.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 워터마크",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfwatermark.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "오디오 이어붙이기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/audiojoin.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이미지 일괄 변환",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/imgbatch.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "파일 검사값 확인",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/filehash.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "암호화 / 복호화",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/crypto.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "달 위상",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/moon.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "이미지 편집",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/imageedit.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "메모장",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/memo.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상 → GIF",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/video2gif.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상에서 소리 추출",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/video2audio.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/videotool.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상 자르기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/videotrim.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "화면 녹화",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/screenrec.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "목소리 녹음",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/voicerec.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 용량 줄이기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfcompress.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "소리 크기 맞추기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/audiolevel.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상에서 사진 뽑기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/video2img.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상 용량 줄이기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/videocompress.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 에서 글자 뽑기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdf2text.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "사진 정보 지우기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/exifclean.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uD070 \\uD30C\\uC77C \\uB098\\uB204\\uAE30\\xB7\\uD569\\uCE58\\uAE30",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/filesplit.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 에 서명 넣기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfsign.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "글을 PDF 로",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/text2pdf.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "QR 코드 읽기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/qrread.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "QR 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/qr.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "사진 이어 붙이기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/imgmerge.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdf.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "소리 도구",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/sound.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "파비콘 만들기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/favicon.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "\\uBE44\\uBC00\\uBC88\\uD638 \\uB9CC\\uB4E4\\uAE30\\xB7\\uD655\\uC778",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/passgen.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "그라데이션 만들기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/gradient.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "표 바꾸기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/tableconv.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영업일 계산",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/workdays.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "글자를 그림으로",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/text2img.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "가리개",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/redact.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 가리개",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfredact.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "글자 가리개",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/textredact.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "소리 속도",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/audiospeed.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "영상 돌리기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/videorotate.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 쪽 번호",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfpagenum.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 여백 자르기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfcrop.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "사진 크기 맞추기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/imgresize.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "소리 페이드",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/audiofade.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "자막 시간 맞추기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/subtitle.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "일정 파일 만들기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/icsmake.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "바코드 만들기",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/barcode.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "PDF 판본 대조",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/pdfdiff.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "유령 타자 대결",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/ghosttype.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "번개 대결",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/duel.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    },
+    {
+      "n": "타임캡슐 편지",
+      "i": "https://blog.mascari4615.com/apps/karmolab/img/og/timecapsule.jpg",
+      "v": {
+        "cat": "도구"
+      }
+    }
+  ]
+}
