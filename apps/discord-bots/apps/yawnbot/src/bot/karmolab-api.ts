@@ -1010,6 +1010,28 @@ export function registerKarmolabApi(
   });
 
   /**
+   * 아직 안 써 본 것 (TASK-KL-183 E) — 발견.
+   *
+   * 도구가 160개인데 사람들이 여는 건 늘 같은 열몇 개다. 이미 두 벌의 실측이 있다:
+   * **남들이 많이 여는 것**(익명 집계)과 **내가 열어 본 것**(발자국). 둘을 맞대면
+   * 「남들은 쓰는데 나는 아직 안 써 본 것」이 그냥 나온다 — 지어낼 필요가 없다.
+   *
+   * 로그인 안 했으면 「내가 써 본 것」을 모른다. 그때는 추천 대신 **그냥 인기**를 준다
+   * (없는 개인화를 있는 척하지 않는다).
+   */
+  app.get('/kl/suggest', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const mine = account ? new Set(Object.keys(store.footprintFor(account.id).tools)) : null;
+    const popular = traces.toolStats().filter((row) => row.total > 0);
+    const fresh = popular.filter((row) => !mine || !mine.has(row.toolId)).slice(0, 6);
+    res.json({
+      personal: !!mine,
+      // 이미 다 써 본 사람에게는 빈 목록이 정직하다 — 억지로 채우지 않는다.
+      tools: fresh.map((row) => ({ toolId: row.toolId, recent: row.recent, total: row.total })),
+    });
+  });
+
+  /**
    * 이번 주 미션 (TASK-KL-182 F1).
    *
    * 저장하는 것이 없다 — 미션 목록은 주 이름에서 계산되고 진행도는 발자국에서 그때그때 센다.
