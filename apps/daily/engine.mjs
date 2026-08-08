@@ -376,8 +376,8 @@ function conditionsOf(topic) {
         // 붙이면 「있는」→「있으면서」 같은 변형에서 반드시 어긋난다.
         out.push(
           field.kind === 'set'
-            ? { id: `${field.key}=${value}`, key: field.key, attr: `${label}에 ${value}${josa(value, '이', '가')} 있는`, conj: `${label}에 ${value}${josa(value, '이', '가')} 있으면서`, names }
-            : { id: `${field.key}=${value}`, key: field.key, attr: `${label}${josa(label, '이', '가')} ${value}인`, conj: `${label}${josa(label, '이', '가')} ${value}이면서`, names },
+            ? { id: `${field.key}=${value}`, key: field.key, field: label, short: value, attr: `${label}에 ${value}${josa(value, '이', '가')} 있는`, conj: `${label}에 ${value}${josa(value, '이', '가')} 있으면서`, names }
+            : { id: `${field.key}=${value}`, key: field.key, field: label, short: value, attr: `${label}${josa(label, '이', '가')} ${value}인`, conj: `${label}${josa(label, '이', '가')} ${value}이면서`, names },
         );
       }
       continue;
@@ -398,6 +398,8 @@ function conditionsOf(topic) {
         out.push({
           id: `${field.key}=${value}`,
           key: field.key,
+          field: label,
+          short: `${value}${unit}`,
           attr: `${label}${josa(label, '이', '가')} ${value}${unit}인`,
           conj: `${label}${josa(label, '이', '가')} ${value}${unit}이면서`,
           names,
@@ -571,8 +573,11 @@ export function gridPuzzleOf(topic, at = new Date(), { attempts = 400 } = {}) {
     if (cells.every((row) => row.every((names) => names.length >= GRID_MIN_PER_CELL && names.length <= tight))) {
       return {
         id: `${rows.map((r) => r.id).join(',')}|${cols.map((c) => c.id).join(',')}`,
-        rows: rows.map((r) => ({ id: r.id, label: r.attr })),
-        cols: cols.map((c) => ({ id: c.id, label: c.attr })),
+        /* 축에는 **짧은 이름**(값)과 **긴 이름**(문장) 둘 다 싣는다. 격자는 세 줄이 같은
+         * 필드라 「학교가 …인」이 세 번 반복되면 읽는 데 방해만 된다 — 화면은 짧은 것을
+         * 쓰고, 낭독기·결과 목록은 긴 것을 쓴다. */
+        rows: rows.map((r) => ({ id: r.id, label: r.attr, short: r.short, field: r.field })),
+        cols: cols.map((c) => ({ id: c.id, label: c.attr, short: c.short, field: c.field })),
         cells,
       };
     }

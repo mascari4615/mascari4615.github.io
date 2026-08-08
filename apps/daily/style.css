@@ -768,7 +768,7 @@ table.past .play:hover { border-color: var(--accent); }
   padding: 2px;
 }
 .grid-table th[scope='row'] { text-align: right; width: 22%; }
-.grid-table .corner { width: 22%; }
+.grid-table .corner { width: 22%; font-size: 11px; color: var(--ink-3); text-align: right; line-height: 1.2; }
 .gcell {
   width: 100%;
   min-height: 62px;
