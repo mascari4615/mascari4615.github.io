@@ -58,7 +58,15 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
-const URL_ = `http://127.0.0.1:${server.address().port}/apps/karmolab/index.html`;
+const BASE = `http://127.0.0.1:${server.address().port}`;
+/* 재는 화면 둘.
+ *   ① 앱 첫 화면 — 상주물(마스코트·채팅·배경 장식)이 다 있는 자리
+ *   ② 도구 한 장 — **검색으로 들어오는 정문**이자 129장 중 하나. 여기는 여태 아무도 안 쟀다.
+ * 도구 장은 배포 때 찍히는 생성물이라 새 체크아웃에는 없을 수 있다 — 없으면 그 화면은 건너뛴다. */
+const TARGETS = [['앱 첫 화면', BASE + '/apps/karmolab/index.html', null]];
+const toolPage = path.join(repoRoot, 'apps/blog/karmolab/t/loan/index.html');
+if (fs.existsSync(toolPage)) TARGETS.push(['도구 한 장(대출)', BASE + '/apps/blog/karmolab/t/loan/index.html', null]);
+else console.log('[smoke-perf] 도구 장은 건너뜀 — 찍힌 페이지가 없다 (`npm run gen:tool-pages` 뒤에 다시)');
 
 /** 예산 — 넘으면 빨간불. (오늘 고친 뒤 실측: 스타일 0/s · 스크롤 17ms · 마우스 33ms · 마우스CPU 0.65s) */
 /* CI 기계는 여기보다 느리고 들쭉날쭉하다 — 프레임으로 재는 값은 그만큼 헐겁게 잡는다.
@@ -78,87 +86,93 @@ const BUDGET = {
 };
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, serviceWorkers: 'block' });
-const page = await ctx.newPage();
-const cdp = await ctx.newCDPSession(page);
-await cdp.send('Performance.enable');
-await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
-await page.goto(URL_, { waitUntil: 'load', timeout: 60000 });
-/* 배경 도형은 손을 안 대면 4초 뒤부터 잦아든다 — 그 뒤에 재야 「가만히 있을 때」가 된다. */
-await page.waitForTimeout(11000);
+/** 화면 하나를 재고 결과를 돌려준다. */
+async function measurePage(url) {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, serviceWorkers: 'block' });
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send('Performance.enable');
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
-/* 옛 코드를 흉내 낸다 — 이 게이트가 **진짜 잡는지** 확인하는 자리.
-   고친 것을 되돌리지 않고, 같은 모양의 비용만 얹는다. */
-if (process.argv.includes('--regress')) {
+  await page.goto(url, { waitUntil: 'load', timeout: 60000 });
+  /* 배경 도형은 손을 안 대면 4초 뒤부터 잦아든다 — 그 뒤에 재야 「가만히 있을 때」가 된다. */
+  await page.waitForTimeout(11000);
+
+  /* 옛 코드를 흉내 낸다 — 이 게이트가 **진짜 잡는지** 확인하는 자리.
+     고친 것을 되돌리지 않고, 같은 모양의 비용만 얹는다. */
+  if (process.argv.includes('--regress')) {
+    await page.evaluate(() => {
+      const st = document.createElement('style');
+      st.textContent =
+        '.klchat-dot.on::after{content:"";position:absolute;inset:0;border-radius:50%;'
+        + 'background:rgba(95,211,178,.5);animation:klchat-pulse 2.4s infinite;will-change:transform,opacity;}'
+        + '.home-decor-item{filter:blur(14px);}';
+      document.head.appendChild(st);
+      /* 이 기계에서는 채팅이 서버에 못 붙어 점이 저절로 안 켜진다 — 켜 줘야 고리가 실제로 돈다. */
+      document.querySelectorAll('.klchat-dot').forEach((d) => d.classList.add('on'));
+    });
+    await page.waitForTimeout(1200);
+  }
+
+  const metrics = async () =>
+    Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
+
   await page.evaluate(() => {
-    const s = document.createElement('style');
-    s.textContent =
-      /* ① 채팅 점의 무한 고리 */
-      '.klchat-dot.on::after{content:"";position:absolute;inset:0;border-radius:50%;' +
-      'background:rgba(95,211,178,.5);animation:klchat-pulse 2.4s infinite;will-change:transform,opacity;}' +
-      /* ② 움직이는 자식 위에 걸린 live blur */
-      '.home-decor-item{filter:blur(14px);}';
-    document.head.appendChild(s);
-    /* 이 기계에서는 채팅이 서버에 못 붙어 점이 저절로 안 켜진다 — 켜 줘야 고리가 실제로 돈다.
-       안 그러면 「①번 회귀를 얹었다」고 믿으면서 아무것도 안 얹은 셈이 된다. */
-    document.querySelectorAll('.klchat-dot').forEach((d) => d.classList.add('on'));
+    window.__f = [];
+    window.__on = false;
+    let last = performance.now();
+    const tick = (t) => { if (window.__on) window.__f.push(Math.round(t - last)); last = t; requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
   });
-  await page.waitForTimeout(1200);
+
+  async function during(action, settleMs) {
+    const a = await metrics();
+    await page.evaluate(() => { window.__f = []; window.__on = true; });
+    await action();
+    await page.waitForTimeout(settleMs);
+    const frames = await page.evaluate(() => { window.__on = false; return window.__f; });
+    const z = await metrics();
+    const sorted = [...frames].sort((x, y) => x - y);
+    return {
+      median: sorted[Math.floor(sorted.length / 2)] || 0,
+      jank: frames.filter((x) => x > 50).length,
+      task: +((z.TaskDuration || 0) - (a.TaskDuration || 0)).toFixed(3),
+      styleCount: (z.RecalcStyleCount || 0) - (a.RecalcStyleCount || 0)
+    };
+  }
+
+  const idle = await during(async () => {}, 5000);
+  const scroll = await during(async () => {
+    for (let i = 0; i < 12; i += 1) { await page.mouse.wheel(0, 300); await page.waitForTimeout(110); }
+  }, 700);
+  const move = await during(async () => {
+    for (let i = 0; i < 24; i += 1) { await page.mouse.move(200 + i * 35, 300 + ((i * 53) % 320)); await page.waitForTimeout(40); }
+  }, 300);
+  await ctx.close();
+  return { idle, scroll, move };
 }
-
-const metrics = async () =>
-  Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
-
-/** 프레임 간격을 재는 자를 페이지에 심는다 */
-await page.evaluate(() => {
-  window.__f = [];
-  window.__on = false;
-  let last = performance.now();
-  const tick = (t) => { if (window.__on) window.__f.push(Math.round(t - last)); last = t; requestAnimationFrame(tick); };
-  requestAnimationFrame(tick);
-});
-
-async function during(action, settleMs) {
-  const a = await metrics();
-  await page.evaluate(() => { window.__f = []; window.__on = true; });
-  await action();
-  await page.waitForTimeout(settleMs);
-  const frames = await page.evaluate(() => { window.__on = false; return window.__f; });
-  const z = await metrics();
-  const sorted = [...frames].sort((x, y) => x - y);
-  return {
-    median: sorted[Math.floor(sorted.length / 2)] || 0,
-    jank: frames.filter((x) => x > 50).length,
-    task: +((z.TaskDuration || 0) - (a.TaskDuration || 0)).toFixed(3),
-    styleCount: (z.RecalcStyleCount || 0) - (a.RecalcStyleCount || 0)
-  };
-}
-
-const idle = await during(async () => {}, 5000);
-const scroll = await during(async () => {
-  for (let i = 0; i < 12; i += 1) { await page.mouse.wheel(0, 300); await page.waitForTimeout(110); }
-}, 700);
-const move = await during(async () => {
-  for (let i = 0; i < 24; i += 1) { await page.mouse.move(200 + i * 35, 300 + ((i * 53) % 320)); await page.waitForTimeout(40); }
-}, 300);
-
-await browser.close();
-server.close();
-
-const idleStylePerSec = Math.round(idle.styleCount / 5);
-console.log('[smoke-perf] 손 안 댐 5초 · 스타일 재계산 ' + idleStylePerSec + '/s · 총작업 ' + idle.task + 's');
-console.log('[smoke-perf] 스크롤 · 중앙 ' + scroll.median + 'ms · 50ms 넘김 ' + scroll.jank);
-console.log('[smoke-perf] 마우스 · 중앙 ' + move.median + 'ms · 50ms 넘김 ' + move.jank + ' · 그동안 CPU ' + move.task + 's');
 
 const over = [];
 const check = (got, budget, what) => { if (got > budget) over.push(`${what}: ${got} (예산 ${budget})`); };
-check(idleStylePerSec, BUDGET.idleStylePerSec, '손 안 댄 화면의 스타일 재계산/s');
-check(idle.task, BUDGET.idleTaskSec, '손 안 댄 5초 동안 쓴 CPU(초)');
-check(scroll.median, BUDGET.scrollMedianMs, '스크롤 프레임 중앙값(ms)');
-check(scroll.jank, BUDGET.scrollJank, '스크롤 중 50ms 넘긴 프레임');
-check(move.median, BUDGET.moveMedianMs, '마우스 프레임 중앙값(ms)');
-check(move.jank, BUDGET.moveJank, '마우스 중 50ms 넘긴 프레임');
+
+for (const [label, url] of TARGETS) {
+  const { idle, scroll, move } = await measurePage(url);
+  const idleStylePerSec = Math.round(idle.styleCount / 5);
+  console.log(`[smoke-perf] ${label}`);
+  console.log('  손 안 댐 5초 · 스타일 재계산 ' + idleStylePerSec + '/s · 총작업 ' + idle.task + 's');
+  console.log('  스크롤 · 중앙 ' + scroll.median + 'ms · 50ms 넘김 ' + scroll.jank);
+  console.log('  마우스 · 중앙 ' + move.median + 'ms · 50ms 넘김 ' + move.jank + ' · 그동안 CPU ' + move.task + 's');
+  check(idleStylePerSec, BUDGET.idleStylePerSec, label + ' — 손 안 댄 화면의 스타일 재계산/s');
+  check(idle.task, BUDGET.idleTaskSec, label + ' — 손 안 댄 5초 동안 쓴 CPU(초)');
+  check(scroll.median, BUDGET.scrollMedianMs, label + ' — 스크롤 프레임 중앙값(ms)');
+  check(scroll.jank, BUDGET.scrollJank, label + ' — 스크롤 중 50ms 넘긴 프레임');
+  check(move.median, BUDGET.moveMedianMs, label + ' — 마우스 프레임 중앙값(ms)');
+  check(move.jank, BUDGET.moveJank, label + ' — 마우스 중 50ms 넘긴 프레임');
+}
+
+await browser.close();
+server.close();
 
 if (process.argv.includes('--regress')) {
   /* 자기 시험: 옛 코드를 얹었으면 **반드시** 빨간불이어야 한다. 초록이면 이 게이트가 눈뜬장님이다. */
