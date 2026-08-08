@@ -1,6 +1,6 @@
 //! 음성 채널 — KL-052-B2: candle Whisper + cpal 캡처를 ML sidecar
 //! (karmolab-life-ml) 로 분리. 본 모듈 = sidecar IPC client + 후반
-//! 파이프라인(classify/schema/companion — ML dep 아님, 메인 유지).
+//! 파이프라인(classify/schema — ML dep 아님, 메인 유지).
 //!
 //! 흐름:
 //! 1. Life 위젯 voice enable → `sidecar::ensure_spawned` (프로세스 1회 +
@@ -8,7 +8,7 @@
 //! 2. hotkey Pressed (Ctrl+Alt+Space) → `record_start` → sidecar cpal open
 //! 3. hotkey Released → `record_stop_and_process` → sidecar stop+transcribe
 //!    → `(text, 임시 wav, duration)` → 별 thread 에서 후반 처리
-//! 4. classify (claude CLI) → wav memo 이동 → .md write → companion::react
+//! 4. classify (claude CLI) → wav memo 이동 → .md write
 //!
 //! 정본: TASK-KL-052 § 작업 단계 KL-052-B / src-tauri-ml/PROTOCOL.md.
 //! cpal/candle in-process(capture.rs/transcribe.rs)는 sidecar 이관으로
@@ -21,7 +21,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::AppHandle;
 
 use super::classify::{self, ClassifyKind};
-use super::companion;
 use super::schema as screen_schema;
 use super::sidecar;
 use super::state::LifeScreenConfig;
@@ -122,8 +121,8 @@ pub fn record_start() -> Result<(), String> {
 }
 
 /// hotkey Released 시 호출. **즉시 반환** — sidecar VoiceRecordStop
-/// (cpal stop + Whisper transcribe, 수초~십수초) + 후반(classify/schema/
-/// companion) 전부 백그라운드 thread.
+/// (cpal stop + Whisper transcribe, 수초~십수초) + 후반(classify/schema)
+/// 전부 백그라운드 thread.
 ///
 /// KL-052-B3 진단: 이전엔 `sidecar::send(VoiceRecordStop, HEAVY_TIMEOUT)`
 /// 가 thread spawn *밖* 동기 호출이라 transcribe 완료까지 hotkey Released
@@ -218,34 +217,5 @@ fn process_recording(
     schema::write_md(&md_path, &frontmatter, text)?;
     eprintln!("[life-voice] md 박힘 ({})", md_path.display());
 
-    let companion_input = companion::ReactInput {
-        channel: "voice",
-        trigger,
-        timestamp: now,
-        binary_path: &final_wav,
-        domain: &classification.domain,
-        tags: &classification.tags,
-        summary: &classification.summary,
-        app: None,
-        vision_summary: None,
-        vision_context: None,
-        transcript: Some(text),
-    };
-    match companion::react(&companion_input, &config) {
-        Ok(r) => {
-            let snippet: String = r
-                .response
-                .as_deref()
-                .unwrap_or("(silence)")
-                .chars()
-                .take(80)
-                .collect();
-            eprintln!(
-                "[life-companion] voice react done — persona={:?} response='{}'",
-                r.persona, snippet
-            );
-        }
-        Err(e) => eprintln!("[life-companion] voice react fail: {e}"),
-    }
     Ok(())
 }

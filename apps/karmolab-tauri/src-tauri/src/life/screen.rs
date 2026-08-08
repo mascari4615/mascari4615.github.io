@@ -2,7 +2,7 @@
 //!
 //! KL-052-C: xcap 캡처 + tesseract OCR 를 ML sidecar(karmolab-life-ml)
 //! 로 분리 (결정 #1 — 메인 ML crate 0). 메인은 sidecar IPC client +
-//! 후반(classify=claude CLI / vision=claude / schema / companion).
+//! 후반(classify=claude CLI / vision=claude / schema).
 //!
 //! 흐름 (Tauri command `life_screen_capture`):
 //! 1. memo 위치 발견 (`state::LifeScreenConfig::resolve`).
@@ -10,7 +10,7 @@
 //! 3. sidecar `Ocr` → text (fail soft — 빈 채로 분류 fallback).
 //! 4. claude CLI subprocess 분류 → `ClassifyResult`.
 //! 5. sidecar 임시 PNG → `<stamp>-<slug>.png` (memo) 이동.
-//! 6. active window + VLM(claude) + `.md` frontmatter + companion::react.
+//! 6. active window + VLM(claude) + `.md` frontmatter.
 
 use chrono::Local;
 use serde::Serialize;
@@ -20,7 +20,6 @@ use karmolab_shared::{SidecarCommand, SidecarEvent};
 
 use super::active_window;
 use super::classify;
-use super::companion;
 use super::schema;
 use super::sidecar;
 use super::state::LifeScreenConfig;
@@ -38,10 +37,6 @@ pub struct CaptureResult {
     pub trigger: String,
     /// VLM provider 가 작동했고 결과 박힘 시 Some.
     pub vision_summary: Option<String>,
-    /// sub-G companion: router 가 선택한 페르소나 id. None = 침묵.
-    pub companion_persona: Option<String>,
-    /// sub-G companion: 캐릭터 응답. None = 침묵 또는 LLM 빈 응답.
-    pub companion_response: Option<String>,
 }
 
 /// Tauri command — webview/외부 invoke 진입점. trigger="manual".
@@ -142,36 +137,6 @@ pub fn capture_with_trigger(app: &AppHandle, trigger: &str) -> Result<CaptureRes
         .join(format!("{stamp}-{slug}.md"));
     schema::write_md(&md_path, &frontmatter, &ocr_text)?;
 
-    // 8) sub-G companion react — fail soft. claude CLI (~30s+).
-    let vision_summary_owned = vision_result
-        .as_ref()
-        .map(|r| r.summary.clone())
-        .filter(|s| !s.is_empty());
-    let vision_context_owned = vision_result
-        .as_ref()
-        .map(|r| r.context.clone())
-        .filter(|s| !s.is_empty());
-    let companion_input = companion::ReactInput {
-        channel: "screenshot",
-        trigger,
-        timestamp: now,
-        binary_path: &final_png,
-        domain: &classification.domain,
-        tags: &classification.tags,
-        summary: &classification.summary,
-        app: app_title.as_deref(),
-        vision_summary: vision_summary_owned.as_deref(),
-        vision_context: vision_context_owned.as_deref(),
-        transcript: None,
-    };
-    let companion_result = match companion::react(&companion_input, &config) {
-        Ok(r) => r,
-        Err(e) => {
-            eprintln!("[life-companion] react fail soft: {e}");
-            companion::ReactResult::default()
-        }
-    };
-
     Ok(CaptureResult {
         png_path: final_png.to_string_lossy().into_owned(),
         md_path: md_path.to_string_lossy().into_owned(),
@@ -182,7 +147,5 @@ pub fn capture_with_trigger(app: &AppHandle, trigger: &str) -> Result<CaptureRes
         app: app_title,
         trigger: trigger.into(),
         vision_summary: vision_result.and_then(|r| (!r.summary.is_empty()).then_some(r.summary)),
-        companion_persona: companion_result.persona,
-        companion_response: companion_result.response,
     })
 }
