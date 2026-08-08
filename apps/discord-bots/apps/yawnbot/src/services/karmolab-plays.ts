@@ -78,6 +78,11 @@ export const PLAY_GAMES: PlayGameSpec[] = [
   { id: 'speed', label: '속도측정', better: 'high', unit: 'MB/s', min: 0.01, max: 1000, decimals: 2, variants: false },
   // 표마다 순위판이 갈린다 (포켓몬 10연승과 롤 10연승은 같은 기록이 아니다).
   { id: 'higher', label: '높은 쪽 고르기', better: 'high', unit: '연승', min: 1, max: 10000, decimals: 0, variants: true },
+  // 몇 번 물어 맞혔나 — **적게 물을수록** 잘한 것이다. 못 맞힌 판은 아예 안 보낸다.
+  // 표마다 갈린다: 항목이 넷인 표에서 3번 만에 맞히는 것과 천 개짜리에서 3번은 다른 일이다.
+  { id: 'twenty', label: '스무고개', better: 'low', unit: '개', min: 1, max: 20, decimals: 0, variants: true },
+  // 하루 한 문제 — 다섯 번 안에 맞혀야 한다. 오늘 순위가 이 놀이의 순위다(원장이 날짜별로 센다).
+  { id: 'quest', label: '오늘의 문제', better: 'low', unit: '번', min: 1, max: 5, decimals: 0, variants: false },
 ];
 
 export function playGame(id: unknown): PlayGameSpec | null {

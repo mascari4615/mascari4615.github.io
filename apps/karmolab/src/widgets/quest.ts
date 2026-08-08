@@ -6,6 +6,13 @@
  * 대조는 이 브라우저 안에서만 한다.
  */
 import { mountCourseNext } from './play-course';
+import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+
+/**
+ * 오늘의 문제 순위 (TASK-KL-148 ②) — **적게 시도할수록** 위다.
+ * 표가 갈리지 않는다: 문제는 하루에 하나뿐이라 모두가 같은 것을 푼다.
+ */
+const QUEST_SPEC: PlaySpec = { game: 'quest', better: 'low', unit: '번', decimals: 0 };
 
 (function (): void {
   interface Puzzle {
@@ -199,6 +206,8 @@ import { mountCourseNext } from './play-course';
               <p class="tool-status" id="qsMsg" aria-live="polite"></p>
               <p class="qs-tries" id="qsTries"></p>
               <p class="pc-line" id="qsCourse" hidden></p>
+              <p id="qsRecord" hidden></p>
+              <div id="qsBoard" hidden></div>
               <div class="qs-after" id="qsAfter" style="display:none; gap:6px; flex-wrap:wrap;">
                 <button type="button" class="btn btn-primary" id="qsMore">다른 문제 하나 더</button>
               </div>
@@ -297,6 +306,19 @@ import { mountCourseNext } from './play-course';
             st[dayLabel()] = { win, tries };
             save(st);
             paintToday();
+            /* 맞힌 판만 기록에 남긴다 (TASK-KL-148 ②). 적게 시도할수록 잘한 것이고,
+               「오늘 순위」가 이 놀이의 순위다 — 원장이 날짜별 최고를 따로 센다. */
+            if (win && tries >= 1) {
+              void submitPlay(QUEST_SPEC, tries).then((r) => {
+                const slot = document.getElementById('qsRecord');
+                if (!slot || !slot.isConnected) return;
+                renderPlayResult(slot, QUEST_SPEC, r);
+                if (r.server && r.server.improved) {
+                  const board = document.getElementById('qsBoard');
+                  if (board) mountPlayBoard(board, QUEST_SPEC, 'day');
+                }
+              });
+            }
           }
 
           /* 오늘 것을 끝내면 할 게 없어 그냥 나가게 된다 — 지난 문제를 연습으로 더 풀게 한다. */

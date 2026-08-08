@@ -15,6 +15,8 @@
 import { mountCourseNext } from './play-course';
 import { absorbFromUrl, getPack, loadPacks, packToCode } from './pack-store';
 import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
+import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+import { variantFor } from '../lib/shared-packs';
 import { onPageActive, takePick } from './pack-pick';
 
 (function (): void {
@@ -107,6 +109,8 @@ import { onPageActive, takePick } from './pack-pick';
               <div class="tw-guess" id="twGuess" hidden></div>
               <p class="tool-status" id="twMsg" aria-live="polite"></p>
               <p class="pc-line" id="twCourse" hidden></p>
+              <p id="twRecord" hidden></p>
+              <div id="twBoard" hidden></div>
               <div class="tw-after" id="twAfter" hidden>
                 <button type="button" class="btn btn-primary" id="twAgain">다시</button>
                 <button type="button" class="btn btn-ghost" id="twShare">결과 복사</button>
@@ -231,6 +235,16 @@ import { onPageActive, takePick } from './pack-pick';
             $('twLogList').innerHTML = history.map((h) => `<li>${esc(h)}</li>`).join('');
           }
 
+          /** 이 표의 순위판 이름. 올라간 표면 그 주소로 갈린다(같은 표로 논 사람끼리 만난다). */
+          const specOf = (id: string): PlaySpec => ({
+            game: 'twenty',
+            variant:
+              id.indexOf('pack:') === 0 ? variantFor(getPack(id.slice(5)) ?? { id: id.slice(5) }) : id,
+            better: 'low',
+            unit: '개',
+            decimals: 0
+          });
+
           function endRound(msg: string, win: boolean): void {
             cur = null;
             guessing = null;
@@ -241,6 +255,18 @@ import { onPageActive, takePick } from './pack-pick';
             $('twAfter').hidden = false;
             $('twLeft').textContent = '';
             markToday();
+            /* 이긴 판만 기록에 남긴다 (TASK-KL-148 ②) — 「못 맞힘」은 몇 개를 물었든 기록이 아니다.
+               적게 물수록 잘한 것이므로 순위는 작은 쪽이 위다. 판(표)마다 갈린다: 항목이 넷인
+               표에서 3번 만에 맞히는 것과 천 개짜리에서 3번은 같은 일이 아니다. */
+            if (win && asked >= 1) {
+              const spec = specOf(topicId);
+              void submitPlay(spec, asked).then((r) => {
+                const slot = container.querySelector<HTMLElement>('#twRecord');
+                if (!slot || !slot.isConnected) return;
+                renderPlayResult(slot, spec, r);
+                if (r.server && r.server.improved) mountPlayBoard($('twBoard'), spec);
+              });
+            }
             mountCourseNext($('twCourse'), 'twenty');
           }
 
