@@ -253,6 +253,22 @@ jobs:
         if: always()
         run: npm run test:typing
 
+      # 아래 셋은 손으로 돌리는 묶음(audit-all)에는 있었는데 **여기에만 없었다** —
+      # 즉 실제 사이트에서는 영영 안 돌고 있었다(audit:scripts 가 이걸 잡아 준다).
+      # 셋 다 기본 주소가 라이브라 배포 후 확인용으로 만들어진 것이고, 실제로 돌려 보니
+      # 전부 초록이었다(2026-08-08). 배선만 빠져 있었다.
+      - name: 화면 다섯이 넓은 화면·폰에서 안 넘치는지
+        if: always()
+        run: npm run test:platform
+
+      - name: 판본 대조가 도는지
+        if: always()
+        run: npm run test:pdfdiff
+
+      - name: 타자 대결 한 바퀴가 도는지
+        if: always()
+        run: npm run test:ghosttype
+
       # 화면낭독기가 입력칸 이름을 읽을 수 있는지. 기준치는 data/a11y-baseline.json 이 정본이고
       # 지금은 0 이라, 이름 없는 칸이 하나라도 새로 생기면 여기서 걸린다.
       - name: 입력칸에 이름이 이어져 있는지
