@@ -103,8 +103,22 @@
           baseSel.innerHTML = ZONES.map(([z, city, country]) => `<option value="${z}">${city} · ${country}</option>`).join('');
           baseSel.value = 'Asia/Seoul';
 
+          /** 적힌 벽시계 시각(YYYY-MM-DDTHH:mm)을 그 도시 기준으로 읽어 실제 순간을 낸다. */
+          function wallToInstant(wall: string, zone: string): Date {
+            const asUtc = Date.parse(wall.length === 16 ? wall + ':00Z' : wall + 'Z');
+            let ts = asUtc;
+            for (let i = 0; i < 2; i++) ts = asUtc - offsetMinutes(zone, new Date(ts)) * 60000;
+            return new Date(ts);
+          }
+
           function render(): void {
-            const at = when.value ? new Date(when.value) : new Date();
+            /* 적어 넣은 시각은 **기준 도시의 벽시계 시각**이다. 예전에는 `new Date(값)` 으로 읽어
+               *브라우저가 있는 시간대*로 해석했다 — 기준 도시가 서울인데 브라우저가 베를린이면
+               표 전체가 8시간씩 어긋났다. 화면 라벨은 「기준 도시 / 기준 시각」이라 사람은 도시
+               기준으로 적는데, 결과만 조용히 다른 값이 나왔다.
+               고치는 법: 적힌 벽시계 시각을 UTC 로 가정해 한 번 읽고, 그 시점 기준 도시의 오프셋을
+               빼서 실제 순간을 얻는다. 서머타임 경계에서 흔들리지 않게 두 번 접는다. */
+            const at = when.value ? wallToInstant(when.value, baseSel.value) : new Date();
             if (isNaN(at.getTime())) return;
             const baseOff = offsetMinutes(baseSel.value, at);
             const q = search.value.trim().toLowerCase();
@@ -114,8 +128,15 @@
             )
               .map(([z, city, country]) => {
                 const diff = (offsetMinutes(z, at) - baseOff) / 60;
+                /* 45분·30분짜리 시간대(네팔 +5:45, 인도 +5:30)를 `+5.8시간` 처럼 적으면 아무도 못 읽는다.
+                   시간과 분으로 적는다. */
+                const diffMin = offsetMinutes(z, at) - baseOff;
+                const sign = diffMin > 0 ? '+' : '-';
+                const am = Math.abs(diffMin);
                 const diffText =
-                  diff === 0 ? '같은 시각' : `${diff > 0 ? '+' : ''}${Number.isInteger(diff) ? diff : diff.toFixed(1)}시간`;
+                  diffMin === 0
+                    ? '같은 시각'
+                    : `${sign}${Math.floor(am / 60)}시간${am % 60 ? ` ${am % 60}분` : ''}`;
                 const time = new Intl.DateTimeFormat('ko-KR', {
                   timeZone: z,
                   dateStyle: 'short',
