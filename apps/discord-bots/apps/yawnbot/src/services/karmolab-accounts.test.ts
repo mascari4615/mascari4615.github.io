@@ -330,3 +330,73 @@ describe('프로필 꾸미기 (KL-152 C5)', () => {
     expect(reopened.publicProfile(reopened.byHandle(account.handle)!).card).toEqual({ bio: '안녕', pins: ['pet'] });
   });
 });
+
+/** 기기 상세 + 보안 기록 (TASK-KL-152 C6·C7). */
+describe('기기·보안 기록 (KL-152 C6·C7)', () => {
+  it('로그인 목록에 기기 이름과 「이 기기」가 함께 나온다 — 숫자만으로는 끊을 결심을 못 한다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const here = store.createSession(account.id, 'Windows · Chrome');
+    store.createSession(account.id, 'Android · Firefox');
+
+    const sessions = store.sessionsFor(account.id, here.token);
+    expect(sessions).toHaveLength(2);
+    expect(sessions.map((s) => s.device).sort()).toEqual(['Android · Firefox', 'Windows · Chrome']);
+    expect(sessions.filter((s) => s.current)).toHaveLength(1);
+  });
+
+  it('목록에 나가는 것은 토큰이 아니다 — 토큰이 나가면 그게 곧 열쇠다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const here = store.createSession(account.id, 'Windows · Chrome');
+    const asText = JSON.stringify(store.sessionsFor(account.id, here.token));
+    expect(asText).not.toContain(here.token);
+  });
+
+  it('로그인 하나만 끊을 수 있다 (나머지는 살아 있다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const here = store.createSession(account.id, '이 기기');
+    store.createSession(account.id, '저 기기');
+
+    const target = store.sessionsFor(account.id, here.token).find((s) => !s.current)!;
+    expect(store.revokeSession(account.id, target.id)).toBe(true);
+    expect(store.sessionsFor(account.id, here.token)).toHaveLength(1);
+    // 남의 세션 id 를 찍어 보내도 안 끊긴다
+    expect(store.revokeSession(account.id, 'deadbeefdeadbeef')).toBe(false);
+  });
+
+  it('무슨 일이 있었는지 최근 것부터 남는다 (주소는 안 적는다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    store.noteEvent(account.id, 'login', { device: 'Windows · Chrome', detail: '디스코드' });
+    store.noteEvent(account.id, 'recovery-used', { device: 'iOS · Safari' });
+
+    const events = store.eventsFor(account.id);
+    expect(events.map((e) => e.kind)).toEqual(['recovery-used', 'login']);
+    expect(JSON.stringify(events)).not.toMatch(/\d+\.\d+\.\d+\.\d+/);
+  });
+
+  it('기록은 50줄까지만 — 계정 파일이 끝없이 커지지 않게', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    for (let i = 0; i < 60; i += 1) store.noteEvent(account.id, 'login', { detail: String(i) });
+    const events = store.eventsFor(account.id);
+    expect(events).toHaveLength(50);
+    expect(events[0].detail).toBe('59');
+  });
+
+  it('마지막 쓰임은 하루 한 번만 저장한다 — 요청마다 쓰면 디스크가 돈다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const here = store.createSession(account.id, '이 기기');
+    const first = store.sessionsFor(account.id, here.token)[0].lastSeenAt;
+
+    store.touchSession(here.token, Date.now() + 60 * 1000);
+    expect(store.sessionsFor(account.id, here.token)[0].lastSeenAt).toBe(first);
+
+    const later = Date.now() + 48 * 60 * 60 * 1000;
+    store.touchSession(here.token, later);
+    expect(store.sessionsFor(account.id, here.token)[0].lastSeenAt).toBe(new Date(later).toISOString());
+  });
+});
