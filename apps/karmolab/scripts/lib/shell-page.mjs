@@ -157,15 +157,23 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
    * 태그 자체는 남긴다 — 색 테마를 고르는 코드가 이 자리를 찾기 때문이다. 나중에 색칠이
    * 실제로 실려 오면 그때 켜 준다(안 그러면 코드가 흑백으로 나오는 조용한 고장이 된다). */
   {
-    const before = html;
-    html = html.replace(
-      /(<link id="prism-css" rel="stylesheet" href="[^"]*")>/,
-      '$1 media="print">\n' +
-        '    <script>(function(){var el=document.getElementById("prism-css");' +
-        'if(!el)return;var t=setInterval(function(){if(window.Prism){el.media="all";clearInterval(t)}},400);' +
-        'setTimeout(function(){clearInterval(t)},30000)})()</script>'
-    );
-    if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
+    /* 셸이 **이미 뒤로 빼 뒀으면** 그대로 둔다 (2026-08-08).
+     * 앱 첫 화면도 이 스타일에 첫 그림이 걸려 있었다 — 그 요청만 1.5초 늦추니 첫 그림이
+     * 484ms → 1936ms 였다. 그래서 `index.html` 쪽도 `media="print"` 로 바꿨는데, 그 순간
+     * 여기서 「자리를 못 찾음」으로 세워 **도구 129장 생성이 통째로 멈췄다**(찾는 모양이
+     * 하나뿐이었다). 이제 두 모양을 다 안다: 아직 막고 있으면 뒤로 빼고, 이미 빠져 있으면
+     * 아무 일도 안 한다. 둘 다 아니면 그때는 진짜로 세운다. */
+    if (!/<link id="prism-css"[^>]*media="print"/.test(html)) {
+      const before = html;
+      html = html.replace(
+        /(<link id="prism-css" rel="stylesheet" href="[^"]*")>/,
+        '$1 media="print">\n' +
+          '    <script>(function(){var el=document.getElementById("prism-css");' +
+          'if(!el)return;var t=setInterval(function(){if(window.Prism){el.media="all";clearInterval(t)}},400);' +
+          'setTimeout(function(){clearInterval(t)},30000)})()</script>'
+      );
+      if (html === before) throw new Error('셸에서 코드 색칠 스타일 자리를 못 찾음 — index.html 확인');
+    }
   }
 
   /* 첫 그림에 안 쓰이는 셸 조각은 여기서 통째로 미룬다 — 정적 페이지 전부에 해당한다.
