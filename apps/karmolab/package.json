@@ -88,6 +88,7 @@
     "test:pdfdiff": "node scripts/smoke-pdfdiff.mjs",
     "test:ghosttype": "node scripts/smoke-ghosttype.mjs",
     "test:duel": "node scripts/smoke-duel.mjs",
+    "test:chat": "node scripts/smoke-chat.mjs",
     "test:timecapsule": "node scripts/smoke-timecapsule.mjs",
     "test:afade": "node scripts/test-audiofade.mjs",
     "test:sub": "node scripts/test-subtitle.mjs",
