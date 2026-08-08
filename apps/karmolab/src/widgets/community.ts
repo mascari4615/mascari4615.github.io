@@ -843,10 +843,14 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                         <div class="c-report-body">${esc(plainPreview(r.subject, 160))}</div>
                         <div class="c-report-foot">
                             ${
-                                // 채팅 줄은 하루 뒤 사라진다 — 그때는 열어 볼 곳이 없으므로 단추도 안 만든다.
+                                /* 신고함에서 **바로 처리한다** (TASK-KL-158).
+                                   예전에는 「확인함」과 「글 보기」뿐이라, 지우려면 그 글로 건너가서
+                                   다시 찾아야 했다. 처리하는 데 두 화면이 필요하면 안 처리한다. */
                                 r.kind === 'post'
-                                    ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">글 보기</button>`
-                                    : ''
+                                    ? `<button type="button" class="c-linkbtn" data-report-open="${esc(r.postId)}">글 보기</button>` +
+                                      `<button type="button" class="c-linkbtn" data-report-del="${esc(r.id)}" data-post="${esc(r.postId)}">지우기</button>`
+                                    : `<button type="button" class="c-linkbtn" data-report-chatdel="${esc(r.id)}" data-msg="${esc(r.postId)}">줄 지우기</button>` +
+                                      `<button type="button" class="c-linkbtn" data-report-mute="${esc(r.id)}" data-msg="${esc(r.postId)}">30분 재갈</button>`
                             }
                             <button type="button" class="c-linkbtn" data-report-done="${esc(r.id)}">확인함</button>
                         </div>
@@ -930,6 +934,44 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         host.querySelectorAll<HTMLButtonElement>('[data-report-open]').forEach((b) =>
             b.addEventListener('click', () => go({ p: b.dataset.reportOpen ?? null, board: null, q: null })),
         );
+        /** 처리하고 나면 그 신고는 이미 본 것이다 — 따로 「확인함」을 또 누르게 하지 않는다. */
+        const resolveAfter = async (button: HTMLButtonElement, run: () => Promise<unknown>): Promise<void> => {
+            button.disabled = true;
+            const ok = await run();
+            if (!ok) {
+                button.disabled = false;
+                Toolbox.showToast?.(toastFor('처리하지 못했어요'));
+                return;
+            }
+            const id = button.dataset.reportDel ?? button.dataset.reportChatdel ?? button.dataset.reportMute ?? '';
+            await api(`/kl/reports/${encodeURIComponent(id)}/resolve`, { method: 'POST' });
+            reports = reports.filter((r) => r.id !== id);
+            void render();
+        };
+
+        host.querySelectorAll<HTMLButtonElement>('[data-report-del]').forEach((b) =>
+            b.addEventListener('click', () => {
+                if (!confirm('이 글을 지웁니다. 계속할까요?')) return;
+                void resolveAfter(b, () => api(`/kl/posts/${encodeURIComponent(b.dataset.post ?? '')}`, { method: 'DELETE' }));
+            }),
+        );
+        host.querySelectorAll<HTMLButtonElement>('[data-report-chatdel]').forEach((b) =>
+            b.addEventListener('click', () =>
+                void resolveAfter(b, () => api(`/kl/chat/${encodeURIComponent(b.dataset.msg ?? '')}`, { method: 'DELETE' })),
+            ),
+        );
+        host.querySelectorAll<HTMLButtonElement>('[data-report-mute]').forEach((b) =>
+            b.addEventListener('click', () =>
+                void resolveAfter(b, () =>
+                    api('/kl/chat/mute-message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: b.dataset.msg, minutes: 30 }),
+                    }),
+                ),
+            ),
+        );
+
         host.querySelectorAll<HTMLButtonElement>('[data-report-done]').forEach((b) =>
             b.addEventListener('click', async () => {
                 b.disabled = true;
@@ -1317,7 +1359,8 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         const query = (param('q') ?? '').trim().toLowerCase();
         const filtered = query
             ? data.posts.filter((p) =>
-                  `${p.title ?? ''} ${p.text} ${p.authorHandle}`.toLowerCase().includes(query),
+                  // 익명 글은 손잡이가 비어 있다 — 보이는 이름(이름표)으로도 찾히게 (KL-158).
+                  `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.anon?.name ?? ''}`.toLowerCase().includes(query),
               )
             : data.posts;
 
@@ -1726,10 +1769,12 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
                     <span class="c-dot">조회 ${post.views}</span></div>
                 ${post.title ? `<div class="c-post-body md">${renderMarkdown(post.text)}</div>` : `<div class="c-post-body md">${renderMarkdown(post.text)}</div>`}
                 <div class="c-actions">
-                    <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled'}>
+                    <button type="button" class="c-act" data-like data-on="${post.likedByMe ? '1' : '0'}"
+                        ${data.signedIn ? '' : 'disabled title="좋아요는 로그인해야 눌러요 — 익명은 같은 사람이 여러 번 누른 것을 가릴 수 없어서예요"'}>
                         좋아요 ${post.likes}</button>
-                    ${isRequest ? `<button type="button" class="c-act" data-vote data-on="${post.votedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled'}>표 ${post.votes}</button>` : ''}
+                    ${isRequest ? `<button type="button" class="c-act" data-vote data-on="${post.votedByMe ? '1' : '0'}" ${data.signedIn ? '' : 'disabled title="표는 로그인해야 줄 수 있어요 — 익명은 같은 사람이 여러 번 준 것을 가릴 수 없어서예요"'}>표 ${post.votes}</button>` : ''}
                     ${canDelete ? '<button type="button" class="c-act" data-delete>지우기</button>' : ''}
+                    ${data.signedIn ? '' : '<span class="c-write-hint">글·답글은 익명으로 쓸 수 있어요 · 좋아요와 표만 로그인이 필요해요 (같은 사람이 여러 번 누른 것을 가릴 수 없어서)</span>'}
                     ${data.signedIn && !post.mine ? '<button type="button" class="c-act" data-report>신고</button>' : ''}
                     ${data.isAdmin ? `<button type="button" class="c-act" data-pin>${post.pinned ? '고정 풀기' : '고정'}</button>` : ''}
                 </div>

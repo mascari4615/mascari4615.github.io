@@ -40,6 +40,15 @@ export interface ChatMessage {
     /** 주인이 한 말인가. 익명 사이에서 주인만 드러난다 — 안 그러면 공지를 할 수가 없다. */
     byOwner: boolean;
     at: string;
+    /**
+     * 이 줄을 **지킨** 사람들의 오늘 번호 (TASK-KL-158).
+     *
+     * 채팅은 하루 뒤 사라진다. 좋은 말이 나와도 그걸 남길 길이 「손으로 글로 옮기기」뿐이면
+     * 대부분 그냥 사라진다. 그래서 별 하나로 지킬 수 있게 했다 — **지킨 줄은 안 지워진다.**
+     * 「사라지기 전에 알려 주기」보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
+     * 지키기는 한 번 누르면 끝난다.
+     */
+    keptBy?: string[];
 }
 
 interface ChatState {
@@ -70,6 +79,11 @@ const STATE_FILE = 'karmolab-chat-state.json';
 export const MAX_MESSAGES = 200;
 /** 이보다 오래된 줄은 버린다. 채팅은 기록이 아니다. */
 export const MESSAGE_TTL_MS = 24 * 60 * 60 * 1000;
+/**
+ * 지킨 줄은 몇 개까지 남기나.
+ * 무한이면 방이 지킨 줄로만 차서, 지키기가 오히려 방을 죽인다. 넘으면 **오래된 지킨 줄부터** 놓는다.
+ */
+export const MAX_KEPT = 30;
 export const TEXT_MAX = 300;
 /** 연달아 칠 때 최소 간격. 사람 손보다 빠른 것은 사람이 아니다. */
 export const MIN_INTERVAL_MS = 1200;
@@ -199,9 +213,23 @@ export class KarmolabChatStore {
     private prune(now: Date = new Date()): void {
         const cutoff = now.getTime() - MESSAGE_TTL_MS;
         const before = this.state.messages.length;
-        this.state.messages = this.state.messages.filter((m) => Date.parse(m.at) >= cutoff);
+
+        /* 지킨 줄이 너무 많으면 오래된 것부터 놓는다 — 안 그러면 방이 지킨 줄로만 찬다. */
+        const kept = this.state.messages.filter((m) => (m.keptBy?.length ?? 0) > 0);
+        if (kept.length > MAX_KEPT) {
+            for (const old of kept.slice(0, kept.length - MAX_KEPT)) old.keptBy = [];
+        }
+
+        // **지킨 줄은 시간이 지나도 안 지운다.** 그게 지키기의 뜻이다.
+        this.state.messages = this.state.messages.filter(
+            (m) => Date.parse(m.at) >= cutoff || (m.keptBy?.length ?? 0) > 0,
+        );
         if (this.state.messages.length > MAX_MESSAGES) {
-            this.state.messages = this.state.messages.slice(-MAX_MESSAGES);
+            // 넘칠 때도 지킨 줄은 남긴다 — 자리는 안 지킨 줄에서만 뺀다.
+            const keepSet = new Set(this.state.messages.filter((m) => (m.keptBy?.length ?? 0) > 0));
+            const plain = this.state.messages.filter((m) => !keepSet.has(m));
+            const drop = new Set(plain.slice(0, this.state.messages.length - MAX_MESSAGES));
+            this.state.messages = this.state.messages.filter((m) => !drop.has(m));
         }
         for (const [who, until] of Object.entries(this.state.mutes)) {
             if (until <= now.getTime()) delete this.state.mutes[who];
@@ -294,6 +322,23 @@ export class KarmolabChatStore {
         return true;
     }
 
+    /**
+     * 이 줄을 지킨다 / 지키기를 푼다. 같은 사람이 다시 누르면 풀린다.
+     * @returns 지금 지킨 사람 수. 없는 줄이면 null.
+     */
+    toggleKeep(id: string, who: string, now: Date = new Date()): number | null {
+        this.prune(now);
+        const message = this.state.messages.find((m) => m.id === id);
+        if (!message) return null;
+        const list = new Set(message.keptBy ?? []);
+        if (list.has(who)) list.delete(who);
+        else list.add(who);
+        message.keptBy = [...list];
+        this.markDirty();
+        this.broadcast({ type: 'keep', id, kept: message.keptBy.length });
+        return message.keptBy.length;
+    }
+
     /** 주인이 재갈을 물린다. 오늘 이름표 기준이므로 **자정이면 어차피 풀린다**. */
     mute(who: string, minutes: number, now: Date = new Date()): boolean {
         if (!who) return false;
@@ -365,6 +410,7 @@ export class KarmolabChatStore {
 export type ChatEvent =
     | { type: 'msg'; message: ChatMessage }
     | { type: 'del'; id: string }
+    | { type: 'keep'; id: string; kept: number }
     | { type: 'here'; here: number };
 
 let singleton: KarmolabChatStore | null = null;

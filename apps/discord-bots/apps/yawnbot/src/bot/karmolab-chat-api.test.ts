@@ -333,3 +333,76 @@ describe('익명 글쓰기 (KL-157)', () => {
     expect([403, 404]).toContain(denied.status);
   });
 });
+
+describe('신고 처리와 지키기 (KL-158)', () => {
+  it('채팅 신고가 주인 신고함으로 들어오고, 그 말이 함께 남는다', async () => {
+    await say('10.2.0.1', '신고당할 말');
+    const recent = await (await fetch(`${baseUrl}/kl/chat/recent`, { headers: { 'user-agent': HUMAN_UA } })).json();
+    const id = recent.messages[0].id;
+
+    const reported = await fetch(`${baseUrl}/kl/chat/report`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.2.0.2' },
+      body: JSON.stringify({ id, reason: '시험' }),
+    });
+    expect(reported.status).toBe(200);
+
+    // 주인이 아니면 신고함을 못 본다.
+    const denied = await fetch(`${baseUrl}/kl/reports`, { headers: { 'user-agent': HUMAN_UA } });
+    expect(denied.status).toBe(403);
+  });
+
+  it('주인이 아니면 줄로 재갈을 못 문다', async () => {
+    const denied = await fetch(`${baseUrl}/kl/chat/mute-message`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA },
+      body: JSON.stringify({ id: 'x', minutes: 30 }),
+    });
+    expect(denied.status).toBe(403);
+  });
+
+  it('지키면 그 수가 오르고, 다시 누르면 내린다', async () => {
+    await say('10.2.1.1', '지킬 말');
+    const recent = await (await fetch(`${baseUrl}/kl/chat/recent`, { headers: { 'user-agent': HUMAN_UA } })).json();
+    const id = recent.messages[recent.messages.length - 1].id;
+
+    const on = await fetch(`${baseUrl}/kl/chat/${id}/keep`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.2.1.2' },
+      body: '{}',
+    });
+    expect((await on.json()).kept).toBe(1);
+
+    const off = await fetch(`${baseUrl}/kl/chat/${id}/keep`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.2.1.2' },
+      body: '{}',
+    });
+    expect((await off.json()).kept).toBe(0);
+  });
+
+  it('봇은 지키기도 못 누른다', async () => {
+    const denied = await fetch(`${baseUrl}/kl/chat/anything/keep`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': BOT_UA },
+      body: '{}',
+    });
+    expect(denied.status).toBe(403);
+  });
+
+  it('익명 글이 **보이는 이름**(이름표)으로 찾힌다', async () => {
+    const created = await fetch(`${baseUrl}/kl/posts`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.2.2.1' },
+      body: JSON.stringify({ board: 'free', title: '찾아질 글', text: '본문', anon: true }),
+    });
+    expect(created.status).toBe(200);
+
+    const list = await (await fetch(`${baseUrl}/kl/posts?board=free`, { headers: { 'user-agent': HUMAN_UA, 'x-forwarded-for': '10.2.2.1' } })).json();
+    const mine = list.posts.find((p: { title: string }) => p.title === '찾아질 글');
+    const label = mine.anon.name;
+
+    const found = await (await fetch(`${baseUrl}/kl/search?q=${encodeURIComponent(label)}`, { headers: { 'user-agent': HUMAN_UA } })).json();
+    expect(found.posts.some((p: { title: string }) => p.title === '찾아질 글')).toBe(true);
+  });
+});

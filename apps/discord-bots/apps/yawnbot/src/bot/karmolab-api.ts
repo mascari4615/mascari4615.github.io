@@ -53,6 +53,7 @@ import { saveImage, readImage, UPLOAD_MAX_BYTES } from '../services/karmolab-upl
 import { classifyVisitor } from '../services/karmolab-visitor-kind';
 import { getKarmolabRoomStore, colorFor, type RoomEvent } from '../services/karmolab-rooms';
 import { getKarmolabFlowStore } from '../services/karmolab-flows';
+import { missionState, missionsOfWeek } from '../services/karmolab-missions';
 import {
   verifyRegistration,
   verifyAssertion,
@@ -963,6 +964,26 @@ export function registerKarmolabApi(
       following: store.followList(handle, 'following', viewer?.id ?? null),
       followers: store.followList(handle, 'followers', viewer?.id ?? null),
     });
+  });
+
+  /**
+   * 이번 주 미션 (TASK-KL-182 F1).
+   *
+   * 저장하는 것이 없다 — 미션 목록은 주 이름에서 계산되고 진행도는 발자국에서 그때그때 센다.
+   * 두 벌로 적어 두면 갈라지고, 갈라진 순간 숫자가 거짓이 된다.
+   */
+  app.get('/kl/me/missions', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json(missionState(store, account.id));
+  });
+
+  /** 이번 주 미션은 **모두에게 같다** — 로그인 없이도 무엇이 걸렸는지 볼 수 있어야 이야기가 된다. */
+  app.get('/kl/missions', (_req: Request, res: Response) => {
+    res.json({ missions: missionsOfWeek() });
   });
 
   /* ── 도구 흐름 (TASK-KL-181) ──────────────────────────────────────
@@ -2629,6 +2650,26 @@ export function registerKarmolabApi(
     res.json({ ok: true, message: result.message });
   });
 
+  /**
+   * 이 줄을 지킨다 (TASK-KL-158). 로그인은 안 물어본다 — 채팅과 같은 자리다.
+   * 지킨 줄은 하루가 지나도 안 사라진다. 좋은 말을 남길 길이 「손으로 글로 옮기기」뿐이면
+   * 대부분 그냥 사라진다.
+   */
+  app.post('/kl/chat/:id/keep', (req: Request, res: Response) => {
+    if (classifyVisitor(req.headers['user-agent']) !== 'human') {
+      res.status(403).json({ error: 'not_human' });
+      return;
+    }
+    const identity = chat.identityFor(visitorKeyFor(req));
+    const kept = chat.toggleKeep(String(req.params.id ?? ''), identity.who);
+    if (kept === null) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    chat.flush();
+    res.json({ ok: true, kept });
+  });
+
   /** 주인이 한 줄 지운다. 지운 자리는 안 남긴다 — 「삭제됨」이 줄줄이 남으면 그것이 도배가 된다. */
   app.delete('/kl/chat/:id', (req: Request, res: Response) => {
     if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
@@ -2641,6 +2682,29 @@ export function registerKarmolabApi(
     }
     chat.flush();
     res.json({ ok: true });
+  });
+
+  /**
+   * 신고함에서 바로 재갈을 문다 (TASK-KL-158).
+   *
+   * 신고 원장은 **누가 말했는지를 안 들고 있다** — 신고 당시의 그 말만 베껴 뒀다(익명이 새지
+   * 않게). 그래서 줄 id 로 그 사람을 되찾아 문다. 줄이 이미 사라졌으면(하루가 지났으면)
+   * 물 대상이 없다 — 그때는 「없다」고 정직하게 답한다. 조용히 성공한 척하지 않는다.
+   */
+  app.post('/kl/chat/mute-message', (req: Request, res: Response) => {
+    if (!isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE)))) {
+      res.status(403).json({ error: 'not_allowed' });
+      return;
+    }
+    const target = chat.recent().find((m) => m.id === String(req.body?.id ?? ''));
+    if (!target) {
+      res.status(404).json({ error: 'gone' });
+      return;
+    }
+    const minutes = Number(req.body?.minutes ?? 30);
+    chat.mute(target.who, Number.isFinite(minutes) ? minutes : 30);
+    chat.flush();
+    res.json({ ok: true, who: target.who });
   });
 
   /** 주인이 재갈을 물린다. 오늘 이름표 기준이라 **자정이면 어차피 풀린다** — 영구 추방이 아니다. */

@@ -31,6 +31,8 @@
         who: string;
         byOwner: boolean;
         at: string;
+        /** 이 줄을 지킨 사람들 (TASK-KL-158). 지킨 줄은 하루가 지나도 안 사라진다. */
+        keptBy?: string[];
     }
     interface Hello {
         me: Me;
@@ -123,6 +125,8 @@
         .klchat-line:hover .klchat-act { display:flex; }
         .klchat-act button { background:none; border:none; padding:0 2px; font-size:11px; color:var(--text-tertiary,#6b7688); cursor:pointer; }
         .klchat-act button:hover { color:#ef8b8b; }
+        .klchat-act button[data-on="1"] { color:#e6c65c; }
+        .klchat-kept { color:#e6c65c; font-size:10px; margin-left:4px; }
         .klchat-note { color:var(--text-tertiary,#6b7688); font-size:11px; line-height:1.6; padding:6px 0; border-bottom:1px dashed var(--border,rgba(255,255,255,0.08)); margin-bottom:4px; }
         .klchat-foot { border-top:1px solid var(--border,rgba(255,255,255,0.08)); padding:8px 10px; display:flex; flex-direction:column; gap:6px; }
         .klchat-row { display:flex; gap:6px; align-items:flex-end; }
@@ -221,12 +225,22 @@
             previous.who === m.who &&
             Date.parse(m.at) - Date.parse(previous.at) < 5 * 60 * 1000;
         const owner = m.byOwner ? '<span class="klchat-owner">주인</span>' : '';
+        // 지킨 줄은 목록에서도 표가 나야 한다 — 안 그러면 왜 안 사라지는지 아무도 모른다.
+        const keptMark = (m.keptBy?.length ?? 0) > 0 ? '<span class="klchat-kept">⭐</span>' : '';
         const head = sameSpeaker
             ? ''
             : `${owner}<span class="klchat-who" style="color:${m.color}">${escapeHtml(m.name)}</span><span style="color:var(--text-tertiary,#6b7688)">: </span>`;
         /* 「글로 옮기기」가 왜 여기 있나 (TASK-KL-157): 채팅에서 나온 좋은 말은 24시간 뒤 사라진다.
          * 남길 가치가 있다고 느낀 그 순간에 옮길 길이 없으면, 옮기자고 마음먹을 일도 없다. */
-        const keep = `<button data-act="keep" data-id="${m.id}" title="글로 옮기기">📌</button>`;
+        const keptCount = m.keptBy?.length ?? 0;
+        const mineKept = me !== null && (m.keptBy ?? []).includes(me.who);
+        /* ⭐ 지키기 — 누른 줄은 **하루가 지나도 안 사라진다**.
+         * 「사라지기 전에 알려 주기」보다 이쪽이 근본이다: 알림은 그 순간 보고 있어야 하지만,
+         * 지키기는 한 번 누르면 끝난다. 📌 는 커뮤니티로 옮기는 것이라 하는 일이 다르다. */
+        const star = `<button data-act="star" data-id="${m.id}" data-on="${mineKept ? '1' : '0'}" title="${
+            mineKept ? '지키는 중 — 안 사라진다' : '지키기 (하루 뒤에도 남는다)'
+        }">${mineKept ? '⭐' : '☆'}${keptCount > 1 ? keptCount : ''}</button>`;
+        const keep = `${star}<button data-act="keep" data-id="${m.id}" title="글로 옮기기">📌</button>`;
         const actions = isAdmin
             ? `${keep}<button data-act="del" data-id="${m.id}" title="지우기">🗑</button><button data-act="mute" data-who="${m.who}" title="30분 재갈">🤫</button>`
             : `${keep}<button data-act="report" data-id="${m.id}" title="신고">🚩</button>`;
@@ -234,6 +248,7 @@
             `<div class="klchat-line${sameSpeaker ? ' cont' : ''}" data-id="${m.id}">` +
             head +
             escapeHtml(m.text) +
+            keptMark +
             `<span class="klchat-time">${timeLabel(m.at)}</span>` +
             `<span class="klchat-act">${actions}</span>` +
             '</div>'
@@ -369,6 +384,17 @@
             const id = (JSON.parse((event as MessageEvent).data) as { id: string }).id;
             const index = messages.findIndex((m) => m.id === id);
             if (index >= 0) messages.splice(index, 1);
+            renderLog();
+        });
+        source.addEventListener('keep', (event) => {
+            const data = JSON.parse((event as MessageEvent).data) as { id: string; kept: number };
+            const found = messages.find((m) => m.id === data.id);
+            if (!found) return;
+            /* 서버는 **몇 명이 지켰나**만 흘린다 — 누가 지켰는지를 뿌리면 익명이 샌다.
+               그래서 내 표시는 내가 누른 것으로만 유지하고, 수만 맞춘다. */
+            const mine = (found.keptBy ?? []).includes(me?.who ?? '');
+            found.keptBy = Array.from({ length: data.kept }, (_, i) => (i === 0 && mine ? (me?.who ?? `x${i}`) : `x${i}`));
+            if (mine && !found.keptBy.includes(me?.who ?? '')) found.keptBy[0] = me?.who ?? '';
             renderLog();
         });
         source.addEventListener('here', (event) => {
@@ -523,6 +549,19 @@
             Toolbox.showToast?.('신고했다 — 주인에게 갔다.', 'info');
         }
         if (kind === 'keep') keep(button.dataset.id ?? '');
+        if (kind === 'star') {
+            const id = button.dataset.id ?? '';
+            const line = messages.find((m) => m.id === id);
+            if (line) {
+                // 누른 자리에서 바로 바뀐다 — 서버 확인은 뒤에서 (흐르는 연결이 수를 맞춰 준다).
+                const list = new Set(line.keptBy ?? []);
+                if (me && list.has(me.who)) list.delete(me.who);
+                else if (me) list.add(me.who);
+                line.keptBy = [...list];
+                renderLog();
+            }
+            void act(`/kl/chat/${encodeURIComponent(id)}/keep`, {});
+        }
     };
 
     if (pref(OPEN_KEY, '0') === '1') setOpen(true);
