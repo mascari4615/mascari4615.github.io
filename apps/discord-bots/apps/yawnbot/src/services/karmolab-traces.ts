@@ -192,10 +192,24 @@ export interface Post {
 
 export interface Report {
   id: string;
+  /**
+   * 무엇에 대한 신고인가 (TASK-KL-157).
+   * 예전에 쌓인 줄은 전부 글이었다 — 없으면 `post` 로 읽는다.
+   */
+  kind: 'post' | 'chat';
+  /** 글 신고면 글 id, 채팅 신고면 그 줄의 id. */
   postId: string;
   replyId: string | null;
   byAccountId: string;
   reason: string;
+  /**
+   * **신고 당시의 그 말**을 통째로 베껴 둔다.
+   *
+   * 채팅은 하루 뒤 사라지고 글은 고쳐질 수 있다. 원본만 가리키는 신고는, 주인이 열어 볼
+   * 때쯤이면 「무엇을 보고 판단하라는 것인지」가 사라져 있다. 그러면 신고는 처리되지 않고
+   * 쌓이기만 한다.
+   */
+  subject: string;
   createdAt: string;
   resolvedAt: string | null;
 }
@@ -1101,21 +1115,43 @@ export class KarmolabTraceStore {
    * 지우지는 않는다. **주인이 볼 목록에 올릴 뿐이다** — 신고 한 번으로 글이 사라지면
    * 그것 자체가 남을 지우는 단추가 된다.
    */
-  report(input: { postId: string; replyId?: string | null; byAccountId: string; reason: string }, now: Date = new Date()): boolean {
+  report(
+    input: {
+      postId: string;
+      replyId?: string | null;
+      byAccountId: string;
+      reason: string;
+      /** 안 주면 글 신고다 (예전과 같다). */
+      kind?: 'post' | 'chat';
+      /** 채팅 신고는 원본이 여기 없으므로 부르는 쪽이 그 말을 넘겨준다. */
+      subject?: string;
+    },
+    now: Date = new Date(),
+  ): boolean {
+    const kind = input.kind ?? 'post';
     const post = this.state.posts.find((p) => p.id === input.postId);
-    if (!post) return false;
-    if (input.replyId && !post.replies.some((r) => r.id === input.replyId)) return false;
+    // 채팅 줄은 이 저장소에 없다 — 있는지 확인하는 쪽은 부르는 쪽이다.
+    if (kind === 'post' && !post) return false;
+    if (kind === 'post' && input.replyId && !post.replies.some((r) => r.id === input.replyId)) return false;
     // 같은 사람이 같은 것을 여러 번 신고해도 한 줄이다.
     const already = this.state.reports.some(
       (r) => r.postId === input.postId && (r.replyId ?? null) === (input.replyId ?? null) && r.byAccountId === input.byAccountId,
     );
     if (already) return true;
+    /* 신고 당시의 그 말을 베껴 둔다. 글 신고면 여기서 뜨고, 채팅 신고면 넘겨받는다. */
+    const snapshot =
+      input.subject ??
+      (input.replyId
+        ? (post?.replies.find((r) => r.id === input.replyId)?.text ?? '')
+        : `${post?.title ? `${post.title} — ` : ''}${post?.text ?? ''}`);
     this.state.reports.unshift({
       id: crypto.randomUUID(),
+      kind,
       postId: input.postId,
       replyId: input.replyId ?? null,
       byAccountId: input.byAccountId,
       reason: String(input.reason ?? '').trim().slice(0, 100),
+      subject: String(snapshot).slice(0, 300),
       createdAt: now.toISOString(),
       resolvedAt: null,
     });
@@ -1125,7 +1161,18 @@ export class KarmolabTraceStore {
 
   /** 아직 안 본 신고 (주인용). */
   openReports(): Report[] {
-    return this.state.reports.filter((r) => r.resolvedAt === null);
+    /* 예전에 쌓인 줄에는 `kind`·`subject` 가 없다. 여기서 채워서 내보낸다 —
+       화면이 「없을 수도 있는 칸」을 매번 방어하게 만들면 그 방어가 곧 빈틈이 된다. */
+    return this.state.reports
+      .filter((r) => r.resolvedAt === null)
+      .map((r) => {
+        if (r.kind && r.subject) return r;
+        const post = this.state.posts.find((p) => p.id === r.postId);
+        const text = r.replyId
+          ? (post?.replies.find((x) => x.id === r.replyId)?.text ?? '')
+          : `${post?.title ? `${post.title} — ` : ''}${post?.text ?? ''}`;
+        return { ...r, kind: r.kind ?? 'post', subject: r.subject ?? (text || '(원본이 사라졌다)') };
+      });
   }
 
   /** 신고를 봤다고 표시 (주인용). 글은 안 건드린다 — 지우는 것은 따로 누른다. */
