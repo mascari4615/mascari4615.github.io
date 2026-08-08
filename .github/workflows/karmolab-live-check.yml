@@ -81,12 +81,6 @@ jobs:
         working-directory: packages/karmolab-ai
         run: npm ci --no-audit --no-fund && npm run build
 
-      # 같은 사고가 꾸러미 하나 더 늘었을 때 그대로 반복됐다 (2026-08-08 — badapple).
-      # 이쪽은 자기 잠금 파일이 없어 `npm ci` 로는 못 짓는다.
-      - name: 공용 꾸러미 먼저 짓기 (badapple)
-        working-directory: packages/badapple
-        run: npx -y -p typescript@5 tsc -p tsconfig.json
-
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
 
@@ -135,6 +129,12 @@ jobs:
       - name: 도구 목록 페이지가 성한지
         if: always()
         run: npm run test:hub
+
+      # 마스코트는 「부위 그림 + 값」이라 조용히 죽는 길이 많다 — 아틀라스 좌표가
+      # 틀어져도 칸은 그대로 있고, 조각 이름 오타는 「표정이 안 바뀔 뿐」으로 지나간다.
+      - name: 마스코트가 살아 있는지
+        if: always()
+        run: npm run test:mascot
 
       # 스크립트를 실행하지 않는 크롤러의 눈. 지금은 설명이 정적으로 박혀 있어 읽히는데,
       # 그 성질이 깨지면 검색 유입이 조용히 사라진다.
