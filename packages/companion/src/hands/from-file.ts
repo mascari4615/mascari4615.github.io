@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 
 import type { Hand } from '../hands';
+import { 웹에서찾기, 읽어오기 } from './web';
 
 /**
  * 파일로 손 늘리기 — 코드를 안 고치고 할 수 있는 일을 더한다.
@@ -19,7 +20,9 @@ import type { Hand } from '../hands';
  * 갈래는 두지 않았다 — 그건 파일 하나로 아무 프로그램이나 돌릴 수 있다는 뜻이고, 그 문은
  * 사람이 직접 열어야 한다.
  */
-export type HandKind = 'read-file' | 'read-dir';
+/* `web-search` / `read-web` 는 **밖을 읽는** 갈래다. 여전히 읽기만 한다 — 밖에 무언가를
+   보내거나 바꾸지 않는다. 「이 명령을 실행해라」 갈래를 안 두는 원칙은 그대로다. */
+export type HandKind = 'read-file' | 'read-dir' | 'web-search' | 'read-web';
 
 export interface HandSpec {
   name: string;
@@ -59,15 +62,18 @@ export function readSpec(raw: unknown): HandSpec | null {
   const x = raw as Record<string, unknown>;
   if (typeof x.name !== 'string' || x.name.trim() === '') return null;
   if (typeof x.what !== 'string' || x.what.trim() === '') return null;
-  if (x.kind !== 'read-file' && x.kind !== 'read-dir') return null;
-  if (typeof x.path !== 'string' || x.path.trim() === '') return null;
+  const 갈래들 = ['read-file', 'read-dir', 'web-search', 'read-web'];
+  if (typeof x.kind !== 'string' || 갈래들.includes(x.kind) === false) return null;
+  // 밖을 읽는 손은 읽을 자리가 그때그때 오므로 경로가 필요 없다.
+  const 밖인가 = x.kind === 'web-search' || x.kind === 'read-web';
+  if (밖인가 === false && (typeof x.path !== 'string' || x.path.trim() === '')) return null;
 
   return {
     name: x.name.trim(),
     what: x.what.trim(),
     needs: typeof x.needs === 'string' ? x.needs : '(없어도 된다)',
-    kind: x.kind,
-    path: x.path.trim(),
+    kind: x.kind as HandKind,
+    path: typeof x.path === 'string' ? x.path.trim() : '',
     feedsBack: x.feedsBack !== false,
     limit: typeof x.limit === 'number' && x.limit > 0 ? x.limit : undefined,
     when: Array.isArray(x.when)
@@ -87,6 +93,19 @@ export function insideFence(path: string, fence?: string): boolean {
 
 /** 명세 하나를 실제 손으로. 울타리 밖이면 null. */
 export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | null {
+  if (spec.kind === 'web-search' || spec.kind === 'read-web') {
+    return {
+      name: spec.name,
+      what: spec.what,
+      needs: spec.needs ?? '(없어도 된다)',
+      feedsBack: spec.feedsBack,
+      run: (argument: string): Promise<string> =>
+        spec.kind === 'web-search'
+          ? 웹에서찾기(argument, { 몇개: spec.limit, log: options.log })
+          : 읽어오기(argument, { 몇자: spec.limit, log: options.log }),
+    };
+  }
+
   if (insideFence(spec.path, options.within) === false) {
     options.log?.(`「${spec.name}」 은 울타리 밖이라 안 만든다: ${spec.path}`);
     return null;
@@ -137,10 +156,47 @@ export function handFrom(spec: HandSpec, options: FromFileOptions = {}): Hand | 
  *
  * 낱말을 그대로 찾는다 — 사람이 적은 말에 정규식 특수문자가 있어도 터지지 않게 막아 둔다.
  */
-export function hintFrom(spec: HandSpec): { hand: string; when: RegExp } | null {
+export function hintFrom(
+  spec: HandSpec,
+): { hand: string; when: RegExp; argument?: (said: string) => string } | null {
   if (spec.when === undefined || spec.when.length === 0) return null;
   const 막은것 = spec.when.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  return { hand: spec.name, when: new RegExp(`(${막은것.join('|')})`) };
+  return { hand: spec.name, when: new RegExp(`(${막은것.join('|')})`), argument: 넘길것(spec) };
+}
+
+/**
+ * 이 손에 **무엇을 넘길지** 뽑는 법.
+ *
+ * 여태 파일로 만든 손은 늘 빈손으로 불렸다. 파일을 읽는 손은 인자가 없으면 통째로 읽으니
+ * 안 드러났는데, **밖에서 찾는 손은 그러면 아무것도 못 한다** — 실측으로 「찾아보기(없음)」
+ * 이 찍히고 「무엇을 찾을지 안 왔다」가 돌아왔다. 능력만 있고 쓰임이 없으면 없는 것과 같다.
+ *
+ * 사람에게 정규식을 적게 하지 않는다(파일로 손을 만드는 취지가 「쉬움」이다). 갈래를 보고
+ * 우리가 뽑는다.
+ */
+function 넘길것(spec: HandSpec): ((said: string) => string) | undefined {
+  if (spec.kind === 'read-web') {
+    return (said) => (/(https?:\/\/[^\s"'<>]+)/.exec(said)?.[1] ?? '').trim();
+  }
+  if (spec.kind === 'web-search') {
+    // 말 자체가 곧 물음이다. 부르는 말과 군더더기만 걷어낸다.
+    return (said) => 물음만(said, spec.when ?? []);
+  }
+  return undefined;
+}
+
+/** 부르는 말·군더더기를 걷어낸 나머지 = 찾을 말. 남는 게 없으면 온 말 그대로. */
+export function 물음만(said: string, 부르는말: readonly string[]): string {
+  let 글 = said.trim();
+  for (const w of [...부르는말].sort((a, b) => b.length - a.length)) {
+    글 = 글.split(w).join(' ');
+  }
+  글 = 글
+    .replace(/(좀|제발|한번|한 번|그거|저거|이거)\s*/g, ' ')
+    .replace(/[?？!！.]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return 글 === '' ? said.trim() : 글;
 }
 
 /**
