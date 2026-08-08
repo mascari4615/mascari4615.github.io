@@ -597,6 +597,99 @@ export function registerKarmolabApi(
     res.json({ events: store.eventsFor(account.id) });
   });
 
+  /**
+   * 따라가기 (TASK-KL-152 C8).
+   *
+   * 프로필이 「명함」에서 「사람」이 되는 자리다 — 따라가면 그 사람이 남긴 것이 내 피드로 온다.
+   * 알림은 안 보낸다: 누가 나를 따라갔다는 것으로 종이 울리면 그 종은 곧 꺼진다.
+   */
+  app.post('/kl/u/:handle/follow', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const handle = String(req.params.handle ?? '');
+    const on = (req.body ?? {}).on !== false;
+    const following = store.setFollowing(account.id, handle, on);
+    if (!following) {
+      res.status(400).json({ error: 'cannot_follow' });
+      return;
+    }
+    res.json({ following: store.isFollowing(account.id, handle), count: store.followerCount(handle) });
+  });
+
+  /**
+   * 내 피드 — 내가 따라가는 사람들이 남긴 것.
+   *
+   * 아무도 안 따라가면 **빈 목록이 아니라 「아직 없다」**를 뜻한다. 부르는 쪽이 그 둘을
+   * 구별할 수 있게 따라가는 수를 같이 보낸다.
+   */
+  app.get('/kl/me/feed', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const handles = store.followingOf(account.id);
+    const posts = handles
+      .flatMap((handle) => traces.postsBy(handle, account.id).map((post) => ({ ...post, handle })))
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+      .slice(0, 20);
+    res.json({ following: handles.length, posts });
+  });
+
+  /**
+   * 프로필 카드 그림 (TASK-KL-152 C8).
+   *
+   * SVG 로 만든다 — 그림 라이브러리를 새로 들이지 않고, 글자가 또렷하며, 몇 KB 다.
+   * 값은 전부 실측이고 없는 값은 칸 자체를 안 그린다.
+   */
+  app.get('/kl/u/:handle/card.svg', (req: Request, res: Response) => {
+    const account = store.byHandle(String(req.params.handle ?? ''));
+    if (!account) {
+      res.status(404).send('not found');
+      return;
+    }
+    const visible = store.visibilityFor(account.id);
+    if (!visible.profile) {
+      res.status(403).send('private');
+      return;
+    }
+    const activity = store.footprintFor(account.id);
+    const esc = (value: string): string =>
+      String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const stats: [string, string][] = [];
+    if (visible.achievements) stats.push([String((account.records?.achievements ?? []).length), '도전과제']);
+    if (visible.badges) stats.push([String((account.records?.badges ?? []).length), '뱃지']);
+    if (visible.activity) stats.push([String(activity.streak.longest), '최장 연속']);
+    stats.push([String(store.followerCount(account.handle)), '팔로워']);
+
+    const card = [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">',
+      '<rect width="1200" height="630" fill="#0f0f12"/>',
+      '<rect x="1" y="1" width="1198" height="628" fill="none" stroke="#2a2a33" stroke-width="2"/>',
+      `<text x="80" y="230" fill="#f4f4f6" font-family="sans-serif" font-size="72" font-weight="700">${esc(account.displayName)}</text>`,
+      `<text x="80" y="290" fill="#a78bfa" font-family="sans-serif" font-size="34">@${esc(account.handle)}</text>`,
+      account.card?.bio
+        ? `<text x="80" y="350" fill="#b8b8c4" font-family="sans-serif" font-size="30">${esc(account.card.bio)}</text>`
+        : '',
+      ...stats.map(
+        ([value, label], index) =>
+          `<g transform="translate(${80 + index * 270}, 440)">` +
+          `<text fill="#f4f4f6" font-family="sans-serif" font-size="56" font-weight="700">${esc(value)}</text>` +
+          `<text y="42" fill="#8a8a99" font-family="sans-serif" font-size="26">${esc(label)}</text></g>`,
+      ),
+      '<text x="80" y="580" fill="#8a8a99" font-family="sans-serif" font-size="26">KarmoLab</text>',
+      '</svg>',
+    ].join('');
+
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    // 몇 분은 그대로 써도 된다 — 이 그림은 초 단위로 달라지는 것이 아니다.
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.send(card);
+  });
+
   /** 내 공개 범위 (TASK-KL-152 C4). */
   app.get('/kl/me/visibility', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
@@ -878,6 +971,42 @@ export function registerKarmolabApi(
     // 로봇이 긁어 간 것을 「열렸다」로 세면 인기 순위가 거짓말이 된다.
     if (classifyVisitor(req.headers['user-agent']) === 'human') packs.noteOpen(pack.id, visitorKeyFor(req));
     res.json({ pack });
+  });
+
+  /**
+   * 월드컵 한 판의 결과 (TASK-KL-151) — 항목별 「마주쳤나 / 골라졌나」.
+   *
+   * 로그인은 안 받는다: 이건 **표의 통계**지 사람의 기록이 아니다. 대신 사람만 세고,
+   * 같은 사람이 한 표에 연달아 보내는 것은 10분 안에는 안 센다.
+   */
+  app.post('/kl/packs/:id/tournament', (req: Request, res: Response) => {
+    const pack = packs.get(req.params.id);
+    if (!pack) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (classifyVisitor(req.headers['user-agent']) !== 'human') {
+      res.json({ counted: 0 });
+      return;
+    }
+    const body = req.body ?? {};
+    const counted = packs.recordTournament(
+      pack.id,
+      Array.isArray(body.matches) ? body.matches : [],
+      body.champion,
+      visitorKeyFor(req),
+    );
+    res.json({ counted, tally: packs.tally(pack.id, 20) });
+  });
+
+  /** 표의 항목 순위 — 실제로 붙어 본 항목만. 아직 아무도 안 돌렸으면 빈 목록. */
+  app.get('/kl/packs/:id/tally', (req: Request, res: Response) => {
+    const pack = packs.get(req.params.id);
+    if (!pack) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ tally: packs.tally(pack.id, Math.min(100, Math.max(1, Number(req.query.limit) || 20))) });
   });
 
   /**
@@ -1667,6 +1796,10 @@ export function registerKarmolabApi(
       profile: {
         ...store.publicProfile(account),
         activity: visible.community ? traces.activityOf(account.handle) : { posts: 0, replies: 0 },
+        // 따라가기 (TASK-KL-152 C8) — 보는 사람이 누구냐에 따라 답이 다르다.
+        followers: store.followerCount(account.handle),
+        following: viewerSelf ? store.isFollowing(viewerSelf.id, account.handle) : false,
+        canFollow: !!viewerSelf && viewerSelf.id !== account.id,
       },
     });
   });

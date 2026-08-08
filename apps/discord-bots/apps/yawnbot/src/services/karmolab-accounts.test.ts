@@ -400,3 +400,40 @@ describe('기기·보안 기록 (KL-152 C6·C7)', () => {
     expect(store.sessionsFor(account.id, here.token)[0].lastSeenAt).toBe(new Date(later).toISOString());
   });
 });
+
+/** 팔로우 (TASK-KL-152 C8) — 목록은 한 벌만 둔다(따라가는 쪽). */
+describe('팔로우 (KL-152 C8)', () => {
+  const other = { discordId: '999', username: 'ring', displayName: '링', avatarUrl: null };
+
+  it('따라가고 끊을 수 있다 · 팔로워는 전수에서 센다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    const you = store.upsertFromDiscord(other);
+
+    expect(store.setFollowing(me.id, you.handle, true)).toEqual([you.handle]);
+    expect(store.isFollowing(me.id, you.handle)).toBe(true);
+    expect(store.followerCount(you.handle)).toBe(1);
+
+    store.setFollowing(me.id, you.handle, false);
+    expect(store.isFollowing(me.id, you.handle)).toBe(false);
+    expect(store.followerCount(you.handle)).toBe(0);
+  });
+
+  it('자기 자신·없는 사람은 못 따라간다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const me = store.upsertFromDiscord(discordUser);
+    expect(store.setFollowing(me.id, me.handle, true)).toBeNull();
+    expect(store.setFollowing(me.id, '없는사람', true)).toBeNull();
+  });
+
+  it('두 번 따라가도 한 번만 담긴다 · 다시 열어도 남는다', () => {
+    const first = new KarmolabAccountStore(statePath);
+    const me = first.upsertFromDiscord(discordUser);
+    const you = first.upsertFromDiscord(other);
+    first.setFollowing(me.id, you.handle, true);
+    first.setFollowing(me.id, you.handle, true);
+    expect(first.followingOf(me.id)).toEqual([you.handle]);
+
+    expect(new KarmolabAccountStore(statePath).followingOf(me.id)).toEqual([you.handle]);
+  });
+});

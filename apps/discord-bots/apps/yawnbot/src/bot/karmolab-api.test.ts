@@ -1288,3 +1288,99 @@ describe('표 API — HTTP', () => {
     expect(mine.packs).toHaveLength(1);
   });
 });
+
+/**
+ * 계정 도메인 8사이클 배선 (TASK-KL-152).
+ *
+ * 저장소 시험은 함수가 맞는지만 본다. 여기서 보는 것은 **브라우저가 실제로 받는 답**이다 —
+ * 가렸다고 믿는 것이 정말 안 나가는지는 이 층에서만 확인된다.
+ */
+describe('계정 도메인 (KL-152)', () => {
+  it('가린 프로필은 남에게 403 · 본인에게는 보인다', async () => {
+    const me = signIn();
+    const account = store.byHandle(me.handle)!;
+    store.setVisibility(account.id, { profile: false });
+
+    const asStranger = await fetch(`${baseUrl}/kl/u/${me.handle}`);
+    expect(asStranger.status).toBe(403);
+
+    const asSelf = await fetch(`${baseUrl}/kl/u/${me.handle}`, { headers: { cookie: me.cookie } });
+    expect(asSelf.status).toBe(200);
+  });
+
+  it('가린 항목은 실제 응답 본문에서 사라진다', async () => {
+    const me = signIn();
+    const account = store.byHandle(me.handle)!;
+    store.mergeRecordsForAccount(account.id, {
+      achievements: ['pet_100'],
+      badges: [],
+      progress: {},
+      streaks: {},
+    });
+    store.setVisibility(account.id, { achievements: false });
+
+    const body = await (await fetch(`${baseUrl}/kl/u/${me.handle}`)).text();
+    expect(body).not.toContain('pet_100');
+  });
+
+  it('발자국은 로그인해야 볼 수 있고, 도구를 열면 늘어난다', async () => {
+    const me = signIn();
+    expect((await fetch(`${baseUrl}/kl/me/activity`)).status).toBe(401);
+
+    await fetch(`${baseUrl}/kl/trace/tool`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        cookie: me.cookie,
+        // 사람으로 세어져야 발자국이 남는다 (봇은 안 센다).
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36',
+      },
+      body: JSON.stringify({ toolId: 'pet' }),
+    });
+
+    const activity = await (await fetch(`${baseUrl}/kl/me/activity`, { headers: { cookie: me.cookie } })).json();
+    expect(activity.activity.tools.pet).toBe(1);
+    expect(activity.activity.totals.activeDays).toBe(1);
+  });
+
+  it('프로필 카드 그림은 SVG 로 나가고, 가린 사람 것은 안 나간다', async () => {
+    const me = signIn();
+    const card = await fetch(`${baseUrl}/kl/u/${me.handle}/card.svg`);
+    expect(card.status).toBe(200);
+    expect(card.headers.get('content-type')).toContain('image/svg+xml');
+    const svg = await card.text();
+    expect(svg).toContain('<svg');
+    expect(svg).toContain('시험용');
+
+    store.setVisibility(store.byHandle(me.handle)!.id, { profile: false });
+    expect((await fetch(`${baseUrl}/kl/u/${me.handle}/card.svg`)).status).toBe(403);
+  });
+
+  it('따라가기는 로그인해야 하고, 자기 자신은 못 따라간다', async () => {
+    const me = signIn();
+    expect((await fetch(`${baseUrl}/kl/u/${me.handle}/follow`, { method: 'POST' })).status).toBe(401);
+
+    const self = await fetch(`${baseUrl}/kl/u/${me.handle}/follow`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: me.cookie },
+      body: JSON.stringify({ on: true }),
+    });
+    expect(self.status).toBe(400);
+  });
+
+  it('로그인 목록에 토큰이 안 나간다 · 하나만 끊을 수 있다', async () => {
+    const me = signIn();
+    const account = store.byHandle(me.handle)!;
+    store.createSession(account.id, 'Android · Firefox');
+
+    const body = await (await fetch(`${baseUrl}/kl/me/sessions`, { headers: { cookie: me.cookie } })).json();
+    expect(body.sessions).toHaveLength(2);
+    expect(JSON.stringify(body)).not.toContain(me.cookie.split('=')[1]);
+
+    const other = body.sessions.find((s: { current: boolean }) => !s.current);
+    const revoked = await (
+      await fetch(`${baseUrl}/kl/me/sessions/${other.id}/revoke`, { method: 'POST', headers: { cookie: me.cookie } })
+    ).json();
+    expect(revoked.revoked).toBe(true);
+  });
+});

@@ -187,11 +187,13 @@
             <div class="user-layout">
                 <div id="userIdentity"></div>
                 <div class="user-stats" id="userStats"></div>
+                <div id="userFeed"></div>
                 <div id="userServerSlot"></div>
             </div>`;
 
         renderStats(container.querySelector<HTMLElement>('#userStats'));
         mountIdentity(container.querySelector<HTMLElement>('#userIdentity'));
+        mountFeed(container.querySelector<HTMLElement>('#userFeed'));
         watchServerSlot(container.querySelector('#userServerSlot'));
     }
 
@@ -616,6 +618,65 @@
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
+    /**
+     * 내 피드 (TASK-KL-152 C8) — 내가 따라가는 사람들이 남긴 것.
+     *
+     * 아무도 안 따라가면 **빈 목록이 아니라 「아직 없다」**다. 그 둘을 같게 그리면
+     * 「따라가는데 글이 없다」와 「아무도 안 따라간다」가 한 화면이 된다.
+     */
+    function mountFeed(slot: HTMLElement | null): void {
+        if (!slot) return;
+        const account = window.KarmoAccount;
+        if (!account) return;
+        let drawnFor: string | null = null;
+        const off = account.subscribe((state) => {
+            const handle = state.account?.handle ?? null;
+            if (!handle) {
+                drawnFor = null;
+                slot.innerHTML = '';
+                return;
+            }
+            if (drawnFor === handle) return;
+            drawnFor = handle;
+            void renderFeed(slot);
+        });
+        Toolbox.onDispose?.(off);
+    }
+
+    async function renderFeed(slot: HTMLElement): Promise<void> {
+        const base = window.KarmoAccount?.apiBase;
+        if (!base) return;
+        let body: { following: number; posts: Array<{ id: string; title: string | null; text: string; handle: string; replyCount?: number }> } | null = null;
+        try {
+            const res = await fetch(`${base}/kl/me/feed`, { credentials: 'include' });
+            if (!res.ok) return;
+            body = await res.json();
+        } catch {
+            return;
+        }
+        if (!body || body.following === 0) {
+            slot.innerHTML = '';
+            return; // 아무도 안 따라가면 이 자리는 통째로 없다 — 빈 상자를 두지 않는다.
+        }
+
+        const rows = body.posts
+            .map((post) => {
+                const heading = post.title || String(post.text ?? '').replace(/\s+/g, ' ').slice(0, 40);
+                return `<a class="user-act-row" href="/karmolab/?p=${encodeURIComponent(post.id)}#community">
+                            <span class="user-act-title">${escapeHtml(heading)}</span>
+                            <span class="user-act-meta">@${escapeHtml(post.handle)}</span>
+                        </a>`;
+            })
+            .join('');
+
+        slot.innerHTML = `
+            <div class="user-section">
+                <h3>👣 따라가는 사람들</h3>
+                <p class="user-act-lead">${body.following}명을 따라가는 중${body.posts.length === 0 ? ' — 아직 새 글이 없어요' : ''}</p>
+                ${rows ? `<div class="user-acts">${rows}</div>` : ''}
+            </div>`;
+    }
+
     /** 사람이 읽는 상대 시각 — 「3일 전」이 「2026-08-05T…」보다 판단하기 쉽다. */
     function whenText(iso: string | null): string {
         if (!iso) return '기록 없음';
