@@ -1129,6 +1129,24 @@ export function registerKarmolabApi(
     res.json({ summary: flows.trailSummary(String(req.params.id ?? '')) });
   });
 
+  /**
+   * 예약 (TASK-KL-183 B) — 요일·시각에 「이 흐름 할 때예요」를 알린다.
+   * 서버가 대신 돌지 않는다는 사실을 응답에도 적는다 — 이름이 하는 일을 넘어서면 안 된다.
+   */
+  app.patch('/kl/flows/:id/reminder', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const flow = flows.setReminder(String(req.params.id ?? ''), account.handle, req.body ?? {});
+    if (!flow) {
+      res.status(403).json({ error: 'not_owner' });
+      return;
+    }
+    res.json({ reminder: flow.reminder ?? null, runsOnServer: false });
+  });
+
   /** 한 번 돌았다 — 이 수만이 「쓸모 있는 흐름」을 가려낸다. 로그인 없이도 센다. */
   app.post('/kl/flows/:id/run', (req: Request, res: Response) => {
     res.json({ runs: flows.noteRun(String(req.params.id ?? '')) });

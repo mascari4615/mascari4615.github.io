@@ -114,3 +114,40 @@ describe('흐름 자국 (KL-182 F5)', () => {
     expect(store.get(flow.id)!.trails).toHaveLength(20);
   });
 });
+
+/** 예약 알림 (TASK-KL-183 B) — 서버는 알리기만 한다. */
+describe('흐름 예약 (KL-183 B)', () => {
+  const steps = [{ toolId: 'a' }, { toolId: 'b' }];
+
+  it('주인만 예약을 걸고 끌 수 있다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: 'x', steps })!;
+    expect(store.setReminder(flow.id, 'ring', { weekday: 1, hour: 9 })).toBeNull();
+    expect(store.setReminder(flow.id, 'karmo', { weekday: 1, hour: 9 })!.reminder).toMatchObject({ weekday: 1, hour: 9 });
+    expect(store.setReminder(flow.id, 'karmo', { on: false })!.reminder).toBeUndefined();
+  });
+
+  it('그 요일 그 시각이 지나야 알린다 · 같은 주에 두 번 안 알린다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', { title: 'x', steps })!;
+    store.setReminder(flow.id, 'karmo', { weekday: 1, hour: 10 });
+
+    expect(store.dueReminders('2026-W32', 1, 9)).toEqual([]);   // 아직 이르다
+    expect(store.dueReminders('2026-W32', 2, 11)).toEqual([]);  // 다른 요일
+    expect(store.dueReminders('2026-W32', 1, 11)).toHaveLength(1);
+
+    store.markReminded(flow.id, '2026-W32');
+    expect(store.dueReminders('2026-W32', 1, 11)).toEqual([]);
+    expect(store.dueReminders('2026-W33', 1, 11)).toHaveLength(1);
+  });
+
+  it('건너뛸 조건은 아는 것만 받는다', () => {
+    const store = new KarmolabFlowStore(statePath);
+    const flow = store.create('karmo', {
+      title: 'x',
+      steps: [{ toolId: 'a', skipWhen: 'small' }, { toolId: 'b', skipWhen: '장난' }],
+    })!;
+    expect(flow.steps[0].skipWhen).toBe('small');
+    expect(flow.steps[1].skipWhen).toBeUndefined();
+  });
+});

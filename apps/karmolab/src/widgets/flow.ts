@@ -8,7 +8,7 @@
  * 단계를 차례로 열어 주고, 앞 단계 결과는 지금 있는 「이어서」 배선으로 다음 단계에 넘어간다.
  */
 (function (): void {
-    type Step = { toolId: string; note?: string };
+    type Step = { toolId: string; note?: string; skipWhen?: 'no-result' | 'small' };
     type Flow = {
         id: string;
         title: string;
@@ -48,6 +48,7 @@
         .flow-draft .flow-step { cursor:pointer; }
         .flow-draft .flow-step:hover { border-color:#dc2626; }
         .flow-empty { font-size:var(--font-size-xs); color:var(--text-tertiary); }
+        .flow-skip { margin-left:5px; font-size:10px; color:var(--accent); font-weight:600; }
         /* 실행 띠 — 도구 화면 위에 얇게 뜬다. 도구를 가리면 흐름이 방해가 된다. */
         .flow-bar { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:65;
             display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:999px;
@@ -113,11 +114,32 @@
         goStep(0);
     }
 
+    /**
+     * 이 단계를 건너뛸까 (TASK-KL-183 B).
+     * 근거는 **직전에 실제로 나온 결과**뿐이다 — 없는 것을 추측해 건너뛰지 않는다.
+     */
+    function shouldSkip(step: Step): boolean {
+        if (!step.skipWhen) return false;
+        if (step.skipWhen === 'no-result') return !lastResult;
+        if (step.skipWhen === 'small') return !!lastResult && lastResult.size > 0 && lastResult.size < 1024 * 1024;
+        return false;
+    }
+
     function goStep(index: number): void {
         const run = readRun();
-        if (!run || !run.steps[index]) return;
-        writeRun({ ...run, at: index });
-        Toolbox.switchPage?.(run.steps[index].toolId);
+        if (!run) return;
+        // 건너뛸 단계는 지나친다. 다 건너뛰면 흐름이 끝난 것이다.
+        let at = index;
+        while (run.steps[at] && shouldSkip(run.steps[at])) at += 1;
+        if (!run.steps[at]) {
+            noteTrail({ ...run, at: Math.max(0, at - 1) }, true);
+            writeRun(null);
+            Toolbox.showToast?.('건너뛸 것만 남아 흐름을 끝냈어요');
+            return;
+        }
+        if (at !== index) Toolbox.showToast?.(`${index + 1}단계는 건너뛰었어요`);
+        writeRun({ ...run, at });
+        Toolbox.switchPage?.(run.steps[at].toolId);
     }
 
     /** 실행 띠 — 어디쯤 왔고 다음이 무엇인지. 도구 화면을 가리지 않게 아래에 얇게 뜬다. */
@@ -232,6 +254,11 @@
                                <div class="flow-make-row">
                                    <input type="text" data-title placeholder="이름 (예: 문서 정리)" maxlength="40">
                                    <select data-pick></select>
+                                   <select data-skip title="이 단계를 건너뛸 조건">
+                                       <option value="">늘 한다</option>
+                                       <option value="no-result">앞이 결과를 안 냈으면 건너뛰기</option>
+                                       <option value="small">앞 결과가 작으면(1MB 미만) 건너뛰기</option>
+                                   </select>
                                    <button type="button" class="flow-btn" data-add>단계 추가</button>
                                </div>
                                <div class="flow-draft" data-draft><span class="flow-empty">아직 비었어요 — 도구를 골라 담아 보세요.</span></div>
@@ -420,7 +447,8 @@
                 ? draft
                       .map(
                           (step, index) =>
-                              `<span class="flow-step" data-drop="${index}">${escapeHtml(toolTitle(step.toolId))} ✕</span>`,
+                              `<span class="flow-step" data-drop="${index}">${escapeHtml(toolTitle(step.toolId))}` +
+                              `${step.skipWhen ? `<b class="flow-skip">${step.skipWhen === 'small' ? '작으면 건너뜀' : '결과 없으면 건너뜀'}</b>` : ''} ✕</span>`,
                       )
                       .join('<span class="flow-arrow">→</span>')
                 : '<span class="flow-empty">아직 비었어요 — 도구를 골라 담아 보세요.</span>';
@@ -440,7 +468,8 @@
                 Toolbox.showToast?.('8단계까지예요');
                 return;
             }
-            draft.push({ toolId: pick.value });
+            const skip = container.querySelector<HTMLSelectElement>('[data-skip]')?.value;
+            draft.push(skip === 'no-result' || skip === 'small' ? { toolId: pick.value, skipWhen: skip } : { toolId: pick.value });
             paintDraft();
         });
 
@@ -472,7 +501,12 @@
      * 지금까지는 사람이 「다음」을 눌러야 했고, 언제 눌러야 하는지는 스스로 판단해야 했다.
      * 도구가 결과를 내놓는 순간 그 단추가 빛나면, 흐름이 화면을 따라오는 것이 아니라
      * **화면이 흐름을 따라간다**. 자동으로 넘기지는 않는다 — 결과를 확인할 틈은 사람의 것이다. */
-    window.addEventListener('karmolab-result', () => {
+    /** 이번 단계에서 무엇이 나왔나 — 건너뛰기 판정의 유일한 근거(TASK-KL-183 B). */
+    let lastResult: { type: string; size: number } | null = null;
+
+    window.addEventListener('karmolab-result', (event) => {
+        const detail = (event as CustomEvent).detail as { type?: string; size?: number } | undefined;
+        lastResult = { type: detail?.type ?? '', size: Number(detail?.size) || 0 };
         const bar = document.querySelector('.flow-bar');
         const next = bar?.querySelector<HTMLElement>('[data-flow-next], [data-flow-done]');
         if (!next) return;
