@@ -28,6 +28,16 @@ export interface Pack {
   emoji: string;
   fields: PackField[];
   items: PackItem[];
+  /**
+   * 이 표가 **서버에도 있을 때** 그쪽 주소 (TASK-KL-150).
+   *
+   * 왜 두 개인가: `id` 는 이 브라우저 안에서만 유일하다(만든 순간의 시각). 그래서 같은 표를
+   * 두 사람이 갖고 있어도 id 가 다르다 — 순위판을 그걸로 가르면 **각자 혼자 1등**이 된다.
+   * 서버 주소가 있으면 순위판은 그걸로 갈린다(`plays` 의 표 이름). 없으면 지금까지처럼 혼자 쓴다.
+   */
+  sharedId?: string;
+  /** 서버에 있는 표를 이어받았다면 그 주인 — 「누가 만든 표인가」를 화면이 말할 수 있게. */
+  sharedBy?: string;
 }
 
 const KEY = 'karmolab_packs';
