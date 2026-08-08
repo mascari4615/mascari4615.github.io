@@ -123,6 +123,7 @@
     "test:worldcup": "node scripts/smoke-worldcup.mjs",
     "test:today": "node scripts/smoke-today.mjs",
     "test:brag": "node scripts/smoke-brag.mjs",
+    "test:collection": "node scripts/smoke-collection.mjs",
     "test:idle": "node scripts/smoke-idle.mjs",
     "audit:boot": "node scripts/audit-boot-budget.mjs",
     "test:cotext": "node scripts/check-cotext.mjs",

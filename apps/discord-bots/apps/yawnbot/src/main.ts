@@ -37,6 +37,7 @@ import { registerKarmolabApi } from './bot/karmolab-api';
 import { registerWellRoutes } from './bot/karmolab-wells-api';
 import { registerTodayRoutes } from './bot/karmolab-today-api';
 import { registerBragRoutes } from './bot/karmolab-brag-api';
+import { registerCollectionRoutes } from './bot/karmolab-collection-api';
 import { startBackupLoop } from './services/karmolab-backup';
 import { makeThreadRouter, extractTaskId } from './bot/agent-thread-router';
 import { recordDecision } from './bot/agent-decisions';
@@ -374,6 +375,8 @@ registerWellRoutes(app);
 registerTodayRoutes(app);
 /* TASK-KL-195 — 자랑 카드 주소. 그림 주소를 그대로 붙이면 그림만 뜨고 들어올 문이 없다. */
 registerBragRoutes(app);
+/* TASK-KL-196 — 도감. 서버는 이미 가진 발자국을 읽기만 한다(새 원장 X). */
+registerCollectionRoutes(app);
 // TASK-KL-098 — 사람들이 쓴 글이 파일 몇 개에 들어 있다. 주기적으로 사본을 떠 둔다.
 startBackupLoop();
 

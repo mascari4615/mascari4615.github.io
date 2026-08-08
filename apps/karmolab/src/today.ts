@@ -19,6 +19,7 @@
  */
 import { courseGames, courseSteps, courseRun, pushCourseSlots, type CourseStep } from './widgets/play-course';
 import { shareBrag, drawBragCard } from './brag-card';
+import { stampsLocal } from './stamps';
 
 declare const Toolbox: { switchPage: (id: string) => void };
 
@@ -89,11 +90,23 @@ async function mount(slot: HTMLElement): Promise<void> {
     const streak = run >= 2 ? `<span class="lt-run">🔥 ${run}일 연속</span>` : '';
     const line = all ? '오늘 다 끝냈습니다' : `${done} / ${steps.length}` + (done ? ' — 조금만 더' : '');
     const others = crowd > 0 ? `<span class="lt-crowd">오늘 ${crowd}명 완주</span>` : '';
+
+    /* 도감으로 가는 문 (TASK-KL-196). 도구가 160개인 곳에서 새 화면을 목록에만 두면
+       아무도 못 찾는다 — 이미 보는 자리에 한 줄 걸어야 있는 것이 된다.
+       한 칸도 안 찍힌 사람에겐 안 보인다: 「0칸」은 초대가 아니라 낙인이다. */
+    const stamped = Object.keys(stampsLocal()).length;
+    const tools = ((window as any).KARMOLAB_LAZY_META || []).filter(
+        (meta: { category?: string }) => meta && meta.category === 'tool'
+    ).length;
+    const book =
+        stamped > 0 && tools > 0
+            ? `<a class="lt-book" href="/karmolab/#collection" data-go="collection">도감 ${stamped} / ${tools}</a>`
+            : '';
     const brag = all ? '<button type="button" class="lt-brag" data-brag>자랑하기</button>' : '';
 
     slot.innerHTML =
         `<div class="lt-head"><span class="lt-tag">오늘의 판</span>` +
-        `<span class="lt-count">${line}</span>${streak}${others}${brag}</div>` +
+        `<span class="lt-count">${line}</span>${streak}${others}${book}${brag}</div>` +
         `<div class="lt-chips">${chips}</div>`;
 
     /* 앱 안의 화면은 새로 고치지 않고 그 자리에서 넘어간다 (주소는 정적 페이지에도 살아 있게 둔다). */

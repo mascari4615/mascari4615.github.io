@@ -11,6 +11,8 @@
  * toolbox.ts 를 안 건드리는 이유: 저장 자리는 localStorage 키 하나뿐이라 바깥에서 합쳐도
  * 충분하고, 그 파일은 다른 작업이 동시에 만지고 있다.
  */
+import { stampToday } from './stamps';
+
 type StreakEntry = { current: number; longest: number; lastActivityDate: string | null };
 
 interface Records {
@@ -445,6 +447,9 @@ function traceCurrentTool(): void {
     const toolId = currentToolId();
     if (!toolId || tracedTools.has(toolId)) return;
     tracedTools.add(toolId);
+    /* 도감 도장도 여기서 찍는다 (TASK-KL-196) — 「도구를 열었다」의 판정은 이 함수 하나뿐이다.
+       도감이 따로 세기 시작하면 그날부터 서버 발자국과 도감이 다른 말을 한다. */
+    stampToday(toolId);
     void call('/kl/trace/tool', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

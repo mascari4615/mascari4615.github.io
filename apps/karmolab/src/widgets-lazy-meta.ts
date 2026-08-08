@@ -1838,5 +1838,18 @@ window.KARMOLAB_LAZY_META = [
     layout: 'form',
     icon: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".5"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".8"/><circle cx="12" cy="3" r="1.8" fill="currentColor"/><circle cx="17" cy="12" r="1.4" fill="currentColor"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/>',
     lazyScriptPaths: ['orbita']
+  },
+
+  /* 도감 (TASK-KL-196) — 써 본 도구에 도장이 찍힌다. 새로 만드는 것 없이 160개를 채울 것으로. */
+  {
+    id: 'collection',
+    title: '도감',
+    category: 'tool',
+    desc: '써 본 도구에 도장이 찍힌다 — 몇 칸이나 채웠나',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8 4v16" stroke="currentColor" stroke-width="1.7"/><path d="M12 9.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="currentColor"/>',
+    lazyScriptPaths: ['collection']
   }
 ] as KarmoLabLazyWidgetStub[];
