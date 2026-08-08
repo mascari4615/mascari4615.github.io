@@ -194,6 +194,20 @@
                 <button class="btn btn-ghost" id="ucCopy">결과 복사</button>
               </div>
             </div>
+            <div class="field-group" id="ucPriceWrap" style="display:none;">
+              <label class="field-label">평당 가격</label>
+              <div class="tool-grid-2">
+                <div>
+                  <div class="tool-sublabel">총액 (만원)</div>
+                  <input type="text" id="ucPrice" inputmode="decimal" placeholder="예) 60000" aria-label="총액 (만원)">
+                </div>
+                <div>
+                  <div class="tool-sublabel">넓이는 위에 넣은 값을 씁니다</div>
+                  <div id="ucPriceOut" class="tool-status">총액을 넣으면 평당·㎡당 가격이 나옵니다.</div>
+                </div>
+              </div>
+            </div>
+
             <div class="field-group">
               <label class="field-label">전체 단위 환산</label>
               <div id="ucAll" class="tool-list"></div>
@@ -208,6 +222,9 @@
           const allEl = $<HTMLElement>('#ucAll');
           let cat = CATEGORIES[0];
 
+          // 총액을 고치면 그 자리에서 다시 센다.
+          $<HTMLInputElement>('#ucPrice').addEventListener('input', () => render());
+
           function fillUnits(): void {
             const opts = cat.units.map((u) => `<option value="${u.id}">${u.label}</option>`).join('');
             fromSel.innerHTML = opts;
@@ -215,6 +232,33 @@
             fromSel.value = cat.defaultFrom;
             toSel.value = cat.defaultTo;
           }
+          /**
+           * 평당 가격 (넓이일 때만) — 한국에서 넓이를 재는 이유의 절반이 이것이다.
+           *
+           * 남들 단위 변환기는 평↔㎡ 까지만 하고 끝난다. 그런데 실제로 평수를 재는 사람은
+           * **평당 얼마인지**를 알려는 것이다(집을 보러 다닐 때 유일하게 비교되는 숫자다).
+           * 그래서 위에서 넣은 넓이를 그대로 써서 총액만 받으면 평당·㎡당을 같이 낸다.
+           */
+          function renderPrice(baseSquareMeters: number): void {
+            const wrap = $<HTMLElement>('#ucPriceWrap');
+            wrap.style.display = cat.id === 'area' ? '' : 'none';
+            if (cat.id !== 'area') return;
+            const out = $<HTMLElement>('#ucPriceOut');
+            const 만원 = parseFloat(($<HTMLInputElement>('#ucPrice').value || '').replace(/,/g, ''));
+            if (!isFinite(만원) || 만원 <= 0 || !isFinite(baseSquareMeters) || baseSquareMeters <= 0) {
+              out.textContent = '총액을 넣으면 평당·㎡당 가격이 나옵니다.';
+              out.className = 'tool-status';
+              return;
+            }
+            const 평 = baseSquareMeters / 3.3057851;
+            const 평당 = 만원 / 평;
+            const 제곱당 = 만원 / baseSquareMeters;
+            const 만원말 = (n: number): string =>
+              n >= 10000 ? `${(n / 10000).toFixed(2)}억원` : `${Math.round(n).toLocaleString('ko-KR')}만원`;
+            out.textContent = `${평.toFixed(2)}평 · 평당 ${만원말(평당)} · ㎡당 ${만원말(제곱당)}`;
+            out.className = 'tool-status ok';
+          }
+
           function render(): void {
             const v = parseFloat(valueInput.value.replace(/,/g, ''));
             const from = cat.units.find((u) => u.id === fromSel.value);
@@ -226,6 +270,7 @@
             }
             const base = toBase(from, v);
             resultInput.value = pretty(fromBase(to, base));
+            renderPrice(base);
             allEl.innerHTML = cat.units
               .map(
                 (u) =>
