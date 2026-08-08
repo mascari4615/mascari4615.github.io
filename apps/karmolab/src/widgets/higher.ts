@@ -13,6 +13,7 @@
 import { mountCourseNext } from './play-course';
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
 import { variantFor } from '../lib/shared-packs';
+import { ensureLocal, localChoices, sharedChoices } from '../lib/pack-choices';
 import { absorbFromUrl, getPack, loadPacks, packToCode, type Pack } from './pack-store';
 import { onPageActive, takePick } from './pack-pick';
 
@@ -329,12 +330,7 @@ import { onPageActive, takePick } from './pack-pick';
            * 표는 놀다가도 새로 생긴다. 그래서 목록은 **화면이 보일 때마다** 다시 그린다. */
           let boards: Array<{ id: string; title: string; emoji: string }> = [];
 
-          function paintBoards(active: string): void {
-            boards = BOARDS.concat(
-              loadPacks()
-                .filter((p) => p.fields.some((f) => f.kind === 'number'))
-                .map((p) => ({ id: 'pack:' + p.id, title: p.title, emoji: p.emoji }))
-            );
+          function drawChips(active: string): void {
             $('hiBoards').innerHTML = '';
             boards.forEach((b) => {
               const btn = document.createElement('button');
@@ -344,9 +340,34 @@ import { onPageActive, takePick } from './pack-pick';
               btn.addEventListener('click', () => {
                 [...$('hiBoards').children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
                 btn.setAttribute('aria-pressed', 'true');
+                /* 남의 표는 고른 **그때** 받아 들인다 (TASK-KL-150 ②) — 목록을 그릴 때 전부
+                   받으면 안 고를 표까지 수백 KB 씩 받게 된다. */
+                if (b.id.indexOf('shared:') === 0) {
+                  $('hiAsk').textContent = '표를 받아오는 중…';
+                  void ensureLocal(b.id).then((got) => {
+                    if (!got) {
+                      $('hiAsk').textContent = '그 표를 못 받았습니다. 잠시 뒤 다시 눌러 주세요.';
+                      return;
+                    }
+                    b.id = got; // 이제 이 브라우저 표다 — 다시 안 받는다
+                    load(got);
+                  });
+                  return;
+                }
                 load(b.id);
               });
               $('hiBoards').appendChild(btn);
+            });
+          }
+
+          function paintBoards(active: string): void {
+            // 이 브라우저 표를 **먼저** 그린다 — 서버를 기다리는 동안 목록이 비면 안 된다.
+            boards = BOARDS.concat(localChoices('number').map((c) => ({ id: c.id, title: c.title, emoji: c.emoji })));
+            drawChips(active);
+            void sharedChoices('number').then((rows) => {
+              if (!container.isConnected || !rows.length) return;
+              boards = boards.concat(rows.map((c) => ({ id: c.id, title: `${c.title} · ${c.owner ?? '남의 표'}`, emoji: c.emoji })));
+              drawChips(active);
             });
           }
 
