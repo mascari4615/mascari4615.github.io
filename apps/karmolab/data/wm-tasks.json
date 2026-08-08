@@ -1,0 +1,533 @@
+{
+  "source": "memo/wm/tasks",
+  "counts": {
+    "docs": 60,
+    "groups": 6,
+    "shown": 60,
+    "hidden": 0
+  },
+  "groups": [
+    {
+      "status": "in_progress",
+      "label": "하는 중",
+      "count": 26,
+      "items": [
+        {
+          "id": "TASK-WM-027",
+          "title": "절차적 자연 스폰",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-027-I",
+          "title": "I 블록 텍스쳐 시스템",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-028",
+          "title": "UnitMovement Kinematic 재구조화",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-052",
+          "title": "스토리 대화 다이얼로그 시스템",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-056",
+          "title": "TASK-QUALITY-OK 시리즈 통합 인덱스 (TASK-KAR-156 Phase2) — 발화인용은 부모 KAR-156",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-056",
+          "title": "코드품질 진단 후속",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-056-D",
+          "title": "D 폴더 재구조",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-080",
+          "title": "WM build 3분 cap 본질 fix",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-087",
+          "title": "Editor log yawnbot 자동발견",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-105",
+          "title": "UIToolkit USS 커스터마이징 분리",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-108",
+          "title": "service locator 안티패턴 제거 후속",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-109-E",
+          "title": "E cascade trigger 통합 정규화",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-113",
+          "title": "슬롯 툴팁 uitoolkit 단일화",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-137",
+          "title": "missing script mScript cleanup",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-161",
+          "title": "TASK-WM-161 — 카메라 가림 판정 (component-based, layer 슬롯 무점유)",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-170",
+          "title": "낮의마계 밤의공방 듀얼루프Phase0",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-173",
+          "title": "마력의강 레이라인물류Phase0",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-175",
+          "title": "MCP false playmode 에디터 안정화",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-183",
+          "title": "마을 자율 노동 자원경제",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-194",
+          "title": "특수시공 개척 TD 최소슬라이스",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-196",
+          "title": "투기장 TD 공용 전투셸 추출",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-198",
+          "title": "퀘스트 MainSide축과 Hidden태그",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-200",
+          "title": "모바일 지원 PC Android 양쪽",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-201",
+          "title": "기기 로그 원격 수집",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-206",
+          "title": "코드로 짓는 UI 의 생김새를 USS 로",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-211",
+          "title": "초기화순서 게이트가 눈을 뜨게 한다",
+          "status": "in_progress",
+          "statusLabel": "하는 중",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "seed",
+      "label": "씨앗",
+      "count": 5,
+      "items": [
+        {
+          "id": "TASK-WM-013-마도서-챕터1-따뜻함",
+          "title": "TASK-QUALITY-OK 1-word lore 정정 sweep (사용자 지시 2026-05-27)",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-147",
+          "title": "수치 하드코딩 NodeGraph Codex 파라미터",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-179",
+          "title": "색상 수치 하드코딩 LifeAgent Greenhouse TacticEditorView",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-193",
+          "title": "마을경영 카메라 부감 자유비행",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-210",
+          "title": "격리 사본(공유 트리 안 건드림). 사본이 더러우면 체크아웃이 조용히 거절되니 먼저 정리한다.",
+          "status": "seed",
+          "statusLabel": "씨앗",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "hold",
+      "label": "멈춤",
+      "count": 22,
+      "items": [
+        {
+          "id": "TASK-WM-010",
+          "title": "파견 시스템",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-021",
+          "title": "UIToolkit 나머지 패널 마이그레이션",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-021-test-checklist",
+          "title": "test checklist",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-027-G",
+          "title": "TASK-QUALITY-OK 검증 체크박스 marker 업데이트만 — 본 TASK 본문(목표·읽기) 기존 세션 진입 시 작성된 인계 문서로 보존",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-048",
+          "title": "마도서 시스템",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-050",
+          "title": "지형 시스템 후속",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-051",
+          "title": "노드 그래프 시스템 강화",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-054",
+          "title": "밤낮 날씨 시스템",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-054",
+          "title": "TASK-QUALITY-OK 시리즈 통합 인덱스 (TASK-KAR-156 Phase2) — 발화인용은 부모 KAR-156",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-054-C",
+          "title": "C SkyDirector",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-054-D",
+          "title": "D WeatherSystem",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-061",
+          "title": "모든 씬 Lighting Skybox 자동화",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-074",
+          "title": "비전 정본화",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-088",
+          "title": "외부 CI 검토",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-104",
+          "title": "TASK-QUALITY-OK parent(TASK-WM-085 Phase E) 파생 인프라 sub-TASK — 직접 사용자 발화 없음(origin 발화 = 상위 WM-085 + 6-동기 「퀄리티」 canon). slot-C /loop 자율 스카우트로 진입.",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-120",
+          "title": "WM-078 γ Composition Root 완성 + 부팅 검증 인프라 활용",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "medium",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-171",
+          "title": "되살림그리고배웅 돌봄배웅Phase0",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-172",
+          "title": "잔해에서피어나는 정련공방Phase0",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": "2026-05-31"
+        },
+        {
+          "id": "TASK-WM-180",
+          "title": "SimCity 도시 game feel 건물 성장쇠퇴 연출",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-181",
+          "title": "배치파괴 시스템 통합 복셀네이티브",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "high",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-182",
+          "title": "동물 생태 사냥 시스템",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-191",
+          "title": "네트워크 플레이어 아바타 — 풀 인형 (A: MC/Stardew식)",
+          "status": "hold",
+          "statusLabel": "멈춤",
+          "priority": "normal",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "unit_verified",
+      "label": "unit_verified",
+      "count": 3,
+      "items": [
+        {
+          "id": "TASK-WM-029-B",
+          "title": "B Motor Ground State 통합",
+          "status": "unit_verified",
+          "statusLabel": "unit_verified",
+          "priority": "low",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-049",
+          "title": "KCC 엣지케이스 테스트 씬",
+          "status": "unit_verified",
+          "statusLabel": "unit_verified",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-199",
+          "title": "Motor 튜닝 수치 13개 전량 하드코딩",
+          "status": "unit_verified",
+          "statusLabel": "unit_verified",
+          "priority": "normal",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "in_review",
+      "label": "in_review",
+      "count": 3,
+      "items": [
+        {
+          "id": "TASK-WM-195",
+          "title": "티메토 게임속게임 허브UI",
+          "status": "in_review",
+          "statusLabel": "in_review",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-208",
+          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 quality-loop 자동 감지로 시드된 건 — 인용할 원본 발화가 없다 (본문 § 왜 에 사용자 실증 인용은 있음)",
+          "status": "in_review",
+          "statusLabel": "in_review",
+          "priority": "normal",
+          "updated": ""
+        },
+        {
+          "id": "TASK-WM-209",
+          "title": "TASK-QUALITY-OK 사용자 발화가 아니라 사고(2026-08-07 대량 삭제)에서 나온 건 — 인용할 원본 발화가 없다. 사고 실측은 본문 § 왜 에 있다.",
+          "status": "in_review",
+          "statusLabel": "in_review",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    },
+    {
+      "status": "reference",
+      "label": "reference",
+      "count": 1,
+      "items": [
+        {
+          "id": "TASK-WM-209-HANDOFF",
+          "title": "TASK-QUALITY-OK 인계 문서 — 사용자 발화가 아니라 세션 종료 시 남기는 상태 스냅샷이다.",
+          "status": "reference",
+          "statusLabel": "reference",
+          "priority": "high",
+          "updated": ""
+        }
+      ]
+    }
+  ]
+}

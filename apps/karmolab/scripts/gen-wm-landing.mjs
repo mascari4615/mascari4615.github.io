@@ -148,6 +148,8 @@ const body = `<section class="wm-hero">
       ${theme ? `<blockquote class="wm-theme">${esc(theme)}</blockquote>` : ''}
       <div class="wm-cta">
         <a class="wm-btn wm-btn-main" href="/karmolab/#wm">세계 도감 보기</a>
+        <a class="wm-btn" href="/karmolab/?wb=news#wm">개발 소식</a>
+        <a class="wm-btn" href="/karmolab/?wb=board#wm">만드는 중</a>
         <a class="wm-btn" href="${REPO_URL}" rel="noopener">개발 저장소</a>
       </div>
     </section>

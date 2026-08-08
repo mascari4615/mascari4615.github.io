@@ -1508,3 +1508,35 @@ body.tool-detail .tool-page.layout-full.active { height: 76vh; min-height: 420px
 .wm-nav-link + .wm-nav-link { margin-left: 10px; }
 .wm-body { display: block; }
 .wm-in-cta .btn { flex: 0 0 auto; width: auto; }
+
+/* ── WM 소식 (TASK-KL-164) ── */
+.wm-news { display: grid; gap: 18px; }
+.wm-news-date { margin: 0 0 8px; font-size: var(--font-size-xs); color: var(--accent); letter-spacing: .06em; }
+.wm-news-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.wm-news-list li { display: grid; grid-template-columns: minmax(5.5em, auto) 1fr; gap: 10px; align-items: baseline; }
+.wm-news-kind { font-size: var(--font-size-2xs); color: var(--text-tertiary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; text-align: center; }
+.wm-news-feat { color: var(--accent); border-color: var(--accent); }
+.wm-news-text { font-size: var(--font-size-sm); line-height: 1.65; word-break: keep-all; }
+.wm-news-quiet { margin: 8px 0 0; font-size: var(--font-size-2xs); color: var(--text-tertiary); }
+
+/* ── WM 공간 (TASK-KL-159) ── */
+.wm-places { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-bottom: 20px; }
+.wm-place { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-secondary); }
+.wm-place h4 { margin: 0 0 6px; font-size: var(--font-size-md); }
+.wm-place p { margin: 0 0 4px; font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6; }
+.wm-rooms { margin: 0; padding-left: 1.1rem; display: grid; gap: 5px; font-size: var(--font-size-sm); color: var(--text-secondary); }
+
+/* ── WM 공간 (TASK-KL-159) ── */
+.wm-places { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); margin-bottom: 20px; }
+.wm-place { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; background: var(--bg-secondary); }
+.wm-place h4 { margin: 0 0 6px; font-size: var(--font-size-md); }
+.wm-place p { margin: 0 0 4px; font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.6; }
+.wm-rooms { margin: 0; padding-left: 1.1rem; display: grid; gap: 5px; font-size: var(--font-size-sm); color: var(--text-secondary); }
+
+/* ── WM 개발 보드 (TASK-KL-171) ── */
+.wm-board { display: grid; gap: 18px; }
+.wm-board-status { margin: 0 0 8px; font-size: var(--font-size-sm); color: var(--accent); display: flex; gap: 8px; align-items: center; }
+.wm-board-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.wm-board-list li { display: grid; grid-template-columns: minmax(7.5em, auto) 1fr; gap: 10px; align-items: baseline; }
+.wm-board-id { font-size: var(--font-size-2xs); color: var(--text-tertiary); font-family: var(--font-mono); }
+.wm-board-title { font-size: var(--font-size-sm); line-height: 1.6; word-break: keep-all; }

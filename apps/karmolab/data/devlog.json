@@ -1,0 +1,515 @@
+{
+  "source": "Mascari4615/Witch-Mendokusai",
+  "windowDays": 120,
+  "counts": {
+    "commits": 1485,
+    "days": 12,
+    "shown": 60
+  },
+  "days": [
+    {
+      "date": "2026-08-08",
+      "entries": [
+        {
+          "sha": "a49c7011",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-211",
+          "text": "짝이 있을 리 없는 파일에 「짝이 없다」고 외치던 것을 멈춘다"
+        },
+        {
+          "sha": "2df25bea",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-211",
+          "text": "초기화 순서 게이트가 못 보던 이름을 보게 한다 — 초록이 「안 봤음」이었다"
+        },
+        {
+          "sha": "4136e849",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-052",
+          "text": "선택지에 「무슨 질문이었나」가 딸려 간다"
+        },
+        {
+          "sha": "a6cf76ed",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "러너가 둘일 때 진 쪽이 이긴 쪽 창구를 비우던 것 — 마지막 리뷰 지적"
+        },
+        {
+          "sha": "eaf585cb",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "크게 알리려던 것이 조용한 영구 정지가 되던 것 + 하네스가 Awake 를 돌린다"
+        },
+        {
+          "sha": "2c9f68fb",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-052",
+          "text": "대화 번호가 저장 파일에 잘못 박히던 두 건 + 그래프 누수"
+        }
+      ],
+      "quiet": 34,
+      "more": 57
+    },
+    {
+      "date": "2026-08-07",
+      "entries": [
+        {
+          "sha": "efa3d527",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-170",
+          "text": "놀이를 켜면 공방이 도는 게 콘솔에 보인다 — 더미 장사"
+        },
+        {
+          "sha": "e49b9e0a",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-052",
+          "text": "원고에 쓴 이름이 실제 캐릭터에 붙는다 — 말풍선이 말하는 사람 위에 뜬다"
+        },
+        {
+          "sha": "e129fbe3",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-209",
+          "text": "「어디에도 안 놓인 부품」도 센다 — 내가 어제 만든 구멍"
+        },
+        {
+          "sha": "8a4ea0ca",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-052",
+          "text": "원고에 「물건을 준다」를 쓸 수 있다 — 대사 자리에서 보상이 나간다"
+        },
+        {
+          "sha": "a859e575",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-052",
+          "text": "원고에 조건을 쓸 수 있다 — 「처음 만났을 때만」을 글로 적는다"
+        },
+        {
+          "sha": "e053dfcf",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-052",
+          "text": "글로 쓴 대화 한 편을 게임이 집어 든다 — 원고에서 화면까지 길이 이어졌다"
+        }
+      ],
+      "quiet": 43,
+      "more": 97
+    },
+    {
+      "date": "2026-08-06",
+      "entries": [
+        {
+          "sha": "76e27609",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "파도가 매번 다른 쪽에서 온다 — 테두리 침공 + 방향 예고 (데아빌 레퍼런스)"
+        },
+        {
+          "sha": "72461419",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "자원·정수 뜨는 숫자도 같은 병이었다 — 화면 픽셀을 그대로 앉히고 있었다"
+        },
+        {
+          "sha": "6bc732ea",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "이름표가 세로로 뒤집힌 자리에 붙고 있었다 — 재고 나서 찾았다"
+        },
+        {
+          "sha": "63ccd6e3",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-200",
+          "text": "자료 번호가 겹치면 조용히 사라지던 것을 화면이 말하게 했다"
+        },
+        {
+          "sha": "d28f6de0",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-200",
+          "text": "조작 장치를 손으로 끌어 옮기고, 그 자리를 기기가 기억한다"
+        },
+        {
+          "sha": "1598ef9f",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "이름표가 카메라를 한 프레임 뒤따라가고 있었다 — 그려지는 시점이 틀렸다"
+        }
+      ],
+      "quiet": 39,
+      "more": 134
+    },
+    {
+      "date": "2026-08-05",
+      "entries": [
+        {
+          "sha": "4fbae89f",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "템포 배수를 없애고 진짜 수치를 고친다 (사용자 지적)"
+        },
+        {
+          "sha": "0c3dcfce",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-203",
+          "text": "유니티 티어를 push 레인에서 뺀다 — 5연속 취소 = 실제 실행 0회"
+        },
+        {
+          "sha": "3bcaba0e",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "「멀티」 왼쪽 두부 — 첫 화면 단추에 박혀 있던 그림글자를 뺀다"
+        },
+        {
+          "sha": "686e01cb",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "판 전체를 느리게 (손잡이 하나) + 커서 표시를 맨 마지막에 그린다"
+        },
+        {
+          "sha": "03f90634",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-203",
+          "text": "main 을 다시 컴파일되게 — 경고 정리가 모바일 작업을 통째로 되돌렸다"
+        },
+        {
+          "sha": "c5a41325",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "마수가 한 줄로 오던 것 · 유령이 계속 꿈틀대던 것 · 두부 글자"
+        }
+      ],
+      "quiet": 44,
+      "more": 63
+    },
+    {
+      "date": "2026-08-04",
+      "entries": [
+        {
+          "sha": "3494a8c0",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "지도 단축키 M — 에셋 손대지 않고 안전하게 + 개척 조작이 월드로 되돌아가던 것"
+        },
+        {
+          "sha": "81700303",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "지도 단축키 되돌림 + 입력 등록이 깨어나는 순서에 걸리던 것"
+        },
+        {
+          "sha": "515f6fb9",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "지도 단축키 M + 씬 DI 커버리지 구멍 메움(시험 실패 0)"
+        },
+        {
+          "sha": "6eca825b",
+          "type": "perf",
+          "typeLabel": "빨라진 것",
+          "scope": "WM-197",
+          "text": "안드로이드는 64비트만 굽는다 — 빌드 시간 절반"
+        },
+        {
+          "sha": "b524e8ea",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "펼치는 지도 — 지형·범례·설명이 한자리에 + 지형 기다리는 가림막"
+        },
+        {
+          "sha": "3c3898ee",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "월드가 한쪽 구석부터 생기던 것 — 발밑부터 퍼지게"
+        }
+      ],
+      "quiet": 12,
+      "more": 18
+    },
+    {
+      "date": "2026-08-03",
+      "entries": [
+        {
+          "sha": "37eaf43f",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-197",
+          "text": "노드 그래프 에셋 열기 — 6.5 에서 에러가 된 옛 식별자 API 교체"
+        },
+        {
+          "sha": "cab79e78",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-197",
+          "text": "6.5 에 맞춰 깎아둔 부품이 이 컴퓨터에만 있었다 — 프로젝트 안으로 들인다"
+        },
+        {
+          "sha": "47eab8bc",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "씨앗 공유 + 고른 카드를 화면이 전부 말하게"
+        },
+        {
+          "sha": "fe30dcb2",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "한 번도 안 뜨던 선택창을 잇고, 예쁜 카드를 코어 레벨업이 쓰게"
+        },
+        {
+          "sha": "170192ce",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-197",
+          "text": "빌드머신이 필요한 유니티를 스스로 깐다 + 로그 한글 깨짐·알림 경로 수정"
+        },
+        {
+          "sha": "e8f9d7d5",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "툴팁이 화면 밖으로 새는지를 커서 없이 증명한다"
+        }
+      ],
+      "quiet": 10,
+      "more": 31
+    },
+    {
+      "date": "2026-08-02",
+      "entries": [
+        {
+          "sha": "95aa3018",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "개척 UI 배율 + 건물마다 작은 파란 바(준비/진행)"
+        },
+        {
+          "sha": "611d4e93",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "연구소 건물 폐기 → 코어에서 연구 + 「건물 선택」 개념 신설"
+        },
+        {
+          "sha": "fefdf7b8",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "전기 — 받아야 돈다 (코어 초기 공급 + 발전 인형)"
+        },
+        {
+          "sha": "d7811052",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "마수 둥지 — 부수면 그 출구가 닫힌다"
+        },
+        {
+          "sha": "ad5e6341",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "자원을 광맥으로 + 채집 처리 범위 + 노드 원 축소"
+        },
+        {
+          "sha": "8e1f879c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "명일방주식 세로 카드 슬롯 + 건물 실물 모습 + 1회 클릭 설치"
+        }
+      ],
+      "quiet": 3,
+      "more": 30
+    },
+    {
+      "date": "2026-08-01",
+      "entries": [
+        {
+          "sha": "27d0454a",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "재시작 후 유닛 초기화·위치 붕괴 — 풀 반납 주체 이중화가 근본"
+        },
+        {
+          "sha": "5da02663",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "\"다 잡았는데 웨이브가 안 넘어감\" — 겹침·이탈 3중 근본 + 남은 마수 표시"
+        },
+        {
+          "sha": "22c8031c",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "개척 진입 시 카메라 전환 실패 — content 카메라 단일 권위자로 근본 수정"
+        },
+        {
+          "sha": "c0ea84f5",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-194",
+          "text": "줌 속도·건물 체력 표시·웨이브 수동 진행·데미지 숫자 위치"
+        },
+        {
+          "sha": "62da61d2",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "휠 줌(부감 카메라 공용 리그) + 개척 재시작(풀 원상복구 포함)"
+        },
+        {
+          "sha": "f29d8bae",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-194",
+          "text": "개척 카메라 이동(WASD) + 핫바 방식 설치 (좌/우클릭 종류 분리 폐기)"
+        }
+      ],
+      "quiet": 5,
+      "more": 13
+    },
+    {
+      "date": "2026-06-28",
+      "entries": [
+        {
+          "sha": "60aa5fc7",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "terrain",
+          "text": "마을 경영용 지형 평탄화 — FractalPerlin amplitude 32→4"
+        }
+      ],
+      "quiet": 0,
+      "more": 0
+    },
+    {
+      "date": "2026-06-14",
+      "entries": [
+        {
+          "sha": "e6dd41b8",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM-192",
+          "text": "GameEventListener OnEnable NRE — DI 의존 제거하고 Bridge 우회"
+        }
+      ],
+      "quiet": 1,
+      "more": 0
+    },
+    {
+      "date": "2026-06-08",
+      "entries": [
+        {
+          "sha": "c34cbd5c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "#4 건설 co-op step-2a — prefab + 스폰 배선 + 센티넬 게이트"
+        },
+        {
+          "sha": "d342c35c",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "#4 건설 co-op 채널 substrate (step-1) — BuildingNetworkBridge + seam"
+        },
+        {
+          "sha": "78b4c18d",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "#4 공유 가마솥 완결 — 경로 SyncList 동기 + 보상 host-권위"
+        },
+        {
+          "sha": "8e1a4f64",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "#4 step-4b 공유 가마솥 seam — Domain UI 가 네트워크 솥 소비 (둘이 같은 솥)"
+        },
+        {
+          "sha": "6765b79d",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "#4 공유 가마솥 제조 채널 substrate — CauldronNetworkBridge (step-4a)"
+        },
+        {
+          "sha": "af6ada11",
+          "type": "fix",
+          "typeLabel": "고친 것",
+          "scope": "WM",
+          "text": "종료 세이브 KeyNotFound 가드 + AutoStart dev-toggle(SessionState)"
+        }
+      ],
+      "quiet": 3,
+      "more": 7
+    },
+    {
+      "date": "2026-06-07",
+      "entries": [
+        {
+          "sha": "22853adc",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "타이틀 「👥 멀티」 버튼 → 멀티 로비 패널 (진입 UX 배선)"
+        },
+        {
+          "sha": "85eb783b",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "host-loopback 실-player 강화 — RunHost 가 실 Player 추종 프록시 검증"
+        },
+        {
+          "sha": "a17d13d3",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "StartHost 진입점 완성 — 시계 bridge(server-active 지연 스폰) + host 프록시 (step-3 host-side)"
+        },
+        {
+          "sha": "1dc00cc1",
+          "type": "feat",
+          "typeLabel": "새로 생긴 것",
+          "scope": "WM-191",
+          "text": "네트워크 플레이어 프록시 per-connection 스폰 + probe-follow client→server (step-2)"
+        }
+      ],
+      "quiet": 6,
+      "more": 17
+    }
+  ]
+}
