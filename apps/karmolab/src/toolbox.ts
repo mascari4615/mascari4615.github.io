@@ -1489,6 +1489,12 @@ const Toolbox = (() => {
          * 움직임을 줄여 달라고 한 사람에게는 아예 안 건다. 「덜 움직이게」가 아니라 안 움직인다. */
         const calm = typeof window !== 'undefined'
             && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        /* 듣는 귀는 **먼저 한 번** 새로 단다. 첫 화면은 다시 그려질 수 있어서, 옛 것이 남으면
+           손 한 번에 여러 번 계산한다. 아래 두 곳(밀림·쉬게 하기)이 같은 손잡이를 쓴다. */
+        decorStop?.abort();
+        decorStop = new AbortController();
+        const bye = { signal: decorStop.signal, passive: true } as AddEventListenerOptions;
+
         if (!calm) {
             /* 시차는 **아주 약하게**만 남긴다. 세게 주면 화면 전체가 손을 따라 평행 이동해서
                「종이를 미는」 느낌이 된다 — 물에 뜬 것과 정반대다. 여기서는 멀리 있는 것이
@@ -1513,9 +1519,6 @@ const Toolbox = (() => {
             /* 첫 화면은 다시 그려질 수 있다(도구를 갔다 오면). 그때마다 듣는 귀를 새로 달면
              * 옛 귀가 남아 손을 한 번 움직여도 여러 번 계산한다 — 눈에는 안 보이고 느려지기만
              * 한다. 앞서 단 것을 끊고 새로 단다 (TASK-KL-101). */
-            decorStop?.abort();
-            decorStop = new AbortController();
-            const bye = { signal: decorStop.signal, passive: true };
             /* 가까운 것은 **물에 뜬 꽃잎**처럼 군다 (TASK-KL-101).
              *
              * 시차만 주면 손가락 위치에 딱 붙어 같이 평행 이동한다 — 종이에 그려 놓고 종이를
@@ -1627,6 +1630,71 @@ const Toolbox = (() => {
             window.addEventListener('touchend', home, bye);
             window.addEventListener('pointerleave', home, bye);
         }
+
+        /* 배경은 **보고 있을 때만** 흐른다 (TASK-KL-128 ⑭).
+         *
+         * 왜: 도형이 끝없이 움직이면 브라우저가 **영영 안 쉰다**. 그리는 일 자체는 GPU 가
+         * 맡아 페인트·래스터는 0ms 인데도, 화면을 초당 96번 계속 내보내느라 코어의 42% 를
+         * 영구히 쓴다(잰 값: 손 안 댄 8초에 CPU 3.34초 → 멈추면 0.19초). 기계가 한가하면
+         * 안 보이고, 다른 일이 붙어 있으면 그때부터 전부가 미끄럽지 않게 느껴진다.
+         *
+         * 그래서 **끄지 않고 재운다.** 몇 초 손을 안 대면 물살이 잦아들듯 천천히 서고,
+         * 손이 닿으면 다시 흐른다. 보고 있는 동안의 모습은 이전과 똑같다.
+         *
+         * 갑자기 세우지 않는 이유: 도형은 제자리에 멈추므로 튀지는 않지만, 속도가 뚝
+         * 끊기면 「고장 난 것」처럼 보인다. 재생 속도를 천천히 0 으로 내리면 물에서
+         * 힘이 빠지는 것처럼 보인다. 속도를 바꾸는 것은 위치를 안 건드린다(WAAPI 규약).
+         */
+        const floats = () => [...wrap.querySelectorAll('.home-decor-float')]
+            .flatMap((el) => (el.getAnimations ? el.getAnimations() : []));
+        const IDLE_MS = 4000;      // 이만큼 손을 안 대면 잦아들기 시작
+        const EASE_MS = 1400;      // 서는 데 걸리는 시간
+        const WAKE_MS = 500;       // 다시 흐르는 데 걸리는 시간
+        let idleTimer = 0;
+        let rampRaf = 0;
+        let parked = false;
+
+        /** 재생 속도를 from → to 로 천천히 옮긴다. 다 내려가면 아예 멈춰 세운다. */
+        function ramp(from, to, ms, thenPause) {
+            cancelAnimationFrame(rampRaf);
+            const t0 = performance.now();
+            const tick = (now) => {
+                const k = Math.min(1, (now - t0) / ms);
+                const rate = from + (to - from) * (k * k * (3 - 2 * k));   // 부드럽게 들고 난다
+                for (const a of floats()) {
+                    try { a.updatePlaybackRate(Math.max(rate, 0.0001)); } catch { /* 안 되는 브라우저는 그냥 둔다 */ }
+                }
+                if (k < 1) { rampRaf = requestAnimationFrame(tick); return; }
+                if (thenPause) for (const a of floats()) { try { a.pause(); } catch { /* 무시 */ } }
+            };
+            rampRaf = requestAnimationFrame(tick);
+        }
+
+        function park() {
+            if (parked) return;
+            parked = true;
+            ramp(1, 0, EASE_MS, true);
+        }
+        function wake() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(park, IDLE_MS);
+            if (!parked) return;
+            parked = false;
+            for (const a of floats()) { try { a.play(); } catch { /* 무시 */ } }
+            ramp(0, 1, WAKE_MS, false);
+        }
+
+        /* 「손을 댔다」의 범위를 넓게 잡는다 — 스크롤·키·바퀴까지. 좁게 잡으면 글을 읽으려고
+           스크롤만 하는 사람에게는 배경이 죽은 것처럼 보인다. */
+        for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'])
+            window.addEventListener(ev, wake, bye);
+        /* 창을 내려 두면 기다리지 않고 바로 세운다 — 브라우저가 알아서 늦추기도 하지만
+           탭이 보이는 채로 가려져 있는 경우까지는 안 봐 준다. */
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { clearTimeout(idleTimer); park(); } else wake();
+        }, bye);
+        idleTimer = setTimeout(park, IDLE_MS);
+
         return wrap;
     }
 
