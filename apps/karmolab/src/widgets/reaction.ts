@@ -5,6 +5,7 @@
  * 그 자리에 붙는다. 서버가 죽거나 로그인을 안 했으면 이 브라우저 최고만 뜨고 놀이는 그대로 된다.
  */
 import { mountPlayBoard, renderPlayResult, submitPlay, type PlaySpec } from '../lib/plays';
+import { copyResultCard } from '../lib/result-card';
 
 /** 작을수록 좋다 — 이건 놀이 자체의 성질이라 놀이가 말한다. 순위는 서버가 매긴다. */
 const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 0 };
@@ -42,6 +43,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
                     <div id="reactionResults" style="width:100%;font-size:var(--font-size-sm);color:var(--text-secondary);text-align:center;min-height:24px;"></div>
                     <div id="reactionHistory" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>
                     <div id="reactionBest" style="font-size:var(--font-size-xs);color:var(--text-tertiary);"></div>
+                    <button type="button" id="reactionShare" class="btn btn-ghost" hidden>결과 그림 복사</button>
                     <div id="reactionBoard" hidden style="width:100%;"></div>
                 </div>
             `;
@@ -64,6 +66,26 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
           const historyOut = historyEl;
           const bestOut = bestEl;
           const boardOut = boardEl;
+
+          /* 자랑은 그림으로 (TASK-KL-151 ②) — 「247ms」는 글로 붙여넣으면 아무도 안 본다.
+             한 판이라도 해야 뜬다: 아직 아무 기록도 없는데 자랑 단추부터 있으면 빈 카드가 나간다. */
+          const shareBtn = container.querySelector<HTMLButtonElement>('#reactionShare')!;
+          shareBtn.addEventListener('click', () => {
+            const best = Toolbox.getProgress?.('reaction_best') ?? 0;
+            if (!best) return;
+            const avg = results.length ? Math.round(results.reduce((a, b) => a + b, 0) / results.length) : best;
+            void copyResultCard(
+              {
+                kicker: '반응속도',
+                headline: `${best}ms`,
+                lines: [`${results.length}번 시도 · 평균 ${avg}ms`, best < 200 ? '사람 맞습니까?' : '']
+                  .filter(Boolean)
+              },
+              `karmolab-reaction-${best}ms.png`
+            ).then((msg) => {
+              resultsOut.textContent = msg;
+            });
+          });
 
           const bestTime = Toolbox.getProgress?.('reaction_best');
           if (bestTime) bestOut.textContent = `최고 기록: ${bestTime}ms`;
@@ -180,6 +202,7 @@ const SPEC: PlaySpec = { game: 'reaction', better: 'low', unit: 'ms', decimals: 
                   if (result.server && result.server.improved) mountPlayBoard(boardOut, SPEC);
                 });
 
+                shareBtn.hidden = false;
                 Mdd.addAffection(1);
                 break;
               }
