@@ -674,3 +674,75 @@ table.past .play:hover { border-color: var(--accent); }
 /* 풀다 만 판 표시 (TASK-KL-089) — 끝낸 판과 눈으로 갈리게 한다. */
 .done-mark.going { color: var(--accent); }
 .card.going-today { border-color: var(--accent); }
+
+/* ── 전부대기 (TASK-KL-197) ─────────────────────────────────────────────────
+   90초 안에 답을 쏟아 넣는 판. 눈이 가야 할 곳은 셋뿐이다 — 질문 · 남은 시간 · 얼마나 찼나. */
+.question {
+  margin: 4px 0 10px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  /* 답 하나가 들어갈 때 바가 **자라는 게 보여야** 한다 — 즉시 갈아 끼우면 아무 일도 안 난 것 같다. */
+  transition: width 220ms ease-out;
+}
+.listmeta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 8px 0 4px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.listmeta .tally-live { font-weight: 700; }
+.clock { margin-left: auto; color: var(--ink-2); }
+.clock.urgent { color: #e06c6c; font-weight: 700; }
+.say { min-height: 20px; margin: 2px 0 8px; font-size: 14px; color: var(--ink-2); }
+.say.hit { color: var(--accent); font-weight: 700; }
+.found {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+}
+.chip.hit { border-color: var(--exact); }
+.chip.off { color: var(--ink-3); text-decoration: line-through; }
+/* 남들이 몇 %나 댔는지 — 희귀한 답을 낸 순간이 이 놀이의 보상이다. */
+.chip i { font-style: normal; font-size: 11.5px; color: var(--ink-3); }
+.giveup {
+  margin-top: 8px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.giveup:hover { color: var(--ink); border-color: var(--ink-3); }
+.missed { margin: 10px 0 4px; font-size: 13px; color: var(--ink-2); }
+.missed b { display: block; margin-bottom: 6px; }
+.missed div { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
