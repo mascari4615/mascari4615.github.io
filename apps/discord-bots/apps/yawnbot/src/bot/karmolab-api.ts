@@ -536,6 +536,31 @@ export function registerKarmolabApi(
     res.json({ activity: store.footprintFor(account.id) });
   });
 
+  /** 내 공개 범위 (TASK-KL-152 C4). */
+  app.get('/kl/me/visibility', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ visibility: store.visibilityFor(account.id) });
+  });
+
+  /** 공개 범위 바꾸기 — 보낸 칸만 바뀐다. */
+  app.patch('/kl/me/visibility', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const visibility = store.setVisibility(account.id, req.body);
+    if (!visibility) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ visibility });
+  });
+
   /** 지금 살아 있는 내 로그인들. 「어디서 로그인돼 있나」를 볼 수 있어야 끊을 수도 있다. */
   app.get('/kl/me/sessions', (req: Request, res: Response) => {
     const token = readCookie(req, SESSION_COOKIE);
@@ -1376,6 +1401,13 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    /* 가린 사람의 글 목록은 **응답에서 사라진다** (TASK-KL-152 C4).
+     * 화면에서만 숨기면 이 주소를 직접 여는 것으로 그대로 새어 나간다. */
+    const visible = store.visibilityFor(target.id);
+    if (!visible.community && viewer?.id !== target.id) {
+      res.json({ handle: target.handle, posts: [], replies: [], counts: { posts: 0, replies: 0 }, hidden: ['community'] });
+      return;
+    }
     res.json({
       handle: target.handle,
       posts: traces.postsBy(target.handle, viewer?.id ?? null),
@@ -1551,8 +1583,22 @@ export function registerKarmolabApi(
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    /* 본인이 프로필을 잠갔으면 **주소를 알아도 안 보인다** (TASK-KL-152 C4).
+     * 「없는 사람」과 구별되는 답을 준다 — 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다.
+     * 본인은 자기 프로필을 늘 볼 수 있다(잠근 모습이 어떻게 보이는지 확인해야 하므로). */
+    const viewerSelf = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const visible = store.visibilityFor(account.id);
+    if (!visible.profile && viewerSelf?.id !== account.id) {
+      res.status(403).json({ error: 'profile_private' });
+      return;
+    }
     // 커뮤니티 활동도 프로필의 일부다 — 「이 사람이 여기서 무엇을 했나」.
-    res.json({ profile: { ...store.publicProfile(account), activity: traces.activityOf(account.handle) } });
+    res.json({
+      profile: {
+        ...store.publicProfile(account),
+        activity: visible.community ? traces.activityOf(account.handle) : { posts: 0, replies: 0 },
+      },
+    });
   });
   // ── 실시간 익명 채팅 (TASK-KL-149) ─────────────────────────────────────────
   //

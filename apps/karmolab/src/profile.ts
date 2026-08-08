@@ -20,6 +20,8 @@ interface PublicProfile {
     badges: string[];
     streaks: Record<string, { current: number; longest: number }>;
     updatedAt: string | null;
+    /** 본인이 일부러 가린 칸 (TASK-KL-152 C4). 「아직 없다」와 다르다. */
+    hidden?: string[];
 }
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -54,6 +56,24 @@ function renderMessage(root: HTMLElement, title: string, detail: string): void {
         </div>`;
 }
 
+/**
+ * 가려 둔 칸이 있으면 그렇게 적는다 (TASK-KL-152 C4).
+ * 빈 칸을 그냥 두면 보는 사람이 「아무것도 안 했나 보다」로 읽는다 — 그건 틀린 말이다.
+ */
+const HIDDEN_LABELS: Record<string, string> = {
+    achievements: '도전과제',
+    badges: '뱃지',
+    streaks: '연속 기록',
+    community: '커뮤니티 활동',
+    activity: '발자국',
+};
+
+function hiddenNote(profile: PublicProfile): string {
+    const hidden = (profile.hidden ?? []).map((key) => HIDDEN_LABELS[key] ?? key);
+    if (!hidden.length) return '';
+    return `<p class="profile-note">${escapeHtml(hidden.join(' · '))} 은(는) 본인이 가려 뒀습니다.</p>`;
+}
+
 function renderProfile(root: HTMLElement, profile: PublicProfile): void {
     document.title = `${profile.displayName} — KarmoLab`;
 
@@ -82,6 +102,7 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                     <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
                 </div>
             </header>
+            ${hiddenNote(profile)}
             <section class="profile-stats">
                 <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>도전과제</span></div>
                 <div class="profile-stat"><strong>${profile.badges.length}</strong><span>뱃지</span></div>
@@ -148,6 +169,11 @@ async function main(): Promise<void> {
 
     try {
         const response = await fetch(`${API_BASE}/kl/u/${encodeURIComponent(handle)}`);
+        // 잠근 것과 없는 것은 다르다 — 링크를 걸어 둔 사람이 왜 안 열리는지 알아야 한다 (KL-152 C4).
+        if (response.status === 403) {
+            renderMessage(root, '비공개 프로필이에요', `@${handle} 님이 프로필을 남에게 안 보이게 해 뒀습니다.`);
+            return;
+        }
         if (response.status === 404) {
             renderMessage(root, '그런 사람이 없어요', `@${handle} 는 아직 없는 프로필입니다.`);
             return;

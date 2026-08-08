@@ -91,7 +91,39 @@ export interface Account {
   recoveryCodes?: { hash: string; usedAt: string | null }[];
   /** 내가 언제 무엇을 열었나 (TASK-KL-152 C1). 없을 수 있다 — 옛 계정은 이 칸 없이 저장돼 있다. */
   footprint?: AccountFootprint;
+  /** 남에게 무엇을 보일지 (TASK-KL-152 C4). 없으면 지금까지처럼 전부 공개. */
+  visibility?: Partial<AccountVisibility>;
 }
+
+/**
+ * 공개 범위 (TASK-KL-152 C4).
+ *
+ * 지금까지 프로필은 **전부 공개**였고 숨길 방법이 하나도 없었다. 사람이 늘어난 뒤에
+ * 잠그는 것은 이미 늦다 — 0건인 지금이 잠글 때다.
+ *
+ * 기본값은 지금까지와 같은 「전부 공개」다. 잠금을 기본으로 바꾸면 이미 프로필을 걸어 둔
+ * 사람의 링크가 하루아침에 죽는다.
+ */
+export interface AccountVisibility {
+  /** 프로필 자체를 남이 볼 수 있나. false 면 주소를 알아도 안 보인다. */
+  profile: boolean;
+  achievements: boolean;
+  badges: boolean;
+  streaks: boolean;
+  /** 커뮤니티에 남긴 글·답글 */
+  community: boolean;
+  /** 발자국(잔디·연속·써 본 도구) */
+  activity: boolean;
+}
+
+export const DEFAULT_VISIBILITY: AccountVisibility = {
+  profile: true,
+  achievements: true,
+  badges: true,
+  streaks: true,
+  community: true,
+  activity: true,
+};
 
 interface Session {
   accountId: string;
@@ -217,6 +249,8 @@ export interface PublicProfile {
   badges: string[];
   streaks: Record<string, { current: number; longest: number }>;
   updatedAt: string | null;
+  /** 본인이 **일부러 가린** 칸들 (TASK-KL-152 C4). 「없는 것」과 「가린 것」은 다르다. */
+  hidden?: string[];
 }
 
 export class KarmolabAccountStore {
@@ -605,20 +639,52 @@ export class KarmolabAccountStore {
     return id ? (this.state.accounts[id] ?? null) : null;
   }
 
+  /** 지금 이 계정의 공개 범위 (안 정했으면 전부 공개). */
+  visibilityFor(accountId: string): AccountVisibility {
+    const account = this.state.accounts[accountId];
+    return { ...DEFAULT_VISIBILITY, ...(account?.visibility ?? {}) };
+  }
+
+  /** 공개 범위 바꾸기 — 보낸 칸만 바꾼다(모르는 칸은 무시). */
+  setVisibility(accountId: string, patch: unknown): AccountVisibility | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const next: Partial<AccountVisibility> = { ...(account.visibility ?? {}) };
+    const source = (patch ?? {}) as Record<string, unknown>;
+    for (const key of Object.keys(DEFAULT_VISIBILITY) as (keyof AccountVisibility)[]) {
+      if (typeof source[key] === 'boolean') next[key] = source[key] as boolean;
+    }
+    account.visibility = next;
+    this.save();
+    return this.visibilityFor(accountId);
+  }
+
+  /**
+   * 남에게 보이는 모습.
+   *
+   * **꺼 둔 항목은 응답에서 아예 사라진다** — 화면에서만 숨기면 주소를 직접 열어 본 사람에게는
+   * 그대로 나간다. 숨긴다는 말은 「안 보낸다」여야 한다.
+   */
   publicProfile(account: Account): PublicProfile {
+    const visible = this.visibilityFor(account.id);
     const streaks: PublicProfile['streaks'] = {};
-    for (const [key, value] of Object.entries(account.records?.streaks ?? {})) {
-      streaks[key] = { current: value.current, longest: value.longest };
+    if (visible.streaks) {
+      for (const [key, value] of Object.entries(account.records?.streaks ?? {})) {
+        streaks[key] = { current: value.current, longest: value.longest };
+      }
     }
     return {
       handle: account.handle,
       displayName: account.displayName,
       avatarPath: account.avatarUrl ? `/kl/u/${encodeURIComponent(account.handle)}/avatar` : null,
       joinedAt: account.createdAt,
-      achievements: account.records?.achievements ?? [],
-      badges: account.records?.badges ?? [],
+      achievements: visible.achievements ? account.records?.achievements ?? [] : [],
+      badges: visible.badges ? account.records?.badges ?? [] : [],
       streaks,
       updatedAt: account.recordsUpdatedAt,
+      hidden: (Object.keys(DEFAULT_VISIBILITY) as (keyof AccountVisibility)[]).filter(
+        (key) => key !== 'profile' && !visible[key],
+      ),
     };
   }
 

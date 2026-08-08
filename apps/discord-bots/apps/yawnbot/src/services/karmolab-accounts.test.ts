@@ -250,3 +250,56 @@ describe('발자국 (KL-152 C1)', () => {
     expect(activity.streak).toEqual({ current: 0, longest: 0 });
   });
 });
+
+/**
+ * 공개 범위 (TASK-KL-152 C4).
+ *
+ * 여기가 틀리면 **가렸다고 믿는 것이 그대로 새어 나간다** — 화면에는 안 보이니 아무도 모른다.
+ * 그래서 「응답 자체에서 사라지나」를 문자열로 확인한다.
+ */
+describe('공개 범위 (KL-152 C4)', () => {
+  it('기본은 지금까지와 같은 전부 공개 — 링크 걸어 둔 사람이 하루아침에 안 깨지게', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    expect(store.visibilityFor(account.id)).toEqual({
+      profile: true, achievements: true, badges: true, streaks: true, community: true, activity: true,
+    });
+  });
+
+  it('가린 항목은 공개 프로필 **응답에서 사라진다** (화면에서만 숨기는 게 아니다)', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    store.mergeRecordsForAccount(account.id, {
+      ...emptyRecords(),
+      achievements: ['pet_100'],
+      badges: ['toolbox_explorer'],
+      streaks: { exercise: { current: 3, longest: 5, lastActivityDate: '2026-08-07' } },
+    });
+    store.setVisibility(account.id, { achievements: false, streaks: false });
+
+    const profile = store.publicProfile(store.byHandle(account.handle)!);
+    const asText = JSON.stringify(profile);
+    expect(asText).not.toContain('pet_100');
+    expect(asText).not.toContain('exercise');
+    // 가리지 않은 것은 그대로 나간다
+    expect(profile.badges).toEqual(['toolbox_explorer']);
+    // 「없는 것」과 「가린 것」은 다르다 — 가렸다는 사실은 알려 준다
+    expect(profile.hidden).toEqual(['achievements', 'streaks']);
+  });
+
+  it('모르는 칸은 무시하고, 보낸 칸만 바뀐다', () => {
+    const store = new KarmolabAccountStore(statePath);
+    const account = store.upsertFromDiscord(discordUser);
+    const next = store.setVisibility(account.id, { community: false, 장난: true, badges: 'yes' });
+    expect(next).toEqual({
+      profile: true, achievements: true, badges: true, streaks: true, community: false, activity: true,
+    });
+  });
+
+  it('다시 열어도 남는다', () => {
+    const first = new KarmolabAccountStore(statePath);
+    const account = first.upsertFromDiscord(discordUser);
+    first.setVisibility(account.id, { profile: false });
+    expect(new KarmolabAccountStore(statePath).visibilityFor(account.id).profile).toBe(false);
+  });
+});

@@ -156,6 +156,8 @@
         .fp-top-item:hover { border-color:var(--accent); }
         .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-top-item span { font-size:11px; color:var(--text-tertiary); }
+        .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }
+        .fp-vis-item { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; }
         .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
         .fp-share .user-acct-hint { flex:1 1 200px; }
     `);
@@ -442,6 +444,12 @@
                 <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>코드 받기</button>
                 <span class="user-acct-hint">디스코드 로그인이 어려운 기기(티비 등)에서 이 코드를 넣으면 들어와집니다. 5분간 · 한 번만.</span>
             </div>
+            <div class="user-acct-row" data-visibility-row>
+                <span class="user-acct-label">남에게 보이기</span>
+                <div class="fp-vis" data-visibility>불러오는 중…</div>
+                <span class="user-acct-hint">끈 것은 **화면에서만 숨는 게 아니라** 서버 응답에서 아예 빠집니다 —
+                    주소를 직접 열어도 안 보입니다. 프로필 자체를 끄면 남은 열 수 없고, 본인은 계속 볼 수 있습니다.</span>
+            </div>
             <div class="user-acct-row user-acct-danger">
                 <span class="user-acct-label">계정 지우기</span>
                 <button type="button" class="user-account-btn user-account-btn-danger" data-delete>지우기</button>
@@ -549,6 +557,8 @@
             }
         });
 
+        mountVisibility(box.querySelector<HTMLElement>('[data-visibility]'), base);
+
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
             // 되돌릴 수 없는 일은 **무엇이 사라지고 무엇이 남는지** 먼저 말한 뒤에 묻는다.
             const ok = confirm(
@@ -584,6 +594,57 @@
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
+    /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
+    const VISIBILITY_LABELS: Array<[string, string]> = [
+        ['profile', '프로필 자체'],
+        ['achievements', '도전과제'],
+        ['badges', '뱃지'],
+        ['streaks', '연속 기록'],
+        ['community', '커뮤니티에 남긴 것'],
+        ['activity', '발자국(잔디)'],
+    ];
+
+    function mountVisibility(slot: HTMLElement | null, base: string): void {
+        if (!slot) return;
+        void (async () => {
+            let visibility: Record<string, boolean> | null = null;
+            try {
+                const res = await fetch(`${base}/kl/me/visibility`, { credentials: 'include' });
+                if (!res.ok) throw new Error(String(res.status));
+                visibility = ((await res.json()) as { visibility?: Record<string, boolean> }).visibility ?? null;
+            } catch {
+                slot.textContent = '지금은 못 봤어요';
+                return;
+            }
+            if (!visibility) return;
+            const current = visibility;
+            slot.innerHTML = VISIBILITY_LABELS.map(
+                ([key, label]) =>
+                    `<label class="fp-vis-item"><input type="checkbox" data-vis="${key}"${current[key] === false ? '' : ' checked'}> ${escapeHtml(label)}</label>`,
+            ).join('');
+
+            slot.querySelectorAll<HTMLInputElement>('[data-vis]').forEach((input) => {
+                input.addEventListener('change', async () => {
+                    const key = input.dataset.vis ?? '';
+                    try {
+                        const res = await fetch(`${base}/kl/me/visibility`, {
+                            method: 'PATCH',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ [key]: input.checked }),
+                        });
+                        if (!res.ok) throw new Error(String(res.status));
+                        Toolbox.showToast?.(input.checked ? '남에게 보입니다' : '가렸어요');
+                    } catch {
+                        // 못 바꿨으면 **화면도 되돌린다** — 껐다고 믿는데 안 꺼진 것이 제일 나쁘다.
+                        input.checked = !input.checked;
+                        Toolbox.showToast?.('지금은 안 되네요');
+                    }
+                });
+            });
+        })();
+    }
+
     function buildUsage(container: HTMLElement): void {
         container.innerHTML = '<div class="user-layout"><div id="userFootprint"></div><div id="userDash"></div></div>';
         const dash = container.querySelector<HTMLElement>('#userDash');
