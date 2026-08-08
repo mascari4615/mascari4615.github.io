@@ -62,6 +62,7 @@
         const board = document.createElement('div');
         board.className = 'landing-today';
         board.id = 'homeToday';
+        board.dataset.block = 'today';
         landing.appendChild(board);
         /* 조각은 **첫 그림 뒤에** 데려온다 (`src/today.ts`). 태그로 걸면 첫 화면 부팅 JS 천장
          * (40KB gz) 을 넘는다 — 실제로 넘겨 보고 뗐다. 이 자리는 어차피 놀이 목록을 받아야
@@ -78,6 +79,7 @@
          * 들어가야 「검색창이 주인공」이라는 화면 구성이 유지된다. 설명은 각 화면이 스스로 한다. */
         const cta = document.createElement('div');
         cta.className = 'landing-cta';
+        cta.dataset.block = 'cta';
         cta.innerHTML = `
             <div class="landing-cta-grid">
                 <button type="button" class="landing-cta-card" onclick="Toolbox.switchPage('favorites')">
@@ -114,6 +116,7 @@
         const live = document.createElement('div');
         live.className = 'landing-live';
         live.id = 'homeLive';
+        live.dataset.block = 'live';
         landing.appendChild(live);
         if (Toolbox.ensureScript) {
             Toolbox.ensureScript('root/live')
@@ -124,6 +127,7 @@
         const pulse = document.createElement('div');
         pulse.className = 'landing-pulse';
         pulse.id = 'homePulse';
+        pulse.dataset.block = 'pulse';
         landing.appendChild(pulse);
         fillHomePulse(pulse);
 
@@ -131,6 +135,15 @@
          * 첫 화면에서 「너 이거 안 써 봤지」라고 미는 자리였다 — 발견을 돕는다기보다 재촉으로
          * 읽힌다. 도구를 찾는 길은 이미 둘(도구 전체·검색) 있다. 서버의 `/kl/suggest` 도
          * 이 자리 때문에 첫 화면마다 두드리고 있었으므로 그 요청도 같이 없어진다. */
+
+        /* 나만의 첫 화면 (TASK-KL-196 H) — 블록에 이름표(`data-block`)를 달아 두면
+         * 꾸미기 조각이 순서를 바꾸고 감출 수 있다. 이 파일은 **기본 차림**만 만든다.
+         * 조각은 첫 그림 뒤에 온다 — 안 꾸민 사람에게는 없는 것과 같다. */
+        if (Toolbox.ensureScript) {
+            Toolbox.ensureScript('root/home-prefs')
+                .then(() => window.KarmoHomePrefs && window.KarmoHomePrefs.install(landing))
+                .catch(() => {});
+        }
 
         return landing;
     }
