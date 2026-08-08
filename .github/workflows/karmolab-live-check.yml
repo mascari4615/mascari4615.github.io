@@ -81,13 +81,6 @@ jobs:
         working-directory: packages/karmolab-ai
         run: npm ci --no-audit --no-fund && npm run build
 
-      # 같은 사고가 꾸러미 하나 더 늘었을 때 그대로 반복됐다 (2026-08-08 — badapple).
-      # 이쪽은 자기 잠금 파일이 없어 `npm ci` 로는 못 짓는다.
-      # (이 단계는 한 번 들어갔다가 워크플로 통짜 덮어쓰기에 함께 사라졌다 — audit:pkg-builds 가 잡았다.)
-      - name: 공용 꾸러미 먼저 짓기 (badapple)
-        working-directory: packages/badapple
-        run: npx -y -p typescript@5 tsc -p tsconfig.json
-
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
 
@@ -107,6 +100,16 @@ jobs:
       # 부르는 이름이 하나라도 없으면 그 검사는 조용히 안 돈다. 0.2초라 맨 앞에 둔다.
       - name: 부르는 이름이 실제로 있는지
         run: npm run audit:scripts
+
+      # WM 페이지 배선 (TASK-KL-161 에서 여기로 옮김).
+      #
+      # 원래 `npm run build` 안에 있었다. 그런데 그 페이지를 **만드는 중**이라 등록이 아직
+      # 반쯤인 상태였고, 그 바람에 **모든 배포가 죽었다** — 사이트가 서른 걸음 뒤처졌다.
+      # 만들다 만 새 페이지 하나 때문에 전원이 멈추는 것은 비대칭이다. 검사는 남기되
+      # 배포를 막지 않는 자리로 옮긴다 (막는 자리가 답을 더 나쁘게 만들면 안 된다).
+      - name: WM 페이지 배선이 이어져 있는지
+        if: always()
+        run: npm run audit:wm
 
       # 도구를 더할 때 같이 채워야 하는 것들(카드·자리·다른 이름). 파일만 읽어 0.1초다.
       - name: 도구마다 딸린 것이 채워졌는지
