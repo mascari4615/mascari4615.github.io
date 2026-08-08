@@ -648,17 +648,17 @@ const Mdd = (() => {
     mask-image: repeating-linear-gradient(to bottom,
         #000 0 3px, rgba(0,0,0,0.9) 3px 4px);
     -webkit-mask-size:100% 4px; mask-size:100% 4px;
-    animation: mdd-holo-scan 1.6s linear infinite, mdd-holo-glitch 3.6s steps(1) infinite;
+    /* 주사선은 **안 흐른다.** 흐르게 하려면 mask-position 을 매 프레임 바꿔야 하는데,
+       그건 합성기가 못 맡아서 마스코트를 60fps 로 다시 칠한다 — 아무도 안 보고 있어도.
+       화면이 영영 안 쉬는 원인을 하나 더 만드는 셈이다. 「투영된 상」은 줄무늬가 있다는
+       사실만으로 읽히고, 살아 있다는 신호는 3.6초마다 오는 지직이 낸다. */
+    animation: mdd-holo-glitch 3.6s steps(1) infinite;
 }
 /* 아래로 깔리는 투영 빛 — 「어딘가에서 쏘고 있다」 */
 .mdd-holo::before { content:''; position:absolute; inset:-8% -5%; pointer-events:none; z-index:1;
     background:radial-gradient(ellipse at 50% 82%, rgba(0,229,255,0.16) 0%, rgba(0,229,255,0) 62%);
     animation: mdd-holo-breathe 3.6s ease-in-out infinite; }
 
-@keyframes mdd-holo-scan {
-    from { -webkit-mask-position:0 0; mask-position:0 0; }
-    to   { -webkit-mask-position:0 -4px; mask-position:0 -4px; }
-}
 /* 지직 — 3.6초에 한 번, 0.2초 동안 **두 번** 튄다. 이때만 색이 갈라진다. */
 @keyframes mdd-holo-glitch {
     0%, 88% { transform:translateX(0); clip-path:none;
