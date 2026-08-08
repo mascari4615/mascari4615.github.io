@@ -367,6 +367,13 @@
                         </select>
                     </div>
                     <div class="settings-row">
+                        <label for="mdHolo">홀로그램</label>
+                        <select id="mdHolo" class="settings-control">
+                            <option value="1" ${sel(p.hologram)}>켜기 (SF 통신)</option>
+                            <option value="0" ${sel(!p.hologram)}>끄기 (그림 그대로)</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
                         <label for="mdOpacity">투명도 <span id="mdOpacityVal">${Math.round(p.opacity * 100)}%</span></label>
                         <input type="range" id="mdOpacity" class="settings-control" min="30" max="100" step="5" value="${Math.round(p.opacity * 100)}">
                     </div>
@@ -466,6 +473,7 @@
         };
         bindBool('mdEnabled', 'enabled');
         bindBool('mdMobile', 'showOnMobile');
+        bindBool('mdHolo', 'hologram');
         bindBool('mdMotion', 'motion');
         bindBool('mdBlink', 'blink');
         bindBool('mdGaze', 'gaze');

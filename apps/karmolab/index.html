@@ -387,7 +387,7 @@ permalink: /karmolab/
       /* 설정 화면이 마스코트보다 먼저 뜨는 일이 실제로 있다. 그때 기본값을 답해
          주지 않으면 「환경 설정」 탭이 통째로 안 열린다. */
       stub.PREF_DEFAULTS = { enabled: true, width: 300, framing: 'bust', showOnMobile: false,
-                             opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true,
+                             opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true, hologram: true,
                              bubble: true, bubbleMs: 3000, idleMs: 30000, tapReact: true };
       stub.getPrefs = function () {
         try { return Object.assign({}, stub.PREF_DEFAULTS, JSON.parse(localStorage.getItem('mdd_prefs') || '{}')); }
