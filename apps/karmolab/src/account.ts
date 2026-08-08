@@ -112,16 +112,39 @@ function mergeRecords(a: Records, b: Records): Records {
     return merged;
 }
 
+/**
+ * 지금 보고 있는 값이 낡았나 (TASK-KL-183 F).
+ *
+ * 서버에 못 닿을 때 서비스 워커가 받아 둔 값을 대신 내주는데, 그것을 **새 값인 척** 두면
+ * 그건 고장이 아니라 거짓말이 된다. 한 줄로 말해 준다.
+ */
+function noteStale(response: Response): void {
+    if (!response.headers.has('X-KL-Stale')) return;
+    if (document.getElementById('kl-stale-note')) return;
+    const note = document.createElement('div');
+    note.id = 'kl-stale-note';
+    note.textContent = '지금은 서버에 못 닿아 마지막으로 받아 둔 숫자를 보여 주고 있어요 — 도구는 그대로 씁니다.';
+    note.style.cssText =
+        'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:64;' +
+        'padding:8px 14px;border-radius:999px;font-size:12px;' +
+        'background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-secondary);' +
+        'box-shadow:0 6px 18px rgba(0,0,0,.3);max-width:92vw;text-align:center';
+    document.body.appendChild(note);
+    setTimeout(() => note.remove(), 8000);
+}
+
 async function call(path: string, init: RequestInit = {}): Promise<Response | null> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-        return await fetch(`${API_BASE}${path}`, {
+        const response = await fetch(`${API_BASE}${path}`, {
             ...init,
             // 쿠키로 로그인을 유지한다. 이게 없으면 매 요청이 남남이 된다.
             credentials: 'include',
             signal: controller.signal,
         });
+        noteStale(response);
+        return response;
     } catch {
         // 서버가 없다·느리다·터널이 끊겼다 — 전부 「계정 기능이 지금 없다」로만 취급한다.
         return null;
@@ -260,9 +283,9 @@ const KarmoAccount = {
             const start = await call('/kl/auth/passkey/challenge', { method: 'POST' });
             if (!start || !start.ok) return false;
             const options = (await start.json()) as { key: string; challenge: string; rpId: string };
-            /* 나눠 쓰는 메모리(SharedArrayBuffer) 위에 앉을 수도 있는 바이트열은 브라우저의
-             * 열쇠 API 가 안 받는다. `Uint8Array.from` 이 그 「어느 쪽이든」 형을 준다 —
-             * 그래서 자리를 **직접 잡아** 준다. (안 하면 CI 만 빨갛다: 여기 형 검사가 멈춘다.) */
+            /* 반환형을 `Uint8Array<ArrayBuffer>` 로 못 박는다.
+             * 기본형(`Uint8Array<ArrayBufferLike>`)은 공유 버퍼일 수도 있다고 보여서
+             * `BufferSource` 자리에 못 넣는다 — 타입 검사가 통째로 빨개진다(TS 5.7+). */
             const toBytes = (value: string): Uint8Array<ArrayBuffer> => {
                 const padded = value.replace(/-/g, '+').replace(/_/g, '/');
                 const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
