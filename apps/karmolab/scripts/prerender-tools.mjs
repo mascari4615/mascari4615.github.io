@@ -51,16 +51,20 @@ if (!targets.length) {
   process.exit(1);
 }
 
+/* 서버가 없으면 **못 돈다고 말한다**. 예전에는 여기서 조용히 0 으로 끝냈는데, 배포에서
+   그 침묵이 「했다」로 읽혀 실제 사이트가 내내 빈 채로 나갔다 (2026-08-08). */
 const probe = await fetch(`${BASE}/karmolab/t/`).catch(() => null);
 if (!probe?.ok) {
-  console.log(`[prerender] 화면을 열 서버가 없다 (${BASE}) — 미리 그리기는 건너뛴다.`);
-  process.exit(0);
+  console.error(`[prerender] 못 돈다 — 화면을 열 서버가 없다 (${BASE}). 먼저 \`npm run serve:gzip\`.`);
+  process.exit(1);
 }
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 let done = 0;
 let skipped = 0;
+/** 못 그린 것 — 「일부러 건너뜀」과 **다르다**. 이게 조용히 넘어가면 배포마다 빈 칸이 쌓인다. */
+const failed = [];
 
 for (const id of targets) {
   if (SKIP_IDS.has(id)) { skipped++; continue; }
@@ -100,13 +104,13 @@ for (const id of targets) {
       return copy.outerHTML;
     });
   } catch (err) {
-    skipped++;
+    failed.push(`${id}: ${String(err?.message || err).split('\n')[0]}`);
     await page.close();
     continue;
   }
   await page.close();
 
-  if (!markup || markup.length < 200) { skipped++; continue; }
+  if (!markup || markup.length < 200) { failed.push(`${id}: 그린 것이 너무 짧다 (${markup.length}자)`); continue; }
 
   const filled =
     MARK + '\n<div class="content-body" id="tool-pages">' + markup + '</div>';
@@ -115,4 +119,17 @@ for (const id of targets) {
 }
 
 await browser.close();
-console.log(`[prerender] 미리 그려 넣은 화면 ${done}장 · 건너뜀 ${skipped}장`);
+/* 끝나고 **결과를 직접 센다** — 「몇 장 돌렸나」가 아니라 「몇 장에 실제로 박혔나」.
+   이 줄이 없어서, 도중에 끊긴 판이 「건너뜀」으로 보이고 넘어갔다. */
+const missing = targets.filter((id) => {
+  const file = path.join(OUT, id, 'index.html');
+  return fs.existsSync(file) && !fs.readFileSync(file, 'utf8').includes(MARK) && !SKIP_IDS.has(id);
+});
+
+console.log(`[prerender] 미리 그려 넣은 화면 ${done}장 · 이미 있던 것 ${skipped}장 · 못 그림 ${failed.length}장`);
+for (const line of failed) console.log(`  ✗ ${line}`);
+
+if (missing.length) {
+  console.error(`[prerender] 화면이 안 박힌 도구 ${missing.length}장: ${missing.join(' ')}`);
+  process.exit(1);
+}

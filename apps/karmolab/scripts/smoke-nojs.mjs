@@ -106,6 +106,10 @@ if (!process.argv.slice(2).length) {
     const links = (body.match(/href="\/karmolab\/t\//g) || []).length;
     if (text < MIN_TEXT) why.push(`설명이 ${text}자뿐`);
     if (links < MIN_LINKS) why.push(`다른 도구 링크가 ${links}개뿐`);
+    /* 설명 글 말고 **도구 화면 자체**가 박혀 있는지 (TASK-KL-135 미리 그리기).
+       이걸 안 봐서, 미리 그리기가 배포에서 통째로 죽어 있는 동안 이 검사는 내내 초록이었다
+       — 설명만 보고 있었기 때문이다 (2026-08-08). */
+    if (!html.includes('KARMOLAB_PRERENDERED')) why.push('도구 화면이 안 박혔다 (미리 그리기 없음)');
     return why.length ? `${id}: ${why.join(' · ')}` : null;
   };
 
