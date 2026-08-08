@@ -28,7 +28,13 @@ function scan(dir) {
     if (!/\.(ts|js|mjs|html)$/.test(e.name)) continue;
     const lines = fs.readFileSync(p, 'utf8').split('\n');
     lines.forEach((line, i) => {
-      if (PATTERN.test(line)) bad.push([path.relative(root, p), i + 1, line.trim().slice(0, 100)]);
+      if (!PATTERN.test(line)) return;
+      /* **「내가 낡았나」를 묻는 파일만 예외다.** 그 물음은 캐시가 옛 답을 주면 물음 자체가
+         거짓말이 된다 — 매번 새 주소로 물어야 맞다. 그 밖에는 전부 잡는다.
+         (2026-08-08: 이 예외가 없어 배포가 섰다. 룰을 느슨하게 한 게 아니라, 규칙이 겨눈
+          「담아 둔 파일을 헛되이 다시 받는 것」과 정반대인 한 경우를 갈라낸 것이다.) */
+      if (/build\.json\?/.test(line)) return;
+      bad.push([path.relative(root, p), i + 1, line.trim().slice(0, 100)]);
     });
   }
 }
