@@ -298,10 +298,205 @@
         });
     }
 
+
+    /* ===== 마스코트 =====
+     * 화면 위에 늘 떠 있는 물건이라 취향이 제일 크게 갈린다. 끄는 것부터 움직임
+     * 하나하나까지 여기서 정한다 — 값은 `Mdd` 가 들고 있고 이 화면은 그 값을
+     * 보여 주고 바꾸기만 한다(두 벌로 적지 않는다). */
+
+    function buildMascot(container: HTMLElement): void {
+        Mdd.linePreset('tool_run', { msg: '저를 어떻게 해 주실 건가요?' });
+        renderMascot(container);
+    }
+
+    function renderMascot(container: HTMLElement): void {
+        const p = Mdd.getPrefs();
+        const sel = (v: boolean): string => (v ? 'selected' : '');
+
+        container.innerHTML = `
+            <div class="settings-layout">
+                <div class="settings-section">
+                    <h3>🧪 표시</h3>
+                    <div class="settings-row">
+                        <label for="mdEnabled">마스코트 보이기</label>
+                        <select id="mdEnabled" class="settings-control">
+                            <option value="1" ${sel(p.enabled)}>켜기</option>
+                            <option value="0" ${sel(!p.enabled)}>끄기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdWidth">크기 <span id="mdWidthVal">${p.width}px</span></label>
+                        <input type="range" id="mdWidth" class="settings-control"
+                               min="${Mdd.WIDTH_MIN}" max="${Mdd.widthMax()}" step="2" value="${Math.min(p.width, Mdd.widthMax())}">
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdFraming">보이는 범위</label>
+                        <select id="mdFraming" class="settings-control">
+                            <option value="bust" ${sel(p.framing === 'bust')}>얼굴 (흉상)</option>
+                            <option value="full" ${sel(p.framing === 'full')}>전신</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdMobile">폰에서도 보이기</label>
+                        <select id="mdMobile" class="settings-control">
+                            <option value="0" ${sel(!p.showOnMobile)}>숨기기 (기본)</option>
+                            <option value="1" ${sel(p.showOnMobile)}>보이기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdOpacity">투명도 <span id="mdOpacityVal">${Math.round(p.opacity * 100)}%</span></label>
+                        <input type="range" id="mdOpacity" class="settings-control" min="30" max="100" step="5" value="${Math.round(p.opacity * 100)}">
+                    </div>
+                    <div class="settings-row">
+                        <label>자리 되돌리기</label>
+                        <button type="button" class="btn-ghost" id="mdResetPos">↩️ 우하단으로</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🌬 움직임</h3>
+                    <div class="settings-row">
+                        <label for="mdMotion">움직임 전체</label>
+                        <select id="mdMotion" class="settings-control">
+                            <option value="1" ${sel(p.motion)}>켜기</option>
+                            <option value="0" ${sel(!p.motion)}>전부 끄기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdBlink">눈 깜빡임</label>
+                        <select id="mdBlink" class="settings-control" ${p.motion ? '' : 'disabled'}>
+                            <option value="1" ${sel(p.blink)}>켜기</option>
+                            <option value="0" ${sel(!p.blink)}>끄기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdGaze">커서 따라보기</label>
+                        <select id="mdGaze" class="settings-control" ${p.motion ? '' : 'disabled'}>
+                            <option value="1" ${sel(p.gaze)}>켜기</option>
+                            <option value="0" ${sel(!p.gaze)}>끄기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdBreathe">숨쉬기·흔들림</label>
+                        <select id="mdBreathe" class="settings-control" ${p.motion ? '' : 'disabled'}>
+                            <option value="1" ${sel(p.breathe)}>켜기</option>
+                            <option value="0" ${sel(!p.breathe)}>끄기</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>💬 말</h3>
+                    <div class="settings-row">
+                        <label for="mdBubble">말풍선</label>
+                        <select id="mdBubble" class="settings-control">
+                            <option value="1" ${sel(p.bubble)}>켜기</option>
+                            <option value="0" ${sel(!p.bubble)}>끄기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdBubbleMs">말풍선 표시 시간</label>
+                        <select id="mdBubbleMs" class="settings-control">
+                            <option value="2000" ${sel(p.bubbleMs === 2000)}>2초</option>
+                            <option value="3000" ${sel(p.bubbleMs === 3000)}>3초 (기본)</option>
+                            <option value="5000" ${sel(p.bubbleMs === 5000)}>5초</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdIdleMs">잠들기까지</label>
+                        <select id="mdIdleMs" class="settings-control">
+                            <option value="15000" ${sel(p.idleMs === 15000)}>15초</option>
+                            <option value="30000" ${sel(p.idleMs === 30000)}>30초 (기본)</option>
+                            <option value="120000" ${sel(p.idleMs === 120000)}>2분</option>
+                            <option value="0" ${sel(p.idleMs === 0)}>안 잠들기</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <label for="mdTap">누르면 반응하기</label>
+                        <select id="mdTap" class="settings-control">
+                            <option value="1" ${sel(p.tapReact)}>켜기</option>
+                            <option value="0" ${sel(!p.tapReact)}>끄기</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⚠️ 초기화</h3>
+                    <div class="settings-row">
+                        <label>설정만 기본값으로</label>
+                        <button type="button" class="btn-ghost" id="mdResetPrefs">↩️ 되돌리기</button>
+                    </div>
+                    <div class="settings-row settings-danger">
+                        <label>호감도·스토리 기록 지우기</label>
+                        <button type="button" class="btn btn-danger" id="mdResetStory">🗑️ 초기화</button>
+                    </div>
+                </div>
+            </div>`;
+
+        const bindBool = (id: string, key: string): void => {
+            container.querySelector<HTMLSelectElement>('#' + id)?.addEventListener('change', (e) => {
+                const t = e.target as HTMLSelectElement;
+                Mdd.setPrefs({ [key]: t.value === '1' } as never);
+                // 「전부 끄기」는 아래 세 칸을 잠그므로 화면을 다시 그린다
+                if (key === 'motion') renderMascot(container);
+            });
+        };
+        bindBool('mdEnabled', 'enabled');
+        bindBool('mdMobile', 'showOnMobile');
+        bindBool('mdMotion', 'motion');
+        bindBool('mdBlink', 'blink');
+        bindBool('mdGaze', 'gaze');
+        bindBool('mdBreathe', 'breathe');
+        bindBool('mdBubble', 'bubble');
+        bindBool('mdTap', 'tapReact');
+
+        const widthRange = container.querySelector<HTMLInputElement>('#mdWidth');
+        const widthVal = container.querySelector<HTMLElement>('#mdWidthVal');
+        widthRange?.addEventListener('input', () => {
+            const w = parseInt(widthRange.value, 10);
+            if (widthVal) widthVal.textContent = w + 'px';
+            Mdd.setPrefs({ width: w });
+        });
+        container.querySelector<HTMLSelectElement>('#mdFraming')?.addEventListener('change', (e) => {
+            Mdd.setPrefs({ framing: (e.target as HTMLSelectElement).value as never });
+        });
+        container.querySelector<HTMLSelectElement>('#mdBubbleMs')?.addEventListener('change', (e) => {
+            Mdd.setPrefs({ bubbleMs: parseInt((e.target as HTMLSelectElement).value, 10) });
+        });
+        container.querySelector<HTMLSelectElement>('#mdIdleMs')?.addEventListener('change', (e) => {
+            Mdd.setPrefs({ idleMs: parseInt((e.target as HTMLSelectElement).value, 10) });
+        });
+
+        const range = container.querySelector<HTMLInputElement>('#mdOpacity');
+        const rangeVal = container.querySelector<HTMLElement>('#mdOpacityVal');
+        range?.addEventListener('input', () => {
+            const pct = parseInt(range.value, 10);
+            if (rangeVal) rangeVal.textContent = pct + '%';
+            Mdd.setPrefs({ opacity: pct / 100 });
+        });
+
+        container.querySelector<HTMLButtonElement>('#mdResetPos')?.addEventListener('click', () => {
+            Mdd.resetPosition();
+            Toolbox.showToast?.('마스코트를 우하단으로 되돌렸어요');
+        });
+        container.querySelector<HTMLButtonElement>('#mdResetPrefs')?.addEventListener('click', () => {
+            Mdd.resetPrefs();
+            renderMascot(container);
+            Toolbox.showToast?.('마스코트 설정을 기본값으로 되돌렸어요');
+        });
+        container.querySelector<HTMLButtonElement>('#mdResetStory')?.addEventListener('click', () => {
+            if (!confirm('호감도와 스토리 기록을 지웁니다. 계속할까요?')) return;
+            ['mdd_affection', 'mdd_story_progress', 'mdd_story_log', 'mdd_guide_seen']
+                .forEach((k) => { try { localStorage.removeItem(k); } catch (_) {} });
+            Toolbox.showToast?.('마스코트 기록 초기화 완료');
+        });
+    }
+
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('settings'),
         tabs: [
             { id: 'settings-display', label: '표시 · API', build: buildDisplay },
+            { id: 'settings-mascot', label: '마스코트', build: buildMascot },
             { id: 'settings-data', label: '이 브라우저에 저장된 것', build: buildData },
         ],
     });

@@ -11,6 +11,96 @@ const Mdd = (() => {
     const PARTS_BASE = MASCOT_BASE + '/parts';
     const IDLE_TIMEOUT = 30000;
 
+    /* ===== 사용자 설정 =====
+     * 마스코트는 화면 위에 상주하는 물건이라 취향이 제일 크게 갈린다. 끄고 싶은
+     * 사람, 크게 보고 싶은 사람, 움직임이 거슬리는 사람이 다 다르다. 값은 한 곳에
+     * 모아 두고 바뀌면 그 자리에서 반영한다 — 새로고침을 요구하지 않는다. */
+    const PREFS_KEY = 'mdd_prefs';
+
+    interface MddPrefs {
+        enabled: boolean;
+        /** 마스코트 폭(px). 슬라이더로 연속 조절한다 */
+        width: number;
+        framing: 'bust' | 'full';
+        showOnMobile: boolean;
+        opacity: number;
+        blink: boolean;
+        gaze: boolean;
+        breathe: boolean;
+        motion: boolean;          // 끄면 위 셋을 전부 덮어쓴다
+        bubble: boolean;
+        bubbleMs: number;
+        idleMs: number;
+        tapReact: boolean;
+    }
+
+    const PREF_DEFAULTS: MddPrefs = {
+        enabled: true, width: 92, framing: 'bust', showOnMobile: false,
+        opacity: 0.85, blink: true, gaze: true, breathe: true, motion: true,
+        bubble: true, bubbleMs: 3000, idleMs: IDLE_TIMEOUT, tapReact: true,
+    };
+
+    /** 폭의 아래 한계. 위 한계는 고정값으로 두면 큰 화면에서 답답하고 작은
+     *  화면에서는 화면 밖으로 나간다 — 화면에 맞춰 잰다(전신은 세로가 기니
+     *  높이 기준). */
+    const WIDTH_MIN = 48;
+
+    function widthMax(): number {
+        const vw = window.innerWidth || 1280;
+        const vh = window.innerHeight || 800;
+        const ratio = prefs.framing === 'full' ? 500 / 940 : 246 / 268;
+        // 세로로 화면의 90% 를 넘지 않게, 가로로도 80% 를 넘지 않게
+        return Math.max(WIDTH_MIN, Math.round(Math.min(vh * 0.9 * ratio, vw * 0.8)));
+    }
+
+    let prefs: MddPrefs = { ...PREF_DEFAULTS };
+    try {
+        const raw = localStorage.getItem(PREFS_KEY);
+        if (raw) prefs = { ...PREF_DEFAULTS, ...JSON.parse(raw) };
+    } catch (_) { /* 깨진 값이면 기본값으로 산다 */ }
+
+    function getPrefs(): MddPrefs { return { ...prefs }; }
+
+    function setPrefs(patch: Partial<MddPrefs>): void {
+        prefs = { ...prefs, ...patch };
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (_) {}
+        applyPrefs();
+    }
+
+    function resetPrefs(): void { setPrefs({ ...PREF_DEFAULTS }); }
+
+    /** 설정을 화면에 반영한다. 새로고침 없이 그 자리에서 도는 게 요점이라
+     *  붙였다 뗐다 하는 대신 이미 있는 요소의 값을 고친다. */
+    function applyPrefs(): void {
+        if (!container || !charEl) return;
+        container.style.display = prefs.enabled ? '' : 'none';
+        container.classList.toggle('mdd-on-mobile', prefs.showOnMobile);
+
+        const w = Math.min(widthMax(), Math.max(WIDTH_MIN, Math.round(prefs.width) || PREF_DEFAULTS.width));
+        const ratio = prefs.framing === 'full' ? 500 / 940 : 246 / 268;
+        charEl.style.width = w + 'px';
+        charEl.style.height = Math.round(w / ratio) + 'px';
+        charEl.style.opacity = String(prefs.opacity);
+
+        if (avatar) {
+            avatar.setFraming(prefs.framing);
+            const on = prefs.motion;
+            avatar.setMotion({ blink: on && prefs.blink, gaze: on && prefs.gaze, breathe: on && prefs.breathe });
+        }
+        if (!prefs.bubble && bubbleEl) bubbleEl.classList.remove('visible');
+        resetIdleTimer();
+    }
+
+    /** 드래그로 옮긴 자리를 버리고 우하단으로 돌려놓는다 */
+    function resetPosition(): void {
+        try { localStorage.removeItem(POSITION_KEY); } catch (_) {}
+        if (!container) return;
+        container.style.left = '';
+        container.style.top = '';
+        container.style.right = '';
+        container.style.bottom = '';
+    }
+
     /* ===== 아바타 리깅 층 (원래 별도 파일이었으나, mdd.js 는 묶지 않는 전역
      * 스크립트라 import 를 쓰면 전역 `Mdd` 가 사라진다 — 같은 파일 안에 둔다) ===== */
     /**
@@ -55,7 +145,6 @@ const Mdd = (() => {
         mouthOpen: 1, mouthWide: 1, blush: 0, tilt: 0, bob: 0, gaze: null,
     };
 
-    /** 기존 12 포즈 = 이 값들의 프리셋. 사이 값도 되므로 전환이 보간된다. */
     /** 기존 12 포즈 = 이 값들의 프리셋. 사이 값도 되므로 전환이 보간된다.
      *
      * 진폭이 큰 이유: 우하단 마스코트는 92px 이고 입은 원본 1024 캔버스에서
@@ -92,9 +181,15 @@ const Mdd = (() => {
 
     type Framing = keyof typeof FRAMING;
 
+    interface MotionFlags { blink: boolean; gaze: boolean; breathe: boolean }
+
     interface AvatarHandle {
         el: HTMLDivElement;
         setPose(id: string): void;
+        /** 보여 줄 범위를 바꾼다 (흉상 ↔ 전신). 새로고침 없이 그 자리에서 */
+        setFraming(f: Framing): void;
+        /** 살아 있는 티를 내는 움직임을 개별로 끈다 */
+        setMotion(m: Partial<MotionFlags>): void;
         /** 커서 위치를 넘겨 시선을 돌린다 (뷰포트 좌표) */
         lookAt(clientX: number, clientY: number): void;
         destroy(): void;
@@ -105,7 +200,8 @@ const Mdd = (() => {
 
     function createAvatar(base: string, manifest: Manifest,
                                  framing: Framing = 'bust'): AvatarHandle {
-        const view = FRAMING[framing];
+        let view: { x: number; y: number; w: number; h: number } = FRAMING[framing];
+        const motion: MotionFlags = { blink: true, gaze: true, breathe: true };
         const el = document.createElement('div');
         el.className = 'mdd-av';
         el.style.aspectRatio = `${view.w} / ${view.h}`;
@@ -206,12 +302,12 @@ const Mdd = (() => {
             }
 
             // 시선 — 포즈가 방향을 고정하면 그쪽, 아니면 커서
-            const wanted = target.gaze || gazeTarget;
+            const wanted = target.gaze || (motion.gaze ? gazeTarget : { x: 0, y: 0 });
             gaze.x += (wanted.x - gaze.x) * (REDUCED ? 1 : 0.1);
             gaze.y += (wanted.y - gaze.y) * (REDUCED ? 1 : 0.1);
 
             // 눈깜빡임 — 일정 간격이면 기계처럼 보인다. 다음 시각을 매번 새로 뽑는다
-            if (!REDUCED && target.eyeOpen > 0.15) {
+            if (!REDUCED && motion.blink && target.eyeOpen > 0.15) {
                 if (blinkPhase > 0) {
                     blinkPhase -= 1 / 7;                 // 약 7 프레임에 걸쳐 감았다 뜬다
                     blink = Math.abs(blinkPhase * 2 - 1);
@@ -223,8 +319,9 @@ const Mdd = (() => {
                 blink = 1;
             }
 
-            const breathe = REDUCED ? 0 : Math.sin(t * (Math.PI * 2) / 4) * 2.2;
-            const sway = REDUCED ? 0 : Math.sin(t * (Math.PI * 2) / 5.5) * 1.1;
+            const alive = !REDUCED && motion.breathe;
+            const breathe = alive ? Math.sin(t * (Math.PI * 2) / 4) * 2.2 : 0;
+            const sway = alive ? Math.sin(t * (Math.PI * 2) / 5.5) * 1.1 : 0;
 
             // 몸 전체 — 보여 줄 범위로 맞춘 뒤 숨쉬기 + 포즈 상하
             const ox = -view.x * scale;
@@ -281,6 +378,12 @@ const Mdd = (() => {
         return {
             el,
             setPose,
+            setFraming(f: Framing): void {
+                view = FRAMING[f];
+                el.style.aspectRatio = `${view.w} / ${view.h}`;
+                measure();
+            },
+            setMotion(m: Partial<MotionFlags>): void { Object.assign(motion, m); },
             lookAt,
             destroy() { cancelAnimationFrame(raf); ro?.disconnect(); el.remove(); },
         };
@@ -369,9 +472,9 @@ const Mdd = (() => {
 
     /* ===== 말풍선 ===== */
 
-    function say(message: string, duration = 3000): void {
+    function say(message: string, duration = prefs.bubbleMs): void {
         const el = bubbleEl;
-        if (!el) return;
+        if (!el || !prefs.bubble) return;
         el.textContent = message;
         el.classList.add('visible');
         if (bubbleTimer !== null) clearTimeout(bubbleTimer);
@@ -414,7 +517,7 @@ const Mdd = (() => {
         if (!base) return false;
         const mood = (opts && opts.mood) || base.mood;
         const msg = (opts && opts.msg != null) ? opts.msg : base.msg;
-        const duration = (opts && opts.duration != null) ? opts.duration : 3000;
+        const duration = (opts && opts.duration != null) ? opts.duration : prefs.bubbleMs;
         setMood(mood);
         say(msg, duration);
         return true;
@@ -434,7 +537,8 @@ const Mdd = (() => {
     function resetIdleTimer(): void {
         if (currentMood === 'sleep') return;
         if (idleTimer !== null) clearTimeout(idleTimer);
-        idleTimer = setTimeout(() => { linePreset('idle_sleep', { duration: 4000 }); }, IDLE_TIMEOUT);
+        if (prefs.idleMs <= 0) return;      // 0 = 안 잠든다
+        idleTimer = setTimeout(() => { linePreset('idle_sleep', { duration: 4000 }); }, prefs.idleMs);
     }
 
     /* ===== 호감도 시스템 ===== */
@@ -622,7 +726,7 @@ const Mdd = (() => {
             const moved = Math.abs(e.clientX - dragStart.x) + Math.abs(e.clientY - dragStart.y);
             if (moved >= DRAG_THRESHOLD) {
                 savePosition();
-            } else {
+            } else if (prefs.tapReact) {
                 bounce();
                 addAffection(1);
                 const q = TAP_QUIPS[Math.floor(Math.random() * TAP_QUIPS.length)];
@@ -711,7 +815,11 @@ const Mdd = (() => {
             .mdd-bounce { animation:mdd-bounce 0.3s ease; }
             @keyframes mdd-bounce { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 70%{transform:translateY(-3px)} }
             /* 폰에서는 마스코트를 띄우지 않는다 — 화면이 좁아 버튼·입력을 가린다 (사용자 결정 2026-08-06). PC 전용. */
-            @media(max-width:768px){ .mdd-container{display:none} }
+            @media(max-width:768px){
+                .mdd-container{display:none}
+                /* 사용자가 폰에서도 보겠다고 하면 그 뜻이 이긴다 */
+                .mdd-container.mdd-on-mobile{display:flex}
+            }
         ` + AVATAR_CSS);
 
         container = document.createElement('div');
@@ -728,6 +836,7 @@ const Mdd = (() => {
         document.body.appendChild(container);
         void mountAvatar();
 
+        applyPrefs();
         loadPosition();
         initDrag();
 
@@ -750,5 +859,7 @@ const Mdd = (() => {
         addAffection, getAffection, getRelationshipTitle,
         getStoryProgress, getStoryLog, STORY_EVENTS,
         showGuide, showNextGuide, openStoryLog, GUIDE_MESSAGES,
+        getPrefs, setPrefs, resetPrefs, resetPosition, PREF_DEFAULTS,
+        WIDTH_MIN, widthMax,
     };
 })();
