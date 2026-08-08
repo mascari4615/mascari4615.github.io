@@ -76,7 +76,7 @@
      * 화면을 옮기며 도는 일이라 「지금 몇 번째인가」를 창에 적어 둔다. 탭을 닫으면 사라지는 게
      * 맞다 — 어제 시작한 흐름이 오늘 갑자기 이어지면 그건 자동화가 아니라 유령이다.
      */
-    type RunState = { id: string; title: string; steps: Step[]; at: number };
+    type RunState = { id: string; title: string; steps: Step[]; at: number; started: number };
 
     function readRun(): RunState | null {
         try {
@@ -98,7 +98,7 @@
     }
 
     function startRun(flow: Flow): void {
-        writeRun({ id: flow.id, title: flow.title, steps: flow.steps, at: 0 });
+        writeRun({ id: flow.id, title: flow.title, steps: flow.steps, at: 0, started: Date.now() });
         const base = api();
         if (base) {
             void fetch(`${base}/kl/flows/${encodeURIComponent(flow.id)}/run`, { method: 'POST', credentials: 'include' }).catch(() => {});
@@ -132,10 +132,36 @@
         document.body.appendChild(bar);
         bar.querySelector('[data-flow-next]')?.addEventListener('click', () => goStep(run.at + 1));
         bar.querySelector('[data-flow-done]')?.addEventListener('click', () => {
+            noteTrail(run, true);
             writeRun(null);
             Toolbox.showToast?.('흐름을 끝냈어요');
         });
-        bar.querySelector('[data-flow-stop]')?.addEventListener('click', () => writeRun(null));
+        bar.querySelector('[data-flow-stop]')?.addEventListener('click', () => {
+            /* 그만둔 것도 자국이다 — 오히려 **어디서 막히는지**는 여기서만 드러난다. */
+            noteTrail(run, false);
+            writeRun(null);
+        });
+    }
+
+    /**
+     * 한 판의 자국 (TASK-KL-182 F5) — 몇 번째까지 갔나 · 얼마나 걸렸나.
+     * 파일도 결과도 안 보낸다. 이 두 값만이 「어느 단계가 막히나」를 말한다.
+     */
+    function noteTrail(run: RunState, finished: boolean): void {
+        const base = api();
+        if (!base) return;
+        void fetch(`${base}/kl/flows/${encodeURIComponent(run.id)}/trail`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reached: run.at + 1,
+                finished,
+                seconds: run.started ? Math.round((Date.now() - run.started) / 1000) : null,
+            }),
+        }).catch(() => {
+            /* 자국 한 줄 못 남긴 것과 흐름이 안 된 것은 다른 무게다 */
+        });
     }
 
     /* ── 화면 ─────────────────────────────────────────────────────── */
@@ -163,7 +189,7 @@
             <div class="flow-card" data-flow="${escapeHtml(flow.id)}">
                 <h4>${escapeHtml(flow.title)}</h4>
                 <div class="flow-steps">${stepsHtml(flow.steps)}</div>
-                <span class="flow-meta">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}</span>
+                <span class="flow-meta" data-summary-for="${escapeHtml(flow.id)}">${flow.runs}번 돌았음${flow.ownerHandle ? ` · @${escapeHtml(flow.ownerHandle)}` : ''}</span>
                 <div class="flow-actions">
                     <button type="button" class="flow-btn flow-btn-go" data-run="${escapeHtml(flow.id)}">시작</button>
                     ${mine
@@ -222,8 +248,39 @@
             </div>`;
 
         wireCards(container);
+        void paintSummaries(container);
         if (signedIn) wireMaker(container);
         paintBar();
+    }
+
+    /**
+     * 어디서 막히나 (TASK-KL-182 F5) — 자국이 있는 흐름에만 한 줄 붙는다.
+     * 자국이 없으면 아무 말도 안 한다. 「0% 완주」 같은 수는 아직 아무것도 안 말해 준다.
+     */
+    async function paintSummaries(container: HTMLElement): Promise<void> {
+        const base = api();
+        if (!base) return;
+        const slots = [...container.querySelectorAll<HTMLElement>('[data-summary-for]')];
+        await Promise.all(
+            slots.map(async (slot) => {
+                try {
+                    const res = await fetch(`${base}/kl/flows/${encodeURIComponent(slot.dataset.summaryFor ?? '')}/summary`);
+                    if (!res.ok) return;
+                    const summary = ((await res.json()) as {
+                        summary?: { runs: number; finished: number; stuckStep: number | null; medianSeconds: number | null };
+                    }).summary;
+                    if (!summary) return;
+                    const parts = [`${summary.finished}/${summary.runs} 완주`];
+                    if (summary.medianSeconds !== null) parts.push(`보통 ${summary.medianSeconds}초`);
+                    if (summary.stuckStep !== null && summary.finished < summary.runs) {
+                        parts.push(`${summary.stuckStep}단계에서 자주 멈춤`);
+                    }
+                    slot.textContent = `${slot.textContent} · ${parts.join(' · ')}`;
+                } catch {
+                    /* 요약을 못 받아도 카드는 그대로다 */
+                }
+            }),
+        );
     }
 
     function wireCards(container: HTMLElement): void {
