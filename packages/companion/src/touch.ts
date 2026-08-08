@@ -79,6 +79,24 @@ export interface TouchReplyOptions {
   last?: string | null;
   /** 고르는 손. 시험에서 고정한다. */
   roll?: () => number;
+  /**
+   * 미리 지어 둔 대사 창고. 있으면 **여기서 먼저 꺼낸다.**
+   *
+   * 손으로 적은 표는 아무리 늘려도 언젠가 돈다(88회차: 145번 반복). 창고는 한가할 때
+   * 두뇌가 채워 두므로 매번 다르고, 꺼내는 데 걸리는 시간은 0 이다. 비어 있으면 아래
+   * 기본 표로 물러선다 — 창고가 없거나 못 채워도 얘는 멀쩡히 대꾸한다.
+   */
+  창고?: { 꺼내기: (갈래: string) => string | null };
+}
+
+/** 창고에서 이 자리를 부르는 이름. 채우는 쪽과 꺼내는 쪽이 같은 이름을 써야 한다. */
+export function 닿음갈래(kind: TouchKind, 단계: number): string {
+  return `touch:${kind}:${단계}`;
+}
+
+/** 몇 번째 닿음이 어느 결인가 — 처음(0) / 몇 번(1) / 계속(2). */
+export function 닿음단계(times: number): number {
+  return times <= 1 ? 0 : times <= 4 ? 1 : 2;
 }
 
 /**
@@ -110,7 +128,13 @@ export function 대꾸기억지우기(): void {
 export function touchReply(kind: TouchKind, options: TouchReplyOptions = {}): string {
   const times = Math.max(1, options.times ?? 1);
   const roll = options.roll ?? Math.random;
-  const 단계 = times <= 1 ? 0 : times <= 4 ? 1 : 2;
+  const 단계 = 닿음단계(times);
+
+  // 미리 지어 둔 것이 있으면 그게 먼저다 — 손으로 적은 표는 결국 도는 말이 된다.
+  // 바로 앞것과 같은 말이 나오면 그건 안 쓴다(창고 안에서도 겹칠 수 있다).
+  const 지어둔것 = options.창고?.꺼내기(닿음갈래(kind, 단계)) ?? null;
+  if (지어둔것 !== null && 지어둔것 !== options.last) return 지어둔것;
+
   const 후보 = 대꾸[kind][단계];
 
   const 열쇠 = `${kind}:${단계}`;

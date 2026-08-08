@@ -103,6 +103,9 @@ import {
   retryNote,
   TOUCH_CHANNEL,
   TouchCount,
+  대사창고,
+  닿음갈래,
+  닿음단계,
   touchKindOf,
   touchReply,
   brainDistiller,
@@ -355,6 +358,34 @@ const selfImage = new SelfImage({
   log: (m) => console.log(`[자기상] ${m}`),
 });
 const touchCount = new TouchCount();
+/* 미리 지어 둔 대꾸 창고 (89회차). 손으로 적은 표는 후보가 셋뿐이라 스무 번이면 또 돈다 —
+   실측으로 얘가 한 말 320개 중 145개가 글자 그대로 반복이었다. 한가할 때 두뇌가 채워 두고,
+   닿았을 때는 꺼내 쓴다(꺼내는 데 걸리는 시간 0). 비면 손으로 적은 표로 그냥 물러선다. */
+const 대사 = new 대사창고({
+  path: join(home, '지어-둔-대꾸.json'),
+  누구: () => character?.name ?? null,
+  지어오기: (prompt) => (brain.ask ? brain.ask(prompt) : Promise.resolve(null)),
+  log: (m) => console.log(m),
+});
+const 닿음결 = { 쿡: '쿡 찔렸을 때', 흔듦: '붙잡혀 끌려다닐 때', 쓰다듬: '쓰다듬어질 때' };
+const 단계결 = ['처음 그랬을 때 — 조금 놀란 결', '몇 번째라 익숙해진 결', '계속 그래서 시들해진 결'];
+/** 한가할 때 대꾸를 지어 둔다. 못 지어도 그냥 넘어간다 — 기본 표가 있다. */
+function 대꾸채워두기() {
+  for (const [갈래, 무슨일] of Object.entries(닿음결)) {
+    for (let 단계 = 0; 단계 < 3; 단계 += 1) {
+      const 열쇠 = 닿음갈래(갈래, 단계);
+      if (대사.남은수(열쇠) >= 4) continue;
+      void 대사
+        .채우기(
+          열쇠,
+          `너를 조수님이 ${무슨일}, 너답게 툭 던지는 짧은 혼잣말. ${단계결[단계]}.`,
+          6,
+        )
+        .catch(() => {});
+      return; // 한 번에 한 갈래만 — 느린 두뇌를 아홉 번 부르면 진짜 대답이 밀린다.
+    }
+  }
+}
 let lastEnergy = 0.5;
 
 // 사람이 마지막으로 말을 건 시각. 화면 보기가 그 위로 끼어들지 않게 쓰인다.
@@ -643,7 +674,7 @@ const companion = new Companion({
     if (어떻게 !== null) {
       const 몇번째 = touchCount.bump(sensation.at);
       heart.felt(어떻게 === '쓰다듬' ? '쓰다듬김' : 어떻게 === '흔듦' ? '끌려다님' : 몇번째 > 4 ? '자꾸찔림' : '쿡찔림');
-      const 대꾸 = touchReply(어떻게, { times: 몇번째, last: lastTouch });
+      const 대꾸 = touchReply(어떻게, { times: 몇번째, last: lastTouch, 창고: 대사 });
       lastTouch = 대꾸;
       return 대꾸;
     }
@@ -976,6 +1007,12 @@ const companion = new Companion({
 });
 
 await companion.start();
+/* 창이 뜨자마자 한 번, 그 뒤로는 이 간격으로 한 갈래씩. 아홉 갈래가 다 차면 그때부터는
+   두뇌를 아예 안 부른다(담긴 수만 세고 돌아간다) — 그래서 간격이 짧아도 값이 안 든다.
+   너무 길게 잡으면 정작 가장 많이 닿는 자리(계속 찌를 때)가 한참 동안 옛 표 그대로다. */
+const 대사간격 = Number(process.env.COMPANION_STOCK_MS ?? '90000');
+대꾸채워두기();
+setInterval(대꾸채워두기, 대사간격).unref();
 if (desktop) {
   openPinnedWindow(`http://localhost:${port}`, {
     width: Number(process.env.COMPANION_WIDTH ?? '420'),
