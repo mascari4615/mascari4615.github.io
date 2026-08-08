@@ -912,10 +912,15 @@
      *
      * 이 브라우저가 패스키를 모르면 **단추 자체를 안 그린다** — 눌러도 아무 일 없는 단추가 제일 나쁘다.
      */
-    function b64urlToBytes(value: string): Uint8Array {
+    /* 나눠 쓰는 메모리(SharedArrayBuffer) 위에 앉을 수도 있는 바이트열은 브라우저의 열쇠 API 가
+     * 안 받는다. `Uint8Array.from` 이 그 「어느 쪽이든」 형을 준다 — 그래서 자리를 **직접 잡아**
+     * 준다. (안 하면 CI 만 빨갛다: 여기 형 검사가 멈추고 배포가 통째로 선다.) */
+    function b64urlToBytes(value: string): Uint8Array<ArrayBuffer> {
         const padded = value.replace(/-/g, '+').replace(/_/g, '/');
         const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
-        return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+        const bytes = new Uint8Array(new ArrayBuffer(raw.length));
+        for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+        return bytes;
     }
 
     function bytesToB64url(buffer: ArrayBuffer): string {

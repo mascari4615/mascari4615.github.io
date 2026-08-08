@@ -251,10 +251,15 @@ const KarmoAccount = {
             const start = await call('/kl/auth/passkey/challenge', { method: 'POST' });
             if (!start || !start.ok) return false;
             const options = (await start.json()) as { key: string; challenge: string; rpId: string };
-            const toBytes = (value: string): Uint8Array => {
+            /* 나눠 쓰는 메모리(SharedArrayBuffer) 위에 앉을 수도 있는 바이트열은 브라우저의
+             * 열쇠 API 가 안 받는다. `Uint8Array.from` 이 그 「어느 쪽이든」 형을 준다 —
+             * 그래서 자리를 **직접 잡아** 준다. (안 하면 CI 만 빨갛다: 여기 형 검사가 멈춘다.) */
+            const toBytes = (value: string): Uint8Array<ArrayBuffer> => {
                 const padded = value.replace(/-/g, '+').replace(/_/g, '/');
                 const raw = atob(padded + '='.repeat((4 - (padded.length % 4)) % 4));
-                return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+                const bytes = new Uint8Array(new ArrayBuffer(raw.length));
+                for (let i = 0; i < raw.length; i += 1) bytes[i] = raw.charCodeAt(i);
+                return bytes;
             };
             const toB64url = (buffer: ArrayBuffer): string => {
                 let binary = '';
