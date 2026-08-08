@@ -156,6 +156,11 @@
         .fp-top-item:hover { border-color:var(--accent); }
         .fp-top-item b { font-size:var(--font-size-xs); color:var(--text-primary); }
         .fp-top-item span { font-size:11px; color:var(--text-tertiary); }
+        .fp-pins { display:flex; flex-wrap:wrap; gap:6px; flex:1 1 240px; }
+        .fp-pin { padding:5px 11px; border-radius:999px; border:1px solid var(--border); cursor:pointer;
+            background:transparent; color:var(--text-secondary); font:inherit; font-size:var(--font-size-xs); }
+        .fp-pin:hover { border-color:var(--accent); }
+        .fp-pin.on { background:var(--accent); border-color:var(--accent); color:var(--bg-primary); font-weight:600; }
         .fp-vis { display:flex; flex-wrap:wrap; gap:8px 16px; flex:1 1 240px; }
         .fp-vis-item { display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-primary); cursor:pointer; }
         .fp-share { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:14px; }
@@ -444,6 +449,17 @@
                 <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>코드 받기</button>
                 <span class="user-acct-hint">디스코드 로그인이 어려운 기기(티비 등)에서 이 코드를 넣으면 들어와집니다. 5분간 · 한 번만.</span>
             </div>
+            <form class="user-acct-row" data-card-form>
+                <label class="user-acct-label" for="userBio">한 줄 소개</label>
+                <input id="userBio" type="text" maxlength="80" data-bio aria-label="한 줄 소개" placeholder="아직 비어 있어요">
+                <button type="submit" class="user-account-btn user-account-btn-quiet">저장</button>
+                <span class="user-acct-hint">남에게 보이는 프로필 맨 위에 붙습니다. 안 채우면 지금과 같은 모습입니다.</span>
+            </form>
+            <div class="user-acct-row">
+                <span class="user-acct-label">대표 도구</span>
+                <div class="fp-pins" data-pins>불러오는 중…</div>
+                <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
+            </div>
             <div class="user-acct-row" data-visibility-row>
                 <span class="user-acct-label">남에게 보이기</span>
                 <div class="fp-vis" data-visibility>불러오는 중…</div>
@@ -558,6 +574,7 @@
         });
 
         mountVisibility(box.querySelector<HTMLElement>('[data-visibility]'), base);
+        mountCard(box, base);
 
         box.querySelector('[data-delete]')?.addEventListener('click', async () => {
             // 되돌릴 수 없는 일은 **무엇이 사라지고 무엇이 남는지** 먼저 말한 뒤에 묻는다.
@@ -594,6 +611,106 @@
      * 안 돌려주면 없는 것과 같다.
      * 아래 = 예전부터 있던 이 브라우저의 AI 사용량(대시보드). 둘은 출처가 다르다.
      */
+    /**
+     * 프로필 꾸미기 (TASK-KL-152 C5).
+     *
+     * 고를 수 있는 도구는 **내가 실제로 쓴 것**에서 나온다 — 도구가 160개인데 목록을 통째로
+     * 늘어놓으면 아무도 안 고른다. 아직 아무것도 안 쓴 사람에겐 고를 것이 없다고 말한다.
+     */
+    async function mountCard(box: Element, base: string): Promise<void> {
+        const bioInput = box.querySelector<HTMLInputElement>('[data-bio]');
+        const pinSlot = box.querySelector<HTMLElement>('[data-pins]');
+
+        let card: { bio: string; pins: string[] } = { bio: '', pins: [] };
+        let usedTools: string[] = [];
+        try {
+            const [meRes, actRes] = await Promise.all([
+                fetch(`${base}/kl/me`, { credentials: 'include' }),
+                fetch(`${base}/kl/me/activity`, { credentials: 'include' }),
+            ]);
+            if (meRes.ok) {
+                const me = (await meRes.json()) as { account?: { card?: { bio: string; pins: string[] } } };
+                card = me.account?.card ?? card;
+            }
+            if (actRes.ok) {
+                const activity = ((await actRes.json()) as { activity?: Footprint }).activity;
+                usedTools = Object.entries(activity?.tools ?? {})
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 12)
+                    .map(([id]) => id);
+            }
+        } catch {
+            if (pinSlot) pinSlot.textContent = '지금은 못 봤어요';
+            return;
+        }
+
+        if (bioInput) bioInput.value = card.bio;
+
+        // 이미 고른 것은 지금 안 쓰는 도구여도 목록에 남는다 — 안 그러면 저장한 것이 사라져 보인다.
+        const choices = [...new Set([...card.pins, ...usedTools])];
+        if (pinSlot) {
+            pinSlot.innerHTML = choices.length
+                ? choices
+                      .map(
+                          (id) =>
+                              `<button type="button" class="fp-pin${card.pins.includes(id) ? ' on' : ''}" data-pin="${escapeHtml(id)}">${escapeHtml(toolTitle(id))}</button>`,
+                      )
+                      .join('')
+                : '<span class="user-acct-hint">아직 고를 것이 없어요 — 도구를 몇 개 써 보면 여기 뜹니다.</span>';
+        }
+
+        const savePins = async (pins: string[]): Promise<boolean> => {
+            try {
+                const res = await fetch(`${base}/kl/me/card`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pins }),
+                });
+                if (!res.ok) return false;
+                card.pins = ((await res.json()) as { card: { pins: string[] } }).card.pins;
+                return true;
+            } catch {
+                return false;
+            }
+        };
+
+        pinSlot?.querySelectorAll<HTMLButtonElement>('[data-pin]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const id = button.dataset.pin ?? '';
+                const on = card.pins.includes(id);
+                if (!on && card.pins.length >= 3) {
+                    Toolbox.showToast?.('3개까지예요');
+                    return;
+                }
+                const next = on ? card.pins.filter((p) => p !== id) : [...card.pins, id];
+                if (!(await savePins(next))) {
+                    Toolbox.showToast?.('지금은 안 되네요');
+                    return;
+                }
+                // 서버가 답한 목록으로 다시 칠한다 — 화면과 서버가 갈라지지 않게.
+                pinSlot?.querySelectorAll<HTMLButtonElement>('[data-pin]').forEach((other) => {
+                    other.classList.toggle('on', card.pins.includes(other.dataset.pin ?? ''));
+                });
+            });
+        });
+
+        box.querySelector<HTMLFormElement>('[data-card-form]')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const res = await fetch(`${base}/kl/me/card`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bio: bioInput?.value ?? '' }),
+                });
+                Toolbox.showToast?.(res.ok ? '저장했어요' : '지금은 안 되네요');
+            } catch {
+                Toolbox.showToast?.('지금은 안 되네요');
+            }
+        });
+    }
+
     /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
     const VISIBILITY_LABELS: Array<[string, string]> = [
         ['profile', '프로필 자체'],

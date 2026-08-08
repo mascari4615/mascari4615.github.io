@@ -22,6 +22,8 @@ interface PublicProfile {
     updatedAt: string | null;
     /** 본인이 일부러 가린 칸 (TASK-KL-152 C4). 「아직 없다」와 다르다. */
     hidden?: string[];
+    /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채웠으면 빈 값. */
+    card?: { bio: string; pins: string[] };
 }
 
 const API_BASE = 'https://yawnbot.mascari4615.com';
@@ -54,6 +56,36 @@ function renderMessage(root: HTMLElement, title: string, detail: string): void {
             <p>${escapeHtml(detail)}</p>
             <p><a href="/karmolab/">KarmoLab 으로 돌아가기</a></p>
         </div>`;
+}
+
+/**
+ * 명함 자리 (TASK-KL-152 C5) — 한 줄 소개와 대표 도구.
+ *
+ * 여태 프로필은 아무나 똑같이 생겼다(이름·아바타·숫자뿐). 이 두 줄이 있어야 「누구」인지가 보인다.
+ * 대표 도구는 **우리 도구 주소로만** 링크한다 — 남이 넣은 글자가 링크가 되는 일은 없다.
+ */
+/** 도구 id → 사람이 아는 이름. 목록이 아직 안 왔거나 모르는 id 면 id 그대로 (지어내지 않는다). */
+function toolTitle(id: string): string {
+    const list = (window as { KARMOLAB_LAZY_META?: Array<{ id: string; title?: string }> }).KARMOLAB_LAZY_META ?? [];
+    return list.find((meta) => meta.id === id)?.title || id;
+}
+
+function cardHtml(profile: PublicProfile): string {
+    const bio = profile.card?.bio ?? '';
+    const pins = profile.card?.pins ?? [];
+    if (!bio && pins.length === 0) return '';
+    return `
+        <section class="profile-card-note">
+            ${bio ? `<p class="profile-bio">${escapeHtml(bio)}</p>` : ''}
+            ${pins.length
+                ? `<div class="profile-pins">${pins
+                      .map(
+                          (id) =>
+                              `<a class="profile-pin" href="/karmolab/t/${encodeURIComponent(id)}/">${escapeHtml(toolTitle(id))}</a>`,
+                      )
+                      .join('')}</div>`
+                : ''}
+        </section>`;
 }
 
 /**
@@ -102,6 +134,7 @@ function renderProfile(root: HTMLElement, profile: PublicProfile): void {
                     <p class="profile-joined">${escapeHtml(formatDate(profile.joinedAt))}부터</p>
                 </div>
             </header>
+            ${cardHtml(profile)}
             ${hiddenNote(profile)}
             <section class="profile-stats">
                 <div class="profile-stat"><strong>${profile.achievements.length}</strong><span>도전과제</span></div>

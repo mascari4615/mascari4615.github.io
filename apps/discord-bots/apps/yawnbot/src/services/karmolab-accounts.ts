@@ -93,6 +93,33 @@ export interface Account {
   footprint?: AccountFootprint;
   /** 남에게 무엇을 보일지 (TASK-KL-152 C4). 없으면 지금까지처럼 전부 공개. */
   visibility?: Partial<AccountVisibility>;
+  /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채우면 지금과 똑같은 모습이다. */
+  card?: ProfileCard;
+}
+
+/**
+ * 프로필 꾸미기 (TASK-KL-152 C5).
+ *
+ * 지금 프로필은 **아무나 똑같이 생겼다** — 이름·아바타·숫자뿐이라 누구 것인지 말해 주는
+ * 자리가 없다. 한 줄 소개와 「내가 자주 쓰는 것」이 있으면 그때부터 명함이 된다
+ * (GitHub 프로필 README · Steam 쇼케이스가 같은 자리를 그렇게 쓴다).
+ *
+ * 자유 HTML 은 안 받는다. 글 한 줄과 **우리 도구 id 목록**뿐이라, 남의 화면에서 무엇이
+ * 그려질지 우리가 전부 안다.
+ */
+export interface ProfileCard {
+  /** 한 줄 소개 */
+  bio: string;
+  /** 대표 도구 id (최대 3개) */
+  pins: string[];
+}
+
+export const BIO_MAX = 80;
+export const PIN_MAX = 3;
+
+/** 도구 id 로 받아들일 모양 — 주소에 그대로 들어가는 값이라 좁게 잡는다. */
+function isToolIdLike(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-z0-9][a-z0-9-]{0,39}$/.test(value);
 }
 
 /**
@@ -249,6 +276,8 @@ export interface PublicProfile {
   badges: string[];
   streaks: Record<string, { current: number; longest: number }>;
   updatedAt: string | null;
+  /** 프로필 꾸미기 (TASK-KL-152 C5). 안 채웠으면 빈 값 — 그때는 지금까지와 같은 모습이다. */
+  card?: ProfileCard;
   /** 본인이 **일부러 가린** 칸들 (TASK-KL-152 C4). 「없는 것」과 「가린 것」은 다르다. */
   hidden?: string[];
 }
@@ -639,6 +668,32 @@ export class KarmolabAccountStore {
     return id ? (this.state.accounts[id] ?? null) : null;
   }
 
+  /** 프로필 꾸미기 읽기 (안 채웠으면 빈 것). */
+  cardFor(accountId: string): ProfileCard {
+    const account = this.state.accounts[accountId];
+    return { bio: account?.card?.bio ?? '', pins: account?.card?.pins ?? [] };
+  }
+
+  /**
+   * 프로필 꾸미기 바꾸기 — 보낸 칸만.
+   * 도구 id 는 모양을 확인하고 최대 3개까지만 받는다(같은 것 두 번은 하나로).
+   */
+  setCard(accountId: string, patch: unknown): ProfileCard | null {
+    const account = this.state.accounts[accountId];
+    if (!account) return null;
+    const source = (patch ?? {}) as Record<string, unknown>;
+    const card: ProfileCard = { ...this.cardFor(accountId) };
+    if (typeof source.bio === 'string') {
+      card.bio = source.bio.replace(/\s+/g, ' ').trim().slice(0, BIO_MAX);
+    }
+    if (Array.isArray(source.pins)) {
+      card.pins = [...new Set(source.pins.filter(isToolIdLike))].slice(0, PIN_MAX);
+    }
+    account.card = card;
+    this.save();
+    return card;
+  }
+
   /** 지금 이 계정의 공개 범위 (안 정했으면 전부 공개). */
   visibilityFor(accountId: string): AccountVisibility {
     const account = this.state.accounts[accountId];
@@ -682,6 +737,7 @@ export class KarmolabAccountStore {
       badges: visible.badges ? account.records?.badges ?? [] : [],
       streaks,
       updatedAt: account.recordsUpdatedAt,
+      card: this.cardFor(account.id),
       hidden: (Object.keys(DEFAULT_VISIBILITY) as (keyof AccountVisibility)[]).filter(
         (key) => key !== 'profile' && !visible[key],
       ),

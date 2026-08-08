@@ -536,6 +536,25 @@ export function registerKarmolabApi(
     res.json({ activity: store.footprintFor(account.id) });
   });
 
+  /**
+   * 프로필 꾸미기 (TASK-KL-152 C5) — 한 줄 소개 · 대표 도구.
+   * 자유 HTML 은 안 받는다: 글 한 줄과 우리 도구 id 뿐이라 남의 화면에 무엇이 그려질지 우리가 안다.
+   */
+  app.patch('/kl/me/card', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const card = store.setCard(account.id, req.body);
+    if (!card) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ card });
+  });
+
+
   /** 내 공개 범위 (TASK-KL-152 C4). */
   app.get('/kl/me/visibility', (req: Request, res: Response) => {
     const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
