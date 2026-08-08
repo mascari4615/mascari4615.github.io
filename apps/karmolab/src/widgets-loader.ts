@@ -45,12 +45,31 @@
    * 그러면 세던 수가 0 에서 -1 이 되어 「다 받았다」에 **영영 안 걸린다** — 앱이 통째로 안 켜진다
    * (머리띠·옆줄·테마·⌘K 가 전부 죽는다). 화면은 HTML 에 적힌 것이 그대로 보여서 멀쩡해 보인다.
    * 실제로 도구 목록을 셸 안으로 들여올 때 이 길을 처음 밟았다 (TASK-KL-129). */
+  /**
+   * 주 스레드에 **틈을 낸다** (TASK-KL-128 ⑤).
+   *
+   * 부팅은 한 덩이로 돈다 — 테마 정하기 → 앱 켜기 → 도구 그리기. 느린 기기에서 이 덩이가
+   * 300~600ms 씩 잡히는데, 그동안 누른 것은 **아무 일도 안 일어난다**(눌린 뒤에 처리된다).
+   * 중간에 한 번 놓아 주면 그 사이에 들어온 손가락이 먼저 처리된다.
+   *
+   * `scheduler.yield()` 는 놓아 준 자리로 **다시 돌아온다** — 줄 맨 뒤로 가는
+   * `setTimeout(0)` 과 달라서, 놓아 줬다고 부팅이 뒤로 밀리지 않는다.
+   * 없는 브라우저(사파리)에서는 `setTimeout` 으로 흉내 낸다.
+   */
+  function yieldToMain(): Promise<void> {
+    const sch = (window as unknown as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
+    if (sch && typeof sch.yield === 'function') return sch.yield();
+    return new Promise((r) => setTimeout(r, 0));
+  }
+
   function start() {
     {
       const waits = window.KARMOLAB_WIDGET_LOADER_WAIT || [];
-      Promise.allSettled(waits).then(function () {
+      Promise.allSettled(waits).then(async function () {
         Toolbox.initTheme();
+        await yieldToMain();
         Toolbox.init();
+        await yieldToMain();
         const lastPage = (function () {
           try {
             return localStorage.getItem('toolbox_last_page');
