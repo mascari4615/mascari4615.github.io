@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startServer } from './serve.mjs';
-import { answerOf, findItem, kstDayNumber } from '../engine.mjs';
+import { answerOf, findItem, kstDayNumber, listQuestionOf } from '../engine.mjs';
 
 /** 오늘(한국 시각 기준 날짜 번호) — 지난 목록에 이 번호가 있으면 샌 것이다. */
 const today = () => kstDayNumber();
@@ -201,6 +201,61 @@ await playSilhouette('pokemon');
 await playSilhouette('lol');
 await playTopic('genshin', { width: 360, height: 780, tag: 'mobile' });
 await playSilhouette('genshin');
+
+/**
+ * 전부대기 (TASK-KL-197) — 90초 안에 조건에 드는 것을 전부 댄다.
+ * 여기서만 갈리는 것: 답 하나가 실제로 **바를 자라게** 하는가, 조건 밖 답이 갈리는가,
+ * 그만두면 결과가 뜨는가, 그리고 **놓친 것 목록이 공유 글로 새지 않는가**.
+ */
+async function playList(topicId) {
+  const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+  const question = listQuestionOf(topic, new Date());
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(`${base}/${topicId}/list/`, { waitUntil: 'networkidle' });
+
+  check(`[전부대기:${topicId}] 질문이 뜬다`, (await page.locator('.question').innerText()).includes(question.text));
+
+  const hit = question.answers[0];
+  const off = topic.items.find((i) => !question.answers.includes(i.name)).name;
+  await page.fill('.guessbar input', hit);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(120);
+  check(`[전부대기:${topicId}] 맞은 답이 칸에 쌓인다`, (await page.locator('.chip.hit').count()) === 1);
+  const width = await page.$eval('.bar span', (el) => el.getBoundingClientRect().width);
+  check(`[전부대기:${topicId}] 바가 자란다`, width > 0, `${Math.round(width)}px`);
+  check(`[전부대기:${topicId}] 시계가 돈다`, await page.locator('.clock').isVisible());
+
+  await page.fill('.guessbar input', off);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(120);
+  check(`[전부대기:${topicId}] 조건 밖 답은 갈린다`, (await page.locator('.chip.off').count()) === 1);
+
+  await page.fill('.guessbar input', '없는이름zzz');
+  await page.keyboard.press('Enter');
+  check(`[전부대기:${topicId}] 표에 없는 이름은 답으로 안 센다`, (await page.locator('.chip').count()) === 2);
+
+  await page.click('.giveup');
+  await page.waitForSelector('.done:not([hidden])');
+  const doneText = await page.locator('.done').innerText();
+  check(`[전부대기:${topicId}] 그만하면 결과가 뜬다`, /1 \/ \d+ 찾았다/.test(doneText), doneText.split('\n')[0]);
+  check(`[전부대기:${topicId}] 놓친 것을 알려 준다`, /놓친 것 \d+개/.test(doneText));
+
+  // 새로고침해도 남는가 — 진행이 증발하면 90초짜리 판에서는 치명적이다.
+  await page.reload({ waitUntil: 'networkidle' });
+  check(`[전부대기:${topicId}] 새로고침해도 결과가 남는다`, await page.locator('.done').isVisible());
+
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check(`[전부대기:${topicId}] 가로로 안 넘친다`, over <= 0, `넘침 ${over}px`);
+  check(`[전부대기:${topicId}] 콘솔 오류 0`, errors.length === 0, errors.join(' | '));
+  await page.screenshot({ path: join(shots, `list-${topicId}.png`), fullPage: true });
+  await ctx.close();
+}
+
+await playList('pokemon');
+await playList('genshin');
 
 /** 지난 문제 — 오늘 답이 새면 게임이 끝장난다. 그것만은 기계가 지켜야 한다. */
 async function pastPage(topicId) {
@@ -888,6 +943,12 @@ for (const withShare of [true, false]) {
     const topicId = await page.getAttribute('#app', 'data-topic');
     const mode = await page.getAttribute('#app', 'data-mode');
     const topic = JSON.parse(readFileSync(join(app, 'data', `${topicId}.json`), 'utf8'));
+    // 전부대기는 「맞히면 끝」이 아니다 — 그만두는 것이 끝내는 방법이다.
+    if (mode === 'list') {
+      await page.click('.giveup');
+      await page.waitForSelector('.done:not([hidden])');
+      return `${topicId}/${mode}`;
+    }
     const answer = answerOf(topic, new Date(), mode === 'classic' ? '' : mode);
     await page.fill('.guessbar input', answer.name);
     await page.waitForSelector('.sug button');
@@ -914,7 +975,13 @@ for (const withShare of [true, false]) {
   check('이어 두는 동안 콘솔 오류 0', errors.length === 0, errors.join(' | '));
 
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
-  check('허브가 푼 만큼 줄여 센다', /남은 판 3개/.test(await page.locator('.hub-note').innerText()), await page.locator('.hub-note').innerText());
+  // 판 수는 주제·모드가 늘면 같이 는다 — 숫자를 박아 두면 판이 하나 늘 때마다 여기가 빨개진다.
+  const boards = await page.locator('.card').count();
+  check(
+    '허브가 푼 만큼 줄여 센다',
+    new RegExp(`남은 판 ${boards - played.length}개`).test(await page.locator('.hub-note').innerText()),
+    await page.locator('.hub-note').innerText(),
+  );
   check('허브가 푼 판 셋을 표시한다', (await page.locator('.card.done-today').count()) === 3);
   await ctx.close();
 }
