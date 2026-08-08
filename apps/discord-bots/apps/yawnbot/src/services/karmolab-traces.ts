@@ -1074,8 +1074,12 @@ export class KarmolabTraceStore {
     if (needle.length < 1) return [];
     return this.state.posts
       .filter((p) => {
-        const hay = `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.tag ?? ''} ${p.replies
-          .map((r) => r.text)
+        /* 익명 글은 손잡이가 비어 있다(일부러). 그러면 「연보라 수달」로는 못 찾는데,
+           읽는 사람 눈에 보이는 이름은 그것뿐이다 — 보이는 이름으로 못 찾으면 검색이 거짓말이
+           된다. 그래서 **화면에 보이는 이름**을 찾을 거리에 함께 넣는다 (TASK-KL-158).
+           오늘 이름표는 자정에 갈리므로 이걸로 어제 글까지 엮이지는 않는다. */
+        const hay = `${p.title ?? ''} ${p.text} ${p.authorHandle} ${p.anon?.name ?? ''} ${p.tag ?? ''} ${p.replies
+          .map((r) => `${r.text} ${r.anon?.name ?? ''}`)
           .join(' ')}`.toLowerCase();
         return hay.includes(needle);
       })

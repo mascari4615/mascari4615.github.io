@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { KarmolabChatStore, MAX_MESSAGES, MESSAGE_TTL_MS, TEXT_MAX, BURST_LIMIT, MIN_INTERVAL_MS, kstDate } from './karmolab-chat';
+import { KarmolabChatStore, MAX_MESSAGES, MESSAGE_TTL_MS, MAX_KEPT, TEXT_MAX, BURST_LIMIT, MIN_INTERVAL_MS, kstDate } from './karmolab-chat';
 
 let dir: string;
 let statePath: string;
@@ -161,5 +161,74 @@ describe('흐르는 쪽', () => {
         store.post('w', '이건 안 들린다');
         expect(seen).toEqual(['들리나']);
         expect(store.hereCount()).toBe(0);
+    });
+});
+
+describe('지키기 (KL-158)', () => {
+    it('지킨 줄은 하루가 지나도 안 사라진다', () => {
+        const store = makeStore();
+        const now = new Date('2026-08-08T12:00:00Z');
+        const old = store.post('v', '지킬 말', {}, new Date(now.getTime() - MESSAGE_TTL_MS + 1000));
+        store.toggleKeep(old.message!.id, 'who-a');
+
+        const later = new Date(now.getTime() + MESSAGE_TTL_MS);
+        const texts = store.recent(MAX_MESSAGES, later).map((m) => m.text);
+        expect(texts).toContain('지킬 말');
+    });
+
+    it('안 지킨 줄은 그대로 사라진다 (지키기가 전부를 남기지 않는다)', () => {
+        const store = makeStore();
+        const now = new Date('2026-08-08T12:00:00Z');
+        store.post('v', '그냥 말', {}, new Date(now.getTime() - MESSAGE_TTL_MS - 1000));
+        expect(store.recent(MAX_MESSAGES, now).map((m) => m.text)).not.toContain('그냥 말');
+    });
+
+    it('같은 사람이 다시 누르면 풀리고, 그러면 다시 사라질 수 있다', () => {
+        const store = makeStore();
+        const now = new Date('2026-08-08T12:00:00Z');
+        const posted = store.post('v', '눌렀다 뗀다', {}, now);
+        expect(store.toggleKeep(posted.message!.id, 'who-a')).toBe(1);
+        expect(store.toggleKeep(posted.message!.id, 'who-a')).toBe(0);
+
+        const later = new Date(now.getTime() + MESSAGE_TTL_MS + 1000);
+        expect(store.recent(MAX_MESSAGES, later).map((m) => m.text)).not.toContain('눌렀다 뗀다');
+    });
+
+    it('여러 사람이 지키면 수가 쌓인다', () => {
+        const store = makeStore();
+        const posted = store.post('v', '여럿이 지킨다');
+        expect(store.toggleKeep(posted.message!.id, 'who-a')).toBe(1);
+        expect(store.toggleKeep(posted.message!.id, 'who-b')).toBe(2);
+    });
+
+    it('없는 줄은 못 지킨다', () => {
+        expect(makeStore().toggleKeep('없는-id', 'who-a')).toBe(null);
+    });
+
+    it('지킨 줄이 너무 많아지면 오래된 것부터 놓는다 (방이 지킨 줄로만 안 차게)', () => {
+        const store = makeStore();
+        const base = new Date('2026-08-08T00:00:00Z').getTime();
+        const ids: string[] = [];
+        for (let i = 0; i < MAX_KEPT + 5; i += 1) {
+            const posted = store.post(`v${i}`, `줄 ${i}`, {}, new Date(base + i * 1000));
+            ids.push(posted.message!.id);
+            store.toggleKeep(posted.message!.id, 'who-a', new Date(base + i * 1000));
+        }
+        const later = new Date(base + MESSAGE_TTL_MS + 10000);
+        const left = store.recent(MAX_MESSAGES, later);
+        expect(left.length).toBe(MAX_KEPT);
+        // 남은 것은 **최근** 지킨 줄들이다.
+        expect(left[left.length - 1].text).toBe(`줄 ${MAX_KEPT + 4}`);
+    });
+
+    it('지키면 보고 있는 사람들에게 그 수가 흘러간다 (누가 지켰는지는 안 흘린다)', () => {
+        const store = makeStore();
+        const seen: { id: string; kept: number }[] = [];
+        store.subscribe((event) => {
+            if (event.type === 'keep') seen.push({ id: event.id, kept: event.kept });
+        });
+        const posted = store.post('v', '흘러가나');
+        store.toggleKeep(posted.message!.id, 'who-a');
+        expect(seen).toEqual([{ id: posted.message!.id, kept: 1 }]);
     });
 });
