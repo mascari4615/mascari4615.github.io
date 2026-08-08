@@ -208,7 +208,24 @@ try {
   );
   check('안 읽음', true, '');
 
-  // ⑧ 화면이 통째로 죽지 않았다 — 인라인 스크립트가 깨지면 여기서만 드러난다.
+  // ⑧ 채팅 줄을 글로 옮긴다 (KL-157) — 초안이 커뮤니티 자리에 놓이고 글쓰기가 펴진 채 도착한다.
+  // ⑦에서 닫아 뒀다 — 닫힌 창의 줄은 안 보이므로 hover 도 안 먹는다. 다시 편다.
+  await b.page.click('#klChatDock');
+  const keepLine = b.page.locator('#klChatLog .klchat-line').last();
+  await keepLine.hover();
+  await keepLine.locator('button[data-act="keep"]').click();
+  await b.page.waitForFunction(
+    () => new URLSearchParams(location.search).get('board') === 'free',
+    null,
+    { timeout: 5000 },
+  );
+  const draft = await b.page.evaluate(() => localStorage.getItem('karmolab_community_draft_free'));
+  check('옮기기', typeof draft === 'string' && draft.includes('>'), `초안이 안 놓였다: ${draft}`);
+  // 「펴진 채로 도착해라」 표식은 커뮤니티가 한 번 쓰고 지운다 — 여기서는 놓였는지만 본다.
+  const openedFlag = await b.page.evaluate(() => localStorage.getItem('karmolab_community_open_writer'));
+  check('옮기기', draft !== null || openedFlag !== null, '옮기기 표식이 하나도 안 남았다');
+
+  // ⑨ 화면이 통째로 죽지 않았다 — 인라인 스크립트가 깨지면 여기서만 드러난다.
   const errors = [];
   a.page.on('pageerror', (error) => errors.push(String(error)));
   await a.page.reload({ waitUntil: 'domcontentloaded' });

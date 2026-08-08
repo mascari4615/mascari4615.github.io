@@ -928,6 +928,65 @@ export function registerKarmolabApi(
     });
   });
 
+  /**
+   * 알림 한 통 — **받기로 한 사람에게만** (TASK-KL-175 E1).
+   *
+   * 끈 갈래는 쌓지도 않는다. 쌓아 두고 화면에서만 숨기면 「안 읽음 12」 같은 수가 계속 붙고,
+   * 그 수를 없애려고 사람은 결국 종을 통째로 끈다.
+   *
+   * 거르는 자리를 여기 하나로 둔다 — 부르는 곳마다 검사를 적으면 한 곳은 반드시 빠뜨린다.
+   */
+  function notifyIfWanted(input: Parameters<typeof notes.notify>[0]): void {
+    if (!store.wantsNotification(input.accountId, input.source)) return;
+    notes.notify(input);
+  }
+
+  /**
+   * 팔로잉·팔로워 목록 (TASK-KL-175 E5).
+   * 로그인 없이도 볼 수 있다 — 프로필과 같은 성질의 공개 정보다. 맞팔 표시만 보는 사람에 따라 다르다.
+   */
+  app.get('/kl/u/:handle/follows', (req: Request, res: Response) => {
+    const viewer = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    const handle = String(req.params.handle ?? '');
+    const target = store.byHandle(handle);
+    if (!target) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (!store.visibilityFor(target.id).profile && viewer?.id !== target.id) {
+      res.status(403).json({ error: 'profile_private' });
+      return;
+    }
+    res.json({
+      following: store.followList(handle, 'following', viewer?.id ?? null),
+      followers: store.followList(handle, 'followers', viewer?.id ?? null),
+    });
+  });
+
+  /** 내가 받을 알림 갈래 (TASK-KL-175 E1). */
+  app.get('/kl/me/notify-prefs', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    res.json({ prefs: store.notifyPrefsOf(account.id) });
+  });
+
+  app.patch('/kl/me/notify-prefs', (req: Request, res: Response) => {
+    const account = store.accountForSession(readCookie(req, SESSION_COOKIE));
+    if (!account) {
+      res.status(401).json({ error: 'not_signed_in' });
+      return;
+    }
+    const prefs = store.setNotifyPrefs(account.id, req.body);
+    if (!prefs) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    res.json({ prefs });
+  });
+
   /* ── 패스키 (TASK-KL-156 D7) ──────────────────────────────────────
    *
    * 들어오는 문이 디스코드 하나뿐이면 그 문이 잠기는 날 계정을 잃는다. 패스키는 기기가 열쇠라
@@ -1785,7 +1844,7 @@ export function registerKarmolabApi(
      * 누구 것인지 팔로워 전원에게 드러난다 — 익명을 고른 뜻이 거기서 무너진다.
      * 로그인 안 한 사람은 `account` 자체가 없다(예전엔 여기가 로그인 필수라 없을 수 없었다). */
     for (const followerId of account && !writer.anon ? store.followerIdsOf(account.handle) : []) {
-      notes.notify({
+      notifyIfWanted({
         accountId: followerId,
         source: 'follow',
         title: `${account.displayName} 님의 새 글`,
@@ -1832,7 +1891,7 @@ export function registerKarmolabApi(
     // 누를 때만 알린다 (취소는 안 알린다 — 그건 알릴 일이 아니다).
     const target = liked ? traces.rawPost(postId) : null;
     if (target) {
-      notes.notify({
+      notifyIfWanted({
         accountId: target.authorAccountId,
         actorAccountId: account.id,
         source: 'community',
@@ -1888,7 +1947,7 @@ export function registerKarmolabApi(
     // 익명이 로그인 상태로 달았으면 `writer.accountId` 는 진짜 계정이다 — 자기 글엔 알림이 안 가야 한다.
     const actorAccountId = writer.accountId;
     if (target) {
-      notes.notify({
+      notifyIfWanted({
         accountId: target.authorAccountId,
         actorAccountId,
         source: 'community',
@@ -1900,7 +1959,7 @@ export function registerKarmolabApi(
     }
     // 대댓글이면 그 답글을 쓴 사람에게도 (글쓴이와 같으면 위에서 이미 갔으므로 묶음이 처리한다).
     if (parentAuthorId) {
-      notes.notify({
+      notifyIfWanted({
         accountId: parentAuthorId,
         actorAccountId,
         source: 'community',
@@ -2000,7 +2059,7 @@ export function registerKarmolabApi(
         ? { open: '다시 받는 중이에요', planned: '만들 예정이에요', done: '만들었어요', declined: '이번엔 안 만들기로 했어요' }
         : { open: '다시 열렸어요', planned: '할 예정이에요', done: '됐어요', declined: '안 하기로 했어요' };
       const what = updated.title || updated.text.slice(0, 40);
-      notes.notify({
+      notifyIfWanted({
         accountId: updated.authorAccountId,
         source: 'community',
         title: `올리신 「${what}」 — ${closingWord[updated.status] ?? '상태가 바뀌었어요'}`,
@@ -2097,7 +2156,7 @@ export function registerKarmolabApi(
     for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
       const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
       if (!admin) continue;
-      notes.notify({
+      notifyIfWanted({
         accountId: admin.id,
         source: 'moderation',
         title: '신고가 들어왔어요',
@@ -2282,6 +2341,8 @@ export function registerKarmolabApi(
         followers: store.followerCount(account.handle),
         // 「지금 접속 중」 — 본인이 켠 사람만. 안 켰으면 null 이라 화면이 그 칸을 아예 안 그린다.
         online: store.onlineNow(account.handle),
+        // 잔디 (TASK-KL-175 E6) — 가린 사람은 null 이라 화면이 그 자리를 아예 안 그린다.
+        footprint: store.publicFootprint(account.handle),
         following: viewerSelf ? store.isFollowing(viewerSelf.id, account.handle) : false,
         canFollow: !!viewerSelf && viewerSelf.id !== account.id,
       },
@@ -2321,6 +2382,9 @@ export function registerKarmolabApi(
       me: { who: identity.who, name: identity.name, color: identity.color },
       messages: chat.recent(),
       here: chat.hereCount() + 1,
+      /* 지금 혼자여도 「오늘 여기 몇 명이 말했나」를 알면 빈 방으로 안 읽힌다.
+         자기 자신은 안 뺀다 — 「오늘 이 방에 있던 사람 수」가 곧 그 값이다. */
+      todayVoices: chat.todaysVoiceCount(),
       isAdmin: isAdminAccount(account),
       maxLength: CHAT_TEXT_MAX,
     });
@@ -2346,6 +2410,7 @@ export function registerKarmolabApi(
       me: { who: identity.who, name: identity.name, color: identity.color },
       messages: chat.recent(),
       here: chat.hereCount(),
+      todayVoices: chat.todaysVoiceCount(),
       isAdmin: isAdminAccount(store.accountForSession(readCookie(req, SESSION_COOKIE))),
       maxLength: CHAT_TEXT_MAX,
     });
@@ -2364,6 +2429,8 @@ export function registerKarmolabApi(
     }
     const result = chat.post(visitorKeyFor(req), String(req.body?.text ?? ''), {
       byOwner: isAdminAccount(account),
+      // 로그인한 사람만 적힌다 — 나중에 온 말을 이 사람들에게 알린다 (TASK-KL-157).
+      accountId: account?.id ?? null,
     });
     if (!result.ok) {
       const status = result.error === 'muted' ? 403 : result.error === 'too_long' ? 400 : 429;
@@ -2371,6 +2438,25 @@ export function registerKarmolabApi(
       return;
     }
     chat.flush();
+
+    /* 빈 방을 깨는 자리 (TASK-KL-157).
+     *
+     * 실시간 방은 이렇게 죽는다: 아무도 없을 때 남긴 말이 아무에게도 안 닿고 → 아무도 안 남기고
+     * → 방이 영영 빈다. 그래서 「지금 보고 있는 사람」이 아니라 **오늘 여기 있던 사람**에게 알린다.
+     * 지금 창을 열어 둔 사람은 이미 그 줄을 받았으므로, 알림은 그 밖의 사람들을 위한 것이다.
+     * 한 열쇠로 묶여서 여러 줄이 와도 「채팅 3」 한 줄이 된다. */
+    for (const accountId of chat.todaysSpeakers(account?.id ?? null)) {
+      notifyIfWanted({
+        accountId,
+        source: 'chat',
+        title: '채팅에 새 말이 있어요',
+        body: `${result.message?.name}: ${result.message?.text.slice(0, 40)}`,
+        url: '/karmolab/#chat',
+        groupKey: 'chat',
+        actorAccountId: account?.id ?? null,
+      });
+    }
+    notes.flush();
     res.json({ ok: true, message: result.message });
   });
 
@@ -2428,7 +2514,7 @@ export function registerKarmolabApi(
     for (const adminId of String(process.env.ADMIN_IDS ?? '').split(',')) {
       const admin = adminId.trim() ? store.accountForDiscordId(adminId.trim()) : null;
       if (!admin) continue;
-      notes.notify({
+      notifyIfWanted({
         accountId: admin.id,
         source: 'moderation',
         title: '채팅 신고가 들어왔어요',

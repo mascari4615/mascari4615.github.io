@@ -52,6 +52,16 @@ interface ChatState {
     messages: ChatMessage[];
     /** 재갈 — `who` → 언제까지(ms). 주인만 물린다. */
     mutes: Record<string, number>;
+    /**
+     * 오늘 이 방에서 **말한 적 있는** 로그인 계정 → 마지막으로 말한 시각 (TASK-KL-157).
+     *
+     * 왜 있나: 방이 비어 있을 때 남긴 말은 아무에게도 안 닿는다. 그러면 아무도 안 남기고,
+     * 방은 영영 빈다 — 실시간 방의 죽는 방식이 정확히 이것이다. 「지금 보고 있는 사람」이
+     * 아니라 **오늘 여기 있던 사람**에게 알리면, 혼자 남긴 말도 누군가에게 닿는다.
+     *
+     * 로그인한 사람만 담긴다 — 익명은 알릴 곳이 없다(그게 익명의 값이다).
+     */
+    speakers?: Record<string, number>;
 }
 
 const STATE_FILE = 'karmolab-chat-state.json';
@@ -138,12 +148,13 @@ export class KarmolabChatStore {
                     salt: parsed.salt || crypto.randomBytes(16).toString('hex'),
                     messages: parsed.messages ?? [],
                     mutes: parsed.mutes ?? {},
+                    speakers: parsed.speakers ?? {},
                 };
             }
         } catch (error) {
             console.error('[karmolab-chat] 상태 파일을 못 읽었다 — 빈 방으로 시작한다:', error);
         }
-        return { version: 1, salt: crypto.randomBytes(16).toString('hex'), messages: [], mutes: {} };
+        return { version: 1, salt: crypto.randomBytes(16).toString('hex'), messages: [], mutes: {}, speakers: {} };
     }
 
     private markDirty(): void {
@@ -195,6 +206,11 @@ export class KarmolabChatStore {
         for (const [who, until] of Object.entries(this.state.mutes)) {
             if (until <= now.getTime()) delete this.state.mutes[who];
         }
+        // 말한 기록도 줄과 같은 수명을 갖는다 — 어제 말한 사람에게 오늘 알리는 건 스팸이다.
+        const speakerCutoff = now.getTime() - MESSAGE_TTL_MS;
+        for (const [accountId, at] of Object.entries(this.state.speakers ?? {})) {
+            if (at < speakerCutoff) delete this.state.speakers![accountId];
+        }
         if (this.state.messages.length !== before) this.markDirty();
     }
 
@@ -212,7 +228,7 @@ export class KarmolabChatStore {
     post(
         visitorKey: string,
         rawText: string,
-        options: { byOwner?: boolean } = {},
+        options: { byOwner?: boolean; accountId?: string | null } = {},
         now: Date = new Date(),
     ): PostResult {
         this.prune(now);
@@ -259,6 +275,10 @@ export class KarmolabChatStore {
         };
         this.state.messages.push(message);
         if (this.state.messages.length > MAX_MESSAGES) this.state.messages.shift();
+        // 오늘 여기서 말한 사람으로 적어 둔다 — 나중에 온 말을 이 사람들에게 알린다.
+        if (options.accountId) {
+            this.state.speakers = { ...(this.state.speakers ?? {}), [options.accountId]: now.getTime() };
+        }
         this.markDirty();
         this.broadcast({ type: 'msg', message });
         return { ok: true, message };
@@ -302,6 +322,27 @@ export class KarmolabChatStore {
             this.listeners.delete(listener);
             this.broadcast({ type: 'here', here: this.listeners.size });
         };
+    }
+
+    /**
+     * 오늘 이 방에서 말한 사람들 (자기 자신 제외).
+     * 「지금 보고 있는 사람」이 아니라 「오늘 여기 있던 사람」 — 빈 방에 남긴 말도 닿게 하는 열쇠다.
+     */
+    todaysSpeakers(exceptAccountId: string | null, now: Date = new Date()): string[] {
+        this.prune(now);
+        return Object.keys(this.state.speakers ?? {}).filter((id) => id !== exceptAccountId);
+    }
+
+    /**
+     * 오늘 이 방에서 목소리를 낸 사람이 몇 명인가 (익명 포함).
+     *
+     * 「지금 1명」만 보이면 죽은 방으로 읽힌다. 오늘 몇 사람이 여기서 말했는지가 같이 보이면
+     * 같은 화면이 「지금은 조용한 방」으로 읽힌다 — 남길 마음이 생기는 건 그때다.
+     * 사람 수는 오늘 줄에 찍힌 이름표 수로 센다(줄 수가 아니다 — 한 사람이 서른 줄을 칠 수 있다).
+     */
+    todaysVoiceCount(now: Date = new Date()): number {
+        this.prune(now);
+        return new Set(this.state.messages.map((m) => m.who)).size;
     }
 
     /** 지금 채팅창을 열어 둔 사람 수. 「사이트에 몇 명」(presence)과 다른 값이다. */
