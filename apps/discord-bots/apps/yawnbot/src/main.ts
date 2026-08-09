@@ -69,8 +69,9 @@ import { startFlowReminder } from './services/karmolab-flow-reminder';
 import { getKarmolabAccountStore } from './services/karmolab-accounts';
 import { getKarmolabNotificationStore } from './services/karmolab-notifications';
 import { handleReaction } from './bot/reactions';
-import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
+import { loadOpsReportContext, reportStartup, reportShutdown, reportError, reportHeartbeat, reportDeployFreshness, reportCharStateSnapshot, reportMemoSync } from './services/ops-self-report';
 import { startHeartbeat, stopHeartbeat } from './services/heartbeat';
+import { startDeployFreshness, stopDeployFreshness } from './services/deploy-freshness';
 import {
   startCharacterStateSnapshot,
   stopCharacterStateSnapshot,
@@ -531,6 +532,21 @@ client.once('clientReady', async () => {
     alert: opsCtx ? (event) => void reportHeartbeat(opsCtx, event) : undefined,
   });
 
+  /* TASK-KL-210: 배포 파수꾼 — 「사이트가 며칠째 예 판인데 아무도 모른다」를 없앤다.
+     판정은 실행 상태(gh run)가 아니라 **사이트가 스스로 밝힌 판**(build.json) — 상세 사유는
+     services/deploy-freshness.ts 머리말. 2026-08-09 실측: 배포 실행은 초록인데 사이트는 21시간째 전날 판이었다. */
+  startDeployFreshness({
+    token: process.env.MEMO_GITHUB_PAT || process.env.GITHUB_TOKEN,
+    buildUrl: process.env.YAWNBOT_DEPLOY_BUILD_URL,
+    intervalMin: process.env.YAWNBOT_DEPLOY_CHECK_MIN
+      ? parseInt(process.env.YAWNBOT_DEPLOY_CHECK_MIN, 10)
+      : undefined,
+    staleAfterMin: process.env.YAWNBOT_DEPLOY_STALE_MIN
+      ? parseInt(process.env.YAWNBOT_DEPLOY_STALE_MIN, 10)
+      : undefined,
+    alert: opsCtx ? (event) => void reportDeployFreshness(opsCtx, event) : undefined,
+  });
+
   // TASK-KAR-CHARSTATE: 캐릭터 런타임 내구 스냅샷 (heartbeat 패턴 미러).
   // KAR-MEMOSYNC part2 가 캐릭터 런타임(mood/relationship/.active/memory)을
   // git untrack → divergence 동결은 해소됐으나 git 백업·이력·복원이 사라짐.
@@ -729,6 +745,7 @@ async function gracefulShutdown(reason: string): Promise<void> {
   }
   stopPresenceRotation();
   stopHeartbeat();
+  stopDeployFreshness();
   stopCharacterStateSnapshot();
   stopMemoSync();
   stopUnityFreeNotifier();
