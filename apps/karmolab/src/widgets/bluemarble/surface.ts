@@ -53,6 +53,8 @@ export interface SurfaceInput {
   day: Tex | null;
   /** 확대했을 때 쓰는 실사 조각 */
   region: Region | null;
+  /** 그 조각이 **밤의 눈**(주야간 밴드)으로 찍은 것인가. 낮 사진과 쓰는 자리가 다르다. */
+  regionNight: boolean;
   /** 도시 불빛 */
   night: Tex | null;
   /** 오늘의 구름 — 0~255 한 겹 */
@@ -75,6 +77,7 @@ export function paintSurface(img: ImageData, view: View, s: SurfaceInput): void 
   const night = s.night;
   const cloud = s.cloud;
   const region = s.region;
+  const regionNight = s.regionNight;
   const { cx, cy, R, x0, y0, step } = view;
   const invR = 1 / R;
 
@@ -122,8 +125,10 @@ export function paintSurface(img: ImageData, view: View, s: SurfaceInput): void 
             r = region.d[t];
             g = region.d[t + 1];
             b = region.d[t + 2];
-            // 아직 위성이 안 지나간 자리는 새까맣다 — 그런 칸은 담아 둔 그림에 양보한다
-            got = r + g + b > 26;
+            /* 아직 위성이 안 지나간 자리는 새까맣다 — 그런 칸은 담아 둔 그림에 양보한다.
+               밤 사진은 원래 어둡다(도시만 밝다). 그래서 문턱을 따로 둔다 — 낮 기준을 그대로
+               쓰면 밤 조각이 통째로 「빈 자리」로 판정돼 화면이 새까매진다(실측). */
+            got = r + g + b > (regionNight ? 9 : 26);
           }
         }
       }
@@ -186,10 +191,22 @@ export function paintSurface(img: ImageData, view: View, s: SurfaceInput): void 
         nb += glow * 110;
       }
 
-      const w = dayw;
-      out[k] = r * w + nr * (1 - w);
-      out[k + 1] = g * w + ng * (1 - w);
-      out[k + 2] = b * w + nb * (1 - w);
+      if (got && regionNight) {
+        /* 밤의 눈으로 찍은 조각은 **이미 밤 그림**이다. 여기에 낮 명암을 곱하면 두 번 어두워져
+           새까매진다. 대신 살짝 올려 눈에 보이게 하고, 여명 구간에서만 낮과 섞는다. */
+        const gain = 1.55;
+        const nr2 = Math.min(255, r * gain + 3);
+        const ng2 = Math.min(255, g * gain * 0.94 + 4);
+        const nb2 = Math.min(255, b * gain * 0.8 + 10);
+        out[k] = nr2 * (1 - dayw) + r * dayw;
+        out[k + 1] = ng2 * (1 - dayw) + g * dayw;
+        out[k + 2] = nb2 * (1 - dayw) + b * dayw;
+      } else {
+        const w = dayw;
+        out[k] = r * w + nr * (1 - w);
+        out[k + 1] = g * w + ng * (1 - w);
+        out[k + 2] = b * w + nb * (1 - w);
+      }
       // 가장자리 한 겹은 알파를 눌러 톱니를 없앤다 (버퍼 한 칸 = 화면 step px)
       const edge = ((1 - Math.sqrt(r2)) * R) / step;
       out[k + 3] = edge < 1 ? edge * 255 : 255;
