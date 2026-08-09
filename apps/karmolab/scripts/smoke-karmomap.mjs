@@ -195,6 +195,17 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
   await p2.waitForFunction((c) => document.querySelectorAll('.ck-node').length === c, nodesBefore, { timeout: 8000 });
   await p2.close();
 });
+await step('키보드로 고르고 옮긴다', async () => {
+  await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
+  await page.locator('.km-canvas').click({ position: { x: 4, y: 4 } });
+  await page.keyboard.press('Tab');
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node.is-selected').length === 1, null, { timeout: 4000 });
+  const before = await page.locator('.ck-node.is-selected').boundingBox();
+  for (let i = 0; i < 3; i += 1) await page.keyboard.press('Shift+ArrowRight');
+  const after = await page.locator('.ck-node.is-selected').boundingBox();
+  if (Math.round(after.x - before.x) < 40) throw new Error('방향키로 안 움직였다: ' + Math.round(after.x - before.x));
+  await page.keyboard.press('Escape');
+});
 await step('관계망 읽기가 순위를 낸다', async () => {
   await page.click('[data-km="sna"]');
   await page.waitForSelector('[data-km="sna-focus"]', { timeout: 4000 });

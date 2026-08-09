@@ -463,7 +463,8 @@ import {
       const sample = sampleFor(pack.id);
       el.innerHTML =
         `${escapeHtml(pack.hint)}<br><b>빈 곳을 두 번 클릭</b>하면 그 자리에 노드가 생깁니다.<br>` +
-        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.' +
+        '노드 오른쪽의 <b>점을 끌어다</b> 다른 노드에 놓으면 선이 이어져요.<br>' +
+        '<span style="opacity:.75">키보드: <b>Tab</b> 다음 노드 · <b>방향키</b> 옮기기 · <b>Enter</b> 이름 고치기 · <b>Delete</b> 지우기</span>' +
         (sample
           ? `<br><br><button class="btn btn-primary" data-km="sample">「${escapeHtml(sample.title)}」 예시 넣어 보기</button>`
           : '');
@@ -1929,6 +1930,59 @@ import {
         if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepIndex = Math.max(0, stepIndex - 1); showStep(); return; }
         if (ev.key === 'Escape') { ev.preventDefault(); setPresenting(false); return; }
       }
+      // ── 키보드만으로 쓰기 (격차 X) ────────────────────────────────────────
+      // 글자 칸에 커서가 있으면 전부 양보한다 — 이름을 고치다 노드가 움직이면 놀란다.
+      const focus = ev.target as HTMLElement | null;
+      const inField = focus?.tagName === 'INPUT' || focus?.tagName === 'TEXTAREA'
+        || focus?.tagName === 'SELECT' || focus?.isContentEditable === true;
+      if (!inField && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+        const step = ev.shiftKey ? 40 : 8;
+        const move: Record<string, [number, number]> = {
+          ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step],
+        };
+        if (move[ev.key]) {
+          const [dx, dy] = move[ev.key];
+          if (canvas?.nudgeSelected(dx, dy)) {
+            ev.preventDefault();
+            persistStructure();
+            return;
+          }
+        }
+        if (ev.key === 'Tab') {
+          const id = canvas?.selectStep(ev.shiftKey ? -1 : 1) ?? null;
+          if (id) {
+            ev.preventDefault();
+            selectedId = id;
+            selectedMany = [];
+            sideMode = 'node';
+            renderSide();
+            return;
+          }
+        }
+        if (ev.key === 'Enter' && selectedId) {
+          ev.preventDefault();
+          (sideEl.querySelector('[data-km="edit-label"]') as HTMLInputElement | null)?.focus();
+          return;
+        }
+        if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedId) {
+          const node = spec.nodes.find((n) => n.id === selectedId);
+          if (node && confirm(`"${node.label}" 을(를) 지울까요?`)) {
+            ev.preventDefault();
+            (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement | null)?.click();
+          }
+          return;
+        }
+        if (ev.key === 'Escape' && (selectedId || selectedMany.length > 0)) {
+          ev.preventDefault();
+          selectedId = null;
+          selectedMany = [];
+          canvas?.setSelectedNodes([]);
+          sideMode = 'node';
+          renderSide();
+          return;
+        }
+      }
+
       if (!(ev.ctrlKey || ev.metaKey)) return;
       const t = ev.target as HTMLElement | null;
       const tag = t?.tagName ?? '';
