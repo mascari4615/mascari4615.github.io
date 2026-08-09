@@ -39,8 +39,8 @@ import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
-import { buildFieldRows } from './canvas-fields';
 import { buildChildCard } from './canvas-children';
+import { buildCardText } from './canvas-card';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1239,49 +1239,8 @@ export class GraphCanvas {
       const centered = shape === 'circle';
       const avatarEl = this.buildNodeAvatar(node, effH, kindColor, centered);
       if (avatarEl) g.appendChild(avatarEl);
-
-      const hasNote = Boolean(node.note && node.note.trim());
-      const textX = centered ? node.w / 2 : node.avatar ? 40 : 12;
-      // 한마디가 있으면 이름을 위로 올리고 그 밑에 한 줄 더 놓는다.
-      const baseY = centered && node.avatar ? effH / 2 + 18 : effH / 2 + 4;
-      const labelY = hasNote ? baseY - 6 : baseY;
-
-      const text = document.createElementNS(SVG_NS, 'text');
-      text.setAttribute('x', String(textX));
-      text.setAttribute('y', String(labelY));
-      if (centered) text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('fill', this.theme.nodeText);
-      text.setAttribute('font-size', '11');
-      text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-      text.setAttribute('pointer-events', 'none');
-      text.textContent = node.label;
-      g.appendChild(text);
-
-      // 칸 줄 접기 규칙은 canvas-fields 가 안다(세 줄 + 「+N」).
-      if (!centered) {
-        for (const row of buildFieldRows(node.fields, {
-          x: textX,
-          y: labelY + (hasNote ? 26 : 15),
-          width: node.w,
-          color: this.theme.childText,
-        })) g.appendChild(row);
-      }
-
-      if (hasNote) {
-        const note = document.createElementNS(SVG_NS, 'text');
-        note.setAttribute('x', String(textX));
-        note.setAttribute('y', String(labelY + 13));
-        if (centered) note.setAttribute('text-anchor', 'middle');
-        note.setAttribute('fill', this.theme.childText);
-        note.setAttribute('font-size', '9.5');
-        note.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-        note.setAttribute('pointer-events', 'none');
-        const room = centered ? node.w - 16 : node.w - textX - 10;
-        const maxChars = Math.max(4, Math.floor(room / 5.4));
-        const raw = node.note ?? '';
-        note.textContent = raw.length > maxChars ? raw.slice(0, maxChars - 1) + '…' : raw;
-        g.appendChild(note);
-      }
+      // 이름·한마디·칸 줄의 자리 규칙은 canvas-card 가 안다.
+      for (const el of buildCardText(node, effH, centered, this.theme)) g.appendChild(el);
     } else {
       // 자식 있음 — 머리 + 구분선 + 목록. 그리는 규칙은 canvas-children 이 안다.
       for (const el of buildChildCard(node.label, children, node.w, kindColor, this.theme)) {
