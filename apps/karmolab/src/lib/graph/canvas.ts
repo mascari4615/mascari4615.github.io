@@ -2515,6 +2515,30 @@ export class GraphCanvas {
     };
   }
 
+  /** 지금 화면이 덮고 있는 world 사각형 — 「이 화면을 한 장으로」 굳힐 때 쓴다. */
+  viewRectWorld(): { x: number; y: number; w: number; h: number } {
+    const { scale, tx, ty } = this.state;
+    const w = (this.svg.clientWidth || 800) / scale;
+    const h = (this.svg.clientHeight || 600) / scale;
+    return { x: -tx / scale, y: -ty / scale, w, h };
+  }
+
+  /**
+   * 그 사각형 **안에 중심이 든** 노드들. 장면을 노드 목록이 아니라 *틀*로 잡으면,
+   * 나중에 그 자리에 새로 놓은 인물도 저절로 그 장에 낀다 (Miro 프레임 계보).
+   */
+  nodesInWorldRect(rect: { x: number; y: number; w: number; h: number }): string[] {
+    return (this.spec?.nodes ?? [])
+      .filter((n) => {
+        const b = this.getNodeBox(n.id);
+        if (!b) return false;
+        const cx = b.x + b.w / 2;
+        const cy = b.y + b.h / 2;
+        return cx >= rect.x && cx <= rect.x + rect.w && cy >= rect.y && cy <= rect.y + rect.h;
+      })
+      .map((n) => n.id);
+  }
+
   /** 현재 화면 중앙에 해당하는 world 좌표 — 새 노드를 "보이는 곳" 에 놓을 때. */
   viewCenterWorld(): { x: number; y: number } {
     const svgW = this.svg.clientWidth || 800;

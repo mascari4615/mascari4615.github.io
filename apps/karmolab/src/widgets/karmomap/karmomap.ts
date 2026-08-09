@@ -1505,8 +1505,10 @@ import {
         canvas?.setFocus(null);
         return;
       }
-      canvas?.setFocus(step.nodeIds.length ? new Set(step.nodeIds) : null);
-      canvas?.fitToNodes(step.nodeIds);
+      // 틀로 잡은 장은 **볼 때마다 다시 센다** — 그 사이 그 자리에 놓인 인물이 함께 나온다.
+      const ids = step.rect ? (canvas?.nodesInWorldRect(step.rect) ?? []) : step.nodeIds;
+      canvas?.setFocus(ids.length ? new Set(ids) : null);
+      canvas?.fitToNodes(ids);
     }
 
     function setPresenting(on: boolean): void {
@@ -1565,6 +1567,9 @@ import {
         title: title || `${steps().length + 1}장`,
         nodeIds: focused,
         note: note || undefined,
+        // 또렷하게 고른 것이 없으면 「지금 보이는 자리」를 **틀**로 굳힌다. 그러면 나중에 그 자리에
+        // 새 인물을 놓아도 이 장에 저절로 낀다(노드 목록이면 영영 안 낀다).
+        rect: focused.length === 0 ? canvas?.viewRectWorld() : undefined,
       });
       stepIndex = Math.min(steps().length - 1, stepIndex + (steps().length > 1 ? 1 : 0));
       persistStructure();
