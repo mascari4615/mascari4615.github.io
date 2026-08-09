@@ -36,4 +36,28 @@ export interface PanelCtx {
   backupAllMaps: () => void;
   /** 직전 판으로 되돌리기. */
   restorePrevRevision: () => void;
+
+  // ── 거르기 패널이 빌리는 것들 ──────────────────────────────────────────
+  /**
+   * 무엇을 껐는지 · 어떤 규칙을 켰는지. **위젯이 들고 있는 것을 그대로 빌려 준다** —
+   * 패널 안에 두면 패널을 닫을 때마다 사라진다.
+   */
+  filterState: {
+    nodeKinds: Set<string>;
+    edgeKinds: Set<string>;
+    tags: Set<string>;
+    hideOrphans: boolean;
+    sizeByDegree: boolean;
+    colorByTag: boolean;
+  };
+  /** 거르기 값을 캔버스에 반영. */
+  applyFilter: () => void;
+  /** 꾸미기 규칙을 캔버스에 반영. */
+  applyDecorate: () => void;
+  /** 지금 팩 + 내 용어의 종류 목록. */
+  nodeKinds: () => { id: string; label: string; icon: string }[];
+  edgeKinds: () => { id: string; label: string }[];
+  kindLabel: (id: string) => string;
+  kindIcon: (id: string) => string;
+  edgeLabel: (id: string) => string;
 }
