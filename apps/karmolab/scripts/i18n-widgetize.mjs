@@ -273,6 +273,9 @@ reblank();
 /* ── ③ 그냥 홑따옴표 글월: say('…') · throw new Error('…') · 그 밖 ── */
 src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
   if (!allMark(offset, whole.length, 'S')) return whole;
+  /* 여는 따옴표가 **이스케이프된 따옴표**(') 면 그건 글월의 시작이 아니라 글월 *안*이다.
+   * 그 자리에서 시작하면 남은 절반만 잘라 먹어 코드가 깨진다 — imageedit 1044줄이 그랬다. */
+  if (src[offset - 1] === String.fromCharCode(92)) return whole;
   const before = src.slice(Math.max(0, offset - 40), offset);
   const hint = /\bsay\($/.test(before)
     ? `say.${String(++seq).padStart(2, '0')}`
