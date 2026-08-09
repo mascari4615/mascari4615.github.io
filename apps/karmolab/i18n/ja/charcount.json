@@ -36,5 +36,8 @@
   "charcount.limit.remaining": "上限 {limit}字 · あと{n}文字",
   "charcount.limit.over": "上限 {limit}字 · {n}文字オーバー",
   "charcount.restored": "この端末にだけ残していた文章を戻しました。「消す」を押すと消えます。",
-  "charcount.clipboardDenied": "クリップボードの読み取り権限がありません。Ctrl+V で貼り付けてください。"
+  "charcount.clipboardDenied": "クリップボードの読み取り権限がありません。Ctrl+V で貼り付けてください。",
+  "charcount.label.input": "テキスト入力",
+  "charcount.btn.paste": "貼り付け",
+  "charcount.btn.clear": "消去"
 }

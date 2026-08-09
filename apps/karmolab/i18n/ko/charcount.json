@@ -36,5 +36,8 @@
   "charcount.limit.remaining": "{limit}자 제한 · {n}자 남음",
   "charcount.limit.over": "{limit}자 제한 · {n}자 초과",
   "charcount.restored": "이 기기에만 남겨 둔 글을 되살렸어요. 「지우기」를 누르면 지워집니다.",
-  "charcount.clipboardDenied": "클립보드 읽기 권한이 없어요. Ctrl+V 로 붙여넣어 주세요."
+  "charcount.clipboardDenied": "클립보드 읽기 권한이 없어요. Ctrl+V 로 붙여넣어 주세요.",
+  "charcount.label.input": "텍스트 입력",
+  "charcount.btn.paste": "붙여넣기",
+  "charcount.btn.clear": "지우기"
 }

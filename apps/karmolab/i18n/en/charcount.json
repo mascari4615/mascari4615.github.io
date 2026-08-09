@@ -36,5 +36,8 @@
   "charcount.limit.remaining": "Limit {limit} · {n} left",
   "charcount.limit.over": "Limit {limit} · {n} over",
   "charcount.restored": "Restored the text kept on this device only. Press \"Clear\" to remove it.",
-  "charcount.clipboardDenied": "No clipboard read permission. Paste with Ctrl+V instead."
+  "charcount.clipboardDenied": "No clipboard read permission. Paste with Ctrl+V instead.",
+  "charcount.label.input": "Your text",
+  "charcount.btn.paste": "Paste",
+  "charcount.btn.clear": "Clear"
 }
