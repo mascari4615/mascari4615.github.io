@@ -1235,6 +1235,13 @@ await step('카드 안으로 파고들면 그 이름의 판이 열린다', async
     return sel ? sel.options[sel.selectedIndex]?.textContent || '' : '';
   });
   if (!current.includes('마왕성')) throw new Error('파고든 판이 안 열렸다: ' + current);
+
+  // 들어가는 길만 있고 나오는 길이 없으면 층이 미로가 된다 — ⤴ 로 그 카드로 돌아와야 한다.
+  await page.waitForSelector('[data-km="map-up"]:not(.hidden)', { timeout: 4000 });
+  await page.locator('[data-km="map-up"]').dispatchEvent('click');
+  await page.waitForSelector('.ck-node.is-selected', { timeout: 6000 });
+  const back = await page.evaluate(() => document.querySelector('.ck-node.is-selected')?.textContent || '');
+  if (!back.includes('마왕성')) throw new Error('돌아왔는데 그 카드가 안 골라졌다: ' + back);
 });
 await step('본 — 한 벌을 떠서 다른 맵에 찍는다', async () => {
   // 같은 덩어리를 판마다 다시 그리면 모양도 이름도 조금씩 갈린다. 본은 **맵을 건너**야 값이 있다.
