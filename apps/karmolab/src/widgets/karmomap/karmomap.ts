@@ -1557,6 +1557,9 @@ import {
       edgeKinds: edgeDefsNow(),
       onNodeClick: (id) => handleNodeClick(id),
       onBackgroundClick: () => {
+        // 폰: 빈 곳을 누르면 시트가 내려간다 — 고를 것을 놓았으니 그림을 다시 크게 보고 싶은 것이다
+        // (손잡이를 다시 찾아 누르게 하면 한 동작이 두 동작이 된다).
+        root.classList.remove('is-sheet-up');
         selectedMany = [];
         selectedId = null;
         linkingFrom = null;

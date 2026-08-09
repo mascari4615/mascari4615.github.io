@@ -1399,6 +1399,13 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   await m.waitForTimeout(320);
   const up = await m.locator('.km-side').boundingBox();
   if (!(up.y < down2.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
+
+  // 빈 곳을 누르면 다시 내려간다 — 손잡이를 찾아 누르게 하면 한 동작이 두 동작이 된다.
+  const nowBox = await m.locator('.km-canvas').boundingBox();
+  await m.touchscreen.tap(nowBox.x + nowBox.width * 0.12, nowBox.y + nowBox.height * 0.12);
+  await m.waitForTimeout(350);
+  const down3 = await m.locator('.km-side').boundingBox();
+  if (!(down3.y > up.y + 40)) throw new Error('빈 곳을 눌러도 시트가 안 내려간다');
   await phone.close();
 });
 
