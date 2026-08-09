@@ -34,6 +34,7 @@ import { renderGroupsPanel } from './panels/groups-panel';
 import { renderManyPanel } from './panels/many-panel';
 import { renderTextPanel } from './panels/text-panel';
 import { renderEdgePanel } from './panels/edge-panel';
+import { renderLinkSections, bindLinkSections } from './panels/links-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -664,66 +665,6 @@ import {
      * 노드가 늘면 하나씩 만지는 것이 곧 벽이 된다(Heptabase 도 「골라서 Create Section」이 기본 동작).
      */
     /**
-     * 설명 속 연결 — 가리키는 것 / 나를 가리키는 것 / 이름만 나온 곳 (격차 Q).
-     * 마지막 것이 이 도구의 값이다: 사람이 링크 문법을 몰라도 그물이 자란다.
-     */
-    function renderLinkSections(node: GraphNode): string {
-      const all = spec.nodes;
-      const out = outgoingLinks(node, all);
-      const back = backlinks(node, all);
-      const loose = unlinkedMentions(node, all);
-      if (out.length === 0 && back.length === 0 && loose.length === 0) return '';
-      const row = (label: string, action: string, key: string, extra = ''): string =>
-        `<div class="km-link-row"><span class="km-link-name">${escapeHtml(label)}</span>
-          <button class="btn btn-ghost" data-km="${action}" data-key="${escapeAttr(key)}">${extra}</button></div>`;
-      return `
-        ${out.length === 0 ? '' : `<div class="km-field"><label>가리키는 것 ${out.length}</label>
-          ${out.map((o) => (o.node
-            ? row(o.name, 'go-link', o.node.id, '가기')
-            : row(o.name, 'make-link', o.name, '만들기'))).join('')}</div>`}
-        ${back.length === 0 ? '' : `<div class="km-field"><label>나를 가리키는 것 ${back.length}</label>
-          ${back.map((b) => row(b.label, 'go-link', b.id, '가기')).join('')}</div>`}
-        ${loose.length === 0 ? '' : `<div class="km-field"><label>이름만 나온 곳 ${loose.length}</label>
-          ${loose.map((m) => row(m.label, 'link-mention', m.id, '이어 주기')).join('')}
-          <div class="km-hint">글에 이름이 적혀 있는데 아직 [[ ]] 로 안 이어진 자리입니다.</div></div>`}`;
-    }
-
-    /** 링크 목록의 버튼들. renderSide 가 다시 그릴 때마다 새로 매단다. */
-    function bindLinkSections(): void {
-      sideEl.querySelectorAll('[data-km="go-link"]').forEach((el) => {
-        (el as HTMLButtonElement).onclick = () => {
-          const id = (el as HTMLElement).dataset.key ?? '';
-          if (!spec.nodes.some((n) => n.id === id)) return;
-          selectedId = id;
-          sideMode = 'node';
-          renderSide();
-          canvas?.fitToNodes([id], 220);
-        };
-      });
-      sideEl.querySelectorAll('[data-km="make-link"]').forEach((el) => {
-        (el as HTMLButtonElement).onclick = () => {
-          const name = (el as HTMLElement).dataset.key ?? '';
-          if (!name) return;
-          const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
-          spawnNodeAt(center.x + 160, center.y + 120, name);
-        };
-      });
-      sideEl.querySelectorAll('[data-km="link-mention"]').forEach((el) => {
-        (el as HTMLButtonElement).onclick = () => {
-          const id = (el as HTMLElement).dataset.key ?? '';
-          const other = spec.nodes.find((n) => n.id === id);
-          const me = spec.nodes.find((n) => n.id === selectedId);
-          if (!other || !me) return;
-          other.doc = linkFirstMention(other.doc ?? '', me.label);
-          canvas?.render();
-          canvas?.setSelectedNode(me.id);
-          persistStructure();
-          renderSide();
-        };
-      });
-    }
-
-    /**
      * 글 한 덩이 → 노드·선. 「글로 만들기」와 「예시 넣어 보기」가 같은 길을 쓴다 —
      * 견본을 코드로 따로 만들면 문법이 갈라져 둘 중 하나가 곧 낡는다.
      */
@@ -794,6 +735,7 @@ import {
       nodeKindOptionsHtml: () => nodeKindOptions(),
       edgeKindOptionsHtml: (sel) => edgeKindOptions(sel),
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
+      spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
       removeEdge: (id) => {
         spec.edges = spec.edges.filter((e) => e.id !== id);
         for (const n of spec.nodes) if (n.attachedTo === id) n.attachedTo = undefined;
@@ -980,7 +922,7 @@ import {
           <textarea data-km="edit-doc" class="km-textarea" rows="5" placeholder="이 인물·개념에 대해 길게 적어 두는 자리">${escapeHtml(node.doc ?? '')}</textarea>
           <div class="km-hint">적어 두면 카드 모서리에 📄 가 붙습니다. 그림에는 안 나옵니다. <b>[[이름]]</b> 으로 다른 노드를 가리킬 수 있어요.</div>
         </div>
-        <div data-km="link-sections">${renderLinkSections(node)}</div>
+        <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         <div class="km-field">
           <label>묶음 (여러 개 가능)</label>
           ${
@@ -1111,8 +1053,8 @@ import {
         // 링크 목록만 다시 그린다 — 패널 전체를 다시 그리면 타자 치던 커서가 날아간다.
         const holder = sideEl.querySelector('[data-km="link-sections"]');
         if (holder) {
-          holder.innerHTML = renderLinkSections(node);
-          bindLinkSections();
+          holder.innerHTML = renderLinkSections(panelCtx, node);
+          bindLinkSections(panelCtx, selectedId);
         }
       };
 
@@ -1276,7 +1218,7 @@ import {
         };
       });
 
-      bindLinkSections();
+      bindLinkSections(panelCtx, selectedId);
 
       (sideEl.querySelector('[data-km="node-del"]') as HTMLButtonElement).onclick = () => {
         if (!confirm(`"${node.label}" 노드와 연결된 선을 모두 삭제할까요?`)) return;
