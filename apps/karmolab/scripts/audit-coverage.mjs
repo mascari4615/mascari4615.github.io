@@ -85,6 +85,49 @@ function summarize(entries, kind) {
   return rows;
 }
 
+/**
+ * 셸 스타일의 **구역별** 쓰임 (TASK-KL-201 ⑲).
+ *
+ * 파일 단위로 「96KB 중 74KB 안 쓰임」까지는 알겠는데, 그걸로는 무엇을 뒤로 뺄지 못 고른다.
+ * `css/toolbox.css` 는 구역 배너(`═══ 제목 ═══`)로 나뉘어 있고 `split-css.mjs` 가 그 배너를
+ * 기준으로 앞뒤를 가른다 — **같은 경계**로 쓰임을 세면 그게 곧 다음 후보 지도가 된다.
+ *
+ * ⚠ 여기 숫자만 보고 뒤로 빼면 안 된다. 「쓰임 0%」인데 자리를 잡는 데 관여하는 구역이 있다
+ * (실측: 옆줄 차림을 빼니 목록 화면 밀림이 0.011 → 0.636). `split-css.mjs` 머리말 참고 —
+ * 후보를 옮길 때는 `npm run measure:speed` 로 밀림을 전후 비교하는 것이 규약이다.
+ */
+function sectionUsage(entries) {
+  const entry = entries.find((e) => e.url.includes('/css/shell-critical.css'));
+  if (!entry || !entry.text) return null; // 못 받았으면 「0」이 아니라 없음
+  const text = entry.text;
+  const lines = text.split(String.fromCharCode(10));
+  const marks = [];
+  let offset = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\/\*\s*═+/.test(line)) {
+      /* 제목은 배너 줄에 있기도 하고 **다음 줄**에 있기도 하다 — `split-css.mjs` 와 같은 규칙을
+         쓴다. 여기서 규칙이 갈라지면 구역 이름이 서로 어긋나 지도가 쓸모없어진다. */
+      const inline = line.replace(/^\/\*\s*═+\s*/, '').replace(/\s*═+.*$/, '').trim();
+      marks.push({ at: offset, title: inline || (lines[i + 1] || '').trim() || '(제목 없음)' });
+    }
+    offset += line.length + 1;
+  }
+  if (!marks.length) return null;
+  const used = new Array(text.length).fill(false);
+  for (const range of entry.ranges || []) for (let i = range.start; i < range.end && i < used.length; i++) used[i] = true;
+  return marks
+    .map((mark, i) => {
+      const end = i + 1 < marks.length ? marks[i + 1].at : text.length;
+      let unused = 0;
+      for (let j = mark.at; j < end; j++) if (!used[j]) unused += 1;
+      return { title: mark.title, total: end - mark.at, unused };
+    })
+    .sort((a, b) => b.unused - a.unused);
+}
+
+const sectionRows = sectionUsage(css);
+
 const rows = [...summarize(css, 'css'), ...summarize(js, 'js')].sort((a, b) => b.unused - a.unused);
 const kb = (n) => `${(n / 1024).toFixed(1)}KB`;
 const sum = (list, key) => list.reduce((s, r) => s + r[key], 0);
@@ -111,6 +154,15 @@ if (totals.jsUnused == null) {
 }
 for (const row of rows.slice(0, 8)) {
   console.log(`[coverage]   ${kb(row.unused).padStart(8)} 안 쓰임 / ${kb(row.total).padStart(8)}  ${row.file}`);
+}
+if (sectionRows) {
+  console.log('[coverage] 첫 그림을 막는 shell-critical.css — 구역별 안 쓰임 (뒤로 뺄 후보 지도)');
+  for (const row of sectionRows.slice(0, 8)) {
+    console.log(`[coverage]   ${kb(row.unused).padStart(8)} / ${kb(row.total).padStart(8)}  ${row.title}`);
+  }
+  console.log('[coverage]   ⚠ 이 숫자만 보고 빼지 마라 — 쓰임 0% 인데 자리를 잡는 구역이 있다(split-css.mjs 머리말).');
+} else {
+  console.log('[coverage] 구역별 쓰임은 못 쟀다 — shell-critical.css 를 못 받았거나 구역 배너가 없다.');
 }
 
 if (UPDATE) {
