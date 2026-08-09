@@ -358,12 +358,15 @@ const M = await loadModules();
   const chain = [nodeOf('a'), nodeOf('b'), nodeOf('c')];
   const chainEdges = [{ id: 'e1', from: 'a', to: 'b', kind: 'r' }, { id: 'e2', from: 'b', to: 'c', kind: 'r' }];
   eq(filter.visibleNodes(chain, chainEdges, { ...base, minDegree: 2 }, refOf).length, 0, '이웃이 빠지면 그 여파로 또 빠진다');
+  const deg = filter.degreeMap(chainEdges, refOf);
+  eq(deg.get('b'), 2, '가운데는 둘과 이어져 있다');
+  eq(deg.get('a'), 1, '끝은 하나');
 }
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
 {
-  const CAP = 2200;
+  const CAP = 2100;
   const file = path.join(root, 'src/lib/graph/canvas.ts');
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
   check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);

@@ -44,7 +44,7 @@ import { buildCardText } from './canvas-card';
 import { buildCanvasDom } from './canvas-dom';
 import { applyFocusClasses } from './canvas-focus';
 import { nodeColor, nodeScale } from './canvas-decor';
-import { visibleNodes } from './canvas-filter';
+import { visibleNodes, degreeMap } from './canvas-filter';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -949,15 +949,10 @@ export class GraphCanvas {
     this.nodeLayer.innerHTML = '';
 
     // 연결 수는 한 번만 센다 — 노드마다 세면 그림이 커질수록 제곱으로 느려진다.
-    this.degreeCache = new Map();
-    if (this.decorate.sizeByDegree) {
-      for (const e of this.spec.edges) {
-        for (const ref of [e.from, e.to]) {
-          const id = this.parseNodeRef(ref);
-          this.degreeCache.set(id, (this.degreeCache.get(id) ?? 0) + 1);
-        }
-      }
-    }
+    // 연결 수는 「많이 이어진 것을 크게」가 켜졌을 때만 센다.
+    this.degreeCache = this.decorate.sizeByDegree
+      ? degreeMap(this.spec.edges, (ref) => this.parseNodeRef(ref))
+      : new Map();
 
     this.renderGroups();
     this.renderAnchors();

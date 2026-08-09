@@ -56,3 +56,19 @@ export function visibleNodes(
   }
   return kept.filter((n) => live.has(n.id));
 }
+
+
+/**
+ * 노드별 **연결 수**. 「많이 이어진 것을 크게」가 켜졌을 때만 센다 —
+ * 안 쓰는 판에서까지 매 렌더마다 전체 선을 훑을 이유가 없다.
+ */
+export function degreeMap(edges: GraphEdge[], refOf: (ref: string) => string): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const e of edges) {
+    for (const ref of [e.from, e.to]) {
+      const id = refOf(ref);
+      out.set(id, (out.get(id) ?? 0) + 1);
+    }
+  }
+  return out;
+}
