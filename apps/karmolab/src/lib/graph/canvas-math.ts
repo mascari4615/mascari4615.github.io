@@ -325,3 +325,26 @@ export function zoomAt(
     ty: at.y - (at.y - view.ty) * k,
   };
 }
+
+
+/** 두 점으로 만든 네모(음수 폭 없이). 범위 고르기·잘라내기 자리에 쓴다. */
+export function rectFromPoints(a: Pt, b: Pt): { x: number; y: number; w: number; h: number } {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    w: Math.abs(b.x - a.x),
+    h: Math.abs(b.y - a.y),
+  };
+}
+
+/**
+ * 네모와 상자가 **조금이라도 겹치나**. 「완전히 감싸야 고른 것」으로 하면 잔 조작을 강요한다 —
+ * 사람은 대충 칠하고 결과를 본다.
+ */
+export function rectHits(
+  rect: { x: number; y: number; w: number; h: number },
+  box: { x: number; y: number; w: number; h: number },
+): boolean {
+  return box.x < rect.x + rect.w && box.x + box.w > rect.x
+    && box.y < rect.y + rect.h && box.y + box.h > rect.y;
+}

@@ -250,6 +250,16 @@ const M = await loadModules();
   eq(cmath.zoomAt({ tx: 0, ty: 0, scale: 5 }, 2, at).scale, 5, '더 못 키운다(한 카드가 화면을 덮는 것 방지)');
 }
 
+// ── 범위 고르기 ────────────────────────────────────────────────────────────
+{
+  const { cmath } = M;
+  const r = cmath.rectFromPoints({ x: 100, y: 80 }, { x: 20, y: 10 });
+  eq(r.x, 20, '거꾸로 끌어도 왼쪽이 x');
+  eq(r.w, 80, '폭은 양수');
+  check(cmath.rectHits(r, { x: 15, y: 5, w: 10, h: 10 }), '모서리만 걸쳐도 고른 것');
+  check(!cmath.rectHits(r, { x: 200, y: 200, w: 10, h: 10 }), '떨어져 있으면 아니다');
+}
+
 // ── 세계 범위 ──────────────────────────────────────────────────────────────
 {
   const { cmath } = M;
