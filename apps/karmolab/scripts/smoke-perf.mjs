@@ -23,11 +23,11 @@
  * 사용: node scripts/smoke-perf.mjs   (npm run test:perf)
  *       node scripts/smoke-perf.mjs --regress   ← 옛 코드를 흉내 내 **빨간불이 나는지** 확인
  */
-import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -38,27 +38,10 @@ if (!fs.existsSync(path.join(root, 'js/toolbox.js'))) {
   process.exit(0);
 }
 
-const MIME = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp',
-  '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.woff2': 'font/woff2'
-};
-const server = http.createServer((req, res) => {
-  let u = decodeURIComponent(req.url.split('?')[0]);
-  if (u.endsWith('/')) u += 'index.html';
-  const f = path.join(repoRoot, u.replace(/^\//, ''));
-  if (!f.startsWith(repoRoot) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) {
-    res.writeHead(404).end('not found');
-    return;
-  }
-  let body = fs.readFileSync(f);
-  const ext = path.extname(f);
-  if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
-});
-await new Promise((r) => server.listen(0, '127.0.0.1', r));
-const BASE = `http://127.0.0.1:${server.address().port}`;
+/* 서버는 **공용 한 곳**을 쓴다 (`lib/serve-static.mjs`, TASK-KL-201).
+   예전에는 여기에 복사본이 있었고, 그 복사본은 앞머리만 걷고 Liquid 태그는 그대로 내보냈다 —
+   화면 맨 위에 조건문이 글자로 떠서 밀림이 실제보다 크게 잡혔다(실측 0.032 ↔ 0.010). */
+const { base: BASE, close: closeServer } = await serveRepo();
 /* 재는 화면 둘.
  *   ① 앱 첫 화면 — 상주물(마스코트·채팅·배경 장식)이 다 있는 자리
  *   ② 도구 한 장 — **검색으로 들어오는 정문**이자 129장 중 하나. 여기는 여태 아무도 안 쟀다.
@@ -189,7 +172,7 @@ for (const [label, url] of TARGETS) {
 }
 
 await browser.close();
-server.close();
+closeServer();
 
 if (process.argv.includes('--regress')) {
   /* 자기 시험: 옛 코드를 얹었으면 **반드시** 빨간불이어야 한다. 초록이면 이 게이트가 눈뜬장님이다. */
