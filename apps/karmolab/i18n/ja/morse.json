@@ -1,0 +1,19 @@
+{
+  "morse.tab": "モールス符号",
+  "morse.mdd": "ツー ツー ツー",
+  "morse.lang.en": "英数字",
+  "morse.lang.ko": "ハングル",
+  "morse.label.text": "文字",
+  "morse.label.code": "モールス符号 — 文字の間は空白、語の間は /",
+  "morse.btn.play": "音で聞く",
+  "morse.btn.playing": "再生中…",
+  "morse.btn.copy": "符号をコピー",
+  "morse.label.light": "光",
+  "morse.status.idle": "どちらの欄に入力しても、もう一方が追従します。",
+  "morse.status.koNote": "ハングルは字母（じも）単位で送ります。",
+  "morse.status.converted": "変換しました",
+  "morse.status.unknown": "表にない符号が混じっていたので ? にしました。",
+  "morse.status.readKo": "読み取りました。ハングルのモールスは字母だけを送るため、「어쓰」と「엇스」のように解釈が分かれる箇所があります。",
+  "morse.status.read": "読み取りました。",
+  "morse.copy.done": "モールス符号をコピーしました"
+}

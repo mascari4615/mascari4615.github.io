@@ -99,5 +99,9 @@
   "howto.videocompress.1": "Pick the frame size and quality",
   "howto.videocompress.2": "Check the estimated size",
   "howto.videocompress.3": "Hit Compress and wait",
-  "howto.videocompress.4": "Watch the result, then download"
+  "howto.videocompress.4": "Watch the result, then download",
+  "howto.morse.0": "Choose Latin or Hangul",
+  "howto.morse.1": "Type in either the text box or the code box",
+  "howto.morse.2": "Watch the other side follow",
+  "howto.morse.3": "Play it as sound"
 }
