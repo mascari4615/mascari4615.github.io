@@ -7,6 +7,8 @@
  */
 import { acceptPastedFiles } from './shared/paste';
 
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   /** 진한 → 옅은 순. 폭이 넓을수록 계조가 부드럽다. */
   const RAMPS: Record<string, string> = {
@@ -21,72 +23,92 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'asciiart',
-    title: '이미지 → 아스키 아트',
+    title: t('widgets.asciiart.title', undefined, '이미지 → 아스키 아트'),
     category: 'tool',
-    desc: '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절',
+    desc: t(
+      'widgets-desc.asciiart.desc',
+      undefined,
+      '사진이나 그림을 글자로 그린 아스키 아트로 바꿉니다. 폭·문자 세트·반전 조절'
+    ),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 12h6M6 15h4M14 9h4M15 12h3M13 15h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '아스키 아트',
+        label: t('asciiart.tab', undefined, '아스키 아트'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '그림을 글자로 그려볼게요!' });
+          void loadNamespace('asciiart').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          Mdd.linePreset('tool_run', { msg: t('asciiart.mdd') });
           container.innerHTML = `
             <div class="field-group">
               <div id="aaDrop" class="tool-drop">
                 <input type="file" id="aaFile" accept="image/*" style="display:none;">
-                <div>이미지를 끌어다 놓거나 <button class="btn btn-ghost" id="aaPick" type="button">파일 선택</button> · 붙여넣기(Ctrl+V)도 됩니다</div>
-                <div class="tool-status" id="aaName">아직 선택된 이미지가 없어요.</div>
+                <div>${esc(t('asciiart.drop'))} <button class="btn btn-ghost" id="aaPick" type="button">${esc(
+                  t('asciiart.btn.pick')
+                )}</button> ${esc(t('asciiart.drop.paste'))}</div>
+                <div class="tool-status" id="aaName">${esc(t('asciiart.name.empty'))}</div>
               </div>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">가로 글자 수 <span id="aaWidthVal" class="range-value">100자</span></div>
-                  <input type="range" id="aaWidth" aria-label="가로 글자 수" min="20" max="300" step="2" value="100">
+                  <div class="tool-sublabel">${esc(t('asciiart.label.width'))} <span id="aaWidthVal" class="range-value">${esc(
+                    t('asciiart.value.chars', { n: 100 })
+                  )}</span></div>
+                  <input type="range" id="aaWidth" aria-label="${esc(t('asciiart.label.width'))}" min="20" max="300" step="2" value="100">
                 </div>
                 <div>
-                  <div class="tool-sublabel">문자 세트</div>
-                  <select id="aaRamp" aria-label="문자 세트">
-                    <option value="detail">촘촘하게 (@%#*+=-:.)</option>
-                    <option value="block">블록 (█▓▒░)</option>
-                    <option value="simple">단순 (#+-.)</option>
-                    <option value="binary">두 단계 (#.)</option>
-                    <option value="braille">점자 느낌</option>
+                  <div class="tool-sublabel">${esc(t('asciiart.label.ramp'))}</div>
+                  <select id="aaRamp" aria-label="${esc(t('asciiart.label.ramp'))}">
+                    <option value="detail">${esc(t('asciiart.ramp.detail'))}</option>
+                    <option value="block">${esc(t('asciiart.ramp.block'))}</option>
+                    <option value="simple">${esc(t('asciiart.ramp.simple'))}</option>
+                    <option value="binary">${esc(t('asciiart.ramp.binary'))}</option>
+                    <option value="braille">${esc(t('asciiart.ramp.braille'))}</option>
                   </select>
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">밝기 <span id="aaBrightVal" class="range-value">0</span></div>
-                  <input type="range" id="aaBright" aria-label="밝기" min="-100" max="100" value="0">
+                  <div class="tool-sublabel">${esc(t('asciiart.label.bright'))} <span id="aaBrightVal" class="range-value">0</span></div>
+                  <input type="range" id="aaBright" aria-label="${esc(t('asciiart.label.bright'))}" min="-100" max="100" value="0">
                 </div>
                 <div>
-                  <div class="tool-sublabel">대비 <span id="aaContrastVal" class="range-value">0</span></div>
-                  <input type="range" id="aaContrast" aria-label="대비" min="-100" max="100" value="0">
+                  <div class="tool-sublabel">${esc(t('asciiart.label.contrast'))} <span id="aaContrastVal" class="range-value">0</span></div>
+                  <input type="range" id="aaContrast" aria-label="${esc(t('asciiart.label.contrast'))}" min="-100" max="100" value="0">
                 </div>
               </div>
               <div style="display:flex; gap:14px; margin-top:10px; flex-wrap:wrap;">
                 <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                  <input type="checkbox" id="aaInvert" style="width:auto;"> 밝기 반전 (어두운 배경용)
+                  <input type="checkbox" id="aaInvert" style="width:auto;"> ${esc(t('asciiart.opt.invert'))}
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                  <input type="checkbox" id="aaColor" style="width:auto;"> 색 입히기 (화면 미리보기 전용)
+                  <input type="checkbox" id="aaColor" style="width:auto;"> ${esc(t('asciiart.opt.color'))}
                 </label>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-md);">
-              <button class="btn btn-primary" id="aaCopy">텍스트 복사</button>
-              <button class="btn btn-secondary" id="aaTxt">.txt 저장</button>
-              <button class="btn btn-secondary" id="aaPng">PNG 저장</button>
-              <button class="btn btn-ghost" id="aaSample">샘플 이미지</button>
+              <button class="btn btn-primary" id="aaCopy">${esc(t('asciiart.btn.copy'))}</button>
+              <button class="btn btn-secondary" id="aaTxt">${esc(t('asciiart.btn.txt'))}</button>
+              <button class="btn btn-secondary" id="aaPng">${esc(t('asciiart.btn.png'))}</button>
+              <button class="btn btn-ghost" id="aaSample">${esc(t('asciiart.btn.sample'))}</button>
             </div>
 
-            <pre id="aaOut" class="aa-out">이미지를 넣으면 여기에 그려집니다.</pre>
-            <div class="tool-status" id="aaStatus">이미지는 브라우저 안에서만 처리되며 서버로 올라가지 않습니다.</div>
+            <pre id="aaOut" class="aa-out">${esc(t('asciiart.out.empty'))}</pre>
+            <div class="tool-status" id="aaStatus">${esc(t('asciiart.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -185,7 +207,11 @@ import { acceptPastedFiles } from './shared/paste';
             } else {
               out.textContent = plainText;
             }
-            status.textContent = `${cols}×${rows}자 · ${plainText.length.toLocaleString('ko-KR')}글자 · 이미지는 브라우저 안에서만 처리됩니다.`;
+            status.textContent = t('asciiart.status.done', {
+              cols,
+              rows,
+              chars: plainText.length.toLocaleString(locale())
+            });
             status.className = 'tool-status ok';
           }
 
@@ -198,14 +224,14 @@ import { acceptPastedFiles } from './shared/paste';
               render();
             };
             img.onerror = () => {
-              nameEl.textContent = '이미지를 읽지 못했어요.';
+              nameEl.textContent = t('asciiart.err.read');
             };
             img.src = src;
           }
 
           function loadFile(file: File): void {
             if (!file.type.startsWith('image/')) {
-              nameEl.textContent = '이미지 파일만 넣을 수 있어요.';
+              nameEl.textContent = t('asciiart.err.notImage');
               return;
             }
             const reader = new FileReader();
@@ -241,7 +267,7 @@ import { acceptPastedFiles } from './shared/paste';
 
           container.querySelectorAll('input[type="range"], select, input[type="checkbox"]').forEach((el) => {
             el.addEventListener('input', () => {
-              $<HTMLElement>('#aaWidthVal').textContent = widthInput.value + '자';
+              $<HTMLElement>('#aaWidthVal').textContent = t('asciiart.value.chars', { n: widthInput.value });
               $<HTMLElement>('#aaBrightVal').textContent = $<HTMLInputElement>('#aaBright').value;
               $<HTMLElement>('#aaContrastVal').textContent = $<HTMLInputElement>('#aaContrast').value;
               render();
@@ -251,7 +277,7 @@ import { acceptPastedFiles } from './shared/paste';
 
           $<HTMLButtonElement>('#aaCopy').onclick = async () => {
             if (!plainText) return;
-            await Toolbox.copyText?.(plainText, { message: '아스키 아트를 복사했어요' });
+            await Toolbox.copyText?.(plainText, { message: t('asciiart.copy.done') });
           };
           $<HTMLButtonElement>('#aaTxt').onclick = () => {
             if (!plainText) return;
@@ -309,10 +335,7 @@ import { acceptPastedFiles } from './shared/paste';
             g.lineTo(200, 240);
             g.closePath();
             g.fill();
-            load(c.toDataURL('image/png'), '샘플 이미지');
+            load(c.toDataURL('image/png'), t('asciiart.sample.name'));
           };
-        }
-      }
-    ]
-  });
+  }
 })();
