@@ -195,6 +195,19 @@ await step('링크로 내보내고 그 링크로 다시 받는다', async () => 
   await p2.waitForFunction((c) => document.querySelectorAll('.ck-node').length === c, nodesBefore, { timeout: 8000 });
   await p2.close();
 });
+await step('저장 상태가 크기를 보여 주고 백업 파일을 만든다', async () => {
+  await page.click('[data-km="more"]');
+  await page.locator('[data-km="storage"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="st-backup"]', { timeout: 4000 });
+  const meter = await page.locator('.km-meter-fill').count();
+  if (meter === 0) throw new Error('용량 막대가 없다');
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 8000 }),
+    page.click('[data-km="st-backup"]'),
+  ]);
+  if (!dl.suggestedFilename().includes('backup')) throw new Error('백업 파일이 아니다');
+  await page.click('[data-km="st-close"]');
+});
 await step('키보드로 고르고 옮긴다', async () => {
   await page.locator('.ck-node').first().click({ position: { x: 12, y: 10 } });
   await page.locator('.km-canvas').click({ position: { x: 4, y: 4 } });

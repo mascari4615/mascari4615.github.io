@@ -22,6 +22,7 @@ import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import { parseOutline, layoutTree } from './from-text';
 import { sampleFor } from './samples';
+import { measureStorage, humanBytes, WARN_RATIO } from './storage-health';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -109,6 +110,9 @@ import {
       border-radius:var(--radius-sm); background:var(--bg-tertiary); cursor:pointer; }
     .km-avatar-row .btn { padding:4px 8px; }
     .km-tilt-val { color:var(--text-tertiary); }
+    .km-storage-warn { padding:6px 12px; background:#7f1d1d; color:#fecaca; font-size:var(--font-size-xs); }
+    .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
+    .km-meter-fill { height:100%; transition:width .2s ease; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
@@ -168,7 +172,7 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 화면에서 뺀 종류들 — 자료는 그대로 두고 보기만 줄인다(격차 M-3). */
@@ -268,6 +272,7 @@ import {
                   <option value="none">□ 없음</option>
                 </select>
               </label>
+              <button class="btn btn-ghost" data-km="storage">💾 저장 상태</button>
               <button class="btn btn-ghost" data-km="share">🔗 링크 만들기</button>
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
@@ -408,10 +413,22 @@ import {
 
     // ── 저장 ────────────────────────────────────────────────────────────────
     // 구조 변경은 즉시 전체 저장. 좌표 변경은 캔버스가 debounce 후 어댑터로.
+    /** 저장이 실패하면 화면에 남는 표시를 띄운다 — alert 는 닫으면 흔적이 없다. */
+    function warnStorageIfTight(): void {
+      const rep = measureStorage();
+      if (!rep.warn) return;
+      if (root.querySelector('.km-storage-warn')) return;
+      const bar = document.createElement('div');
+      bar.className = 'km-storage-warn';
+      bar.innerHTML = `저장 칸이 ${Math.round(rep.ratio * 100)}% 찼습니다 — 「💾 저장 상태」에서 백업하세요.`;
+      root.querySelector('.km-toolbar')?.insertAdjacentElement('afterend', bar);
+    }
+
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);
       library = touchMap(library, library.activeId);
       snapshot();
+      warnStorageIfTight();
     }
 
     // ── id 발급 ─────────────────────────────────────────────────────────────
@@ -1155,6 +1172,59 @@ import {
       return parsed.length;
     }
 
+    /**
+     * 저장 상태 — 언제 터질지 **미리** 말해 준다 (격차 Y).
+     * 넘친 뒤에 아는 것이 이 도구에서 가장 나쁜 실패다(한참 그린 뒤에 알게 된다).
+     */
+    function renderStoragePanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      const rep = measureStorage();
+      const nameOfKey = (key: string): string => {
+        const id = key.replace('karmomap.map.', '');
+        const m = library.maps.find((x) => x.id === id);
+        return m ? m.name : key.replace('karmomap.', '');
+      };
+      sideEl.innerHTML = `
+        <h4>💾 저장 상태</h4>
+        <div class="km-hint">그림은 이 브라우저 안에만 있습니다. 칸이 차면 저장이 실패합니다.</div>
+        <div class="km-field">
+          <label>${humanBytes(rep.used)} / 약 ${humanBytes(rep.budget)} (${Math.round(rep.ratio * 100)}%)</label>
+          <div class="km-meter"><div class="km-meter-fill" style="width:${Math.min(100, Math.round(rep.ratio * 100))}%;
+            background:${rep.warn ? '#f87171' : '#34d399'}"></div></div>
+          ${rep.warn
+            ? '<div class="km-hint" style="color:#fca5a5">칸이 거의 찼습니다. 안 쓰는 맵을 지우거나 <b>JSON 내보내기</b>로 옮겨 두세요. 사진 붙인 노드가 특히 큽니다.</div>'
+            : ''}
+        </div>
+        <div class="km-field">
+          <label>무거운 순</label>
+          ${rep.items.slice(0, 8).map((it) => `<div class="km-link-row">
+            <span class="km-link-name">${escapeHtml(nameOfKey(it.key))}</span>
+            <span class="km-group-count">${humanBytes(it.bytes)}</span>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-primary" data-km="st-backup">모든 맵 한 파일로 내보내기</button>
+        <button class="btn btn-ghost" data-km="st-close">닫기</button>`;
+
+      (sideEl.querySelector('[data-km="st-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+      (sideEl.querySelector('[data-km="st-backup"]') as HTMLButtonElement).onclick = () => {
+        // 맵 하나씩 내보내게 하면 사람은 결국 몇 개를 빠뜨린다 — 통째로 한 파일에 담는다.
+        const all = library.maps.map((m) => {
+          let data: unknown = null;
+          try { data = JSON.parse(localStorage.getItem(mapKey(m.id)) ?? 'null'); } catch { data = null; }
+          return { id: m.id, name: m.name, updatedAt: m.updatedAt, spec: data };
+        });
+        downloadBlob(
+          new Blob([JSON.stringify({ kind: 'karmomap-backup', v: 1, maps: all }, null, 2)], { type: 'application/json' }),
+          'karmomap-backup.json'
+        );
+        Toolbox.showToast?.(`맵 ${all.length}개를 한 파일로 담았습니다`, undefined, undefined);
+      };
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
@@ -1179,6 +1249,10 @@ import {
       }
       if (sideMode === 'sna') {
         renderSnaPanel();
+        return;
+      }
+      if (sideMode === 'storage') {
+        renderStoragePanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -1816,6 +1890,11 @@ import {
      * 링크 만들기 — 주소 안에 그림을 담는다(백엔드 0). 너무 크면 **만들지 않고** 파일 쪽으로 보낸다:
      * 잘린 주소는 「열리는데 내용이 이상한」 최악의 실패를 낸다.
      */
+    q<HTMLButtonElement>('storage').onclick = () => {
+      sideMode = 'storage';
+      renderSide();
+    };
+
     q<HTMLButtonElement>('share').onclick = () => {
       const live = canvas?.getSpec() ?? spec;
       void encodeShare(live).then(async (code) => {
