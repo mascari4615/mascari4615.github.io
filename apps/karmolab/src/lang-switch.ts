@@ -26,6 +26,26 @@ import {
   hasExplicitChoice
 } from './lib/i18n';
 
+/**
+ * **이 화면이 실제로 가지고 있는 언어**만 목록에 올린다 (TASK-KL-203 S6).
+ *
+ * 왜 등록부(켠 언어 전부)를 그대로 쓰면 안 되나: 언어를 켜도 그 화면의 글이 다 차기 전에는
+ * 그 언어 장을 안 찍는다(덜 된 장을 그 언어 주소로 올리는 건 안 올린 것보다 나쁘다).
+ * 그런데 목록이 등록부를 보면 **아직 없는 장으로 보내 404 가 난다** — 고르자마자 깨지는 단추다.
+ *
+ * 답은 이미 화면에 있다: 짝 표시(`hreflang`)가 곧 「이 화면이 가진 언어」다. 그건 생성기가
+ * 박고 검사가 지키므로, 그걸 읽으면 목록과 실제가 어긋날 수 없다. 짝 표시가 없는 장(아직
+ * 한 언어뿐인 도구 상세 등)은 등록부로 떨어진다.
+ */
+function pageLocales(): typeof ENABLED_LOCALES {
+  const tags = Array.from(document.querySelectorAll('link[rel="alternate"][hreflang]'))
+    .map((el) => el.getAttribute('hreflang'))
+    .filter((h): h is string => !!h && h !== 'x-default');
+  if (!tags.length) return ENABLED_LOCALES;
+  const found = ENABLED_LOCALES.filter((l) => tags.includes(l.htmlLang));
+  return found.length ? found : ENABLED_LOCALES;
+}
+
 const STYLE_ID = 'lang-switch-style';
 const DISMISS_KEY = 'karmolab_locale_hint_off';
 
@@ -67,7 +87,7 @@ function openMenu(btn: HTMLElement): void {
   box.className = 'lang-menu';
   box.setAttribute('role', 'listbox');
   const now = locale();
-  for (const l of ENABLED_LOCALES) {
+  for (const l of pageLocales()) {
     const item = document.createElement('button');
     item.type = 'button';
     item.setAttribute('role', 'option');

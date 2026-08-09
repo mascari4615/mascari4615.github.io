@@ -1,0 +1,16 @@
+{
+  "site.name": "KarmoLab",
+  "site.tagline": "人生をかき混ぜて、お酒を変える時間",
+  "site.title": "KarmoLab — 人生をかき混ぜて、お酒を変える時間",
+  "site.description": "人生をかき混ぜて、お酒を変える時間。手に馴染む道具が置いてある作業場。",
+  "site.about": "文章・画像・計算・開発に使う道具を、ブラウザの中でそのまま扱える場所",
+  "site.tools.all": "すべての道具",
+  "site.tools.allList": "道具の一覧を見る",
+  "site.feed.changes": "KarmoLab — 変更履歴",
+  "site.nav.home": "ホーム",
+  "site.nav.tools": "道具",
+  "site.nav.search": "さがす",
+  "site.lang.switch": "言語",
+  "site.lang.current": "現在の言語: {name}",
+  "site.noscript.intro": "ブラウザの中でそのまま動く道具集です。ファイルはこの端末から出ません。"
+}
