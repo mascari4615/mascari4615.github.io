@@ -3,6 +3,8 @@
  * - 시간 기준 = performance.now() 델타. setInterval 누적 오차(탭 백그라운드 throttle)를 안 탄다.
  * - 알림음 = WebAudio 합성 (외부 파일 0). 탭 제목에도 남은 시간을 띄워 백그라운드에서 보이게.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   function fmt(ms: number, withMs: boolean): string {
     const sign = ms < 0 ? '-' : '';
@@ -42,46 +44,71 @@
 
   Toolbox.register({
     id: 'timer',
-    title: '타이머 · 스톱워치',
+    title: t('widgets.timer.title', undefined, '타이머 · 스톱워치'),
     category: 'tool',
-    desc: '카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다',
+    desc: t(
+      'widgets-desc.timer.desc',
+      undefined,
+      '카운트다운 타이머와 랩 기록 스톱워치. 끝나면 알림음이 울립니다'
+    ),
     layout: 'form',
     icon: '<circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 9v4l3 2M9 2h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'countdown',
-        label: '타이머',
+        label: t('timer.tab', undefined, '타이머'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '시간 재 드릴게요. 딴짓하면 안 돼요!' });
+          void loadNamespace('timer').then(function () {
+            drawTimer(container);
+          });
+        }
+      },
+      {
+        id: 'stopwatch',
+        label: t('timer.tab.stopwatch', undefined, '스톱워치'),
+        build: function (container: HTMLElement): void {
+          void loadNamespace('timer').then(function () {
+            drawStopwatch(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function drawTimer(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          Mdd.linePreset('tool_run', { msg: t('timer.mdd') });
           container.innerHTML = `
             <div class="tool-display" id="tmDisplay">00:00</div>
             <!-- 남은 시간을 눈으로 — 상위 타이머는 전부 링·바가 있다. -->
             <div class="tm-track"><div class="tm-fill" id="tmFill"></div></div>
             <div class="field-group">
-              <label class="field-label">시간 설정</label>
+              <label class="field-label">${esc(t('timer.label.set'))}</label>
               <div style="display:flex; gap:8px; align-items:center;">
-                <input type="text" id="tmH" inputmode="numeric" placeholder="시" style="text-align:center;">
+                <input type="text" id="tmH" inputmode="numeric" placeholder="${esc(t('timer.ph.h'))}" style="text-align:center;">
                 <span style="color:var(--text-tertiary);">:</span>
-                <input type="text" id="tmM" inputmode="numeric" placeholder="분" style="text-align:center;">
+                <input type="text" id="tmM" inputmode="numeric" placeholder="${esc(t('timer.ph.m'))}" style="text-align:center;">
                 <span style="color:var(--text-tertiary);">:</span>
-                <input type="text" id="tmS" inputmode="numeric" placeholder="초" style="text-align:center;">
+                <input type="text" id="tmS" inputmode="numeric" placeholder="${esc(t('timer.ph.s'))}" style="text-align:center;">
               </div>
               <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-                <button class="btn btn-ghost tm-preset" data-sec="60">1분</button>
-                <button class="btn btn-ghost tm-preset" data-sec="180">3분</button>
-                <button class="btn btn-ghost tm-preset" data-sec="300">5분</button>
-                <button class="btn btn-ghost tm-preset" data-sec="600">10분</button>
-                <button class="btn btn-ghost tm-preset" data-sec="1500">25분 (뽀모도로)</button>
-                <button class="btn btn-ghost tm-preset" data-sec="3600">1시간</button>
+                <button class="btn btn-ghost tm-preset" data-sec="60">${esc(t('timer.preset.1m'))}</button>
+                <button class="btn btn-ghost tm-preset" data-sec="180">${esc(t('timer.preset.3m'))}</button>
+                <button class="btn btn-ghost tm-preset" data-sec="300">${esc(t('timer.preset.5m'))}</button>
+                <button class="btn btn-ghost tm-preset" data-sec="600">${esc(t('timer.preset.10m'))}</button>
+                <button class="btn btn-ghost tm-preset" data-sec="1500">${esc(t('timer.preset.25m'))}</button>
+                <button class="btn btn-ghost tm-preset" data-sec="3600">${esc(t('timer.preset.1h'))}</button>
               </div>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="tmStart">시작</button>
-              <button class="btn btn-secondary" id="tmPause">일시정지</button>
-              <button class="btn btn-ghost" id="tmReset">초기화</button>
-              <button class="btn btn-ghost" id="tmFull">전체화면</button>
+              <button class="btn btn-primary" id="tmStart">${esc(t('timer.btn.start'))}</button>
+              <button class="btn btn-secondary" id="tmPause">${esc(t('timer.btn.pause'))}</button>
+              <button class="btn btn-ghost" id="tmReset">${esc(t('timer.btn.reset'))}</button>
+              <button class="btn btn-ghost" id="tmFull">${esc(t('timer.btn.full'))}</button>
             </div>
-            <div class="tool-status" id="tmStatus" style="margin-top:var(--space-lg);">시간을 넣고 시작을 누르세요. 탭을 옮겨도 정확히 셉니다.</div>
+            <div class="tool-status" id="tmStatus" style="margin-top:var(--space-lg);">${esc(t('timer.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -102,7 +129,7 @@
 
           function paint(ms: number): void {
             display.textContent = fmt(Math.max(ms, 0), false);
-            if (running) document.title = fmt(Math.max(ms, 0), false) + ' — 타이머';
+            if (running) document.title = fmt(Math.max(ms, 0), false) + t('timer.title.suffix');
             const fill = $<HTMLElement>('#tmFill');
             if (fill && totalMs > 0) fill.style.width = ((Math.max(ms, 0) / totalMs) * 100).toFixed(1) + '%';
           }
@@ -128,7 +155,7 @@
               remaining = left;
               endAt = performance.now() + left;
               running = true;
-              status.textContent = '진행 중… (창을 닫아도 이어집니다)';
+              status.textContent = t('timer.status.runningKept');
               status.className = 'tool-status ok';
               tick();
             } catch (_) { /* 저장 형식이 바뀌었으면 그냥 새로 시작한다 */ }
@@ -142,13 +169,13 @@
               paint(0);
               document.title = originalTitle;
               display.classList.add('tool-display-done');
-              status.textContent = '시간 종료!';
+              status.textContent = t('timer.status.done');
               status.className = 'tool-status ok';
               remember();
               beep(3);
-              Toolbox.showToast?.('타이머 종료!', 'success', undefined);
+              Toolbox.showToast?.(t('timer.toast.done'), 'success', undefined);
               if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                new Notification('KarmoLab 타이머', { body: '설정한 시간이 끝났어요.' });
+                new Notification(t('timer.notify.title'), { body: t('timer.notify.body') });
               }
               return;
             }
@@ -161,7 +188,7 @@
             if (running) return;
             const base = remaining > 0 ? remaining : readInputs();
             if (base <= 0) {
-              status.textContent = '시간을 먼저 입력해 주세요.';
+              status.textContent = t('timer.status.needTime');
               status.className = 'tool-status error';
               return;
             }
@@ -169,7 +196,7 @@
             endAt = performance.now() + base;
             running = true;
             display.classList.remove('tool-display-done');
-            status.textContent = '진행 중…';
+            status.textContent = t('timer.status.running');
             status.className = 'tool-status ok';
             if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
               Notification.requestPermission().catch(() => undefined);
@@ -184,7 +211,7 @@
             running = false;
             cancelAnimationFrame(raf);
             document.title = originalTitle;
-            status.textContent = '일시정지 — 시작을 누르면 이어서 갑니다.';
+            status.textContent = t('timer.status.paused');
             status.className = 'tool-status';
             remember();
           };
@@ -195,7 +222,7 @@
             document.title = originalTitle;
             display.classList.remove('tool-display-done');
             paint(readInputs());
-            status.textContent = '초기화했어요.';
+            status.textContent = t('timer.status.reset');
             status.className = 'tool-status';
             remember();
           };
@@ -229,19 +256,18 @@
           paint(0);
           /* 창을 닫았다 열어도 돌던 타이머가 이어지게 — 화면을 다 만든 뒤 한 번 되살린다. */
           restore();
-        }
-      },
-      {
-        id: 'stopwatch',
-        label: '스톱워치',
-        build: function (container: HTMLElement): void {
+  }
+
+  function drawStopwatch(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-display" id="swDisplay">00:00.00</div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-lg);">
-              <button class="btn btn-primary" id="swStart">시작</button>
-              <button class="btn btn-secondary" id="swLap">랩</button>
-              <button class="btn btn-ghost" id="swReset">초기화</button>
-              <button class="btn btn-ghost" id="swCopy">랩 기록 복사</button>
+              <button class="btn btn-primary" id="swStart">${esc(t('timer.btn.start'))}</button>
+              <button class="btn btn-secondary" id="swLap">${esc(t('timer.btn.lap'))}</button>
+              <button class="btn btn-ghost" id="swReset">${esc(t('timer.btn.reset'))}</button>
+              <button class="btn btn-ghost" id="swCopy">${esc(t('timer.btn.copyLaps'))}</button>
             </div>
             <div id="swLaps" class="tool-list"></div>
           `;
@@ -265,9 +291,10 @@
           }
           function renderLaps(): void {
             lapsEl.innerHTML = laps
-              .map((t, i) => {
+              .map((at, i) => {
+                /* 이름을 `t` 로 두면 **말 갈아끼우는 `t()` 를 가린다** — 아래 줄이 조용히 깨진다. */
                 const prev = i === 0 ? 0 : laps[i - 1];
-                return `<div class="tool-list-row"><span class="tool-list-key">랩 ${i + 1}</span><span>${fmt(t - prev, true)}</span><span class="tool-list-dim">${fmt(t, true)}</span></div>`;
+                return `<div class="tool-list-row"><span class="tool-list-key">${esc(t('timer.lap', { n: i + 1 }))}</span><span>${fmt(at - prev, true)}</span><span class="tool-list-dim">${fmt(at, true)}</span></div>`;
               })
               .reverse()
               .join('');
@@ -278,11 +305,11 @@
               running = false;
               acc = elapsed();
               cancelAnimationFrame(raf);
-              startBtn.textContent = '계속';
+              startBtn.textContent = t('timer.btn.resume');
             } else {
               running = true;
               startedAt = performance.now();
-              startBtn.textContent = '정지';
+              startBtn.textContent = t('timer.btn.stop');
               tick();
             }
           };
@@ -298,19 +325,16 @@
             laps.length = 0;
             renderLaps();
             display.textContent = fmt(0, true);
-            startBtn.textContent = '시작';
+            startBtn.textContent = t('timer.btn.start');
           };
           $<HTMLButtonElement>('#swCopy').onclick = async () => {
             if (!laps.length) return;
             const text = laps
-              .map((t, i) => `랩 ${i + 1}\t${fmt(t - (i === 0 ? 0 : laps[i - 1]), true)}\t${fmt(t, true)}`)
+              .map((at, i) => `${t('timer.lap', { n: i + 1 })}\t${fmt(at - (i === 0 ? 0 : laps[i - 1]), true)}\t${fmt(at, true)}`)
               .join('\n');
-            await Toolbox.copyText?.(text, { message: '랩 기록을 복사했어요' });
+            await Toolbox.copyText?.(text, { message: t('timer.copy.done') });
           };
 
           display.textContent = fmt(0, true);
-        }
-      }
-    ]
-  });
+  }
 })();

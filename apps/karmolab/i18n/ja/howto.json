@@ -128,5 +128,9 @@
   "howto.audiospeed.0": "音声ファイルを選ぶ",
   "howto.audiospeed.1": "速度を選ぶ（1.5倍・2倍）",
   "howto.audiospeed.2": "「変える」を押して聴いてみる",
-  "howto.audiospeed.3": "ダウンロード"
+  "howto.audiospeed.3": "ダウンロード",
+  "howto.timer.0": "時・分・秒を入力、またはプリセット（1・3・5・10・25分）",
+  "howto.timer.1": "開始 — 残り時間はタブのタイトルにも表示",
+  "howto.timer.2": "終了時に通知音が3回鳴る",
+  "howto.timer.3": "ストップウォッチのタブでラップを記録・コピー"
 }
