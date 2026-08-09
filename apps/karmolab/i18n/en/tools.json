@@ -268,5 +268,7 @@
   "tools.comparepic.description": "Stack two photos and drag the handle in the middle to compare before and after. You can save exactly what you see as a PNG, and the files never leave your device.",
   "tools.comparepic.lead": "Slide between before and after · different sizes are fine · save as PNG",
   "tools.livecount.description": "The time since your reference moment keeps climbing by the second. Months are counted by the calendar, and a rough total is worked out from how many times a day you give.",
-  "tools.livecount.lead": "Climbs by the second · by the calendar · rough conversion"
+  "tools.livecount.lead": "Climbs by the second · by the calendar · rough conversion",
+  "tools.mesh3d.description": "Open STL and OBJ 3D files straight in the browser and turn them around. It also tells you the triangle count and the width, depth and height. The file never leaves your device.",
+  "tools.mesh3d.lead": "Open without installing · turn it around · triangle count and size"
 }

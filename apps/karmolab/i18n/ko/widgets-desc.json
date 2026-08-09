@@ -22,6 +22,7 @@
   "widgets-desc.livecount.desc": "그날 이후 흐른 시간이 초 단위로 올라간다 — 하루 몇 번 기준 어림도",
   "widgets-desc.comparepic.desc": "사진 두 장을 겹쳐 밀어 보며 비교 — 파일은 기기 밖으로 나가지 않는다",
   "widgets-desc.charconv.desc": "전각·반각, 한글·로마자, 한글·자모를 한 곳에서 — 섞인 글자를 먼저 알려 준다",
+  "widgets-desc.mesh3d.desc": "STL·OBJ 를 열어 돌려 본다 — 삼각형 수·크기까지, 파일은 기기 밖으로 안 나간다",
   "widgets-desc.dailycho.desc": "초성만 보고 낱말 다섯 개 — 답은 이 사이트의 도구 이름",
   "widgets-desc.dailytype.desc": "매일 바뀌는 세 문장 — 전원 같은 문제, 결과는 격자로만 공유",
   "widgets-desc.chain.desc": "도구 여러 개를 이어서 한 번에 — 앞 결과가 다음 도구의 입력이 됩니다",

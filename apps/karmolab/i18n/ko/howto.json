@@ -490,5 +490,9 @@
   "howto.livecount.0": "기준 시각 고르기 (기념일·금연 시작일·출시일 등)",
   "howto.livecount.1": "숫자가 1초마다 올라갑니다",
   "howto.livecount.2": "하루 몇 번을 넣으면 지금까지 몇 번인지 어림해 줍니다",
-  "howto.livecount.3": "미래 날짜를 넣으면 남은 시간을 셉니다"
+  "howto.livecount.3": "미래 날짜를 넣으면 남은 시간을 셉니다",
+  "howto.mesh3d.0": "STL 또는 OBJ 파일 고르기 (글자 STL·이진 STL 둘 다 됩니다)",
+  "howto.mesh3d.1": "끌어서 돌리고, 휠이나 두 손가락으로 확대·축소",
+  "howto.mesh3d.2": "삼각형 수와 크기를 아래에서 확인",
+  "howto.mesh3d.3": "필요하면 지금 보이는 각도 그대로 PNG 로 저장"
 }

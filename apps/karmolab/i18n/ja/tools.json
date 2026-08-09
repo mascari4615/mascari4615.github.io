@@ -268,5 +268,7 @@
   "tools.comparepic.description": "写真2枚を重ねて、真ん中のつまみを動かして前後を比べます。見えているそのままを PNG で保存でき、ファイルは端末の外へ出ません。",
   "tools.comparepic.lead": "前後を重ねて動かす · サイズが違っても可 · PNG 保存",
   "tools.livecount.description": "基準の時刻からの経過時間が秒単位で増え続けます。月はカレンダー通りに数え、「1日何回」からおおよその回数も出します。",
-  "tools.livecount.lead": "秒単位で増える · カレンダー通り · おおよその換算"
+  "tools.livecount.lead": "秒単位で増える · カレンダー通り · おおよその換算",
+  "tools.mesh3d.description": "STL・OBJ の 3D ファイルをブラウザでそのまま開いて回して見られます。三角形の数と幅・奥行き・高さも教えます。ファイルは端末の外へ出ません。",
+  "tools.mesh3d.lead": "インストールなしで開く · 回して見る · 三角形の数とサイズ"
 }

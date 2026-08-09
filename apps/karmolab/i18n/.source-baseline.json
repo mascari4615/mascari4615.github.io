@@ -1,5 +1,5 @@
 {
-  "total": 5048,
+  "total": 4984,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -200,7 +200,7 @@
     "src/widgets/tierlist/dialogs.ts": 37,
     "src/widgets/tierlist/index.ts": 3,
     "src/widgets/tierlist/publish.ts": 33,
-    "src/widgets/tierlist/render.ts": 77,
+    "src/widgets/tierlist/render.ts": 13,
     "src/widgets/tierlist/storage.ts": 10,
     "src/widgets/tierlist/styles.ts": 1,
     "src/widgets/tierlist/tierlist.ts": 1,

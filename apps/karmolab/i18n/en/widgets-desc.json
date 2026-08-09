@@ -197,5 +197,6 @@
   "widgets-desc.dailycho.desc": "Five words from their initial consonants alone — the answers are tool names on this site",
   "widgets-desc.charconv.desc": "Full-width ⟷ half-width, Hangul ⟷ Roman letters, Hangul ⟷ jamo in one place — mixed characters are flagged first",
   "widgets-desc.comparepic.desc": "Stack two photos and slide between them — the files never leave your device",
-  "widgets-desc.livecount.desc": "The time since that day climbs by the second — with a rough count from “times a day” too"
+  "widgets-desc.livecount.desc": "The time since that day climbs by the second — with a rough count from “times a day” too",
+  "widgets-desc.mesh3d.desc": "Open an STL or OBJ and turn it around — triangle count and size too, and the file never leaves your device"
 }

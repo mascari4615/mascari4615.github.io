@@ -1,3 +1,5 @@
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function () {
     const T = ((window.Tierlist = window.Tierlist || {}) as unknown) as TierlistNamespace;
 
@@ -19,7 +21,7 @@
         const g = String(it?.tierlistGroup ?? it?.group ?? '')
             .toLowerCase()
             .trim();
-        if (g === 'karmo' || g === 'ranking' || g === 'instance' || g === '순위') return 'karmo';
+        if (g === 'karmo' || g === 'ranking' || g === 'instance' || g === t('tierlist.t24')) return 'karmo';
         return 'catalog';
     }
 
@@ -34,7 +36,7 @@
     }
 
     function optionsFromPublishedRows(rows: TlPublishedIndexItem[], meta: TlCurrentMetaView): string {
-        if (!rows.length) return '<option disabled>(항목 없음)</option>';
+        if (!rows.length) return t('tierlist.t36');
         return [...rows]
             .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko-KR'))
             .map((it) => {
@@ -52,14 +54,14 @@
             .map((l) => {
                 const val = `local:${l.id}`;
                 const sel = !T.state.isPublishedMode() && l.id === st.currentInstanceId;
-                return `<option value="${esc(val)}" ${sel ? 'selected' : ''}>${esc(l.title || '(제목 없음)')}</option>`;
+                return `<option value="${esc(val)}" ${sel ? 'selected' : ''}>${esc(l.title || t('tierlist.noTitle'))}</option>`;
             }).join('');
         const localOptgroup = localInst
-            ? `<optgroup label="로컬 순위">${localInst}</optgroup>`
-            : '<optgroup label="로컬 순위"><option disabled>(순위 없음)</option></optgroup>';
+            ? `<optgroup label="${esc(t('tierlist.localRanks'))}">${localInst}</optgroup>`
+            : t('tierlist.t37');
 
-        let catalogOpts = '<option disabled>(항목 없음)</option>';
-        let karmoOpts = '<option disabled>(항목 없음)</option>';
+        let catalogOpts = t('tierlist.t36');
+        let karmoOpts = t('tierlist.t36');
         try {
             const publishedRows = await T.publish.getPublishedIndex();
             const catalogRows: TlPublishedIndexItem[] = [];
@@ -70,8 +72,8 @@
             catalogOpts = optionsFromPublishedRows(catalogRows, meta);
             karmoOpts = optionsFromPublishedRows(karmoRows, meta);
         } catch (_) {
-            catalogOpts = '<option disabled>(index.json 로드 실패)</option>';
-            karmoOpts = '<option disabled>(index.json 로드 실패)</option>';
+            catalogOpts = t('tierlist.t38');
+            karmoOpts = t('tierlist.t38');
         }
 
         return `<select id="tl-list-select">
@@ -103,7 +105,7 @@
                         url: rel,
                         tierlistGroup: g === 'karmo' ? 'karmo' : 'catalog',
                     });
-                } catch (err) { Toolbox.showToast?.('사이트 데이터 열기 실패', 'error', err); }
+                } catch (err) { Toolbox.showToast?.(t('tierlist.t39'), 'error', err); }
             }
         });
     }
@@ -138,18 +140,18 @@
             const ids = Object.keys(items);
             const grid = ids.length
                 ? ids.map(cardHtmlCatalog).join('')
-                : '<div style="color:var(--text-tertiary);padding:24px;">이 풀에 항목이 없습니다.</div>';
+                : t('tierlist.t40');
 
             editorContainer.innerHTML = `<div class="tl-wrap tl-wrap--embedded">
-                <div class="tl-ribbon-embed" aria-hidden="true">카탈로그 · 후보 풀</div>
+                <div class="tl-ribbon-embed" aria-hidden="true">${esc(t('tierlist.t03'))}</div>
                 <div class="tl-toolbar">
                     ${selector}
                     <div class="tl-toolbar-spacer"></div>
-                    <button class="tl-btn tl-btn-primary" id="tl-fork-catalog">이 풀로 순위 만들기</button>
+                    <button class="tl-btn tl-btn-primary" id="tl-fork-catalog">${esc(t('tierlist.btn.tlforkcatalog'))}</button>
                     <button class="tl-btn" id="tl-btn-export-json">JSON</button>
                 </div>
                 <p style="font-size:13px;color:var(--text-tertiary);margin:0 0 12px;line-height:1.45;">
-                    여기는 <strong>순위 전</strong> 후보만 있어요. 아래를 확인한 뒤 <strong>이 풀로 순위 만들기</strong>를 누르면 로컬에 새 순위 보드가 생깁니다.
+                    ${esc(t('tierlist.t04'))} <strong>${esc(t('tierlist.t05'))}</strong> ${esc(t('tierlist.t06'))} <strong>${esc(t('tierlist.btn.tlforkcatalog'))}</strong>${esc(t('tierlist.t07'))}
                 </p>
                 <div class="tl-pool" style="min-height:120px;">${grid}</div>
             </div>`;
@@ -158,10 +160,10 @@
             editorContainer.querySelector('#tl-fork-catalog')?.addEventListener('click', async () => {
                 try {
                     await T.publish.forkPublishedCatalogToLocal();
-                    Toolbox.showToast?.('새 순위 인스턴스를 만들었어요');
+                    Toolbox.showToast?.(t('tierlist.t41'));
                     await renderAll();
                 } catch (err) {
-                    Toolbox.showToast?.('만들기 실패', 'error', err);
+                    Toolbox.showToast?.(t('tierlist.t42'), 'error', err);
                 }
             });
             editorContainer.querySelector('#tl-btn-export-json')?.addEventListener('click', () => T.publish.showJsonPreview());
@@ -173,8 +175,8 @@
         if (!list) {
             editorContainer.innerHTML = `<div class="tl-wrap"><div style="text-align:center; padding:48px 16px; color:var(--text-tertiary);">
                 <div style="font-size:32px; margin-bottom:12px;">📋</div>
-                <div>열린 순위 인스턴스가 없습니다</div>
-                <div style="margin-top:12px;"><button class="tl-btn tl-btn-primary" id="tl-empty-create">새 순위 만들기</button></div>
+                <div>${esc(t('tierlist.t08'))}</div>
+                <div style="margin-top:12px;"><button class="tl-btn tl-btn-primary" id="tl-empty-create">${esc(t('tierlist.btn.tlemptycreate'))}</button></div>
             </div></div>`;
             editorContainer.querySelector('#tl-empty-create')?.addEventListener('click', () => T.dialogs.showNewListDialog?.());
             return;
@@ -220,8 +222,8 @@
         function itemOriginBadge(item: TlItem | undefined): string {
             if (!item || (item.tlOrigin !== 'custom' && !item.tlEdited)) return '';
             const isAdd = item.tlOrigin === 'custom';
-            const label = isAdd ? '추가' : '수정';
-            const tip = isAdd ? '직접 추가한 항목입니다.' : '후보 풀에서 가져온 뒤 이름 등을 바꾼 항목입니다.';
+            const label = isAdd ? t('tierlist.btn.tlbtnadd') : t('tierlist.t43');
+            const tip = isAdd ? t('tierlist.t44') : t('tierlist.t45');
             const cls = isAdd ? 'tl-item-badge tl-item-badge--add' : 'tl-item-badge tl-item-badge--edit';
             return `<span class="${cls}" title="${esc(tip)}">${esc(label)}</span>`;
         }
@@ -243,20 +245,20 @@
 
         const isPublished = meta.source === 'published';
         const ribbon = isPublished
-            ? `<div class="tl-ribbon-embed" aria-hidden="true">${meta.tierlistGroup === 'karmo' ? 'Karmo · 순위' : '카탈로그 · 순위'}</div>`
+            ? `<div class="tl-ribbon-embed" aria-hidden="true">${meta.tierlistGroup === 'karmo' ? t('tierlist.t46') : t('tierlist.t47')}</div>`
             : '';
-        const localBadge = !isPublished && list ? '<span class="tl-badge tl-badge-local">로컬 순위</span>' : '';
+        const localBadge = !isPublished && list ? t('tierlist.t48') : '';
         const wrapClass = `${isPublished ? 'tl-wrap tl-wrap--embedded' : 'tl-wrap'} tl-wrap--toc-dock`;
 
         const tocChips = `${(list.tiers || []).map((tier) => {
             const col = esc(tier.color || '#ccc');
             const lab = esc(tier.label || '?');
             const tid = esc(tier.id);
-            return `<button type="button" class="tl-dropzone tl-toc-chip" data-tier-id="${tid}" data-toc-drop="1" style="background:${col}" title="${lab} 티어 맨 뒤로">${lab}</button>`;
+            return `<button type="button" class="tl-dropzone tl-toc-chip" data-tier-id="${tid}" data-toc-drop="1" style="background:${col}" title="${esc(t('tierlist.toTierEnd', { tier: lab }))}">${lab}</button>`;
         }).join('')}
-                <button type="button" class="tl-dropzone tl-toc-chip tl-toc-pool" data-tier-id="_pool" data-toc-drop="1" title="미배치 풀 맨 뒤로">미배치</button>`;
-        const tocNav = `<nav class="tl-toc tl-toc--dock" aria-label="티어 빠른 이동 (화면 고정)">
-                <span class="tl-toc-hint">티어로 드롭 · 클릭 시 줄 이동 · 스크롤해도 이 바는 화면에 고정</span>
+                <button type="button" class="tl-dropzone tl-toc-chip tl-toc-pool" data-tier-id="_pool" data-toc-drop="1" title="${esc(t('tierlist.t01'))}">${esc(t('tierlist.t09'))}</button>`;
+        const tocNav = `<nav class="tl-toc tl-toc--dock" aria-label="${esc(t('tierlist.t02'))}">
+                <span class="tl-toc-hint">${esc(t('tierlist.t10'))}</span>
                 <div class="tl-toc-chip-row">${tocChips}</div>
             </nav>`;
 
@@ -266,12 +268,12 @@
                 ${selector}
                 <div class="tl-toolbar-spacer"></div>
                 ${localBadge}
-                <button class="tl-btn" id="tl-btn-tiers" title="티어 이름·색·줄 순서">티어</button>
-                <button class="tl-btn" id="tl-btn-userlabels" title="카드에 달 색 라벨 만들기·정리">라벨</button>
-                <button class="tl-btn" id="tl-btn-add">추가</button>
-                <button type="button" class="tl-btn${editorDeleteMode ? ' tl-btn-toggle-on' : ''}" id="tl-btn-delete-mode" aria-pressed="${editorDeleteMode ? 'true' : 'false'}" title="직접 추가한 카드만 삭제. 풀 출처 카드는 삭제할 수 없어요. Ctrl+클릭·⌘+클릭 동일. Esc로 모드 해제.">삭제 모드</button>
-                <button class="tl-btn" id="tl-btn-export-img">캡처</button>
-                <button class="tl-btn" id="tl-btn-export-json" title="현재 순위·또는 후보 풀">JSON</button>
+                <button class="tl-btn" id="tl-btn-tiers" title="${esc(t('tierlist.title.tlbtntiers'))}">${esc(t('tierlist.btn.tlbtntiers'))}</button>
+                <button class="tl-btn" id="tl-btn-userlabels" title="${esc(t('tierlist.title.tlbtnuserlabels'))}">${esc(t('tierlist.btn.tlbtnuserlabels'))}</button>
+                <button class="tl-btn" id="tl-btn-add">${esc(t('tierlist.btn.tlbtnadd'))}</button>
+                <button type="button" class="tl-btn${editorDeleteMode ? ' tl-btn-toggle-on' : ''}" id="tl-btn-delete-mode" aria-pressed="${editorDeleteMode ? 'true' : 'false'}" title="${esc(t('tierlist.title.tlbtndeletemode'))}">${esc(t('tierlist.btn.tlbtndeletemode'))}</button>
+                <button class="tl-btn" id="tl-btn-export-img">${esc(t('tierlist.btn.tlbtnexportimg'))}</button>
+                <button class="tl-btn" id="tl-btn-export-json" title="${esc(t('tierlist.title.tlbtnexportjson'))}">JSON</button>
             </div>
             <div class="tl-board" id="tl-editor-board">`;
 
@@ -285,7 +287,7 @@
 
         html += `</div>
             <div class="tl-pool-section">
-                <div class="tl-pool-header"><span class="tl-pool-title">미배치</span></div>
+                <div class="tl-pool-header"><span class="tl-pool-title">${esc(t('tierlist.t09'))}</span></div>
                 <div class="tl-pool" data-tier-id="_pool">${(list.rankings?._pool || []).map(cardHtml).join('')}</div>
             </div>
             ${tocNav}
@@ -304,13 +306,13 @@
             const tocAppend = Number(insertIdx) >= 999999;
             let dest: string;
             if (tierId === '_pool') {
-                dest = tocAppend ? '미배치 풀 맨 뒤' : '미배치';
+                dest = tocAppend ? t('tierlist.t49') : t('tierlist.t09');
             } else {
-                const t = (list!.tiers || []).find((x) => x.id === tierId);
-                const lab = String(t?.label || '').trim() || '티어';
-                dest = tocAppend ? `${lab} 맨 뒤` : lab;
+                const tier = (list!.tiers || []).find((x) => x.id === tierId);
+                const lab = String(tier?.label || '').trim() || '티어';
+                dest = tocAppend ? t('tierlist.tierEnd', { tier: lab }) : lab;
             }
-            Toolbox.showToast?.(`「${disp}」→ ${dest}`);
+            Toolbox.showToast?.(t('tierlist.moved', { item: disp, to: dest }));
         }
 
         T.dnd.initDnD(wrap, {
@@ -355,14 +357,14 @@
                     const now = Date.now();
                     if (now - lastQuickDeleteBlockedToastAt > 2000) {
                         lastQuickDeleteBlockedToastAt = now;
-                        Toolbox.showToast?.('풀 출처 카드는 삭제할 수 없어요. 직접 추가한 카드만 삭제 모드·Ctrl+클릭으로 지울 수 있어요.', 'error');
+                        Toolbox.showToast?.(t('tierlist.t50'), 'error');
                     }
                     return;
                 }
                 me.preventDefault();
                 me.stopPropagation();
                 if (!T.state.removeItem(itemId)) {
-                    Toolbox.showToast?.('후보 풀 카드는 삭제할 수 없어요.', 'error');
+                    Toolbox.showToast?.(t('tierlist.t51'), 'error');
                     return;
                 }
                 renderAll();
@@ -391,12 +393,12 @@
             const itemId = itemEl.dataset.itemId;
             if (!itemId) return;
             const menu: Array<{ label: string; danger?: boolean; action: () => void } | 'sep'> = [
-                { label: '편집', action: () => T.dialogs.showEditItemDialog?.(itemId) },
-                { label: '라벨…', action: () => T.dialogs.showAssignUserLabelsDialog?.(itemId) },
+                { label: t('tierlist.t52'), action: () => T.dialogs.showEditItemDialog?.(itemId) },
+                { label: t('tierlist.t53'), action: () => T.dialogs.showAssignUserLabelsDialog?.(itemId) },
             ];
             if (T.state.canResetItemFromPool(list!, itemId)) {
                 menu.push({
-                    label: '수정 초기화',
+                    label: t('tierlist.t54', undefined, "수정 초기화"),
                     action: () => {
                         T.publish.resetItemToCatalogDefault(itemId).then((ok) => { if (ok) renderAll(); });
                     },
@@ -405,11 +407,11 @@
             if (T.state.isItemRemovable(list!, itemId)) {
                 menu.push('sep');
                 menu.push({
-                    label: '삭제',
+                    label: t('tierlist.t55', undefined, "삭제"),
                     danger: true,
                     action: () => {
                         if (!T.state.removeItem(itemId)) {
-                            Toolbox.showToast?.('삭제할 수 없어요.', 'error');
+                            Toolbox.showToast?.(t('tierlist.t56'), 'error');
                             return;
                         }
                         renderAll();
@@ -436,29 +438,29 @@
         const meta = T.state.currentMeta();
 
         let html = `<div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-            <button class="tl-btn tl-btn-primary" id="tl-list-new-cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> 새 후보 풀</button>
-            <button class="tl-btn" id="tl-list-new">빈 순위 만들기</button>
-            <button class="tl-btn" id="tl-list-import">JSON 가져오기</button>
+            <button class="tl-btn tl-btn-primary" id="tl-list-new-cat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> ${esc(t('tierlist.t11'))}</button>
+            <button class="tl-btn" id="tl-list-new">${esc(t('tierlist.btn.tllistnew'))}</button>
+            <button class="tl-btn" id="tl-list-import">${esc(t('tierlist.btn.tllistimport'))}</button>
         </div>
         <div class="tl-list-section">
-            <h3 class="tl-list-section-title">후보 풀</h3>
+            <h3 class="tl-list-section-title">${esc(t('tierlist.t12'))}</h3>
             <p class="tl-list-section-desc">
-                <strong>카탈로그</strong>와 <strong>Karmo 순위</strong>는 저장소 기준 <code>apps/karmolab/data/tierlists/index.json</code>에 등록된 JSON입니다(배포 시 자동으로 불러옵니다).
-                <strong>로컬 후보 풀</strong> 카드를 누르면 그 주제로 <strong>새 순위 인스턴스</strong>가 만들어져 편집 탭으로 이동합니다.
+                <strong>${esc(t('tierlist.t13'))}</strong>${esc(t('tierlist.t14'))} <strong>${esc(t('tierlist.t15'))}</strong>${esc(t('tierlist.t16'))} <code>apps/karmolab/data/tierlists/index.json</code>${esc(t('tierlist.t17'))}
+                <strong>${esc(t('tierlist.t18'))}</strong> ${esc(t('tierlist.t19'))} <strong>${esc(t('tierlist.t20'))}</strong>${esc(t('tierlist.t21'))}
             </p>
             <div class="tl-embed-grids">
-                <h4 class="tl-list-subsection-title">카탈로그</h4>
-                <div id="tl-grid-embed-catalog" class="tl-list-grid">불러오는 중…</div>
-                <h4 class="tl-list-subsection-title">Karmo 순위</h4>
-                <div id="tl-grid-embed-karmo" class="tl-list-grid">불러오는 중…</div>
-                <h4 class="tl-list-subsection-title">로컬 후보 풀</h4>
-                <div id="tl-grid-local-pools" class="tl-list-grid">불러오는 중…</div>
+                <h4 class="tl-list-subsection-title">${esc(t('tierlist.t13'))}</h4>
+                <div id="tl-grid-embed-catalog" class="tl-list-grid">${esc(t('tierlist.label.tlgridembedcatalog'))}</div>
+                <h4 class="tl-list-subsection-title">${esc(t('tierlist.t15'))}</h4>
+                <div id="tl-grid-embed-karmo" class="tl-list-grid">${esc(t('tierlist.label.tlgridembedcatalog'))}</div>
+                <h4 class="tl-list-subsection-title">${esc(t('tierlist.t18'))}</h4>
+                <div id="tl-grid-local-pools" class="tl-list-grid">${esc(t('tierlist.label.tlgridembedcatalog'))}</div>
             </div>
         </div>
         <div class="tl-list-section" style="margin-top:28px;">
-            <h3 class="tl-list-section-title">로컬 순위 인스턴스</h3>
-            <p class="tl-list-section-desc">실제 티어판(S/A/… 배치)입니다. 카드를 누르면 그 순위를 이어서 편집합니다.</p>
-            <div id="tl-grid-instances" class="tl-list-grid">불러오는 중…</div>
+            <h3 class="tl-list-section-title">${esc(t('tierlist.t22'))}</h3>
+            <p class="tl-list-section-desc">${esc(t('tierlist.t23'))}</p>
+            <div id="tl-grid-instances" class="tl-list-grid">${esc(t('tierlist.label.tlgridembedcatalog'))}</div>
         </div>`;
 
         listContainer.innerHTML = html;
@@ -485,7 +487,7 @@
                 ? `${esc(countLine)} · ${esc(it.updatedAt || '—')}`
                 : `index.json · ${esc(it.updatedAt || '—')}`;
             const pillClass = grp === 'karmo' ? 'tl-pill-karmo' : 'tl-pill-catalog';
-            const pillLabel = grp === 'karmo' ? 'Karmo 순위' : '카탈로그';
+            const pillLabel = grp === 'karmo' ? t('tierlist.t15') : t('tierlist.t13');
             const karmoCls = grp === 'karmo' ? ' tl-list-card-embed--karmo' : '';
             return `<div class="tl-list-card tl-list-card-embed${karmoCls}${activeEmbed ? ' active' : ''}" data-embed-url="${esc(rel)}" data-embed-title="${esc(title)}" data-embed-id="${esc(it.id || '')}" data-embed-group="${esc(grp)}">
                 <div class="tl-list-pill-row"><span class="tl-pill ${pillClass}">${pillLabel}</span></div>
@@ -513,7 +515,7 @@
             let karmoEmbedHtml = '';
             if (blogErr) {
                 const errCell =
-                    '<div class="tl-list-empty" style="grid-column:1/-1;padding:20px;">index.json을 불러오지 못했습니다.</div>';
+                    t('tierlist.t57');
                 catalogEmbedHtml = errCell;
                 karmoEmbedHtml = errCell;
             } else {
@@ -531,15 +533,15 @@
                 const n = Object.keys(c.items || {}).length;
                 const date = new Date(c.updatedAt || Date.now());
                 catHtml += `<div class="tl-list-card tl-list-card-catalog" data-catalog-id="${esc(c.id)}">
-                    <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">로컬 후보 풀</span></div>
+                    <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">${esc(t('tierlist.t18'))}</span></div>
                     <div class="tl-list-card-title">${esc(c.title || '(이름 없음)')}</div>
                     <div class="tl-list-card-meta">총 ${n}개 · ${date.toLocaleDateString()} · 클릭 시 새 순위 생성</div>
                 </div>`;
             });
 
-            const emptyCat = '<div class="tl-list-empty" style="grid-column:1/-1;padding:24px;">등록된 카탈로그 항목이 없습니다.</div>';
-            const emptyKarmo = '<div class="tl-list-empty" style="grid-column:1/-1;padding:24px;">등록된 Karmo 순위가 없습니다.</div>';
-            const emptyLocal = '<div class="tl-list-empty" style="grid-column:1/-1;padding:24px;">로컬 후보 풀이 없습니다.</div>';
+            const emptyCat = t('tierlist.t58');
+            const emptyKarmo = t('tierlist.t59');
+            const emptyLocal = t('tierlist.t60');
 
             if (gridEmbedCatalog) {
                 gridEmbedCatalog.innerHTML = blogErr ? catalogEmbedHtml : catalogEmbedHtml || emptyCat;
@@ -559,7 +561,7 @@
                 const date = new Date(inst.updatedAt || Date.now());
                 const active = !T.state.isPublishedMode() && inst.id === st.currentInstanceId;
                 instHtml += `<div class="tl-list-card tl-list-card-instance${active ? ' active' : ''}" data-instance-id="${esc(inst.id)}">
-                    <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">순위</span></div>
+                    <div class="tl-list-pill-row"><span class="tl-pill tl-pill-cache">${esc(t('tierlist.t24'))}</span></div>
                     <div class="tl-list-card-title">${esc(inst.title || '(제목 없음)')}</div>
                     <div class="tl-list-card-meta">아이템 ${ic} · 배치 ${rc} · ${date.toLocaleDateString()}</div>
                 </div>`;
@@ -584,11 +586,11 @@
                             url: rel,
                             tierlistGroup: grp === 'karmo' ? 'karmo' : 'catalog',
                         });
-                        Toolbox.showToast?.('사이트 JSON을 열었어요');
+                        Toolbox.showToast?.(t('tierlist.t61'));
                         await renderAll();
                         goToTierlistEditTab();
                     } catch (err) {
-                        Toolbox.showToast?.('불러오기 실패', 'error', err);
+                        Toolbox.showToast?.(t('tierlist.t62'), 'error', err);
                     }
                 });
             });
@@ -599,11 +601,11 @@
                     if (!cid) return;
                     const c = T.state.getState().catalogs[cid];
                     if (!c || !Object.keys(c.items || {}).length) {
-                        Toolbox.showToast?.('후보가 비어 있어요. 우클릭으로 항목을 추가하세요.', 'error');
+                        Toolbox.showToast?.(t('tierlist.t63'), 'error');
                         return;
                     }
                     T.state.createInstanceFromLocalCatalog(cid);
-                    Toolbox.showToast?.('새 순위 인스턴스를 만들었어요');
+                    Toolbox.showToast?.(t('tierlist.t41'));
                     await renderAll();
                     goToTierlistEditTab();
                 });
@@ -612,15 +614,15 @@
                     const cid = card.dataset.catalogId;
                     if (!cid) return;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
-                        { label: '항목 추가', action: () => T.dialogs.showAddCatalogItemDialog?.(cid) },
+                        { label: t('tierlist.t64'), action: () => T.dialogs.showAddCatalogItemDialog?.(cid) },
                         {
-                            label: '삭제',
+                            label: t('tierlist.t55', undefined, "삭제"),
                             danger: true,
                             action: () => {
-                                if (!confirm('이 후보 풀과 이미지를 삭제할까요?')) return;
+                                if (!confirm(t('tierlist.t65'))) return;
                                 T.state.deleteCatalog(cid);
                                 void renderAll();
-                                Toolbox.showToast?.('후보 풀 삭제됨');
+                                Toolbox.showToast?.(t('tierlist.t66'));
                             },
                         },
                     ]);
@@ -641,21 +643,21 @@
                     if (!iid) return;
                     T.ui.showContextMenu(e.clientX, e.clientY, [
                         {
-                            label: '복제',
+                            label: t('tierlist.t67', undefined, "복제"),
                             action: () => {
                                 T.state.duplicateList(iid);
                                 void renderAll().then(() => goToTierlistEditTab());
-                                Toolbox.showToast?.('복제됨');
+                                Toolbox.showToast?.(t('tierlist.t68'));
                             },
                         },
                         {
-                            label: '삭제',
+                            label: t('tierlist.t55', undefined, "삭제"),
                             danger: true,
                             action: () => {
-                                if (!confirm('이 순위와 이미지를 삭제할까요?')) return;
+                                if (!confirm(t('tierlist.t69'))) return;
                                 T.state.deleteList(iid);
                                 void renderAll().then(() => goToTierlistEditTab());
-                                Toolbox.showToast?.('삭제됨');
+                                Toolbox.showToast?.(t('tierlist.t70'));
                             },
                         },
                     ]);
@@ -670,7 +672,7 @@
         const bundles = T.state.iterAllInstances();
 
         if (!bundles.length) {
-            statsContainer.innerHTML = '<div class="tl-list-empty"><div style="font-size:32px; margin-bottom:12px;">📊</div><div>통계를 표시할 순위 인스턴스가 없습니다</div></div>';
+            statsContainer.innerHTML = t('tierlist.t71');
             return;
         }
 
@@ -680,11 +682,11 @@
         bundles.forEach(({ list: l }) => {
             const itemCount = Object.keys(l.items || {}).length;
             totalItems += itemCount;
-            (l.tiers || []).forEach((t) => {
-                const count = (l.rankings?.[t.id] || []).length;
+            (l.tiers || []).forEach((tier) => {
+                const count = (l.rankings?.[tier.id] || []).length;
                 totalRanked += count;
-                const key = String(t.label || t.id || '?').toUpperCase();
-                tierCounts[key] = (tierCounts[key] || { count: 0, color: t.color || '#999' });
+                const key = String(tier.label || tier.id || '?').toUpperCase();
+                tierCounts[key] = (tierCounts[key] || { count: 0, color: tier.color || '#999' });
                 tierCounts[key].count += count;
             });
         });
@@ -693,13 +695,13 @@
 
         let html = `<div class="tl-stats">
             <div class="tl-stat-cards">
-                <div class="tl-stat-card"><div class="tl-stat-card-value">${bundles.length}</div><div class="tl-stat-card-label">순위 인스턴스</div></div>
-                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalItems}</div><div class="tl-stat-card-label">총 아이템</div></div>
-                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalRanked}</div><div class="tl-stat-card-label">배치 완료</div></div>
-                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalItems - totalRanked}</div><div class="tl-stat-card-label">미배치</div></div>
+                <div class="tl-stat-card"><div class="tl-stat-card-value">${bundles.length}</div><div class="tl-stat-card-label">${esc(t('tierlist.t25'))}</div></div>
+                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalItems}</div><div class="tl-stat-card-label">${esc(t('tierlist.t26'))}</div></div>
+                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalRanked}</div><div class="tl-stat-card-label">${esc(t('tierlist.t27'))}</div></div>
+                <div class="tl-stat-card"><div class="tl-stat-card-value">${totalItems - totalRanked}</div><div class="tl-stat-card-label">${esc(t('tierlist.t09'))}</div></div>
             </div>
             <div class="tl-stat-section">
-                <h4>티어별 분포</h4>`;
+                <h4>${esc(t('tierlist.t28'))}</h4>`;
 
         for (const [label, { count, color }] of Object.entries(tierCounts)) {
             const pct = Math.round((count / maxCount) * 100);
@@ -711,18 +713,18 @@
 
         html += `</div>
             <div class="tl-stat-section">
-                <h4>순위별 요약</h4>
+                <h4>${esc(t('tierlist.t29'))}</h4>
                 <table class="tl-stat-table">
-                    <thead><tr><th>출처</th><th>제목</th><th>카테고리</th><th>아이템</th><th>배치</th><th>최근 수정</th></tr></thead>
+                    <thead><tr><th>${esc(t('tierlist.t30'))}</th><th>${esc(t('tierlist.t31'))}</th><th>${esc(t('tierlist.t32'))}</th><th>${esc(t('tierlist.t33'))}</th><th>${esc(t('tierlist.t34'))}</th><th>${esc(t('tierlist.t35'))}</th></tr></thead>
                     <tbody>`;
 
         function sourceLabel(l: TlListInstance): string {
             const s = l.meta?.source || 'local';
-            if (s === 'from-local-catalog') return '로컬 후보 풀';
-            if (s === 'from-catalog') return '사이트 후보 풀';
-            if (s === 'published-draft') return '블로그 초안';
-            if (s === 'import') return '가져옴';
-            if (s === 'duplicate') return '복제';
+            if (s === 'from-local-catalog') return t('tierlist.t18');
+            if (s === 'from-catalog') return t('tierlist.t72');
+            if (s === 'published-draft') return t('tierlist.t73');
+            if (s === 'import') return t('tierlist.t74');
+            if (s === 'duplicate') return t('tierlist.t67');
             return s;
         }
 
@@ -731,7 +733,7 @@
             const rc = Object.entries(l.rankings || {}).filter(([k]) => k !== '_pool').reduce((s, [, arr]) => s + (Array.isArray(arr) ? arr.length : 0), 0);
             html += `<tr>
                 <td>${esc(sourceLabel(l))}</td>
-                <td>${esc(l.title || '(제목 없음)')}</td>
+                <td>${esc(l.title || t('tierlist.noTitle'))}</td>
                 <td>${esc(l.category || '-')}</td>
                 <td>${ic}</td>
                 <td>${rc}</td>
