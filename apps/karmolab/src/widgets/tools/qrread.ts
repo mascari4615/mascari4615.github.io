@@ -10,6 +10,8 @@
  *
  * 해독은 브라우저에 그 기능이 있으면 그걸 쓰고(내려받을 것이 없다), 없을 때만 해독기를 받는다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface Detector {
     detect: (src: CanvasImageSource) => Promise<Array<{ rawValue: string }>>;
@@ -28,34 +30,34 @@
         const i = seg.indexOf(':');
         if (i > 0) parts[seg.slice(0, i).toUpperCase()] = seg.slice(i + 1);
       }
-      rows.push(['종류', '와이파이 접속 정보']);
-      if (parts.S) rows.push(['망 이름', parts.S]);
-      if (parts.T) rows.push(['보안', parts.T]);
-      if (parts.P) rows.push(['비밀번호', parts.P]);
+      rows.push([t('qrread.kind'), t('qrread.kind.wifi')]);
+      if (parts.S) rows.push([t('qrread.wifi.ssid'), parts.S]);
+      if (parts.T) rows.push([t('qrread.wifi.security'), parts.T]);
+      if (parts.P) rows.push([t('qrread.wifi.password'), parts.P]);
       return rows;
     }
     if (/^BEGIN:VCARD/i.test(text)) {
-      rows.push(['종류', '연락처']);
+      rows.push([t('qrread.kind'), t('qrread.kind.contact')]);
       const name = text.match(/\nFN:(.*)/i);
       const tel = text.match(/\nTEL[^:]*:(.*)/i);
-      if (name) rows.push(['이름', name[1].trim()]);
-      if (tel) rows.push(['전화', tel[1].trim()]);
+      if (name) rows.push([t('qrread.contact.name'), name[1].trim()]);
+      if (tel) rows.push([t('qrread.contact.tel'), tel[1].trim()]);
       return rows;
     }
     if (/^(https?:)?\/\//i.test(text) || /^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(text)) {
       try {
         const u = new URL(/^https?:/i.test(text) ? text : 'https://' + text);
-        rows.push(['종류', '웹 주소']);
-        rows.push(['가는 곳', u.hostname]);
-        if (u.protocol !== 'https:') rows.push(['주의', '암호화되지 않은 연결(http)입니다']);
+        rows.push([t('qrread.kind'), t('qrread.kind.url')]);
+        rows.push([t('qrread.url.goesTo'), u.hostname]);
+        if (u.protocol !== 'https:') rows.push([t('qrread.url.warnLabel'), t('qrread.url.warnHttp')]);
         return rows;
       } catch {
         /* 주소처럼 보였지만 아니었다 */
       }
     }
-    if (/^mailto:/i.test(text)) return [['종류', '메일 주소'], ['받는 사람', text.slice(7)]];
-    if (/^tel:/i.test(text)) return [['종류', '전화번호'], ['번호', text.slice(4)]];
-    rows.push(['종류', '일반 글자']);
+    if (/^mailto:/i.test(text)) return [[t('qrread.kind'), t('qrread.kind.mail')], [t('qrread.mail.to'), text.slice(7)]];
+    if (/^tel:/i.test(text)) return [[t('qrread.kind'), t('qrread.kind.tel')], [t('qrread.tel.number'), text.slice(4)]];
+    rows.push([t('qrread.kind'), t('qrread.kind.text')]);
     return rows;
   }
 
@@ -70,16 +72,30 @@
       {
         id: 'app',
         label: 'QR 읽기',
+        /* 도구의 *자기 화면* 은 스크립트가 그린다 — 그래서 이 글은 찍을 때가 아니라 **여기서**
+           갈아 끼워야 한다. 그 언어 장에는 이 묶음이 머리말에 미리 박혀 있어 기다림이 0 이고,
+           앱 안(해시 주소)에서 열면 그때 한 번 받아온다. 받아온 **뒤에** 그리는 이유는
+           안 기다리고 그리면 화면에 열쇠 이름이 그대로 뜨기 때문이다. */
         build: function (container: HTMLElement): void {
+          void loadNamespace('qrread').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  function draw(container: HTMLElement): void {
+          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           container.innerHTML = `
             <div class="tool-drop" id="qrDrop">
               <input type="file" id="qrFile" accept="image/*" hidden>
-              QR 이 담긴 그림을 끌어다 놓거나 눌러서 고르세요 (붙여넣기도 됩니다)
+              ${esc(t('qrread.drop'))}
             </div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="qrCam">카메라로 읽기</button>
-              <button class="btn btn-ghost" id="qrStop" style="display:none;">카메라 끄기</button>
+              <button class="btn btn-ghost" id="qrCam">${esc(t('qrread.btn.camera'))}</button>
+              <button class="btn btn-ghost" id="qrStop" style="display:none;">${esc(t('qrread.btn.cameraOff'))}</button>
             </div>
 
             <video id="qrVideo" playsinline muted style="display:none; width:100%; max-height:320px; background:#000; border-radius:8px;"></video>
@@ -87,15 +103,15 @@
             <div class="tool-list" id="qrInfo"></div>
 
             <div class="field-group" id="qrResultWrap" style="display:none;">
-              <label class="field-label" for="qrOut">읽은 내용</label>
+              <label class="field-label" for="qrOut">${esc(t('qrread.out.label'))}</label>
               <textarea id="qrOut" rows="4" spellcheck="false" style="width:100%;"></textarea>
               <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                <button class="btn btn-ghost btn-sm" id="qrCopy">복사</button>
-                <a class="btn btn-ghost btn-sm" id="qrOpen" target="_blank" rel="noopener noreferrer" style="display:none;">열기</a>
+                <button class="btn btn-ghost btn-sm" id="qrCopy">${esc(t('qrread.btn.copy'))}</button>
+                <a class="btn btn-ghost btn-sm" id="qrOpen" target="_blank" rel="noopener noreferrer" style="display:none;">${esc(t('qrread.btn.open'))}</a>
               </div>
             </div>
 
-            <div class="tool-status" id="qrStatus">그림은 브라우저 안에서만 읽습니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="qrStatus">${esc(t('qrread.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -117,7 +133,6 @@
             status.textContent = m;
             status.className = 'tool-status' + (kind ? ' ' + kind : '');
           };
-          const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
           /** 브라우저에 읽는 기능이 있으면 그걸 쓴다 — 그러면 내려받을 것이 없다. */
           async function reader(): Promise<(cv: HTMLCanvasElement) => Promise<string | null>> {
@@ -130,10 +145,10 @@
               };
             }
             if (!jsqr) {
-              say('QR 해독기를 불러오는 중…');
+              say(t('qrread.status.loadingDecoder'));
               await Toolbox.ensureScript?.('vendor/jsqr.min');
               jsqr = (window as unknown as { jsQR?: JsQr }).jsQR || null;
-              if (!jsqr) throw new Error('QR 해독기를 불러오지 못했습니다');
+              if (!jsqr) throw new Error(t('qrread.error.decoderFailed'));
             }
             return async (cv) => {
               const ctx = cv.getContext('2d', { willReadFrequently: true });
@@ -155,10 +170,10 @@
               )
               .join('');
             const link = $<HTMLAnchorElement>('#qrOpen');
-            const isUrl = rows.some(([k]) => k === '가는 곳');
+            const isUrl = rows.some(([k]) => k === t('qrread.url.goesTo'));
             link.style.display = isUrl ? '' : 'none';
             if (isUrl) link.href = /^https?:/i.test(text) ? text : 'https://' + text;
-            say('읽었어요. 무엇인지 확인하고 여세요 — QR 은 눈으로 확인할 수 없습니다.', 'ok');
+            say(t('qrread.status.read'), 'ok');
             Toolbox.trackUse?.('read');
           }
 
@@ -175,7 +190,7 @@
             ctx.drawImage(bitmap, 0, 0, cv.width, cv.height);
             const text = await read(cv);
             if (!text) {
-              say('QR 을 찾지 못했어요. 코드가 잘리지 않았는지, 너무 흐리지 않은지 확인해 주세요.', 'error');
+              say(t('qrread.status.notFound'), 'error');
               return;
             }
             show(text);
@@ -186,7 +201,7 @@
             try {
               stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             } catch {
-              say('카메라를 쓸 수 없어요. 주소창의 자물쇠에서 카메라 권한을 허용해 주세요.', 'error');
+              say(t('qrread.status.noCamera'), 'error');
               return;
             }
             video.srcObject = stream;
@@ -194,7 +209,7 @@
             camBtn.style.display = 'none';
             stopBtn.style.display = '';
             await video.play();
-            say('QR 을 카메라에 비춰 주세요.');
+            say(t('qrread.status.pointCamera'));
 
             const cv = document.createElement('canvas');
             const tick = async (): Promise<void> => {
@@ -227,7 +242,7 @@
 
           drop.onclick = () => fileInput.click();
           fileInput.onchange = () => {
-            if (fileInput.files?.[0]) void fromImage(fileInput.files[0]).catch((e: Error) => say('읽는 중 문제가 생겼어요: ' + e.message, 'error'));
+            if (fileInput.files?.[0]) void fromImage(fileInput.files[0]).catch((e: Error) => say(t('qrread.status.readError', { message: e.message }), 'error'));
           };
           drop.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -238,25 +253,22 @@
             e.preventDefault();
             drop.classList.remove('over');
             const f = e.dataTransfer?.files?.[0];
-            if (f) void fromImage(f).catch((err: Error) => say('읽는 중 문제가 생겼어요: ' + err.message, 'error'));
+            if (f) void fromImage(f).catch((err: Error) => say(t('qrread.status.readError', { message: err.message }), 'error'));
           });
           // 캡처를 그대로 붙여 넣는 게 가장 잦은 쓰임이다
           container.addEventListener('paste', (e) => {
             const item = Array.from((e as ClipboardEvent).clipboardData?.items || []).find((i) => i.type.startsWith('image/'));
             const f = item?.getAsFile();
-            if (f) void fromImage(f).catch((err: Error) => say('읽는 중 문제가 생겼어요: ' + err.message, 'error'));
+            if (f) void fromImage(f).catch((err: Error) => say(t('qrread.status.readError', { message: err.message }), 'error'));
           });
 
-          camBtn.onclick = () => void startCam().catch((e: Error) => say('카메라를 켜지 못했어요: ' + e.message, 'error'));
+          camBtn.onclick = () => void startCam().catch((e: Error) => say(t('qrread.status.cameraError', { message: e.message }), 'error'));
           stopBtn.onclick = () => {
             stopCam();
-            say('카메라를 껐어요.');
+            say(t('qrread.status.cameraOff'));
           };
           $<HTMLButtonElement>('#qrCopy').onclick = () => {
-            void Toolbox.copyText?.(outEl.value, { message: '읽은 내용을 복사했어요' });
+            void Toolbox.copyText?.(outEl.value, { message: t('qrread.copied') });
           };
-        }
-      }
-    ]
-  });
+  }
 })();

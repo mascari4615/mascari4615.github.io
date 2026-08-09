@@ -146,7 +146,18 @@ function localizeToolPage(source, id, code) {
     bare,
     site: SITE,
     codes,
-    namespaces: ['site', 'shell', 'widgets', 'widgets-desc', 'toolpage', 'tools']
+    /* 그 도구 **자기 화면**의 말이 따로 있으면 같이 박는다 (`i18n/<언어>/<도구>.json`).
+       도구 화면은 스크립트가 그리므로 그 글은 찍을 때가 아니라 열 때 갈린다 — 미리 박아 두면
+       그 순간 기다림이 0 이다(안 박으면 파일을 한 번 받아오는 동안 화면이 비어 있다). */
+    namespaces: [
+      'site',
+      'shell',
+      'widgets',
+      'widgets-desc',
+      'toolpage',
+      'tools',
+      ...(fs.existsSync(path.join(root, 'i18n', code, `${id}.json`)) ? [id] : [])
+    ]
   });
 
   const title = tr(code, `widgets.${id}.title`);

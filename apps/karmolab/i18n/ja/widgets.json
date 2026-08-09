@@ -185,5 +185,6 @@
   "widgets.toast.title": "トースト",
   "widgets.ytdownloader.title": "YouTube ダウンロード",
   "widgets.karmomap.title": "KarmoMap",
-  "widgets.bluemarble.title": "ブルーマーブル"
+  "widgets.bluemarble.title": "ブルーマーブル",
+  "widgets.pulse.title": "鼓動"
 }

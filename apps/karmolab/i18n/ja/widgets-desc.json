@@ -185,5 +185,6 @@
   "widgets-desc.orbita.desc": "軌道に色を打って作るポリリズム・シーケンサー — ブラウザシンセと MIDI 出力",
   "widgets-desc.collection.desc": "使った道具にスタンプが押される — いくつ埋まったか",
   "widgets-desc.karmomap.desc": "関係図・世界観・カード展開を描くキャンバス — 語彙パックを差し替えると使い道が変わります",
-  "widgets-desc.bluemarble.desc": "いまこの瞬間の地球 — 昼と夜、街の灯り、たった今の地震、頭上の ISS"
+  "widgets-desc.bluemarble.desc": "いまこの瞬間の地球 — 昼と夜、街の灯り、たった今の地震、頭上の ISS",
+  "widgets-desc.pulse.desc": "意味のないものをきわめて規則正しく流す放送局が7つ — 三文字·鐘·目盛り·単語·一行·模様·点"
 }
