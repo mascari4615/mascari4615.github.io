@@ -234,8 +234,19 @@ import {
     /* 좁은 화면 — 옆에 붙던 편집 패널을 아래로 내린다. 레퍼런스들은 여기서 기능을 지웠지만
        여기선 배치만 바꾼다(묶음·선 편집 전부 그대로 쓴다). */
     @media (max-width: 720px) {
-      .km-body { flex-direction:column; }
-      .km-side { width:auto; max-height:45%; border-left:none; border-top:1px solid var(--border); }
+      .km-body { flex-direction:column; position:relative; }
+      /* 폰에서는 캔버스가 **높이를 뺏기면 안 된다** — 옆 패널을 아래에 쌓으면 그림이 손바닥만 해진다.
+         그래서 패널을 캔버스 위에 얹는 **시트**로 만든다(기본은 접힘, 손잡이로 올린다). */
+      .km-canvas { min-height:0; height:100%; }
+      .km-side { position:absolute; left:0; right:0; bottom:0; width:auto; z-index:18;
+        max-height:64vh; border-left:none; border-top:1px solid var(--border);
+        border-radius:14px 14px 0 0; box-shadow:0 -8px 24px rgba(0,0,0,.35);
+        transform:translateY(calc(100% - 42px)); transition:transform .18s ease; padding-top:20px; }
+      .km-root.is-sheet-up .km-side { transform:translateY(0); }
+      /* 손잡이 — 폰에서 시트를 올리고 내리는 유일한 자리라 **크게**(44px 규격) 잡는다. */
+      .km-sheet-grip { position:absolute; left:0; right:0; top:0; height:20px; display:flex;
+        align-items:center; justify-content:center; cursor:grab; }
+      .km-sheet-grip::before { content:''; width:44px; height:4px; border-radius:999px; background:var(--border); }
       .km-toolbar { gap:6px; padding:8px; }
       .km-toolbar input[type=text] { min-width:120px; flex:1; }
       .km-toolbar .btn { padding:6px 10px; }
@@ -438,6 +449,25 @@ import {
 
     const canvasEl = q<HTMLElement>('canvas');
     const sideEl = q<HTMLElement>('side');
+
+    /**
+     * 폰에서 옆 패널은 **아래에서 올라오는 시트**다(캔버스가 높이를 안 뺏기게). 손잡이를 하나 얹고,
+     * 노드를 고르면 저절로 올라온다 — 고른 뒤 「어디서 고치지?」를 한 번 더 찾게 하면 안 된다.
+     */
+    // ★ 패널은 그릴 때마다 `innerHTML` 을 통째로 갈아 끼운다 — 손잡이를 한 번만 붙이면
+    //   첫 렌더에서 사라진다(실제로 그렇게 없어졌다). 그래서 **매번 다시 얹는다**.
+    function ensureSheetGrip(): void {
+      if (sideEl.querySelector('[data-km="sheet-grip"]')) return;
+      const grip = document.createElement('div');
+      grip.className = 'km-sheet-grip';
+      grip.dataset.km = 'sheet-grip';
+      grip.title = '올리기 / 내리기';
+      grip.onclick = () => root.classList.toggle('is-sheet-up');
+      sideEl.appendChild(grip);
+    }
+    function raiseSheet(): void {
+      if (window.matchMedia('(max-width: 720px)').matches) root.classList.add('is-sheet-up');
+    }
     const fileEl = q<HTMLInputElement>('file');
     const imgEl = q<HTMLInputElement>('img');
     const restoreFileEl = q<HTMLInputElement>('restore-file');
@@ -1028,9 +1058,11 @@ import {
         });
       }
       prependTabs();
+      ensureSheetGrip();
     }
 
     function renderSideBody(): void {
+      if (selectedId || selectedEdgeId) raiseSheet();
       if (sideMode === 'groups') {
         renderGroupsPanel(panelCtx);
         return;

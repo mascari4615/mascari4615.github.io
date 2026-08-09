@@ -1153,6 +1153,31 @@ await step('PNG 내보내기가 파일을 만든다', async () => {
   if (!download.suggestedFilename().endsWith('.png')) throw new Error('png 아님');
 });
 
+// ── 폰 화면 ──────────────────────────────────────────────────────────────────
+// 관계도는 **보는 일**이 폰에서 훨씬 많다(링크 받아 열기). 그런데 지금까지 폰 크기는 한 번도 안 봤다.
+await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널은 아래 시트로 뜬다', async () => {
+  const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const m = await phone.newPage();
+  await m.goto(URL, { waitUntil: 'domcontentloaded' });
+  await m.waitForSelector('.km-canvas', { timeout: 8000 });
+  await m.waitForTimeout(700);
+
+  const canvas = await m.locator('.km-canvas').boundingBox();
+  if (!canvas || canvas.height < 300) throw new Error(`폰에서 캔버스가 ${Math.round(canvas?.height ?? 0)}px — 그림이 손바닥만 하다`);
+
+  // 시트는 기본으로 **접혀** 있어야 한다(그림부터 보여야 한다).
+  const side = await m.locator('.km-side').boundingBox();
+  const down = side.y > canvas.y + canvas.height * 0.6;
+  if (!down) throw new Error('옆 패널이 폰에서 접혀 있지 않다');
+
+  // 손잡이로 올라온다 — 폰에서 시트를 여는 유일한 자리.
+  await m.locator('[data-km="sheet-grip"]').click();
+  await m.waitForTimeout(300);
+  const up = await m.locator('.km-side').boundingBox();
+  if (!(up.y < side.y - 40)) throw new Error('손잡이를 눌러도 시트가 안 올라온다');
+  await phone.close();
+});
+
 await browser.close();
 
 console.log(errors.length ? `\nRESULT: FAIL (${errors.length})\n - ` + errors.join('\n - ') : '\nRESULT: PASS — 콘솔 에러 0');
