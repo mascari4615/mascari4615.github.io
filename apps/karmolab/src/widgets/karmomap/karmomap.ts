@@ -246,6 +246,10 @@ import {
        여기선 배치만 바꾼다(묶음·선 편집 전부 그대로 쓴다). */
     @media (max-width: 720px) {
       .km-body { flex-direction:column; position:relative; }
+      /* 폰에서 위젯 몸통이 **화면보다 길면** 접힌 시트가 화면 밖으로 나간다(스크롤해야 손잡이가 보인다).
+         그래서 남은 화면에 맞춘다 — 「--km-top」 은 위젯이 페이지에서 얼마나 내려와 있는지(JS 가 잰다),
+         「dvh」 는 주소창이 접히고 펴지는 만큼까지 따라가는 단위다(「vh」 는 안 따라간다). */
+      .km-root { height:calc(100dvh - var(--km-top, 160px) - 8px); min-height:340px; }
       /* 폰에서는 캔버스가 **높이를 뺏기면 안 된다** — 옆 패널을 아래에 쌓으면 그림이 손바닥만 해진다.
          그래서 패널을 캔버스 위에 얹는 **시트**로 만든다(기본은 접힘, 손잡이로 올린다). */
       .km-canvas { min-height:0; height:100%; }
@@ -664,6 +668,30 @@ import {
       savedTimer = setTimeout(() => el.classList.add('hidden'), 1400);
     }
     Toolbox.onDispose?.(() => { if (savedTimer) clearTimeout(savedTimer); });
+
+    /**
+     * 위젯이 페이지에서 얼마나 내려와 있는지를 CSS 에 알려 준다 (TASK-KL-202 방향④).
+     * 폰에서 몸통이 화면보다 길면 **접힌 시트의 손잡이가 화면 밖**이라, 옆 패널을 여는 유일한 길이
+     * 스크롤 뒤에 숨는다. 높이는 CSS 가 계산하고(`100dvh - --km-top`), 여기서는 자리만 잰다.
+     */
+    const syncViewportFit = (): void => {
+      const top = Math.max(0, Math.round(root.getBoundingClientRect().top + window.scrollY
+        - (document.scrollingElement?.scrollTop ?? 0)));
+      root.style.setProperty('--km-top', `${top}px`);
+    };
+    // 만드는 시점엔 아직 화면에 안 붙어 있을 수 있다(그때 재면 0 이 나와 화면 전체를 먹는다).
+    // 그래서 지금 한 번, 다음 그림 한 번, 그리고 위쪽 것들이 커지고 줄 때마다 다시 잰다.
+    syncViewportFit();
+    requestAnimationFrame(syncViewportFit);
+    window.addEventListener('resize', syncViewportFit);
+    window.addEventListener('orientationchange', syncViewportFit);
+    const fitObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(syncViewportFit) : null;
+    fitObserver?.observe(document.body);
+    Toolbox.onDispose?.(() => {
+      window.removeEventListener('resize', syncViewportFit);
+      window.removeEventListener('orientationchange', syncViewportFit);
+      fitObserver?.disconnect();
+    });
 
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);

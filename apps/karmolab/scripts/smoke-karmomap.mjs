@@ -1399,6 +1399,13 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   const bar = await m.locator('.km-toolbar').boundingBox();
   if (bar.height > 130) throw new Error(`폰에서 툴바가 ${Math.round(bar.height)}px — 여러 줄로 부풀었다`);
 
+  // 위젯 몸통이 화면보다 길면 **접힌 시트의 손잡이가 화면 밖**이라, 옆 패널을 여는 유일한 길이 스크롤 뒤에 숨는다.
+  const fits = await m.evaluate(() => {
+    const g = document.querySelector('[data-km="sheet-grip"]')?.getBoundingClientRect();
+    return { bottom: Math.round(g?.bottom ?? 0), win: window.innerHeight };
+  });
+  if (fits.bottom > fits.win) throw new Error(`접힌 시트 손잡이가 화면 밖이다: ${fits.bottom} > ${fits.win}`);
+
   // 손가락에는 손가락 크기를 준다 — 애플 44pt · 머티리얼 48dp. 34px 짜리 아이콘은 옆 것이 눌린다.
   const tooSmall = await m.evaluate(() => [...document.querySelectorAll('.km-toolbar .btn, [data-km="sheet-grip"]')]
     .map((el) => ({ km: el.dataset.km || (el.textContent || '').trim().slice(0, 6), r: el.getBoundingClientRect() }))
