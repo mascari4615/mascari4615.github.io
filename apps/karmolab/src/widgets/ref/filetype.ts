@@ -4,92 +4,98 @@
  * 「이 파일 뭐로 열지」 가 진짜 질문이라 확장자 이름만으로는 답이 안 된다.
  * 그래서 항목마다 **무엇이고 무엇으로 여는지**를 붙인다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /** [확장자, 이름, 설명·여는 방법] */
-  const F: Record<string, Array<[string, string, string]>> = {
+  /* 표는 **쓸 때** 짓는다 — 실려 오는 순간 지으면 말 묶음이 아직 없어 열쇠가 그대로 박힌다. */
+  const ft = (): Record<string, Array<[string, string, string]>> => ({
     이미지: [
-      ['.jpg', 'JPEG 사진', '사진에 적합 · 압축하면 화질이 조금씩 깎인다 (되돌릴 수 없음)'],
-      ['.png', 'PNG 이미지', '투명 배경 지원 · 화질 손실 없음 · 스크린샷·로고에 적합'],
-      ['.webp', 'WebP', '같은 화질에 용량이 작다 · 웹 표준 · 아주 오래된 프로그램은 못 연다'],
-      ['.avif', 'AVIF', 'WebP 보다 더 작다 · 지원 범위는 아직 좁다'],
-      ['.gif', 'GIF 움짤', '색이 256개뿐 · 짧은 애니메이션용'],
-      ['.svg', '벡터 이미지', '아무리 키워도 안 깨진다 · 실제 내용은 텍스트(XML)'],
-      ['.heic', '아이폰 사진', 'iOS 기본 형식 · 윈도우에서는 확장 프로그램이 필요'],
-      ['.psd', '포토샵 문서', '레이어 포함 · Photoshop·Photopea 로 연다'],
-      ['.raw / .cr2 / .nef', '카메라 원본', '보정 여지가 크다 · Lightroom 등 현상 프로그램 필요'],
-      ['.ico', '아이콘', '브라우저 탭·바탕화면 아이콘']
+      ['.jpg', t('filetype.t01'), t('filetype.t02')],
+      ['.png', t('filetype.t03'), t('filetype.t04')],
+      ['.webp', 'WebP', t('filetype.t05')],
+      ['.avif', 'AVIF', t('filetype.t06')],
+      ['.gif', t('filetype.t07'), t('filetype.t08')],
+      ['.svg', t('filetype.t09'), t('filetype.t10')],
+      ['.heic', t('filetype.t11'), t('filetype.t12')],
+      ['.psd', t('filetype.t13'), t('filetype.t14')],
+      ['.raw / .cr2 / .nef', t('filetype.t15'), t('filetype.t16')],
+      ['.ico', t('filetype.t17'), t('filetype.t18')]
     ],
     문서: [
-      ['.pdf', 'PDF 문서', '어디서 열어도 같은 모양 · 편집은 제한적'],
-      ['.docx', 'Word 문서', 'Word·한글·구글 문서에서 열림'],
-      ['.hwp / .hwpx', '한글 문서', '한컴오피스 · 관공서 문서에 많다 · 뷰어 무료 배포'],
-      ['.xlsx', 'Excel 표', '수식 포함 · 구글 시트에서도 열림'],
-      ['.pptx', 'PowerPoint 발표자료', ''],
-      ['.txt', '순수 텍스트', '서식 없음 · 어떤 편집기로도 열린다'],
-      ['.md', '마크다운', '기호로 서식을 표현하는 텍스트 · GitHub·노션'],
-      ['.csv', '쉼표로 나눈 표', '엑셀·프로그램 사이 데이터 주고받기 · 한글 깨짐은 인코딩 문제'],
-      ['.epub', '전자책', '글자 크기에 맞춰 줄이 다시 흐른다']
+      ['.pdf', t('filetype.t19'), t('filetype.t20')],
+      ['.docx', t('filetype.t21'), t('filetype.t22')],
+      ['.hwp / .hwpx', t('filetype.t23'), t('filetype.t24')],
+      ['.xlsx', t('filetype.t25'), t('filetype.t26')],
+      ['.pptx', t('filetype.t27'), ''],
+      ['.txt', t('filetype.t28'), t('filetype.t29')],
+      ['.md', t('filetype.t30'), t('filetype.t31')],
+      ['.csv', t('filetype.t32'), t('filetype.t33')],
+      ['.epub', t('filetype.t34'), t('filetype.t35')]
     ],
-    '압축·묶음': [
-      ['.zip', '기본 압축', '거의 모든 운영체제가 기본 지원'],
-      ['.7z', '7-Zip 압축', '압축률이 높다 · 7-Zip 필요'],
-      ['.rar', 'RAR 압축', '압축은 유료 · 해제는 무료 도구로 가능'],
-      ['.tar.gz / .tgz', '리눅스 묶음+압축', 'tar 로 묶고 gzip 으로 압축한 것'],
-      ['.iso', '디스크 이미지', '가상 드라이브로 마운트하거나 USB 로 굽는다'],
-      ['.dmg', '맥 설치 이미지', 'macOS 전용']
+    [t('filetype.t36')]: [
+      ['.zip', t('filetype.t37'), t('filetype.t38')],
+      ['.7z', t('filetype.t39'), t('filetype.t40')],
+      ['.rar', t('filetype.t41'), t('filetype.t42')],
+      ['.tar.gz / .tgz', t('filetype.t43'), t('filetype.t44')],
+      ['.iso', t('filetype.t45'), t('filetype.t46')],
+      ['.dmg', t('filetype.t47'), t('filetype.t48')]
     ],
-    '영상·소리': [
-      ['.mp4', 'MP4 영상', '가장 널리 쓰이는 영상 형식'],
-      ['.mkv', 'MKV 컨테이너', '자막·여러 음성 트랙을 담는다 · VLC 권장'],
-      ['.mov', '퀵타임 영상', '애플 기기 촬영본'],
-      ['.webm', '웹 영상', '브라우저 내장 재생에 적합'],
-      ['.mp3', 'MP3 음원', '손실 압축 · 호환성 최고'],
-      ['.flac', '무손실 음원', '원본 그대로 · 용량이 크다'],
-      ['.wav', '무압축 소리', '편집·녹음 작업용'],
-      ['.aac / .m4a', 'AAC 음원', '같은 용량에서 MP3 보다 낫다 · 애플 기본'],
-      ['.srt', '자막', '텍스트 파일 · 메모장으로 열어 고칠 수 있다']
+    [t('filetype.t49')]: [
+      ['.mp4', t('filetype.t50'), t('filetype.t51')],
+      ['.mkv', t('filetype.t52'), t('filetype.t53')],
+      ['.mov', t('filetype.t54'), t('filetype.t55')],
+      ['.webm', t('filetype.t56'), t('filetype.t57')],
+      ['.mp3', t('filetype.t58'), t('filetype.t59')],
+      ['.flac', t('filetype.t60'), t('filetype.t61')],
+      ['.wav', t('filetype.t62'), t('filetype.t63')],
+      ['.aac / .m4a', t('filetype.t64'), t('filetype.t65')],
+      ['.srt', t('filetype.t66'), t('filetype.t67')]
     ],
-    '코드·개발': [
-      ['.js / .ts', '자바스크립트 / 타입스크립트', '웹 동작을 담당 · .ts 는 타입이 붙은 것'],
-      ['.py', '파이썬', ''],
-      ['.json', 'JSON 데이터', '설정·API 응답에 쓰이는 구조화된 텍스트'],
-      ['.yml / .yaml', 'YAML 설정', '들여쓰기로 구조를 표현 · 탭 대신 공백만'],
-      ['.env', '환경 변수', '비밀 값이 들어간다 · 절대 공개 저장소에 올리지 말 것'],
-      ['.lock', '잠금 파일', '설치된 패키지 버전을 고정 · 직접 고치지 않는다'],
-      ['.log', '로그', '프로그램이 남긴 기록 · 문제 원인은 대개 여기 있다'],
-      ['.sh / .ps1 / .bat', '실행 스크립트', '출처를 모르면 열어서 내용부터 확인']
+    [t('filetype.t68')]: [
+      ['.js / .ts', t('filetype.t69'), t('filetype.t70')],
+      ['.py', t('filetype.t71'), ''],
+      ['.json', t('filetype.t72'), t('filetype.t73')],
+      ['.yml / .yaml', t('filetype.t74'), t('filetype.t75')],
+      ['.env', t('filetype.t76'), t('filetype.t77')],
+      ['.lock', t('filetype.t78'), t('filetype.t79')],
+      ['.log', t('filetype.t80'), t('filetype.t81')],
+      ['.sh / .ps1 / .bat', t('filetype.t82'), t('filetype.t83')]
     ],
-    '실행·시스템': [
-      ['.exe', '윈도우 프로그램', '출처가 불분명하면 실행하지 말 것'],
-      ['.msi', '윈도우 설치 관리자', ''],
-      ['.apk', '안드로이드 앱', '스토어 밖 설치는 위험이 따른다'],
-      ['.app', '맥 프로그램', '실은 폴더 · "패키지 내용 보기" 로 안을 볼 수 있다'],
-      ['.dll / .so', '공유 라이브러리', '프로그램이 갖다 쓰는 부품 · 혼자서는 실행 안 됨'],
-      ['.tmp', '임시 파일', '지워도 대개 문제없다'],
-      ['.lnk', '바로가기', '파일 자체가 아니라 위치를 가리키는 표지']
+    [t('filetype.t84')]: [
+      ['.exe', t('filetype.t85'), t('filetype.t86')],
+      ['.msi', t('filetype.t87'), ''],
+      ['.apk', t('filetype.t88'), t('filetype.t89')],
+      ['.app', t('filetype.t90'), t('filetype.t91')],
+      ['.dll / .so', t('filetype.t92'), t('filetype.t93')],
+      ['.tmp', t('filetype.t94'), t('filetype.t95')],
+      ['.lnk', t('filetype.t96'), t('filetype.t97')]
     ],
     글꼴: [
-      ['.ttf', '트루타입 글꼴', '가장 흔한 글꼴 형식'],
-      ['.otf', '오픈타입 글꼴', '합자·장식 같은 고급 기능 지원'],
-      ['.woff2', '웹 글꼴', '웹 페이지 전송용으로 압축된 것']
+      ['.ttf', t('filetype.t98'), t('filetype.t99')],
+      ['.otf', t('filetype.t100'), t('filetype.t101')],
+      ['.woff2', t('filetype.t102'), t('filetype.t103')]
     ]
-  };
+  });
 
   Toolbox.register({
     id: 'filetype',
-    title: '파일 확장자표',
+    title: t('widgets.filetype.title', undefined, "파일 확장자표"),
     category: 'ref',
-    desc: '확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지·문서·압축·코드 등',
+    desc: t('widgets-desc.filetype.desc', undefined, "확장자가 무슨 파일이고 무엇으로 여는지 찾아봅니다. 이미지·문서·압축·코드 등"),
     layout: 'wide',
     icon: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 15h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '확장자',
+        label: t('filetype.t106', undefined, "확장자"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '모르는 .exe 는 열지 마세요.' });
-          const items = Object.keys(F).flatMap((group) =>
-            F[group].map(([ext, label, desc]) => ({
+          void loadNamespace('filetype').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('filetype.t107') });
+          const table = ft();
+          const items = Object.keys(table).flatMap((group) =>
+            table[group].map(([ext, label, desc]) => ({
               copy: ext,
               glyph: ext,
               label,
@@ -100,11 +106,12 @@
           );
           window.RefTable?.build(container, {
             items,
-            placeholder: '확장자나 하려는 일로 찾기 (예: hwp, 압축, 자막, 글꼴)',
-            copyNoun: '확장자',
+            placeholder: t('filetype.t108'),
+            copyNoun: t('filetype.t106'),
             layout: 'list',
-            note: '확장자가 무엇이고 무엇으로 여는지 정리했습니다.'
+            note: t('filetype.t109')
           });
+                  });
         }
       }
     ]
