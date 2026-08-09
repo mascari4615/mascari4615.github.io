@@ -51,6 +51,7 @@ import { canRewireTo, isDropOnNode, releaseIntent } from './canvas-release';
 import { curveFromPointer, labelPosFromPointer } from './canvas-edgedrag';
 import { groupDelta, resizedBox, snappedPoint, worldDelta } from './canvas-drag';
 import { minimapRects, minimapWorthIt, paintMinimap } from './canvas-minimap';
+import { nextOverlapping } from './canvas-pick';
 import { buildLinkHandle, buildPhotoCard, buildSizeHandle } from './canvas-photo';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
@@ -268,6 +269,8 @@ export class GraphCanvas {
   private hintEl: SVGGElement | null = null;
   /** 누른 자리가 어느 선이었나 — 뗄 때 클릭으로 칠지 판단한다. */
   private pressEdgeId: string | null = null;
+  /** 겹친 선을 Shift+클릭으로 돌려 가며 고를 때, **직전에 고른 선**. */
+  private lastPickedEdgeId: string | null = null;
   /** 포커스 대상 id — null 이면 포커스 없음. */
   private focusIds: Set<string> | null = null;
   /**
@@ -362,6 +365,15 @@ export class GraphCanvas {
   }
 
   // ── 이벤트 ──────────────────────────────────────────────────────────────────
+
+  /** 이 자리에 겹쳐 있는 선들 — 위에 있는 것부터. */
+  private edgeIdsAt(clientX: number, clientY: number): string[] {
+    const under = document.elementsFromPoint(clientX, clientY);
+    return under
+      .filter((el) => el.classList?.contains('ck-edge-hit'))
+      .map((el) => (el as SVGElement).dataset.edgeId ?? '')
+      .filter(Boolean);
+  }
 
   /** 끌고 다니는 **임시 선** — 선 뽑기와 선 끝 다시 잇기가 같은 모양을 쓴다(다르면 다른 기능처럼 보인다). */
   private spawnTempEdge(): SVGPathElement {
@@ -812,7 +824,14 @@ export class GraphCanvas {
           panning: !!this.panning,
         });
         if (rel.kind === 'click-node') this.onNodeClick?.(rel.nodeId, e);
-        else if (rel.kind === 'click-edge') this.onEdgeClick?.(rel.edgeId);
+        else if (rel.kind === 'click-edge') {
+          // Shift+클릭 = **같은 자리에서 다음 선**. 겹친 선은 위에 있는 것만 계속 잡혀 아래 것을 못 고른다.
+          const pick = e.shiftKey
+            ? nextOverlapping(this.edgeIdsAt(e.clientX, e.clientY), this.lastPickedEdgeId)
+            : rel.edgeId;
+          this.lastPickedEdgeId = pick;
+          if (pick) this.onEdgeClick?.(pick);
+        }
         else if (rel.kind === 'click-background') this.onBackgroundClick?.();
         this.pressEdgeId = null;
       }
