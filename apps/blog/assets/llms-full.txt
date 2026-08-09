@@ -1,0 +1,149 @@
+---
+permalink: /llms-full.txt
+---
+
+# KarmoLab
+
+> 브라우저에서 바로 쓰는 도구 129개와 놀이. 설치·로그인 없이 열리고, **파일은 기기 밖으로 나가지 않습니다** (변환·계산이 전부 브라우저 안에서 끝납니다). 오픈소스.
+
+한국어가 기본입니다. 한국 규칙(만 나이 3종·사업자등록번호 검증숫자·대체공휴일·한글 자모·한영타)을 정확히 다루는 것이 이 사이트의 강점입니다.
+
+## AI 에이전트에게
+
+- 도구마다 정적 설명 페이지가 있습니다: `https://blog.mascari4615.com/karmolab/t/<도구id>/`
+- 주소로 바로 실행할 수 있습니다: `https://blog.mascari4615.com/karmolab/t/<도구id>/?op=<연산>&<칸>=<값>`
+  예) `https://blog.mascari4615.com/karmolab/t/base64/?op=encode&text=안녕`
+- **MCP 서버**가 있습니다 — 계산을 직접 호출하려면 이쪽이 정확합니다 (해시·난수·검증숫자처럼
+  지어내면 안 되는 값). 도구 17묶음: base64 · birth · bizno · csvjson · epoch · filehash · grade · hangulkey · hashgen · interest · jamo · loan · qrgen · tableconv · timecalc · uuidgen · vat
+
+## 도구 129개
+
+- [ascii](https://blog.mascari4615.com/karmolab/t/ascii/): 0~127 · 10진 · 16진 · 2진 · 제어문자 의미
+- [asciiart](https://blog.mascari4615.com/karmolab/t/asciiart/): 이미지 → 글자 그림 · 문자 세트 5종 · 텍스트·PNG 저장
+- [aspect](https://blog.mascari4615.com/karmolab/t/aspect/): 비율 유지 크기 · 화면비 목록 · 여백 계산
+- [audiocut](https://blog.mascari4615.com/karmolab/t/audiocut/): 파형 보기 · 구간 미리듣기 · 페이드 · MP3/WAV 저장
+- [audiofade](https://blog.mascari4615.com/karmolab/t/audiofade/): 끊김 자동 진단 · 필요한 만큼만 · 귀에 맞춘 곡선 · 업로드 없음
+- [audiojoin](https://blog.mascari4615.com/karmolab/t/audiojoin/): 표본율 자동 맞춤 · 사이 무음 · 이음매 페이드
+- [audiolevel](https://blog.mascari4615.com/karmolab/t/audiolevel/): 전후 파형 비교 · 고르게 + 키우기 2단계 · 들어 보고 저장 · 업로드 없음
+- [audiospeed](https://blog.mascari4615.com/karmolab/t/audiospeed/): 목소리 높이 유지 · 0.5~3배 · 받아쓰기용 0.75배 · 업로드 없음
+- [barcode](https://blog.mascari4615.com/karmolab/t/barcode/): Code128·EAN-13 · 검사 숫자 자동 · 여백 보장 · 업로드 없음
+- [base64](https://blog.mascari4615.com/karmolab/t/base64/): 한글 안 깨짐 · URL-safe · 양방향
+- [birth](https://blog.mascari4615.com/karmolab/t/birth/): 만/연/세는 나이 · 띠·별자리·탄생석 · 다음 생일 D-day
+- [bizno](https://blog.mascari4615.com/karmolab/t/bizno/): 검증 숫자 계산 · 사업자 구분 · 오타 걸러내기
+- [bmi](https://blog.mascari4615.com/karmolab/t/bmi/): 두 기준 비교 · 정상 범위 몸무게 · 표준체중
+- [bytesize](https://blog.mascari4615.com/karmolab/t/bytesize/): 1000 기준 · 1024 기준 · 표기 차이
+- [calc](https://blog.mascari4615.com/karmolab/t/calc/): 퍼센트 · 이자 · BMI · 단위 · 진법
+- [caseconv](https://blog.mascari4615.com/karmolab/t/caseconv/): camelCase · snake_case · kebab-case · 상수
+- [charcount](https://blog.mascari4615.com/karmolab/t/charcount/): 공백 포함·제외 · 바이트 · 원고지 · 읽는 시간 · 한도별 통과 여부
+- [charmap](https://blog.mascari4615.com/karmolab/t/charmap/): 특수문자 · 이모지 · HTML 엔티티 · ASCII
+- [checklist](https://blog.mascari4615.com/karmolab/t/checklist/): 주소로 공유 · 계정 없음 · 진행률 표시
+- [color](https://blog.mascari4615.com/karmolab/t/color/): HEX·RGB·HSL 변환 · 이미지에서 추출 · CSS 색 이름
+- [colorblind](https://blog.mascari4615.com/karmolab/t/colorblind/): 적·녹·청색맹 · 전색맹 · 구분 가능 판정
+- [colorconv](https://blog.mascari4615.com/karmolab/t/colorconv/): HEX·RGB·HSL·CMYK · 화면에서 색 집기 · 대비비·팔레트
+- [colorname](https://blog.mascari4615.com/karmolab/t/colorname/): 148색 · 이름 ↔ HEX · 계열별 보기
+- [contrast](https://blog.mascari4615.com/karmolab/t/contrast/): 대비비 · 접근성 기준 판정 · 통과 색 제안
+- [cron](https://blog.mascari4615.com/karmolab/t/cron/): 뜻풀이 · 다음 실행 시각 5개 · 자주 쓰는 예시
+- [crypto](https://blog.mascari4615.com/karmolab/t/crypto/): AES 암호화·복호화 · Base64 · URL 인코딩
+- [cssunit](https://blog.mascari4615.com/karmolab/t/cssunit/): px · rem · em · pt · % · 자주 쓰는 크기표
+- [csvjson](https://blog.mascari4615.com/karmolab/t/csvjson/): 양방향 · 구분자 선택 · 숫자 자동 인식
+- [datecalc](https://blog.mascari4615.com/karmolab/t/datecalc/): D-Day · 두 날짜 사이 · 평일만 · 100일·주년 기념일
+- [devtool](https://blog.mascari4615.com/karmolab/t/devtool/): JSON · JWT · 정규식 · 해시 · UUID · 크론 · URL · 암호화
+- [draw](https://blog.mascari4615.com/karmolab/t/draw/): 로또 · 사다리타기 · 추첨 · 팀 나누기
+- [duel](https://blog.mascari4615.com/karmolab/t/duel/): 몇 초짜리 미니게임 1대1 · 링크 하나로 바로 · 아무나랑 매칭 · 방을 서버에 두지 않음
+- [emoji](https://blog.mascari4615.com/karmolab/t/emoji/): 한국어 검색 · 분류별 · 눌러서 복사
+- [epoch](https://blog.mascari4615.com/karmolab/t/epoch/): 초·밀리초 자동 판별 · ISO · UTC · 지금 기준
+- [exifclean](https://blog.mascari4615.com/karmolab/t/exifclean/): 위치 좌표 확인 · 화질 손상 없이 제거 · 업로드 없음
+- [favicon](https://blog.mascari4615.com/karmolab/t/favicon/): 6가지 크기 · ico 포함 · 실제 크기 미리보기 · 붙일 코드 제공 · 업로드 없음
+- [filehash](https://blog.mascari4615.com/karmolab/t/filehash/): SHA-256·SHA-1·SHA-512 · 자동 대조
+- [filesplit](https://blog.mascari4615.com/karmolab/t/filesplit/): 조각 크기 선택 · 순서 자동 정렬 · 검사값으로 동일함 확인 · 업로드 없음
+- [filetool](https://blog.mascari4615.com/karmolab/t/filetool/): 이미지 일괄 변환 · 이어 붙이기 · 위치정보 지우기 · ZIP · 파일 나누기
+- [filetype](https://blog.mascari4615.com/karmolab/t/filetype/): 무슨 파일인가 · 무엇으로 여는가 · 분류별
+- [ghosttype](https://blog.mascari4615.com/karmolab/t/ghosttype/): 내 타자 기록이 주소가 된다 · 아무 글이나 걸고 겨루기 · 만료 없음
+- [gitcmd](https://blog.mascari4615.com/karmolab/t/gitcmd/): 상황으로 찾기 · 위험 명령 표시 · 눌러서 복사
+- [grade](https://blog.mascari4615.com/karmolab/t/grade/): 4.5·4.3 만점 · 가중 평균 · 목표 평점 역산
+- [gradient](https://blog.mascari4615.com/karmolab/t/gradient/): 실시간 미리보기 · 직선·퍼짐 · 방향 조절 · 탁함 비교 · CSS 복사
+- [hangulkey](https://blog.mascari4615.com/karmolab/t/hangulkey/): dkssud ↔ 안녕 · 즉시 변환 · 섞인 글은 조각마다 따로
+- [hashgen](https://blog.mascari4615.com/karmolab/t/hashgen/): MD5 · SHA-1 · SHA-256 · SHA-512 · 파일 체크섬 대조
+- [htmlentity](https://blog.mascari4615.com/karmolab/t/htmlentity/): &nbsp; · &lt; · &copy; — 마크업에 넣는 코드로 복사
+- [httpstatus](https://blog.mascari4615.com/karmolab/t/httpstatus/): 1xx~5xx · 이름 · 쓰는 상황 한 줄
+- [icsmake](https://blog.mascari4615.com/karmolab/t/icsmake/): 시간대 자동 처리 · 종일·반복·알림 · 규칙 어긋남 방지 · 업로드 없음
+- [imageedit](https://blog.mascari4615.com/karmolab/t/imageedit/): 자르기 · 크기·형식 변환 · 밝기 보정
+- [img2pdf](https://blog.mascari4615.com/karmolab/t/img2pdf/): A4·레터·B5·원본 크기 · 여백 조절
+- [imgbatch](https://blog.mascari4615.com/karmolab/t/imgbatch/): 일괄 변환 · 크기 제한 · JPG·PNG·WebP · ZIP
+- [imgmerge](https://blog.mascari4615.com/karmolab/t/imgmerge/): 세로·가로 선택 · 폭 맞추기 · 사이 여백 · 미리보기 · 업로드 없음
+- [imgresize](https://blog.mascari4615.com/karmolab/t/imgresize/): 긴 변·비율·용량 세 가지로 맞추기 · 브라우저 안에서
+- [interest](https://blog.mascari4615.com/karmolab/t/interest/): 적금 · 예금 · 대출 · 세후 금액
+- [jamo](https://blog.mascari4615.com/karmolab/t/jamo/): 초성 추출 · 자모 분해 · 자모 조합
+- [json2ts](https://blog.mascari4615.com/karmolab/t/json2ts/): 인터페이스 생성 · 배열 병합 · 선택 필드 표시
+- [jsonfmt](https://blog.mascari4615.com/karmolab/t/jsonfmt/): 정렬 · 트리 보기 · 경로 복사 · 오류 위치 · 흔한 실수 고치기
+- [jwt](https://blog.mascari4615.com/karmolab/t/jwt/): 헤더 · 페이로드 · 만료 시각 · 남은 시간
+- [keycode](https://blog.mascari4615.com/karmolab/t/keycode/): 누르면 바로 · event.key · event.code · keyCode
+- [ladder](https://blog.mascari4615.com/karmolab/t/ladder/): 최대 10명 · 경로를 눈으로 확인 · 결과 복사
+- [linebreak](https://blog.mascari4615.com/karmolab/t/linebreak/): 끊긴 줄 잇기 · 길이 맞춰 나누기 · 한 줄로
+- [listdiff](https://blog.mascari4615.com/karmolab/t/listdiff/): 교집합 · 차집합 · 합집합 · 순서 무관
+- [loan](https://blog.mascari4615.com/karmolab/t/loan/): 세 방식 비교 · 거치기간 · 더 갚으면 얼마나 아끼나 · 표 내려받기
+- [lorem](https://blog.mascari4615.com/karmolab/t/lorem/): 한글 더미 · 로렘 입숨 · 문단·문장·단어
+- [lotto](https://blog.mascari4615.com/karmolab/t/lotto/): 최대 20게임 · 고정수 · 제외수 · 홀짝 조건
+- [markdown](https://blog.mascari4615.com/karmolab/t/markdown/): GFM 기준 · 붙여넣을 조각 · 분류별 검색
+- [memo](https://blog.mascari4615.com/karmolab/t/memo/): 여러 장 · 자동 저장 · 이 브라우저 안에만
+- [moon](https://blog.mascari4615.com/karmolab/t/moon/): 오늘의 달 모양 · 위상 이름
+- [morse](https://blog.mascari4615.com/karmolab/t/morse/): 양방향 변환 · 한글 모스 · 소리·불빛 재생
+- [numword](https://blog.mascari4615.com/karmolab/t/numword/): 한글 읽기 · 숫자 되돌리기 · 금액 문구
+- [pace](https://blog.mascari4615.com/karmolab/t/pace/): 페이스 ↔ 속도 · 5K·10K·하프·풀코스 · 목표 역산
+- [palette](https://blog.mascari4615.com/karmolab/t/palette/): 4~64색 · HEX · RGB · CSS 변수 복사
+- [passgen](https://blog.mascari4615.com/karmolab/t/passgen/): 무작위 · 소리 나는 조각으로 외우기 쉽게 · 세기 확인
+- [pdf](https://blog.mascari4615.com/karmolab/t/pdf/): 합치기·나누기 · 용량 줄이기 · 서명 · 워터마크 · 글자 추출 · 업로드 없음
+- [pdf2img](https://blog.mascari4615.com/karmolab/t/pdf2img/): 배율 1~4배 · PNG·JPG · 페이지 지정
+- [pdf2text](https://blog.mascari4615.com/karmolab/t/pdf2text/): 줄·문단 복원 · 쪽 범위 지정 · 복사·txt 저장 · 업로드 없음
+- [pdfcompress](https://blog.mascari4615.com/karmolab/t/pdfcompress/): 첫 쪽 미리보기 · 화질·해상도 조절 · 결과 용량 표시 · 업로드 없음
+- [pdfcrop](https://blog.mascari4615.com/karmolab/t/pdfcrop/): 글자 살린 채 자르기 · 모든 장 같은 크기 · 스캔 얼룩 무시 · 업로드 없음
+- [pdfdiff](https://blog.mascari4615.com/karmolab/t/pdfdiff/): 글자 + 그림 대조 · 바뀐 자리만 형광 · 브라우저 안에서 끝
+- [pdfpagenum](https://blog.mascari4615.com/karmolab/t/pdfpagenum/): 표지 건너뛰기 · 본문부터 1로 · 「1 / 12」·「3쪽」 모양 · 업로드 없음
+- [pdfredact](https://blog.mascari4615.com/karmolab/t/pdfredact/): 글자가 실제로 사라짐 · 숨은 메모·주석까지 · 쪽수 유지 · 업로드 없음
+- [pdfsign](https://blog.mascari4615.com/karmolab/t/pdfsign/): 손으로 그리기 · 미리보기 위에서 자리 잡기 · 크기 조절 · 업로드 없음
+- [pdftool](https://blog.mascari4615.com/karmolab/t/pdftool/): 합치기 · 페이지 빼내기 · 지우기 · 돌리기
+- [pdfwatermark](https://blog.mascari4615.com/karmolab/t/pdfwatermark/): 한글 지원 · 진하기·크기·기울기 조절 · 업로드 없음
+- [percent](https://blog.mascari4615.com/karmolab/t/percent/): 할인율 · 증감률 · 비율 · 원래 값 되찾기
+- [pick](https://blog.mascari4615.com/karmolab/t/pick/): 뽑기 · 팀 나누기 · 순서 정하기
+- [qr](https://blog.mascari4615.com/karmolab/t/qr/): QR 만들기 · QR 읽기 · 내용 종류 안내
+- [qrgen](https://blog.mascari4615.com/karmolab/t/qrgen/): URL·WiFi·연락처 · 로고 얹기 · 만든 QR 을 직접 읽어 확인
+- [qrread](https://blog.mascari4615.com/karmolab/t/qrread/): 그림·붙여넣기·카메라 · 내용 종류 안내 · 업로드 없음
+- [radix](https://blog.mascari4615.com/karmolab/t/radix/): 2·8·10·16진수 동시 변환 · 임의 진법 2~36 · 비트 수
+- [redact](https://blog.mascari4615.com/karmolab/t/redact/): 덮는 게 아니라 지움 · 검은칠·모자이크 · 위치 정보도 함께 제거 · 업로드 없음
+- [reference](https://blog.mascari4615.com/karmolab/t/reference/): git · 마크다운 · HTTP · 단축키 · 확장자 · 키 코드
+- [regexref](https://blog.mascari4615.com/karmolab/t/regexref/): 기호 · 개수 · 위치 · 완성 패턴 · 자주 막히는 것
+- [regextest](https://blog.mascari4615.com/karmolab/t/regextest/): 실시간 매치 · 캡처 그룹 · 치환 미리보기 · 패턴 프리셋
+- [replace](https://blog.mascari4615.com/karmolab/t/replace/): 미리보기 · 낱말 단위 · 정규식 · 되돌리기
+- [screenrec](https://blog.mascari4615.com/karmolab/t/screenrec/): 화면·창 선택 · 화면 소리 + 마이크 · 진행 시간·용량 표시 · 업로드 없음
+- [shortcut](https://blog.mascari4615.com/karmolab/t/shortcut/): 윈도우 · 맥 · 브라우저 · VS Code · 한글 입력
+- [slug](https://blog.mascari4615.com/karmolab/t/slug/): 한글 로마자 · 공백 정리 · 여러 줄 한 번에
+- [sound](https://blog.mascari4615.com/karmolab/t/sound/): 녹음 · 자르기 · 크기 맞추기 · 잇기 · MP3/WAV
+- [specialchar](https://blog.mascari4615.com/karmolab/t/specialchar/): 화살표 · 별 · 도형 · 수학 · 단위 · 괄호 — 눌러서 복사
+- [subtitle](https://blog.mascari4615.com/karmolab/t/subtitle/): 시간 밀기 · 프레임 수 차이 보정 · SRT↔VTT · 첫 줄·끝 줄 대조 · 업로드 없음
+- [tableconv](https://blog.mascari4615.com/karmolab/t/tableconv/): 엑셀 붙여넣기 인식 · 마크다운 세로줄 정렬 · CSV·JSON 변환 · 칸 어긋남 경고
+- [text](https://blog.mascari4615.com/karmolab/t/text/): 글자수 · 정리 · 비교 · 표기법 · 한영타
+- [text2img](https://blog.mascari4615.com/karmolab/t/text2img/): 인스타·트위터 규격 · 자동 크기 맞춤 · 그라데이션 배경 · 서명 · 업로드 없음
+- [text2pdf](https://blog.mascari4615.com/karmolab/t/text2pdf/): A4 규격 · 한글·이모지 지원 · 글자 크기·줄 간격·여백 조절 · 첫 쪽 미리보기
+- [textclean](https://blog.mascari4615.com/karmolab/t/textclean/): 정렬 · 중복 제거 · 공백 정리 · 번호 매기기
+- [textdiff](https://blog.mascari4615.com/karmolab/t/textdiff/): 줄 안 글자까지 짚기 · 통합/나란히 보기 · 붙이는 즉시 비교
+- [textredact](https://blog.mascari4615.com/karmolab/t/textredact/): 8종 자동 탐지 · 카드번호 검사식 확인 · 같은 값은 같은 번호로 · 업로드 없음
+- [time](https://blog.mascari4615.com/karmolab/t/time/): 날짜 · D-Day · 타이머 · 세계 시차
+- [timecalc](https://blog.mascari4615.com/karmolab/t/timecalc/): 시각 더하기·빼기 · 근무시간 합계 · 소수 시간
+- [timecapsule](https://blog.mascari4615.com/karmolab/t/timecapsule/): 그날 전에는 아무도 못 여는 편지 · 맡아 두는 서버 없음 · 시계를 바꿔도 안 열림
+- [timer](https://blog.mascari4615.com/karmolab/t/timer/): 카운트다운 · 스톱워치 · 랩 기록 · 종료 알림음
+- [unitconv](https://blog.mascari4615.com/karmolab/t/unitconv/): 길이·무게·넓이·온도 · 평↔㎡ · 평당 가격까지
+- [urlparse](https://blog.mascari4615.com/karmolab/t/urlparse/): 인코딩 · 디코딩 · 파라미터 분해 · 추적 제거
+- [uuidgen](https://blog.mascari4615.com/karmolab/t/uuidgen/): UUID v4·v7 · ULID · NanoID · 랜덤 비밀번호
+- [vat](https://blog.mascari4615.com/karmolab/t/vat/): 더하기 · 빼내기 · 세 줄 복사
+- [video2audio](https://blog.mascari4615.com/karmolab/t/video2audio/): 길이·표본율·채널 확인 · MP3/WAV 저장 · 업로드 없음
+- [video2gif](https://blog.mascari4615.com/karmolab/t/video2gif/): 구간 미리보기 · 크기·초당 장수·색 수 조절 · 만든 뒤 미리보기 · 용량 예측
+- [video2img](https://blog.mascari4615.com/karmolab/t/video2img/): 지금 장면 한 장 · 몇 초마다 여러 장 · PNG/JPG/WebP · ZIP 저장 · 업로드 없음
+- [videocompress](https://blog.mascari4615.com/karmolab/t/videocompress/): 화면 크기·화질 선택 · 예상 용량 표시 · 결과 확인 후 저장 · 업로드 없음
+- [videorotate](https://blog.mascari4615.com/karmolab/t/videorotate/): 90·180·270도 · 가로세로 자동 전환 · 거울 뒤집기 · 소리 유지 · 업로드 없음
+- [videotool](https://blog.mascari4615.com/karmolab/t/videotool/): 영상 → GIF · 구간 자르기 · 용량 줄이기 · 사진 뽑기 · 소리 추출 · 화면 녹화
+- [videotrim](https://blog.mascari4615.com/karmolab/t/videotrim/): 구간 미리보기 · 소리 포함 · 결과 확인 후 저장 · 업로드 없음
+- [voicerec](https://blog.mascari4615.com/karmolab/t/voicerec/): 입력 크기 실시간 표시 · 무음·과다입력 경고 · MP3/WAV 저장
+- [wordfreq](https://blog.mascari4615.com/karmolab/t/wordfreq/): 빈도 순위 · 조사 떼기 · 어휘 다양도
+- [workdays](https://blog.mascari4615.com/karmolab/t/workdays/): 영업일 N일 뒤 날짜 · 두 날 사이 영업일 · 공휴일·대체공휴일 반영 · 뺀 날 목록
+- [worldclock](https://blog.mascari4615.com/karmolab/t/worldclock/): 도시 40여 곳 · 시차 · 서머타임 자동 반영
+- [ziptool](https://blog.mascari4615.com/karmolab/t/ziptool/): 묶기 · 목록 보기 · 파일별 꺼내기 · 압축 세기
