@@ -1,6 +1,11 @@
 import { isDesktop, invoke, listen } from '../tauri-bridge';
 
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   'use strict';
 
   const REPO_ROOT_PREF = 'karmolab_repo_root';
@@ -183,14 +188,6 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
   // TASK-KL-062 slice3b: 로컬 isKarmolabDesktop 폐기 → tauri-bridge isDesktop.
 
-  function esc(s: string): string {
-    if (Toolbox.escapeHtml) return Toolbox.escapeHtml(s);
-    return s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 
   /** `localdev_list_tracked` 반환값이 배열이 아니거나 섞여 있을 때 대비 */
   function normalizeLocaldevTrackedIds(raw: unknown): string[] {
@@ -243,11 +240,11 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     const configPath = '/apps/karmolab/data/servermonitor-config.json';
     try {
       const res = await fetch(configPath, { cache: 'no-cache' });
-      if (!res.ok) throw new Error('설정 파일을 찾을 수 없습니다.');
+      if (!res.ok) throw new Error(t('servermonitor.err.02'));
       return (await res.json()) as ServerMonitorConfig;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.error('[ServerMonitor] 설정 로드 실패:', msg);
+      console.error(t('servermonitor.t03'), msg);
       return { localMonitors: [] };
     }
   }
@@ -259,9 +256,9 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
   }
 
   function localStatusLabel(state: LocalCardState): string {
-    if (state === 'online') return '응답';
-    if (state === 'offline') return '무응답';
-    return 'HTTP 체크 없음';
+    if (state === 'online') return t('servermonitor.t04');
+    if (state === 'offline') return t('servermonitor.t05');
+    return t('servermonitor.t06');
   }
 
   type MergedServiceRow = {
@@ -306,9 +303,9 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     monitor: MergedServiceRow['monitor'],
     raw: LocalCardState | undefined
   ): string {
-    if (!monitor) return 'URL 모니터 없음';
-    if (!monitor.canPing) return 'HTTP 체크 없음';
-    if (raw === undefined) return '조회 전';
+    if (!monitor) return t('servermonitor.t07');
+    if (!monitor.canPing) return t('servermonitor.t06');
+    if (raw === undefined) return t('servermonitor.t08');
     return localStatusLabel(raw);
   }
 
@@ -371,12 +368,12 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
     const title = document.createElement('div');
     title.className = 'sm-desktop-section-title';
-    title.textContent = '환경 변수 (.env)';
+    title.textContent = t('servermonitor.t09');
 
     const hint = document.createElement('p');
     hint.className = 'sm-dev-hint';
     hint.textContent =
-      '페이지 하단에서 저장소 루트를 저장한 뒤 쓰세요. 경로는 servermonitor-config.json → envFiles 입니다. 비밀 값은 화면 공유에 주의하세요.';
+      t('servermonitor.t10');
 
     const grid = document.createElement('div');
     grid.className = 'sm-env-cards';
@@ -388,11 +385,11 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     void loadConfig().then((cfg) => {
       const files = cfg.envFiles ?? [];
       if (files.length === 0) {
-        grid.textContent = 'envFiles 항목이 없습니다.';
+        grid.textContent = t('servermonitor.t11');
         return;
       }
       if (!isDesktop()) {
-        grid.textContent = 'Tauri invoke를 사용할 수 없습니다.';
+        grid.textContent = t('servermonitor.t12');
         return;
       }
 
@@ -403,15 +400,15 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
         const card = document.createElement('div');
         card.className = 'sm-card sm-card--env';
 
-        const t = document.createElement('div');
-        t.className = 'sm-card-title';
-        t.textContent = f.label?.trim() || f.id;
+        const titleEl = document.createElement('div');
+        titleEl.className = 'sm-card-title';
+        titleEl.textContent = f.label?.trim() || f.id;
 
         const pathEl = document.createElement('div');
         pathEl.className = 'sm-env-path mono';
         pathEl.textContent = rel;
 
-        card.appendChild(t);
+        card.appendChild(titleEl);
         card.appendChild(pathEl);
 
         if (f.hint?.trim()) {
@@ -434,7 +431,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
         };
 
         actions.appendChild(
-          mk('탐색기', () => {
+          mk(t('servermonitor.t13'), () => {
             void (async () => {
               try {
                 await invoke('repofile_reveal', { relPath: rel });
@@ -445,7 +442,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           })
         );
         actions.appendChild(
-          mk('앱으로 열기', () => {
+          mk(t('servermonitor.t14'), () => {
             void (async () => {
               try {
                 await invoke('repofile_open_default', { relPath: rel });
@@ -462,18 +459,18 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
         const ta = document.createElement('textarea');
         ta.className = 'mono-input sm-env-ta';
         ta.spellcheck = false;
-        ta.setAttribute('aria-label', `${f.label || f.id} 환경 변수 내용`);
+        ta.setAttribute('aria-label', t('servermonitor.envOf', { name: f.label || f.id }));
 
         let loaded = false;
-        const btnEdit = mk('편집', () => {
+        const btnEdit = mk(t('servermonitor.t15'), () => {
           void (async () => {
             if (!editorWrap.hidden) {
               editorWrap.hidden = true;
-              btnEdit.textContent = '편집';
+              btnEdit.textContent = t('servermonitor.t15');
               return;
             }
             editorWrap.hidden = false;
-            btnEdit.textContent = '접기';
+            btnEdit.textContent = t('servermonitor.t16');
             if (loaded) return;
             try {
               const text = (await invoke('repofile_read', { relPath: rel })) as string;
@@ -484,7 +481,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
               if (msg.includes('FILE_NOT_FOUND')) {
                 ta.value = '';
                 loaded = true;
-                Toolbox.showToast?.('새 파일입니다. 저장 시 생성됩니다.', undefined, undefined);
+                Toolbox.showToast?.(t('servermonitor.t17'), undefined, undefined);
               } else {
                 Toolbox.showToast?.(msg, 'error', undefined);
               }
@@ -492,12 +489,12 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           })();
         });
 
-        const btnSave = mk('저장', () => {
+        const btnSave = mk(t('servermonitor.t18'), () => {
           void (async () => {
             try {
               await invoke('repofile_write', { relPath: rel, content: ta.value });
               loaded = true;
-              Toolbox.showToast?.('저장됨', undefined, undefined);
+              Toolbox.showToast?.(t('servermonitor.t19'), undefined, undefined);
             } catch (e: unknown) {
               Toolbox.showToast?.(e instanceof Error ? e.message : String(e), 'error', undefined);
             }
@@ -608,7 +605,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
     const rootLabel = document.createElement('div');
     rootLabel.className = 'sm-root-footer-label';
-    rootLabel.textContent = '저장소 루트 (레포 최상위)';
+    rootLabel.textContent = t('servermonitor.t20');
 
     const rootInput = document.createElement('input');
     rootInput.type = 'text';
@@ -619,18 +616,18 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     const saveRootBtn = document.createElement('button');
     saveRootBtn.className = 'btn btn-ghost btn-sm';
     saveRootBtn.type = 'button';
-    saveRootBtn.textContent = '저장';
+    saveRootBtn.textContent = t('servermonitor.t18');
     saveRootBtn.onclick = () => {
       void (async () => {
         const v = rootInput.value.trim();
         if (Toolbox.setPref) Toolbox.setPref(REPO_ROOT_PREF, v);
         if (!isDesktop()) {
-          Toolbox.showToast?.('Tauri invoke를 쓸 수 없습니다.', 'error', undefined);
+          Toolbox.showToast?.(t('servermonitor.t21'), 'error', undefined);
           return;
         }
         try {
           await invoke('localdev_set_repo_root', { path: v });
-          Toolbox.showToast?.('저장소 루트 저장됨', undefined, undefined);
+          Toolbox.showToast?.(t('servermonitor.t22'), undefined, undefined);
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
           Toolbox.showToast?.(msg, 'error', undefined);
@@ -641,7 +638,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     const refreshListBtn = document.createElement('button');
     refreshListBtn.className = 'btn btn-ghost';
     refreshListBtn.type = 'button';
-    refreshListBtn.textContent = '목록 새로고침';
+    refreshListBtn.textContent = t('servermonitor.t23');
 
     const listRow = document.createElement('div');
     listRow.className = 'sm-list-refresh-row';
@@ -668,7 +665,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
         try {
           tracked = normalizeLocaldevTrackedIds(await invoke('localdev_list_tracked'));
         } catch (e) {
-          console.warn('[ServerMonitor] localdev_list_tracked 실패 — 추적 상태를 표시할 수 없음', e);
+          console.warn(t('servermonitor.t24'), e);
           tracked = [];
         }
         try {
@@ -676,13 +673,13 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           if (raw && typeof raw === 'object') externalPids = raw;
           lastExternalPidsSnapshot = snapshotExternalPids(externalPids);
         } catch (e) {
-          console.warn('[ServerMonitor] localdev_list_external_pids 실패 — 외부 실행 표시 안 함', e);
+          console.warn(t('servermonitor.t25'), e);
         }
       }
 
       servicesWrap.replaceChildren();
       if (rows.length === 0) {
-        servicesWrap.textContent = 'localMonitors·devProfiles가 비어 있거나 설정을 불러오지 못했습니다.';
+        servicesWrap.textContent = t('servermonitor.t26');
         return;
       }
 
@@ -744,7 +741,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           const menuBtn = document.createElement('button');
           menuBtn.type = 'button';
           menuBtn.className = 'sm-menu-btn';
-          menuBtn.setAttribute('aria-label', '더보기');
+          menuBtn.setAttribute('aria-label', t('servermonitor.t27'));
           menuBtn.setAttribute('aria-expanded', 'false');
           menuBtn.textContent = '⋯';
           primary.appendChild(menuBtn);
@@ -761,7 +758,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           logWrap.hidden = !startExpanded;
           const hint = document.createElement('p');
           hint.className = 'sm-log-hint';
-          hint.textContent = '로그에 토큰·경로 등이 섞일 수 있습니다. 화면 공유·녹화 시 주의하세요.';
+          hint.textContent = t('servermonitor.t28');
           logPanelEl = document.createElement('div');
           logPanelEl.className = 'sm-log-panel mono';
           logPanelEl.setAttribute('role', 'log');
@@ -779,17 +776,17 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           stdinInput.autocomplete = 'off';
           const stdinSendable = isTracked;
           if (stdinSendable) {
-            stdinInput.placeholder = '명령 입력 후 Enter — 자식 프로세스 stdin 으로 전송';
+            stdinInput.placeholder = t('servermonitor.t29');
           } else {
             stdinInput.placeholder = isExternal
-              ? '외부 실행이라 stdin 핸들 없음'
-              : '시작 후 사용 가능';
+              ? t('servermonitor.t30')
+              : t('servermonitor.t31');
             stdinInput.disabled = true;
           }
           const stdinBtn = document.createElement('button');
           stdinBtn.type = 'submit';
           stdinBtn.className = 'btn btn-ghost sm-stdin-btn';
-          stdinBtn.textContent = '전송';
+          stdinBtn.textContent = t('servermonitor.t32');
           if (!stdinSendable) stdinBtn.disabled = true;
 
           // dev 러너 단축키 프리셋 (Vite r/u/o/q · jest/vitest a/f/p/q · jekyll r/q · node REPL .exit).
@@ -872,13 +869,13 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           // ── 첫 항목: 현재 상태에 맞는 단일 시작/종료 액션 ──
           let lifecycleItem: HTMLButtonElement;
           if (isTracked) {
-            lifecycleItem = mkMenuItem('■ 종료', () => {
+            lifecycleItem = mkMenuItem(t('servermonitor.t33'), () => {
               closeMenu();
               void (async () => {
                 if (!isDesktop()) return;
                 try {
                   await invoke('localdev_stop', { profileId: p.id });
-                  Toolbox.showToast?.(`${p.label} 종료 요청`, undefined, undefined);
+                  Toolbox.showToast?.(t('servermonitor.stopAsked', { name: p.label }), undefined, undefined);
                   await renderMergedServices();
                   triggerStatusFetchSoon(400);
                 } catch (e: unknown) {
@@ -888,13 +885,13 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
             });
             lifecycleItem.classList.add('sm-menu-item--stop');
           } else if (isExternal) {
-            lifecycleItem = mkMenuItem('✕ 외부 종료', () => {
+            lifecycleItem = mkMenuItem(t('servermonitor.t34'), () => {
               closeMenu();
               void (async () => {
                 if (!isDesktop()) return;
                 try {
                   const killed = (await invoke('localdev_stop_external', { profileId: p.id })) as number;
-                  Toolbox.showToast?.(`${p.label} 외부 ${killed}개 종료`, undefined, undefined);
+                  Toolbox.showToast?.(t('servermonitor.killedOutside', { name: p.label, n: killed }), undefined, undefined);
                   await renderMergedServices();
                   triggerStatusFetchSoon(400);
                 } catch (e: unknown) {
@@ -904,13 +901,13 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
             });
             lifecycleItem.classList.add('sm-menu-item--stop');
           } else {
-            lifecycleItem = mkMenuItem('▶ 시작', () => {
+            lifecycleItem = mkMenuItem(t('servermonitor.t35'), () => {
               closeMenu();
               void (async () => {
                 if (!isDesktop()) return;
                 try {
                   await invoke('localdev_start', { profileId: p.id });
-                  Toolbox.showToast?.(`${p.label} 시작됨`, undefined, undefined);
+                  Toolbox.showToast?.(t('servermonitor.started', { name: p.label }), undefined, undefined);
                   await renderMergedServices();
                   triggerStatusFetchSoon(800);
                 } catch (e: unknown) {
@@ -923,7 +920,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           menu.appendChild(lifecycleItem);
 
           // 로그: 메뉴 항목으로 이동 (별도 ▸ 토글 버튼 폐기)
-          const logToggleItem = mkMenuItem('로그', () => {
+          const logToggleItem = mkMenuItem(t('servermonitor.t36'), () => {
             const wasHidden = logWrap.hidden;
             logWrap.hidden = !wasHidden;
             menu.hidden = true;
@@ -943,7 +940,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
                 p.id,
                 logPanelEl,
                 streamActionBtns,
-                'npm install 완료'
+                t('servermonitor.t37')
               );
             });
             streamActionBtns.push(btnInstall);
@@ -961,7 +958,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
                 p.id,
                 logPanelEl,
                 streamActionBtns,
-                'deploy 완료'
+                t('servermonitor.t38')
               );
             });
             btnDeploy.title = `npm ${deployArgsFiltered.join(' ')} (${resolvedP.cwd})`;
@@ -995,7 +992,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           void ensureFollowListener();
           if (isDesktop()) {
             void invoke('localdev_follow_log', { profileId: p.id }).catch((e) => {
-              console.warn('[ServerMonitor] localdev_follow_log 실패', e);
+              console.warn(t('servermonitor.t39'), e);
             });
           }
         } else {
@@ -1039,7 +1036,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           lastExternalPidsSnapshot = snapshot;
           await renderMergedServices();
         } catch (e) {
-          console.warn('[ServerMonitor] 외부 PID 자동 폴링 실패', e);
+          console.warn(t('servermonitor.t40'), e);
         }
       })();
     }, EXTERNAL_PID_POLL_MS);
@@ -1092,8 +1089,8 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
     const refreshBtn = document.createElement('button');
     refreshBtn.type = 'button';
     refreshBtn.className = 'sm-refresh-icon-btn';
-    refreshBtn.title = '새로고침 (URL ping·프로세스 추적)';
-    refreshBtn.setAttribute('aria-label', '새로고침');
+    refreshBtn.title = t('servermonitor.t41');
+    refreshBtn.setAttribute('aria-label', t('servermonitor.t42'));
     refreshBtn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
 
@@ -1262,7 +1259,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
       const localTitle = document.createElement('div');
       localTitle.className = 'sm-desktop-section-title sm-local-title-text';
-      localTitle.textContent = '로컬';
+      localTitle.textContent = t('servermonitor.t01');
 
       localHeaderRow.appendChild(localTitle);
       localHeaderRow.appendChild(refreshWrap);
@@ -1270,7 +1267,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
       const localHint = document.createElement('p');
       localHint.className = 'sm-dev-hint';
       localHint.textContent =
-        '같은 id의 localMonitors·devProfiles는 카드 한 장에 묶입니다. 오른쪽 버튼으로 URL 응답·프로세스 추적을 갱신합니다.';
+        t('servermonitor.t43');
 
       localSection.appendChild(localHeaderRow);
       localSection.appendChild(localHint);
@@ -1297,7 +1294,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
       browserHeader.className = 'sm-local-header-row sm-browser-local-header';
       const bt = document.createElement('div');
       bt.className = 'sm-desktop-section-title sm-local-title-text';
-      bt.textContent = '로컬';
+      bt.textContent = t('servermonitor.t01');
       browserHeader.appendChild(bt);
       browserHeader.appendChild(refreshWrap);
       container.appendChild(browserHeader);
@@ -1309,11 +1306,11 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
      *   자동 polling 은 false — 카드 그대로 두고 ping/track 만 patch 해서 사용자가 펼쳐둔 로그가 살아남음.
      */
     async function fetchStatus(rerenderCards: boolean = false): Promise<void> {
-      setRefreshBusy(true, '불러오는 중');
+      setRefreshBusy(true, t('servermonitor.t44'));
       /* 데스크톱: 카드 영역은 비우지 않음(첫 접속도 골격 카드 먼저 그린 뒤 이 함수로 ping만 갱신) */
       if (!mergedServicesEl) {
         if (!statusBox.querySelector('.sm-cards .sm-card')) {
-          statusBox.innerHTML = '조회 중…';
+          statusBox.innerHTML = t('servermonitor.t45');
           statusBox.className = 'sm-status-wrap loading';
         }
       }
@@ -1345,7 +1342,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
             }
             const s = await pingLocal(meta.url!);
             pingDone++;
-            setRefreshBusy(true, totalPings ? `URL ${pingDone}/${totalPings}` : '확인 중');
+            setRefreshBusy(true, totalPings ? `URL ${pingDone}/${totalPings}` : t('servermonitor.t46'));
             localResults.push({ meta, state: s });
             pingState.byId[meta.id] = s;
             if (mergedServicesEl) {
@@ -1360,7 +1357,7 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
           })
         );
 
-        setRefreshBusy(true, '동기화 중');
+        setRefreshBusy(true, t('servermonitor.t47'));
 
         const localCardsHtml = localResults
           .map(({ meta, state }) => {
@@ -1383,18 +1380,18 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
         if (!mergedServicesEl) {
           statusBox.innerHTML = `
-          <div class="sm-section-label">로컬</div>
+          <div class="sm-section-label">${esc(t('servermonitor.t01'))}</div>
           <div class="sm-cards">${localCardsHtml || '<p class="sm-card-sub" style="grid-column:1/-1">localMonitors가 비어 있습니다.</p>'}</div>
         `;
           statusBox.className = 'sm-status-wrap';
         }
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : '알 수 없는 오류';
+        const msg = e instanceof Error ? e.message : t('servermonitor.t48');
         if (mergedServicesEl) {
-          Toolbox.showToast?.(`조회 실패: ${msg}`, 'error', undefined);
+          Toolbox.showToast?.(t('servermonitor.queryFailed', { why: msg }), 'error', undefined);
           skipFinalMergeRefresh = true;
         } else {
-          statusBox.innerHTML = `조회 실패: ${esc(msg)}`;
+          statusBox.innerHTML = t('servermonitor.queryFailed', { why: esc(msg) });
           statusBox.className = 'sm-status-wrap error';
         }
       } finally {
@@ -1448,6 +1445,17 @@ import { isDesktop, invoke, listen } from '../tauri-bridge';
 
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta!('servermonitor'),
-    tabs: [{ id: 'main', label: '상태', build }]
+    tabs: [
+      {
+        id: 'main',
+        label: t('servermonitor.tab.status', undefined, '상태'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('servermonitor').then(function () {
+            build(container);
+          });
+        }
+      }
+    ]
   });
 })();
