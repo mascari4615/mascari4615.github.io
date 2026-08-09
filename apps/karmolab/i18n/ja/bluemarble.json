@@ -43,5 +43,7 @@
   "bluemarble.line.moon2": "ここでは昼が二週間続き、夜も同じだけ続きます。",
   "bluemarble.line.mars": "火星です。一日が24時間37分、地球より少しゆっくり明るくなります。",
   "bluemarble.line.mars2": "いまこの瞬間も、私たちが送ったものが何台か走り回っています。",
-  "bluemarble.credit.mars": "火星地図: Solar System Scope (CC BY 4.0)"
+  "bluemarble.credit.mars": "火星地図: Solar System Scope (CC BY 4.0)",
+  "bluemarble.layer.clock": "時間帯リング",
+  "bluemarble.line.dawn": "いま午前2時から5時のあいだにある大都市が {n} か所あります。そこにも誰かは起きています。"
 }

@@ -43,5 +43,7 @@
   "bluemarble.line.moon2": "Here a day lasts two weeks, and so does the night.",
   "bluemarble.line.mars": "This is Mars. A day is 24 hours 37 minutes — it brightens a little slower than home.",
   "bluemarble.line.mars2": "Even right now, a few things we sent are still driving around up there.",
-  "bluemarble.credit.mars": "Mars map: Solar System Scope (CC BY 4.0)"
+  "bluemarble.credit.mars": "Mars map: Solar System Scope (CC BY 4.0)",
+  "bluemarble.layer.clock": "Hour ring",
+  "bluemarble.line.dawn": "{n} major cities are between 2 and 5 in the morning right now. Someone is awake there too."
 }
