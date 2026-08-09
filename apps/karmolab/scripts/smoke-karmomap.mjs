@@ -54,7 +54,7 @@ await step('위젯이 뜬다', async () => {
   await page.waitForSelector('.km-root', { timeout: 15000 });
 });
 await step('툴바 버튼 전부 있다', async () => {
-  for (const k of ['maps', 'new-kind', 'groups', 'terms', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
+  for (const k of ['maps', 'new-kind', 'undo', 'redo', 'bg', 'fit', 'story', 'png', 'export', 'import', 'clear']) {
     if (await page.locator(`[data-km="${k}"]`).count() === 0) throw new Error(`없음: ${k}`);
   }
 });
@@ -126,7 +126,7 @@ await step('종류 목록에 모든 갈래가 함께 보인다', async () => {
   if (opts < 20) throw new Error('종류가 ' + opts + '개뿐이다');
 });
 await step('묶음 패널이 열리고 묶음이 생긴다', async () => {
-  await page.click('[data-km="groups"]');
+  await page.click('[data-km="tab"][data-key="groups"]');
   await page.click('[data-km="group-add"]');
   await page.waitForSelector('.ck-group', { timeout: 4000 });
   await page.click('[data-km="group-close"]');
@@ -157,7 +157,7 @@ await step('묶음에 노드를 넣으면 감싸는 윤곽이 그려진다', asy
   );
 });
 await step('내 용어 패널에서 관계 종류 추가', async () => {
-  await page.click('[data-km="terms"]');
+  await page.click('[data-km="tab"][data-key="terms"]');
   await page.click('[data-km="t-add-edge"]');
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
@@ -178,7 +178,7 @@ await step('「많이 이어진 것을 크게」가 실제로 크게 만든다',
     return Math.round(el.getBoundingClientRect().width);
   });
   const before = await widthOf();
-  await page.click('[data-km="filter"]');
+  await page.click('[data-km="tab"][data-key="filter"]');
   await page.locator('[data-km="f-degree"]').check();
   await page.waitForFunction(
     (w) => {
@@ -283,14 +283,14 @@ await step('옆 패널 탭으로 아홉 패널을 오간다', async () => {
   }
 });
 await step('도움말이 할 수 있는 일을 다 보여 준다', async () => {
-  await page.click('[data-km="help"]');
+  await page.click('[data-km="tab"][data-key="help"]');
   await page.waitForSelector('[data-km="help-close"]', { timeout: 4000 });
   const rows = await page.locator('.km-help-row').count();
   if (rows < 20) throw new Error(`도움말 줄이 ${rows}개뿐이다`);
   await page.click('[data-km="help-close"]');
 });
 await step('관계망 읽기가 순위를 낸다', async () => {
-  await page.click('[data-km="sna"]');
+  await page.click('[data-km="tab"][data-key="sna"]');
   await page.waitForSelector('[data-km="sna-focus"]', { timeout: 4000 });
   const rows = await page.locator('[data-km="go-link"]').count();
   if (rows === 0) throw new Error('순위가 하나도 안 나왔다');
@@ -330,7 +330,7 @@ await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
   await page.fill('[data-km="edit-tags"]', '중요, 나중에');
   await page.locator('[data-km="edit-tags"]').blur();
   const before = await page.locator('.ck-node').count();
-  await page.click('[data-km="filter"]');
+  await page.click('[data-km="tab"][data-key="filter"]');
   const tagBox = page.locator('[data-km="f-tag"]').first();
   await tagBox.waitFor({ timeout: 4000 });
   await tagBox.uncheck();
@@ -341,7 +341,7 @@ await step('꼬리표를 붙이고 그 꼬리표로 거른다', async () => {
 await step('꼬리표로 색 입히기가 실제로 색을 바꾼다', async () => {
   const strokeOf = () => page.evaluate(() => document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '');
   const before = await strokeOf();
-  await page.click('[data-km="filter"]');
+  await page.click('[data-km="tab"][data-key="filter"]');
   await page.locator('[data-km="f-colortag"]').check();
   await page.waitForFunction((b) => {
     const v = document.querySelector('.ck-node .ck-node-bg')?.getAttribute('stroke') || '';
@@ -393,7 +393,7 @@ await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
 });
 await step('거르기로 노드 종류를 빼면 화면에서 사라진다', async () => {
   const before = await page.locator('.ck-node').count();
-  await page.click('[data-km="filter"]');
+  await page.click('[data-km="tab"][data-key="filter"]');
   const boxes = page.locator('[data-km="f-node"]');
   const n = await boxes.count();
   for (let i = 0; i < n; i += 1) await boxes.nth(i).uncheck();
