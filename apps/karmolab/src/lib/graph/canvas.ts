@@ -225,6 +225,12 @@ export class GraphCanvas {
   }
 
   /** node.kind → 색. 주입된 맵에 없으면 기본색. */
+  /** 노드 종류 색표를 갈아 끼운다 — 사용자가 자기 종류를 만들면 표가 늘어난다. */
+  setKindColors(colors: Record<string, string>): void {
+    this.kindColors = colors;
+    this.render();
+  }
+
   private colorForKind(kind: string): string {
     return this.kindColors[kind] ?? this.defaultKindColor;
   }
