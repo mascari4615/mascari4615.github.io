@@ -10,7 +10,7 @@ const STYLE_ID = 'kl-graph-canvas-styles';
 
 const CSS = `
 /* ── 노드 활성 하이라이트 ──────────────────────────────────────────────────── */
-.ck-node.is-active > rect:first-of-type {
+.ck-node.is-active > .ck-node-bg {
   stroke: #22d3ee !important;
   stroke-width: 2 !important;
   filter: url(#ck-glow);
@@ -25,7 +25,7 @@ const CSS = `
 }
 
 /* ── 선택 표시 (편집 UI 용 — 활성 하이라이트와 별개) ────────────────────────── */
-.ck-node.is-selected > rect:first-of-type {
+.ck-node.is-selected > .ck-node-bg {
   stroke: #f0abfc !important;
   stroke-width: 2.5 !important;
 }
@@ -39,6 +39,19 @@ const CSS = `
   stroke-dashoffset: 0;
   animation: ck-flow 0.8s linear infinite;
   stroke-opacity: 1 !important;
+}
+
+/* ── 연결 손잡이 — 노드에 올리거나 고르면 나타난다 (Miro/FigJam 의 파란 점) ── */
+.ck-link-handle {
+  opacity: 0;
+  cursor: crosshair;
+  transition: opacity .12s ease;
+}
+.ck-node:hover .ck-link-handle,
+.ck-node.is-selected .ck-link-handle { opacity: 1; }
+.ck-link-temp {
+  pointer-events: none;
+  stroke-dasharray: 5 4;
 }
 `;
 
