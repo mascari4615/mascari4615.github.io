@@ -29,6 +29,7 @@ import { renderHelpPanel } from './panels/help-panel';
 import { renderSnaPanel } from './panels/sna-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
+import { renderTermsPanel } from './panels/terms-panel';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -706,140 +707,6 @@ import {
       persistStructure();
     }
 
-    /** 화살표 상태 글자 — 없음 / 한쪽 / 양쪽. */
-    function arrowGlyph(e: { arrow: boolean; arrowStart?: boolean }): string {
-      if (e.arrow && e.arrowStart) return '↔';
-      return e.arrow ? '→' : '—';
-    }
-
-    function renderTermsPanel(): void {
-      sideEl.classList.remove('hidden');
-      canvas?.setSelectedNode(null);
-      const EDGE_STYLES: { id: string; label: string }[] = [
-        { id: 'solid', label: '실선' }, { id: 'dashed', label: '파선' }, { id: 'dotted', label: '점선' },
-        { id: 'wavy', label: '물결' }, { id: 'crack', label: '금간' },
-      ];
-      sideEl.innerHTML = `
-        <h4>🏷 내 용어</h4>
-        <div class="km-hint">팩에 없는 말은 직접 만드세요. 여기 만든 종류는 <b>모든 맵</b>에서 씁니다.</div>
-        <div class="km-field">
-          <label>내 노드 종류 ${terms.nodeKinds.length}개</label>
-          ${terms.nodeKinds
-            .map(
-              (k) => `<div class="km-group-row" data-term-node="${escapeAttr(k.id)}">
-                <input type="text" data-km="t-icon" maxlength="4" value="${escapeAttr(k.icon)}" title="아이콘" />
-                <input type="text" data-km="t-label" value="${escapeAttr(k.label)}" />
-                <input type="color" data-km="t-color" value="${escapeAttr(k.color)}" />
-                <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
-              </div>`
-            )
-            .join('') || '<div class="km-hint">아직 없습니다.</div>'}
-          <button class="btn btn-ghost" data-km="t-add-node">+ 노드 종류</button>
-        </div>
-        <div class="km-field">
-          <label>내 관계 종류 ${terms.edgeKinds.length}개</label>
-          ${terms.edgeKinds
-            .map(
-              (e) => `<div class="km-group-row" data-term-edge="${escapeAttr(e.id)}">
-                <input type="text" data-km="t-label" value="${escapeAttr(e.label)}" />
-                <input type="color" data-km="t-color" value="${escapeAttr(e.color)}" />
-                <select data-km="t-style">
-                  ${EDGE_STYLES.map((s) => `<option value="${s.id}"${s.id === e.style ? ' selected' : ''}>${s.label}</option>`).join('')}
-                </select>
-                <button class="btn btn-ghost" data-km="t-arrow" title="화살표 — 없음 / 한쪽 / 양쪽">${arrowGlyph(e)}</button>
-                <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
-              </div>`
-            )
-            .join('') || '<div class="km-hint">아직 없습니다.</div>'}
-          <button class="btn btn-ghost" data-km="t-add-edge">+ 관계 종류</button>
-        </div>
-        <button class="btn btn-ghost" data-km="t-close">닫기</button>`;
-
-      (sideEl.querySelector('[data-km="t-close"]') as HTMLButtonElement).onclick = () => {
-        sideMode = 'node';
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="t-add-node"]') as HTMLButtonElement).onclick = () => {
-        const taken = new Set([...terms.nodeKinds, ...terms.edgeKinds].map((k) => k.id));
-        terms.nodeKinds.push({ id: newTermId('n', taken), label: '새 종류', icon: '🔖', color: '#38bdf8' });
-        applyTerms();
-        renderSide();
-      };
-
-      (sideEl.querySelector('[data-km="t-add-edge"]') as HTMLButtonElement).onclick = () => {
-        const taken = new Set([...terms.nodeKinds, ...terms.edgeKinds].map((k) => k.id));
-        terms.edgeKinds.push({ id: newTermId('e', taken), label: '새 관계', color: '#38bdf8', style: 'solid', arrow: true });
-        applyTerms();
-        renderSide();
-      };
-
-      sideEl.querySelectorAll('[data-term-node]').forEach((rowEl) => {
-        const row = rowEl as HTMLElement;
-        const id = row.dataset.termNode ?? '';
-        const find = () => terms.nodeKinds.find((k) => k.id === id);
-        (row.querySelector('[data-km="t-icon"]') as HTMLInputElement).oninput = (ev) => {
-          const k = find(); if (!k) return;
-          k.icon = (ev.target as HTMLInputElement).value || '🔖';
-          applyTerms();
-        };
-        (row.querySelector('[data-km="t-label"]') as HTMLInputElement).oninput = (ev) => {
-          const k = find(); if (!k) return;
-          k.label = (ev.target as HTMLInputElement).value;
-          applyTerms();
-        };
-        (row.querySelector('[data-km="t-color"]') as HTMLInputElement).oninput = (ev) => {
-          const k = find(); if (!k) return;
-          k.color = (ev.target as HTMLInputElement).value;
-          applyTerms();
-        };
-        (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
-          // 이미 그 종류로 놓아둔 노드는 건드리지 않는다 — 이름·색만 잃고 그림은 남는다.
-          terms.nodeKinds = terms.nodeKinds.filter((k) => k.id !== id);
-          applyTerms();
-          renderSide();
-        };
-      });
-
-      sideEl.querySelectorAll('[data-term-edge]').forEach((rowEl) => {
-        const row = rowEl as HTMLElement;
-        const id = row.dataset.termEdge ?? '';
-        const find = () => terms.edgeKinds.find((k) => k.id === id);
-        (row.querySelector('[data-km="t-label"]') as HTMLInputElement).oninput = (ev) => {
-          const e = find(); if (!e) return;
-          e.label = (ev.target as HTMLInputElement).value;
-          applyTerms();
-        };
-        (row.querySelector('[data-km="t-color"]') as HTMLInputElement).oninput = (ev) => {
-          const e = find(); if (!e) return;
-          e.color = (ev.target as HTMLInputElement).value;
-          applyTerms();
-          canvas?.render();
-        };
-        (row.querySelector('[data-km="t-style"]') as HTMLSelectElement).onchange = (ev) => {
-          const e = find(); if (!e) return;
-          e.style = (ev.target as HTMLSelectElement).value as typeof e.style;
-          applyTerms();
-          canvas?.render();
-        };
-        (row.querySelector('[data-km="t-arrow"]') as HTMLButtonElement).onclick = (ev) => {
-          const e = find(); if (!e) return;
-          // 없음 → 한쪽 → 양쪽 → 없음. 세 상태를 버튼 하나로 돈다.
-          if (!e.arrow && !e.arrowStart) { e.arrow = true; }
-          else if (e.arrow && !e.arrowStart) { e.arrowStart = true; }
-          else { e.arrow = false; e.arrowStart = false; }
-          (ev.currentTarget as HTMLButtonElement).textContent = arrowGlyph(e);
-          applyTerms();
-          canvas?.render();
-        };
-        (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
-          terms.edgeKinds = terms.edgeKinds.filter((k) => k.id !== id);
-          applyTerms();
-          renderSide();
-        };
-      });
-    }
-
     /** 거르기 패널 — 종류 체크를 끄면 그 종류가 화면에서 빠진다(자료는 그대로). */
     function applyFilter(): void {
       canvas?.setFilter({
@@ -1171,6 +1038,8 @@ import {
       persist: () => persistStructure(),
       refresh: () => renderSide(),
       esc: (s0) => escapeHtml(s0),
+      terms,
+      applyTerms: () => applyTerms(),
       filterState,
       applyFilter: () => applyFilter(),
       applyDecorate: () => {
@@ -1267,7 +1136,7 @@ import {
         return;
       }
       if (sideMode === 'terms') {
-        renderTermsPanel();
+        renderTermsPanel(panelCtx);
         return;
       }
       if (sideMode === 'filter') {

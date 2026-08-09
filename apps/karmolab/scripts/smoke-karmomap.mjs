@@ -18,6 +18,8 @@ const context0 = await browser.newContext({ viewport: { width: 1400, height: 900
 page.on('console', (m) => {
   if (m.type() !== 'error') return;
   if (m.text().includes('fetching the script')) return;
+  // 로컬에서 띄우면 원격(yawnbot) 호출이 CORS 로 막힌다 — 이 검사의 대상이 아니다.
+  if (/CORS|ERR_FAILED|Failed to load resource/i.test(m.text())) return;
   errors.push(m.text());
 });
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));

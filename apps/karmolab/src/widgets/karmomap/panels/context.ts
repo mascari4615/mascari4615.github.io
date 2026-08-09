@@ -10,6 +10,7 @@
  */
 import type { GraphCanvas } from '../../../lib/graph/canvas';
 import type { GraphSpec } from '../../../lib/graph/spec';
+import type { MyTerms } from '../terms';
 
 export interface PanelCtx {
   /** 패널이 그려질 자리. 패널은 여기 `innerHTML` 을 통째로 쓴다. */
@@ -60,4 +61,10 @@ export interface PanelCtx {
   kindLabel: (id: string) => string;
   kindIcon: (id: string) => string;
   edgeLabel: (id: string) => string;
+
+  // ── 내 용어 패널이 빌리는 것들 ────────────────────────────────────────
+  /** 사람이 만든 종류들 (맵이 아니라 사람에게 붙는다). */
+  terms: MyTerms;
+  /** 고친 용어를 저장하고 캔버스 색표에 반영. */
+  applyTerms: () => void;
 }
