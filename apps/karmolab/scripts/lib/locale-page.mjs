@@ -22,7 +22,7 @@ import { LOCALES, DEFAULT_LOCALE, meta, localizedPath, hreflangTags, catalog, tr
  * 따로 적어 뒀더니 곧바로 갈라졌다: 생성기는 「이름까지 다 찬 언어만」으로 좁혔는데 검사는
  * 예전 기준(설명만)이라, 안 찍힌 장을 찾다가 빨간불이 났다. 목록은 한 곳에만 둔다.
  */
-export const LOCALE_PAGES = [{ bare: '/karmolab/', namespaces: ['site', 'shell', 'widgets'] }];
+export const LOCALE_PAGES = [{ bare: '/karmolab/', namespaces: ['site', 'shell', 'widgets', 'widgets-desc'] }];
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
