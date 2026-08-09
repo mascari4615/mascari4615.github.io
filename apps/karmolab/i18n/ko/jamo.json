@@ -1,0 +1,16 @@
+{
+  "jamo.ph.in": "한글 자모 분해",
+  "jamo.label.cho": "초성만",
+  "jamo.label.all": "자모 나열",
+  "jamo.tab": "한글",
+  "jamo.btn.copyCho": "초성 복사",
+  "jamo.btn.copyAll": "자모 복사",
+  "jamo.btn.join": "자모 → 글자로 되돌리기",
+  "jamo.status.idle": "초성 검색이나 정렬을 만들 때 쓰는 형태입니다.",
+  "jamo.label.jamo": "자모",
+  "jamo.value.none": "없음",
+  "jamo.say.joined": "자모를 글자로 되돌렸습니다.",
+  "jamo.copy.cho": "초성을 복사했어요",
+  "jamo.copy.all": "자모를 복사했어요",
+  "jamo.say.split": "{n}글자를 쪼갰습니다."
+}

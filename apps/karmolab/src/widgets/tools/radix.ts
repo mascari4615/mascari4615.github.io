@@ -4,7 +4,12 @@
  * 한 칸에 치면 나머지 칸이 동시에 갱신되는 형태. 「입력 → 변환 → 출력」 왕복이 없어야
  * 진법 사이를 오가며 확인하는 실제 쓰임에 맞는다. 큰 수는 BigInt 라 자릿수 손실이 없다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
 
   /** 진법 문자열 → BigInt. 잘못된 글자가 하나라도 있으면 null. */
@@ -47,58 +52,60 @@
 
   Toolbox.register({
     id: 'radix',
-    title: '진법 변환',
+    title: t('widgets.radix.title', undefined, "진법 변환"),
     category: 'tool',
-    desc: '2·8·10·16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께',
+    desc: t('widgets-desc.radix.desc', undefined, "2·8·10·16진수를 한 화면에서 동시에 변환합니다. 임의 진법(2~36)과 비트 연산도 함께"),
     layout: 'form',
     icon: '<path d="M4 6h4v4H4zM4 14h4v4H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12 8h8M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4v4M16 16v4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '변환',
+        label: t('radix.tab', undefined, "변환"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('radix').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">10진수 (DEC)</label>
+              <label class="field-label">${esc(t('radix.label.dec'))}</label>
               <input type="text" class="rx-in" data-base="10" placeholder="255" spellcheck="false">
             </div>
             <div class="field-group">
-              <label class="field-label">16진수 (HEX)</label>
+              <label class="field-label">${esc(t('radix.label.hex'))}</label>
               <input type="text" class="rx-in" data-base="16" placeholder="ff" spellcheck="false">
             </div>
             <div class="field-group">
-              <label class="field-label">8진수 (OCT)</label>
+              <label class="field-label">${esc(t('radix.label.oct'))}</label>
               <input type="text" class="rx-in" data-base="8" placeholder="377" spellcheck="false">
             </div>
             <div class="field-group">
-              <label class="field-label">2진수 (BIN)</label>
+              <label class="field-label">${esc(t('radix.label.bin'))}</label>
               <input type="text" class="rx-in" data-base="2" placeholder="11111111" spellcheck="false">
               <div class="tool-sublabel" id="rxBinGroup" style="margin-top:6px; font-family:var(--font-mono, monospace);"></div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">임의 진법</label>
+              <label class="field-label">${esc(t('radix.label.custom'))}</label>
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">밑 <span id="rxCustomVal" class="range-value">36</span></div>
-                  <input type="range" id="rxCustomBase" aria-label="임의 진법의 밑" min="2" max="36" value="36">
+                  <div class="tool-sublabel">${esc(t('radix.label.base'))} <span id="rxCustomVal" class="range-value">36</span></div>
+                  <input type="range" id="rxCustomBase" aria-label="${esc(t('radix.aria.base'))}" min="2" max="36" value="36">
                 </div>
                 <div>
-                  <div class="tool-sublabel">값</div>
-                  <input type="text" class="rx-in" data-base="36" spellcheck="false" aria-label="임의 진법의 값">
+                  <div class="tool-sublabel">${esc(t('radix.label.value'))}</div>
+                  <input type="text" class="rx-in" data-base="36" spellcheck="false" aria-label="${esc(t('radix.aria.customValue'))}">
                 </div>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="rxClear">지우기</button>
+              <button class="btn btn-ghost" id="rxClear">${esc(t('radix.btn.clear'))}</button>
               <button class="btn btn-ghost" data-preset="255">255</button>
               <button class="btn btn-ghost" data-preset="1024">1024</button>
               <button class="btn btn-ghost" data-preset="65535">65535</button>
             </div>
 
             <div id="rxFacts" class="tool-list"></div>
-            <div class="tool-status" id="rxStatus">아무 칸에나 입력하면 나머지가 함께 바뀝니다.</div>
+            <div class="tool-status" id="rxStatus">${esc(t('radix.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -125,11 +132,11 @@
             // 실제로 궁금해지는 것 = 자릿수·바이트·부호 없는 표현. 표 하나로 붙여 둔다.
             const bits = value < 0n ? format(-value, 2).length : bin.length;
             facts.innerHTML = [
-              ['비트 수', `${bits} bit`],
-              ['바이트', `${Math.ceil(bits / 8)} byte`],
-              ['1의 개수', String((bin.match(/1/g) || []).length)],
-              ['부호 있는 8bit 범위', value >= -128n && value <= 127n ? '들어감' : '넘침'],
-              ['부호 없는 32bit 범위', value >= 0n && value <= 4294967295n ? '들어감' : '넘침']
+              [t('radix.row.bits'), `${bits} bit`],
+              [t('radix.row.bytes'), `${Math.ceil(bits / 8)} byte`],
+              [t('radix.row.ones'), String((bin.match(/1/g) || []).length)],
+              [t('radix.row.int8'), value >= -128n && value <= 127n ? t('radix.verdict.fits') : t('radix.verdict.overflow')],
+              [t('radix.row.uint32'), value >= 0n && value <= 4294967295n ? t('radix.verdict.fits') : t('radix.verdict.overflow')]
             ]
               .map(
                 ([k, v]) =>
@@ -142,7 +149,7 @@
             inputs.forEach((el) => (el.value = ''));
             binGroup.textContent = '';
             facts.innerHTML = '';
-            status.textContent = '아무 칸에나 입력하면 나머지가 함께 바뀝니다.';
+            status.textContent = t('radix.status.idle');
             status.className = 'tool-status';
           }
 
@@ -154,12 +161,12 @@
               }
               const v = parse(el.value, baseOf(el));
               if (v === null) {
-                status.textContent = `${baseOf(el)}진수에 없는 글자가 섞여 있어요.`;
+                status.textContent = t('radix.err.digit', { base: baseOf(el) });
                 status.className = 'tool-status error';
                 return;
               }
               spread(v, el);
-              status.textContent = '변환됨 · 칸을 눌러 그대로 복사하세요.';
+              status.textContent = t('radix.say.done');
               status.className = 'tool-status ok';
               Toolbox.trackUse?.('convert');
             });
@@ -182,6 +189,7 @@
 
           inputs[0].value = '255';
           inputs[0].dispatchEvent(new Event('input'));
+                  });
         }
       }
     ]

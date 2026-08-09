@@ -1,0 +1,23 @@
+{
+  "radix.tab": "進法変換",
+  "radix.label.dec": "10進数 (DEC)",
+  "radix.label.hex": "16進数 (HEX)",
+  "radix.label.oct": "8進数 (OCT)",
+  "radix.label.bin": "2進数 (BIN)",
+  "radix.label.custom": "任意の進法",
+  "radix.label.base": "底",
+  "radix.label.value": "値",
+  "radix.aria.base": "任意の進法の底",
+  "radix.aria.customValue": "任意の進法の値",
+  "radix.btn.clear": "消す",
+  "radix.status.idle": "どの欄に入れても残りが一緒に変わります。",
+  "radix.row.bits": "ビット数",
+  "radix.row.bytes": "バイト",
+  "radix.row.ones": "1 の個数",
+  "radix.row.int8": "符号あり 8bit の範囲",
+  "radix.row.uint32": "符号なし 32bit の範囲",
+  "radix.verdict.fits": "収まる",
+  "radix.verdict.overflow": "あふれる",
+  "radix.say.done": "変換しました · 欄を押すとそのままコピーできます。",
+  "radix.err.digit": "{base}進数にない文字が混ざっています。"
+}

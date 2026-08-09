@@ -1,0 +1,23 @@
+{
+  "uuidgen.label.kind": "종류",
+  "uuidgen.label.count": "개수",
+  "uuidgen.label.len": "길이",
+  "uuidgen.aria.out": "만들어진 값",
+  "uuidgen.opt.v4": "UUID v4 — 완전 무작위 (가장 일반적)",
+  "uuidgen.opt.v7": "UUID v7 — 시간 정렬 가능 (DB 기본키 추천)",
+  "uuidgen.opt.ulid": "ULID — 26자, 시간 정렬 + 대소문자 혼동 없음",
+  "uuidgen.opt.nano": "NanoID — 짧은 URL 안전 ID",
+  "uuidgen.opt.pw": "비밀번호 — 헷갈리는 글자(0/O, l/1) 제외",
+  "uuidgen.value.count": "10개",
+  "uuidgen.value.len": "21자",
+  "uuidgen.opt.upper": "대문자",
+  "uuidgen.opt.noDash": "하이픈 제거",
+  "uuidgen.opt.symbols": "비밀번호에 기호 포함",
+  "uuidgen.btn.gen": "생성",
+  "uuidgen.btn.copy": "전체 복사",
+  "uuidgen.status.idle": "모두 브라우저의 암호학적 난수(crypto.getRandomValues)로 만들며 서버로 전송하지 않습니다.",
+  "uuidgen.mdd": "겹칠 리 없는 이름표, 찍어 드릴게요.",
+  "uuidgen.unit.count": "개",
+  "uuidgen.unit.len": "자",
+  "uuidgen.copy.done": "{n}개를 복사했어요"
+}

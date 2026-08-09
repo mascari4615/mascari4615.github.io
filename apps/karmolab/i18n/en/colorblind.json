@@ -1,0 +1,17 @@
+{
+  "colorblind.tab": "Colour vision",
+  "colorblind.label.a": "Colour 1",
+  "colorblind.label.b": "Colour 2",
+  "colorblind.kind.normal": "Typical",
+  "colorblind.kind.protanopia": "Protanopia (red-blind)",
+  "colorblind.kind.deuteranopia": "Deuteranopia (green-blind) — the most common",
+  "colorblind.kind.tritanopia": "Tritanopia (blue-blind)",
+  "colorblind.kind.achromatopsia": "Achromatopsia (no colour)",
+  "colorblind.status.idle": "Never carry meaning with colour alone — pair it with shape or a label.",
+  "colorblind.err.color": "Could not read the colour. Write it as #RRGGBB.",
+  "colorblind.verdict.hard": "Hard to tell apart",
+  "colorblind.verdict.ok": "Tells apart fine",
+  "colorblind.say.allFine": "The two colours stay distinct for every type.",
+  "colorblind.say.hard": "For {n} type(s) the two colours look almost identical — do not separate meaning by colour alone; add shape or a label.",
+  "colorblind.value.verdict": "{verdict} · difference {d}"
+}

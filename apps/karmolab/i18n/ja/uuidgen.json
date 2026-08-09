@@ -1,0 +1,23 @@
+{
+  "uuidgen.mdd": "かぶらない名札、すぐ作りますね。",
+  "uuidgen.label.kind": "種類",
+  "uuidgen.label.count": "個数",
+  "uuidgen.label.len": "長さ",
+  "uuidgen.aria.out": "作られた値",
+  "uuidgen.opt.v4": "UUID v4 — 完全な無作為（いちばん一般的）",
+  "uuidgen.opt.v7": "UUID v7 — 時刻順に並べられる（DB の主キーにおすすめ）",
+  "uuidgen.opt.ulid": "ULID — 26文字、時刻順・紛らわしい文字なし",
+  "uuidgen.opt.nano": "NanoID — 短い URL 安全な ID",
+  "uuidgen.opt.pw": "パスワード — 紛らわしい文字（0/O、l/1）を除く",
+  "uuidgen.value.count": "10個",
+  "uuidgen.value.len": "21文字",
+  "uuidgen.unit.count": "個",
+  "uuidgen.unit.len": "文字",
+  "uuidgen.opt.upper": "大文字",
+  "uuidgen.opt.noDash": "ハイフンを外す",
+  "uuidgen.opt.symbols": "パスワードに記号を入れる",
+  "uuidgen.btn.gen": "生成",
+  "uuidgen.btn.copy": "全部コピー",
+  "uuidgen.status.idle": "すべてブラウザの暗号学的乱数（crypto.getRandomValues）で作られ、サーバーには送りません。",
+  "uuidgen.copy.done": "{n}個をコピーしました"
+}

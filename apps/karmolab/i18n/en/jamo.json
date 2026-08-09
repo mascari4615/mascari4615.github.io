@@ -1,0 +1,16 @@
+{
+  "jamo.tab": "Hangul",
+  "jamo.ph.in": "Split Hangul into jamo",
+  "jamo.label.cho": "Initials only",
+  "jamo.label.all": "All jamo",
+  "jamo.label.jamo": "Jamo",
+  "jamo.btn.copyCho": "Copy the initials",
+  "jamo.btn.copyAll": "Copy the jamo",
+  "jamo.btn.join": "Put the jamo back into syllables",
+  "jamo.status.idle": "This is the shape you need when building initial-consonant search or sorting for Korean.",
+  "jamo.value.none": "none",
+  "jamo.say.joined": "Put the jamo back into syllables.",
+  "jamo.copy.cho": "Initials copied",
+  "jamo.copy.all": "Jamo copied",
+  "jamo.say.split": "Split {n} characters."
+}

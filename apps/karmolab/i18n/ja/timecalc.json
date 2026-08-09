@@ -1,0 +1,23 @@
+{
+  "timecalc.tab": "時間計算",
+  "timecalc.label.start": "開始時刻",
+  "timecalc.aria.start": "開始時刻",
+  "timecalc.label.dur": "かかる時間 — 1:25 / 85m / 1.5h",
+  "timecalc.aria.dur": "かかる時間",
+  "timecalc.mode.add": "足す",
+  "timecalc.mode.sub": "引く",
+  "timecalc.label.lines": "時間の合計 — 1行に1つ（7:45、8h、90m）",
+  "timecalc.status.idle": "24時間を超えると次の日に繰り越します。",
+  "timecalc.err.dur": "かかる時間を 1:25 / 85m / 1.5h のように書いてください。",
+  "timecalc.row.result": "結果",
+  "timecalc.row.minutes": "分にすると",
+  "timecalc.row.decimal": "小数の時間",
+  "timecalc.stat.sum": "合計",
+  "timecalc.stat.avg": "平均",
+  "timecalc.stat.unreadable": "読めなかった行",
+  "timecalc.value.dayAfter": "（{n}日後）",
+  "timecalc.value.dayBefore": "（{n}日前）",
+  "timecalc.value.min": "{n}分",
+  "timecalc.value.hour": "{n}時間",
+  "timecalc.value.lines": "{n}行"
+}

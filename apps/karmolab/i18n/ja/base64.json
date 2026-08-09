@@ -1,0 +1,17 @@
+{
+  "base64.label.text": "テキスト",
+  "base64.ph.text": "こんにちは",
+  "base64.opt.urlSafe": "URL 安全な表記（+ / の代わりに - _）",
+  "base64.btn.copyCode": "Base64 をコピー",
+  "base64.btn.copyText": "テキストをコピー",
+  "base64.btn.copyLink": "この状態のリンクをコピー",
+  "base64.btn.clear": "消す",
+  "base64.status.idle": "どちらの欄に書いても反対側が一緒に変わります。",
+  "base64.say.decoded": "読み取りました。",
+  "base64.err.decode": "Base64 として読めない文字が混ざっています。",
+  "base64.copy.code": "Base64 をコピーしました",
+  "base64.copy.text": "テキストをコピーしました",
+  "base64.err.noText": "先にテキストを書いてください — その状態をリンクにします。",
+  "base64.copy.link": "この状態で開くリンクをコピーしました",
+  "base64.say.size": "{bytes} バイト → {chars} 文字"
+}

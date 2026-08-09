@@ -1,0 +1,17 @@
+{
+  "base64.label.text": "Text",
+  "base64.ph.text": "Hello there",
+  "base64.opt.urlSafe": "URL-safe form (- _ instead of + /)",
+  "base64.btn.copyCode": "Copy the Base64",
+  "base64.btn.copyText": "Copy the text",
+  "base64.btn.copyLink": "Copy a link to this state",
+  "base64.btn.clear": "Clear",
+  "base64.status.idle": "Type into either box and the other one follows.",
+  "base64.say.decoded": "Decoded.",
+  "base64.err.decode": "There is a character in there that Base64 cannot read.",
+  "base64.copy.code": "Base64 copied",
+  "base64.copy.text": "Text copied",
+  "base64.err.noText": "Write some text first — the link carries that state.",
+  "base64.copy.link": "Copied a link that opens in this state",
+  "base64.say.size": "{bytes} bytes → {chars} characters"
+}

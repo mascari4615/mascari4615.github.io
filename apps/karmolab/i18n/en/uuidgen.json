@@ -1,0 +1,23 @@
+{
+  "uuidgen.mdd": "Name tags that will never collide — coming right up.",
+  "uuidgen.label.kind": "Kind",
+  "uuidgen.label.count": "How many",
+  "uuidgen.label.len": "Length",
+  "uuidgen.aria.out": "The generated values",
+  "uuidgen.opt.v4": "UUID v4 — fully random (the usual choice)",
+  "uuidgen.opt.v7": "UUID v7 — sortable by time (good as a DB primary key)",
+  "uuidgen.opt.ulid": "ULID — 26 chars, time-sortable, no lookalike letters",
+  "uuidgen.opt.nano": "NanoID — short, URL-safe ID",
+  "uuidgen.opt.pw": "Password — lookalikes (0/O, l/1) left out",
+  "uuidgen.value.count": "10",
+  "uuidgen.value.len": "21 chars",
+  "uuidgen.unit.count": "",
+  "uuidgen.unit.len": " chars",
+  "uuidgen.opt.upper": "Upper case",
+  "uuidgen.opt.noDash": "Drop the hyphens",
+  "uuidgen.opt.symbols": "Include symbols in passwords",
+  "uuidgen.btn.gen": "Generate",
+  "uuidgen.btn.copy": "Copy them all",
+  "uuidgen.status.idle": "All of it comes from the browser’s cryptographic randomness (crypto.getRandomValues) and is never sent to a server.",
+  "uuidgen.copy.done": "Copied {n}"
+}
