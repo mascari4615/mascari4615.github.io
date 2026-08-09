@@ -486,5 +486,9 @@
   "howto.comparepic.0": "左(前)と右(後)の写真を選ぶ",
   "howto.comparepic.1": "つまみを動かして境目を移す (矢印キーでも動きます)",
   "howto.comparepic.2": "サイズが違うときは大きい方に合わせて重ねます",
-  "howto.comparepic.3": "PNG で保存すると、いま見えているそのままが出ます"
+  "howto.comparepic.3": "PNG で保存すると、いま見えているそのままが出ます",
+  "howto.livecount.0": "基準の時刻を選ぶ (記念日・禁煙開始日・発売日など)",
+  "howto.livecount.1": "数字が1秒ごとに増えます",
+  "howto.livecount.2": "「1日何回」を入れると、これまで何回かをおおよそ出します",
+  "howto.livecount.3": "未来の日付を入れると残り時間を数えます"
 }

@@ -486,5 +486,9 @@
   "howto.comparepic.0": "왼쪽(전)과 오른쪽(후) 사진 고르기",
   "howto.comparepic.1": "손잡이를 밀어 경계 옮기기 (화살표 키도 됩니다)",
   "howto.comparepic.2": "크기가 다르면 큰 쪽에 맞춰 겹칩니다",
-  "howto.comparepic.3": "PNG 로 저장하면 지금 보이는 그대로 나옵니다"
+  "howto.comparepic.3": "PNG 로 저장하면 지금 보이는 그대로 나옵니다",
+  "howto.livecount.0": "기준 시각 고르기 (기념일·금연 시작일·출시일 등)",
+  "howto.livecount.1": "숫자가 1초마다 올라갑니다",
+  "howto.livecount.2": "하루 몇 번을 넣으면 지금까지 몇 번인지 어림해 줍니다",
+  "howto.livecount.3": "미래 날짜를 넣으면 남은 시간을 셉니다"
 }

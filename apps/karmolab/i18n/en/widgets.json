@@ -196,5 +196,6 @@
   "widgets.dailytype.title": "Today’s Hangul typing",
   "widgets.dailycho.title": "Today’s consonant quiz",
   "widgets.charconv.title": "Character conversion",
-  "widgets.comparepic.title": "Comparison slider"
+  "widgets.comparepic.title": "Comparison slider",
+  "widgets.livecount.title": "Elapsed time counter"
 }

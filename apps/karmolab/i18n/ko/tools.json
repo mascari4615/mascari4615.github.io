@@ -266,5 +266,7 @@
   "tools.charconv.description": "전각과 반각, 한글과 로마자, 한글과 자모를 한 화면에서 바꿉니다. 붙여 넣는 순간 전각이 섞여 있으면 먼저 알려 줍니다.",
   "tools.charconv.lead": "전각·반각 · 로마자 · 자모 · 섞인 글자 경고",
   "tools.comparepic.description": "사진 두 장을 겹쳐 놓고 가운데 손잡이를 밀어 전후를 비교합니다. 보이는 그대로 PNG 로 저장할 수 있고, 파일은 기기 밖으로 나가지 않습니다.",
-  "tools.comparepic.lead": "전후 겹쳐 밀기 · 크기 달라도 됨 · PNG 저장"
+  "tools.comparepic.lead": "전후 겹쳐 밀기 · 크기 달라도 됨 · PNG 저장",
+  "tools.livecount.description": "기준 시각 이후 흐른 시간이 초 단위로 계속 올라갑니다. 달은 달력대로 세고, 하루 몇 번 기준으로 어림 횟수도 함께 냅니다.",
+  "tools.livecount.lead": "초 단위로 올라감 · 달력대로 · 어림 환산"
 }

@@ -196,5 +196,6 @@
   "widgets.dailytype.title": "今日のハングル打鍵",
   "widgets.dailycho.title": "今日の頭子音クイズ",
   "widgets.charconv.title": "文字変換",
-  "widgets.comparepic.title": "比較スライダー"
+  "widgets.comparepic.title": "比較スライダー",
+  "widgets.livecount.title": "経過時間カウンター"
 }
