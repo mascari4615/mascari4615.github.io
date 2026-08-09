@@ -177,6 +177,16 @@
       "pipeline",
       "workflow",
       "tool chaining"
+    ],
+    "dailytype": [
+      "오늘의타자",
+      "한글타자",
+      "타자연습",
+      "데일리",
+      "타수",
+      "typing",
+      "daily typing",
+      "korean typing"
     ]
   }
 }

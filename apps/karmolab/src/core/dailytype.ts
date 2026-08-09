@@ -31,15 +31,6 @@ export const spec: ToolSpec = {
   }
 };
 
-/**
- * ★ 아직 화면이 없다 — 다음 회차에 붙인다.
- *
- * 「알맹이가 있으면 tools-seo 에도 있어야 한다」 게이트가 이걸 잡는데, 지금 등재하면
- * **열리지 않는 주소**가 생긴다(어제 chain 이 그 반대 실수였다: 화면만 있고 문이 없었다).
- * 화면이 붙는 회차에 이 줄을 지우고 등재한다.
- */
-export const SCREENLESS = true;
-
 export const GAME_ID = 'hangul-type';
 
 /** 한 판에 치는 문장 수. 셋이면 30~60초 — 너무 길면 「내일 또」가 안 된다. */

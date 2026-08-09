@@ -221,6 +221,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/jsonfmt', 'tools/jwt', 'tools/regextest', 'tools/hashgen', 'tools/uuidgen', 'tools/cron', 'tools/urlparse', 'vendor/crypto-js.min', 'crypto', 'tools/base64', 'tools/csvjson', 'tools/tableconv', 'tools/json2ts', 'tools/devtool']
   },
   {
+    id: 'dailytype',
+    title: '오늘의 한글 타자',
+    category: 'tool',
+    desc: '매일 바뀌는 세 문장 — 전원 같은 문제, 결과는 격자로만 공유',
+    layout: 'wide',
+    icon: '<path d="M4 7h16v10H4z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M7 11h2M11 11h2M15 11h2M8 14h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    lazyScriptPaths: ['tools/dailytype']
+  },
+  {
     id: 'chain',
     title: '도구 묶어 쓰기',
     category: 'tool',
