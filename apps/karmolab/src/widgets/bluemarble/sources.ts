@@ -214,3 +214,33 @@ export async function issOmm(): Promise<import('./orbit').Omm | null> {
   );
   return rows && rows.length ? rows[0] : null;
 }
+
+/**
+ * 그날 하루의 지진 (시간을 되감았을 때). 규모 4.5 이상 — 과거를 볼 땐 「그날 무슨 일이
+ * 있었나」가 궁금한 것이지 미세 지진 목록이 궁금한 게 아니다.
+ *
+ * **큰 것부터** 가져온다(`orderby=magnitude`). 기본값은 최신순이라, 400건 제한에 걸리는 날
+ * (2011-03-11 같은 날)에는 **본진이 잘려 나가고 여진만 남는다** — 그날 최대가 규모 6.6 이라고
+ * 말하게 된다. 실측으로 그랬다.
+ */
+export async function quakesOn(day: string): Promise<Quake[] | null> {
+  const next = new Date(Date.parse(day + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10);
+  const data = await fetchJson<{ features: UsgsFeature[] }>(
+    'quakes-' + day,
+    `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${day}&endtime=${next}&minmagnitude=4.5&limit=400&orderby=magnitude`,
+    24 * 3600 * 1000
+  );
+  if (!data?.features) return null;
+  return data.features
+    .filter((f) => f.geometry && f.properties.mag != null)
+    .map((f) => ({
+      id: f.id,
+      mag: f.properties.mag as number,
+      place: f.properties.place || '',
+      lon: f.geometry!.coordinates[0],
+      lat: f.geometry!.coordinates[1],
+      depth: f.geometry!.coordinates[2],
+      time: f.properties.time
+    }))
+    .sort((a, b) => a.time - b.time);
+}

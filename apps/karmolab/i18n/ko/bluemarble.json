@@ -25,5 +25,10 @@
   "bluemarble.line.meNight": "지금 {place} 는 {time}, 밤입니다.",
   "bluemarble.line.meDay": "지금 {place} 는 {time}, 낮입니다.",
   "bluemarble.line.issPass": "{when} — {clock} 에 사람이 탄 것이 머리 위 {el}° 높이로 지나갑니다. 고개를 들면 보입니다.",
-  "bluemarble.line.issPassNone": "오늘 하루 동안 ISS 는 이 자리 위를 지나가지 않습니다."
+  "bluemarble.line.issPassNone": "오늘 하루 동안 ISS 는 이 자리 위를 지나가지 않습니다.",
+  "bluemarble.now": "지금으로",
+  "bluemarble.line.pastDay": "{date} 의 지구입니다. 그날의 구름이 그날 자리에 그대로 있습니다.",
+  "bluemarble.line.pastQuake": "그날 지구는 {n} 번 흔들렸고, 가장 큰 것은 {where} 근처에서 규모 {mag} 였습니다.",
+  "bluemarble.line.pastQuiet": "그날은 규모 4.5 이상으로 흔들린 곳이 한 군데도 없었습니다.",
+  "bluemarble.line.pastSun": "그날 이 시각, 해는 북위 {lat}° 동경 {lon}° 위에 있었습니다."
 }

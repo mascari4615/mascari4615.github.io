@@ -18,9 +18,9 @@
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, toVec, distanceKm } from './sky';
-import { quakes, aurora, kpIndex, iss, launches, issOmm, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
-import { loadTex, loadClouds } from './textures';
+import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, nextPass, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
@@ -90,6 +90,14 @@ import { fromTimezone, askPrecise, type Me } from './me';
 .bm-line{display:block;color:#dbe6ff;font-size:14px;line-height:1.5;letter-spacing:-.01em;
   opacity:0;transition:opacity .8s ease;text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .bm-line.bm-show{opacity:1;}
+.bm-time{position:absolute;left:0;right:0;bottom:58px;z-index:3;display:flex;align-items:center;gap:10px;
+  padding:0 16px;}
+.bm-time input[type=range]{flex:1;accent-color:#8fb8ff;height:2px;cursor:pointer;}
+.bm-date{color:#cfe0ff;font-size:12px;font-family:var(--font-mono,ui-monospace,monospace);min-width:92px;
+  text-align:right;text-shadow:0 1px 8px rgba(0,0,0,.9);}
+.bm-now{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(8,12,22,.6);color:#eaf2ff;
+  font-size:11px;padding:5px 9px;border-radius:999px;cursor:pointer;font-family:var(--font-mono,ui-monospace,monospace);}
+.bm-now[hidden]{display:none;}
 .bm-sub{display:block;margin-top:3px;color:rgba(190,205,235,.45);font-size:11px;
   font-family:var(--font-mono,ui-monospace,monospace);}
 @media (max-width:520px){.bm-line{font-size:13px}.bm-chip{font-size:10px;padding:5px 8px}}
@@ -129,7 +137,20 @@ import { fromTimezone, askPrecise, type Me } from './me';
           const sub = document.createElement('span');
           sub.className = 'bm-sub';
           ticker.append(line, sub);
-          wrap.append(canvas, chips, ticker);
+
+          /* 시간 손잡이 — 지구를 과거로 되감는다. 오른쪽 끝이 오늘이다. */
+          const timeBar = document.createElement('div');
+          timeBar.className = 'bm-time';
+          const slider = document.createElement('input');
+          slider.type = 'range';
+          const dateLabel = document.createElement('span');
+          dateLabel.className = 'bm-date';
+          const nowBtn = document.createElement('button');
+          nowBtn.type = 'button';
+          nowBtn.className = 'bm-now';
+          nowBtn.hidden = true;
+          timeBar.append(slider, dateLabel, nowBtn);
+          wrap.append(canvas, chips, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -161,6 +182,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
           let issEl: Elements | null = null;
           let issPass: Pass | null = null;
           let seenQuakes: Set<string> | null = null; // null = 첫 판(전부 「새 것」이 아니다)
+          /* 되감은 시각. null = 지금. 이 값 하나가 해·구름·지진·실사 타일을 전부 그날로 옮긴다. */
+          let atTime: number | null = null;
+          let liveCloud: { w: number; h: number; a: Uint8ClampedArray } | null = null;
+          let liveQuakes: Quake[] = [];
+          let pastDay = '';
           let raf: number | undefined;
           let alive = true;
 
@@ -252,6 +278,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
             cy = H / 2;
             R = (Math.min(W, H) / 2 - 24) * zoom;
           }
+
+          /** 지금 이 지구본이 보고 있는 시각. 되감았으면 그때, 아니면 지금. */
+          const clockMs = (): number => atTime ?? Date.now();
+          const dayString = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
+          const isPast = (): boolean => atTime !== null;
 
           const dot = (a: [number, number, number], b: [number, number, number]): number =>
             a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -357,10 +388,10 @@ import { fromTimezone, askPrecise, type Me } from './me';
               const box = visibleBox();
               if (!box) return;
               const z = levelFor(degPerScreenPx());
-              const key = regionKey(box, z, '');
+              const key = regionKey(box, z, isPast() ? pastDay : '');
               if (key === regionAt || key === regionWanted) return;
               regionWanted = key;
-              void loadRegion(box, z).then((got) => {
+              void loadRegion(box, z, isPast() ? pastDay : undefined).then((got) => {
                 if (!alive || regionWanted !== key) return;
                 regionWanted = '';
                 if (!got) return;
@@ -380,7 +411,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
             }
 
             setCamera();
-            const sun = subsolar();
+            const sun = subsolar(new Date(clockMs()));
             const sv = toVec(sun.lat, sun.lon);
             const S: [number, number, number] = [dot(sv, ex), dot(sv, ey), dot(sv, ez)];
 
@@ -420,14 +451,14 @@ import { fromTimezone, askPrecise, type Me } from './me';
               c.drawImage(surfCv, surfView.x0, surfView.y0, surfView.w * surfView.step, surfView.h * surfView.step);
             }
 
-            if (prefs.on.aurora) drawAurora(S);
+            if (prefs.on.aurora && !isPast()) drawAurora(S);
             if (prefs.on.quake) drawQuakes(now);
-            if (prefs.on.launch) drawLaunches();
+            if (prefs.on.launch && !isPast()) drawLaunches();
             if (prefs.on.me) drawMe(now);
             c.restore();
 
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
-            if (prefs.on.iss) drawIss();
+            if (prefs.on.iss && !isPast()) drawIss();
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
             const sp = project(sun.lat, sun.lon);
@@ -480,7 +511,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
           function drawQuakes(now: number): void {
             if (!qs.length) return;
             const c = ctx!;
-            const tnow = Date.now();
+            const tnow = clockMs();
             for (const q of qs) {
               const v = toVec(q.lat, q.lon);
               if (dot(v, ez) <= 0.02) continue;
@@ -601,7 +632,28 @@ import { fromTimezone, askPrecise, type Me } from './me';
 
           function sentences(): string[] {
             const out: string[] = [];
-            const sun = subsolar();
+            const sun = subsolar(new Date(clockMs()));
+
+            if (isPast()) {
+              const d = new Date(clockMs());
+              const when = d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+              out.push(t('bluemarble.line.pastDay', { date: when }));
+              if (qs.length) {
+                const big = qs.slice().sort((a, b) => b.mag - a.mag)[0];
+                const near = nearestCity(big.lat, big.lon, 900);
+                out.push(
+                  t('bluemarble.line.pastQuake', {
+                    mag: big.mag.toFixed(1),
+                    where: near || t('bluemarble.word.openSea'),
+                    n: qs.length
+                  })
+                );
+              } else {
+                out.push(t('bluemarble.line.pastQuiet'));
+              }
+              out.push(t('bluemarble.line.pastSun', { lat: sun.lat.toFixed(0), lon: sun.lon.toFixed(0) }));
+              return out;
+            }
             const sunCity = nearestCity(sun.lat, sun.lon, 1400);
             out.push(
               sunCity
@@ -703,7 +755,8 @@ import { fromTimezone, askPrecise, type Me } from './me';
                 }
               }
               seenQuakes = new Set(q.map((x) => x.id));
-              qs = q;
+              liveQuakes = q;
+              if (!isPast()) qs = q;
             }
             if (k != null) kp = k;
             if (i) {
@@ -814,6 +867,60 @@ import { fromTimezone, askPrecise, type Me } from './me';
             };
             chips.appendChild(s);
           }
+          /* ── 시간 되감기 ─────────────────────────────────────────────── */
+
+          const DAY = 86400000;
+          /* 되감을 수 있는 바닥 = Terra 위성이 지구를 찍기 시작한 날. 그 앞은 그림이 없다. */
+          const FLOOR = Date.parse('2000-02-24T00:00:00Z');
+
+          function renderDate(): void {
+            const ms = clockMs();
+            dateLabel.textContent = new Date(ms).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            });
+            nowBtn.hidden = !isPast();
+          }
+
+          /** 되감은 날의 지구를 불러온다. 못 받아오면 그날 구름 없이 지형만 보인다. */
+          async function applyTime(): Promise<void> {
+            renderDate();
+            if (!isPast()) {
+              cloudTex = liveCloud;
+              qs = liveQuakes;
+              region = null;
+              regionAt = '';
+              return;
+            }
+            const day = dayString(clockMs());
+            pastDay = day;
+            region = null;
+            regionAt = '';
+            const [cm, qq] = await Promise.all([loadCloudsOn(day), quakesOn(day)]);
+            if (!alive || pastDay !== day) return;
+            cloudTex = cm;
+            qs = qq || [];
+            lines = sentences();
+          }
+
+          let applyTimer: number | undefined;
+          slider.min = String(Math.floor(FLOOR / DAY));
+          slider.step = '1';
+          slider.oninput = () => {
+            const dayIdx = Number(slider.value);
+            const todayIdx = Math.floor(Date.now() / DAY);
+            atTime = dayIdx >= todayIdx ? null : dayIdx * DAY + 12 * 3600000;
+            renderDate();
+            if (applyTimer !== undefined) window.clearTimeout(applyTimer);
+            applyTimer = window.setTimeout(() => void applyTime(), 260);
+          };
+          nowBtn.onclick = () => {
+            atTime = null;
+            slider.value = String(Math.floor(Date.now() / DAY));
+            void applyTime();
+          };
+
           function save(): void {
             try {
               localStorage.setItem(STORE_KEY, JSON.stringify({ on: prefs.on, spin }));
@@ -870,6 +977,12 @@ import { fromTimezone, askPrecise, type Me } from './me';
             sub.textContent = t('bluemarble.hint');
             /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
                정확한 자리는 사용자가 「내 자리」를 눌렀을 때만 묻는다. */
+            const DAY0 = 86400000;
+            slider.max = String(Math.floor(Date.now() / DAY0));
+            slider.value = slider.max;
+            nowBtn.textContent = t('bluemarble.now');
+            renderDate();
+
             me = fromTimezone();
             if (me) {
               camLon = me.lon;
@@ -890,7 +1003,9 @@ import { fromTimezone, askPrecise, type Me } from './me';
 
             /* 구름은 밖에서 온다 — 늦게 와도 되니 지구부터 띄우고 뒤따라 얹는다 */
             void loadClouds().then((cm) => {
-              if (alive) cloudTex = cm;
+              if (!alive) return;
+              liveCloud = cm;
+              if (!isPast()) cloudTex = cm;
             });
 
             await refresh();
