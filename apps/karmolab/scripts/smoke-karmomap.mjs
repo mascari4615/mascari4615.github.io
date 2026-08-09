@@ -1066,6 +1066,21 @@ await step('첫 화면이 「무엇을 만들 건가요」 세 갈래를 크게 
   await page.click('[data-km="tab"][data-key="node"]');
   const cards = page.locator('[data-km="intent"]');
   if (await cards.count() < 3) throw new Error('갈래 카드가 셋보다 적다');
+  // 빈 판에서는 **묻는 말이 맨 위**여야 한다. 「고르면 여기서 고칩니다」가 먼저 오면
+  // 고를 것이 하나도 없는 사람에게 첫 할 일이 아래로 밀린다.
+  const leadsWithQuestion = await page.evaluate(() => {
+    const side = document.querySelector('.km-side');
+    const q = side?.querySelector('label');
+    const hint = side?.querySelector('.km-hint');
+    if (!q || !hint) return false;
+    return (q.textContent || '').includes('무엇을 만들')
+      && (q.compareDocumentPosition(hint) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+  });
+  if (!leadsWithQuestion) throw new Error('빈 판인데 「무엇을 만들 건가요」가 맨 위가 아니다');
+  // 첫 화면 안내는 **한 줄에 한 가지**여야 한다 — 문장이 중간에서 끊기면 읽다 멈춘다.
+  const emptyLines = await page.evaluate(() =>
+    (document.querySelector('.km-empty-in')?.innerHTML || '').split('<br>').map((x) => x.replace(/<[^>]*>/g, '').trim()));
+  if (emptyLines.some((ln) => ln.length > 46)) throw new Error('첫 화면 안내 줄이 너무 길다: ' + emptyLines.join(' | '));
   const box = await cards.first().boundingBox();
   if (!box || box.width < 90 || box.height < 60) throw new Error('갈래 카드가 너무 작다 — 눌릴 자리가 아니다');
   await cards.first().click();
