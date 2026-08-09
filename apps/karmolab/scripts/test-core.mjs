@@ -1768,6 +1768,51 @@ try {
 }
 check(emptyAudio, '빈 소리는 모델을 부르지 않고 던진다');
 
+// ── ②-34 한글 타자 (영어처럼 세면 틀린다) ──────────────────────────────────
+const ht = await load('src/core/hangultype.ts');
+eq(ht.spec.id, 'hangultype', 'hangultype spec.id');
+
+/* 글자 하나가 자소 둘~넷이다 — 이걸 안 세면 한타가 영타의 절반으로 나온다. */
+eq(ht.타건수('가'), 2, '가 = 초성+중성');
+eq(ht.타건수('강'), 3, '강 = 받침까지');
+eq(ht.타건수('값'), 4, '값 = 겹받침(ㅄ)이라 넷');
+eq(ht.타건수('왔'), 4, '왔 = 초성1 + 겹모음ㅘ2 + ㅆ1 (된소리는 시프트라 한 번)');
+eq(ht.타건수('a'), 1, '영문은 한 번');
+eq(ht.타건수(' '), 1, '공백도 한 번');
+eq(ht.타건수('가a 강'), 2 + 1 + 1 + 3, '섞여도 더한다');
+
+/* 된소리는 시프트 조합이라 한 번 — 두 번으로 세면 「빨리」가 실제보다 무거워진다. */
+eq(ht.타건수('까'), 2, 'ㄲ 은 한 번');
+
+const r1 = ht.score('안녕하세요', 5);
+eq(r1.strokes, ht.타건수('안녕하세요'), '타수는 같은 셈을 쓴다');
+eq(r1.perMinute, Math.round((r1.strokes / 5) * 60), '타/분');
+eq(r1.accuracy, 100, '친 글을 안 주면 견줄 것이 없다');
+
+/* 정확도는 글자 단위 — 받침 하나 틀린 것도 읽는 사람에겐 틀린 글자다. */
+const r2 = ht.score('안녕하세요', 10, '안녕하세오');
+eq(r2.wrong, 1, '한 글자 다름');
+eq(r2.accuracy, 80, '5글자 중 1개 → 80%');
+
+/* 중간에 그만둔 것을 100% 로 내주면 그 점수는 아무 뜻이 없다. */
+const r3 = ht.score('안녕하세요', 10, '안녕');
+eq(r3.wrong, 3, '모자란 만큼도 틀린 것으로 센다');
+eq(r3.accuracy, 40, '5글자 중 2개만 맞음');
+
+for (const [text, sec, why] of [['', 5, '빈 글'], ['가', 0, '0초'], ['가', -1, '음수 초']]) {
+  let threw = false;
+  try {
+    ht.score(text, sec);
+  } catch {
+    threw = true;
+  }
+  check(threw, why + ' 는 던진다');
+}
+
+const out = ht.run('count', { text: '값' });
+check(out.includes('타수: 4'), `run count: ${out.split(String.fromCharCode(10))[0]}`);
+check(ht.run('speed', { text: '안녕', seconds: 2, typed: '안녕' }).includes('정확도: 100%'), 'run speed 가 정확도를 낸다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

@@ -68,6 +68,12 @@
       "auto"
     ]
   },
+  "hangultype": {
+    "ops": [
+      "count",
+      "speed"
+    ]
+  },
   "hashgen": {
     "ops": [
       "text"
