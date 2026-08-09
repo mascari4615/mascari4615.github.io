@@ -77,6 +77,13 @@ export function shellCommon(html, { permalink, lastModified, bootPaths }) {
     throw new Error('셸 front matter 치환 실패 — index.html 앞머리 확인');
   }
 
+  /* 셸에 박힌 **언어 판 표시는 셸의 것**이다 (TASK-KL-203).
+     그대로 복사되면 도구 129장이 전부 「내 영어 판은 /en/karmolab/ 이다」라고 우긴다 —
+     그 주소는 첫 화면이지 이 도구가 아니다. 잘못된 짝 표시는 없느니만 못하다(양쪽이 무효가 된다).
+     각 장이 제 언어 판을 가지게 되면 `lib/locale-page.mjs` 가 제 것을 다시 박는다. */
+  html = html.replace(/\n\s*<!-- 언어 판 왕복 표시[\s\S]*?-->/, '');
+  html = html.replace(/\n\s*<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
+
   // 첫 화면용 뽑기 위젯은 정적 페이지에서 쓰이지 않는다.
   html = html.replace(
     /<script defer src="\/apps\/karmolab\/js\/widgets\/randomgen\/randomgen-[a-z]+\.js"><\/script>\s*/g,
