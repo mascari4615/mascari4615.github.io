@@ -48,6 +48,7 @@ async function loadModules() {
     export * as minimap from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-minimap.ts'))};
     export * as pick from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-pick.ts'))};
     export * as eph from ${JSON.stringify(path.join(root, 'src/lib/graph/canvas-ephemeral.ts'))};
+    export * as share from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/share.ts'))};
     export * as sna from ${JSON.stringify(path.join(root, 'src/widgets/karmomap/sna.ts'))};
   `);
   const out = path.join(os.tmpdir(), `km-core-${Date.now()}.mjs`);
@@ -533,6 +534,23 @@ const M = await loadModules();
   check(cut.endsWith('…'), '넘치면 잘리고 …가 붙는다(안 붙이면 이름이 저게 전부인 줄 안다)');
   check(cut.length < '가나다라마바사아자차카타파하'.length, '잘린 이름이 원래보다 짧다');
   check(foldEphemeralLabel('가나다라마바사', 0).length >= 4, '상자가 아무리 좁아도 네 글자는 남긴다');
+}
+
+// ---- 링크에서 사진만 덜어 내기 (share.stripImages)
+{
+  const { stripImages } = M.share;
+  const spec0 = { nodes: [
+    { id: 'a', avatar: { kind: 'image', value: 'data:image/webp;base64,AAAA' }, shape: 'photo' },
+    { id: 'b', avatar: { kind: 'emoji', value: '🙂' }, shape: 'rect' },
+    { id: 'c' },
+  ] };
+  const out = stripImages(spec0);
+  check(out.removed === 1, '사진을 붙인 카드 수를 센다');
+  check(out.spec.nodes[0].avatar === undefined, '사진은 빠진다(첫 글자 얼굴로 뜬다)');
+  // 사진 없는 「사진 카드」는 빈 상자로 보인다 — 보통 카드로 되돌려 보낸다.
+  check(out.spec.nodes[0].shape === 'rect', '사진 카드는 보통 카드로 되돌린다');
+  check(out.spec.nodes[1].avatar.kind === 'emoji', '이모지 얼굴은 그대로(무게가 없다)');
+  check(spec0.nodes[0].avatar.kind === 'image', '원본은 안 건드린다(사본을 만든다)');
 }
 
 // 되돌아가지 않게: **캔버스 크기 자물쇠**.

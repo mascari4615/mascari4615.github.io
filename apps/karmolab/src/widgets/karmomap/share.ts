@@ -13,6 +13,30 @@
 /** 실용 상한. 이보다 길면 주소가 어딘가에서 잘릴 위험이 크다. */
 export const SHARE_URL_LIMIT = 8000;
 
+/**
+ * 링크에서 **사진만 덜어 낸다** (TASK-KL-202 방향③).
+ *
+ * 주소 한계를 넘기는 것은 거의 언제나 사진이다 — 96px webp 한 장이 글 수천 자와 맞먹는다.
+ * 그렇다고 「JSON 파일로 보내세요」로 끝내면, 사진 한 장 붙였다는 이유로 **링크 공유가 통째로 막힌다**.
+ * 관계·이름·칸이 그림의 알맹이고 얼굴은 곁들이다 — 사진을 뺀 링크는 첫 글자 얼굴로 멀쩡히 열린다.
+ *
+ * 원본은 안 건드린다(사본을 만든다). 사진 카드는 **보통 카드로 되돌려** 보낸다 —
+ * 사진 없는 사진 카드는 빈 상자로 보인다.
+ */
+export function stripImages<T extends { nodes: { avatar?: { kind: string; value: string }; shape?: string }[] }>(
+  spec: T,
+): { spec: T; removed: number } {
+  let removed = 0;
+  const nodes = spec.nodes.map((n) => {
+    if (n.avatar?.kind !== 'image') return n;
+    removed += 1;
+    const copy = { ...n, avatar: undefined } as typeof n;
+    if (copy.shape === 'photo') copy.shape = 'rect';
+    return copy;
+  });
+  return { spec: { ...spec, nodes } as T, removed };
+}
+
 function toBase64Url(bytes: Uint8Array): string {
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
