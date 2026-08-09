@@ -81,6 +81,15 @@ jobs:
         working-directory: packages/karmolab-ai
         run: npm ci --no-audit --no-fund && npm run build
 
+      # `apps/karmolab` 이 `file:../../packages/badapple` 로 물고 있다. 그 꾸러미는 **타입을
+      # 지어야 생긴다** — 새 체크아웃엔 `dist` 가 없어서 typecheck 이 「모듈을 못 찾겠다」로 선다.
+      # ★ verify.yml 은 2026-08-08 에 같은 이유로 이 단계를 넣었는데 **여기엔 안 들어왔다.**
+      #   그래서 이 점검은 매 판 빌드 단계에서 죽었고(최근 25판 중 초록 0), 뒤 검사들은
+      #   `if: always()` 때문에 **없는 기준과 대조하며 헛것을 쟀다**. 두 워크플로가 같은 전제를
+      #   따로 들고 있으면 반드시 갈라진다 — 한쪽만 고친 값이 이 사고다.
+      - name: badapple 도 먼저 짓기 (apps/karmolab 이 타입을 물고 있다)
+        run: cd packages/badapple && npm ci --no-audit --no-fund && npm run build
+
       - name: 대조 기준 만들기 (빌드 산출물)
         run: npm run build
 
