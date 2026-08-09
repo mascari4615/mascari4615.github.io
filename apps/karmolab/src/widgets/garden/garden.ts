@@ -17,6 +17,7 @@ import { t, loadNamespace } from '../../lib/i18n';
 import { ruleForDay, ruleTable, rng, type Rule } from './rules';
 import { Life, Watcher, quality, type Stats, type Event } from './life';
 import { findObjects, type Found, type Kind } from './dex';
+import { GardenSound } from './gsound';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -111,7 +112,10 @@ import { findObjects, type Found, type Kind } from './dex';
           const followBtn = document.createElement('button');
           followBtn.type = 'button';
           followBtn.className = 'gd-btn';
-          btns.append(followBtn, dexBtn, seedBtn, pauseBtn);
+          const soundBtn = document.createElement('button');
+          soundBtn.type = 'button';
+          soundBtn.className = 'gd-btn';
+          btns.append(soundBtn, followBtn, dexBtn, seedBtn, pauseBtn);
           const dexPanel = document.createElement('div');
           dexPanel.className = 'gd-dex';
           const dexTitle = document.createElement('h4');
@@ -155,6 +159,9 @@ import { findObjects, type Found, type Kind } from './dex';
           let follow = false;
           /** 지금 따라가는 개체 — 지문·자리·예상 속도 */
           let target: { fp: string; x: number; y: number; vx: number; vy: number; lostAt: number } | null = null;
+          const sound = new GardenSound();
+          /** 지금 판에 있는 진동자·우주선의 주기 — 이게 그대로 박자가 된다. */
+          let livePeriods: number[] = [];
           const gridCv = document.createElement('canvas');
           const gridCtx = gridCv.getContext('2d');
 
@@ -371,6 +378,10 @@ import { findObjects, type Found, type Kind } from './dex';
             } else if (found.length) {
               saveDex();
             }
+            /* 지금 판에 있는 박자를 모은다 — 도감에 이미 있는 것도 「지금 울리고 있는 것」이다. */
+            livePeriods = found.filter((f) => f.kind !== 'still').map((f) => f.period);
+            if (sound.running && found.some((f) => f.kind === 'ship')) sound.swoosh();
+
             // 따라가던 것을 다시 찾았으면 자리를 바로잡고, 없으면 새로 고른다
             if (follow) {
               const at = target && lastSeenAt.get(target.fp);
@@ -471,6 +482,7 @@ import { findObjects, type Found, type Kind } from './dex';
               const ev = watcher.judge(quality(life), last.gen);
               if (ev) {
                 say(sentence(ev));
+                if (sound.running) sound.toll(ev.kind === 'extinct' || ev.kind === 'frozen');
                 window.setTimeout(() => alive && reseed(), 3200);
               }
             }
@@ -492,6 +504,16 @@ import { findObjects, type Found, type Kind } from './dex';
               }
             }
             stepFollow(last ? last.gen : 0);
+
+            /* 소리 — 판에 있는 주기를 그대로 친다. 세대 수가 그 주기의 배수일 때가 「돌아온 순간」이다. */
+            if (sound.running && last) {
+              for (const p of livePeriods) {
+                if (last.gen % p === 0) sound.tick(p, now);
+              }
+              if (last.gen % 15 === 0) {
+                sound.update(last.pop / (life.w * life.h), (last.born + last.died) / (life.w * life.h));
+              }
+            }
             if (steps) {
               draw();
               genEl.textContent = t('garden.gen', { gen: last!.gen, pop: last!.pop });
@@ -511,6 +533,12 @@ import { findObjects, type Found, type Kind } from './dex';
 
           /* ── 단추 ─────────────────────────────────────────────────────── */
           seedBtn.onclick = () => reseed();
+          soundBtn.onclick = () => {
+            // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
+            if (sound.running) sound.stop();
+            else sound.start();
+            soundBtn.setAttribute('aria-pressed', String(sound.running));
+          };
           followBtn.onclick = () => {
             follow = !follow;
             followBtn.setAttribute('aria-pressed', String(follow));
@@ -535,6 +563,7 @@ import { findObjects, type Found, type Kind } from './dex';
             seedBtn.textContent = t('garden.reseed');
             dexBtn.textContent = t('garden.dex.button');
             followBtn.textContent = t('garden.follow');
+            soundBtn.textContent = t('garden.sound');
             pauseBtn.textContent = t('garden.pause');
             sub.textContent = t('garden.hint.' + (rule.id === 'wild' ? 'wild' : 'named'));
             build();
@@ -565,6 +594,7 @@ import { findObjects, type Found, type Kind } from './dex';
 
           Toolbox.onDispose?.(() => {
             alive = false;
+            sound.stop();
             stop();
             ro.disconnect();
             eye.disconnect();

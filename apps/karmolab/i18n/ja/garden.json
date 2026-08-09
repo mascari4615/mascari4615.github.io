@@ -24,5 +24,6 @@
   "garden.dex.osc": "{n}マス · {p}世代ごとに元の姿へ",
   "garden.dex.ship": "{n}マス · {p}世代ごとに {d}マスずつ流れます",
   "garden.line.found": "{gen}世代 — 初めて見るものを見つけました。{what}",
-  "garden.follow": "追いかける"
+  "garden.follow": "追いかける",
+  "garden.sound": "音"
 }
