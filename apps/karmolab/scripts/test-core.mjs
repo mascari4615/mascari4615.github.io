@@ -1017,6 +1017,72 @@ for (const bad of [['fits', { text: 'a', limit: 0 }], ['fits', { text: 'a', limi
 }
 eq(ccThrew, 2, '0 한도·모르는 기준은 던진다');
 
+// ── ②-22 unitconv 알맹이 (평·돈 — LLM 이 어림값으로 답하는 자리) ─────────────
+const uc = await load('src/core/unitconv.ts');
+
+eq(uc.spec.id, 'unitconv', 'unitconv spec.id');
+
+// 기본이 맞는지 먼저.
+eq(uc.convert(1, 'km', 'm'), 1000, '1km = 1000m');
+eq(uc.convert(1, 'inch', 'cm'), 2.54, '1인치 = 2.54cm');
+eq(uc.convert(1, 'kg', 'g'), 1000, '1kg = 1000g');
+eq(Math.round(uc.convert(1, 'mile', 'km') * 1000) / 1000, 1.609, '1마일 = 1.609km');
+
+/* 이 도구의 값 — 한국 전통 단위. LLM 은 「1평 = 3.3㎡」로 답하는데 정확히는 3.3057851 이다.
+   30평이면 0.17㎡ 차이 = 부동산에서 눈에 보이는 값. */
+eq(uc.convert(1, 'pyeong', 'm2'), 3.3057851, '1평 = 3.3057851㎡');
+check(uc.convert(1, 'pyeong', 'm2') !== 3.3, '3.3 으로 어림하면 안 된다');
+check(Math.abs(uc.convert(30, 'pyeong', 'm2') - 99) > 0.1, `30평은 99㎡ 가 아니다: ${uc.convert(30, 'pyeong', 'm2')}`);
+eq(uc.convert(1, 'don', 'g'), 3.75, '금 한 돈 = 3.75g');
+eq(uc.convert(1, 'geun', 'g'), 600, '한 근 = 600g');
+eq(uc.convert(1, 'nyang', 'g'), 37.5, '한 냥 = 37.5g');
+eq(uc.convert(1, 'mal', 'l'), 18.039, '한 말 = 18.039L');
+eq(Math.round(uc.convert(10, 'doe', 'l') * 1000) / 1000, 18.039, '열 되 = 한 말');
+
+// 온도는 비선형 — 0 에서 안 만난다.
+eq(uc.convert(0, 'c', 'f'), 32, '0°C = 32°F');
+eq(uc.convert(100, 'c', 'f'), 212, '100°C = 212°F');
+eq(uc.convert(-40, 'c', 'f'), -40, '-40 은 두 눈금이 만나는 점');
+eq(uc.convert(0, 'c', 'k'), 273.15, '0°C = 273.15K');
+eq(Math.round(uc.convert(98.6, 'f', 'c') * 10) / 10, 37, '98.6°F = 37°C');
+
+// 데이터는 1024 기준.
+eq(uc.convert(1, 'gb', 'mb'), 1024, '1GB = 1024MB');
+eq(uc.convert(1, 'mb', 'b'), 1048576, '1MB = 1048576B');
+
+// 갈래를 안 줘도 찾는다. 단 겹치는 id 는 못 찾는다 — 그때는 말해야 한다.
+eq(uc.categoryOf('pyeong'), 'area', 'pyeong 은 area');
+eq(uc.categoryOf('don'), 'weight', 'don 은 weight');
+eq(uc.categoryOf('ms'), null, 'ms 는 speed·time 둘 다 있어 못 고른다');
+eq(uc.convert(1, 'ms', 'sec', 'time'), 0.001, '갈래를 주면 된다');
+/* 1m/s = 3.6km/h 인데 부동소수점은 3.6 을 정확히 못 담는다(3.5999999999999996).
+   그래서 사람이 보는 값(`format`)으로 잰다 — 그게 이 함수가 있는 이유다. */
+eq(uc.format(uc.convert(1, 'ms', 'kmh', 'speed')), '3.6', '같은 id 라도 갈래가 다르면 다른 답');
+eq(uc.format(uc.convert(100, 'kmh', 'ms', 'speed')), '27.7777777778', '되돌리기도 사람이 읽는 값으로');
+
+// 왕복 — 넣었다 빼면 원래대로.
+for (const [v, a, b, cat] of [[7, 'pyeong', 'm2', 'area'], [3, 'don', 'g', 'weight'], [37, 'c', 'f', 'temp'], [5, 'mile', 'km', 'length']]) {
+  const back = uc.convert(uc.convert(v, a, b, cat), b, a, cat);
+  check(Math.abs(back - v) < 1e-9, `${a}↔${b} 왕복이 어긋난다: ${back} ≠ ${v}`);
+}
+
+check(uc.run('convert', { value: 30, from: 'pyeong', to: 'm2' }).includes('3.3057851'), 'run 이 어림 주의를 붙인다');
+check(uc.run('convert', { value: 1, from: 'don', to: 'g' }).includes('3.75g'), 'run 돈');
+check(uc.run('list', {}).includes('pyeong'), 'run list');
+let ucThrew = 0;
+for (const bad of [{ value: 1, from: '엉뚱', to: 'm', category: 'length' }, { value: 1, from: 'ms', to: 'ms' }, { value: 'abc', from: 'm', to: 'km' }]) {
+  try {
+    uc.run('convert', bad);
+  } catch {
+    ucThrew++;
+  }
+}
+eq(ucThrew, 3, '없는 단위·양쪽 다 갈래 모호·숫자 아님은 전부 던진다');
+// 한쪽만 모호하면 **다른 쪽으로 찾아 준다** — 굳이 막을 이유가 없다.
+eq(uc.convert(1, 'ms', 'sec'), 0.001, 'ms 는 모호하지만 sec 로 time 을 알아낸다');
+// 환율은 **일부러 없다** — 실시간 값이라 알맹이가 가질 수 없다.
+check('currency' in uc.FACTORS === false, '환율을 고정값으로 들고 있으면 안 된다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
