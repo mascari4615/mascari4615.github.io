@@ -262,5 +262,7 @@
   "tools.dailytype.description": "매일 바뀌는 한글 문장 세 개를 그대로 칩니다. 전원이 같은 문제를 받고, 결과는 문장이 담기지 않은 격자로만 공유됩니다.",
   "tools.dailytype.lead": "매일 세 문장 · 전원 같은 문제 · 타수와 정확도",
   "tools.dailycho.description": "초성만 보고 낱말 다섯 개를 맞힙니다. 매일 바뀌고 전원이 같은 문제를 받으며, 답은 모두 이 사이트에 있는 도구의 이름입니다.",
-  "tools.dailycho.lead": "매일 다섯 문제 · 전원 같은 문제 · 답은 도구 이름"
+  "tools.dailycho.lead": "매일 다섯 문제 · 전원 같은 문제 · 답은 도구 이름",
+  "tools.charconv.description": "전각과 반각, 한글과 로마자, 한글과 자모를 한 화면에서 바꿉니다. 붙여 넣는 순간 전각이 섞여 있으면 먼저 알려 줍니다.",
+  "tools.charconv.lead": "전각·반각 · 로마자 · 자모 · 섞인 글자 경고"
 }

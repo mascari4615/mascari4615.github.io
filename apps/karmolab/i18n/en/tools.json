@@ -262,5 +262,7 @@
   "tools.dailytype.description": "You type three Korean sentences that change every day. Everyone gets the same ones, and the result is shared as a grid that carries none of the text.",
   "tools.dailytype.lead": "Three sentences a day · the same for everyone · keystrokes and accuracy",
   "tools.dailycho.description": "You guess five words from their initial consonants alone. It changes daily, everyone gets the same puzzle, and every answer is the name of a tool on this site.",
-  "tools.dailycho.lead": "Five puzzles a day · the same for everyone · the answers are tool names"
+  "tools.dailycho.lead": "Five puzzles a day · the same for everyone · the answers are tool names",
+  "tools.charconv.description": "Convert between full-width and half-width, Hangul and Roman letters, and Hangul and jamo on one screen. The moment you paste, any full-width characters mixed in are pointed out.",
+  "tools.charconv.lead": "Full/half-width · Roman letters · jamo · a warning for mixed characters"
 }

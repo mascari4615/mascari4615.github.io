@@ -1,5 +1,5 @@
 {
-  "total": 5072,
+  "total": 5080,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -145,7 +145,7 @@
     "src/widgets/localai/localai.ts": 5,
     "src/widgets/memo.ts": 2,
     "src/widgets/moon.ts": 3,
-    "src/widgets/news.ts": 6,
+    "src/widgets/news.ts": 3,
     "src/widgets/orbita.ts": 4,
     "src/widgets/pack-store.ts": 6,
     "src/widgets/packs.ts": 53,
@@ -356,6 +356,7 @@
     "src/core/word-pool.generated.ts": 165,
     "src/core/dailycho.ts": 13,
     "src/widgets/tools/dailycho.ts": 11,
-    "src/core/charconv.ts": 14
+    "src/core/charconv.ts": 14,
+    "src/widgets/tools/charconv.ts": 11
   }
 }

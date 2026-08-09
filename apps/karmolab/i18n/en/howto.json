@@ -478,5 +478,9 @@
   "howto.dailycho.0": "Look at the initial consonants and the letter count, then write the word",
   "howto.dailycho.1": "Enter moves to the next box; Enter on the last box marks them",
   "howto.dailycho.2": "A correct box tells you which tool it was",
-  "howto.dailycho.3": "Copy the result — the answers are left out, only the grid goes"
+  "howto.dailycho.3": "Copy the result — the answers are left out, only the grid goes",
+  "howto.charconv.0": "Choose which way to convert",
+  "howto.charconv.1": "Paste the text and it converts straight away",
+  "howto.charconv.2": "If full-width characters are mixed in, a notice appears above",
+  "howto.charconv.3": "Copy it, or press “Result to input” and keep converting"
 }

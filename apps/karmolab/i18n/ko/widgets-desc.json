@@ -19,6 +19,7 @@
   "widgets-desc.randomgen.desc": "창작용 키워드·주제를 랜덤으로 뽑습니다",
   "widgets-desc.passgen.desc": "안전한 비밀번호를 만들고, 쓰던 것이 얼마나 버티는지 확인합니다. 아무것도 전송하지 않습니다",
   "widgets-desc.devtool.desc": "JSON 포맷·JWT 디코드·정규식 테스트·해시·UUID·크론·URL·암호화를 한 곳에서",
+  "widgets-desc.charconv.desc": "전각·반각, 한글·로마자, 한글·자모를 한 곳에서 — 섞인 글자를 먼저 알려 준다",
   "widgets-desc.dailycho.desc": "초성만 보고 낱말 다섯 개 — 답은 이 사이트의 도구 이름",
   "widgets-desc.dailytype.desc": "매일 바뀌는 세 문장 — 전원 같은 문제, 결과는 격자로만 공유",
   "widgets-desc.chain.desc": "도구 여러 개를 이어서 한 번에 — 앞 결과가 다음 도구의 입력이 됩니다",
