@@ -1,0 +1,8 @@
+{
+  "devtool.part.regextest": "正規表現",
+  "devtool.part.hashgen": "ハッシュ",
+  "devtool.part.cron": "クロン",
+  "devtool.part.crypto": "暗号化",
+  "devtool.part.tableconv": "表を変換",
+  "devtool.part.json2ts": "JSON → 型"
+}

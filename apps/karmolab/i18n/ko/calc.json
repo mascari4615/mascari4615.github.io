@@ -1,0 +1,14 @@
+{
+  "calc.part.percent": "퍼센트",
+  "calc.part.interest": "이자",
+  "calc.part.unitconv": "단위",
+  "calc.part.radix": "진법",
+  "calc.part.numword": "숫자 ↔ 한글",
+  "calc.part.aspect": "비율",
+  "calc.part.grade": "학점",
+  "calc.part.vat": "부가세",
+  "calc.part.bytesize": "용량",
+  "calc.part.bizno": "사업자번호",
+  "calc.part.loan": "대출 상환",
+  "calc.part.cssunit": "CSS 단위"
+}

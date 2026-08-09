@@ -1,0 +1,22 @@
+{
+  "video2audio.drop": "영상을 끌어다 놓거나 눌러서 고르세요",
+  "video2audio.label.format": "저장 형식",
+  "video2audio.format.mp3": "MP3 — 작아서 보내기 좋음",
+  "video2audio.format.wav": "WAV — 품질 손실 없음, 용량 큼",
+  "video2audio.btn.run": "소리만 뽑아 받기",
+  "video2audio.status.idle": "영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.",
+  "video2audio.tab": "소리 추출",
+  "video2audio.err.decode": "이 영상의 소리는 브라우저가 해독하지 못했어요. mp4·webm·mov 는 대체로 됩니다.",
+  "video2audio.stat.length": "길이",
+  "video2audio.stat.rate": "표본율",
+  "video2audio.stat.channels": "채널",
+  "video2audio.value.mono": "모노",
+  "video2audio.value.stereo": "스테레오",
+  "video2audio.err.noFile": "영상을 먼저 넣어 주세요.",
+  "video2audio.say.encoding": "MP3 로 만드는 중…",
+  "video2audio.say.making": "음원으로 만드는 중…",
+  "video2audio.err.run": "만드는 중 문제가 생겼어요: ",
+  "video2audio.say.looking": "{name} · {size} 에서 소리를 찾는 중…",
+  "video2audio.say.found": "소리를 찾았어요 — 뽑기를 누르면 음원으로 받습니다.",
+  "video2audio.say.done": "{len} · {size} 로 받았어요."
+}

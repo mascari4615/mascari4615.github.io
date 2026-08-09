@@ -1,0 +1,8 @@
+{
+  "sound.part.voicerec": "Record",
+  "sound.part.audiocut": "Cut",
+  "sound.part.audiolevel": "Level",
+  "sound.part.audiospeed": "Speed",
+  "sound.part.audiofade": "Fade",
+  "sound.part.audiojoin": "Join"
+}

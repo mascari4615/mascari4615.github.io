@@ -1,0 +1,22 @@
+{
+  "video2audio.tab": "Extract audio",
+  "video2audio.drop": "Drop a video here or click to choose one",
+  "video2audio.label.format": "File format",
+  "video2audio.format.mp3": "MP3 — small, easy to send",
+  "video2audio.format.wav": "WAV — no quality loss, large",
+  "video2audio.btn.run": "Pull the audio out",
+  "video2audio.status.idle": "The video only ever opens inside your browser — nothing is uploaded.",
+  "video2audio.err.decode": "Your browser could not decode this video’s audio. mp4, webm and mov usually work.",
+  "video2audio.stat.length": "Length",
+  "video2audio.stat.rate": "Sample rate",
+  "video2audio.stat.channels": "Channels",
+  "video2audio.value.mono": "Mono",
+  "video2audio.value.stereo": "Stereo",
+  "video2audio.err.noFile": "Add a video first.",
+  "video2audio.say.encoding": "Making the MP3…",
+  "video2audio.say.making": "Building the audio file…",
+  "video2audio.err.run": "Something went wrong: ",
+  "video2audio.say.looking": "Looking for audio in {name} · {size}…",
+  "video2audio.say.found": "Found the audio — hit extract and you get it as a file.",
+  "video2audio.say.done": "Downloaded {len} · {size}."
+}

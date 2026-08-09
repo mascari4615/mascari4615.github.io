@@ -1,0 +1,13 @@
+{
+  "pdf.part.pdftool": "結合・分割",
+  "pdf.part.pdfcompress": "容量を減らす",
+  "pdf.part.pdfsign": "署名",
+  "pdf.part.pdfcrop": "余白を切る",
+  "pdf.part.pdfpagenum": "ページ番号",
+  "pdf.part.pdfredact": "隠す",
+  "pdf.part.pdfwatermark": "透かし",
+  "pdf.part.pdf2text": "PDF → 文字",
+  "pdf.part.text2pdf": "文章 → PDF",
+  "pdf.part.pdf2img": "PDF → 画像",
+  "pdf.part.img2pdf": "画像 → PDF"
+}

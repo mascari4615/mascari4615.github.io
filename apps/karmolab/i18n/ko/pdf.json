@@ -1,0 +1,13 @@
+{
+  "pdf.part.pdftool": "합치기·나누기",
+  "pdf.part.pdfcompress": "용량 줄이기",
+  "pdf.part.pdfsign": "서명 넣기",
+  "pdf.part.pdfcrop": "여백 자르기",
+  "pdf.part.pdfpagenum": "쪽 번호",
+  "pdf.part.pdfredact": "PDF 가리개",
+  "pdf.part.pdfwatermark": "워터마크",
+  "pdf.part.pdf2text": "PDF → 글자",
+  "pdf.part.text2pdf": "글 → PDF",
+  "pdf.part.pdf2img": "PDF → 이미지",
+  "pdf.part.img2pdf": "이미지 → PDF"
+}

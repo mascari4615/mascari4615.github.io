@@ -10,8 +10,12 @@
 import { seekTo, pickRecordType } from './shared/video';
 
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const size = (n: number): string =>
     n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(0)}KB` : `${n}B`;
 
@@ -29,55 +33,57 @@ import { acceptPastedFiles } from './shared/paste';
     id: 'videotrim',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['video/*'],
-    title: '영상 자르기',
+    title: t('widgets.videotrim.title', undefined, "영상 자르기"),
     category: 'tool',
-    desc: '영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.videotrim.desc', undefined, "영상에서 원하는 구간만 잘라 냅니다. 소리도 함께 남고, 영상이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<path d="M6 4v13a3 3 0 1 0 2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 4v13a3 3 0 1 1-2 2.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M9 9h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '자르기',
+        label: t('videotrim.tab', undefined, "자르기"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('videotrim').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="vtDrop">
               <input type="file" id="vtFile" accept="video/*" hidden>
-              영상을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('videotrim.drop'))}
             </div>
 
             <div id="vtEditor" style="display:none; margin-top:var(--space-lg);">
               <video id="vtVideo" playsinline controls style="width:100%; max-height:340px; background:#000; border-radius:8px;"></video>
 
               <div class="field-group" style="margin-top:var(--space-lg);">
-                <div class="tool-sublabel">구간 — <span id="vtRangeLabel" class="range-value">0:00.0 ~ 0:00.0 (0.0초)</span></div>
-                <input type="range" id="vtStart" aria-label="구간 시작" min="0" max="1000" value="0" step="1">
-                <input type="range" id="vtEnd" aria-label="구간 끝" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
+                <div class="tool-sublabel">${esc(t('videotrim.label.range'))} <span id="vtRangeLabel" class="range-value">${esc(t('videotrim.value.range'))}</span></div>
+                <input type="range" id="vtStart" aria-label="${esc(t('videotrim.aria.start'))}" min="0" max="1000" value="0" step="1">
+                <input type="range" id="vtEnd" aria-label="${esc(t('videotrim.aria.end'))}" min="0" max="1000" value="1000" step="1" style="margin-top:6px;">
                 <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
-                  <button class="btn btn-ghost btn-sm" id="vtHere">지금 위치를 시작점으로</button>
-                  <button class="btn btn-ghost btn-sm" id="vtHereEnd">지금 위치를 끝점으로</button>
-                  <button class="btn btn-ghost btn-sm" id="vtPlayRange">구간만 재생</button>
+                  <button class="btn btn-ghost btn-sm" id="vtHere">${esc(t('videotrim.btn.here'))}</button>
+                  <button class="btn btn-ghost btn-sm" id="vtHereEnd">${esc(t('videotrim.btn.hereEnd'))}</button>
+                  <button class="btn btn-ghost btn-sm" id="vtPlayRange">${esc(t('videotrim.btn.play'))}</button>
                 </div>
               </div>
 
               <div class="tool-chips" style="margin-bottom:var(--space-lg);">
-                <label class="tool-chip"><input type="checkbox" id="vtAudio" checked> 소리도 함께</label>
+                <label class="tool-chip"><input type="checkbox" id="vtAudio" checked> ${esc(t('videotrim.opt.audio'))}</label>
               </div>
 
               <div class="cc-stats" id="vtStats"></div>
 
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-primary" id="vtRun">이 구간만 잘라 내기</button>
-                <button class="btn btn-ghost" id="vtStop" style="display:none;">중단</button>
-                <button class="btn btn-ghost" id="vtSave" disabled>내려받기</button>
+                <button class="btn btn-primary" id="vtRun">${esc(t('videotrim.btn.run'))}</button>
+                <button class="btn btn-ghost" id="vtStop" style="display:none;">${esc(t('videotrim.btn.stop'))}</button>
+                <button class="btn btn-ghost" id="vtSave" disabled>${esc(t('videotrim.btn.save'))}</button>
               </div>
 
               <div id="vtResult" style="display:none;">
-                <div class="tool-sublabel">잘라 낸 결과 — 확인하고 받으세요</div>
+                <div class="tool-sublabel">${esc(t('videotrim.label.result'))}</div>
                 <video id="vtPreview" controls playsinline style="width:100%; max-height:280px; background:#000; border-radius:8px;"></video>
               </div>
             </div>
 
-            <div class="tool-status" id="vtStatus">영상은 브라우저 안에서만 열립니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="vtStatus">${esc(t('videotrim.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -118,12 +124,12 @@ import { acceptPastedFiles } from './shared/paste';
             }
             const s = startSec(), e = endSec();
             const span = Math.max(0, e - s);
-            $<HTMLElement>('#vtRangeLabel').textContent = `${mmss(s)} ~ ${mmss(e)} (${span.toFixed(1)}초)`;
+            $<HTMLElement>('#vtRangeLabel').textContent = t('videotrim.value.rangeOf', { from: mmss(s), to: mmss(e), sec: span.toFixed(1) }) + ``;
             stats.innerHTML =
-              stat('자를 길이', `${span.toFixed(1)}초`, true) +
-              stat('원본 길이', mmss(duration)) +
+              stat(t('videotrim.stat.cut'), t('videotrim.value.sec', { n: span.toFixed(1) }), true) +
+              stat(t('videotrim.stat.total'), mmss(duration)) +
               // 실시간 녹화라 걸리는 시간이 구간 길이와 같다. 미리 알려 줘야 「멈춘 건가」 오해가 없다.
-              stat('걸리는 시간', `약 ${Math.ceil(span)}초`);
+              stat(t('videotrim.stat.eta'), t('videotrim.value.about', { n: Math.ceil(span) }));
           }
 
           function load(f: File): void {
@@ -139,21 +145,21 @@ import { acceptPastedFiles } from './shared/paste';
               endEl.value = '1000';
               video.currentTime = 0;
               refresh();
-              say(`${f.name} · ${mmss(duration)} — 구간을 고르고 잘라 내기를 누르세요.`, 'ok');
+              say(t('videotrim.say.loaded', { name: f.name, len: mmss(duration) }), 'ok');
             };
-            video.onerror = () => say('이 영상은 브라우저가 열지 못했어요. mp4·webm 은 대체로 됩니다.', 'error');
+            video.onerror = () => say(t('videotrim.err.open'), 'error');
           }
 
           async function run(): Promise<void> {
             const s = startSec(), e = endSec();
             const span = e - s;
             if (span <= 0) {
-              say('구간을 먼저 잡아 주세요.', 'error');
+              say(t('videotrim.err.noRange'), 'error');
               return;
             }
             const grab = video.captureStream || video.mozCaptureStream;
             if (!grab) {
-              say('이 브라우저는 영상 담기를 지원하지 않아요. 크롬·엣지에서 열어 보세요.', 'error');
+              say(t('videotrim.err.unsupported'), 'error');
               return;
             }
 
@@ -185,7 +191,7 @@ import { acceptPastedFiles } from './shared/paste';
             const t0 = performance.now();
             const watch = window.setInterval(() => {
               const left = Math.max(0, span - (performance.now() - t0) / 1000);
-              say(`담는 중… ${left.toFixed(1)}초 남음 (구간을 실제로 재생하며 담습니다)`);
+              say(t('videotrim.say.recording', { left: left.toFixed(1) }));
               if (video.currentTime >= e - 0.03 || left <= 0) stop();
             }, 100);
 
@@ -202,13 +208,13 @@ import { acceptPastedFiles } from './shared/paste';
             recorder = null;
 
             if (!made || made.size < 100) {
-              say('담긴 내용이 없어요. 구간을 조금 길게 잡아 보세요.', 'error');
+              say(t('videotrim.err.empty'), 'error');
               return;
             }
             preview.src = URL.createObjectURL(made);
             $<HTMLElement>('#vtResult').style.display = '';
             saveBtn.disabled = false;
-            say(`${span.toFixed(1)}초 · ${size(made.size)} 로 잘라 냈어요. 확인하고 받으세요.`, 'ok');
+            say(t('videotrim.say.done', { sec: span.toFixed(1), size: size(made.size) }), 'ok');
             Toolbox.trackUse?.('trim');
           }
 
@@ -259,19 +265,20 @@ import { acceptPastedFiles } from './shared/paste';
             rangeTimer = window.setTimeout(() => video.pause(), Math.max(100, (endSec() - startSec()) * 1000));
           };
           runBtn.onclick = () => {
-            void run().catch((err: Error) => say('자르는 중 문제가 생겼어요: ' + err.message, 'error'));
+            void run().catch((err: Error) => say(t('videotrim.err.run') + err.message, 'error'));
           };
           saveBtn.onclick = () => {
             if (!made) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(made);
-            a.download = fileName.replace(/\.[^.]+$/, '') + '-자른부분.webm';
+            a.download = fileName.replace(/\.[^.]+$/, '') + t('videotrim.file.suffix');
             a.click();
             // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
             Toolbox.offerNext?.(status, { blob: made, name: a.download, from: 'videotrim' });
             setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-            say('내려받았어요.', 'ok');
+            say(t('videotrim.say.saved'), 'ok');
           };
+                  });
         }
       }
     ]
