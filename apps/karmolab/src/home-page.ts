@@ -218,12 +218,17 @@
     async function fillHomePulse(slot) {
         const base = (typeof window !== 'undefined' && window.KarmoAccount && window.KarmoAccount.apiBase) || '';
         if (!base) return;
+        /* **물어보는 동안 자리를 잡아 둔다** — 대답이 오면 이 칸이 한 줄(23px) 생기면서 아래가
+           통째로 내려간다(실사이트 밀림 0.042). 못 받으면 도로 놓아 `:empty` 가 이겨 자리가 없어진다. */
+        slot.dataset.reserving = '1';
+        const unreserve = () => { delete slot.dataset.reserving; };
         let data;
         try {
             const response = await fetch(base + '/kl/tools/stats');
-            if (!response.ok) return;
+            if (!response.ok) { unreserve(); return; }
             data = await response.json();
         } catch (_) {
+            unreserve();
             return;
         }
         const pulse = (data && data.pulse) || {};
@@ -240,14 +245,14 @@
             window.KarmoPalette.setPopular(top);
         }
 
-        if (!slot.isConnected) return;
-        if (!pulse.opensTotal && !visits.total) return;
+        if (!slot.isConnected) { unreserve(); return; }
+        if (!pulse.opensTotal && !visits.total) { unreserve(); return; }
         const n = (value) => Number(value || 0).toLocaleString('ko-KR');
 
         /* 블로그의 Today / Total 두 칸 (사용자 요청). 방문 수만 낸다 —
          * 「명」이라고 쓰면 안 된다: 이 수는 방문 횟수지 사람 수가 아니다. 사람 수는 하루
          * 단위로만 셀 수 있고(오늘 열쇠만 들고 있으므로), 그 값은 광장에 있다. */
-        if (!visits.total) return;
+        if (!visits.total) { unreserve(); return; }
         slot.innerHTML = '<p class="landing-pulse-line">'
             + '<span class="landing-pulse-stat"><span class="landing-pulse-k">Today</span>'
             + '<b>' + n(visits.today) + '</b></span>'

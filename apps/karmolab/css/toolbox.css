@@ -1181,6 +1181,11 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
 .landing-pulse { max-width: 620px; margin: var(--space-lg) auto 0;
     position: relative; z-index: 1; }
 .landing-pulse:empty { display: none; }
+/* 「지금 이만큼 쓰였어요」 한 줄도 **서버 대답을 기다렸다가** 들어온다 (TASK-KL-201, 2026-08-09).
+   그 순간 아래가 23px 내려간다 — 실사이트 밀림 0.042 가 이것이었다. 우리 기계에서는 이 요청이
+   막혀(다른 출처) 칸이 비어 있어서 **로컬에서는 영영 안 보이는 종류**였다. 진짜 사이트에서 재야 보인다.
+   폭이 좁아져도 한 줄이라 값이 안 변한다(360~1280px 전부 23px — 직접 재서 확인). */
+.landing-pulse[data-reserving] { display: block; min-height: 23px; }
 .landing-pulse-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center;
     justify-content: center; gap: var(--space-md);
     font-size: var(--font-size-xs); color: var(--text-tertiary); }
