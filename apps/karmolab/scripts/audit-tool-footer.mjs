@@ -33,6 +33,15 @@ function fullLayoutIds() {
   const ids = [];
   for (const block of body.split(/\n\s*\{\s*\n/)) {
     if (!/layout:\s*'full'/.test(block)) continue;
+    /* **데스크톱 앱 전용은 브라우저에 아예 없다** — 「이 기계에서 안 뜬다」가 아니라 「여기선
+       원래 없는 것」이다. 그런데 목록에 넣어 두면 판이 뜨기를 15초씩 기다렸다가 「못 돌림」으로
+       적었다. 다섯 개 × 두 높이 × 15초 = **150초**, 이 검사에 든 시간(161초)의 거의 전부였다.
+       없는 것을 기다리는 시간이 배포 전체를 늦추고 있었다 (2026-08-09). */
+    if (/desktopOnly:\s*true/.test(block)) continue;
+    /* **묶음의 탭도 자기 판이 없다** — `bundle: 'image'` 인 항목은 주소만 남기고 그 묶음 위젯의
+       탭으로 간다(`hidden: true`). 그 판은 묶음 주인 id 로 이미 잰다. 여기 넣어 두면 역시
+       15초씩 기다렸다가 「못 돌림」이다 (실측 imagegen·imageedit 넷 = 60초). */
+    if (/bundle:\s*'/.test(block)) continue;
     const m = /id:\s*'([^']+)'/.exec(block);
     if (m) ids.push(m[1]);
   }
@@ -73,10 +82,22 @@ const rows = [];
 let bad = 0;
 let skipped = 0;
 
+/* **도구 하나당 한 번만 연다** (2026-08-09).
+ *
+ * 예전에는 창 높이마다 새로 열었다 — 도구 서른 개 × 두 높이 = 예순 번 부팅이다. 그런데 여기서
+ * 재는 것은 전부 **자리**(CSS 가 창 높이를 보고 정하는 값)라, 창만 바꿔도 그대로 다시 잡힌다.
+ * 새로 열어서 얻는 것은 없고 배포만 늦어진다 — 이 검사 하나가 빌드 10분 중 3분이었다.
+ * 대신 창을 바꾼 뒤 **자리가 멎을 때까지** 기다린다(고정 대기를 지우면서 정직은 지킨다). */
 for (const id of targets) {
+  let opened = false;
   for (const H of HEIGHTS) {
     await page.setViewportSize({ width: 1280, height: H });
-    await page.goto(`${BASE}/apps/karmolab/index.html#${id}`, { waitUntil: 'load', timeout: 30000 });
+    if (opened) {
+      /* 이미 열려 있다 — 창만 바뀌었다. 다시 안 연다. */
+    } else {
+      await page.goto(`${BASE}/apps/karmolab/index.html#${id}`, { waitUntil: 'load', timeout: 30000 });
+      opened = true;
+    }
     /* **그 도구의 판**이 뜰 때까지 기다린다. 푸터로 기다리면 앞 도구의 잔상에 걸려
        엉뚱한 판정이 난다(planner 가 창 높이에 따라 다르게 나왔다 — 그게 그 증상이었다). */
     try {
@@ -88,7 +109,24 @@ for (const id of targets) {
       skipped++;
       continue;
     }
-    await page.waitForTimeout(900);
+    /* 고정 900ms 대신 **멎을 때까지**. 두 번 이어서 잰 자리가 같으면 그 자리는 굳은 것이다.
+       느린 기계에서는 더 기다리고 빠른 기계에서는 안 기다린다 — 어느 쪽도 거짓말을 안 한다. */
+    await page
+      .waitForFunction(
+        () => {
+          const f = document.querySelector('.tool-page.active .tool-page-next');
+          const w = window;
+          if (!f) return true; // 푸터가 없는 화면 — 기다릴 것이 없다
+          const now = Math.round(f.getBoundingClientRect().top);
+          const same = w.__footPrev === now;
+          w.__footPrev = now;
+          return same;
+        },
+        null,
+        { timeout: 5000, polling: 120 }
+      )
+      .catch(() => {});
+    await page.evaluate(() => { delete window.__footPrev; });
     const m = await page.evaluate(() => {
       /* 「보이는 도구」를 잡아야 한다 — `.active` 가 여럿일 수 있다(앞서 연 도구가 남는다).
          푸터를 먼저 찾고 그 조상으로 거슬러 올라가면 짝이 어긋날 일이 없다. */
