@@ -96,11 +96,20 @@ export function poolSize(pw: string): number {
   return Math.max(n, 1);
 }
 
+/**
+ * 왜 싸게 매겨졌는지 — **말이 아니라 열쇠로** 낸다.
+ * 화면은 이 열쇠로 자기 말(3개 국어)을 고르고, MCP 는 아래 `why` 한국어를 그대로 쓴다.
+ * 열쇠 없이 한국어 문장을 넘기면 화면 쪽이 그 문장을 비교하게 되고, 문장을 고치는 순간 조용히 깨진다.
+ */
+export type ChunkKind = 'common' | 'keyboard' | 'sequence' | 'repeat' | 'year' | 'random';
+
 export interface Chunk {
   text: string;
   /** 이 덩어리를 맞히는 데 드는 가짓수 (log2). */
   bits: number;
-  /** 사람에게 보여 줄 이유. 「왜 깎였나」를 말하지 않으면 고칠 수가 없다. */
+  /** 무엇으로 잡혔나. 화면이 자기 말을 고를 때 쓰는 열쇠. */
+  kind: ChunkKind;
+  /** 사람에게 보여 줄 이유(한국어). 「왜 깎였나」를 말하지 않으면 고칠 수가 없다. */
   why: string;
 }
 
@@ -120,7 +129,12 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
       // 목록 안에서 고르는 비용 + 치환·대소문자 변형 비용. 변형은 싸다 — 공격자도 다 해 본다.
       const bits = log2(COMMON_WORDS.length) + (leeted ? 2 : 0) + 1;
       if (best === null || w.length > best.text.length) {
-        best = { text: rest.slice(0, w.length), bits, why: leeted ? '흔한 단어(치환 되돌림)' : '흔한 단어' };
+        best = {
+          text: rest.slice(0, w.length),
+          bits,
+          kind: 'common',
+          why: leeted ? '흔한 단어(치환 되돌림)' : '흔한 단어'
+        };
       }
     }
   }
@@ -131,7 +145,9 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
     for (const seq of [run, [...run].reverse().join('')]) {
       let len = 0;
       while (len < rest.length && seq.slice(0, len + 1) === restLower.slice(0, len + 1)) len++;
-      if (len >= 4) return { text: rest.slice(0, len), bits: log2(KEYBOARD_RUNS.length * 2 * len), why: '자판 줄' };
+      if (len >= 4) {
+        return { text: rest.slice(0, len), bits: log2(KEYBOARD_RUNS.length * 2 * len), kind: 'keyboard', why: '자판 줄' };
+      }
     }
   }
 
@@ -146,7 +162,9 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
     }
     runLen++;
   }
-  if (runLen >= 4) return { text: pw.slice(i, i + runLen), bits: log2(94 * 2 * runLen), why: '연속된 글자' };
+  if (runLen >= 4) {
+    return { text: pw.slice(i, i + runLen), bits: log2(94 * 2 * runLen), kind: 'sequence', why: '연속된 글자' };
+  }
 
   // ④ 반복 (aaaa · abab)
   for (let unit = 1; unit <= 4; unit++) {
@@ -156,12 +174,17 @@ function cheapChunkAt(pw: string, i: number): Chunk | null {
     while (pw.slice(i + reps * unit, i + (reps + 1) * unit) === u) reps++;
     if (reps >= 2 && unit * reps >= 4) {
       // 한 번치 값 + 몇 번 반복했는지. 100번 반복해도 거의 안 는다.
-      return { text: pw.slice(i, i + unit * reps), bits: unit * log2(poolSize(u)) + log2(reps), why: '반복' };
+      return {
+        text: pw.slice(i, i + unit * reps),
+        bits: unit * log2(poolSize(u)) + log2(reps),
+        kind: 'repeat',
+        why: '반복'
+      };
     }
   }
 
   // ⑤ 연도 (1900~2099). 사람들이 붙이는 숫자 넷 중 대부분이 이것이다.
-  if (/^(19|20)\d{2}/.test(rest)) return { text: rest.slice(0, 4), bits: log2(200), why: '연도' };
+  if (/^(19|20)\d{2}/.test(rest)) return { text: rest.slice(0, 4), bits: log2(200), kind: 'year', why: '연도' };
 
   return null;
 }
@@ -197,7 +220,7 @@ export function analyze(pw: string): Strength {
     let j = i;
     while (j < pw.length && cheapChunkAt(pw, j) === null) j++;
     const text = pw.slice(i, j);
-    chunks.push({ text, bits: text.length * log2(poolSize(text)), why: '무작위' });
+    chunks.push({ text, bits: text.length * log2(poolSize(text)), kind: 'random', why: '무작위' });
     i = j;
   }
 

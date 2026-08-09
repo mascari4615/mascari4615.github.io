@@ -7,6 +7,7 @@
  * 강도를 색깔로만 알려 주면 아무 도움이 안 된다. 「얼마나 버티나」를 시간으로 말해 주고,
  * 왜 약한지(자판 순서·반복·연도·흔한 낱말)를 짚어 준다. 사람은 이유를 알아야 고친다.
  */
+import { analyze, type ChunkKind } from '../../core/passgen';
 import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
@@ -92,30 +93,44 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
     return '';
   }
 
-  /** 사람이 알아볼 만한 약점을 찾는다. */
+  /** 알맹이가 낸 열쇠 → 이 화면의 말. 문장끼리 비교하지 않는다(문장은 언어마다 다르다). */
+  const WEAK_KEY: Partial<Record<ChunkKind, string>> = {
+    repeat: 'passgen.weak.repeat',
+    sequence: 'passgen.weak.sequence',
+    keyboard: 'passgen.weak.keyboard',
+    year: 'passgen.weak.year'
+  };
+
+  /**
+   * 약점 목록. **점수와 같은 판정에서 나온다** — 알맹이가 싸게 매긴 바로 그 덩어리들이다.
+   *
+   * 예전에는 여기서 따로 정규식을 돌렸다. 그러면 「약점 없음」인데 점수는 깎이거나 그 반대가
+   * 되고, 사람은 무엇을 고쳐야 할지 알 수 없다. 이유와 숫자는 같은 자리에서 나와야 한다.
+   */
   function weaknesses(pw: string): string[] {
+    if (pw === '') return [];
     const found: string[] = [];
-    const low = pw.toLowerCase();
-    if (/(.)\1{2,}/.test(pw)) found.push(t('passgen.weak.repeat'));
-    if (/(012|123|234|345|456|567|678|789|890)/.test(pw)) found.push(t('passgen.weak.sequence'));
-    if (/(qwer|asdf|zxcv|wasd|1qaz|qaz|wsx)/i.test(pw)) found.push(t('passgen.weak.keyboard'));
-    if (/(19|20)\d{2}/.test(pw)) found.push(t('passgen.weak.year'));
-    for (const c of COMMON) if (low.includes(c)) found.push(t('passgen.weak.common', { word: c }));
+    for (const c of analyze(pw).chunks) {
+      if (c.kind === 'common') {
+        found.push(t('passgen.weak.common', { word: c.text }));
+        continue;
+      }
+      const key = WEAK_KEY[c.kind];
+      if (key !== undefined) found.push(t(key));
+    }
     if (/^[a-z]+\d{1,4}!?$/i.test(pw)) found.push(t('passgen.weak.wordDigit'));
-    return found;
+    return [...new Set(found)];
   }
 
-  /** 몇 가지를 섞어 썼는지로 후보 개수를 재고, 거기서 버티는 시간을 어림한다. */
+  /**
+   * 세기. **계산은 `core/passgen` 이 한다** — 이 화면과 MCP(`passgen_strength`)가 같은 값을
+   * 내야 하기 때문이다. 갈리면 「사이트는 강하다는데 에이전트는 약하다더라」가 된다.
+   *
+   * 여기 있던 옛 계산(글자 종류 풀^길이 − 약점당 12비트)은 버렸다. 그 방식은 `Password1!` 을
+   * 통과시키고 긴 낱말묶음을 탈락시킨다 — 정확히 거꾸로였다.
+   */
   function strength(pw: string): { bits: number; label: string; time: string; tone: string } {
-    let pool = 0;
-    if (/[a-z]/.test(pw)) pool += 26;
-    if (/[A-Z]/.test(pw)) pool += 26;
-    if (/\d/.test(pw)) pool += 10;
-    if (/[^a-zA-Z0-9]/.test(pw)) pool += 32;
-    const bits = pw.length ? Math.log2(Math.max(pool, 2)) * pw.length : 0;
-    // 약점이 있으면 실제로는 훨씬 빨리 뚫린다 — 그만큼 깎는다
-    const penalty = weaknesses(pw).length * 12;
-    const real = Math.max(0, bits - penalty);
+    const real = pw === '' ? 0 : analyze(pw).bits;
 
     // 초당 100억 번 시도(요즘 그래픽카드 여러 대) 기준
     const seconds = Math.pow(2, real - 1) / 1e10;

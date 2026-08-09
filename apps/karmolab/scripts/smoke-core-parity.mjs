@@ -14,8 +14,9 @@
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -117,6 +118,79 @@ for (const sample of SAMPLES) {
   }
 }
 
+/*
+ * ── passgen — 화면이 정말 알맹이로 재는가 (TASK-KL-205)
+ *
+ * 화면 위젯이 세기를 **자기 식으로** 재고 있었다: 글자 종류 풀^길이에서 약점 하나당 12비트.
+ * 그 방식은 `Password1!` 을 통과시키고 긴 낱말묶음을 떨어뜨린다 — MCP 쪽 알맹이와 정확히
+ * 반대 판정이다. 「사이트는 강하다는데 에이전트는 약하다더라」가 실제로 가능했다.
+ *
+ * 그래서 위젯을 알맹이에 붙였다. 여기서 두 가지를 잰다:
+ *   ① 알맹이가 **브라우저에서도** Node 와 같은 값을 내는가 (같은 소스를 양쪽으로 말아 대조)
+ *   ② 화면에 실려 나가는 **위젯 번들 안에 그 알맹이가 실제로 들어 있는가**
+ *      — ② 가 없으면 「알맹이는 맞는데 화면은 옛 계산을 쓰는」 상태를 못 잡는다(타입 검사 통과함).
+ */
+{
+  const esbuild = await import('esbuild');
+  const built = await esbuild.build({
+    entryPoints: [path.join(root, 'src/core/passgen.ts')],
+    bundle: true,
+    write: false,
+    format: 'iife',
+    globalName: '__passgen',
+    target: ['es2020'],
+    logLevel: 'error'
+  });
+  await page.addScriptTag({ content: built.outputFiles[0].text });
+
+  /* Node 쪽도 같은 소스에서 만든다 — 손으로 옮겨 적으면 그 순간 세 번째 사본이 생긴다. */
+  const nodeOut = path.join(os.tmpdir(), `karmolab-parity-passgen-${process.pid}.mjs`);
+  await esbuild.build({
+    entryPoints: [path.join(root, 'src/core/passgen.ts')],
+    bundle: true,
+    outfile: nodeOut,
+    format: 'esm',
+    platform: 'node',
+    target: ['node20'],
+    logLevel: 'error'
+  });
+  const nodeCore = await import(pathToFileURL(nodeOut).href);
+
+  const PWS = ['Password1!', 'correcthorsebatterystaple', 'qwerty123', 'x9#Lq2!vBn', 'abcd1234', 'P@ssw0rd', '한글비밀번호1'];
+  for (const pw of PWS) {
+    const fromBrowser = await page.evaluate((v) => {
+      const r = window.__passgen.analyze(v);
+      return { bits: r.bits, kinds: r.chunks.map((c) => c.kind).join(',') };
+    }, pw);
+    const r = nodeCore.analyze(pw);
+    check(
+      Math.abs(fromBrowser.bits - r.bits) < 1e-9,
+      `passgen 「${pw}」 — 브라우저 ${fromBrowser.bits} ≠ Node ${r.bits}`
+    );
+    check(
+      fromBrowser.kinds === r.chunks.map((c) => c.kind).join(','),
+      `passgen 「${pw}」 — 뜯어본 이유가 다르다 (${fromBrowser.kinds} ≠ ${r.chunks.map((c) => c.kind).join(',')})`
+    );
+  }
+
+  /* 이 도구가 있는 이유 자체가 양쪽에서 같이 성립해야 한다. */
+  const weak = await page.evaluate(() => window.__passgen.analyze('Password1!').bits);
+  const strong = await page.evaluate(() => window.__passgen.analyze('correcthorsebatterystaple').bits);
+  check(strong > weak, `브라우저에서도 낱말묶음(${strong})이 Password1!(${weak})보다 세야 한다`);
+
+  /*
+   * ② 화면에 나가는 번들이 정말 이 알맹이를 물고 있나.
+   * `naiveBits` 는 알맹이에만 있는 **객체 속성 이름**이라 esbuild 가 안 바꾼다. 위젯이 알맹이를
+   * 아예 안 부르게 되면(= 옛 계산으로 되돌아가면) 번들에서 사라진다.
+   *
+   * ※ 「옛 계산이 남아 있나」를 `pool += 26` 같은 **변수 이름**으로 찾아보려 했는데 안 된다 —
+   *   지역 변수는 압축하며 이름이 바뀐다. 실제로 되돌려 놓고 시험해 보니 안 물었다. 못 무는
+   *   검사는 없느니만 못하므로(초록이 거짓 안심을 준다) 빼고, 무는 것만 남겼다.
+   */
+  const widgetBundle = read('js/widgets/tools/passgen.js');
+  check(widgetBundle.includes('naiveBits'), '위젯 번들에 알맹이가 없다 — 화면이 알맹이를 안 쓴다');
+}
+
 await browser.close();
 process.stdout.write('\n');
 if (failures.length > 0) {
@@ -125,5 +199,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `[smoke-core-parity] ${SAMPLES.length}표본 — 공용 5종 + 우리가 직접 쓴 SHA3-512 가 브라우저↔OpenSSL 일치, Keccak-512 는 SHA-3 과 다름을 확인`
+  `[smoke-core-parity] ${SAMPLES.length}표본 — 공용 5종 + 우리가 직접 쓴 SHA3-512 가 브라우저↔OpenSSL 일치, ` +
+    'Keccak-512 는 SHA-3 과 다름 · passgen 은 브라우저↔Node 같은 값이고 위젯 번들이 그 알맹이를 물고 있음'
 );
