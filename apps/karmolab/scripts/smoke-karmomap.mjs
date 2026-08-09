@@ -389,7 +389,16 @@ await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
   if (picked < 2) throw new Error(`고른 것이 ${picked}개뿐이다`);
   // 고른 무리를 함께 끄는 것은 이 자리(묶음이 얽힌 상태)에서 재기가 불안정하다 —
   // 별도 단계에서 깨끗한 맵으로 잰다.
-  await page.click('[data-km="many-close"]');
+  // 고른 것 표 — 이름을 그 자리에서 고칠 수 있어야 한다.
+  const rows = await page.locator('.km-trow').count();
+  if (rows < 2) throw new Error('표에 줄이 ' + rows + '개뿐이다');
+  await page.locator('[data-km="many-name"]').first().fill('표에서 고침');
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('.ck-node text')].some((t) => t.textContent === '표에서 고침'),
+    null,
+    { timeout: 4000 }
+  );
+  await page.locator('[data-km="many-close"]').dispatchEvent('click');
 });
 await step('선이 N개 이상인 것만 남기기', async () => {
   const before = await page.locator('.ck-node').count();

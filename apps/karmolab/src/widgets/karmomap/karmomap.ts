@@ -135,6 +135,13 @@ import {
     .km-meter { height:8px; border-radius:999px; background:var(--bg-tertiary); overflow:hidden; }
     .km-meter-fill { height:100%; transition:width .2s ease; }
     .km-kind-find { margin-bottom:4px; }
+    .km-h4btn { float:right; padding:2px 8px; font-size:11px; }
+    .km-table { display:flex; flex-direction:column; gap:3px; max-height:220px; overflow-y:auto; }
+    .km-trow { display:flex; gap:4px; align-items:center; }
+    .km-trow input[type=text] { flex:1; min-width:0; font-size:11px; }
+    .km-tcell { font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:72px; }
+    .km-tdim { color:var(--text-tertiary); }
+    .km-trow .btn { padding:2px 6px; }
     .km-tagbar { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
     .km-tagchip { padding:2px 8px; font-size:11px; border-radius:999px; }
     .km-link-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
@@ -736,6 +743,7 @@ import {
       edgeKindOptionsHtml: (sel) => edgeKindOptions(sel),
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
+      resizeNode: (node) => resize(node),
       removeEdge: (id) => {
         spec.edges = spec.edges.filter((e) => e.id !== id);
         for (const n of spec.nodes) if (n.attachedTo === id) n.attachedTo = undefined;
