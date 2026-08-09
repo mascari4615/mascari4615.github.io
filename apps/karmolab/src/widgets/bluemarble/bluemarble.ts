@@ -63,14 +63,16 @@ import { EarthSound } from './sound';
   interface Prefs {
     on: Record<LayerId, boolean>;
     spin: boolean;
+    /** 조작부를 펼쳐 둔 채로 쓰는 사람도 있다 — 그 선택을 기억한다. */
+    panel: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true }, spin: true, panel: false };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
       const p = JSON.parse(raw) as Partial<Prefs>;
-      return { on: { ...base.on, ...(p.on || {}) }, spin: p.spin !== false };
+      return { on: { ...base.on, ...(p.on || {}) }, spin: p.spin !== false, panel: p.panel === true };
     } catch (_) {
       return base;
     }
@@ -87,9 +89,16 @@ import { EarthSound } from './sound';
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
-/* 오른쪽 끝 두 단추(천체·전체화면)는 절대 위치라, 칩 줄이 그 밑으로 기어들면 겹쳐 잘린다.
-   그래서 칩 줄의 오른쪽 끝을 그 앞에서 끊는다 — 넘치면 두 줄이 된다(실측으로 잘렸다). */
-.bm-chips{position:absolute;top:10px;left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;}
+/* 첫 화면은 **조용해야 한다** — 지구와 한 줄. 조작부는 「⋯」 뒤에 접어 둔다.
+   (칩이 12개가 되자 화면이 창문이 아니라 계기판이 됐다.) */
+.bm-menu{position:absolute;top:10px;left:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 11px;
+  border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
+.bm-menu[aria-expanded="true"]{color:#eaf2ff;border-color:rgba(150,190,255,.5);}
+.bm-chips{position:absolute;top:46px;left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;
+  opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .28s ease,transform .28s ease;}
+.bm-wrap.bm-panel .bm-chips{opacity:1;pointer-events:auto;transform:none;}
+.bm-wrap.bm-ambient .bm-menu{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-chip{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(8,12,22,.55);
   color:rgba(255,255,255,.55);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;
   cursor:pointer;backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
@@ -128,7 +137,8 @@ import { EarthSound } from './sound';
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
 .bm-wrap.bm-ambient .bm-fs{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-time{position:absolute;left:0;right:0;bottom:58px;z-index:3;display:flex;align-items:center;gap:10px;
-  padding:0 16px;}
+  padding:0 16px;opacity:0;pointer-events:none;transition:opacity .28s ease;}
+.bm-wrap.bm-panel .bm-time{opacity:1;pointer-events:auto;}
 .bm-time input[type=range]{flex:1;accent-color:#8fb8ff;height:2px;cursor:pointer;}
 .bm-date{color:#cfe0ff;font-size:12px;font-family:var(--font-mono,ui-monospace,monospace);min-width:92px;
   text-align:right;text-shadow:0 1px 8px rgba(0,0,0,.9);}
@@ -165,6 +175,11 @@ import { EarthSound } from './sound';
           wrap.className = 'bm-wrap';
           const canvas = document.createElement('canvas');
           canvas.className = 'bm-canvas';
+          const menuBtn = document.createElement('button');
+          menuBtn.type = 'button';
+          menuBtn.className = 'bm-menu';
+          menuBtn.textContent = '⋯';
+
           const chips = document.createElement('div');
           chips.className = 'bm-chips';
           const ticker = document.createElement('div');
@@ -207,7 +222,7 @@ import { EarthSound } from './sound';
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, chips, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, menuBtn, chips, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -1345,6 +1360,16 @@ import { EarthSound } from './sound';
             }
           }
 
+          function renderPanel(): void {
+            wrap.classList.toggle('bm-panel', prefs.panel);
+            menuBtn.setAttribute('aria-expanded', String(prefs.panel));
+          }
+          menuBtn.onclick = () => {
+            prefs.panel = !prefs.panel;
+            renderPanel();
+            save();
+          };
+
           fsBtn.onclick = () => {
             if (document.fullscreenElement === wrap) void document.exitFullscreen();
             else void enterAmbient();
@@ -1360,7 +1385,7 @@ import { EarthSound } from './sound';
 
           function save(): void {
             try {
-              localStorage.setItem(STORE_KEY, JSON.stringify({ on: prefs.on, spin }));
+              localStorage.setItem(STORE_KEY, JSON.stringify({ on: prefs.on, spin, panel: prefs.panel }));
             } catch (_) {
               /* 저장 못 해도 지구는 돈다 */
             }
@@ -1415,6 +1440,7 @@ import { EarthSound } from './sound';
             await loadNamespace(NS);
             if (!alive) return;
             renderChips();
+            renderPanel();
             renderBodyBtn();
             sub.textContent = t('bluemarble.hint');
             /* 아무것도 안 물어보고 알 수 있는 만큼은 바로 안다 (시간대 → 도시).
