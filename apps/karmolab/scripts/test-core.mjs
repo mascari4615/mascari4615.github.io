@@ -759,6 +759,45 @@ for (const bad of [['svg', {}], ['wifi', { ssid: '  ' }], ['contact', { name: ''
 }
 eq(qgThrew, 3, '빈 내용·빈 SSID·빈 이름은 전부 던진다');
 
+// ── ②-17 filehash 알맹이 (배포처 값은 지저분하게 온다 — A등급) ────────────────
+const fh = await load('src/core/filehash.ts');
+
+eq(fh.spec.id, 'filehash', 'filehash spec.id');
+eq(Object.keys(fh.spec.ops).length, 1, '항상 던지는 죽은 연산을 목록에 두지 않는다');
+
+// **바이트 규약** — File 이 아니라 Uint8Array 를 받으니 Node 에서 그대로 돈다.
+const bytes = new TextEncoder().encode('KarmoLab');
+const fileHashed = await fh.hashBytes(bytes);
+eq(fileHashed['SHA-256'], crypto.createHash('sha256').update('KarmoLab').digest('hex'), '바이트 SHA-256 이 OpenSSL 과 같다');
+eq(fileHashed['SHA-512'], crypto.createHash('sha512').update('KarmoLab').digest('hex'), '바이트 SHA-512');
+eq(Object.keys(fileHashed).length, 3, '세 방식이 나온다');
+// 같은 내용이면 hashgen(문자열) 과 같은 값이어야 한다 — 두 도구가 갈리면 안 된다.
+eq((await fh.hashText('KarmoLab'))['SHA-256'], hg.hashAll('KarmoLab', nodeBackend).find((r) => r.algo === 'SHA256').hex, 'filehash 와 hashgen 이 같은 값');
+eq((await fh.hashBytes(new Uint8Array(0)))['SHA-256'], crypto.createHash('sha256').digest('hex'), '빈 바이트');
+
+// 배포처가 준 값은 지저분하다 — 그대로 비교하면 「같은 파일인데 다르다」가 된다.
+eq(fh.verify(fileHashed, fileHashed['SHA-256'].toUpperCase()).matched, 'SHA-256', '대문자로 줘도 찾는다');
+eq(fh.verify(fileHashed, 'sha256: ' + fileHashed['SHA-256']).matched, 'SHA-256', '머리말이 붙어도');
+eq(fh.verify(fileHashed, fileHashed['SHA-1']).matched, 'SHA-1', 'SHA-1 로 준 경우');
+eq(fh.verify(fileHashed, 'deadbeef').matched, null, '틀리면 null');
+eq(fh.verify(fileHashed, '   ').matched, null, '빈 값이면 null');
+
+eq(fh.size(500), '500B', '크기 표기 B');
+eq(fh.size(2048), '2.0KB', 'KB');
+eq(fh.size(1048576 * 3), '3.00MB', 'MB');
+eq(fh.hex(new Uint8Array([0, 255]).buffer), '00ff', '16진수');
+
+check(fh.run('verify', { actual: 'ABC', expected: 'sha256:abc' }).includes('같습니다'), 'run verify 같음');
+check(fh.run('verify', { actual: 'abc', expected: 'def' }).includes('다릅니다'), 'run verify 다름');
+check(fh.run('verify', { actual: 'abc', expected: 'abcd' }).includes('길이가 다릅니다'), '길이가 다르면 방식 차이를 짚어 준다');
+let fhThrew = false;
+try {
+  fh.run('verify', { actual: '', expected: 'a' });
+} catch {
+  fhThrew = true;
+}
+check(fhThrew, '빈 값은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 

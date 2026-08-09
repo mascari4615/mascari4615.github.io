@@ -1,5 +1,5 @@
 {
-  "total": 8144,
+  "total": 8155,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -298,6 +298,7 @@
     "src/core/uuidgen.ts": 5,
     "src/core/csvjson.ts": 5,
     "src/core/tableconv.ts": 5,
-    "src/core/qrgen.ts": 7
+    "src/core/qrgen.ts": 7,
+    "src/core/filehash.ts": 11
   }
 }
