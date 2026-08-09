@@ -212,6 +212,8 @@ export interface DeployFreshnessHandle {
 const DEFAULT_BUILD_URL = 'https://blog.mascari4615.com/apps/karmolab/build.json';
 const DEFAULT_REPO = 'Mascari4615/Mascari4615.github.io';
 const DEFAULT_INTERVAL_MIN = 10;
+/** 판이 갈렸을 때만 쓰는 초초한 간격. */
+const BUSY_INTERVAL_MIN = 3;
 const MIN_INTERVAL_MIN = 2;
 const DEFAULT_STALE_AFTER_MIN = 45;
 const DEFAULT_REMIND_MIN = 360;
@@ -303,7 +305,20 @@ export async function runFreshnessTick(
   return verdict;
 }
 
-let timer: ReturnType<typeof setInterval> | null = null;
+/**
+ * 다음 확인까지 몇 분 (Datadog deployment tracking 의 adaptive polling 을 따랐다).
+ *
+ * 판이 **갈려 있는 동안**은 무슨 일이 벌어지는 중이다 — 올라가는 중이거나, 안 올라가는 중이거나.
+ * 그때 10분 간격이면 「올라갔다」도 「멈췄다」도 10분 늦게 안다. 갈려 있을 때만 촘촘히 본다.
+ * 같아지면 볼 것이 없으므로 느슨하게 — 조용한 새벽에 GitHub 을 6배로 두드릴 이유가 없다.
+ */
+export function nextDelayMin(verdict: FreshnessVerdict, baseMin: number, busyMin: number): number {
+  if (verdict.state === 'fresh' && verdict.reason.includes('올라가는 중')) return busyMin;
+  if (verdict.state !== 'fresh') return busyMin;
+  return baseMin;
+}
+
+let timer: ReturnType<typeof setTimeout> | null = null;
 
 /** 주기 감시 시작. 이미 돌고 있으면 갈아 끼운다. */
 export function startDeployFreshness(deps: DeployFreshnessDeps = {}): DeployFreshnessHandle {
@@ -323,22 +338,33 @@ export function startDeployFreshness(deps: DeployFreshnessDeps = {}): DeployFres
   const memory: AlertMemory = { last: null, lastAlertAt: null };
   const intervalMin = Math.max(MIN_INTERVAL_MIN, deps.intervalMin ?? DEFAULT_INTERVAL_MIN);
 
+  const busyMin = Math.max(MIN_INTERVAL_MIN, Math.min(intervalMin, BUSY_INTERVAL_MIN));
+
   const tickNow = () =>
     runFreshnessTick(resolved, memory).catch((err) => {
       resolved.logger.error(`[DeployFreshness] tick 실패 — ${String(err).slice(0, 200)}`);
       return { state: 'unreachable' as const, reason: String(err).slice(0, 200), ageMin: null };
     });
 
-  void tickNow();
-  timer = setInterval(() => void tickNow(), intervalMin * 60_000);
-  if (typeof timer.unref === 'function') timer.unref();
-  resolved.logger.log(`[DeployFreshness] 배포 파수꾼 켬 — ${intervalMin}분마다 · ${resolved.buildUrl}`);
+  /* 되풀이는 setInterval 이 아니라 **끝난 뒤 다음을 잡는** 방식이다 — 간격이 판정에 따라
+     달라지고, 느린 tick 이 겹쳐 쌓이지도 않는다. */
+  const schedule = (min: number) => {
+    timer = setTimeout(() => {
+      void tickNow().then((v) => schedule(nextDelayMin(v, intervalMin, busyMin)));
+    }, min * 60_000);
+    if (typeof timer.unref === 'function') timer.unref();
+  };
+
+  void tickNow().then((v) => schedule(nextDelayMin(v, intervalMin, busyMin)));
+  resolved.logger.log(
+    `[DeployFreshness] 배포 파수꾼 켬 — 평소 ${intervalMin}분 · 판이 갈렸으면 ${busyMin}분 · ${resolved.buildUrl}`,
+  );
   return { tickNow, stop: stopDeployFreshness };
 }
 
 export function stopDeployFreshness(): void {
   if (timer) {
-    clearInterval(timer);
+    clearTimeout(timer);
     timer = null;
   }
 }
