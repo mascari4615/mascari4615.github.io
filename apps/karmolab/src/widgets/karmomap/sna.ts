@@ -120,3 +120,40 @@ export function topBy(map: Map<string, number>, n: number): { id: string; value:
     .slice(0, n)
     .map(([id, value]) => ({ id, value }));
 }
+
+/**
+ * 「이어질 법한데 안 이어진 자리」 (TASK-KL-202, InfraNodus 의 structural gap 계보).
+ *
+ * 관계망 읽기는 지금까지 **순위**만 냈다(허브·다리·가까움). 그런데 사람이 그림을 보다 얻는 것은
+ * 대개 「어? 얘랑 얘는 왜 안 이어져 있지?」다 — **공통 이웃이 여럿인데 서로는 안 이어진 쌍**이
+ * 그 자리다. 세계관에서는 대개 아직 안 쓴 이야기이고, 정리 도구에서는 빠뜨린 연결이다.
+ *
+ * 공통 이웃이 하나뿐인 쌍은 흔해서 소음이 된다 — 둘 이상만 본다.
+ */
+export function structuralGaps(
+  graph: { nodes: { id: string }[]; edges: { from: string; to: string }[] },
+  min = 2,
+): { a: string; b: string; shared: number }[] {
+  const ids = graph.nodes.map((n) => n.id);
+  const near = new Map<string, Set<string>>();
+  for (const id of ids) near.set(id, new Set());
+  for (const e of graph.edges) {
+    const a = e.from.split(':')[0];
+    const b = e.to.split(':')[0];
+    if (!near.has(a) || !near.has(b)) continue;
+    near.get(a)?.add(b);
+    near.get(b)?.add(a);
+  }
+  const out: { a: string; b: string; shared: number }[] = [];
+  for (let i = 0; i < ids.length; i += 1) {
+    for (let j = i + 1; j < ids.length; j += 1) {
+      const a = ids[i];
+      const b = ids[j];
+      if (near.get(a)?.has(b)) continue;                 // 이미 이어진 쌍은 자리가 아니다
+      let shared = 0;
+      for (const n of near.get(a) ?? []) if (near.get(b)?.has(n)) shared += 1;
+      if (shared >= min) out.push({ a, b, shared });
+    }
+  }
+  return out.sort((x, y) => y.shared - x.shared || x.a.localeCompare(y.a));
+}
