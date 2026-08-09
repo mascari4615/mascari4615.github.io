@@ -47,7 +47,7 @@ import { attachFieldHtml, bindAttachField } from './panels/attach-section';
 import { docFieldHtml, bindDocField } from './panels/doc-section';
 import { fieldsSectionHtml, bindFieldsSection } from './panels/fields-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
-import { snapToGrid, unoverlap } from './tidy';
+import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy } from './tidy';
 import { computeSna, topBy } from './sna';
 import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, SHARE_URL_LIMIT } from './share';
 import {
@@ -345,6 +345,8 @@ import {
               <button class="btn btn-ghost" data-km="storage">💾 저장 상태</button>
               <button class="btn btn-ghost" data-km="share">🔗 링크 만들기</button>
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
+              <button class="btn btn-ghost" data-km="lay-circle">◯ 둥글게 놓기</button>
+              <button class="btn btn-ghost" data-km="lay-tree">⌂ 흐름대로 놓기</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
@@ -1672,6 +1674,40 @@ import {
         }
       });
     };
+
+    /**
+     * 구조를 살리는 배치 — 「가지런히」는 있던 자리를 존중하지만, 이미 엉킨 그림은 그것으로 안 풀린다.
+     * 되돌리기 한 걸음으로 남으므로 마음 놓고 눌러 보고 아니면 ⌫ 로 되돌린다.
+     */
+    function relayout(kind: 'circle' | 'tree'): void {
+      const live = canvas?.getSpec() ?? spec;
+      const target = selectedMany.length > 1
+        ? live.nodes.filter((n) => selectedMany.includes(n.id))
+        : live.nodes;
+      if (target.length === 0) return;
+      const boxes = target.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+      const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+      const deg = new Map<string, number>();
+      for (const e of live.edges) {
+        deg.set(e.from, (deg.get(e.from) ?? 0) + 1);
+        deg.set(e.to, (deg.get(e.to) ?? 0) + 1);
+      }
+      const placed = kind === 'circle'
+        ? layoutCircle(boxes, (id) => deg.get(id) ?? 0, center)
+        : layoutHierarchy(boxes, live.edges.map((e) => ({ from: e.from, to: e.to })),
+            { x: center.x, y: center.y - 200 });
+      for (const [id, p] of placed) {
+        const n = live.nodes.find((x) => x.id === id);
+        if (n) { n.x = p.x; n.y = p.y; }
+      }
+      spec = live;
+      applySpec();
+      persistStructure();
+      canvas?.fitView();
+      Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? '둥글게' : '흐름대로'} 놓았습니다 — ⌫ 로 되돌립니다`, undefined, undefined);
+    }
+    q<HTMLButtonElement>('lay-circle').onclick = () => relayout('circle');
+    q<HTMLButtonElement>('lay-tree').onclick = () => relayout('tree');
 
     q<HTMLButtonElement>('tidy').onclick = () => {
       const live = canvas?.getSpec() ?? spec;

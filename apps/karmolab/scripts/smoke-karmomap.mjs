@@ -854,6 +854,24 @@ await step('SVG 로 저장하면 글자가 글자로 남는다', async () => {
   if (!text.includes('<svg')) throw new Error('SVG 가 아니다');
   if (!/<text[\s>]/.test(text)) throw new Error('글자가 <text> 로 안 남았다');
 });
+await step('둥글게 놓기 — 자리가 실제로 바뀌고 아무도 안 사라진다', async () => {
+  // 배치는 「눌렀더니 아무 일도 안 남」이 흔한 자리다. 자리가 **바뀌었는지**와 **개수가 그대로인지** 둘 다 본다.
+  const posOf = () => page.evaluate(() => [...document.querySelectorAll('.ck-node')]
+    .map((g) => g.getAttribute('transform') || '').join('|'));
+  const countOf = () => page.locator('.ck-node').count();
+  const before = await posOf();
+  const n0 = await countOf();
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  await page.locator('[data-km="lay-circle"]').dispatchEvent('click');
+  await page.waitForFunction((b) => [...document.querySelectorAll('.ck-node')]
+    .map((g) => g.getAttribute('transform') || '').join('|') !== b, before, { timeout: 4000 });
+  if (await countOf() !== n0) throw new Error('둥글게 놓았더니 노드 수가 달라졌다');
+  // 서랍을 열어 둔 채 끝내면 **다음 검사의 클릭을 가린다**(30초 대기로 나타난다).
+  await page.keyboard.press('Escape');
+  // `.hidden` 은 display:none 이라 **보이기**를 기다리면 영영 안 온다 — 붙어 있음(attached)으로 본다.
+  await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
