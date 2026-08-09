@@ -23,6 +23,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { stripJekyll } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const blogRoot = path.dirname(path.dirname(root));
@@ -61,7 +62,8 @@ function serveBuilt() {
     let body = fs.readFileSync(file);
     const ext = path.extname(file);
     // Jekyll 앞머리는 배포 때 걷힌다 — 여기서도 걷어야 같은 화면이 된다.
-    if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
+    // Liquid 태그까지 걷는다 — 앞머리만 걷으면 조건문이 글자로 뜬다 (TASK-KL-201).
+    if (ext === '.html') body = Buffer.from(stripJekyll(String(body)), 'utf8');
     res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
   });
   return server;
