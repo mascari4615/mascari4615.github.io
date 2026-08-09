@@ -90,6 +90,10 @@ import {
     .km-canvas { flex:1; position:relative; min-width:0; min-height:420px; background:var(--bg-tertiary); }
     .km-side { width:264px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-secondary);
       padding:12px; overflow-y:auto; font-size:var(--font-size-xs); }
+    .km-tabs { display:flex; gap:2px; margin:-4px -4px 10px; padding-bottom:8px;
+      border-bottom:1px solid var(--border); position:sticky; top:-12px; background:var(--bg-secondary); z-index:2; }
+    .km-tab { padding:4px 7px; font-size:13px; opacity:.55; }
+    .km-tab.is-on { opacity:1; background:var(--bg-tertiary); }
     .km-side.hidden { display:none; }
     .km-side h4 { margin:0 0 8px; font-size:var(--font-size-sm); color:var(--text-primary); }
     .km-field { margin-bottom:10px; display:flex; flex-direction:column; gap:4px; }
@@ -176,7 +180,8 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'edge' | 'help' = 'node';
+    type SideMode = 'node' | 'groups' | 'terms' | 'filter' | 'many' | 'text' | 'sna' | 'storage' | 'edge' | 'help';
+    let sideMode: SideMode = 'node';
     /** Shift+드래그로 한 번에 고른 노드들. */
     let selectedMany: string[] = [];
     /** 지금 고른 선. 선에도 이야기가 붙는다(격차 Z). */
@@ -1401,8 +1406,51 @@ import {
       };
     }
 
+    /**
+     * 오른쪽 패널 탭 (KL-202 개편 1).
+     * 패널이 아홉 가지로 늘었는데 서로 오가는 길이 없었다 — 각 패널에 「닫기」만 있어서
+     * 다른 패널로 가려면 툴바에서 그 아이콘을 **다시 찾아야** 했다. 탭을 항상 띄워
+     * 「지금 어디에 있고 어디로 갈 수 있는지」를 한자리에서 보인다.
+     */
+    const SIDE_TABS: { id: SideMode; icon: string; title: string }[] = [
+      { id: 'node', icon: '◉', title: '고른 것' },
+      { id: 'groups', icon: '🫧', title: '묶음' },
+      { id: 'terms', icon: '🏷', title: '내 용어' },
+      { id: 'filter', icon: '🔍', title: '거르기' },
+      { id: 'sna', icon: '📊', title: '관계망' },
+      { id: 'storage', icon: '💾', title: '저장' },
+      { id: 'help', icon: '?', title: '도움말' },
+    ];
+
+    /** 패널 내용을 그린 뒤 맨 앞에 탭을 얹는다 — 각 패널이 innerHTML 을 통째로 쓰기 때문. */
+    function prependTabs(): void {
+      const bar = document.createElement('div');
+      bar.className = 'km-tabs';
+      bar.innerHTML = SIDE_TABS.map(
+        (tb0) => `<button class="btn btn-ghost km-tab${sideMode === tb0.id ? ' is-on' : ''}"
+          data-km="tab" data-key="${tb0.id}" title="${tb0.title}">${tb0.icon}</button>`
+      ).join('');
+      sideEl.insertBefore(bar, sideEl.firstChild);
+      bar.querySelectorAll('[data-km="tab"]').forEach((el) => {
+        (el as HTMLButtonElement).onclick = () => {
+          sideMode = ((el as HTMLElement).dataset.key ?? 'node') as SideMode;
+          renderSide();
+        };
+      });
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
+      renderSideBody();
+      // 패널이 비어 있어도(고른 것 없음) 탭은 남긴다 — 탭이 사라지면 갈 곳이 안 보인다.
+      if (sideEl.classList.contains('hidden')) {
+        sideEl.classList.remove('hidden');
+        sideEl.innerHTML = '<div class="km-hint">노드나 선을 고르면 여기서 고칩니다.</div>';
+      }
+      prependTabs();
+    }
+
+    function renderSideBody(): void {
       if (sideMode === 'groups') {
         renderGroupsPanel();
         return;
