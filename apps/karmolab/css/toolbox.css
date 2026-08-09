@@ -1306,6 +1306,35 @@ a.landing-cta-card:hover { color: inherit; }
     letter-spacing: 0.01em;
 }
 
+/* ═══════ 첫 화면 자리잡기 — 늦게 와도 안 튀게 (TASK-KL-201) ═══════
+   **이 구역은 절대 뒤로 빼지 마라.** 여기 있는 것은 색이나 그림자가 아니라 *자리* 다.
+
+   왜 생겼나 (2026-08-09 실측): 첫 화면에 박힌 명령 팔레트(.kp-inline)는 접힌 상태로 뜨는데,
+   「접히면 목록을 감춘다」는 규칙이 **늦게 오는 파일**에 있었다. 그래서 그 파일이 오기 전까지
+   목록이 통째로 펼쳐진 채 그려지고, 스타일이 도착하는 순간 접힌다:
+
+       390px:  465px → 65px    1280px:  454px → 65px      (400px 가 한 번에 접힌다)
+
+   그 아래 글이 전부 위로 튄다 — 밀림 **0.22**. 판마다 도착 시각이 달라 어떤 판은 0.016,
+   어떤 판은 0.24 였다. 「가끔 흔들린다」의 정체가 이것이었다.
+
+   앞서 「팔레트를 뒤로 빼도 밀림 그대로」로 재고 넘어갔는데, 그 재기는 평균만 봐서 *가끔 나는*
+   큰 것을 놓쳤다. 흔들리는 값은 평균이 아니라 **판마다** 봐야 한다.
+
+   그래서 「보이나 안 보이나」와 「얼마나 차지하나」만 여기 남기고, 살(색·그림자·테두리·줄 모양)은
+   그대로 뒤에 둔다. 늦게 와도 자리가 안 변하면 아무것도 안 튄다. */
+.kp-inline.kp-collapsed .kp-list,
+.kp-inline.kp-collapsed .kp-live { display: none; }
+/* 접힌 팔레트의 키 = 입력 한 줄. 늦은 스타일이 정하는 값(18px 패딩 + 테두리)과 같은 값을
+   여기서 미리 잡아 둔다. 둘이 어긋나면 그만큼 튀므로, 고칠 때는 같이 고쳐라. */
+.kp-inline .kp-box { display: flex; flex-direction: column; overflow: hidden; }
+.kp-inline .kp-input-wrap { display: flex; align-items: center; }
+/* 돋보기 그림에 크기를 안 주면 **줄 높이만큼 늘어난다** — 실측 122px. 아이콘 하나가 상자를
+   두 배로 키우고 있었다. 크기는 자리이므로 여기, 색은 뒤에. */
+.kp-inline .kp-input-icon { width: 18px; height: 18px; flex: 0 0 auto; }
+.kp-inline .kp-kbd { flex: 0 0 auto; }
+.kp-inline input.kp-input { flex: 1 1 auto; min-width: 0; padding: 18px 0; font-size: var(--font-size-md); }
+
 /* ═══════ 명령 팔레트 (TASK-KL-099) ═══════
    한 벌의 규칙이 두 자리를 칠한다 — 첫 화면에 박힌 것(.kp-inline)과 ⌘K 로 뜨는 것
    (.kp-overlay). 차이는 껍데기(그림자·너비·최대 높이)뿐이고 줄 모양은 같다. 그래야
