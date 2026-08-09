@@ -24,6 +24,7 @@ import { parseOutline, layoutTree } from './from-text';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
+import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, SHARE_URL_LIMIT } from './share';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -265,6 +266,7 @@ import {
                   <option value="none">□ 없음</option>
                 </select>
               </label>
+              <button class="btn btn-ghost" data-km="share">🔗 링크 만들기</button>
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
@@ -1786,6 +1788,32 @@ import {
      * 가지런히 — 겹친 것만 밀고 격자에 맞춘다. 고른 것이 있으면 **그것만**.
      * 통째로 흩는 자동 배치는 안 한다: 사람이 잡아 둔 자리의 뜻이 날아간다.
      */
+    /**
+     * 링크 만들기 — 주소 안에 그림을 담는다(백엔드 0). 너무 크면 **만들지 않고** 파일 쪽으로 보낸다:
+     * 잘린 주소는 「열리는데 내용이 이상한」 최악의 실패를 낸다.
+     */
+    q<HTMLButtonElement>('share').onclick = () => {
+      const live = canvas?.getSpec() ?? spec;
+      void encodeShare(live).then(async (code) => {
+        const url = buildShareUrl(new URL(location.href), code);
+        if (url.length > SHARE_URL_LIMIT) {
+          alert(
+            `그림이 커서 링크로는 못 보냅니다 (${Math.round(url.length / 1000)}k자).
+` +
+            '「JSON 내보내기」로 파일을 보내 주세요. (사진을 붙인 노드가 특히 큽니다)'
+          );
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(url);
+          Toolbox.showToast?.('링크를 복사했습니다', undefined, undefined);
+        } catch {
+          // 클립보드가 막힌 자리(비보안 컨텍스트 등)에서도 사람이 직접 복사할 수 있게 보여 준다.
+          prompt('이 링크를 복사해 보내세요', url);
+        }
+      });
+    };
+
     q<HTMLButtonElement>('tidy').onclick = () => {
       const live = canvas?.getSpec() ?? spec;
       const target = selectedMany.length > 1
@@ -2079,6 +2107,37 @@ import {
     // ── 초기 로드 ───────────────────────────────────────────────────────────
     renderMapList();
     openActiveMap();
+
+    // 주소에 공유 코드가 실려 있으면 **새 맵으로** 가져온다 — 열던 맵을 덮어쓰지 않는다.
+    const shareCode = shareCodeFromLocation(location.search);
+    if (shareCode) {
+      void decodeShare(shareCode).then((data) => {
+        const incoming = data as Partial<GraphSpec> | null;
+        if (!incoming || !Array.isArray(incoming.nodes)) {
+          Toolbox.showToast?.('링크의 내용을 읽지 못했습니다', undefined, undefined);
+          return;
+        }
+        const added = addMap(library, '받은 맵');
+        library = added.index;
+        renderMapList();
+        store = new KarmoMapLocalStorageAdapter(mapKey(library.activeId));
+        spec = {
+          ...emptyGraphSpec(),
+          ...incoming,
+          nodes: incoming.nodes.map((n) => ({ ...n, ports: n.ports ?? [] })),
+        } as GraphSpec;
+        store.saveSpec(spec);
+        history.length = 0;
+        histIndex = -1;
+        applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
+        applySpec();
+        canvas?.fitView();
+        renderSide();
+        snapshot();
+        syncHistoryButtons();
+        Toolbox.showToast?.(`링크에서 ${spec.nodes.length}개를 받았습니다`, undefined, undefined);
+      });
+    }
 
     Mdd.linePreset('tool_run', {
       mood: 'idle',
