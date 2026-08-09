@@ -885,6 +885,21 @@ await step('글로 만들기에서 화살표 줄이 옆으로 난 관계를 만�
   const labels = await page.evaluate(() => [...document.querySelectorAll('.ck-edge-label text')].map((t) => t.textContent).join('|'));
   if (!labels.includes('지킨다')) throw new Error('화살표 줄의 이름표가 안 붙었다: ' + labels);
 });
+await step('Mermaid 글로 저장하면 문서에 그대로 붙는 코드블록이 나온다', async () => {
+  // 값은 「파일이 나왔다」가 아니라 **붙여 넣으면 그림이 되는가**다 — 코드블록·flowchart·선까지 본다.
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  const [dl] = await Promise.all([
+    page.waitForEvent('download', { timeout: 8000 }),
+    page.locator('[data-km="mermaid"]').dispatchEvent('click'),
+  ]);
+  const text = await readFile(await dl.path(), 'utf8');
+  if (!text.startsWith('```mermaid')) throw new Error('코드블록으로 안 감쌌다');
+  if (!text.includes('flowchart LR')) throw new Error('flowchart 선언이 없다');
+  if (!/-->|---/.test(text)) throw new Error('선이 하나도 안 적혔다');
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
