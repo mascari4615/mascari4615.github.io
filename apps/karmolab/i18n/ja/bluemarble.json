@@ -1,0 +1,21 @@
+{
+  "bluemarble.layer.city": "街の灯り",
+  "bluemarble.layer.quake": "地震",
+  "bluemarble.layer.aurora": "オーロラ",
+  "bluemarble.layer.iss": "ISS",
+  "bluemarble.layer.launch": "打ち上げ予定",
+  "bluemarble.layer.spin": "自転",
+  "bluemarble.hint": "ドラッグで回り、ホイールで近づきます。手を離せばまた自分で回ります。",
+  "bluemarble.line.sunCity": "いま太陽は {city} の真上にあります。",
+  "bluemarble.line.sunSea": "いま太陽は誰もいない海の上、緯度 {lat}° 経度 {lon}° の真上にあります。",
+  "bluemarble.line.night": "{total} の都市のうち {n} か所が、いま夜です。",
+  "bluemarble.line.quake": "{ago}、{where} の近くでマグニチュード {mag} の揺れがありました。",
+  "bluemarble.line.quakeCount": "この一日で地球は {n} 回揺れました。",
+  "bluemarble.line.issCity": "いま {city} の空を、何人かが時速 {kmh}km で通り過ぎています。",
+  "bluemarble.line.issSea": "いま ISS は海の上 {alt}km を、時速 {kmh}km で通り過ぎています。",
+  "bluemarble.line.kpCalm": "地球の磁場は、いま静かです。",
+  "bluemarble.line.kpStorm": "磁気嵐が近づいています (Kp {kp})。オーロラがいつもより南まで降りてきます。",
+  "bluemarble.line.aurora": "いま極地のどこかで、空が緑に揺れています。",
+  "bluemarble.line.launch": "{when}、{name} が地球の外へ出ます。",
+  "bluemarble.word.openSea": "沖合"
+}
