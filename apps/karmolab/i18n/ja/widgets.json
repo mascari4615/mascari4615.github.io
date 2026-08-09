@@ -186,5 +186,11 @@
   "widgets.ytdownloader.title": "YouTube ダウンロード",
   "widgets.karmomap.title": "KarmoMap",
   "widgets.bluemarble.title": "ブルーマーブル",
-  "widgets.pulse.title": "鼓動"
+  "widgets.pulse.title": "鼓動",
+  "widgets.favorites.title": "お気に入り",
+  "widgets.linktree.title": "リンク",
+  "widgets.devtools.title": "デバッグ",
+  "widgets.localai.title": "端末の中の AI",
+  "widgets.chain.title": "道具をつなげる",
+  "widgets.garden.title": "庭"
 }

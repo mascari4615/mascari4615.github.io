@@ -256,5 +256,7 @@
   "tools.duel.description": "A one-on-one match made of a few seconds' worth of mini-games back to back. Make a link and send it and you are matched the moment they open it; with no link, \"anyone\" pairs you with whoever is waiting. The room and what passes through it never touch our server — it goes directly between the two of you.",
   "tools.duel.lead": "Few-second mini-games, one on one · one link and you are in · match with anyone · no room on a server",
   "tools.timecapsule.description": "A time capsule letter — write one nobody can open before the day you set. No server holds it — the locked letter itself is the address, and the key only comes together from what a public randomness beacon publishes on that day. Not the sender, not the recipient, not this site can open it early, and changing your computer's clock does nothing.",
-  "tools.timecapsule.lead": "Nobody opens it before the day · no server holding it · changing the clock does not help"
+  "tools.timecapsule.lead": "Nobody opens it before the day · no server holding it · changing the clock does not help",
+  "tools.chain.description": "Runs several tools one after another. Each step’s result becomes the next step’s input, so there is no copying intermediate values by hand.",
+  "tools.chain.lead": "Each result feeds the next · every step visible · up to 8 steps"
 }
