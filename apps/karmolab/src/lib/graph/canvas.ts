@@ -40,6 +40,7 @@ import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups, computeGroupBox } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
 import { buildFieldRows } from './canvas-fields';
+import { buildChildCard } from './canvas-children';
 import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
@@ -1282,66 +1283,10 @@ export class GraphCanvas {
         g.appendChild(note);
       }
     } else {
-      // 자식 있음 — 헤더 + 구분선 + 자식 목록
-      const headerH = NODE_HEADER_H;
-
-      // 헤더 배경
-      const headerRect = document.createElementNS(SVG_NS, 'rect');
-      headerRect.setAttribute('x', '0');
-      headerRect.setAttribute('y', '0');
-      headerRect.setAttribute('width', String(node.w));
-      headerRect.setAttribute('height', String(headerH));
-      headerRect.setAttribute('rx', '4');
-      headerRect.setAttribute('fill', kindColor + '18');
-      headerRect.setAttribute('pointer-events', 'none');
-      g.appendChild(headerRect);
-
-      // 헤더 레이블
-      const title = document.createElementNS(SVG_NS, 'text');
-      title.setAttribute('x', '12');
-      title.setAttribute('y', String(headerH / 2 + 4));
-      title.setAttribute('fill', this.theme.nodeText);
-      title.setAttribute('font-size', '11');
-      title.setAttribute('font-weight', '600');
-      title.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-      title.setAttribute('pointer-events', 'none');
-      title.textContent = node.label;
-      g.appendChild(title);
-
-      // 구분선
-      const sep = document.createElementNS(SVG_NS, 'line');
-      sep.setAttribute('x1', '3');
-      sep.setAttribute('y1', String(headerH));
-      sep.setAttribute('x2', String(node.w));
-      sep.setAttribute('y2', String(headerH));
-      sep.setAttribute('stroke', kindColor + '30');
-      sep.setAttribute('stroke-width', '1');
-      g.appendChild(sep);
-
-      // 자식 항목
-      children.forEach((child, i) => {
-        const cy = headerH + NODE_CHILD_PAD + i * NODE_CHILD_ROW_H + NODE_CHILD_ROW_H / 2 + 4;
-
-        // 불릿 도트
-        const dot = document.createElementNS(SVG_NS, 'circle');
-        dot.setAttribute('cx', '14');
-        dot.setAttribute('cy', String(cy - 3));
-        dot.setAttribute('r', '2');
-        dot.setAttribute('fill', kindColor + '80');
-        dot.setAttribute('pointer-events', 'none');
-        g.appendChild(dot);
-
-        const row = document.createElementNS(SVG_NS, 'text');
-        row.setAttribute('x', '22');
-        row.setAttribute('y', String(cy));
-        row.setAttribute('fill', this.theme.childText);
-        row.setAttribute('font-size', '10');
-        row.setAttribute('font-family', 'var(--font-mono, ui-monospace, monospace)');
-        row.setAttribute('pointer-events', 'none');
-        const maxChars = Math.max(4, Math.floor((node.w - 30) / 6.2));
-        row.textContent = child.length > maxChars ? child.slice(0, maxChars - 1) + '…' : child;
-        g.appendChild(row);
-      });
+      // 자식 있음 — 머리 + 구분선 + 목록. 그리는 규칙은 canvas-children 이 안다.
+      for (const el of buildChildCard(node.label, children, node.w, kindColor, this.theme)) {
+        g.appendChild(el);
+      }
     }
 
     // 카드 모서리 표식(📄 · 🔗N · 💬N)은 canvas-badges 가 안다.
