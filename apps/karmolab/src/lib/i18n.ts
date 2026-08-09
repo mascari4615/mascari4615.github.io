@@ -185,6 +185,35 @@ export async function loadNamespace(ns: string): Promise<void> {
   if (jobs.length) await Promise.all(jobs);
 }
 
+/**
+ * **다른 언어**의 묶음을 받아온다 — 지금 언어가 아니라 지정한 언어.
+ *
+ * 왜 필요한가: 「English version available」 안내는 **영어로** 떠야 한다. 한국어 화면에 한국어로
+ * 「영어 판이 있습니다」라고 띄우면, 정작 그 안내가 필요한 사람(한국어를 못 읽는 사람)이 못 읽는다.
+ */
+export async function loadFor(code: string, ns: string): Promise<void> {
+  if (!have(code, ns)) await inject(code, ns);
+}
+
+/** 지정한 언어로 글 하나. 없으면 열쇠를 그대로 돌려준다(그 언어 묶음이 아직 안 왔을 때). */
+export function tFor(code: string, key: string, vars?: Record<string, string | number>): string {
+  const [ns] = split(key);
+  const raw = store[code]?.[ns]?.[key];
+  if (typeof raw !== 'string') return t(key, vars);
+  if (!vars) return raw;
+  return raw.replace(/\{(\w+)\}/g, (whole, name: string) => (name in vars ? String(vars[name]) : whole));
+}
+
+/** 브라우저가 원하는 언어 중 우리가 켠 것 — 안내를 띄울지 정하는 데 쓴다. */
+export function preferredLocale(): string | null {
+  return fromNavigator();
+}
+
+/** 이 브라우저가 언어를 직접 고른 적이 있나 (있으면 안내로 다시 묻지 않는다). */
+export function hasExplicitChoice(): boolean {
+  return !!safeGet(PREF_KEY);
+}
+
 /** 여러 묶음을 한꺼번에 (도구 하나가 공용 묶음까지 쓰는 경우). */
 export function loadNamespaces(...names: string[]): Promise<void> {
   return Promise.all(names.map(loadNamespace)).then(() => undefined);

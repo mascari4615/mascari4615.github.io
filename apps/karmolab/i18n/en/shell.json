@@ -26,5 +26,9 @@
   "shell.sidebar.status": "Status · changelog",
   "shell.sidebar.statusTitle": "Current status · recent changes",
   "shell.lang.title": "Change language",
-  "shell.lang.aria": "Change language"
+  "shell.lang.aria": "Change language",
+  "shell.lang.code": "EN",
+  "shell.lang.hint": "This page is available in {lang}",
+  "shell.lang.hintGo": "Go there",
+  "shell.lang.hintClose": "Dismiss"
 }
