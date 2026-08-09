@@ -25,39 +25,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { serveRepo } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
-const MIME = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
-  '.ico': 'image/x-icon', '.woff2': 'font/woff2'
-};
-const server = http.createServer((req, res) => {
-  let u = decodeURIComponent(req.url.split('?')[0]);
-  if (u === '/karmolab/' || u === '/karmolab') u = '/apps/karmolab/index.html';
-  if (u.startsWith('/karmolab/t/')) u = '/apps/blog' + u;
-  if (u.endsWith('/')) u += 'index.html';
-  const f = path.join(repoRoot, u.replace(/^\//, ''));
-  if (!f.startsWith(repoRoot) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) {
-    res.writeHead(404).end('not found');
-    return;
-  }
-  let body = fs.readFileSync(f);
-  const ext = path.extname(f);
-  if (ext === '.html') body = Buffer.from(String(body).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, ''), 'utf8');
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' }).end(body);
-});
-/* 도구 화면은 배포 때 찍는 생성물이라 새 체크아웃·세션 레인에는 없다.
- * 없는 채로 돌리면 404 를 「제품 고장」으로 보고한다 — 검사는 「못 돌린다」를 말할 줄 알아야 한다. */
-if (!fs.existsSync(path.join(repoRoot, 'apps/blog/karmolab/t/index.html'))) {
-  console.log('[smoke-idle] 건너뜀 — 찍힌 도구 화면이 없다 (`npm run gen:tool-pages` 뒤에 돌려라)');
-  process.exit(0);
-}
-
-await new Promise((r) => server.listen(0, '127.0.0.1', r));
-const BASE = `http://127.0.0.1:${server.address().port}`;
+/* 서버는 **공용 한 곳**을 쓴다 (`lib/serve-static.mjs`, TASK-KL-201).
+   복사본은 앞머리만 걷고 Liquid 태그를 그대로 내보내서, 화면 맨 위에 조건문이 글자로 떴다 —
+   그만큼 자리가 밀리고 일이 늘어난다(실측: smoke-perf 의 손 안 댄 CPU 1.221s → 0.28s). */
+const { base: BASE, close: closeServer } = await serveRepo();
 
 /** 손을 뗀 채 재는 시간 · 초당 몇 회까지 봐 주나 */
 const WATCH_MS = 4000;
@@ -118,7 +93,7 @@ for (const [label, url] of TARGETS) {
 }
 
 await browser.close();
-server.close();
+closeServer();
 
 if (problems.length) {
   console.error('[smoke-idle] 쉬지 않는 화면 ' + problems.length + '개');
