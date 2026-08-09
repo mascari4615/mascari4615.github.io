@@ -339,7 +339,10 @@ for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
  * 위젯 안에 이미 있던 `const esc` 는 **지운다.** 남겨 두면 안쪽에서 바깥 것을 가려(shadow),
  * 그 위에서 부른 `esc(t(...))` 가 「선언 전에 썼다」로 죽는다 — 실제로 그렇게 깨졌다.
  * 하는 일은 같은 글자 막기이므로 바깥 하나로 합친다. */
-src = src.replace(/^[ \t]*const esc = \(s: string\): string =>[^\n]*\n(?:[ \t]+\.[^\n]*\n)*/gm, '');
+/* 이어지는 줄이 늘 `.replace(` 로 시작하지는 않는다 — `String(s).replace(…)` 처럼 시작하는 판이 있다.
+ * 점으로 시작하는 줄만 먹으면 **첫 줄만 지워지고 반쪽이 남아** 그 파일 컴파일이 깨진다(worldcup 실측).
+ * 그래서 첫 `;` 까지 통째로 먹는다 — 이 함수는 어차피 한 문장이다. */
+src = src.replace(/^[ \t]*const esc = \(s: string\): string =>[^;]*;[ \t]*\n/gm, '');
 // `function esc(s) { … }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다)
 src = src.replace(/^[ \t]*function esc\(s: string\): string \{\n(?:[^\n]*\n){1,2}?[ \t]*\}\n/gm, '');
 if (!/const esc = /.test(src) && src.includes('esc(t(')) {
