@@ -7,7 +7,7 @@
  * 「가기」는 **그 글을 쓰는 첫 자리**로 데려간다 — 글만 봐서는 어느 인물 이야기인지 알 수 없다.
  * 안 쓰는 글은 자동으로 안 지운다(방금 떼어 낸 것일 수 있다). 사람이 버튼을 눌러야 치운다.
  */
-import { notesOf, noteUsers, pruneNotes } from '../../../lib/graph/notes';
+import { notesOf, noteUsers, pruneNotes, deleteNote } from '../../../lib/graph/notes';
 import type { PanelCtx } from './context';
 
 export function renderNotesPanel(ctx: PanelCtx): void {
@@ -21,7 +21,8 @@ export function renderNotesPanel(ctx: PanelCtx): void {
 
   side.innerHTML = `
     <h4>🔗 공용 글</h4>
-    <div class="km-hint">여러 자리가 <b>나눠 쓰는 글</b>입니다. 하나를 고치면 쓰는 곳이 전부 바뀝니다.</div>
+    <div class="km-hint">여러 자리가 <b>나눠 쓰는 글</b>입니다. 하나를 고치면 쓰는 곳이 전부 바뀝니다.
+      <b>흩기</b>를 누르면 공용을 그만두고 쓰던 자리마다 <b>사본</b>으로 남습니다(글은 안 사라집니다).</div>
     ${notes.length === 0
       ? `<div class="km-field"><div class="km-hint">아직 없습니다. 인물이나 관계의 <b>설명</b> 칸에서
           「여러 곳에서 같이 쓰기」를 누르면 여기로 올라옵니다 — 세계관 설정처럼 <b>같은 글이 여러 인물에게
@@ -36,6 +37,7 @@ export function renderNotesPanel(ctx: PanelCtx): void {
               <span class="km-group-count">${users}곳</span>
               <button class="btn btn-ghost" data-km="note-go" data-key="${esc(n.id)}"${users === 0 ? ' disabled' : ''}>가기</button>
               <button class="btn btn-ghost" data-km="note-show" data-key="${esc(n.id)}"${users < 2 ? ' disabled' : ''}>쓰는 곳 다 보기</button>
+              <button class="btn btn-ghost" data-km="note-split" data-key="${esc(n.id)}">흩기</button>
             </div>
           </div>`;
         }).join('')}
@@ -67,6 +69,16 @@ export function renderNotesPanel(ctx: PanelCtx): void {
       if (ids.length === 0) return;
       ctx.canvas()?.setFocus(new Set(ids));
       ctx.canvas()?.fitToNodes(ids, 160);
+    };
+  });
+  // 「흩기」 = 공용을 그만두고 **쓰던 자리마다 사본으로 남긴다**. 빈칸으로 만들면 글이 증발한 것처럼
+  // 보인다 — 이 도구에서 가장 무서운 사고다. 되돌리려면 아무 자리에서 다시 승격하면 된다.
+  side.querySelectorAll('[data-km="note-split"]').forEach((el) => {
+    (el as HTMLButtonElement).onclick = () => {
+      const id = (el as HTMLElement).dataset.key ?? '';
+      deleteNote(ctx.spec(), id, true);
+      ctx.persist();
+      ctx.refresh();
     };
   });
   const prune = side.querySelector('[data-km="note-prune"]') as HTMLButtonElement | null;
