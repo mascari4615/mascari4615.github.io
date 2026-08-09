@@ -1,5 +1,5 @@
 {
-  "total": 7842,
+  "total": 7723,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -183,7 +183,7 @@
     "src/widgets/ref/htmlentity.ts": 183,
     "src/widgets/ref/httpstatus.ts": 3,
     "src/widgets/ref/keycode.ts": 3,
-    "src/widgets/ref/markdown.ts": 122,
+    "src/widgets/ref/markdown.ts": 3,
     "src/widgets/ref/reference.ts": 9,
     "src/widgets/ref/reftable.ts": 6,
     "src/widgets/ref/regexref.ts": 106,
