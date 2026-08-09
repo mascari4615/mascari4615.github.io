@@ -100,6 +100,8 @@ export interface GraphCanvasOptions {
    * 캔버스가 `spec` 의 그 선을 직접 고치고, 저장은 위젯이 한다.
    */
   onEdgeChanged?: (edgeId: string) => void;
+  /** 여럿을 한 번에 골랐을 때 (Shift+배경 드래그). 이 콜백을 주면 범위 고르기가 켜진다. */
+  onSelectMany?: (nodeIds: string[]) => void;
 }
 
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
@@ -206,6 +208,12 @@ export class GraphCanvas {
   private onBackgroundDoubleClick?: (world: { x: number; y: number }) => void;
   private onConnect?: (fromId: string, toId: string) => void;
   private onEdgeChanged?: (edgeId: string) => void;
+  private onSelectMany?: (nodeIds: string[]) => void;
+  /** 범위 고르기 중 — 시작점(world)과 화면에 그리는 사각형. */
+  private marquee: { x0: number; y0: number; rect: SVGRectElement } | null = null;
+  /** 여러 개를 고른 상태. 하나를 끌면 이들이 함께 움직인다. */
+  private selectedIds: Set<string> = new Set();
+  private multiDrag: Map<string, { x: number; y: number }> | null = null;
   /** 선을 휘거나 이름표를 옮기는 중. */
   private edgeDrag: { edgeId: string; mode: 'curve' | 'label' } | null = null;
   /** 선 끝점을 다른 노드로 옮기는 중. */
@@ -239,6 +247,7 @@ export class GraphCanvas {
     this.onBackgroundDoubleClick = options.onBackgroundDoubleClick;
     this.onConnect = options.onConnect;
     this.onEdgeChanged = options.onEdgeChanged;
+    this.onSelectMany = options.onSelectMany;
     instanceSeq += 1;
     this.uid = `g${instanceSeq}`;
     injectGraphCanvasStyles();
@@ -478,6 +487,16 @@ export class GraphCanvas {
           startNodeX: coords.x,
           startNodeY: coords.y,
         };
+        // 고른 무리 안의 노드를 끌면 무리 전체가 따라온다.
+        if (this.selectedIds.size > 1 && this.selectedIds.has(nodeId)) {
+          this.multiDrag = new Map();
+          for (const id of this.selectedIds) {
+            const c0 = this.nodeCoords.get(id);
+            if (c0) this.multiDrag.set(id, { x: c0.x, y: c0.y });
+          }
+        } else {
+          this.multiDrag = null;
+        }
         this.svg.style.cursor = 'grabbing';
       } else if (groupEl) {
         // 그룹 드래그 — 멤버 노드 + anchor 같이 이동
@@ -515,6 +534,19 @@ export class GraphCanvas {
           startGroupY: grp.bbox.y,
         };
         this.svg.style.cursor = 'grabbing';
+      } else if (e.shiftKey && this.onSelectMany) {
+        // Shift+배경 드래그 = 범위 고르기(rubber band). 그냥 드래그는 화면 밀기 그대로 —
+        // 두 뜻을 같은 몸짓에 주면 「밀려다 골라지는」 사고가 난다.
+        const w = this.screenToWorld(e.clientX, e.clientY);
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('class', 'ck-marquee');
+        rect.setAttribute('x', String(w.x));
+        rect.setAttribute('y', String(w.y));
+        rect.setAttribute('width', '0');
+        rect.setAttribute('height', '0');
+        this.nodeLayer.appendChild(rect);
+        this.marquee = { x0: w.x, y0: w.y, rect };
+        this.pressOrigin = null;
       } else {
         // pan
         this.panning = {
@@ -544,6 +576,35 @@ export class GraphCanvas {
         this.state.ty = my - (my - this.pinch.startTy) * (newScale / this.pinch.startScale);
         this.state.scale = newScale;
         this.applyTransform();
+        return;
+      }
+      if (this.marquee) {
+        const w = this.screenToWorld(e.clientX, e.clientY);
+        const x = Math.min(this.marquee.x0, w.x);
+        const y = Math.min(this.marquee.y0, w.y);
+        this.marquee.rect.setAttribute('x', String(x));
+        this.marquee.rect.setAttribute('y', String(y));
+        this.marquee.rect.setAttribute('width', String(Math.abs(w.x - this.marquee.x0)));
+        this.marquee.rect.setAttribute('height', String(Math.abs(w.y - this.marquee.y0)));
+        return;
+      }
+      if (this.multiDrag && this.dragging) {
+        // 고른 것들이 함께 움직인다 — 끌고 있는 노드의 이동량을 그대로 얹는다.
+        const dx = (e.clientX - this.dragging.startMouseX) / this.state.scale;
+        const dy = (e.clientY - this.dragging.startMouseY) / this.state.scale;
+        for (const [id, start] of this.multiDrag) {
+          const nx = this.snap(start.x + dx);
+          const ny = this.snap(start.y + dy);
+          this.nodeCoords.set(id, { x: nx, y: ny });
+          this.updateNodeTransform(id, nx, ny);
+          this.scheduleSave(id);
+        }
+        this.groupLayer.innerHTML = '';
+        this.renderGroups();
+        this.renderAnchors();
+        this.redrawEdges();
+        this.renderLeaders();
+        this.redrawMinimap();
         return;
       }
       if (this.rewiring) {
@@ -673,6 +734,24 @@ export class GraphCanvas {
         if (this.activePointers.size < 2) this.pinch = null;
         return;
       }
+      if (this.marquee) {
+        const r = this.marquee.rect;
+        const x = Number(r.getAttribute('x'));
+        const y = Number(r.getAttribute('y'));
+        const w = Number(r.getAttribute('width'));
+        const h = Number(r.getAttribute('height'));
+        r.remove();
+        this.marquee = null;
+        const hits = (this.spec?.nodes ?? []).filter((n) => {
+          const c0 = this.nodeCoords.get(n.id) ?? { x: n.x, y: n.y };
+          const nh = this.getNodeEffectiveH(n);
+          // 조금이라도 겹치면 고른 것으로 본다 — 「완전히 감싸야 한다」는 잔 조작을 강요한다.
+          return c0.x < x + w && c0.x + n.w > x && c0.y < y + h && c0.y + nh > y;
+        });
+        this.setSelectedNodes(hits.map((n) => n.id));
+        this.onSelectMany?.(hits.map((n) => n.id));
+        return;
+      }
       if (this.rewiring) {
         const { edgeId, end, temp } = this.rewiring;
         this.rewiring = null;
@@ -735,6 +814,7 @@ export class GraphCanvas {
       this.activePointers.delete(e.pointerId);
       if (this.activePointers.size < 2) this.pinch = null;
       this.dragging = null;
+      this.multiDrag = null;
       this.draggingGroup = null;
       this.panning = null;
       this.edgeDrag = null;
@@ -826,6 +906,9 @@ export class GraphCanvas {
     this.renderLeaders();
     this.redrawMinimap();
     this.applyFocus();
+    // 다시 그리면 노드 요소가 새로 만들어진다 — 고른 표시를 여기서 되살리지 않으면
+    // 「골라 놨는데 표시가 사라지는」 상태가 된다(고른 상태 자체는 남아 있어 더 헷갈린다).
+    this.paintSelection();
   }
 
   /**
@@ -2133,9 +2216,20 @@ export class GraphCanvas {
 
   /** 선택 표시 — 편집 UI 가 어떤 노드를 다루는지 캔버스에 반영. */
   setSelectedNode(nodeId: string | null): void {
+    this.selectedIds = nodeId ? new Set([nodeId]) : new Set();
+    this.paintSelection();
+  }
+
+  /** 여러 개를 고른 상태로 둔다. 하나를 끌면 함께 움직인다. */
+  setSelectedNodes(ids: string[]): void {
+    this.selectedIds = new Set(ids);
+    this.paintSelection();
+  }
+
+  private paintSelection(): void {
     this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
       const g = el as SVGGElement;
-      g.classList.toggle('is-selected', !!nodeId && g.dataset.id === nodeId);
+      g.classList.toggle('is-selected', this.selectedIds.has(g.dataset.id ?? ''));
     });
   }
 

@@ -65,6 +65,13 @@ export const GRAPH_CANVAS_CSS = `
 .ck-edge.is-dimmed, .ck-edge-label.is-dimmed, .ck-leader.is-dimmed { opacity: 0.07; }
 .ck-edge-grip.is-dimmed, .ck-edge-end.is-dimmed { opacity: 0 !important; pointer-events: none; }
 .ck-node, .ck-edge, .ck-edge-label, .ck-leader { transition: opacity .15s ease; }
+.ck-marquee {
+  fill: rgba(129, 140, 248, 0.12);
+  stroke: #818cf8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
 .ck-link-temp {
   pointer-events: none;
   stroke-dasharray: 5 4;
