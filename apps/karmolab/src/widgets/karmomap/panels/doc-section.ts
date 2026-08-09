@@ -85,6 +85,10 @@ export function docFieldHtml(ctx: PanelCtx, node: DocHolder, skin: DocFieldSkin 
       ${shared
         ? `<button class="btn btn-ghost" data-km="${skin.key}-unlink">이 자리만 따로 쓰기 (사본으로 떼기)</button>`
         : `<button class="btn btn-ghost" data-km="${skin.key}-share">여러 곳에서 같이 쓰기 (공용 글로)</button>`}
+      ${others.length === 0 ? '' : `<select data-km="${skin.key}-embed">
+        <option value="">— 이 글 안에 다른 공용 글 끼워 넣기 —</option>
+        ${others.map((n) => `<option value="${esc(n.id)}">${esc(n.title || '메모')}</option>`).join('')}
+      </select>`}
       ${others.length === 0 && foreign.length === 0 ? '' : `<select data-km="${skin.key}-use">
         <option value="">— 있는 공용 글 불러 쓰기 —</option>
         ${others.length === 0 ? '' : `<optgroup label="이 맵">
@@ -129,6 +133,18 @@ export function bindDocField(
   if (unlinkBtn) {
     unlinkBtn.onclick = () => {
       unlinkNote(spec, node);
+      touch(true);
+    };
+  }
+  // 끼워 넣기 = 글 **안에** 다른 글을 싣는다(사본 아님). 커서 자리에 표를 박는다.
+  const embedSel = side.querySelector(`[data-km="${skin.key}-embed"]`) as HTMLSelectElement | null;
+  if (embedSel) {
+    embedSel.onchange = () => {
+      if (!embedSel.value) return;
+      const token = `{{note:${embedSel.value}}}`;
+      const at = area.selectionStart ?? area.value.length;
+      area.value = area.value.slice(0, at) + token + area.value.slice(at);
+      setDocText(spec, node, area.value);
       touch(true);
     };
   }

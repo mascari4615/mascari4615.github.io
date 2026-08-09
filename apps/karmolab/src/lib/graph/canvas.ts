@@ -31,7 +31,7 @@ import type {
 import type { GraphPersistAdapter } from './adapter';
 import { NULL_PERSIST_ADAPTER } from './adapter';
 import { injectGraphCanvasStyles, GRAPH_CANVAS_CSS } from './styles';
-import { resolveDoc } from './notes';
+import { resolveDoc, displayDoc } from './notes';
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -1370,10 +1370,10 @@ export class GraphCanvas {
       nameEl.setAttribute('pointer-events', 'none');
       nameEl.textContent = node.label;
       g.appendChild(nameEl);
-    } else if (shape === 'note' && this.spec && resolveDoc(this.spec, node).trim()) {
+    } else if (shape === 'note' && this.spec && displayDoc(this.spec, node).trim()) {
       // 쪽지에 **글이 안 보이면** 그냥 이름표다. 종이쪽지의 쓸모는 붙여 둔 글을 그대로 읽는 것이라
       // 본문을 카드 안에 접어 넣는다 (넘치면 … — 전문은 옆 패널에서 읽는다).
-      const body = resolveDoc(this.spec, node).trim();
+      const body = displayDoc(this.spec, node).trim();
       const perLine = Math.max(6, Math.floor((node.w - 20) / 5.6));
       const lines: string[] = [];
       for (const para of body.split(/\r?\n/)) {
