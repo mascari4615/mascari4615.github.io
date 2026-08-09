@@ -63,7 +63,9 @@ import { t, loadNamespace } from '../../lib/i18n';
 
   Toolbox.register({
     id: 'qrread',
-    title: 'QR 코드 읽기',
+    /* 도구 큰제목이 이 값을 쓴다 — 목록의 이름 표는 여기까지 못 미친다(실측: 영어 장의
+       큰제목만 한국어로 남았다). 등록 순간이라 기다릴 수 없어 원본을 기본값으로 함께 준다. */
+    title: t('widgets.qrread.title', undefined, 'QR 코드 읽기'),
     category: 'tool',
     desc: '그림이나 카메라로 QR 을 읽고, 그 안에 무엇이 들었는지 알려 줍니다. 어디에도 올리지 않습니다',
     layout: 'wide',

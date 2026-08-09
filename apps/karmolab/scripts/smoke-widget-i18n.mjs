@@ -20,7 +20,16 @@ import { fileURLToPath } from 'node:url';
 import { LOCALES, SOURCE_LOCALE, catalog, localizedPath } from './lib/locales.mjs';
 
 /** 첫 화면에 바로 그려지는 글만 고른다 — 눌러야 나오는 글로 재면 늘 「안 보인다」가 된다. */
-const FIRST_SCREEN = ['btn.camera', 'drop', 'status.idle', 'out.label', 'btn.run', 'btn.preview'];
+const FIRST_SCREEN = [
+  'btn.camera',
+  'drop',
+  'status.idle',
+  'out.label',
+  'btn.run',
+  'btn.preview',
+  'search',
+  'baseCity'
+];
 
 const appRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(appRoot));
@@ -78,18 +87,26 @@ for (const { code, id, page } of targets) {
     continue;
   }
 
+  /* 있는가 = **마크업**으로 본다. 자리표시(placeholder)·읽어 주는 이름(aria-label)처럼 글자로
+     안 보이는 자리도 사람이 쓰는 말이다 — 글자만 보면 그 자리는 영영 안 잡힌다(실측: 세계시계의
+     찾기 칸이 그래서 「안 보인다」로 나왔다. 도구는 멀쩡했다). */
   const seen = await tab
-    .waitForFunction((needle) => document.body.innerText.includes(needle), mine[keys[0]], { timeout: 8000 })
+    .waitForFunction((needle) => document.body.innerHTML.includes(needle), mine[keys[0]], { timeout: 8000 })
     .then(() => true)
     .catch(() => false);
   if (!seen) fail.push(`${code}/${id}: 도구 화면에 그 언어 글이 안 보인다 (${mine[keys[0]]})`);
 
-  /* **원본 언어 글이 그대로 남았나** — 화면 전체의 한국어를 세면 안 된다. 이 장에는 도구 밖에
-     다른 자리(다른 도구 안내 등)가 함께 있고 그건 이 도구의 몫이 아니다. 같은 열쇠의 원본 글이
-     보이면 그건 확실히 안 갈린 것이다. */
-  const text = await tab.evaluate(() => document.body.innerText || '');
+  /* 남았는가 = **도구가 그린 자리 안**에서만 본다. 장에는 도구 밖 조각(미리 그려 둔 뼈대·다른 도구
+     안내)이 함께 있고 그건 이 도구의 몫이 아니다 — 거기까지 세면 늘 빨갛고, 그러면 검사가 꺼진다. */
+  const live = await tab.evaluate(() => {
+    const host = document.querySelector('#tool-pages');
+    if (!host) return '';
+    const copy = host.cloneNode(true);
+    copy.querySelectorAll('script,style').forEach((n) => n.remove());
+    return copy.innerHTML;
+  });
   for (const k of keys) {
-    if (text.includes(src[k])) fail.push(`${code}/${id}: 원본 언어 글이 남았다 — ${k} (${src[k]})`);
+    if (live.includes(src[k])) fail.push(`${code}/${id}: 원본 언어 글이 남았다 — ${k} (${src[k]})`);
   }
 
   await tab.close();
