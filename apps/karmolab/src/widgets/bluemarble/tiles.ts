@@ -86,6 +86,21 @@ export function regionKey(b: BBox, z: number, day: string): string {
  * 보이는 자리를 덮는 타일을 받아 등장방형 한 장으로 잇는다.
  * 어제 것을 받는다 — 오늘 판은 위성이 아직 안 지나간 곳이 검다(구름 그림에서 겪은 것과 같은 이유).
  */
+/**
+ * 그 층에서 이 상자를 덮는 데 타일이 몇 장 드나. 상한을 넘으면 **한 층 내려간다** —
+ * 예전엔 넘으면 그냥 `null` 을 돌려줬는데, 그러면 확대해도 아무 일이 안 일어나고
+ * (요청이 0 이라 화면만 뭉갠 채였다) 이유도 안 보였다. 조금 덜 촘촘한 그림이 아무것도 없는 것보다 낫다.
+ */
+export function fitLevel(b: BBox, z: number): number {
+  for (let k = z; k >= 0; k--) {
+    const s = span(k);
+    const cols = Math.floor((b.east + 180) / s) - Math.floor((b.west + 180) / s) + 1;
+    const rows = Math.floor((90 - b.south) / s) - Math.floor((90 - b.north) / s) + 1;
+    if (cols > 0 && rows > 0 && cols * rows <= MAX_TILES) return k;
+  }
+  return 0;
+}
+
 export async function loadRegion(b: BBox, z: number, dayStr?: string): Promise<Region | null> {
   const s = span(z);
   const day = dayStr || ymdUTC(1);
