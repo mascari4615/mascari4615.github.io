@@ -47,6 +47,34 @@ let pending: { x: number; y: number; active: boolean } | null = null;
 let sendTimer: ReturnType<typeof setInterval> | null = null;
 const cursors = new Map<string, HTMLElement>();
 
+/* ── 남는 관 하나 (TASK-KL-206 · 동시 관람) ─────────────────────────
+ *
+ * 서버의 `/op` 는 **받아서 그대로 흘려보내기만 한다** — 뜻을 정하지 않는다. 그래서 같이 쓰기
+ * 말고 다른 것도 이 관으로 보낼 수 있다(지구본이 보고 있는 자리 같은 것). 연결은 **하나만**
+ * 쓴다: 위젯마다 EventSource 를 새로 열면 같은 사람이 방에 여러 번 있는 것으로 세어진다.
+ */
+type OpListener = (op: unknown, from: string) => void;
+const opListeners = new Set<OpListener>();
+
+/** 이 관으로 오는 것을 듣는다. 돌려받은 함수를 부르면 그만 듣는다. */
+export function onRoomOp(fn: OpListener): () => void {
+    opListeners.add(fn);
+    return () => opListeners.delete(fn);
+}
+
+/** 이 관으로 보낸다. 방에 안 들어가 있으면 아무 일도 안 일어난다(조용히). */
+export function sendRoomOp(op: unknown): void {
+    if (!roomId || !isCopresenceOn()) return;
+    void fetch(`${API_BASE}/kl/room/${encodeURIComponent(roomId)}/op`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tab: TAB_ID, op }),
+    }).catch(() => {
+        /* 한 번 못 보낸 것은 다음 것이 대신한다 — 지나간 자리는 값이 0 이다 */
+    });
+}
+
 export function isCopresenceOn(): boolean {
     try {
         return localStorage.getItem(PREF_KEY) !== 'off';
@@ -165,8 +193,10 @@ function joinRoom(next: string): void {
         node.style.transform = `translate(${data.x * window.innerWidth}px, ${data.y * window.innerHeight}px)`;
     });
     source.addEventListener('op', (event) => {
-        const data = JSON.parse((event as MessageEvent).data) as { op?: unknown };
+        const data = JSON.parse((event as MessageEvent).data) as { op?: unknown; member?: { id?: string } };
         applyRemote(data.op);
+        // 같이 쓰기 말고 다른 것도 이 관으로 흐른다 — 뜻은 받는 쪽이 정한다
+        for (const fn of opListeners) fn(data.op, data.member?.id ?? '');
     });
     source.addEventListener('leave', (event) => {
         removeMember((JSON.parse((event as MessageEvent).data) as { id: string }).id);
@@ -346,10 +376,13 @@ declare global {
             isOn: typeof isCopresenceOn;
             set: typeof setCopresence;
             share: typeof shareField;
+            /** 뜻을 서버가 안 정하는 관 — 위젯이 자기 규칙으로 쓴다 (TASK-KL-206) */
+            sendOp: typeof sendRoomOp;
+            onOp: typeof onRoomOp;
         };
     }
 }
 
-window.KarmoCopresence = { isOn: isCopresenceOn, set: setCopresence, share: shareField };
+window.KarmoCopresence = { isOn: isCopresenceOn, set: setCopresence, share: shareField, sendOp: sendRoomOp, onOp: onRoomOp };
 
 export {};

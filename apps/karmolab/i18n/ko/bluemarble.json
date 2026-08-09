@@ -58,5 +58,6 @@
   "bluemarble.deep.ma": "{ma}백만 년 전",
   "bluemarble.deep.lineNow": "지금의 대륙 배치입니다. 손잡이를 왼쪽으로 밀면 판이 되감깁니다.",
   "bluemarble.deep.line": "{ma}백만 년 전의 지구입니다. 대륙이 지금 자리에 있기 전입니다.",
-  "bluemarble.deep.how": "사진이 없는 시간입니다 — 판이 어떻게 움직였는지를 되감아 그린 것입니다. 아는 것은 물과 뭍의 경계뿐이라, 색은 칠하지 않았습니다."
+  "bluemarble.deep.how": "사진이 없는 시간입니다 — 판이 어떻게 움직였는지를 되감아 그린 것입니다. 아는 것은 물과 뭍의 경계뿐이라, 색은 칠하지 않았습니다.",
+  "bluemarble.layer.together": "같이 보기"
 }
