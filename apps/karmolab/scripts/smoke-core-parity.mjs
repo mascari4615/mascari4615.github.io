@@ -32,7 +32,32 @@ const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512'
 // 한글·이모지를 넣는 이유: CryptoJS 는 기본이 Latin1 이라, UTF-8 로 안 다루면 여기서만 갈린다.
 const SAMPLES = ['KarmoLab', '안녕하세요', '🦴 뼈', ''];
 
-const browser = await chromium.launch();
+/*
+ * 이 검사는 **배포 길목**에 있다(build 사슬, `node build.mjs` 뒤). 그래서 시작하기 전에
+ * 「돌릴 수 있는 자리인가」를 먼저 가른다 — 못 돌린 것을 제품 고장으로 말하면 배포가 통째로
+ * 서고, 로그를 끝까지 읽어야 이유를 안다(2026-08-08 에 세 판 그렇게 섰다).
+ *
+ * ① 볼 대상(번들)이 아직 없으면 = 아직 안 찍은 것. 건너뛴다(exit 0).
+ *    build 사슬에서는 앞 단계가 찍고 오므로, 여기 걸린다는 건 「순서가 틀렸다」는 뜻이다.
+ * ② 브라우저가 없으면 = 진짜로 못 잰다. 빨갛게 내되 **왜인지 한 줄로** 말한다(exit 1).
+ *    러너에 브라우저 까는 것은 워크플로가 하는 일이라, 조용히 통과시키면 그날부터 안 재고 초록이다.
+ */
+const NEEDED = ['js/vendor/crypto-js.min.js', 'js/widgets/tools/hashgen.js', 'js/widgets/tools/passgen.js'];
+const missing = NEEDED.filter((rel) => fs.existsSync(path.join(root, rel)) === false);
+if (missing.length > 0) {
+  console.log(`[smoke-core-parity] CANNOT-RUN(건너뜀) — 볼 번들이 아직 없다: ${missing.join(' · ')}`);
+  console.log('  `node build.mjs` 뒤에 돌려라 (build 사슬에서는 자동으로 그 순서다).');
+  process.exit(0);
+}
+
+let browser;
+try {
+  browser = await chromium.launch();
+} catch (error) {
+  console.error('[smoke-core-parity] CANNOT-RUN — 브라우저를 못 띄웠다. `npx playwright install chromium` 이 필요하다.');
+  console.error(String(error?.message ?? error).split('\n')[0]);
+  process.exit(1);
+}
 const page = await browser.newPage();
 await page.route('**/*', (route) =>
   route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
