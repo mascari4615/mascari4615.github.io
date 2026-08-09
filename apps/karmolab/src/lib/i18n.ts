@@ -65,6 +65,26 @@ function fromPath(pathname: string): string | null {
 }
 
 /**
+ * **이 문서가 스스로 밝힌 언어** (`<html lang>`).
+ *
+ * 주소에 앞머리가 없는 장(= 기본 언어 장)에서 여기서 안 잡으면 브라우저 취향까지 흘러간다.
+ * 그러면 영어 브라우저로 한국어 장을 열었을 때 **글은 한국어인데 껍데기만 영어**가 된다 —
+ * 머리띠는 「EN」이라 적고, 밑의 글은 전부 한국어다. 게다가 「영어로 보시겠어요?」 안내 띠는
+ * 지금 언어와 원하는 언어가 같아져 버려 **안 뜬다**. 물어보고 옮기려던 설계가 통째로 죽는다.
+ * (2026-08-09 실측: CI 브라우저가 영어라 이 상태가 그대로 잡혔다.)
+ *
+ * 장의 언어는 취향이 아니라 **사실**이다. 찍어 낸 장마다 `lang` 이 박혀 있고, 짝 표시·목록·
+ * 검사가 전부 그걸 기준으로 돈다. 읽는 쪽도 같은 것을 봐야 한 벌로 맞는다.
+ */
+function fromDocument(): string | null {
+  if (typeof document === 'undefined') return null;
+  const raw = document.documentElement?.getAttribute('lang');
+  if (!raw) return null;
+  const base = String(raw).toLowerCase().split('-')[0];
+  return ENABLED_LOCALES.find((l) => l.code === base)?.code || null;
+}
+
+/**
  * 브라우저가 원하는 언어 중 **우리가 켠 것** 첫 번째.
  * `ja-JP` 처럼 지역이 붙어 와도 앞부분으로 맞춘다 — 지역별로 글을 따로 두지 않기 때문이다.
  */
@@ -81,7 +101,7 @@ function fromNavigator(): string | null {
 let current: string | null = null;
 
 /**
- * 지금 언어. 순서 = **주소 > 고른 값 > 브라우저 > 기본**.
+ * 지금 언어. 순서 = **주소 > 이 문서가 밝힌 것 > 고른 값 > 브라우저 > 기본**.
  *
  * 주소가 제일 세다: `/en/…` 을 공유받은 사람은 자기 브라우저가 한국어여도 영어를 봐야 한다
  * (그 주소가 검색엔진에 영어 문서로 올라가 있다).
@@ -92,6 +112,7 @@ export function locale(): string {
   current =
     window.__KARMO_LOCALE ||
     (typeof location !== 'undefined' ? fromPath(location.pathname) : null) ||
+    fromDocument() ||
     safeGet(PREF_KEY) ||
     fromNavigator() ||
     DEFAULT_LOCALE;
