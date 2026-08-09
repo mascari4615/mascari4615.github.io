@@ -104,4 +104,6 @@ export interface PanelCtx {
   spawnNodeAt: (x: number, y: number, label: string) => void;
   /** 이름·모양이 바뀐 뒤 상자 크기를 다시 잰다. */
   resizeNode: (node: GraphNode) => void;
+  /** 사진 고르는 창을 연다(고른 뒤 그 노드 얼굴이 된다). */
+  openAvatarPicker: (nodeId: string) => void;
 }
