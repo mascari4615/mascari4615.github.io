@@ -5,51 +5,64 @@
  * 공급가에서 더할 때와 총액에서 뺄 때 나누는 수가 다르기 때문이다(1.1 로 나눠야 한다).
  * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
  */
-import { spec, vatAdd, vatExtract, won, type Rounding } from '../../core/vat';
+import { spec, vatAdd, vatExtract,  type Rounding } from '../../core/vat';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace, locale } from '../../lib/i18n';
 
 (function (): void {
+  /* 돈은 **보는 사람의 언어로** 적되 통화는 KRW 그대로다 — 한국 부가세 계산이라 달러로
+   * 바꿔 적으면 거짓말이 된다. core 의 `won` 은 MCP 글자 출력이 쓰므로 안 건드린다. */
+  const won = (n: number): string =>
+    new Intl.NumberFormat(locale(), { style: 'currency', currency: 'KRW', maximumFractionDigits: 0 }).format(
+      Math.round(n)
+    );
+
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'vat',
-    title: '부가세 계산기',
+    title: t('widgets.vat.title', undefined, "부가세 계산기"),
     category: 'tool',
-    desc: '공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로',
+    desc: t('widgets-desc.vat.desc', undefined, "공급가에서 부가세를 더하거나 총액에서 빼냅니다. 세금계산서 세 줄 그대로"),
     layout: 'form',
     icon: '<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M7 4h10a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="7" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="16" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '부가세',
+        label: t('vat.stat.tax', undefined, "부가세"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('vat').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-chips" id="vaMode">
-                <button type="button" class="tool-chip active" data-mode="add">공급가 → 합계 (부가세 더하기)</button>
-                <button type="button" class="tool-chip" data-mode="sub">합계 → 공급가 (부가세 빼내기)</button>
+                <button type="button" class="tool-chip active" data-mode="add">${esc(t('vat.mode.add'))}</button>
+                <button type="button" class="tool-chip" data-mode="sub">${esc(t('vat.mode.sub'))}</button>
               </div>
             </div>
             <div class="field-group">
-              <label class="field-label" id="vaLabel">공급가액</label>
-              <input type="number" id="vaAmount" aria-label="공급가액" value="1000000" step="1000" min="0">
+              <label class="field-label" id="vaLabel">${esc(t('vat.label.supply'))}</label>
+              <input type="number" id="vaAmount" aria-label="${esc(t('vat.label.supply'))}" value="1000000" step="1000" min="0">
             </div>
             <div class="field-group">
-              <div class="tool-sublabel">세율 (%)</div>
-              <input type="number" id="vaRate" aria-label="세율 (%)" value="10" step="0.1" min="0">
+              <div class="tool-sublabel">${esc(t('vat.label.rate'))}</div>
+              <input type="number" id="vaRate" aria-label="${esc(t('vat.label.rate'))}" value="10" step="0.1" min="0">
             </div>
 
             <div class="cc-stats" id="vaStats"></div>
             <div class="tool-list" id="vaOut"></div>
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="vaCopy">세 줄 복사</button>
+              <button class="btn btn-ghost" id="vaCopy">${esc(t('vat.btn.copy'))}</button>
             </div>
             <div class="field-group">
-              <div class="tool-sublabel">1원 미만 처리</div>
+              <div class="tool-sublabel">${esc(t('vat.label.rounding'))}</div>
               <div class="tool-chips" id="vaRound">
-                <button type="button" class="tool-chip active" data-round="floor">절사 (실무 기본)</button>
-                <button type="button" class="tool-chip" data-round="round">반올림</button>
+                <button type="button" class="tool-chip active" data-round="floor">${esc(t('vat.round.floor'))}</button>
+                <button type="button" class="tool-chip" data-round="round">${esc(t('vat.round.half'))}</button>
               </div>
             </div>
-            <div class="tool-status" id="vaStatus">총액에서 뺄 때는 1.1 로 나눕니다 — 10%를 빼는 것과 다릅니다.</div>
+            <div class="tool-status" id="vaStatus">${esc(t('vat.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -78,14 +91,14 @@ import { readInvocation } from '../../lib/tool-url';
 
             last = r;
             stats.innerHTML =
-              stat(mode === 'add' ? '합계 (받을 돈)' : '공급가액', won(mode === 'add' ? r.total : r.supply), true) +
-              stat('부가세', won(r.tax)) +
-              stat('세율', `${ratePercent.toFixed(1)}%`);
+              stat(mode === 'add' ? t('vat.stat.total') : t('vat.label.supply'), won(mode === 'add' ? r.total : r.supply), true) +
+              stat(t('vat.stat.tax'), won(r.tax)) +
+              stat(t('vat.row.rate'), `${ratePercent.toFixed(1)}%`);
             out.innerHTML =
-              row('공급가액', won(r.supply)) +
-              row('부가세액', won(r.tax)) +
-              row('합계 금액', won(r.total)) +
-              row('참고', mode === 'sub' ? `총액 ÷ ${factor} 로 계산` : `공급가 × ${factor}`);
+              row(t('vat.label.supply'), won(r.supply)) +
+              row(t('vat.row.tax'), won(r.tax)) +
+              row(t('vat.row.total'), won(r.total)) +
+              row(t('vat.row.note'), mode === 'sub' ? t('vat.note.sub', { factor }) : t('vat.note.add', { factor }));
             Toolbox.trackUse?.(mode);
           }
 
@@ -103,7 +116,7 @@ import { readInvocation } from '../../lib/tool-url';
               container.querySelectorAll('#vaMode .tool-chip').forEach((c) => c.classList.remove('active'));
               chip.classList.add('active');
               mode = (chip as HTMLElement).dataset.mode || 'add';
-              label.textContent = mode === 'add' ? '공급가액' : '합계 금액 (부가세 포함)';
+              label.textContent = mode === 'add' ? t('vat.label.supply') : t('vat.label.totalIn');
               amount.value = mode === 'add' ? '1000000' : '1100000';
               run();
             };
@@ -111,8 +124,8 @@ import { readInvocation } from '../../lib/tool-url';
           [amount, rateEl].forEach((el) => el.addEventListener('input', run));
           $<HTMLButtonElement>('#vaCopy').onclick = () => {
             void Toolbox.copyText?.(
-              `공급가액 ${won(last.supply)}\n부가세액 ${won(last.tax)}\n합계금액 ${won(last.total)}`,
-              { message: '세 줄을 복사했어요' }
+              t('vat.copy.lines', { supply: won(last.supply), tax: won(last.tax), total: won(last.total) }),
+              { message: t('vat.copy.done') }
             );
           };
           // 주소로 부른 경우 (`?op=extract&amount=1100000`) — 아니면 예시 (TASK-KL-205).
@@ -120,7 +133,7 @@ import { readInvocation } from '../../lib/tool-url';
           if (call !== null && call.error === undefined) {
             if (call.op === 'extract') {
               mode = 'sub';
-              label.textContent = '합계 금액 (부가세 포함)';
+              label.textContent = t('vat.label.totalIn');
               container.querySelectorAll('#vaMode .tool-chip').forEach((c) => {
                 c.classList.toggle('active', (c as HTMLElement).dataset.mode === 'sub');
               });
@@ -135,6 +148,7 @@ import { readInvocation } from '../../lib/tool-url';
             st.textContent = call.error;
             st.className = 'tool-status error';
           }
+                  });
         }
       }
     ]

@@ -7,7 +7,12 @@
  * 신경 쓴 곳: 두 색을 그냥 섞으면 가운데가 **탁하게 죽는다**(파랑→노랑이 회색을 지난다).
  * 사람 눈에 맞는 공간에서 섞으면 그 일이 없다 — 그 차이를 나란히 보여 준다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   /** #rrggbb → [0..1] 세 값. 잘못된 값이 들어와도 검은색으로 떨어지게 한다. */
   function toRgb(hex: string): [number, number, number] {
     const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
@@ -37,50 +42,52 @@
 
   Toolbox.register({
     id: 'gradient',
-    title: '그라데이션 만들기',
+    title: t('widgets.gradient.title', undefined, "그라데이션 만들기"),
     category: 'tool',
-    desc: '배경용 그라데이션을 보면서 만들고 CSS 를 가져갑니다. 가운데가 탁해지지 않게 섞습니다',
+    desc: t('widgets-desc.gradient.desc', undefined, "배경용 그라데이션을 보면서 만들고 CSS 를 가져갑니다. 가운데가 탁해지지 않게 섞습니다"),
     layout: 'wide',
     icon: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M5 18 19 6" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><circle cx="7" cy="8" r="1.6" fill="currentColor" opacity="0.8"/><circle cx="17" cy="16" r="1.6" fill="currentColor" opacity="0.4"/>',
     tabs: [
       {
         id: 'app',
-        label: '그라데이션',
+        label: t('gradient.tab', undefined, "그라데이션"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('gradient').then(function () {
+
           container.innerHTML = `
             <div id="grPreview" style="height:180px; border-radius:10px; border:1px solid rgba(128,128,128,0.25);"></div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">시작 색</div>
-                  <input type="text" id="grFrom" aria-label="시작 색" value="#3b82f6" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('gradient.label.from'))}</div>
+                  <input type="text" id="grFrom" aria-label="${esc(t('gradient.label.from'))}" value="#3b82f6" spellcheck="false">
                 </div>
                 <div>
-                  <div class="tool-sublabel">끝 색</div>
-                  <input type="text" id="grTo" aria-label="끝 색" value="#f59e0b" spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('gradient.label.to'))}</div>
+                  <input type="text" id="grTo" aria-label="${esc(t('gradient.label.to'))}" value="#f59e0b" spellcheck="false">
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">방향 <span id="grAngleVal" class="range-value">135°</span></div>
-                  <input type="range" id="grAngle" aria-label="방향" min="0" max="360" step="15" value="135">
+                  <div class="tool-sublabel">${esc(t('gradient.label.angle'))} <span id="grAngleVal" class="range-value">135°</span></div>
+                  <input type="range" id="grAngle" aria-label="${esc(t('gradient.label.angle'))}" min="0" max="360" step="15" value="135">
                 </div>
                 <div>
-                  <div class="tool-sublabel">모양</div>
-                  <select id="grKind" aria-label="모양">
-                    <option value="linear">직선</option>
-                    <option value="radial">퍼짐</option>
+                  <div class="tool-sublabel">${esc(t('gradient.label.kind'))}</div>
+                  <select id="grKind" aria-label="${esc(t('gradient.label.kind'))}">
+                    <option value="linear">${esc(t('gradient.kind.linear'))}</option>
+                    <option value="radial">${esc(t('gradient.kind.radial'))}</option>
                   </select>
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="grPerc" checked> 가운데 안 죽게 섞기</label>
-                <label class="tool-chip"><input type="checkbox" id="grSmooth"> 여러 단계로 부드럽게</label>
+                <label class="tool-chip"><input type="checkbox" id="grPerc" checked> ${esc(t('gradient.opt.perceptual'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="grSmooth"> ${esc(t('gradient.opt.smooth'))}</label>
               </div>
             </div>
 
-            <div class="tool-sublabel">비교 — 위가 그냥 섞기, 아래가 눈에 맞춘 섞기</div>
+            <div class="tool-sublabel">${esc(t('gradient.label.compare'))}</div>
             <div style="display:grid; gap:4px;">
               <div id="grPlain" style="height:34px; border-radius:6px;"></div>
               <div id="grPerceptual" style="height:34px; border-radius:6px;"></div>
@@ -89,10 +96,10 @@
             <div class="field-group" style="margin-top:var(--space-lg);">
               <label class="field-label" for="grCss">CSS</label>
               <textarea id="grCss" rows="4" spellcheck="false" style="width:100%;" readonly></textarea>
-              <button class="btn btn-ghost btn-sm" id="grCopy" style="margin-top:8px;">CSS 복사</button>
+              <button class="btn btn-ghost btn-sm" id="grCopy" style="margin-top:8px;">${esc(t('gradient.btn.copy'))}</button>
             </div>
 
-            <div class="tool-status" id="grStatus">색을 적고 방향을 돌려 보세요.</div>
+            <div class="tool-status" id="grStatus">${esc(t('gradient.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -139,8 +146,8 @@
             const midP = mix(fromEl.value, toEl.value, 0.5, true);
             say(
               mid === midP
-                ? '가운데 색이 같습니다 — 두 색이 비슷해 차이가 잘 안 납니다.'
-                : `가운데가 ${mid} → ${midP} 로 달라집니다. 그냥 섞으면 그만큼 탁해집니다.`,
+                ? t('gradient.say.same')
+                : t('gradient.say.diff', { mid, midP }),
               'ok'
             );
           }
@@ -148,10 +155,11 @@
           [fromEl, toEl, angleEl].forEach((el) => el.addEventListener('input', refresh));
           ['#grKind', '#grPerc', '#grSmooth'].forEach((s) => $<HTMLElement>(s).addEventListener('change', refresh));
           $<HTMLButtonElement>('#grCopy').onclick = () => {
-            void Toolbox.copyText?.($<HTMLTextAreaElement>('#grCss').value, { message: 'CSS 를 복사했어요' });
+            void Toolbox.copyText?.($<HTMLTextAreaElement>('#grCss').value, { message: t('gradient.copy.done') });
             Toolbox.trackUse?.('copy');
           };
           refresh();
+                  });
         }
       }
     ]

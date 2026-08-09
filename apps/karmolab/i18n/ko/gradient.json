@@ -1,0 +1,17 @@
+{
+  "gradient.label.from": "시작 색",
+  "gradient.label.to": "끝 색",
+  "gradient.label.angle": "방향",
+  "gradient.label.kind": "모양",
+  "gradient.kind.linear": "직선",
+  "gradient.kind.radial": "퍼짐",
+  "gradient.opt.perceptual": "가운데 안 죽게 섞기",
+  "gradient.opt.smooth": "여러 단계로 부드럽게",
+  "gradient.label.compare": "비교 — 위가 그냥 섞기, 아래가 눈에 맞춘 섞기",
+  "gradient.btn.copy": "CSS 복사",
+  "gradient.status.idle": "색을 적고 방향을 돌려 보세요.",
+  "gradient.tab": "그라데이션",
+  "gradient.say.same": "가운데 색이 같습니다 — 두 색이 비슷해 차이가 잘 안 납니다.",
+  "gradient.copy.done": "CSS 를 복사했어요",
+  "gradient.say.diff": "가운데가 {mid} → {midP} 로 달라집니다. 그냥 섞으면 그만큼 탁해집니다."
+}

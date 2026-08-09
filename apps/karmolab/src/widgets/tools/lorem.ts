@@ -14,7 +14,8 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
   const LOREM = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');
 
   /** 한글 더미 — 뜻이 통하지 않아야 읽히지 않고, 글자 분포는 한국어에 가깝게. */
-  const KO = t('lorem.words.ko').split(' ');
+  /* 낱말은 **쓸 때** 가져온다 — 모듈 바닥에서 부르면 말 묶음이 오기 전이라 한국어로 굳는다. */
+  const ko = (): string[] => t('lorem.words.ko').split(' ');
 
   const rand = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
@@ -87,7 +88,7 @@ import { t, loadNamespace, locale } from '../../lib/i18n';
           let korean = true;
 
           function run(): void {
-            const words = korean ? KO : LOREM;
+            const words = korean ? ko() : LOREM;
             const n = parseInt(count.value, 10);
             countVal.textContent = n + t('lorem.unit.count');
             const rows: string[] = [];

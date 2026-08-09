@@ -1,0 +1,17 @@
+{
+  "gradient.tab": "グラデーション",
+  "gradient.label.from": "始めの色",
+  "gradient.label.to": "終わりの色",
+  "gradient.label.angle": "向き",
+  "gradient.label.kind": "形",
+  "gradient.kind.linear": "直線",
+  "gradient.kind.radial": "広がり",
+  "gradient.opt.perceptual": "真ん中がくすまないように混ぜる",
+  "gradient.opt.smooth": "段階を増やしてなめらかに",
+  "gradient.label.compare": "比較 — 上がそのまま混ぜたもの、下が目に合わせて混ぜたもの",
+  "gradient.btn.copy": "CSS をコピー",
+  "gradient.status.idle": "色を書いて向きを回してみてください。",
+  "gradient.say.same": "真ん中の色が同じです — 2色が近いので違いがほとんど出ません。",
+  "gradient.copy.done": "CSS をコピーしました",
+  "gradient.say.diff": "真ん中が {mid} → {midP} に変わります。そのまま混ぜるとその分くすみます。"
+}

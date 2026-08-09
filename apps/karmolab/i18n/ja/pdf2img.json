@@ -1,0 +1,22 @@
+{
+  "pdf2img.tab": "PDF → 画像",
+  "pdf2img.drop": "PDF をドラッグするか、押して選んでください",
+  "pdf2img.label.scale": "倍率",
+  "pdf2img.value.scale": "2倍",
+  "pdf2img.unit.scale": "倍",
+  "pdf2img.label.format": "形式",
+  "pdf2img.format.png": "PNG — 文字がくっきり",
+  "pdf2img.format.jpg": "JPG — 容量が小さい",
+  "pdf2img.label.range": "ページ — 1-3,5（空なら全部）",
+  "pdf2img.btn.run": "画像に変換",
+  "pdf2img.status.idle": "ファイルはブラウザの中だけで扱われます。画像を押すとダウンロードします。",
+  "pdf2img.say.loadingLib": "PDF の処理系を読み込んでいます…",
+  "pdf2img.err.lib": "PDF の処理系を読み込めませんでした",
+  "pdf2img.err.noFile": "先に PDF を入れてください。",
+  "pdf2img.err.run": "処理中に問題が起きました: ",
+  "pdf2img.say.drawing": "{n}ページを描いています…",
+  "pdf2img.value.page": "{n}ページ",
+  "pdf2img.value.pageSize": "{n}ページ · {w}×{h}",
+  "pdf2img.say.done": "{n}ページを変換しました。画像を押すとダウンロードします。",
+  "pdf2img.say.loaded": "{name} · {mb}MB — 倍率を決めて変換を押してください。"
+}

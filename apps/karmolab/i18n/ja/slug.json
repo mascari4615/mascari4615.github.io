@@ -1,0 +1,16 @@
+{
+  "slug.tab": "スラッグ",
+  "slug.label.in": "タイトル — 複数行なら行ごとに作ります",
+  "slug.ph.in": "KarmoLab 道具箱",
+  "slug.label.sep": "つなぎ文字",
+  "slug.sep.hyphen": "ハイフン (-)",
+  "slug.sep.underscore": "アンダースコア (_)",
+  "slug.label.opts": "処理",
+  "slug.opt.roman": "ハングルをローマ字に",
+  "slug.opt.lower": "小文字にする",
+  "slug.aria.out": "作られたスラッグ",
+  "slug.btn.copy": "コピー",
+  "slug.status.idle": "英数字以外をそのまま URL に入れると %EC のように膨らみ、共有するとき切れます。",
+  "slug.copy.done": "スラッグをコピーしました",
+  "slug.say.longest": "いちばん長いスラッグ {n}文字 · そのままアドレスに使えます。"
+}

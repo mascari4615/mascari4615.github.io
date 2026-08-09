@@ -1,0 +1,15 @@
+{
+  "filehash.drop": "ファイルをドラッグするか、押して選んでください",
+  "filehash.label.expect": "配布元が書いていた値 — 貼り付けると自動で照合します",
+  "filehash.status.idle": "ファイルはブラウザの中だけで読みます。",
+  "filehash.stat.digest": "検査値",
+  "filehash.copy.done": "検査値をコピーしました",
+  "filehash.say.done": "計算完了",
+  "filehash.verdict.match": "一致",
+  "filehash.verdict.differ": "不一致",
+  "filehash.say.noMatch": "どの方式でも値が違います — ダウンロード中に壊れたか、別のファイルかもしれません。",
+  "filehash.say.working": "計算中…",
+  "filehash.say.match": "{algo} の値が配布元と同じです — ファイルは無事です。",
+  "filehash.say.reading": "{name} · {size} を読んでいます…",
+  "filehash.say.ready": "{name} · {size} · 行を押すと値がコピーされます。"
+}

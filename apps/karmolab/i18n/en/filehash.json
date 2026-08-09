@@ -1,0 +1,15 @@
+{
+  "filehash.drop": "Drop a file here or click to choose one",
+  "filehash.label.expect": "The value the publisher listed — paste it and it gets checked automatically",
+  "filehash.status.idle": "The file is only read inside your browser.",
+  "filehash.stat.digest": "Checksum",
+  "filehash.copy.done": "Checksum copied",
+  "filehash.say.done": "Done",
+  "filehash.verdict.match": "Match",
+  "filehash.verdict.differ": "Different",
+  "filehash.say.noMatch": "No algorithm gives a matching value — the download may be broken, or it is a different file.",
+  "filehash.say.working": "Computing…",
+  "filehash.say.match": "The {algo} value matches the publisher — the file is intact.",
+  "filehash.say.reading": "Reading {name} · {size}…",
+  "filehash.say.ready": "{name} · {size} · click a row to copy its value."
+}

@@ -1,0 +1,22 @@
+{
+  "vat.mode.add": "Net → gross (add VAT)",
+  "vat.mode.sub": "Gross → net (take VAT out)",
+  "vat.label.supply": "Net amount",
+  "vat.label.totalIn": "Gross amount (VAT included)",
+  "vat.label.rate": "Rate (%)",
+  "vat.label.rounding": "Sub-unit handling",
+  "vat.round.floor": "Round down (the usual practice)",
+  "vat.round.half": "Round to nearest",
+  "vat.btn.copy": "Copy the three lines",
+  "vat.status.idle": "Korean VAT (10% by default). Taking VAT out of a gross amount divides by 1.1 — that is not the same as subtracting 10%.",
+  "vat.stat.tax": "VAT",
+  "vat.stat.total": "Gross (what you charge)",
+  "vat.row.rate": "Rate",
+  "vat.row.tax": "VAT amount",
+  "vat.row.total": "Gross amount",
+  "vat.row.note": "How it was worked out",
+  "vat.copy.done": "Three lines copied",
+  "vat.note.sub": "gross ÷ {factor}",
+  "vat.note.add": "net × {factor}",
+  "vat.copy.lines": "Net {supply}\nVAT {tax}\nGross {total}"
+}

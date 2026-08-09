@@ -1,0 +1,16 @@
+{
+  "slug.ph.in": "KarmoLab 도구 모음",
+  "slug.label.sep": "이음 문자",
+  "slug.aria.out": "만들어진 슬러그",
+  "slug.label.in": "제목 — 여러 줄이면 줄마다 만듭니다",
+  "slug.sep.hyphen": "하이픈 (-)",
+  "slug.sep.underscore": "밑줄 (_)",
+  "slug.label.opts": "처리",
+  "slug.opt.roman": "한글 로마자",
+  "slug.opt.lower": "소문자",
+  "slug.tab": "슬러그",
+  "slug.btn.copy": "복사",
+  "slug.status.idle": "한글을 그대로 주소에 넣으면 %EC 로 부풀어 공유할 때 잘립니다.",
+  "slug.copy.done": "슬러그를 복사했어요",
+  "slug.say.longest": "가장 긴 슬러그 {n}자 · 주소에 그대로 쓸 수 있습니다."
+}
