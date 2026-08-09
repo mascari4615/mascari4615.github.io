@@ -139,7 +139,7 @@
     "src/widgets/karmomap/samples.ts": 43,
     "src/widgets/karmomap/storage-health.ts": 1,
     "src/widgets/karmomap/terms.ts": 2,
-    "src/widgets/laptop.ts": 16,
+    "src/widgets/laptop.ts": 3,
     "src/widgets/life/life.ts": 17,
     "src/widgets/linktree/linktree.ts": 23,
     "src/widgets/localai/localai.ts": 5,
@@ -353,6 +353,7 @@
     "src/core/dailytype.ts": 10,
     "src/core/type-pool.generated.ts": 223,
     "src/widgets/tools/dailytype.ts": 11,
-    "src/core/word-pool.generated.ts": 165
+    "src/core/word-pool.generated.ts": 165,
+    "src/core/dailycho.ts": 13
   }
 }

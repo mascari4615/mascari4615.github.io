@@ -8,15 +8,20 @@
  * ★ 비밀번호는 여기 담지 않는다. 이 페이지는 「문이 어디 있고 지금 열려 있나」까지만 말하고,
  *   들어가는 것은 노트북 쪽 화면이 직접 묻는다. 공개된 사이트에 열쇠를 두지 않는다.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const BASE = 'https://laptop.mascari4615.com';
 
   type Health = { ok?: boolean; version?: string; ts?: string };
 
   const DOORS: { href: string; icon: string; title: string; desc: string }[] = [
-    { href: `${BASE}/files`, icon: '📁', title: '파일 공유', desc: '노트북 공유 폴더를 보고 받는다. 폰에서 올릴 수도 있다' },
-    { href: `${BASE}/builds`, icon: '🧱', title: '빌드 현황', desc: '지금 굽는 중인지, 지난 빌드는 뭐가 남았는지. 여기서 새로 걸 수도 있다' },
-    { href: BASE, icon: '🏠', title: '첫 화면', desc: '주소만 치고 들어가는 자리' },
+    { href: `${BASE}/files`, icon: '📁', title: t('laptop.t03'), desc: t('laptop.t04') },
+    { href: `${BASE}/builds`, icon: '🧱', title: t('laptop.t05'), desc: t('laptop.t06') },
+    { href: BASE, icon: '🏠', title: t('laptop.t07'), desc: t('laptop.t08') },
   ];
 
   function injectStyles(): void {
@@ -52,25 +57,27 @@
 
   Toolbox.register({
     id: 'laptop',
-    title: '노트북',
+    title: t('widgets.laptop.title', undefined, "노트북"),
     category: 'lab',
-    desc: '집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문',
+    desc: t('widgets-desc.laptop.desc', undefined, "집에서 24시간 도는 노트북 — 파일 공유·빌드 현황으로 가는 문"),
     layout: 'form',
     icon: '<rect x="3" y="5" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M2 19h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'main',
-        label: '노트북',
+        label: t('laptop.t09', undefined, "노트북"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('laptop').then(function () {
+
           injectStyles();
           container.innerHTML = `
             <div class="lap-state">
               <span class="lap-dot" id="lapDot"></span>
               <div>
-                <div class="lap-state-text" id="lapText">확인하는 중…</div>
+                <div class="lap-state-text" id="lapText">${esc(t('laptop.label.lapText'))}</div>
                 <div class="lap-state-sub" id="lapSub"></div>
               </div>
-              <button class="lap-again" id="lapAgain" type="button">다시 확인</button>
+              <button class="lap-again" id="lapAgain" type="button">${esc(t('laptop.btn.lapAgain'))}</button>
             </div>
             <div class="lap-doors">
               ${DOORS.map(
@@ -83,8 +90,8 @@
                 </a>`
               ).join('')}
             </div>
-            <p class="lap-note">비밀번호는 여기 없다 — 노트북 화면이 직접 묻는다. 한 번 넣으면 그 기기에 저장된다.<br>
-            빨간불이면 노트북이 꺼졌거나 인터넷이 끊긴 것이다. 파일은 사라지지 않는다.</p>`;
+            <p class="lap-note">${esc(t('laptop.t01'))}<br>
+            ${esc(t('laptop.t02'))}</p>`;
 
           const dot = container.querySelector('#lapDot') as HTMLElement;
           const text = container.querySelector('#lapText') as HTMLElement;
@@ -93,7 +100,7 @@
 
           async function check(): Promise<void> {
             dot.className = 'lap-dot';
-            text.textContent = '확인하는 중…';
+            text.textContent = t('laptop.label.lapText');
             sub.textContent = '';
             const started = Date.now();
             try {
@@ -105,19 +112,20 @@
               if (!res.ok) throw new Error(`HTTP ${res.status}`);
               const body = (await res.json()) as Health;
               dot.className = 'lap-dot on';
-              text.textContent = '노트북이 깨어 있다';
-              sub.textContent = `${Date.now() - started}ms · ${(body.version ?? '').slice(0, 8) || '버전 모름'}`;
+              text.textContent = t('laptop.t11');
+              sub.textContent = t('laptop.pingResult', { ms: Date.now() - started, version: (body.version ?? '').slice(0, 8) || t('laptop.unknownVersion') });
             } catch (e) {
               dot.className = 'lap-dot off';
-              text.textContent = '지금은 안 잡힌다';
+              text.textContent = t('laptop.t12');
               // 왜인지까지 말한다 — 「안 됨」만 있으면 뭘 해볼지가 없다.
               sub.textContent =
-                (e as Error).name === 'TimeoutError' ? '답이 없다 (자는 중일 수 있다)' : (e as Error).message;
+                (e as Error).name === 'TimeoutError' ? t('laptop.t13') : (e as Error).message;
             }
           }
 
           again.addEventListener('click', () => void check());
           void check();
+                  });
         },
       },
     ],
