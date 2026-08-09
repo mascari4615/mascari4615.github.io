@@ -186,5 +186,11 @@
   "widgets-desc.collection.desc": "使った道具にスタンプが押される — いくつ埋まったか",
   "widgets-desc.karmomap.desc": "関係図・世界観・カード展開を描くキャンバス — 語彙パックを差し替えると使い道が変わります",
   "widgets-desc.bluemarble.desc": "いまこの瞬間の地球 — 昼と夜、街の灯り、たった今の地震、頭上の ISS",
-  "widgets-desc.pulse.desc": "意味のないものをきわめて規則正しく流す放送局が7つ — 三文字·鐘·目盛り·単語·一行·模様·点"
+  "widgets-desc.pulse.desc": "意味のないものをきわめて規則正しく流す放送局が7つ — 三文字·鐘·目盛り·単語·一行·模様·点",
+  "widgets-desc.favorites.desc": "よく行くサイトと道具をまとめて素早く開けます",
+  "widgets-desc.linktree.desc": "開発者の連絡先とリンク集",
+  "widgets-desc.devtools.desc": "デスクトップアプリや連携を確かめるためのテスト置き場（通知など）",
+  "widgets-desc.localai.desc": "翻訳や要約をサーバーなしでこの端末の中で — 文章が外に出ません（最近の Chromium 系）",
+  "widgets-desc.chain.desc": "道具をいくつも続けて一度に — 前の結果が次の道具の入力になります",
+  "widgets-desc.garden.desc": "一日ひとつの規則で自分から育つ格子 — 手を出さずに眺めます"
 }

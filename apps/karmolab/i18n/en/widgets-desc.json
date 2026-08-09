@@ -186,5 +186,11 @@
   "widgets-desc.collection.desc": "Every tool you have used gets a stamp — how many squares have you filled",
   "widgets-desc.karmomap.desc": "A canvas for drawing relationship maps, world settings and card layouts — swap the vocabulary pack and it becomes a different tool",
   "widgets-desc.bluemarble.desc": "Earth at this very moment — day and night, city lights, the quake that just happened, the ISS overhead",
-  "widgets-desc.pulse.desc": "Seven stations broadcasting nothing in particular, very regularly — three letters · a bell · a tick · a word · a line · a pattern · a dot"
+  "widgets-desc.pulse.desc": "Seven stations broadcasting nothing in particular, very regularly — three letters · a bell · a tick · a word · a line · a pattern · a dot",
+  "widgets-desc.favorites.desc": "Keeps the sites and tools you use often in one place",
+  "widgets-desc.linktree.desc": "The developer’s contacts and links",
+  "widgets-desc.devtools.desc": "A test bench for the desktop app and its integrations (notifications and such)",
+  "widgets-desc.localai.desc": "Translate and summarise inside this device, with no server — the text never leaves (recent Chromium browsers)",
+  "widgets-desc.chain.desc": "Run several tools back to back — each result becomes the next tool’s input",
+  "widgets-desc.garden.desc": "A grid that grows itself from one rule a day — you just watch"
 }
