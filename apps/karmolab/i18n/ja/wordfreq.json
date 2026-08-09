@@ -1,0 +1,21 @@
+{
+  "wordfreq.tab": "頻度",
+  "wordfreq.label.text": "文章",
+  "wordfreq.placeholder": "分析したい文章を貼り付けてください",
+  "wordfreq.opt.particle": "韓国語の助詞を外す",
+  "wordfreq.opt.stop": "よくある語を除く",
+  "wordfreq.opt.case": "大文字と小文字を区別",
+  "wordfreq.label.phrases": "繰り返した句 — 2回以上",
+  "wordfreq.btn.copy": "表をコピー",
+  "wordfreq.status.idle": "同じ言葉をどれだけ繰り返しているか見えると、文章は短くなります。",
+  "wordfreq.status.done": "上位 {n} 件を表示しています。同じ言葉をどれだけ繰り返しているか見えると、文章は短くなります。",
+  "wordfreq.stat.top": "最も多く使った語",
+  "wordfreq.stat.words": "語数",
+  "wordfreq.stat.unique": "異なり語数",
+  "wordfreq.stat.diversity": "語彙の多様度",
+  "wordfreq.value.topWord": "{w}（{n}回）",
+  "wordfreq.value.items": "{n}",
+  "wordfreq.value.times": "{n}回",
+  "wordfreq.phrases.none": "2回以上繰り返した句はありません。",
+  "wordfreq.copy.done": "頻度表をコピーしました"
+}

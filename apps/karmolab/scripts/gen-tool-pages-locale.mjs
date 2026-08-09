@@ -25,7 +25,7 @@ import {
   DEFAULT_LOCALE,
   SOURCE_LOCALE,
   tr,
-  coverage,
+  pageAvailable,
   localizedPath,
   hreflangTags
 } from './lib/locales.mjs';
@@ -42,8 +42,18 @@ const arg = (name, fallback) => {
 const srcDir = path.resolve(root, arg('--src', '../blog/karmolab/t'));
 const outRoot = path.resolve(root, arg('--out', '../blog'));
 
-/** 도구 장이 쓰는 묶음. 셋 다 차야 그 언어로 낸다 — 여기는 항목이 아니라 **장 전체의 뼈대**다. */
-const NEEDED = ['toolpage', 'widgets', 'tools'];
+/**
+ * 이 언어로 낼 수 있나 = **뼈대**와 **항목**을 따로 본다.
+ *
+ * `toolpage` 는 장 전체의 뼈대(머리·꼬리·안내문)라 하나라도 비면 반쪽짜리 장이 나간다 → 100%.
+ * `widgets`·`tools` 는 **도구 한 개당 한 줄**이다. 여기에 100% 를 걸면 누가 도구를 하나 새로
+ * 만들어 넣는 순간(그 사람은 번역을 모른다) **영어·일본어 장 258 장이 통째로 안 찍힌다** —
+ * 실제로 그렇게 됐다(즐겨찾기·링크트리 두 줄에 전부 멈춤, 그런데 종료값은 0 이라 아무도 모름).
+ * 그래서 항목 묶음은 `ITEM_COVERAGE_MIN`. 안 옮겨진 도구 한 개는 그 도구 장에서만 원문으로 남는다.
+ * (겉 장 `locale-page.mjs` 는 이미 이 규칙이다 — 같은 규칙이 두 생성기에 따로 살아 있었다.)
+ */
+const SKELETON = ['toolpage'];
+const ITEMS = ['widgets', 'tools'];
 
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -62,7 +72,9 @@ const ids = fs
 
 const L = makeLocalizer(ids);
 
-const codes = LOCALES.filter((l) => NEEDED.every((ns) => coverage(l.code, ns) >= 1)).map((l) => l.code);
+const codes = LOCALES.filter((l) =>
+  pageAvailable(l.code, { namespaces: SKELETON, itemNamespaces: ITEMS })
+).map((l) => l.code);
 const targets = codes.filter((c) => c !== DEFAULT_LOCALE);
 
 /* ── 한 장을 그 언어로 ──────────────────────────────── */
