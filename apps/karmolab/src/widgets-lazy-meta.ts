@@ -139,6 +139,17 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['devtools']
   },
   {
+    /* 브라우저 안에서 도는 AI (TASK-KL-209) — 서버를 한 번도 안 부른다.
+       안 되는 브라우저에서는 없는 척하지 않고 「이 브라우저는 아직」이라고 적는다. */
+    id: 'localai',
+    title: '기기 안 AI',
+    category: 'tool',
+    desc: '번역·요약을 서버 없이 이 기기 안에서 — 글이 밖으로 안 나갑니다 (크롬 계열 최신판)',
+    layout: 'form',
+    icon: '<rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="9.5" cy="10" r="1.2" fill="currentColor"/><circle cx="14.5" cy="10" r="1.2" fill="currentColor"/><path d="M9 14.5c1.8 1.3 4.2 1.3 6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+    lazyScriptPaths: ['localai/localai']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',
