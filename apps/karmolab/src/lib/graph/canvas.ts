@@ -557,6 +557,8 @@ export class GraphCanvas {
         const groupId = groupEl.dataset.groupId ?? '';
         const grp = this.spec?.groups.find((g) => g.id === groupId);
         if (!grp || !this.spec) return;
+        // 잠긴 묶음은 아예 안 잡힌다 — 「잡히는데 안 움직이는」 것보다 안 잡히는 게 덜 헷갈린다.
+        if (grp.locked) return;
         e.stopPropagation();
         const startNodeCoords = new Map<string, { x: number; y: number }>();
         for (const n of this.spec.nodes) {
@@ -1257,7 +1259,7 @@ export class GraphCanvas {
       text.setAttribute('font-size', '11');
       text.setAttribute('font-weight', '600');
       text.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-      text.textContent = g.label;
+      text.textContent = g.locked ? `🔒 ${g.label}` : g.label;
       this.groupLayer.appendChild(text);
     }
   }
