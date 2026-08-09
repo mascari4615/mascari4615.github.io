@@ -114,6 +114,31 @@ await step('묶음 패널이 열리고 묶음이 생긴다', async () => {
   await page.waitForSelector('.ck-group', { timeout: 4000 });
   await page.click('[data-km="group-close"]');
 });
+await step('묶음에 노드를 넣으면 감싸는 윤곽이 그려진다', async () => {
+  // 멤버가 셋은 돼야 껍질이 면이 된다 — 둘 이하면 네모로 남는다(의도).
+  const box = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(box.x + box.width * 0.5, box.y + box.height * 0.2);
+  await page.fill('[data-km="edit-label"]', '알리사');
+  for (const id of ['node-1', 'node-2', 'node-3']) {
+    await page.evaluate((nid) => {
+      const el = document.querySelector(`.ck-node[data-id="${nid}"]`);
+      el?.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    }, id).catch(() => {});
+  }
+  // 패널에서 세 노드를 같은 묶음에 넣는다.
+  for (const nid of ['node-1', 'node-2', 'node-3']) {
+    const n = page.locator(`.ck-node[data-id="${nid}"]`);
+    if (await n.count() === 0) continue;
+    await n.click({ position: { x: 10, y: 10 } });
+    const boxes = page.locator('[data-km="in-group"]');
+    if (await boxes.count() > 0) await boxes.first().check().catch(() => {});
+  }
+  await page.waitForFunction(
+    () => document.querySelector('path.ck-group') !== null,
+    null,
+    { timeout: 5000 }
+  );
+});
 await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.click('[data-km="terms"]');
   await page.click('[data-km="t-add-edge"]');

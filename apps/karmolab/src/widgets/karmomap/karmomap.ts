@@ -466,6 +466,8 @@ import {
         id: nextGroupId(),
         label,
         color,
+        // 겹치는 묶음이 흔한 도구다 — 네모보다 멤버를 감싸는 윤곽이 「누가 어디 속하는지」를 덜 흐린다.
+        shape: 'hull',
         // 멤버가 생기면 캔버스가 알아서 감싼다. 빈 묶음도 보이게 최소 상자를 준다.
         bbox: { x: Math.round(center.x - 90), y: Math.round(center.y - 60), w: 180, h: 120 },
       };
@@ -490,6 +492,7 @@ import {
                       <input type="color" data-km="group-color" value="${escapeAttr(g.color)}" title="색" />
                       <input type="text" data-km="group-label" value="${escapeAttr(g.label)}" />
                       <span class="km-group-count">${count}</span>
+                      <button class="btn btn-ghost" data-km="group-shape" title="테두리 모양 — 윤곽/네모">${(g.shape ?? 'box') === 'hull' ? '⬡' : '▭'}</button>
                       <button class="btn btn-ghost" data-km="group-eye" title="상자 보이기/숨기기">${g.hidden ? '🚫' : '👁'}</button>
                       <button class="btn btn-ghost" data-km="group-del" title="묶음 삭제">×</button>
                     </div>`;
@@ -526,6 +529,14 @@ import {
           const g = find();
           if (!g) return;
           g.color = (ev.target as HTMLInputElement).value;
+          canvas?.render();
+          persistStructure();
+        };
+        (row.querySelector('[data-km="group-shape"]') as HTMLButtonElement).onclick = (ev) => {
+          const g = find();
+          if (!g) return;
+          g.shape = (g.shape ?? 'box') === 'hull' ? 'box' : 'hull';
+          (ev.currentTarget as HTMLButtonElement).textContent = g.shape === 'hull' ? '⬡' : '▭';
           canvas?.render();
           persistStructure();
         };
