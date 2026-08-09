@@ -36,7 +36,7 @@ import { exportSvgString } from './canvas-export';
 import { buildNodeAvatar } from './canvas-avatar';
 import { buildNodeBackground } from './canvas-shape';
 import { chooseAnchors, edgeCurve } from './canvas-math';
-import { buildEdgePath } from './canvas-edge';
+import { buildEdgePath, buildEdgeLabel } from './canvas-edge';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1865,48 +1865,16 @@ export class GraphCanvas {
 
   /** 선 위 라벨 — 베지어 중앙(t=0.5)에 판을 깔고 글자를 얹는다. */
   private buildEdgeLabel(edge: GraphEdge): SVGGElement | null {
-    const text = (edge.label ?? '').trim();
-    if (!text) return null;
     const geom = this.edgeGeom(edge);
     if (!geom) return null;
-    // 이름표 자리 = 선 위 비율(0 = 출발, 1 = 도착). draw.io 의 라벨 위치와 같은 개념.
-    const at = this.pointOnEdge(geom, Math.min(1, Math.max(0, edge.labelPos ?? 0.5)));
-    const mx = at.x;
-    const my = at.y;
-
     const kind = this.edgeKindFor(edge.kind);
-    const color = edge.color ?? kind.color ?? this.theme.edgeDefaultColor;
-    const w = text.length * 7 + 12;
-    const h = 16;
-
-    const g = document.createElementNS(SVG_NS, 'g') as SVGGElement;
-    g.setAttribute('class', 'ck-edge-label');
-    g.dataset.edgeId = edge.id;
-    // 끌 수 있어야 한다 — 선 위 어디에 둘지는 그림마다 다르다.
-    if (this.onEdgeChanged) g.style.cursor = 'grab';
-    else g.setAttribute('pointer-events', 'none');
-
-    const plate = document.createElementNS(SVG_NS, 'rect');
-    plate.setAttribute('x', String(mx - w / 2));
-    plate.setAttribute('y', String(my - h / 2));
-    plate.setAttribute('width', String(w));
-    plate.setAttribute('height', String(h));
-    plate.setAttribute('rx', '8');
-    plate.setAttribute('fill', this.theme.nodeFill);
-    plate.setAttribute('stroke', color + '80');
-    plate.setAttribute('stroke-width', '1');
-    g.appendChild(plate);
-
-    const t = document.createElementNS(SVG_NS, 'text');
-    t.setAttribute('x', String(mx));
-    t.setAttribute('y', String(my + 3.5));
-    t.setAttribute('text-anchor', 'middle');
-    t.setAttribute('fill', this.theme.nodeText);
-    t.setAttribute('font-size', '9.5');
-    t.setAttribute('font-family', 'var(--font-sans, system-ui, sans-serif)');
-    t.textContent = text;
-    g.appendChild(t);
-    return g;
+    return buildEdgeLabel(edge.id, edge.label ?? '', geom, {
+      at: edge.labelPos,
+      color: edge.color ?? kind.color ?? this.theme.edgeDefaultColor,
+      plateFill: this.theme.nodeFill,
+      textColor: this.theme.nodeText,
+      draggable: Boolean(this.onEdgeChanged),
+    });
   }
 
   // ── 하이라이트 ───────────────────────────────────────────────────────────────
