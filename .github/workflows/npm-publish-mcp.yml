@@ -51,11 +51,16 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      # Trusted Publishing(OIDC)은 **최신 npm 에만** 있다. Node 20 이 데려오는 npm 10 으로는
-      # 조용히 토큰 방식으로 떨어진다. 그래서 여기서 npm 만 올려 둔다.
-      - name: Use a recent npm
+      # Trusted Publishing(OIDC)은 **npm 11.5.1+** 에만 있다. Node 20 이 데려오는 npm 10 으로는
+      # 조용히 토큰 방식으로 떨어진다. 그래서 npm 만 올린다.
+      #
+      # `npm@latest` 를 쓰면 안 된다 — 지금 최신은 12.x 이고 **Node 22+ 를 요구한다**.
+      # Node 20 위에서 그걸 깔면 EBADENGINE 으로 죽는다(2026-08-10 실측, 이 워크플로가 그렇게 섰다).
+      # Node 를 22 로 올리는 방법도 있지만, 그러면 이 저장소의 다른 빌드와 판이 갈린다.
+      # 필요한 것은 「최신」이 아니라 「OIDC 가 되는 판」이므로 11 계열로 못을 박는다.
+      - name: Use an npm that speaks OIDC
         run: |
-          npm install -g npm@latest
+          npm install -g npm@11
           npm --version
 
       # 알맹이는 화면 쪽 저장소에 있고, 빌드에 그쪽 esbuild 를 빌려 쓴다.
