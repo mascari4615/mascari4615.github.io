@@ -145,6 +145,21 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
 });
+await step('거르기로 노드 종류를 빼면 화면에서 사라진다', async () => {
+  const before = await page.locator('.ck-node').count();
+  await page.click('[data-km="filter"]');
+  const boxes = page.locator('[data-km="f-node"]');
+  const n = await boxes.count();
+  for (let i = 0; i < n; i += 1) await boxes.nth(i).uncheck();
+  await page.waitForFunction(() => document.querySelectorAll('.ck-node').length === 0, null, { timeout: 4000 });
+  await page.click('[data-km="f-reset"]');
+  await page.waitForFunction(
+    (c) => document.querySelectorAll('.ck-node').length === c,
+    before,
+    { timeout: 4000 }
+  );
+  await page.click('[data-km="f-close"]');
+});
 await step('찾기 → 포커스가 걸린다', async () => {
   // 노드 둘이 서로 이어져 있으므로 「1다리」로 보면 둘 다 포함된다 — 「고른 것만」으로 본다.
   await page.selectOption('[data-km="degree"]', '0');
