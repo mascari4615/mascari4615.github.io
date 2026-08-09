@@ -35,6 +35,7 @@ import { renderManyPanel } from './panels/many-panel';
 import { renderTextPanel } from './panels/text-panel';
 import { renderEdgePanel } from './panels/edge-panel';
 import { renderLinkSections, bindLinkSections } from './panels/links-section';
+import { avatarFieldHtml, bindAvatarField } from './panels/avatar-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -744,6 +745,7 @@ import {
       selectedEdge: () => spec.edges.find((e) => e.id === selectedEdgeId),
       spawnNodeAt: (x, y, label) => spawnNodeAt(x, y, label),
       resizeNode: (node) => resize(node),
+      openAvatarPicker: (nodeId) => { avatarTargetId = nodeId; imgEl.click(); },
       removeEdge: (id) => {
         spec.edges = spec.edges.filter((e) => e.id !== id);
         for (const n of spec.nodes) if (n.attachedTo === id) n.attachedTo = undefined;
@@ -976,16 +978,7 @@ import {
           <label>기울기 <span class="km-tilt-val">${Math.round(node.rotate ?? 0)}°</span></label>
           <input type="range" data-km="edit-rotate" min="-20" max="20" step="1" value="${Math.round(node.rotate ?? 0)}" />
         </div>
-        <div class="km-field">
-          <label>얼굴</label>
-          <div class="km-avatar-row">
-            <input type="text" data-km="edit-emoji" maxlength="4" placeholder="😀" value="${escapeAttr(node.avatar?.kind === 'emoji' ? node.avatar.value : '')}" />
-            <input type="color" data-km="edit-color" value="${escapeAttr(node.avatar?.kind === 'color' ? node.avatar.value : '#a78bfa')}" title="색 원" />
-            <button class="btn btn-ghost" data-km="edit-img" title="사진 올리기">🖼</button>
-            <button class="btn btn-ghost" data-km="edit-noface" title="얼굴 지우기">✕</button>
-          </div>
-          <div class="km-hint">이모지를 적거나, 색을 고르거나, 사진을 올리세요. 사진은 이 브라우저 안에만 남습니다.</div>
-        </div>
+        ${avatarFieldHtml(panelCtx, node)}
         <div class="km-field">
           <label>이 노드에서 연결 만들기</label>
           <select data-km="link-kind">${edgeKindOptions()}</select>
@@ -1131,27 +1124,7 @@ import {
         touch(false);
       };
 
-      const emojiInput = sideEl.querySelector('[data-km="edit-emoji"]') as HTMLInputElement;
-      emojiInput.oninput = () => {
-        const v = emojiInput.value.trim();
-        node.avatar = v ? { kind: 'emoji', value: v } : undefined;
-        touch(false);
-      };
-
-      (sideEl.querySelector('[data-km="edit-color"]') as HTMLInputElement).oninput = (ev) => {
-        node.avatar = { kind: 'color', value: (ev.target as HTMLInputElement).value };
-        touch(true);
-      };
-
-      (sideEl.querySelector('[data-km="edit-img"]') as HTMLButtonElement).onclick = () => {
-        avatarTargetId = node.id;
-        imgEl.click();
-      };
-
-      (sideEl.querySelector('[data-km="edit-noface"]') as HTMLButtonElement).onclick = () => {
-        node.avatar = undefined;
-        touch(true);
-      };
+      bindAvatarField(panelCtx, node, touch);
 
       // 타이핑하면 목록이 좁아진다. 고르는 값은 그대로 두고 **보이는 것만** 줄인다 —
       // 걸러진 사이에 고른 값이 사라지면 「내가 뭘 골랐는지」를 잃는다.
