@@ -53,11 +53,19 @@ npx -y karmolab-mcp
 
 Requires Node 20+. Speaks MCP over stdio (newline-delimited JSON-RPC 2.0).
 
+Listed in the official MCP Registry as **`io.github.mascari4615/karmolab-mcp`** — clients that
+resolve registry names can install it from there. Published from CI with npm Trusted Publishing,
+so every release carries a signed provenance attestation you can verify:
+
+```bash
+npm audit signatures   # after installing
+```
+
 ### From a clone (no npm needed)
 
 ```bash
-git clone https://github.com/Mascari4615/Mascari4615.github.io
-cd Mascari4615.github.io/packages/karmolab-mcp
+git clone https://github.com/mascari4615/mascari4615.github.io
+cd mascari4615.github.io/packages/karmolab-mcp
 node build.mjs                       # writes dist/ — needs esbuild from apps/karmolab
 claude mcp add --scope local karmolab -- node "$PWD/src/server.mjs"
 ```
