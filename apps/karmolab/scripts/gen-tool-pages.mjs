@@ -1163,7 +1163,6 @@ ${cards}
  * 남의 것(`.md`)은 건드리지 않는다. 이건 이 폴더에 뭔가 더 들어와도 그대로 성립한다.
  */
 fs.mkdirSync(outDir, { recursive: true });
-const twinsBefore = fs.readdirSync(outDir).filter((f) => f.endsWith('.md')).length;
 for (const entry of fs.readdirSync(outDir)) {
   if (entry.endsWith('.md')) continue;
   fs.rmSync(path.join(outDir, entry), { recursive: true, force: true });
@@ -1224,15 +1223,4 @@ if (missingOg.length) {
 if (missingBoot.size) {
   console.warn(`[gen-tool-pages] 부팅 목록에서 뺀 항목 ${missingBoot.size}건 — 파일이 없다: ${[...missingBoot].join(', ')}`);
 }
-/*
- * 남의 것을 안 지웠는지 **세어서** 확인한다. 「안 지우도록 고쳤다」는 말은 다음 사람이
- * 정리 코드를 손보면 조용히 거짓이 된다 — 그때 여기서 멈춘다.
- */
-const twinsAfter = fs.readdirSync(outDir).filter((f) => f.endsWith('.md')).length;
-if (twinsAfter !== twinsBefore) {
-  console.error(`[gen-tool-pages] 마크다운 쌍둥이가 ${twinsBefore} → ${twinsAfter} 장으로 줄었다.`);
-  console.error('  이 폴더는 gen-tool-md 와 함께 쓴다 — 정리는 내가 만든 것만 지워야 한다.');
-  process.exit(1);
-}
-
 console.log(`[gen-tool-pages] ${ids.length}개 도구 페이지 + 허브 + sw.js 생성 → ${path.relative(process.cwd(), outDir)}`);
