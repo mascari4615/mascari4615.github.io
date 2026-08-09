@@ -39,7 +39,7 @@ import { chooseAnchors, edgeCurve, boundsOf } from './canvas-math';
 import { buildEdgePath, buildEdgeLabel, buildLeaderLine } from './canvas-edge';
 import { renderGroups } from './canvas-group';
 import { nodeBadges } from './canvas-badges';
-import { renderAnchors } from './canvas-anchors';
+import { renderAnchors, computeAnchorLayout } from './canvas-anchors';
 import type { Side } from './canvas-math';
 import { colorForTag, snapTo, pointOnCubic, convexHull, roundedHullPath, boxCorners, wobblePath,
   fitProjection, projectPoint, viewportRectOnMap } from './canvas-math';
@@ -1050,36 +1050,11 @@ export class GraphCanvas {
    * items 따라 박스 늘림 → 다음 박스도 자동으로 밀려서 겹침 없음.
    */
   private computeAnchorLayout(): Map<string, { x: number; y: number; w: number; h: number; offsetY: number }> {
-    const out = new Map<string, { x: number; y: number; w: number; h: number; offsetY: number }>();
-    if (!this.spec) return out;
-    const GAP = 16;
-    const anchors = this.spec.ephemeral_anchors ?? [];
-    // group 별 순서대로 stack
-    const byGroup = new Map<string, EphemeralAnchor[]>();
-    for (const a of anchors) {
-      const arr = byGroup.get(a.group) ?? [];
-      arr.push(a);
-      byGroup.set(a.group, arr);
-    }
-    for (const [, list] of byGroup) {
-      let nextY: number | null = null;
-      for (const a of list) {
-        const items = this.ephemeralNodes.filter((n) => n.anchorId === a.id);
-        const specY = a.y;
-        const effY: number = nextY ?? specY;
-        const offsetY = effY - specY;
-        let h = a.h;
-        if (items.length > 0) {
-          // items 의 y 는 spec y 기반 → effective 로 보정 후 maxBottom 계산
-          const maxBottomEff = Math.max(...items.map((n) => (n.y + offsetY) + n.h));
-          const needed = (maxBottomEff - effY) + 8;
-          h = Math.max(a.h, needed);
-        }
-        out.set(a.id, { x: a.x, y: effY, w: a.w, h, offsetY });
-        nextY = effY + h + GAP;
-      }
-    }
-    return out;
+    if (!this.spec) return new Map();
+    return computeAnchorLayout(
+      this.spec.ephemeral_anchors ?? [],
+      (anchorId) => this.ephemeralNodes.filter((n) => n.anchorId === anchorId),
+    );
   }
 
   private renderAnchors(): void {

@@ -3,6 +3,50 @@
  */
 import type { EphemeralAnchor } from './spec';
 
+/** 임시 자리 한 칸의 실제 자리·크기. `offsetY` = 스펙 좌표에서 아래로 밀린 양. */
+export interface AnchorLayout {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  offsetY: number;
+}
+
+/**
+ * 같은 묶음에 속한 임시 자리들을 **위에서 아래로 쌓는다**. 안에 든 것이 많으면 그만큼 키우고,
+ * 다음 자리는 그 아래로 밀린다 — 안 밀면 자료가 는 순간 자리끼리 겹쳐 서로를 가린다.
+ */
+export function computeAnchorLayout(
+  anchors: EphemeralAnchor[],
+  itemsOf: (anchorId: string) => { y: number; h: number }[],
+  gap = 16,
+): Map<string, AnchorLayout> {
+  const out = new Map<string, AnchorLayout>();
+  const byGroup = new Map<string, EphemeralAnchor[]>();
+  for (const a of anchors) {
+    const arr = byGroup.get(a.group) ?? [];
+    arr.push(a);
+    byGroup.set(a.group, arr);
+  }
+  for (const [, list] of byGroup) {
+    let nextY: number | null = null;
+    for (const a of list) {
+      const items = itemsOf(a.id);
+      const effY: number = nextY ?? a.y;
+      const offsetY = effY - a.y;
+      let h = a.h;
+      if (items.length > 0) {
+        // 안에 든 것들의 y 는 스펙 좌표 기준 — 밀린 만큼 더해야 진짜 바닥이 나온다.
+        const maxBottom = Math.max(...items.map((n) => n.y + offsetY + n.h));
+        h = Math.max(a.h, maxBottom - effY + 8);
+      }
+      out.set(a.id, { x: a.x, y: effY, w: a.w, h, offsetY });
+      nextY = effY + h + gap;
+    }
+  }
+  return out;
+}
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /**
