@@ -286,6 +286,49 @@ check(jm.run('split', { text: '강' }).includes('종성 ㅇ'), 'run split 이 �
 eq(jm.run('initials', { text: '한글' }), 'ㅎㄱ', 'run initials');
 eq(jm.run('join', { text: 'ㄱㅏㅇ' }), '강', 'run join');
 
+// ── ②-7 vat 알맹이 (LLM 이 총액의 10% 를 빼 답하는 자리) ─────────────────────
+const vt = await load('src/core/vat.ts');
+
+eq(vt.spec.id, 'vat', 'vat spec.id');
+
+// 이 도구가 있는 이유 자체 — 110,000 의 공급가는 100,000 이지 99,000 이 아니다.
+const ex = vt.vatExtract(110000);
+eq(ex.supply, 100000, '총액 110,000 → 공급가 100,000 (÷1.1)');
+eq(ex.tax, 10000, '총액 110,000 → 세액 10,000');
+eq(ex.total, 110000, '총액은 그대로');
+check(ex.supply !== 99000, '총액 × 10% 를 빼면 99,000 — 그 답이면 틀린 것');
+
+const ad = vt.vatAdd(1000000);
+eq(ad.supply, 1000000, '공급가 그대로');
+eq(ad.tax, 100000, '부가세 10%');
+eq(ad.total, 1100000, '합계');
+
+// 세 줄이 서로 안 맞으면 세금계산서에 못 옮긴다 — 딱 떨어지지 않는 값으로 확인.
+for (const amount of [12345, 99999, 1, 7, 1234567]) {
+  const a = vt.vatAdd(amount);
+  check(a.supply + a.tax === a.total, `더하기 ${amount}: 공급가+세액 ≠ 합계 (${a.supply}+${a.tax}≠${a.total})`);
+  const e = vt.vatExtract(amount);
+  check(e.supply + e.tax === e.total, `빼내기 ${amount}: 공급가+세액 ≠ 합계 (${e.supply}+${e.tax}≠${e.total})`);
+}
+
+eq(vt.vatExtract(11111).supply, 10100, '절사가 기본 (실무) — 10100.909… 를 내림');
+eq(vt.vatExtract(11111, 10, 'round').supply, 10101, '반올림 선택 — 같은 값이 10101 이 된다');
+eq(vt.vatAdd(1000, 0).tax, 0, '세율 0% 면 세액 0');
+eq(vt.vatAdd(1000, 20).total, 1200, '세율 20%');
+eq(vt.won(1234567), '1,234,567원', '금액 표기');
+
+check(vt.run('extract', { amount: 110000 }).includes('공급가액: 100,000원'), 'run extract');
+check(vt.run('extract', { amount: 110000 }).includes('÷ 1.10'), '어떻게 계산했는지 말한다');
+check(vt.run('add', { amount: 1000000 }).includes('합계금액: 1,100,000원'), 'run add');
+check(vt.run('add', { amount: 12345 }).includes('확인: 공급가 + 세액'), '세 줄이 맞는지 스스로 보여 준다');
+let vatThrew = false;
+try {
+  vt.run('add', { amount: 'abc' });
+} catch {
+  vatThrew = true;
+}
+check(vatThrew, '숫자가 아니면 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 

@@ -5,9 +5,10 @@
  * 공급가에서 더할 때와 총액에서 뺄 때 나누는 수가 다르기 때문이다(1.1 로 나눠야 한다).
  * 이걸 방향별로 갈라 놓고, 세금계산서에 그대로 옮길 세 줄(공급가·세액·합계)을 낸다.
  */
-(function (): void {
-  const won = (n: number): string => Math.round(n).toLocaleString('ko-KR') + '원';
+import { spec, vatAdd, vatExtract, won, type Rounding } from '../../core/vat';
+import { readInvocation } from '../../lib/tool-url';
 
+(function (): void {
   Toolbox.register({
     id: 'vat',
     title: '부가세 계산기',
@@ -65,47 +66,26 @@
           const row = (k: string, v: string): string =>
             `<div class="tool-list-row"><span class="tool-list-key">${k}</span><span class="tool-list-val">${v}</span></div>`;
 
-          let rounding: 'floor' | 'round' = 'floor';
+          let rounding: Rounding = 'floor';
 
           function run(): void {
+            /* 계산은 `src/core/vat.ts` 가 한다 — 「1원 미만을 어떻게 하나」와
+               「공급가 + 세액 = 합계 를 맞추는 순서」가 거기 있다 (TASK-KL-205). */
             const v = parseFloat(amount.value) || 0;
-            const rate = (parseFloat(rateEl.value) || 0) / 100;
-            let supply: number;
-            let tax: number;
-            let total: number;
-            if (mode === 'add') {
-              supply = v;
-              tax = v * rate;
-              total = supply + tax;
-            } else {
-              // 총액에서 공급가를 뽑을 때는 (1 + 세율) 로 나눈다. 10% 를 그냥 빼면 틀린다.
-              total = v;
-              supply = v / (1 + rate);
-              tax = total - supply;
-            }
-            /* 1원 미만을 어떻게 하느냐로 답이 갈린다. 세금계산서는 보통 **절사**다.
-               게다가 세 줄을 따로 반올림하면 「공급가 + 세액 ≠ 합계」가 되어, 그대로 옮겨 적은
-               사람이 1원 때문에 다시 계산하게 된다. 그래서 두 줄을 확정한 뒤 합계를 맞춘다. */
-            const cut = (n: number): number => (rounding === 'floor' ? Math.floor(n) : Math.round(n));
-            if (mode === 'add') {
-              supply = cut(supply);
-              tax = cut(tax);
-              total = supply + tax;
-            } else {
-              total = cut(total);
-              supply = cut(supply);
-              tax = total - supply;
-            }
-            last = { supply, tax, total };
+            const ratePercent = parseFloat(rateEl.value) || 0;
+            const r = mode === 'add' ? vatAdd(v, ratePercent, rounding) : vatExtract(v, ratePercent, rounding);
+            const factor = (1 + ratePercent / 100).toFixed(2);
+
+            last = r;
             stats.innerHTML =
-              stat(mode === 'add' ? '합계 (받을 돈)' : '공급가액', won(mode === 'add' ? total : supply), true) +
-              stat('부가세', won(tax)) +
-              stat('세율', `${(rate * 100).toFixed(1)}%`);
+              stat(mode === 'add' ? '합계 (받을 돈)' : '공급가액', won(mode === 'add' ? r.total : r.supply), true) +
+              stat('부가세', won(r.tax)) +
+              stat('세율', `${ratePercent.toFixed(1)}%`);
             out.innerHTML =
-              row('공급가액', won(supply)) +
-              row('부가세액', won(tax)) +
-              row('합계 금액', won(total)) +
-              row('참고', mode === 'sub' ? `총액 ÷ ${(1 + rate).toFixed(2)} 로 계산` : `공급가 × ${(1 + rate).toFixed(2)}`);
+              row('공급가액', won(r.supply)) +
+              row('부가세액', won(r.tax)) +
+              row('합계 금액', won(r.total)) +
+              row('참고', mode === 'sub' ? `총액 ÷ ${factor} 로 계산` : `공급가 × ${factor}`);
             Toolbox.trackUse?.(mode);
           }
 
@@ -135,7 +115,26 @@
               { message: '세 줄을 복사했어요' }
             );
           };
+          // 주소로 부른 경우 (`?op=extract&amount=1100000`) — 아니면 예시 (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            if (call.op === 'extract') {
+              mode = 'sub';
+              label.textContent = '합계 금액 (부가세 포함)';
+              container.querySelectorAll('#vaMode .tool-chip').forEach((c) => {
+                c.classList.toggle('active', (c as HTMLElement).dataset.mode === 'sub');
+              });
+            }
+            amount.value = String(call.args.amount ?? '');
+            if (call.args.rate !== undefined) rateEl.value = String(call.args.rate);
+            if (call.args.rounding === 'round') rounding = 'round';
+          }
           run();
+          if (call?.error !== undefined) {
+            const st = $<HTMLElement>('#vaStatus');
+            st.textContent = call.error;
+            st.className = 'tool-status error';
+          }
         }
       }
     ]
