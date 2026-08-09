@@ -707,9 +707,19 @@
    * 「첫 그림이 없다」로 남는다 (실제로 재기 전에 재면 그렇게 된다).
    */
   let bootLogged = false;
+  /**
+   * 부팅 낭비를 **그 시점 값으로 굳힌다** (TASK-KL-201 ⑬).
+   *
+   * 「받았는데 안 쓴 코드」는 시간이 갈수록 줄어든다 — 사람이 그 위젯을 누르면 쓰인 것이 되니까.
+   * 그래서 지금 재면 언제 재느냐에 따라 답이 달라진다. **부팅 낭비는 부팅 직후의 값**이다.
+   * 예산도 이 굳은 값으로 판정해야 「누가 많이 눌러 본 판」이 저절로 합격하는 일이 없다.
+   */
+  let bootWasteBytes: number | null = null;
+
   function logBoot(): void {
     if (bootLogged) return;
     bootLogged = true;
+    bootWasteBytes = unusedWidgetCode().rows.filter((r) => r.atBoot).reduce((sum, r) => sum + (r.bytes || 0), 0);
     const paint = paintTiming();
     const nav = navTiming();
     const judged = trust();
@@ -785,6 +795,7 @@
       /* 도메인별로 묶은 요약 — 「남의 것이 우리 것보다 무겁나」는 파일 하나씩 봐서는 안 보인다. */
       hosts: hostSummary(),
       unused: unusedWidgetCode(),
+      bootWasteBytes,
       slowFrames: loafSupported ? slowFrames.slice().sort((a, b) => b.ms - a.ms) : null,
       /* 「누가 제일 많이 잡았나」 — 프레임을 하나씩 보면 안 보이고, 합쳐야 보인다.
          한 번 40ms 보다 매 프레임 8ms 가 대개 더 나쁘다. */
@@ -863,6 +874,13 @@
            그건 통과가 아니라 못 잰 것이다. */
         return known.length && known.length >= rows.length / 2 ? known.reduce((s, r) => s + (r.bytes || 0), 0) : null;
       },
+    },
+    {
+      /* 지금 177KB 다. 예산은 「지금보다 나빠지지 않기」로 잡는다 — 0 으로 잡으면 오늘부터
+         모두의 CI 가 빨갛고, 그건 고치라는 신호가 아니라 무시하라는 신호가 된다.
+         줄이는 일은 따로 한다(부팅 목록 6개를 지연 로드로 — session-bus 공지). */
+      key: 'bootwaste', label: '부팅에 받고 안 쓴 코드', limit: 200 * 1024, unit: 'B',
+      get: () => bootWasteBytes,
     },
     {
       key: 'longtask', label: '긴 작업 총합', limit: 300, unit: 'ms',
