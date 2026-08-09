@@ -2365,6 +2365,70 @@ export class GraphCanvas {
     this.paintSelection();
   }
 
+  /** 지금 고른 노드들. 키보드 조작이 「무엇에」 하는지 알아야 한다. */
+  getSelectedNodes(): string[] {
+    return [...this.selectedIds];
+  }
+
+  /**
+   * 고른 노드를 방향키로 민다 (TASK-KL-202 격차 X). 마우스 드래그와 **같은 길**로 흘려보내
+   * 저장·되돌리기가 저절로 따라오게 한다.
+   */
+  nudgeSelected(dx: number, dy: number): boolean {
+    if (this.selectedIds.size === 0) return false;
+    for (const id of this.selectedIds) {
+      const c0 = this.nodeCoords.get(id);
+      if (!c0) continue;
+      const nx = this.snap(c0.x + dx);
+      const ny = this.snap(c0.y + dy);
+      this.nodeCoords.set(id, { x: nx, y: ny });
+      this.updateNodeTransform(id, nx, ny);
+      this.scheduleSave(id);
+    }
+    this.groupLayer.innerHTML = '';
+    this.renderGroups();
+    this.renderAnchors();
+    this.redrawEdges();
+    this.renderLeaders();
+    this.redrawMinimap();
+    return true;
+  }
+
+  /**
+   * 다음(또는 이전) 노드로 옮겨 고른다. 화면에 보이는 것만 돈다 —
+   * 걸러 놓은 것으로 옮겨 가면 「고른 게 어디 있는지」를 잃는다.
+   */
+  selectStep(delta: 1 | -1): string | null {
+    const list = this.visibleNodes();
+    if (list.length === 0) return null;
+    const cur = [...this.selectedIds][0];
+    const at = list.findIndex((n) => n.id === cur);
+    const next = list[(at + delta + list.length * 2) % list.length];
+    if (!next) return null;
+    this.setSelectedNodes([next.id]);
+    this.fitIntoView(next.id);
+    return next.id;
+  }
+
+  /** 노드가 화면 밖이면 그쪽으로 화면만 민다(배율은 그대로 — 키를 누를 때마다 줌이 바뀌면 어지럽다). */
+  private fitIntoView(nodeId: string): void {
+    const b = this.getNodeBox(nodeId);
+    if (!b) return;
+    const svgW = this.svg.clientWidth || 800;
+    const svgH = this.svg.clientHeight || 600;
+    const s = this.state.scale;
+    const left = b.x * s + this.state.tx;
+    const top = b.y * s + this.state.ty;
+    const right = left + b.w * s;
+    const bottom = top + b.h * s;
+    const pad = 40;
+    if (left < pad) this.state.tx += pad - left;
+    else if (right > svgW - pad) this.state.tx -= right - (svgW - pad);
+    if (top < pad) this.state.ty += pad - top;
+    else if (bottom > svgH - pad) this.state.ty -= bottom - (svgH - pad);
+    this.applyTransform();
+  }
+
   private paintSelection(): void {
     this.nodeLayer.querySelectorAll('.ck-node').forEach((el) => {
       const g = el as SVGGElement;
