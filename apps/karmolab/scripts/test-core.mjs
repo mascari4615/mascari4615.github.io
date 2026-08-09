@@ -403,6 +403,54 @@ eq(hk.hasHangul('안녕 hi'), true, '한글이 섞이면 true');
 eq(hk.run('auto', { text: 'dkssud' }), '안녕', 'auto — 영문이면 한글로');
 eq(hk.run('auto', { text: '안녕' }), 'dkssud', 'auto — 한글이면 영문으로');
 
+// ── ②-10 loan 알맹이 (상환 방식마다 답이 다르다) ─────────────────────────────
+const ln = await load('src/core/loan.ts');
+
+eq(ln.spec.id, 'loan', 'loan spec.id');
+
+const P = 30000000;
+const eq1 = ln.equalPayment(P, 5, 60);
+const pp = ln.equalPrincipal(P, 5, 60);
+const bu = ln.bullet(P, 5, 60);
+eq(eq1.length, 60, '회차 수');
+check(Math.abs(eq1[0].pay - eq1[59].pay) < 0.01, '원리금균등은 매달 같은 금액');
+check(eq1[0].interest > eq1[59].interest, '초반이 이자 비중이 크다');
+check(Math.abs(eq1[59].left) < 1, '마지막에 잔액 0');
+check(pp[0].pay > pp[59].pay, '원금균등은 상환액이 줄어든다');
+check(Math.abs(pp[0].principal - pp[59].principal) < 0.01, '원금균등은 원금 몫이 같다');
+
+// 「어느 방식이 이자가 적나」 — LLM 이 원리금균등 하나로 뭉개는 자리.
+const iEq = ln.totalInterest(eq1);
+const iPp = ln.totalInterest(pp);
+const iBu = ln.totalInterest(bu);
+check(iPp < iEq, `원금균등 총이자(${Math.round(iPp)})가 원리금균등(${Math.round(iEq)})보다 적어야 한다`);
+check(iEq < iBu, `원리금균등이 만기일시(${Math.round(iBu)})보다 적어야 한다`);
+eq(bu[59].principal, P, '만기일시는 마지막에 원금을 한 번에');
+eq(bu[0].principal, 0, '만기일시는 처음엔 원금을 안 갚는다');
+
+// 거치기간 = 이자만 → 총이자가 늘어난다.
+const graced = ln.withGrace(P, 5, 12, eq1);
+eq(graced.length, 72, '거치 12개월이 앞에 붙는다');
+eq(graced[0].principal, 0, '거치 중엔 원금 0');
+check(ln.totalInterest(graced) > iEq, '거치기간이 붙으면 총이자가 늘어난다');
+
+// 더 갚기 = 기간 단축 + 이자 절약.
+const extra = ln.withExtra(eq1, 5, 200000);
+check(extra.length < eq1.length, `더 갚으면 기간이 짧아져야 한다 (${extra.length} < 60)`);
+check(ln.totalInterest(extra) < iEq, '더 갚으면 이자가 준다');
+eq(ln.withExtra(eq1, 5, 0).length, 60, '0 이면 그대로');
+
+eq(ln.equalPayment(1200000, 0, 12)[0].pay, 100000, '무이자면 그냥 나눈다');
+check(ln.run('compare', { amount: P, rate: 5, months: 60 }).includes('원금균등'), 'run compare 가 셋을 나란히');
+check(ln.run('schedule', { amount: P, rate: 5, months: 60, extra: 200000 }).includes('개월 단축'), 'run schedule 이 절약을 말한다');
+let lnThrew = false;
+try {
+  ln.run('schedule', { amount: P, rate: 5, months: 60, method: '엉뚱' });
+} catch {
+  lnThrew = true;
+}
+check(lnThrew, '모르는 상환 방식은 던진다');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
