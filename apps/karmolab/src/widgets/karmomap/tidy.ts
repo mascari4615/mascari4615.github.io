@@ -165,3 +165,60 @@ export function layoutHierarchy(
   }
   return out;
 }
+
+/**
+ * 연표 배치 — 「언제」가 적힌 칸을 시간축으로 삼아 **왼쪽에서 오른쪽으로** 늘어놓는다
+ * (TASK-KL-202, Aeon Timeline 계보).
+ *
+ * 세계관에서 인물·사건은 관계만큼이나 **순서**로 읽힌다. 그런데 지금 칸 값은 전부 그냥 글자라
+ * 「1024년」과 「3화」가 나란히 있어도 도구가 아무것도 못 한다. 여기서는 값에서 **첫 숫자 덩이**만
+ * 뽑아 순서를 만든다 — 완전한 날짜 해석은 형식을 강요하게 되고, 사람은 형식을 안 지킨다.
+ *
+ * 같은 시점은 세로로 쌓는다(겹치면 「같은 때 일이 여럿」이라는 사실 자체가 안 보인다).
+ */
+export function layoutTimeline(
+  boxes: Boxish[],
+  keyOf: (id: string) => string | undefined,
+  origin: { x: number; y: number },
+  gap = { col: 200, row: 110 },
+): Map<string, { x: number; y: number }> {
+  const out = new Map<string, { x: number; y: number }>();
+  const scored = boxes
+    .map((b) => {
+      const raw = (keyOf(b.id) ?? '').trim();
+      const m = /-?\d+(\.\d+)?/.exec(raw);
+      return { b, at: m ? Number(m[0]) : null, raw };
+    })
+    .filter((x) => x.at !== null) as { b: Boxish; at: number; raw: string }[];
+  if (scored.length === 0) return out;
+
+  scored.sort((a, b) => a.at - b.at || a.b.id.localeCompare(b.b.id));
+  let col = -1;
+  let last: number | null = null;
+  let stack = 0;
+  for (const s of scored) {
+    if (s.at !== last) { col += 1; stack = 0; last = s.at; } else { stack += 1; }
+    out.set(s.b.id, {
+      x: Math.round(origin.x + col * gap.col - s.b.w / 2),
+      y: Math.round(origin.y + stack * gap.row),
+    });
+  }
+  return out;
+}
+
+/** 어느 칸이 시간축으로 쓸 만한가 — **숫자로 읽히는 값이 가장 많은** 칸. 없으면 null. */
+export function bestTimeField(
+  nodes: { fields?: Record<string, string> }[],
+): string | null {
+  const score = new Map<string, number>();
+  for (const n of nodes) {
+    for (const [name, value] of Object.entries(n.fields ?? {})) {
+      if (!/\d/.test(String(value))) continue;
+      score.set(name, (score.get(name) ?? 0) + 1);
+    }
+  }
+  let best: string | null = null;
+  let top = 0;
+  for (const [name, count] of score) if (count > top) { top = count; best = name; }
+  return top >= 2 ? best : null;   // 하나뿐이면 축이 아니라 우연이다
+}

@@ -900,6 +900,38 @@ await step('Mermaid 글로 저장하면 문서에 그대로 붙는 코드블록�
   await page.keyboard.press('Escape');
   await page.waitForSelector('[data-km="drawer"].hidden', { state: 'attached', timeout: 4000 });
 });
+await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으로 선다', async () => {
+  // 「자리가 바뀌었다」만 보면 아무 배치나 통과한다 — **작은 값이 왼쪽인지**까지 본다.
+  const box = await page.locator('.km-canvas').boundingBox();
+  const put = async (fx, name, when) => {
+    await page.mouse.dblclick(box.x + box.width * fx, box.y + box.height * 0.2);
+    await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+    await page.fill('[data-km="edit-label"]', name);
+    await page.fill('[data-km="fld-new"]', '첫 등장');
+    await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+    await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
+    await page.locator('[data-km="fld-value"]').first().fill(when);
+    await page.locator('[data-km="fld-value"]').first().blur();
+  };
+  await put(0.6, '나중사람', '9화');
+  await put(0.25, '먼저사람', '2화');
+
+  await page.click('[data-km="more"]');
+  await page.waitForSelector('[data-km="drawer"]:not(.hidden)', { state: 'visible', timeout: 4000 });
+  await page.locator('[data-km="lay-time"]').dispatchEvent('click');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  const xs = await page.evaluate(() => {
+    const at = (name) => {
+      const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes(name));
+      const m = /translate\(([-0-9.]+)/.exec(g?.getAttribute('transform') || '');
+      return m ? Number(m[1]) : null;
+    };
+    return { early: at('먼저사람'), late: at('나중사람') };
+  });
+  if (xs.early === null || xs.late === null) throw new Error('노드를 못 찾았다: ' + JSON.stringify(xs));
+  if (!(xs.early < xs.late)) throw new Error(`시점 순서가 안 맞다: ${xs.early} / ${xs.late}`);
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');

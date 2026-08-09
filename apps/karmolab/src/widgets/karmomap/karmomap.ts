@@ -48,7 +48,7 @@ import { attachFieldHtml, bindAttachField } from './panels/attach-section';
 import { docFieldHtml, bindDocField } from './panels/doc-section';
 import { fieldsSectionHtml, bindFieldsSection } from './panels/fields-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
-import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy } from './tidy';
+import { snapToGrid, unoverlap, layoutCircle, layoutHierarchy, layoutTimeline, bestTimeField } from './tidy';
 import { computeSna, topBy } from './sna';
 import { encodeShare, decodeShare, shareCodeFromLocation, buildShareUrl, SHARE_URL_LIMIT } from './share';
 import {
@@ -348,6 +348,7 @@ import {
               <button class="btn btn-ghost" data-km="tidy">🧹 가지런히</button>
               <button class="btn btn-ghost" data-km="lay-circle">◯ 둥글게 놓기</button>
               <button class="btn btn-ghost" data-km="lay-tree">⌂ 흐름대로 놓기</button>
+              <button class="btn btn-ghost" data-km="lay-time">🕰 연표로 놓기</button>
               <button class="btn btn-ghost" data-km="from-text">📝 글로 만들기</button>
               <button class="btn btn-ghost" data-km="png">🖼 그림으로 저장</button>
               <button class="btn btn-ghost" data-km="svg">✒ SVG 로 저장 (글자 살아 있음)</button>
@@ -1723,6 +1724,32 @@ import {
       canvas?.fitView();
       Toolbox.showToast?.(`${placed.size}개를 ${kind === 'circle' ? '둥글게' : '흐름대로'} 놓았습니다 — ⌫ 로 되돌립니다`, undefined, undefined);
     }
+    // 연표 — 「언제」가 적힌 칸을 시간축으로 삼는다. 어느 칸인지는 **숫자가 가장 많이 든 칸**으로 고른다
+    // (사람에게 「날짜 칸을 먼저 정하라」고 시키면 아무도 안 쓴다).
+    q<HTMLButtonElement>('lay-time').onclick = () => {
+      const live = canvas?.getSpec() ?? spec;
+      const field = bestTimeField(live.nodes);
+      if (!field) {
+        Toolbox.showToast?.('시점으로 쓸 칸이 없습니다 — 「첫 등장: 3화」처럼 숫자가 든 칸을 두 곳 이상 적어 주세요', undefined, undefined);
+        return;
+      }
+      const boxes = live.nodes.map((n) => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+      const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
+      const placed = layoutTimeline(
+        boxes,
+        (id) => (live.nodes.find((n) => n.id === id)?.fields ?? {})[field],
+        { x: center.x - 400, y: center.y - 120 },
+      );
+      for (const [id, p] of placed) {
+        const n = live.nodes.find((x) => x.id === id);
+        if (n) { n.x = p.x; n.y = p.y; }
+      }
+      spec = live;
+      applySpec();
+      persistStructure();
+      canvas?.fitView();
+      Toolbox.showToast?.(`「${field}」 순서로 ${placed.size}개를 늘어놓았습니다 — ⌫ 로 되돌립니다`, undefined, undefined);
+    };
     q<HTMLButtonElement>('lay-circle').onclick = () => relayout('circle');
     q<HTMLButtonElement>('lay-tree').onclick = () => relayout('tree');
 
