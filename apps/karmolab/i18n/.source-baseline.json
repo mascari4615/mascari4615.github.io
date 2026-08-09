@@ -1,5 +1,5 @@
 {
-  "total": 5016,
+  "total": 4973,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -74,7 +74,7 @@
     "src/widgets/bubble.ts": 8,
     "src/widgets/chat.ts": 34,
     "src/widgets/chatbot/characters.ts": 64,
-    "src/widgets/chatbot/chatbot.ts": 49,
+    "src/widgets/chatbot/chatbot.ts": 5,
     "src/widgets/chatbot/karmo-image.ts": 10,
     "src/widgets/chatbot/markdown.ts": 1,
     "src/widgets/chatbot/prompt.ts": 9,
@@ -345,6 +345,7 @@
     "src/widgets/karmomap/panels/stamps-panel.ts": 3,
     "src/widgets/karmomap/presentation-svg.ts": 1,
     "src/widgets/karmomap/stamps.ts": 1,
-    "src/lib/graph/canvas-dom.ts": 1
+    "src/lib/graph/canvas-dom.ts": 1,
+    "src/lib/ai-engine.ts": 1
   }
 }
