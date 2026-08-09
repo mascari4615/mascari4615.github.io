@@ -10,8 +10,12 @@
  * Phase 3 (KAR-116-B, KAR-112 흡수) = agent-driven Canvas 패널.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   'use strict';
 
   type AgentInfo = {
@@ -86,51 +90,51 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
   function build(container: HTMLElement): void {
     if (!isApp) {
       container.innerHTML =
-        '<div style="padding:1.5rem;opacity:.7;line-height:1.6">에이전트 팀 콘솔은 데스크톱 앱(KarmoLab Tauri) 전용입니다.<br>브라우저에서는 표시되지 않습니다.</div>';
+        t('agent-team.t20');
       return;
     }
 
     container.innerHTML = `
       <div class="agent-team-root" style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
-          <h2 style="margin:0;font-size:1.1rem">🛰 에이전트 팀</h2>
+          <h2 style="margin:0;font-size:1.1rem">${esc(t('agent-team.t06'))}</h2>
           <span class="at-meta" style="opacity:.6;font-size:.8rem"></span>
           <label style="font-size:.78rem;opacity:.65;display:flex;align-items:center;gap:.25rem;margin-left:auto">
-            <input class="at-autorefresh" type="checkbox" checked /> 자동 5초
+            <input class="at-autorefresh" type="checkbox" checked /> ${esc(t('agent-team.t07'))}
           </label>
-          <button class="at-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
-          <button class="at-cadence" type="button" title="로컬 데스크톱 yawnbot dev 인스턴스 cadence 1회 (yawnbot dist 빌드 필요)" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Dev</button>
-          <button class="at-cadence-prod" type="button" title="노트북 yawnbot-prod cadence 1회 (laptop-ops 게이트웨이 우회, ~/.laptop-ops-token 필요)" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Prod</button>
+          <button class="at-refresh" type="button" style="padding:.3rem .7rem">${esc(t('agent-team.t08'))}</button>
+          <button class="at-cadence" type="button" title="${esc(t('agent-team.t01'))}" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Dev</button>
+          <button class="at-cadence-prod" type="button" title="${esc(t('agent-team.t02'))}" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⚡ Prod</button>
         </header>
         <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
         <section class="at-section at-tasks">
           <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem 0">
-            <h3 style="margin:0;font-size:.95rem;opacity:.85">📋 작업중 TASK (<span class="at-count-tasks">-</span>)</h3>
-            <input class="at-tasks-search" type="search" placeholder="TASK 검색 (id·제목·status·domain)" style="margin-left:auto;padding:.2rem .4rem;min-width:14rem;font-size:.78rem" />
+            <h3 style="margin:0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t09'))}<span class="at-count-tasks">-</span>)</h3>
+            <input class="at-tasks-search" type="search" placeholder="${esc(t('agent-team.t03'))}" style="margin-left:auto;padding:.2rem .4rem;min-width:14rem;font-size:.78rem" />
           </div>
           <div class="at-list at-tasks-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.4rem"></div>
         </section>
         <section class="at-section at-proposals">
           <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem 0">
-            <h3 style="margin:0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
-            <input class="at-proposals-search" type="search" placeholder="제안 검색 (제목·본문·domain)" style="margin-left:auto;padding:.2rem .4rem;min-width:12rem;font-size:.78rem" />
+            <h3 style="margin:0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t10'))}<span class="at-count-proposals">-</span>)</h3>
+            <input class="at-proposals-search" type="search" placeholder="${esc(t('agent-team.t04'))}" style="margin-left:auto;padding:.2rem .4rem;min-width:12rem;font-size:.78rem" />
           </div>
           <div class="at-list at-proposals-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
         </section>
         <section class="at-section at-roster">
-          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">코어 (<span class="at-count-agents">-</span>)</h3>
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t11'))}<span class="at-count-agents">-</span>)</h3>
           <div class="at-list at-roster-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.5rem"></div>
         </section>
         <section class="at-section at-sessions">
-          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">활성 Claude 세션 (<span class="at-count-sessions">-</span>)</h3>
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t12'))}<span class="at-count-sessions">-</span>)</h3>
           <div class="at-list at-sessions-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.5rem"></div>
         </section>
         <section class="at-section at-objectives">
-          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">목표 (Objectives) (<span class="at-count-objectives">-</span>)</h3>
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t13'))}<span class="at-count-objectives">-</span>)</h3>
           <div class="at-list at-objectives-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
         </section>
         <section class="at-section at-bus">
-          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">💬 슬롯 간 메시지 (<span class="at-count-bus">-</span>)</h3>
+          <h3 style="margin:0 0 .4rem 0;font-size:.95rem;opacity:.85">${esc(t('agent-team.t14'))}<span class="at-count-bus">-</span>)</h3>
           <div class="at-list at-bus-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
         </section>
         <div class="at-err" style="display:none;color:#e66;padding:.5rem;border:1px solid #e66;border-radius:.3rem;white-space:pre-wrap"></div>
@@ -182,17 +186,17 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     }
 
     function relativeTime(iso: string | undefined): string {
-      if (!iso) return '활동 없음';
-      const t = new Date(iso).getTime();
-      if (isNaN(t)) return iso.slice(0, 16);
-      const diffMs = Date.now() - t;
-      if (diffMs < 60_000) return '방금';
+      if (!iso) return t('agent-team.t21');
+      const ms = new Date(iso).getTime();
+      if (isNaN(ms)) return iso.slice(0, 16);
+      const diffMs = Date.now() - ms;
+      if (diffMs < 60_000) return t('agent-team.t22');
       const m = Math.floor(diffMs / 60_000);
-      if (m < 60) return `${m}분 전`;
+      if (m < 60) return t('agent-team.ago.min', { n: m });
       const h = Math.floor(m / 60);
-      if (h < 24) return `${h}시간 전`;
+      if (h < 24) return t('agent-team.ago.hour', { n: h });
       const d = Math.floor(h / 24);
-      if (d < 14) return `${d}일 전`;
+      if (d < 14) return t('agent-team.ago.day', { n: d });
       return iso.slice(0, 10);
     }
 
@@ -207,8 +211,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           const emoji = a.emoji ? escapeHtml(a.emoji) + ' ' : '';
           const role = a.role ? `<div style="opacity:.7;font-size:.78rem;line-height:1.35;margin-top:.2rem">${escapeHtml(a.role)}</div>` : '';
           const kind = a.kind ? `<span style="opacity:.6;font-size:.72rem;margin-left:.3rem">[${escapeHtml(a.kind)}]</span>` : '';
-          const lastSeen = a.last_activity_ts ? relativeTime(a.last_activity_ts) : '활동 없음';
-          const countLabel = a.activity_count > 0 ? `·${a.activity_count}건` : '';
+          const lastSeen = a.last_activity_ts ? relativeTime(a.last_activity_ts) : t('agent-team.t21');
+          const countLabel = a.activity_count > 0 ? t('agent-team.activityCount', { n: a.activity_count }) : '';
           return `
             <div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
               <div style="display:flex;align-items:center">
@@ -292,7 +296,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
       countBus.textContent = String(rows.length);
       if (rows.length === 0) {
         busList.innerHTML =
-          '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">슬롯 간 메시지 없음</div>';
+          t('agent-team.t23');
         return;
       }
       busList.innerHTML = rows
@@ -339,30 +343,30 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     function renderTasks(rows: TaskBoardEntry[]): void {
       const q = tasksSearch.value.trim().toLowerCase();
       const filtered = q
-        ? rows.filter((t) =>
-            (t.task_id + ' ' + t.title + ' ' + t.status).toLowerCase().includes(q),
+        ? rows.filter((task) =>
+            (task.task_id + ' ' + task.title + ' ' + task.status).toLowerCase().includes(q),
           )
         : rows;
       countTasks.textContent =
         rows.length === filtered.length ? String(rows.length) : `${filtered.length}/${rows.length}`;
       if (filtered.length === 0) {
         tasksList.innerHTML =
-          '<div style="opacity:.55;font-size:.82rem;padding:.5rem">진행 중 TASK 없음 (검색 매치 0).</div>';
+          t('agent-team.t24');
         return;
       }
       tasksList.innerHTML = filtered
-        .map((t) => {
-          const sv = taskStatusVisual(t.status);
-          const dv = taskDomain(t.task_id);
+        .map((task) => {
+          const sv = taskStatusVisual(task.status);
+          const dv = taskDomain(task.task_id);
           return `
             <div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
               <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
                 <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
-                <strong style="font-family:monospace;font-size:.82rem">${escapeHtml(t.task_id)}</strong>
+                <strong style="font-family:monospace;font-size:.82rem">${escapeHtml(task.task_id)}</strong>
                 <span style="background:${sv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${sv.emoji} ${escapeHtml(sv.label)}</span>
               </div>
-              <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${escapeHtml(t.title)}</div>
-              <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${escapeHtml(t.md_path)}</div>
+              <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${escapeHtml(task.title)}</div>
+              <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${escapeHtml(task.md_path)}</div>
             </div>`;
         })
         .join('');
@@ -417,7 +421,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
       countProposals.textContent = q ? `${pending.length}/${rows.filter((p) => !p.decided).length}` : String(pending.length);
       if (pending.length === 0) {
         proposalsList.innerHTML =
-          '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">결재 대기 없음</div>';
+          t('agent-team.t25');
         return;
       }
       proposalsList.innerHTML = pending
@@ -428,7 +432,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
             ? `<span style="display:inline-block;padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:rgba(127,127,127,.25);font-family:monospace">${escapeHtml(p.domain)}</span>`
             : '';
           const body = p.body
-            ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">본문 펴기</summary><div style="font-size:.82rem;margin:.3rem 0 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
+            ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">${esc(t('agent-team.t15'))}</summary><div style="font-size:.82rem;margin:.3rem 0 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
             : '';
           return `
             <div class="at-prop" data-id="${escapeHtml(p.id)}" style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
@@ -439,9 +443,9 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
               </div>
               ${body}
               <div style="display:flex;gap:.3rem;margin-top:.4rem">
-                <button data-decision="approved" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#3a3;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✓ 승인</button>
-                <button data-decision="rejected" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#c44;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✗ 거절</button>
-                <button data-decision="deferred" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#888;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⏸ 보류</button>
+                <button data-decision="approved" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#3a3;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('agent-team.t16'))}</button>
+                <button data-decision="rejected" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#c44;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('agent-team.t17'))}</button>
+                <button data-decision="deferred" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#888;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('agent-team.t18'))}</button>
                 <span class="at-prop-msg" style="margin-left:.3rem;font-size:.72rem;opacity:.7;align-self:center"></span>
               </div>
             </div>`;
@@ -455,7 +459,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
           const id = card.dataset.id || '';
           const decision = btn.dataset.decision || '';
           const msgSpan = card.querySelector<HTMLSpanElement>('.at-prop-msg');
-          if (msgSpan) msgSpan.textContent = '처리 중...';
+          if (msgSpan) msgSpan.textContent = t('agent-team.t26');
           card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = true));
           try {
             await tauriInvoke('agent_team_decide_proposal', {
@@ -464,10 +468,10 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
               decision,
               note: 'karmoapp-gui'
             });
-            if (msgSpan) msgSpan.textContent = `✓ ${decision} 기록 완료`;
+            if (msgSpan) msgSpan.textContent = t('agent-team.decisionSaved', { decision });
             void load();
           } catch (e) {
-            if (msgSpan) msgSpan.textContent = `실패: ${String(e)}`;
+            if (msgSpan) msgSpan.textContent = t('agent-team.failed', { why: String(e) });
             card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = false));
           }
         });
@@ -481,7 +485,7 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         const repoRoot = (await tauriInvoke('localdev_get_repo_root')) as string | null;
         if (!repoRoot) {
           errBox.style.display = 'block';
-          errBox.textContent = 'repo_root 미설정 — 서버 모니터 위젯에서 먼저 repo 폴더 선택해주세요.';
+          errBox.textContent = t('agent-team.t27');
           meta.textContent = '';
           return;
         }
@@ -506,8 +510,8 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         // 24h 카드 카운트 (활동 펄스)
         const now = Date.now();
         const last24h = cards.filter((c) => {
-          const t = new Date(c.ts).getTime();
-          return !isNaN(t) && now - t < 24 * 3600 * 1000;
+          const ms = new Date(c.ts).getTime();
+          return !isNaN(ms) && now - ms < 24 * 3600 * 1000;
         }).length;
         const activeAgents = agents.filter((a) => (a.status || '').toLowerCase() === 'active').length;
         const pendingProposals = proposals.filter((p) => !p.decided).length;
@@ -544,14 +548,14 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     async function runCadence(target: 'dev' | 'prod', btn: HTMLButtonElement): Promise<void> {
       if (!cachedRepoRoot) {
         cadenceOut.style.display = 'block';
-        cadenceOut.textContent = 'repo_root 미설정';
+        cadenceOut.textContent = t('agent-team.t28');
         return;
       }
       const cmd = target === 'prod' ? 'agent_team_run_cadence_tick_prod' : 'agent_team_run_cadence_tick';
       const label = target === 'prod' ? '⚡ Prod' : '⚡ Dev';
       btn.disabled = true;
       const orig = btn.textContent || label;
-      btn.textContent = '⏳ 실행 중...';
+      btn.textContent = t('agent-team.t29');
       cadenceOut.style.display = 'block';
       cadenceOut.textContent = `${label} cadence tick 1회 실행 중... (수 초 ~ 십수 초)`;
       try {
@@ -627,23 +631,23 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
     const isApp = typeof Toolbox.isDesktopApp === 'function' && Toolbox.isDesktopApp();
     if (!isApp) {
       container.innerHTML =
-        '<div style="padding:1.5rem;opacity:.7">Canvas 는 데스크톱 앱 전용입니다.</div>';
+        t('agent-team.t30');
       return;
     }
     container.innerHTML = `
       <div class="agent-canvas-root" style="display:flex;flex-direction:column;gap:.75rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
         <header style="display:flex;align-items:center;gap:.75rem">
-          <h2 style="margin:0;font-size:1.05rem">🎴 에이전트 카드 피드</h2>
+          <h2 style="margin:0;font-size:1.05rem">${esc(t('agent-team.t19'))}</h2>
           <span class="ac-meta" style="opacity:.6;font-size:.78rem"></span>
-          <input class="ac-search" type="search" placeholder="검색 (토픽·본문)" style="margin-left:auto;padding:.25rem .5rem;min-width:10rem" />
+          <input class="ac-search" type="search" placeholder="${esc(t('agent-team.t05'))}" style="margin-left:auto;padding:.25rem .5rem;min-width:10rem" />
           <select class="ac-filter" style="padding:.25rem .4rem">
-            <option value="all">전체</option>
-            <option value="decision">결정</option>
-            <option value="fix">수정</option>
-            <option value="finding">발견</option>
-            <option value="incident">사고</option>
+            <option value="all">${esc(t('agent-team.opt.all'))}</option>
+            <option value="decision">${esc(t('agent-team.opt.decision'))}</option>
+            <option value="fix">${esc(t('agent-team.opt.fix'))}</option>
+            <option value="finding">${esc(t('agent-team.opt.finding'))}</option>
+            <option value="incident">${esc(t('agent-team.opt.incident'))}</option>
           </select>
-          <button class="ac-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
+          <button class="ac-refresh" type="button" style="padding:.3rem .7rem">${esc(t('agent-team.t08'))}</button>
         </header>
         <div class="ac-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
         <div class="ac-err" style="display:none;color:#e66;padding:.5rem;border:1px solid #e66;border-radius:.3rem;white-space:pre-wrap"></div>
@@ -700,18 +704,18 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
         })
         .join('');
       if (rows.length === 0) {
-        list.innerHTML = '<div style="opacity:.5;padding:1rem;text-align:center">표시할 카드 없음</div>';
+        list.innerHTML = t('agent-team.t31');
       }
     }
 
     async function load(): Promise<void> {
       errBox.style.display = 'none';
-      meta.textContent = '로딩 중...';
+      meta.textContent = t('agent-team.t32');
       try {
         const repoRoot = (await tauriInvoke('localdev_get_repo_root')) as string | null;
         if (!repoRoot) {
           errBox.style.display = 'block';
-          errBox.textContent = 'repo_root 미설정 — 서버 모니터 위젯에서 먼저 repo 폴더 선택해주세요.';
+          errBox.textContent = t('agent-team.t27');
           meta.textContent = '';
           return;
         }
@@ -737,15 +741,32 @@ import { invoke as tauriInvoke } from '../../tauri-bridge';
   Toolbox.register({
     ...Toolbox.getLazyWidgetPublicMeta?.('agent-team'),
     id: 'agent-team',
-    title: '에이전트 팀',
+    title: t('widgets.agent-team.title', undefined, "에이전트 팀"),
     category: 'lab',
     desktopOnly: true,
-    desc: 'KAR-018 에이전트 팀 운영 콘솔 (v1 PoC: roster + objectives + 활성 세션 read-only)',
+    desc: t('widgets-desc.agent-team.desc', undefined, "KAR-018 에이전트 팀 운영 콘솔 (v1 PoC: roster + objectives + 활성 세션 read-only)"),
     layout: 'full',
     icon: '<circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="10" x2="7" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="14" y1="10" x2="17" y2="14" stroke="currentColor" stroke-width="1.4"/>',
     tabs: [
-      { id: 'agent-team-main', label: '팀 / 콘솔', build },
-      { id: 'agent-team-canvas', label: '🎴 카드 피드', build: buildCanvas }
+      {
+        id: 'agent-team-main',
+        label: t('agent-team.tab.main', undefined, '팀 / 콘솔'),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('agent-team').then(function () {
+            build(container);
+          });
+        }
+      },
+      {
+        id: 'agent-team-canvas',
+        label: t('agent-team.tab.canvas', undefined, '🎴 카드 피드'),
+        build: function (container: HTMLElement): void {
+          void loadNamespace('agent-team').then(function () {
+            buildCanvas(container);
+          });
+        }
+      }
     ]
   });
 })();
