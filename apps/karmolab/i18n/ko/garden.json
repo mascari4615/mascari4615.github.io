@@ -14,5 +14,7 @@
   "garden.event.bloom": "{gen}세대에 갑자기 {v}배로 불어났습니다.",
   "garden.event.collapse": "{gen}세대에 {v}% 가 한꺼번에 사라졌습니다.",
   "garden.event.drift": "{gen}세대 — 무언가 한쪽으로 흘러가고 있습니다.",
-  "garden.event.steady": "{gen}세대째, 아무도 죽지 않았습니다."
+  "garden.event.steady": "{gen}세대째, 아무도 죽지 않았습니다.",
+  "garden.event.noise": "{gen}세대 — 형태가 다 흩어졌습니다. 여기서부터는 잡음입니다.",
+  "garden.event.crowded": "{gen}세대 — 판을 가득 채웠습니다. 더 자랄 자리가 없습니다."
 }

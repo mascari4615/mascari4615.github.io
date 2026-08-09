@@ -126,6 +126,28 @@ export class Life {
   }
 }
 
+/**
+ * 지금 화면이 **볼만한가**를 재는 두 수.
+ *
+ * 규칙마다 「자라는 동안」이 볼거리고, 그 뒤엔 판을 다 채우고 잡음이 된다. 그 시점을 규칙마다
+ * 상수로 박아 두면 규칙을 하나 더할 때마다 다시 재야 한다. 그래서 **화면 자체를 잰다**:
+ *   structure = 오래 버틴 칸의 비율 (무엇이 「살고 있는지」 보이나)
+ *   crowd     = 판을 얼마나 채웠나
+ * 구조가 사라졌는데 계속 바쁘면 그건 잡음이고, 판을 꽉 채웠으면 볼 것이 없다.
+ */
+export function quality(life: Life): { structure: number; crowd: number } {
+  const age = life.age;
+  let old = 0;
+  let pop = 0;
+  for (let i = 0; i < age.length; i++) {
+    if (age[i]) {
+      pop++;
+      if (age[i] > 25) old++;
+    }
+  }
+  return { structure: pop ? old / pop : 0, crowd: pop / age.length };
+}
+
 /* ── 무슨 일이 일어났나 ───────────────────────────────────────────────── */
 
 export type EventKind =
@@ -135,7 +157,9 @@ export type EventKind =
   | 'bloom'     // 갑자기 불어났다
   | 'collapse'  // 갑자기 줄었다
   | 'drift'     // 무리가 한쪽으로 흘러간다
-  | 'steady';   // 오래 아무도 죽지 않는다
+  | 'steady'    // 오래 아무도 죽지 않는다
+  | 'noise'     // 구조가 사라지고 잡음만 남았다
+  | 'crowded';  // 판을 다 채웠다
 
 export interface Event {
   kind: EventKind;
@@ -159,6 +183,19 @@ export class Watcher {
   private driftAcc = 0;
   private lastEventGen = -999;
   private lastKind: EventKind | null = null;
+  private badRuns = 0;
+
+  /**
+   * 몇십 세대에 한 번 화면 상태를 먹인다. 잡음·포화가 **이어질 때만** 사건으로 올린다 —
+   * 한 번 튄 값으로 판을 갈아엎으면 그건 관찰이 아니다.
+   */
+  judge(q: { structure: number; crowd: number }, gen: number): Event | null {
+    const bad = q.crowd > 0.52 || (q.structure < 0.06 && q.crowd > 0.12);
+    this.badRuns = bad ? this.badRuns + 1 : 0;
+    if (this.badRuns < 3) return null;
+    this.badRuns = 0;
+    return { kind: q.crowd > 0.52 ? 'crowded' : 'noise', gen };
+  }
 
   observe(s: Stats): Event | null {
     this.pops.push(s.pop);
@@ -213,5 +250,6 @@ export class Watcher {
     this.driftAcc = 0;
     this.lastEventGen = -999;
     this.lastKind = null;
+    this.badRuns = 0;
   }
 }
