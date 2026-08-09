@@ -1,0 +1,20 @@
+{
+  "pulse.ph.plSeed": "이름·별명 아무거나",
+  "pulse.t01": "📻 박동",
+  "pulse.t02": "뜻 없는 글자가 규칙적으로 흐른다. 가끔 진짜 낱말이 나오는데 — 그때 그림으로 공유하면 된다. 다음에 뭐가 올지는 안 알려준다.",
+  "pulse.btn.plSound": "🔇 소리",
+  "pulse.btn.plShare": "그림으로 공유",
+  "pulse.btn.plSeedGo": "나만의 것 받기",
+  "pulse.t03": "지나간 박동",
+  "pulse.t04": "방송국",
+  "pulse.t05": "아무 의미 없는 것을, 아주 규칙적으로...",
+  "pulse.t06": "🔔 소리",
+  "pulse.t07": "나만의 것",
+  "pulse.t08": "← 지금으로 돌아가기",
+  "pulse.t09": "이름을 아무거나 적어 주세요",
+  "pulse.t10": "지나간 판을 보고 있어요",
+  "pulse.unit.min": "{n}분",
+  "pulse.unit.hour": "{n}시간",
+  "pulse.unit.day": "{n}일",
+  "pulse.channelLine": "<b>{name}</b> — {blurb}<br>계보 · {lineage}"
+}

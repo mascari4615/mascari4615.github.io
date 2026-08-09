@@ -17,8 +17,12 @@ import type { Beat, Channel, Ink } from './core';
 import { CHANNELS } from './channels';
 import { paintCard, shareCard } from './card';
 import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './core';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const SEED_PREF = 'pulse.seed';
   const SOUND_PREF = 'pulse.sound';
   const CHANNEL_PREF = 'pulse.channel';
@@ -30,9 +34,9 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
   }
 
   function periodLabel(ms: number): string {
-    if (ms < 3600000) return `${ms / 60000}분`;
-    if (ms < 86400000) return `${ms / 3600000}시간`;
-    return `${ms / 86400000}일`;
+    if (ms < 3600000) return t('pulse.unit.min', { n: ms / 60000 });
+    if (ms < 86400000) return t('pulse.unit.hour', { n: ms / 3600000 });
+    return t('pulse.unit.day', { n: ms / 86400000 });
   }
 
   function inkOf(el: HTMLElement): Ink {
@@ -111,17 +115,19 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
     tabs: [
       {
         id: 'app',
-        label: '방송국',
+        label: t('pulse.t04', undefined, "방송국"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pulse').then(function () {
+
           injectStyles();
-          Mdd?.linePreset?.('tool_run', { mood: 'idle', msg: '아무 의미 없는 것을, 아주 규칙적으로...' });
+          Mdd?.linePreset?.('tool_run', { mood: 'idle', msg: t('pulse.t05') });
 
           container.innerHTML = `
             <div class="pl-wrap">
               <div class="pl-head">
-                <h2>📻 박동</h2>
-                <div class="pl-tag">뜻 없는 글자가 규칙적으로 흐른다. 가끔 진짜 낱말이 나오는데 — 그때 그림으로 공유하면 된다. 다음에 뭐가 올지는 안 알려준다.</div>
-                <button class="pl-chip" id="plSound" type="button">🔇 소리</button>
+                <h2>${esc(t('pulse.t01'))}</h2>
+                <div class="pl-tag">${esc(t('pulse.t02'))}</div>
+                <button class="pl-chip" id="plSound" type="button">${esc(t('pulse.btn.plSound'))}</button>
                 <div class="pl-now" id="plNow"></div>
               </div>
               <div class="pl-chips" id="plChips"></div>
@@ -130,16 +136,16 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
                 <div class="pl-meter"><i style="width:0%"></i></div>
                 <div class="pl-left" id="plLeft"></div>
                 <div class="pl-acts">
-                  <button class="btn primary" id="plShare" type="button">그림으로 공유</button>
+                  <button class="btn primary" id="plShare" type="button">${esc(t('pulse.btn.plShare'))}</button>
                 </div>
               </div>
               <div class="pl-blurb" id="plBlurb"></div>
               <div class="pl-seed" id="plSeedRow" style="display:none">
-                <input class="input" id="plSeed" placeholder="이름·별명 아무거나">
-                <button class="btn" id="plSeedGo" type="button">나만의 것 받기</button>
+                <input class="input" id="plSeed" placeholder="${esc(t('pulse.ph.plSeed'))}">
+                <button class="btn" id="plSeedGo" type="button">${esc(t('pulse.btn.plSeedGo'))}</button>
               </div>
               <div class="pl-past">
-                <h4>지나간 박동 <span class="pl-back" id="plBack"></span></h4>
+                <h4>${esc(t('pulse.t03'))} <span class="pl-back" id="plBack"></span></h4>
                 <div class="pl-strip" id="plStrip"></div>
               </div>
             </div>`;
@@ -184,7 +190,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
             return audio;
           }
           function paintSoundBtn(): void {
-            soundBtn.textContent = soundOn ? '🔔 소리' : '🔇 소리';
+            soundBtn.textContent = soundOn ? t('pulse.t06') : t('pulse.btn.plSound');
             soundBtn.classList.toggle('on', soundOn);
           }
           paintSoundBtn();
@@ -219,7 +225,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
               {
                 text: beat.line,
                 channel: `${ch.name} · ${periodLabel(ch.period)}`,
-                stamp: mine ? '나만의 것' : stampOf(tickStart(ch, tick), ch.period >= 86400000),
+                stamp: mine ? t('pulse.t07') : stampOf(tickStart(ch, tick), ch.period >= 86400000),
                 mark: beat.mark
               },
               ink
@@ -284,11 +290,11 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
           }
 
           function renderMeta(): void {
-            blurbEl.innerHTML = `<b>${escapeHtml(channel.name)}</b> — ${escapeHtml(channel.blurb)}<br>계보 · ${escapeHtml(channel.lineage)}`;
+            blurbEl.innerHTML = t('pulse.channelLine', { name: escapeHtml(channel.name), blurb: escapeHtml(channel.blurb), lineage: escapeHtml(channel.lineage) });
             seedRow.style.display = channel.personal ? '' : 'none';
             const seed = Toolbox.getPref?.(SEED_PREF, '') ?? '';
             if (seed && !seedInput.value) seedInput.value = seed;
-            backEl.textContent = pinned !== null || mine ? '← 지금으로 돌아가기' : '';
+            backEl.textContent = pinned !== null || mine ? t('pulse.t08') : '';
           }
           backEl.onclick = () => {
             pinned = null;
@@ -305,10 +311,10 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
             const ticks = Array.from({ length: 8 }, (_, i) => cur - 1 - i);
             strip.innerHTML = ticks
               .map(
-                (t) =>
-                  `<button class="pl-thumb${pinned === t ? ' on' : ''}" type="button" data-t="${t}">
+                (tick) =>
+                  `<button class="pl-thumb${pinned === tick ? ' on' : ''}" type="button" data-t="${tick}">
                      <canvas></canvas>
-                     <time>${stampOf(tickStart(channel, t), channel.period >= 86400000)}</time>
+                     <time>${stampOf(tickStart(channel, tick), channel.period >= 86400000)}</time>
                    </button>`
               )
               .join('');
@@ -354,7 +360,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
           const give = (): void => {
             const value = seedInput.value.trim();
             if (!value) {
-              Toolbox.showToast?.('이름을 아무거나 적어 주세요', 'warning');
+              Toolbox.showToast?.(t('pulse.t09'), 'warning');
               return;
             }
             Toolbox.setPref?.(SEED_PREF, value);
@@ -396,12 +402,12 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
             /* 소리는 **지금 보고 있지 않은 방송**에서도 울려야 한다 — 종은 정각에 울리는 것이 전부다.
                처음 본 박동 번호는 「방금 갈렸다」가 아니라 「원래 그거였다」이므로 울리지 않는다. */
             for (const ch of CHANNELS) {
-              const t = tickOf(ch, now);
-              const beat = ch.beat(t);
+              const tick = tickOf(ch, now);
+              const beat = ch.beat(tick);
               if (!beat.sound) continue;
               const last = rung.get(ch.id);
-              rung.set(ch.id, t);
-              if (last === undefined || last === t) continue;
+              rung.set(ch.id, tick);
+              if (last === undefined || last === tick) continue;
               const ac = ensureAudio();
               if (ac) beat.sound(ac, ac.currentTime + 0.05);
             }
@@ -410,7 +416,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
             meter.style.width = `${(p * 100).toFixed(2)}%`;
             leftEl.textContent =
               pinned !== null || mine
-                ? '지나간 판을 보고 있어요'
+                ? t('pulse.t10')
                 : `다음까지 ${humanLeft(channel.period * (1 - p))}`;
           }
           /** 방송마다 마지막으로 본 박동 번호 — 같은 종을 두 번 울리지 않으려고 둔다. */
@@ -435,6 +441,7 @@ import { humanLeft, rngFor, stampOf, tickOf, tickProgress, tickStart } from './c
             window.removeEventListener('resize', onResize);
             void audio?.close();
           });
+                  });
         }
       }
     ]
