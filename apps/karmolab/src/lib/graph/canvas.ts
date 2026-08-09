@@ -561,14 +561,13 @@ export class GraphCanvas {
         const [a, b] = [...this.activePointers.values()];
         const dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
         const { left, top } = this.svg.getBoundingClientRect();
-        const ratio = dist / this.pinch.startDist;
-        const newScale = Math.max(0.1, Math.min(5, this.pinch.startScale * ratio));
-        // 두 손가락 사이 지점을 화면에 고정한 채 배율만 바꾼다(휠 줌과 같은 규칙).
-        const mx = this.pinch.startMidX - left;
-        const my = this.pinch.startMidY - top;
-        this.state.tx = mx - (mx - this.pinch.startTx) * (newScale / this.pinch.startScale);
-        this.state.ty = my - (my - this.pinch.startTy) * (newScale / this.pinch.startScale);
-        this.state.scale = newScale;
+        // 두 손가락 사이 지점을 화면에 고정한 채 배율만 바꾼다 — **휠 줌과 같은 셈법**을 쓴다
+        // (규칙이 갈리면 「마우스로는 자연스러운데 손가락으로는 튄다」가 된다).
+        Object.assign(this.state, zoomAt(
+          { tx: this.pinch.startTx, ty: this.pinch.startTy, scale: this.pinch.startScale },
+          dist / this.pinch.startDist,
+          { x: this.pinch.startMidX - left, y: this.pinch.startMidY - top },
+        ));
         this.applyTransform();
         return;
       }
