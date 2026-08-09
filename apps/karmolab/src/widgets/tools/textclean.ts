@@ -5,6 +5,8 @@
  * 이어서 일어난다. 그래서 개별 버튼이 아니라 **체크한 처리를 정해진 순서로 통과**시키는 파이프로 만든다.
  * 원본을 건드리지 않으므로 옵션을 껐다 켜며 결과를 바로 비교할 수 있다.
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   /** 처리 순서 고정 — 공백 정리 → 빈 줄 → 중복 → 정렬 → 대소문자 → 접두/접미 → 번호. */
   interface Opts {
@@ -84,86 +86,102 @@
 
   Toolbox.register({
     id: 'textclean',
-    title: '텍스트 정리',
+    title: t('widgets.textclean.title', undefined, '텍스트 정리'),
     category: 'tool',
-    desc: '여러 줄 텍스트를 정렬·중복 제거·공백 정리·번호 매기기로 한 번에 다듬습니다',
+    desc: t(
+      'widgets-desc.textclean.desc',
+      undefined,
+      '여러 줄 텍스트를 정렬·중복 제거·공백 정리·번호 매기기로 한 번에 다듬습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M4 6h16M4 11h11M4 16h14M4 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17 18l2 2 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '정리',
+        label: t('textclean.tab', undefined, '정리'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('textclean').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <label class="field-label">원본</label>
-                  <textarea id="tcIn" rows="10" spellcheck="false" placeholder="한 줄에 하나씩 붙여 넣으세요"></textarea>
+                  <label class="field-label">${esc(t('textclean.label.in'))}</label>
+                  <textarea id="tcIn" rows="10" spellcheck="false" placeholder="${esc(t('textclean.ph.in'))}"></textarea>
                 </div>
                 <div>
-                  <label class="field-label">결과</label>
+                  <label class="field-label">${esc(t('textclean.label.out'))}</label>
                   <textarea id="tcOut" aria-label="정리된 결과" rows="10" spellcheck="false" readonly></textarea>
                 </div>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">처리 — 위에서부터 순서대로 적용됩니다</label>
+              <label class="field-label">${esc(t('textclean.label.ops'))}</label>
               <div class="tool-chips">
-                <label class="tool-chip"><input type="checkbox" id="tcTrim" checked> 양끝 공백 제거</label>
-                <label class="tool-chip"><input type="checkbox" id="tcSqueeze"> 중간 공백 하나로</label>
-                <label class="tool-chip"><input type="checkbox" id="tcDropEmpty" checked> 빈 줄 제거</label>
-                <label class="tool-chip"><input type="checkbox" id="tcDedupe"> 중복 줄 제거</label>
-                <label class="tool-chip"><input type="checkbox" id="tcReverse"> 순서 뒤집기</label>
-                <label class="tool-chip"><input type="checkbox" id="tcNumber"> 번호 매기기</label>
-                <label class="tool-chip"><input type="checkbox" id="tcInvisible" checked> 보이지 않는 공백 정리</label>
-                <label class="tool-chip"><input type="checkbox" id="tcNfc" checked> 자모 분리 한글 되돌리기</label>
-                <label class="tool-chip"><input type="checkbox" id="tcJoin"> 문단 잇기 (PDF 복사)</label>
+                <label class="tool-chip"><input type="checkbox" id="tcTrim" checked> ${esc(t('textclean.op.trim'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcSqueeze"> ${esc(t('textclean.op.squeeze'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcDropEmpty" checked> ${esc(t('textclean.op.dropEmpty'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcDedupe"> ${esc(t('textclean.op.dedupe'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcReverse"> ${esc(t('textclean.op.reverse'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcNumber"> ${esc(t('textclean.op.number'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcInvisible" checked> ${esc(t('textclean.op.invisible'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcNfc" checked> ${esc(t('textclean.op.nfc'))}</label>
+                <label class="tool-chip"><input type="checkbox" id="tcJoin"> ${esc(t('textclean.op.join'))}</label>
               </div>
             </div>
 
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">정렬</div>
+                  <div class="tool-sublabel">${esc(t('textclean.label.sort'))}</div>
                   <select id="tcSort" aria-label="정렬">
-                    <option value="">그대로</option>
-                    <option value="asc">가나다·ABC 순</option>
-                    <option value="desc">역순</option>
-                    <option value="len">짧은 줄부터</option>
-                    <option value="shuffle">무작위 섞기</option>
+                    <option value="">${esc(t('textclean.sort.none'))}</option>
+                    <option value="asc">${esc(t('textclean.sort.asc'))}</option>
+                    <option value="desc">${esc(t('textclean.sort.desc'))}</option>
+                    <option value="len">${esc(t('textclean.sort.len'))}</option>
+                    <option value="shuffle">${esc(t('textclean.sort.shuffle'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">대소문자</div>
+                  <div class="tool-sublabel">${esc(t('textclean.label.case'))}</div>
                   <select id="tcCase" aria-label="대소문자">
-                    <option value="">그대로</option>
-                    <option value="upper">전부 대문자</option>
-                    <option value="lower">전부 소문자</option>
-                    <option value="title">첫 글자만 대문자</option>
+                    <option value="">${esc(t('textclean.case.none'))}</option>
+                    <option value="upper">${esc(t('textclean.case.upper'))}</option>
+                    <option value="lower">${esc(t('textclean.case.lower'))}</option>
+                    <option value="title">${esc(t('textclean.case.title'))}</option>
                   </select>
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">각 줄 앞에 붙이기</div>
-                  <input type="text" id="tcPrefix" placeholder="예) - " spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('textclean.label.prefix'))}</div>
+                  <input type="text" id="tcPrefix" placeholder="${esc(t('textclean.ph.prefix'))}" spellcheck="false">
                 </div>
                 <div>
-                  <div class="tool-sublabel">각 줄 뒤에 붙이기</div>
-                  <input type="text" id="tcSuffix" placeholder="예) ," spellcheck="false">
+                  <div class="tool-sublabel">${esc(t('textclean.label.suffix'))}</div>
+                  <input type="text" id="tcSuffix" placeholder="${esc(t('textclean.ph.suffix'))}" spellcheck="false">
                 </div>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="tcCopy">결과 복사</button>
-              <button class="btn btn-ghost" id="tcSwap">결과를 원본으로</button>
-              <button class="btn btn-ghost" id="tcClear">지우기</button>
+              <button class="btn btn-primary" id="tcCopy">${esc(t('textclean.btn.copy'))}</button>
+              <button class="btn btn-ghost" id="tcSwap">${esc(t('textclean.btn.swap'))}</button>
+              <button class="btn btn-ghost" id="tcClear">${esc(t('textclean.btn.clear'))}</button>
             </div>
 
-            <div class="tool-status" id="tcStatus">붙여 넣으면 바로 정리됩니다.</div>
+            <div class="tool-status" id="tcStatus">${esc(t('textclean.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -191,8 +209,12 @@
             output.value = lines.join('\n');
             const before = src ? src.split(/\r?\n/).length : 0;
             status.textContent = src
-              ? `${before}줄 → ${lines.length}줄 · ${output.value.length.toLocaleString('ko-KR')}자`
-              : '붙여 넣으면 바로 정리됩니다.';
+              ? t('textclean.status.done', {
+                  before,
+                  after: lines.length,
+                  chars: output.value.length.toLocaleString(locale())
+                })
+              : t('textclean.status.idle');
             status.className = 'tool-status' + (src ? ' ok' : '');
           }
 
@@ -203,7 +225,7 @@
 
           $<HTMLButtonElement>('#tcCopy').onclick = async () => {
             if (!output.value) return;
-            await Toolbox.copyText?.(output.value, { message: '정리한 텍스트를 복사했어요' });
+            await Toolbox.copyText?.(output.value, { message: t('textclean.copy.done') });
             Toolbox.trackUse?.('copy');
           };
           $<HTMLButtonElement>('#tcSwap').onclick = () => {
@@ -216,8 +238,5 @@
           };
 
           run();
-        }
-      }
-    ]
-  });
+  }
 })();

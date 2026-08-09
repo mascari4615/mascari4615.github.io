@@ -85,5 +85,9 @@
   "howto.exifclean.2": "情報を消してダウンロード",
   "howto.epoch.0": "数字を貼り付けるか、時刻を選ぶ",
   "howto.epoch.1": "もう一方が自動で変わる",
-  "howto.epoch.2": "秒またはミリ秒でコピー"
+  "howto.epoch.2": "秒またはミリ秒でコピー",
+  "howto.textclean.0": "左にテキストを貼り付ける",
+  "howto.textclean.1": "適用する処理を選ぶ",
+  "howto.textclean.2": "並べ替え・大文字小文字・接頭辞を指定",
+  "howto.textclean.3": "結果をコピー"
 }
