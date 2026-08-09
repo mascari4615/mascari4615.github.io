@@ -71,13 +71,17 @@ export function wallOf(at: Date, zone: string): string {
     hour: '2-digit',
     minute: '2-digit',
     /* `hour12: false` 만 주면 **자정을 24:00 으로** 내는 판이 있다(ICU 판마다 다르다).
-       실제로 CI(리눅스)에서만 `2026-01-09 24:00` 이 나와 검사가 빨개졌다 — 로컬은 00:00.
-       `hourCycle: 'h23'` 을 못 박아 어디서나 00~23 으로 만든다. */
+       `hourCycle: 'h23'` 을 함께 박아 뒀는데 **그것도 부족했다** — 실측 2026-08-09:
+       CI(node 20)에서 `2026-01-09 24:00`, 로컬(node 24)에서 `00:00`. 둘을 같이 주면 판에 따라
+       `hour12` 가 이겨서 h24 로 돌아간다.
+       그래서 부탁만 하지 않고 **나온 값을 우리가 확인한다** — 24 시는 0 시다. */
     hour12: false,
     hourCycle: 'h23'
   }).formatToParts(at);
   const get = (t: string): string => p.find((x) => x.type === t)?.value ?? '';
-  return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}`;
+  /* 이 한 줄이 없어서 배포가 며칠 막혔다. 서식기 설정은 「부탁」이고, 값 확인은 「보장」이다. */
+  const hour = get('hour') === '24' ? '00' : get('hour');
+  return `${get('year')}-${get('month')}-${get('day')} ${hour}:${get('minute')}`;
 }
 
 /** 서머타임이 그 날짜에 걸려 있나 — 1월과 7월의 오프셋이 다르면 그 지역은 DST 를 쓴다. */
