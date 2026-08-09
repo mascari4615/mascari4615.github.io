@@ -30,5 +30,10 @@
   "shell.lang.code": "KO",
   "shell.lang.hint": "{lang} 판이 있습니다",
   "shell.lang.hintGo": "보러 가기",
-  "shell.lang.hintClose": "닫기"
+  "shell.lang.hintClose": "닫기",
+  "shell.region.section": "지역",
+  "shell.lang.section": "언어",
+  "shell.region.note": "단위·공휴일·서류 규격·도구 순서가 이 나라 기준으로 바뀝니다.",
+  "shell.region.aria": "언어와 지역",
+  "shell.region.other": "그 밖의 나라"
 }

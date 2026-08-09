@@ -30,5 +30,10 @@
   "shell.lang.code": "EN",
   "shell.lang.hint": "This page is available in {lang}",
   "shell.lang.hintGo": "Go there",
-  "shell.lang.hintClose": "Dismiss"
+  "shell.lang.hintClose": "Dismiss",
+  "shell.region.section": "Region",
+  "shell.lang.section": "Language",
+  "shell.region.note": "Units, public holidays, document formats and tool order follow this country.",
+  "shell.region.aria": "Language and region",
+  "shell.region.other": "Elsewhere"
 }

@@ -64,7 +64,9 @@ const names = Object.fromEntries(expected.map((l) => [l.code, catalog(l.code, 'w
 
 /* ① */
 const code = (await page.locator('#langBtn .lang-btn-code').textContent())?.trim();
-if (code !== 'KO') fail.push(`단추 글자가 KO 가 아니다: ${code}`);
+/* 단추는 언어 두 글자 뒤에 **지역 깃발**을 붙인다(「KO 🇰🇷」, TASK-KL-203 S12) — 언어만 적으면
+   지역이 짐작으로 정해진 것을 아무도 모른다. 여기서는 앞의 언어 글자만 못 박는다. */
+if (!/^KO(\s|$)/.test(code || '')) fail.push(`단추가 KO 로 시작하지 않는다: ${code}`);
 
 /* ② */
 await page.click('#langBtn');
@@ -131,10 +133,25 @@ for (const l of expected) {
     .catch(() => null);
   const want = names[l.code]['widgets.charcount.title'];
   if (shown !== want) fail.push(`${l.code} 장의 도구 이름이 안 바뀌었다: ${shown} (기대 ${want})`);
-  const korean = await tab.evaluate(
-    () => (window.KARMOLAB_LAZY_META || []).filter((w) => /[가-힣]/.test(w.title || '')).length
+  /* 한국어로 남은 이름 = **번역이 있는데 안 갈아 끼운 것**만 잘못이다. 아직 안 옮긴 도구
+     (다른 작업이 방금 새로 만든 위젯 등)까지 세면, 누가 도구를 하나 넣을 때마다 이 검사가
+     빨개지고 그러면 사람이 검사를 꺼 버린다 — 도구 장 260장이 통째로 멈췄던 것과 같은 덫이다.
+     「안 바뀐 것」과 「아직 없는 것」을 가른다. */
+  const stillKorean = await tab.evaluate(
+    () =>
+      (window.KARMOLAB_LAZY_META || [])
+        .filter((w) => /[가-힣]/.test(w.title || ''))
+        .map((w) => w.id)
   );
-  if (korean) fail.push(`${l.code} 장에 한국어 이름이 ${korean}개 남았다`);
+  const havingTranslation = stillKorean.filter((id) => {
+    const v = names[l.code][`widgets.${id}.title`];
+    return !!v && !/[가-힣]/.test(v);
+  });
+  if (havingTranslation.length) {
+    fail.push(`${l.code} 장: 번역이 있는데 이름이 안 바뀌었다 — ${havingTranslation.join(', ')}`);
+  } else if (stillKorean.length) {
+    console.log(`[lang-switch] ${l.code}: 아직 안 옮긴 도구 ${stillKorean.length}개 (${stillKorean.join(', ')})`);
+  }
   await tab.close();
 }
 

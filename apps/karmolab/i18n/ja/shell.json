@@ -30,5 +30,10 @@
   "shell.lang.code": "JA",
   "shell.lang.hint": "このページは{lang}でも読めます",
   "shell.lang.hintGo": "そちらへ",
-  "shell.lang.hintClose": "閉じる"
+  "shell.lang.hintClose": "閉じる",
+  "shell.region.section": "地域",
+  "shell.lang.section": "言語",
+  "shell.region.note": "単位・祝日・書類の規格・道具の並び順がこの国の基準に変わります。",
+  "shell.region.aria": "言語と地域",
+  "shell.region.other": "その他の国"
 }
