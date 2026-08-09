@@ -1,0 +1,21 @@
+{
+  "bluemarble.layer.city": "도시 불빛",
+  "bluemarble.layer.quake": "지진",
+  "bluemarble.layer.aurora": "오로라",
+  "bluemarble.layer.iss": "ISS",
+  "bluemarble.layer.launch": "발사 예정",
+  "bluemarble.layer.spin": "자전",
+  "bluemarble.hint": "끌면 돌아가고, 휠을 굴리면 가까워집니다. 손을 떼면 다시 스스로 돕니다.",
+  "bluemarble.line.sunCity": "지금 해는 {city} 바로 위에 떠 있습니다.",
+  "bluemarble.line.sunSea": "지금 해는 아무도 없는 바다 위, 북위 {lat}° 동경 {lon}° 에 떠 있습니다.",
+  "bluemarble.line.night": "도시 {total} 곳 중 {n} 곳이 지금 밤입니다.",
+  "bluemarble.line.quake": "{ago}, {where} 근처에서 규모 {mag} 로 땅이 흔들렸습니다.",
+  "bluemarble.line.quakeCount": "지난 하루 동안 지구는 {n} 번 흔들렸습니다.",
+  "bluemarble.line.issCity": "지금 {city} 하늘 위로 사람 여럿이 시속 {kmh}km 로 지나갑니다.",
+  "bluemarble.line.issSea": "지금 ISS 는 바다 위 {alt}km 상공을 시속 {kmh}km 로 지나갑니다.",
+  "bluemarble.line.kpCalm": "지구의 자기장은 지금 조용합니다.",
+  "bluemarble.line.kpStorm": "자기폭풍이 오는 중입니다 (Kp {kp}). 오로라가 평소보다 남쪽까지 내려옵니다.",
+  "bluemarble.line.aurora": "지금 극지방 어딘가에서는 하늘이 초록으로 흔들리고 있습니다.",
+  "bluemarble.line.launch": "{when}, {name} 가 지구 밖으로 나갑니다.",
+  "bluemarble.word.openSea": "먼바다"
+}

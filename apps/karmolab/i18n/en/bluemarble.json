@@ -1,0 +1,21 @@
+{
+  "bluemarble.layer.city": "City lights",
+  "bluemarble.layer.quake": "Quakes",
+  "bluemarble.layer.aurora": "Aurora",
+  "bluemarble.layer.iss": "ISS",
+  "bluemarble.layer.launch": "Launches",
+  "bluemarble.layer.spin": "Spin",
+  "bluemarble.hint": "Drag to turn it, scroll to come closer. Let go and it keeps turning on its own.",
+  "bluemarble.line.sunCity": "The sun is directly above {city} right now.",
+  "bluemarble.line.sunSea": "The sun is directly above open water right now, at {lat}°, {lon}°.",
+  "bluemarble.line.night": "{n} of {total} cities are in darkness right now.",
+  "bluemarble.line.quake": "{ago}, the ground shook near {where} — magnitude {mag}.",
+  "bluemarble.line.quakeCount": "The Earth shook {n} times in the last day.",
+  "bluemarble.line.issCity": "Several people are passing over {city} right now at {kmh} km/h.",
+  "bluemarble.line.issSea": "The ISS is {alt} km above open water right now, moving at {kmh} km/h.",
+  "bluemarble.line.kpCalm": "The Earth's magnetic field is quiet right now.",
+  "bluemarble.line.kpStorm": "A magnetic storm is coming (Kp {kp}). The aurora reaches further south than usual.",
+  "bluemarble.line.aurora": "Somewhere near the poles, the sky is shaking green right now.",
+  "bluemarble.line.launch": "{when}, {name} leaves the Earth.",
+  "bluemarble.word.openSea": "open water"
+}
