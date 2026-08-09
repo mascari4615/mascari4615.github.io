@@ -67,6 +67,10 @@
     "narrow": 792,
     "wide": 691
   },
+  "charconv": {
+    "narrow": 825,
+    "wide": 695
+  },
   "charcount": {
     "narrow": 1339,
     "wide": 916
