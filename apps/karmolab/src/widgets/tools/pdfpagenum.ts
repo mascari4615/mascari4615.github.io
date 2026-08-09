@@ -12,6 +12,8 @@
  */
 import { fileSize as size } from './shared/media';
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   interface PDFLib {
     PDFDocument: {
@@ -54,66 +56,82 @@ import { fileSize as size } from './shared/media';
     id: 'pdfpagenum',
     // 다른 도구가 만든 PDF 를 그대로 받는다 (TASK-KL-133)
     accepts: ['application/pdf'],
-    title: 'PDF 쪽 번호',
+    title: t('widgets.pdfpagenum.title', undefined, 'PDF 쪽 번호'),
     category: 'tool',
-    desc: 'PDF 에 쪽 번호를 넣습니다. 표지는 건너뛰고 본문부터 1로 셀 수 있습니다',
+    desc: t(
+      'widgets-desc.pdfpagenum.desc',
+      undefined,
+      'PDF 에 쪽 번호를 넣습니다. 표지는 건너뛰고 본문부터 1로 셀 수 있습니다'
+    ),
     layout: 'wide',
     icon: '<path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 17h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '쪽 번호',
+        label: t('pdfpagenum.tab', undefined, '쪽 번호'),
         build: function (container: HTMLElement): void {
+          void loadNamespace('pdfpagenum').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          const esc = (v: string): string =>
+            v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           container.innerHTML = `
             <div class="tool-drop" id="pnDrop">
               <input type="file" id="pnFile" accept="application/pdf,.pdf" hidden>
-              <span>PDF 를 끌어다 놓거나 눌러서 고르세요</span>
+              <span>${esc(t('pdfpagenum.drop'))}</span>
             </div>
 
             <div class="field-group" id="pnControls" style="display:none; margin-top:var(--space-lg);">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">모양</div>
-                  <select id="pnStyle" aria-label="번호 모양">
+                  <div class="tool-sublabel">${esc(t('pdfpagenum.label.style'))}</div>
+                  <select id="pnStyle" aria-label="${esc(t('pdfpagenum.aria.style'))}">
                     <option value="plain">1</option>
                     <option value="slash">1 / 12</option>
                     <option value="dash">- 1 -</option>
-                    <option value="ko">1쪽</option>
-                    <option value="koTotal">1 / 12쪽</option>
+                    <option value="ko">${esc(t('pdfpagenum.style.ko'))}</option>
+                    <option value="koTotal">${esc(t('pdfpagenum.style.koTotal'))}</option>
                   </select>
                 </div>
                 <div>
-                  <div class="tool-sublabel">자리</div>
+                  <div class="tool-sublabel">${esc(t('pdfpagenum.label.place'))}</div>
                   <select id="pnPos" aria-label="번호 자리">
-                    <option value="bc">아래 가운데</option>
-                    <option value="br">아래 오른쪽</option>
-                    <option value="bl">아래 왼쪽</option>
-                    <option value="tr">위 오른쪽</option>
+                    <option value="bc">${esc(t('pdfpagenum.place.bc'))}</option>
+                    <option value="br">${esc(t('pdfpagenum.place.br'))}</option>
+                    <option value="bl">${esc(t('pdfpagenum.place.bl'))}</option>
+                    <option value="tr">${esc(t('pdfpagenum.place.tr'))}</option>
                   </select>
                 </div>
               </div>
               <div class="tool-grid-2" style="margin-top:10px;">
                 <div>
-                  <div class="tool-sublabel">앞에서 건너뛸 장 <span id="pnSkipVal" class="range-value">0장</span></div>
+                  <div class="tool-sublabel">${esc(t('pdfpagenum.label.skip'))} <span id="pnSkipVal" class="range-value">0장</span></div>
                   <input type="range" id="pnSkip" aria-label="건너뛸 장" min="0" max="5" value="0">
                 </div>
                 <div>
-                  <div class="tool-sublabel">글씨 크기 <span id="pnSizeVal" class="range-value">보통</span></div>
+                  <div class="tool-sublabel">${esc(t('pdfpagenum.label.size'))} <span id="pnSizeVal" class="range-value">보통</span></div>
                   <input type="range" id="pnSize" aria-label="글씨 크기" min="8" max="18" value="11">
                 </div>
               </div>
               <div class="tool-chips" style="margin-top:10px;">
-                <label class="tool-chip"><input type="checkbox" id="pnRestart" checked> 건너뛴 장은 세지 않기 (본문이 1쪽)</label>
+                <label class="tool-chip"><input type="checkbox" id="pnRestart" checked> ${esc(t('pdfpagenum.opt.restart'))}</label>
               </div>
             </div>
 
             <div class="cc-stats" id="pnStats"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-primary" id="pnRun" disabled>번호 넣기</button>
+              <button class="btn btn-primary" id="pnRun" disabled>${esc(t('pdfpagenum.btn.run'))}</button>
             </div>
 
-            <div class="tool-status" id="pnStatus">파일은 브라우저 안에서만 다뤄집니다 — 어디에도 올리지 않습니다.</div>
+            <div class="tool-status" id="pnStatus">${esc(t('pdfpagenum.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -148,24 +166,24 @@ import { fileSize as size } from './shared/media';
             const numbered = Math.max(0, pageCount - skip);
             const first = restart ? 1 : skip + 1;
             stats.innerHTML =
-              stat('번호 붙는 장', `${numbered}장`, true) +
-              stat('전체', `${pageCount}장`) +
-              stat('첫 번호', numbered ? String(first) : '없음');
+              stat(t('pdfpagenum.stat.numbered'), t('pdfpagenum.value.pages', { n: numbered }), true) +
+              stat(t('pdfpagenum.stat.total'), t('pdfpagenum.value.pages', { n: pageCount })) +
+              stat(t('pdfpagenum.stat.first'), numbered ? String(first) : t('pdfpagenum.value.none'));
           }
 
           async function load(f: File): Promise<void> {
-            say('PDF 를 여는 중…');
+            say(t('pdfpagenum.say.opening'));
             await Toolbox.ensureScript?.('vendor/pdf-lib.min');
             const L = (window as unknown as { PDFLib: PDFLib }).PDFLib;
             if (!L) {
-              say('PDF 처리기를 불러오지 못했어요.', 'error');
+              say(t('pdfpagenum.err.engine'), 'error');
               return;
             }
             try {
               const doc = await L.PDFDocument.load(await f.arrayBuffer(), { ignoreEncryption: true });
               pageCount = doc.getPages().length;
             } catch {
-              say('PDF 를 열지 못했어요 (암호가 걸려 있을 수 있습니다).', 'error');
+              say(t('pdfpagenum.err.open'), 'error');
               return;
             }
             file = f;
@@ -179,7 +197,7 @@ import { fileSize as size } from './shared/media';
           async function run(): Promise<void> {
             if (!file) return;
             runBtn.disabled = true;
-            say('번호를 넣는 중…');
+            say(t('pdfpagenum.say.numbering'));
             try {
               await Toolbox.ensureScript?.('vendor/pdf-lib.min');
               const L = (window as unknown as { PDFLib: PDFLib }).PDFLib;
@@ -209,19 +227,20 @@ import { fileSize as size } from './shared/media';
               const blob = new Blob([(await doc.save()) as unknown as BlobPart], { type: 'application/pdf' });
               const a = document.createElement('a');
               a.href = URL.createObjectURL(blob);
-              a.download = (file.name || '문서').replace(/\.[^.]+$/, '') + '-쪽번호.pdf';
+              a.download =
+                (file.name || t('pdfpagenum.file.base')).replace(/\.[^.]+$/, '') + t('pdfpagenum.file.suffix') + '.pdf';
               a.click();
               // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
               Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'pdfpagenum' });
               setTimeout(() => URL.revokeObjectURL(a.href), 2000);
               say(
-                `${pages.length - skip}장에 번호를 넣었어요 · ${size(blob.size)}` +
-                  (skip ? ` (앞 ${skip}장은 건너뛰었습니다)` : ''),
+                t('pdfpagenum.say.done', { n: pages.length - skip, size: size(blob.size) }) +
+                  (skip ? t('pdfpagenum.say.doneSkip', { n: skip }) : ''),
                 'ok'
               );
               Toolbox.trackUse?.('number');
             } catch (e) {
-              say((e as Error).message || '번호를 넣지 못했어요.', 'error');
+              say((e as Error).message || t('pdfpagenum.err.generic'), 'error');
             } finally {
               runBtn.disabled = false;
             }
@@ -250,18 +269,19 @@ import { fileSize as size } from './shared/media';
             if (f) void load(f);
           });
           $<HTMLInputElement>('#pnSkip').addEventListener('input', () => {
-            $<HTMLElement>('#pnSkipVal').textContent = $<HTMLInputElement>('#pnSkip').value + '장';
+            $<HTMLElement>('#pnSkipVal').textContent = t('pdfpagenum.value.pages', {
+              n: $<HTMLInputElement>('#pnSkip').value
+            });
             showStats();
           });
           $<HTMLInputElement>('#pnSize').addEventListener('input', () => {
             const v = parseInt($<HTMLInputElement>('#pnSize').value, 10);
-            $<HTMLElement>('#pnSizeVal').textContent = v <= 9 ? '작게' : v <= 13 ? '보통' : '크게';
+            $<HTMLElement>('#pnSizeVal').textContent = t(
+              v <= 9 ? 'pdfpagenum.size.small' : v <= 13 ? 'pdfpagenum.size.normal' : 'pdfpagenum.size.large'
+            );
           });
           $<HTMLInputElement>('#pnRestart').addEventListener('change', showStats);
           $<HTMLSelectElement>('#pnStyle').addEventListener('change', showStats);
           runBtn.onclick = () => void run();
-        }
-      }
-    ]
-  });
+  }
 })();
