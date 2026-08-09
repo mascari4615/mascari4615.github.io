@@ -99,6 +99,8 @@ export interface GroupDef {
   label: string;
   color: string;
   bbox: { x: number; y: number; w: number; h: number };
+  /** 상자를 안 그린다. 소속은 그대로 — 「지금은 이 묶음 말고 저 묶음만 보고 싶다」 (TASK-KL-202 D-3). */
+  hidden?: boolean;
 }
 
 export interface EphemeralAnchor {
