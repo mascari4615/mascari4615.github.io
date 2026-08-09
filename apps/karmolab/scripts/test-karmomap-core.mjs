@@ -514,7 +514,7 @@ const M = await loadModules();
 // 2865 줄짜리 한 덩이를 조각내는 중이다. 자물쇠가 없으면 기능 두어 개면 도로 부푼다 —
 // 지금 크기 + 조금을 상한으로 박아 두고, 줄어들면 상한도 같이 내린다(비율 아니라 실측).
 {
-  const CAP = 2100;
+  const CAP = 1950;
   const file = path.join(root, 'src/lib/graph/canvas.ts');
   const lines = fs.readFileSync(file, 'utf8').split(String.fromCharCode(10)).length;
   check(lines <= CAP, `canvas.ts 가 ${lines}줄 — 상한 ${CAP}줄을 넘었다(새 기능은 조각 파일로 빼라)`);
