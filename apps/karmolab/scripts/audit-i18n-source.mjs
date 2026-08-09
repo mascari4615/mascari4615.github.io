@@ -46,10 +46,55 @@ const KO = /[가-힣]/;
  * 사라져 숫자가 실제보다 작게 나온다 — 그러면 잠금이 헐거워진다. 그래서 문자열을 먼저 만나면
  * 그 문자열을 통째로 건너뛴다.
  */
+/**
+ * 「여기서 `/` 는 나눗셈인가 정규식인가」 — 바로 앞의 뜻 있는 글자로 가른다.
+ * 값이 끝난 자리 뒤면 나눗셈(`a / b`), 그 밖이면 정규식 시작(`(`·`=`·`,`·`return` 뒤 등).
+ */
+function looksLikeRegexStart(code, at) {
+  let j = at - 1;
+  while (j >= 0 && /\s/.test(code[j])) j--;
+  if (j < 0) return true;
+  const p = code[j];
+  if (')]}'.includes(p)) return false; // 값이 끝난 자리 → 나눗셈
+  if (/[A-Za-z0-9_$]/.test(p)) {
+    // `return /…/` 처럼 낱말 뒤면 정규식. 변수 이름 뒤면 나눗셈.
+    let k = j;
+    while (k >= 0 && /[A-Za-z0-9_$]/.test(code[k])) k--;
+    return ['return', 'typeof', 'case', 'in', 'of', 'do', 'else', 'yield', 'await'].includes(code.slice(k + 1, j + 1));
+  }
+  return true;
+}
+
 function countKoreanLiterals(code) {
   let n = 0;
   for (let i = 0; i < code.length; i++) {
     const c = code[i];
+    /* ★ 정규식 리터럴을 건너뛴다 (2026-08-09 실측으로 고침).
+       거의 모든 위젯의 `esc` 가 `.replace(/"/g, '&quot;')` 를 쓴다. 예전 판은 그 `/"` 의
+       따옴표를 **문자열 시작**으로 봤고, 거기서부터 짝이 어긋나 뒤쪽 HTML 속성 따옴표가
+       문자열로 잡혔다 — 태그·코드가 섞인 조각이 「한국어 글자열」로 세어졌다.
+       그래서 **한국어를 하나도 안 늘린 편집도** 근처 코드만 바뀌면 숫자가 흔들렸다
+       (실측: unitconv 조각 7 늘고 6 줄어 순증 1 → 배포가 섰다). */
+    if (c === '/' && code[i + 1] !== '/' && code[i + 1] !== '*' && looksLikeRegexStart(code, i)) {
+      let j = i + 1;
+      let inClass = false;
+      while (j < code.length) {
+        const d = code[j];
+        if (d === '\\') {
+          j += 2;
+          continue;
+        }
+        if (d === '\n') break; // 정규식은 줄을 넘지 않는다 — 잘못 짚었으면 여기서 포기
+        if (d === '[') inClass = true;
+        else if (d === ']') inClass = false;
+        else if (d === '/' && inClass === false) {
+          i = j;
+          break;
+        }
+        j++;
+      }
+      if (i === j) continue;
+    }
     if (c === '/' && code[i + 1] === '/') {
       while (i < code.length && code[i] !== '\n') i++;
       continue;
@@ -62,12 +107,59 @@ function countKoreanLiterals(code) {
     if (c === '"' || c === "'" || c === '`') {
       const quote = c;
       const start = ++i;
+      /* ★ 템플릿 안 `${…}` 는 **다시 코드**다 (2026-08-09 실측으로 고침).
+         그 안에 또 템플릿이 있으면(흔하다: `${rows.map((r) => `<td>…</td>`).join('')}`)
+         예전 판은 **그 안쪽 백틱에서 바깥 템플릿을 끝냈다.** 그 뒤부터 짝이 어긋나서,
+         HTML 속성의 따옴표(`class="…"`)가 문자열 시작으로 잡히고 태그·코드가 섞인 조각이
+         「한국어 글자열」로 세어졌다.
+         그래서 **한국어를 하나도 안 늘린 편집도** 근처 코드만 바뀌면 숫자가 흔들렸다
+         (실측: unitconv 조각 7 늘고 6 줄어 순증 1 → 배포가 섰다).
+         이제 `${` 를 만나면 중괄호 짝을 세어 건너뛴다 — 그 안의 문자열은 따로 판정된다. */
+      let depth = 0;
       while (i < code.length) {
-        if (code[i] === '\\') {
+        const ch = code[i];
+        if (ch === '\\') {
           i += 2;
           continue;
         }
-        if (code[i] === quote) break;
+        if (quote === '`' && ch === '$' && code[i + 1] === '{') {
+          i += 2;
+          depth = 1;
+          // `${…}` 안은 코드다. 중괄호 짝을 세되, 그 안의 문자열·주석도 건너뛴다.
+          while (i < code.length && depth > 0) {
+            const d = code[i];
+            if (d === '{') depth++;
+            else if (d === '}') depth--;
+            else if (d === '"' || d === "'" || d === '`') {
+              const q2 = d;
+              const s2 = ++i;
+              let inner = 0;
+              while (i < code.length) {
+                if (code[i] === '\\') {
+                  i += 2;
+                  continue;
+                }
+                if (q2 === '`' && code[i] === '$' && code[i + 1] === '{') {
+                  i += 2;
+                  inner = 1;
+                  while (i < code.length && inner > 0) {
+                    if (code[i] === '{') inner++;
+                    else if (code[i] === '}') inner--;
+                    i++;
+                  }
+                  continue;
+                }
+                if (code[i] === q2) break;
+                i++;
+              }
+              // 안쪽 문자열도 한국어면 센다 — 실제로 화면에 나가는 글이다.
+              if (KO.test(code.slice(s2, i))) n++;
+            }
+            i++;
+          }
+          continue;
+        }
+        if (ch === quote) break;
         i++;
       }
       /* 한 벌로 훑으며 문자열을 그 자리에서 판정한다. 정규식으로 문자열을 다시 찾으면
