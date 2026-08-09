@@ -106,6 +106,22 @@ export interface GraphCanvasOptions {
   onGroupChanged?: (groupId: string) => void;
 }
 
+/**
+ * 꼬리표 색 — 어두운 판에서도 서로 구별되는 열 가지. 이름을 해시해 고르므로 **같은 말이면 늘 같은 색**이다
+ * (색을 손으로 정하게 하면 꼬리표를 만들 때마다 결정이 하나 늘어난다).
+ * 열 개 남짓으로 묶는 것은 범주형 팔레트의 통설 — 그 이상은 사람이 못 가른다.
+ */
+const TAG_COLORS = [
+  '#f472b6', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa',
+  '#fb7185', '#38bdf8', '#4ade80', '#f59e0b', '#c084fc',
+];
+
+function colorForTag(tag: string): string {
+  let h = 0;
+  for (let i = 0; i < tag.length; i += 1) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  return TAG_COLORS[h % TAG_COLORS.length];
+}
+
 /** 클릭과 드래그를 가르는 이동 거리 (px). */
 const CLICK_SLOP = 4;
 
@@ -235,7 +251,7 @@ export class GraphCanvas {
    * 데이터로 꾸미기 (TASK-KL-202 격차 S). 손으로 하나씩 키우는 대신 **규칙 한 줄**로
    * 「많이 이어진 것이 크다」를 만든다 — 자료가 늘어도 규칙이 알아서 따라간다(Kumu 의 decoration).
    */
-  private decorate: { sizeByDegree: boolean } = { sizeByDegree: false };
+  private decorate: { sizeByDegree: boolean; colorByTag: boolean } = { sizeByDegree: false, colorByTag: false };
   /** 이번 렌더에서 쓸 노드별 연결 수. render 시작 때 한 번만 센다. */
   private degreeCache: Map<string, number> = new Map();
 
@@ -1262,7 +1278,7 @@ export class GraphCanvas {
     );
     g.style.cursor = 'grab';
 
-    const kindColor = this.colorForKind(node.kind);
+    const kindColor = this.nodeColor(node);
     const shape: NodeShape = node.shape ?? 'rect';
 
     // 배경 — 모양에 따라 카드 / 동그라미 / 말풍선.
@@ -2279,9 +2295,25 @@ export class GraphCanvas {
   }
 
   /** 꾸미기 규칙. 지금은 「연결 수만큼 크게」 하나. */
-  setDecorate(next: { sizeByDegree?: boolean }): void {
-    this.decorate = { sizeByDegree: next.sizeByDegree ?? false };
+  setDecorate(next: { sizeByDegree?: boolean; colorByTag?: boolean }): void {
+    this.decorate = {
+      sizeByDegree: next.sizeByDegree ?? false,
+      colorByTag: next.colorByTag ?? false,
+    };
     this.render();
+  }
+
+  /**
+   * 노드 색. 「꼬리표로 색 입히기」가 켜져 있고 꼬리표가 있으면 **첫 꼬리표**의 색을 쓴다.
+   * 꼬리표는 사람이 아무 말이나 붙이는 칸이라 색을 미리 정해 둘 수 없다 — 이름에서 **정해진 방식으로**
+   * 뽑아 쓴다(같은 말이면 언제나 같은 색, 맵을 바꿔도 같다).
+   */
+  private nodeColor(node: GraphNode): string {
+    if (this.decorate.colorByTag) {
+      const tag = (node.tags ?? [])[0];
+      if (tag) return colorForTag(tag);
+    }
+    return this.colorForKind(node.kind);
   }
 
   /** 노드 크기 배율 — 연결이 많을수록 큼(최대 1.6배). 규칙이 꺼져 있으면 항상 1. */
