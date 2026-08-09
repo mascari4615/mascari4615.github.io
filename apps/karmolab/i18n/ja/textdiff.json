@@ -1,0 +1,20 @@
+{
+  "textdiff.tab": "比較",
+  "textdiff.mdd": "どこが変わったか、しっかり見ますね。",
+  "textdiff.label.a": "元 (A)",
+  "textdiff.label.b": "変更後 (B)",
+  "textdiff.ph.a": "元のテキスト",
+  "textdiff.ph.b": "比較するテキスト",
+  "textdiff.btn.swap": "A ↔ B",
+  "textdiff.btn.clear": "消去",
+  "textdiff.view.unified": "統合表示",
+  "textdiff.view.split": "左右に並べて",
+  "textdiff.opt.trim": "行末の空白を無視",
+  "textdiff.opt.case": "大文字小文字を無視",
+  "textdiff.opt.onlyChanged": "変わった行だけ表示",
+  "textdiff.status.idle": "両方にテキストを入れるとすぐ比較します。",
+  "textdiff.status.none": "表示する行がありません。",
+  "textdiff.status.same": "2つのテキストは同じです（{n}行）。",
+  "textdiff.status.diff": "追加 {add}行 · 削除 {del}行 · 同一 {same}行",
+  "textdiff.status.truncated": " · {n}行までを比較しました"
+}

@@ -1,0 +1,20 @@
+{
+  "textdiff.tab": "비교",
+  "textdiff.mdd": "뭐가 달라졌나 눈 크게 뜨고 볼게요.",
+  "textdiff.label.a": "원본 (A)",
+  "textdiff.label.b": "변경본 (B)",
+  "textdiff.ph.a": "원본 텍스트",
+  "textdiff.ph.b": "비교할 텍스트",
+  "textdiff.btn.swap": "A ↔ B",
+  "textdiff.btn.clear": "지우기",
+  "textdiff.view.unified": "통합 보기",
+  "textdiff.view.split": "나란히 보기",
+  "textdiff.opt.trim": "줄 끝 공백 무시",
+  "textdiff.opt.case": "대소문자 무시",
+  "textdiff.opt.onlyChanged": "바뀐 줄만 보기",
+  "textdiff.status.idle": "두 쪽에 텍스트를 넣으면 바로 비교합니다.",
+  "textdiff.status.none": "표시할 줄이 없어요.",
+  "textdiff.status.same": "두 텍스트가 같습니다 ({n}줄).",
+  "textdiff.status.diff": "추가 {add}줄 · 삭제 {del}줄 · 동일 {same}줄",
+  "textdiff.status.truncated": " · {n}줄까지만 비교했어요"
+}

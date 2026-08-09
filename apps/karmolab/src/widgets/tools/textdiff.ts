@@ -2,6 +2,8 @@
  * 텍스트 비교 (TASK-KL-088) — 줄 단위 LCS diff.
  * O(n·m) DP 라 아주 큰 입력에서는 잘라낸다 (브라우저가 얼어붙는 편보다 잘린 결과가 낫다).
  */
+import { t, loadNamespace, locale } from '../../lib/i18n';
+
 (function (): void {
   const MAX_LINES = 2000;
 
@@ -103,47 +105,61 @@
 
   Toolbox.register({
     id: 'textdiff',
-    title: '텍스트 비교',
+    title: t('widgets.textdiff.title', undefined, '텍스트 비교'),
     category: 'tool',
-    desc: '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)',
+    desc: t(
+      'widgets-desc.textdiff.desc',
+      undefined,
+      '두 텍스트·코드의 달라진 줄을 찾아 색으로 표시합니다 (추가 / 삭제 / 동일)'
+    ),
     layout: 'wide',
     icon: '<path d="M4 4h7v16H4zM13 4h7v16h-7z" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 9h3M6 13h3M15 11h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '비교',
+        label: t('textdiff.tab', undefined, '비교'),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '뭐가 달라졌나 눈 크게 뜨고 볼게요.' });
+          void loadNamespace('textdiff').then(function () {
+            draw(container);
+          });
+        }
+      }
+    ]
+  });
+
+  /** 그리기는 **말 묶음이 온 뒤**에. */
+  function draw(container: HTMLElement): void {
+          Mdd.linePreset('tool_run', { msg: t('textdiff.mdd') });
           container.innerHTML = `
             <div class="tool-split">
               <div class="tool-split-pane">
-                <label class="field-label">원본 (A)</label>
-                <textarea id="tdA" class="mono-input" placeholder="원본 텍스트" style="min-height:200px;"></textarea>
+                <label class="field-label">${esc(t('textdiff.label.a'))}</label>
+                <textarea id="tdA" class="mono-input" placeholder="${esc(t('textdiff.ph.a'))}" style="min-height:200px;"></textarea>
               </div>
               <div class="tool-split-pane">
-                <label class="field-label">변경본 (B)</label>
-                <textarea id="tdB" class="mono-input" placeholder="비교할 텍스트" style="min-height:200px;"></textarea>
+                <label class="field-label">${esc(t('textdiff.label.b'))}</label>
+                <textarea id="tdB" class="mono-input" placeholder="${esc(t('textdiff.ph.b'))}" style="min-height:200px;"></textarea>
               </div>
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:var(--space-lg) 0;">
               <!-- 붙여넣고 또 눌러야 나오던 것을 없앴다 — 넣는 대로 비교한다 (TASK-KL-133). -->
               <button class="btn btn-ghost" id="tdSwap">A ↔ B</button>
-              <button class="btn btn-ghost" id="tdClear">지우기</button>
+              <button class="btn btn-ghost" id="tdClear">${esc(t('textdiff.btn.clear'))}</button>
               <div class="tool-chips" id="tdView" style="margin:0;">
-                <button type="button" class="tool-chip active" data-view="unified">통합 보기</button>
-                <button type="button" class="tool-chip" data-view="split">나란히 보기</button>
+                <button type="button" class="tool-chip active" data-view="unified">${esc(t('textdiff.view.unified'))}</button>
+                <button type="button" class="tool-chip" data-view="split">${esc(t('textdiff.view.split'))}</button>
               </div>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                <input type="checkbox" id="tdTrim" style="width:auto;" checked> 줄 끝 공백 무시
+                <input type="checkbox" id="tdTrim" style="width:auto;" checked> ${esc(t('textdiff.opt.trim'))}
               </label>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                <input type="checkbox" id="tdCase" style="width:auto;"> 대소문자 무시
+                <input type="checkbox" id="tdCase" style="width:auto;"> ${esc(t('textdiff.opt.case'))}
               </label>
               <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-xs); color:var(--text-secondary);">
-                <input type="checkbox" id="tdOnlyChanged" style="width:auto;"> 바뀐 줄만 보기
+                <input type="checkbox" id="tdOnlyChanged" style="width:auto;"> ${esc(t('textdiff.opt.onlyChanged'))}
               </label>
             </div>
-            <div class="tool-status" id="tdSummary">두 쪽에 텍스트를 넣으면 바로 비교합니다.</div>
+            <div class="tool-status" id="tdSummary">${esc(t('textdiff.status.idle'))}</div>
             <div id="tdOut" class="td-out"></div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -231,14 +247,17 @@
               })
               .join('');
             out.className = 'td-out' + (나란히 ? ' td-out-split' : '');
-            out.innerHTML = rows || '<div class="tool-status">표시할 줄이 없어요.</div>';
+            out.innerHTML = rows || `<div class="tool-status">${esc(t('textdiff.status.none'))}</div>`;
             const same = ops.length - add - del;
             summary.className = 'tool-status ' + (add + del === 0 ? 'ok' : '');
             summary.textContent =
               add + del === 0
-                ? `두 텍스트가 같습니다 (${same.toLocaleString('ko-KR')}줄).`
-                : `추가 ${add.toLocaleString('ko-KR')}줄 · 삭제 ${del.toLocaleString('ko-KR')}줄 · 동일 ${same.toLocaleString('ko-KR')}줄` +
-                  (truncated ? ` · ${MAX_LINES}줄까지만 비교했어요` : '');
+                ? t('textdiff.status.same', { n: same.toLocaleString(locale()) })
+                : t('textdiff.status.diff', {
+                    add: add.toLocaleString(locale()),
+                    del: del.toLocaleString(locale()),
+                    same: same.toLocaleString(locale())
+                  }) + (truncated ? t('textdiff.status.truncated', { n: MAX_LINES }) : '');
           }
 
           /* 줄이 많을수록 비교가 무겁다. 글자를 칠 때마다 하지 않고, 손이 멎으면 한 번 한다. */
@@ -271,7 +290,7 @@
             A.value = '';
             B.value = '';
             out.innerHTML = '';
-            summary.textContent = '두 쪽에 텍스트를 넣으면 바로 비교합니다.';
+            summary.textContent = t('textdiff.status.idle');
             summary.className = 'tool-status';
             counted = false;
           };
@@ -280,8 +299,5 @@
               if (A.value || B.value) run();
             })
           );
-        }
-      }
-    ]
-  });
+  }
 })();
