@@ -1,0 +1,18 @@
+{
+  "palette.tab": "Extract",
+  "palette.drop": "Drop an image here or click to choose one",
+  "palette.alt.preview": "The chosen image",
+  "palette.label.count": "How many colours",
+  "palette.value.count": "8 colours",
+  "palette.btn.hex": "Copy every HEX",
+  "palette.btn.css": "Copy as CSS variables",
+  "palette.status.idle": "The image is processed in your browser only and is never sent anywhere.",
+  "palette.err.allTransparent": "No pixel has a colour to read (the image is fully transparent).",
+  "palette.err.notImage": "Only image files can be opened.",
+  "palette.err.open": "Could not open the image.",
+  "palette.copy.hex": "HEX values copied",
+  "palette.copy.css": "CSS variables copied",
+  "palette.say.done": "{n} colours extracted · click a colour to copy its HEX.",
+  "palette.copy.one": "Copied: {v}",
+  "palette.value.colors": "{n} colours"
+}

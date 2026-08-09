@@ -1,0 +1,22 @@
+{
+  "replace.label.in": "Original",
+  "replace.ph.in": "Paste the text you want to change",
+  "replace.label.find": "Find",
+  "replace.ph.find": "what to look for",
+  "replace.label.to": "Replace with — empty means delete",
+  "replace.ph.to": "what to put there",
+  "replace.opt.case": "Match case",
+  "replace.opt.word": "Whole words only",
+  "replace.opt.regex": "Regular expression",
+  "replace.label.preview": "Preview — the hits are marked",
+  "replace.btn.apply": "Replace",
+  "replace.btn.copy": "Copy the result",
+  "replace.btn.undo": "Undo",
+  "replace.status.idle": "Type what to find and the hits show up first.",
+  "replace.err.regex": "Could not read the regular expression.",
+  "replace.say.noHit": "Nothing matches.",
+  "replace.say.applied": "Replaced. Undo takes you back to the previous state.",
+  "replace.copy.done": "Result copied",
+  "replace.say.hits": "{n} places match. Hit replace to apply it.",
+  "replace.tab": "Find and replace"
+}

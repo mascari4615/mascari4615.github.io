@@ -7,8 +7,12 @@
  * 이미지는 브라우저 안에서만 읽고 어디로도 보내지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   type RGB = [number, number, number];
 
   function medianCut(pixels: RGB[], depth: number): RGB[] {
@@ -58,39 +62,41 @@ import { acceptPastedFiles } from './shared/paste';
 
   Toolbox.register({
     id: 'palette',
-    title: '이미지 색상 추출',
+    title: t('widgets.palette.title', undefined, "이미지 색상 추출"),
     category: 'tool',
-    desc: '사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사',
+    desc: t('widgets-desc.palette.desc', undefined, "사진에서 대표 색을 뽑아 HEX·RGB 팔레트로 보여줍니다. CSS 변수로도 한 번에 복사"),
     layout: 'wide',
     icon: '<path d="M12 3a9 9 0 1 0 0 18h2a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h2a5 5 0 0 0-3-8z" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="8" cy="10" r="1.3" fill="currentColor"/><circle cx="12" cy="7" r="1.3" fill="currentColor"/><circle cx="7" cy="14" r="1.3" fill="currentColor"/>',
     tabs: [
       {
         id: 'app',
-        label: '추출',
+        label: t('palette.tab', undefined, "추출"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('palette').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="plDrop">
               <input type="file" id="plFile" accept="image/*" hidden>
-              이미지를 끌어다 놓거나 눌러서 선택하세요
+              ${esc(t('palette.drop'))}
             </div>
 
             <div class="field-group" style="margin-top:var(--space-lg);">
-              <div class="tool-sublabel">뽑을 색 개수 <span id="plCountVal" class="range-value">8색</span></div>
-              <input type="range" id="plCount" aria-label="뽑을 색 개수" min="2" max="6" value="3">
+              <div class="tool-sublabel">${esc(t('palette.label.count'))} <span id="plCountVal" class="range-value">${esc(t('palette.value.count'))}</span></div>
+              <input type="range" id="plCount" aria-label="${esc(t('palette.label.count'))}" min="2" max="6" value="3">
             </div>
 
             <div id="plPreviewWrap" style="display:none; margin-bottom:var(--space-lg);">
-              <img id="plPreview" alt="선택한 이미지" style="max-width:100%; max-height:220px; border-radius:8px; display:block;">
+              <img id="plPreview" alt="${esc(t('palette.alt.preview'))}" style="max-width:100%; max-height:220px; border-radius:8px; display:block;">
             </div>
 
             <div class="cc-swatch-row" id="plSwatches"></div>
 
             <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-              <button class="btn btn-ghost" id="plCopyHex">HEX 전부 복사</button>
-              <button class="btn btn-ghost" id="plCopyCss">CSS 변수로 복사</button>
+              <button class="btn btn-ghost" id="plCopyHex">${esc(t('palette.btn.hex'))}</button>
+              <button class="btn btn-ghost" id="plCopyCss">${esc(t('palette.btn.css'))}</button>
             </div>
 
-            <div class="tool-status" id="plStatus">이미지는 브라우저 안에서만 처리되고 어디로도 전송되지 않습니다.</div>
+            <div class="tool-status" id="plStatus">${esc(t('palette.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -124,13 +130,13 @@ import { acceptPastedFiles } from './shared/paste';
               pixels.push([data[i], data[i + 1], data[i + 2]]);
             }
             if (!pixels.length) {
-              status.textContent = '색을 읽을 수 있는 픽셀이 없어요 (전부 투명한 이미지).';
+              status.textContent = t('palette.err.allTransparent');
               status.className = 'tool-status error';
               return;
             }
             current = medianCut(pixels, parseInt(countEl.value, 10));
             render();
-            status.textContent = `${current.length}색 추출 · 색을 누르면 HEX 가 복사됩니다.`;
+            status.textContent = t('palette.say.done', { n: current.length });
             status.className = 'tool-status ok';
             Toolbox.trackUse?.('extract');
           }
@@ -148,14 +154,14 @@ import { acceptPastedFiles } from './shared/paste';
             swatches.querySelectorAll('[data-hex]').forEach((el) => {
               (el as HTMLButtonElement).onclick = () => {
                 const v = (el as HTMLElement).dataset.hex || '';
-                void Toolbox.copyText?.(v, { message: `복사: ${v}` });
+                void Toolbox.copyText?.(v, { message: t('palette.copy.one', { v }) });
               };
             });
           }
 
           function load(f: File): void {
             if (!f.type.startsWith('image/')) {
-              status.textContent = '이미지 파일만 열 수 있어요.';
+              status.textContent = t('palette.err.notImage');
               status.className = 'tool-status error';
               return;
             }
@@ -168,7 +174,7 @@ import { acceptPastedFiles } from './shared/paste';
               extract(img);
             };
             img.onerror = () => {
-              status.textContent = '이미지를 열지 못했어요.';
+              status.textContent = t('palette.err.open');
               status.className = 'tool-status error';
               URL.revokeObjectURL(url);
             };
@@ -176,10 +182,10 @@ import { acceptPastedFiles } from './shared/paste';
           }
 
           countEl.addEventListener('input', () => {
-            countVal.textContent = `${Math.pow(2, parseInt(countEl.value, 10))}색`;
+            countVal.textContent = t('palette.value.colors', { n: Math.pow(2, parseInt(countEl.value, 10)) });
             if (lastImage) extract(lastImage);
           });
-          countVal.textContent = `${Math.pow(2, parseInt(countEl.value, 10))}색`;
+          countVal.textContent = t('palette.value.colors', { n: Math.pow(2, parseInt(countEl.value, 10)) });
 
           drop.onclick = () => file.click();
           file.onchange = () => {
@@ -213,13 +219,14 @@ import { acceptPastedFiles } from './shared/paste';
 
           $<HTMLButtonElement>('#plCopyHex').onclick = async () => {
             if (!current.length) return;
-            await Toolbox.copyText?.(current.map(hex).join(', '), { message: 'HEX 를 복사했어요' });
+            await Toolbox.copyText?.(current.map(hex).join(', '), { message: t('palette.copy.hex') });
           };
           $<HTMLButtonElement>('#plCopyCss').onclick = async () => {
             if (!current.length) return;
             const css = ':root {\n' + current.map((c, i) => `  --color-${i + 1}: ${hex(c)};`).join('\n') + '\n}';
-            await Toolbox.copyText?.(css, { message: 'CSS 변수를 복사했어요' });
+            await Toolbox.copyText?.(css, { message: t('palette.copy.css') });
           };
+                  });
         }
       }
     ]

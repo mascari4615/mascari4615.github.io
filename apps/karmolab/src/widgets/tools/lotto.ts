@@ -2,7 +2,12 @@
  * 로또 번호 생성기 (TASK-KL-088) — 1~45 중복 없는 6개 + 보너스.
  * 제외수·고정수·홀짝 균형 조건을 만족할 때까지 재추첨 (최대 시도 후 조건 완화 안내).
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const BALL_COLOR = (n: number): string => {
     if (n <= 10) return '#fbc400';
     if (n <= 20) return '#69c8f2';
@@ -31,63 +36,65 @@
 
   Toolbox.register({
     id: 'lotto',
-    title: '로또 번호 생성',
+    title: t('widgets.lotto.title', undefined, "로또 번호 생성"),
     category: 'tool',
-    desc: '1~45 로또 번호를 원하는 게임 수만큼 뽑습니다. 제외수·고정수·홀짝 조건 지원',
+    desc: t('widgets-desc.lotto.desc', undefined, "1~45 로또 번호를 원하는 게임 수만큼 뽑습니다. 제외수·고정수·홀짝 조건 지원"),
     layout: 'form',
     icon: '<circle cx="8" cy="9" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16" cy="15" r="4" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M8 7v4M6 9h4" stroke="currentColor" stroke-width="1.4"/>',
     tabs: [
       {
         id: 'app',
-        label: '로또',
+        label: t('lotto.tab', undefined, "로또"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '당첨되면 저도 좀... 농담이에요!' });
+          void loadNamespace('lotto').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('lotto.mdd') });
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">게임 수 <span id="ltCountVal" class="range-value">5게임</span></div>
-                  <input type="range" id="ltCount" aria-label="게임 수" min="1" max="20" value="5">
+                  <div class="tool-sublabel">${esc(t('lotto.label.count'))} <span id="ltCountVal" class="range-value">${esc(t('lotto.value.games'))}</span></div>
+                  <input type="range" id="ltCount" aria-label="${esc(t('lotto.label.count'))}" min="1" max="20" value="5">
                 </div>
                 <div>
-                  <div class="tool-sublabel">보너스 번호</div>
+                  <div class="tool-sublabel">${esc(t('lotto.label.bonus'))}</div>
                   <label style="display:flex; align-items:center; gap:6px; font-size:var(--font-size-sm); color:var(--text-secondary); height:38px;">
-                    <input type="checkbox" id="ltBonus" style="width:auto;" checked> 함께 뽑기
+                    <input type="checkbox" id="ltBonus" style="width:auto;" checked> ${esc(t('lotto.opt.bonusOn'))}
                   </label>
                 </div>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">조건 (선택)</label>
+              <label class="field-label">${esc(t('lotto.label.rules'))}</label>
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">고정수 — 항상 포함 (최대 5개)</div>
-                  <input type="text" id="ltInclude" placeholder="예) 7, 13">
+                  <div class="tool-sublabel">${esc(t('lotto.label.include'))}</div>
+                  <input type="text" id="ltInclude" placeholder="${esc(t('lotto.ph.include'))}">
                 </div>
                 <div>
-                  <div class="tool-sublabel">제외수 — 절대 제외</div>
-                  <input type="text" id="ltExclude" placeholder="예) 1, 2, 3">
+                  <div class="tool-sublabel">${esc(t('lotto.label.exclude'))}</div>
+                  <input type="text" id="ltExclude" placeholder="${esc(t('lotto.ph.exclude'))}">
                 </div>
               </div>
               <div style="margin-top:10px;">
-                <div class="tool-sublabel">홀짝 균형</div>
-                <select id="ltParity" aria-label="홀짝 균형">
-                  <option value="any">상관없음</option>
-                  <option value="balanced">홀짝 2:4 ~ 4:2 (흔한 패턴)</option>
-                  <option value="odd">홀수 많게</option>
-                  <option value="even">짝수 많게</option>
+                <div class="tool-sublabel">${esc(t('lotto.label.parity'))}</div>
+                <select id="ltParity" aria-label="${esc(t('lotto.label.parity'))}">
+                  <option value="any">${esc(t('lotto.opt.any'))}</option>
+                  <option value="balanced">${esc(t('lotto.opt.balanced'))}</option>
+                  <option value="odd">${esc(t('lotto.opt.odd'))}</option>
+                  <option value="even">${esc(t('lotto.opt.even'))}</option>
                 </select>
               </div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:var(--space-lg); flex-wrap:wrap;">
-              <button class="btn btn-primary" id="ltDraw">번호 뽑기</button>
-              <button class="btn btn-ghost" id="ltCopy">전체 복사</button>
+              <button class="btn btn-primary" id="ltDraw">${esc(t('lotto.btn.draw'))}</button>
+              <button class="btn btn-ghost" id="ltCopy">${esc(t('lotto.btn.copy'))}</button>
             </div>
 
             <div id="ltResult"></div>
-            <div class="tool-status" id="ltStatus">완전 무작위(Math.random) 추첨입니다. 재미로만 봐주세요.</div>
+            <div class="tool-status" id="ltStatus">${esc(t('lotto.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -97,7 +104,7 @@
           const status = $<HTMLElement>('#ltStatus');
 
           countInput.addEventListener('input', () => {
-            countVal.textContent = countInput.value + '게임';
+            countVal.textContent = countInput.value + t('lotto.unit.games');
           });
 
           function parityOk(nums: number[]): boolean {
@@ -119,7 +126,7 @@
             const excludeArr = parseNums($<HTMLInputElement>('#ltExclude').value).filter((n) => include.indexOf(n) < 0);
             const exclude = new Set(excludeArr);
             if (45 - exclude.size < 6) {
-              status.textContent = '제외수가 너무 많아요. 최소 6개는 남겨 주세요.';
+              status.textContent = t('lotto.err.tooManyExcluded');
               status.className = 'tool-status error';
               return;
             }
@@ -154,13 +161,13 @@
                   ? `<span class="lt-plus">+</span><span class="lt-ball lt-ball-bonus" style="background:${BALL_COLOR(bonus)}">${bonus}</span>`
                   : '';
               rows.push(
-                `<div class="lt-row"><span class="lt-index">${g + 1}게임</span><div class="lt-balls">${balls}${bonusHtml}</div></div>`
+                `<div class="lt-row"><span class="lt-index">${esc(t('lotto.value.game', { n: g + 1 }))}</span><div class="lt-balls">${balls}${bonusHtml}</div></div>`
               );
             }
             result.innerHTML = rows.join('');
             status.textContent = relaxed
-              ? '홀짝 조건을 만족하는 조합을 못 찾아 일부 게임은 조건 없이 뽑았어요.'
-              : `${games}게임 추첨 완료 · 완전 무작위입니다.`;
+              ? t('lotto.warn.parity')
+              : t('lotto.say.done', { n: games });
             status.className = 'tool-status' + (relaxed ? '' : ' ok');
             Toolbox.incrementProgress?.('lotto_draws', games);
             Toolbox.trackUse?.('draw');
@@ -176,10 +183,11 @@
               })
               .join('\n');
             if (!text) return;
-            await Toolbox.copyText?.(text, { message: '번호를 복사했어요' });
+            await Toolbox.copyText?.(text, { message: t('lotto.copy.done') });
           };
 
           run();
+                  });
         }
       }
     ]

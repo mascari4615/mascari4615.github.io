@@ -1,0 +1,18 @@
+{
+  "palette.tab": "抽出",
+  "palette.drop": "画像をドラッグするか、押して選んでください",
+  "palette.alt.preview": "選んだ画像",
+  "palette.label.count": "取り出す色の数",
+  "palette.value.count": "8色",
+  "palette.btn.hex": "HEX を全部コピー",
+  "palette.btn.css": "CSS 変数としてコピー",
+  "palette.status.idle": "画像はブラウザの中だけで処理され、どこにも送られません。",
+  "palette.err.allTransparent": "色を読めるピクセルがありません（全部透明な画像です）。",
+  "palette.err.notImage": "画像ファイルだけ開けます。",
+  "palette.err.open": "画像を開けませんでした。",
+  "palette.copy.hex": "HEX をコピーしました",
+  "palette.copy.css": "CSS 変数をコピーしました",
+  "palette.say.done": "{n}色を取り出しました · 色を押すと HEX がコピーされます。",
+  "palette.copy.one": "コピー: {v}",
+  "palette.value.colors": "{n}色"
+}
