@@ -126,6 +126,25 @@
   /** 긴 작업 관찰자가 아예 없는 브라우저(사파리)와 「하나도 없었다」를 가른다. */
   let longTaskSupported = false;
   let lcpMs: number | null = null;
+  /**
+   * 화면이 밀린 사건 하나 (TASK-KL-201 ⑥ — Layout Instability).
+   *
+   * 「눌렀는데 딴 게 눌렸다」의 정체다. 총점(CLS)만 있으면 고칠 수가 없다 — **무엇이** 밀었는지가
+   * 있어야 한다. 브라우저가 `sources[]` 로 밀린 요소를 주는데, 그 노드는 곧 사라지므로
+   * 콜백 안에서 즉시 글자로 굳힌다.
+   */
+  interface ShiftEntry {
+    at: number;
+    value: number;
+    /** 사용자가 방금 뭘 눌러서 난 이동인가 (그건 대개 의도된 것이다). */
+    afterInput: boolean;
+    /** 밀린 것들. */
+    who: string[];
+  }
+
+  const shifts: ShiftEntry[] = [];
+  let shiftSupported = false;
+
   const slowFrames: SlowFrameEntry[] = [];
   let loafSupported = false;
   /** `interactionId` → 그 조작의 **제일 나쁜** 조각. 한 번 누름이 여러 엔트리로 쪼개져 온다. */
@@ -200,6 +219,30 @@
     } catch {
       return url.slice(0, 40);
     }
+  }
+
+  try {
+    const shiftObserver = new PerformanceObserver((list) => {
+      for (const item of list.getEntries()) {
+        const shift = item as PerformanceEntry & {
+          value?: number;
+          hadRecentInput?: boolean;
+          sources?: Array<{ node?: Node }>;
+        };
+        if (shifts.length >= 200) shifts.shift();
+        shifts.push({
+          at: shift.startTime,
+          value: shift.value || 0,
+          afterInput: !!shift.hadRecentInput,
+          /* 노드는 곧 사라진다 — 나중에 읽으면 전부 「모름」이 된다. 지금 굳힌다. */
+          who: (shift.sources || []).map((source) => describe(source.node)).filter(Boolean).slice(0, 3),
+        });
+      }
+    });
+    shiftObserver.observe({ type: 'layout-shift', buffered: true });
+    shiftSupported = true;
+  } catch {
+    /* 크로미움 밖 — 「안 밀렸다」가 아니라 「못 잼」. */
   }
 
   try {
@@ -350,6 +393,50 @@
     if (restoredFromCache) return { ok: false, why: '뒤로가기로 되살아난 판이다 (다시 안 그렸다)' };
     if (nav?.activationStart) return { ok: false, why: '미리 그려 둔 판이다 (시계의 0 이 다르다)' };
     return { ok: true, why: '' };
+  }
+
+  /**
+   * CLS — 「화면이 얼마나 밀렸나」 (TASK-KL-201 ⑥).
+   *
+   * 전부 더하지 않는다. 표준 규약은 **제일 나쁜 구간 하나**다: 이동들을 5초 창(사이가 1초
+   * 넘게 비면 새 창)으로 묶고 그중 합이 제일 큰 창을 값으로 삼는다. 그냥 더하면 오래 열어 둔
+   * 화면일수록 나쁜 점수가 나와서, 페이지를 오래 보는 것 자체가 벌점이 된다.
+   *
+   * 사용자가 방금 뭘 눌러서 난 이동은 뺀다 — 그건 대개 의도한 것이다(탭 펼치기 등).
+   */
+  function clsValue(): number | null {
+    if (!shiftSupported) return null;
+    const rows = shifts.filter((s) => !s.afterInput);
+    let best = 0;
+    let sum = 0;
+    let first = 0;
+    let last = 0;
+    for (const row of rows) {
+      if (sum && (row.at - first > 5000 || row.at - last > 1000)) {
+        best = Math.max(best, sum);
+        sum = 0;
+      }
+      if (!sum) first = row.at;
+      last = row.at;
+      sum += row.value;
+    }
+    return Math.max(best, sum);
+  }
+
+  /** 무엇이 얼마나 밀었나 — 고칠 대상을 이름으로 준다. */
+  function shiftCulprits(): Array<{ who: string; value: number; count: number }> | null {
+    if (!shiftSupported) return null;
+    const sum = new Map<string, { who: string; value: number; count: number }>();
+    for (const row of shifts) {
+      if (row.afterInput) continue;
+      for (const who of row.who.length ? row.who : ['(브라우저가 안 알려 줌)']) {
+        const acc = sum.get(who) || { who, value: 0, count: 0 };
+        acc.value += row.value / (row.who.length || 1);
+        acc.count += 1;
+        sum.set(who, acc);
+      }
+    }
+    return Array.from(sum.values()).sort((a, b) => b.value - a.value);
   }
 
   /** 파일#함수 별로 합친 「주 스레드를 얼마나 잡았나」 순위 (TASK-KL-201 ③). */
@@ -638,6 +725,10 @@
       trust: trust(),
       inp: inpMs(),
       presentationFloorMs: presentationFloorMs(),
+      cls: clsValue(),
+      shiftCulprits: shiftCulprits(),
+      /* 판별 부팅을 **분포**로 (RUM 관행) — 한 번 재고 「빨라졌다」는 말은 못 한다. */
+      buildStats: buildStats(),
       /* 도메인별로 묶은 요약 — 「남의 것이 우리 것보다 무겁나」는 파일 하나씩 봐서는 안 보인다. */
       hosts: hostSummary(),
       slowFrames: loafSupported ? slowFrames.slice().sort((a, b) => b.ms - a.ms) : null,
@@ -655,6 +746,43 @@
       longTasks: longTaskSupported ? longTasks.slice() : null,
       boots: readBoots(),
     };
+  }
+
+  /**
+   * 판(배포)별 부팅 **분포** (TASK-KL-201 ⑦ — RUM 관행).
+   *
+   * 한 번 재고 「이번 판이 빨라졌다」는 말은 못 한다. 같은 코드도 기계가 바쁘면 두 배가 난다.
+   * 그래서 판마다 중앙값(p50)과 나쁜 쪽(p75)을 **샘플 수와 함께** 낸다 — 표본이 2~3개면
+   * 숫자를 보여 주되 「아직 못 믿는다」는 뜻으로 수를 같이 읽게 한다.
+   *
+   * 못 믿을 줄(안 보이는 탭·되살아난 판)은 **뺀다**. 그건 코드와 무관한 값이라 섞으면
+   * 분포가 통째로 거짓이 된다.
+   */
+  function buildStats(): Array<{ build: string; commit: string; n: number; readyP50: number | null; readyP75: number | null; lcpP50: number | null; lastAt: string }> {
+    const groups = new Map<string, BootRow[]>();
+    for (const row of readBoots()) {
+      if (row.trusted === false) continue;
+      const key = row.build || '(모름)';
+      const list = groups.get(key) || [];
+      list.push(row);
+      groups.set(key, list);
+    }
+    const pick = (values: Array<number | null>, ratio: number): number | null => {
+      const sorted = values.filter((v): v is number => typeof v === 'number').sort((a, b) => a - b);
+      if (!sorted.length) return null;
+      return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))];
+    };
+    return Array.from(groups.entries())
+      .map(([build, rows]) => ({
+        build,
+        commit: rows[rows.length - 1].commit,
+        n: rows.length,
+        readyP50: pick(rows.map((r) => r.ready), 0.5),
+        readyP75: pick(rows.map((r) => r.ready), 0.75),
+        lcpP50: pick(rows.map((r) => r.lcp), 0.5),
+        lastAt: rows[rows.length - 1].at,
+      }))
+      .sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1));
   }
 
   function clearBoots(): void {

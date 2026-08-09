@@ -71,6 +71,12 @@
       builds: number; scripts: string[]; bytes: number | null; scriptMs: number | null;
     }>;
     presentationFloorMs: number | null;
+    cls: number | null;
+    shiftCulprits: Array<{ who: string; value: number; count: number }> | null;
+    buildStats: Array<{
+      build: string; commit: string; n: number;
+      readyP50: number | null; readyP75: number | null; lcpP50: number | null; lastAt: string;
+    }>;
     hosts: Array<{ host: string; count: number; bytes: number | null; ms: number; ours: boolean }>;
     resources: Array<{
       url: string; kind: string; ms: number; bytes: number | null; transferred: number | null;
@@ -216,6 +222,11 @@
                 snap.interactions == null
                   ? '이 브라우저는 안 알려 줌'
                   : `${snap.interactions.length}번 만짐 · 200ms 넘으면 답답함`,
+              ],
+              [
+                '화면 밀림 (CLS)',
+                snap.cls == null ? '못 잼' : snap.cls.toFixed(3),
+                snap.cls == null ? '이 브라우저는 안 알려 줌' : '0.1 넘으면 눌렀는데 딴 게 눌린다',
               ],
               [
                 '자바스크립트 메모리',
@@ -440,6 +451,52 @@
                 .join('')}</tbody></table></div>`;
           }
 
+          /** 무엇이 화면을 밀었나 (TASK-KL-201 ⑥). */
+          function shiftTable(snap: Snap): string {
+            if (snap.shiftCulprits == null) {
+              return '<div class="pf-none">이 브라우저는 화면 밀림을 안 알려 줍니다. <b>0 이 아니라 못 잰 것</b>입니다.</div>';
+            }
+            if (!snap.shiftCulprits.length) {
+              return '<div class="pf-none">사용자 조작과 무관하게 밀린 곳이 없습니다.</div>';
+            }
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>밀린 것</th><th>밀림 값</th><th>횟수</th></tr></thead>
+              <tbody>${snap.shiftCulprits
+                .slice(0, 10)
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.who)}</td>
+                    <td${tone(row.value, 0.05, 0.1)}>${row.value.toFixed(4)}</td>
+                    <td>${row.count}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">누른 직후의 이동(탭 펼치기 등)은 뺐습니다 — 그건 대개 의도한 것입니다. 총점은 <b>제일 나쁜 5초 구간</b>만 셉니다(다 더하면 오래 켜 둘수록 나쁜 점수가 나옵니다).</p>`;
+          }
+
+          /** 판별 분포 — 한 번 재고 「빨라졌다」는 말은 못 한다 (TASK-KL-201 ⑦). */
+          function buildStatsTable(snap: Snap): string {
+            if (!snap.buildStats.length) {
+              return '<div class="pf-none">믿을 만한 부팅 기록이 아직 없습니다.</div>';
+            }
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>판</th><th>커밋</th><th>표본</th><th>셸 준비 p50</th><th>나쁜 쪽 p75</th><th>큰 그림 p50</th></tr></thead>
+              <tbody>${snap.buildStats
+                .slice(0, 8)
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.build.slice(0, 8))}</td>
+                    <td>${esc(row.commit || '—')}</td>
+                    <td${row.n < 3 ? ' data-tone="warn"' : ''}>${row.n}${row.n < 3 ? ' (적음)' : ''}</td>
+                    <td${tone(row.readyP50, 1200, 2500)}>${ms(row.readyP50)}</td>
+                    <td${tone(row.readyP75, 1500, 3000)}>${ms(row.readyP75)}</td>
+                    <td>${ms(row.lcpP50)}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">표본이 3회 미만인 줄은 <b>아직 못 믿습니다</b> — 같은 코드도 기계가 바쁘면 두 배가 납니다. 못 믿을 판(안 보이는 탭·되살아난 판)은 애초에 빠져 있습니다.</p>`;
+          }
+
           function boots(snap: Snap): string {
             const rows = snap.boots.slice().reverse().slice(0, 12);
             if (!rows.length) {
@@ -543,7 +600,17 @@
               html: longTasks,
             },
             {
-              key: 'boots', title: '판별 부팅 — 고친 게 진짜 빨라졌나',
+              key: 'shift', title: '화면 밀림 — 무엇이 밀었나',
+              note: '「눌렀는데 딴 게 눌렸다」의 정체. 총점만으로는 못 고칩니다 — <b>무엇이</b> 밀었는지가 있어야 합니다.',
+              html: shiftTable,
+            },
+            {
+              key: 'buildstats', title: '판별 분포 — 진짜 빨라졌나',
+              note: '한 번 재고 「빨라졌다」는 말은 못 합니다. 판마다 중앙값(p50)·나쁜 쪽(p75)을 <b>표본 수와 함께</b> 봅니다.',
+              html: buildStatsTable,
+            },
+            {
+              key: 'boots', title: '판별 부팅 — 매 회 기록',
               note: '이 브라우저에 남은 최근 부팅 40회. 판(build)이 바뀐 줄끼리 비교하면 그 배포가 부팅을 어떻게 바꿨는지 보입니다.',
               html: boots,
             },
