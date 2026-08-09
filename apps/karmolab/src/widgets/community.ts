@@ -2081,15 +2081,10 @@ import { renderMarkdown, plainPreview, escapeHtml as escapeMd } from './communit
         if (host?.isConnected) void render();
     });
 
+    /* 메타(이름·분류·아이콘)는 `widgets-lazy-meta.ts` 한 곳에 산다 — 여기서 또 적으면
+       목록에 뜨는 이름과 열었을 때 이름이 갈라진다. 넓게 쓰고 제목 카드는 안 그린다(noHero). */
     Toolbox.register({
-        id: 'community',
-        title: '커뮤니티',
-        category: 'tool',
-        desc: '자유 · 질문 · 자랑 · 도구 요청 — 도구를 쓰는 사람들이 모이는 자리',
-        // 넓게 쓰고 위젯 제목 카드는 안 그린다 — 앱의 일원이되 화면은 커뮤니티 제 구조다.
-        layout: 'wide',
-        noHero: true,
-        icon: '<path d="M4 5.5h16v10H9l-4 3.5v-3.5H4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M8 9.5h8M8 12h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+        ...Toolbox.getLazyWidgetPublicMeta('community'),
         tabs: [{ id: 'community-main', label: '커뮤니티', build }],
     });
 })();
