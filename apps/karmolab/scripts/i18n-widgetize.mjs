@@ -42,7 +42,13 @@ function findWidget(id) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
       const f = path.join(dir, e.name);
       if (e.isDirectory()) walk(f);
-      else if (e.name.endsWith('.ts') && fs.readFileSync(f, 'utf8').includes(`id: '${id}'`)) hit.push(f);
+      else if (e.name.endsWith('.ts')) {
+        const body = fs.readFileSync(f, 'utf8');
+        /* 등록하는 이름은 두 가지 꼴로 적힌다 — 직접 적거나(`id: 'moon'`), 미리 박아 둔 것을
+         * 꺼내 쓰거나(`getLazyWidgetPublicMeta?.('memo')`). 뒤엣것을 못 알아보면 파일을 못 찾고,
+         * 그러면 `tools/` 로 넘어가 엉뚱한 곳을 만진다. */
+        if (body.includes(`id: '${id}'`) || body.includes(`getLazyWidgetPublicMeta?.('${id}')`)) hit.push(f);
+      }
     }
   })(path.join(ROOT, 'src/widgets'));
   if (hit.length === 1) return hit[0];
@@ -392,6 +398,12 @@ if (!WRITE) {
   process.exit(0);
 }
 
+/* **위젯만 고치고 말 묶음을 안 쓰면 화면에 열쇠가 그대로 나간다.** 경로로 부르면 `id` 가
+ * 경로 문자열이라 `i18n/ko/src/widgets/memo.ts.json` 같은 데를 가리킨다 — 그 전에 세운다. */
+if (/[/\\]/.test(id) || id.endsWith('.ts')) {
+  console.error(`경로로 부를 땐 이름을 못 정한다 — 등록 이름으로 불러라 (예: 그 파일의 Toolbox.register id).`);
+  process.exit(2);
+}
 fs.writeFileSync(file, src);
 const koPath = path.join(ROOT, 'i18n/ko', `${id}.json`);
 const merged = fs.existsSync(koPath) ? JSON.parse(fs.readFileSync(koPath, 'utf8')) : {};
