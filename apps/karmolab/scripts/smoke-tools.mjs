@@ -94,7 +94,10 @@ for (const id of ids) {
     })(),
     navigator: { clipboard: {} },
     crypto: { getRandomValues: (a) => a, randomUUID: () => 'x' },
-    location: { hash: '' }
+    /* 진짜 브라우저의 `location` 에는 **항상** 이만큼이 있다. 반쪽으로 두면 이 검사만의 세상이
+       되고, 거기서 난 실패는 제품 고장이 아니라 **검사 고장**이다(실측: `pathname` 이 없어
+       언어 고르기가 터지면서 도구 9개가 통째로 빨강이었다 — 브라우저에서는 멀쩡했다). */
+    location: { hash: '', pathname: '/karmolab/', search: '', href: 'https://mascari4615.github.io/karmolab/' }
   };
   try {
     new Function(...Object.keys(sandbox), fs.readFileSync(file, 'utf8'))(...Object.values(sandbox));
