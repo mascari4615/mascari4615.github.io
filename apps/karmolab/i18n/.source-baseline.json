@@ -1,5 +1,5 @@
 {
-  "total": 8405,
+  "total": 8407,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -262,7 +262,7 @@
     "src/widgets/tools/timecalc.ts": 19,
     "src/widgets/tools/timecapsule.ts": 22,
     "src/widgets/tools/timer.ts": 23,
-    "src/widgets/tools/unitconv.ts": 9,
+    "src/widgets/tools/unitconv.ts": 10,
     "src/widgets/tools/urlparse.ts": 18,
     "src/widgets/tools/uuidgen.ts": 7,
     "src/widgets/tools/vat.ts": 19,
@@ -275,7 +275,7 @@
     "src/widgets/tools/videotrim.ts": 20,
     "src/widgets/tools/voicerec.ts": 20,
     "src/widgets/tools/wordfreq.ts": 75,
-    "src/widgets/tools/workdays.ts": 4,
+    "src/widgets/tools/workdays.ts": 5,
     "src/widgets/tools/worldclock.ts": 5,
     "src/widgets/tools/ziptool.ts": 24,
     "src/widgets/twenty.ts": 13,

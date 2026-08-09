@@ -211,7 +211,7 @@ import { readInvocation } from '../../lib/tool-url';
           $<HTMLElement>('#wdModeAfter').onclick = () => setMode('after');
           $<HTMLElement>('#wdModeBetween').onclick = () => setMode('between');
 
-          // 주소로 부른 경우 (`?op=after&start=2026-09-21&days=5`) (TASK-KL-205).
+          // 주소로 부른 경우 — ?op=after&start=2026-09-21&days=5 (TASK-KL-205)
           const call = readInvocation(spec);
           if (call !== null && call.error === undefined) {
             if (call.args.start !== undefined) fromEl.value = String(call.args.start);
