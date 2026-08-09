@@ -88,8 +88,16 @@ await page.goto(BASE + '/apps/karmolab/index.html', { waitUntil: 'load' });
 await page.waitForFunction(() => typeof Toolbox !== 'undefined', null, { timeout: 30000 });
 await page.waitForTimeout(3000);
 
-/** 화면에서 잠깐 살다 가는 것들 — 타이머·애니메이션을 쓰는 쪽으로 골랐다. */
-const WIDGETS = ['reaction', 'particle', 'bounce', 'moon', 'hourglass', 'eyes'];
+/**
+ * 도는 것을 가진 위젯들 — `requestAnimationFrame` 을 쓰는 쪽에서 골랐다
+ * (`grep -l requestAnimationFrame src/widgets`). 여섯 개만 볼 때는 마스코트 누수 하나만
+ * 걸렸는데, 넓혀야 그 옆의 것도 걸린다. 무거운 것(영상·이미지 편집)은 뺐다 — 이 검사는
+ * 「뒷정리」를 보는 자리지 「무거운가」를 보는 자리가 아니다.
+ */
+const WIDGETS = [
+  'reaction', 'particle', 'bounce', 'moon', 'hourglass', 'eyes',
+  'countdown', 'crypto', 'darkroom', 'higher', 'memo', 'news', 'orbita',
+];
 
 async function idleCounts() {
   await page.evaluate(() => Toolbox.switchPage('home'));
