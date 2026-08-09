@@ -48,6 +48,8 @@ const head = `# KarmoLab
 ## AI 에이전트에게
 
 - 도구마다 정적 설명 페이지가 있습니다: \`${SITE}/karmolab/t/<도구id>/\`
+- 같은 주소 끝에 \`.md\` 를 붙이면 **HTML 이 아니라 마크다운 원문**이 옵니다:
+  \`${SITE}/karmolab/t/<도구id>.md\` — 읽으려고 왔다면 이쪽이 싸고 정확합니다.
 - 주소로 바로 실행할 수 있습니다: \`${SITE}/karmolab/t/<도구id>/?op=<연산>&<칸>=<값>\`
   예) \`${SITE}/karmolab/t/base64/?op=encode&text=안녕\`
 - **MCP 서버**가 있습니다 — 계산을 직접 호출하려면 이쪽이 정확합니다 (해시·난수·검증숫자처럼
