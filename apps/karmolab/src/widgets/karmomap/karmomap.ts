@@ -131,6 +131,8 @@ import {
           <select data-km="new-kind">${nodeKindOptions()}</select>
           <button class="btn btn-primary" data-km="add">+ 추가</button>
           <span class="km-spacer"></span>
+          <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
+          <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
           <button class="btn btn-ghost" data-km="export">내보내기</button>
           <button class="btn btn-ghost" data-km="import">가져오기</button>
@@ -151,6 +153,8 @@ import {
     const sideEl = q<HTMLElement>('side');
     const fileEl = q<HTMLInputElement>('file');
     const imgEl = q<HTMLInputElement>('img');
+    const undoEl = q<HTMLButtonElement>('undo');
+    const redoEl = q<HTMLButtonElement>('redo');
     /** 사진 고르는 창이 뜬 사이 선택이 바뀔 수 있어, 어느 노드에 붙일지 기억해 둔다. */
     let avatarTargetId: string | null = null;
 
@@ -202,10 +206,52 @@ import {
         });
     };
 
+    // ── 되돌리기 (TASK-KL-202 격차 F) ────────────────────────────────────────
+    // 스냅샷 방식. 관계도는 노드 수십 개 규모라 JSON 통째로 떠도 싸고, 델타 방식과 달리
+    // 「어떤 편집이든 되돌아간다」가 코드 한 줄로 보장된다 — 새 편집 기능을 붙일 때마다
+    // undo 를 따로 안 짜도 된다. 그 대신 스냅샷 상한을 둬서 메모리를 묶는다.
+    const HISTORY_MAX = 60;
+    const history: string[] = [];
+    let histIndex = -1;
+    /** 되돌리는 중에는 스냅샷을 찍지 않는다 — 안 그러면 되돌린 것이 다시 기록된다. */
+    let restoring = false;
+
+    function snapshot(): void {
+      if (restoring) return;
+      const json = JSON.stringify(canvas?.getSpec() ?? spec);
+      if (history[histIndex] === json) return;
+      history.splice(histIndex + 1);   // 되돌린 뒤 새로 고치면 앞쪽 가지는 버린다
+      history.push(json);
+      if (history.length > HISTORY_MAX) history.shift();
+      histIndex = history.length - 1;
+      syncHistoryButtons();
+    }
+
+    function restoreTo(index: number): void {
+      if (index < 0 || index >= history.length) return;
+      restoring = true;
+      spec = JSON.parse(history[index]) as GraphSpec;
+      histIndex = index;
+      selectedId = null;
+      linkingFrom = null;
+      canvasEl.classList.remove('km-linking');
+      applySpec();
+      store.saveSpec(spec);
+      renderSide();
+      restoring = false;
+      syncHistoryButtons();
+    }
+
+    function syncHistoryButtons(): void {
+      undoEl.disabled = histIndex <= 0;
+      redoEl.disabled = histIndex >= history.length - 1;
+    }
+
     // ── 저장 ────────────────────────────────────────────────────────────────
     // 구조 변경은 즉시 전체 저장. 좌표 변경은 캔버스가 debounce 후 어댑터로.
     function persistStructure(): void {
       store.saveSpec(canvas?.getSpec() ?? spec);
+      snapshot();
     }
 
     // ── id 발급 ─────────────────────────────────────────────────────────────
@@ -479,7 +525,15 @@ import {
 
     // ── 캔버스 생성 ─────────────────────────────────────────────────────────
     canvas = new GraphCanvas(canvasEl, {
-      persistAdapter: store,
+      // 어댑터를 한 겹 감싼다 — 캔버스가 드래그 좌표를 저장하는 그 순간이
+      // 「노드를 옮겼다」는 되돌릴 수 있는 한 걸음이기도 하다.
+      persistAdapter: {
+        load: () => store.load(),
+        save: async (updates) => {
+          await store.save(updates);
+          snapshot();
+        },
+      },
       kindColors: ALL_KIND_COLORS,
       edgeKinds: ALL_EDGE_KIND_DEFS,
       onNodeClick: (id) => handleNodeClick(id),
@@ -546,6 +600,24 @@ import {
     }
     packEl.onchange = () => applyPack(packEl.value, true);
 
+    undoEl.onclick = () => restoreTo(histIndex - 1);
+    redoEl.onclick = () => restoreTo(histIndex + 1);
+
+    // Ctrl/⌘+Z · Ctrl+Y · Ctrl+Shift+Z. 글자 칸에 커서가 있으면 브라우저의 글자 되돌리기가
+    // 먼저다 — 이름을 고치다 Ctrl+Z 를 눌렀는데 노드가 통째로 사라지면 그게 더 놀랍다.
+    function onKeyDown(ev: KeyboardEvent): void {
+      if (!(ev.ctrlKey || ev.metaKey)) return;
+      if (!root.isConnected) return;
+      const t = ev.target as HTMLElement | null;
+      const tag = t?.tagName ?? '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || t?.isContentEditable) return;
+      const key = ev.key.toLowerCase();
+      if (key === 'z' && !ev.shiftKey) { ev.preventDefault(); restoreTo(histIndex - 1); }
+      else if (key === 'y' || (key === 'z' && ev.shiftKey)) { ev.preventDefault(); restoreTo(histIndex + 1); }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    Toolbox.onDispose?.(() => document.removeEventListener('keydown', onKeyDown));
+
     q<HTMLButtonElement>('fit').onclick = () => canvas?.fitView();
 
     q<HTMLButtonElement>('export').onclick = () => {
@@ -601,6 +673,7 @@ import {
       applySpec();
       store.clear();
       renderSide();
+      snapshot();   // 「전체 삭제」도 되돌릴 수 있어야 한다 — 여기가 제일 아쉬운 자리다
     };
 
     // ── 초기 로드 ───────────────────────────────────────────────────────────
@@ -612,6 +685,8 @@ import {
       applySpec();
       if (spec.nodes.length > 0) canvas?.fitView();
       renderSide();
+      snapshot();   // 되돌리기의 바닥 — 불러온 그 상태
+      syncHistoryButtons();
     });
 
     Mdd.linePreset('tool_run', {
