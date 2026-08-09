@@ -173,6 +173,8 @@ for (const row of rows.slice(0, 8)) {
 /* 지도는 **폭을 나란히** 놓는다. 「양쪽 다 안 쓰임」인 구역만이 진짜 후보다 —
    한쪽에서만 안 쓰이는 것은 그 폭에서 쓰는 것이지 낭비가 아니다. */
 const maps = perView.map((v) => ({ name: v.viewport.name, rows: sectionUsage(v.css) }));
+/* 지도는 이 블록 밖에서도 쓴다(기준선 파일에 실어 계기판이 읽는다) — 못 쟀으면 `null` 이다. */
+let merged = null;
 if (maps.every((m) => m.rows)) {
   const byTitle = new Map();
   for (const map of maps) {
@@ -183,7 +185,7 @@ if (maps.every((m) => m.rows)) {
     }
   }
   const names = maps.map((m) => m.name);
-  const merged = Array.from(byTitle.values())
+  merged = Array.from(byTitle.values())
     .map((row) => ({ ...row, bothUnused: Math.min(...names.map((n) => row.per[n] ?? 0)) }))
     .sort((a, b) => b.bothUnused - a.bothUnused);
   console.log(`[coverage] 첫 그림을 막는 shell-critical.css — 구역별 안 쓰임 (${names.join(' / ')})`);
@@ -199,9 +201,22 @@ if (maps.every((m) => m.rows)) {
 
 if (UPDATE) {
   fs.mkdirSync(path.dirname(BASELINE), { recursive: true });
+  /* 지도를 **파일로도 남긴다** — CI 로그는 흘러가 버려서 사람이 볼 수 없다. 계기판(`#perf`)이
+     이 파일을 읽어 화면에 그린다. 로그에만 있는 사실은 없는 것과 비슷하다. */
   fs.writeFileSync(
     BASELINE,
-    JSON.stringify({ note: '첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.', at: new Date().toISOString(), totals }, null, 1) + '\n',
+    JSON.stringify(
+      {
+        note: '첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.',
+        at: new Date().toISOString(),
+        totals,
+        files: rows.slice(0, 10),
+        sections: merged ? merged.slice(0, 12) : null,
+        viewports: VIEWPORTS.map((v) => v.name),
+      },
+      null,
+      1
+    ) + '\n',
     'utf8'
   );
   console.log('[coverage] 기준선 갱신');

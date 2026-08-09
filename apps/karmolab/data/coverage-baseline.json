@@ -1,10 +1,162 @@
 {
  "note": "첫 화면에서 안 쓰인 바이트. audit-coverage.mjs --update 로만 갱신한다.",
- "at": "2026-08-09T05:30:19.428Z",
+ "at": "2026-08-09T05:41:55.505Z",
  "totals": {
   "cssUnused": 160340,
   "cssTotal": 184829,
   "jsUnused": null,
   "jsTotal": null
- }
+ },
+ "files": [
+  {
+   "file": "css/shell-critical.css",
+   "kind": "css",
+   "total": 98701,
+   "unused": 76010
+  },
+  {
+   "file": "css/tools.css",
+   "kind": "css",
+   "total": 66386,
+   "unused": 66211
+  },
+  {
+   "file": "css/shell-deferred.css",
+   "kind": "css",
+   "total": 11262,
+   "unused": 9639
+  },
+  {
+   "file": "css/randomgen.css",
+   "kind": "css",
+   "total": 5980,
+   "unused": 5980
+  },
+  {
+   "file": "js/vendor/prism/themes-cdn/prism-tomorrow.min.css",
+   "kind": "css",
+   "total": 1313,
+   "unused": 1313
+  },
+  {
+   "file": "css/fonts.css",
+   "kind": "css",
+   "total": 1187,
+   "unused": 1187
+  }
+ ],
+ "sections": [
+  {
+   "title": "RESPONSIVE",
+   "total": 26242,
+   "per": {
+    "데스크톱 1280": 25956,
+    "폰 390": 23578
+   },
+   "bothUnused": 23578
+  },
+  {
+   "title": "KarmoLab — Observatory",
+   "total": 16496,
+   "per": {
+    "데스크톱 1280": 8598,
+    "폰 390": 8598
+   },
+   "bothUnused": 8598
+  },
+  {
+   "title": "LANDING PAGE",
+   "total": 12831,
+   "per": {
+    "데스크톱 1280": 7710,
+    "폰 390": 7710
+   },
+   "bothUnused": 7710
+  },
+  {
+   "title": "TOOL PAGES",
+   "total": 7167,
+   "per": {
+    "데스크톱 1280": 7167,
+    "폰 390": 7167
+   },
+   "bothUnused": 7167
+  },
+  {
+   "title": "HEADER BAR (글래스 배경, 좌측 로고·우측 액션)",
+   "total": 10350,
+   "per": {
+    "데스크톱 1280": 6648,
+    "폰 390": 6648
+   },
+   "bothUnused": 6648
+  },
+  {
+   "title": "BUTTONS",
+   "total": 5043,
+   "per": {
+    "데스크톱 1280": 5043,
+    "폰 390": 5043
+   },
+   "bothUnused": 5043
+  },
+  {
+   "title": "SIDEBAR NAV (data-nav=\"sidebar\" 모드)",
+   "total": 5196,
+   "per": {
+    "데스크톱 1280": 5134,
+    "폰 390": 5013
+   },
+   "bothUnused": 5013
+  },
+  {
+   "title": "HEADER NAV — 토스/금융앱형 상단 메가메뉴 (호버로 전체 폭 패널)",
+   "total": 5469,
+   "per": {
+    "데스크톱 1280": 2922,
+    "폰 390": 3770
+   },
+   "bothUnused": 2922
+  },
+  {
+   "title": "FORMS",
+   "total": 3526,
+   "per": {
+    "데스크톱 1280": 2858,
+    "폰 390": 2858
+   },
+   "bothUnused": 2858
+  },
+  {
+   "title": "ANIMATIONS",
+   "total": 1418,
+   "per": {
+    "데스크톱 1280": 1364,
+    "폰 390": 1364
+   },
+   "bothUnused": 1364
+  },
+  {
+   "title": "TOAST",
+   "total": 1733,
+   "per": {
+    "데스크톱 1280": 1269,
+    "폰 390": 1269
+   },
+   "bothUnused": 1269
+  },
+  {
+   "title": "INTRO OVERLAY",
+   "total": 2337,
+   "per": {
+    "데스크톱 1280": 784,
+    "폰 390": 784
+   },
+   "bothUnused": 784
+  }
+ ],
+ "viewports": [
+  "데스크톱 1280",
+  "폰 390"
+ ]
 }
