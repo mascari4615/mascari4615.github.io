@@ -2017,6 +2017,27 @@ export class GraphCanvas {
   }
 
   /** 뷰를 world bbox 에 맞게 fit. */
+  /** 준 노드들만 화면에 꽉 채운다 — 발표에서 「이 장의 인물들」로 줌인할 때. */
+  fitToNodes(ids: string[], pad = 80): void {
+    if (!this.spec || ids.length === 0) { this.fitView(); return; }
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const id of ids) {
+      const b = this.getNodeBox(id);
+      if (!b) continue;
+      minX = Math.min(minX, b.x); minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.w); maxY = Math.max(maxY, b.y + b.h);
+    }
+    if (!Number.isFinite(minX)) { this.fitView(); return; }
+    const w = Math.max(1, maxX - minX);
+    const h = Math.max(1, maxY - minY);
+    const svgW = this.svg.clientWidth || 800;
+    const svgH = this.svg.clientHeight || 600;
+    this.state.scale = Math.max(0.1, Math.min(2, Math.min((svgW - pad * 2) / w, (svgH - pad * 2) / h)));
+    this.state.tx = svgW / 2 - (minX + w / 2) * this.state.scale;
+    this.state.ty = svgH / 2 - (minY + h / 2) * this.state.scale;
+    this.applyTransform();
+  }
+
   fitView(): void {
     const bounds = this.worldBounds();
     if (bounds.w <= 0 || bounds.h <= 0) return;

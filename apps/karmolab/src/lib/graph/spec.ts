@@ -148,6 +148,19 @@ export interface EdgeKindDef {
   animated_on_active?: boolean;
 }
 
+/**
+ * 발표 한 장 (TASK-KL-202 M-2). 관계도를 남에게 *설명*할 때는 전체를 한 번에 펼치면
+ * 아무도 못 읽는다 — 볼 것을 몇 장으로 나눠 차례로 연다 (Kumu 의 presentation 슬라이드).
+ */
+export interface StoryStep {
+  id: string;
+  title: string;
+  /** 이 장에서 또렷하게 둘 노드들. 비면 전체를 보여 준다. */
+  nodeIds: string[];
+  /** 화면 아래에 띄울 설명 한 줄. */
+  note?: string;
+}
+
 export interface GraphSpec {
   version: number;
   _meta: Record<string, string>;
@@ -156,6 +169,8 @@ export interface GraphSpec {
   edges: GraphEdge[];
   ephemeral_anchors: EphemeralAnchor[];
   _edge_kinds: Record<string, EdgeKindDef>;
+  /** 발표 순서. 없으면 발표 모드 버튼이 「첫 장 담기」로 시작한다. */
+  story?: StoryStep[];
 }
 
 export interface NodeCoord {

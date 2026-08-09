@@ -16,7 +16,7 @@
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef, StoryStep } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
 import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
@@ -98,6 +98,17 @@ import {
       color:var(--text-tertiary); font-size:var(--font-size-sm); text-align:center; pointer-events:none;
       padding:24px; line-height:1.7; }
     .km-linking { outline:2px dashed var(--accent); outline-offset:-2px; }
+    /* 발표 모드 — 그림을 가리지 않게 아래에만 얹는다. */
+    .km-stage { position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
+      background:linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0));
+      display:flex; flex-direction:column; gap:6px; pointer-events:none; }
+    .km-stage.hidden { display:none; }
+    .km-stage-title { font-size:var(--font-size-lg); font-weight:700; color:#fff; }
+    .km-stage-note { font-size:var(--font-size-sm); color:rgba(255,255,255,.82); }
+    .km-stage-bar { display:flex; gap:6px; align-items:center; margin-top:4px; pointer-events:auto; }
+    .km-stage-bar span { color:rgba(255,255,255,.7); font-size:var(--font-size-xs); min-width:48px; text-align:center; }
+    .km-root.is-presenting .km-toolbar,
+    .km-root.is-presenting .km-side { display:none; }
     /* 좁은 화면 — 옆에 붙던 편집 패널을 아래로 내린다. 레퍼런스들은 여기서 기능을 지웠지만
        여기선 배치만 바꾼다(묶음·선 편집 전부 그대로 쓴다). */
     @media (max-width: 720px) {
@@ -207,6 +218,7 @@ import {
             <option value="none">□ 없음</option>
           </select>
           <button class="btn btn-ghost" data-km="fit">화면 맞춤</button>
+          <button class="btn btn-ghost" data-km="story" title="발표 모드 — 볼 것을 몇 장으로 나눠 차례로">▶ 발표</button>
           <button class="btn btn-ghost" data-km="png" title="보이는 그대로 PNG 로 (2배 해상도)">🖼 그림</button>
           <button class="btn btn-ghost" data-km="export">내보내기</button>
           <button class="btn btn-ghost" data-km="import">가져오기</button>
@@ -215,7 +227,20 @@ import {
           <input type="file" accept="image/*" data-km="img" hidden />
         </div>
         <div class="km-body">
-          <div class="km-canvas" data-km="canvas"></div>
+          <div class="km-canvas" data-km="canvas">
+            <div class="km-stage hidden" data-km="stage">
+              <div class="km-stage-title" data-km="stage-title"></div>
+              <div class="km-stage-note" data-km="stage-note"></div>
+              <div class="km-stage-bar">
+                <button class="btn btn-ghost" data-km="stage-prev">◀</button>
+                <span data-km="stage-count"></span>
+                <button class="btn btn-ghost" data-km="stage-next">▶</button>
+                <button class="btn btn-ghost" data-km="stage-add">+ 지금 화면을 한 장으로</button>
+                <button class="btn btn-ghost" data-km="stage-del">이 장 지우기</button>
+                <button class="btn btn-ghost" data-km="stage-exit">나가기</button>
+              </div>
+            </div>
+          </div>
           <div class="km-side hidden" data-km="side"></div>
         </div>
       </div>`;
@@ -1125,6 +1150,92 @@ import {
     findEl.oninput = syncFocus;
     degreeEl.onchange = syncFocus;
 
+    // ── 발표 모드 (격차 M-2) ────────────────────────────────────────────────
+    // 남에게 *설명*할 때는 전체를 한 번에 펼치면 아무도 못 읽는다. 볼 것을 몇 장으로
+    // 나눠 차례로 연다 — 각 장은 「어느 노드들을 또렷하게 둘지」만 기억한다(Kumu 슬라이드).
+    const stageEl = q<HTMLElement>('stage');
+    let presenting = false;
+    let stepIndex = 0;
+
+    const steps = (): StoryStep[] => (spec.story ??= []);
+
+    function showStep(): void {
+      const list = steps();
+      const step = list[stepIndex];
+      (q<HTMLElement>('stage-title')).textContent = step?.title ?? '아직 담은 장이 없습니다';
+      (q<HTMLElement>('stage-note')).textContent =
+        step?.note ?? '찾기·다리수로 볼 것을 고른 뒤 「+ 지금 화면을 한 장으로」 를 누르세요.';
+      (q<HTMLElement>('stage-count')).textContent = list.length ? `${stepIndex + 1} / ${list.length}` : '0 / 0';
+      if (!step) {
+        canvas?.setFocus(null);
+        return;
+      }
+      canvas?.setFocus(step.nodeIds.length ? new Set(step.nodeIds) : null);
+      canvas?.fitToNodes(step.nodeIds);
+    }
+
+    function setPresenting(on: boolean): void {
+      presenting = on;
+      root.classList.toggle('is-presenting', on);
+      stageEl.classList.toggle('hidden', !on);
+      if (on) {
+        stepIndex = Math.min(stepIndex, Math.max(0, steps().length - 1));
+        showStep();
+      } else {
+        canvas?.setFocus(null);
+        syncFocus();
+      }
+    }
+
+    q<HTMLButtonElement>('story').onclick = () => setPresenting(!presenting);
+    q<HTMLButtonElement>('stage-exit').onclick = () => setPresenting(false);
+    q<HTMLButtonElement>('stage-prev').onclick = () => {
+      stepIndex = Math.max(0, stepIndex - 1);
+      showStep();
+    };
+    q<HTMLButtonElement>('stage-next').onclick = () => {
+      stepIndex = Math.min(Math.max(0, steps().length - 1), stepIndex + 1);
+      showStep();
+    };
+    q<HTMLButtonElement>('stage-add').onclick = () => {
+      // 지금 또렷한 것들을 그대로 한 장으로 굳힌다. 포커스가 없으면 전체 장.
+      const focused = currentFocusIds();
+      const title = prompt('이 장의 제목', `${steps().length + 1}장`)?.trim();
+      if (title === undefined) return;
+      const note = prompt('설명 한 줄 (건너뛰려면 비우고 확인)')?.trim();
+      steps().splice(stepIndex + (steps().length ? 1 : 0), 0, {
+        id: `step-${Date.now().toString(36)}`,
+        title: title || `${steps().length + 1}장`,
+        nodeIds: focused,
+        note: note || undefined,
+      });
+      stepIndex = Math.min(steps().length - 1, stepIndex + (steps().length > 1 ? 1 : 0));
+      persistStructure();
+      showStep();
+    };
+    q<HTMLButtonElement>('stage-del').onclick = () => {
+      const list = steps();
+      if (list.length === 0) return;
+      list.splice(stepIndex, 1);
+      stepIndex = Math.max(0, Math.min(stepIndex, list.length - 1));
+      persistStructure();
+      showStep();
+    };
+
+    /** 지금 또렷하게 보이는 노드 id 들 — 발표 장을 담을 때 그대로 쓴다. */
+    function currentFocusIds(): string[] {
+      const q0 = findEl.value.trim().toLowerCase();
+      const degRaw = degreeEl.value;
+      if (q0) {
+        const starts = spec.nodes
+          .filter((n) => n.label.toLowerCase().includes(q0) || (n.note ?? '').toLowerCase().includes(q0))
+          .map((n) => n.id);
+        return [...spread(starts, degRaw === '' ? 1 : Number(degRaw))];
+      }
+      if (degRaw !== '' && selectedId) return [...spread([selectedId], Number(degRaw))];
+      return [];
+    }
+
     // ── 어휘 팩 전환 ────────────────────────────────────────────────────────
     // 이미 놓아둔 노드는 건드리지 않는다. 팩은 *앞으로 쓸 말*을 바꿀 뿐이고,
     // 색·아이콘은 전 팩 합본(ALL_*)이 받쳐 주므로 섞여 있어도 죽지 않는다.
@@ -1156,6 +1267,14 @@ import {
     // Ctrl/⌘+Z · Ctrl+Y · Ctrl+Shift+Z. 글자 칸에 커서가 있으면 브라우저의 글자 되돌리기가
     // 먼저다 — 이름을 고치다 Ctrl+Z 를 눌렀는데 노드가 통째로 사라지면 그게 더 놀랍다.
     function onKeyDown(ev: KeyboardEvent): void {
+      if (!root.isConnected) return;
+      // 발표 중에는 좌우 키로 장을 넘긴다 (글자 칸에 커서가 있으면 양보).
+      const tag0 = (ev.target as HTMLElement | null)?.tagName ?? '';
+      if (presenting && tag0 !== 'INPUT' && tag0 !== 'TEXTAREA') {
+        if (ev.key === 'ArrowRight') { ev.preventDefault(); stepIndex = Math.min(Math.max(0, steps().length - 1), stepIndex + 1); showStep(); return; }
+        if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepIndex = Math.max(0, stepIndex - 1); showStep(); return; }
+        if (ev.key === 'Escape') { ev.preventDefault(); setPresenting(false); return; }
+      }
       if (!(ev.ctrlKey || ev.metaKey)) return;
       if (!root.isConnected) return;
       const t = ev.target as HTMLElement | null;
