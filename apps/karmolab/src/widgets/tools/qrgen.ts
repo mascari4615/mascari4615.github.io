@@ -3,13 +3,13 @@
  * qrcode-generator 를 번들해 오프라인에서도 동작 (외부 API 호출 0 = 입력 데이터가 밖으로 안 나감).
  */
 import qrcode from 'qrcode-generator';
+import { escapeWifi, type Level, makeGrid, spec, toSvg } from '../../core/qrgen';
+import { readInvocation } from '../../lib/tool-url';
 
 (function (): void {
-  type Level = 'L' | 'M' | 'Q' | 'H';
 
-  function escapeWifi(s: string): string {
-    return s.replace(/([\\;,:"])/g, '\\$1');
-  }
+  /* WiFi·vCard 문법 이스케이프와 SVG 만들기는 `src/core/qrgen.ts` 가 소유한다 —
+     비밀번호에 `;` 하나로 QR 이 조용히 다른 뜻이 되는 자리라 시험이 거기 붙어 있다 (TASK-KL-205). */
 
   Toolbox.register({
     id: 'qrgen',
@@ -332,20 +332,12 @@ import qrcode from 'qrcode-generator';
           $<HTMLButtonElement>('#qrSvg').onclick = () => {
             const data = payload();
             if (!data) return;
-            qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
-            const qr = qrcode(0, $<HTMLSelectElement>('#qrLevel').value as Level);
-            qr.addData(data);
-            qr.make();
-            const count = qr.getModuleCount();
-            const margin = 4;
-            const total = count + margin * 2;
-            let path = '';
-            for (let r = 0; r < count; r++) {
-              for (let c = 0; c < count; c++) {
-                if (qr.isDark(r, c)) path += `M${c + margin} ${r + margin}h1v1h-1z`;
-              }
-            }
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" width="${sizeInput.value}" height="${sizeInput.value}" shape-rendering="crispEdges"><rect width="${total}" height="${total}" fill="${$<HTMLInputElement>('#qrBg').value}"/><path d="${path}" fill="${$<HTMLInputElement>('#qrFg').value}"/></svg>`;
+            const svg = toSvg(
+              makeGrid(data, $<HTMLSelectElement>('#qrLevel').value as Level),
+              Number(sizeInput.value),
+              $<HTMLInputElement>('#qrFg').value,
+              $<HTMLInputElement>('#qrBg').value
+            );
             download('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), 'karmolab-qr.svg');
             Toolbox.trackUse?.('save-svg');
             void lastModules;
@@ -364,6 +356,26 @@ import qrcode from 'qrcode-generator';
             });
           };
 
+          // 주소로 부른 경우 (`?op=svg&text=…` / `?op=wifi&ssid=…`) (TASK-KL-205).
+          const call = readInvocation(spec);
+          if (call !== null && call.error === undefined) {
+            if (call.op === 'svg') {
+              kind.value = 'text';
+              $<HTMLTextAreaElement>('#qrText').value = String(call.args.text ?? '');
+            } else if (call.op === 'wifi') {
+              kind.value = 'wifi';
+              $<HTMLInputElement>('#qrWifiSsid').value = String(call.args.ssid ?? '');
+              $<HTMLInputElement>('#qrWifiPass').value = String(call.args.password ?? '');
+              if (call.args.hidden === true) $<HTMLInputElement>('#qrWifiHidden').checked = true;
+            } else if (call.op === 'contact') {
+              kind.value = 'contact';
+              $<HTMLInputElement>('#qrCName').value = String(call.args.name ?? '');
+              if (call.args.org !== undefined) $<HTMLInputElement>('#qrCOrg').value = String(call.args.org);
+              if (call.args.tel !== undefined) $<HTMLInputElement>('#qrCTel').value = String(call.args.tel);
+              if (call.args.email !== undefined) $<HTMLInputElement>('#qrCEmail').value = String(call.args.email);
+            }
+            kind.dispatchEvent(new Event('change'));
+          }
           render();
         }
       }
