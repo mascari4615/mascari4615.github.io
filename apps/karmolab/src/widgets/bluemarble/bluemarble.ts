@@ -40,7 +40,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -48,6 +48,7 @@ import { EarthSound } from './sound';
     { id: 'sats', earthOnly: true, glyph: '⁘' },
     { id: 'sound', glyph: '♪' },
     { id: 'sun', glyph: '☀' },
+    { id: 'clock', earthOnly: true, glyph: '◷' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -63,7 +64,7 @@ import { EarthSound } from './sound';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -522,6 +523,7 @@ import { EarthSound } from './sound';
             /* ISS 는 지구 밖(궤도 위)이라 자르기 밖에서 그린다 */
             if (body === 'earth' && prefs.on.iss && !isPast()) drawIss();
             if (body === 'earth' && prefs.on.sats && !isPast()) drawSats(now);
+            if (body === 'earth' && prefs.on.clock) drawClockRing(sun);
 
             /* 해가 바로 위인 자리에 옅은 빛무리 */
             const sp = project(sun.lat, sun.lon);
@@ -636,6 +638,85 @@ import { EarthSound } from './sound';
               c.fillStyle =
                 alt < 2000 ? 'rgba(190,225,255,.55)' : alt < 30000 ? 'rgba(150,190,255,.5)' : 'rgba(255,215,150,.6)';
               c.fillRect(sx - 0.6, sy - 0.6, 1.2, 1.2);
+            }
+            c.restore();
+          }
+
+          /** 그 경도에서 지금 몇 시인가 (해 기준 = 진태양시). */
+          function solarHour(lon: number, sunLon: number): number {
+            return ((((lon - sunLon) / 15 + 12) % 24) + 24) % 24;
+          }
+
+          /**
+           * 시간대 링 — 지구를 두른 시계.
+           *
+           * 지구본만 보면 「저기가 밤이구나」까지는 알아도 「지금 새벽 3시인 사람들이 있다」는
+           * 안 보인다. 그래서 24시간을 원으로 펴서 지구 밖에 두른다. 큰 도시를 자기 시각 자리에
+           * 점으로 찍으면, 새벽 쪽에 점이 몇 개 몰려 있는지가 그냥 보인다.
+           * 맨 위가 자정, 아래가 정오다.
+           */
+          function drawClockRing(sun: { lat: number; lon: number }): void {
+            const c = ctx!;
+            const rr = Math.min(Math.min(W, H) / 2 - 8, R * 1.22);
+            if (rr < 60) return;
+            const ang = (hour: number): number => (hour / 24) * Math.PI * 2 - Math.PI / 2;
+
+            c.save();
+            c.lineWidth = Math.max(3, rr * 0.026);
+            for (let i = 0; i < 96; i++) {
+              const h0 = (i / 96) * 24;
+              const h1 = ((i + 1) / 96) * 24;
+              // 그 시각의 하늘색 — 밤은 남색, 여명은 호박색, 낮은 옅은 하늘색
+              const dist = Math.min(Math.abs(h0 - 12), 24 - Math.abs(h0 - 12));
+              const dayness = Math.max(0, Math.min(1, (7.5 - dist) / 5));
+              const dawn = Math.max(0, 1 - Math.abs(dist - 6.2) / 1.5);
+              const r0 = 12 + dayness * 120 + dawn * 150;
+              const g0 = 18 + dayness * 160 + dawn * 78;
+              const b0 = 38 + dayness * 210 + dawn * 10;
+              c.strokeStyle = `rgba(${r0 | 0},${g0 | 0},${b0 | 0},${0.5 + dayness * 0.3})`;
+              c.beginPath();
+              c.arc(cx, cy, rr, ang(h0), ang(h1));
+              c.stroke();
+            }
+
+            // 세 시간마다 눈금
+            c.strokeStyle = 'rgba(255,255,255,.28)';
+            c.lineWidth = 1;
+            for (let h = 0; h < 24; h += 3) {
+              const a = ang(h);
+              const co = Math.cos(a);
+              const si = Math.sin(a);
+              c.beginPath();
+              c.moveTo(cx + co * (rr - rr * 0.03), cy + si * (rr - rr * 0.03));
+              c.lineTo(cx + co * (rr + rr * 0.032), cy + si * (rr + rr * 0.032));
+              c.stroke();
+            }
+
+            // 큰 도시를 제 시각 자리에 — 새벽 쪽에 몇 개나 몰려 있나
+            for (const city of CITIES) {
+              const a = ang(solarHour(city.lon, sun.lon));
+              const x = cx + Math.cos(a) * rr;
+              const y = cy + Math.sin(a) * rr;
+              c.fillStyle = 'rgba(255,235,190,.75)';
+              c.beginPath();
+              c.arc(x, y, 1.5, 0, Math.PI * 2);
+              c.fill();
+            }
+
+            // 나 — 링 위에서 지금 내가 서 있는 시각
+            if (me) {
+              const a = ang(solarHour(me.lon, sun.lon));
+              const x = cx + Math.cos(a) * rr;
+              const y = cy + Math.sin(a) * rr;
+              c.strokeStyle = 'rgba(190,230,255,.95)';
+              c.lineWidth = 1.6;
+              c.beginPath();
+              c.arc(x, y, 5.5, 0, Math.PI * 2);
+              c.stroke();
+              c.fillStyle = 'rgba(225,245,255,.95)';
+              c.beginPath();
+              c.arc(x, y, 2, 0, Math.PI * 2);
+              c.fill();
             }
             c.restore();
           }
@@ -819,6 +900,14 @@ import { EarthSound } from './sound';
               } else if (issEl) {
                 out.push(t('bluemarble.line.issPassNone'));
               }
+            }
+
+            {
+              const dawnCities = CITIES.filter((c2) => {
+                const h = solarHour(c2.lon, sun.lon);
+                return h >= 2 && h < 5;
+              }).length;
+              if (dawnCities) out.push(t('bluemarble.line.dawn', { n: dawnCities }));
             }
 
             if (wind) {
