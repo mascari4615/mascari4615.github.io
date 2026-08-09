@@ -16,9 +16,10 @@
  * KarmoMap 은 그릇이고 렌즈지, 작가가 아니다.
  */
 import { GraphCanvas } from '../../lib/graph/canvas';
-import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind } from '../../lib/graph/spec';
+import type { GraphSpec, GraphNode, GraphEdge, GroupDef, NodeShape, BackgroundKind, EdgeKindDef } from '../../lib/graph/spec';
 import { emptyGraphSpec } from '../../lib/graph/spec';
 import { KarmoMapLocalStorageAdapter } from './local-storage-adapter';
+import { loadTerms, saveTerms, newTermId, type MyTerms } from './terms';
 import {
   loadLibrary, setActive, renameMap, touchMap, addMap, removeMap, mapKey,
   type LibraryIndex,
@@ -116,33 +117,56 @@ import {
     /** 연결 모드일 때 출발 노드 id. null 이면 평소 모드. */
     let linkingFrom: string | null = null;
     /** 오른쪽 패널이 무엇을 보여주는가 — 고른 노드냐, 묶음 목록이냐. */
-    let sideMode: 'node' | 'groups' = 'node';
+    let sideMode: 'node' | 'groups' | 'terms' = 'node';
     /** 지금 끼워진 어휘 팩. `spec._meta.pack` 에 함께 저장된다. */
     let pack: CanvasPack = packById(DEFAULT_PACK_ID);
+    /** 사용자가 직접 만든 종류. 맵이 아니라 **사람**에게 붙는다(격차 A-2). */
+    let terms: MyTerms = loadTerms();
+
+    // 팩 + 내 용어를 합친 것이 「지금 쓸 수 있는 말」이다. 아래 조회는 전부 이걸 거친다.
+    const nodeKindsNow = (): typeof pack.nodeKinds => [...pack.nodeKinds, ...terms.nodeKinds];
+    const edgeKindsNow = (): typeof pack.edgeKinds => [...pack.edgeKinds, ...terms.edgeKinds];
+    const kindIcon = (id: string): string =>
+      terms.nodeKinds.find((k) => k.id === id)?.icon ?? ALL_KIND_ICONS[id] ?? '·';
+    const kindLabel = (id: string): string =>
+      terms.nodeKinds.find((k) => k.id === id)?.label ?? ALL_KIND_LABELS[id] ?? id;
+    const edgeLabel = (id: string): string =>
+      terms.edgeKinds.find((k) => k.id === id)?.label ?? ALL_EDGE_LABELS[id] ?? id;
+    /** 캔버스에 넘길 색표·선 정의 — 팩 전체 + 내 용어. */
+    const kindColorsNow = (): Record<string, string> => ({
+      ...ALL_KIND_COLORS,
+      ...Object.fromEntries(terms.nodeKinds.map((k) => [k.id, k.color])),
+    });
+    const edgeDefsNow = (): Record<string, EdgeKindDef> => ({
+      ...ALL_EDGE_KIND_DEFS,
+      ...Object.fromEntries(
+        terms.edgeKinds.map((e) => [e.id, { color: e.color, style: e.style, arrow: e.arrow, width: e.width }])
+      ),
+    });
 
     /** 노드 종류 <option> — 팩에 없는 종류(다른 팩에서 넘어온 노드)도 잃지 않게 뒤에 붙인다. */
     function nodeKindOptions(selected?: string): string {
-      const ids = pack.nodeKinds.map((k) => k.id);
+      const list = nodeKindsNow();
+      const ids = list.map((k) => k.id);
       const extra = selected && !ids.includes(selected) ? [selected] : [];
       return [
-        ...pack.nodeKinds.map(
+        ...list.map(
           (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.icon} ${k.label}</option>`
         ),
-        ...extra.map(
-          (id) => `<option value="${id}" selected>${ALL_KIND_ICONS[id] ?? '·'} ${ALL_KIND_LABELS[id] ?? id}</option>`
-        ),
+        ...extra.map((id) => `<option value="${id}" selected>${kindIcon(id)} ${kindLabel(id)}</option>`),
       ].join('');
     }
 
     /** 선 종류 <option> — 같은 이유로 팩 밖 종류를 보존한다. */
     function edgeKindOptions(selected?: string): string {
-      const ids = pack.edgeKinds.map((k) => k.id);
+      const list = edgeKindsNow();
+      const ids = list.map((k) => k.id);
       const extra = selected && !ids.includes(selected) ? [selected] : [];
       return [
-        ...pack.edgeKinds.map(
+        ...list.map(
           (k) => `<option value="${k.id}"${k.id === selected ? ' selected' : ''}>${k.label}</option>`
         ),
-        ...extra.map((id) => `<option value="${id}" selected>${ALL_EDGE_LABELS[id] ?? id}</option>`),
+        ...extra.map((id) => `<option value="${id}" selected>${edgeLabel(id)}</option>`),
       ].join('');
     }
 
@@ -162,6 +186,7 @@ import {
           <button class="btn btn-primary" data-km="add">+ 추가</button>
           <span class="km-spacer"></span>
           <button class="btn btn-ghost" data-km="groups" title="묶음 관리">🫧 묶음</button>
+          <button class="btn btn-ghost" data-km="terms" title="내 용어 — 팩에 없는 종류 만들기">🏷 용어</button>
           <button class="btn btn-ghost" data-km="undo" title="되돌리기 (Ctrl+Z)" disabled>↶</button>
           <button class="btn btn-ghost" data-km="redo" title="다시 하기 (Ctrl+Y)" disabled>↷</button>
           <select data-km="bg" title="배경 무늬">
@@ -439,10 +464,153 @@ import {
       });
     }
 
+    // ── 내 용어 (격차 A-2) ───────────────────────────────────────────────────
+    /** 용어가 바뀌면 색표·선 정의를 캔버스에 다시 넘겨야 그린 것이 따라온다. */
+    function applyTerms(): void {
+      saveTerms(terms);
+      spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
+      // 내 용어가 이긴다 — 방금 고친 색이 옛 정의에 덮이면 「고쳤는데 그대로」가 된다.
+      for (const e of terms.edgeKinds) {
+        spec._edge_kinds[e.id] = { color: e.color, style: e.style, arrow: e.arrow, width: e.width };
+      }
+      canvas?.setKindColors(kindColorsNow());
+      newKindEl.innerHTML = nodeKindOptions();
+      persistStructure();
+    }
+
+    function renderTermsPanel(): void {
+      sideEl.classList.remove('hidden');
+      canvas?.setSelectedNode(null);
+      const EDGE_STYLES: { id: string; label: string }[] = [
+        { id: 'solid', label: '실선' }, { id: 'dashed', label: '파선' }, { id: 'dotted', label: '점선' },
+        { id: 'wavy', label: '물결' }, { id: 'crack', label: '금간' },
+      ];
+      sideEl.innerHTML = `
+        <h4>🏷 내 용어</h4>
+        <div class="km-hint">팩에 없는 말은 직접 만드세요. 여기 만든 종류는 <b>모든 맵</b>에서 씁니다.</div>
+        <div class="km-field">
+          <label>내 노드 종류 ${terms.nodeKinds.length}개</label>
+          ${terms.nodeKinds
+            .map(
+              (k) => `<div class="km-group-row" data-term-node="${escapeAttr(k.id)}">
+                <input type="text" data-km="t-icon" maxlength="4" value="${escapeAttr(k.icon)}" title="아이콘" />
+                <input type="text" data-km="t-label" value="${escapeAttr(k.label)}" />
+                <input type="color" data-km="t-color" value="${escapeAttr(k.color)}" />
+                <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
+              </div>`
+            )
+            .join('') || '<div class="km-hint">아직 없습니다.</div>'}
+          <button class="btn btn-ghost" data-km="t-add-node">+ 노드 종류</button>
+        </div>
+        <div class="km-field">
+          <label>내 관계 종류 ${terms.edgeKinds.length}개</label>
+          ${terms.edgeKinds
+            .map(
+              (e) => `<div class="km-group-row" data-term-edge="${escapeAttr(e.id)}">
+                <input type="text" data-km="t-label" value="${escapeAttr(e.label)}" />
+                <input type="color" data-km="t-color" value="${escapeAttr(e.color)}" />
+                <select data-km="t-style">
+                  ${EDGE_STYLES.map((s) => `<option value="${s.id}"${s.id === e.style ? ' selected' : ''}>${s.label}</option>`).join('')}
+                </select>
+                <button class="btn btn-ghost" data-km="t-arrow" title="화살표">${e.arrow ? '→' : '—'}</button>
+                <button class="btn btn-ghost" data-km="t-del" title="지우기">×</button>
+              </div>`
+            )
+            .join('') || '<div class="km-hint">아직 없습니다.</div>'}
+          <button class="btn btn-ghost" data-km="t-add-edge">+ 관계 종류</button>
+        </div>
+        <button class="btn btn-ghost" data-km="t-close">닫기</button>`;
+
+      (sideEl.querySelector('[data-km="t-close"]') as HTMLButtonElement).onclick = () => {
+        sideMode = 'node';
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="t-add-node"]') as HTMLButtonElement).onclick = () => {
+        const taken = new Set([...terms.nodeKinds, ...terms.edgeKinds].map((k) => k.id));
+        terms.nodeKinds.push({ id: newTermId('n', taken), label: '새 종류', icon: '🔖', color: '#38bdf8' });
+        applyTerms();
+        renderSide();
+      };
+
+      (sideEl.querySelector('[data-km="t-add-edge"]') as HTMLButtonElement).onclick = () => {
+        const taken = new Set([...terms.nodeKinds, ...terms.edgeKinds].map((k) => k.id));
+        terms.edgeKinds.push({ id: newTermId('e', taken), label: '새 관계', color: '#38bdf8', style: 'solid', arrow: true });
+        applyTerms();
+        renderSide();
+      };
+
+      sideEl.querySelectorAll('[data-term-node]').forEach((rowEl) => {
+        const row = rowEl as HTMLElement;
+        const id = row.dataset.termNode ?? '';
+        const find = () => terms.nodeKinds.find((k) => k.id === id);
+        (row.querySelector('[data-km="t-icon"]') as HTMLInputElement).oninput = (ev) => {
+          const k = find(); if (!k) return;
+          k.icon = (ev.target as HTMLInputElement).value || '🔖';
+          applyTerms();
+        };
+        (row.querySelector('[data-km="t-label"]') as HTMLInputElement).oninput = (ev) => {
+          const k = find(); if (!k) return;
+          k.label = (ev.target as HTMLInputElement).value;
+          applyTerms();
+        };
+        (row.querySelector('[data-km="t-color"]') as HTMLInputElement).oninput = (ev) => {
+          const k = find(); if (!k) return;
+          k.color = (ev.target as HTMLInputElement).value;
+          applyTerms();
+        };
+        (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
+          // 이미 그 종류로 놓아둔 노드는 건드리지 않는다 — 이름·색만 잃고 그림은 남는다.
+          terms.nodeKinds = terms.nodeKinds.filter((k) => k.id !== id);
+          applyTerms();
+          renderSide();
+        };
+      });
+
+      sideEl.querySelectorAll('[data-term-edge]').forEach((rowEl) => {
+        const row = rowEl as HTMLElement;
+        const id = row.dataset.termEdge ?? '';
+        const find = () => terms.edgeKinds.find((k) => k.id === id);
+        (row.querySelector('[data-km="t-label"]') as HTMLInputElement).oninput = (ev) => {
+          const e = find(); if (!e) return;
+          e.label = (ev.target as HTMLInputElement).value;
+          applyTerms();
+        };
+        (row.querySelector('[data-km="t-color"]') as HTMLInputElement).oninput = (ev) => {
+          const e = find(); if (!e) return;
+          e.color = (ev.target as HTMLInputElement).value;
+          applyTerms();
+          canvas?.render();
+        };
+        (row.querySelector('[data-km="t-style"]') as HTMLSelectElement).onchange = (ev) => {
+          const e = find(); if (!e) return;
+          e.style = (ev.target as HTMLSelectElement).value as typeof e.style;
+          applyTerms();
+          canvas?.render();
+        };
+        (row.querySelector('[data-km="t-arrow"]') as HTMLButtonElement).onclick = (ev) => {
+          const e = find(); if (!e) return;
+          e.arrow = !e.arrow;
+          (ev.currentTarget as HTMLButtonElement).textContent = e.arrow ? '→' : '—';
+          applyTerms();
+          canvas?.render();
+        };
+        (row.querySelector('[data-km="t-del"]') as HTMLButtonElement).onclick = () => {
+          terms.edgeKinds = terms.edgeKinds.filter((k) => k.id !== id);
+          applyTerms();
+          renderSide();
+        };
+      });
+    }
+
     // ── 선택 패널 ───────────────────────────────────────────────────────────
     function renderSide(): void {
       if (sideMode === 'groups') {
         renderGroupsPanel();
+        return;
+      }
+      if (sideMode === 'terms') {
+        renderTermsPanel();
         return;
       }
       const node = spec.nodes.find((n) => n.id === selectedId);
@@ -459,7 +627,7 @@ import {
       const labelOf = (id: string): string => spec.nodes.find((n) => n.id === id)?.label ?? id;
 
       sideEl.innerHTML = `
-        <h4>${ALL_KIND_ICONS[node.kind] ?? '·'} 노드</h4>
+        <h4>${kindIcon(node.kind)} 노드</h4>
         <div class="km-field">
           <label>이름</label>
           <input type="text" data-km="edit-label" value="${escapeAttr(node.label)}" />
@@ -639,10 +807,10 @@ import {
         (row.querySelector('[data-km="edge-kind"]') as HTMLSelectElement).onchange = (ev) => {
           const edge = spec.edges.find((x) => x.id === edgeId);
           if (!edge) return;
-          const oldPreset = ALL_EDGE_LABELS[edge.kind];
+          const oldPreset = edgeLabel(edge.kind);
           edge.kind = (ev.target as HTMLSelectElement).value;
           // 손으로 고쳐 쓴 말은 지키고, 프리셋 그대로였으면 새 프리셋으로 따라간다.
-          if (!edge.label || edge.label === oldPreset) edge.label = ALL_EDGE_LABELS[edge.kind] ?? '';
+          if (!edge.label || edge.label === oldPreset) edge.label = edgeLabel(edge.kind);
           canvas?.render();
           canvas?.setSelectedNode(node.id);
           persistStructure();
@@ -686,7 +854,7 @@ import {
     // ── 선 만들기 — 「연결 시작」 버튼과 손잡이 드래그가 같은 길을 쓴다 ──────
     function createEdge(from: string, to: string): void {
       const kindSel = sideEl.querySelector('[data-km="link-kind"]') as HTMLSelectElement | null;
-      const kind = kindSel?.value || pack.edgeKinds[0].id;
+      const kind = kindSel?.value || edgeKindsNow()[0].id;
       const dup = spec.edges.some(
         (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from)
       );
@@ -698,7 +866,7 @@ import {
       // 선을 놓으면 그 자리에서 무슨 관계인지 읽혀야 한다 — 프리셋 이름을 라벨로 얹는다.
       const edge: GraphEdge = {
         id: nextId('edge', taken), from, to, kind,
-        label: ALL_EDGE_LABELS[kind] ?? '',
+        label: edgeLabel(kind),
       };
       spec.edges.push(edge);
       applySpec();
@@ -728,8 +896,8 @@ import {
           snapshot();
         },
       },
-      kindColors: ALL_KIND_COLORS,
-      edgeKinds: ALL_EDGE_KIND_DEFS,
+      kindColors: kindColorsNow(),
+      edgeKinds: edgeDefsNow(),
       onNodeClick: (id) => handleNodeClick(id),
       onBackgroundClick: () => {
         selectedId = null;
@@ -754,7 +922,7 @@ import {
      * 빈 곳을 두 번 눌러 바로 타이핑하는 흐름(Scapple·FigJam)이 이 길로 온다.
      */
     function spawnNodeAt(worldX: number, worldY: number, label: string): void {
-      const kind = newKindEl.value || pack.nodeKinds[0].id;
+      const kind = newKindEl.value || nodeKindsNow()[0].id;
       const taken = new Set(spec.nodes.map((n) => n.id));
       const w = widthFor(label);
       const node: GraphNode = {
@@ -812,6 +980,11 @@ import {
       if (persist) persistStructure();
     }
     packEl.onchange = () => applyPack(packEl.value, true);
+
+    q<HTMLButtonElement>('terms').onclick = () => {
+      sideMode = sideMode === 'terms' ? 'node' : 'terms';
+      renderSide();
+    };
 
     q<HTMLButtonElement>('groups').onclick = () => {
       sideMode = sideMode === 'groups' ? 'node' : 'groups';
@@ -936,7 +1109,7 @@ import {
     q<HTMLButtonElement>('clear').onclick = () => {
       if (!confirm('KarmoMap 의 모든 노드와 연결을 삭제할까요? 되돌릴 수 없습니다.')) return;
       spec = emptyGraphSpec();
-      spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS };
+      spec._edge_kinds = { ...edgeDefsNow() };
       spec._meta = { pack: pack.id };
       selectedId = null;
       linkingFrom = null;
@@ -967,7 +1140,7 @@ import {
       void store.load().then((loaded) => {
         spec = loaded ?? emptyGraphSpec();
         // 관계 종류 정의는 항상 최신 셋으로 (저장본이 옛 정의를 갖고 있어도 색이 맞게).
-        spec._edge_kinds = { ...ALL_EDGE_KIND_DEFS, ...(spec._edge_kinds ?? {}) };
+        spec._edge_kinds = { ...edgeDefsNow(), ...(spec._edge_kinds ?? {}) };
         applyPack(spec._meta?.pack ?? DEFAULT_PACK_ID, false);
         const bg = (spec._meta?.bg ?? 'dots') as BackgroundKind;
         bgEl.value = bg;
