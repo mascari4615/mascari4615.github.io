@@ -164,8 +164,16 @@ await page.waitForTimeout(400);
 const osc = await page.evaluate(() => window.__osc);
 if (osc <= before.osc) problems.push(`소리를 켰는데 음이 하나도 안 예약됐다 (${before.osc} → ${osc})`);
 
-/* ① 시계를 10분 앞으로 — 세 글자는 10분마다다. */
-await page.clock.runFor(10 * 60 * 1000);
+/* ① 시계를 10분 앞으로 — 세 글자는 10분마다다.
+ *
+ * **`runFor` 가 아니라 `fastForward`.** 둘 다 시계를 옮기지만 무엇을 시키느냐가 다르다:
+ *   · `runFor(10분)`   — 그 사이의 초를 **하나씩 다 살아 낸다**. 이 화면은 1초마다 다시 그리니
+ *                        틱이 600번, 다시 그리기도 600번. 이 한 줄이 **8분 넘게** 걸렸다.
+ *   · `fastForward(10분)` — 껑충 뛴다. 밀린 타이머는 **한 번만** 부른다.
+ * 여기서 보려는 것은 「10분 뒤의 판」이지 「그 600초를 다 겪었는가」가 아니다. 화면은 지금
+ * 시각을 읽어 다시 그리므로 한 번이면 충분하다 — 판정은 그대로, 시간만 사라진다.
+ * (2026-08-09: 이 검사 하나가 빌드 10분 중 5분이었다.) */
+await page.clock.fastForward(10 * 60 * 1000);
 const after = await READ();
 if (after.stage.sig === before.stage.sig) problems.push('10분이 지났는데 무대가 그대로다');
 if (!after.beating) problems.push('갈렸는데 무대가 안 번쩍였다');
