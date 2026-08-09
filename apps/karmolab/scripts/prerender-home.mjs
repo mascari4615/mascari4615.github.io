@@ -77,9 +77,24 @@ try {
     const el = document.getElementById('page-home');
     if (!el) return '';
     const copy = el.cloneNode(true);
+    /* **늦은 상태를 박으면 안 된다** (2026-08-10 실사이트 실측).
+     *
+     * 처음엔 화면이 다 가라앉은 뒤를 떴다. 그런데 브라우저가 나중에 만드는 것은 **이른 상태**라,
+     * 갈아 끼우는 순간 둘이 안 맞아 화면이 튀었다(실측 0.033 → 0.044, 되레 나빠졌다):
+     *     꾸미기 단추(있음 → 없음) · 블록 순서(꾸미기가 바꾼 순서 → 기본 순서) ·
+     *     쓰임 한 줄(23px 채워짐 → 0px)
+     * 미리 그리는 것은 **브라우저가 처음 만들 그것과 같아야 한다.** 그래서 나중에 붙는 것은
+     * 떼고, 나중에 자리를 잡을 칸에는 예약 표를 직접 달아 둔다. */
+    copy.querySelectorAll('.hp-open, .hp-panel').forEach((n) => n.remove());
     /* 지금 값이 들어가는 칸은 **비운다** — 어제 숫자를 먼저 보여 주는 것보다 빈 자리가 낫다.
        예약 표(`data-reserving`)는 남겨 둔다: 그게 곧 「여기 이만큼 온다」는 약속이다. */
-    for (const sel of live) copy.querySelectorAll(sel).forEach((n) => { n.innerHTML = ''; });
+    for (const sel of live)
+      copy.querySelectorAll(sel).forEach((n) => {
+        n.innerHTML = '';
+        /* 예약 표를 **직접** 단다 — 브라우저는 물어보기 시작할 때 이걸 단다. 미리 박은 쪽에도
+           같이 있어야 자리가 같다(없으면 0px 였다가 23px 로 뛴다). */
+        n.setAttribute('data-reserving', '1');
+      });
     /* 사람 손이 닿아야 아는 것도 지운다(도구용 미리 그리기와 같은 규칙). */
     copy.querySelectorAll('[data-count-for]').forEach((n) => { n.textContent = ''; });
     return copy.outerHTML;
