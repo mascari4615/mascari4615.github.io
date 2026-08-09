@@ -3,6 +3,8 @@
  *
  * marked.js로 마크다운 렌더링, Prism.js로 코드 하이라이팅, ```mermaid 는 Mermaid 렌더.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
   /** 동일 출처(Tracking Prevention 회피). CDN 금지.
    *  KarmoLab 자체 vendor (`apps/karmolab/js/vendor/mermaid.min.js`) 사용 — production /
@@ -84,7 +86,7 @@
       };
       s.onerror = function () {
         mermaidScriptPromise = null;
-        reject(new Error('Mermaid 스크립트 로드 실패'));
+        reject(new Error(t('docs.err.01')));
       };
       document.head.appendChild(s);
     });
@@ -244,7 +246,7 @@
 
   function loadDoc(filename: string): Promise<string> {
     return fetch(getDocUrl(filename)).then(function (r: Response) {
-      if (!r.ok) throw new Error('문서 로드 실패: ' + filename);
+      if (!r.ok) throw new Error(t('docs.err.02') + filename);
       return r.text();
     });
   }
@@ -273,7 +275,7 @@
   function loadDocFromRepo(repoRelativePath: string): Promise<string> {
     const url = getDocsRepoRawBase() + normalizeRepoDocPath(repoRelativePath);
     return fetch(url).then(function (r: Response) {
-      if (!r.ok) throw new Error('레포 문서 로드 실패: ' + repoRelativePath + ' (' + r.status + ')');
+      if (!r.ok) throw new Error(t('docs.err.03') + repoRelativePath + ' (' + r.status + ')');
       return r.text();
     });
   }
@@ -340,16 +342,16 @@
       a.className = 'docs-anchor';
       a.tabIndex = 0;
       a.setAttribute('role', 'button');
-      a.setAttribute('aria-label', '링크 복사');
+      a.setAttribute('aria-label', t('docs.t04'));
       a.textContent = '#';
       const copy = async function () {
         const url = location.origin + location.pathname + location.search + '#' + el.id;
         try {
           await navigator.clipboard.writeText(url);
-          Toolbox.showToast?.('링크 복사됨', undefined, undefined);
+          Toolbox.showToast?.(t('docs.t05'), undefined, undefined);
         } catch {
           location.hash = el.id;
-          Toolbox.showToast?.('링크를 복사하지 못했습니다.', 'error', undefined);
+          Toolbox.showToast?.(t('docs.t06'), 'error', undefined);
         }
       };
       a.addEventListener('click', function (e: MouseEvent) {
@@ -372,8 +374,8 @@
 
     if (tocEl && toc.length >= 2) {
       tocEl.innerHTML =
-        '<div class="docs-toc-title">이 문서 목차</div>' +
-        '<nav class="docs-toc-listnav" aria-label="목차">' +
+        t('docs.t07') +
+        t('docs.t08') +
         toc
           .map(function (x) {
             return (
@@ -449,11 +451,11 @@
   /** 레포 루트 기준 Markdown 경로를 GitHub raw로 불러와 본문 위에 출처 블록을 붙여 렌더 */
   function renderRepoMarkdownInContainer(container: HTMLElement, repoRelativePath: string): void {
     container.innerHTML =
-      '<p class="docs-body" style="color:var(--text-secondary)">GitHub에서 문서 불러오는 중...</p>';
+      t('docs.t09');
     loadDocFromRepo(repoRelativePath)
       .then(function (md: string) {
         const banner =
-          '> **원본:** `' +
+          t('docs.t10') +
           repoRelativePath +
           '` — GitHub **raw** (`master` 기본). `window.KARMOLAB_DOCS_RAW_BASE` 에 끝이 `/`인 URL을 넣으면 다른 브랜치·포크를 볼 수 있어요.\n\n---\n\n';
         renderMarkdown(container, banner + md);
@@ -461,7 +463,7 @@
       .catch(function () {
         renderMarkdown(
           container,
-          '*문서를 불러오지 못했어요. 네트워크·브랜치(`master`)·`window.KARMOLAB_DOCS_RAW_BASE` 를 확인한 뒤 탭을 다시 열어 주세요.*',
+          t('docs.t11'),
         );
       });
   }
@@ -481,7 +483,7 @@
     }
 
     if (typeof marked === 'undefined') {
-      container.innerHTML = '<p class="docs-body" style="color:var(--error)">marked.js 로드 실패. 새로고침해주세요.</p>';
+      container.innerHTML = t('docs.t12');
       return;
     }
 
@@ -498,7 +500,7 @@
 
     const aside = document.createElement('aside');
     aside.className = 'docs-md-toc';
-    aside.setAttribute('aria-label', '문서 목차');
+    aside.setAttribute('aria-label', t('docs.t13'));
     const tocNav = document.createElement('div');
     tocNav.className = 'docs-toc-nav-host';
     aside.appendChild(tocNav);
@@ -533,7 +535,7 @@
           await loadMermaidScript();
           const mm = getMermaidApi();
           if (!mm) {
-            console.error('[docs mermaid] window.mermaid API 없음');
+            console.error(t('docs.t14'));
             return;
           }
           const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
@@ -552,7 +554,7 @@
           console.error('[docs mermaid]', e);
           body.insertAdjacentHTML(
             'beforeend',
-            '<p class="docs-body" style="color:var(--error)">다이어그램(Mermaid)을 그리지 못했습니다. 콘솔(F12)에 오류가 있는지, CDN·문법을 확인해 주세요.</p>',
+            t('docs.t15'),
           );
         }
       })();
@@ -576,17 +578,17 @@
   }
 
   const EXTERNAL_DOCS: ExternalDoc[] = [
-    { id: 'docs-intro', label: '소개', source: { kind: 'local', path: 'intro.md' }, mddPreset: 'tool_run', mddMsg: '문서 페이지예요!' },
-    { id: 'docs-roadmap', label: '로드맵', source: { kind: 'local', path: 'roadmap.md' }, mddPreset: 'daily_start', mddMsg: '로드맵이랑 기획이에요~' },
-    { id: 'docs-guide', label: '가이드', source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: '사용법을 알려줄게요~' },
-    { id: 'docs-karmolab-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmolab-ai.md' }, mddPreset: 'tool_run', mddMsg: 'karmolab-ai 패키지 쓰는 법이에요.' },
-    { id: 'docs-discord-yawnbot', label: 'Discord·욘봇', source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: '욘 봇 음성·DAVE·기능 요약·TODO 한곳이에요.' },
-    { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: 'discord-bots 워크스페이스 README (GitHub).' },
-    { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: '데스크톱 앱 폴더 README (GitHub).' },
-    { id: 'docs-project-commands', label: '프로젝트 명령', source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: '블로그·KarmoLab·앱 전체 명령을 모아 뒀어요. 복사해서 쓰기 좋게!' },
-    { id: 'docs-laptop', label: '노트북', source: { kind: 'local', path: 'laptop.md' }, mddPreset: 'tool_run', mddMsg: '집에서 도는 노트북으로 가는 문 — 파일 공유·빌드 이야기예요.' },
-    { id: 'docs-local-dev', label: '데스크톱·로컬', source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: 'Tauri 앱에서만 쓰는 로컬 데브 러너 안내예요.' },
-    { id: 'docs-servermonitor-deploy-log-design', label: '로컬 · deploy 로그', source: { kind: 'local', path: 'servermonitor-deploy-log-stream.md' }, mddPreset: 'tool_run', mddMsg: '서버 모니터 deploy·npm i 로그 스트림 — 이벤트·커맨드는 본문 참고.' },
+    { id: 'docs-intro', label: t('docs.t16'), source: { kind: 'local', path: 'intro.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t17') },
+    { id: 'docs-roadmap', label: t('docs.t18'), source: { kind: 'local', path: 'roadmap.md' }, mddPreset: 'daily_start', mddMsg: t('docs.t19') },
+    { id: 'docs-guide', label: t('docs.t20'), source: { kind: 'local', path: 'guide.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t21') },
+    { id: 'docs-karmolab-ai', label: 'KarmoLabAI', source: { kind: 'local', path: 'karmolab-ai.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t22') },
+    { id: 'docs-discord-yawnbot', label: t('docs.t23'), source: { kind: 'local', path: 'discord-yawnbot.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t24') },
+    { id: 'docs-discord-bots-readme', label: 'discord-bots · README', source: { kind: 'github', path: 'apps/discord-bots/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t25') },
+    { id: 'docs-tauri-readme', label: 'Tauri · README', source: { kind: 'github', path: 'apps/karmolab-tauri/README.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t26') },
+    { id: 'docs-project-commands', label: t('docs.t27'), source: { kind: 'local', path: 'project-commands-guide.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t28') },
+    { id: 'docs-laptop', label: t('docs.t29'), source: { kind: 'local', path: 'laptop.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t30') },
+    { id: 'docs-local-dev', label: t('docs.t31'), source: { kind: 'local', path: 'local-dev-runner.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t32') },
+    { id: 'docs-servermonitor-deploy-log-design', label: t('docs.t33'), source: { kind: 'local', path: 'servermonitor-deploy-log-stream.md' }, mddPreset: 'tool_run', mddMsg: t('docs.t34') },
   ];
 
   type RelTarget = string | { target: string; label?: string };
@@ -613,10 +615,10 @@
   }
 
   const ENTITY_GROUPS: Array<{ key: keyof DocsManifest; label: string; dirName: string }> = [
-    { key: 'characters', label: '캐릭터 위키', dirName: 'characters' },
-    { key: 'systems', label: '시스템 / 흐름', dirName: 'systems' },
-    { key: 'concepts', label: '개념', dirName: 'concepts' },
-    { key: 'lore', label: '세계관 lore', dirName: 'lore' },
+    { key: 'characters', label: t('docs.t35'), dirName: 'characters' },
+    { key: 'systems', label: t('docs.t36'), dirName: 'systems' },
+    { key: 'concepts', label: t('docs.t37'), dirName: 'concepts' },
+    { key: 'lore', label: t('docs.t38'), dirName: 'lore' },
   ];
 
   /** DOCS_BASE = .../js/widgets/docs/. wiki 산출물은 .../world/wiki/. */
@@ -626,7 +628,7 @@
 
   function loadManifest(): Promise<DocsManifest> {
     return fetch(wikiBaseUrl() + 'manifest.json').then(function (r: Response) {
-      if (!r.ok) throw new Error('manifest 로드 실패: ' + r.status);
+      if (!r.ok) throw new Error(t('docs.err.39') + r.status);
       return r.json();
     });
   }
@@ -634,7 +636,7 @@
   function loadEntityMd(dirName: string, slug: string): Promise<string> {
     const url = wikiBaseUrl() + 'entities/' + dirName + '/' + slug + '.md';
     return fetch(url).then(function (r: Response) {
-      if (!r.ok) throw new Error('entity md 실패: ' + slug);
+      if (!r.ok) throw new Error(t('docs.err.40') + slug);
       return r.text();
     });
   }
@@ -739,7 +741,7 @@
       const html: string[] = [];
       // 외부 문서 그룹 (현재 10 항목 hardcode — 외부 README/가이드 등)
       html.push('<div class="docs-shell-group">');
-      html.push('<h3 class="docs-shell-group-label">프로젝트 문서</h3>');
+      html.push(t('docs.t41'));
       html.push('<ul class="docs-shell-list">');
       for (const item of EXTERNAL_DOCS) {
         html.push('<li><button type="button" class="docs-shell-btn" data-key="external:' + escAttr(item.id) + '">' + docsEsc(item.label) + '</button></li>');
@@ -777,7 +779,7 @@
       sideEl.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach(function (b) {
         b.classList.toggle('docs-shell-btn--active', b === btn);
       });
-      contentEl.innerHTML = '<p class="docs-body" style="color:var(--text-secondary)">불러오는 중...</p>';
+      contentEl.innerHTML = t('docs.t42');
       void loadAndRender(key, contentEl);
     }
 
@@ -788,7 +790,7 @@
       if (kind === 'external') {
         const ext = EXTERNAL_DOCS.find(function (e) { return e.id === rest; });
         if (!ext) {
-          renderMarkdown(target, '*항목 없음*');
+          renderMarkdown(target, t('docs.t43'));
           return;
         }
         if (ext.mddPreset && ext.mddMsg && typeof Mdd !== 'undefined' && Mdd.linePreset) {
@@ -799,7 +801,7 @@
             const md = await loadDoc(ext.source.path);
             renderMarkdown(target, md);
           } catch (_) {
-            renderMarkdown(target, '*문서를 불러오지 못했어요. 새로고침해 주세요.*');
+            renderMarkdown(target, t('docs.t44'));
           }
         } else {
           renderRepoMarkdownInContainer(target, ext.source.path);
@@ -817,18 +819,18 @@
           const header = item ? buildEntityHeader(dirName, item, manifest) : '> **' + docsEsc(slug) + '**\n\n---\n\n';
           renderMarkdown(target, header + md);
         } catch (err) {
-          renderMarkdown(target, '*entity 로드 실패: ' + docsEsc(String((err as Error)?.message || err)) + '*');
+          renderMarkdown(target, t('docs.t45') + docsEsc(String((err as Error)?.message || err)) + '*');
         }
         return;
       }
-      renderMarkdown(target, '*알 수 없는 항목 키: ' + docsEsc(key) + '*');
+      renderMarkdown(target, t('docs.t46') + docsEsc(key) + '*');
     }
 
     // 진입 — manifest fetch (실패해도 외부 문서 그룹은 표시)
     loadManifest()
       .then(function (m) { manifest = m; renderSide(); })
       .catch(function (err) {
-        console.warn('[docs] manifest 로드 실패 (entity 그룹 없이 진행):', err);
+        console.warn(t('docs.t47'), err);
         renderSide();
       });
   }
@@ -838,8 +840,13 @@
     tabs: [
       {
         id: 'docs',
-        label: '문서',
-        build: buildDocsShell,
+        label: t('docs.t48', undefined, "문서"),
+        /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 이 안에서 만들어진다. */
+        build: function (container: HTMLElement): void {
+          void loadNamespace('docs').then(function () {
+            buildDocsShell(container);
+          });
+        },
       },
     ],
   });
