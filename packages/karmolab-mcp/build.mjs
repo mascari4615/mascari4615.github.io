@@ -128,6 +128,15 @@ if (fs.existsSync(serverJsonPath)) {
    * npm 쪽 설명문은 더 길어도 되므로 둘은 같을 수 없다 — 그래서 여기서 길이를 지킨다.
    * 발행 워크플로 끝까지 갔다가 마지막 한 줄로 튕기는 것보다, 빌드에서 미리 멈추는 게 싸다.
    */
+  /*
+   * 네임스페이스는 **소문자만** 받는다 (2026-08-10, 등재가 403 으로 튕겼다 —
+   * 「You have permission to publish: io.github.mascari4615/*」 인데 우리는 대문자 M 으로 적었다).
+   * 깃허브 계정 이름은 대소문자를 보존해서 보여 주므로, 그대로 옮겨 적으면 이 함정에 빠진다.
+   */
+  if (reg.name !== reg.name.toLowerCase()) {
+    mismatches.push(`name 에 대문자가 있다 (${reg.name}) — 레지스트리 네임스페이스는 소문자만`);
+  }
+
   if ((reg.description ?? '').length > 100) {
     mismatches.push(`description 이 ${reg.description.length}자 — 레지스트리 상한은 100자`);
   }
