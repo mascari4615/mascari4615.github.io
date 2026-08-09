@@ -64,6 +64,9 @@ import {
     /* position+z-index — 캔버스 svg 를 absolute inset:0 로 깔면서, 툴바가 두 줄이 되는 순간
        그 svg 가 툴바 아랫줄을 덮어 **버튼이 눌리지 않았다**(실측 2026-08-09: 「⋯」 자리를 찍으면
        svg 가 잡혔다). 화면은 멀쩡해 보이는데 클릭만 죽는 부류라 눈으로는 못 잡는다. */
+    /* 툴바는 짧게 유지한다. 실측 2026-08-09: 항목이 늘며 384px(5줄)까지 자라 캔버스를 먹었고,
+       그렇다고 안에서 스크롤시키면 이번엔 버튼이 「멈추지 않아」 자동 조작이 통째로 막혔다.
+       답은 스크롤이 아니라 **항목을 줄이는 것** — 노드 만들기는 빈 곳 더블클릭이 대신한다. */
     .km-toolbar { position:relative; z-index:5; display:flex; flex-wrap:wrap; gap:6px; align-items:center;
       padding:8px 12px; border-bottom:1px solid var(--border); background:var(--bg-secondary); flex-shrink:0; }
     .km-toolbar input[type=text], .km-toolbar select, .km-side select, .km-side input[type=text] {
@@ -71,7 +74,7 @@ import {
       border-radius:var(--radius-sm); padding:5px 8px; font-size:var(--font-size-xs); }
     .km-toolbar input[type=text] { min-width:180px; }
     .km-toolbar input[data-km="find"] { min-width:130px; }
-    .km-spacer { flex:1; }
+    .km-sep { width:1px; align-self:stretch; background:var(--border); margin:0 2px; }
     .km-body { flex:1; display:flex; min-height:0; }
         /* ★ 캔버스 최소 높이 — 툴바가 줄바꿈으로 커지면 flex 가 캔버스부터 깎는다.
        실측 2026-08-09: 툴바가 커지며 캔버스가 156px 로 눌려 더블클릭이 화면 밖으로 나갔다. */
@@ -210,10 +213,8 @@ import {
           <select data-km="pack" title="어휘 팩 — 같은 캔버스, 다른 말">
             ${PACKS.map((p) => `<option value="${p.id}"${p.id === pack.id ? ' selected' : ''}>${p.icon} ${p.label}</option>`).join('')}
           </select>
-          <input type="text" data-km="new-label" placeholder="새 노드 이름" />
-          <select data-km="new-kind">${nodeKindOptions()}</select>
-          <button class="btn btn-primary" data-km="add">+ 추가</button>
-          <span class="km-spacer"></span>
+          <select data-km="new-kind" title="새로 만들 노드 종류">${nodeKindOptions()}</select>
+          <span class="km-sep"></span>
           <input type="text" data-km="find" placeholder="🔎 이름으로 찾기" />
           <select data-km="degree" title="고른 노드에서 몇 다리까지 볼까">
             <option value="">전체 보기</option>
@@ -1074,7 +1075,6 @@ import {
     });
 
     // ── 툴바 ────────────────────────────────────────────────────────────────
-    const newLabelEl = q<HTMLInputElement>('new-label');
     const newKindEl = q<HTMLSelectElement>('new-kind');
 
     /**
@@ -1108,23 +1108,6 @@ import {
       }
     }
 
-    function addNode(): void {
-      const label = newLabelEl.value.trim();
-      if (!label) {
-        newLabelEl.focus();
-        return;
-      }
-      const center = canvas?.viewCenterWorld() ?? { x: 0, y: 0 };
-      // 겹쳐 쌓이지 않게 노드 수만큼 살짝 계단식으로 밀어 놓는다.
-      const step = (spec.nodes.length % 8) * 24;
-      spawnNodeAt(center.x + step, center.y + step, label);
-      newLabelEl.value = '';
-    }
-
-    q<HTMLButtonElement>('add').onclick = addNode;
-    newLabelEl.onkeydown = (e) => {
-      if (e.key === 'Enter') addNode();
-    };
 
     // ── 포커스 (격차 M) — 볼 것만 또렷하게 ──────────────────────────────────
     const findEl = q<HTMLInputElement>('find');
