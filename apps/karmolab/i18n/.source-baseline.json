@@ -1,5 +1,5 @@
 {
-  "total": 5044,
+  "total": 5048,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -164,7 +164,7 @@
     "src/widgets/pulse/channels.ts": 629,
     "src/widgets/pulse/core.ts": 4,
     "src/widgets/pulse/letters.ts": 20,
-    "src/widgets/pulse/pulse.ts": 15,
+    "src/widgets/pulse/pulse.ts": 3,
     "src/widgets/quest-log/quest-log.ts": 4,
     "src/widgets/quest.ts": 5,
     "src/widgets/randomgen/randomgen-color.ts": 2,
@@ -361,6 +361,7 @@
     "src/widgets/tools/comparepic.ts": 11,
     "src/core/livecount.ts": 19,
     "src/widgets/tools/livecount.ts": 10,
-    "src/core/mesh3d.ts": 12
+    "src/core/mesh3d.ts": 12,
+    "src/widgets/tools/mesh3d.ts": 16
   }
 }

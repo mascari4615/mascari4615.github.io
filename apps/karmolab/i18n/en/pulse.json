@@ -1,0 +1,20 @@
+{
+  "pulse.ph.plSeed": "A name or nickname, anything",
+  "pulse.t01": "📻 Pulse",
+  "pulse.t02": "Meaningless letters flow past on a steady beat. Now and then a real word comes out — that is when you share the picture. What comes next is never announced.",
+  "pulse.btn.plSound": "🔇 Sound",
+  "pulse.btn.plShare": "Share as a picture",
+  "pulse.btn.plSeedGo": "Get my own",
+  "pulse.t03": "Pulses gone by",
+  "pulse.t04": "Stations",
+  "pulse.t05": "Something with no meaning at all, very regularly…",
+  "pulse.t06": "🔔 Sound",
+  "pulse.t07": "My own",
+  "pulse.t08": "← Back to now",
+  "pulse.t09": "Please write any name",
+  "pulse.t10": "You are looking at a past round",
+  "pulse.unit.min": "{n} min",
+  "pulse.unit.hour": "{n} h",
+  "pulse.unit.day": "{n} d",
+  "pulse.channelLine": "<b>{name}</b> — {blurb}<br>lineage · {lineage}"
+}

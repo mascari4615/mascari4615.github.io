@@ -434,6 +434,7 @@ if (shadows.length) {
   );
   console.log(`[widgetize] ⚠ \`t\` 를 지역 이름으로 쓰는 곳 ${shadows.length}개 (줄 ${lines.slice(0, 6).join(', ')}…)`);
   console.log('   그 안에서는 말 묶음 t() 를 못 부른다 — 이름을 바꾸고 다시 돌려라 (사람 판단).');
+  console.log('   ⚠ 바꿀 때 `data-t="…"` 같은 **속성 이름**까지 같이 바뀌지 않게 (pulse 에서 실제로 그랬다).');
 }
 if (leftovers.length) {
   console.log(`[widgetize] 손이 필요한 곳 ${leftovers.length}개 (자리표시가 낀 글) —`);

@@ -1,0 +1,20 @@
+{
+  "pulse.ph.plSeed": "名前でもあだ名でも、なんでも",
+  "pulse.t01": "📻 鼓動",
+  "pulse.t02": "意味のない文字が規則正しく流れます。ときどき本物の言葉が出てきます — そのときに画像で共有してください。次に何が来るかは教えません。",
+  "pulse.btn.plSound": "🔇 音",
+  "pulse.btn.plShare": "画像で共有",
+  "pulse.btn.plSeedGo": "自分だけのものを",
+  "pulse.t03": "過ぎた鼓動",
+  "pulse.t04": "放送局",
+  "pulse.t05": "なんの意味もないものを、とても規則正しく…",
+  "pulse.t06": "🔔 音",
+  "pulse.t07": "自分だけのもの",
+  "pulse.t08": "← いまへ戻る",
+  "pulse.t09": "名前を何でも書いてください",
+  "pulse.t10": "過ぎた回を見ています",
+  "pulse.unit.min": "{n}分",
+  "pulse.unit.hour": "{n}時間",
+  "pulse.unit.day": "{n}日",
+  "pulse.channelLine": "<b>{name}</b> — {blurb}<br>系譜 · {lineage}"
+}
