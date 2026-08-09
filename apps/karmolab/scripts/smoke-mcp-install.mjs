@@ -12,7 +12,7 @@
  *
  * 사용: node scripts/smoke-mcp-install.mjs
  */
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -35,6 +35,7 @@ const npm = isWin ? 'npm.cmd' : 'npm';
 const q = (v) => (isWin ? `"${v}"` : v);
 const runNpm = (args, cwd) => execFileSync(npm, args, { cwd, encoding: 'utf8', stdio: 'pipe', windowsHide: true, shell: isWin });
 let child;
+let viaBin = false;
 
 /**
  * 이 검사는 **배포 길목**에 있다 (build 사슬). 그래서 「못 돌았다」와 「제품이 틀렸다」를
@@ -74,6 +75,29 @@ if (npmUsable === false) {
 try {
   // ① 담기 — prepublishOnly 를 태우지 않는다(그건 발행 때 도는 것이고, 여기선 지금 상태를 본다).
   runNpm(['run', 'build'], pkgDir);
+  /*
+   * ★ npm 은 **발행할 때** package.json 을 말없이 고친다. 실제로 겪은 것:
+   *     npm warn publish "bin[karmolab-mcp]" script name src/server.mjs was invalid and removed
+   *   값 앞의 `./` 하나 때문에 **명령어 항목이 통째로 빠진 채** 발행될 뻔했다.
+   *   설치할 때는 npm 이 같은 값을 알아서 정규화해 주므로 **설치본을 아무리 뜯어봐도 안 잡힌다**
+   *   (실측 확인 — `./` 로 되돌려도 설치 검사는 초록이었다).
+   *
+   * 경고는 **`pack` 이 아니라 `publish` 때만** 나온다 (실측). 그래서 발행 흉내를 한 번 낸다 —
+   * `--dry-run` 이라 아무것도 안 올라가고, `--ignore-scripts` 로 prepublishOnly 재실행만 막는다.
+   */
+  const dry = spawnSync(npm, ['publish', '--dry-run', '--access', 'public', '--ignore-scripts'], {
+    cwd: pkgDir,
+    encoding: 'utf8',
+    windowsHide: true,
+    shell: isWin
+  });
+  const dryLines = [...(dry.stdout ?? '').split('\n'), ...(dry.stderr ?? '').split('\n')];
+  const corrected = dryLines.filter((l) => /invalid and removed|auto-corrected/i.test(l));
+  check(
+    corrected.length === 0,
+    `npm 이 발행하며 package.json 을 고친다 — 그 항목은 발행물에서 빠진다: ${corrected.join(' / ').trim()}`
+  );
+
   const out = runNpm(['pack', '--pack-destination', q(work)], pkgDir);
   const tgz = out.trim().split('\n').pop().trim();
   check(fs.existsSync(path.join(work, tgz)), `꾸러미가 안 만들어졌다: ${tgz}`);
@@ -143,8 +167,20 @@ try {
     'prepublishOnly 가 빌드를 안 한다 — 낡은 dist 가 발행될 수 있다'
   );
 
-  // ③ 설치된 것만으로 띄워서 실제로 물어본다.
-  child = spawn(process.execPath, [installed], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
+  /*
+   * ③ 설치된 것만으로 띄워서 실제로 물어본다.
+   *
+   * ★ **README 가 시키는 길로 띄운다.** 첫 줄이 `npx -y karmolab-mcp` 이므로, 여기서도
+   * 설치본이 만들어 준 **명령**(`node_modules/.bin/karmolab-mcp`)을 실행한다.
+   * 예전에는 `node .../src/server.mjs` 를 직접 띄웠다 — 그건 `bin` 항목을 안 지나므로,
+   * `bin` 이 통째로 지워져도 초록이었다(실제로 그런 상태로 발행될 뻔했다, 2026-08-10).
+   * 명령이 없으면 위 ⓐ-2 가 이미 빨갛고, 여기서는 파일을 직접 띄워 나머지라도 재 본다.
+   */
+  const binPath = path.join(work, 'node_modules', '.bin', isWin ? 'karmolab-mcp.cmd' : 'karmolab-mcp');
+  viaBin = fs.existsSync(binPath);
+  child = viaBin
+    ? spawn(binPath, [], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, shell: isWin })
+    : spawn(process.execPath, [installed], { stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   let buf = '';
   const seen = new Map();
   child.stdout.on('data', (c) => {
@@ -187,4 +223,6 @@ if (failures.length > 0) {
   for (const f of failures) console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log('[smoke-mcp-install] 빈 폴더에 설치 → 그것만으로 서버가 뜨고 값이 맞다');
+console.log(
+  `[smoke-mcp-install] 빈 폴더에 설치 → ${viaBin ? '설치본이 만든 명령(karmolab-mcp)' : '파일 직접'} 으로 서버가 뜨고 값이 맞다`
+);
