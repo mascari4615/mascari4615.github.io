@@ -62,5 +62,10 @@
   "howto.textdiff.0": "Paste text on both sides — it compares as you paste",
   "howto.textdiff.1": "Changed lines are colored, and what changed inside a line is bolded",
   "howto.textdiff.2": "Use side by side to compare left and right, unified to compare top and bottom",
-  "howto.textdiff.3": "Options: ignore trailing spaces, ignore case, show only changed lines"
+  "howto.textdiff.3": "Options: ignore trailing spaces, ignore case, show only changed lines",
+  "howto.loan.0": "Enter the amount, rate, term and repayment type",
+  "howto.loan.1": "If there is a grace period, enter its months (interest only during it)",
+  "howto.loan.2": "Put an amount in \"Extra payment\" to see the months and interest it saves",
+  "howto.loan.3": "Use the three-way comparison to trade total interest against the first payment",
+  "howto.loan.4": "\"Show all\" for every month, \"Download the table\" to open it in a spreadsheet"
 }
