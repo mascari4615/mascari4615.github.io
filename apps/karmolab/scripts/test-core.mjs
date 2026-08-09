@@ -371,6 +371,38 @@ try {
 }
 check(itThrew, '음수 금액은 던진다');
 
+// ── ②-9 hangulkey 알맹이 (자판 배열 = 지역 지식, 우리 말고 없다) ──────────────
+const hk = await load('src/core/hangulkey.ts');
+
+eq(hk.spec.id, 'hangulkey', 'hangulkey spec.id');
+eq(hk.engToKor('dkssud'), '안녕', '대표 예시');
+eq(hk.engToKor('dkssudgktpdy'), '안녕하세요', '긴 문장');
+eq(hk.korToEng('안녕하세요'), 'dkssudgktpdy', '반대 방향');
+eq(hk.engToKor(hk.korToEng('한글 자판')), '한글 자판', '왕복 (띄어쓰기 포함)');
+
+// 이 도구의 어려운 자리 ① 받침이 다음 글자 초성으로 넘어간다.
+eq(hk.engToKor('rksk'), '가나', 'ㄱㅏㄴㅏ — ㄴ 이 다음 글자 초성으로');
+eq(hk.engToKor('dkswk'), '안자', '겹받침 아니어도 넘어간다');
+// ② 겹받침이면 **뒷자음만** 넘어간다.
+eq(hk.engToKor('dkswk'), '안자', 'ㅇㅏㄴㅈㅏ');
+eq(hk.korToEng('앉'), 'dksws'.slice(0, 4), '앉 = ㅇㅏㄴㅈ');
+// ③ 겹모음
+eq(hk.engToKor('dhk'), '와', 'ㅗ+ㅏ = ㅘ (d=ㅇ · h=ㅗ · k=ㅏ)');
+eq(hk.engToKor('dml'), '의', 'ㅡ+ㅣ = ㅢ');
+eq(hk.korToEng('의'), 'dml', '겹모음을 두 키로 되돌린다');
+eq(hk.korToEng('와'), 'dhk', '겹모음 반대 방향');
+// ④ 쌍자음은 대문자 키
+eq(hk.engToKor('Rk'), '까', '대문자 R = ㄲ');
+eq(hk.korToEng('까'), 'Rk', '쌍자음은 대문자로 되돌린다');
+
+eq(hk.engToKor('hello world'), 'ㅗ디ㅣㅐ 재깅', '아무 영문이나 두벌식으로 읽는다');
+eq(hk.engToKor('123 !@'), '123 !@', '숫자·기호는 그대로');
+eq(hk.korToEng('abc'), 'abc', '한글 아닌 것은 그대로');
+eq(hk.hasHangul('dkssud'), false, '영문만이면 false');
+eq(hk.hasHangul('안녕 hi'), true, '한글이 섞이면 true');
+eq(hk.run('auto', { text: 'dkssud' }), '안녕', 'auto — 영문이면 한글로');
+eq(hk.run('auto', { text: '안녕' }), 'dkssud', 'auto — 한글이면 영문으로');
+
 // ── ③ 주소 규약 ─────────────────────────────────────────────────────────────
 const url = await load('src/lib/tool-url.ts');
 
