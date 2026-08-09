@@ -49,6 +49,10 @@ const script = read('js/widgets/tools/base64.js');
 async function open(search) {
   await page.goto('http://localhost/' + search);
   await page.evaluate(() => {
+    /* 이 검사는 **주소 → 화면 값**을 보는 것이지 언어를 보는 게 아니다. 언어를 안 박으면
+     * 기계의 브라우저 언어를 따라간다 — CI 는 en 이라 「안녕하세요」 자리에 「Hello there」가
+     * 와서 여기서만 빨개졌다(로컬은 ko 라 초록). 원본 언어로 못 박는다. */
+    window.__KARMO_LOCALE = 'ko';
     window.__reg = {};
     window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
   });
