@@ -24,6 +24,7 @@ import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
 import { elementsFrom, propagate, propagateAll, nextPass, EARTH_RADIUS_KM, type Elements, type Pass } from './orbit';
 import { fromTimezone, askPrecise, type Me } from './me';
+import { EarthSound } from './sound';
 
 (function (): void {
   if (typeof Toolbox === 'undefined') return;
@@ -39,10 +40,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound';
   const LAYERS: Array<{ id: LayerId; glyph: string }> = [
     { id: 'me', glyph: '◉' },
     { id: 'sats', glyph: '⁘' },
+    { id: 'sound', glyph: '♪' },
     { id: 'zoom', glyph: '⊕' },
     { id: 'cloud', glyph: '☁' },
     { id: 'city', glyph: '✦' },
@@ -58,7 +60,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -207,6 +209,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
           let satXyz: Float32Array | null = null;
           let satAt = 0;
           let satLoading = false;
+          const sound = new EarthSound();
           let raf: number | undefined;
           let alive = true;
 
@@ -790,6 +793,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
           function cycleLine(): void {
             if (!alive) return;
             lines = sentences();
+            if (sound.running) {
+              const sunv = toVec(subsolar(new Date(clockMs())).lat, subsolar(new Date(clockMs())).lon);
+              const nightCities = CITIES.filter((c2) => dot(toVec(c2.lat, c2.lon), sunv) < 0.05).length;
+              sound.update(nightCities / CITIES.length, Math.min(1, au.length / 900));
+            }
             if (!lines.length) return;
             lineIdx = (lineIdx + 1) % lines.length;
             line.classList.remove('bm-show');
@@ -811,6 +819,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
               if (seenQuakes) {
                 const fresh = q.filter((x) => !seenQuakes!.has(x.id) && Date.now() - x.time < 3600000);
                 const biggest = fresh.sort((a, b) => b.mag - a.mag)[0];
+                if (biggest) sound.quake(biggest.mag);
                 if (biggest && !drag && zoom < 2.2) {
                   flyTo(biggest.lat, biggest.lon);
                   lineIdx = -1; // 다음 문장이 그 지진이 되게
@@ -920,6 +929,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
                 save();
                 if (l.id === 'aurora' && prefs.on.aurora && !au.length) void refreshSlow();
                 if (l.id === 'sats' && turningOn) void loadSats();
+                if (l.id === 'sound') {
+                  // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
+                  if (turningOn) sound.start();
+                  else sound.stop();
+                }
                 if (l.id === 'me' && turningOn && me && !me.precise) {
                   void askPrecise().then((got) => {
                     if (!alive || !got) return;
@@ -1163,6 +1177,7 @@ import { fromTimezone, askPrecise, type Me } from './me';
 
           Toolbox.onDispose?.(() => {
             alive = false;
+            sound.stop();
             document.removeEventListener('fullscreenchange', onFsChange);
             exitAmbient();
             stop();
