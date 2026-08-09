@@ -91,6 +91,16 @@ import { fromTimezone, askPrecise, type Me } from './me';
 .bm-line{display:block;color:#dbe6ff;font-size:14px;line-height:1.5;letter-spacing:-.01em;
   opacity:0;transition:opacity .8s ease;text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .bm-line.bm-show{opacity:1;}
+/* 상시 모드 — 켜 두는 물건이 되면 조작부는 사라져야 한다. 지구와 한 줄만 남는다.
+   사라지는 것은 **투명도**지 존재가 아니다(포커스·탭 이동이 끊기지 않게). */
+.bm-wrap.bm-ambient .bm-chips,.bm-wrap.bm-ambient .bm-time{opacity:0;pointer-events:none;
+  transition:opacity 1.2s ease;}
+.bm-wrap.bm-ambient .bm-sub{opacity:0;transition:opacity 1.2s ease;}
+.bm-wrap.bm-ambient{border-radius:0;}
+.bm-fs{position:absolute;top:10px;right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
+  background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
+  border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
+.bm-wrap.bm-ambient .bm-fs{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
 .bm-time{position:absolute;left:0;right:0;bottom:58px;z-index:3;display:flex;align-items:center;gap:10px;
   padding:0 16px;}
 .bm-time input[type=range]{flex:1;accent-color:#8fb8ff;height:2px;cursor:pointer;}
@@ -151,7 +161,11 @@ import { fromTimezone, askPrecise, type Me } from './me';
           nowBtn.className = 'bm-now';
           nowBtn.hidden = true;
           timeBar.append(slider, dateLabel, nowBtn);
-          wrap.append(canvas, chips, timeBar, ticker);
+          const fsBtn = document.createElement('button');
+          fsBtn.type = 'button';
+          fsBtn.className = 'bm-fs';
+          fsBtn.textContent = '⛶';
+          wrap.append(canvas, chips, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -983,6 +997,60 @@ import { fromTimezone, askPrecise, type Me } from './me';
             void applyTime();
           };
 
+          /* ── 상시 모드 (전체화면) ────────────────────────────────────── */
+
+          let wakeLock: { release: () => Promise<void> } | null = null;
+          let idleHide: number | undefined;
+
+          function showUi(): void {
+            wrap.classList.remove('bm-ambient');
+            if (idleHide !== undefined) window.clearTimeout(idleHide);
+            // 전체화면일 때만 다시 숨는다 — 창 안에서는 조작부가 계속 보여야 한다
+            if (document.fullscreenElement === wrap) {
+              idleHide = window.setTimeout(() => wrap.classList.add('bm-ambient'), 3500);
+            }
+          }
+
+          async function enterAmbient(): Promise<void> {
+            try {
+              await wrap.requestFullscreen();
+            } catch (_) {
+              /* 막혔으면 전체화면 없이도 상시 모드는 된다 */
+              wrap.classList.add('bm-ambient');
+              return;
+            }
+            /* 켜 두는 물건이라 화면이 꺼지면 안 된다. 되는 브라우저에서만 잡는다. */
+            try {
+              const nav = navigator as unknown as { wakeLock?: { request: (t: string) => Promise<{ release: () => Promise<void> }> } };
+              if (nav.wakeLock) wakeLock = await nav.wakeLock.request('screen');
+            } catch (_) {
+              /* 없으면 없는 대로 */
+            }
+          }
+
+          function exitAmbient(): void {
+            wrap.classList.remove('bm-ambient');
+            if (idleHide !== undefined) window.clearTimeout(idleHide);
+            idleHide = undefined;
+            if (wakeLock) {
+              void wakeLock.release().catch(() => undefined);
+              wakeLock = null;
+            }
+          }
+
+          fsBtn.onclick = () => {
+            if (document.fullscreenElement === wrap) void document.exitFullscreen();
+            else void enterAmbient();
+          };
+
+          const onFsChange = (): void => {
+            if (document.fullscreenElement === wrap) showUi();
+            else exitAmbient();
+          };
+          document.addEventListener('fullscreenchange', onFsChange);
+          wrap.addEventListener('pointermove', showUi);
+          wrap.addEventListener('pointerdown', showUi);
+
           function save(): void {
             try {
               localStorage.setItem(STORE_KEY, JSON.stringify({ on: prefs.on, spin }));
@@ -1095,6 +1163,8 @@ import { fromTimezone, askPrecise, type Me } from './me';
 
           Toolbox.onDispose?.(() => {
             alive = false;
+            document.removeEventListener('fullscreenchange', onFsChange);
+            exitAmbient();
             stop();
             ro.disconnect();
             eye.disconnect();
