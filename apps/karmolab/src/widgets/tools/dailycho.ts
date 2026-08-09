@@ -21,8 +21,10 @@ import { grade, puzzleFor, type ChoPuzzle } from '../../core/dailycho';
     title: '오늘의 초성 맞히기',
     category: 'tool',
     desc: '초성만 보고 낱말 다섯 개. 답은 이 사이트의 도구 이름입니다',
+    layout: 'wide',
     tabs: [
       {
+        id: 'play',
         label: '오늘의 초성',
         build: function (container: HTMLElement): void {
           const today = dateKST();

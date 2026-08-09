@@ -22,6 +22,7 @@ import { run as interestRun, spec as interestSpec } from './interest';
 import { run as jamoRun, spec as jamoSpec } from './jamo';
 import { run as livecountRun, spec as livecountSpec } from './livecount';
 import { run as loanRun, spec as loanSpec } from './loan';
+import { run as mesh3dRun, spec as mesh3dSpec } from './mesh3d';
 import { run as passgenRun, spec as passgenSpec } from './passgen';
 import { run as qrgenRun, spec as qrgenSpec } from './qrgen';
 import { run as tableconvRun, spec as tableconvSpec } from './tableconv';
@@ -60,6 +61,7 @@ export const CORES: Record<string, CoreEntry> = {
   jamo: { run: jamoRun, ops: Object.keys(jamoSpec.ops) },
   livecount: { run: livecountRun, ops: Object.keys(livecountSpec.ops) },
   loan: { run: loanRun, ops: Object.keys(loanSpec.ops) },
+  mesh3d: { run: mesh3dRun, ops: Object.keys(mesh3dSpec.ops) },
   passgen: { run: passgenRun, ops: Object.keys(passgenSpec.ops) },
   qrgen: { run: qrgenRun, ops: Object.keys(qrgenSpec.ops) },
   tableconv: { run: tableconvRun, ops: Object.keys(tableconvSpec.ops) },

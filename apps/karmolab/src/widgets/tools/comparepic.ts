@@ -17,8 +17,10 @@
     title: '비교 슬라이더',
     category: 'tool',
     desc: '사진 두 장을 겹쳐 밀어 보며 비교합니다. 파일은 기기 밖으로 나가지 않습니다',
+    layout: 'wide',
     tabs: [
       {
+        id: 'compare',
         label: '전후 비교',
         build: function (container: HTMLElement): void {
           container.innerHTML = `

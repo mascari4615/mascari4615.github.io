@@ -248,6 +248,15 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['tools/charconv']
   },
   {
+    id: 'mesh3d',
+    title: '3D 뷰어',
+    category: 'tool',
+    desc: 'STL·OBJ 를 열어 돌려 본다 — 삼각형 수·크기까지, 파일은 기기 밖으로 안 나간다',
+    layout: 'wide',
+    icon: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/>',
+    lazyScriptPaths: ['tools/mesh3d']
+  },
+  {
     id: 'dailycho',
     title: '오늘의 초성 맞히기',
     category: 'tool',

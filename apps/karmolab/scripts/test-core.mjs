@@ -2017,6 +2017,87 @@ try {
 }
 check(badDate, '못 읽는 날짜는 던진다');
 
+// ── ②-39 3D 파일 읽기 (이진 STL 을 글자로 판단하면 자주 틀린다) ────────────
+const m3 = await load('src/core/mesh3d.ts');
+eq(m3.spec.id, 'mesh3d', 'mesh3d spec.id');
+
+/* 이진 STL 을 손으로 만든다 — 삼각형 하나. */
+const makeBinStl = (count, header = 'solid something') => {
+  const buf = new ArrayBuffer(84 + count * 50);
+  const view = new DataView(buf);
+  const head = new TextEncoder().encode(header);
+  new Uint8Array(buf).set(head.slice(0, 80), 0);
+  view.setUint32(80, count, true);
+  let at = 84;
+  for (let t = 0; t < count; t++) {
+    at += 12;
+    const pts = [0, 0, 0, 10, 0, 0, 0, 20, 0];
+    for (const v of pts) {
+      view.setFloat32(at, v, true);
+      at += 4;
+    }
+    at += 2;
+  }
+  return new Uint8Array(buf);
+};
+
+/*
+ * ★ 머리 80바이트에 「solid」 가 들어 있는 이진 파일이 흔하다 — 글자로 판단하면 여기서 틀린다.
+ * 그래서 길이(84 + 삼각형수 × 50)로 본다.
+ */
+const m3Bin = makeBinStl(1);
+check(m3.isBinaryStl(m3Bin), 'solid 로 시작해도 길이가 맞으면 이진이다');
+const binMesh = m3.parseMesh(m3Bin, 'a.stl');
+eq(binMesh.triangles, 1, '삼각형 1개');
+eq(binMesh.positions.length, 9, '꼭짓점 9개 값');
+eq(binMesh.max[0], 10, 'x 최대 10');
+eq(binMesh.max[1], 20, 'y 최대 20');
+
+/* 글자 STL. */
+const asciiStl = ['solid t', 'facet normal 0 0 1', 'outer loop',
+  'vertex 0 0 0', 'vertex 4 0 0', 'vertex 0 6 0', 'endloop', 'endfacet', 'endsolid t'].join(String.fromCharCode(10));
+check(m3.isBinaryStl(new TextEncoder().encode(asciiStl)) === false, '글자 STL 은 길이가 안 맞는다');
+const asciiMesh = m3.parseMesh(new TextEncoder().encode(asciiStl), 't.stl');
+eq(asciiMesh.triangles, 1, '글자 STL 도 1개');
+eq(asciiMesh.max[1], 6, 'y 최대 6');
+
+/* ★ OBJ 의 사각형 면 — 안 쪼개면 모델이 군데군데 뚫린다(블렌더 기본 내보내기가 사각형이다). */
+const objQuad = ['v 0 0 0', 'v 1 0 0', 'v 1 1 0', 'v 0 1 0', 'f 1 2 3 4'].join(String.fromCharCode(10));
+const m3Quad = m3.parseObj(objQuad);
+eq(m3Quad.triangles, 2, '사각형 하나 → 삼각형 둘');
+
+const objSlash = ['v 0 0 0', 'v 2 0 0', 'v 0 3 0', 'f 1/1/1 2/2/2 3/3/3'].join(String.fromCharCode(10));
+eq(m3.parseObj(objSlash).triangles, 1, 'f 1/2/3 꼴에서 앞 번호만 쓴다');
+
+const objNeg = ['v 0 0 0', 'v 5 0 0', 'v 0 5 0', 'f -3 -2 -1'].join(String.fromCharCode(10));
+eq(m3.parseObj(objNeg).triangles, 1, '음수 번호는 뒤에서부터 센다');
+
+let objThrew = false;
+try {
+  m3.parseObj(['v 0 0 0', 'f 1 2 3'].join(String.fromCharCode(10)));
+} catch {
+  objThrew = true;
+}
+check(objThrew, '없는 꼭짓점을 가리키면 던진다 (조용히 뚫린 모델을 내지 않는다)');
+
+/* 크기 — 인쇄 전에 보는 그 숫자. */
+const m3Info = m3.describe(m3Quad);
+eq(m3Info.size[0], 1, '가로 1');
+eq(m3Info.longest, 1, '가장 긴 변');
+eq(m3Info.center[0], 0.5, '가운데');
+
+const m3Out = m3.run('info', { text: objQuad, format: 'obj' });
+check(m3Out.includes('삼각형 2개'), `run m3Info: ${m3Out.split(String.fromCharCode(10))[0]}`);
+check(m3Out.includes('단위는 파일에 적혀 있지 않습니다'), '단위가 없다는 사실을 밝힌다');
+
+let m3Threw = false;
+try {
+  m3.parseMesh(new TextEncoder().encode('hello'), 'x.txt');
+} catch {
+  m3Threw = true;
+}
+check(m3Threw, '모르는 파일은 던진다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');
