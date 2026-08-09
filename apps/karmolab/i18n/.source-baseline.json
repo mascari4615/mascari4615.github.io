@@ -1,5 +1,5 @@
 {
-  "total": 7962,
+  "total": 7977,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -7,9 +7,9 @@
     "src/badapple/load-demo.ts": 4,
     "src/badapple/studio.ts": 9,
     "src/brag-card.ts": 10,
-    "src/core/base64.ts": 2,
-    "src/core/epoch.ts": 31,
-    "src/core/hashgen.ts": 3,
+    "src/core/base64.ts": 3,
+    "src/core/epoch.ts": 35,
+    "src/core/hashgen.ts": 7,
     "src/desktop-chrome.ts": 25,
     "src/gemini.ts": 73,
     "src/home-page.ts": 4,
@@ -119,6 +119,7 @@
     "src/widgets/play.ts": 21,
     "src/widgets/plaza.ts": 55,
     "src/widgets/postgraph.ts": 3,
+    "src/widgets/pulse/core.ts": 4,
     "src/widgets/quest-log/quest-log.ts": 51,
     "src/widgets/quest.ts": 46,
     "src/widgets/randomgen/randomgen-color.ts": 2,
@@ -279,7 +280,7 @@
     "src/widgets/wm/wm.ts": 53,
     "src/widgets/worldcup.ts": 28,
     "src/widgets/youtubedl.ts": 18,
-    "src/widgets-lazy-meta.ts": 368,
+    "src/widgets-lazy-meta.ts": 370,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
     "src/world/load-characters-from-wiki.ts": 8

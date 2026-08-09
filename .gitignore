@@ -57,6 +57,13 @@ apps/karmolab/.fontsrc/
 # scripts/gen-tool-pages.mjs 가 t/<id>/ 도구 페이지를 찍는 자리 (TASK-KL-088)
 apps/blog/karmolab/
 
+# 언어 판 — `gen-locale-pages` · `gen-tool-pages-locale` 이 배포 때 찍는 자리 (TASK-KL-203).
+# 한국어 판(`apps/blog/karmolab/`)과 똑같이 **산출물**이다: 번역 파일(`apps/karmolab/i18n/`)과
+# 생성기가 정본이고, 이 폴더는 매 배포마다 새로 만들어진다. 커밋하면 260장이 저장소에 눌러앉아
+# 원본과 갈라진다 — 갈라진 사본은 아무도 안 고치고 조용히 낡는다.
+apps/blog/en/
+apps/blog/ja/
+
 # 「오늘의 하나 맞히기」 — 배포 시 apps/daily/dist/ 가 복사되는 자리 (TASK-KAR-202)
 apps/blog/daily/
 apps/daily/dist/
