@@ -1,0 +1,22 @@
+{
+  "reaction.label.text": "Click to start",
+  "reaction.label.sub": "Click when the screen turns green!",
+  "reaction.btn.share": "Copy the result image",
+  "reaction.t01": "Reaction time",
+  "reaction.t03": "Let us test your reaction time!",
+  "reaction.t04": "Are you human?",
+  "reaction.t05": "Wait for it…",
+  "reaction.t06": "Click now!",
+  "reaction.t07": "That was too early!",
+  "reaction.t08": "Click to try again",
+  "reaction.t09": "Too fast!",
+  "reaction.t10": "A new record!",
+  "reaction.t11": "Fast!!! Are you really human?!",
+  "reaction.t12": "Quite fast~",
+  "reaction.t13": "Slower than me, ha",
+  "reaction.t14": "200 ms — very fast",
+  "reaction.t15": "150 ms — lightning",
+  "reaction.triesAvg": "{n} tries · average {avg}ms",
+  "reaction.best": "Best: {ms}ms",
+  "reaction.avgTries": "Average: {avg}ms · {n} tries"
+}

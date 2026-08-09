@@ -1,0 +1,22 @@
+{
+  "reaction.label.text": "クリックしてはじめる",
+  "reaction.label.sub": "画面が緑になったらクリック!",
+  "reaction.btn.share": "結果の画像をコピー",
+  "reaction.t01": "反応速度",
+  "reaction.t03": "反応速度を測ってみましょう!",
+  "reaction.t04": "人間ですよね?",
+  "reaction.t05": "待ってください…",
+  "reaction.t06": "いまクリック!",
+  "reaction.t07": "早すぎました!",
+  "reaction.t08": "クリックしてもう一度",
+  "reaction.t09": "速すぎます!",
+  "reaction.t10": "新記録です!",
+  "reaction.t11": "速い!!! 本当に人間ですか?!",
+  "reaction.t12": "なかなか速いです〜",
+  "reaction.t13": "わたしより遅いですね(笑)",
+  "reaction.t14": "超高速反応 200ms",
+  "reaction.t15": "稲妻反応 150ms",
+  "reaction.triesAvg": "{n}回 · 平均 {avg}ms",
+  "reaction.best": "最高記録: {ms}ms",
+  "reaction.avgTries": "平均: {avg}ms · {n}回"
+}

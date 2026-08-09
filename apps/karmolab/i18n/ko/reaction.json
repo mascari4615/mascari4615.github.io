@@ -1,0 +1,22 @@
+{
+  "reaction.label.text": "클릭하여 시작",
+  "reaction.label.sub": "화면이 초록색이 되면 클릭!",
+  "reaction.btn.share": "결과 그림 복사",
+  "reaction.t01": "반응속도",
+  "reaction.t03": "반응 속도를 테스트해요!",
+  "reaction.t04": "사람 맞습니까?",
+  "reaction.t05": "기다리세요...",
+  "reaction.t06": "지금 클릭!",
+  "reaction.t07": "너무 빨랐습니다!",
+  "reaction.t08": "클릭하여 다시 시도",
+  "reaction.t09": "너무 빨라요!",
+  "reaction.t10": "신기록이에요!",
+  "reaction.t11": "빨라요!!! 인간 맞아요?!",
+  "reaction.t12": "꽤 빨라요~",
+  "reaction.t13": "나보다 느려요 ㅋ",
+  "reaction.t14": "초고속 반응 200ms",
+  "reaction.t15": "번개 반응 150ms",
+  "reaction.triesAvg": "{n}번 시도 · 평균 {avg}ms",
+  "reaction.best": "최고 기록: {ms}ms",
+  "reaction.avgTries": "평균: {avg}ms · {n}회 시도"
+}
