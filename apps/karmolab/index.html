@@ -198,7 +198,7 @@ permalink: /karmolab/
     <noscript>
       <section class="root-intro">
         <h2>KarmoLab</h2>
-        <p>
+        <p data-i18n="site.noscript.intro">
           글·이미지·계산·개발에 쓰는 도구를 브라우저 안에서 다룹니다. 넣은 내용은 이 브라우저를
           벗어나지 않고, 도구마다 자기 주소가 있어 바로 열 수 있습니다.
         </p>
@@ -218,16 +218,16 @@ permalink: /karmolab/
     <div class="app-layout">
         <header class="header-bar" id="headerBar" data-tauri-drag-region>
             <div class="header-bar-left">
-                <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" onclick="Toolbox.switchPage('home')" title="홈으로"><span class="header-logo-text">KarmoLab</span></button>
+                <button type="button" class="header-logo" id="headerHomeBtn" data-page="home" onclick="Toolbox.switchPage('home')" title="홈으로" data-i18n-title="shell.home.title"><span class="header-logo-text">KarmoLab</span></button>
             </div>
-            <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리"></nav>
+            <nav class="header-nav" id="header-nav" role="navigation" aria-label="도구 카테고리" data-i18n-aria-label="shell.nav.categories"></nav>
             <div class="header-bar-right">
-                <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록">≡ 도구</a>
-                <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산">◈ 봇</a>
-                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤">◉ 오늘의</a>
-                <a href="#community" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('community');return false}" title="이야기 · 도구 요청">◈ 커뮤니티</a>
-                <a href="#plaza" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('plaza');return false}" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청">◇ 광장</a>
-                <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크">누가 만들었나요?</a>
+                <a href="/karmolab/t/" class="header-tools-link" title="도구 전체 목록" data-i18n-title="shell.nav.toolsList" data-i18n="shell.nav.tools">≡ 도구</a>
+                <a href="/karmolab/bot/" class="header-tools-link" title="디스코드 봇 · 서버 결산" data-i18n-title="shell.nav.botTitle" data-i18n="shell.nav.bot">◈ 봇</a>
+                <a href="/daily/" class="header-tools-link" title="매일 하나씩 맞히기 — 포켓몬 · 롤" data-i18n-title="shell.nav.dailyTitle" data-i18n="shell.nav.daily">◉ 오늘의</a>
+                <a href="#community" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('community');return false}" title="이야기 · 도구 요청" data-i18n-title="shell.nav.communityTitle" data-i18n="shell.nav.community">◈ 커뮤니티</a>
+                <a href="#plaza" class="header-tools-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('plaza');return false}" title="지금 무엇이 쓰이는지 · 이야기 · 도구 요청" data-i18n-title="shell.nav.plazaTitle" data-i18n="shell.nav.plaza">◇ 광장</a>
+                <a href="#linktree" class="header-dev-link" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" data-i18n-title="shell.nav.whoTitle" data-i18n="shell.nav.who">누가 만들었나요?</a>
                 <!-- 계정 자리 (TASK-KL-098). js/account.js 가 채운다 — 서버에 못 닿으면 비워 둔다.
                      눌러도 아무 일 없는 단추가 제일 나쁘므로, 안 되는 날은 아예 안 보인다. -->
                 <!-- 알림 종 (TASK-KL-098) — 공용이다. 커뮤니티만이 아니라 도구·계정·봇이 보낸 것도 여기 뜬다.
@@ -238,31 +238,31 @@ permalink: /karmolab/
                      여기 박아 둔 것이 기본값이고 js/account.js 가 로그인 상태면 아바타·이름으로 바꾼다 —
                      서버에 못 닿아도 이 단추는 남는다(내 정보로 가는 길이 사라지면 안 된다). -->
                 <div class="header-account" id="headerAccount">
-                    <button type="button" class="header-account-btn" id="userPageBtn" title="내 정보">
+                    <button type="button" class="header-account-btn" id="userPageBtn" title="내 정보" data-i18n-title="shell.account.me">
                         <span class="header-account-blank">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
                         </span>
-                        <span class="header-account-name">내 정보</span>
+                        <span class="header-account-name" data-i18n="shell.account.me">내 정보</span>
                     </button>
                 </div>
                 <!-- 환경 설정 (TASK-KL-139) — 「내 정보」에서 떼어 냈으므로 여기 진입점이 있어야 한다.
                      계정 메뉴에도 있지만 그건 서버에 닿을 때만 그려진다. 설정은 서버와 무관하다. -->
-                <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정">
+                <button type="button" class="header-btn settings-btn" id="settingsPageBtn" title="환경 설정" aria-label="환경 설정" data-i18n-title="shell.settings" data-i18n-aria-label="shell.settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
-                <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환">
+                <button type="button" class="theme-toggle" id="themeToggle" title="테마 전환" aria-label="라이트/다크 모드 전환" data-i18n-title="shell.theme.toggle" data-i18n-aria-label="shell.theme.toggleAria">
                     <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
                     <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="window-controls" id="windowControls" data-desktop-only aria-hidden="true">
-                    <button type="button" class="wc-btn wc-min" id="wcMinimize" title="최소화" aria-label="최소화">
+                    <button type="button" class="wc-btn wc-min" id="wcMinimize" title="최소화" aria-label="최소화" data-i18n-title="shell.window.min" data-i18n-aria-label="shell.window.min">
                         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6 H10" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
                     </button>
-                    <button type="button" class="wc-btn wc-max" id="wcMaximize" title="최대화" aria-label="최대화">
+                    <button type="button" class="wc-btn wc-max" id="wcMaximize" title="최대화" aria-label="최대화" data-i18n-title="shell.window.max" data-i18n-aria-label="shell.window.max">
                         <svg viewBox="0 0 12 12" aria-hidden="true" class="wc-icon-max"><rect x="2.5" y="2.5" width="7" height="7" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
                         <svg viewBox="0 0 12 12" aria-hidden="true" class="wc-icon-restore"><rect x="3.5" y="2.5" width="6" height="6" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="2.5" y="3.5" width="6" height="6" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
                     </button>
-                    <button type="button" class="wc-btn wc-close" id="wcClose" title="닫기" aria-label="닫기">
+                    <button type="button" class="wc-btn wc-close" id="wcClose" title="닫기" aria-label="닫기" data-i18n-title="shell.window.close" data-i18n-aria-label="shell.window.close">
                         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 2.5 L9.5 9.5 M9.5 2.5 L2.5 9.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
                     </button>
                 </div>
@@ -270,34 +270,34 @@ permalink: /karmolab/
         </header>
         <div class="app-body">
             <aside class="sidebar" id="sidebar">
-                <nav class="sidebar-nav" role="navigation" aria-label="도구 목록">
+                <nav class="sidebar-nav" role="navigation" aria-label="도구 목록" data-i18n-aria-label="shell.sidebar.tools">
                     <div id="sidebar-nav"></div>
                 </nav>
                 <div class="sidebar-footer">
                     <!-- 정적 앵커 — 크롤러가 도구 상세 페이지(/karmolab/t/*)로 들어오는 입구 (TASK-KL-088) -->
-                    <a href="/karmolab/t/" class="sidebar-dev-links" title="도구 전체 목록" aria-label="도구 전체 목록">
+                    <a href="/karmolab/t/" class="sidebar-dev-links" title="도구 전체 목록" aria-label="도구 전체 목록" data-i18n-title="shell.nav.toolsList" data-i18n-aria-label="shell.nav.toolsList">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">≡</span>
-                        <span class="sidebar-dev-links-text">도구 전체 목록</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.nav.toolsList">도구 전체 목록</span>
                     </a>
                     <!-- 디스코드 봇 소개 페이지 입구 (TASK-YB-042). 링크가 없으면 주소를 아는 사람만 닿는다. -->
-                    <a href="/karmolab/bot/" class="sidebar-dev-links" title="디스코드 봇 · 서버 결산" aria-label="디스코드 봇">
+                    <a href="/karmolab/bot/" class="sidebar-dev-links" title="디스코드 봇 · 서버 결산" aria-label="디스코드 봇" data-i18n-title="shell.nav.botTitle" data-i18n-aria-label="shell.sidebar.discordBot">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">◈</span>
-                        <span class="sidebar-dev-links-text">디스코드 봇</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.discordBot">디스코드 봇</span>
                     </a>
                     <!-- 매일 하나씩 맞히기 (TASK-KAR-202). 주제가 늘어도 입구는 /daily/ 하나다. -->
-                    <a href="/daily/" class="sidebar-dev-links" title="매일 하나씩 맞히기 — 포켓몬 · 롤" aria-label="오늘의 하나 맞히기">
+                    <a href="/daily/" class="sidebar-dev-links" title="매일 하나씩 맞히기 — 포켓몬 · 롤" aria-label="오늘의 하나 맞히기" data-i18n-title="shell.nav.dailyTitle" data-i18n-aria-label="shell.sidebar.dailyOne">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">◉</span>
-                        <span class="sidebar-dev-links-text">오늘의 하나 맞히기</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.dailyOne">오늘의 하나 맞히기</span>
                     </a>
                     <!-- 상태 · 변경 기록 (TASK-KL-098). 「지금 잘 도나」와 「무엇이 바뀌었나」를
                          밝히는 자리가 없으면, 조용히 망가져도 아무도 모르는 사이트가 된다. -->
-                    <a href="#status" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('status');return false}" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록">
+                    <a href="#status" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('status');return false}" title="지금 상태 · 최근 변경 기록" aria-label="상태 및 변경 기록" data-i18n-title="shell.sidebar.statusTitle" data-i18n-aria-label="shell.sidebar.status">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">◇</span>
-                        <span class="sidebar-dev-links-text">상태 · 변경 기록</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.sidebar.status">상태 · 변경 기록</span>
                     </a>
-                    <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요">
+                    <a href="#linktree" class="sidebar-dev-links" onclick="if(typeof Toolbox!=='undefined'){Toolbox.switchPage('linktree');return false}" title="개발자 연락처 · 링크" aria-label="누가 만들었나요" data-i18n-title="shell.nav.whoTitle" data-i18n-aria-label="shell.nav.who">
                         <span class="sidebar-dev-links-icon" aria-hidden="true">i</span>
-                        <span class="sidebar-dev-links-text">누가 만들었나요?</span>
+                        <span class="sidebar-dev-links-text" data-i18n="shell.nav.who">누가 만들었나요?</span>
                     </a>
                 </div>
             </aside>
