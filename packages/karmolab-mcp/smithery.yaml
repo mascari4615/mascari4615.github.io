@@ -1,0 +1,15 @@
+# Smithery 등재용 설정 (TASK-KL-205)
+#
+# 이 서버는 **설정이 필요 없다** — API 키도, 계정도, 바깥으로 나가는 연결도 없다.
+# 그래서 configSchema 는 빈 객체다. 그게 이 서버의 성질이기도 하다(전부 로컬 계산).
+#
+# 실제 등재 제출은 사용자 컨펌 후. 이 파일은 그때 바로 쓸 수 있게 준비만 해 둔 것이다.
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties: {}
+    additionalProperties: false
+  commandFunction: |-
+    () => ({ command: 'npx', args: ['-y', 'karmolab-mcp'] })
+  exampleConfig: {}
