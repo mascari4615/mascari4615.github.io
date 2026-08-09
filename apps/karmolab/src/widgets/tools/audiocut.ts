@@ -7,26 +7,32 @@
  */
 import { encodeAudio, fileSize as size, mmss } from './shared/media';
 import { acceptPastedFiles } from './shared/paste';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   Toolbox.register({
     id: 'audiocut',
     // 다른 도구가 만든 것을 그대로 받는다 (TASK-KL-133)
     accepts: ['audio/*'],
-    title: '오디오 자르기',
+    title: t('widgets.audiocut.title', undefined, "오디오 자르기"),
     category: 'tool',
-    desc: '음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다',
+    desc: t('widgets-desc.audiocut.desc', undefined, "음원의 원하는 구간만 잘라 냅니다. 파일이 브라우저를 벗어나지 않습니다"),
     layout: 'wide',
     icon: '<path d="M3 12h2l2-5 3 12 3-16 3 14 2-5h3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '오디오',
+        label: t('audiocut.tab', undefined, "오디오"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('audiocut').then(function () {
+
           container.innerHTML = `
             <div class="tool-drop" id="acDrop" role="button" tabindex="0">
               <input type="file" id="acFile" accept="audio/*" hidden>
-              음원 파일을 끌어다 놓거나 눌러서 고르세요
+              ${esc(t('audiocut.drop'))}
             </div>
 
             <div id="acPanel" style="display:none; margin-top:var(--space-lg);">
@@ -36,28 +42,28 @@ import { acceptPastedFiles } from './shared/paste';
               <div class="field-group" style="margin-top:var(--space-md);">
                 <div class="tool-grid-2">
                   <div>
-                    <div class="tool-sublabel">시작 <span id="acStartVal" class="range-value">0:00</span></div>
-                    <input type="range" id="acStart" aria-label="시작 지점" min="0" max="100" value="0" step="0.1">
+                    <div class="tool-sublabel">${esc(t('audiocut.label.start'))} <span id="acStartVal" class="range-value">0:00</span></div>
+                    <input type="range" id="acStart" aria-label="${esc(t('audiocut.aria.start'))}" min="0" max="100" value="0" step="0.1">
                   </div>
                   <div>
-                    <div class="tool-sublabel">끝 <span id="acEndVal" class="range-value">0:00</span></div>
-                    <input type="range" id="acEnd" aria-label="끝 지점" min="0" max="100" value="100" step="0.1">
+                    <div class="tool-sublabel">${esc(t('audiocut.label.end'))} <span id="acEndVal" class="range-value">0:00</span></div>
+                    <input type="range" id="acEnd" aria-label="${esc(t('audiocut.aria.end'))}" min="0" max="100" value="100" step="0.1">
                   </div>
                 </div>
                 <div class="tool-chips" style="margin-top:10px;">
-                  <label class="tool-chip"><input type="checkbox" id="acFade" checked> 앞뒤 0.05초 페이드 (딸깍 소리 방지)</label>
+                  <label class="tool-chip"><input type="checkbox" id="acFade" checked> ${esc(t('audiocut.opt.fade'))}</label>
                 </div>
               </div>
 
               <div class="cc-stats" id="acStats"></div>
               <div style="display:flex; gap:6px; margin:var(--space-lg) 0; flex-wrap:wrap;">
-                <button class="btn btn-ghost" id="acPreview">구간 듣기</button>
-                <button class="btn btn-primary" id="acSave">잘라서 내려받기</button>
-                <select id="acFormat" aria-label="저장 형식"><option value="mp3">MP3 — 작음</option><option value="wav">WAV — 손실 없음</option></select>
+                <button class="btn btn-ghost" id="acPreview">${esc(t('audiocut.btn.preview'))}</button>
+                <button class="btn btn-primary" id="acSave">${esc(t('audiocut.btn.save'))}</button>
+                <select id="acFormat" aria-label="${esc(t('audiocut.label.format'))}"><option value="mp3">${esc(t('audiocut.format.mp3'))}</option><option value="wav">${esc(t('audiocut.format.wav'))}</option></select>
               </div>
             </div>
 
-            <div class="tool-status" id="acStatus">파일은 브라우저 안에서만 다뤄지고 어디로도 올라가지 않습니다.</div>
+            <div class="tool-status" id="acStatus">${esc(t('audiocut.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -126,15 +132,15 @@ import { acceptPastedFiles } from './shared/paste';
             $<HTMLElement>('#acStartVal').textContent = mmss(s);
             $<HTMLElement>('#acEndVal').textContent = mmss(e);
             stats.innerHTML =
-              stat('고른 길이', mmss(e - s), true) +
-              stat('전체 길이', mmss(buffer.duration)) +
-              stat('표본율', `${(buffer.sampleRate / 1000).toFixed(1)} kHz`) +
-              stat('채널', buffer.numberOfChannels === 1 ? '모노' : '스테레오');
+              stat(t('audiocut.stat.picked'), mmss(e - s), true) +
+              stat(t('audiocut.stat.total'), mmss(buffer.duration)) +
+              stat(t('audiocut.stat.rate'), `${(buffer.sampleRate / 1000).toFixed(1)} kHz`) +
+              stat(t('audiocut.stat.channels'), buffer.numberOfChannels === 1 ? t('audiocut.value.mono') : t('audiocut.value.stereo'));
             drawWave();
           }
 
           async function load(file: File): Promise<void> {
-            say('음원을 여는 중…');
+            say(t('audiocut.say.opening'));
             fileName = file.name.replace(/\.[^.]+$/, '');
             try {
               const AC = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -142,7 +148,7 @@ import { acceptPastedFiles } from './shared/paste';
               buffer = await ctx.decodeAudioData(await file.arrayBuffer());
               void ctx.close();
             } catch {
-              say('이 형식은 브라우저가 열지 못해요. MP3·WAV·M4A 를 써 보세요.', 'error');
+              say(t('audiocut.err.format'), 'error');
               return;
             }
             player.src = URL.createObjectURL(file);
@@ -150,7 +156,7 @@ import { acceptPastedFiles } from './shared/paste';
             startEl.value = '0';
             endEl.value = '100';
             refresh();
-            say(`${mmss(buffer.duration)} 음원을 열었어요. 구간을 정하고 내려받으세요.`, 'ok');
+            say(t('audiocut.say.loaded', { len: mmss(buffer.duration) }), 'ok');
             Toolbox.trackUse?.('open');
           }
 
@@ -231,23 +237,24 @@ import { acceptPastedFiles } from './shared/paste';
             const out = slice();
             if (!out) return;
             const format = $<HTMLSelectElement>('#acFormat').value as 'wav' | 'mp3';
-            say(format === 'mp3' ? 'MP3 로 만드는 중…' : '내려받는 중…');
+            say(format === 'mp3' ? t('audiocut.say.encoding') : t('audiocut.say.saving'));
             void encodeAudio(out, format)
               .then((blob) => {
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `${fileName}-자름.${format}`;
+                a.download = `${fileName}${t('audiocut.file.suffix')}.${format}`;
                 a.click();
                 // 이어서 할 일을 그 자리에 띄운다 (TASK-KL-133) — 받을 도구가 없으면 안 생긴다.
                 Toolbox.offerNext?.(status, { blob: blob, name: a.download, from: 'audiocut' });
                 setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-                say(`${mmss(out.duration)} 구간을 ${size(blob.size)} 로 내려받았어요.`, 'ok');
+                say(t('audiocut.say.done', { len: mmss(out.duration), size: size(blob.size) }), 'ok');
                 Toolbox.trackUse?.('cut');
               })
-              .catch((err: Error) => say('만드는 중 문제가 생겼어요: ' + err.message, 'error'));
+              .catch((err: Error) => say(t('audiocut.err.run') + err.message, 'error'));
           };
 
           window.addEventListener('resize', drawWave);
+                  });
         }
       }
     ]

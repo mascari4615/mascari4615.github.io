@@ -1,0 +1,9 @@
+{
+  "filetool.part.imgbatch": "이미지 일괄 변환",
+  "filetool.part.imgmerge": "사진 이어 붙이기",
+  "filetool.part.favicon": "파비콘 만들기",
+  "filetool.part.exifclean": "사진 정보 지우기",
+  "filetool.part.ziptool": "ZIP 묶기·풀기",
+  "filetool.part.filesplit": "큰 파일 나누기",
+  "filetool.part.filehash": "파일 검사값"
+}

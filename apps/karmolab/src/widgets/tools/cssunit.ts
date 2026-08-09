@@ -5,45 +5,52 @@
  * 게다가 rem 은 **루트 기준**, em 은 **부모 기준**이라 같은 숫자가 다른 크기가 된다 —
  * 이 둘을 나란히 놓지 않으면 계속 헷갈린다. 기준값을 눈에 보이게 두고 함께 계산한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const SCALE = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 64];
 
   Toolbox.register({
     id: 'cssunit',
-    title: 'CSS 단위 변환',
+    title: t('widgets.cssunit.title', undefined, "CSS 단위 변환"),
     category: 'tool',
-    desc: 'px·rem·em·pt·% 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히',
+    desc: t('widgets-desc.cssunit.desc', undefined, "px·rem·em·pt·% 를 서로 바꿉니다. 루트 기준과 부모 기준을 나란히"),
     layout: 'form',
     icon: '<path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M19 14v6M17 16l2-2 2 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '단위',
+        label: t('cssunit.label.unit', undefined, "단위"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('cssunit').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">루트 글자 크기 (html)</div>
-                  <input type="number" id="cuRoot" aria-label="루트 글자 크기 (HTML)" value="16" step="1" min="1">
+                  <div class="tool-sublabel">${esc(t('cssunit.label.root'))}</div>
+                  <input type="number" id="cuRoot" aria-label="${esc(t('cssunit.aria.root'))}" value="16" step="1" min="1">
                 </div>
                 <div>
-                  <div class="tool-sublabel">부모 글자 크기 (em 기준)</div>
-                  <input type="number" id="cuParent" aria-label="부모 글자 크기 (EM 기준)" value="16" step="1" min="1">
+                  <div class="tool-sublabel">${esc(t('cssunit.label.parent'))}</div>
+                  <input type="number" id="cuParent" aria-label="${esc(t('cssunit.aria.parent'))}" value="16" step="1" min="1">
                 </div>
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label">값</label>
+              <label class="field-label">${esc(t('cssunit.tab'))}</label>
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">숫자</div>
-                  <input type="number" id="cuValue" aria-label="바꿀 숫자" value="24" step="any">
+                  <div class="tool-sublabel">${esc(t('cssunit.label.number'))}</div>
+                  <input type="number" id="cuValue" aria-label="${esc(t('cssunit.aria.value'))}" value="24" step="any">
                 </div>
                 <div>
-                  <div class="tool-sublabel">단위</div>
-                  <select id="cuUnit" aria-label="바꿀 단위">
+                  <div class="tool-sublabel">${esc(t('cssunit.label.unit'))}</div>
+                  <select id="cuUnit" aria-label="${esc(t('cssunit.aria.unit'))}">
                     <option value="px">px</option>
                     <option value="rem">rem</option>
                     <option value="em">em</option>
@@ -55,9 +62,9 @@
 
             <div class="tool-list" id="cuOut"></div>
 
-            <div class="tool-sublabel" style="margin:16px 0 6px;">자주 쓰는 크기 — px → rem</div>
+            <div class="tool-sublabel" style="margin:16px 0 6px;">${esc(t('cssunit.label.common'))}</div>
             <div class="tool-list" id="cuScale"></div>
-            <div class="tool-status" id="cuStatus">rem 은 루트 기준, em 은 부모 기준입니다 — 같은 숫자라도 크기가 다릅니다.</div>
+            <div class="tool-status" id="cuStatus">${esc(t('cssunit.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -82,10 +89,10 @@
 
             out.innerHTML =
               row('px', trim(px)) +
-              row('rem (루트 기준)', `${trim(px / root)}rem`) +
-              row('em (부모 기준)', `${trim(px / parent)}em`) +
+              row(t('cssunit.row.rem'), `${trim(px / root)}rem`) +
+              row(t('cssunit.row.em'), `${trim(px / parent)}em`) +
               row('pt', `${trim((px * 72) / 96)}pt`) +
-              row('부모 대비 %', `${trim((px / parent) * 100)}%`);
+              row(t('cssunit.row.pct'), `${trim((px / parent) * 100)}%`);
 
             scaleEl.innerHTML = SCALE.map((s) => row(`${s}px`, `${trim(s / root)}rem`)).join('');
             Toolbox.trackUse?.('convert');
@@ -96,6 +103,7 @@
             el.addEventListener('change', run);
           });
           run();
+                  });
         }
       }
     ]

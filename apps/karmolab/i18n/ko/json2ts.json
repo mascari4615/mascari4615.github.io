@@ -1,0 +1,12 @@
+{
+  "json2ts.label.name": "최상위 타입 이름",
+  "json2ts.aria.in": "넣을 JSON",
+  "json2ts.aria.out": "만들어진 타입 선언",
+  "json2ts.btn.run": "타입 만들기",
+  "json2ts.btn.copy": "복사",
+  "json2ts.status.idle": "배열은 모든 원소를 합쳐 봅니다 — 일부에만 있는 필드는 물음표로 표시됩니다.",
+  "json2ts.tab": "타입 생성",
+  "json2ts.err.json": "JSON 을 읽지 못했어요: ",
+  "json2ts.copy.done": "타입을 복사했어요",
+  "json2ts.say.done": "{n}개 타입을 만들었습니다."
+}

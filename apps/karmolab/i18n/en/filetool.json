@@ -1,0 +1,9 @@
+{
+  "filetool.part.imgbatch": "Batch convert images",
+  "filetool.part.imgmerge": "Stitch photos",
+  "filetool.part.favicon": "Make a favicon",
+  "filetool.part.exifclean": "Strip photo metadata",
+  "filetool.part.ziptool": "ZIP and unzip",
+  "filetool.part.filesplit": "Split a big file",
+  "filetool.part.filehash": "File checksum"
+}

@@ -1,0 +1,13 @@
+{
+  "bytesize.label.value": "大きさ",
+  "bytesize.label.unit": "単位",
+  "bytesize.opt.binary": "1024 基準 — OS が数える方式",
+  "bytesize.opt.dec": "{u}（1000 基準）",
+  "bytesize.opt.bin": "{u}（1024 基準）",
+  "bytesize.status.idle": "メーカーは 1000 倍、OS は 1024 倍で数えます。",
+  "bytesize.stat.size": "容量",
+  "bytesize.stat.bytes": "バイト",
+  "bytesize.stat.gap": "表記の差",
+  "bytesize.row.diff": "差",
+  "bytesize.value.smaller": "{pct}% 小さく見える"
+}

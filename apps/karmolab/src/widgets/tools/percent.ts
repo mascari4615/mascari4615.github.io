@@ -5,7 +5,12 @@
  * 전부 다른 식인데, 계산기 하나에 몰아넣으면 어느 칸에 뭘 넣을지부터 헷갈린다.
  * 그래서 **질문 문장 그대로** 줄을 나누고, 각 줄이 빈칸 채우기가 되게 한다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const fmt = (n: number): string => {
     if (!isFinite(n)) return '—';
     const r = Math.round(n * 1e6) / 1e6;
@@ -21,36 +26,37 @@
     defaults: number[];
   }
 
-  const ROWS: Row[] = [
+  /* 이름은 **쓸 때** 붙인다 — 표로 굳히면 말 묶음이 오기 전이라 한국어로 박힌다. */
+  const rows = (): Row[] => [
     {
-      parts: [null, '의 ', null, '% 는?'],
+      parts: [null, t('percent.word.of'), null, t('percent.word.isWhat')],
       defaults: [200, 15],
       calc: (v) => `${fmt((v[0] * v[1]) / 100)}`,
       formula: (v) => `${fmt(v[0])} × ${fmt(v[1])} ÷ 100`
     },
     {
-      parts: [null, '은 ', null, '의 몇 % ?'],
+      parts: [null, t('percent.word.is'), null, t('percent.word.whatPctOf')],
       defaults: [30, 200],
       calc: (v) => `${fmt((v[0] / v[1]) * 100)} %`,
       formula: (v) => `${fmt(v[0])} ÷ ${fmt(v[1])} × 100`
     },
     {
-      parts: [null, '에서 ', null, '(으)로 바뀌면 몇 % 변화?'],
+      parts: [null, t('percent.word.from'), null, t('percent.word.changeTo')],
       defaults: [100, 80],
       calc: (v) => {
         const d = ((v[1] - v[0]) / v[0]) * 100;
-        return `${d >= 0 ? '+' : ''}${fmt(d)} % (${d >= 0 ? '증가' : '감소'})`;
+        return `${d >= 0 ? '+' : ''}${fmt(d)} % (${d >= 0 ? t('percent.word.up') : t('percent.word.down')})`;
       },
       formula: (v) => `(${fmt(v[1])} − ${fmt(v[0])}) ÷ ${fmt(v[0])} × 100`
     },
     {
-      parts: [null, '에 ', null, '% 를 더하면?'],
+      parts: [null, t('percent.word.to'), null, t('percent.word.plusPct')],
       defaults: [50000, 10],
       calc: (v) => `${fmt(v[0] * (1 + v[1] / 100))}`,
       formula: (v) => `${fmt(v[0])} × (1 + ${fmt(v[1])} ÷ 100)`
     },
     {
-      parts: [null, '에서 ', null, '% 를 빼면?'],
+      parts: [null, t('percent.word.from'), null, t('percent.word.minusPct')],
       defaults: [50000, 30],
       calc: (v) => `${fmt(v[0] * (1 - v[1] / 100))}`,
       formula: (v) => `${fmt(v[0])} × (1 − ${fmt(v[1])} ÷ 100)`
@@ -58,17 +64,17 @@
     {
       /* 연속 할인 — 「30% 먼저, 추가 10%」는 37%가 아니라 37% 가 아니다(0.7×0.9=0.63 → 37% 할인).
          실제로 자주 헷갈리는데 상위 계산기 어디에도 이 줄이 없다. */
-      parts: [null, '에서 ', null, '% 할인 후 추가 ', null, '% 할인하면?'],
+      parts: [null, t('percent.word.from'), null, t('percent.word.thenExtra'), null, t('percent.word.discount')],
       defaults: [50000, 30, 10],
       calc: (v) => {
         const price = v[0] * (1 - v[1] / 100) * (1 - v[2] / 100);
         const eff = (1 - price / v[0]) * 100;
-        return `${fmt(price)} (합쳐서 ${fmt(eff)}% 할인)`;
+        return t('percent.value.combined', { price: fmt(price), pct: fmt(eff) });
       },
       formula: (v) => `${fmt(v[0])} × (1 − ${fmt(v[1])} ÷ 100) × (1 − ${fmt(v[2])} ÷ 100)`
     },
     {
-      parts: [null, '이 원래 값의 ', null, '% 라면 원래 값은?'],
+      parts: [null, t('percent.word.isPctOfOriginal'), null, t('percent.word.thenOriginal')],
       defaults: [80, 40],
       calc: (v) => `${fmt((v[0] / v[1]) * 100)}`,
       formula: (v) => `${fmt(v[0])} ÷ ${fmt(v[1])} × 100`
@@ -77,29 +83,31 @@
 
   Toolbox.register({
     id: 'percent',
-    title: '퍼센트 계산기',
+    title: t('widgets.percent.title', undefined, "퍼센트 계산기"),
     category: 'tool',
-    desc: '할인율·증감률·비율을 질문 문장 그대로 채워 넣어 계산합니다',
+    desc: t('widgets-desc.percent.desc', undefined, "할인율·증감률·비율을 질문 문장 그대로 채워 넣어 계산합니다"),
     layout: 'form',
     icon: '<path d="M19 5 5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="16.5" cy="16.5" r="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '계산',
+        label: t('percent.tab', undefined, "계산"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('percent').then(function () {
+
           container.innerHTML = `
             <div id="pcRows"></div>
-            <div class="tool-status">숫자를 고치면 결과가 바로 바뀝니다. 값은 저장되지 않습니다.</div>
+            <div class="tool-status">${esc(t('percent.status.idle'))}</div>
           `;
           const rowsEl = container.querySelector('#pcRows') as HTMLElement;
 
-          rowsEl.innerHTML = ROWS.map((row, ri) => {
+          rowsEl.innerHTML = rows().map((row, ri) => {
             let ni = 0;
             // 화면에서는 문장 사이에 숫자칸이 끼워져 있어 무엇을 넣는지 눈으로 보인다.
             // 화면낭독기는 그 문장을 대신 읽어 주지 않으므로 칸마다 이어 준다 (TASK-KL-089).
             // 빈칸을 빼고 이으면 「의 % 는?」처럼 조사만 남아 문장이 안 읽힌다. 빈칸을 표시해 둔다.
             const sentence = row.parts
-              .map((p) => (p === null ? '몇' : p))
+              .map((p) => (p === null ? t('percent.word.what') : p))
               .join('')
               .replace(/\s+/g, ' ')
               .trim();
@@ -107,7 +115,7 @@
             const line = row.parts
               .map((p) => {
                 if (p !== null) return `<span class="pc-text">${p}</span>`;
-                const label = blanks > 1 ? `${sentence} — ${ni + 1}번째 값` : sentence;
+                const label = blanks > 1 ? t('percent.label.nth', { sentence, n: ni + 1 }) : sentence;
                 return `<input type="number" class="pc-num" aria-label="${label}" data-row="${ri}" data-n="${ni++}" step="any" value="${row.defaults[ni - 1]}">`;
               })
               .join('');
@@ -128,9 +136,9 @@
               if (fx) fx.textContent = '';
               return;
             }
-            out.textContent = ROWS[ri].calc(vals);
+            out.textContent = rows()[ri].calc(vals);
             const f = rowsEl.querySelector(`[data-formula="${ri}"]`) as HTMLElement;
-            if (f) f.textContent = ROWS[ri].formula(vals);
+            if (f) f.textContent = rows()[ri].formula(vals);
           }
 
           rowsEl.querySelectorAll('.pc-num').forEach((el) => {
@@ -142,13 +150,16 @@
           // 결과를 눌러 복사 — 계산 결과는 대개 어딘가에 옮겨 적힌다.
           rowsEl.querySelectorAll('.pc-out').forEach((el) => {
             (el as HTMLElement).onclick = () => {
-              const t = el.textContent || '';
-              if (t === '—') return;
-              void Toolbox.copyText?.(t.replace(/[^\d.+\-]/g, ''), { message: `복사: ${t}` });
+              const shown = el.textContent || '';
+              if (shown === '—') return;
+              void Toolbox.copyText?.(shown.replace(/[^\d.+\-]/g, ''), {
+                message: t('percent.copy.one', { v: shown })
+              });
             };
           });
 
-          ROWS.forEach((_, i) => run(i));
+          rows().forEach((_, i) => run(i));
+                  });
         }
       }
     ]

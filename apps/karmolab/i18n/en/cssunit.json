@@ -1,0 +1,16 @@
+{
+  "cssunit.tab": "Value",
+  "cssunit.label.root": "Root font size (html)",
+  "cssunit.aria.root": "Root font size (HTML)",
+  "cssunit.label.parent": "Parent font size (for em)",
+  "cssunit.aria.parent": "Parent font size (em basis)",
+  "cssunit.label.number": "Number",
+  "cssunit.aria.value": "Number to convert",
+  "cssunit.label.unit": "Unit",
+  "cssunit.aria.unit": "Unit to convert",
+  "cssunit.label.common": "Common sizes — px → rem",
+  "cssunit.status.idle": "rem is relative to the root, em to the parent — the same number gives different sizes.",
+  "cssunit.row.rem": "rem (from the root)",
+  "cssunit.row.em": "em (from the parent)",
+  "cssunit.row.pct": "% of the parent"
+}

@@ -1,0 +1,12 @@
+{
+  "json2ts.tab": "Make types",
+  "json2ts.label.name": "Name of the top-level type",
+  "json2ts.aria.in": "JSON to read",
+  "json2ts.aria.out": "The generated type declarations",
+  "json2ts.btn.run": "Make the types",
+  "json2ts.btn.copy": "Copy",
+  "json2ts.status.idle": "Arrays are merged across every element — fields that only some of them have are marked optional.",
+  "json2ts.err.json": "Could not read the JSON: ",
+  "json2ts.copy.done": "Types copied",
+  "json2ts.say.done": "Made {n} types."
+}

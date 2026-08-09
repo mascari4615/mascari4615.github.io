@@ -5,7 +5,12 @@
  * 운영체제는 1024 배로 센다(TiB). 같은 이름을 두 뜻으로 쓰기 때문에 생기는 차이라,
  * **두 계열을 나란히** 보여주고 차이를 %로 적는다.
  */
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   const DEC = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
   const BIN = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
 
@@ -14,36 +19,38 @@
 
   Toolbox.register({
     id: 'bytesize',
-    title: '용량 단위 변환',
+    title: t('widgets.bytesize.title', undefined, "용량 단위 변환"),
     category: 'tool',
-    desc: 'KB·MB·GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다',
+    desc: t('widgets-desc.bytesize.desc', undefined, "KB·MB·GB 를 서로 바꿉니다. 1000 기준과 1024 기준을 나란히 봅니다"),
     layout: 'form',
     icon: '<ellipse cx="12" cy="6" rx="8" ry="3" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.4" fill="none"/>',
     tabs: [
       {
         id: 'app',
-        label: '용량',
+        label: t('bytesize.stat.size', undefined, "용량"),
         build: function (container: HTMLElement): void {
+          void loadNamespace('bytesize').then(function () {
+
           container.innerHTML = `
             <div class="field-group">
               <div class="tool-grid-2">
                 <div>
-                  <div class="tool-sublabel">크기</div>
-                  <input type="number" id="bsValue" aria-label="크기" value="1" step="any" min="0">
+                  <div class="tool-sublabel">${esc(t('bytesize.label.value'))}</div>
+                  <input type="number" id="bsValue" aria-label="${esc(t('bytesize.label.value'))}" value="1" step="any" min="0">
                 </div>
                 <div>
-                  <div class="tool-sublabel">단위</div>
-                  <select id="bsUnit" aria-label="단위"></select>
+                  <div class="tool-sublabel">${esc(t('bytesize.label.unit'))}</div>
+                  <select id="bsUnit" aria-label="${esc(t('bytesize.label.unit'))}"></select>
                 </div>
               </div>
             </div>
 
             <div class="tool-list" id="bsDec"></div>
-            <div class="tool-sublabel" style="margin:14px 0 6px;">1024 기준 — 운영체제가 세는 방식</div>
+            <div class="tool-sublabel" style="margin:14px 0 6px;">${esc(t('bytesize.opt.binary'))}</div>
             <div class="tool-list" id="bsBin"></div>
 
             <div class="tool-list" id="bsNote" style="margin-top:14px;"></div>
-            <div class="tool-status" id="bsStatus">제조사는 1000 배, 운영체제는 1024 배로 셉니다.</div>
+            <div class="tool-status" id="bsStatus">${esc(t('bytesize.status.idle'))}</div>
           `;
 
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
@@ -54,8 +61,8 @@
           const note = $<HTMLElement>('#bsNote');
 
           unit.innerHTML =
-            DEC.map((u, i) => `<option value="d${i}">${u} (1000 기준)</option>`).join('') +
-            BIN.slice(1).map((u, i) => `<option value="b${i + 1}">${u} (1024 기준)</option>`).join('');
+            DEC.map((u, i) => `<option value="d${i}">${esc(t('bytesize.opt.dec', { u }))}</option>`).join('') +
+            BIN.slice(1).map((u, i) => `<option value="b${i + 1}">${esc(t('bytesize.opt.bin', { u }))}</option>`).join('');
           unit.value = 'd3';
 
           const row = (k: string, v: string): string =>
@@ -81,9 +88,12 @@
             const decVal = bytes / Math.pow(1000, level);
             const binVal = bytes / Math.pow(1024, level);
             note.innerHTML =
-              row('바이트', `${Math.round(bytes).toLocaleString('ko-KR')} B`) +
-              row('표기 차이', `${fmt(decVal)} ${DEC[level]} = ${fmt(binVal)} ${BIN[level]}`) +
-              row('차이', `${(((decVal - binVal) / decVal) * 100).toFixed(1)}% 작아 보임`);
+              row(t('bytesize.stat.bytes'), `${Math.round(bytes).toLocaleString('ko-KR')} B`) +
+              row(t('bytesize.stat.gap'), `${fmt(decVal)} ${DEC[level]} = ${fmt(binVal)} ${BIN[level]}`) +
+              row(
+                t('bytesize.row.diff'),
+                t('bytesize.value.smaller', { pct: (((decVal - binVal) / decVal) * 100).toFixed(1) })
+              );
             Toolbox.trackUse?.('convert');
           }
 
@@ -92,6 +102,7 @@
             el.addEventListener('change', run);
           });
           run();
+                  });
         }
       }
     ]

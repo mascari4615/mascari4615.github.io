@@ -1,0 +1,13 @@
+{
+  "bytesize.label.value": "크기",
+  "bytesize.label.unit": "단위",
+  "bytesize.opt.binary": "1024 기준 — 운영체제가 세는 방식",
+  "bytesize.status.idle": "제조사는 1000 배, 운영체제는 1024 배로 셉니다.",
+  "bytesize.stat.size": "용량",
+  "bytesize.stat.bytes": "바이트",
+  "bytesize.stat.gap": "표기 차이",
+  "bytesize.row.diff": "차이",
+  "bytesize.opt.dec": "{u} (1000 기준)",
+  "bytesize.opt.bin": "{u} (1024 기준)",
+  "bytesize.value.smaller": "{pct}% 작아 보임"
+}

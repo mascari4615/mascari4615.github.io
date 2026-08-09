@@ -1,0 +1,9 @@
+{
+  "filetool.part.imgbatch": "画像の一括変換",
+  "filetool.part.imgmerge": "写真をつなげる",
+  "filetool.part.favicon": "ファビコンを作る",
+  "filetool.part.exifclean": "写真の情報を消す",
+  "filetool.part.ziptool": "ZIP のまとめ・展開",
+  "filetool.part.filesplit": "大きなファイルを分ける",
+  "filetool.part.filehash": "ファイルの検査値"
+}
