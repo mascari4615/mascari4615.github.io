@@ -122,6 +122,13 @@ export interface GraphEdge {
   doc?: string;
   /** 공용 글 참조 — 노드와 같은 규칙(있으면 `doc` 대신 이쪽). */
   docRef?: string;
+  /**
+   * 관계는 **양쪽이 다르게 본다** (TASK-KL-202, Campfire 계보). 「욘은 링을 동생처럼 여기고,
+   * 링은 욘을 원망한다」 — 이걸 한 칸에 몰아 적으면 어느 쪽 마음인지 흐려진다.
+   * `viewFrom` = 출발 쪽이 보는 이 관계, `viewTo` = 도착 쪽이 보는 이 관계.
+   */
+  viewFrom?: string;
+  viewTo?: string;
   tags?: string[];
 }
 
