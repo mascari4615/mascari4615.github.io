@@ -16,5 +16,12 @@
   "garden.event.drift": "Generation {gen} — something is drifting to one side.",
   "garden.event.steady": "{gen} generations in, and no one has died.",
   "garden.event.noise": "Generation {gen} — the shapes have scattered. From here it is just noise.",
-  "garden.event.crowded": "Generation {gen} — the board is full. Nowhere left to grow."
+  "garden.event.crowded": "Generation {gen} — the board is full. Nowhere left to grow.",
+  "garden.dex.button": "Field guide",
+  "garden.dex.title": "{n} kinds found",
+  "garden.dex.namePlaceholder": "give it a name",
+  "garden.dex.still": "{n} cells · it stays put",
+  "garden.dex.osc": "{n} cells · returns to itself every {p} generations",
+  "garden.dex.ship": "{n} cells · drifts {d} cell(s) every {p} generations",
+  "garden.line.found": "Generation {gen} — something never seen before. {what}"
 }
