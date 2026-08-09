@@ -1887,5 +1887,24 @@ window.KARMOLAB_LAZY_META = [
     icon:
       '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8 4v16" stroke="currentColor" stroke-width="1.7"/><path d="M12 9.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3-2.4 1.3.5-2.6-1.9-1.8 2.6-.4z" fill="currentColor"/>',
     lazyScriptPaths: ['collection']
+  },
+
+  /* KarmoMap (TASK-KL-087 / KL-202) — 관계도·세계관·카드 전개를 그리는 캔버스.
+   * ★ 이 항목이 없어서 20 커밋치 기능이 **앱에서 열 수 없는 상태**로 있었다(2026-08-09 실측):
+   *   여기 적힌 `lazyScriptPaths` 가 번들 대상 목록이기도 해서, 안 적으면 묶음 자체가 안 만들어진다.
+   *   타입체크·번들 정합 검사는 그때도 전부 초록이었다 — 「없는 것」은 검사할 대상이 없으니까. */
+  {
+    id: 'karmomap',
+    title: 'KarmoMap',
+    category: 'lab',
+    desc: '관계도·세계관·카드 전개를 그리는 캔버스 — 어휘 팩을 갈아끼우면 쓰임새가 바뀐다',
+    layout: 'wide',
+    noHero: true,
+    icon:
+      '<circle cx="6" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<circle cx="18" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<circle cx="12" cy="17" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M8.4 8.4 10.6 15M15.9 7.6 13.4 15M8.5 6.6h7" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>',
+    lazyScriptPaths: ['karmomap/karmomap']
   }
 ] as KarmoLabLazyWidgetStub[];
