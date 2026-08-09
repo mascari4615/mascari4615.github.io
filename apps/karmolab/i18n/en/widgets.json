@@ -184,5 +184,6 @@
   "widgets.stone.title": "Stone",
   "widgets.toast.title": "Toast",
   "widgets.ytdownloader.title": "YouTube download",
-  "widgets.karmomap.title": "KarmoMap"
+  "widgets.karmomap.title": "KarmoMap",
+  "widgets.bluemarble.title": "Blue Marble"
 }
