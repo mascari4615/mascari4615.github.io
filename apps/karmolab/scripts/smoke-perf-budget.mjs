@@ -35,6 +35,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { browserReady } from './lib/serve-static.mjs';
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.dirname(path.dirname(root));
@@ -114,6 +115,10 @@ if (!fs.existsSync(toolPage)) {
 } else {
   TARGETS.push(['도구 한 장(대출)', '/apps/blog/karmolab/t/loan/index.html']);
 }
+
+/* 브라우저가 없으면 「통과」가 아니라 **못 돌림**이다 — CI 의 verify 잡에는 아직 설치 스텝이 없다.
+   여기서 조용히 통과시키면 계측이 죽은 날에도 초록이 뜨고, 반대로 그냥 죽이면 배포 길목이 막힌다. */
+if (!(await browserReady('perf-budget'))) process.exit(0);
 
 const browser = await chromium.launch();
 

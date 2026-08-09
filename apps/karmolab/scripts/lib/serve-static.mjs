@@ -86,3 +86,30 @@ export async function serveRepo(options = {}) {
   const { port } = server.address();
   return { base: `http://127.0.0.1:${port}`, port, close: () => server.close() };
 }
+
+/**
+ * 브라우저(chromium)를 띄울 수 있나 — **없으면 「못 돌림」이지 「통과」가 아니다**.
+ *
+ * 왜: 검사 넷을 `npm run build` 체인에 넣었는데, CI 의 verify 잡에는 playwright **브라우저
+ * 설치 스텝이 없다**(daily-* 워크플로만 설치한다). 그대로 두면 CI 에서 이 검사들이 죽고,
+ * 그러면 배포 길목이 통째로 막힌다 — 「아직 준비 안 된 것을 찾는 검사가 전원을 정지시키는」
+ * 사고가 이 저장소에 이미 있었다.
+ *
+ * 그래서 브라우저가 없으면 조용히 통과시키지 말고 **못 돌린다고 말하고 빠진다**.
+ * (설치돼 있으면 평소대로 돈다. CI 에 설치 스텝을 넣는 것은 별도 문제다.)
+ *
+ * @param {string} label 로그 앞머리
+ * @returns {Promise<boolean>} 띄울 수 있으면 true
+ */
+export async function browserReady(label) {
+  try {
+    const { chromium } = await import('playwright');
+    const browser = await chromium.launch();
+    await browser.close();
+    return true;
+  } catch (err) {
+    console.log(`[${label}] 못 돌림 — 브라우저를 못 띄운다 (${String(err).split('\n')[0].slice(0, 90)})`);
+    console.log(`[${label}]   CI 라면 \`npx playwright install --with-deps chromium\` 스텝이 필요하다. 통과로 세지 않는다.`);
+    return false;
+  }
+}
