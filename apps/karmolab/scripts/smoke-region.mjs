@@ -114,6 +114,74 @@ for (const c of CASES) {
   await ctx.close();
 }
 
+/* ── 그 나라 공휴일이 **실제로 빠지는가** (S13) ────────
+ *
+ * 달력 표가 맞는지는 따로 검산했지만, 그건 「표가 맞다」까지다. 도구가 그 표를 **쓰는지**는
+ * 화면에서만 보인다 — 지역을 바꿔도 도구가 옛 표를 그대로 쓰면 표는 맞고 답은 틀린다.
+ * 그래서 나라를 바꿔 놓고 **쉰 날 목록에 그 나라 공휴일 이름이 뜨는지** 본다. */
+const HOLIDAY_CASES = [
+  /* 평일에 걸린 날로 고른다 — 주말에 걸리면 「토요일」이 이겨서 이름이 안 뜬다(그건 맞는 동작). */
+  { locale: 'en', region: 'US', from: '2026-11-23', to: '2026-11-28', want: 'Thanksgiving' },
+  { locale: 'en', region: 'JP', from: '2026-05-01', to: '2026-05-08', want: 'Children’s Day' },
+  { locale: 'en', region: 'KR', from: '2026-02-14', to: '2026-02-20', want: 'Seollal' }
+];
+
+const wdPage = 'apps/blog/en/karmolab/t/workdays/index.html';
+if (fs.existsSync(path.join(repoRoot, wdPage))) {
+  for (const c of HOLIDAY_CASES) {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((r) => {
+      try {
+        localStorage.setItem('karmolab_region', r);
+      } catch {
+        /* 저장을 막아 둔 환경 */
+      }
+    }, c.region);
+    const tab = await ctx.newPage();
+    await tab.goto(`http://127.0.0.1:${PORT}/${wdPage}`, { waitUntil: 'domcontentloaded' });
+
+    /* 「두 날짜 사이」로 바꾸고 그 나라 공휴일이 든 주를 넣는다. 값을 넣는 것으로는 도구가
+       안 움직이므로(사람이 친 것만 듣는다) 바뀌었다고 알려 준다. */
+    const ok = await tab
+      .waitForFunction(() => !!document.querySelector('#wdModeBetween'), { timeout: 8000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!ok) {
+      fail.push(`${c.region}: 영업일 도구가 안 그려졌다 — 검사가 못 돈다`);
+      await ctx.close();
+      continue;
+    }
+    await tab.evaluate(
+      ({ from, to }) => {
+        document.querySelector('#wdModeBetween').click();
+        const set = (sel, v) => {
+          const el = document.querySelector(sel);
+          el.value = v;
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        set('#wdFrom', from);
+        set('#wdTo', to);
+      },
+      { from: c.from, to: c.to }
+    );
+
+    const seen = await tab
+      .waitForFunction((needle) => (document.querySelector('#wdSkipped')?.textContent || '').includes(needle), c.want, {
+        timeout: 6000
+      })
+      .then(() => true)
+      .catch(() => false);
+    if (!seen) {
+      const got = await tab.evaluate(() => (document.querySelector('#wdSkipped')?.textContent || '').trim());
+      fail.push(`${c.region}: 쉰 날 목록에 「${c.want}」 가 없다 — 도구가 그 나라 달력을 안 쓴다 (본 것: ${got.slice(0, 80)})`);
+    }
+    await ctx.close();
+  }
+} else {
+  console.log('[region] 영업일 도구 장이 아직 없다 — 공휴일 확인은 건너뜀');
+}
+
 await browser.close();
 server.close();
 
@@ -121,4 +189,7 @@ if (fail.length) {
   for (const f of fail) console.error('[region] ' + f);
   process.exit(1);
 }
-console.log(`[region] 지역·언어 따로 놀기 ${CASES.length}건 정상 — ${CASES.map((c) => `${c.locale}/${c.region}`).join(', ')}`);
+console.log(
+  `[region] 지역·언어 따로 놀기 ${CASES.length}건 정상 — ${CASES.map((c) => `${c.locale}/${c.region}`).join(', ')}` +
+    ` · 나라별 공휴일 ${HOLIDAY_CASES.length}건 정상 — ${HOLIDAY_CASES.map((c) => `${c.region}:${c.want}`).join(', ')}`
+);
