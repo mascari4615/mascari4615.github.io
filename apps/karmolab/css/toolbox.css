@@ -1164,6 +1164,12 @@ html[data-view="home"] .home-decor-stage { transform: scale(1); }
     display: flex; justify-content: center;
     width: 100%;
     position: relative; z-index: 1;
+    /* **자리를 미리 잡아 둔다** (TASK-KL-201 후속).
+       찾는 칸은 도구 목록이 실린 뒤에 제 모습이 된다 — 그 순간 45px 에서 65px 로 자라며
+       아래 있는 카드·글을 통째로 밀어낸다. 실측: 그 밀림 하나로 CLS 가 0.02 ↔ 0.097 사이를
+       오갔다(회차마다 목록이 언제 오느냐에 따라). 미리 그만큼 비워 두면 자라도 안 민다.
+       폰에서는 두 줄로 접히므로(실측 57→65) 같은 값으로 덮인다. */
+    min-height: 65px;
 }
 
 .landing-cta {
