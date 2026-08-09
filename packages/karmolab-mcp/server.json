@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
-  "name": "io.github.Mascari4615/karmolab-mcp",
+  "name": "io.github.mascari4615/karmolab-mcp",
   "title": "KarmoLab",
   "description": "MCP server for what LLMs get wrong: exact hashes, real randomness, and Korean rules.",
   "version": "0.1.0",
