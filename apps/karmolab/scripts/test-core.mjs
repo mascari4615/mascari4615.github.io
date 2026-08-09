@@ -1199,6 +1199,76 @@ try {
 }
 check(threw, 'spec 에 없는 칸을 넣으면 던져야 한다');
 
+// ── ②-26 passgen 알맹이 (글자 종류로 세면 정확히 거꾸로 나온다) ──────────────
+const pg = await load('src/core/passgen.ts');
+
+eq(pg.spec.id, 'passgen', 'passgen spec.id');
+
+/*
+ * 이 도구가 있는 이유 그 자체.
+ * 「대·소·숫자·기호가 다 있으면 강함」 규칙은 `Password1!` 을 통과시키고
+ * `correcthorsebatterystaple` 을 탈락시킨다. 우리는 반대로 나와야 한다.
+ */
+const bad = pg.analyze('Password1!');
+const good = pg.analyze('correcthorsebatterystaple');
+check(
+  good.bits > bad.bits,
+  `흔한 단어+숫자+기호(${bad.bits.toFixed(1)}b) 보다 긴 낱말묶음(${good.bits.toFixed(1)}b) 이 세야 한다`
+);
+check(bad.score <= 1, `Password1! 은 약해야 한다 (지금 ${bad.score}/4)`);
+
+// 치환을 되돌려도 같은 단어로 봐야 한다 — 여기서 못 잡으면 점수가 후해진다.
+eq(pg.unleet('P@ssw0rd'), 'password', '치환 되돌리기');
+eq(pg.unleet('L3tM31n'), 'letmein', '치환 되돌리기 2');
+check(pg.analyze('P@ssw0rd').bits < 30, 'P@ssw0rd 는 30비트 미만이어야 한다');
+
+// 판정은 **둘 중 작은 쪽**이다 — 안전 쪽으로 틀려야 한다.
+for (const pw of ['qwerty123', 'abcd1234', 'aaaaaaaa', 'Tr0ub4dor&3', 'x9#Lq2!vBn']) {
+  const r = pg.analyze(pw);
+  check(r.bits <= r.naiveBits + 1e-9, `${pw}: 판정값이 순진한 값을 넘으면 안 된다`);
+  check(r.bits <= r.patternBits + 1e-9, `${pw}: 판정값이 패턴값을 넘으면 안 된다`);
+  eq(r.chunks.map((c) => c.text).join(''), pw, `${pw}: 덩어리를 이으면 원문이어야 한다`);
+}
+
+// 패턴은 실제로 잡혀야 한다 (안 잡히면 위 부등식은 그냥 통과한다 — 무의미한 초록).
+const why = (pw) => pg.analyze(pw).chunks.map((c) => c.why);
+check(why('qwertyui').includes('자판 줄'), '자판 줄을 잡는다');
+check(why('abcdefgh').includes('연속된 글자'), '연속을 잡는다');
+check(why('abababab').includes('반복'), '반복을 잡는다');
+check(why('hello1998').includes('연도'), '연도를 잡는다');
+check(why('letmein').includes('흔한 단어'), '흔한 단어를 잡는다');
+check(why('x9#Lq2!v').includes('무작위'), '무작위는 무작위로 둔다');
+
+// 길게 늘려도 반복이면 거의 안 늘어야 한다 (여기가 깨지면 도구가 거짓말을 한다).
+const rep8 = pg.analyze('abababababababab');
+const rep4 = pg.analyze('abababab');
+check(rep8.bits - rep4.bits < 3, `반복은 늘려도 거의 안 는다 (${rep4.bits.toFixed(1)} → ${rep8.bits.toFixed(1)})`);
+
+// 진짜 무작위는 길이에 비례해서 늘어야 한다.
+const r10 = pg.analyze('x9#Lq2!vBn');
+const r20 = pg.analyze('x9#Lq2!vBnZ4$wT7&mKe');
+check(r20.bits > r10.bits * 1.7, `무작위는 길이만큼 는다 (${r10.bits.toFixed(1)} → ${r20.bits.toFixed(1)})`);
+
+// 시간 표기 — 「4.3e12초」는 아무 것도 안 알려 준다.
+eq(pg.humanTime(0.4), '즉시', '1초 미만');
+check(/초$/.test(pg.humanTime(30)), '30초');
+check(/분$/.test(pg.humanTime(300)), '5분');
+check(pg.humanTime(1e30) === '사실상 불가능', '너무 크면 그렇게 말한다');
+
+// 빈 값은 던진다 — 0점이 아니라 「잴 게 없다」다.
+let pgThrew = false;
+try {
+  pg.analyze('');
+} catch {
+  pgThrew = true;
+}
+check(pgThrew, '빈 비밀번호는 던진다');
+
+// 이름으로 부르는 창구가 실제로 돈다.
+const pgOut = pg.run('strength', { password: 'Password1!' });
+check(pgOut.includes('약'), 'run 이 판정을 글로 낸다');
+check(pgOut.includes('흔한 단어'), 'run 이 왜 깎였는지 말한다');
+
 // ── 마무리 ──────────────────────────────────────────────────────────────────
 fs.rmSync(outDir, { recursive: true, force: true });
 process.stdout.write('\n');

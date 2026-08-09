@@ -1,5 +1,5 @@
 {
-  "total": 9202,
+  "total": 9234,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -329,6 +329,7 @@
     "src/widgets-lazy-meta.ts": 380,
     "src/workshop-hang.ts": 1,
     "src/world/load-adventures-from-wiki.ts": 4,
-    "src/world/load-characters-from-wiki.ts": 8
+    "src/world/load-characters-from-wiki.ts": 8,
+    "src/core/passgen.ts": 32
   }
 }

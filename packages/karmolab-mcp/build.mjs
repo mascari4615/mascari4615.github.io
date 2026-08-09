@@ -76,4 +76,34 @@ try {
 }
 fs.writeFileSync(path.join(outDir, 'build.json'), JSON.stringify({ commit, at: new Date().toISOString() }, null, 2) + '\n');
 
-console.log(`[karmolab-mcp] 알맹이 ${manifest.length}개 찍음: ${manifest.join(' · ')}`);
+/*
+ * README 에 적힌 도구 개수가 실제와 갈리지 않게 못을 박는다.
+ *
+ * 이 숫자는 README 에 세 군데 손으로 적혀 있다(첫 줄 · 「## Tools (N)」 · 한국어 단락). 도구를
+ * 하나 넣을 때마다 세 곳을 다 고쳐야 하는데, 하나 빠뜨려도 **아무 것도 안 깨진다** — 발행된
+ * 뒤에야 남이 세어 보고 안 맞는 걸 발견한다. 그래서 여기서 센다. 여기가 진짜 개수를 아는 자리다.
+ */
+let opCount = 0;
+for (const name of manifest) {
+  const mod = await import(pathToFileURL(path.join(outDir, `${name}.mjs`)).href);
+  opCount += Object.keys(mod.spec.ops).length;
+}
+
+const readmePath = path.join(here, 'README.md');
+const readme = fs.readFileSync(readmePath, 'utf8');
+const claimed = [...readme.matchAll(/(\d+)\s*tools|## Tools \((\d+)\)|도구 (\d+)개/g)].map((m) =>
+  Number(m[1] ?? m[2] ?? m[3])
+);
+const wrong = claimed.filter((n) => n !== opCount);
+if (claimed.length === 0) {
+  console.error('[karmolab-mcp] README 에 도구 개수가 안 적혀 있다 — 세는 자리를 잃었다');
+  process.exit(1);
+}
+if (wrong.length > 0) {
+  console.error(
+    `[karmolab-mcp] README 의 도구 개수가 실제와 다르다: 적힌 값 ${claimed.join('·')} / 실제 ${opCount}`
+  );
+  process.exit(1);
+}
+
+console.log(`[karmolab-mcp] 알맹이 ${manifest.length}개 · 도구 ${opCount}개 찍음: ${manifest.join(' · ')}`);
