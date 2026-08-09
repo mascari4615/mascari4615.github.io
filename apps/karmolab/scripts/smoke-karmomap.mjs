@@ -1095,6 +1095,15 @@ await step('보기 전용 링크 — 손잡이가 사라지고, 「내 것으로
     const visible = await page.locator('.ck-link-handle').first().isVisible();
     if (visible) throw new Error('보기 전용인데 선 뽑는 손잡이가 보인다');
   }
+  // 보기 전용이라도 **코멘트만은** 남길 수 있어야 한다 — 그 말이 없으면 공유가 일방적인 그림 던지기가 된다.
+  await page.locator('.ck-node').first().click();
+  await page.waitForSelector('[data-km="cmt-new"]', { timeout: 4000 });
+  if (await page.locator('[data-km="cmt-new"]').isDisabled()) throw new Error('보기 전용에서 코멘트까지 잠겼다');
+  if (!(await page.locator('[data-km="edit-label"]').isDisabled())) throw new Error('보기 전용인데 이름 칸이 안 잠겼다');
+  await page.fill('[data-km="cmt-new"]', '받은 사람이 남기는 말');
+  await page.locator('[data-km="cmt-add"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="cmt-del"]', { timeout: 4000 });
+
   // 되돌아가는 길이 반드시 있어야 한다 — 없으면 남의 그림을 이어 그릴 방법이 사라진다.
   await page.locator('[data-km="fork"]').click();
   await page.waitForSelector('.km-root:not(.is-readonly)', { timeout: 4000 });
