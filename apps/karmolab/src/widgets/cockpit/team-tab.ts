@@ -3,6 +3,11 @@
  * agent-team.ts build() 로직 이식. Toolbox.register X — cockpit.ts 가 탭으로 마운트.
  */
 import { invoke as tauriInvoke } from '../../tauri-bridge';
+import { t, loadNamespace } from '../../lib/i18n';
+
+/** 화면에 그대로 박는 글은 태그로 읽히면 안 된다. */
+const esc = (v: unknown): string =>
+  String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 type AgentInfo = {
   id: string;
@@ -71,24 +76,19 @@ type CardInfo = {
 
 const REFRESH_MS = 5000;
 
-function esc(s: string): string {
-  return s.replace(/[&<>"']/g, (c) =>
-    c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;'
-  );
-}
 
 function relativeTime(iso: string | undefined): string {
-  if (!iso) return '활동 없음';
-  const t = new Date(iso).getTime();
-  if (isNaN(t)) return iso.slice(0, 16);
-  const ms = Date.now() - t;
-  if (ms < 60_000) return '방금';
+  if (!iso) return t('cockpit.t18');
+  const at = new Date(iso).getTime();
+  if (isNaN(at)) return iso.slice(0, 16);
+  const ms = Date.now() - at;
+  if (ms < 60_000) return t('cockpit.t19');
   const m = Math.floor(ms / 60_000);
-  if (m < 60) return `${m}분 전`;
+  if (m < 60) return t('cockpit.ago.min', { n: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}시간 전`;
+  if (h < 24) return t('cockpit.ago.hour', { n: h });
   const d = Math.floor(h / 24);
-  return d < 14 ? `${d}일 전` : iso.slice(0, 10);
+  return d < 14 ? t('cockpit.ago.day', { n: d }) : iso.slice(0, 10);
 }
 
 function statusDot(color: string): string {
@@ -169,50 +169,50 @@ export function buildTeamTab(container: HTMLElement): void {
   container.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:1rem;padding:1rem;font-size:.9rem;height:100%;overflow-y:auto;box-sizing:border-box">
       <header style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
-        <h2 style="margin:0;font-size:1.1rem">🛰 에이전트 팀</h2>
+        <h2 style="margin:0;font-size:1.1rem">${esc(t('cockpit.t05'))}</h2>
         <span class="at-meta" style="opacity:.6;font-size:.8rem;flex:1"></span>
         <label style="font-size:.78rem;opacity:.65;display:flex;align-items:center;gap:.25rem">
-          <input class="at-autorefresh" type="checkbox" checked /> 자동 5초
+          <input class="at-autorefresh" type="checkbox" checked /> ${esc(t('cockpit.t06'))}
         </label>
-        <button class="at-refresh" type="button" style="padding:.3rem .7rem">새로고침</button>
-        <button class="at-cadence" type="button" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="로컬 dev cadence 1회">⚡ Dev</button>
-        <button class="at-cadence-prod" type="button" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="laptop-ops Prod cadence 1회">⚡ Prod</button>
+        <button class="at-refresh" type="button" style="padding:.3rem .7rem">${esc(t('cockpit.t07'))}</button>
+        <button class="at-cadence" type="button" style="padding:.3rem .7rem;background:#39c;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="${esc(t('cockpit.t01'))}">⚡ Dev</button>
+        <button class="at-cadence-prod" type="button" style="padding:.3rem .7rem;background:#c63;color:#fff;border:0;border-radius:.25rem;cursor:pointer" title="${esc(t('cockpit.t02'))}">⚡ Prod</button>
       </header>
       <div class="at-cadence-out" style="display:none;font-size:.74rem;font-family:monospace;background:rgba(127,127,127,.1);padding:.5rem;border-radius:.3rem;white-space:pre-wrap;max-height:8rem;overflow:auto"></div>
 
       <section>
         <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem">
-          <h3 style="margin:0;font-size:.95rem;opacity:.85">📋 작업중 TASK (<span class="at-count-tasks">-</span>)</h3>
-          <input class="at-tasks-search" type="search" placeholder="TASK 검색 (id·제목·status)" style="margin-left:auto;padding:.2rem .4rem;min-width:14rem;font-size:.78rem" />
+          <h3 style="margin:0;font-size:.95rem;opacity:.85">${esc(t('cockpit.t08'))}<span class="at-count-tasks">-</span>)</h3>
+          <input class="at-tasks-search" type="search" placeholder="${esc(t('cockpit.t03'))}" style="margin-left:auto;padding:.2rem .4rem;min-width:14rem;font-size:.78rem" />
         </div>
         <div class="at-tasks-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:.4rem"></div>
       </section>
 
       <section>
         <div style="display:flex;align-items:center;gap:.5rem;margin:0 0 .4rem">
-          <h3 style="margin:0;font-size:.95rem;opacity:.85">📮 결재 대기 (<span class="at-count-proposals">-</span>)</h3>
-          <input class="at-proposals-search" type="search" placeholder="제안 검색 (제목·본문·domain)" style="margin-left:auto;padding:.2rem .4rem;min-width:12rem;font-size:.78rem" />
+          <h3 style="margin:0;font-size:.95rem;opacity:.85">${esc(t('cockpit.t09'))}<span class="at-count-proposals">-</span>)</h3>
+          <input class="at-proposals-search" type="search" placeholder="${esc(t('cockpit.t04'))}" style="margin-left:auto;padding:.2rem .4rem;min-width:12rem;font-size:.78rem" />
         </div>
         <div class="at-proposals-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
       </section>
 
       <section>
-        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">코어 (<span class="at-count-agents">-</span>)</h3>
+        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">${esc(t('cockpit.t10'))}<span class="at-count-agents">-</span>)</h3>
         <div class="at-roster-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.5rem"></div>
       </section>
 
       <section>
-        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">활성 Claude 세션 (<span class="at-count-sessions">-</span>)</h3>
+        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">${esc(t('cockpit.t11'))}<span class="at-count-sessions">-</span>)</h3>
         <div class="at-sessions-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.5rem"></div>
       </section>
 
       <section>
-        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">목표 (<span class="at-count-objectives">-</span>)</h3>
+        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">${esc(t('cockpit.t12'))}<span class="at-count-objectives">-</span>)</h3>
         <div class="at-objectives-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
       </section>
 
       <section>
-        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">💬 슬롯 간 메시지 (<span class="at-count-bus">-</span>)</h3>
+        <h3 style="margin:0 0 .4rem;font-size:.95rem;opacity:.85">${esc(t('cockpit.t13'))}<span class="at-count-bus">-</span>)</h3>
         <div class="at-bus-list" style="display:flex;flex-direction:column;gap:.3rem"></div>
       </section>
 
@@ -255,7 +255,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const emoji = a.emoji ? esc(a.emoji) + ' ' : '';
       const kind = a.kind ? `<span style="opacity:.6;font-size:.72rem;margin-left:.3rem">[${esc(a.kind)}]</span>` : '';
       const role = a.role ? `<div style="opacity:.7;font-size:.78rem;line-height:1.35;margin-top:.2rem">${esc(a.role)}</div>` : '';
-      const count = a.activity_count > 0 ? `·${a.activity_count}건` : '';
+      const count = a.activity_count > 0 ? t('cockpit.activityCount', { n: a.activity_count }) : '';
       return `<div style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
         <div style="display:flex;align-items:center">${dot}<strong>${emoji}${esc(a.display_name || a.id)}</strong>${kind}
           <span style="margin-left:auto;font-size:.72rem;opacity:.55">${esc(a.id)}</span></div>
@@ -294,7 +294,7 @@ export function buildTeamTab(container: HTMLElement): void {
 
   function renderBus(rows: BusEntry[]): void {
     countBus.textContent = String(rows.length);
-    if (rows.length === 0) { busList.innerHTML = '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">슬롯 간 메시지 없음</div>'; return; }
+    if (rows.length === 0) { busList.innerHTML = t('cockpit.t20'); return; }
     busList.innerHTML = rows.map((b) => {
       const color = slotColor(b.slot);
       const preview = b.body_preview
@@ -312,20 +312,20 @@ export function buildTeamTab(container: HTMLElement): void {
 
   function renderTasks(rows: TaskBoardEntry[]): void {
     const sq = tasksSearch.value.trim().toLowerCase();
-    const filtered = sq ? rows.filter((t) => (t.task_id + ' ' + t.title + ' ' + t.status).toLowerCase().includes(sq)) : rows;
+    const filtered = sq ? rows.filter((task) => (task.task_id + ' ' + task.title + ' ' + task.status).toLowerCase().includes(sq)) : rows;
     countTasks.textContent = rows.length === filtered.length ? String(rows.length) : `${filtered.length}/${rows.length}`;
-    if (filtered.length === 0) { tasksList.innerHTML = '<div style="opacity:.55;font-size:.82rem;padding:.5rem">진행 중 TASK 없음</div>'; return; }
-    tasksList.innerHTML = filtered.map((t) => {
-      const sv = taskStatusVisual(t.status);
-      const dv = taskDomain(t.task_id);
+    if (filtered.length === 0) { tasksList.innerHTML = t('cockpit.t21'); return; }
+    tasksList.innerHTML = filtered.map((task) => {
+      const sv = taskStatusVisual(task.status);
+      const dv = taskDomain(task.task_id);
       return `<div style="padding:.55rem .7rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
           <span style="background:${dv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${dv.emoji} ${dv.label}</span>
-          <strong style="font-family:monospace;font-size:.82rem">${esc(t.task_id)}</strong>
+          <strong style="font-family:monospace;font-size:.82rem">${esc(task.task_id)}</strong>
           <span style="background:${sv.color};color:#fff;padding:.05rem .35rem;border-radius:.25rem;font-size:.7rem">${sv.emoji} ${esc(sv.label)}</span>
         </div>
-        <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${esc(t.title)}</div>
-        <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${esc(t.md_path)}</div>
+        <div style="margin-top:.25rem;font-size:.82rem;line-height:1.35">${esc(task.title)}</div>
+        <div style="margin-top:.2rem;font-size:.7rem;opacity:.5;font-family:monospace">${esc(task.md_path)}</div>
       </div>`;
     }).join('');
   }
@@ -336,12 +336,12 @@ export function buildTeamTab(container: HTMLElement): void {
     const pq = proposalsSearch.value.trim().toLowerCase();
     if (pq) pending = pending.filter((p) => `${p.title ?? ''} ${p.body ?? ''} ${p.domain ?? ''} ${p.id}`.toLowerCase().includes(pq));
     countProposals.textContent = pq ? `${pending.length}/${rows.filter((p) => !p.decided).length}` : String(pending.length);
-    if (pending.length === 0) { proposalsList.innerHTML = '<div style="opacity:.5;padding:.3rem .5rem;font-size:.8rem">결재 대기 없음</div>'; return; }
+    if (pending.length === 0) { proposalsList.innerHTML = t('cockpit.t22'); return; }
     proposalsList.innerHTML = pending.slice(0, 12).map((p) => {
       const title = p.title || p.id;
       const domain = p.domain ? `<span style="padding:.05rem .3rem;border-radius:.25rem;font-size:.66rem;background:rgba(127,127,127,.25);font-family:monospace">${esc(p.domain)}</span>` : '';
       const body = p.body
-        ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">본문 펴기</summary><div style="font-size:.82rem;margin:.3rem 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
+        ? `<details style="margin-top:.3rem"><summary style="cursor:pointer;font-size:.78rem;opacity:.7">${esc(t('cockpit.t14'))}</summary><div style="font-size:.82rem;margin:.3rem 0 0;opacity:.9">${renderProposalBody(p.body)}</div></details>`
         : '';
       return `<div class="at-prop" data-id="${esc(p.id)}" style="padding:.5rem .65rem;border:1px solid rgba(127,127,127,.25);border-radius:.4rem;background:rgba(127,127,127,.05)">
         <div style="display:flex;align-items:center;gap:.4rem">${domain}
@@ -349,9 +349,9 @@ export function buildTeamTab(container: HTMLElement): void {
           <span style="font-size:.66rem;opacity:.5;font-family:monospace">${esc(p.id)}</span></div>
         ${body}
         <div style="display:flex;gap:.3rem;margin-top:.4rem">
-          <button data-decision="approved" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#3a3;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✓ 승인</button>
-          <button data-decision="rejected" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#c44;color:#fff;border:0;border-radius:.25rem;cursor:pointer">✗ 거절</button>
-          <button data-decision="deferred" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#888;color:#fff;border:0;border-radius:.25rem;cursor:pointer">⏸ 보류</button>
+          <button data-decision="approved" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#3a3;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('cockpit.t15'))}</button>
+          <button data-decision="rejected" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#c44;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('cockpit.t16'))}</button>
+          <button data-decision="deferred" type="button" style="padding:.25rem .55rem;font-size:.78rem;background:#888;color:#fff;border:0;border-radius:.25rem;cursor:pointer">${esc(t('cockpit.t17'))}</button>
           <span class="at-prop-msg" style="margin-left:.3rem;font-size:.72rem;opacity:.7;align-self:center"></span>
         </div>
       </div>`;
@@ -363,14 +363,14 @@ export function buildTeamTab(container: HTMLElement): void {
         const id = card.dataset.id || '';
         const decision = btn.dataset.decision || '';
         const msgSpan = card.querySelector<HTMLSpanElement>('.at-prop-msg');
-        if (msgSpan) msgSpan.textContent = '처리 중...';
+        if (msgSpan) msgSpan.textContent = t('cockpit.t23');
         card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = true));
         try {
           await tauriInvoke('agent_team_decide_proposal', { repoRoot: cachedRepoRoot, id, decision, note: 'karmoapp-gui' });
-          if (msgSpan) msgSpan.textContent = `✓ ${decision} 기록 완료`;
+          if (msgSpan) msgSpan.textContent = t('cockpit.decisionSaved', { decision });
           void load();
         } catch (e) {
-          if (msgSpan) msgSpan.textContent = `실패: ${String(e)}`;
+          if (msgSpan) msgSpan.textContent = t('cockpit.failed', { why: String(e) });
           card.querySelectorAll<HTMLButtonElement>('button').forEach((b) => (b.disabled = false));
         }
       });
@@ -383,7 +383,7 @@ export function buildTeamTab(container: HTMLElement): void {
       const repoRoot = (await tauriInvoke('localdev_get_repo_root')) as string | null;
       if (!repoRoot) {
         errBox.style.display = 'block';
-        errBox.textContent = 'repo_root 미설정 — Server Monitor 에서 저장소 루트 선택해주세요.';
+        errBox.textContent = t('cockpit.t24');
         return;
       }
       cachedRepoRoot = repoRoot;
@@ -406,16 +406,16 @@ export function buildTeamTab(container: HTMLElement): void {
       renderTasks(tasks);
 
       const now = Date.now();
-      const last24h = (cards as CardInfo[]).filter((c) => { const t = new Date(c.ts).getTime(); return !isNaN(t) && now - t < 86_400_000; }).length;
+      const last24h = (cards as CardInfo[]).filter((c) => { const ms = new Date(c.ts).getTime(); return !isNaN(ms) && now - ms < 86_400_000; }).length;
       const activeAgents = (agents as AgentInfo[]).filter((a) => (a.status || '').toLowerCase() === 'active').length;
       const pendingProposals = (proposals as ProposalInfo[]).filter((p) => !p.decided).length;
       const liveSessions = (sessions as SessionInfo[]).filter((s) => /in_progress|active|deploy/i.test(s.state)).length;
       const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
       const repoShort = repoRoot.split(/[\\/]/).slice(-2).join('/');
-      meta.innerHTML = `${esc(time)} KST · ${esc(repoShort)} &nbsp;|&nbsp; 🟢 ${activeAgents}코어 &nbsp; 💼 ${liveSessions}세션 &nbsp; 📮 ${pendingProposals}대기 &nbsp; 📋 ${tasks.length}TASK &nbsp; 📈 24h ${last24h}`;
+      meta.innerHTML = t('cockpit.statusLine', { time: esc(time), repo: esc(repoShort), cores: activeAgents, sessions: liveSessions, pending: pendingProposals, tasks: tasks.length, last24h });
     } catch (e) {
       errBox.style.display = 'block';
-      errBox.textContent = `로드 실패: ${String(e)}`;
+      errBox.textContent = t('cockpit.loadFailed', { why: String(e) });
     }
   }
 
@@ -425,12 +425,12 @@ export function buildTeamTab(container: HTMLElement): void {
   }
 
   async function runCadence(target: 'dev' | 'prod', btn: HTMLButtonElement): Promise<void> {
-    if (!cachedRepoRoot) { cadenceOut.style.display = 'block'; cadenceOut.textContent = 'repo_root 미설정'; return; }
+    if (!cachedRepoRoot) { cadenceOut.style.display = 'block'; cadenceOut.textContent = t('cockpit.t25'); return; }
     const cmd = target === 'prod' ? 'agent_team_run_cadence_tick_prod' : 'agent_team_run_cadence_tick';
     const label = target === 'prod' ? '⚡ Prod' : '⚡ Dev';
     btn.disabled = true;
     const orig = btn.textContent || label;
-    btn.textContent = '⏳ 실행 중...';
+    btn.textContent = t('cockpit.t26');
     cadenceOut.style.display = 'block';
     cadenceOut.textContent = `${label} cadence 실행 중...`;
     try {
@@ -441,7 +441,7 @@ export function buildTeamTab(container: HTMLElement): void {
       cadenceOut.textContent = `${head}\n--- stdout ---\n${r.stdout_tail}\n--- stderr ---\n${r.stderr_tail}`;
       void load();
     } catch (e) {
-      cadenceOut.textContent = `${label} 실패: ${String(e)}`;
+      cadenceOut.textContent = t('cockpit.actionFailed', { label, why: String(e) });
     } finally {
       btn.disabled = false;
       btn.textContent = orig;
