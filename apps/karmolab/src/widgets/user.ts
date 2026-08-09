@@ -3,10 +3,15 @@
  *
  * 환경 설정(테마·API 키·저장소)은 여기 없다 → `widgets/settings.ts`.
  */
+import { t, loadNamespace } from '../lib/i18n';
+
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const PROGRESS_KEY = 'pet_strokes';
     /** [karmolab-react-src DEFAULT_TRACKS] id → 표시 이름 */
-    const STREAK_TRACK_LABELS: Record<string, string> = { daily_review: '일일 리뷰', exercise: '운동' };
+    const STREAK_TRACK_LABELS: Record<string, string> = { daily_review: t('user.t58'), exercise: t('user.t59') };
 
     type UserAchievement = {
         id: string;
@@ -49,23 +54,23 @@
         badges: UserBadge[];
     } = {
         achievements: [
-            { id: 'pet_100', title: '100번 쓰다듬기', desc: '고양이를 100번 쓰다듬었다', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100 },
-            { id: 'pet_1000', title: '1,000번 쓰다듬기', desc: '고양이를 1,000번 쓰다듬었다', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 1000 },
-            { id: 'pet_10000', title: '10,000번 쓰다듬기', desc: '집사 가끔 대단해요', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 10000 },
-            { id: 'pet_100000', title: '100,000번 쓰다듬기', desc: '진짜로 하고 있었어요?!', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100000 },
-            { id: 'pet_500000', title: '500,000번 쓰다듬기', desc: '반이에요... 설마 진심이에요?!', icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 500000 },
-            { id: 'first_chat', title: '첫 대화', desc: '챗봇과 첫 대화를 나눴다', icon: '💬', source: 'chatbot' },
-            { id: 'first_image', title: '첫 이미지 생성', desc: '첫 이미지를 생성했다', icon: '🎨', source: 'imagegen' },
-            { id: 'streak_first', title: '첫 줄기', desc: '처음으로 스트릭 하루를 채웠다', icon: '🌱', source: 'streak' },
-            { id: 'streak_7', title: '7일 연속', desc: '어느 트랙이든 7일 연속 달성', icon: '🔥', source: 'streak' },
-            { id: 'streak_30', title: '30일 연속', desc: '어느 트랙이든 30일 연속 달성', icon: '🔥', source: 'streak' },
-            { id: 'streak_100', title: '100일 연속', desc: '어느 트랙이든 100일 연속 달성', icon: '🔥', source: 'streak' },
-            { id: 'reaction_200', title: '초고속 반응 200ms', desc: '번개같은 반사신경', icon: '⚡', source: 'reaction' },
-            { id: 'reaction_150', title: '번개 반응 150ms', desc: '인간의 한계를 넘었다', icon: '⚡', source: 'reaction' },
+            { id: 'pet_100', title: t('user.t60'), desc: t('user.t61'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100 },
+            { id: 'pet_1000', title: t('user.t62'), desc: t('user.t63'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 1000 },
+            { id: 'pet_10000', title: t('user.t64'), desc: t('user.t65'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 10000 },
+            { id: 'pet_100000', title: t('user.t66'), desc: t('user.t67'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 100000 },
+            { id: 'pet_500000', title: t('user.t68'), desc: t('user.t69'), icon: '🐱', source: 'pet', track: 'pet_strokes', goal: 500000 },
+            { id: 'first_chat', title: t('user.t70'), desc: t('user.t71'), icon: '💬', source: 'chatbot' },
+            { id: 'first_image', title: t('user.t72'), desc: t('user.t73'), icon: '🎨', source: 'imagegen' },
+            { id: 'streak_first', title: t('user.t74'), desc: t('user.t75'), icon: '🌱', source: 'streak' },
+            { id: 'streak_7', title: t('user.t76'), desc: t('user.t77'), icon: '🔥', source: 'streak' },
+            { id: 'streak_30', title: t('user.t78'), desc: t('user.t79'), icon: '🔥', source: 'streak' },
+            { id: 'streak_100', title: t('user.t80'), desc: t('user.t81'), icon: '🔥', source: 'streak' },
+            { id: 'reaction_200', title: t('user.t82'), desc: t('user.t83'), icon: '⚡', source: 'reaction' },
+            { id: 'reaction_150', title: t('user.t84'), desc: t('user.t85'), icon: '⚡', source: 'reaction' },
         ],
         badges: [
-            { id: 'pet_marriage', title: '검의 서약', desc: '100만번 쓰다듬고 결혼했어요 💍', icon: '💖', source: 'pet' },
-            { id: 'toolbox_explorer', title: '탐험가', desc: '5개 이상 도구를 사용했다', icon: '🧭', source: 'system' },
+            { id: 'pet_marriage', title: t('user.t86'), desc: t('user.t87'), icon: '💖', source: 'pet' },
+            { id: 'toolbox_explorer', title: t('user.t88'), desc: t('user.t89'), icon: '🧭', source: 'system' },
         ],
     };
 
@@ -253,12 +258,12 @@
         });
 
         const cells: Array<[string, string]> = [
-            [`${(data.achievements ?? []).length}/${DEFS.achievements.length}`, '도전과제'],
-            [`${(data.badges ?? []).length}/${DEFS.badges.length}`, '뱃지'],
-            [String(maxStreakCurrent), '최고 연속(일)'],
-            [petStrokes.toLocaleString(), '쓰담'],
-            [String(totalChat), '채팅'],
-            [String(totalImage), '이미지'],
+            [`${(data.achievements ?? []).length}/${DEFS.achievements.length}`, t('user.t90')],
+            [`${(data.badges ?? []).length}/${DEFS.badges.length}`, t('user.t91')],
+            [String(maxStreakCurrent), t('user.t92')],
+            [petStrokes.toLocaleString(), t('user.t93')],
+            [String(totalChat), t('user.t94')],
+            [String(totalImage), t('user.t95')],
         ];
         slot.innerHTML = cells.map(([value, label]) => `<div class="user-stat"><b>${value}</b><span>${label}</span></div>`).join('');
     }
@@ -291,22 +296,22 @@
         const avatar = me && account ? account.avatarUrl(me.avatarPath) : null;
 
         const sub = me
-            ? `@${escapeHtml(me.handle)} · <a href="${escapeHtml(me.profileUrl)}">남에게 보이는 프로필</a>`
+            ? `@${escapeHtml(me.handle)} · <a href="${escapeHtml(me.profileUrl)}">${esc(t('user.t02'))}</a>`
             : canOffer
-              ? '지금 기록은 이 브라우저에만 있습니다 — 계정을 만들면 기기를 바꿔도 남습니다.'
-              : '이 브라우저에 기록 중';
+              ? t('user.t96')
+              : t('user.t97');
 
         slot.innerHTML = `
             <div class="user-id">
                 <div class="user-id-avatar">${avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : '👤'}</div>
                 <div class="user-id-main">
-                    <h2>${escapeHtml(me ? me.displayName : 'Toolbox 사용자')}</h2>
+                    <h2>${escapeHtml(me ? me.displayName : t('user.t98'))}</h2>
                     <p class="user-id-sub">${sub}</p>
-                    <p class="user-id-mascot">마스코트 관계: <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong> · 호감도 ${Mdd.getAffection()}</p>
+                    <p class="user-id-mascot">${esc(t('user.t03'))} <strong style="color:var(--secondary)">${Mdd.getRelationshipTitle()}</strong> · 호감도 ${Mdd.getAffection()}</p>
                 </div>
                 <div class="user-id-actions">
-                    ${me ? '<button type="button" class="user-account-btn user-account-btn-quiet" data-signout>로그아웃</button>' : ''}
-                    ${!me && canOffer ? '<button type="button" class="user-account-btn" data-signin>디스코드로 시작하기</button>' : ''}
+                    ${me ? t('user.t99') : ''}
+                    ${!me && canOffer ? t('user.t100') : ''}
                 </div>
             </div>`;
 
@@ -379,10 +384,10 @@
 
         slot.innerHTML = `
             <div class="user-section">
-                <h3>🗣 커뮤니티에 남긴 것</h3>
+                <h3>${esc(t('user.t04'))}</h3>
                 <p class="user-act-lead">글 ${posts.length}개 · 답글 ${replies.length}개 — 이건 기기를 바꿔도 남습니다.</p>
                 <div class="user-acts">${rows}</div>
-                <a class="user-act-more" href="/karmolab/u/?h=${encodeURIComponent(handle)}">남에게 보이는 내 프로필 →</a>
+                <a class="user-act-more" href="/karmolab/u/?h=${encodeURIComponent(handle)}">${esc(t('user.t05'))}</a>
             </div>`;
     }
 
@@ -398,7 +403,7 @@
         if (!slot) return;
         const account = window.KarmoAccount;
         if (!account) {
-            slot.innerHTML = '<p class="user-act-lead">계정 기능이 지금 꺼져 있습니다. 도구는 그대로 씁니다.</p>';
+            slot.innerHTML = t('user.t101');
             return;
         }
 
@@ -407,7 +412,7 @@
             if (state.loading) return;
             if (!state.reachable) {
                 drawnFor = null;
-                slot.innerHTML = '<p class="user-act-lead">계정 서버에 지금 못 닿았습니다. 잠시 뒤에 다시 열어 주세요 — 도구는 그대로 씁니다.</p>';
+                slot.innerHTML = t('user.t102');
                 return;
             }
             const key = state.account ? `in:${state.account.handle}:${state.account.displayName}` : 'out';
@@ -418,10 +423,10 @@
                 slot.innerHTML = `
                     <div class="user-account-card">
                         <div class="user-account-text">
-                            <strong>기록을 이 브라우저 밖에도 남기기</strong>
-                            <span>지금 도전과제·연속기록은 이 브라우저에만 있습니다. 계정을 만들면 기기를 바꿔도 남고, 공개 프로필 주소가 생깁니다.</span>
+                            <strong>${esc(t('user.t06'))}</strong>
+                            <span>${esc(t('user.t07'))}</span>
                         </div>
-                        <button type="button" class="user-account-btn" id="userSignInBtn">디스코드로 시작하기</button>
+                        <button type="button" class="user-account-btn" id="userSignInBtn">${esc(t('user.btn.userSignInBtn'))}</button>
                     </div>`;
                 slot.querySelector('#userSignInBtn')?.addEventListener('click', () => account.signIn());
                 return;
@@ -435,10 +440,10 @@
                         ${avatar ? `<img class="user-account-avatar" src="${escapeHtml(avatar)}" alt="">` : ''}
                         <div class="user-account-text">
                             <strong>${escapeHtml(me.displayName)}</strong>
-                            <span>공개 프로필 · <a href="${escapeHtml(me.profileUrl)}">/karmolab/u/?h=${escapeHtml(me.handle)}</a></span>
+                            <span>${esc(t('user.t08'))} <a href="${escapeHtml(me.profileUrl)}">/karmolab/u/?h=${escapeHtml(me.handle)}</a></span>
                         </div>
                     </div>
-                    <button type="button" class="user-account-btn user-account-btn-quiet" id="userSignOutBtn">로그아웃</button>
+                    <button type="button" class="user-account-btn user-account-btn-quiet" id="userSignOutBtn">${esc(t('user.btn.userSignOutBtn'))}</button>
                 </div>`;
             slot.querySelector('#userSignOutBtn')?.addEventListener('click', () => {
                 void account.signOut();
@@ -464,89 +469,82 @@
         box.className = 'user-acct';
         box.innerHTML = `
             <form class="user-acct-row" data-name-form>
-                <label class="user-acct-label" for="userDisplayName">보이는 이름</label>
+                <label class="user-acct-label" for="userDisplayName">${esc(t('user.aria.userDisplayName'))}</label>
                 <input id="userDisplayName" type="text" maxlength="24" value="${escapeHtml(displayName)}"
-                    data-name-input aria-label="보이는 이름">
-                <button type="submit" class="user-account-btn user-account-btn-quiet">바꾸기</button>
-                <span class="user-acct-hint">주소(@아이디)는 그대로입니다 — 남이 걸어 둔 링크가 깨지지 않게.</span>
+                    data-name-input aria-label="${esc(t('user.aria.userDisplayName'))}">
+                <button type="submit" class="user-account-btn user-account-btn-quiet">${esc(t('user.t09'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t10'))}</span>
             </form>
             <div class="user-acct-row">
-                <span class="user-acct-label">로그인한 기기</span>
-                <div class="fp-sessions" data-sessions>세는 중…</div>
-                <button type="button" class="user-account-btn user-account-btn-quiet" data-revoke>이 기기만 남기고 전부</button>
+                <span class="user-acct-label">${esc(t('user.t11'))}</span>
+                <div class="fp-sessions" data-sessions>${esc(t('user.t12'))}</div>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-revoke>${esc(t('user.t13'))}</button>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">계정 기록</span>
-                <div class="fp-events" data-events>보는 중…</div>
-                <span class="user-acct-hint">로그인·로그아웃·복구코드 사용이 남습니다. 주소(IP)는 안 적습니다 —
-                    있으면 언젠가 새고, 없어도 내가 한 것인지는 시각과 기기로 가려집니다.</span>
+                <span class="user-acct-label">${esc(t('user.t14'))}</span>
+                <div class="fp-events" data-events>${esc(t('user.t15'))}</div>
+                <span class="user-acct-hint">${esc(t('user.t16'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">내 것 내려받기</span>
-                <a class="user-account-btn user-account-btn-quiet" href="${base}/kl/me/export" download>JSON 으로</a>
-                <span class="user-acct-hint">계정 · 도전과제 · 연속기록 · 커뮤니티에 남긴 것 전부.</span>
+                <span class="user-acct-label">${esc(t('user.t17'))}</span>
+                <a class="user-account-btn user-account-btn-quiet" href="${base}/kl/me/export" download>${esc(t('user.t18'))}</a>
+                <span class="user-acct-hint">${esc(t('user.t19'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">복구 코드</span>
-                <span class="user-acct-value" data-recovery-left>세는 중…</span>
-                <button type="button" class="user-account-btn user-account-btn-quiet" data-recovery-new>새로 만들기</button>
-                <span class="user-acct-hint">디스코드 계정을 잃어도 이 코드로 들어올 수 있습니다.
-                    <b>만들 때 한 번만 보입니다</b> — 서버도 원문을 모릅니다. 새로 만들면 옛 코드는 못 씁니다.</span>
+                <span class="user-acct-label">${esc(t('user.t20'))}</span>
+                <span class="user-acct-value" data-recovery-left>${esc(t('user.t12'))}</span>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-recovery-new>${esc(t('user.t21'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t22'))}
+                    <b>${esc(t('user.t23'))}</b> ${esc(t('user.t24'))}</span>
                 <div class="user-acct-codes" data-recovery-out hidden></div>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">다른 기기 로그인</span>
+                <span class="user-acct-label">${esc(t('user.t25'))}</span>
                 <span class="user-acct-value" data-link-out>—</span>
-                <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>코드 받기</button>
-                <span class="user-acct-hint">디스코드 로그인이 어려운 기기(티비 등)에서 이 코드를 넣으면 들어와집니다. 5분간 · 한 번만.</span>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-link-new>${esc(t('user.t26'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t27'))}</span>
             </div>
             <form class="user-acct-row" data-card-form>
-                <label class="user-acct-label" for="userBio">한 줄 소개</label>
-                <input id="userBio" type="text" maxlength="80" data-bio aria-label="한 줄 소개" placeholder="아직 비어 있어요">
-                <button type="submit" class="user-account-btn user-account-btn-quiet">저장</button>
-                <span class="user-acct-hint">남에게 보이는 프로필 맨 위에 붙습니다. 안 채우면 지금과 같은 모습입니다.</span>
+                <label class="user-acct-label" for="userBio">${esc(t('user.aria.userBio'))}</label>
+                <input id="userBio" type="text" maxlength="80" data-bio aria-label="${esc(t('user.aria.userBio'))}" placeholder="${esc(t('user.ph.userBio'))}">
+                <button type="submit" class="user-account-btn user-account-btn-quiet">${esc(t('user.t28'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t29'))}</span>
             </form>
             <div class="user-acct-row">
-                <span class="user-acct-label">대표 도구</span>
-                <div class="fp-pins" data-pins>불러오는 중…</div>
-                <span class="user-acct-hint">가장 많이 쓴 도구에서 3개까지 고릅니다 — 무엇을 하는 사람인지 한눈에 보이게.</span>
+                <span class="user-acct-label">${esc(t('user.t30'))}</span>
+                <div class="fp-pins" data-pins>${esc(t('user.t31'))}</div>
+                <span class="user-acct-hint">${esc(t('user.t32'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">받을 알림</span>
-                <div class="fp-vis" data-notify>불러오는 중…</div>
-                <span class="user-acct-hint">끈 갈래는 **쌓이지도 않습니다** — 쌓아 두고 화면에서만 숨기면
-                    「안 읽음」 수가 계속 붙고, 그걸 없애려다 결국 종을 통째로 끄게 됩니다.</span>
+                <span class="user-acct-label">${esc(t('user.t33'))}</span>
+                <div class="fp-vis" data-notify>${esc(t('user.t31'))}</div>
+                <span class="user-acct-hint">${esc(t('user.t34'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">패스키</span>
-                <div class="fp-sessions" data-passkeys>보는 중…</div>
-                <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-add>이 기기에 만들기</button>
-                <span class="user-acct-hint">지문·얼굴·PIN 으로 로그인합니다. 들어오는 문이 하나뿐이면
-                    그 문이 잠기는 날 계정을 잃습니다 — 두 번째 문입니다.</span>
+                <span class="user-acct-label">${esc(t('user.t35'))}</span>
+                <div class="fp-sessions" data-passkeys>${esc(t('user.t15'))}</div>
+                <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-add>${esc(t('user.t36'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t37'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">주간 발자국</span>
-                <label class="fp-vis-item"><input type="checkbox" data-weekly> 지난주 요약을 디스코드로 받기</label>
-                <span class="user-acct-hint" data-weekly-hint>월요일 오전에 한 번. 아무것도 안 한 주에는 안 보냅니다.
-                    끄는 것도 여기서 — 알림은 끄는 길이 켜는 자리와 같아야 합니다.</span>
+                <span class="user-acct-label">${esc(t('user.t38'))}</span>
+                <label class="fp-vis-item"><input type="checkbox" data-weekly> ${esc(t('user.t39'))}</label>
+                <span class="user-acct-hint" data-weekly-hint>${esc(t('user.t40'))}</span>
             </div>
             <div class="user-acct-row">
-                <span class="user-acct-label">막은 사람</span>
-                <div class="fp-blocked" data-blocked>보는 중…</div>
-                <span class="user-acct-hint">막으면 그 사람 글이 내 피드·알림에서 사라지고, 서로 따라가기가 끊깁니다.
-                    막았다는 사실은 상대에게 안 알립니다.</span>
+                <span class="user-acct-label">${esc(t('user.t41'))}</span>
+                <div class="fp-blocked" data-blocked>${esc(t('user.t15'))}</div>
+                <span class="user-acct-hint">${esc(t('user.t42'))}</span>
             </div>
             <div class="user-acct-row" data-visibility-row>
-                <span class="user-acct-label">남에게 보이기</span>
-                <div class="fp-vis" data-visibility>불러오는 중…</div>
-                <span class="user-acct-hint">끈 것은 **화면에서만 숨는 게 아니라** 서버 응답에서 아예 빠집니다 —
-                    주소를 직접 열어도 안 보입니다. 프로필 자체를 끄면 남은 열 수 없고, 본인은 계속 볼 수 있습니다.</span>
+                <span class="user-acct-label">${esc(t('user.t43'))}</span>
+                <div class="fp-vis" data-visibility>${esc(t('user.t31'))}</div>
+                <span class="user-acct-hint">${esc(t('user.t44'))}</span>
             </div>
             <div class="user-acct-row user-acct-danger">
-                <span class="user-acct-label">계정 지우기</span>
-                <button type="button" class="user-account-btn user-account-btn-danger" data-delete>지우기</button>
-                <span class="user-acct-hint">되돌릴 수 없습니다. 이미 남긴 글은 남고 <b>글쓴이 이름만 지워집니다</b> —
-                    답글이 달린 글을 통째로 지우면 남의 답글이 뜻을 잃기 때문입니다.</span>
+                <span class="user-acct-label">${esc(t('user.t45'))}</span>
+                <button type="button" class="user-account-btn user-account-btn-danger" data-delete>${esc(t('user.t46'))}</button>
+                <span class="user-acct-hint">${esc(t('user.t47'))} <b>${esc(t('user.t48'))}</b> ${esc(t('user.t49'))}</span>
             </div>`;
         slot.appendChild(box);
 
@@ -564,25 +562,25 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ displayName: value }),
                 });
-                Toolbox.showToast?.(res.ok ? '이름을 바꿨어요' : '이름을 못 바꿨어요');
+                Toolbox.showToast?.(res.ok ? t('user.t103') : t('user.t104'));
                 if (res.ok) location.reload();
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
 
         box.querySelector('[data-revoke]')?.addEventListener('click', async () => {
-            if (!confirm('이 기기만 남기고 다른 곳의 로그인을 전부 끊을까요?')) return;
+            if (!confirm(t('user.t106'))) return;
             try {
                 const res = await fetch(`${base}/kl/me/sessions/revoke-others`, {
                     method: 'POST',
                     credentials: 'include',
                 });
                 const body = (await res.json()) as { revoked?: number };
-                Toolbox.showToast?.(res.ok ? `${body.revoked ?? 0}곳을 끊었어요` : '지금은 안 되네요');
+                Toolbox.showToast?.(res.ok ? t('user.revoked', { n: body.revoked ?? 0 }) : t('user.t105'));
                 void renderSessions(sessionSlot, base);
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
 
@@ -592,18 +590,18 @@
                 const res = await fetch(`${base}/kl/me/recovery-codes`, { credentials: 'include' });
                 if (!res.ok || !leftSlot) return;
                 const body = (await res.json()) as { left?: number };
-                leftSlot.textContent = body.left ? `${body.left}장 남음` : '아직 없음';
+                leftSlot.textContent = body.left ? t('user.codesLeft', { n: body.left }) : t('user.t107');
             } catch {
-                if (leftSlot) leftSlot.textContent = '지금은 못 봤어요';
+                if (leftSlot) leftSlot.textContent = t('user.t108');
             }
         })();
 
         box.querySelector('[data-recovery-new]')?.addEventListener('click', async () => {
-            if (!confirm('새로 만들면 지금까지의 복구 코드는 못 쓰게 됩니다. 계속할까요?')) return;
+            if (!confirm(t('user.t109'))) return;
             try {
                 const res = await fetch(`${base}/kl/me/recovery-codes`, { method: 'POST', credentials: 'include' });
                 if (!res.ok) {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                     return;
                 }
                 const body = (await res.json()) as { codes: string[] };
@@ -612,16 +610,16 @@
                 // 여기서 못 옮겨 적으면 영영 못 본다 — 그 사실을 화면에도 적는다.
                 out.hidden = false;
                 out.innerHTML =
-                    '<p class="user-acct-hint"><b>지금 한 번만 보입니다.</b> 안전한 곳에 옮겨 적어 두세요.</p>' +
+                    t('user.t110') +
                     `<ol class="user-acct-codelist">${body.codes.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ol>` +
-                    '<button type="button" class="user-account-btn user-account-btn-quiet" data-copy-codes>전부 복사</button>';
+                    t('user.t111');
                 out.querySelector('[data-copy-codes]')?.addEventListener('click', () => {
                     void navigator.clipboard?.writeText(body.codes.join('\n'));
-                    Toolbox.showToast?.('복사했어요');
+                    Toolbox.showToast?.(t('user.t112'));
                 });
-                if (leftSlot) leftSlot.textContent = `${body.codes.length}장 남음`;
+                if (leftSlot) leftSlot.textContent = t('user.codesLeft', { n: body.codes.length });
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
 
@@ -629,14 +627,14 @@
             try {
                 const res = await fetch(`${base}/kl/me/link-code`, { method: 'POST', credentials: 'include' });
                 if (!res.ok) {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                     return;
                 }
                 const body = (await res.json()) as { code: string };
                 const out = box.querySelector('[data-link-out]');
-                if (out) out.textContent = `${body.code} (5분)`;
+                if (out) out.textContent = t('user.codeValid', { code: body.code });
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
 
@@ -651,25 +649,25 @@
             // 되돌릴 수 없는 일은 **무엇이 사라지고 무엇이 남는지** 먼저 말한 뒤에 묻는다.
             const ok = confirm(
                 [
-                    '계정을 지웁니다. 되돌릴 수 없습니다.',
+                    t('user.t113'),
                     '',
-                    '· 계정 · 도전과제 · 연속기록 · 로그인 → 사라집니다',
-                    '· 이미 남긴 글과 답글 → 남습니다 (글쓴이 이름만 지워집니다)',
+                    t('user.t114'),
+                    t('user.t115'),
                     '',
-                    '내려받기를 먼저 하시는 편이 좋습니다. 계속할까요?',
+                    t('user.t116'),
                 ].join('\n'),
             );
             if (!ok) return;
             try {
                 const res = await fetch(`${base}/kl/me`, { method: 'DELETE', credentials: 'include' });
                 if (!res.ok) {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                     return;
                 }
-                alert('지웠습니다. 그동안 고마웠습니다.');
+                alert(t('user.t117'));
                 location.reload();
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
     }
@@ -728,7 +726,7 @@
 
         slot.innerHTML = `
             <div class="user-section">
-                <h3>🎯 이번 주 미션 <span class="fp-season">시즌 ${body.seasonWeek}/4주차 · ${body.clearedThisWeek}/${body.missions.length} 깸</span></h3>
+                <h3>${esc(t('user.t50'))} <span class="fp-season">시즌 ${body.seasonWeek}/4주차 · ${body.clearedThisWeek}/${body.missions.length} 깸</span></h3>
                 <div class="fp-missions">
                     ${body.missions
                         .map((mission) => {
@@ -741,8 +739,7 @@
                         })
                         .join('')}
                 </div>
-                <p class="user-acct-hint">미션은 모두에게 같고 매주 바뀝니다. 진행도는 발자국에서 그때그때 셉니다 —
-                    따로 적어 두지 않아 숫자가 갈라질 일이 없습니다. (「도구 가짓수」는 통산으로 셉니다.)</p>
+                <p class="user-acct-hint">${esc(t('user.t51'))}</p>
             </div>`;
     }
 
@@ -791,13 +788,13 @@
                     .map(
                         (row) =>
                             `<a class="fp-person" href="/karmolab/u/?h=${encodeURIComponent(row.handle)}">` +
-                            `${escapeHtml(row.displayName)}${row.mutual ? '<b>맞팔</b>' : ''}</a>`,
+                            `${escapeHtml(row.displayName)}${row.mutual ? t('user.t118') : ''}</a>`,
                     )
                     .join('');
             return `
                 <div class="fp-follows">
-                    ${following.length ? `<div><span>따라가는 ${following.length}</span>${chips(following)}</div>` : ''}
-                    ${followers.length ? `<div><span>팔로워 ${followers.length}</span>${chips(followers)}</div>` : ''}
+                    ${following.length ? `<div><span>${t('user.following', { n: following.length })}</span>${chips(following)}</div>` : ''}
+                    ${followers.length ? `<div><span>${t('user.followers', { n: followers.length })}</span>${chips(followers)}</div>` : ''}
                 </div>`;
         } catch {
             return '';
@@ -834,24 +831,24 @@
         const people = await followRows();
         slot.innerHTML = `
             <div class="user-section">
-                <h3>👣 따라가는 사람들</h3>
+                <h3>${esc(t('user.t52'))}</h3>
                 ${people}
-                <p class="user-act-lead">${body.following}명을 따라가는 중${body.posts.length === 0 ? ' — 아직 새 글이 없어요' : ''}</p>
+                <p class="user-act-lead">${body.following}명을 따라가는 중${body.posts.length === 0 ? t('user.t119') : ''}</p>
                 ${rows ? `<div class="user-acts">${rows}</div>` : ''}
             </div>`;
     }
 
     /** 사람이 읽는 상대 시각 — 「3일 전」이 「2026-08-05T…」보다 판단하기 쉽다. */
     function whenText(iso: string | null): string {
-        if (!iso) return '기록 없음';
+        if (!iso) return t('user.t120');
         const then = new Date(iso).getTime();
         if (Number.isNaN(then)) return '';
         const minutes = Math.floor((Date.now() - then) / 60000);
-        if (minutes < 1) return '방금';
-        if (minutes < 60) return `${minutes}분 전`;
+        if (minutes < 1) return t('user.t121');
+        if (minutes < 60) return t('user.ago.min', { n: minutes });
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}시간 전`;
-        return `${Math.floor(hours / 24)}일 전`;
+        if (hours < 24) return t('user.ago.hour', { n: hours });
+        return t('user.ago.day', { n: Math.floor(hours / 24) });
     }
 
     type SessionRow = { id: string; createdAt: string; lastSeenAt: string | null; device: string; current: boolean };
@@ -870,7 +867,7 @@
             if (!res.ok) throw new Error(String(res.status));
             sessions = ((await res.json()) as { sessions?: SessionRow[] }).sessions ?? [];
         } catch {
-            slot.textContent = '지금은 못 셌어요';
+            slot.textContent = t('user.t122');
             return;
         }
 
@@ -878,27 +875,27 @@
             .map(
                 (session) => `
                 <div class="fp-session">
-                    <span class="fp-session-name">${escapeHtml(session.device)}${session.current ? ' <b>이 기기</b>' : ''}</span>
+                    <span class="fp-session-name">${escapeHtml(session.device)}${session.current ? t('user.t123') : ''}</span>
                     <span class="fp-session-when">마지막 ${escapeHtml(whenText(session.lastSeenAt ?? session.createdAt))}</span>
                     ${session.current
                         ? ''
-                        : `<button type="button" class="user-account-btn user-account-btn-quiet" data-revoke-one="${escapeHtml(session.id)}">끊기</button>`}
+                        : `<button type="button" class="user-account-btn user-account-btn-quiet" data-revoke-one="${escapeHtml(session.id)}">${esc(t('user.t53'))}</button>`}
                 </div>`,
             )
             .join('');
 
         slot.querySelectorAll<HTMLButtonElement>('[data-revoke-one]').forEach((button) => {
             button.addEventListener('click', async () => {
-                if (!confirm('이 기기의 로그인을 끊을까요?')) return;
+                if (!confirm(t('user.t124'))) return;
                 try {
                     const res = await fetch(`${base}/kl/me/sessions/${encodeURIComponent(button.dataset.revokeOne ?? '')}/revoke`, {
                         method: 'POST',
                         credentials: 'include',
                     });
                     const body = (await res.json()) as { revoked?: boolean };
-                    Toolbox.showToast?.(res.ok && body.revoked ? '끊었어요' : '지금은 안 되네요');
+                    Toolbox.showToast?.(res.ok && body.revoked ? t('user.t125') : t('user.t105'));
                 } catch {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                 }
                 void renderSessions(slot, base);
             });
@@ -907,13 +904,13 @@
 
     /** 보안 기록 (TASK-KL-152 C7) — 남이 내 계정에 들어와도 알 방법이 지금까지 없었다. */
     const EVENT_LABELS: Record<string, string> = {
-        login: '로그인',
-        logout: '로그아웃',
-        'recovery-used': '복구 코드 사용',
-        'link-used': '코드로 로그인',
-        'name-changed': '이름 바꿈',
-        'visibility-changed': '공개 범위 바꿈',
-        'sessions-revoked': '로그인 끊음',
+        login: t('user.t126'),
+        logout: t('user.btn.userSignOutBtn'),
+        'recovery-used': t('user.t127'),
+        'link-used': t('user.t128'),
+        'name-changed': t('user.t129'),
+        'visibility-changed': t('user.t130'),
+        'sessions-revoked': t('user.t131'),
     };
 
     async function renderSecurity(slot: HTMLElement | null, base: string): Promise<void> {
@@ -924,12 +921,12 @@
             if (!res.ok) throw new Error(String(res.status));
             events = ((await res.json()) as { events?: typeof events }).events ?? [];
         } catch {
-            slot.textContent = '지금은 못 봤어요';
+            slot.textContent = t('user.t108');
             return;
         }
         if (!events.length) {
             // 「없다」와 「못 봤다」를 구별해서 말한다.
-            slot.textContent = '아직 남은 기록이 없어요';
+            slot.textContent = t('user.t132');
             return;
         }
         slot.innerHTML = events
@@ -974,7 +971,7 @@
                     .map(([id]) => id);
             }
         } catch {
-            if (pinSlot) pinSlot.textContent = '지금은 못 봤어요';
+            if (pinSlot) pinSlot.textContent = t('user.t108');
             return;
         }
 
@@ -990,7 +987,7 @@
                               `<button type="button" class="fp-pin${card.pins.includes(id) ? ' on' : ''}" data-pin="${escapeHtml(id)}">${escapeHtml(toolTitle(id))}</button>`,
                       )
                       .join('')
-                : '<span class="user-acct-hint">아직 고를 것이 없어요 — 도구를 몇 개 써 보면 여기 뜹니다.</span>';
+                : t('user.t133');
         }
 
         const savePins = async (pins: string[]): Promise<boolean> => {
@@ -1014,12 +1011,12 @@
                 const id = button.dataset.pin ?? '';
                 const on = card.pins.includes(id);
                 if (!on && card.pins.length >= 3) {
-                    Toolbox.showToast?.('3개까지예요');
+                    Toolbox.showToast?.(t('user.t134'));
                     return;
                 }
                 const next = on ? card.pins.filter((p) => p !== id) : [...card.pins, id];
                 if (!(await savePins(next))) {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                     return;
                 }
                 // 서버가 답한 목록으로 다시 칠한다 — 화면과 서버가 갈라지지 않게.
@@ -1038,18 +1035,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ bio: bioInput?.value ?? '' }),
                 });
-                Toolbox.showToast?.(res.ok ? '저장했어요' : '지금은 안 되네요');
+                Toolbox.showToast?.(res.ok ? t('user.t135') : t('user.t105'));
             } catch {
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
     }
 
     /** 받을 알림 갈래 (TASK-KL-175 E1). 이름은 서버 칸 이름과 같다. */
     const NOTIFY_LABELS: Array<[string, string]> = [
-        ['community', '내 글의 답글'],
-        ['follow', '따라가는 사람의 새 글'],
-        ['system', '그 밖(계정·도구·봇)'],
+        ['community', t('user.t136')],
+        ['follow', t('user.t137')],
+        ['system', t('user.t138')],
     ];
 
     async function mountNotifyPrefs(slot: HTMLElement | null, base: string): Promise<void> {
@@ -1060,7 +1057,7 @@
             if (!res.ok) throw new Error(String(res.status));
             prefs = ((await res.json()) as { prefs?: Record<string, boolean> }).prefs ?? null;
         } catch {
-            slot.textContent = '지금은 못 봤어요';
+            slot.textContent = t('user.t108');
             return;
         }
         if (!prefs) return;
@@ -1079,10 +1076,10 @@
                         body: JSON.stringify({ [input.dataset.notifyKey ?? '']: input.checked }),
                     });
                     if (!res.ok) throw new Error(String(res.status));
-                    Toolbox.showToast?.(input.checked ? '받습니다' : '이제 안 옵니다');
+                    Toolbox.showToast?.(input.checked ? t('user.t139') : t('user.t140'));
                 } catch {
                     input.checked = !input.checked;
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                 }
             });
         });
@@ -1117,7 +1114,7 @@
         const addButton = box.querySelector<HTMLButtonElement>('[data-passkey-add]');
         if (!slot || !addButton) return;
         if (!window.PublicKeyCredential) {
-            slot.textContent = '이 브라우저는 패스키를 모릅니다';
+            slot.textContent = t('user.t141');
             addButton.remove();
             return;
         }
@@ -1133,15 +1130,15 @@
                               (key) => `
                         <div class="fp-session">
                             <span class="fp-session-name">${escapeHtml(key.label)}</span>
-                            <span class="fp-session-when">${key.lastUsedAt ? `마지막 ${escapeHtml(whenText(key.lastUsedAt))}` : '아직 안 씀'}</span>
-                            <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-del="${escapeHtml(key.id)}">지우기</button>
+                            <span class="fp-session-when">${key.lastUsedAt ? t('user.lastUsed', { when: escapeHtml(whenText(key.lastUsedAt)) }) : t('user.t142')}</span>
+                            <button type="button" class="user-account-btn user-account-btn-quiet" data-passkey-del="${escapeHtml(key.id)}">${esc(t('user.t46'))}</button>
                         </div>`,
                           )
                           .join('')
-                    : '<span class="user-acct-hint">아직 없어요</span>';
+                    : t('user.t143');
                 slot.querySelectorAll<HTMLButtonElement>('[data-passkey-del]').forEach((button) => {
                     button.addEventListener('click', async () => {
-                        if (!confirm('이 패스키를 지울까요? 디스코드와 복구 코드로는 계속 들어올 수 있습니다.')) return;
+                        if (!confirm(t('user.t144'))) return;
                         await fetch(`${base}/kl/me/passkeys/${encodeURIComponent(button.dataset.passkeyDel ?? '')}`, {
                             method: 'DELETE',
                             credentials: 'include',
@@ -1150,7 +1147,7 @@
                     });
                 });
             } catch {
-                slot.textContent = '지금은 못 봤어요';
+                slot.textContent = t('user.t108');
             }
         };
 
@@ -1181,7 +1178,7 @@
                         timeout: 120000,
                     },
                 })) as PublicKeyCredential | null;
-                if (!created) throw new Error('취소');
+                if (!created) throw new Error(t('user.err.145'));
                 const response = created.response as AuthenticatorAttestationResponse;
                 const res = await fetch(`${base}/kl/me/passkeys`, {
                     method: 'POST',
@@ -1192,10 +1189,10 @@
                         attestationObject: bytesToB64url(response.attestationObject),
                     }),
                 });
-                Toolbox.showToast?.(res.ok ? '패스키를 만들었어요' : '만들지 못했어요');
+                Toolbox.showToast?.(res.ok ? t('user.t146') : t('user.t147'));
             } catch {
                 // 사용자가 취소한 것과 고장은 다르지만, 둘 다 여기서는 「안 됐다」로 충분하다.
-                Toolbox.showToast?.('만들지 못했어요');
+                Toolbox.showToast?.(t('user.t147'));
             } finally {
                 addButton.disabled = false;
                 void paint();
@@ -1218,11 +1215,11 @@
             if (!body.hasDiscord) {
                 // 보낼 길이 없으면 켜는 시늉을 하게 두지 않는다.
                 input.disabled = true;
-                if (hint) hint.textContent = '디스코드로 로그인한 계정에만 보낼 수 있어요.';
+                if (hint) hint.textContent = t('user.t148');
             }
         } catch {
             input.disabled = true;
-            if (hint) hint.textContent = '지금은 못 봤어요.';
+            if (hint) hint.textContent = t('user.t149');
             return;
         }
         input.addEventListener('change', async () => {
@@ -1234,10 +1231,10 @@
                     body: JSON.stringify({ on: input.checked }),
                 });
                 if (!res.ok) throw new Error(String(res.status));
-                Toolbox.showToast?.(input.checked ? '월요일에 보낼게요' : '이제 안 보냅니다');
+                Toolbox.showToast?.(input.checked ? t('user.t150') : t('user.t151'));
             } catch {
                 input.checked = !input.checked;
-                Toolbox.showToast?.('지금은 안 되네요');
+                Toolbox.showToast?.(t('user.t105'));
             }
         });
     }
@@ -1251,18 +1248,18 @@
             if (!res.ok) throw new Error(String(res.status));
             blocked = ((await res.json()) as { blocked?: string[] }).blocked ?? [];
         } catch {
-            slot.textContent = '지금은 못 봤어요';
+            slot.textContent = t('user.t108');
             return;
         }
         if (!blocked.length) {
-            slot.textContent = '아직 없어요';
+            slot.textContent = t('user.t152');
             return;
         }
         slot.innerHTML = blocked
             .map(
                 (handle) =>
                     `<span class="fp-blocked-item">@${escapeHtml(handle)}` +
-                    `<button type="button" data-unblock="${escapeHtml(handle)}">풀기</button></span>`,
+                    `<button type="button" data-unblock="${escapeHtml(handle)}">${esc(t('user.t54'))}</button></span>`,
             )
             .join('');
         slot.querySelectorAll<HTMLButtonElement>('[data-unblock]').forEach((button) => {
@@ -1274,9 +1271,9 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ on: false }),
                     });
-                    Toolbox.showToast?.(res.ok ? '풀었어요' : '지금은 안 되네요');
+                    Toolbox.showToast?.(res.ok ? t('user.t153') : t('user.t105'));
                 } catch {
-                    Toolbox.showToast?.('지금은 안 되네요');
+                    Toolbox.showToast?.(t('user.t105'));
                 }
                 void renderBlocked(slot, base);
             });
@@ -1285,14 +1282,14 @@
 
     /** 공개 범위 (TASK-KL-152 C4) — 끄면 서버 응답에서 빠진다. 여기 칸 이름은 서버 칸 이름과 같다. */
     const VISIBILITY_LABELS: Array<[string, string]> = [
-        ['profile', '프로필 자체'],
-        ['achievements', '도전과제'],
-        ['badges', '뱃지'],
-        ['streaks', '연속 기록'],
-        ['community', '커뮤니티에 남긴 것'],
-        ['activity', '발자국(잔디)'],
+        ['profile', t('user.t154')],
+        ['achievements', t('user.t90')],
+        ['badges', t('user.t91')],
+        ['streaks', t('user.t155')],
+        ['community', t('user.t156')],
+        ['activity', t('user.t157')],
         // 이것만 기본이 꺼짐이다 — 새로 생기는 노출은 켜는 사람만 켠다 (TASK-KL-156 D5).
-        ['presence', '지금 접속 중'],
+        ['presence', t('user.t158')],
     ];
 
     function mountVisibility(slot: HTMLElement | null, base: string): void {
@@ -1304,7 +1301,7 @@
                 if (!res.ok) throw new Error(String(res.status));
                 visibility = ((await res.json()) as { visibility?: Record<string, boolean> }).visibility ?? null;
             } catch {
-                slot.textContent = '지금은 못 봤어요';
+                slot.textContent = t('user.t108');
                 return;
             }
             if (!visibility) return;
@@ -1325,11 +1322,11 @@
                             body: JSON.stringify({ [key]: input.checked }),
                         });
                         if (!res.ok) throw new Error(String(res.status));
-                        Toolbox.showToast?.(input.checked ? '남에게 보입니다' : '가렸어요');
+                        Toolbox.showToast?.(input.checked ? t('user.t159') : t('user.t160'));
                     } catch {
                         // 못 바꿨으면 **화면도 되돌린다** — 껐다고 믿는데 안 꺼진 것이 제일 나쁘다.
                         input.checked = !input.checked;
-                        Toolbox.showToast?.('지금은 안 되네요');
+                        Toolbox.showToast?.(t('user.t105'));
                     }
                 });
             });
@@ -1400,7 +1397,7 @@
 
         slot.innerHTML = `
             <div class="user-section">
-                <h3>🌱 내 발자국</h3>
+                <h3>${esc(t('user.t55'))}</h3>
                 ${recapHtml(activity)}
                 ${grassHtml(activity.days)}
                 ${top.length
@@ -1414,8 +1411,8 @@
                           .join('')}</div>`
                     : ''}
                 <div class="fp-share">
-                    <button type="button" class="user-account-btn user-account-btn-quiet" data-share>내 발자국 복사</button>
-                    <span class="user-acct-hint">숫자는 전부 실제로 열린 것만 셉니다. 지어낸 값은 없습니다.</span>
+                    <button type="button" class="user-account-btn user-account-btn-quiet" data-share>${esc(t('user.t56'))}</button>
+                    <span class="user-acct-hint">${esc(t('user.t57'))}</span>
                 </div>
             </div>`;
 
@@ -1424,7 +1421,7 @@
         });
         slot.querySelector('[data-share]')?.addEventListener('click', () => {
             void navigator.clipboard?.writeText(shareText(activity!, top));
-            Toolbox.showToast?.('복사했어요');
+            Toolbox.showToast?.(t('user.t112'));
         });
     }
 
@@ -1436,11 +1433,11 @@
      */
     function shareText(activity: Footprint, top: Array<[string, number]>): string {
         const lines = [
-            '🌱 KarmoLab 내 발자국',
-            `연속 ${activity.streak.current}일 (최장 ${activity.streak.longest}일)`,
-            `다녀간 날 ${activity.totals.activeDays}일 · 도구 ${activity.totals.opens}번 · 써 본 도구 ${activity.totals.distinctTools}가지`,
+            t('user.t161'),
+            t('user.streak', { now: activity.streak.current, best: activity.streak.longest }),
+            t('user.totals', { days: activity.totals.activeDays, opens: activity.totals.opens, tools: activity.totals.distinctTools }),
         ];
-        if (top.length) lines.push(`많이 쓴 것: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(' · ')}`);
+        if (top.length) lines.push(`${t('user.topUsed')}: ${top.slice(0, 3).map(([id, n]) => `${toolTitle(id)}(${n})`).join(' · ')}`);
         lines.push('https://blog.mascari4615.com/karmolab/');
         return lines.join('\n');
     }
@@ -1457,11 +1454,11 @@
      */
     function recapHtml(activity: Footprint): string {
         const cells: Array<[string, string]> = [
-            [String(activity.streak.current), '지금 연속(일)'],
-            [String(activity.streak.longest), '최장 연속(일)'],
-            [String(activity.totals.activeDays), '다녀간 날'],
-            [String(activity.totals.opens), '도구 연 횟수'],
-            [String(activity.totals.distinctTools), '써 본 도구'],
+            [String(activity.streak.current), t('user.t162')],
+            [String(activity.streak.longest), t('user.t163')],
+            [String(activity.totals.activeDays), t('user.t164')],
+            [String(activity.totals.opens), t('user.t165')],
+            [String(activity.totals.distinctTools), t('user.t166')],
         ];
         const first = activity.firstSeenAt ? new Date(activity.firstSeenAt) : null;
         const firstText = first && !Number.isNaN(first.getTime())
@@ -1471,7 +1468,7 @@
             <div class="user-stats fp-recap">${cells
                 .map(([v, l]) => `<div class="user-stat"><b>${v}</b><span>${l}</span></div>`)
                 .join('')}</div>
-            ${firstText ? `<p class="user-act-lead">${escapeHtml(firstText)}부터 여기 있었습니다.</p>` : ''}`;
+            ${firstText ? `<p class="user-act-lead">${t('user.sinceFirst', { when: escapeHtml(firstText) })}</p>` : ''}`;
     }
 
     /** 잔디 — 오늘까지 53주. 값이 0 인 날과 안 온 날은 **다르게** 칠한다(둘러보기만 한 날도 온 날이다). */
@@ -1489,10 +1486,10 @@
             const future = d > today;
             const value = days[key];
             const level = future ? 'x' : value === undefined ? '0' : value === 0 ? '1' : value < 3 ? '2' : value < 8 ? '3' : '4';
-            const title = future ? '' : `${key} · ${value === undefined ? '안 옴' : value === 0 ? '둘러봄' : `${value}번`}`;
+            const title = future ? '' : `${key} · ${value === undefined ? t('user.t167') : value === 0 ? t('user.t168') : `${value}번`}`;
             cells.push(`<i class="fp-cell" data-lv="${level}"${title ? ` title="${title}"` : ''}></i>`);
         }
-        return `<div class="fp-grass" role="img" aria-label="지난 1년 활동">${cells.join('')}</div>`;
+        return `<div class="fp-grass" role="img" aria-label="${esc(t('user.t01'))}">${cells.join('')}</div>`;
     }
 
     /**
@@ -1500,7 +1497,7 @@
      * 탭 셋으로 흩어 두면 어느 탭에 뭐가 있었는지를 사람이 외워야 한다 (Steam 도 한 화면이다).
      */
     function buildAchievements(container: HTMLElement): void {
-        Mdd.linePreset('achievement', { msg: '지금까지 쌓은 거 보여줄게요~' });
+        Mdd.linePreset('achievement', { msg: t('user.t169') });
         renderAchievements(container);
     }
 
@@ -1521,7 +1518,7 @@
             const count = rarity!.counts[cell.dataset.ach ?? ''] ?? 0;
             const percent = Math.round((count / rarity!.total) * 1000) / 10;
             const slot = cell.querySelector('.user-item-rarity');
-            if (slot) slot.textContent = count === 0 ? '아직 아무도' : `전체의 ${percent}%`;
+            if (slot) slot.textContent = count === 0 ? t('user.t170') : t('user.ofTotal', { percent });
         });
     }
 
@@ -1586,7 +1583,7 @@
                 <div class="user-section" data-streaks>
                     <h3>🔥 스트릭 (${streakIds.length} 트랙)</h3>
                     ${streakIds.length === 0
-                        ? '<p style="font-size:var(--font-size-sm);color:var(--text-secondary);margin:0;">아직 기록이 없어요. 플래너에서 오늘 완료를 눌러보세요.</p>'
+                        ? t('user.t171')
                         : `<div class="user-grid">${streakGrid}</div>`}
                 </div>
             </div>`;
@@ -1609,10 +1606,44 @@
     Toolbox.register({
         ...Toolbox.getLazyWidgetPublicMeta!('user'),
         tabs: [
-            { id: 'user-overview', label: '프로필', build: buildProfile },
-            { id: 'user-achievements', label: '성과', build: buildAchievements },
-            { id: 'user-usage', label: '활동', build: buildUsage },
-            { id: 'user-account', label: '계정', build: buildAccount },
+            /* 그리기 전에 말 묶음을 받는다 — 화면 글자가 전부 그 안에서 만들어진다.
+             * 탭 이름만은 **등록하는 순간** 쓰이므로 기본값을 함께 준다 (S9-b). */
+            {
+                id: 'user-overview',
+                label: t('user.tab.profile', undefined, '프로필'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('user').then(function () {
+                        buildProfile(container);
+                    });
+                },
+            },
+            {
+                id: 'user-achievements',
+                label: t('user.tab.achievements', undefined, '성과'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('user').then(function () {
+                        buildAchievements(container);
+                    });
+                },
+            },
+            {
+                id: 'user-usage',
+                label: t('user.tab.activity', undefined, '활동'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('user').then(function () {
+                        buildUsage(container);
+                    });
+                },
+            },
+            {
+                id: 'user-account',
+                label: t('user.tab.account', undefined, '계정'),
+                build: function (container: HTMLElement): void {
+                    void loadNamespace('user').then(function () {
+                        buildAccount(container);
+                    });
+                },
+            },
         ]
     });
 })();
