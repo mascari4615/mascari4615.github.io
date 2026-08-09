@@ -115,10 +115,10 @@ import { readInvocation } from '../../lib/tool-url';
           container.innerHTML = `
             <div class="field-group">
               <div class="field-row" style="margin-bottom:8px;">
-                <label class="field-label" style="margin:0;">텍스트 입력</label>
+                <label class="field-label" style="margin:0;">${esc(t('charcount.label.input'))}</label>
                 <div style="display:flex; gap:6px;">
-                  <button class="btn btn-ghost" id="ccPaste">붙여넣기</button>
-                  <button class="btn btn-ghost" id="ccClear">지우기</button>
+                  <button class="btn btn-ghost" id="ccPaste">${esc(t('charcount.btn.paste'))}</button>
+                  <button class="btn btn-ghost" id="ccClear">${esc(t('charcount.btn.clear'))}</button>
                 </div>
               </div>
               <textarea id="ccInput" placeholder="${esc(t('charcount.placeholder'))}" style="min-height:200px;"></textarea>
