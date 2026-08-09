@@ -44,6 +44,7 @@ import { membershipFieldHtml, bindMembershipField } from './panels/membership-se
 import { shapeFieldHtml, tiltFieldHtml, bindLookFields } from './panels/look-section';
 import { attachFieldHtml, bindAttachField } from './panels/attach-section';
 import { docFieldHtml, bindDocField } from './panels/doc-section';
+import { fieldsSectionHtml, bindFieldsSection } from './panels/fields-section';
 import { outgoingLinks, backlinks, unlinkedMentions, linkFirstMention } from './links';
 import { snapToGrid, unoverlap } from './tidy';
 import { computeSna, topBy } from './sna';
@@ -960,6 +961,7 @@ import {
           <input type="text" data-km="edit-note" value="${escapeAttr(node.note ?? '')}" placeholder="이름 밑에 한 줄" />
         </div>
         ${tagsFieldHtml(panelCtx, node)}
+        ${fieldsSectionHtml(panelCtx, node)}
         ${docFieldHtml(panelCtx, node)}
         <div data-km="link-sections">${renderLinkSections(panelCtx, node)}</div>
         ${membershipFieldHtml(panelCtx, node)}
@@ -1016,6 +1018,7 @@ import {
       };
 
       bindTagsField(panelCtx, node);
+      bindFieldsSection(panelCtx, node, touch);
 
       // 링크 목록만 다시 그린다 — 패널 전체를 다시 그리면 타자 치던 커서가 날아간다.
       bindDocField(panelCtx, node, touch, () => {

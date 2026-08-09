@@ -672,6 +672,21 @@ await step('글 안에 다른 공용 글 끼워 넣기 — 쪽지에 원본 글�
     { timeout: 4000 }
   );
 });
+await step('노드에 칸을 만들면 같은 종류의 다른 노드가 그 칸 이름을 후보로 받는다', async () => {
+  // 스키마를 미리 짜게 하면 아무도 안 쓴다 — 쓰면서 자라는지를 본다(첫 노드에 칸 → 둘째에서 후보).
+  const fbox = await page.locator('.km-canvas').boundingBox();
+  await page.mouse.dblclick(fbox.x + fbox.width * 0.2, fbox.y + fbox.height * 0.25);
+  await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  await page.fill('[data-km="fld-new"]', '출신');
+  await page.locator('[data-km="fld-add"]').dispatchEvent('click');
+  await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
+  await page.locator('[data-km="fld-value"]').first().fill('마계');
+
+  await page.mouse.dblclick(fbox.x + fbox.width * 0.35, fbox.y + fbox.height * 0.25);
+  await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
+  const opts = await page.locator('#km-fld-suggest option').evaluateAll((os) => os.map((o) => o.value));
+  if (!opts.includes('출신')) throw new Error('같은 종류가 쓰는 칸이 후보로 안 뜬다: ' + opts.join('/'));
+});
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
   await page.click('[data-km="tab"][data-key="notes"]');
