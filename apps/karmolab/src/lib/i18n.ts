@@ -53,6 +53,10 @@ const store: Store = (typeof window !== 'undefined' && (window.__KARMO_I18N ||= 
 /* ── 지금 언어 ──────────────────────────────────────── */
 
 function fromPath(pathname: string): string | null {
+  /* 주소가 **글자가 아닐 수도** 있다 — 브라우저 아닌 자리(찍어 내기·검사 하네스·워커)에서는
+     `location` 이 반쪽이다. 여기서 안 막으면 도구 전체가 실릴 때 터진다(실측: 검사 하네스의
+     `location` 에 `pathname` 이 없어 옮긴 도구 9개가 통째로 「번들 실행 실패」). */
+  if (typeof pathname !== 'string') return null;
   for (const l of ENABLED_LOCALES) {
     if (!l.prefix) continue;
     if (pathname === l.prefix || pathname.startsWith(l.prefix + '/')) return l.code;
@@ -87,7 +91,7 @@ export function locale(): string {
   if (typeof window === 'undefined') return DEFAULT_LOCALE;
   current =
     window.__KARMO_LOCALE ||
-    fromPath(location.pathname) ||
+    (typeof location !== 'undefined' ? fromPath(location.pathname) : null) ||
     safeGet(PREF_KEY) ||
     fromNavigator() ||
     DEFAULT_LOCALE;
