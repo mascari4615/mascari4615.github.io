@@ -6,22 +6,9 @@
  * 그래서 기대값을 붙여 넣으면 기계가 맞춰 준다. 파일은 브라우저 밖으로 나가지 않는다.
  */
 import { acceptPastedFiles } from './shared/paste';
+import { FILE_ALGOS as ALGOS, hashBytes, size, verify } from '../../core/filehash';
 
 (function (): void {
-  const ALGOS: Array<[string, string]> = [
-    ['SHA-256', 'SHA-256 — 가장 널리 쓰임'],
-    ['SHA-1', 'SHA-1 — 옛 배포처'],
-    ['SHA-512', 'SHA-512']
-  ];
-
-  const hex = (buf: ArrayBuffer): string =>
-    Array.from(new Uint8Array(buf))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-
-  const size = (n: number): string =>
-    n >= 1048576 ? `${(n / 1048576).toFixed(2)}MB` : n >= 1024 ? `${(n / 1024).toFixed(1)}KB` : `${n}B`;
-
   Toolbox.register({
     id: 'filehash',
     title: '파일 검사값 확인',
@@ -86,7 +73,9 @@ import { acceptPastedFiles } from './shared/paste';
               verdict.className = 'tool-display';
               return;
             }
-            const matched = Object.keys(hashes).find((a) => hashes[a] === want);
+            /* 맞추는 규칙은 알맹이가 소유한다 — `hashgen`(문자열 해시) 과 **같은 정리 규칙**을
+               써야 두 도구가 서로 다른 답을 내지 않는다 (TASK-KL-205). */
+            const matched = verify(hashes, expect.value).matched;
             verdict.textContent = matched ? '일치' : '불일치';
             verdict.className = 'tool-display' + (matched ? '' : ' tool-display-done');
             say(
@@ -102,14 +91,8 @@ import { acceptPastedFiles } from './shared/paste';
             hashes = {};
             verdict.textContent = '계산 중…';
             say(`${file.name} · ${size(file.size)} 를 읽는 중…`);
-            const buf = await file.arrayBuffer();
-            for (const [algo] of ALGOS) {
-              try {
-                hashes[algo] = hex(await crypto.subtle.digest(algo, buf));
-              } catch {
-                /* 브라우저가 지원 안 하면 건너뛴다 */
-              }
-            }
+            /* 계산·정리는 `src/core/filehash.ts` 가 한다 — 바이트를 넘긴다(바이트 규약, TASK-KL-205). */
+            hashes = await hashBytes(new Uint8Array(await file.arrayBuffer()));
             render();
             if (!expect.value.trim()) say(`${fileName} · ${size(file.size)} · 줄을 누르면 값이 복사됩니다.`, 'ok');
             Toolbox.trackUse?.('hash');
