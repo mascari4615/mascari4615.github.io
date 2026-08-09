@@ -1,0 +1,19 @@
+{
+  "hangulkey.ph.input": "예) dkssudgktpdy  또는  안녕하세요",
+  "hangulkey.aria.out": "바뀐 결과",
+  "hangulkey.label.input": "입력 (영문 → 한글 / 한글 → 영문 자동 판별)",
+  "hangulkey.btn.auto": "자동 변환",
+  "hangulkey.btn.e2k": "영문 → 한글",
+  "hangulkey.btn.k2e": "한글 → 영문",
+  "hangulkey.btn.swap": "결과를 입력으로",
+  "hangulkey.btn.clear": "지우기",
+  "hangulkey.label.out": "결과",
+  "hangulkey.btn.copy": "복사",
+  "hangulkey.note": "두벌식 자판 기준입니다. 숫자·특수문자는 그대로 둡니다.",
+  "hangulkey.tab": "한영타",
+  "hangulkey.mdd": "한영키 안 누르고 치셨죠? 제가 되돌려 드릴게요.",
+  "hangulkey.say.k2e": "한글 → 영문으로 변환했어요.",
+  "hangulkey.say.e2k": "영문 → 한글로 변환했어요.",
+  "hangulkey.say.none": "되돌릴 글자가 없어요 (숫자·기호는 그대로 둡니다).",
+  "hangulkey.copy.done": "결과를 복사했어요"
+}

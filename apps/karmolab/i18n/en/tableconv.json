@@ -1,0 +1,21 @@
+{
+  "tableconv.label.in": "Paste a table — copying straight from a spreadsheet works",
+  "tableconv.ph.in": "Copy a table from your spreadsheet and paste it here. CSV and Markdown tables work too.",
+  "tableconv.label.to": "Convert to",
+  "tableconv.opt.md": "Markdown table — GitHub, Notion",
+  "tableconv.opt.csv": "CSV — Excel, Google Sheets",
+  "tableconv.opt.tsv": "Tab separated — paste straight into a spreadsheet",
+  "tableconv.opt.json": "JSON — first row becomes the field names",
+  "tableconv.opt.align": "Line the columns up",
+  "tableconv.label.out": "Result",
+  "tableconv.btn.copy": "Copy",
+  "tableconv.status.idle": "Copy a table from your spreadsheet and paste it in as it is.",
+  "tableconv.stat.kind": "Detected format",
+  "tableconv.stat.rows": "Rows",
+  "tableconv.stat.cols": "Columns",
+  "tableconv.warn.ragged": "The rows have different column counts. Check the paste was not cut off — the gaps were filled with empty cells.",
+  "tableconv.copy.done": "Converted table copied",
+  "tableconv.value.rows": "{n}",
+  "tableconv.value.cols": "{n}",
+  "tableconv.say.detected": "Read it as {kind}. Copy it and use it."
+}

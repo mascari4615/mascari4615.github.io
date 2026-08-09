@@ -1,0 +1,19 @@
+{
+  "hangulkey.tab": "Korean typo fix",
+  "hangulkey.mdd": "Typed without switching to Korean? I can undo that.",
+  "hangulkey.label.input": "Input (Latin → Hangul / Hangul → Latin, detected automatically)",
+  "hangulkey.ph.input": "e.g. dkssudgktpdy  or  안녕하세요",
+  "hangulkey.aria.out": "Converted result",
+  "hangulkey.btn.auto": "Convert automatically",
+  "hangulkey.btn.e2k": "Latin → Hangul",
+  "hangulkey.btn.k2e": "Hangul → Latin",
+  "hangulkey.btn.swap": "Result becomes input",
+  "hangulkey.btn.clear": "Clear",
+  "hangulkey.label.out": "Result",
+  "hangulkey.btn.copy": "Copy",
+  "hangulkey.note": "Based on the Korean 2-set (dubeolsik) keyboard. Digits and symbols are left alone.",
+  "hangulkey.say.k2e": "Converted Hangul → Latin.",
+  "hangulkey.say.e2k": "Converted Latin → Hangul.",
+  "hangulkey.say.none": "Nothing to convert (digits and symbols are left alone).",
+  "hangulkey.copy.done": "Result copied"
+}

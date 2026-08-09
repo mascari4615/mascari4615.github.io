@@ -5,43 +5,49 @@
  */
 import { engToKor, hasHangul, korToEng, spec } from '../../core/hangulkey';
 import { readInvocation } from '../../lib/tool-url';
+import { t, loadNamespace } from '../../lib/i18n';
 
 (function (): void {
+  const esc = (v: string): string =>
+    v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   window.KarmoHangulKey = { engToKor, korToEng };
 
   Toolbox.register({
     id: 'hangulkey',
-    title: '한영타 변환',
+    title: t('widgets.hangulkey.title', undefined, "한영타 변환"),
     category: 'tool',
-    desc: '한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)',
+    desc: t('widgets-desc.hangulkey.desc', undefined, "한영키를 안 누르고 친 글자를 되돌립니다. dkssudgktpdy ↔ 안녕하세요 (두벌식)"),
     layout: 'form',
     icon: '<rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 10h2M11 10h2M16 10h2M7 14h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
     tabs: [
       {
         id: 'app',
-        label: '한영타',
+        label: t('hangulkey.t05', undefined, "한영타"),
         build: function (container: HTMLElement): void {
-          Mdd.linePreset('tool_run', { msg: '한영키 안 누르고 치셨죠? 제가 되돌려 드릴게요.' });
+          void loadNamespace('hangulkey').then(function () {
+
+          Mdd.linePreset('tool_run', { msg: t('hangulkey.mdd') });
           container.innerHTML = `
             <div class="field-group">
-              <label class="field-label">입력 (영문 → 한글 / 한글 → 영문 자동 판별)</label>
-              <textarea id="hkInput" placeholder="예) dkssudgktpdy  또는  안녕하세요" style="min-height:120px;"></textarea>
+              <label class="field-label">${esc(t('hangulkey.label.input'))}</label>
+              <textarea id="hkInput" placeholder="${esc(t('hangulkey.ph.input'))}" style="min-height:120px;"></textarea>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:var(--space-lg);">
-              <button class="btn btn-primary" id="hkAuto">자동 변환</button>
-              <button class="btn btn-secondary" id="hkE2K">영문 → 한글</button>
-              <button class="btn btn-secondary" id="hkK2E">한글 → 영문</button>
-              <button class="btn btn-ghost" id="hkSwap">결과를 입력으로</button>
-              <button class="btn btn-ghost" id="hkClear">지우기</button>
+              <button class="btn btn-primary" id="hkAuto">${esc(t('hangulkey.btn.auto'))}</button>
+              <button class="btn btn-secondary" id="hkE2K">${esc(t('hangulkey.btn.e2k'))}</button>
+              <button class="btn btn-secondary" id="hkK2E">${esc(t('hangulkey.btn.k2e'))}</button>
+              <button class="btn btn-ghost" id="hkSwap">${esc(t('hangulkey.btn.swap'))}</button>
+              <button class="btn btn-ghost" id="hkClear">${esc(t('hangulkey.btn.clear'))}</button>
             </div>
             <div class="field-group">
               <div class="field-row" style="margin-bottom:8px;">
-                <label class="field-label" style="margin:0;">결과</label>
-                <button class="btn btn-ghost" id="hkCopy">복사</button>
+                <label class="field-label" style="margin:0;">${esc(t('hangulkey.label.out'))}</label>
+                <button class="btn btn-ghost" id="hkCopy">${esc(t('hangulkey.btn.copy'))}</button>
               </div>
-              <textarea id="hkOutput" aria-label="바뀐 결과" readonly style="min-height:120px;"></textarea>
+              <textarea id="hkOutput" aria-label="${esc(t('hangulkey.aria.out'))}" readonly style="min-height:120px;"></textarea>
             </div>
-            <div class="tool-status" id="hkNote">두벌식 자판 기준입니다. 숫자·특수문자는 그대로 둡니다.</div>
+            <div class="tool-status" id="hkNote">${esc(t('hangulkey.note'))}</div>
           `;
 
           const input = container.querySelector('#hkInput') as HTMLTextAreaElement;
@@ -90,7 +96,7 @@ import { readInvocation } from '../../lib/tool-url';
             const src = input.value;
             if (!src) {
               output.value = '';
-              note.textContent = '두벌식 자판 기준입니다. 숫자·특수문자는 그대로 둡니다.';
+              note.textContent = t('hangulkey.note');
               return;
             }
             if (mode === 'auto') {
@@ -100,14 +106,14 @@ import { readInvocation } from '../../lib/tool-url';
               note.textContent = 섞임
                 ? `섞여 있어서 조각마다 따로 되돌렸어요 — 한글→영문 ${r.k2e}조각 · 영문→한글 ${r.e2k}조각.`
                 : r.k2e > 0
-                  ? '한글 → 영문으로 변환했어요.'
+                  ? t('hangulkey.say.k2e')
                   : r.e2k > 0
-                    ? '영문 → 한글로 변환했어요.'
-                    : '되돌릴 글자가 없어요 (숫자·기호는 그대로 둡니다).';
+                    ? t('hangulkey.say.e2k')
+                    : t('hangulkey.say.none');
               return;
             }
             output.value = mode === 'k2e' ? korToEng(src) : engToKor(src);
-            note.textContent = mode === 'k2e' ? '한글 → 영문으로 변환했어요.' : '영문 → 한글로 변환했어요.';
+            note.textContent = mode === 'k2e' ? t('hangulkey.say.k2e') : t('hangulkey.say.e2k');
           }
 
           (container.querySelector('#hkAuto') as HTMLButtonElement).onclick = () => run('auto');
@@ -124,7 +130,7 @@ import { readInvocation } from '../../lib/tool-url';
           };
           (container.querySelector('#hkCopy') as HTMLButtonElement).onclick = async () => {
             if (!output.value) return;
-            await Toolbox.copyText?.(output.value, { message: '결과를 복사했어요' });
+            await Toolbox.copyText?.(output.value, { message: t('hangulkey.copy.done') });
           };
           input.addEventListener('input', () => run('auto'));
 
@@ -136,6 +142,7 @@ import { readInvocation } from '../../lib/tool-url';
           } else if (call?.error !== undefined) {
             note.textContent = call.error;
           }
+                  });
         }
       }
     ]

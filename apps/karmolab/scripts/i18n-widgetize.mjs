@@ -55,11 +55,40 @@ if (src.includes('loadNamespace')) {
 let mark = '';
 function scan() {
   const m = new Array(src.length).fill('J');
-  const tpl = []; // 템플릿 안에서 ${} 깊이
+  /* 쌓아 두고 본다. `${ … }` 안은 **다시 코드**이고, 그 코드 안에서 또 템플릿이 열릴 수 있다
+   * (`items.map((x) => `<li>…</li>`).join('')` — 이 모양이 실제로 제일 흔하다).
+   * 앞선 판은 그 자리에서 훑기를 그만두는 바람에, 거기서부터 자가 통째로 어긋났다.
+   * 그래서 **스스로를 되부르는 대신 쌓기(stack)** 로 끝까지 따라간다. */
+  const stack = [{ kind: 'code', brace: 0 }];
+  const top = () => stack[stack.length - 1];
   let i = 0;
   while (i < src.length) {
+    const here = top();
     const c = src[i];
     const n = src[i + 1];
+
+    if (here.kind === 'tpl') {
+      if (c === '\\') {
+        m[i++] = 'H';
+        if (i < src.length) m[i++] = 'H';
+        continue;
+      }
+      if (c === '`') {
+        m[i++] = 'H';
+        stack.pop();
+        continue;
+      }
+      if (c === '$' && n === '{') {
+        m[i++] = 'J';
+        m[i++] = 'J';
+        stack.push({ kind: 'code', brace: 0, inTpl: true });
+        continue;
+      }
+      m[i++] = 'H';
+      continue;
+    }
+
+    // ── 코드 자리
     if (c === '/' && n === '/') {
       while (i < src.length && src[i] !== '\n') m[i++] = 'C';
       continue;
@@ -71,10 +100,9 @@ function scan() {
       continue;
     }
     if (c === "'" || c === '"') {
-      const q = c;
-      const kind = q === "'" ? 'S' : 'D';
+      const kind = c === "'" ? 'S' : 'D';
       m[i++] = kind;
-      while (i < src.length && src[i] !== q) {
+      while (i < src.length && src[i] !== c) {
         if (src[i] === '\\') m[i++] = kind;
         if (i < src.length) m[i++] = kind;
       }
@@ -82,36 +110,26 @@ function scan() {
       continue;
     }
     if (c === '`') {
-      if (tpl.length && tpl[tpl.length - 1] === 0) {
-        tpl.pop(); // 템플릿이 닫혔다
-        m[i++] = 'H';
+      m[i++] = 'H';
+      stack.push({ kind: 'tpl' });
+      continue;
+    }
+    if (c === '{') {
+      here.brace++;
+      m[i++] = 'J';
+      continue;
+    }
+    if (c === '}') {
+      if (here.brace === 0 && here.inTpl) {
+        m[i++] = 'J';
+        stack.pop(); // `${ … }` 가 닫혔다 — 다시 템플릿 글자
         continue;
       }
-      tpl.push(0);
-      m[i++] = 'H';
+      if (here.brace > 0) here.brace--;
+      m[i++] = 'J';
       continue;
     }
-    if (tpl.length && tpl[tpl.length - 1] === 0 && c === '$' && n === '{') {
-      tpl[tpl.length - 1] = 1;
-      m[i++] = 'J';
-      m[i++] = 'J';
-      let depth = 1;
-      while (i < src.length && depth > 0) {
-        if (src[i] === '{') depth++;
-        else if (src[i] === '}') depth--;
-        else if (src[i] === '`') {
-          // 템플릿 안의 템플릿 — 바깥 훑기에 맡긴다
-          tpl.push(0);
-          m[i++] = 'H';
-          break;
-        }
-        m[i++] = 'J';
-      }
-      if (tpl[tpl.length - 1] === 1) tpl[tpl.length - 1] = 0;
-      continue;
-    }
-    m[i] = tpl.length && tpl[tpl.length - 1] === 0 ? 'H' : 'J';
-    i++;
+    m[i++] = 'J';
   }
   mark = m.join('');
 }
@@ -143,11 +161,18 @@ const slug = (v) =>
     .replace(/[^A-Za-z0-9]/g, '')
     .replace(/^./, (c) => c.toLowerCase()) || null;
 
+/** 한 마디가 **통째로** 그 자리인지 본다. 앞 글자만 보면, 문자열이 끝난 자리에서 시작한 짝이
+ *  다음 문자열까지 삼켜 코드를 먹는다 — `'ko-KR')}개 매치` : '` 가 실제로 그렇게 잡혔다. */
+const allMark = (offset, len, kind) => {
+  for (let i = offset; i < offset + len; i++) if (mark[i] !== kind) return false;
+  return true;
+};
+
 /* ── ① 템플릿 속성값: placeholder="…" / aria-label="…" / title="…" / alt="…" ── */
 src = src.replace(
   /\b(placeholder|aria-label|title|alt)="([^"$`<>]*)"/g,
   (whole, attr, text, offset) => {
-    if (!HANGUL.test(text) || mark[offset] !== 'H') return whole;
+    if (!HANGUL.test(text) || !allMark(offset, whole.length, 'H')) return whole;
     // 같은 태그 안의 id 를 힌트로 쓴다 — `<input id="zpName" placeholder="…">` → zip.ph.name
     const tagStart = src.lastIndexOf('<', offset);
     const idm = /\sid="([^"]+)"/.exec(src.slice(tagStart, offset + whole.length));
@@ -160,7 +185,7 @@ src = src.replace(
 reblank();
 /* ── ② 템플릿 속 글자 마디: `>여기<` 사이의 한국어 ── */
 src = src.replace(/>([^<>`${}]*[가-힣][^<>`${}]*)</g, (whole, raw, offset) => {
-  if (mark[offset] !== 'H') return whole;
+  if (!allMark(offset, whole.length, 'H')) return whole;
   const text = raw.trim();
   if (!text) return whole;
   const tagStart = src.lastIndexOf('<', offset);
@@ -185,7 +210,7 @@ src = src.replace(/>([^<>`${}]*[가-힣][^<>`${}]*)</g, (whole, raw, offset) => 
 reblank();
 /* ── ③ 그냥 홑따옴표 글월: say('…') · throw new Error('…') · 그 밖 ── */
 src = src.replace(/'([^'\\\n]*[가-힣][^'\\\n]*)'/g, (whole, text, offset) => {
-  if (mark[offset] !== 'S') return whole;
+  if (!allMark(offset, whole.length, 'S')) return whole;
   const before = src.slice(Math.max(0, offset - 40), offset);
   const hint = /\bsay\($/.test(before)
     ? `say.${String(++seq).padStart(2, '0')}`
@@ -246,6 +271,8 @@ for (let at = src.indexOf(BUILD); at >= 0; at = src.indexOf(BUILD, at + 1)) {
  * 그 위에서 부른 `esc(t(...))` 가 「선언 전에 썼다」로 죽는다 — 실제로 그렇게 깨졌다.
  * 하는 일은 같은 글자 막기이므로 바깥 하나로 합친다. */
 src = src.replace(/^[ \t]*const esc = \(s: string\): string =>[^\n]*\n(?:[ \t]+\.[^\n]*\n)*/gm, '');
+// `function esc(s) { … }` 꼴도 같은 이유로 지운다 (이름만 다르고 하는 일은 같다)
+src = src.replace(/^[ \t]*function esc\(s: string\): string \{\n(?:[^\n]*\n){1,2}?[ \t]*\}\n/gm, '');
 if (!/const esc = /.test(src) && src.includes('esc(t(')) {
   src = src.replace(
     /^\(function \(\): void \{/m,
@@ -269,8 +296,19 @@ for (const m of src.matchAll(/`[^`]*[가-힣][^`]*`/g)) {
   if (HANGUL.test(m[0].replace(/\$\{[^}]*\}/g, ''))) leftovers.push(m[0].replace(/\s+/g, ' ').slice(0, 90));
 }
 
+/* ── ⑧ 「표가 먼저 굳는 자리」 경고 ──
+ * `Toolbox.register(` 앞에서 `t(` 를 부르면, 그건 위젯이 그려지기 전(= 말 묶음이 오기 전)에
+ * 값이 정해진다는 뜻이다. 그 자리는 영원히 한국어로 남는다. 기계가 고칠 수는 없지만
+ * (표를 함수로 바꾸는 건 사람 판단), **있다는 사실은 반드시 알려야 한다.** */
+const regAt = src.indexOf('Toolbox.register(');
+const early = regAt > 0 ? (src.slice(0, regAt).match(/t\(/g) || []).length : 0;
+
 const rel = path.relative(ROOT, file).replace(/\\/g, '/');
 console.log(`[widgetize] ${rel} · build ${wrapped}곳 감쌈 · 열쇠 ${Object.keys(catalog).length}개`);
+if (early) {
+  console.log(`[widgetize] ⚠ 등록보다 먼저 t() 를 ${early}곳에서 부른다 — 그 표는 말 묶음이 오기 전에 굳는다.`);
+  console.log('   쓸 때 만드는 함수로 바꿔야 한다 (사람 판단).');
+}
 if (leftovers.length) {
   console.log(`[widgetize] 손이 필요한 곳 ${leftovers.length}개 (자리표시가 낀 글) —`);
   for (const l of leftovers.slice(0, 12)) console.log('   ' + l);

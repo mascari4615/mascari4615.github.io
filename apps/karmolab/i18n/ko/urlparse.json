@@ -1,0 +1,22 @@
+{
+  "urlparse.ph.in": "https://example.com/검색?q=안녕&utm_source=news",
+  "urlparse.label.in": "주소 또는 텍스트",
+  "urlparse.btn.decode": "디코딩 (%EC → 한글)",
+  "urlparse.btn.encode": "인코딩 (한글 → %EC)",
+  "urlparse.btn.strip": "추적 파라미터 제거",
+  "urlparse.btn.copy": "복사",
+  "urlparse.status.idle": "주소를 넣으면 조각으로 펼쳐 보여줍니다.",
+  "urlparse.warn.notUrl": "온전한 주소가 아니에요 (http:// 로 시작해야 조각을 펼칠 수 있습니다). 인코딩 변환은 그대로 됩니다.",
+  "urlparse.row.protocol": "프로토콜",
+  "urlparse.row.host": "호스트",
+  "urlparse.row.port": "포트",
+  "urlparse.row.path": "경로",
+  "urlparse.row.hash": "해시",
+  "urlparse.tag.tracking": " (추적)",
+  "urlparse.value.empty": "(빈 값)",
+  "urlparse.err.decode": "디코딩할 수 없는 % 표기가 섞여 있어요.",
+  "urlparse.say.nothingToDrop": "지울 추적 파라미터가 없었어요.",
+  "urlparse.err.cannotStrip": "온전한 주소가 아니라 파라미터를 지울 수 없어요.",
+  "urlparse.copy.done": "주소를 복사했어요",
+  "urlparse.say.dropped": "{n}개 지웠어요: {list}"
+}

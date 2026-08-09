@@ -1,0 +1,21 @@
+{
+  "tableconv.ph.in": "엑셀에서 표를 복사해 여기에 붙여 넣으세요. CSV 나 마크다운 표도 받습니다.",
+  "tableconv.label.to": "바꿀 형식",
+  "tableconv.label.in": "표 붙여넣기 — 엑셀에서 복사한 것도 그대로 됩니다",
+  "tableconv.opt.md": "마크다운 표 — 깃허브·노션",
+  "tableconv.opt.csv": "CSV — 엑셀·구글시트",
+  "tableconv.opt.tsv": "탭 구분 — 엑셀에 바로 붙이기",
+  "tableconv.opt.json": "JSON — 첫 줄을 이름으로",
+  "tableconv.opt.align": "세로줄 맞추기",
+  "tableconv.label.out": "바뀐 결과",
+  "tableconv.btn.copy": "복사",
+  "tableconv.status.idle": "엑셀에서 표를 복사해 그대로 붙여 넣어 보세요.",
+  "tableconv.stat.kind": "알아본 형식",
+  "tableconv.stat.rows": "줄",
+  "tableconv.stat.cols": "칸",
+  "tableconv.warn.ragged": "줄마다 칸 수가 다릅니다. 붙여넣기가 잘렸는지 확인해 주세요 — 빈 칸으로 채워 만들었습니다.",
+  "tableconv.copy.done": "바뀐 표를 복사했어요",
+  "tableconv.value.rows": "{n}줄",
+  "tableconv.value.cols": "{n}칸",
+  "tableconv.say.detected": "{kind} 로 알아봤어요. 복사해서 쓰세요."
+}
