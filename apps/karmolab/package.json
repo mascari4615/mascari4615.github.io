@@ -70,6 +70,7 @@
     "gen:tool-pages": "node scripts/gen-tool-pages.mjs",
     "prerender": "node scripts/prerender-tools.mjs",
     "prerender:home": "node scripts/prerender-home.mjs",
+    "audit:prerender-home": "node scripts/audit-prerender-home.mjs",
     "stamp": "node scripts/stamp-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test:contrast": "node scripts/smoke-contrast.mjs",
