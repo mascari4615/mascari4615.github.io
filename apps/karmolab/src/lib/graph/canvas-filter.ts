@@ -29,8 +29,10 @@ export function visibleNodes(
     if (filter.nodeKinds.has(n.kind)) return false;
     if ((n.tags ?? []).some((tag) => filter.tags.has(tag))) return false;
     if (filter.fieldName) {
+      // **빈 칸은 안 적은 것**이다. 새 카드는 그 종류의 칸 이름을 빈 채로 갖고 태어나므로
+      // (「여기에 적어라」 표시), 이름만 있으면 남긴다면 좁혀도 하나도 안 줄어든다.
       const v = (n.fields ?? {})[filter.fieldName];
-      if (v === undefined) return false;
+      if (String(v ?? '').trim() === '') return false;
       if (filter.fieldValue && String(v).trim() !== filter.fieldValue) return false;
     }
     return true;

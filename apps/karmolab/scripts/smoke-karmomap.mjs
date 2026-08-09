@@ -978,18 +978,18 @@ await step('연표로 놓기 — 시점 순서대로 왼쪽에서 오른쪽으�
   if (xs.early === null || xs.late === null) throw new Error('노드를 못 찾았다: ' + JSON.stringify(xs));
   if (!(xs.early < xs.late)) throw new Error(`시점 순서가 안 맞다: ${xs.early} / ${xs.late}`);
 });
-await step('종류마다 「틀 한 벌」이 칸 이름을 채워 준다', async () => {
-  // 빈 칸에서 시작하면 무엇을 적을지 몰라 아무것도 안 적는다 — 틀이 실제로 **칸을 만들어야** 값이다.
+await step('새 카드는 그 종류의 칸 이름을 이미 갖고 태어난다', async () => {
+  // 빈 칸에서 시작하면 무엇을 적을지 몰라 아무것도 안 적는다. 전에는 「틀 채우기」 버튼을 눌러야 했다 —
+  // 그 버튼을 찾는 사람은 없다. 이제 카드가 태어날 때 그 종류의 칸 이름이 **빈 채로** 함께 온다.
   const tbox = await page.locator('.km-canvas').boundingBox();
   await page.mouse.dblclick(tbox.x + tbox.width * 0.15, tbox.y + tbox.height * 0.6);
   await page.waitForSelector('[data-km="fld-new"]', { timeout: 4000 });
-  const tplBtn = page.locator('[data-km="fld-template"]');
-  if (await tplBtn.count() === 0) throw new Error('이 종류에 틀이 없다');
-  const before = await page.locator('[data-km="fld-name"]').count();
-  await tplBtn.dispatchEvent('click');
-  await page.waitForFunction((n) => document.querySelectorAll('[data-km="fld-name"]').length > n, before, { timeout: 4000 });
-  // 채운 뒤에는 그 버튼이 사라져야 한다(같은 칸을 두 번 권하면 목록이 지저분해진다).
-  await page.waitForFunction(() => document.querySelectorAll('[data-km="fld-template"]').length === 0, null, { timeout: 4000 });
+  const names = await page.locator('[data-km="fld-name"]').evaluateAll((els) => els.map((e) => e.value));
+  if (names.length === 0) throw new Error('새 카드에 칸 이름이 하나도 안 왔다');
+  const values = await page.locator('[data-km="fld-value"]').evaluateAll((els) => els.map((e) => e.value));
+  if (values.some((v) => v.trim())) throw new Error('값까지 채워 놨다 — 지우는 일부터 시키면 안 된다');
+  // 이미 다 왔으므로 「틀 채우기」 버튼은 남아 있을 이유가 없다.
+  if (await page.locator('[data-km="fld-template"]').count() !== 0) throw new Error('틀 버튼이 아직 남아 있다');
 });
 await step('공용 글 흩기 — 글이 사라지지 않고 자리마다 사본으로 남는다', async () => {
   // 「없애기」가 빈칸을 남기면 글이 증발한 것처럼 보인다. 그래서 흩은 **뒤에** 글자가 남아 있는지를 센다.
@@ -1178,9 +1178,14 @@ await step('꾸미기 규칙 — 「이 칸이 이 값이면 이 색」이 실�
   await page.fill('[data-km="edit-label"]', '규칙대상');
   await page.fill('[data-km="fld-new"]', '진영');
   await page.locator('[data-km="fld-add"]').dispatchEvent('click');
-  await page.waitForSelector('[data-km="fld-value"]', { timeout: 4000 });
-  await page.locator('[data-km="fld-value"]').first().fill('마왕성');
-  await page.locator('[data-km="fld-value"]').first().blur();
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('[data-km="fld-name"]')].some((i) => i.value === '진영'),
+    null, { timeout: 4000 });
+  // 카드는 이제 그 종류의 칸을 이미 갖고 태어난다 — 「첫 칸」이 아니라 **이름으로** 찾아야 한다.
+  const at = await page.evaluate(
+    () => [...document.querySelectorAll('[data-km="fld-name"]')].findIndex((i) => i.value === '진영'));
+  await page.locator('[data-km="fld-value"]').nth(at).fill('마왕성');
+  await page.locator('[data-km="fld-value"]').nth(at).blur();
 
   const strokeOf = () => page.evaluate(() => {
     const g = [...document.querySelectorAll('.ck-node')].find((el) => (el.textContent || '').includes('규칙대상'));

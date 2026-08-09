@@ -682,6 +682,19 @@ import {
     }
 
     /**
+     * 새로 태어나는 카드에 **그 종류의 빈 칸**을 심는다 (TASK-KL-202 방향② 첫 30초).
+     *
+     * 견본을 깔 때만 칸 틀을 깔아 주고 있었다 — 그래서 사람이 직접 만든 첫 카드는 **빈 몸**으로 나왔고,
+     * 「인물이면 출신·소속을 적는다」는 이 판의 약속이 견본에서만 살아 있었다. 빈 칸이 곧 「여기에 적어라」다.
+     * 값은 절대 안 채운다(채우면 지우는 일부터 시켜야 한다).
+     */
+    function seedFields(node: GraphNode): void {
+      const tpl = nodeKindsNow().find((k) => k.id === node.kind)?.fields ?? [];
+      if (tpl.length === 0) return;
+      node.fields = { ...Object.fromEntries(tpl.map((name) => [name, ''])), ...(node.fields ?? {}) };
+    }
+
+    /**
      * 노드 크기 재계산. 얼굴·한마디·모양이 바뀌면 상자도 따라 커져야 한다 —
      * 안 그러면 글자가 테두리를 넘고, 동그라미 안에서 이름이 잘린다.
      */
@@ -861,6 +874,7 @@ import {
           x: Math.round(at.x), y: Math.round(at.y),
           w: widthFor(p.label), h: NODE_H, ports: [],
         };
+        seedFields(node);
         resize(node);
         spec.nodes.push(node);
       }
@@ -1110,13 +1124,8 @@ import {
             const before = spec.nodes.length;
             const kind0 = packById(packId).nodeKinds[0];
             buildFromOutline(s1.outline, kind0.id);
-            // 견본만 깔면 「이제 뭘 적지?」가 남는다 — 그 갈래가 흔히 갖는 **칸 이름까지 비워서** 깔아 준다.
-            // 값은 안 채운다(빈 칸이 곧 「여기에 적어라」는 표시다).
-            for (const n of spec.nodes.slice(before)) {
-              const tpl = nodeKindsNow().find((k) => k.id === n.kind)?.fields ?? [];
-              if (tpl.length === 0) continue;
-              n.fields = { ...Object.fromEntries(tpl.map((name) => [name, ''])), ...(n.fields ?? {}) };
-            }
+            // 칸 틀은 이제 카드가 태어날 때 함께 심긴다(seedFields) — 견본도 같은 길을 탄다.
+            void before;
             applySpec();
             persistStructure();
             Toolbox.showToast?.('시작할 판을 깔았습니다 — 마음껏 고치세요', undefined, undefined);
@@ -1655,6 +1664,7 @@ import {
         h: NODE_H,
         ports: [],
       };
+      seedFields(node);
       resize(node);
       lastNodeKind = kind;
       spec.nodes.push(node);
