@@ -180,5 +180,9 @@
   "howto.pdf2text.3": "結果を確かめてコピーするか txt で保存する",
   "howto.jwt.0": "トークンを貼り付ける（Bearer が付いていても大丈夫）",
   "howto.jwt.1": "ヘッダーとペイロードを確かめる",
-  "howto.jwt.2": "期限切れかどうかを確かめる"
+  "howto.jwt.2": "期限切れかどうかを確かめる",
+  "howto.pdfcrop.0": "PDF を選ぶ",
+  "howto.pdfcrop.1": "プレビューで赤い線を確かめる",
+  "howto.pdfcrop.2": "残す余白を調節する",
+  "howto.pdfcrop.3": "切ってダウンロードする"
 }

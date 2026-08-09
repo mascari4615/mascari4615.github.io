@@ -180,5 +180,9 @@
   "howto.pdf2text.3": "Check the result, then copy it or save it as txt",
   "howto.jwt.0": "Paste the token (a Bearer prefix is fine)",
   "howto.jwt.1": "Read the header and the payload",
-  "howto.jwt.2": "Check whether it has expired"
+  "howto.jwt.2": "Check whether it has expired",
+  "howto.pdfcrop.0": "Choose a PDF",
+  "howto.pdfcrop.1": "Check the red line in the preview",
+  "howto.pdfcrop.2": "Adjust how much margin to keep",
+  "howto.pdfcrop.3": "Crop and download"
 }
