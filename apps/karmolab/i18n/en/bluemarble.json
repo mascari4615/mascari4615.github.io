@@ -48,5 +48,6 @@
   "bluemarble.line.dawn": "{n} major cities are between 2 and 5 in the morning right now. Someone is awake there too.",
   "bluemarble.layer.apod": "Picture of the day",
   "bluemarble.line.apod": "Today NASA picked “{title}” as the picture of the day.",
-  "bluemarble.line.apodBy": "Today NASA picked “{title}” — photographed by {who}."
+  "bluemarble.line.apodBy": "Today NASA picked “{title}” — photographed by {who}.",
+  "bluemarble.layer.tour": "Earth news"
 }

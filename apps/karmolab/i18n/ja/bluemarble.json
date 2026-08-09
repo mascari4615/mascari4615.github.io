@@ -48,5 +48,6 @@
   "bluemarble.line.dawn": "いま午前2時から5時のあいだにある大都市が {n} か所あります。そこにも誰かは起きています。",
   "bluemarble.layer.apod": "今日の宇宙写真",
   "bluemarble.line.apod": "今日 NASA が選んだ宇宙写真は「{title}」です。",
-  "bluemarble.line.apodBy": "今日 NASA が選んだ宇宙写真は「{title}」— {who} が撮りました。"
+  "bluemarble.line.apodBy": "今日 NASA が選んだ宇宙写真は「{title}」— {who} が撮りました。",
+  "bluemarble.layer.tour": "地球ニュース"
 }
