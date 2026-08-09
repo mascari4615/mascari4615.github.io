@@ -145,6 +145,18 @@ await step('내 용어 패널에서 관계 종류 추가', async () => {
   await page.waitForSelector('[data-term-edge]', { timeout: 4000 });
   await page.click('[data-km="t-close"]');
 });
+await step('글로 여러 노드를 한 번에 만든다', async () => {
+  const before = await page.locator('.ck-node').count();
+  await page.click('[data-km="more"]');
+  await page.click('[data-km="from-text"]');
+  await page.fill(`[data-km="text-src"]`, [`뿌리`, `  가지1 : 낳음`, `  가지2 : 낳음`].join(String.fromCharCode(10)));
+  await page.click('[data-km="text-go"]');
+  await page.waitForFunction(
+    (c) => document.querySelectorAll('.ck-node').length === c + 3,
+    before,
+    { timeout: 5000 }
+  );
+});
 await step('Shift+드래그로 여럿 고르고 함께 옮긴다', async () => {
   const box = await page.locator('.km-canvas').boundingBox();
   await page.keyboard.down('Shift');
