@@ -18,7 +18,7 @@
 import { t, loadNamespace, fmtRelative } from '../../lib/i18n';
 import { CITIES } from './cities';
 import { subsolar, subsolarBody, toVec, distanceKm } from './sky';
-import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
+import { quakes, quakesOn, aurora, kpIndex, iss, launches, issOmm, catalog, solarWind, windEta, apod, type Apod, type Quake, type AuroraPoint, type IssFix, type Launch } from './sources';
 import { paintSurface, type Tex, type Region, type View as SurfaceView } from './surface';
 import { loadTex, loadClouds, loadCloudsOn } from './textures';
 import { loadRegion, levelFor, regionKey, type BBox } from './tiles';
@@ -40,7 +40,7 @@ import { EarthSound } from './sound';
     return (typeof location !== 'undefined' ? location.origin : '') + '/apps/karmolab/data/' + name;
   }
 
-  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock';
+  type LayerId = 'quake' | 'aurora' | 'iss' | 'city' | 'launch' | 'cloud' | 'zoom' | 'me' | 'sats' | 'sound' | 'sun' | 'clock' | 'apod';
   /** `earthOnly` = 지구에서만 뜻이 있는 겹. 달·화성에선 단추 자체를 감춘다 —
       눌러도 아무 일이 없는 단추가 남아 있으면 그건 고장으로 보인다. */
   const LAYERS: Array<{ id: LayerId; glyph: string; earthOnly?: boolean }> = [
@@ -49,6 +49,7 @@ import { EarthSound } from './sound';
     { id: 'sound', glyph: '♪' },
     { id: 'sun', glyph: '☀' },
     { id: 'clock', earthOnly: true, glyph: '◷' },
+    { id: 'apod', glyph: '✧' },
     { id: 'zoom', earthOnly: true, glyph: '⊕' },
     { id: 'cloud', earthOnly: true, glyph: '☁' },
     { id: 'city', earthOnly: true, glyph: '✦' },
@@ -64,7 +65,7 @@ import { EarthSound } from './sound';
     spin: boolean;
   }
   function loadPrefs(): Prefs {
-    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true }, spin: true };
+    const base: Prefs = { on: { quake: true, aurora: true, iss: true, city: true, launch: true, cloud: true, zoom: true, me: true, sats: false, sound: false, sun: true, clock: true, apod: true }, spin: true };
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return base;
@@ -86,7 +87,9 @@ import { EarthSound } from './sound';
   border-radius:var(--radius-md,12px);overflow:hidden;background:#04060d;}
 .bm-canvas{flex:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab;}
 .bm-canvas.bm-drag{cursor:grabbing;}
-.bm-chips{position:absolute;top:10px;left:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;}
+/* 오른쪽 끝 두 단추(천체·전체화면)는 절대 위치라, 칩 줄이 그 밑으로 기어들면 겹쳐 잘린다.
+   그래서 칩 줄의 오른쪽 끝을 그 앞에서 끊는다 — 넘치면 두 줄이 된다(실측으로 잘렸다). */
+.bm-chips{position:absolute;top:10px;left:10px;right:104px;display:flex;flex-wrap:wrap;gap:6px;z-index:2;}
 .bm-chip{appearance:none;border:1px solid rgba(255,255,255,.16);background:rgba(8,12,22,.55);
   color:rgba(255,255,255,.55);font-size:11px;line-height:1;padding:6px 9px;border-radius:999px;
   cursor:pointer;backdrop-filter:blur(6px);font-family:var(--font-mono,ui-monospace,monospace);}
@@ -113,6 +116,13 @@ import { EarthSound } from './sound';
 @media (max-width:520px){.bm-sun{width:64px;height:64px;bottom:88px}}
 .bm-body{position:absolute;top:10px;right:52px;z-index:4;}
 .bm-wrap.bm-ambient .bm-body{opacity:0;pointer-events:none;transition:opacity 1.2s ease;}
+/* 오늘의 우주 사진 — 지구 창 곁에 붙은 작은 액자. 누르면 원본으로 간다. */
+.bm-apod{position:absolute;left:14px;bottom:96px;width:132px;border-radius:10px;z-index:3;cursor:pointer;
+  border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 22px rgba(0,0,0,.55);opacity:.92;
+  transition:opacity .5s ease,transform .5s ease;}
+.bm-apod:hover{opacity:1;transform:translateY(-2px);}
+.bm-apod[hidden]{display:none;}
+@media (max-width:520px){.bm-apod{width:92px;bottom:88px}}
 .bm-fs{position:absolute;top:10px;right:10px;z-index:4;appearance:none;border:1px solid rgba(255,255,255,.16);
   background:rgba(8,12,22,.55);color:rgba(255,255,255,.6);font-size:13px;line-height:1;padding:7px 9px;
   border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);}
@@ -177,6 +187,12 @@ import { EarthSound } from './sound';
           nowBtn.className = 'bm-now';
           nowBtn.hidden = true;
           timeBar.append(slider, dateLabel, nowBtn);
+          const apodImg = document.createElement('img');
+          apodImg.className = 'bm-apod';
+          apodImg.alt = '';
+          apodImg.decoding = 'async';
+          apodImg.hidden = true;
+
           const bodyBtn = document.createElement('button');
           bodyBtn.type = 'button';
           bodyBtn.className = 'bm-chip bm-body';
@@ -191,7 +207,7 @@ import { EarthSound } from './sound';
           fsBtn.type = 'button';
           fsBtn.className = 'bm-fs';
           fsBtn.textContent = '⛶';
-          wrap.append(canvas, chips, bodyBtn, sunImg, fsBtn, timeBar, ticker);
+          wrap.append(canvas, chips, bodyBtn, sunImg, apodImg, fsBtn, timeBar, ticker);
           container.appendChild(wrap);
 
           const ctx = canvas.getContext('2d');
@@ -234,6 +250,7 @@ import { EarthSound } from './sound';
           let satAt = 0;
           let satLoading = false;
           let wind: { speed: number; at: number } | null = null;
+          let pic: Apod | null = null;
           /* 어느 곳을 보고 있나. 그리기 장치는 그대로고 **그림만 갈아 끼운다**. */
           type Body = 'earth' | 'moon' | 'mars';
           let body: Body = 'earth';
@@ -910,6 +927,14 @@ import { EarthSound } from './sound';
               if (dawnCities) out.push(t('bluemarble.line.dawn', { n: dawnCities }));
             }
 
+            if (pic) {
+              out.push(
+                pic.copyright
+                  ? t('bluemarble.line.apodBy', { title: pic.title, who: pic.copyright.replace(/\s+/g, ' ').trim() })
+                  : t('bluemarble.line.apod', { title: pic.title })
+              );
+            }
+
             if (wind) {
               out.push(t('bluemarble.line.wind', { speed: Math.round(wind.speed), min: windEta(wind.speed) }));
             }
@@ -990,11 +1015,46 @@ import { EarthSound } from './sound';
             if (a) au = a;
             if (l) ls = l;
             if (omm) issEl = elementsFrom(omm);
-            const w2 = await solarWind();
-            if (w2) wind = w2;
             refreshSun();
             recomputePass();
           }
+
+          /**
+           * 가벼운 것들은 **줄을 안 선다**.
+           *
+           * 처음엔 태양풍·오늘의 사진을 무거운 갱신(오로라 920KB)과 한 줄에 세워 뒀다. 그랬더니
+           * 몇 바이트짜리 값이 1MB 짜리 내려받기가 끝날 때까지 화면에 안 나왔다 — 실측으로
+           * 30초 넘게 액자가 비어 있었다. 크기가 다른 것을 같은 줄에 세우면 항상 이렇게 된다.
+           */
+          async function refreshLight(): Promise<void> {
+            if (!alive) return;
+            const w2 = await solarWind();
+            if (!alive) return;
+            if (w2) wind = w2;
+            if (!pic) {
+              pic = await apod();
+              if (!alive) return;
+              renderApod();
+            }
+          }
+
+          function renderApod(): void {
+            if (!pic || !prefs.on.apod) {
+              apodImg.hidden = true;
+              return;
+            }
+            const src = pic.media_type === 'image' ? pic.url : pic.thumbnail_url;
+            if (!src) {
+              apodImg.hidden = true;
+              return;
+            }
+            apodImg.hidden = false;
+            apodImg.src = src;
+            apodImg.title = pic.title;
+          }
+          apodImg.onclick = () => {
+            if (pic) window.open(pic.hdurl || pic.url, '_blank', 'noopener');
+          };
 
           /** SDO 는 몇 분마다 새 그림을 올린다. 주소가 같아서 시각을 붙여 캐시를 피한다. */
           function refreshSun(): void {
@@ -1083,6 +1143,7 @@ import { EarthSound } from './sound';
                 if (l.id === 'aurora' && prefs.on.aurora && !au.length) void refreshSlow();
                 if (l.id === 'sats' && turningOn) void loadSats();
                 if (l.id === 'sun') refreshSun();
+                if (l.id === 'apod') renderApod();
                 if (l.id === 'sound') {
                   // **이 클릭 안에서** 시작해야 한다 — 브라우저가 제스처 밖의 소리를 막는다
                   if (turningOn) sound.start();
@@ -1276,6 +1337,7 @@ import { EarthSound } from './sound';
           /* ── 시작 ─────────────────────────────────────────────────────── */
           let tick: number | undefined;
           let tickSlow: number | undefined;
+          let tickLight: number | undefined;
           let lineTimer: number | undefined;
 
           function start(): void {
@@ -1285,6 +1347,7 @@ import { EarthSound } from './sound';
             }
             if (tick === undefined) tick = window.setInterval(() => void refresh(), 5000);
             if (tickSlow === undefined) tickSlow = window.setInterval(() => void refreshSlow(), 60000);
+            if (tickLight === undefined) tickLight = window.setInterval(() => void refreshLight(), 10 * 60000);
             if (lineTimer === undefined) lineTimer = window.setInterval(cycleLine, 7000);
           }
           function stop(): void {
@@ -1294,6 +1357,8 @@ import { EarthSound } from './sound';
             tick = undefined;
             if (tickSlow !== undefined) window.clearInterval(tickSlow);
             tickSlow = undefined;
+            if (tickLight !== undefined) window.clearInterval(tickLight);
+            tickLight = undefined;
             if (lineTimer !== undefined) window.clearInterval(lineTimer);
             lineTimer = undefined;
           }
@@ -1337,6 +1402,8 @@ import { EarthSound } from './sound';
               if (!isPast()) cloudTex = cm;
             });
 
+            /* 가벼운 것 먼저 띄운다 — 지진·ISS 를 기다리는 동안 액자가 비어 있을 이유가 없다 */
+            void refreshLight();
             await refresh();
             void refreshSlow();
             if (!alive) return;
