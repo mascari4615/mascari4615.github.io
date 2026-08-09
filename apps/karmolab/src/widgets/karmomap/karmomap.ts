@@ -30,6 +30,7 @@ import { renderSnaPanel } from './panels/sna-panel';
 import { resolveDoc, notesOf } from '../../lib/graph/notes';
 import { mirrorToLibrary, refreshFromLibrary, foreignNotes, adoptNote } from './notes-library';
 import { toJsonCanvas, fromJsonCanvas } from './json-canvas';
+import { toMermaidBlock } from './mermaid';
 import { renderNotesPanel } from './panels/notes-panel';
 import { renderStoragePanel } from './panels/storage-panel';
 import { renderFilterPanel } from './panels/filter-panel';
@@ -353,6 +354,7 @@ import {
               <button class="btn btn-ghost" data-km="export">JSON 내보내기</button>
               <button class="btn btn-ghost" data-km="import">JSON 가져오기</button>
               <button class="btn btn-ghost" data-km="canvas-out">🗂 JSON Canvas 로 내보내기</button>
+              <button class="btn btn-ghost" data-km="mermaid">📄 Mermaid 글로 저장</button>
               <hr />
               <button class="btn btn-ghost" data-km="map-copy">⧉ 이 맵 복제</button>
               <button class="btn btn-ghost" data-km="map-rename">✎ 맵 이름 바꾸기</button>
@@ -1945,6 +1947,22 @@ import {
       const svgText = canvas?.exportSVGString({ background: canvasBackground() });
       if (!svgText) return;
       downloadBlob(new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' }), 'karmomap.svg');
+    };
+
+    // 문서에 붙일 수 있는 **글**로. 그림 파일은 문서에 넣는 순간 죽는다(고치려면 도구로 돌아가야 하고,
+    // 보통 안 돌아간다). Mermaid 는 깃허브·memo 에서 그대로 렌더된다.
+    q<HTMLButtonElement>('mermaid').onclick = () => {
+      const live = canvas?.getSpec() ?? spec;
+      if (live.nodes.length === 0) {
+        Toolbox.showToast?.('아직 그릴 것이 없습니다', undefined, undefined);
+        return;
+      }
+      const text = toMermaidBlock(live);
+      downloadBlob(new Blob([text], { type: 'text/markdown;charset=utf-8' }), 'karmomap.mermaid.md');
+      void navigator.clipboard?.writeText(text).then(
+        () => Toolbox.showToast?.('파일로 받았고 클립보드에도 담았습니다', undefined, undefined),
+        () => {},   // 클립보드는 못 쓸 수 있다(권한·문맥) — 파일이 이미 나갔으니 조용히 넘긴다
+      );
     };
 
     q<HTMLButtonElement>('canvas-out').onclick = () => {
