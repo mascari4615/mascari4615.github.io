@@ -1,5 +1,5 @@
 {
-  "total": 5944,
+  "total": 5903,
   "files": {
     "src/account.ts": 26,
     "src/alarm-fire.ts": 4,
@@ -157,7 +157,7 @@
     "src/widgets/planner/planner.ts": 3,
     "src/widgets/play-course.ts": 4,
     "src/widgets/play.ts": 23,
-    "src/widgets/plaza.ts": 50,
+    "src/widgets/plaza.ts": 9,
     "src/widgets/postgraph.ts": 3,
     "src/widgets/pulse/art.ts": 8,
     "src/widgets/pulse/card.ts": 4,
