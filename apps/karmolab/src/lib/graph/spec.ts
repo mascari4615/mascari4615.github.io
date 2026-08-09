@@ -82,6 +82,8 @@ export interface GraphEdge {
   style?: EdgeStyle;
   /** 휘는 정도. 0 = 기본 경로, 부호를 바꾸면 반대쪽으로 휜다(같은 두 노드의 선 겹침도 이걸로 푼다). */
   curve?: number;
+  /** 이 선만 따로 양쪽 화살표. */
+  arrowStart?: boolean;
   /** 이름표 자리. 0 = 출발점, 0.5 = 가운데(기본), 1 = 도착점. */
   labelPos?: number;
 }
@@ -129,7 +131,10 @@ export interface CoordUpdate {
 export interface EdgeKindDef {
   color: string;
   style: EdgeStyle;
+  /** 도착 쪽 화살표. */
   arrow: boolean;
+  /** 출발 쪽에도 화살표 — 둘 다 켜면 ↔ (「서로 좋아함」·「라이벌」처럼 오가는 관계). */
+  arrowStart?: boolean;
   /** 선 굵기(px). 없으면 1.5. */
   width?: number;
   animated_on_active?: boolean;
