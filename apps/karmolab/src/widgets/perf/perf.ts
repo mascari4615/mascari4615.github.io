@@ -185,6 +185,22 @@
           let allSizes: Record<string, number> | null = null;
           let allSizesState: 'loading' | 'ok' | 'fail' = 'loading';
 
+          /**
+           * 안 쓰는 스타일 지도 (TASK-KL-201 ㉒).
+           *
+           * 「이 줄이 실행됐나」는 브라우저가 페이지에 안 알려 준다 — 개발자 도구 전용 통로다.
+           * 그래서 CI(`npm run audit:coverage`)가 재서 파일로 남기고, 이 화면은 그것을 읽는다.
+           * **로그에만 있는 사실은 없는 것과 비슷하다** — 사람이 볼 자리가 있어야 고쳐진다.
+           */
+          interface CoverageBaseline {
+            at?: string;
+            totals?: { cssUnused: number | null; cssTotal: number | null };
+            viewports?: string[];
+            sections?: Array<{ title: string; total: number; per: Record<string, number> }> | null;
+          }
+          let coverage: CoverageBaseline | null = null;
+          let coverageState: 'loading' | 'ok' | 'fail' = 'loading';
+
           container.innerHTML = `
             <div class="pf-wrap">
               <p class="pf-lead">
@@ -476,6 +492,35 @@
               <p class="pf-sec-note">전부 ${rows.length}개 · gzip 합계 <b>${kb(total)}</b> (한 사람이 다 받지는 않습니다 — 누른 것만 받습니다). 이 표는 <b>빌드가 재 둔 값</b>이라 안 열어 본 위젯도 보입니다. 한계 64KB·회귀 래칫은 <code>npm run audit:bundles</code> 가 CI 에서 봅니다.</p>`;
           }
 
+          /** 안 쓰는 스타일 — CI 가 재 둔 것을 읽어 보여 준다 (TASK-KL-201 ㉒). */
+          function coverageTable(): string {
+            if (coverageState === 'loading') return '<div class="pf-none">안 쓰는 스타일 자료를 읽는 중…</div>';
+            if (coverageState === 'fail' || !coverage?.sections) {
+              return '<div class="pf-none">안 쓰는 스타일 자료를 <b>못 읽었습니다</b> — <code>npm run audit:coverage -- --update</code> 로 한 번 재 두면 여기에 뜹니다. (브라우저는 「이 줄이 실행됐나」를 페이지에 안 알려 줍니다 — 개발자 도구 전용 통로라 CI 가 대신 잽니다.)</div>';
+            }
+            const views = coverage.viewports || [];
+            const totals = coverage.totals;
+            const when = coverage.at ? new Date(coverage.at) : null;
+            return `<div class="pf-scroll"><table class="pf-table">
+              <thead><tr><th>구역</th>${views.map((v) => `<th>${esc(v)}</th>`).join('')}<th>전체</th></tr></thead>
+              <tbody>${coverage.sections
+                .slice(0, 10)
+                .map(
+                  (row) => `<tr>
+                    <td>${esc(row.title)}</td>
+                    ${views.map((v) => `<td${tone(row.per[v] ?? 0, 5000, 15000)}>${kb(row.per[v] ?? 0)}</td>`).join('')}
+                    <td>${kb(row.total)}</td>
+                  </tr>`
+                )
+                .join('')}</tbody></table></div>
+              <p class="pf-sec-note">
+                ${totals?.cssUnused != null ? `첫 화면 CSS <b>${kb(totals.cssUnused)} / ${kb(totals.cssTotal)} 안 쓰임</b>. ` : ''}
+                <b>양쪽 폭에서 다 안 쓰이는 것만</b> 뒤로 뺄 후보입니다 — 한쪽만이면 그 폭에서 쓰는 것입니다.
+                ⚠ 이 숫자만 보고 빼면 안 됩니다: 쓰임 0%인데 자리를 잡는 구역이 있습니다(실측으로 밀림이 0.011→0.636 이 된 적이 있습니다).
+                ${when ? `잰 때: ${esc(when.toLocaleString('ko-KR', { hour12: false }))} — <b>지금이 아니라 그때의 값</b>입니다.` : ''}
+              </p>`;
+          }
+
           /** 도메인별 — 「남의 것이 우리 것보다 무겁나」 (TASK-KL-201 ⑤). */
           function hostTable(snap: Snap): string {
             if (!snap.hosts.length) return '<div class="pf-none">받은 것이 없습니다.</div>';
@@ -691,6 +736,11 @@
               html: unusedTable,
             },
             {
+              key: 'coverage', title: '안 쓰는 스타일 — 첫 화면 기준',
+              note: '브라우저는 「이 줄이 실행됐나」를 페이지에 안 알려 줍니다. CI(<code>npm run audit:coverage</code>)가 재 둔 것을 여기서 읽습니다.',
+              html: coverageTable,
+            },
+            {
               key: 'allwidgets', title: '전체 위젯 무게 — 안 열어도 아는 것',
               note: '위 표는 <b>이번에 연 것만</b>입니다. 여기는 빌드가 재 둔 전부 — 아무도 안 연 위젯이 뚱뚱해지는 것을 이 자리에서 봅니다.',
               html: allWidgetTable,
@@ -804,6 +854,17 @@
 
           /* 전체 무게는 파일 하나를 더 받아야 안다 — 첫 그림을 막지 않게 **그린 뒤에** 받는다.
              실패해도 계기판은 그대로 돈다(그 칸만 「못 읽었다」로 남는다). */
+          void fetch('/apps/karmolab/data/coverage-baseline.json', { cache: 'no-cache' })
+            .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+            .then((data: CoverageBaseline) => {
+              coverage = data;
+              coverageState = data?.sections ? 'ok' : 'fail';
+            })
+            .catch(() => {
+              coverageState = 'fail';
+            })
+            .then(() => render());
+
           void fetch('/apps/karmolab/data/bundle-baseline.json', { cache: 'no-cache' })
             .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
             .then((data: { sizes?: Record<string, number> }) => {
