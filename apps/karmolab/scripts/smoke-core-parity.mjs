@@ -1,0 +1,120 @@
+/**
+ * 브라우저와 Node 가 **같은 답**을 내는지 맞춰 본다 (TASK-KL-205 / S1)
+ *
+ * 왜 있나: 해시는 알맹이가 직접 계산하지 않는다. 계산기를 밖에서 받고, 브라우저는 CryptoJS 를,
+ * Node 는 `node:crypto` 를 준다. 손이 둘이면 **답이 갈릴 수 있다** — 그런데 갈려도 양쪽 다
+ * 그럴듯한 16진수라 눈으로는 못 잡는다. 「AI 가 해시를 지어낸다」와 같은 종류의 사고다.
+ *
+ * 그래서 같은 글자를 양쪽에 넣고 **글자 하나까지 대조**한다. 여기가 빨간데 배포하면,
+ * 사이트가 내놓는 체크섬과 사람들이 `sha256sum` 으로 얻는 값이 달라진다.
+ *
+ * `test-core.mjs` 는 Node 쪽만 본다. 여기서만 두 손이 만난다.
+ *
+ * 사용: node scripts/smoke-core-parity.mjs
+ */
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright';
+
+const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
+
+const failures = [];
+const check = (ok, why) => {
+  process.stdout.write(ok ? '.' : 'x');
+  if (ok === false) failures.push(why);
+};
+
+const NODE_ALGO = { MD5: 'md5', SHA1: 'sha1', SHA256: 'sha256', SHA512: 'sha512', RIPEMD160: 'ripemd160' };
+// 한글·이모지를 넣는 이유: CryptoJS 는 기본이 Latin1 이라, UTF-8 로 안 다루면 여기서만 갈린다.
+const SAMPLES = ['KarmoLab', '안녕하세요', '🦴 뼈', ''];
+
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await page.route('**/*', (route) =>
+  route.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>t</title>' })
+);
+await page.goto('http://localhost/');
+await page.evaluate(() => {
+  window.__reg = {};
+  window.Toolbox = { register: (t) => { window.__reg[t.id] = t; }, trackUse() {}, copyText() {}, mountTool() { return true; } };
+  window.Mdd = { linePreset() {} };
+});
+await page.addScriptTag({ content: read('js/vendor/crypto-js.min.js') });
+await page.addScriptTag({ content: read('js/widgets/tools/hashgen.js') });
+
+const browserHashes = await page.evaluate((samples) => {
+  const tool = window.__reg['hashgen'];
+  if (!tool) return { missing: true };
+  const out = {};
+  for (const sample of samples) {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    tool.tabs[0].build(host);
+    host.querySelector('#hgInput').value = sample;
+    host.querySelector('#hgInput').dispatchEvent(new Event('input'));
+    out[sample] = [...host.querySelectorAll('.hg-row')].map((r) => [
+      r.querySelector('.tool-list-key').textContent,
+      r.dataset.hash
+    ]);
+    host.remove();
+  }
+  return out;
+}, SAMPLES);
+
+check(browserHashes.missing !== true, 'hashgen 위젯이 등록되지 않았다');
+
+const LABEL_TO_ALGO = {
+  MD5: 'MD5',
+  'SHA-1': 'SHA1',
+  'SHA-256': 'SHA256',
+  'SHA-512': 'SHA512',
+  'Keccak-512': 'KECCAK512',
+  'RIPEMD-160': 'RIPEMD160'
+};
+
+for (const sample of SAMPLES) {
+  const rows = browserHashes[sample] ?? [];
+  check(rows.length === 6, `「${sample || '(빈 글자)'}」 에서 6줄이 나와야 하는데 ${rows.length}줄`);
+  for (const [label, browserHex] of rows) {
+    const algo = LABEL_TO_ALGO[label];
+    check(algo !== undefined, `모르는 이름이 나왔다: ${label} — 이름을 바꿨으면 이 표도 같이 고쳐라`);
+    if (algo === undefined) continue;
+
+    // Keccak-512 는 Node 에 없다(OpenSSL 이 안 내준다). 그래서 값을 못 맞춰 본다 —
+    // 대신 **SHA-3 과 달라야 한다**는 사실을 잠근다. 어느 날 한쪽이 조용히 표준으로 바뀌면
+    // (또는 이름만 SHA-3 으로 되돌아가면) 여기서 빨개진다. 그냥 건너뛰면 그걸 놓친다.
+    if (algo === 'KECCAK512') {
+      if (sample === '') {
+        check(browserHex === '', 'Keccak-512 — 빈 글자는 빈 값');
+        continue;
+      }
+      const sha3 = crypto.createHash('sha3-512').update(sample, 'utf8').digest('hex');
+      check(browserHex.length === 128, `Keccak-512 길이가 128자여야 하는데 ${browserHex.length}자`);
+      check(
+        browserHex !== sha3,
+        `「${sample}」 Keccak-512 가 표준 SHA-3 값과 같아졌다 — 진짜 SHA-3 이 되었다면 이름을 SHA-3 으로 되돌려라`
+      );
+      continue;
+    }
+
+    const nodeHex = sample === '' ? '' : crypto.createHash(NODE_ALGO[algo]).update(sample, 'utf8').digest('hex');
+    check(
+      browserHex === nodeHex,
+      `「${sample || '(빈 글자)'}」 ${label} — 브라우저 ${browserHex || '(없음)'} ≠ Node ${nodeHex || '(없음)'}`
+    );
+  }
+}
+
+await browser.close();
+process.stdout.write('\n');
+if (failures.length > 0) {
+  console.error(`\n[smoke-core-parity] ${failures.length}건 실패:`);
+  for (const f of failures) console.error(`  - ${f}`);
+  process.exit(1);
+}
+console.log(
+  `[smoke-core-parity] ${SAMPLES.length}표본 — 공용 5종은 브라우저↔Node 값이 같고, Keccak-512 는 표준 SHA-3 과 다름을 확인`
+);

@@ -1,23 +1,36 @@
 /**
- * 해시 생성기 · 파일 체크섬 (TASK-KL-088)
+ * 해시 생성기 · 파일 체크섬 — 화면 (TASK-KL-088)
  * - 텍스트 = crypto-js (MD5/SHA-1/SHA-256/SHA-512/SHA-3/RIPEMD-160)
  * - 파일 = WebCrypto subtle.digest (스트리밍 대신 ArrayBuffer 1회 — 브라우저 메모리 한도 안에서만 씀)
  * 어느 쪽도 네트워크로 나가지 않는다.
+ *
+ * 알고리즘 목록·16진수 표기·체크섬 대조는 `src/core/hashgen.ts` 가 정한다. 여기는 CryptoJS 라는
+ * **손**만 빌려 준다 — Node 쪽은 같은 알맹이에 `node:crypto` 를 준다 (`src/core/README.md`).
  */
-(function (): void {
-  const TEXT_ALGOS = ['MD5', 'SHA1', 'SHA256', 'SHA512', 'SHA3', 'RIPEMD160'] as const;
-  const LABEL: Record<string, string> = {
-    MD5: 'MD5',
-    SHA1: 'SHA-1',
-    SHA256: 'SHA-256',
-    SHA512: 'SHA-512',
-    SHA3: 'SHA-3 (512)',
-    RIPEMD160: 'RIPEMD-160'
-  };
+import { type Algo, bufToHex, FILE_ALGOS, findMatch, hashAll, type HashBackend, spec } from '../../core/hashgen';
+import { readInvocation } from '../../lib/tool-url';
 
-  function bufToHex(buf: ArrayBuffer): string {
-    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
+(function (): void {
+  /**
+   * CryptoJS 를 알맹이가 아는 모양으로 감싼다. 없으면 던진다 — 조용히 빈 값을 내면 원인이 안 보인다.
+   * `KECCAK512` 가 CryptoJS 쪽 이름 `SHA3` 으로 가는 이유는 `core/hashgen.ts` 의 LABEL 주석에 있다
+   * (그 함수가 내는 값이 표준 SHA-3 이 아니라 Keccak 이다).
+   */
+  const CRYPTOJS_NAME: Record<Algo, string> = {
+    MD5: 'MD5',
+    SHA1: 'SHA1',
+    SHA256: 'SHA256',
+    SHA512: 'SHA512',
+    KECCAK512: 'SHA3',
+    RIPEMD160: 'RIPEMD160'
+  };
+  const cryptoJsBackend: HashBackend = (algo: Algo, text: string): string => {
+    if (typeof CryptoJS === 'undefined' || !CryptoJS) throw new Error('lib-missing');
+    const lib = CryptoJS as unknown as Record<string, ((msg: string) => { toString: () => string }) | undefined>;
+    const fn = lib[CRYPTOJS_NAME[algo]];
+    if (typeof fn !== 'function') throw new Error('algo-missing:' + algo);
+    return fn(text).toString();
+  };
 
   Toolbox.register({
     id: 'hashgen',
@@ -46,7 +59,7 @@
               </div>
               <div id="hgOut" class="tool-list"></div>
             </div>
-            <div class="tool-status" id="hgNote">MD5·SHA-1 은 충돌이 알려져 있어 무결성 확인 용도로만 쓰고, 비밀번호 저장에는 쓰지 마세요.</div>
+            <div class="tool-status" id="hgNote">MD5·SHA-1 은 충돌이 알려져 있어 무결성 확인 용도로만 쓰고, 비밀번호 저장에는 쓰지 마세요. Keccak-512 는 표준 SHA-3 이전 판이라 <code>sha3sum</code> 값과 다릅니다.</div>
           `;
           const $ = <T extends HTMLElement>(s: string): T => container.querySelector(s) as T;
           const input = $<HTMLTextAreaElement>('#hgInput');
@@ -54,23 +67,22 @@
           const upper = $<HTMLInputElement>('#hgUpper');
 
           function render(): void {
-            const text = input.value;
-            if (typeof CryptoJS === 'undefined' || !CryptoJS) {
+            let rows;
+            try {
+              rows = hashAll(input.value, cryptoJsBackend, upper.checked);
+            } catch {
               out.innerHTML = '<div class="tool-status error">해시 라이브러리를 불러오지 못했어요. 새로고침해 주세요.</div>';
               return;
             }
-            const lib = CryptoJS as unknown as Record<string, (msg: string) => { toString: () => string }>;
-            out.innerHTML = TEXT_ALGOS.map((algo) => {
-              const fn = lib[algo];
-              if (typeof fn !== 'function') return '';
-              let hex = text ? fn(text).toString() : '';
-              if (upper.checked) hex = hex.toUpperCase();
-              return `<div class="tool-list-row hg-row" data-hash="${hex}">
-                        <span class="tool-list-key">${LABEL[algo]}</span>
-                        <span class="tool-list-val hg-hash">${hex || '-'}</span>
+            out.innerHTML = rows
+              .map(
+                (r) => `<div class="tool-list-row hg-row" data-hash="${r.hex}" data-algo="${r.algo}">
+                        <span class="tool-list-key"${r.caveat ? ` title="${r.caveat}"` : ''}>${r.label}</span>
+                        <span class="tool-list-val hg-hash">${r.hex || '-'}</span>
                         <button class="btn btn-ghost hg-copy" type="button">복사</button>
-                      </div>`;
-            }).join('');
+                      </div>`
+              )
+              .join('');
             container.querySelectorAll('.hg-copy').forEach((btn) => {
               (btn as HTMLButtonElement).onclick = async () => {
                 const hash = (btn.closest('.hg-row') as HTMLElement)?.dataset.hash || '';
@@ -82,9 +94,20 @@
           input.addEventListener('input', render);
           upper.addEventListener('change', render);
           /* 빈 칸으로 시작하면 무엇이 나오는 도구인지 안 보인다 — 예시 한 줄을 넣어
-             결과를 먼저 보여 준다. 치는 순간 그 값으로 바뀐다 (TASK-KL-133). */
+             결과를 먼저 보여 준다. 치는 순간 그 값으로 바뀐다 (TASK-KL-133).
+             주소로 불렀으면(`?op=text&text=…`) 그 값이 예시를 대신한다 (TASK-KL-205). */
+          const call = readInvocation(spec);
           input.value = 'KarmoLab';
+          if (call !== null && call.error === undefined && call.op === 'text') {
+            input.value = String(call.args.text ?? '');
+            upper.checked = call.args.upper === true;
+          }
           render();
+          if (call?.error !== undefined) {
+            const note = $<HTMLElement>('#hgNote');
+            note.textContent = call.error;
+            note.className = 'tool-status error';
+          }
         }
       },
       {
@@ -120,14 +143,15 @@
           let hashes: Record<string, string> = {};
 
           function compare(): void {
-            const want = expect.value.trim().toLowerCase().replace(/\s/g, '');
-            if (!want || !Object.keys(hashes).length) {
+            if (expect.value.trim() === '' || Object.keys(hashes).length === 0) {
               match.textContent = '';
               match.className = 'tool-status';
               return;
             }
-            const hit = Object.keys(hashes).find((k) => hashes[k] === want);
-            match.textContent = hit ? `일치 — ${hit} 해시가 같습니다.` : '일치하는 해시가 없습니다. 파일이 손상되었거나 다른 파일이에요.';
+            const hit = findMatch(hashes, expect.value);
+            match.textContent = hit
+              ? `일치 — ${hit} 해시가 같습니다.`
+              : '일치하는 해시가 없습니다. 파일이 손상되었거나 다른 파일이에요.';
             match.className = 'tool-status ' + (hit ? 'ok' : 'error');
           }
 
@@ -137,7 +161,7 @@
             hashes = {};
             try {
               const buf = await file.arrayBuffer();
-              for (const algo of ['SHA-1', 'SHA-256', 'SHA-512']) {
+              for (const algo of FILE_ALGOS) {
                 const digest = await crypto.subtle.digest(algo, buf);
                 hashes[algo] = bufToHex(digest);
               }
