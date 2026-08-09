@@ -1399,6 +1399,13 @@ await step('폰 크기에서 캔버스가 화면 절반 이상이고, 옆 패널
   const bar = await m.locator('.km-toolbar').boundingBox();
   if (bar.height > 130) throw new Error(`폰에서 툴바가 ${Math.round(bar.height)}px — 여러 줄로 부풀었다`);
 
+  // 손가락에는 손가락 크기를 준다 — 애플 44pt · 머티리얼 48dp. 34px 짜리 아이콘은 옆 것이 눌린다.
+  const tooSmall = await m.evaluate(() => [...document.querySelectorAll('.km-toolbar .btn, [data-km="sheet-grip"]')]
+    .map((el) => ({ km: el.dataset.km || (el.textContent || '').trim().slice(0, 6), r: el.getBoundingClientRect() }))
+    .filter((x) => x.r.width > 0 && (x.r.height < 44 || x.r.width < 44))
+    .map((x) => `${x.km}(${Math.round(x.r.width)}x${Math.round(x.r.height)})`));
+  if (tooSmall.length > 0) throw new Error('폰에서 손가락보다 작은 단추: ' + tooSmall.join(' '));
+
   // 손가락으로 눌러 고를 수 있어야 한다(마우스 클릭만 되는 도구는 폰에서 죽은 도구다).
   // 새 컨텍스트라 판이 비어 있다 — **먼저 하나 만든다**(빈 판에서 「고르기」를 재면 늘 통과한다).
   // 폰에서 노드를 만드는 길은 **빈 곳 두 번 두드리기**다(툴바에 만들기 버튼은 없다).
