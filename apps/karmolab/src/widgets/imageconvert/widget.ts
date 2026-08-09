@@ -46,6 +46,8 @@ type ImageBatch = {
     downloadResultsSequential: (results: ImageBatchResultItem[], ic: ImageConvertCore, mime: ImageConvertOutputMime) => Promise<void>;
 };
 
+import { t, loadNamespace } from '../../lib/i18n';
+
 (function (): void {
     const IC = (window as unknown as { KarmoLabImageConvert?: ImageConvertCore }).KarmoLabImageConvert;
     if (!IC) {
@@ -224,18 +226,25 @@ type ImageBatch = {
     type BuildOptions = { embed?: boolean; onSyncCanvas?: () => void };
 
     const ImageConvertApp = {
+        /* 이 부품은 다른 위젯이 불러다 쓴다(도구 목록에 따로 안 선다).
+         * 그래도 화면 글자는 여기서 만들어지므로, 그리기 전에 말 묶음을 받는다. */
         build: function (container: HTMLElement, opts?: BuildOptions) {
+            void loadNamespace('imageconvert').then(function () {
+                ImageConvertApp._draw(container, opts);
+            });
+        },
+        _draw: function (container: HTMLElement, opts?: BuildOptions) {
             const o = opts || {};
             const embed = !!o.embed;
             const webpOk = core.supportsWebpOutput();
             var dropBlock = embed
                 ? '<div class="imc-embed-bar" id="imcEmbedBar">' +
-                  '<span class="imc-embed-bar-text">편집 캔버스가 원본입니다. 캔버스를 수정한 뒤 여기에 반영하려면 버튼을 누르세요.</span>' +
-                  '<button type="button" class="btn btn-ghost" id="imcSyncCanvas">캔버스 다시 불러오기</button>' +
+                  t('imageconvert.t01') +
+                  t('imageconvert.t02') +
                   '</div>'
-                : '<div class="imc-drop" id="imcDrop" tabindex="0" role="button" aria-label="이미지 파일 선택">' +
-                  '<div class="imc-drop-title">이미지를 여기에 놓거나 클릭해서 선택</div>' +
-                  '<div class="imc-drop-hint">PNG · JPEG · WebP · GIF · BMP · 변환은 브라우저 안에서만 (업로드 없음)<br>GIF는 첫 프레임만 변환됩니다. 캔버스를 거치면서 EXIF 등 메타데이터는 제거됩니다.</div>' +
+                : t('imageconvert.t03') +
+                  t('imageconvert.t04') +
+                  t('imageconvert.t05') +
                   '</div>';
 
             container.innerHTML =
@@ -245,87 +254,87 @@ type ImageBatch = {
                 '<div class="imc-panel" id="imcPanel">' +
                 '<div class="imc-preview-row">' +
                 '<div class="imc-preview-col">' +
-                '<div class="imc-preview-caption">원본 <span class="imc-zoom-hint">· 클릭하면 확대</span></div>' +
-                '<div class="imc-preview-wrap" title="클릭하면 크게 봅니다"><img id="imcPreview" alt="원본 미리보기"></div>' +
+                t('imageconvert.t06') +
+                t('imageconvert.t07') +
                 '<div class="imc-meta" id="imcMeta" style="margin-top:6px"></div>' +
                 '</div>' +
                 '<div class="imc-preview-col">' +
-                '<div class="imc-preview-caption">변환 결과 <span class="imc-zoom-hint">· 클릭하면 확대</span></div>' +
-                '<div class="imc-preview-wrap" title="미리보기 클릭 시 크게 봅니다">' +
-                '<div class="imc-out-empty" id="imcOutEmpty">옵션을 맞춘 뒤 「변환 미리보기」를 누르면 여기에 표시됩니다.</div>' +
-                '<img class="imc-preview-out-img" id="imcPreviewOut" alt="변환 미리보기">' +
+                t('imageconvert.t08') +
+                t('imageconvert.t09') +
+                t('imageconvert.t10') +
+                t('imageconvert.t11') +
                 '</div>' +
                 '<div class="imc-meta" id="imcOutMeta" style="margin-top:6px"></div>' +
                 '</div></div>' +
-                '<p class="imc-section-title">출력</p>' +
+                t('imageconvert.t12') +
                 '<div class="imc-grid">' +
-                '<span class="imc-label">파일 형식</span>' +
+                t('imageconvert.t13') +
                 '<div class="imc-format">' +
                 '<label><input type="radio" name="imcFmt" value="png"> PNG</label>' +
                 '<label><input type="radio" name="imcFmt" value="jpeg"> JPEG</label>' +
                 '<label class="' + (webpOk ? '' : 'imc-fmt-off') + '"><input type="radio" name="imcFmt" value="webp"' + (webpOk ? '' : ' disabled') + '> WebP</label>' +
                 '</div>' +
-                '<span class="imc-label" id="imcQlLabel">품질</span>' +
+                t('imageconvert.t14') +
                 '<div class="imc-quality"><input type="range" id="imcQuality" min="5" max="100" value="92"><span class="imc-meta" id="imcQualityVal">92%</span></div>' +
                 '</div>' +
-                '<p class="imc-section-title">크기</p>' +
+                t('imageconvert.t15') +
                 '<div class="imc-grid">' +
-                '<span class="imc-label">긴 변 제한</span>' +
+                t('imageconvert.t16') +
                 '<div class="imc-row-inline">' +
                 '<select class="imc-select" id="imcMaxPreset">' +
-                '<option value="">원본 크기 유지</option>' +
-                '<option value="8192">8192 px 이하</option>' +
-                '<option value="4096">4096 px 이하</option>' +
-                '<option value="2560">2560 px 이하</option>' +
-                '<option value="1920">1920 px 이하</option>' +
-                '<option value="1280">1280 px 이하</option>' +
-                '<option value="1024">1024 px 이하</option>' +
-                '<option value="800">800 px 이하</option>' +
-                '<option value="640">640 px 이하</option>' +
-                '<option value="512">512 px 이하</option>' +
-                '<option value="384">384 px 이하</option>' +
-                '<option value="256">256 px 이하</option>' +
-                '<option value="custom">사용자 지정…</option>' +
+                t('imageconvert.t17') +
+                t('imageconvert.t18') +
+                t('imageconvert.t19') +
+                t('imageconvert.t20') +
+                t('imageconvert.t21') +
+                t('imageconvert.t22') +
+                t('imageconvert.t23') +
+                t('imageconvert.t24') +
+                t('imageconvert.t25') +
+                t('imageconvert.t26') +
+                t('imageconvert.t27') +
+                t('imageconvert.t28') +
+                t('imageconvert.t29') +
                 '</select>' +
-                '<input type="number" class="imc-num" id="imcMaxCustom" min="64" max="16384" value="1920" title="긴 변 최대(px)" style="display:none">' +
+                t('imageconvert.t30') +
                 '</div></div>' +
-                '<p class="imc-section-title">색 / 투명</p>' +
+                t('imageconvert.t31') +
                 '<div class="imc-grid">' +
-                '<span class="imc-label">배경색</span>' +
+                t('imageconvert.t32') +
                 '<div class="imc-row-inline">' +
                 '<input type="color" class="imc-color" id="imcBg" value="#ffffff">' +
-                '<label class="imc-check"><input type="checkbox" id="imcFillAlpha"> JPEG 외 형식에서도 투명·반투명을 이 색으로 채우기</label>' +
+                t('imageconvert.t33') +
                 '</div></div>' +
                 '<div class="imc-resample-block" id="imcResampleBlock">' +
-                '<p class="imc-section-title">리샘플</p>' +
+                t('imageconvert.t34') +
                 '<div class="imc-grid">' +
-                '<span class="imc-label">스케일 품질</span>' +
+                t('imageconvert.t35') +
                 '<select class="imc-select" id="imcSmooth">' +
-                '<option value="high">고품질 · 부드럽게</option>' +
-                '<option value="medium">보통</option>' +
-                '<option value="low">빠름 · 픽셀/계단 느낌</option>' +
+                t('imageconvert.t36') +
+                t('imageconvert.t37') +
+                t('imageconvert.t38') +
                 '</select>' +
                 '</div></div>' +
-                '<p class="imc-note" style="margin-top:2px">PNG 압축 단계 같은 세부 값은 브라우저에서 조절할 수 없어요. 형식·해상도·품질로 맞추고, 긴 변을 줄일 때만 스케일(리샘플) 품질을 고를 수 있어요. 설정은 이 브라우저에 저장됩니다.</p>' +
+                t('imageconvert.t39') +
                 '<div class="imc-actions">' +
-                '<button type="button" class="btn btn-ghost" id="imcPreviewBtn">변환 미리보기</button>' +
-                '<button type="button" class="btn btn-primary" id="imcDownload">다운로드</button>' +
-                '<button type="button" class="btn btn-ghost" id="imcClear">다른 파일</button>' +
+                t('imageconvert.t40') +
+                t('imageconvert.t41') +
+                t('imageconvert.t42') +
                 '</div>' +
                 '<p class="imc-note" id="imcFootNote"></p>' +
                 '<div class="imc-batch" id="imcBatchRoot">' +
-                '<p class="imc-section-title">여러 파일</p>' +
-                '<p class="imc-note" style="margin:0">위 출력·크기 옵션과 동일하게 연속 변환합니다. 브라우저에 따라 저장 창이 파일마다 뜰 수 있어요.</p>' +
+                t('imageconvert.t43') +
+                t('imageconvert.t44') +
                 '<input type="file" id="imcBatchInput" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp,.png,.jpg,.jpeg,.webp,.gif,.bmp" multiple hidden>' +
                 '<div class="imc-actions" style="margin-top:0">' +
-                '<button type="button" class="btn btn-ghost" id="imcBatchPick">파일 선택…</button>' +
-                '<button type="button" class="btn btn-primary" id="imcBatchRun" disabled>일괄 변환 후 저장</button>' +
-                '<button type="button" class="btn btn-ghost" id="imcBatchCancel" disabled style="display:none">취소</button>' +
+                t('imageconvert.t45') +
+                t('imageconvert.t46') +
+                t('imageconvert.t47') +
                 '</div>' +
-                '<p class="imc-batch-status" id="imcBatchStatus">선택된 파일: 없음</p>' +
+                t('imageconvert.t48') +
                 '</div>' +
                 '</div>' +
-                '<div class="imc-lightbox" id="imcLightbox" tabindex="-1" aria-hidden="true" role="dialog" aria-label="이미지 확대 · 화면 아무 곳이나 눌러 닫기">' +
+                t('imageconvert.t49') +
                 '<img id="imcLightboxImg" alt="">' +
                 '</div>' +
                 '</div>';
@@ -361,8 +370,8 @@ type ImageBatch = {
             let lastPreviewKey: string | null = null;
 
             var EMPTY_OUT =
-                '옵션을 맞춘 뒤 「변환 미리보기」를 누르면 여기에 표시됩니다.';
-            var STALE_OUT = '설정이 바뀌었어요. 「변환 미리보기」를 다시 눌러 주세요.';
+                t('imageconvert.t50');
+            var STALE_OUT = t('imageconvert.t51');
 
             function revokeOutPreview(): void {
                 if (outPreviewUrl) {
@@ -501,16 +510,16 @@ type ImageBatch = {
                 quality.disabled = !lossy;
                 quality.style.opacity = lossy ? '1' : '0.45';
                 qualityVal.style.opacity = lossy ? '1' : '0.45';
-                var tail = ' 다운로드는 미리보기와 설정이 같으면 미리보기 결과를 그대로 저장해요.';
+                var tail = t('imageconvert.t52');
                 if (fmt === 'jpeg') {
                     foot.textContent =
-                        'JPEG는 알파 채널이 없습니다. 투명 영역은 위 배경색으로 채워집니다.' + tail;
+                        t('imageconvert.t53') + tail;
                 } else if (fmt === 'webp') {
                     foot.textContent =
-                        'WebP는 투명을 유지할 수 있어요. 「투명을 배경색으로 채우기」를 켜면 불투명 WebP가 됩니다.' + tail;
+                        t('imageconvert.t54') + tail;
                 } else {
                     foot.textContent =
-                        'PNG는 무손실입니다. 「투명을 배경색으로 채우기」를 켜면 알파가 제거된 PNG가 됩니다.' + tail;
+                        t('imageconvert.t55') + tail;
                 }
             }
 
@@ -545,7 +554,7 @@ type ImageBatch = {
                             ' KB · ' +
                             (res.file.type || 'unknown');
                         panel.classList.add('imc-visible');
-                        Mdd.linePreset('success', { mood: 'happy', msg: '설정 맞추고 저장해요' });
+                        Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t56') });
                     },
                     function (err: unknown) {
                         const e = err as { message?: string } | null;
@@ -602,11 +611,11 @@ type ImageBatch = {
             });
 
             preview.addEventListener('click', function () {
-                if (preview.naturalWidth > 0 && preview.src) openLightbox(preview.src, '원본');
+                if (preview.naturalWidth > 0 && preview.src) openLightbox(preview.src, t('imageconvert.t57'));
             });
             previewOut.addEventListener('click', function () {
                 if (!previewOut.classList.contains('imc-visible')) return;
-                if (previewOut.naturalWidth > 0 && previewOut.src) openLightbox(previewOut.src, '변환 결과');
+                if (previewOut.naturalWidth > 0 && previewOut.src) openLightbox(previewOut.src, t('imageconvert.t58'));
             });
             lightbox.addEventListener('click', function () {
                 closeLightbox();
@@ -653,16 +662,16 @@ type ImageBatch = {
                                 im.naturalWidth +
                                 ' × ' +
                                 im.naturalHeight +
-                                ' px · 약 ' +
+                                t('imageconvert.t59') +
                                 (blob.size / 1024).toFixed(1) +
                                 ' KB';
                         };
                         im.src = outPreviewUrl;
-                        Toolbox.showToast('미리보기를 갱신했어요', undefined, undefined);
-                        Mdd.linePreset('success', { mood: 'happy', msg: '이렇게 나와요!' });
+                        Toolbox.showToast(t('imageconvert.t60'), undefined, undefined);
+                        Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t61') });
                     })
                     .catch(function () {
-                        showError('변환에 실패했어요.');
+                        showError(t('imageconvert.t62'));
                     })
                     .finally(function () {
                         previewBtn.disabled = false;
@@ -676,18 +685,18 @@ type ImageBatch = {
                 var mime = mimeForFmt(st.outFmt);
                 if (outBlob && lastPreviewKey === key) {
                     triggerDownloadBlob(outBlob, mime);
-                    Toolbox.showToast('저장했어요', undefined, undefined);
-                    Mdd.linePreset('success', { mood: 'happy', msg: '내려받기 완료!' });
+                    Toolbox.showToast(t('imageconvert.t63'), undefined, undefined);
+                    Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t64') });
                     return;
                 }
                 core.convertImage(current.img, getConvertOptsFromSt()).then(
                     function (blob) {
                         triggerDownloadBlob(blob, mime);
-                        Toolbox.showToast('저장했어요', undefined, undefined);
-                        Mdd.linePreset('success', { mood: 'happy', msg: '내려받기 완료!' });
+                        Toolbox.showToast(t('imageconvert.t63'), undefined, undefined);
+                        Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t64') });
                     },
                     function () {
-                        showError('변환에 실패했어요.');
+                        showError(t('imageconvert.t62'));
                     }
                 );
             });
@@ -699,7 +708,7 @@ type ImageBatch = {
                 meta.textContent = '';
                 invalidateOutPreview(false);
                 revokeCurrent();
-                Mdd.linePreset('tool_run', { mood: 'idle', msg: '다른 이미지를 골라요' });
+                Mdd.linePreset('tool_run', { mood: 'idle', msg: t('imageconvert.t65') });
             });
 
             const Batch = (window as unknown as { KarmoLabImageBatch?: ImageBatch }).KarmoLabImageBatch;
@@ -728,8 +737,8 @@ type ImageBatch = {
                 if (!batchStatus) return;
                 batchStatus.textContent =
                     batchFiles.length === 0
-                        ? '선택된 파일: 없음'
-                        : '선택된 파일: ' + batchFiles.length + '개';
+                        ? t('imageconvert.t66')
+                        : t('imageconvert.t67') + batchFiles.length + t('imageconvert.t68');
             }
 
             if (!Batch || !batchRoot || !batchInput || !batchPick || !batchRun || !batchCancel || !batchStatus) {
@@ -760,12 +769,12 @@ type ImageBatch = {
                     batchCancel.style.display = 'inline-block';
                     previewBtn.disabled = true;
                     downloadBtn.disabled = true;
-                    batchStatus.textContent = '변환 중… 0 / ' + batchFiles.length;
+                    batchStatus.textContent = t('imageconvert.t69') + batchFiles.length;
                     Batch.processFilesSequential(core, batchFiles, recipe, {
                         signal: batchAbort.signal,
                         onItemStart: function (idx, file, total) {
                             batchStatus.textContent =
-                                '변환 중… ' + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
+                                t('imageconvert.t70') + (idx + 1) + ' / ' + total + ' · ' + (file.name || '');
                         }
                     })
                         .then(function (out) {
@@ -775,24 +784,24 @@ type ImageBatch = {
                             }).length;
                             var failed = results.length - okc;
                             if (out.aborted) {
-                                Toolbox.showToast('일괄 변환을 취소했어요.', undefined, undefined);
+                                Toolbox.showToast(t('imageconvert.t71'), undefined, undefined);
                                 batchStatus.textContent =
-                                    '취소됨 · 처리 ' + results.length + ' · 성공 ' + okc + ' · 실패 ' + failed;
+                                    t('imageconvert.t72') + results.length + t('imageconvert.t73') + okc + t('imageconvert.t74') + failed;
                                 return;
                             }
                             batchStatus.textContent =
-                                '완료 · 성공 ' + okc + ' · 실패 ' + failed + (okc ? ' · 저장 창이 순서대로 열립니다' : '');
+                                t('imageconvert.t75') + okc + t('imageconvert.t74') + failed + (okc ? t('imageconvert.t76') : '');
                             if (!okc) {
-                                Toolbox.showToast('변환에 성공한 파일이 없어요.', undefined, undefined);
+                                Toolbox.showToast(t('imageconvert.t77'), undefined, undefined);
                                 return;
                             }
                             return Batch.downloadResultsSequential(results, core, mime).then(function () {
-                                Toolbox.showToast('일괄 저장 요청을 마쳤어요', undefined, undefined);
-                                Mdd.linePreset('success', { mood: 'happy', msg: '모두 저장했어요!' });
+                                Toolbox.showToast(t('imageconvert.t78'), undefined, undefined);
+                                Mdd.linePreset('success', { mood: 'happy', msg: t('imageconvert.t79') });
                             });
                         })
                         .catch(function () {
-                            showError('일괄 처리 중 오류가 났어요.');
+                            showError(t('imageconvert.t80'));
                         })
                         .finally(function () {
                             batchUiIdle();
@@ -804,7 +813,7 @@ type ImageBatch = {
             applySettingsToForm();
             Mdd.linePreset('tool_run', {
                 mood: 'idle',
-                msg: embed ? '형식·크기 맞춰서 내려받기' : '이미지 형식·크기·품질을 한곳에서',
+                msg: embed ? t('imageconvert.t81') : t('imageconvert.t82'),
             });
 
             return { applyFile: applyFile };
