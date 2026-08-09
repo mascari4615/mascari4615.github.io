@@ -81,6 +81,19 @@ window.KARMOLAB_LAZY_META = [
     lazyScriptPaths: ['perf/perf']
   },
   {
+    /* 커뮤니티는 **부팅에서 뺐다** (TASK-KL-204, 근거 = KL-201 계기판).
+       첫 화면에서 77KB 를 받고 한 번도 안 그렸다 — 계기판의 「받았는데 안 쓴 코드」가 잡았다.
+       느린 회선에서 그 77KB 는 곧 몇 백 ms 다. 눌렀을 때 받는다(chat 이 먼저 간 길). */
+    id: 'community',
+    title: '커뮤니티',
+    category: 'tool',
+    desc: '자유 · 질문 · 자랑 · 도구 요청 — 도구를 쓰는 사람들이 모이는 자리',
+    layout: 'wide',
+    noHero: true,
+    icon: '<path d="M4 5.5h16v10H9l-4 3.5v-3.5H4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M8 9.5h8M8 12h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    lazyScriptPaths: ['community']
+  },
+  {
     id: 'servermonitor',
     title: '서버 모니터',
     category: 'tool',
